@@ -1,70 +1,123 @@
-Received: from SA9PR02CU001.outbound.protection.outlook.com (mail-southcentralusazon11023135.outbound.protection.outlook.com [40.93.196.135])
+Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5568633AD8C
-	for <linux-rdma@vger.kernel.org>; Thu,  6 Aug 2026 18:12:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.196.135
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786039948; cv=fail; b=MXv4yt5Km8qICf5O6wu8LlV1YW5JHGMz6MjP6/PjiNS3PqCbL5JZNJAdMYAdXDBkKBPTII/C3ASzAOk1K/guNFo0TpN0Yeu+kLmDVdCI2OVJVOxpYU6q1clQRI0/FVTHPC5nfor5RwEEPKkjKBv6pH9WELQE64OYW2XLKbJ05EQ=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786039948; c=relaxed/simple;
-	bh=D7yHEZ4SbIu04Vszsuscq3PpZj/wSSVCNxwU4yyiabY=;
-	h=Subject:From:To:Cc:Date:Message-ID:MIME-Version:Content-Type; b=gR0qyRTW4aXQZyidyVvs5ILx8pP7gfxXsvAhw/0NI+GsncDM/fGwTBg0Wos7TXd97/Nfkf7lcSngWOA7sDief7MfU/IGImH/hM7VbNGTZjBttugzdA+/GZCSS2S38JCJomDGOqBT2XwtYQ4N6DSGEm/bgTGZhpfYpB6ibTGolng=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com; spf=pass smtp.mailfrom=cornelisnetworks.com; dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b=V5VzXrZN; arc=fail smtp.client-ip=40.93.196.135
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cornelisnetworks.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC3294C77D1;
+	Thu,  6 Aug 2026 19:07:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.177.32
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786043241; cv=none; b=XA7yYFuFFFAEYu+M0Hx8Op5xzSjBE853LviW5VeC6mOdihp8C5/MkwcD4iGoZJDTYzhg1X08+eibzaJrd2b1lxxvYLrKpn8SNzHBsszDAXZE88ougZ8Uiw5GlrjAMDegtnknNtNSlAOQq/+Ht0AyCNKjYseQiijCorVYbUvVkdc=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786043241; c=relaxed/simple;
+	bh=WXcm2Yb5I04oLe14dcXdrEPwOR8hGoCD+QeGAqYfYQw=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=AEHc1hF25SowMbEOHH1pCtzo+9NhhXR8eZdjexjXEJITmo4nkfXlmFAGt1iIzc8D9d8ucOiSMcc8J+ZsgNaH6p36PVOAfJwd1Bn33oFKpmet3FB1qRxL7dTgXvVPFzmpP7Ah/od8cky199kShTwnh3+V41NlwUo//i2daPkIZe0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=nA1aUYEN; arc=none smtp.client-ip=205.220.177.32
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b="V5VzXrZN"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=NSQaZEXkGCZxpDNK+rWB/UZvSi9SwW9juNWGIT6Kqji/GlYhF3KDVrSYtQwC0RZNH9S/nUhrq7zj16HO2E1KHEK1Ar4L5h/k6kqJ6P+58/CsyLu+iJu8+/Q7TsVZMSa5ZgK0tuWH1NYV6gLeqRGI7c2aBnOKA29Xr3v8hCiScLH0GEbBmvgXL3I83x1RYedVaRriFS7rG1KZsSWEfs2Ckjp8/KgajOjwGfsWkdete7jNFpqHKP1UbavjCwJcmbq6FtU/uCNsSPn7IxZrGQy7l+qJdYc6musfayJS+bfzdCWPfzd6iDkTwk2DX9MkiW3YqFI2AmIZNt0XFeb41f5rGg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=tT0yR6YfOctawT80rLKc+haHXJO+cD7W46UTd5atDMM=;
- b=gnwlGI1cWh0rNzVhZIVCilpfBNcMJYisCN4tR45TVKXNElBDQL4fEaV6erXLOjQTQ/FIy7GZhXZWvK6Nc7vMlO9KoJC1Z08UX+GdtUTH9c0kV1gqFNkjesFErUKBEn15Qo8+gbk/kQyvW/zHSVJLVLtPIyC8kRM4NKR5h/kZsd0eTgfhVOCaD3bdG5qd2x2Is2Qz/+022oa4THYJKVuoe98jz7lxD5KyjRLdP61zdsQJsdOkJO68Qvpb2UFfZK08xsRlcsZYaYggbA62Hw5uMHDUDnaJW5U6a1OhScDytIcUr9Q7I7BqeV1dxO8CefoPqArTDiSxaNbSdhsi29kdgg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=fail (sender ip is
- 50.148.235.34) smtp.rcpttodomain=kernel.org
- smtp.mailfrom=cornelisnetworks.com; dmarc=fail (p=none sp=none pct=100)
- action=none header.from=cornelisnetworks.com; dkim=none (message not signed);
- arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cornelisnetworks.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=tT0yR6YfOctawT80rLKc+haHXJO+cD7W46UTd5atDMM=;
- b=V5VzXrZNLEzW6BC40O22VDRq+Mwaei/v6iGU3uJms16rsKCtgJGkyVXaWZUHWzPgoa/FMNwU/R7HAQtZIinKf8AH2QjmAN5hPi1vy/VqRbOKgM+7+qQ5Rw4ANkKm5ikKOPSqQv92wzaB5JFv3sT2kwCxLLr4DvpWwjY305TjVAZ0MQTuXWp9xExuvI0lu1zhkvdXYjxT31B5kWyFQR0bM3SSb5LG3TaE/umsvp+Sw4GolSshEncLTWSRrYbC6Tfw1edz+cdEVGDONGoWvKqHc2Sf0oZafCgnVkcaSi4n+JV0lpf+idbab7MJNDtrudR3ohgc5IEJZSRydeLcUzKJNQ==
-Received: from BL1PR13CA0257.namprd13.prod.outlook.com (2603:10b6:208:2ba::22)
- by CO6PR01MB7434.prod.exchangelabs.com (2603:10b6:303:135::19) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.292.20; Thu, 6 Aug 2026 18:12:21 +0000
-Received: from BN3PEPF0000B36E.namprd21.prod.outlook.com
- (2603:10b6:208:2ba:cafe::42) by BL1PR13CA0257.outlook.office365.com
- (2603:10b6:208:2ba::22) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.315.8 via Frontend Transport; Thu, 6
- Aug 2026 18:12:21 +0000
-X-MS-Exchange-Authentication-Results: spf=fail (sender IP is 50.148.235.34)
- smtp.mailfrom=cornelisnetworks.com; dkim=none (message not signed)
- header.d=none;dmarc=fail action=none header.from=cornelisnetworks.com;
-Received-SPF: Fail (protection.outlook.com: domain of cornelisnetworks.com
- does not designate 50.148.235.34 as permitted sender)
- receiver=protection.outlook.com; client-ip=50.148.235.34;
- helo=cn-mailer-00.localdomain;
-Received: from cn-mailer-00.localdomain (50.148.235.34) by
- BN3PEPF0000B36E.mail.protection.outlook.com (10.167.243.165) with Microsoft
- SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.21.315.0
- via Frontend Transport; Thu, 6 Aug 2026 18:12:20 +0000
-Received: from awdrv-04.localdomain (unknown [10.228.212.218])
-	by cn-mailer-00.localdomain (Postfix) with ESMTPS id 74AAF1D042A;
-	Thu,  6 Aug 2026 14:12:20 -0400 (EDT)
-Received: from [10.228.212.218] (localhost [IPv6:::1])
-	by awdrv-04.localdomain (Postfix) with ESMTP id 612E11810E40E;
-	Thu,  6 Aug 2026 14:12:20 -0400 (EDT)
-Subject: [PATCH] RDMA/hfi2: Add MAINTAINERS entry
-From: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-To: jgg@ziepe.ca, leon@kernel.org
-Cc: linux-rdma@vger.kernel.org
-Date: Thu, 06 Aug 2026 14:12:20 -0400
-Message-ID: <178603994025.3611040.18003173777504573447.stgit@awdrv-04>
-User-Agent: StGit/1.5
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="nA1aUYEN"
+Received: from pps.filterd (m0333520.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 676Ftr4v4168306;
+	Thu, 6 Aug 2026 19:06:26 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=
+	corp-2025-04-25; bh=85JNUC8SyfLYyGobZYpdZmxyQGF0qjVqbjDUd/Wkets=; b=
+	nA1aUYENomsR9p7hfDkQr6KalTZrWQW8NET0IkudX6kxW006ofYrtz87Qku7QfJU
+	1lbtfpVmJ42Q3AQE1tcbOw0dHj5dJSylYxq+m2+YcyLW9melEp/Zo40HFGHB54iG
+	OcTwtR+niQLcarL+4OWP5kUShgYJOMrLwxEqqSkY7Lj2zjgD/sgtw+C5rg7PDGAH
+	Gv3g1ppfRFvZh8DYeUX2gV+upEZO5qZ40tc03kMw1uUKshv2LOqjagJ3HbvFdCxa
+	5hBpF9vOLZ/60dXew31tSvX4uLcqli6uolj+khGTMmHGGzK/4pK/rJL+YY5xBUHb
+	pPRuZrwRVaPtUZ7W/V2+uA==
+Received: from iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta02.appoci.oracle.com [147.154.18.20])
+	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 4fs8ugpqtf-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Thu, 06 Aug 2026 19:06:26 +0000 (GMT)
+Received: from pps.filterd (iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
+	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (8.18.1.7/8.18.1.7) with ESMTP id 676J0b6k024663;
+	Thu, 6 Aug 2026 19:06:25 GMT
+Received: from pps.reinject (localhost [127.0.0.1])
+	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTPS id 4fs78w56e3-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Thu, 06 Aug 2026 19:06:25 +0000 (GMT)
+Received: from iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
+	by pps.reinject (8.18.1.12/8.18.1.12) with ESMTP id 676J6LgY011247;
+	Thu, 6 Aug 2026 19:06:24 GMT
+Received: from ca-mkp2.ca.oracle.com.com (mpeterse-ol9.allregionaliads.osdevelopmeniad.oraclevcn.com [100.100.251.135])
+	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTP id 4fs78w56b9-3;
+	Thu, 06 Aug 2026 19:06:24 +0000 (GMT)
+From: "Martin K. Petersen" <martin.petersen@oracle.com>
+To: Julia.Lawall@inria.fr, Alex Deucher <alexander.deucher@amd.com>,
+        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Andrew Lunn <andrew@lunn.ch>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Arkadiusz Kubalewski <arkadiusz.kubalewski@intel.com>,
+        Borislav Petkov <bp@alien8.de>,
+        =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
+        Daniel Lezcano <daniel.lezcano@kernel.org>,
+        David Airlie <airlied@gmail.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Eric Dumazet <edumazet@google.com>, Florian Westphal <fw@strlen.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans de Goede <hansg@kernel.org>, Hans Verkuil <hverkuil@kernel.org>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Jaroslav Kysela <perex@perex.cz>, Jason Gunthorpe <jgg@ziepe.ca>,
+        Jiri Pirko <jiri@resnulli.us>, "Joerg Roedel (AMD)" <joro@8bytes.org>,
+        Johan Hovold <johan@kernel.org>, Jonathan Cameron <jic23@kernel.org>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Julian Anastasov <ja@ssi.bg>, Leon Romanovsky <leon@kernel.org>,
+        Liam Girdwood <lgirdwood@gmail.com>, Linus Walleij <linusw@kernel.org>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Mark Brown <broonie@kernel.org>, Matthew Sakai <msakai@redhat.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Maxime Ripard <mripard@kernel.org>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Mike Rapoport <rppt@kernel.org>,
+        Miri Korenblit <miriam.rachel.korenblit@intel.com>,
+        Nicolas Palix <nicolas.palix@imag.fr>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Paolo Abeni <pabeni@redhat.com>, Ping-Ke Shih <pkshih@realtek.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        Sebastian Reichel <sre@kernel.org>, Shuah Khan <shuah@kernel.org>,
+        Simona Vetter <simona@ffwll.ch>, Simon Horman <horms@verge.net.au>,
+        Stephen Boyd <sboyd@kernel.org>, Steve French <sfrench@samba.org>,
+        Takashi Iwai <tiwai@suse.com>, Thomas Renninger <trenn@suse.com>,
+        Thomas Zimmermann <tzimmermann@suse.de>,
+        Tony Luck <tony.luck@intel.com>, Tvrtko Ursulin <tursulin@ursulin.net>,
+        Vadim Fedorenko <vadim.fedorenko@linux.dev>,
+        Vinod Koul <vkoul@kernel.org>, Will Deacon <will@kernel.org>,
+        Yazen Ghannam <Yazen.Ghannam@amd.com>,
+        Sang-Heon Jeon <ekffu200098@gmail.com>
+Cc: "Martin K . Petersen" <martin.petersen@oracle.com>, cocci@inria.fr,
+        amd-gfx@lists.freedesktop.org, dmaengine@vger.kernel.org,
+        dm-devel@lists.linux.dev, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, intel-wired-lan@lists.osuosl.org,
+        iommu@lists.linux.dev, linux-cifs@vger.kernel.org,
+        linux-clk@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-edac@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-mm@kvack.org, linux-pm@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-rtc@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org,
+        linux-sound@vger.kernel.org, linux-usb@vger.kernel.org,
+        linux-wireless@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        nouveau@lists.freedesktop.org, platform-driver-x86@vger.kernel.org
+Subject: Re: (subset) [PATCH 00/36] treewide: remove conditional returns with no effect
+Date: Thu,  6 Aug 2026 15:06:08 -0400
+Message-ID: <178589207129.336697.9870225893827541543.b4-ty@oracle.com>
+X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20260723184538.3888637-1-ekffu200098@gmail.com>
+References: <20260723184538.3888637-1-ekffu200098@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -72,64 +125,50 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN3PEPF0000B36E:EE_|CO6PR01MB7434:EE_
-X-MS-Office365-Filtering-Correlation-Id: cc4f3386-a566-425d-74c2-08def3e641ef
-X-MS-Exchange-AtpMessageProperties: SA
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700016|23010399003|376014|1800799024|82310400026|10067099003|56012099006|18002099003|55112099003;
-X-Microsoft-Antispam-Message-Info:
-	KvoHR2w06ei9Jpi2OCWUpMfTmRu+Pgwz0ijBM5p01kaBDnXwxeaDLHgCovuECQ9nXBOkB7x5dOgqj5snwvQJThCOjenJWevqGVQGdl/KicN65Idlem+/FuE7HtHWkraPOIP0pZzKcwHnJuJTDE99KFweAj8WKrceXnkgyywwbdieA5QceTlVKbeoMfoGUE3yTDs6UPQLXvtdcwvC0W1g2BYChUFK/EfEiw5OjzhceMrXdWu5CpF1wf1+IrNdKUoZj8ekw+HIk1c9prYpqyCtOivLJ6Z/rIdh5iVeij7gaWfvL6Y1LOEk/2PR3rOavG7jWSZSkrXi29wKVZTPaP54bdgyCE5d1vSM6P9X5LrbYF23eXENyYq9uL9paDBqru86dvQwuEnNH8P8bweRTNTjGzACy0PN/gvudQ3KHuFQTDGAOsgZ45Zb9aCnP3wRnozzHdoOFrt/TTwzi6ErlT5SfgnMCbTyMj+Ay7ftNsD+z8UWst1N408EV/xXQgKAoZj5QgaED3GRQJwIafxeL67xDHfbY4kQe/tue8L4Jyd2Z8nfP9H09BzJu/yPHeDhOpENNNGh/g0NxY4X7p1dCHKz9u0eWduX/2SDCf9ma1dzc/yCNxWl0f7STOlUQnWd8tSfmJEeNnVTrvdri7Q4tjjVQKgngAaXrQpCjvEk4Awff4kTPMQAeSuL9YhY9b4SmeyaSx6b13i/Vnm+0VSOMXueAw==
-X-Forefront-Antispam-Report:
-	CIP:50.148.235.34;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:cn-mailer-00.localdomain;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(36860700016)(23010399003)(376014)(1800799024)(82310400026)(10067099003)(56012099006)(18002099003)(55112099003);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	VdNq99jko7KGSK5En2BiTixe8HH5/lH72j4JxaYwlmhsL7uX4hNQ4OOi7x6SVWcNGppr9gmUBTkCZWYLNr/hCIkQ5xGdIkMQEJ7BOrxSBE+vc2LxzIGpERT9/KuqCg2SWnhpA7z5M5Iuc4O5YbXzJbp/0C2CEifNboQRwI1YTstnnmO1cXhFHekPHZpAOZtC5S5o7YsUgf9Nq2Vz6yzta7BKKxeGunorIKJA3ukh7NfPMIvWzKRNYKb9vd2S3QVRysRbmqs++TxlO2XGjGyjlmhu2nw5Hmg8ldfjSb08ZsT6BtZCiXGFN972MIhq40gsofBCkLO0hKWhOeX+90uUGP/EzcNlugHoyYimEjdMKM3na/Xm/26VeGwqXiZQ9HmgDEereSCd8MMxRYfoBcWvUFlJrk18vgVItwFeb8nCj+X1jL7NkuU0XH6rGNYzc6Xr
-X-OriginatorOrg: cornelisnetworks.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Aug 2026 18:12:20.6804
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: cc4f3386-a566-425d-74c2-08def3e641ef
-X-MS-Exchange-CrossTenant-Id: 4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a;Ip=[50.148.235.34];Helo=[cn-mailer-00.localdomain]
-X-MS-Exchange-CrossTenant-AuthSource:
-	BN3PEPF0000B36E.namprd21.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CO6PR01MB7434
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-08-06_02,2026-08-06_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0
+ spamscore=0 malwarescore=0 bulkscore=0 lowpriorityscore=0 mlxscore=0
+ phishscore=0 mlxlogscore=672 suspectscore=0 classifier=spam adjust=0
+ reason=mlx scancount=1 engine=8.19.0-2606160000 definitions=main-2608060149
+X-Proofpoint-ORIG-GUID: XGMDaQGIFMb57T6Q2yvPQTQQt2debxfq
+X-Authority-Analysis: v=2.4 cv=XqnK/1F9 c=1 sm=1 tr=0 ts=6a74db32 b=1 cx=c_pps
+ a=e1sVV491RgrpLwSTMOnk8w==:117 a=e1sVV491RgrpLwSTMOnk8w==:17
+ a=IkcTkHD0fZMA:10 a=Sv0fKeRqtYgA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=jiCTI4zE5U7BLdzWsZGv:22 a=BqU2WV_vvsyTyxaotp0D:22 a=VwQbUJbxAAAA:8
+ a=Br-j9HdbvUlrMjNZj6IA:9 a=QEXdDO2ut3YA:10 a=5yU3S35YU4bGjq-dph-N:22
+ a=Bho9c0fBagfJEIQBS7DQ:22 cc=ntf awl=host:13510
+X-Proofpoint-Spam-Info: AW1haW4tMjYwODA2MDE0OSBTYWx0ZWRfX6uIK9jT+2Jev
+ rYS5Xc6Wjv9hMYRtyD0NY9wioUhY1o9ts8S44XrOIykROIC2fMM+q3H5rjkub44bNgkLDQ3tnSe
+ fkx9LiuU0Ioed9eVzRB8PP2qYuZIVaHGDH9Vr333gSb2ZgsHD92v
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwODA2MDE0OSBTYWx0ZWRfX43FUiflrVixJ
+ FNgAKsr+fsfl0ktZltC3fvW6MVFcRQRy/oySHj8nQQDMOHwfS94QLWHrXArK3j62D1c6aNzQrnl
+ 2DtOuGbPQocnjuSCI1ny1WWYx/7jkkjlcfyl+lp7TEesEfkx307+KuCZo0OgIxbIwfa72MWD4em
+ tn6/hMd/QXx6zH3wP5OlhrMzlp2qKgIxJlelAMfUWIkruyj4hnvKzGUkqPoF4QRZ71As9I8pV2j
+ DMm/cMIaHufC6lXcsuKfUk0yiqWTx1Zr8LtQAR498eW34hEj3pAMHucta0+1CKmEnv9EN7lkU/M
+ FG7jgW8yHOjl2TgueMJFzovO4heKYSqjW47oC3CHVujyZPMUqifsWdUKFoxdhd+EKhXdCEJL9b0
+ LGCES5HP/CdGIqj2UaaWymZGJVFVJ4RBD/aEk7/710HO5x59Z+gVx3LZGgty2YUYCbgJE7oGTWH
+ QPXliDM2eYx5QgvaSSBlrfWn/1V9lBD33lbCDCaI=
+X-Proofpoint-GUID: XGMDaQGIFMb57T6Q2yvPQTQQt2debxfq
 
-The hfi2 driver was never given its own MAINTAINERS entry when it was
-added; only the pre-existing HFI1 DRIVER entry covers
-drivers/infiniband/hw/hfi1. Add a matching HFI2 DRIVER entry so that
-drivers/infiniband/hw/hfi2 is properly tracked.
+On Fri, 24 Jul 2026 03:45:02 +0900, Sang-Heon Jeon wrote:
 
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
+> While reading mm/memblock, I found a conditional return where both
+> branches return the same value:
+> 
+> 	err = do_something();
+> 	if (err)
+> 		return err;
+> 	return err;
+> 
+> [...]
 
----
-This can be squashed into one of the hfi2 patches even
----
- MAINTAINERS |    6 ++++++
- 1 file changed, 6 insertions(+)
+Applied to 7.3/scsi-queue, thanks!
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 806bd2d80d15..203a68aaae9e 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -11481,6 +11481,12 @@ L:	linux-rdma@vger.kernel.org
- S:	Supported
- F:	drivers/infiniband/hw/hfi1
- 
-+HFI2 DRIVER
-+M:	Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-+L:	linux-rdma@vger.kernel.org
-+S:	Supported
-+F:	drivers/infiniband/hw/hfi2
-+
- HFS FILESYSTEM
- M:	Viacheslav Dubeyko <slava@dubeyko.com>
- M:	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+[30/36] scsi: mpt3sas: remove conditional return with no effect
+        https://git.kernel.org/mkp/scsi/c/c79f9bf2d87f
 
-
+-- 
+Martin K. Petersen
