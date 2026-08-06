@@ -1,72 +1,74 @@
-Received: from mail-wr2-f0.google.com (mail-wr2-f0.google.com [74.125.225.64])
+Received: from mail-wr1-f48.google.com (mail-wr1-f48.google.com [209.85.221.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41638494823
-	for <linux-rdma@vger.kernel.org>; Thu,  6 Aug 2026 20:14:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.64
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4233241D4F1
+	for <linux-rdma@vger.kernel.org>; Thu,  6 Aug 2026 21:18:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786047283; cv=none; b=JEduZDXOMnbUUgzNTaNMddW0jvk2EqO/R0QR71GvEgcULauvil+8ELjK5FmE+02LAb33Fiz8IgnocjaVUjxGPvVXf/ZeQv2vxs+uPcMFdWpnNhHipSZmvj3diWffIOY1SDuunl2GqxEBS25BDK5De/7bKO6pYRHhJldwnXcpryo=
+	t=1786051141; cv=none; b=ZH0KHzQ46YDhjOYP8l3K+sq1K7SSliG1bsP0MWmRN9lkZgqW2xJi65yYlDn2nKLPTO2JkwZeJHsmF7AseXYvIntlZRgC4suP+n/3otZiSdoSn6Sp0edeXZzbJV1l0UmeYD/ukNcG63qHJbov5v7PWDizgpcZWpN/ZTKWfWI2U7A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786047283; c=relaxed/simple;
-	bh=o2btizAO+Ks/0UvqaH7GZKydxvAy1OgOWVYRpiO6bo0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=nTRWeGH548pCLjinAUIgzRqqfw92Objh4Fd1m6X/SguGBGHvFkauENUvgjVLvD10u4ArTIIFHrGLVCCoKLFuYYQfskjQlGe5rOkNijMq3RsgjCv5xf4JtsvPFnGowyQIiMTF5XuLKGTVWG3wYtt6dLrpq7NPif4sNnaUj14vVnY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=i7UQ7gm1; arc=none smtp.client-ip=74.125.225.64
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1786051141; c=relaxed/simple;
+	bh=ZqfALecxguBf5AvMMeJ84m0m1CSvaEMaSzywbObCj5U=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=hj34Jl40uZVh2DbgKcLcjYj56p8QF4lzDCKoYg6j/4VV740USN8FAYoITsmxoEgjXT/RgYZBowbYp6NvWMk2sE/HQ9Mvcb3GIfHyQ9CSGln2AnH+ndD/8Nt+hZtQQYQZzlOadIBMCunkynzNCqx/NBSJhFlRnRrE5cbHVG6gKNM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=purestorage.com; spf=pass smtp.mailfrom=purestorage.com; dkim=pass (2048-bit key) header.d=purestorage.com header.i=@purestorage.com header.b=fSCd4cyu; arc=none smtp.client-ip=209.85.221.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=purestorage.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=purestorage.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="i7UQ7gm1"
-Received: by mail-wr2-f0.google.com with SMTP id ffacd0b85a97d-4784b41f3aeso624582f8f.1
-        for <linux-rdma@vger.kernel.org>; Thu, 06 Aug 2026 13:14:34 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=purestorage.com header.i=@purestorage.com header.b="fSCd4cyu"
+Received: by mail-wr1-f48.google.com with SMTP id ffacd0b85a97d-4706f016316so176041f8f.3
+        for <linux-rdma@vger.kernel.org>; Thu, 06 Aug 2026 14:18:57 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786047269; x=1786652069; darn=vger.kernel.org;
+        d=purestorage.com; s=google2022; t=1786051136; x=1786655936; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=KptR6YR3bhzGgXjfr9mIisFou0Y2tXrBhy7YKqZAMeo=;
-        b=i7UQ7gm1y43GxtfulJeQUPvx85Q+lFILxtnFI6x0DuMPKcB54Lasc3CcfX9Jyd97ps
-         FyjOxHPgwLQhhuwpu10/9qHGmae6xH3T/2I6N8MCKXFqUvfrrOgMK+y291db/dWGonCB
-         qo9cBU13FQHBi9PmEfA2dfhfZi7gudOtQ62wWESj1K1rcin0SERmdL8I+lkmQ+EgGvjU
-         mH3H2yJDzMPXYbvrHJNcRq0ssqaQpA+fI5Lp0Zf6ZRldoG/O9xp/EEvMNMJADtqVVDOo
-         daVAf6BZLreQ2+cz/eymLvnSi20pNoNNx6ICe3I/J2ZDGF80DwB22LW+sLAcdyKWB0+h
-         xzmQ==
+        bh=MaxROpi6DTwUPsCaSniySMmojeCZ+8s8VtuCCe0FwZI=;
+        b=fSCd4cyuh/6Xp5HAIRj1MeTWUVsKBpuIlqYynefgkq/ZNCCBIYWxrOWlueQzgnMTuV
+         dNi41iHztr/ddPn5B0ctubjtW/zZElHR7VpUu8cZIUTEOcTBDb0seslGnRYcnffN/y00
+         9N6o1MuEdTyriPouyEqFYCjmXAEkID2V7gWkuv20FdshUF0oEO9ZMuWCWmBXXuObREHO
+         rfMeVpbHdJtJxZIfwbG66d5Wvc1hO6q7el3sCaia2SCYPR7wXZWwfrL6viJKcPHXhsJj
+         Q+E+KUZxDt1ywTwSdziMzEW0FOh6m4bNkYQvxpG3JgwrEtTXZGtFlkZsgU10D//Cavzt
+         N7fw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786047269; x=1786652069;
+        d=1e100.net; s=20251104; t=1786051136; x=1786655936;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=KptR6YR3bhzGgXjfr9mIisFou0Y2tXrBhy7YKqZAMeo=;
-        b=fOUz+q5QXpsc738Is3AWL0e+Qr1lEIH3gbi8ZgTZ5I7iy8vKSTmAr6mcimOASyHRPB
-         NWq5SNPSfpOC9nSXbefx/ElxvJ6W2+2UMYPlMC2OV2X+QkKMzO/llQEmkGITjOByEla2
-         5JL5tEbK60L7MsNdsFJv0uMPYFffZ5fZZlhiQGmDQOSftRt02Is6/uBbm8sQKT5VrhEZ
-         VjC9SE2DSnjzgNFoMEAT7IIz0R68vBn4o0kKKfxFK8Sd57m1df7VTbkcrilVYNyT3+Zo
-         uqR2D85nbwR/1JIovFz5TKzjNkqgmhqe6Di1BEz5Uy3Hnu/gZRvIyJ4KkRbg+slqXiP8
-         PLKA==
-X-Forwarded-Encrypted: i=1; AHgh+RoPNg8DLWOFO9zaWxy/8abgA74elGP1gCUNqk4saDpcGGP5lOT35jkZr41fmLM52MSg2+fCuHtFvTfX@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywnm1HbH3XeRR5C2ObunXVk4+NLSdZTbRjNIiPLYdmfIPr1FBSS
-	rpN/Sa/C8qByNrc0WwKKwQAzOFnKzFFTUitT/+ijhMte7KeTImsNpJcM
-X-Gm-Gg: AR+sD11bVeYPhpZRaO5G5jOcXo3sIEUxvNldnUfJ0dUZRD5JPAXMzYEXK+5wRd5yDgJ
-	RyS0XESiVGFecsUxC0wNawI2BtSx5AcVDMVWBUF0V8Hc4PDVEjim3afaGXMMrC0cTbheS3qg3d+
-	DpCxFmFEw8rP+020j4p7FpY4Qy68GWUohQXc7jCTDBRTFuZEepjwOlzkI4JQlCEaVusa++lCUYl
-	39hXP/tKNe8N1qRIHAtvsW60ZyTUC60LOobad+fy5TUTjgmLTsHNnPdD4qhSvl1nBRSo5mAuXse
-	dhSIK52oJ2NfG7kC4o+qhsSfc7tUznKPTfs8WiA9pAKmZS2MxvCAZnoUlrwllrnClOAWtehZzp0
-	JGFzYwZAraMLmE02CAQjg3Rai/KeE947Nybp2XL0h0xGcLa9+gV45pFO5r71a7reXAiiXksPeBm
-	BtsqCor+Ow2csaxD/sxNLgSRRs69bEpoumoe6CfYoOBJOGC3vV/QxshzHURsHr
-X-Received: by 2002:a05:600c:8b55:b0:495:3de8:33a6 with SMTP id 5b1f17b1804b1-4994e7cdd39mr266039855e9.16.1786047268974;
-        Thu, 06 Aug 2026 13:14:28 -0700 (PDT)
-Received: from fedora ([212.253.220.176])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4995422016fsm70069855e9.8.2026.08.06.13.14.27
+        bh=MaxROpi6DTwUPsCaSniySMmojeCZ+8s8VtuCCe0FwZI=;
+        b=WP5IzRjf83g58TaA38JonJV19XKF+WsfwToXY6ohoYwYsC0xV2NBsPmsD56YSKIh8Y
+         faAToxlnXluDXgEIWDJwFrLOGGvbhI/s9XsmrxR23ct5m3YoyXMfvdYwwmgmtJLylvl1
+         XempqTaDaygLZKYpivJ0iPtnOnWgIpui2s9icUULwtGRLx+rVuK9iqzlDKeoOUNMiXpI
+         QrqNRr+1OH9GPzKylXpjrMoFspcVrkLyVmUwoHshqUjLC1hL/JbIG655hRaKC/2zsDbP
+         UXTGCkrZKChd0HCedoN9/inv6uT4F2OmEd1gKXn1PH/ELkwuIyUDx3JMGMWOY6GGWVNp
+         wB2w==
+X-Forwarded-Encrypted: i=1; AHgh+RqcTlILrSKk96/buBs6VvOIWkg4PYEPjdo9UtLV9cDrPvvhwEhjbxKlch6WkZQo6UWTwe8QFVjWl2nF@vger.kernel.org
+X-Gm-Message-State: AOJu0YwKzu6shFOT8GtlLAWRkW7NZJaukXeN1dU5khQ0t/61ihINbH/d
+	U2o+3W9Mz13ZKpZ17eIOKsc01TR7RmhHjrCF5DhopkkiMNq19nauQeIujegQGBqCR+w=
+X-Gm-Gg: AR+sD10BMabiipmUuptAG0X/KSQO2nFciy5gZ3BQ+27jRorjSLEtZSuwEvMqVLcj4tD
+	A6C4wbIRrKuSA9aB//9RcXAII/kMdSsJjZpmIuecM0cCmpG+DITdma05UAd+oe/mIu6XqNK3mal
+	3D36WYJP0d6nNDFTEVY9ib2XXiL+PBSikJwcg+erXFLhGNw5/vWXwrqfTs5lTYkbTLh0wANO7rn
+	Gxpnsf+hCgqGmf11UOG3k8pBAjLx+M34QW6XqHn389Ey3lc2RcPc7VS4yp8rONgELHdFsNVSf9c
+	gDROAi2UT4PL5UZ/q8f6hbOcllvb3z7O3RCRgm12oHMhLt9HMxoklaRXmMz9qNsB5+GOi4AQaWi
+	6FRggqDaW7PMGNX2jE+Rnb9CcZ5oY/JDRXpPgWVetNFbcNeYPiDKHH2EnyyXCVW8SVat6ShZ0b1
+	CLfiANslCji8WRr5ANzYNACnQrCyacs5Gm9FxMtwTVcbrZsmEHFOx4IyyFtQkcQ7mQQdZjIqKom
+	Y5ssBkKu6ugF+FX
+X-Received: by 2002:a05:600c:4ecb:b0:499:59a1:96f7 with SMTP id 5b1f17b1804b1-49959a19770mr36229445e9.1.1786051136245;
+        Thu, 06 Aug 2026 14:18:56 -0700 (PDT)
+Received: from dev-cachen2.dev.purestorage.com ([208.88.159.128])
+        by smtp.googlemail.com with ESMTPSA id 5b1f17b1804b1-4995c7a56c5sm8455405e9.3.2026.08.06.14.18.53
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 06 Aug 2026 13:14:28 -0700 (PDT)
-From: Serhat Kumral <serhatkumral1@gmail.com>
-To: Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>
-Cc: Sean Hefty <shefty@nvidia.com>,
+        Thu, 06 Aug 2026 14:18:55 -0700 (PDT)
+From: Casey Chen <cachen@purestorage.com>
+To: linux-nvme@lists.infradead.org
+Cc: kbusch@kernel.org,
+	hch@lst.de,
+	sagi@grimberg.me,
+	axboe@kernel.dk,
 	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Serhat Kumral <serhatkumral1@gmail.com>
-Subject: [PATCH] RDMA/ucma: Allow path records to exactly fit the output buffer
-Date: Thu,  6 Aug 2026 23:13:58 +0300
-Message-ID: <20260806201358.147478-1-serhatkumral1@gmail.com>
-X-Mailer: git-send-email 2.55.0
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] nvme-rdma: fix ib_device removal race that hangs PCI unbind
+Date: Thu,  6 Aug 2026 15:18:22 -0600
+Message-Id: <20260806211822.317074-1-cachen@purestorage.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -75,71 +77,198 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-ucma_query_path() emits a path record only when the remaining output
-buffer is strictly larger than struct ib_path_rec_data. A buffer sized
-exactly for the response header and N complete records therefore gets
-only N - 1 records, while resp->num_paths still advertises N. A caller
-sizing its buffer for a single record gets a header claiming one path
-and no path data at all.
+nvme_rdma_remove_one() samples nvme_rdma_ctrl_list once, then blocks in
+flush_workqueue(nvme_delete_wq). A connect can publish a controller on
+the same ib_device during that window: nvme_rdma_find_get_device()
+matches on node GUID in nvme_rdma's private device_list and never
+consults ib_core unregistration state. Such a controller is never
+deleted, so its rdma_cm_ids keep a reference on the cma_device.
 
-ucma_query_ib_service() in the same file computes the record count with
-a plain division and so accepts an exact fit; make ucma_query_path()
-behave the same way.
+ib_clients are removed LIFO, so nvme_rdma_remove_one() runs before
+cma_remove_one(), which then waits for that reference forever. Removing
+the RDMA interface underneath live NVMe-oF connections:
 
-Current librdmacm is unaffected because it always sizes the response for
-six records while the kernel currently reports at most two paths. Other
-users of the UAPI that provide an exactly sized buffer can observe the
-truncated response.
+  echo 1 | sudo tee /sys/bus/pci/devices/0000:2a:00.1/remove
 
-Fixes: ac53b264b2f3 ("RDMA/ucma: Support querying when IB paths are not reversible")
-Signed-off-by: Serhat Kumral <serhatkumral1@gmail.com>
+wedges the unbind permanently:
+
+  INFO: task tee:164872 blocked for more than 200 seconds.
+  task:tee             state:D stack:0     pid:164872 ppid:164870 flags:0x00004002
+  Call Trace:
+   <TASK>
+   __schedule+0x4b4/0xf90
+   schedule+0x5a/0xc0
+   schedule_timeout+0x105/0x110
+   ? cma_process_remove+0x1f9/0x240 [rdma_cm]
+   __wait_for_common+0xc7/0x1f0
+   ? usleep_range_state+0xb0/0xb0
+   cma_remove_one+0x50/0xb0 [rdma_cm]
+   remove_client_context+0x88/0xc0 [ib_core]
+   disable_device+0x8a/0x160 [ib_core]
+   __ib_unregister_device+0x42/0xa0 [ib_core]
+   ib_unregister_device+0x22/0x30 [ib_core]
+   mlx5r_remove+0x39/0x60 [mlx5_ib]
+   auxiliary_bus_remove+0x18/0x30
+   device_release_driver_internal+0x18f/0x1f0
+   bus_remove_device+0xbc/0x120
+   device_del+0x154/0x3d0
+   ? devl_param_driverinit_value_get+0x29/0x90
+   mlx5_rescan_drivers_locked.part.0+0x78/0x1c0 [mlx5_core]
+   mlx5_unregister_device+0x34/0x50 [mlx5_core]
+   mlx5_uninit_one+0x45/0x110 [mlx5_core]
+   remove_one+0x4e/0xc0 [mlx5_core]
+   pci_device_remove+0x39/0xa0
+   device_release_driver_internal+0x18f/0x1f0
+   pci_stop_bus_device+0x68/0x90
+   pci_stop_and_remove_bus_device_locked+0x28/0x40
+   remove_store+0x75/0x90
+   kernfs_fop_write_iter+0x147/0x1d0
+   vfs_write+0x2af/0x410
+   ksys_write+0x5f/0xe0
+   do_syscall_64+0x35/0x80
+   entry_SYSCALL_64_after_hwframe+0x4b/0xb5
+   </TASK>
+
+Because the unbind stalls mid-teardown the netdev is never unregistered,
+so userspace keeps reconnecting over the interface and loses the race
+again.
+
+Mark the nvme_rdma_device dying before sampling nvme_rdma_ctrl_list and
+test it in two places:
+
+ - nvme_rdma_find_get_device() refuses a dying device, so later connects
+   fail early. A re-probed HCA (same GUID, new ib_device) gets a fresh
+   nvme_rdma_device.
+
+ - nvme_rdma_create_ctrl() re-tests it under nvme_rdma_ctrl_mutex before
+   publishing and deletes the controller instead if set, covering a
+   connect that obtained the device before the flag was stored.
+
+->dying is stored before nvme_rdma_remove_one() takes
+nvme_rdma_ctrl_mutex and the publisher tests it under that same mutex,
+so a publisher either lands on the list before the walk or observes
+->dying. One sweep remains sufficient.
+
+Reproduced on a 6.6 based kernel by removing and rescanning the mlx5
+interface carrying the NVMe-oF RDMA connections in a loop, with IO
+running and a userspace daemon reconnecting the controllers throughout.
+The hang is racy: most removals complete normally, and only one that
+lands while a connect is in flight leaves the sysfs write stuck in D
+state with the trace above. With this patch the loop ran clean: removals
+complete and the controllers reconnect after the following PCI rescan.
+
+Fixes: e87a911fed07 ("nvme-rdma: use ib_client API to detect device removal")
+Signed-off-by: Casey Chen <cachen@purestorage.com>
 ---
-Reproduced with soft-RoCE (rxe) under qemu, on two 7.2.0-rc3 kernels that
-differ only in this patch; the kernel config, the test program and the VM
-were identical across both runs.  The test program drives
-/dev/infiniband/rdma_cm directly so that hdr.out can be set to exactly
+ drivers/nvme/host/core.c |  1 +
+ drivers/nvme/host/rdma.c | 49 +++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 49 insertions(+), 1 deletion(-)
 
-	sizeof(struct rdma_ucm_query_path_resp) +
-	sizeof(struct ib_path_rec_data)		= 8 + 72 = 80
-
-and poisons the response buffer first, so a record slot the kernel never
-wrote stays recognisable afterwards.
-
-Before:
-
-	requesting room for 1 record(s): hdr.out = 80
-	resp->num_paths (advertised by kernel) = 1
-	record slot 0: UNTOUCHED (still poison)
-	records that fit in the buffer and should have been copied: 1
-	records actually copied:                                   0
-
-After:
-
-	requesting room for 1 record(s): hdr.out = 80
-	resp->num_paths (advertised by kernel) = 1
-	record slot 0: written by kernel   flags=0x0000002b
-	records that fit in the buffer and should have been copied: 1
-	records actually copied:                                   1
-
-flags 0x2b is IB_PATH_GMP | IB_PATH_PRIMARY | IB_PATH_BIDIRECTIONAL, i.e.
-exactly what ucma_query_path() writes into the record.
-
- drivers/infiniband/core/ucma.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 878561fa1cb5..cfd202325458 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -951,7 +951,7 @@ static ssize_t ucma_query_path(struct ucma_context *ctx,
+diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
+index cb93ada4376a..374968145f56 100644
+--- a/drivers/nvme/host/core.c
++++ b/drivers/nvme/host/core.c
+@@ -277,6 +277,7 @@ void nvme_delete_ctrl_sync(struct nvme_ctrl *ctrl)
+ 		nvme_do_delete_ctrl(ctrl);
+ 	nvme_put_ctrl(ctrl);
+ }
++EXPORT_SYMBOL_GPL(nvme_delete_ctrl_sync);
  
- 	resp->num_paths = ctx->cm_id->route.num_pri_alt_paths;
- 	for (i = 0, out_len -= sizeof(*resp);
--	     i < resp->num_paths && out_len > sizeof(struct ib_path_rec_data);
-+	     i < resp->num_paths && out_len >= sizeof(struct ib_path_rec_data);
- 	     i++, out_len -= sizeof(struct ib_path_rec_data)) {
- 		struct sa_path_rec *rec = &ctx->cm_id->route.path_rec[i];
+ static blk_status_t nvme_error_status(u16 status)
+ {
+diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
+index 01743ae01466..b3ea54280e50 100644
+--- a/drivers/nvme/host/rdma.c
++++ b/drivers/nvme/host/rdma.c
+@@ -53,6 +53,8 @@ struct nvme_rdma_device {
+ 	struct list_head	entry
+ 		__guarded_by(&device_list_mutex);
+ 	unsigned int		num_inline_segments;
++	/* set under device_list_mutex when removal starts */
++	bool			dying;
+ };
  
+ struct nvme_rdma_qe {
+@@ -378,6 +380,18 @@ nvme_rdma_find_get_device(struct rdma_cm_id *cm_id)
+ 
+ 	mutex_lock(&device_list_mutex);
+ 	list_for_each_entry(ndev, &device_list, entry) {
++		if (READ_ONCE(ndev->dying)) {
++			/*
++			 * Removal has already sampled nvme_rdma_ctrl_list, so
++			 * a controller created here would never be deleted.
++			 * A re-probed device with the same node GUID is a
++			 * distinct ib_device and gets a fresh
++			 * nvme_rdma_device below.
++			 */
++			if (ndev->dev == cm_id->device)
++				goto out_err;
++			continue;
++		}
+ 		if (ndev->dev->node_guid == cm_id->device->node_guid &&
+ 		    nvme_rdma_dev_get(ndev))
+ 			goto out_unlock;
+@@ -2378,6 +2392,24 @@ static struct nvme_ctrl *nvme_rdma_create_ctrl(struct device *dev,
+ 		nvmf_ctrl_subsysnqn(&ctrl->ctrl), &ctrl->addr, opts->host->nqn);
+ 
+ 	mutex_lock(&nvme_rdma_ctrl_mutex);
++	if (READ_ONCE(ctrl->device->dying)) {
++		mutex_unlock(&nvme_rdma_ctrl_mutex);
++		/*
++		 * Removal already walked nvme_rdma_ctrl_list, so publishing
++		 * now would leave this controller behind and stall
++		 * cma_remove_one() forever. ->list is still empty, so
++		 * nvme_rdma_free_ctrl() leaves opts for nvmf_create_ctrl().
++		 * nvme_init_ctrl() left two references and
++		 * nvme_delete_ctrl_sync() consumes only the one that
++		 * nvme_uninit_ctrl() drops, so put the other here.
++		 */
++		dev_info(ctrl->ctrl.device,
++			 "hca %s is being removed, aborting connect\n",
++			 dev_name(ctrl->device->dev->dma_device));
++		nvme_delete_ctrl_sync(&ctrl->ctrl);
++		nvme_put_ctrl(&ctrl->ctrl);
++		return ERR_PTR(-ECONNREFUSED);
++	}
+ 	list_add_tail(&ctrl->list, &nvme_rdma_ctrl_list);
+ 	mutex_unlock(&nvme_rdma_ctrl_mutex);
+ 
+@@ -2409,9 +2441,16 @@ static void nvme_rdma_remove_one(struct ib_device *ib_device, void *client_data)
+ 	struct nvme_rdma_device *ndev;
+ 	bool found = false;
+ 
++	/*
++	 * Stop handing this device out to new queues, and stop new controllers
++	 * from being published on it, before sampling nvme_rdma_ctrl_list
++	 * below. Pairs with the READ_ONCE() of ->dying in
++	 * nvme_rdma_find_get_device() and nvme_rdma_create_ctrl().
++	 */
+ 	mutex_lock(&device_list_mutex);
+ 	list_for_each_entry(ndev, &device_list, entry) {
+ 		if (ndev->dev == ib_device) {
++			WRITE_ONCE(ndev->dying, true);
+ 			found = true;
+ 			break;
+ 		}
+@@ -2421,7 +2460,15 @@ static void nvme_rdma_remove_one(struct ib_device *ib_device, void *client_data)
+ 	if (!found)
+ 		return;
+ 
+-	/* Delete all controllers using this device */
++	/*
++	 * Delete all controllers using this device. ->dying is stored before
++	 * nvme_rdma_ctrl_mutex is acquired here, and nvme_rdma_create_ctrl()
++	 * checks it while holding that same mutex, so the two orderings are
++	 * exhaustive: a publisher that got the mutex first is on the list and
++	 * is deleted below, and one that gets it afterwards observes ->dying
++	 * and tears its controller down itself. No controller can be added
++	 * behind this walk.
++	 */
+ 	mutex_lock(&nvme_rdma_ctrl_mutex);
+ 	list_for_each_entry(ctrl, &nvme_rdma_ctrl_list, list) {
+ 		if (ctrl->device->dev != ib_device)
+
+base-commit: bf881dd20062db5e951a0d0703cb476df8c9fdee
 -- 
-2.55.0
+2.34.1
 
