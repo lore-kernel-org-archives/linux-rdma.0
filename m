@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71D58485CC8;
-	Thu,  6 Aug 2026 17:23:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3B73486654;
+	Thu,  6 Aug 2026 17:24:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786037040; cv=none; b=LQ3X7CBSyjmOwbAT3OqjZ0n/FZJCq3MrZmW7tYilvsVfewGue2YsxNi8+S4mg4YB9V4405Ckx6h/gZmZqUuMgkBOZ5uQcyaPUvTQsWNWRkxZEkYfW8quSXmYVcKbOTTfzt1eUjJKGvzpD3WjaF1GQxtoqJuZLMi1dJ7/YzZPcA8=
+	t=1786037042; cv=none; b=TX9dcgCrgTLD6TIHHldiJsxNTxN3lm/VLJ1/+wQfwvZFVEKHknDpLlm3Itornn2G/rZVr1tLMI1iD+viEAR+RO7poWKeBT/A9MKoEUb/Z1Jr145tuXlHaIWdybDv0kthUaWUBC/oHcizhE7ZdgcamvOim5DdjtwfILc1rKKTX40=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786037040; c=relaxed/simple;
-	bh=jtAwKpUpDxLqBa3FZiyQjBP4FLau/jZU6K9nS5N00Rg=;
+	s=arc-20240116; t=1786037042; c=relaxed/simple;
+	bh=LLCMlGp/dNU4/YXJOKYjeDbFMIQ/4YN0i8V9/lxy3/0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=I7CqGjax4OXAeKNWMxC+zRt6iYi7BlGz/3OKBJlUiLii+1gk1SQj3kdXHxfqm+EiTmhqYZap6AFmp1FlIEs9kcOmBPxZfINRNebNcVb7Ypw4TkttI8ONzDltDyGPr3HvuyRlc2eTjWFetYd/iJutKjzmC7YlwTW9uHThnSzgCZQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eUb7cda1; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=tiJas8W9XLrI7nluyLKhFhWAaugJfYFnSd3+N/DNgsb28yPKdvw9aAdhcB9OjVk0l9tPzJ5sHCaGI/x/PXBknPN8NlYTD8iVedbOUq5sfok/Cma2wGFDYVo0nUqyapnsIPawtjdvmyRnbs5X8OHKKxOrP5+PKFCzy+dI/2nxSeE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RbZqzc0M; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eUb7cda1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C9821F00A3A;
-	Thu,  6 Aug 2026 17:23:58 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RbZqzc0M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8C931F000E9;
+	Thu,  6 Aug 2026 17:23:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786037039;
-	bh=6j+83Q1tkEfnGVFPa2fQ6Ny7gvcrMydNqlKg3UBxpxc=;
+	s=k20260515; t=1786037040;
+	bh=arL3uPMxzvHke73EKxi+k5ULmMVjqiDhfvCDbx5wLFA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=eUb7cda1V/5K+frBvqlnIWNmgkOq2nPNxCqBDeyROX26ox3zCOLfiVxK/229eXJys
-	 dfE3LsVDrFWzuiAWmfXAWWpP3Qlnr+UhQpPOMNc1d7ePWxcMKYHzJCUJZvMF982w7F
-	 DLR64a8uLh2YqKqUBtRogaKAyKRsvMHKUG4zOg6DHiEZWoRsJLXFFhJyIToj3yGrE+
-	 Up4svRlpZpuH6BihS9X1rqLoU/p29sLYf6vVnZVvFcu7MoisnHqq/pm8Z4LFp772ZF
-	 dVktsITWs9sRSAoPk5N8FRcrrER1JhCgNVTS0v+WDD8RYo78ojd3PMMlrz2Yf5H2oj
-	 QMtWUYDe1FrkQ==
+	b=RbZqzc0MWZuwtWCtOhOvhgr0z0FAnv40765lQgye3YWTt7jeLdlw0KPvokEILYj1h
+	 Kq1EbC/gvcvq/D2dK/ZXYPDyALl0/P11OTLqYBoiApXY0YQia4aJEQ/WMGpWlHKx6h
+	 fTzs6z2fPazfI6LkRM7Lkb65I4SNYI6MKcN704HFsfp+EuNZNmHb94yEF85SBGDB1z
+	 6PSZrbd0TsON6BJFgHXd8xxqyx54UFcBEPZgRYqKNG0EjNDco+RjFj0zORrYtZ7ekn
+	 qtanDR9jDbwyJCxO+wk5DnJUkf2BhlhhuLU1scX0qV+z6ROelNotQTszBTFv2Zhibm
+	 jrRQ3dIseh8ZQ==
 From: Jakub Kicinski <kuba@kernel.org>
 To: longli@microsoft.com
 Cc: Jakub Kicinski <kuba@kernel.org>,
@@ -48,12 +48,12 @@ Cc: Jakub Kicinski <kuba@kernel.org>,
 	linux-rdma@vger.kernel.org,
 	linux-hyperv@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net v3 2/6] net: mana: fix HWC RQ/SQ buffer size swap
-Date: Thu,  6 Aug 2026 10:23:57 -0700
-Message-ID: <20260806172357.2945651-1-kuba@kernel.org>
+Subject: Re: [PATCH net v3 3/6] net: mana: free HWC comp_buf after destroying the EQ
+Date: Thu,  6 Aug 2026 10:23:59 -0700
+Message-ID: <20260806172359.2945799-1-kuba@kernel.org>
 X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260803234355.636038-3-longli@microsoft.com>
-References: <20260803234355.636038-3-longli@microsoft.com>
+In-Reply-To: <20260803234355.636038-4-longli@microsoft.com>
+References: <20260803234355.636038-4-longli@microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -65,164 +65,146 @@ Content-Transfer-Encoding: 8bit
 This is an AI-generated review of your patch. The human sending this
 email has considered the AI review valid, or at least plausible.
 ---
-net: mana: fix HWC RQ/SQ buffer size swap
+net: mana: free HWC comp_buf after destroying the EQ
 
-This swaps the sizes used when creating the HWC RQ and SQ so the RQ is
-sized by max_resp_msg_size and the SQ by max_req_msg_size, adds
-max_resp_msg_size to struct hw_channel_context, and uses it as the RX
-slot stride in mana_hwc_rx_event_handler().  It also hoists the
-num_inflight_msg / max_req_msg_size / max_resp_msg_size assignments in
-mana_hwc_init_queues() above the mana_hwc_create_cq() call.
-
-Two questions, both about the description rather than the mechanics of
-the swap.
-
-First, about this part of the changelog:
-
->     The HWC RQ receives responses and the SQ sends requests, but
->     mana_hwc_init_queues() sized the RQ with max_req_msg_size and the SQ with
->     max_resp_msg_size -- backwards.  A response larger than the undersized RQ
->     buffer could overflow it, and mana_hwc_rx_event_handler() recovered the
->     RX slot index by dividing by the wrong size (max_req_msg_size).
-
-[Severity: Medium]
-Can the described overflow or mis-indexing actually happen in this tree?
-mana_hwc_init_queues() has a single caller, mana_hwc_create_channel(),
-which passes two constants that are equal:
-
-	err = mana_hwc_init_queues(hwc, HW_CHANNEL_VF_BOOTSTRAP_QUEUE_DEPTH,
-				   HW_CHANNEL_MAX_REQUEST_SIZE,
-				   HW_CHANNEL_MAX_RESPONSE_SIZE);
-
-include/net/mana/hw_channel.h:
-
-	#define HW_CHANNEL_MAX_REQUEST_SIZE  0x1000
-	#define HW_CHANNEL_MAX_RESPONSE_SIZE 0x1000
-
-The hardware-reported sizes that mana_hwc_establish_channel() returns are
-only handed to mana_hwc_test_channel(); the queues are never re-created
-with them, so max_req_msg_size == max_resp_msg_size on every path both
-before and after this patch.
-
-Also, mana_hwc_post_rx_wqe() advertises the real slot length to the
-device:
-
-	sge->address = (u64)req->buf_sge_addr;
-	sge->mem_key = hwc_rxq->msg_buf->gpa_mkey;
-	sge->size = req->buf_len;
-
-so the device is not told it may write more than one slot regardless of
-max_resp_msg_size.
-
-Given that, would it be worth saying in the changelog that the two sizes
-are currently identical and that there is no observable misbehaviour,
-i.e. that this is a latent-correctness cleanup?  With the
-
-	Fixes: ca9c54d2d6a5 ("net: mana: Add a driver for Microsoft Azure Network Adapter (MANA)")
-
-tag and the wording above, a stable backporter is likely to read this as
-a live buffer overflow fix.
+This moves the kfree(hwc_cq->comp_buf) in mana_hwc_destroy_cq() to after
+the CQ and EQ have been destroyed, so a late EQ handler calling
+mana_hwc_comp_event() cannot dereference freed memory.  A comment is
+added describing the fencing that makes the new order safe.
 
 > diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-> index 409e20caeccdc..cbb56c7647876 100644
+> index cbb56c7647876..d701c427fe47b 100644
 > --- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
 > +++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-> @@ -263,7 +263,7 @@ static void mana_hwc_rx_event_handler(void *ctx, u32 gdma_rxq_id,
+> @@ -384,14 +384,20 @@ static void mana_hwc_comp_event(void *ctx, struct gdma_queue *q_self)
 >  
->  	/* Select the RX work request for virtual address and for reposting. */
->  	rq_base_addr = hwc_rxq->msg_buf->mem_info.dma_handle;
-> -	rx_req_idx = (sge->address - rq_base_addr) / hwc->max_req_msg_size;
-> +	rx_req_idx = (sge->address - rq_base_addr) / hwc->max_resp_msg_size;
+>  static void mana_hwc_destroy_cq(struct gdma_context *gc, struct hwc_cq *hwc_cq)
+>  {
+> -	kfree(hwc_cq->comp_buf);
+> -
+>  	if (hwc_cq->gdma_cq)
+>  		mana_gd_destroy_queue(gc, hwc_cq->gdma_cq);
 >  
->  	if (rx_req_idx >= hwc_rxq->msg_buf->num_reqs) {
->  		dev_err(hwc->dev, "HWC RX: wrong rx_req_idx=%llu, num_reqs=%u\n",
-
-[ ... ]
-
-> @@ -721,6 +721,15 @@ static int mana_hwc_init_queues(struct hw_channel_context *hwc, u16 q_depth,
->  	if (err)
->  		return err;
->  
-> +	/* Set the queue dimensions before creating the CQ: doing so
-> +	 * registers mana_hwc_rx_event_handler(), which divides by
-> +	 * hwc->max_resp_msg_size and range-checks hwc->num_inflight_msg.
-> +	 * They must be valid before any RX completion can be delivered.
+> +	/* comp_buf is reached only by mana_hwc_comp_event(), which the
+> +	 * EQ handler invokes via cq_table[id].  The CQ destroy above
+> +	 * already cleared that slot and ran synchronize_rcu(), so no
+> +	 * handler can reach comp_buf once it returns.  Destroying the EQ
+> +	 * here additionally tears down the IRQ (defense in depth) before
+> +	 * comp_buf and hwc_cq are freed below.
 > +	 */
-> +	hwc->num_inflight_msg = q_depth;
-> +	hwc->max_req_msg_size = max_req_msg_size;
-> +	hwc->max_resp_msg_size = max_resp_msg_size;
 
 [Severity: Low]
-Does this comment claim more than the reordering provides?  It says the
-scalars must be valid before mana_hwc_create_cq() registers
-mana_hwc_rx_event_handler(), but in that same window hwc->rxq and
-hwc->txq are still NULL, since they are only assigned by the
-mana_hwc_create_wq() calls further down.
+Does the EQ destroy really tear down the IRQ here?
 
-mana_hwc_rx_event_handler() touches hwc->rxq well before it reaches
-either hoisted field:
+mana_gd_destroy_queue() for GDMA_EQ calls mana_gd_destroy_eq(), whose whole
+body is:
 
-	struct hwc_wq *hwc_rxq = hwc->rxq;
-	...
+	if (flush_evenets) {
+		err = mana_gd_test_eq(gc, queue);
+		...
+	}
+
+	mana_gd_deregister_irq(queue);
+
+	if (queue->eq.disable_needed)
+		mana_gd_disable_queue(queue);
+
+and mana_gd_deregister_irq() only unlinks the EQ from the shared IRQ's
+list:
+
+	spin_lock_irqsave(&gic->lock, flags);
+	list_for_each_entry_rcu(eq, &gic->eq_list, entry) {
+		if (queue == eq) {
+			list_del_rcu(&eq->entry);
+			break;
+		}
+	}
+	spin_unlock_irqrestore(&gic->lock, flags);
+
+	synchronize_rcu();
+
+There is no free_irq() and no mana_gd_put_gic() on this path; the only
+free_irq() in gdma_main.c lives in mana_gd_put_gic(), which the HWC path
+reaches from mana_gd_remove_irqs() instead.  The MSI-X line stays
+registered and keeps firing for the other EQs sharing it.
+
+So the actual fence appears to be RCU in both steps (the cq_table slot
+clear plus synchronize_rcu() in mana_gd_destroy_cq(), and the list_del_rcu()
+plus synchronize_rcu() above), not IRQ teardown.
+
+The same wording appears in the commit message:
+
+    Destroy the CQ and EQ first -- the EQ teardown deregisters the IRQ and
+    fences in-flight handlers -- then free comp_buf and hwc_cq.
+
+Could the comment and the changelog be reworded to say the EQ is
+deregistered from the shared IRQ's RCU list, rather than that the IRQ is
+torn down?  The comment and the changelog also disagree on which step is
+load bearing: the comment treats the EQ destroy as "defense in depth"
+while the changelog presents it as the mechanism that fences handlers.
+
+> +
+>  	if (hwc_cq->gdma_eq)
+>  		mana_gd_destroy_queue(gc, hwc_cq->gdma_eq);
+>  
+> +	kfree(hwc_cq->comp_buf);
+>  	kfree(hwc_cq);
+>  }
+>  
+
+[Severity: Medium]
+This isn't a bug introduced by this patch, but the same window the patch
+closes for comp_buf still exists for hwc->rxq and hwc->txq, so the fix
+looks asymmetric.  In mana_hwc_destroy_channel() the work queues are
+freed before the CQ/EQ teardown that does the cq_table clear and the
+synchronize_rcu() calls:
+
+	if (hwc->txq)
+		mana_hwc_destroy_wq(hwc, hwc->txq);
+
+	if (hwc->rxq)
+		mana_hwc_destroy_wq(hwc, hwc->rxq);
+
+	if (hwc->cq)
+		mana_hwc_destroy_cq(hwc->gdma_dev->gdma_context, hwc->cq);
+
+mana_hwc_destroy_wq() releases the DMA buffer and the hwc_wq itself with
+no fencing, and the GDMA_RQ/GDMA_SQ cases of mana_gd_destroy_queue() are
+empty:
+
+	mana_hwc_dealloc_dma_buf(hwc, hwc_wq->msg_buf);
+
+	if (hwc_wq->gdma_wq)
+		mana_gd_destroy_queue(hwc->gdma_dev->gdma_context,
+				      hwc_wq->gdma_wq);
+
+	kfree(hwc_wq);
+
+In that window mana_hwc_comp_event() is still published in cq_table[id]
+and reaches the event handlers with ctx == hwc:
+
+		if (completions[i].is_sq)
+			hwc_cq->tx_event_handler(hwc_cq->tx_event_ctx, ...);
+		else
+			hwc_cq->rx_event_handler(hwc_cq->rx_event_ctx, ...);
+
+and mana_hwc_rx_event_handler() then dereferences the freed rxq:
+
 	if (WARN_ON_ONCE(hwc_rxq->gdma_wq->id != gdma_rxq_id))
 		return;
+
+	rq = hwc_rxq->gdma_wq;
 	...
 	rq_base_addr = hwc_rxq->msg_buf->mem_info.dma_handle;
-	rx_req_idx = (sge->address - rq_base_addr) / hwc->max_resp_msg_size;
 
-and mana_hwc_handle_resp() uses hwc->caller_ctx, which is only allocated
-later in mana_hwc_test_channel().  The EQ callback registered by the same
-mana_hwc_create_cq() call, mana_hwc_init_event_handler(), likewise
-dereferences hwc->cq, hwc->rxq and hwc->txq:
+Can a completion delivered in that window read freed hwc_wq/hwc_dma_buf
+memory, and repost into the already dma-unmapped RQ ring via
+mana_hwc_post_rx_wqe()?  hwc->rxq and hwc->txq are also left set after
+being freed.
 
-	hwc->cq->gdma_eq->id = eq_db.eq_id;
-	...
-	hwc->rxq->gdma_wq->id = val;
-	...
-	hwc->txq->msg_buf->gpa_mkey = val;
-
-So if a completion really could be delivered while mana_hwc_create_cq()
-runs, the hoisted scalars would not help.  The window looks not to be
-live anyway, because the device only learns the queue DMA addresses via
-mana_smc_setup_hwc() in mana_hwc_establish_channel(), which runs after
-mana_hwc_init_queues() has published everything, matching the existing
-comment in mana_hwc_create_channel():
-
-	/* mana_hwc_init_queues() only creates the required data structures,
-	 * and doesn't touch the HWC device.
-	 */
-
-Could the comment and the matching changelog paragraph be reworded to say
-the assignments are simply hoisted for clarity, rather than asserting
-that RX completions can be safely handled at that point?  As written, a
-later reader may take this window to be safe for handler execution.
-
->  	/* CQ is shared by SQ and RQ, so CQ's queue depth is the sum of SQ
->  	 * queue depth and RQ queue depth.
->  	 */
-> @@ -733,23 +742,20 @@ static int mana_hwc_init_queues(struct hw_channel_context *hwc, u16 q_depth,
->  		goto out;
->  	}
->  
-> -	err = mana_hwc_create_wq(hwc, GDMA_RQ, q_depth, max_req_msg_size,
-> +	err = mana_hwc_create_wq(hwc, GDMA_RQ, q_depth, max_resp_msg_size,
->  				 hwc->cq, &hwc->rxq);
->  	if (err) {
->  		dev_err(hwc->dev, "Failed to create HWC RQ: %d\n", err);
->  		goto out;
->  	}
->  
-> -	err = mana_hwc_create_wq(hwc, GDMA_SQ, q_depth, max_resp_msg_size,
-> +	err = mana_hwc_create_wq(hwc, GDMA_SQ, q_depth, max_req_msg_size,
->  				 hwc->cq, &hwc->txq);
->  	if (err) {
->  		dev_err(hwc->dev, "Failed to create HWC SQ: %d\n", err);
->  		goto out;
->  	}
->  
-> -	hwc->num_inflight_msg = q_depth;
-> -	hwc->max_req_msg_size = max_req_msg_size;
-> -
->  	return 0;
-
-[ ... ]
+For the record, this ordering does get corrected later in the same series
+by "net: mana: fix HWC teardown safety with setup_active flag and destroy
+ordering", where mana_hwc_destroy_channel() destroys the CQ before the
+work queues.  Would it make sense to fold that reordering in here, or note
+the dependency, so this patch does not land with only half of the window
+closed?
