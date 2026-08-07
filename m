@@ -1,28 +1,28 @@
-Received: from SA9PR02CU001.outbound.protection.outlook.com (mail-southcentralusazon11023097.outbound.protection.outlook.com [40.93.196.97])
+Received: from CY7PR03CU001.outbound.protection.outlook.com (mail-westcentralusazon11020081.outbound.protection.outlook.com [40.93.198.81])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 574683624A9
-	for <linux-rdma@vger.kernel.org>; Fri,  7 Aug 2026 17:56:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.196.97
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B683E3624A9
+	for <linux-rdma@vger.kernel.org>; Fri,  7 Aug 2026 17:56:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.198.81
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786125378; cv=fail; b=MZdoGZ4vleWEN8WYXYEf5Xcc5bZvG8fpZFFZpP+ZkI/i6JS4OxKxEGJOR7pwezimBzW/7Rg3G/vDEY9UXk6/FxrYp/etWMdnyQqdpcHz75Qn0JRhEG+MM2V7FGf+4/i+KlkcZA4htf6c3GI04lrq2YWot47lbC4rNupUKs1xjIQ=
+	t=1786125392; cv=fail; b=KPuYrn72Fu/HJBtnuzwWmAWTjpV7ZmiN97rYBjafGpVuwx4uI0bfLpvrZvFBZFCSqc1zolwJJbN9OouqHDDLqSp5ZRaFVHDae1255MQ1bwuKl0tcSVaB0HCwT5+QyCnt88QQGcYxfS9KURtMb0o/H9tDkks99k02NOmiMjaJgr0=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786125378; c=relaxed/simple;
-	bh=QrQI4cwoAgLPKQPfLMQ2fjj0Y6Vb9aHpp2NEq625pXQ=;
+	s=arc-20240116; t=1786125392; c=relaxed/simple;
+	bh=RC53HemCS9BfdEN23qlztPBN1fsa2xHlWvpBQHzT/OQ=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=hReBsJiE7MShlDFxPI1myl97Uv2FlXpQH1AYOiVVOybqOaYxQDfCUSVOkVnsmiJtH19uoJFIU2xnNSjmZTGvRqyv4l4XcVdgnY7iE/WckTXwWZzbg4+47wgyeUR9064HKAfvBwo0bJyz9YQQIw5jXzE/VdoKYVOs/oM4kJ9pi5c=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com; spf=pass smtp.mailfrom=cornelisnetworks.com; dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b=aFD9Vd7r; arc=fail smtp.client-ip=40.93.196.97
+	 MIME-Version:Content-Type; b=Omef3qvwgn4r9e+w3/Vt+6vxUMZUDS+rDG0Cjb2XSAvLScIviwR0NbBmBFTlBg+Lslxu5OQy3CtPPjy6I5CYwY4wukQEm8LCxvAoTbGMlYze7Z0irW8OHvah9IEVgmiUEfjwVwAqW4qY0XQTgEA9GVcT7069ZgP7VKZobdhAlmw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com; spf=pass smtp.mailfrom=cornelisnetworks.com; dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b=HKgQ2YiD; arc=fail smtp.client-ip=40.93.198.81
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cornelisnetworks.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b="aFD9Vd7r"
+	dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b="HKgQ2YiD"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=KZweoJQ/4z1pjem17OOa5t+7hFacWXjI+xjOme+bnw/fYyQUIOIadl09HcCBMx74T4PY8CcMXAcYnlw0DtD+IobzyQ7X8JhzaN7sU+na44MMFXy6fROfYQce3m+elpTXVvnHNToylLsoMHYtSuohGSkCGkVCfTZUKCsJFN9+j7It/6IR/MNoBApA+smLv5p7HVryRmTKTsRQx6D29BnkZu7iQRdS+mysN4mzOeHS99YTSwXvciXgaNkskPLMJK8Cgv2WlwKyqi6MnBcqYz1yrbAJIdHU8Ax02sRSgR9TuyZrcDBz3aWIfND9jycRm/vTyJqgZwFyimFPjWcIVb8kZQ==
+ b=q7IbAV3mk517eHgDLjjYrIRHs7n4yccIbklmPp6SLy8TUkQnJWKOYyjR95nAkAN4VylTKWTwvHRTcPGa5yajQEAcnLJoFeinX4ghueju2Pi2snPajE4gRjicinUCsMIt3qPR8nZQASQT+xrvzh8yrKa4v/dxVnfQNyLBq8LyI6TV2EUGsH+BPal4Hr2i3eW8JPltmlBMKUFF/kNdjrX7yng1uA79w4lNmaNJlGiIdhj2mWSCruhxkCnmlBlX8eMMjfGbV4lSejuRFe8EZzZflpc6cvhOzvpGW2WLYEP563I3ZdYE6+V2RHkNfSeZP4dFYi9gD54+l6juxwuVC2Bs/w==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=kEBC9C3nxVmIMusYVNIk/cC9Ho0oTeHTwUu8NpaJZPs=;
- b=fkJmCK6ZEi13ky87NDs22dDx5jStyLIwxcn4a0IEu/8rGhTFsOUm3CWN0rzFEF2ziXcb5xFgpXgq+xtwO9anMAn6GxkTjjUWSdkO9hTkizFs/9PfGQ1R0NvKA8thZ+MUYAva/XthlL4uRosrJ1NscVsqNB8lfwKmjF/jwjiFbKHfzj7zQtEv4XJNWpzknKFSkeOKCmfZo0+S4osJVF/5MjYvXF+Dpg6qKmHPbBIkCXK2kkilyVC+gcN5/M5O79JEmpQCKtvAMPTRelgCdbtKwGQZT0rTE3Xx17MtSGa8EmXBVQwaqeHjdjampjR6Szc34smee8P3v7UA7f/fY43YsA==
+ bh=ApeYkhOWpf5bC2HDq8Ivt1hG62ZuC7n2SjreOMcdkjk=;
+ b=jLVQwvQ1ccz0N7dS7ODUrXY06Pt4rP+TlhEEN6xxu7afN5W8H3j5catD22Iik3p8gVjhCXrr5itYBDBS5PiGtKSNZJbVdpM9luyOO0W9M2F/acbPj6sruudLqapXYmLxI6fijWmLCejYqCsYzQ89JpikLZPk9jtwRsJFJP7Y15lL1AHi/U5uzJn64WK8SUWWWDoddRkv9Q8e1ht1gyZAh3MKCnfVHSWG2K8SNXLpJSVaJWH176ogBgm9hennZxM5VTI+0g4/TaZbMwLeNPo050KMgAu/6ZCzXnX+2l3pkhTPL/fQOp7vaEWlV8mzeZu5F3ECwphDwAMNHHyiVUSA3A==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  208.255.156.42) smtp.rcpttodomain=cornelisnetworks.com
  smtp.mailfrom=cornelisnetworks.com; dmarc=pass (p=none sp=none pct=100)
@@ -31,17 +31,17 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cornelisnetworks.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=kEBC9C3nxVmIMusYVNIk/cC9Ho0oTeHTwUu8NpaJZPs=;
- b=aFD9Vd7rmmcXK7TabDtntctRKLDIq4+YpsuVKmDUx08aOK7Nrkb+S+l0Pn4Bnps1xifdcpAdFS5MSvA6yw9S7wFBX8EznPI88V7SeF1FyQZUllf4RNIRUTatrI71M7aBgZf+vLjEUkyWqCa5ijMKlQVo0T1vEcGJsLB4QK+Cpktq/FesW95lJl63cC4aYvmRv1y9tWtztS6IQhbSHoXNY8wc+FxXhYFYhPnkIQPrXeOvBBj6spgqh6pUb08LAnaG8577wJs9de5DfuXGFuK3QaBrsrl7Wvx05GocF1YftFNW+7vdsNzTPP7tQ9wzR0In2SB9bwZa//GYxeJamfnJNg==
-Received: from SJ0PR03CA0100.namprd03.prod.outlook.com (2603:10b6:a03:333::15)
- by IA0PR01MB8278.prod.exchangelabs.com (2603:10b6:208:488::22) with Microsoft
+ bh=ApeYkhOWpf5bC2HDq8Ivt1hG62ZuC7n2SjreOMcdkjk=;
+ b=HKgQ2YiD1QmEe1RK7f9HDcJt02do519PlSLj2FpS23IA86WLYBb9tb0MYWUR+JBQwN3c3nTTN5XkcowfO+TOJ0HYmDEqFndFyf8JBtHeypnrHw/x1YIB1xBpgwPFf7Vqz+lijwpKF4pTOVXlD71ulG4+2LwOl9mLZETFJyiX8M4TQ5mJRSzxh7kkxJaNcaq7UlMDeTMKlHcFx9RUeZk0AyGf9hv0tjne8vTcVBNQ94ClRbTFLURn2SvgrRoDfAVJqMankm0wR5HGr+FV9Ku5Mmoj4aLfaLGSShKuajtzzsaBBuOHpKYNOmQTcLN9bDoM2XhgHUstr3Wxcr9WPaxjUg==
+Received: from BN9PR03CA0344.namprd03.prod.outlook.com (2603:10b6:408:f6::19)
+ by CH0PR01MB7153.prod.exchangelabs.com (2603:10b6:610:ea::7) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.292.23; Fri, 7 Aug 2026 17:56:08 +0000
-Received: from SJ5PEPF000001CA.namprd05.prod.outlook.com
- (2603:10b6:a03:333:cafe::87) by SJ0PR03CA0100.outlook.office365.com
- (2603:10b6:a03:333::15) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.292.19 via Frontend Transport; Fri, 7
- Aug 2026 17:56:07 +0000
+ 15.21.292.23; Fri, 7 Aug 2026 17:56:17 +0000
+Received: from BN2PEPF000044A1.namprd02.prod.outlook.com
+ (2603:10b6:408:f6:cafe::2a) by BN9PR03CA0344.outlook.office365.com
+ (2603:10b6:408:f6::19) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.292.23 via Frontend Transport; Fri, 7
+ Aug 2026 17:56:17 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 208.255.156.42)
  smtp.mailfrom=cornelisnetworks.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=cornelisnetworks.com;
@@ -50,23 +50,23 @@ Received-SPF: Pass (protection.outlook.com: domain of cornelisnetworks.com
  receiver=protection.outlook.com; client-ip=208.255.156.42;
  helo=cn-mailer-00.localdomain; pr=C
 Received: from cn-mailer-00.localdomain (208.255.156.42) by
- SJ5PEPF000001CA.mail.protection.outlook.com (10.167.242.39) with Microsoft
+ BN2PEPF000044A1.mail.protection.outlook.com (10.167.243.152) with Microsoft
  SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.21.315.6
- via Frontend Transport; Fri, 7 Aug 2026 17:56:07 +0000
+ via Frontend Transport; Fri, 7 Aug 2026 17:56:16 +0000
 Received: from awdrv-04.localdomain (unknown [10.228.212.218])
-	by cn-mailer-00.localdomain (Postfix) with ESMTPS id 6E1951DAF27;
-	Fri,  7 Aug 2026 13:56:06 -0400 (EDT)
+	by cn-mailer-00.localdomain (Postfix) with ESMTPS id 992941DAF27;
+	Fri,  7 Aug 2026 13:56:16 -0400 (EDT)
 Received: from [10.228.212.218] (localhost [IPv6:::1])
-	by awdrv-04.localdomain (Postfix) with ESMTP id 697A8186A3082;
-	Fri,  7 Aug 2026 13:56:06 -0400 (EDT)
-Subject: [PATCH v4 for-next 04/24] RDMA/hfi2: Add in MAD handling related
- headers
+	by awdrv-04.localdomain (Postfix) with ESMTP id 9463B186A3082;
+	Fri,  7 Aug 2026 13:56:16 -0400 (EDT)
+Subject: [PATCH v4 for-next 06/24] RDMA/hfi2: Add in trace header files
 From: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 To: jgg@ziepe.ca, leon@kernel.org
 Cc: Dean Luick <dean.luick@cornelisnetworks.com>,
+ Breandan Cunningham <brendan.cunningham@cornelisnetworks.com>,
  Douglas Miller <doug.miller@cornelisnetworks.com>, linux-rdma@vger.kernel.org
-Date: Fri, 07 Aug 2026 13:56:06 -0400
-Message-ID: <178612536639.3164235.16492654254984629908.stgit@awdrv-04>
+Date: Fri, 07 Aug 2026 13:56:16 -0400
+Message-ID: <178612537654.3164235.5358781078081831977.stgit@awdrv-04>
 In-Reply-To: <178612534584.3164235.5428549372904350681.stgit@awdrv-04>
 References: <178612534584.3164235.5428549372904350681.stgit@awdrv-04>
 User-Agent: StGit/1.5
@@ -80,928 +80,4452 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SJ5PEPF000001CA:EE_|IA0PR01MB8278:EE_
-X-MS-Office365-Filtering-Correlation-Id: ec7a1084-1276-4469-77d4-08def4ad2832
+X-MS-TrafficTypeDiagnostic: BN2PEPF000044A1:EE_|CH0PR01MB7153:EE_
+X-MS-Office365-Filtering-Correlation-Id: c26d5605-893d-4cb7-a2ac-08def4ad2dd3
 X-MS-Exchange-AtpMessageProperties: SA
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|82310400026|1800799024|376014|36860700016|22082099003|18002099003|55112099003|10067099003|6133799003|5023799004|56012099006|3023799007;
+	BCL:0;ARA:13230040|23010399003|82310400026|1800799024|376014|36860700016|22082099003|18002099003|55112099003|10067099003|5023799004|56012099006|3023799007;
 X-Microsoft-Antispam-Message-Info:
-	B8j9BmBLmcT0QpTHm5zxPOjXTNlzmrd6GCpn0R59m04dpCPCw2H+yedOUCSV3Q2Xd1iwhpv16M9OLik2VDg12G35wxhAWOrFiX1w87DmfU1w0uaQqkXhagfDOtMGSXwCfcHXITTz1jrqDYPkVxjBNuHOexFm+gz1BklgbZGVtvW+H0A7bUvJ9MlXsxpGbaWVbd/B1YjqS7mTVjuqZ8+yUJxt2wEgjdog8JnLsnhRQxacq1cXX9Qjnv5EAYpuHTuoG0XjRkhOAL4tTqphrtc1GY9JLIiLkoEaAuI7deVMGc13yQqXwJiY9r7zZdD1R1IU4dRb90y/kL4rERMXjdVTClKH1SyzsnKlIyrOY5kUch1Lvtn20qF8FxxeH0YRyQ+RV0nh7YB9AsRSo3CwFG23PhZWcqkR2RiyYbYhaV3OJtWzgTHGXxQaMesnPq8nz3i/nI7TAeibcZjsAGZCRd/Xu33ahKwp3oAUu3MuzfQx7EN6ew8T5UYyd8R7FzdMwcIPHZIWxdygflmK3unWO0mplGbhOM9p/Of2Xbw68Vs+Xm4iXpFNHVrx/Es+tgONfdnXgFyRcGxzoKFAVq/A5RlHuwkdV5ZAOhEZEjk7JWkML12uoN1uuEpMDO5wXXS8xvFaG0EYyyuqCvUcwsw4+fx7UA/txjvL9u6uLv+IOAjjYYaO30gFBlRXVU4TbH5xUJk736TDMX6o54TGiaRonFf6Vw==
+	pkJf2A80G4wHbDnmdClRg+zzUTQtkdd3QmEeV/lU86IoQ9ZF97bpUPodqT+YzHk8jC95Sk8LQ9jpfQ/Tm4/B6LDU6q1CDB+7W7Rvcxc4SaaWqppTLTs/SJzxWg/OeDfj0ZqR0Qk9m9h/lsTCRhMczTXqFIcjzDWZ4RXNCOixE8dCDb7BJsAuCOAT01fbB2AVW86e0qTOhlYKdOb7/6pDETu5Q90WxikWKTubWWn9oPRJFhSjv4vwi7fAI+7dar7Vf/aN/Ndm3QUwIUZ4R69SWd3im5Drtmjim0RyUhOwTbZwecatBl5W9Z5jSj93eS1+OJ+UMx7mIUjpkVBiXUVAB3cP53sYkCbqHQOrjTPDYMYXny021aKr+Y6u/DhrDYM5moFxd5+a40DA5kdF6ktku/bcqc+RVKa839FWyHBc92snYtYOr08JRiFhZTis19lKwj+lMR3G8CBjbxn2wUFeP/vAoomDVpChT76IfQzIJ+KjXn4HRr7ouz08wvosSHk3PWQdFv12Id2o5l/r3TjPCWWCHAIuEclgOEM2T0dzdWQxRaJ2rXSJ8AKD2HseTkvwDxn6vcxnDwz/imv73Vd8kQgM4nS6gCzrI7gOi1IBiBXDP1p9HXAhpE5sSphfIPgCuopTVHKZXARP91aT0Lpz2eIJ8WTjJacHaVZG7fbrgGHjWEKXLSZhoo/3halOOkKINHPq6N9sH+HgZ1/ByWe0aQ==
 X-Forefront-Antispam-Report:
-	CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:cn-mailer-00.localdomain;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(23010399003)(82310400026)(1800799024)(376014)(36860700016)(22082099003)(18002099003)(55112099003)(10067099003)(6133799003)(5023799004)(56012099006)(3023799007);DIR:OUT;SFP:1102;
+	CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:cn-mailer-00.localdomain;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(23010399003)(82310400026)(1800799024)(376014)(36860700016)(22082099003)(18002099003)(55112099003)(10067099003)(5023799004)(56012099006)(3023799007);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	o28S65FNjubGnhTLofFyyE6LkhFCmIH50vYJiAWkwAaOEvEFUveJS53MbWSlmK1cQx1/LsicgBFwo9icWpYhisXGIuspyb2ka4A9hOKIHFykLeZFp342OugqXyApc4BWA9dcQOdMwd9iAxgE3++zXat0VXDZuswUHrNqy6Sa7ZHxRPOI6jYVYBV92+wyLX6FDvzNocxFJajxVHrlSPar+VZZekoB83S4RGTy3oupFUoDZNxx/lemBKHFO5NDiv0+1ga0NgRhCxSBX4LKZkji605pw3qHfIIhzkZJ2o1Eyz9z/TGYqagCFz42QLRVfNlHtfWX83EifGmtTPm6KEkdLpL6J2M3EdSchzMxHVK1rLY8tPI+wU9e2hYJLroa6QkjcCJiKE/a2rdDNYqSvdYbg6VvvsIu9jcOsLvxGJYH3KcPpu+S9kiL/gUbx2yyQy0b
+	C+ItbBO9mhmqf8cMuLcJi76khf1sRBD8U297KcHDCZ1UkcGVpEzEWEiY8pMTUP+hzC07e67EV/S95p6+BvCilZfX0eJw+rIAS8nz7paNoI294hoGCOJOzHXc/IvmolO9GMTWahKaGIggCD7JT5tDvn2NlvB8u2KMNciRt/DnWZ1OHaq4VR6UUfXkpYzJntEUV2GsWMUbB6+nDpwYb9zBGVT8Q9YVVrnt5Aq6JpLhqnbDPwOUI/xSSI/wh2opKpN7maZI4StEvxO22CUr113JcHuY2nTGLx38FcFXgGSmaDWA6a4smOc3VlWbsKRQNhngmey9kl3lX0bJwALLs3HeeJs8KGziwJWTD9D+Wk6W3yTm2u12inU/Z6b74u+0UshhdhNsQh6mBPYVnexz1srcNeJbiuYH9LwNHfaglpx8Ud9k0zWohC+fr4RHnenh4gdk
 X-OriginatorOrg: cornelisnetworks.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Aug 2026 17:56:07.1627
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Aug 2026 17:56:16.7736
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: ec7a1084-1276-4469-77d4-08def4ad2832
+X-MS-Exchange-CrossTenant-Network-Message-Id: c26d5605-893d-4cb7-a2ac-08def4ad2dd3
 X-MS-Exchange-CrossTenant-Id: 4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a;Ip=[208.255.156.42];Helo=[cn-mailer-00.localdomain]
 X-MS-Exchange-CrossTenant-AuthSource:
-	SJ5PEPF000001CA.namprd05.prod.outlook.com
+	BN2PEPF000044A1.namprd02.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA0PR01MB8278
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH0PR01MB7153
 
-In the new HW there is an embedded micro on the card which manages a lot of
-what used to be done in sw as far as the MAD layer is concerned. We do
-still need to support MADs in SW for the older generation HW so those
-definitions move as well.
+The hfi1 driver extensively uses kernel tracing for diagnostic purposes.
+This will be carried forward with the new and subsequent chips. Pull this
+content in as well. Also includes the ipoib and user SDMA headers which
+are referenced by the trace headers.
 
 Co-developed-by: Dean Luick <dean.luick@cornelisnetworks.com>
 Signed-off-by: Dean Luick <dean.luick@cornelisnetworks.com>
+Co-developed-by: Bendan Cunningham <brendan.cunningham@cornelisnetworks.com>
+Signed-off-by: Breandan Cunningham <brendan.cunningham@cornelisnetworks.com>
 Co-developed-by: Douglas Miller <doug.miller@cornelisnetworks.com>
 Signed-off-by: Douglas Miller <doug.miller@cornelisnetworks.com>
 Assisted-by: Claude:claude-sonnet-4-5
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 ---
-  Changes since v1:
-  - Replace bitfield members with plain integer types (Arnd Bergmann).
-  - Drop __packed from shadow structs (Arnd Bergmann).
+  Changes since v2:
+  - trace_tx.h: fix UAF in hfi2_ipoib_txq_template by capturing
+    sde->this_idx and sde->cpu into entry fields at trace time instead
+    of dereferencing the sde pointer in the deferred TP_printk context.
 ---
- drivers/infiniband/hw/hfi2/cport.h       |  275 +++++++++++++++++++
- drivers/infiniband/hw/hfi2/cport_traps.h |   43 +++
- drivers/infiniband/hw/hfi2/mad.h         |  442 ++++++++++++++++++++++++++++++
- drivers/infiniband/hw/hfi2/opa_compat.h  |   87 ++++++
- 4 files changed, 847 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi2/cport.h
- create mode 100644 drivers/infiniband/hw/hfi2/cport_traps.h
- create mode 100644 drivers/infiniband/hw/hfi2/mad.h
- create mode 100644 drivers/infiniband/hw/hfi2/opa_compat.h
+ drivers/infiniband/hw/hfi2/ipoib.h        |  173 +++
+ drivers/infiniband/hw/hfi2/trace.h        |   26 
+ drivers/infiniband/hw/hfi2/trace_ctxts.h  |  116 ++
+ drivers/infiniband/hw/hfi2/trace_dbg.h    |  119 ++
+ drivers/infiniband/hw/hfi2/trace_ibhdrs.h |  458 ++++++++
+ drivers/infiniband/hw/hfi2/trace_iowait.h |   55 +
+ drivers/infiniband/hw/hfi2/trace_misc.h   |  109 ++
+ drivers/infiniband/hw/hfi2/trace_mmu.h    |   73 +
+ drivers/infiniband/hw/hfi2/trace_pin.h    |  201 +++
+ drivers/infiniband/hw/hfi2/trace_rc.h     |  126 ++
+ drivers/infiniband/hw/hfi2/trace_rx.h     |  112 ++
+ drivers/infiniband/hw/hfi2/trace_tid.h    | 1687 +++++++++++++++++++++++++++++
+ drivers/infiniband/hw/hfi2/trace_tx.h     |  772 +++++++++++++
+ drivers/infiniband/hw/hfi2/user_sdma.h    |  261 ++++
+ 14 files changed, 4288 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi2/ipoib.h
+ create mode 100644 drivers/infiniband/hw/hfi2/trace.h
+ create mode 100644 drivers/infiniband/hw/hfi2/trace_ctxts.h
+ create mode 100644 drivers/infiniband/hw/hfi2/trace_dbg.h
+ create mode 100644 drivers/infiniband/hw/hfi2/trace_ibhdrs.h
+ create mode 100644 drivers/infiniband/hw/hfi2/trace_iowait.h
+ create mode 100644 drivers/infiniband/hw/hfi2/trace_misc.h
+ create mode 100644 drivers/infiniband/hw/hfi2/trace_mmu.h
+ create mode 100644 drivers/infiniband/hw/hfi2/trace_pin.h
+ create mode 100644 drivers/infiniband/hw/hfi2/trace_rc.h
+ create mode 100644 drivers/infiniband/hw/hfi2/trace_rx.h
+ create mode 100644 drivers/infiniband/hw/hfi2/trace_tid.h
+ create mode 100644 drivers/infiniband/hw/hfi2/trace_tx.h
+ create mode 100644 drivers/infiniband/hw/hfi2/user_sdma.h
 
-diff --git a/drivers/infiniband/hw/hfi2/cport.h b/drivers/infiniband/hw/hfi2/cport.h
+diff --git a/drivers/infiniband/hw/hfi2/ipoib.h b/drivers/infiniband/hw/hfi2/ipoib.h
 new file mode 100644
-index 000000000000..5a591305fe7d
+index 000000000000..a1be5f0caa0e
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/cport.h
-@@ -0,0 +1,275 @@
-+/* SPDX-License-Identifier: GPL-2.0 or BSD-3-Clause */
++++ b/drivers/infiniband/hw/hfi2/ipoib.h
+@@ -0,0 +1,173 @@
++/* SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause) */
 +/*
++ * Copyright(c) 2020 Intel Corporation.
++ * Copyright(c) 2025-2026 Cornelis Networks, Inc.
++ *
++ */
++
++/*
++ * This file contains HFI2 support for IPOIB functionality
++ */
++
++#ifndef HFI2_IPOIB_H
++#define HFI2_IPOIB_H
++
++#include <linux/types.h>
++#include <linux/stddef.h>
++#include <linux/atomic.h>
++#include <linux/netdevice.h>
++#include <linux/slab.h>
++#include <linux/skbuff.h>
++#include <linux/list.h>
++#include <linux/if_infiniband.h>
++
++#include "hfi2.h"
++#include "iowait.h"
++#include "netdev.h"
++
++#include <rdma/ib_verbs.h>
++
++#define HFI2_IPOIB_ENTROPY_SHIFT   24
++
++#define HFI2_IPOIB_TXREQ_NAME_LEN   32
++
++#define HFI2_IPOIB_PSEUDO_LEN 20
++#define HFI2_IPOIB_ENCAP_LEN 4
++
++struct hfi2_ipoib_dev_priv;
++
++union hfi2_ipoib_flow {
++	u16 as_int;
++	struct {
++		u8 tx_queue;
++		u8 sc5;
++	} __packed;
++};
++
++/**
++ * struct ipoib_txreq - IPOIB transmit descriptor
++ * @txreq: sdma transmit request
++ * @sdma_hdr: 9b ib headers
++ * @sdma_status: status returned by sdma engine
++ * @complete: non-zero implies complete
++ * @priv: ipoib netdev private data
++ * @txq: txq on which skb was output
++ * @skb: skb to send
++ */
++struct ipoib_txreq {
++	struct sdma_txreq           txreq;
++	struct hfi2_sdma_header     *sdma_hdr;
++	int                         sdma_status;
++	int                         complete;
++	struct hfi2_ipoib_dev_priv *priv;
++	struct hfi2_ipoib_txq      *txq;
++	struct sk_buff             *skb;
++};
++
++/**
++ * struct hfi2_ipoib_circ_buf - List of items to be processed
++ * @items: ring of items each a power of two size
++ * @max_items: max items + 1 that the ring can contain
++ * @shift: log2 of size for getting txreq
++ * @sent_txreqs: count of txreqs posted to sdma
++ * @tail: ring tail
++ * @stops: count of stops of queue
++ * @ring_full: ring has been filled
++ * @no_desc: descriptor shortage seen
++ * @complete_txreqs: count of txreqs completed by sdma
++ * @head: ring head
++ */
++struct hfi2_ipoib_circ_buf {
++	void *items;
++	u32 max_items;
++	u32 shift;
++	/* consumer cache line */
++	u64 ____cacheline_aligned_in_smp sent_txreqs;
++	u32 avail;
++	u32 tail;
++	atomic_t stops;
++	atomic_t ring_full;
++	atomic_t no_desc;
++	/* producer cache line */
++	u64 ____cacheline_aligned_in_smp complete_txreqs;
++	u32 head;
++};
++
++/**
++ * struct hfi2_ipoib_txq - IPOIB per Tx queue information
++ * @priv: private pointer
++ * @sde: sdma engine
++ * @tx_list: tx request list
++ * @sent_txreqs: count of txreqs posted to sdma
++ * @flow: tracks when list needs to be flushed for a flow change
++ * @q_idx: ipoib Tx queue index
++ * @pkts_sent: indicator packets have been sent from this queue
++ * @wait: iowait structure
++ * @napi: pointer to tx napi interface
++ * @tx_ring: ring of ipoib txreqs to be reaped by napi callback
++ */
++struct hfi2_ipoib_txq {
++	struct napi_struct napi;
++	struct hfi2_ipoib_dev_priv *priv;
++	struct sdma_engine *sde;
++	struct list_head tx_list;
++	union hfi2_ipoib_flow flow;
++	u8 q_idx;
++	bool pkts_sent;
++	struct iowait wait;
++
++	struct hfi2_ipoib_circ_buf ____cacheline_aligned_in_smp tx_ring;
++};
++
++struct hfi2_ipoib_dev_priv {
++	struct hfi2_devdata *dd;
++	struct hfi2_pportdata *ppd;
++	struct net_device   *netdev;
++	struct ib_device    *device;
++	struct hfi2_ipoib_txq *txqs;
++	const struct net_device_ops *netdev_ops;
++	struct rvt_qp *qp;
++	u32 qkey;
++	u16 pkey;
++	u16 pkey_index;
++	u8 port_num;
++};
++
++/* hfi2 ipoib rdma netdev's private data structure */
++struct hfi2_ipoib_rdma_netdev {
++	struct rdma_netdev rn;  /* keep this first */
++	/* followed by device private data */
++	struct hfi2_ipoib_dev_priv dev_priv;
++};
++
++static inline struct hfi2_ipoib_dev_priv *
++hfi2_ipoib_priv(const struct net_device *dev)
++{
++	return &((struct hfi2_ipoib_rdma_netdev *)netdev_priv(dev))->dev_priv;
++}
++
++int hfi2_ipoib_send(struct net_device *dev,
++		    struct sk_buff *skb,
++		    struct ib_ah *address,
++		    u32 dqpn);
++
++int hfi2_ipoib_txreq_init(struct hfi2_ipoib_dev_priv *priv);
++void hfi2_ipoib_txreq_deinit(struct hfi2_ipoib_dev_priv *priv);
++
++int hfi2_ipoib_rxq_init(struct net_device *dev);
++void hfi2_ipoib_rxq_deinit(struct net_device *dev);
++
++void hfi2_ipoib_napi_tx_enable(struct net_device *dev);
++void hfi2_ipoib_napi_tx_disable(struct net_device *dev);
++
++struct sk_buff *hfi2_ipoib_prepare_skb(struct hfi2_netdev_rxq *rxq,
++				       int size, void *data);
++
++int hfi2_ipoib_rn_get_params(struct ib_device *device,
++			     u32 port_num,
++			     enum rdma_netdev_t type,
++			     struct rdma_netdev_alloc_params *params);
++
++void hfi2_ipoib_tx_timeout(struct net_device *dev, unsigned int q);
++
++#endif /* _IPOIB_H */
+diff --git a/drivers/infiniband/hw/hfi2/trace.h b/drivers/infiniband/hw/hfi2/trace.h
+new file mode 100644
+index 000000000000..ad61868a2e15
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/trace.h
+@@ -0,0 +1,26 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/*
++ * Copyright(c) 2015 - 2018 Intel Corporation.
 + * Copyright(c) 2025-2026 Cornelis Networks, Inc.
 + */
 +
-+#ifndef _CPORT_H
-+#define _CPORT_H
++#define packettype_name(etype) { RHF_RCV_TYPE_##etype, #etype }
++#define show_packettype(etype)                  \
++__print_symbolic(etype,                         \
++	packettype_name(EXPECTED),              \
++	packettype_name(EAGER),                 \
++	packettype_name(IB),                    \
++	packettype_name(ERROR),                 \
++	packettype_name(BYPASS))
 +
-+/*****************************************************
-+ * "Public" software interfaces (inside driver only).
-+ */
-+
-+extern uint hfi2_cport_adm_to;
-+
-+/*
-+ * Op-codes for requests (and associated responses).
-+ * CPORT firmware must have the same definitions.
-+ */
-+#define CH_OP_PING 0 /* simple ping/echo command */
-+#define CH_OP_WHO 1
-+#define CH_OP_HOW 2
-+#define CH_OP_START 3 /* driver start/options */
-+#define CH_OP_STOP 4 /* driver stop (unload) */
-+#define CH_OP_TRAP 5 /* notification of TRAP condition */
-+#define CH_OP_TRAP_REPRESS 6 /* TRAP acknowledge */
-+#define CH_OP_MAD_9B 7 /* Local MAD packets 9B */
-+#define CH_OP_MAD_16B 8 /* Local MAD packets 16B */
-+#define CH_OP_UMAD_9B 9 /* User MAD packets 9B */
-+#define CH_OP_UMAD_16B 10 /* User MAD packets 16B */
-+
-+/*
-+ * Error codes for responses.
-+ * CPORT firmware must have the same definitions.
-+ */
-+#define MSG_RSP_STATUS_OK 0
-+#define MSG_RSP_STATUS_SEQ_NO_ERROR 1
-+#define MSG_RSP_STATUS_OPCODE_UNSUPPORTED 2
-+#define MSG_RSP_STATUS_INVALID_STATE 3
-+#define MSG_RSP_STATUS_RETRY 4
-+#define MSG_RSP_STATUS_DENIED 5
-+
-+/*
-+ * The structures below describe payloads exchanged with CPORT firmware
-+ * over a fixed-size message protocol. Use plain integer fields (rather
-+ * than C bitfields) so the layout is portable across compilers and
-+ * architectures, and access sub-fields through the SHIFT/MASK macros
-+ * below.
-+ */
-+
-+/* cport_options.flags bits */
-+#define CPORT_OPT_BARE_METAL BIT(0)
-+#define CPORT_OPT_GSI BIT(1)
-+#define CPORT_OPT_FLR BIT(2)
-+#define CPORT_OPT_SPI_WE BIT(3)
-+#define CPORT_OPT_LOCAL_MAD BIT(4)
-+/* bits 5-15 reserved */
-+
-+struct cport_options {
-+	u16 flags;
-+};
-+
-+/* cport_trap_status.flags bits */
-+#define CPORT_TRAP_PSC BIT(0) /* Port State Change */
-+#define CPORT_TRAP_LI BIT(1) /* Link Integrity */
-+#define CPORT_TRAP_BO BIT(2) /* Buffer Overrun */
-+#define CPORT_TRAP_FW BIT(3) /* Flow Watchdog */
-+#define CPORT_TRAP_CC BIT(4) /* Capability Change */
-+#define CPORT_TRAP_SIC BIT(5) /* System Image Change */
-+#define CPORT_TRAP_BMK BIT(6) /* Bad M Key */
-+#define CPORT_TRAP_BQK BIT(7) /* Bad Q Key */
-+#define CPORT_TRAP_LWC BIT(8) /* Link Width Change */
-+#define CPORT_TRAP_QSFP BIT(9) /* QSFP Fault */
-+#define CPORT_TRAP_OVTM BIT(10) /* Over-temp */
-+/* bits 11-31 reserved */
-+
-+struct cport_trap_status {
-+	u32 flags;
-+};
-+
-+/* CPORT firmware version sub-field accessors (operate on the u64 value) */
-+#define CPORT_FW_VER_BLD(v) ((u32)((v) & 0xffffffffULL))
-+#define CPORT_FW_VER_PAT(v) ((u32)(((v) >> 32) & 0xfULL))
-+#define CPORT_FW_VER_QLT(v) ((u32)(((v) >> 36) & 0xfULL))
-+#define CPORT_FW_VER_MNT(v) ((u32)(((v) >> 40) & 0xffULL))
-+#define CPORT_FW_VER_MIN(v) ((u32)(((v) >> 48) & 0xffULL))
-+#define CPORT_FW_VER_MAJ(v) ((u32)(((v) >> 56) & 0xffULL))
-+
-+/* Fields in 4-qword payload of WHO response */
-+struct cport_who_payload {
-+	/* qword 1: low byte reserved, next byte interop, then options */
-+	u16 introp; /* low 8 bits reserved, high 8 bits interop level */
-+	struct cport_options fixed;
-+	struct cport_options suppt;
-+	u16 max_msg; /* max cport msg length */
-+	/* qword 2 */
-+	u64 vers; /* fw version; see CPORT_FW_VER_* accessors */
-+	/* qword 3 */
-+	u64 node_guid;
-+	/* qword 4 */
-+	struct cport_trap_status trap_sup;
-+	u16 _resv2;
-+	u16 max_aux; /* max cport aux length */
-+};
-+
-+/*
-+ * HOW response payload sub-field accessors. Logical and physical state
-+ * fields are packed into qword 1; temperature and validity flags occupy
-+ * qword 4.
-+ */
-+#define CPORT_HOW_LOG_ST(qw1, port) (((qw1) >> ((port) * 4)) & 0x7)
-+#define CPORT_HOW_PHY_ST(phy, port) \
-+	(((phy)[(port) / 2] >> (((port) % 2) * 8)) & 0xff)
-+#define CPORT_HOW_INTEROP_LEVEL(qw3) ((u8)((qw3) & 0xff))
-+#define CPORT_HOW_STARTED(qw4) ((u8)((qw4) & 0xff))
-+#define CPORT_HOW_TEMP_VALID(qw4) (((qw4) >> 8) & 0x1)
-+#define CPORT_HOW_QSFP1_TEMP_VALID(qw4) (((qw4) >> 9) & 0x1)
-+#define CPORT_HOW_QSFP2_TEMP_VALID(qw4) (((qw4) >> 10) & 0x1)
-+#define CPORT_HOW_TEMP(qw4) ((u16)(((qw4) >> 16) & 0xffff))
-+#define CPORT_HOW_QSFP1_TEMP(qw4) ((u16)(((qw4) >> 32) & 0xffff))
-+#define CPORT_HOW_QSFP2_TEMP(qw4) ((u16)(((qw4) >> 48) & 0xffff))
-+
-+/* Fields in 4-qword payload of HOW response */
-+struct cport_how_payload {
-+	/* qword 1 */
-+	u16 log_st; /* per-port logical state, 4 bits each */
-+	struct cport_options opts_ena;
-+	u16 phy_st[2]; /* phy state, two ports per u16 */
-+	/* qword 2 */
-+	struct cport_trap_status trap_ena;
-+	struct cport_trap_status trap_sts;
-+	/* qword 3: low byte holds interoperability level; rest reserved */
-+	u64 interop;
-+	/* qword 4: temperature/qsfp data; see CPORT_HOW_* accessors */
-+	u64 temps;
-+};
-+
-+/* START payload sub-field accessors */
-+#define CPORT_START_SIDX(s) ((u16)((s) & 0x7))
-+#define CPORT_START_INTEROP(s) ((u8)(((s) >> 8) & 0xff))
-+
-+/* Fields in 1-qword payload of START request/response */
-+struct cport_start_payload {
-+	u16 sidx; /* low 3 bits sidx, high byte interop */
-+	struct cport_options opts_ena;
-+	struct cport_trap_status trap_ena;
-+};
-+
-+/* Fields in 1-qword payload of STOP request/response */
-+struct cport_stop_payload {
-+	u64 sidx; /* low 3 bits sidx, rest reserved */
-+};
-+
-+/* Fields in 1-qword payload of TRAP or TRAP_REPRESS request */
-+struct cport_trap_payload {
-+	struct cport_trap_status trap_sts;
-+	u32 _resv1;
-+};
-+
-+/*
-+ * Non-blocking request interface.
-+ *
-+ * hfi2_cport_send_req_nb() returns 'handle' (or IS_ERR(handle)).
-+ * Caller supplies 'wait' which will be "upped" when the matching response
-+ * is received.  Caller also supplies a timeout for the OUTBOX_EMPTY wait.
-+ * This is generally needed if the caller will be using a timeout when waiting
-+ * for completion, to ensure that the send kworker also times out and exits.
-+ * Timeouts, etc, use hfi2_cport_send_cancel() to terminate without receiving response.
-+ *
-+ * Payload is always copied to internal buffer, so caller
-+ * may dispose of their buffer immediately on return.
-+ *
-+ * Timeout value of MAX_SCHEDULE_TIMEOUT causes infinite wait for OUTBOX_EMPTY.
-+ *
-+ * One of hfi2_cport_send_comp() or hfi2_cport_send_cancel() must be called in order
-+ * to fully release 'handle'.
-+ *
-+ * Response payload and length is provided in 'rsp_pld' and 'rsp_len',
-+ * which has been kalloc'ed and must be kfree'ed by caller.
-+ *
-+ * hfi2_cport_send_comp() returns the status (error code) from the response.
-+ */
-+void *hfi2_cport_send_req_nb(struct hfi2_devdata *dd, u8 op, u8 sideband,
-+			void *payload, int len, struct semaphore *wait,
-+			long timeout);
-+int hfi2_cport_send_comp(struct hfi2_devdata *dd, void *handle, void **rsp_pld,
-+		    int *rsp_len);
-+void hfi2_cport_send_cancel(struct hfi2_devdata *dd, void *handle);
-+
-+/*
-+ * Blocking request interface with timeout.
-+ *
-+ * The caller may dispose of 'payload' immediately on return.
-+ * Response payload and length is provided in 'rsp_pld' and 'rsp_len',
-+ * which has been kalloc'ed and must be kfree'ed by caller.
-+ *
-+ * Timeout value of MAX_SCHEDULE_TIMEOUT causes infinite wait for response
-+ * and OUTBOX_EMPTY.
-+ *
-+ * Returns the status (error code) from the response.
-+ */
-+int hfi2_cport_send_req(struct hfi2_devdata *dd, u8 op, u8 sideband, void *payload,
-+		   int len, void **rsp_pld, int *rsp_len, long timeout);
-+
-+/*
-+ * CPORT Notification interface.
-+ *
-+ * A notification is defined as a request that has no response.
-+ * This is implicitly non-blocking. timeout is applied to the
-+ * send wait for OUTBOX_EMPTY.
-+ *
-+ * The caller may dispose of 'payload' immediately on return.
-+ *
-+ * Returns 0 if the request was successfully queued.
-+ */
-+int hfi2_cport_send_notif(struct hfi2_devdata *dd, u8 op, u8 sideband, void *payload,
-+		     int len, long timeout);
-+
-+/**************************************
-+ * API for notifications from CPORT
-+ */
-+
-+/*
-+ * Handler prototype for callbacks.
-+ *
-+ * Returns response status (error) value. Must setup response payload
-+ * if appropriate. Whether or not a response is actually sent depends on
-+ * whether the request asked for one. Default is no payload (0 length).
-+ *
-+ * The semantics for responses are defined by the op-code. Error responses
-+ * may have different payloads than successful responses (or no payload at all).
-+ * Payloads may even be optional.
-+ */
-+typedef int (*cport_handler)(struct hfi2_devdata *dd, u8 op, u8 sideband,
-+			     void *payload, int len, void *handle);
-+
-+/*
-+ * Register a callback for a range of op-codes. Only one callback may be
-+ * registered for a given op-code. Returns 0 on success (valid op-code range).
-+ */
-+int hfi2_cport_register_cb(struct hfi2_devdata *dd, u8 op_start, u8 op_end,
-+		      cport_handler func);
-+
-+/*
-+ * Set static buffer for response payload of 'len' bytes from callback.
-+ *
-+ * Buffer may be disposed of immediately on return. If 'len' exceeds
-+ * maximum allowed, returns -EINVAL.
-+ */
-+int hfi2_cport_resp_set(void *handle, void *payload, int len);
-+
-+/*
-+ * Interrupt handler for MctxtCportToPcieInt
-+ */
-+void hfi2_is_cport_int(struct hfi2_devdata *dd, unsigned int source);
-+
-+/*
-+ * Start a CPORT ping for count iterations.
-+ */
-+int hfi2_cport_ping_start(struct hfi2_devdata *dd, unsigned int count);
-+
-+/*
-+ * Initialize the CPORT communication facility.
-+ *
-+ * If the device does not have a CPORT, this returns 0.
-+ */
-+int hfi2_cport_init(struct hfi2_devdata *dd);
-+
-+/*
-+ * Shutdown the CPORT communication facility.
-+ *
-+ * If the device has no CPORT, this does nothing.
-+ */
-+int hfi2_cport_exit(struct hfi2_devdata *dd);
-+
-+#endif /* _CPORT_H */
-diff --git a/drivers/infiniband/hw/hfi2/cport_traps.h b/drivers/infiniband/hw/hfi2/cport_traps.h
++#include "trace_dbg.h"
++#include "trace_misc.h"
++#include "trace_ctxts.h"
++#include "trace_ibhdrs.h"
++#include "trace_rc.h"
++#include "trace_rx.h"
++#include "trace_tx.h"
++#include "trace_mmu.h"
++#include "trace_iowait.h"
++#include "trace_tid.h"
++#include "trace_pin.h"
+diff --git a/drivers/infiniband/hw/hfi2/trace_ctxts.h b/drivers/infiniband/hw/hfi2/trace_ctxts.h
 new file mode 100644
-index 000000000000..ddf2af083e87
+index 000000000000..f36a330e7b13
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/cport_traps.h
-@@ -0,0 +1,43 @@
-+/* SPDX-License-Identifier: GPL-2.0 or BSD-3-Clause */
++++ b/drivers/infiniband/hw/hfi2/trace_ctxts.h
+@@ -0,0 +1,116 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
 +/*
++ * Copyright(c) 2015 - 2020 Intel Corporation.
 + * Copyright(c) 2025-2026 Cornelis Networks, Inc.
 + */
 +
-+#ifndef _CPORT_TRAPS_H
-+#define _CPORT_TRAPS_H
++#if !defined(__HFI2_TRACE_CTXTS_H) || defined(TRACE_HEADER_MULTI_READ)
++#define __HFI2_TRACE_CTXTS_H
 +
-+#include "cport.h"
++#include <linux/tracepoint.h>
++#include <linux/trace_seq.h>
 +
-+/*
-+ * Facility to handle CPORT "TRAPS".
-+ */
++#include "hfi2.h"
 +
-+/*
-+ * Handler prototype for callbacks.
-+ *
-+ * @traps indicates which traps are being reported, and is not restricted
-+ * to the trap(s) registered to this callback. At least one of the traps
-+ * that was requested will be set.
-+ */
-+typedef void (*cport_trap_handler)(struct hfi2_devdata *dd,
-+				   struct cport_trap_status traps);
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi2_ctxts
 +
-+/*
-+ * Register for a callback when certain CPORT TRAPs occur.
-+ *
-+ * @traps indicates the TRAPs to be detected.
-+ * @func will be called when at least one of @traps is set.
-+ */
-+int hfi2_register_cport_trap(struct hfi2_devdata *dd, struct cport_trap_status traps,
-+			cport_trap_handler func);
++#define UCTXT_FMT \
++	"cred:%u, credaddr:0x%llx, piobase:0x%p, rcvhdr_cnt:%u, "	\
++	"rcvbase:0x%llx, rcvegrc:%u, rcvegrb:0x%llx, subctxt_cnt:%u"
++TRACE_EVENT(hfi2_uctxtdata,
++	    TP_PROTO(struct hfi2_devdata *dd, struct hfi2_ctxtdata *uctxt,
++		     unsigned int subctxt),
++	    TP_ARGS(dd, uctxt, subctxt),
++	    TP_STRUCT__entry(DD_DEV_ENTRY(dd)
++			     __field(unsigned int, ctxt)
++			     __field(unsigned int, subctxt)
++			     __field(u32, credits)
++			     __field(u64, hw_free)
++			     __field(void __iomem *, piobase)
++			     __field(u16, rcvhdrq_cnt)
++			     __field(u64, rcvhdrq_dma)
++			     __field(u32, eager_cnt)
++			     __field(u64, rcvegr_dma)
++			     __field(unsigned int, subctxt_cnt)
++			     ),
++	    TP_fast_assign(DD_DEV_ASSIGN(dd);
++			   __entry->ctxt = uctxt->ctxt;
++			   __entry->subctxt = subctxt;
++			   __entry->credits = uctxt->sc->credits;
++			   __entry->hw_free = le64_to_cpu(*uctxt->sc->hw_free);
++			   __entry->piobase = uctxt->sc->base_addr;
++			   __entry->rcvhdrq_cnt = get_hdrq_cnt(uctxt);
++			   __entry->rcvhdrq_dma = uctxt->rcvhdrq_dma;
++			   __entry->eager_cnt = uctxt->egrbufs.alloced;
++			   __entry->rcvegr_dma = uctxt->egrbufs.rcvtids[0].dma;
++			   __entry->subctxt_cnt = uctxt->subctxt_cnt;
++			   ),
++	    TP_printk("[%s] ctxt %u:%u " UCTXT_FMT,
++		      __get_str(dev),
++		      __entry->ctxt,
++		      __entry->subctxt,
++		      __entry->credits,
++		      __entry->hw_free,
++		      __entry->piobase,
++		      __entry->rcvhdrq_cnt,
++		      __entry->rcvhdrq_dma,
++		      __entry->eager_cnt,
++		      __entry->rcvegr_dma,
++		      __entry->subctxt_cnt
++		      )
++);
 +
-+/*
-+ * Deregister for a callback on CPORT TRAPs.
-+ *
-+ * @func All registered callbacks using this function will be removed.
-+ *
-+ * On return, @func will not be called for any traps.
-+ */
-+int hfi2_deregister_cport_trap(struct hfi2_devdata *dd, cport_trap_handler func);
++#define CINFO_FMT \
++	"egrtids:%u, egr_size:%u, hdrq_cnt:%u, hdrq_size:%u, sdma_ring_size:%u"
++TRACE_EVENT(hfi_ctxt_info,
++	    TP_PROTO(struct hfi2_devdata *dd, unsigned int ctxt,
++		     unsigned int subctxt,
++		     struct hfi2_ctxt_info *cinfo),
++	    TP_ARGS(dd, ctxt, subctxt, cinfo),
++	    TP_STRUCT__entry(DD_DEV_ENTRY(dd)
++			     __field(unsigned int, ctxt)
++			     __field(unsigned int, subctxt)
++			     __field(u16, egrtids)
++			     __field(u16, rcvhdrq_cnt)
++			     __field(u16, rcvhdrq_size)
++			     __field(u16, sdma_ring_size)
++			     __field(u32, rcvegr_size)
++			     ),
++	    TP_fast_assign(DD_DEV_ASSIGN(dd);
++			    __entry->ctxt = ctxt;
++			    __entry->subctxt = subctxt;
++			    __entry->egrtids = cinfo->egrtids;
++			    __entry->rcvhdrq_cnt = cinfo->rcvhdrq_cnt;
++			    __entry->rcvhdrq_size = cinfo->rcvhdrq_entsize;
++			    __entry->sdma_ring_size = cinfo->sdma_ring_size;
++			    __entry->rcvegr_size = cinfo->rcvegr_size;
++			    ),
++	    TP_printk("[%s] ctxt %u:%u " CINFO_FMT,
++		      __get_str(dev),
++		      __entry->ctxt,
++		      __entry->subctxt,
++		      __entry->egrtids,
++		      __entry->rcvegr_size,
++		      __entry->rcvhdrq_cnt,
++		      __entry->rcvhdrq_size,
++		      __entry->sdma_ring_size
++		      )
++);
 +
-+#endif /* _CPORT_TRAPS_H */
-diff --git a/drivers/infiniband/hw/hfi2/mad.h b/drivers/infiniband/hw/hfi2/mad.h
++const char *hfi2_trace_print_rsm_hist(struct trace_seq *p, unsigned int ctxt);
++TRACE_EVENT(ctxt_rsm_hist,
++	    TP_PROTO(unsigned int ctxt),
++	    TP_ARGS(ctxt),
++	    TP_STRUCT__entry(__field(unsigned int, ctxt)),
++	    TP_fast_assign(__entry->ctxt = ctxt;),
++	    TP_printk("%s", hfi2_trace_print_rsm_hist(p, __entry->ctxt))
++);
++
++#endif /* __HFI2_TRACE_CTXTS_H */
++
++#undef TRACE_INCLUDE_PATH
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_PATH .
++#define TRACE_INCLUDE_FILE trace_ctxts
++#include <trace/define_trace.h>
+diff --git a/drivers/infiniband/hw/hfi2/trace_dbg.h b/drivers/infiniband/hw/hfi2/trace_dbg.h
 new file mode 100644
-index 000000000000..4932041b4373
+index 000000000000..bc6f298fcbb2
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/mad.h
-@@ -0,0 +1,442 @@
++++ b/drivers/infiniband/hw/hfi2/trace_dbg.h
+@@ -0,0 +1,119 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/*
++ * Copyright(c) 2015 - 2018 Intel Corporation.
++ * Copyright(c) 2025-2026 Cornelis Networks, Inc.
++ */
++
++#if !defined(__HFI2_TRACE_EXTRA_H) || defined(TRACE_HEADER_MULTI_READ)
++#define __HFI2_TRACE_EXTRA_H
++
++#include <linux/tracepoint.h>
++#include <linux/trace_seq.h>
++
++#include "hfi2.h"
++
++/*
++ * Note:
++ * This produces a REALLY ugly trace in the console output when the string is
++ * too long.
++ */
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi2_dbg
++
++#define MAX_MSG_LEN 512
++
++#pragma GCC diagnostic push
++#ifndef __clang__
++#pragma GCC diagnostic ignored "-Wsuggest-attribute=format"
++#endif
++
++DECLARE_EVENT_CLASS(hfi2_trace_template,
++		    TP_PROTO(const char *function, struct va_format *vaf),
++		    TP_ARGS(function, vaf),
++		    TP_STRUCT__entry(__string(function, function)
++				     __vstring(msg, vaf->fmt, vaf->va)
++				     ),
++		    TP_fast_assign(__assign_str(function);
++				   __assign_vstr(msg, vaf->fmt, vaf->va);
++				   ),
++		    TP_printk("(%s) %s",
++			      __get_str(function),
++			      __get_str(msg))
++);
++
++#pragma GCC diagnostic pop
++
++/*
++ * It may be nice to macroize the __hfi2_trace but the va_* stuff requires an
++ * actual function to work and can not be in a macro.
++ */
++#define __hfi2_trace_def(lvl) \
++void __printf(2, 3) __hfi2_trace_##lvl(const char *funct, char *fmt, ...); \
++									\
++DEFINE_EVENT(hfi2_trace_template, hfi2_ ##lvl,				\
++	TP_PROTO(const char *function, struct va_format *vaf),		\
++	TP_ARGS(function, vaf))
++
++#define __hfi2_trace_fn(lvl) \
++void __printf(2, 3) __hfi2_trace_##lvl(const char *func, char *fmt, ...)\
++{									\
++	struct va_format vaf = {					\
++		.fmt = fmt,						\
++	};								\
++	va_list args;							\
++									\
++	va_start(args, fmt);						\
++	vaf.va = &args;							\
++	trace_hfi2_ ##lvl(func, &vaf);					\
++	va_end(args);							\
++	return;								\
++}
++
++/*
++ * To create a new trace level simply define it below and as a __hfi2_trace_fn
++ * in trace.c. This will create all the hooks for calling
++ * hfi2_cdbg(LVL, fmt, ...); as well as take care of all
++ * the debugfs stuff.
++ */
++__hfi2_trace_def(AFFINITY);
++__hfi2_trace_def(PKT);
++__hfi2_trace_def(PROC);
++__hfi2_trace_def(SDMA);
++__hfi2_trace_def(LINKVERB);
++__hfi2_trace_def(DEBUG);
++__hfi2_trace_def(SNOOP);
++__hfi2_trace_def(CNTR);
++__hfi2_trace_def(PIO);
++__hfi2_trace_def(DC8051);
++__hfi2_trace_def(FIRMWARE);
++__hfi2_trace_def(RCVCTRL);
++__hfi2_trace_def(TID);
++__hfi2_trace_def(MMU);
++__hfi2_trace_def(IOCTL);
++
++#define hfi2_cdbg(which, fmt, ...) \
++	__hfi2_trace_##which(__func__, fmt, ##__VA_ARGS__)
++
++#define hfi2_dbg(fmt, ...) \
++	hfi2_cdbg(DEBUG, fmt, ##__VA_ARGS__)
++
++/*
++ * Define HFI2_EARLY_DBG at compile time or here to enable early trace
++ * messages. Do not check in an enablement for this.
++ */
++
++#ifdef HFI2_EARLY_DBG
++#define hfi2_dbg_early(fmt, ...) \
++	trace_printk(fmt, ##__VA_ARGS__)
++#else
++#define hfi2_dbg_early(fmt, ...)
++#endif
++
++#endif /* __HFI2_TRACE_EXTRA_H */
++
++#undef TRACE_INCLUDE_PATH
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_PATH .
++#define TRACE_INCLUDE_FILE trace_dbg
++#include <trace/define_trace.h>
+diff --git a/drivers/infiniband/hw/hfi2/trace_ibhdrs.h b/drivers/infiniband/hw/hfi2/trace_ibhdrs.h
+new file mode 100644
+index 000000000000..a0a1d474829b
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/trace_ibhdrs.h
+@@ -0,0 +1,458 @@
 +/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
 +/*
 + * Copyright(c) 2015 - 2017 Intel Corporation.
 + * Copyright(c) 2025-2026 Cornelis Networks, Inc.
 + */
 +
-+#ifndef _HFI2_MAD_H
-+#define _HFI2_MAD_H
++#if !defined(__HFI2_TRACE_IBHDRS_H) || defined(TRACE_HEADER_MULTI_READ)
++#define __HFI2_TRACE_IBHDRS_H
 +
-+#include <rdma/ib_pma.h>
-+#include <rdma/opa_smi.h>
-+#include <rdma/opa_port_info.h>
-+#include "opa_compat.h"
++#include <linux/tracepoint.h>
++#include <linux/trace_seq.h>
 +
-+/*
-+ * OPA Traps
-+ */
-+#define OPA_TRAP_GID_NOW_IN_SERVICE cpu_to_be16(64)
-+#define OPA_TRAP_GID_OUT_OF_SERVICE cpu_to_be16(65)
-+#define OPA_TRAP_ADD_MULTICAST_GROUP cpu_to_be16(66)
-+#define OPA_TRAL_DEL_MULTICAST_GROUP cpu_to_be16(67)
-+#define OPA_TRAP_UNPATH cpu_to_be16(68)
-+#define OPA_TRAP_REPATH cpu_to_be16(69)
-+#define OPA_TRAP_PORT_CHANGE_STATE cpu_to_be16(128)
-+#define OPA_TRAP_LINK_INTEGRITY cpu_to_be16(129)
-+#define OPA_TRAP_EXCESSIVE_BUFFER_OVERRUN cpu_to_be16(130)
-+#define OPA_TRAP_FLOW_WATCHDOG cpu_to_be16(131)
-+#define OPA_TRAP_CHANGE_CAPABILITY cpu_to_be16(144)
-+#define OPA_TRAP_CHANGE_SYSGUID cpu_to_be16(145)
-+#define OPA_TRAP_BAD_M_KEY cpu_to_be16(256)
-+#define OPA_TRAP_BAD_P_KEY cpu_to_be16(257)
-+#define OPA_TRAP_BAD_Q_KEY cpu_to_be16(258)
-+#define OPA_TRAP_SWITCH_BAD_PKEY cpu_to_be16(259)
-+#define OPA_SMA_TRAP_DATA_LINK_WIDTH cpu_to_be16(2048)
++#include "hfi2.h"
 +
-+/*
-+ * Generic trap/notice other local changes flags (trap 144).
-+ */
-+#define OPA_NOTICE_TRAP_LWDE_CHG \
-+	0x08 /* Link Width Downgrade Enable
-+	      * changed
-+	      */
-+#define OPA_NOTICE_TRAP_LSE_CHG 0x04 /* Link Speed Enable changed */
-+#define OPA_NOTICE_TRAP_LWE_CHG 0x02 /* Link Width Enable changed */
-+#define OPA_NOTICE_TRAP_NODE_DESC_CHG 0x01
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi2_ibhdrs
 +
-+struct opa_mad_notice_attr {
-+	u8 generic_type;
-+	u8 prod_type_msb;
-+	__be16 prod_type_lsb;
-+	__be16 trap_num;
-+	__be16 toggle_count;
-+	__be32 issuer_lid;
-+	__be32 reserved1;
-+	union ib_gid issuer_gid;
++#define ib_opcode_name(opcode) { IB_OPCODE_##opcode, #opcode  }
++#define show_ib_opcode(opcode)                             \
++__print_symbolic(opcode,                                   \
++	ib_opcode_name(RC_SEND_FIRST),                     \
++	ib_opcode_name(RC_SEND_MIDDLE),                    \
++	ib_opcode_name(RC_SEND_LAST),                      \
++	ib_opcode_name(RC_SEND_LAST_WITH_IMMEDIATE),       \
++	ib_opcode_name(RC_SEND_ONLY),                      \
++	ib_opcode_name(RC_SEND_ONLY_WITH_IMMEDIATE),       \
++	ib_opcode_name(RC_RDMA_WRITE_FIRST),               \
++	ib_opcode_name(RC_RDMA_WRITE_MIDDLE),              \
++	ib_opcode_name(RC_RDMA_WRITE_LAST),                \
++	ib_opcode_name(RC_RDMA_WRITE_LAST_WITH_IMMEDIATE), \
++	ib_opcode_name(RC_RDMA_WRITE_ONLY),                \
++	ib_opcode_name(RC_RDMA_WRITE_ONLY_WITH_IMMEDIATE), \
++	ib_opcode_name(RC_RDMA_READ_REQUEST),              \
++	ib_opcode_name(RC_RDMA_READ_RESPONSE_FIRST),       \
++	ib_opcode_name(RC_RDMA_READ_RESPONSE_MIDDLE),      \
++	ib_opcode_name(RC_RDMA_READ_RESPONSE_LAST),        \
++	ib_opcode_name(RC_RDMA_READ_RESPONSE_ONLY),        \
++	ib_opcode_name(RC_ACKNOWLEDGE),                    \
++	ib_opcode_name(RC_ATOMIC_ACKNOWLEDGE),             \
++	ib_opcode_name(RC_COMPARE_SWAP),                   \
++	ib_opcode_name(RC_FETCH_ADD),                      \
++	ib_opcode_name(RC_SEND_LAST_WITH_INVALIDATE),      \
++	ib_opcode_name(RC_SEND_ONLY_WITH_INVALIDATE),      \
++	ib_opcode_name(TID_RDMA_WRITE_REQ),	           \
++	ib_opcode_name(TID_RDMA_WRITE_RESP),	           \
++	ib_opcode_name(TID_RDMA_WRITE_DATA),	           \
++	ib_opcode_name(TID_RDMA_WRITE_DATA_LAST),          \
++	ib_opcode_name(TID_RDMA_READ_REQ),	           \
++	ib_opcode_name(TID_RDMA_READ_RESP),	           \
++	ib_opcode_name(TID_RDMA_RESYNC),	           \
++	ib_opcode_name(TID_RDMA_ACK),                      \
++	ib_opcode_name(UC_SEND_FIRST),                     \
++	ib_opcode_name(UC_SEND_MIDDLE),                    \
++	ib_opcode_name(UC_SEND_LAST),                      \
++	ib_opcode_name(UC_SEND_LAST_WITH_IMMEDIATE),       \
++	ib_opcode_name(UC_SEND_ONLY),                      \
++	ib_opcode_name(UC_SEND_ONLY_WITH_IMMEDIATE),       \
++	ib_opcode_name(UC_RDMA_WRITE_FIRST),               \
++	ib_opcode_name(UC_RDMA_WRITE_MIDDLE),              \
++	ib_opcode_name(UC_RDMA_WRITE_LAST),                \
++	ib_opcode_name(UC_RDMA_WRITE_LAST_WITH_IMMEDIATE), \
++	ib_opcode_name(UC_RDMA_WRITE_ONLY),                \
++	ib_opcode_name(UC_RDMA_WRITE_ONLY_WITH_IMMEDIATE), \
++	ib_opcode_name(UD_SEND_ONLY),                      \
++	ib_opcode_name(UD_SEND_ONLY_WITH_IMMEDIATE),       \
++	ib_opcode_name(CNP))
 +
-+	union {
-+		struct {
-+			u8 details[64];
-+		} raw_data;
++const char *hfi2_parse_everbs_hdrs(struct trace_seq *p, u8 opcode,
++			      u8 l4, u32 dest_qpn, u32 src_qpn,
++			      void *ehdrs);
++u8 hfi2_trace_opa_hdr_len(struct hfi2_opa_header *opah);
++u8 hfi2_trace_packet_hdr_len(struct hfi2_packet *packet);
++const char *hfi2_trace_get_packet_l4_str(u8 l4);
++void hfi2_trace_parse_9b_bth(struct ib_other_headers *ohdr,
++			     u8 *ack, bool *becn, bool *fecn, u8 *mig,
++			     u8 *se, u8 *pad, u8 *opcode, u8 *tver,
++			     u16 *pkey, u32 *psn, u32 *qpn);
++void hfi2_trace_parse_9b_hdr(struct ib_header *hdr, bool sc5,
++			     u8 *lnh, u8 *lver, u8 *sl, u8 *sc,
++			     u16 *len, u32 *dlid, u32 *slid);
++void hfi2_trace_parse_16b_bth(struct ib_other_headers *ohdr,
++			      u8 *ack, u8 *mig, u8 *opcode,
++			      u8 *pad, u8 *se, u8 *tver,
++			      u32 *psn, u32 *qpn);
++void hfi2_trace_parse_16b_hdr(struct hfi2_16b_header *hdr,
++			      u8 *age, bool *becn, bool *fecn,
++			      u8 *l4, u8 *rc, u8 *sc,
++			      u16 *entropy, u16 *len, u16 *pkey,
++			      u32 *dlid, u32 *slid);
 +
-+		struct {
-+			union ib_gid gid;
-+		} __packed ntc_64_65_66_67;
++const char *hfi2_trace_fmt_lrh(struct trace_seq *p, bool bypass,
++			       u8 age, bool becn, bool fecn, u8 l4,
++			       u8 lnh, const char *lnh_name, u8 lver,
++			       u8 rc, u8 sc, u8 sl, u16 entropy,
++			       u16 len, u16 pkey, u32 dlid, u32 slid);
 +
-+		struct {
-+			__be32 lid;
-+		} __packed ntc_128;
++const char *hfi2_trace_fmt_rest(struct trace_seq *p, bool bypass, u8 l4,
++				u8 ack, bool becn, bool fecn, u8 mig,
++				u8 se, u8 pad, u8 opcode, const char *opname,
++				u8 tver, u16 pkey, u32 psn, u32 qpn,
++				u32 dest_qpn, u32 src_qpn);
 +
-+		struct {
-+			__be32 lid; /* where violation happened */
-+			u8 port_num; /* where violation happened */
-+		} __packed ntc_129_130_131;
++const char *hfi2_trace_get_packet_l2_str(u8 l2);
 +
-+		struct {
-+			__be32 lid; /* LID where change occurred */
-+			__be32 new_cap_mask; /* new capability mask */
-+			__be16 reserved2;
-+			__be16 cap_mask3;
-+			__be16 change_flags; /* low 4 bits only */
-+		} __packed ntc_144;
++#define __parse_ib_ehdrs(op, l4, dest_qpn, src_qpn, ehdrs) \
++			 hfi2_parse_everbs_hdrs(p, op, l4, dest_qpn, src_qpn, ehdrs)
 +
-+		struct {
-+			__be64 new_sys_guid;
-+			__be32 lid; /* lid where sys guid changed */
-+		} __packed ntc_145;
++#define lrh_name(lrh) { HFI2_##lrh, #lrh }
++#define show_lnh(lrh)                    \
++__print_symbolic(lrh,                    \
++	lrh_name(LRH_BTH),               \
++	lrh_name(LRH_GRH))
 +
-+		struct {
-+			__be32 lid;
-+			__be32 dr_slid;
-+			u8 method;
-+			u8 dr_trunc_hop;
-+			__be16 attr_id;
-+			__be32 attr_mod;
-+			__be64 mkey;
-+			u8 dr_rtn_path[30];
-+		} __packed ntc_256;
++DECLARE_EVENT_CLASS(hfi2_input_ibhdr_template,
++		    TP_PROTO(struct hfi2_devdata *dd,
++			     struct hfi2_packet *packet,
++			     bool sc5),
++		    TP_ARGS(dd, packet, sc5),
++		    TP_STRUCT__entry(
++			DD_DEV_ENTRY(dd)
++			__field(u8, etype)
++			__field(u8, ack)
++			__field(u8, age)
++			__field(bool, becn)
++			__field(bool, fecn)
++			__field(u8, l2)
++			__field(u8, l4)
++			__field(u8, lnh)
++			__field(u8, lver)
++			__field(u8, mig)
++			__field(u8, opcode)
++			__field(u8, pad)
++			__field(u8, rc)
++			__field(u8, sc)
++			__field(u8, se)
++			__field(u8, sl)
++			__field(u8, tver)
++			__field(u16, entropy)
++			__field(u16, len)
++			__field(u16, pkey)
++			__field(u32, dlid)
++			__field(u32, psn)
++			__field(u32, qpn)
++			__field(u32, slid)
++			__field(u32, dest_qpn)
++			__field(u32, src_qpn)
++			/* extended headers */
++			__dynamic_array(u8, ehdrs,
++					hfi2_trace_packet_hdr_len(packet))
++			),
++		    TP_fast_assign(
++			DD_DEV_ASSIGN(dd);
 +
-+		struct {
-+			__be32 lid1;
-+			__be32 lid2;
-+			__be32 key;
-+			u8 sl; /* SL: high 5 bits */
-+			u8 reserved3[3];
-+			union ib_gid gid1;
-+			union ib_gid gid2;
-+			__be32 qp1; /* high 8 bits reserved */
-+			__be32 qp2; /* high 8 bits reserved */
-+		} __packed ntc_257_258;
++			__entry->etype = packet->etype;
++			__entry->l2 = hfi2_16B_get_l2(packet->hdr);
++			__entry->dest_qpn = 0;
++			__entry->src_qpn = 0;
++			if (__entry->etype == RHF_RCV_TYPE_BYPASS) {
++				hfi2_trace_parse_16b_hdr(packet->hdr,
++							 &__entry->age,
++							 &__entry->becn,
++							 &__entry->fecn,
++							 &__entry->l4,
++							 &__entry->rc,
++							 &__entry->sc,
++							 &__entry->entropy,
++							 &__entry->len,
++							 &__entry->pkey,
++							 &__entry->dlid,
++							 &__entry->slid);
 +
-+		struct {
-+			__be16 flags; /* low 8 bits reserved */
-+			__be16 pkey;
-+			__be32 lid1;
-+			__be32 lid2;
-+			u8 sl; /* SL: high 5 bits */
-+			u8 reserved4[3];
-+			union ib_gid gid1;
-+			union ib_gid gid2;
-+			__be32 qp1; /* high 8 bits reserved */
-+			__be32 qp2; /* high 8 bits reserved */
-+		} __packed ntc_259;
++				if (__entry->l4 == OPA_16B_L4_FM) {
++					__entry->opcode = IB_OPCODE_UD_SEND_ONLY;
++					__entry->dest_qpn = hfi2_16B_get_dest_qpn(packet->mgmt);
++					__entry->src_qpn = hfi2_16B_get_src_qpn(packet->mgmt);
++				}  else {
++					hfi2_trace_parse_16b_bth(packet->ohdr,
++								 &__entry->ack,
++								 &__entry->mig,
++								 &__entry->opcode,
++								 &__entry->pad,
++								 &__entry->se,
++								 &__entry->tver,
++								 &__entry->psn,
++								 &__entry->qpn);
++				}
++			} else {
++				__entry->l4 = OPA_16B_L4_9B;
++				hfi2_trace_parse_9b_hdr(packet->hdr, sc5,
++							&__entry->lnh,
++							&__entry->lver,
++							&__entry->sl,
++							&__entry->sc,
++							&__entry->len,
++							&__entry->dlid,
++							&__entry->slid);
 +
-+		struct {
-+			__be32 lid;
-+		} __packed ntc_2048;
-+	};
-+};
++				  hfi2_trace_parse_9b_bth(packet->ohdr,
++							  &__entry->ack,
++							  &__entry->becn,
++							  &__entry->fecn,
++							  &__entry->mig,
++							  &__entry->se,
++							  &__entry->pad,
++							  &__entry->opcode,
++							  &__entry->tver,
++							  &__entry->pkey,
++							  &__entry->psn,
++							  &__entry->qpn);
++			}
++			/* extended headers */
++			if (__entry->l4 != OPA_16B_L4_FM)
++				memcpy(__get_dynamic_array(ehdrs),
++				       &packet->ohdr->u,
++				       __get_dynamic_array_len(ehdrs));
++			 ),
++		    TP_printk("[%s] (%s) %s %s hlen:%d %s",
++			      __get_str(dev),
++			      __entry->etype != RHF_RCV_TYPE_BYPASS ?
++					show_packettype(__entry->etype) :
++					hfi2_trace_get_packet_l2_str(
++						__entry->l2),
++			      hfi2_trace_fmt_lrh(p,
++						 __entry->etype ==
++							RHF_RCV_TYPE_BYPASS,
++						 __entry->age,
++						 __entry->becn,
++						 __entry->fecn,
++						 __entry->l4,
++						 __entry->lnh,
++						 show_lnh(__entry->lnh),
++						 __entry->lver,
++						 __entry->rc,
++						 __entry->sc,
++						 __entry->sl,
++						 __entry->entropy,
++						 __entry->len,
++						 __entry->pkey,
++						 __entry->dlid,
++						 __entry->slid),
++			      hfi2_trace_fmt_rest(p,
++						  __entry->etype ==
++							RHF_RCV_TYPE_BYPASS,
++						  __entry->l4,
++						  __entry->ack,
++						  __entry->becn,
++						  __entry->fecn,
++						  __entry->mig,
++						  __entry->se,
++						  __entry->pad,
++						  __entry->opcode,
++						  show_ib_opcode(__entry->opcode),
++						  __entry->tver,
++						  __entry->pkey,
++						  __entry->psn,
++						  __entry->qpn,
++						  __entry->dest_qpn,
++						  __entry->src_qpn),
++			      /* extended headers */
++			      __get_dynamic_array_len(ehdrs),
++			      __parse_ib_ehdrs(
++					__entry->opcode,
++					__entry->l4,
++					__entry->dest_qpn,
++					__entry->src_qpn,
++					(void *)__get_dynamic_array(ehdrs))
++			     )
++);
 +
-+#define IB_VLARB_LOWPRI_0_31 1
-+#define IB_VLARB_LOWPRI_32_63 2
-+#define IB_VLARB_HIGHPRI_0_31 3
-+#define IB_VLARB_HIGHPRI_32_63 4
++DEFINE_EVENT(hfi2_input_ibhdr_template, input_ibhdr,
++	     TP_PROTO(struct hfi2_devdata *dd,
++		      struct hfi2_packet *packet, bool sc5),
++	     TP_ARGS(dd, packet, sc5));
 +
-+#define OPA_MAX_PREEMPT_CAP 32
-+#define OPA_VLARB_LOW_ELEMENTS 0
-+#define OPA_VLARB_HIGH_ELEMENTS 1
-+#define OPA_VLARB_PREEMPT_ELEMENTS 2
-+#define OPA_VLARB_PREEMPT_MATRIX 3
++DECLARE_EVENT_CLASS(hfi2_output_ibhdr_template,
++		    TP_PROTO(struct hfi2_devdata *dd,
++			     struct hfi2_opa_header *opah, bool sc5, int err),
++		    TP_ARGS(dd, opah, sc5, err),
++		    TP_STRUCT__entry(
++			DD_DEV_ENTRY(dd)
++			__field(u8, hdr_type)
++			__field(u8, ack)
++			__field(u8, age)
++			__field(bool, becn)
++			__field(bool, fecn)
++			__field(u8, l4)
++			__field(u8, lnh)
++			__field(u8, lver)
++			__field(u8, mig)
++			__field(u8, opcode)
++			__field(u8, pad)
++			__field(u8, rc)
++			__field(u8, sc)
++			__field(u8, se)
++			__field(u8, sl)
++			__field(u8, tver)
++			__field(u16, entropy)
++			__field(u16, len)
++			__field(u16, pkey)
++			__field(u32, dlid)
++			__field(u32, psn)
++			__field(u32, qpn)
++			__field(u32, slid)
++			__field(u32, dest_qpn)
++			__field(u32, src_qpn)
++			__field(int, err)
++			/* extended headers */
++			__dynamic_array(u8, ehdrs,
++					hfi2_trace_opa_hdr_len(opah))
++			),
++		    TP_fast_assign(
++			struct ib_other_headers *ohdr;
 +
-+#define IB_PMA_PORT_COUNTERS_CONG cpu_to_be16(0xFF00)
-+#define LINK_SPEED_25G 1
-+#define LINK_SPEED_12_5G 2
-+#define LINK_WIDTH_DEFAULT 4
-+#define DECIMAL_FACTORING 1000
-+/*
-+ * The default link width is multiplied by 1000
-+ * to get accurate value after division.
-+ */
-+#define FACTOR_LINK_WIDTH (LINK_WIDTH_DEFAULT * DECIMAL_FACTORING)
++			DD_DEV_ASSIGN(dd);
 +
-+struct ib_pma_portcounters_cong {
-+	u8 reserved;
-+	u8 reserved1;
-+	__be16 port_check_rate;
-+	__be16 symbol_error_counter;
-+	u8 link_error_recovery_counter;
-+	u8 link_downed_counter;
-+	__be16 port_rcv_errors;
-+	__be16 port_rcv_remphys_errors;
-+	__be16 port_rcv_switch_relay_errors;
-+	__be16 port_xmit_discards;
-+	u8 port_xmit_constraint_errors;
-+	u8 port_rcv_constraint_errors;
-+	u8 reserved2;
-+	u8 link_overrun_errors; /* LocalLink: 7:4, BufferOverrun: 3:0 */
-+	__be16 reserved3;
-+	__be16 vl15_dropped;
-+	__be64 port_xmit_data;
-+	__be64 port_rcv_data;
-+	__be64 port_xmit_packets;
-+	__be64 port_rcv_packets;
-+	__be64 port_xmit_wait;
-+	__be64 port_adr_events;
-+} __packed;
++			__entry->hdr_type = opah->hdr_type;
++			__entry->dest_qpn = 0;
++			__entry->src_qpn = 0;
++			__entry->err = err;
++			if (__entry->hdr_type)  {
++				hfi2_trace_parse_16b_hdr(&opah->opah,
++							 &__entry->age,
++							 &__entry->becn,
++							 &__entry->fecn,
++							 &__entry->l4,
++							 &__entry->rc,
++							 &__entry->sc,
++							 &__entry->entropy,
++							 &__entry->len,
++							 &__entry->pkey,
++							 &__entry->dlid,
++							 &__entry->slid);
 +
-+#define IB_SMP_UNSUP_VERSION cpu_to_be16(0x0004)
-+#define IB_SMP_UNSUP_METHOD cpu_to_be16(0x0008)
-+#define IB_SMP_UNSUP_METH_ATTR cpu_to_be16(0x000C)
-+#define IB_SMP_INVALID_FIELD cpu_to_be16(0x001C)
++				if (__entry->l4 == OPA_16B_L4_FM) {
++					ohdr = NULL;
++					__entry->opcode = IB_OPCODE_UD_SEND_ONLY;
++					__entry->dest_qpn = hfi2_16B_get_dest_qpn(&opah->opah.u.mgmt);
++					__entry->src_qpn = hfi2_16B_get_src_qpn(&opah->opah.u.mgmt);
++				} else {
++					if (__entry->l4 == OPA_16B_L4_IB_LOCAL)
++						ohdr = &opah->opah.u.oth;
++					else
++						ohdr = &opah->opah.u.l.oth;
++					hfi2_trace_parse_16b_bth(ohdr,
++								 &__entry->ack,
++								 &__entry->mig,
++								 &__entry->opcode,
++								 &__entry->pad,
++								 &__entry->se,
++								 &__entry->tver,
++								 &__entry->psn,
++								 &__entry->qpn);
++				}
++			} else {
++				__entry->l4 = OPA_16B_L4_9B;
++				hfi2_trace_parse_9b_hdr(&opah->ibh, sc5,
++							&__entry->lnh,
++							&__entry->lver,
++							&__entry->sl,
++							&__entry->sc,
++							&__entry->len,
++							&__entry->dlid,
++							&__entry->slid);
++				if (__entry->lnh == HFI2_LRH_BTH)
++					ohdr = &opah->ibh.u.oth;
++				else
++					ohdr = &opah->ibh.u.l.oth;
++				hfi2_trace_parse_9b_bth(ohdr,
++							&__entry->ack,
++							&__entry->becn,
++							&__entry->fecn,
++							&__entry->mig,
++							&__entry->se,
++							&__entry->pad,
++							&__entry->opcode,
++							&__entry->tver,
++							&__entry->pkey,
++							&__entry->psn,
++							&__entry->qpn);
++			}
 +
-+#define OPA_MAX_PREEMPT_CAP 32
-+#define OPA_VLARB_LOW_ELEMENTS 0
-+#define OPA_VLARB_HIGH_ELEMENTS 1
-+#define OPA_VLARB_PREEMPT_ELEMENTS 2
-+#define OPA_VLARB_PREEMPT_MATRIX 3
++			/* extended headers */
++			if (__entry->l4 != OPA_16B_L4_FM)
++				memcpy(__get_dynamic_array(ehdrs),
++				       &ohdr->u, __get_dynamic_array_len(ehdrs));
++		    ),
++		    TP_printk("[%s] (%s) %s %s hlen:%d %s err:%d",
++			      __get_str(dev),
++			      hfi2_trace_get_packet_l4_str(__entry->l4),
++			      hfi2_trace_fmt_lrh(p,
++						 !!__entry->hdr_type,
++						 __entry->age,
++						 __entry->becn,
++						 __entry->fecn,
++						 __entry->l4,
++						 __entry->lnh,
++						 show_lnh(__entry->lnh),
++						 __entry->lver,
++						 __entry->rc,
++						 __entry->sc,
++						 __entry->sl,
++						 __entry->entropy,
++						 __entry->len,
++						 __entry->pkey,
++						 __entry->dlid,
++						 __entry->slid),
++			      hfi2_trace_fmt_rest(p,
++						  !!__entry->hdr_type,
++						  __entry->l4,
++						  __entry->ack,
++						  __entry->becn,
++						  __entry->fecn,
++						  __entry->mig,
++						  __entry->se,
++						  __entry->pad,
++						  __entry->opcode,
++						  show_ib_opcode(__entry->opcode),
++						  __entry->tver,
++						  __entry->pkey,
++						  __entry->psn,
++						  __entry->qpn,
++						  __entry->dest_qpn,
++						  __entry->src_qpn),
++			      /* extended headers */
++			      __get_dynamic_array_len(ehdrs),
++			      __parse_ib_ehdrs(
++					__entry->opcode,
++					__entry->l4,
++					__entry->dest_qpn,
++					__entry->src_qpn,
++					(void *)__get_dynamic_array(ehdrs)),
++			      __entry->err
++			     )
++);
 +
-+#define HFI2_XMIT_RATE_UNSUPPORTED 0x0
-+#define HFI2_XMIT_RATE_PICO 0x7
-+/* number of 4nsec cycles equaling 2secs */
-+#define HFI2_CONG_TIMER_PSINTERVAL 0x1DCD64EC
++DEFINE_EVENT(hfi2_output_ibhdr_template, pio_output_ibhdr,
++	     TP_PROTO(struct hfi2_devdata *dd,
++		      struct hfi2_opa_header *opah, bool sc5, int err),
++	     TP_ARGS(dd, opah, sc5, err));
 +
-+#define IB_CC_SVCTYPE_RC 0x0
-+#define IB_CC_SVCTYPE_UC 0x1
-+#define IB_CC_SVCTYPE_RD 0x2
-+#define IB_CC_SVCTYPE_UD 0x3
++DEFINE_EVENT(hfi2_output_ibhdr_template, ack_output_ibhdr,
++	     TP_PROTO(struct hfi2_devdata *dd,
++		      struct hfi2_opa_header *opah, bool sc5, int err),
++	     TP_ARGS(dd, opah, sc5, err));
 +
-+/*
-+ * There should be an equivalent IB #define for the following, but
-+ * I cannot find it.
-+ */
-+#define OPA_CC_LOG_TYPE_HFI 2
++DEFINE_EVENT(hfi2_output_ibhdr_template, sdma_output_ibhdr,
++	     TP_PROTO(struct hfi2_devdata *dd,
++		      struct hfi2_opa_header *opah, bool sc5, int err),
++	     TP_ARGS(dd, opah, sc5, err));
 +
-+struct opa_hfi2_cong_log_event_internal {
-+	u32 lqpn;
-+	u32 rqpn;
-+	u8 sl;
-+	u8 svc_type;
-+	u32 rlid;
-+	u64 timestamp; /* wider than 32 bits to detect 32 bit rollover */
-+};
 +
-+struct opa_hfi2_cong_log_event {
-+	u8 local_qp_cn_entry[3];
-+	u8 remote_qp_number_cn_entry[3];
-+	u8 sl_svc_type_cn_entry; /* 5 bits SL, 3 bits svc type */
-+	u8 reserved;
-+	__be32 remote_lid_cn_entry;
-+	__be32 timestamp_cn_entry;
-+} __packed;
++#endif /* __HFI2_TRACE_IBHDRS_H */
 +
-+#define OPA_CONG_LOG_ELEMS 96
-+
-+struct opa_hfi2_cong_log {
-+	u8 log_type;
-+	u8 congestion_flags;
-+	__be16 threshold_event_counter;
-+	__be32 current_time_stamp;
-+	u8 threshold_cong_event_map[OPA_MAX_SLS / 8];
-+	struct opa_hfi2_cong_log_event events[OPA_CONG_LOG_ELEMS];
-+} __packed;
-+
-+#define IB_CC_TABLE_CAP_DEFAULT 31
-+
-+/* Port control flags */
-+#define IB_CC_CCS_PC_SL_BASED 0x01
-+
-+struct opa_congestion_setting_entry {
-+	u8 ccti_increase;
-+	u8 reserved;
-+	__be16 ccti_timer;
-+	u8 trigger_threshold;
-+	u8 ccti_min; /* min CCTI for cc table */
-+} __packed;
-+
-+struct opa_congestion_setting_entry_shadow {
-+	u8 ccti_increase;
-+	u8 reserved;
-+	u16 ccti_timer;
-+	u8 trigger_threshold;
-+	u8 ccti_min; /* min CCTI for cc table */
-+} __packed;
-+
-+struct opa_congestion_setting_attr {
-+	__be32 control_map;
-+	__be16 port_control;
-+	struct opa_congestion_setting_entry entries[OPA_MAX_SLS];
-+} __packed;
-+
-+struct opa_congestion_setting_attr_shadow {
-+	u32 control_map;
-+	u16 port_control;
-+	struct opa_congestion_setting_entry_shadow entries[OPA_MAX_SLS];
-+} __packed;
-+
-+#define IB_CC_TABLE_ENTRY_INCREASE_DEFAULT 1
-+#define IB_CC_TABLE_ENTRY_TIMER_DEFAULT 1
-+
-+/* 64 Congestion Control table entries in a single MAD */
-+#define IB_CCT_ENTRIES 64
-+#define IB_CCT_MIN_ENTRIES (IB_CCT_ENTRIES * 2)
-+
-+struct ib_cc_table_entry {
-+	__be16 entry; /* shift:2, multiplier:14 */
-+};
-+
-+struct ib_cc_table_entry_shadow {
-+	u16 entry; /* shift:2, multiplier:14 */
-+};
-+
-+struct ib_cc_table_attr {
-+	__be16 ccti_limit; /* max CCTI for cc table */
-+	struct ib_cc_table_entry ccti_entries[IB_CCT_ENTRIES];
-+} __packed;
-+
-+struct ib_cc_table_attr_shadow {
-+	u16 ccti_limit; /* max CCTI for cc table */
-+	struct ib_cc_table_entry_shadow ccti_entries[IB_CCT_ENTRIES];
-+};
-+
-+#define CC_TABLE_SHADOW_MAX (IB_CC_TABLE_CAP_DEFAULT * IB_CCT_ENTRIES)
-+
-+struct cc_table_shadow {
-+	u16 ccti_limit; /* max CCTI for cc table */
-+	struct ib_cc_table_entry_shadow entries[CC_TABLE_SHADOW_MAX];
-+};
-+
-+/*
-+ * struct cc_state combines the (active) per-port congestion control
-+ * table, and the (active) per-SL congestion settings. cc_state data
-+ * may need to be read in code paths that we want to be fast, so it
-+ * is an RCU protected structure.
-+ */
-+struct cc_state {
-+	struct rcu_head rcu;
-+	struct cc_table_shadow cct;
-+	struct opa_congestion_setting_attr_shadow cong_setting;
-+};
-+
-+/*
-+ * OPA BufferControl MAD
-+ */
-+
-+/* attribute modifier macros */
-+#define OPA_AM_NPORT_SHIFT 24
-+#define OPA_AM_NPORT_MASK 0xff
-+#define OPA_AM_NPORT_SMASK (OPA_AM_NPORT_MASK << OPA_AM_NPORT_SHIFT)
-+#define OPA_AM_NPORT(am) (((am) >> OPA_AM_NPORT_SHIFT) & OPA_AM_NPORT_MASK)
-+
-+#define OPA_AM_NBLK_SHIFT 24
-+#define OPA_AM_NBLK_MASK 0xff
-+#define OPA_AM_NBLK_SMASK (OPA_AM_NBLK_MASK << OPA_AM_NBLK_SHIFT)
-+#define OPA_AM_NBLK(am) (((am) >> OPA_AM_NBLK_SHIFT) & OPA_AM_NBLK_MASK)
-+
-+#define OPA_AM_START_BLK_SHIFT 0
-+#define OPA_AM_START_BLK_MASK 0xff
-+#define OPA_AM_START_BLK_SMASK (OPA_AM_START_BLK_MASK << OPA_AM_START_BLK_SHIFT)
-+#define OPA_AM_START_BLK(am) \
-+	(((am) >> OPA_AM_START_BLK_SHIFT) & OPA_AM_START_BLK_MASK)
-+
-+#define OPA_AM_PORTNUM_SHIFT 0
-+#define OPA_AM_PORTNUM_MASK 0xff
-+#define OPA_AM_PORTNUM_SMASK (OPA_AM_PORTNUM_MASK << OPA_AM_PORTNUM_SHIFT)
-+#define OPA_AM_PORTNUM(am) \
-+	(((am) >> OPA_AM_PORTNUM_SHIFT) & OPA_AM_PORTNUM_MASK)
-+
-+#define OPA_AM_ASYNC_SHIFT 12
-+#define OPA_AM_ASYNC_MASK 0x1
-+#define OPA_AM_ASYNC_SMASK (OPA_AM_ASYNC_MASK << OPA_AM_ASYNC_SHIFT)
-+#define OPA_AM_ASYNC(am) (((am) >> OPA_AM_ASYNC_SHIFT) & OPA_AM_ASYNC_MASK)
-+
-+#define OPA_AM_START_SM_CFG_SHIFT 9
-+#define OPA_AM_START_SM_CFG_MASK 0x1
-+#define OPA_AM_START_SM_CFG_SMASK \
-+	(OPA_AM_START_SM_CFG_MASK << OPA_AM_START_SM_CFG_SHIFT)
-+#define OPA_AM_START_SM_CFG(am) \
-+	(((am) >> OPA_AM_START_SM_CFG_SHIFT) & OPA_AM_START_SM_CFG_MASK)
-+
-+#define OPA_AM_CI_ADDR_SHIFT 19
-+#define OPA_AM_CI_ADDR_MASK 0xfff
-+#define OPA_AM_CI_ADDR_SMASK (OPA_AM_CI_ADDR_MASK << OPA_CI_ADDR_SHIFT)
-+#define OPA_AM_CI_ADDR(am) \
-+	(((am) >> OPA_AM_CI_ADDR_SHIFT) & OPA_AM_CI_ADDR_MASK)
-+
-+#define OPA_AM_CI_LEN_SHIFT 13
-+#define OPA_AM_CI_LEN_MASK 0x3f
-+#define OPA_AM_CI_LEN_SMASK (OPA_AM_CI_LEN_MASK << OPA_CI_LEN_SHIFT)
-+#define OPA_AM_CI_LEN(am) (((am) >> OPA_AM_CI_LEN_SHIFT) & OPA_AM_CI_LEN_MASK)
-+
-+/* error info macros */
-+#define OPA_EI_STATUS_SMASK 0x80
-+#define OPA_EI_CODE_SMASK 0x0f
-+
-+struct vl_limit {
-+	__be16 dedicated;
-+	__be16 shared;
-+};
-+
-+struct buffer_control {
-+	__be16 reserved;
-+	__be16 overall_shared_limit;
-+	struct vl_limit vl[OPA_MAX_VLS];
-+};
-+
-+struct sc2vlnt {
-+	u8 vlnt[32]; /* 5 bit VL, 3 bits reserved */
-+};
-+
-+/*
-+ * The PortSamplesControl.CounterMasks field is an array of 3 bit fields
-+ * which specify the N'th counter's capabilities. See ch. 16.1.3.2.
-+ * We support 5 counters which only count the mandatory quantities.
-+ */
-+#define COUNTER_MASK(q, n) (q << ((9 - n) * 3))
-+#define COUNTER_MASK0_9                                       \
-+	cpu_to_be32(COUNTER_MASK(1, 0) | COUNTER_MASK(1, 1) | \
-+		    COUNTER_MASK(1, 2) | COUNTER_MASK(1, 3) | \
-+		    COUNTER_MASK(1, 4))
-+
-+void hfi2_event_pkey_change(struct hfi2_devdata *dd, u32 port);
-+void hfi2_handle_trap_timer(struct timer_list *t);
-+u16 hfi2_tx_link_width(u16 link_width);
-+u64 hfi2_get_xmit_wait_counters(struct hfi2_pportdata *ppd, u16 link_width,
-+				u16 link_speed, int vl);
-+void hfi2_update_sc2vlt(struct hfi2_pportdata *ppd, void *data, bool filter);
-+int hfi2_mad_init(struct hfi2_devdata *dd);
-+int hfi2_mad_deinit(struct hfi2_devdata *dd);
-+int hfi2_get_sc2vlt_tables(struct hfi2_pportdata *ppd, void *data);
-+
-+int hfi2_cport_send_only_mad(struct hfi2_devdata *dd, u8 sb, const void *mad,
-+			     int len);
-+int hfi2_cport_send_recv_mad(struct hfi2_devdata *dd, u8 sb, const void *mad,
-+			     int len, void *omad, size_t *omad_len);
-+int hfi2_update_from_opa_portinfo(struct hfi2_pportdata *ppd,
-+				  struct opa_smp *smp,
-+				  struct opa_port_info *pi);
-+
-+/**
-+ * get_link_speed - determine whether 12.5G or 25G speed
-+ * @link_speed: the speed of active link
-+ * @return: Return 2 if link speed identified as 12.5G
-+ * or return 1 if link speed is 25G.
-+ *
-+ * The function indirectly calculate required link speed
-+ * value for convert_xmit_counter function. If the link
-+ * speed is 25G, the function return as 1 as it is required
-+ * by xmit counter conversion formula :-( 25G / link_speed).
-+ * This conversion will provide value 1 if current
-+ * link speed is 25G or 2 if 12.5G.This is done to avoid
-+ * 12.5 float number conversion.
-+ */
-+static inline u16 get_link_speed(u16 link_speed)
-+{
-+	return (link_speed == 1) ? LINK_SPEED_12_5G : LINK_SPEED_25G;
-+}
-+
-+/**
-+ * convert_xmit_counter - calculate flit times for given xmit counter
-+ * value
-+ * @xmit_wait_val: current xmit counter value
-+ * @link_width: width of active link
-+ * @link_speed: speed of active link
-+ * @return: return xmit counter value in flit times.
-+ */
-+static inline u64 convert_xmit_counter(u64 xmit_wait_val, u16 link_width,
-+				       u16 link_speed)
-+{
-+	return (xmit_wait_val * 2 * (FACTOR_LINK_WIDTH / link_width) *
-+		link_speed) /
-+	       DECIMAL_FACTORING;
-+}
-+#endif /* _HFI2_MAD_H */
-diff --git a/drivers/infiniband/hw/hfi2/opa_compat.h b/drivers/infiniband/hw/hfi2/opa_compat.h
++#undef TRACE_INCLUDE_PATH
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_PATH .
++#define TRACE_INCLUDE_FILE trace_ibhdrs
++#include <trace/define_trace.h>
+diff --git a/drivers/infiniband/hw/hfi2/trace_iowait.h b/drivers/infiniband/hw/hfi2/trace_iowait.h
 new file mode 100644
-index 000000000000..8e8b7f62082a
+index 000000000000..b798dd988427
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/opa_compat.h
-@@ -0,0 +1,87 @@
++++ b/drivers/infiniband/hw/hfi2/trace_iowait.h
+@@ -0,0 +1,55 @@
++/* SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause) */
++/*
++ * Copyright(c) 2018 Intel Corporation.
++ * Copyright(c) 2025-2026 Cornelis Networks, Inc.
++ *
++ */
++#if !defined(__HFI2_TRACE_IOWAIT_H) || defined(TRACE_HEADER_MULTI_READ)
++#define __HFI2_TRACE_IOWAIT_H
++
++#include <linux/tracepoint.h>
++#include "iowait.h"
++#include "verbs.h"
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi2_iowait
++
++DECLARE_EVENT_CLASS(hfi2_iowait_template,
++		    TP_PROTO(struct iowait *wait, u32 flag),
++		    TP_ARGS(wait, flag),
++		    TP_STRUCT__entry(/* entry */
++			    __field(unsigned long, addr)
++			    __field(unsigned long, flags)
++			    __field(u32, flag)
++			    __field(u32, qpn)
++			    ),
++		    TP_fast_assign(/* assign */
++			    __entry->addr = (unsigned long)wait;
++			    __entry->flags = wait->flags;
++			    __entry->flag = (1 << flag);
++			    __entry->qpn = iowait_to_qp(wait)->ibqp.qp_num;
++			    ),
++		    TP_printk(/* print */
++			    "iowait 0x%lx qp %u flags 0x%lx flag 0x%x",
++			    __entry->addr,
++			    __entry->qpn,
++			    __entry->flags,
++			    __entry->flag
++			    )
++	);
++
++DEFINE_EVENT(hfi2_iowait_template, hfi2_iowait_set,
++	     TP_PROTO(struct iowait *wait, u32 flag),
++	     TP_ARGS(wait, flag));
++
++DEFINE_EVENT(hfi2_iowait_template, hfi2_iowait_clear,
++	     TP_PROTO(struct iowait *wait, u32 flag),
++	     TP_ARGS(wait, flag));
++
++#endif /* __HFI2_TRACE_IOWAIT_H */
++
++#undef TRACE_INCLUDE_PATH
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_PATH .
++#define TRACE_INCLUDE_FILE trace_iowait
++#include <trace/define_trace.h>
+diff --git a/drivers/infiniband/hw/hfi2/trace_misc.h b/drivers/infiniband/hw/hfi2/trace_misc.h
+new file mode 100644
+index 000000000000..4ac04d875596
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/trace_misc.h
+@@ -0,0 +1,109 @@
 +/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
 +/*
 + * Copyright(c) 2015, 2016 Intel Corporation.
 + * Copyright(c) 2025-2026 Cornelis Networks, Inc.
 + */
 +
-+#ifndef _LINUX_H
-+#define _LINUX_H
++#if !defined(__HFI2_TRACE_MISC_H) || defined(TRACE_HEADER_MULTI_READ)
++#define __HFI2_TRACE_MISC_H
++
++#include <linux/tracepoint.h>
++#include <linux/trace_seq.h>
++
++#include "hfi2.h"
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi2_misc
++
++TRACE_EVENT(hfi2_interrupt,
++	    TP_PROTO(struct hfi2_devdata *dd, const struct hfi2_is_table *is_entry,
++		     int src),
++	    TP_ARGS(dd, is_entry, src),
++	    TP_STRUCT__entry(DD_DEV_ENTRY(dd)
++			     __array(char, buf, 64)
++			     __field(int, src)
++			     ),
++	    TP_fast_assign(DD_DEV_ASSIGN(dd);
++			   is_entry->is_name(__entry->buf, 64,
++					     src - is_entry->start);
++			   __entry->src = src;
++			   ),
++	    TP_printk("[%s] source: %s [%d]", __get_str(dev), __entry->buf,
++		      __entry->src)
++);
++
++DECLARE_EVENT_CLASS(
++	hfi2_csr_template,
++	TP_PROTO(void __iomem *addr, u64 value),
++	TP_ARGS(addr, value),
++	TP_STRUCT__entry(
++		__field(void __iomem *, addr)
++		__field(u64, value)
++	),
++	TP_fast_assign(
++		__entry->addr = addr;
++		__entry->value = value;
++	),
++	TP_printk("addr %p value %llx", __entry->addr, __entry->value)
++);
++
++DEFINE_EVENT(
++	hfi2_csr_template, hfi2_write_rcvarray,
++	TP_PROTO(void __iomem *addr, u64 value),
++	TP_ARGS(addr, value));
++
++#ifdef CONFIG_FAULT_INJECTION
++TRACE_EVENT(hfi2_fault_opcode,
++	    TP_PROTO(struct rvt_qp *qp, u8 opcode),
++	    TP_ARGS(qp, opcode),
++	    TP_STRUCT__entry(DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++			     __field(u32, qpn)
++			     __field(u8, opcode)
++			     ),
++	    TP_fast_assign(DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device));
++			   __entry->qpn = qp->ibqp.qp_num;
++			   __entry->opcode = opcode;
++			   ),
++	    TP_printk("[%s] qpn 0x%x opcode 0x%x",
++		      __get_str(dev), __entry->qpn, __entry->opcode)
++);
++
++TRACE_EVENT(hfi2_fault_packet,
++	    TP_PROTO(struct hfi2_packet *packet),
++	    TP_ARGS(packet),
++	    TP_STRUCT__entry(DD_DEV_ENTRY(packet->rcd->ppd->dd)
++			     __field(u64, eflags)
++			     __field(u32, ctxt)
++			     __field(u32, hlen)
++			     __field(u32, tlen)
++			     __field(u32, updegr)
++			     __field(u32, etail)
++			     ),
++	     TP_fast_assign(DD_DEV_ASSIGN(packet->rcd->ppd->dd);
++			    __entry->eflags = packet->err_flags;
++			    __entry->ctxt = packet->rcd->ctxt;
++			    __entry->hlen = packet->hlen;
++			    __entry->tlen = packet->tlen;
++			    __entry->updegr = packet->updegr;
++			    __entry->etail = packet->egr_index;
++			    ),
++	     TP_printk(
++		"[%s] ctxt %d eflags 0x%llx hlen %d tlen %d updegr %d etail %d",
++		__get_str(dev),
++		__entry->ctxt,
++		__entry->eflags,
++		__entry->hlen,
++		__entry->tlen,
++		__entry->updegr,
++		__entry->etail
++		)
++);
++#endif
++
++#endif /* __HFI2_TRACE_MISC_H */
++
++#undef TRACE_INCLUDE_PATH
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_PATH .
++#define TRACE_INCLUDE_FILE trace_misc
++#include <trace/define_trace.h>
+diff --git a/drivers/infiniband/hw/hfi2/trace_mmu.h b/drivers/infiniband/hw/hfi2/trace_mmu.h
+new file mode 100644
+index 000000000000..8185e331021a
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/trace_mmu.h
+@@ -0,0 +1,73 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
 +/*
-+ * This header file is for OPA-specific definitions which are
-+ * required by the HFI driver, and which aren't yet in the Linux
-+ * IB core. We'll collect these all here, then merge them into
-+ * the kernel when that's convenient.
++ * Copyright(c) 2017 Intel Corporation.
++ * Copyright(c) 2025-2026 Cornelis Networks, Inc.
 + */
 +
-+/* OPA SMA attribute IDs */
-+#define OPA_ATTRIB_ID_CONGESTION_INFO		cpu_to_be16(0x008b)
-+#define OPA_ATTRIB_ID_HFI_CONGESTION_LOG	cpu_to_be16(0x008f)
-+#define OPA_ATTRIB_ID_HFI_CONGESTION_SETTING	cpu_to_be16(0x0090)
-+#define OPA_ATTRIB_ID_CONGESTION_CONTROL_TABLE	cpu_to_be16(0x0091)
++#if !defined(__HFI2_TRACE_MMU_H) || defined(TRACE_HEADER_MULTI_READ)
++#define __HFI2_TRACE_MMU_H
 +
-+/* OPA PMA attribute IDs */
-+#define OPA_PM_ATTRIB_ID_PORT_STATUS		cpu_to_be16(0x0040)
-+#define OPA_PM_ATTRIB_ID_CLEAR_PORT_STATUS	cpu_to_be16(0x0041)
-+#define OPA_PM_ATTRIB_ID_DATA_PORT_COUNTERS	cpu_to_be16(0x0042)
-+#define OPA_PM_ATTRIB_ID_ERROR_PORT_COUNTERS	cpu_to_be16(0x0043)
-+#define OPA_PM_ATTRIB_ID_ERROR_INFO		cpu_to_be16(0x0044)
++#include <linux/tracepoint.h>
++#include <linux/trace_seq.h>
 +
-+/* OPA status codes */
-+#define OPA_PM_STATUS_REQUEST_TOO_LARGE		cpu_to_be16(0x100)
++#include "hfi2.h"
 +
-+static inline u8 port_states_to_logical_state(struct opa_port_states *ps)
-+{
-+	return ps->portphysstate_portstate & OPA_PI_MASK_PORT_STATE;
-+}
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi2_mmu
 +
-+static inline u8 port_states_to_phys_state(struct opa_port_states *ps)
-+{
-+	return ((ps->portphysstate_portstate &
-+		  OPA_PI_MASK_PORT_PHYSICAL_STATE) >> 4) & 0xf;
-+}
++DECLARE_EVENT_CLASS(hfi2_mmu_rb_template,
++		    TP_PROTO(struct mmu_rb_node *node),
++		    TP_ARGS(node),
++		    TP_STRUCT__entry(__field(unsigned long, addr)
++				     __field(unsigned long, len)
++				     __field(unsigned int, refcount)
++			    ),
++		    TP_fast_assign(__entry->addr = node->addr;
++				   __entry->len = node->len;
++				   __entry->refcount = kref_read(&node->refcount);
++			    ),
++		    TP_printk("MMU node addr 0x%lx, len %lu, refcount %u",
++			      __entry->addr,
++			      __entry->len,
++			      __entry->refcount
++			    )
++);
++
++DEFINE_EVENT(hfi2_mmu_rb_template, hfi2_mmu_rb_insert,
++	     TP_PROTO(struct mmu_rb_node *node),
++	     TP_ARGS(node));
++
++TRACE_EVENT(hfi2_mmu_rb_search,
++	    TP_PROTO(unsigned long addr, unsigned long len),
++	    TP_ARGS(addr, len),
++	    TP_STRUCT__entry(__field(unsigned long, addr)
++			     __field(unsigned long, len)
++		    ),
++	    TP_fast_assign(__entry->addr = addr;
++			   __entry->len = len;
++		    ),
++	    TP_printk("MMU node addr 0x%lx, len %lu",
++		      __entry->addr,
++		      __entry->len
++		    )
++);
++
++DEFINE_EVENT(hfi2_mmu_rb_template, hfi2_mmu_mem_invalidate,
++	     TP_PROTO(struct mmu_rb_node *node),
++	     TP_ARGS(node));
++
++DEFINE_EVENT(hfi2_mmu_rb_template, hfi2_mmu_rb_evict,
++	     TP_PROTO(struct mmu_rb_node *node),
++	     TP_ARGS(node));
++
++DEFINE_EVENT(hfi2_mmu_rb_template, hfi2_mmu_release_node,
++	     TP_PROTO(struct mmu_rb_node *node),
++	     TP_ARGS(node));
++
++#endif /* __HFI2_TRACE_RC_H */
++
++#undef TRACE_INCLUDE_PATH
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_PATH .
++#define TRACE_INCLUDE_FILE trace_mmu
++#include <trace/define_trace.h>
+diff --git a/drivers/infiniband/hw/hfi2/trace_pin.h b/drivers/infiniband/hw/hfi2/trace_pin.h
+new file mode 100644
+index 000000000000..b1bf707624ad
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/trace_pin.h
+@@ -0,0 +1,201 @@
++/* SPDX-License-Identifier: GPL-2.0 or BSD-3-Clause */
++/*
++ * Copyright(c) 2025-2026 Cornelis Networks, Inc.
++ * Copyright(c) 2017 Intel Corporation.
++ *
++ * This file is provided under a dual BSD/GPLv2 license.  When using or
++ * redistributing this file, you may do so under either license.
++ *
++ * GPL LICENSE SUMMARY
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * BSD LICENSE
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ *  - Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ *  - Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *  - Neither the name of Intel Corporation nor the names of its
++ *    contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ */
++#if !defined(__HFI2_TRACE_PIN_H) || defined(TRACE_HEADER_MULTI_READ)
++#define __HFI2_TRACE_PIN_H
++
++#include <linux/tracepoint.h>
++#include <linux/trace_seq.h>
++
++const char *hfi2_memtype_str(unsigned int mt);
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi2_pin
 +
 +/*
-+ * OPA port physical states
-+ * IB Volume 1, Table 146 PortInfo/IB Volume 2 Section 5.4.2(1) PortPhysState
-+ * values are the same in OmniPath Architecture. OPA leverages some of the same
-+ * concepts as InfiniBand, but has a few other states as well.
-+ *
-+ * When writing, only values 0-3 are valid, other values are ignored.
-+ * When reading, 0 is reserved.
-+ *
-+ * Returned by the ibphys_portstate() routine.
++ * @ctxt: pq, cache ptr, something that distinguishes the trace. Not necessarily
++ *   an fd.
++ * @memtype: HFI2_MEMINFO_* value
++ * @va_addr: virtual address start
++ * @va_len: "..." length
++ * @ret signal: error with the pin operation
++ * @from_cache: 0 or 1
++ * @node: returned cache node; NULL if not found
++ * @dma_addr: returned pinning physical or DMA address, depending
++ *   on if kernel API has separate pin and DMA map operations for
++ *   the memory type. 0 if not found.
++ * @dma_len: 0 if not found.
 + */
-+enum opa_port_phys_state {
-+	/* Values 0-7 have the same meaning in OPA as in InfiniBand. */
++DECLARE_EVENT_CLASS(hfi2_pin_mem,
++		    /* There are only a handful of memtypes; use u16 to minimize struct size */
++		    TP_PROTO(void *ctxt, u16 memtype,
++			     unsigned long va_addr, unsigned long va_len,
++			     int ret, bool from_cache,
++			     void *node,
++			     dma_addr_t dma_addr, unsigned long dma_len),
++		    TP_ARGS(ctxt, memtype, va_addr, va_len, ret, from_cache, node, dma_addr,
++			    dma_len),
++		    TP_STRUCT__entry(__field(void *, ctxt)
++				     __field(u16, memtype)
++				     __field(u16, from_cache)
++				     __field(int, ret)
++				     __field(unsigned long, va_addr)
++				     __field(unsigned long, va_len)
++				     __field(void *, node)
++				     __field(dma_addr_t, dma_addr)
++				     __field(unsigned long, dma_len)
++			    ),
++		    TP_fast_assign(__entry->ctxt = ctxt;
++				   __entry->memtype = memtype;
++				   __entry->va_addr = va_addr;
++				   __entry->va_len = va_len;
++				   __entry->ret = ret;
++				   __entry->from_cache = from_cache;
++				   __entry->node = node;
++				   __entry->dma_addr = dma_addr;
++				   __entry->dma_len = dma_len;
++			    ),
++		    TP_printk("ctxt %p %s (%u) VA start %p length %lu ret %d from_cache %u node %p phys/DMA start %pad length %lu",
++			      __entry->ctxt,
++			      hfi2_memtype_str(__entry->memtype),
++			      __entry->memtype,
++			      (void *)__entry->va_addr,
++			      __entry->va_len,
++			      __entry->ret,
++			      __entry->from_cache,
++			      __entry->node,
++			      &__entry->dma_addr,
++			      __entry->dma_len
++			    )
++);
 +
-+	IB_PORTPHYSSTATE_NOP = 0,
-+	/* 1 is reserved */
-+	IB_PORTPHYSSTATE_POLLING = 2,
-+	IB_PORTPHYSSTATE_DISABLED = 3,
-+	IB_PORTPHYSSTATE_TRAINING = 4,
-+	IB_PORTPHYSSTATE_LINKUP = 5,
-+	IB_PORTPHYSSTATE_LINK_ERROR_RECOVERY = 6,
-+	IB_PORTPHYSSTATE_PHY_TEST = 7,
-+	/* 8 is reserved */
++DECLARE_EVENT_CLASS(hfi2_unpin_mem,
++		    TP_PROTO(void *ctxt, unsigned int memtype,
++			     int ret,
++			     void *node,
++			     unsigned long va_addr, unsigned long va_len,
++			     dma_addr_t dma_addr, unsigned long dma_len),
++		    TP_ARGS(ctxt, memtype, ret, node, va_addr, va_len, dma_addr, dma_len),
++		    TP_STRUCT__entry(__field(void *, ctxt)
++				    __field(unsigned int, memtype)
++				    __field(int, ret)
++				    __field(void *, node)
++				    __field(unsigned long, va_addr)
++				    __field(unsigned long, va_len)
++				    __field(dma_addr_t, dma_addr)
++				    __field(unsigned long, dma_len)
++			    ),
++		    TP_fast_assign(__entry->ctxt = ctxt;
++				   __entry->memtype = memtype;
++				   __entry->ret = ret;
++				   __entry->node = node;
++				   __entry->va_addr = va_addr;
++				   __entry->va_len = va_len;
++				   __entry->dma_addr = dma_addr;
++				   __entry->dma_len = dma_len;
++			    ),
++		    TP_printk("ctxt %p %s (%u) VA start %p length %lu ret %u node %p phys/DMA start %pad length %lu",
++			      __entry->ctxt,
++			      hfi2_memtype_str(__entry->memtype),
++			      __entry->memtype,
++			      (void *)__entry->va_addr,
++			      __entry->va_len,
++			      __entry->ret,
++			      __entry->node,
++			      &__entry->dma_addr,
++			      __entry->dma_len)
++);
 +
-+	/*
-+	 * Offline: Port is quiet (transmitters disabled) due to lack of
-+	 * physical media, unsupported media, or transition between link up
-+	 * and next link up attempt
-+	 */
-+	OPA_PORTPHYSSTATE_OFFLINE = 9,
++DEFINE_EVENT(hfi2_pin_mem, pin_sdma_mem,
++	     TP_PROTO(void *ctxt, u16 memtype,
++		      unsigned long va_start, unsigned long va_len,
++		      int ret, bool from_cache,
++		      void *node,
++		      dma_addr_t dma_addr, unsigned long dma_len),
++	     TP_ARGS(ctxt, memtype, va_start, va_len, ret, from_cache, node, dma_addr, dma_len));
 +
-+	/* 10 is reserved */
++DEFINE_EVENT(hfi2_unpin_mem, unpin_sdma_mem,
++	     TP_PROTO(void *ctxt, unsigned int memtype,
++		      int ret,
++		      void *node,
++		      unsigned long va_addr, unsigned long va_len,
++		      dma_addr_t dma_addr, unsigned long dma_len),
++	     TP_ARGS(ctxt, memtype, ret, node, va_addr, va_len, dma_addr, dma_len));
 +
-+	/*
-+	 * Phy_Test: Specific test patterns are transmitted, and receiver BER
-+	 * can be monitored. This facilitates signal integrity testing for the
-+	 * physical layer of the port.
-+	 */
-+	OPA_PORTPHYSSTATE_TEST = 11,
++TRACE_EVENT(pin_stats,
++	    TP_PROTO(void *ctxt, struct hfi2_pin_stats *s),
++	    TP_ARGS(ctxt, s),
++	    TP_STRUCT__entry(__field(void *, ctxt)
++			     __field_struct(struct hfi2_pin_stats, s)),
++	    TP_fast_assign(__entry->ctxt = ctxt;
++			   __entry->s = *s;
++	    ),
++	    TP_printk("ctxt %p %s (%u) index %d id %llx cache_entries %llu total_refcounts %llu total_bytes %llu hits %llu misses %llu hint_hits %llu hint_misses %llu internal_evictions %llu external_evictions %llu",
++		      __entry->ctxt,
++		      hfi2_memtype_str(__entry->s.memtype),
++		      __entry->s.memtype,
++		      __entry->s.index,
++		      __entry->s.id,
++		      __entry->s.cache_entries,
++		      __entry->s.total_refcounts,
++		      __entry->s.total_bytes,
++		      __entry->s.hits,
++		      __entry->s.misses,
++		      __entry->s.hint_hits,
++		      __entry->s.hint_misses,
++		      __entry->s.internal_evictions,
++		      __entry->s.external_evictions)
++);
 +
-+	OPA_PORTPHYSSTATE_MAX = 11,
-+	/* values 12-15 are reserved/ignored */
++#endif /* __HFI2_TRACE_PIN_H */
++
++#undef TRACE_INCLUDE_PATH
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_PATH .
++#define TRACE_INCLUDE_FILE trace_pin
++#include <trace/define_trace.h>
+diff --git a/drivers/infiniband/hw/hfi2/trace_rc.h b/drivers/infiniband/hw/hfi2/trace_rc.h
+new file mode 100644
+index 000000000000..690c4310114b
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/trace_rc.h
+@@ -0,0 +1,126 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/*
++ * Copyright(c) 2015, 2016, 2017 Intel Corporation.
++ * Copyright(c) 2025-2026 Cornelis Networks, Inc.
++ */
++
++#if !defined(__HFI2_TRACE_RC_H) || defined(TRACE_HEADER_MULTI_READ)
++#define __HFI2_TRACE_RC_H
++
++#include <linux/tracepoint.h>
++#include <linux/trace_seq.h>
++
++#include "hfi2.h"
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi2_rc
++
++DECLARE_EVENT_CLASS(hfi2_rc_template,
++		    TP_PROTO(struct rvt_qp *qp, u32 psn),
++		    TP_ARGS(qp, psn),
++		    TP_STRUCT__entry(
++			DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++			__field(u32, qpn)
++			__field(u32, s_flags)
++			__field(u32, psn)
++			__field(u32, s_psn)
++			__field(u32, s_next_psn)
++			__field(u32, s_sending_psn)
++			__field(u32, s_sending_hpsn)
++			__field(u32, r_psn)
++			),
++		    TP_fast_assign(
++			DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device));
++			__entry->qpn = qp->ibqp.qp_num;
++			__entry->s_flags = qp->s_flags;
++			__entry->psn = psn;
++			__entry->s_psn = qp->s_psn;
++			__entry->s_next_psn = qp->s_next_psn;
++			__entry->s_sending_psn = qp->s_sending_psn;
++			__entry->s_sending_hpsn = qp->s_sending_hpsn;
++			__entry->r_psn = qp->r_psn;
++			),
++		    TP_printk(
++			"[%s] qpn 0x%x s_flags 0x%x psn 0x%x s_psn 0x%x s_next_psn 0x%x s_sending_psn 0x%x sending_hpsn 0x%x r_psn 0x%x",
++			__get_str(dev),
++			__entry->qpn,
++			__entry->s_flags,
++			__entry->psn,
++			__entry->s_psn,
++			__entry->s_next_psn,
++			__entry->s_sending_psn,
++			__entry->s_sending_hpsn,
++			__entry->r_psn
++			)
++);
++
++DEFINE_EVENT(hfi2_rc_template, hfi2_sendcomplete,
++	     TP_PROTO(struct rvt_qp *qp, u32 psn),
++	     TP_ARGS(qp, psn)
++);
++
++DEFINE_EVENT(hfi2_rc_template, hfi2_ack,
++	     TP_PROTO(struct rvt_qp *qp, u32 psn),
++	     TP_ARGS(qp, psn)
++);
++
++DEFINE_EVENT(hfi2_rc_template, hfi2_rcv_error,
++	     TP_PROTO(struct rvt_qp *qp, u32 psn),
++	     TP_ARGS(qp, psn)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_rc_template, hfi2_rc_completion,
++	TP_PROTO(struct rvt_qp *qp, u32 psn),
++	TP_ARGS(qp, psn)
++);
++
++DECLARE_EVENT_CLASS(/* rc_ack */
++	hfi2_rc_ack_template,
++	TP_PROTO(struct rvt_qp *qp, u32 aeth, u32 psn,
++		 struct rvt_swqe *wqe),
++	TP_ARGS(qp, aeth, psn, wqe),
++	TP_STRUCT__entry(/* entry */
++		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(u32, aeth)
++		__field(u32, psn)
++		__field(u8, opcode)
++		__field(u32, spsn)
++		__field(u32, lpsn)
++	),
++	TP_fast_assign(/* assign */
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device));
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->aeth = aeth;
++		__entry->psn = psn;
++		__entry->opcode = wqe->wr.opcode;
++		__entry->spsn = wqe->psn;
++		__entry->lpsn = wqe->lpsn;
++	),
++	TP_printk(/* print */
++		"[%s] qpn 0x%x aeth 0x%x psn 0x%x opcode 0x%x spsn 0x%x lpsn 0x%x",
++		__get_str(dev),
++		__entry->qpn,
++		__entry->aeth,
++		__entry->psn,
++		__entry->opcode,
++		__entry->spsn,
++		__entry->lpsn
++	)
++);
++
++DEFINE_EVENT(/* hfi2_do_rc_ack */
++	hfi2_rc_ack_template, hfi2_rc_ack_do,
++	TP_PROTO(struct rvt_qp *qp, u32 aeth, u32 psn,
++		 struct rvt_swqe *wqe),
++	TP_ARGS(qp, aeth, psn, wqe)
++);
++
++#endif /* __HFI2_TRACE_RC_H */
++
++#undef TRACE_INCLUDE_PATH
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_PATH .
++#define TRACE_INCLUDE_FILE trace_rc
++#include <trace/define_trace.h>
+diff --git a/drivers/infiniband/hw/hfi2/trace_rx.h b/drivers/infiniband/hw/hfi2/trace_rx.h
+new file mode 100644
+index 000000000000..bf3e130cb5f6
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/trace_rx.h
+@@ -0,0 +1,112 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/*
++ * Copyright(c) 2015 - 2018 Intel Corporation.
++ * Copyright(c) 2025-2026 Cornelis Networks, Inc.
++ */
++
++#if !defined(__HFI2_TRACE_RX_H) || defined(TRACE_HEADER_MULTI_READ)
++#define __HFI2_TRACE_RX_H
++
++#include <linux/tracepoint.h>
++#include <linux/trace_seq.h>
++
++#include "hfi2.h"
++
++#define tidtype_name(type) { PT_##type, #type }
++#define show_tidtype(type)                   \
++__print_symbolic(type,                       \
++	tidtype_name(EXPECTED),              \
++	tidtype_name(EAGER))
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi2_rx
++
++TRACE_EVENT(hfi2_rcvhdr,
++	    TP_PROTO(struct hfi2_packet *packet),
++	    TP_ARGS(packet),
++	    TP_STRUCT__entry(DD_DEV_ENTRY(packet->rcd->dd)
++			     __field(u64, eflags)
++			     __field(u32, ctxt)
++			     __field(u32, etype)
++			     __field(u32, hlen)
++			     __field(u32, tlen)
++			     __field(u32, updegr)
++			     __field(u32, etail)
++			     ),
++	     TP_fast_assign(DD_DEV_ASSIGN(packet->rcd->dd);
++			    __entry->eflags = packet->err_flags;
++			    __entry->ctxt = packet->rcd->ctxt;
++			    __entry->etype = packet->etype;
++			    __entry->hlen = packet->hlen;
++			    __entry->tlen = packet->tlen;
++			    __entry->updegr = packet->updegr;
++			    __entry->etail = packet->egr_index;
++			    ),
++	     TP_printk(
++		"[%s] ctxt %d eflags 0x%llx etype %d,%s hlen %d tlen %d updegr %d etail %d",
++		__get_str(dev),
++		__entry->ctxt,
++		__entry->eflags,
++		__entry->etype, show_packettype(__entry->etype),
++		__entry->hlen,
++		__entry->tlen,
++		__entry->updegr,
++		__entry->etail
++		)
++);
++
++TRACE_EVENT(hfi2_receive_interrupt,
++	    TP_PROTO(struct hfi2_devdata *dd, struct hfi2_ctxtdata *rcd),
++	    TP_ARGS(dd, rcd),
++	    TP_STRUCT__entry(DD_DEV_ENTRY(dd)
++			     __field(u32, ctxt)
++			     __field(u8, slow_path)
++			     __field(u8, dma_rtail)
++			     ),
++	    TP_fast_assign(DD_DEV_ASSIGN(dd);
++			__entry->ctxt = rcd->ctxt;
++			__entry->slow_path = hfi2_is_slowpath(rcd);
++			__entry->dma_rtail = get_dma_rtail_setting(rcd);
++			),
++	    TP_printk("[%s] ctxt %d SlowPath: %d DmaRtail: %d",
++		      __get_str(dev),
++		      __entry->ctxt,
++		      __entry->slow_path,
++		      __entry->dma_rtail
++		      )
++);
++
++TRACE_EVENT(hfi2_mmu_invalidate,
++	    TP_PROTO(unsigned int ctxt, u16 subctxt, const char *type,
++		     unsigned long start, unsigned long end),
++	    TP_ARGS(ctxt, subctxt, type, start, end),
++	    TP_STRUCT__entry(
++			     __field(unsigned int, ctxt)
++			     __field(u16, subctxt)
++			     __string(type, type)
++			     __field(unsigned long, start)
++			     __field(unsigned long, end)
++			     ),
++	    TP_fast_assign(
++			__entry->ctxt = ctxt;
++			__entry->subctxt = subctxt;
++			__assign_str(type);
++			__entry->start = start;
++			__entry->end = end;
++	    ),
++	    TP_printk("[%3u:%02u] MMU Invalidate (%s) 0x%lx - 0x%lx",
++		      __entry->ctxt,
++		      __entry->subctxt,
++		      __get_str(type),
++		      __entry->start,
++		      __entry->end
++		      )
++	    );
++
++#endif /* __HFI2_TRACE_RX_H */
++
++#undef TRACE_INCLUDE_PATH
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_PATH .
++#define TRACE_INCLUDE_FILE trace_rx
++#include <trace/define_trace.h>
+diff --git a/drivers/infiniband/hw/hfi2/trace_tid.h b/drivers/infiniband/hw/hfi2/trace_tid.h
+new file mode 100644
+index 000000000000..e281bab04dde
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/trace_tid.h
+@@ -0,0 +1,1687 @@
++/* SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause) */
++/*
++ * Copyright(c) 2025-2026 Cornelis Networks, Inc.
++ * Copyright(c) 2018 Intel Corporation.
++ *
++ */
++#if !defined(__HFI2_TRACE_TID_H) || defined(TRACE_HEADER_MULTI_READ)
++#define __HFI2_TRACE_TID_H
++
++#include <linux/tracepoint.h>
++#include <linux/trace_seq.h>
++
++#include "hfi2.h"
++
++#define tidtype_name(type) { PT_##type, #type }
++#define show_tidtype(type)                   \
++__print_symbolic(type,                       \
++	tidtype_name(EXPECTED),              \
++	tidtype_name(EAGER))
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi2_tid
++
++u8 hfi2_trace_get_tid_ctrl(u32 ent);
++u16 hfi2_trace_get_tid_len(u32 ent);
++u16 hfi2_trace_get_tid_idx(u32 ent);
++
++#define OPFN_PARAM_PRN "[%s] qpn 0x%x %s OPFN: qp 0x%x, max read %u, " \
++		       "max write %u, max length %u, jkey 0x%x timeout %u " \
++		       "urg %u"
++
++#define TID_FLOW_PRN "[%s] qpn 0x%x flow %d: idx %d resp_ib_psn 0x%x " \
++		     "generation 0x%x fpsn 0x%x-%x r_next_psn 0x%x " \
++		     "ib_psn 0x%x-%x npagesets %u tnode_cnt %u " \
++		     "tidcnt %u tid_idx %u tid_offset %u length %u sent %u"
++
++#define TID_NODE_PRN "[%s] qpn 0x%x  %s idx %u grp base 0x%x map 0x%x " \
++		     "used %u cnt %u"
++
++#define RSP_INFO_PRN "[%s] qpn 0x%x state 0x%x s_state 0x%x psn 0x%x " \
++		     "r_psn 0x%x r_state 0x%x r_flags 0x%x " \
++		     "r_head_ack_queue %u s_tail_ack_queue %u " \
++		     "s_acked_ack_queue %u s_ack_state 0x%x " \
++		     "s_nak_state 0x%x s_flags 0x%x ps_flags 0x%x " \
++		     "iow_flags 0x%lx"
++
++#define SENDER_INFO_PRN "[%s] qpn 0x%x state 0x%x s_cur %u s_tail %u " \
++			"s_head %u s_acked %u s_last %u s_psn 0x%x " \
++			"s_last_psn 0x%x s_flags 0x%x ps_flags 0x%x " \
++			"iow_flags 0x%lx s_state 0x%x s_num_rd %u s_retry %u"
++
++#define TID_READ_SENDER_PRN "[%s] qpn 0x%x newreq %u tid_r_reqs %u " \
++			    "tid_r_comp %u pending_tid_r_segs %u " \
++			    "s_flags 0x%x ps_flags 0x%x iow_flags 0x%lx " \
++			    "s_state 0x%x hw_flow_index %u generation 0x%x " \
++			    "fpsn 0x%x"
++
++#define TID_REQ_PRN "[%s] qpn 0x%x newreq %u opcode 0x%x psn 0x%x lpsn 0x%x " \
++		    "cur_seg %u comp_seg %u ack_seg %u alloc_seg %u " \
++		    "total_segs %u setup_head %u clear_tail %u flow_idx %u " \
++		    "acked_tail %u state %u r_ack_psn 0x%x r_flow_psn 0x%x " \
++		    "r_last_ackd 0x%x s_next_psn 0x%x"
++
++#define RCV_ERR_PRN "[%s] qpn 0x%x s_flags 0x%x state 0x%x " \
++		    "s_acked_ack_queue %u s_tail_ack_queue %u " \
++		    "r_head_ack_queue %u opcode 0x%x psn 0x%x r_psn 0x%x " \
++		    " diff %d"
++
++#define TID_WRITE_RSPDR_PRN "[%s] qpn 0x%x r_tid_head %u r_tid_tail %u " \
++			    "r_tid_ack %u r_tid_alloc %u alloc_w_segs %u " \
++			    "pending_tid_w_segs %u sync_pt %s " \
++			    "ps_nak_psn 0x%x ps_nak_state 0x%x " \
++			    "prnr_nak_state 0x%x hw_flow_index %u generation "\
++			    "0x%x fpsn 0x%x resync %s" \
++			    "r_next_psn_kdeth 0x%x"
++
++#define TID_WRITE_SENDER_PRN "[%s] qpn 0x%x newreq %u s_tid_cur %u " \
++			     "s_tid_tail %u s_tid_head %u " \
++			     "pending_tid_w_resp %u n_requests %u " \
++			     "n_tid_requests %u s_flags 0x%x ps_flags 0x%x "\
++			     "iow_flags 0x%lx s_state 0x%x s_retry %u"
++
++#define KDETH_EFLAGS_ERR_PRN "[%s] qpn 0x%x  TID ERR: RcvType 0x%x " \
++			     "RcvTypeError 0x%x PSN 0x%x"
++
++DECLARE_EVENT_CLASS(/* class */
++	hfi2_exp_tid_reg_unreg,
++	TP_PROTO(unsigned int ctxt, u16 subctxt, u32 rarr, u32 npages,
++		 unsigned long va, unsigned long pa, dma_addr_t dma, u16 type),
++	TP_ARGS(ctxt, subctxt, rarr, npages, va, pa, dma, type),
++	TP_STRUCT__entry(/* entry */
++		__field(unsigned int, ctxt)
++		__field(u16, subctxt)
++		__field(u32, rarr)
++		__field(u32, npages)
++		__field(unsigned long, va)
++		__field(unsigned long, pa)
++		__field(dma_addr_t, dma)
++		__field(u16, type)
++	),
++	TP_fast_assign(/* assign */
++		__entry->ctxt = ctxt;
++		__entry->subctxt = subctxt;
++		__entry->rarr = rarr;
++		__entry->npages = npages;
++		__entry->va = va;
++		__entry->pa = pa;
++		__entry->dma = dma;
++		__entry->type = type;
++	),
++	TP_printk("[%u:%u] entry:%u, %u pages @ 0x%lx, va:0x%lx dma:0x%llx memtype:0x%x",
++		  __entry->ctxt,
++		  __entry->subctxt,
++		  __entry->rarr,
++		  __entry->npages,
++		  __entry->pa,
++		  __entry->va,
++		  __entry->dma,
++		  __entry->type
++	)
++);
++
++DEFINE_EVENT(/* exp_tid_unreg */
++	hfi2_exp_tid_reg_unreg, hfi2_exp_tid_unreg,
++	TP_PROTO(unsigned int ctxt, u16 subctxt, u32 rarr, u32 npages,
++		 unsigned long va, unsigned long pa, dma_addr_t dma, u16 type),
++	TP_ARGS(ctxt, subctxt, rarr, npages, va, pa, dma, type)
++);
++
++DEFINE_EVENT(/* exp_tid_reg */
++	hfi2_exp_tid_reg_unreg, hfi2_exp_tid_reg,
++	TP_PROTO(unsigned int ctxt, u16 subctxt, u32 rarr, u32 npages,
++		 unsigned long va, unsigned long pa, dma_addr_t dma, u16 type),
++	TP_ARGS(ctxt, subctxt, rarr, npages, va, pa, dma, type)
++);
++
++TRACE_EVENT(
++	hfi2_exp_tid_update,
++	TP_PROTO(unsigned int ctxt, u16 subctxt, struct hfi2_tid_info *tinfo),
++	TP_ARGS(ctxt, subctxt, tinfo),
++	TP_STRUCT__entry(
++		__field(u64, vaddr)
++		__field(u64, tidlist)
++		__field(u64, flags)
++		__field(u64, context)
++		__field(u32, tidcnt)
++		__field(u32, length)
++		__field(unsigned int, ctxt)
++		__field(u16, subctxt)
++		__field(u16, type)
++	),
++	TP_fast_assign(
++		__entry->ctxt = ctxt;
++		__entry->subctxt = subctxt;
++		__entry->vaddr = tinfo->vaddr;
++		__entry->tidlist = tinfo->tidlist;
++		__entry->tidcnt = tinfo->tidcnt;
++		__entry->length = tinfo->length;
++		__entry->flags = tinfo->flags;
++		__entry->context = tinfo->context;
++		__entry->type = (tinfo->flags & HFI2_MEMINFO_TYPE_ENTRY_MASK);
++	),
++	TP_printk("[%u:%u] vaddr 0x%llx tidlist 0x%llx tidcnt %u length %u flags.memtype 0x%x flags.reserved 0x%llx context 0x%llx",
++		  __entry->ctxt,
++		  __entry->subctxt,
++		  __entry->vaddr,
++		  __entry->tidlist,
++		  __entry->tidcnt,
++		  __entry->length,
++		  __entry->type,
++		  __entry->flags & (~(u64)HFI2_MEMINFO_TYPE_ENTRY_MASK),
++		  __entry->context
++	)
++);
++
++TRACE_EVENT(/* put_tid */
++	hfi2_put_tid,
++	TP_PROTO(struct hfi2_devdata *dd,
++		 u32 index, u32 type, unsigned long pa, u16 order),
++	TP_ARGS(dd, index, type, pa, order),
++	TP_STRUCT__entry(/* entry */
++		DD_DEV_ENTRY(dd)
++		__field(unsigned long, pa)
++		__field(u32, index)
++		__field(u32, type)
++		__field(u16, order)
++	),
++	TP_fast_assign(/* assign */
++		DD_DEV_ASSIGN(dd);
++		__entry->pa = pa;
++		__entry->index = index;
++		__entry->type = type;
++		__entry->order = order;
++	),
++	TP_printk("[%s] type %s pa %lx index %u order %u",
++		  __get_str(dev),
++		  show_tidtype(__entry->type),
++		  __entry->pa,
++		  __entry->index,
++		  __entry->order
++	)
++);
++
++TRACE_EVENT(/* exp_tid_inval */
++	hfi2_exp_tid_inval,
++	TP_PROTO(unsigned int ctxt, u16 subctxt, unsigned long va, u32 rarr,
++		 u32 npages, dma_addr_t dma, u16 type),
++	TP_ARGS(ctxt, subctxt, va, rarr, npages, dma, type),
++	TP_STRUCT__entry(/* entry */
++		__field(unsigned int, ctxt)
++		__field(u16, subctxt)
++		__field(unsigned long, va)
++		__field(u32, rarr)
++		__field(u32, npages)
++		__field(dma_addr_t, dma)
++		__field(u16, type)
++	),
++	TP_fast_assign(/* assign */
++		__entry->ctxt = ctxt;
++		__entry->subctxt = subctxt;
++		__entry->va = va;
++		__entry->rarr = rarr;
++		__entry->npages = npages;
++		__entry->dma = dma;
++		__entry->type = type;
++	),
++	TP_printk("[%u:%u] entry:%u, %u pages @ 0x%lx dma: 0x%llx memtype:0x%x",
++		  __entry->ctxt,
++		  __entry->subctxt,
++		  __entry->rarr,
++		  __entry->npages,
++		  __entry->va,
++		  __entry->dma,
++		  __entry->type
++	)
++);
++
++DECLARE_EVENT_CLASS(/* opfn_state */
++	hfi2_opfn_state_template,
++	TP_PROTO(struct rvt_qp *qp),
++	TP_ARGS(qp),
++	TP_STRUCT__entry(/* entry */
++		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(u16, requested)
++		__field(u16, completed)
++		__field(u8, curr)
++	),
++	TP_fast_assign(/* assign */
++		struct hfi2_qp_priv *priv = qp->priv;
++
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device));
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->requested = priv->opfn.requested;
++		__entry->completed = priv->opfn.completed;
++		__entry->curr = priv->opfn.curr;
++	),
++	TP_printk(/* print */
++		"[%s] qpn 0x%x requested 0x%x completed 0x%x curr 0x%x",
++		__get_str(dev),
++		__entry->qpn,
++		__entry->requested,
++		__entry->completed,
++		__entry->curr
++	)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_opfn_state_template, hfi2_opfn_state_conn_request,
++	TP_PROTO(struct rvt_qp *qp),
++	TP_ARGS(qp)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_opfn_state_template, hfi2_opfn_state_sched_conn_request,
++	TP_PROTO(struct rvt_qp *qp),
++	TP_ARGS(qp)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_opfn_state_template, hfi2_opfn_state_conn_response,
++	TP_PROTO(struct rvt_qp *qp),
++	TP_ARGS(qp)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_opfn_state_template, hfi2_opfn_state_conn_reply,
++	TP_PROTO(struct rvt_qp *qp),
++	TP_ARGS(qp)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_opfn_state_template, hfi2_opfn_state_conn_error,
++	TP_PROTO(struct rvt_qp *qp),
++	TP_ARGS(qp)
++);
++
++DECLARE_EVENT_CLASS(/* opfn_data */
++	hfi2_opfn_data_template,
++	TP_PROTO(struct rvt_qp *qp, u8 capcode, u64 data),
++	TP_ARGS(qp, capcode, data),
++	TP_STRUCT__entry(/* entry */
++		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(u32, state)
++		__field(u8, capcode)
++		__field(u64, data)
++	),
++	TP_fast_assign(/* assign */
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device));
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->state = qp->state;
++		__entry->capcode = capcode;
++		__entry->data = data;
++	),
++	TP_printk(/* printk */
++		"[%s] qpn 0x%x (state 0x%x) Capcode %u data 0x%llx",
++		__get_str(dev),
++		__entry->qpn,
++		__entry->state,
++		__entry->capcode,
++		__entry->data
++	)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_opfn_data_template, hfi2_opfn_data_conn_request,
++	TP_PROTO(struct rvt_qp *qp, u8 capcode, u64 data),
++	TP_ARGS(qp, capcode, data)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_opfn_data_template, hfi2_opfn_data_conn_response,
++	TP_PROTO(struct rvt_qp *qp, u8 capcode, u64 data),
++	TP_ARGS(qp, capcode, data)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_opfn_data_template, hfi2_opfn_data_conn_reply,
++	TP_PROTO(struct rvt_qp *qp, u8 capcode, u64 data),
++	TP_ARGS(qp, capcode, data)
++);
++
++DECLARE_EVENT_CLASS(/* opfn_param */
++	hfi2_opfn_param_template,
++	TP_PROTO(struct rvt_qp *qp, char remote,
++		 struct tid_rdma_params *param),
++	TP_ARGS(qp, remote, param),
++	TP_STRUCT__entry(/* entry */
++		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(char, remote)
++		__field(u32, param_qp)
++		__field(u32, max_len)
++		__field(u16, jkey)
++		__field(u8, max_read)
++		__field(u8, max_write)
++		__field(u8, timeout)
++		__field(u8, urg)
++	),
++	TP_fast_assign(/* assign */
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device));
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->remote = remote;
++		__entry->param_qp = param->qp;
++		__entry->max_len = param->max_len;
++		__entry->jkey = param->jkey;
++		__entry->max_read = param->max_read;
++		__entry->max_write = param->max_write;
++		__entry->timeout = param->timeout;
++		__entry->urg = param->urg;
++	),
++	TP_printk(/* print */
++		OPFN_PARAM_PRN,
++		__get_str(dev),
++		__entry->qpn,
++		__entry->remote ? "remote" : "local",
++		__entry->param_qp,
++		__entry->max_read,
++		__entry->max_write,
++		__entry->max_len,
++		__entry->jkey,
++		__entry->timeout,
++		__entry->urg
++	)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_opfn_param_template, hfi2_opfn_param,
++	TP_PROTO(struct rvt_qp *qp, char remote,
++		 struct tid_rdma_params *param),
++	TP_ARGS(qp, remote, param)
++);
++
++DECLARE_EVENT_CLASS(/* msg */
++	hfi2_msg_template,
++	TP_PROTO(struct rvt_qp *qp, const char *msg, u64 more),
++	TP_ARGS(qp, msg, more),
++	TP_STRUCT__entry(/* entry */
++		__field(u32, qpn)
++		__string(msg, msg)
++		__field(u64, more)
++	),
++	TP_fast_assign(/* assign */
++		__entry->qpn = qp ? qp->ibqp.qp_num : 0;
++		__assign_str(msg);
++		__entry->more = more;
++	),
++	TP_printk(/* print */
++		"qpn 0x%x %s 0x%llx",
++		__entry->qpn,
++		__get_str(msg),
++		__entry->more
++	)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_msg_template, hfi2_msg_opfn_conn_request,
++	TP_PROTO(struct rvt_qp *qp, const char *msg, u64 more),
++	TP_ARGS(qp, msg, more)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_msg_template, hfi2_msg_opfn_conn_error,
++	TP_PROTO(struct rvt_qp *qp, const char *msg, u64 more),
++	TP_ARGS(qp, msg, more)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_msg_template, hfi2_msg_alloc_tids,
++	TP_PROTO(struct rvt_qp *qp, const char *msg, u64 more),
++	TP_ARGS(qp, msg, more)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_msg_template, hfi2_msg_tid_restart_req,
++	TP_PROTO(struct rvt_qp *qp, const char *msg, u64 more),
++	TP_ARGS(qp, msg, more)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_msg_template, hfi2_msg_handle_kdeth_eflags,
++	TP_PROTO(struct rvt_qp *qp, const char *msg, u64 more),
++	TP_ARGS(qp, msg, more)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_msg_template, hfi2_msg_tid_timeout,
++	TP_PROTO(struct rvt_qp *qp, const char *msg, u64 more),
++	TP_ARGS(qp, msg, more)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_msg_template, hfi2_msg_tid_retry_timeout,
++	TP_PROTO(struct rvt_qp *qp, const char *msg, u64 more),
++	TP_ARGS(qp, msg, more)
++);
++
++DECLARE_EVENT_CLASS(/* tid_flow_page */
++	hfi2_tid_flow_page_template,
++	TP_PROTO(struct rvt_qp *qp, struct tid_rdma_flow *flow, u32 index,
++		 char mtu8k, char v1, void *vaddr),
++	TP_ARGS(qp, flow, index, mtu8k, v1, vaddr),
++	TP_STRUCT__entry(/* entry */
++		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(char, mtu8k)
++		__field(char, v1)
++		__field(u32, index)
++		__field(u64, page)
++		__field(u64, vaddr)
++	),
++	TP_fast_assign(/* assign */
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device));
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->mtu8k = mtu8k;
++		__entry->v1 = v1;
++		__entry->index = index;
++		__entry->page = vaddr ? (u64)virt_to_page(vaddr) : 0ULL;
++		__entry->vaddr = (u64)vaddr;
++	),
++	TP_printk(/* print */
++		"[%s] qpn 0x%x page[%u]: page 0x%llx %s 0x%llx",
++		__get_str(dev),
++		__entry->qpn,
++		__entry->index,
++		__entry->page,
++		__entry->mtu8k ? (__entry->v1 ? "v1" : "v0") : "vaddr",
++		__entry->vaddr
++	)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_flow_page_template, hfi2_tid_flow_page,
++	TP_PROTO(struct rvt_qp *qp, struct tid_rdma_flow *flow, u32 index,
++		 char mtu8k, char v1, void *vaddr),
++	TP_ARGS(qp, flow, index, mtu8k, v1, vaddr)
++);
++
++DECLARE_EVENT_CLASS(/* tid_pageset */
++	hfi2_tid_pageset_template,
++	TP_PROTO(struct rvt_qp *qp, u32 index, u16 idx, u16 count),
++	TP_ARGS(qp, index, idx, count),
++	TP_STRUCT__entry(/* entry */
++		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(u32, index)
++		__field(u16, idx)
++		__field(u16, count)
++	),
++	TP_fast_assign(/* assign */
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device));
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->index = index;
++		__entry->idx = idx;
++		__entry->count = count;
++	),
++	TP_printk(/* print */
++		"[%s] qpn 0x%x list[%u]: idx %u count %u",
++		__get_str(dev),
++		__entry->qpn,
++		__entry->index,
++		__entry->idx,
++		__entry->count
++	)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_pageset_template, hfi2_tid_pageset,
++	TP_PROTO(struct rvt_qp *qp, u32 index, u16 idx, u16 count),
++	TP_ARGS(qp, index, idx, count)
++);
++
++DECLARE_EVENT_CLASS(/* tid_fow */
++	hfi2_tid_flow_template,
++	TP_PROTO(struct rvt_qp *qp, int index, struct tid_rdma_flow *flow),
++	TP_ARGS(qp, index, flow),
++	TP_STRUCT__entry(/* entry */
++		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(int, index)
++		__field(int, idx)
++		__field(u32, resp_ib_psn)
++		__field(u32, generation)
++		__field(u32, fspsn)
++		__field(u32, flpsn)
++		__field(u32, r_next_psn)
++		__field(u32, ib_spsn)
++		__field(u32, ib_lpsn)
++		__field(u32, npagesets)
++		__field(u32, tnode_cnt)
++		__field(u32, tidcnt)
++		__field(u32, tid_idx)
++		__field(u32, tid_offset)
++		__field(u32, length)
++		__field(u32, sent)
++	),
++	TP_fast_assign(/* assign */
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device));
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->index = index;
++		__entry->idx = flow->idx;
++		__entry->resp_ib_psn = flow->flow_state.resp_ib_psn;
++		__entry->generation = flow->flow_state.generation;
++		__entry->fspsn = full_flow_psn(flow,
++					       flow->flow_state.spsn);
++		__entry->flpsn = full_flow_psn(flow,
++					       flow->flow_state.lpsn);
++		__entry->r_next_psn = flow->flow_state.r_next_psn;
++		__entry->ib_spsn = flow->flow_state.ib_spsn;
++		__entry->ib_lpsn = flow->flow_state.ib_lpsn;
++		__entry->npagesets = flow->npagesets;
++		__entry->tnode_cnt = flow->tnode_cnt;
++		__entry->tidcnt = flow->tidcnt;
++		__entry->tid_idx = flow->tid_idx;
++		__entry->tid_offset =  flow->tid_offset;
++		__entry->length = flow->length;
++		__entry->sent = flow->sent;
++	),
++	TP_printk(/* print */
++		TID_FLOW_PRN,
++		__get_str(dev),
++		__entry->qpn,
++		__entry->index,
++		__entry->idx,
++		__entry->resp_ib_psn,
++		__entry->generation,
++		__entry->fspsn,
++		__entry->flpsn,
++		__entry->r_next_psn,
++		__entry->ib_spsn,
++		__entry->ib_lpsn,
++		__entry->npagesets,
++		__entry->tnode_cnt,
++		__entry->tidcnt,
++		__entry->tid_idx,
++		__entry->tid_offset,
++		__entry->length,
++		__entry->sent
++	)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_flow_template, hfi2_tid_flow_alloc,
++	TP_PROTO(struct rvt_qp *qp, int index, struct tid_rdma_flow *flow),
++	TP_ARGS(qp, index, flow)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_flow_template, hfi2_tid_flow_build_read_pkt,
++	TP_PROTO(struct rvt_qp *qp, int index, struct tid_rdma_flow *flow),
++	TP_ARGS(qp, index, flow)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_flow_template, hfi2_tid_flow_build_read_resp,
++	TP_PROTO(struct rvt_qp *qp, int index, struct tid_rdma_flow *flow),
++	TP_ARGS(qp, index, flow)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_flow_template, hfi2_tid_flow_rcv_read_req,
++	TP_PROTO(struct rvt_qp *qp, int index, struct tid_rdma_flow *flow),
++	TP_ARGS(qp, index, flow)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_flow_template, hfi2_tid_flow_rcv_read_resp,
++	TP_PROTO(struct rvt_qp *qp, int index, struct tid_rdma_flow *flow),
++	TP_ARGS(qp, index, flow)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_flow_template, hfi2_tid_flow_restart_req,
++	TP_PROTO(struct rvt_qp *qp, int index, struct tid_rdma_flow *flow),
++	TP_ARGS(qp, index, flow)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_flow_template, hfi2_tid_flow_build_write_resp,
++	TP_PROTO(struct rvt_qp *qp, int index, struct tid_rdma_flow *flow),
++	TP_ARGS(qp, index, flow)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_flow_template, hfi2_tid_flow_rcv_write_resp,
++	TP_PROTO(struct rvt_qp *qp, int index, struct tid_rdma_flow *flow),
++	TP_ARGS(qp, index, flow)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_flow_template, hfi2_tid_flow_build_write_data,
++	TP_PROTO(struct rvt_qp *qp, int index, struct tid_rdma_flow *flow),
++	TP_ARGS(qp, index, flow)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_flow_template, hfi2_tid_flow_rcv_tid_ack,
++	TP_PROTO(struct rvt_qp *qp, int index, struct tid_rdma_flow *flow),
++	TP_ARGS(qp, index, flow)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_flow_template, hfi2_tid_flow_rcv_resync,
++	TP_PROTO(struct rvt_qp *qp, int index, struct tid_rdma_flow *flow),
++	TP_ARGS(qp, index, flow)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_flow_template, hfi2_tid_flow_handle_kdeth_eflags,
++	TP_PROTO(struct rvt_qp *qp, int index, struct tid_rdma_flow *flow),
++	TP_ARGS(qp, index, flow)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_flow_template, hfi2_tid_flow_read_kdeth_eflags,
++	TP_PROTO(struct rvt_qp *qp, int index, struct tid_rdma_flow *flow),
++	TP_ARGS(qp, index, flow)
++);
++
++DECLARE_EVENT_CLASS(/* tid_node */
++	hfi2_tid_node_template,
++	TP_PROTO(struct rvt_qp *qp, const char *msg, u32 index, u32 base,
++		 u8 map, u8 used, u8 cnt),
++	TP_ARGS(qp, msg, index, base, map, used, cnt),
++	TP_STRUCT__entry(/* entry */
++		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++		__field(u32, qpn)
++		__string(msg, msg)
++		__field(u32, index)
++		__field(u32, base)
++		__field(u8, map)
++		__field(u8, used)
++		__field(u8, cnt)
++	),
++	TP_fast_assign(/* assign */
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device));
++		__entry->qpn = qp->ibqp.qp_num;
++		__assign_str(msg);
++		__entry->index = index;
++		__entry->base = base;
++		__entry->map = map;
++		__entry->used = used;
++		__entry->cnt = cnt;
++	),
++	TP_printk(/* print */
++		TID_NODE_PRN,
++		__get_str(dev),
++		__entry->qpn,
++		__get_str(msg),
++		__entry->index,
++		__entry->base,
++		__entry->map,
++		__entry->used,
++		__entry->cnt
++	)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_node_template, hfi2_tid_node_add,
++	TP_PROTO(struct rvt_qp *qp, const char *msg, u32 index, u32 base,
++		 u8 map, u8 used, u8 cnt),
++	TP_ARGS(qp, msg, index, base, map, used, cnt)
++);
++
++DECLARE_EVENT_CLASS(/* tid_entry */
++	hfi2_tid_entry_template,
++	TP_PROTO(struct rvt_qp *qp, int index, u32 ent),
++	TP_ARGS(qp, index, ent),
++	TP_STRUCT__entry(/* entry */
++		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(int, index)
++		__field(u8, ctrl)
++		__field(u16, idx)
++		__field(u16, len)
++	),
++	TP_fast_assign(/* assign */
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device));
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->index = index;
++		__entry->ctrl = hfi2_trace_get_tid_ctrl(ent);
++		__entry->idx = hfi2_trace_get_tid_idx(ent);
++		__entry->len = hfi2_trace_get_tid_len(ent);
++	),
++	TP_printk(/* print */
++		"[%s] qpn 0x%x TID entry %d: idx %u len %u ctrl 0x%x",
++		__get_str(dev),
++		__entry->qpn,
++		__entry->index,
++		__entry->idx,
++		__entry->len,
++		__entry->ctrl
++	)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_entry_template, hfi2_tid_entry_alloc,
++	TP_PROTO(struct rvt_qp *qp, int index, u32 entry),
++	TP_ARGS(qp, index, entry)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_entry_template, hfi2_tid_entry_build_read_resp,
++	TP_PROTO(struct rvt_qp *qp, int index, u32 ent),
++	TP_ARGS(qp, index, ent)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_entry_template, hfi2_tid_entry_rcv_read_req,
++	TP_PROTO(struct rvt_qp *qp, int index, u32 ent),
++	TP_ARGS(qp, index, ent)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_entry_template, hfi2_tid_entry_rcv_write_resp,
++	TP_PROTO(struct rvt_qp *qp, int index, u32 entry),
++	TP_ARGS(qp, index, entry)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_entry_template, hfi2_tid_entry_build_write_data,
++	TP_PROTO(struct rvt_qp *qp, int index, u32 entry),
++	TP_ARGS(qp, index, entry)
++);
++
++DECLARE_EVENT_CLASS(/* rsp_info */
++	hfi2_responder_info_template,
++	TP_PROTO(struct rvt_qp *qp, u32 psn),
++	TP_ARGS(qp, psn),
++	TP_STRUCT__entry(/* entry */
++		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(u8, state)
++		__field(u8, s_state)
++		__field(u32, psn)
++		__field(u32, r_psn)
++		__field(u8, r_state)
++		__field(u8, r_flags)
++		__field(u8, r_head_ack_queue)
++		__field(u8, s_tail_ack_queue)
++		__field(u8, s_acked_ack_queue)
++		__field(u8, s_ack_state)
++		__field(u8, s_nak_state)
++		__field(u8, r_nak_state)
++		__field(u32, s_flags)
++		__field(u32, ps_flags)
++		__field(unsigned long, iow_flags)
++	),
++	TP_fast_assign(/* assign */
++		struct hfi2_qp_priv *priv = qp->priv;
++
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device));
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->state = qp->state;
++		__entry->s_state = qp->s_state;
++		__entry->psn = psn;
++		__entry->r_psn = qp->r_psn;
++		__entry->r_state = qp->r_state;
++		__entry->r_flags = qp->r_flags;
++		__entry->r_head_ack_queue = qp->r_head_ack_queue;
++		__entry->s_tail_ack_queue = qp->s_tail_ack_queue;
++		__entry->s_acked_ack_queue = qp->s_acked_ack_queue;
++		__entry->s_ack_state = qp->s_ack_state;
++		__entry->s_nak_state = qp->s_nak_state;
++		__entry->s_flags = qp->s_flags;
++		__entry->ps_flags = priv->s_flags;
++		__entry->iow_flags = priv->s_iowait.flags;
++	),
++	TP_printk(/* print */
++		RSP_INFO_PRN,
++		__get_str(dev),
++		__entry->qpn,
++		__entry->state,
++		__entry->s_state,
++		__entry->psn,
++		__entry->r_psn,
++		__entry->r_state,
++		__entry->r_flags,
++		__entry->r_head_ack_queue,
++		__entry->s_tail_ack_queue,
++		__entry->s_acked_ack_queue,
++		__entry->s_ack_state,
++		__entry->s_nak_state,
++		__entry->s_flags,
++		__entry->ps_flags,
++		__entry->iow_flags
++	)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_responder_info_template, hfi2_rsp_make_rc_ack,
++	TP_PROTO(struct rvt_qp *qp, u32 psn),
++	TP_ARGS(qp, psn)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_responder_info_template, hfi2_rsp_rcv_tid_read_req,
++	TP_PROTO(struct rvt_qp *qp, u32 psn),
++	TP_ARGS(qp, psn)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_responder_info_template, hfi2_rsp_tid_rcv_error,
++	TP_PROTO(struct rvt_qp *qp, u32 psn),
++	TP_ARGS(qp, psn)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_responder_info_template, hfi2_rsp_tid_write_alloc_res,
++	TP_PROTO(struct rvt_qp *qp, u32 psn),
++	TP_ARGS(qp, psn)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_responder_info_template, hfi2_rsp_rcv_tid_write_req,
++	TP_PROTO(struct rvt_qp *qp, u32 psn),
++	TP_ARGS(qp, psn)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_responder_info_template, hfi2_rsp_build_tid_write_resp,
++	TP_PROTO(struct rvt_qp *qp, u32 psn),
++	TP_ARGS(qp, psn)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_responder_info_template, hfi2_rsp_rcv_tid_write_data,
++	TP_PROTO(struct rvt_qp *qp, u32 psn),
++	TP_ARGS(qp, psn)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_responder_info_template, hfi2_rsp_make_tid_ack,
++	TP_PROTO(struct rvt_qp *qp, u32 psn),
++	TP_ARGS(qp, psn)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_responder_info_template, hfi2_rsp_handle_kdeth_eflags,
++	TP_PROTO(struct rvt_qp *qp, u32 psn),
++	TP_ARGS(qp, psn)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_responder_info_template, hfi2_rsp_read_kdeth_eflags,
++	TP_PROTO(struct rvt_qp *qp, u32 psn),
++	TP_ARGS(qp, psn)
++);
++
++DECLARE_EVENT_CLASS(/* sender_info */
++	hfi2_sender_info_template,
++	TP_PROTO(struct rvt_qp *qp),
++	TP_ARGS(qp),
++	TP_STRUCT__entry(/* entry */
++		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(u8, state)
++		__field(u32, s_cur)
++		__field(u32, s_tail)
++		__field(u32, s_head)
++		__field(u32, s_acked)
++		__field(u32, s_last)
++		__field(u32, s_psn)
++		__field(u32, s_last_psn)
++		__field(u32, s_flags)
++		__field(u32, ps_flags)
++		__field(unsigned long, iow_flags)
++		__field(u8, s_state)
++		__field(u8, s_num_rd)
++		__field(u8, s_retry)
++	),
++	TP_fast_assign(/* assign */
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device));
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->state = qp->state;
++		__entry->s_cur = qp->s_cur;
++		__entry->s_tail = qp->s_tail;
++		__entry->s_head = qp->s_head;
++		__entry->s_acked = qp->s_acked;
++		__entry->s_last = qp->s_last;
++		__entry->s_psn = qp->s_psn;
++		__entry->s_last_psn = qp->s_last_psn;
++		__entry->s_flags = qp->s_flags;
++		__entry->ps_flags = ((struct hfi2_qp_priv *)qp->priv)->s_flags;
++		__entry->iow_flags =
++			((struct hfi2_qp_priv *)qp->priv)->s_iowait.flags;
++		__entry->s_state = qp->s_state;
++		__entry->s_num_rd = qp->s_num_rd_atomic;
++		__entry->s_retry = qp->s_retry;
++	),
++	TP_printk(/* print */
++		SENDER_INFO_PRN,
++		__get_str(dev),
++		__entry->qpn,
++		__entry->state,
++		__entry->s_cur,
++		__entry->s_tail,
++		__entry->s_head,
++		__entry->s_acked,
++		__entry->s_last,
++		__entry->s_psn,
++		__entry->s_last_psn,
++		__entry->s_flags,
++		__entry->ps_flags,
++		__entry->iow_flags,
++		__entry->s_state,
++		__entry->s_num_rd,
++		__entry->s_retry
++	)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_sender_info_template, hfi2_sender_make_rc_req,
++	TP_PROTO(struct rvt_qp *qp),
++	TP_ARGS(qp)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_sender_info_template, hfi2_sender_reset_psn,
++	TP_PROTO(struct rvt_qp *qp),
++	TP_ARGS(qp)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_sender_info_template, hfi2_sender_restart_rc,
++	TP_PROTO(struct rvt_qp *qp),
++	TP_ARGS(qp)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_sender_info_template, hfi2_sender_do_rc_ack,
++	TP_PROTO(struct rvt_qp *qp),
++	TP_ARGS(qp)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_sender_info_template, hfi2_sender_rcv_tid_read_resp,
++	TP_PROTO(struct rvt_qp *qp),
++	TP_ARGS(qp)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_sender_info_template, hfi2_sender_rcv_tid_ack,
++	TP_PROTO(struct rvt_qp *qp),
++	TP_ARGS(qp)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_sender_info_template, hfi2_sender_make_tid_pkt,
++	TP_PROTO(struct rvt_qp *qp),
++	TP_ARGS(qp)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_sender_info_template, hfi2_sender_read_kdeth_eflags,
++	TP_PROTO(struct rvt_qp *qp),
++	TP_ARGS(qp)
++);
++
++DECLARE_EVENT_CLASS(/* tid_read_sender */
++	hfi2_tid_read_sender_template,
++	TP_PROTO(struct rvt_qp *qp, char newreq),
++	TP_ARGS(qp, newreq),
++	TP_STRUCT__entry(/* entry */
++		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(char, newreq)
++		__field(u32, tid_r_reqs)
++		__field(u32, tid_r_comp)
++		__field(u32, pending_tid_r_segs)
++		__field(u32, s_flags)
++		__field(u32, ps_flags)
++		__field(unsigned long, iow_flags)
++		__field(u8, s_state)
++		__field(u32, hw_flow_index)
++		__field(u32, generation)
++		__field(u32, fpsn)
++	),
++	TP_fast_assign(/* assign */
++		struct hfi2_qp_priv *priv = qp->priv;
++
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device));
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->newreq = newreq;
++		__entry->tid_r_reqs = priv->tid_r_reqs;
++		__entry->tid_r_comp = priv->tid_r_comp;
++		__entry->pending_tid_r_segs = priv->pending_tid_r_segs;
++		__entry->s_flags = qp->s_flags;
++		__entry->ps_flags = priv->s_flags;
++		__entry->iow_flags = priv->s_iowait.flags;
++		__entry->s_state = priv->s_state;
++		__entry->hw_flow_index = priv->flow_state.index;
++		__entry->generation = priv->flow_state.generation;
++		__entry->fpsn = priv->flow_state.psn;
++	),
++	TP_printk(/* print */
++		TID_READ_SENDER_PRN,
++		__get_str(dev),
++		__entry->qpn,
++		__entry->newreq,
++		__entry->tid_r_reqs,
++		__entry->tid_r_comp,
++		__entry->pending_tid_r_segs,
++		__entry->s_flags,
++		__entry->ps_flags,
++		__entry->iow_flags,
++		__entry->s_state,
++		__entry->hw_flow_index,
++		__entry->generation,
++		__entry->fpsn
++	)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_read_sender_template, hfi2_tid_read_sender_make_req,
++	TP_PROTO(struct rvt_qp *qp, char newreq),
++	TP_ARGS(qp, newreq)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_read_sender_template, hfi2_tid_read_sender_kdeth_eflags,
++	TP_PROTO(struct rvt_qp *qp, char newreq),
++	TP_ARGS(qp, newreq)
++);
++
++DECLARE_EVENT_CLASS(/* tid_rdma_request */
++	hfi2_tid_rdma_request_template,
++	TP_PROTO(struct rvt_qp *qp, char newreq, u8 opcode, u32 psn, u32 lpsn,
++		 struct tid_rdma_request *req),
++	TP_ARGS(qp, newreq, opcode, psn, lpsn, req),
++	TP_STRUCT__entry(/* entry */
++		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(char, newreq)
++		__field(u8, opcode)
++		__field(u32, psn)
++		__field(u32, lpsn)
++		__field(u32, cur_seg)
++		__field(u32, comp_seg)
++		__field(u32, ack_seg)
++		__field(u32, alloc_seg)
++		__field(u32, total_segs)
++		__field(u16, setup_head)
++		__field(u16, clear_tail)
++		__field(u16, flow_idx)
++		__field(u16, acked_tail)
++		__field(u32, state)
++		__field(u32, r_ack_psn)
++		__field(u32, r_flow_psn)
++		__field(u32, r_last_acked)
++		__field(u32, s_next_psn)
++	),
++	TP_fast_assign(/* assign */
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device));
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->newreq = newreq;
++		__entry->opcode = opcode;
++		__entry->psn = psn;
++		__entry->lpsn = lpsn;
++		__entry->cur_seg = req->cur_seg;
++		__entry->comp_seg = req->comp_seg;
++		__entry->ack_seg = req->ack_seg;
++		__entry->alloc_seg = req->alloc_seg;
++		__entry->total_segs = req->total_segs;
++		__entry->setup_head = req->setup_head;
++		__entry->clear_tail = req->clear_tail;
++		__entry->flow_idx = req->flow_idx;
++		__entry->acked_tail = req->acked_tail;
++		__entry->state = req->state;
++		__entry->r_ack_psn = req->r_ack_psn;
++		__entry->r_flow_psn = req->r_flow_psn;
++		__entry->r_last_acked = req->r_last_acked;
++		__entry->s_next_psn = req->s_next_psn;
++	),
++	TP_printk(/* print */
++		TID_REQ_PRN,
++		__get_str(dev),
++		__entry->qpn,
++		__entry->newreq,
++		__entry->opcode,
++		__entry->psn,
++		__entry->lpsn,
++		__entry->cur_seg,
++		__entry->comp_seg,
++		__entry->ack_seg,
++		__entry->alloc_seg,
++		__entry->total_segs,
++		__entry->setup_head,
++		__entry->clear_tail,
++		__entry->flow_idx,
++		__entry->acked_tail,
++		__entry->state,
++		__entry->r_ack_psn,
++		__entry->r_flow_psn,
++		__entry->r_last_acked,
++		__entry->s_next_psn
++	)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_rdma_request_template, hfi2_tid_req_make_req_read,
++	TP_PROTO(struct rvt_qp *qp, char newreq, u8 opcode, u32 psn, u32 lpsn,
++		 struct tid_rdma_request *req),
++	TP_ARGS(qp, newreq, opcode, psn, lpsn, req)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_rdma_request_template, hfi2_tid_req_build_read_req,
++	TP_PROTO(struct rvt_qp *qp, char newreq, u8 opcode, u32 psn, u32 lpsn,
++		 struct tid_rdma_request *req),
++	TP_ARGS(qp, newreq, opcode, psn, lpsn, req)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_rdma_request_template, hfi2_tid_req_rcv_read_req,
++	TP_PROTO(struct rvt_qp *qp, char newreq, u8 opcode, u32 psn, u32 lpsn,
++		 struct tid_rdma_request *req),
++	TP_ARGS(qp, newreq, opcode, psn, lpsn, req)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_rdma_request_template, hfi2_tid_req_rcv_read_resp,
++	TP_PROTO(struct rvt_qp *qp, char newreq, u8 opcode, u32 psn, u32 lpsn,
++		 struct tid_rdma_request *req),
++	TP_ARGS(qp, newreq, opcode, psn, lpsn, req)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_rdma_request_template, hfi2_tid_req_rcv_err,
++	TP_PROTO(struct rvt_qp *qp, char newreq, u8 opcode, u32 psn, u32 lpsn,
++		 struct tid_rdma_request *req),
++	TP_ARGS(qp, newreq, opcode, psn, lpsn, req)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_rdma_request_template, hfi2_tid_req_restart_req,
++	TP_PROTO(struct rvt_qp *qp, char newreq, u8 opcode, u32 psn, u32 lpsn,
++		 struct tid_rdma_request *req),
++	TP_ARGS(qp, newreq, opcode, psn, lpsn, req)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_rdma_request_template, hfi2_tid_req_setup_tid_wqe,
++	TP_PROTO(struct rvt_qp *qp, char newreq, u8 opcode, u32 psn, u32 lpsn,
++		 struct tid_rdma_request *req),
++	TP_ARGS(qp, newreq, opcode, psn, lpsn, req)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_rdma_request_template, hfi2_tid_req_write_alloc_res,
++	TP_PROTO(struct rvt_qp *qp, char newreq, u8 opcode, u32 psn, u32 lpsn,
++		 struct tid_rdma_request *req),
++	TP_ARGS(qp, newreq, opcode, psn, lpsn, req)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_rdma_request_template, hfi2_tid_req_rcv_write_req,
++	TP_PROTO(struct rvt_qp *qp, char newreq, u8 opcode, u32 psn, u32 lpsn,
++		 struct tid_rdma_request *req),
++	TP_ARGS(qp, newreq, opcode, psn, lpsn, req)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_rdma_request_template, hfi2_tid_req_build_write_resp,
++	TP_PROTO(struct rvt_qp *qp, char newreq, u8 opcode, u32 psn, u32 lpsn,
++		 struct tid_rdma_request *req),
++	TP_ARGS(qp, newreq, opcode, psn, lpsn, req)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_rdma_request_template, hfi2_tid_req_rcv_write_resp,
++	TP_PROTO(struct rvt_qp *qp, char newreq, u8 opcode, u32 psn, u32 lpsn,
++		 struct tid_rdma_request *req),
++	TP_ARGS(qp, newreq, opcode, psn, lpsn, req)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_rdma_request_template, hfi2_tid_req_rcv_write_data,
++	TP_PROTO(struct rvt_qp *qp, char newreq, u8 opcode, u32 psn, u32 lpsn,
++		 struct tid_rdma_request *req),
++	TP_ARGS(qp, newreq, opcode, psn, lpsn, req)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_rdma_request_template, hfi2_tid_req_rcv_tid_ack,
++	TP_PROTO(struct rvt_qp *qp, char newreq, u8 opcode, u32 psn, u32 lpsn,
++		 struct tid_rdma_request *req),
++	TP_ARGS(qp, newreq, opcode, psn, lpsn, req)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_rdma_request_template, hfi2_tid_req_tid_retry_timeout,
++	TP_PROTO(struct rvt_qp *qp, char newreq, u8 opcode, u32 psn, u32 lpsn,
++		 struct tid_rdma_request *req),
++	TP_ARGS(qp, newreq, opcode, psn, lpsn, req)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_rdma_request_template, hfi2_tid_req_rcv_resync,
++	TP_PROTO(struct rvt_qp *qp, char newreq, u8 opcode, u32 psn, u32 lpsn,
++		 struct tid_rdma_request *req),
++	TP_ARGS(qp, newreq, opcode, psn, lpsn, req)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_rdma_request_template, hfi2_tid_req_make_tid_pkt,
++	TP_PROTO(struct rvt_qp *qp, char newreq, u8 opcode, u32 psn, u32 lpsn,
++		 struct tid_rdma_request *req),
++	TP_ARGS(qp, newreq, opcode, psn, lpsn, req)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_rdma_request_template, hfi2_tid_req_make_tid_ack,
++	TP_PROTO(struct rvt_qp *qp, char newreq, u8 opcode, u32 psn, u32 lpsn,
++		 struct tid_rdma_request *req),
++	TP_ARGS(qp, newreq, opcode, psn, lpsn, req)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_rdma_request_template, hfi2_tid_req_handle_kdeth_eflags,
++	TP_PROTO(struct rvt_qp *qp, char newreq, u8 opcode, u32 psn, u32 lpsn,
++		 struct tid_rdma_request *req),
++	TP_ARGS(qp, newreq, opcode, psn, lpsn, req)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_rdma_request_template, hfi2_tid_req_read_kdeth_eflags,
++	TP_PROTO(struct rvt_qp *qp, char newreq, u8 opcode, u32 psn, u32 lpsn,
++		 struct tid_rdma_request *req),
++	TP_ARGS(qp, newreq, opcode, psn, lpsn, req)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_rdma_request_template, hfi2_tid_req_make_rc_ack_write,
++	TP_PROTO(struct rvt_qp *qp, char newreq, u8 opcode, u32 psn, u32 lpsn,
++		 struct tid_rdma_request *req),
++	TP_ARGS(qp, newreq, opcode, psn, lpsn, req)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_rdma_request_template, hfi2_tid_req_make_req_write,
++	TP_PROTO(struct rvt_qp *qp, char newreq, u8 opcode, u32 psn, u32 lpsn,
++		 struct tid_rdma_request *req),
++	TP_ARGS(qp, newreq, opcode, psn, lpsn, req)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_rdma_request_template, hfi2_tid_req_update_num_rd_atomic,
++	TP_PROTO(struct rvt_qp *qp, char newreq, u8 opcode, u32 psn, u32 lpsn,
++		 struct tid_rdma_request *req),
++	TP_ARGS(qp, newreq, opcode, psn, lpsn, req)
++);
++
++DECLARE_EVENT_CLASS(/* rc_rcv_err */
++	hfi2_rc_rcv_err_template,
++	TP_PROTO(struct rvt_qp *qp, u32 opcode, u32 psn, int diff),
++	TP_ARGS(qp, opcode, psn, diff),
++	TP_STRUCT__entry(/* entry */
++		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(u32, s_flags)
++		__field(u8, state)
++		__field(u8, s_acked_ack_queue)
++		__field(u8, s_tail_ack_queue)
++		__field(u8, r_head_ack_queue)
++		__field(u32, opcode)
++		__field(u32, psn)
++		__field(u32, r_psn)
++		__field(int, diff)
++	),
++	TP_fast_assign(/* assign */
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device));
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->s_flags = qp->s_flags;
++		__entry->state = qp->state;
++		__entry->s_acked_ack_queue = qp->s_acked_ack_queue;
++		__entry->s_tail_ack_queue = qp->s_tail_ack_queue;
++		__entry->r_head_ack_queue = qp->r_head_ack_queue;
++		__entry->opcode = opcode;
++		__entry->psn = psn;
++		__entry->r_psn = qp->r_psn;
++		__entry->diff = diff;
++	),
++	TP_printk(/* print */
++		RCV_ERR_PRN,
++		__get_str(dev),
++		__entry->qpn,
++		__entry->s_flags,
++		__entry->state,
++		__entry->s_acked_ack_queue,
++		__entry->s_tail_ack_queue,
++		__entry->r_head_ack_queue,
++		__entry->opcode,
++		__entry->psn,
++		__entry->r_psn,
++		__entry->diff
++	)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_rc_rcv_err_template, hfi2_tid_rdma_rcv_err,
++	TP_PROTO(struct rvt_qp *qp, u32 opcode, u32 psn, int diff),
++	TP_ARGS(qp, opcode, psn, diff)
++);
++
++DECLARE_EVENT_CLASS(/* sge  */
++	hfi2_sge_template,
++	TP_PROTO(struct rvt_qp *qp, int index, struct rvt_sge *sge),
++	TP_ARGS(qp, index, sge),
++	TP_STRUCT__entry(/* entry */
++		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(int, index)
++		__field(u64, vaddr)
++		__field(u32, sge_length)
++	),
++	TP_fast_assign(/* assign */
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device));
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->index = index;
++		__entry->vaddr = (u64)sge->vaddr;
++		__entry->sge_length = sge->sge_length;
++	),
++	TP_printk(/* print */
++		"[%s] qpn 0x%x sge %d: vaddr 0x%llx sge_length %u",
++		__get_str(dev),
++		__entry->qpn,
++		__entry->index,
++		__entry->vaddr,
++		__entry->sge_length
++	)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_sge_template, hfi2_sge_check_align,
++	TP_PROTO(struct rvt_qp *qp, int index, struct rvt_sge *sge),
++	TP_ARGS(qp, index, sge)
++);
++
++DECLARE_EVENT_CLASS(/* tid_write_sp */
++	hfi2_tid_write_rsp_template,
++	TP_PROTO(struct rvt_qp *qp),
++	TP_ARGS(qp),
++	TP_STRUCT__entry(/* entry */
++		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(u32, r_tid_head)
++		__field(u32, r_tid_tail)
++		__field(u32, r_tid_ack)
++		__field(u32, r_tid_alloc)
++		__field(u32, alloc_w_segs)
++		__field(u32, pending_tid_w_segs)
++		__field(bool, sync_pt)
++		__field(u32, ps_nak_psn)
++		__field(u8, ps_nak_state)
++		__field(u8, prnr_nak_state)
++		__field(u32, hw_flow_index)
++		__field(u32, generation)
++		__field(u32, fpsn)
++		__field(bool, resync)
++		__field(u32, r_next_psn_kdeth)
++	),
++	TP_fast_assign(/* assign */
++		struct hfi2_qp_priv *priv = qp->priv;
++
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device));
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->r_tid_head = priv->r_tid_head;
++		__entry->r_tid_tail = priv->r_tid_tail;
++		__entry->r_tid_ack = priv->r_tid_ack;
++		__entry->r_tid_alloc = priv->r_tid_alloc;
++		__entry->alloc_w_segs = priv->alloc_w_segs;
++		__entry->pending_tid_w_segs = priv->pending_tid_w_segs;
++		__entry->sync_pt = priv->sync_pt;
++		__entry->ps_nak_psn = priv->s_nak_psn;
++		__entry->ps_nak_state = priv->s_nak_state;
++		__entry->prnr_nak_state = priv->rnr_nak_state;
++		__entry->hw_flow_index = priv->flow_state.index;
++		__entry->generation = priv->flow_state.generation;
++		__entry->fpsn = priv->flow_state.psn;
++		__entry->resync = priv->resync;
++		__entry->r_next_psn_kdeth = priv->r_next_psn_kdeth;
++	),
++	TP_printk(/* print */
++		TID_WRITE_RSPDR_PRN,
++		__get_str(dev),
++		__entry->qpn,
++		__entry->r_tid_head,
++		__entry->r_tid_tail,
++		__entry->r_tid_ack,
++		__entry->r_tid_alloc,
++		__entry->alloc_w_segs,
++		__entry->pending_tid_w_segs,
++		__entry->sync_pt ? "yes" : "no",
++		__entry->ps_nak_psn,
++		__entry->ps_nak_state,
++		__entry->prnr_nak_state,
++		__entry->hw_flow_index,
++		__entry->generation,
++		__entry->fpsn,
++		__entry->resync ? "yes" : "no",
++		__entry->r_next_psn_kdeth
++	)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_write_rsp_template, hfi2_tid_write_rsp_alloc_res,
++	TP_PROTO(struct rvt_qp *qp),
++	TP_ARGS(qp)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_write_rsp_template, hfi2_tid_write_rsp_rcv_req,
++	TP_PROTO(struct rvt_qp *qp),
++	TP_ARGS(qp)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_write_rsp_template, hfi2_tid_write_rsp_build_resp,
++	TP_PROTO(struct rvt_qp *qp),
++	TP_ARGS(qp)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_write_rsp_template, hfi2_tid_write_rsp_rcv_data,
++	TP_PROTO(struct rvt_qp *qp),
++	TP_ARGS(qp)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_write_rsp_template, hfi2_tid_write_rsp_rcv_resync,
++	TP_PROTO(struct rvt_qp *qp),
++	TP_ARGS(qp)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_write_rsp_template, hfi2_tid_write_rsp_make_tid_ack,
++	TP_PROTO(struct rvt_qp *qp),
++	TP_ARGS(qp)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_write_rsp_template, hfi2_tid_write_rsp_handle_kdeth_eflags,
++	TP_PROTO(struct rvt_qp *qp),
++	TP_ARGS(qp)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_write_rsp_template, hfi2_tid_write_rsp_make_rc_ack,
++	TP_PROTO(struct rvt_qp *qp),
++	TP_ARGS(qp)
++);
++
++DECLARE_EVENT_CLASS(/* tid_write_sender */
++	hfi2_tid_write_sender_template,
++	TP_PROTO(struct rvt_qp *qp, char newreq),
++	TP_ARGS(qp, newreq),
++	TP_STRUCT__entry(/* entry */
++		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(char, newreq)
++		__field(u32, s_tid_cur)
++		__field(u32, s_tid_tail)
++		__field(u32, s_tid_head)
++		__field(u32, pending_tid_w_resp)
++		__field(u32, n_requests)
++		__field(u32, n_tid_requests)
++		__field(u32, s_flags)
++		__field(u32, ps_flags)
++		__field(unsigned long, iow_flags)
++		__field(u8, s_state)
++		__field(u8, s_retry)
++	),
++	TP_fast_assign(/* assign */
++		struct hfi2_qp_priv *priv = qp->priv;
++
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device));
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->newreq = newreq;
++		__entry->s_tid_cur = priv->s_tid_cur;
++		__entry->s_tid_tail = priv->s_tid_tail;
++		__entry->s_tid_head = priv->s_tid_head;
++		__entry->pending_tid_w_resp = priv->pending_tid_w_resp;
++		__entry->n_requests = atomic_read(&priv->n_requests);
++		__entry->n_tid_requests = atomic_read(&priv->n_tid_requests);
++		__entry->s_flags = qp->s_flags;
++		__entry->ps_flags = priv->s_flags;
++		__entry->iow_flags = priv->s_iowait.flags;
++		__entry->s_state = priv->s_state;
++		__entry->s_retry = priv->s_retry;
++	),
++	TP_printk(/* print */
++		TID_WRITE_SENDER_PRN,
++		__get_str(dev),
++		__entry->qpn,
++		__entry->newreq,
++		__entry->s_tid_cur,
++		__entry->s_tid_tail,
++		__entry->s_tid_head,
++		__entry->pending_tid_w_resp,
++		__entry->n_requests,
++		__entry->n_tid_requests,
++		__entry->s_flags,
++		__entry->ps_flags,
++		__entry->iow_flags,
++		__entry->s_state,
++		__entry->s_retry
++	)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_write_sender_template, hfi2_tid_write_sender_rcv_resp,
++	TP_PROTO(struct rvt_qp *qp, char newreq),
++	TP_ARGS(qp, newreq)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_write_sender_template, hfi2_tid_write_sender_rcv_tid_ack,
++	TP_PROTO(struct rvt_qp *qp, char newreq),
++	TP_ARGS(qp, newreq)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_write_sender_template, hfi2_tid_write_sender_retry_timeout,
++	TP_PROTO(struct rvt_qp *qp, char newreq),
++	TP_ARGS(qp, newreq)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_write_sender_template, hfi2_tid_write_sender_make_tid_pkt,
++	TP_PROTO(struct rvt_qp *qp, char newreq),
++	TP_ARGS(qp, newreq)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_write_sender_template, hfi2_tid_write_sender_make_req,
++	TP_PROTO(struct rvt_qp *qp, char newreq),
++	TP_ARGS(qp, newreq)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_tid_write_sender_template, hfi2_tid_write_sender_restart_rc,
++	TP_PROTO(struct rvt_qp *qp, char newreq),
++	TP_ARGS(qp, newreq)
++);
++
++DECLARE_EVENT_CLASS(/* tid_ack */
++	hfi2_tid_ack_template,
++	TP_PROTO(struct rvt_qp *qp, u32 aeth, u32 psn,
++		 u32 req_psn, u32 resync_psn),
++	TP_ARGS(qp, aeth, psn, req_psn, resync_psn),
++	TP_STRUCT__entry(/* entry */
++		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(u32, aeth)
++		__field(u32, psn)
++		__field(u32, req_psn)
++		__field(u32, resync_psn)
++	),
++	TP_fast_assign(/* assign */
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device));
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->aeth = aeth;
++		__entry->psn = psn;
++		__entry->req_psn = req_psn;
++		__entry->resync_psn = resync_psn;
++		),
++	TP_printk(/* print */
++		"[%s] qpn 0x%x aeth 0x%x psn 0x%x req_psn 0x%x resync_psn 0x%x",
++		__get_str(dev),
++		__entry->qpn,
++		__entry->aeth,
++		__entry->psn,
++		__entry->req_psn,
++		__entry->resync_psn
++	)
++);
++
++DEFINE_EVENT(/* rcv_tid_ack */
++	hfi2_tid_ack_template, hfi2_rcv_tid_ack,
++	TP_PROTO(struct rvt_qp *qp, u32 aeth, u32 psn,
++		 u32 req_psn, u32 resync_psn),
++	TP_ARGS(qp, aeth, psn, req_psn, resync_psn)
++);
++
++DECLARE_EVENT_CLASS(/* kdeth_eflags_error */
++	hfi2_kdeth_eflags_error_template,
++	TP_PROTO(struct rvt_qp *qp, u8 rcv_type, u8 rte, u32 psn),
++	TP_ARGS(qp, rcv_type, rte, psn),
++	TP_STRUCT__entry(/* entry */
++		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(u8, rcv_type)
++		__field(u8, rte)
++		__field(u32, psn)
++	),
++	TP_fast_assign(/* assign */
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device));
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->rcv_type = rcv_type;
++		__entry->rte = rte;
++		__entry->psn = psn;
++	),
++	TP_printk(/* print */
++		KDETH_EFLAGS_ERR_PRN,
++		__get_str(dev),
++		__entry->qpn,
++		__entry->rcv_type,
++		__entry->rte,
++		__entry->psn
++	)
++);
++
++DEFINE_EVENT(/* event */
++	hfi2_kdeth_eflags_error_template, hfi2_eflags_err_write,
++	TP_PROTO(struct rvt_qp *qp, u8 rcv_type, u8 rte, u32 psn),
++	TP_ARGS(qp, rcv_type, rte, psn)
++);
++
++#endif /* __HFI2_TRACE_TID_H */
++
++#undef TRACE_INCLUDE_PATH
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_PATH .
++#define TRACE_INCLUDE_FILE trace_tid
++#include <trace/define_trace.h>
+diff --git a/drivers/infiniband/hw/hfi2/trace_tx.h b/drivers/infiniband/hw/hfi2/trace_tx.h
+new file mode 100644
+index 000000000000..f885b9eecb62
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/trace_tx.h
+@@ -0,0 +1,772 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/*
++ * Copyright(c) 2015 - 2017 Intel Corporation.
++ * Copyright(c) 2025-2026 Cornelis Networks, Inc.
++ */
++#if !defined(__HFI2_TRACE_TX_H) || defined(TRACE_HEADER_MULTI_READ)
++#define __HFI2_TRACE_TX_H
++
++#include <linux/tracepoint.h>
++#include <linux/trace_seq.h>
++
++#include "hfi2.h"
++#include "mad.h"
++#include "sdma.h"
++#include "ipoib.h"
++#include "user_sdma.h"
++
++const char *hfi2_parse_sdma_flags(struct trace_seq *p, u64 *qw, u8 first,
++				  u8 last);
++
++#define __parse_sdma_flags(qw, first, last) \
++	hfi2_parse_sdma_flags(p, qw, first, last)
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hfi2_tx
++
++TRACE_EVENT(hfi2_piofree, TP_PROTO(struct send_context *sc, int extra),
++	    TP_ARGS(sc, extra),
++	    TP_STRUCT__entry(DD_DEV_ENTRY(sc->dd) __field(u32, sw_index)
++				     __field(u32, hw_context)
++					     __field(int, extra)),
++	    TP_fast_assign(DD_DEV_ASSIGN(sc->dd);
++			   __entry->sw_index = sc->sw_index;
++			   __entry->hw_context = sc->hw_context;
++			   __entry->extra = extra;),
++	    TP_printk("[%s] ctxt %u(%u) extra %d", __get_str(dev),
++		      __entry->sw_index, __entry->hw_context, __entry->extra));
++
++TRACE_EVENT(
++	hfi2_wantpiointr,
++	TP_PROTO(struct send_context *sc, u32 needint, u64 credit_ctrl),
++	TP_ARGS(sc, needint, credit_ctrl),
++	TP_STRUCT__entry(DD_DEV_ENTRY(sc->dd) __field(u32, sw_index)
++				 __field(u32, hw_context) __field(u32, needint)
++					 __field(u64, credit_ctrl)),
++	TP_fast_assign(DD_DEV_ASSIGN(sc->dd); __entry->sw_index = sc->sw_index;
++		       __entry->hw_context = sc->hw_context;
++		       __entry->needint = needint;
++		       __entry->credit_ctrl = credit_ctrl;),
++	TP_printk("[%s] ctxt %u(%u) on %d credit_ctrl 0x%llx", __get_str(dev),
++		  __entry->sw_index, __entry->hw_context, __entry->needint,
++		  (unsigned long long)__entry->credit_ctrl));
++
++DECLARE_EVENT_CLASS(
++	hfi2_qpsleepwakeup_template, TP_PROTO(struct rvt_qp *qp, u32 flags),
++	TP_ARGS(qp, flags),
++	TP_STRUCT__entry(DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device)) __field(
++		u32, qpn) __field(u32, flags) __field(u32, s_flags)
++				 __field(u32, ps_flags)
++					 __field(unsigned long, iow_flags)),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device));
++		__entry->flags = flags; __entry->qpn = qp->ibqp.qp_num;
++		__entry->s_flags = qp->s_flags;
++		__entry->ps_flags = ((struct hfi2_qp_priv *)qp->priv)->s_flags;
++		__entry->iow_flags =
++			((struct hfi2_qp_priv *)qp->priv)->s_iowait.flags;),
++	TP_printk(
++		"[%s] qpn 0x%x flags 0x%x s_flags 0x%x ps_flags 0x%x iow_flags 0x%lx",
++		__get_str(dev), __entry->qpn, __entry->flags, __entry->s_flags,
++		__entry->ps_flags, __entry->iow_flags));
++
++DEFINE_EVENT(hfi2_qpsleepwakeup_template, hfi2_qpwakeup,
++	     TP_PROTO(struct rvt_qp *qp, u32 flags), TP_ARGS(qp, flags));
++
++DEFINE_EVENT(hfi2_qpsleepwakeup_template, hfi2_qpsleep,
++	     TP_PROTO(struct rvt_qp *qp, u32 flags), TP_ARGS(qp, flags));
++
++TRACE_EVENT(
++	hfi2_sdma_descriptor,
++	TP_PROTO(struct sdma_engine *sde, u64 *qw, u16 e, void *descp),
++	TP_ARGS(sde, qw, e, descp),
++	TP_STRUCT__entry(DD_DEV_ENTRY(sde->dd) __field(void *, descp) __array(
++		u64, qw, 2) __field(u64, phy_addr) __field(u32, len)
++				 __field(u16, e) __field(u8, idx)
++					 __field(u8, first) __field(u8, last)),
++	TP_fast_assign(DD_DEV_ASSIGN(sde->dd); __entry->qw[0] = qw[0];
++		       __entry->qw[1] = qw[1];
++		       __entry->phy_addr = sdma_qw_get(sde->dd, phy_addr, qw);
++		       __entry->len = sdma_qw_get(sde->dd, byte_count, qw);
++		       __entry->idx = sde->this_idx;
++		       __entry->first = sdma_qw_get(sde->dd, first_desc, qw);
++		       __entry->last = sdma_qw_get(sde->dd, last_desc, qw);
++		       __entry->descp = descp; __entry->e = e;),
++	TP_printk(
++		"[%s] SDE(%u) flags:%s addr:0x%016llx gen:%u len:%u d0:%016llx d1:%016llx to %p,%u",
++		__get_str(dev), __entry->idx,
++		__parse_sdma_flags(__entry->qw, __entry->first, __entry->last),
++		__entry->phy_addr,
++		(u8)((__entry->qw[1] >> SDMA_DESC1_GENERATION_SHIFT) &
++		     SDMA_DESC1_GENERATION_MASK),
++		__entry->len, __entry->qw[0], __entry->qw[1], __entry->descp,
++		__entry->e));
++
++TRACE_EVENT(hfi2_sdma_engine_select,
++	    TP_PROTO(struct hfi2_devdata *dd, u32 sel, u8 vl, u8 idx),
++	    TP_ARGS(dd, sel, vl, idx),
++	    TP_STRUCT__entry(DD_DEV_ENTRY(dd) __field(u32, sel) __field(u8, vl)
++				     __field(u8, idx)),
++	    TP_fast_assign(DD_DEV_ASSIGN(dd); __entry->sel = sel;
++			   __entry->vl = vl; __entry->idx = idx;),
++	    TP_printk("[%s] selecting SDE %u sel 0x%x vl %u", __get_str(dev),
++		      __entry->idx, __entry->sel, __entry->vl));
++
++TRACE_EVENT(hfi2_sdma_user_free_queues,
++	    TP_PROTO(struct hfi2_devdata *dd, u16 ctxt, u16 subctxt),
++	    TP_ARGS(dd, ctxt, subctxt),
++	    TP_STRUCT__entry(DD_DEV_ENTRY(dd) __field(u16, ctxt)
++				     __field(u16, subctxt)),
++	    TP_fast_assign(DD_DEV_ASSIGN(dd); __entry->ctxt = ctxt;
++			   __entry->subctxt = subctxt;),
++	    TP_printk("[%s] SDMA [%u:%u] Freeing user SDMA queues",
++		      __get_str(dev), __entry->ctxt, __entry->subctxt));
++
++TRACE_EVENT(
++	hfi2_sdma_user_process_request,
++	TP_PROTO(struct hfi2_devdata *dd, u16 ctxt, u16 subctxt, u16 comp_idx),
++	TP_ARGS(dd, ctxt, subctxt, comp_idx),
++	TP_STRUCT__entry(DD_DEV_ENTRY(dd) __field(u16, ctxt)
++				 __field(u16, subctxt) __field(u16, comp_idx)),
++	TP_fast_assign(DD_DEV_ASSIGN(dd); __entry->ctxt = ctxt;
++		       __entry->subctxt = subctxt;
++		       __entry->comp_idx = comp_idx;),
++	TP_printk("[%s] SDMA [%u:%u] Using req/comp entry: %u", __get_str(dev),
++		  __entry->ctxt, __entry->subctxt, __entry->comp_idx));
++
++DECLARE_EVENT_CLASS(
++	hfi2_sdma_value_template,
++	TP_PROTO(struct hfi2_devdata *dd, u16 ctxt, u16 subctxt, u16 comp_idx,
++		 u32 value),
++	TP_ARGS(dd, ctxt, subctxt, comp_idx, value),
++	TP_STRUCT__entry(DD_DEV_ENTRY(dd) __field(u16, ctxt)
++				 __field(u16, subctxt) __field(u16, comp_idx)
++					 __field(u32, value)),
++	TP_fast_assign(DD_DEV_ASSIGN(dd); __entry->ctxt = ctxt;
++		       __entry->subctxt = subctxt; __entry->comp_idx = comp_idx;
++		       __entry->value = value;),
++	TP_printk("[%s] SDMA [%u:%u:%u] value: %u", __get_str(dev),
++		  __entry->ctxt, __entry->subctxt, __entry->comp_idx,
++		  __entry->value));
++
++DEFINE_EVENT(hfi2_sdma_value_template, hfi2_sdma_user_initial_tidoffset,
++	     TP_PROTO(struct hfi2_devdata *dd, u16 ctxt, u16 subctxt,
++		      u16 comp_idx, u32 tidoffset),
++	     TP_ARGS(dd, ctxt, subctxt, comp_idx, tidoffset));
++
++DEFINE_EVENT(hfi2_sdma_value_template, hfi2_sdma_user_data_length,
++	     TP_PROTO(struct hfi2_devdata *dd, u16 ctxt, u16 subctxt,
++		      u16 comp_idx, u32 data_len),
++	     TP_ARGS(dd, ctxt, subctxt, comp_idx, data_len));
++
++DEFINE_EVENT(hfi2_sdma_value_template, hfi2_sdma_user_compute_length,
++	     TP_PROTO(struct hfi2_devdata *dd, u16 ctxt, u16 subctxt,
++		      u16 comp_idx, u32 data_len),
++	     TP_ARGS(dd, ctxt, subctxt, comp_idx, data_len));
++
++TRACE_EVENT(hfi2_sdma_user_tid_info,
++	    TP_PROTO(struct hfi2_devdata *dd, u16 ctxt, u16 subctxt,
++		     u16 comp_idx, u32 tidoffset, u32 units, u8 shift),
++	    TP_ARGS(dd, ctxt, subctxt, comp_idx, tidoffset, units, shift),
++	    TP_STRUCT__entry(DD_DEV_ENTRY(dd) __field(u16, ctxt) __field(
++		    u16, subctxt) __field(u16, comp_idx) __field(u32, tidoffset)
++				     __field(u32, units) __field(u8, shift)),
++	    TP_fast_assign(DD_DEV_ASSIGN(dd); __entry->ctxt = ctxt;
++			   __entry->subctxt = subctxt;
++			   __entry->comp_idx = comp_idx;
++			   __entry->tidoffset = tidoffset;
++			   __entry->units = units; __entry->shift = shift;),
++	    TP_printk("[%s] SDMA [%u:%u:%u] TID offset %ubytes %uunits om %u",
++		      __get_str(dev), __entry->ctxt, __entry->subctxt,
++		      __entry->comp_idx, __entry->tidoffset, __entry->units,
++		      __entry->shift));
++
++TRACE_EVENT(hfi2_sdma_request,
++	    TP_PROTO(struct hfi2_devdata *dd, u16 ctxt, u16 subctxt,
++		     unsigned long dim),
++	    TP_ARGS(dd, ctxt, subctxt, dim),
++	    TP_STRUCT__entry(DD_DEV_ENTRY(dd) __field(u16, ctxt)
++				     __field(u16, subctxt)
++					     __field(unsigned long, dim)),
++	    TP_fast_assign(DD_DEV_ASSIGN(dd); __entry->ctxt = ctxt;
++			   __entry->subctxt = subctxt; __entry->dim = dim;),
++	    TP_printk("[%s] SDMA from %u:%u (%lu)", __get_str(dev),
++		      __entry->ctxt, __entry->subctxt, __entry->dim));
++
++DECLARE_EVENT_CLASS(
++	hfi2_sdma_engine_class, TP_PROTO(struct sdma_engine *sde, u64 status),
++	TP_ARGS(sde, status),
++	TP_STRUCT__entry(DD_DEV_ENTRY(sde->dd) __field(u64, status)
++				 __field(u8, idx)),
++	TP_fast_assign(DD_DEV_ASSIGN(sde->dd); __entry->status = status;
++		       __entry->idx = sde->this_idx;),
++	TP_printk("[%s] SDE(%u) status %llx", __get_str(dev), __entry->idx,
++		  (unsigned long long)__entry->status));
++
++DEFINE_EVENT(hfi2_sdma_engine_class, hfi2_sdma_engine_interrupt,
++	     TP_PROTO(struct sdma_engine *sde, u64 status),
++	     TP_ARGS(sde, status));
++
++DEFINE_EVENT(hfi2_sdma_engine_class, hfi2_sdma_engine_progress,
++	     TP_PROTO(struct sdma_engine *sde, u64 status),
++	     TP_ARGS(sde, status));
++
++DECLARE_EVENT_CLASS(hfi2_sdma_ahg_ad,
++		    TP_PROTO(struct sdma_engine *sde, int aidx),
++		    TP_ARGS(sde, aidx),
++		    TP_STRUCT__entry(DD_DEV_ENTRY(sde->dd) __field(int, aidx)
++					     __field(u8, idx)),
++		    TP_fast_assign(DD_DEV_ASSIGN(sde->dd);
++				   __entry->idx = sde->this_idx;
++				   __entry->aidx = aidx;),
++		    TP_printk("[%s] SDE(%u) aidx %d", __get_str(dev),
++			      __entry->idx, __entry->aidx));
++
++DEFINE_EVENT(hfi2_sdma_ahg_ad, hfi2_ahg_allocate,
++	     TP_PROTO(struct sdma_engine *sde, int aidx), TP_ARGS(sde, aidx));
++
++DEFINE_EVENT(hfi2_sdma_ahg_ad, hfi2_ahg_deallocate,
++	     TP_PROTO(struct sdma_engine *sde, int aidx), TP_ARGS(sde, aidx));
++
++#ifdef CONFIG_HFI2_DEBUG_SDMA_ORDER
++TRACE_EVENT(
++	hfi2_sdma_progress,
++	TP_PROTO(struct sdma_engine *sde, u16 hwhead, u16 swhead,
++		 struct sdma_txreq *txp),
++	TP_ARGS(sde, hwhead, swhead, txp),
++	TP_STRUCT__entry(DD_DEV_ENTRY(sde->dd) __field(u64, sn) __field(
++		u16, hwhead) __field(u16, swhead) __field(u16, txnext)
++				 __field(u16, tx_tail) __field(u16, tx_head)
++					 __field(u8, idx)),
++	TP_fast_assign(DD_DEV_ASSIGN(sde->dd); __entry->hwhead = hwhead;
++		       __entry->swhead = swhead;
++		       __entry->tx_tail = sde->tx_tail;
++		       __entry->tx_head = sde->tx_head;
++		       __entry->txnext = txp ? txp->next_descq_idx : ~0;
++		       __entry->idx = sde->this_idx;
++		       __entry->sn = txp ? txp->sn : ~0;),
++	TP_printk(
++		"[%s] SDE(%u) sn %llu hwhead %u swhead %u next_descq_idx %u tx_head %u tx_tail %u",
++		__get_str(dev), __entry->idx, __entry->sn, __entry->hwhead,
++		__entry->swhead, __entry->txnext, __entry->tx_head,
++		__entry->tx_tail));
++#else
++TRACE_EVENT(
++	hfi2_sdma_progress,
++	TP_PROTO(struct sdma_engine *sde, u16 hwhead, u16 swhead,
++		 struct sdma_txreq *txp),
++	TP_ARGS(sde, hwhead, swhead, txp),
++	TP_STRUCT__entry(DD_DEV_ENTRY(sde->dd) __field(u16, hwhead)
++				 __field(u16, swhead) __field(u16, txnext)
++					 __field(u16, tx_tail)
++						 __field(u16, tx_head)
++							 __field(u8, idx)),
++	TP_fast_assign(DD_DEV_ASSIGN(sde->dd); __entry->hwhead = hwhead;
++		       __entry->swhead = swhead;
++		       __entry->tx_tail = sde->tx_tail;
++		       __entry->tx_head = sde->tx_head;
++		       __entry->txnext = txp ? txp->next_descq_idx : ~0;
++		       __entry->idx = sde->this_idx;),
++	TP_printk(
++		"[%s] SDE(%u) hwhead %u swhead %u next_descq_idx %u tx_head %u tx_tail %u",
++		__get_str(dev), __entry->idx, __entry->hwhead, __entry->swhead,
++		__entry->txnext, __entry->tx_head, __entry->tx_tail));
++#endif
++
++DECLARE_EVENT_CLASS(hfi2_sdma_sn, TP_PROTO(struct sdma_engine *sde, u64 sn),
++		    TP_ARGS(sde, sn),
++		    TP_STRUCT__entry(DD_DEV_ENTRY(sde->dd) __field(u64, sn)
++					     __field(u8, idx)),
++		    TP_fast_assign(DD_DEV_ASSIGN(sde->dd); __entry->sn = sn;
++				   __entry->idx = sde->this_idx;),
++		    TP_printk("[%s] SDE(%u) sn %llu", __get_str(dev),
++			      __entry->idx, __entry->sn));
++
++DEFINE_EVENT(hfi2_sdma_sn, hfi2_sdma_out_sn,
++	     TP_PROTO(struct sdma_engine *sde, u64 sn), TP_ARGS(sde, sn));
++
++DEFINE_EVENT(hfi2_sdma_sn, hfi2_sdma_in_sn,
++	     TP_PROTO(struct sdma_engine *sde, u64 sn), TP_ARGS(sde, sn));
++
++#define USDMA_HDR_FORMAT \
++	"[%s:%u:%u:%u] PBC=(0x%x 0x%x) LRH=(0x%x 0x%x) BTH=(0x%x 0x%x 0x%x) KDETH=(0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x) TIDVal=0x%x"
++
++TRACE_EVENT(
++	hfi2_sdma_user_header,
++	TP_PROTO(struct hfi2_devdata *dd, u16 ctxt, u16 subctxt, u16 req,
++		 struct hfi2_pkt_header *hdr, u32 tidval),
++	TP_ARGS(dd, ctxt, subctxt, req, hdr, tidval),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(dd) __field(u16, ctxt) __field(
++			u16, subctxt) __field(u16, req) __field(u32, pbc0)
++			__field(u32, pbc1) __field(u32, lrh0) __field(
++				u32, lrh1) __field(u32, bth0) __field(u32, bth1)
++				__field(u32, bth2) __field(u32, kdeth0) __field(
++					u32, kdeth1) __field(u32, kdeth2)
++					__field(u32, kdeth3) __field(
++						u32, kdeth4) __field(u32,
++								     kdeth5)
++						__field(u32, kdeth6) __field(
++							u32,
++							kdeth7) __field(u32,
++									kdeth8)
++							__field(u32, tidval)),
++	TP_fast_assign(__le32 *pbc = (__le32 *)hdr->pbc;
++		       __be32 *lrh = (__be32 *)hdr->lrh;
++		       __be32 *bth = (__be32 *)hdr->bth;
++		       __le32 *kdeth = (__le32 *)&hdr->kdeth;
++
++		       DD_DEV_ASSIGN(dd); __entry->ctxt = ctxt;
++		       __entry->subctxt = subctxt; __entry->req = req;
++		       __entry->pbc0 = le32_to_cpu(pbc[0]);
++		       __entry->pbc1 = le32_to_cpu(pbc[1]);
++		       __entry->lrh0 = be32_to_cpu(lrh[0]);
++		       __entry->lrh1 = be32_to_cpu(lrh[1]);
++		       __entry->bth0 = be32_to_cpu(bth[0]);
++		       __entry->bth1 = be32_to_cpu(bth[1]);
++		       __entry->bth2 = be32_to_cpu(bth[2]);
++		       __entry->kdeth0 = le32_to_cpu(kdeth[0]);
++		       __entry->kdeth1 = le32_to_cpu(kdeth[1]);
++		       __entry->kdeth2 = le32_to_cpu(kdeth[2]);
++		       __entry->kdeth3 = le32_to_cpu(kdeth[3]);
++		       __entry->kdeth4 = le32_to_cpu(kdeth[4]);
++		       __entry->kdeth5 = le32_to_cpu(kdeth[5]);
++		       __entry->kdeth6 = le32_to_cpu(kdeth[6]);
++		       __entry->kdeth7 = le32_to_cpu(kdeth[7]);
++		       __entry->kdeth8 = le32_to_cpu(kdeth[8]);
++		       __entry->tidval = tidval;),
++	TP_printk(USDMA_HDR_FORMAT, __get_str(dev), __entry->ctxt,
++		  __entry->subctxt, __entry->req, __entry->pbc1, __entry->pbc0,
++		  __entry->lrh0, __entry->lrh1, __entry->bth0, __entry->bth1,
++		  __entry->bth2, __entry->kdeth0, __entry->kdeth1,
++		  __entry->kdeth2, __entry->kdeth3, __entry->kdeth4,
++		  __entry->kdeth5, __entry->kdeth6, __entry->kdeth7,
++		  __entry->kdeth8, __entry->tidval));
++
++#define USDMA_HDR16B_FORMAT \
++	"[%s:%u:%u:%u] PBC=(0x%x 0x%x) LRH=(0x%x 0x%x 0x%x 0x%x) BTH=(0x%x 0x%x 0x%x) KDETH=(0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x) TIDVal=0x%x"
++
++TRACE_EVENT(
++	hfi2_sdma_user_header16b,
++	TP_PROTO(struct hfi2_devdata *dd, u16 ctxt, u8 subctxt, u16 req,
++		 struct hfi2_pkt_header16b *hdr, u32 tidval),
++	TP_ARGS(dd, ctxt, subctxt, req, hdr, tidval),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(dd) __field(u16, ctxt) __field(u8, subctxt) __field(
++			u16, req) __field(u32, pbc0) __field(u32,
++							     pbc1) __field(u32,
++									   lrh0)
++			__field(u32, lrh1) __field(u32, lrh2) __field(
++				u32, lrh3) __field(u32, bth0) __field(u32, bth1)
++				__field(u32, bth2) __field(u32, kdeth0) __field(
++					u32, kdeth1) __field(u32, kdeth2)
++					__field(u32, kdeth3) __field(
++						u32, kdeth4) __field(u32,
++								     kdeth5)
++						__field(u32, kdeth6) __field(
++							u32,
++							kdeth7) __field(u32,
++									kdeth8)
++							__field(u32, tidval)),
++	TP_fast_assign(__le32 *pbc = (__le32 *)hdr->pbc;
++		       __le32 *lrh = (__le32 *)hdr->lrh;
++		       __be32 *bth = (__be32 *)hdr->bth;
++		       __le32 *kdeth = (__le32 *)&hdr->kdeth;
++
++		       DD_DEV_ASSIGN(dd); __entry->ctxt = ctxt;
++		       __entry->subctxt = subctxt; __entry->req = req;
++		       __entry->pbc0 = le32_to_cpu(pbc[0]);
++		       __entry->pbc1 = le32_to_cpu(pbc[1]);
++		       __entry->lrh0 = le32_to_cpu(lrh[0]);
++		       __entry->lrh1 = le32_to_cpu(lrh[1]);
++		       __entry->lrh2 = le32_to_cpu(lrh[2]);
++		       __entry->lrh3 = le32_to_cpu(lrh[3]);
++		       __entry->bth0 = be32_to_cpu(bth[0]);
++		       __entry->bth1 = be32_to_cpu(bth[1]);
++		       __entry->bth2 = be32_to_cpu(bth[2]);
++		       __entry->kdeth0 = le32_to_cpu(kdeth[0]);
++		       __entry->kdeth1 = le32_to_cpu(kdeth[1]);
++		       __entry->kdeth2 = le32_to_cpu(kdeth[2]);
++		       __entry->kdeth3 = le32_to_cpu(kdeth[3]);
++		       __entry->kdeth4 = le32_to_cpu(kdeth[4]);
++		       __entry->kdeth5 = le32_to_cpu(kdeth[5]);
++		       __entry->kdeth6 = le32_to_cpu(kdeth[6]);
++		       __entry->kdeth7 = le32_to_cpu(kdeth[7]);
++		       __entry->kdeth8 = le32_to_cpu(kdeth[8]);
++		       __entry->tidval = tidval;),
++	TP_printk(USDMA_HDR16B_FORMAT, __get_str(dev), __entry->ctxt,
++		  __entry->subctxt, __entry->req, __entry->pbc1, __entry->pbc0,
++		  __entry->lrh0, __entry->lrh1, __entry->lrh2, __entry->lrh3,
++		  __entry->bth0, __entry->bth1, __entry->bth2, __entry->kdeth0,
++		  __entry->kdeth1, __entry->kdeth2, __entry->kdeth3,
++		  __entry->kdeth4, __entry->kdeth5, __entry->kdeth6,
++		  __entry->kdeth7, __entry->kdeth8, __entry->tidval));
++
++#define SDMA_UREQ_FMT \
++	"[%s:%u:%u] ver/op=0x%x, iovcnt=%u, meminfo=%u, npkts=%u, frag=%u, idx=%u"
++TRACE_EVENT(hfi2_sdma_user_reqinfo,
++	    TP_PROTO(struct hfi2_devdata *dd, u16 ctxt, u16 subctxt, u16 *i),
++	    TP_ARGS(dd, ctxt, subctxt, i),
++	    TP_STRUCT__entry(DD_DEV_ENTRY(dd) __field(u16, ctxt) __field(
++		    u16, subctxt) __field(u8, ver_opcode) __field(u8, iovcnt)
++				     __field(u8, meminfo) __field(u16, npkts)
++					     __field(u16, fragsize)
++						     __field(u16, comp_idx)),
++	    TP_fast_assign(DD_DEV_ASSIGN(dd); __entry->ctxt = ctxt;
++			   __entry->subctxt = subctxt;
++			   __entry->ver_opcode = i[0] & 0xff;
++			   __entry->iovcnt = (i[0] >> 8) & 0x7f;
++			   __entry->meminfo = (i[0] >> 15) & 0x1;
++			   __entry->npkts = i[1]; __entry->fragsize = i[2];
++			   __entry->comp_idx = i[3];),
++	    TP_printk(SDMA_UREQ_FMT, __get_str(dev), __entry->ctxt,
++		      __entry->subctxt, __entry->ver_opcode, __entry->iovcnt,
++		      __entry->meminfo, __entry->npkts, __entry->fragsize,
++		      __entry->comp_idx));
++
++#define usdma_complete_name(st) \
++	{                       \
++		st, #st         \
++	}
++#define show_usdma_complete_state(st)                   \
++	__print_symbolic(st, usdma_complete_name(FREE), \
++			 usdma_complete_name(QUEUED),   \
++			 usdma_complete_name(COMPLETE), \
++			 usdma_complete_name(ERROR))
++
++TRACE_EVENT(hfi2_sdma_user_completion,
++	    TP_PROTO(struct hfi2_devdata *dd, u16 ctxt, u16 subctxt, u16 idx,
++		     u8 state, int code),
++	    TP_ARGS(dd, ctxt, subctxt, idx, state, code),
++	    TP_STRUCT__entry(DD_DEV_ENTRY(dd) __field(u16, ctxt)
++				     __field(u16, subctxt) __field(u16, idx)
++					     __field(u8, state)
++						     __field(int, code)),
++	    TP_fast_assign(DD_DEV_ASSIGN(dd); __entry->ctxt = ctxt;
++			   __entry->subctxt = subctxt; __entry->idx = idx;
++			   __entry->state = state; __entry->code = code;),
++	    TP_printk("[%s:%u:%u:%u] SDMA completion state %s (%d)",
++		      __get_str(dev), __entry->ctxt, __entry->subctxt,
++		      __entry->idx, show_usdma_complete_state(__entry->state),
++		      __entry->code));
++
++TRACE_EVENT(hfi2_usdma_defer,
++	    TP_PROTO(struct hfi2_user_sdma_pkt_q *pq, struct sdma_engine *sde,
++		     struct iowait *wait),
++	    TP_ARGS(pq, sde, wait),
++	    TP_STRUCT__entry(DD_DEV_ENTRY(pq->dd) __field(
++		    struct hfi2_user_sdma_pkt_q *,
++		    pq) __field(struct sdma_engine *,
++				sde) __field(struct iowait *, wait)
++				     __field(int, engine) __field(int, empty)),
++	    TP_fast_assign(DD_DEV_ASSIGN(pq->dd); __entry->pq = pq;
++			   __entry->sde = sde; __entry->wait = wait;
++			   __entry->engine = sde->this_idx;
++			   __entry->empty = list_empty(&__entry->wait->list);),
++	    TP_printk("[%s] pq %llx sde %llx wait %llx engine %d empty %d",
++		      __get_str(dev), (unsigned long long)__entry->pq,
++		      (unsigned long long)__entry->sde,
++		      (unsigned long long)__entry->wait, __entry->engine,
++		      __entry->empty));
++
++TRACE_EVENT(hfi2_usdma_activate,
++	    TP_PROTO(struct hfi2_user_sdma_pkt_q *pq, struct iowait *wait,
++		     int reason),
++	    TP_ARGS(pq, wait, reason),
++	    TP_STRUCT__entry(DD_DEV_ENTRY(pq->dd)
++				     __field(struct hfi2_user_sdma_pkt_q *, pq)
++					     __field(struct iowait *, wait)
++						     __field(int, reason)),
++	    TP_fast_assign(DD_DEV_ASSIGN(pq->dd); __entry->pq = pq;
++			   __entry->wait = wait; __entry->reason = reason;),
++	    TP_printk("[%s] pq %llx wait %llx reason %d", __get_str(dev),
++		      (unsigned long long)__entry->pq,
++		      (unsigned long long)__entry->wait, __entry->reason));
++
++TRACE_EVENT(hfi2_usdma_we,
++	    TP_PROTO(struct hfi2_user_sdma_pkt_q *pq, int we_ret),
++	    TP_ARGS(pq, we_ret),
++	    TP_STRUCT__entry(DD_DEV_ENTRY(pq->dd)
++				     __field(struct hfi2_user_sdma_pkt_q *, pq)
++					     __field(int, state)
++						     __field(int, we_ret)),
++	    TP_fast_assign(DD_DEV_ASSIGN(pq->dd); __entry->pq = pq;
++			   __entry->state = pq->state;
++			   __entry->we_ret = we_ret;),
++	    TP_printk("[%s] pq %llx state %d we_ret %d", __get_str(dev),
++		      (unsigned long long)__entry->pq, __entry->state,
++		      __entry->we_ret));
++
++const char *hfi2_print_u32_array(struct trace_seq *p, u32 *arr, int len);
++#define __print_u32_hex(arr, len) hfi2_print_u32_array(p, arr, len)
++
++TRACE_EVENT(hfi2_sdma_user_header_ahg,
++	    TP_PROTO(struct hfi2_devdata *dd, u16 ctxt, u16 subctxt, u16 req,
++		     u8 sde, u8 ahgidx, u32 *ahg, int len, u32 tidval),
++	    TP_ARGS(dd, ctxt, subctxt, req, sde, ahgidx, ahg, len, tidval),
++	    TP_STRUCT__entry(
++		    DD_DEV_ENTRY(dd) __field(u16, ctxt) __field(u16, subctxt)
++			    __field(u16, req) __field(u8, sde) __field(u8, idx)
++				    __field(int, len) __field(u32, tidval)
++					    __array(u32, ahg, 10)),
++	    TP_fast_assign(DD_DEV_ASSIGN(dd); __entry->ctxt = ctxt;
++			   __entry->subctxt = subctxt; __entry->req = req;
++			   __entry->sde = sde; __entry->idx = ahgidx;
++			   __entry->len = len; __entry->tidval = tidval;
++			   memcpy(__entry->ahg, ahg, len * sizeof(u32));),
++	    TP_printk("[%s:%u:%u:%u] (SDE%u/AHG%u) ahg[0-%d]=(%s) TIDVal=0x%x",
++		      __get_str(dev), __entry->ctxt, __entry->subctxt,
++		      __entry->req, __entry->sde, __entry->idx,
++		      __entry->len - 1,
++		      __print_u32_hex(__entry->ahg, __entry->len),
++		      __entry->tidval));
++
++TRACE_EVENT(hfi2_sdma_state,
++	    TP_PROTO(struct sdma_engine *sde, const char *cstate,
++		     const char *nstate),
++	    TP_ARGS(sde, cstate, nstate),
++	    TP_STRUCT__entry(DD_DEV_ENTRY(sde->dd) __string(curstate, cstate)
++				     __string(newstate, nstate)
++					     __field(u8, sde_idx)),
++	    TP_fast_assign(DD_DEV_ASSIGN(sde->dd); __assign_str(curstate);
++			   __assign_str(newstate);
++			   __entry->sde_idx = sde->this_idx;),
++	    TP_printk("[%s] SDE%d state: %s -> %s", __get_str(dev),
++		      __entry->sde_idx, __get_str(curstate),
++		      __get_str(newstate)));
++
++#define BCT_FORMAT \
++	"shared_limit %x vls 0-7 [%x,%x][%x,%x][%x,%x][%x,%x][%x,%x][%x,%x][%x,%x][%x,%x] 15 [%x,%x]"
++
++#define BCT(field) \
++	be16_to_cpu(((struct buffer_control *)__get_dynamic_array(bct))->field)
++
++DECLARE_EVENT_CLASS(
++	hfi2_bct_template,
++	TP_PROTO(struct hfi2_devdata *dd, struct buffer_control *bc),
++	TP_ARGS(dd, bc),
++	TP_STRUCT__entry(DD_DEV_ENTRY(dd)
++				 __dynamic_array(u8, bct, sizeof(*bc))),
++	TP_fast_assign(DD_DEV_ASSIGN(dd);
++		       memcpy(__get_dynamic_array(bct), bc, sizeof(*bc));),
++	TP_printk(BCT_FORMAT, BCT(overall_shared_limit),
++
++		  BCT(vl[0].dedicated), BCT(vl[0].shared),
++
++		  BCT(vl[1].dedicated), BCT(vl[1].shared),
++
++		  BCT(vl[2].dedicated), BCT(vl[2].shared),
++
++		  BCT(vl[3].dedicated), BCT(vl[3].shared),
++
++		  BCT(vl[4].dedicated), BCT(vl[4].shared),
++
++		  BCT(vl[5].dedicated), BCT(vl[5].shared),
++
++		  BCT(vl[6].dedicated), BCT(vl[6].shared),
++
++		  BCT(vl[7].dedicated), BCT(vl[7].shared),
++
++		  BCT(vl[15].dedicated), BCT(vl[15].shared)));
++
++DEFINE_EVENT(hfi2_bct_template, bct_set,
++	     TP_PROTO(struct hfi2_devdata *dd, struct buffer_control *bc),
++	     TP_ARGS(dd, bc));
++
++DEFINE_EVENT(hfi2_bct_template, bct_get,
++	     TP_PROTO(struct hfi2_devdata *dd, struct buffer_control *bc),
++	     TP_ARGS(dd, bc));
++
++TRACE_EVENT(
++	hfi2_qp_send_completion,
++	TP_PROTO(struct rvt_qp *qp, struct rvt_swqe *wqe, u32 idx),
++	TP_ARGS(qp, wqe, idx),
++	TP_STRUCT__entry(DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device)) __field(
++		struct rvt_swqe *, wqe) __field(u64, wr_id) __field(u32, qpn)
++				 __field(u32, qpt) __field(u32, length) __field(
++					 u32, idx) __field(u32, ssn)
++					 __field(enum ib_wr_opcode, opcode)
++						 __field(int, send_flags)),
++	TP_fast_assign(DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device));
++		       __entry->wqe = wqe; __entry->wr_id = wqe->wr.wr_id;
++		       __entry->qpn = qp->ibqp.qp_num;
++		       __entry->qpt = qp->ibqp.qp_type;
++		       __entry->length = wqe->length; __entry->idx = idx;
++		       __entry->ssn = wqe->ssn;
++		       __entry->opcode = wqe->wr.opcode;
++		       __entry->send_flags = wqe->wr.send_flags;),
++	TP_printk(
++		"[%s] qpn 0x%x qpt %u wqe %p idx %u wr_id %llx length %u ssn %u opcode %x send_flags %x",
++		__get_str(dev), __entry->qpn, __entry->qpt, __entry->wqe,
++		__entry->idx, __entry->wr_id, __entry->length, __entry->ssn,
++		__entry->opcode, __entry->send_flags));
++
++DECLARE_EVENT_CLASS(
++	hfi2_do_send_template, TP_PROTO(struct rvt_qp *qp, bool flag),
++	TP_ARGS(qp, flag),
++	TP_STRUCT__entry(DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++				 __field(u32, qpn) __field(bool, flag)),
++	TP_fast_assign(DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device));
++		       __entry->qpn = qp->ibqp.qp_num; __entry->flag = flag;),
++	TP_printk("[%s] qpn %x flag %d", __get_str(dev), __entry->qpn,
++		  __entry->flag));
++
++DEFINE_EVENT(hfi2_do_send_template, hfi2_rc_do_send,
++	     TP_PROTO(struct rvt_qp *qp, bool flag), TP_ARGS(qp, flag));
++
++DEFINE_EVENT(/* event */
++	     hfi2_do_send_template, hfi2_rc_do_tid_send,
++	     TP_PROTO(struct rvt_qp *qp, bool flag), TP_ARGS(qp, flag));
++
++DEFINE_EVENT(hfi2_do_send_template, hfi2_rc_expired_time_slice,
++	     TP_PROTO(struct rvt_qp *qp, bool flag), TP_ARGS(qp, flag));
++
++DECLARE_EVENT_CLASS(/* AIP  */
++		    hfi2_ipoib_txq_template,
++		    TP_PROTO(struct hfi2_ipoib_txq *txq), TP_ARGS(txq),
++		    TP_STRUCT__entry(/* entry */
++				     DD_DEV_ENTRY(txq->priv->dd) __field(
++					     struct hfi2_ipoib_txq *,
++					     txq) __field(struct sdma_engine *,
++							  sde) __field(ulong,
++								       head)
++					     __field(ulong, tail) __field(
++						     uint, used) __field(uint,
++									 flow)
++						     __field(int, stops) __field(
++							     int,
++							     no_desc) __field(u8,
++									      idx)
++							     __field(u8, sde_idx) __field(
++								     u8,
++								     stopped)
++								     __field(int,
++									     sde_cpu)),
++		    TP_fast_assign(/* assign */
++				   DD_DEV_ASSIGN(txq->priv->dd);
++				   __entry->txq = txq; __entry->sde = txq->sde;
++				   __entry->sde_idx =
++					   txq->sde ? txq->sde->this_idx : 0;
++				   __entry->sde_cpu = txq->sde ? txq->sde->cpu :
++								 0;
++				   __entry->head = txq->tx_ring.head;
++				   __entry->tail = txq->tx_ring.tail;
++				   __entry->idx = txq->q_idx;
++				   __entry->used = txq->tx_ring.sent_txreqs -
++						   txq->tx_ring.complete_txreqs;
++				   __entry->flow = txq->flow.as_int;
++				   __entry->stops =
++					   atomic_read(&txq->tx_ring.stops);
++				   __entry->no_desc =
++					   atomic_read(&txq->tx_ring.no_desc);
++				   __entry->stopped = __netif_subqueue_stopped(
++					   txq->priv->netdev, txq->q_idx);),
++		    TP_printk(/* print  */
++			      "[%s] txq %llx idx %u sde %llx:%u cpu %d head %lx tail %lx flow %x used %u stops %d no_desc %d stopped %u",
++			      __get_str(dev), (unsigned long long)__entry->txq,
++			      __entry->idx, (unsigned long long)__entry->sde,
++			      __entry->sde_idx, __entry->sde_cpu, __entry->head,
++			      __entry->tail, __entry->flow, __entry->used,
++			      __entry->stops, __entry->no_desc,
++			      __entry->stopped));
++
++DEFINE_EVENT(/* queue stop */
++	     hfi2_ipoib_txq_template, hfi2_txq_stop,
++	     TP_PROTO(struct hfi2_ipoib_txq *txq), TP_ARGS(txq));
++
++DEFINE_EVENT(/* queue wake */
++	     hfi2_ipoib_txq_template, hfi2_txq_wake,
++	     TP_PROTO(struct hfi2_ipoib_txq *txq), TP_ARGS(txq));
++
++DEFINE_EVENT(/* flow flush */
++	     hfi2_ipoib_txq_template, hfi2_flow_flush,
++	     TP_PROTO(struct hfi2_ipoib_txq *txq), TP_ARGS(txq));
++
++DEFINE_EVENT(/* flow switch */
++	     hfi2_ipoib_txq_template, hfi2_flow_switch,
++	     TP_PROTO(struct hfi2_ipoib_txq *txq), TP_ARGS(txq));
++
++DEFINE_EVENT(/* wakeup */
++	     hfi2_ipoib_txq_template, hfi2_txq_wakeup,
++	     TP_PROTO(struct hfi2_ipoib_txq *txq), TP_ARGS(txq));
++
++DEFINE_EVENT(/* full */
++	     hfi2_ipoib_txq_template, hfi2_txq_full,
++	     TP_PROTO(struct hfi2_ipoib_txq *txq), TP_ARGS(txq));
++
++DEFINE_EVENT(/* queued */
++	     hfi2_ipoib_txq_template, hfi2_txq_queued,
++	     TP_PROTO(struct hfi2_ipoib_txq *txq), TP_ARGS(txq));
++
++DEFINE_EVENT(/* xmit_stopped */
++	     hfi2_ipoib_txq_template, hfi2_txq_xmit_stopped,
++	     TP_PROTO(struct hfi2_ipoib_txq *txq), TP_ARGS(txq));
++
++DEFINE_EVENT(/* xmit_unstopped */
++	     hfi2_ipoib_txq_template, hfi2_txq_xmit_unstopped,
++	     TP_PROTO(struct hfi2_ipoib_txq *txq), TP_ARGS(txq));
++
++DECLARE_EVENT_CLASS(/* AIP  */
++		    hfi2_ipoib_tx_template,
++		    TP_PROTO(struct ipoib_txreq *tx, u32 idx), TP_ARGS(tx, idx),
++		    TP_STRUCT__entry(/* entry */
++				     DD_DEV_ENTRY(tx->txq->priv->dd) __field(
++					     struct ipoib_txreq *, tx)
++					     __field(struct hfi2_ipoib_txq *,
++						     txq)
++						     __field(struct sk_buff *,
++							     skb) __field(ulong,
++									  idx)),
++		    TP_fast_assign(/* assign */
++				   DD_DEV_ASSIGN(tx->txq->priv->dd);
++				   __entry->tx = tx; __entry->skb = tx->skb;
++				   __entry->txq = tx->txq; __entry->idx = idx;),
++		    TP_printk(/* print  */
++			      "[%s] tx %llx txq %llx,%u skb %llx idx %lu",
++			      __get_str(dev), (unsigned long long)__entry->tx,
++			      (unsigned long long)__entry->txq,
++			      __entry->txq ? __entry->txq->q_idx : 0,
++			      (unsigned long long)__entry->skb, __entry->idx));
++
++DEFINE_EVENT(/* produce */
++	     hfi2_ipoib_tx_template, hfi2_tx_produce,
++	     TP_PROTO(struct ipoib_txreq *tx, u32 idx), TP_ARGS(tx, idx));
++
++DEFINE_EVENT(/* consume */
++	     hfi2_ipoib_tx_template, hfi2_tx_consume,
++	     TP_PROTO(struct ipoib_txreq *tx, u32 idx), TP_ARGS(tx, idx));
++
++DEFINE_EVENT(/* alloc_tx */
++	     hfi2_ipoib_txq_template, hfi2_txq_alloc_tx,
++	     TP_PROTO(struct hfi2_ipoib_txq *txq), TP_ARGS(txq));
++
++DEFINE_EVENT(/* poll */
++	     hfi2_ipoib_txq_template, hfi2_txq_poll,
++	     TP_PROTO(struct hfi2_ipoib_txq *txq), TP_ARGS(txq));
++
++DEFINE_EVENT(/* complete */
++	     hfi2_ipoib_txq_template, hfi2_txq_complete,
++	     TP_PROTO(struct hfi2_ipoib_txq *txq), TP_ARGS(txq));
++
++TRACE_EVENT(
++	hfi2_sdma_pad,
++	TP_PROTO(u8 idx, u8 pkts, u16 pad, u16 pkt_descs, u16 pad_descs),
++	TP_ARGS(idx, pkts, pad, pkt_descs, pad_descs),
++	TP_STRUCT__entry(__field(u8, idx) __field(u8, pkts) __field(u16, pad)
++				 __field(u16, pkt_descs)
++					 __field(u16, pad_descs)),
++	TP_fast_assign(__entry->idx = idx; __entry->pkts = pkts;
++		       __entry->pad = pad; __entry->pkt_descs = pkt_descs;
++		       __entry->pad_descs = pad_descs;),
++	TP_printk(
++		"SDE (%u) pkts %u pad_sdma_desc %u packet descriptors %u padding descriptors %u\n",
++		__entry->idx, __entry->pkts, __entry->pad, __entry->pkt_descs,
++		__entry->pad_descs));
++
++#endif /* __HFI2_TRACE_TX_H */
++
++#undef TRACE_INCLUDE_PATH
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_PATH .
++#define TRACE_INCLUDE_FILE trace_tx
++#include <trace/define_trace.h>
+diff --git a/drivers/infiniband/hw/hfi2/user_sdma.h b/drivers/infiniband/hw/hfi2/user_sdma.h
+new file mode 100644
+index 000000000000..1bea013475cc
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/user_sdma.h
+@@ -0,0 +1,261 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/*
++ * Copyright(c) 2025-2026 Cornelis Networks, Inc.
++ * Copyright(c) 2015 - 2018 Intel Corporation.
++ */
++#ifndef _HFI2_USER_SDMA_H
++#define _HFI2_USER_SDMA_H
++
++#include <linux/device.h>
++#include <linux/wait.h>
++
++#include "common.h"
++#include "iowait.h"
++#include "user_exp_rcv.h"
++#include "mmu_rb.h"
++#include "pinning.h"
++#include "sdma.h"
++
++/* The maximum number of Data io vectors per message/request */
++#define MAX_VECTORS_PER_REQ 8
++static_assert(MAX_VECTORS_PER_REQ <= HFI2_MAX_MEMINFO_ENTRIES);
++
++/*
++ * Maximum number of packet to send from each message/request
++ * before moving to the next one.
++ */
++#define MAX_PKTS_PER_QUEUE 16
++
++#define num_pages(x) (1 + ((((x) - 1) & PAGE_MASK) >> PAGE_SHIFT))
++
++#define req_opcode(x) \
++	(((x) >> HFI2_SDMA_REQ_OPCODE_SHIFT) & HFI2_SDMA_REQ_OPCODE_MASK)
++#define req_version(x) \
++	(((x) >> HFI2_SDMA_REQ_VERSION_SHIFT) & HFI2_SDMA_REQ_OPCODE_MASK)
++#define req_iovcnt(x) \
++	(((x) >> HFI2_SDMA_REQ_IOVCNT_SHIFT) & HFI2_SDMA_REQ_IOVCNT_MASK)
++#define req_has_meminfo(x) \
++	(((x) >> HFI2_SDMA_REQ_MEMINFO_SHIFT) & HFI2_SDMA_REQ_MEMINFO_MASK)
++
++/* Number of BTH.PSN bits used for sequence number in expected rcvs */
++#define BTH_SEQ_MASK 0x7ffull
++
++#define AHG_KDETH_INTR_SHIFT 12
++#define AHG_KDETH_SH_SHIFT   13
++#define AHG_KDETH_ARRAY_SIZE  9
++
++/**
++ * Build an SDMA AHG header update descriptor and save it to an array.
++ * @arr        - Array to save the descriptor to.
++ * @idx        - Index of the array at which the descriptor will be saved.
++ * @array_size - Size of the array arr.
++ * @dw         - Update index into the header in DWs.
++ * @bit        - Start bit.
++ * @width      - Field width.
++ * @value      - 16 bits of immediate data to write into the field.
++ * Returns -ERANGE if idx is invalid. If successful, returns the next index
++ * (idx + 1) of the array to be used for the next descriptor.
++ */
++static inline int ahg_header_set(u32 *arr, int idx, size_t array_size,
++				 u8 dw, u8 bit, u8 width, u16 value)
++{
++	if ((size_t)idx >= array_size)
++		return -ERANGE;
++	arr[idx++] = sdma_build_ahg_descriptor(value, dw, bit, width);
++	return idx;
++}
++
++/* Tx request flag bits */
++#define TXREQ_FLAGS_REQ_ACK   BIT(0)      /* Set the ACK bit in the header */
++#define TXREQ_FLAGS_REQ_DISABLE_SH BIT(1) /* Disable header suppression */
++
++enum pkt_q_sdma_state {
++	SDMA_PKT_Q_ACTIVE,
++	SDMA_PKT_Q_DEFERRED,
 +};
 +
-+#endif /* _LINUX_H */
++#define SDMA_IOWAIT_TIMEOUT 1000 /* in milliseconds */
++
++#define SDMA_DBG(req, fmt, ...)				     \
++	hfi2_cdbg(SDMA, "[%u:%u:%u:%u] " fmt, (req)->pq->dd->unit, \
++		 (req)->pq->ctxt, (req)->pq->subctxt, (req)->info.comp_idx, \
++		 ##__VA_ARGS__)
++
++struct hfi2_user_sdma_pkt_q {
++	u16 ctxt;
++	u16 subctxt;
++	u16 n_max_reqs;
++	atomic_t n_reqs;
++	struct hfi2_devdata *dd;
++	struct kmem_cache *txreq_cache;
++	struct user_sdma_request *reqs;
++	unsigned long *req_in_use;
++	struct iowait busy;
++	enum pkt_q_sdma_state state;
++	wait_queue_head_t wait;
++	struct pinning_state pinning_state;
++	atomic_t n_locked;
++};
++
++struct hfi2_user_sdma_comp_q {
++	u16 nentries;
++	struct hfi2_sdma_comp_entry *comps;
++};
++
++struct user_sdma_iovec {
++	struct iovec iov;
++	/* memory type for this vector */
++	unsigned int type;
++	/* memory type context for this vector */
++	u64 context;
++	/*
++	 * offset into the virtual address space of the vector at
++	 * which we last left off.
++	 */
++	u64 offset;
++};
++
++/* evict operation argument */
++struct evict_data {
++	u32 cleared;	/* count evicted so far */
++	u32 target;	/* target count to evict */
++};
++
++/*
++ * User 16B header.  Differences between this and struct hfi2_pkt_hdr:
++ * o LRH size: 16 bytes vs 8 bytes
++ * o LRH byte ordering: LE vs BE
++ * o LRH units: 32 bits vs 16 bits
++ */
++struct hfi2_pkt_header16b {
++	__le16 pbc[4];
++	__le32 lrh[4];
++	__be32 bth[3];
++	struct hfi2_kdeth_header kdeth;
++} __packed;
++
++union user_pkt_header {
++	__le16 pbc[4];
++	struct hfi2_pkt_header hdr9b;
++	struct hfi2_pkt_header16b hdr16b;
++};
++
++/* Pinning-cache entry reference type */
++struct user_sdma_pinref {
++	void *ptr;
++	u16 memtype;
++	/** Used for determining eviction eligibility; set from &user_sdma_request.seqnum */
++	u16 req_seqnum;
++	/** Used for determining most-recently used; set from &user_sdma_request.pinrefs_seqnum */
++	u16 pinref_seqnum;
++};
++
++#define PINREF_ENTRIES 7
++
++struct user_sdma_request {
++	/* This is the original header from user space */
++	union user_pkt_header h;
++	unsigned long hsize;
++	u32 lrh_len_bytes;
++	u32 pad_mask;
++
++	/* Memory type information for each data iovec entry. */
++	struct sdma_req_meminfo meminfo;
++
++	/* Read mostly fields */
++	struct hfi2_user_sdma_pkt_q *pq ____cacheline_aligned_in_smp;
++	struct hfi2_user_sdma_comp_q *cq;
++	/*
++	 * Pointer to the SDMA engine for this request.
++	 * Since different request could be on different VLs,
++	 * each request will need it's own engine pointer.
++	 */
++	struct sdma_engine *sde;
++	struct sdma_req_info info;
++	/* TID array values copied from the tid_iov vector */
++	u32 *tids;
++	/* total length of the data in the request */
++	u32 data_len;
++	/* number of elements copied to the tids array */
++	u16 n_tids;
++	/*
++	 * We copy the iovs for this request (based on
++	 * info.iovcnt). These are only the data vectors
++	 */
++	u8 data_iovs;
++	s8 ahg_idx;
++
++	/* Writeable fields shared with interrupt */
++	u16 seqcomp ____cacheline_aligned_in_smp;
++	u16 seqsubmitted;
++
++	/* Send side fields */
++	struct list_head txps ____cacheline_aligned_in_smp;
++	u16 seqnum;
++	/*
++	 * KDETH.OFFSET (TID) field
++	 * The offset can cover multiple packets, depending on the
++	 * size of the TID entry.
++	 */
++	u32 tidoffset;
++	/*
++	 * KDETH.Offset (Eager) field
++	 * We need to remember the initial value so the headers
++	 * can be updated properly.
++	 */
++	u32 koffset;
++	u32 sent;
++	/* TID index copied from the tid_iov vector */
++	u16 tididx;
++	/* progress index moving along the iovs array */
++	u8 iov_idx;
++	u8 has_error;
++	/* possible appended bytes (16B ICRC QW) */
++	u8 tailsize;
++	/* true if this is a 16B request */
++	bool is16b;
++
++	u16 n_pinrefs;
++	/*
++	 * Since regular .seqnum is only incremented per-txreq, need separate
++	 * .pinref_seqnum to distinguish age of pinrefs within a txreq.
++	 */
++	u32 pinref_seqnum;
++	/* Shared space for storing pin_* cacherefs */
++	struct user_sdma_pinref pinrefs[PINREF_ENTRIES];
++
++	struct user_sdma_iovec iovs[MAX_VECTORS_PER_REQ];
++} ____cacheline_aligned_in_smp;
++
++/*
++ * A single txreq could span up to 3 physical pages when the MTU
++ * is sufficiently large (> 4K). Each of the IOV pointers also
++ * needs it's own set of flags so the vector has been handled
++ * independently of each other.
++ */
++struct user_sdma_txreq {
++	/* Packet header for the txreq */
++	union user_pkt_header h;
++	struct sdma_txreq txreq;
++	struct user_sdma_request *req;
++	struct user_sdma_pinref *pinrefs;
++	u16 n_pinrefs;
++	u16 flags;
++	u16 seqnum;
++};
++
++int hfi2_user_sdma_add_ref(struct user_sdma_txreq *tx, void *ptr,
++			   u16 memtype);
++struct user_sdma_pinref *hfi2_user_sdma_mru_ref(struct user_sdma_txreq *tx,
++						u16 memtype);
++void hfi2_user_sdma_touch_ref(struct user_sdma_txreq *tx,
++			      struct user_sdma_pinref *d);
++
++int hfi2_user_sdma_alloc_queues(struct hfi2_ctxtdata *uctxt,
++				struct hfi2_filedata *fd);
++int hfi2_user_sdma_free_queues(struct hfi2_filedata *fd,
++			       struct hfi2_ctxtdata *uctxt);
++int hfi2_user_sdma_process_request(struct hfi2_filedata *fd,
++				   struct iovec *iovec, unsigned long dim,
++				   unsigned long *count);
++#endif /* _HFI2_USER_SDMA_H */
 
 
