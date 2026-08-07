@@ -1,29 +1,29 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B4482377A9D;
-	Fri,  7 Aug 2026 13:51:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B6379380FCA;
+	Fri,  7 Aug 2026 13:51:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786110724; cv=none; b=m16lN5zm4VCpHJ1RyyX/wnLiyuIYilLd96RW9AOdvVy0+9lxCNrz18lgJIfsd3aCHCoebxMiDSg8GTWtz83JWSleu84wg6ONqUq1kJSWWKiXLiWzmaj3nC8kmnCZcnfbf7Jg+QWYOW/sa2kghdPoM2W9p0iUQLlpTVh5SyvcP90=
+	t=1786110725; cv=none; b=dc3/6qOglf+SfCy77YNm5330i1Cruqnzt7P/dA7sEiUSYVQinnLyAxKDwS+s+smdPorJUMfisg/Py9JcWDqX7nJSKUppCFkEj7FVrFU3oSrTNpYLWVJ6AKHVrxo/etfRVizoe2Tg+MuoROBBttHh4WhJYMyBrPtHCiy5C3O0WIQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786110724; c=relaxed/simple;
-	bh=EQ1fJfzcG/+ldkXU+FPG3kRYUE/ArZU3dwYiXKyABZ8=;
+	s=arc-20240116; t=1786110725; c=relaxed/simple;
+	bh=N5ObKmPtLQcAm0LtCEvCrB9sSa+x8Uvbu7XXi7L+DM8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=tU78LbVpqiFukoNthBbiduZWQWN4RUhjDpLEH6DdLpBTnsVM2Ft/ajzToxoUkLKR4o6dU3fX7CDQfmLNFFlfZ4oItPjf1wH8WfQV4htmS4NL31Vqdl9eECSludvXGt569buvDYycg3YwAx30z2GZjpur9y9wKHm/lC5vf2QdyBQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=Vlw2zmac; arc=none smtp.client-ip=13.77.154.182
+	 MIME-Version; b=t436HvMDIdhLGu3bdY8jdbw1iVeuGh1anO1Iou0weZrtlA19509fnJN77KF0SLOzG2BGClBdUduyWlJcEsZPO1/4eNJfJH6Jjh+zEtiiH+Yzb1PVQu9iJybEtsaNR/y9DH0NNb/PTAqkNmfZkxAt9bGTcE/jyCT/nTycHuMwGW8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=blnZVAI4; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="Vlw2zmac"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="blnZVAI4"
 Received: by linux.microsoft.com (Postfix, from userid 1186)
-	id 8204920B7136; Fri,  7 Aug 2026 06:51:32 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 8204920B7136
+	id 6862520B7129; Fri,  7 Aug 2026 06:51:32 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 6862520B7129
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
 	s=default; t=1786110692;
-	bh=KjZvlfiM7PzBb++iUUb1Bqdv3FdFFxIv5nRFfJqVLjo=;
+	bh=PUZH6kHnT84b93AMMQUOAdXBVNc7uZYDJ7OJzETKJdM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Vlw2zmacYAsO8enBtLmaOvZ41Tn8zaQgFCMIr2FbGWO9mROynzMVe27HIM0VoFy94
-	 3+ZGwpWa3RAz/TXFGfHSGqJuVw97CHm4+N7r3q01O7fCMqkGR7aleRt8MXH9gDNJAA
-	 nfFXvspDIFiLNO36+7CBF5iLHBpBnB5NZ2HWuE6g=
+	b=blnZVAI4dDhh8sdFjHDslxY9XFA95B5UCWuT6d4Mi2LU+lqc28Y3x63+1aQ9E1pto
+	 Mp4TIs3SUZGCRmTIMugKtxMcesKTs29zwvBA+6p24ohC2bFazrY74243pgbiR83Z9x
+	 +NVwLyunljM+YY4XxEvqcOa5j6AkJrZEO8qdGMRc=
 From: Konstantin Taranov <kotaranov@linux.microsoft.com>
 To: kotaranov@microsoft.com,
 	longli@microsoft.com,
@@ -31,9 +31,9 @@ To: kotaranov@microsoft.com,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next 3/3] RDMA/mana_ib: fixed send wqe size support for RC QPs
-Date: Fri,  7 Aug 2026 06:51:32 -0700
-Message-ID: <20260807135132.1618382-4-kotaranov@linux.microsoft.com>
+Subject: [PATCH rdma-next 1/3] RDMA/mana_ib: Extend RC QP udata request and response
+Date: Fri,  7 Aug 2026 06:51:30 -0700
+Message-ID: <20260807135132.1618382-2-kotaranov@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.7
 In-Reply-To: <20260807135132.1618382-1-kotaranov@linux.microsoft.com>
 References: <20260807135132.1618382-1-kotaranov@linux.microsoft.com>
@@ -47,111 +47,126 @@ Content-Transfer-Encoding: 8bit
 
 From: Konstantin Taranov <kotaranov@microsoft.com>
 
-Support fixed-size send WQEs for RC QPs when requested by userspace.
-Calculate the WQE size from the maximum send SGE count and the 32-byte
-inline OOB size, round it up to a power of two, and pass the size to
-hardware in basic units.
+Extend the RC QP creation UAPI to support optional fixed-size WQEs and an
+MMQ. Add a compatibility mask to the request, return the MMQ ID in the
+response, and advertise the extended ABI through ucontext capabilities.
 
-When supported by the adapter, also enable placing the message sequence
-number in the WQE. Preserve the existing variable-size WQE behavior when
-userspace does not request fixed-size WQEs.
+Use compatibility-aware udata validation so existing userspace remains
+supported. Rename the legacy FMR queue definitions to MMQ and add the
+corresponding hardware creation flags.
 
 Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
 ---
- drivers/infiniband/hw/mana/main.c    |  3 +++
- drivers/infiniband/hw/mana/mana_ib.h |  5 ++++-
- drivers/infiniband/hw/mana/qp.c      | 14 ++++++++++++++
- include/net/mana/gdma.h              |  1 +
- 4 files changed, 22 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mana/main.c    |  1 +
+ drivers/infiniband/hw/mana/mana_ib.h |  6 ++++--
+ drivers/infiniband/hw/mana/qp.c      | 10 +++++-----
+ include/uapi/rdma/mana-abi.h         | 11 +++++++++++
+ 4 files changed, 21 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
-index 9d043f48e2729..57c6d9faaa81b 100644
+index e4414d208d4ac..9d043f48e2729 100644
 --- a/drivers/infiniband/hw/mana/main.c
 +++ b/drivers/infiniband/hw/mana/main.c
-@@ -1060,6 +1060,9 @@ int mana_ib_gd_create_rc_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp,
- 	req.max_recv_sge = attr->cap.max_recv_sge;
- 	req.flags = flags;
+@@ -247,6 +247,7 @@ int mana_ib_alloc_ucontext(struct ib_ucontext *ibcontext,
  
-+	if (flags & MANA_RC_FLAG_FIXED_SIZE_WQE)
-+		req.wqe_size_in_bu = qp->rc_qp.wqe_size_in_bu;
-+
- 	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
- 	if (err)
- 		return err;
+ 	ucontext->doorbell = doorbell_page;
+ 	ucmd_resp.comp_mask = MANA_IB_UCNTX_ALLOC_PDN_SUPPORT;
++	ucmd_resp.comp_mask |= MANA_IB_UCNTX_RC_EXT_SUPPORT;
+ 	ret = ib_respond_udata(udata, ucmd_resp);
+ 	if (ret)
+ 		return ret;
 diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
-index 547ddf9ddfea5..828ca75fd6845 100644
+index f698666967764..547ddf9ddfea5 100644
 --- a/drivers/infiniband/hw/mana/mana_ib.h
 +++ b/drivers/infiniband/hw/mana/mana_ib.h
-@@ -180,6 +180,7 @@ enum mana_rc_queue_type {
- 
- struct mana_ib_rc_qp {
- 	struct mana_ib_queue queues[MANA_RC_QUEUE_TYPE_MAX];
-+	u32 wqe_size_in_bu;
- };
- 
- enum mana_uc_queue_type {
-@@ -262,6 +263,7 @@ enum mana_ib_adapter_features {
- 	MANA_IB_FEATURE_CLIENT_ERROR_CQE_SUPPORT = BIT(4),
- 	MANA_IB_FEATURE_DEV_COUNTERS_SUPPORT = BIT(5),
- 	MANA_IB_FEATURE_MULTI_PORTS_SUPPORT = BIT(6),
-+	MANA_IB_FEATURE_MSN_IN_WQE_SUPPORT = BIT(7),
- };
- 
- struct mana_ib_query_adapter_caps_resp {
-@@ -391,7 +393,8 @@ struct mana_rnic_create_qp_req {
- 	u32 max_recv_wr;
- 	u32 max_send_sge;
- 	u32 max_recv_sge;
--	u32 reserved;
-+	u8 wqe_size_in_bu;
-+	u8 reserved[3];
+@@ -172,7 +172,7 @@ struct mana_ib_cq {
+ enum mana_rc_queue_type {
+ 	MANA_RC_SEND_QUEUE_REQUESTER = 0,
+ 	MANA_RC_SEND_QUEUE_RESPONDER,
+-	MANA_RC_SEND_QUEUE_FMR,
++	MANA_RC_SEND_QUEUE_MMQ,
+ 	MANA_RC_RECV_QUEUE_REQUESTER,
+ 	MANA_RC_RECV_QUEUE_RESPONDER,
+ 	MANA_RC_QUEUE_TYPE_MAX,
+@@ -372,7 +372,9 @@ struct mana_rnic_destroy_cq_resp {
  }; /* HW Data */
  
- struct mana_rnic_create_qp_resp {
+ enum mana_rnic_create_rc_flags {
+-	MANA_RC_FLAG_NO_FMR = 2,
++	MANA_RC_FLAG_NO_MMQ = BIT(1),
++	MANA_RC_FLAG_FIXED_SIZE_WQE = BIT(3),
++	MANA_RC_FLAG_MSN_IN_WQE = BIT(4),
+ };
+ 
+ struct mana_rnic_create_qp_req {
 diff --git a/drivers/infiniband/hw/mana/qp.c b/drivers/infiniband/hw/mana/qp.c
-index c6821ae5fac1c..29bfee9ac997f 100644
+index 8b7be1255c0d0..aa5f8c6077bb0 100644
 --- a/drivers/infiniband/hw/mana/qp.c
 +++ b/drivers/infiniband/hw/mana/qp.c
-@@ -422,6 +422,11 @@ static u32 mana_ib_wqe_size(u32 sge, u32 oob_size)
- 	return ALIGN(wqe_size, GDMA_WQE_BU_SIZE);
- }
+@@ -549,14 +549,14 @@ static int mana_ib_create_rc_qp(struct ib_qp *ibqp, struct ib_pd *ibpd,
  
-+static u32 mana_ib_fixed_wqe_size(u32 sge, u32 oob_size)
-+{
-+	return roundup_pow_of_two(mana_ib_wqe_size(sge, oob_size));
-+}
+ 	mana_ucontext = rdma_udata_to_drv_context(udata, struct mana_ib_ucontext, ibucontext);
+ 	doorbell = mana_ucontext->doorbell;
+-	flags = MANA_RC_FLAG_NO_FMR;
+-	err = ib_copy_validate_udata_in(udata, ucmd, queue_size);
++	flags = MANA_RC_FLAG_NO_MMQ;
++	err = ib_copy_validate_udata_in_cm(udata, ucmd, queue_size,
++					   MANA_IB_RC_QP_FIXED_WQE | MANA_IB_RC_MMQ_CREATE);
+ 	if (err)
+ 		return err;
+ 
+ 	for (i = 0, j = 0; i < MANA_RC_QUEUE_TYPE_MAX; ++i) {
+-		/* skip FMR for user-level RC QPs */
+-		if (i == MANA_RC_SEND_QUEUE_FMR) {
++		if (i == MANA_RC_SEND_QUEUE_MMQ) {
+ 			qp->rc_qp.queues[i].id = INVALID_QUEUE_ID;
+ 			qp->rc_qp.queues[i].gdma_region = GDMA_INVALID_DMA_REGION;
+ 			continue;
+@@ -580,7 +580,7 @@ static int mana_ib_create_rc_qp(struct ib_qp *ibqp, struct ib_pd *ibpd,
+ 
+ 	if (udata) {
+ 		for (i = 0, j = 0; i < MANA_RC_QUEUE_TYPE_MAX; ++i) {
+-			if (i == MANA_RC_SEND_QUEUE_FMR)
++			if (i == MANA_RC_SEND_QUEUE_MMQ)
+ 				continue;
+ 			resp.queue_id[j] = qp->rc_qp.queues[i].id;
+ 			j++;
+diff --git a/include/uapi/rdma/mana-abi.h b/include/uapi/rdma/mana-abi.h
+index 32cbbfc80f996..2ddb9f167969b 100644
+--- a/include/uapi/rdma/mana-abi.h
++++ b/include/uapi/rdma/mana-abi.h
+@@ -48,13 +48,23 @@ struct mana_ib_create_qp_resp {
+ 	__u32 reserved;
+ };
+ 
++enum mana_ib_create_rc_qp_flags {
++	MANA_IB_RC_QP_FIXED_WQE = BIT(0),
++	MANA_IB_RC_MMQ_CREATE = BIT(1),
++};
 +
- static u32 mana_ib_queue_size(struct ib_qp_init_attr *attr, u32 queue_type)
- {
- 	u32 queue_size;
-@@ -576,6 +581,15 @@ static int mana_ib_create_rc_qp(struct ib_qp *ibqp, struct ib_pd *ibpd,
- 		j++;
- 	}
+ struct mana_ib_create_rc_qp {
+ 	__aligned_u64 queue_buf[4];
+ 	__u32 queue_size[4];
++	__aligned_u64 mmq_buf;
++	__u32 mmq_size;
++	__u32 comp_mask;
+ };
  
-+	if (ucmd.comp_mask & MANA_IB_RC_QP_FIXED_WQE) {
-+		u32 wqe_size = mana_ib_fixed_wqe_size(attr->cap.max_send_sge,
-+						      INLINE_OOB_EXTRA_LARGE_SIZE);
-+		flags |= MANA_RC_FLAG_FIXED_SIZE_WQE;
-+		if (mdev->adapter_caps.feature_flags & MANA_IB_FEATURE_MSN_IN_WQE_SUPPORT)
-+			flags |= MANA_RC_FLAG_MSN_IN_WQE;
-+		qp->rc_qp.wqe_size_in_bu = wqe_size / GDMA_WQE_BU_SIZE;
-+	}
-+
- 	err = mana_ib_gd_create_rc_qp(mdev, qp, attr, doorbell, flags);
- 	if (err) {
- 		ibdev_err(&mdev->ib_dev, "Failed to create rc qp  %d\n", err);
-diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
-index de17c9bba04b7..f3601ca78d02f 100644
---- a/include/net/mana/gdma.h
-+++ b/include/net/mana/gdma.h
-@@ -522,6 +522,7 @@ struct gdma_wqe {
+ struct mana_ib_create_rc_qp_resp {
+ 	__u32 queue_id[4];
++	__u32 mmq_id;
++	__u32 reserved;
+ };
  
- #define INLINE_OOB_SMALL_SIZE 8
- #define INLINE_OOB_LARGE_SIZE 24
-+#define INLINE_OOB_EXTRA_LARGE_SIZE 32
+ struct mana_ib_create_uc_qp {
+@@ -100,6 +110,7 @@ struct mana_ib_create_qp_rss_resp {
  
- #define MANA_MAX_TX_WQE_SGL_ENTRIES 30
+ enum mana_ib_ucontext_support {
+ 	MANA_IB_UCNTX_ALLOC_PDN_SUPPORT = 1 << 0,
++	MANA_IB_UCNTX_RC_EXT_SUPPORT = 1 << 1,
+ };
  
+ struct mana_ib_alloc_ucontext_resp {
 -- 
 2.43.0
 
