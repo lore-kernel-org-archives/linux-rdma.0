@@ -1,28 +1,29 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3397A3B4432;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 33AC143F8B1;
 	Fri,  7 Aug 2026 21:00:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786136436; cv=none; b=DwVnnnbPXPhCuQ5Yj5U7f74DmE0K7x5Tjb99V/0IQZ0UHIMOQ9tXzj64zPRIcxJvhIl2344+vzTzQMm43clrWSscVgWIghjV/OHMpbPOnZKIVpkLi+QY3ALZENSaZfKp5H+sICm31ZBFPiega1GPEDiYQFrrZ2T+Fh/Qk6+10pQ=
+	t=1786136436; cv=none; b=dNslO5hYm/mF1Zx8Raf90+9pSrTsMGjC3/Wu81KECGwlV2t4x2a4AX9FpYRgASGwZg/0qFAVFjeIMbVvgqlpW4EPNwBPj8qmMUKsCIEpXIt80hdpM3Q//eCfeUYLlsWi5WkXzhGdjsungyvgJngib7icOGXaOpGOoAwBxCq7Jrg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1786136436; c=relaxed/simple;
-	bh=IU/wOHAdOnn5q0LYcAHP4MyCAoqdgeUod1C2cMCd/Y4=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=nCYxp1KiG9ZghrbLnSkzbuH3rnYfpIzIeeRI/Kli6sHVcACUg1L4+0HWCr9FKSKx7tHX+5NJ76iJKxSB+snL0yZ1ZwLQtr5m9DufXDCkAiXeKZWx+/uIde0I6i3bJptR8vdUJDvElgHPQWCHA5JPKhKe/FgQzUMs4zt58F9ED5U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=R5uBYPU9; arc=none smtp.client-ip=13.77.154.182
+	bh=rr9qmyu8jJpsh7xTgC/869Jv1P+9rX+gZI34TUr+jIc=;
+	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=o37TvHs+s4YsiNbwjalgJErqnYDCmb57oIcnkfO1ZZ1hRiDD0o2HEmFjGUMLH5bTZdfydjARPS1o2/GWWbDJHnBbuOo0NAM61fTJ9wllyjENyrpMICJA5pLm8J78jqTTFDCu0bCf7Ilu79kXDrGABCRsh5wXJdhyHk1Rh1GhvQU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=oGRZxcCJ; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="R5uBYPU9"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="oGRZxcCJ"
 Received: by linux.microsoft.com (Postfix, from userid 1231)
-	id 2594A20B710C; Fri,  7 Aug 2026 14:00:07 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 2594A20B710C
+	id 3373220B7128; Fri,  7 Aug 2026 14:00:07 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 3373220B7128
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
 	s=default; t=1786136407;
-	bh=JuDkUjWqdq5JFucVLsaZYr2yfv0pLbVlmq39QqXO7xY=;
-	h=From:To:Subject:Date:From;
-	b=R5uBYPU94YZTZ3sjspm4sx81BNOP3HxGjJtt32rhTl4H33baCQmJrzkI492CKKjDW
-	 JW1TC9/IcjIsRDAESxCLi/gOGJdkp5pylD+i4FjyPQnufGTyNCaNz8oexHhWRZBl/9
-	 NJ0evOMkLzOxSdliLmxAaOSiKrYb0MtWGIvBU+EY=
+	bh=aD08KCZnb1Y7iRS9Fva5Oir9r2FBljNPYcutPf2BCnQ=;
+	h=From:To:Subject:Date:In-Reply-To:References:From;
+	b=oGRZxcCJjsg21NRHFSnqvBAKATkQzMLQq1Rg5QBpPfJC0ifJgm8oS+um3Ckv3+zUx
+	 GVFmHdGeS7KYtmpb4lEVkgjGVqm9FkmMDOSCRhG/tZTTAmSUMzZXEOLPT8xLijt3mJ
+	 B8GbplTTw32ZLPWc/iHdSP+3gulN7wJ1d+UDPPcY=
 From: Aditya Garg <gargaditya@linux.microsoft.com>
 To: kys@microsoft.com,
 	haiyangz@microsoft.com,
@@ -48,10 +49,12 @@ To: kys@microsoft.com,
 	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linux-rdma@vger.kernel.org
-Subject: [PATCH net-next 0/2] net: mana: Avoid DMA queue allocation failure under memory fragmentation
-Date: Fri,  7 Aug 2026 13:56:34 -0700
-Message-ID: <20260807210002.1695263-1-gargaditya@linux.microsoft.com>
+Subject: [PATCH net-next 1/2] net: mana: Route ring-buffer access through offset-based helpers
+Date: Fri,  7 Aug 2026 13:56:35 -0700
+Message-ID: <20260807210002.1695263-2-gargaditya@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.7
+In-Reply-To: <20260807210002.1695263-1-gargaditya@linux.microsoft.com>
+References: <20260807210002.1695263-1-gargaditya@linux.microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -60,58 +63,179 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The MANA driver can fail to bring up its queues on systems with high
-memory utilization because every GDMA queue ring is allocated as a
-single dma_alloc_coherent() of the whole power-of-2 ring size. Under
-memory fragmentation these high-order allocations may fail, preventing
-the driver from creating queues when opening the interface, after a VF
-reset, or when reconfiguring channels, ring parameters or MTU.
+In preparation for backing GDMA queue memory with a vector of
+non-contiguous order-0 coherent pages, route CPU access to a queue's
+ring buffer through two new helpers: mana_gd_ring_ptr() returns the CPU
+address of a byte offset into the ring, and mana_gd_ring_contig_avail()
+the number of bytes left before the ring wraps, so a WQ write that runs
+past the end of the ring can be split at that point.
 
-Per-queue sizes that are problematic, with depth and size given as
-(default, max) over the ethtool ring settings:
+Convert the EQ, CQ and work-request paths to use them.
+mana_gd_write_sgl() now takes a byte offset rather than a raw pointer,
+so mana_gd_post_work_request() derives the SGL position arithmetically.
 
-  ring                  entry  depth          size
-  ------------------------------------------------------------
-  TX completion queue   64 B   (256, 16384)   (16 KB, 1024 KB)
-  TX send queue         32 B   (256, 16384)   ( 8 KB,  512 KB)
-  RX completion queue   64 B   (1024, 8192)   (64 KB,  512 KB)
-  RX receive queue      32 B   (1024, 8192)   (32 KB,  256 KB)
-  event queue           16 B   2048 (fixed)   32 KB
+While queue memory is contiguous both helpers are simple arithmetic on
+the ring base and size, so there is no functional change.
 
-This series addresses the issue by:
-  1. Routing all CPU-side ring access through mana_gd_ring_ptr() and
-     mana_gd_ring_contig_avail(). On a contiguous ring these reduce to
-     simple arithmetic, so this patch is a pure refactor.
-  2. Falling back in mana_gd_alloc_memory() to a vector of scattered
-     order-0 coherent pages when the contiguous allocation fails. The
-     device sees the same page-list format either way, as
-     mana_gd_create_dma_region() already describes a ring as a list of
-     MANA_PAGE_SIZE addresses. The HW channel stays contiguous, as
-     advertising a scattered page list needs the HW channel itself.
+Signed-off-by: Aditya Garg <gargaditya@linux.microsoft.com>
+---
+ .../net/ethernet/microsoft/mana/gdma_main.c   | 63 ++++++++++++-------
+ 1 file changed, 39 insertions(+), 24 deletions(-)
 
-Throughput testing confirms no regression. Since the fallback only
-triggers under memory fragmentation, the scattered-page path was enabled
-unconditionally for all eligible GDMA queue rings during testing (iperf3,
-Gbit/s):
-
-                 Baseline    Patched     Patched
-  Connections   Contiguous  Contiguous  Scattered
-  -----------------------------------------------
-  1                  46.1        46.2       46.1
-  16                 182         182        182
-  32                 182         182        182
-  64                 182         182        182
-
-Aditya Garg (2):
-  net: mana: Route ring-buffer access through offset-based helpers
-  net: mana: Fall back to scattered pages for GDMA queues
-
- .../net/ethernet/microsoft/mana/gdma_main.c   | 219 +++++++++++++++---
- .../net/ethernet/microsoft/mana/hw_channel.c  |   2 +-
- drivers/net/ethernet/microsoft/mana/mana_en.c |   3 +
- include/net/mana/gdma.h                       |  19 +-
- 4 files changed, 205 insertions(+), 38 deletions(-)
-
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+index a38d4bb74621..31a79693db07 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
++++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+@@ -753,11 +753,24 @@ int mana_schedule_serv_work(struct gdma_context *gc, enum gdma_eqe_type type)
+ 	return 0;
+ }
+ 
++/* Return the CPU address of byte @offset within a queue's ring buffer. */
++static void *mana_gd_ring_ptr(const struct gdma_queue *q, u32 offset)
++{
++	return q->queue_mem_ptr + offset;
++}
++
++/* Number of bytes from @offset to the end of the ring buffer, i.e. the point
++ * at which ring access wraps back to the start.
++ */
++static u32 mana_gd_ring_contig_avail(const struct gdma_queue *q, u32 offset)
++{
++	return q->queue_size - offset;
++}
++
+ static void mana_gd_process_eqe(struct gdma_queue *eq)
+ {
+ 	u32 head = eq->head % (eq->queue_size / GDMA_EQE_SIZE);
+ 	struct gdma_context *gc = eq->gdma_dev->gdma_context;
+-	struct gdma_eqe *eq_eqe_ptr = eq->queue_mem_ptr;
+ 	union gdma_eqe_info eqe_info;
+ 	enum gdma_eqe_type type;
+ 	struct gdma_event event;
+@@ -765,7 +778,7 @@ static void mana_gd_process_eqe(struct gdma_queue *eq)
+ 	struct gdma_eqe *eqe;
+ 	u32 cq_id;
+ 
+-	eqe = &eq_eqe_ptr[head];
++	eqe = mana_gd_ring_ptr(eq, head * sizeof(*eqe));
+ 	eqe_info.as_uint32 = eqe->eqe_info;
+ 	type = eqe_info.type;
+ 
+@@ -829,7 +842,6 @@ static void mana_gd_process_eq_events(void *arg)
+ {
+ 	u32 owner_bits, new_bits, old_bits;
+ 	union gdma_eqe_info eqe_info;
+-	struct gdma_eqe *eq_eqe_ptr;
+ 	struct gdma_queue *eq = arg;
+ 	struct gdma_context *gc;
+ 	struct gdma_eqe *eqe;
+@@ -839,11 +851,10 @@ static void mana_gd_process_eq_events(void *arg)
+ 	gc = eq->gdma_dev->gdma_context;
+ 
+ 	num_eqe = eq->queue_size / GDMA_EQE_SIZE;
+-	eq_eqe_ptr = eq->queue_mem_ptr;
+ 
+ 	/* Process up to 5 EQEs at a time, and update the HW head. */
+ 	for (i = 0; i < 5; i++) {
+-		eqe = &eq_eqe_ptr[eq->head % num_eqe];
++		eqe = mana_gd_ring_ptr(eq, (eq->head % num_eqe) * sizeof(*eqe));
+ 		eqe_info.as_uint32 = eqe->eqe_info;
+ 		owner_bits = eqe_info.owner_bits;
+ 
+@@ -1508,7 +1519,7 @@ u8 *mana_gd_get_wqe_ptr(const struct gdma_queue *wq, u32 wqe_offset)
+ 
+ 	WARN_ON_ONCE((offset + GDMA_WQE_BU_SIZE) > wq->queue_size);
+ 
+-	return wq->queue_mem_ptr + offset;
++	return mana_gd_ring_ptr(wq, offset);
+ }
+ 
+ static u32 mana_gd_write_client_oob(const struct gdma_wqe_request *wqe_req,
+@@ -1554,27 +1565,24 @@ static u32 mana_gd_write_client_oob(const struct gdma_wqe_request *wqe_req,
+ 	return sizeof(header) + client_oob_size;
+ }
+ 
+-static void mana_gd_write_sgl(struct gdma_queue *wq, u8 *wqe_ptr,
++static void mana_gd_write_sgl(struct gdma_queue *wq, u32 sgl_offset,
+ 			      const struct gdma_wqe_request *wqe_req)
+ {
++	u32 size_to_end = mana_gd_ring_contig_avail(wq, sgl_offset);
+ 	u32 sgl_size = sizeof(struct gdma_sge) * wqe_req->num_sge;
+ 	const u8 *address = (u8 *)wqe_req->sgl;
+-	u8 *base_ptr, *end_ptr;
+-	u32 size_to_end;
+-
+-	base_ptr = wq->queue_mem_ptr;
+-	end_ptr = base_ptr + wq->queue_size;
+-	size_to_end = (u32)(end_ptr - wqe_ptr);
+ 
+ 	if (size_to_end < sgl_size) {
+-		memcpy(wqe_ptr, address, size_to_end);
++		memcpy(mana_gd_ring_ptr(wq, sgl_offset), address, size_to_end);
+ 
+-		wqe_ptr = base_ptr;
+ 		address += size_to_end;
+ 		sgl_size -= size_to_end;
++		sgl_offset += size_to_end;
++		if (sgl_offset == wq->queue_size)
++			sgl_offset = 0;
+ 	}
+ 
+-	memcpy(wqe_ptr, address, sgl_size);
++	memcpy(mana_gd_ring_ptr(wq, sgl_offset), address, sgl_size);
+ }
+ 
+ int mana_gd_post_work_request(struct gdma_queue *wq,
+@@ -1584,8 +1592,12 @@ int mana_gd_post_work_request(struct gdma_queue *wq,
+ 	u32 client_oob_size = wqe_req->inline_oob_size;
+ 	u32 sgl_data_size;
+ 	u32 max_wqe_size;
++	u32 wqe_offset;
++	u32 sgl_offset;
+ 	u32 wqe_size;
++	u32 oob_len;
+ 	u8 *wqe_ptr;
++	u32 head;
+ 
+ 	if (wqe_req->num_sge == 0)
+ 		return -EINVAL;
+@@ -1617,13 +1629,17 @@ int mana_gd_post_work_request(struct gdma_queue *wq,
+ 	if (wqe_info)
+ 		wqe_info->wqe_size_in_bu = wqe_size / GDMA_WQE_BU_SIZE;
+ 
+-	wqe_ptr = mana_gd_get_wqe_ptr(wq, wq->head);
+-	wqe_ptr += mana_gd_write_client_oob(wqe_req, wq->type, client_oob_size,
+-					    sgl_data_size, wqe_ptr);
+-	if (wqe_ptr >= (u8 *)wq->queue_mem_ptr + wq->queue_size)
+-		wqe_ptr -= wq->queue_size;
++	head = wq->head;
++	wqe_offset = (head * GDMA_WQE_BU_SIZE) & (wq->queue_size - 1);
++	wqe_ptr = mana_gd_get_wqe_ptr(wq, head);
++	oob_len = mana_gd_write_client_oob(wqe_req, wq->type, client_oob_size,
++					   sgl_data_size, wqe_ptr);
++
++	sgl_offset = wqe_offset + oob_len;
++	if (sgl_offset >= wq->queue_size)
++		sgl_offset -= wq->queue_size;
+ 
+-	mana_gd_write_sgl(wq, wqe_ptr, wqe_req);
++	mana_gd_write_sgl(wq, sgl_offset, wqe_req);
+ 
+ 	wq->head += wqe_size / GDMA_WQE_BU_SIZE;
+ 
+@@ -1653,11 +1669,10 @@ int mana_gd_post_and_ring(struct gdma_queue *queue,
+ static int mana_gd_read_cqe(struct gdma_queue *cq, struct gdma_comp *comp)
+ {
+ 	unsigned int num_cqe = cq->queue_size / sizeof(struct gdma_cqe);
+-	struct gdma_cqe *cq_cqe = cq->queue_mem_ptr;
+ 	u32 owner_bits, new_bits, old_bits;
+ 	struct gdma_cqe *cqe;
+ 
+-	cqe = &cq_cqe[cq->head % num_cqe];
++	cqe = mana_gd_ring_ptr(cq, (cq->head % num_cqe) * sizeof(*cqe));
+ 	owner_bits = cqe->cqe_info.owner_bits;
+ 
+ 	old_bits = (cq->head / num_cqe - 1) & GDMA_CQE_OWNER_MASK;
 -- 
 2.43.0
 
