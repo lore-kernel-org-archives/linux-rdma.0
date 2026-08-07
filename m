@@ -1,76 +1,76 @@
-Received: from mail-pl1-f225.google.com (mail-pl1-f225.google.com [209.85.214.225])
+Received: from mail-pj1-f99.google.com (mail-pj1-f99.google.com [209.85.216.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 905EB4D2EC2
-	for <linux-rdma@vger.kernel.org>; Thu,  6 Aug 2026 19:29:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.225
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6B273D5C07
+	for <linux-rdma@vger.kernel.org>; Thu,  6 Aug 2026 19:29:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.99
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786044598; cv=none; b=W6U+eEwAGudclXx4F5HlR2I0mR88A9VuaSCd/fNLybCgM7zKufZvtENZRg6fBOYJwOTjFoIayCWfPIQQg+5bxVimGG93omH6BvWoC8Yvmj/lsea5vK+QAtwAnbwlb1q6TdRFITQiMFLnejdKROU17LNdVil6l/cnhF2xQ/6LNCA=
+	t=1786044600; cv=none; b=K++8lg5SV5bT4XbkxWH+xTTSdRlx92CpNkKKPmC2B6QUMipwdl/4efye7ux9F3iG09/6bWHCl+XwTzolPzI1YFyIkCjuCnieLx1hCyoS8L5WZOdZvmkdjYysU0UasZWw4UejAr/sbRHtvcfMzVoU1H5Mf3m1Mu5w98NolQKMDqQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786044598; c=relaxed/simple;
-	bh=r4GnphE0mlp6eOGOWAahB1Modn6UNUuxVfxUGPWh9M4=;
+	s=arc-20240116; t=1786044600; c=relaxed/simple;
+	bh=9RYKEVQ8DA/hjWq/ngGmAfHOpPGV8ANT8BNEg2xmfJA=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=rDfiWU40W8zPCl7Za7aC+wP3WLi/gOB1DbhK0hhiaDsxFoXItfIAUxG4eLH2BZT8oWXNefaRXJ7xvzbaiKFjsAsvQYW9wIMDKnLNXm1Nf+yXcECtJ6ubC4toXqGaNThstzhCpS6toRlOTgZk6tR3gBmDrSfGS72aUBIk/c4oyOQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=dvzul2po; arc=none smtp.client-ip=209.85.214.225
+	 MIME-Version; b=I+n1GQVwmeXZkOs9wu1iW0Y5+WSkGlnIBuUOv1oclkFIKII5pInS4W06pfd4Rx2lrsZY9hWVUm0HrGkYklZ+Tn3MSTAyF2dmg1wpSl5MOA1/kMatSWCLi8t2kweyqSptUuqO/RGhvJiBif3LlXRhm0QM8vp0X50jscyqJw6krN8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=cU99pftG; arc=none smtp.client-ip=209.85.216.99
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="dvzul2po"
-Received: by mail-pl1-f225.google.com with SMTP id d9443c01a7336-2cace91f112so30259495ad.0
-        for <linux-rdma@vger.kernel.org>; Thu, 06 Aug 2026 12:29:55 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="cU99pftG"
+Received: by mail-pj1-f99.google.com with SMTP id 98e67ed59e1d1-38e42560ebcso2238833a91.1
+        for <linux-rdma@vger.kernel.org>; Thu, 06 Aug 2026 12:29:58 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786044594; x=1786649394;
+        d=1e100.net; s=20251104; t=1786044597; x=1786649397;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:dkim-signature:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=w8cHUB6qDZNnZlrOdWgqMHJkuQh/6G0Q2CmRQL5oQs8=;
-        b=Zcyi6o50lYHL/iPL6xK7ifJR+G9SSWjwrCBXXVjID69HxZY7eahC0ocP0TdMPsY0pD
-         4EGbKzsYmjkkt7YJYJu2Cf8dxN5KJWsculW06kUT7TpyHUo8V16lFVhs92QvzOmz8KE9
-         rBg6IMTiJ3290fHTRl18Hh9SwBE7cNrw66NEjbT1ySmNtTq+8CVGV2SJXn/zKwKZqvq8
-         lhClVER++pzmBrjkXrkBxj1mtrehyb+dd4qciZOVwmeCWfotME7WT0lfEr+QGhiYCt6V
-         cdgMZqY0g5bpxT/ZiPNV5uBEPM8c0PfRC5pKJYaC6h0aROg9zIO0AIEOQH7/pYYWBxAV
-         PM4w==
-X-Gm-Message-State: AOJu0YypjXNuzJ8GXr29r1fvgMeYmpIlEtW/up9VJpKpkiBZd3JeqJnG
-	DAPWJ4ptlEF9zRqrL4kXxvRGArPzNIo2UHSSL9ciGVgmJB+4YGtg9o81p3KfCjQMBJCEX4AYYCk
-	i7iHfMrXb4n0Rxy8pmNP0+LVC8kouQi1N4joIBOffMuAnQGMsbj4/xybLfHhu0yGVir2aB0QvoJ
-	wwKFJiY85z40DlNcmeBNvVsFIUd5/nDde0lDe8DHdsw47c40d3PqOFjEPSx4PENAl5Fx7nOJXVF
-	wd5TkXqU5enxFRfXg==
-X-Gm-Gg: AR+sD13527pDqDhts8XQuyr0ow+5YYwcTiCeZN6LhnSsLyHygisPjn9K+GVUgmtbqil
-	RfzseI99kOL5Q+fA6QHzL5CcvIm+wd37vQzJKURXWLD84YxUR0DD8omA9MvhooSH+RQ/qBbsUUK
-	GxvDRjbSotH9EtOkXY4LU6bMLp1uarIWCZQg1Szi0fXfLp4yxV6uIhGCcPfLvrRBj8M6QlGMsnN
-	XnwRllggCeHbVnc+FZQwKYKIsnxVvXGa2nt7W9bjxkeZc40XlU+uK/fuG1+Jv0DMwbIQ/9knYLP
-	J8pZmw1/4DOxbFjRM32Bdr9g3DbGmWeU9MknQuoaCPQ2UQZaEj0xg3XdTZPV/Yx9PhPU6wPoNew
-	aPJETaWYPlbjwqYf1PjCLnLuqpNgWNYsUmGht5x93vCBQoujePuw8SqK7eqbUGQNv/fiuduQWeu
-	ob7ib1LVQeHlSJgcvzt8eRlufWrSBGkwFNDSzp
-X-Received: by 2002:a05:6a20:7285:b0:3c3:7a0a:18a6 with SMTP id adf61e73a8af0-3cb85eea69cmr17136058637.18.1786044594192;
-        Thu, 06 Aug 2026 12:29:54 -0700 (PDT)
-Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-20.dlp.protect.broadcom.com. [144.49.247.20])
-        by smtp-relay.gmail.com with ESMTPS id a92af1059eb24-141009f782csm51891c88.7.2026.08.06.12.29.53
+        bh=qCDgI+JlB9+5qVYI3gm4I/u2nQn4/OSLIi+wiIh4Y2E=;
+        b=U60pVMtcixmDRo3LQta/AGJbZkOid+ziLP2mXj+1F0s+D7AxlwA3p5469Zsbp/l4eR
+         lcW4eEmDp8eN75+ISESRGcvqWZLceSYT5KotdD4X2JCtO0BE11/BGxgEFQZzwhVc3j2i
+         zqWptWX3617NfpR2ibqrLnJSK62T3n/O2d/ba/jeVNPxhBFY7YGtC7SYreL/JTmwu4F9
+         hSYQCwfrw4KSs8aBrLmTpSvokthDXpS6xN+S87UI38y/hcN0udDxm1eA+PTNG5rs4eeI
+         qHG/lg24em7Xv7wP4HDwjoJmzE1gvWduyUw10hfeFpYHdZYPYMhXyt+4j+qfzRiDq5U7
+         rYRw==
+X-Gm-Message-State: AOJu0YxFsC7PhGqFfCvgo8LVYIDsNurNZqaNGIuNNOMTT/0COXXyl3LO
+	Lm99sXiJFvjlcwuJy1CrJNMSb7bnN86JWw/tE5x4ZrNqM3QdreVlXVzFP0eDbY+6lxYsVAunveV
+	RXC8lQCSFF+EqiPfsevDtrlb1OyZvoB1Q5kOyKgw80KMKhWz5uXDaT3I6yyz28J+PbNEJmnUezF
+	r0KEvZvSaFO/E2Vxi7RYU8QNpnSyMYaDJm3aGo2eSYFzWbnpKl6dj5HWPST5fy47c6n2N546Sqm
+	JlpoPPnAfCRpYzvTA==
+X-Gm-Gg: AR+sD13iqfIvs6+RzmuYW0RELVwWh6WiPuG9yZVCYIyf9KOUW5jjDI2is3Vsx9QIvR1
+	DPlrdTCcfAUX5KY0yJeF1ACa+QnVXFXWeCs5fM0ECQF/AtfGm65HXL4716pV4Lw3M27bf0eCgyr
+	93Fzppgiw0oi0V//nPWwvD8JAUh1+EiOB+hNofeVs92WLXarmNWB0FEDb9EK7l8I/k/mIswU3SJ
+	e0RmoZgkJeNlYKG+Iqm7teebD2CCIqg2GPkKa09AgrmcCpB2VurTY5i6JcbJmiglTYFvnrjR3pv
+	JTAFjhWfBWUxx6UEvCf34vX4azShrDWt95GL113ShVStyodXWWOZo/08lJ2c20/ViL3Nqi/HeaP
+	q+pe/yobC4l6c5Oh0xWYLbMwJjOQY6fKLZdWLqIKnn/CehfPPk5FXmUtZofS75MUX+wAAAhjeyl
+	4hTENE17Zy72hR3zZaa5fmOxzK0vmwbGdcxA==
+X-Received: by 2002:a17:90b:1d02:b0:37f:fd1f:d30f with SMTP id 98e67ed59e1d1-3903c595ef1mr17202978a91.12.1786044596959;
+        Thu, 06 Aug 2026 12:29:56 -0700 (PDT)
+Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-0.dlp.protect.broadcom.com. [144.49.247.0])
+        by smtp-relay.gmail.com with ESMTPS id 98e67ed59e1d1-390a9697ab5sm314530a91.7.2026.08.06.12.29.56
         for <linux-rdma@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 06 Aug 2026 12:29:54 -0700 (PDT)
+        Thu, 06 Aug 2026 12:29:56 -0700 (PDT)
 X-Relaying-Domain: broadcom.com
 X-CFilter-Loop: Reflected
-Received: by mail-pj1-f72.google.com with SMTP id 98e67ed59e1d1-38f57e31b6eso2216744a91.1
-        for <linux-rdma@vger.kernel.org>; Thu, 06 Aug 2026 12:29:52 -0700 (PDT)
+Received: by mail-pl1-f199.google.com with SMTP id d9443c01a7336-2cc640dfde3so29710755ad.1
+        for <linux-rdma@vger.kernel.org>; Thu, 06 Aug 2026 12:29:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1786044592; x=1786649392; darn=vger.kernel.org;
+        d=broadcom.com; s=google; t=1786044595; x=1786649395; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=w8cHUB6qDZNnZlrOdWgqMHJkuQh/6G0Q2CmRQL5oQs8=;
-        b=dvzul2poTArJt/c+8/JCCdLmFlRsjEnXVYcBtdoGepELhicnz6c6zQcqt+iQoUY7DM
-         5sN+OX/qBK9+8Z6LwJzBYEkGFVd04UUKlYl1ejmAePDxHunnNRyqd5vo79bH7D/++XbA
-         vxoj7k0uBRYCbMI6TUjfwxQPAu/x4uojjfsDE=
-X-Received: by 2002:a17:90b:4b87:b0:38e:85fb:71b9 with SMTP id 98e67ed59e1d1-3903c538254mr15731226a91.4.1786044591914;
-        Thu, 06 Aug 2026 12:29:51 -0700 (PDT)
-X-Received: by 2002:a17:90b:4b87:b0:38e:85fb:71b9 with SMTP id 98e67ed59e1d1-3903c538254mr15731167a91.4.1786044591297;
-        Thu, 06 Aug 2026 12:29:51 -0700 (PDT)
+        bh=qCDgI+JlB9+5qVYI3gm4I/u2nQn4/OSLIi+wiIh4Y2E=;
+        b=cU99pftGGSf0G0jDeZ33dOxa4EVUgOzAQ6K+j1gNcbIR/Xdy7cbnXrvhHpdjBohyGJ
+         XTmNiFcKl7SwVC57WHdOzovrR8xbxuz1jqBVLnLXint5/acg/1t7CF3ru9nUhZsXG2aS
+         OuWVXU9jIZs2TGyKpCdkdS9Ed6sQXmUHlulWg=
+X-Received: by 2002:a17:902:c402:b0:2c9:c952:6e9 with SMTP id d9443c01a7336-2d0ca7b024fmr188143365ad.2.1786044594989;
+        Thu, 06 Aug 2026 12:29:54 -0700 (PDT)
+X-Received: by 2002:a17:902:c402:b0:2c9:c952:6e9 with SMTP id d9443c01a7336-2d0ca7b024fmr188142955ad.2.1786044594452;
+        Thu, 06 Aug 2026 12:29:54 -0700 (PDT)
 Received: from dhcp-10-123-156-114.dhcp.broadcom.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3158644a195sm28484575eec.13.2026.08.06.12.29.48
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3158644a195sm28484575eec.13.2026.08.06.12.29.51
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 06 Aug 2026 12:29:50 -0700 (PDT)
+        Thu, 06 Aug 2026 12:29:54 -0700 (PDT)
 From: Selvin Xavier <selvin.xavier@broadcom.com>
 To: leon@kernel.org,
 	jgg@ziepe.ca
@@ -79,9 +79,9 @@ Cc: linux-rdma@vger.kernel.org,
 	kalesh-anakkur.purayil@broadcom.com,
 	saravanan.vajravel@broadcom.com,
 	Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: [PATCH for-next 2/4] RDMA/bnxt_re: Prepare infrastructure for larger pages for Queue memory
-Date: Thu,  6 Aug 2026 17:51:36 -0700
-Message-Id: <20260807005138.771669-3-selvin.xavier@broadcom.com>
+Subject: [PATCH for-next 3/4] RDMA/bnxt_re: Add support for larger PBL pages for CQ
+Date: Thu,  6 Aug 2026 17:51:37 -0700
+Message-Id: <20260807005138.771669-4-selvin.xavier@broadcom.com>
 X-Mailer: git-send-email 2.39.3
 In-Reply-To: <20260807005138.771669-1-selvin.xavier@broadcom.com>
 References: <20260807005138.771669-1-selvin.xavier@broadcom.com>
@@ -94,253 +94,104 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 
-Add page-shift/FWO helpers, firmware capability detection
-(dev_cap_ext_flags_1), and the fwo_offset field so CQ/QP setup
-can be done with page sizes more than 4K. This also enables
-using PBL pages of size more than 4k. Currently, the PBLs are
-defaulted to 4K pages.
-
-Also, update the variable type that holds the max queue entry
-per page to accommodate more number of pages when huge pages
-are used.
+Advertise the PBL page size and first-completion offset (FCO)
+in CREATE_CQ so the firmware can use huge-page CQ buffers.
 
 Signed-off-by: Saravanan Vajravel <saravanan.vajravel@broadcom.com>
 Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
 ---
- drivers/infiniband/hw/bnxt_re/ib_verbs.c  | 41 ++++++++++++++++++++---
- drivers/infiniband/hw/bnxt_re/qplib_res.c | 21 ++++++++++++
- drivers/infiniband/hw/bnxt_re/qplib_res.h | 34 +++++++++++++++++--
- drivers/infiniband/hw/bnxt_re/qplib_sp.c  |  3 ++
- drivers/infiniband/hw/bnxt_re/qplib_sp.h  |  2 ++
- drivers/infiniband/hw/bnxt_re/roce_hsi.h  |  4 ++-
- 6 files changed, 98 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c  |  9 +++++++++
+ drivers/infiniband/hw/bnxt_re/qplib_fp.c  | 11 +++++++++--
+ drivers/infiniband/hw/bnxt_re/qplib_res.h |  1 +
+ drivers/infiniband/hw/bnxt_re/roce_hsi.h  | 13 ++++++++++++-
+ 4 files changed, 31 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index 21caf34a1dc8..430d54f8f736 100644
+index 430d54f8f736..da4de44cf90d 100644
 --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
 +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -1141,23 +1141,42 @@ static int bnxt_re_setup_swqe_size(struct bnxt_re_qp *qp,
- 	return 0;
- }
- 
-+static int bnxt_re_get_page_shift(struct ib_umem *umem, u64 va, u64 cmask)
-+{
-+	unsigned long pgsz;
-+
-+	pgsz = ib_umem_find_best_pgsz(umem, cmask, va);
-+	if (!pgsz)
-+		return -EINVAL;
-+	return __ffs(pgsz);
-+}
-+
- static int bnxt_re_setup_sginfo(struct bnxt_re_dev *rdev,
- 				struct ib_umem *umem,
- 				struct bnxt_qplib_sg_info *sginfo)
- {
-+	struct bnxt_qplib_dev_attr *dev_attr = rdev->dev_attr;
- 	unsigned long page_size;
-+	int page_shift;
- 
- 	if (!umem)
- 		return -EINVAL;
- 
--	page_size = ib_umem_find_best_pgsz(umem, SZ_4K, 0);
--	if (!page_size || page_size != SZ_4K)
--		return -EINVAL;
-+	if (bnxt_re_pbl_size_supported(dev_attr->dev_cap_ext_flags_1)) {
-+		page_shift = bnxt_re_get_page_shift(umem, umem->address, dev_attr->page_size_cap);
-+		if (page_shift < 0)
-+			return page_shift;
-+	} else {
-+		page_shift = __builtin_ctz(SZ_4K);
-+	}
- 
-+	page_size = BIT(page_shift);
- 	sginfo->umem = umem;
- 	sginfo->npages = ib_umem_num_dma_blocks(umem, page_size);
- 	sginfo->pgsize = page_size;
--	sginfo->pgshft = __builtin_ctz(page_size);
-+	sginfo->pgshft = page_shift;
-+	sginfo->fwo_offset = ib_umem_dma_offset(umem, page_size);
-+
- 	return 0;
- }
- 
-@@ -1224,6 +1243,15 @@ static int bnxt_re_init_user_qp(struct bnxt_re_dev *rdev, struct bnxt_re_pd *pd,
+@@ -3611,6 +3611,15 @@ int bnxt_re_create_user_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *att
  	if (rc)
- 		goto fail;
+ 		goto free_umem;
  
 +	/*
-+	 * The FWO field passed in the CREATE_QP command is expressed in 4K
-+	 * units, so the offset must be a multiple of 4K.
++	 * The FCO field passed in the CREATE_CQ command is expressed in
++	 * 32-byte units, so the offset must be a multiple of 32 bytes.
 +	 */
-+	if (qplib_qp->sq.sg_info.fwo_offset & (SZ_4K - 1)) {
++	if (cq->qplib_cq.sg_info.fwo_offset & (BIT(BNXT_QPLIB_CQ_FCO_SHIFT) - 1)) {
 +		rc = -EINVAL;
-+		goto fail;
++		goto free_umem;
 +	}
 +
- 	if (qp->qplib_qp.srq)
- 		goto done;
- 
-@@ -1242,6 +1270,11 @@ static int bnxt_re_init_user_qp(struct bnxt_re_dev *rdev, struct bnxt_re_pd *pd,
- 	if (rc)
- 		goto rqfail;
- 
-+	if (qplib_qp->rq.sg_info.fwo_offset & (SZ_4K - 1)) {
-+		rc = -EINVAL;
-+		goto rqfail;
+ 	cq->qplib_cq.dpi = &uctx->dpi;
+ 	cq->qplib_cq.max_wqe = entries;
+ 	cq->qplib_cq.coalescing = &rdev->cq_coalescing;
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+index 5301e4f21ade..0319fe76c634 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+@@ -2147,9 +2147,16 @@ int bnxt_qplib_create_cq(struct bnxt_qplib_res *res, struct bnxt_qplib_cq *cq)
+ 	pg_sz_lvl |= (cq->hwq.level & CMDQ_CREATE_CQ_LVL_MASK);
+ 	req.pg_size_lvl = cpu_to_le32(pg_sz_lvl);
+ 	req.pbl = cpu_to_le64(pbl->pg_map_arr[0]);
++	if (bnxt_re_pbl_size_supported(res->dattr->dev_cap_ext_flags_1)) {
++		req.flags |= cpu_to_le16(CMDQ_CREATE_CQ_FLAGS_PBL_PG_SIZE_VALID);
++		req.pbl_pg_size = bnxt_qplib_get_pbl_page_size(&cq->sg_info);
 +	}
-+
- done:
- 	if (dbr_obj)
- 		qplib_qp->dpi = &dbr_obj->dpi;
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.c b/drivers/infiniband/hw/bnxt_re/qplib_res.c
-index 756f8b5f042a..9a980f561661 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_res.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_res.c
-@@ -174,6 +174,25 @@ void bnxt_qplib_free_hwq(struct bnxt_qplib_res *res,
- 
- /* All HWQs are power of 2 in size */
- 
-+/*
-+ * At PBL_LVL_0 there is a single PBL entry and firmware uses it as the
-+ * literal queue base address rather than walking an indirection table,
-+ * so it never applies the FWO field for this level. Adjust fwo_offset
-+ * directly into that entry's DMA address instead.
-+ */
-+static void bnxt_qplib_adjust_lvl0_fwo(struct bnxt_qplib_hwq *hwq,
-+				       struct bnxt_qplib_hwq_attr *hwq_attr)
-+{
-+	struct bnxt_qplib_pbl *pbl;
-+
-+	if (!hwq->is_user)
-+		return;
-+
-+	pbl = &hwq->pbl[PBL_LVL_0];
-+	pbl->pg_map_arr[0] += hwq_attr->sginfo->fwo_offset;
-+	hwq_attr->sginfo->fwo_offset = 0;
-+}
-+
- int bnxt_qplib_alloc_init_hwq(struct bnxt_qplib_hwq *hwq,
- 			      struct bnxt_qplib_hwq_attr *hwq_attr)
- {
-@@ -220,6 +239,8 @@ int bnxt_qplib_alloc_init_hwq(struct bnxt_qplib_hwq *hwq,
- 		if (rc)
- 			goto fail;
- 		hwq->level = PBL_LVL_0;
-+		if (hwq_attr->type == HWQ_TYPE_QUEUE)
-+			bnxt_qplib_adjust_lvl0_fwo(hwq, hwq_attr);
- 		goto done;
- 	}
- 
+ 	req.cq_fco_cnq_id = cpu_to_le32(
+-			(cq->cnq_hw_ring_id & CMDQ_CREATE_CQ_CNQ_ID_MASK) <<
+-			 CMDQ_CREATE_CQ_CNQ_ID_SFT);
++			((cq->cnq_hw_ring_id & CMDQ_CREATE_CQ_CNQ_ID_MASK) <<
++			 CMDQ_CREATE_CQ_CNQ_ID_SFT) |
++			(((cq->sg_info.fwo_offset >> BNXT_QPLIB_CQ_FCO_SHIFT)
++			  << CMDQ_CREATE_CQ_CQ_FCO_SFT) &
++			 CMDQ_CREATE_CQ_CQ_FCO_MASK));
+ 	bnxt_qplib_fill_cmdqmsg(&msg, &req, &resp, NULL, sizeof(req),
+ 				sizeof(resp), 0);
+ 	rc = bnxt_qplib_rcfw_send_message(rcfw, &msg);
 diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.h b/drivers/infiniband/hw/bnxt_re/qplib_res.h
-index b925db796729..ce6823af167e 100644
+index ce6823af167e..d2b3835789f3 100644
 --- a/drivers/infiniband/hw/bnxt_re/qplib_res.h
 +++ b/drivers/infiniband/hw/bnxt_re/qplib_res.h
-@@ -166,6 +166,8 @@ struct bnxt_qplib_sg_info {
- 	u32				npages;
+@@ -167,6 +167,7 @@ struct bnxt_qplib_sg_info {
  	u32				pgshft;
  	u32				pgsize;
-+#define BNXT_QPLIB_QP_FWO_SHIFT		12      /* FWO is conveyed to firmware in 4K units */
-+	u32				fwo_offset;	/* first-word offset into huge page */
+ #define BNXT_QPLIB_QP_FWO_SHIFT		12      /* FWO is conveyed to firmware in 4K units */
++#define BNXT_QPLIB_CQ_FCO_SHIFT		5	/* FCO is conveyed to firmware in 32-byte units */
+ 	u32				fwo_offset;	/* first-word offset into huge page */
  	bool				nopte;
  };
- 
-@@ -192,7 +194,7 @@ struct bnxt_qplib_hwq {
- 	u32				max_elements;
- 	u32				depth;
- 	u16				element_size;	/* Size of each entry */
--	u16				qe_ppg;	/* queue entry per page */
-+	u32				qe_ppg;	/* queue entry per page */
- 
- 	u32				prod;		/* raw */
- 	u32				cons;		/* raw */
-@@ -369,7 +371,7 @@ static inline u8 bnxt_qplib_base_pg_size(struct bnxt_qplib_hwq *hwq)
- 	u8 pg_size = BNXT_QPLIB_HWRM_PG_SIZE_4K;
- 	struct bnxt_qplib_pbl *pbl;
- 
--	pbl = &hwq->pbl[PBL_LVL_0];
-+	pbl = &hwq->pbl[hwq->level];
- 	switch (pbl->pg_size) {
- 	case ROCE_PG_SIZE_4K:
- 		pg_size = BNXT_QPLIB_HWRM_PG_SIZE_4K;
-@@ -639,4 +641,32 @@ static inline bool _is_modify_qp_rate_limit_supported(u16 dev_cap_ext_flags2)
- 		CREQ_QUERY_FUNC_RESP_SB_MODIFY_QP_RATE_LIMIT_SUPPORTED;
- }
- 
-+/* PBL page size encoding values for HWRM commands */
-+#define BNXT_QPLIB_HWRM_PBL_PG_SIZE_PG_4K	0x0UL
-+#define BNXT_QPLIB_HWRM_PBL_PG_SIZE_PG_8K	0x1UL
-+#define BNXT_QPLIB_HWRM_PBL_PG_SIZE_PG_64K	0x2UL
-+#define BNXT_QPLIB_HWRM_PBL_PG_SIZE_PG_2M	0x3UL
-+#define BNXT_QPLIB_HWRM_PBL_PG_SIZE_PG_8M	0x4UL
-+#define BNXT_QPLIB_HWRM_PBL_PG_SIZE_PG_1G	0x5UL
-+
-+/**
-+ * bnxt_re_pbl_size_supported - check if firmware supports non-4K PBL pages
-+ * @dev_cap_ext_flags_1: value of the dev_cap_ext_flags_1 field from QUERY_FUNC response
-+ *
-+ * Returns non-zero if the firmware can accept PBL pages larger than 4K.
-+ */
-+static inline int bnxt_re_pbl_size_supported(u8 dev_cap_ext_flags_1)
-+{
-+	return dev_cap_ext_flags_1 &
-+		CREQ_QUERY_FUNC_RESP_SB_PBL_PAGE_SIZE_SUPPORTED;
-+}
-+
-+static inline u8 bnxt_qplib_get_pbl_page_size(struct bnxt_qplib_sg_info *sginfo)
-+{
-+	/* Only 4K PBL pages are supported for now; extend this when QP/CQ
-+	 * PBLs start using the larger page sizes sginfo can report.
-+	 */
-+	return BNXT_QPLIB_HWRM_PBL_PG_SIZE_PG_4K;
-+}
-+
- #endif /* __BNXT_QPLIB_RES_H__ */
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.c b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-index 71240f7be9e6..5fa78f156df3 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-@@ -176,8 +176,11 @@ int bnxt_qplib_get_dev_attr(struct bnxt_qplib_rcfw *rcfw)
- 	attr->max_sgid = min_t(u32, BNXT_QPLIB_NUM_GIDS_SUPPORTED, 2 * attr->max_sgid);
- 	attr->dev_cap_flags = le16_to_cpu(sb->dev_cap_flags);
- 	attr->dev_cap_flags2 = le16_to_cpu(sb->dev_cap_ext_flags_2);
-+	attr->dev_cap_ext_flags_1 = sb->dev_cap_ext_flags_1;
- 
- 	attr->mr_page_size_cap = BIT_ULL(28) | BIT_ULL(21) | BIT_ULL(16) | BIT_ULL(12);
-+	/* For Queue memories */
-+	attr->page_size_cap = BIT_ULL(21) | BIT_ULL(16) | BIT_ULL(13) | BIT_ULL(12);
- 
- 	if (_is_max_srq_ext_supported(attr->dev_cap_flags2))
- 		attr->max_srq += le16_to_cpu(sb->max_srq_ext);
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.h b/drivers/infiniband/hw/bnxt_re/qplib_sp.h
-index b16e12d3b7ab..5d2a5b905405 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_sp.h
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.h
-@@ -79,6 +79,8 @@ struct bnxt_qplib_dev_attr {
- 	u32                             max_dpi;
- 	u16				rate_limit_min;
- 	u32				rate_limit_max;
-+	u8				dev_cap_ext_flags_1;
-+	u64				page_size_cap;
- };
- 
- struct bnxt_qplib_pd {
 diff --git a/drivers/infiniband/hw/bnxt_re/roce_hsi.h b/drivers/infiniband/hw/bnxt_re/roce_hsi.h
-index aac338f2afd8..c89fc54f61c3 100644
+index c89fc54f61c3..bbcd723cd2b5 100644
 --- a/drivers/infiniband/hw/bnxt_re/roce_hsi.h
 +++ b/drivers/infiniband/hw/bnxt_re/roce_hsi.h
-@@ -2244,7 +2244,9 @@ struct creq_query_func_resp_sb {
- 	__le16	max_inline_data_var_wqe;
- 	__le32	start_qid;
- 	u8	max_msn_table_size;
--	u8	reserved8_1;
-+	u8	dev_cap_ext_flags_1;
-+	#define CREQ_QUERY_FUNC_RESP_SB_PBL_PAGE_SIZE_SUPPORTED		0x1UL
-+	#define CREQ_QUERY_FUNC_RESP_SB_WQE_INLINE_OPTIMIZER_SUPPORTED	0x20UL
- 	__le16	dev_cap_ext_flags_2;
- 	#define CREQ_QUERY_FUNC_RESP_SB_OPTIMIZE_MODIFY_QP_SUPPORTED             0x1UL
- 	#define CREQ_QUERY_FUNC_RESP_SB_CHANGE_UDP_SRC_PORT_WQE_SUPPORTED        0x2UL
+@@ -1146,6 +1146,7 @@ struct cmdq_create_cq {
+ 	#define CMDQ_CREATE_CQ_FLAGS_STEERING_TAG_VALID                0x2UL
+ 	#define CMDQ_CREATE_CQ_FLAGS_INFINITE_CQ_MODE                  0x4UL
+ 	#define CMDQ_CREATE_CQ_FLAGS_COALESCING_VALID                  0x8UL
++	#define CMDQ_CREATE_CQ_FLAGS_PBL_PG_SIZE_VALID                 0x10UL
+ 	__le16	cookie;
+ 	u8	resp_size;
+ 	u8	reserved8;
+@@ -1178,7 +1179,17 @@ struct cmdq_create_cq {
+ 	__le32	cq_size;
+ 	__le64	pbl;
+ 	__le16	steering_tag;
+-	u8	reserved48[2];
++	u8	pbl_pg_size;
++	#define CMDQ_CREATE_CQ_PBL_PG_SIZE_MASK  0x7UL
++	#define CMDQ_CREATE_CQ_PBL_PG_SIZE_SFT   0
++	#define CMDQ_CREATE_CQ_PBL_PG_SIZE_PG_4K   0x0UL
++	#define CMDQ_CREATE_CQ_PBL_PG_SIZE_PG_8K   0x1UL
++	#define CMDQ_CREATE_CQ_PBL_PG_SIZE_PG_64K  0x2UL
++	#define CMDQ_CREATE_CQ_PBL_PG_SIZE_PG_2M   0x3UL
++	#define CMDQ_CREATE_CQ_PBL_PG_SIZE_PG_8M   0x4UL
++	#define CMDQ_CREATE_CQ_PBL_PG_SIZE_PG_1G   0x5UL
++	#define CMDQ_CREATE_CQ_PBL_PG_SIZE_LAST   CMDQ_CREATE_CQ_PBL_PG_SIZE_PG_1G
++	u8	reserved8_1;
+ 	__le32  coalescing;
+ 	#define CMDQ_CREATE_CQ_BUF_MAXTIME_MASK          0x1ffUL
+ 	#define CMDQ_CREATE_CQ_BUF_MAXTIME_SFT           0
 -- 
 2.39.3
 
