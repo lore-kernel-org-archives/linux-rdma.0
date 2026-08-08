@@ -1,177 +1,105 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4ECE734E74B;
-	Sat,  8 Aug 2026 02:34:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from mail-43102.protonmail.ch (mail-43102.protonmail.ch [185.70.43.102])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77D5C395276;
+	Sat,  8 Aug 2026 06:29:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.70.43.102
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786156491; cv=none; b=Ox5v1i+Dujc8+sXKZx5aGXil6NMIRkxGBqbJ73MmWaHZWWPBX2ELMOYzqqgVrszGuKoHt/3R6JhLXiMnFndYJEWcgz72cfwcYO/Jqa2VIi2nYTX8etAJZZJoS4SNHlYn+F7fwx0bhXbYQ1oybxjmlpYemNWEj4XaZg3Z+dmdPxc=
+	t=1786170552; cv=none; b=AbWBK/kWQMiev6GE3VK3FTttwaifS1QwZiDFj/XydeJdKNXaVR4ksQiUS02J2ekseqIOAJe3+rpKpBQm/wow6gIC6vTdnuxJmbfAS4kCJKaYptqOSZ4ZuJGqk6VgEwRx9ImHs+V74SWdWdVAhLQz+632ywfjl0FNffcpAkGCxnA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786156491; c=relaxed/simple;
-	bh=261V3UhfgEsljTYdAaXPrPFK1WulRle5IvACDlIm5C0=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=gkcdF2dcxJtK/08DHDn1OLguGcEjGiUWemHjEld7oxH+i5hLcbu8r7SVOwjc6uv6ZVgMbYnXNmmekrlyPunceIeqZu2loMWOOuwb2X6wpv7RpZI0nl+tG5n13qkVFU1z+cSCEgcU157/OUkpIACo5aVHBbRspUZWA0SWO6fPEpo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
-Received: by linux.microsoft.com (Postfix, from userid 1202)
-	id 55FDF20B710C; Fri,  7 Aug 2026 19:34:26 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 55FDF20B710C
-From: Long Li <longli@microsoft.com>
-To: Long Li <longli@microsoft.com>,
-	Konstantin Taranov <kotaranov@microsoft.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	"David S . Miller" <davem@davemloft.net>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Eric Dumazet <edumazet@google.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	Haiyang Zhang <haiyangz@microsoft.com>,
-	"K . Y . Srinivasan" <kys@microsoft.com>,
-	Wei Liu <wei.liu@kernel.org>,
-	Dexuan Cui <decui@microsoft.com>,
-	shradhagupta@linux.microsoft.com,
-	Simon Horman <horms@kernel.org>,
-	ernis@linux.microsoft.com,
-	stephen@networkplumber.org,
-	Dipayaan Roy <dipayanroy@linux.microsoft.com>,
-	Aditya Garg <gargaditya@linux.microsoft.com>,
-	Kees Cook <kees@kernel.org>,
-	Shachar Raindel <shacharr@microsoft.com>
-Cc: netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	linux-hyperv@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH net v4 7/7] net: mana: keep max_num_cqs immutable once cq_table is allocated
-Date: Fri,  7 Aug 2026 19:34:16 -0700
-Message-ID: <20260808023417.1746886-8-longli@microsoft.com>
-X-Mailer: git-send-email 2.43.7
-In-Reply-To: <20260803234355.636038-1-longli@microsoft.com>
-References: <20260803234355.636038-1-longli@microsoft.com>
+	s=arc-20240116; t=1786170552; c=relaxed/simple;
+	bh=nhBrPUV+XP2b/6IA3B+Q6UcuPDU/1y+Wtbcu0Kh591g=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=cCHbl4mPAWFsvAQebmG97t5iOiA/dGQPpm1+dfKQJFYz7U1hV+dCAAnDIlpACc/OUhDpixn1HuIMZ5eEKov7QvhopKyqdZThQCp49kTYl2VHZ1NwoTzJMXRZjSPghZUGXBRSFNo3FXmcuqrLuub/Nu5L0spB6cmbxqiEUPOPVZg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me; spf=pass smtp.mailfrom=proton.me; dkim=pass (2048-bit key) header.d=proton.me header.i=@proton.me header.b=Ow2BjcjK; arc=none smtp.client-ip=185.70.43.102
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proton.me
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=proton.me header.i=@proton.me header.b="Ow2BjcjK"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=proton.me;
+	s=protonmail; t=1786170538; x=1786429738;
+	bh=qsrxYgXmkdW1UwIfKgO2peaMqKoi3mAQHZQNaJ/u4no=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
+	 Message-ID:BIMI-Selector;
+	b=Ow2BjcjKo/VqAflsTslI6onvwhUHZIfegSUCmxKFnb7ykP9LvKv12YdLjJGpD6bea
+	 y/f1ds08lplbT83kQR1gXhw8/4whgz6/EwzRmmqHrk+AGeYKoc5yzXuT9J3/2B9bKX
+	 1jO3QmNbgL1BXoQ3v/1GaoTVPPnBWEFYYtoEXCPfiDD6TnMQ2m4BvWP8Px28wWpoYA
+	 JnNfyE45GCKlqd6L1s3pxX0aIXcTHpS/0mZxQ088almwbvdN1N2+NSwUVAcwU9vTad
+	 ZLMxMgzpV+QhwqYWQbdyFjKjSDDSecnZmdrZgK1rO595ie7kORO3yeOdjC0KSGWvQu
+	 D26N/CiaTUBDA==
+Date: Sat, 08 Aug 2026 06:28:54 +0000
+To: Dust Li <dust.li@linux.alibaba.com>
+From: Bryam Vargas <hexlabsecurity@proton.me>
+Cc: Wenjia Zhang <wenjia@linux.ibm.com>, "D . Wythe" <alibuda@linux.alibaba.com>, Sidraya Jayagond <sidraya@linux.ibm.com>, Mahanta Jambigi <mjambigi@linux.ibm.com>, Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>, Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org, linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net] net/smc: drain the rx tasklet before detaching the ghost sndbuf
+Message-ID: <20260808062847.375972-1-hexlabsecurity@proton.me>
+In-Reply-To: <amnL-DjPaTQyOXT1@linux.alibaba.com>
+References: <20260726-b4-disp-a135b4e5-v1-1-705aaec79986@proton.me> <amnL-DjPaTQyOXT1@linux.alibaba.com>
+Feedback-ID: 199661219:user:proton
+X-Pm-Message-ID: c8faf2aee8e5d8d797c32779029c1af836057b14
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-mana_hwc_init_event_handler() applied every HWC_INIT_DATA_MAX_NUM_CQS
-event straight to gc->max_num_cqs.  That handler stays live for the whole
-channel lifetime -- it also services runtime reconfig and link events --
-so it is not confined to the initial bootstrap.
+Dust,
 
-gc->cq_table is allocated once, sized to the max_num_cqs seen at bootstrap,
-and every reader (mana_gd_process_eqe(), mana_create_rxq() and
-mana_create_txq()) bounds-checks a CQ index against gc->max_num_cqs before
-indexing gc->cq_table.  A device -- or a malicious host in a confidential
-VM -- that sends a later HWC_INIT_DATA_MAX_NUM_CQS with a larger value
-inflates the bound past the allocation.  This includes an event timed to
-land while mana_hwc_establish_channel() is between reading the count and
-publishing cq_table.  A subsequent out-of-range CQ id then passes the
-bounds check and indexes cq_table out of bounds: an out-of-bounds read in
-the EQ fast path, or an out-of-bounds pointer write in
-mana_create_rxq()/mana_create_txq(), corrupting guest kernel memory.
+> I think Sashiko's review makes sense. Your change doesn't seem to fully
+> eliminate the race here. I'm wondering if this should be solved with
+> RCU rather than just moving smcd_buf_detach() later?
 
-Stop writing gc->max_num_cqs from the event handler.  Store the reported
-value in hwc_init_max_num_cqs, and let mana_hwc_establish_channel() commit
-it to gc->max_num_cqs once, from the same snapshot that sizes cq_table.
-The handler store uses WRITE_ONCE() and the establish-time read uses
-READ_ONCE(), since the two run concurrently (EQ interrupt vs process
-context); the single, non-reloadable read is what guarantees the value
-that sizes cq_table is the same one published as the bound, even across
-the sleeping vcalloc().  gc->max_num_cqs then always matches the
-allocation and no later event can change the bound after the table is
-published, so the existing bounds checks are sufficient.
+You're right, it doesn't. I built both shapes and measured them on an SMC-D
+loopback rig. "path" is connections reaching either teardown site with the =
+link
+group already unlinked, "armable" how many of those still had both gates in
+smcd_handle_irq() open when the drain returned, "re-armed" the device armin=
+g
+the tasklet again afterwards:
 
-Fixes: ca9c54d2d6a5 ("net: mana: Add a driver for Microsoft Azure Network Adapter (MANA)")
-Signed-off-by: Long Li <longli@microsoft.com>
----
-Changes in v4:
- - New patch in v4, split out of the v3 teardown-safety work in
-   response to review: gc->max_num_cqs is set once when cq_table is
-   allocated and never reset, so a spoofed post-init HWC event cannot
-   inflate the bound past the allocation.
+  form                                   path  armable  re-armed
+  upstream                                169       73        29
+  v1 (drain, then detach)                 172       78        33
+  unregister first, then drain             31        0         0
+  v1 + RCU                                 24        9         3
 
- .../net/ethernet/microsoft/mana/hw_channel.c  | 34 ++++++++++++++++---
- include/net/mana/hw_channel.h                 |  1 +
- 2 files changed, 30 insertions(+), 5 deletions(-)
+Two things about that table before you read anything into it. The last two =
+arms
+ran much shorter than the first two, so the ratios are the comparable part,=
+ not
+the absolute path counts. And the third arm also forced tasklet_kill() in t=
+he
+!soft path; that was inert here because smc_lgr_terminate_work() passes
+soft=3Dtrue, but it wasn't only the unregister.
 
-diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-index 2f0dae353955..03b5e2f02e35 100644
---- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
-+++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-@@ -246,7 +246,15 @@ static void mana_hwc_init_event_handler(void *ctx, struct gdma_queue *q_self,
- 			break;
- 
- 		case HWC_INIT_DATA_MAX_NUM_CQS:
--			gd->gdma_context->max_num_cqs = val;
-+			/* Store, don't apply: mana_hwc_establish_channel()
-+			 * commits this to gc->max_num_cqs once, together
-+			 * with sizing cq_table, so a spoofed post-init event
-+			 * cannot inflate the bound past the allocation.
-+			 * WRITE_ONCE() pairs with the READ_ONCE() there:
-+			 * this store runs in EQ interrupt context,
-+			 * concurrently with that process-context read.
-+			 */
-+			WRITE_ONCE(hwc->hwc_init_max_num_cqs, val);
- 			break;
- 
- 		case HWC_INIT_DATA_PDID:
-@@ -852,6 +860,8 @@ static int mana_hwc_establish_channel(struct gdma_context *gc, u16 *q_depth,
- 	struct gdma_queue *eq = hwc->cq->gdma_eq;
- 	struct gdma_queue *cq = hwc->cq->gdma_cq;
- 	struct gdma_queue __rcu **cq_table;
-+	u32 num_cqs;
-+	u32 cq_id;
- 	int err;
- 
- 	init_completion(&hwc->hwc_init_eqe_comp);
-@@ -881,15 +891,29 @@ static int mana_hwc_establish_channel(struct gdma_context *gc, u16 *q_depth,
- 	*max_req_msg_size = hwc->hwc_init_max_req_msg_size;
- 	*max_resp_msg_size = hwc->hwc_init_max_resp_msg_size;
- 
--	/* Both were set in mana_hwc_init_event_handler(). */
--	if (WARN_ON(cq->id >= gc->max_num_cqs))
-+	/* Snapshot the device-reported CQ count and CQ id into locals and
-+	 * use only the locals below, so the same value that sizes cq_table
-+	 * also bounds and indexes it -- even across the sleeping vcalloc().
-+	 * Both fields are written by mana_hwc_init_event_handler() from EQ
-+	 * interrupt context: hwc_init_max_num_cqs under WRITE_ONCE() (paired
-+	 * here), and cq->id as an ordinary store.  READ_ONCE() keeps each
-+	 * read tear-free and, crucially, non-reloadable, so a spoofed
-+	 * post-init event cannot make the WARN_ON() pass against one value
-+	 * while the allocation or the index uses another.
-+	 */
-+	num_cqs = READ_ONCE(hwc->hwc_init_max_num_cqs);
-+	cq_id = READ_ONCE(cq->id);
-+
-+	if (WARN_ON(cq_id >= num_cqs))
- 		return -EPROTO;
- 
--	cq_table = vcalloc(gc->max_num_cqs, sizeof(*cq_table));
-+	cq_table = vcalloc(num_cqs, sizeof(*cq_table));
- 	if (!cq_table)
- 		return -ENOMEM;
- 
--	rcu_assign_pointer(cq_table[cq->id], cq);
-+	gc->max_num_cqs = num_cqs;
-+
-+	rcu_assign_pointer(cq_table[cq_id], cq);
- 	/* Publish the fully-initialised table last; pairs with the
- 	 * rcu_dereference(gc->cq_table) in mana_gd_process_eqe().
- 	 */
-diff --git a/include/net/mana/hw_channel.h b/include/net/mana/hw_channel.h
-index 23bf83e2a3ec..c275150baf49 100644
---- a/include/net/mana/hw_channel.h
-+++ b/include/net/mana/hw_channel.h
-@@ -203,6 +203,7 @@ struct hw_channel_context {
- 	u16 hwc_init_q_depth_max;
- 	u32 hwc_init_max_req_msg_size;
- 	u32 hwc_init_max_resp_msg_size;
-+	u32 hwc_init_max_num_cqs;
- 
- 	struct completion hwc_init_eqe_comp;
- 
--- 
-2.43.0
+The reorder leaves the window open because smc_conn_free() calls
+smc_ism_unset_conn() only while the link group is still on its device list,
+and smc_lgr_terminate_sched() unlinks it before the worker kills the
+connections. It never sets conn->killed either, so both gates stay open acr=
+oss
+tasklet_kill().
+
+RCU does not close it. smcd_buf_detach() frees the descriptor and clears th=
+e
+field, and RCU defers only the free -- the re-armed tasklet still runs and
+still finds conn->sndbuf_desc NULL. RCU on the descriptor would still be a
+reasonable thing to want for the free itself; it just isn't what shuts this
+window, so I didn't fold it in. Say the word if you want it anyway.
+
+v2 unregisters unconditionally before the drain, and clears conn->sndbuf_de=
+sc
+before freeing it so a reader that samples the pointer can't get a freed on=
+e.
+It carries a second patch for a dereference the same teardown reaches:
+smc_close_stream_wait() calls smc_tx_prepared_sends() from inside
+sk_wait_event(), which evaluates its condition once with the socket lock
+released. SIOCOUTQ reads the field by hand, so that one is bounded too.
+
+Thanks for catching it.
+
+Bryam
 
