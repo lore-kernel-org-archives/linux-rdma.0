@@ -1,72 +1,84 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86B262853E0;
-	Sat,  8 Aug 2026 01:00:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CB3A1D61BC;
+	Sat,  8 Aug 2026 01:40:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786150857; cv=none; b=sHVsRyp6xwy+lkSaOtGAJXZV4gLeM9knNODnm9v8lMAcIDWZrFFniPjgc6asyy0ZX79t+B3zfmbsgAzNUdjtLrtxLkqaHPsotidxYn9SrMApgxTkh/bqbg0PNUqZW0QVNR8ghzBmiy1OMFH57x/ChjqB9N3xzLr9kGeQ6j6kYac=
+	t=1786153256; cv=none; b=iXMGBWZMEVYkrOMPVdTyorjKr7oF2WMQDJo7jGfSo/LpABAbJQJqGmcjcEm3gE5vaSRoTF2qk3zIV9KhtOODxgPPfiNDOr50+I+8VyH7H5NSx6f7Rei8V4MnhJNRc6tg1z8WSWDKmpHmFODyWUh8Xqr3vSyluFSttHYP81k4ID8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786150857; c=relaxed/simple;
-	bh=AliDQ5pLcGwEu0ilrw2lHXTGcq9rNhVuQ2W1AMYiEyw=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=MWYMoPq5SHlXRQB25omSgGB1P0NZERXEc+TxbU2dWEAl6sxHCA/Vc9xTlxHs0y4F0l+MzmutROZqzNofb1edBfgJVFSHtG0FGs2DEf7uv8efIZaGxF12Rwno/IGQf4XZjv0piVVhIFdwKCfooYR1lF0yUU3IMB9AeXhxdl90d2w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GcfVVher; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786153256; c=relaxed/simple;
+	bh=4A94kzJ2MRWi1gSe76j6gFHh3DmsFJsVRSxq78BfUQw=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=pmEULNA3W0AofktO34EcDK7bVhyFV/4kBgEAI1zaVkpGSU49FRlQzQeghX9u0WTPbHk1SqsfVr4yRMLdOmaqJu9aLmsyR2eTipAnOxvwH9Hzy7irJmQIRchHTSNLjS9C6pF+Irj/aGWPgoqOd0MxVeY31gzxUObZoBs8FSGj2q0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=J2YfOh1c; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GcfVVher"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 199001F000E9;
-	Sat,  8 Aug 2026 01:00:55 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="J2YfOh1c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B36301F000E9;
+	Sat,  8 Aug 2026 01:40:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786150856;
-	bh=syosqafmb08TK1bwXXbZFsKYTDVFwR/DvSgacRRUpL8=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=GcfVVherGT0LkSFb/qyfgLmSC3FW4iWMaU1uHaC5+JZJWJqAmwm1fZOlsTnPDstZX
-	 O6knC1/W4MNwKkvMrDM5JM1hQfoZuDF2iGRVhTuN032Iapn/2igMhpEMQPhncYWaSP
-	 rJ7U2UYwJvSYpNGAsMTKNSlUnC3IvhF1Km3ykZIjnQi3iTQlyH7GGKBsbVffBUhUcy
-	 oo+RhFeRMTrIZiWWMkLdhNFKbXQ1Z070ikQmXKuaLGOzJLY0svT9clsyhxf8DkXg+T
-	 bHtvgD2QSTY+5B8ZPYZVLbsmmGuI1kvpQ6D82VA/kLbLP4xVe4wJxRO6RVZSDVFF83
-	 1WMuBpi3F3Xvw==
-Date: Fri, 7 Aug 2026 18:00:54 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Tariq Toukan <tariqt@nvidia.com>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
- <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>, Sabrina Dubroca
- <sd@queasysnail.net>, Aleksandr Loktionov <aleksandr.loktionov@intel.com>,
- Alexei Lazar <alazar@nvidia.com>, Boris Pismenny <borisp@nvidia.com>,
- Carolina Jubran <cjubran@nvidia.com>, Chris Mi <cmi@nvidia.com>, Cosmin
- Ratiu <cratiu@nvidia.com>, Daniel Zahka <daniel.zahka@gmail.com>, Doruk Tan
- Ozturk <doruk@0sec.ai>, Dragos Tatulea <dtatulea@nvidia.com>, Gal Pressman
- <gal@nvidia.com>, Jacob Keller <Jacob.e.keller@intel.com>, Jianbo Liu
- <jianbol@nvidia.com>, Kees Cook <kees@kernel.org>, Lama Kayal
- <lkayal@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
- <linux-kernel@vger.kernel.org>, <linux-kselftest@vger.kernel.org>,
- <linux-rdma@vger.kernel.org>, Mark Bloch <mbloch@nvidia.com>, "Patrisious
- Haddad" <phaddad@nvidia.com>, Raed Salem <raeds@nvidia.com>, Rahul
- Rameshbabu <rrameshbabu@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>,
- Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>,
- Simon Horman <horms@kernel.org>, Stanislav Fomichev <sdf@fomichev.me>,
- Stanislav Fomichev <sdf.kernel@gmail.com>
-Subject: Re: [PATCH net-next V2 13/13] selftests: drv-net: psp: Add a test
- for PSP with HW-GRO
-Message-ID: <20260807180054.380be9d0@kernel.org>
-In-Reply-To: <20260804083535.2946459-14-tariqt@nvidia.com>
-References: <20260804083535.2946459-1-tariqt@nvidia.com>
-	<20260804083535.2946459-14-tariqt@nvidia.com>
+	s=k20260515; t=1786153254;
+	bh=IHIXuXRdIPTKhEay8m4BmOZHs4ncZ7z4Du8deIqZBPY=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=J2YfOh1cnJ3t4el4LPxlspRvz9ZWe0Cjx9YIjsN4BSSg7Z0mcYFyvy8drqU3vXT2g
+	 Qq8gLLB+7CKYpcXwX18S11a2lw5xCA4yDnJ1HDON5hHTQ3XAWVJIGLwCCJ2IIEBkop
+	 Kkw239gUhMSFYXiguFTr5e7PfAdm11eDu2tENUUQqs/NCXoq7UEnjaw1rfJgnmwxB1
+	 5AAhyhBbd2xSOUzKDoosf4p+GkBLkUvfzWIMHw7+Y5PVR0EDbjm1IRO7GitTg6Im1H
+	 x9mIFoMRAtBCx2aWnFWSkx1aqGKNJsbJIwtW3Ao3K4+wK8mobDi1KjgF+UPY3XJTZ2
+	 cMoDI4yRwiNPg==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 5694F380CEE4;
+	Sat,  8 Aug 2026 01:40:14 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next v3] net: mana: Extend RX CQE coalescing up to 8
+ packets
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <178615321289.2493713.8444046585409083595.git-patchwork-notify@kernel.org>
+Date: Sat, 08 Aug 2026 01:40:12 +0000
+References: <20260805185404.1052177-1-haiyangz@linux.microsoft.com>
+In-Reply-To: <20260805185404.1052177-1-haiyangz@linux.microsoft.com>
+To: Haiyang Zhang <haiyangz@linux.microsoft.com>
+Cc: linux-hyperv@vger.kernel.org, netdev@vger.kernel.org, kys@microsoft.com,
+ haiyangz@microsoft.com, wei.liu@kernel.org, decui@microsoft.com,
+ longli@microsoft.com, andrew+netdev@lunn.ch, davem@davemloft.net,
+ edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+ kotaranov@microsoft.com, horms@kernel.org, ernis@linux.microsoft.com,
+ dipayanroy@linux.microsoft.com, gargaditya@linux.microsoft.com,
+ jacob.e.keller@intel.com, leitao@debian.org, linux-kernel@vger.kernel.org,
+ linux-rdma@vger.kernel.org, paulros@microsoft.com
 
-On Tue, 4 Aug 2026 11:35:35 +0300 Tariq Toukan wrote:
->  tools/testing/selftests/drivers/net/psp.py    | 131 ++++++++++++++++--
+Hello:
 
-This is not the right place, and the test coverage is really weak.
-Please see the level of detail we have in the other gro test cases.
-This should probably be a separate test due to a crypto complexity,
-and we should exercise the various header fields PSP has, as well
-as crypto failures?
+This patch was applied to netdev/net-next.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
+
+On Wed,  5 Aug 2026 11:53:51 -0700 you wrote:
+> From: Haiyang Zhang <haiyangz@microsoft.com>
+> 
+> To support up to 8 packets per CQE, update related CQE processing
+> code and structures.
+> Update ethtool handlers to set this feature.
+> Update per queue stat to show the coalesced CQE counters.
+> This feature is supported on NIC hardware showing the relevant
+> PF flag.
+> 
+> [...]
+
+Here is the summary with links:
+  - [net-next,v3] net: mana: Extend RX CQE coalescing up to 8 packets
+    https://git.kernel.org/netdev/net-next/c/55d20f50a221
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
