@@ -1,109 +1,76 @@
-Received: from mail-qt1-f176.google.com (mail-qt1-f176.google.com [209.85.160.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8DF8373BE8
-	for <linux-rdma@vger.kernel.org>; Fri,  7 Aug 2026 23:13:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DA55272816;
+	Sat,  8 Aug 2026 00:59:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786144440; cv=none; b=rn/tybTp1c9h34nRLSnSZD28bqmhmzH/n9LJ0PDCKFlqT0+xbu4rSexSWfvf/xCjUlnPiyB8mN+lvE4CVZSwSk1+5xnj1QPLlP1FHc8/GU5pq7oRxYtr9u7QwvteNwlcrJ4jVFYXcpz9q+T8pkakdc7MQlfPqkdpmEuAB0hKscQ=
+	t=1786150742; cv=none; b=AKfHYYnSx+1x0ks6Y6KCp3fMW5zwlGEO5hS4V6dED/pYMrRY7Ycq1Y5gTYAvVMFjkdqYLfF4sdFPRxtIiZ0DInAiYoSF5lkEb7NwKiG1PP4zLKpspEM6YrZcQSBuA4ch1ilmcJKV/QSTUc6nD0lHE+FYfzSP0bhzzHdiEUdQecw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786144440; c=relaxed/simple;
-	bh=tqUjXiHomX+VrKleMFQsfMOb8MiW4dZzgPZl+5IWgtk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=c926vAVxdKKIc/hRi7M39wxNTvNpmpBTimlRmjPdB0+UJxLb+2u3e2rkMibrTvA0ie5vjME74hIp0nao1jQaJa4QZBwkZ2+3wQqoPvX8QyW+K6BFIX4/a+49R//0qYOp9ROCsTBjg8PjP7rfotm30GxjEFK668wbhg+etoxlp8A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=XM9syh0g; arc=none smtp.client-ip=209.85.160.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
+	s=arc-20240116; t=1786150742; c=relaxed/simple;
+	bh=YGuSVUOMY56+RRIAcCYgwtca/i2nDVqQejr5/tB8nnY=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=swbhHJowvqSKkrxZAtEagvB7UOwsdn4L1eiwthGzPI6UJbtM7gh00BDVVLbLgmkaKoe8yLTZCCWyQUabuZgA/eVZPflJl0cwb/ZJvN8/XyxnZYbNdU4+x+Mz65bV4jOKKbsIjNM6Fn4W3v23wQqmcMsfccZW9a2Nu53Gb46DcD4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CPBU7H2w; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="XM9syh0g"
-Received: by mail-qt1-f176.google.com with SMTP id d75a77b69052e-51c05dcdf49so1052231cf.0
-        for <linux-rdma@vger.kernel.org>; Fri, 07 Aug 2026 16:13:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1786144438; x=1786749238; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=tqUjXiHomX+VrKleMFQsfMOb8MiW4dZzgPZl+5IWgtk=;
-        b=XM9syh0g7YijndTABQ0Uj7uoscky6+Y1s3Oh5oNH7LHDnmSkfMTJMDPqstPd23mhwR
-         cdSfvBontzP074JnhY3vrp5mpyDrT5a1vDH5DnRVYw7pVwvowAIQndBTStKo35nXmjwe
-         4GHNfSYW/TKuDUTR78TollixPB06XXR+ugEDtYnROYmH00XMTQAr+8ZCRxAloIMSlC7v
-         eq2vRaltp3UyNVNIQrA1NcZmpE4SrqSJXhpv9sj4tfVmDIU5VFs1YP58tlI150NTqleY
-         obukpD5sADci/gjtbwYBHZ/hFUYXS52xb7qjnclcTizgSJoiD+tcxzCvyqqPCA+E39OC
-         R4qg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786144438; x=1786749238;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=tqUjXiHomX+VrKleMFQsfMOb8MiW4dZzgPZl+5IWgtk=;
-        b=C+HhKmMcWXUB9qUkx+pslRUGVBek9JxCdPD13ige7I8xyFMgCqYjSiFFfgajkN7P/e
-         16p/ptqN1pvE6w8zocovIu3H5/CcnYUoxDm0rh8iAPyQ1tvFApgkVgrtLPSsBX2LhUig
-         o+jtvuvl3T0QX4S8qpruVK2Q9gI8dVwTBk8s1vFRo7BgIEWRDmT9ssQMCZOzVXM+qfEd
-         peIAqnynFUj0g4JvU5SrQQPgll4ZNUkdzlfRlCMgQO7gZzhHD1NNSgEIsweQdPJpmdPu
-         rJ3RaBNlwseZr8qIYKxJ8I94hfmM0ftR9hXWrPV5IAZaExivo54d18ouklgLUDjy31Am
-         RNyQ==
-X-Forwarded-Encrypted: i=1; AHgh+RowEYkTJkzyIyQv1FR0hA9b5cBz66BepgC5ZQHQj58qeYRyQmietfZejaQB8X2ZNALyinLBX+Ic445L@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy2ajmakHIuAdHZg5E+Tb2mEpXMgvs8JebMC+TMMNilpcSX+BD8
-	TdZrV+n5VRESBiCwdn8+rV1NmawKoV+yOdIOFBLTJ34DCgiZwy9D6gykncNM7UbiBf4=
-X-Gm-Gg: AR+sD13UkQYreVPj7nvLzzok/UAPI7cul0VeLbW3AHY9HAv8nfCMHYVb68mVDPQF4rj
-	32/FB4ve8EdPxe8/tK117AaQrGibmWIq1X14XcW9Ffk7OIoYVvEIUDKHEFxtfVwpfwJS6h2zd8X
-	t6q5MxUdpXP3QfgDRCZmqyNzqrq25YCmC6DlWX3Xe+eQqrEwqH77Zt9r9gwOJAOpIhUOVsNN1IQ
-	SlUJXgqYnVuja2BNEDaowpB9OXcEzSfYM0AclRBakAQnZ3vp1fneXHCmviD9GGwtBZwVZL+qmZY
-	R8KaL3ydIFvGwqvhJuBAj8AHHYJD6s8dxRTjLKA31sxnoFzJ+BuwRYtLHXL+NHleVQZKKXMgJdr
-	j+ccdAr0sWY0rlO+5x8BPMxcwffIk0m7FG0a5qOPTEsTsrxaezWlfmlQIw+nSmswfHJW0YsDvoi
-	sDEFiKPpd6SBfzOKpMckecY1YPH9ImpQlyUF5BatA=
-X-Received: by 2002:a05:622a:4c9:b0:51a:1651:b796 with SMTP id d75a77b69052e-52ce6188478mr291017851cf.29.1786144437788;
-        Fri, 07 Aug 2026 16:13:57 -0700 (PDT)
-Received: from ziepe.ca ([142.166.156.215])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-908a918db45sm19297086d6.4.2026.08.07.16.13.57
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 07 Aug 2026 16:13:57 -0700 (PDT)
-Received: from jgg by wakko with local (Exim 4.97)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1wsTlE-00000001Hhl-2cyu;
-	Fri, 07 Aug 2026 20:13:56 -0300
-Date: Fri, 7 Aug 2026 20:13:56 -0300
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Jiri Pirko <jiri@resnulli.us>
-Cc: Konstantin Taranov <kotaranov@microsoft.com>,
-	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-	"leon@kernel.org" <leon@kernel.org>, Long Li <longli@microsoft.com>,
-	"linux-hyperv@vger.kernel.org" <linux-hyperv@vger.kernel.org>
-Subject: Re: [PATCH rdma-next] RDMA/mana_ib: Retain create CQ flags field name
-Message-ID: <20260807231356.GM200537@ziepe.ca>
-References: <20260731091041.2250897-1-jiri@resnulli.us>
- <DU8PR83MB0975547820CBB956D4EFFE57B4C82@DU8PR83MB0975.EURPRD83.prod.outlook.com>
- <anCBtLSxn8TtFcSz@FV6GYCPJ69>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CPBU7H2w"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A72171F000E9;
+	Sat,  8 Aug 2026 00:58:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1786150740;
+	bh=FxQWgheFrGGIAFY2WTZAGots/+C6XDFhzlfMzxIo6NU=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=CPBU7H2wUpkV0heySQzYdIO8q6cUYIuOC4MlusA5+nesc+hT3SVqwhRb2eJ2gjG9w
+	 O9fUrureOUHY9QN2Yx3WyS+ZCKq88w9HrT1+YyGlB7M6oJeUgw/G4jD1nb9lA0HV1l
+	 f6bzqDfE0tEcMnAYzzsEzQADs1UdBct8Gr1ET+iDFLV3p5m95eHUR/B67xvh99KWty
+	 wh4DeN5uUa5QgxyC8f74gbk9TjChqKFnwNv/4k1Bk8gxF6F6ANzrVLtx0+BywQmVWn
+	 KWARFmLVdqu6l2bTnKFyUYWDLoBKRFybeoVF6IoE7ghoAfGolKVPloa6ZWpM9SVXa1
+	 tBTV/CMrNlzcw==
+Date: Fri, 7 Aug 2026 17:58:58 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Tariq Toukan <tariqt@nvidia.com>
+Cc: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
+ <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>, Sabrina Dubroca
+ <sd@queasysnail.net>, Aleksandr Loktionov <aleksandr.loktionov@intel.com>,
+ Alexei Lazar <alazar@nvidia.com>, Boris Pismenny <borisp@nvidia.com>,
+ Carolina Jubran <cjubran@nvidia.com>, Chris Mi <cmi@nvidia.com>, Cosmin
+ Ratiu <cratiu@nvidia.com>, Daniel Zahka <daniel.zahka@gmail.com>, Doruk Tan
+ Ozturk <doruk@0sec.ai>, Dragos Tatulea <dtatulea@nvidia.com>, Gal Pressman
+ <gal@nvidia.com>, Jacob Keller <Jacob.e.keller@intel.com>, Jianbo Liu
+ <jianbol@nvidia.com>, Kees Cook <kees@kernel.org>, Lama Kayal
+ <lkayal@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
+ <linux-kernel@vger.kernel.org>, <linux-kselftest@vger.kernel.org>,
+ <linux-rdma@vger.kernel.org>, Mark Bloch <mbloch@nvidia.com>, "Patrisious
+ Haddad" <phaddad@nvidia.com>, Raed Salem <raeds@nvidia.com>, Rahul
+ Rameshbabu <rrameshbabu@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>,
+ Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>,
+ Simon Horman <horms@kernel.org>, Stanislav Fomichev <sdf@fomichev.me>,
+ Stanislav Fomichev <sdf.kernel@gmail.com>
+Subject: Re: [PATCH net-next V2 12/13] selftests: drv-net: psp: Fix
+ responder parsing
+Message-ID: <20260807175858.70a717d6@kernel.org>
+In-Reply-To: <20260804083535.2946459-13-tariqt@nvidia.com>
+References: <20260804083535.2946459-1-tariqt@nvidia.com>
+	<20260804083535.2946459-13-tariqt@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <anCBtLSxn8TtFcSz@FV6GYCPJ69>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Mon, Aug 03, 2026 at 01:59:07PM +0200, Jiri Pirko wrote:
+On Tue, 4 Aug 2026 11:35:34 +0300 Tariq Toukan wrote:
+>  			off += n;
+> -			n = off;
 
-> That is not doable in UAPI. Some userspace app, like rdma-core in
-> this case, might use it and rename breaks the compilation. Some other
-> app you don't know about may use it.
+> +#define cmd(_name, _extra_sz)						\
+>  		({							\
+>  			ssize_t sz = sizeof(_name);			\
+> -			bool match = n >= sz &&	!memcmp(buf, _name, sz); \
+> +			bool match = off >= sz + (_extra_sz) &&		\
+> +				!memcmp(buf, _name, sz);		\
 
-Linus actualy had some comments on this once (which I will never be
-able to find I guess), but we broadly follow what he outlined. The
-userspace has copies of the kernel headers embedded in it. When the
-kernel headers change the user space updates it's copy and fixes any
-build breaks.
-
-So long as the build breaks are fixable, and don't change the ABI, it
-is fine.
-
-Many parts of the kernel work like this because userspace is not
-supposed to directly use the kernel headers themselves, they are
-supposed to be sanitized by glibc or some other helper library.
-
-There are a few places that don't work like this of course..
-
-Jason
+Please don't replace off by n.
