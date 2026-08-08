@@ -1,20 +1,20 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id ED0AD264F80;
-	Sat,  8 Aug 2026 02:34:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 10C2F1E2834;
+	Sat,  8 Aug 2026 02:34:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786156485; cv=none; b=X5L6Q/YkULWjsayXi/XjPxsKHvSES/bQNLICCIJWnxoyftQJZJw2NQAb7ZL3UCNTrlexArtA1Unz41AI+dHkh7H6PdVV4L8vk5tl+H1DE+VNiKudPKpIJTL+YlMBEntgsiJLFWLTzZYmnmhYF0sY+GQ1htmGBsnz5ErZ5DehxFQ=
+	t=1786156486; cv=none; b=mYA92eHw94/4ebfTExVyGdWOHiTW1g4zOgZ1na5kZUtAqnD8pcZ31THYST9vOVSTu/jsGnReMIDsXbnmexVRGTiAJ0erceYgcKxa/gQVDFUnnwSuqeWN1B+qkPvAfpjmHHIN8pKAM8M6qk1BM+asRUEy13Vp9b6+eUWpRypJF7Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786156485; c=relaxed/simple;
-	bh=iqc19/X3nwooIdg3FA9dXTDR9gd/LHKZwqTEjiDYXxM=;
+	s=arc-20240116; t=1786156486; c=relaxed/simple;
+	bh=c8Y8rP12JZF5QsyC4WIAZ4aRMfElPFWH8laKIWybBzI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Q/jCPlKIG38Zm9nfFgX6UIUi7z26hTinuP+Bi74hUy2O66AFVPrwlmOxz0MXA9dV/V608E8B231zaeIqZetOh4iD7bFJw1OEQlDgxdCJVRazWPsLwVIC8swtJR6Nj+RcrpK1jh+smvHlpQtzJgxGNrLGRBym25Oc/kH7WthUXVU=
+	 MIME-Version; b=moUYStPP1/hPnvFbSwS/eR0wnOGzWyOZA4rvaTTul/YZwzQE+lg/O15oNCry0SpWIMmatkAvpLIHUp6odn29/4qOrpVuQ4xq+Sg3O98dtspqG/MzKOKsmFYHgnCu71wiF9bf12WJ7Gh6Agh502Bk4T4ZFE7jkxak4EVhvzsaNds=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Received: by linux.microsoft.com (Postfix, from userid 1202)
-	id AE8DA20B710C; Fri,  7 Aug 2026 19:34:21 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com AE8DA20B710C
+	id 136F220B7128; Fri,  7 Aug 2026 19:34:23 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 136F220B7128
 From: Long Li <longli@microsoft.com>
 To: Long Li <longli@microsoft.com>,
 	Konstantin Taranov <kotaranov@microsoft.com>,
@@ -41,9 +41,9 @@ Cc: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	linux-hyperv@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH net v4 0/7] net: mana: HW channel reliability and hardening fixes
-Date: Fri,  7 Aug 2026 19:34:09 -0700
-Message-ID: <20260808023417.1746886-1-longli@microsoft.com>
+Subject: [PATCH net v4 2/7] net: mana: fix HWC RQ/SQ buffer size swap
+Date: Fri,  7 Aug 2026 19:34:11 -0700
+Message-ID: <20260808023417.1746886-3-longli@microsoft.com>
 X-Mailer: git-send-email 2.43.7
 In-Reply-To: <20260803234355.636038-1-longli@microsoft.com>
 References: <20260803234355.636038-1-longli@microsoft.com>
@@ -55,141 +55,87 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This series fixes a set of latent bugs and robustness gaps in the MANA
-Hardware Channel (HWC), the control path the driver uses to talk to the
-device.  The issues range from a use-after-free of completion queues
-during teardown to buffer mis-sizing, unsafe teardown ordering, missing
-validation of device-supplied RX metadata, and stale-response handling
-after a command timeout.
+The HWC RQ receives responses and the SQ sends requests, but
+mana_hwc_init_queues() sized the RQ with max_req_msg_size and the SQ with
+max_resp_msg_size -- backwards.  mana_hwc_rx_event_handler() also
+recovered the RX slot index by dividing by max_req_msg_size instead of
+the response size that strides the RQ buffer.
 
-Patch overview:
+Both mistakes are latent today: the only caller passes
+HW_CHANNEL_MAX_REQUEST_SIZE and HW_CHANNEL_MAX_RESPONSE_SIZE, which are
+both 0x1000, and the queues are never re-created with the
+hardware-reported sizes (those are only used by mana_hwc_test_channel()),
+so max_req_msg_size == max_resp_msg_size on every path and there is no
+observable overflow or mis-indexing.  The bug would only surface if the
+two sizes ever diverged.
 
-  1  RCU-protect gc->cq_table lookups against concurrent CQ destroy
-     The EQ interrupt handler dereferences CQ pointers from gc->cq_table
-     while teardown can free them.  Put the table under RCU and wait a
-     grace period before freeing, closing the use-after-free.
+Size the RQ by max_resp_msg_size and the SQ by max_req_msg_size, store
+max_resp_msg_size in hw_channel_context, and use it as the RX slot stride
+so the code is correct regardless of the two sizes.
 
-  2  fix HWC RQ/SQ buffer size swap
-     init_queues() sized the RQ with max_req_msg_size and the SQ with
-     max_resp_msg_size -- backwards.  Correct the swap; both sizes are
-     equal in practice, so this is a latent-correctness fix.
+Fixes: ca9c54d2d6a5 ("net: mana: Add a driver for Microsoft Azure Network Adapter (MANA)")
+Signed-off-by: Long Li <longli@microsoft.com>
+---
+Changes in v4:
+ - Reworded the changelog as a latent-correctness fix (both message
+   sizes are 0x1000, so the swap has no observable overflow) and
+   dropped the note about hoisting the queue dimensions above
+   mana_hwc_create_cq().
 
-  3  free HWC comp_buf after destroying the EQ
-     Reorder teardown so the EQ is destroyed (readers quiesced) before
-     comp_buf and the CQ are freed, preventing a late EQ-handler access
-     to freed memory.
+ drivers/net/ethernet/microsoft/mana/hw_channel.c | 7 ++++---
+ include/net/mana/hw_channel.h                    | 1 +
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-  4  validate hardware-supplied values in the HWC RX path
-     Bounds-check the SGE, verify the recovered slot index and SGE
-     address, and validate response length and msg_id before use, so
-     malformed or hostile DMA metadata cannot cause wrong-slot completion
-     or out-of-bounds access.
-
-  5  fix HWC teardown safety with setup_active flag and destroy ordering
-     Track setup activation explicitly, tear the EQ/CQ down before the
-     TXQ/RXQ, and on an unrecoverable teardown failure leak the HWC
-     resources rather than free memory the device may still DMA into.
-
-  6  fix stale HWC response after command timeout
-     Replace the inflight-slot semaphore with a bitmap + waitqueue and
-     per-slot refcount/lock; latch the channel on timeout so no new slots
-     are handed out, drop duplicate/late responses, and ignore a zero
-     firmware-supplied timeout.
-
-  7  keep max_num_cqs immutable once cq_table is allocated
-     gc->max_num_cqs is set once when cq_table is allocated and never
-     reset, so a spoofed post-init HWC event cannot inflate the bound
-     past the allocation and drive an out-of-bounds cq_table access.
-
-Follow-up feature work (net-next, sent separately):
-
-The original series also contained two patches that are improvements, not
-fixes:
-
-  net: mana: support concurrent HWC requests
-  net: mana: add dynamic HWC queue depth with reinit path
-
-Per the netdev tree rules, fixes go to 'net' and features/improvements go
-to 'net-next', and the two must not be combined in a single submission.
-Those two patches build on the locking and teardown groundwork in this
-series, so they will be posted as a separate net-next series only after
-these fixes have propagated from net into net-next through the usual
-periodic merge.
-
-Changes since v3:
-
-Addressed the netdev-ai and sashiko.dev automated reviews of v3.
-
- - New patch 7 ("keep max_num_cqs immutable once cq_table is
-   allocated"): gc->max_num_cqs is set once and never reset, so a
-   spoofed post-init HWC event cannot inflate the bound past the
-   allocation and cause an out-of-bounds cq_table access.
- - patch 1: replaced the per-CQ synchronize_rcu() in the netdev teardown
-   paths with a two-pass quiesce/free that takes a single grace period
-   per teardown; snapshot cq->id and max_num_cqs with READ_ONCE() so the
-   same value sizes, bounds and indexes cq_table; corrected the
-   gc->cq_table lifetime comment; rescoped the changelog to the
-   use-after-free fix.
- - patch 2: reworded the changelog as a latent-correctness fix (both
-   message sizes are 0x1000, so the swap has no observable overflow) and
-   dropped the incorrect note about hoisting the queue dimensions.
- - patch 4: removed the short-response early return so a malformed
-   response reaches verify_resp_msg() -> -EPROTO and completes the
-   sender instead of hanging it; account leaked RX WQEs and trip
-   hwc_timeout on RQ exhaustion; read the device-supplied
-   inline_oob_size_div4 (through its u32 flags word, as it is a
-   bit-field) and sge->address with READ_ONCE() and reject any value
-   other than the one the driver programs; reframed the msg_id check as
-   defense in depth.
- - patch 5: arm setup_active immediately after mana_smc_setup_hwc()
-   succeeds; destroy the EQ (IRQ deregister + drain) before the CQ; drop
-   the redundant teardown in mana_hwc_establish_channel() that caused a
-   double hardware timeout and masked the original error.
- - patch 6: take both the sender and response-side references up front in
-   mana_hwc_get_msg_index() (refcount initialised to 2, under the lock
-   that publishes the slot) so an early/stale/forged response cannot free
-   the slot before the sender posts; changed caller_ctx::error from u32
-   to int; reject a zero firmware-supplied HWC timeout in the query path
-   as well as the reconfig path; access hwc_timed_out with READ_ONCE()/
-   WRITE_ONCE(); comment and changelog fixes.
- - Assorted comment and commit-message clarifications throughout.
-
-Changes since v2:
-
- - Per maintainer feedback, split the original combined series: the
-   fixes here target 'net'; the two feature patches now go to 'net-next'
-   and are sent separately (see above).  Rebased the fixes onto net.
- - Dropped the pcie_flr()-based reset fallback from the teardown path.
-   pcie_flr() resets device config without the save/restore that
-   pci_reset_function() provides, and cannot be used as a drop-in here.
-   On an unrecoverable teardown failure the driver now leaks the HWC
-   resources instead of touching memory the device may still DMA into.
- - patch 2: store the HWC queue dimensions before creating the CQ so the
-   RX completion handler can never observe a zero max_resp_msg_size
-   divisor or a stale num_inflight_msg bound.
- - Assorted commit-message and comment clarifications.
-
-Long Li (7):
-  net: mana: RCU-protect gc->cq_table lookups against concurrent CQ
-    destroy
-  net: mana: fix HWC RQ/SQ buffer size swap
-  net: mana: free HWC comp_buf after destroying the EQ
-  net: mana: validate hardware-supplied values in the HWC RX path
-  net: mana: fix HWC teardown safety with setup_active flag and destroy
-    ordering
-  net: mana: fix stale HWC response after command timeout
-  net: mana: keep max_num_cqs immutable once cq_table is allocated
-
- drivers/infiniband/hw/mana/cq.c               |  46 +-
- .../net/ethernet/microsoft/mana/gdma_main.c   |  48 +-
- .../net/ethernet/microsoft/mana/hw_channel.c  | 452 +++++++++++++++---
- drivers/net/ethernet/microsoft/mana/mana_en.c | 136 ++++--
- include/net/mana/gdma.h                       |  40 +-
- include/net/mana/hw_channel.h                 |  44 +-
- 6 files changed, 652 insertions(+), 114 deletions(-)
-
-
-base-commit: dd057113ac7ba5bdd2aed3d9405305911152f911
+diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
+index 409e20caeccd..3f011ebbe7b3 100644
+--- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
++++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
+@@ -263,7 +263,7 @@ static void mana_hwc_rx_event_handler(void *ctx, u32 gdma_rxq_id,
+ 
+ 	/* Select the RX work request for virtual address and for reposting. */
+ 	rq_base_addr = hwc_rxq->msg_buf->mem_info.dma_handle;
+-	rx_req_idx = (sge->address - rq_base_addr) / hwc->max_req_msg_size;
++	rx_req_idx = (sge->address - rq_base_addr) / hwc->max_resp_msg_size;
+ 
+ 	if (rx_req_idx >= hwc_rxq->msg_buf->num_reqs) {
+ 		dev_err(hwc->dev, "HWC RX: wrong rx_req_idx=%llu, num_reqs=%u\n",
+@@ -733,14 +733,14 @@ static int mana_hwc_init_queues(struct hw_channel_context *hwc, u16 q_depth,
+ 		goto out;
+ 	}
+ 
+-	err = mana_hwc_create_wq(hwc, GDMA_RQ, q_depth, max_req_msg_size,
++	err = mana_hwc_create_wq(hwc, GDMA_RQ, q_depth, max_resp_msg_size,
+ 				 hwc->cq, &hwc->rxq);
+ 	if (err) {
+ 		dev_err(hwc->dev, "Failed to create HWC RQ: %d\n", err);
+ 		goto out;
+ 	}
+ 
+-	err = mana_hwc_create_wq(hwc, GDMA_SQ, q_depth, max_resp_msg_size,
++	err = mana_hwc_create_wq(hwc, GDMA_SQ, q_depth, max_req_msg_size,
+ 				 hwc->cq, &hwc->txq);
+ 	if (err) {
+ 		dev_err(hwc->dev, "Failed to create HWC SQ: %d\n", err);
+@@ -749,6 +749,7 @@ static int mana_hwc_init_queues(struct hw_channel_context *hwc, u16 q_depth,
+ 
+ 	hwc->num_inflight_msg = q_depth;
+ 	hwc->max_req_msg_size = max_req_msg_size;
++	hwc->max_resp_msg_size = max_resp_msg_size;
+ 
+ 	return 0;
+ out:
+diff --git a/include/net/mana/hw_channel.h b/include/net/mana/hw_channel.h
+index 16feb39616c1..73671f479399 100644
+--- a/include/net/mana/hw_channel.h
++++ b/include/net/mana/hw_channel.h
+@@ -181,6 +181,7 @@ struct hw_channel_context {
+ 
+ 	u16 num_inflight_msg;
+ 	u32 max_req_msg_size;
++	u32 max_resp_msg_size;
+ 
+ 	u16 hwc_init_q_depth_max;
+ 	u32 hwc_init_max_req_msg_size;
 -- 
 2.43.0
 
