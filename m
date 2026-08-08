@@ -1,38 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B90E5BA3D;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9179327204;
 	Sat,  8 Aug 2026 07:21:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786173684; cv=none; b=EQDg2IPu52o5xV2pxWPltaNCYoVphnT7GBjrPHlqffNkMx2Hr+sEmag8LKCy9gOgiWxpK0vykiXW4fTL1i4I5hEbzRzpG/UHa/y1s//WG0LuR+8koLFX8TJzSKXZr8CSv9zf5VW1fgGM/FeX7dYNzLensyaZfxj81HeI9qzwSNU=
+	t=1786173684; cv=none; b=ImehGiZtNHJdK+NHTXHLMrZh64g8cUWzEznyeHjVy1mo7qlYPQwsFIzN2LrIXZ01SxOdNI02yBNsv487qTjTyxnxeRkS3M/N8oZDoqFfmssrVWE8MX6HZBIB3JORNEYSuS+sVeRDNQq8wcvcerXSuwRXCDT2+h9YlUsn1gSb6Jc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1786173684; c=relaxed/simple;
-	bh=mCPKlTskOIb8w7OnErnb66jmUGG7UFKFuHYmLZdquTs=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=HxCqP3X5sW5qeAGbG0ikdIF2yqy8kBJZBOH6PO2R25fZR2lxjLF2X53J7XfC8uzlKc9a+P/KfZifXiRMOYtHwzrkmvGgZJujfkim2ODfuS0TDQOzFkKk3QtebXrBPkGKdmCYUBEPT0CceqOcT0N+wdfIlIikEd+KstIQg/+A6tw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Q4T55kiG; arc=none smtp.client-ip=10.30.226.201
+	bh=ewJ/3ZqBvUtI9lQiMCnOLEQJGhX2b3bVbgRGRyiS9q4=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=Fp9x1HN4hPQVer0649CCQQ+tRlxJ7kJZAL7RObx+mdU/NB0jQ+Rd0sHcQOkWlrWDymW+2DY8vQVFOA+khDqi8TvOI5OF3BpJvtCgBflnDOGgcuIoaD5ah25Udw2OTN2rz8Uf8tqKFS1S9/W45fTNyS0L1WDNpOjuVTP5dR+OsYo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=tz6GniAJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Q4T55kiG"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 638FDC2BCC7;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="tz6GniAJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 852E4C2BCF4;
 	Sat,  8 Aug 2026 07:21:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1786173684;
-	bh=mCPKlTskOIb8w7OnErnb66jmUGG7UFKFuHYmLZdquTs=;
-	h=From:Subject:Date:To:Cc:Reply-To:From;
-	b=Q4T55kiGdq9y0I//1qodgmmy3bBZQGymal83TWsuQSG1clovV7sKAURy+OebBgbuT
-	 7vNL4hNqtNLXwnpvlpefxlmKyom1LgSdWztVu2Ujqv0BQyfNto4L90XnRdWw7QriXn
-	 pE48g6aUeygVEsC5hoDj/qbyys3Uy6fg68EtSa7r6F++lQ5WhjtR1tNIa5ulYv/Ton
-	 58NpPcUyqLoLfSmSXTLJ8eR8L/88EYznxeT7XoERbIoto83I5Ee5GyUUlUvOaksF72
-	 P6e+I1QsAtb7c1nYU/1P7ooaJIPslTQxG45aXnE5RQfIBjHsBVodSiCvANd6v0qcB5
-	 DSxEC/jrJeYPA==
+	bh=ewJ/3ZqBvUtI9lQiMCnOLEQJGhX2b3bVbgRGRyiS9q4=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
+	b=tz6GniAJXE/1pjXKj6LznhH0AJ63fM61ZpI22Dijia0HxjQ00jE0B0PZDu+P1dToG
+	 RJYW9KXYwftTlkwyLpEM9OmvKPPYD8yuEYm5++SKwV95KqADgxDbiU0ooHllpVhPb2
+	 q1G+AonVFNfPuBHabmNoIP+L8aj6hLLFWUNCz93RT7BN5TusAthFu2wHEMrpRqYSsD
+	 B9V9YUkq7jsELcvBOO0HX/A4ssMtsF83YQ9tA28NtSvoFLAQPMDCBraN0XH8u0JKgT
+	 qQtoBL2D9IaJf7LLCMZ8t/OU+QKwBnBKxYp75DGYfKS1DN3B3nsso8ITVe+G+VfGJI
+	 baQHEFSeLSbMg==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F332C5AD2C;
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64417C55174;
 	Sat,  8 Aug 2026 07:21:24 +0000 (UTC)
 From: Bryam Vargas via B4 Relay <devnull+hexlabsecurity.proton.me@kernel.org>
-Subject: [PATCH net v2 0/2] net/smc: close the SMC-D teardown window around
- the ghost send buffer
-Date: Sat, 08 Aug 2026 02:21:22 -0500
-Message-Id: <20260808-b4-disp-22f119e6-v2-0-61647601a6f3@proton.me>
+Date: Sat, 08 Aug 2026 02:21:23 -0500
+Subject: [PATCH net v2 1/2] net/smc: unregister the connection before
+ draining the rx tasklet
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -41,10 +41,9 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yWMQQ6CMBAAv0L27CbbpRDwK8YDLYuuh0q6aEwIf
- 6fCcSaZWcEkqxhcqxWyfNX0nQrwpYL4HNJDUMfCwMQtddRh8Diqzcg8OddLi6Em6ofG+zo6KNm
- cZdLfsbxBkgXup7RPeElc/jPYth2UAqSgeQAAAA==
-X-Change-ID: 20260808-b4-disp-22f119e6-b3009a5443c1
+Message-Id: <20260808-b4-disp-22f119e6-v2-1-61647601a6f3@proton.me>
+References: <20260808-b4-disp-22f119e6-v2-0-61647601a6f3@proton.me>
+In-Reply-To: <20260808-b4-disp-22f119e6-v2-0-61647601a6f3@proton.me>
 To: Dust Li <dust.li@linux.alibaba.com>, 
  Sidraya Jayagond <sidraya@linux.ibm.com>, Paolo Abeni <pabeni@redhat.com>, 
  "David S. Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>, 
@@ -56,11 +55,11 @@ Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
  netdev@vger.kernel.org, Simon Horman <horms@kernel.org>, 
  linux-s390@vger.kernel.org
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1786173683; l=5306;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1786173683; l=2661;
  i=hexlabsecurity@proton.me; s=default; h=from:subject:message-id;
- bh=mCPKlTskOIb8w7OnErnb66jmUGG7UFKFuHYmLZdquTs=;
- b=o+MK9M7DpMq/hGc2HYvusJGYjs5f0UESIR+rtrAkDErIXmejbuwCZyDyDerRwZaljhmTwMCkl
- AqkxpfjmgLhDRQ9qwmA+azd5O2JoofOToQ6PGV3aVd+uLc+XurLfOS9
+ bh=Nd2Ah3VugjHz7UvVYOJKMppfI+jftDy275brVglOEvs=;
+ b=QE3npRELgIChYQZFpoZO00PLr29iOAKSyZlw+h7E+Fj5mJBV1QLOe0hUI+cqO53eoFlWnCfGi
+ FTHK6uamdGSDmWku6KTtiG7GUIRBSm9T4wNh2rCQ/Zqxh2kch/rGrjD
 X-Developer-Key: i=hexlabsecurity@proton.me; a=ed25519;
  pk=xw1AhCtQdvuoQc+bOQIYy9o8G++cp4/VniI2G/tc3G8=
 X-Endpoint-Received: by B4 Relay for hexlabsecurity@proton.me/default with
@@ -68,108 +67,82 @@ X-Endpoint-Received: by B4 Relay for hexlabsecurity@proton.me/default with
 X-Original-From: Bryam Vargas <hexlabsecurity@proton.me>
 Reply-To: hexlabsecurity@proton.me
 
-Both patches only matter on the SMC-D DMB-nocopy path, where the ghost send
-buffer exists, and the only in-tree provider of support_mmapped_rdmb is
-dibs_loopback. CONFIG_DIBS_LO is default n and its help calls it a testing aid,
-so on a stock config neither bug is reachable.
+From: Bryam Vargas <hexlabsecurity@proton.me>
 
-v1 moved smcd_buf_detach() after the drain. Dust Li replied that it does not
-fully eliminate the race and asked whether RCU is the better shape. He is right
-about the first part; I built both and measured them.
+smc_conn_free() calls smc_ism_unset_conn() only while the link group is
+still on its device list, and never sets conn->killed.
+smc_lgr_terminate_sched() unlinks the group immediately and defers killing
+its connections to a work item, so a connection freed in that window keeps
+its smcd->conn[] slot with both gates in smcd_handle_irq() open, and the
+device can re-arm the receive tasklet after tasklet_kill() has returned. On
+the DMB-nocopy path the ghost send buffer is freed right after that drain,
+so the re-armed tasklet dereferences it.
 
-An SMC-D loopback KASAN rig, one module binary, teardown form selected at
-runtime. "path" counts connections reaching either teardown site with the link
-group already unlinked, "armable" how many of those still had both gates in
-smcd_handle_irq() open when the drain returned, "re-armed" the device arming
-the tasklet again afterwards:
+Unregister unconditionally and drain before the detach at both teardown
+sites, mirroring rmb_desc, which smc_buf_unuse() releases after the drain.
+Clear conn->sndbuf_desc before freeing it as well, so a reader that samples
+the pointer cannot get one that is already freed.
 
-  form                                   path  armable  re-armed
-  upstream                                169       73        29
-  v1 (drain, then detach)                 172       78        33
-  unregister first, then drain             31        0         0
-  v1 + RCU                                 24        9         3
-
-Two caveats on that table. The last two arms ran far shorter than the first two,
-so compare the armable/re-armed ratios rather than the absolute path counts. And
-the third row also forced tasklet_kill() in the !soft path, which 1/2 does not;
-that was inert here because smc_lgr_terminate_work() passes soft=true, so the
-same call ran either way.
-
-The reorder alone leaves the window open, which is what Dust saw. RCU doesn't
-close it either: smcd_buf_detach() both frees the descriptor and clears the
-field, and RCU defers only the free, so a re-armed tasklet still runs and still
-finds conn->sndbuf_desc NULL. The gate has to be shut before the drain, and
-that is 1/2. RCU on the descriptor would still be a reasonable thing to want
-for the free itself; it just doesn't substitute for 1/2, so I didn't fold it
-in. Your call if you want it anyway.
-
-Caveat on 1/2: the two changes the table covers -- unconditional
-smc_ism_unset_conn(), and drain before detach -- were measured together, not
-separately. It also clears conn->sndbuf_desc before freeing it, so a reader
-that samples the pointer cannot get one that is already freed; that part is
-by inspection.
-
-2/2 is a second dereference the same teardown reaches, found while running the
-above. smc_close_stream_wait() calls smc_tx_prepared_sends() from inside
-sk_wait_event(), which evaluates its condition once with the socket lock
-released, and a terminating link group clears conn->sndbuf_desc right there.
-SIOCOUTQ reads the same field by hand, and smc_close_cancel_work() drops the
-socket lock across two cancel_*_sync() calls, so 2/2 bounds that too. Eight
-faults across three boots, the earliest 89 seconds in:
-
-  RIP: smc_close_stream_wait+0x66d [smc]
-   smc_close_active -> __smc_release -> smc_release -> __x64_sys_close
-
-The faulting address is NULL plus offsetof(struct smc_buf_desc, len), nothing
-there is attacker-chosen, and the value read never reaches userspace, so there
-is no memory-safety primitive and no leak oracle -- it is an oops. The task dies
-inside close() holding the socket lock, so I would expect the socket to leak with
-it, but I didn't isolate that from the rig's own effects and I'm not claiming it.
-
-Reaching either bug needs a link-group teardown while a socket is parked in that
-wait. smc_lgr_cleanup_early() off a failed first-contact handshake gets there, as
-does smc_clc_wait_msg() on a peer DECLINE with FIRST_CONTACT -- both by
-inspection. The rig instead drove smc_lgr_terminate_sched() from a debug module
-parameter, so only the initiation is synthetic; the unlink, the deferred worker,
-smc_conn_free() and smcd_handle_irq() are the unmodified path. Logs and the rig
-on request.
-
-I haven't touched tasklet_unlock_wait() in the !soft path of smc_conn_kill().
-It waits out TASKLET_STATE_RUN without clearing TASKLET_STATE_SCHED, but I have
-no measurement showing that reachable here, so it stays as it is.
-
-v2:
-- 1/2: unregister the connection unconditionally rather than only while the
-  link group is still on its device list. That guard, not the ordering, is why
-  the tasklet can be re-armed after tasklet_kill().
-- 2/2: new.
-- v1: https://lore.kernel.org/all/20260726-b4-disp-a135b4e5-v1-1-705aaec79986@proton.me/
-
-Bryam Vargas (2):
-  net/smc: unregister the connection before draining the rx tasklet
-  net/smc: do not dereference an unset send buffer on the SMC-D teardown path
-
- net/smc/af_smc.c   |  3 ++-
- net/smc/smc_core.c | 13 +++++++------
- net/smc/smc_tx.h   |  6 +++++-
- 3 files changed, 14 insertions(+), 8 deletions(-)
-
-base-commit: 3dbb44d88b1e
+Fixes: ae2be35cbed2 ("net/smc: {at|de}tach sndbuf to peer DMB if supported")
+Cc: stable@vger.kernel.org
+Signed-off-by: Bryam Vargas <hexlabsecurity@proton.me>
 ---
-Bryam Vargas (2):
-      net/smc: unregister the connection before draining the rx tasklet
-      net/smc: do not dereference an unset send buffer on the SMC-D teardown path
-
- net/smc/af_smc.c   |  3 ++-
  net/smc/smc_core.c | 13 +++++++------
- net/smc/smc_tx.h   |  6 +++++-
- 3 files changed, 14 insertions(+), 8 deletions(-)
----
-base-commit: 3dbb44d88b1e94dd31fe43588af7437b34b44d56
-change-id: 20260808-b4-disp-22f119e6-b3009a5443c1
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-Best regards,
---  
-Bryam Vargas <hexlabsecurity@proton.me>
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index b4208cb186c5..181647982490 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -1209,14 +1209,16 @@ static void smcd_buf_detach(struct smc_connection *conn)
+ {
+ 	struct smcd_dev *smcd = conn->lgr->smcd;
+ 	u64 peer_token = conn->peer_token;
++	struct smc_buf_desc *buf_desc;
+ 
+ 	if (!conn->sndbuf_desc)
+ 		return;
+ 
+ 	smc_ism_detach_dmb(smcd, peer_token);
+ 
+-	kfree(conn->sndbuf_desc);
++	buf_desc = conn->sndbuf_desc;
+ 	conn->sndbuf_desc = NULL;
++	kfree(buf_desc);
+ }
+ 
+ static void smc_buf_unuse(struct smc_connection *conn,
+@@ -1268,11 +1270,10 @@ void smc_conn_free(struct smc_connection *conn)
+ 		goto lgr_put;
+ 
+ 	if (lgr->is_smcd) {
+-		if (!list_empty(&lgr->list))
+-			smc_ism_unset_conn(conn);
++		smc_ism_unset_conn(conn);
++		tasklet_kill(&conn->rx_tsklet);
+ 		if (smc_ism_support_dmb_nocopy(lgr->smcd))
+ 			smcd_buf_detach(conn);
+-		tasklet_kill(&conn->rx_tsklet);
+ 	} else {
+ 		smc_cdc_wait_pend_tx_wr(conn);
+ 		if (current_work() != &conn->abort_work)
+@@ -1525,12 +1526,12 @@ static void smc_conn_kill(struct smc_connection *conn, bool soft)
+ 	smc_sk_wake_ups(smc);
+ 	if (conn->lgr->is_smcd) {
+ 		smc_ism_unset_conn(conn);
+-		if (smc_ism_support_dmb_nocopy(conn->lgr->smcd))
+-			smcd_buf_detach(conn);
+ 		if (soft)
+ 			tasklet_kill(&conn->rx_tsklet);
+ 		else
+ 			tasklet_unlock_wait(&conn->rx_tsklet);
++		if (smc_ism_support_dmb_nocopy(conn->lgr->smcd))
++			smcd_buf_detach(conn);
+ 	} else {
+ 		smc_cdc_wait_pend_tx_wr(conn);
+ 	}
+
+-- 
+2.55.0
 
 
