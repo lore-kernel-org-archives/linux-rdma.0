@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DA55272816;
-	Sat,  8 Aug 2026 00:59:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86B262853E0;
+	Sat,  8 Aug 2026 01:00:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786150742; cv=none; b=AKfHYYnSx+1x0ks6Y6KCp3fMW5zwlGEO5hS4V6dED/pYMrRY7Ycq1Y5gTYAvVMFjkdqYLfF4sdFPRxtIiZ0DInAiYoSF5lkEb7NwKiG1PP4zLKpspEM6YrZcQSBuA4ch1ilmcJKV/QSTUc6nD0lHE+FYfzSP0bhzzHdiEUdQecw=
+	t=1786150857; cv=none; b=sHVsRyp6xwy+lkSaOtGAJXZV4gLeM9knNODnm9v8lMAcIDWZrFFniPjgc6asyy0ZX79t+B3zfmbsgAzNUdjtLrtxLkqaHPsotidxYn9SrMApgxTkh/bqbg0PNUqZW0QVNR8ghzBmiy1OMFH57x/ChjqB9N3xzLr9kGeQ6j6kYac=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786150742; c=relaxed/simple;
-	bh=YGuSVUOMY56+RRIAcCYgwtca/i2nDVqQejr5/tB8nnY=;
+	s=arc-20240116; t=1786150857; c=relaxed/simple;
+	bh=AliDQ5pLcGwEu0ilrw2lHXTGcq9rNhVuQ2W1AMYiEyw=;
 	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=swbhHJowvqSKkrxZAtEagvB7UOwsdn4L1eiwthGzPI6UJbtM7gh00BDVVLbLgmkaKoe8yLTZCCWyQUabuZgA/eVZPflJl0cwb/ZJvN8/XyxnZYbNdU4+x+Mz65bV4jOKKbsIjNM6Fn4W3v23wQqmcMsfccZW9a2Nu53Gb46DcD4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CPBU7H2w; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=MWYMoPq5SHlXRQB25omSgGB1P0NZERXEc+TxbU2dWEAl6sxHCA/Vc9xTlxHs0y4F0l+MzmutROZqzNofb1edBfgJVFSHtG0FGs2DEf7uv8efIZaGxF12Rwno/IGQf4XZjv0piVVhIFdwKCfooYR1lF0yUU3IMB9AeXhxdl90d2w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GcfVVher; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CPBU7H2w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A72171F000E9;
-	Sat,  8 Aug 2026 00:58:59 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GcfVVher"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 199001F000E9;
+	Sat,  8 Aug 2026 01:00:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786150740;
-	bh=FxQWgheFrGGIAFY2WTZAGots/+C6XDFhzlfMzxIo6NU=;
+	s=k20260515; t=1786150856;
+	bh=syosqafmb08TK1bwXXbZFsKYTDVFwR/DvSgacRRUpL8=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=CPBU7H2wUpkV0heySQzYdIO8q6cUYIuOC4MlusA5+nesc+hT3SVqwhRb2eJ2gjG9w
-	 O9fUrureOUHY9QN2Yx3WyS+ZCKq88w9HrT1+YyGlB7M6oJeUgw/G4jD1nb9lA0HV1l
-	 f6bzqDfE0tEcMnAYzzsEzQADs1UdBct8Gr1ET+iDFLV3p5m95eHUR/B67xvh99KWty
-	 wh4DeN5uUa5QgxyC8f74gbk9TjChqKFnwNv/4k1Bk8gxF6F6ANzrVLtx0+BywQmVWn
-	 KWARFmLVdqu6l2bTnKFyUYWDLoBKRFybeoVF6IoE7ghoAfGolKVPloa6ZWpM9SVXa1
-	 tBTV/CMrNlzcw==
-Date: Fri, 7 Aug 2026 17:58:58 -0700
+	b=GcfVVherGT0LkSFb/qyfgLmSC3FW4iWMaU1uHaC5+JZJWJqAmwm1fZOlsTnPDstZX
+	 O6knC1/W4MNwKkvMrDM5JM1hQfoZuDF2iGRVhTuN032Iapn/2igMhpEMQPhncYWaSP
+	 rJ7U2UYwJvSYpNGAsMTKNSlUnC3IvhF1Km3ykZIjnQi3iTQlyH7GGKBsbVffBUhUcy
+	 oo+RhFeRMTrIZiWWMkLdhNFKbXQ1Z070ikQmXKuaLGOzJLY0svT9clsyhxf8DkXg+T
+	 bHtvgD2QSTY+5B8ZPYZVLbsmmGuI1kvpQ6D82VA/kLbLP4xVe4wJxRO6RVZSDVFF83
+	 1WMuBpi3F3Xvw==
+Date: Fri, 7 Aug 2026 18:00:54 -0700
 From: Jakub Kicinski <kuba@kernel.org>
 To: Tariq Toukan <tariqt@nvidia.com>
 Cc: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
@@ -47,12 +47,12 @@ Cc: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
  Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>,
  Simon Horman <horms@kernel.org>, Stanislav Fomichev <sdf@fomichev.me>,
  Stanislav Fomichev <sdf.kernel@gmail.com>
-Subject: Re: [PATCH net-next V2 12/13] selftests: drv-net: psp: Fix
- responder parsing
-Message-ID: <20260807175858.70a717d6@kernel.org>
-In-Reply-To: <20260804083535.2946459-13-tariqt@nvidia.com>
+Subject: Re: [PATCH net-next V2 13/13] selftests: drv-net: psp: Add a test
+ for PSP with HW-GRO
+Message-ID: <20260807180054.380be9d0@kernel.org>
+In-Reply-To: <20260804083535.2946459-14-tariqt@nvidia.com>
 References: <20260804083535.2946459-1-tariqt@nvidia.com>
-	<20260804083535.2946459-13-tariqt@nvidia.com>
+	<20260804083535.2946459-14-tariqt@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -62,15 +62,11 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Tue, 4 Aug 2026 11:35:34 +0300 Tariq Toukan wrote:
->  			off += n;
-> -			n = off;
+On Tue, 4 Aug 2026 11:35:35 +0300 Tariq Toukan wrote:
+>  tools/testing/selftests/drivers/net/psp.py    | 131 ++++++++++++++++--
 
-> +#define cmd(_name, _extra_sz)						\
->  		({							\
->  			ssize_t sz = sizeof(_name);			\
-> -			bool match = n >= sz &&	!memcmp(buf, _name, sz); \
-> +			bool match = off >= sz + (_extra_sz) &&		\
-> +				!memcmp(buf, _name, sz);		\
-
-Please don't replace off by n.
+This is not the right place, and the test coverage is really weak.
+Please see the level of detail we have in the other gro test cases.
+This should probably be a separate test due to a crypto complexity,
+and we should exercise the various header fields PSP has, as well
+as crypto failures?
