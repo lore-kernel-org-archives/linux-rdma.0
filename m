@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CEC71DF26E;
-	Sun,  9 Aug 2026 00:51:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79FDF299927;
+	Sun,  9 Aug 2026 00:51:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786236667; cv=none; b=rXJqwH+jHtjOIghNOy7mBpnX2bfnZpgcbVJA80qmka/kx+cRbhGZ/WvLLqFLBUDFGWYrdI8UGZX3fxENBjk4IgSM9mrcjxjXf7RN8OqqObXlXAhOC89DA8LbTUO4q4YelXgChgXd89e/6jEwAT0jy1I90Oehni8aMOB9jWIdDPY=
+	t=1786236667; cv=none; b=VvQDjTx6oBV+Y9wf+JIHLJpnrgYY4hqk6mt2wOP4qnuUnGlLaKbCi5OggCdcdTPUF/3ettNxlbTtrIexZF0BoyEBLzRjmkNqb6AVcMfKjfiI57m8NVqMZA1V5tary8qcb/1cIl5MqRxWrAXIJ+gBv6ms+QT+LAb9xYNEMxRkPS8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1786236667; c=relaxed/simple;
-	bh=i5qV7wAYUl1B6V5gudH0Br6KnW1TlKFqhkfxHXSkjFk=;
+	bh=8j9CD6m8Itx2ZpsamzfTnqCF8le5/dmUln3uYzB5AQg=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=NyZQxkpnQZsXC482Y8eUYs78KYnaE5RTakcCaaYn+DBRRHXFzNg0mrSG9xN9XEYB6i2BSMFsrQ2573Z6vwFAG9sy4ZgMHiKg76vOraStynOJ7ApgOrLKR8Op7je6ymYbVDVesdAmBwI3/TLggxay5B77+jDmmGKMJKJfWJjkGIA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Dk2fclnu; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=q84RQYFhbaA0OirkEgJRl+f9hEwd5G4kgw74PIEQl/lq/K1B7o+Kn8bTcy9452ZV81aaKKJydQLJsBePfL7Y1KOLTcT90d8AMiQC1E0fK7wdRSr5HU1GSJnjmhcBRLrjY6fYuZU5j6G+fjj4ACh1PgIEmnNfSyAUiLYJrxWHPK8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IeKR/jbe; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Dk2fclnu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A6F41F00AC4;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IeKR/jbe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDC6D1F00A3A;
 	Sun,  9 Aug 2026 00:51:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786236665;
-	bh=YvNLAIL3K91rW1RmZIOyx0oM2V00aiD6ENApbGea5Fk=;
+	s=k20260515; t=1786236666;
+	bh=xT1Xwy/gSNdl4WFX7xH2jJ4HH2GmcqJT9bQgJ5zKDB8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=Dk2fclnuWjqYtIQNdYLuyMvaEaHyaVxyJ9wKhzCcMy5SWRXtEn01uznLPLefZOmu4
-	 mLrC6FRCTu9FQk/0xvkcBTvRls35xKtqcJsxss2QvAb+uenJftjnqFlFmdfn3GQR4d
-	 CCrKdMnyWG5phb3OW4puMz9ZXxHKHaP0SJFmqZh5jZG8ztVXs8JQUSWARh+8lURuoz
-	 o+/UZGV5z/momB23HbksGQPeUU/qLZRcljbCVFVvnHS5jKntxFt/L4SK+uYndtiu8c
-	 uo3qs5ra1hT0JT41/h+yU/2XFkmxWyjCDgJhz2uTsAn8ckSUcppc+Hm/dnWD9InVsD
-	 xrh/B/d4VUAVA==
+	b=IeKR/jbeiAN0eV0k6JPxiMmHByify70ODGvUUox3Vsz1hgeROr4myepGXFOPd7dmo
+	 5SCarya9g5ne+/6OaMctw6XFXvZN0is7NZGqA0K96GZgeUj0GZaKvz3wIhovJ4YXL3
+	 NBi1k0O1/5dYA6r6/aQGv2V05mQ5CIriUASa6vTY6TIEzrl4pehJmPFcppuYOnLc/0
+	 FgPLlI7bU9wHl6k2wHnhL2cEObwkFdGVaAoy8k1+MSp6i0+DovvZ08IPgw65m0gC+M
+	 fjuq3Ym9uqs4S/bWM3/2tDLuKZzAjdSW6c4yUdu1EkFv/S/eje5iCIIH+y0+s/kULK
+	 i+eIw7wYt7OFQ==
 From: Allison Henderson <achender@kernel.org>
 To: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
@@ -36,9 +36,9 @@ To: netdev@vger.kernel.org,
 Cc: achender@kernel.org,
 	jhubbard@nvidia.com,
 	leon@kernel.org
-Subject: [PATCH net-next v2 1/2] net/rds: reinitialize to_be_dropped on rds_send_xmit() restart
-Date: Sat,  8 Aug 2026 17:51:02 -0700
-Message-Id: <20260809005103.82371-2-achender@kernel.org>
+Subject: [PATCH net-next v2 2/2] net/rds: initialize i_conn_path in rds_inc_init()
+Date: Sat,  8 Aug 2026 17:51:03 -0700
+Message-Id: <20260809005103.82371-3-achender@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20260809005103.82371-1-achender@kernel.org>
 References: <20260809005103.82371-1-achender@kernel.org>
@@ -50,58 +50,76 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Sharath Srinivasan <sharath.srinivasan@oracle.com>
+From: William Kucharski <william.kucharski@oracle.com>
 
-The to_be_dropped list is declared once at the top of rds_send_xmit()
-but the function can loop via "goto restart" after each batch.  The
-code currently relies on rds_send_remove_from_sock() having emptied
-the list entry by entry (via list_del_init()) at the end of the
-previous batch; nothing in rds_send_xmit() itself guarantees the list
-head is empty when a new batch starts.
+rds_inc_init() initializes every field of the embedded rds_incoming
+except i_conn_path, and incomings are not zero-allocated (IB carves
+them out of a slab cache).  The field therefore holds stale garbage
+for incs created by rds_ib.
 
-Re-initialize the list on every restart, and warn once if it is ever
-found non-empty there: entries left on the list at that point would
-keep their message reference, their RDS_MSG_ON_SOCK accounting and
-their pending RDS_RDMA_DROPPED notification, so a silent re-init
-would orphan them.  This is hardening: no user-visible bug is known
-in the current code.
+The loopback transport is different: rds_loop_xmit() re-runs
+rds_inc_init() on the message's embedded inc after
+rds_send_queue_rm() has already stored the connection path in it, so
+there the field holds a live value rather than garbage, and a NULL
+store would discard it.  Switch rds_loop_xmit() to
+rds_inc_path_init() with the connection's single path, which is
+exactly the value readers of the field reconstruct for a
+non-multipath transport.
 
-This mirrors Oracle UEK commit "net/rds: rds_send_xmit should
-INIT_LIST_HEAD(&to_be_dropped) on restart".
+With loopback preserving the field, initialize it to NULL in
+rds_inc_init() so that any future reader trips over a clean NULL
+pointer instead of a stale one, and so the two init helpers
+(rds_inc_init/rds_inc_path_init) leave the structure in an
+equivalent, fully-initialized state.  Hardening only; no reader
+dereferences i_conn_path for a non-multipath transport today.
 
-Signed-off-by: Gerd Rausch <gerd.rausch@oracle.com>
-Signed-off-by: Sharath Srinivasan <sharath.srinivasan@oracle.com>
-[achender: port to net-next (keep the existing LIST_HEAD declaration and
- add only the restart re-init); warn if the restart invariant is
- violated; update commit message]
+This mirrors Oracle UEK commit "rds: rds_inc_init() should initialize
+the inc->i_conn_path field".
+
+Signed-off-by: William Kucharski <william.kucharski@oracle.com>
+[achender: port to net-next; keep loopback's i_conn_path valid by
+ switching rds_loop_xmit() to rds_inc_path_init(); update commit
+ message]
 Assisted-by: Claude-Code:claude-fable-5
 Signed-off-by: Allison Henderson <achender@kernel.org>
 ---
-v2: name rds_send_remove_from_sock() in the comment; warn once if the
-restart-time empty-list invariant is ever violated.
-v1: https://lore.kernel.org/netdev/20260806072045.1092968-2-achender@kernel.org/
- net/rds/send.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+v2: keep loopback's i_conn_path valid by switching rds_loop_xmit() to
+rds_inc_path_init(); rewrite the commit message - for loopback the
+field held a live value, not garbage.
+v1: https://lore.kernel.org/netdev/20260806072045.1092968-3-achender@kernel.org/
+ net/rds/loop.c | 6 +++++-
+ net/rds/recv.c | 1 +
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/net/rds/send.c b/net/rds/send.c
-index 309021e0cc9b..15a1b97f13e7 100644
---- a/net/rds/send.c
-+++ b/net/rds/send.c
-@@ -200,6 +200,14 @@ int rds_send_xmit(struct rds_conn_path *cp)
- restart:
- 	batch_count = 0;
+diff --git a/net/rds/loop.c b/net/rds/loop.c
+index ac9295a766b1..e6b0750bbeda 100644
+--- a/net/rds/loop.c
++++ b/net/rds/loop.c
+@@ -89,7 +89,11 @@ static int rds_loop_xmit(struct rds_connection *conn, struct rds_message *rm,
  
-+	/* The drop processing after over_batch relies on
-+	 * rds_send_remove_from_sock() emptying to_be_dropped entry by
-+	 * entry; warn if that post-condition ever stops holding, and
-+	 * re-initialize the list head.
+ 	BUG_ON(hdr_off || sg || off);
+ 
+-	rds_inc_init(&rm->m_inc, conn, &conn->c_laddr);
++	/* rds_send_queue_rm() stored the connection path in this embedded
++	 * inc; use the path init so the re-initialization keeps the field
++	 * valid instead of discarding it.
 +	 */
-+	WARN_ON_ONCE(!list_empty(&to_be_dropped));
-+	INIT_LIST_HEAD(&to_be_dropped);
-+
- 	/*
- 	 * sendmsg calls here after having queued its message on the send
- 	 * queue.  We only have one task feeding the connection at a time.  If
++	rds_inc_path_init(&rm->m_inc, &conn->c_path[0], &conn->c_laddr);
+ 	/* For the embedded inc. Matching put is in loop_inc_free() */
+ 	rds_message_addref(rm);
+ 
+diff --git a/net/rds/recv.c b/net/rds/recv.c
+index cf3884d87931..f1513dfb2716 100644
+--- a/net/rds/recv.c
++++ b/net/rds/recv.c
+@@ -47,6 +47,7 @@ void rds_inc_init(struct rds_incoming *inc, struct rds_connection *conn,
+ 	refcount_set(&inc->i_refcount, 1);
+ 	INIT_LIST_HEAD(&inc->i_item);
+ 	inc->i_conn = conn;
++	inc->i_conn_path = NULL;
+ 	inc->i_saddr = *saddr;
+ 	inc->i_usercopy.rdma_cookie = 0;
+ 	inc->i_usercopy.rx_tstamp = ktime_set(0, 0);
 -- 
 2.25.1
 
