@@ -1,194 +1,112 @@
-Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com [209.85.214.175])
+Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA8FA2EB5A6
-	for <linux-rdma@vger.kernel.org>; Sun,  9 Aug 2026 03:28:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3354279DCA
+	for <linux-rdma@vger.kernel.org>; Sun,  9 Aug 2026 15:55:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786246101; cv=none; b=UmpCv97y/zVCaNgsriausy1X4wUm6Z+RiwyjIoHCMNnOR9vPObl2H1TdsbmDD/DlE7yLiuylNbYODukq3MJ2NjaY6i7BQXgFV4Tj4AuvlsELpT62a5eeoBbFRH7MWPIoaYGa4qC4+wDTupfN+Qdy9EwfMAjzCdVwwzcxSd8bx1c=
+	t=1786290937; cv=none; b=BtB7IRwK7StQGdUOEkoc+/s+hAJk8i3Y9uJf1TxBWXav2z3zWfeUSneYPlS/RujPDgm2Y2v+HS00oMpdCSApH5dablgT2vgBEnNAMbaMWkUIytqdjV88Ug9Tw7KbHNT4k7MGXvmtscCFwl4vhRWw2p8gxZDIqMQmL6BnqfHHz30=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786246101; c=relaxed/simple;
-	bh=m9jOM3JnwxnOHunHY32HFFU1VBtGt8WDJlIYoxsl8DA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=d43ma4zofeR8DXeuJBf3sEvvJcmLVIZkOij8ZbZ92zKjOilptG3kqvB4+XtLaNuS27zA6UUbgT8cOxKBt6LcakBbxEue59brJN5ZtdKM5SJJqEqR84qiv2S7Q6Di2HIuHNqUz6akqMit0OKKqTJ9zBqzIKPMX9BWEwQ6d+Peuu4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=duZPvk7f; arc=none smtp.client-ip=209.85.214.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1786290937; c=relaxed/simple;
+	bh=QcFrRCeDI/i3Ew/e11cx7MxC5wvLiH/lxBlsj++ms2E=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=WLO1TaJrjR0cqopvj+msJZKG5fZMTHNgVbALvD5Cj4PlpgiLpvzjPIbonzijOYWtJ6IaYv6o3TCVSY1cqBJfjgA2Jw/97/lF9ugPALFsGbbB32qbmaaN+zq/eb4yCGkcTymytWXT5f47Y96tVEYpzq4O4ExHgBMWo7cPre/d5QQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us; spf=none smtp.mailfrom=resnulli.us; dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b=BMBwbgMk; arc=none smtp.client-ip=209.85.128.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=resnulli.us
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="duZPvk7f"
-Received: by mail-pl1-f175.google.com with SMTP id d9443c01a7336-2cca0c5799eso7162755ad.0
-        for <linux-rdma@vger.kernel.org>; Sat, 08 Aug 2026 20:28:19 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b="BMBwbgMk"
+Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-49800c6a846so9726895e9.3
+        for <linux-rdma@vger.kernel.org>; Sun, 09 Aug 2026 08:55:33 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786246099; x=1786850899; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=JEHO0Y8VayIiQ9EQdeJUip1ZA/P378h7uR1P3EclUFk=;
-        b=duZPvk7fFeqwS7cV+/NO9f6wfoJaOIz5JOzUS/4wuEPkjEYfQjpNW+lfEt3WFLnlGF
-         L2emRLD+JjozGeg2WkViLcuHtMWDxurd17uYeDTh5eH02V8P/ld2MUvA00CmJROSGk/I
-         EnNPZvhmSCOd8i47mIVIjYVG4Xcn2ozV6/UpxXWeSEKdxp3tbkhkFepoVVWzWMhpOV+x
-         FC2g+sshV5W7O8TKj+AknH+YJiZUotjYWOHAbBDvOyDzcBoKdej/W7+qKU8wDY2tXc0R
-         t320zCoIKrXkr/oTSghA5unej6tO3qyBu6Wx+fT84iCNfQ8GrxxYtS+lYBPHNrH3O+hn
-         UDOg==
+        d=resnulli-us.20251104.gappssmtp.com; s=20251104; t=1786290932; x=1786895732; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=QcFrRCeDI/i3Ew/e11cx7MxC5wvLiH/lxBlsj++ms2E=;
+        b=BMBwbgMkP18hHiz81HK0br1cLQexDPtxAmivgb5rJ1GN5stbdt9BFYDbrlTlWx2a0C
+         dsgyVQOggkTPXVOaTL2y2SDL+4LLxG9uUMmg1TSkLT7S7NPBmDndYm84ge+eglHtE6pk
+         I8XmE21HWJoU0PYuPb8KkPlU8dT/bbpxsl43loqY3RaK5SvZAlvPrdNMOdPV9r2a6n4w
+         hMJKX0jU5Txj8nRhE/Om3WDpz1JtTg3SPeA44DF5yjBE7FXWobKw+VaPM2GLfZUwW75p
+         3bUrNcP0Zr0TGGnWRSQ+Z83BjVnUQBqR0Vv15ueYZ41vFWiPSKgNd94XmjZFK1PlaLXh
+         zt2A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786246099; x=1786850899;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=JEHO0Y8VayIiQ9EQdeJUip1ZA/P378h7uR1P3EclUFk=;
-        b=lKaS7dpoUFjx4Ik/A++L2v4iGXDph1XggwfEnogzMkAVMgAVBh2lDEYb3oh5jNbZ8u
-         fpW74A6c3JOWhAtLA0XG4L74jQVKWYqoLJA/iLyKk0CFXtTusROQNjo4n3gYfiljv0K7
-         pZXNsF0KnffDaSX6gkCvTBQTzBCogmnc7KSsZ21TVY7DRh6VUaTKGfwpmskF4pPcCKwB
-         f0BlwK7CpU+0qZot1wsJEOUU6q7LmPUYdP/fnrYutSIIsblKhgPMy9sIfFTPz4Uce3Lf
-         ASbLsEfflipj40HKd/jNb24KGsO5ClCXtDykjS/nLS0cmUGw9N42lijK9qva5/vuZc6C
-         z4bw==
-X-Gm-Message-State: AOJu0Yxe873fT84jCjgHUbJDK2WU8Cv0KHNWqysh0afj90RX04t4Sod5
-	Yxuv/GJGrDKU5BMaxCE1xV/m4q1zV9lk0RtR2W3ap6TdNTQ/cUitI1jD
-X-Gm-Gg: AR+sD12lzBPfQgoxaTtBkh8RODNfbzS6Iy4JC+Nm9Ui2RsymII0OFYgkLM1AjGVNg+i
-	qvjEKQfiSLo8H6+Gud2pikV2dQfPqxzTXoakQucEAmPbvntDUlTNlKu146uXuNaUhdCHQVsFl0V
-	xaPzGdv1WACpW+sD18X2axVXoC6ntpOrGe06feUjlfQxW2DbovdidRUAbdD8RAMzsPv3ZPzhBXL
-	hpE2CRS5s4CeO53Np93+gI6GmxRMPjXZg3TZtNOPt8lHebAi3XN6E4+ttbEsfBMMg2L08UanW1+
-	RV3wSqFsy2bT+S7K5iR7Yz8xx804jmaI79ebscXRyGGSmHE5wPiZY1Fto7E0fycEgsER71wkqVj
-	CQJ59UM6ye4reCDzC8aGxJPoLpmDtZuNrcwx3aB4BvuYmzHSasY+g/ef/SwCY51vWUpmkPOkgOV
-	rUXzHOA9odkKcYlNlkw13SpGZIj3nV5+W3vlALHgeUex+gLU3tZvNk7yVPM6fOPx1x8F/mqILdx
-	sQ/QFFM3ZKCgxt9mgmJwfKYqQ9LE38nnxLmGgszY1pEKs0GgUILfA6c6i+J6ZU=
-X-Received: by 2002:a17:90b:4c45:b0:38f:efed:5448 with SMTP id 98e67ed59e1d1-392822b7b78mr8987373a91.8.1786246098978;
-        Sat, 08 Aug 2026 20:28:18 -0700 (PDT)
-Received: from homelab1-WRX80-Creator.localdomain (p790255fa.sitmnt01.ap.so-net.ne.jp. [121.2.85.250])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3926254ee45sm7587626a91.2.2026.08.08.20.28.17
+        d=1e100.net; s=20251104; t=1786290932; x=1786895732;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=QcFrRCeDI/i3Ew/e11cx7MxC5wvLiH/lxBlsj++ms2E=;
+        b=jwSIffR4mvgVlz54Xlm8ySBZ4I6k1Kf12ow/HN3jtUJUhP+OU6KxtKZTnlM4RRDESC
+         QMKjpfNJItP1PCnTTiQC76WYCE1LlcJQYpqvCPuqG0WeXd8n4/vo1rQRXA3786HB7DYS
+         QCfzT2iPXgH1KjsNTfjZgNo4X6EPUP1TouvcJFxlaTKic0GGdemvDAHJ1G3q2s+wRDD+
+         ygQ3HeEUswu3TbGYkYHuajwsXrZ2VGZwfLl+z4J5vr2kO1mIYp7oQRZ68yZPgHZaeLvb
+         nFr8r4CHWw07o3bCBuUNxtfMp7fogr8PDpKtVgr4Vpwgsw4b65/v94RfZ3XeP/b5Sx1D
+         v1Sg==
+X-Forwarded-Encrypted: i=1; AHgh+RoQMlmuEWhSrRxZdwMqNVBYVuLRSvbLA/23HjUKMJgtKX/yg9q3I+pY6z9do8dvpXtcfwN1QPEHLEap@vger.kernel.org
+X-Gm-Message-State: AOJu0YyfFYxfYuFT341nhIACNjJqUE6FOFHF4m9sue2lI7qgG9mshmLC
+	UxxrxBtuV2s2MXreC9zT078xE3NmfvZKEYAyJ/dHKAWuKmMyDORTj2N6ma+kJjWL+zQ=
+X-Gm-Gg: AR+sD12BGnrIsQMPg0nxZyltjuqfjyleOLI99iOEUBSVOOyb4b7NyR0rDA0nRmgBp4p
+	6ycM9tKIV7gzvFYS4UpMrmwXXK4HZuYFNBbVIUbaWfcm7NCOgibUCXbTPimwHYwwOWNtI5n/2Fx
+	1rZnXYgMT7jGWm7CwYq6HfUvrAyKK+wBRisAu/HromrBg+kfQynjx9JDhKCB05VwNAaxIJDxKhw
+	f8VpAc/uTLpE82pn9Q2io/jN8euw+O3dZKhUJ9KSQvT6lQ7XJdWY5P7+8sCcsT0/tF6Yxt2llHG
+	ttJSl9AVYxoNCC6XzB8g0F0uZzP6pXBduIME9HVIMZ2PucsRP3Sx/qdDfYTDnXbi7HchOkHQ31Y
+	QmD3jVe4v6baq4fgsZKIJ2znsgvWRTAAB0toRLmWqzYcn59kP+tTDyjfWlDRLICGrYZ/29cqrl0
+	Mq+ycUXYC2PUpQ2Pr67f8c2Y7TOrAKLPoNljqBm7OXep+fctzjdNSv8jGQ1gXhe7z6+4lVuOdou
+	AVJbyVe
+X-Received: by 2002:a05:600c:6c50:b0:499:48bb:417e with SMTP id 5b1f17b1804b1-49959e0176bmr225272675e9.2.1786290931844;
+        Sun, 09 Aug 2026 08:55:31 -0700 (PDT)
+Received: from localhost ([140.209.217.211])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4995e9f060bsm217952505e9.7.2026.08.09.08.55.31
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 08 Aug 2026 20:28:18 -0700 (PDT)
-From: Shuhei Takeshita <jyohuku.alterego@gmail.com>
-To: dennis.dalessandro@cornelisnetworks.com,
-	jgg@ziepe.ca,
-	leon@kernel.org
-Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	dean.luick@cornelisnetworks.com,
-	Shuhei Takeshita <jyohuku.alterego@gmail.com>,
-	stable@vger.kernel.org
-Subject: [PATCH 2/2] IB/hfi1: Fix the PIO_CRED credit-return mmap
-Date: Sun,  9 Aug 2026 12:27:43 +0900
-Message-ID: <20260809032743.2671579-3-jyohuku.alterego@gmail.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260809032743.2671579-1-jyohuku.alterego@gmail.com>
-References: <20260809032743.2671579-1-jyohuku.alterego@gmail.com>
+        Sun, 09 Aug 2026 08:55:31 -0700 (PDT)
+Date: Sun, 9 Aug 2026 17:55:27 +0200
+From: Jiri Pirko <jiri@resnulli.us>
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Konstantin Taranov <kotaranov@microsoft.com>, 
+	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "leon@kernel.org" <leon@kernel.org>, 
+	Long Li <longli@microsoft.com>, "linux-hyperv@vger.kernel.org" <linux-hyperv@vger.kernel.org>
+Subject: Re: [PATCH rdma-next] RDMA/mana_ib: Retain create CQ flags field name
+Message-ID: <aniik0sdK04Ie4HH@FV6GYCPJ69>
+References: <20260731091041.2250897-1-jiri@resnulli.us>
+ <DU8PR83MB0975547820CBB956D4EFFE57B4C82@DU8PR83MB0975.EURPRD83.prod.outlook.com>
+ <anCBtLSxn8TtFcSz@FV6GYCPJ69>
+ <20260807231356.GM200537@ziepe.ca>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260807231356.GM200537@ziepe.ca>
 
-hfi1_file_mmap()'s PIO_CRED case must hand user space the single
-credit-return page that holds this context's entry.  That page is the
-second or third page of the per-node credit-return allocation once the
-hardware send context index reaches 64 or 128, so the failure below is
-intermittent: when the entry lands on the first page the offset is zero
-and everything works.
+Sat, Aug 08, 2026 at 01:13:56AM +0200, jgg@ziepe.ca wrote:
+>On Mon, Aug 03, 2026 at 01:59:07PM +0200, Jiri Pirko wrote:
+>
+>> That is not doable in UAPI. Some userspace app, like rdma-core in
+>> this case, might use it and rename breaks the compilation. Some other
+>> app you don't know about may use it.
+>
+>Linus actualy had some comments on this once (which I will never be
+>able to find I guess), but we broadly follow what he outlined. The
+>userspace has copies of the kernel headers embedded in it. When the
+>kernel headers change the user space updates it's copy and fixes any
+>build breaks.
+>
+>So long as the build breaks are fixable, and don't change the ABI, it
+>is fine.
+>
+>Many parts of the kernel work like this because userspace is not
+>supposed to directly use the kernel headers themselves, they are
+>supposed to be sanitized by glibc or some other helper library.
+>
+>There are a few places that don't work like this of course..
 
-Two things are wrong.
+Yeah, me being mainly netdev-guy, that was never allowed there. Not sure
+about now. But makes sense. Would be nice to have it explicitly
+documented in kernel docs though.
 
-First, cr_page_offset is a byte offset but .va is a struct
-credit_return *, so adding it is pointer arithmetic and scales the offset
-by sizeof(struct credit_return) == 64.  memvirt then lands 256 KiB or
-512 KiB past a 10240-byte allocation.  With an IOMMU translating, that
-address is inside the vmalloc range but in no vm_area, so
-dma_mmap_coherent() -> iommu_dma_mmap() finds no pages, vmalloc_to_pfn()
-returns page_to_pfn(NULL), and remap_pfn_range() installs a frame above
-MAXPHYADDR.  The first user read then takes:
-
-  psm2_ep_open_pr: Corrupted page table at address 7a14d007e000
-  PGD 800000013886a067 P4D 800000013886a067 PUD 13886b067 PMD 13886c067
-                                            PTE 800049168e911235
-  Oops: Bad pagetable: 000d [#1] SMP PTI
-
-Second, and still wrong once the arithmetic is corrected,
-dma_mmap_coherent() describes a whole coherent buffer and selects the
-page within it with vma->vm_pgoff.  Offsetting cpu_addr has no effect:
-for a vmap'd allocation iommu_dma_mmap() uses cpu_addr only to locate the
-vm_area and then maps pages[vm_pgoff], which hfi1_file_mmap() has just
-set to 0.  User space therefore always receives the first credit-return
-page, every credit read is for the wrong context, and send PIO stalls
-forever.
-
-Use the DMA API as intended: pass the base of the allocation with its
-full length and select the page with vm_pgoff.  A separate length is
-needed because memlen must keep describing the VMA for the existing size
-check.  The dma-direct path stays correct as well, since dma_direct_mmap()
-adds the same vm_pgoff to the base pfn.
-
-Tested on a Dell T7610 (Xeon E5-2650 v2, Intel IOMMU in DMA-FQ mode)
-against a Threadripper PRO 3995WX peer, both Omni-Path 100.  Before this
-change psm2_ep_open() Oopses the kernel; with only the arithmetic
-corrected psm2_ep_open() succeeds but any transfer that uses send PIO
-hangs, PSM2_SDMA=2 (send PIO disabled) completing normally while
-PSM2_SDMA=0 (send PIO only) hangs every time.  With this change send PIO,
-send DMA and the default mixed mode all work.
-
-Fixes: 1ec82317a1da ("IB/hfi1: Use dma_mmap_coherent for matching buffers")
-Cc: stable@vger.kernel.org
-Signed-off-by: Shuhei Takeshita <jyohuku.alterego@gmail.com>
----
- drivers/infiniband/hw/hfi1/file_ops.c | 21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
-index e05f3c255..ad2044d1f 100644
---- a/drivers/infiniband/hw/hfi1/file_ops.c
-+++ b/drivers/infiniband/hw/hfi1/file_ops.c
-@@ -326,6 +326,7 @@ static int hfi1_file_mmap(struct file *fp, struct vm_area_struct *vma)
- 	void *memvirt = NULL;
- 	dma_addr_t memdma = 0;
- 	u8 subctxt, mapio = 0, vmf = 0, type;
-+	size_t memdmalen = 0;
- 	ssize_t memlen = 0;
- 	int ret = 0;
- 	u16 ctxt;
-@@ -371,7 +372,9 @@ static int hfi1_file_mmap(struct file *fp, struct vm_area_struct *vma)
- 		mapio = 1;
- 		break;
- 	case PIO_CRED: {
-+		struct credit_return_base *cr = &dd->cr_base[uctxt->sc->node];
- 		u64 cr_page_offset;
-+
- 		if (flags & VM_WRITE) {
- 			ret = -EPERM;
- 			goto done;
-@@ -381,11 +384,18 @@ static int hfi1_file_mmap(struct file *fp, struct vm_area_struct *vma)
- 		 * second or third page allocated for credit returns (if number
- 		 * of enabled contexts > 64 and 128 respectively).
- 		 */
--		cr_page_offset = ((u64)uctxt->sc->hw_free -
--				  (u64)dd->cr_base[uctxt->sc->node].va) &
-+		cr_page_offset = ((u64)uctxt->sc->hw_free - (u64)cr->va) &
- 				 PAGE_MASK;
--		memvirt = dd->cr_base[uctxt->sc->node].va + cr_page_offset;
--		memdma = dd->cr_base[uctxt->sc->node].dma + cr_page_offset;
-+		/*
-+		 * dma_mmap_coherent() describes the whole coherent buffer and
-+		 * selects the page within it with vma->vm_pgoff, so pass the
-+		 * base of the allocation and its length and let vm_pgoff pick
-+		 * the page.
-+		 */
-+		vma->vm_pgoff = cr_page_offset >> PAGE_SHIFT;
-+		memvirt = cr->va;
-+		memdma = cr->dma;
-+		memdmalen = TXE_NUM_CONTEXTS * sizeof(struct credit_return);
- 		memlen = PAGE_SIZE;
- 		flags &= ~VM_MAYWRITE;
- 		flags |= VM_DONTCOPY | VM_DONTEXPAND;
-@@ -567,7 +577,8 @@ static int hfi1_file_mmap(struct file *fp, struct vm_area_struct *vma)
- 		ret = 0;
- 	} else if (memdma) {
- 		ret = dma_mmap_coherent(&dd->pcidev->dev, vma,
--					memvirt, memdma, memlen);
-+					memvirt, memdma,
-+					memdmalen ? memdmalen : memlen);
- 	} else if (mapio) {
- 		ret = io_remap_pfn_range(vma, vma->vm_start,
- 					 PFN_DOWN(memaddr),
--- 
-2.43.0
+Thanks!
 
