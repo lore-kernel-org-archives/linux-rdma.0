@@ -1,112 +1,195 @@
-Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3354279DCA
-	for <linux-rdma@vger.kernel.org>; Sun,  9 Aug 2026 15:55:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.49
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 75C7F1EE7C6;
+	Sun,  9 Aug 2026 19:01:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786290937; cv=none; b=BtB7IRwK7StQGdUOEkoc+/s+hAJk8i3Y9uJf1TxBWXav2z3zWfeUSneYPlS/RujPDgm2Y2v+HS00oMpdCSApH5dablgT2vgBEnNAMbaMWkUIytqdjV88Ug9Tw7KbHNT4k7MGXvmtscCFwl4vhRWw2p8gxZDIqMQmL6BnqfHHz30=
+	t=1786302083; cv=none; b=U4W755Ppf+FhENcx0uO158Ko0mGxSRpNpindxr1eaOiOs29wHdJpCgMlx10jH9ERWGF9W+uJfVgERdtYaSN2EiAxf4hR6aVletDAB9QXCBTQ7dMZpoT0FKxTcLfXC9355Un6Idvm2ITUUFAsdVYEFen+g3J9qqsRNTGlMgihp3k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786290937; c=relaxed/simple;
-	bh=QcFrRCeDI/i3Ew/e11cx7MxC5wvLiH/lxBlsj++ms2E=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=WLO1TaJrjR0cqopvj+msJZKG5fZMTHNgVbALvD5Cj4PlpgiLpvzjPIbonzijOYWtJ6IaYv6o3TCVSY1cqBJfjgA2Jw/97/lF9ugPALFsGbbB32qbmaaN+zq/eb4yCGkcTymytWXT5f47Y96tVEYpzq4O4ExHgBMWo7cPre/d5QQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us; spf=none smtp.mailfrom=resnulli.us; dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b=BMBwbgMk; arc=none smtp.client-ip=209.85.128.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=resnulli.us
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=resnulli.us
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20251104.gappssmtp.com header.i=@resnulli-us.20251104.gappssmtp.com header.b="BMBwbgMk"
-Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-49800c6a846so9726895e9.3
-        for <linux-rdma@vger.kernel.org>; Sun, 09 Aug 2026 08:55:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20251104.gappssmtp.com; s=20251104; t=1786290932; x=1786895732; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=QcFrRCeDI/i3Ew/e11cx7MxC5wvLiH/lxBlsj++ms2E=;
-        b=BMBwbgMkP18hHiz81HK0br1cLQexDPtxAmivgb5rJ1GN5stbdt9BFYDbrlTlWx2a0C
-         dsgyVQOggkTPXVOaTL2y2SDL+4LLxG9uUMmg1TSkLT7S7NPBmDndYm84ge+eglHtE6pk
-         I8XmE21HWJoU0PYuPb8KkPlU8dT/bbpxsl43loqY3RaK5SvZAlvPrdNMOdPV9r2a6n4w
-         hMJKX0jU5Txj8nRhE/Om3WDpz1JtTg3SPeA44DF5yjBE7FXWobKw+VaPM2GLfZUwW75p
-         3bUrNcP0Zr0TGGnWRSQ+Z83BjVnUQBqR0Vv15ueYZ41vFWiPSKgNd94XmjZFK1PlaLXh
-         zt2A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786290932; x=1786895732;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=QcFrRCeDI/i3Ew/e11cx7MxC5wvLiH/lxBlsj++ms2E=;
-        b=jwSIffR4mvgVlz54Xlm8ySBZ4I6k1Kf12ow/HN3jtUJUhP+OU6KxtKZTnlM4RRDESC
-         QMKjpfNJItP1PCnTTiQC76WYCE1LlcJQYpqvCPuqG0WeXd8n4/vo1rQRXA3786HB7DYS
-         QCfzT2iPXgH1KjsNTfjZgNo4X6EPUP1TouvcJFxlaTKic0GGdemvDAHJ1G3q2s+wRDD+
-         ygQ3HeEUswu3TbGYkYHuajwsXrZ2VGZwfLl+z4J5vr2kO1mIYp7oQRZ68yZPgHZaeLvb
-         nFr8r4CHWw07o3bCBuUNxtfMp7fogr8PDpKtVgr4Vpwgsw4b65/v94RfZ3XeP/b5Sx1D
-         v1Sg==
-X-Forwarded-Encrypted: i=1; AHgh+RoQMlmuEWhSrRxZdwMqNVBYVuLRSvbLA/23HjUKMJgtKX/yg9q3I+pY6z9do8dvpXtcfwN1QPEHLEap@vger.kernel.org
-X-Gm-Message-State: AOJu0YyfFYxfYuFT341nhIACNjJqUE6FOFHF4m9sue2lI7qgG9mshmLC
-	UxxrxBtuV2s2MXreC9zT078xE3NmfvZKEYAyJ/dHKAWuKmMyDORTj2N6ma+kJjWL+zQ=
-X-Gm-Gg: AR+sD12BGnrIsQMPg0nxZyltjuqfjyleOLI99iOEUBSVOOyb4b7NyR0rDA0nRmgBp4p
-	6ycM9tKIV7gzvFYS4UpMrmwXXK4HZuYFNBbVIUbaWfcm7NCOgibUCXbTPimwHYwwOWNtI5n/2Fx
-	1rZnXYgMT7jGWm7CwYq6HfUvrAyKK+wBRisAu/HromrBg+kfQynjx9JDhKCB05VwNAaxIJDxKhw
-	f8VpAc/uTLpE82pn9Q2io/jN8euw+O3dZKhUJ9KSQvT6lQ7XJdWY5P7+8sCcsT0/tF6Yxt2llHG
-	ttJSl9AVYxoNCC6XzB8g0F0uZzP6pXBduIME9HVIMZ2PucsRP3Sx/qdDfYTDnXbi7HchOkHQ31Y
-	QmD3jVe4v6baq4fgsZKIJ2znsgvWRTAAB0toRLmWqzYcn59kP+tTDyjfWlDRLICGrYZ/29cqrl0
-	Mq+ycUXYC2PUpQ2Pr67f8c2Y7TOrAKLPoNljqBm7OXep+fctzjdNSv8jGQ1gXhe7z6+4lVuOdou
-	AVJbyVe
-X-Received: by 2002:a05:600c:6c50:b0:499:48bb:417e with SMTP id 5b1f17b1804b1-49959e0176bmr225272675e9.2.1786290931844;
-        Sun, 09 Aug 2026 08:55:31 -0700 (PDT)
-Received: from localhost ([140.209.217.211])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4995e9f060bsm217952505e9.7.2026.08.09.08.55.31
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 09 Aug 2026 08:55:31 -0700 (PDT)
-Date: Sun, 9 Aug 2026 17:55:27 +0200
-From: Jiri Pirko <jiri@resnulli.us>
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Konstantin Taranov <kotaranov@microsoft.com>, 
-	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "leon@kernel.org" <leon@kernel.org>, 
-	Long Li <longli@microsoft.com>, "linux-hyperv@vger.kernel.org" <linux-hyperv@vger.kernel.org>
-Subject: Re: [PATCH rdma-next] RDMA/mana_ib: Retain create CQ flags field name
-Message-ID: <aniik0sdK04Ie4HH@FV6GYCPJ69>
-References: <20260731091041.2250897-1-jiri@resnulli.us>
- <DU8PR83MB0975547820CBB956D4EFFE57B4C82@DU8PR83MB0975.EURPRD83.prod.outlook.com>
- <anCBtLSxn8TtFcSz@FV6GYCPJ69>
- <20260807231356.GM200537@ziepe.ca>
+	s=arc-20240116; t=1786302083; c=relaxed/simple;
+	bh=s5tcFmNwZFA1J3xK6oZv5nXPDgKWwFFvPtkhIoxLZOw=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=gy1BmjNpUpFJ2CYL98W/OCIS/tMAY8FFgGWToG+34pJBxGHBrAKN5ujiuKQxfRHKC4enEmWhCAYkVfvdGP9TDrvpCjeb7L7x08/kiq7xk6pJG/In0RfFKzCGC+5puGsIGJmkvmG9iGmS+v5cJBH3q72ilhpJB/+SCgqQNDPmAag=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+Received: by linux.microsoft.com (Postfix, from userid 1202)
+	id AAB6F20B7166; Sun,  9 Aug 2026 12:00:53 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com AAB6F20B7166
+From: Long Li <longli@microsoft.com>
+To: Long Li <longli@microsoft.com>,
+	Konstantin Taranov <kotaranov@microsoft.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	"David S . Miller" <davem@davemloft.net>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Eric Dumazet <edumazet@google.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>,
+	Haiyang Zhang <haiyangz@microsoft.com>,
+	"K . Y . Srinivasan" <kys@microsoft.com>,
+	Wei Liu <wei.liu@kernel.org>,
+	Dexuan Cui <decui@microsoft.com>,
+	shradhagupta@linux.microsoft.com,
+	Simon Horman <horms@kernel.org>,
+	ernis@linux.microsoft.com,
+	stephen@networkplumber.org
+Cc: netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-hyperv@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH net v5 0/7] net: mana: HW channel reliability and hardening fixes
+Date: Sun,  9 Aug 2026 12:00:34 -0700
+Message-ID: <20260809190047.2086368-1-longli@microsoft.com>
+X-Mailer: git-send-email 2.43.7
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260807231356.GM200537@ziepe.ca>
+Content-Transfer-Encoding: 8bit
 
-Sat, Aug 08, 2026 at 01:13:56AM +0200, jgg@ziepe.ca wrote:
->On Mon, Aug 03, 2026 at 01:59:07PM +0200, Jiri Pirko wrote:
->
->> That is not doable in UAPI. Some userspace app, like rdma-core in
->> this case, might use it and rename breaks the compilation. Some other
->> app you don't know about may use it.
->
->Linus actualy had some comments on this once (which I will never be
->able to find I guess), but we broadly follow what he outlined. The
->userspace has copies of the kernel headers embedded in it. When the
->kernel headers change the user space updates it's copy and fixes any
->build breaks.
->
->So long as the build breaks are fixable, and don't change the ABI, it
->is fine.
->
->Many parts of the kernel work like this because userspace is not
->supposed to directly use the kernel headers themselves, they are
->supposed to be sanitized by glibc or some other helper library.
->
->There are a few places that don't work like this of course..
+This series fixes a set of latent bugs and robustness gaps in the MANA
+Hardware Channel (HWC), the control path the driver uses to talk to the
+device.  The issues range from a use-after-free of completion queues
+during teardown to buffer mis-sizing, unsafe teardown ordering, missing
+validation of device-supplied RX metadata, and stale-response handling
+after a command timeout.
 
-Yeah, me being mainly netdev-guy, that was never allowed there. Not sure
-about now. But makes sense. Would be nice to have it explicitly
-documented in kernel docs though.
+Patch overview:
 
-Thanks!
+  1  RCU-protect gc->cq_table lookups against concurrent CQ destroy
+     The EQ interrupt handler dereferences CQ pointers from gc->cq_table
+     while teardown can free them.  Put the table under RCU and wait a
+     grace period before freeing, closing the use-after-free.
+
+  2  fix HWC RQ/SQ buffer size swap
+     init_queues() sized the RQ with max_req_msg_size and the SQ with
+     max_resp_msg_size -- backwards.  Correct the swap; both sizes are
+     equal in practice, so this is a latent-correctness fix.
+
+  3  free HWC comp_buf after destroying the EQ
+     Reorder teardown so the EQ is destroyed (readers quiesced) before
+     comp_buf and the CQ are freed, preventing a late EQ-handler access
+     to freed memory.
+
+  4  validate hardware-supplied values in the HWC RX path
+     Bounds-check the SGE, verify the recovered slot index and SGE
+     address, and validate response length and msg_id before use, so
+     malformed or hostile DMA metadata cannot cause wrong-slot completion
+     or out-of-bounds access.
+
+  5  fix HWC teardown safety with setup_active flag and destroy ordering
+     Track setup activation explicitly, tear the EQ/CQ down before the
+     TXQ/RXQ, and on an unrecoverable teardown failure leak the HWC
+     resources rather than free memory the device may still DMA into.
+
+  6  fix stale HWC response after command timeout
+     Replace the inflight-slot semaphore with a bitmap + waitqueue and
+     per-slot refcount/lock; latch the channel on timeout so no new slots
+     are handed out, drop duplicate/late responses, and ignore a zero
+     firmware-supplied timeout.
+
+  7  keep max_num_cqs immutable once cq_table is allocated
+     gc->max_num_cqs is set once when cq_table is allocated and never
+     reset, so a spoofed post-init HWC event cannot inflate the bound
+     past the allocation and drive an out-of-bounds cq_table access.
+
+Follow-up feature work (net-next, sent separately):
+
+The original series also contained two patches that are improvements, not
+fixes:
+
+  net: mana: support concurrent HWC requests
+  net: mana: add dynamic HWC queue depth with reinit path
+
+Per the netdev tree rules, fixes go to 'net' and features/improvements go
+to 'net-next', and the two must not be combined in a single submission.
+Those two patches build on the locking and teardown groundwork in this
+series, so they will be posted as a separate net-next series only after
+these fixes have propagated from net into net-next through the usual
+periodic merge.
+
+Changes since v4:
+
+ - No code changes.  Resending as a standalone thread; v4 was
+   accidentally sent in-reply-to the v3 thread.
+ - v4: https://lore.kernel.org/netdev/20260808023417.1746886-1-longli@microsoft.com/
+ - v3: https://lore.kernel.org/netdev/20260803234355.636038-1-longli@microsoft.com/
+
+Changes since v3:
+
+Addressed the netdev-ai and sashiko.dev automated reviews of v3.
+
+ - New patch 7 ("keep max_num_cqs immutable once cq_table is
+   allocated"): gc->max_num_cqs is set once and never reset, so a
+   spoofed post-init HWC event cannot inflate the bound past the
+   allocation and cause an out-of-bounds cq_table access.
+ - patch 1: replaced the per-CQ synchronize_rcu() in the netdev teardown
+   paths with a two-pass quiesce/free that takes a single grace period
+   per teardown; snapshot cq->id and max_num_cqs with READ_ONCE() so the
+   same value sizes, bounds and indexes cq_table; corrected the
+   gc->cq_table lifetime comment; rescoped the changelog to the
+   use-after-free fix.
+ - patch 2: reworded the changelog as a latent-correctness fix (both
+   message sizes are 0x1000, so the swap has no observable overflow) and
+   dropped the incorrect note about hoisting the queue dimensions.
+ - patch 4: removed the short-response early return so a malformed
+   response reaches verify_resp_msg() -> -EPROTO and completes the
+   sender instead of hanging it; account leaked RX WQEs and trip
+   hwc_timeout on RQ exhaustion; read the device-supplied
+   inline_oob_size_div4 (through its u32 flags word, as it is a
+   bit-field) and sge->address with READ_ONCE() and reject any value
+   other than the one the driver programs; reframed the msg_id check as
+   defense in depth.
+ - patch 5: arm setup_active immediately after mana_smc_setup_hwc()
+   succeeds; destroy the EQ (IRQ deregister + drain) before the CQ; drop
+   the redundant teardown in mana_hwc_establish_channel() that caused a
+   double hardware timeout and masked the original error.
+ - patch 6: take both the sender and response-side references up front in
+   mana_hwc_get_msg_index() (refcount initialised to 2, under the lock
+   that publishes the slot) so an early/stale/forged response cannot free
+   the slot before the sender posts; changed caller_ctx::error from u32
+   to int; reject a zero firmware-supplied HWC timeout in the query path
+   as well as the reconfig path; access hwc_timed_out with READ_ONCE()/
+   WRITE_ONCE(); comment and changelog fixes.
+ - Assorted comment and commit-message clarifications throughout.
+
+Changes since v2:
+
+ - Per maintainer feedback, split the original combined series: the
+   fixes here target 'net'; the two feature patches now go to 'net-next'
+   and are sent separately (see above).  Rebased the fixes onto net.
+ - Dropped the pcie_flr()-based reset fallback from the teardown path.
+   pcie_flr() resets device config without the save/restore that
+   pci_reset_function() provides, and cannot be used as a drop-in here.
+   On an unrecoverable teardown failure the driver now leaks the HWC
+   resources instead of touching memory the device may still DMA into.
+ - patch 2: store the HWC queue dimensions before creating the CQ so the
+   RX completion handler can never observe a zero max_resp_msg_size
+   divisor or a stale num_inflight_msg bound.
+ - Assorted commit-message and comment clarifications.
+
+Long Li (7):
+  net: mana: RCU-protect gc->cq_table lookups against concurrent CQ
+    destroy
+  net: mana: fix HWC RQ/SQ buffer size swap
+  net: mana: free HWC comp_buf after destroying the EQ
+  net: mana: validate hardware-supplied values in the HWC RX path
+  net: mana: fix HWC teardown safety with setup_active flag and destroy
+    ordering
+  net: mana: fix stale HWC response after command timeout
+  net: mana: keep max_num_cqs immutable once cq_table is allocated
+
+ drivers/infiniband/hw/mana/cq.c               |  46 +-
+ .../net/ethernet/microsoft/mana/gdma_main.c   |  48 +-
+ .../net/ethernet/microsoft/mana/hw_channel.c  | 452 +++++++++++++++---
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 136 ++++--
+ include/net/mana/gdma.h                       |  40 +-
+ include/net/mana/hw_channel.h                 |  44 +-
+ 6 files changed, 652 insertions(+), 114 deletions(-)
+
+
+base-commit: dd057113ac7ba5bdd2aed3d9405305911152f911
+-- 
+2.43.0
 
