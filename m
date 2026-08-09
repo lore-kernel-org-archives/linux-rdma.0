@@ -1,33 +1,33 @@
-Received: from out-182.mta1.migadu.com (mta1.migadu.com [37.59.57.117])
+Received: from out-185.mta1.migadu.com (out-185.mta1.migadu.com [95.215.58.185])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA7AE239E9B
-	for <linux-rdma@vger.kernel.org>; Sun,  9 Aug 2026 22:27:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=37.59.57.117
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 467E2CA6B
+	for <linux-rdma@vger.kernel.org>; Sun,  9 Aug 2026 23:47:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.185
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786314450; cv=none; b=IRAJfYQ+z+8vb2uMnb5tZlj4mMNhyT9nhq/yo76i/QXh/af7ncHCWrhEpl3OrQ8sq84eBQjNnWSeFyK9qq+GdFfLmwC5GiFmToKBA7pyuE/FhrkE1R81i+tCMrR0ZSdLZW87DffD7T3xJXNrpvPsxIubo95+ZTnALCQrG80TLIM=
+	t=1786319224; cv=none; b=i1tLL/063/p2J7nh1jhmidAQvr5oJPnSRv/wpyxLFQv9BeNq7MNDFOfrERg49J/TPfZX0Vzo50MOueGEcOBHcbqjO+XPKEeFLyia22zQ+zQ/EnSN0qupW6f5Uk4k+rDy/RlRP+gfgmtj/z6IB2XOVTMHXeQFOCwo2tsgw8v9rgs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786314450; c=relaxed/simple;
-	bh=i/0R5X0c96Qpok/iZfmgTN7QuGJ51tYhbiLV/7UYWEE=;
+	s=arc-20240116; t=1786319224; c=relaxed/simple;
+	bh=qQg6wwmgDKJLev97DPSosvqGZziifMCa/r0MbeTlQt4=;
 	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=rZtj1NDyR3xLyHqNNsWWXJxk886gK7hXOpdqLeiUhTdrxT10LEsLC9wEVo5fxpf+IpEhJvZ8bKB8BYk3YkL1IT1G4Bhed5BGFce1+2V64GtSI2jN+cLY/bAg2q2vcffkp1rpe3UIjn4iW1L5i4urABvZdvq8cu6FKXs8rHfF9Go=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=ezxSmbjC; arc=none smtp.client-ip=37.59.57.117
+	 In-Reply-To:Content-Type; b=YTv6fYcB3e0UbTVhcx+5s+yfBIuALPmne3YidsYWhYbvPueXMemNFANfKb/b6+tljdQ2Q10a0Tml/Po4GTDFXS9kGsShNryyvtM774gJqyNYEC0wO0QipUXwkgzWsu9KHMzYh2JJ0QF9iJ2SRve4O7YPJWq3j3gjYO8MyKonATo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=Y1EzVBre; arc=none smtp.client-ip=95.215.58.185
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="ezxSmbjC"
-Message-ID: <e878b0e0-a375-4bad-ba85-2b3a24ac060d@linux.dev>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="Y1EzVBre"
+Message-ID: <fee053e9-35ac-486a-b72f-d6539f16ffae@linux.dev>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1786314436;
+	t=1786319219;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=TEwxkyGa//+oqnn6bar/BumRsiUINpidJ60P4TKu3Ow=;
-	b=ezxSmbjC/oIvgUrQIg3bYJop5FNcuU8S9WVN5Mb2x0z97nwN9F8eYEIAXyHHYxeHVFelRv
-	KgJMYzlyFPgLIOqRkChozmMqD7ULDrimHHmdNI5d7t/lMiQQ8ExbhFHFKdD3/AFM5tHnIG
-	py9agGqr+lnvoAXJ55p3uoeQmc/eGVc=
-Date: Sun, 9 Aug 2026 15:27:04 -0700
+	bh=qQg6wwmgDKJLev97DPSosvqGZziifMCa/r0MbeTlQt4=;
+	b=Y1EzVBreZFZVW5sLg3ZWX3FjZw7VFZw/S8PUohsBDRNO1RGaEZQqrNugPFdrocp99KCFRf
+	Wk7e+FRRj7rvYuehftJIBom7x7S/0GgaOXXpVOHfNuv0iuunSIroZhxFHp/PoFZS54fHDN
+	jcPMCDsGEYxajYj3e0r3mk0z9ZUEARQ=
+Date: Sun, 9 Aug 2026 16:46:44 -0700
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -46,20 +46,4 @@ Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 X-Migadu-Flow: FLOW_OUT
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index cc24fddf9aaa..35e463a20ade 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -3531,7 +3531,8 @@ static void addr_handler(int status, struct 
-sockaddr *src_addr,
-                 if (status)
-                         pr_debug_ratelimited("RDMA CM: ADDR_ERROR: 
-failed to acquire device. status %d\n",
-                                              status);
--               rdma_restrack_add(&id_priv->res);
-+               if (id_priv->id.device)
-+                       rdma_restrack_add(&id_priv->res);
-         } else if (status) {
-                 pr_debug_ratelimited("RDMA CM: ADDR_ERROR: failed to 
-resolve IP. status %d\n", status);
-         }
+#syz test: https://github.com/zhuyj/linux.git warning_res_to_rt
