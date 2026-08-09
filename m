@@ -1,176 +1,107 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B442034F270;
-	Sun,  9 Aug 2026 19:01:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from pdx-out-004.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-004.esa.us-west-2.outbound.mail-perimeter.amazon.com [44.246.77.92])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADE171F8755
+	for <linux-rdma@vger.kernel.org>; Sun,  9 Aug 2026 19:22:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=44.246.77.92
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786302087; cv=none; b=LdCFBrsW1VNF8EIPD2Tk7brj6DHWXJ3/NrUkfguUfU+G74NSFWzqjvT9LswJMXIbkhMgERCvpyBbkcd3fhxIu/GaC2khPMQIG5I/8gEQB4QVW0ZN4FVDQZR1mSIQbE43zIGR9u3lUFTGICfNiBgED+u6cSWpU4nPTELF9zd0FvI=
+	t=1786303380; cv=none; b=rE51uxLiW8VTskwbwcAUadFP8YeHyca20EixhhsIDlUGoOPB3nX1OIsuvueE87bo+cTJq+BS309L+gklqsM6vIkqUrjMEL44qKPnoIPSg3UAenKM01UzGSekgqI0o2+GO3EfFQnJxIfrkV0veEgjeURHGqpHvtFMJzTJawI12R0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786302087; c=relaxed/simple;
-	bh=dU5urSqD5BDA2UPZlc3eGr7rb9QevdWLpxxclkKZF/I=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=SDJ1HUzkd4Zu1/YeU8kj/J3tXQCyZimpbzq0lPTHO+i0bTug4TDEt1FJsdt77ek+9OorzInYtO4KQmL0XdS7Yly/exFLnm2HosDmOT8TjA9I7LbNuHc76DZ43uQNobaY4PpBDNTguKfCqaAUv3gQ+K8Wcbwbfpgaxmee5otNb8g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
-Received: by linux.microsoft.com (Postfix, from userid 1202)
-	id 8FB5620B712D; Sun,  9 Aug 2026 12:00:59 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 8FB5620B712D
-From: Long Li <longli@microsoft.com>
-To: Long Li <longli@microsoft.com>,
-	Konstantin Taranov <kotaranov@microsoft.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	"David S . Miller" <davem@davemloft.net>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Eric Dumazet <edumazet@google.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	Haiyang Zhang <haiyangz@microsoft.com>,
-	"K . Y . Srinivasan" <kys@microsoft.com>,
-	Wei Liu <wei.liu@kernel.org>,
-	Dexuan Cui <decui@microsoft.com>,
-	shradhagupta@linux.microsoft.com,
-	Simon Horman <horms@kernel.org>,
-	ernis@linux.microsoft.com,
-	stephen@networkplumber.org
-Cc: netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	linux-hyperv@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH net v5 7/7] net: mana: keep max_num_cqs immutable once cq_table is allocated
-Date: Sun,  9 Aug 2026 12:00:41 -0700
-Message-ID: <20260809190047.2086368-8-longli@microsoft.com>
-X-Mailer: git-send-email 2.43.7
-In-Reply-To: <20260809190047.2086368-1-longli@microsoft.com>
-References: <20260809190047.2086368-1-longli@microsoft.com>
+	s=arc-20240116; t=1786303380; c=relaxed/simple;
+	bh=61ObG326Sm4eCgkmrwhiUTVTV6GSSH12JNtEJdFlwwI=;
+	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=SO3T3fa73QyjRLyqwCmZOvH2+cFXeeap1JvIUFZUCMGhDQb50aU2dsiyyneNMXGzBcOJMkVYqVeU4Do5RxAQLOZB4/Ysd9Dy541fdYVl1BMk7lO/NJjNqG8FRGwUcJU4FwoMBKnKF5g5B4Z1ScA2vwzeSpFu2rkKU1YNOhSX6gY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=kRnhVW6s; arc=none smtp.client-ip=44.246.77.92
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="kRnhVW6s"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
+  t=1786303379; x=1817839379;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=jseoQHRxgWk7irZVIVkdLTAhyLJQ0jZEm0FYl0xOaI8=;
+  b=kRnhVW6s5ciTmXMKbD9xMhTq9RDWbJKpkLPNNGH9stnBGSIBetMGbA69
+   +JYRrrLXuhWs4HYudnKCu4xgH+HCCxvx0XyEL14zzcMxotWbvvHM5cI5g
+   dgKaPtVKsLOMiGugzOhmIAO9yyciIA4scjMC3LExGCye5Eaqaw3FEXiRi
+   plJMImpcOmZ33aWu8aJlW0VDKiK6ccLUFfOKJX/tN/Da+7/6somHYUQpF
+   caskMxL+UfVmnuOVT6nlGcd2CPMHjQi/c05akNjM/QMgHt5KG9GDWh3hD
+   b2V2q2yk4izaitXxpUOGcjpnEI82+mo7mmm4WUfwxlbZx9AUnjSC6wr+C
+   Q==;
+X-CSE-ConnectionGUID: V+4sOvCTTh2S3P0mS3rr5g==
+X-CSE-MsgGUID: daylcx1BSCifa4mlzRoJBg==
+X-IronPort-AV: E=Sophos;i="6.25,214,1779148800"; 
+   d="scan'208";a="25520732"
+Received: from ip-10-5-9-48.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.9.48])
+  by internal-pdx-out-004.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Aug 2026 19:22:56 +0000
+Received: from EX19MTAUWB001.ant.amazon.com [205.251.233.51:9903]
+ by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.44.25:2525] with esmtp (Farcaster)
+ id 92203b36-824d-4b5f-b895-74f629edd78a; Sun, 9 Aug 2026 19:22:56 +0000 (UTC)
+X-Farcaster-Flow-ID: 92203b36-824d-4b5f-b895-74f629edd78a
+Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
+ EX19MTAUWB001.ant.amazon.com (10.250.64.248) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.45;
+ Sun, 9 Aug 2026 19:22:56 +0000
+Received: from dev-dsk-ynachum-1b-aa121316.eu-west-1.amazon.com
+ (10.253.69.224) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.45; Sun, 9 Aug 2026
+ 19:22:54 +0000
+Date: Sun, 9 Aug 2026 19:22:37 +0000
+From: Yonatan Nachum <ynachum@amazon.com>
+To: <jgg@nvidia.com>, <leon@kernel.org>, <linux-rdma@vger.kernel.org>
+CC: <mrgolin@amazon.com>, <sleybo@amazon.com>, <matua@amazon.com>,
+	<gal.pressman@linux.dev>
+Subject: Re: [PATCH for-next v2 0/3] RDMA/efa: Add support for 128B admin v2
+ SQ entry
+Message-ID: <20260809192237.GA15936@dev-dsk-ynachum-1b-aa121316.eu-west-1.amazon.com>
+References: <20260731075007.3878376-1-ynachum@amazon.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Disposition: inline
+In-Reply-To: <20260731075007.3878376-1-ynachum@amazon.com>
+User-Agent: Mutt/1.5.21 (2010-09-15)
+X-ClientProxiedBy: EX19D040UWB001.ant.amazon.com (10.13.138.82) To
+ EX19D001UWA001.ant.amazon.com (10.13.138.214)
 
-mana_hwc_init_event_handler() applied every HWC_INIT_DATA_MAX_NUM_CQS
-event straight to gc->max_num_cqs.  That handler stays live for the whole
-channel lifetime -- it also services runtime reconfig and link events --
-so it is not confined to the initial bootstrap.
+On Fri, Jul 31, 2026 at 07:50:04AM +0000, Yonatan Nachum wrote:
+> Changelog:
+> v2:
+>  * Rebase on for-next branch instead of wip/leon-for-next.
+> v1: https://lore.kernel.org/all/20260726123854.638687-1-ynachum@amazon.com/
+> 
+> -------------------------------------------------------------------------
+> Add support for the new 128-byte admin v2 SQ entry format. The v2 entry
+> extends the v1 header with checksum and payload version fields, and
+> carries a larger inline payload.
+> 
+> The series first decouples admin command payloads from admin headers,
+> then generalizes the SQ ring to use a configurable entry size, and
+> finally adds the v2 entry format selection based on device API version.
+> 
+> Yonatan Nachum (3):
+>   RDMA/efa: Decouple admin command payload from admin header
+>   RDMA/efa: Generalize the admin SQ
+>   RDMA/efa: Add support for 128B admin v2 SQ entry
+> 
+>  .../infiniband/hw/efa/efa_admin_cmds_defs.h   | 116 +++--------
+>  drivers/infiniband/hw/efa/efa_admin_defs.h    |  33 ++-
+>  drivers/infiniband/hw/efa/efa_com.c           | 194 +++++++++++-------
+>  drivers/infiniband/hw/efa/efa_com.h           |  16 +-
+>  drivers/infiniband/hw/efa/efa_com_cmd.c       | 170 +++++----------
+>  5 files changed, 240 insertions(+), 289 deletions(-)
+> 
+> -- 
+> 2.50.1
+> 
 
-gc->cq_table is allocated once, sized to the max_num_cqs seen at bootstrap,
-and every reader (mana_gd_process_eqe(), mana_create_rxq() and
-mana_create_txq()) bounds-checks a CQ index against gc->max_num_cqs before
-indexing gc->cq_table.  A device -- or a malicious host in a confidential
-VM -- that sends a later HWC_INIT_DATA_MAX_NUM_CQS with a larger value
-inflates the bound past the allocation.  This includes an event timed to
-land while mana_hwc_establish_channel() is between reading the count and
-publishing cq_table.  A subsequent out-of-range CQ id then passes the
-bounds check and indexes cq_table out of bounds: an out-of-bounds read in
-the EQ fast path, or an out-of-bounds pointer write in
-mana_create_rxq()/mana_create_txq(), corrupting guest kernel memory.
+Hi, kind reminder for this series.
+I reviewed the Sashiko comments and they aren't correct.
 
-Stop writing gc->max_num_cqs from the event handler.  Store the reported
-value in hwc_init_max_num_cqs, and let mana_hwc_establish_channel() commit
-it to gc->max_num_cqs once, from the same snapshot that sizes cq_table.
-The handler store uses WRITE_ONCE() and the establish-time read uses
-READ_ONCE(), since the two run concurrently (EQ interrupt vs process
-context); the single, non-reloadable read is what guarantees the value
-that sizes cq_table is the same one published as the bound, even across
-the sleeping vcalloc().  gc->max_num_cqs then always matches the
-allocation and no later event can change the bound after the table is
-published, so the existing bounds checks are sufficient.
-
-Fixes: ca9c54d2d6a5 ("net: mana: Add a driver for Microsoft Azure Network Adapter (MANA)")
-Signed-off-by: Long Li <longli@microsoft.com>
----
-Changes in v5:
- - No code changes since v4 (resend as a standalone thread).
-
-Changes in v4:
- - New patch in v4, split out of the v3 teardown-safety work in response
-   to review: gc->max_num_cqs is set once when cq_table is allocated and
-   never reset, so a spoofed post-init HWC event cannot inflate the
-   bound past the allocation.
-
- .../net/ethernet/microsoft/mana/hw_channel.c  | 34 ++++++++++++++++---
- include/net/mana/hw_channel.h                 |  1 +
- 2 files changed, 30 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-index 2f0dae353955..03b5e2f02e35 100644
---- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
-+++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-@@ -246,7 +246,15 @@ static void mana_hwc_init_event_handler(void *ctx, struct gdma_queue *q_self,
- 			break;
- 
- 		case HWC_INIT_DATA_MAX_NUM_CQS:
--			gd->gdma_context->max_num_cqs = val;
-+			/* Store, don't apply: mana_hwc_establish_channel()
-+			 * commits this to gc->max_num_cqs once, together
-+			 * with sizing cq_table, so a spoofed post-init event
-+			 * cannot inflate the bound past the allocation.
-+			 * WRITE_ONCE() pairs with the READ_ONCE() there:
-+			 * this store runs in EQ interrupt context,
-+			 * concurrently with that process-context read.
-+			 */
-+			WRITE_ONCE(hwc->hwc_init_max_num_cqs, val);
- 			break;
- 
- 		case HWC_INIT_DATA_PDID:
-@@ -852,6 +860,8 @@ static int mana_hwc_establish_channel(struct gdma_context *gc, u16 *q_depth,
- 	struct gdma_queue *eq = hwc->cq->gdma_eq;
- 	struct gdma_queue *cq = hwc->cq->gdma_cq;
- 	struct gdma_queue __rcu **cq_table;
-+	u32 num_cqs;
-+	u32 cq_id;
- 	int err;
- 
- 	init_completion(&hwc->hwc_init_eqe_comp);
-@@ -881,15 +891,29 @@ static int mana_hwc_establish_channel(struct gdma_context *gc, u16 *q_depth,
- 	*max_req_msg_size = hwc->hwc_init_max_req_msg_size;
- 	*max_resp_msg_size = hwc->hwc_init_max_resp_msg_size;
- 
--	/* Both were set in mana_hwc_init_event_handler(). */
--	if (WARN_ON(cq->id >= gc->max_num_cqs))
-+	/* Snapshot the device-reported CQ count and CQ id into locals and
-+	 * use only the locals below, so the same value that sizes cq_table
-+	 * also bounds and indexes it -- even across the sleeping vcalloc().
-+	 * Both fields are written by mana_hwc_init_event_handler() from EQ
-+	 * interrupt context: hwc_init_max_num_cqs under WRITE_ONCE() (paired
-+	 * here), and cq->id as an ordinary store.  READ_ONCE() keeps each
-+	 * read tear-free and, crucially, non-reloadable, so a spoofed
-+	 * post-init event cannot make the WARN_ON() pass against one value
-+	 * while the allocation or the index uses another.
-+	 */
-+	num_cqs = READ_ONCE(hwc->hwc_init_max_num_cqs);
-+	cq_id = READ_ONCE(cq->id);
-+
-+	if (WARN_ON(cq_id >= num_cqs))
- 		return -EPROTO;
- 
--	cq_table = vcalloc(gc->max_num_cqs, sizeof(*cq_table));
-+	cq_table = vcalloc(num_cqs, sizeof(*cq_table));
- 	if (!cq_table)
- 		return -ENOMEM;
- 
--	rcu_assign_pointer(cq_table[cq->id], cq);
-+	gc->max_num_cqs = num_cqs;
-+
-+	rcu_assign_pointer(cq_table[cq_id], cq);
- 	/* Publish the fully-initialised table last; pairs with the
- 	 * rcu_dereference(gc->cq_table) in mana_gd_process_eqe().
- 	 */
-diff --git a/include/net/mana/hw_channel.h b/include/net/mana/hw_channel.h
-index 23bf83e2a3ec..c275150baf49 100644
---- a/include/net/mana/hw_channel.h
-+++ b/include/net/mana/hw_channel.h
-@@ -203,6 +203,7 @@ struct hw_channel_context {
- 	u16 hwc_init_q_depth_max;
- 	u32 hwc_init_max_req_msg_size;
- 	u32 hwc_init_max_resp_msg_size;
-+	u32 hwc_init_max_num_cqs;
- 
- 	struct completion hwc_init_eqe_comp;
- 
--- 
-2.43.0
-
+Thanks.
