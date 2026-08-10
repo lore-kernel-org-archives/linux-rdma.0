@@ -1,40 +1,87 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 377E2372045;
-	Mon, 10 Aug 2026 09:24:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786353858; cv=none; b=lepKW1V7G2r/O8SZUxnVD5fPaa6YuQ5BvwMRWybCYKD9kAPmbQOVzt8Z1lhLrhVtWeIAA+2IVbhq3w1Y7CbWAZcpD6PyUHoFepgXoQCveOTt1DDdFQTGov0UbpOlpOmAGPPyEoaKc3U+fmn3ckRmUjZ8onJybnQ4u+8dgEnq1fg=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786353858; c=relaxed/simple;
-	bh=49mvVW5CObpEZXd+j91x0jh+ridfmgaolGAy9puzawI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=QoiZzJQyai/78OzeQzqxwxN+cVNdX2G+J6hQThH3yYUQW/8OlgqohDbq4JmCFrOCZGai2EKDJH3PiDQY5m7gMq0VTBXIoOm+kUCRg12WHXJOEUWZY2nUeajYSnRHnqL9AfRW0vVYYVJlfGZ6+sEkJ8En/qXbOWlVdYEe6/nK4Ow=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=AY87YLVs; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013019.outbound.protection.outlook.com [40.93.201.19])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4267A13C908;
+	Mon, 10 Aug 2026 09:27:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.201.19
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786354048; cv=fail; b=Vid/Cddtdqyr5wd0mYHLnYDfilCDrI280GrjJ2ngRmLUbYPhHScFW4TOTCYVcf8kvxj6UxX6/qLhzKOCTWWeH4iDJ+hhlbJTAex59caC1NaO4t6PWRD1rsJtfkeKgLLL7a5fSj0Ihkvv/jZBiR9ttlip1DyQH/HOhIj0a5O3rN4=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786354048; c=relaxed/simple;
+	bh=SSELDs1f9WoSumqm4oRqbkL1YVletQkwMOrd1MUVP8A=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=DauQcgGK4FCdDGetZlzTXxB2MrPYkj5scqthMaTcHBoYvJnuOnbcn7vYtXzhAVk7CCyvzyZoCmfLKwTdXR6VwPcMOLPF2fqUGUVuJ+Dxb1ik8BD2b/z8d19dZGlITgFmtV5C16coRiB9+7GNtwNyIjiBQbx9SuDHuLnrNttuUr4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=q0UEFymu; arc=fail smtp.client-ip=40.93.201.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="AY87YLVs"
-Received: by linux.microsoft.com (Postfix, from userid 1186)
-	id D967620B7167; Mon, 10 Aug 2026 02:23:52 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com D967620B7167
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1786353832;
-	bh=dNudia17MsRgAYyOF7f2N3pDythE3lGWz92E2SoToSY=;
-	h=From:To:Cc:Subject:Date:From;
-	b=AY87YLVsX03UPIxqMQqVSw2lozFFHanQhLj1Y9mZwdcd1KhZ49E2weJlqSa2Z7wBL
-	 UTEnpZ3K+wHSsaP37+VZt5emTVNI0rtqQuPmxDJ33oAwAXi07QXDQY0mkIak75cSY7
-	 TJT66CxKJyW7wnRkT1WsKMKx8mk5drBMFeRNfWBQ=
-From: Konstantin Taranov <kotaranov@linux.microsoft.com>
-To: kotaranov@microsoft.com,
-	snsanghvi@microsoft.com,
-	longli@microsoft.com,
-	jgg@ziepe.ca,
-	leon@kernel.org
-Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next] RDMA/mana_ib: Enable multi-port GSI QP support for mana_ib
-Date: Mon, 10 Aug 2026 02:23:52 -0700
-Message-ID: <20260810092352.2216082-1-kotaranov@linux.microsoft.com>
-X-Mailer: git-send-email 2.43.7
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="q0UEFymu"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=zFpMHiIqvz0rb61wVj6OQ0++hpL3oKAztSt/fVJwDZWmIZ2ouFa+Rj/xhdkO+5y0S0LYXyRmK3dNX3tI2HtgG7KWPOsegBtuF8s2pGSYVm0wHvUl+zlQychQ7fwLaUyb+We+YOcxsHPQEhQZ5SvlWB6sERbCZMd7KQ6wYZbMyouToy+rCxvYtq4siRMuX/T2EE5SCAqAJSIkdM/Ot2akSKMig1rwR2aNv4uM7aULw4qZGL7Ll7KuMPCFlfPKPusQ+Cbe73YcekYoF3A1fy9YWG0WlRiHSnM1Rog8RyEzIxYr4DDnn7x2MhAMrsXETQirgdUvOh0w+pwCkWRp5u0uvg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=5OsgsV/+NQBLpVkYWAGePVUjvJHe5bKk4f2u6ldBxss=;
+ b=YPH7hNQpO218zihJMFPOsW+m6QqcbgQrP0qklXs27E3TWMkYzMYLwt77Pbaiw+lvOq9DkK3wQBoNZ3qTA926bN8a5w3CTjYLPgYXomyYVkGMfKp215A5YoVnwZU+eVT4bEL7dBxqHLI5/Uv6wmRkI4i4EqHx76wpD+CX4hIVHP0DR345QYiwl0AM+mCcqaj6iVlZf1eMAxA+ZQlrvDmBqOtp1h5guiKRORm95TJeqKdAs0fs6GrKZd0T1I7NCNpyZn7kCbrWwYOorW6WPFYiVInJl+8p+uBGhoxruT3y/1FXy2yYyJbGvRNZOI+5nMdksHEGp4qWRTGkeBgYZdVPHA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.118.233) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=5OsgsV/+NQBLpVkYWAGePVUjvJHe5bKk4f2u6ldBxss=;
+ b=q0UEFymutDRQnxkHJVHcO03USFuodOKPV8Gd2pe7FJ+TKrUgJ0w+iRaHX91v2bgYGRzBUQwKak2W5vUKYer15Vy5/9ZHtXjKl1PcH1cfSU3XrVXerv6eC3yLJ4UVLHGoMcwaJz25JS9Z4Sag2kT7WEGW+3Uife/kQyQL5HLoC0ZlUc4yZSOr/T34fA7WLKTLQqJ+4hFneU+ojmVDxBu431+x01tt9elwdLiAOcrcNh35knDdvoRH8sph1y9cahQE00icverH9jsuiLrKouG317wyR+fsT33IsghxCJe2QQkDJ9BjLBgcsZRbhHPyb1Ed/b51MK/WrcoX9FMp16qcAQ==
+Received: from BL1P223CA0040.NAMP223.PROD.OUTLOOK.COM (2603:10b6:208:5b6::13)
+ by DS0PR12MB7849.namprd12.prod.outlook.com (2603:10b6:8:141::14) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.292.25; Mon, 10 Aug
+ 2026 09:27:22 +0000
+Received: from BL02EPF0002992C.namprd02.prod.outlook.com
+ (2603:10b6:208:5b6:cafe::6c) by BL1P223CA0040.outlook.office365.com
+ (2603:10b6:208:5b6::13) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.292.25 via Frontend Transport; Mon,
+ 10 Aug 2026 09:27:22 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.118.233) by
+ BL02EPF0002992C.mail.protection.outlook.com (10.167.249.57) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.315.6 via Frontend Transport; Mon, 10 Aug 2026 09:27:21 +0000
+Received: from drhqmail202.nvidia.com (10.126.190.181) by mail.nvidia.com
+ (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Mon, 10 Aug
+ 2026 02:26:53 -0700
+Received: from drhqmail201.nvidia.com (10.126.190.180) by
+ drhqmail202.nvidia.com (10.126.190.181) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.20; Mon, 10 Aug 2026 02:26:53 -0700
+Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
+ (10.126.190.180) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
+ Transport; Mon, 10 Aug 2026 02:26:46 -0700
+From: Tariq Toukan <tariqt@nvidia.com>
+To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
+	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
+	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>
+CC: Akiva Goldberger <agoldberger@nvidia.com>, Alexei Lazar
+	<alazar@nvidia.com>, Alex Vesker <valex@nvidia.com>, Cosmin Ratiu
+	<cratiu@nvidia.com>, Dragos Tatulea <dtatulea@nvidia.com>, Erez Shitrit
+	<erezsh@nvidia.com>, Feng Liu <feliu@nvidia.com>, Gal Pressman
+	<gal@nvidia.com>, Jacob Keller <jacob.e.keller@intel.com>, Kees Cook
+	<kees@kernel.org>, Leon Romanovsky <leon@kernel.org>,
+	<linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>, Mark Bloch
+	<mbloch@nvidia.com>, Moshe Shemesh <moshe@nvidia.com>, Parav Pandit
+	<parav@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>, Shay Drory
+	<shayd@nvidia.com>, Simon Horman <horms@kernel.org>, Tariq Toukan
+	<tariqt@nvidia.com>, Vlad Dogaru <vdogaru@nvidia.com>, Yevgeny Kliteynik
+	<kliteyn@nvidia.com>
+Subject: [PATCH net-next V2 0/5] net/mlx5: HWS misc enhancements
+Date: Mon, 10 Aug 2026 12:26:25 +0300
+Message-ID: <20260810092630.3137666-1-tariqt@nvidia.com>
+X-Mailer: git-send-email 2.44.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -42,228 +89,62 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BL02EPF0002992C:EE_|DS0PR12MB7849:EE_
+X-MS-Office365-Filtering-Correlation-Id: 8de45ca6-083e-4d56-970d-08def6c194eb
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|36860700016|376014|23010399003|7416014|1800799024|82310400026|13003099007|56012099006|11063799006|10067099003|18002099003;
+X-Microsoft-Antispam-Message-Info:
+	8foBXpvU7TzJcrjUZ1e7YyAvokHUX7yivUGRb2mGDpqnrZccLmyTydqDUyXOPfDIxQ/4kaRXSbS0mpybpg8ioc1xEOUtl2itGI/efqzgXuf4D6B8X9TsOoDepriWLrmfXzTdiOk8kDHxUMeRPzDh5QQAFo79SHg1MUh6r6RR1WpturXrWbSh+Y8hV/kZcciK0S/V4AGYxs9aFeW1iTg7T4GC8pAj8hFZGOKBEkM9xYGkMlAVn1Ne9MsPIaSZw1olAysNCkfnHP+T3xSv0NDBcY9P6n88mu/mNFjIUEyN+DyAJkJfL7YpK2kJvrQIZ5xzau0LqoOIRDI5zwoLGQT0z/0CRNo8L/F3wN2rMLAQherpvsgIEYIPy15JGuXJ7qUbViCzT/1OqiPzyUgsFIGhxVOr8sHZpULhS5KVITytI01odFbj/uAKOB3qgNEFMU5sqoA0c6FvvOMk1/a5RVioRTxf9ceRg6fZA3i7+xN9nkRpJex4IUOZ+9Hud7G1z/1mLLfwnCDlaCMmPudRI5Q75OsvfhuQwFZD8ZaYt8wYD5TyzpiCbmoRlwEA42pIIcxDge5AFpvZbhSfBbUiTzCYE+OJJ82mImEA1sEIN/Q5La6NC7KOPxdjlSUbpZZ0oKgSjJ/bnEvpdIHO8QIraXEHfT01r0zbM7qeq0Wb6KcBPyjO5cKFSgx5BIiMvtm1vfTHvOD+0Y0AAYUTSPWDrXPRlQ==
+X-Forefront-Antispam-Report:
+	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(376014)(23010399003)(7416014)(1800799024)(82310400026)(13003099007)(56012099006)(11063799006)(10067099003)(18002099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	TYtlQ+nIsU0KQpbUkwo+aZpHifT3AegKmd0TagF4Lgtfi89YjylldIenHL2hoSiDNm02nns9f3Wg8yDUO+yEC/Hz99VEI9ACrbVGZqR6v17FtAAha5aCF1XPo9Dt3zNOuFaBXUk1hPk/zJcjQSPm0ZMMIt70oVkezuv2s4r9WqXOqi7KRZ8cQyVBFVdJLAJUmKGOvabxM54t4KNpIM08P3CwnWoZl0IVf12FzhflkB8fbpXCMNFMVmuQPMpMDwzjdZR31fCZeyzELhwe/x5O3tqbjSRwFwrE1JqmPW5fkCgbhqnCgobdc3Ms7mnhyvxeVCa94Lk1/Xk3g45Vl3ecY2zm/daTNRrj8tbHje2g97zFFxz0VCql/b5SDLmwFDGTGHsDquzl13H4toZmW8MjG3UWHwV7+kVJcnE8vLpDfppOmUnVMGSh1gb4pxzvZEB3
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Aug 2026 09:27:21.8838
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 8de45ca6-083e-4d56-970d-08def6c194eb
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BL02EPF0002992C.namprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB7849
 
-From: Snehal Sanghvi <snsanghvi@microsoft.com>
+Hi,
 
-Add MANA_IB_FEATURE_MULTI_PORT_GSI_SUPPORT so mana_ib can create a GSI QP
-per IB port instead of just one. When the feature is negotiated, the port's
-vNIC MAC is passed on GSI QP creation and each GSI QP is indexed in the QP
-table by port so the GSI SQ drain can reach every port.
+This series by Yevgeny brings several misc improvements to the mlx5 HWS
+driver.
 
-Also move MANA_SENDQ_MASK to BIT(0), freeing the top byte of the queue-id
-key to index GSI QPs by port and scaling the feature to the full 8-bit port
-range.
+Regards,
+Tariq
 
-Signed-off-by: Snehal Sanghvi <snsanghvi@microsoft.com>
-Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
----
-It is rebased on the series "RDMA/mana_ib: Extend MANA RC QP support for UAPI".
-It can be also applied to the next, but there will be a trivial conflict on
-adding a new bit to the enum mana_ib_adapter_features.
- drivers/infiniband/hw/mana/cq.c      | 26 +++++++++++++++++---------
- drivers/infiniband/hw/mana/main.c    | 28 ++++++++++++++++++++++++++--
- drivers/infiniband/hw/mana/mana_ib.h | 15 +++++++++++++--
- drivers/infiniband/hw/mana/qp.c      | 17 ++++++++++++++++-
- 4 files changed, 72 insertions(+), 14 deletions(-)
+V2:
+- Rebased.
 
-diff --git a/drivers/infiniband/hw/mana/cq.c b/drivers/infiniband/hw/mana/cq.c
-index d4e5e3f912689..6f9ac8b4aac8e 100644
---- a/drivers/infiniband/hw/mana/cq.c
-+++ b/drivers/infiniband/hw/mana/cq.c
-@@ -293,18 +293,12 @@ static int mana_process_completions(struct mana_ib_cq *cq, int nwc, struct ib_wc
- 	return wc_index;
- }
- 
--void mana_drain_gsi_sqs(struct mana_ib_dev *mdev)
-+static void mana_drain_gsi_sq(struct mana_ib_qp *qp)
- {
--	struct mana_ib_qp *qp = mana_get_qp_ref(mdev, MANA_GSI_QPN, false);
-+	struct mana_ib_cq *cq = container_of(qp->ibqp.send_cq, struct mana_ib_cq, ibcq);
- 	struct ud_sq_shadow_wqe *shadow_wqe;
--	struct mana_ib_cq *cq;
- 	unsigned long flags;
- 
--	if (!qp)
--		return;
--
--	cq = container_of(qp->ibqp.send_cq, struct mana_ib_cq, ibcq);
--
- 	spin_lock_irqsave(&cq->cq_lock, flags);
- 	while ((shadow_wqe = shadow_queue_get_next_to_complete(&qp->shadow_sq))
- 			!= NULL) {
-@@ -315,8 +309,22 @@ void mana_drain_gsi_sqs(struct mana_ib_dev *mdev)
- 
- 	if (cq->ibcq.comp_handler)
- 		cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
-+}
- 
--	mana_put_qp_ref(qp);
-+void mana_drain_gsi_sqs(struct mana_ib_dev *mdev)
-+{
-+	struct mana_ib_qp *qp;
-+	u32 port;
-+
-+	/* One GSI QP per port, indexed in the QP table by (port << 24 | MANA_GSI_QPN) */
-+	for (port = 1; port <= mdev->ib_dev.phys_port_cnt; port++) {
-+		qp = mana_get_qp_ref(mdev, (port << 24) | MANA_GSI_QPN, false);
-+		if (!qp)
-+			continue;
-+
-+		mana_drain_gsi_sq(qp);
-+		mana_put_qp_ref(qp);
-+	}
- }
- 
- int mana_ib_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc)
-diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
-index 57c6d9faaa81b..83a97f1c5caab 100644
---- a/drivers/infiniband/hw/mana/main.c
-+++ b/drivers/infiniband/hw/mana/main.c
-@@ -593,7 +593,11 @@ int mana_ib_get_port_immutable(struct ib_device *ibdev, u32 port_num,
- 	immutable->gid_tbl_len = attr.gid_tbl_len;
- 
- 	if (mana_ib_is_rnic(dev)) {
--		if (port_num == 1) {
-+		bool port_supports_cm = (port_num == 1 ||
-+			(dev->adapter_caps.feature_flags &
-+			 MANA_IB_FEATURE_MULTI_PORT_GSI_SUPPORT));
-+
-+		if (port_supports_cm) {
- 			immutable->core_cap_flags = RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP;
- 			immutable->max_mad_size = IB_MGMT_MAD_SIZE;
- 		} else {
-@@ -671,10 +675,14 @@ int mana_ib_query_port(struct ib_device *ibdev, u32 port,
- 	ib_get_eth_speed(ibdev, port, &props->active_speed, &props->active_width);
- 	props->pkey_tbl_len = 1;
- 	if (mana_ib_is_rnic(dev)) {
-+		bool port_supports_cm = (port == 1 ||
-+			(dev->adapter_caps.feature_flags &
-+			 MANA_IB_FEATURE_MULTI_PORT_GSI_SUPPORT));
-+
- 		props->gid_tbl_len = 16;
- 		props->ip_gids = true;
- 		props->max_msg_sz = SZ_16M;
--		if (port == 1)
-+		if (port_supports_cm)
- 			props->port_cap_flags = IB_PORT_CM_SUP;
- 	}
- 
-@@ -1138,6 +1146,7 @@ int mana_ib_gd_create_ud_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp,
- 	struct gdma_context *gc = mdev_to_gc(mdev);
- 	struct mana_rnic_create_udqp_resp resp = {};
- 	struct mana_rnic_create_udqp_req req = {};
-+	struct net_device *ndev;
- 	int err, i;
- 
- 	mana_gd_init_req_hdr(&req.hdr, MANA_IB_CREATE_UD_QP, sizeof(req), sizeof(resp));
-@@ -1154,6 +1163,21 @@ int mana_ib_gd_create_ud_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp,
- 	req.max_send_sge = attr->cap.max_send_sge;
- 	req.max_recv_sge = attr->cap.max_recv_sge;
- 	req.qp_type = type;
-+
-+	/* For GSI QPs, pass the vNIC MAC so the SoC can associate the QP with
-+	 * the correct port, transition to INIT, and allocate a per-port QPN.
-+	 * MAC must be in reversed byte order.
-+	 */
-+	if (type == IB_QPT_GSI &&
-+	    (mdev->adapter_caps.feature_flags & MANA_IB_FEATURE_MULTI_PORT_GSI_SUPPORT)) {
-+		ndev = mana_ib_get_netdev(&mdev->ib_dev, attr->port_num);
-+		if (ndev) {
-+			copy_in_reverse(req.mac, ndev->dev_addr, ETH_ALEN);
-+			req.flags = MANA_UD_QP_FLAG_CREATE_IN_INIT;
-+			req.hdr.req.msg_version = GDMA_MESSAGE_V2;
-+		}
-+	}
-+
- 	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
- 	if (err)
- 		return err;
-diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
-index 828ca75fd6845..1be33ed8bd3b8 100644
---- a/drivers/infiniband/hw/mana/mana_ib.h
-+++ b/drivers/infiniband/hw/mana/mana_ib.h
-@@ -24,8 +24,12 @@
- /* MANA doesn't have any limit for MR size */
- #define MANA_IB_MAX_MR_SIZE	U64_MAX
- 
--/* Send queue ID mask */
--#define MANA_SENDQ_MASK	BIT(31)
-+/*
-+ * Send queue ID mask. Queue IDs are 2-bit aligned (see MANA_QID_SUBTYPE_MASK),
-+ * so bit 0 is always free to tag send queues in the lookup table. This keeps
-+ * the whole top byte available to index per-port GSI QPs by (port << 24).
-+ */
-+#define MANA_SENDQ_MASK	BIT(0)
- /* Queue ID encodes type in the lower 2 bits */
- #define MANA_QID_SUBTYPE_MASK 0x3
- 
-@@ -264,6 +268,7 @@ enum mana_ib_adapter_features {
- 	MANA_IB_FEATURE_DEV_COUNTERS_SUPPORT = BIT(5),
- 	MANA_IB_FEATURE_MULTI_PORTS_SUPPORT = BIT(6),
- 	MANA_IB_FEATURE_MSN_IN_WQE_SUPPORT = BIT(7),
-+	MANA_IB_FEATURE_MULTI_PORT_GSI_SUPPORT = BIT(15),
- };
- 
- struct mana_ib_query_adapter_caps_resp {
-@@ -450,8 +455,14 @@ struct mana_rnic_create_udqp_req {
- 	u32 max_recv_wr;
- 	u32 max_send_sge;
- 	u32 max_recv_sge;
-+	u8 mac[ETH_ALEN];     /* V2: port MAC for multi-port GSI */
-+	u16 flags;            /* V2: MANA_UD_QP_FLAG_* */
- }; /* HW Data */
- 
-+enum mana_ud_qp_flags {
-+	MANA_UD_QP_FLAG_CREATE_IN_INIT = BIT(0),
-+};
-+
- struct mana_rnic_create_udqp_resp {
- 	struct gdma_resp_hdr hdr;
- 	mana_handle_t qp_handle;
-diff --git a/drivers/infiniband/hw/mana/qp.c b/drivers/infiniband/hw/mana/qp.c
-index 29bfee9ac997f..fac43b3a5eb7b 100644
---- a/drivers/infiniband/hw/mana/qp.c
-+++ b/drivers/infiniband/hw/mana/qp.c
-@@ -514,8 +514,20 @@ static int mana_table_store_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp)
- 	if (err)
- 		goto err_remove_sq;
- 
-+	/* GSI QPs are additionally indexed by (port << 24 | MANA_GSI_QPN) so the
-+	 * per-port GSI SQ drain can find each of them by iterating ports.
-+	 */
-+	if (qp->ibqp.qp_type == IB_QPT_GSI) {
-+		err = mana_table_store_qp_qid(mdev, qp,
-+					      (qp->port << 24) | MANA_GSI_QPN, false);
-+		if (err)
-+			goto err_remove_rq;
-+	}
-+
- 	return 0;
- 
-+err_remove_rq:
-+	mana_table_remove_qp_qid(mdev, rq->id, false);
- err_remove_sq:
- 	mana_table_remove_qp_qid(mdev, sq->id, true);
- 	mana_table_drain_qp_ref(qp);
-@@ -534,6 +546,8 @@ static void mana_table_remove_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp
- 
- 	mana_table_remove_qp_qid(mdev, sq->id, true);
- 	mana_table_remove_qp_qid(mdev, rq->id, false);
-+	if (qp->ibqp.qp_type == IB_QPT_GSI)
-+		mana_table_remove_qp_qid(mdev, (qp->port << 24) | MANA_GSI_QPN, false);
- 	mana_table_drain_qp_ref(qp);
- }
- 
-@@ -751,7 +765,8 @@ static int mana_ib_create_ud_qp(struct ib_qp *ibqp, struct ib_pd *ibpd,
- 		ibdev_err(&mdev->ib_dev, "Failed to create ud qp  %d\n", err);
- 		goto destroy_shadow_queues;
- 	}
--	qp->ibqp.qp_num = qp->ud_qp.queues[MANA_UD_RECV_QUEUE].id;
-+	qp->ibqp.qp_num = (qp->ibqp.qp_type == IB_QPT_GSI) ?
-+			  MANA_GSI_QPN : qp->ud_qp.queues[MANA_UD_RECV_QUEUE].id;
- 	qp->port = attr->port_num;
- 
- 	for (i = 0; i < MANA_UD_QUEUE_TYPE_MAX; ++i)
+V1:
+https://lore.kernel.org/all/20260723095349.1890983-1-tariqt@nvidia.com/
+
+Yevgeny Kliteynik (5):
+  net/mlx5: HWS, Print more details for bad completion
+  net/mlx5: HWS, Log syndrome on STC modify failure
+  net/mlx5: HWS, Set the num of queues only when alloc succeeded
+  net/mlx5: HWS, Remove redundant MLX5_SET in RTC creation
+  net/mlx5: HWS, Remove redundant FW command when reading caps
+
+ .../mellanox/mlx5/core/steering/hws/cmd.c     | 15 ++--
+ .../mellanox/mlx5/core/steering/hws/send.c    | 72 +++++++++++++------
+ 2 files changed, 56 insertions(+), 31 deletions(-)
+
+
+base-commit: 001b5d347d8ba39b2dccaefcc57967b18caec8fe
 -- 
-2.43.0
+2.44.0
 
