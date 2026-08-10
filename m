@@ -1,293 +1,100 @@
-Received: from mail-pj1-f69.google.com (mail-pj1-f69.google.com [209.85.216.69])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 046E3445AD7
-	for <linux-rdma@vger.kernel.org>; Mon, 10 Aug 2026 19:50:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.69
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC8EE3644CA;
+	Mon, 10 Aug 2026 20:31:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786391456; cv=none; b=TaIsSVsYF9pItKdimyInCtck2TSeeOumOa88xgKNe2hf2CM2v/d7KLSdMwgrbALeF3SQHe7V50f6VSvg9GkNWmlNLIVZE2kZLSMn8BMvFwW5f8BJMHW+9hVUZ3xo88JLKnx6ed4a8eCBBnv3FjSilUi1iLdYyaJDNOJ5x4IYiRI=
+	t=1786393865; cv=none; b=f4RUbF+5G3Z5vmglmvv5RUBVibnIl6vMs4lviAln9iLJHJhDsg1eE0uR4DK3+qyuWaBlrr+crT00QTj4eNlBj14rGIPzASEP1mcx9s7IS/zr0wUuh7PMMPIJTo3M7RTfG87v87ra9cwg1ie9HWUYzYS7Cr0Nb7EXQ2kkDf1mvoc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786391456; c=relaxed/simple;
-	bh=k5HYLfn7qvcSOiS2KtvDPUxzArlpHXJb6KaNHRam2To=;
-	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=UHEQ4JB5ON/uezvL9TNa7iyAzVNtzbYPiZ4bbWIKi3+Kr+vwyW74CE3TbJWs8FolIuUCf/tHZJncPkb49sTCr6kznPNy2qB6BYlO82GR3mEkebQ2kNNhZ2EJxUAhEdVklxnIyVkG8o5ZNEtz0DULU/QgkHh+QpIQbIlXt9Q9+z8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--praan.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=NayjnkZC; arc=none smtp.client-ip=209.85.216.69
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--praan.bounces.google.com
+	s=arc-20240116; t=1786393865; c=relaxed/simple;
+	bh=eLqJZVsbNMVPw4Su568i8+DFgZWbxMdi1OgK7MAYdfI=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=tlfXKXjMvMFCgcs8CAkRWQG+QhtiuTxal9Ov7onUnbUAPBawU0qK4DFnJg9ddSe/HrZIlcOAH9+riusVLOynnHNMTydxP82toX7fOVFMuKLQBnq6RXM7h9G4X7z24oC35imRHFUUw3/SaUDpto/TY7qv6NpSRSlf1Ue31k45QHc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ieOBzgUY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="NayjnkZC"
-Received: by mail-pj1-f69.google.com with SMTP id 98e67ed59e1d1-38e54b6556aso2923615a91.2
-        for <linux-rdma@vger.kernel.org>; Mon, 10 Aug 2026 12:50:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1786391454; x=1786996254; darn=vger.kernel.org;
-        h=content-type:cc:to:from:subject:message-id:references:mime-version
-         :in-reply-to:date:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=RLUQZXNomb5u4ksc353f7XPXIH8QzQWFAnuFKhSZZHE=;
-        b=NayjnkZCo5/N2RTPtyfUaR2Puk6AWithbltLVEs8XtzLnNfXpaPwvcxLdocn6ibZfk
-         vk+0J4TGAV3o7tx4jNLQ2rP9OMiuvXcafhXtjoSe/SdgbnMpeJqybxouHb9WkAIO2VGQ
-         2Yl3Yh8FmNtXPkZYit8g4AXm/Fzqsb5ZR5zvH9u6Qruq4gzPmeXkWxdO85FecAo+Rkem
-         32Wz7NMBmgEXswRrVHTMuNWK7EAi9NI7svgsxVgaSUfCVkyXyJ72MerP22iZaFDf38iR
-         P1kwEkbCOgvNvxIXdRMEBDOXqLrPtB/rWWZ72ZyJZqIaG+QG8k15aEjHYGi6OWysFSzq
-         b7Hw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786391454; x=1786996254;
-        h=content-type:cc:to:from:subject:message-id:references:mime-version
-         :in-reply-to:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=RLUQZXNomb5u4ksc353f7XPXIH8QzQWFAnuFKhSZZHE=;
-        b=FveWyYVqGUWSOswtRTqDBY3jqjjgzwv9vg8j5ofC/BBHibjDR9DcM06X1S4qKO7gVJ
-         hdL9yz0LydRECC2pA56L/3gNS+izhu71jjdoPXUaELlyEpGQuRU0Br1BZsamjCnltLOQ
-         XVXCJXjAP8Yqkoiq1LgUV92VzFjoUNFEKuvEVEQylB6VF4PBSrHHQrEoNgSslKfFjLQn
-         VRDP2aFnb2VuY8OMVp1/340sg1E3KEuvjiw2meUpqOhVgvs3Orz60/ytw8B9QKVHZV7j
-         7kOaUlHKOkTf517V5djsir0XRI+v5II9wKOUskQwXptY9BX7sGc7n7IRrA1W2pw8+nrt
-         yPQQ==
-X-Forwarded-Encrypted: i=1; AHgh+RosF7IClQPMjjPg3aBLQs0bzRbsiqeZAZRURKQd6EXBbkDkJ0m6ml/VFgswDjHQz3xjEqF54thrCyIm@vger.kernel.org
-X-Gm-Message-State: AOJu0YxRhvQ6TQYZ3yOawqL0gaJx2Ub4jahz/l7G/Dzj0n2xJ/9W4oqQ
-	jwhKsP94EU63XBjCWZC9q4WIQPxyv+20bnxNNIdPXRH7O5TtzTafXoebitIx35LQE9wMyQbk4VH
-	GXQ==
-X-Received: from dli6-n2.prod.google.com ([2002:a05:7022:286:20b0:139:d9c7:3cf4])
- (user=praan job=prod-delivery.src-stubby-dispatcher) by 2002:a17:90b:268f:b0:38d:c74d:29c5
- with SMTP id 98e67ed59e1d1-392cca64db7mr4133794a91.19.1786391453658; Mon, 10
- Aug 2026 12:50:53 -0700 (PDT)
-Date: Mon, 10 Aug 2026 19:50:39 +0000
-In-Reply-To: <20260810195040.2877784-1-praan@google.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ieOBzgUY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EBC51F000E9;
+	Mon, 10 Aug 2026 20:31:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1786393864;
+	bh=fLLSPUGa7hV6YByxrdNAEWzwRgQO1sw+rDyrjIKtFLs=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=ieOBzgUYuWoNWkYd7DOsKs+HHMy0KapEeBI/s9CmQtWECqTcIyBbkTjF3E/3jc3xo
+	 wTUkJ7DIZjqdkJZhr2YcXFVUiemUvuC4bUpTEErJco4+wkcsZmBNNm4GGcQ96CjpTh
+	 LzkgxXfWPunEG/6/Od6nTULp5N6xg9L3IzqnYBTSglPX4UU+J0f+RNxH46cHi09Npy
+	 53ncmfHbkrQqLZDJXapJWJNGdF7QRfuhFgPcNoPqV4HM1XDm/UUQ2nFIHuekyIEjGR
+	 Tkt1WNHNijjJi/pQ2oA83txxBwe9qnx4m1MoM+9OMnvRUUGOrIsJ9+RJoLXyEuY96w
+	 nvjHKMnkqXvNw==
+Date: Mon, 10 Aug 2026 13:31:02 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Cosmin Ratiu <cratiu@nvidia.com>
+Cc: Tariq Toukan <tariqt@nvidia.com>, Patrisious Haddad
+ <phaddad@nvidia.com>, "davem@davemloft.net" <davem@davemloft.net>,
+ "daniel.zahka@gmail.com" <daniel.zahka@gmail.com>, Chris Mi
+ <cmi@nvidia.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+ "pabeni@redhat.com" <pabeni@redhat.com>, "horms@kernel.org"
+ <horms@kernel.org>, "linux-kernel@vger.kernel.org"
+ <linux-kernel@vger.kernel.org>, "kees@kernel.org" <kees@kernel.org>, Dragos
+ Tatulea <dtatulea@nvidia.com>, Boris Pismenny <borisp@nvidia.com>, Rahul
+ Rameshbabu <rrameshbabu@nvidia.com>, Jianbo Liu <jianbol@nvidia.com>,
+ "leon@kernel.org" <leon@kernel.org>, Saeed Mahameed <saeedm@nvidia.com>,
+ "shuah@kernel.org" <shuah@kernel.org>, "andrew+netdev@lunn.ch"
+ <andrew+netdev@lunn.ch>, Mark Bloch <mbloch@nvidia.com>, Alex Lazar
+ <alazar@nvidia.com>, Carolina Jubran <cjubran@nvidia.com>, Gal Pressman
+ <gal@nvidia.com>, "sd@queasysnail.net" <sd@queasysnail.net>, Raed Salem
+ <raeds@nvidia.com>, "Jacob.e.keller@intel.com" <Jacob.e.keller@intel.com>,
+ "skhan@linuxfoundation.org" <skhan@linuxfoundation.org>,
+ "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+ "edumazet@google.com" <edumazet@google.com>, Lama Kayal
+ <lkayal@nvidia.com>, "linux-kselftest@vger.kernel.org"
+ <linux-kselftest@vger.kernel.org>, "sdf.kernel@gmail.com"
+ <sdf.kernel@gmail.com>, "doruk@0sec.ai" <doruk@0sec.ai>, "sdf@fomichev.me"
+ <sdf@fomichev.me>, "aleksandr.loktionov@intel.com"
+ <aleksandr.loktionov@intel.com>
+Subject: Re: [PATCH net-next V2 13/13] selftests: drv-net: psp: Add a test
+ for PSP with HW-GRO
+Message-ID: <20260810133102.7b406e35@kernel.org>
+In-Reply-To: <35b40fcde5439a9ff50054fa9d264b77307ee103.camel@nvidia.com>
+References: <20260804083535.2946459-1-tariqt@nvidia.com>
+	<20260804083535.2946459-14-tariqt@nvidia.com>
+	<20260807180054.380be9d0@kernel.org>
+	<35b40fcde5439a9ff50054fa9d264b77307ee103.camel@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-References: <20260810195040.2877784-1-praan@google.com>
-X-Mailer: git-send-email 2.55.0.679.g6767b8d81c-goog
-Message-ID: <20260810195040.2877784-6-praan@google.com>
-Subject: [PATCH v5 5/5] nfs: introduce nfs_direct_extract_pages helper
-From: Pranjal Shrivastava <praan@google.com>
-To: linux-nfs@vger.kernel.org, Trond Myklebust <trondmy@kernel.org>, 
-	Anna Schumaker <anna@kernel.org>
-Cc: Chuck Lever <cel@kernel.org>, Jeff Layton <jlayton@kernel.org>, linux-kernel@vger.kernel.org, 
-	Christoph Hellwig <hch@lst.de>, Logan Gunthorpe <logang@deltatee.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
-	linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, 
-	Shivaji Kant <shivajikant@google.com>, Pranjal Shrivastava <praan@google.com>
-Content-Type: text/plain; charset="UTF-8"
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Introduce nfs_direct_extract_pages() in direct.c to centralize page
-extraction and request creation for the Direct I/O path. The helper
-manages extraction from the iters and builds a list of nfs_page requests
+On Mon, 10 Aug 2026 14:30:19 +0000 Cosmin Ratiu wrote:
+> I'll move the hw gro tests into a dedicated psp_gro.py test for the
+> next version and increase the assertion strength similar to other HW
+> GRO tests.
+> 
+> I found a way to spawn multiple psp_responders to verify cross-stream
+> assembly errors and other weird edge cases.
 
-Refactor nfs_direct_read_schedule_iovec() and
-nfs_direct_write_schedule_iovec() to utilize the new helper, unifying
-the extraction logic on both paths.
+No, please follow how the GRO tests work. Can we not pass 2 Rx
+keys encoded in hex when you spawn the sender, and use AF_PACKET
+to check the geometry of the received data?
 
-Signed-off-by: Pranjal Shrivastava <praan@google.com>
-Reviewed-by: Shivaji Kant <shivajikant@google.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
----
- fs/nfs/direct.c | 127 ++++++++++++++++++++++++------------------------
- 1 file changed, 64 insertions(+), 63 deletions(-)
+> In order to avoid duplicating a lot of psp connection management code,
+> I hope it's fine to move shared stuff in a psp_lib.py file (similar to
+> hw/devmem_lib.py). I know you're against frameworkifying stuff, but in
+> this case I think it's a good choice.
+> 
+> All of this will push the series to 15 patches.
 
-diff --git a/fs/nfs/direct.c b/fs/nfs/direct.c
-index a1caef90f2f1..76c954bbc9af 100644
---- a/fs/nfs/direct.c
-+++ b/fs/nfs/direct.c
-@@ -172,6 +172,50 @@ static void nfs_direct_release_pages(struct page **pages, unsigned int npages,
- 		unpin_user_pages(pages, npages);
- }
- 
-+static ssize_t nfs_direct_extract_pages(struct nfs_direct_req *dreq,
-+					struct iov_iter *iter,
-+					size_t size, loff_t *pos,
-+					struct list_head *list)
-+{
-+	bool pinned = iov_iter_extract_will_pin(iter);
-+	struct page **pagevec = NULL;
-+	ssize_t result, bytes = 0;
-+	int err = 0;
-+	unsigned int npages, i;
-+	size_t pgbase;
-+
-+	result = iov_iter_extract_pages(iter, &pagevec, size, ~0U, 0, &pgbase);
-+	if (result <= 0)
-+		return result;
-+
-+	npages = (result + pgbase + PAGE_SIZE - 1) >> PAGE_SHIFT;
-+	for (i = 0; i < npages; i++) {
-+		struct nfs_page *req;
-+		unsigned int req_len = min_t(size_t, result - bytes, PAGE_SIZE - pgbase);
-+
-+		req = nfs_page_create_from_page(dreq->ctx, pagevec[i],
-+						pinned, pgbase, *pos,
-+						req_len);
-+		if (IS_ERR(req)) {
-+			err = PTR_ERR(req);
-+			break;
-+		}
-+
-+		list_add_tail(&req->wb_list, list);
-+		pgbase = 0;
-+		bytes += req_len;
-+		*pos += req_len;
-+	}
-+
-+	if (i < npages) {
-+		iov_iter_revert(iter, result - bytes);
-+		nfs_direct_release_pages(pagevec + i, npages - i, pinned);
-+	}
-+
-+	kvfree(pagevec);
-+	return bytes ? bytes : err;
-+}
-+
- void nfs_init_cinfo_from_dreq(struct nfs_commit_info *cinfo,
- 			      struct nfs_direct_req *dreq)
- {
-@@ -340,6 +384,7 @@ static ssize_t nfs_direct_read_schedule_iovec(struct nfs_direct_req *dreq,
- 	ssize_t result = -EINVAL;
- 	size_t requested_bytes = 0;
- 	size_t rsize = max_t(size_t, NFS_SERVER(inode)->rsize, PAGE_SIZE);
-+	LIST_HEAD(nfs_page_list);
- 
- 	nfs_pageio_init_read(&desc, dreq->inode, false,
- 			     &nfs_direct_read_completion_ops);
-@@ -348,43 +393,23 @@ static ssize_t nfs_direct_read_schedule_iovec(struct nfs_direct_req *dreq,
- 	inode_dio_begin(inode);
- 
- 	while (iov_iter_count(iter)) {
--		struct page **pagevec = NULL;
--		size_t bytes;
--		size_t pgbase;
--		unsigned npages, i;
--		bool pinned = iov_iter_extract_will_pin(iter);
--
--		result = iov_iter_extract_pages(iter, &pagevec,
--						rsize, ~0U, 0, &pgbase);
-+		result = nfs_direct_extract_pages(dreq, iter, rsize, &pos, &nfs_page_list);
- 		if (result < 0)
- 			break;
- 
--		bytes = result;
--		npages = (result + pgbase + PAGE_SIZE - 1) / PAGE_SIZE;
--		for (i = 0; i < npages; i++) {
--			struct nfs_page *req;
--			unsigned int req_len = min_t(size_t, bytes, PAGE_SIZE - pgbase);
--			/* XXX do we need to do the eof zeroing found in async_filler? */
--			req = nfs_page_create_from_page(dreq->ctx, pagevec[i],
--							pinned, pgbase, pos,
--							req_len);
--			if (IS_ERR(req)) {
--				result = PTR_ERR(req);
--				break;
--			}
-+		while (!list_empty(&nfs_page_list)) {
-+			struct nfs_page *req = nfs_list_entry(nfs_page_list.next);
-+			size_t req_len = req->wb_bytes;
-+
-+			nfs_list_remove_request(req);
- 			if (!nfs_pageio_add_request(&desc, req)) {
- 				result = desc.pg_error;
- 				nfs_release_request(req);
-+				nfs_release_request_list(&nfs_page_list);
- 				break;
- 			}
--			pgbase = 0;
--			bytes -= req_len;
- 			requested_bytes += req_len;
--			pos += req_len;
- 		}
--		if (i < npages)
--			nfs_direct_release_pages(pagevec + i, npages - i, pinned);
--		kvfree(pagevec);
- 		if (result < 0)
- 			break;
- 	}
-@@ -875,6 +900,7 @@ static ssize_t nfs_direct_write_schedule_iovec(struct nfs_direct_req *dreq,
- 	ssize_t result = 0;
- 	size_t requested_bytes = 0;
- 	size_t wsize = max_t(size_t, NFS_SERVER(inode)->wsize, PAGE_SIZE);
-+	LIST_HEAD(nfs_page_list);
- 	bool defer = false;
- 
- 	trace_nfs_direct_write_schedule_iovec(dreq);
-@@ -887,55 +913,32 @@ static ssize_t nfs_direct_write_schedule_iovec(struct nfs_direct_req *dreq,
- 
- 	NFS_I(inode)->write_io += iov_iter_count(iter);
- 	while (iov_iter_count(iter)) {
--		struct page **pagevec = NULL;
--		size_t bytes;
--		size_t pgbase;
--		unsigned npages, i;
--		bool pinned = iov_iter_extract_will_pin(iter);
--
--		result = iov_iter_extract_pages(iter, &pagevec,
--						wsize, ~0U, 0, &pgbase);
-+		result = nfs_direct_extract_pages(dreq, iter, wsize, &pos, &nfs_page_list);
- 		if (result < 0)
- 			break;
- 
--		bytes = result;
--		npages = (result + pgbase + PAGE_SIZE - 1) / PAGE_SIZE;
--		for (i = 0; i < npages; i++) {
--			struct nfs_page *req;
--			unsigned int req_len = min_t(size_t, bytes, PAGE_SIZE - pgbase);
--
--			req = nfs_page_create_from_page(dreq->ctx, pagevec[i],
--							pinned, pgbase, pos,
--							req_len);
--			if (IS_ERR(req)) {
--				result = PTR_ERR(req);
--				break;
--			}
--
--			if (desc.pg_error < 0) {
--				nfs_free_request(req);
--				result = desc.pg_error;
--				break;
--			}
--
--			pgbase = 0;
--			bytes -= req_len;
--			requested_bytes += req_len;
--			pos += req_len;
-+		while (!list_empty(&nfs_page_list)) {
-+			struct nfs_page *req = nfs_list_entry(nfs_page_list.next);
-+			size_t req_len = req->wb_bytes;
- 
-+			nfs_list_remove_request(req);
- 			if (defer) {
- 				nfs_mark_request_commit(req, NULL, &cinfo, 0);
-+				requested_bytes += req_len;
- 				continue;
- 			}
- 
- 			nfs_lock_request(req);
--			if (nfs_pageio_add_request(&desc, req))
-+			if (nfs_pageio_add_request(&desc, req)) {
-+				requested_bytes += req_len;
- 				continue;
-+			}
- 
- 			/* Exit on hard errors */
- 			if (desc.pg_error < 0 && desc.pg_error != -EAGAIN) {
- 				result = desc.pg_error;
- 				nfs_unlock_and_release_request(req);
-+				nfs_release_request_list(&nfs_page_list);
- 				break;
- 			}
- 
-@@ -946,12 +949,10 @@ static ssize_t nfs_direct_write_schedule_iovec(struct nfs_direct_req *dreq,
- 			spin_unlock(&dreq->lock);
- 			nfs_unlock_request(req);
- 			nfs_mark_request_commit(req, NULL, &cinfo, 0);
-+			requested_bytes += req_len;
- 			desc.pg_error = 0;
- 			defer = true;
- 		}
--		if (i < npages)
--			nfs_direct_release_pages(pagevec + i, npages - i, pinned);
--		kvfree(pagevec);
- 		if (result < 0)
- 			break;
- 	}
--- 
-2.55.0.679.g6767b8d81c-goog
+Try to think 
+what the point of the rule is. It's to keep series small _in order to_
+make incremental progress, in reliable (form process perspective),
+comprehensible chunks.
 
+You could split the first 9 patches out and merge them separately.
+Internal metadata reshuffles and decap may be required for your
+implementations but aren't inherently part of HW-GRO, IMO...
+
+No point keeping the first 9 patches hostage to HW-GRO and ksft work.
