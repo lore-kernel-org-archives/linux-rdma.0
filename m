@@ -1,196 +1,231 @@
-Received: from BN1PR04CU002.outbound.protection.outlook.com (mail-eastus2azon11010063.outbound.protection.outlook.com [52.101.56.63])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CA923839B7;
-	Mon, 10 Aug 2026 11:52:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.56.63
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786362738; cv=fail; b=fF4QSx0UQUt8LMeKoptID3WiO33/fUiVzKqHtxJicv1oidwJYx68AvQPrdIPbf+jTNXiZoBqtnC5Q4psxOCEJL5m72ca0Yy2X0OVKRg9D59U3QpW9+8U3+H1vP8Dq1lAjf168JIqLqD+tXsNpMna1Aze7atRjepdEesRtaEdkSc=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786362738; c=relaxed/simple;
-	bh=TzEHIsS+ZTgY6UNw75Jb8E/dszuaokLj5Y/arJYbIX4=;
-	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=ApcCon5RR3E1lnNlXFAOMqeJz/fcqd75sNNTi6VRC72NvUT82xCniuRbQeUY0tkRWWDgljTG+kmX2kTqL/8R6KN82T/FfsRiDcGZItOgTw/Frah/EP1MvRlX8leLEndYMnhdVW7xdPW70+VM3nxiXUm/vLdK9iFEduqEENNs7X8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=JjDZsxZ9; arc=fail smtp.client-ip=52.101.56.63
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EC64344DB9;
+	Mon, 10 Aug 2026 13:01:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786366880; cv=none; b=MY2ToK3VgCRqM4VG50/FlK94FaimGi0AxGtFpU04Po8wdQBh9oBqL4/+W6CsMtqWI8WBgWVF4v6kiHPL2nBLgrcD/b7OI78JSLsEg7+KPr/cK8yiA8NIiefOFFylMaQ41pXFreu+zz6ouQqhb9++VV34uhAAPmNvJlU6NPEn9jk=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786366880; c=relaxed/simple;
+	bh=nb1lpZ0/AdZPjWGiF6JucKUqoreag7z50n+DVnB6utQ=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=Q3BBo4fDQZ7ubKBHFJE65GZmoQyXhSmHDmRPgaqkmoy0XtonNY7bhg8b6LtsHdsLAnEnPh7dSgAeRD8ZyI6OeQaUsdHbAnnFOaUUNSyuh9cJYQVbi8XqfgRn8pXIi+pEf+tMOhmLsmRqp8QII4pSuYaTIs3y6ijuy7pVqWHpEaE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MF87dA4H; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="JjDZsxZ9"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=BGH4840Z9+hVRXCVqFDJkVP8Gm9oNhUNm0NBCNv13D5oK2ZqlLGBITSupEj7cXb2q28vcpEeTpajhcZGAWUgJsjUU4WSUOWbvpubptS2ur6C/6AASEXotFC2QuOvVQgjJzZkrT3PxyJE+vJshwnh8ebdQLFZ18A1pH0ex5ukffHqCXxtLThv+qRrNzm2AOr4KAZvjNDNmvfCqwg7HVDTFcf/5buueTG2wurljt/NETDLn2ZDePJOVFxHq3I+928NQ7+EFffJh22e+/JZuzGp6FJMUymJURFI/ZcdI66jlfcUyP0gG5keX5EJJvnBhhWEVOgJ04E8T62ZMtfA5UFfCw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=TzEHIsS+ZTgY6UNw75Jb8E/dszuaokLj5Y/arJYbIX4=;
- b=Nj6pY7dDYtKhtFzumkAAc3oqpB5zwFAQ6c7aMg30H/U+R4fnaJ4u7Ci1MIVve2oYGOyRY6ApN9nO3pq/ykBtdCXS6QZPTlNxfJBx0O/6SIK5x5OKGOxF2IHAzr7TDTm5myi1Nv+5sHgW91h8nHAumJ7q8uRoBTRNV4V+nz6vE6bD4lvi/5cYCcuy3GBTKEuAe8nkJoqz+Bgj7uv72WBXXf5PEjmZ/MrRWzI7w82PlSzogbJsgS2F3+5P2H2HiUR8uxD3HiVn8zrjer/VClQgkErK515wDnVCz1GYxI5cxWFERrKJ2Cg4ynNrsKGuVhSsam3sRuxExzPCp9rbqrj8xQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=TzEHIsS+ZTgY6UNw75Jb8E/dszuaokLj5Y/arJYbIX4=;
- b=JjDZsxZ9Iwm5/07m/1RzDwV5zV2ilq9x118EBpn3cPojfPSIsoY4tTHL9DEbiHWB8GXgpXsOID0e00pQuYaGTagktiWAbGYFFHpXgSBtMPcjEJNlg3VkFkBqbUv0XCvG2g73xrZHLfH1rUQ1pnmTdFvUnfTyCKDqYppzXbzQEN9VlFyDEoUwPlfpenGbT9uJMG9Z7FiZd+/U8qMeiymEMTfyn/X7mjjdU/Ma+Mqw2iaWopM3TGOlyNWsUFRjG0xX+zcS2womassDijKSh3BT/hj8D+6f6khmt481O05UWTCVfBUIQrMMg93cj5Po2VpEQ089VL6KPiOe6JRg3tQukQ==
-Received: from DS5PPF266051432.namprd12.prod.outlook.com
- (2603:10b6:f:fc00::648) by SA3PR12MB8809.namprd12.prod.outlook.com
- (2603:10b6:806:31f::20) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.292.19; Mon, 10 Aug
- 2026 11:52:11 +0000
-Received: from DS5PPF266051432.namprd12.prod.outlook.com
- ([fe80::25c9:b561:2aea:8e3c]) by DS5PPF266051432.namprd12.prod.outlook.com
- ([fe80::25c9:b561:2aea:8e3c%3]) with mapi id 15.21.0292.022; Mon, 10 Aug 2026
- 11:52:10 +0000
-From: Cosmin Ratiu <cratiu@nvidia.com>
-To: "andrew+netdev@lunn.ch" <andrew+netdev@lunn.ch>, "davem@davemloft.net"
-	<davem@davemloft.net>, Tariq Toukan <tariqt@nvidia.com>, "sd@queasysnail.net"
-	<sd@queasysnail.net>, "pabeni@redhat.com" <pabeni@redhat.com>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>, "edumazet@google.com"
-	<edumazet@google.com>, "daniel.zahka@gmail.com" <daniel.zahka@gmail.com>,
-	"kuba@kernel.org" <kuba@kernel.org>
-CC: "sdf.kernel@gmail.com" <sdf.kernel@gmail.com>, "doruk@0sec.ai"
-	<doruk@0sec.ai>, Boris Pismenny <borisp@nvidia.com>, "shuah@kernel.org"
-	<shuah@kernel.org>, "linux-kselftest@vger.kernel.org"
-	<linux-kselftest@vger.kernel.org>, Jianbo Liu <jianbol@nvidia.com>,
-	"leon@kernel.org" <leon@kernel.org>, "linux-kernel@vger.kernel.org"
-	<linux-kernel@vger.kernel.org>, Rahul Rameshbabu <rrameshbabu@nvidia.com>,
-	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Raed Salem
-	<raeds@nvidia.com>, "skhan@linuxfoundation.org" <skhan@linuxfoundation.org>,
-	Chris Mi <cmi@nvidia.com>, Carolina Jubran <cjubran@nvidia.com>,
-	"kees@kernel.org" <kees@kernel.org>, Alex Lazar <alazar@nvidia.com>, Dragos
- Tatulea <dtatulea@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
-	"sdf@fomichev.me" <sdf@fomichev.me>, Saeed Mahameed <saeedm@nvidia.com>,
-	"horms@kernel.org" <horms@kernel.org>, "aleksandr.loktionov@intel.com"
-	<aleksandr.loktionov@intel.com>, Gal Pressman <gal@nvidia.com>, Lama Kayal
-	<lkayal@nvidia.com>, "Jacob.e.keller@intel.com" <Jacob.e.keller@intel.com>,
-	Patrisious Haddad <phaddad@nvidia.com>
-Subject: Re: [PATCH net-next V2 13/13] selftests: drv-net: psp: Add a test for
- PSP with HW-GRO
-Thread-Topic: [PATCH net-next V2 13/13] selftests: drv-net: psp: Add a test
- for PSP with HW-GRO
-Thread-Index: AQHdI+yv39DUnRTc3kqHa/IbPCZqaraOL/MAgAkFigA=
-Date: Mon, 10 Aug 2026 11:52:10 +0000
-Message-ID: <1724a2baaf36bfb6d5d264aa182ba73908870f22.camel@nvidia.com>
-References: <20260804083535.2946459-1-tariqt@nvidia.com>
-	 <20260804083535.2946459-14-tariqt@nvidia.com>
-	 <9460e089-ed71-4f3c-986c-5d29b87b3500@gmail.com>
-In-Reply-To: <9460e089-ed71-4f3c-986c-5d29b87b3500@gmail.com>
-Reply-To: Cosmin Ratiu <cratiu@nvidia.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: DS5PPF266051432:EE_|SA3PR12MB8809:EE_
-x-ms-office365-filtering-correlation-id: 0dec095f-eb99-4a75-ac14-08def6d5cfc6
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam:
- BCL:0;ARA:13230040|1800799024|23010399003|7416014|376014|366016|38070700021|6133799003|10067099003|4143699003|56012099006|11063799006|22082099003|18002099003;
-x-microsoft-antispam-message-info:
- cN43+5OOghA+HP9QZm3jsOBAiIzxJ8jkzydLd7zWrrjE08/9TP4717iKfw0aI8X4Utoir5zSEx01mLPg+vb8OPYy6Et831oN19bSJSEWZKk7hscn3yk16vCUmxXT6lDDHNbh4HEkBd3r+LFEKHQHJ43Sx8As7Pgn2DY9s1zRASpvwLcOb1ErE48wZ+jgL2mW+Q6ZMlW3XO69zqPl5q2uCsYOoyJYTJmoiC4209larsdDL3zMoheajHupuzxTC1RQ19pR7AVX98veEYYym4aJCStbicQ9Y1oruKlj4cFYi1OWBo/3TWv2qVLimKUPBQ9r8pcHxgAxhenzIXq4jiI2ebvSgHV7nTzgXsHSiyuqkS4569PyIf7eWrfGiTsNXD67RBBrDNjmMZLqUbFov45GyW0+S+x4FjfcrwDg7MIE89FNcLj2CRPILxMtbCYDJU37Ga5/tDoiHCUKOOORAckHqRc9ekOxltdV44l0B8Qkt29Y8xdC8kbYuY84iMeZuOrhgnrMQ9Hhq7GixlpFSAfQEpddzEGoVBvdiUk3EkDtRu4YaqAHYkpDcrTSJ7UmaP4Q0Rh7RYiktwNVgGWwKIC+1RlzcgjUBpS/TZS8meL/Qs3aNpmUCVpH1l9rgcegoUeOqqPaIFKfYig0h7Gnn/R9jZWox3d/9pHwFPvpKS0C1k0AlXpGa+3AanVkLKJIJ7SIIOcg9/GS+JOHvauw8aGxJmYWGu5Z+6cCoRs4yf2kGFw=
-x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS5PPF266051432.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(23010399003)(7416014)(376014)(366016)(38070700021)(6133799003)(10067099003)(4143699003)(56012099006)(11063799006)(22082099003)(18002099003);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?utf-8?B?bTA1TEJJbXZPMlMvVjRRYUh2TlIzM0Z5MkhpNWQwejFqampZUWorTGR0bzlX?=
- =?utf-8?B?bm0rNU9tTnBnRVl5a1VnRXhwbzZoT0dSVWRXY3A4citMNWxGVkF2V0lBenhO?=
- =?utf-8?B?ZlRXU1dnLytINDA5bVMwNUthbjc2M1YzWTY2c2lPSFYvVFFQYnQ3VkQ4QUxw?=
- =?utf-8?B?RklOYU9WV3pTbE5lQkwvaSsvUnQvMXF3RjJPcFlKTkd6SnlHRU9pTkVTblpt?=
- =?utf-8?B?dmVmRmhQeWFicUkyN0lWaUtPNitnS2xMUHR4T0wzSk1rb3lFRDRYNzJNTTdK?=
- =?utf-8?B?M1U4bWlJdWFlMmVRRU4xVTNwRHJVTWRQY3FpN2F4RXlJQTJGblQySFkvR1JN?=
- =?utf-8?B?UzBEYU96Mjdlck9KTXJTUEVYSW5hdGs0QUwxTHp2bytlbE1UQmdoelNRd1gy?=
- =?utf-8?B?dFl0ZlhuVEhoZzhSaUE2bXVrNXpOaVZxSUFqSHo1d25tWEwrdUlmNmdORlBG?=
- =?utf-8?B?VVh4N0ZMUXgzeGtpUFNSS3JUc1g3TnFybHhnQzlrNzNqRFNUa3hhbzVwc3lH?=
- =?utf-8?B?dmFQYWl0dkt5K0VsZlRsZWM3aDU5T3B4aHNEaU90Q0d1UW9FWGQ1Q2d6SHR2?=
- =?utf-8?B?aGZmcnpMUnZRZGF4WE1WVTdwSTBtWXVrbzJIZmgvYm5GN0NsWTZMeEpDTmVN?=
- =?utf-8?B?VUh2dWkyaHJrbU9CRC9yVTJ3N09lVGR3MFQxQXlxSjloNDNPdk1xYnRLQjRr?=
- =?utf-8?B?b2JJZjIyVXBNN3hIT0hqMEpzcUxTeVg3TWlCYVAzUGpMNWVKalZpQ3RCUU14?=
- =?utf-8?B?M1paTU00MTIxbkk0anBsa0RkV1FoaUkrYjYvazJqVDE2TFJKc1k1cW1aQUdU?=
- =?utf-8?B?ZVB0aWQzMUpnZDdnMm43VUZYSjRKSlpadzZtL0g4NFFpTVZMSGMwek9Dbll3?=
- =?utf-8?B?SCtjQmNVOXplOUZsMjlHMm9uTGxMLzRpQUlLZnRyYmxXbThGYjZyUnJWa1Rj?=
- =?utf-8?B?bisrWnpTQjRQcU96U3F0L0NhRUZkamV1UCtYY0V1NkJobmwyTVRESU1sZU9z?=
- =?utf-8?B?TDc1TEpEVTNGWDJqeTZjczUvcE51WU0xempJSWVhdVdEU3RBM0xRNTdpa2JR?=
- =?utf-8?B?aE9nSnNqMXZNMndQdWxodHMvcVVsS1g1N3g1OTEyVis0N3FYbGtmMlc4OEpT?=
- =?utf-8?B?NXZJS1M4QUUwbXJIQk9DU0RnbmdsSmhCbFA1UVdHZllPUFpPenh1c3JXSDd0?=
- =?utf-8?B?OHZ0ZWRxM0dlUVlpaW1TaWNWK0wzTjUrM0tsM3dwYVFqNnI3Y2wxb01kT2pz?=
- =?utf-8?B?WEdhRXJKbWpKQjZIL2YzMUpGZHAxSmJCaFltMTZLZFJ6S2lGOW0zZ3llQkUr?=
- =?utf-8?B?TDdyQWxXSGtsa0NXaGlJZVhPUjFMUll6YWVzWGN5T2lEck1wNkNWZWtjRVY2?=
- =?utf-8?B?RDFtcGg1b082QStCWUJRK01PVFFQM2NQSEltRkJER25NTXB1SkkrL0lLS285?=
- =?utf-8?B?UTdYVTM4TFBESzZGZUxMekVOaGZ0T1d0UktGOWRRbFJQSy9kSGdBYVBRRmdm?=
- =?utf-8?B?U3lKS25DZlJ4WWVDWCtja0lxalFNbW5SUFZBZEtPYWRGUEVOQm1pcGFoUytP?=
- =?utf-8?B?Q0NEZGZuc1JTenFXeUJGS29UREgwODdSUmN3dDAraU5ocEJOT29nRzIrQjNV?=
- =?utf-8?B?TG5qUEN0OUxRSDFPOEErd3d0TVZ0MmVlcW52OFFUQWo3WmRPeEdZWnB3Qnoy?=
- =?utf-8?B?TDhhamF3bjhzZmpMbVNQSEpxSlJPbk9XT25WRGpvRVdMRUg1K3NFV1dHZXA5?=
- =?utf-8?B?RmV1emxzZzVObEl3eEJCRTQ3NGRJNGNSTFdvYXIycGNEVGVkUTZZT0h2RlYr?=
- =?utf-8?B?ZlR2RXJjdHJyczU5VlVic0J6aHYrM3ZrQ1BOQzdPRnE5L2c1OVh5SkFVY2ZJ?=
- =?utf-8?B?Zis4OEFCc1phdWY4M0hnMTNldHlKdHhyRi84bmkwVXJaUGt4dTBFTXV5OWti?=
- =?utf-8?B?K3FHM0c3ZG5hT0JvODVtUGljWHg0cXN3NEFYUWJOVXdpL1VyeUVhQWxEMnVq?=
- =?utf-8?B?WTR1RDhiYTQ1YXJlWE9tVlV5SEd0VEhyVUtETDBhRERGSEFOQnN0a2duM2VB?=
- =?utf-8?B?VGpFTXl0eXVnVkpFeGttUm85WW1FUUwycFBEVjRRQjhkeGtiVG0xa0JsVDRj?=
- =?utf-8?B?UHB0WTdPd1MxTnpOV2ZEenJIZEoyOG5RQkh6VldGd21HZ3RRbTdObU1kbDJR?=
- =?utf-8?B?SHdEM0JEWUJONHIza0UyekJjT3RVSG0vYjRXTDQ2c1lCSzM4OVFnd3ZVS3F1?=
- =?utf-8?B?UkZLTG5teTZmcmNXM2s5WjRrWFN3S09NclRvNWV1KzJyc2NYOEZnUENENFVu?=
- =?utf-8?B?SVlSclMzOTdjbHl5SlZpcm55SjdWK09HZTRCbGRkRXliTjZoZkF5QT09?=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <B297EB073A58384286F7A040756521D6@namprd12.prod.outlook.com>
-Content-Transfer-Encoding: base64
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MF87dA4H"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 1711BC2BCF4;
+	Mon, 10 Aug 2026 13:01:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1786366880;
+	bh=nb1lpZ0/AdZPjWGiF6JucKUqoreag7z50n+DVnB6utQ=;
+	h=From:Subject:Date:To:Cc:From;
+	b=MF87dA4Hwuj3rCMVTvC3Fb1voy3qRxC2A8SE83NfuggEKXcD/lkJxGJuwDKc8WBjj
+	 s0zsg123Kwsc4Xf09Laf7wqcL1VL41cytVjAw1C0ypxnMsBuQgQmIJuOLGYULlEn/4
+	 GLyGVyu2AnEx/zvKK8Jyp6dWAqkI7VS9zKFqi9MeRoTjS69QygXnwtUqEgrQLdhM5t
+	 Zlj3eQ5s/l99/efO3zIMAFoZJ4/GJ/yujVs/xl6QWeGrb3ClF1IQFHDaN6J/L7v2ao
+	 nwIOZOdxKQXUKeJgP1lbmJ7pyZzYAOH8w4Z8PfMZxjZ0jfx3z9HnkMX2VDUiopV/y8
+	 /odt+X8avSgrg==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBFABC5AE49;
+	Mon, 10 Aug 2026 13:01:19 +0000 (UTC)
+From: Joel Granados <joel.granados@kernel.org>
+Subject: [PATCH v4 0/3] net: sysctl: Const Qualify sysctl ctl_table arrays
+Date: Mon, 10 Aug 2026 15:01:01 +0200
+Message-Id: <20260810-jag-net_const_qualify-v4-0-77e888237c69@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: DS5PPF266051432.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 0dec095f-eb99-4a75-ac14-08def6d5cfc6
-X-MS-Exchange-CrossTenant-originalarrivaltime: 10 Aug 2026 11:52:10.7011
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: BhIuM7XywvUxrpLECUx3d7mTZdw6UiOixOWERMM7ZAlZ1KXEvJQFNVxc3xqN3Whn4MllB6nCWrH/dwFJImhQbg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA3PR12MB8809
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAI3LeWoC/4XN3w6CIBTH8VdpXEcD/IN01Xu05ggPSjkoMJdzv
+ nvoTbXmuvz+tvM5IwrgDQS034zIQ2+CcTZGut0g1UhbAzZVbMQIy0nOBL7IGlvoSuVs6Mr7Q7Z
+ GD1inQATPRCUVR/H25kGb5+IeT7EbEzrnh+VNT+f1n9hTTDGAKM6FVikh6nAFb6HdOV+jmezZm
+ +GErzEsMpnMVMZIQkFWP0zywdBkjUkwwZwVQoMACTL/YqZpegGPNhJWSQEAAA==
+X-Change-ID: 20260629-jag-net_const_qualify-f4e09759dac7
+To: "David S. Miller" <davem@davemloft.net>, 
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
+ Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
+ David Ahern <dsahern@kernel.org>, Ido Schimmel <idosch@nvidia.com>, 
+ Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, 
+ Phil Sutter <phil@nwl.cc>, 
+ Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>, 
+ Xin Long <lucien.xin@gmail.com>, 
+ Steffen Klassert <steffen.klassert@secunet.com>, 
+ Herbert Xu <herbert@gondor.apana.org.au>, 
+ "D. Wythe" <alibuda@linux.alibaba.com>, Dust Li <dust.li@linux.alibaba.com>, 
+ Sidraya Jayagond <sidraya@linux.ibm.com>, 
+ Wenjia Zhang <wenjia@linux.ibm.com>, 
+ Mahanta Jambigi <mjambigi@linux.ibm.com>, 
+ Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>, 
+ Kuniyuki Iwashima <kuniyu@google.com>, 
+ Stefano Garzarella <sgarzare@redhat.com>
+Cc: chia-yu.chang@nokia-bell-labs.com, netdev@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+ coreteam@netfilter.org, linux-sctp@vger.kernel.org, 
+ linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, 
+ virtualization@lists.linux.dev, Joel Granados <joel.granados@kernel.org>
+X-Mailer: b4 0.14.2
+X-Developer-Signature: v=1; a=openpgp-sha256; l=5898;
+ i=joel.granados@kernel.org; h=from:subject:message-id;
+ bh=nb1lpZ0/AdZPjWGiF6JucKUqoreag7z50n+DVnB6utQ=;
+ b=owJ4nAHtARL+kA0DAAoBupfNUreWQU8ByyZiAGp5y5twjBp9PkaBkJVArZV0vNU+Y5SyiRu0I
+ gY8qTif8U7UuIkBswQAAQoAHRYhBK5HCVcl5jElzssnkLqXzVK3lkFPBQJqecubAAoJELqXzVK3
+ lkFPNYoL/2yPuP9Ro5Gv2xl1JABHhoOLEFlO2RFgGzQ9RwzM4oFc+czv9e31UtVyXC2DwVdtTtT
+ otBeXQSxIwV8UaZbcFX6GTMB/x1vRIhDgl6UNP9l+FKduQjZLmO/Gmn8bYxGx3aY/ZkQOL+1H1i
+ Dvo5yvsNn0j4QYgDnYk5x2q9zJz7Eng2JXPqq6RnJZf/q6QobJKrqDJ3qhbvvFmyFRk/dxLvpPJ
+ D2gy9Aw2Jk0Q2IOXvp2V6Yialv72aXGUO4YX8u2IKwtkqLgZmCanWWzWeDcOA6/XaRFMmHqgnhR
+ atl78dncx2r66L5J2ew8TwEc2MtFL/vnLqfPOUgW5rEM7W2G8tOYGFyANhoKwK/kREXV5bmE9Ul
+ iWxxcO1Rbv1onvtzIBgvuE1JMvGTiJRBZ1BslXjCbrc6eLvS6+dX2O1XcThuXo85zv6WHeT6YA3
+ OqSnEzHdueRSfS3pC/fNxEO3UojWnxR8KZ+GHwjn1eCmJbNaoom22pVh6LnF5l9ueMMiaKVynR7
+ T8=
+X-Developer-Key: i=joel.granados@kernel.org; a=openpgp;
+ fpr=F1F8E46D30F0F6C4A45FF4465895FAAC338C6E77
+X-Endpoint-Received: by B4 Relay for joel.granados@kernel.org/default with
+ auth_id=239
 
-T24gVHVlLCAyMDI2LTA4LTA0IGF0IDE0OjA1IC0wNDAwLCBEYW5pZWwgWmFoa2Egd3JvdGU6DQo+
-IA0KPiANCj4gT24gOC80LzI2IDQ6MzUgQU0sIFRhcmlxIFRvdWthbiB3cm90ZToNCj4gPiBGcm9t
-OiBDb3NtaW4gUmF0aXUgPGNyYXRpdUBudmlkaWEuY29tPg0KPiA+IA0KPiA+IEFkZCBhIHRlc3Qg
-Y2FzZSB3aGljaCBhdHRlbXB0cyB0byBzZW5kIHNldmVyYWwgNjRLIGNodW5rcyBvdmVyIFBTUCwN
-Cj4gPiB3aGljaCBpcyBtb3JlIHRoYW4gTVRVLCBhbmQgdGh1cyB0cmlnZ2VyIEdTTyBvbiB0aGUg
-VFggc2lkZSBhbmQgSFcNCj4gPiBHUk8NCj4gPiBvbiB0aGUgUlggc2lkZS4gVmVyaWZ5IEhXIEdS
-TyBjb3VudGVycyBpbmNyZWFzZS4NCj4gPiANCj4gPiBUaGlzIHJlcXVpcmVkIHRoZSBhZGRpdGlv
-biBvZiBhIG5ldyBjb21tYW5kIGluIHRoZSBwc3AgcmVzcG9uZGVyLA0KPiA+IHNvIGl0DQo+ID4g
-c2VuZHMgdGhlIGRhdGEgaW4gb3JkZXIgdG8gZ2V0IGl0IHJlYXNzZW1ibGVkIG9uIHRoZSBsb2Nh
-bCAoRFVUKQ0KPiA+IHNpZGUuDQo+ID4gDQo+ID4gU2lnbmVkLW9mZi1ieTogQ29zbWluIFJhdGl1
-IDxjcmF0aXVAbnZpZGlhLmNvbT4NCj4gPiBSZXZpZXdlZC1ieTogRHJhZ29zIFRhdHVsZWEgPGR0
-YXR1bGVhQG52aWRpYS5jb20+DQo+ID4gU2lnbmVkLW9mZi1ieTogVGFyaXEgVG91a2FuIDx0YXJp
-cXRAbnZpZGlhLmNvbT4NCj4gPiAtLS0NCj4gPiDCoCB0b29scy90ZXN0aW5nL3NlbGZ0ZXN0cy9k
-cml2ZXJzL25ldC9wc3AucHnCoMKgwqAgfCAxMzENCj4gPiArKysrKysrKysrKysrKysrLS0NCj4g
-PiDCoCAuLi4vc2VsZnRlc3RzL2RyaXZlcnMvbmV0L3BzcF9yZXNwb25kZXIuY8KgwqDCoMKgIHzC
-oCA0OSArKysrKysrDQo+ID4gwqAgMiBmaWxlcyBjaGFuZ2VkLCAxNzEgaW5zZXJ0aW9ucygrKSwg
-OSBkZWxldGlvbnMoLSkNCj4gPiANCj4gPiBkaWZmIC0tZ2l0IGEvdG9vbHMvdGVzdGluZy9zZWxm
-dGVzdHMvZHJpdmVycy9uZXQvcHNwLnB5DQo+ID4gYi90b29scy90ZXN0aW5nL3NlbGZ0ZXN0cy9k
-cml2ZXJzL25ldC9wc3AucHkNCj4gPiBpbmRleCAzMTU2NDhhNzcwZDAuLjliODk5NzIzYTYzNSAx
-MDA3NTUNCj4gPiAtLS0gYS90b29scy90ZXN0aW5nL3NlbGZ0ZXN0cy9kcml2ZXJzL25ldC9wc3Au
-cHkNCj4gPiArKysgYi90b29scy90ZXN0aW5nL3NlbGZ0ZXN0cy9kcml2ZXJzL25ldC9wc3AucHkN
-Cj4gPiBAQCAtMTYsMTEgKzE2LDEyIEBAIGZyb20gbGliLnB5IGltcG9ydCBrc2Z0X3J1biwga3Nm
-dF9leGl0LCBrc2Z0X3ByDQo+ID4gwqAgZnJvbSBsaWIucHkgaW1wb3J0IGtzZnRfdHJ1ZSwga3Nm
-dF9lcSwga3NmdF9uZSwga3NmdF9ndCwNCj4gPiBrc2Z0X3JhaXNlcw0KPiA+IMKgIGZyb20gbGli
-LnB5IGltcG9ydCBrc2Z0X25vdF9ub25lDQo+ID4gwqAgZnJvbSBsaWIucHkgaW1wb3J0IGtzZnRf
-dmFyaWFudHMsIEtzZnROYW1lZFZhcmlhbnQNCj4gPiAtZnJvbSBsaWIucHkgaW1wb3J0IEtzZnRT
-a2lwRXgsIEtzZnRGYWlsRXgNCj4gPiArZnJvbSBsaWIucHkgaW1wb3J0IEtzZnRTa2lwRXgsIEtz
-ZnRGYWlsRXgsIEtzZnRYZmFpbEV4DQo+ID4gwqAgZnJvbSBsaWIucHkgaW1wb3J0IE5ldERydkVw
-RW52LCBOZXREcnZDb250RW52DQo+ID4gLWZyb20gbGliLnB5IGltcG9ydCBOZXRsaW5rLCBObEVy
-cm9yLCBQU1BGYW1pbHksIFJ0bmxGYW1pbHkNCj4gPiArZnJvbSBsaWIucHkgaW1wb3J0IE5ldGxp
-bmssIE5sRXJyb3IsIE5ldGRldkZhbWlseSwgUFNQRmFtaWx5LA0KPiA+IFJ0bmxGYW1pbHkNCj4g
-PiDCoCBmcm9tIGxpYi5weSBpbXBvcnQgTmV0TlNFbnRlcg0KPiA+IMKgIGZyb20gbGliLnB5IGlt
-cG9ydCBia2csIHJhbmRfcG9ydCwgd2FpdF9wb3J0X2xpc3Rlbg0KPiA+ICtmcm9tIGxpYi5weSBp
-bXBvcnQgYmtnLCBldGh0b29sLCByYW5kX3BvcnQsIHdhaXRfcG9ydF9saXN0ZW4sDQo+ID4gQ21k
-RXhpdEZhaWx1cmUNCj4gDQo+IG5pdDogYWdlbnQgaGFzIHBvaW50ZWQgb3V0IHRoYXQgdGhpcyBu
-ZXcgbGluZSBpcyByZWltcG9ydGluZyBia2csIA0KPiByYW5kX3BvcnQsIGFuZCB3YWl0X3BvcnRf
-bGlzdGVuIGZyb20gdGhlIGxpbmUgYWJvdmUgaXQuDQoNClJpZ2h0LCB0aGFua3MgZm9yIHNwb3R0
-aW5nIHRoaXMuDQpOb3Qgc3VyZSBob3cgdGhpcyBoYXBwZW5lZCwgdGhlIHByZXZpb3VzIGxpbmUg
-d2FzIHN1cHBvc2VkIHRvIGJlDQpyZXBsYWNlZCBieSB0aGUgbmV3IG9uZS4uLg0KV2lsbCBiZSBm
-aXhlZC4NCg0KQ29zbWluLg0K
+What?
+=====
+We do two things:
+1. Reject netns-unsafe: Replace warning and file permission change with
+   an error (reject registration) when an "unsafe" net sysctl
+   registration is detected.
+2. Const qualify: Const qualify network templated ctl_table arrays and
+   unconditional kmemdup'ed ctl_table arrays.
+
+Why?
+====
+The main motivation for this is to continue with the const qualification
+of the ctl_table arrays [1]. The permission change inside
+ensure_safe_net_sysctl disallows cons qualifiaction as it basically
+modifies the entries before running the sysctl registration.
+
+      ent->mode &= ~0222;
+
+On reject netns-unsafe?
+=======================
+* I believe that there is currently now way that the permission change
+  gets executed [2]
+* I found one case where the warning message was posted to lore
+  (vsock_sysctl_register) [3], but it made its to mainline as part of
+  the second case in [2].
+* We should error anyway because writing to the global sysctl value
+  through a child netns is indicative of a bug [4].
+
+On Const qualification?
+=======================
+We can separate the places where network registers sysctl tables into
+three groups:
+1. Static global: The unchanged global static arrays are passed along to
+   sysctl register.
+2. Always kmemdup: The global static arrays are always kmemdup'ed before
+   passing them along to sysctl register.
+3. Dynamic global: The global static array is changed in place before
+   passing it along to sysctl register.
+
+This series handles case 1 and 2. It leaves 3 for a later point as
+const qualifying those global ctl_tables is more involved.
+
+I would be very thankful if you point me to anything that I have missed
+in my analysis that shows that this cannot/shouldn't be done.
+
+Changes in v4:
+- Addressed comments contained in [5]
+- Removed the RFC tag. Get back to me if you want me to restart the
+  patch versions
+- Link to v3: https://lore.kernel.org/r/20260713-jag-net_const_qualify-v3-0-7289fe9eaea6@kernel.org
+
+Changes in v3:
+- Const qualified 2 of the 3 cases within the net directory ctl_table
+  register sites.
+- Link to v2: https://lore.kernel.org/r/20260707-jag-net_const_qualify-v2-1-5a5c52031ead@kernel.org
+
+Changes in v2:
+- Rebased on top of net-next
+- Updated subject to "RFC net-next"
+- Link to v1: https://lore.kernel.org/r/20260629-jag-net_const_qualify-v1-1-ee98b8fc400c@kernel.org
+
+Best
+
+[1]
+  https://git.kernel.org/pub/scm/linux/kernel/git/sysctl/sysctl.git/commit/?h=constfy-sysctl-6.14-rc1&id=1751f872cc97f992ed5c4c72c55588db1f0021e1
+
+[2]
+  I have identified 4 contexts relevant to the ensure_safe_net_sysctl call
+  inside the network sysctl registration.
+
+  1. When the (struct net) == &init_net (like in iw_cm_init): In this case
+     ensure_safe_net_sysctl is not executed and permission modification
+     never happens.
+
+  2. When the ctl_table data (->data) gets "manually" assigned to
+     something other init_net (like in vsock_sysctl_register): In this
+     case ensure_safe_net_sysctl *is* executed but the data that is passed
+     is neither a module address (!is_module_address) nor a kernel core
+     address (!is_kernel_core_data); so the permission modification never
+     happens.
+
+  3. When the permissions are explicitly changed on a kmemdup'ed ctl_table
+     array (like in sysctl_core_net_init): in this case
+     ensure_safe_net_sysctl *is* executed but the permission modification
+     never happens as the mode is not writable.
+
+  4. When ctl have custom proc_handlers (like in nf_lwtunnel_net_init): In
+     this case ->data is NULL so it is not a module address
+     (!is_module_address) nor a kernel core address
+     (!is_kernel_core_data), so permission modification never happens.
+
+  It seems like there is no way of executing the permission change in
+  ensure_safe_net_sysctl. Please correct me if this is inaccurate and help
+  me find the case that I missed.
+
+[3]
+  https://lore.kernel.org/all/20260302194926.90378-1-graf@amazon.com/
+
+[4]
+  The ensure_safe_net_sysctl function was introduced in Commit:
+  31c4d2f160eb7b17cbead24dc6efed06505a3fee ("net: Ensure net namespace
+  isolation of sysctls") which states that it is trying to prevent a
+  leak (indicative of a bug).
+
+[5]
+  https://patchwork.kernel.org/project/netdevbpf/patch/20260713-jag-net_const_qualify-v3-1-7289fe9eaea6@kernel.org/
+
+---
+Signed-off-by: Joel Granados <joel.granados@kernel.org>
+
+---
+Joel Granados (3):
+      net: enforce net sysctl registration
+      net: Const qualify ctl_tables that kmemdup unconditionally
+      net: Const qualify network templated ctl_tables Arrays
+
+ include/net/net_namespace.h             |  5 +--
+ net/core/sysctl_net_core.c              | 38 +++++++++++++++--------
+ net/ipv4/devinet.c                      |  2 +-
+ net/ipv4/sysctl_net_ipv4.c              | 54 +++++++++++++++++++--------------
+ net/ipv4/xfrm4_policy.c                 | 22 +++++++++++---
+ net/ipv6/icmp.c                         |  2 +-
+ net/ipv6/route.c                        |  2 +-
+ net/ipv6/sysctl_net_ipv6.c              |  2 +-
+ net/ipv6/xfrm6_policy.c                 | 22 +++++++++++---
+ net/netfilter/nf_conntrack_standalone.c |  2 +-
+ net/netfilter/nf_hooks_lwtunnel.c       |  4 +--
+ net/sctp/sysctl.c                       |  2 +-
+ net/smc/smc_sysctl.c                    | 26 +++++++++++-----
+ net/sysctl_net.c                        | 25 +++++++--------
+ net/unix/sysctl_net_unix.c              | 21 ++++++++++---
+ net/vmw_vsock/af_vsock.c                | 25 ++++++++++-----
+ net/xfrm/xfrm_sysctl.c                  |  2 +-
+ 17 files changed, 169 insertions(+), 87 deletions(-)
+---
+base-commit: 001b5d347d8ba39b2dccaefcc57967b18caec8fe
+change-id: 20260629-jag-net_const_qualify-f4e09759dac7
+
+Best regards,
+-- 
+Joel Granados <joel.granados@kernel.org>
+
+
