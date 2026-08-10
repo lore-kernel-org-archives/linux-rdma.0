@@ -1,69 +1,224 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f200.google.com (mail-pf1-f200.google.com [209.85.210.200])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33B55442FD3;
-	Mon, 10 Aug 2026 19:40:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C6DB43E9F6
+	for <linux-rdma@vger.kernel.org>; Mon, 10 Aug 2026 19:50:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.200
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786390861; cv=none; b=oTx8WUwtGRnNSQo+f7dcXdEG43tr8+iMvcnoum4nrS/HrQAvuf0nE63cAp7Opk9iDr2DgkOKsEOM9HtRwQHhGPQGSvOakkwhwaSQfdg8QjSjOG2SFMZBShcZ9fdGEX6n5cuGbj5YeljcW3nUK+eeCLFlOTgA+2hbjh0ESQ3/vgc=
+	t=1786391445; cv=none; b=hIhwxlkm8MprfMdfSzRAaufk0FtnYOQ76Y9p83NyN67xKNP75SFUjhg8xKvfIg2HnmJp2FMXxgGEp/4qUv+cHjdRw5gPmuLN6fPBP56iOtDNLCus08m2Xl5/VFGEq6Hdq8T2PxyRONh/8tVE8fwayesVGay2SLiQhiCbgnsNbhg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786390861; c=relaxed/simple;
-	bh=QfT241+xV9dXIELDl32SsiKe2QwmWPyUddangv7rsXo=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Gkmt2U2Q7Cp9e3I9ih7RGuCnO8IdDldVtQWsgNjur/AHjubWcYcbGB2rqtugtoCkUI1xq6nVVg4OooZ2GV0Ye0v2RiY9Jvl22rgcp4q4t2U2zqcfZBovWNeeAmkJtZugLS+aXYMPhrL5umRT7wlpi44xtMdr5JTuVzQxvvj8qMA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LOoKrRiY; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786391445; c=relaxed/simple;
+	bh=jllGw4LDGlYPMXCqbk8a2XlOmYYFkoF1/M0iq9XzDcs=;
+	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=dn7OZ8mB3AN0v87FzJ+orLgp9Ffdw/8NJzXmmb4dGh7nm5bDZWnbdRmTCzkJWe59pe0GDGyP4vwWv0YzaRwpezJCQpYlo/bP1ccYrX0KtDlTuBSN4qppqwPy2525sV52HOFVz5JZELfFw1yi/ZtAsCDL/OJ5rzD757utvrkwkBs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--praan.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=rncho+ma; arc=none smtp.client-ip=209.85.210.200
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--praan.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LOoKrRiY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAF201F000E9;
-	Mon, 10 Aug 2026 19:40:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786390858;
-	bh=aQkbAL8gDFRxpXIIle+bm2wnXM0lq6rIv0I7IeHxRts=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=LOoKrRiYuDgUfvBRlZ4LwZbOfjNQeTCquT58/+SCiWtzUlO7Pm0sAMjtC0i4Chvey
-	 rDhUlVnfXNhfG3oJaRFwr7DOiXl0bJlyyzVAasYb2FdUuRTSLii0fH3dTI8TOF3t0Q
-	 9XqNyxp2KIbMwjtCZ4s9+hvDj0bVXGV5qQ+Hpy/NbPPcW7tZvOGnitOs+YNQ8s95QF
-	 d0nMri9FbdSbVw6Ggqc5RbQ6qKIDDtLJTRFk/BxYqgjhHnniaBNvruhP9SDD2h4USF
-	 8F2RiDbWegBBBDZoS6TPkmVDavKW9k8CZhHRrqXL4Ei2Xi1vUeyPAd9Y++rIcFA0kL
-	 cUqINYnzLeVqw==
-Date: Mon, 10 Aug 2026 12:40:56 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Stanislav Fomichev <sdf.kernel@gmail.com>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, edumazet@google.com,
- pabeni@redhat.com, anthony.l.nguyen@intel.com,
- przemyslaw.kitszel@intel.com, andrew+netdev@lunn.ch, saeedm@nvidia.com,
- tariqt@nvidia.com, mbloch@nvidia.com, maxime.chevallier@bootlin.com,
- mcoquelin.stm32@gmail.com, alexandre.torgue@foss.st.com,
- aleksander.lobakin@intel.com, horms@kernel.org, magnus.karlsson@intel.com,
- maciej.fijalkowski@intel.com, sdf@fomichev.me, ast@kernel.org,
- daniel@iogearbox.net, hawk@kernel.org, john.fastabend@gmail.com,
- alice.kernel@fastmail.im, dtatulea@nvidia.com, witu@nvidia.com,
- martin.lau@kernel.org, yoong.siang.song@intel.com,
- rohan.g.thomas@intel.com, intel-wired-lan@lists.osuosl.org,
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
- linux-stm32@st-md-mailman.stormreply.com,
- linux-arm-kernel@lists.infradead.org, bpf@vger.kernel.org, leon@kernel.org
-Subject: Re: [PATCH net-next 0/3] xsk: pre-existing AF_XDP TX metadata fixes
- from Sashiko
-Message-ID: <20260810124056.469fc9a4@kernel.org>
-In-Reply-To: <anodof8GsDZHZb-S@devvm7509.cco0.facebook.com>
-References: <20260810184753.135756-1-sdf@fomichev.me>
-	<anodof8GsDZHZb-S@devvm7509.cco0.facebook.com>
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="rncho+ma"
+Received: by mail-pf1-f200.google.com with SMTP id d2e1a72fcca58-84e13b57b2cso19692b3a.1
+        for <linux-rdma@vger.kernel.org>; Mon, 10 Aug 2026 12:50:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1786391443; x=1786996243; darn=vger.kernel.org;
+        h=content-type:cc:to:from:subject:message-id:mime-version:date:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=IcwW5XREirtrofqhtr/U6RYRn5/QoCTQXeXDcDL2gg4=;
+        b=rncho+majOoSw08b+7rQicHedJ1dU/sLKK1XaA6ONBZRELGk0BgCkBeDpEbKt840bH
+         0AeugHszWJ83xI+aRv7UYqaH4ZzgWaC+OydwEujs8TgLQhmgHCfOzaxL62YUfDVWEv6f
+         fx7Wu0Jayb2Bhd1Vhm9dPorJ/Lxz1zdyuS1dEdCd4pvah6aypLFJMzHT4DB5V0my8gud
+         DZ2Q4B6p+/N0YnRRdxSRI007n1yr4mWa+36K4ttqwjIbqPpj9SmTouTZQg2JIthKujsY
+         WXj72suqgPIY7aJr/h4OwD1G2IMoaX6J/VDoH4+bI9XUsBwNYlQw0xbLGU3yKHwIlAUb
+         KWtA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786391443; x=1786996243;
+        h=content-type:cc:to:from:subject:message-id:mime-version:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=IcwW5XREirtrofqhtr/U6RYRn5/QoCTQXeXDcDL2gg4=;
+        b=YSbPDw04C3gB6JWgCwwusWWZoJuOk/wysKzrinU8AIPVcENSasuskOCClzTOtu3AOu
+         Ca2jZiFa4bC/cMHPh2gAUPIb2kx2B2iUBgfVWRmjbkh3SjRBy21Rya+hZJ+4+U/5ryNE
+         mW5NoW4Lkj0bzl7LeiBt7iNs2/qUJxfyiwIQfArdxd/jHkJotdkJHf4KsuCAboRUEbps
+         /gW1QB2RYFniJohIZcy8R1m/48Q00lhn/Youb/ZqivCsvaJeS2JyQRRAsOZfh0SvY+FD
+         hLwvFiwqH9Gb03WDEgs1TAm9Eo09X5kdm3FjZ2N2AH3CzsOjtQqodmBK/EBjztjV6HbT
+         ZP2Q==
+X-Forwarded-Encrypted: i=1; AHgh+Rqx9xFn6QKcyOHLLhPNF0/jD7GbuqED8bX8RmFSUUH5Yw3TLywKCu8Pn/KtdH/SenPtTiFoLp0WbPWv@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw5ek9aHOmC9K/dlORlBjkbpfxPzNWrM+r4lO9XJd6pf1HkSXlp
+	dJ62MvB57XqnoA2hvEUyAxpP8blH0c503TJ8mZ4/2bfGXLaHJzhNCy5wj7IXUlYbzASm9TtdRzC
+	07A==
+X-Received: from pgeq25.prod.google.com ([2002:a63:bc19:0:b0:c96:6f3e:49c9])
+ (user=praan job=prod-delivery.src-stubby-dispatcher) by 2002:a05:6a00:6c82:b0:847:5ec6:3afe
+ with SMTP id d2e1a72fcca58-84f2e0588demr53176267b3a.31.1786391442581; Mon, 10
+ Aug 2026 12:50:42 -0700 (PDT)
+Date: Mon, 10 Aug 2026 19:50:34 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.55.0.679.g6767b8d81c-goog
+Message-ID: <20260810195040.2877784-1-praan@google.com>
+Subject: [PATCH v4 0/5] nfs: modernize direct I/O path
+From: Pranjal Shrivastava <praan@google.com>
+To: linux-nfs@vger.kernel.org, Trond Myklebust <trondmy@kernel.org>, 
+	Anna Schumaker <anna@kernel.org>
+Cc: Chuck Lever <cel@kernel.org>, Jeff Layton <jlayton@kernel.org>, linux-kernel@vger.kernel.org, 
+	Christoph Hellwig <hch@lst.de>, Logan Gunthorpe <logang@deltatee.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
+	linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, 
+	Shivaji Kant <shivajikant@google.com>, Pranjal Shrivastava <praan@google.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On Mon, 10 Aug 2026 11:52:01 -0700 Stanislav Fomichev wrote:
-> On 08/10, Stanislav Fomichev wrote:
-> > A few fixes to address pre-existing issues from Sashiko review.
-> > 
-> Ooops, this should've been targeted to net tree. Will resend in a few
-> days in case there is any review feedback.
+Modernize the NFS Direct I/O path as a preparatory step to enable PCI
+Peer-to-Peer DMA (P2PDMA) support. Following feedback on the initial
+RFC [1], the modernization and architectural changes are split into
+different series. Additionally, based on the discussion in the v2 [2]
+of this series, the migration of NFS Direct I/O to folios would be
+handled in a separate follow-up series.
 
-Please make sure you look at the Clashiko review before you repost.
-Looks like it got kicked off already so let's not waste it.
+Currently, NFS O_DIRECT relies on the legacy iov_iter_get_pages_alloc2()
+API which does not support the pinning requirements for P2P memory.
+The implementation moves NFS to the modern iov_iter_extract_pages() API.
+
+Design
+======
+
+1. Pin-Awareness
+Standard NFS requests use get_page() and put_page() for memory
+management. However, memory extracted via iov_iter_extract_pages()
+requires explicit pinning.
+
+Introduce a PG_PINNED flag and a wb_nr_pinned count to struct nfs_page.
+This allows the request lifecycle to track ownership of physical pins
+and ensure that unpinning is performed only when the I/O is complete.
+
+2. API Migration
+Migrate the Direct I/O path to the modern iov_iter_extract_pages()
+API. This aligns NFS with the modern extraction model and serves as
+the foundation for passing ITER_ALLOW_P2PDMA in a follow-up series.
+
+Upcoming Work / Roadmap
+================================
+
+As decided in the RFC [1] & v2 [2], there will be separate series for
+P2PDMA Enablement and Migrating NFS Direct I/O to use folios.
+
+This series lays the necessary groundwork for the upcoming work.
+Following this, two additional series are planned:
+
+1. Migrating NFS Direct I/O to Folios
+A series that introduces and exports helper from iov_iter.c to allow
+the nfs_direct_extract_pages() helper introduced here to aggregate
+multiple pages into a single large folio-based request, aiming to reduce
+the RPC overhead for hugepage I/O.
+
+2. P2PDMA Enablement for NFS
+Enabling ITER_ALLOW_P2PDMA for the Direct I/O path and introducing transport-level
+negotiation (discovery of P2P-capable RDMA/NVMe devices). This will build
+upon the PG_PINNED infrastructure introduced by this series.
+
+Testing
+=======
+This series has been tested with xfstests [3] on RDMA & TCP transports
+by running the quick test suite for each transport vs. version combo:
+
+./check -g quick -s rdma3 -s rdma40 -s rdma41 -s rdma42 -s tcp3 -s tcp40 -s tcp41 -s tcp42
+
+The tests were run before & after applying the series. No regressions were observed. 
+
+The following summary was tabulated via a custom script [4] (on github)
+to depict that the tests failing in v1 [5] are now passing.
+
+python3 display.py results/*/check.log
+
++--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
+| testcase     | rdma-sys-3   | rdma-sys-4.0 | rdma-sys-4.1 | rdma-sys-4.2 | tcp-sys-3    | tcp-sys-4.0  | tcp-sys-4.1  | tcp-sys-4.2  |
++--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
+| generic/091  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/130  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/139  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/143  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/154  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/155  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/183  | skipped      | skipped      | skipped      | pass         | skipped      | skipped      | skipped      | pass         |
+| generic/188  | skipped      | skipped      | skipped      | pass         | skipped      | skipped      | skipped      | pass         |
+| generic/190  | skipped      | skipped      | skipped      | pass         | skipped      | skipped      | skipped      | pass         |
+| generic/196  | skipped      | skipped      | skipped      | pass         | skipped      | skipped      | skipped      | pass         |
+| generic/198  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/203  | skipped      | skipped      | skipped      | pass         | skipped      | skipped      | skipped      | pass         |
+| generic/214  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/240  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/263  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/287  | skipped      | skipped      | skipped      | pass         | skipped      | skipped      | skipped      | pass         |
+| generic/290  | skipped      | skipped      | skipped      | pass         | skipped      | skipped      | skipped      | pass         |
+| generic/292  | skipped      | skipped      | skipped      | pass         | skipped      | skipped      | skipped      | pass         |
+| generic/330  | skipped      | skipped      | skipped      | pass         | skipped      | skipped      | skipped      | pass         |
+| generic/444  | skipped      | skipped      | skipped      | skipped      | skipped      | skipped      | skipped      | skipped      |
+| generic/450  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/451  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/586  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/647  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/708  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/729  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/760  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
++--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
+
+Thanks,
+Praan
+
+[1] https://lore.kernel.org/all/20260401194501.2269200-1-praan@google.com/
+[2] https://lore.kernel.org/all/ak8-NMsNPOB3zpF-@infradead.org/
+[3] https://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git
+[4] https://github.com/pran005/tools/blob/main/display.py
+[5] https://lore.kernel.org/all/29a0511d-5216-46f2-a7e4-9c04ae9b1890@app.fastmail.com/
+
+[v5]
+ - Fixed an iov_iter_revert oops in nfs_direct_extract_pages().
+ - Fixed a refcount underflow in nfs_direct_release_pages() during
+   swap-over-NFS by ensuring we do not call put_page() on unpinned memory.
+ - Rebased on fs-next
+
+[v4]
+ - https://lore.kernel.org/all/20260720150601.2702700-1-praan@google.com/
+ - Dropped superfluous externs in include/linux/nfs_page.h
+ - Scoped `req` locally inside the loop in nfs_release_request_list()
+ - Wrapped >80 character lines in Patch 1 to adhere to coding style.
+ - Fixed typos and capitalization convention in the commit msgs
+ - Collected Reviewed-by tags from Christoph and Shivaji
+ - Rebased on fs-next
+
+[v3]
+ - https://lore.kernel.org/all/20260715143540.3597616-1-praan@google.com/
+ - Dropped patches that added folio support for NFS Direct I/O
+ - Folded requested_bytes accounting in patch 5 due to dropped folio support
+ - Rebased on fs-next
+
+[v2] 
+ - https://lore.kernel.org/all/20260616134000.2733403-1-praan@google.com/
+ - Fix data corruption in nfs_direct_extract_pages() by correctly
+   calculating intra-page offsets using offset_in_page().
+ - Fix requested_bytes accounting in direct read/write paths to only
+   increment after successful RPC scheduling.
+ - Add missing kernel-doc descriptions for the @pinned parameter in
+   nfs_page_create_from_page() and nfs_page_create_from_folio().
+ - Rebase on fs-next/
+
+[v1] https://lore.kernel.org/all/20260603053033.3300318-1-praan@google.com/
+
+Pranjal Shrivastava (5):
+  nfs: make nfs_page pin-aware
+  nfs: track number of pinned pages in nfs_page
+  nfs: introduce nfs_release_request_list helper
+  nfs: migrate direct I/O to iov_iter_extract_pages
+  nfs: introduce nfs_direct_extract_pages helper
+
+ fs/nfs/direct.c          | 139 ++++++++++++++++++++-------------------
+ fs/nfs/pagelist.c        |  62 ++++++++++++++---
+ fs/nfs/read.c            |   2 +-
+ fs/nfs/write.c           |   2 +-
+ include/linux/nfs_page.h |   8 ++-
+ 5 files changed, 130 insertions(+), 83 deletions(-)
+
+
+base-commit: 5b57716ed7ad2f4b1724461c8777015c4e4befb1
+-- 
+2.55.0.679.g6767b8d81c-goog
+
