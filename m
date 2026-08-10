@@ -1,73 +1,133 @@
-Received: from mail-oi1-f199.google.com (mail-oi1-f199.google.com [209.85.167.199])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out-186.mta1.migadu.com (mta1.migadu.com [37.59.57.117])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9ED6B3B7757
-	for <linux-rdma@vger.kernel.org>; Mon, 10 Aug 2026 23:35:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.199
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48E20430CFD
+	for <linux-rdma@vger.kernel.org>; Mon, 10 Aug 2026 23:59:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=37.59.57.117
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786404906; cv=none; b=Saq3Xelk7AGTIrRk21DR/vYhAk+6j8n2eMEJXSI2iC6nLoQwbRQTQ2QADsRWsPZPsU9z2vkg6FA/UjjqufO97oZhXgB/XmEmopR06PNjWaJt8cqF9UZs66/cxrS2A9IOERk8XdfZJ3oOM1CHeTuhz8MbxrtV1J0mRNrpY7ICnwo=
+	t=1786406382; cv=none; b=VzbvceVuoiY2U2XUxGPVleAqUlG3VFhGOVH/9V9ZAhVxzQAQNMoKXHmAU1DiZSgJHTfgr7YreEMIfO5mRIWbjOa7ol3ZmuUOyyvGVuPGKQ+mSvQ+5H0BvgmXJwf7HrIrsXmjZBj06+bSUh4XYNQgAJdQeJVpaDT9b5JHTO9JU5E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786404906; c=relaxed/simple;
-	bh=zZEPobonppBkLqT/B7rUh78mhZK6P6WSf3r9VzaHocM=;
-	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
-	 Content-Type; b=P9kgjD7xoCuS2PhH+v8sQuyMhSLeRB+IDe2BKwrrkwdSo5zwR2B0TM+FJx3VtMp5fN+UHSFEV4pGC91dp+067nRlgrSwOp6FyE1PXM/I96J+9S91M+n8kfWI4YLAl7EjrsZdh7TVbcI3LDU0DObYaXk1b8d6ukXTT9VuExUsSx4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.167.199
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-oi1-f199.google.com with SMTP id 5614622812f47-4a7de733fa9so3139401b6e.3
-        for <linux-rdma@vger.kernel.org>; Mon, 10 Aug 2026 16:35:04 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786404903; x=1787009703;
-        h=content-type:to:from:subject:message-id:in-reply-to:date
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=Ehz5AmGgOvZtG+EkGP05O47LfY/56oZQm2iWLUg8gkw=;
-        b=diCPAooGjbO9kR8JH42Sh991JfjNjOaTfSlKAcdpn57YlWMT6GZoMQDx0VuzK36AMJ
-         uJi8AM4luFP44UsUiqAVWGtef+Kmrho3GIJIb2Bvwoy21aS0QHa/hRqphHL4mNa1T/EZ
-         2k80KEVEe+eDg+Fcue1WantlqTLPQck3P3DzQllPpSzuc7Uxy8DzUakdl94qvPtmQsJ/
-         KxWiULDFwr/JLqWM9sBsM/QqGK03PueksJw9goWH1Wcg6mWFjR3VYQ8NBMNzuWvQEGt4
-         Oir/eoQ90FtmFVU4OJYwyJ0/3S6E/GNiu2/LUM683Gz3XYkJ88igCC+/HyjFLlnJ/uQx
-         ERdw==
-X-Forwarded-Encrypted: i=1; AHgh+Ro8oAWGP8yDkzOY80wfuBNlEalU+29B8NMwrr+zorrwlni2LnNxIvoaHmrZmnzDkKuHVV9ujy8DKwk9@vger.kernel.org
-X-Gm-Message-State: AOJu0YyTVukVQXbBMGa9J7f0Y7S1GlqEKoUxPeJNHd4Oy46oeBjYy7F6
-	Zo3j/Rlvtn9aWSxKGCQsmkOi26McaHoj45X6e7jemsF42XCGfcNc4227Nz1z4mcEqwb9ucgA2N8
-	XI/oPxd1bRkHpcTjZUDarA/BBzC0HmI8cLk4emGBCqYuwSwevfZqPU6rjncQ=
+	s=arc-20240116; t=1786406382; c=relaxed/simple;
+	bh=7IZn59rBNGwbt77OqSdIuLVnL/FtY7VX9mpxFRQoOjY=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=XHK0dbub8ZbiIhrvZJVZd4KwT/PCFZqJDupLr2Gh2yfj5LTjYx+peMGM+BuhELRJjtXxl1nXyxWAo0vgtNmJjRQQUziMhUXO3LVNmed0Ze6dCrEoeAHkSwP84Z/iG2/jwX8G8Br/YX44bauxbcXPHPh6TsxBVIflLL8sogeOcfc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=aOX938ll; arc=none smtp.client-ip=37.59.57.117
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="aOX938ll"
+Message-ID: <97968741-23d0-47cd-9d5b-0eeefd43dd0d@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1786406376;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=GW9wDeFh37CH1KHPFpZI4MD8T0uHITur9PWLzK9xbTY=;
+	b=aOX938llyWTMgx2cTa1H4Pf+/UaOT3cmNV8tJgpJwGKZ1qdsjigGVmFDmEJ97nH69qoO6i
+	cW9w5T7JrwfCb87NxQ4f1keALidja0tyWOxzk1wUcoJFtXf9cXIiz1iJ1Pb2kr41fm0YRY
+	weXNdHCt2q/J4rGFnJxjWWGjtc63k84=
+Date: Mon, 10 Aug 2026 16:59:26 -0700
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6808:c3f3:b0:495:feaa:9e39 with SMTP id
- 5614622812f47-4b1e7732b1cmr2807249b6e.6.1786404903426; Mon, 10 Aug 2026
- 16:35:03 -0700 (PDT)
-Date: Mon, 10 Aug 2026 16:35:03 -0700
-In-Reply-To: <e1b573dc-8b98-47c0-a997-c4f0cc3f926e@linux.dev>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6a7a6027.01d0871a.3a0d52.00b0.GAE@google.com>
-Subject: Re: [syzbot] [rdma?] WARNING in res_to_rt
-From: syzbot <syzbot+72eddfbadda3e3928e72@syzkaller.appspotmail.com>
-To: jgg@ziepe.ca, leon@kernel.org, linux-kernel@vger.kernel.org, 
-	linux-rdma@vger.kernel.org, syzkaller-bugs@googlegroups.com, 
-	yanjun.zhu@linux.dev
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH v2 1/1] RDMA/cma: Fix WARNING in res_to_rt
+To: jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org
+Cc: syzbot+72eddfbadda3e3928e72@syzkaller.appspotmail.com
+References: <20260810220123.191696-1-yanjun.zhu@linux.dev>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
+In-Reply-To: <20260810220123.191696-1-yanjun.zhu@linux.dev>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
-Hello,
+在 2026/8/10 15:01, Zhu Yanjun 写道:
+> syzbot reported a WARN_ON(!res->dev) in res_to_rt() triggered via
+> addr_handler() during asynchronous address resolution:
+> 
+> "
+> WARNING: drivers/infiniband/core/restrack.c:138 at res_to_rt+0x1c4/0x230
+> CPU#1: kworker/u8:4/59
+> Modules linked in:
+> CPU: 1 UID: 0 PID: 59 Comm: kworker/u8:4 Not tainted syzkaller #0 PREEMPT(full)
+> Hardware name: Google Compute Engine, BIOS Google 07/24/2026
+> Workqueue: ib_addr process_one_req
+> RIP: 0010:res_to_rt+0x1c4/0x230 drivers/infiniband/core/restrack.c:138
+> RSP: 0018:ffffc9000201f850 EFLAGS: 00010293
+> RAX: ffffffff88d00ce5 RBX: ffff88807f0fd4f8 RCX: ffff88801e6e0000
+> RDX: 0000000000000000 RSI: ffffffff8fd996f0 RDI: 0000000000000003
+> RBP: 0000000000000000 R08: ffff88801e6e0000 R09: 000000000000000a
+> R10: 0000000000000009 R11: 0000000000000000 R12: dffffc0000000000
+> R13: 1ffff1100fe1fa9f R14: 0000000000000000 R15: 0000000000000003
+> FS:  0000000000000000(0000) GS:ffff888125012000(0000) knlGS:0000000000000000
+> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> CR2: 00001d559c3d2000 CR3: 0000000077c4c000 CR4: 00000000003526f0
+> Call Trace:
+>   <TASK>
+>   rdma_restrack_add+0x5a/0x8a0 drivers/infiniband/core/restrack.c:236
+>   addr_handler+0x41a/0x5a0 drivers/infiniband/core/cma.c:3534
+>   process_one_req+0x2eb/0x540 drivers/infiniband/core/addr.c:624
+>   process_one_work kernel/workqueue.c:3375 [inline]
+>   process_scheduled_works+0xc4e/0x1630 kernel/workqueue.c:3458
+>   worker_thread+0xa47/0xfb0 kernel/workqueue.c:3539
+>   kthread+0x388/0x470 kernel/kthread.c:436
+>   ret_from_fork+0x514/0xb70 arch/x86/kernel/process.c:158
+>   ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
+>   </TASK>
+> "
+> 
+> In addr_handler(), cma_acquire_dev_by_src_ip() is called to populate
+> id_priv->cma_dev and bind the associated ib_device to id_priv->id.device.
+> If cma_acquire_dev_by_src_ip() returns an error (non-zero status), the ID
+> remains unassociated with any RDMA device.
+> 
+> Previously, rdma_restrack_add(&id_priv->res) was invoked unconditionally
+> even when cma_acquire_dev_by_src_ip() failed, passing a resource with a
+> NULL dev pointer and triggering the WARN_ON assertion in res_to_rt().
+> 
+> Fix this by only adding the resource to restrack when acquiring the device
+> succeeds.
+> 
+> Reported-by: syzbot+72eddfbadda3e3928e72@syzkaller.appspotmail.com
+> Closes: https://syzkaller.appspot.com/bug?extid=72eddfbadda3e3928e72
+> Tested-by: syzbot+72eddfbadda3e3928e72@syzkaller.appspotmail.com
+> Fixes: cb5cd0ea4eb3 ("RDMA/core: Add CM to restrack after successful attachment to a device")
+> 
+> Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+> ---
+> V1 -> V2: Follow Jason's advice to use if/else to handle this problem.
 
-syzbot has tested the proposed patch and the reproducer did not trigger any issue:
+Thanks, Jason.
+I have sent this commit to syzbot. From the reply, this commit can also 
+fix the problem in the commit log.
 
-Reported-by: syzbot+72eddfbadda3e3928e72@syzkaller.appspotmail.com
-Tested-by: syzbot+72eddfbadda3e3928e72@syzkaller.appspotmail.com
+Zhu Yanjun
 
-Tested on:
+> ---
+>   drivers/infiniband/core/cma.c | 6 ++++--
+>   1 file changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+> index cc24fddf9aaa..73170b15fc3d 100644
+> --- a/drivers/infiniband/core/cma.c
+> +++ b/drivers/infiniband/core/cma.c
+> @@ -3528,10 +3528,12 @@ static void addr_handler(int status, struct sockaddr *src_addr,
+>   	memcpy(addr, src_addr, rdma_addr_size(src_addr));
+>   	if (!status && !id_priv->cma_dev) {
+>   		status = cma_acquire_dev_by_src_ip(id_priv);
+> -		if (status)
+> +		if (status) {
+>   			pr_debug_ratelimited("RDMA CM: ADDR_ERROR: failed to acquire device. status %d\n",
+>   					     status);
+> -		rdma_restrack_add(&id_priv->res);
+> +		} else {
+> +			rdma_restrack_add(&id_priv->res);
+> +		}
+>   	} else if (status) {
+>   		pr_debug_ratelimited("RDMA CM: ADDR_ERROR: failed to resolve IP. status %d\n", status);
+>   	}
 
-commit:         8b1a07ae RDMA/cma: Fix WARNING in res_to_rt
-git tree:       https://github.com/zhuyj/linux.git warning_res_to_rt
-console output: https://syzkaller.appspot.com/x/log.txt?x=163da149580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=6d343b54cc50df0f
-dashboard link: https://syzkaller.appspot.com/bug?extid=72eddfbadda3e3928e72
-compiler:       Debian clang version 22.1.8 (++20260613092233+e80beda6e255-1~exp1~20260613092250.77), Debian LLD 22.1.8
-
-Note: no patches were applied.
-Note: testing is done by a robot and is best-effort only.
