@@ -1,603 +1,313 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 79F433921DB;
-	Tue, 11 Aug 2026 02:38:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786415938; cv=none; b=EwQNgEtngLKIjvzKPuHm/24xAZgAeDtp5Qv/4wc4BJB8FbwjgqXJKhWM2ManEltEJovgAbzhVqt+DjSZSXkNZUMTS7bWLzll2lreTfkllC+4oY/HassgRRtgP0J+gz22hkC56lTsSGbIc3CVIHdCtWRwFiy86hAZ5Gjw7iLAX9k=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786415938; c=relaxed/simple;
-	bh=Jc6KUTmG3vypYPWL1qcHL8DbGClfqtd9CYcLcN+kGMo=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=a+H4HpRnKnIz28qZ5M9t25Ve+nDv8ClRMb5T0jDW/Dl2ooMExf0w/d8u0PqE9Lv98hQ3xqEonYkVebYD8NVDtKRvG9tDK05Iy2jmgwtiAtxaMstHxaAxeuGok6dm100jcWKgB6bObY25Mo+ZM1PDTP2MaZrK/f742TL15O//KKE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
-Received: by linux.microsoft.com (Postfix, from userid 1202)
-	id C2A3D20B6F12; Mon, 10 Aug 2026 19:38:30 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com C2A3D20B6F12
-From: Long Li <longli@microsoft.com>
-To: Long Li <longli@microsoft.com>,
-	Konstantin Taranov <kotaranov@microsoft.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	"David S . Miller" <davem@davemloft.net>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Eric Dumazet <edumazet@google.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	Haiyang Zhang <haiyangz@microsoft.com>,
-	"K . Y . Srinivasan" <kys@microsoft.com>,
-	Wei Liu <wei.liu@kernel.org>,
-	Dexuan Cui <decui@microsoft.com>,
-	shradhagupta@linux.microsoft.com,
-	Simon Horman <horms@kernel.org>,
-	ernis@linux.microsoft.com,
-	stephen@networkplumber.org
-Cc: netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	linux-hyperv@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH net v6 6/7] net: mana: fix stale HWC response after command timeout
-Date: Mon, 10 Aug 2026 19:38:20 -0700
-Message-ID: <20260811023823.2391255-7-longli@microsoft.com>
-X-Mailer: git-send-email 2.43.7
-In-Reply-To: <20260811023823.2391255-1-longli@microsoft.com>
-References: <20260811023823.2391255-1-longli@microsoft.com>
+Received: from BL0PR03CU003.outbound.protection.outlook.com (mail-eastusazon11012065.outbound.protection.outlook.com [52.101.53.65])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC0843F23CC;
+	Tue, 11 Aug 2026 06:17:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.53.65
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786429039; cv=fail; b=IiBYa9xlW1ZcEEjEZ0XaESxOOcKgozEf4CTMFwDf0Uc/Hb8ir5HfuifoJAME0vTYequAzSinPcWc6mz21QL+MMnI2kDG8b5hQTHvfYx1ldCkB52fIFi4xlHAt/4OZOZ1IjmVQPMJQ+3ToSa3hvMckxFWE5LZzmzVqn9y2rI7HzQ=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786429039; c=relaxed/simple;
+	bh=cIoDhfK2Oa08KzxjkjQpi4YGnM7CPFNUCMcUyjjKJ+s=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=ja6For5CFeOUcm/CHETqJJFo/H50eWVbyOoiBmN8rBMJINlGOfCB5yBCa6Dn0q06U9MYL5NtHAd4w9VyM/hZMFukKyYJ0MRDgCGhwvtWcgR28Ymf14fxmHae3IL+esR1E7CyXX5ttR2Rnmb1vGRBg+oZDzlBc7QCjs/lMG13+Wc=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=Mfd5cA/U; arc=fail smtp.client-ip=52.101.53.65
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="Mfd5cA/U"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=FYw73oJUEzgKTrOYK0ds69MBcXTs4AMJx1t/i7kjXjwHCt96G9jgRjquNMyvKgkm6jmXkQ5bR7za9xNOYgVzeRrTc9Pveshu9Za+eOmIR+KY/crx1nQG0I+unwc2HtxywKBwDroVB8n+vRzPUahFxfttWlpTMzOzu0/24ZZ4ihjPcHoLzGn8j2kEqb+7bmmWi/1p66HSF4qccjheq13kS8zvXSrXNX2BrFlcZlU7RtNwiEPE3P3h7/7MOtrgc3zgVYOKnWS22IVoCbYHqvt3XZ08MbxE+hXdBWePW897ftmof72hjMxBMv9GXmnip5Rygvqcrulx5ITtfA23ng9Ieg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=MwMUByo+Jy73gq4ndR1PA0IMXtUwSVZBI7vwgEMbOHM=;
+ b=fu73LKDfmLQrbmVliWiYug5vCWTak71XYBDM3tJLTi+WGVYCpmlreXjzpI++cW4ylntUKK4yyA3GJjj80swMG5fCS1ts0pQBmjI+Nv65XCAE+opGyYxvJB+ql6jrK6D8lX2zytQX/qv1zkbntlM86ib2L0wqKmS0gsMJ6AR4GTBI0gAwDDYVbasll+WP8IJgM8VjgTWOu+RB45vo/vj8j9kW8TC1a39kVDYzV7vz+w9CQNmc1AayQGnNu/Jea+PTVkgVAgR8ONiFjU9sUn9QY3OY0LouJ9n1SQGUy1ZqwhfUuuZBRHCoIbJqjcswN2DQ3VT+t88GdpsWPKUAT5MtKQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.118.233) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=MwMUByo+Jy73gq4ndR1PA0IMXtUwSVZBI7vwgEMbOHM=;
+ b=Mfd5cA/UTxZRdTVj6yKAAzgZIpZD5Oq9E4zQxZserdUawqEJ7bahazIDruWL2B1KE2Amk+v/1UB82ccSj3Ftho+gh9wf1e3M9mBUc8mA/da0ed58Cd2kSXP+46zd2o7vvcKyWVCUgwPS5gCKWCqiUV2kDj9Emi76gRA+TSps7Oq1OkPGymYqK8hfieVQqbXgzyAx67pnLPRiteXnzTd9TVhTYhB8xaIuVR6HxjnrX20otTaivLoSlo/lWKCHYn0zDvg2GtgIjfPINGWKo7vFH3rwxJuGkEJr9j4qIM6VYTo6uoRcy1aEqdpVojnLvtCzHjJnmu8V2eKv6h8oTvKGrA==
+Received: from BN9PR03CA0187.namprd03.prod.outlook.com (2603:10b6:408:f9::12)
+ by SJ2PR12MB8720.namprd12.prod.outlook.com (2603:10b6:a03:539::17) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.292.25; Tue, 11 Aug
+ 2026 06:17:09 +0000
+Received: from BN2PEPF00004FBD.namprd04.prod.outlook.com
+ (2603:10b6:408:f9:cafe::4b) by BN9PR03CA0187.outlook.office365.com
+ (2603:10b6:408:f9::12) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.315.11 via Frontend Transport; Tue,
+ 11 Aug 2026 06:17:08 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.118.233) by
+ BN2PEPF00004FBD.mail.protection.outlook.com (10.167.243.183) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.315.6 via Frontend Transport; Tue, 11 Aug 2026 06:17:08 +0000
+Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
+ (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Mon, 10 Aug
+ 2026 23:16:52 -0700
+Received: from drhqmail203.nvidia.com (10.126.190.182) by
+ drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.20; Mon, 10 Aug 2026 23:16:52 -0700
+Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
+ (10.126.190.182) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
+ Transport; Mon, 10 Aug 2026 23:16:48 -0700
+From: Tariq Toukan <tariqt@nvidia.com>
+To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
+	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
+	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>
+CC: Eran Ben Elisha <eranbe@nvidia.com>, Feng Liu <feliu@nvidia.com>, "Gal
+ Pressman" <gal@nvidia.com>, Kees Cook <kees@kernel.org>, Leon Romanovsky
+	<leon@kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-rdma@vger.kernel.org>, Mark Bloch <mbloch@nvidia.com>, "Michael
+ Guralnik" <michaelgur@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>, "Shay
+ Drori" <shayd@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>
+Subject: [PATCH net-next] net/mlx5: rsc_dump and hv_vhca return NULL on create error
+Date: Tue, 11 Aug 2026 09:16:37 +0300
+Message-ID: <20260811061637.3195320-1-tariqt@nvidia.com>
+X-Mailer: git-send-email 2.44.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BN2PEPF00004FBD:EE_|SJ2PR12MB8720:EE_
+X-MS-Office365-Filtering-Correlation-Id: c634144a-4623-46c4-f7ae-08def7702c72
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|36860700016|1800799024|82310400026|23010399003|7416014|376014|11063799006|56012099006|10067099003|6133799003|18002099003;
+X-Microsoft-Antispam-Message-Info:
+	K0OJDFhXqtDDEZiY4OTK5c2rHShWwmA/HaBSO5R4NMSWxZgxzW/VGa+m9u8obhVms5gFPLcarp1LNGR7Q3ZlGMKQEoj/hUH1aYOKEE1uIGcjd53s73n4CSrvh65Ve5qd9ORmWXNXCV1RYjsIJiUnresM4dgJ0JQUa996j0nlActtWT9G2IZy60yqjY1Owg7FzQqKNyTSeFiIIfZoCkOg0331VU25IqApGBKPCg9LntAOHdE+YpzXN6sJqB3pbAZxmTW1TYx3XAMV5vgmjav3wQ0F43GMDeyTr3GjoMQ/wCO/Y2jPc9FWUX+UvHKsHI4uSIrezl5cGf6CC+Qz+R33FUbIuKyW/zff4SPx/QSugQOv4OSksuTtKtY9zYgpxok5zGadb33w8nspUVsA8y0CmnRTJEUA1VD7TNhhDMvq1pAJoCPmzAkVHRrloqQ+xkmYEWcAzymFumyHZd1FeVAB9s+gHXWBXWjSlXNvebapPdCWV/UGSthaOvDbwqLD3wOAyA2wX4HWJuMQOQEChY6j/rqgn747aCmKd9Ns1MqBq9jnxS8RBRpWPQ84K670ImN9TJWgIYafLvr4Z0ktZKynFFvEJYizS09SHzIt8VDbN9Y+XkDkwqumCiLmlrPiQa8+WUrukgDmMR8B7IZDT6Z8AMpNgXKdUNiAiH+lGIYAGwRVeOm6JN9IAnTMWf+hIEEOUVASyebwY/p1KK4JRRvSOg==
+X-Forefront-Antispam-Report:
+	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(1800799024)(82310400026)(23010399003)(7416014)(376014)(11063799006)(56012099006)(10067099003)(6133799003)(18002099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	SCiOrjCnu77qEvHyXZOmNDLkCvvv9snn/DlpYc/LgkxZajd6TMlYO38rUt2BSgDnkbVPqYF0Nv1kvaofvP6XgzeAMVxcHPzzOUCcocJZCtVoN1v9sBmrQKUYfDtzfEo9fQ8w2QiDN8rq5+Nbv0D9oarwO1V/Cusm7DaLhCYGT+ttVsUOryTvnheN+aPB181xamnqcVjXEHd/9ebW/+Nihpj+Iubatf8MFHu2D4CEa+lShl67956Xb3S3nRdIjnK1Oz7sgCeF5kflyOhRFLpoQW3WNF0g4slODFCXxGnfEQ+yUaGYKZUq8WIwo17dMVDc4vbJ0+gm6c5I/Xk+/fbMQPtR2zn1l7VVi5qTX8Ho8Mb0qda4bZBMRoolHNG2W/EebpxsCrcyt6Ji28bhO3PKxC1e29V7caZdzBa1e6TIVvj5GQ0rSOGXV20rxEWwmool
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Aug 2026 06:17:08.5321
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: c634144a-4623-46c4-f7ae-08def7702c72
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BN2PEPF00004FBD.namprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR12MB8720
 
-The HWC freed a message slot (mana_hwc_put_msg_index) the instant
-mana_hwc_send_request() timed out, while the hardware command was still
-pending and caller_ctx.output_buf still pointed at the caller's response
-buffer.  A late response then raced two ways:
+From: Michael Guralnik <michaelgur@nvidia.com>
 
-  - handle_resp() runs in CQ interrupt context and memcpy()'d into
-    output_buf after the sender had returned and its buffer was gone.
+All callers of these create functions treat NULL and ERR_PTR as
+equivalent error cases. Align the return convention to NULL-on-failure
+to simplify the checks at usage sites.
 
-  - the freed slot was reused by the next request, so the stale
-    response completed the wrong command with another request's data.
+Since its return value is never checked and failure is non-fatal, change
+hv_vhca init function to return void.
 
-Give each caller_ctx a spinlock, a refcount and an -EINPROGRESS
-sentinel (and change caller_ctx::error from u32 to int so it holds
-the negative errno values, including the sentinel, without relying on
-unsigned wraparound):
-
-  - The sender publishes output_buf under the slot lock and NULLs it
-    under the same lock on timeout/exit, so handle_resp() (also under
-    the lock) skips the copy once the sender is gone.
-
-  - The slot is released only when both the sender and handle_resp()
-    have dropped their reference, so a msg_id whose response is still
-    outstanding is never handed to a new request.
-
-  - Both references are taken up front in mana_hwc_get_msg_index(),
-    under the same lock that publishes the slot, so a stale, duplicate
-    or early response that arrives before the sender posts drops only
-    the response-side reference and cannot release the slot out from
-    under the sender.  A per-slot "responded" flag drops the payload of
-    any such extra response.
-
-  - On a genuine timeout the channel is marked hwc_timed_out and further
-    mana_hwc_get_msg_index() callers fail with -ETIMEDOUT instead of
-    reusing a slot whose response may still arrive.  The flag is read
-    with READ_ONCE() outside the bitmap lock and written with
-    WRITE_ONCE() under it.
-
-Replace the counting semaphore with a waitqueue + bitmap so a slot held
-past a timeout does not deadlock admission and timed-out waiters can be
-released.
-
-Because the timeout latch keys off wait_for_completion_timeout()
-returning immediately, a zero hwc_timeout would time out every command
-at once and latch the whole channel.  Ignore a device-reported zero from
-both sources that feed hwc_timeout -- the HWC_DATA_CFG_HWC_TIMEOUT
-reconfig event and the GDMA_QUERY_HWC_TIMEOUT response -- and keep the
-positive default instead.
-
-Fixes: ca9c54d2d6a5 ("net: mana: Add a driver for Microsoft Azure Network Adapter (MANA)")
-Signed-off-by: Long Li <longli@microsoft.com>
+Signed-off-by: Michael Guralnik <michaelgur@nvidia.com>
+Reviewed-by: Shay Drori <shayd@nvidia.com>
+Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
-Changes in v6:
- - Initialise the caller_ctx refcount/state before publishing the
-   inflight bitmap bit, so a racing or forged response cannot observe an
-   uninitialised slot.
- - In mana_hwc_handle_resp(), honour a response only while the sender
-   still owns the slot (output_buf published and not yet reclaimed), so a
-   premature response cannot free the slot while its command is still in
-   flight.
- - Do not latch hwc_timed_out for the deliberate no-wait teardown
-   (hwc_timeout == 0), applied on both the admission gate and the
-   post-wait check in mana_hwc_get_msg_index(); route the genuine-timeout
-   path through the slot-release path so it drops both references.
+ .../mellanox/mlx5/core/diag/rsc_dump.c        | 12 +++++-----
+ .../ethernet/mellanox/mlx5/core/en/health.c   |  2 +-
+ .../ethernet/mellanox/mlx5/core/lib/hv_vhca.c | 22 +++++++++----------
+ .../ethernet/mellanox/mlx5/core/lib/hv_vhca.h |  6 ++---
+ 4 files changed, 20 insertions(+), 22 deletions(-)
 
-Changes in v5:
- - No code changes since v4 (resend as a standalone thread).
-
-Changes in v4:
- - Take both the sender and response-side references up front in
-   mana_hwc_get_msg_index() (refcount initialised to 2, under the lock
-   that publishes the slot) so an early/stale/forged response cannot
-   free the slot before the sender posts; the pre-post error path
-   latches ->responded to avoid a double drop.
- - Changed caller_ctx::error from u32 to int so it holds the negative
-   -EINPROGRESS sentinel and errno values directly.
- - Reject a zero firmware-supplied HWC timeout in the query path as well
-   as the reconfig path.
- - Access hwc_timed_out with READ_ONCE()/WRITE_ONCE(); comment and
-   changelog fixes.
-
- .../net/ethernet/microsoft/mana/gdma_main.c   |   7 +-
- .../net/ethernet/microsoft/mana/hw_channel.c  | 264 +++++++++++++++---
- include/net/mana/hw_channel.h                 |  27 +-
- 3 files changed, 257 insertions(+), 41 deletions(-)
-
-diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-index d40f25a1a74a739315716a4066987f1137de88d9..d4c7426750016fd21e88a15e071fd2fb3da67ebe 100644
---- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
-+++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-@@ -310,7 +310,12 @@ static int mana_gd_query_hwc_timeout(struct pci_dev *pdev, u32 *timeout_val)
- 	if (err || resp.hdr.status)
- 		return err ? err : -EPROTO;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/diag/rsc_dump.c b/drivers/net/ethernet/mellanox/mlx5/core/diag/rsc_dump.c
+index e770088de129..8044419fb5eb 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/diag/rsc_dump.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/diag/rsc_dump.c
+@@ -130,7 +130,7 @@ struct mlx5_rsc_dump_cmd *mlx5_rsc_dump_cmd_create(struct mlx5_core_dev *dev,
+ 	struct mlx5_rsc_dump_cmd *cmd;
+ 	int sgmt_type;
  
--	*timeout_val = resp.timeout_ms;
-+	/* A zero timeout would make every HWC command time out immediately
-+	 * and latch the channel (see the HWC_DATA_CFG_HWC_TIMEOUT handler).
-+	 * Ignore a zero from the device and keep the caller's positive value.
-+	 */
-+	if (resp.timeout_ms)
-+		*timeout_val = resp.timeout_ms;
+-	if (IS_ERR_OR_NULL(dev->rsc_dump))
++	if (!dev->rsc_dump)
+ 		return ERR_PTR(-EOPNOTSUPP);
  
- 	return 0;
+ 	sgmt_type = dev->rsc_dump->fw_segment_type[key->rsc];
+@@ -165,7 +165,7 @@ int mlx5_rsc_dump_next(struct mlx5_core_dev *dev, struct mlx5_rsc_dump_cmd *cmd,
+ 	bool more_dump;
+ 	int err;
+ 
+-	if (IS_ERR_OR_NULL(dev->rsc_dump))
++	if (!dev->rsc_dump)
+ 		return -EOPNOTSUPP;
+ 
+ 	err = mlx5_rsc_dump_trigger(dev, cmd, page);
+@@ -257,14 +257,14 @@ struct mlx5_rsc_dump *mlx5_rsc_dump_create(struct mlx5_core_dev *dev)
+ 	}
+ 	rsc_dump = kzalloc_obj(*rsc_dump);
+ 	if (!rsc_dump)
+-		return ERR_PTR(-ENOMEM);
++		return NULL;
+ 
+ 	return rsc_dump;
  }
-diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-index 959886434d07fa32c62dacb041945a4587d3bb16..759b65040a159339a5ab9a2eb95acaaa2e452f53 100644
---- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
-+++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-@@ -7,25 +7,77 @@
- #include <linux/pci.h>
- #include <linux/vmalloc.h>
  
-+/* Acquire a free message slot from the inflight bitmap.  Returns
-+ * -ETIMEDOUT if a prior HWC command has timed out (preserving the
-+ * error code callers expect).
-+ */
- static int mana_hwc_get_msg_index(struct hw_channel_context *hwc, u16 *msg_id)
+ void mlx5_rsc_dump_destroy(struct mlx5_core_dev *dev)
  {
- 	struct gdma_resource *r = &hwc->inflight_msg_res;
- 	unsigned long flags;
- 	u32 index;
- 
--	down(&hwc->sema);
-+	for (;;) {
-+		spin_lock_irqsave(&r->lock, flags);
- 
--	spin_lock_irqsave(&r->lock, flags);
-+		/* Reject new admissions once the channel has latched a genuine
-+		 * timeout -- but not for a deliberate no-wait teardown, where
-+		 * mana_serv_reset() sets hwc_timeout = 0 to best-effort post
-+		 * the teardown commands.  Without this exception an earlier
-+		 * timeout would block those teardown commands here before the
-+		 * hwc_timeout == 0 path in mana_hwc_send_request() can run.
-+		 */
-+		if (hwc->hwc_timed_out && hwc->hwc_timeout != 0) {
-+			spin_unlock_irqrestore(&r->lock, flags);
-+			return -ETIMEDOUT;
-+		}
- 
--	index = find_first_zero_bit(hwc->inflight_msg_res.map,
--				    hwc->inflight_msg_res.size);
-+		index = find_first_zero_bit(r->map, r->size);
-+		if (index < r->size) {
-+			struct hwc_caller_ctx *ctx;
-+
-+			ctx = &hwc->caller_ctx[index];
-+			reinit_completion(&ctx->comp_event);
-+			/* Initialise the slot before publishing its inflight
-+			 * bit below.  The response-side reference is taken
-+			 * here, under r->lock, so a stale or duplicate response
-+			 * that lands before mana_hwc_send_request() posts the
-+			 * request cannot drop the refcount to zero and free the
-+			 * slot under the sender.  One reference is the sender's;
-+			 * the other is released by mana_hwc_handle_resp().
-+			 */
-+			refcount_set(&ctx->refcnt, 2);
-+			ctx->responded = false;
-+			ctx->msg_id = index;
-+			ctx->error = -EINPROGRESS;
-+			/* Publish the slot last.  mana_hwc_handle_resp() honours
-+			 * a response only after the sender sets ctx->output_buf
-+			 * (under ctx->lock, after this function returns), so the
-+			 * initialisation above is always visible before any
-+			 * response is acted on.
-+			 */
-+			bitmap_set(r->map, index, 1);
-+			spin_unlock_irqrestore(&r->lock, flags);
-+			break;
-+		}
-+		spin_unlock_irqrestore(&r->lock, flags);
- 
--	bitmap_set(hwc->inflight_msg_res.map, index, 1);
-+		wait_event(hwc->msg_waitq,
-+			   (READ_ONCE(hwc->hwc_timed_out) &&
-+			    READ_ONCE(hwc->hwc_timeout) != 0) ||
-+			   !bitmap_full(r->map, r->size));
- 
--	spin_unlock_irqrestore(&r->lock, flags);
-+		/* Same no-wait teardown exception as the entry gate above:
-+		 * when hwc_timeout == 0 do not bail on the latch, wait for a
-+		 * slot to free so the best-effort teardown command can still
-+		 * be posted instead of spinning here.
-+		 */
-+		if (READ_ONCE(hwc->hwc_timed_out) &&
-+		    READ_ONCE(hwc->hwc_timeout) != 0)
-+			return -ETIMEDOUT;
-+	}
- 
- 	*msg_id = index;
--
- 	return 0;
+-	if (IS_ERR_OR_NULL(dev->rsc_dump))
++	if (!dev->rsc_dump)
+ 		return;
+ 	kfree(dev->rsc_dump);
  }
+@@ -274,7 +274,7 @@ int mlx5_rsc_dump_init(struct mlx5_core_dev *dev)
+ 	struct mlx5_rsc_dump *rsc_dump = dev->rsc_dump;
+ 	int err;
  
-@@ -35,10 +87,17 @@ static void mana_hwc_put_msg_index(struct hw_channel_context *hwc, u16 msg_id)
- 	unsigned long flags;
+-	if (IS_ERR_OR_NULL(dev->rsc_dump))
++	if (!dev->rsc_dump)
+ 		return 0;
  
- 	spin_lock_irqsave(&r->lock, flags);
--	bitmap_clear(hwc->inflight_msg_res.map, msg_id, 1);
-+	bitmap_clear(r->map, msg_id, 1);
- 	spin_unlock_irqrestore(&r->lock, flags);
+ 	err = mlx5_core_alloc_pd(dev, &rsc_dump->pdn);
+@@ -303,7 +303,7 @@ int mlx5_rsc_dump_init(struct mlx5_core_dev *dev)
  
--	up(&hwc->sema);
-+	wake_up(&hwc->msg_waitq);
-+}
-+
-+static void hwc_ctx_put(struct hw_channel_context *hwc,
-+			struct hwc_caller_ctx *ctx)
-+{
-+	if (refcount_dec_and_test(&ctx->refcnt))
-+		mana_hwc_put_msg_index(hwc, ctx->msg_id);
- }
+ void mlx5_rsc_dump_cleanup(struct mlx5_core_dev *dev)
+ {
+-	if (IS_ERR_OR_NULL(dev->rsc_dump))
++	if (!dev->rsc_dump)
+ 		return;
  
- static int mana_hwc_verify_resp_msg(const struct hwc_caller_ctx *caller_ctx,
-@@ -116,22 +175,41 @@ static void mana_hwc_handle_resp(struct hw_channel_context *hwc, u32 resp_len,
- 		resp_len = 0;
+ 	mlx5_core_destroy_mkey(dev, dev->rsc_dump->mkey);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/health.c b/drivers/net/ethernet/mellanox/mlx5/core/en/health.c
+index cb972b2d46e2..45574f8b10eb 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/health.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/health.c
+@@ -186,7 +186,7 @@ int mlx5e_health_rsc_fmsg_dump(struct mlx5e_priv *priv, struct mlx5_rsc_key *key
+ 	struct page *page;
+ 	int size;
+ 
+-	if (IS_ERR_OR_NULL(mdev->rsc_dump))
++	if (!mdev->rsc_dump)
+ 		return -EOPNOTSUPP;
+ 
+ 	page = alloc_page(GFP_KERNEL);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/hv_vhca.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/hv_vhca.c
+index 305752dab7bd..4c4cf6da519f 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lib/hv_vhca.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/hv_vhca.c
+@@ -44,12 +44,12 @@ struct mlx5_hv_vhca *mlx5_hv_vhca_create(struct mlx5_core_dev *dev)
+ 
+ 	hv_vhca = kzalloc_obj(*hv_vhca);
+ 	if (!hv_vhca)
+-		return ERR_PTR(-ENOMEM);
++		return NULL;
+ 
+ 	hv_vhca->work_queue = create_singlethread_workqueue("mlx5_hv_vhca");
+ 	if (!hv_vhca->work_queue) {
+ 		kfree(hv_vhca);
+-		return ERR_PTR(-ENOMEM);
++		return NULL;
  	}
  
--	err = mana_hwc_verify_resp_msg(ctx, resp_msg, resp_len);
--	if (err)
--		goto out;
--
--	ctx->status_code = resp_msg->status;
-+	spin_lock(&ctx->lock);
-+
-+	/* Honour a response only while the sender is actively waiting on
-+	 * this slot -- that is, it has published ctx->output_buf and not yet
-+	 * reclaimed it.  A NULL output_buf means the sender has not posted
-+	 * its request yet (so this is a premature, stale or forged response
-+	 * that must not complete the slot and let it be freed while the real
-+	 * request is still in flight) or it already timed out and took
-+	 * ownership back.  ctx->responded drops a second, duplicate response.
-+	 * In all these cases drop the response without touching the refcount
-+	 * or the completion; the genuine response, the sender or the teardown
-+	 * path still balances the references.
-+	 */
-+	if (!ctx->output_buf || ctx->responded) {
-+		spin_unlock(&ctx->lock);
-+		mana_hwc_post_rx_wqe(hwc->rxq, rx_req);
+ 	hv_vhca->dev = dev;
+@@ -60,7 +60,7 @@ struct mlx5_hv_vhca *mlx5_hv_vhca_create(struct mlx5_core_dev *dev)
+ 
+ void mlx5_hv_vhca_destroy(struct mlx5_hv_vhca *hv_vhca)
+ {
+-	if (IS_ERR_OR_NULL(hv_vhca))
++	if (!hv_vhca)
+ 		return;
+ 
+ 	destroy_workqueue(hv_vhca->work_queue);
+@@ -198,28 +198,26 @@ static void mlx5_hv_vhca_control_agent_destroy(struct mlx5_hv_vhca_agent *agent)
+ 	mlx5_hv_vhca_agent_destroy(agent);
+ }
+ 
+-int mlx5_hv_vhca_init(struct mlx5_hv_vhca *hv_vhca)
++void mlx5_hv_vhca_init(struct mlx5_hv_vhca *hv_vhca)
+ {
+ 	struct mlx5_hv_vhca_agent *agent;
+ 	int err;
+ 
+-	if (IS_ERR_OR_NULL(hv_vhca))
+-		return IS_ERR_OR_NULL(hv_vhca);
++	if (!hv_vhca)
 +		return;
-+	}
-+	ctx->responded = true;
  
--	memcpy(ctx->output_buf, resp_msg, resp_len);
--out:
-+	err = mana_hwc_verify_resp_msg(ctx, resp_msg, resp_len);
-+	if (!err) {
-+		ctx->status_code = resp_msg->status;
-+		memcpy(ctx->output_buf, resp_msg, resp_len);
-+	}
- 	ctx->error = err;
- 
--	/* Must post rx wqe before complete(), otherwise the next rx may
--	 * hit no_wqe error.
-+	/* Post RX WQE before completing — the next response may arrive
-+	 * immediately and needs a posted buffer.
- 	 */
- 	mana_hwc_post_rx_wqe(hwc->rxq, rx_req);
--
- 	complete(&ctx->comp_event);
-+	spin_unlock(&ctx->lock);
-+
-+	hwc_ctx_put(hwc, ctx);
- }
- 
- static void mana_hwc_init_event_handler(void *ctx, struct gdma_queue *q_self,
-@@ -218,7 +296,12 @@ static void mana_hwc_init_event_handler(void *ctx, struct gdma_queue *q_self,
- 
- 		switch (type) {
- 		case HWC_DATA_CFG_HWC_TIMEOUT:
--			hwc->hwc_timeout = val;
-+			/* A zero timeout would make every command time out
-+			 * immediately and latch hwc_timed_out, disabling the
-+			 * channel.  Ignore it and keep the positive default.
-+			 */
-+			if (val)
-+				hwc->hwc_timeout = val;
- 			break;
- 
- 		case HWC_DATA_HW_LINK_CONNECT:
-@@ -732,7 +815,7 @@ static int mana_hwc_init_inflight_msg(struct hw_channel_context *hwc,
- {
- 	int err;
- 
--	sema_init(&hwc->sema, num_msg);
-+	init_waitqueue_head(&hwc->msg_waitq);
- 
- 	err = mana_gd_alloc_res_map(num_msg, &hwc->inflight_msg_res);
+ 	err = mlx5_hv_register_invalidate(hv_vhca->dev, hv_vhca,
+ 					  mlx5_hv_vhca_invalidate);
  	if (err)
-@@ -762,8 +845,10 @@ static int mana_hwc_test_channel(struct hw_channel_context *hwc, u16 q_depth,
- 	if (!ctx)
- 		return -ENOMEM;
+-		return err;
++		return;
  
--	for (i = 0; i < q_depth; ++i)
-+	for (i = 0; i < q_depth; ++i) {
-+		spin_lock_init(&ctx[i].lock);
- 		init_completion(&ctx[i].comp_event);
-+	}
- 
- 	hwc->caller_ctx = ctx;
- 
-@@ -774,6 +859,9 @@ static int mana_hwc_establish_channel(struct gdma_context *gc, u16 *q_depth,
- 				      u32 *max_req_msg_size,
- 				      u32 *max_resp_msg_size)
- {
-+	/* No RCU needed: called only from mana_hwc_create_channel
-+	 * during init, before the channel is published to senders.
-+	 */
- 	struct hw_channel_context *hwc = gc->hwc.driver_data;
- 	struct gdma_queue *rq = hwc->rxq->gdma_wq;
- 	struct gdma_queue *sq = hwc->txq->gdma_wq;
-@@ -1023,13 +1111,19 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
- 	struct hwc_wq *txq = hwc->txq;
- 	struct gdma_req_hdr *req_msg;
- 	struct hwc_caller_ctx *ctx;
-+	unsigned long flags;
-+	bool drop_resp_ref;
- 	u32 dest_vrcq = 0;
- 	u32 dest_vrq = 0;
- 	u32 command;
-+	u32 status;
-+	u32 wait_ms;
- 	u16 msg_id;
- 	int err;
- 
--	mana_hwc_get_msg_index(hwc, &msg_id);
-+	err = mana_hwc_get_msg_index(hwc, &msg_id);
-+	if (err)
-+		return err;
- 
- 	tx_wr = &txq->msg_buf->reqs[msg_id];
- 
-@@ -1041,8 +1135,11 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
+ 	agent = mlx5_hv_vhca_control_agent_create(hv_vhca);
+ 	if (IS_ERR_OR_NULL(agent)) {
+ 		mlx5_hv_unregister_invalidate(hv_vhca->dev);
+-		return IS_ERR_OR_NULL(agent);
++		return;
  	}
  
- 	ctx = hwc->caller_ctx + msg_id;
-+
-+	spin_lock_irqsave(&ctx->lock, flags);
- 	ctx->output_buf = resp;
- 	ctx->output_buflen = resp_len;
-+	spin_unlock_irqrestore(&ctx->lock, flags);
- 
- 	req_msg = (struct gdma_req_hdr *)tx_wr->buf_va;
- 	if (req)
-@@ -1058,43 +1155,134 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
- 		dest_vrcq = hwc->pf_dest_vrcq_id;
- 	}
- 
-+	/* handle_resp()'s reference was taken in mana_hwc_get_msg_index(),
-+	 * so hardware responding immediately after the doorbell ring cannot
-+	 * release the slot before this sender is done with it.
-+	 */
- 	err = mana_hwc_post_tx_wqe(txq, tx_wr, dest_vrq, dest_vrcq, false);
- 	if (err) {
- 		dev_err(hwc->dev, "HWC: Failed to post send WQE: %d\n", err);
- 		goto out;
- 	}
- 
-+	wait_ms = hwc->hwc_timeout;
- 	if (!wait_for_completion_timeout(&ctx->comp_event,
--					 (msecs_to_jiffies(hwc->hwc_timeout)))) {
--		if (hwc->hwc_timeout != 0)
-+					 msecs_to_jiffies(wait_ms))) {
-+		if (wait_ms != 0)
- 			dev_err(hwc->dev, "Command 0x%x timed out: %u ms\n",
--				command, hwc->hwc_timeout);
-+				command, wait_ms);
-+
-+		/* NULL out output_buf so a late handle_resp() won't write
-+		 * into the caller's buffer after the sender returns, then
-+		 * check whether handle_resp() already delivered a valid
-+		 * response between the timeout firing and this lock
-+		 * acquisition — ctx->error != -EINPROGRESS means it ran.
-+		 */
-+		spin_lock_irqsave(&ctx->lock, flags);
-+		ctx->output_buf = NULL;
-+		err = ctx->error;
-+		status = ctx->status_code;
-+		spin_unlock_irqrestore(&ctx->lock, flags);
-+
-+		if (err != -EINPROGRESS) {
-+			/* handle_resp() delivered a valid response just after
-+			 * the timeout fired.  The hardware is alive, so use
-+			 * the response and leave the channel usable; do not
-+			 * latch hwc_timed_out or degrade hwc_timeout for what
-+			 * turned out to be a transient race.
-+			 */
-+			hwc_ctx_put(hwc, ctx);
-+			goto check_status;
-+		}
-+
-+		err = -ETIMEDOUT;
-+
-+		/* A deliberate no-wait send -- mana_serv_reset() sets
-+		 * hwc_timeout = 0 when the HWC is already unresponsive and it
-+		 * only needs to best-effort post the teardown commands -- is
-+		 * expected to expire here.  Do not latch hwc_timed_out for it:
-+		 * that would make mana_hwc_get_msg_index() reject the remaining
-+		 * teardown commands before they are even posted.  Release the
-+		 * slot through the out: path so the next command can reuse it,
-+		 * matching the pre-refcount behaviour where every command was
-+		 * posted and only the wait was skipped.
-+		 */
-+		if (wait_ms == 0)
-+			goto out;
- 
--		/* Reduce further waiting if HWC no response */
-+		/* Genuine timeout: no response arrived.  Reduce further
-+		 * waiting, and mark the channel timed out under the bitmap
-+		 * lock so get_msg_index() cannot acquire new slots after this.
-+		 */
- 		if (hwc->hwc_timeout > 1)
- 			hwc->hwc_timeout = 1;
- 
--		err = -ETIMEDOUT;
-+		spin_lock_irqsave(&hwc->inflight_msg_res.lock, flags);
-+		WRITE_ONCE(hwc->hwc_timed_out, true);
-+		spin_unlock_irqrestore(&hwc->inflight_msg_res.lock, flags);
-+		wake_up_all(&hwc->msg_waitq);
-+
-+		/* Release the slot through out:, which also drops the
-+		 * response-side reference taken in mana_hwc_get_msg_index().
-+		 * A late response for this slot cannot drop it -- once the
-+		 * sender NULLs output_buf, mana_hwc_handle_resp() early-returns
-+		 * without touching the refcount -- so the sender must free it
-+		 * here, otherwise the slot bit would leak until channel
-+		 * teardown.
-+		 */
- 		goto out;
- 	}
- 
--	if (ctx->error) {
--		err = ctx->error;
--		goto out;
--	}
-+	/* NULL output_buf so a late handle_resp() won't memcpy into
-+	 * the caller's buffer after the sender exits.  Read error and
-+	 * status_code under the same lock — after hwc_ctx_put the slot
-+	 * may be reused and these fields overwritten.
-+	 */
-+	spin_lock_irqsave(&ctx->lock, flags);
-+	ctx->output_buf = NULL;
-+	err = ctx->error;
-+	status = ctx->status_code;
-+	spin_unlock_irqrestore(&ctx->lock, flags);
-+	hwc_ctx_put(hwc, ctx);
-+
-+check_status:
-+	if (err)
-+		goto done;
- 
--	if (ctx->status_code && ctx->status_code != GDMA_STATUS_MORE_ENTRIES) {
--		if (ctx->status_code == GDMA_STATUS_CMD_UNSUPPORTED) {
-+	if (status && status != GDMA_STATUS_MORE_ENTRIES) {
-+		if (status == GDMA_STATUS_CMD_UNSUPPORTED) {
- 			err = -EOPNOTSUPP;
--			goto out;
-+			goto done;
- 		}
-+
- 		if (command != MANA_QUERY_PHY_STAT)
- 			dev_err(hwc->dev, "Command 0x%x failed with status: 0x%x\n",
--				command, ctx->status_code);
-+				command, status);
- 		err = -EPROTO;
--		goto out;
-+		goto done;
- 	}
-+
-+	err = 0;
-+	goto done;
- out:
--	mana_hwc_put_msg_index(hwc, msg_id);
-+	/* Reached by the pre-post error paths (request never submitted), by
-+	 * the deliberate no-wait teardown, and by a genuine timeout (request
-+	 * posted, but no valid response arrived).  In every case the sender
-+	 * must drop the response-side reference taken in
-+	 * mana_hwc_get_msg_index() and its own.  Guard against a stale or
-+	 * forged response that raced in first: latch ->responded under the
-+	 * lock so any later handle_resp() is a no-op, and drop the response-
-+	 * side reference here only if handle_resp() has not already done so.
-+	 */
-+	ctx = hwc->caller_ctx + msg_id;
-+	spin_lock_irqsave(&ctx->lock, flags);
-+	ctx->output_buf = NULL;
-+	drop_resp_ref = !ctx->responded;
-+	ctx->responded = true;
-+	spin_unlock_irqrestore(&ctx->lock, flags);
-+	if (drop_resp_ref)
-+		refcount_dec(&ctx->refcnt);
-+	hwc_ctx_put(hwc, ctx);
-+done:
- 	return err;
+ 	hv_vhca->agents[MLX5_HV_VHCA_AGENT_CONTROL] = agent;
+-
+-	return 0;
  }
-diff --git a/include/net/mana/hw_channel.h b/include/net/mana/hw_channel.h
-index 8340abd36af611c658fecb6f1604ce3d4aedbddc..23bf83e2a3ec6a5b19ab54db0a65ae41b74ad74c 100644
---- a/include/net/mana/hw_channel.h
-+++ b/include/net/mana/hw_channel.h
-@@ -171,8 +171,25 @@ struct hwc_caller_ctx {
- 	void *output_buf;
- 	u32 output_buflen;
  
--	u32 error; /* Linux error code */
-+	int error; /* Linux error code (negative errno or 0) */
- 	u32 status_code;
-+
-+	/* Protects output_buf against concurrent access from
-+	 * handle_resp() (CQ interrupt) and the sender timeout path.
-+	 */
-+	spinlock_t lock;
-+
-+	/* Tracks sender + handle_resp ownership.  The last put
-+	 * (refcount reaches 0) releases the bitmap slot.
-+	 */
-+	refcount_t refcnt;
-+	u16 msg_id;
-+
-+	/* Set under lock by the first handle_resp() for this slot so a
-+	 * duplicate or replayed response is dropped instead of consuming
-+	 * the response-side reference a second time.
-+	 */
-+	bool responded;
- };
+ void mlx5_hv_vhca_cleanup(struct mlx5_hv_vhca *hv_vhca)
+@@ -227,7 +225,7 @@ void mlx5_hv_vhca_cleanup(struct mlx5_hv_vhca *hv_vhca)
+ 	struct mlx5_hv_vhca_agent *agent;
+ 	int i;
  
- struct hw_channel_context {
-@@ -193,8 +210,9 @@ struct hw_channel_context {
- 	struct hwc_wq *txq;
- 	struct hwc_cq *cq;
+-	if (IS_ERR_OR_NULL(hv_vhca))
++	if (!hv_vhca)
+ 		return;
  
--	struct semaphore sema;
- 	struct gdma_resource inflight_msg_res;
-+	/* Waitqueue for senders blocked on a full inflight bitmap. */
-+	wait_queue_head_t msg_waitq;
+ 	agent = hv_vhca->agents[MLX5_HV_VHCA_AGENT_CONTROL];
+@@ -261,7 +259,7 @@ mlx5_hv_vhca_agent_create(struct mlx5_hv_vhca *hv_vhca,
+ {
+ 	struct mlx5_hv_vhca_agent *agent;
  
- 	u32 pf_dest_vrq_id;
- 	u32 pf_dest_vrcq_id;
-@@ -206,6 +224,11 @@ struct hw_channel_context {
- 	 */
- 	u32 rx_leaked_wqe;
+-	if (IS_ERR_OR_NULL(hv_vhca))
++	if (!hv_vhca)
+ 		return ERR_PTR(-ENOMEM);
  
-+	/* Set on first HWC timeout.  Causes get_msg_index() to return
-+	 * -ETIMEDOUT instead of waiting, draining all queued senders.
-+	 */
-+	bool hwc_timed_out;
-+
- 	/* Set after mana_smc_setup_hwc() succeeds (hardware has active
- 	 * MST entries).  Cleared only after mana_smc_teardown_hwc()
- 	 * succeeds, on both the recoverable establish_channel path and the
+ 	if (type >= MLX5_HV_VHCA_AGENT_MAX)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/hv_vhca.h b/drivers/net/ethernet/mellanox/mlx5/core/lib/hv_vhca.h
+index 8b3974cf0ee4..393dc5b62a17 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lib/hv_vhca.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/hv_vhca.h
+@@ -31,7 +31,7 @@ struct mlx5_hv_vhca_control_block {
+ 
+ struct mlx5_hv_vhca *mlx5_hv_vhca_create(struct mlx5_core_dev *dev);
+ void mlx5_hv_vhca_destroy(struct mlx5_hv_vhca *hv_vhca);
+-int mlx5_hv_vhca_init(struct mlx5_hv_vhca *hv_vhca);
++void mlx5_hv_vhca_init(struct mlx5_hv_vhca *hv_vhca);
+ void mlx5_hv_vhca_cleanup(struct mlx5_hv_vhca *hv_vhca);
+ void mlx5_hv_vhca_invalidate(void *context, u64 block_mask);
+ 
+@@ -63,9 +63,9 @@ static inline void mlx5_hv_vhca_destroy(struct mlx5_hv_vhca *hv_vhca)
+ {
+ }
+ 
+-static inline int mlx5_hv_vhca_init(struct mlx5_hv_vhca *hv_vhca)
++static inline void mlx5_hv_vhca_init(struct mlx5_hv_vhca *hv_vhca)
+ {
+-	return 0;
++	return;
+ }
+ 
+ static inline void mlx5_hv_vhca_cleanup(struct mlx5_hv_vhca *hv_vhca)
+
+base-commit: d67e5dbda22604d0fcde32fce58c65f88676e676
 -- 
-2.43.0
+2.44.0
 
