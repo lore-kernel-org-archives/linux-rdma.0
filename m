@@ -1,81 +1,45 @@
-Received: from PH7PR06CU001.outbound.protection.outlook.com (mail-westus3azon11010034.outbound.protection.outlook.com [52.101.201.34])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCBDD3815D0;
-	Tue, 11 Aug 2026 06:29:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.201.34
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786429790; cv=fail; b=dZ8DRtMUM7KF7xVHaZmq5N43z3KdraEMWdcoht20MOILnwkT/1iM1/fsdJjVHWUTYrSK6LBck5ikvIlOXDu5kJfjBLfuOI2UF3CwuXV+Q1q57QeCVc4Z9lTLEMlm0WCPVmtkv3/WNZrcUHPB+9DEVOn4N6BeNmiD8I+AiBvKkXI=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786429790; c=relaxed/simple;
-	bh=dlQZeGH1eA1vEIlA3MtufBHkazu+eGBC8V8VOwZbcVw=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=muMCL/WHIGtKjqLAqiD+E/ILlfk4Z2VtoLg0rhBIZc8mhcNd98JQUwWhRQe8UA9Pd/cPstKooLdQV5Y3xygie3R5puP4Kb3stijCK3/dyuM0cCJp3GJlyrPEqo77kvqMr/7FhKFXI5RbxUQdFSOLKqA3W4jWmZ3JEBAZvJehylM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=MKEKRnnL; arc=fail smtp.client-ip=52.101.201.34
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="MKEKRnnL"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=XvKT2JvuuxDj/39FDbYlwxVhsNohYqH5HTN5PImd5tlkuR4t7BSkInTxs08jZaCHfA8YyHU/ydIqOR+opOvhvqpWwFxuP1CCaSNLmxDrUJUfl5aVZvtdUBHpnQPdSAIc+wdbg+4x1dCYkdpq7wocGcpRYyL8j62qRHMZmTmdDAb1nFP5bELpW31nHsVtSLwLlVie6mrziUGvAVXi/G1Q3l75T975TXMip5zT4sg4v0XigtoYL03d/Dz0BieeEG9CLhpQwsN+f08FYkX0pHw8iW1kasQmpwA/39ZjBWoLAgwLjFXT/8Jq7pPS7ie0KMJAngx0prcHkDhdWskUlPV1HQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Uy68fWQm0ezSTXmsmKdY8+fFLimvVaVt5P9FPND2qwM=;
- b=FzfOPMRw5bi018LHdFvanx+L4lp9mFmvgSfxEUFu40fHso+fpnM+Zphx8xghdP9gCzXXbEOWSDsmxDZVgrUijkJawsewuvjVCH9JMDg1Cq7wFZFVfVdAI1+w5sfeRs2UIWaoars2JiLGJuMGM+Vg9nAV4TD+zL1Gv5DtgA0JZfOZ6NUzESnrYnnw6syEX8cCbeqmBB2K1sD56XzDjDJZkTEPEOrj3pek1hQovdlNoWm98wItQhmj4OlZUwy9WrDimiEB6Cr1Xyc5NgTpIjiKFmXcaX1RFM+ib24tEWs3bRC1vv/QuSXn7Cmvc14zbXEWd8pChInxFpYWUdjSbfz88Q==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.232) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Uy68fWQm0ezSTXmsmKdY8+fFLimvVaVt5P9FPND2qwM=;
- b=MKEKRnnL4CbyoiEauBfQmU4Khpg1qeAGXxf3bhGb3Fxd+uCrh5R/Khd6PwIT/jolx5ATwluIWr7DLQe4zlXUcAmUOcPuF5ZzOI1su55JLmclxL5Kw7aG0pZQmUkgpG5FINLn8P0dlbAowkTMJWI5JHkpjgYBpRW9B8zNVrGFK9bgpItA5/5mm/a0xCvN/XIXTe+HJtKwnM3iHURWXjXsbnxjOm3M5p0W3H5mz05eKMo8JN2PXomz731oMCgn4B+bD+adS5o6TR/JlWHDPicYhyvh1uzHe2gYLfuIbZFvGMXQFEmGgQmyx82gEdRV93w7sdqbKDn1BRmqfICgbAPpwQ==
-Received: from SA9P223CA0014.NAMP223.PROD.OUTLOOK.COM (2603:10b6:806:26::19)
- by DS0PR12MB7725.namprd12.prod.outlook.com (2603:10b6:8:136::6) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.292.25; Tue, 11 Aug
- 2026 06:29:38 +0000
-Received: from SN1PEPF000252A3.namprd05.prod.outlook.com
- (2603:10b6:806:26:cafe::1a) by SA9P223CA0014.outlook.office365.com
- (2603:10b6:806:26::19) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.292.25 via Frontend Transport; Tue,
- 11 Aug 2026 06:29:38 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.232)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.232 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.232) by
- SN1PEPF000252A3.mail.protection.outlook.com (10.167.242.10) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.315.6 via Frontend Transport; Tue, 11 Aug 2026 06:29:38 +0000
-Received: from drhqmail203.nvidia.com (10.126.190.182) by mail.nvidia.com
- (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.45; Mon, 10 Aug
- 2026 23:29:25 -0700
-Received: from drhqmail203.nvidia.com (10.126.190.182) by
- drhqmail203.nvidia.com (10.126.190.182) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.20; Mon, 10 Aug 2026 23:29:24 -0700
-Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
- (10.126.190.182) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
- Transport; Mon, 10 Aug 2026 23:29:20 -0700
-From: Tariq Toukan <tariqt@nvidia.com>
-To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
-	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
-	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>
-CC: Frederic Weisbecker <frederic@kernel.org>, Gal Pressman <gal@nvidia.com>,
-	Leon Romanovsky <leon@kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-rdma@vger.kernel.org>, Li RongQing <lirongqing@baidu.com>, liyongkang
-	<liyongkang01@baidu.com>, Mark Bloch <mbloch@nvidia.com>, "Paul E. McKenney"
-	<paulmck@kernel.org>, Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan
-	<tariqt@nvidia.com>
-Subject: [PATCH net-next V3] net/mlx5: Expedite notifier unregistration during device teardown
-Date: Tue, 11 Aug 2026 09:28:37 +0300
-Message-ID: <20260811062837.3196902-1-tariqt@nvidia.com>
-X-Mailer: git-send-email 2.44.0
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A46BE33EB1B;
+	Tue, 11 Aug 2026 06:35:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786430136; cv=none; b=TXW3BobSzINPEWrH/iQZfj4PHWyeOeBtjSE6vP7F3elBFTRrm0mGmUjiDjGlG5lZbjqBa6g3HeNSz9cjoSWc6Wm0TboqOMwsNgn1VsjRpyjRhp4eorHPw6vWVp4CGAIiGc4AUnZ3uKVqTB1thgMflUAXXtm5L6FpSfttheTKgyI=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786430136; c=relaxed/simple;
+	bh=VQyMgeKpOaMF12Ry9WaNUO7mrQ01tKZ1P0zb6YPUHNw=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=nCL3tqCqUr9ZXHuJloCcpImetwSZ/PTYMJUNINNwKdrJUyH7rpnzDqsC3LwKQlAZizZ9CRM7ruqJVvUdigqrXx78wrGmQm2n1eMwvWNEQvUWexypLPzlY4LibrYcAcV13n4JqSOp8KRKNB6iQscXQWH+0WLMMK2QBX3I/cJ4Eto=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+Received: by linux.microsoft.com (Postfix, from userid 1202)
+	id A4B9A20B7167; Mon, 10 Aug 2026 23:35:10 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com A4B9A20B7167
+From: Long Li <longli@microsoft.com>
+To: Long Li <longli@microsoft.com>,
+	Konstantin Taranov <kotaranov@microsoft.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	"David S . Miller" <davem@davemloft.net>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Eric Dumazet <edumazet@google.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>,
+	Haiyang Zhang <haiyangz@microsoft.com>,
+	"K . Y . Srinivasan" <kys@microsoft.com>,
+	Wei Liu <wei.liu@kernel.org>,
+	Dexuan Cui <decui@microsoft.com>,
+	shradhagupta@linux.microsoft.com,
+	Simon Horman <horms@kernel.org>,
+	ernis@linux.microsoft.com,
+	stephen@networkplumber.org
+Cc: netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-hyperv@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH net-next v2 00/13] net: mana: reconfigure by replacing the queue set
+Date: Mon, 10 Aug 2026 23:34:57 -0700
+Message-ID: <20260811063506.2428213-1-longli@microsoft.com>
+X-Mailer: git-send-email 2.43.7
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -83,160 +47,104 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SN1PEPF000252A3:EE_|DS0PR12MB7725:EE_
-X-MS-Office365-Filtering-Correlation-Id: 8c516658-80aa-4821-5704-08def771eb8a
-X-LD-Processed: 43083d15-7273-40c1-b7db-39efd9ccc17a,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|82310400026|36860700016|7416014|1800799024|376014|18002099003|56012099006|10067099003|11063799006|6133799003;
-X-Microsoft-Antispam-Message-Info:
-	SEGJpKEjOrTgIo5M1njjaeaTPZC9qvmlYuEoip7XXtx1M1Mf0RaAWFBKA8SoFEVzPFHgFt2sI+XLZvkPNtD/yN62zntDCKJT5NT/FVw7eUyYopQdFxJevbj+C/ar7bZoKKkhMIdMUQIoDBhtSENP51R53/JI2Mmpi5EvEWD0/pRs7+fauYifYvubr/yauLK/1oVxxROICj0yd/yDG1JE19tjvtMj+Mr21BxXXrsUTcN9xtAjDIsztHzyRf3EQpQHQgWCC/hb5tWiK07o7IscyVJBRVPwWSQ7szBrJ51TDFBya6R8r1mNP4sDjaNoxw/JzKedin0LS7Pb3gWcQfhmfX4iYS04xjdPMTebW/hMApbVBCn3YddCQhq75ubO2ATqJLOloo5uhs+Mi3v+717GIuo3OvZphP9ielVVUG1wM1kTWFq+3A09KmDy/RxwBcSJez0/FyCGuMrmTUZxAxSRZFu7AllITwW3Yvs1JPSvzxXQMN/zZZT6Fkyhs6w/2fq8BKeRRqWgS6pBw2GXlKNNlY+8nxTTgs9/IzI3usP9bz94LPeM3Cuset/I+pq9k9gKzf/rM1wEo1QiAFRr4+USgGbttFGK89fwCFhg7cJEaOADr/jGp0nGz7/UmFatz5QcryhnssaYXir6/1voW0iH7R+sA54wshWUmkXmhNnGhK7VTkK5b1PW95bKZd/7XTdMdnPPFcfB/8n2bJ7EDxVBvg==
-X-Forefront-Antispam-Report:
-	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(82310400026)(36860700016)(7416014)(1800799024)(376014)(18002099003)(56012099006)(10067099003)(11063799006)(6133799003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	BKshiPPOmP9tujavSXzYUDiYvFs1mXdBaq0XWUcKVnnB6hroKGj+f0uxnNt9D2oo3mTjhpeQLYyKD1iL7ZeKJjoQp48NTb3yZMM+CHdHyErjYMv+wefS1iyx7Gf5OpOaeTadBdwsEUF2SDOq3gSaodefFOWzfbc3I5eBKBf23uof7I3Ds5k/Iw7XkPWr+Z6J7mnqcXmzKVgPsRuBH8Epr6WCKXKzs328nhERmaeYHkvy+tpKM39nzKBLfnVkFoSU7ChBBPo4lZQwK9E1O5eaLTbGlJYj2j7BX6pHIc7b/Vp+qe06CNKLs/R4dTT6Y8qtbvsgbyYrxOrr9zI0ZZMwliFpvLrfUYqGpOvTQT5AHEX3bGiK6gaTKp8MEevkByJIuXRJxmeMvRB0n2zO7OnGNApPWlNx/rZZT+LPbFaneELMxClD1d8UtLS1ld5BBcAV
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Aug 2026 06:29:38.6987
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 8c516658-80aa-4821-5704-08def771eb8a
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	SN1PEPF000252A3.namprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB7725
 
-From: Li RongQing <lirongqing@baidu.com>
+MANA reconfigures a port by destroying its queues and building them again.
+mana_detach() tears the whole queue set down, mana_attach() allocates a new
+one, and every path that changes a queue property does this: the ethtool
+channel, ring and private-flag setters, the MTU change and XDP attach.
 
-During device hot-unplug, the mlx5 driver expects quickly unregister
-notification chains. The standard atomic_notifier_chain_unregister()
-calls synchronize_rcu(), which introduces significant latency and
-can become a bottleneck during mass resource cleanup.
+If the second half fails there is nothing left to fall back to. The old
+queues are already gone, so the port stays down and the failure cannot be
+undone from userspace:
 
-Introduce atomic_notifier_chain_unregister_expedited() to leverage
-synchronize_rcu_expedited(), and use it significantly reducing wait
-times in the following paths:
- - Event Queue (EQ) notifier chain
- - Firmware event notifier chain
- - IRQ notifier chain
+  # ethtool -G ens1 rx 8192 tx 16384      # under memory pressure
+  netlink error: Cannot allocate memory
+  mana 7870:00:00.0 ens1: Failed to create 16 TX queues, -12
+  mana 7870:00:00.0 ens1: mana_attach failed: -12
+  # ip link show ens1
+  ... state DOWN
 
-On x86-64 with HZ=1000, 64 networking channels:
-- Average teardown time: 3.59s -> 1.9s (47% reduction)
-On x86-64 with HZ=250, 64 networking channels:
-- Average teardown time: 5.5s -> 1.9s (65% reduction)
+On VM SKUs with no netvsc fallback interface this takes the VM off the
+network entirely, and it is reachable from an ordinary ethtool ring resize
+that happens to run when memory is tight.
 
-Co-developed-by: liyongkang <liyongkang01@baidu.com>
-Signed-off-by: liyongkang <liyongkang01@baidu.com>
-Signed-off-by: Li RongQing <lirongqing@baidu.com>
-Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
----
-V3: rebased.
+v1 [1] tried to recover after the fact: schedule a reset and retry
+mana_attach() with smaller values, falling back to the previous setting or
+to the defaults. Review pointed out that silently replacing a user's
+setting with a different one is the wrong behaviour, and that
+pre-allocating the resources and replacing the queue set looked feasible
+and should be investigated instead. This series does that, so there is no
+failure to recover from and no user setting to override.
 
-V2:
-https://lore.kernel.org/all/20260317003544.2583-1-lirongqing@baidu.com/
+The model is to build the new queue set alongside the running one, publish
+it, then retire the old one.
 
-drivers/net/ethernet/mellanox/mlx5/core/eq.c  |  2 +-
- .../net/ethernet/mellanox/mlx5/core/events.c  |  2 +-
- .../net/ethernet/mellanox/mlx5/core/pci_irq.c |  2 +-
- include/linux/notifier.h                      |  2 ++
- kernel/notifier.c                             | 24 +++++++++++++++++++
- 5 files changed, 29 insertions(+), 3 deletions(-)
+  carrier off -> netif_tx_disable -> swap the queue pointers -> update the
+  netdev queue counts -> reprogram RSS/steering -> reattach XDP ->
+  netif_tx_start_all_queues -> restore carrier
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-index d11ec263d53c..c86090cb58c6 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-@@ -1243,6 +1243,6 @@ int mlx5_eq_notifier_unregister(struct mlx5_core_dev *dev, struct mlx5_nb *nb)
- {
- 	struct mlx5_eq_table *eqt = dev->priv.eq_table;
- 
--	return atomic_notifier_chain_unregister(&eqt->nh[nb->event_type], &nb->nb);
-+	return atomic_notifier_chain_unregister_expedited(&eqt->nh[nb->event_type], &nb->nb);
- }
- EXPORT_SYMBOL(mlx5_eq_notifier_unregister);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/events.c b/drivers/net/ethernet/mellanox/mlx5/core/events.c
-index 4d7f35b96876..753cb15cdeee 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/events.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/events.c
-@@ -436,7 +436,7 @@ int mlx5_notifier_unregister(struct mlx5_core_dev *dev, struct notifier_block *n
- {
- 	struct mlx5_events *events = dev->priv.events;
- 
--	return atomic_notifier_chain_unregister(&events->fw_nh, nb);
-+	return atomic_notifier_chain_unregister_expedited(&events->fw_nh, nb);
- }
- EXPORT_SYMBOL(mlx5_notifier_unregister);
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/pci_irq.c b/drivers/net/ethernet/mellanox/mlx5/core/pci_irq.c
-index 0f5b8bc7861e..cb31e8c7a244 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/pci_irq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/pci_irq.c
-@@ -343,7 +343,7 @@ int mlx5_irq_detach_nb(struct mlx5_irq *irq, struct notifier_block *nb)
- {
- 	int err = 0;
- 
--	err = atomic_notifier_chain_unregister(&irq->nh, nb);
-+	err = atomic_notifier_chain_unregister_expedited(&irq->nh, nb);
- 	mlx5_irq_put(irq);
- 	return err;
- }
-diff --git a/include/linux/notifier.h b/include/linux/notifier.h
-index 01b6c9d9956f..156d958f98f0 100644
---- a/include/linux/notifier.h
-+++ b/include/linux/notifier.h
-@@ -159,6 +159,8 @@ extern int blocking_notifier_chain_register_unique_prio(
- 
- extern int atomic_notifier_chain_unregister(struct atomic_notifier_head *nh,
- 		struct notifier_block *nb);
-+extern int atomic_notifier_chain_unregister_expedited(struct atomic_notifier_head *nh,
-+		struct notifier_block *nb);
- extern int blocking_notifier_chain_unregister(struct blocking_notifier_head *nh,
- 		struct notifier_block *nb);
- extern int raw_notifier_chain_unregister(struct raw_notifier_head *nh,
-diff --git a/kernel/notifier.c b/kernel/notifier.c
-index 2f9fe7c30287..9b35822fc2c0 100644
---- a/kernel/notifier.c
-+++ b/kernel/notifier.c
-@@ -197,6 +197,30 @@ int atomic_notifier_chain_unregister(struct atomic_notifier_head *nh,
- }
- EXPORT_SYMBOL_GPL(atomic_notifier_chain_unregister);
- 
-+/**
-+ *	atomic_notifier_chain_unregister_expedited - Remove notifier from an atomic notifier chain
-+ *	@nh: Pointer to head of the atomic notifier chain
-+ *	@n: Entry to remove from notifier chain
-+ *
-+ *	Removes a notifier from an atomic notifier chain and forcefully
-+ *	accelerates the RCU grace period.
-+ *
-+ *	Return: 0 on success, or -ENOENT on failure.
-+ */
-+int atomic_notifier_chain_unregister_expedited(struct atomic_notifier_head *nh,
-+		struct notifier_block *n)
-+{
-+	unsigned long flags;
-+	int ret;
-+
-+	spin_lock_irqsave(&nh->lock, flags);
-+	ret = notifier_chain_unregister(&nh->head, n);
-+	spin_unlock_irqrestore(&nh->lock, flags);
-+	synchronize_rcu_expedited();
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(atomic_notifier_chain_unregister_expedited);
-+
- /**
-  *	atomic_notifier_call_chain - Call functions in an atomic notifier chain
-  *	@nh: Pointer to head of the atomic notifier chain
+Everything that can fail happens before anything is swapped. If allocation
+fails the running queues have not been touched at all: the ethtool call
+returns the error, the interface keeps forwarding traffic and the
+configuration is unchanged. If the swap itself fails, the previous set is
+put back and the port keeps running on it.
+
+Patch layout:
+
+  1     the queue-set allocate/publish/free helpers.
+  2-6   convert the five callers: ethtool channels, rings and private
+        flags, the MTU change and XDP attach.
+  7     the remaining detach/attach users are the TX-timeout reset handler
+        and suspend; make mana_detach() always finish its teardown so the
+        reset handler cannot leave a port permanently dead.
+  8-11  keep behaviour the swap model would otherwise change: per-queue
+        counters move into the port context so a rebuild no longer zeroes
+        the interface statistics, the EQ pool is shared across a swap
+        instead of being duplicated, EQs left idle by a reduction are
+        released, and a user-configured RSS indirection table survives a
+        rebuild.
+  12-13 stop rebuilding queues that do not change. A reduction keeps the
+        surviving queues and an increase keeps the existing ones, so
+        32 -> 8 channels destroys 24 queue pairs instead of building 8 and
+        destroying 32, and 4 -> 8 builds 4 instead of 8.
+
+Known trade-off, since it is deliberate: RX counters are now indexed by
+queue number in the port context, so during the window between steering
+moving to the new queues and the old ones being destroyed, both generations
+can update one slot. MANA is 64-bit only, so u64_stats_sync carries no
+seqcount and nothing can be corrupted; at worst a few increments are lost.
+Serialising them would put a lock in the per-packet receive path, and
+giving each set its own slots would make ndo_get_stats64() report a dip
+during a swap, which is the regression this is meant to remove.
+
+[1] https://lore.kernel.org/netdev/20260711041415.3008868-1-dipayanroy@linux.microsoft.com/
+
+Dipayaan Roy (1):
+  net: mana: do not bail out of mana_detach on dealloc failure
+
+Long Li (12):
+  net: mana: add queue-set allocation and teardown helpers
+  net: mana: swap queue sets in mana_set_channels
+  net: mana: swap queue sets in mana_set_ringparam
+  net: mana: swap queue sets in mana_set_priv_flags
+  net: mana: swap queue sets in mana_change_mtu
+  net: mana: swap queue sets in mana_xdp_set
+  net: mana: keep per-queue statistics in the port context
+  net: mana: share the EQ pool across a queue-set swap
+  net: mana: release EQs left idle by a channel-count reduction
+  net: mana: keep a user-configured RSS table across a queue rebuild
+  net: mana: keep the surviving queues when the channel count is reduced
+  net: mana: keep the existing queues when the channel count is raised
+
+ .../net/ethernet/microsoft/mana/mana_bpf.c    |  117 +-
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 1698 ++++++++++++++++-
+ .../ethernet/microsoft/mana/mana_ethtool.c    |  333 +++-
+ include/net/mana/gdma.h                       |   11 +-
+ include/net/mana/mana.h                       |  130 +-
+ 5 files changed, 2066 insertions(+), 223 deletions(-)
+
 
 base-commit: d67e5dbda22604d0fcde32fce58c65f88676e676
 -- 
-2.44.0
+2.43.0
 
