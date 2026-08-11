@@ -1,146 +1,203 @@
-Received: from SA9PR02CU001.outbound.protection.outlook.com (mail-southcentralusazon11013008.outbound.protection.outlook.com [40.93.196.8])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f172.google.com (mail-pf1-f172.google.com [209.85.210.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4AA13DEAE3
-	for <linux-rdma@vger.kernel.org>; Tue, 11 Aug 2026 20:15:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.196.8
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786479343; cv=fail; b=b/7sBcc2SfuexbNKhy9aM499T0X9kBvnGM8Hmobnx/hJ1ieIwtrjwSK9xx6U612h9AF/ENJa4vmtP0GoD2urcpKXKWU/mzD2ZdGFEDd13Dg7aKWD8a0KYPl1kjU/uQvLrHcOiCpHrx8xBJ5fbf54xsxzTTc56zo8xWIrA8Mlwl4=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786479343; c=relaxed/simple;
-	bh=31XnDSc5yji9W4Boq4lus/qVD0E3P4Xb0mgGFcy5fvY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=NcSPZXbUo1GbfCuci1WsOM0QiHiyP0DJBOdGXvNeAz6pnnTafmqDAwtxn3kSzH0vJxbe/OSBMg/fwhdWKvjP3K78XUefTceEfNupI6GRQghtCRN6sxNCDIUFHEe0K266MayU8CVdnQTb+reHrDLe9dYL0YvzDncSZKIs36N04VI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=Qe8F43RW; arc=fail smtp.client-ip=40.93.196.8
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55AC646AA9C
+	for <linux-rdma@vger.kernel.org>; Tue, 11 Aug 2026 21:09:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.172
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786482557; cv=none; b=g8xFVMTOcn/X0+y9vHtzfPaXmGKciFakcQXd0R5OVF4dr0fHysZoHNSYdRQr6oOzlCX95GvurvxUBNqQv27XuiRhYLBHatEbVleOJqYE4sHPoiS+6rnuQPEhf/XvAp6hjzct8VYGyITTc+vHHT9YBXSMcchEVNVr012YKG5yquU=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786482557; c=relaxed/simple;
+	bh=FwNARzcbMbLf7kTkzLZos3PP0XC44XFJ9Kq/f19ElGA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=DI6zeQvtXtRaXPBG2dbmSNTq7Kw+E+d8RfqwxcprTEqtQs3FaO/A9ww6ejdXrLF9n3/bQd2XMKKfFhuXTt7ygcvizXLYPLfK9urMVkhkEU5XSVhX5cihhkEJX8vdmbdYKbbeK9FGa/+jolz9eNa5jOppniihZN1X8g3+eHS9Pbo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=foy9iZUV; arc=none smtp.client-ip=209.85.210.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="Qe8F43RW"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=omuYawr9PNBSPC8UfKNL1oBhc0OuprZWO90dcjm/UTFLgdbBeCsDaW2wO4u7PrqNneFru6f1YyLVTRVpL2vU3oZuDeR1Iqt4La/TwOKHG5LOiR51b8Au5b8QlkcOLkTIwzbCTsfkpwpJsUCinXdPnQLbObL93w/TvwqMWowyYAsXeH5RVw5q4Q7bCVFzk+q0RYXkHFpfxXZT+SOPx2xXQOmmhKe7trCP8buXiZla8KR/+QTDZuFap3VRo5W2WlTalTWoM+5GlkZ51BRR+vT/m1kWubTzl/2u1XOKOGKUIMMA14bEjQ1gYbPYJxBk+8dab4WGa3pb9jQE9Nb43LaOrw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=arr4k0M/n16IB7a9Ctv0gKZ3UEukYuNs2FT01v6Rei4=;
- b=Z2lc7O/i3SBZoq1sQal47FSsFvxT02jcgS2gUcWiMRZBm+36RbKzSCRMdgXpmvo4cuBHEJC835id3WWHOgwYxjXpy2/c1A89Wb25momXupf54g+e0pB5NW3GvDo5T0FdlacA/j0puCYKefmIqUQLML4vLsKiCx/6LFqdtR+hGxSUMTBO9lWVpYACXYQ+vM2v1GGR2x8euJ+YR+QsY4V6q3OAiWWPVagMji4JxKfkPpAhJOjquC1G2+V1oUMB4XjBfG2m3A0AOUgFo8xMvIEBzX+fQX1oL1iY1nBsHjwzBRjVK5IUsvVLfA0TlnV4VpyoL+ii8u8CJleH8PfmHnIVRg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=arr4k0M/n16IB7a9Ctv0gKZ3UEukYuNs2FT01v6Rei4=;
- b=Qe8F43RWiieOApCLM8CLpfujZkHdRGPZwuENoHTUcV2xfPoDr08kJ2ir45YxvMuOts5B+16Mkz9FKJ5pXEjNfKCmfD7p+30JLtFZGHgppr/7bt6INjxqwl3jkBQvtevj3/NAMdTptL2zLfNIFiP/d3etJotNWRLnQxh3GS1hf7n64DU+YQf0BvhHhTm5XxXUsEzRXXAn6zCsDAFcQF3ZUGqI//pKUXdWLLjg2JmNb9R7ZXEJSFnjXTKwNDu1FjTK8WPO06sh7eklk1cBqEmZI3gCekfD9u70th0CLUCDyIel7Pjl1+42JnG7FeGnfQHGAdLpsINPDq8vEwULTVTuMw==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from LV8PR12MB9620.namprd12.prod.outlook.com (2603:10b6:408:2a1::19)
- by MW3PR12MB4348.namprd12.prod.outlook.com (2603:10b6:303:5f::10) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.292.20; Tue, 11 Aug
- 2026 20:15:36 +0000
-Received: from LV8PR12MB9620.namprd12.prod.outlook.com
- ([fe80::299d:f5e0:3550:1528]) by LV8PR12MB9620.namprd12.prod.outlook.com
- ([fe80::299d:f5e0:3550:1528%4]) with mapi id 15.21.0315.011; Tue, 11 Aug 2026
- 20:15:36 +0000
-Date: Tue, 11 Aug 2026 17:15:35 -0300
-From: Jason Gunthorpe <jgg@nvidia.com>
-To: Zhu Yanjun <yanjun.zhu@linux.dev>
-Cc: leon@kernel.org, linux-rdma@vger.kernel.org,
-	syzbot+72eddfbadda3e3928e72@syzkaller.appspotmail.com
-Subject: Re: [PATCH v2 1/1] RDMA/cma: Fix WARNING in res_to_rt
-Message-ID: <20260811201535.GA667435@nvidia.com>
-References: <20260810220123.191696-1-yanjun.zhu@linux.dev>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260810220123.191696-1-yanjun.zhu@linux.dev>
-X-ClientProxiedBy: BN9PR03CA0881.namprd03.prod.outlook.com
- (2603:10b6:408:13c::16) To LV8PR12MB9620.namprd12.prod.outlook.com
- (2603:10b6:408:2a1::19)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="foy9iZUV"
+Received: by mail-pf1-f172.google.com with SMTP id d2e1a72fcca58-84a4d8fd6ecso362681b3a.1
+        for <linux-rdma@vger.kernel.org>; Tue, 11 Aug 2026 14:09:14 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1786482554; x=1787087354; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=FCfe6U3NJnWWh5FIk3E/yNJv391SUeQXzwUsI84caIo=;
+        b=foy9iZUVOTorzawNa69ViPer6GywjUCRuHMiQX9DDcq/zR5DQDUip2I+seA5xEwp+/
+         obrm4G/NrkFlgvFT1rp2vHu732Q5Amhl6oofT2qpx9JpzVUvvXjGaJIJeQCrxFIwD0ba
+         bPxJwtmzRAPtZc4sexwMoREbo7aULpRojkdFkciUUZy8VvQk2KQhU7gOHTnDJv1ygng5
+         tVogFQx2qeyB6K8lA3ABXgGd3QL+ZGA/Y8BZCwvuJiGEmFKDm3SK4l5WRNXsv8YXizqz
+         /5mU7LAu8+hTiYX9ucAVuOMVISYmb7I1A5hCA7VH/8FPeJt0EEzmKRljuiwfJ54MqNj/
+         VgfQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786482554; x=1787087354;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=FCfe6U3NJnWWh5FIk3E/yNJv391SUeQXzwUsI84caIo=;
+        b=ihiwCL5s/5BgBScQirNYDrtW73XFlRjQXHe3VtUPXh8sHs44Q90Yed+U2bXoldj3ft
+         Nh90u9iZnjtIUAVQLRdpT4Iov+HQrhboEfkQ0Lnk8VVz0PLypYcuepin2oQXHJWUjw8+
+         bs05sZPcrTVPCwEbrDVHpRFehN+datkKYg0b526AqyXXew/JLqXOIpELFwN4IzXKBjvp
+         zLTi/s4zCKwKnRgaO1KEzWCeg04yujcsWu2O7qU9w6M3TSHe1h5p9iSflKWnDqkcrYiK
+         oboz/JDmOCnPg9blMgzHYucMFA+Fpief2no4oVnLAQhYnHlvb6ZxSPQYaDr8bR6ZVAfG
+         KlrQ==
+X-Forwarded-Encrypted: i=1; AHgh+RqnnAB7sLbxrim6NxiUF3T+GpVQ8V6/zDagVPTCc6mKEhsMvt10DDRNvhNSYajweyGMFl0jUJ9jEwVV@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx/teDOoi5hJbFI1uvafIvgdAV0KJh0dL1rbiavz1tCxKDJxo53
+	PBA/6SWqhEqOchFvwR8RCHDVf40dh6K8I2Vxb0JyrXEgYLvzJBi5z8sJgPPLPt/KJA==
+X-Gm-Gg: AR+sD10X7kzTE8QQj4/9sW8kL6oL6cNmAvLFWNnLM7eka564TcydWKMVpFovUtOrwQK
+	N2nTKNC2b24rNHmF3smWRSC5Cp84RLE/UF8mGEBql46lyhsPGJSjJVVN0Q6BLo5AsfLHLuqFQDH
+	JTjSqC58awyiBqqS6+bbdXUrByXilFN9NbcGpltzmYkqQpffIkd4DiIwUfn9FIaK6QjrbY6OQ1k
+	lYgwY7YyS4CEtJM/8/B+DX/zIWdOHa5907OTZjiNweSG7me/LbaOPvnUgHNXhMBtXiDNKKj451v
+	v37PvA+UntT7p3DLce+vKFQD1TnUw/5jqbzXvcC+6TmmMP46n/8QGSOOAoHZwMWJepRCYah/sbm
+	Kv2xl9yUORyp1jZ7xCqRwwYPSMxpcY5r6o/8Y63/PEAayRHP9WUIYKvW6sUSuCWd1BAgXGPra3j
+	m/YlZFbZoYtQYmkFAqhVne7FHdUDIkBuzgLJDhPfvapFPun/H+9juWDxN+89cirO+677E57a2t5
+	BdYI+4tnd1IeYeP7FT8rbKY2orvCQ==
+X-Received: by 2002:a05:6a00:4217:b0:84f:3f5e:f072 with SMTP id d2e1a72fcca58-84fb53ff444mr185899b3a.10.1786482553078;
+        Tue, 11 Aug 2026 14:09:13 -0700 (PDT)
+Received: from google.com (132.200.185.35.bc.googleusercontent.com. [35.185.200.132])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-84fb1f6b2e2sm237294b3a.55.2026.08.11.14.09.12
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 11 Aug 2026 14:09:12 -0700 (PDT)
+Date: Tue, 11 Aug 2026 21:09:09 +0000
+From: David Matlack <dmatlack@google.com>
+To: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Alex Williamson <alex@shazbot.org>,
+	Justin Stitt <justinstitt@google.com>, kvm@vger.kernel.org,
+	Leon Romanovsky <leon@kernel.org>, linux-kselftest@vger.kernel.org,
+	linux-rdma@vger.kernel.org, llvm@lists.linux.dev,
+	Mark Bloch <mbloch@nvidia.com>, Bill Wendling <morbo@google.com>,
+	Nathan Chancellor <nathan@kernel.org>,
+	Nick Desaulniers <ndesaulniers@google.com>, netdev@vger.kernel.org,
+	Saeed Mahameed <saeedm@nvidia.com>, Shuah Khan <shuah@kernel.org>,
+	Tariq Toukan <tariqt@nvidia.com>, patches@lists.linux.dev
+Subject: Re: [PATCH v3 07/11] vfio: selftests: Allow drivers to specify
+ required region size
+Message-ID: <anuPdf84cFtZbeE1@google.com>
+References: <0-v3-76f117ad04f1+28a90-mlx5st_jgg@nvidia.com>
+ <7-v3-76f117ad04f1+28a90-mlx5st_jgg@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: LV8PR12MB9620:EE_|MW3PR12MB4348:EE_
-X-MS-Office365-Filtering-Correlation-Id: f47fd9a4-d445-46fc-a913-08def7e54ded
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|23010399003|366016|1800799024|11063799006|10067099003|56012099006|5023799004|6133799003|22082099003|18002099003;
-X-Microsoft-Antispam-Message-Info:
-	gVAsEdSChBGYY+8qt4QY4d3whYP6E08Iv9Kbbqd/w3FWnqAwSkOLw+jnrfNe5hqKPUEM1wcG36AKLmKcTm8Vfe5AUvU8uqR/x7iMPz7FL8t79s83XlroCA9YBiObwB88KcqPvHbOD/2rryH3BMR0Rzl8+zA1k0ENi+DCSb5/eYhNUjdvAMWfUUKDZ+2JQ9H8rukeBL/mNAUJVsZYDmpgnJbLMTJ4V8KHLSNJiCzuMuEOQxDetT/tuRC2U9YGemmcEqfEV7K0eSTSzZdIesuU8N4WDeRAtev40feo5kOkjbDigU7fYReczpqCtZhXIsWiI1t3ucuofVm3zDsaU2tuQ2askCFDTnHV/ScOP4mualNqDKy5qF7r+9kpNT1IQEvmGXh14Op8hi1LXxALRrxy62W3T0kt5gs5xT6/dbHK9cDpSOipNNNCNGYdwqHmS52QEkHKOMbLnZUOj4TwRf007uMyVo3bnsZ0yP/X3OTnfk61kJ0fuNxNs+HcQJf/Jcj3R7zEfVUc9OKlt86qyUB/Esez5vOCeM0SPxcCR9kq9zQS+oscFZjbvaA/7WNDe5yI1BiX5BbNz1NLv0s38vwKrqpO5zKTBMX7gqkd9vHcP7X8nvgLFIbTJhIRHGzR8M1qOv8nmETQiLE4S2hITznD8iu0LPHLwDm79g2Cf3B9NJ4=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV8PR12MB9620.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(23010399003)(366016)(1800799024)(11063799006)(10067099003)(56012099006)(5023799004)(6133799003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?zhql+WnsdSjow5qSYI+JdN13eOIp3rhmgux+alamg4dwQoVVewCtPl++WoGx?=
- =?us-ascii?Q?YBmX0pPR3XpzhTGxVFHzm6OtkbBro2LQAPC+vP4tob7e/xqRtYFjgkDWLcUx?=
- =?us-ascii?Q?tu4hxw/DoC8puAWWLOBwFmh40FZvhYFSqcWOmuyZP/Q4Sg6LPHi0hInvVNWm?=
- =?us-ascii?Q?Zsg66e6wysrjR3JkO+pbYSzwE1vq+TO5y7EzqRoHuEukRDDcVOi3GVtPUC/4?=
- =?us-ascii?Q?vUqRqDhfoyQD6ty9fNPNlFGqzHIXMghN7Gr6xUsoRjqkQnwjgaKHlV5vb8/2?=
- =?us-ascii?Q?INMYR9O2NyV4uCcXmiKHMqiMiowG5+Hels+bSsCW4u9xqbaJo1lr5S04kzCQ?=
- =?us-ascii?Q?DA08Lccp5SRp80ynKY61U5EbAx1gOGSVvVebkw0wAyzveY5Od9JwdkVSFNIw?=
- =?us-ascii?Q?XniGcKJCgpN+LPxvzsdZ9kUvIODuV4eICAznTd+gRYxw9ZdOq9fl7wZQ30Yd?=
- =?us-ascii?Q?XbKiPo9s6EX/DQ+R16YGTLciSqojwNerySa1SsynCihhLpWvAityIBJjf4kh?=
- =?us-ascii?Q?9y5V5EDEvuHOY3EmXZE/NVCmLvoKo+HXJNRbVzo01w+oaFcehS0wBo/Ns6eU?=
- =?us-ascii?Q?sXhtHOsMmp4ibaJ4n0ozsFkwdMG0IiP9OKu6N6XKIXL2Io7YgokZl4NUFblP?=
- =?us-ascii?Q?w5d/zlMox7J0N5msv5KcnFWsN1FNOBxrDlgETuOTHInqiAhep2xB57X0gegV?=
- =?us-ascii?Q?W0DhGSv+CzVjX3UdGLrBfkXAT6Idu+3r6XXVQl32EKT2s4nN6fm4kbyPE0w2?=
- =?us-ascii?Q?u7l8TCJDR+yiBxVc3Wj230SStiF1t7/7F9COQMWCqiMk28GTI52fnFM+LmDf?=
- =?us-ascii?Q?36eUpB//opGtSEtYxT2x3Qv2dLOvUMQOyXhYKpTEfUsOO6XvaMrxZklzJ6sm?=
- =?us-ascii?Q?fO8CgJnL4bLxw7r/nJQc6sQr/5oaPeB01Q4TrZ8lObgW9k8ZeH0BVUXlTthP?=
- =?us-ascii?Q?N0bsA+OOaS/CIdZ42wNfaVmWbc0JNuCELQ0gh0iOzaCGOD1t2SZg/0TsTVry?=
- =?us-ascii?Q?p9F3rO3ZMT54ls84txu9T91NetvYNt7Danp3oBmbnpKYw93rB4sZ2mAlKmus?=
- =?us-ascii?Q?7jlhdNeNuL3qOmTRFGo42Eoghbmz1bXlmL3y+wkErclQXOfYr8z21Iobw0/T?=
- =?us-ascii?Q?Pr95YpMDuCykTSwfz2D5rM9ORFh/9vyfMysmrhdEsWZ84ITld0z7UQYPZpTe?=
- =?us-ascii?Q?rPYQ+7RtRLGfhNdWoT4yadNx7NRzhtuymMNFpF9+rcExOIL+uCmRYCzQLHMH?=
- =?us-ascii?Q?8yvrcvf0iQRWfd4pJ4Cq7dQUuWVV0HNLF6PRvBx6KiGkFmfk1zW95AhvuNJa?=
- =?us-ascii?Q?lu9oI/TDmWb8TteGRDgYCzvS0MnfA5aKGH65l7HcrcSlRcDixUAOOttqrZ52?=
- =?us-ascii?Q?qxBIg/lQPgB8dVkCeycnZA4ta5lMfUn5EYiQ3lq0V6rc/E14z955P7HoBMbV?=
- =?us-ascii?Q?nY8piR0WG01Wvi9kCclCKhocyBvYkrz4qSBYCDDSRZKKYMGQMYV3R0xqRUHq?=
- =?us-ascii?Q?Utd1XKMtciWOkewc2NJQlrbEvS68jHlQp3Ws8SN/TE5Zqah++BA/0C7ats3i?=
- =?us-ascii?Q?rJsK/OxbKX7lgKu8ew8s2Q4sKaDSbZwFCQ4XpBUgoRJsBFCo9owgWScPZsW6?=
- =?us-ascii?Q?0aEcB/qnpF9R3wl8CJlIJ6dA86zlZvsbN0aKKbgW76IW7uGAk0C3Rt+Pxz0e?=
- =?us-ascii?Q?R+K61Ox6qPekUvEoVBE8GeJa3TPxWNdsyMCROO/L05IVegQzI+gYbJF8+UNn?=
- =?us-ascii?Q?KPevOPqj3A=3D=3D?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: f47fd9a4-d445-46fc-a913-08def7e54ded
-X-MS-Exchange-CrossTenant-AuthSource: LV8PR12MB9620.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Aug 2026 20:15:36.1810
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: XbpjjjA/jq3OPrTUuT9tTbbcofycYXvPH5wjBzs7le4ARMyvvyR+7MUwFY0zotQ4
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW3PR12MB4348
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <7-v3-76f117ad04f1+28a90-mlx5st_jgg@nvidia.com>
 
-On Tue, Aug 11, 2026 at 12:01:23AM +0200, Zhu Yanjun wrote:
-> id_priv->cma_dev and bind the associated ib_device to id_priv->id.device.
-> If cma_acquire_dev_by_src_ip() returns an error (non-zero status), the ID
-> remains unassociated with any RDMA device.
+On 2026-07-16 02:03 PM, Jason Gunthorpe wrote:
+> Add a region_size field to struct vfio_pci_driver_ops so drivers can
+> declare how much DMA-mapped region they need. The mlx5 driver will need
+> ~18MB for firmware pages. Existing drivers pass in the sizeof their state
+> struct. The core code will round up and minimize it to SZ_2M so as not to
+> change any test behavior.
+
+Please update this last sentence to match the patch.
+
 > 
-> Previously, rdma_restrack_add(&id_priv->res) was invoked unconditionally
-> even when cma_acquire_dev_by_src_ip() failed, passing a resource with a
-> NULL dev pointer and triggering the WARN_ON assertion in res_to_rt().
-> 
-> Fix this by only adding the resource to restrack when acquiring the device
-> succeeds.
-> 
-> Reported-by: syzbot+72eddfbadda3e3928e72@syzkaller.appspotmail.com
-> Closes: https://syzkaller.appspot.com/bug?extid=72eddfbadda3e3928e72
-> Tested-by: syzbot+72eddfbadda3e3928e72@syzkaller.appspotmail.com
-> Fixes: cb5cd0ea4eb3 ("RDMA/core: Add CM to restrack after successful attachment to a device")
-> 
-> Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+> Assisted-by: Claude:claude-opus-4.6
+> Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 > ---
-> V1 -> V2: Follow Jason's advice to use if/else to handle this problem.
-> ---
->  drivers/infiniband/core/cma.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
+>  tools/testing/selftests/vfio/lib/drivers/dsa/dsa.c         | 1 +
+>  tools/testing/selftests/vfio/lib/drivers/ioat/ioat.c       | 1 +
+>  .../selftests/vfio/lib/include/libvfio/vfio_pci_driver.h   | 6 ++++++
+>  tools/testing/selftests/vfio/lib/vfio_pci_driver.c         | 7 +++++++
+>  tools/testing/selftests/vfio/vfio_pci_driver_test.c        | 3 ++-
+>  5 files changed, 17 insertions(+), 1 deletion(-)
+> 
+> diff --git a/tools/testing/selftests/vfio/lib/drivers/dsa/dsa.c b/tools/testing/selftests/vfio/lib/drivers/dsa/dsa.c
+> index 19d9630b24c23f..40b8541b588eee 100644
+> --- a/tools/testing/selftests/vfio/lib/drivers/dsa/dsa.c
+> +++ b/tools/testing/selftests/vfio/lib/drivers/dsa/dsa.c
+> @@ -418,6 +418,7 @@ static void dsa_send_msi(struct vfio_pci_device *device)
+>  
+>  const struct vfio_pci_driver_ops dsa_ops = {
+>  	.name = "dsa",
+> +	.region_size = sizeof(struct dsa_state),
+>  	.probe = dsa_probe,
+>  	.init = dsa_init,
+>  	.remove = dsa_remove,
+> diff --git a/tools/testing/selftests/vfio/lib/drivers/ioat/ioat.c b/tools/testing/selftests/vfio/lib/drivers/ioat/ioat.c
+> index a871b935542bad..c9b28365c5eb6b 100644
+> --- a/tools/testing/selftests/vfio/lib/drivers/ioat/ioat.c
+> +++ b/tools/testing/selftests/vfio/lib/drivers/ioat/ioat.c
+> @@ -226,6 +226,7 @@ static void ioat_send_msi(struct vfio_pci_device *device)
+>  
+>  const struct vfio_pci_driver_ops ioat_ops = {
+>  	.name = "ioat",
+> +	.region_size = sizeof(struct ioat_state),
 
-Applied to for-next, thanks
+When you rebase on top of vfio/next please also make these changes to
+the NV Falcon and IGB drivers that have recently landed.
 
-Jason
+>  	.probe = ioat_probe,
+>  	.init = ioat_init,
+>  	.remove = ioat_remove,
+> diff --git a/tools/testing/selftests/vfio/lib/include/libvfio/vfio_pci_driver.h b/tools/testing/selftests/vfio/lib/include/libvfio/vfio_pci_driver.h
+> index e5ada209b1d102..547369c5cff95a 100644
+> --- a/tools/testing/selftests/vfio/lib/include/libvfio/vfio_pci_driver.h
+> +++ b/tools/testing/selftests/vfio/lib/include/libvfio/vfio_pci_driver.h
+> @@ -9,6 +9,12 @@ struct vfio_pci_device;
+>  struct vfio_pci_driver_ops {
+>  	const char *name;
+>  
+> +	/*
+> +	 * Size of the driver's state structure overlaid on
+> +	 * device->driver.region.vaddr
+> +	 */
+> +	u64 region_size;
+> +
+>  	/**
+>  	 * @probe() - Check if the driver supports the given device.
+>  	 *
+> diff --git a/tools/testing/selftests/vfio/lib/vfio_pci_driver.c b/tools/testing/selftests/vfio/lib/vfio_pci_driver.c
+> index 6827f4a6febe99..e13bbb7ee423dc 100644
+> --- a/tools/testing/selftests/vfio/lib/vfio_pci_driver.c
+> +++ b/tools/testing/selftests/vfio/lib/vfio_pci_driver.c
+> @@ -1,5 +1,7 @@
+>  // SPDX-License-Identifier: GPL-2.0-only
+>  #include "kselftest.h"
+> +#include <linux/sizes.h>
+> +#include <linux/log2.h>
+>  #include <libvfio.h>
+>  
+>  #ifdef __x86_64__
+> @@ -28,6 +30,11 @@ void vfio_pci_driver_probe(struct vfio_pci_device *device)
+>  			continue;
+>  
+>  		device->driver.ops = ops;
+> +
+> +		VFIO_ASSERT_NE(ops->region_size, 0);
+> +		device->driver.region.size =
+> +			max_t(u64, roundup_pow_of_two(ops->region_size),
+> +			      getpagesize());
+
+Blegh this is because the IOVA allocator insists on a power-of-2 size as
+you pointed out [1]. Can you add a comment here to document that? Or
+better yet, move the rounding up into iova_allocator_alloc() so the
+callers don't have to deal with it like this.
+
+[1] https://lore.kernel.org/all/20260529173753.GB128816@nvidia.com/
+
+>  	}
+>  }
+>  
+> diff --git a/tools/testing/selftests/vfio/vfio_pci_driver_test.c b/tools/testing/selftests/vfio/vfio_pci_driver_test.c
+> index afa0480ddd9b2a..f68239da574f5a 100644
+> --- a/tools/testing/selftests/vfio/vfio_pci_driver_test.c
+> +++ b/tools/testing/selftests/vfio/vfio_pci_driver_test.c
+> @@ -80,7 +80,8 @@ FIXTURE_SETUP(vfio_pci_driver_test)
+>  	driver = &self->device->driver;
+>  
+>  	region_setup(self->iommu, self->iova_allocator, &self->memcpy_region, SZ_1G);
+> -	region_setup(self->iommu, self->iova_allocator, &driver->region, SZ_2M);
+> +	region_setup(self->iommu, self->iova_allocator, &driver->region,
+> +		     driver->region.size);
+>  
+>  	/* Any IOVA that doesn't overlap memcpy_region and driver->region. */
+>  	self->unmapped_iova = iova_allocator_alloc(self->iova_allocator, SZ_1G);
+> -- 
+> 2.43.0
+> 
