@@ -1,133 +1,109 @@
-Received: from out-186.mta1.migadu.com (mta1.migadu.com [37.59.57.117])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f179.google.com (mail-qk1-f179.google.com [209.85.222.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48E20430CFD
-	for <linux-rdma@vger.kernel.org>; Mon, 10 Aug 2026 23:59:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=37.59.57.117
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1302F3594A
+	for <linux-rdma@vger.kernel.org>; Tue, 11 Aug 2026 00:06:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786406382; cv=none; b=VzbvceVuoiY2U2XUxGPVleAqUlG3VFhGOVH/9V9ZAhVxzQAQNMoKXHmAU1DiZSgJHTfgr7YreEMIfO5mRIWbjOa7ol3ZmuUOyyvGVuPGKQ+mSvQ+5H0BvgmXJwf7HrIrsXmjZBj06+bSUh4XYNQgAJdQeJVpaDT9b5JHTO9JU5E=
+	t=1786406806; cv=none; b=NgTjWFbsDep09O1QU8U3Jbo+5b97RD/e0PwME9u+wh8v8Rey++VCr0qmcg+YNr80LGdZIjkrGj0QmB68B+J4zGMAKenx+mBrLj3aWzxEiiWB+IK8Wlh0Kf/bPK7bmJCL3ZNPmspKC3W4yM3MrepdPTbvPHQnR7vRPX+tlO8yLHY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786406382; c=relaxed/simple;
-	bh=7IZn59rBNGwbt77OqSdIuLVnL/FtY7VX9mpxFRQoOjY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=XHK0dbub8ZbiIhrvZJVZd4KwT/PCFZqJDupLr2Gh2yfj5LTjYx+peMGM+BuhELRJjtXxl1nXyxWAo0vgtNmJjRQQUziMhUXO3LVNmed0Ze6dCrEoeAHkSwP84Z/iG2/jwX8G8Br/YX44bauxbcXPHPh6TsxBVIflLL8sogeOcfc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=aOX938ll; arc=none smtp.client-ip=37.59.57.117
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1786406806; c=relaxed/simple;
+	bh=qCnIg7pWrLgFXfIbS8KW6LMzuVxltwOhtNw3RrLvinA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=cHDmY5AgvTY3JEEe/s7OGEo48JsIAtWyQPxOAMS6MFuBwPBp7LtDVR16NP0/aqZaFLGTqNvbpX7xOd0cK1Ww9W2WDhDOKY8J7vzlRvqvyc+RKrofiSTxH+0HrmROV20y1WHYWhYkWIMHl77oGAWoLmh/iZMYDX2r4Ic73hLH7G8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=NPWqLv18; arc=none smtp.client-ip=209.85.222.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="aOX938ll"
-Message-ID: <97968741-23d0-47cd-9d5b-0eeefd43dd0d@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1786406376;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=GW9wDeFh37CH1KHPFpZI4MD8T0uHITur9PWLzK9xbTY=;
-	b=aOX938llyWTMgx2cTa1H4Pf+/UaOT3cmNV8tJgpJwGKZ1qdsjigGVmFDmEJ97nH69qoO6i
-	cW9w5T7JrwfCb87NxQ4f1keALidja0tyWOxzk1wUcoJFtXf9cXIiz1iJ1Pb2kr41fm0YRY
-	weXNdHCt2q/J4rGFnJxjWWGjtc63k84=
-Date: Mon, 10 Aug 2026 16:59:26 -0700
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="NPWqLv18"
+Received: by mail-qk1-f179.google.com with SMTP id af79cd13be357-92e53581361so111288185a.1
+        for <linux-rdma@vger.kernel.org>; Mon, 10 Aug 2026 17:06:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1786406804; x=1787011604; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=xWs+wZAYbWBcdx+NBYqjDuyCmeKtPIDQH0q+nRG47u0=;
+        b=NPWqLv18eGMzxsyav9Dx04Z9EODmrhR2zr+9HpochiIBLCMdu2pp8SW254kbY0HREd
+         sSMSnjnP5Twk9U/tzm5cePgj+TFAh/IIsE+qWYo6b+l2IFpZk91Hsn+hO1jpxFwFy6CO
+         JhaMRODRHlh7eqWTv/zugSTJLC2Iu5LhxBxIiFMg1w4lwWW/0E6fBesgBm/9vWqWlIPd
+         M7MQespOIXabgd04tO6uF2wSS5QDoLW9zxuq9CxZaDRH5ZsPU1rl5vK0zmsoXfEAu0Kb
+         WhiPkxEqDUsWBLSsowML1ahxz8BluZQH1vMIu1RwG8QIX+ooVsFY5Ob4cpD5LGtfiXZL
+         nG6w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786406804; x=1787011604;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=xWs+wZAYbWBcdx+NBYqjDuyCmeKtPIDQH0q+nRG47u0=;
+        b=EDAkY6tiF5X4GoK+HLqtK6Zy5QpDmYKRn7kfHKKBNocCjt43DlEGNPb0iWrWAuaayN
+         mm3Av79Vr9UBNtuVG5Codg/bdPjeQnzWbjOAj3DmC4EWTfrxaWB9Uu1OESUTVkO6PvAg
+         PtARTSJr2Uc9nsblV/k/7o5BjwvzG0YJZRCZDDzczKgdd23zTSJZj47Jp3Qwx0wlo40N
+         SKddFHurArL+9ZTz+2xbSlquAB5rZsx94oNpbgpc1Dkki+fGlOzplkpYojwAR4KXF0FX
+         OUlUEE1tUMVmW4d87ci7ucGS+7OmZAHBH0qHEAANrYLl7BVH7MBIsfw1rcEx3wHdEFXz
+         o64g==
+X-Forwarded-Encrypted: i=1; AHgh+RppdKCc4uZT9POnzEIcGht9d35VqQKrf3YONtotk6b6Oyg0elFjc5wzOkxpJf2UZR0VD2NG1bvLLQ8F@vger.kernel.org
+X-Gm-Message-State: AOJu0YyzWS9qkjJJPp/kxsTdg4k6TVcCnWTJx+C4g7LvOlB2pHaNu+eF
+	iUjZAVqFg+AiBDcp6pIj+T2/XtGJRWx9zS3nB3wCXG1dyIsRzeT8HLJKizsJ4dmScJk=
+X-Gm-Gg: AR+sD12qSCNwDEO1gS/5lQ9d+pCdbBZRak7tjgS7fDyoUSnzFnZPeF0I6O8GPEE/+4I
+	AwRegta0Qabky472FBMSCiJ7Q4QYtKv0qb1yteFSKD3zXPzwIEpsHPO/V2mYirOBtzRspinK2ef
+	FVfDkDdDfBUWwyS5Y7XCA6qUvmxhBIsLLCw7jyDqQhpePYUksOAt1sTAGKjrFAxNBNWVQ3FZk+K
+	MWwSEw8Z//FmjWzrhy78PTUugk3wlIhNr3z8D+d1VpFuuhI5wLDh5Ek2p6GW6xoBD0fHqmoN/oZ
+	39VIs0ZWjbBn09TjGYL+4tMFLZMtn3C7XugtTyIpFjzj0uL8elYY720aqIBS+qsfmQtjl9hJZRB
+	SZci5ua/jE7qAL0Sl7hnlBulC+F9XwVNXdbJxW7fdzWB4/O8aIvAkB8Bi6CjLSmMgLR4mqxaDoC
+	5ZLurCYvQjS4sfryenoBwBd2X8ms377iJaaeFSDmed5/IwVFGv
+X-Received: by 2002:a05:620a:2412:20b0:92e:d7c7:7de9 with SMTP id af79cd13be357-9369cfec40dmr552651385a.8.1786406803946;
+        Mon, 10 Aug 2026 17:06:43 -0700 (PDT)
+Received: from ziepe.ca ([142.166.156.215])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-9366e290054sm918322985a.40.2026.08.10.17.06.42
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 10 Aug 2026 17:06:42 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.97)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1wta0v-00000002HCN-3XlD;
+	Mon, 10 Aug 2026 21:06:41 -0300
+Date: Mon, 10 Aug 2026 21:06:41 -0300
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: syzbot <syzbot+6dee15fdb0606ef7b6ba@syzkaller.appspotmail.com>
+Cc: leon@kernel.org, linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+	nogikh@google.com, syzkaller-bugs@googlegroups.com
+Subject: Re: [syzbot] [rdma?] INFO: task hung in add_one_compat_dev (3)
+Message-ID: <20260811000641.GA541676@ziepe.ca>
+References: <671756af.050a0220.10f4f4.010f.GAE@google.com>
+ <6a75e1ad.b50370da.49fe0.001b.GAE@google.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH v2 1/1] RDMA/cma: Fix WARNING in res_to_rt
-To: jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org
-Cc: syzbot+72eddfbadda3e3928e72@syzkaller.appspotmail.com
-References: <20260810220123.191696-1-yanjun.zhu@linux.dev>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
-In-Reply-To: <20260810220123.191696-1-yanjun.zhu@linux.dev>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6a75e1ad.b50370da.49fe0.001b.GAE@google.com>
 
-在 2026/8/10 15:01, Zhu Yanjun 写道:
-> syzbot reported a WARN_ON(!res->dev) in res_to_rt() triggered via
-> addr_handler() during asynchronous address resolution:
+On Fri, Aug 07, 2026 at 06:46:21AM -0700, syzbot wrote:
+> syzbot has found a reproducer for the following issue on:
 > 
-> "
-> WARNING: drivers/infiniband/core/restrack.c:138 at res_to_rt+0x1c4/0x230
-> CPU#1: kworker/u8:4/59
-> Modules linked in:
-> CPU: 1 UID: 0 PID: 59 Comm: kworker/u8:4 Not tainted syzkaller #0 PREEMPT(full)
-> Hardware name: Google Compute Engine, BIOS Google 07/24/2026
-> Workqueue: ib_addr process_one_req
-> RIP: 0010:res_to_rt+0x1c4/0x230 drivers/infiniband/core/restrack.c:138
-> RSP: 0018:ffffc9000201f850 EFLAGS: 00010293
-> RAX: ffffffff88d00ce5 RBX: ffff88807f0fd4f8 RCX: ffff88801e6e0000
-> RDX: 0000000000000000 RSI: ffffffff8fd996f0 RDI: 0000000000000003
-> RBP: 0000000000000000 R08: ffff88801e6e0000 R09: 000000000000000a
-> R10: 0000000000000009 R11: 0000000000000000 R12: dffffc0000000000
-> R13: 1ffff1100fe1fa9f R14: 0000000000000000 R15: 0000000000000003
-> FS:  0000000000000000(0000) GS:ffff888125012000(0000) knlGS:0000000000000000
-> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> CR2: 00001d559c3d2000 CR3: 0000000077c4c000 CR4: 00000000003526f0
-> Call Trace:
->   <TASK>
->   rdma_restrack_add+0x5a/0x8a0 drivers/infiniband/core/restrack.c:236
->   addr_handler+0x41a/0x5a0 drivers/infiniband/core/cma.c:3534
->   process_one_req+0x2eb/0x540 drivers/infiniband/core/addr.c:624
->   process_one_work kernel/workqueue.c:3375 [inline]
->   process_scheduled_works+0xc4e/0x1630 kernel/workqueue.c:3458
->   worker_thread+0xa47/0xfb0 kernel/workqueue.c:3539
->   kthread+0x388/0x470 kernel/kthread.c:436
->   ret_from_fork+0x514/0xb70 arch/x86/kernel/process.c:158
->   ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
->   </TASK>
-> "
-> 
-> In addr_handler(), cma_acquire_dev_by_src_ip() is called to populate
-> id_priv->cma_dev and bind the associated ib_device to id_priv->id.device.
-> If cma_acquire_dev_by_src_ip() returns an error (non-zero status), the ID
-> remains unassociated with any RDMA device.
-> 
-> Previously, rdma_restrack_add(&id_priv->res) was invoked unconditionally
-> even when cma_acquire_dev_by_src_ip() failed, passing a resource with a
-> NULL dev pointer and triggering the WARN_ON assertion in res_to_rt().
-> 
-> Fix this by only adding the resource to restrack when acquiring the device
-> succeeds.
-> 
-> Reported-by: syzbot+72eddfbadda3e3928e72@syzkaller.appspotmail.com
-> Closes: https://syzkaller.appspot.com/bug?extid=72eddfbadda3e3928e72
-> Tested-by: syzbot+72eddfbadda3e3928e72@syzkaller.appspotmail.com
-> Fixes: cb5cd0ea4eb3 ("RDMA/core: Add CM to restrack after successful attachment to a device")
-> 
-> Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
-> ---
-> V1 -> V2: Follow Jason's advice to use if/else to handle this problem.
+> HEAD commit:    f9a2394a2348 Merge tag 'mm-hotfixes-stable-2026-08-06-18-4..
+> git tree:       upstream
+> console output: https://syzkaller.appspot.com/x/log.txt?x=13d50fb9580000
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=8e21dcbdb02d4229
+> dashboard link: https://syzkaller.appspot.com/bug?extid=6dee15fdb0606ef7b6ba
+> compiler:       Debian clang version 22.1.8 (++20260613092233+e80beda6e255-1~exp1~20260613092250.77), Debian LLD 22.1.8
+> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=14d037b9580000
 
-Thanks, Jason.
-I have sent this commit to syzbot. From the reply, this commit can also 
-fix the problem in the commit log.
+So this looks like it is just "really slow" beacuse of the vast
+amount of work it is triggering in the kernel to manage sysfs files
+under locks and the high number of threads running on the same
+serializing mutex.
 
-Zhu Yanjun
+The only way we could do anything about it is to split up the locking
+somewhat to be more fine grained, but that seems tricky and
+complicated and might trigger a higher level lock anyhow..
 
-> ---
->   drivers/infiniband/core/cma.c | 6 ++++--
->   1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-> index cc24fddf9aaa..73170b15fc3d 100644
-> --- a/drivers/infiniband/core/cma.c
-> +++ b/drivers/infiniband/core/cma.c
-> @@ -3528,10 +3528,12 @@ static void addr_handler(int status, struct sockaddr *src_addr,
->   	memcpy(addr, src_addr, rdma_addr_size(src_addr));
->   	if (!status && !id_priv->cma_dev) {
->   		status = cma_acquire_dev_by_src_ip(id_priv);
-> -		if (status)
-> +		if (status) {
->   			pr_debug_ratelimited("RDMA CM: ADDR_ERROR: failed to acquire device. status %d\n",
->   					     status);
-> -		rdma_restrack_add(&id_priv->res);
-> +		} else {
-> +			rdma_restrack_add(&id_priv->res);
-> +		}
->   	} else if (status) {
->   		pr_debug_ratelimited("RDMA CM: ADDR_ERROR: failed to resolve IP. status %d\n", status);
->   	}
+I'm not inclined to do that just to silence syzkallers rather
+agressive test..
 
+Jason
