@@ -1,128 +1,120 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com [209.85.214.175])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA9FC345EBF;
-	Tue, 11 Aug 2026 18:52:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786474330; cv=none; b=Pj6/64Q2VQS3MkjT9kau/RWQJbtptxfMqpHJArWkLIKaiUfmvmud+/i3tzsWUZQFaGqntXXh8oaMAD7Iws/4Pot7rRwe4Dt9IG+jquTkF1M9rsilwO1pU6P9NV9m4mwLf3HlIa6TVPkgSVcvT9CutUy3QxDfS2nKYuj9csqGS1w=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786474330; c=relaxed/simple;
-	bh=iG6kolHVo+LhrokzkJn9oo8OafaqsBYZtLW62gK7dbY=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=VhFZrjSH07ikb62SMZR70+VlVvcVEDiOHme77qSfitUFPGpXtqnvdWE9P8rdbbBneIIennFPN/bTW+3u5dxgMoDGpxv+o71fLw1iw88qISexVbrujOl5ycWQwgxarkrU29ZVkazVzy09kXi5siDugI+8ImqF+A1vynkHjhwgrN0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=f9fcK+NV; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A90E3955FF
+	for <linux-rdma@vger.kernel.org>; Tue, 11 Aug 2026 18:55:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.214.175
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786474521; cv=pass; b=MwqYecqU57FKfPn/8GtoKrxKp9n1GAsRe11LRM+A6lu7Ar6GrN3zONz+YdM2hjxKai29YFLo3qCMoCm2qxPQPnvxz8QMQsUdrHU/4+d3TAnm6BtMh23BMHpvFBfZ0qU1zjYLtRmyoRgD6uI4TedTuegfCBaxrykz0GtJogeOoV0=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786474521; c=relaxed/simple;
+	bh=PK5DpGIYIZ4Q5mypA8J7nQL3JpavjxnvYneVp4Wv71c=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=nawyaCgHYJBQry4V/MANYZ3PGbyBIYWRVG1woJfSYMgM9vZZMoXp9uHI3dID/+NBQS4OiQgLSoLlw2ebJukXoV4407hH8KHzMC5/HgLJ7P9x+rXW+zSQGeWxenF/eC9UBdg9s5CdCtubJk/YDVbRdOtqDP+UThDyUvNVQIGlHYw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=MvA8cOKC; arc=pass smtp.client-ip=209.85.214.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="f9fcK+NV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64C9D1F00A3A;
-	Tue, 11 Aug 2026 18:51:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786474329;
-	bh=L0HTQS1LYVWSdc3RimfvMueRkxBKnov+tJfBP1Nzenc=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=f9fcK+NVNWrvcSOcKHy6zfAbJxAzV4H4fy8MVkzolSHyhTXevNA14uYiezSHzn6pQ
-	 ycpaMxR2NK5BhnYOlevG/IFGX9tQA5Zq59bExZRq8ebTHdeuBPIJKdmorpcmlYiJYN
-	 enPNXmLxCznd3cawK4k1uWZ7ls5UQ+kBsVAJbZyI9ASkk1wotZU4MuXOcOSURRiwqg
-	 sT65TPpe9rPAxYbWb9c4r08z7q71qyz1ECpgE74A6BnSnCI7mMzF6uQjafv+S2Jyy3
-	 tECe4u8tzT2Nvo9T8WlyH+ZxIb0wNqskL4SGoz+McXb9NEhgBdQAaCdq0Vli+in/qH
-	 jqXBcNxLA7xiA==
-From: Vinod Koul <vkoul@kernel.org>
-To: Julia.Lawall@inria.fr, Alex Deucher <alexander.deucher@amd.com>, 
- Alexander Shishkin <alexander.shishkin@linux.intel.com>, 
- Alexandre Belloni <alexandre.belloni@bootlin.com>, 
- Andrew Lunn <andrew@lunn.ch>, Andrew Morton <akpm@linux-foundation.org>, 
- Arkadiusz Kubalewski <arkadiusz.kubalewski@intel.com>, 
- Borislav Petkov <bp@alien8.de>, 
- =?utf-8?q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
- Daniel Lezcano <daniel.lezcano@kernel.org>, 
- David Airlie <airlied@gmail.com>, "David S. Miller" <davem@davemloft.net>, 
- Dmitry Torokhov <dmitry.torokhov@gmail.com>, 
- Eric Dumazet <edumazet@google.com>, Florian Westphal <fw@strlen.de>, 
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
- Hans de Goede <hansg@kernel.org>, Hans Verkuil <hverkuil@kernel.org>, 
- Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
- Herbert Xu <herbert@gondor.apana.org.au>, 
- =?utf-8?q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
- Jakub Kicinski <kuba@kernel.org>, 
- "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, 
- Jani Nikula <jani.nikula@linux.intel.com>, Jaroslav Kysela <perex@perex.cz>, 
- Jason Gunthorpe <jgg@ziepe.ca>, Jiri Pirko <jiri@resnulli.us>, 
- "Joerg Roedel (AMD)" <joro@8bytes.org>, Johan Hovold <johan@kernel.org>, 
- Jonathan Cameron <jic23@kernel.org>, 
- Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, 
- Julian Anastasov <ja@ssi.bg>, Leon Romanovsky <leon@kernel.org>, 
- Liam Girdwood <lgirdwood@gmail.com>, Linus Walleij <linusw@kernel.org>, 
- Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
- Mark Brown <broonie@kernel.org>, 
- "Martin K. Petersen" <martin.petersen@oracle.com>, 
- Matthew Sakai <msakai@redhat.com>, 
- Mauro Carvalho Chehab <mchehab@kernel.org>, 
- Maxime Ripard <mripard@kernel.org>, 
- Michael Turquette <mturquette@baylibre.com>, 
- Mike Rapoport <rppt@kernel.org>, 
- Miri Korenblit <miriam.rachel.korenblit@intel.com>, 
- Nicolas Palix <nicolas.palix@imag.fr>, 
- Pablo Neira Ayuso <pablo@netfilter.org>, Paolo Abeni <pabeni@redhat.com>, 
- Ping-Ke Shih <pkshih@realtek.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
- Rodrigo Vivi <rodrigo.vivi@intel.com>, Sebastian Reichel <sre@kernel.org>, 
- Shuah Khan <shuah@kernel.org>, Simona Vetter <simona@ffwll.ch>, 
- Simon Horman <horms@verge.net.au>, Stephen Boyd <sboyd@kernel.org>, 
- Steve French <sfrench@samba.org>, Takashi Iwai <tiwai@suse.com>, 
- Thomas Renninger <trenn@suse.com>, Thomas Zimmermann <tzimmermann@suse.de>, 
- Tony Luck <tony.luck@intel.com>, Tvrtko Ursulin <tursulin@ursulin.net>, 
- Vadim Fedorenko <vadim.fedorenko@linux.dev>, Will Deacon <will@kernel.org>, 
- Yazen Ghannam <Yazen.Ghannam@amd.com>, 
- Sang-Heon Jeon <ekffu200098@gmail.com>
-Cc: cocci@inria.fr, amd-gfx@lists.freedesktop.org, 
- dmaengine@vger.kernel.org, dm-devel@lists.linux.dev, 
- dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, 
- intel-wired-lan@lists.osuosl.org, iommu@lists.linux.dev, 
- linux-cifs@vger.kernel.org, linux-clk@vger.kernel.org, 
- linux-crypto@vger.kernel.org, linux-edac@vger.kernel.org, 
- linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, 
- linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, 
- linux-media@vger.kernel.org, linux-mm@kvack.org, linux-pm@vger.kernel.org, 
- linux-rdma@vger.kernel.org, linux-rtc@vger.kernel.org, 
- linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
- linux-sound@vger.kernel.org, linux-usb@vger.kernel.org, 
- linux-wireless@vger.kernel.org, lvs-devel@vger.kernel.org, 
- netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
- nouveau@lists.freedesktop.org, platform-driver-x86@vger.kernel.org
-In-Reply-To: <20260723184538.3888637-1-ekffu200098@gmail.com>
-References: <20260723184538.3888637-1-ekffu200098@gmail.com>
-Subject: Re: (subset) [PATCH 00/36] treewide: remove conditional returns
- with no effect
-Message-Id: <178647430099.1113716.2263974283705757692.b4-ty@kernel.org>
-Date: Wed, 12 Aug 2026 00:21:40 +0530
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="MvA8cOKC"
+Received: by mail-pl1-f175.google.com with SMTP id d9443c01a7336-2ceab75934dso3188815ad.2
+        for <linux-rdma@vger.kernel.org>; Tue, 11 Aug 2026 11:55:19 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1786474519; cv=none;
+        d=google.com; s=arc-20260327;
+        b=njyeghWgh8+tz5PkLztbZ06fbuMsLApS2JCoZatNJRvWyK2PWCV7dgSO+Xi8bwNLXZ
+         p57nIWdtX9aYpB3FPN1La/yT6/86OUPjHTPlBpsZczoGMnRqYyJoxkjK8zMOkIf/NHph
+         0VQp0NCFToWBSWpyvimymVqdD/pCtUKD2qgbWLLC2wdMHYF1d94ePZSBl8GBzueCADYc
+         Cb2cXPkME9zl96I2uqDVh0/U4bltleaQ7DY8u/CenH64Hw5K2b29T/ghWx1SXpcJm2YK
+         uHDQfCO9O0XumZPmCUOXHbH/g7SK4ZhiCVTc4Q+Y2+zkejgu1WqHxY0EXijs/D9fZ/Lh
+         GDrQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=PK5DpGIYIZ4Q5mypA8J7nQL3JpavjxnvYneVp4Wv71c=;
+        fh=IbBPl8flYchSdXbxbvFQHTWxz7hvcox2wYfLa2x92+0=;
+        b=NwU9LXsaYa38rcBspouplbdn2lTDC5vOiFnchN05ZZcwKk6gIGN++1/q7PCGzFlevR
+         MchyivGnDB1yRFENjTDYo3k4n+FMNRdMCXfYZWhn79ZTh2yrGy5EI9Xyk7p0H+k+Q/Ns
+         JanclLih+JPXUO058oQOxmSFNgoQWDgTUXiSt/ceObgtlPyQ+GiMHhbTuKhI9CXjMvPz
+         fGYIbmwvJyvB0hgJoEoL3DAvR5eOw0raTPx3d6m/jr1wE/REG8Vd7jKgoTUfyvY7W6K1
+         xHYv1sTqjJox+7fb0V4XyTFq7yb8ZLl+OmHFxBuNasljsJ8kE5azQ5qbDpdZb6haPBci
+         0njg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1786474519; x=1787079319; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=PK5DpGIYIZ4Q5mypA8J7nQL3JpavjxnvYneVp4Wv71c=;
+        b=MvA8cOKCCXQQlEI5MpSTG7Uni96YcPS5b/rfl+m9QzwZ1k6yGDSnhcD5xe8meOnssX
+         Xs0Pr8pUP4mCgH1sBCVHw7bmve95hnxFLe3DncNcFRrJA2JIGbtAVbfry5z0a1Ab+mNI
+         IgK8R9sRjwIR1fvw8R9WTX/fWpLuPoVEQZpFQNK+i24csuxgw/43lNUo7K3VmfphX6c5
+         x3tVIMLV1Gxw1UdGkArwhiAMJERGpENe+zSp+zEUY2KLf7F1VBCg9VutYYWuBru7qC3+
+         qrJ9hWdcklkm0d6YOqad+x6T1VLz5HHA139/xswx5aDGzlj+eybfBSs4kV9otrqwGUeJ
+         cwRg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786474519; x=1787079319;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=PK5DpGIYIZ4Q5mypA8J7nQL3JpavjxnvYneVp4Wv71c=;
+        b=EtHovto4DwMcez62mf1S2+Xjs2gMNkVb6xOl1hyUtR07MSYh5WZojlxapGIZ32t7hN
+         U+IjNov5fIax1/NcpUyJL8Rq73irUxJnmLq+A/Mt07Cjyq7s45saVO71edq+NVhmvn2N
+         P5oUafasFO4KkNCD1HSiLOoRvTPJlGXq+X2C9IQdjpdNr2ZrUobOgbnyl5QLl3W2MP6i
+         NLSCdGUDL/oV/gKlo2bT4CmnBARrc7768yJGqf8+5YO7e6CR8IZDF9fwNN83EqDzE9bA
+         ETRBl6/JIXCFDA4m1jETYHjryZ+j8Mq2V7WoOmF+SvbSeRaUiHVO/YkEnAr2xtGXU4DH
+         8Xsw==
+X-Forwarded-Encrypted: i=1; AHgh+RriR2pH+EJxY+NQnSZmDz7yBIjS+Ggxjtyb0ZTahQ4/rK9XQeDwHQVNU8qS9c3Q8U0Epz3aOfQf5fZk@vger.kernel.org
+X-Gm-Message-State: AOJu0YznmvaKPghcy2jMZen0wAnvNanWD9DpGtwnAIAE0QmByTo+DPQ0
+	RDIiEqEjTLPfw+rudcBELpvOcZ0hQ82cMgHm9rFLTzsB7hz/0aJuPGmvTTC2l9g1XRGo6JThiRL
+	1MtgE+/lbxxwUt6FYHQYDKuZQfa5hxGCCtj93KFCy
+X-Gm-Gg: AR+sD10UFbaWORyfhuqmRNxe33veR3MmbtTL58yrUCbkC180MQbjscnoIjzeenZxJHL
+	6GTNq9MARuJRPxmrTzXG9m6F4UO82QbrqyaSR04jhcZNnqPmcbkoqzPAqTQydyz8RXBHOHunqRS
+	9MClJ2d5io7uHgf4NQAMSJaO/vjhWp8isxTpmgB8RHSCJ3yjkIMoUL+9PyXwttEx0U180Y+r3cf
+	uxvi9OtzJXiUxo9dOu5WQUQC68BkfZjYo7SjWFnsScahUOFaz6OPz5UVX5qqxTlB8NqbKQF3kDQ
+	yD0oO4p4l1iGpiPTtdJF/hKozFq7jVYZw7eJombZqHzm
+X-Received: by 2002:a17:90a:ec90:b0:38e:2860:253f with SMTP id
+ 98e67ed59e1d1-392ec53e6c1mr6200831a91.12.1786474518666; Tue, 11 Aug 2026
+ 11:55:18 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.13.0
+References: <0-v3-76f117ad04f1+28a90-mlx5st_jgg@nvidia.com> <20260805183702.GA72896@nvidia.com>
+In-Reply-To: <20260805183702.GA72896@nvidia.com>
+From: David Matlack <dmatlack@google.com>
+Date: Tue, 11 Aug 2026 11:54:50 -0700
+X-Gm-Features: AUfX_mzn4PfVgkS4FrNbhoBz42phR-uhV7z36r-0P3XLSgGGUO-8rzrUFVLpZk0
+Message-ID: <CALzav=f5oUW+B9RvOyaRGtG=6CX_4g-2Di+obFZ4O6B-chZtAQ@mail.gmail.com>
+Subject: Re: [PATCH v3 00/11] mlx5 support for VFIO self test
+To: jgg@ziepe.ca
+Cc: Alex Williamson <alex@shazbot.org>, Justin Stitt <justinstitt@google.com>, kvm@vger.kernel.org, 
+	Leon Romanovsky <leon@kernel.org>, linux-kselftest@vger.kernel.org, 
+	linux-rdma@vger.kernel.org, llvm@lists.linux.dev, 
+	Mark Bloch <mbloch@nvidia.com>, Bill Wendling <morbo@google.com>, 
+	Nathan Chancellor <nathan@kernel.org>, Nick Desaulniers <ndesaulniers@google.com>, netdev@vger.kernel.org, 
+	Saeed Mahameed <saeedm@nvidia.com>, Shuah Khan <shuah@kernel.org>, Tariq Toukan <tariqt@nvidia.com>, 
+	patches@lists.linux.dev
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+On Wed, Aug 5, 2026 at 11:39=E2=80=AFAM <jgg@ziepe.ca> wrote:
+>
+> On Thu, Jul 16, 2026 at 02:03:16PM -0300, Jason Gunthorpe wrote:
+> > Add an mlx5 driver to VFIO self test. This is largely a remix of the
+> > existing VFIO mlx5 driver in rdma-core. It uses an RDMA loopback QP
+> > to issue RDMA WRITE operations which effectively perform memory
+> > copies using DMA. Since mlx5 has a stable programming ABI this
+> > should work on devices from CX5 to current HW. The device FW must
+> > support the QP loopback configuration.
+>
+> David I was going to respin this to fix the minor nits, do you have
+> any more feedback or are we good to merge it ?
 
-On Fri, 24 Jul 2026 03:45:02 +0900, Sang-Heon Jeon wrote:
-> While reading mm/memblock, I found a conditional return where both
-> branches return the same value:
-> 
-> 	err = do_something();
-> 	if (err)
-> 		return err;
-> 	return err;
-> 
-> [...]
+Sorry for the delay. This has been on my to-do list, but it keeps
+getting preempted.
 
-Applied, thanks!
-
-[19/36] dmaengine: qcom_hidma: remove conditional return with no effect
-        commit: 04b8c3de13871653a8ecbd9f1adfea4d0694ecfe
-
-Best regards,
--- 
-~Vinod
-
-
+I will do a pass through it today and make sure there's nothing else
+needed in the respin.
