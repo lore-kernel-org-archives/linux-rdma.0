@@ -1,64 +1,64 @@
-Received: from mail-pf1-f181.google.com (mail-pf1-f181.google.com [209.85.210.181])
+Received: from mail-pf1-f174.google.com (mail-pf1-f174.google.com [209.85.210.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADFC742F6FF
-	for <linux-rdma@vger.kernel.org>; Tue, 11 Aug 2026 23:20:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20C0442FCB9
+	for <linux-rdma@vger.kernel.org>; Tue, 11 Aug 2026 23:20:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786490418; cv=none; b=eNcHSokEYk7lpDcFNfUU3P+WhWeYlu2/yli1PdAcxHPpNN4Iov9sBLs9pYksbqS8XZr4Xi2ke2pvxtoEya0HXaBN1pSzy8UiZzLb0TELXKKCLRd49XS7S8hlSCEajB0gGMzhcGaK7UOrdBcpX7SlpvqMx9w6HvgtDLR/TN6iUDM=
+	t=1786490425; cv=none; b=iXW3lfOR9WqWxAWi54lhyJQ/x9hFMGDe2O7UTQh1g5PE2X1G26JsUSlH1r20OCBp9AbhA+DtfCXHM/1weG+vdpdnULB6dJujEfykL0zX8f3/LCNbacjezjwpo4xtu4qt+NJZchZnQrWCfgukTtI4BV9qWqcUUKhAk0fy6+ra4Zk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786490418; c=relaxed/simple;
-	bh=22nPeXdbupsRSm+fjl9Od2TafluxfMvurzDk9av37OY=;
+	s=arc-20240116; t=1786490425; c=relaxed/simple;
+	bh=ramlrnMJG12sU1HSKRzL6k/DNzPk28iC5T5uY9kAm5o=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=bQbt/gJUN27kQ4sNkaAN/bDUA8t3lWUOPa2r5cS3PM6R0ukl8DpSi62Q52CVzsWmuGl4gIyf22QgISfwnVsabyjdjjz45kTVhiFurWZeFe5YqleSKE+VocfznpMf4o2QiE5e310M86K2h9fHMFjQX/+eWZUs5zqZzlQ8sLGv2QM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr; spf=none smtp.mailfrom=isslab.korea.ac.kr; dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.b=xL+TXGow; arc=none smtp.client-ip=209.85.210.181
+	 MIME-Version; b=K3Gv5bL8SwYKhp23nThIrHSe60Bbnsq3BFstbzVVDxCodlXiL7fqTLH3lmSs53q301eEpUU8aMjPBgmnqUKy4Pzz6n0yCuEAwjw8/gwQLoW6Yjs7kUZLDNIf3x6xohOi05hPq5MEWgD4E139jzMpZabzoQxczcK98vl6Y4RaavM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr; spf=none smtp.mailfrom=isslab.korea.ac.kr; dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.b=zo5xmlbe; arc=none smtp.client-ip=209.85.210.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=isslab.korea.ac.kr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.b="xL+TXGow"
-Received: by mail-pf1-f181.google.com with SMTP id d2e1a72fcca58-84847482584so317474b3a.0
-        for <linux-rdma@vger.kernel.org>; Tue, 11 Aug 2026 16:20:15 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.b="zo5xmlbe"
+Received: by mail-pf1-f174.google.com with SMTP id d2e1a72fcca58-8486ac3f347so1542942b3a.1
+        for <linux-rdma@vger.kernel.org>; Tue, 11 Aug 2026 16:20:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=isslab-korea-ac-kr.20251104.gappssmtp.com; s=20251104; t=1786490415; x=1787095215; darn=vger.kernel.org;
+        d=isslab-korea-ac-kr.20251104.gappssmtp.com; s=20251104; t=1786490423; x=1787095223; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=Gk+a9mLjO1sFOyggqzNdg6aQdGam47r8W59+GEbhQOg=;
-        b=xL+TXGowS1L3PRwf0Skkb9QnNKyeGM2QJZ+vH7Q1whwPXM3xZ5joolsH/ITZ8TFByI
-         g11KItUyYz6dq5BkLcbHdJOP2TuKQkUpPdwGGUxttjyvj7x7T7sNNBVU5f5nhdCY7TbG
-         GPewq1I1uLY8EJAw2h6c5biItomxjlg2toQrGppjQ/f5PUwm76NGncPk3hCg8GROwrGy
-         v6+1GeNW5fJFeHsOsGzfcicroTvYxA+eFQbAx7C+MWUa0LGFiB33ef0FLokmMJ+fB39c
-         la1IOM5lq/8XBU1qRKn1RpQJuMXaOZn8T03Z+hk3Jqtq37DVcAbZDRCPsfnc7HfCNe0E
-         3eow==
+        bh=PqM4RUHFJHYgsOUI3et1n95pYjRwiyC2guAXCJsd3iE=;
+        b=zo5xmlbeC6APkEWF+G1XPa2Wl6vGEzTMo0LDtltgLuRXx5turDxF9MB+D6khH83WVS
+         Oq5ChSXJK8KR7/f7PfhVAi0yH0NzW6Bg6qCAc2iZW+wMKk9j+LWpiz6ojtR+D4fdI8Km
+         WEVF5WSFFaNzPrWOo9VrJ0jJEkt2n4ZGH3WExRdzt2OawT+HknBUi512Fep5PhaI63Dc
+         2iLLILJIAtdgRsKFY8Q6pStOqzvbAebOO2eMcxVTWy9uHAIDR/xMXjHc/gGygKHoiBfS
+         2yZWIRPA0NgsWLr6hygoi6b27hoKHx3Pya/7lyfqjyjiRkVZ0hHfpFFpw9vdGhQpuiWp
+         awtg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786490415; x=1787095215;
+        d=1e100.net; s=20251104; t=1786490423; x=1787095223;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=Gk+a9mLjO1sFOyggqzNdg6aQdGam47r8W59+GEbhQOg=;
-        b=M2stmOgpHga4m9Ceu4pEFD98IsG7DXh8owdaUSJ1UEAapTEY5j4INrP8/BqOzOeiUf
-         cWX7swUi6LzBVLicwaRiF5vxnb/Tp3UXOHGjVQqYVDYw0X/jL4h8oOWBX/p0S82KVoLo
-         VnQOn6U/slPvUkBiUQEQBJ5DVZSznlf+qaQfVK38gZvnO2nscoz60G1QJ2zUaFbQGxyE
-         pJFMSx0ppygaO0cH1FRBkX1OCvuOPLabokf4WyambV7nUwN8PBDaO/GBDfI+IjRu9/X7
-         IJvqsLHISNU1rWEYkBWlp25qafbIw+PSh+c0kRRiGZXzNAJ2FmueVnQrZCvefGQH3rmx
-         +Zdg==
-X-Forwarded-Encrypted: i=1; AHgh+Rqpr063ERp7+XssMp9KOKGOaLpI8XGXqfBpgioQO2WBV3ED6BCYq3iL4b59w5j2BbejJNT4WNVwfhZ6@vger.kernel.org
-X-Gm-Message-State: AOJu0YxlhWZgoD+VH5DCFWPn3SmqBUSsCLCPA6yg/a/RP8PD8i5EeWzp
-	HwK7Wth0KgiE1G1dKb1b5rlZrVBkcQFTomU9Pq1rWnUXKzCGWAWQp0bFK79n8pVDuPg=
-X-Gm-Gg: AR+sD1229IL9Pkeq8geMgREaKWe4syeUNFs4FwdWuzNwm1/WnvLDN8f/1WCPwhWvK6r
-	eQozpwhwuObDbe+j4n6M77j3GF6quYBGJzclXX6bF/T8wkUERTgq4MsusKWd6jjbF+CtxGRcxwf
-	acN64SRe3FWre4Voj0FnaGBAI0oNGJ7ZPgJUsspl44vaTdGXjzmBA/MXaUp7cptSn7T5zJKgKDC
-	7+7BPS1bU8gF5fwg4yQLbt+CD86cpMdyWapUYMpWqx7vTi4JI4poqILH+RsWJboljgOQZIpsYp3
-	xGJvw56lNppShinTSr5Et6a+E6lhlDacmgF6Dze2V5J5M3d3N10Ht0X0IvgpusHTrw38M4HVEPZ
-	zdmHUIQaJDmU24rULwHoeep4yJKlDwvSpdA0r4YXUYrnUmI/0UP7npIQYtr5OsuSl4yv5la5DL7
-	pdhZY+FqM45uBCXNUqakQbItYw7FMciltKq439iBpJAQh9dA/dBuAZ9Dw3AjH28dh3woj/LEzsD
-	paBRfOAQ18=
-X-Received: by 2002:a05:6a00:1c9e:b0:84a:2b96:5986 with SMTP id d2e1a72fcca58-84fafa314a0mr4134236b3a.8.1786490414938;
-        Tue, 11 Aug 2026 16:20:14 -0700 (PDT)
+        bh=PqM4RUHFJHYgsOUI3et1n95pYjRwiyC2guAXCJsd3iE=;
+        b=lnDda2W7MKDzZ5C5SglSYycPaYgtPrXSXj0axPPbSFpit+T3vtRaLLBXHEqrY+1LNZ
+         i1L1IDxpkQ2u83dLXFnxrDv5WPjVSR/2H/rvHJHfrphCZtvjcI3uXZFZ4lxViJ0DdnBc
+         IH+6oH/6OnALTHWwuKzp3uZEqWmauPTMGFFDEBAvyQEd1ZVdIPi0TXX5LUekh8DfnUT6
+         gx9X2+xVZkAVl1c2YN8AKdypkO0K7LH41v/3tk2IWeidqj9m2mpAZHjuuUt/6Kl2lm/E
+         9aYvWXnF2UeqAHe9AbIK2faLSVMRpmJe9UvaT5sJjcTDKBzFPsicM18XLiAOeJ+Bx86f
+         oBJw==
+X-Forwarded-Encrypted: i=1; AHgh+Rr0GSfzq8lDicLVMic+6KtiiVlSFZlecXC89jNn7B7N233o5PpW9bdJFPMmTNNGqR/gAQi2S6zDjHMh@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzj4rpJ6U1TXOIyfg+1eQdaXrJVuDMcn5Gv3DNvp9bpCftOuVwU
+	zWR1zqrHjDHp4Sv3ZITFmNIEKNC2+bTg2qedVkTwqenvyzwe5bxC2cy3gkHEjq+2WgA=
+X-Gm-Gg: AR+sD128X7jlcTwlN/VLBoWS7EVt6+oe/JmonxmfaLRUh2pGgV+RZCVPCh5w3fa4jyN
+	B8dnDOI8s4ngvgbtRHJSqitbYJKL5R9axajFp9JFV3noVK5drx82R2+3HuvTa+5cWViiJZQtm2x
+	xHA/hAaHotqRn4LM+usZ2XgHqkopbKan0OyKP4gIjykcdDKfgu1rGxHiMp7zTTOEl5NyPMapDBk
+	T7h5Fuk8gkI2+e5Ca21inEDHdt1L6cZ/A1shL2nPVBiHbI+08FCCVL5uPELP9WVbwHpzV1E5GAN
+	cmXp4TlyfOZuSj/lRYoL36xdrPQ8Fw8tJ+878KdocoLqVusoaA+D5XQJlhsxBhla7ip+VwVYH9J
+	aU2ehS1FImTTJv+9b0isa/cc93u/i7eMBppMiKWsXPkjRAJQcEFeNZWbIHFxIwO9Nkf9S2MxxPe
+	Y0F9KikDDPKUjLOEvoT6xZcvTdlon+PijGkg/H0zjmVlkj4NS789J3WOP4QgPuTOAXbWQ4PWEnr
+	tlXAhW5WFg=
+X-Received: by 2002:a05:6a20:9f93:b0:3b5:530d:d96d with SMTP id adf61e73a8af0-3cc3f8c2a31mr378177637.12.1786490423253;
+        Tue, 11 Aug 2026 16:20:23 -0700 (PDT)
 Received: from yhlee-960QFG.Davolink ([2406:5900:1044:110c:365f:6c09:b402:1986])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-cbedbac8842sm1177810a12.30.2026.08.11.16.20.08
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-cbedbac8842sm1177810a12.30.2026.08.11.16.20.17
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 11 Aug 2026 16:20:14 -0700 (PDT)
+        Tue, 11 Aug 2026 16:20:22 -0700 (PDT)
 From: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
 To: alibuda@linux.alibaba.com,
 	dust.li@linux.alibaba.com,
@@ -83,9 +83,9 @@ Cc: leitao@debian.org,
 	linux-kernel@vger.kernel.org,
 	Yehyeong Lee <yhlee@isslab.korea.ac.kr>,
 	stable@vger.kernel.org
-Subject: [PATCH net v6 1/3] net/smc: fix use-after-free of the LLC qentry in smc_llc_srv_add_link()
-Date: Wed, 12 Aug 2026 08:19:00 +0900
-Message-ID: <20260811231902.47089-2-yhlee@isslab.korea.ac.kr>
+Subject: [PATCH net v6 2/3] net/smc: bound the peer rkey counts in SMC-Rv2 LLC messages
+Date: Wed, 12 Aug 2026 08:19:01 +0900
+Message-ID: <20260811231902.47089-3-yhlee@isslab.korea.ac.kr>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260811231902.47089-1-yhlee@isslab.korea.ac.kr>
 References: <20260811231902.47089-1-yhlee@isslab.korea.ac.kr>
@@ -97,186 +97,182 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-smc_llc_srv_add_link() keeps add_llc pointing into the queue entry:
+On a link whose device has max_recv_sge == 1 there is no shared v2 receive
+buffer, and smc_llc_save_add_link_rkeys() takes the v2 extension from 44
+bytes past the start of the queue entry's inline message:
 
-  add_llc = &qentry->msg.add_link;			smc_llc.c:1482
-  ...
-  smc_llc_save_add_link_info(link_new, add_llc);	smc_llc.c:1494
-  smc_llc_flow_qentry_del(&lgr->llc_flow_lcl);		smc_llc.c:1495
-  ...
-  u8 *llc_msg = smc_link_shared_v2_rxbuf(link) ?
-	(u8 *)lgr->wr_rx_buf_v2 : (u8 *)add_llc;	smc_llc.c:1504
-  smc_llc_save_add_link_rkeys(link, link_new, llc_msg);	smc_llc.c:1506
+  ext = (struct smc_llc_msg_add_link_v2_ext *)(llc_msg + SMC_WR_TX_SIZE);
 
-smc_llc_flow_qentry_del() kfree()s the entry, so on a link without a shared
-v2 receive buffer the pointer handed to smc_llc_save_add_link_rkeys() is
-already freed.  Before the Fixes: commit that branch always used
-lgr->wr_rx_buf_v2 and add_llc was not used after the free.
+The entry is a 72-byte allocation and the extension starts at offset 68, so
+ext->num_rkeys at offset 94 is already past it.  This happens on every
+SMC-Rv2 link addition, whatever the peer sends:
 
-Reproduced on an unpatched tree over rxe, with KASAN, kasan_multi_shot
-and a link forced to max_recv_sge == 1: the entry is freed and read by
-the same call, and the freeing frame is smc_llc_srv_add_link() itself.
+  [    2.490065] BUG: KASAN: slab-out-of-bounds in smc_llc_save_add_link_rkeys+0x333/0x350
+  [    2.490431] Read of size 2 at addr ffff8880056406de by task smctest/106
+  [    2.490709] 
+  [    2.490792] CPU: 0 UID: 0 PID: 106 Comm: smctest Not tainted 7.2.0-rc5-p1-g77a5d9d9c99f #32 PREEMPT(lazy) 
+  [    2.490795] Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+  [    2.490798] Call Trace:
+  [    2.490803]  <TASK>
+  [    2.490805]  dump_stack_lvl+0x53/0x70
+  [    2.490810]  print_report+0xd0/0x630
+  [    2.490828]  ? __pfx__raw_spin_lock_irqsave+0x10/0x10
+  [    2.490832]  ? smc_llc_save_add_link_rkeys+0x333/0x350
+  [    2.490834]  kasan_report+0xce/0x100
+  [    2.490836]  ? smc_llc_save_add_link_rkeys+0x333/0x350
+  [    2.490837]  smc_llc_save_add_link_rkeys+0x333/0x350
+  [    2.490839]  ? smcr_buf_map_lgr+0x1bf/0x2b0
+  [    2.490844]  smc_llc_cli_add_link+0xca7/0x1e80
+  [    2.490848]  ? smc_llc_wait+0x355/0x810
+  [    2.490850]  ? __pfx_smc_llc_wait+0x10/0x10
+  [    2.490851]  ? __pfx_smc_llc_cli_add_link+0x10/0x10
+  [    2.490853]  ? __pfx_autoremove_wake_function+0x10/0x10
+  [    2.490863]  __smc_connect+0x3f5c/0x4980
+  [    2.490873]  ? __pfx_kernel_connect+0x10/0x10
+  [    2.490888]  ? __pfx___smc_connect+0x10/0x10
+  [    2.490891]  ? release_sock+0x148/0x1d0
+  [    2.490894]  smc_connect+0x42c/0x580
+  [    2.490896]  __sys_connect+0xfc/0x130
+  [    2.490898]  ? __pfx___sys_connect+0x10/0x10
+  [    2.490900]  ? handle_mm_fault+0x1a1/0x430
+  [    2.490908]  __x64_sys_connect+0x6d/0xb0
+  [    2.490909]  ? fpregs_assert_state_consistent+0x56/0xe0
+  [    2.490917]  do_syscall_64+0xf9/0x540
+  [    2.490921]  entry_SYSCALL_64_after_hwframe+0x77/0x7f
+  [    2.490924] RIP: 0033:0x421bb4
+  [    2.490927] Code: ff f7 d8 64 89 01 48 83 c8 ff c3 66 2e 0f 1f 84 00 00 00 00 00 90 f3 0f 1e fa 80 3d ad 34 09 00 00 74 13 b8 2a 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 4c c3 0f 1f 00 55 48 89 e5 48 83 ec 10 89 55
+  [    2.490929] RSP: 002b:00007ffd473b01a8 EFLAGS: 00000202 ORIG_RAX: 000000000000002a
+  [    2.490935] RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000421bb4
+  [    2.490936] RDX: 0000000000000010 RSI: 00007ffd473b01d0 RDI: 0000000000000003
+  [    2.490937] RBP: 0000000000003930 R08: 0000000000000004 R09: 0000000000000000
+  [    2.490938] R10: 00007ffd473b0f98 R11: 0000000000000202 R12: 0000000000000006
+  [    2.490939] R13: 00007ffd473b0f87 R14: 0000000000000003 R15: 00007ffd473b0f90
+  [    2.490940]  </TASK>
+  [    2.490941] 
+  [    2.499545] Allocated by task 44:
+  [    2.499693]  kasan_save_stack+0x33/0x60
+  [    2.499860]  kasan_save_track+0x14/0x30
+  [    2.500026]  __kasan_kmalloc+0x8f/0xa0
+  [    2.500190]  __kmalloc_cache_noprof+0x158/0x370
+  [    2.500393]  smc_llc_enqueue+0x72/0x560
+  [    2.500559]  smc_wr_rx_tasklet_fn+0x474/0xa80
+  [    2.500747]  tasklet_action_common+0x20f/0x8a0
+  [    2.500945]  handle_softirqs+0x18e/0x590
+  [    2.501115]  do_softirq+0x3b/0x60
+  [    2.501266]  __local_bh_enable_ip+0x61/0x70
+  [    2.501446]  __alloc_skb+0x732/0x890
+  [    2.501604]  rxe_init_packet+0x16b/0x4f0
+  [    2.501783]  prepare_ack_packet+0xb8/0x830
+  [    2.501962]  rxe_receiver+0x495/0x96e0
+  [    2.502125]  do_work+0x144/0x470
+  [    2.502269]  process_one_work+0x633/0x1030
+  [    2.502450]  worker_thread+0x45b/0xd10
+  [    2.502617]  kthread+0x2c6/0x3b0
+  [    2.502762]  ret_from_fork+0x36e/0x5a0
+  [    2.502925]  ret_from_fork_asm+0x1a/0x30
+  [    2.503103] 
+  [    2.503177] The buggy address belongs to the object at ffff888005640680
+  [    2.503177]  which belongs to the cache kmalloc-96 of size 96
+  [    2.503692] The buggy address is located 22 bytes to the right of
+  [    2.503692]  allocated 72-byte region [ffff888005640680, ffff8880056406c8)
+  [    2.504227] 
+  [    2.504300] The buggy address belongs to the physical page:
+  [    2.504535] page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x5640
+  [    2.504865] flags: 0x100000000000000(node=0|zone=1)
+  [    2.505076] page_type: f5(slab)
+  [    2.505221] raw: 0100000000000000 ffff888001041280 dead000000000122 0000000000000000
+  [    2.505544] raw: 0000000000000000 0000000000200020 00000000f5000000 0000000000000000
+  [    2.505867] page dumped because: kasan: bad access detected
+  [    2.506102] 
+  [    2.506176] Memory state around the buggy address:
+  [    2.506380]  ffff888005640580: 00 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc
+  [    2.506683]  ffff888005640600: 00 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc
+  [    2.506987] >ffff888005640680: 00 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc
+  [    2.507291]                                                     ^
+  [    2.507548]  ffff888005640700: 00 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc
+  [    2.507850]  ffff888005640780: 00 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc
 
-  [    2.523161] BUG: KASAN: slab-use-after-free in smc_llc_save_add_link_rkeys+0x333/0x350
-  [    2.523499] Read of size 2 at addr ffff8880052194de by task kworker/0:1/11
-  [    2.523789] 
-  [    2.523862] CPU: 0 UID: 0 PID: 11 Comm: kworker/0:1 Not tainted 7.2.0-rc5-p0-g2c9dd296545d #35 PREEMPT(lazy) 
-  [    2.523865] Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-  [    2.523866] Workqueue: smc_hs_wq smc_listen_work
-  [    2.523869] Call Trace:
-  [    2.523870]  <TASK>
-  [    2.523871]  dump_stack_lvl+0x53/0x70
-  [    2.523872]  print_report+0xd0/0x630
-  [    2.523874]  ? __pfx__raw_spin_lock_irqsave+0x10/0x10
-  [    2.523876]  ? smc_llc_save_add_link_rkeys+0x333/0x350
-  [    2.523878]  kasan_report+0xce/0x100
-  [    2.523879]  ? smc_llc_save_add_link_rkeys+0x333/0x350
-  [    2.523881]  smc_llc_save_add_link_rkeys+0x333/0x350
-  [    2.523883]  ? smcr_buf_reg_lgr+0x2a4/0x660
-  [    2.523885]  smc_llc_srv_add_link+0xaa2/0x1e50
-  [    2.523888]  ? _printk+0xba/0xf0
-  [    2.523897]  ? __pfx_smc_llc_srv_add_link+0x10/0x10
-  [    2.523899]  ? down_write+0xb0/0x130
-  [    2.523903]  ? __pfx_down_write+0x10/0x10
-  [    2.523905]  smc_listen_work+0x489e/0x4d00
-  [    2.523907]  ? kmem_cache_free+0x1c6/0x3a0
-  [    2.523911]  ? __pfx_smc_listen_work+0x10/0x10
-  [    2.523913]  ? release_sock+0x148/0x1d0
-  [    2.523915]  ? smc_tcp_listen_work+0xb4f/0xfc0
-  [    2.523917]  ? _raw_spin_lock_irq+0x80/0xe0
-  [    2.523918]  ? __pfx__raw_spin_lock_irq+0x10/0x10
-  [    2.523920]  process_one_work+0x633/0x1030
-  [    2.523922]  ? assign_work+0x11d/0x370
-  [    2.523924]  worker_thread+0x45b/0xd10
-  [    2.523926]  ? __pfx_worker_thread+0x10/0x10
-  [    2.523928]  ? __pfx_worker_thread+0x10/0x10
-  [    2.523929]  kthread+0x2c6/0x3b0
-  [    2.523931]  ? recalc_sigpending+0x15c/0x1e0
-  [    2.523934]  ? __pfx_kthread+0x10/0x10
-  [    2.523935]  ret_from_fork+0x36e/0x5a0
-  [    2.523937]  ? __pfx_ret_from_fork+0x10/0x10
-  [    2.523938]  ? __switch_to+0x572/0xdd0
-  [    2.523943]  ? __pfx_kthread+0x10/0x10
-  [    2.523944]  ret_from_fork_asm+0x1a/0x30
-  [    2.523947]  </TASK>
-  [    2.523948] 
-  [    2.531253] Allocated by task 48:
-  [    2.531399]  kasan_save_stack+0x33/0x60
-  [    2.531570]  kasan_save_track+0x14/0x30
-  [    2.531737]  __kasan_kmalloc+0x8f/0xa0
-  [    2.531905]  __kmalloc_cache_noprof+0x158/0x370
-  [    2.532100]  smc_llc_enqueue+0x72/0x560
-  [    2.532268]  smc_wr_rx_tasklet_fn+0x474/0xa80
-  [    2.532491]  tasklet_action_common+0x20f/0x8a0
-  [    2.532714]  handle_softirqs+0x18e/0x590
-  [    2.532886]  do_softirq+0x3b/0x60
-  [    2.533036]  __local_bh_enable_ip+0x61/0x70
-  [    2.533221]  __alloc_skb+0x732/0x890
-  [    2.533384]  rxe_init_packet+0x16b/0x4f0
-  [    2.533567]  prepare_ack_packet+0xb8/0x830
-  [    2.533760]  rxe_receiver+0x495/0x96e0
-  [    2.533933]  do_work+0x144/0x470
-  [    2.534078]  process_one_work+0x633/0x1030
-  [    2.534257]  worker_thread+0x45b/0xd10
-  [    2.534424]  kthread+0x2c6/0x3b0
-  [    2.534569]  ret_from_fork+0x36e/0x5a0
-  [    2.534737]  ret_from_fork_asm+0x1a/0x30
-  [    2.534907] 
-  [    2.534980] Freed by task 11:
-  [    2.535112]  kasan_save_stack+0x33/0x60
-  [    2.535279]  kasan_save_track+0x14/0x30
-  [    2.535444]  kasan_save_free_info+0x3b/0x60
-  [    2.535625]  __kasan_slab_free+0x43/0x70
-  [    2.535798]  kfree+0x121/0x380
-  [    2.535935]  smc_llc_srv_add_link+0x9a8/0x1e50
-  [    2.536128]  smc_listen_work+0x489e/0x4d00
-  [    2.536305]  process_one_work+0x633/0x1030
-  [    2.536482]  worker_thread+0x45b/0xd10
-  [    2.536652]  kthread+0x2c6/0x3b0
-  [    2.536794]  ret_from_fork+0x36e/0x5a0
-  [    2.536958]  ret_from_fork_asm+0x1a/0x30
-  [    2.537133] 
-  [    2.537205] The buggy address belongs to the object at ffff888005219480
-  [    2.537205]  which belongs to the cache kmalloc-96 of size 96
-  [    2.537719] The buggy address is located 94 bytes inside of
-  [    2.537719]  freed 96-byte region [ffff888005219480, ffff8880052194e0)
-  [    2.538216] 
-  [    2.538289] The buggy address belongs to the physical page:
-  [    2.538524] page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x5219
-  [    2.538857] flags: 0x100000000000000(node=0|zone=1)
-  [    2.539066] page_type: f5(slab)
-  [    2.539210] raw: 0100000000000000 ffff888001041280 dead000000000122 0000000000000000
-  [    2.539534] raw: 0000000000000000 0000000000200020 00000000f5000000 0000000000000000
-  [    2.539863] page dumped because: kasan: bad access detected
-  [    2.540098] 
-  [    2.540170] Memory state around the buggy address:
-  [    2.540379]  ffff888005219380: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-  [    2.540684]  ffff888005219400: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-  [    2.540988] >ffff888005219480: fa fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
-  [    2.541291]                                                     ^
-  [    2.541548]  ffff888005219500: 00 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc
-  [    2.541857]  ffff888005219580: 00 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc
+Whatever that read finds then bounds the ext->rt[] loop, so a peer that
+declares 255 rkeys reads much further.  smc_llc_rmt_delete_rkey() has the
+same shape for llcv2->rkey[].
 
-The offset is past the 72-byte queue entry because the out-of-bounds read
-fixed by the next patch is on the same line; what this patch removes is the
-free at smc_llc_srv_add_link+0x9a8 happening before the read at +0xaa2.
-
-Detach the entry instead of freeing it there, and free it at the single
-exit label.  The reject path has to detach as well, otherwise it would be
-freed twice.
-
-This changes only the lifetime of the entry.  The same read still runs past
-its end until the next two patches bound it, so a backport wants all three.
+Bound both loops by the buffer they read from, and skip the extension
+altogether when there is no shared v2 receive buffer.  The extension
+does arrive on the link, but smc_llc_enqueue() copies only
+sizeof(union smc_llc_msg) into the queue entry, so what that code read
+past the 44 inline bytes was heap and not peer data.
 
 Fixes: 27ef6a9981fe ("net/smc: support SMC-R V2 for rdma devices with max_recv_sge equals to 1")
 Cc: stable@vger.kernel.org
 Signed-off-by: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
 ---
-Changes since v5: return through the existing exit label.
+v4 -> v5: corrected the reason given for skipping the extension.  It does
+arrive on the link; what is not there is the copy in the queue entry.  No
+functional change.
 
- net/smc/smc_llc.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+Measured over rxe with KASAN and max_recv_sge forced to 1, five test cells
+(plain 1-rkey delete, delete declaring 255, plain ADD_LINK v2, ADD_LINK
+declaring 255, and an SMC-Rv1 link group).  Without this patch four of the
+five report; with it none do.  With kasan_multi_shot the unpatched kernel
+reports 491 times in a single ADD_LINK run, the patched one not at all.
+
+Changes since v5: none.
+
+ net/smc/smc_llc.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
 diff --git a/net/smc/smc_llc.c b/net/smc/smc_llc.c
-index 954b2ff1815c..055a03eee5b5 100644
+index 055a03eee5b5..748d65186f68 100644
 --- a/net/smc/smc_llc.c
 +++ b/net/smc/smc_llc.c
-@@ -1481,7 +1481,7 @@ int smc_llc_srv_add_link(struct smc_link *link,
- 	}
- 	add_llc = &qentry->msg.add_link;
- 	if (add_llc->hd.flags & SMC_LLC_FLAG_ADD_LNK_REJ) {
--		smc_llc_flow_qentry_del(&lgr->llc_flow_lcl);
-+		smc_llc_flow_qentry_clr(&lgr->llc_flow_lcl);
- 		rc = -ENOLINK;
- 		goto out_err;
- 	}
-@@ -1492,7 +1492,8 @@ int smc_llc_srv_add_link(struct smc_link *link,
- 		lgr_new_t = SMC_LGR_ASYMMETRIC_PEER;
- 	}
- 	smc_llc_save_add_link_info(link_new, add_llc);
--	smc_llc_flow_qentry_del(&lgr->llc_flow_lcl);
-+	/* add_llc still points into qentry, so only detach it here */
-+	smc_llc_flow_qentry_clr(&lgr->llc_flow_lcl);
+@@ -1000,13 +1000,21 @@ static void smc_llc_save_add_link_rkeys(struct smc_link *link,
+ 					struct smc_link *link_new,
+ 					u8 *llc_msg)
+ {
++	const u32 rt_off = offsetof(struct smc_llc_msg_add_link_v2_ext, rt);
+ 	struct smc_llc_msg_add_link_v2_ext *ext;
+ 	struct smc_link_group *lgr = link->lgr;
+ 	int max, i;
  
- 	rc = smc_ib_ready_link(link_new);
- 	if (rc)
-@@ -1512,14 +1513,14 @@ int smc_llc_srv_add_link(struct smc_link *link,
- 	rc = smc_llc_srv_conf_link(link, link_new, lgr_new_t);
- 	if (rc)
- 		goto out_err;
--	kfree(ini);
--	return 0;
-+	goto out;
- out_err:
- 	if (link_new) {
- 		link_new->state = SMC_LNK_INACTIVE;
- 		smcr_link_clear(link_new, false);
- 	}
- out:
-+	kfree(qentry);
- 	kfree(ini);
- 	if (send_req_add_link_resp)
- 		smc_llc_send_req_add_link_response(req_qentry);
++	/* Without a shared v2 receive buffer the extension is not copied
++	 * into the queue entry, so not even ext->num_rkeys is there.
++	 */
++	if (!smc_link_shared_v2_rxbuf(link))
++		return;
+ 	ext = (struct smc_llc_msg_add_link_v2_ext *)(llc_msg +
+ 						     SMC_WR_TX_SIZE);
+ 	max = min_t(u8, ext->num_rkeys, SMC_LLC_RKEYS_PER_MSG_V2);
++	max = min_t(u32, max, (SMC_WR_BUF_V2_SIZE - SMC_WR_TX_SIZE - rt_off) /
++			      sizeof(ext->rt[0]));
+ 	down_write(&lgr->rmbs_lock);
+ 	for (i = 0; i < max; i++) {
+ 		smc_rtoken_set(lgr, link->link_idx, link_new->link_idx,
+@@ -1811,17 +1819,25 @@ static void smc_llc_rmt_delete_rkey(struct smc_link_group *lgr)
+ 	link = qentry->link;
+ 
+ 	if (lgr->smc_version == SMC_V2) {
++		const u32 rkey_off =
++			offsetof(struct smc_llc_msg_delete_rkey_v2, rkey);
+ 		struct smc_llc_msg_delete_rkey_v2 *llcv2;
++		u32 buf_len;
+ 
+ 		if (smc_link_shared_v2_rxbuf(link)) {
+ 			memcpy(lgr->wr_rx_buf_v2, llc, sizeof(*llc));
+ 			llcv2 = (struct smc_llc_msg_delete_rkey_v2 *)lgr->wr_rx_buf_v2;
++			buf_len = SMC_WR_BUF_V2_SIZE;
+ 		} else {
+ 			llcv2 = (struct smc_llc_msg_delete_rkey_v2 *)llc;
++			buf_len = sizeof(qentry->msg);
+ 		}
+ 		llcv2->num_inval_rkeys = 0;
+ 
+ 		max = min_t(u8, llcv2->num_rkeys, SMC_LLC_RKEYS_PER_MSG_V2);
++		/* bound by the buffer llcv2 points at */
++		max = min_t(u32, max, (buf_len - rkey_off) /
++				      sizeof(llcv2->rkey[0]));
+ 		for (i = 0; i < max; i++) {
+ 			if (smc_rtoken_delete(link, llcv2->rkey[i]))
+ 				llcv2->num_inval_rkeys++;
 -- 
 2.43.0
 
