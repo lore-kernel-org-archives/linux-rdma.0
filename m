@@ -1,66 +1,66 @@
-Received: from mail-pj1-f50.google.com (mail-pj1-f50.google.com [209.85.216.50])
+Received: from mail-pf1-f171.google.com (mail-pf1-f171.google.com [209.85.210.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 228CD418340
-	for <linux-rdma@vger.kernel.org>; Tue, 11 Aug 2026 21:22:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89B393F5BF5
+	for <linux-rdma@vger.kernel.org>; Tue, 11 Aug 2026 21:22:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786483356; cv=none; b=TiZy/qcF+hI/EMnuojvaMhvMzt3HFg3nh/XuRk1xCLuDOUyU9ody0zDjgEEXXRexQIUXeNkUuRRdoi+11v8NGFgaS82vIQHhVeqPz+Lkw10L4KYwpUTw69EvSvTlYrwl5Q2h/gZGernAGNrdJfGrhJ4s9FA14THJMADvYnfCz1A=
+	t=1786483377; cv=none; b=BMP91+Zb96NvsCeCM4h1IHCenNs6OYM3K8iyNnXpteNS4ugh2j0nxShjzXN++gQeGXdMWxDC1m2DfF1e4uTZ2Lju0ohfstp54CeSXCc/7IVJ8a299dHZSq6va0Noxjj509P4t7bYAQHufRyOyH4E3utwAEfWkWO8hiwjT3eplDg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786483356; c=relaxed/simple;
-	bh=NdaLGblalh7y8lVJYv0NjjfAvsT9Ho42+c6mULsp9Qg=;
+	s=arc-20240116; t=1786483377; c=relaxed/simple;
+	bh=XN/rifqNvJQDtxhcJX1CkOjTxm/idHUoaQKoCIcr3J0=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=MlQyk8ufZSvj3aA2kD9b4yBsqiIuNjKEH5nhTguSoVJLsEiiB8f003rSMg6WxYVaf/egBbA3nctSPj/1Wh3j3kQkYWNQxCP05/xPSkzYPD8KLhiPlLsysuFjOb5RDvRdG9T89/lTCVzj2VOhz6YFm9vzQP7NiuRM1vsydZ47uJ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=r5TP5iaf; arc=none smtp.client-ip=209.85.216.50
+	 Content-Type:Content-Disposition:In-Reply-To; b=tMEhdf7EhfOxiRpyY3YpeYXKsXDxDXxAV965HI7ivlx9CAw2Sy12xEFQ9bV+sdkitxyz1iQOdMDbE3Txa6ggA8B571XjB12g3nhnxG3IwehW8kQDacDi0yfVrGtyCJwGMoy9Yeq5DcqcmnANDVblI6qYTaIMtgmLIJTuutEwgW0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=iHLshkuD; arc=none smtp.client-ip=209.85.210.171
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="r5TP5iaf"
-Received: by mail-pj1-f50.google.com with SMTP id 98e67ed59e1d1-383b4a3755fso381777a91.3
-        for <linux-rdma@vger.kernel.org>; Tue, 11 Aug 2026 14:22:35 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="iHLshkuD"
+Received: by mail-pf1-f171.google.com with SMTP id d2e1a72fcca58-8484f229529so292707b3a.2
+        for <linux-rdma@vger.kernel.org>; Tue, 11 Aug 2026 14:22:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1786483354; x=1787088154; darn=vger.kernel.org;
+        d=google.com; s=20251104; t=1786483376; x=1787088176; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:content-type:mime-version
          :references:message-id:subject:cc:to:from:date:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=hg+Yr9bSAREbkWFulA8TyFK9VZyeo5bqgSMI0IG+zlA=;
-        b=r5TP5iafDRspKFczahdfGJLKRRvKfzl9hagc82bQ9hk7Vh6URuNL0fkVTJuWao00eY
-         HKLHouLnXi7QNhg954xas/CqncJDw8vJWxVLGz8ZMzc4TSsyOgUTSDZYub+my/QLHagd
-         lHinOg4NKlsJoOoWEuxUC66CMZBBMXUKJyikaluDHF1f3dc3hSSsQIL9xJuGmXgSvBhe
-         4fm552xZ5ZqmhQ5908lu4oOUIJ7nhxkrjkAtwxG2X/925DRTrA+rUQFxxUnGm8zE3cCo
-         pzWzgcK3ydzN40598Fi0FCOXwP2F6QPz57ZCPPs8zfuJ4lAhhXvMft076UjmDBjTRfw/
-         06LQ==
+        bh=duzXNp2G2UESyfsX/Nv+I5To/x8QlNagRZc9TfujvZ8=;
+        b=iHLshkuD8hBFuauu4Di391vGvcjQPTjaGzzEbn5A5oegjFPuo2toVazuiHN6PYmxAb
+         /HpeaZ7L7FPd2yTnQjuluPzw2qiaz26lrtn3pQu1kZ4cVTxgo5BKjGilTiLxUTwV4eT6
+         em6hDsWoiS+ZCtPV54S7Wg1VaWBad7TAFpQWvmLxaNR9V1eBftl8BqCFF6hraUieoE84
+         BM/SD5uATWeSfQY/znDz3wI7Go4cW22PGFkMHMFP3eDnMDiuxegNYylALhxUhHMkIcHZ
+         Bf7aMENNcRKgAG7GIoc3J9AIIgV16iuBudza6Y2fGq5QIb8b0/ewFob6ACmvz/5WZYnS
+         QJSw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786483354; x=1787088154;
+        d=1e100.net; s=20251104; t=1786483376; x=1787088176;
         h=in-reply-to:content-disposition:content-type:mime-version
          :references:message-id:subject:cc:to:from:date:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=hg+Yr9bSAREbkWFulA8TyFK9VZyeo5bqgSMI0IG+zlA=;
-        b=oNR69AwUIj8AfkT3MyJd+udeTYIE8a/dP+aJ/1vcbkajPmOTMXpf0G2vPcSTo9w6L1
-         lE5nZXi1ihByI2fX985C+SgxC36gf41ZP5xg8oGYWzndCVp4TzBP6m9FKdYCyrbKIEZY
-         qYuhFRsi3KcgSvw+b6f+9MBLMfcQACtNK6d6rNh1hIGknMqo0EwovlJ+IDK/M4wDkD3K
-         1LWu7PLc5Vij84kDfThn81n2y5niGYq8OqoFRrnjKR0o0ivf2Is64POTOBuNvdbsuviO
-         qFPmw9DYEN80DxiNw8c/AFxCQl5W6rAFOnl6Oh1kmb8TSy9aZk9GPEux7f1k1nqXadBs
-         Pe6w==
-X-Forwarded-Encrypted: i=1; AHgh+Rq6Srg9+35XqOHuOoVtUzafZM/jREbHoneumEQ6170T5RWi5Rw0JKtnySfJfo2Dy0ItH52+SIxo2Z+C@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy625ITVJHSpaa60LQU/W4S9s2OpYEaSF2MrEitC3ETAm3XSVkF
-	OHkvrK0AKsFgNGVhSyMEEiWZVknA4EZz2v9Aa5xQ5T10V+t0lxVigRZdamjd6sxTlA==
-X-Gm-Gg: AR+sD13ZpgeKWlmgsg7GA7XK8QD3tlBCX2NAo2Psy/UcwzTFaIcT/vxDbdL5eA3gp64
-	zS1w2B8dFrHY+c7N/lRO2ULVGJnIJ1CjDYc4YcCxmNIt3/01Rs1bXC5VNjYco/ZX1fNSjanG/lt
-	GZtNz/E6Qkr2ZR8B9F8zOCW6RNZMFKQZuKETuSeAbjal5F7se2H+3w80vLH8yhyKVDKdz/atWQ7
-	kfqp/+SUW5ckjBI71wNSvPytEaMczkmmwtmYTq0c191o8HBgDmc5kSdLgZGOU0T0UDSkTOgQZFj
-	bmJm6QpfshvT8atYiciMYtGStgRUnrISr+9mEt3TQg0vqHPkFjI7Eove7j12tEU+hHRUqQJGtFB
-	3w1eot3kRTU4Bqx/z8TtGFEFGlItZ/fgxqN7GgFBOuJwi4yeDnBl/t4Zp78Z5Rf6UlFim6H1W4Z
-	ZTBKJniGGaFD4Y4KMuVHWS4FcFDXjcBGg7Bcr+T3z2Zq/cQBUzwacsOSRH5QSKljbO5dc6Hn2Lb
-	rv22fyHUN98GKUoYzq64Kx7Ij2DZA==
-X-Received: by 2002:a17:90b:4a82:b0:38e:101f:c867 with SMTP id 98e67ed59e1d1-392ec672d1emr6461856a91.18.1786483353815;
-        Tue, 11 Aug 2026 14:22:33 -0700 (PDT)
+        bh=duzXNp2G2UESyfsX/Nv+I5To/x8QlNagRZc9TfujvZ8=;
+        b=dtD8I0ystP33CE6g0FjaK1/YLZH334kQ6jOS1vVTjcUUJYYrIUQzWz9ceZEQAWIq08
+         UXsbXwT7u060drupLk79Ku0OSpib5RsFs8AEcWf9KJupG/qqe6/KwArVFzo9MY2co940
+         u9Z+8p2xsPHpQYf2xplxoz8BiRYQ1Mt+KvHl5IVi/AxprMR+40+ToLolm9cV4UZGAQ8u
+         bIbNGBub+LLQC7nal4oT2DklvMyQzMzZ/A/Q5MPxIm1qGO9y+dQUZG6ee2UxVjnj7YCa
+         0vhMQ+T2AdU1OIJYhP8ZaeqL3fuLrwrOhX6ha9tOpUB0I8pWuLqtt612NzeMXcq8j5Lz
+         UDPA==
+X-Forwarded-Encrypted: i=1; AHgh+RoCknLt0mQNu51hkOBQzsO00+g3lHpGidzwt+2KRIi+4evS9ypEdYKPsYA5TFKD4CitED1NtokmrOHg@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy1j+X7jlQUtYwkNSHZfnUe27ksghwpWLW0ofHhkxSZDnveWMyQ
+	uce3MkpLjD100pCvQbistwSD1/YxNv8il4ZRVhAv88qRfzvKRYmLjRDP5gQwydVKCQ==
+X-Gm-Gg: AR+sD13GoU5OSeyQLEMGDOs8vermzyKo2RH7Hl5iAxoRGptd4Z+lkbhkKibgjc7wkPT
+	z7hFnyn8NpJUqb4SXQkSdN1SSvPlj92v8Rq9fio1g4REPKm608KbnZULtugkThZXMJ3bXAjaa/M
+	aEokOdJfpBmoGaH1iLP4XJ2ggWG0UdteejFX83aYjzT0lDIPyMuTKle07haALV7FxBDNawMeaCn
+	LBEoR3qwmKM4vApjP6EzhN3XYIbrrBIW+8H9sPRhijrzZ2Oactt45w8XeWwd37hQN/GGj4gxp3F
+	0/iz1WIwPT7qcId45d2Aukl9eRBgdq5tPDjiqimodiNMwjBnKnDgrzfKOEQjWxIRg8MaGacceyF
+	+j2OJ9CrYAgoeXuf2eh3u1T6En8J5QosSNnO6679KlMWlj+Ze3f8waBdIm78yGtLrTS/lFAgqrP
+	G2fb6FX15XQSrupqCoZLR81CdUn95IPUoLY7rVd/mVoWEz3NXCDzIXKQSnu8VjQh29bTqI9TtNn
+	G/FUXuWFdMMI7P81pKyMiQzapnOqg==
+X-Received: by 2002:a05:6a20:a105:b0:3c3:a168:edc3 with SMTP id adf61e73a8af0-3cc2bcbf252mr7676629637.38.1786483374995;
+        Tue, 11 Aug 2026 14:22:54 -0700 (PDT)
 Received: from google.com (132.200.185.35.bc.googleusercontent.com. [35.185.200.132])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-392f85feb67sm1080532a91.0.2026.08.11.14.22.33
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-cbed8bdaeb5sm1461553a12.11.2026.08.11.14.22.53
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 11 Aug 2026 14:22:33 -0700 (PDT)
-Date: Tue, 11 Aug 2026 21:22:30 +0000
+        Tue, 11 Aug 2026 14:22:53 -0700 (PDT)
+Date: Tue, 11 Aug 2026 21:22:50 +0000
 From: David Matlack <dmatlack@google.com>
 To: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Alex Williamson <alex@shazbot.org>,
@@ -72,11 +72,11 @@ Cc: Alex Williamson <alex@shazbot.org>,
 	Nick Desaulniers <ndesaulniers@google.com>, netdev@vger.kernel.org,
 	Saeed Mahameed <saeedm@nvidia.com>, Shuah Khan <shuah@kernel.org>,
 	Tariq Toukan <tariqt@nvidia.com>, patches@lists.linux.dev
-Subject: Re: [PATCH v3 10/11] vfio: selftests: Add mlx5 driver - data path
- and memcpy ops
-Message-ID: <anuSlnCd7NERCp4B@google.com>
+Subject: Re: [PATCH v3 11/11] vfio: selftests: mlx5 driver - add send_msi
+ support
+Message-ID: <anuSqnU7WPy-9enn@google.com>
 References: <0-v3-76f117ad04f1+28a90-mlx5st_jgg@nvidia.com>
- <10-v3-76f117ad04f1+28a90-mlx5st_jgg@nvidia.com>
+ <11-v3-76f117ad04f1+28a90-mlx5st_jgg@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -85,17 +85,24 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <10-v3-76f117ad04f1+28a90-mlx5st_jgg@nvidia.com>
+In-Reply-To: <11-v3-76f117ad04f1+28a90-mlx5st_jgg@nvidia.com>
 
 On 2026-07-16 02:03 PM, Jason Gunthorpe wrote:
-> Complete the mlx5 driver by adding CQ/QP creation, QP state
-> transitions, WQE posting, CQ polling, and the
-> memcpy_start/memcpy_wait callbacks. After this patch the driver is
-> functional for DMA tests.
+> Wire an MSI-X vector to a dedicated EQ so the mlx5 driver supports
+> send_msi().
 > 
-> The data path implements RDMA Write self-loopback via an RC QP with
-> force-loopback.  WQEs are posted to a 16-entry send queue with an
-> NC doorbell, and completions are polled from a 16-entry CQ.
+> Each EQ can be linked to an MSI-X vector, and the CQ can be set up
+> to deliver an event to the EQ. Thus, when everything is armed, an
+> RDMA WRITE posted to the QP generates a CQE, which generates an
+> EQE, which generates an MSI-X.
+> 
+> To keep things simple this just re-uses all the existing QPs and
+> CQs, so they generate single MSIs during memcpy.
+> 
+> send_msi() drains any accumulated MSI EQ events from prior memcpy
+> completions, posts a small signaled RDMA Write, then polls the CQ to
+> consume the resulting CQE (avoiding stale completions on subsequent
+> test cycles).
 > 
 > Assisted-by: Claude:claude-opus-4.6
 > Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
