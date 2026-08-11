@@ -1,109 +1,214 @@
-Received: from mail-qk1-f179.google.com (mail-qk1-f179.google.com [209.85.222.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1302F3594A
-	for <linux-rdma@vger.kernel.org>; Tue, 11 Aug 2026 00:06:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.179
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 967021DB92C;
+	Tue, 11 Aug 2026 02:38:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786406806; cv=none; b=NgTjWFbsDep09O1QU8U3Jbo+5b97RD/e0PwME9u+wh8v8Rey++VCr0qmcg+YNr80LGdZIjkrGj0QmB68B+J4zGMAKenx+mBrLj3aWzxEiiWB+IK8Wlh0Kf/bPK7bmJCL3ZNPmspKC3W4yM3MrepdPTbvPHQnR7vRPX+tlO8yLHY=
+	t=1786415932; cv=none; b=CWbMS9IM592i9P1MeMnIi6R/krH8h9DeSSUlJS9ysHKywyqcRIWTKzTsQsYAai4ClrshXT/TzsCjWSnGnpsX7MxZAs/MEep7mm74jUYET6dH/5r/yMvDY/9T7GxYnHd1nA/caX9LmmnuIezXS8baZXIeQzEnqkEwawyriPkWpn0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786406806; c=relaxed/simple;
-	bh=qCnIg7pWrLgFXfIbS8KW6LMzuVxltwOhtNw3RrLvinA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=cHDmY5AgvTY3JEEe/s7OGEo48JsIAtWyQPxOAMS6MFuBwPBp7LtDVR16NP0/aqZaFLGTqNvbpX7xOd0cK1Ww9W2WDhDOKY8J7vzlRvqvyc+RKrofiSTxH+0HrmROV20y1WHYWhYkWIMHl77oGAWoLmh/iZMYDX2r4Ic73hLH7G8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=NPWqLv18; arc=none smtp.client-ip=209.85.222.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="NPWqLv18"
-Received: by mail-qk1-f179.google.com with SMTP id af79cd13be357-92e53581361so111288185a.1
-        for <linux-rdma@vger.kernel.org>; Mon, 10 Aug 2026 17:06:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1786406804; x=1787011604; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=xWs+wZAYbWBcdx+NBYqjDuyCmeKtPIDQH0q+nRG47u0=;
-        b=NPWqLv18eGMzxsyav9Dx04Z9EODmrhR2zr+9HpochiIBLCMdu2pp8SW254kbY0HREd
-         sSMSnjnP5Twk9U/tzm5cePgj+TFAh/IIsE+qWYo6b+l2IFpZk91Hsn+hO1jpxFwFy6CO
-         JhaMRODRHlh7eqWTv/zugSTJLC2Iu5LhxBxIiFMg1w4lwWW/0E6fBesgBm/9vWqWlIPd
-         M7MQespOIXabgd04tO6uF2wSS5QDoLW9zxuq9CxZaDRH5ZsPU1rl5vK0zmsoXfEAu0Kb
-         WhiPkxEqDUsWBLSsowML1ahxz8BluZQH1vMIu1RwG8QIX+ooVsFY5Ob4cpD5LGtfiXZL
-         nG6w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786406804; x=1787011604;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=xWs+wZAYbWBcdx+NBYqjDuyCmeKtPIDQH0q+nRG47u0=;
-        b=EDAkY6tiF5X4GoK+HLqtK6Zy5QpDmYKRn7kfHKKBNocCjt43DlEGNPb0iWrWAuaayN
-         mm3Av79Vr9UBNtuVG5Codg/bdPjeQnzWbjOAj3DmC4EWTfrxaWB9Uu1OESUTVkO6PvAg
-         PtARTSJr2Uc9nsblV/k/7o5BjwvzG0YJZRCZDDzczKgdd23zTSJZj47Jp3Qwx0wlo40N
-         SKddFHurArL+9ZTz+2xbSlquAB5rZsx94oNpbgpc1Dkki+fGlOzplkpYojwAR4KXF0FX
-         OUlUEE1tUMVmW4d87ci7ucGS+7OmZAHBH0qHEAANrYLl7BVH7MBIsfw1rcEx3wHdEFXz
-         o64g==
-X-Forwarded-Encrypted: i=1; AHgh+RppdKCc4uZT9POnzEIcGht9d35VqQKrf3YONtotk6b6Oyg0elFjc5wzOkxpJf2UZR0VD2NG1bvLLQ8F@vger.kernel.org
-X-Gm-Message-State: AOJu0YyzWS9qkjJJPp/kxsTdg4k6TVcCnWTJx+C4g7LvOlB2pHaNu+eF
-	iUjZAVqFg+AiBDcp6pIj+T2/XtGJRWx9zS3nB3wCXG1dyIsRzeT8HLJKizsJ4dmScJk=
-X-Gm-Gg: AR+sD12qSCNwDEO1gS/5lQ9d+pCdbBZRak7tjgS7fDyoUSnzFnZPeF0I6O8GPEE/+4I
-	AwRegta0Qabky472FBMSCiJ7Q4QYtKv0qb1yteFSKD3zXPzwIEpsHPO/V2mYirOBtzRspinK2ef
-	FVfDkDdDfBUWwyS5Y7XCA6qUvmxhBIsLLCw7jyDqQhpePYUksOAt1sTAGKjrFAxNBNWVQ3FZk+K
-	MWwSEw8Z//FmjWzrhy78PTUugk3wlIhNr3z8D+d1VpFuuhI5wLDh5Ek2p6GW6xoBD0fHqmoN/oZ
-	39VIs0ZWjbBn09TjGYL+4tMFLZMtn3C7XugtTyIpFjzj0uL8elYY720aqIBS+qsfmQtjl9hJZRB
-	SZci5ua/jE7qAL0Sl7hnlBulC+F9XwVNXdbJxW7fdzWB4/O8aIvAkB8Bi6CjLSmMgLR4mqxaDoC
-	5ZLurCYvQjS4sfryenoBwBd2X8ms377iJaaeFSDmed5/IwVFGv
-X-Received: by 2002:a05:620a:2412:20b0:92e:d7c7:7de9 with SMTP id af79cd13be357-9369cfec40dmr552651385a.8.1786406803946;
-        Mon, 10 Aug 2026 17:06:43 -0700 (PDT)
-Received: from ziepe.ca ([142.166.156.215])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-9366e290054sm918322985a.40.2026.08.10.17.06.42
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 10 Aug 2026 17:06:42 -0700 (PDT)
-Received: from jgg by wakko with local (Exim 4.97)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1wta0v-00000002HCN-3XlD;
-	Mon, 10 Aug 2026 21:06:41 -0300
-Date: Mon, 10 Aug 2026 21:06:41 -0300
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: syzbot <syzbot+6dee15fdb0606ef7b6ba@syzkaller.appspotmail.com>
-Cc: leon@kernel.org, linux-kernel@vger.kernel.org,
-	linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-	nogikh@google.com, syzkaller-bugs@googlegroups.com
-Subject: Re: [syzbot] [rdma?] INFO: task hung in add_one_compat_dev (3)
-Message-ID: <20260811000641.GA541676@ziepe.ca>
-References: <671756af.050a0220.10f4f4.010f.GAE@google.com>
- <6a75e1ad.b50370da.49fe0.001b.GAE@google.com>
+	s=arc-20240116; t=1786415932; c=relaxed/simple;
+	bh=mcfity+EVInadITpc5y3oshVq1EkP8Lt2LBRMxOVtAE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=sEUT6TU5xhr9fQzxsS8sxwjWHlymVPbAupQLA/rsBKTZeF2STSexhE6HdASlDo+fWs07IC3m1qqiV/fJlzsn56pKblgPUiOmobsXFE8QcrH4VH9BXykTV7Su5KTPmEdyaWgASD6KBixmBncpdCcM4MRObLbTkudquoBOv0f2b+s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+Received: by linux.microsoft.com (Postfix, from userid 1202)
+	id C3A2A20B7167; Mon, 10 Aug 2026 19:38:26 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com C3A2A20B7167
+From: Long Li <longli@microsoft.com>
+To: Long Li <longli@microsoft.com>,
+	Konstantin Taranov <kotaranov@microsoft.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	"David S . Miller" <davem@davemloft.net>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Eric Dumazet <edumazet@google.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>,
+	Haiyang Zhang <haiyangz@microsoft.com>,
+	"K . Y . Srinivasan" <kys@microsoft.com>,
+	Wei Liu <wei.liu@kernel.org>,
+	Dexuan Cui <decui@microsoft.com>,
+	shradhagupta@linux.microsoft.com,
+	Simon Horman <horms@kernel.org>,
+	ernis@linux.microsoft.com,
+	stephen@networkplumber.org
+Cc: netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-hyperv@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH net v6 0/7] net: mana: HW channel reliability and hardening fixes
+Date: Mon, 10 Aug 2026 19:38:14 -0700
+Message-ID: <20260811023823.2391255-1-longli@microsoft.com>
+X-Mailer: git-send-email 2.43.7
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6a75e1ad.b50370da.49fe0.001b.GAE@google.com>
+Content-Transfer-Encoding: 8bit
 
-On Fri, Aug 07, 2026 at 06:46:21AM -0700, syzbot wrote:
-> syzbot has found a reproducer for the following issue on:
-> 
-> HEAD commit:    f9a2394a2348 Merge tag 'mm-hotfixes-stable-2026-08-06-18-4..
-> git tree:       upstream
-> console output: https://syzkaller.appspot.com/x/log.txt?x=13d50fb9580000
-> kernel config:  https://syzkaller.appspot.com/x/.config?x=8e21dcbdb02d4229
-> dashboard link: https://syzkaller.appspot.com/bug?extid=6dee15fdb0606ef7b6ba
-> compiler:       Debian clang version 22.1.8 (++20260613092233+e80beda6e255-1~exp1~20260613092250.77), Debian LLD 22.1.8
-> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=14d037b9580000
+This series fixes a set of latent bugs and robustness gaps in the MANA
+Hardware Channel (HWC), the control path the driver uses to talk to the
+device.  The issues range from a use-after-free of completion queues
+during teardown to buffer mis-sizing, unsafe teardown ordering, missing
+validation of device-supplied RX metadata, and stale-response handling
+after a command timeout.
 
-So this looks like it is just "really slow" beacuse of the vast
-amount of work it is triggering in the kernel to manage sysfs files
-under locks and the high number of threads running on the same
-serializing mutex.
+Patch overview:
 
-The only way we could do anything about it is to split up the locking
-somewhat to be more fine grained, but that seems tricky and
-complicated and might trigger a higher level lock anyhow..
+  1  RCU-protect gc->cq_table lookups against concurrent CQ destroy
+     The EQ interrupt handler dereferences CQ pointers from gc->cq_table
+     while teardown can free them.  Put the table under RCU and wait a
+     grace period before freeing, closing the use-after-free.
 
-I'm not inclined to do that just to silence syzkallers rather
-agressive test..
+  2  fix HWC RQ/SQ buffer size swap
+     init_queues() sized the RQ with max_req_msg_size and the SQ with
+     max_resp_msg_size -- backwards.  Correct the swap; both sizes are
+     equal in practice, so this is a latent-correctness fix.
 
-Jason
+  3  free HWC comp_buf after destroying the EQ
+     Reorder teardown so the EQ is destroyed (readers quiesced) before
+     comp_buf and the CQ are freed, preventing a late EQ-handler access
+     to freed memory.
+
+  4  validate hardware-supplied values in the HWC RX path
+     Bounds-check the SGE, verify the recovered slot index and SGE
+     address, and validate response length and msg_id before use, so
+     malformed or hostile DMA metadata cannot cause wrong-slot completion
+     or out-of-bounds access.
+
+  5  fix HWC teardown safety with setup_active flag and destroy ordering
+     Track setup activation explicitly, tear the EQ/CQ down before the
+     TXQ/RXQ, and on an unrecoverable teardown failure leak the HWC
+     resources rather than free memory the device may still DMA into.
+
+  6  fix stale HWC response after command timeout
+     Replace the inflight-slot semaphore with a bitmap + waitqueue and
+     per-slot refcount/lock; latch the channel on timeout so no new slots
+     are handed out, drop duplicate/late responses, and ignore a zero
+     firmware-supplied timeout.
+
+  7  keep max_num_cqs immutable once cq_table is allocated
+     gc->max_num_cqs is set once when cq_table is allocated and never
+     reset, so a spoofed post-init HWC event cannot inflate the bound
+     past the allocation and drive an out-of-bounds cq_table access.
+
+Follow-up feature work (net-next, sent separately):
+
+The original series also contained two patches that are improvements, not
+fixes:
+
+  net: mana: support concurrent HWC requests
+  net: mana: add dynamic HWC queue depth with reinit path
+
+Per the netdev tree rules, fixes go to 'net' and features/improvements go
+to 'net-next', and the two must not be combined in a single submission.
+Those two patches build on the locking and teardown groundwork in this
+series, so they will be posted as a separate net-next series only after
+these fixes have propagated from net into net-next through the usual
+periodic merge.
+
+Changes since v5:
+
+Addressed the automated reviews of v5 and a net-next apply conflict
+reported by the netdev CI.  No behavioural change to the patch intent;
+the deltas below harden the v5 implementation.
+
+ - patch 1: mana_gd_unpublish_cq() and mana_ib_remove_cq_cb() now clear a
+   cq_table slot only when it still points at the CQ being torn down, so
+   the two-pass netdev teardown cannot wipe an entry a concurrent RDMA CQ
+   create legitimately recycled during the grace period.
+   mana_gd_process_eqe() drops an already-unpublished (NULL) slot quietly
+   instead of tripping WARN_ON_ONCE() during a normal ifdown/MTU change,
+   and reads gc->cq_table before gc->max_num_cqs with an smp_rmb()
+   between them so a shrinking re-establish cannot pair a stale bound
+   with a newly published, smaller table.
+ - patch 5: set setup_active before calling mana_smc_setup_hwc(), which
+   activates the device MST entries before it can report a late failure;
+   on an unrecoverable teardown failure keep the HWC context reachable
+   and retry the teardown on the next bring-up instead of orphaning it.
+ - patch 6: initialise the caller_ctx refcount/state before publishing
+   the inflight bitmap bit so a racing or forged response cannot observe
+   an uninitialised slot; honour a response only while the sender still
+   owns the slot (output_buf published and not yet reclaimed), so a
+   premature response cannot free the slot while its command is still in
+   flight; do not latch hwc_timed_out for the deliberate no-wait teardown
+   (hwc_timeout == 0), applied on both the admission gate and the
+   post-wait check in mana_hwc_get_msg_index().
+ - Moved the max_num_cqs/cq_table lifetime documentation onto the
+   cq_table field so the series no longer rewords the comment above
+   max_num_cqs, which a pending net-next change (cqe8_coalescing_sup)
+   also touches; this resolves the netdev CI net-next apply conflict.
+   Comment-only, no functional change.
+ - Rebased onto current net/main.
+ - v5: https://lore.kernel.org/netdev/20260809190047.2086368-1-longli@microsoft.com/
+
+Changes since v4:
+
+ - No code changes.  Resending as a standalone thread; v4 was
+   accidentally sent in-reply-to the v3 thread.
+ - v4: https://lore.kernel.org/netdev/20260808023417.1746886-1-longli@microsoft.com/
+
+Changes since v3:
+
+Addressed the netdev-ai and sashiko.dev automated reviews of v3.
+
+ - New patch 7 ("keep max_num_cqs immutable once cq_table is
+   allocated"): gc->max_num_cqs is set once and never reset, so a
+   spoofed post-init HWC event cannot inflate the bound past the
+   allocation and cause an out-of-bounds cq_table access.
+ - patch 1: replaced the per-CQ synchronize_rcu() in the netdev teardown
+   paths with a two-pass quiesce/free that takes a single grace period
+   per teardown; snapshot cq->id and max_num_cqs with READ_ONCE() so the
+   same value sizes, bounds and indexes cq_table.
+ - patch 4: removed the short-response early return so a malformed
+   response reaches verify_resp_msg() -> -EPROTO and completes the
+   sender instead of hanging it; account leaked RX WQEs and trip
+   hwc_timeout on RQ exhaustion; read the device-supplied
+   inline_oob_size_div4 and sge->address with READ_ONCE() and reject any
+   value other than the one the driver programs.
+ - patch 5: arm setup_active after mana_smc_setup_hwc() succeeds; destroy
+   the EQ (IRQ deregister + drain) before the CQ; drop the redundant
+   teardown in mana_hwc_establish_channel() that caused a double hardware
+   timeout and masked the original error.
+ - patch 6: take both the sender and response-side references up front in
+   mana_hwc_get_msg_index() so an early/stale/forged response cannot free
+   the slot before the sender posts; changed caller_ctx::error from u32
+   to int; reject a zero firmware-supplied HWC timeout in the query path
+   as well as the reconfig path.
+ - v3: https://lore.kernel.org/netdev/20260803234355.636038-1-longli@microsoft.com/
+
+Changes since v2:
+
+ - Per maintainer feedback, split the original combined series: the
+   fixes here target 'net'; the two feature patches now go to 'net-next'
+   and are sent separately (see above).  Rebased the fixes onto net.
+ - Dropped the pcie_flr()-based reset fallback from the teardown path;
+   on an unrecoverable teardown failure the driver now leaks the HWC
+   resources instead of touching memory the device may still DMA into.
+
+Long Li (7):
+  net: mana: RCU-protect gc->cq_table lookups against concurrent CQ
+    destroy
+  net: mana: fix HWC RQ/SQ buffer size swap
+  net: mana: free HWC comp_buf after destroying the EQ
+  net: mana: validate hardware-supplied values in the HWC RX path
+  net: mana: fix HWC teardown safety with setup_active flag and destroy
+    ordering
+  net: mana: fix stale HWC response after command timeout
+  net: mana: keep max_num_cqs immutable once cq_table is allocated
+
+ drivers/infiniband/hw/mana/cq.c               |  51 +-
+ .../net/ethernet/microsoft/mana/gdma_main.c   |  72 ++-
+ .../net/ethernet/microsoft/mana/hw_channel.c  | 521 +++++++++++++++---
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 136 ++++-
+ include/net/mana/gdma.h                       |  37 +-
+ include/net/mana/hw_channel.h                 |  44 +-
+ 6 files changed, 743 insertions(+), 118 deletions(-)
+
+
+base-commit: f1b3416ceaf7ca4cb5cbd986ee8fe3ffaeda2d48
+-- 
+2.43.0
+
