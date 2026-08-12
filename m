@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58E8F432BF9;
-	Wed, 12 Aug 2026 23:46:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A266320A00;
+	Wed, 12 Aug 2026 23:46:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786578421; cv=none; b=ttZMkTmINBznjuFn/ghh5gsn/2zChO+AdpELflHc5n82W8nGYSMYBFHDutCFAJX8JHDgiwQ0A+N8JXfZXgUfLyPuubRoVRP00Vq0c4VuZ5F56qqN2P0oX34OH/erEONrgmXTGz2VwB2bLQyPbAPtps1nBPNiQ4f5Audi6ZRETUQ=
+	t=1786578422; cv=none; b=YFeErtUKb/UIBm9twZyrq53cO4+scOpVhcZ+oiYS+8bpMEwDt1jBKzW3HFwjXQHa/mWxA+4XVrWbBKygNiq+NwiVRsXM9c5jr6fmjuau/1Ujz8OvA4xtYe7j8ypw80R8CELUmDeqL7QjwFSgtG1jl1QEY+ppSeaEV34+oXhTbgw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786578421; c=relaxed/simple;
-	bh=/+JjIYLkP6efivVkjyedQ/nuwMTFCNBB3TkfgcQSIHg=;
+	s=arc-20240116; t=1786578422; c=relaxed/simple;
+	bh=50ULJ9tZZ7khKB3f8aAm7XDe74rSn6I4XzpoOCetWfY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ixDrbqb/6c1Mud7j73ZfFKcjeqLZBk9olyY7lH8rwJzrlcR4VInbGKaz6cKiCz+b/INWbEv5xBiGZyH9Kh7ix9DdbX844RhmiLrmSuILWjMVluY66eRtqG/OLoBZmnW3LqDHecdBsna1sJi3o3L2EEIsqO1MSVLQkHLqKjQteCI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GS1KK276; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=kx/hcY4R/OXP2klSiwZM6Y3ejZyEy5eYFQwG05grXoYTdSfBanHY35RSqHpoy/AbxudFdosFp7SAHfta/suTpvzhlTANlif/Qn205Zo8eF64xF0eLHZyDPHB5GpnEvKPFDKhhLi3jsgXIzFkHSLusdcmQAcN/jfXu9PozbPN0hs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ikhv7fJp; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GS1KK276"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 877BC1F00A3A;
-	Wed, 12 Aug 2026 23:46:56 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ikhv7fJp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51C691F00A3D;
+	Wed, 12 Aug 2026 23:46:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786578417;
-	bh=FzbHuGeTlnuBbeL7pJ5sYoTBM5rdeG1OVzJaskLtw8M=;
+	s=k20260515; t=1786578418;
+	bh=fn2yMe/lTkO65NO0MYEj1Fz+T5QxcJXRX8oVbq3noEU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=GS1KK276l+lp6GWrLtE1Y+iv2A+AVA/3dyoIJLqA8M5ee5e7p4caSnsKR6aml1HMu
-	 a3sbmntnDB85UavNS5GxpvOAFZLQna1sSrpnJihl3/0HRGguZNvpD+99gsyXLyPFs6
-	 u+/OfS7VvhIUP2+x5GqcJ97iXFDNwUtuCQpTncALSFNLlmizscP4xDN48vOCr7NBV9
-	 kjY/RKVN+FNP6E7T7ExWRwI3LSnKNFJeWo1DRO7khZko2GgXRj1dysoVp2DlHSoxwK
-	 jDkaqfEh6LC8LdEcEuHzODLW5UzC9oWZFa6WDjqWFTDS1L6WVOClHhLfcdD2HK+B8H
-	 TL/tLwCq544wA==
+	b=Ikhv7fJp5xO8JSl0sjvt/5gbLChnYCbgjRSlmmqYLreS5iyHvv/M0/x/Ae2XKol67
+	 x361p4rnySw4crV5mHo5Defh3pubFFV9Z3x/l6e8kfNLXtDXW4GXZAQz1sDm9m2Oca
+	 A+tlR6NAJILEuynoa+Qm36rNSaAU//2fwXP9hssdp3BzVHXkLo19Mjojb3sVPG+hMS
+	 KJD8woScUHJ8+wiwBWAMVSKEm0LX1cO2gmxbhwavOnKyARNiVEl1m9aUUFbrRwG1np
+	 JnU2RJdilx1+K/pWtGDKTYkyfpendowK/JXT+b6khmmKGUk/91WRn/1izabYP1jI9R
+	 WV3bVBA5x4zJg==
 From: Jakub Kicinski <kuba@kernel.org>
 To: longli@microsoft.com
 Cc: Jakub Kicinski <kuba@kernel.org>,
@@ -48,407 +48,321 @@ Cc: Jakub Kicinski <kuba@kernel.org>,
 	linux-rdma@vger.kernel.org,
 	linux-hyperv@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net v6 4/7] net: mana: validate hardware-supplied values in the HWC RX path
-Date: Wed, 12 Aug 2026 16:46:55 -0700
-Message-ID: <20260812234656.2193529-1-kuba@kernel.org>
+Subject: Re: [PATCH net v6 5/7] net: mana: fix HWC teardown safety with setup_active flag and destroy ordering
+Date: Wed, 12 Aug 2026 16:46:57 -0700
+Message-ID: <20260812234657.2193564-1-kuba@kernel.org>
 X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260811023823.2391255-5-longli@microsoft.com>
-References: <20260811023823.2391255-5-longli@microsoft.com>
+In-Reply-To: <20260811023823.2391255-6-longli@microsoft.com>
+References: <20260811023823.2391255-6-longli@microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
 This is an AI-generated review of your patch. The human sending this
 email has considered the AI review valid, or at least plausible.
 ---
-net: mana: validate hardware-supplied values in the HWC RX path
+net: mana: fix HWC teardown safety with setup_active flag and destroy ordering
 
-This adds validation of device-supplied values in the HWC RX completion
-path: the inline OOB size and the SGE address are snapshotted and checked
-before use, the recovered RX slot index is bounds checked and the SGE
-address must match the one the driver posted for that slot, and an
-oversized response length is rejected.  Untrustworthy completions no
-longer repost their RX WQE; those leaks are counted and, once they reach
-the RQ depth, the command timeout is shortened.
+This adds a setup_active flag to struct hw_channel_context to record that
+mana_smc_setup_hwc() has activated device MST entries, reorders
+mana_hwc_destroy_channel() so the HWC CQ (and with it the EQ IRQ
+deregistration) is destroyed before the TXQ/RXQ buffers are freed, and
+changes destroy_channel() to leak the HWC resources when
+mana_smc_teardown_hwc() fails.
 
-No Link: tags are present in the commit header.
-
-One question about the changelog before the diff:
-
-[Severity: Medium]
-
-> A short response is no longer rejected in the handler: it reaches
-> mana_hwc_handle_resp(), whose mana_hwc_verify_resp_msg() fails it with
-> -EPROTO and completes the waiting sender, so a single malformed response
-> cannot convert into a channel-wide timeout.
-
-Is this paragraph describing a change against the kernel tree, or against
-an earlier revision of the patch?  In the parent commit,
-mana_hwc_rx_event_handler() has no response-length check between
-
-	resp = (struct gdma_resp_hdr *)rx_req->buf_va;
-
-and the msg_id read, and this diff does not remove such a check, so there
-is no short-response rejection in the handler being relaxed here.
-
-Does the stated guarantee hold in the resulting code?  hwc_msg_id sits at
-bytes 10-11 of struct gdma_msg_hdr:
-
-include/net/mana/gdma.h:
-struct gdma_msg_hdr {
-	u32 hdr_type;
-	u32 msg_type;
-	u16 msg_version;
-	u16 hwc_msg_id;
-	u32 msg_size;
-};
-
-A response shorter than 12 bytes therefore does not contain the field the
-handler reads.  If the bytes read there are out of range, the handler
-returns early and mana_hwc_verify_resp_msg() is never reached, so no
-sender is completed.  Could the paragraph be reworded to describe what the
-code actually guarantees?
+A few questions on the new flag placement and on the leak-on-failure
+policy.
 
 > diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-> index 19896bb5ce1a4..5db8cfe2d8443 100644
+> index 5db8cfe2d8443..959886434d07f 100644
 > --- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
 > +++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-> @@ -83,6 +83,19 @@ static void mana_hwc_handle_resp(struct hw_channel_context *hwc, u32 resp_len,
->  	struct hwc_caller_ctx *ctx;
+
+[ ... ]
+
+> @@ -783,6 +784,20 @@ static int mana_hwc_establish_channel(struct gdma_context *gc, u16 *q_depth,
+>  
+>  	init_completion(&hwc->hwc_init_eqe_comp);
+>  
+> +	/* Arm setup_active before issuing the setup command.
+> +	 * mana_smc_setup_hwc() hands the queue PFNs to the PF, activating
+> +	 * MST entries so the device can DMA into our queue buffers, before
+> +	 * it can report a later failure such as a possession-poll timeout.
+> +	 * Recording it up front guarantees the error path
+> +	 * (mana_hwc_create_channel() -> mana_hwc_destroy_channel()) still
+> +	 * tears the HWC down instead of freeing buffers the device may still
+> +	 * write to.  Setting it for a rare pre-submission failure too is
+> +	 * harmless -- the teardown is then a no-op the device ignores.  Do
+> +	 * not also tear down here: a second teardown would double the
+> +	 * hardware timeout on failure and mask the original error code.
+> +	 */
+> +	hwc->setup_active = true;
+> +
+>  	err = mana_smc_setup_hwc(&gc->shm_channel, false,
+>  				 eq->mem_info.dma_handle,
+>  				 cq->mem_info.dma_handle,
+
+[Severity: High]
+
+Is the claim that "the teardown is then a no-op the device ignores" true
+for the most likely pre-submission failure?
+
+mana_smc_setup_hwc() fails at its very first step, before anything is
+written to the shared memory aperture:
+
+drivers/net/ethernet/microsoft/mana/shm_channel.c:mana_smc_setup_hwc() {
+	/* Ensure VF already has possession of shared memory */
+	err = mana_smc_poll_register(sc->base, false);
+	if (err) {
+		dev_err(sc->dev, "Timeout when setting up HWC: %d\n", err);
+		return err;
+	}
+	...
+}
+
+mana_smc_teardown_hwc() opens with the same poll:
+
+drivers/net/ethernet/microsoft/mana/shm_channel.c:mana_smc_teardown_hwc() {
+	/* Ensure already has possession of shared memory */
+	err = mana_smc_poll_register(sc->base, false);
+	if (err) {
+		dev_err(sc->dev, "Timeout when tearing down HWC\n");
+		return err;
+	}
+	...
+}
+
+So when the possession poll times out, no ESTABLISH_HWC message ever
+reached the device, but setup_active is already set, the error path runs
+mana_hwc_destroy_channel(), the teardown fails for the identical reason,
+and the new "leaking resources" branch returns having freed nothing.
+
+Does that leak the hwc struct, the inflight bitmap, the EQ/CQ/RQ/SQ gdma
+queues with their dma_alloc_coherent buffers, comp_buf and both msg_buf
+DMA buffers, in a case where the old gc->max_num_cqs > 0 gate skipped the
+teardown entirely and freed everything?
+
+Would arming the flag only after mana_smc_setup_hwc() returns success, or
+distinguishing "message submitted" from "poll failed before submission",
+avoid recording a teardown obligation the device never acquired?
+
+[Severity: Medium]
+
+This is a pre-existing issue and not introduced by this patch, but while
+reading mana_hwc_establish_channel(): the bound check
+
+	if (WARN_ON(cq->id >= gc->max_num_cqs))
+		return -EPROTO;
+
+	cq_table = vcalloc(gc->max_num_cqs, sizeof(*cq_table));
+	...
+	rcu_assign_pointer(cq_table[cq->id], cq);
+
+re-reads both gc->max_num_cqs and cq->id after the check, while
+mana_hwc_init_event_handler() writes both from EQ interrupt context
+(HWC_INIT_DATA_MAX_NUM_CQS and HWC_INIT_DATA_CQID).
+
+The later patch in this series, "net: mana: keep max_num_cqs immutable
+once cq_table is allocated", snapshots both values into locals with
+READ_ONCE() and commits gc->max_num_cqs once, so the check-then-use is
+gone by the end of the series. Noted here only for completeness.
+
+> @@ -869,6 +884,20 @@ int mana_hwc_create_channel(struct gdma_context *gc)
+>  	u16 q_depth_max;
 >  	int err;
 >  
-> +	/* Defence in depth: the sole caller, mana_hwc_rx_event_handler(),
-> +	 * already rejects msg_id >= hwc->num_inflight_msg with the value it
-> +	 * passes here by value, so this cannot be reached out of range.  Keep
-> +	 * the guard at the indexing site so the bitmap and caller_ctx array
-> +	 * are never indexed without a bound in view.
+> +	/* A previous teardown may have failed and deliberately left the old
+> +	 * HWC context reachable (see mana_hwc_destroy_channel()).  Retry the
+> +	 * teardown now -- the device has since been reset -- before building
+> +	 * a new channel, so we neither orphan the old context nor stack a
+> +	 * second channel on one whose DESTROY_HWC never completed.  If it is
+> +	 * still failing, return an error that steers mana_serv_reset() to a
+> +	 * full PCI rescan instead of silently leaking another generation.
 > +	 */
-> +	if (msg_id >= hwc->num_inflight_msg) {
-> +		dev_err(hwc->dev, "hwc_rx: msg_id %u >= max %u\n",
-> +			msg_id, hwc->num_inflight_msg);
-> +		mana_hwc_post_rx_wqe(hwc->rxq, rx_req);
-> +		return;
+> +	if (gd->driver_data) {
+> +		mana_hwc_destroy_channel(gc);
+> +		if (gd->driver_data)
+> +			return -ETIMEDOUT;
 > +	}
 > +
->  	if (!test_bit(msg_id, hwc->inflight_msg_res.map)) {
->  		dev_err(hwc->dev, "hwc_rx: invalid msg_id = %u\n", msg_id);
->  		mana_hwc_post_rx_wqe(hwc->rxq, rx_req);
+>  	hwc = kzalloc_obj(*hwc);
+>  	if (!hwc)
+>  		return -ENOMEM;
 
 [Severity: High]
 
-This isn't a bug introduced by this patch, but while the msg_id guard is
-being added here, is the bare test_bit() on hwc->inflight_msg_res.map
-enough to own the slot?  At this commit the bit is tested without
-inflight_msg_res.lock, and mana_hwc_send_request() releases the slot on
-its timeout path:
+This retry is the only mechanism that can reclaim a retained generation.
+Can it run on the probe failure path?
 
-out:
-	mana_hwc_put_msg_index(hwc, msg_id);
-	return err;
+mana_hwc_destroy_channel() is void, so mana_gd_setup() cannot tell that
+the teardown was incomplete and keeps unwinding, and mana_gd_probe() ends
+at:
 
-so a late or replayed response can find the bit set again for a reused
-slot and then write through the previous caller's output_buf:
-
-	ctx = hwc->caller_ctx + msg_id;
+drivers/net/ethernet/microsoft/mana/gdma_main.c:mana_gd_probe() {
 	...
-	memcpy(ctx->output_buf, resp_msg, resp_len);
-
-The new mana_hwc_rx_leak_wqe() latch below makes the abandon-and-reuse
-path much easier to reach.  For completeness: this race is closed later in
-the same series by "net: mana: fix stale HWC response after command
-timeout", which adds per-slot lock, refcount and responded state and
-NULLs output_buf under the lock on timeout, so no change is needed here if
-the ordering of the series is kept.
-
-[ ... ]
-
-> @@ -237,18 +262,39 @@ static void mana_hwc_init_event_handler(void *ctx, struct gdma_queue *q_self,
->  	}
->  }
->  
-> +/* An RX WQE whose SGE the handler cannot trust is deliberately not
-> + * reposted: reposting a slot we may have mis-identified could double-post
-> + * a buffer the device still owns.  Each such leak permanently lowers the
-> + * RQ's posted depth, so once the whole depth is gone the channel can no
-> + * longer receive responses.  Make that terminal state explicit -- log it
-> + * once and shorten the command timeout so callers fail fast -- rather than
-> + * letting every later command drain its full timeout against a dead RQ.
-> + */
-> +static void mana_hwc_rx_leak_wqe(struct hw_channel_context *hwc)
-> +{
-> +	if (++hwc->rx_leaked_wqe == hwc->rxq->queue_depth) {
-> +		dev_err(hwc->dev,
-> +			"HWC RX: RQ exhausted after %u leaked WQEs; channel unusable\n",
-> +			hwc->rx_leaked_wqe);
-> +		hwc->hwc_timeout = 1;
-> +	}
-> +}
-
-[Severity: High]
-
-Is hwc->rxq->queue_depth ever greater than 1 here?  The header defines:
-
-include/net/mana/hw_channel.h:
-#define HW_CHANNEL_VF_BOOTSTRAP_QUEUE_DEPTH 1
-
-and that is the only depth used:
-
-mana_hwc_create_channel()
-  mana_hwc_init_queues(hwc, HW_CHANNEL_VF_BOOTSTRAP_QUEUE_DEPTH, ...)
-    mana_hwc_create_wq(..., q_depth, ...)
-      hwc_wq->queue_depth = q_depth;
-
-If so, ++hwc->rx_leaked_wqe == hwc->rxq->queue_depth is true on the first
-call and hwc->hwc_timeout = 1 is latched immediately.
-
-Does that mean one single unattributable completion, from any of the three
-new early returns, permanently reduces every later HWC command to
-
-	wait_for_completion_timeout(&ctx->comp_event,
-				    msecs_to_jiffies(hwc->hwc_timeout))
-
-with hwc_timeout == 1, returning -ETIMEDOUT?  The inputs that decide those
-returns (rx_oob->wqe_offset, the WQE flags word, sge->address) all come
-from the device-writable memory this patch treats as untrusted, and none of
-the three paths establishes that a posted WQE was actually consumed, so a
-single forged or stale completion would appear to disable vport
-configuration, queries, RDMA setup and teardown for the life of the
-device.
-
-[Severity: High]
-
-This isn't a bug introduced by this patch, but does the new
-interrupt-context path make the following teardown behaviour reachable
-from device input?  Once hwc_timeout is 1, mana_gd_destroy_queue() still
-frees the memory whether or not the destroy-region command succeeded:
-
-drivers/net/ethernet/microsoft/mana/gdma_main.c:mana_gd_destroy_queue() {
-	...
-	mana_gd_destroy_dma_region(gc, gmi->dma_region_handle);
-	mana_gd_free_memory(gmi);
-	kfree(queue);
-}
-
-mana_gd_destroy_dma_region() is itself an HWC command, so with the timeout
-latched every unbind frees DMA regions whose device-side mappings were
-never torn down.  mana_hwc_send_request() already collapses hwc_timeout to
-1 after a genuine timeout, and this error return has always been ignored,
-but previously that state required a real hardware stall and a failing
-command in the log.  Should the leak accounting request a service reset
-instead of silently forcing the fail-fast timeout from an interrupt?
-
-[Severity: Medium]
-
-Is hwc_timeout a safe place to record this terminal state?  The field has
-other writers, and a host-supplied reconfig event overwrites it:
-
-drivers/net/ethernet/microsoft/mana/hw_channel.c:mana_hwc_init_event_handler() {
-	...
-	case HWC_DATA_CFG_HWC_TIMEOUT:
-		hwc->hwc_timeout = val;
+free_gc:
+	pci_set_drvdata(pdev, NULL);
+	vfree(gc);
 	...
 }
 
-Because the leak helper tests with == rather than >=, the shortening can
-never be applied a second time, so after such an event every later command
-drains its full timeout against a dead RQ again, which is the behaviour
-the comment above the helper says it avoids.
+That frees the gdma_context holding gd->driver_data and gc->shm_channel,
+so DESTROY_HWC can never be issued for the retained context afterwards.
+mana_gd_remove() also vfree()s gc after mana_gd_cleanup_device().
 
-In the other direction, the store is unconditional, unlike the existing
-guard in mana_hwc_send_request():
+Since mana_gd_probe() schedules mana_dev_recovery_work every
+MANA_SERVICE_PERIOD on -ETIMEDOUT, and mana_serv_reset() escalates to
+mana_serv_rescan() (remove plus re-probe), does every cycle in which
+DESTROY_HWC does not complete retain a fresh generation, paced by the PF?
 
-		if (hwc->hwc_timeout > 1)
-			hwc->hwc_timeout = 1;
+For errnos other than -ETIMEDOUT/-EPROTO (for example the -ENOMEM from the
+vcalloc in mana_hwc_establish_channel(), which now happens with
+setup_active already armed) mana_serv_reset() does no rescan:
 
-so it can raise hwc_timeout from the 0 sentinel that mana_serv_reset()
-sets:
+drivers/net/ethernet/microsoft/mana/gdma_main.c:mana_serv_reset() {
+	ret = mana_gd_resume(pdev);
+	if (ret == -ETIMEDOUT || ret == -EPROTO) {
+		/* Perform PCI rescan on device if we failed on HWC */
+		dev_err(&pdev->dev, "MANA service: resume failed, rescanning\n");
+		mana_serv_rescan(pdev);
+	...
+}
 
-	/* HWC is not responding in this case, so don't wait */
-	hwc->hwc_timeout = 0;
+Is the retained generation then abandoned with no recovery at all?
 
-which mana_need_log() also consumes:
+Would a bounded quarantine work better here, keeping at most one retained
+generation reclaimed by the next successful teardown, or propagating the
+teardown error so an owner of gc stays alive until reclamation is safe?
 
-	if (hwc && hwc->hwc_timeout == 0)
-		return false;
-
-Would a separate sticky flag (and hwc->rx_leaked_wqe being reset when the
-channel is re-established) express this state better?  As it stands
-rx_leaked_wqe is never reset and no recovery is requested.
-
-[Severity: Medium]
-
-Should this store be annotated?  mana_hwc_rx_leak_wqe() runs in HWC
-interrupt context:
-
-mana_gd_intr() -> EQ handler -> mana_hwc_comp_event()
-  -> mana_hwc_rx_event_handler() -> mana_hwc_rx_leak_wqe()
-
-while the same field is read and read-modify-written from process context
-with plain accesses in mana_hwc_send_request(), written by
-mana_gd_query_hwc_timeout() through a request/response round trip, read
-unlocked by mana_need_log() and used as a 0 sentinel by mana_serv_reset().
-There is no common lock and no READ_ONCE()/WRITE_ONCE() here, so the
-process-context update can be lost and the 0 sentinel can be resurrected
-to 1 mid-reset.  A structurally identical field in the same series,
-hwc_init_max_num_cqs, is annotated with WRITE_ONCE()/READ_ONCE() and a
-comment; was the omission here intentional?
-
-> +
->  static void mana_hwc_rx_event_handler(void *ctx, u32 gdma_rxq_id,
->  				      const struct hwc_rx_oob *rx_oob)
->  {
-
-[ ... ]
-
-> @@ -259,28 +305,76 @@ static void mana_hwc_rx_event_handler(void *ctx, u32 gdma_rxq_id,
->  	wqe = mana_gd_get_wqe_ptr(rq, rx_oob->wqe_offset / GDMA_WQE_BU_SIZE);
->  	dma_oob = (struct gdma_wqe *)wqe;
->  
-> -	sge = (struct gdma_sge *)(wqe + 8 + dma_oob->inline_oob_size_div4 * 4);
-> -
-> -	/* Select the RX work request for virtual address and for reposting. */
-> +	/* inline_oob_size_div4 lives in device-accessible RQ memory (shared
-> +	 * and host-writable in a confidential VM), so snapshot it once and
-> +	 * validate and use only the snapshot.  It is a bit-field, which
-> +	 * READ_ONCE() cannot take the size of, so read the u32 flags word it
-> +	 * shares through the union and extract the field from the local copy.
-> +	 * The driver programs INLINE_OOB_SMALL_SIZE for every HWC RQ WQE via
-> +	 * mana_gd_post_work_request(), so the only valid value is
-> +	 * INLINE_OOB_SMALL_SIZE / 4, which puts the SGE at wqe + 16 inside
-> +	 * this WQE's own BU.  Reject anything else -- the slot cannot be
-> +	 * trusted, so leak this RX WQE rather than repost the wrong one.
-> +	 */
-> +	oob_snapshot.flags = READ_ONCE(dma_oob->flags);
-> +	oob_div4 = oob_snapshot.inline_oob_size_div4;
-> +	if (oob_div4 != INLINE_OOB_SMALL_SIZE / 4) {
-> +		dev_err(hwc->dev, "HWC RX: unexpected inline_oob_size_div4=%u\n",
-> +			oob_div4);
-> +		mana_hwc_rx_leak_wqe(hwc);
-> +		return;
-> +	}
-> +	sge = (struct gdma_sge *)(wqe + 8 + oob_div4 * 4);
-> +
-> +	/* Recover the originating RX slot from the SGE address.  Snapshot it
-> +	 * once, for the same shared-memory reason: of the three terms only
-> +	 * sge_addr comes from device memory; rq_base_addr and
-> +	 * max_resp_msg_size are driver-private.  An in-range but wrong SGE
-> +	 * would otherwise truncate onto a neighbouring slot, letting us read
-> +	 * a stale response that could complete the wrong, reused in-flight
-> +	 * request.  Require the index in range AND the address to exactly
-> +	 * match the value the driver posted for that slot.
-> +	 */
-> +	sge_addr = READ_ONCE(sge->address);
->  	rq_base_addr = hwc_rxq->msg_buf->mem_info.dma_handle;
-> -	rx_req_idx = (sge->address - rq_base_addr) / hwc->max_resp_msg_size;
-> -
-> -	if (rx_req_idx >= hwc_rxq->msg_buf->num_reqs) {
-> -		dev_err(hwc->dev, "HWC RX: wrong rx_req_idx=%llu, num_reqs=%u\n",
-> -			rx_req_idx, hwc_rxq->msg_buf->num_reqs);
-> +	rx_req_idx = (sge_addr - rq_base_addr) / hwc->max_resp_msg_size;
-> +
-> +	if (rx_req_idx >= hwc_rxq->queue_depth) {
-> +		/* Cannot identify the slot, so we cannot safely repost this
-> +		 * WQE; leak it.  An out-of-range index means a corrupted SGE
-> +		 * from hardware or host tampering.
-> +		 */
-> +		dev_err(hwc->dev, "HWC RX: SGE idx %llu out of range\n",
-> +			rx_req_idx);
-> +		mana_hwc_rx_leak_wqe(hwc);
+> @@ -926,11 +955,38 @@ void mana_hwc_destroy_channel(struct gdma_context *gc)
+>  	if (!hwc)
 >  		return;
->  	}
-
-[Severity: Low]
-
-Why was the bound changed from the array's own counter to a field of a
-different structure?  The index is used immediately afterwards to index
-hwc_rxq->msg_buf->reqs[], which is declared as:
-
-include/net/mana/hw_channel.h:
-	u32 num_reqs;
-	struct hwc_work_request reqs[] __counted_by(num_reqs);
-
-so num_reqs is the annotated bound for that array, while queue_depth is a
-u16 in struct hwc_wq.  The two are equal only by construction:
-mana_hwc_create_wq() sets hwc_wq->queue_depth = q_depth and separately
-calls mana_hwc_alloc_dma_buf(hwc, q_depth, ...), which allocates
-reqs[q_depth] and sets dma_buf->num_reqs = q_depth.  Nothing ties them
-together, num_reqs becomes write-only in this file, and the change isn't
-mentioned in the changelog even though every other added validation is.
-Would keeping the check against msg_buf->num_reqs (and keeping num_reqs in
-the error message) be preferable?
-
 >  
->  	rx_req = &hwc_rxq->msg_buf->reqs[rx_req_idx];
-> +	if (sge_addr != (u64)rx_req->buf_sge_addr) {
-> +		/* In-range index but the address does not match what the
-> +		 * driver posted for that slot; the same unrecoverable case,
-> +		 * so leak this WQE rather than repost the wrong one.
-> +		 */
-> +		dev_err(hwc->dev, "HWC RX: invalid SGE address %llx (idx=%llu)\n",
-> +			sge_addr, rx_req_idx);
-> +		mana_hwc_rx_leak_wqe(hwc);
-> +		return;
-> +	}
-> +
-
-[Severity: Medium]
-
-This isn't a problem introduced by this patch, but does the address match
-establish the invariant the helper's comment relies on ("reposting a slot
-we may have mis-identified could double-post a buffer the device still
-owns")?  The check only shows that the WQE named by the device-supplied
-completion offset still contains the OOB size and SGE address the driver
-once wrote there, and that offset is masked into the ring rather than
-rejected:
-
-drivers/net/ethernet/microsoft/mana/gdma_main.c:mana_gd_get_wqe_ptr() {
-	u32 offset = (wqe_offset * GDMA_WQE_BU_SIZE) & (wq->queue_size - 1);
-
-	WARN_ON_ONCE((offset + GDMA_WQE_BU_SIZE) > wq->queue_size);
-	...
-}
-
-RQ WQE memory keeps those driver-written values after the device consumes
-the WQE, and mana_hwc_comp_event() dispatches on completions[i].is_sq
-alone, without looking at rx_oob->vendor_err or eom, so a spurious, error
-or replayed completion naming a still-owned slot passes both new checks
-and gets reposted.  The HWC RQ is created with spec.monitor_avl_buf =
-false, so mana_gd_post_work_request() does no free-space check and
-wq->head simply advances past the number of buffers the driver owns.  Is
-some per-slot posted/consumed state needed for the address match to mean
-"this WQE was just consumed for this buffer"?
-
->  	resp = (struct gdma_resp_hdr *)rx_req->buf_va;
->  
-> -	/* Read msg_id once from DMA buffer to prevent TOCTOU:
-> -	 * DMA memory is shared/unencrypted in CVMs - host can
-> -	 * modify it between reads.
-> +	/* Read msg_id once from the DMA buffer to prevent TOCTOU: DMA memory
-> +	 * is shared/unencrypted in CVMs, so the host can modify it between
-> +	 * reads.  A short response is not rejected here; it is handed to
-> +	 * mana_hwc_handle_resp() below, whose mana_hwc_verify_resp_msg()
-> +	 * fails it with -EPROTO and completes the waiting sender, so one
-> +	 * malformed response cannot stall the whole channel.
+> -	/* gc->max_num_cqs is set in mana_hwc_init_event_handler(). If it's
+> -	 * non-zero, the HWC worked and we should tear down the HWC here.
+> +	/* Tear down the HWC if setup_hwc previously activated MST entries.
+> +	 * This is the definitive flag — unlike max_num_cqs which depends
+> +	 * on the init EQE arriving.
+> +	 *
+> +	 * If teardown fails the device may still have active MST entries
+> +	 * and can DMA into the HWC queue buffers.  Freeing them would risk
+> +	 * memory corruption on systems without an IOMMU to fault the stale
+> +	 * DMA, so leak the HWC resources instead of handing the pages back
+> +	 * to the allocator.  Keep setup_active set so the failure is not
+> +	 * mistaken for a clean teardown.
 >  	 */
->  	msg_id = READ_ONCE(resp->response.hwc_msg_id);
->  	if (msg_id >= hwc->num_inflight_msg) {
->  		dev_err(hwc->dev, "HWC RX: wrong msg_id=%u\n", msg_id);
-> +		mana_hwc_post_rx_wqe(hwc_rxq, rx_req);
->  		return;
->  	}
+> -	if (gc->max_num_cqs > 0)
+> -		mana_smc_teardown_hwc(&gc->shm_channel, false);
+> +	if (hwc->setup_active) {
+> +		int td_err = mana_smc_teardown_hwc(&gc->shm_channel, false);
+> +
+> +		if (td_err) {
+> +			dev_err(gc->dev,
+> +				"HWC teardown failed: %d, leaking resources\n",
+> +				td_err);
+> +			return;
+> +		}
+> +
+> +		hwc->setup_active = false;
+> +	}
 
 [Severity: Low]
 
-Should these messages be rate limited?  All four rejection paths in this
-handler use plain dev_err() from hardirq context with device-supplied
-values ("unexpected inline_oob_size_div4=%u", "SGE idx %llu out of range",
-"invalid SGE address %llx (idx=%llu)", "wrong msg_id=%u").  This path
-previously returned without reposting, which bounded how often a host
-could drive it; with the added mana_hwc_post_rx_wqe() a host that keeps
-fabricating completions can repeat it indefinitely and flood the log,
-which is unpleasant with a serial console.  dev_err_ratelimited(), or the
-counter scheme used for the leak accounting, would avoid that.
+This return is taken before mana_hwc_destroy_cq(), so the HWC EQ stays on
+gic->eq_list and the CQ stays published in gc->cq_table while
+mana_gd_cleanup_device() goes on to mana_gd_remove_irqs().
+
+This does not appear to be a use-after-free. The HWC EQ registration takes
+no gdma_irq_context reference:
+
+drivers/net/ethernet/microsoft/mana/gdma_main.c:mana_gd_register_irq() {
+	/* The caller acquired a GIC reference via mana_gd_get_gic().
+	 * That refcount prevents mana_gd_put_gic() from erasing this
+	 * irq_contexts entry concurrently.
+	 */
+	gic = xa_load(&gc->irq_contexts, msix_index);
+	...
+}
+
+so mana_gd_put_gic() reaches refcount_dec_and_test() and calls free_irq(),
+which unregisters mana_gd_intr() and waits out in-flight handlers before
+any vfree(gc). In the window before that, an interrupt would only touch
+the EQ/CQ/RQ/TXQ buffers this branch deliberately did not free.
+
+What is left is stale state: the EQ's list node ends up pointing into a
+kfree()d gic, and on a later retried teardown after a resume whose
+mana_gd_setup() failed before mana_gd_setup_hwc_irqs(),
+mana_gd_deregister_irq() can hit
+
+	msix_index = queue->eq.msix_index;
+	if (WARN_ON(msix_index >= gc->num_msix_usable))
+		return;
+
+with num_msix_usable == 0 and skip the list_del_rcu()/synchronize_rcu()
+before the EQ is freed. Would it be reasonable to deregister the EQ IRQ
+before taking the leak branch, so the retained buffers are unreachable
+from the interrupt path even in the failure case?
+
+> +
+> +	/* Tear down the HWC CQ object first — mana_hwc_destroy_cq()
+> +	 * both unpublishes the CQ from cq_table (+synchronize_rcu) and
+> +	 * deregisters the HWC EQ from the interrupt handler list (via
+> +	 * mana_gd_deregister_irq + synchronize_rcu), guaranteeing no
+> +	 * interrupt handler can access RQ/TXQ buffers after this point.
+> +	 */
+> +	if (hwc->cq)
+> +		mana_hwc_destroy_cq(hwc->gdma_dev->gdma_context, hwc->cq);
+>  
+>  	if (hwc->txq)
+>  		mana_hwc_destroy_wq(hwc, hwc->txq);
+
+[ ... ]
+
+> diff --git a/include/net/mana/hw_channel.h b/include/net/mana/hw_channel.h
+> index 787c6f96d5b57..8340abd36af61 100644
+> --- a/include/net/mana/hw_channel.h
+> +++ b/include/net/mana/hw_channel.h
+> @@ -206,6 +206,15 @@ struct hw_channel_context {
+>  	 */
+>  	u32 rx_leaked_wqe;
+>  
+> +	/* Set after mana_smc_setup_hwc() succeeds (hardware has active
+> +	 * MST entries).  Cleared only after mana_smc_teardown_hwc()
+> +	 * succeeds, on both the recoverable establish_channel path and the
+> +	 * terminal destroy_channel path.  If teardown fails it stays set:
+> +	 * establish_channel() skips its retry and destroy_channel() leaks
+> +	 * the HWC rather than free buffers the device may still DMA into.
+> +	 */
+> +	bool setup_active;
+> +
+
+[Severity: Low]
+
+This isn't a runtime bug, but this comment describes different code than
+what the patch implements, and it also contradicts the in-code comment
+added to mana_hwc_establish_channel():
+
+"Set after mana_smc_setup_hwc() succeeds" - mana_hwc_establish_channel()
+sets it before the call and leaves it set when the call fails.
+
+"Cleared only after mana_smc_teardown_hwc() succeeds, on both the
+recoverable establish_channel path and the terminal destroy_channel path" -
+mana_hwc_establish_channel() has no mana_smc_teardown_hwc() call and never
+clears the flag; the single teardown call site and the single clear are
+both in mana_hwc_destroy_channel().
+
+"establish_channel() skips its retry" - mana_hwc_establish_channel() has no
+retry.
+
+Are these leftovers from the earlier version of the patch that tore down
+inline? Could the comment be updated to match the current placement, so a
+later reader does not move the assignment below mana_smc_setup_hwc() and
+reopen the window this patch closes?
+
+>  	struct hwc_caller_ctx *caller_ctx;
+>  };
