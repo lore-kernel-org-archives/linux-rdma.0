@@ -1,47 +1,47 @@
-Received: from MW6PR02CU001.outbound.protection.outlook.com (mail-westus2azon11012045.outbound.protection.outlook.com [52.101.48.45])
+Received: from DM1PR04CU001.outbound.protection.outlook.com (mail-centralusazon11010009.outbound.protection.outlook.com [52.101.61.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E5CF470128;
-	Wed, 12 Aug 2026 14:59:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.48.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCAB037C0FB;
+	Wed, 12 Aug 2026 15:00:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.61.9
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786546804; cv=fail; b=uIXBuHXiAqJj7yU2Z/ji0HDKIMJQ8g8mgJ2xCn3ShqqBx1rsHuf2x0vDWPffe+RI9nB5eYp9oiz7aoI2zkS13DFkHSxebPnvLDuuR5h8hm1P+Z2JsoeMw5pdUD9mFgWmIJWFj6Owj9PY4DYvUoHXYgGg5+YYJ94hl3sMkr3GE6k=
+	t=1786546808; cv=fail; b=KeOiZq4Fe9Nb8NINn1B9shG90cnZcXViQTHLEc24LOVm2Un9odP8jtH4TrnOBVL7eZhF09t4/QP4aZ2tAdCcOLLfCLqivMRzNYbl8tj4/nRubk2AGmm0j3WR52990JJLlLgKoaDRlCIxwRSemzIzpg++sBlPA80JycylWyU+nC4=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786546804; c=relaxed/simple;
-	bh=Wir46lGZsuw0+oTkV16tEtvQURb0WmW9EzUXyr5MtAQ=;
+	s=arc-20240116; t=1786546808; c=relaxed/simple;
+	bh=p5k3h3nz8992/L1FCZkT/zeh6nLSq74gYavpxhNdtp8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=EBwzq4S/mo6yTueKbnYaEyQcFiyrWDj+gQsX1GZxNpK044VQ7kBlmI9gHUyXy3tTkBVPXmcA7yoS05tfVKkd/5w61t/17B/09tXk6Fonxh008QQD1FjgpQ96WmtFfC6fxOqQXCZr/rWmelTKzQpNelbEdVKkYX86m2iUIbjYwgM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=rT2ri+Qj; arc=fail smtp.client-ip=52.101.48.45
+	 Content-Type:MIME-Version; b=ZYhsIdLkv0mpELAv6YKVdLfrb+A7Arkr2+QmsBfYRCMGGwEKhFj52uuYoLf8u3ICWVf543u3A+yPcLsD9X2Z1o69f4njo4tJOef/eaj6OlcQzo8eIOjgfk8TSJiRUIds1hd1zXjiVsHjQAs6sr14pwj9VHE58/TKRD4fAHadA9k=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=NrZHBKiw; arc=fail smtp.client-ip=52.101.61.9
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="rT2ri+Qj"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="NrZHBKiw"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=pGd+5+S6ACS0zPvt7YrN9d+0/3UDjjExrnAiL7WvosGlZtwdxwz/uZDSeAuP6K7p4/wMMnoklp4p59HqdqRhaMwEuhjmzTYFPOmvJujxOfgddBWuPGv6SHAV2pLqHCEtrrVHGyB+8xJqj5FJf3kckqgfpb++aTy57oCu5Chv414g9KsL3wYyFmPP9Kkb0hCkBeIhdr1cWJSd59jFPg+NsWBAfBe8XWiv6wObhWcveuGZKfxMYAztWcV9QnOtR/EKgWMWZFas1OW8P49JbUlGvd9pfyIA9OR0rMpc/xt3Ynv2G3yr+oGhsPV+DbsNwh3CQ2rCXUGnvIFvPZxUzUN8Jg==
+ b=PzGp+BTjBlE2ACEVBLsjyTWkyV7LAojpzZG67C3YVgPaIN2mWV4zJTP9JFXrDxCZTdLQcGBHWoiR7PqTL6F94RFIebGU49zY2BX7QQoHOINlPeO0x1z2TKZG1kgRko1YY9bXrlp8zuivilvUpFZJIsIkGDexKBenc4rVF0SmbvqjfhlrMyRUP7nfrVay9sUyusavyIHz6yHuDNs9cKC8gZfR2vK09T0XUG1b4JyXIAjtLtCz0YmdPQBCQwqWa8etfNEJ4BNHB/1IUD/k07cyUe6gkRjgKnEe9V/meYM3FoxBdBVRP+qK1AtGYDdT1+Icrl0TIo1jP6s1tbaXl08BnA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=kQ3MDMza/3JThWIfviBpbtO01BO4WWIL5tl97y//Tkc=;
- b=aZcER+ExroNJRYUo7ICo42T2lethkg9sJfV2lU34vpe6Z4WEm5GctBU0XYGTDN//UMptVSnSBbeAY/EEmONqZIi3MMz82RXDqAPiKsVaLHKE/yGPVyIIYqi93v0hdhUoz/yxduNRPwYHjr34NoEGto8grJLVIEmc5BJs0k8iGj+X6T+doS3c9pa2jlJZqPqKsUoK0eA3nnwXol5AAh8mDAhtAE5M8/m+dk1A70MNo5NBXywSyv0S6Jqw163MizF4LEyuO0ZnT0mKGLouRNcofnmNBqTBeAHTimcAKSdn1vcpyZRhTzwVWoXqs/cmt5STiQxXuxJm5VUfTLc1mthrSg==
+ bh=Kr+Hvo7ZYjJktPS6MYM10egAkSmilei7LNFE/ZFMtt4=;
+ b=p99eXRdaUticg0QFS+U503cjjEMrrKJh//KL58Bjh6nn9bc/on60fnSueybm5AKcyDPxdj0nx/Cx8jMoPvlT+q+d3tkNKJaCZT6lXv5ILsXRsmidvrNxQOYTfcNKVnLLFhNapKB2iX3zOM3gqF596aLjTIp65+O9dgo/+w+Kil0YrcuBHb+eJCKKrpysiURO8l4WSOUJDtYCcC0Ew0Op5BuPsEnjoJbx+5vF7wZHHGq32sQAlTn3Elm33ZOGikoRDLMQgSUr92YW8Lv1LndNJe/T7vNGJ5NSt/nOIbevVoW/00/3YSshkiH7+trUXM9H9aXOIhEheqmT8KoOnJSYXw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=kQ3MDMza/3JThWIfviBpbtO01BO4WWIL5tl97y//Tkc=;
- b=rT2ri+QjUhs/wR9LUIQApYEpt2AnuYtFZcBZacZLf151kwoqzxjNd3U3tm/P7JDi5CyfRCgqbbniN1vm8dp5biE6S7NLb27/1BxLgG/qRAp+p/5/dy8j5nxpB3RMM5MSI7n7aukTryfhj+Sy9GocIkYMGqxHxyj7E4blcwiSRmhowQ+F9qhuiTNvjGe2PtHHOmJyCgDEyJjg6htVGjEEe/8s93lyKvYRSj3RjdxwKX70UtPZVcrJ9sOJS5VFmVjI9iGnLuO5IxgE+uWMnUNY7loBa/xQwC3kMx4++QV3KQ/LdisroO9Edqnex/wryMJkNfUxZdWx+JHi4jLfDQdosQ==
+ bh=Kr+Hvo7ZYjJktPS6MYM10egAkSmilei7LNFE/ZFMtt4=;
+ b=NrZHBKiwPyCKxmgLlNyIVKP50qMInLCXIk9Xd9JVy7DfEx2kM9DXTzMVic7pszkm4ewzGF7woQe86xO6AoElCxRHcZXPSK1MzrfNpf2MQl1KJes31/mhNUB7JNK4FQ8dXWw6Vorpkk0NeMk0NCv4jVb40e1d1u9F8yqgtfD9Lvv5fuqrMLf2Z2MY/iRRI8TGPMjePI6iO4/Mq8ao7/IynjSBUgWoTzXvi2Vat3bWOO3GY00AQkJ3RaX9wBh22ZWXqrQtzEW5Xptk/RWM+uOorR9Jldf3/viuqpxB4zraqQLjQdQLeLmVkOIPPw5RJGKLNq/2ebe11x6DNTCWelBHpQ==
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=nvidia.com;
 Received: from LV8PR12MB9620.namprd12.prod.outlook.com (2603:10b6:408:2a1::19)
  by CY3PR12MB9654.namprd12.prod.outlook.com (2603:10b6:930:ff::13) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.315.11; Wed, 12 Aug
- 2026 14:59:17 +0000
+ 2026 14:59:19 +0000
 Received: from LV8PR12MB9620.namprd12.prod.outlook.com
  ([fe80::299d:f5e0:3550:1528]) by LV8PR12MB9620.namprd12.prod.outlook.com
  ([fe80::299d:f5e0:3550:1528%4]) with mapi id 15.21.0315.011; Wed, 12 Aug 2026
- 14:59:17 +0000
+ 14:59:19 +0000
 From: Jason Gunthorpe <jgg@nvidia.com>
 To: Alex Williamson <alex@shazbot.org>,
 	David Matlack <dmatlack@google.com>,
@@ -55,15 +55,15 @@ To: Alex Williamson <alex@shazbot.org>,
 	Shuah Khan <shuah@kernel.org>,
 	Tariq Toukan <tariqt@nvidia.com>
 Cc: patches@lists.linux.dev
-Subject: [PATCH v4 10/10] vfio: selftests: mlx5 driver - add send_msi support
-Date: Wed, 12 Aug 2026 11:59:08 -0300
-Message-ID: <10-v4-021df3fb5a3f+98e-mlx5st_jgg@nvidia.com>
+Subject: [PATCH v4 02/10] net/mlx5: Move HW constant groups from device.h/cq.h to mlx5_ifc.h
+Date: Wed, 12 Aug 2026 11:59:00 -0300
+Message-ID: <2-v4-021df3fb5a3f+98e-mlx5st_jgg@nvidia.com>
 In-Reply-To: <0-v4-021df3fb5a3f+98e-mlx5st_jgg@nvidia.com>
 References:
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: BN9PR03CA0705.namprd03.prod.outlook.com
- (2603:10b6:408:ef::20) To LV8PR12MB9620.namprd12.prod.outlook.com
+Content-Type: text/plain
+X-ClientProxiedBy: BN9PR03CA0691.namprd03.prod.outlook.com
+ (2603:10b6:408:ef::6) To LV8PR12MB9620.namprd12.prod.outlook.com
  (2603:10b6:408:2a1::19)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -73,381 +73,427 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
 X-MS-TrafficTypeDiagnostic: LV8PR12MB9620:EE_|CY3PR12MB9654:EE_
-X-MS-Office365-Filtering-Correlation-Id: 42eda1b8-d40e-4097-0e00-08def882446a
+X-MS-Office365-Filtering-Correlation-Id: e62b1589-2a4e-4df5-4dd0-08def88245ed
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|366016|376014|1800799024|56012099006|11063799006|10067099003|6133799003|18002099003|22082099003|921020;
+	BCL:0;ARA:13230040|23010399003|366016|376014|1800799024|56012099006|11063799006|10067099003|3023799007|6133799003|18002099003|22082099003|921020;
 X-Microsoft-Antispam-Message-Info:
-	BbxJY/+lziO9Ibs7HPFOapV6Kz0ptV5i3eJQ24jK0uiErM6fcQTR+82BQJuwrWzzQc5jCHAZ9u7HreZ8Urtm5zkcI8Ml/eCqaEvyx4dugPa2I33bx0WApf8NPnGEV22z6KmXIgzbfA0jPZUorQj5zsX4WKHqaaaH6cycnZ7i78H16LDB+jJ0JgZb6xLrj8b1TNCnpVX2zLbyi2x0Ezg8rqmkeLlcPktpNAxud3f15JmBHNFoxPCmE8DVsfzSX/uZqUvZEsoSR0JNBSVGwuT1yQ/E1d4VannP2UKv4wN/SoL1HGQmfTKcFy9gsGA9E5ERfxU+/wAjLxQhDObIVkQtAYKZAbSv3Wbnuu+YdTriTUwDdiUSXnILTJn+Z9FtW00rxBKWBXaUUea39ttvtJLm5clAQx/BPP7b76ccjb6n9YwTA0U2ikjdfruDILlPXwLdSNQsu06m/eVthPcV4QPnw3WMcEc8OjoIeKPhg3Jw3bftP/tlE3Vt6sDI383BbmOHLdLw7rINO2X/3rijJ0HPfWKP2NiztOSViG76xRDHmw0NHR0IFvUXPvqE+J6iVbtRIUXuGDrGpNhdlI+tVQ6a/xbGn4QFqF6TWtKWSlg1xuehhhT6wpmzHlaAFn+2aW2UP/7KuaLqUHOAnbwBT9qLj4VwEmb4V+7ixd/1AhAsDf6M3Y6jJ5iWyE5517JF9LyFrwOSm4W/+TYSXSHm3ozXeQ==
+	uWX/zZOEU/fXrcLO+hQI2PFobwkI9EHTO6S9dW8hKcOUVexg2iRjdZxtahJbZCBa818ysQqlCc8sSCYQTnhX3UmjfBvHgpADD3TKtAPAisV2JzxS2L9nWj7UZdxzpqblJtyZgxOgWbdzucr97FD8cxt2FURsDINsj0ounGCYSBMx+xgzh+qHKr8Dn7/yuYjbQ/mtLPGEe8g+rgJC8CsvJkEWvIQpKuV+LD5HjRBJmpM272zU+nx1HoLUHheGSS6oKNJBIq2GzvHbB7F8AiQZErCh9no3VNtgJ5z87/ieoSU8gNmskd5z22gN80fmTsy7g9jzMS9Ld/NNPb5Kc72Y7rYBRScAYnwXreBJxlBNAnZVem/sD4RDsDuAHEkcif+l/TfBEaS8O1qK+Wa1aliBx15w5rajLoWzw9zLEbPsusLfwgAQxUnNeoBlEcqe/Rt4jRggATPH7r9T3dv78buexC1HfExnO40dVqZUESK7O5iq5YFemlYxRsPlVLLvWbi9vnccmc/scx+rC5rc5naTRVXLDf8e+qEZXX/RWB6V1qAmGB25JLhWrHdpgLCAHEXqwj1GzPuUWwhnCdgEBP2dkhfstZJFgKJ193gJeE9S0vNawcQweRZEkuwymT7qcEXpxgV+gAUHNcqX4G+cr7z69un8vPIpLKQmJ7U7YN/UobFZYVri77n6Emaa4LLb3fyI0Qtv4EQ1gSDvaJszZuqNIg==
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV8PR12MB9620.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(366016)(376014)(1800799024)(56012099006)(11063799006)(10067099003)(6133799003)(18002099003)(22082099003)(921020);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV8PR12MB9620.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(366016)(376014)(1800799024)(56012099006)(11063799006)(10067099003)(3023799007)(6133799003)(18002099003)(22082099003)(921020);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?SHhkWXpoWlBvU3JYWldsVG1QMXVRbGRDcU05SEt1QmVYVnlxZUcrS21DdUsz?=
- =?utf-8?B?UHhxSk1vaWNzcFBscmtVSi9tdEQ2U0pFT0UyTnVVMi9paEt1ZjF0amgxSHRG?=
- =?utf-8?B?dFZOWWhyMVhUaXpvUkhveWhZbUs4VWZaU3lLcE9NNlZxV3Y3aUY5MzlVamI1?=
- =?utf-8?B?ZkdCam9tN0Q2SFdZWFpTOWI0SHQ5RFFCT1laMnR6RlkzZUttLytERFBNU3dh?=
- =?utf-8?B?L0l0NlJxV2NaS1NlYkd2UkxxVHhZK29xcGhxWjM1WW9EUzZOZWsxblJwdnVt?=
- =?utf-8?B?S1lLbTEzbjJ1Z1ozc0FmOWpjYmpLaTh1VmlEVm9wWlJJMGJ6ZEV0K2JiWkFS?=
- =?utf-8?B?bzloTTFmUWF5Q3VqQXlMZjM1cUw5ZFpOay9QcG0zcGg1Wm9UVDNvRU1paHBN?=
- =?utf-8?B?T1d2OGVrUURCNDNheDdpN2lCMm9OOEl2cUIvOEdZc1hTMjJWamkybVhGZFpN?=
- =?utf-8?B?d2VSQ2tONFBaK3hOa3B0R2hoOUNCTmU3ZWo0VkpONGtZdG9IcktXT0xiWThD?=
- =?utf-8?B?Rk5SQlUzN2c3alRXdXliTzROMzhOL1dETEpmUEducjdaMVE1c3VzdzBhSW0w?=
- =?utf-8?B?ZjJubjJzYnZGYndURFMwNGdXL0tkN2d4THpLNzNDL2MrbFdobGxpN09Ba1Iv?=
- =?utf-8?B?TmNZSUtyY1hzcFJTaWRSUGc3T2ZxZVpHK1NucnVncVdmL0g0dmlNTW14QkFU?=
- =?utf-8?B?L1NseXJ4SFFpTGpENEhsTkZQeG9PbUJCem03NG5pR0ttQTlHUGVvVG5nelVl?=
- =?utf-8?B?VzNMWnN5RkJla2FNWEZQYmhhYVBiUnRWcHhGS0VJWUNycE05S2cxVDR2T0Fp?=
- =?utf-8?B?Tk5CN0FHSGhCMTM5bWhxb2xFY3NpWHl1Y0ErdFl2bG9HOXozaE1naU9YUGtU?=
- =?utf-8?B?TkdEVFp2eEJuaEpVNWlQV2dKRk16Nm1zakVQRUJnWDE2c3lXOS81VlQwSm1m?=
- =?utf-8?B?K0srdFRNRVExK2lBQktzMkduQkRnRjJOMEh4YitZRWhHN0VUUHVjWTZRUVMy?=
- =?utf-8?B?TmhNaXZPNEluV3pVUmtMVWtWNDRjbktEODJhdlcyci9LL3J1eGNFL05jWnlv?=
- =?utf-8?B?WnN4QmtDVFJWYU1iL25yK1paNnJoaUhWRnlwbzgrSHFxb3hxcWZCTkVpLzhE?=
- =?utf-8?B?czVIS21ZMHhoSjhyYi9PN09DNTlwUGY1M3lnWUkrVFZCb21pbDFBbFhxZFdt?=
- =?utf-8?B?NnJmU2R3L3hsVUUzNk00dExuMlo4QkdSWHJaOGU0SzAvR2c2cmk0VVNQdFR5?=
- =?utf-8?B?eGJxZG1tU1BBTnFYenlzclR5dklyTTFZMlpTRldhc05Ycm9ST2lDTWVLWWJw?=
- =?utf-8?B?ekhVVWt0cXRIalVMZmVJNUlnaDZvVjJkTjdWQ0lUMFVMWDNia1VKczRnRTk1?=
- =?utf-8?B?Tjd0ZFV2YTNENzl6NXFWR3BPRUtnSzRHaU1rWFdzczNuM0MyMHpuMUJkb09C?=
- =?utf-8?B?ZGpCTlllaldaa2hER0d0R0ZmSElkcFBTK2o2OFBxZEhpRU9paVY4VVdVMTJJ?=
- =?utf-8?B?S2hCSXFqZTFsWG1zT29kVklrYnVLYytBbG9Wd1o2TUo5eFpKcUFDeDJVemFr?=
- =?utf-8?B?RmgzK1lpVUVOeHZqNzF3VzlVZ3Vmb1BRZmQxbjdWTG14QVJ2Ym5Dd1Q1MUhi?=
- =?utf-8?B?VUZOSk1jZXpVNEMyMjMvc0hBNnpIUTlYNTFtUGxLTlVlcCtVaU5TTEZrVjNV?=
- =?utf-8?B?WnpCU05MelhKZG9BOFdScUczbDROMENPRkVTZVhKWlJYenphU0twZ0FaNnVU?=
- =?utf-8?B?cUw4NWNoRnV3Sm1FZFU2RG1QaFozT3B5MGJnREV2Y1dWelJRTi9sU1RsWGpq?=
- =?utf-8?B?enJRNFRMOUFRazZyMUVDNkUzckIwK3NtRmYwaXJ5WDNjcno3QU40YWVLMTE1?=
- =?utf-8?B?bGdFaEJOZHZXbXB3Q3cxR1gxZDdiYnZEbDViT3EwektFaGRDaG0yaHk4OVBT?=
- =?utf-8?B?TkszMlQ1enJBeUVNQmJ3YVAwYTk5RjNENE1obDdLaFUvQVU1VmdURUhhQlhy?=
- =?utf-8?B?ZWx4T0tZRElKeVYzdjVwR3JNZ0d4aDNkVnRvMllzdnZMYThoc0k4VkxTZlJ6?=
- =?utf-8?B?dmQ5SGVhUU1XczhPU2V5eC9nOEZhK1UybitPRmpNeG5IcXdaenAydXBXYVpj?=
- =?utf-8?B?NGtlK2RoR2QzcG9rdUR0Yit4WGYzV3pTT20zazBQZEJWY3ZqMDd1N2E0NDV2?=
- =?utf-8?B?QWduaER4NVFad1Y0c3hBNFpWRFNMUGpPWVRLTktJVUVvVDlwU29MQk11UEJs?=
- =?utf-8?B?YlFIWThWT1R6NUxXRy9rSFNKVVBYYjd6SldWL3psaWs2SXNPaHBoU0J2bldH?=
- =?utf-8?B?UkFWZ0ZRM050Y3g2SzJvclRjVWZRVFcyQ0g0QXc3NlRhVkJvTm1DQT09?=
+	=?us-ascii?Q?TwnsnBbhzEhFDWfDovTerCobo5UCTJfBK+owucTPAGlzRATZfo7BQxvSc2pV?=
+ =?us-ascii?Q?Gis/ON1QBBxB6D33aBU/Ckx3oO161r0autwpU7Ihqnchvg3wGOJHBmIZ9PMo?=
+ =?us-ascii?Q?jfMpCCIRg/WFZMCFYgY5W9YuZM6MlRPCpOK4RrUXhxaYnJftZuyhhwQlfFKl?=
+ =?us-ascii?Q?FnRhPPW+LLUFcSw2UHxL1tUAvPcJxSBoRklB0hNDn1M24uMwPg7wnRUshH2n?=
+ =?us-ascii?Q?2WF1PzaaH+q9sItnqtOQ60XVmDb0zgKk0shsJPjrx3NcOKiOzKO1OIyk4fgx?=
+ =?us-ascii?Q?SowUt+Ofgmnlo5mz0GsofjuRkudw0kpTnkOlKsEbZxfhbeksGd88b1zvNuCa?=
+ =?us-ascii?Q?xfOyBQcbouFOwOswARJFaJAiBzAw5kw8UjDkCxWzapw6OMbP2en8FiXOmsr8?=
+ =?us-ascii?Q?iU8NyFGooWUVRtof/yutEawvDRGdbmpn41xIoUsS+EVe85crCYcv1DoUJUon?=
+ =?us-ascii?Q?ZLAtEofPnveJWFWUI1TPp1NwgySeW7otaENc9B9EDuFwYF180pzQfGYdt9nj?=
+ =?us-ascii?Q?NEJK5KqEDwfn5q6qv9qOKUoOhCf4IRRO9QcZILBdhiy38TgsI6/5E+zpqEwN?=
+ =?us-ascii?Q?u4eDnkrRN7Q5duY/p4ceQhyGLGzmStS835bgxG5/B2LgPBVxnx63bpo+LbWr?=
+ =?us-ascii?Q?bO7jQ39G/BcmXsh4t+DcSiyI/L0uLHGeHFBHxv1L1OEXp7DoGKhHwvet/x8P?=
+ =?us-ascii?Q?jae46uLMkRnuAWfQbdZGLziIQlMoevTA66C4BuZcgicdlM5LaU+SmB1T6ThJ?=
+ =?us-ascii?Q?cptn9ZU0NUftCf2pVXeGjx2/p9C5qk+JAQnXYz5iuCjyvVN91lxLuMS7t0xn?=
+ =?us-ascii?Q?d/rdhntdab9b8iW30fKS9Iau+FqupBP7QPdJoJAV2kQKmU7d03Qe6h4EbYZm?=
+ =?us-ascii?Q?osAAzN+4GFjBRAlYE5nyvxS8Q72mwYM+tuGF9ON5j+QAdwZNctrjzFeUrMk/?=
+ =?us-ascii?Q?0MfUKex20OOE9haL7vb4y9Q533n2g5g/DHnjVsz6Y/4zyAdkDIFXYwA6lXx8?=
+ =?us-ascii?Q?mq52q71czlyXHwb5NhzFEKTgdfwVUAHL9Q79NYVG1iehPGKNCe//mDFyJ6B1?=
+ =?us-ascii?Q?6KApWf9uV3ADiEB+Fr93DOEBzxjimIUedL3AzSIAOKWO4+kx8j9WNz16+GfQ?=
+ =?us-ascii?Q?9XExSXF9Q0gbFHXsf49ayVNs2KyDAaniWveE5T/X5k2Qwm40NBbAjqCCILc7?=
+ =?us-ascii?Q?k95MtFyb5N072rAU2PuX+lxjOiqirnzAMQIPMuH+gEc+/S0ZrEVV2n3vN8az?=
+ =?us-ascii?Q?Y+MGnE10f43ERHB2EJpxETjnurFu8chajuEOLPbBmheec7WjXFBi4Vd3Aro6?=
+ =?us-ascii?Q?YDIfHpdSj9Dlv41NQo7Axm3D87oThdcB9fs7qcEGK10WLHi2gNjk8vogLa5o?=
+ =?us-ascii?Q?o26xpm5SznF2rVH1aQg6cTUqUdfk12SsR13g7MM32w61h4OeUWL6G/DQaZRW?=
+ =?us-ascii?Q?MMu4fGo3O9jRFBU4ADLtmqDP9p5wHpZx/aAO8aTVHrqdxf0nYkfa2NESfFm7?=
+ =?us-ascii?Q?q1dkefCKYlszGpglT2ui+rRYKVs2ECtfLwBZ7wIWP93DYKNcrgBjBu0cDXO9?=
+ =?us-ascii?Q?5Anmf4I3zYtdo5/QXFVALXWAuUNlT6ioAcztsGdZsHyjhcJJnAO3nTwLxSiV?=
+ =?us-ascii?Q?6jAtzSuX0+v7Ab+pTTj5sX0Mib/Ohsc1rfyULI+T8f5GCaradZ/uaaUdgd63?=
+ =?us-ascii?Q?uA9MDp9pf1S5ShIGw89+RbFxsveoP/ervqM4anI8JQZGrDeu2RhRQe4lzfvB?=
+ =?us-ascii?Q?JT8ZG4OUsA=3D=3D?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 42eda1b8-d40e-4097-0e00-08def882446a
+X-MS-Exchange-CrossTenant-Network-Message-Id: e62b1589-2a4e-4df5-4dd0-08def88245ed
 X-MS-Exchange-CrossTenant-AuthSource: LV8PR12MB9620.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Aug 2026 14:59:11.4861
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Aug 2026 14:59:13.8686
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: j/4eiidOnZTSe7rGuQjsFGOzX/nWdBzGkg+UbOLIMqpX6JruMFV/TCs8ve5PZUrR
+X-MS-Exchange-CrossTenant-UserPrincipalName: RZ5X3mHQjQOP+ZveNJAHzJewZLibyTlAySfYdZv7JMCw6Mu1dQrKPfHfMPhy1aCO
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY3PR12MB9654
 
-Wire an MSI-X vector to a dedicated EQ so the mlx5 driver supports
-send_msi().
+Generally the IFC file should contain enums for the fields it
+defines. Move the ones in device.h that are relevant to the VFIO
+selftests over to the IFC file:
 
-Each EQ can be linked to an MSI-X vector, and the CQ can be set up
-to deliver an event to the EQ. Thus, when everything is armed, an
-RDMA WRITE posted to the QP generates a CQE, which generates an
-EQE, which generates an MSI-X.
+  wqe_ctrl_seg_bits.opcode: all MLX5_OPCODE_* WQE opcodes
+  wqe_ctrl_seg_bits.ce: new MLX5_WQE_CE_* completion/event modes
+  cqe64_bits.opcode: all MLX5_CQE_* CQE opcode values
+  eqe_bits.event_type: enum mlx5_event (all event types)
+  cmd_out_bits.status: all MLX5_CMD_STAT_* status codes
+  query_hca_cap_in_bits.op_mod: enum mlx5_cap_mode
 
-To keep things simple this just re-uses all the existing QPs and
-CQs, so they generate single MSIs during memcpy.
+Tidy MLX5_PCI_CMD_XPORT which is an alias of
+MLX5_CMD_QUEUE_ENTRY_TYPE_PCIE_CMD_IF_TRANSPORT.
 
-send_msi() drains any accumulated MSI EQ events from prior memcpy
-completions, posts a small signaled RDMA Write, then polls the CQ to
-consume the resulting CQE (avoiding stale completions on subsequent
-test cycles).
+No functional change. All existing users of device.h and cq.h
+continue to see these constants through the include chain.
 
 Assisted-by: Claude:claude-opus-4.6
-Acked-by: David Matlack <dmatlack@google.com>
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 ---
- .../selftests/vfio/lib/drivers/mlx5/mlx5.c    | 165 +++++++++++++++++-
- .../selftests/vfio/lib/drivers/mlx5/mlx5_hw.h |   6 +
- 2 files changed, 168 insertions(+), 3 deletions(-)
+ include/linux/mlx5/cq.h       |  10 ---
+ include/linux/mlx5/device.h   | 114 +------------------------------
+ include/linux/mlx5/mlx5_ifc.h | 123 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 124 insertions(+), 123 deletions(-)
 
-diff --git a/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5.c b/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5.c
-index e5e75adb253166..c8388aabb8c672 100644
---- a/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5.c
-+++ b/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5.c
-@@ -57,17 +57,23 @@ struct mlx5st_device {
- 	/* CQ */
- 	u32 cqn;
- 	u32 cq_ci;
-+	u32 cq_arm_sn;
+diff --git a/include/linux/mlx5/cq.h b/include/linux/mlx5/cq.h
+index 9d47cdc727ad0d..a1c14479e462c2 100644
+--- a/include/linux/mlx5/cq.h
++++ b/include/linux/mlx5/cq.h
+@@ -81,16 +81,6 @@ enum {
  
- 	/* UAR */
- 	u32 uar_page;
- 	void __iomem *uar_base;
- 	unsigned int uar_bf_offset;
- 
--	/* EQ */
-+	/* EQ (cmd/pages events — polled, not interrupt-driven) */
- 	u32 eqn;
- 	u32 eq_cons_index;
- 	bool have_eq;
- 
-+	/* MSI EQ (CQ completion events — fires MSI-X) */
-+	u32 msi_eqn;
-+	u32 msi_eq_cons_index;
-+	bool have_msi_eq;
-+
- 	/* Async pages slot state */
- 	bool pages_slot_in_use;
- 	bool pages_slot_is_reclaim;
-@@ -91,6 +97,10 @@ struct mlx5st_device {
- 	bool fl_supported;
- 	u8 log_max_msg;
- 
-+	/* Buffers used by send_msi() to trigger an interrupt */
-+	u64 send_msi_src;
-+	u64 send_msi_dst;
-+
- 	/*
- 	 * HW-visible DMA buffers below — device reads/writes via DMA.
- 	 */
-@@ -113,6 +123,9 @@ struct mlx5st_device {
- 	/* EQ does not support page_offset */
- 	struct mlx5st_eqe eq_buf[EQ_NENT] __aligned(MLX5_HW_PAGE_SIZE);
- 
-+	/* MSI EQ buffer — CQ completions generate EQEs here -> MSI-X */
-+	struct mlx5st_eqe msi_eq_buf[MSI_EQ_NENT] __aligned(MLX5_HW_PAGE_SIZE);
-+
- 	u8 fw_pages[MAX_FW_PAGES][MLX5_HW_PAGE_SIZE]
- 		__aligned(MLX5_HW_PAGE_SIZE);
+ enum {
+ 	MLX5_CQE_OWNER_MASK	= 1,
+-	MLX5_CQE_REQ		= 0,
+-	MLX5_CQE_RESP_WR_IMM	= 1,
+-	MLX5_CQE_RESP_SEND	= 2,
+-	MLX5_CQE_RESP_SEND_IMM	= 3,
+-	MLX5_CQE_RESP_SEND_INV	= 4,
+-	MLX5_CQE_RESIZE_CQ	= 5,
+-	MLX5_CQE_SIG_ERR	= 12,
+-	MLX5_CQE_REQ_ERR	= 13,
+-	MLX5_CQE_RESP_ERR	= 14,
+-	MLX5_CQE_INVALID	= 15,
  };
-@@ -135,6 +148,9 @@ static_assert(offsetof(struct mlx5st_device, qp_dbrec) % 64 == 0,
- static_assert(offsetof(struct mlx5st_device, eq_buf) %
- 			      MLX5_HW_PAGE_SIZE == 0,
- 	      "eq_buf must be page-aligned");
-+static_assert(offsetof(struct mlx5st_device, msi_eq_buf) %
-+			      MLX5_HW_PAGE_SIZE == 0,
-+	      "msi_eq_buf must be page-aligned");
- static_assert(offsetof(struct mlx5st_device, fw_pages) %
- 			      MLX5_HW_PAGE_SIZE == 0,
- 	      "fw_pages must be page-aligned");
-@@ -1013,6 +1029,85 @@ static void mlx5st_process_events(struct mlx5st_device *dev)
- 		mlx5st_eq_update_ci(dev, cc, 0);
- }
  
-+/*
-+ * MSI EQ — dedicated EQ for CQ completion events that fires MSI-X.
-+ * Separate from the cmd/pages EQ so that only CQ completions (from
-+ * send_msi or memcpy) trigger the interrupt vector.
-+ */
-+
-+static void mlx5st_msi_eq_drain(struct mlx5st_device *dev)
-+{
-+	u32 cc = 0;
-+	u32 val;
-+
-+	while (cc < MSI_EQ_NENT) {
-+		u32 ci = dev->msi_eq_cons_index + cc;
-+		struct mlx5st_eqe *eqe =
-+			&dev->msi_eq_buf[ci % MSI_EQ_NENT];
-+
-+		if (MLX5_GET_ONCE(eqe, eqe, owner) != !!(ci & MSI_EQ_NENT))
-+			break;
-+		cc++;
-+	}
-+
-+	/* Update consumer index and re-arm for next interrupt */
-+	dev->msi_eq_cons_index += cc;
-+	val = (dev->msi_eq_cons_index & 0xffffff) | (dev->msi_eqn << 24);
-+	iowrite32be(val, (u8 __iomem *)dev->uar_base + MLX5_EQ_DOORBELL_OFFSET);
-+}
-+
-+static void mlx5st_create_msi_eq(struct mlx5st_device *dev)
-+{
-+	struct vfio_pci_device *device = dev->device;
-+	u64 in[MLX5_ST_SZ_QW(create_eq_in) + 1] = {};
-+	u32 out[MLX5_ST_SZ_DW(create_eq_out)] = {};
-+	struct mlx5_ifc_eqc_bits *eqc;
-+	unsigned int i;
-+	__be64 *pas;
-+
-+	/* Initialize EQE owner bits */
-+	for (i = 0; i < MSI_EQ_NENT; i++) {
-+		struct mlx5st_eqe *eqe = &dev->msi_eq_buf[i];
-+
-+		MLX5_SET_ONCE(eqe, eqe, owner, 1);
-+	}
-+
-+	MLX5_SET(create_eq_in, in, opcode, MLX5_CMD_OP_CREATE_EQ);
-+
-+	/*
-+	 * No event_bitmask — completion events are routed to this EQ via
-+	 * the CQ's c_eqn field, not through CREATE_EQ subscription.
-+	 */
-+	eqc = MLX5_ADDR_OF(create_eq_in, in, eq_context_entry);
-+	MLX5_SET(eqc, eqc, log_eq_size, LOG_MSI_EQ_SIZE);
-+	MLX5_SET(eqc, eqc, uar_page, dev->uar_page);
-+	MLX5_SET(eqc, eqc, intr, MSI_VECTOR);
-+	pas = MLX5_ADDR_OF(create_eq_in, in, pas);
-+	VFIO_ASSERT_EQ(mlx5st_fill_pas(device, dev->msi_eq_buf, pas), 0u);
-+	MLX5_SET(eqc, eqc, log_page_size, 0);
-+
-+	mlx5st_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+
-+	dev->msi_eqn = MLX5_GET(create_eq_out, out, eq_number);
-+	dev->msi_eq_cons_index = 0;
-+	dev->have_msi_eq = true;
-+	mlx5st_msi_eq_drain(dev);
-+
-+	dev_dbg(device,
-+		 "Created MSI EQ: eqn=%u, %d entries (COMP), vector=%d\n",
-+		 dev->msi_eqn, MSI_EQ_NENT, MSI_VECTOR);
-+}
-+
-+static void mlx5st_destroy_msi_eq(struct mlx5st_device *dev)
-+{
-+	u32 out[MLX5_ST_SZ_DW(destroy_eq_out)] = {};
-+	u32 in[MLX5_ST_SZ_DW(destroy_eq_in)] = {};
-+
-+	MLX5_SET(destroy_eq_in, in, opcode, MLX5_CMD_OP_DESTROY_EQ);
-+	MLX5_SET(destroy_eq_in, in, eq_number, dev->msi_eqn);
-+	mlx5st_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+}
-+
- /*
-  * HCA init / teardown
-  */
-@@ -1369,7 +1464,7 @@ static void mlx5st_create_cq(struct mlx5st_device *dev)
- 	cqc = MLX5_ADDR_OF(create_cq_in, in, cq_context);
- 	MLX5_SET(cqc, cqc, log_cq_size, LOG_CQ_SIZE);
- 	MLX5_SET(cqc, cqc, uar_page, dev->uar_page);
--	MLX5_SET(cqc, cqc, c_eqn_or_apu_element, dev->eqn);
-+	MLX5_SET(cqc, cqc, c_eqn_or_apu_element, dev->msi_eqn);
- 	MLX5_SET(cqc, cqc, cqe_sz, 0);
- 	pas = MLX5_ADDR_OF(create_cq_in, in, pas);
- 	MLX5_SET(cqc, cqc, page_offset, mlx5st_fill_pas(device, dev->cq_buf, pas));
-@@ -1394,6 +1489,30 @@ static void mlx5st_destroy_cq(struct mlx5st_device *dev)
- 	mlx5st_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
- }
- 
-+/*
-+ * Arm CQ for event generation.  The CQ event delivery state machine is
-+ * single-shot: after generating one EQE the CQ enters "Fired" state and
-+ * won't generate another until re-armed via ARM_NEXT.  Both the CQ doorbell
-+ * record and the UAR CQ doorbell register must be written.
-+ */
-+static void mlx5st_arm_cq(struct mlx5st_device *dev)
-+{
-+	u32 sn = dev->cq_arm_sn & 3;
-+	u32 ci = dev->cq_ci & 0xffffff;
-+	u64 doorbell;
-+
-+	/* Update CQ doorbell record arm word */
-+	WRITE_ONCE(dev->cq_dbrec.send_counter,
-+		   cpu_to_be32(sn << 28 | ci));
-+
-+	/* Ring CQ doorbell register, iowrite has an internal dma_wmb() */
-+	doorbell = ((u64)(sn << 28 | ci) << 32) | dev->cqn;
-+	iowrite64be(doorbell,
-+		    (u8 __iomem *)dev->uar_base + MLX5_CQ_DOORBELL_OFFSET);
-+
-+	dev->cq_arm_sn++;
-+}
-+
- /*
-  * QP create/destroy
-  */
-@@ -1650,6 +1769,7 @@ static void mlx5st_teardown_datapath(struct mlx5st_device *dev)
- 	}
- 	dev->sq_pi = 0;
- 	dev->sq_ci = 0;
-+	dev->cq_arm_sn = 0;
- 	memset(&dev->qp_dbrec, 0, sizeof(dev->qp_dbrec));
- 	memset(&dev->cq_dbrec, 0, sizeof(dev->cq_dbrec));
- }
-@@ -1691,6 +1811,34 @@ static int mlx5st_memcpy_wait(struct vfio_pci_device *device)
- 	return ret;
- }
- 
-+/*
-+ * send_msi callback — trigger CQE -> EQE -> MSI-X via a small RDMA Write.
-+ *
-+ * Both the CQ and MSI EQ use single-shot arming: the CQ must be armed so the
-+ * CQE generates an EQE, and the MSI EQ must be armed so the EQE fires MSI-X.
-+ */
-+static void mlx5st_send_msi(struct vfio_pci_device *device)
-+{
-+	struct mlx5st_device *dev = to_mlx5st(device);
-+
-+	/* Drain accumulated MSI EQ events and re-arm for next interrupt */
-+	mlx5st_msi_eq_drain(dev);
-+
-+	/* Arm CQ so the next CQE generates an EQE on the MSI EQ */
-+	mlx5st_arm_cq(dev);
-+
-+	/* Post a signaled RDMA Write to trigger CQE -> EQE -> MSI-X */
-+	mlx5st_post_rdma_write(dev,
-+			       to_iova(device, &dev->send_msi_src),
-+			       dev->global_lkey,
-+			       to_iova(device, &dev->send_msi_dst),
-+			       dev->global_rkey,
-+			       sizeof(dev->send_msi_src), true);
-+
-+	/* Consume the CQE to avoid stale completions */
-+	VFIO_ASSERT_EQ(mlx5st_poll_cq(dev, MLX5ST_MEMCPY_TIMEOUT_MS), 0);
-+}
-+
- /*
-  * Driver ops callbacks
-  */
-@@ -1721,8 +1869,13 @@ static void mlx5st_init(struct vfio_pci_device *device)
- 	mlx5st_alloc_pd(dev);
- 	mlx5st_create_mkey(dev);
- 
-+	/* MSI EQ must be created before CQ so CQ can reference its eqn */
-+	mlx5st_create_msi_eq(dev);
- 	mlx5st_setup_datapath(dev);
- 
-+	vfio_pci_msix_enable(device, MSI_VECTOR, 1);
-+	device->driver.msi = MSI_VECTOR;
-+
- 	device->driver.max_memcpy_size = 1ULL << dev->log_max_msg;
- 	device->driver.max_memcpy_count = SQ_WQE_CNT - 1;
- 
-@@ -1733,8 +1886,14 @@ static void mlx5st_remove(struct vfio_pci_device *device)
- {
- 	struct mlx5st_device *dev = to_mlx5st(device);
- 
-+	vfio_pci_msix_disable(device);
- 	mlx5st_teardown_datapath(dev);
- 
-+	if (dev->have_msi_eq) {
-+		mlx5st_destroy_msi_eq(dev);
-+		dev->have_msi_eq = false;
-+	}
-+
- 	dev_dbg(device, "teardown: destroy_mkey\n");
- 	if (dev->mkey_index) {
- 		mlx5st_destroy_mkey(dev);
-@@ -1765,5 +1924,5 @@ struct vfio_pci_driver_ops mlx5st_ops = {
- 	.remove = mlx5st_remove,
- 	.memcpy_start = mlx5st_memcpy_start,
- 	.memcpy_wait = mlx5st_memcpy_wait,
--	.send_msi = NULL,
-+	.send_msi = mlx5st_send_msi,
+ enum {
+diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
+index 07a25f26429213..c739a1f578dc44 100644
+--- a/include/linux/mlx5/device.h
++++ b/include/linux/mlx5/device.h
+@@ -172,7 +172,7 @@ enum mlx5_inline_modes {
+ enum {
+ 	MLX5_MAX_COMMANDS		= 32,
+ 	MLX5_CMD_DATA_BLOCK_SIZE	= 512,
+-	MLX5_PCI_CMD_XPORT		= 7,
++	MLX5_PCI_CMD_XPORT		= MLX5_CMD_QUEUE_ENTRY_TYPE_PCIE_CMD_IF_TRANSPORT,
+ 	MLX5_MKEY_BSF_OCTO_SIZE		= 4,
+ 	MLX5_MAX_PSVS			= 4,
  };
-diff --git a/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_hw.h b/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_hw.h
-index a2506ec8a19523..2c451e411ec13f 100644
---- a/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_hw.h
-+++ b/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_hw.h
-@@ -80,6 +80,9 @@ struct mlx5st_dbrec {
- #define MLX5_BF_OFFSET 0x800
- #define MLX5_BF_SIZE 0x100
+@@ -308,63 +308,6 @@ enum {
+ 	MLX5_EVENT_QUEUE_TYPE_DCT = 6,
+ };
  
-+/* CQ doorbell offset within UAR page */
-+#define MLX5_CQ_DOORBELL_OFFSET 0x20
+-/* mlx5 components can subscribe to any one of these events via
+- * mlx5_eq_notifier_register API.
+- */
+-enum mlx5_event {
+-	/* Special value to subscribe to any event */
+-	MLX5_EVENT_TYPE_NOTIFY_ANY	   = 0x0,
+-	/* HW events enum start: comp events are not subscribable */
+-	MLX5_EVENT_TYPE_COMP		   = 0x0,
+-	/* HW Async events enum start: subscribable events */
+-	MLX5_EVENT_TYPE_PATH_MIG	   = 0x01,
+-	MLX5_EVENT_TYPE_COMM_EST	   = 0x02,
+-	MLX5_EVENT_TYPE_SQ_DRAINED	   = 0x03,
+-	MLX5_EVENT_TYPE_SRQ_LAST_WQE	   = 0x13,
+-	MLX5_EVENT_TYPE_SRQ_RQ_LIMIT	   = 0x14,
+-
+-	MLX5_EVENT_TYPE_CQ_ERROR	   = 0x04,
+-	MLX5_EVENT_TYPE_WQ_CATAS_ERROR	   = 0x05,
+-	MLX5_EVENT_TYPE_PATH_MIG_FAILED	   = 0x07,
+-	MLX5_EVENT_TYPE_WQ_INVAL_REQ_ERROR = 0x10,
+-	MLX5_EVENT_TYPE_WQ_ACCESS_ERROR	   = 0x11,
+-	MLX5_EVENT_TYPE_SRQ_CATAS_ERROR	   = 0x12,
+-	MLX5_EVENT_TYPE_OBJECT_CHANGE	   = 0x27,
+-
+-	MLX5_EVENT_TYPE_INTERNAL_ERROR	   = 0x08,
+-	MLX5_EVENT_TYPE_PORT_CHANGE	   = 0x09,
+-	MLX5_EVENT_TYPE_GPIO_EVENT	   = 0x15,
+-	MLX5_EVENT_TYPE_PORT_MODULE_EVENT  = 0x16,
+-	MLX5_EVENT_TYPE_TEMP_WARN_EVENT    = 0x17,
+-	MLX5_EVENT_TYPE_XRQ_ERROR	   = 0x18,
+-	MLX5_EVENT_TYPE_REMOTE_CONFIG	   = 0x19,
+-	MLX5_EVENT_TYPE_GENERAL_EVENT	   = 0x22,
+-	MLX5_EVENT_TYPE_MONITOR_COUNTER    = 0x24,
+-	MLX5_EVENT_TYPE_PPS_EVENT          = 0x25,
+-
+-	MLX5_EVENT_TYPE_DB_BF_CONGESTION   = 0x1a,
+-	MLX5_EVENT_TYPE_STALL_EVENT	   = 0x1b,
+-
+-	MLX5_EVENT_TYPE_CMD		   = 0x0a,
+-	MLX5_EVENT_TYPE_PAGE_REQUEST	   = 0xb,
+-
+-	MLX5_EVENT_TYPE_PAGE_FAULT	   = 0xc,
+-	MLX5_EVENT_TYPE_NIC_VPORT_CHANGE   = 0xd,
+-
+-	MLX5_EVENT_TYPE_ESW_FUNCTIONS_CHANGED = 0xe,
+-	MLX5_EVENT_TYPE_VHCA_STATE_CHANGE = 0xf,
+-
+-	MLX5_EVENT_TYPE_DCT_DRAINED        = 0x1c,
+-	MLX5_EVENT_TYPE_DCT_KEY_VIOLATION  = 0x1d,
+-
+-	MLX5_EVENT_TYPE_FPGA_ERROR         = 0x20,
+-	MLX5_EVENT_TYPE_FPGA_QP_ERROR      = 0x21,
+-
+-	MLX5_EVENT_TYPE_DEVICE_TRACER      = 0x26,
+-
+-	MLX5_EVENT_TYPE_MAX                = 0x100,
+-};
+-
+ enum mlx5_driver_event {
+ 	MLX5_DRIVER_EVENT_TYPE_TRAP = 0,
+ 	MLX5_DRIVER_EVENT_UPLINK_NETDEV,
+@@ -420,22 +363,6 @@ enum {
+ };
+ 
+ enum {
+-	MLX5_OPCODE_NOP			= 0x00,
+-	MLX5_OPCODE_SEND_INVAL		= 0x01,
+-	MLX5_OPCODE_RDMA_WRITE		= 0x08,
+-	MLX5_OPCODE_RDMA_WRITE_IMM	= 0x09,
+-	MLX5_OPCODE_SEND		= 0x0a,
+-	MLX5_OPCODE_SEND_IMM		= 0x0b,
+-	MLX5_OPCODE_LSO			= 0x0e,
+-	MLX5_OPCODE_RDMA_READ		= 0x10,
+-	MLX5_OPCODE_ATOMIC_CS		= 0x11,
+-	MLX5_OPCODE_ATOMIC_FA		= 0x12,
+-	MLX5_OPCODE_ATOMIC_MASKED_CS	= 0x14,
+-	MLX5_OPCODE_ATOMIC_MASKED_FA	= 0x15,
+-	MLX5_OPCODE_BIND_MW		= 0x18,
+-	MLX5_OPCODE_CONFIG_CMD		= 0x1f,
+-	MLX5_OPCODE_ENHANCED_MPSW	= 0x29,
+-
+ 	MLX5_RECV_OPCODE_RDMA_WRITE_IMM	= 0x00,
+ 	MLX5_RECV_OPCODE_SEND		= 0x01,
+ 	MLX5_RECV_OPCODE_SEND_IMM	= 0x02,
+@@ -443,19 +370,6 @@ enum {
+ 
+ 	MLX5_CQE_OPCODE_ERROR		= 0x1e,
+ 	MLX5_CQE_OPCODE_RESIZE		= 0x16,
+-
+-	MLX5_OPCODE_SET_PSV		= 0x20,
+-	MLX5_OPCODE_GET_PSV		= 0x21,
+-	MLX5_OPCODE_CHECK_PSV		= 0x22,
+-	MLX5_OPCODE_DUMP		= 0x23,
+-	MLX5_OPCODE_RGET_PSV		= 0x26,
+-	MLX5_OPCODE_RCHECK_PSV		= 0x27,
+-
+-	MLX5_OPCODE_UMR			= 0x25,
+-
+-	MLX5_OPCODE_FLOW_TBL_ACCESS	= 0x2c,
+-
+-	MLX5_OPCODE_ACCESS_ASO		= 0x2d,
+ };
+ 
+ enum {
+@@ -1223,12 +1137,6 @@ enum mlx5_flex_parser_protos {
+ 
+ /* MLX5 DEV CAPs */
+ 
+-/* TODO: EAT.ME */
+-enum mlx5_cap_mode {
+-	HCA_CAP_OPMOD_GET_MAX	= 0,
+-	HCA_CAP_OPMOD_GET_CUR	= 1,
+-};
+-
+ /* Any new cap addition must update mlx5_hca_caps_alloc() to allocate
+  * capability memory.
+  */
+@@ -1506,26 +1414,6 @@ enum mlx5_qcam_feature_groups {
+ #define MLX5_CAP_PSP(mdev, cap)\
+ 	MLX5_GET(psp_cap, (mdev)->caps.hca[MLX5_CAP_PSP]->cur, cap)
+ 
+-enum {
+-	MLX5_CMD_STAT_OK			= 0x0,
+-	MLX5_CMD_STAT_INT_ERR			= 0x1,
+-	MLX5_CMD_STAT_BAD_OP_ERR		= 0x2,
+-	MLX5_CMD_STAT_BAD_PARAM_ERR		= 0x3,
+-	MLX5_CMD_STAT_BAD_SYS_STATE_ERR		= 0x4,
+-	MLX5_CMD_STAT_BAD_RES_ERR		= 0x5,
+-	MLX5_CMD_STAT_RES_BUSY			= 0x6,
+-	MLX5_CMD_STAT_NOT_READY			= 0x7,
+-	MLX5_CMD_STAT_LIM_ERR			= 0x8,
+-	MLX5_CMD_STAT_BAD_RES_STATE_ERR		= 0x9,
+-	MLX5_CMD_STAT_IX_ERR			= 0xa,
+-	MLX5_CMD_STAT_NO_RES_ERR		= 0xf,
+-	MLX5_CMD_STAT_BAD_INP_LEN_ERR		= 0x50,
+-	MLX5_CMD_STAT_BAD_OUTP_LEN_ERR		= 0x51,
+-	MLX5_CMD_STAT_BAD_QP_STATE_ERR		= 0x10,
+-	MLX5_CMD_STAT_BAD_PKT_ERR		= 0x30,
+-	MLX5_CMD_STAT_BAD_SIZE_OUTS_CQES_ERR	= 0x40,
+-};
+-
+ enum {
+ 	MLX5_IEEE_802_3_COUNTERS_GROUP	      = 0x0,
+ 	MLX5_RFC_2863_COUNTERS_GROUP	      = 0x1,
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index a83eb731764a0f..2d4609aaa1068e 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -5999,6 +5999,39 @@ struct mlx5_ifc_wqe_ctrl_seg_bits {
+ 	u8         imm[0x20];
+ };
+ 
++/* Values for wqe_ctrl_seg_bits.opcode */
++enum {
++	MLX5_OPCODE_NOP			= 0x00,
++	MLX5_OPCODE_SEND_INVAL		= 0x01,
++	MLX5_OPCODE_RDMA_WRITE		= 0x08,
++	MLX5_OPCODE_RDMA_WRITE_IMM	= 0x09,
++	MLX5_OPCODE_SEND		= 0x0a,
++	MLX5_OPCODE_SEND_IMM		= 0x0b,
++	MLX5_OPCODE_LSO			= 0x0e,
++	MLX5_OPCODE_RDMA_READ		= 0x10,
++	MLX5_OPCODE_ATOMIC_CS		= 0x11,
++	MLX5_OPCODE_ATOMIC_FA		= 0x12,
++	MLX5_OPCODE_ATOMIC_MASKED_CS	= 0x14,
++	MLX5_OPCODE_ATOMIC_MASKED_FA	= 0x15,
++	MLX5_OPCODE_BIND_MW		= 0x18,
++	MLX5_OPCODE_CONFIG_CMD		= 0x1f,
++	MLX5_OPCODE_SET_PSV		= 0x20,
++	MLX5_OPCODE_GET_PSV		= 0x21,
++	MLX5_OPCODE_CHECK_PSV		= 0x22,
++	MLX5_OPCODE_DUMP		= 0x23,
++	MLX5_OPCODE_UMR			= 0x25,
++	MLX5_OPCODE_RGET_PSV		= 0x26,
++	MLX5_OPCODE_RCHECK_PSV		= 0x27,
++	MLX5_OPCODE_ENHANCED_MPSW	= 0x29,
++	MLX5_OPCODE_FLOW_TBL_ACCESS	= 0x2c,
++	MLX5_OPCODE_ACCESS_ASO		= 0x2d,
++};
 +
- /* EQ doorbell offset within UAR page */
- #define MLX5_EQ_DOORBELL_OFFSET 0x40
++/* Values for wqe_ctrl_seg_bits.ce */
++enum {
++	MLX5_WQE_CE_CQE_ALWAYS		= 2,
++};
++
+ struct mlx5_ifc_wqe_raddr_seg_bits {
+ 	u8         raddr[0x40];
  
-@@ -94,6 +97,9 @@ struct mlx5st_dbrec {
- #define LOG_CQ_SIZE 4
- #define EQ_NENT 64
- #define LOG_EQ_SIZE 6
-+#define MSI_EQ_NENT 16
-+#define LOG_MSI_EQ_SIZE 4
-+#define MSI_VECTOR 0
+@@ -6034,6 +6067,20 @@ struct mlx5_ifc_cqe64_bits {
+ 	u8         owner[0x1];
+ };
  
- #define MAX_FW_PAGES 8192
- #define MAX_FW_PAGES_PER_CMD 512
++/* Values for cqe64_bits.opcode */
++enum {
++	MLX5_CQE_REQ		= 0,
++	MLX5_CQE_RESP_WR_IMM	= 1,
++	MLX5_CQE_RESP_SEND	= 2,
++	MLX5_CQE_RESP_SEND_IMM	= 3,
++	MLX5_CQE_RESP_SEND_INV	= 4,
++	MLX5_CQE_RESIZE_CQ	= 5,
++	MLX5_CQE_SIG_ERR	= 12,
++	MLX5_CQE_REQ_ERR	= 13,
++	MLX5_CQE_RESP_ERR	= 14,
++	MLX5_CQE_INVALID	= 15,
++};
++
+ struct mlx5_ifc_qp_context_extension_bits {
+ 	u8         reserved_at_0[0x60];
+ 
+@@ -6530,6 +6577,12 @@ struct mlx5_ifc_query_hca_cap_in_bits {
+ 	u8         reserved_at_60[0x20];
+ };
+ 
++/* Values for query_hca_cap_in_bits.op_mod */
++enum mlx5_cap_mode {
++	HCA_CAP_OPMOD_GET_MAX	= 0,
++	HCA_CAP_OPMOD_GET_CUR	= 1,
++};
++
+ struct mlx5_ifc_other_hca_cap_bits {
+ 	u8         roce[0x1];
+ 	u8         reserved_at_1[0x27f];
+@@ -11322,6 +11375,55 @@ struct mlx5_ifc_eqe_bits {
+ 	u8         owner[0x1];
+ };
+ 
++/* Values for eqe_bits.event_type */
++enum mlx5_event {
++	/* Special value to subscribe to any event */
++	MLX5_EVENT_TYPE_NOTIFY_ANY	   = 0x0,
++	/* HW events enum start: comp events are not subscribable */
++	MLX5_EVENT_TYPE_COMP		   = 0x0,
++	/* HW Async events enum start: subscribable events */
++	MLX5_EVENT_TYPE_PATH_MIG	   = 0x01,
++	MLX5_EVENT_TYPE_COMM_EST	   = 0x02,
++	MLX5_EVENT_TYPE_SQ_DRAINED	   = 0x03,
++	MLX5_EVENT_TYPE_SRQ_LAST_WQE	   = 0x13,
++	MLX5_EVENT_TYPE_SRQ_RQ_LIMIT	   = 0x14,
++
++	MLX5_EVENT_TYPE_CQ_ERROR	   = 0x04,
++	MLX5_EVENT_TYPE_WQ_CATAS_ERROR	   = 0x05,
++	MLX5_EVENT_TYPE_PATH_MIG_FAILED	   = 0x07,
++	MLX5_EVENT_TYPE_WQ_INVAL_REQ_ERROR = 0x10,
++	MLX5_EVENT_TYPE_WQ_ACCESS_ERROR	   = 0x11,
++	MLX5_EVENT_TYPE_SRQ_CATAS_ERROR	   = 0x12,
++	MLX5_EVENT_TYPE_OBJECT_CHANGE	   = 0x27,
++
++	MLX5_EVENT_TYPE_INTERNAL_ERROR	   = 0x08,
++	MLX5_EVENT_TYPE_PORT_CHANGE	   = 0x09,
++	MLX5_EVENT_TYPE_CMD		   = 0x0a,
++	MLX5_EVENT_TYPE_PAGE_REQUEST	   = 0x0b,
++	MLX5_EVENT_TYPE_PAGE_FAULT	   = 0x0c,
++	MLX5_EVENT_TYPE_NIC_VPORT_CHANGE   = 0x0d,
++	MLX5_EVENT_TYPE_ESW_FUNCTIONS_CHANGED = 0x0e,
++	MLX5_EVENT_TYPE_VHCA_STATE_CHANGE  = 0x0f,
++	MLX5_EVENT_TYPE_GPIO_EVENT	   = 0x15,
++	MLX5_EVENT_TYPE_PORT_MODULE_EVENT  = 0x16,
++	MLX5_EVENT_TYPE_TEMP_WARN_EVENT    = 0x17,
++	MLX5_EVENT_TYPE_XRQ_ERROR	   = 0x18,
++	MLX5_EVENT_TYPE_REMOTE_CONFIG	   = 0x19,
++	MLX5_EVENT_TYPE_DB_BF_CONGESTION   = 0x1a,
++	MLX5_EVENT_TYPE_STALL_EVENT	   = 0x1b,
++	MLX5_EVENT_TYPE_DCT_DRAINED        = 0x1c,
++	MLX5_EVENT_TYPE_DCT_KEY_VIOLATION  = 0x1d,
++	MLX5_EVENT_TYPE_FPGA_ERROR         = 0x20,
++	MLX5_EVENT_TYPE_FPGA_QP_ERROR      = 0x21,
++	MLX5_EVENT_TYPE_GENERAL_EVENT	   = 0x22,
++	MLX5_EVENT_TYPE_MONITOR_COUNTER    = 0x24,
++	MLX5_EVENT_TYPE_PPS_EVENT          = 0x25,
++	MLX5_EVENT_TYPE_DEVICE_TRACER      = 0x26,
++
++	MLX5_EVENT_TYPE_MAX                = 0x100,
++};
++
++/* Values for cmd_queue_entry_bits.type */
+ enum {
+ 	MLX5_CMD_QUEUE_ENTRY_TYPE_PCIE_CMD_IF_TRANSPORT  = 0x7,
+ };
+@@ -11364,6 +11466,27 @@ struct mlx5_ifc_cmd_out_bits {
+ 	u8         command_output[0x20];
+ };
+ 
++/* Values for cmd_out_bits.status */
++enum {
++	MLX5_CMD_STAT_OK			= 0x0,
++	MLX5_CMD_STAT_INT_ERR			= 0x1,
++	MLX5_CMD_STAT_BAD_OP_ERR		= 0x2,
++	MLX5_CMD_STAT_BAD_PARAM_ERR		= 0x3,
++	MLX5_CMD_STAT_BAD_SYS_STATE_ERR		= 0x4,
++	MLX5_CMD_STAT_BAD_RES_ERR		= 0x5,
++	MLX5_CMD_STAT_RES_BUSY			= 0x6,
++	MLX5_CMD_STAT_NOT_READY			= 0x7,
++	MLX5_CMD_STAT_LIM_ERR			= 0x8,
++	MLX5_CMD_STAT_BAD_RES_STATE_ERR		= 0x9,
++	MLX5_CMD_STAT_IX_ERR			= 0xa,
++	MLX5_CMD_STAT_NO_RES_ERR		= 0xf,
++	MLX5_CMD_STAT_BAD_QP_STATE_ERR		= 0x10,
++	MLX5_CMD_STAT_BAD_PKT_ERR		= 0x30,
++	MLX5_CMD_STAT_BAD_SIZE_OUTS_CQES_ERR	= 0x40,
++	MLX5_CMD_STAT_BAD_INP_LEN_ERR		= 0x50,
++	MLX5_CMD_STAT_BAD_OUTP_LEN_ERR		= 0x51,
++};
++
+ struct mlx5_ifc_cmd_in_bits {
+ 	u8         opcode[0x10];
+ 	u8         reserved_at_10[0x10];
 -- 
 2.43.0
 
