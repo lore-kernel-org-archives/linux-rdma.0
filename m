@@ -1,294 +1,146 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from MW6PR02CU001.outbound.protection.outlook.com (mail-westus2azon11012002.outbound.protection.outlook.com [52.101.48.2])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4465433BCA;
-	Wed, 12 Aug 2026 23:47:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786578427; cv=none; b=eEukOMC4MwHdrqGSh1ZHJfDmQ+D6p/DTs81dAmrsKhaCZ4rtnaxdA1lavmOMPgOy4uA+sAggK9pY+3d4myQdlRs0DQrx9wNE+EnCFD2TYKaX4UmpwrMGJfPEj+zmEekY2sjIkZjkeG25r/F+HjrBJhPfMisRXvBOPXVCSG4S2Vk=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786578427; c=relaxed/simple;
-	bh=IVw89NKRxORX6LLj4htWInXHM5FuiF3tTPkoXli25zY=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=AU4A9bVG8LloylCYryiqEWres3DLfT3ME79wBx4wyl16UCsAtQlwR63AUTfPQjzcrjMc8PNhkr5mJaS6yvyCx08gZjwVrTiZenuKSwBYoHpqM/0ORfY1eEDpDoe0zZeIQkWS6aIz1U2jUvBleRK0Oqly6knLcIseqhqF9BSrXO8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=I/e6qqZe; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18C4C33B6CB
+	for <linux-rdma@vger.kernel.org>; Wed, 12 Aug 2026 23:56:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.48.2
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786578963; cv=fail; b=UppNf51URGS7LXLfH6mNAPbaPr4+EtF/wZOozol8W0NcX9KsxDsrOLzwQVzJ8x7t0CJZ4JydiPyNvmd15CCPjQBU1Rc9xk1xyVMuEmc0wmHV44d6VK/1LJR+NlBVxdzD2IJkFb4Y75AGCtbomXA499Om/8zVjztgLdbSp1+7qrk=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786578963; c=relaxed/simple;
+	bh=hjgc9cgc0Ln5yoYsFKy6rTPEYiHQS6//WDZJoIDeo+Y=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=Gr2FufDd8W58QEeI3+PwjBUJ54cq6u7yFGQBMVM0WfQo0e7tuxSTxNPhj0EcD+YPOQwE7j8fU7NLXPDVTc8HFwqaYW39VVosjik3yIRoT7DkvQptVlYTFcVIgjbEYf5q0HCDkUWHaraapHDiiiDJam2hIztnXbg15aVemhUz10w=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=t/dk96DO; arc=fail smtp.client-ip=52.101.48.2
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="I/e6qqZe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA1891F00A3A;
-	Wed, 12 Aug 2026 23:47:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786578422;
-	bh=pM4vwc3hfCsATNB4554r0jj8f2EjmXrGravP7Gi+dd0=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=I/e6qqZeZeL4SebB6f02gnRKtQP3ElInWnah6ObINf09cMhJkgq3nNLAnkuoajUyy
-	 qPa+iX+OU2gke948momRRrGOMYxLUvtEzd2GPtKOes5GkcghViJTre5WK+JBOfyNmY
-	 iZhtvPduvNJL9z9/0lcbYAEs695sojyuXiQJIUyciniS/Oqu6klsfXTRoJwa3hhQrA
-	 RKkgH8FkS5arboqEgmMSKfwVIKS2FhHt6HviG7PTJhZHXf6QOCjz2lQrJP8CT4PJk4
-	 gy7aUUFYC4Aa/GCP9ERXh/a+3ZD1rIP0qKnDSMMl5l2a0y+v1kqH4Alu8T9hGDY099
-	 DMjlGRlm2mfAQ==
-From: Jakub Kicinski <kuba@kernel.org>
-To: longli@microsoft.com
-Cc: Jakub Kicinski <kuba@kernel.org>,
-	kotaranov@microsoft.com,
-	davem@davemloft.net,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	andrew+netdev@lunn.ch,
-	jgg@ziepe.ca,
-	leon@kernel.org,
-	haiyangz@microsoft.com,
-	kys@microsoft.com,
-	wei.liu@kernel.org,
-	decui@microsoft.com,
-	shradhagupta@linux.microsoft.com,
-	horms@kernel.org,
-	ernis@linux.microsoft.com,
-	stephen@networkplumber.org,
-	netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	linux-hyperv@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net v6 7/7] net: mana: keep max_num_cqs immutable once cq_table is allocated
-Date: Wed, 12 Aug 2026 16:47:01 -0700
-Message-ID: <20260812234701.2193632-1-kuba@kernel.org>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260811023823.2391255-8-longli@microsoft.com>
-References: <20260811023823.2391255-8-longli@microsoft.com>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="t/dk96DO"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=cM8O0e2KTCLErvUBHjOea5FbegundXf4v3HokllHvc8Iu/7/kJtyqaERAbYAm5l0ffzdeMXsn4G3bCi8iXYaE/98qySOpHKc+1WmAH+0MHExHgsINtBXTyBUcDmTMKdesiqDZRgzv6BYVgi+xhRiEkj1iy/2JiPu2huJUtGhX4VELqUCneZDv0OWLy60vShe1tQ1oBpnj3/ujZvgHAeaYwGtYlFz1cX0C2yRXVY6pksnnYgFbOgG+em87VKtEtxb8BhpCDaf2i0FkgSDOgMNO6JjdjY27NaD5S4BqSLyxMTOCR5fX7jujByj+Kik/BUU20c+KAuVm8fSODKHKv3Uzw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=dexp9dzcF6qi/FtFs5Ffip8QIn1HDTEPBHMQvTn9CQs=;
+ b=Ayz31l/KS1eCQrRoii5lqZJx3IrxBSvBUG835uukkdwWzVL1MT9YXi7QcKutA5Vi4AMEFapBu0VvP2edxWMc68WVqMFP3s2ZC7+ZE+cn1+qKnMoU0DpMfgEhm6YiIQ0B8aeizZQkMoPRLoMUe2WyhSJKaJHT3n3hN7y+kZJkOeQ3RlS47Aqccsz6flWeeyrY6n9lZqcBrrQi0LYrhQPZjJ/rH85TVCkvk66dca8pbnSBRIG9/uh8QSRbYahlP4dV+KdSlrQOtkL0ZDMKHJFpQjDNUnZ/AuMnaSK81Qwm1599ZixFhZ0f5+7unH6EZHJvd3bR8QXNyMV19s5wyndztg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=dexp9dzcF6qi/FtFs5Ffip8QIn1HDTEPBHMQvTn9CQs=;
+ b=t/dk96DOaMB385DQCtg8K+AkT/nbwJ2QJk1iLrNFgbcLgab/Wa2E9szuUkqJc8/DfYH/rMZxffjSesyWhsXJeFTM7c0snypTI/4hW4as3u61NFNZkWHv1ywEOVHBdkARRytUzyKbBKJlJTQv07Wd66Wsu5ZAtTYX3xZvPaClWjZjj0Q7mBxwXo6el9SIVGxl0WbZYYm5nrBJlEyE1ehLcRjs3BUG4C8l5DVjW4O0S3cA8DyWYXBAVDbU7uuBL8nwsPotg6KoP9OkTiiWOZPrKZSBewqT717kirZqWgt9YQ9J8yEEA12INGwdSQHy+oaPMBslJbYFJIx40gBd/cXEXg==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from CY1PR12MB9601.namprd12.prod.outlook.com (2603:10b6:930:107::16)
+ by CH2PR12MB4200.namprd12.prod.outlook.com (2603:10b6:610:ac::16) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.292.25; Wed, 12 Aug
+ 2026 23:55:58 +0000
+Received: from CY1PR12MB9601.namprd12.prod.outlook.com
+ ([fe80::cd76:b497:475f:4de3]) by CY1PR12MB9601.namprd12.prod.outlook.com
+ ([fe80::cd76:b497:475f:4de3%4]) with mapi id 15.21.0315.008; Wed, 12 Aug 2026
+ 23:55:58 +0000
+Date: Wed, 12 Aug 2026 20:55:56 -0300
+From: Jason Gunthorpe <jgg@nvidia.com>
+To: Yonatan Nachum <ynachum@amazon.com>
+Cc: leon@kernel.org, linux-rdma@vger.kernel.org, mrgolin@amazon.com,
+	sleybo@amazon.com, matua@amazon.com, gal.pressman@linux.dev
+Subject: Re: [PATCH for-next v3 0/3] RDMA/efa: Add support for 128B admin v2
+ SQ entry
+Message-ID: <20260812235556.GA860843@nvidia.com>
+References: <20260812121718.2904349-1-ynachum@amazon.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260812121718.2904349-1-ynachum@amazon.com>
+X-ClientProxiedBy: YT4P288CA0019.CANP288.PROD.OUTLOOK.COM
+ (2603:10b6:b01:d4::21) To CY1PR12MB9601.namprd12.prod.outlook.com
+ (2603:10b6:930:107::16)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CY1PR12MB9601:EE_|CH2PR12MB4200:EE_
+X-MS-Office365-Filtering-Correlation-Id: e0d7adba-417d-4ec3-abdd-08def8cd4117
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|23010399003|1800799024|366016|376014|18002099003|22082099003|11063799006|56012099006|10067099003;
+X-Microsoft-Antispam-Message-Info:
+	9iNSdTc2RbEC1rzeh35/jA0tg0JDrmo+gnWifrCMbOEYwWHyVkyMCtwHMN+Ww3z6fdl/sU7JrxVozrJPYrgG4qQqnvyxMsdxz15FVLT0A/N3S+G0+Ss0gYMoc8u8CSOAQVZhagyljSaH81fueJzgHxmHPbM017UaCpBqgzETB7ofWkyXObHldqEcOvIJEiWFC4WXEOpiGdxmh0M0iL4N/9fbjUxszzgzOo4kKLCw4KAtahlB9cT9V2/XHf6oGri43Ax5udXtoo6wsd/eMVJEIls4wl5IT9jkriNSbHP4aO6Sif7Cb6s9UwtKvF7J0Fzp7LLLowj0JEOOfewfEGxOo+C2N/PKLYD543wKDgg0ufp4qrMU6c9bwCthf1jLWyEI14oD1V4WR+A6B06FTUgEO2lhfesRMK7wWAKUqtLUcSpNn84USvL5lYs4WIPs2AHbQZNlxZfP+P4o2bJOI7EujToY/vXJ/Jp5+bcFU9kRTJpyAaIVFf9KMPDrem3XsiMc6Vn0qqChcsfnJVTH93HehHyYyLhs5fsAm4ZdnJyWlqiiIepozHLqASlk3YKwkzWQXe1Iidt3ltfqk+E0XpXiVgtzXHm+hD1m5yE3UmSIrBsik4tRgfIFDEzN5wAnTFesdlakWPrnIKqTkIJchMTu5yIi2RgISJDdSI3c2sr+dmA=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CY1PR12MB9601.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(1800799024)(366016)(376014)(18002099003)(22082099003)(11063799006)(56012099006)(10067099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?eqlGjII3yrqxW5waXRLtKbICiZudnOU+cEUFAm1T2eSR8v12RlEkUhANacPr?=
+ =?us-ascii?Q?26Car8PvBTDL8TO14ApK8zR3cDmJq4aU59ortwsNMC4NivrxRC/KZd13O654?=
+ =?us-ascii?Q?YHzjVpnaBUZyFSm+Jgb5B/ERImCWtrE1EjACVusO/Y2b/xUZ54X5gm2cXiue?=
+ =?us-ascii?Q?iEFlz7qhP0pp0ssNEXE+EfVTHhurcrOcLdDbNekWQEvA3vY/cpBGq6A2FkF0?=
+ =?us-ascii?Q?3FCPQADUBGgZDlvKGjl8uwQEFlzgvNSPtM00i1JhECwZ/pHIMaCZR6Yccacg?=
+ =?us-ascii?Q?AO3CYw0gpdFoN5XmHOpnYU5nZAcL518Llx9T+1hg8PE9sVlHxXr63jSr+0qC?=
+ =?us-ascii?Q?9+bhD39xVZIQR3LBBqAJNRo/YG3k5geBsVtKOjA2XzUJGWMQpD5y9dN3k81b?=
+ =?us-ascii?Q?qjbHiZIbNPhEFaXAoKtwWH5UkoHGVrk1yohwPByPGrVZRbNtFa6bTRgv3q83?=
+ =?us-ascii?Q?hE87e1RJ2kJ5y/SPdi6eKKILzEFlS0QNnODfCoOeKxw8FsnKNZ+AQO8MdFX1?=
+ =?us-ascii?Q?7uCFEPwWNwpJ9YpJ5Js9T8jMEGiKcrutFmlQWKwgc9Ylz1A0iU/xrm7avawz?=
+ =?us-ascii?Q?AxMC2LNG3I1GRxmSEx/E96qEz3yDmQ98crPgqXQYEBxPsr541j3Em4WpBI39?=
+ =?us-ascii?Q?h1A8qnwl2+Ew0h9rdl1dLqBgNZ5piOTajd+9bHARAZEKvceL7gS/ZtQCwgUB?=
+ =?us-ascii?Q?0eXdUv961lwD4SEICdfH+n38WEeJ6IAnhk8mwZzyAeTyCVoW0ItYRCC5ewxw?=
+ =?us-ascii?Q?37BASE62++EDlU5f+0YSjFN0/EO/wiuh9CVFvLJublf2qEFy6H0tbZKl9FEr?=
+ =?us-ascii?Q?uFfq+WgAGoSMIdIzUEtyKe28KjsFb2XUaTlbVZn/VQOBddA+N3mQMQPv47Gm?=
+ =?us-ascii?Q?YsarBUIhF4iSOHZR6PmGdGsS3hCVIC9RwDvwSbFIyW7haNgJx5i1Rk81ycmo?=
+ =?us-ascii?Q?+PFLSAeV0/++4GO25bWeXJ2Z0Yz3Dyx3hjPPLfDzJw+DJ6M/2x6Gvwz0CY7L?=
+ =?us-ascii?Q?x2JKhe/yJVVjiK7Ba2sbta0we00uzuvxsRAuTc7K6Z2W9DA+IliqRC86k5EV?=
+ =?us-ascii?Q?sBYA95U4QInbeVFVKkZMXdbZnzBup0IevXRpOSaoR3d4yjWjIQ7sTLezTfqT?=
+ =?us-ascii?Q?MYa9gv+0IMT6BvkMvCnznCX12TBOVA0ziNWkQAZpQoY0G3ds8IhkuUt0mw6/?=
+ =?us-ascii?Q?dqvU6wi525BYdKiST/3rkgoSg7mnZpgqRF2sJu41YA8/jQfo3jyxK7EpYzf3?=
+ =?us-ascii?Q?/mJzlISmKR84Yo/4FHuOiHUJcMCFaUqR5Ku/dQns25PNXsZ41qgbkBKY5KRm?=
+ =?us-ascii?Q?METHKF+UWsVy+7XMulNnkajcsOTIAxwz62qWYboHYvmP3xv9ZXKHrbmILGaT?=
+ =?us-ascii?Q?DnbTS2RfESr7aMEG/Pm7jvMKXFsD4okfLl1ty70wYGZn98MdHsd7JTV0hOKJ?=
+ =?us-ascii?Q?qrJFp1Y4nyM+u+jshKV3F5oXePDLdI3kmWUD0zLvubxEkAgay9BsUhifY4vp?=
+ =?us-ascii?Q?fKlsAYcoAlhUsFbY8KwN2Dx6jmU//yzPx58QDqY7FPoGSSnIea2YBPNfKPsp?=
+ =?us-ascii?Q?mwc2s2c60XhZq0Bg/oZgviDQtQb/N739+EwXURjaPr6aeacd2f9opiSNllF4?=
+ =?us-ascii?Q?3ev1J7SyWJcUqfySL5HsP9o0vZyCr4DBxcyqhgZiieJUnXn7ZLVgk55MfgA6?=
+ =?us-ascii?Q?QgeLeskD6NWtTi+n0fAavUGR62onP0pv5qtDxCNF+qbUtQMAfT/4QmaTyWU6?=
+ =?us-ascii?Q?oanH+c5GCg=3D=3D?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: e0d7adba-417d-4ec3-abdd-08def8cd4117
+X-MS-Exchange-CrossTenant-AuthSource: CY1PR12MB9601.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Aug 2026 23:55:58.4598
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: afBJDuZZhpKt7euNvSGPcEuyvxFPkZZeoocfvx64w7KncOrQY7uBl7LVfVX9RKNX
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH2PR12MB4200
 
-This is an AI-generated review of your patch. The human sending this
-email has considered the AI review valid, or at least plausible.
----
-net: mana: keep max_num_cqs immutable once cq_table is allocated
+On Wed, Aug 12, 2026 at 12:17:15PM +0000, Yonatan Nachum wrote:
+> Changelog:
+> v3:
+>  * Ensure proper alignment of stack admin buffer to prevent unaligned memory
+>    accesses.
+> v2: https://lore.kernel.org/all/20260731075007.3878376-1-ynachum@amazon.com/
+>  * Rebase on for-next branch instead of wip/leon-for-next.
+> v1: https://lore.kernel.org/all/20260726123854.638687-1-ynachum@amazon.com/
+> 
+> -------------------------------------------------------------------------
+> Add support for the new 128-byte admin v2 SQ entry format. The v2 entry
+> extends the v1 header with checksum and payload version fields, and
+> carries a larger inline payload.
+> 
+> The series first decouples admin command payloads from admin headers,
+> then generalizes the SQ ring to use a configurable entry size, and
+> finally adds the v2 entry format selection based on device API version.
+> 
+> Yonatan Nachum (3):
+>   RDMA/efa: Decouple admin command payload from admin header
+>   RDMA/efa: Generalize the admin SQ
+>   RDMA/efa: Add support for 128B admin v2 SQ entry
 
-The HWC init event handler no longer writes gc->max_num_cqs directly.  The
-device-reported CQ count is staged in hwc->hwc_init_max_num_cqs and
-mana_hwc_establish_channel() commits it to gc->max_num_cqs once, from the
-same snapshot that sizes and indexes cq_table.
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 
-No Link: tags present in the commit header.
-
-> diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-> index 759b65040a159..a29955e0473aa 100644
-> --- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
-> +++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-> @@ -262,7 +262,15 @@ static void mana_hwc_init_event_handler(void *ctx, struct gdma_queue *q_self,
->  			break;
->  
->  		case HWC_INIT_DATA_MAX_NUM_CQS:
-> -			gd->gdma_context->max_num_cqs = val;
-> +			/* Store, don't apply: mana_hwc_establish_channel()
-> +			 * commits this to gc->max_num_cqs once, together
-> +			 * with sizing cq_table, so a spoofed post-init event
-> +			 * cannot inflate the bound past the allocation.
-> +			 * WRITE_ONCE() pairs with the READ_ONCE() there:
-> +			 * this store runs in EQ interrupt context,
-> +			 * concurrently with that process-context read.
-> +			 */
-> +			WRITE_ONCE(hwc->hwc_init_max_num_cqs, val);
->  			break;
->  
->  		case HWC_INIT_DATA_PDID:
-
-[ ... ]
-
-> @@ -868,6 +876,8 @@ static int mana_hwc_establish_channel(struct gdma_context *gc, u16 *q_depth,
->  	struct gdma_queue *eq = hwc->cq->gdma_eq;
->  	struct gdma_queue *cq = hwc->cq->gdma_cq;
->  	struct gdma_queue __rcu **cq_table;
-> +	u32 num_cqs;
-> +	u32 cq_id;
->  	int err;
->  
->  	init_completion(&hwc->hwc_init_eqe_comp);
-> @@ -902,15 +912,29 @@ static int mana_hwc_establish_channel(struct gdma_context *gc, u16 *q_depth,
->  	*max_req_msg_size = hwc->hwc_init_max_req_msg_size;
->  	*max_resp_msg_size = hwc->hwc_init_max_resp_msg_size;
->  
-> -	/* Both were set in mana_hwc_init_event_handler(). */
-> -	if (WARN_ON(cq->id >= gc->max_num_cqs))
-> +	/* Snapshot the device-reported CQ count and CQ id into locals and
-> +	 * use only the locals below, so the same value that sizes cq_table
-> +	 * also bounds and indexes it -- even across the sleeping vcalloc().
-> +	 * Both fields are written by mana_hwc_init_event_handler() from EQ
-> +	 * interrupt context: hwc_init_max_num_cqs under WRITE_ONCE() (paired
-> +	 * here), and cq->id as an ordinary store.  READ_ONCE() keeps each
-> +	 * read tear-free and, crucially, non-reloadable, so a spoofed
-> +	 * post-init event cannot make the WARN_ON() pass against one value
-> +	 * while the allocation or the index uses another.
-> +	 */
-> +	num_cqs = READ_ONCE(hwc->hwc_init_max_num_cqs);
-> +	cq_id = READ_ONCE(cq->id);
-> +
-> +	if (WARN_ON(cq_id >= num_cqs))
->  		return -EPROTO;
-
-[Severity: Medium]
-This isn't a bug introduced by this patch, the equivalent
-WARN_ON(cq->id >= gc->max_num_cqs) exists at baseline, but should this
-WARN_ON() stay on a condition that is fully device-controlled?
-
-Both operands come from untrusted HWC bootstrap events handled in
-mana_hwc_init_event_handler(): cq_id from HWC_INIT_DATA_CQID and num_cqs
-from HWC_INIT_DATA_MAX_NUM_CQS.
-
-hwc is kzalloc'd in mana_hwc_create_channel(), so if the host simply never
-sends HWC_INIT_DATA_MAX_NUM_CQS then hwc_init_max_num_cqs stays 0 and the
-condition is unconditionally true.
-
-On a guest booted with panic_on_warn=1, does that turn a malformed or
-missing device response into a kernel panic instead of the intended -EPROTO
-rejection?  Would a rate-limited dev_err() plus -EPROTO be preferable here?
-
->  
-> -	cq_table = vcalloc(gc->max_num_cqs, sizeof(*cq_table));
-> +	cq_table = vcalloc(num_cqs, sizeof(*cq_table));
->  	if (!cq_table)
->  		return -ENOMEM;
-
-[Severity: Medium]
-This isn't a bug introduced by this patch either, baseline already did
-vcalloc(gc->max_num_cqs, ...) from the same device-reported value, but is
-there a reason not to add an upper sanity bound on num_cqs while the value
-is being snapshotted here?
-
-The value field of the init event is 24 bits wide:
-
-include/net/mana/hw_channel.h:
-	struct {
-		u32 value	: 24;
-		u32 type	:  8;
-	};
-
-so a host can report up to 16,777,215 entries, which is roughly 128 MiB of
-zeroed vmalloc memory held for the channel lifetime on a 64-bit guest.
-A large count paired with a small, valid cq_id passes the cq_id >= num_cqs
-check above.
-
-vcalloc() uses array_size(), so there is no integer wrap, and an allocation
-failure returns -ENOMEM cleanly; the concern is only the memory pressure on
-a small confidential guest.
-
->  
-> -	rcu_assign_pointer(cq_table[cq->id], cq);
-> +	gc->max_num_cqs = num_cqs;
-> +
-> +	rcu_assign_pointer(cq_table[cq_id], cq);
-
-[Severity: Medium]
-This isn't a bug introduced by this patch, the pieces below all exist at
-baseline f1b3416, but does the snapshot invariant documented above hold for
-the index as well?
-
-The comment says "the same value that sizes cq_table also bounds and
-indexes it", yet only hwc_init_max_num_cqs is staged.  The sibling case in
-the same switch still applies a device-supplied CQ id straight to the live
-queue object:
-
-		case HWC_INIT_DATA_CQID:
-			hwc->cq->gdma_cq->id = val;
-			break;
-
-That handler stays registered for the whole channel lifetime, so after
-cq_table[cq_id] is published, a later HWC_INIT_DATA_CQID event can make
-cq->id differ from the index the CQ was installed at.
-
-Once that happens, does mana_gd_process_eqe() drop every HWC completion for
-the published index?
-
-drivers/net/ethernet/microsoft/mana/gdma_main.c:mana_gd_process_eqe() {
-	...
-	if (WARN_ON_ONCE(cq->type != GDMA_CQ || cq->id != cq_id))
-		break;
-	...
-}
-
-If so, all HWC commands would time out and latch hwc_timed_out, leaving the
-control channel disabled after a single spoofed event.
-
-The teardown side recomputes the slot from the live queue->id rather than
-from the index used at publish time:
-
-drivers/net/ethernet/microsoft/mana/gdma_main.c:mana_gd_unpublish_cq() {
-	u32 id = queue->id;
-	...
-	if (!cq_table || id >= gc->max_num_cqs)
-		return false;
-	if (rcu_access_pointer(cq_table[id]) != queue)
-		return false;
-	...
-}
-
-mana_gd_destroy_cq() treats false as "already unpublished" and returns
-without synchronize_rcu(), and mana_gd_destroy_queue() then kfree()s the
-queue.  Can a mutated cq->id therefore leave a freed pointer in the still
-published cq_table?
-
-Teardown ordering appears to keep that stale slot unreachable today:
-mana_hwc_destroy_cq() destroys the HWC EQ before the CQ, and every caller of
-mana_hwc_destroy_channel() runs mana_rdma_remove()/mana_remove() first, so
-no live EQ dispatches into the slot before rcu_replace_pointer(gc->cq_table,
-NULL) + synchronize_rcu() + vfree().  So the observable effect looks like
-the stalled control channel plus a WARN_ON_ONCE splat, with the freed
-pointer surviving only by that ordering.
-
-Would it make sense to stage HWC_INIT_DATA_CQID the same way, or to key
-unpublish off the index the CQ was published at?
-
->  	/* Publish the fully-initialised table last; pairs with the
->  	 * rcu_dereference(gc->cq_table) in mana_gd_process_eqe().
->  	 */
-> diff --git a/include/net/mana/hw_channel.h b/include/net/mana/hw_channel.h
-> index 23bf83e2a3ec6..c275150baf490 100644
-> --- a/include/net/mana/hw_channel.h
-> +++ b/include/net/mana/hw_channel.h
-> @@ -203,6 +203,7 @@ struct hw_channel_context {
->  	u16 hwc_init_q_depth_max;
->  	u32 hwc_init_max_req_msg_size;
->  	u32 hwc_init_max_resp_msg_size;
-> +	u32 hwc_init_max_num_cqs;
-
-[Severity: Low]
-Unrelated to the new field, but a few lines further down in the same struct
-the setup_active comment added by the earlier teardown-safety patch in this
-series does not match the code in three places:
-
-include/net/mana/hw_channel.h:
-	/* Set after mana_smc_setup_hwc() succeeds (hardware has active
-	 * MST entries).  Cleared only after mana_smc_teardown_hwc()
-	 * succeeds, on both the recoverable establish_channel path and the
-	 * terminal destroy_channel path.  If teardown fails it stays set:
-	 * establish_channel() skips its retry and destroy_channel() leaks
-	 * the HWC rather than free buffers the device may still DMA into.
-	 */
-	bool setup_active;
-
-mana_hwc_establish_channel() sets the flag before the setup call, not after
-it succeeds, and its own inline comment says that is deliberate:
-
-	hwc->setup_active = true;
-
-	err = mana_smc_setup_hwc(&gc->shm_channel, false, ...);
-
-mana_smc_teardown_hwc() has a single caller in the driver,
-mana_hwc_destroy_channel(), which is also the only place setup_active is
-cleared; establish_channel() explicitly does not tear down ("Do not also
-tear down here").
-
-There is no retry in establish_channel(); the teardown retry lives in
-mana_hwc_create_channel():
-
-	if (gd->driver_data) {
-		mana_hwc_destroy_channel(gc);
-		if (gd->driver_data)
-			return -ETIMEDOUT;
-	}
-
-Could the comment be updated to describe the actual set point, the single
-clear site, and where the retry lives?
+Jason
