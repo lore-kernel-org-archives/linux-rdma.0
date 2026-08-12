@@ -1,64 +1,31 @@
-Received: from pdx-out-014.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-014.esa.us-west-2.outbound.mail-perimeter.amazon.com [35.83.148.184])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 407FD42CB14
-	for <linux-rdma@vger.kernel.org>; Wed, 12 Aug 2026 12:17:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.83.148.184
+Received: from outbound.baidu.com (mx15.baidu.com [111.202.115.100])
+	by smtp.subspace.kernel.org (Postfix) with SMTP id CDBC2314D1A;
+	Wed, 12 Aug 2026 12:33:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=111.202.115.100
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786537069; cv=none; b=j9jtwtXRtfATs/gjsdt/BBQLrm4YCuCacW0v9ZRD8hSmX/DQSrf6zfgHo+QKBREvifj9CecT4ZWW2xew+zrK5U7GE+tkeOXkMeJKSzjxUZMff5Ny/4Euh8GK/NXCFuCJKY0igZzw5+GSKtDCLmIio7N9nHHYRXlFeolNjjHquTo=
+	t=1786537994; cv=none; b=has5GoVyodJomJv4CSk7MBy6bzqL7U5tS3LCsas1BahnT12JULj+UL6xjU/3ZqlpqXD+fvziUpA/O208aPZ3TecJ2oTLWNRg0K1+pCsW0RC/tLBO7gPdLyk06oFiWNk0ORDQAVxIuZoX6uTVVB/HrYosp8Xf3ElxZiiPIveSdsQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786537069; c=relaxed/simple;
-	bh=BMOFHkJ74xR92FbeAVMkg+EmltM69z2ZMyptfEEgObM=;
+	s=arc-20240116; t=1786537994; c=relaxed/simple;
+	bh=mUFGC4SozKM0kpLky3qUkKZTOMsZkINTmWeB3XyWDWA=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=eY+JO67ZVAn7+JGGSy7M/wOGkU+Ck1bkzUtUEFTwrJyoPUCFIulW7N82VZ8PrLbuBl5REX1XtmK65NCWPQ1rsPADIWhIhrb+MHe5j7eq7EAplVd9VpTer0H0iy83uK4KpBHwxleNobcxRL5uwC7BOePyLGGy4NzzbRVTgrtcMek=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=Sn9rD1Q8; arc=none smtp.client-ip=35.83.148.184
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
+	 MIME-Version:Content-Type; b=Q7NRfXlmV2lmzONnRbUWdx6Ye8DfU2pHM3doyPQ5DZiRPWVV5VnIuTIfwBolQvWN23z4VNUZygfc+wMiKDyTkfk1MdR1minihVOO7Zo/WzMzjmhqJX2jGohNy/Wfj65ImmgJlLdxJ/iosx3bdhyxc+t5uqxo6orRq/ESbujQwv4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com; spf=pass smtp.mailfrom=baidu.com; dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b=TQ5ns/sQ; arc=none smtp.client-ip=111.202.115.100
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baidu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="Sn9rD1Q8"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
-  t=1786537068; x=1818073068;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=FuJOd3HVsKGCuwEzvBqlkf4JBiEeDcztEP0nnYDk39E=;
-  b=Sn9rD1Q8Qd0KGnjOTEttxNCzVJQukz+vj4S8WbQsyjoDyAT6wPZ5WRr0
-   6OVqEtyAj9psLPhEq5VdQYn2GJNVKYFErJmLpbKb+mW540teuh9WWsymH
-   o+mWe9NOfNDkcrIZ4Cokv+9w3csg55H83PH//vtuLG3YyhaDUoKqJz9zU
-   1va2cQCVxWZpBhRgvg9aT8/yZepG/2xTknGCnW32JuwA5v2n7Xyhk0Cdz
-   flR+A4cVauSRw1mVUYeRPe3bTi886JjiZvJLymMVrKdRkH6Vy4sREQX09
-   3+HOrJ5v0u3LIDS7f6PKVDi+wQIbEyIn6ZEFwwLBL6jUBymcrChO3fYOX
-   g==;
-X-CSE-ConnectionGUID: OOVRSlNHQuKh0RxRfi5JYA==
-X-CSE-MsgGUID: 3d6dwstfSBq0ijs1cyyrkw==
-X-IronPort-AV: E=Sophos;i="6.25,219,1779148800"; 
-   d="scan'208";a="25566616"
-Received: from ip-10-5-12-219.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.12.219])
-  by internal-pdx-out-014.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Aug 2026 12:17:45 +0000
-Received: from EX19MTAUWA002.ant.amazon.com [205.251.233.178:22394]
- by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.2.175:2525] with esmtp (Farcaster)
- id 10193064-c91c-4a8a-bd37-47b3f0b8d68c; Wed, 12 Aug 2026 12:17:45 +0000 (UTC)
-X-Farcaster-Flow-ID: 10193064-c91c-4a8a-bd37-47b3f0b8d68c
-Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
- EX19MTAUWA002.ant.amazon.com (10.250.64.202) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.45;
- Wed, 12 Aug 2026 12:17:45 +0000
-Received: from dev-dsk-ynachum-1b-0ecf7b87.eu-west-1.amazon.com
- (10.13.226.176) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.45; Wed, 12 Aug 2026
- 12:17:43 +0000
-From: Yonatan Nachum <ynachum@amazon.com>
-To: <jgg@nvidia.com>, <leon@kernel.org>, <linux-rdma@vger.kernel.org>
-CC: <mrgolin@amazon.com>, <sleybo@amazon.com>, <matua@amazon.com>,
-	<gal.pressman@linux.dev>, Yonatan Nachum <ynachum@amazon.com>, Tom Sela
-	<tomsela@amazon.com>
-Subject: [PATCH for-next v3 3/3] RDMA/efa: Add support for 128B admin v2 SQ entry
-Date: Wed, 12 Aug 2026 12:17:18 +0000
-Message-ID: <20260812121718.2904349-4-ynachum@amazon.com>
+	dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b="TQ5ns/sQ"
+X-MD-Sfrom: zhangyili01@baidu.com
+X-MD-SrcIP: 172.31.51.15
+From: Yili Zhang <zhangyili01@baidu.com>
+To: <jgg@ziepe.ca>
+CC: <leon@kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-rdma@vger.kernel.org>, <zhangyili01@baidu.com>
+Subject: Re: [PATCH 2/2] RDMA/nldev: Guard against NULL ucontext in resource dumps
+Date: Wed, 12 Aug 2026 20:32:49 +0800
+Message-ID: <20260812123249.44247-1-zhangyili01@baidu.com>
 X-Mailer: git-send-email 2.50.1
-In-Reply-To: <20260812121718.2904349-1-ynachum@amazon.com>
-References: <20260812121718.2904349-1-ynachum@amazon.com>
+In-Reply-To: <20260811141909.GF544626@ziepe.ca>
+References: <20260811141909.GF544626@ziepe.ca>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -67,337 +34,110 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-ClientProxiedBy: EX19D043UWC002.ant.amazon.com (10.13.139.222) To
- EX19D001UWA001.ant.amazon.com (10.13.138.214)
+X-ClientProxiedBy: bjhj-exc13.internal.baidu.com (172.31.4.11) To
+ BJKJY-Exc19.internal.baidu.com (172.31.51.15)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=baidu.com;
+	s=selector1; t=1786537979;
+	bh=sXUkQKflkXUhyuxAt6Tp0Gxume4qGEv/stJVyVWoR1I=;
+	h=From:To:CC:Subject:Date:Message-ID:Content-Type;
+	b=TQ5ns/sQad76oR0vxVdS73u7MByXjRJ5FRSgGZd8nYvRV5m0zEbu14/F/QqrQsEjy
+	 kyHPo+qBODwtwx4hjwuSkGp1o1S2KrZhQHsXLQStH/FiJz+OxDCGDtNqaC+WV756IA
+	 PNNGAaBK9f9g/s3o+gm0uR5S2oAMA42R6sMfi8mD4Jt6FqZk89kE6Vq0xsQEIllFxS
+	 Y86bGzaljWO1dw8Z3xKWuG0Sv1IAjKSKSKWFCRM9P/fbLooqzNZ9lWtZqsqOi8r6JX
+	 PS0MIuuTkznkrl/OHM5epQoVXQp+uVSIcQvwMmqdEZbZ9e/3n4hFc5cPu+OKBqXntb
+	 Jqg7h6p0J3Eug==
 
-Add the new admin v2 format which is 128B in size and its header extends
-the v1 header with checksum and payload version.
-On admin SQ init check if the API version reported by the device
-supports the admin v2 SQ entry and if so use it. Store the payload
-offset and max size in the SQ for quick access in admin command
-execution flow.
+Hi Jason,
 
-Using the admin SQ v2 entry implicitly enable the checksum in its
-header so set it for device to validate against.
+Thanks for the review.  After re-reading your feedback and re-examining
+the crash log, I think I mis-characterized the root cause in my original
+patches.  Let me lay out what the log actually shows, because I'd like
+to get the fix on the right track.
 
-Reviewed-by: Michael Margolin <mrgolin@amazon.com>
-Reviewed-by: Tom Sela <tomsela@amazon.com>
-Signed-off-by: Yonatan Nachum <ynachum@amazon.com>
----
- drivers/infiniband/hw/efa/efa_admin_defs.h |  29 +++++-
- drivers/infiniband/hw/efa/efa_com.c        | 113 +++++++++++++++------
- drivers/infiniband/hw/efa/efa_com.h        |   6 ++
- 3 files changed, 116 insertions(+), 32 deletions(-)
+The crash is a three-stage sequence, all from the same host
+(6.1.52 + MLNX_OFED 24.10):
 
-diff --git a/drivers/infiniband/hw/efa/efa_admin_defs.h b/drivers/infiniband/hw/efa/efa_admin_defs.h
-index 0a14b3abe6f9..bf1721e31a70 100644
---- a/drivers/infiniband/hw/efa/efa_admin_defs.h
-+++ b/drivers/infiniband/hw/efa/efa_admin_defs.h
-@@ -7,7 +7,7 @@
- #define _EFA_ADMIN_H_
- 
- #define EFA_ADMIN_API_VERSION_MAJOR          0
--#define EFA_ADMIN_API_VERSION_MINOR          2
-+#define EFA_ADMIN_API_VERSION_MINOR          3
- 
- enum efa_admin_aq_completion_status {
- 	EFA_ADMIN_SUCCESS                           = 0,
-@@ -41,6 +41,21 @@ struct efa_admin_aq_common_desc {
- 	u8 flags;
- };
- 
-+struct efa_admin_aq_common_desc_v2 {
-+	struct efa_admin_aq_common_desc common;
-+
-+	/*
-+	 * Poly 0x8005 CRC16 with initial value 0xFFFF and final XOR of
-+	 * 0xFFFF. The checksum covers the entire admin command entry
-+	 * including the zeroed checksum field.
-+	 */
-+	u16 checksum;
-+
-+	u8 payload_ver;
-+
-+	u8 reserved[5];
-+};
-+
- /*
-  * used in efa_admin_aq_entry. Can point directly to control data, or to a
-  * page list chunk. Used also at the end of indirect mode page list chunks,
-@@ -58,6 +73,12 @@ struct efa_admin_aq_entry {
- 	u32 request_payload[15];
- };
- 
-+struct efa_admin_aq_entry_v2 {
-+	struct efa_admin_aq_common_desc_v2 aq_common_descriptor;
-+
-+	u32 request_payload[29];
-+};
-+
- struct efa_admin_acq_common_desc {
- 	/*
- 	 * command identifier to associate it with the aq descriptor
-@@ -74,7 +95,11 @@ struct efa_admin_acq_common_desc {
- 	 */
- 	u8 flags;
- 
--	/* Poly 0x8005 CRC16 with initial value 0xFFFF and final XOR of 0xFFFF */
-+	/*
-+	 * Poly 0x8005 CRC16 with initial value 0xFFFF and final XOR of 0xFFFF.
-+	 * The checksum covers the entire admin completion entry including the
-+	 * zeroed checksum field.
-+	 */
- 	u16 checksum;
- 
- 	u16 reserved;
-diff --git a/drivers/infiniband/hw/efa/efa_com.c b/drivers/infiniband/hw/efa/efa_com.c
-index 72b87f8cd086..583b1cf0d721 100644
---- a/drivers/infiniband/hw/efa/efa_com.c
-+++ b/drivers/infiniband/hw/efa/efa_com.c
-@@ -25,11 +25,16 @@
- 
- #define EFA_CRC16_INIT_VAL 0xffff
- 
--#define EFA_CRC_MIN_ADMIN_API_VERSION_MAJOR 0
--#define EFA_CRC_MIN_ADMIN_API_VERSION_MINOR 2
-+#define EFA_ADMIN_SQ_MAX_ENT_SIZE sizeof(struct efa_admin_aq_entry_v2)
- 
--#define EFA_MIN_ADMIN_API_VERSION_MAJOR 0
--#define EFA_MIN_ADMIN_API_VERSION_MINOR 1
-+#define EFA_CRC_MIN_API_VERSION_MAJOR 0
-+#define EFA_CRC_MIN_API_VERSION_MINOR 2
-+
-+#define EFA_ADMIN_V2_MIN_API_VERSION_MAJOR 0
-+#define EFA_ADMIN_V2_MIN_API_VERSION_MINOR 3
-+
-+#define EFA_MIN_API_VERSION_MAJOR 0
-+#define EFA_MIN_API_VERSION_MINOR 1
- 
- enum efa_cmd_status {
- 	EFA_CMD_UNUSED,
-@@ -82,6 +87,16 @@ void efa_com_set_dma_addr(dma_addr_t addr, u32 *addr_high, u32 *addr_low)
- 	*addr_high = upper_32_bits(addr);
- }
- 
-+static u32 efa_com_construct_ver(u32 major, u32 minor)
-+{
-+	u32 ver = 0;
-+
-+	EFA_SET(&ver, EFA_REGS_VERSION_MAJOR_VERSION, major);
-+	EFA_SET(&ver, EFA_REGS_VERSION_MINOR_VERSION, minor);
-+
-+	return ver;
-+}
-+
- static u32 efa_com_reg_read32(struct efa_com_dev *edev, u16 offset)
- {
- 	struct efa_com_mmio_read *mmio_read = &edev->mmio_read;
-@@ -138,10 +153,23 @@ static int efa_com_admin_init_sq(struct efa_com_dev *edev)
- {
- 	struct efa_com_admin_queue *aq = &edev->aq;
- 	struct efa_com_admin_sq *sq = &aq->sq;
-+	u32 aq_caps = 0, admin_v2_min_ver = 0;
- 	u32 addr_high, addr_low;
--	u32 aq_caps = 0;
- 
--	sq->entry_size = sizeof(struct efa_admin_aq_entry);
-+	admin_v2_min_ver = efa_com_construct_ver(EFA_ADMIN_V2_MIN_API_VERSION_MAJOR,
-+						 EFA_ADMIN_V2_MIN_API_VERSION_MINOR);
-+	if (edev->dev_api_ver >= admin_v2_min_ver) {
-+		sq->entry_size = sizeof(struct efa_admin_aq_entry_v2);
-+		sq->payload_offset = offsetof(struct efa_admin_aq_entry_v2, request_payload);
-+		sq->proto_ver = EFA_ADMIN_V2_PROTO_VER;
-+	} else {
-+		sq->entry_size = sizeof(struct efa_admin_aq_entry);
-+		sq->payload_offset = offsetof(struct efa_admin_aq_entry, request_payload);
-+		sq->proto_ver = EFA_ADMIN_V1_PROTO_VER;
-+	}
-+
-+	sq->max_payload_size = sq->entry_size - sq->payload_offset;
-+
- 	sq->buffer = dma_alloc_coherent(aq->dmadev, aq->depth * sq->entry_size,
- 					&sq->dma_addr, GFP_KERNEL);
- 	if (!sq->buffer)
-@@ -184,8 +212,8 @@ static int efa_com_admin_init_cq(struct efa_com_dev *edev)
- 
- 	spin_lock_init(&cq->lock);
- 
--	EFA_SET(&crc_min_ver, EFA_REGS_VERSION_MAJOR_VERSION, EFA_CRC_MIN_ADMIN_API_VERSION_MAJOR);
--	EFA_SET(&crc_min_ver, EFA_REGS_VERSION_MINOR_VERSION, EFA_CRC_MIN_ADMIN_API_VERSION_MINOR);
-+	crc_min_ver = efa_com_construct_ver(EFA_CRC_MIN_API_VERSION_MAJOR,
-+					    EFA_CRC_MIN_API_VERSION_MINOR);
- 	if (edev->dev_api_ver >= crc_min_ver)
- 		cq->validate_checksum = true;
- 
-@@ -321,13 +349,45 @@ static inline struct efa_comp_ctx *efa_com_get_comp_ctx_by_cmd_id(struct efa_com
- 	return &aq->comp_ctx[ctx_id];
- }
- 
-+static u16 efa_com_calc_crc16_checksum(u8 *buff, u32 buff_size)
-+{
-+	return crc16(EFA_CRC16_INIT_VAL, buff, buff_size) ^ EFA_CRC16_INIT_VAL;
-+}
-+
-+static void efa_com_construct_aq_entry(struct efa_com_admin_queue *aq, u8 *aq_entry, u16 cmd_id,
-+				       u8 opcode, u8 flags, void *payload, size_t payload_size)
-+{
-+	struct efa_admin_aq_common_desc_v2 *common_v2 = NULL;
-+	struct efa_admin_aq_common_desc *common;
-+	struct efa_com_admin_sq *sq = &aq->sq;
-+
-+	if (sq->proto_ver == EFA_ADMIN_V1_PROTO_VER) {
-+		common = (struct efa_admin_aq_common_desc *)aq_entry;
-+	} else {
-+		common_v2 = (struct efa_admin_aq_common_desc_v2 *)aq_entry;
-+		common = &common_v2->common;
-+	}
-+
-+	common->command_id = cmd_id;
-+	common->opcode = opcode;
-+	common->flags = flags;
-+	EFA_SET(&common->flags, EFA_ADMIN_AQ_COMMON_DESC_PHASE, sq->phase);
-+
-+	if (payload)
-+		memcpy(aq_entry + sq->payload_offset, payload, payload_size);
-+
-+	if (common_v2)
-+		common_v2->checksum = efa_com_calc_crc16_checksum(aq_entry, sq->entry_size);
-+}
-+
- static void __efa_com_submit_admin_cmd(struct efa_com_admin_queue *aq,
- 				       struct efa_comp_ctx *comp_ctx,
--				       struct efa_admin_aq_entry *cmd,
--				       size_t cmd_size_in_bytes,
-+				       u8 opcode, u8 flags,
-+				       void *payload, size_t payload_size,
- 				       struct efa_admin_acq_entry *comp,
- 				       size_t comp_size_in_bytes)
- {
-+	u8 aq_entry[EFA_ADMIN_SQ_MAX_ENT_SIZE] __aligned(sizeof(u64)) = {};
- 	u16 queue_size_mask, cmd_id, ctx_id, pi;
- 	struct efa_com_admin_sq *sq = &aq->sq;
- 	u8 *aqe;
-@@ -341,21 +401,19 @@ static void __efa_com_submit_admin_cmd(struct efa_com_admin_queue *aq,
- 	cmd_id |= sq->pc << ilog2(aq->depth);
- 	cmd_id &= EFA_ADMIN_AQ_COMMON_DESC_COMMAND_ID_MASK;
- 
--	cmd->aq_common_descriptor.command_id = cmd_id;
--	EFA_SET(&cmd->aq_common_descriptor.flags,
--		EFA_ADMIN_AQ_COMMON_DESC_PHASE, sq->phase);
-+	efa_com_construct_aq_entry(aq, aq_entry, cmd_id, opcode, flags, payload, payload_size);
- 
- 	comp_ctx->status = EFA_CMD_SUBMITTED;
- 	comp_ctx->comp_size = comp_size_in_bytes;
- 	comp_ctx->user_cqe = comp;
--	comp_ctx->cmd_opcode = cmd->aq_common_descriptor.opcode;
-+	comp_ctx->cmd_opcode = opcode;
- 	comp_ctx->cmd_id = cmd_id;
- 
- 	reinit_completion(&comp_ctx->wait_event);
- 
- 	aqe = sq->buffer + sq->entry_size * pi;
- 	memset(aqe, 0, sq->entry_size);
--	memcpy(aqe, cmd, cmd_size_in_bytes);
-+	memcpy(aqe, aq_entry, sq->entry_size);
- 
- 	sq->pc++;
- 	atomic64_inc(&aq->stats.submitted_cmd);
-@@ -399,8 +457,8 @@ static inline int efa_com_init_comp_ctxt(struct efa_com_admin_queue *aq)
- 
- static int efa_com_submit_admin_cmd(struct efa_com_admin_queue *aq,
- 				    struct efa_comp_ctx *comp_ctx,
--				    struct efa_admin_aq_entry *cmd,
--				    size_t cmd_size_in_bytes,
-+				    u8 opcode, u8 flags,
-+				    void *payload, size_t payload_size,
- 				    struct efa_admin_acq_entry *comp,
- 				    size_t comp_size_in_bytes)
- {
-@@ -411,8 +469,8 @@ static int efa_com_submit_admin_cmd(struct efa_com_admin_queue *aq,
- 		return -ENODEV;
- 	}
- 
--	__efa_com_submit_admin_cmd(aq, comp_ctx, cmd, cmd_size_in_bytes, comp,
--				   comp_size_in_bytes);
-+	__efa_com_submit_admin_cmd(aq, comp_ctx, opcode, flags, payload,
-+				   payload_size, comp, comp_size_in_bytes);
- 	spin_unlock(&aq->sq.lock);
- 
- 	return 0;
-@@ -426,7 +484,7 @@ static bool efa_com_cqe_checksum_valid(struct efa_com_admin_queue *aq,
- 
- 	cqe->acq_common_descriptor.checksum = 0;
- 
--	calc_checksum = crc16(EFA_CRC16_INIT_VAL, (u8 *)cqe, sizeof(*cqe)) ^ EFA_CRC16_INIT_VAL;
-+	calc_checksum = efa_com_calc_crc16_checksum((u8 *)cqe, sizeof(*cqe));
- 	if (calc_checksum != cqe_checksum) {
- 		ibdev_err(aq->efa_dev,
- 			  "Received completion with invalid checksum, cqe[%u], calc[%u], sq producer[%d], sq consumer[%d], cq consumer[%d]\n",
-@@ -647,11 +705,10 @@ int efa_com_cmd_exec(struct efa_com_admin_queue *aq,
- 		     void *payload, size_t payload_size,
- 		     struct efa_admin_acq_entry *comp, size_t comp_size)
- {
--	struct efa_admin_aq_entry aq_entry = {};
- 	struct efa_comp_ctx *comp_ctx;
- 	int err;
- 
--	if (payload_size > sizeof(aq_entry.request_payload))
-+	if (payload_size > aq->sq.max_payload_size)
- 		return -EINVAL;
- 
- 	might_sleep();
-@@ -669,12 +726,8 @@ int efa_com_cmd_exec(struct efa_com_admin_queue *aq,
- 		return -EINVAL;
- 	}
- 
--	aq_entry.aq_common_descriptor.opcode = opcode;
--	aq_entry.aq_common_descriptor.flags = flags;
--	if (payload)
--		memcpy(aq_entry.request_payload, payload, payload_size);
--
--	err = efa_com_submit_admin_cmd(aq, comp_ctx, &aq_entry, sizeof(aq_entry), comp, comp_size);
-+	err = efa_com_submit_admin_cmd(aq, comp_ctx, opcode, flags, payload, payload_size, comp,
-+				       comp_size);
- 	if (err) {
- 		ibdev_err_ratelimited(
- 			aq->efa_dev,
-@@ -1003,8 +1056,8 @@ int efa_com_validate_version(struct efa_com_dev *edev)
- 		  EFA_GET(&ver, EFA_REGS_VERSION_MAJOR_VERSION),
- 		  EFA_GET(&ver, EFA_REGS_VERSION_MINOR_VERSION));
- 
--	EFA_SET(&min_ver, EFA_REGS_VERSION_MAJOR_VERSION, EFA_MIN_ADMIN_API_VERSION_MAJOR);
--	EFA_SET(&min_ver, EFA_REGS_VERSION_MINOR_VERSION, EFA_MIN_ADMIN_API_VERSION_MINOR);
-+	min_ver = efa_com_construct_ver(EFA_MIN_API_VERSION_MAJOR,
-+					EFA_MIN_API_VERSION_MINOR);
- 	if (ver < min_ver) {
- 		ibdev_err(edev->efa_dev,
- 			  "EFA version is lower than the minimal version the driver supports\n");
-diff --git a/drivers/infiniband/hw/efa/efa_com.h b/drivers/infiniband/hw/efa/efa_com.h
-index 069c9dd98328..0341704d0921 100644
---- a/drivers/infiniband/hw/efa/efa_com.h
-+++ b/drivers/infiniband/hw/efa/efa_com.h
-@@ -22,6 +22,9 @@
- 
- #define EFA_MAX_HANDLERS 256
- 
-+#define EFA_ADMIN_V1_PROTO_VER 0
-+#define EFA_ADMIN_V2_PROTO_VER 1
-+
- struct efa_com_admin_cq {
- 	struct efa_admin_acq_entry *entries;
- 	dma_addr_t dma_addr;
-@@ -35,8 +38,11 @@ struct efa_com_admin_cq {
- struct efa_com_admin_sq {
- 	u8 *buffer;
- 	u16 entry_size;
-+	u16 payload_offset;
-+	u16 max_payload_size;
- 	dma_addr_t dma_addr;
- 	spinlock_t lock; /* Protects ASQ */
-+	u8 proto_ver;
- 
- 	u32 __iomem *db_addr;
- 
--- 
-2.50.1
+  Stage 1 - a create_qp failure:
+    [24805924.400] mlx5_3: create_qp:3323:(pid 2758615): Create QP type 2 failed
 
+  Stage 2 - on process exit, ib_uverbs_close() could not tear down the
+  process's CQs and fell into the DRIVER_FAILURE fallback:
+    [24805924.747] WARNING: ... rdma_core.c:945 uverbs_destroy_ufile_hw
+      Call Trace:
+        uverbs_destroy_ufile_hw
+        ib_uverbs_close
+        __fput
+
+  Stage 3 - 23s later, an unrelated `rdma res show cq` tripped over the
+  leaked CQ:
+    [24805947.514] BUG: kernel NULL pointer dereference, address: 0x58
+      RIP: fill_res_cq_entry+0x15e/0x180
+      Call Trace: res_get_common_dumpit ... netlink_dump
+
+So the dereference is not a disassociation-time race: teardown ran to
+completion (the WARNING fired, uobj->context was cleared to NULL by the
+DRIVER_FAILURE fallback in uverbs_destroy_uobject()), and only 23s later
+did the dump read it.  The leaked CQ sits in restrack with
+context == NULL as a committed state, not a transient window.
+
+To be concrete about why it persists: under the current code, once the
+DRIVER_FAILURE fallback runs, the leaked object's restrack entry is
+never actively removed.  The CQ case:
+
+  - First pass (RDMA_REMOVE_CLOSE): uverbs_destroy_uobject() enters the
+    destroy_hw branch because uobj->object is non-NULL; destroy_hw_idr
+    calls ib_destroy_cq_user(), whose driver destroy_cq fails and
+    returns before rdma_restrack_del(&cq->res).  Entry stays.
+
+  - Second pass (RDMA_REMOVE_DRIVER_FAILURE): __uverbs_cleanup_ufile()
+    pre-sets obj->object = NULL before calling uverbs_destroy_uobject(),
+    so the "else if (uobj->object)" branch is skipped entirely -
+    destroy_hw, and thus ib_destroy_cq_user() / rdma_restrack_del(), is
+    never reached.  uobj->context is then cleared to NULL, and the
+    object is removed only from ufile->idr (remove_handle is not called
+    either, as reason != DESTROY), not from the restrack xarray.
+
+So the restrack entry is removed only by rdma_restrack_clean() ->
+xa_destroy() at ib_dealloc_device() time.  For the entire lifetime of
+the device after a failed fd-close teardown, the leaked CQ sits in the
+restrack xarray with context == NULL.  That is exactly the window the
+crash log shows: 23s between the close-time WARNING and the dump oops,
+same device still registered.
+
+On your two points:
+
+  Patch 1 (move rdma_restrack_del before destroy): you're right that
+  this breaks the legitimate case where destroy is allowed to fail -
+  withdrawing the object from restrack while it still exists is wrong.
+  I'll drop it.
+
+  Patch 2 (NULL guard): you're right that it's missing locking against
+  a concurrent disassociation teardown.  But the crash above is not
+  that race; it's a fd-close path where context is already NULL.  A
+  NULL check would stop this particular oops, but I understand that's
+  not the synchronization you're asking for.
+
+Which leaves me unsure where the dump-side fix should live.  Two
+questions:
+
+  1. For the disassociation race you pointed at, I can hold a
+     disassociate srcu around fill_func() in res_get_common_doit/
+     dumpit (it would have to live on struct ib_device, since nldev in
+     ib_core cannot reach ib_uverbs_device).  Does that match what you
+     had in mind?  This closes the concurrent-UAF case but does not
+     touch the fd-close NULL case above.
+
+  2. For the fd-close path - where a driver destroy fails and the
+     DRIVER_FAILURE fallback leaves a leaked restrack entry with a
+     NULL context - is the correct fix entirely on the driver side
+     (destroy must not fail on transient HW error; wait for FLR),
+     as you said on patch 1?  I.e. should the core/nldev side not
+     defend against this at all, or is a NULL-skip in the dump still
+     wanted as a defense-in-depth?  A driver that never fails destroy
+     would prevent the leak from happening in the first place, but
+     would not help with objects already leaked before such a fix is
+     deployed, or with any other future path that leaves a restrack
+     entry behind with a cleared context.                                     
+
+Thanks,
+Yili
