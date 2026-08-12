@@ -1,75 +1,150 @@
-Received: from 011.lax.mailroute.net (011.lax.mailroute.net [199.89.1.14])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f41.google.com (mail-pj1-f41.google.com [209.85.216.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BCCC39891D;
-	Wed, 12 Aug 2026 20:30:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=199.89.1.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 242D539E6FC
+	for <linux-rdma@vger.kernel.org>; Wed, 12 Aug 2026 21:41:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786566637; cv=none; b=fmQHReyDMa30I0J+wZ3Y2u0e90Xc5puLf0WmnFwasZNhkBKRbeMhnMFDDQ6xO0XyzouMzFwFruBoaX3tIQRLngr8YTbRqdtcemJertSIkdqpZsGtOU9KfHd3Ea0XBki0pfZNIdPSNBJU7AG5i3nZZm1Mzz1zqQNMKwoHYEvijoY=
+	t=1786570895; cv=none; b=YxmqUoZe/SEJp1M0eD7a/GBjfKmSmBT5M+TaXR6vtO2v2C/HcVgau9qlTpfbnAKL+93kQLdCdHIiJ1rDjs69hxUYoAlTWdT0zZeu7BxjRON4KVzzzkp5y313qABE7N74l7piHnwJHbkHc6tVwxIDLy/y/iqD6Cl+wI01Pq6qD2A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786566637; c=relaxed/simple;
-	bh=ya8lUrcUq0xwyeVi33naWdkV73eejL51gHxxXBh+mwQ=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=jdRSRuV1m20I8w+7qtKydIfSqwcWo3RR2bzZj/abxBLPnTQ7v5M9KkESwhJoiKYyDdVYtK/tb8b4Z9B466zkj3uueCABVMg5Hi9WOCAU9yBm7ZyC6pCDxLY//a+yuTHeYYOZQRDf3ZHvkrSF/SD7b7UuHb4AQeSp5OvIR3PCNK0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=acm.org; spf=pass smtp.mailfrom=acm.org; dkim=pass (2048-bit key) header.d=acm.org header.i=@acm.org header.b=HgvnZIQi; arc=none smtp.client-ip=199.89.1.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=acm.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=acm.org
+	s=arc-20240116; t=1786570895; c=relaxed/simple;
+	bh=Myn0f5PoONuBeSnhGPwFLjCEATkMK/fQIXssiOVSNy0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=E/fBsEXkYVwURdQweBvJGtEYguLV1VjEeshYmrjZVvNZ9hAkxCV7tF8YMIKx+X0xtIs1LVIcEDNB6LEdsy4Sndt7cIKgHpn9UVbKfCUKqi1CIAvQDOvVtnWxy8AIOx/UJGymTNGnTLLz8RRSpN78+FSEKf1iIApNwaNkNlekfQo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=choYcLMz; arc=none smtp.client-ip=209.85.216.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=acm.org header.i=@acm.org header.b="HgvnZIQi"
-Received: from localhost (localhost [127.0.0.1])
-	by 011.lax.mailroute.net (Postfix) with ESMTP id 4hL0Vf6ChNz1XM31H;
-	Wed, 12 Aug 2026 20:30:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acm.org; h=
-	content-transfer-encoding:content-type:content-type:in-reply-to
-	:from:from:content-language:references:subject:subject
-	:user-agent:mime-version:date:date:message-id:received:received;
-	 s=mr01; t=1786566632; x=1789158633; bh=ya8lUrcUq0xwyeVi33naWdkV
-	73eejL51gHxxXBh+mwQ=; b=HgvnZIQiiCHYGxwEYaqW5rZK1c+IrzFhxm+md+/3
-	d9nb+e4KDcgGatFkaNH7sFxIcN7vNXYmPcBKenrvXsX1FSXoCZPkruaYlK51T4Pz
-	eJOn1B7C1rv80bjqxUOJ/wXXRBYguPcG470+pXv8hW+O6TuHRK1yHInU6TOb9Lef
-	xu2skzhZ/fSQ+GNf3HgVsEksigo9RezFlf4nltPCSfvR9HHSfmLHzaJ4p22BNYOA
-	a7Ucipd22JRAfIEQiNlDb9HeKKGJj25cSYiefog46qe2Fhog7LIgpLsuMptLaPBK
-	4aZcY+evweNxxpsZxBc72S9V3hlnSL7WabYn6U2ON7ouyw==
-X-Virus-Scanned: by MailRoute
-Received: from 011.lax.mailroute.net ([127.0.0.1])
- by localhost (011.lax [127.0.0.1]) (mroute_mailscanner, port 10029) with LMTP
- id C7E8VTsKW1N2; Wed, 12 Aug 2026 20:30:32 +0000 (UTC)
-Received: from [100.119.48.131] (unknown [104.135.180.219])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: bvanassche@acm.org)
-	by 011.lax.mailroute.net (Postfix) with ESMTPSA id 4hL0VZ6Bjfz1XM30g;
-	Wed, 12 Aug 2026 20:30:30 +0000 (UTC)
-Message-ID: <a97268c5-74db-4238-b0f2-6ddd4fa5c37d@acm.org>
-Date: Wed, 12 Aug 2026 13:30:29 -0700
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="choYcLMz"
+Received: by mail-pj1-f41.google.com with SMTP id 98e67ed59e1d1-38e3efab7e0so299776a91.0
+        for <linux-rdma@vger.kernel.org>; Wed, 12 Aug 2026 14:41:33 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1786570893; x=1787175693; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=NPvoXejEXMCOLtks/4P44XseBHeJ9j+rFY5G6V1i118=;
+        b=choYcLMzzYt+EkneTOegz0/c40LRIGJvd4bO/SM6+11qBRjCZHyFmO+vsdAOFxsS1w
+         EiFXkb4eR8TjF0JQdMn3RBqgg/nXvx0gBedu1SzsFJcl4U6vYEWZrfNp0A8MWJF8Fx2/
+         U/UEgb/kTjJEUR07MFRmoWAoNe5HDnLansO0wH3tlYyq/revCNq39mFPtxb0TpoqM9vH
+         AYgxFm1KNabjVNnER7ZHZyUWclO/RwYCg7CeFztB5IgHuTbR+T3tUVfm1rzd+UDr7OXz
+         v5dMxhIf8DGqcZlN39Hv939A46x5dcPthyVGFAW/Zn2jBSNQUufxPVWtYQkniVf/Dpus
+         kAiQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786570893; x=1787175693;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=NPvoXejEXMCOLtks/4P44XseBHeJ9j+rFY5G6V1i118=;
+        b=AdVxl1wCQAVDxgRqwVOwFVQbKxSUBGNnVbMhrJ704Wb6s3TiquKzq7lnCrSiD3tUNl
+         Q8/HuUuK0MDx+JgWRuFt5TBUPyVNZPB4NmcxK/VgYTJ2IAPBGMucvhrZc6brns/4RrqV
+         oM4VAl38HPqu24lYpC4+Hi439MyJayka6ENCxE4hJdJkwHnSUa3BEklaifZFvnywESMe
+         0XlDpa8dU7uq8y0DLCVUn7lyRXg0mPGu/GVayAGTeyfU6Vu3fmYgtHQ2g4FSqIYRFCTV
+         I0YRT104WLwWpW3qtFT6sMKXAmVIquQNFoQDVHmhIFHpN1rL3dr2L+ddi20htZvJKETf
+         Hkkw==
+X-Forwarded-Encrypted: i=1; AHgh+Rr9yY8oLSRZHZDPWEhu8EiXg+u/mfIIyjxz4bknsnQIAmUJOPG/TiweSfpn/V/svICdckRTO5F6AS57@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy+j5Mp9zLSVnFfoTpkrVNA8MZU/m7hySw7/99wlz5lmp8o1s9k
+	1d3VZ2rE5fcOPocsvwnRDh1yL+m113VQnBvIeLWsGe70YNTunsFN9MlUgyYmam0ozA==
+X-Gm-Gg: AR+sD132252wY9Dhm7fGLHeTBA30OtqUBgYxUxwYZV9MIr1V2a8ZoqyL6E8KBpWOzax
+	TJ6bbYvTOyyfolOPqdpgY3XS+bbud29EskWP/UgzxUKgAIVt+ysIcIFqj+p86upnH7jph3nE803
+	Gvhg+E+SDMABqOY14KDPlT/0uhmX5bVDjIriigv6N4dQsA372V+pVNqf1bQ7ljZjY2R7Xt1sPlh
+	QIbPIojC8wTXbjS4xCsYaBwW+2YHER9uCnuD6QbaAgfkVvDAm/eSHAoZhmW5ZG1Q1XAfe8y2E8g
+	kKOog/FUGEwZDOj2ByTA4tPuRAvjirBWApxmbayNvLKWhsBkUPRjdzIVSWoDtHITrxbTYiNrXow
+	8NYecS8F9Nbth7qc2kXH/EXmlzaANCsBMX/4gTaJwyQlqq24WovSKmfpLp/+Nc3sjvZjpLB1dor
+	XiRt6GHV+jJCsnIQYdt2aWEROIZ3I7rBcQW8misJ+QaigKH+lCvtr+R2rjZw/N1KAEoyPVLxQ3n
+	HPUniQ3nyqRkRYiBdn/1ERJ9hevhQ==
+X-Received: by 2002:a17:90b:274c:b0:36b:de66:92c3 with SMTP id 98e67ed59e1d1-3931f583a5amr478962a91.10.1786570892837;
+        Wed, 12 Aug 2026 14:41:32 -0700 (PDT)
+Received: from google.com (132.200.185.35.bc.googleusercontent.com. [35.185.200.132])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3931ced0781sm878738a91.11.2026.08.12.14.41.31
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 12 Aug 2026 14:41:32 -0700 (PDT)
+Date: Wed, 12 Aug 2026 21:41:28 +0000
+From: David Matlack <dmatlack@google.com>
+To: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Alex Williamson <alex@shazbot.org>, kvm@vger.kernel.org,
+	Leon Romanovsky <leon@kernel.org>, linux-kselftest@vger.kernel.org,
+	linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>,
+	netdev@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>,
+	Shuah Khan <shuah@kernel.org>, Tariq Toukan <tariqt@nvidia.com>,
+	patches@lists.linux.dev
+Subject: Re: [PATCH v4 08/10] vfio: selftests: Add mlx5 driver - HW init and
+ command interface
+Message-ID: <anzoiALsjiWrsZtl@google.com>
+References: <0-v4-021df3fb5a3f+98e-mlx5st_jgg@nvidia.com>
+ <8-v4-021df3fb5a3f+98e-mlx5st_jgg@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] RDMA/srp: fix use-after-free of a request in
- srp_destroy_qp()
-To: Yehyeong Lee <yhlee@isslab.korea.ac.kr>, linux-rdma@vger.kernel.org
-Cc: jgg@ziepe.ca, leon@kernel.org, linux-kernel@vger.kernel.org,
- stable@vger.kernel.org
-References: <20260812190418.200337-1-yhlee@isslab.korea.ac.kr>
-Content-Language: en-US
-From: Bart Van Assche <bvanassche@acm.org>
-In-Reply-To: <20260812190418.200337-1-yhlee@isslab.korea.ac.kr>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <8-v4-021df3fb5a3f+98e-mlx5st_jgg@nvidia.com>
 
-On 8/12/26 12:04 PM, Yehyeong Lee wrote:
-> Put the two completion
-> contexts in the channel, which outlives the queue pair.
+On 2026-08-12 11:59 AM, Jason Gunthorpe wrote:
 
-This change can cause ch->reg_cqe and ch->inv_cqe to be overwritten
-before the previously submitted work has completed, isn't it? Isn't that
-a bug?
+> diff --git a/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_hw.h b/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_hw.h
+> new file mode 100644
+> index 00000000000000..a2506ec8a19523
+> --- /dev/null
+> +++ b/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_hw.h
+> @@ -0,0 +1,108 @@
+> +/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
+> +/*
+> + * mlx5 VFIO selftest driver - HW definitions
+> + *
+> + * Typed wrappers, constants, and helpers for programming mlx5 hardware
+> + * via the VFIO selftest framework.  Most HW constants and all MLX5_SET/GET
+> + * macros come from the kernel headers (mlx5_ifc.h, mlx5_ifc_macros.h).
+> + */
+> +#ifndef SELFTESTS_VFIO_MLX5_HW_H
+> +#define SELFTESTS_VFIO_MLX5_HW_H
+> +
+> +#include <linux/io.h>
+> +#include <linux/build_bug.h>
+> +#include <vdso/bits.h>
+> +
+> +#include "mlx5_ifc.h"
+> +#include "mlx5_ifc_macros.h"
 
-Thanks,
+I'm getting a compiler warning here when building with clang which is
+getting upgraded to error from -Werror.
 
-Bart.
+  /usr/local/google/home/dmatlack/kernel/trees/review/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_ifc.h:2706:50: error: field 'menu'
+  with variable sized type 'struct mlx5_ifc_resource_dump_menu_segment_bits' not at the end of a struct or class is a GNU
+        extension [-Werror,-Wgnu-variable-sized-type-not-at-end]
+         2706 |         struct mlx5_ifc_resource_dump_menu_segment_bits menu;
+               |                                                         ^
+           1 error generated.
+           make: *** [lib/libvfio.mk:36:
+
+I assume the mlx5 header needs to be fixed... But we can also work
+around it in VFIO selftests if that turns out to be a can of worms:
+
+diff --git a/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_hw.h b/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_hw.h
+index 2c451e411ec1..b9fad2b722a0 100644
+--- a/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_hw.h
++++ b/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_hw.h
+@@ -13,9 +13,18 @@
+ #include <linux/build_bug.h>
+ #include <vdso/bits.h>
+
++#ifdef __clang__
++#pragma clang diagnostic push
++#pragma clang diagnostic ignored "-Wgnu-variable-sized-type-not-at-end"
++#endif
++
+ #include "mlx5_ifc.h"
+ #include "mlx5_ifc_macros.h"
+
++#ifdef __clang__
++#pragma clang diagnostic pop
++#endif
++
+ /*
+  * Typed HW object wrappers for driver region arrays.
+  *
+
