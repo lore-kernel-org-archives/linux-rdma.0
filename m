@@ -1,158 +1,135 @@
-Received: from DM5PR21CU001.outbound.protection.outlook.com (mail-centralusazon11011065.outbound.protection.outlook.com [52.101.62.65])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4D5E44781A;
-	Thu, 13 Aug 2026 10:50:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.62.65
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786618255; cv=fail; b=dCmCwUGCFiwMoTQhZVktWtTC+LldeLch9VT23H8opj2xG5nkdWef26b3ec/zUC7f6vermtfLI7z3qrtcIQnHwfY32IlKsTHFjlJUxje88l65tKUhKz863z0e2CvpJrOLrYstZ2THmCsXxk8W5G07qVsGVenePP1ebu7Haqc/dj0=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786618255; c=relaxed/simple;
-	bh=jtNQpjFFsj5GBpO4aKpgZj9Diwy4GtZgr7UdX0TIIOI=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=EbmNVjPn8t8UVOIfda1abmq44MPJahPO329uyOsKzzzjYrCtkNKaucphqhzAB/ezE8SI8zhthyqzsppFgtQG8Xe5z922nQlcdhjAopgbRZYmRJ8Ujm+r0eeXTDA3rET10LqCT4aOSvFdGHhX+gfsPnsZlX3q8pxqfXtAQsq2aH8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=0Mzuu52z; arc=fail smtp.client-ip=52.101.62.65
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 793EC381EA1
+	for <linux-rdma@vger.kernel.org>; Thu, 13 Aug 2026 10:50:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786618260; cv=none; b=AUZALa5OzvOKtjU+M3UqdmG/iawSMA0rDON7JvAxJpDaJV2GGa9ZOAvvQ8mO7CylLqdQU4xE/LdJtr9v6LoYwTu7esFaLCV3A9wQQoKbhPlxQO8dqnbNRhs9xfo7aCT0V37qg4OemWJqE7OLfiIBpyFULsSwI8wppSg1pTaqoI0=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786618260; c=relaxed/simple;
+	bh=jIaqtkJVqLo85xYm8GRjO5oVfzgg/kufPOpqYfbpfZw=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Tlf0LOJJV9fMoS7TARiuUQ4+e7mkWeBMjWuxKs/XNJx9ktrUddpHBZNhgEtWn191FEDqKiFIKMZhYRQHMK7xlZt69ugaEQU/AtbJto59O/W5q/XJozLj+lnxjWoRdfksT1vv1gTOaOPzGIlxyRyB5Tgt0yziFlK85ViLIsJhj7Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=fW9p+Hlz; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=Zrdu9MB1; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="0Mzuu52z"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=hvJCDzzwFoxE9aCOsQ9z3DDDyGCLEDSHavwaAaHaEW7Nc36MWWFQ4BnONYAUumW7/zgS5FFORbYuq81xHsDMd8m1T3Z6rDU2UGxiz18r7zLe1NS1/S4H0H8zu3X6OWAQDq3PPGko96h5m2NsupllmSoHm5pdfdXBFHILtUnfAQkGs1a9tqd/C7KjxkGqQPyqlQciSJvIENpbritKjJk86CNesmKEsqgZ94bHDJ2RYo84iR8P5SJvZwrvkt8Jjtb6w4q+uu1AMVqXinMebUaUBWKqa/YL5a6DCILFGlFcoar7coidvsT7+5wwbDnLX/9e53mPNfMCDeCziSuP8e6W1A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=NfUsOemL9TJsK643hysKjQyP+oBWafNO2xoTG6fZGvU=;
- b=rlIiQAdtosIHZGIELr7PrbpLW2acFrub9QHykka4AJjHVk6x8a5J4/wVMwE7LBIQW74ya54PEFTgp9i/MYihthc6siXiXz2wECZPVZ43v7xkAhqzhUnmEJEU3TT/gLKuIPH8pHRkz4sbIGcIXagsQUr38SEIMXQZa56AqcKzomXMR3iBO7e7QcUjrEboqMYuMui0jTKHnNxWR4iaw5Da3DK3CI3m2YuybV2fSKZB1z7w9OXJ3pik3N0/PUs8TfjLfBi4kymhVizSA/fxVOZJFNVhM33iktp5h/P3Y2ix1++qzaJkIzmMzVLuKSURqsz2JjxXPKUv6/zR02qVT6An7Q==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=ziepe.ca smtp.mailfrom=amd.com; dmarc=pass
- (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=NfUsOemL9TJsK643hysKjQyP+oBWafNO2xoTG6fZGvU=;
- b=0Mzuu52zeH/4kQ5ht2bdtAHrPkOIZUQDCTX6JyvAAogwx+8oAUcEe5H+OhSTtbmD0nSEEgP3MKPjPh0j5iDW6XI2FB/FZa2VjOGD8XmRuYQYwL4E/4m28ZJnFNaGu4Nveg3iUYecjKsP5pu2oBAD6Q6u2OxRrSbjbnzX6O2T0nM=
-Received: from DS3P220CA0002.NAMP220.PROD.OUTLOOK.COM (2603:10b6:8:45f::16) by
- IA0PR12MB7650.namprd12.prod.outlook.com (2603:10b6:208:436::14) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.315.15; Thu, 13 Aug
- 2026 10:50:40 +0000
-Received: from CH3PEPF00000016.namprd21.prod.outlook.com
- (2603:10b6:8:45f:cafe::2e) by DS3P220CA0002.outlook.office365.com
- (2603:10b6:8:45f::16) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.315.15 via Frontend Transport; Thu,
- 13 Aug 2026 10:50:40 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
-Received: from satlexmb07.amd.com (165.204.84.17) by
- CH3PEPF00000016.mail.protection.outlook.com (10.167.244.121) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.339.0 via Frontend Transport; Thu, 13 Aug 2026 10:50:39 +0000
-Received: from satlexmb10.amd.com (10.181.42.219) by satlexmb07.amd.com
- (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.45; Thu, 13 Aug
- 2026 05:50:39 -0500
-Received: from satlexmb07.amd.com (10.181.42.216) by satlexmb10.amd.com
- (10.181.42.219) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.45; Thu, 13 Aug
- 2026 05:50:39 -0500
-Received: from xhdipdslab46.xilinx.com (10.180.168.240) by satlexmb07.amd.com
- (10.181.42.216) with Microsoft SMTP Server id 15.2.2562.45 via Frontend
- Transport; Thu, 13 Aug 2026 05:50:34 -0500
-From: Abhijit Gangurde <abhijit.gangurde@amd.com>
-To: <jgg@ziepe.ca>, <leon@kernel.org>, <brett.creeley@amd.com>,
-	<andrew+netdev@lunn.ch>, <davem@davemloft.net>, <edumazet@google.com>,
-	<kuba@kernel.org>, <pabeni@redhat.com>
-CC: <allen.hubbe@amd.com>, <nikhil.agarwal@amd.com>,
-	<linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, Abhijit Gangurde <abhijit.gangurde@amd.com>
-Subject: [for-next v6 0/2] Add Reorder Completion Queue (RCQ) support
-Date: Thu, 13 Aug 2026 16:19:52 +0530
-Message-ID: <20260813104954.319065-1-abhijit.gangurde@amd.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="fW9p+Hlz";
+	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="Zrdu9MB1"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1786618245;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ApJCiVNhwPyhM9F5TuLUvYx6NvREVpkY9PTxvpXK5lk=;
+	b=fW9p+HlzXXnE6Ejy78zJa4R+WpOo+UrT8zPerGPNgoive2rLQUXXrgYb9n740bCLjEcDid
+	aZnyqBxP+Ruj8bhB9PU7php7BhUqKHiY0titsMbioJt8CQpI+9gWXid29WmxTMyqpjc0On
+	Fwot0rYwPLjZ+jXns20yc/Lp1B/10jg=
+Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
+ [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-258-f2eRFhVwPZqoa0qEo_7yvw-1; Thu, 13 Aug 2026 06:50:42 -0400
+X-MC-Unique: f2eRFhVwPZqoa0qEo_7yvw-1
+X-Mimecast-MFC-AGG-ID: f2eRFhVwPZqoa0qEo_7yvw_1786618241
+Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-4955d314945so2856165e9.0
+        for <linux-rdma@vger.kernel.org>; Thu, 13 Aug 2026 03:50:42 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=redhat.com; s=google; t=1786618241; x=1787223041; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:content-language
+         :from:references:cc:to:subject:user-agent:mime-version:date
+         :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=ApJCiVNhwPyhM9F5TuLUvYx6NvREVpkY9PTxvpXK5lk=;
+        b=Zrdu9MB1haMaN8Aj4AIV/O/gmf1k1e4ny+wMbpepxAv5UG/3/8SPTQEATxlY+OQENE
+         6a98ta/MdhCFY+D4B+tEekHPaf/6uCar3YXDJBOTpkbtlto2QLvEgt9X7wuU7D4tR3rG
+         yE+/5yJrOrk/6MEDiYbyHdexC99YlhZiykWoUsG+RGZ/8PVCv8uHMl0ZxUUPh6qBPaYf
+         ELitVETh54hPfFw5YIUAiQVewfm0w98cB5oHj3bAr0he8HpjnYDsSY9uM86IsiVOfwRD
+         gUFU03lHjYYPd8LCmMoPfYscpKoZvdyAgNHte3IYaFJpq3w72mcm9hIFa60Hdmq+zIxU
+         lUtQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786618241; x=1787223041;
+        h=content-transfer-encoding:content-type:in-reply-to:content-language
+         :from:references:cc:to:subject:user-agent:mime-version:date
+         :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=ApJCiVNhwPyhM9F5TuLUvYx6NvREVpkY9PTxvpXK5lk=;
+        b=UJNV5NQi8y1Rnp3MOHQ1jCJsvF33Fh/xwlzekb4FCh5lQgAbhn+PvY/hOu2o27uQpE
+         OCa7td1AEfAX25+YnTcxsQp+qcNvMitzbfz/y0u9sSJXFYzNMYkb9+XQQW/k2NLENAdW
+         XXz5o7xLAH0FbKKDmHYPVDmuwWSVBFAn0pGA2ru4if0rTzSYsFCgmAapZEckvodxytMc
+         PpNH47Fz6QmSPQmwtd6DhLjoHMbvnlMrDayUylMFnFPWyR19HaggL5SFX30JJHFIY+c9
+         LAAJ5GWFDxftmOOQmWrYu6W0+V+WGdPW/FMG6/FJzBeKwVNp2/BNDLrcTSe8Hmv82hax
+         ricA==
+X-Forwarded-Encrypted: i=1; AHgh+RrxrCdTGt/JDevKYHRWp8keUr9OqzUZLSqETGZHyAw9eaIweRO34Eo/hnnDi7yx1aIFVschSYTjRRAN@vger.kernel.org
+X-Gm-Message-State: AOJu0YwQqA4MWSsNwWVTTfFt5VNPZUqIupOwVRoCFPo+aEzih36yo1H7
+	B7RMIajnOLDG8RCkA2kaCEi0gI1pbmskywpN23lvVsQVOEglEGpfFDVARBtRWUipYB8ys4DlPmi
+	NY2yLYBC1RFulm2lU0LgLGfbBq7r2//qlRy/HHzCsoBpmx57ostwko5YqHjLEJ+w=
+X-Gm-Gg: AR+sD121hJ0FDURZbOsNyqwCWIHLVQPe4yVVjNEPNZsLd5JZl88IxbLkxiFrUFgel09
+	HiK9XciK+bbeNRMSsA7EMVaN+STcDKhLYPwQg02F9VYhLMvCdRj+zOnkK9q/Q6pHW3vtMzqtrtK
+	YmR4o0YQ7lPhmjKc2xtIUrWUXy0fGFpC46Yn7Bilnyr1pauRygcgAHavCEPux+7PTZiPewb+25x
+	+b4Bpr95Ixe2UwPCsLYd0lzeZTuB17Wg6bXbaO3bYU7/htj0bMzeMh+7gpYrepOW/qB1VOrFKjY
+	tMMoX/FAorDJftZHEA8bq1QmECueQ/jw97Yc7llTbxJ6ABuOeqFQ2JHIC9LXRS/u5uKsnoX7PG/
+	RVooRYF6Ffh8bTaWDxjvJ5FdYFNgaHUNZR200i3mYyfQ7Pp6pNKlOggtMYnPLMCe93xxr0NHv2f
+	0=
+X-Received: by 2002:a05:600c:4f54:b0:498:2b1f:e0c6 with SMTP id 5b1f17b1804b1-499821fb125mr44849305e9.18.1786618241047;
+        Thu, 13 Aug 2026 03:50:41 -0700 (PDT)
+X-Received: by 2002:a05:600c:4f54:b0:498:2b1f:e0c6 with SMTP id 5b1f17b1804b1-499821fb125mr44848755e9.18.1786618240571;
+        Thu, 13 Aug 2026 03:50:40 -0700 (PDT)
+Received: from [192.168.188.103] (ip239-44-231-195.pool-bba.aruba.it. [195.231.44.239])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4815a5af453sm5954432f8f.23.2026.08.13.03.50.39
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 13 Aug 2026 03:50:39 -0700 (PDT)
+Message-ID: <a227ef96-9b2a-4f8f-9fac-c725eeb0e998@redhat.com>
+Date: Thu, 13 Aug 2026 12:50:38 +0200
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH3PEPF00000016:EE_|IA0PR12MB7650:EE_
-X-MS-Office365-Filtering-Correlation-Id: 9d62d4f9-71ef-4c21-6344-08def928b762
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|36860700016|23010399003|82310400026|376014|7416014|18002099003|56012099006|11063799006|13003099007|6133799003|10067099003;
-X-Microsoft-Antispam-Message-Info:
-	/jCAB4kib9OWfR01pUS1rk3pQ3K0Z5fzl9U3Ea9AnAcfhieE2+Hzj51hXoN3uqJXmgJSJaVPXfaivQxIsCa7IHqFdn/gPZR/g4lR7gExbqvxktYm1yna+Grdgz4eq6vGUOR635fXOUgpY4GcWTFUmA96m1ELqYWVkHN9J1cEP4X/XmXTfbQnjWRaU4wC5X8IfbeuvbBbrWv8hyuLuHo78cBhCN99g7PJJUAYPpDMtaTqDC7gTI7NsT5rErIpZIBiU+F7A5Q/4P/IcbVPY51eOnX29gfVyGQen04+k9/wSeAvMKWRymlUFQzc1MEJcaSW+Dy0m4xvEcPSb8wv9QrWBBJGAC6kfd3k4286byJWgPUwAsJhOY/TPFd0pxrANGnmFSpYee54ubRydJt6EDi9dMQEv0/rT1efR2KOiTVoT0R+RItpwfCYXs4gh7T1l4eNOUNgInMzOk75EOtvBzL04fkL9BTmVFaFIIr5g94iQfBQ1jQXQM0Dw44cs32hAkceixRR64A8G8P7TrAAQWnQDN6G+gpgaKJxD5Fv2wsKOOSYl875KXiSjCk+kCnpoXGZ2d5Pyz4lUuxGK8YcmwBrN2eiLLlvB7/eLVC9W7jvcplh061N0Yv4x/mDb4sbSxXqzJhsgU52hkTE9ocraE9jEbMbsO4aQlEi+9Kz5l1fudZakFy71FL1dCnzu0QjIhm7fosZcYpddRauZsddHgml6w==
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(36860700016)(23010399003)(82310400026)(376014)(7416014)(18002099003)(56012099006)(11063799006)(13003099007)(6133799003)(10067099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	nqCrNM36rNxhO8osAWxyvKQ4kbqkBlfbRD2ewtZ4ljIr4szVr/gONF8wGTubDSRqHeu/cMHcAyU+ppkElHP37MDx+MVazugSCBjdQPhskPxq0Comlz2tUzFIz9fcw+I2A2tjOTOtFHgZYtIXzV8Vem2oQwv880+lVvBZTJYqQHlUy87FTSCMSzUxDGsg7C1FFx8m+78KiSJGatEaZ2slX+jrR8MhfESGv0drY38wcVrZNTMm76LzgZpPVNjgq9cKjpP6iTYCcBgZnOVrTeT7cWF58naIOTmnlSAd4KVApc2/z55JUwsezAzbs0uFimfvCZMXsnERaEbFwZdOu/DpAqzByEnsqJwtXBBMMzmMD5amN3Pm4e3Fnjt9mehBibjAp/F6l9nk9p+jUnkLS1imUQRUacyx2+ulm32rLcVwN/EnSVSw9GN0F6GR7hnfAhmx
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Aug 2026 10:50:39.8629
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 9d62d4f9-71ef-4c21-6344-08def928b762
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	CH3PEPF00000016.namprd21.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA0PR12MB7650
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next] net/rds: clear i_rx_lat_trace in
+ rds_inc_path_init()
+To: Allison Henderson <achender@kernel.org>, netdev@vger.kernel.org,
+ linux-rdma@vger.kernel.org, edumazet@google.com, kuba@kernel.org,
+ horms@kernel.org
+Cc: jhubbard@nvidia.com, leon@kernel.org
+References: <20260810055631.299558-1-achender@kernel.org>
+From: Paolo Abeni <pabeni@redhat.com>
+Content-Language: en-US
+In-Reply-To: <20260810055631.299558-1-achender@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-This series adds userspace support for the Reorder Completion Queue (RCQ)
-feature in the ionic RDMA driver.
 
-Patch 1 extends the net/ionic firmware identity structure to expose the
-rcq_sign_bit field from the RDMA LIF identity.
+On 8/10/26 7:56 AM, Allison Henderson wrote:
+> The commit that introduced the receive-path latency trace added the
+> clearing of inc->i_rx_lat_trace[] to rds_inc_init() only;
+> rds_inc_path_init() never got it.
+> 
+> That asymmetry matters for the one caller that reuses memory:
+> rds_tcp_data_recv() carves its rds_tcp_incoming out of a kmem_cache
+> with no zeroing and no constructor, so after rds_inc_path_init() the
+> array still holds the timestamps of whatever message previously
+> occupied that slab object.  No stale value is user-visible today -
+> every message that reaches the socket happens to overwrite all four
+> slots (RX_HDR at allocation, RX_START when the header completes,
+> RX_END at delivery, RX_CMSG at recvmsg time) before
+> RDS_CMSG_RXPATH_LATENCY reads them back as deltas - but that is a
+> property of the current writers, not of the init contract, and a
+> future trace point or an early-exit path would expose another
+> message's timestamps to userspace.
+> 
+> Clear the array in rds_inc_path_init() too, so both init helpers
+> leave the inc fully initialized.  memset is the form the clearing
+> already takes on the rds_inc_init() side since commit 1635bb548f84
+> ("net: rds: use memset to optimize the recv").  Hardening only; no
+> user-visible bug in the current code.
+> 
+> Assisted-by: Claude-Code:claude-fable-5
+> Signed-off-by: Allison Henderson <achender@kernel.org>
+Mentioning this change in the previous series thread would have saved me
+a lot of time :(
 
-Patch 2 plumbs the RCQ sign bit through the RDMA driver's LIF configuration,
-exposes it to userspace via the ucontext response, and allows userspace to
-specify ionic specific QP flags during QP creation. This enables rdma-core to
-discover RCQ capability at context allocation time and configure QPs with
-RCQ support.
-
-PR: https://github.com/linux-rdma/rdma-core/pull/1733
-
-v6:
-  - Rebased on latest for-next
-  - Added comp_mask in ucontext response
-v5:
-  - Rebased on latest for-next
-  - https://lore.kernel.org/linux-rdma/20260728111323.2559185-1-abhijit.gangurde@amd.com/
-v4:
-  - Dropped robust udata from this series and sent as a seperate patch
-    https://lore.kernel.org/linux-rdma/20260717092345.2533564-1-abhijit.gangurde@amd.com/
-  - Addressed sashiko review comments
-  - https://lore.kernel.org/linux-rdma/20260721121034.1616562-1-abhijit.gangurde@amd.com/
-v3:
-  - Added robust udata compatibility checks
-  - https://lore.kernel.org/linux-rdma/20260617132605.1888205-1-abhijit.gangurde@amd.com/
-v2:
-  - Dropped QP transport mode selection
-  - https://lore.kernel.org/linux-rdma/20260611092544.783731-1-abhijit.gangurde@amd.com/
-v1:
-  - https://lore.kernel.org/linux-rdma/20260430123931.3256130-1-abhijit.gangurde@amd.com/
-
-Abhijit Gangurde (2):
-  net: ionic: Fetch RCQ sign bit from firmware
-  RDMA/ionic: Add RCQ userspace support
-
- .../infiniband/hw/ionic/ionic_controlpath.c   | 20 ++++++++++++++++---
- drivers/infiniband/hw/ionic/ionic_fw.h        |  2 ++
- drivers/infiniband/hw/ionic/ionic_lif_cfg.c   |  1 +
- drivers/infiniband/hw/ionic/ionic_lif_cfg.h   |  1 +
- .../net/ethernet/pensando/ionic/ionic_if.h    |  6 +++++-
- include/uapi/rdma/ionic-abi.h                 |  9 ++++++++-
- 6 files changed, 34 insertions(+), 5 deletions(-)
-
--- 
-2.43.0
+/P
 
