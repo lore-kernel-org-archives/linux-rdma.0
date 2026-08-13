@@ -1,142 +1,127 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C07B6484249;
-	Thu, 13 Aug 2026 17:21:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id C6280395243;
+	Thu, 13 Aug 2026 17:43:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786641678; cv=none; b=ZRMPI5N5RpH7WAcfur5wJ/e9wO2q8c5RRBYdj5lX9maYGAQLpBNNRTcCG7w7JGhedZpAOC4ZySipqGo3IrHbX9AidDE6zniIb8CB6hSWK7Y/Q6C+tPfEB0otYERhtqGPm0KLzj7eS3rAt34DS+zRxI32qhJ1G/29rJOkBhl6dTo=
+	t=1786642996; cv=none; b=AI077Td51tSFLEkkQ4vlDXYsNxT7xejjyXg4qr8kUkXQt9fCxsBQQBhNwKlD8qj9LhFcZsY0gkO0OW4CAsnY8VR56aMx8HW0x1zKTFToF7UuV/7WHrg6vfa0qIp0QQeQ0cVEXEXWB3BEvLms0jalJTEKAoelr7nIFklHY4G4htk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786641678; c=relaxed/simple;
-	bh=Mkidty/zRD+x27WcHPxXMrfSjcU9wppgFrqjf9p/0RQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fu6JmEh/bpCDHofYwwV//n1kgCXVk7AulZQpN62D7MCnQ/Zw8dwAMXE2cp/HdKrZUas/ZB8ddwKLYQBBWs+hFvryfqeSQr5TXdZjc7blbOUMr6fYLVnZZvZrrBm4eS1NlMcMmWVkSoBOvWLy/Nw95f+FN8118x7Thd1kMaQCShU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=YIWuEi1+; arc=none smtp.client-ip=192.198.163.13
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="YIWuEi1+"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1786641676; x=1818177676;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=Mkidty/zRD+x27WcHPxXMrfSjcU9wppgFrqjf9p/0RQ=;
-  b=YIWuEi1+f8Hf5JhEgMhazoQ+c3a7Um84uEQZSPkHvAM2UnPM9oZ0xfhD
-   aFngRI8N6SaNxOBIoUhOzTXZvj2bGGM7ON2fCFKJxThHiTNUwI2PZtdo3
-   i8FlfT0nVybSyoNx4XQVju58fby+7E8mdcQLOJicGESIju6AeIq6egAgd
-   ut4qPwYG+xDII20FRtiCM+fA3GVnNwOObzkK47XRRvoDSZE9aNDx7WetY
-   o13ANgzdV6h/lWFGWondnCbLUhztT9YacjAUOkeYEcDsxe6+Ryosdc1yo
-   shdOj9mpPUZViHAcscZ5krhO7WAnBZ5FbDqcIBlv8RFGSkWqb49wzVuvv
-   Q==;
-X-CSE-ConnectionGUID: E5fWtnuATEGNWXxlptvv2Q==
-X-CSE-MsgGUID: C0pNClVZR3+4NvwIWsA+wg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11874"; a="89743047"
-X-IronPort-AV: E=Sophos;i="6.25,221,1779174000"; 
-   d="scan'208";a="89743047"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Aug 2026 10:21:13 -0700
-X-CSE-ConnectionGUID: fkQBEffCRJievkpflTJP6A==
-X-CSE-MsgGUID: y5sJH6QgRc2ns20kGIimmw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,221,1779174000"; 
-   d="scan'208";a="263549106"
-Received: from lkp-server01.sh.intel.com (HELO 6eda058d650d) ([10.239.97.150])
-  by orviesa008.jf.intel.com with ESMTP; 13 Aug 2026 10:21:10 -0700
-Received: from kbuild by 6eda058d650d with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wuZ75-00000000W0A-0mQw;
-	Thu, 13 Aug 2026 17:21:07 +0000
-Date: Fri, 14 Aug 2026 01:20:57 +0800
-From: kernel test robot <lkp@intel.com>
-To: Chengfeng Ye <nicoyip.dev@gmail.com>,
-	Allison Henderson <achender@kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
+	s=arc-20240116; t=1786642996; c=relaxed/simple;
+	bh=nudQFYKz3B3ENixl3x83ZeSn1YRAz6ZQeM9Sww3tCsI=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=ho3z9aEBosNAQ8PBXU/oTfExlUo7KCqzT48QrBZwUvWGJkR6Mr4oSg8tFOdJaFm71mn9JXk3Y4sE9C3VmJ7O2WrXr9u/dhvtxV+5eJN33f+QwEcO6mZbl0fsV6iWuAZJGr3SjzlM5IbUFxW7IJhCqIwF8HxtV99Nj3her+Xw2OY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+Received: by linux.microsoft.com (Postfix, from userid 1202)
+	id 7F36C20B7129; Thu, 13 Aug 2026 10:42:49 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 7F36C20B7129
+From: Long Li <longli@microsoft.com>
+To: Long Li <longli@microsoft.com>,
+	Konstantin Taranov <kotaranov@microsoft.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	"David S . Miller" <davem@davemloft.net>,
+	Paolo Abeni <pabeni@redhat.com>,
 	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>,
+	Haiyang Zhang <haiyangz@microsoft.com>,
+	"K . Y . Srinivasan" <kys@microsoft.com>,
+	Wei Liu <wei.liu@kernel.org>,
+	Dexuan Cui <decui@microsoft.com>,
+	shradhagupta@linux.microsoft.com,
 	Simon Horman <horms@kernel.org>,
-	Santosh Shilimkar <santosh.shilimkar@oracle.com>,
-	Ka-Cheong Poon <ka-cheong.poon@oracle.com>,
-	Dan Carpenter <error27@gmail.com>
-Cc: oe-kbuild-all@lists.linux.dev, netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
-	linux-kernel@vger.kernel.org, Chengfeng Ye <nicoyip.dev@gmail.com>,
-	stable@vger.kernel.org
-Subject: Re: [PATCH] rds: synchronize info callbacks with connection teardown
-Message-ID: <202608140151.MOvRf1jc-lkp@intel.com>
-References: <20260720184955.3008978-1-nicoyip.dev@gmail.com>
+	ernis@linux.microsoft.com,
+	stephen@networkplumber.org
+Cc: netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-hyperv@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH net v7 2/7] net: mana: fix HWC RQ/SQ buffer size swap
+Date: Thu, 13 Aug 2026 10:42:34 -0700
+Message-ID: <20260813174243.3044348-3-longli@microsoft.com>
+X-Mailer: git-send-email 2.43.7
+In-Reply-To: <20260813174243.3044348-1-longli@microsoft.com>
+References: <20260813174243.3044348-1-longli@microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260720184955.3008978-1-nicoyip.dev@gmail.com>
+Content-Transfer-Encoding: 8bit
 
-Hi Chengfeng,
+mana_hwc_init_queues() sized the RQ (which receives responses) with
+max_req_msg_size and the SQ (which sends requests) with max_resp_msg_size
+-- backwards -- and mana_hwc_rx_event_handler() strided the RQ by
+max_req_msg_size when recovering the RX slot index.
 
-kernel test robot noticed the following build warnings:
+This is latent today: the only caller passes equal sizes (both 0x1000)
+and the queues are never re-created with the hardware-reported sizes, so
+nothing overflows.  It would only surface if the two sizes diverged.
 
-[auto build test WARNING on net/main]
-[also build test WARNING on linus/master horms-ipvs/master v7.2-rc7]
-[cannot apply to net-next/main next-20260812]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+Size the RQ by max_resp_msg_size and the SQ by max_req_msg_size, and use
+max_resp_msg_size as the RX slot stride.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Chengfeng-Ye/rds-synchronize-info-callbacks-with-connection-teardown/20260812-225931
-base:   net/main
-patch link:    https://lore.kernel.org/r/20260720184955.3008978-1-nicoyip.dev%40gmail.com
-patch subject: [PATCH] rds: synchronize info callbacks with connection teardown
-config: mips-randconfig-r134-20260813 (https://download.01.org/0day-ci/archive/20260814/202608140151.MOvRf1jc-lkp@intel.com/config)
-compiler: mips-linux-gcc (GCC) 11.5.0
-sparse: v0.6.5-rc1
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260814/202608140151.MOvRf1jc-lkp@intel.com/reproduce)
+Fixes: ca9c54d2d6a5 ("net: mana: Add a driver for Microsoft Azure Network Adapter (MANA)")
+Signed-off-by: Long Li <longli@microsoft.com>
+---
+Changes since v6:
+Commit-message wording only; no code change.
+ drivers/net/ethernet/microsoft/mana/hw_channel.c | 7 ++++---
+ include/net/mana/hw_channel.h                    | 1 +
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202608140151.MOvRf1jc-lkp@intel.com/
+diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
+index b5ed2dbce6ceb7f7a5196dfe5ba3534eb4c5d330..ccef9bf9c6bfde754c28f86103f0b05489091f02 100644
+--- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
++++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
+@@ -263,7 +263,7 @@ static void mana_hwc_rx_event_handler(void *ctx, u32 gdma_rxq_id,
+ 
+ 	/* Select the RX work request for virtual address and for reposting. */
+ 	rq_base_addr = hwc_rxq->msg_buf->mem_info.dma_handle;
+-	rx_req_idx = (sge->address - rq_base_addr) / hwc->max_req_msg_size;
++	rx_req_idx = (sge->address - rq_base_addr) / hwc->max_resp_msg_size;
+ 
+ 	if (rx_req_idx >= hwc_rxq->msg_buf->num_reqs) {
+ 		dev_err(hwc->dev, "HWC RX: wrong rx_req_idx=%llu, num_reqs=%u\n",
+@@ -737,14 +737,14 @@ static int mana_hwc_init_queues(struct hw_channel_context *hwc, u16 q_depth,
+ 		goto out;
+ 	}
+ 
+-	err = mana_hwc_create_wq(hwc, GDMA_RQ, q_depth, max_req_msg_size,
++	err = mana_hwc_create_wq(hwc, GDMA_RQ, q_depth, max_resp_msg_size,
+ 				 hwc->cq, &hwc->rxq);
+ 	if (err) {
+ 		dev_err(hwc->dev, "Failed to create HWC RQ: %d\n", err);
+ 		goto out;
+ 	}
+ 
+-	err = mana_hwc_create_wq(hwc, GDMA_SQ, q_depth, max_resp_msg_size,
++	err = mana_hwc_create_wq(hwc, GDMA_SQ, q_depth, max_req_msg_size,
+ 				 hwc->cq, &hwc->txq);
+ 	if (err) {
+ 		dev_err(hwc->dev, "Failed to create HWC SQ: %d\n", err);
+@@ -753,6 +753,7 @@ static int mana_hwc_init_queues(struct hw_channel_context *hwc, u16 q_depth,
+ 
+ 	hwc->num_inflight_msg = q_depth;
+ 	hwc->max_req_msg_size = max_req_msg_size;
++	hwc->max_resp_msg_size = max_resp_msg_size;
+ 
+ 	return 0;
+ out:
+diff --git a/include/net/mana/hw_channel.h b/include/net/mana/hw_channel.h
+index 16feb39616c1bead1a043b3fadc2e18a90651516..73671f479399ac296cf472ec6449e5e6b00a8515 100644
+--- a/include/net/mana/hw_channel.h
++++ b/include/net/mana/hw_channel.h
+@@ -181,6 +181,7 @@ struct hw_channel_context {
+ 
+ 	u16 num_inflight_msg;
+ 	u32 max_req_msg_size;
++	u32 max_resp_msg_size;
+ 
+ 	u16 hwc_init_q_depth_max;
+ 	u32 hwc_init_max_req_msg_size;
+-- 
+2.43.0
 
-sparse warnings: (new ones prefixed by >>)
->> net/rds/info.c:83:9: sparse: sparse: cast removes address space '__rcu' of expression
->> net/rds/info.c:83:9: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   net/rds/info.c:83:9: sparse:    void ( [noderef] __rcu * )( ... )
-   net/rds/info.c:83:9: sparse:    void ( * )( ... )
-   net/rds/info.c:84:9: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   net/rds/info.c:84:9: sparse:    void ( [noderef] __rcu * )( ... )
-   net/rds/info.c:84:9: sparse:    void ( * )( ... )
-   net/rds/info.c:96:9: sparse: sparse: cast removes address space '__rcu' of expression
-   net/rds/info.c:96:9: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   net/rds/info.c:96:9: sparse:    void ( [noderef] __rcu * )( ... )
-   net/rds/info.c:96:9: sparse:    void ( * )( ... )
-   net/rds/info.c:97:9: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   net/rds/info.c:97:9: sparse:    void ( [noderef] __rcu * )( ... )
-   net/rds/info.c:97:9: sparse:    void ( * )( ... )
-   net/rds/info.c:222:16: sparse: sparse: cast removes address space '__rcu' of expression
-   net/rds/info.c:222:16: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   net/rds/info.c:222:16: sparse:    void ( [noderef] __rcu * )( ... )
-   net/rds/info.c:222:16: sparse:    void ( * )( ... )
-
-vim +/__rcu +83 net/rds/info.c
-
-    75	
-    76	void rds_info_register_func(int optname, rds_info_func func)
-    77	{
-    78		int offset = optname - RDS_INFO_FIRST;
-    79	
-    80		BUG_ON(optname < RDS_INFO_FIRST || optname > RDS_INFO_LAST);
-    81	
-    82		spin_lock(&rds_info_lock);
-  > 83		BUG_ON(rcu_access_pointer(rds_info_funcs[offset]));
-    84		rcu_assign_pointer(rds_info_funcs[offset], func);
-    85		spin_unlock(&rds_info_lock);
-    86	}
-    87	EXPORT_SYMBOL_GPL(rds_info_register_func);
-    88	
-
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
