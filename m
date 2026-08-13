@@ -1,161 +1,196 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39010447818
-	for <linux-rdma@vger.kernel.org>; Thu, 13 Aug 2026 09:44:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B87233508E;
+	Thu, 13 Aug 2026 10:08:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786614281; cv=none; b=M0EYkRLnSCAGRtPpaLZnCqAk+udHpA6QjnBtKluGWXH7EroPoVmzl1ynCWRATD7mrMppN5F7YkRp21lRzrhttYzaL6gsp1UdvoQk66MHK0qLsyKka2tHg3Uv4jN8G4yhJtwOmKDtyz4L01KUAA9vSdROGvwYSKgnQjGRfWJB/r0=
+	t=1786615682; cv=none; b=UXWsq+Q6vsbuT3rizEuunbvUFxvpeXQ2Wq85lqZfYYn6hBwuTac6EGGQY90aV0+3ygqXGj36X4lBbfe7iuDzXNSWfjZP5CXjXwuKcXL8Oy/8aY/4hZu7rXpZrKD75jOU5lWkHZdDczRtaMoi7RQOGxC6LoOSsDLOBC/f8WluObI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786614281; c=relaxed/simple;
-	bh=3KTOKdTl547mjQ0PIdk9eF/gYC+A+z2iu/ylFNzV3rw=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=tOjJJwF23NoUkAfsuOY1lN79nEgwq7CMDfINS8qJiLwm08low6O8jKXU50KsqUalw1AB/4Jk9sT7Z8/g61mlOE1dUtEuExSGcwv21RuxJurrDHbCCCYDuQdn2s899BQ/MLYzREWZx0SXG1++CQQWZkIWkAtCVRZzid8M0F5GGSI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=idMi7+4f; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1786615682; c=relaxed/simple;
+	bh=ejBNkzzBFdzAKxY+9jO2O9xZ/oWUnSLl29/ztGP+VNA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=s/7xuHmHYEmmcDQlWuh6+JQnua+6G+RdvKRg6J6Xp6YqjmgFxvoy251yMxl8x9p2LFWMcNcsm0bNmw+ygcQNoUe1TKUIpV85pLC7BofS2OLaXk/3Hlio5DSP69UVXGzw9WUXieU2IZLhUBgNH72WSe5tFIYeFCIVj7/gVB0HBTI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=E0KcB2z+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="idMi7+4f"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1786614279;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=dF9v1idLVMGFCs33tHPlRdS0F3gORp7BYOQ7k7a0n1Y=;
-	b=idMi7+4fYly7SNrP7b5tymVZ7OrZzi0qWFRJZ0MIwfTET4gflaLAG/iQ2N9u1BFtKTH69s
-	pfHTY4KCRjMUirx3R3e3f2G+0XAl5pmsi2aBpXjjpX5xtRrmhK9394jJR8D3imqeTkMlFS
-	zmtXCJpKoFGx/M/CvaPxJ91kK4M7NMQ=
-Received: from mx-prod-mc-03.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-423-A0SKBaN5M9mIABt8vzepiw-1; Thu,
- 13 Aug 2026 05:44:37 -0400
-X-MC-Unique: A0SKBaN5M9mIABt8vzepiw-1
-X-Mimecast-MFC-AGG-ID: A0SKBaN5M9mIABt8vzepiw_1786614276
-Received: from mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.12])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-03.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 42AFE195604A;
-	Thu, 13 Aug 2026 09:44:36 +0000 (UTC)
-Received: from gerbillo.redhat.com (unknown [10.44.48.120])
-	by mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id 84E19195608A;
-	Thu, 13 Aug 2026 09:44:33 +0000 (UTC)
-From: Paolo Abeni <pabeni@redhat.com>
-To: achender@kernel.org
-Cc: netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	kuba@kernel.org,
-	horms@kernel.org,
-	jhubbard@nvidia.com,
-	leon@kernel.org
-Subject: Re: [PATCH net-next v2 2/2] net/rds: initialize i_conn_path in rds_inc_init()
-Date: Thu, 13 Aug 2026 11:44:26 +0200
-Message-ID: <20260813094426.120571-1-pabeni@redhat.com>
-In-Reply-To: <20260809005103.82371-3-achender@kernel.org>
-References: <20260809005103.82371-3-achender@kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="E0KcB2z+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA39B1F000E9;
+	Thu, 13 Aug 2026 10:07:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1786615681;
+	bh=gnXqlixQHylh3L5CjO1pDDvJipuJC+KiyCtJ020LaBI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=E0KcB2z+/WRc2Lhls1F1Vl+JeDNo+jJDfimdiVK/eMqHYl63wihH9mS16+4QjPWra
+	 XhcGQzYH1ZpLYvSEtPf7tlRz5F3tXMbLs3w6DwnLdQIiEpfm9MyXFFIqMY13jBx9pD
+	 220z1VwdjMrPTxuR6Pbi3ZXW3OI6WDcD4zUIO4B+XwdyIBmnO627jCXbuZmAo60Yrz
+	 xApWdEDBmRXTvcUYMm4N+kRYuMyURl6ZyjhcJl+z4E3Mp+JXxP/lho2Ujdvzkg9rM2
+	 pGDFz7NjDaBqOy1rvZmEN5q4tbhX9k9mKiUn+ge6e2ZOfuYRHcScjnjhzSe4KgdzFr
+	 qYP6xYLIzcXlA==
+Date: Thu, 13 Aug 2026 13:07:53 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Casey Chen <cachen@purestorage.com>
+Cc: linux-nvme@lists.infradead.org, kbusch@kernel.org, hch@lst.de,
+	sagi@grimberg.me, axboe@kernel.dk, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] nvme-rdma: fix ib_device removal race that hangs PCI
+ unbind
+Message-ID: <20260813100753.GA79153@unreal>
+References: <20260806211822.317074-1-cachen@purestorage.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.0 on 10.30.177.12
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260806211822.317074-1-cachen@purestorage.com>
 
-This is an AI-generated review of your patch. The human sending this
-email has considered the AI review valid, or at least plausible.
-Full review at: https://netdev-ai.bots.linux.dev/sashiko/
----
-net/rds: initialize i_conn_path in rds_inc_init()
-
-This sets inc->i_conn_path to NULL in rds_inc_init() so the field is no
-longer left holding stale slab contents, and switches rds_loop_xmit() to
-rds_inc_path_init() so the loopback path keeps a live path pointer in the
-message's embedded inc.
-
-> diff --git a/net/rds/loop.c b/net/rds/loop.c
-> index ac9295a766b1..e6b0750bbeda 100644
-> --- a/net/rds/loop.c
-> +++ b/net/rds/loop.c
-> @@ -89,7 +89,11 @@ static int rds_loop_xmit(struct rds_connection *conn, struct rds_message *rm,
+On Thu, Aug 06, 2026 at 03:18:22PM -0600, Casey Chen wrote:
+> nvme_rdma_remove_one() samples nvme_rdma_ctrl_list once, then blocks in
+> flush_workqueue(nvme_delete_wq). A connect can publish a controller on
+> the same ib_device during that window: nvme_rdma_find_get_device()
+> matches on node GUID in nvme_rdma's private device_list and never
+> consults ib_core unregistration state. Such a controller is never
+> deleted, so its rdma_cm_ids keep a reference on the cma_device.
+> 
+> ib_clients are removed LIFO, so nvme_rdma_remove_one() runs before
+> cma_remove_one(), which then waits for that reference forever. Removing
+> the RDMA interface underneath live NVMe-oF connections:
+> 
+>   echo 1 | sudo tee /sys/bus/pci/devices/0000:2a:00.1/remove
+> 
+> wedges the unbind permanently:
+> 
+>   INFO: task tee:164872 blocked for more than 200 seconds.
+>   task:tee             state:D stack:0     pid:164872 ppid:164870 flags:0x00004002
+>   Call Trace:
+>    <TASK>
+>    __schedule+0x4b4/0xf90
+>    schedule+0x5a/0xc0
+>    schedule_timeout+0x105/0x110
+>    ? cma_process_remove+0x1f9/0x240 [rdma_cm]
+>    __wait_for_common+0xc7/0x1f0
+>    ? usleep_range_state+0xb0/0xb0
+>    cma_remove_one+0x50/0xb0 [rdma_cm]
+>    remove_client_context+0x88/0xc0 [ib_core]
+>    disable_device+0x8a/0x160 [ib_core]
+>    __ib_unregister_device+0x42/0xa0 [ib_core]
+>    ib_unregister_device+0x22/0x30 [ib_core]
+>    mlx5r_remove+0x39/0x60 [mlx5_ib]
+>    auxiliary_bus_remove+0x18/0x30
+>    device_release_driver_internal+0x18f/0x1f0
+>    bus_remove_device+0xbc/0x120
+>    device_del+0x154/0x3d0
+>    ? devl_param_driverinit_value_get+0x29/0x90
+>    mlx5_rescan_drivers_locked.part.0+0x78/0x1c0 [mlx5_core]
+>    mlx5_unregister_device+0x34/0x50 [mlx5_core]
+>    mlx5_uninit_one+0x45/0x110 [mlx5_core]
+>    remove_one+0x4e/0xc0 [mlx5_core]
+>    pci_device_remove+0x39/0xa0
+>    device_release_driver_internal+0x18f/0x1f0
+>    pci_stop_bus_device+0x68/0x90
+>    pci_stop_and_remove_bus_device_locked+0x28/0x40
+>    remove_store+0x75/0x90
+>    kernfs_fop_write_iter+0x147/0x1d0
+>    vfs_write+0x2af/0x410
+>    ksys_write+0x5f/0xe0
+>    do_syscall_64+0x35/0x80
+>    entry_SYSCALL_64_after_hwframe+0x4b/0xb5
+>    </TASK>
+> 
+> Because the unbind stalls mid-teardown the netdev is never unregistered,
+> so userspace keeps reconnecting over the interface and loses the race
+> again.
+> 
+> Mark the nvme_rdma_device dying before sampling nvme_rdma_ctrl_list and
+> test it in two places:
+> 
+>  - nvme_rdma_find_get_device() refuses a dying device, so later connects
+>    fail early. A re-probed HCA (same GUID, new ib_device) gets a fresh
+>    nvme_rdma_device.
+> 
+>  - nvme_rdma_create_ctrl() re-tests it under nvme_rdma_ctrl_mutex before
+>    publishing and deletes the controller instead if set, covering a
+>    connect that obtained the device before the flag was stored.
+> 
+> ->dying is stored before nvme_rdma_remove_one() takes
+> nvme_rdma_ctrl_mutex and the publisher tests it under that same mutex,
+> so a publisher either lands on the list before the walk or observes
+> ->dying. One sweep remains sufficient.
+> 
+> Reproduced on a 6.6 based kernel by removing and rescanning the mlx5
+> interface carrying the NVMe-oF RDMA connections in a loop, with IO
+> running and a userspace daemon reconnecting the controllers throughout.
+> The hang is racy: most removals complete normally, and only one that
+> lands while a connect is in flight leaves the sysfs write stuck in D
+> state with the trace above. With this patch the loop ran clean: removals
+> complete and the controllers reconnect after the following PCI rescan.
+> 
+> Fixes: e87a911fed07 ("nvme-rdma: use ib_client API to detect device removal")
+> Signed-off-by: Casey Chen <cachen@purestorage.com>
+> ---
+>  drivers/nvme/host/core.c |  1 +
+>  drivers/nvme/host/rdma.c | 49 +++++++++++++++++++++++++++++++++++++++-
+>  2 files changed, 49 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
+> index cb93ada4376a..374968145f56 100644
+> --- a/drivers/nvme/host/core.c
+> +++ b/drivers/nvme/host/core.c
+> @@ -277,6 +277,7 @@ void nvme_delete_ctrl_sync(struct nvme_ctrl *ctrl)
+>  		nvme_do_delete_ctrl(ctrl);
+>  	nvme_put_ctrl(ctrl);
+>  }
+> +EXPORT_SYMBOL_GPL(nvme_delete_ctrl_sync);
 >  
->  	BUG_ON(hdr_off || sg || off);
+>  static blk_status_t nvme_error_status(u16 status)
+>  {
+> diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
+> index 01743ae01466..b3ea54280e50 100644
+> --- a/drivers/nvme/host/rdma.c
+> +++ b/drivers/nvme/host/rdma.c
+> @@ -53,6 +53,8 @@ struct nvme_rdma_device {
+>  	struct list_head	entry
+>  		__guarded_by(&device_list_mutex);
+>  	unsigned int		num_inline_segments;
+> +	/* set under device_list_mutex when removal starts */
+> +	bool			dying;
+>  };
 >  
-> -	rds_inc_init(&rm->m_inc, conn, &conn->c_laddr);
-> +	/* rds_send_queue_rm() stored the connection path in this embedded
-> +	 * inc; use the path init so the re-initialization keeps the field
-> +	 * valid instead of discarding it.
-> +	 */
-> +	rds_inc_path_init(&rm->m_inc, &conn->c_path[0], &conn->c_laddr);
-
-[Severity: Medium]
-Does this swap silently drop the i_rx_lat_trace[] zeroing for loopback
-incs?  rds_inc_init() in net/rds/recv.c ends with:
-
-	inc->i_usercopy.rx_tstamp = ktime_set(0, 0);
-
-	memset(inc->i_rx_lat_trace, 0, sizeof(inc->i_rx_lat_trace));
-
-while rds_inc_path_init() stops at:
-
-	inc->i_usercopy.rx_tstamp = ktime_set(0, 0);
-}
-EXPORT_SYMBOL_GPL(rds_inc_path_init);
-
-So after this change nothing in rds_loop_xmit() clears the array, and
-the RDS_MSG_RX_HDR and RDS_MSG_RX_START slots (written only by
-net/rds/ib_recv.c and net/rds/tcp_recv.c, never on the loopback path)
-are left to whatever rds_message_alloc()'s kzalloc() left behind rather
-than being explicitly initialized.
-
-The array is handed to userspace as RDS_CMSG_RXPATH_LATENCY deltas in
-rds_cmsg_recv():
-
-	inc->i_rx_lat_trace[RDS_MSG_RX_CMSG] = local_clock();
-	...
-		t.rx_trace[i] = inc->i_rx_lat_trace[j + 1] -
-				  inc->i_rx_lat_trace[j];
-
-Would it be preferable to move the memset() into rds_inc_path_init(), or
-have rds_inc_path_init() call rds_inc_init() and then assign
-i_conn_path?  That would also cover the other rds_inc_path_init() caller
-in rds_tcp_data_recv(), where tinc comes from a recycled, non-zeroing
-kmem_cache and therefore keeps the same stale-field property this patch
-sets out to remove.
-
->  	/* For the embedded inc. Matching put is in loop_inc_free() */
->  	rds_message_addref(rm);
+>  struct nvme_rdma_qe {
+> @@ -378,6 +380,18 @@ nvme_rdma_find_get_device(struct rdma_cm_id *cm_id)
 >  
-> diff --git a/net/rds/recv.c b/net/rds/recv.c
-> index cf3884d87931..f1513dfb2716 100644
-> --- a/net/rds/recv.c
-> +++ b/net/rds/recv.c
-> @@ -47,6 +47,7 @@ void rds_inc_init(struct rds_incoming *inc, struct rds_connection *conn,
->  	refcount_set(&inc->i_refcount, 1);
->  	INIT_LIST_HEAD(&inc->i_item);
->  	inc->i_conn = conn;
-> +	inc->i_conn_path = NULL;
->  	inc->i_saddr = *saddr;
->  	inc->i_usercopy.rdma_cookie = 0;
->  	inc->i_usercopy.rx_tstamp = ktime_set(0, 0);
+>  	mutex_lock(&device_list_mutex);
+>  	list_for_each_entry(ndev, &device_list, entry) {
+> +		if (READ_ONCE(ndev->dying)) {
+> +			/*
+> +			 * Removal has already sampled nvme_rdma_ctrl_list, so
+> +			 * a controller created here would never be deleted.
+> +			 * A re-probed device with the same node GUID is a
+> +			 * distinct ib_device and gets a fresh
+> +			 * nvme_rdma_device below.
+> +			 */
+> +			if (ndev->dev == cm_id->device)
+> +				goto out_err;
+> +			continue;
+> +		}
+>  		if (ndev->dev->node_guid == cm_id->device->node_guid &&
+>  		    nvme_rdma_dev_get(ndev))
+>  			goto out_unlock;
+> @@ -2378,6 +2392,24 @@ static struct nvme_ctrl *nvme_rdma_create_ctrl(struct device *dev,
+>  		nvmf_ctrl_subsysnqn(&ctrl->ctrl), &ctrl->addr, opts->host->nqn);
+>  
+>  	mutex_lock(&nvme_rdma_ctrl_mutex);
+> +	if (READ_ONCE(ctrl->device->dying)) {
 
-[Severity: Medium]
-Related to the above, the commit message says:
+"The write to ->dying is protected by &device_list_mutex, whereas
+this path relies on &nvme_rdma_ctrl_mutex.
 
-    "and so the two init helpers
-    (rds_inc_init/rds_inc_path_init) leave the structure in an
-    equivalent, fully-initialized state."
+I did not look closely enough to suggest a complete fix for this
+function, but for the removal path it would be better to remove the
+dying IB device from the device list and move it to a local removal
+list. That would eliminate the need for ->dying, at least in this
+path.
 
-Does that hold after this patch?  rds_inc_init() gains i_conn_path = NULL
-here, but rds_inc_path_init() still lacks the
-memset(inc->i_rx_lat_trace, 0, sizeof(inc->i_rx_lat_trace)) that
-rds_inc_init() performs, so the two helpers leave i_rx_lat_trace[] in
-different states.  Could the changelog be adjusted, or the missing
-memset() added to rds_inc_path_init() so the claim is accurate?
--- 
-This is an AI-generated review.
-
+Thanks
