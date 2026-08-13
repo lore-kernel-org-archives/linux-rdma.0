@@ -1,20 +1,20 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 6C05D38B7D1;
-	Thu, 13 Aug 2026 05:05:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1E254388385;
+	Thu, 13 Aug 2026 05:05:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786597503; cv=none; b=i1OAF04U9XuojDAD0E/oNKzsrYnRBaCBtrE7n/k0n4luHhE55dPMg4fqcBwzlF2MqW6vZXJJIzryu8pMZ0fUXj3sR2ZTJTY9s5AiegbexP19wCJQBV5pKfUcPTbxp1vu2tTKqg+N/jDze4CF7hV70Doc814pap8skTb7veXYiBk=
+	t=1786597503; cv=none; b=Ku0bXjoJJeeqA2vHordUMm1qAMIXAsqkIHZkANsR9nDgAnszRbpbXdmj4V5ftYB/ReDE/6d09XL7kfWMu680A6qq63WGMvSQT7rSiHqQI2k21+w8pER46KI/XvYcFwiIs3o4oeWKH74NxCiz7lpCnHriCj7y0N3DUHF0G7vw8GQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1786597503; c=relaxed/simple;
-	bh=o6/Cn3EoSvForu+Ah2Y5fLLOojT4Je+4ZA5MdJIDuu4=;
+	bh=4BlBht+JUnoDr/e6n3WunhVomWMCIk2B7alavPOBE8A=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=KiRNleFTCPm/Asa8f+ZjtZW6Vapc+q1BtVuHYsaP6k+9cga92s7PwaocAtYp77sU8RfontDqZ0v/9XE0o46fBYM1p7LthvQBNoct+uFIlxg1x7SCy68DFnrct6Ljo+tjy1LROxHsqk+SHauLuneG9CacGa2oDNCxiO9kKYjlfqg=
+	 MIME-Version; b=hsoYsQF7YBEX7J8NVUGcdMsAKlCcAcyMyZ1TT9UxcHq3AAf1Qww2ISRQdtblP93ttwILDIifkFFrNmDUGfZ5Sre+7F6Crovg8L5/4OWbSRpJATfqoQLQxmzUSs5BuEtMtU58ZyLoSO8bqhI9sSzBx7xxJd30R8iyGHG9HPDClMc=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Received: by linux.microsoft.com (Postfix, from userid 1202)
-	id BAFC820B7138; Wed, 12 Aug 2026 22:04:31 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com BAFC820B7138
+	id 3AA9620B712B; Wed, 12 Aug 2026 22:04:29 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 3AA9620B712B
 From: Long Li <longli@microsoft.com>
 To: Long Li <longli@microsoft.com>,
 	Konstantin Taranov <kotaranov@microsoft.com>,
@@ -36,11 +36,10 @@ To: Long Li <longli@microsoft.com>,
 Cc: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	linux-hyperv@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Dipayaan Roy <dipayanroy@linux.microsoft.com>
-Subject: [PATCH net-next v2 07/13] net: mana: do not bail out of mana_detach on dealloc failure
-Date: Wed, 12 Aug 2026 22:04:12 -0700
-Message-ID: <20260813050418.2906468-8-longli@microsoft.com>
+	linux-kernel@vger.kernel.org
+Subject: [PATCH net-next v2 03/13] net: mana: swap queue sets in mana_set_ringparam
+Date: Wed, 12 Aug 2026 22:04:08 -0700
+Message-ID: <20260813050418.2906468-4-longli@microsoft.com>
 X-Mailer: git-send-email 2.43.7
 In-Reply-To: <20260813050418.2906468-1-longli@microsoft.com>
 References: <20260813050418.2906468-1-longli@microsoft.com>
@@ -52,50 +51,132 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Dipayaan Roy <dipayanroy@linux.microsoft.com>
+Convert the ring size path to pre-allocate and swap, for the same reasons
+as the channel count path: an allocation failure returns the error with
+the running configuration untouched, and the vport is never released.
 
-mana_detach() sets port_is_up = false before calling
-mana_dealloc_queues(). If that call were to fail and return early,
-netif_device_detach() and mana_cleanup_port_context() are skipped,
-leaving the port in an inconsistent state where port_is_up is false but
-netif_device_present() still returns true.
+This drops the fallback on failure. Previously a failed mana_attach() was
+retried with the previous values, or the defaults, or the minimums, so a
+user who asked for a specific size could end up with a different one with
+no indication beyond dmesg. There is nothing to recover from now, so the
+error is returned.
 
-With the ethtool, MTU and XDP paths converted to pre-allocate and swap,
-the callers that reach this code with from_close == false are the TX
-timeout reset handler and the suspend path. For the reset handler the
-inconsistent state is fatal: its mana_detach() would overwrite
-port_st_save with false, so the following mana_attach() skips queue
-allocation and leaves the port permanently dead. For suspend it leaves
-the port context allocated across the transition.
+Also return early when the requested sizes round to the values already in
+use.
 
-Remove the early return so that mana_detach() always completes its full
-teardown. mana_dealloc_queues() already performs best-effort cleanup
-regardless of internal errors, and in practice cannot fail here since
-port_is_up is already false, so continuing to netif_device_detach() and
-mana_cleanup_port_context() is safe and keeps the state consistent.
-
-Signed-off-by: Dipayaan Roy <dipayanroy@linux.microsoft.com>
 Signed-off-by: Long Li <longli@microsoft.com>
 ---
- drivers/net/ethernet/microsoft/mana/mana_en.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ .../ethernet/microsoft/mana/mana_ethtool.c    | 74 +++++++++++++------
+ 1 file changed, 51 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index e54ad4db918ce3d662092a94ac13c41a4b958d6a..2b3250483b43954c74d8cbf6a9e6e77880eac8ca 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -4502,10 +4502,8 @@ int mana_detach(struct net_device *ndev, bool from_close)
+diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
+index b12291555eaeb4fafc305ffe7d9e550ec01952c8..40e9886c87a81c86080e52955a0a685cf0472772 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
++++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
+@@ -761,19 +761,18 @@ static void mana_get_ringparam(struct net_device *ndev,
+ 	ring->tx_max_pending = MAX_TX_BUFFERS_PER_QUEUE;
+ }
  
- 	if (apc->port_st_save) {
- 		err = mana_dealloc_queues(ndev);
--		if (err) {
-+		if (err)
- 			netdev_err(ndev, "%s failed to deallocate queues: %d\n", __func__, err);
--			return err;
--		}
++
+ static int mana_set_ringparam(struct net_device *ndev,
+ 			      struct ethtool_ringparam *ring,
+ 			      struct kernel_ethtool_ringparam *kernel_ring,
+ 			      struct netlink_ext_ack *extack)
+ {
+ 	struct mana_port_context *apc = netdev_priv(ndev);
++	struct mana_port_context *scratch;
++	struct mana_qset newq, oldq;
+ 	u32 new_tx, new_rx;
+-	u32 old_tx, old_rx;
+ 	int err;
+ 
+-	old_tx = apc->tx_queue_size;
+-	old_rx = apc->rx_queue_size;
+-
+ 	if (ring->tx_pending < MIN_TX_BUFFERS_PER_QUEUE) {
+ 		NL_SET_ERR_MSG_FMT(extack, "tx:%d less than the min:%d", ring->tx_pending,
+ 				   MIN_TX_BUFFERS_PER_QUEUE);
+@@ -791,32 +790,61 @@ static int mana_set_ringparam(struct net_device *ndev,
+ 	netdev_info(ndev, "Using nearest power of 2 values for Txq:%d Rxq:%d\n",
+ 		    new_tx, new_rx);
+ 
+-	/* pre-allocating new buffers to prevent failures in mana_attach() later */
+-	apc->rx_queue_size = new_rx;
+-	err = mana_pre_alloc_rxbufs(apc, ndev->mtu, apc->num_queues);
+-	apc->rx_queue_size = old_rx;
+-	if (err) {
+-		netdev_err(ndev, "Insufficient memory for new allocations\n");
+-		return err;
++	if (new_rx == apc->rx_queue_size && new_tx == apc->tx_queue_size)
++		return 0;
++
++	/* Port is down: no queues to rebuild, just record the new sizes. */
++	if (!apc->port_is_up) {
++		apc->rx_queue_size = new_rx;
++		apc->tx_queue_size = new_tx;
++		return 0;
  	}
  
- 	if (!from_close) {
+-	err = mana_detach(ndev, false);
+-	if (err) {
+-		netdev_err(ndev, "mana_detach failed: %d\n", err);
+-		goto out;
++	/* Block RDMA from acquiring the vport for the duration. The vport
++	 * itself is never released, so vport_use_count stays > 0.
++	 */
++	mutex_lock(&apc->vport_mutex);
++	if (apc->channel_changing) {
++		mutex_unlock(&apc->vport_mutex);
++		return -EBUSY;
+ 	}
++	apc->channel_changing = true;
++	mutex_unlock(&apc->vport_mutex);
+ 
+-	apc->tx_queue_size = new_tx;
+-	apc->rx_queue_size = new_rx;
++	scratch = mana_qset_scratch_alloc(apc);
++	if (!scratch) {
++		err = -ENOMEM;
++		goto clear_flag;
++	}
+ 
+-	err = mana_attach(ndev);
++	err = mana_alloc_qset(scratch, apc->num_queues, new_rx, new_tx,
++			      apc->priv_flags, &newq);
+ 	if (err) {
+-		netdev_err(ndev, "mana_attach failed: %d\n", err);
+-		apc->tx_queue_size = old_tx;
+-		apc->rx_queue_size = old_rx;
++		NL_SET_ERR_MSG_FMT(extack, "failed to change ring params: %d",
++				   err);
++		goto free_scratch; /* current qset untouched */
+ 	}
+-out:
+-	mana_pre_dealloc_rxbufs(apc);
++
++	err = mana_publish_qset(apc, &newq, &oldq);
++	if (err) {
++		NL_SET_ERR_MSG_FMT(extack, "failed to change ring params: %d",
++				   err);
++		mana_free_qset(scratch, &newq);
++		goto free_scratch;
++	}
++
++	mana_free_qset(scratch, &oldq);
++
++free_scratch:
++	/* After the caller-side cleanup above, so the EQ pool outlives the
++	 * CQs that reference it.
++	 */
++	mana_publish_close_if_needed(apc);
++	mana_qset_scratch_free(scratch);
++clear_flag:
++	mutex_lock(&apc->vport_mutex);
++	apc->channel_changing = false;
++	mutex_unlock(&apc->vport_mutex);
+ 	return err;
+ }
+ 
 -- 
 2.43.0
 
