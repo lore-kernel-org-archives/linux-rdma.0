@@ -1,148 +1,93 @@
-Received: from mail-pj2-f7.google.com (mail-pj2-f7.google.com [74.125.227.135])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBA12422540
-	for <linux-rdma@vger.kernel.org>; Thu, 13 Aug 2026 19:08:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.135
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76502212542;
+	Fri, 14 Aug 2026 00:25:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786648087; cv=none; b=CtkaUGWYAR1GOV4s587r/4rI3cluXPLkjGGKmWHZtGYIJdiViRD7NQhn3FWjBWkfeovmdCMerdqQBG547mzpZcyMfdiXsWI+a0mtRr/4sLpughtieOr6Gvq1IvziUcqTL0815VQ0QavXFjvOUhzhlcnIzNztXGB1z7r2wiPqa04=
+	t=1786667158; cv=none; b=E480+nIvUXNfeLL05qOBoQNJUko0YLAAAXDt8wUbCesR0TsEw5EYyQmJ37d4MrzENLJTCz4sQo0IlgauZwbNbVOuHydUcOA4egWpke5GtUXvcgOc9s5vhDNV4KDr+/B/xV/96oUoCZmtZ9ct/AeQXER+wOcwEPrH25sH68qEgCU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786648087; c=relaxed/simple;
-	bh=Tud4eUO2xHdHMLanMzOvMuFiHkLGOKwIvvgYvzDmhMo=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ZupBZDmdZpQZlj4dEweSvzeeYrwjbn2dI+JyNpBPx/h4Kv1crAuu2ivph0qJ4vxvFADx4HajhckBFluwRQfh7+T6wXAhX8XsGAFfZYGAsRcIYD6l9++cQOOHsEXDH2zxCPaghasu+YCkNLbygexVM1Fqty9fokyKmOU+GWoKm3o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=i0mraj8O; arc=none smtp.client-ip=74.125.227.135
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1786667158; c=relaxed/simple;
+	bh=cZJTzR5Hx4UWbn13RghLAesi2GnX5lu+4E0boHoADuc=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=b2H0k+ETJCf17Azo36H2RwCDkI4aEg8L/DM3HIYYYIbpMHUUi+DHiFOBOyyNA5TZeL8q/+JSnCwgPLtPGICg4EMxU27g4rIrzQYeOs0JC+/D7yU7HnX0zmwLhRfjS6sK/2ef0eVQDkoXPWHWTh4uGJkrMayt+jwuCOvBFv6yJCc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Hnw8c5kG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="i0mraj8O"
-Received: by mail-pj2-f7.google.com with SMTP id 98e67ed59e1d1-38dcd98e5easo115309a91.0
-        for <linux-rdma@vger.kernel.org>; Thu, 13 Aug 2026 12:08:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786648085; x=1787252885; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=zjeV9JcXmMB5XUYPG/BDWWBwnse1nt9xQQ5l1gfrbe8=;
-        b=i0mraj8OoIpXvRPCdaHjRWZOBk8XJCEgEXrrV9Kp66o+mDLVdTDX3Dfx6GqufnBjus
-         J50flLwhn4toaNfny4l/1F+Egf1dieJUm4wq9HbAlyBWZqxC0aiK89nyzsKyIjZG4xiU
-         q0ac8I+77Z9ocgdTz2A9fh5QpoDpATSm3tppPmWenY7SQ/Dt0STR2gmlWxRyBRqbGgaZ
-         FSUziE5NaC4v94hWgr8/FY2NHztvqkr7fuXY6nun4Iv+hTAFQg2jo9NnxuuiFOblmXDK
-         xNhdrdIBVK41eobOY9FwEL55WDYivVAQEzkHaHpv+xGylYwQTY9YoQ2coMI67pbChBca
-         hpOQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786648085; x=1787252885;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=zjeV9JcXmMB5XUYPG/BDWWBwnse1nt9xQQ5l1gfrbe8=;
-        b=RZXouxmJkEcIkSCjedDXVP8+VSnNOxGUnAulC7h0VEEbJLQ0oXzJ7GlUMm++Z3DyvO
-         nSALZoU+WkTShvCwp5L+Y6eqX1uDN2wwgChoW89vYBpiiFgLvi5tjkXH/gD1sz+fWl1L
-         sJTgfnlV91GURJqAJRYnie5lXrKLnPFOCfs85EdIpQ2+tYgnCCbZvYR48FHM0oFuR2x3
-         sGBHOwIHgVSjCPcCRiKlQPiam1KiWbqWuGACj4m/c4hKBCBUmAsu7G+H29wuA7pBSt/d
-         hJ2EEdXkJRstrNHIm8wAI2YSNizFnOnfgKLca9saa4EBsY+HndyX2lKrUiVvSo0dozXJ
-         fGqw==
-X-Forwarded-Encrypted: i=1; AHgh+RplORYpp2Fuiu6hTXppQtYbem3ewP4AKQmX117rLjzVfJpOyhg4UOtj0xOnggRtghLSchFWM7aswQKj@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxyc7BDE+ShgITC6lBYutng5o1g/f2CtuxDYYYQwKNxpq9ql0Bn
-	zjtFLWkfG6ed+ZDRo7gsufiqA4QdvLW6K+e8OTG5FJRGjWngcEca+m1N
-X-Gm-Gg: AR+sD11CUs2yGpjiD3oa0UN08YqaqNWEMNtNB1o2DW7RSgx27uwEk74JbzOE/18PBSZ
-	5Z1jkid7XCpzWR+SfJ16sKz+AesT+HaLekZv8QaHD5bDRasb0kKVwnoLJtkHJhIdFBMlRR/At0O
-	aGIcqzvXMEHbBd0IndrsltRbK8xwVCNR1w1j0dSxvExwLnQH5Y45RYMJaC1PKnwzEg931iDIC2U
-	DKgWK4hgMzl/sLA7XxaZQQmhNjjVodZvRnZr/B8XVVv3s9vAcQY2j8PgyFetbGK4+/EgJMgPfsJ
-	Iqj+d8GNVAGnhuGY7D6+5OFXN+q+nunptzaiTS3NU+lDGEkW+kpXzT9VRijNP4Vx2GdvxmVhrev
-	dnQJaXzMks3OWztosr1Z1cEhVeGxm97fT86us+vK25ePNvZoZd+/+w8XAY1HcH5YdaD7+izY7On
-	OCqlnSqwCwALZ/GrINRS4EN4zGL9iLU4+lX5mnRu83RnrvNmWyydjbOA==
-X-Received: by 2002:a17:90b:2f0d:b0:38e:7268:220d with SMTP id 98e67ed59e1d1-3933ed5e238mr29902a91.20.1786648085014;
-        Thu, 13 Aug 2026 12:08:05 -0700 (PDT)
-Received: from localhost ([2a03:2880:2ff:52::])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-39339fe280fsm485100a91.12.2026.08.13.12.08.04
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 13 Aug 2026 12:08:04 -0700 (PDT)
-From: Stanislav Fomichev <sdf.kernel@gmail.com>
-X-Google-Original-From: Stanislav Fomichev <sdf@fomichev.me>
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	anthony.l.nguyen@intel.com,
-	przemyslaw.kitszel@intel.com,
-	andrew+netdev@lunn.ch,
-	saeedm@nvidia.com,
-	tariqt@nvidia.com,
-	mbloch@nvidia.com,
-	maxime.chevallier@bootlin.com,
-	mcoquelin.stm32@gmail.com,
-	alexandre.torgue@foss.st.com,
-	aleksander.lobakin@intel.com,
-	horms@kernel.org,
-	magnus.karlsson@intel.com,
-	maciej.fijalkowski@intel.com,
-	sdf@fomichev.me,
-	ast@kernel.org,
-	daniel@iogearbox.net,
-	hawk@kernel.org,
-	john.fastabend@gmail.com,
-	witu@nvidia.com,
-	martin.lau@kernel.org,
-	yoong.siang.song@intel.com,
-	rohan.g.thomas@intel.com,
-	intel-wired-lan@lists.osuosl.org,
-	linux-kernel@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	linux-stm32@st-md-mailman.stormreply.com,
-	linux-arm-kernel@lists.infradead.org,
-	bpf@vger.kernel.org,
-	leon@kernel.org
-Subject: [PATCH net v2 3/3] net: stmmac: skip queueMaxSDU check for AF_XDP
-Date: Thu, 13 Aug 2026 12:08:00 -0700
-Message-ID: <20260813190800.222527-4-sdf@fomichev.me>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260813190800.222527-1-sdf@fomichev.me>
-References: <20260813190800.222527-1-sdf@fomichev.me>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Hnw8c5kG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5C1D1F000E9;
+	Fri, 14 Aug 2026 00:25:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1786667157;
+	bh=fs+BbQHNUF2bHJQ9C/xxrrrUGFhEJCvZ6H+kP+H6GRw=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=Hnw8c5kGn+e8Vd+DITJgExRB5mA1qYvbnqXaPoZSTb7FV/lwnDWHEjWA4uYMQrqjc
+	 vGp2JjdaOfcs7/B6S0UiTZWywhp2vhjv9USMZI1/JnpD0RD15rzoMXQg/uYSGSkfIF
+	 hbpgf9zY8C0D6cQltWiqMDKJSBWGaW0m8d/iwhDYUxxAyibBOeB4THIBUCuftEBE+K
+	 jB52VTh2dsftSl6/dmEJCfsdir3o+Sx+xu7wwMRvIb1S3/jsp6rvI3LYdWEZkzNWXP
+	 qILs0P5UC7SkjQwrA2tpJrbclIEsVz7jt+bD6hrGhygCI5VNj+gR8txjEIy546rd8K
+	 kMi/CMLQRmwNA==
+Message-ID: <920ffe1984d3fe81ae3deb72129499444a99703f.camel@kernel.org>
+Subject: Re: [PATCH net-next] net/rds: clear i_rx_lat_trace in
+ rds_inc_path_init()
+From: Allison Henderson <achender@kernel.org>
+To: Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org, 
+ linux-rdma@vger.kernel.org, edumazet@google.com, kuba@kernel.org,
+ horms@kernel.org
+Cc: jhubbard@nvidia.com, leon@kernel.org
+Date: Thu, 13 Aug 2026 17:25:55 -0700
+In-Reply-To: <a227ef96-9b2a-4f8f-9fac-c725eeb0e998@redhat.com>
+References: <20260810055631.299558-1-achender@kernel.org>
+	 <a227ef96-9b2a-4f8f-9fac-c725eeb0e998@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.52.3-0ubuntu1.1 
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-Commit c5c3e1bfc9e0 ("net: stmmac: Offload queueMaxSDU from tc-taprio")
-was inspired by commit 92a0dcb8427d ("igc: offload queue max SDU from
-tc-taprio"), but the igc change does not apply the check to AF_XDP.
+On Thu, 2026-08-13 at 12:50 +0200, Paolo Abeni wrote:
+> On 8/10/26 7:56 AM, Allison Henderson wrote:
+> > The commit that introduced the receive-path latency trace added the
+> > clearing of inc->i_rx_lat_trace[] to rds_inc_init() only;
+> > rds_inc_path_init() never got it.
+> >=20
+> > That asymmetry matters for the one caller that reuses memory:
+> > rds_tcp_data_recv() carves its rds_tcp_incoming out of a kmem_cache
+> > with no zeroing and no constructor, so after rds_inc_path_init() the
+> > array still holds the timestamps of whatever message previously
+> > occupied that slab object.  No stale value is user-visible today -
+> > every message that reaches the socket happens to overwrite all four
+> > slots (RX_HDR at allocation, RX_START when the header completes,
+> > RX_END at delivery, RX_CMSG at recvmsg time) before
+> > RDS_CMSG_RXPATH_LATENCY reads them back as deltas - but that is a
+> > property of the current writers, not of the init contract, and a
+> > future trace point or an early-exit path would expose another
+> > message's timestamps to userspace.
+> >=20
+> > Clear the array in rds_inc_path_init() too, so both init helpers
+> > leave the inc fully initialized.  memset is the form the clearing
+> > already takes on the rds_inc_init() side since commit 1635bb548f84
+> > ("net: rds: use memset to optimize the recv").  Hardening only; no
+> > user-visible bug in the current code.
+> >=20
+> > Assisted-by: Claude-Code:claude-fable-5
+> > Signed-off-by: Allison Henderson <achender@kernel.org>
+> Mentioning this change in the previous series thread would have saved me
+> a lot of time :(
+>=20
+> /P
+>=20
+Sorry about that!  You're right, the follow-up came out of the same
+review pass as v2, and I should have replied to the series thread with
+a pointer to it.  I'll be sure to cross-reference follow-ups like that
+in the future.
 
-xsk_tx_peek_desc() reserves a completion entry. Continuing without
-queuing or completing the descriptor leaves the AF_XDP rings imbalanced,
-so remove the check from the zero-copy path.
+Thank you for picking up all three!
 
-The assumptions is that AF_XDP zero-copy traffic bypasses the qdisc, so
-taprio's queueMaxSDU check does not apply to this path.
+Allison
 
-Fixes: c5c3e1bfc9e0 ("net: stmmac: Offload queueMaxSDU from tc-taprio")
-Signed-off-by: Stanislav Fomichev <sdf@fomichev.me>
----
- drivers/net/ethernet/stmicro/stmmac/stmmac_main.c | 7 -------
- 1 file changed, 7 deletions(-)
 
-diff --git a/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c b/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
-index 62de03e65a90..4a82f4351303 100644
---- a/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
-+++ b/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
-@@ -2710,13 +2710,6 @@ static bool stmmac_xdp_xmit_zc(struct stmmac_priv *priv, u32 queue, u32 budget)
- 		if (!xsk_tx_peek_desc(pool, &xdp_desc))
- 			break;
- 
--		if (priv->est && priv->est->enable &&
--		    priv->est->max_sdu[queue] &&
--		    xdp_desc.len > priv->est->max_sdu[queue]) {
--			priv->xstats.max_sdu_txq_drop[queue]++;
--			continue;
--		}
--
- 		tx_desc = stmmac_get_tx_desc(priv, tx_q, entry);
- 		dma_addr = xsk_buff_raw_get_dma(pool, xdp_desc.addr);
- 		meta = xsk_buff_get_metadata(pool, xdp_desc.addr,
--- 
-2.53.0-Meta
 
