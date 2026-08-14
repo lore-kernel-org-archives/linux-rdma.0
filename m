@@ -1,89 +1,113 @@
-Received: from AM0PR02CU008.outbound.protection.outlook.com (mail-westeuropeazon11013059.outbound.protection.outlook.com [52.101.72.59])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f179.google.com (mail-yw1-f179.google.com [209.85.128.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A67843F8CF;
-	Fri, 14 Aug 2026 10:30:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.72.59
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786703414; cv=fail; b=mg0ZFVfJ+x6AyhPhXd56yOgYpxZm/v9t/7TWALfWDealUx5oxbUhcmZ3nK255xUBQp0B3H+OZJc/4yfMOoICDOfMLgb2Qd6iN9deOv8mLt4OlhWwbA6Mqt+BT5gQPjQS4BHI0edsBsBrft7TAX52Bf7oRgJDU2JhkgmTyohsRZM=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786703414; c=relaxed/simple;
-	bh=GcxiAbKx0hXBMj9CD9s+gVqW/Ml02hYWX1Ih0BeAQ0g=;
-	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=KxvlQs98VbmNLgGcAfIceoKGB65RM45M2B5eqsj7COem+KAvTVFCki6KCHOeSnCxx3VpM3cTTgFGfcMnBRl+3NJ8FcaT08xSnYpMaA4AWOPby9F5zUPRQluvMS4VMUO2df3p7vxo4nwOdDPtuMcegJoCI2qx7pucMY1FDaLuzTY=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nokia-bell-labs.com; spf=fail smtp.mailfrom=nokia-bell-labs.com; dkim=pass (2048-bit key) header.d=nokia-bell-labs.com header.i=@nokia-bell-labs.com header.b=PLFksotj; arc=fail smtp.client-ip=52.101.72.59
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nokia-bell-labs.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nokia-bell-labs.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 795E6470125
+	for <linux-rdma@vger.kernel.org>; Fri, 14 Aug 2026 13:34:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.179
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786714448; cv=none; b=I1DyC6ZvdcZAVnxdjpoFS5iqMfcB/b35Vn1KAbYa/lBq4l6Vvqb7Tg7jkpxiA15iAuuTNIC0jJMGB6KBbs/OQ9TLT3QebGyvtw6FlxLX6E5dW6JYyssbd8ubukrhdWJogQMSbNm4oemCdky7t81jvGrTBaLsILqMQCyJdAKypEQ=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786714448; c=relaxed/simple;
+	bh=KLPBe7MmMT+rRxR0SQnKlMKqxOvfblXjnlpnb8WUCTE=;
+	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
+	 Mime-Version:Content-Type; b=lsu3akyZedxhvF4IWpLOkOzDlxETRq+UdVN8FUervSNUiR4Kx9OF8lQemv8PKUliNwJLHqapibbFC6pewGpO7fKUU6HEgp0D32eEdXxK5wMvLinkTLxv/snQFpZ9UTlqx8p9+1PDEgrZD80Z1/RuA9sYUgbz/RLZuO/m5PYLP6Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Lqg5pwzs; arc=none smtp.client-ip=209.85.128.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nokia-bell-labs.com header.i=@nokia-bell-labs.com header.b="PLFksotj"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=KFBQWHsu9EPqn9Lx4MmptIC5v9TkOLfVjtlMsAvUOl4km2ETXY452Sm6efSnHvV8lbZi2RDkLVnMj92X/UX1WhcsY0ZB9tx1ozfRR+R+Ldgugidh+awWoFL50ulnNXksCqocRmQkepXl+6fT5pxwrKnp8Xc26qWp5SFu4lPdOdq9UksX5WopSG4ud93TMnv6QI2inJhQX/HoUjgza7Sr+P88TNduNJfflY8keW83TpfUTuwO/8lVYtkpPLCM0cj49Mzmo4GJBAtoWgIbE3houmlJJ6NfFo850Afl9CKpDK3CSa1eLemaPrHktD9/LLTP6CCB2HbZb912nYvwO3lZhw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=GcxiAbKx0hXBMj9CD9s+gVqW/Ml02hYWX1Ih0BeAQ0g=;
- b=JUeBV3E+2M3DuXMIgilUbl0Rb6ak9znJmdwzF3KOKtXA0ixUj/k21020HWwJfUuUlrn5r0HutQiQqerniLeDrb82ypu5BO2A1D+wT3BCj2SjTBs9AFXnp4xqm2ba0ll9ux6V2Mt3DbaL2WG7w8qAMc/z8EM/De0NisPaP1rFBiFul5RlVeq0Z3ke4+7K3b1PZBi/KAS6AaITitv1OBaYadp1+ZiGeKqYBQmSg1T3E1PozgdpD49pfTyJLzPNHL2R6E0Hd//ewrUMxlTQUN024pWU9hdyzhZpTWdKWgjhASKnMLBWHuKEHYiS2sXlrcXrMTJRsl9Bk8yVazYjEEI+/w==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nokia-bell-labs.com; dmarc=pass action=none
- header.from=nokia-bell-labs.com; dkim=pass header.d=nokia-bell-labs.com;
- arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nokia-bell-labs.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=GcxiAbKx0hXBMj9CD9s+gVqW/Ml02hYWX1Ih0BeAQ0g=;
- b=PLFksotj79tHFoNr60K8yKVO6JgPVvnrHsQ990agoZTwftFRPI8ggOay83Esy4BQw/r709qPdLUk78aYhsnK8jNRWgI47uDaXuyfryPQK54vyj/45KwpynmywXky/Oiroj6E2AHMe1GZWZeKIfy1LNgiOsm6V2g1QGYdzJDQw1hUALmKiePAjyy4abJWSA70P3H2v5vUr41+Rb4CYUJ+Qy4N97MAChgfNj8eoCVSY65FKOSUdxLZyhO6BseLs5aSq2lBdR65oFN8DEeQUKxJq+zPEbu3HTk/kewhhgf8xryMH3adTMbyfwMYeb+OmYjftgvcjJ+ifE60hVXMxmYo4Q==
-Received: from PAXPR07MB7984.eurprd07.prod.outlook.com (2603:10a6:102:133::12)
- by AM0PR07MB6356.eurprd07.prod.outlook.com (2603:10a6:20b:157::22) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.339.6; Fri, 14 Aug
- 2026 10:29:59 +0000
-Received: from PAXPR07MB7984.eurprd07.prod.outlook.com
- ([fe80::f708:4bd3:9987:b9e5]) by PAXPR07MB7984.eurprd07.prod.outlook.com
- ([fe80::f708:4bd3:9987:b9e5%2]) with mapi id 15.21.0339.004; Fri, 14 Aug 2026
- 10:29:59 +0000
-From: "Chia-Yu Chang (Nokia)" <chia-yu.chang@nokia-bell-labs.com>
-To: Mirja Kuehlewind <mirja.kuehlewind@ericsson.com>, Willem de Bruijn
-	<willemdebruijn.kernel@gmail.com>
-CC: Jakub Kicinski <kuba@kernel.org>, "shaojijie@huawei.com"
-	<shaojijie@huawei.com>, "shenjian15@huawei.com" <shenjian15@huawei.com>,
-	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-	"eperezma@redhat.com" <eperezma@redhat.com>, "jasowang@redhat.com"
-	<jasowang@redhat.com>, "virtualization@lists.linux.dev"
-	<virtualization@lists.linux.dev>, "mst@redhat.com" <mst@redhat.com>,
-	"xuanzhuo@linux.alibaba.com" <xuanzhuo@linux.alibaba.com>,
-	"pabeni@redhat.com" <pabeni@redhat.com>, "edumazet@google.com"
-	<edumazet@google.com>, "linux-doc@vger.kernel.org"
-	<linux-doc@vger.kernel.org>, "corbet@lwn.net" <corbet@lwn.net>,
-	"horms@kernel.org" <horms@kernel.org>, "dsahern@kernel.org"
-	<dsahern@kernel.org>, "kuniyu@google.com" <kuniyu@google.com>,
-	"bpf@vger.kernel.org" <bpf@vger.kernel.org>, "netdev@vger.kernel.org"
-	<netdev@vger.kernel.org>, "dave.taht@gmail.com" <dave.taht@gmail.com>,
-	"jhs@mojatatu.com" <jhs@mojatatu.com>, "stephen@networkplumber.org"
-	<stephen@networkplumber.org>, "xiyou.wangcong@gmail.com"
-	<xiyou.wangcong@gmail.com>, "jiri@resnulli.us" <jiri@resnulli.us>,
-	"davem@davemloft.net" <davem@davemloft.net>, "andrew+netdev@lunn.ch"
-	<andrew+netdev@lunn.ch>, "donald.hunter@gmail.com" <donald.hunter@gmail.com>,
-	"ast@fiberby.net" <ast@fiberby.net>, "liuhangbin@gmail.com"
-	<liuhangbin@gmail.com>, "shuah@kernel.org" <shuah@kernel.org>,
-	"linux-kselftest@vger.kernel.org" <linux-kselftest@vger.kernel.org>,
-	"ij@kernel.org" <ij@kernel.org>, "ncardwell@google.com"
-	<ncardwell@google.com>, "Koen De Schepper (Nokia)"
-	<koen.de_schepper@nokia-bell-labs.com>, "g.white@cablelabs.com"
-	<g.white@cablelabs.com>, Ingemar Johansson S
-	<ingemar.s.johansson@ericsson.com>, "cheshire@apple.com"
-	<cheshire@apple.com>, "rs.ietf@gmx.at" <rs.ietf@gmx.at>,
-	"Jason_Livingood@comcast.com" <Jason_Livingood@comcast.com>,
-	"vidhi_goel@apple.com" <vidhi_goel@apple.com>, Parav Pandit
-	<parav@nvidia.com>, Willem de Bruijn <willemb@google.com>
-Subject: RE: [PATCH v5 net-next 1/2] net: update comments for SKB_GSO_TCP_ECN
- and SKB_GSO_TCP_ACCECN
-Thread-Topic: [PATCH v5 net-next 1/2] net: update comments for SKB_GSO_TCP_ECN
- and SKB_GSO_TCP_ACCECN
-Thread-Index:
- AQHdJFkmsZErp6HN50yIAT4nHZCuDbaZmsyAgACaoWCAANzxAIAAlzCggACG4QCAARyLgIAAA24g
-Date: Fri, 14 Aug 2026 10:29:59 +0000
-Message-ID:
- <PAXPR07MB7984ED42ED0849D3A9AB8C19A3DA2@PAXPR07MB7984.eurprd07.prod.outlook.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Lqg5pwzs"
+Received: by mail-yw1-f179.google.com with SMTP id 00721157ae682-836cd7310f4so14561417b3.2
+        for <linux-rdma@vger.kernel.org>; Fri, 14 Aug 2026 06:34:04 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1786714443; x=1787319243; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:subject
+         :references:in-reply-to:message-id:cc:to:from:date:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=OJqvMkGymJf5lK4k8ANoduG6M5FSqz82g4dX9Jup2y4=;
+        b=Lqg5pwzsnZxn34CloqKJwtpoirBRewCQGo/8tFN+WA+typhxYaqTk2xPT8X28ibUJS
+         vUxYV/EDjLLvcixo+2JX4VeoLk6GBuJTm7XjiVusDKbMcmlesVepCSKRl2r/NaEuJHPr
+         zPsuqVG2/3J4CWxEsJItAnewoc9FzI1daKgN1F5ILSaROVO2GsrrNxD64aQ6TUmwwXQA
+         Xalr/IufIdrsaR9IQ01ucF5iIwAd3BiVpLSBnhdOBZczAjvOJXSn7TuGZN0M8lLCoQCk
+         G3QYoFSltpJR1CxuE7z+lRxhElKbterjtISdT0eQ3c3WPwEVnpeQFfRliNCtuq0ae82s
+         zQuA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786714443; x=1787319243;
+        h=content-transfer-encoding:content-type:mime-version:subject
+         :references:in-reply-to:message-id:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=OJqvMkGymJf5lK4k8ANoduG6M5FSqz82g4dX9Jup2y4=;
+        b=eIclgNOMX4LkSWyfnMwF5/S7iyrGY2pClp4kKVXGwGo2fGZi+q84mSk4r4WX2OTTBv
+         5CAp03Hw37+FaxK4floC4MtFHOFBW8+mRd1PJ7bKlez2SKtVHTyJthlJCHQB5297pOFo
+         uf139GhjBeBxPbl0tXhSM5+tmLTbz3GLR6pC9oVD1OUW2fBYi2pmPsF9KIKJ7DUBAr8U
+         ZxVG+DoN6ZYQ1y68eGM2N6+XHwz22lAoiqdwiDX6uTN9/IZVc+xj9kHdRDVLWbkT70Oj
+         LYMirkD26Wpsv6JWoNF7iHg2rsdVZba5sbAphkl+Km2f3ID6NmbZoOva+1aKWtl2Libh
+         QKMw==
+X-Forwarded-Encrypted: i=1; AHgh+RoeYWlNY8mefXzqlUxeRA2B+FQlqI/U8lQo6yp1BVJIuUq83kWLFGaRkO+FtUJY7xzdr8z0j48ND4kz@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywu/PO1dPqj3HKWdvk8OeYoKFruejpTG8K9L1bt8qqyXoCT/6pc
+	LsHDfGlOvWRtMPqypn59TISNcT4U7QKAHFgbhEjG4uQzQ7Nx/ro+7l1V
+X-Gm-Gg: AR+sD13qzot5/Jp5AyAn4d2+LDZdgaB7x662gFlP9E6n+GqbxKYOza6iJMCR87Txoqm
+	U0Rldawz9K0Ixx/YaAgRLUlZ8d4Dv/c74+XNE145vRFcfu+seuvjFz3f2EWOTOoLQtJ8+Sl/4Ab
+	ud61nm1zT7OkrIl8auHT/1fiLs8nAwTDFWkExU7bCM0hRbe9dAmHmQJ5SaVi6rD9kEK2ZzLcxIG
+	yAylJKx4CqJOy/dDhvgN6EuPmG/IcqI2o832gyKVFx0i3DXOaFsNX4fbamWk3NEfUWP+SKI5naL
+	evMqOey79dWyvCn2p/QgrFMDPm0w0TNXKg+/kwKH+po+XZDSIyA1+Ns48Ueo3j2sJG+1TbqbMBB
+	9Z+9zz0F3nKxZnKUKdI+VfkFHHyI7ZMbs7ORppsehGlHNiD2EaarpUCsPSuMceCe1aTuC+Scawz
+	b+Xtx2OKNT1y/UcP1juyayFCQtm0vyI4/01ikHSanYecBoJMhZ333dXMOMCQ5HE5w5rK2jGwNXT
+	fF6UXlxpHoNRi0QFYRFIdNP/LJ4Lnm5UkrN
+X-Received: by 2002:a05:690c:a6cc:b0:80b:9f4e:a70 with SMTP id 00721157ae682-837124de3b4mr18643737b3.26.1786714442899;
+        Fri, 14 Aug 2026 06:34:02 -0700 (PDT)
+Received: from gmail.com (250.4.48.34.bc.googleusercontent.com. [34.48.4.250])
+        by smtp.gmail.com with ESMTPSA id 00721157ae682-836bc689e3asm12934997b3.17.2026.08.14.06.34.01
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 14 Aug 2026 06:34:01 -0700 (PDT)
+Date: Fri, 14 Aug 2026 09:34:01 -0400
+From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
+To: "Chia-Yu Chang (Nokia)" <chia-yu.chang@nokia-bell-labs.com>, 
+ Mirja Kuehlewind <mirja.kuehlewind@ericsson.com>, 
+ Willem de Bruijn <willemdebruijn.kernel@gmail.com>
+Cc: Jakub Kicinski <kuba@kernel.org>, 
+ "shaojijie@huawei.com" <shaojijie@huawei.com>, 
+ "shenjian15@huawei.com" <shenjian15@huawei.com>, 
+ "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, 
+ "eperezma@redhat.com" <eperezma@redhat.com>, 
+ "jasowang@redhat.com" <jasowang@redhat.com>, 
+ "virtualization@lists.linux.dev" <virtualization@lists.linux.dev>, 
+ "mst@redhat.com" <mst@redhat.com>, 
+ "xuanzhuo@linux.alibaba.com" <xuanzhuo@linux.alibaba.com>, 
+ "pabeni@redhat.com" <pabeni@redhat.com>, 
+ "edumazet@google.com" <edumazet@google.com>, 
+ "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, 
+ "corbet@lwn.net" <corbet@lwn.net>, 
+ "horms@kernel.org" <horms@kernel.org>, 
+ "dsahern@kernel.org" <dsahern@kernel.org>, 
+ "kuniyu@google.com" <kuniyu@google.com>, 
+ "bpf@vger.kernel.org" <bpf@vger.kernel.org>, 
+ "netdev@vger.kernel.org" <netdev@vger.kernel.org>, 
+ "dave.taht@gmail.com" <dave.taht@gmail.com>, 
+ "jhs@mojatatu.com" <jhs@mojatatu.com>, 
+ "stephen@networkplumber.org" <stephen@networkplumber.org>, 
+ "xiyou.wangcong@gmail.com" <xiyou.wangcong@gmail.com>, 
+ "jiri@resnulli.us" <jiri@resnulli.us>, 
+ "davem@davemloft.net" <davem@davemloft.net>, 
+ "andrew+netdev@lunn.ch" <andrew+netdev@lunn.ch>, 
+ "donald.hunter@gmail.com" <donald.hunter@gmail.com>, 
+ "ast@fiberby.net" <ast@fiberby.net>, 
+ "liuhangbin@gmail.com" <liuhangbin@gmail.com>, 
+ "shuah@kernel.org" <shuah@kernel.org>, 
+ "linux-kselftest@vger.kernel.org" <linux-kselftest@vger.kernel.org>, 
+ "ij@kernel.org" <ij@kernel.org>, 
+ "ncardwell@google.com" <ncardwell@google.com>, 
+ "Koen De Schepper (Nokia)" <koen.de_schepper@nokia-bell-labs.com>, 
+ "g.white@cablelabs.com" <g.white@cablelabs.com>, 
+ Ingemar Johansson S <ingemar.s.johansson@ericsson.com>, 
+ "cheshire@apple.com" <cheshire@apple.com>, 
+ "rs.ietf@gmx.at" <rs.ietf@gmx.at>, 
+ "Jason_Livingood@comcast.com" <Jason_Livingood@comcast.com>, 
+ "vidhi_goel@apple.com" <vidhi_goel@apple.com>, 
+ Parav Pandit <parav@nvidia.com>, 
+ Willem de Bruijn <willemb@google.com>
+Message-ID: <willemdebruijn.kernel.c248a28f9c86@gmail.com>
+In-Reply-To: <PAXPR07MB7984ED42ED0849D3A9AB8C19A3DA2@PAXPR07MB7984.eurprd07.prod.outlook.com>
 References: <20260804213510.673084-1-chia-yu.chang@nokia-bell-labs.com>
  <20260804213510.673084-2-chia-yu.chang@nokia-bell-labs.com>
  <20260811173017.3d18dfdc@kernel.org>
@@ -92,224 +116,262 @@ References: <20260804213510.673084-1-chia-yu.chang@nokia-bell-labs.com>
  <PAXPR07MB7984E3E73868BF8966821C27A3DB2@PAXPR07MB7984.eurprd07.prod.outlook.com>
  <CAF=yD-LQbndjPZiXcfA6fMp6msza_+YdzqqwyeUDVTdOCOHhDw@mail.gmail.com>
  <47BE8A8A-F80C-4C30-BC95-C85FEBFFB606@ericsson.com>
-In-Reply-To: <47BE8A8A-F80C-4C30-BC95-C85FEBFFB606@ericsson.com>
-Accept-Language: en-GB, en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nokia-bell-labs.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: PAXPR07MB7984:EE_|AM0PR07MB6356:EE_
-x-ms-office365-filtering-correlation-id: 99106957-2114-4b71-666e-08def9eefe51
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam:
- BCL:0;ARA:13230040|366016|1800799024|7416014|376014|23010399003|56012099006|10067099003|6133799003|22082099003|18002099003|4143699003|11063799006|5023799004|38070700021;
-x-microsoft-antispam-message-info:
- b8LVbHGzy7bj05w1VqF4Bal4S7iIex0B6L3reXvd0lXbQVajbc6SVvxe5FXIOCQEFmdTJiCUbb+Xov6K4L+J9EGTHJIK5nkcOBpgILPzuC2wBZ60vKevGRfgzL+QV3l+248ZCrC0hidw1yW4wSgdgL2xPaHR8nZ88LVNF7NSpXcyg//ydQ6kpa2hglZPe6RmHFY+/jTvwdowITWPqN3Nf6CaNewtMrKx/uRzbqyfe37Ac26w72HOqgO4uZX12IgeWA+A36PqVQWj06HCEsRakQ5vBzxxvoSfZB22UuEMmYbedvXNJAsF6HBzxiCpi3/xQ9xpxylQ/V6+nJOm/BpTDK0ogN+MbD3mWCo3dMBstZ2RpaHG7C1cbyq4WKwSPpdrCUpATJQtqD/tqhU+3NUW1rfOCCbsn/vXHAPegzriqUdWMZZsxAnNHlfA3ej1ZsbX1L5VgHarjoYQ5As1HmxdJ2YG96DN87g1dBvY+u8v1hf45zBUQ4ptAAJNuXJ0y97wRTa+1sXJ2y/BPUzHAT+jgSSlqIs3k6TxsgTMspDdXz0I+VNudlmS78Qjqj0SNLBRWyJrLAf9XDAvK0U62m6WP6UitNGYtuKPMX55oxaRaR2iwgh7IuVbGBLU8N92+b+wgbZ1RYd+Uv0yvGBOHgukCLlY0q3z6RC4ovox+tO4rov7NFFmI3NvB4Fp1zLVukIyZ9vi1Xe3NvIOjmALDWGDnC7HF851CmuCldsxC7upa5E=
-x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PAXPR07MB7984.eurprd07.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(7416014)(376014)(23010399003)(56012099006)(10067099003)(6133799003)(22082099003)(18002099003)(4143699003)(11063799006)(5023799004)(38070700021);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?utf-8?B?bjJEREVEb0JDS213TFpJSU9OcFlwb0VXNTFLN2RiMGZJdzFJQ3VhZDdrMVds?=
- =?utf-8?B?TlpweTlrbjIxa3hOYUN1MWl5RmxBSUhJS0pmK015WW1CZ1RaQk1QVXlhZjVp?=
- =?utf-8?B?T0IrUXMrZVhiZUFoeVdWVmM0bXpKcThNQThBNlhpSG5GRDBheHBlZkRQV1Rm?=
- =?utf-8?B?VFM2R3pwcE5CNTJTT0lscVJDRnB1VTlBZVNORjFhSGhDQnRLZXBnN3cyZEth?=
- =?utf-8?B?ejJpVHVRcC92V0k2THJoc1padGNtaEtLQ3pSMXZGTTMwd1I0R3QzM3YvVjM4?=
- =?utf-8?B?UVBiZ2JOS1JIemt5RXpXL0ZCTWZUMW9CWE9sOXRBcVFQWXBVVHhIc2RSTndP?=
- =?utf-8?B?RnBIMTNtcExnR3BkUmpraVplY1pHMEFVVmZseUd4RDZXSTYwQTBQYXVFZWdM?=
- =?utf-8?B?OFB1bDJVZ1VvaGk0M2pUVXFSdGVHUWxLOUt5MFJFQjVlcURXSTVEUUVDdStQ?=
- =?utf-8?B?VjlJUEQyaFRKM3g3RXVkZ1QwSStCc3k5aHEzb3VVL0ovQS9mNXFTdTBQUFZB?=
- =?utf-8?B?SUY5cjJJaFR5TXVYa1liNlRjLzZRTWtwT2lnRDBENW9YaEhUMmFtSmQ4MkxY?=
- =?utf-8?B?Wlora0plSnd2WUZXeEdqQldGYWNMdUFVd0hMNVlJRmZlaFBJaFJrK1VVNVZz?=
- =?utf-8?B?UGtpSHo2ZmVYdTdzeUJIL0FDWUFTVms1ek9vWHlocUtJQ3luSDZjaXZJdWlU?=
- =?utf-8?B?Q3hyV0hmRTlOZjRSVGY0d2VjSHZRSno3ZHplbFpEeVlvZ0lzUHExVk14dFI0?=
- =?utf-8?B?UkZVZmExakRaK0RxOVNkcDZ1dEVFeUQ1UzhaaEFJaGVaRk9IdG5PT3RNVFFq?=
- =?utf-8?B?Mm1iU0xzcFpoK0lKQk5KQzFxcnVhNGxmQWNIVG13SzJvaFVjS0duYmVwSVJF?=
- =?utf-8?B?Qm0xMDEyNSsvbE1xbi8vNWsvOHZBc29sUENPUTB6WWhYVWE5a2hpbzF3MkEz?=
- =?utf-8?B?bWxWbWJMZ010NnlpQmJlRFNya2l5Rm5yUUZBUzd6TU9KNXZlSmlDT2EvcUlS?=
- =?utf-8?B?VDBPZHpRYkRIUkNyMTgxK0RnWEFnTEthN1VteWErdlBybkhqOGdteVlsc2NZ?=
- =?utf-8?B?ajBvZWZKTWxJM291MnI0OGlhUXVVYzNTSkF5NkJjOFdXNk9VdnpUWTc1bGFW?=
- =?utf-8?B?TW5DWlNzN3E3UGRBTEJMckxGVFN6RG5rdVlqamhQUURtdkFKOHNNcmtYUGRE?=
- =?utf-8?B?WVd1eFJlejVjOTJLVXZSNlJVVVQxc3ZOTW1IOTF4ZDJ3RWI1QU5sYkFBRjNW?=
- =?utf-8?B?cmNka3pzMGpMUzkzMWJPeFpRZk1VT0NVd0FZTElSSmpCakN0bHBnY3RJUVJm?=
- =?utf-8?B?VmIxZWkzMFRpdHFINXNSYitqdUxZRHloS2NzQktMd0FCbFlGZVZlN3p6a2ZV?=
- =?utf-8?B?TkN5L2dOMWkwUG8xNldaTmJGU2Z4djBKdGZYeWk4U3lCN2JacVYrMHJBV05U?=
- =?utf-8?B?TUVtM1ZUbVhzcTVDMGlFdkE1Vm9wQU1LOXpBTHIvTFRmUVpuLzJ6blpFekM1?=
- =?utf-8?B?NDVYTGNmbmlpRm0wcUowRElJUFFqeDlTQXlJOTRreTVlTkZ2TktSR0UwR0VE?=
- =?utf-8?B?dmx4NGhqQ1BNTk9WQ3hUUjBSSFNITTJHOVpkOXlXb2t2Y0E0bXFyRFc1T0Rj?=
- =?utf-8?B?TUgxckhDUVljRDdLSnptVE9aSUJVY1JIMklvVHEzSXRrQldXZkwzUGE3eTIr?=
- =?utf-8?B?OWNtcG9ER1NEZDZGMlN2bmdHNXdtb2ZLUGY0LzNrd1MyZ1BhN2pZemZsRWFQ?=
- =?utf-8?B?UTdTZTYzQUhaY1IrTUFtWW5EMFdIZDJRc1RSZk1MbDAzV0VCTEI0a1hpNG1x?=
- =?utf-8?B?QzF5emttaGs2V0NyaUU2alVvd0tMWXdWMThjdzRtMWNWUTFUVEl3b1VVcnNj?=
- =?utf-8?B?Smp1dElNSkIyZ3lKSmI2OFhwSFBNN3FSREFQS296bVF0SDRUWENjQzlZSEZK?=
- =?utf-8?B?bk5IYWJYVDFXc3RZdU9aRVlyRTNsN0pYZ1FLcTA1YWZidUU3VjMrbFJMUDd5?=
- =?utf-8?B?d0U0eFJvWVRFWG5BQzhmMVBOOHNDNWNTZjQ4VVpyYXdDRmZXajZpSm9mdWdV?=
- =?utf-8?B?QTlpK0djVUY3eVprS2o1SDM3NWRicFZoOXgwbEhha2c4djJQNk8vcVErWWx2?=
- =?utf-8?B?USt6N0FPSmdKM2hxWVF3VHNudXdNUVo1ZS9aNDl5aDhUdm1IVTV0UGdLYkZ4?=
- =?utf-8?B?WE5lbkVaL3I1RWJZQUNtV3FmUTF2aUxXTU1pTGVzUkZYa2dWSnM0ZjRVUncx?=
- =?utf-8?B?N0d0ZkV3a1NsUjB3andlL1ZPdXNvVEtlU0VuN1NFclJOMm5qNG5WQnYrclRX?=
- =?utf-8?B?b3hKa2dBWldEamdQY2I3QWFoZ3I1MUM5MkJGZjNPUENXTjhneFNFTlJZMG5p?=
- =?utf-8?Q?dqx68LISS59+wOfI=3D?=
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+ <PAXPR07MB7984ED42ED0849D3A9AB8C19A3DA2@PAXPR07MB7984.eurprd07.prod.outlook.com>
+Subject: RE: [PATCH v5 net-next 1/2] net: update comments for SKB_GSO_TCP_ECN
+ and SKB_GSO_TCP_ACCECN
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-X-OriginatorOrg: nokia-bell-labs.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: PAXPR07MB7984.eurprd07.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 99106957-2114-4b71-666e-08def9eefe51
-X-MS-Exchange-CrossTenant-originalarrivaltime: 14 Aug 2026 10:29:59.6844
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 5d471751-9675-428d-917b-70f44f9630b0
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: HU1kXiHExD11KG+Y/UpaNtHSg8tvKvAibJG5Aa2Mvabg2w5zSlKplo8kx4HyVXA0omxjW6q9kvcnhPkweTabz3m+F1UYnGbBwfzkeS0E2dSJ41+0rUCFFVab/1OYgDTH
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR07MB6356
+Mime-Version: 1.0
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-PiBGcm9tOiBNaXJqYSBLdWVobGV3aW5kIDxtaXJqYS5rdWVobGV3aW5kQGVyaWNzc29uLmNvbT4g
-DQo+IFNlbnQ6IEZyaWRheSwgQXVndXN0IDE0LCAyMDI2IDEwOjU3IEFNDQo+IFRvOiBXaWxsZW0g
-ZGUgQnJ1aWpuIDx3aWxsZW1kZWJydWlqbi5rZXJuZWxAZ21haWwuY29tPjsgQ2hpYS1ZdSBDaGFu
-ZyAoTm9raWEpIDxjaGlhLXl1LmNoYW5nQG5va2lhLWJlbGwtbGFicy5jb20+DQo+IENjOiBKYWt1
-YiBLaWNpbnNraSA8a3ViYUBrZXJuZWwub3JnPjsgc2hhb2ppamllQGh1YXdlaS5jb207IHNoZW5q
-aWFuMTVAaHVhd2VpLmNvbTsgbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IGVwZXJlem1hQHJl
-ZGhhdC5jb207IGphc293YW5nQHJlZGhhdC5jb207IHZpcnR1YWxpemF0aW9uQGxpc3RzLmxpbnV4
-LmRldjsgbXN0QHJlZGhhdC5jb207IHh1YW56aHVvQGxpbnV4LmFsaWJhYmEuY29tOyBwYWJlbmlA
-cmVkaGF0LmNvbTsgZWR1bWF6ZXRAZ29vZ2xlLmNvbTsgbGludXgtZG9jQHZnZXIua2VybmVsLm9y
-ZzsgY29yYmV0QGx3bi5uZXQ7IGhvcm1zQGtlcm5lbC5vcmc7IGRzYWhlcm5Aa2VybmVsLm9yZzsg
-a3VuaXl1QGdvb2dsZS5jb207IGJwZkB2Z2VyLmtlcm5lbC5vcmc7IG5ldGRldkB2Z2VyLmtlcm5l
-bC5vcmc7IGRhdmUudGFodEBnbWFpbC5jb207IGpoc0Btb2phdGF0dS5jb207IHN0ZXBoZW5AbmV0
-d29ya3BsdW1iZXIub3JnOyB4aXlvdS53YW5nY29uZ0BnbWFpbC5jb207IGppcmlAcmVzbnVsbGku
-dXM7IGRhdmVtQGRhdmVtbG9mdC5uZXQ7IGFuZHJldytuZXRkZXZAbHVubi5jaDsgZG9uYWxkLmh1
-bnRlckBnbWFpbC5jb207IGFzdEBmaWJlcmJ5Lm5ldDsgbGl1aGFuZ2JpbkBnbWFpbC5jb207IHNo
-dWFoQGtlcm5lbC5vcmc7IGxpbnV4LWtzZWxmdGVzdEB2Z2VyLmtlcm5lbC5vcmc7IGlqQGtlcm5l
-bC5vcmc7IG5jYXJkd2VsbEBnb29nbGUuY29tOyBLb2VuIERlIFNjaGVwcGVyIChOb2tpYSkgPGtv
-ZW4uZGVfc2NoZXBwZXJAbm9raWEtYmVsbC1sYWJzLmNvbT47IGcud2hpdGVAY2FibGVsYWJzLmNv
-bTsgSW5nZW1hciBKb2hhbnNzb24gUyA8aW5nZW1hci5zLmpvaGFuc3NvbkBlcmljc3Nvbi5jb20+
-OyBjaGVzaGlyZUBhcHBsZS5jb207IHJzLmlldGZAZ214LmF0OyBKYXNvbl9MaXZpbmdvb2RAY29t
-Y2FzdC5jb207IHZpZGhpX2dvZWxAYXBwbGUuY29tOyBQYXJhdiBQYW5kaXQgPHBhcmF2QG52aWRp
-YS5jb20+OyBXaWxsZW0gZGUgQnJ1aWpuIDx3aWxsZW1iQGdvb2dsZS5jb20+DQo+IFN1YmplY3Q6
-IFJlOiBbUEFUQ0ggdjUgbmV0LW5leHQgMS8yXSBuZXQ6IHVwZGF0ZSBjb21tZW50cyBmb3IgU0tC
-X0dTT19UQ1BfRUNOIGFuZCBTS0JfR1NPX1RDUF9BQ0NFQ04NCj4gDQo+IEhpIFdpbGxlbSwNCj4g
-DQo+IFRoZSBjdXJyZW50IGZ1bmN0aW9uIG9mIGlzIFNLQl9HU09fVENQX0VDTiB3cm9uZy4gRml4
-aW5nIHRoaXMgY2F1c2VzIHRoZSByZWdyZXNzaW9uLg0KPiANCj4gTWlyamENCj4gDQo+IA0KPiAN
-Cj4gRnJvbTogV2lsbGVtIGRlIEJydWlqbiA8bWFpbHRvOndpbGxlbWRlYnJ1aWpuLmtlcm5lbEBn
-bWFpbC5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjUgbmV0LW5leHQgMS8yXSBuZXQ6IHVw
-ZGF0ZSBjb21tZW50cyBmb3IgU0tCX0dTT19UQ1BfRUNOIGFuZCBTS0JfR1NPX1RDUF9BQ0NFQ04N
-Cj4gDQo+IE9uIFRodSwgQXVnIDEzLCAyMDI2IGF0IDY6MzPigK9BTSBDaGlhLVl1IENoYW5nIChO
-b2tpYSkNCj4gPG1haWx0bzpjaGlhLXl1LmNoYW5nQG5va2lhLWJlbGwtbGFicy5jb20+IHdyb3Rl
-Og0KPiANCj4gPiBPbiBXZWQsIDEyIEF1ZyAyMDI2IDEwOjMzOjE5ICswMDAwIENoaWEtWXUgQ2hh
-bmcgKE5va2lhKSB3cm90ZToNCj4gPiA+ID4gPiAtICAgICAvKiBUaGlzIGluZGljYXRlcyB0aGUg
-dGNwIHNlZ21lbnQgaGFzIENXUiBzZXQuICovDQo+ID4gPiA+ID4gKyAgICAgLyogRm9yIFRYLCB0
-aGlzIGluZGljYXRlcyB0aGF0IHRoZSBmaXJzdCBUQ1Agc2VnbWVudCBoYXMgQ1dSIHNldCwgYW5k
-DQo+ID4gPiA+ID4gKyAgICAgICogYW55IHN1YnNlcXVlbnQgc2VnbWVudCBpbiB0aGUgc2FtZSBz
-a2IgaGFzIENXUiBjbGVhcmVkLiBUaGlzIGZsYWcNCj4gPiA+ID4gPiArICAgICAgKiBtdXN0IG5v
-dCBiZSB1c2VkIGluIFJYLCBiZWNhdXNlIHRoZSBjb25uZWN0aW9uIHRvIHdoaWNoIHRoZSBzZWdt
-ZW50DQo+ID4gPiA+ID4gKyAgICAgICogYmVsb25ncyBpcyBub3QgdHJhY2tlZCB0byB1c2UgUkZD
-MzE2OCBvciBBY2NFQ04uIFVzaW5nIFJGQzMxNjggRUNODQo+ID4gPiA+ID4gKyAgICAgICogb2Zm
-bG9hZCBtYXkgY2xlYXIgQ1dSIGFuZCBjb3JydXB0IEFDRSBzaWduYWwgKENXUiBpcyBwYXJ0IG9m
-IGl0KS4NCj4gPiA+ID4gPiArICAgICAgKiBJbnN0ZWFkLCBTS0JfR1NPX1RDUF9BQ0NFQ04gc2hh
-bGwgYmUgdXNlZCB0byBhdm9pZCBDV1IgY29ycnVwdGlvbi4NCj4gPiA+ID4gPiArICAgICAgKi8N
-Cj4gPiA+ID4NCj4gPiA+ID4gSSBzdGlsbCBjYW4ndCB3cmFwIG15IGhlYWQgYXJvdW5kIHRoaXMg
-VEJILg0KPiA+ID4gPg0KPiA+ID4gPiBTS0JfR1NPX1RDUF9FQ04gbWVhbnMgUkZDMzE2OA0KPiA+
-ID4gPiBTS0JfR1NPX1RDUF9BQ0NFQ04gbWVhbnMgQWNjRUNODQo+ID4gPiA+DQo+ID4gPiA+IElm
-IHRoZSBIVyBjYW4gY29ycmVjdGx5IGRldGVjdCBjd3Igb24gZmlyc3QgZnJhbWUgYW5kIHRoZW4g
-bm8gY3dyIGFuZCByZXBvcnQgdGhhdCBhcyBFQ04vUkZDMzE2OCAtIHdoYXQncyB0aGUgcHJvYmxl
-bT8gVFNPIHdpbGwgcHJvZHVjZSB0aGUgZXhhY3QgZXhwZWN0ZWQgc2VnbWVudCBzZXF1ZW5jZS4N
-Cj4gPiA+ID4NCj4gPiA+ID4gSXMgdGhlIHByb2dyYW0gdGhhdCBpZiB3ZSByZS1HUk8gdGhhdCBm
-cmFtZSBpbiBTVyB3ZSBlbmQgdXAgd2l0aA0KPiA+ID4gPiBFQ04rQUNDRUNOIG9uIHRoZSBzYW1l
-IHNrYj8NCj4gPiA+DQo+ID4gPiBZZXMsIHRoaXMgaXMgdGhlIHByb2JsZW0uDQo+ID4gPiBUaGUg
-SFcgZG9lcyBub3Qga25vdyB3aGV0aGVyIHRoZSByZWNlaXZlZCBwYWNrZXRzIGJlbG9uZyB0byBh
-biBSRkMzMTY4IEVDTiBmbG93IG9yIGFuIEFjY0VDTiBmbG93IG9uIHRoZSBSWCBwYXRoLg0KPiA+
-ID4gRm9yIGV4YW1wbGUsIEhXIEdSTyBtYXkgc2V0IFNLQl9HU09fVENQX0VDTiBhZnRlciBvYnNl
-cnZpbmcgdGhhdCB0aGUgZmlyc3QgcGFja2V0IGhhcyBDV1I9MToNCj4gPiA+DQo+ID4gPiArPT09
-PT09PT09PT09PT09PT09PSs9PT09PT09PT09Kz09PT09PT09PT09PT09PT09Kz09PT09PT09PT09
-PT09PT0rDQo+ID4gPiB8ICAgICBQYWNrZXQgaWQgICAgIHwgQ1dSIGZsYWcgfCAgICAgICBGbGFn
-ICAgICAgfCBGbHVzaGVkIGFzIFNLQiB8DQo+ID4gPiArPT09PT09PT09PT09PT09PT09PSs9PT09
-PT09PT09Kz09PT09PT09PT09PT09PT09Kz09PT09PT09PT09PT09PT0rDQo+ID4gPiB8ICAgICAg
-ICAgMCAgICAgICAgIHwgICAgIDEgICAgfCBTS0JfR1NPX1RDUF9FQ04gfCAgICAgICAgMCAgICAg
-ICB8DQo+ID4gPiB8ICAgICAgICAgMSAgICAgICAgIHwgICAgIDAgICAgfCAgICAgICAgIC0gICAg
-ICAgfCAgICAgICAgMCAgICAgICB8DQo+ID4gPiB8ICAgICAgICAgMiAgICAgICAgIHwgICAgIDEg
-ICAgfCAgICAgICAgIC0gICAgICAgfCAgICAgICAgMCAgICAgICB8DQo+ID4gPiB8ICAgICAgICAg
-MyAgICAgICAgIHwgICAgIDEgICAgfCAgICAgICAgIC0gICAgICAgfCAgICAgICAgMSAgICAgICB8
-DQo+ID4gPiArPT09PT09PT09PT09PT09PT09PSs9PT09PT09PT09Kz09PT09PT09PT09PT09PT09
-Kz09PT09PT09PT09PT09PT0rDQo+ID4gPg0KPiA+ID4gSWYgdGhlIGFnZ3JlZ2F0ZWQgc2tiIGlz
-IGZvcndhcmRlZCB0aHJvdWdoIGEgZGV2aWNlIHVzaW5nIEdTTywgZS5nLiwNCj4gPiA+IEhXIFJY
-IChHUk8pIC0+IHZldGggVFggKEdTTyksIHRoZSBTS0JfR1NPX1RDUF9FQ04gYXBwbGllcyBSRkMz
-MTY4DQo+ID4gPiBzZW1hbnRpY3MuIFRoaXMgbWVhbnMgdGhhdCBvbmx5IHRoZSAxc3Qgc2VnbWVu
-dCBrZWVwcyB0aGUgQ1dSIGZsYWcNCj4gPiA+IHdoaWxlIGFsbCBzdWJzZXF1ZW50IHNlZ21lbnRz
-IGhhdmUgQ1dSIGNsZWFyZWQ6DQo+ID4gPg0KPiA+ID4gKz09PT09PT09PT09PT09PT09PT0rPT09
-PT09PT09PSsNCj4gPiA+IHwgICAgIFBhY2tldCBpZCAgICAgfCBDV1IgZmxhZyB8DQo+ID4gPiAr
-PT09PT09PT09PT09PT09PT09PSs9PT09PT09PT09Kw0KPiA+ID4gfCAgICAgICAgIDAgICAgICAg
-ICB8ICAgICAxICAgIHwNCj4gPiA+IHwgICAgICAgICAxICAgICAgICAgfCAgICAgMCAgICB8DQo+
-ID4gPiB8ICAgICAgICAgMiAgICAgICAgIHwgICAgIDAgICAgfA0KPiA+ID4gfCAgICAgICAgIDMg
-ICAgICAgICB8ICAgICAwICAgIHwNCj4gPiA+ICs9PT09PT09PT09PT09PT09PT09Kz09PT09PT09
-PT0rDQo+ID4gPg0KPiA+ID4gVGhpcyBiZWhhdmlvciBpcyBvayBmb3IgUkZDMzE2OCwgc2luY2Ug
-Q1dSIGlzIGV4cGVjdGVkIHRvIGFwcGVhciBvbmx5DQo+ID4gPiBvbmNlLiBIb3dldmVyLCBmb3Ig
-QWNjRUNOLCBDV1IgaXMgcGFydCBvZiB0aGUgQUNFIHNpZ25hbCBhbmQgbXVzdCBiZQ0KPiA+ID4g
-cHJlc2VydmVkIGFjcm9zcyBhbGwgc2VnbWVudHMuDQo+ID4NCj4gPiBCdXQgdGhpcyB3b3VsZCBi
-ZSBvYnZpb3VzbHkgYSBidWdneSBIVy1HUk8gaW1wbGVtZW50YXRpb24uDQo+ID4gVGhlIHJ1bGVz
-IGZvciBIVy1HUk8gUkZDMzE2OCBhcmUgLS0gaWdub3JlIENXUiBvbiBmaXJzdCBzZWdtZW50ICho
-b3N0IHJlc3BvbnNpYmxlIGZvciBwb3B1bGF0aW5nIFNLQl9HU09fVENQX0VDTiksIGFuZCBDV1Ig
-X211c3QgYmUgMF8gZm9yIGFsbCBzdWJzZXF1ZW50IHNlZ21lbnRzLg0KPiA+DQo+ID4gPiBJbiB0
-aGUgZXhhbXBsZSBhYm92ZSwgdGhlIG9yaWdpbmFsIENXUiBzZXF1ZW5jZSB3YXMgMSwwLDEsMS4N
-Cj4gPiA+IEJ1dCBhZnRlciByZS1zZWdtZW50YXRpb24gaXQgYmVjb21lczogMSwwLDAsMC4NCj4g
-PiA+IFRoaXMgaXMgd2h5IFNLQl9HU09fVENQX0VDTiBzaG91bGQgbm90IGJlIHVzZWQgaW4gUlgv
-R1JPIHBhdGhzLg0KPiA+DQo+ID4gV2UgaGF2ZSBleHRlbnNpdmUgZ3JvIHRlc3RzIHVuZGVyDQo+
-ID4gdG9vbHMvdGVzdGluZy9zZWxmdGVzdHMvZHJpdmVycy9uZXQvZ3JvLnB5DQo+ID4NCj4gPiBJ
-ZiB5b3Ugd2FudCB0byBjYXRjaCBiYWQgZGV2aWNlcyAtIGFkZCBhcHByb3ByaWF0ZSB0ZXN0IGNh
-c2VzIHRoZXJlLg0KPiA+DQo+IA0KPiBJIGFkZGVkIGEgdGVzdCBjYXNlIGluIHBhdGNoIDZmNzRi
-YzhiNmU4ZCByZWxhdGVkIHRvIHRoZSBDV1IgZmxhZy4NCj4gSW4gdGhhdCBjYXNlLCB0aGVyZSBh
-cmUgNSBwYWNrZXRzIHdpdGggQ1dSIHZhbHVlcyBvZiAwLCAxLCAxLCAwLCBhbmQgMCwgYW5kIHBh
-Y2tldHMgYXJlIGZsdXNoZWQgYWZ0ZXIgdGhlIDFzdCwgM3JkLCBhbmQgNXRoIHBhY2tldHMuDQo+
-IFRoZSBncm8ucHkgdXNlcyB0aGlzIGNhc2UgaW4gdG9vbHMvdGVzdGluZy9zZWxmdGVzdHMvbmV0
-L2xpYi9ncm8uYyB0byB2ZXJpZnkgQ1dSIGJlaGF2aW9yLg0KPiBCdXQgaW5kZWVkLCB0aGF0IGRv
-ZXMgbm90IGNvdmVyIHdoZXRoZXIgU0tCX0dTT19UQ1BfRUNOIG9yIFNLQl9HU09fVENQX0FDQ0VD
-TiBzaGFsbCBiZSBzZXQgZHVyaW5nIHRoZSBHUk8uDQo+IFNvLCBhIHRlc3QgbWlnaHQgYmUgYWRk
-ZWQgdG8gdmVyaWZ5IHRoZSBTS0JfR1NPX1RDUF9FQ04gb3IgU0tCX0dTT19UQ1BfQUNDRUNOIGZs
-YWdzIChpZiB0aGVyZSBpcyBhbm90aGVyIHN1Z2dlc3RlZCB3YXksIHBsZWFzZSBsZXQgbWUga25v
-dyk/DQo+IA0KPiA+IFRoZSBjb21tZW50IGFzIHN0YXRlZCBzZWVtcyB0byBiZSBtaXNsZWFkaW5n
-IC0gdGhlcmUncyBub3RoaW5nIHdyb25nIHdpdGggdXNpbmcgdGhlIGZsYWcgaWYgdGhlIGRldmlj
-ZSBmb2xsb3dzIHRoZSBSRkMzMTY4IHNlbWFudGljcyBjb3JyZWN0bHkuDQo+ID4NCj4gPiBBbmQg
-b2YgY291cnNlLCBhZGRpbmcgYSBjb21tZW50IGFuZCBob3BpbmcgcGVvcGxlIHdpbGwgZmluZCBp
-dCBpcyBtdWNoIHdlYWtlciB0aGFuIGFkZGluZyB0ZXN0cy4NCj4gPg0KPiA+IEFnYWluLCBtYXli
-ZSBJJ20gbWlzc2luZyB3aGF0IF9hY3R1YWxseV8gZG9lc24ndCB3b3JrIGhlcmUuDQo+IA0KPiBC
-ZWZvcmUgYWRkaW5nIGFuIGV4dHJhIHRlc3QsIHdlIG5lZWQgdG8gY2xhcmlmeSB0aGUgZGVmaW5p
-dGlvbiBhbmQgdXNhZ2VzIG9mIHRoZXNlIGZsYWdzLg0KPiBBdCB0aGUgVFggcGF0aCwgaW4gdGNw
-X2dzb19zZWdtZW50KCkgb2YgbmV0L2lwdjQvdGNwX29mZmxvYWQuYywgdGhlIFNLQl9HU09fVENQ
-X0FDQ0VDTiBmbGFnIGlzIHVzZWQgdG8gcHJlc2VydmUgdGhlIENXUiBmbGFncyBmb3IgQWNjRUNO
-IGZsb3dzLg0KPiBPdGhlcndpc2UsIHdoZW4gd2l0aG91dCBTS0JfR1NPX1RDUF9BQ0NFQ04gKFJG
-QzMxNjggRUNOIG9yIE5vbi1FQ04gZmxvd3MpLCBjd3Igd2lsbCBiZSBjbGVhcmVkIGZyb20gdGhl
-IGZvbGxvd2luZyBwYWNrZXRzLg0KPiANCj4gRm9yIHRoZSBSWCBwYXRoLCB1bmZvcnR1bmF0ZWx5
-IEkgZG8gbm90IGZpbmQgYSBjbGVhciBydWxlIG9mIHdoZW4gU0tCX0dTT19UQ1BfRUNOIHNoYWxs
-IGJlIHNldCBleGNlcHQgaW4gaW5jbHVkZS9saW51eC9za2J1ZmYuaC4NCj4gUGx1cywgdGhlIGRl
-dmljZSB1c3VhbGx5IGRvZXMgbm90IHRyYWNrIHBhY2tldHMgYmVsb25naW5nIHRvIFJGQzMxNjgg
-RUNOIG9yIEFDQ0VDTiBmbG93cy4NCj4gU28sIG15IHByZXZpb3VzIHRob3VnaHQgaXMgdG8gYWx3
-YXlzIHVzZSBTS0JfR1NPX1RDUF9BQ0NFQ04gaW4gdGhlIFJYIHBhdGggdG8gYXZvaWQgYW55IHBv
-dGVudGlhbCBDV1IgYmxlYWNoaW5nLg0KPiANCj4gVGhpcyB3b3VsZCBiZSBhIGNhc2Ugd2hlcmUg
-QWNjRUNOIHN1cHBvcnQgY2F1c2VzIGEgcmVncmVzc2lvbiBmb3INCj4gcmVndWxhciBFQ04gaGFu
-ZGxpbmcsIGlmIHRoYXQgaXMgbm8gbG9uZ2VyIGFsbG93ZWQgdG8gYmUgY29hbGVzY2VkLg0KPiAN
-Cj4gTW9zdCBIVy1HUk8gaGFyZHdhcmUgb3V0IHRoZXJlIHRvZGF5IGxpa2VseSBvbmx5IHN1cHBv
-cnRzIEVDTi4gSW4NCj4gd2hpY2ggY2FzZSB0aGV5IGNhbiBzZXQgU0tCX0dTT19UQ1BfRUNOIGZp
-bmUuDQo+IA0KPiBJZiBBY2NFQ04gZmxvd3MgY2Fubm90IGJlIGRpZmZlcmVudGlhdGVkIGZyb20g
-RUNOIGZsb3dzLCBvbiBzdWNoDQo+IGRldmljZXMsIGRvZXMgdGhlIGFkbWluIGhhdmUgdG8gZGlz
-YWJsZSBIVy1HUk8gd2l0aCBFQ04gaWYgdGhleSBjYXJlDQo+IGFib3V0IHByZXNlcnZpbmcgQWNj
-RUNOIHNpZ25hbHM/DQo+IA0KPiBXaGF0IGRvZXMgU1cgR1JPIGRvIGhlcmU/DQoNCkhpIFdpbGxl
-bSwNCg0KQ3VycmVudCBTVyBHUk8gc2V0cyBTS0JfR1NPX1RDUF9BQ0NFQ04gd2hlbiB0aGUgZmx1
-c2hlZCBza2IgY2FycmllcyBDV1IgaW4gdGNwX2dyb19jb21wbGV0ZSgpOg0KaWYgKHRoLT5jd3Ip
-DQogICAgc2hpbmZvLT5nc29fdHlwZSB8PSBTS0JfR1NPX1RDUF9BQ0NFQ047DQoNCkZvciBIVyBH
-Uk8gb2YgYSBsZWdhY3kgZGV2aWNlIHRoYXQgaW1wbGVtZW50aW5nIFJGQzMxNjggc2VtYW50aWNz
-LCBzZXR0aW5nIFNLQl9HU09fVENQX0VDTiBzZWVtcyByZWFzb25hYmxlLg0KSG93ZXZlciwgc3Vj
-aCBhIGRldmljZSB3b3VsZCBub3QgYmUgYWJsZSB0byBwcmVzZXJ2ZSBBQ0NFQ04gc2lnbmFsaW5n
-IGFjcm9zcyB0aGUgR1JPL0dTTy4NCkluIHRoYXQgY2FzZSwgaWYgcHJlc2VydmluZyBBY2NFQ04g
-c2lnbmFsaW5nIGlzIHJlcXVpcmVkLCBkaXNhYmxpbmcgSFcgR1JPIG1heSBpbmRlZWQgYmUgbmVj
-ZXNzYXJ5Lg0KDQpBbmQgSSBzdGlsbCB0aGluayB0aGUgU0tCX0dTT19UQ1BfRUNOIGNvbW1lbnQg
-Y291bGQgYmUgY2xhcmlmaWVkLg0KRm9yIGV4YW1wbGUsIGJ5IHN0YXRpbmcgdGhhdCAiUlggR1JP
-IGltcGxlbWVudGF0aW9ucyB3aGljaCBuZWVkIHRvIHByZXNlcnZlIENXUiBpbmZvcm1hdGlvbiBh
-Y3Jvc3MgcmUtc2VnbWVudGF0aW9uIHNob3VsZCB1c2UgU0tCX0dTT19UQ1BfQUNDRUNOLiI/DQoN
-ClRoYW5rcyENCkNoaWEtWXUNCg==
+Chia-Yu Chang (Nokia) wrote:
+> > From: Mirja Kuehlewind <mirja.kuehlewind@ericsson.com> =
+
+> > Sent: Friday, August 14, 2026 10:57 AM
+> > To: Willem de Bruijn <willemdebruijn.kernel@gmail.com>; Chia-Yu Chang=
+ (Nokia) <chia-yu.chang@nokia-bell-labs.com>
+> > Cc: Jakub Kicinski <kuba@kernel.org>; shaojijie@huawei.com; shenjian1=
+5@huawei.com; linux-rdma@vger.kernel.org; eperezma@redhat.com; jasowang@r=
+edhat.com; virtualization@lists.linux.dev; mst@redhat.com; xuanzhuo@linux=
+.alibaba.com; pabeni@redhat.com; edumazet@google.com; linux-doc@vger.kern=
+el.org; corbet@lwn.net; horms@kernel.org; dsahern@kernel.org; kuniyu@goog=
+le.com; bpf@vger.kernel.org; netdev@vger.kernel.org; dave.taht@gmail.com;=
+ jhs@mojatatu.com; stephen@networkplumber.org; xiyou.wangcong@gmail.com; =
+jiri@resnulli.us; davem@davemloft.net; andrew+netdev@lunn.ch; donald.hunt=
+er@gmail.com; ast@fiberby.net; liuhangbin@gmail.com; shuah@kernel.org; li=
+nux-kselftest@vger.kernel.org; ij@kernel.org; ncardwell@google.com; Koen =
+De Schepper (Nokia) <koen.de_schepper@nokia-bell-labs.com>; g.white@cable=
+labs.com; Ingemar Johansson S <ingemar.s.johansson@ericsson.com>; cheshir=
+e@apple.com; rs.ietf@gmx.at; Jason_Livingood@comcast.com; vidhi_goel@appl=
+e.com; Parav Pandit <parav@nvidia.com>; Willem de Bruijn <willemb@google.=
+com>
+> > Subject: Re: [PATCH v5 net-next 1/2] net: update comments for SKB_GSO=
+_TCP_ECN and SKB_GSO_TCP_ACCECN
+> > =
+
+> > Hi Willem,
+> > =
+
+> > The current function of is SKB_GSO_TCP_ECN wrong. Fixing this causes =
+the regression.
+> > =
+
+> > Mirja
+> > =
+
+> > =
+
+> > =
+
+> > From: Willem de Bruijn <mailto:willemdebruijn.kernel@gmail.com>
+> > Subject: Re: [PATCH v5 net-next 1/2] net: update comments for SKB_GSO=
+_TCP_ECN and SKB_GSO_TCP_ACCECN
+> > =
+
+> > On Thu, Aug 13, 2026 at 6:33=E2=80=AFAM Chia-Yu Chang (Nokia)
+> > <mailto:chia-yu.chang@nokia-bell-labs.com> wrote:
+> > =
+
+> > > On Wed, 12 Aug 2026 10:33:19 +0000 Chia-Yu Chang (Nokia) wrote:
+> > > > > > -     /* This indicates the tcp segment has CWR set. */
+> > > > > > +     /* For TX, this indicates that the first TCP segment ha=
+s CWR set, and
+> > > > > > +      * any subsequent segment in the same skb has CWR clear=
+ed. This flag
+> > > > > > +      * must not be used in RX, because the connection to wh=
+ich the segment
+> > > > > > +      * belongs is not tracked to use RFC3168 or AccECN. Usi=
+ng RFC3168 ECN
+> > > > > > +      * offload may clear CWR and corrupt ACE signal (CWR is=
+ part of it).
+> > > > > > +      * Instead, SKB_GSO_TCP_ACCECN shall be used to avoid C=
+WR corruption.
+> > > > > > +      */
+> > > > >
+> > > > > I still can't wrap my head around this TBH.
+> > > > >
+> > > > > SKB_GSO_TCP_ECN means RFC3168
+> > > > > SKB_GSO_TCP_ACCECN means AccECN
+> > > > >
+> > > > > If the HW can correctly detect cwr on first frame and then no c=
+wr and report that as ECN/RFC3168 - what's the problem? TSO will produce =
+the exact expected segment sequence.
+> > > > >
+> > > > > Is the program that if we re-GRO that frame in SW we end up wit=
+h
+> > > > > ECN+ACCECN on the same skb?
+> > > >
+> > > > Yes, this is the problem.
+> > > > The HW does not know whether the received packets belong to an RF=
+C3168 ECN flow or an AccECN flow on the RX path.
+> > > > For example, HW GRO may set SKB_GSO_TCP_ECN after observing that =
+the first packet has CWR=3D1:
+> > > >
+> > > > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+
+> > > > |     Packet id     | CWR flag |       Flag      | Flushed as SKB=
+ |
+> > > > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+
+> > > > |         0         |     1    | SKB_GSO_TCP_ECN |        0      =
+ |
+> > > > |         1         |     0    |         -       |        0      =
+ |
+> > > > |         2         |     1    |         -       |        0      =
+ |
+> > > > |         3         |     1    |         -       |        1      =
+ |
+> > > > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+
+> > > >
+> > > > If the aggregated skb is forwarded through a device using GSO, e.=
+g.,
+> > > > HW RX (GRO) -> veth TX (GSO), the SKB_GSO_TCP_ECN applies RFC3168=
+
+> > > > semantics. This means that only the 1st segment keeps the CWR fla=
+g
+> > > > while all subsequent segments have CWR cleared:
+> > > >
+> > > > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D+
+> > > > |     Packet id     | CWR flag |
+> > > > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D+
+> > > > |         0         |     1    |
+> > > > |         1         |     0    |
+> > > > |         2         |     0    |
+> > > > |         3         |     0    |
+> > > > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D+
+> > > >
+> > > > This behavior is ok for RFC3168, since CWR is expected to appear =
+only
+> > > > once. However, for AccECN, CWR is part of the ACE signal and must=
+ be
+> > > > preserved across all segments.
+> > >
+> > > But this would be obviously a buggy HW-GRO implementation.
+> > > The rules for HW-GRO RFC3168 are -- ignore CWR on first segment (ho=
+st responsible for populating SKB_GSO_TCP_ECN), and CWR _must be 0_ for a=
+ll subsequent segments.
+> > >
+> > > > In the example above, the original CWR sequence was 1,0,1,1.
+> > > > But after re-segmentation it becomes: 1,0,0,0.
+> > > > This is why SKB_GSO_TCP_ECN should not be used in RX/GRO paths.
+> > >
+> > > We have extensive gro tests under
+> > > tools/testing/selftests/drivers/net/gro.py
+> > >
+> > > If you want to catch bad devices - add appropriate test cases there=
+.
+> > >
+> > =
+
+> > I added a test case in patch 6f74bc8b6e8d related to the CWR flag.
+> > In that case, there are 5 packets with CWR values of 0, 1, 1, 0, and =
+0, and packets are flushed after the 1st, 3rd, and 5th packets.
+> > The gro.py uses this case in tools/testing/selftests/net/lib/gro.c to=
+ verify CWR behavior.
+> > But indeed, that does not cover whether SKB_GSO_TCP_ECN or SKB_GSO_TC=
+P_ACCECN shall be set during the GRO.
+> > So, a test might be added to verify the SKB_GSO_TCP_ECN or SKB_GSO_TC=
+P_ACCECN flags (if there is another suggested way, please let me know)?
+> > =
+
+> > > The comment as stated seems to be misleading - there's nothing wron=
+g with using the flag if the device follows the RFC3168 semantics correct=
+ly.
+> > >
+> > > And of course, adding a comment and hoping people will find it is m=
+uch weaker than adding tests.
+> > >
+> > > Again, maybe I'm missing what _actually_ doesn't work here.
+> > =
+
+> > Before adding an extra test, we need to clarify the definition and us=
+ages of these flags.
+> > At the TX path, in tcp_gso_segment() of net/ipv4/tcp_offload.c, the S=
+KB_GSO_TCP_ACCECN flag is used to preserve the CWR flags for AccECN flows=
+.
+> > Otherwise, when without SKB_GSO_TCP_ACCECN (RFC3168 ECN or Non-ECN fl=
+ows), cwr will be cleared from the following packets.
+> > =
+
+> > For the RX path, unfortunately I do not find a clear rule of when SKB=
+_GSO_TCP_ECN shall be set except in include/linux/skbuff.h.
+> > Plus, the device usually does not track packets belonging to RFC3168 =
+ECN or ACCECN flows.
+> > So, my previous thought is to always use SKB_GSO_TCP_ACCECN in the RX=
+ path to avoid any potential CWR bleaching.
+> > =
+
+> > This would be a case where AccECN support causes a regression for
+> > regular ECN handling, if that is no longer allowed to be coalesced.
+> > =
+
+> > Most HW-GRO hardware out there today likely only supports ECN. In
+> > which case they can set SKB_GSO_TCP_ECN fine.
+> > =
+
+> > If AccECN flows cannot be differentiated from ECN flows, on such
+> > devices, does the admin have to disable HW-GRO with ECN if they care
+> > about preserving AccECN signals?
+> > =
+
+> > What does SW GRO do here?
+> =
+
+> Hi Willem,
+> =
+
+> Current SW GRO sets SKB_GSO_TCP_ACCECN when the flushed skb carries CWR=
+ in tcp_gro_complete():
+> if (th->cwr)
+>     shinfo->gso_type |=3D SKB_GSO_TCP_ACCECN;
+
+And I suppose it follows correct AccECN rules for coalescing.
+
+That is a performance regression from RFC 3168 ECN, as it allows for
+less effective coalescing. I have no intuition how much it will
+differ in practice.
+
+> =
+
+> For HW GRO of a legacy device that implementing RFC3168 semantics, sett=
+ing SKB_GSO_TCP_ECN seems reasonable.
+> However, such a device would not be able to preserve ACCECN signaling a=
+cross the GRO/GSO.
+> In that case, if preserving AccECN signaling is required, disabling HW =
+GRO may indeed be necessary.
+
+Right. And there currently is no kernel API to disable only ECN
+coalescing. NETIF_F_GRO_HW enables or disables HW-GRO entirely.
+Or even to signal whether a HW-GRO implementation is AccECN
+capable.
+
+Disabling HW-GRO can be a huge efficiency regression. I suspect
+many users will prioritize the efficiency over preserving the AccECN
+signal.
+
+That said, some devices may have other ways to configure such
+finer details of their HW-GRO, even though not available through
+Ethtool.
+
+> And I still think the SKB_GSO_TCP_ECN comment could be clarified.
+> For example, by stating that "RX GRO implementations which need to pres=
+erve CWR information across re-segmentation should use SKB_GSO_TCP_ACCECN=
+."?
+> =
+
+> Thanks!
+> Chia-Yu
+
+
