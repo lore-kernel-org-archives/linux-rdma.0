@@ -1,105 +1,44 @@
-Received: from mail-pj1-f97.google.com (mail-pj1-f97.google.com [209.85.216.97])
+Received: from mta0.migadu.com (out-252.mta0.migadu.com [91.218.175.252])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16E64456291
-	for <linux-rdma@vger.kernel.org>; Fri, 14 Aug 2026 09:11:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.97
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9E63370D63
+	for <linux-rdma@vger.kernel.org>; Fri, 14 Aug 2026 09:38:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.252
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786698680; cv=none; b=n6MZ1FTu8mN499UgV63W5s0lXDOGkhmkCMRp6hp8b/Hyz6fBsslBwYVKs3yEZ1QZaRZ5cXCdSPIiPgeYleVTQY8UBnhoLM3StN32yWKr3Zb6CuvnM4ZtFMCfUrrYYYHMBsyxGRbbtjy8oEFBHcsQJKctjoVfl8oLTTCcOegoBIE=
+	t=1786700288; cv=none; b=tsBaA9aGyslss5KdWB1ZHHk/3+/nOMlqg9/ibUyLvSsiMDtGxkVL/KyCdPyohyi2qqE1dOWMijtRfhnVtc+73rCq4xubL4QrtPfU7GWAPQqxG35Wcc+pDoogqKB5CFGnJ1XPeQNDW68YwS0grB9nfV/dpIxXrMvLojThqyPGZh8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786698680; c=relaxed/simple;
-	bh=4T3TGrPOmCcuyK6wQdLMcII19a6AyfhLY97Res9looE=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=lafLLzC0Pq06x0btOTOvWotLXCK3Ga4I/zvTfPBK4R/CYuhCRWAgRV/oO1JbQdHGStPMVFFRiayXuq5LavFkiuVel7lxg7bBRLJiUcOlf+hVuBUuwiVOUTiQxspOl1oH7MRMUkNM+NtKcHzTJa0YaP5Ql2NbCLWCj0KD2/6ybSU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=X3gM1PmX; arc=none smtp.client-ip=209.85.216.97
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
+	s=arc-20240116; t=1786700288; c=relaxed/simple;
+	bh=FVQfDUrbHjepdRtpMRhLJNPKhj6tVQsSgvGlErmtn/Y=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=fhN6xtKyBB3sMTCpXZox+f6u7CYirKzXMniGGsKxCnddQNTijgMo2/4lGDM3axiUXIP27SaKQaxdYF3PeMHplnO5F0GYO8GGryCuX42RiDHZ7hdbrgCwzLSYvGVdyMIEk2UQVqZAOwu2OJKdVYCYrMh4SAC/boQ1bz0fALvIwNA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=R3uyBxVO; arc=none smtp.client-ip=91.218.175.252
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="X3gM1PmX"
-Received: by mail-pj1-f97.google.com with SMTP id 98e67ed59e1d1-38e041ea211so845897a91.0
-        for <linux-rdma@vger.kernel.org>; Fri, 14 Aug 2026 02:11:18 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786698678; x=1787303478;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:dkim-signature:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=TSV0sSSXYSyAmLjxbnCOORhk+yB6Zbd6HUBS6OIrdiQ=;
-        b=nGSMLObnoKXgOijYgtJDwPIDcdjnD/f0ep1mAs1TU6gqsStZiXuGiU6SFBe/Cb0Zsv
-         GuHWTxbnYTgWpu5Hd5MoKzyZBpWLmREzsvzN0wEw4dl70RiQNlEZLvGItFPVM/DyGJAT
-         nlU8XSR8ELVc3s5wz73KmGOklerQl3IhKiruQ5hq38DtrxzHQgxi1mhzJidQKeUw3vsZ
-         GoDXPtUpB6XJf6fDzQ6U07udN6aFkVWYquQH+CHSkryqLDMC729eM7HDYpffD77ni1mq
-         x6EPFUXKAlKJIVkmh1ktoihBN/NUYd1Xpj1k+FzkowE7Ip7lovYYq0NmI9jzmuRhYZV9
-         4kjA==
-X-Forwarded-Encrypted: i=1; AHgh+Ro0QHFsaIXzgwd98U3jRJwqbnqT5fvCEDLB/GlJr1ufa6cLl14K6mTV67p19NZcV3q+r/6hs8v0gbVa@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx5VigPqNCEItLTjhSdrObvAlsMH9HITR+5qr0OsHwFJZrOUtJt
-	j+1xGEjU4RtrdkzEEmQd3AVPCI82fb0MhMincmfCN4xE0PAIP+O+BogOocawt0C4AENEWyIlVdh
-	GmtUq1KJkhkT0WNiieu3f1/3Z24ypee3dVLb9Vak8Pd7yfZIq4Mba0MwyP0L5h7QgQVHNpuEuIb
-	gmxJesfEDNxKy/+1uGggSVMJ0GC9w6wOQsgjsUlIeUL+K4wCNRo4L2R3cXKaxrLE0vBS+ud1tYw
-	ynyCOw0Qj5Wru8=
-X-Gm-Gg: AR+sD11bV0VcdfOC9Bw3RHZhaCVpxczPxnkikYzelXGc4nebDmXNamUet5rSpBzpzyY
-	5b9RCOYogxkp0qfGiBPCe2X+EgMV8c1P/Zl4YpnaKZ8Tx9DbBT5EEYkTLQ0LZ83feH/eQSFWu+8
-	H112myPKcrKTJDeMJwe5UozIEYb6rLgLuWV99qphK/DlVN8NhBrSB41xww44CcPi0k6kceBc29A
-	fNrPKzhnCAyNnuD56tv0WxmLprMTDPcTs/sgnyO21CUKDCg7Z+eaQm8Mrshfdz3tao3g7wVaduM
-	4ESUkUbaemlVOxzUNnrYasgrQ5ZGlRPJ4DxHpvsNWZ5OFyqPC4ETNHPw2tx5y8K09H+tE4ZQVFE
-	7zwpuN7ZzLLK46P8yDW7BQusuvjCjF2GnQ9Sgg/wUEBfRZkzNLVdLvIzsQQIh0Bs3A2bZ2reklD
-	wYebKEcbzJox/bYkG5yrxVZpOE8/QVKXeKJw==
-X-Received: by 2002:a17:90b:1650:b0:37f:e326:6557 with SMTP id 98e67ed59e1d1-3933b6f3882mr4261519a91.4.1786698678329;
-        Fri, 14 Aug 2026 02:11:18 -0700 (PDT)
-Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-20.dlp.protect.broadcom.com. [144.49.247.20])
-        by smtp-relay.gmail.com with ESMTPS id 98e67ed59e1d1-394ebbb53bcsm653105a91.11.2026.08.14.02.11.17
-        for <linux-rdma@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 14 Aug 2026 02:11:18 -0700 (PDT)
-X-Relaying-Domain: broadcom.com
-X-CFilter-Loop: Reflected
-Received: by mail-pg1-f200.google.com with SMTP id 41be03b00d2f7-cbb20f82a0eso573262a12.0
-        for <linux-rdma@vger.kernel.org>; Fri, 14 Aug 2026 02:11:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1786698677; x=1787303477; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=TSV0sSSXYSyAmLjxbnCOORhk+yB6Zbd6HUBS6OIrdiQ=;
-        b=X3gM1PmXSAetu4Jt8VHim1DnBbOwS8gwu1gMybOF+I4HdQPmB6d031kRaiQbg8WgWo
-         GuH2y/l0yAIePgAkz2gTErZSgtui+SQnjAJoryOwlDRTaMTsGKrYCkLrzJErpJqDkCzd
-         +VV3g/iS9R9MQxkjvqJVfSrPhZnLwDwBN3Y/0=
-X-Forwarded-Encrypted: i=1; AHgh+RqEPc97H2fTxe4TEjVs0BrasknQYbQOSU5wFCKlDT4tqcaOOPVa9nbTUX1kgt4wwwBAljttHfOglDS6@vger.kernel.org
-X-Received: by 2002:a05:6a20:6f93:b0:3b4:9171:2573 with SMTP id adf61e73a8af0-3cc71e32e45mr4481822637.37.1786698676589;
-        Fri, 14 Aug 2026 02:11:16 -0700 (PDT)
-X-Received: by 2002:a05:6a20:6f93:b0:3b4:9171:2573 with SMTP id adf61e73a8af0-3cc71e32e45mr4481785637.37.1786698676204;
-        Fri, 14 Aug 2026 02:11:16 -0700 (PDT)
-Received: from localhost.localdomain ([192.19.203.250])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1413887e3e7sm7056408c88.9.2026.08.14.02.11.10
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 14 Aug 2026 02:11:15 -0700 (PDT)
-From: Vikas Gupta <vikas.gupta@broadcom.com>
-To: davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	andrew+netdev@lunn.ch,
-	horms@kernel.org
-Cc: netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	leonro@nvidia.com,
-	jgg@nvidia.com,
-	bhargava.marreddy@broadcom.com,
-	rahul-rg.gupta@broadcom.com,
-	vsrama-krishna.nemani@broadcom.com,
-	rajashekar.hudumula@broadcom.com,
-	ajit.khaparde@broadcom.com,
-	siva.kallam@broadcom.com,
-	usman.ansari@broadcom.com,
-	Vikas Gupta <vikas.gupta@broadcom.com>,
-	Dharmender Garg <dharmender.garg@broadcom.com>
-Subject: [PATCH net-next 2/2] bnge: add steps in bnge_shutdown()
-Date: Fri, 14 Aug 2026 14:40:54 +0530
-Message-ID: <20260814091054.359508-3-vikas.gupta@broadcom.com>
-X-Mailer: git-send-email 2.47.1
-In-Reply-To: <20260814091054.359508-1-vikas.gupta@broadcom.com>
-References: <20260814091054.359508-1-vikas.gupta@broadcom.com>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="R3uyBxVO"
+X-Envelope-To: linux-rdma@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=FVQfDUrbHjepdRtpMRhLJNPKhj6tVQsSgvGlErmtn/Y=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1786700283; v=1; x=1787305083;
+ b=R3uyBxVOLncu2mzEvmoRY9tH2UGU1a/f/HUawNBCOCFf0Fv+PN44//29O+qazdLe4k2yg4kY
+ XFxE8q7jMFkuO/J8Ik6HkgHlAdwuZl5n0hyUis0Lj9fpgAMwwCqQPL7Ga26JWTWTWS7nyDs0fol
+ J6m90Pv/3GsnsM9qf2nhoTJU=
+X-Envelope-To: linux-rdma@vger.kernel.org
+Received: from thinkbook16p.. (223.70.160.239)
+	by smtp.migadu.com with ESMTPS id 5b9216f55cc885cc;
+	Fri, 14 Aug 2026 09:37:53 +0000
+X-Migadu-Flow: FLOW_OUT
+From: Gang Yan <gang.yan@linux.dev>
+To: yanjun.zhu@linux.dev,
+	jgg@ziepe.ca,
+	leon@kernel.org,
+	linux-rdma@vger.kernel.org
+Cc: Gang Yan <yangang@kylinos.cn>,
+	stable@vger.kernel.org
+Subject: [PATCH net v3] RDMA/rxe: Fix integer overflow in mr_check_range() leading to OOB access
+Date: Fri, 14 Aug 2026 17:37:40 +0800
+Message-ID: <20260814093740.292954-1-gang.yan@linux.dev>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -107,73 +46,65 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 
-Since the driver now implements ndo_open and ndo_close with full link
-management, the shutdown callback must mirror the close sequence to
-ensure the device is brought down cleanly.
+From: Gang Yan <yangang@kylinos.cn>
 
-Signed-off-by: Vikas Gupta <vikas.gupta@broadcom.com>
-Reviewed-by: Dharmender Garg <dharmender.garg@broadcom.com>
-Reviewed-by: Rahul Gupta <rahul-rg.gupta@broadcom.com>
+mr_check_range() validates that [iova, iova+length) falls within the
+registered MR range using wraparound-prone arithmetic:
+
+    if (iova < mr->ibmr.iova ||
+        iova + length > mr->ibmr.iova + mr->ibmr.length)
+
+A remote peer can craft an RDMA-Write/Read RETH so that iova + length
+wraps to 0 (e.g. iova=0xfffffffffffffff8, length=8), bypassing the
+check. rxe_mr_iova_to_index() then computes a huge index (int idx, only
+guarded by WARN_ON) and rxe_mr_copy_xarray() dereferences
+mr->page_info[huge], causing an out-of-bounds read/write and a kernel
+oops that is triggerable by an unauthenticated remote peer.
+
+Rewrite the check in overflow-safe form; the first two clauses guarantee
+that the subsequent subtractions do not underflow:
+
+    if (iova < mr->ibmr.iova ||
+        length > mr->ibmr.length ||
+        iova - mr->ibmr.iova > mr->ibmr.length - length)
+
+With the fix, mr_check_range() returns -EINVAL for the crafted iova and
+the responder reports REMOTE_ACCESS_ERROR instead of triggering the OOB.
+
+Assisted-by: Codex: GLM-5.2
+Fixes: 8700e3e7c485 ("Soft RoCE driver")
+Cc: stable@vger.kernel.org
+Signed-off-by: Gang Yan <yangang@kylinos.cn>
+Reviewed-by: Zhu Yanjun <yanjun.zhu@linux.dev>
 ---
- .../net/ethernet/broadcom/bnge/bnge_core.c    | 24 +++++++++++++++++++
- 1 file changed, 24 insertions(+)
+Changelog:
+v3:
+  - rebase on rdma/for-next
+  - CC to stable maillist
+v2:
+  - Add Yanjun's reviewed-by tag as he suggested.
+v1:
+  - The reproducer is attached in v1 thread.
+  Link: https://lore.kernel.org/all/20260728091128.9116-1-gang.yan@linux.dev/
+---
+ drivers/infiniband/sw/rxe/rxe_mr.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/broadcom/bnge/bnge_core.c b/drivers/net/ethernet/broadcom/bnge/bnge_core.c
-index 68b74eb2c3a2..9846d29b4fe3 100644
---- a/drivers/net/ethernet/broadcom/bnge/bnge_core.c
-+++ b/drivers/net/ethernet/broadcom/bnge/bnge_core.c
-@@ -5,12 +5,14 @@
- #include <linux/crash_dump.h>
- #include <linux/module.h>
- #include <linux/pci.h>
-+#include <linux/rtnetlink.h>
- 
- #include "bnge.h"
- #include "bnge_devlink.h"
- #include "bnge_hwrm.h"
- #include "bnge_hwrm_lib.h"
- #include "bnge_link.h"
-+#include "bnge_resc.h"
- 
- MODULE_LICENSE("GPL");
- MODULE_DESCRIPTION(DRV_SUMMARY);
-@@ -406,12 +408,34 @@ static void bnge_remove_one(struct pci_dev *pdev)
- 
- static void bnge_shutdown(struct pci_dev *pdev)
- {
-+	struct bnge_dev *bd = pci_get_drvdata(pdev);
-+	struct net_device *dev;
-+
-+	dev = bd ? bd->netdev : NULL;
-+	if (!dev)
-+		return;
-+
-+	rtnl_lock();
-+	netdev_lock(dev);
-+
-+	if (netif_running(dev))
-+		netif_close(dev);
-+
-+	if (bnge_hwrm_func_drv_unrgtr(bd)) {
-+		pcie_flr(pdev);
-+		goto shutdown_exit;
-+	}
-+	bnge_free_irqs(bd);
- 	pci_disable_device(pdev);
- 
- 	if (system_state == SYSTEM_POWER_OFF) {
- 		pci_wake_from_d3(pdev, 0);
- 		pci_set_power_state(pdev, PCI_D3hot);
- 	}
-+
-+shutdown_exit:
-+	netdev_unlock(dev);
-+	rtnl_unlock();
- }
- 
- static struct pci_driver bnge_driver = {
+diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
+index 875eceb55fdf..71d9ea477289 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mr.c
++++ b/drivers/infiniband/sw/rxe/rxe_mr.c
+@@ -33,7 +33,8 @@ int mr_check_range(struct rxe_mr *mr, u64 iova, size_t length)
+ 	case IB_MR_TYPE_USER:
+ 	case IB_MR_TYPE_MEM_REG:
+ 		if (iova < mr->ibmr.iova ||
+-		    iova + length > mr->ibmr.iova + mr->ibmr.length) {
++		    length > mr->ibmr.length ||
++		    iova - mr->ibmr.iova > mr->ibmr.length - length) {
+ 			rxe_dbg_mr(mr, "iova/length out of range\n");
+ 			return -EINVAL;
+ 		}
 -- 
-2.47.1
+2.43.0
 
