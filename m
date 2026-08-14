@@ -1,377 +1,230 @@
-Received: from mail-yw1-f179.google.com (mail-yw1-f179.google.com [209.85.128.179])
+Received: from mail-pg1-f197.google.com (mail-pg1-f197.google.com [209.85.215.197])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 795E6470125
-	for <linux-rdma@vger.kernel.org>; Fri, 14 Aug 2026 13:34:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1EB44746BF
+	for <linux-rdma@vger.kernel.org>; Fri, 14 Aug 2026 14:32:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.197
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786714448; cv=none; b=I1DyC6ZvdcZAVnxdjpoFS5iqMfcB/b35Vn1KAbYa/lBq4l6Vvqb7Tg7jkpxiA15iAuuTNIC0jJMGB6KBbs/OQ9TLT3QebGyvtw6FlxLX6E5dW6JYyssbd8ubukrhdWJogQMSbNm4oemCdky7t81jvGrTBaLsILqMQCyJdAKypEQ=
+	t=1786717983; cv=none; b=Cuqh0iCzs2lR/dlFefKJ4/c55sG2mbdG44XBRKihxb3JdFmSu+OQLzcSkI+XaKQEZ9kQpNEOEZ8vgjABRuxunzYQ9tps355HdJB2P7jOYa3zCU73eAc740WB5xV/I/dJbk+/89rCZ4tivj6g+ZLhYwWCDS+7SrPzCWOYcdYHSqQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786714448; c=relaxed/simple;
-	bh=KLPBe7MmMT+rRxR0SQnKlMKqxOvfblXjnlpnb8WUCTE=;
-	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
-	 Mime-Version:Content-Type; b=lsu3akyZedxhvF4IWpLOkOzDlxETRq+UdVN8FUervSNUiR4Kx9OF8lQemv8PKUliNwJLHqapibbFC6pewGpO7fKUU6HEgp0D32eEdXxK5wMvLinkTLxv/snQFpZ9UTlqx8p9+1PDEgrZD80Z1/RuA9sYUgbz/RLZuO/m5PYLP6Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Lqg5pwzs; arc=none smtp.client-ip=209.85.128.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1786717983; c=relaxed/simple;
+	bh=fEf+aoVOmWE9QgWXBBCMkjF2FiCJRCYZ+9VLM2p+ycU=;
+	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=E6PXangX3s37We7q1P+QNIywEhzhz6PdN+fPKs0ktIwAEDzKKTXsTGkWG3NWfGed+eydY8xcMXB74Ys8m0FXbBImFHBN8ZwDXQHoKM/V/CjT8zq1KopbinS7h0GZ8Ro8Hh9ntnB1pMTN8Pr0Y4IN/vATyW1v2C5I2P7FjnVgfMU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--praan.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=MkBwEL5s; arc=none smtp.client-ip=209.85.215.197
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--praan.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Lqg5pwzs"
-Received: by mail-yw1-f179.google.com with SMTP id 00721157ae682-836cd7310f4so14561417b3.2
-        for <linux-rdma@vger.kernel.org>; Fri, 14 Aug 2026 06:34:04 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="MkBwEL5s"
+Received: by mail-pg1-f197.google.com with SMTP id 41be03b00d2f7-cb5cc1e139bso780206a12.3
+        for <linux-rdma@vger.kernel.org>; Fri, 14 Aug 2026 07:32:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786714443; x=1787319243; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:mime-version:subject
-         :references:in-reply-to:message-id:cc:to:from:date:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=OJqvMkGymJf5lK4k8ANoduG6M5FSqz82g4dX9Jup2y4=;
-        b=Lqg5pwzsnZxn34CloqKJwtpoirBRewCQGo/8tFN+WA+typhxYaqTk2xPT8X28ibUJS
-         vUxYV/EDjLLvcixo+2JX4VeoLk6GBuJTm7XjiVusDKbMcmlesVepCSKRl2r/NaEuJHPr
-         zPsuqVG2/3J4CWxEsJItAnewoc9FzI1daKgN1F5ILSaROVO2GsrrNxD64aQ6TUmwwXQA
-         Xalr/IufIdrsaR9IQ01ucF5iIwAd3BiVpLSBnhdOBZczAjvOJXSn7TuGZN0M8lLCoQCk
-         G3QYoFSltpJR1CxuE7z+lRxhElKbterjtISdT0eQ3c3WPwEVnpeQFfRliNCtuq0ae82s
-         zQuA==
+        d=google.com; s=20251104; t=1786717978; x=1787322778; darn=vger.kernel.org;
+        h=content-type:cc:to:from:subject:message-id:mime-version:date:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=dZBlRjehuCRyYG4VdtgBrAbEd7nP4qKEWqIDe08LiIY=;
+        b=MkBwEL5s0bjOGTQBhMlhEd2kmt0hrng4So5pMERYAVhJvB406e94Kwb+xIpwSXjjka
+         vGS2BtHsGDzx0ubrPOhI/RzDyIPIP4G3cCvCdrSpSXyUO5lIvce8h98FWSds0fjiBBIr
+         Iz5/UjvJd36LjLD76hNjIBzfwyUKghp3Iaio+u/W6O93HjZXtRJfnkCHqGJ/yuwAa2WW
+         st7QHWVzbe+O5RdVPNl7d/quYcOMyH8h3eKX5KjDErUbP5gV9tSIq0r/BUaNc5fZwkmn
+         J7Bll4IFfYqb3ueY8Rz9WERMwPAPnpky9I+is4bb/KThvWyAYH0k1XyucJPXzHyRK/Um
+         CLMA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786714443; x=1787319243;
-        h=content-transfer-encoding:content-type:mime-version:subject
-         :references:in-reply-to:message-id:cc:to:from:date:x-gm-gg
+        d=1e100.net; s=20251104; t=1786717978; x=1787322778;
+        h=content-type:cc:to:from:subject:message-id:mime-version:date
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=OJqvMkGymJf5lK4k8ANoduG6M5FSqz82g4dX9Jup2y4=;
-        b=eIclgNOMX4LkSWyfnMwF5/S7iyrGY2pClp4kKVXGwGo2fGZi+q84mSk4r4WX2OTTBv
-         5CAp03Hw37+FaxK4floC4MtFHOFBW8+mRd1PJ7bKlez2SKtVHTyJthlJCHQB5297pOFo
-         uf139GhjBeBxPbl0tXhSM5+tmLTbz3GLR6pC9oVD1OUW2fBYi2pmPsF9KIKJ7DUBAr8U
-         ZxVG+DoN6ZYQ1y68eGM2N6+XHwz22lAoiqdwiDX6uTN9/IZVc+xj9kHdRDVLWbkT70Oj
-         LYMirkD26Wpsv6JWoNF7iHg2rsdVZba5sbAphkl+Km2f3ID6NmbZoOva+1aKWtl2Libh
-         QKMw==
-X-Forwarded-Encrypted: i=1; AHgh+RoeYWlNY8mefXzqlUxeRA2B+FQlqI/U8lQo6yp1BVJIuUq83kWLFGaRkO+FtUJY7xzdr8z0j48ND4kz@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywu/PO1dPqj3HKWdvk8OeYoKFruejpTG8K9L1bt8qqyXoCT/6pc
-	LsHDfGlOvWRtMPqypn59TISNcT4U7QKAHFgbhEjG4uQzQ7Nx/ro+7l1V
-X-Gm-Gg: AR+sD13qzot5/Jp5AyAn4d2+LDZdgaB7x662gFlP9E6n+GqbxKYOza6iJMCR87Txoqm
-	U0Rldawz9K0Ixx/YaAgRLUlZ8d4Dv/c74+XNE145vRFcfu+seuvjFz3f2EWOTOoLQtJ8+Sl/4Ab
-	ud61nm1zT7OkrIl8auHT/1fiLs8nAwTDFWkExU7bCM0hRbe9dAmHmQJ5SaVi6rD9kEK2ZzLcxIG
-	yAylJKx4CqJOy/dDhvgN6EuPmG/IcqI2o832gyKVFx0i3DXOaFsNX4fbamWk3NEfUWP+SKI5naL
-	evMqOey79dWyvCn2p/QgrFMDPm0w0TNXKg+/kwKH+po+XZDSIyA1+Ns48Ueo3j2sJG+1TbqbMBB
-	9Z+9zz0F3nKxZnKUKdI+VfkFHHyI7ZMbs7ORppsehGlHNiD2EaarpUCsPSuMceCe1aTuC+Scawz
-	b+Xtx2OKNT1y/UcP1juyayFCQtm0vyI4/01ikHSanYecBoJMhZ333dXMOMCQ5HE5w5rK2jGwNXT
-	fF6UXlxpHoNRi0QFYRFIdNP/LJ4Lnm5UkrN
-X-Received: by 2002:a05:690c:a6cc:b0:80b:9f4e:a70 with SMTP id 00721157ae682-837124de3b4mr18643737b3.26.1786714442899;
-        Fri, 14 Aug 2026 06:34:02 -0700 (PDT)
-Received: from gmail.com (250.4.48.34.bc.googleusercontent.com. [34.48.4.250])
-        by smtp.gmail.com with ESMTPSA id 00721157ae682-836bc689e3asm12934997b3.17.2026.08.14.06.34.01
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 14 Aug 2026 06:34:01 -0700 (PDT)
-Date: Fri, 14 Aug 2026 09:34:01 -0400
-From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-To: "Chia-Yu Chang (Nokia)" <chia-yu.chang@nokia-bell-labs.com>, 
- Mirja Kuehlewind <mirja.kuehlewind@ericsson.com>, 
- Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Cc: Jakub Kicinski <kuba@kernel.org>, 
- "shaojijie@huawei.com" <shaojijie@huawei.com>, 
- "shenjian15@huawei.com" <shenjian15@huawei.com>, 
- "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, 
- "eperezma@redhat.com" <eperezma@redhat.com>, 
- "jasowang@redhat.com" <jasowang@redhat.com>, 
- "virtualization@lists.linux.dev" <virtualization@lists.linux.dev>, 
- "mst@redhat.com" <mst@redhat.com>, 
- "xuanzhuo@linux.alibaba.com" <xuanzhuo@linux.alibaba.com>, 
- "pabeni@redhat.com" <pabeni@redhat.com>, 
- "edumazet@google.com" <edumazet@google.com>, 
- "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, 
- "corbet@lwn.net" <corbet@lwn.net>, 
- "horms@kernel.org" <horms@kernel.org>, 
- "dsahern@kernel.org" <dsahern@kernel.org>, 
- "kuniyu@google.com" <kuniyu@google.com>, 
- "bpf@vger.kernel.org" <bpf@vger.kernel.org>, 
- "netdev@vger.kernel.org" <netdev@vger.kernel.org>, 
- "dave.taht@gmail.com" <dave.taht@gmail.com>, 
- "jhs@mojatatu.com" <jhs@mojatatu.com>, 
- "stephen@networkplumber.org" <stephen@networkplumber.org>, 
- "xiyou.wangcong@gmail.com" <xiyou.wangcong@gmail.com>, 
- "jiri@resnulli.us" <jiri@resnulli.us>, 
- "davem@davemloft.net" <davem@davemloft.net>, 
- "andrew+netdev@lunn.ch" <andrew+netdev@lunn.ch>, 
- "donald.hunter@gmail.com" <donald.hunter@gmail.com>, 
- "ast@fiberby.net" <ast@fiberby.net>, 
- "liuhangbin@gmail.com" <liuhangbin@gmail.com>, 
- "shuah@kernel.org" <shuah@kernel.org>, 
- "linux-kselftest@vger.kernel.org" <linux-kselftest@vger.kernel.org>, 
- "ij@kernel.org" <ij@kernel.org>, 
- "ncardwell@google.com" <ncardwell@google.com>, 
- "Koen De Schepper (Nokia)" <koen.de_schepper@nokia-bell-labs.com>, 
- "g.white@cablelabs.com" <g.white@cablelabs.com>, 
- Ingemar Johansson S <ingemar.s.johansson@ericsson.com>, 
- "cheshire@apple.com" <cheshire@apple.com>, 
- "rs.ietf@gmx.at" <rs.ietf@gmx.at>, 
- "Jason_Livingood@comcast.com" <Jason_Livingood@comcast.com>, 
- "vidhi_goel@apple.com" <vidhi_goel@apple.com>, 
- Parav Pandit <parav@nvidia.com>, 
- Willem de Bruijn <willemb@google.com>
-Message-ID: <willemdebruijn.kernel.c248a28f9c86@gmail.com>
-In-Reply-To: <PAXPR07MB7984ED42ED0849D3A9AB8C19A3DA2@PAXPR07MB7984.eurprd07.prod.outlook.com>
-References: <20260804213510.673084-1-chia-yu.chang@nokia-bell-labs.com>
- <20260804213510.673084-2-chia-yu.chang@nokia-bell-labs.com>
- <20260811173017.3d18dfdc@kernel.org>
- <PAXPR07MB79849A3F1724DBB2DA8EA20AA3DC2@PAXPR07MB7984.eurprd07.prod.outlook.com>
- <20260812155430.6ec81eec@kernel.org>
- <PAXPR07MB7984E3E73868BF8966821C27A3DB2@PAXPR07MB7984.eurprd07.prod.outlook.com>
- <CAF=yD-LQbndjPZiXcfA6fMp6msza_+YdzqqwyeUDVTdOCOHhDw@mail.gmail.com>
- <47BE8A8A-F80C-4C30-BC95-C85FEBFFB606@ericsson.com>
- <PAXPR07MB7984ED42ED0849D3A9AB8C19A3DA2@PAXPR07MB7984.eurprd07.prod.outlook.com>
-Subject: RE: [PATCH v5 net-next 1/2] net: update comments for SKB_GSO_TCP_ECN
- and SKB_GSO_TCP_ACCECN
+        bh=dZBlRjehuCRyYG4VdtgBrAbEd7nP4qKEWqIDe08LiIY=;
+        b=r8DT1wTosTE+aiW1GhRD07nT2zeuj1OxzT1l+3Kuff+d8hjnMtIw8YtWJXFXTeAvDU
+         LghFfJ8IbfQZ0xY61yGMoXJfGZ0uosrcHwy1RLqj6KMlMoctXr0P01ZOIckBqFKaklY6
+         Anw1e99R9K8pBv3c5WrajO1UwpQI2kh/tUD2UNdJ3Ph3YvujL8GmrfQQKM2uLKyAC/O8
+         es39DgegHRg/7DhEFlgMHKEbiINzKhWfQ6FkvYoXzAivJ75VyojU55Yg3jmxjhbPCabQ
+         iXW2g/rO+fozIROIKZ255MHIFWfXGlyTkrJvMYqMM+hMVShg0F2fZKPQ1WaxJOBApe5h
+         hfDA==
+X-Forwarded-Encrypted: i=1; AHgh+RrA9k5hNgW0HqynJzKE80QFNWXtZGchb9pJME9RO7tyMJNmNRisr/XyWKncENLM5C304GkHqGqQXlak@vger.kernel.org
+X-Gm-Message-State: AOJu0YxzejRONVgdCeAXkL9OizF1Hvmf+8yvFogyQHkAcnI7RoDzb62m
+	5/WdIj61swp/5syMnzyFjraclEfHwOPIQOt0Iyot0GqXk5NyWykFFCxvB9DvHeJa3qrvPgEF/xY
+	jag==
+X-Received: from pgdf6.prod.google.com ([2002:a05:6a02:5146:b0:cbb:676d:ab19])
+ (user=praan job=prod-delivery.src-stubby-dispatcher) by 2002:a05:6a00:1818:b0:848:46a0:3d74
+ with SMTP id d2e1a72fcca58-84fde3ccf6amr6609292b3a.9.1786717977916; Fri, 14
+ Aug 2026 07:32:57 -0700 (PDT)
+Date: Fri, 14 Aug 2026 14:32:50 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+X-Mailer: git-send-email 2.55.0.691.gc56d675ccc-goog
+Message-ID: <20260814143255.861084-1-praan@google.com>
+Subject: [PATCH v6 0/5] nfs: modernize direct I/O path
+From: Pranjal Shrivastava <praan@google.com>
+To: linux-nfs@vger.kernel.org, Trond Myklebust <trondmy@kernel.org>, 
+	Anna Schumaker <anna@kernel.org>
+Cc: Chuck Lever <cel@kernel.org>, Jeff Layton <jlayton@kernel.org>, linux-kernel@vger.kernel.org, 
+	Christoph Hellwig <hch@lst.de>, Logan Gunthorpe <logang@deltatee.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
+	linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, 
+	Shivaji Kant <shivajikant@google.com>, Pranjal Shrivastava <praan@google.com>
+Content-Type: text/plain; charset="UTF-8"
 
-Chia-Yu Chang (Nokia) wrote:
-> > From: Mirja Kuehlewind <mirja.kuehlewind@ericsson.com> =
+Modernize the NFS Direct I/O path as a preparatory step to enable PCI
+Peer-to-Peer DMA (P2PDMA) support. Following feedback on the initial
+RFC [1], the modernization and architectural changes are split into
+different series. Additionally, based on the discussion in the v2 [2]
+of this series, the migration of NFS Direct I/O to folios would be
+handled in a separate follow-up series.
 
-> > Sent: Friday, August 14, 2026 10:57 AM
-> > To: Willem de Bruijn <willemdebruijn.kernel@gmail.com>; Chia-Yu Chang=
- (Nokia) <chia-yu.chang@nokia-bell-labs.com>
-> > Cc: Jakub Kicinski <kuba@kernel.org>; shaojijie@huawei.com; shenjian1=
-5@huawei.com; linux-rdma@vger.kernel.org; eperezma@redhat.com; jasowang@r=
-edhat.com; virtualization@lists.linux.dev; mst@redhat.com; xuanzhuo@linux=
-.alibaba.com; pabeni@redhat.com; edumazet@google.com; linux-doc@vger.kern=
-el.org; corbet@lwn.net; horms@kernel.org; dsahern@kernel.org; kuniyu@goog=
-le.com; bpf@vger.kernel.org; netdev@vger.kernel.org; dave.taht@gmail.com;=
- jhs@mojatatu.com; stephen@networkplumber.org; xiyou.wangcong@gmail.com; =
-jiri@resnulli.us; davem@davemloft.net; andrew+netdev@lunn.ch; donald.hunt=
-er@gmail.com; ast@fiberby.net; liuhangbin@gmail.com; shuah@kernel.org; li=
-nux-kselftest@vger.kernel.org; ij@kernel.org; ncardwell@google.com; Koen =
-De Schepper (Nokia) <koen.de_schepper@nokia-bell-labs.com>; g.white@cable=
-labs.com; Ingemar Johansson S <ingemar.s.johansson@ericsson.com>; cheshir=
-e@apple.com; rs.ietf@gmx.at; Jason_Livingood@comcast.com; vidhi_goel@appl=
-e.com; Parav Pandit <parav@nvidia.com>; Willem de Bruijn <willemb@google.=
-com>
-> > Subject: Re: [PATCH v5 net-next 1/2] net: update comments for SKB_GSO=
-_TCP_ECN and SKB_GSO_TCP_ACCECN
-> > =
+Currently, NFS O_DIRECT relies on the legacy iov_iter_get_pages_alloc2()
+API which does not support the pinning requirements for P2P memory.
+The implementation moves NFS to the modern iov_iter_extract_pages() API.
 
-> > Hi Willem,
-> > =
+Design
+======
 
-> > The current function of is SKB_GSO_TCP_ECN wrong. Fixing this causes =
-the regression.
-> > =
+1. Pin-Awareness
+Standard NFS requests use get_page() and put_page() for memory
+management. However, memory extracted via iov_iter_extract_pages()
+requires explicit pinning.
 
-> > Mirja
-> > =
+Introduce a PG_PINNED flag and a wb_nr_pinned count to struct nfs_page.
+This allows the request lifecycle to track ownership of physical pins
+and ensure that unpinning is performed only when the I/O is complete.
 
-> > =
+2. API Migration
+Migrate the Direct I/O path to the modern iov_iter_extract_pages()
+API. This aligns NFS with the modern extraction model and serves as
+the foundation for passing ITER_ALLOW_P2PDMA in a follow-up series.
 
-> > =
+Upcoming Work / Roadmap
+================================
 
-> > From: Willem de Bruijn <mailto:willemdebruijn.kernel@gmail.com>
-> > Subject: Re: [PATCH v5 net-next 1/2] net: update comments for SKB_GSO=
-_TCP_ECN and SKB_GSO_TCP_ACCECN
-> > =
+As decided in the RFC [1] & v2 [2], there will be separate series for
+P2PDMA Enablement and Migrating NFS Direct I/O to use folios.
 
-> > On Thu, Aug 13, 2026 at 6:33=E2=80=AFAM Chia-Yu Chang (Nokia)
-> > <mailto:chia-yu.chang@nokia-bell-labs.com> wrote:
-> > =
+This series lays the necessary groundwork for the upcoming work.
+Following this, two additional series are planned:
 
-> > > On Wed, 12 Aug 2026 10:33:19 +0000 Chia-Yu Chang (Nokia) wrote:
-> > > > > > -     /* This indicates the tcp segment has CWR set. */
-> > > > > > +     /* For TX, this indicates that the first TCP segment ha=
-s CWR set, and
-> > > > > > +      * any subsequent segment in the same skb has CWR clear=
-ed. This flag
-> > > > > > +      * must not be used in RX, because the connection to wh=
-ich the segment
-> > > > > > +      * belongs is not tracked to use RFC3168 or AccECN. Usi=
-ng RFC3168 ECN
-> > > > > > +      * offload may clear CWR and corrupt ACE signal (CWR is=
- part of it).
-> > > > > > +      * Instead, SKB_GSO_TCP_ACCECN shall be used to avoid C=
-WR corruption.
-> > > > > > +      */
-> > > > >
-> > > > > I still can't wrap my head around this TBH.
-> > > > >
-> > > > > SKB_GSO_TCP_ECN means RFC3168
-> > > > > SKB_GSO_TCP_ACCECN means AccECN
-> > > > >
-> > > > > If the HW can correctly detect cwr on first frame and then no c=
-wr and report that as ECN/RFC3168 - what's the problem? TSO will produce =
-the exact expected segment sequence.
-> > > > >
-> > > > > Is the program that if we re-GRO that frame in SW we end up wit=
-h
-> > > > > ECN+ACCECN on the same skb?
-> > > >
-> > > > Yes, this is the problem.
-> > > > The HW does not know whether the received packets belong to an RF=
-C3168 ECN flow or an AccECN flow on the RX path.
-> > > > For example, HW GRO may set SKB_GSO_TCP_ECN after observing that =
-the first packet has CWR=3D1:
-> > > >
-> > > > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+
-> > > > |     Packet id     | CWR flag |       Flag      | Flushed as SKB=
- |
-> > > > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+
-> > > > |         0         |     1    | SKB_GSO_TCP_ECN |        0      =
- |
-> > > > |         1         |     0    |         -       |        0      =
- |
-> > > > |         2         |     1    |         -       |        0      =
- |
-> > > > |         3         |     1    |         -       |        1      =
- |
-> > > > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+
-> > > >
-> > > > If the aggregated skb is forwarded through a device using GSO, e.=
-g.,
-> > > > HW RX (GRO) -> veth TX (GSO), the SKB_GSO_TCP_ECN applies RFC3168=
+1. Migrating NFS Direct I/O to Folios
+A series that introduces and exports helper from iov_iter.c to allow
+the nfs_direct_extract_pages() helper introduced here to aggregate
+multiple pages into a single large folio-based request, aiming to reduce
+the RPC overhead for hugepage I/O.
 
-> > > > semantics. This means that only the 1st segment keeps the CWR fla=
-g
-> > > > while all subsequent segments have CWR cleared:
-> > > >
-> > > > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D+
-> > > > |     Packet id     | CWR flag |
-> > > > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D+
-> > > > |         0         |     1    |
-> > > > |         1         |     0    |
-> > > > |         2         |     0    |
-> > > > |         3         |     0    |
-> > > > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D+
-> > > >
-> > > > This behavior is ok for RFC3168, since CWR is expected to appear =
-only
-> > > > once. However, for AccECN, CWR is part of the ACE signal and must=
- be
-> > > > preserved across all segments.
-> > >
-> > > But this would be obviously a buggy HW-GRO implementation.
-> > > The rules for HW-GRO RFC3168 are -- ignore CWR on first segment (ho=
-st responsible for populating SKB_GSO_TCP_ECN), and CWR _must be 0_ for a=
-ll subsequent segments.
-> > >
-> > > > In the example above, the original CWR sequence was 1,0,1,1.
-> > > > But after re-segmentation it becomes: 1,0,0,0.
-> > > > This is why SKB_GSO_TCP_ECN should not be used in RX/GRO paths.
-> > >
-> > > We have extensive gro tests under
-> > > tools/testing/selftests/drivers/net/gro.py
-> > >
-> > > If you want to catch bad devices - add appropriate test cases there=
-.
-> > >
-> > =
+2. P2PDMA Enablement for NFS
+Enabling ITER_ALLOW_P2PDMA for the Direct I/O path and introducing transport-level
+negotiation (discovery of P2P-capable RDMA/NVMe devices). This will build
+upon the PG_PINNED infrastructure introduced by this series.
 
-> > I added a test case in patch 6f74bc8b6e8d related to the CWR flag.
-> > In that case, there are 5 packets with CWR values of 0, 1, 1, 0, and =
-0, and packets are flushed after the 1st, 3rd, and 5th packets.
-> > The gro.py uses this case in tools/testing/selftests/net/lib/gro.c to=
- verify CWR behavior.
-> > But indeed, that does not cover whether SKB_GSO_TCP_ECN or SKB_GSO_TC=
-P_ACCECN shall be set during the GRO.
-> > So, a test might be added to verify the SKB_GSO_TCP_ECN or SKB_GSO_TC=
-P_ACCECN flags (if there is another suggested way, please let me know)?
-> > =
+Testing
+=======
+This series has been tested with xfstests [3] on RDMA & TCP transports
+by running the quick test suite for each transport vs. version combo:
 
-> > > The comment as stated seems to be misleading - there's nothing wron=
-g with using the flag if the device follows the RFC3168 semantics correct=
-ly.
-> > >
-> > > And of course, adding a comment and hoping people will find it is m=
-uch weaker than adding tests.
-> > >
-> > > Again, maybe I'm missing what _actually_ doesn't work here.
-> > =
+./check -g quick -s rdma3 -s rdma40 -s rdma41 -s rdma42 -s tcp3 -s tcp40 -s tcp41 -s tcp42
 
-> > Before adding an extra test, we need to clarify the definition and us=
-ages of these flags.
-> > At the TX path, in tcp_gso_segment() of net/ipv4/tcp_offload.c, the S=
-KB_GSO_TCP_ACCECN flag is used to preserve the CWR flags for AccECN flows=
-.
-> > Otherwise, when without SKB_GSO_TCP_ACCECN (RFC3168 ECN or Non-ECN fl=
-ows), cwr will be cleared from the following packets.
-> > =
+The tests were run before & after applying the series. No regressions were observed. 
 
-> > For the RX path, unfortunately I do not find a clear rule of when SKB=
-_GSO_TCP_ECN shall be set except in include/linux/skbuff.h.
-> > Plus, the device usually does not track packets belonging to RFC3168 =
-ECN or ACCECN flows.
-> > So, my previous thought is to always use SKB_GSO_TCP_ACCECN in the RX=
- path to avoid any potential CWR bleaching.
-> > =
+The following summary was tabulated via a custom script [4] (on github)
+to depict that the tests failing in v1 [5] are now passing.
 
-> > This would be a case where AccECN support causes a regression for
-> > regular ECN handling, if that is no longer allowed to be coalesced.
-> > =
+python3 display.py results/*/check.log
 
-> > Most HW-GRO hardware out there today likely only supports ECN. In
-> > which case they can set SKB_GSO_TCP_ECN fine.
-> > =
++--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
+| testcase     | rdma-sys-3   | rdma-sys-4.0 | rdma-sys-4.1 | rdma-sys-4.2 | tcp-sys-3    | tcp-sys-4.0  | tcp-sys-4.1  | tcp-sys-4.2  |
++--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
+| generic/091  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/130  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/139  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/143  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/154  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/155  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/183  | skipped      | skipped      | skipped      | pass         | skipped      | skipped      | skipped      | pass         |
+| generic/188  | skipped      | skipped      | skipped      | pass         | skipped      | skipped      | skipped      | pass         |
+| generic/190  | skipped      | skipped      | skipped      | pass         | skipped      | skipped      | skipped      | pass         |
+| generic/196  | skipped      | skipped      | skipped      | pass         | skipped      | skipped      | skipped      | pass         |
+| generic/198  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/203  | skipped      | skipped      | skipped      | pass         | skipped      | skipped      | skipped      | pass         |
+| generic/214  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/240  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/263  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/287  | skipped      | skipped      | skipped      | pass         | skipped      | skipped      | skipped      | pass         |
+| generic/290  | skipped      | skipped      | skipped      | pass         | skipped      | skipped      | skipped      | pass         |
+| generic/292  | skipped      | skipped      | skipped      | pass         | skipped      | skipped      | skipped      | pass         |
+| generic/330  | skipped      | skipped      | skipped      | pass         | skipped      | skipped      | skipped      | pass         |
+| generic/444  | skipped      | skipped      | skipped      | skipped      | skipped      | skipped      | skipped      | skipped      |
+| generic/450  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/451  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/586  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/647  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/708  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/729  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
+| generic/760  | pass         | pass         | pass         | pass         | pass         | pass         | pass         | pass         |
++--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+--------------+
 
-> > If AccECN flows cannot be differentiated from ECN flows, on such
-> > devices, does the admin have to disable HW-GRO with ECN if they care
-> > about preserving AccECN signals?
-> > =
+Thanks,
+Praan
 
-> > What does SW GRO do here?
-> =
+[1] https://lore.kernel.org/all/20260401194501.2269200-1-praan@google.com/
+[2] https://lore.kernel.org/all/ak8-NMsNPOB3zpF-@infradead.org/
+[3] https://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git
+[4] https://github.com/pran005/tools/blob/main/display.py
+[5] https://lore.kernel.org/all/29a0511d-5216-46f2-a7e4-9c04ae9b1890@app.fastmail.com/
 
-> Hi Willem,
-> =
+[v6]
+ - Fixed double unpin bugs pointed out by Sashiko:
+   https://sashiko.dev/#/patchset/20260810195040.2877784-1-praan%40google.com
+ - Added R-bs from Christoph (due since v4)
 
-> Current SW GRO sets SKB_GSO_TCP_ACCECN when the flushed skb carries CWR=
- in tcp_gro_complete():
-> if (th->cwr)
->     shinfo->gso_type |=3D SKB_GSO_TCP_ACCECN;
+[v5]
+ - https://lore.kernel.org/all/20260810195040.2877784-1-praan@google.com/
+ - Fixed an iov_iter_revert oops in nfs_direct_extract_pages().
+ - Fixed a refcount underflow in nfs_direct_release_pages() during
+   swap-over-NFS by ensuring we do not call put_page() on unpinned memory.
+ - Rebased on fs-next
 
-And I suppose it follows correct AccECN rules for coalescing.
+[v4]
+ - https://lore.kernel.org/all/20260720150601.2702700-1-praan@google.com/
+ - Dropped superfluous externs in include/linux/nfs_page.h
+ - Scoped `req` locally inside the loop in nfs_release_request_list()
+ - Wrapped >80 character lines in Patch 1 to adhere to coding style.
+ - Fixed typos and capitalization convention in the commit msgs
+ - Collected Reviewed-by tags from Christoph and Shivaji
+ - Rebased on fs-next
 
-That is a performance regression from RFC 3168 ECN, as it allows for
-less effective coalescing. I have no intuition how much it will
-differ in practice.
+[v3]
+ - https://lore.kernel.org/all/20260715143540.3597616-1-praan@google.com/
+ - Dropped patches that added folio support for NFS Direct I/O
+ - Folded requested_bytes accounting in patch 5 due to dropped folio support
+ - Rebased on fs-next
 
-> =
+[v2] 
+ - https://lore.kernel.org/all/20260616134000.2733403-1-praan@google.com/
+ - Fix data corruption in nfs_direct_extract_pages() by correctly
+   calculating intra-page offsets using offset_in_page().
+ - Fix requested_bytes accounting in direct read/write paths to only
+   increment after successful RPC scheduling.
+ - Add missing kernel-doc descriptions for the @pinned parameter in
+   nfs_page_create_from_page() and nfs_page_create_from_folio().
+ - Rebase on fs-next/
 
-> For HW GRO of a legacy device that implementing RFC3168 semantics, sett=
-ing SKB_GSO_TCP_ECN seems reasonable.
-> However, such a device would not be able to preserve ACCECN signaling a=
-cross the GRO/GSO.
-> In that case, if preserving AccECN signaling is required, disabling HW =
-GRO may indeed be necessary.
+[v1] https://lore.kernel.org/all/20260603053033.3300318-1-praan@google.com/
 
-Right. And there currently is no kernel API to disable only ECN
-coalescing. NETIF_F_GRO_HW enables or disables HW-GRO entirely.
-Or even to signal whether a HW-GRO implementation is AccECN
-capable.
+Pranjal Shrivastava (5):
+  nfs: make nfs_page pin-aware
+  nfs: track number of pinned pages in nfs_page
+  nfs: introduce nfs_release_request_list helper
+  nfs: migrate direct I/O to iov_iter_extract_pages
+  nfs: introduce nfs_direct_extract_pages helper
 
-Disabling HW-GRO can be a huge efficiency regression. I suspect
-many users will prioritize the efficiency over preserving the AccECN
-signal.
+ fs/nfs/direct.c          | 139 ++++++++++++++++++++-------------------
+ fs/nfs/pagelist.c        |  66 ++++++++++++++++---
+ fs/nfs/read.c            |   2 +-
+ fs/nfs/write.c           |   2 +-
+ include/linux/nfs_page.h |   8 ++-
+ 5 files changed, 134 insertions(+), 83 deletions(-)
 
-That said, some devices may have other ways to configure such
-finer details of their HW-GRO, even though not available through
-Ethtool.
 
-> And I still think the SKB_GSO_TCP_ECN comment could be clarified.
-> For example, by stating that "RX GRO implementations which need to pres=
-erve CWR information across re-segmentation should use SKB_GSO_TCP_ACCECN=
-."?
-> =
-
-> Thanks!
-> Chia-Yu
-
+base-commit: 15db403711f3cd9b7b764716ddf5909091b604bf
+-- 
+2.55.0.691.gc56d675ccc-goog
 
