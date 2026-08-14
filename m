@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F4053806C4;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A58B3955FC;
 	Fri, 14 Aug 2026 01:35:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786671313; cv=none; b=lSbMi0xFqamhVhRvecMYaX5RhOzoISouaoiJQGdcLozo010E8ACaaH/bzsrTfHmie6s5CQu5FAvHYsr6EHz4cxqvBBzbJtt14+Ynx+MGP9NoM7bdYvcrS4bfLv4A5M/iuw+C/wR8McA20RIGhni++hC2CaeBIOFXh2rr20g/fhw=
+	t=1786671313; cv=none; b=W5IOj+qHsEE7IsxdjxLh3gw2yKXGS2heOXG1nF39uvEjON1z6ZDQg6TaIrpZSjyJlaE63oWxVEfePKXwi8zTJ9jNSZFjTmYNyEyKcohoES3mb/Xym/qX235Hqkn4gQxNbXgIrvMJNDmnPrm1ATcCf6a+8AD+UZPKCFR8GBQcL0g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1786671313; c=relaxed/simple;
-	bh=0dzVVxiMYNTaoCIaOtyCdzqla2qFhZKzUxQmUA3epQg=;
+	bh=4hX7rknPvkdKCV78op2z3prAoeRWdfgvFWTSC9g+nsI=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=m+0s6TNMmwIa6IuvKksuyGtKCUhx5Af0VqgBPqpxzAHLuOk9Tw41RdkqZyJdtKKpnk4Bnk1TzdTO100puSx5Lti9+JMc+/ct6eB7V7HLqK7gPQCQXf/qeYZxnKpkStvM4vJ4OgWnNR9doyX/scBjbASZs6G4rbCfJwGWHtuhuW4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hdrFi+WX; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=qAzCQ8qoCKU0qmzWj7by8lZGoEAaxL/p2D/tbniwln0VIv/1WkNurTgOflfSHDaXTyWbHkZAw7RnKngQ5rhnJulPJafyFY+T6qh0XsXjivtQDlqEPlv66obyIEI1t2AQCiQVV59Uz4fSLQgF7HI4fpPa/EQ2UuHKcT6T7e4TXcw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TLN58WQU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hdrFi+WX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 835571F00ACF;
-	Fri, 14 Aug 2026 01:35:04 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TLN58WQU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 249B21F00A3F;
+	Fri, 14 Aug 2026 01:35:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1786671305;
-	bh=zlwUOetvfhcVwpY4fhluszuL4ALuR1wuIhgYs6jjaBw=;
+	bh=EQlwtdbKtIRK1YNKa4WwhLTLRn1m/VfinwVNtbZz35o=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=hdrFi+WXdWCd8rGTLqIak9Amg6EtLh7mIZgZCJSQU75ITQUKqB8sm100m4sfy+WCj
-	 xHdR+by4geGN5qbDrohmlKuoETG/9X1QUoEBoD8O04J/TMJwmBAB81rWtUXsT0+E5L
-	 Ea0kIzvchUvJtpPGFdWCQxTZV23pRBfSAiCJMBHWFa6Fa2HjJwqBbiNPonW5jNF+UU
-	 nXnuiBbtAXELUyKcA4FczrzkoimCZs/FSkQSaE7GP5asmEOyYWElyQxcuQArxdTH0j
-	 f3gx3V/jAqpiSFdLJm4aE4/epA59siHcd79ExDJ/eat58wtRhF7IxpkR2ksx1iA34h
-	 iIFPhM7Kg4bJg==
+	b=TLN58WQUcQoJ/wqPzoXF8HFwli0Q0d4q65OX803IjBnP2+xbHA6Kapo/1WP+coXc0
+	 PlRcvtc83EJkW1dTCeQZ4paRhK6yTxJjtjYkhTlGVldzm7BRDnijnng6f2MeTncVA+
+	 xq4yyGgq2KlncaOjhkUpGXn4w00u4HZB6UyJsEmsk6gowfzSDqBkH9Q+HPd1agjvNC
+	 AVJgyRbs+BiMHGqNRMkXq623e5SX6N2uWJLPXArfv/I/2il7ivzVjQ9d7fzSOFAtXg
+	 o/DYCrH2IGRTCxFEl7RXjWn0+0POp+PUu09ZqQsm6xSlkFmdtvQ9VspHas9+gwIolf
+	 2nH7WsOBZD/Bg==
 From: Allison Henderson <achender@kernel.org>
 To: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
@@ -36,9 +36,9 @@ To: netdev@vger.kernel.org,
 Cc: achender@kernel.org,
 	jhubbard@nvidia.com,
 	leon@kernel.org
-Subject: [PATCH net-next 3/4] net/rds: acquire the fastpath locks in rds_conn_shutdown()
-Date: Thu, 13 Aug 2026 18:35:00 -0700
-Message-Id: <20260814013501.43760-4-achender@kernel.org>
+Subject: [PATCH net-next 4/4] net/rds: acquire RDS_IN_XMIT in rds_tcp_reset_callbacks()
+Date: Thu, 13 Aug 2026 18:35:01 -0700
+Message-Id: <20260814013501.43760-5-achender@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20260814013501.43760-1-achender@kernel.org>
 References: <20260814013501.43760-1-achender@kernel.org>
@@ -48,138 +48,139 @@ List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Håkon Bugge <haakon.bugge@oracle.com>
+rds_tcp_reset_callbacks() quiesces the transmit path by setting the
+path state to RDS_CONN_RESETTING and then waiting for RDS_IN_XMIT to
+be sampled clear before swapping the underlying socket and calling
+rds_send_path_reset().
 
-rds_conn_shutdown() quiesces the transmit and receive-refill paths by
-waiting for RDS_IN_XMIT and RDS_RECV_REFILL to be sampled clear, and
-then runs the transport shutdown and rds_conn_path_reset().  Sampling
-the bits clear is not the same as owning them: the moment after the
-wait_event() returns, rds_send_xmit() can re-acquire RDS_IN_XMIT (or
-rds_ib_recv_refill() can re-acquire RDS_RECV_REFILL) and run
-concurrently with the teardown.
+As in rds_conn_shutdown(), sampling the bit clear is not the same as
+owning it: rds_send_xmit() can re-acquire RDS_IN_XMIT right after the
+wait_event() returns.  Its state recheck after taking the lock is a
+store-buffering pattern (teardown writes the state and reads the bit,
+the sender writes the bit and reads the state) and acquire_in_xmit()
+is only an acquire operation, so on weakly ordered architectures both
+sides can miss each other's write and the transmit path then runs
+concurrently with rds_send_path_reset() rewriting cp_xmit_* state.
 
-The sender does recheck the connection state after taking the lock,
-but that recheck is a classic store-buffering pattern: teardown writes
-the state and reads the bit while the sender writes the bit and reads
-the state.  acquire_in_xmit() is only an acquire operation, so on
-weakly ordered architectures both sides can miss each other's write,
-and the transmit path then runs while the transport zeroes its rings
-(e.g. rds_ib_ring_init()) and rds_send_path_reset() rewrites the
-transmit state under it.
+Take the lock instead, hold it across the socket swap and
+rds_send_path_reset(), and release it with a wake-up at the end.  The
+lock-ordering constraint documented above the wait still holds: the
+lock is acquired before lock_sock(), so a sender inside tcp_sendmsg()
+can never be waited on while we hold the socket lock.
 
-Oracle UEK fixed the same class of crashes - a 14-year tail of
-BUG_ON()s in rds_ib_sub_signaled(), unexpected op-codes and NULL
-dereferences in rds_ib_send_cqe_handler() during failover testing -
-by making the teardown path *acquire* the fastpath bit locks instead
-of testing them ("rds: Make sure transmit path and connection
-tear-down does not run concurrently").  Ownership of a single word is
-decided by RMW atomicity, so no cross-variable ordering is needed.
+Owning the lock also serializes this function against
+rds_conn_shutdown(), which since the previous patch holds RDS_IN_XMIT
+across the transport shutdown.  That closes two holes the old
+sample-based wait left open when a teardown and a duelling-SYN accept
+raced on the same path:
 
-Do the same here: take both locks before calling the transport
-shutdown, hold them across rds_conn_path_reset(), and release them
-explicitly with a wake-up afterwards.  The fastpath users of these
-bits - rds_send_xmit() and rds_ib_recv_refill() - are trylock style
-and back off while teardown owns the locks, so no new lock dependency
-is introduced for them.  rds_tcp_reset_callbacks() is different: it
-blocks waiting for RDS_IN_XMIT, so its wait now spans the teardown
-instead of at most one send batch; it also still only samples the
-bit, which the next patch converts to an acquisition as well.
+ - t_sock is now read only after the lock is acquired.  The old code
+   cached it before waiting; a concurrent teardown could release that
+   socket inside rds_tcp_conn_path_shutdown() while the accept path
+   was still blocked, which would leave it locking and releasing a
+   freed socket once it resumed.
 
-One observable side effect: the SENDING flag reported by rds-info has
-always mirrored RDS_IN_XMIT, so it now also covers the window where
-teardown owns the bit.
+ - The old !osock early path called rds_send_path_reset() with no
+   serialization at all, while the teardown could be running
+   rds_send_path_reset() on the same path concurrently.  Losing that
+   race means two threads walking cp_send_queue and putting the same
+   messages.  That path now also runs under the lock (and sets
+   RDS_CONN_RESETTING like the normal path; the raced connection ends
+   up dropped and reconnecting either way).
 
-The comment in rds_send_xmit() describing the old sample-based
-handshake is updated to match.
+The in-function comment describing the old wait-based quiesce is
+rewritten to describe the lock-based one.
 
-Fixes: 0f4b1c7e89e6 ("rds: fix rds_send_xmit() serialization")
-Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
-[achender: reimplement for net-next shutdown path: acquire the existing
- RDS_IN_XMIT/RDS_RECV_REFILL bit locks in rds_conn_shutdown() and release
- after teardown; update comments and commit message]
+Fixes: 335b48d980f6 ("RDS: TCP: Add/use rds_tcp_reset_callbacks to reset tcp socket safely")
 Assisted-by: Claude-Code:claude-fable-5
 Signed-off-by: Allison Henderson <achender@kernel.org>
 ---
-Previously patch 3/4 of "net/rds: Bug fix ports, part 2".
-v2: rds_conn_path_reset() no longer touches the lock bits, so lock
-ownership now spans the whole teardown and ends at the explicit
-release here; correct the changelog inventory of the bits' users
-(rds_tcp_reset_callbacks() blocks, the IB send path never takes the
-bit); update the stale protocol comment in rds_send_xmit().
-v1: https://lore.kernel.org/netdev/20260806072045.1092968-4-achender@kernel.org/
- net/rds/connection.c | 26 ++++++++++++++++++++++----
- net/rds/send.c       |  5 +++--
- 2 files changed, 25 insertions(+), 6 deletions(-)
+Previously patch 4/4 of "net/rds: Bug fix ports, part 2".
+v2: read t_sock only after acquiring RDS_IN_XMIT and hold the lock on
+the !osock path too, closing the teardown-vs-accept races described
+in the commit message; rewrite the in-function quiesce comment.
+v1: https://lore.kernel.org/netdev/20260806072045.1092968-5-achender@kernel.org/
+ net/rds/tcp.c | 50 +++++++++++++++++++++++++++++++-------------------
+ 1 file changed, 31 insertions(+), 19 deletions(-)
 
-diff --git a/net/rds/connection.c b/net/rds/connection.c
-index ddd7e2291eea..a10b667c06c8 100644
---- a/net/rds/connection.c
-+++ b/net/rds/connection.c
-@@ -124,8 +124,8 @@ static void rds_conn_path_reset(struct rds_conn_path *cp)
- 	/* Clear the bits the reset is responsible for individually: a
- 	 * blanket cp_flags = 0 is a plain store that can clobber a
- 	 * concurrent atomic read-modify-write on the same word.
--	 * RDS_IN_XMIT and RDS_RECV_REFILL are already clear here - the
--	 * caller waited for both before tearing the transport down.
-+	 * RDS_IN_XMIT and RDS_RECV_REFILL are owned by the caller,
-+	 * which releases them once the teardown is complete.
+diff --git a/net/rds/tcp.c b/net/rds/tcp.c
+index b263634ac750..4ba5d4858ec7 100644
+--- a/net/rds/tcp.c
++++ b/net/rds/tcp.c
+@@ -127,33 +127,42 @@ void rds_tcp_reset_callbacks(struct socket *sock,
+ 			     struct rds_conn_path *cp)
+ {
+ 	struct rds_tcp_connection *tc = cp->cp_transport_data;
+-	struct socket *osock = tc->t_sock;
+-
+-	if (!osock)
+-		goto newsock;
++	struct socket *osock;
+ 
+ 	/* Need to resolve a duelling SYN between peers.
+ 	 * We have an outstanding SYN to this peer, which may
+ 	 * potentially have transitioned to the RDS_CONN_UP state,
+ 	 * so we must quiesce any send threads before resetting
+-	 * cp_transport_data. We quiesce these threads by setting
+-	 * cp_state to something other than RDS_CONN_UP, and then
+-	 * waiting for any existing threads in rds_send_xmit to
+-	 * complete release_in_xmit(). (Subsequent threads entering
+-	 * rds_send_xmit() will bail on !rds_conn_up().
++	 * cp_transport_data.  Setting cp_state to something other
++	 * than RDS_CONN_UP stops new senders, and owning RDS_IN_XMIT
++	 * excludes any thread already inside rds_send_xmit() as well
++	 * as the teardown in rds_conn_shutdown(), which holds the same
++	 * lock across the transport shutdown.
+ 	 *
+-	 * However an incoming syn-ack at this point would end up
+-	 * marking the conn as RDS_CONN_UP, and would again permit
+-	 * rds_send_xmi() threads through, so ideally we would
+-	 * synchronize on RDS_CONN_UP after lock_sock(), but cannot
+-	 * do that: waiting on !RDS_IN_XMIT after lock_sock() may
+-	 * end up deadlocking with tcp_sendmsg(), and the RDS_IN_XMIT
+-	 * would not get set. As a result, we set c_state to
+-	 * RDS_CONN_RESETTTING, to ensure that rds_tcp_state_change
+-	 * cannot mark rds_conn_path_up() in the window before lock_sock()
++	 * An incoming syn-ack at this point would end up marking the
++	 * conn as RDS_CONN_UP, and would again permit rds_send_xmit()
++	 * threads through, so ideally we would synchronize on
++	 * RDS_CONN_UP after lock_sock(), but cannot do that: acquiring
++	 * RDS_IN_XMIT after lock_sock() may end up deadlocking with
++	 * tcp_sendmsg(), which takes the socket lock while holding
++	 * RDS_IN_XMIT.  As a result, we set c_state to
++	 * RDS_CONN_RESETTING, to ensure that rds_tcp_state_change
++	 * cannot mark rds_conn_path_up() in the window before
++	 * lock_sock().
  	 */
- 	clear_bit(RDS_LL_SEND_FULL, &cp->cp_flags);
- 	clear_bit(RDS_RECONNECT_PENDING, &cp->cp_flags);
-@@ -414,14 +414,32 @@ void rds_conn_shutdown(struct rds_conn_path *cp)
- 		}
- 		mutex_unlock(&cp->cp_cm_lock);
- 
-+		/* Quiesce the transmit and receive-refill paths by
-+		 * acquiring their bit locks, not merely waiting for
-+		 * them to be released: with a plain wait, either path
-+		 * can re-take its lock the instant after we sample it
-+		 * clear and then run concurrently with the transport
-+		 * shutdown and the path reset below.  Holding both
-+		 * locks across the teardown makes that structurally
-+		 * impossible.
-+		 */
- 		wait_event(cp->cp_waitq,
--			   !test_bit(RDS_IN_XMIT, &cp->cp_flags));
-+			   !test_and_set_bit_lock(RDS_IN_XMIT, &cp->cp_flags));
- 		wait_event(cp->cp_waitq,
--			   !test_bit(RDS_RECV_REFILL, &cp->cp_flags));
-+			   !test_and_set_bit(RDS_RECV_REFILL, &cp->cp_flags));
- 
- 		conn->c_trans->conn_path_shutdown(cp);
- 		rds_conn_path_reset(cp);
- 
-+		/* Release the two locks and wake any waiter (e.g.
-+		 * rds_tcp_reset_callbacks()) that blocked on them while
-+		 * we held them.  rds_conn_path_reset() leaves both bits
-+		 * alone: ownership ends here, not inside the reset.
-+		 */
-+		clear_bit_unlock(RDS_IN_XMIT, &cp->cp_flags);
-+		clear_bit(RDS_RECV_REFILL, &cp->cp_flags);
-+		wake_up_all(&cp->cp_waitq);
+ 	atomic_set(&cp->cp_state, RDS_CONN_RESETTING);
+-	wait_event(cp->cp_waitq, !test_bit(RDS_IN_XMIT, &cp->cp_flags));
++	wait_event(cp->cp_waitq,
++		   !test_and_set_bit_lock(RDS_IN_XMIT, &cp->cp_flags));
 +
- 		if (!rds_conn_path_transition(cp, RDS_CONN_DISCONNECTING,
- 					      RDS_CONN_DOWN) &&
- 		    !rds_conn_path_transition(cp, RDS_CONN_ERROR,
-diff --git a/net/rds/send.c b/net/rds/send.c
-index 8aad185e4b1a..b90e0586f818 100644
---- a/net/rds/send.c
-+++ b/net/rds/send.c
-@@ -244,8 +244,9 @@ int rds_send_xmit(struct rds_conn_path *cp)
- 	WRITE_ONCE(cp->cp_send_gen, send_gen);
++	/* Only read t_sock while owning RDS_IN_XMIT: a concurrent
++	 * rds_conn_shutdown() releases the old socket and clears
++	 * t_sock under the same lock, so a pointer sampled before the
++	 * wait could be freed by the time we wake up.
++	 */
++	osock = tc->t_sock;
++	if (!osock)
++		goto newsock;
++
+ 	/* reset receive side state for rds_tcp_data_recv() for osock  */
+ 	cancel_delayed_work_sync(&cp->cp_send_w);
+ 	cancel_delayed_work_sync(&cp->cp_recv_w);
+@@ -172,6 +181,9 @@ void rds_tcp_reset_callbacks(struct socket *sock,
+ 	lock_sock(sock->sk);
+ 	rds_tcp_set_callbacks(sock, cp);
+ 	release_sock(sock->sk);
++
++	clear_bit_unlock(RDS_IN_XMIT, &cp->cp_flags);
++	wake_up_all(&cp->cp_waitq);
+ }
  
- 	/*
--	 * rds_conn_shutdown() sets the conn state and then tests RDS_IN_XMIT,
--	 * we do the opposite to avoid races.
-+	 * rds_conn_shutdown() sets the conn state and then acquires
-+	 * RDS_IN_XMIT; we take the lock first and then check the state,
-+	 * so one of us is guaranteed to see the other's update.
- 	 */
- 	if (!rds_conn_path_up(cp)) {
- 		release_in_xmit(cp);
+ /* Add tc to rds_tcp_tc_list and set tc->t_sock. See comments
 -- 
 2.25.1
 
