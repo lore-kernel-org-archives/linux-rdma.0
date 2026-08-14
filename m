@@ -1,75 +1,99 @@
-Received: from mail-pg1-f177.google.com (mail-pg1-f177.google.com [209.85.215.177])
+Received: from mail-pj1-f98.google.com (mail-pj1-f98.google.com [209.85.216.98])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 915B240F741
-	for <linux-rdma@vger.kernel.org>; Fri, 14 Aug 2026 07:30:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59346369D4F
+	for <linux-rdma@vger.kernel.org>; Fri, 14 Aug 2026 09:11:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.98
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786692614; cv=none; b=XEZfNC4ExF/AHgEftRfuaXePJumxJL8rlVFu5KbBuY8/mWJuWpOUMhgn2pRSY4UR7Mailqcd643eDgePxSvQftTxAbXtdC0c08AbVYQu9uiMzQ+wYvJ0q+Rkcy2N+xlQivDVeeK5iiZGRyHrRRzU1U4+6VTIv6/Px6EynEteWw8=
+	t=1786698669; cv=none; b=ely6rPCu58TjNWlVjV875bDOgFwdkYiaDdQmbmSRWK5j5pyA/HL2J6oOCs863R0YlgBGyHqlF0PJHGIQNg/VcXkid1gdNhqp6+drNU2N1G10RXrWxyu6cModRkeERb2aFcmjv1e622eaPW3B/beMIGgvvDu1oax3X0MYSfSDR7w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786692614; c=relaxed/simple;
-	bh=sELC/ifOp6VfvcsoDyj58p7bK9nkK5hCzhfBdwzPS7o=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ZYp2Mktt2i+KHiel+RkRulR8x8zIDjfI1Q2WWTlp5GNwQ0w4D0lU8DPPfcgSIhdnj1hqxmWld7hGTSZzfxMEcows09fx+sX8ix6aMuuum6NzmoUpY6ibogyqO1zkpHqF6eC5cbu9zdbTjkyeWuxe99Cm+fKFP4OOhs3CSnqE17A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr; spf=none smtp.mailfrom=isslab.korea.ac.kr; dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.b=YZSHZg60; arc=none smtp.client-ip=209.85.215.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=isslab.korea.ac.kr
+	s=arc-20240116; t=1786698669; c=relaxed/simple;
+	bh=D+zrBT0ZGSNOMO2IwawwUlukirkCq+drXjkafF6pPAc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=uHdPGDSmSALMN6ZZBOKUu11vmu5BFoHOsDiIJYm9REicC1tVy0VByALkVRH4SNaa8PvZxIkyF8EQmcRVZkrCSnTlaQyKlLjlOwe9NSKKMyieLEoL6hdLMpTm0gXWukv+0xFuJCykwqxV+ehZ/79lstid0EHJvx3pSCuS3VNirR4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=dUUOJmGY; arc=none smtp.client-ip=209.85.216.98
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.b="YZSHZg60"
-Received: by mail-pg1-f177.google.com with SMTP id 41be03b00d2f7-cbee846deecso746313a12.1
-        for <linux-rdma@vger.kernel.org>; Fri, 14 Aug 2026 00:30:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=isslab-korea-ac-kr.20251104.gappssmtp.com; s=20251104; t=1786692607; x=1787297407; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=XQXPTPU+PNdJ/iyLYIhEbTPrnECpXC1+xUIC6UhTP4w=;
-        b=YZSHZg60+TRsaLHXGfeqd75scGETnBNLVSz+5PODf289FT93HRFg8vdCBaCHq6UAd9
-         wsAPO7c4rfhizjXWXoA71dqBkHJVu8bc7AcnGzToFVT2+9y433JXLEO69Y+vi25F5Jo3
-         M0ZeZCXK3T2AQJMVakcL9+LA7xy40KFAKpZCgAS12RE3DJnaxg9VNormcs4PY/S2QYey
-         RUuhOc1y/uyb7ZX1F677+iD3AYsEwtB+SXoeGLimV07sDNWuG/cSYgQESzDI1rieX7tI
-         LqUwAyduOjc8KIIhXMnroX84vSFqDt3fVL7j7a+BRegDCoAicVcCtRbWPVpAKFgJv2lq
-         +y/g==
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="dUUOJmGY"
+Received: by mail-pj1-f98.google.com with SMTP id 98e67ed59e1d1-38deea72eebso813699a91.1
+        for <linux-rdma@vger.kernel.org>; Fri, 14 Aug 2026 02:11:08 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786692607; x=1787297407;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=XQXPTPU+PNdJ/iyLYIhEbTPrnECpXC1+xUIC6UhTP4w=;
-        b=IIkG6rXsVf9Fz0AfGRvupGT68sO4s7rZllvDZk1Uk6Vp8KWyF+fncdmz+yM90SE/DX
-         GrB3RO9hiSqg+PV6nfaalMAhdWIn8lz78wC+EKWNLdr5or+oST6I1X2CmuZCkzpPUAZJ
-         ywpVdYRPZjTSvY8+RYpvp51gmpAP55NjjX94OGdIL7Qc3H1UXJcj3iVdPKRJBX6RX+fw
-         e7GucLnbICgnHFq/Z/LBnwWbCHQKSqfuLBWF7KTLzUgiQx0JEOIZg36aYJSY4b1YGVt+
-         fePqbzYh43PmfvvzJsEW38GXG6SVJyixe6RippWE1xDRA5T7Ncd3ExPY+gYrUIIChv7w
-         1bkQ==
-X-Forwarded-Encrypted: i=1; AHgh+RqOgCVeDCURprdKDgqLUjbr4KKIPFgZcrtMsC6TAQbTUWHFj/G8Gd853FkaXXpFyu75LevkwIzj7NqZ@vger.kernel.org
-X-Gm-Message-State: AOJu0YwkPA/475XHV008ZlHE3nYgbZ+5i4EMv7jOKu878nIbw+RZfgY3
-	OGLEM1BDUiPCJN8zNa8DLOYFJCsufdPEc4ozrNk6W8w/7dEUwD27z69+9eIhKbGlpzU=
-X-Gm-Gg: AR+sD12BVbfOTHBQ3Ri6dnw2ePuOO0Qf4m9IlzmAkRAB455MwEsshTmnb3n5v6F5YZO
-	3VMUp18z+LNyVOWp2mWL/05hXnjJBRPGmGNDUdl9K+SOklGMpdr2T/np0NXNHrwTINzp9HlkozQ
-	P99RQ0d1Lbvptd3MXPxf60PoiZWY/NC29EUlWZqQumgf54SM/68j15AJTiIEvTOAbjs0k9sldqT
-	rU7O9t7O63q8r6PT5dtIoarRfReL6ARcW3Z+Bwj+KZSOnAZjaI0AMn69thYNOWbGFz4KP0fk/7v
-	u4vmZlIdkrlE+4dD+HLXG/+ahipsg0wm1T7HLgeOFkyG8Hd3/tV2rE7/qDVp8ryap2qmtdEIiSc
-	fo3hH6wVnLfdYUq9Qj5SpodXoRqLe0iCM+8c4lhoyUC4daemqOP+8DytTE8Xw/L1n1wX1JbTsUA
-	7aE63Q5iyBZEsavF8Cxq/EPmTygyVDVZHWmwHeheFs8n+0Rg9qTjZqojylWQc/S5LrTIcC
-X-Received: by 2002:a05:6a20:4321:b0:3c3:88a5:83e4 with SMTP id adf61e73a8af0-3cc71a2974cmr4140939637.10.1786692607139;
-        Fri, 14 Aug 2026 00:30:07 -0700 (PDT)
-Received: from yhlee-960QFG.. ([125.131.91.97])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-cc095a3185csm116942a12.24.2026.08.14.00.30.05
+        d=1e100.net; s=20251104; t=1786698668; x=1787303468;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:dkim-signature:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=3rqj6MNuRHMhzwluCEZg0MCNuMGlG0chZi1NOjoeikI=;
+        b=Udo8Dzg7UiYA+kG8LXunH0rTRGJJbWx04IFqXZzycOrWs7sb8/Cu5nr5/r3uWOO4qZ
+         YMWEDnJ/w7l3FHC5rmEH29w6M+A6dwlftQ4KcIEwmJn4fBCsyMnv5W8StRxQliFJ3fJT
+         WTwQzDzPviTb3ZCeOe0DcOrHnWdAzcMfWmHfIvweuLB+hqNg8M9M/So++/2PzDiQNMRj
+         72OScgC+2LUkBbdef1zxsOI1ju16oijtLffu0OiuoRuGFmeTd3pfuCu7Vooc2nkChVHh
+         A7oTAuWuMhWVzU+mjvFEybVuuyzFbr0C2A29vXze11fc+POON4BpFnaG6yACpZUH5Wpd
+         JY/Q==
+X-Forwarded-Encrypted: i=1; AHgh+RoI+C78yI4/DwxLfOmaUQjWIOeTBDwKOEcf1a09bHTZkJ3ip8l4WFsfZKmSuZuNpXA5815e9pPGXEyu@vger.kernel.org
+X-Gm-Message-State: AOJu0YybY7660/vu1IbFLJ93WZ1ayrbon9KahE8x7ZKhbI/QkBce92T9
+	KcxdAjjny2OmzkTYI2GoxRtsWaUtp5+a+GXPbFo4yQgO86174XjKg9jaWFJ4dWXFYAxnTq4obSd
+	Fy/ETddwuNPRVcR6J/N4WBLJbmYYeCyyaQhpf+qdC6Kti7us2y27muCqU6C6H0KKJnFdzLlXVTS
+	Iqkw1ijHR24vmX/bZjv3lpBKMCCAr/Om7betleU9dum7FiNUvEM6MZwgZXd4fQjojjEqOclXmU3
+	dRh2Kg68tdjNzI=
+X-Gm-Gg: AR+sD12Oly+sSZh14YbEwpu+7JZW2k6vqbAnZo3oD8XHRQMPkHOjV2DRISTJBaceslU
+	JJ7Zqin/KJuY+aSi4QCCTf+sxwKqBC/K+OLplu/uLm74jaAirbloLbU9lFXQbsQSRe4T1BsjyTZ
+	olHTH+4cIN+Fi3O5sKpZgUdqe29RtzEjmLY52yk6UmQqz2fdwurp/ITXy8cVbVS8qT4V/Lu5usg
+	NqZEhaHySqWIKOVtcjc1YwBqP1Ns1mvOYHl/NSKVPgzQIOKLyK8cmfJ+4XvGI/cPzBW8uHYxYWW
+	2foPiRVyHjA7oeyxvbS/QS5ya+kHBgfH6Vmb0KmQuQu0kjXAWBy0FkJD8CCdObNV1WLqiA+7MU9
+	qV6V0WfkZXL/jH5eS4t52fSeSYEvh3pDb2HIxmfsq//VvO7wUdxmFN7KtePY85qVCC4C33ENNhy
+	6PSDlGkZJAj7u5o9Eu/Lb9byCMZkDbP2EKAw==
+X-Received: by 2002:a17:90b:2587:b0:38e:9045:bac0 with SMTP id 98e67ed59e1d1-3933b741419mr4790273a91.5.1786698667595;
+        Fri, 14 Aug 2026 02:11:07 -0700 (PDT)
+Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-20.dlp.protect.broadcom.com. [144.49.247.20])
+        by smtp-relay.gmail.com with ESMTPS id 98e67ed59e1d1-394ea8637dbsm659258a91.2.2026.08.14.02.11.07
+        for <linux-rdma@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 14 Aug 2026 02:11:07 -0700 (PDT)
+X-Relaying-Domain: broadcom.com
+X-CFilter-Loop: Reflected
+Received: by mail-pj1-f70.google.com with SMTP id 98e67ed59e1d1-38dd87656d3so906294a91.2
+        for <linux-rdma@vger.kernel.org>; Fri, 14 Aug 2026 02:11:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=broadcom.com; s=google; t=1786698666; x=1787303466; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=3rqj6MNuRHMhzwluCEZg0MCNuMGlG0chZi1NOjoeikI=;
+        b=dUUOJmGY6K5T+8sA0zrfBlV44rO6wc0Xobq4SWDowQRl2CkZyjUOdrX1YEhnLxTltf
+         WFEGqoI46j87wrtEgx/n8pbq+RId9EBzyzZfGXbC467L+/NH/Puy+K7+hHN11Xftog1h
+         Tg1VpbsXHTnVLxsYAv8go/r2E1RS1xqeqhHyQ=
+X-Forwarded-Encrypted: i=1; AHgh+RofTooepCQAIsi2EdI+heHH2X+NW6cKCoBlbXuzfW1CMTPT0FZrp4igB35FVpj0yjTSM0XN/fXO5FKt@vger.kernel.org
+X-Received: by 2002:a17:90b:582c:b0:381:c500:b0d1 with SMTP id 98e67ed59e1d1-3933bad0d4cmr5296266a91.20.1786698665766;
+        Fri, 14 Aug 2026 02:11:05 -0700 (PDT)
+X-Received: by 2002:a17:90b:582c:b0:381:c500:b0d1 with SMTP id 98e67ed59e1d1-3933bad0d4cmr5296104a91.20.1786698664564;
+        Fri, 14 Aug 2026 02:11:04 -0700 (PDT)
+Received: from localhost.localdomain ([192.19.203.250])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1413887e3e7sm7056408c88.9.2026.08.14.02.10.59
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 14 Aug 2026 00:30:06 -0700 (PDT)
-From: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
-To: sagi@grimberg.me
-Cc: mgurtovoy@nvidia.com,
-	jgg@ziepe.ca,
-	leon@kernel.org,
-	linux-rdma@vger.kernel.org
-Subject: Re: [PATCH] IB/iser: skip an unregistered direction on remote invalidation
-Date: Fri, 14 Aug 2026 16:29:57 +0900
-Message-ID: <20260814072957.268291-1-yhlee@isslab.korea.ac.kr>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260814054712.260495-1-yhlee@isslab.korea.ac.kr>
-References: <20260814054712.260495-1-yhlee@isslab.korea.ac.kr>
+        Fri, 14 Aug 2026 02:11:04 -0700 (PDT)
+From: Vikas Gupta <vikas.gupta@broadcom.com>
+To: davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	andrew+netdev@lunn.ch,
+	horms@kernel.org
+Cc: netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	leonro@nvidia.com,
+	jgg@nvidia.com,
+	bhargava.marreddy@broadcom.com,
+	rahul-rg.gupta@broadcom.com,
+	vsrama-krishna.nemani@broadcom.com,
+	rajashekar.hudumula@broadcom.com,
+	ajit.khaparde@broadcom.com,
+	siva.kallam@broadcom.com,
+	usman.ansari@broadcom.com,
+	Vikas Gupta <vikas.gupta@broadcom.com>
+Subject: [PATCH net-next 0/2] add callback
+Date: Fri, 14 Aug 2026 14:40:52 +0530
+Message-ID: <20260814091054.359508-1-vikas.gupta@broadcom.com>
+X-Mailer: git-send-email 2.47.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -77,19 +101,26 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 
-A note on why this skips an unregistered direction rather than failing
-the connection.
+Hi,
+This series introduces support for the PCI shutdown callback. Patch 1
+implements it in the bng_re (RoCE) driver and patch 2 in the bnge
+driver.
 
-I tried returning an error for that case.  It removes the fault as well,
-but iser_task_rsp() then drops the response and the same invalidation
-keeps arriving.  Under the same workload the target sent eight and the
-unregistered-direction path ran 132 times; with this patch the target
-sent ten and that path ran three times.
+Thanks,
+Vikas
 
-Skipping also keeps a bidirectional command working when its read half
-was registered, its write half was immediate, and the target invalidates
-the read half.
+Usman S. Ansari (1):
+  bng_re: add support for the shutdown callback
 
-Best regards,
-Yehyeong Lee
+Vikas Gupta (1):
+  bnge: add steps in bnge_shutdown()
+
+ drivers/infiniband/hw/bng_re/bng_dev.c        |  6 +++++
+ .../net/ethernet/broadcom/bnge/bnge_core.c    | 24 +++++++++++++++++++
+ 2 files changed, 30 insertions(+)
+
+-- 
+2.47.1
+
