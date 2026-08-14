@@ -1,110 +1,306 @@
-Received: from mta0.migadu.com (out-252.mta0.migadu.com [91.218.175.252])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from canpmsgout05.his.huawei.com (canpmsgout05.his.huawei.com [113.46.200.220])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9E63370D63
-	for <linux-rdma@vger.kernel.org>; Fri, 14 Aug 2026 09:38:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.252
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C62F13A4510;
+	Fri, 14 Aug 2026 09:47:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.220
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786700288; cv=none; b=tsBaA9aGyslss5KdWB1ZHHk/3+/nOMlqg9/ibUyLvSsiMDtGxkVL/KyCdPyohyi2qqE1dOWMijtRfhnVtc+73rCq4xubL4QrtPfU7GWAPQqxG35Wcc+pDoogqKB5CFGnJ1XPeQNDW68YwS0grB9nfV/dpIxXrMvLojThqyPGZh8=
+	t=1786700877; cv=none; b=i5kJQTW+gVBY79zP3Ssm2oAzvWzdJO6EFyqYqYN0t8KfwDOdc/vybU7LH1k7KYro9RVw86fBf2HDtyUjO5mBwLzlJ7DgEISMkukt74Srhm912ki0uvzv4YSmpIbVvnJDH5QAZdvVjf0v1mweDsD90zuYeBZEPz2iC336jH04pE8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786700288; c=relaxed/simple;
-	bh=FVQfDUrbHjepdRtpMRhLJNPKhj6tVQsSgvGlErmtn/Y=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=fhN6xtKyBB3sMTCpXZox+f6u7CYirKzXMniGGsKxCnddQNTijgMo2/4lGDM3axiUXIP27SaKQaxdYF3PeMHplnO5F0GYO8GGryCuX42RiDHZ7hdbrgCwzLSYvGVdyMIEk2UQVqZAOwu2OJKdVYCYrMh4SAC/boQ1bz0fALvIwNA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=R3uyBxVO; arc=none smtp.client-ip=91.218.175.252
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="R3uyBxVO"
-X-Envelope-To: linux-rdma@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=FVQfDUrbHjepdRtpMRhLJNPKhj6tVQsSgvGlErmtn/Y=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1786700283; v=1; x=1787305083;
- b=R3uyBxVOLncu2mzEvmoRY9tH2UGU1a/f/HUawNBCOCFf0Fv+PN44//29O+qazdLe4k2yg4kY
- XFxE8q7jMFkuO/J8Ik6HkgHlAdwuZl5n0hyUis0Lj9fpgAMwwCqQPL7Ga26JWTWTWS7nyDs0fol
- J6m90Pv/3GsnsM9qf2nhoTJU=
-X-Envelope-To: linux-rdma@vger.kernel.org
-Received: from thinkbook16p.. (223.70.160.239)
-	by smtp.migadu.com with ESMTPS id 5b9216f55cc885cc;
-	Fri, 14 Aug 2026 09:37:53 +0000
-X-Migadu-Flow: FLOW_OUT
-From: Gang Yan <gang.yan@linux.dev>
-To: yanjun.zhu@linux.dev,
-	jgg@ziepe.ca,
-	leon@kernel.org,
-	linux-rdma@vger.kernel.org
-Cc: Gang Yan <yangang@kylinos.cn>,
-	stable@vger.kernel.org
-Subject: [PATCH net v3] RDMA/rxe: Fix integer overflow in mr_check_range() leading to OOB access
-Date: Fri, 14 Aug 2026 17:37:40 +0800
-Message-ID: <20260814093740.292954-1-gang.yan@linux.dev>
-X-Mailer: git-send-email 2.43.0
+	s=arc-20240116; t=1786700877; c=relaxed/simple;
+	bh=s/pKmkQiFa/KJGmOqZoqULBB4+9SBXYmdIyATnOA6R0=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=fr9UisuVugozQCX+qIq9e72rase7YOCIUjruwtNb86oApOVAntlOIZvDjp/d5MmruN7DXcuDhRxKRHLDpYON3QIPYJ8Nn0O8j9GzLqrN8SoxeCld/TFIdWoW96iXseF3xWiLj9cCm4O6Dr1ilYcAiUyGMb6iTbJWAIJbXqP6E98=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=113.46.200.220
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
+Received: from mail.maildlp.com (unknown [172.19.162.197])
+	by canpmsgout05.his.huawei.com (SkyGuard) with ESMTPS id 4hLxvx2sbGz12LDV;
+	Fri, 14 Aug 2026 17:37:17 +0800 (CST)
+Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
+	by mail.maildlp.com (Postfix) with ESMTPS id 5983E40579;
+	Fri, 14 Aug 2026 17:47:41 +0800 (CST)
+Received: from [10.67.120.168] (10.67.120.168) by
+ kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.36; Fri, 14 Aug 2026 17:47:40 +0800
+Message-ID: <4e060113-be51-e0ce-36a1-2a4d28a54d5f@hisilicon.com>
+Date: Fri, 14 Aug 2026 17:47:40 +0800
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.15.1
+Subject: Re: [PATCH rdma-next] RDMA/uverbs: Fix mmap_lock/disassociation_lock
+ circular dependency
+Content-Language: en-US
+To: Edward Srouji <edwards@nvidia.com>, Jason Gunthorpe <jgg@ziepe.ca>, Leon
+ Romanovsky <leon@kernel.org>, Chengchang Tang <tangchengchang@huawei.com>
+CC: <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>, Or Har-Toov
+	<ohartoov@nvidia.com>
+References: <20260811-fix-mmap-lockdep-v1-1-1151b41063b4@nvidia.com>
+From: Junxian Huang <huangjunxian6@hisilicon.com>
+In-Reply-To: <20260811-fix-mmap-lockdep-v1-1-1151b41063b4@nvidia.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: kwepems200001.china.huawei.com (7.221.188.67) To
+ kwepemf100018.china.huawei.com (7.202.181.17)
 
-From: Gang Yan <yangang@kylinos.cn>
 
-mr_check_range() validates that [iova, iova+length) falls within the
-registered MR range using wraparound-prone arithmetic:
 
-    if (iova < mr->ibmr.iova ||
-        iova + length > mr->ibmr.iova + mr->ibmr.length)
+On 2026/8/12 0:19, Edward Srouji wrote:
+> From: Or Har-Toov <ohartoov@nvidia.com>
+> 
+> Commit 51976c6cd786 ("RDMA/core: Provide rdma_user_mmap_disassociate()
+> to disassociate mmap pages") introduced disassociation_lock to protect
+> new mmap registrations against uverbs_user_mmap_disassociate(), but
+> created an ABBA deadlock:
+> 
+>   Thread A (mmap / fork):
+>     mmap_lock -> disassociation_lock
+> 
+>   Thread B (disassociate):
+>     disassociation_lock -> mmap_lock
+> 
+> Fix by removing disassociation_lock entirely and using the pre-existing
+> hw_destroy_rwsem instead. hw_destroy_rwsem already provides the same
+> protection: rdma_umap_open() and ib_uverbs_mmap() both use
+> down_read_trylock() before registering a new VMA, so holding hw_destroy_rwsem
+> in uverbs_user_mmap_disassociate() is sufficient to block new registrations.
+> trylock is used in both mmap paths (not blocking down_read) because
+> mmap_lock is already held on entry, and uverbs_user_mmap_disassociate()
+> acquires mmap_lock internally — a blocking read would recreate the same
+> deadlock.
+> 
+> The only caller that was not taking hw_destroy_rwsem for write was
+> rdma_user_mmap_disassociate(). Fix it to take the rwsem per-ufile while
+> iterating under lists_mutex.  This is safe because ib_uverbs_close()
+> releases hw_destroy_rwsem entirely before acquiring lists_mutex, so the
+> two locks are never held simultaneously.
+> 
+> lockdep warning:
+> 
+>  [  776.654252] ======================================================
+>  [  776.655214] WARNING: possible circular locking dependency detected
+>  [  776.656167] 6.18.0for-upstream_debug_94e244d9ccab #1 Not tainted
+>  [  776.657114] ------------------------------------------------------
+>  [  776.658087] devlink/14824 is trying to acquire lock:
+>  [  776.658879] ffff88811170c800 (&mm->mmap_lock){++++}-{4:4}, at: uverbs_user_mmap_disassociate+0x168/0x780 [ib_uverbs]
+>  [  776.660479]
+>  [  776.660479] but task is already holding lock:
+>  [  776.661460] ffff888142d92b08 (&file->disassociation_lock){+.+.}-{4:4}, at: uverbs_user_mmap_disassociate+0x39/0x780 [ib_uverbs]
+>  [  776.663177]
+>  [  776.663177] which lock already depends on the new lock.
+>  [  776.663177]
+>  [  776.664525]
+>  [  776.664525] the existing dependency chain (in reverse order) is:
+>  [  776.665724]
+>  [  776.665724] -> #2 (&file->disassociation_lock){+.+.}-{4:4}:
+>  [  776.666887]        __mutex_lock+0x16d/0x2330
+>  [  776.667633]        rdma_umap_open+0x129/0x280 [ib_uverbs]
+>  [  776.668489]        dup_mmap+0xa40/0x1790
+>  [  776.669170]        copy_process+0x5dd2/0x6170
+>  [  776.669933]        kernel_clone+0xb6/0x610
+>  [  776.670636]        __do_sys_clone+0xb5/0xf0
+>  [  776.671354]        do_syscall_64+0x70/0x12e0
+>  [  776.672083]        entry_SYSCALL_64_after_hwframe+0x4b/0x53
+>  [  776.672940]
+>  [  776.672940] -> #1 (&mm->mmap_lock/1){+.+.}-{4:4}:
+>  [  776.673985]        down_write_nested+0x90/0x1e0
+>  [  776.674751]        dup_mmap+0x201/0x1790
+>  [  776.675448]        copy_process+0x5dd2/0x6170
+>  [  776.676180]        kernel_clone+0xb6/0x610
+>  [  776.676904]        __do_sys_clone+0xb5/0xf0
+>  [  776.677615]        do_syscall_64+0x70/0x12e0
+>  [  776.678351]        entry_SYSCALL_64_after_hwframe+0x4b/0x53
+>  [  776.679239]
+>  [  776.679239] -> #0 (&mm->mmap_lock){++++}-{4:4}:
+>  [  776.680253]        __lock_acquire+0x18c6/0x2ec0
+>  [  776.681018]        lock_acquire+0x10e/0x2e0
+>  [  776.681742]        down_read+0x95/0x430
+>  [  776.682395]        uverbs_user_mmap_disassociate+0x168/0x780 [ib_uverbs]
+>  [  776.683436]        uverbs_destroy_ufile_hw+0x1ae/0x270 [ib_uverbs]
+>  [  776.684416]        ib_uverbs_remove_one+0x22b/0x420 [ib_uverbs]
+>  [  776.685371]        remove_client_context+0xa6/0xf0 [ib_core]
+>  [  776.686342]        disable_device+0x12b/0x240 [ib_core]
+>  [  776.687249]        __ib_unregister_device+0x269/0x460 [ib_core]
+>  [  776.688233]        ib_unregister_device+0x21/0x30 [ib_core]
+>  [  776.689140]        mlx5r_remove+0xd0/0x170 [mlx5_ib]
+>  [  776.689999]        device_release_driver_internal+0x3b2/0x560
+>  [  776.694876]        bus_remove_device+0x1f5/0x3e0
+>  [  776.695638]        device_del+0x3b9/0x990
+>  [  776.696329]        mlx5_detach_device+0x17e/0x350 [mlx5_core]
+>  [  776.697429]        mlx5_unload_one_devl_locked+0x3f/0xb0 [mlx5_core]
+>  [  776.698578]        mlx5_devlink_reload_down+0x1f9/0x550 [mlx5_core]
+>  [  776.699712]        devlink_reload+0x13e/0x680
+>  [  776.700456]        devlink_nl_reload_doit+0xc29/0x1160
+>  [  776.701293]        genl_family_rcv_msg_doit+0x1c9/0x2a0
+>  [  776.702135]        genl_rcv_msg+0x3f0/0x6b0
+>  [  776.702854]        netlink_rcv_skb+0x11d/0x370
+>  [  776.703605]        genl_rcv+0x24/0x40
+>  [  776.704236]        netlink_unicast+0x5b4/0x970
+>  [  776.704984]        netlink_sendmsg+0x730/0xbf0
+>  [  776.705748]        __sock_sendmsg+0xc5/0x190
+>  [  776.706461]        __sys_sendto+0x201/0x2f0
+>  [  776.707188]        __x64_sys_sendto+0xdc/0x1b0
+>  [  776.707931]        do_syscall_64+0x70/0x12e0
+>  [  776.708643]        entry_SYSCALL_64_after_hwframe+0x4b/0x53
+>  [  776.709546]
+>  [  776.709546] other info that might help us debug this:
+>  [  776.709546]
+>  [  776.710910] Chain exists of:
+>  [  776.710910]   &mm->mmap_lock --> &mm->mmap_lock/1 --> &file->disassociation_lock
+>  [  776.710910]
+>  [  776.712805]  Possible unsafe locking scenario:
+>  [  776.712805]
+>  [  776.713828]        CPU0                    CPU1
+>  [  776.714589]        ----                    ----
+>  [  776.715347]   lock(&file->disassociation_lock);
+>  [  776.716097]                                lock(&mm->mmap_lock/1);
+>  [  776.717067]                                lock(&file->disassociation_lock);
+>  [  776.718199]   rlock(&mm->mmap_lock);
+>  [  776.718857]
+>  [  776.718857]  *** DEADLOCK ***
+> 
+> Fixes: 51976c6cd786 ("RDMA/core: Provide rdma_user_mmap_disassociate() to disassociate mmap pages")
+> Signed-off-by: Or Har-Toov <ohartoov@nvidia.com>
+> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+> Signed-off-by: Edward Srouji <edwards@nvidia.com>
 
-A remote peer can craft an RDMA-Write/Read RETH so that iova + length
-wraps to 0 (e.g. iova=0xfffffffffffffff8, length=8), bypassing the
-check. rxe_mr_iova_to_index() then computes a huge index (int idx, only
-guarded by WARN_ON) and rxe_mr_copy_xarray() dereferences
-mr->page_info[huge], causing an out-of-bounds read/write and a kernel
-oops that is triggerable by an unauthenticated remote peer.
+Acked-by: Junxian Huang <huangjunxian6@hisilicon.com>
 
-Rewrite the check in overflow-safe form; the first two clauses guarantee
-that the subsequent subtractions do not underflow:
-
-    if (iova < mr->ibmr.iova ||
-        length > mr->ibmr.length ||
-        iova - mr->ibmr.iova > mr->ibmr.length - length)
-
-With the fix, mr_check_range() returns -EINVAL for the crafted iova and
-the responder reports REMOTE_ACCESS_ERROR instead of triggering the OOB.
-
-Assisted-by: Codex: GLM-5.2
-Fixes: 8700e3e7c485 ("Soft RoCE driver")
-Cc: stable@vger.kernel.org
-Signed-off-by: Gang Yan <yangang@kylinos.cn>
-Reviewed-by: Zhu Yanjun <yanjun.zhu@linux.dev>
----
-Changelog:
-v3:
-  - rebase on rdma/for-next
-  - CC to stable maillist
-v2:
-  - Add Yanjun's reviewed-by tag as he suggested.
-v1:
-  - The reproducer is attached in v1 thread.
-  Link: https://lore.kernel.org/all/20260728091128.9116-1-gang.yan@linux.dev/
----
- drivers/infiniband/sw/rxe/rxe_mr.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
-index 875eceb55fdf..71d9ea477289 100644
---- a/drivers/infiniband/sw/rxe/rxe_mr.c
-+++ b/drivers/infiniband/sw/rxe/rxe_mr.c
-@@ -33,7 +33,8 @@ int mr_check_range(struct rxe_mr *mr, u64 iova, size_t length)
- 	case IB_MR_TYPE_USER:
- 	case IB_MR_TYPE_MEM_REG:
- 		if (iova < mr->ibmr.iova ||
--		    iova + length > mr->ibmr.iova + mr->ibmr.length) {
-+		    length > mr->ibmr.length ||
-+		    iova - mr->ibmr.iova > mr->ibmr.length - length) {
- 			rxe_dbg_mr(mr, "iova/length out of range\n");
- 			return -EINVAL;
- 		}
--- 
-2.43.0
-
+> ---
+>  drivers/infiniband/core/rdma_core.c   |  1 -
+>  drivers/infiniband/core/uverbs_main.c | 25 +++++++++++--------------
+>  include/rdma/uverbs_types.h           |  2 --
+>  3 files changed, 11 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
+> index fd5651c003aed3178188b4f89ede86d893676a9a..a7cbe643e33c6e5247a8f4eebc3b8ab1d9a66e4f 100644
+> --- a/drivers/infiniband/core/rdma_core.c
+> +++ b/drivers/infiniband/core/rdma_core.c
+> @@ -69,7 +69,6 @@ void ib_uverbs_release_file(struct kref *ref)
+>  
+>  	if (file->disassociate_page)
+>  		__free_pages(file->disassociate_page, 0);
+> -	mutex_destroy(&file->disassociation_lock);
+>  	mutex_destroy(&file->umap_lock);
+>  	mutex_destroy(&file->ucontext_lock);
+>  	kfree(file);
+> diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+> index 3ccf58e96aedebb6f8886ef5b8fad5660475c4c7..5be21fca4948272b9a66e8ee357ca9432556c887 100644
+> --- a/drivers/infiniband/core/uverbs_main.c
+> +++ b/drivers/infiniband/core/uverbs_main.c
+> @@ -643,12 +643,15 @@ static int ib_uverbs_mmap(struct file *filp, struct vm_area_struct *vma)
+>  		goto out;
+>  	}
+>  
+> -	mutex_lock(&file->disassociation_lock);
+> +	if (!down_read_trylock(&file->hw_destroy_rwsem)) {
+> +		ret = -EIO;
+> +		goto out;
+> +	}
+>  
+>  	vma->vm_ops = &rdma_umap_ops;
+>  	ret = ucontext->device->ops.mmap(ucontext, vma);
+>  
+> -	mutex_unlock(&file->disassociation_lock);
+> +	up_read(&file->hw_destroy_rwsem);
+>  out:
+>  	srcu_read_unlock(&file->device->disassociate_srcu, srcu_key);
+>  	return ret;
+> @@ -670,7 +673,6 @@ static void rdma_umap_open(struct vm_area_struct *vma)
+>  	/* We are racing with disassociation */
+>  	if (!down_read_trylock(&ufile->hw_destroy_rwsem))
+>  		goto out_zap;
+> -	mutex_lock(&ufile->disassociation_lock);
+>  
+>  	/*
+>  	 * Disassociation already completed, the VMA should already be zapped.
+> @@ -683,12 +685,10 @@ static void rdma_umap_open(struct vm_area_struct *vma)
+>  		goto out_unlock;
+>  	rdma_umap_priv_init(priv, vma, opriv->entry);
+>  
+> -	mutex_unlock(&ufile->disassociation_lock);
+>  	up_read(&ufile->hw_destroy_rwsem);
+>  	return;
+>  
+>  out_unlock:
+> -	mutex_unlock(&ufile->disassociation_lock);
+>  	up_read(&ufile->hw_destroy_rwsem);
+>  out_zap:
+>  	/*
+> @@ -772,7 +772,7 @@ void uverbs_user_mmap_disassociate(struct ib_uverbs_file *ufile)
+>  {
+>  	struct rdma_umap_priv *priv, *next_priv;
+>  
+> -	mutex_lock(&ufile->disassociation_lock);
+> +	lockdep_assert_held_write(&ufile->hw_destroy_rwsem);
+>  
+>  	while (1) {
+>  		struct mm_struct *mm = NULL;
+> @@ -798,10 +798,8 @@ void uverbs_user_mmap_disassociate(struct ib_uverbs_file *ufile)
+>  			break;
+>  		}
+>  		mutex_unlock(&ufile->umap_lock);
+> -		if (!mm) {
+> -			mutex_unlock(&ufile->disassociation_lock);
+> +		if (!mm)
+>  			return;
+> -		}
+>  
+>  		/*
+>  		 * The umap_lock is nested under mmap_lock since it used within
+> @@ -831,8 +829,6 @@ void uverbs_user_mmap_disassociate(struct ib_uverbs_file *ufile)
+>  		mmap_read_unlock(mm);
+>  		mmput(mm);
+>  	}
+> -
+> -	mutex_unlock(&ufile->disassociation_lock);
+>  }
+>  
+>  /**
+> @@ -850,8 +846,11 @@ void rdma_user_mmap_disassociate(struct ib_device *device)
+>  
+>  	mutex_lock(&uverbs_dev->lists_mutex);
+>  	list_for_each_entry(ufile, &uverbs_dev->uverbs_file_list, list) {
+> -		if (ufile->ucontext)
+> +		if (ufile->ucontext) {
+> +			down_write(&ufile->hw_destroy_rwsem);
+>  			uverbs_user_mmap_disassociate(ufile);
+> +			up_write(&ufile->hw_destroy_rwsem);
+> +		}
+>  	}
+>  	mutex_unlock(&uverbs_dev->lists_mutex);
+>  }
+> @@ -926,8 +925,6 @@ static int ib_uverbs_open(struct inode *inode, struct file *filp)
+>  	mutex_init(&file->umap_lock);
+>  	INIT_LIST_HEAD(&file->umaps);
+>  
+> -	mutex_init(&file->disassociation_lock);
+> -
+>  	filp->private_data = file;
+>  	list_add_tail(&file->list, &dev->uverbs_file_list);
+>  	mutex_unlock(&dev->lists_mutex);
+> diff --git a/include/rdma/uverbs_types.h b/include/rdma/uverbs_types.h
+> index 5a07f9a6dcd1f6e2faaf2df25d2661d5bf2a170e..6f3622892c0cc6d71890f4ece7bd3a0c59432ee2 100644
+> --- a/include/rdma/uverbs_types.h
+> +++ b/include/rdma/uverbs_types.h
+> @@ -180,8 +180,6 @@ struct ib_uverbs_file {
+>  	struct page *disassociate_page;
+>  
+>  	struct xarray		idr;
+> -
+> -	struct mutex disassociation_lock;
+>  };
+>  
+>  extern const struct uverbs_obj_type_class uverbs_idr_class;
+> 
+> ---
+> base-commit: a12d9145145b21c50531afb6e3f711b1f34e1465
+> change-id: 20260811-fix-mmap-lockdep-91da89a3f37c
+> 
+> Best regards,
