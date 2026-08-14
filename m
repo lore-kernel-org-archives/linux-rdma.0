@@ -1,117 +1,85 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41F6C194C96;
-	Fri, 14 Aug 2026 02:41:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2B493C09FA;
+	Fri, 14 Aug 2026 03:24:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786675270; cv=none; b=eeiNO2DRuda6NxHAqNqyxrNqAMPEylgWtSUwHg1svKnQu24kuzZ628xs9V4WYTmocVnI/T3mltsuG3UcR3EpBZACLGvvJ77912yv09k/65cGaiYB5NajAR5e/ZEgevUfoY3a5sWSSKx1dSDRp3Ms09awlUbNaG+/EleyyElBkOw=
+	t=1786677878; cv=none; b=rV1aP2Y5F2otJCdLxY9yb0gBxXcAGz/TnrtZDD9w8F3H4u9dbUQujBOJOzzB2Om3oWCF9lZUCO2uxMdMS66wEEIirgLTKqT6c9YBliPJFhQI8i1j1v4CRhvJb+8lF+RRHtD2YMXg9b7X6QuuvMoBqNE4FEcWQC7LI1LeRdFFwos=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786675270; c=relaxed/simple;
-	bh=Z48bvkpMxL4jMe78ug+JbhoY2e4MCvTgMB0uOQB+57I=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=FU5YPMfmwT8JAo5Ii+p5lGNoAHoVceGXjejh2BcplJWgn5vGnqTK5YWpVo+NOcG9cOJkETcZ3bPnyA+WLKpaslLmnsq1kW00J1Q2h2aBHnSKHr057MTSF3WnO5QnlgcB4P1erOwT4l8bmaBbPGxaVZgu/yrYIXhbIDyiUBwkK8w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CQPOI22A; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786677878; c=relaxed/simple;
+	bh=dnK4XQbvn2aFJeQxuwDNkBWiLT7GGTskBeethO2SpsI=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=H1S61+9EqUgg797y1WuSv+XswtzRcXG4GcqbL7QmgXdWzpRNi5Ty5m+h7uhQRyYXpvpTdEh7jZN7Jm1MeFc9E3qBp9YnupzQoGrh8GTDsXRMvHTtOjEudv9/LN3gEgJP3MXtiSMFezKtOtn6RZyXB2I3yHbpI7AvNBbbQ9qWXcw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iVD7ugPf; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CQPOI22A"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B51791F000E9;
-	Fri, 14 Aug 2026 02:41:08 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iVD7ugPf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A8491F000E9;
+	Fri, 14 Aug 2026 03:24:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786675269;
-	bh=00vEJXCsB0j31NwNqpR/ItpXlNHee6LMH4ArfUaRGYw=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=CQPOI22AZmuLJIfF8XvyMW+j8ezZ9HEU6QVZCipBzhi+VcwaPRWy0uJTE70ODX6/j
-	 KiCNFGDKYvRWW6JmNKKhTLk/F+4bKBQ7HHIHPcZScG8FcOCJ4+IkJwfufpm59ei6On
-	 OLI5Wl0AF4hiUA1aRZyetQvmh3euffrSK4QjojwQx8T8besfyqUs1hl4kuZnu5UA+H
-	 lstmJ9eFd1ktvYCYA2wzzMYjTnpZzSvwlbUOCP0SJLH88UgkJ9f33HkO505SKFVTyH
-	 Pn6f+gmaZFXDLo5ZdlcxklQfiaRtqazzeF/DAMMbpytD7f4GnhPCnqbbxb0Ksy/QeB
-	 TlljMETIbjbdA==
-Message-ID: <faa4c69a1c5e4899566ec525dd92f69e3cf4113e.camel@kernel.org>
-Subject: Re: [PATCH net-next v2 0/2] net/rds: Bug fix ports, part 2
-From: Allison Henderson <achender@kernel.org>
-To: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com, 
-	edumazet@google.com, kuba@kernel.org, horms@kernel.org
-Cc: jhubbard@nvidia.com, leon@kernel.org
-Date: Thu, 13 Aug 2026 19:41:08 -0700
-In-Reply-To: <20260809005103.82371-1-achender@kernel.org>
-References: <20260809005103.82371-1-achender@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.52.3-0ubuntu1.1 
+	s=k20260515; t=1786677877;
+	bh=gIEgBcAoeJ7+WVpGgtS9J+mhRvHVlB8sFCT9Z+i46BQ=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=iVD7ugPfb0FBtOaJyo6uAX8vK987ixi8cJwvSBJ2XigQ8x3PwSB1vruDavjCelg0V
+	 G1aoIXq2ZRnqBUbFcAG6G2XxRR/yD5cchO6uF1IeXGjR3tDDvHD+qsum4s6xIful8s
+	 960nsOlESE1eNpl0oAayJhZuKcfdzN2JzQvQLlWxrudW1mjkTO/PZLA7SsXZQZku2/
+	 FIIXBW9VpOSbzsBm/OZNHdVaSEB+XvduhuMll+UPcWA3isbkJAcYZMxMipstJh5uDB
+	 eHjH/tpz/9Oo9XlmfbfmZEgyZGk9ewVt7fNEUWsULUNV3HcgcFcANcXtYmeDDdkMbx
+	 20frBZUCHkUjQ==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id D0CA13810900;
+	Fri, 14 Aug 2026 03:23:52 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net v2 0/2] net/smc: close the SMC-D teardown window
+ around
+ the ghost send buffer
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <178667783138.3150297.14142348032693681009.git-patchwork-notify@kernel.org>
+Date: Fri, 14 Aug 2026 03:23:51 +0000
+References: <20260808-b4-disp-22f119e6-v2-0-61647601a6f3@proton.me>
+In-Reply-To: <20260808-b4-disp-22f119e6-v2-0-61647601a6f3@proton.me>
+To: Bryam Vargas <hexlabsecurity@proton.me>
+Cc: dust.li@linux.alibaba.com, sidraya@linux.ibm.com, pabeni@redhat.com,
+ davem@davemloft.net, kuba@kernel.org, wenjia@linux.ibm.com,
+ alibuda@linux.alibaba.com, mjambigi@linux.ibm.com, tonylu@linux.alibaba.com,
+ guwen@linux.alibaba.com, edumazet@google.com, linux-kernel@vger.kernel.org,
+ linux-rdma@vger.kernel.org, netdev@vger.kernel.org, horms@kernel.org,
+ linux-s390@vger.kernel.org
 
-On Sat, 2026-08-08 at 17:51 -0700, Allison Henderson wrote:
-> Hi all,
->=20
-> This is the next batch of net/rds fixes ported from the Oracle UEK
-> kernel, following up on the first set now in net-next [1]. =20
->=20
-> This is v2 of patches 1 and 2 of "net/rds: Bug fix ports, part 2"
-> [2], which contained two initialization-hardening ports.  While
-> re-reviewing v1's patches 3 and 4 (the fastpath-lock teardown changes)
-> I found their locking needs more rework than a respin should carry, so
-> they are split out and will return as their own series together with
-> two companion fixes. =C2=A0
->=20
+Hello:
 
-This reply is just for book keeping.  As stated above, v1's patches 3 and 4
-have been continued in a separate set:
+This series was applied to netdev/net.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
 
-[PATCH net-next 0/4] net/rds: own the fastpath locks across connection tear=
-down
-https://lore.kernel.org/all/20260814013501.43760-1-achender@kernel.org
+On Sat, 08 Aug 2026 02:21:22 -0500 you wrote:
+> Both patches only matter on the SMC-D DMB-nocopy path, where the ghost send
+> buffer exists, and the only in-tree provider of support_mmapped_rdmb is
+> dibs_loopback. CONFIG_DIBS_LO is default n and its help calls it a testing aid,
+> so on a stock config neither bug is reachable.
+> 
+> v1 moved smcd_buf_detach() after the drain. Dust Li replied that it does not
+> fully eliminate the race and asked whether RCU is the better shape. He is right
+> about the first part; I built both and measured them.
+> 
+> [...]
 
-> The two patches here are independent of them.
->=20
-> [PATCH net 1/2] net/rds: reinitialize to_be_dropped on rds_send_xmit() re=
-start
->   Port commit 7f52b9968d79 ("net/rds: rds_send_xmit should INIT_LIST_HEAD=
- (&to_be_dropped) on restart")
->   https://github.com/oracle/linux-uek/commit/7f52b9968d79=20
->=20
-> [PATCH net 2/2] net/rds: initialize i_conn_path in rds_inc_init()
->   Port commit 0ec6a520da4f ("rds: rds_inc_init() should initialize the in=
-c->i_conn_path field")
->   https://github.com/oracle/linux-uek/commit/0ec6a520da4f
->=20
-> Questions and comments appreciated!
->=20
-> Thanks,
-> Allison
->=20
-> v2:
->   - Patch 1: the comment now names rds_send_remove_from_sock()
->     instead of vaguely blaming "the callees", and the restart-time
->     invariant is enforced with a WARN_ON_ONCE(): entries still on
->     the list there would keep their message reference and their
->     RDS_MSG_ON_SOCK accounting, so a silent re-init would orphan
->     them.
->   - Patch 2: for loopback the field held a live value written by
->     rds_send_queue_rm(), not garbage; rds_loop_xmit() now uses
->     rds_inc_path_init() so the re-initialization keeps it valid, and
->     the commit message describes the two transports accurately.
->=20
-> [1] https://lore.kernel.org/netdev/20260730041629.3512480-1-achender@kern=
-el.org/
-> [2] https://lore.kernel.org/netdev/20260806072045.1092968-1-achender@kern=
-el.org/
->=20
-> Sharath Srinivasan (1):
->   net/rds: reinitialize to_be_dropped on rds_send_xmit() restart
->=20
-> William Kucharski (1):
->   net/rds: initialize i_conn_path in rds_inc_init()
->=20
->  net/rds/loop.c | 6 +++++-
->  net/rds/recv.c | 1 +
->  net/rds/send.c | 8 ++++++++
->  3 files changed, 14 insertions(+), 1 deletion(-)
->=20
->=20
-> base-commit: 4fa4977a0d900f936bcae5cd2c510be5554e8dd6
+Here is the summary with links:
+  - [net,v2,1/2] net/smc: unregister the connection before draining the rx tasklet
+    https://git.kernel.org/netdev/net/c/36cdf5d48ca1
+  - [net,v2,2/2] net/smc: do not dereference an unset send buffer on the SMC-D teardown path
+    https://git.kernel.org/netdev/net/c/b395dd319cea
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
