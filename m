@@ -1,102 +1,117 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A66393D333E
-	for <linux-rdma@vger.kernel.org>; Fri, 14 Aug 2026 01:37:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41F6C194C96;
+	Fri, 14 Aug 2026 02:41:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786671427; cv=none; b=TqrT6XG7v6hP3yopVMOV8Yfok8m2d4GCn1vJ6EQl1n24nI4ukkcg5dJwTYxe0t3qWv4wwOXSx3EBePtLin4avPRMrocMRPR7j+whK0+fqSqRtNbF/3k2Ii8Ch+JkojFGxaaqYhyn6+ZG1k/aXLuQvU5QVtoGw9IZzRSmeEsLIo0=
+	t=1786675270; cv=none; b=eeiNO2DRuda6NxHAqNqyxrNqAMPEylgWtSUwHg1svKnQu24kuzZ628xs9V4WYTmocVnI/T3mltsuG3UcR3EpBZACLGvvJ77912yv09k/65cGaiYB5NajAR5e/ZEgevUfoY3a5sWSSKx1dSDRp3Ms09awlUbNaG+/EleyyElBkOw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786671427; c=relaxed/simple;
-	bh=hh4fHt8z/njeLfQ0+k9Ub6Ly+y3gNyyDq4jKliyLgDA=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=EGyYNSUUpMs8p/qy1ZMJtbFMy4e930FvjAwBxL9PyhNuGwQgcCdDH3gK0yRd42in991adIE1j6/7QMOtL3n4Hkb1hS81ZKO23K7OrGiuVVQACiSVjLtK0Uik3Kp9lpZ4o18ZAAuwt8+1E4fzJCYPGd7vfvIsRCgSJRV5gOYgkQQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Df9KGJz1; arc=none smtp.client-ip=192.198.163.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1786675270; c=relaxed/simple;
+	bh=Z48bvkpMxL4jMe78ug+JbhoY2e4MCvTgMB0uOQB+57I=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=FU5YPMfmwT8JAo5Ii+p5lGNoAHoVceGXjejh2BcplJWgn5vGnqTK5YWpVo+NOcG9cOJkETcZ3bPnyA+WLKpaslLmnsq1kW00J1Q2h2aBHnSKHr057MTSF3WnO5QnlgcB4P1erOwT4l8bmaBbPGxaVZgu/yrYIXhbIDyiUBwkK8w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CQPOI22A; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Df9KGJz1"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1786671424; x=1818207424;
-  h=date:from:to:cc:subject:message-id;
-  bh=hh4fHt8z/njeLfQ0+k9Ub6Ly+y3gNyyDq4jKliyLgDA=;
-  b=Df9KGJz1C6ZcAuBPpWwTE/Tq0snsT5Po/BF+PB/kDKjexxc8tl6oJMmc
-   /UzZcBzTtGeRqSHhBbUWCvGy5Qq+p5esTKwd6ngD+D264OGSzDFl2azA/
-   Rb8zBjYEVAgOTj9R8ebclwML1xCzDXXy1nh7idSzID4Ct/vxCHAGB2RD5
-   Vs4Fs6PT4SoVtAqItclrIysZsboXIcj3tHWqID+LwvnznqM2/zHNsoCp2
-   vu2JRSnajZBPKSABm1i7MtnVebrA4usNzDqn8AexDroXsXW7faDmV4ObR
-   5oybbtKYLIHSNX4YW79plsVo6bNwWksDu4acbcZeFE7d7wb+luMsr4FbJ
-   Q==;
-X-CSE-ConnectionGUID: DKu4dF8eQYGXbGxmrpSAHA==
-X-CSE-MsgGUID: HZkNVgvkQseZ4rOcMM19Ww==
-X-IronPort-AV: E=McAfee;i="6800,10657,11874"; a="98611154"
-X-IronPort-AV: E=Sophos;i="6.25,222,1779174000"; 
-   d="scan'208";a="98611154"
-Received: from orviesa005.jf.intel.com ([10.64.159.145])
-  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Aug 2026 18:36:51 -0700
-X-CSE-ConnectionGUID: T+NPcwEoQriVCE3IgicD9g==
-X-CSE-MsgGUID: hjenLb+bTqCXwdsxl+pKaw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,222,1779174000"; 
-   d="scan'208";a="268362506"
-Received: from lkp-server01.sh.intel.com (HELO 6eda058d650d) ([10.239.97.150])
-  by orviesa005.jf.intel.com with ESMTP; 13 Aug 2026 18:36:47 -0700
-Received: from kbuild by 6eda058d650d with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wugqi-00000000XKG-3YS2;
-	Fri, 14 Aug 2026 01:36:44 +0000
-Date: Fri, 14 Aug 2026 09:36:37 +0800
-From: kernel test robot <lkp@intel.com>
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>,
- Jason Gunthorpe <jgg+lists@ziepe.ca>, linux-rdma@vger.kernel.org
-Subject: [rdma:wip/leon-for-next] BUILD REGRESSION
- c9085ec66448094d7863a80c4633954bdd1f1e4e
-Message-ID: <202608140923.gmPYKSVT-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CQPOI22A"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B51791F000E9;
+	Fri, 14 Aug 2026 02:41:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1786675269;
+	bh=00vEJXCsB0j31NwNqpR/ItpXlNHee6LMH4ArfUaRGYw=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=CQPOI22AZmuLJIfF8XvyMW+j8ezZ9HEU6QVZCipBzhi+VcwaPRWy0uJTE70ODX6/j
+	 KiCNFGDKYvRWW6JmNKKhTLk/F+4bKBQ7HHIHPcZScG8FcOCJ4+IkJwfufpm59ei6On
+	 OLI5Wl0AF4hiUA1aRZyetQvmh3euffrSK4QjojwQx8T8besfyqUs1hl4kuZnu5UA+H
+	 lstmJ9eFd1ktvYCYA2wzzMYjTnpZzSvwlbUOCP0SJLH88UgkJ9f33HkO505SKFVTyH
+	 Pn6f+gmaZFXDLo5ZdlcxklQfiaRtqazzeF/DAMMbpytD7f4GnhPCnqbbxb0Ksy/QeB
+	 TlljMETIbjbdA==
+Message-ID: <faa4c69a1c5e4899566ec525dd92f69e3cf4113e.camel@kernel.org>
+Subject: Re: [PATCH net-next v2 0/2] net/rds: Bug fix ports, part 2
+From: Allison Henderson <achender@kernel.org>
+To: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com, 
+	edumazet@google.com, kuba@kernel.org, horms@kernel.org
+Cc: jhubbard@nvidia.com, leon@kernel.org
+Date: Thu, 13 Aug 2026 19:41:08 -0700
+In-Reply-To: <20260809005103.82371-1-achender@kernel.org>
+References: <20260809005103.82371-1-achender@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.52.3-0ubuntu1.1 
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/leon-for-next
-branch HEAD: c9085ec66448094d7863a80c4633954bdd1f1e4e  RDMA/ucma: Allow path records to exactly fit the output buffer
+On Sat, 2026-08-08 at 17:51 -0700, Allison Henderson wrote:
+> Hi all,
+>=20
+> This is the next batch of net/rds fixes ported from the Oracle UEK
+> kernel, following up on the first set now in net-next [1]. =20
+>=20
+> This is v2 of patches 1 and 2 of "net/rds: Bug fix ports, part 2"
+> [2], which contained two initialization-hardening ports.  While
+> re-reviewing v1's patches 3 and 4 (the fastpath-lock teardown changes)
+> I found their locking needs more rework than a respin should carry, so
+> they are split out and will return as their own series together with
+> two companion fixes. =C2=A0
+>=20
 
-Unverified Error/Warning (likely false positive, kindly check if interested):
+This reply is just for book keeping.  As stated above, v1's patches 3 and 4
+have been continued in a separate set:
 
-    drivers/infiniband/hw/cxgb4/mem.c:584:1: internal compiler error: in final_scan_insn_1, at final.cc:2823
-    drivers/infiniband/hw/mthca/mthca_provider.c:946:1: internal compiler error: in final_scan_insn_1, at final.cc:2823
+[PATCH net-next 0/4] net/rds: own the fastpath locks across connection tear=
+down
+https://lore.kernel.org/all/20260814013501.43760-1-achender@kernel.org
 
-Error/Warning ids grouped by kconfigs:
+> The two patches here are independent of them.
+>=20
+> [PATCH net 1/2] net/rds: reinitialize to_be_dropped on rds_send_xmit() re=
+start
+>   Port commit 7f52b9968d79 ("net/rds: rds_send_xmit should INIT_LIST_HEAD=
+ (&to_be_dropped) on restart")
+>   https://github.com/oracle/linux-uek/commit/7f52b9968d79=20
+>=20
+> [PATCH net 2/2] net/rds: initialize i_conn_path in rds_inc_init()
+>   Port commit 0ec6a520da4f ("rds: rds_inc_init() should initialize the in=
+c->i_conn_path field")
+>   https://github.com/oracle/linux-uek/commit/0ec6a520da4f
+>=20
+> Questions and comments appreciated!
+>=20
+> Thanks,
+> Allison
+>=20
+> v2:
+>   - Patch 1: the comment now names rds_send_remove_from_sock()
+>     instead of vaguely blaming "the callees", and the restart-time
+>     invariant is enforced with a WARN_ON_ONCE(): entries still on
+>     the list there would keep their message reference and their
+>     RDS_MSG_ON_SOCK accounting, so a silent re-init would orphan
+>     them.
+>   - Patch 2: for loopback the field held a live value written by
+>     rds_send_queue_rm(), not garbage; rds_loop_xmit() now uses
+>     rds_inc_path_init() so the re-initialization keeps it valid, and
+>     the commit message describes the two transports accurately.
+>=20
+> [1] https://lore.kernel.org/netdev/20260730041629.3512480-1-achender@kern=
+el.org/
+> [2] https://lore.kernel.org/netdev/20260806072045.1092968-1-achender@kern=
+el.org/
+>=20
+> Sharath Srinivasan (1):
+>   net/rds: reinitialize to_be_dropped on rds_send_xmit() restart
+>=20
+> William Kucharski (1):
+>   net/rds: initialize i_conn_path in rds_inc_init()
+>=20
+>  net/rds/loop.c | 6 +++++-
+>  net/rds/recv.c | 1 +
+>  net/rds/send.c | 8 ++++++++
+>  3 files changed, 14 insertions(+), 1 deletion(-)
+>=20
+>=20
+> base-commit: 4fa4977a0d900f936bcae5cd2c510be5554e8dd6
 
-recent_errors
-`-- csky-allmodconfig
-    |-- drivers-infiniband-hw-cxgb4-mem.c:internal-compiler-error:in-final_scan_insn_1-at-final.cc
-    `-- drivers-infiniband-hw-mthca-mthca_provider.c:internal-compiler-error:in-final_scan_insn_1-at-final.cc
-
-elapsed time: 769m
-
-configs tested: 15
-configs skipped: 0
-
-tested configs:
-alpha             allnoconfig    gcc-16.1.0
-alpha            allyesconfig    gcc-16.1.0
-alpha               defconfig    gcc-16.1.0
-arc              allmodconfig    gcc-16.1.0
-arc              allyesconfig    gcc-16.1.0
-csky             allmodconfig    gcc-16.1.0
-i386             allmodconfig    gcc-14
-loongarch           defconfig    clang-24
-nios2            allmodconfig    gcc-11.5.0
-nios2             allnoconfig    gcc-11.5.0
-parisc           allmodconfig    gcc-16.1.0
-parisc           allyesconfig    gcc-16.1.0
-parisc              defconfig    gcc-16.1.0
-sh         ap325rxa_defconfig    gcc-16.1.0
-sh                  defconfig    gcc-16.1.0
-
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
