@@ -1,87 +1,73 @@
-Received: from PH0PR06CU001.outbound.protection.outlook.com (mail-westus3azon11011048.outbound.protection.outlook.com [40.107.208.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f45.google.com (mail-wm1-f45.google.com [209.85.128.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2957D13D891;
-	Sun, 16 Aug 2026 06:51:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.208.48
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786863117; cv=fail; b=psce6avbELrrcE+olqQVo0vENcMPiGWzMPJFsGHNUa1veTynw9BSCSgq4i1IUQE3TMCpNmRfC1pyeLnp0OlWe4FicmbQYD01bYxYLkdQK9fYw1kK87YI6xNQK7Z8SnZi2pgfncCFKQ2GLPKJ3fbbasBG07b0jCw/yGSvs383qgw=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786863117; c=relaxed/simple;
-	bh=dHsfmF2U6ZOntvXnXhsWorV4JKxwUAAkuSqY0Oc3GxU=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=E/UIF3zbfzgMxXFKgxoTDhC+WaTZKK/3j7PnAmdFDSuove/b0jn114T0sTKF06Clu+TtGiNQcgy9Cvs2JNXKNfc8lsGDPlwMjh6l/QHkVYFBvl6lR/BBlOBu3ZI0nZCcGSRxfsr21d7Amc4o7o8x/9/j2yaNtd5n8kqU1UVt8rw=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=Az133bMT; arc=fail smtp.client-ip=40.107.208.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 021FF3DD847
+	for <linux-rdma@vger.kernel.org>; Sun, 16 Aug 2026 10:44:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.45
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786877078; cv=none; b=YEuz3mebWo7oCaAOjl3q3uakGm3oat4W+6742vCGBuDGyuTTFAx8rtiWUq7AUGcS9YCFzLsM0VCq0W+ROo4uV0iiTxulE3z5PSffL9+87Wgp16ebAmEYIcXj4FpMVKYL1XKVzUa14/r/DTEkEY1D+Xsrm/eNIWeNct1lXMe5yKI=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786877078; c=relaxed/simple;
+	bh=1i9yul6F2l4Q4PPXJh1Yy7BCESqS/JrlBhNG+SNw+WQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=uU81fhRcKLRL+9aMthzcK+02lLtto5Vja0ez97FQiAnUDUERejddoh7Hu/M9oVMzE8ZoKlSPHUFrg0N/ErUqZWDG+qyhKXKBOutlicAG/CT4CxMhe+Ckn+0LxMKqJ3kxUb/zYMwzy54jWE/RdX4U7vjN1iQtjZLsjuDVp5ygi/c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Ym1d+jNn; arc=none smtp.client-ip=209.85.128.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="Az133bMT"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=wIQ8twdMxdsnOGeAU1Z7mA+CrrqVyD/xdoC2dOk6rzntNPGR/Iq06QoKcBUpmb5zHpHzBZ9PTL0WshDJ9o1ttfMWU4JvXcBfqSkK2jj/AKubtTOTV90b/+42BVMRx5CadDDBMmwVxOAtHm7Uy1vN9gDU4W+F9FaT4Z2YVXeqb9sDO13NhqOspnKjrPdjURLlyilzzg9wt+2DDW3XPgmnynxe970ijzc69pxqTx3UgwZarDT4L0QcvA1XdCmj1+8yTff2hqnX75z+JvEVzNHGL324I4fqs3rSAwUv6/Xqdol7gFaBRyCt22MovJgfSWyPzhFGVcrAgWeIhYdhQ5x2TA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=FKKzik78GGbxbXM9mmMjt3gZ8GBvGTo4/2FS+z2t19A=;
- b=ZmQJEKJNsXwK7xFd5OCeiuWMb4u+3szXm7MJVTSzdsh+gsJxCXVxhoyoj1hL58M39idztBRBpPW9jQVxjL6EszU3OulordTWy34g7pPP0s4vuf0rF1+//dk8GBRT7Q8kX1PmND6tLwovBwCblEUJk7DQdc8H5DOCANAMIOezazXraZz04NX7b38BZCUnGNGxFWxPt7fJoipepij+xJbBcOlBD8alECS8ZUClTZiCGf+TY4mfXOVfloQX1UuBs66EuLx3YB4krO+g5Na3MqMr+XpHqPL+PeA5tz5y7sk9UcskYaWxOJoO54K6Qxq4RbpYFwzVZcfDkoMKQmzplEtdzQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.233) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=FKKzik78GGbxbXM9mmMjt3gZ8GBvGTo4/2FS+z2t19A=;
- b=Az133bMTCIby2TgXD+IknJoY234mVoMq8ULokeRuWyG+xpQPaRH7+ebgsMJfmbiAhuCViKwXzUVRNBKFNsovJgnaI1pwi2bBsoTteXggaIAPPEock+/5d4gDp7Brxbx0R7gw8LPIY0bwCtexlLkbkIR6hkR/p7lMiojrgVpU+6jff31rt++36BDWwnRA1gG8GrYrSlFiivDpzSgfbOQtLSHcdZoZx/ne0nZbFsN+EbJFlaxQNlWVYlS+sQqk6Cuo/1H1ppWiPW2jLCLzSFxE53ycCYCk2//F4H/jBjdawvqEgfsIFFfas9WncmXdm3vmsW/Hw+MfnaNU5whhJnGgkA==
-Received: from SJ0PR13CA0018.namprd13.prod.outlook.com (2603:10b6:a03:2c0::23)
- by CH3PR12MB8725.namprd12.prod.outlook.com (2603:10b6:610:170::14) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.315.17; Sun, 16 Aug
- 2026 06:51:48 +0000
-Received: from MWH0EPF000C6192.namprd02.prod.outlook.com
- (2603:10b6:a03:2c0:cafe::54) by SJ0PR13CA0018.outlook.office365.com
- (2603:10b6:a03:2c0::23) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.339.8 via Frontend Transport; Sun, 16
- Aug 2026 06:51:47 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.233) by
- MWH0EPF000C6192.mail.protection.outlook.com (10.167.249.102) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.339.3 via Frontend Transport; Sun, 16 Aug 2026 06:51:46 +0000
-Received: from drhqmail203.nvidia.com (10.126.190.182) by mail.nvidia.com
- (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.46; Sat, 15 Aug
- 2026 23:51:32 -0700
-Received: from drhqmail203.nvidia.com (10.126.190.182) by
- drhqmail203.nvidia.com (10.126.190.182) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.46; Sat, 15 Aug 2026 23:51:31 -0700
-Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
- (10.126.190.182) with Microsoft SMTP Server id 15.2.2562.46 via Frontend
- Transport; Sat, 15 Aug 2026 23:51:26 -0700
-From: Tariq Toukan <tariqt@nvidia.com>
-To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
-	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
-	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>
-CC: Adithya Jayachandran <ajayachandra@nvidia.com>, Edward Srouji
-	<edwards@nvidia.com>, Gal Pressman <gal@nvidia.com>, Jason Gunthorpe
-	<jgg@ziepe.ca>, Jiri Pirko <jiri@resnulli.us>, Leon Romanovsky
-	<leon@kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-rdma@vger.kernel.org>, Maher Sanalla <msanalla@nvidia.com>, Mark Bloch
-	<mbloch@nvidia.com>, Moshe Shemesh <moshe@nvidia.com>, Or Har-Toov
-	<ohartoov@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>, Shay Drori
-	<shayd@nvidia.com>, Simon Horman <horms@kernel.org>, Tariq Toukan
-	<tariqt@nvidia.com>
-Subject: [PATCH net 3/3] net/mlx5: E-Switch, preserve max tx speed on vport state modification
-Date: Sun, 16 Aug 2026 09:50:15 +0300
-Message-ID: <20260816065015.3280733-4-tariqt@nvidia.com>
-X-Mailer: git-send-email 2.44.0
-In-Reply-To: <20260816065015.3280733-1-tariqt@nvidia.com>
-References: <20260816065015.3280733-1-tariqt@nvidia.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Ym1d+jNn"
+Received: by mail-wm1-f45.google.com with SMTP id 5b1f17b1804b1-4994c49f588so20786035e9.0
+        for <linux-rdma@vger.kernel.org>; Sun, 16 Aug 2026 03:44:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1786877075; x=1787481875; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=Wvi2GblmpiPgceuV4OUlqrX9CH6VMj0H+ZOTI97NjFA=;
+        b=Ym1d+jNnXP5D7ke4idP0Noo1Da86OvCKCuijUQxoZJ4XcHr+HSsJE4btMyrgZJ18kN
+         9RGVjVVMsyZej7XTBSsGbuSGncspHUEGFXcg6PlQ7sYWHMp2atZ0ck63ed1sW2zWzZoe
+         6VKKk0y1D3aK+49uJtQQG18l7wkpH3CJL8BPSEDJhrSJpHQBQvBxghKwPR6LMxI+dOfL
+         dCrewiO9gwuiRaDydSaYrhJl5BZY45L6ZU3qweIcbu3qmVg3vAvnTkuoaMqE2zJYcJb1
+         aYJC/Wn6ePeN4FW2tn3dAkcuRTwkKRcPrILiZAHfSNcO/ZGzSBPqxU9ETCvTISSoijUG
+         Bv1Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786877075; x=1787481875;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=Wvi2GblmpiPgceuV4OUlqrX9CH6VMj0H+ZOTI97NjFA=;
+        b=Ku6eJxo2fYUWq0FVYwuFHFxkbgP6LBWSa8ZcLfd2Y5zXh2HMCgrTStRaxrdrGvC8RZ
+         sFCQCRkrIYMJo5OWNRO+jBhliXpLIIUf+UxNQYZQrJ2Y78aCvaVrEA2RWshN37N1HmWp
+         dX+ESE1mFOIX+XcqRqlqWV1Y97COQQyHTmq7N9YiNfIHrLmYeMiOwZzCYXAsRYyijuO+
+         da9kyKXDbrUCBVbfxmutBIwrbnMlXXIphCJw/pFs1xxw4230JFDOca28u+YjJV1r1oPY
+         Zsd8JouRZkbnix1ChmczzKlLadLJ62q7scEl9i5w5EuW265bAv5qIrvsmP+Qb1sUfTkp
+         sFwA==
+X-Forwarded-Encrypted: i=1; AHgh+RpRiiSMC64398ltPV8hgMfyoa55+cF1cCGmw8rPCVBu2wXmYtI2AgyXIf2qW406fWWrkkQdN3Nlz3IN@vger.kernel.org
+X-Gm-Message-State: AOJu0YzWm5WMGGnV8QNUFHKADwq3XgQW05V5SXyBnPbHOOhNNYxSo8zi
+	cuSMF8/8x54Zt5+gwLeZ1vQcn+Eoo0DpuN44SQzA6DYHhLmprmNyaos=
+X-Gm-Gg: AR+sD138isNwfOBUtd1W4nE/DOkmQty5ktp+54rm1ulHCd0gGo1s8ilmctBGmqmF/rc
+	fkU+SWg3B82sC6N4RwSOmkHxqFfquNQ5/lOy9NjFWcLgi6Z0YGtTg6t3QS+xcQ3URbLgoDnjepm
+	giIpOFd9YemkEtW5AmV/njTogLcE3HhcTl41/SoOOx5DX5m5FHWE25ArU7Cp1P48Mjro64LB8rK
+	cDxZ2wZiuoo1av5tgS+0wy0V+7lRNkaA7XY/PbUcfgcNKysajUppXjPPDgbRpMFRwV0HeyoMqXn
+	MG+djC8eDWj1ax1EMlpJtlYHye9k5OmCqCUJPg3LLwPrI3uAUnXL0YGhaV6RIeR7t1qrIj6JvfH
+	O1FW8LFKRtHkBQuKTzqGkCp+8e8MFw7ZpzABr8XPQ8gApiSf5EErsEBeX4FbxzqAJYmlpyIPZeV
+	5Ttb7Z8rfOGUIANeVso65Pk7uLrfm+NQ==
+X-Received: by 2002:a05:600c:8119:b0:499:596b:2e91 with SMTP id 5b1f17b1804b1-49987a58078mr259086605e9.3.1786877075078;
+        Sun, 16 Aug 2026 03:44:35 -0700 (PDT)
+Received: from debian.. ([2001:41d0:303:db6b::])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4999610ed6dsm54841945e9.8.2026.08.16.03.44.33
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 16 Aug 2026 03:44:33 -0700 (PDT)
+From: Tristan Madani <tristmd@gmail.com>
+To: Zhu Yanjun <zyjzyj2000@gmail.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>
+Cc: Moni Shoua <monis@mellanox.com>,
+	linux-rdma@vger.kernel.org,
+	stable@vger.kernel.org,
+	Tristan Madani <tristan@talencesecurity.com>
+Subject: [PATCH 1/2] RDMA/rxe: copy send WQE to kernel buffer before processing
+Date: Sun, 16 Aug 2026 10:44:31 +0000
+Message-ID: <20260816104432.849996-1-tristmd@gmail.com>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -89,120 +75,182 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWH0EPF000C6192:EE_|CH3PR12MB8725:EE_
-X-MS-Office365-Filtering-Correlation-Id: c490f31c-30c9-4fb6-14fb-08defb62d742
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700016|23010399003|7416014|376014|1800799024|82310400026|10067099003|11063799006|56012099006|22082099003|18002099003;
-X-Microsoft-Antispam-Message-Info:
-	+/N8oZTq6prVh7Io7aqEposdPGFKA/iqKz4QL0rFnRplskVNgv7/Syj+Hg67O2Y0FWBbi3CzWsBXzUlkXWNCNASb6jwn/CxBVpb35lorrLmsfdvxDe/hqJH28AB2Br2rKt8vjSC9ZsA0ZxFx1GjqkvGT/OJtOcO9fFE7Ll6Hv2B25I909BOMedCcbGUL2vNVtQnbDMBXKyi8f5eJCAm7YLZLpfwO4T2e8Js0bEud3BXZOrco/vg/69ba8bnipIX1oiwD3LUc1Qqg6qGaU0d57a2KFMJvHSGi20+XiIcye+W9wJafLXy5XSdpo2DJ67Kpvm6QYwolgrJh5sKyq7qcBjKXkvDysvKJOQtxhe8fSPZSG4Tswb9j3WW9HEJEvARtaO0rEdO75RJoCFfhe7d2SEXjCDBMzZ34lYnnDqBoo+kfaMUZtwE5aVoeeTH/pkli21Ha73NaAPNIdHlgys/GTbHLKqW16MHki2UDFufVKo+8Sxi8qsrL63GaJ+HOlm4ctlarObP2Jd+qsP9XPI8HFGBZmOTBVrb6B0uI52IOI4noc69dfPcqndAsI1fKsRwUMXcSoOMyjpgnj+9Gf6WFpTkKxaJnRkGL8DVDiqH+bhSBYjoAfIkk+sgypgWgiya9VZlWy8FzjR+5X9ll1uN2RPwGqiwLWKN7Oge/ilgFFAtSKzDBZpEj6TgnytvQrDxjMjA3IyuiQrAp3L8KKsoRiA==
-X-Forefront-Antispam-Report:
-	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(23010399003)(7416014)(376014)(1800799024)(82310400026)(10067099003)(11063799006)(56012099006)(22082099003)(18002099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	esEBKLwEns0PpEDTrKABTazJdO/Y7BJazsih8Sg0lsgqMYo1HWHFgjg/NVQwsfjkSduvqDIoAWwN8PzlpwImP+6RG0Epr3GNdTDjAZvXpC4f8rxfNLFZpn4RuZyqXxgDnXNPHgLPI+V1RHkHQtHJ4cNV4m1Iulbr1odS34wo/u7KqMU0prFJ7ZjSPuYpFyWzy0KgZgzQA7pQVamJw4wbv0lixIaJCmLJoHnhScyscz/YtegAFXT2UF5SZqA3MGwxGVlcpjCOflC8/LXQghrzkHDCe4upihCyAkVCBL5Ag2qiueaYenbIbjl/cXN0i5y+JPoqfEl8buWAN0UpuzhlfwqBvpeO6L4y62B6vp/sk9bEadfhBeAfRMtf08EVkX3zxuikIUvyhGA9GJbnSQ54qTJ5cw+071eX7iMGq+pcg6YavWjTzr95UEP4wsvchwro
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Aug 2026 06:51:46.9036
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: c490f31c-30c9-4fb6-14fb-08defb62d742
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	MWH0EPF000C6192.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB8725
 
-From: Or Har-Toov <ohartoov@nvidia.com>
+From: Tristan Madani <tristan@talencesecurity.com>
 
-When modifying vport state, the firmware interprets a zero in the max tx
-speed field as an intentional reset, which can overwrite previously set
-values. This patch attempts to fix this by querying the current max tx
-speed from firmware before modifying the vport state and passing it back
-in the modification command. If the query fails, fall back to the cached
-agg_max_tx_speed value to avoid inadvertently resetting the speed.
+The rxe send queue is mapped into userspace via mmap. The requester
+processes Work Queue Entries (WQEs) directly from this shared buffer
+without first copying them to kernel memory. Userspace can modify WQE
+fields (num_sge, sge_offset, SGE entries) between kernel reads,
+leading to inconsistent state in copy_data().
 
-Fixes: 50f1d188c580 ("net/mlx5: Propagate LAG effective max_tx_speed to vports")
-Signed-off-by: Or Har-Toov <ohartoov@nvidia.com>
-Reviewed-by: Mark Bloch <mbloch@nvidia.com>
-Reviewed-by: Shay Drori <shayd@nvidia.com>
-Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+This is the send-path counterpart to the receive-path fixes:
+ - commit 22b8fbded65b8 ("RDMA/rxe: Fix TOCTOU heap overflow in
+   get_srq_wqe")
+ - commit d6ab440240a04 ("RDMA/rxe: Copy WQE to local buffer in
+   non-SRQ receive path")
+
+Fix by copying the send WQE to a kernel-private buffer in req_next_wqe()
+before processing. The local copy is reused across multi-packet sends
+to preserve DMA progress state (cur_sge, sge_offset, resid). State
+changes are written back to the shared queue so the completer can observe
+them (e.g., wqe_state_pending for RC acknowledgment processing).
+
+The copy is invalidated when:
+ - The WQE index advances (last packet sent, error, local ops, UD oversized)
+ - A retry occurs (req_retry resets WQE state in shared memory)
+
+The num_sge field is validated against qp->sq.max_sge on copy-in to
+reject corrupted values early.
+
+Fixes: 8700e3e7c485 ("Soft RoCE driver")
+Cc: stable@vger.kernel.org
+Signed-off-by: Tristan Madani <tristan@talencesecurity.com>
 ---
- .../mellanox/mlx5/core/esw/adj_vport.c        | 20 ++++++++++++++++
- .../net/ethernet/mellanox/mlx5/core/vport.c   | 24 +++++++++++++++++++
- 2 files changed, 44 insertions(+)
+ drivers/infiniband/sw/rxe/rxe_req.c   | 55 ++++++++++++++++++++++++++-
+ drivers/infiniband/sw/rxe/rxe_verbs.h |  6 +++
+ 2 files changed, 60 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/esw/adj_vport.c b/drivers/net/ethernet/mellanox/mlx5/core/esw/adj_vport.c
-index 3624c680a861..7950b82d8b8a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/esw/adj_vport.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/esw/adj_vport.c
-@@ -11,6 +11,26 @@ int mlx5_esw_adj_vport_modify(struct mlx5_core_dev *dev, u16 vport,
+diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+index 12d03f390b097..499f398b674c7 100644
+--- a/drivers/infiniband/sw/rxe/rxe_req.c
++++ b/drivers/infiniband/sw/rxe/rxe_req.c
+@@ -161,6 +161,20 @@ static void req_check_sq_drain_done(struct rxe_qp *qp)
+ 	spin_unlock_irqrestore(&qp->state_lock, flags);
+ }
  
- 	lockdep_assert_held(&dev->priv.eswitch->state_lock);
- 
-+	if (MLX5_CAP_ESW(dev, esw_vport_state_max_tx_speed)) {
-+		u8 op_mod = MLX5_VPORT_STATE_OP_MOD_ESW_VPORT;
-+		struct mlx5_vport *esw_vport;
-+		u32 speed = 0;
-+		int err;
++/* Write local WQE copy back to shared queue so the completer
++ * can observe state transitions (e.g., wqe_state_pending).
++ */
++static void rxe_req_writeback_wqe(struct rxe_qp *qp)
++{
++	if (qp->req.send_wqe_valid && qp->req.shared_wqe) {
++		unsigned int num_sge = qp->req.send_wqe.wqe.dma.num_sge;
++		size_t size = sizeof(struct rxe_send_wqe) +
++			      num_sge * sizeof(struct rxe_sge);
 +
-+		err = mlx5_query_vport_max_tx_speed(dev, op_mod, vport,
-+						    true, &speed, NULL);
-+		if (err) {
-+			esw_vport = mlx5_eswitch_get_vport(dev->priv.eswitch,
-+							   vport);
-+			speed = IS_ERR(esw_vport) ? 0 :
-+				esw_vport->agg_max_tx_speed;
-+			mlx5_core_dbg(dev,
-+				      "Failed to query vport %d max tx speed, err=%d, using cached %u\n",
-+				      vport, err, speed);
-+		}
-+		MLX5_SET(modify_vport_state_in, in, max_tx_speed, speed);
++		memcpy(qp->req.shared_wqe, &qp->req.send_wqe.wqe, size);
 +	}
++}
 +
- 	MLX5_SET(modify_vport_state_in, in, opcode,
- 		 MLX5_CMD_OP_MODIFY_VPORT_STATE);
- 	MLX5_SET(modify_vport_state_in, in, op_mod,
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/vport.c b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-index edac2d694e0f..8aa94ec87a0e 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-@@ -93,6 +93,30 @@ int mlx5_modify_vport_admin_state(struct mlx5_core_dev *mdev, u8 opmod,
- 	lockdep_assert_held(&mdev->priv.eswitch->state_lock);
- #endif
+ static struct rxe_send_wqe *__req_next_wqe(struct rxe_qp *qp)
+ {
+ 	struct rxe_queue *q = qp->sq.queue;
+@@ -178,6 +192,8 @@ static struct rxe_send_wqe *req_next_wqe(struct rxe_qp *qp)
+ {
+ 	struct rxe_send_wqe *wqe;
+ 	unsigned long flags;
++	unsigned int num_sge;
++	size_t copy_size;
  
-+	if (MLX5_CAP_ESW(mdev, esw_vport_state_max_tx_speed) &&
-+	    opmod == MLX5_VPORT_STATE_OP_MOD_ESW_VPORT &&
-+	    vport != MLX5_VPORT_UPLINK) {
-+		u32 speed = 0;
-+		int err;
+ 	req_check_sq_drain_done(qp);
+ 
+@@ -193,6 +209,29 @@ static struct rxe_send_wqe *req_next_wqe(struct rxe_qp *qp)
+ 	}
+ 	spin_unlock_irqrestore(&qp->state_lock, flags);
+ 
++	/* If we already have a valid local copy of this WQE, use it.
++	 * This preserves DMA progress state across multi-packet sends.
++	 */
++	if (qp->req.send_wqe_valid && qp->req.shared_wqe == wqe)
++		return &qp->req.send_wqe.wqe;
 +
-+		err = mlx5_query_vport_max_tx_speed(mdev, opmod, vport,
-+						    other_vport, &speed, NULL);
-+		if (err) {
-+#ifdef CONFIG_MLX5_ESWITCH
-+			struct mlx5_vport *esw_vport;
-+
-+			esw_vport = mlx5_eswitch_get_vport(mdev->priv.eswitch,
-+							   vport);
-+			speed = IS_ERR(esw_vport) ? 0 :
-+				esw_vport->agg_max_tx_speed;
-+#endif
-+			mlx5_core_dbg(mdev,
-+				      "Failed to query vport %d max tx speed, err=%d, using cached %u\n",
-+				      vport, err, speed);
-+		}
-+		MLX5_SET(modify_vport_state_in, in, max_tx_speed, speed);
++	/* Copy WQE from userspace-mapped shared queue to kernel-private
++	 * buffer. Userspace can concurrently modify num_sge, SGE entries,
++	 * or inline data offsets, leading to inconsistent state in
++	 * copy_data(). This is the send-path variant of the receive-path
++	 * fix in rxe_get_recv_wqe().
++	 */
++	num_sge = wqe->dma.num_sge;
++	if (unlikely(num_sge > qp->sq.max_sge)) {
++		rxe_dbg_qp(qp, "invalid num_sge in send WQE\n");
++		return NULL;
 +	}
++	copy_size = sizeof(*wqe) + num_sge * sizeof(struct rxe_sge);
++	memcpy(&qp->req.send_wqe.wqe, wqe, copy_size);
++	qp->req.shared_wqe = wqe;
++	qp->req.send_wqe_valid = true;
 +
- 	MLX5_SET(modify_vport_state_in, in, opcode,
- 		 MLX5_CMD_OP_MODIFY_VPORT_STATE);
- 	MLX5_SET(modify_vport_state_in, in, op_mod, opmod);
++	wqe = &qp->req.send_wqe.wqe;
+ 	wqe->mask = wr_opcode_mask(wqe->wr.opcode, qp);
+ 	return wqe;
+ }
+@@ -582,9 +621,14 @@ static void update_state(struct rxe_qp *qp, struct rxe_pkt_info *pkt)
+ {
+ 	qp->req.opcode = pkt->opcode;
+ 
+-	if (pkt->mask & RXE_END_MASK)
++	/* Write back local WQE state before possibly advancing index */
++	rxe_req_writeback_wqe(qp);
++
++	if (pkt->mask & RXE_END_MASK) {
+ 		qp->req.wqe_index = queue_next_index(qp->sq.queue,
+ 						     qp->req.wqe_index);
++		qp->req.send_wqe_valid = false;
++	}
+ 
+ 	qp->need_req_skb = 0;
+ 
+@@ -635,6 +679,7 @@ static int rxe_do_local_ops(struct rxe_qp *qp, struct rxe_send_wqe *wqe)
+ 	wqe->state = wqe_state_done;
+ 	wqe->status = IB_WC_SUCCESS;
+ 	qp->req.wqe_index = queue_next_index(qp->sq.queue, qp->req.wqe_index);
++	qp->req.send_wqe_valid = false;
+ 
+ 	return 0;
+ }
+@@ -695,6 +740,7 @@ int rxe_requester(struct rxe_qp *qp)
+ 	if (unlikely(qp->req.need_retry && !qp->req.wait_for_rnr_timer)) {
+ 		req_retry(qp);
+ 		qp->req.need_retry = 0;
++		qp->req.send_wqe_valid = false;
+ 	}
+ 
+ 	wqe = req_next_wqe(qp);
+@@ -761,6 +807,7 @@ int rxe_requester(struct rxe_qp *qp)
+ 						       qp->req.wqe_index);
+ 			wqe->state = wqe_state_done;
+ 			wqe->status = IB_WC_SUCCESS;
++			qp->req.send_wqe_valid = false;
+ 			goto done;
+ 		}
+ 		payload = mtu;
+@@ -820,12 +867,18 @@ int rxe_requester(struct rxe_qp *qp)
+ 	 * will continue looping and return to rxe_requester
+ 	 */
+ done:
++	/* Write back local WQE for paths that skip update_state()
++	 * (local ops, UD oversized packets).
++	 */
++	rxe_req_writeback_wqe(qp);
+ 	ret = 0;
+ 	goto out;
+ err:
+ 	/* update wqe_index for each wqe completion */
+ 	qp->req.wqe_index = queue_next_index(qp->sq.queue, qp->req.wqe_index);
+ 	wqe->state = wqe_state_error;
++	rxe_req_writeback_wqe(qp);
++	qp->req.send_wqe_valid = false;
+ 	rxe_qp_error(qp);
+ exit:
+ 	ret = -EAGAIN;
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
+index 0f5ffd94643f9..a22dfc6e5ae3c 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.h
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
+@@ -114,6 +114,12 @@ struct rxe_req_info {
+ 	int			wait_for_rnr_timer;
+ 	int			noack_pkts;
+ 	int			again;
++	struct rxe_send_wqe	*shared_wqe;
++	bool			send_wqe_valid;
++	struct {
++		struct rxe_send_wqe	wqe;
++		struct ib_sge		sge[RXE_MAX_SGE];
++	} send_wqe;
+ };
+ 
+ struct rxe_comp_info {
 -- 
-2.44.0
+2.47.3
 
