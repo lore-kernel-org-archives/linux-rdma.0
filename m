@@ -1,172 +1,162 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D55F93BCD16;
-	Sat, 15 Aug 2026 11:25:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE9D339D6FC;
+	Sun, 16 Aug 2026 00:15:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786793117; cv=none; b=uauYDcUy4Z+3wL8xMFmvC7LygzSEcdApVYNVo51P0RpEmFHmplyimE5FRfmIB0HZG8r5Lx1ZcSOGEQbQCXXLi3RycJjhNf6skgw+qKMpF7e5GfEBWpEFdr/b2nVUkIZKqrtThMg0uwxU/lE5585em2nlcLUjvb/ifvyhzcIZWvo=
+	t=1786839316; cv=none; b=TNDNOy3BWtyW6qV7L4vbnXtqg+ors8Uzfsx1+4RXjIuCTySGE6zK2agQ55NO8c7V4EcI7N1M/kggMnNTRnCMXyL5yiZgcjKwEB6xij5P46QREOjxzdrcjVC3PilXK5Su7tLEykjvX29/vBRIVAC9gcRPkQEXNFh15C0xQfqbTf8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786793117; c=relaxed/simple;
-	bh=61a+V9Kist+U+cLdQYqzpEd0zcV4KlLZk8pQTLLK0Rs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=XdVtP7s6pmoHxCSFp3yqK904GE2uf5hOQ5m3CRSZty/lcLLFBELWKllszn9YkgZ4p97rQ9lPEM+1c+rldEdUmciKjDq36LD2V2gHWfEIMICaIGaHDPJ0LcU4ycsmvVDLZHbjGCLacF0i4qdQJkucJgny+CVjR61/0k1q+mTqTZE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=NDShAwZs; arc=none smtp.client-ip=198.175.65.21
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1786839316; c=relaxed/simple;
+	bh=W6qu68Y0sF/RmgnNlJ5t+f2KFKsn+b7zH1XS8a0UlHE=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=QDzp6HK+T4BLGIj3pBy2k0/X6zLKweBIZ5WY5e8utfyZ6C2k8qlmhN5XUsVB0eu6GpOtPoC/wZ+dw9khE8Vy/CHiA9AenTTHhHI5sdoDx9aZL3IEMzVQ+2UNUacZwfQfVYHh1bSFH+4nuCTxiBXqWH5+akMVl6tnguFhUjka2wM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=P+drIrwS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="NDShAwZs"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1786793113; x=1818329113;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=61a+V9Kist+U+cLdQYqzpEd0zcV4KlLZk8pQTLLK0Rs=;
-  b=NDShAwZsKUdKKDtkT2G9wPHf4nBpMY8inQogZyejZ3DodBwQw5/YBR88
-   Ido+PSOjux2lOT19hP8l9aLIrOi3zZIx5qq/qLIOauvxyigDJ+fnv4LkQ
-   KNSWYwn9CK/fgAHdcK7kaIh8sNdYJWiA7zlKL2RoWmnf10/7gJycaEH7Y
-   kZxO8sSU3r59uR/7Uo4yYswLEEpzwNXaEht9I7hDHi8gWosmWHwfgavkD
-   azw34JJjGGxZFaLqIbpEYX/8NAH82+GGEAjzl6MOOMY6I7L9mxKwa5lBv
-   lAwHHojKavMEbHFqWByec12W90MfRG2kkzhaz67pGqp95FnQdDaeUaJ4D
-   A==;
-X-CSE-ConnectionGUID: hPeCIxmnRtu9XzZvHOqQtA==
-X-CSE-MsgGUID: jZyGf+XhRGqw5mk+GGhtZg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11875"; a="87206740"
-X-IronPort-AV: E=Sophos;i="6.25,225,1779174000"; 
-   d="scan'208";a="87206740"
-Received: from fmviesa001.fm.intel.com ([10.60.135.141])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Aug 2026 04:25:12 -0700
-X-CSE-ConnectionGUID: VfyMz9tWSDOMy36A+tBVmw==
-X-CSE-MsgGUID: oExpnzHETpGLunprpHOXhg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,225,1779174000"; 
-   d="scan'208";a="289262190"
-Received: from lkp-server01.sh.intel.com (HELO 6eda058d650d) ([10.239.97.150])
-  by fmviesa001.fm.intel.com with ESMTP; 15 Aug 2026 04:25:09 -0700
-Received: from kbuild by 6eda058d650d with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wvCVf-00000000bqg-0Qto;
-	Sat, 15 Aug 2026 11:25:07 +0000
-Date: Sat, 15 Aug 2026 19:24:32 +0800
-From: kernel test robot <lkp@intel.com>
-To: Guangshuo Li <lgs201920130244@gmail.com>,
-	"Md. Haris Iqbal" <haris.iqbal@ionos.com>,
-	Jack Wang <jinpu.wang@ionos.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	Gioh Kim <gi-oh.kim@cloud.ionos.com>, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: oe-kbuild-all@lists.linux.dev, Guangshuo Li <lgs201920130244@gmail.com>
-Subject: Re: [PATCH] RDMA/rtrs-clt: Fix double free on path sysfs failure
-Message-ID: <202608151946.R0SOCia4-lkp@intel.com>
-References: <20260714142838.1723076-1-lgs201920130244@gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="P+drIrwS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 964331F000E9;
+	Sun, 16 Aug 2026 00:15:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1786839311;
+	bh=tP28fDcSsnIfsgwDwUNi0ImPaSZ2lrWzcry1YZUjLq0=;
+	h=From:To:Cc:Subject:Date;
+	b=P+drIrwS3mlwq5vb/baFfR4qMegYZrD4DwVPfjLuN+Myz7YJYTugPt/VsOnts7QLJ
+	 gf+JV+LAjA5OD2KQj0vrHOkxFc1W1ZNuEHpFS6ykZMhK+I2st7e0l3z8dF90mTYWa7
+	 6WNNzpYnKvAeVds3pXjUbtu2X5Eo9L1hsHAo7kJOkOKLjbWmPrJp0kG5V9ZdDmTaNY
+	 GVbGPjjB9pDK6j6qJ84fH0ErsBHRC0aRKqoc5o4nU32HVLwdYKdEaZVu5XA2I7VQwr
+	 YiQwz4LwvCaFKqoMfz0pJIVJM9crPm+V8h6SM24HD8fjAccdCXFdP9BwNFsbVZwETm
+	 5JK6Nj8xWIP+Q==
+From: Allison Henderson <achender@kernel.org>
+To: netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	kuba@kernel.org,
+	horms@kernel.org
+Cc: achender@kernel.org,
+	jhubbard@nvidia.com,
+	woni9911@gmail.com,
+	michal.kubiak@intel.com,
+	leon@kernel.org
+Subject: [PATCH net-next v2 0/5] net/rds: own the fastpath locks across connection teardown
+Date: Sat, 15 Aug 2026 17:15:05 -0700
+Message-Id: <20260816001510.73645-1-achender@kernel.org>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260714142838.1723076-1-lgs201920130244@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-Hi Guangshuo,
+Hi all,
 
-kernel test robot noticed the following build warnings:
+This is v2 of the follow-up set to "net/rds: Bug fix ports, part 2"
+[1] (v1 of this set is at [2]).  During review of part 2, the later
+half of that series needed more work than a respin, so it was split
+off into this set together with the companion fixes identified along
+the way.
 
-[auto build test WARNING on rdma/for-next]
-[also build test WARNING on linus/master v7.2-rc7 next-20260813]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+RDS connection teardown quiesces the transmit and receive-refill fast
+paths by waiting for the RDS_IN_XMIT/RDS_RECV_REFILL bits to be
+sampled clear.  Sampling a bit clear is not owning it: the fast path
+can re-take its bit right after the wait returns and then run
+concurrently with the transport shutdown and the send-state reset.
+Oracle UEK closed this by making teardown acquire the bits as locks
+("rds: Make sure transmit path and connection tear-down does not run
+concurrently"); patches 4 and 5 do the same for the two
+rds_send_path_reset() call sites upstream.  These two are effectively
+v3 of patches 4 and 3 of "net/rds: Bug fix ports, part 2" [1].
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Guangshuo-Li/RDMA-rtrs-clt-Fix-double-free-on-path-sysfs-failure/20260815-173725
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git for-next
-patch link:    https://lore.kernel.org/r/20260714142838.1723076-1-lgs201920130244%40gmail.com
-patch subject: [PATCH] RDMA/rtrs-clt: Fix double free on path sysfs failure
-config: powerpc-allmodconfig (https://download.01.org/0day-ci/archive/20260815/202608151946.R0SOCia4-lkp@intel.com/config)
-compiler: powerpc64-linux-gcc (GCC) 16.1.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260815/202608151946.R0SOCia4-lkp@intel.com/reproduce)
+Making teardown block on the bits as locks promotes three latent
+ordering bugs from rare to load-bearing, so they are fixed first:
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202608151946.R0SOCia4-lkp@intel.com/
+  Patch 1: release_in_xmit() checks waitqueue_active() after
+  clear_bit_unlock(), which does not order that read; the wake-up of
+  the (now uninterruptible, untimed) teardown wait can be lost.  Use
+  wq_has_sleeper().
 
-All warnings (new ones prefixed by >>):
+  Patch 2: rds_conn_path_reset() wipes the whole cp_flags word with a
+  plain store.  Once teardown owns bits in that word across the
+  reset, a blanket store would end lock ownership early - and it
+  already races atomic RMWs on the same word today.  Clear the bits
+  the reset is responsible for individually, as Oracle UEK also does.
 
-   drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c: In function 'rtrs_clt_create_path_files':
->> drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c:470:1: warning: label 'del_kobj' defined but not used [-Wunused-label]
-     470 | del_kobj:
-         | ^~~~~~~~
+  Patch 3: rds_tcp_reset_callbacks() stores RDS_CONN_RESETTING
+  unconditionally, which can overwrite the RDS_CONN_ERROR or
+  RDS_CONN_DISCONNECTING of a shutdown already in progress on the
+  same path and send that shutdown through an extra drop cycle.  Once
+  the accept path can park for the duration of a teardown (patch 5)
+  that window widens, so make the transition conditional first, as
+  Oracle UEK does.
+
+With those in place, patch 4 converts rds_tcp_reset_callbacks() from
+waiting on RDS_IN_XMIT to acquiring it, holding it across the socket
+swap and rds_send_path_reset(), and patch 5 has rds_conn_shutdown()
+hold both bit locks across the transport shutdown and path reset.
+The order matters: with the accept path owning the lock first, no
+intermediate commit leaves it resuming on a socket pointer that a
+lock-holding teardown has already released.
+
+[PATCH net-next 1/5] net/rds: use wq_has_sleeper() in release_in_xmit()
+  Restore full barrier before wake-up checks in release_in_xmit()
+
+[PATCH net-next 2/5] net/rds: clear cp_flags bits individually in rds_conn_path_reset()
+  Partial port of commit d04896037223 ("net/rds: Preserve essential connection state flags")
+  https://github.com/oracle/linux-uek/commit/d04896037223
+
+[PATCH net-next 3/5] net/rds: tcp: don't force RDS_CONN_RESETTING over a concurrent shutdown
+  Port of commit 72c176a1d9ac ("net/rds: Don't force state RDS_CONN_RESETTING")
+  https://github.com/oracle/linux-uek/commit/72c176a1d9ac
+
+[PATCH net-next 4/5] net/rds: acquire RDS_IN_XMIT in rds_tcp_reset_callbacks()
+  Extend the port in patch 5 to the second rds_send_path_reset() call site
+
+[PATCH net-next 5/5] net/rds: acquire the fastpath locks in rds_conn_shutdown()
+  Port of commit 2b8aaa4f163b ("rds: Make sure transmit path and connection tear-down does not run concurrently")
+  https://github.com/oracle/linux-uek/commit/2b8aaa4f163b
+
+Changes since v1 [2]:
+  - New patch 3, porting the UEK fix for the accept-vs-shutdown state
+    race; the RESETTING store is now a conditional transition.
+  - Patches 4 and 5 (formerly 4 and 3) reordered so that
+    rds_tcp_reset_callbacks() owns RDS_IN_XMIT before
+    rds_conn_shutdown() does; no intermediate commit is a bisect
+    hazard.
+  - Patch 2 gains a Fixes tag; patch 4 refreshes the stale block
+    comment above rds_tcp_reset_callbacks(); patch 5's changelog
+    describes the accept-side waiter parking on krdsd for the
+    duration of a TCP teardown and why that is preferable to the race.
+
+Questions and comments appreciated!
+
+Thanks,
+Allison
+
+[1] https://lore.kernel.org/netdev/20260806072045.1092968-1-achender@kernel.org/
+[2] https://lore.kernel.org/netdev/20260814013501.43760-1-achender@kernel.org/
 
 
-vim +/del_kobj +470 drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
+Allison Henderson (3):
+  net/rds: use wq_has_sleeper() in release_in_xmit()
+  net/rds: clear cp_flags bits individually in rds_conn_path_reset()
+  net/rds: acquire RDS_IN_XMIT in rds_tcp_reset_callbacks()
 
-   424	
-   425	int rtrs_clt_create_path_files(struct rtrs_clt_path *clt_path)
-   426	{
-   427		struct rtrs_clt_sess *clt = clt_path->clt;
-   428		char str[NAME_MAX];
-   429		int err;
-   430		struct rtrs_addr path = {
-   431			.src = &clt_path->s.src_addr,
-   432			.dst = &clt_path->s.dst_addr,
-   433		};
-   434	
-   435		rtrs_addr_to_str(&path, str, sizeof(str));
-   436		err = kobject_init_and_add(&clt_path->kobj, &ktype_sess,
-   437					   clt->kobj_paths,
-   438					   "%s", str);
-   439		if (err) {
-   440			pr_err("kobject_init_and_add: %pe\n", ERR_PTR(err));
-   441			goto free_stats;
-   442		}
-   443		err = sysfs_create_group(&clt_path->kobj, &rtrs_clt_path_attr_group);
-   444		if (err) {
-   445			pr_err("sysfs_create_group(): %pe\n", ERR_PTR(err));
-   446			goto del_kobj_free_stats;
-   447		}
-   448		err = kobject_init_and_add(&clt_path->stats->kobj_stats, &ktype_stats,
-   449					   &clt_path->kobj, "stats");
-   450		if (err) {
-   451			pr_err("kobject_init_and_add: %pe\n", ERR_PTR(err));
-   452			kobject_put(&clt_path->stats->kobj_stats);
-   453			goto remove_group;
-   454		}
-   455	
-   456		err = sysfs_create_group(&clt_path->stats->kobj_stats,
-   457					 &rtrs_clt_stats_attr_group);
-   458		if (err) {
-   459			pr_err("failed to create stats sysfs group, err: %pe\n", ERR_PTR(err));
-   460			goto put_kobj_stats;
-   461		}
-   462	
-   463		return 0;
-   464	
-   465	put_kobj_stats:
-   466		kobject_del(&clt_path->stats->kobj_stats);
-   467		kobject_put(&clt_path->stats->kobj_stats);
-   468	remove_group:
-   469		sysfs_remove_group(&clt_path->kobj, &rtrs_clt_path_attr_group);
- > 470	del_kobj:
-   471		kobject_del(&clt_path->kobj);
-   472		return err;
-   473	
-   474	del_kobj_free_stats:
-   475		kobject_del(&clt_path->kobj);
-   476	free_stats:
-   477		free_percpu(clt_path->stats->pcpu_stats);
-   478		kfree(clt_path->stats);
-   479	
-   480		/*
-   481		 * Leave the path kobject reference to the caller so it can tear
-   482		 * down the connections before rtrs_clt_path_release() frees it.
-   483		 */
-   484	
-   485		return err;
-   486	}
-   487	
+Gerd Rausch (1):
+  net/rds: tcp: don't force RDS_CONN_RESETTING over a concurrent
+    shutdown
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+Håkon Bugge (1):
+  net/rds: acquire the fastpath locks in rds_conn_shutdown()
+
+ net/rds/connection.c | 32 +++++++++++++++++--
+ net/rds/send.c       | 12 +++++--
+ net/rds/tcp.c        | 76 +++++++++++++++++++++++++++++---------------
+ 3 files changed, 88 insertions(+), 32 deletions(-)
+
+
+base-commit: 3da8c3c8b8fa99505624b65ef590482f48e766b6
+-- 
+2.25.1
+
