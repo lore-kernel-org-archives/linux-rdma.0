@@ -1,146 +1,179 @@
-Received: from mail-qv1-f53.google.com (mail-qv1-f53.google.com [209.85.219.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1F33305678
-	for <linux-rdma@vger.kernel.org>; Sun, 16 Aug 2026 02:26:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.53
+Received: from outbound.baidu.com (mx14.baidu.com [220.181.3.101])
+	by smtp.subspace.kernel.org (Postfix) with SMTP id 02786201278;
+	Sun, 16 Aug 2026 03:56:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.181.3.101
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786847196; cv=none; b=IUwCgn34e7szDTuzO7deI2eX8E2e55pCa+pXoTLymisyd3D7Q2b+I1vrXo29khG+Ael4R+T1xDNehNciZ8yJXldwwxomLDL8+58w7L2deT6LQv0TnK4iVy3+utX9UNtZ5yt+C1+bJTII+N+jEpd5Pd2PVxNboQLJE1joLonYk5U=
+	t=1786852596; cv=none; b=Qe+ZaYY4x9eoWpKhbXgUfqALNZWB7wQLAC8qHTqLGJc2qt+nju4Kb8McM4aQsn+T7odVJ//TeavNqU2fb80aYDeeFI8RcIbv3GS6RWskkMU7TpiVtU5QIQOpSTmtBxLUo36EpGXGfuE+y+oaWvqKpoZN7I9iklriTWL8kZrbGkI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786847196; c=relaxed/simple;
-	bh=pis0kTjcjwtXLktyJ0SMWtk1i2ffUG1YYWwDE5g8zV0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ZhLJQu+C+dhxNMLLlDKTwZcHomcc1ksFYQosiPVtksqSCP6R9jFwkJW3M6Si1Kvp168X6JFpjXroCjscygP/r8Dnu9uKFTa9FYp7RhU1GwgRCDDhXBIXTwDGJyBNHw7YHeD43Rz1KqsmqprsZ08koZDdmhe6RG15/doiAaLwXQg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=S6yKdvkH; arc=none smtp.client-ip=209.85.219.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1786852596; c=relaxed/simple;
+	bh=6cbLuym+1cqRI7P7D4gMdqm+OHpINkJYcn9natJyGsk=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=Oie0GtLXvxSfWw5YGXDMUw7AvnbWSUxc3X7kyIu6eo9g3omFCQiXIulbhKv6bQvKgYIWkihOdKQkyf7ceMLhtzcYJTKMECKgXY+m6iH0z0587JTu7bgTfxKaAu8hpe/HrAC2lwowa3qSAV/Sm71I73wpyAB0MsEJRblwsJi+PlE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com; spf=pass smtp.mailfrom=baidu.com; dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b=NTLoGFoI; arc=none smtp.client-ip=220.181.3.101
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baidu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="S6yKdvkH"
-Received: by mail-qv1-f53.google.com with SMTP id 6a1803df08f44-902fc790cd5so13612376d6.1
-        for <linux-rdma@vger.kernel.org>; Sat, 15 Aug 2026 19:26:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786847194; x=1787451994; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=oXHBCMGnZB0X0bTy2l3XtoU3OG3/4+XfTiH2lDtrhfs=;
-        b=S6yKdvkHAmjS56QPh2hlZBBCqr4z1B952I/To89eri4sdNUmefb9kBt8Rl6sSwFWul
-         /8Af8xqBujfX5gmL6uNpSRxPLwibmpMp5i+90+37JOQyIdgb4bzdlcD5sFIMbgUMTjmY
-         9m8+BBvkgXh++vIkjTl4XqcYz1OGOiEh9EmgGHSWdXysTArodw2fY+rkwDHZ1lzURAyb
-         0EIGQkSHQojAbMBXf/svrK6QkaQecl+NrVAoygb3ubIo3TeUUjllH1sAk1LMNYflyXPX
-         cZt6AvlxE/KZzcEZHzUn1foelOj0nCkpR8B/KOfqAjGnn3CMRah2bFAziB+Em7afW1/U
-         OzEg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786847194; x=1787451994;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=oXHBCMGnZB0X0bTy2l3XtoU3OG3/4+XfTiH2lDtrhfs=;
-        b=C5ufZgBnnrGLa7VLX/gmYmtfnAxCQhYqDeG7BX2gcyBCpetgpLpmj+zdpj2OmFk9+T
-         aSPkJvhoQEnKKdRaX6PcrKuMxP5Cr0XtZRPVBEs4WcWBnnE2Wr1kSVRsuWp4YfHS3I/9
-         OPYCAY4ShWxRLG1u5u3sxmNo1yvAOJeETJAXQ8kbEt+6vDoRdpinMKEAGKwwxK0az3Ku
-         ani693fgIjPacsxoRTFwgiGdxs+N4lFadq1uriLbBr3E21O1nEu9W6kbYJ7+zC3UV/8j
-         5EiiSfYA5LEQ2JqnBXoz3qBab0UdKxGSLFRjgWamZg81bBCphuskhXrjL42etDc2Lh4m
-         752w==
-X-Gm-Message-State: AOJu0YxK8giK5QmxjtN+AyIHmrGxpKEAHmYqfieibKpMwWgJ65oMWu2D
-	j51CObHsx7NLCQ6ODRURyqCx/hFpCighlA6BmkgNGlCrQHY4cNmEH5VU
-X-Gm-Gg: AR+sD11PnY9GNOHZ6SjkR8xHT56xDFi4H4cTx8VQZFI5HiNzXcCqO8OB8fQvrifxIGX
-	eJ6YIHIMxwVUtQ6JMVqk1sxuenxfWqNbe5yuJ2+BO6x6Pl4ax2GeaXlHWA8X/qj38NMznjGR1PI
-	MVUXmW7DTeHVwmh4GRvi0Zl7WpJHZFHyvdVc8iGqWvzZUjQMA7Ddv97Qq3uaYuK1imqI8Bxqwmj
-	ZwdDwA9voUJ/ELVULKOWB2k7Y/nJUgweqycvpZo07uX29V2HUngKA4vQj6tQ3nKnOx73ZMkGHR2
-	Ikk7KvqKMyElg1ulbAvGN7uP0AsdXj73qqCRRDlXBn+k8s2ycpJfI57gLKxYbjvkCEaLXTHR/Ru
-	SYpS+VgWi8rToLTtskzPprmx9ggA89bX2KsbARxhIczbEgT1L7GFY8QiUqsRIptVD79Av9L8qXV
-	0FGgoKYMJRscCCeQaMiRGKNm9ww9Yhdaya4huOa2MVuhn0HxZI4ORkX0XQyk2s3SmBg9xqe7SvU
-	jQc11rRzHgFRqtVMA==
-X-Received: by 2002:a05:6214:27ca:b0:90a:6016:deab with SMTP id 6a1803df08f44-90a91d06fafmr191287646d6.8.1786847193628;
-        Sat, 15 Aug 2026 19:26:33 -0700 (PDT)
-Received: from i4-l-hqh5357-03.ad.psu.edu ([130.203.139.71])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-90a921e54e2sm54192436d6.3.2026.08.15.19.26.33
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 15 Aug 2026 19:26:33 -0700 (PDT)
-From: Shuangpeng Bai <shuangpeng.kernel@gmail.com>
-To: bernard.metzler@linux.dev,
-	jgg@ziepe.ca,
-	leon@kernel.org
-Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org,
-	Shuangpeng Bai <shuangpeng.kernel@gmail.com>
-Subject: [PATCH] RDMA/siw: Fix CEP use-after-free in siw_connect()
-Date: Sat, 15 Aug 2026 22:26:19 -0400
-Message-ID: <20260816022619.3629422-1-shuangpeng.kernel@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b="NTLoGFoI"
+X-MD-Sfrom: lirongqing@baidu.com
+X-MD-SrcIP: 172.31.50.47
+From: lirongqing <lirongqing@baidu.com>
+To: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
+	Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, Andrew Lunn
+	<andrew+netdev@lunn.ch>, "David S . Miller" <davem@davemloft.net>, Eric
+ Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
+	<pabeni@redhat.com>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann
+	<daniel@iogearbox.net>, Jesper Dangaard Brouer <hawk@kernel.org>, John
+ Fastabend <john.fastabend@gmail.com>, Stanislav Fomichev <sdf@fomichev.me>,
+	Boris Pismenny <borisp@nvidia.com>, Richard Cochran
+	<richardcochran@gmail.com>, Cosmin Ratiu <cratiu@nvidia.com>, Dragos Tatulea
+	<dtatulea@nvidia.com>, Carolina Jubran <cjubran@nvidia.com>, Li RongQing
+	<lirongqing@baidu.com>, Kees Cook <kees@kernel.org>, Akiva Goldberger
+	<agoldberger@nvidia.com>, Simon Horman <horms@kernel.org>,
+	<netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <bpf@vger.kernel.org>
+Subject: [PATCH net-next, v3] net/mlx5: Use dma_wmb() for completion queue doorbell updates
+Date: Sun, 16 Aug 2026 11:56:05 +0800
+Message-ID: <20260816035605.1873-1-lirongqing@baidu.com>
+X-Mailer: git-send-email 2.17.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: bjhj-exc3.internal.baidu.com (172.31.3.13) To
+ bjkjy-exc3.internal.baidu.com (172.31.50.47)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=baidu.com;
+	s=selector1; t=1786852580;
+	bh=CoCztr6XAGEBvv7TN377FtTXgA/2hXdT8SEOdZBtANs=;
+	h=From:To:Subject:Date:Message-ID:Content-Type;
+	b=NTLoGFoISOzPQiSktm5+AmMXT1oHO6xmi7YjLpp4ef+j/cHW/39vT0qO07iS9Cyds
+	 iRVl5U1hhMKpyY1n9Qkl5MHPTMfCWXRqcVSx6DbDu1NHghuNstnSo3x46l1WfZcmPr
+	 Dwy7WJ5yG3tQeBk7TtIz+rcg932cZWY8tqybGRRlAFw6OA842IlQJUebVUCypAKB9X
+	 9Osx1tvQcids58cPMCMxVsECaqYhU7QMSq3IbsLlLkTVG4opZOprA+J3MyHu/ve34c
+	 BehnyyN7WgbejNu7v6GlY/Dj/FtTD/8nLY5MCSf3jKtnAFBjx9LmXa6IYvptfHqC14
+	 AKKYEs/UB27zg==
 
-siw_connect() publishes a newly allocated CEP through qp->cep and gives
-the QP an association reference.
+From: Li RongQing <lirongqing@baidu.com>
 
-If connection setup fails while the QP is being destroyed, QP teardown
-can clear qp->cep and drop that reference first. The error path
-nevertheless drops what it assumes is the association reference. This
-consumes the local allocation reference and frees the CEP before the
-error path updates cep->state and releases cep->in_use, causing a
-use-after-free.
+dma_*() barriers are specifically for ordering writes to DMA
+coherent memory that is accessible to both the CPU and DMA capable
+devices.
 
-Serialize CEP association and error-side detachment with qp->state_lock.
-Only drop the association reference when qp->cep still points to the CEP
-being cleaned up, leaving the local reference valid until cleanup is
-complete.
+The dma_wmb() barrier is lighter than wmb() on some architectures
+because it only ensures ordering for DMA writes, not for all writes
+including MMIO accesses.
 
-Fixes: 6c52fdc244b5 ("rdma/siw: connection management")
-Cc: stable@vger.kernel.org
-Signed-off-by: Shuangpeng Bai <shuangpeng.kernel@gmail.com>
+In the MLX5 driver, completion queue (CQ) doorbell records are
+allocated as DMA coherent memory via mlx5_dma_zalloc_coherent_node().
+The CQ update pattern is:
+  1. Update CQ space (device reads via DMA)
+  2. Update doorbell record (device reads via DMA)
+  3. Memory barrier
+  4. Enable more CQEs
+Since only DMA coherent memory accesses are involved (no MMIO accesses
+follow), we can safely use dma_wmb() instead of wmb().
+
+This change improves performance slightly on architectures where
+dma_wmb() is lighter than wmb().
+
+Signed-off-by: Li RongQing <lirongqing@baidu.com>
+Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
- drivers/infiniband/sw/siw/siw_cm.c | 15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+V3: Kept the original wmb() barrier inside wc.c 
 
-diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/siw/siw_cm.c
-index 87c79527ac09..7b32158ea49f 100644
---- a/drivers/infiniband/sw/siw/siw_cm.c
-+++ b/drivers/infiniband/sw/siw/siw_cm.c
-@@ -1467,11 +1467,13 @@ int siw_connect(struct iw_cm_id *id, struct iw_cm_conn_param *params)
- 	siw_cep_set_inuse(cep);
+V2: rebased.
+https://patchwork.kernel.org/project/netdevbpf/patch/20260811064750.3218024-1-tariqt@nvidia.com/
+
+V1:
+https://patchwork.kernel.org/project/netdevbpf/patch/20260402055206.2311-1-lirongqing@baidu.com/
+
+ drivers/net/ethernet/mellanox/mlx5/core/en/ptp.c    | 2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c    | 2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/en_rx.c     | 2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/en_tx.c     | 2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c | 2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/lib/aso.c   | 2 +-
+ 6 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/ptp.c b/drivers/net/ethernet/mellanox/mlx5/core/en/ptp.c
+index 723f66a..17084d7 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/ptp.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/ptp.c
+@@ -259,7 +259,7 @@ static bool mlx5e_ptp_poll_ts_cq(struct mlx5e_cq *cq, int napi_budget)
+ 	mlx5_cqwq_update_db_record(cqwq);
  
- 	/* Associate QP with CEP */
-+	down_write(&qp->state_lock);
- 	siw_cep_get(cep);
- 	qp->cep = cep;
+ 	/* ensure cq space is freed before enabling more cqes */
+-	wmb();
++	dma_wmb();
  
- 	/* siw_qp_get(qp) already done by QP lookup */
- 	cep->qp = qp;
-+	up_write(&qp->state_lock);
+ 	while (metadata_buff_sz > 0)
+ 		mlx5e_ptp_metadata_fifo_push(&ptpsq->metadata_freelist,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c b/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
+index 77ea51b..ee0986b 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
+@@ -817,7 +817,7 @@ bool mlx5e_poll_xdpsq_cq(struct mlx5e_cq *cq)
+ 	mlx5_cqwq_update_db_record(&cq->wq);
  
- 	id->add_ref(id);
- 	cep->cm_id = id;
-@@ -1564,16 +1566,19 @@ int siw_connect(struct iw_cm_id *id, struct iw_cm_conn_param *params)
- 		siw_socket_disassoc(s);
- 		sock_release(s);
+ 	/* ensure cq space is freed before enabling more cqes */
+-	wmb();
++	dma_wmb();
  
--		cep->qp = NULL;
--
- 		cep->cm_id = NULL;
- 		id->rem_ref(id);
+ 	sq->cc = sqcc;
+ 	return (i == MLX5E_TX_CQ_POLL_BUDGET);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+index 6fbc044..3c80193 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+@@ -2507,7 +2507,7 @@ int mlx5e_poll_rx_cq(struct mlx5e_cq *cq, int budget)
+ 	mlx5_cqwq_update_db_record(cqwq);
  
--		qp->cep = NULL;
--		siw_cep_put(cep);
--
- 		cep->state = SIW_EPSTATE_CLOSED;
+ 	/* ensure cq space is freed before enabling more cqes */
+-	wmb();
++	dma_wmb();
  
-+		down_write(&qp->state_lock);
-+		cep->qp = NULL;
-+		if (qp->cep == cep) {
-+			qp->cep = NULL;
-+			siw_cep_put(cep);
-+		}
-+		up_write(&qp->state_lock);
-+
- 		siw_cep_set_free_and_put(cep);
+ 	return work_done;
+ }
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
+index 0b5e600..14479da 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
+@@ -849,7 +849,7 @@ bool mlx5e_poll_tx_cq(struct mlx5e_cq *cq, int napi_budget)
+ 	mlx5_cqwq_update_db_record(&cq->wq);
  
- 	} else if (s) {
+ 	/* ensure cq space is freed before enabling more cqes */
+-	wmb();
++	dma_wmb();
+ 
+ 	sq->dma_fifo_cc = dma_fifo_cc;
+ 	sq->cc = sqcc;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
+index 1f6bde5..1341874 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
+@@ -384,7 +384,7 @@ static inline void mlx5_fpga_conn_cqes(struct mlx5_fpga_conn *conn,
+ 
+ 	mlx5_fpga_dbg(conn->fdev, "Re-arming CQ with cc# %u\n", conn->cq.wq.cc);
+ 	/* ensure cq space is freed before enabling more cqes */
+-	wmb();
++	dma_wmb();
+ 	mlx5_fpga_conn_arm_cq(conn);
+ }
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/aso.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/aso.c
+index 614cd57..8f7a89a 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lib/aso.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/aso.c
+@@ -421,7 +421,7 @@ int mlx5_aso_poll_cq(struct mlx5_aso *aso, bool with_data)
+ 	mlx5_cqwq_update_db_record(&cq->wq);
+ 
+ 	/* ensure cq space is freed before enabling more cqes */
+-	wmb();
++	dma_wmb();
+ 
+ 	if (with_data)
+ 		aso->cc += MLX5_ASO_WQEBBS_DATA;
 -- 
-2.43.0
+2.9.4
 
