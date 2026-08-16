@@ -1,72 +1,72 @@
-Received: from mail-qt1-f180.google.com (mail-qt1-f180.google.com [209.85.160.180])
+Received: from mail-qt1-f178.google.com (mail-qt1-f178.google.com [209.85.160.178])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D0EA2DAFDE
-	for <linux-rdma@vger.kernel.org>; Sun, 16 Aug 2026 04:45:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58414381C4
+	for <linux-rdma@vger.kernel.org>; Sun, 16 Aug 2026 06:16:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786855527; cv=none; b=K3NCzT3lIqLBI/0dP8gkXm68vUltZjWsJXOpppODN5kPPZxatkjlTty2/RSnj5xIST/ZJXCcszcOzRDva7VGtp76g2L8LGQKxVUDVOplPHM5uyg4ToCL6ISxWG8UBbs2TApt9aGAbLWGDMOtBUk/yAA2AHIWVd7N3NXdZn7Hs1g=
+	t=1786860984; cv=none; b=pDMB5Q2Nl/3Cg8qDOhLGIZ0s2Wx8Jtntx2K6X34iUJkNd8o+g0UxiPucNEY9eSolLidSIF1VWUdp7MPHLr7WJvoh/sT4bWpYRdHcQuayhyE8YvM7hPAVEUQ+2i3B3lGbCCpJ/Ek+QaMv42C3uWnwXMJlFhCwQFjaRCdvLMgwNAY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786855527; c=relaxed/simple;
-	bh=VPZwRSomxevHO7ok/WVEp7eMxLHx3jbGcDllWYjpIk0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=r5BV5kIogAmcxTE3Sb21gEztoDNy5KXsSInOUE7B4zV9fC2J6NeZWNjh/SE8OHh2j8yC54zoi49YSvd+9S44dYYVz2MZWKb7VXUYkY090Ey6oG8QEVXhfhOSbYTL4d6KlctPBDFNGaL9iE8EdJm+/5OgbMcHPOH8dLJAXmWiJeM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=qRSqVadc; arc=none smtp.client-ip=209.85.160.180
+	s=arc-20240116; t=1786860984; c=relaxed/simple;
+	bh=PwBAtWLTBQdOhYmMRvqHmuyod5fAKCsuGd/VPX/xwMY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ORLbNlRApENiDYmqrUzQrBsn+M5eELWlUGUzwMwNqVg7YoKBGu8D6Nod/H3LeqM9x2xbL1HICuV2e4Mn3xJCl9klPzgX4aaKv1VactMbNdUof1dz0CzeubusdTIS3cONrc9MwsziD56wBmoAedPe6Yzo1D08+0NR9WiJpMItio8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=OKDfErwp; arc=none smtp.client-ip=209.85.160.178
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="qRSqVadc"
-Received: by mail-qt1-f180.google.com with SMTP id d75a77b69052e-52d8679c149so14765621cf.2
-        for <linux-rdma@vger.kernel.org>; Sat, 15 Aug 2026 21:45:25 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OKDfErwp"
+Received: by mail-qt1-f178.google.com with SMTP id d75a77b69052e-51c0c45c580so14535451cf.0
+        for <linux-rdma@vger.kernel.org>; Sat, 15 Aug 2026 23:16:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786855525; x=1787460325; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1786860982; x=1787465782; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=aXQqM4Uz+B7ErOlECxSpCZ++Y8mo3D64bY4QdYcgNwo=;
-        b=qRSqVadcpAn7biNDanCxu8O7iykcNgRAO46rIZbwxWbcqrfJi1z8kuY6jf8fVar0Z/
-         KnIGj4FQ4P7SNjpQyZ0XbVMhhFW0mGzYBxWTeh3fUNjhRulGYflWZZ3Dqm3FkCB7Po8W
-         i27/poacJt16rvPraNr7ytlrZNtJHVilbk88ln1RlWSVJjeqxdAVxaowgmPJDZT9tk8g
-         6QwdeKcEGTl74Jod0yHiWcHjnfhXfJY1uxxpJKrtrI+sticqhZgGGdpUMmaxVzsSd9Y9
-         xofZMHB0+NTx/HapRBbOHXQpaaQyG00r7UVLNLKcR5KWqvOL/4RJsJeM7pUbU2Ad6WzZ
-         WUpA==
+        bh=Dx71Tj0Yh74N2KF4WkBSx6E9gWnoVmw5HGH3PfpwUbA=;
+        b=OKDfErwpCvTgRHTuf+8/EpjXDLdgNZqDCXzjD5dMI8r54n2DmWx9Zuk77TlK85dgTP
+         mUFKgNppp+YnOdTVvjo5xlwScL/eEdlsrGQPMn3j9bFjcQKZ7VI4XcAKVhzbA7FBV9Cx
+         zwzT498CXUMpb/V41mjy6HSD8uBbFOnnZ2Eo4kwMNYgUy94scxQtJXYHphkZuXtbl7+v
+         e/2zheg9s3mwHfddAbqwM5CRaT30tXeRY1bvLkHnmiAU593Fkd6Skw9d0LhZg2fUs+jl
+         Q4YuPVZq4lZHYX4jkYmZzzisdmTdUuF7496vetmaQBOEePSHyVH7mgp7nMl98Cobq7st
+         MZRw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786855525; x=1787460325;
+        d=1e100.net; s=20251104; t=1786860982; x=1787465782;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=aXQqM4Uz+B7ErOlECxSpCZ++Y8mo3D64bY4QdYcgNwo=;
-        b=pcfzlWrJD8Xs2W4ONS2aBIyPl7Pb3NfVW1shi2los70vu+tSNIKe6SA9vnh2WyQHKT
-         ifOOZZC5WJFr7wfoAQqbqdHBch3a9I9OqYfUSIZ/encQ0RtClr7iNkOZ8sxqvoA7JTN3
-         +bk/UDoPS/mDj93jBVH5gF0ouHevRlBkl0+t0D8IXzPiEJ1/9cut0YITYUdMXTEmzqEk
-         xmJr3ZQNI8jT5gxm4Rm+3lTmlbnd4atzoVBJWGNeQbNTjDiIWKC+de5uDB7fubmJJoF0
-         u9bbruxVwF+E5cliZDcbisiZL8OjEfoRJqsuRnWm0pDel2pswIJlVJY3/wIhEmcci3MK
-         VcDw==
-X-Gm-Message-State: AOJu0Yx/pX4tYv5Enpu6L670gAX/T7TQuqMknipWEsBnz8ZhZ6PXSxVI
-	MC2a9Z1MToz1MyaTfuKyRoBHP8TLAi93rbq3mC2wZ4YjuVRMilpG2U3i
-X-Gm-Gg: AR+sD12SiTPXFeW9YyENCk7eBIa5sBKs25cMfVdYeqkgU0+07Qwehy7o2B66RqZXPJz
-	UBvcPbNtLB+anR75RStKKXnvgI2AIsJF19vP48vZRktE0y7ahr25SRISYLhyC7l8Y/JC9WOUnJ/
-	DJyNm8I8u8gKR4jLX0IRRvpjnPXACEx5k5MYVKckchzrJcW96Okzzp/PD4rATfrDXNQ00yUtpe7
-	VPAOtOFME4XuBvcAPL4tCcgwipOhcq5pDO7zqRsXgS98bsBcBw5UhlfDv+xcnZN/4QeGc3ZVvg8
-	CdlWHxGEo8CCXgxjQJEytIFrXPTrEi8dckMKWiQt4oXvYDoA+ZwaJ+XEiuxBt3rDCa0Ts6bwBRa
-	LYgCfAPcG24c6EhgfjMUgWNNZsGa6dPgSRayB18imF2QqHAiNB7jQ4qjnWqa04Evj0VV3ejwxYO
-	4gXKoA3gDha++B4Vp6fNUHbEMOPFOQtRa//3MuBJTbg/ljo5jjpYPRUcKd8bXvRR7311wdU/Xvc
-	swSFkYxeEVGqzA2hg==
-X-Received: by 2002:a05:620a:a293:b0:934:970a:beb2 with SMTP id af79cd13be357-936d22ce4d1mr1589429185a.26.1786855524958;
-        Sat, 15 Aug 2026 21:45:24 -0700 (PDT)
+        bh=Dx71Tj0Yh74N2KF4WkBSx6E9gWnoVmw5HGH3PfpwUbA=;
+        b=VFsOKu5uRnSxoWcVZ3bf54O/CJuUfdvA6M6AJOSVZKv+G4/VXdOcx6EFA3gtKL3qoc
+         k32/KL29Tt0yHBNXRpbqIbrxevfP5YX7pkvos6Hkq8/EZxLhh0rjC0HZjXef/3YNyJLN
+         FJqtKVG93gVumjCsMtkq5+qNF+jRibf+nTiVnnmI18/fh/qMtIkqAHsE0vVtnUQTjzHG
+         22J8ynVhg1wDMyRNgsMZlOJ9deGVL/S0BOTT6eopX5bjxBzKEWIWArxZ897l3kZpx3a7
+         4YRe6bHw25fy6UIDsTu3XR8EJebdes7SgAMeNFz2PE9nNLuhf762zoS4FgtML0/4mMcV
+         56Tw==
+X-Gm-Message-State: AOJu0YyQVf9Um1s/IOy+BD8yZqv6KnSRDRIF6gByyveZF88XhddEDXlS
+	VV7ZCiqLXk0X0KlD1cygsbCwGddalyGZ+8sp0EG30RX+INBiFnwIs1Bs
+X-Gm-Gg: AR+sD12l5fBJ+woNua6rqlaECofNQ5sRidOI5otn+lqc20wN9zRM3doNw6xOiRNnBCO
+	38k5TQnPaL6cY0SBeM+WeReH4MlwEaM0/SFwCtXmKUI+ggaXgTQoeZeBSNw4W5Q4bvvx90/fEM2
+	5vTMUBAMnR/TtUQ7GDEV6x2tqjpGtqeZMYA3ZBzqGqDCS7ZVYYJwhYQn2g/PSp3qyctD/vomsRu
+	XM6JWTjcsRysPLj/h99LJqe7/verGChVWd10l6HhKAMcCs7D7GdS2bqmPVK9xepIYO4yEMLw8Pu
+	pT/ZJetGV+JziuQQUI0l6ghO4cE02AIS6Z624frYuscJFUV9w0x0uUwudiihZCQ808CPjCDANGG
+	iJHD9iZpKbSA47RHRD6G+RtqxvP2xI2xSTDOuSxHDsLQGo7qaSeAVH5qhYGbhj3yvc+E0DKx13v
+	zNpVv0MgFhXxSJ8fsHX3Pj9FFfuxMUF1mxaaajyBWVS0l+5G4huk3XVL+pUYXjgrR2pbkPT+zMh
+	lXtJVx1W9jQnVIXEg==
+X-Received: by 2002:ac8:7fd4:0:b0:519:8b76:2ce0 with SMTP id d75a77b69052e-52d85538e0emr189855501cf.37.1786860982216;
+        Sat, 15 Aug 2026 23:16:22 -0700 (PDT)
 Received: from i4-l-hqh5357-03.ad.psu.edu ([130.203.139.71])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-936ce1ea6cfsm687105385a.27.2026.08.15.21.45.24
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-52d84043241sm54126611cf.16.2026.08.15.23.16.21
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 15 Aug 2026 21:45:24 -0700 (PDT)
+        Sat, 15 Aug 2026 23:16:21 -0700 (PDT)
 From: Shuangpeng Bai <shuangpeng.kernel@gmail.com>
-To: yishaih@nvidia.com,
+To: bernard.metzler@linux.dev,
 	jgg@ziepe.ca,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org,
 	Shuangpeng Bai <shuangpeng.kernel@gmail.com>
-Subject: [PATCH] IB/mlx4: Fix use-after-free on pkey sysfs registration failure
-Date: Sun, 16 Aug 2026 00:45:10 -0400
-Message-ID: <20260816044510.3848996-1-shuangpeng.kernel@gmail.com>
+Subject: [PATCH] RDMA/siw: Fix CEP reference race in siw_accept()
+Date: Sun, 16 Aug 2026 02:13:53 -0400
+Message-ID: <20260816061353.4059242-1-shuangpeng.kernel@gmail.com>
 X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -76,51 +76,53 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-register_pkey_tree() ignores errors from register_one_pkey_tree() and
-continues registering the remaining slaves. The per-slave error path has
-already released the pkey parent kobjects, but their pointers remain
-stored in the device. A later device cleanup therefore passes the stale
-pointers to kobject_put(), causing a use-after-free.
+siw_accept() associates a CEP with the selected QP while holding
+qp->state_lock. If the transition to RTS fails, the error path releases
+the lock before detaching that association.
 
-Clear the parent pointers after releasing a failed slave tree and skip
-unregistered trees during device cleanup. This preserves the existing
-best-effort registration behavior while preventing a second cleanup of
-the failed tree.
+The cleanup drops the QP association reference before clearing qp->cep.
+A concurrent QP destroy can acquire qp->state_lock in between, observe
+the stale pointer, and drop the same association reference again. This
+can free the CEP before siw_accept() releases its remaining reference,
+causing a use-after-free.
 
-Fixes: c1e7e466120b ("IB/mlx4: Add iov directory in sysfs under the ib device")
+Serialize the error-side detachment with qp->state_lock and clear qp->cep
+before dropping the association reference. This ensures that either the
+accept cleanup or QP teardown removes the association, but not both.
+
+This is a follow-up to commit a93949718259 ("RDMA/siw: Fix
+use-after-free in siw_accept()") and addresses a separate race in the
+same error path.
+
+Fixes: 6c52fdc244b5 ("rdma/siw: connection management")
+Link: https://patch.msgid.link/20260801213632.1086548-1-shuangpeng.kernel@gmail.com
 Cc: stable@vger.kernel.org
 Signed-off-by: Shuangpeng Bai <shuangpeng.kernel@gmail.com>
 ---
- drivers/infiniband/hw/mlx4/sysfs.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/infiniband/sw/siw/siw_cm.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/sysfs.c b/drivers/infiniband/hw/mlx4/sysfs.c
-index e688ad66a895..5438224bf325 100644
---- a/drivers/infiniband/hw/mlx4/sysfs.c
-+++ b/drivers/infiniband/hw/mlx4/sysfs.c
-@@ -751,11 +751,13 @@ static int register_one_pkey_tree(struct mlx4_ib_dev *dev, int slave)
- 		kobject_put(p);
+diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/siw/siw_cm.c
+index 0245b25e7271..da1b953f3fa3 100644
+--- a/drivers/infiniband/sw/siw/siw_cm.c
++++ b/drivers/infiniband/sw/siw/siw_cm.c
+@@ -1751,11 +1751,13 @@ int siw_accept(struct iw_cm_id *id, struct iw_cm_conn_param *params)
+ 	cep->state = SIW_EPSTATE_CLOSED;
+ 
+ 	siw_free_cm_id(cep);
++	down_write(&qp->state_lock);
+ 	if (qp->cep == cep) {
+-		siw_cep_put(cep);
+ 		qp->cep = NULL;
++		siw_cep_put(cep);
  	}
- 	kobject_put(dev->dev_ports_parent[slave]);
-+	dev->dev_ports_parent[slave] = NULL;
- 
- err_ports:
- 	kobject_put(dev->pkeys.device_parent[slave]);
- 	/* extra put for the device_parent create_and_add */
- 	kobject_put(dev->pkeys.device_parent[slave]);
-+	dev->pkeys.device_parent[slave] = NULL;
- 
- fail_dev:
- 	kobject_put(dev->iov_parent);
-@@ -785,6 +787,8 @@ static void unregister_pkey_tree(struct mlx4_ib_dev *device)
- 		return;
- 
- 	for (slave = device->dev->persist->num_vfs; slave >= 0; --slave) {
-+		if (!device->pkeys.device_parent[slave])
-+			continue;
- 		list_for_each_entry_safe(p, t,
- 					 &device->pkeys.pkey_port_list[slave],
- 					 entry) {
+ 	cep->qp = NULL;
++	up_write(&qp->state_lock);
+ 	siw_qp_put(qp);
+ free_cep:
+ 	siw_cep_set_free_and_put(cep);
+
+base-commit: a9394971825933074032794a5feee5211509c774
 -- 
 2.43.0
 
