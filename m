@@ -1,256 +1,207 @@
-Received: from mta0.migadu.com (out-210.mta0.migadu.com [91.218.175.210])
+Received: from mail-ed1-f46.google.com (mail-ed1-f46.google.com [209.85.208.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A5FE3E3C4F
-	for <linux-rdma@vger.kernel.org>; Sun, 16 Aug 2026 21:45:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.210
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786916709; cv=none; b=m5G+hgYFO0LEgrB5G39FwD3htJdIIfMyDDubFr1mXi9pEy+WaGi+yQ0qXYCXyleeN+edaxoi2Ua78gj5QYm3PfOLcC2I9Njrq8d9f7dk2gXunF9iWiea1WEpKxNXawmNYf+Do7syyr8bSVsVH6a5SxTQJ4CR6c3eE+zUDHxj9HQ=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786916709; c=relaxed/simple;
-	bh=mNO74oi8yh6Pq1I2jmraMnHrjznHRP7lLpSh+N+aPWg=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=HKQKD8JSTOT/5Hv9O3Rr8nidC8IcefdnszXobIUrgpvcu45QmIRCrKxhiHsJxIxOqIi5ionG9XIaRvw39yy2Ybn8IRHfiiraqw+KxRIZS/0sacXt/tKG2IbDBYQP2pORLi9eJ8WECsfrXLQThavBccyw+G1URjBBaiZRkdiqY5E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=Q/hdBoLB; arc=none smtp.client-ip=91.218.175.210
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCF332C3261
+	for <linux-rdma@vger.kernel.org>; Mon, 17 Aug 2026 04:57:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.46
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786942652; cv=pass; b=u2mU/JMbp4CQFv2gO2EoaPeHkKBBhX+5nyAsoDiEqWWVynYSAeXllQG8i6WnbKoj2KPdEMl55iDtwPpbaBLgp23jvRgN8E3a7tb4IWw/HJtfHE+7xdIrL2sAKPz22UULwFK1DyLV+0WDXhbDmyBw+L/zg7rQHHJ4RWfxcQCc6io=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786942652; c=relaxed/simple;
+	bh=Xe8iOXEzvGF8X/Z5Oe18dBSQMAZyQLXlioa1e6bzjMQ=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=J7RFkBxpwP3o8ut/MHYjutNtA7zRxXj7HP9AnU7X4hFliFuBaPZue3KCVYQQUMaTr6/gtPGYXaLCN3Y8Kp30j3Fe9WoRt7NfzX8UB+OefVCfbotFoiTyrWQ7c13JYM8KztFT5EI5SSQWmFktLDlzBXybe4dh9bVvCe+yQD9ZMuY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cloud.ionos.com; spf=pass smtp.mailfrom=ionos.com; dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b=TCNfTCad; arc=pass smtp.client-ip=209.85.208.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cloud.ionos.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ionos.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="Q/hdBoLB"
-X-Envelope-To: linux-rdma@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=mNO74oi8yh6Pq1I2jmraMnHrjznHRP7lLpSh+N+aPWg=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1786916705; v=1; x=1787521505;
- b=Q/hdBoLBBw00SHPTFMbNRiqZJ3LaPO5S9ArwH1IC8G6IqYRG43BV/CYhRiNvYU9FaSG+ppuH
- aBnU28NiqYflxuO0LwD4M3ZWGFYXXUeTrA2ofm8I/EMmisaj2ykoY4zLvLWvplP/feHjMxWK0t5
- 3umW06HdjNp7jmH6kZ8OemNI=
-X-Envelope-To: linux-rdma@vger.kernel.org
-Received: from [IPV6:2601:647:6300:a030:dd46:d520:270e:1608] (2601:647:6300:a030:dd46:d520:270e:1608)
-	by smtp.migadu.com with ESMTPS id f42f421dbd52d924;
-	Sun, 16 Aug 2026 21:45:01 +0000
-X-Migadu-Flow: FLOW_OUT
-Message-ID: <2063d67f-27c5-4329-aaf5-39823f9de6ff@linux.dev>
-Date: Sun, 16 Aug 2026 14:44:54 -0700
+	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="TCNfTCad"
+Received: by mail-ed1-f46.google.com with SMTP id 4fb4d7f45d1cf-6a18af264f9so624395a12.0
+        for <linux-rdma@vger.kernel.org>; Sun, 16 Aug 2026 21:57:29 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1786942648; cv=none;
+        d=google.com; s=arc-20260327;
+        b=iz8AXJQwm/9kxEgxAdOxsu3uCzje7+Rt31GHpvJC0WvIJThQeeljRYFuTfJvD3WdcI
+         Rs9/7Kx8Kr2ylEDmgND/KRruhn1bjFFEYWg5xQl8XjKXWlBxJuDAcJmd3hhidPVm4sFU
+         UlXHvTqyArtrD/RDpvouCh6nW7H+mHYQ9V8se2LYG6VEhaVvq3fK8buEA0zRu0KEaeLb
+         JfStQjZUdxr4WAT+Y+6L8DnBta7kszGqhuuEgCXxCgPKwf/mzmOOFpnN+jHpvHj1kh7v
+         j0ZKZhUZSs3H+Lx/BxoZ0kTrE7F6PakfhHOceiRR+zLreoU22nHXKNc5ECjXAwW1fVgb
+         msDw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=gPFRlHsP6ZSYOc/0Yyk82UYEXupiVd/7lqX8P0d0I5E=;
+        fh=+jpd4cEVdEV1YIQVsV1nuIKnVRqWmwSKKsjV19msu44=;
+        b=m3cBMpBoe9o8uLWK5BQPXO8eJgttHDWoARySSURDP0820YXH9v74TNsHGlGGVS0dc8
+         KqXZQ/wJUtxDCLy44QMLRMOUcxe74AHqJq4ogRvhPUAcnPKzRLM3iUt6h44sNgrwY6MP
+         NNkRvNRjxjd3pXVekYMjh6HN6SJtOesa1SXRVXQXfhAtp7RHiwPQF3eVCfbZM0AQO17+
+         DdBvRBfxxfoy3qyMIVcXCvNf/JLaUOtPb3FLvsCvb18HVjoeof5kMH17wYPw8iIC/YhU
+         fBYSxUBTbBJD5zmTM7G4As3f06BfP1vvb0+fsYTnEGf9w2VTFdPl+7wtKrM6G9NZH3rZ
+         sR4Q==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=cloud.ionos.com; s=google; t=1786942648; x=1787547448; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=gPFRlHsP6ZSYOc/0Yyk82UYEXupiVd/7lqX8P0d0I5E=;
+        b=TCNfTCad/XueXx5/+kgfBBZH9HP3GLTNIv58kgSUMSUKJcg9dRsWLsV2eJFGxrvuvM
+         p2KQZxyIthqu9DKjADsQLRWJKeGYGx6AwwDSRqCe7yvCmVQp7SoKpW4shgextB6wDY0c
+         flxZopmdUivUPApDZ3Zwa1MDjYGTn35oGtzck+UH5LhC9/Qe3SKNmwISSgtG1JEnlCzh
+         onvO3ZAUYR8rBZ+hWfijQ9XVDDrC3uCnCvLYlcNhOP/tzzruMOwzy7MQlWJxhCky74Fg
+         TJSMW408zgcd2psPSCLDEkqE8xBwLZzC6ip0hchYQ3G/Q09eOFX6EqyzVVa3VjfuCtff
+         5Ryw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786942648; x=1787547448;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=gPFRlHsP6ZSYOc/0Yyk82UYEXupiVd/7lqX8P0d0I5E=;
+        b=lhf2YbXdFiIezG6zgg9D8axp+0x3Py6GcMYdNNHFeU5qRpk1cXoVXQJ1QpbbF6LKUB
+         aZ81P6xmVfkCRMPuYo7QL662j/Y0Y6MCacMDOt3nQguF++LTh8y5BXh0T/FEp0GLDSyz
+         6Y0SvBdM4VDwIrC3Li1w5TqYhCYJ7qUATYFtrPedDKNDEfk5/YiQ5mIIw4TX7zZnLZ9P
+         6mJb8zjSqJKiby91ww5JhAtUTpV/64UKyWZhHmd0mf5HFZOiWLEnxTYHkGC+DpQYCsXy
+         4l+7zhPXBmITBTfiVKZvoINVAKW2KoxvwNGWi0flil9fdFc6C4qPdMUVceRVa7bB+5Sl
+         4R/A==
+X-Forwarded-Encrypted: i=1; AHgh+RqOUBU9cCdnL6rxMth0vK926Ja2he4pS7xvDz4rVkkByPKWtXb5OKoVSM+NyTj1SpSprSobeOD5IWQj@vger.kernel.org
+X-Gm-Message-State: AOJu0YyG6a4hEdZl63zdEO/pZJaa/JVH5DrchuKAWWoFipSFy32Eri6+
+	6X4C+YUbskJW5w2KypW/fKTI0B3ckfvSqN26vVI1p8aNTr3gb6VlWSNmVvchyVzK2LEJAMEne75
+	x1/CsW0iX9ZMfdMYtW+ps3kTnqGPtPz49HUxchJQxOQ==
+X-Gm-Gg: AR+sD10UB7C3YlTfN/47xO8XWHfTUx4GvRaqlhICuNqdLARCKtiaXFf9ar9ZjOkxr78
+	fkoMd9ryhO36/RnXc4jFmJDezdwBzZt3lTp1e+7Rd4c2mh3UHDtRJxEAed/bw/iQQ0CvdIGs3MV
+	INHYvcGMcVwjAcESUz6YgDzZVmpn8gfvTW8vp6R8djyc4b2VvhKIVJ39Ko19defa9wdkyRVyLtD
+	70/yXGRFINkyFTikbMCrpQAA/8jilzvocAmTULjOO3KH29n22SW7tQ9e4Tu8OWFJeZgEx+bJm82
+	1Y0QEd2T8f8WCyfRFkjEQAcsc6zCWz5+IZAzo04Gcjz1m8etlyXLE/z8vsYJfmRvL+pIvDSVVgA
+	saF9SrCDzXzs9
+X-Received: by 2002:a17:907:849:b0:c16:1290:11a7 with SMTP id
+ a640c23a62f3a-c2129b328f3mr617622266b.1.1786942647948; Sun, 16 Aug 2026
+ 21:57:27 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/2] RDMA/rxe: copy send WQE to kernel buffer before
- processing
-To: Tristan Madani <tristmd@gmail.com>, Zhu Yanjun <zyjzyj2000@gmail.com>,
- Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
- "yanjun.zhu@linux.dev" <yanjun.zhu@linux.dev>
-Cc: Moni Shoua <monis@mellanox.com>, linux-rdma@vger.kernel.org,
- stable@vger.kernel.org, Tristan Madani <tristan@talencesecurity.com>
-References: <20260816104432.849996-1-tristmd@gmail.com>
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
-In-Reply-To: <20260816104432.849996-1-tristmd@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+References: <20260816165935.90523-1-dragonliu2018@gmail.com>
+In-Reply-To: <20260816165935.90523-1-dragonliu2018@gmail.com>
+From: Jinpu Wang <jinpu.wang@cloud.ionos.com>
+Date: Mon, 17 Aug 2026 06:57:16 +0200
+X-Gm-Features: AcwNN1VVmJNOC0M4GGbei7tGa4912Vs8syCoQgMLbSv6NqhxtOxT2kRxH3Jf8Os
+Message-ID: <CAMGffE=v_Euy+ZPEuYByft66MKMY2ar5dfxr1TU4Yu7B++ZaiA@mail.gmail.com>
+Subject: Re: [PATCH] RDMA/rtrs-clt: use find_next_zero_bit() for permit allocation
+To: Liu Zhenlong <dragonliu2018@gmail.com>
+Cc: haris.iqbal@ionos.com, jgg@ziepe.ca, leon@kernel.org, 
+	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+On Sun, Aug 16, 2026 at 7:00=E2=80=AFPM Liu Zhenlong <dragonliu2018@gmail.c=
+om> wrote:
+>
+> __rtrs_get_permit() allocates a free permit from a bitmap under lockless
+> contention: it scans with find_first_zero_bit() and claims the bit with
+> test_and_set_bit_lock(), restarting the whole scan when it loses the
+> race.  Each retry rewinds to bit 0 and re-walks every already-set low
+> bit before reaching the free region again.
+>
+> Under high queue depth - the RTRS/RNBD data path - the low part of
+> permits_map is densely set, so a lost race wastes a scan proportional
+> to the number of in-use permits on every retry.
+>
+> Use find_next_zero_bit(), resuming from the last position, so a lost
+> race continues scanning from where it left off instead of from the
+> beginning.  When the scan reaches the end, wrap to the beginning to
+> exhaust the map, so a permit freed below the cursor is still found
+> and NULL is returned only when the map is actually full, matching the
+> original behavior.  The scan remains non-atomic, so the
+> test_and_set_bit_lock() retry is still required and the race
+> handling is unchanged.
+>
+> A userspace model of the bitmap-allocation algorithm (not the kernel
+> find_*_bit primitives) quantifies the mechanism: with qdepth=3D512 and 14
+> threads holding ~98% of the bits set, a lost race in the baseline
+> re-scans the densely-set low region, traversing ~1.3k bit-positions per
+> allocation, while the patched version resumes and traverses ~260.  The
+> benefit is contention- and density-dependent: under low contention
+> (sparse map) the two are equivalent, and the wrap adds a small amount
+> of code over the single-scan baseline.
+>
+> End-to-end RNBD/fio throughput was not measured (no RDMA hardware
+> available); the model isolates the allocation mechanism, not the full
+> IO path.
+>
+> Compile-tested: arm64 defconfig + INFINIBAND_RTRS_CLIENT=3Dm, rtrs-clt.o
+> Assisted-by: Claude:claude-opus-5
+> Signed-off-by: Liu Zhenlong <dragonliu2018@gmail.com>
+Hi Zhenlong,
 
-在 2026/8/16 3:44, Tristan Madani 写道:
-> From: Tristan Madani <tristan@talencesecurity.com>
->
-> The rxe send queue is mapped into userspace via mmap. The requester
-> processes Work Queue Entries (WQEs) directly from this shared buffer
-> without first copying them to kernel memory. Userspace can modify WQE
-> fields (num_sge, sge_offset, SGE entries) between kernel reads,
-> leading to inconsistent state in copy_data().
->
-> This is the send-path counterpart to the receive-path fixes:
->   - commit 22b8fbded65b8 ("RDMA/rxe: Fix TOCTOU heap overflow in
->     get_srq_wqe")
->   - commit d6ab440240a04 ("RDMA/rxe: Copy WQE to local buffer in
->     non-SRQ receive path")
->
-> Fix by copying the send WQE to a kernel-private buffer in req_next_wqe()
-> before processing. The local copy is reused across multi-packet sends
-> to preserve DMA progress state (cur_sge, sge_offset, resid). State
-> changes are written back to the shared queue so the completer can observe
-> them (e.g., wqe_state_pending for RC acknowledgment processing).
->
-> The copy is invalidated when:
->   - The WQE index advances (last packet sent, error, local ops, UD oversized)
->   - A retry occurs (req_retry resets WQE state in shared memory)
->
-> The num_sge field is validated against qp->sq.max_sge on copy-in to
-> reject corrupted values early.
->
-> Fixes: 8700e3e7c485 ("Soft RoCE driver")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Tristan Madani <tristan@talencesecurity.com>
+Thx for your patch, it looks good, nice optimization.
+
+We may simplify the commit message a bit:
+"Callers from different CPUs may grab the same bit, since the bitmap
+scan is not atomic. But then the test_and_set_bit_lock() will fail for
+all the callers but one, so that they loop again. This way an explicit
+spinlock is not required. find_next_zero_bit() resumes from the last
+position so that a lost race does not rescan the already-set low bits;
+if it reaches the end, wrap to the beginning to exhaust the map and
+still find a permit freed below the cursor."
+
+Reviewed-by: Jack Wang <jinpu.wang@cloud.ionos.com>
+
 > ---
->   drivers/infiniband/sw/rxe/rxe_req.c   | 55 ++++++++++++++++++++++++++-
->   drivers/infiniband/sw/rxe/rxe_verbs.h |  6 +++
->   2 files changed, 60 insertions(+), 1 deletion(-)
+>  drivers/infiniband/ulp/rtrs/rtrs-clt.c | 23 ++++++++++++++---------
+>  1 file changed, 14 insertions(+), 9 deletions(-)
 >
-> diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-> index 12d03f390b097..499f398b674c7 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_req.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_req.c
-> @@ -161,6 +161,20 @@ static void req_check_sq_drain_done(struct rxe_qp *qp)
->   	spin_unlock_irqrestore(&qp->state_lock, flags);
->   }
->   
-> +/* Write local WQE copy back to shared queue so the completer
-> + * can observe state transitions (e.g., wqe_state_pending).
-> + */
-> +static void rxe_req_writeback_wqe(struct rxe_qp *qp)
-> +{
-> +	if (qp->req.send_wqe_valid && qp->req.shared_wqe) {
-> +		unsigned int num_sge = qp->req.send_wqe.wqe.dma.num_sge;
-> +		size_t size = sizeof(struct rxe_send_wqe) +
-> +			      num_sge * sizeof(struct rxe_sge);
-> +
-> +		memcpy(qp->req.shared_wqe, &qp->req.send_wqe.wqe, size);
-> +	}
-> +}
-> +
-rxe_req_writeback_wqe() uses memcpy() to write the local WQE state back
-to qp->req.shared_wqe in user-mapped memory without synchronization.
-
-This introduces two data race hazards:
-1. Malicious or concurrent userspace writes during memcpy() can race
-    with the kernel writeback, causing tearing or inconsistent shared state.
-2. The kernel completer tasklet concurrently reads shared_wqe without
-    holding a lock, risking torn reads of intermediate WQE states (e.g.
-    wqe_state_pending) and triggering state machine corruption.
-
-Writebacks to shared user-mapped memory must update state fields atomically
-or execute under appropriate lock serialization rather than performing an
-
-uncontrolled bulk memcpy().
-
-Please fix the above problem with appropriate synchronize methods.
-
-Thanks a lot.
-
-Yanjun.Zhu
-
->   static struct rxe_send_wqe *__req_next_wqe(struct rxe_qp *qp)
->   {
->   	struct rxe_queue *q = qp->sq.queue;
-> @@ -178,6 +192,8 @@ static struct rxe_send_wqe *req_next_wqe(struct rxe_qp *qp)
->   {
->   	struct rxe_send_wqe *wqe;
->   	unsigned long flags;
-> +	unsigned int num_sge;
-> +	size_t copy_size;
->   
->   	req_check_sq_drain_done(qp);
->   
-> @@ -193,6 +209,29 @@ static struct rxe_send_wqe *req_next_wqe(struct rxe_qp *qp)
->   	}
->   	spin_unlock_irqrestore(&qp->state_lock, flags);
->   
-> +	/* If we already have a valid local copy of this WQE, use it.
-> +	 * This preserves DMA progress state across multi-packet sends.
-> +	 */
-> +	if (qp->req.send_wqe_valid && qp->req.shared_wqe == wqe)
-> +		return &qp->req.send_wqe.wqe;
-> +
-> +	/* Copy WQE from userspace-mapped shared queue to kernel-private
-> +	 * buffer. Userspace can concurrently modify num_sge, SGE entries,
-> +	 * or inline data offsets, leading to inconsistent state in
-> +	 * copy_data(). This is the send-path variant of the receive-path
-> +	 * fix in rxe_get_recv_wqe().
-> +	 */
-> +	num_sge = wqe->dma.num_sge;
-> +	if (unlikely(num_sge > qp->sq.max_sge)) {
-> +		rxe_dbg_qp(qp, "invalid num_sge in send WQE\n");
-> +		return NULL;
-> +	}
-> +	copy_size = sizeof(*wqe) + num_sge * sizeof(struct rxe_sge);
-> +	memcpy(&qp->req.send_wqe.wqe, wqe, copy_size);
-> +	qp->req.shared_wqe = wqe;
-> +	qp->req.send_wqe_valid = true;
-> +
-> +	wqe = &qp->req.send_wqe.wqe;
->   	wqe->mask = wr_opcode_mask(wqe->wr.opcode, qp);
->   	return wqe;
->   }
-> @@ -582,9 +621,14 @@ static void update_state(struct rxe_qp *qp, struct rxe_pkt_info *pkt)
->   {
->   	qp->req.opcode = pkt->opcode;
->   
-> -	if (pkt->mask & RXE_END_MASK)
-> +	/* Write back local WQE state before possibly advancing index */
-> +	rxe_req_writeback_wqe(qp);
-> +
-> +	if (pkt->mask & RXE_END_MASK) {
->   		qp->req.wqe_index = queue_next_index(qp->sq.queue,
->   						     qp->req.wqe_index);
-> +		qp->req.send_wqe_valid = false;
-> +	}
->   
->   	qp->need_req_skb = 0;
->   
-> @@ -635,6 +679,7 @@ static int rxe_do_local_ops(struct rxe_qp *qp, struct rxe_send_wqe *wqe)
->   	wqe->state = wqe_state_done;
->   	wqe->status = IB_WC_SUCCESS;
->   	qp->req.wqe_index = queue_next_index(qp->sq.queue, qp->req.wqe_index);
-> +	qp->req.send_wqe_valid = false;
->   
->   	return 0;
->   }
-> @@ -695,6 +740,7 @@ int rxe_requester(struct rxe_qp *qp)
->   	if (unlikely(qp->req.need_retry && !qp->req.wait_for_rnr_timer)) {
->   		req_retry(qp);
->   		qp->req.need_retry = 0;
-> +		qp->req.send_wqe_valid = false;
->   	}
->   
->   	wqe = req_next_wqe(qp);
-> @@ -761,6 +807,7 @@ int rxe_requester(struct rxe_qp *qp)
->   						       qp->req.wqe_index);
->   			wqe->state = wqe_state_done;
->   			wqe->status = IB_WC_SUCCESS;
-> +			qp->req.send_wqe_valid = false;
->   			goto done;
->   		}
->   		payload = mtu;
-> @@ -820,12 +867,18 @@ int rxe_requester(struct rxe_qp *qp)
->   	 * will continue looping and return to rxe_requester
->   	 */
->   done:
-> +	/* Write back local WQE for paths that skip update_state()
-> +	 * (local ops, UD oversized packets).
-> +	 */
-> +	rxe_req_writeback_wqe(qp);
->   	ret = 0;
->   	goto out;
->   err:
->   	/* update wqe_index for each wqe completion */
->   	qp->req.wqe_index = queue_next_index(qp->sq.queue, qp->req.wqe_index);
->   	wqe->state = wqe_state_error;
-> +	rxe_req_writeback_wqe(qp);
-> +	qp->req.send_wqe_valid = false;
->   	rxe_qp_error(qp);
->   exit:
->   	ret = -EAGAIN;
-> diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
-> index 0f5ffd94643f9..a22dfc6e5ae3c 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_verbs.h
-> +++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
-> @@ -114,6 +114,12 @@ struct rxe_req_info {
->   	int			wait_for_rnr_timer;
->   	int			noack_pkts;
->   	int			again;
-> +	struct rxe_send_wqe	*shared_wqe;
-> +	bool			send_wqe_valid;
-> +	struct {
-> +		struct rxe_send_wqe	wqe;
-> +		struct ib_sge		sge[RXE_MAX_SGE];
-> +	} send_wqe;
->   };
->   
->   struct rxe_comp_info {
-
--- 
-Best Regards,
-Yanjun.Zhu
-
+> diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/=
+ulp/rtrs/rtrs-clt.c
+> index d34d7e5f34d6..a1df90243c41 100644
+> --- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+> +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+> @@ -70,19 +70,24 @@ __rtrs_get_permit(struct rtrs_clt_sess *clt, enum rtr=
+s_clt_con_type con_type)
+>  {
+>         size_t max_depth =3D clt->queue_depth;
+>         struct rtrs_permit *permit;
+> -       int bit;
+> +       unsigned long bit =3D 0;
+>
+>         /*
+> -        * Adapted from null_blk get_tag(). Callers from different cpus m=
+ay
+> -        * grab the same bit, since find_first_zero_bit is not atomic.
+> -        * But then the test_and_set_bit_lock will fail for all the
+> -        * callers but one, so that they will loop again.
+> -        * This way an explicit spinlock is not required.
+> +        * Callers from different CPUs may grab the same bit, since the b=
+itmap
+> +        * scan is not atomic. But then the test_and_set_bit_lock() will =
+fail
+> +        * for all the callers but one, so that they loop again. This way=
+ an
+> +        * explicit spinlock is not required. find_next_zero_bit() resume=
+s
+> +        * from the last position so that a lost race does not rescan the
+> +        * already-set low bits; if it reaches the end, wrap to the begin=
+ning
+> +        * to exhaust the map and still find a permit freed below the cur=
+sor.
+>          */
+>         do {
+> -               bit =3D find_first_zero_bit(clt->permits_map, max_depth);
+> -               if (bit >=3D max_depth)
+> -                       return NULL;
+> +               bit =3D find_next_zero_bit(clt->permits_map, max_depth, b=
+it);
+> +               if (bit >=3D max_depth) {
+> +                       bit =3D find_first_zero_bit(clt->permits_map, max=
+_depth);
+> +                       if (bit >=3D max_depth)
+> +                               return NULL;
+> +               }
+>         } while (test_and_set_bit_lock(bit, clt->permits_map));
+>
+>         permit =3D get_permit(clt, bit);
+> --
+> 2.55.0
+>
