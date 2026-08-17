@@ -1,148 +1,151 @@
-Received: from fout-a5-smtp.messagingengine.com (fout-a5-smtp.messagingengine.com [103.168.172.148])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFC1341F37A;
-	Mon, 17 Aug 2026 12:59:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.148
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01B2A448B97
+	for <linux-rdma@vger.kernel.org>; Mon, 17 Aug 2026 18:17:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786971588; cv=none; b=MEEzOA/5kA41SHSV1geEFt8Uj4vAF9HkscJIK9BIvM/pOtOE52Nrzfm9RZ/mTEUy7iQTfrQYiEdfGoQ56cA3QtLSDsbWF9tJOhygvB27r3mIAi+W934PYU8L0RFM//i5oyE15EH73nI6gzjtCigLLE23XrYMJioWI6q891EmamE=
+	t=1786990629; cv=none; b=NgJ7pPfzVWfldMISJuiqArMBB9qVkFCgMzcV8Zzkt9ODbllTOC1rgtMv3WeW/FbrXhAa5KIsV79CuQdZBZow626KfJN+X/aQ06yCryWMYON2e5OQxK33auS0CJlJNTl/g1L38g8J+Uw7Tevzelf+eXVsyg+Hns2dqIVsDMp4jak=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786971588; c=relaxed/simple;
-	bh=DRyKZDUerO4XoZiKd0/UMs68uPcTpzCDEqnmCAFZfJw=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=LgcZjqZM1HK+pGVMFXEsW0szJP+eGQHUHEJwJPOZhNc9JaEmKQhBS3PRIgEgO5NkxYmBcQFk+TgfELQsZF8Zk/ojHB3pyrmUoY5Kq0UGRd+PTWiThHdsUHDtjbdj6ArpGPujA1XgM0EHBXSDrAlhhFkKMosNyhp9ebLH/fwhIoc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=GXRjuXp7; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=iqk0ZZGL; arc=none smtp.client-ip=103.168.172.148
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
+	s=arc-20240116; t=1786990629; c=relaxed/simple;
+	bh=e7YINFxiEWfrdRjB7YyK1q6FCtAp+fGYeGsyaMd4wTk=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=ZlHb/DrXHpYUUP9f8CDBupezIJdfJVwWYlRTc28LEw60OMhAHnfGxSbBv10t4+1curroCiFnbw5eyiUpUW/FAuMnXzBuMBG/3hIK+/vmreP21LM9bW9XDHHPsvy/mEqhmzEbNkmA/qr5YKigK/BgwLAr2DnOIyRI1i7fNMOyOJE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=au/EH669; arc=none smtp.client-ip=209.85.128.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="GXRjuXp7";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="iqk0ZZGL"
-Received: from ams-compute-02.internal (ams-compute-02.internal [10.64.2.62])
-	by mailfout.phl.internal (Postfix) with ESMTP id 9E27EEC023A;
-	Mon, 17 Aug 2026 08:59:42 -0400 (EDT)
-Received: from ams-imap-03 ([10.64.2.23])
-  by ams-compute-02.internal (MEProxy); Mon, 17 Aug 2026 08:59:45 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm2; t=1786971581;
-	 x=1787057981; bh=bQ68rGWO5+XJK8Ee7Y4MpJFQgMAvX184NdiLnRVSkzI=; b=
-	GXRjuXp7Jv+3Fds7JDBpdOJL6G1CE4gD9Q/IqnxqxWBRPIq0Lw84CWRLF1bvVJGr
-	xmPYDAXG2rH1cW433tXlnm/j93zkl3UKZWysNLFOHI45DOSgXBmvGOxR4RnRX/lp
-	B7GUXiC/8udS4NoK+K4ISch9RsEnC/24wPiBlTl+k763cvBIuP/nZF0FQom1/5uX
-	YxUf/+31mfneVrsawfhBf3bqRkFv03L3YSUzAkvuRfDSZw2MoP5vgu6FHLW56CK4
-	PrGCtNqWYU2ENGUaGwx1fKBnXG2CN5DUb97CtJQsTTEbn5GEXwQHEc+URYSWmpOW
-	tUrajbGLLfx3JDSiwbcq6g==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1786971581; x=
-	1787057981; bh=bQ68rGWO5+XJK8Ee7Y4MpJFQgMAvX184NdiLnRVSkzI=; b=i
-	qk0ZZGLQPfTfh2kptC750VNH9PmChyfYQx5a5sa2HUzx390rfuMo+KPS5/ep4zMG
-	LMBsJxY9WnhwQBRB909OWefFpqnZ5zJ+Dblok3DBePsj2WpSshvae5Oh3c7wmow5
-	eAQYz91n+DdXshP3Z/giKu5eYAUIzRpGD6BeAGYMrH9tY/11aWGfjyrvbYATtLG1
-	wRWVlDVK248PFhnrjrF18HilhDan0U6HknNojhtHPgzPUZwROpH/Fn90ewOUFE4l
-	6ER2ou/yIflu00LYZ0KLCXI5ymoXCVIMCmFSc8C2+yxVSgPBFgWeYPLYPHYxx9C/
-	ZCtW3z6pBHYEhqo1hdtdQ==
-X-ME-Sender: <xms:sgWDaqgrCKVVCvHxjDye6qxsId8-HfFnu0DF9f8J8JQI-ieRq0KCtw>
-    <xme:sgWDal1aImYo5BfcDZDMLcinayUsbH2vyq9-ZH2akzqiMzW3eGQB_eLIU-4VRHBKv
-    Aqkn06p7ifIPIt_pMW0qPRBR1vobxrwrbfBr3uQ6UL_gSFR7lxdU6y8>
-X-ME-Proxy-Cause: dmFkZTFrJQquK4O/Ss9PIUnA61QMTKUxplzDdeAV+mGJHm6az6ApcdUzgLb4ocbjXBTFEQ
-    5ZIKh+gRdwlURyM1BOZsyjg3BxgSAv9jwi31hDOmEcJFGkpWNl0sok7rBC3wSehXCV6Gcd
-    budBvHA5eC+q9TOcRGZPvDE4DVSXy3T7vhgLk6sFJ94H0eJL0jnslBuB3FSILMtRZlFAYQ
-    3zD7qDx+GwpfSiV+tmkDGSn7hVAwA0Km7hBXyITvN8slYbT4kTN2IlGcCesnDzxGm6hE8C
-    8uoQeNiOVoRRyEGlVYl/E1aRIeYW6CczUWjdYlcaXU6UiTG2IHG3NaqTZV3ij0f/mFK9tZ
-    sDMwl00WCYHSE2mF4xDuFUlGcdM/kJShAvBgye9OftzsK1LkfEas2LA64uZZaEwvzL1Opw
-    qWsrsuzES5iljhkKU7/9VVHzMPCGSGkFFtyFG4W60Y/fyqzM9DlYA7Yeh3H+HnBKmIhxiz
-    eDbyotJI3ZlN4G2pIJIHrODsDnfClP65xHYvCqQNewEare2JOBXlatPbzd2D5ducAH2C49
-    NPmXvbXIotr4tQ4v3ZU4LiGzEa/lYEmy8eQXrm48CQFUwp5Y/mWYene0Vs4ctJdQSiKgVm
-    m2b+evTH2uotPBCeFVTIIZa7LOWED6upQNzX/x3CJoJPJWBs16qXr0181kpQ
-X-ME-Proxy: <xmx:twWDahMaUZL_NGJfM4dNKNxkheLO96-qLwnUF3pePeuKxd2RncTFrA>
-    <xmx:twWDal2UZxDXZ1wN5eBMTu5NJ434qothwIqe2lHweQXfVN3k8JdmJA>
-    <xmx:twWDak724YEbGwd8yoHEzIJDHgRePjwgnyRrOZvkqG1QMIFiCYW4cw>
-    <xmx:twWDasM70ZfBvoT1gUiKLR1nJMl9FIZSOfjZlhAV-jvOq5tMWQyJEg>
-    <xmx:vQWDap6g-dNLJszNbPPoxBx0DQEx1fc0plUfLqH7afMBTZ65OZ-2_Nd8>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.ams.internal (Postfix, from userid 501)
-	id 21A9432A0070; Mon, 17 Aug 2026 08:59:30 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="au/EH669"
+Received: by mail-wm1-f53.google.com with SMTP id 5b1f17b1804b1-493b966dd74so24979285e9.3
+        for <linux-rdma@vger.kernel.org>; Mon, 17 Aug 2026 11:17:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1786990624; x=1787595424; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=xc1ui9x+ODrVCjZdh/8HAj5CPDG/jh1HP7ryoge6smE=;
+        b=au/EH669lT55TljCNFQQBMFGN/SkKr+LsMmQh20A9hUECGZLBUmDJ5Mu6lN7QHCGl7
+         Dl1RaUT1idkHfdykU5vOUU357PIvkcfkRRV/VPazGtelEzk3Jlbs8R8UXUA/j5CkcCpR
+         lkDRn3wtuBp6y+JH97LZOx7l9kmTfFjWXbXXV4tqCep1TEZNVkPhLApx9Ucupzofhg4K
+         +sKj6qv52BRLF+y0ujFSZNNQqZoENrSl0Dx0zoN7JCX4x5h4OYfGQpKfUFhOV5Yq43SC
+         4Vej5l8WamFF3eXAt/Z+ES4ezg5gKA6j/BwaMPmpgMiFMDa7pY5wiDwOxz/5jh+YqZHl
+         q7qA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786990624; x=1787595424;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=xc1ui9x+ODrVCjZdh/8HAj5CPDG/jh1HP7ryoge6smE=;
+        b=OMWqekxz6xOvcPDtFZ4etjmU6P9GlAkqXckTwRP+JnKl8Poqo8i9v5qmR5GQQG19zG
+         BdbhpnPaU08FauyLn4z8TbK9nLpvzYnJN6gQpDsKdh0Cc+9CDv6y7iKqAj68EOTLjXsy
+         5sLvFUwpRGbb2LO37YSzApVQmxvxra4Ab0Ne9evSy5g9JySwCULdg1Wx8nlEl/F/Ap9a
+         FlrhAm0NnHLrFU3awoko8feV/oh89nbrYDOhkqTbMzOMZcj0gnw6XMlBBq1HNw0DawZJ
+         S0EBOzgDld3xecWya4NBd0yk4hRFOEilFiLpb2ppaIdiSV15kLg2njIr3dKTzJGttwi3
+         X1HA==
+X-Forwarded-Encrypted: i=1; AHgh+Rp59sdoWsiB1x49Q3w+WuWoeuaxKzmYhN8U/Lbo3fldcaRjC2GyQZlUJcGMaFtM5y7OTTQA/LdxXcj8@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw/645YyJxtlyB014khbPL8JUMjInYFfB6naCaQ+H+hn+1tmx9Y
+	+FYb5ru54cF1LSd3KzJWWMdUjosJyE145ZlgGNThtUneMfvd/Dor6LPw
+X-Gm-Gg: AR+sD10+u1QPTL8JxqgCRGEOFr4d3rNkyy3jBzVNb9UeQ1p2L0ZIjglRce/+M568osQ
+	CX9Vv3y5ek5sBuSExamgMfaEPij0SKpI0nnT/wKLsan+EZ28C4NWCYubOQHSApGjv66OI31Fo1Q
+	CbKssZ7GBUHYPtuEXOdpC1wiBtvjP2OyymU0epHNwSrzsXtjfEzN4Jy3pE/o48a2YjVpumW+Ul4
+	wXf8IBDqNoj1k6aFkL9TNuNmFjjgdhnrRQalQvLWNSml3tPVRiScGNq0N8x6Ok6+iwVfTvwZht+
+	GyPV+W0fNAV4WZ5Tb+2R7w46QRDY82nFou69ft9P7dPXILuKJn42mcT0rgGw0HiB1lxidseCmTO
+	KijTUhNr9HhIZVpAuOyGe4YyAQxwbjPGIgaIsoFafM/CyIA+Tp5mj7mq1BSO7cmjI+hJ5VJj7IU
+	vYBe2exQQPQWv3ZuJ+cnUr1jVhl8xvAba+JlzYfR3P2Bn16dS4nOKpKZoY8WUgCdimPSSpric+C
+	98ezw==
+X-Received: by 2002:a05:600c:564a:b0:498:ff3:71ed with SMTP id 5b1f17b1804b1-49987993affmr328999525e9.17.1786990623928;
+        Mon, 17 Aug 2026 11:17:03 -0700 (PDT)
+Received: from syslab05.cs.virginia.edu ([128.143.69.71])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49996176b95sm124434885e9.10.2026.08.17.11.17.00
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 17 Aug 2026 11:17:03 -0700 (PDT)
+From: Tianyu Zuo <cosmosocket@gmail.com>
+To: Saeed Mahameed <saeedm@nvidia.com>,
+	Tariq Toukan <tariqt@nvidia.com>,
+	Mark Bloch <mbloch@nvidia.com>,
+	Leon Romanovsky <leon@kernel.org>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Khalid Manaa <khalidm@nvidia.com>,
+	Ben Ben-Ishay <benishay@nvidia.com>
+Cc: Dragos Tatulea <dtatulea@nvidia.com>,
+	Simon Horman <horms@kernel.org>,
+	netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH net v2] net/mlx5e: SHAMPO, Fix IP length overflow on large HW GRO sessions
+Date: Mon, 17 Aug 2026 14:16:18 -0400
+Message-Id: <20260817181618.2786456-1-cosmosocket@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ThreadId: AdWx15gK6UpR
-Date: Mon, 17 Aug 2026 14:59:09 +0200
-From: "Arnd Bergmann" <arnd@arndb.de>
-To: "Stanislav Fomichev" <sdf.kernel@gmail.com>,
- Netdev <netdev@vger.kernel.org>
-Cc: "David S . Miller" <davem@davemloft.net>,
- "Eric Dumazet" <edumazet@google.com>, "Jakub Kicinski" <kuba@kernel.org>,
- "Paolo Abeni" <pabeni@redhat.com>,
- "Anthony L Nguyen" <anthony.l.nguyen@intel.com>,
- "Przemek Kitszel" <przemyslaw.kitszel@intel.com>, andrew+netdev@lunn.ch,
- "Saeed Mahameed" <saeedm@nvidia.com>, "Tariq Toukan" <tariqt@nvidia.com>,
- "Mark Bloch" <mbloch@nvidia.com>,
- "Maxime Chevallier" <maxime.chevallier@bootlin.com>,
- "Maxime Coquelin" <mcoquelin.stm32@gmail.com>,
- "Alexandre Torgue" <alexandre.torgue@foss.st.com>,
- "Alexander Lobakin" <aleksander.lobakin@intel.com>,
- "Simon Horman" <horms@kernel.org>, magnus.karlsson@intel.com,
- "Maciej Fijalkowski" <maciej.fijalkowski@intel.com>,
- "Stanislav Fomichev" <sdf@fomichev.me>,
- "Alexei Starovoitov" <ast@kernel.org>,
- "Daniel Borkmann" <daniel@iogearbox.net>,
- "Jesper Dangaard Brouer" <hawk@kernel.org>,
- "John Fastabend" <john.fastabend@gmail.com>, witu@nvidia.com,
- "Martin KaFai Lau" <martin.lau@kernel.org>, yoong.siang.song@intel.com,
- rohan.g.thomas@intel.com,
- "intel-wired-lan@lists.osuosl.org" <intel-wired-lan@lists.osuosl.org>,
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
- linux-stm32@st-md-mailman.stormreply.com,
- linux-arm-kernel@lists.infradead.org, bpf@vger.kernel.org,
- "Leon Romanovsky" <leon@kernel.org>
-Message-Id: <06f8153d-2156-4e7d-9d49-006db4b2cec4@app.fastmail.com>
-In-Reply-To: <20260813190800.222527-2-sdf@fomichev.me>
-References: <20260813190800.222527-1-sdf@fomichev.me>
- <20260813190800.222527-2-sdf@fomichev.me>
-Subject: Re: [PATCH net v2 1/3] xsk: align TX metadata layout across ABIs
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On Thu, Aug 13, 2026, at 21:07, Stanislav Fomichev wrote:
-> Add explicit padding before launch_time so xsk_tx_metadata has the same
-> layout on 32-bit and 64-bit systems.
->
-> On i386 and m68k, the old native 32-bit layout put launch_time at offset 12
-> and had a natural size of 20 bytes. Using sizeof(struct xsk_tx_metadata) as
-> tx_metadata_len was already rejected because the length must be a multiple
-> of eight, so the straightforward use of the interface was broken on those
-> ABIs. Userspace could still register a padded length of 24 bytes, though;
-> mixing the old and new layouts then silently reads launch_time from the
-> wrong offset and misprograms packet launch times. This intentionally
-> replaces that incompatible layout while the interface is still new.
->
-> Fixes: ca4419f15abd ("xsk: Add launch time hardware offload support to 
-> XDP Tx metadata")
-> Signed-off-by: Stanislav Fomichev <sdf@fomichev.me>
+mlx5e_hw_gro_skb_has_enough_space() bounds a HW GRO session by the
+payload held in the skb fragments only. The L3/L4 headers that
+header-data split placed in the linear area are not accounted for, and
+the limit is inclusive of GRO_LEGACY_MAX_SIZE.
 
-This is probably the right approach, given lack of alternatives.
-In the changelog text, it may be worth noting a few more points:
+On a 4K page system a session can therefore grow to 16 full page
+fragments (65536 bytes) plus the 40 bytes of IPv4/TCP headers in the
+linear part, giving skb->len = 65576.
 
-- A few additional architectures have the same issue: csky,
-  nios2, openrisc and sh.
-- the commit that introduced the mistake was part of linux-6.15,
-  so the 6.18-lts release also needs an ABI change. I don't
-  think the "while the interface is still new" wording
-  makes sense here.
-- what actually saves us here is that none of the affected
-  architectures are likely to have notable use cases for
-  xdp that would care about the ABI break.
-  The one that is most likely to have affected users
-  is x86-compat, and that is also the only one that is
-  broken right now.
+mlx5e_shampo_update_hdr() writes the IP length itself:
 
-      Arnd
+	__be16 newlen = htons(skb->len - nhoff);
+	csum_replace2(&ipv4->check, ipv4->tot_len, newlen);
+	ipv4->tot_len = newlen;
+
+The result wraps. ip_rcv_core() then trims the 64KB skb down to the
+wrapped tot_len, silently dropping the payload. The IPv6 path wraps
+identically in ipv6hdr->payload_len.
+
+Both branches of the check are inclusive of GRO_LEGACY_MAX_SIZE, so a
+session can reach skb->len == 65536 and wrap tot_len to zero. In the
+page_size >= GRO_LEGACY_MAX_SIZE branch skb->len already covers the
+linear area, so that off by one is the only problem there. The fragment
+based branch additionally omits the linear area entirely.
+
+Account for skb_headlen() in the fragment based branch and make both
+comparisons strictly less than GRO_LEGACY_MAX_SIZE, so that skb->len can
+never exceed 65535. The new bound is strictly tighter than the old one,
+so the implicit limit on the fragment count (at most 65536 / page_size,
+well below MAX_SKB_FRAGS) is preserved.
+
+Fixes: 92552d3abd32 ("net/mlx5e: HW_GRO cqe handler implementation")
+Signed-off-by: Tianyu Zuo <cosmosocket@gmail.com>
+---
+v2: commit message only, per review from Dragos and Tariq.
+
+v1: https://lore.kernel.org/netdev/20260729204745.166584-1-cosmosocket@gmail.com/
+
+ drivers/net/ethernet/mellanox/mlx5/core/en_rx.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+index 6fbc0441c4b8..2e9676305439 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+@@ -2222,9 +2222,10 @@ static bool mlx5e_hw_gro_skb_has_enough_space(struct sk_buff *skb,
+ 	int nr_frags = skb_shinfo(skb)->nr_frags;
+ 
+ 	if (page_size >= GRO_LEGACY_MAX_SIZE)
+-		return skb->len + data_bcnt <= GRO_LEGACY_MAX_SIZE;
++		return skb->len + data_bcnt < GRO_LEGACY_MAX_SIZE;
+ 	else
+-		return page_size * nr_frags + data_bcnt <= GRO_LEGACY_MAX_SIZE;
++		return skb_headlen(skb) + page_size * nr_frags + data_bcnt <
++			GRO_LEGACY_MAX_SIZE;
+ }
+ 
+ static void mlx5e_handle_rx_cqe_mpwrq_shampo(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe)
+
+base-commit: 51b093a7ba27476e1f639455f005e8d2e75390e4
+-- 
+2.34.1
+
