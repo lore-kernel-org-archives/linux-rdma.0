@@ -1,207 +1,171 @@
-Received: from mail-ed1-f46.google.com (mail-ed1-f46.google.com [209.85.208.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from MW6PR02CU001.outbound.protection.outlook.com (mail-westus2azon11012068.outbound.protection.outlook.com [52.101.48.68])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCF332C3261
-	for <linux-rdma@vger.kernel.org>; Mon, 17 Aug 2026 04:57:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13365233944;
+	Mon, 17 Aug 2026 07:06:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.48.68
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786942652; cv=pass; b=u2mU/JMbp4CQFv2gO2EoaPeHkKBBhX+5nyAsoDiEqWWVynYSAeXllQG8i6WnbKoj2KPdEMl55iDtwPpbaBLgp23jvRgN8E3a7tb4IWw/HJtfHE+7xdIrL2sAKPz22UULwFK1DyLV+0WDXhbDmyBw+L/zg7rQHHJ4RWfxcQCc6io=
+	t=1786950367; cv=fail; b=burwzhrU49Ic8nb6lUvS22a2vuvb38Xkypm+PAD+0+2QPl/5mv7bGR+/M9gQHgTBcnzTsLzpdJkzj+2/3XiF3UOKGWHD+DskSFLXh6HRyEMUJ76KCu9VkvogCkx3pCSVBPe0XRoflWQYGSQmwn1ouxyakLinpNhE0uCBekTjx54=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786942652; c=relaxed/simple;
-	bh=Xe8iOXEzvGF8X/Z5Oe18dBSQMAZyQLXlioa1e6bzjMQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=J7RFkBxpwP3o8ut/MHYjutNtA7zRxXj7HP9AnU7X4hFliFuBaPZue3KCVYQQUMaTr6/gtPGYXaLCN3Y8Kp30j3Fe9WoRt7NfzX8UB+OefVCfbotFoiTyrWQ7c13JYM8KztFT5EI5SSQWmFktLDlzBXybe4dh9bVvCe+yQD9ZMuY=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cloud.ionos.com; spf=pass smtp.mailfrom=ionos.com; dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b=TCNfTCad; arc=pass smtp.client-ip=209.85.208.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cloud.ionos.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ionos.com
+	s=arc-20240116; t=1786950367; c=relaxed/simple;
+	bh=bLW9FlM/qsTfU+MoQKrqnUlBj66Dz9i4/4o+fhTC1is=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=kvXPHrwbJl04aV99S3IeomSR77fwied383rfaHvaWuOtpNZuFbV6M4GdEVhG0s914DPFPXQDCHsu1q7eJCSBuRnxn2RxApBYJIYq1+IKjoPQakJevN4/kOtB3XfjVmO3t9whYaabe6VArCh6V7FDOxREiuZAbXwUnrajuQEULbw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=4EKLjtVU; arc=fail smtp.client-ip=52.101.48.68
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="TCNfTCad"
-Received: by mail-ed1-f46.google.com with SMTP id 4fb4d7f45d1cf-6a18af264f9so624395a12.0
-        for <linux-rdma@vger.kernel.org>; Sun, 16 Aug 2026 21:57:29 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1786942648; cv=none;
-        d=google.com; s=arc-20260327;
-        b=iz8AXJQwm/9kxEgxAdOxsu3uCzje7+Rt31GHpvJC0WvIJThQeeljRYFuTfJvD3WdcI
-         Rs9/7Kx8Kr2ylEDmgND/KRruhn1bjFFEYWg5xQl8XjKXWlBxJuDAcJmd3hhidPVm4sFU
-         UlXHvTqyArtrD/RDpvouCh6nW7H+mHYQ9V8se2LYG6VEhaVvq3fK8buEA0zRu0KEaeLb
-         JfStQjZUdxr4WAT+Y+6L8DnBta7kszGqhuuEgCXxCgPKwf/mzmOOFpnN+jHpvHj1kh7v
-         j0ZKZhUZSs3H+Lx/BxoZ0kTrE7F6PakfhHOceiRR+zLreoU22nHXKNc5ECjXAwW1fVgb
-         msDw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=gPFRlHsP6ZSYOc/0Yyk82UYEXupiVd/7lqX8P0d0I5E=;
-        fh=+jpd4cEVdEV1YIQVsV1nuIKnVRqWmwSKKsjV19msu44=;
-        b=m3cBMpBoe9o8uLWK5BQPXO8eJgttHDWoARySSURDP0820YXH9v74TNsHGlGGVS0dc8
-         KqXZQ/wJUtxDCLy44QMLRMOUcxe74AHqJq4ogRvhPUAcnPKzRLM3iUt6h44sNgrwY6MP
-         NNkRvNRjxjd3pXVekYMjh6HN6SJtOesa1SXRVXQXfhAtp7RHiwPQF3eVCfbZM0AQO17+
-         DdBvRBfxxfoy3qyMIVcXCvNf/JLaUOtPb3FLvsCvb18HVjoeof5kMH17wYPw8iIC/YhU
-         fBYSxUBTbBJD5zmTM7G4As3f06BfP1vvb0+fsYTnEGf9w2VTFdPl+7wtKrM6G9NZH3rZ
-         sR4Q==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloud.ionos.com; s=google; t=1786942648; x=1787547448; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=gPFRlHsP6ZSYOc/0Yyk82UYEXupiVd/7lqX8P0d0I5E=;
-        b=TCNfTCad/XueXx5/+kgfBBZH9HP3GLTNIv58kgSUMSUKJcg9dRsWLsV2eJFGxrvuvM
-         p2KQZxyIthqu9DKjADsQLRWJKeGYGx6AwwDSRqCe7yvCmVQp7SoKpW4shgextB6wDY0c
-         flxZopmdUivUPApDZ3Zwa1MDjYGTn35oGtzck+UH5LhC9/Qe3SKNmwISSgtG1JEnlCzh
-         onvO3ZAUYR8rBZ+hWfijQ9XVDDrC3uCnCvLYlcNhOP/tzzruMOwzy7MQlWJxhCky74Fg
-         TJSMW408zgcd2psPSCLDEkqE8xBwLZzC6ip0hchYQ3G/Q09eOFX6EqyzVVa3VjfuCtff
-         5Ryw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786942648; x=1787547448;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=gPFRlHsP6ZSYOc/0Yyk82UYEXupiVd/7lqX8P0d0I5E=;
-        b=lhf2YbXdFiIezG6zgg9D8axp+0x3Py6GcMYdNNHFeU5qRpk1cXoVXQJ1QpbbF6LKUB
-         aZ81P6xmVfkCRMPuYo7QL662j/Y0Y6MCacMDOt3nQguF++LTh8y5BXh0T/FEp0GLDSyz
-         6Y0SvBdM4VDwIrC3Li1w5TqYhCYJ7qUATYFtrPedDKNDEfk5/YiQ5mIIw4TX7zZnLZ9P
-         6mJb8zjSqJKiby91ww5JhAtUTpV/64UKyWZhHmd0mf5HFZOiWLEnxTYHkGC+DpQYCsXy
-         4l+7zhPXBmITBTfiVKZvoINVAKW2KoxvwNGWi0flil9fdFc6C4qPdMUVceRVa7bB+5Sl
-         4R/A==
-X-Forwarded-Encrypted: i=1; AHgh+RqOUBU9cCdnL6rxMth0vK926Ja2he4pS7xvDz4rVkkByPKWtXb5OKoVSM+NyTj1SpSprSobeOD5IWQj@vger.kernel.org
-X-Gm-Message-State: AOJu0YyG6a4hEdZl63zdEO/pZJaa/JVH5DrchuKAWWoFipSFy32Eri6+
-	6X4C+YUbskJW5w2KypW/fKTI0B3ckfvSqN26vVI1p8aNTr3gb6VlWSNmVvchyVzK2LEJAMEne75
-	x1/CsW0iX9ZMfdMYtW+ps3kTnqGPtPz49HUxchJQxOQ==
-X-Gm-Gg: AR+sD10UB7C3YlTfN/47xO8XWHfTUx4GvRaqlhICuNqdLARCKtiaXFf9ar9ZjOkxr78
-	fkoMd9ryhO36/RnXc4jFmJDezdwBzZt3lTp1e+7Rd4c2mh3UHDtRJxEAed/bw/iQQ0CvdIGs3MV
-	INHYvcGMcVwjAcESUz6YgDzZVmpn8gfvTW8vp6R8djyc4b2VvhKIVJ39Ko19defa9wdkyRVyLtD
-	70/yXGRFINkyFTikbMCrpQAA/8jilzvocAmTULjOO3KH29n22SW7tQ9e4Tu8OWFJeZgEx+bJm82
-	1Y0QEd2T8f8WCyfRFkjEQAcsc6zCWz5+IZAzo04Gcjz1m8etlyXLE/z8vsYJfmRvL+pIvDSVVgA
-	saF9SrCDzXzs9
-X-Received: by 2002:a17:907:849:b0:c16:1290:11a7 with SMTP id
- a640c23a62f3a-c2129b328f3mr617622266b.1.1786942647948; Sun, 16 Aug 2026
- 21:57:27 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="4EKLjtVU"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=jh5CGQ5E/BsRl6AavGf5gl2Ter0Y+UwHg1QSwK+uCx/kADk9VKpv3EhDbdMXbw/2Pivri0JpwNv9wDLHsq9vEU8WljKEm2RC/sW3WaRPwL8g+EiWag0bNg0xsznrIpL9vFTbvEi6/pNpeTBsZyEylLSb73HLbWWxOpavrPM/brxF5oR5VbiX9uBe49Fk9U5DqRQEapI85GDPlAvAu5aZIMq5V5lJlb4v2mvxk8lEbXyNQQou2YVeYIECIGQuVgDd4Juba4E2r6cGBFeylCx1veTrrURTCvzYpmuwXi/koTGCeMrmOmy2KSU4vLBbxF41Vl2yy8hWQlWZlBnU19/P8w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=bLW9FlM/qsTfU+MoQKrqnUlBj66Dz9i4/4o+fhTC1is=;
+ b=AphcKQuff0XTKwViyMOCSz/3klvgk+6D1eMe6FBaU/1ghG5vAp+Nbdpr5FlwhfY4mCoCL//JJot65XkXLv6EweFNhvu8VLa0yMRz1dvx/uHYRtFlRTLhNN+uoHy3MpMy3+X6a7RXkXjQWj+VHebr8HXzCPPATQykk0K+9sWOsGtRZKMxqA7c0qZK8eVA1i1w2X4Bnm8T1aQuI+Jvv9OCCe8voHa3drROBcH3x4HVqu2Znq0AkaGfsc7e5ieitb+CMUBTcNnk9rwqDPP27rx5xo6Cna0QDeWlZzjqcObEohJg2eWIAIWwUh7131CdHJ1Or1fZf4m8sjZL2NHPl0WzEg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=bLW9FlM/qsTfU+MoQKrqnUlBj66Dz9i4/4o+fhTC1is=;
+ b=4EKLjtVUQeV2rHNPRiW6pOwrSutB/IciLi9PvDvlPddMCkgKTJ6hCsLpFc35BbuS6W0r36qUJ61TBrEoQjpXGw4RyhP6/DPadjlzbEIN8npNQaobOVipAeLyeFQoLHEMM2Pn/htGz453MMXCBFDVdTPGMSbUhV/9zflHUIqvGUg=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from IA1PR12MB8287.namprd12.prod.outlook.com (2603:10b6:208:3f5::14)
+ by MW4PR12MB5601.namprd12.prod.outlook.com (2603:10b6:303:168::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.315.17; Mon, 17 Aug
+ 2026 07:06:01 +0000
+Received: from IA1PR12MB8287.namprd12.prod.outlook.com
+ ([fe80::49d7:28b5:dabc:ba95]) by IA1PR12MB8287.namprd12.prod.outlook.com
+ ([fe80::49d7:28b5:dabc:ba95%3]) with mapi id 15.21.0315.016; Mon, 17 Aug 2026
+ 07:06:01 +0000
+Message-ID: <c565fa0c-08e7-60b9-90e9-07daa4777a48@amd.com>
+Date: Mon, 17 Aug 2026 12:35:52 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.2.0
+Subject: Re: [for-next v6 0/2] Add Reorder Completion Queue (RCQ) support
+Content-Language: en-US
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: jgg@ziepe.ca, leon@kernel.org, brett.creeley@amd.com,
+ andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
+ pabeni@redhat.com, allen.hubbe@amd.com, nikhil.agarwal@amd.com,
+ linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+References: <20260813104954.319065-1-abhijit.gangurde@amd.com>
+ <20260814102413.5a26bf8b@kernel.org>
+From: Abhijit Gangurde <abhijit.gangurde@amd.com>
+In-Reply-To: <20260814102413.5a26bf8b@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: PNYP287CA0099.INDP287.PROD.OUTLOOK.COM
+ (2603:1096:c01:2b9::8) To IA1PR12MB8287.namprd12.prod.outlook.com
+ (2603:10b6:208:3f5::14)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260816165935.90523-1-dragonliu2018@gmail.com>
-In-Reply-To: <20260816165935.90523-1-dragonliu2018@gmail.com>
-From: Jinpu Wang <jinpu.wang@cloud.ionos.com>
-Date: Mon, 17 Aug 2026 06:57:16 +0200
-X-Gm-Features: AcwNN1VVmJNOC0M4GGbei7tGa4912Vs8syCoQgMLbSv6NqhxtOxT2kRxH3Jf8Os
-Message-ID: <CAMGffE=v_Euy+ZPEuYByft66MKMY2ar5dfxr1TU4Yu7B++ZaiA@mail.gmail.com>
-Subject: Re: [PATCH] RDMA/rtrs-clt: use find_next_zero_bit() for permit allocation
-To: Liu Zhenlong <dragonliu2018@gmail.com>
-Cc: haris.iqbal@ionos.com, jgg@ziepe.ca, leon@kernel.org, 
-	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: IA1PR12MB8287:EE_|MW4PR12MB5601:EE_
+X-MS-Office365-Filtering-Correlation-Id: 6d180b71-9e61-4391-b3c0-08defc2dfee0
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|366016|1800799024|23010399003|7416014|376014|22082099003|18002099003|56012099006|6133799003|11063799006|4143699003|10067099003;
+X-Microsoft-Antispam-Message-Info:
+	/W8IoLEMGiuWyMFmRCt8CtHw3FeIqEcViX91c8QatSyaHCzYx1M4sbY3gyAFqjYtzza3gjwSMAsgAbZn92u3Z50UR3QdlisBa19pgd+n95xPiKnlcKXJppo476pE1imCLKfCYRisP5yF7LmAnXyBj84ybVKKBCGA5Olkl23qO4WXtpHS/BeN8JLY05s8r3Tu95XXPJvE+i9HpZG8D0J3mCZdDr4RhARhgLurmaKVUww5n/1Z625imGBf6TC81mFGsxKBdprhcR29NmOsKsNux3AIaWC4tbPH8HJvFzwAvDyxS8UZBeW0QRrF17lFzRdKICcMayvUxtLxDztEMx9xEz23XoP58yYIow+/qNswQiX5PwHWaQSSA2k2lhpdhkUOAwHnSTVj++EfCcF7yTOXDR2fB/SsrmgkfYCY0WfzYLoG3O2KlcYT6X0daao7nI0DrSULEQf1xHpE09yBiKULENdL6uQx+LzXnXMPWgT9l6qhfG1UGeJiPlPkQviIbOqid17D7FCa05IEjSwNosOeKLmt3ohEcNiTcSuYPQtm8QlUYys78GDAXDk7bJ0fdurszbigeH7DynPelZ8kxKzEjEh11GrIpgMa3d759GaO9JB/y6o4sRGZDJ6Lli6hVHsD+cQ4LqSvCeesv22oVJQRYheX2IYgpaE6osJhBCdN9Jw=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:IA1PR12MB8287.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(23010399003)(7416014)(376014)(22082099003)(18002099003)(56012099006)(6133799003)(11063799006)(4143699003)(10067099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?MEwxTmFGN2srNm41YUkyaXJqaHU5ZmgzME9CRjN5anRYdnl2azc0eGxpbE1l?=
+ =?utf-8?B?NmdYaFNVcmhKbDB3V1p4b1Q1VVkrVmVnQ2pacmR2MG1kVU84N1BsT3JJVzFR?=
+ =?utf-8?B?SitJbVo3RHByUFJLVWZGZDlMVzdyMTBNNTRtQ0FaU25OcDg3eEdTbmE2Q3VS?=
+ =?utf-8?B?WnFhVDV3Lzc2cmlqVnFaTCttdmU4a2E1ODhGaVYvRWgzbHFwYmQvcXFMRkhU?=
+ =?utf-8?B?RUhCcnROaVBiT1FrK0xxc0YyN3c5L0dPemVkbU1PVFJtOW9NakFxRmVadHNP?=
+ =?utf-8?B?MTY2RmJ0SEh1ZzIxcW82L3lGWWVSNVUrUlhNd05EUDJpb1FvWUM4NmYrb0g5?=
+ =?utf-8?B?dklWV2tVdmljSmdFMnYxTlpKVGNXUURxOGdhamhVUDk2ODhrc0VtRkxrcGtr?=
+ =?utf-8?B?eE9rQk0vUG5HWGlUb3VvTHgvdlpqMnltL0t0elpXMitBYllCZHE2SzdNQVhh?=
+ =?utf-8?B?UUo2S0h5d0tOL2ZQdUMyVWhRYnozZWRzS3ZlUTVMR1RXN2dRMjFiV1JyYkVj?=
+ =?utf-8?B?WndhSFl6aGtFc09FT1RoaEJiYjVUUisvbUxlbTZCUnU1MU0venYyNGpkZzFY?=
+ =?utf-8?B?L2tVQkswcUI1OHM0ajdRZVNRYVdqQzdWYy8xTzVrVE41TlZFVkZxVEJiM0dB?=
+ =?utf-8?B?Nnl4cFphL2dMNFREdmNRQmJxVUdEelY1eEQ3bnJTYi9LVHU1TVAyelorV2Vq?=
+ =?utf-8?B?Q09VcnBwQk5MbWQ2cGFOYUlEangyNldBS01rNlBDQjhuQ0JFMXlnMVhDM3Zi?=
+ =?utf-8?B?RDNRRmUxZXpidlVWTlJLOXRJdHhDM2lhclJXOWtocVlTRmwwQmdFMkxJelJo?=
+ =?utf-8?B?NUF0MEJRZ2pzUTU2MDZkYXRKNHNuN2doVE1TaDlYbjYrVTdpcUhNYUhTdy9I?=
+ =?utf-8?B?RWNTWmtrQVJ4N0RtMGZZdHdGVUFnWHhYZUtmQnNOMkNZQTZtWDdMQzIyRXBk?=
+ =?utf-8?B?Q1lUVjd5MTFNWmhkWlJqMEtvNEZESFVnTGJOdVpRb0R1d3I3TVRZdDlnb0tU?=
+ =?utf-8?B?a092d2hzdlJKREJyZmx6OWNqVUx6RElieFpUcXExcTNodk1vbHEyQ3grNk9m?=
+ =?utf-8?B?STh5MUpFN1NwT0Npb0ZXNUZlM3ovejdxMUpjWTNta0ZKd0s3L0MrQm5QdHJm?=
+ =?utf-8?B?WHk0MXFuR1dFT3BLeVFSYzJvOE5lMElxY2dNOTFKSGgySkRNQUtOOW1vWmg5?=
+ =?utf-8?B?Zm1UZHVwR2N3dTJibDMvYTJmVjY2UlZrMC9ocDMvZnJPenBQODAwbXdhNEZJ?=
+ =?utf-8?B?SDVSRkx3MFJFcWVQdjhCTmlKUVQ3bFNUY1d2a0l2dTk4MklYTEQzWU5QWkd3?=
+ =?utf-8?B?ZGx4YURieS9DLzVLZWNGRHFVRUp2aGNVL0JsaXRoNTFOdStvT25UeGVEc3hO?=
+ =?utf-8?B?MGpWRVVXYW1RQTJabWxjRUhoZ0FRdU5jdndabGNEck5tRkMrd0NxYnNRSnJJ?=
+ =?utf-8?B?dU9PbEE1S0FMOHo2TW9uek04NUlndDVYNGhET25sWWlhRWdnM0lVQ2lJUkVT?=
+ =?utf-8?B?dmhHS0tHMTlHbEx5RkxnYTM5ajN3VW5XakttY2RySFlRWlZkMm0vSFZHV2Yv?=
+ =?utf-8?B?aDdrcnFRVHpYWkNXNkl2c0hud3JqU1lON1RPMGZpajJKTG5SdTdPbjd2bFpW?=
+ =?utf-8?B?UkJtR0RKelJuUGJwUDRHQjJTSmkrSXJHWFgybitKbVppUVRkVXZOcFFYeGUy?=
+ =?utf-8?B?R0FzQlhmcmlNR3JtRndPajlOcTJJS0JLcVUyU2dzUG9sRkN4d1BlY21Kb01G?=
+ =?utf-8?B?VDRkRGNMTFhkZjBPZVVUSFV0Yi94bWwxdFdlYTNLV25INlQ1cDk0amFEVzdz?=
+ =?utf-8?B?NjdhSzY0cGZYUDFwMDdPU3g2dE91M1IybkpBWjUxRTlKa0w1ZnN5T3lrK0dV?=
+ =?utf-8?B?YSt1NGJXYUJSMFplR3VBSUErSGo4ckNMSnp5S0tpakpkN2RhY0NIVEJRSTlL?=
+ =?utf-8?B?R2xOWElLdGU1cXFGeWhWWmFINW9rQkFWdDVhWkxNRUR4SHYrUG5mK1pOTW5Y?=
+ =?utf-8?B?U0ozSGZmWVd6UnY2R0U1VXZvU0xIUWVSQ1pXbE1IUjQxQVdKWGZjWDY5T2JC?=
+ =?utf-8?B?dVF2bE9ZNytZaDFnc2FQQzhEazR4ZFVJM29wdHgvQWhvWXFpODFacWI3YldO?=
+ =?utf-8?B?SElpcUZBMmhwckI2TDN5UFpjeUZPQk5MMUNHTEUyU3hYMkI1a3JFMzRrTk1h?=
+ =?utf-8?B?L0pJcGhzZ1JkeW1FNWRrc0VWTGw0aWVXeC9ESHErNVU1LzczUlNNbGhsSHJR?=
+ =?utf-8?B?YWx4aFJnRXFRVkcrb21kNDk5emxBdVZKazlIRUJkRVgzUC92TkNld0RNZW1v?=
+ =?utf-8?B?b0ErbWRpNTY5SmVkMTJRZ0hzVVdOVzJzSi92aVpZV3lzYlVmQWEwZz09?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 6d180b71-9e61-4391-b3c0-08defc2dfee0
+X-MS-Exchange-CrossTenant-AuthSource: IA1PR12MB8287.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Aug 2026 07:06:01.6270
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: qrM9xV+x8/iZhkZEur516XwieK/VdhJLWVyKmO6URatzQqSvhjy8mGJgocrnfgNeGoeLQvP7QGyNSIovIzYJvA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR12MB5601
 
-On Sun, Aug 16, 2026 at 7:00=E2=80=AFPM Liu Zhenlong <dragonliu2018@gmail.c=
-om> wrote:
+On 8/14/26 22:54, Jakub Kicinski wrote:
+> On Thu, 13 Aug 2026 16:19:52 +0530 Abhijit Gangurde wrote:
+>> Patch 1 extends the net/ionic firmware identity structure to expose the
+>> rcq_sign_bit field from the RDMA LIF identity.
+> I asked for a PR, based on a tag from Linus's tree with that patch.
+> Did you send that?
 >
-> __rtrs_get_permit() allocates a free permit from a bitmap under lockless
-> contention: it scans with find_first_zero_bit() and claims the bit with
-> test_and_set_bit_lock(), restarting the whole scan when it loses the
-> race.  Each retry rewinds to bit 0 and re-walks every already-set low
-> bit before reaching the free region again.
->
-> Under high queue depth - the RTRS/RNBD data path - the low part of
-> permits_map is densely set, so a lost race wastes a scan proportional
-> to the number of in-use permits on every retry.
->
-> Use find_next_zero_bit(), resuming from the last position, so a lost
-> race continues scanning from where it left off instead of from the
-> beginning.  When the scan reaches the end, wrap to the beginning to
-> exhaust the map, so a permit freed below the cursor is still found
-> and NULL is returned only when the map is actually full, matching the
-> original behavior.  The scan remains non-atomic, so the
-> test_and_set_bit_lock() retry is still required and the race
-> handling is unchanged.
->
-> A userspace model of the bitmap-allocation algorithm (not the kernel
-> find_*_bit primitives) quantifies the mechanism: with qdepth=3D512 and 14
-> threads holding ~98% of the bits set, a lost race in the baseline
-> re-scans the densely-set low region, traversing ~1.3k bit-positions per
-> allocation, while the patched version resumes and traverses ~260.  The
-> benefit is contention- and density-dependent: under low contention
-> (sparse map) the two are equivalent, and the wrap adds a small amount
-> of code over the single-scan baseline.
->
-> End-to-end RNBD/fio throughput was not measured (no RDMA hardware
-> available); the model isolates the allocation mechanism, not the full
-> IO path.
->
-> Compile-tested: arm64 defconfig + INFINIBAND_RTRS_CLIENT=3Dm, rtrs-clt.o
-> Assisted-by: Claude:claude-opus-5
-> Signed-off-by: Liu Zhenlong <dragonliu2018@gmail.com>
-Hi Zhenlong,
+> I only see a PR for rdma-core here
 
-Thx for your patch, it looks good, nice optimization.
+Hi Jakub,
 
-We may simplify the commit message a bit:
-"Callers from different CPUs may grab the same bit, since the bitmap
-scan is not atomic. But then the test_and_set_bit_lock() will fail for
-all the callers but one, so that they loop again. This way an explicit
-spinlock is not required. find_next_zero_bit() resumes from the last
-position so that a lost race does not rescan the already-set low bits;
-if it reaches the end, wrap to the beginning to exhaust the map and
-still find a permit freed below the cursor."
+I have the PR ready on Linus's v7.2 tag.
 
-Reviewed-by: Jack Wang <jinpu.wang@cloud.ionos.com>
+The following changes since commit 8d3ae59288f1e7d58d76558a6ee96d533bc5019f:
 
-> ---
->  drivers/infiniband/ulp/rtrs/rtrs-clt.c | 23 ++++++++++++++---------
->  1 file changed, 14 insertions(+), 9 deletions(-)
->
-> diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/=
-ulp/rtrs/rtrs-clt.c
-> index d34d7e5f34d6..a1df90243c41 100644
-> --- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> @@ -70,19 +70,24 @@ __rtrs_get_permit(struct rtrs_clt_sess *clt, enum rtr=
-s_clt_con_type con_type)
->  {
->         size_t max_depth =3D clt->queue_depth;
->         struct rtrs_permit *permit;
-> -       int bit;
-> +       unsigned long bit =3D 0;
->
->         /*
-> -        * Adapted from null_blk get_tag(). Callers from different cpus m=
-ay
-> -        * grab the same bit, since find_first_zero_bit is not atomic.
-> -        * But then the test_and_set_bit_lock will fail for all the
-> -        * callers but one, so that they will loop again.
-> -        * This way an explicit spinlock is not required.
-> +        * Callers from different CPUs may grab the same bit, since the b=
-itmap
-> +        * scan is not atomic. But then the test_and_set_bit_lock() will =
-fail
-> +        * for all the callers but one, so that they loop again. This way=
- an
-> +        * explicit spinlock is not required. find_next_zero_bit() resume=
-s
-> +        * from the last position so that a lost race does not rescan the
-> +        * already-set low bits; if it reaches the end, wrap to the begin=
-ning
-> +        * to exhaust the map and still find a permit freed below the cur=
-sor.
->          */
->         do {
-> -               bit =3D find_first_zero_bit(clt->permits_map, max_depth);
-> -               if (bit >=3D max_depth)
-> -                       return NULL;
-> +               bit =3D find_next_zero_bit(clt->permits_map, max_depth, b=
-it);
-> +               if (bit >=3D max_depth) {
-> +                       bit =3D find_first_zero_bit(clt->permits_map, max=
-_depth);
-> +                       if (bit >=3D max_depth)
-> +                               return NULL;
-> +               }
->         } while (test_and_set_bit_lock(bit, clt->permits_map));
->
->         permit =3D get_permit(clt, bit);
-> --
-> 2.55.0
->
+   Linux 7.2 (2026-08-16 14:32:26 -0700)
+
+are available in the Git repository at:
+
+   https://github.com/abhijitG-xlnx/linux.git ionic_rcq_shared
+
+for you to fetch changes up to bb23acfd05f0399f33dae000df2ef4a88787b7d0:
+
+   net: ionic: Fetch RCQ sign bit from firmware (2026-08-17 10:58:31 +0530)
+
+----------------------------------------------------------------
+Abhijit Gangurde (1):
+       net: ionic: Fetch RCQ sign bit from firmware
+
+  drivers/net/ethernet/pensando/ionic/ionic_if.h | 6 +++++-
+  1 file changed, 5 insertions(+), 1 deletion(-)
+
+
+Thanks,
+Abhijit
+
+
