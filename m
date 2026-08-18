@@ -1,88 +1,89 @@
-Received: from out30-99.freemail.mail.aliyun.com (out30-99.freemail.mail.aliyun.com [115.124.30.99])
+Received: from 011.lax.mailroute.net (011.lax.mailroute.net [199.89.1.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E9283793DC
-	for <linux-rdma@vger.kernel.org>; Tue, 18 Aug 2026 16:24:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.99
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9D1547A89D;
+	Tue, 18 Aug 2026 16:26:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=199.89.1.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787070286; cv=none; b=NKndo16SLMxsl3v7/0RNaUqkDKsAMhqcUihUpEejl6pd06Vskks42qeN6KRND3ISTK6eHw0YnXKGyQn2wCyt0BlCZ0TPGOUrBIkkqlhru5ak9AwV50/KAGP8JHU05dBR1dkUBFHu0BGwv/yCcSa324WnaJJgswg18oURFPD37MQ=
+	t=1787070415; cv=none; b=pKkdtD9nsgnRKTQocb6m+rntJE0t5A18ETXGaOcO2yQlzlisK9+zhRZqzrDhPAlDgrrlYwjHFo1LkWsSSW0YX/Q9g0NuKgQUL08lK84HKaUX57MPP/pdL1DnsUR5Hngnjr3VaKuXN++kcOwt0LMdeJjRQRU9CARGOLKL7Or6gbQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787070286; c=relaxed/simple;
-	bh=u8X2b9oN8tGYQ20GKzk/5GBQBQdMcnfzccnYIq0O5JE=;
-	h=From:To:Cc:Subject:Content-Type:MIME-Version; b=LRH+W3VwVXDTUSSLI/B09cEjfMsKhLbNHEUFWkJxYxBcQl/gUCcwqQM4fKjreNUv/D0OPpt3jtZY1KK8j9xHbdGtUeh0E/ScHkoDimujx5wiR8cFzsehR2L7OKXU1t7Xh6CokSRYHXXchpqukzmh+Jc91/19E7dpDD49XF0lsb8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=HxvZMy/G; arc=none smtp.client-ip=115.124.30.99
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1787070415; c=relaxed/simple;
+	bh=67SNMX0XuB6JPf09fWcN7CU6sgTZ3M3Hjoma2XIKIeg=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Vgn0RvSInfKByGuv0NkxcziM4B/7u2DoVXY5p6TCCaj+BHPuT+ARtKKptifDsuvW0Z1H/RAU6Bego4EBfwb0DiPPF5bKGwZ26VzTJzgKtOHA7hOwjy0sQG1T8L7adGnXa5A04FVvp3nIGc2049IWXtfEtvJVab7fGaPSin4jL0g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=acm.org; spf=pass smtp.mailfrom=acm.org; dkim=pass (2048-bit key) header.d=acm.org header.i=@acm.org header.b=qGrN9hJr; arc=none smtp.client-ip=199.89.1.14
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=acm.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=acm.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="HxvZMy/G"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1787070281; h=From:To:Subject:Content-Type:MIME-Version;
-	bh=osF6GssgP09SWPxGeP6Z2isl8JNWuscxm6joyP3fUsU=;
-	b=HxvZMy/GN0Zt2c+Q5/3OakjizghXeYQlJgTkaw5cJaljfXFPhrId7Z/ZNc16v+V3rXlf18f/i7Ai8+MdtHHwD+K6znCkbM+5NGGUN2PASseG/XAsybnhUXPn5zlzPmQQnqq91OLcakiKHRYLh1YZmpeZ+6j44J8jm0QFEhK1pZM=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R151e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam011083073210;MF=chuyf26@linux.alibaba.com;NM=1;PH=DS;RN=3;SR=0;TI=SMTPD_---0X9E5BE._1787070280;
-Received: from x31j07255.sqa.na131(mailfrom:Chuyf26@linux.alibaba.com fp:SMTPD_---0X9E5BE._1787070280 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Wed, 19 Aug 2026 00:24:40 +0800
-From: Chuyf26 <Chuyf26@linux.alibaba.com>
-To: Md. Haris Iqbal <haris.iqbal@ionos.com>
-Cc: Jack Wang <jinpu.wang@ionos.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH] RDMA/rtrs-srv: reject info requests with a non NUL-terminated
- pathname
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+	dkim=pass (2048-bit key) header.d=acm.org header.i=@acm.org header.b="qGrN9hJr"
+Received: from localhost (localhost [127.0.0.1])
+	by 011.lax.mailroute.net (Postfix) with ESMTP id 4hPZpb5ylPz1XM6JF;
+	Tue, 18 Aug 2026 16:26:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acm.org; h=
+	content-transfer-encoding:content-type:content-type:in-reply-to
+	:from:from:content-language:references:subject:subject
+	:user-agent:mime-version:date:date:message-id:received:received;
+	 s=mr01; t=1787070404; x=1789662405; bh=we4628W9EvYfCIfPQIpPyQR1
+	BetSr8Xkh7piaePlebE=; b=qGrN9hJrtBsYSzIKBM6rVm+timV5BCKZnTZqcIVU
+	SlVwIm9KUAO7gm7g4ZMM2aQwt+IMkVeCnMoW438jdKwUpKkfvPoRhdzSdjUuboBd
+	sieq43EMXUrlosy966U2cPdUQaMUmacibK5MTu6Rls4M3IyPjkzlR82C2Q3GP0vc
+	8dXPFXLnCw0U6DGcQGd+0MRkAxLmq4ilX044QdOSEw0gaA0WyXlwd7jDkt5fSglm
+	1zyYXvncK+h72M2zWtTA/JdaL/baNP1sbeNWpEJ7SA9p+0CLXpW7T9tjoTPpT4g8
+	sPYRONNDAGiqWwGwrhLzml8Vo7mU/OYol92cCrCT5ZHGyw==
+X-Virus-Scanned: by MailRoute
+Received: from 011.lax.mailroute.net ([127.0.0.1])
+ by localhost (011.lax [127.0.0.1]) (mroute_mailscanner, port 10029) with LMTP
+ id cxRagM53wLZq; Tue, 18 Aug 2026 16:26:44 +0000 (UTC)
+Received: from [100.80.228.34] (unknown [104.135.182.42])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: bvanassche@acm.org)
+	by 011.lax.mailroute.net (Postfix) with ESMTPSA id 4hPZpW29cZz1XM30g;
+	Tue, 18 Aug 2026 16:26:42 +0000 (UTC)
+Message-ID: <3ca5809e-96be-4073-8596-4ab53d72d6b9@acm.org>
+Date: Tue, 18 Aug 2026 09:26:42 -0700
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Message-ID: <20260818162443.Jkolef0plwc8Q6RW7pMze1gOsOp_4E1gabsGV2e0NqU@z>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 1/2] RDMA/srp: fix use-after-free of a request in
+ srp_destroy_qp()
+To: Yehyeong Lee <yhlee@isslab.korea.ac.kr>, linux-rdma@vger.kernel.org
+Cc: jgg@ziepe.ca, leon@kernel.org, linux-kernel@vger.kernel.org,
+ stable@vger.kernel.org
+References: <20260818035229.505098-1-yhlee@isslab.korea.ac.kr>
+ <20260818035229.505098-2-yhlee@isslab.korea.ac.kr>
+Content-Language: en-US
+From: Bart Van Assche <bvanassche@acm.org>
+In-Reply-To: <20260818035229.505098-2-yhlee@isslab.korea.ac.kr>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-process_info_req() treats the pathname received in an info request as
-a NUL-terminated C string.  Only the minimum message size is validated
-before it is handed to strchr(), strlen() (through exist_pathname())
-and pr_err("%s").  A client that sends a message whose pathname field
-is completely filled with non-NUL characters makes those functions
-scan past the receive buffer into adjacent slab memory.  Since RTRS
-connections require no authentication, this can be triggered by any
-host able to reach the RDMA fabric.
+On 8/17/26 8:52 PM, Yehyeong Lee wrote:
+> -static int srp_inv_rkey(struct srp_request *req, struct srp_rdma_ch *ch,
+> -		u32 rkey)
+> +static int srp_inv_rkey(struct srp_rdma_ch *ch, u32 rkey)
+>   {
+>   	struct ib_send_wr wr = {
+>   		.opcode		    = IB_WR_LOCAL_INV,
+> @@ -1170,8 +1173,7 @@ static int srp_inv_rkey(struct srp_request *req, struct srp_rdma_ch *ch,
+>   		.ex.invalidate_rkey = rkey,
+>   	};
+>   
+> -	wr.wr_cqe = &req->reg_cqe;
+> -	req->reg_cqe.done = srp_inv_rkey_err_done;
+> +	wr.wr_cqe = &ch->inv_cqe;
+>   	return ib_post_send(ch->qp, &wr, NULL);
+>   }
 
-The path is: a client posts the info request as an RDMA SEND, the
-server's receive completion runs rtrs_srv_info_req_done(), which calls
-process_info_req() on the received message.  The receive buffer is
-allocated with kzalloc() at exactly sizeof(struct rtrs_msg_info_req),
-so after scanning the 15 reserved trailing bytes of the message the
-string functions walk past the end of the object, which KASAN reports
-as an out-of-bounds read.
+This patch introduces a race condition because it associates a single
+CQE data structure with multiple concurrently submitted work requests.
+Please drop this patch.
 
-Reject info requests whose pathname is not NUL-terminated within the
-pathname field.
+Thanks,
 
-Fixes: 9cb837480424 ("RDMA/rtrs: server: main functionality")
-Reported-by: Abaci <abaci@linux.alibaba.com>
-Assisted-by: abaci:qwen3.8-max
-Signed-off-by: Chuyf26 <Chuyf26@linux.alibaba.com>
----
- drivers/infiniband/ulp/rtrs/rtrs-srv.c | 5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/=
-rtrs/rtrs-srv.c
-index 10061b218758..b500ec0be82e 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-@@ -811,6 +811,11 @@ static int process_info_req(struct rtrs_srv_con *con,
- 		return err;
- 	}
-=20
-+	if (!memchr(msg->pathname, '\0', sizeof(msg->pathname))) {
-+		rtrs_err(s, "pathname is not NUL terminated\n");
-+		return -EINVAL;
-+	}
-+
- 	if (strchr(msg->pathname, '/') || strchr(msg->pathname, '.')) {
- 		rtrs_err(s, "pathname cannot contain / and .\n");
- 		return -EINVAL;
---=20
-2.43.5
+Bart.
