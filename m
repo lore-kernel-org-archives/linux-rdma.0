@@ -1,164 +1,205 @@
-Received: from mail-wm2-f9.google.com (mail-wm2-f9.google.com [74.125.225.137])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from MW6PR02CU001.outbound.protection.outlook.com (mail-westus2azon11012029.outbound.protection.outlook.com [52.101.48.29])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D7C341D13B
-	for <linux-rdma@vger.kernel.org>; Tue, 18 Aug 2026 08:11:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.137
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787040693; cv=none; b=qH78LOKYf+g6c3SK7oCyVbsrboDImMumqUhSF96MNywY7f27Z2EJVNcMlkJQxhtK7a9ZwzLtLbKAoNGMoIK1jSXFsRdEqgv6Uc21vhXg9MT5TRCX2OBOnAEicEV46oavNl5MFAVedECn76QvzAema+8rV1bAwydvDBrkH/+FMUk=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787040693; c=relaxed/simple;
-	bh=gf6eXb6yvLsmDAdin0XQusCflWSPPesgkp75WkmRxzw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=OgCIs1IToSWjUGC3Sxq5Mdq72nNdDG5gg/5dn566u7yiPMf5qIL1gbzLPxKt1oHDK3xi9Y+CwA9EZF1gzMpjmvBdzw6Fk/pCTsrkwFtBBQxcrX0d7jmr+vpr7LmkKcJd68HNPmfU7o8X3SeUVIOh6L+Yi3RcwSFnVd7cY4W9PBg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YsfnF5Qp; arc=none smtp.client-ip=74.125.225.137
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EE30449EA6;
+	Tue, 18 Aug 2026 09:44:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.48.29
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1787046262; cv=fail; b=pArU5aBdulA4CjnOGU/SgpYSMfPyLT5vilJ+6WUHnZ2Bxed7XWpyhuccr7Q0CCSXcLnCKABVlTXbbYDphQmbDgjvFaaFaKaSHM8Sw/DiegA4RB9fChUKL5JzFR6UYly6SxLHmz7xVI6IOKZzI3bLAD65KNK0c+Wxjh93u85G8uw=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1787046262; c=relaxed/simple;
+	bh=j+8UYfz9NoRk9y+whJUJ8mjJf6QioxZH10WUJr0uDmw=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=loD79Kj+7MRoiqcU84YsBzZ6KSjGx8FZgowUUX0P6vPUgV9cRdLje03WFAffHCbjbtpA2FwtA0QrV7WU4nA4pixpEi/CJG7BxdPrf+2NPpkuw2q90zmx26luuIZYF/0mmLLYKyvsdeEb8qkSjR4V7h3pb+APuY0kpgO3QtYoJ+g=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=WfgRQR8z; arc=fail smtp.client-ip=52.101.48.29
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YsfnF5Qp"
-Received: by mail-wm2-f9.google.com with SMTP id 5b1f17b1804b1-49553da76dcso17299405e9.1
-        for <linux-rdma@vger.kernel.org>; Tue, 18 Aug 2026 01:11:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1787040689; x=1787645489; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=DcPr6p2BuA1D1TqcoH29NRqImIBRYTBu7SBRwCO9aWs=;
-        b=YsfnF5QpZMY/76Iv+SvxbhRjzkkhpmebhz9KW+7Se9hLVmNxKn1X+qoyd3VNVIlQbS
-         HoP6X22WlVwfUidRStB6N7v71TjNO00pteQ/7PArmpNOtszUQJ1+2977n/5nUpWH6RwO
-         Y45EynugjfmDwtPSnfFd1flXAmPTJYgiG5BYBVRCN9QOgrC44mOMRISvMBWCus4+Pwhz
-         80ujAZ9n27Z58kJDJapHrcRI00xNvygky7A4zMq7IPcqrqn/nfSOqc/IVgfCGVvRAxll
-         njYGpFhupsjruo26jiVx45dWBq3E3ml4D1QyxOzD14XrEYt0tOmC0zehSivsFr9YQSrm
-         EG7g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787040689; x=1787645489;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=DcPr6p2BuA1D1TqcoH29NRqImIBRYTBu7SBRwCO9aWs=;
-        b=c0DL1uGsiC5QcTicYWWI+1rLqPogjQXiU1RVdmkhYxD+RRPQP7zrDuT2fJy3qSnFWn
-         BLkUIzXZF7dvF/Ioz0j1c3oehX0hWA9lqe/RXXVZBtJDg0iRmbY5/tpjCRwjdLKn5ypz
-         mmwgBBxtNBJOjDa7nPwduaLrKeZcxDpgYeUVnGLJFOZhIRPELIfQnN21AZLPhXZgmSV2
-         9fCqtgzd5NveRQh6H/f8ELzgWLBXv38YejVNSoWpbJ9iLSL/gNmVScEpW9+9e5BMsnvU
-         295H72m9pZ7ecPkeoTtl8toYOd020hBQFvYpJdAodoto3XMqulHKQ+hO9R2/crCgwb/B
-         rspA==
-X-Forwarded-Encrypted: i=1; AHgh+Rra6ITmGCV44gNz+Beam92YaEB1HaYazUc/5Feg+aglJqpgPl7RqcH8bAe6l9VY075M3J2ZBnlw4Zhv@vger.kernel.org
-X-Gm-Message-State: AOJu0YzITu5BMQdUewxrqkLBt9FcXmTmh+zEudV1iboNuo/8okSjWBD1
-	BDBx8xpqWQ5DBRiGJ/WbSPJjg693XuVMQAi16dKsvEY686yVIA7vsaQ6
-X-Gm-Gg: AR+sD13YsQ28D/nMhRdAcNeikmNRBRxGA2l4PF4wdOM4VOA0F5DYAiWUbJ9eSJkFg0x
-	kZaPYrNdaC8/mrX4qZvcGRsyJLij0ntsFjI2GCWBxt5ed8kw5RxsXBvvB/GeisMQiLtO8avy8D1
-	PXrBWro4jTd43WF6msWz7RS3RTvRzLb9gQlDPPVwKUL+6zwnoK/7sBnPD2ov4iJ3lYtA+QH+xpm
-	4rGA9T2xSJ6Lp4Bq+xhliQNBOea9hXawHyvq20TaztbJC3Bz+Eshc7yxfXTbFnZH/Zq0YbuMaOC
-	xMWLz2vjavYo276Z7Fk9/tPy7CMyQIHRDBOGItOtDymgEvSEqLUwlxzaqSND7OqaHStbhSIqIbT
-	1FrgY9F19rvSl78MSrLhk7DcdeJ2PBlAUmSBmLFLcfkDh/gyVRYE1MYz9bMdhjTYle4xsiaA64J
-	fuj5pGPA2ms0fDajzfpFkr790FmhOY0FbmYHUXt3uxG1RrT65vKNBHRzEUVqxnK6ZUOue/jo4oc
-	IzZCUtoIbgcfpA=
-X-Received: by 2002:a05:600c:848e:b0:499:8156:cd3f with SMTP id 5b1f17b1804b1-4999fb3f78bmr105368795e9.8.1787040688315;
-        Tue, 18 Aug 2026 01:11:28 -0700 (PDT)
-Received: from serhat-ubuntu.home ([212.253.216.238])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4999d10ba73sm115165235e9.13.2026.08.18.01.11.26
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 18 Aug 2026 01:11:27 -0700 (PDT)
-From: Serhat Kumral <serhatkumral1@gmail.com>
-To: Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>
-Cc: Parav Pandit <parav@nvidia.com>,
-	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Serhat Kumral <serhatkumral1@gmail.com>
-Subject: [PATCH] RDMA/core: Fix use-after-free when netns exit races compat dev removal
-Date: Tue, 18 Aug 2026 11:09:20 +0300
-Message-ID: <20260818080920.13555-1-serhatkumral1@gmail.com>
-X-Mailer: git-send-email 2.53.0
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="WfgRQR8z"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=vqdp/5s+PzdY1quUmWWNc/T9reMO7DwoM/Q2i2qrlI/HXLNFIhd+dhLw9DHBgyWYZliHuflBcvQanxFwnwiuwzkThB9PPPzl+aBBfDpzhsGi+GcNOKUsgIuns62SkW3kJAsg75U0gxf0zJRCSMDJbAYPVAVXBd+JwB9i1UdSNZYeL0ZE32GUV3rh73sfX/5629IM1h0zVxQd+0WsHRbvNz7igis3/k/ZcPohUTBi1guIKoi1hwxDKjruEermBjn3YLnSPvcM7A8otOD0ajy+KDIhNkgyEA4AmkfH1pVT6mfF5twdA+F4ozAdylOfRZkiSnkRmtjchLUTgeqhFSo4tw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=mM41Mca1iAaUHNOmoXqId/DtuuU/KBO3OcJPcaqXduI=;
+ b=K+sglX8vwo7BbvfxWPAm9GDrRILDQO1V3dG1c71CWuj5fnWP2a1nhqsPEy2bjHFKgHot2zdNwDlgY4dSfTpglHvGrvWoFwanj+xcMRfV1fwFfsQ/ZkXW4nnE7qytyIIRrPoe/6WdYnpombQHJs24SnsHI493kN+Z0+nFNymUy4v53TJHT8MNh/jBiGfT+20S/xRJdW/frpuzBA12D/IvmpjlSCb5zamO6dU0eRaHvC408XT5a3ivkshaIWwMXMCM7n+12xd2mQTS8fyBOJyy0qPgvGdkhMFXz5tUP/w9uYtu0lJlBJFPB4qli9TuWlecL4z39tGt8/vNG3EduVBejg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=mM41Mca1iAaUHNOmoXqId/DtuuU/KBO3OcJPcaqXduI=;
+ b=WfgRQR8zKijGVzSflxqnuMzWX0UgBSyMS+NOyG4cmXMqiHrYl9actYcXWKw18LGz/ymaksSCEIjFvoBRe1w2E9+2ehkmBWIGd1MPdu0cPHBoygf7PAX7pA0OufZqMD7OxS0fICc1QETrpi8LP0p4uLsnwiIkakE9xzTlxJ4q6+xCnjjftZMUEd8bjj5S1+cQ9hdY8KciI/NnxTdtm1cQmimz5gm24UuOnaCtGwprwrplY5JYzoLnFt9k7HVSwHF+rtWJlSQS4GG1uNvi3Z194usGXQZ9mqrH0W4vwRpPx7Pj30GfsmgwP4xFKpB7PoGzXgLObEoA7QQFHnwTpqsm6Q==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from CH3PR12MB8728.namprd12.prod.outlook.com (2603:10b6:610:171::12)
+ by LV8PR12MB9135.namprd12.prod.outlook.com (2603:10b6:408:18c::5) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.315.17; Tue, 18 Aug
+ 2026 09:44:17 +0000
+Received: from CH3PR12MB8728.namprd12.prod.outlook.com
+ ([fe80::2641:1046:bdf3:93d7]) by CH3PR12MB8728.namprd12.prod.outlook.com
+ ([fe80::2641:1046:bdf3:93d7%6]) with mapi id 15.21.0339.007; Tue, 18 Aug 2026
+ 09:44:17 +0000
+Message-ID: <6dab0f98-70b8-4c29-8993-bc06fefba2fa@nvidia.com>
+Date: Tue, 18 Aug 2026 11:44:12 +0200
+User-Agent: Mozilla Thunderbird Beta
+Subject: Re: [PATCH net v2] net/mlx5e: SHAMPO, Fix IP length overflow on large
+ HW GRO sessions
+To: Tianyu Zuo <cosmosocket@gmail.com>, Saeed Mahameed <saeedm@nvidia.com>,
+ Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
+ Leon Romanovsky <leon@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>,
+ "David S . Miller" <davem@davemloft.net>, Eric Dumazet
+ <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+ Paolo Abeni <pabeni@redhat.com>, Khalid Manaa <khalidm@nvidia.com>,
+ Ben Ben-Ishay <benishay@nvidia.com>
+Cc: Simon Horman <horms@kernel.org>, netdev@vger.kernel.org,
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20260817181618.2786456-1-cosmosocket@gmail.com>
+Content-Language: en-US
+From: Dragos Tatulea <dtatulea@nvidia.com>
+In-Reply-To: <20260817181618.2786456-1-cosmosocket@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: FR0P281CA0199.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:d10:ad::7) To CH3PR12MB8728.namprd12.prod.outlook.com
+ (2603:10b6:610:171::12)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CH3PR12MB8728:EE_|LV8PR12MB9135:EE_
+X-MS-Office365-Filtering-Correlation-Id: dc83fcdc-694e-466e-8e5f-08defd0d455e
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|7416014|366016|1800799024|23010399003|18002099003|22082099003|56012099006|11063799006|10067099003|921020;
+X-Microsoft-Antispam-Message-Info:
+	ZUuPAiNgWQ1r7XnJPR5pLIIdBfbtSZZZduqkRVh5lFCOnPPq7vK9Lcprq80LbjgZPTPfIoFImg3F4meoFiY9AoXUTVOZfF1dUOU7jgk6XxCvSvoUYO0Cx2PQJ6SikB1AoDEIGSHZghLV85Fbh+/z6kwpy8ITANgpdS50YWDbdBoHCrhlPMU0/dPy4ztc1AKXvKqQXDflhKUS2u118CL74kcqAFjIXLzNtRDy4lw7IpHgP1OxcJz1h9nJHy4sgnJlhIJwPzbnMOtpkYGz7VfYMrSYCBCEZ1ZI62PGUQg92q2o1CaftvWO2LKjr+HVxvL8/XSUBBuqMQ617nl5oUamqmIFxqeliNxk0Phw2uTsCdzHomK5aATEH4vTzt1XeSnYQXrhVC2rQxIkUZm6mJ5iirz4dvGLReeXg0OIL6C32jysZe9AYTq7v+YQIoxdz17mOsx3cx0p18j6dqOIc5BORyjhYAaUXw+yZOFozo2Fv34ljl3sHOh6nAngYvHyEp7ZjG59pQZ0oU7eig1XwndukPNKOcvsUpJSA9i0fjbFsY/1Xd/BR/XLHkwL+KrD2Vj92Gfbk/ZPFxSFUciU09rtuRxJtwWKXeT/Dw1AObFv+6qIFTtfOLUqqTPzN0/3WbsRyCP8XBvz2dcIAlUHjaEvpwBCSRdzvodulLoHGIf6mz2rLxu4BHVePvDNwIUGNz593CLU7ND7IZbkjS7GMEkG3w==
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH3PR12MB8728.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(7416014)(366016)(1800799024)(23010399003)(18002099003)(22082099003)(56012099006)(11063799006)(10067099003)(921020);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?aTNaaktMYUx6U3BNejVFajVxL0VSbWU0Z2ttNjN6amppRTRpclN3WWFDdm1T?=
+ =?utf-8?B?M0x1MFlva1VIK1hyKzV2UTlQcWcwT25mV0g1Z2pycDRwY1piUWw3d01CbFhy?=
+ =?utf-8?B?TjZQVS9EL2ZCai8vRGJZa0xRKzMyaVhEMXFlWmx3b1ljOUVTMitvNjl4WlZx?=
+ =?utf-8?B?azZRTUxGaFFVazVabHJ3MG9PdkFWWU5qclJ5bjNabktza041dHBtcWhvV3Q0?=
+ =?utf-8?B?SDlSd0tnNkcrVnoya2VTenFUMUtIRTBwWnpQbnFjZjJrSk8zeHZHa241bG9Y?=
+ =?utf-8?B?K2Q5eDdNQklwVGxpcHNjc3pqbHJJWFNkVzBac1NxVC8xaGFpU3BkakMxNFNv?=
+ =?utf-8?B?Y2lUVDRaKzZyc2ZmNFZSazhQbjdVM09rQUp1V0VMZldJSUZLNlM2Qk15MjFG?=
+ =?utf-8?B?emcvMUd3NGtUamN5am40akFwdTltNTd4K242dGd6YTFoajNOWUZNRVN2VjBR?=
+ =?utf-8?B?MUhQVXo5OUI5SnhSYmhITk5ZaGsvWWZIbDdnSDF0L0ZkU0RlQTlSb3piK2ZE?=
+ =?utf-8?B?ZjVhM3RkN29MK0dmbWxaZzd0SUM3YTdMa0Q4dFVDaEV6RThnVFRsK3dqRStS?=
+ =?utf-8?B?ZHVYQWpsWWMzbUNQeGs5NEE3SGNSN29haEFZbE1KN05kOFQ4UlpiVzE2cUla?=
+ =?utf-8?B?a0p0ZDhNT2ZlUHltVHdhRGd6ZjkvRllxcTAyR044UUJGSEFLa2tvOEQ3RTBS?=
+ =?utf-8?B?aU5sZ1hGZFB2dEVudjdTWUwzYXg0VmRNMnNUM3pmRjVDS0IzcldaY21aaFhI?=
+ =?utf-8?B?MU8yRGJKTS9hUVNma2c1TXBWcnRsS2x0WGgrc0tmRWl4aFRCYVJjZm1ibVZM?=
+ =?utf-8?B?Z04wcjRzck1vRkJkVm5kL2NuUVpDT3RoNDQ3eFN2RWc5ZXlIdVhEbWptV2Ra?=
+ =?utf-8?B?dW0vUnhBYUswYVBoSThQb050LzBaKzZxck5MQzhSd3paVFpGTG5HbXZ4MDVS?=
+ =?utf-8?B?QlNLWGJSM1Z5QkJGWDJGSHJyQWdFRmNuT1lCelpiR09XREplOTloWHNqNmNq?=
+ =?utf-8?B?NzVqOU90ZlZTRmdoZ3pZVmd3bk1tSWI3Nm1MOGJldENMdFFlelFGOFNRdURs?=
+ =?utf-8?B?dm5zN0hIa3o5RU80d3FuU0Y4blM0c0wvMDZQY1dkVmU4MTNYQjVLU3IrUERh?=
+ =?utf-8?B?QVhUYTZpcFA5YUEzZHQwMUpHb2UxUHd1c1FNWjFXRmd6VDBaNFNlNWtDTkRF?=
+ =?utf-8?B?RHFwN0tVcVJobTA4OVhSNDJYRW5LVk5rc1hkK3V2am5CaU5QUUR2MDJCenAz?=
+ =?utf-8?B?UGJqOWlERDJ0d3duZlZzc3IrR0VLWXVXY09mZENVS21COTNMTGZWdGxzc3Zh?=
+ =?utf-8?B?ZmI3bGh0SngzTXlrbUhobTJBbVZmcFd0QVZEejJsejdIQUV2UVEwL2tTOG1Z?=
+ =?utf-8?B?UXU1MmVNZjVPdjJaRkNuclgvSlFnVWoyWlNWelBGaG8rMVRmRUQ3bnR5ZHlP?=
+ =?utf-8?B?NGpjdzNBOFJuQWZwVUs2Mlh5bGh6M2ZuVmQrN1ZhS1dUTWlnWDIvckZoUWsw?=
+ =?utf-8?B?ejBqaGJjWVEwUkNEbmErc2VBNHM0YXBLMEd1dWpJWVFka25JWkREa3NxV0Nt?=
+ =?utf-8?B?a1pVS3dmQ2c4ZzV3OEc4eXlRVEE0aEc2WERPTTNkQkRlcVlheHNuaG56bC9x?=
+ =?utf-8?B?OGNiUmNXa0J2a2VuOVpRRmpHS0RWWGdCVFZsQTBrTFU3d3lFR21jbll2TENH?=
+ =?utf-8?B?NW9iMFN3RFZPSlJOWjBpMFVFTDQ5YUVuQlJ6ajFUYW5SeUhxaG5icFhES0tP?=
+ =?utf-8?B?a3RVQU1NTU9sTE1SUjNUNjJBUXVRRjE5ZW1OZGc2RWRxdFZmZk1RMGl2a2FI?=
+ =?utf-8?B?UDF6RmFIa0VQUkdVUlJxa3JBakxrZnpYT0o3Yk92V29wQWZab0kyanA3anhm?=
+ =?utf-8?B?Mk5oVzdOYzkyRWkrSzJIY0RqYkwwOEhxcGlzSytnQ0w3U0xOY2IwWE1oYlpk?=
+ =?utf-8?B?WFhMVjdraTB2TWdMYXlWTXVZSnNLUUtQNnhOemxUckpuSUg5TW1lNHM0ZzRy?=
+ =?utf-8?B?aS9LN1RudDhEaDVHQW1yZkNLcmRpT041RW5ZTzl1eVJ2L2hXSGpCSmhBUDF4?=
+ =?utf-8?B?Rkk4Mm04RVRHM2dzY09ETlJmNDJPMXl0bXcwZlZVSU9uSlNYeUQ4ZzBlU1Ew?=
+ =?utf-8?B?Y3BYdXc2RHVBMmszRzJna0Rld2dCMlhrU3pWam0wNlhpWjNTN3JKRGRKVjNC?=
+ =?utf-8?B?eGZ3NnMvVmNZek54UWd2VFRnSVJ1Z3dMc0VSZGY1QUhuUE9vOE8wNW5RQ3U3?=
+ =?utf-8?B?bXByNnhTV3Vnd2wwSmpxYVU4SGdGR0lmbjI4VXIwYk1mZk8vKzJjNmttaFpr?=
+ =?utf-8?B?S3g1RXNqUVVzeTI2aWtmWXNaV0g1YllmZnA3ZlAybTgyMEpPRFREUT09?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: dc83fcdc-694e-466e-8e5f-08defd0d455e
+X-MS-Exchange-CrossTenant-AuthSource: CH3PR12MB8728.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Aug 2026 09:44:17.6031
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: x2x/aGI2t1pMFOqRHY/m7P4hPTcZaO6kv7W54I5OiRyjTC4U1FAi5jAQEKH8pWMovt+8ZXEgYGpmAhBU0aAk2Q==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV8PR12MB9135
 
-A compat device is removed from two places: disable_device() during the
-ib device unregistration, and rdma_dev_exit_net() when the netns it
-belongs to dies. remove_one_compat_dev() lets the xa_erase() decide
-which of the two performs the removal, but drops compat_devs_mutex
-before device_del(), so the caller that finds nothing to erase returns
-without waiting for the removal the other one is running.
 
-When that caller is rdma_dev_exit_net(), cleanup_net() carries on while
-the compat device is still alive. Its kobject is tagged with the dying
-net, so the device_del() still in progress dereferences net->uevent_sock
-after uevent_net_exit() has freed it:
 
- CPU0 (ib-unreg-wq)                CPU1 (netns wq)
- ------------------                ---------------
- __ib_unregister_device()
-   disable_device()
-     remove_compat_devs()
-       remove_one_compat_dev()
-         xa_erase()
-         device_del(cdev)
-         ...
-                                   cleanup_net()
-                                     rdma_dev_exit_net()
-                                       remove_one_compat_dev()
-                                         xa_erase()
-                                       // returns without waiting
-                                     uevent_net_exit()
-                                       kfree(net->uevent_sock)
-         kobject_uevent_env()
-           net->uevent_sock->sk    // UAF
+On 17.08.26 20:16, Tianyu Zuo wrote:
+> mlx5e_hw_gro_skb_has_enough_space() bounds a HW GRO session by the
+> payload held in the skb fragments only. The L3/L4 headers that
+> header-data split placed in the linear area are not accounted for, and
+> the limit is inclusive of GRO_LEGACY_MAX_SIZE.
+> 
+> On a 4K page system a session can therefore grow to 16 full page
+> fragments (65536 bytes) plus the 40 bytes of IPv4/TCP headers in the
+> linear part, giving skb->len = 65576.
+> 
+> mlx5e_shampo_update_hdr() writes the IP length itself:
+> 
+> 	__be16 newlen = htons(skb->len - nhoff);
+> 	csum_replace2(&ipv4->check, ipv4->tot_len, newlen);
+> 	ipv4->tot_len = newlen;
+> 
+> The result wraps. ip_rcv_core() then trims the 64KB skb down to the
+> wrapped tot_len, silently dropping the payload. The IPv6 path wraps
+> identically in ipv6hdr->payload_len.
+> 
+> Both branches of the check are inclusive of GRO_LEGACY_MAX_SIZE, so a
+> session can reach skb->len == 65536 and wrap tot_len to zero. In the
+> page_size >= GRO_LEGACY_MAX_SIZE branch skb->len already covers the
+> linear area, so that off by one is the only problem there. The fragment
+> based branch additionally omits the linear area entirely.
+> 
+> Account for skb_headlen() in the fragment based branch and make both
+> comparisons strictly less than GRO_LEGACY_MAX_SIZE, so that skb->len can
+> never exceed 65535. The new bound is strictly tighter than the old one,
+> so the implicit limit on the fragment count (at most 65536 / page_size,
+> well below MAX_SKB_FRAGS) is preserved.
+> 
+> Fixes: 92552d3abd32 ("net/mlx5e: HW_GRO cqe handler implementation")
+> Signed-off-by: Tianyu Zuo <cosmosocket@gmail.com>
+> ---
+> v2: commit message only, per review from Dragos and Tariq.
+> 
+> v1: https://lore.kernel.org/netdev/20260729204745.166584-1-cosmosocket@gmail.com/
+> 
+>  drivers/net/ethernet/mellanox/mlx5/core/en_rx.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+> index 6fbc0441c4b8..2e9676305439 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+> @@ -2222,9 +2222,10 @@ static bool mlx5e_hw_gro_skb_has_enough_space(struct sk_buff *skb,
+>  	int nr_frags = skb_shinfo(skb)->nr_frags;
+>  
+>  	if (page_size >= GRO_LEGACY_MAX_SIZE)
+> -		return skb->len + data_bcnt <= GRO_LEGACY_MAX_SIZE;
+> +		return skb->len + data_bcnt < GRO_LEGACY_MAX_SIZE;
+>  	else
+> -		return page_size * nr_frags + data_bcnt <= GRO_LEGACY_MAX_SIZE;
+> +		return skb_headlen(skb) + page_size * nr_frags + data_bcnt <
+> +			GRO_LEGACY_MAX_SIZE;
+>  }
+>  
+>  static void mlx5e_handle_rx_cqe_mpwrq_shampo(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe)
+> 
+> base-commit: 51b093a7ba27476e1f639455f005e8d2e75390e4
 
-  BUG: KASAN: slab-use-after-free in kobject_uevent_env+0xb6f/0xc80
-  Read of size 8 at addr ffff888103806490 by task kworker/u16:1/41
-  Workqueue: ib-unreg-wq ib_unregister_work
-  Call Trace:
-   kobject_uevent_env+0xb6f/0xc80
-   device_del+0x737/0xc10
-   disable_device+0x1ad/0x230
-   __ib_unregister_device+0x229/0x3f0
-  Freed by task 12:
-   kfree+0x1b3/0x550
-   ops_undo_list+0x273/0x8c0
-   cleanup_net+0x3b3/0x720
+Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
 
-Fix by holding compat_devs_mutex across the whole removal, so that once
-remove_one_compat_dev() returns the compat device is gone no matter
-which caller removed it.
-
-Fixes: 4e0f7b907072 ("RDMA/core: Implement compat device/sysfs tree in net namespace")
-Assisted-by: Claude:claude-opus-5
-Signed-off-by: Serhat Kumral <serhatkumral1@gmail.com>
----
-With this patch applied the report no longer shows up.
-
- drivers/infiniband/core/device.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index d954eda63134..a80ac69ef986 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -1005,14 +1005,20 @@ static void remove_one_compat_dev(struct ib_device *device, u32 id)
- {
- 	struct ib_core_device *cdev;
- 
-+	/*
-+	 * Hold the lock across device_del(): the other remover may have won
-+	 * the xa_erase() and still be inside device_del(), and the netns exit
-+	 * path has to wait for it instead of letting cleanup_net() free the
-+	 * netns state the compat device is still tagged with.
-+	 */
- 	mutex_lock(&device->compat_devs_mutex);
- 	cdev = xa_erase(&device->compat_devs, id);
--	mutex_unlock(&device->compat_devs_mutex);
- 	if (cdev) {
- 		ib_free_port_attrs(cdev);
- 		device_del(&cdev->dev);
- 		put_device(&cdev->dev);
- 	}
-+	mutex_unlock(&device->compat_devs_mutex);
- }
- 
- static void remove_compat_devs(struct ib_device *device)
--- 
-2.53.0
-
+Thanks,
+Dragos
