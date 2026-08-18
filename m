@@ -1,214 +1,370 @@
-Received: from PH8PR06CU001.outbound.protection.outlook.com (mail-westus3azon11012017.outbound.protection.outlook.com [40.107.209.17])
+Received: from esa1.hgst.iphmx.com (esa1.hgst.iphmx.com [68.232.141.245])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 185B3446C00;
-	Tue, 18 Aug 2026 11:02:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.209.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D5F33E123C;
+	Tue, 18 Aug 2026 11:50:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=68.232.141.245
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787050929; cv=fail; b=s/+6DbbZstgx7A+jWtpsv2nj9azu57UTL7wIyLIJgGd1UVeGMeRF5GDPwEBrhMAW6Za+FNfcjoCAQLfvsAmOFb1wUZUT35Ul0kqB89CjIi7SUFVWZ0+sT0ES2depMUeokelou/tA9eJKT79SpgaRiMUIw2vHNuP6YoxTS6tDjhU=
+	t=1787053839; cv=fail; b=HFT9rHeHr1PbL92xaYVlbm36GymvdpcQ61S8/wGRYFPerJT9mNIraGLngM4jDcm0PWYUMnVN4t7AWtqqd+RsyBPs4/zw0ilAW3xd21Sp5oSPxsGZ5uXF42pXagXp95/nI5vln1T6B2/v0QvjBG0Xob0OrbQb60gv6DATXZt17lQ=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787050929; c=relaxed/simple;
-	bh=oMlT0O7EhHrr8Yj+NWyOYQzqIf+mKdqH/1z9bp7hJbs=;
-	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=VT1UJAfA5JZiSaZ3ZUkXpvszgOSzAKYKfDtCQOU2S6JN3k9KFuyGcp97lYwS8vPdkkP90hjEmAYcNM9fAmIZCJH/TR4VAbgVDF+K/WtKlhQuEYm6wJ9xh64tf7LO3zxI60lEaQVtJcIKvC54XOQBRya7TLi/H2M/kUt/6yCV3r0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=Ztho8op9; arc=fail smtp.client-ip=40.107.209.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	s=arc-20240116; t=1787053839; c=relaxed/simple;
+	bh=beM3YvChpJR127E5gs8TQgg1AssCZ9fb8zqjcJ0pFaw=;
+	h=Date:From:To:Subject:Message-ID:Content-Type:Content-Disposition:
+	 MIME-Version; b=fPCwrdW3BlYZhmlMg3D86vPJQr3MOnt9ktzSAXhjidkO+LscZkw/jXIQCDU8jSnrszTq+adXxj7z+JsvGO/UShqi4yUvS9hzVqjRydlaHPTuM6fhDvdwAUFg437gf2S/Hppq7ShThLDhk9ebvH3uHAwbE20/5DHvaCDI0LwlBaA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=wdc.com; spf=pass smtp.mailfrom=wdc.com; dkim=pass (2048-bit key) header.d=wdc.com header.i=@wdc.com header.b=ec8xNWd1; dkim=pass (1024-bit key) header.d=sharedspace.onmicrosoft.com header.i=@sharedspace.onmicrosoft.com header.b=gNoi5UXw; arc=fail smtp.client-ip=68.232.141.245
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=wdc.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=wdc.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="Ztho8op9"
+	dkim=pass (2048-bit key) header.d=wdc.com header.i=@wdc.com header.b="ec8xNWd1";
+	dkim=pass (1024-bit key) header.d=sharedspace.onmicrosoft.com header.i=@sharedspace.onmicrosoft.com header.b="gNoi5UXw"
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=wdc.com; i=@wdc.com; q=dns/txt; s=dkim.wdc.com;
+  t=1787053837; x=1818589837;
+  h=date:from:to:subject:message-id:mime-version;
+  bh=beM3YvChpJR127E5gs8TQgg1AssCZ9fb8zqjcJ0pFaw=;
+  b=ec8xNWd1aJm4iOLwnXJg96cozHBJH9DseRPEYUeWr/Ap0umubKxH3YHR
+   1+7NeL5tYYlcKovLIvZ1f9QT4ZlUH2UhRraRbcNfE68yZdoIq00PCEjSW
+   NJta7amiCDyGgelWFoBaQFg3muiNUf/Asjk2D0qMbhztY5G6JCmFPy70H
+   4zXwmLmQeasPwl9OIazDBwzNuLWExNuZIS7d3RWm5UhBVylVZOUUmrW3o
+   lInLx6J4rGbXL4kUaretkc6FWpVscoocfe8H/8oU2ia3mXdhtTDTA6sON
+   VjaQg4kYzZB/OR+BqaIhERMRWLtm4C5LvW1pLYPYlk1JHbDuxkV7Wgb/q
+   A==;
+X-CSE-ConnectionGUID: srxIxemvThyVVPAGs95nOQ==
+X-CSE-MsgGUID: wZObdZbERZORdVLQLPRhbA==
+X-IronPort-AV: E=Sophos;i="6.25,230,1779120000"; 
+   d="scan'208";a="153302062"
+Received: from mail-northcentralusazon11013005.outbound.protection.outlook.com (HELO CH4PR04CU002.outbound.protection.outlook.com) ([40.107.201.5])
+  by ob1.hgst.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES128-GCM-SHA256; 18 Aug 2026 19:50:22 +0800
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=tIpPFVJZ6pwTCYLSfHvx1fWny6eaFctNUAU1Pn6o2D8EKdYcLQlc8vaTarFkjiI7STeGqy5om6kgJt+zMcq8lhoVMeeNognj44xlzgFly+9ZtN6lSEmzjAbBIzkayBXZap34VBt0OwarX55H2pAD/OLr4ZD4Je5ukqn0YnK7+E+IfPtiEknRwq9VDPizYlGEcNdswarS4dEIL+c11NEJKttZTawlGbiWD1Y+OaMDRGBcDuTzUag5cjWMNRYZz5OW/L1lL2UjAiUAoTG1QIJYBTaRCZu6QjlucSIghyY7q0nvcHqC3Yl2eMdDzccN3dC+2vvGokyCEJtCr9q10oP5dQ==
+ b=gL3zZXLx9J6Gv0ntpgOcVgghsLiuP8IdJt4yr+FqnTg7LNXTFz8EBAkOt9qpBdFXbdDKIBe0nQiAIxcvkXwYJ8zawtg3QlIT+D1LHhRG5aubostG7L7q9VWv4cyl2KBUbxdnG/Zi44B/RJVq4qikPfauSAlchxqiKlAOKRUGpknLsRr5J3IsXjSAifer/qvxod2L5Ejg5+QvzDoNBkGuXoZxopPDmYfKJOjLOnyPy4K04jGOzLAJG5WZNyXJcdN9SDyCRznUmxV0ca4KzdWuTtUYcdh0NnkO0ouBcMirZ/WaOanm5dBLZ36bVqnAvGz2bVgFxxiVqMGixg9W7N1hxw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=oMlT0O7EhHrr8Yj+NWyOYQzqIf+mKdqH/1z9bp7hJbs=;
- b=w3tJfBJWFn6EGKfmaJ3vKM3zSiQ2G56b//kJhtru8nSMC/zLW9fUlqOsRf41p3oC79CDleTlG5u6QC96nHrfFFlID5WRYmUFklh43tHTC5Gv6Q0lU84633/nhQclfw8JaxqRrl8NZSkGETsW38J9ALyt0r47nPw00BviPtiBkpvPa4AMZ1WcaOea4mWeP08Re+kjMp1Vg5v1m+A5vYgz4rwBpve5lwPpVKA2GPtc/IAbhAgbbU7Dfh6Mx5dAZR1+k3fvFNu0R4V3NbbChFpSPmCwQFbHWB2ARWzqXpphkxcdS7u+HPt0tlq+boJQZajJDxvFPEpSVGp602u2AU8RPQ==
+ bh=KizE1bCne7yp/rt69UfQpZUXJdgSTz0n3V2Kqaj9adQ=;
+ b=sTiHGSuH4rfbRMopE2VnD/BtTRdkNr8pIHrlWRXVPiG7sgiCl+yXE0t4UVDH3OlOMpUgdZVoObeI1G4lXjUw1q4/dmlZDdTqOX8loxR3vxAECVJJ5V0FEbnUjMqvFSGielq6+lhKqCplEML9mBhrfgFLVBTpQCu4L2T1g0tErdA1I27w08zUgPrDt3gjXKxmt/JdilYPZ0bWYkOR4Esvm2fvhR2Tyc4FkFWNU4ekgsRELEEFlXyNdcs8x/zBJ3xgnAy9Fv9p7pEUD6BRRbL879lvCsWVkTnC87vPzME6Am2oFzpWNdSpJzhxt9klqnsXWhk14V0PPrMs17ngpjwoEQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
+ smtp.mailfrom=wdc.com; dmarc=pass action=none header.from=wdc.com; dkim=pass
+ header.d=wdc.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=sharedspace.onmicrosoft.com; s=selector2-sharedspace-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=oMlT0O7EhHrr8Yj+NWyOYQzqIf+mKdqH/1z9bp7hJbs=;
- b=Ztho8op9piOgCdDHLxdRvHFFX7OxRhgYCexYX8EWEwnfJuNcueeyFZ5esgW8Vd/xKl1k7+OfcUWkKm5TNJTtz/2GerZrnVIPeHHuR7PGCZgj/d8cZhqCpA/KvkLZ4oYQ4Hb9eW3bM3RJJMFaKP1klFMUN8fMgapOmAJwccp+qrbKkr+ybw1iRifntgphTpaoWjqbV/XQmOZN8Ys1A9WkNiYUhrhaQAkDOL0un9ZS2ohwImjxioyK0cql5hzFzlnACD0fzjXTDzWMrj1ZMLgswLjZlLudlrBwt9DG6tRkv8QMGmb+N4+qIqWnPB82AgJ3s303o07jCBKeLLsD3qmGYg==
-Received: from DS0PR12MB7558.namprd12.prod.outlook.com (2603:10b6:8:133::21)
- by PH8PR12MB7110.namprd12.prod.outlook.com (2603:10b6:510:22e::11) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.315.17; Tue, 18 Aug
- 2026 11:02:04 +0000
-Received: from DS0PR12MB7558.namprd12.prod.outlook.com
- ([fe80::96ea:b67a:4a5b:85e0]) by DS0PR12MB7558.namprd12.prod.outlook.com
- ([fe80::96ea:b67a:4a5b:85e0%4]) with mapi id 15.21.0315.016; Tue, 18 Aug 2026
- 11:02:04 +0000
-From: Max Gurtovoy <mgurtovoy@nvidia.com>
-To: Yehyeong Lee <yhlee@isslab.korea.ac.kr>, "sagi@grimberg.me"
-	<sagi@grimberg.me>
-CC: "jgg@ziepe.ca" <jgg@ziepe.ca>, "leon@kernel.org" <leon@kernel.org>,
-	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"dledford@redhat.com" <dledford@redhat.com>
-Subject: RE: [PATCH] IB/iser: skip an unregistered direction on remote
- invalidation
-Thread-Topic: [PATCH] IB/iser: skip an unregistered direction on remote
- invalidation
-Thread-Index: AQHdK7BpZNblVtYgjEKy235l96l/WrajXQ2AgABNUUA=
-Date: Tue, 18 Aug 2026 11:02:03 +0000
-Message-ID:
- <DS0PR12MB7558FE82AD2039A8A4B00E57DEA62@DS0PR12MB7558.namprd12.prod.outlook.com>
-References: <20260814054712.260495-1-yhlee@isslab.korea.ac.kr>
- <20260818062425.568046-1-yhlee@isslab.korea.ac.kr>
-In-Reply-To: <20260818062425.568046-1-yhlee@isslab.korea.ac.kr>
-Accept-Language: en-US, he-IL
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: DS0PR12MB7558:EE_|PH8PR12MB7110:EE_
-x-ms-office365-filtering-correlation-id: b0dc5b91-e4e7-4fbd-7eb0-08defd1822e9
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam:
- BCL:0;ARA:13230040|23010399003|1800799024|366016|376014|10067099003|56012099006|18002099003|22082099003|5023799004|4143699003|11063799006|38070700021;
-x-microsoft-antispam-message-info:
- MsEd87Q9gQemidA2rXSLKq8IbC/M2aYPubGvokeiBUQwXNLaW+gztrIxUXdOly0gwLTXrfnZjrClekTTOklsz7PyIZpQeEzChTiYZbhHDUzm5k7uW15cwztmOchOEougRYldh5BoBLs3qkUKVKsHFMYpUBuGT5pwWajZ8a3/tm1sNhmJjv2aVyD/VHBeBSaHk31HhacbgBpG2iA3huqQQsznPDLXjITCvcFHXQELpTNQhDZVS2lHEpUYc0mzDOzSHhWFDUKph3U7A31+ebqmrn3XM6/jHWBaetr0u5CKkDRT29pp7tCOu1xENc/gCPsEYiFKXGQxrMj0HbRUWaPmvzBRN0dv3LTHlfvTi+XA2WltecnW57z3S13stztTw5MC7NXT1/uJQu3F+oi1dPJho/s3nfR8m9EEWNfzBFIAAHEhURg4bqEqO0NgBdct5lLdSuHDSMp1K0VWLa21AzksynoU31Y6PFeSbjdyRiR0dNT5F8eOHqho8G/T/IO30XZ4nzYJKWjEYt6LS1fh46h0N5OO1AttR91wQI9VObX5oOcb/ogUcE18HKWJNsfOLSL2E6kwyq6oB9XQOJCv848pxANAJXJZP8hb2D19pmRt8iapfUX/2VEY72ABDZXhur3C1MB8SApTS4NJVvBhf6lPqMZmVjWmtRrgjfhqa5jMgG2D0JXyKiyCADwQ2zJrC9HiqBqos0IqGAIIY2zP+NjdyO4caxkItkwWnSqAcU6r3uo=
-x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS0PR12MB7558.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(1800799024)(366016)(376014)(10067099003)(56012099006)(18002099003)(22082099003)(5023799004)(4143699003)(11063799006)(38070700021);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?utf-8?B?ek5BVmJLRnpoOEI2YUdVQjZ5ZzFkWmYxcXhha3lXeUNUSE9iYm55K0I2MWdv?=
- =?utf-8?B?Q2I3Rkc1OW43MDkybWlRd21ocURsNlRQWFNtbEllRUlLZG11aUFvOHUvdEk2?=
- =?utf-8?B?R1dJNERBTGJaQUVteTJFMkxqSm0ydDVqZUxWSndYbGY0bHFWM3l3am5HaDhC?=
- =?utf-8?B?QVVGTkVsS3I5a3ovWmhqcHREdXRXY3BEd2VXby9NbEZ0aTN5Mmc4akNmYy9Z?=
- =?utf-8?B?Y081a2M1dm1ybkkwVGwvMHdwaXVqMjhRdS9iNE14NXRrZ3RWZFJVUk5VbEpQ?=
- =?utf-8?B?TDc4STVpWGoyMG9obTVxcC8yWW1UUWZzRThZQVY5WTVOSVZYcURsRUQ3MTJP?=
- =?utf-8?B?dmpUcjJGWDFVQ2tUcW4rbllUUmR1S1BGeEp6aUliTXVDU2pBM0ptZmN1bXBw?=
- =?utf-8?B?Ylg4elc4Q3NsMkQ1amdwRFVoSWN0RU80NkFvdHU5UDdIb0JqYjFaOUhpWmQ0?=
- =?utf-8?B?czhvWjgyV2QyUEt4QitVYVZqRWlRM3NPblROamxLZlJWdE8xdHEydFJ0OFBN?=
- =?utf-8?B?MU9uK21zbGRMcEY1ZEszaTNHajFrYVJVazNnb3VLMlFQVWhhVU5tWElBYmdj?=
- =?utf-8?B?aHB6RWpNai9xbWQxMVVBRVRTLytJMXpzQ28wcVRDL3lrWGJidXFUY2RydWNv?=
- =?utf-8?B?SFN3V2o4K05HT0VoNWRNZWdKTjd6K0hZZEJOUU9TdkpmZnAxcmZGV2tLRjdH?=
- =?utf-8?B?RzJsSXc4bXVSNXJpRGh2WXdiU3h1SjVURGVxQnorbFlFZUdIb3V6M1VvdE9k?=
- =?utf-8?B?dzlqOTErMWdSUDZ6WkRleE5JK2tMSHBNZjRJcjlEUVRmaGhzYkhuVy8wSHBz?=
- =?utf-8?B?VTRKQTM1elk1MW5HaVF3UHZtM3NoUnUvZDJZd0JiTDNXd05kcitDUnV5aXNW?=
- =?utf-8?B?Wk4vVGJnTFM1aUFKMXVvMEZrQmk0Ym9tVndBeUVZbzRlYlBrMXg4akNaOHBF?=
- =?utf-8?B?ZTFvSERMTVpYQTh2Q251bG1zcGlTdWc4OHBBdlVxM0FranUybmY2Kys5c3dY?=
- =?utf-8?B?SzZuR2l5cjdwMUFOZE5ITkszeGx1cEhuRFdnbUEwZUxqRGtYV04yNW0vUUJC?=
- =?utf-8?B?VzRQNFlSZTJjMWRwckZjeXVTOHVNVEhBTmh5bElkaUYzSkZOWHpnTjlEUHRN?=
- =?utf-8?B?V1JsV3k5cnFOekRvdHRVRFIzSHJLR1YxVHdZcUNyTEpsNXEvMHIybUV1S3A4?=
- =?utf-8?B?Sk1aK3ZkUDVSaGhHU2lZUWtoVC96SG9wNVZKd21pdnF0UmRNQTJSZjM3NWRW?=
- =?utf-8?B?K3F0bkpKekhjU1Y5b0lQaTNXbDB2STNoZVhCWnVlTCs4a3U4VENXdGIySGp1?=
- =?utf-8?B?Rkd0OVJXWS9pNEJZMyt6SUxVbmNjM3pPZ2w3MjJ2SGJjS25sMGhVMGU5Wmp0?=
- =?utf-8?B?dm1wcWFGRHNVa3puMXkwTk5YRy9GTS9ITVJ3V0tVN0tmbW5aMHFrUVJpN0hU?=
- =?utf-8?B?YzVhVXUwb0JyZ2p4THpBRWJHZDJMZWZyZklZRWxoRGxjcVpXc29QNVpJOUVZ?=
- =?utf-8?B?cVp5WlVXOVl1N1Fxcjl6aDh4MThIaWc2c3p3MFVCdEFqVng4akJKcjVuMzUx?=
- =?utf-8?B?aHRQa0lXME9FZGtIbGZ5eFRtWjdZZFA4UHFNM0N2cTlibExEczhncVZtajdC?=
- =?utf-8?B?VTNZbEpBbGIyczE4Y0wrN0c0WTV2bExuem1iUXFwbC9aTDBaV2xxcVpmQlpY?=
- =?utf-8?B?SXdIcTNxYTU4cE1oTTVMYk9yZEpRS0JTUUxvMnAycFU3dGROOEN5S0tjMXcy?=
- =?utf-8?B?NHlibHcySnBQbE9QelV6Q1J5RnpwSXRnalFCYlpVemVmNHNQVEg5MUFhUG90?=
- =?utf-8?B?bzRhQjhqUzBkS3FXV1pPaU5adWRHTjdLL1RBaUd1WGNzQ0tNTnI4eXkzOGxI?=
- =?utf-8?B?ZHYrQ2M1ZHMzL2hGajZhN09MOFZwcGlidUYreVFPRG5MYVFYNnVJeG8yWjEw?=
- =?utf-8?B?RHNpS3pLd1B5Yzc4U1Q2cUYxWnVVWGlLU21yM3BnKzlrWnlLTDVhTUF2L3h0?=
- =?utf-8?B?a1hEQzNmMHJNekRkKzc5SXJkeGpqVFpCakc0NGVaLzRiaDl0bG50Sm10LzA5?=
- =?utf-8?B?RksyUGFKOXhOM245enlDVXhNcFZqNnNvVzBka0NnOE1neTRhU1BNajU3MVBt?=
- =?utf-8?B?SGxZMnBkZVJtakxvdExnVzhEcENGWmtIbEtJMFdJV2I4aXVIM1N2YlU2MldD?=
- =?utf-8?B?NmdVMmU0UFZNVWtHNUc1T0orb1kwdmVEQ3lKVFhuNkdiemQ1cEdsSHI3RCtX?=
- =?utf-8?B?WmRYWk50Uk1ONFJjTnRQREZNVkVzbXhsVTdzZmF1UUxxTkZSQWhGZ05LT2FP?=
- =?utf-8?Q?UrRPvSiXoN4kwA9mfS?=
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+ bh=KizE1bCne7yp/rt69UfQpZUXJdgSTz0n3V2Kqaj9adQ=;
+ b=gNoi5UXwXo1A1zF+tGlXcLL7g/yMVMjHcRpOvOxxGJ+xxi1+swcoTnoAztogAD2wUAe0910uIFl4HCa5Hp8pfK4MIhVzmQr03R658YTqf8uDOnt1vNQ6XjmTnWcL61yzzAQNLXJtPXsRXRmYi5ndSPxzdGDt69aw32o3cMLvN9o=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=wdc.com;
+Received: from SA1PR04MB10065.namprd04.prod.outlook.com
+ (2603:10b6:806:4dd::14) by BY5PR04MB7042.namprd04.prod.outlook.com
+ (2603:10b6:a03:22f::22) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.339.8; Tue, 18 Aug
+ 2026 11:50:19 +0000
+Received: from SA1PR04MB10065.namprd04.prod.outlook.com
+ ([fe80::9b98:bf8a:b0b1:ef85]) by SA1PR04MB10065.namprd04.prod.outlook.com
+ ([fe80::9b98:bf8a:b0b1:ef85%4]) with mapi id 15.21.0315.016; Tue, 18 Aug 2026
+ 11:50:19 +0000
+Date: Tue, 18 Aug 2026 20:50:14 +0900
+From: Shin'ichiro Kawasaki <shinichiro.kawasaki@wdc.com>
+To: "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, 
+	"linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, 
+	nbd@other.debian.org, linux-rdma@vger.kernel.org
+Subject: blktests failures with v7.2 kernel
+Message-ID: <aoRGbVB70YCcxoxF@shinhome>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+X-ClientProxiedBy: TY4P301CA0050.JPNP301.PROD.OUTLOOK.COM
+ (2603:1096:405:36b::9) To SA1PR04MB10065.namprd04.prod.outlook.com
+ (2603:10b6:806:4dd::14)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-OriginatorOrg: Nvidia.com
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SA1PR04MB10065:EE_|BY5PR04MB7042:EE_
+X-MS-Office365-Filtering-Correlation-Id: d2460821-a0ba-4d6b-14a4-08defd1ee082
+WDCIPOUTBOUND: EOP-TRUE
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|19092799006|1800799024|376014|366016|23010399003|10067099003|56012099006|6133799003|3023799007|11063799006|18002099003;
+X-Microsoft-Antispam-Message-Info:
+	feC6SuUZUIuCaGC5jXGxVfArZ5x7pongxYWvpsRcuhN7IAzjU5hpneA/fmBSW1SH+LdjXbp0BA8S3nwic6g2Zh+cIJ4r7A0Hz/j5Sxw9SooBCTWjhTZqF8867F/Ot3N6Y5pONqiNKSwKPC2QhTA87dhoTJIC3JrKJKkCIW4FxKzjor62ZBDPEZ+Zk4pRRyxCCf0cZRcngYO8luIBf5MhpeUdWarfHhGXrfLWTBkUI7HA/OHDg+Cr0zi8CKgT4IM8gVjwBELuevNwDwKNQXosXVbwakjpgaYJBrEBOhQFYdk6uoe0wZ37Z+KC80PxZ1YAELFIITLYKCg+3yeMERbdxChluRiIR58sK8ngBEIQyV5GxRXB7vhsxykpv1PdaLxHpeL1MuFZG3ryoihdB6rgg7uhh9LUQJ6G9MoWj+fcZlf+6HcFuXGbbyHbXLizoL2tjk3bR842i1zEJBOOM9gHRvzsPwSs6pImjmX0v7yaV/jeRgIIdmy+1M1/5JGk/psRJhZslBpUMHq0I8fOl+wARRk2U/uu/UPMdOPmS51wWEpx4L1F0paI6gEJqXx0mzOSUJ2IQ4q7y36WZAEENllvNtMrAsW6XK0aLN/2oTyasT6hF4uLUMsRNcEMs0Y4zyTRrwuA968EbQmR7WT/Vn7yzAaknAUw+fHbnH7NKPSQzDk=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR04MB10065.namprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(19092799006)(1800799024)(376014)(366016)(23010399003)(10067099003)(56012099006)(6133799003)(3023799007)(11063799006)(18002099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?oJ/5SWLu2oGDGC53YEwER/m2N5qBz9JBvxQU0twXzXe23O3tpSbAxghRvdF/?=
+ =?us-ascii?Q?2cRDxcucDozIE/aSqsArdkm9wuNZsaC01czmd6hGsjVcB7aMF2NVEzvQYpNG?=
+ =?us-ascii?Q?KWU+dyiGJQRntIVxIf4QLkcbTU5VUiXQorGGrrYp7ec/70OruHtAiV+dH2r8?=
+ =?us-ascii?Q?aLd5ovqz090lk9R6REr+V8SEdkhj1RqMZ7Xmc9qHQBVouxaPpaD3K2T+qJiy?=
+ =?us-ascii?Q?Ubq3wpm3C5qtFXS8UQ1frx+2GtHeL8mKAtbcBdaTBGk19vspFdLbXEp7LNhn?=
+ =?us-ascii?Q?Xt+hP5afDqPHB3sxgQk9RnNtm+syT00ylCl1npnl6S0hBGdHeH3lylRmijHx?=
+ =?us-ascii?Q?DdaS+O3MqXdgbdXPU7rNDAXci/UqeYg/2ItYJOpp4Wl9JONOkb8PnVjtiewW?=
+ =?us-ascii?Q?57c0qdRawbpkwj8HBsHfVWew88LLCEAVkAlSp2oWt6f3rY7ZgXhOI9rJqP2o?=
+ =?us-ascii?Q?oofb3Falb8JC6TOCsOsuN36h8onbqo6HtJBjaAxNso3nZ8SBTqJfhzG8Jsuq?=
+ =?us-ascii?Q?8Vd323WONf9pbN1D6t811KyhwuqW4zuExfc3dkhLXQlZqiRgKL9U/dApWCQP?=
+ =?us-ascii?Q?fGm+lSgbysY0tceGflMda3OjGIyOSlUvypPRcq+uWw7hlfTWEYkb2stntslO?=
+ =?us-ascii?Q?ifiwnp2HGRYR+RoBT8Bd/2Odcj+Ds5CUSB2GQamUIgupvxTdXfqsNlD+BfH8?=
+ =?us-ascii?Q?m3DW95OW/6P/BZGzKhNh8XgAXE6Ltw55njH5dJOKAqSAJfH9vNbgbQOzLFGN?=
+ =?us-ascii?Q?rjMZYzUDyu04XfJlZGFtMyHQGTQmZZiEWVuOFlO+OjpR6/k/i3pDqFhEH7sM?=
+ =?us-ascii?Q?VCGdRvlwmP6SJiKewoqN41M5QjQM4i0z5x6/CqcPEfddGzV9Dtn+Csi7Xrya?=
+ =?us-ascii?Q?A48sh5BPUOqhhYid61s6dDvtZ3GxqbnS3I3IedPkGKAzkzMOW7N95LnMvCKy?=
+ =?us-ascii?Q?5QOGPQJUQPLpuIc51XwENxFCajIhXCESjed3MA6zbPhx1AoDPpN/WtAxmRs/?=
+ =?us-ascii?Q?NRfjtRl+q1y/FZAvSzAMQXlvGISULCF3oLF7G06Hz7v9itlXuYb7vqoAPfzP?=
+ =?us-ascii?Q?57yo6oizJou8+NHDjrhPZQr0BThEyYIq3tvlFfEiy6QhUZKK8vxVebx4agGS?=
+ =?us-ascii?Q?yiKJfHMS1aeNwY7OAtEM7OH5eAhXNP2M4iSHtDUbYV7zW1lyWPOppitSxubC?=
+ =?us-ascii?Q?PfiHCmaSEQxvMr5fDCvaSaVYU9xTPMfcR9M29l+ZmCp9za+IWSiWO/NICjSQ?=
+ =?us-ascii?Q?PaxLoLT0RLUpjWbule7oBk014eddWmXRBHMtDsp7ncgLn2WihUheUt+li3yV?=
+ =?us-ascii?Q?Sswo9cVCBB9UB/GggY+5tlNb/J0PnS3sTsPWVR4TBdK89cXvhjBR9tZnZNi8?=
+ =?us-ascii?Q?VBjYHDazaHhFaZmjSz6pqqyTmxhn+5+It26Z1PArjxAl+gFXuuzfkMSMTh3Q?=
+ =?us-ascii?Q?dT375NhL6H5tvXCuSVQZgHWLGrn/v33ELyyq+12H4J6RlksmdZvf/qTt8nMD?=
+ =?us-ascii?Q?RZtnJlgBONbClnOHg//h/xS5PsFynYPCj/xAxZi65ZsroOis9PKL5GzzKMbo?=
+ =?us-ascii?Q?GAIps85KZk15qImMGQCbJRb9WlGiHWOY3EvQ00wT7q+GP9VkQLNFfiH17mxW?=
+ =?us-ascii?Q?1bnGGYFBt0fj9BRzGlWXMlGVTbqcW9Pw+Bsk5iNO+Cp4H2PasNf7GsN9Tz7M?=
+ =?us-ascii?Q?ycpLmrFB/TBgab/6a6rKEK1ZRh81kIAzE1vPdd8Bw6Auw2AW3cujW9Lx5uVm?=
+ =?us-ascii?Q?9jQBJukkkqFG8Gyy0s44+nanvdI2EHw=3D?=
+X-Exchange-RoutingPolicyChecked:
+	jF6SebQF0rEdlMCz3YMMUlJQDqRlGe5BPLzm0zmTiQSQ7Zih9/HPy/cY1DCxxQ+/16emKwZLuUsck9Bd6ufGwOKBlOK9M2xrkw3XnFFABUrlFlymymjVVh73HNivdjHysXcWwo3kX8w5aaVkcE4mqnaJ6OeZe8oMIer/vKcRT485yT3QgSQEqYUg/l8yD4th2UsBmT1u/nQ0rZ3q12hazJf5TjEaBH8HlnFrkeS59AY7jdecaPD6WZ4qRNoH259Wm4PybBgRI2QYaD4I61e7MHmKlDigSONvEw84bYCKKNM2YYYu8hS3qReZy/H3dq7k0cwEzQA1QUJqv8LbEhN5bA==
+X-MS-Exchange-AntiSpam-ExternalHop-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-ExternalHop-MessageData-0:
+	ZfWiFkmZwy9DQif0TDd2h00naeWlNabvFBhy4Yv6YgCISFoG9HBhpk4sQ/7KTNepmtCU6qdfxh7zqUxTU2vyYFTiWStZM+8RTC2gMi3jZQYC2p7NSkLomwQEhlCIoEM48q38uL0AQ/wBqcOdzJi7KOEOMDjwN/8Cx8Ba4h2rj4OuMmrT+ALAXRjOeEn28ClDuFf46uZ0RqrzmXB0t7a8+CgOe3hTLZg1ZfywdfVfRi9oJqAQPRAzCsnOmUtfn88wLyb7B3hgL3w3Un1O4q1qlG8P2/dSlx+ECS0T1kcBLpdvmXBPtb7yotEqgv9UzvBKr3FJEZKjlOy8+7zXhIhS9O4WzsL18/OiZ1phoY1N4bLcbLTodryS4QC/SD7Y8vZH+HChTkK/QLgIHhsQI5HpXOSC7bEA9ywrPb9pO+PdL4Cu0rBjtfiBoMoD372fqkFY1pYWNhsa4bIoYcVoil4XQQ1/M17wT2NGSMajOJyCReMZczrpiqhbiaILDkC43nGF+/J2Xim+t1lMxuQbfl3UG3mVtCWz8gwHoW9ONB/1Bk4V2230TB8xRXtW1JNtkemLSghl+EA2EAdaDH41LbOZp40CAaNwsrLVVugR30zmEtpn0ZK/Lky+NRdwmlz+PGS1
+X-OriginatorOrg: wdc.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: d2460821-a0ba-4d6b-14a4-08defd1ee082
+X-MS-Exchange-CrossTenant-AuthSource: SA1PR04MB10065.namprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: DS0PR12MB7558.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: b0dc5b91-e4e7-4fbd-7eb0-08defd1822e9
-X-MS-Exchange-CrossTenant-originalarrivaltime: 18 Aug 2026 11:02:03.9438
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Aug 2026 11:50:19.1665
  (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: EiPFbQlfIWWXdCCBDlNn1dGtN+RozU+1gIOTRlf28OLEHol+s/HUbPMCVnN4mro17NuqB6LeQ71MHLJIHaBUdQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH8PR12MB7110
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: b61c8803-16f3-4c35-9b17-6f65f441df86
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: dI+2lO92QsvRzbQ+lXYjKOVY8g6CR7igFjccF07gZZ2/60SIARubdNf5Mwk/8/7TTUw/EkG/HVVq79iZrZPLD/HTkB8bgPuwxqbqcIVscxQ=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BY5PR04MB7042
 
-SU1PIGFueSBub24tY29uZm9ybWluZyB0YXJnZXQgdGhhdCBzZW5kcyBhbiB1bm5lY2Vzc2FyeSBy
-ZW1vdGUgaW52YWxpZGF0aW9uIGRlc2VydmVzIGEgZHJvcHBlZCBjb25uZWN0aW9uLg0KDQpTb21l
-dGhpbmcgbGlrZToNCg0Kc3RhdGljIGludCBpc2VyX2NoZWNrX3JlbW90ZV9pbnYoc3RydWN0IGlz
-ZXJfY29ubiAqaXNlcl9jb25uLCBzdHJ1Y3QgaWJfd2MgKndjLA0KICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgc3RydWN0IGlzY3NpX2hkciAqaGRyKQ0KICB7DQogICAgICAgIGlmICh3
-Yy0+d2NfZmxhZ3MgJiBJQl9XQ19XSVRIX0lOVkFMSURBVEUpIHsNCiAgICAgICAgICAgICAgICBz
-dHJ1Y3QgaXNjc2lfdGFzayAqdGFzazsNCiAgICAgICAgICAgICAgICB1MzIgcmtleSA9IHdjLT5l
-eC5pbnZhbGlkYXRlX3JrZXk7DQogIA0KICAgICAgICAgICAgICAgIGlzZXJfZGJnKCJjb25uICVw
-OiByZW1vdGUgaW52YWxpZGF0aW9uIGZvciBya2V5ICUjeFxuIiwNCiAgICAgICAgICAgICAgICAg
-ICAgICAgICBpc2VyX2Nvbm4sIHJrZXkpOw0KICANCiAgICAgICAgICAgICAgICBpZiAodW5saWtl
-bHkoIWlzZXJfY29ubi0+c25kX3dfaW52KSkNCiAgICAgICAgICAgICAgICAgICAgICAgIGdvdG8g
-YmFkX2ludjsNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA0KICAgICAgICAgICAg
-ICAgIHRhc2sgPSBpc2NzaV9pdHRfdG9fY3Rhc2soaXNlcl9jb25uLT5pc2NzaV9jb25uLCBoZHIt
-Pml0dCk7DQogICAgICAgICAgICAgICAgaWYgKGxpa2VseSh0YXNrKSkgew0KICAgICAgICAgICAg
-ICAgICAgICAgICAgc3RydWN0IGlzY3NpX2lzZXJfdGFzayAqaXNlcl90YXNrID0gdGFzay0+ZGRf
-ZGF0YTsNCiAgICAgICAgICAgICAgICAgICAgICAgIHN0cnVjdCBpc2VyX2ZyX2Rlc2MgKmRlc2M7
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA0K
-DQogICAgICAgICAgICAgICAgICAgICAgICBpZiAoaXNlcl90YXNrLT5kaXJbSVNFUl9ESVJfSU5d
-KSB7DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGRlc2MgPSBpc2VyX3Rhc2stPnJk
-bWFfcmVnW0lTRVJfRElSX0lOXS5kZXNjOw0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICBpZiAodW5saWtlbHkoIWRlc2MpKQ0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgIGdvdG8gYmFkX2ludjsNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgaWYg
-KHVubGlrZWx5KGlzZXJfaW52X2Rlc2MoZGVzYywgcmtleSkpKQ0KICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgIHJldHVybiAtRUlOVkFMOw0KICAgICAgICAgICAgICAgICAg
-ICAgICAgfQ0KICAgICAgICAgICAgICAgIA0KICAgICAgICAgICAgICAgICAgICAgICAgaWYgKGlz
-ZXJfdGFzay0+ZGlyW0lTRVJfRElSX09VVF0pIHsgDQogICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgIGRlc2MgPSBpc2VyX3Rhc2stPnJkbWFfcmVnW0lTRVJfRElSX09VVF0uZGVzYzsNCiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgaWYgKHVubGlrZWx5KCFkZXNjKSkNCiAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBnb3RvIGJhZF9pbnY7DQogICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIGlmICh1bmxpa2VseShpc2VyX2ludl9kZXNjKGRlc2Ms
-IHJrZXkpKSkNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4g
-LUVJTlZBTDsNCiAgICAgICAgICAgICAgICAgICAgICAgIH0gICAgICAgICAgICAgICANCiAgICAg
-ICAgICAgICAgICB9IGVsc2UgeyAgICAgICAgDQogICAgICAgICAgICAgICAgICAgICAgICBpc2Vy
-X2VycigiZmFpbGVkIHRvIGdldCB0YXNrIGZvciBpdHQ9JWRcbiIsIGhkci0+aXR0KTsNCiAgICAg
-ICAgICAgICAgICAgICAgICAgIHJldHVybiAtRUlOVkFMOw0KICAgICAgICAgICAgICAgIH0gICAg
-ICAgDQogICAgICAgIH0gICAgICAgICAgICAgICANCiAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgDQogICAgICAgIHJldHVybiAwOyAgICAgICAgICAgICAgIA0KICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIA0KICBiYWRfaW52OiAgICAgICAgICAgICAgICAgICAg
-ICANCiAgICAgICAgaXNlcl9lcnIoImNvbm4gJXA6IHVuZXhwZWN0ZWQgcmVtb3RlIGludmFsaWRh
-dGlvbiwgdGVybWluYXRpbmcgY29ubmVjdGlvblxuIiwNCiAgICAgICAgICAgICAgICAgaXNlcl9j
-b25uKTsgICAgDQogICAgICAgIHJldHVybiAtRVBST1RPOw0KICB9DQoNCi0tLS0tT3JpZ2luYWwg
-TWVzc2FnZS0tLS0tDQpGcm9tOiBZZWh5ZW9uZyBMZWUgPHlobGVlQGlzc2xhYi5rb3JlYS5hYy5r
-cj4gDQpTZW50OiBUdWVzZGF5LCAxOCBBdWd1c3QgMjAyNiA5OjI0DQpUbzogc2FnaUBncmltYmVy
-Zy5tZQ0KQ2M6IFllaHllb25nIExlZSA8eWhsZWVAaXNzbGFiLmtvcmVhLmFjLmtyPjsgTWF4IEd1
-cnRvdm95IDxtZ3VydG92b3lAbnZpZGlhLmNvbT47IGpnZ0B6aWVwZS5jYTsgbGVvbkBrZXJuZWwu
-b3JnOyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgbGludXgta2VybmVsQHZnZXIua2VybmVs
-Lm9yZzsgZGxlZGZvcmRAcmVkaGF0LmNvbQ0KU3ViamVjdDogUmU6IFtQQVRDSF0gSUIvaXNlcjog
-c2tpcCBhbiB1bnJlZ2lzdGVyZWQgZGlyZWN0aW9uIG9uIHJlbW90ZSBpbnZhbGlkYXRpb24NCg0K
-VGhlIEFJIHJldmlldyBvbiB0aGlzIHBhdGNoIGFza3MgdHdvIHRoaW5nczogd2hldGhlciBhIGJv
-Z3VzIHJlbW90ZSBpbnZhbGlkYXRpb24gaXMgbm93IHNpbGVudGx5IGFjY2VwdGVkLCBhbmQgd2hl
-dGhlciB0aGF0IGRlc3luY2hyb25pc2VzIHRoZSBNUiBzdGF0ZS4gIFRoZSBmaXJzdCBpcyB0cnVl
-IGJ5IGRlc2lnbjsgdGhlIHNlY29uZCBkb2VzIG5vdCBoYXBwZW4uDQoNCm5lZWRfaW52YWwgbGl2
-ZXMgaW4gdGhlIGliX21yIGluc2lkZSBzdHJ1Y3QgaXNlcl9mcl9kZXNjDQooaXNjc2lfaXNlci5o
-OjMyMCBhbmQgOjMzMykuICBXaXRoIG5vIGRlc2NyaXB0b3IgdGhlcmUgaXMgbm8gZmxhZyB0byBj
-bGVhciwgYW5kIHRoZSBjbGVhbnVwIHBhdGggYWxyZWFkeSByZXR1cm5zIGVhcmx5IG9uIHRoZSBz
-YW1lIGNvbmRpdGlvbiB0aGlzIHBhdGNoIGFkZHMgLSBpc2VyX3VucmVnX21lbV9mYXN0cmVnKCkg
-YXQgaXNlcl9tZW1vcnkuYzoxNTYuICBBIG5lZWRfaW52YWwgbGVmdCB0cnVlIGlzIGNsZWFyZWQg
-YnkgdGhlIG5leHQgcmVnaXN0cmF0aW9uLCB3aGljaCBwb3N0cyBMT0NBTF9JTlYgYWhlYWQgb2Yg
-dGhlIHJlZ2lzdHJhdGlvbiB3b3JrIHJlcXVlc3QgKGlzZXJfbWVtb3J5LmM6MzE2KS4NClRoZSBz
-dGF0ZSB0aGF0IHdvdWxkIGJlIHdyb25nIGlzIG5lZWRfaW52YWwgZmFsc2Ugd2l0aCBhIGxpdmUg
-TVIsIGFuZCBza2lwcGluZyBuZXZlciBjbGVhcnMgaXQuDQoNCldpdGggdGhlIGRlZmF1bHQgYWx3
-YXlzX3JlZ2lzdGVyLCBkZXNjIGlzIE5VTEwgb25seSBmb3IgYSB3cml0ZSBzZW50IGVudGlyZWx5
-IGFzIGltbWVkaWF0ZSBkYXRhIChpc2VyX21lbW9yeS5jOjM2NCwgaXNlcl9pbml0aWF0b3IuYzox
-MDUpLCBhbmQgdGhhdCBwYXRoIGFkdmVydGlzZXMgbm8gc3RhZyAoaXNlcl9pbml0aWF0b3IuYzox
-MTYpLCBzbyBhIGNvbmZvcm1pbmcgdGFyZ2V0IGhhcyBub3RoaW5nIHRvIGludmFsaWRhdGUgZm9y
-IHN1Y2ggYSB0YXNrLiAgUmV0dXJuaW5nIGFuIGVycm9yIHdvdWxkIGZhaWwgdGhlIHdob2xlIGNv
-bm5lY3Rpb24gKGlzZXJfaW5pdGlhdG9yLmM6NjU3KS4NCg0KVHdvIGNvcnJlY3Rpb25zIHRvIHdo
-YXQgSSB3cm90ZSBlYXJsaWVyLiAgVGhlIGNsYWltIHRoYXQgcmV0dXJuaW5nIGFuIGVycm9yIHdv
-dWxkIGJyZWFrIGEgYmlkaXJlY3Rpb25hbCBjb21tYW5kLCB3aGljaCBJIG1hZGUgdW5kZXIgdGhl
-IC0tLSBhbmQgYWdhaW4gaW4gYSBmb2xsb3ctdXAgbm90ZSwgaXMgd3Jvbmc6IElTQ1NJX0ZMQUdf
-Q01EX1JFQUQgYW5kIElTQ1NJX0ZMQUdfQ01EX1dSSVRFIGFyZSBzZXQgaW4gb25lIGlmL2Vsc2Ug
-aW4gbGliaXNjc2kuYzozNjgtNDE3LCBzbyB0aGV5IGNhbm5vdCBib3RoIGJlIHNldC4gIEFuZCB0
-aGUgZWlnaHQtdmVyc3VzLTEzMiBhbmQgdGVuLXZlcnN1cy10aHJlZSBjb3VudHMgaW4gdGhhdCBu
-b3RlIHdlcmUgZWFjaCBmcm9tIGEgc2luZ2xlIHJ1bjsgdHdvIG90aGVyIHJ1bnMgb2YgdGhlIGVy
-cm9yLXJldHVybmluZyBidWlsZCBzYXcgdGhyZWUgaW52YWxpZGF0aW9ucyBhbmQgbm8gcmVqZWN0
-aW9ucy4NCg0KQmVzdCByZWdhcmRzLA0KDQpZZWh5ZW9uZyBMZWUNCg==
+Hi all,
+
+I ran the latest blktests (git hash: ddc0babaccc4) with the v7.2 kernel. I
+observed 4 failures listed below. Comparing with the previous report for the
+v7.2-rc1 kernel [1], 4 failures are no longer observed (block/005,
+nvme/033,036,037, nvme/058 fc transport and nvme/063 tcp transport), and 2
+failures are new (nvme/068 and nvme/069).
+
+[1] https://lore.kernel.org/linux-block/akryKgCjof_7d9na@shinmob/
+
+
+List of failures
+================
+#1: nvme/061 (rdma transport, siw driver)(kmemleak)
+#2: nvme/062 (tcp transport)
+#3: nvme/068 (new)
+#4: nvme/069 (new)
+
+
+Failure description
+===================
+
+#1: nvme/061 (rdma transport, siw driver)(kmemleak)
+
+    When the test case nvme/061 is repeated twice for the rdma transport and the
+    siw driver on the kernel with CONFIG_DEBUG_KMEMLEAK enabled, it causes
+    kmemleak that is detected at the beginning of the 2nd run. A fix patch is
+    queued for v7.3-rc1 kernel [2].
+
+    [2] https://lore.kernel.org/linux-nvme/20260629051529.810925-1-shinichiro.kawasaki@wdc.com/
+
+#2: nvme/062 (tcp transport)
+
+    The test case nvme/062 fails for tcp transport due to the lockdep WARN
+    related to the three locks root->kernfs_rwsem, sparse_irq_lock and
+    root->kernfs_supers_rwsem [1]. Fix discussion is ongoing [3] (Thank goes to
+    Xixin Liu).
+
+    [3] https://lore.kernel.org/linux-nvme/cover.1782436781.git.liuxixin@kylinos.cn/
+
+
+#3: nvme/068 (new)
+
+    When it is repeated several times, the test case nvme/068 fails with the
+    message below:
+
+    nvme/068 (tr=rdma) (NVMe multipath delayed removal test)     [failed]
+        runtime  10.979s  ...  10.975s
+        --- tests/nvme/068.out      2026-05-21 11:44:28.070959369 +0900
+        +++ /home/shin/Blktests/blktests/results/nodev_tr_rdma/nvme/068.out.bad     2026-08-18 17:51:30.262228567 +0900
+        @@ -1,3 +1,4 @@
+         Running nvme/068
+         pwrite: Input/output error
+        +module refcount not as original
+         Test complete
+
+    The failure is spoladic. I'm not sure if recent kernel changes triggered
+    the failure or not.
+
+    The failure looks dependent on test nodes. It was observed with loop
+    transport and rdma transport, but was not observed with tcp transport.
+    This needs further debug.
+
+#4: nvme/069 (new)
+
+    The test case nvme/069 fails with the KASAN slab-use-after-free in
+    cdev_put() regardless of transport types [4]. This failure is expected since
+    the test case was added to confirm the kernel side fix [5] for the failure.
+    The fix is queued for v7.3-rc1 kernel.
+
+    [5] https://lore.kernel.org/linux-nvme/20260713104238.3034640-1-john.g.garry@oracle.com/
+
+
+[4] dmesg during nvme/069
+
+Aug 18 15:18:43 testnode2 unknown: run blktests nvme/069 at 2026-08-18 15:18:43
+Aug 18 15:18:43 testnode2 kernel: loop0: detected capacity change from 0 to 2097152
+Aug 18 15:18:43 testnode2 kernel: nvmet: adding nsid 1 to subsystem blktests-subsystem-1
+Aug 18 15:18:43 testnode2 kernel: nvmet: Created nvm controller 1 for subsystem blktests-subsystem-1 for NQN nqn.2014-08.org.nvmexpress:uuid:0f01fb42-9f7f-4856-b0b3-51e60b8de349.
+Aug 18 15:18:43 testnode2 kernel: nvme nvme5: creating 4 I/O queues.
+Aug 18 15:18:43 testnode2 kernel: nvme nvme5: new ctrl: "blktests-subsystem-1"
+Aug 18 15:18:44 testnode2 kernel: nvme nvme5: Removing ctrl: NQN "blktests-subsystem-1"
+Aug 18 15:18:45 testnode2 kernel: ==================================================================
+Aug 18 15:18:45 testnode2 kernel: BUG: KASAN: slab-use-after-free in cdev_put+0x54/0x60
+Aug 18 15:18:45 testnode2 kernel: Read of size 8 at addr ffff888128968170 by task nvme-delay-ioct/1178
+Aug 18 15:18:45 testnode2 kernel: 
+Aug 18 15:18:45 testnode2 kernel: CPU: 2 UID: 0 PID: 1178 Comm: nvme-delay-ioct Not tainted 7.2.0 #660 PREEMPT(full) 
+Aug 18 15:18:45 testnode2 kernel: Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.17.0-10.fc44 06/10/2025
+Aug 18 15:18:45 testnode2 kernel: Call Trace:
+Aug 18 15:18:45 testnode2 kernel:  <TASK>
+Aug 18 15:18:45 testnode2 kernel:  dump_stack_lvl+0x6a/0x90
+Aug 18 15:18:45 testnode2 kernel:  print_report+0x14b/0x4b0
+Aug 18 15:18:45 testnode2 kernel:  ? __virt_addr_valid+0x150/0x4d0
+Aug 18 15:18:45 testnode2 kernel:  ? __virt_addr_valid+0x228/0x4d0
+Aug 18 15:18:45 testnode2 kernel:  kasan_report+0xd5/0x100
+Aug 18 15:18:45 testnode2 kernel:  ? cdev_put+0x54/0x60
+Aug 18 15:18:45 testnode2 kernel:  ? cdev_put+0x54/0x60
+Aug 18 15:18:45 testnode2 kernel:  cdev_put+0x54/0x60
+Aug 18 15:18:45 testnode2 kernel:  __fput+0x749/0xae0
+Aug 18 15:18:45 testnode2 kernel:  fput_close_sync+0xda/0x1b0
+Aug 18 15:18:45 testnode2 kernel:  ? __pfx_fput_close_sync+0x10/0x10
+Aug 18 15:18:45 testnode2 kernel:  ? do_raw_spin_unlock+0x55/0x230
+Aug 18 15:18:45 testnode2 kernel:  __x64_sys_close+0x87/0xf0
+Aug 18 15:18:45 testnode2 kernel:  do_syscall_64+0xdf/0x790
+Aug 18 15:18:45 testnode2 kernel:  ? lock_acquire+0x199/0x320
+Aug 18 15:18:45 testnode2 kernel:  ? lock_acquire+0x1a9/0x320
+Aug 18 15:18:45 testnode2 kernel:  ? find_held_lock+0x2b/0x80
+Aug 18 15:18:45 testnode2 kernel:  ? nvme_ns_head_chr_ioctl+0x142/0x2e0 [nvme_core]
+Aug 18 15:18:45 testnode2 kernel:  ? lock_release+0x1b5/0x340
+Aug 18 15:18:45 testnode2 kernel:  ? nvme_numa_path+0xd5/0x190 [nvme_core]
+Aug 18 15:18:45 testnode2 kernel:  ? nvme_ns_head_chr_ioctl+0x152/0x2e0 [nvme_core]
+Aug 18 15:18:45 testnode2 kernel:  ? rcu_is_watching+0x11/0xb0
+Aug 18 15:18:45 testnode2 kernel:  ? do_syscall_64+0x1ec/0x790
+Aug 18 15:18:45 testnode2 kernel:  ? trace_hardirqs_on_prepare+0x139/0x180
+Aug 18 15:18:45 testnode2 kernel:  ? lockdep_hardirqs_on+0x8c/0x130
+Aug 18 15:18:45 testnode2 kernel:  ? entry_SYSCALL_64_after_hwframe+0x76/0x7e
+Aug 18 15:18:45 testnode2 kernel:  ? do_syscall_64+0x20a/0x790
+Aug 18 15:18:45 testnode2 kernel:  ? rcu_read_unlock+0x17/0x60
+Aug 18 15:18:45 testnode2 kernel:  ? lock_release+0x1b5/0x340
+Aug 18 15:18:45 testnode2 kernel:  ? find_held_lock+0x2b/0x80
+Aug 18 15:18:45 testnode2 kernel:  ? exc_page_fault+0x94/0x140
+Aug 18 15:18:45 testnode2 kernel:  ? lock_release+0x1b5/0x340
+Aug 18 15:18:45 testnode2 kernel:  ? rcu_is_watching+0x11/0xb0
+Aug 18 15:18:45 testnode2 kernel:  ? trace_hardirqs_on+0x14/0x190
+Aug 18 15:18:45 testnode2 kernel:  ? preempt_count_add+0x7f/0x190
+Aug 18 15:18:45 testnode2 kernel:  ? do_syscall_64+0x5d/0x790
+Aug 18 15:18:45 testnode2 kernel:  ? do_syscall_64+0x8d/0x790
+Aug 18 15:18:45 testnode2 kernel:  ? irqentry_exit+0xfc/0x810
+Aug 18 15:18:45 testnode2 kernel:  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+Aug 18 15:18:45 testnode2 kernel: RIP: 0033:0x7fa5379ab08e
+Aug 18 15:18:45 testnode2 kernel: Code: 4d 89 d8 e8 94 bd 00 00 4c 8b 5d f8 41 8b 93 08 03 00 00 59 5e 48 83 f8 fc 74 11 c9 c3 0f 1f 80 00 00 00 00 48 8b 45 10 0f 05 <c9> c3 83 e2 39 83 fa 08 75 e7 e8 03 ff ff ff 0f 1f 00 f3 0f 1e fa
+Aug 18 15:18:45 testnode2 kernel: RSP: 002b:00007fffd32959b0 EFLAGS: 00000202 ORIG_RAX: 0000000000000003
+Aug 18 15:18:45 testnode2 kernel: RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007fa5379ab08e
+Aug 18 15:18:45 testnode2 kernel: RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000003
+Aug 18 15:18:45 testnode2 kernel: RBP: 00007fffd32959c0 R08: 0000000000000000 R09: 0000000000000000
+Aug 18 15:18:45 testnode2 kernel: R10: 0000000000000000 R11: 0000000000000202 R12: 0000000000000001
+Aug 18 15:18:45 testnode2 kernel: R13: 0000000000000002 R14: 00007fa537b87000 R15: 0000000000402e00
+Aug 18 15:18:45 testnode2 kernel:  </TASK>
+Aug 18 15:18:45 testnode2 kernel: 
+Aug 18 15:18:45 testnode2 kernel: Allocated by task 88:
+Aug 18 15:18:45 testnode2 kernel:  kasan_save_stack+0x2b/0x50
+Aug 18 15:18:45 testnode2 kernel:  kasan_save_track+0x10/0x30
+Aug 18 15:18:45 testnode2 kernel:  __kasan_kmalloc+0x96/0xb0
+Aug 18 15:18:45 testnode2 kernel:  __kmalloc_noprof+0x2fa/0x870
+Aug 18 15:18:45 testnode2 kernel:  nvme_alloc_ns+0x8af/0x2ce0 [nvme_core]
+Aug 18 15:18:45 testnode2 kernel:  nvme_scan_ns+0x647/0x7b0 [nvme_core]
+Aug 18 15:18:45 testnode2 kernel:  async_run_entry_fn+0x93/0x550
+Aug 18 15:18:45 testnode2 kernel:  process_one_work+0x8b2/0x15e0
+Aug 18 15:18:45 testnode2 kernel:  worker_thread+0x5fd/0xfe0
+Aug 18 15:18:45 testnode2 kernel:  kthread+0x367/0x460
+Aug 18 15:18:45 testnode2 kernel:  ret_from_fork+0x655/0x9d0
+Aug 18 15:18:45 testnode2 kernel:  ret_from_fork_asm+0x1a/0x30
+Aug 18 15:18:45 testnode2 kernel: 
+Aug 18 15:18:45 testnode2 kernel: Freed by task 1178:
+Aug 18 15:18:45 testnode2 kernel:  kasan_save_stack+0x2b/0x50
+Aug 18 15:18:45 testnode2 kernel:  kasan_save_track+0x10/0x30
+Aug 18 15:18:45 testnode2 kernel:  kasan_save_free_info+0x37/0x60
+Aug 18 15:18:45 testnode2 kernel:  __kasan_slab_free+0x68/0x90
+Aug 18 15:18:45 testnode2 kernel:  kfree+0x273/0x6e0
+Aug 18 15:18:45 testnode2 kernel:  nvme_ns_head_chr_release+0x3d/0x60 [nvme_core]
+Aug 18 15:18:45 testnode2 kernel:  __fput+0x36f/0xae0
+Aug 18 15:18:45 testnode2 kernel:  fput_close_sync+0xda/0x1b0
+Aug 18 15:18:45 testnode2 kernel:  __x64_sys_close+0x87/0xf0
+Aug 18 15:18:45 testnode2 kernel:  do_syscall_64+0xdf/0x790
+Aug 18 15:18:45 testnode2 kernel:  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+Aug 18 15:18:45 testnode2 kernel: 
+Aug 18 15:18:45 testnode2 kernel: Last potentially related work creation:
+Aug 18 15:18:45 testnode2 kernel:  kasan_save_stack+0x2b/0x50
+Aug 18 15:18:45 testnode2 kernel:  kasan_record_aux_stack+0xbb/0xf0
+Aug 18 15:18:45 testnode2 kernel:  insert_work+0x3c/0x2f0
+Aug 18 15:18:45 testnode2 kernel:  __queue_work+0x9e6/0xf50
+Aug 18 15:18:45 testnode2 kernel:  queue_work_on+0xc8/0xd0
+Aug 18 15:18:45 testnode2 kernel:  kblockd_schedule_work+0x19/0x30
+Aug 18 15:18:45 testnode2 kernel:  nvme_mpath_put_disk+0x46/0xb0 [nvme_core]
+Aug 18 15:18:45 testnode2 kernel:  nvme_free_ns_head+0x22/0x170 [nvme_core]
+Aug 18 15:18:45 testnode2 kernel:  nvme_ns_head_chr_release+0x3d/0x60 [nvme_core]
+Aug 18 15:18:45 testnode2 kernel:  __fput+0x36f/0xae0
+Aug 18 15:18:45 testnode2 kernel:  fput_close_sync+0xda/0x1b0
+Aug 18 15:18:45 testnode2 kernel:  __x64_sys_close+0x87/0xf0
+Aug 18 15:18:45 testnode2 kernel:  do_syscall_64+0xdf/0x790
+Aug 18 15:18:45 testnode2 kernel:  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+Aug 18 15:18:45 testnode2 kernel: 
+Aug 18 15:18:45 testnode2 kernel: Second to last potentially related work creation:
+Aug 18 15:18:45 testnode2 kernel:  kasan_save_stack+0x2b/0x50
+Aug 18 15:18:45 testnode2 kernel:  kasan_record_aux_stack+0xbb/0xf0
+Aug 18 15:18:45 testnode2 kernel:  insert_work+0x3c/0x2f0
+Aug 18 15:18:45 testnode2 kernel:  __queue_work+0x9e6/0xf50
+Aug 18 15:18:45 testnode2 kernel:  queue_work_on+0xc8/0xd0
+Aug 18 15:18:45 testnode2 kernel:  kblockd_schedule_work+0x19/0x30
+Aug 18 15:18:45 testnode2 kernel:  nvme_remove_head+0x40/0xc0 [nvme_core]
+Aug 18 15:18:45 testnode2 kernel:  nvme_ns_remove+0x50c/0x9e0 [nvme_core]
+Aug 18 15:18:45 testnode2 kernel:  nvme_remove_namespaces+0x289/0x3f0 [nvme_core]
+Aug 18 15:18:45 testnode2 kernel:  nvme_do_delete_ctrl+0xf6/0x160 [nvme_core]
+Aug 18 15:18:45 testnode2 kernel:  nvme_delete_ctrl_sync.cold+0x8/0xd [nvme_core]
+Aug 18 15:18:45 testnode2 kernel:  nvme_sysfs_delete+0xb7/0xe0 [nvme_core]
+Aug 18 15:18:45 testnode2 kernel:  kernfs_fop_write_iter+0x3d6/0x5e0
+Aug 18 15:18:45 testnode2 kernel:  vfs_write+0x4b3/0xf40
+Aug 18 15:18:45 testnode2 kernel:  ksys_write+0x112/0x250
+Aug 18 15:18:45 testnode2 kernel:  do_syscall_64+0xdf/0x790
+Aug 18 15:18:45 testnode2 kernel:  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+Aug 18 15:18:45 testnode2 kernel: 
+Aug 18 15:18:45 testnode2 kernel: The buggy address belongs to the object at ffff888128968000
+                                   which belongs to the cache kmalloc-4k of size 4096
+Aug 18 15:18:45 testnode2 kernel: The buggy address is located 368 bytes inside of
+                                   freed 4096-byte region [ffff888128968000, ffff888128969000)
+Aug 18 15:18:45 testnode2 kernel: 
+Aug 18 15:18:45 testnode2 kernel: The buggy address belongs to the physical page:
+Aug 18 15:18:45 testnode2 kernel: page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x128968
+Aug 18 15:18:45 testnode2 kernel: head: order:3 mapcount:0 entire_mapcount:0 nr_pages_mapped:0 pincount:0
+Aug 18 15:18:45 testnode2 kernel: flags: 0x17ffffc0000040(head|node=0|zone=2|lastcpupid=0x1fffff)
+Aug 18 15:18:45 testnode2 kernel: page_type: f5(slab)
+Aug 18 15:18:45 testnode2 kernel: raw: 0017ffffc0000040 ffff888100043040 dead000000000100 dead000000000122
+Aug 18 15:18:45 testnode2 kernel: raw: 0000000000000000 0000000800040004 00000000f5000000 0000000000000000
+Aug 18 15:18:45 testnode2 kernel: head: 0017ffffc0000040 ffff888100043040 dead000000000100 dead000000000122
+Aug 18 15:18:45 testnode2 kernel: head: 0000000000000000 0000000800040004 00000000f5000000 0000000000000000
+Aug 18 15:18:45 testnode2 kernel: head: 0017ffffc0000003 fffffffffffffe01 00000000ffffffff 00000000ffffffff
+Aug 18 15:18:45 testnode2 kernel: head: ffffffffffffffff 0000000000000000 00000000ffffffff 0000000000000008
+Aug 18 15:18:45 testnode2 kernel: page dumped because: kasan: bad access detected
+Aug 18 15:18:45 testnode2 kernel: 
+Aug 18 15:18:45 testnode2 kernel: Memory state around the buggy address:
+Aug 18 15:18:45 testnode2 kernel:  ffff888128968000: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+Aug 18 15:18:45 testnode2 kernel:  ffff888128968080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+Aug 18 15:18:45 testnode2 kernel: >ffff888128968100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+Aug 18 15:18:45 testnode2 kernel:                                                              ^
+Aug 18 15:18:45 testnode2 kernel:  ffff888128968180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+Aug 18 15:18:45 testnode2 kernel:  ffff888128968200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+Aug 18 15:18:45 testnode2 kernel: ==================================================================
+Aug 18 15:18:45 testnode2 kernel: Disabling lock debugging due to kernel taint
