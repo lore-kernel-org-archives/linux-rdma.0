@@ -1,80 +1,137 @@
-Received: from outbound.baidu.com (mx16.baidu.com [111.202.115.101])
-	by smtp.subspace.kernel.org (Postfix) with SMTP id 0A5BD470E8C;
-	Tue, 18 Aug 2026 12:25:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=111.202.115.101
+Received: from canpmsgout04.his.huawei.com (canpmsgout04.his.huawei.com [113.46.200.219])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8771446EC9B;
+	Tue, 18 Aug 2026 12:39:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.219
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787055984; cv=none; b=cJOKkQCxPSqKb6GYfj5B9vUbozAI2qryj1TL5BMTdjiKza5RptEwZxzlgdiUFE/MDHO+boDvgzLAYvw23Mmjb7jaC7U4LpFeMP1Gzx60IVyWE26igzaywBYyvN3qlO8E7gnOKGwE9xdOxoKFWgqiol57kPRVv8QySl1wgn2BLaw=
+	t=1787056795; cv=none; b=oxETGe5fu8kAgvAZnveSaRVrxOnTKIUborQXvUwPctexbrAR1C33QniHdJy3nP05vGhVDO3TuQ3OMNzew8EAsKchveK76cC8t+KqJRRJnh7li3CYd2hTXhubJCObjytHB5kP4Fl2eyrVFl/GnAznyr4Zl1LVx4MPqM9IBiTW85w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787055984; c=relaxed/simple;
-	bh=l4oilj3pklHTohEIxYJcX9YNcefRn1Wybnlq+apO7Zo=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=DWMAi8RRag7MRzaTeRNdo7BakDIxqAXsnogl99LFn+aSD6AGijhV4sIYz/hsl7rfPr1Gf5wpc5S7RKz7hRg5utL/pEpexqoHU7Edy0PLcpZCKEf3m5p2Cis3sD3lkswOHke+G+zolA/izmFEWK+CUb7rd4gdLStLzHw3cZ3WfJk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com; spf=pass smtp.mailfrom=baidu.com; dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b=eBxtgNw+; arc=none smtp.client-ip=111.202.115.101
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baidu.com
+	s=arc-20240116; t=1787056795; c=relaxed/simple;
+	bh=pZC195ubo9vC9qIqjVGMk3pL3WHwKK+nlWXXlxb8KW4=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=FjstNLCzzAIc1l8zeBH0EgDwLmd1LznU0WaIEdeYUaVoi9WjnMU9AlPrKAOcDp3LZaUdeqmAwxnGfSwPJNwx2iGF8czCSf+ffddbMTPKhAwDOZ4eR7ueBNXugvdPfcupj/CXHUCok/kDUq2QtPP/hHcD+CL3rEjN/CGHdxZVlFw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=cJGXOOz7; arc=none smtp.client-ip=113.46.200.219
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b="eBxtgNw+"
-X-MD-Sfrom: lirongqing@baidu.com
-X-MD-SrcIP: 172.31.50.47
-From: lirongqing <lirongqing@baidu.com>
-To: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
-	Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, Andrew Lunn
-	<andrew+netdev@lunn.ch>, "David S . Miller" <davem@davemloft.net>, Eric
- Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
-	<pabeni@redhat.com>, <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>
-CC: Li RongQing <lirongqing@baidu.com>
-Subject: [PATCH, net-next] net/mlx5: Use kfree() to match kzalloc_obj() in mlx5_events_cleanup()
-Date: Tue, 18 Aug 2026 20:25:30 +0800
-Message-ID: <20260818122530.1726-1-lirongqing@baidu.com>
-X-Mailer: git-send-email 2.17.1
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="cJGXOOz7"
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=61EB7xd78VmsW3Vtne3/GVzkEJHCsedf1b4wP+cKgAc=;
+	b=cJGXOOz7g4QJkUJsl3S6q/OHVIO2OpSQ12Gwnvx/LDfB7j2e9EmtE+wl+FvTTaNmlXxPZBSoM
+	KNe7EYBgpJaWfulSYLlXHEJmvcN4dYRcyiGIBUJ8QEQpm3tmfYJh6RI69VsVdB7Pf0ztoogoZH+
+	DH6PmEGQgvfg2NxnkDJIw3E=
+Received: from mail.maildlp.com (unknown [172.19.163.104])
+	by canpmsgout04.his.huawei.com (SkyGuard) with ESMTPS id 4hPTX46pPgz1prKd;
+	Tue, 18 Aug 2026 20:28:52 +0800 (CST)
+Received: from kwepemo200010.china.huawei.com (unknown [7.202.195.178])
+	by mail.maildlp.com (Postfix) with ESMTPS id BC10A4058C;
+	Tue, 18 Aug 2026 20:39:35 +0800 (CST)
+Received: from huawei.com (10.44.142.85) by kwepemo200010.china.huawei.com
+ (7.202.195.178) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.45; Tue, 18 Aug
+ 2026 20:39:34 +0800
+From: Qi Xi <xiqi2@huawei.com>
+To: <akpm@linux-foundation.org>, <vbabka@kernel.org>
+CC: <longli@microsoft.com>, <kotaranov@microsoft.com>,
+	<jan.kiszka@siemens.com>, <kbingham@kernel.org>, <surenb@google.com>,
+	<mhocko@suse.com>, <brendan.jackman@linux.dev>, <hannes@cmpxchg.org>,
+	<ziy@nvidia.com>, <linux-hyperv@vger.kernel.org>,
+	<linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>, <linux-mm@kvack.org>,
+	<linux-kernel@vger.kernel.org>, <sunnanyong@huawei.com>,
+	<wangkefeng.wang@huawei.com>, <xiqi2@huawei.com>
+Subject: [PATCH] mm: drop stale MAX_ORDER references
+Date: Tue, 18 Aug 2026 20:24:08 +0800
+Message-ID: <20260818122408.4182417-1-xiqi2@huawei.com>
+X-Mailer: git-send-email 2.33.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-ClientProxiedBy: bjhj-exc4.internal.baidu.com (172.31.3.14) To
- bjkjy-exc3.internal.baidu.com (172.31.50.47)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=baidu.com;
-	s=selector1; t=1787055942;
-	bh=VqwHp8Rz8O6HJunEnlZZ2wIJnnfHdMhus09zZg0PDRk=;
-	h=From:To:CC:Subject:Date:Message-ID:Content-Type;
-	b=eBxtgNw+oyTANZg/sVKvkjd+Xl3CW+5l7bGW/h57XhUqEKurqHKQAvx7zvEQd4oEQ
-	 lGUvLWIgQcCo2XXzdpFr5BBdq4ErcbSBd/7w/70vfuPuiNg5z3buoVm2Y1KeGTZtO5
-	 kG9lTbvwB9H0tk5+FZzkU5+JNq7zZBsTGWd1TY/i15VAojCiybym1E3mpwsblOe/0n
-	 QVCPR9ymhvPgZlHsbmj8aqsJsv9baf6+TlV4MTFAzYqSP6gOb6pSVaYabO3/Sr+IDM
-	 mGCa2f0SBPYmFFMbZ7uUu2PHCJgj5UlP998EAPSxj8C6Qc7bS/JgPSyzyZAsbgKvB8
-	 hCvPnsClm26ww==
+X-ClientProxiedBy: kwepems100001.china.huawei.com (7.221.188.238) To
+ kwepemo200010.china.huawei.com (7.202.195.178)
 
-From: Li RongQing <lirongqing@baidu.com>
+The treewide rename in commit 5e0a760b4441 ("mm, treewide: rename
+MAX_ORDER to MAX_PAGE_ORDER") left a few spots still using the old
+name:
 
-dev->priv.events is allocated in mlx5_events_init() with kzalloc_obj(),
-which is a kmalloc-family allocator, so it must be released with kfree().
+  - two comments in include/net/mana/mana.h and mm/page_alloc.c;
+  - the gdb helper scripts/gdb/linux/mm.py, where self.MAX_ORDER is
+    a local mirror of the kernel's MAX_ORDER define.
 
-kvfree() happens to work here because it falls back to kfree() for
-non-vmalloc addresses, but it is semantically imprecise. Use kfree() to
-correctly pair with the allocation and to match the error path in
-mlx5_events_init(), which already uses kfree(events).
+Rename the leftover instances to MAX_PAGE_ORDER so the tree is
+consistent.
 
-Signed-off-by: Li RongQing <lirongqing@baidu.com>
+No functional changes.
+
+Signed-off-by: Qi Xi <xiqi2@huawei.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/events.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/net/mana/mana.h | 4 ++--
+ mm/page_alloc.c         | 2 +-
+ scripts/gdb/linux/mm.py | 8 ++++----
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/events.c b/drivers/net/ethernet/mellanox/mlx5/core/events.c
-index 4d7f35b..fc5ecce 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/events.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/events.c
-@@ -396,7 +396,7 @@ int mlx5_events_init(struct mlx5_core_dev *dev)
- void mlx5_events_cleanup(struct mlx5_core_dev *dev)
- {
- 	destroy_workqueue(dev->priv.events->wq);
--	kvfree(dev->priv.events);
-+	kfree(dev->priv.events);
- }
+diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
+index 04acb6791dbd..1d5bed71d6a7 100644
+--- a/include/net/mana/mana.h
++++ b/include/net/mana/mana.h
+@@ -40,8 +40,8 @@ enum TRI_STATE {
+ #define COMP_ENTRY_SIZE 64
  
- void mlx5_events_start(struct mlx5_core_dev *dev)
+ /* This Max value for RX buffers is derived from __alloc_page()'s max page
+- * allocation calculation. It allows maximum 2^(MAX_ORDER -1) pages. RX buffer
+- * size beyond this value gets rejected by __alloc_page() call.
++ * allocation calculation. It allows maximum 2^(MAX_PAGE_ORDER -1) pages. RX
++ * buffer size beyond this value gets rejected by __alloc_page() call.
+  */
+ #define MAX_RX_BUFFERS_PER_QUEUE 8192
+ #define DEF_RX_BUFFERS_PER_QUEUE 1024
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index ee902a468c2f..42b5b41432c5 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -7803,7 +7803,7 @@ static bool cond_accept_memory(struct zone *zone, unsigned int order,
+ 	/*
+ 	 * Watermarks have not been initialized yet.
+ 	 *
+-	 * Accepting one MAX_ORDER page to ensure progress.
++	 * Accepting one MAX_PAGE_ORDER page to ensure progress.
+ 	 */
+ 	if (!wmark)
+ 		return try_to_accept_memory_one(zone);
+diff --git a/scripts/gdb/linux/mm.py b/scripts/gdb/linux/mm.py
+index dffadccbb01d..28d33624c38b 100644
+--- a/scripts/gdb/linux/mm.py
++++ b/scripts/gdb/linux/mm.py
+@@ -56,7 +56,7 @@ class x86_page_ops():
+ 
+         self.MAX_PHYSMEM_BITS = 46
+         self.SECTION_SIZE_BITS = 27
+-        self.MAX_ORDER = 10
++        self.MAX_PAGE_ORDER = 10
+ 
+         self.SECTIONS_SHIFT = self.MAX_PHYSMEM_BITS - self.SECTION_SIZE_BITS
+         self.NR_MEM_SECTIONS = 1 << self.SECTIONS_SHIFT
+@@ -233,11 +233,11 @@ class aarch64_page_ops():
+         self.SECTIONS_SHIFT = self.MAX_PHYSMEM_BITS - self.SECTION_SIZE_BITS
+ 
+         if str(constants.LX_CONFIG_ARCH_FORCE_MAX_ORDER).isdigit():
+-            self.MAX_ORDER = constants.LX_CONFIG_ARCH_FORCE_MAX_ORDER
++            self.MAX_PAGE_ORDER = constants.LX_CONFIG_ARCH_FORCE_MAX_ORDER
+         else:
+-            self.MAX_ORDER = 10
++            self.MAX_PAGE_ORDER = 10
+ 
+-        self.MAX_ORDER_NR_PAGES = 1 << (self.MAX_ORDER)
++        self.MAX_ORDER_NR_PAGES = 1 << (self.MAX_PAGE_ORDER)
+         self.PFN_SECTION_SHIFT = self.SECTION_SIZE_BITS - self.PAGE_SHIFT
+         self.NR_MEM_SECTIONS = 1 << self.SECTIONS_SHIFT
+         self.PAGES_PER_SECTION = 1 << self.PFN_SECTION_SHIFT
 -- 
-2.9.4
+2.33.0
 
