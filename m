@@ -1,66 +1,34 @@
-Received: from mail-pl1-f178.google.com (mail-pl1-f178.google.com [209.85.214.178])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 865D12D5937
-	for <linux-rdma@vger.kernel.org>; Tue, 18 Aug 2026 17:22:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 027AA226D18;
+	Tue, 18 Aug 2026 17:39:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787073764; cv=none; b=VFRpZwOwYsSIwRUCe4vPRspoOjWKvNMav03ScmfP4uOFbjfhPnOSa6GGpBaPNYhtxs4Bw4F7hIGDwVTCENXoFwqMMA8Xb1RnXIJOA+tYPLTXB3YmloTDK7mqXQ6TAKXb2KVPFT5Ek1o2hKu9rYdgfkZGYiS/1riyFmAUAZgn+a4=
+	t=1787074745; cv=none; b=m19hjx4EgH3cjbg6k+QSQqVWgIJNZJSXQ0Gvwt7mBNeX1+iWnFlu+SV999rwj6a+82UdAQ5emOwTwJUZzi+/9LVaFEYRDFxNoX//dZTK91D3e050r7hnVOIznYkfpH3SooI62vEU4Umw9ZcU0qaHyOSORZJmRPVvT/6FElSAEOo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787073764; c=relaxed/simple;
-	bh=5H3EQ0QLOVKmjzVTzb7F/SzHLCB2HD4fukmL026jYpI=;
-	h=Content-Type:MIME-Version:From:To:Cc:Subject:Date:Message-ID:
-	 In-Reply-To:References; b=Miv0bEuZ/9p4t1rcMSgTX01u3p/rGHB/g0WBnrxsWoOCDEewAD9MNRaOcDsHpEUXlV1j3mbQEkcSNKIEUkgLd1K2x8oS69QEPtAD8ZbgYhzAJhGtFb676a1CeHUfYAib4loIgO+UCTA5TwQIc6deQLOln3Rc9M+FeWwhtMc+bsY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Ga/t6H3c; arc=none smtp.client-ip=209.85.214.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1787074745; c=relaxed/simple;
+	bh=loAphD++F5F+ODofjKZuk4fwTC6hvA11p5sJDFFfoVI=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=p/OKpF5shQyFOtq3GzpzUQnTMWe4N3FuZyhjIP43Y9BoZ+PkLcm4/bsJoqJsMR/r0Qyu65z9iJm02Wc6ocCHXkBDAZfEv8U8DsrncClRIFHFDjFjI/L+QUuHLeF4EYvOomo9U/EcCddNws8SaOED994WaA8YTLrVQV/GciKCT0Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BigtRrJK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Ga/t6H3c"
-Received: by mail-pl1-f178.google.com with SMTP id d9443c01a7336-2cedda2ce6fso445045ad.1
-        for <linux-rdma@vger.kernel.org>; Tue, 18 Aug 2026 10:22:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1787073763; x=1787678563; darn=vger.kernel.org;
-        h=references:in-reply-to:message-id:date:subject:cc:to:from
-         :content-transfer-encoding:mime-version:content-type:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=5H3EQ0QLOVKmjzVTzb7F/SzHLCB2HD4fukmL026jYpI=;
-        b=Ga/t6H3cLvs+cyWgskq60VVFgNSeCXzaVOGBJgZa4CYVu3uDP95FnnnHm08fctDlIO
-         ACRnOyFz4A4/ywhXR97D0dC4qoXR3yej7UHFoi5/OcxwVNXXZ0fU4mrFz4UqYJypTLlr
-         9FYJSRpvFsGgolFNx8vIK+cPSnCLRlpQqdUzB/HB8hr/QmXp/PYkm07lF7+pI6AwujCR
-         nehXlpRW1iMrxJ7NtSXpYy3M+LnExG8zzd793+b0VEBIxvLHErrbp25VOl6OxA+a4IQh
-         LMVr8uA3mawZHjX715JYcO2dL3aDaEV+CYHmAzDHtKNWEoPDzOuTHNCi7gAXE57nbl8J
-         CHfw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787073763; x=1787678563;
-        h=references:in-reply-to:message-id:date:subject:cc:to:from
-         :content-transfer-encoding:mime-version:content-type:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=5H3EQ0QLOVKmjzVTzb7F/SzHLCB2HD4fukmL026jYpI=;
-        b=IWJek8CMK1FDjAaaCxgXD6NAjQCHeTJjmDZEwK96ztc/sszUP+aYcmLvcact4Iw6GY
-         lB4df04nUcBOMJNbHJWDY0WRsGcD+dN1H++yEeQglOIM3oTCEFsZpiZ8pFp/yIcxVBnM
-         6eYXPesF72BTfEkdYJln7xefI3Eqo3Yv8g1pvsju8EZAqueBur6A+7aVx3XlH1BnZCNP
-         i4B+vkS3QH9Ia2PWKiqNFQGP/wS95CoGMyM5+liICsT9zpD+9suOIsdGYQ4UnDkwLMvY
-         QJ8eNuHtOfTdwqpBGdyxF+W2ScqBJp2/Ul6xZh+NdIvB+9vCJoJLbXytLLLtqPCRJNbV
-         loQg==
-X-Forwarded-Encrypted: i=1; AHgh+Rp+YK29Aij2Jw3qLjixrTmHB/gdG/SmOm/A/i73F9j656G5b/wDyjAg2LufyDCWZPZHJ/d/HuxXHzzn@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz5hklNJx6glCKzhZ97WI6HdxU22QhDALVANxB8Ut1Fog+vAC3Q
-	h3pNV+BG/1GocNPfqNYDU2m/vi0spPcd73I5LS31WUbOZ7w5ZmSKnMIYvWYYOEreBLso8Bz0
-X-Gm-Gg: AR+sD13jFVT2FDBY+XexgvUh8lb9rLdDZCcCbEC3VsXxTqOHQ3B36vvR+HB588DzG6k
-	d1eCtjH1aiSNFhb5zR9Rjc/8ZocsAKAu7271V1dLpZJKHNV+HF1jPsskUJhmUB0hFagk7L/IjXp
-	nSf+3NLFiqcJBSbEGZOO41kEUCs31WBKgEuodSAcuP9Y42zqUt69WICIAU69RTeB1yg1Rjk57NA
-	2ML49/maRd1QV8gI3UCyTyj/zwm80+5ULvJpOzSzUhnjmk6hkzIbzTrtY+oKetCMNII3LvruEwl
-	YTacD9ysd+WjmXOZHdpcLxr4nrh9JUNRlDc0laLTw9oUOM5dwwxnOBsue77IjLBjQ4p0lvspMK2
-	42xCoVueaTnnZfP6aerACS8WAt84v4efz/u1C3VHe6ReTTjXZ9AUPzelmYXw4aNb9WD7A02grKs
-	J5fo5xe13FrPl8GZI+QKJ2gIndjHMNNb+XSYH9LMpRBrnc0Mr3LYU7jPRL5fCZYDElcvr3P5RdZ
-	HIR9MM0opyI2PZW0R33XbVqnIhGAkk629PBipMB++05UH9EVh7C2HxnJZbuZJ8v5e66PHxrrqQW
-	jeTFb6t98Tss1ZnwtPk=
-X-Received: by 2002:a17:903:1b48:b0:2cc:864b:539 with SMTP id d9443c01a7336-2d5c4f20383mr156967635ad.6.1787073762556;
-        Tue, 18 Aug 2026 10:22:42 -0700 (PDT)
-Received: from 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa ([240a:4282:4801:1b98:2558:3176:8229:fc85])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2d5c1ecb1c1sm18179215ad.66.2026.08.18.10.22.39
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 18 Aug 2026 10:22:42 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BigtRrJK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C63531F000E9;
+	Tue, 18 Aug 2026 17:39:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1787074743;
+	bh=cBUG/aFVbnBvexeXKOjJQTo/Cdbax88oUFNJ1PI6Tgs=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=BigtRrJKMJrucZXyv+0Er46Ava4IsE3aSX1OMxdLNmwlJdPDAGQ9++rMNvvy4CzXZ
+	 Yys/Dik74lKzxqhvV5liz/6x1RPRroB/QzdZE6sGsWKm4D2Dphm4pYX4ou87GvqaWq
+	 BBARJOpTtc22wyj3DF4qf6E9RM5HGCTr/YM7RqPwGrHp/cjOc/TmjIhnV1tNEHtlUt
+	 LfKRU7hhzHkpUC21ujzO0uhu8OSEEQFQ+YUAtRLwpuLswpxevxAFAFBpwKC4XmHQ7E
+	 1MZxoMfNj/gj8py/EVyaMBe0YZ3pakw+moqqX/BHhbUfVEoIxH4apth4VrdwwHeoCb
+	 3bekxPKHBN+Dw==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 93A8F3927043;
+	Tue, 18 Aug 2026 17:38:16 +0000 (UTC)
 Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -68,17 +36,44 @@ List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-From: Liu Zhenlong <dragonliu2018@gmail.com>
-To: Md. Haris Iqbal <haris.iqbal@ionos.com>, Jack Wang <jinpu.wang@ionos.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] RDMA/rtrs-clt: use find_next_zero_bit() for permit allocation
-Date: Wed, 19 Aug 2026 01:22:36 +0800
-Message-ID: <178707375643.34993.16303244908977680572@gmail.com>
-In-Reply-To: <20260818163513.53875-1-dragonliu2018@gmail.com>
-References: <20260816165935.90523-1-dragonliu2018@gmail.com> <20260818163513.53875-1-dragonliu2018@gmail.com>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net V3 RESEND] net/mlx5e: do not HW-GRO coalesce small
+ frames
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <178707469522.2194892.9488420568567548375.git-patchwork-notify@kernel.org>
+Date: Tue, 18 Aug 2026 17:38:15 +0000
+References: <20260816064259.3279548-1-tariqt@nvidia.com>
+In-Reply-To: <20260816064259.3279548-1-tariqt@nvidia.com>
+To: Tariq Toukan <tariqt@nvidia.com>
+Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
+ kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com,
+ benishay@nvidia.com, gal@nvidia.com, gmj@meta.com, khalidm@nvidia.com,
+ leon@kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+ mbloch@nvidia.com, saeedm@nvidia.com, stable@vger.kernel.org
 
-SGkgSmFjaywKClRoYW5rcyBmb3IgdGhlIHJldmlldy4gU2luY2UgSSBvbWl0dGVkIHRoZSBjaGFu
-Z2Vsb2cgaW4gdjI6IHRoZSBvbmx5CmNoYW5nZSBmcm9tIHYxIGlzIGEgc2ltcGxpZmllZCBjb21t
-aXQgbWVzc2FnZTsgY29kZSB1bmNoYW5nZWQsIHlvdXIKUmV2aWV3ZWQtYnkgY2FycmllZC4KCkJl
-c3QsClpoZW5sb25nCg==
+Hello:
+
+This patch was applied to netdev/net.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
+
+On Sun, 16 Aug 2026 09:42:59 +0300 you wrote:
+> From: Glenn Judd <gmj@meta.com>
+> 
+> When hardware GRO (SHAMPO) coalesces a small IPv4/TCP segment that was
+> padded up to the 60-byte minimum Ethernet frame, the trailing padding is
+> folded into the merged payload causing padding to be delivered
+> to the user as payload.
+> 
+> [...]
+
+Here is the summary with links:
+  - [net,V3,RESEND] net/mlx5e: do not HW-GRO coalesce small frames
+    https://git.kernel.org/netdev/net/c/e2466392a0b8
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
