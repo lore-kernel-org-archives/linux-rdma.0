@@ -1,141 +1,135 @@
-Received: from canpmsgout08.his.huawei.com (canpmsgout08.his.huawei.com [113.46.200.223])
+Received: from PH7PR06CU001.outbound.protection.outlook.com (mail-westus3azon11010054.outbound.protection.outlook.com [52.101.201.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96DAA364EAB;
-	Wed, 19 Aug 2026 08:36:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.223
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787128593; cv=none; b=EP+Y3UM8I0SEZ+R8JK2+jOL+SDLnv3KSlNV+LYev/1Cdc7y+XUCfsB/9h2e6zrHgN8yEvhemPP/lS9qsIwqQJSJ+4dtAnOv0JgynlohQKgc0rKRhlqnfcFzh7D3gu0ODSWwAzhttNBkNgLkn1/IX9cFHJpR+/gZd+dcnRcJb0rc=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787128593; c=relaxed/simple;
-	bh=wec8R1rmA8Y7l60PLHflfGdO2AGKs3YEDhpo9bWwoHQ=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=GIRPeJ2CVxv1vABQAwiNG/crfXB0k87yiKhXQ+tmPAO515x3FRND19v0WGuArjraDAOES7tzL2lG1kKvNv3ALrA+F+EoLFPRT3Ga4wVXclXQp0++mXZhKwiGt6wJznxEKYDMuBMhi02w43Y1CIuAaBsGUQfAPx4T4MfeWw1dJNQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=uscxz3lh; arc=none smtp.client-ip=113.46.200.223
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8215C437461;
+	Wed, 19 Aug 2026 09:27:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.201.54
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1787131624; cv=fail; b=cRLWRaQjc1iQ66lNE9bKTsM6EiuMgv168SO1SccQUhxIY0U+pGcyxDfpSB3sq91Rm4pMjyEsxgtH9SRRGHFydN3/GZJv2i0WCE4JkmfhWcZjN+JBFE9craPs3ZqOEkX5I70Q4MEC+H03xN2lyY5yeTa4l/rFSZz49PBFqPPBagM=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1787131624; c=relaxed/simple;
+	bh=XaDYCaMk7E/SwVvh+jZnTk97Ea14myIewA6rmtZEyyc=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=aN7WB69AlmOa6k7gdwC+Zgrp9W0XIndZ6J6qYaW63Rx8rlcyM38wQJNDENV086lrTaVeaH4nat7FjZM9g6jjT6sHzu6M5Vyic+dnh8Cln6op7Oh2YJUbz6Six7AIgjXGcvKXIstrG+nTTiSjAN/fS68Ga0NUMP+36u4TXJWj7oA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=RJZWONl4; arc=fail smtp.client-ip=52.101.201.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="uscxz3lh"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=DXyU34t4JY/bH2qRKqQJeUpV6LNj1+g92OC+ZRS8aps=;
-	b=uscxz3lhCsitq5NLNYt/HklzZh3fnAAYHe+/hjSFJ4wMTmUoOiY4VaTb6dyYdVdohcsFKn4kA
-	iKk4xWQah4ECSWRugdRyfVwkO5porUSmNFQxxE5mrC4/UWFSs1o0xypLhtTI4cL0+PLqIxryHqK
-	R38XeqXk8HZvmHW8XhI/sH0=
-Received: from mail.maildlp.com (unknown [172.19.162.92])
-	by canpmsgout08.his.huawei.com (SkyGuard) with ESMTPS id 4hQ04z1ksgzmVXs;
-	Wed, 19 Aug 2026 16:25:39 +0800 (CST)
-Received: from kwepemo200010.china.huawei.com (unknown [7.202.195.178])
-	by mail.maildlp.com (Postfix) with ESMTPS id 9CD7B40586;
-	Wed, 19 Aug 2026 16:36:20 +0800 (CST)
-Received: from huawei.com (10.44.142.85) by kwepemo200010.china.huawei.com
- (7.202.195.178) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.45; Wed, 19 Aug
- 2026 16:36:19 +0800
-From: Qi Xi <xiqi2@huawei.com>
-To: <akpm@linux-foundation.org>, <vbabka@kernel.org>
-CC: <longli@microsoft.com>, <kotaranov@microsoft.com>,
-	<jan.kiszka@siemens.com>, <kbingham@kernel.org>, <surenb@google.com>,
-	<mhocko@suse.com>, <brendan.jackman@linux.dev>, <hannes@cmpxchg.org>,
-	<ziy@nvidia.com>, <linux-hyperv@vger.kernel.org>,
-	<linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>, <linux-mm@kvack.org>,
-	<linux-kernel@vger.kernel.org>, <sunnanyong@huawei.com>,
-	<wangkefeng.wang@huawei.com>, <xiqi2@huawei.com>
-Subject: [PATCH v2] mm: drop stale MAX_ORDER references
-Date: Wed, 19 Aug 2026 16:20:52 +0800
-Message-ID: <20260819082052.3338603-1-xiqi2@huawei.com>
-X-Mailer: git-send-email 2.33.0
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="RJZWONl4"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=OO60X9LGFLhuCuP53dPDpITrkCJOFtNaRqk81C/F2fyuoyLvE1V/r+40JcEXmGtwthKdE7jr0mOEeai0Fhb69cOGFxpUNjPc+sVrdhm1LF0DiWnTE+nmyICfAkZMtOZnNEkFddJNwZsy8uckAAEEImBGHRA/DyNIZHoGYPdCh7IkdIKqjAEUlHV4d2Xil0S5UkOCvMVPtJKeUmuDSTpqR0lFgFw2c/Hiaw0cxNJqOyzlfHb8k30OXA1Z9Oip3IZWV0WyBuj2vd/R0Nrv1IYm8mGfllpp2+ip+d2wLujXiOcGTEc/1TWxQysPmNrzjoU5Wz1Wx3JyGFp/4TW8jPxY+Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=XaDYCaMk7E/SwVvh+jZnTk97Ea14myIewA6rmtZEyyc=;
+ b=ZMSlWdU856ngDGW88M5UrZlGHXzH9OKWr5S29e/LouQqAxFGF8c8BAwsHm0JmC7Xtk0Nvz7MUAT6nlpHFtu2gIS9SdNTP6IS4Rjcuclo0eb5xL03yooPQqMeSk5Sypsb/Ups1GAV3rRR2ujqUF8zCS09dht+zSyPYGNBv1XRSt6QHvrVXAMQoZrH7/Hkh6hUjqd8HciRJBUdT/jMxj0p1VObOFe0jPCv0p7BoN3L0ivWNx/wOiZ8w7H46kDgn6W/85XHcB2gb7G369GyzCc1JzicBs3dcyJMlgHDfQ+JWeceXPlkgrdlO+wlBsX1GFQS3h2PqDyi3iGvdCJUf+0Udw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=XaDYCaMk7E/SwVvh+jZnTk97Ea14myIewA6rmtZEyyc=;
+ b=RJZWONl45gFZ9HtB6mDYqn16TY1984cqFtBpcf855vS1p1gFzQoJKjwOTpdNRHyI1+M8FHQjlyt4CkoefgnW1L4YP8ylsoeynpqB7T1CSvD13MSdsTSgXJ5ACCV8tClfmGU+DrwLLM5WkmL0s0ya1rVBbkG7ZknZ8k3M/hMKJIb/PvepdtIywIQvaNNi9hDiXkItVFgnV+0tKYmDh7/nySz9dXWXHjt3mhMEvKbb5JVG9CLjmx1b2a4H2bxHSV0Jt0uKWn5r4JRS2pZJbB/G+P5nq+R8xTmwJcJdNQYk0aPw87gAR4IR+vWVSYG5dAxV9OwalIsmc87TXQzxyEsHuA==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from DS0PR12MB7558.namprd12.prod.outlook.com (2603:10b6:8:133::21)
+ by MW4PR12MB7468.namprd12.prod.outlook.com (2603:10b6:303:212::15) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.339.8; Wed, 19 Aug
+ 2026 09:26:52 +0000
+Received: from DS0PR12MB7558.namprd12.prod.outlook.com
+ ([fe80::96ea:b67a:4a5b:85e0]) by DS0PR12MB7558.namprd12.prod.outlook.com
+ ([fe80::96ea:b67a:4a5b:85e0%4]) with mapi id 15.21.0339.007; Wed, 19 Aug 2026
+ 09:26:52 +0000
+Message-ID: <2e4cca68-dfe2-4a2c-82d2-8d4790b36ab3@nvidia.com>
+Date: Wed, 19 Aug 2026 12:26:47 +0300
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2] IB/iser: reject a remote invalidation of an
+ unregistered direction
+To: Yehyeong Lee <yhlee@isslab.korea.ac.kr>, sagi@grimberg.me
+Cc: jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
+ linux-kernel@vger.kernel.org, dledford@redhat.com, stable@vger.kernel.org
+References: <20260819010804.641772-1-yhlee@isslab.korea.ac.kr>
+Content-Language: en-US
+From: Max Gurtovoy <mgurtovoy@nvidia.com>
+In-Reply-To: <20260819010804.641772-1-yhlee@isslab.korea.ac.kr>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: FR4P281CA0028.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:d10:c9::19) To DS0PR12MB7558.namprd12.prod.outlook.com
+ (2603:10b6:8:133::21)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: kwepems100001.china.huawei.com (7.221.188.238) To
- kwepemo200010.china.huawei.com (7.202.195.178)
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DS0PR12MB7558:EE_|MW4PR12MB7468:EE_
+X-MS-Office365-Filtering-Correlation-Id: 688ab9e6-e9c1-4509-b5e0-08defdd400c4
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|23010399003|376014|366016|1800799024|56012099006|10067099003|11063799006|22082099003|18002099003;
+X-Microsoft-Antispam-Message-Info:
+	8ju75FcUPkZ5y6rHI0x6lRIsdkVgBI7w46EpAGUFZ7hDJjiv1KhMj9d20Eerc2c8dzuYnvyJxqAwsqTtJVAUGUVJ5FYWGmzAsgUDMYWSaIG589ntlqy/VNIYLQPgC/nrglCg5HNwjoN4WRU7XAr7/GFJmrqwSCyYAzUcjvagoETxl+6qysCkjSWgO/4cam7pOsUMxvx1DhiaChqj2AciZhXiVby963b9HPPs03cSkBGZiLxhNj4L5lsToR4HKn2loZ1kwhqcq701hyB94mbR6xNvjVybOOlTXjgYqG5VOVkoWSwfF7Io9CLNPlFwu3dDsL2axDk1mJ9BROtYgawdAg76UZ/4DGMnCff6K71kNi/mOQukaHlTjk9yw2vQWwDYAP1qp+7loL7dagxs/Ku/z+QK63wJ+W35Yd8BeNr99sMz2zCGeoMp6vR0bLdXjCietClutKtLy5EXjx8VKdBxeQAvCVNu7/tWECCpXfThBZLdcjC5xifcogxd2vABXmbW+3SMs3FlV0qDjyiRfKZXRJfJxpbyOswU+46QXaid8qnCd3nLFvouPPqUvKFWbHTYN9lYPWcsNw7c/xxq+COhSbGBuWvSGdHq8yDLJHHwonPb3D4g0MZYehySyw/v6ZGS7AP48ltcYC6Do/6aUDyZYt9MTs8/wVzXcUiIx3eAHEs=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS0PR12MB7558.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(376014)(366016)(1800799024)(56012099006)(10067099003)(11063799006)(22082099003)(18002099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?WSs0T3ZBTS84aUE0VUNFajdzKzRSTTU3TGNxT0ZPYlVtd3I0ZDVWSE5QS3hO?=
+ =?utf-8?B?WUpPaThhUURrQnBpOWZCVUJOU1UyaGptTG1LNktFbFpsbHV1YmlHbCt4SUR2?=
+ =?utf-8?B?MmZJUitiWHQwY0RVeDlaaDBhandIem9mY1I1aS9IOGo2NHdYMCtReUpHVlBC?=
+ =?utf-8?B?UCtIK0M0K1pxeVBiWjhVSjBpY2lTaGJUUHlaMG1EcFA5d2ZHWXl0YkgrZWpQ?=
+ =?utf-8?B?cTVsNUZxRFVYUTdiaENVdDk5eE9YSTNsejhzbnl0SEZxcDBIUUJlYmlKNEhZ?=
+ =?utf-8?B?OC9UbkdpOGNZOHlENmV0RHJ2eTJPc01vVE54ZlduaVVhVFh3Q2gyNlpVTExF?=
+ =?utf-8?B?VGx2akRFS3hvL0d2WmhzSjBFK0NjelVCY1hOTDhyVUhFaWtDdWtiZ3BLdG5M?=
+ =?utf-8?B?aHlMZHFReVYvWG0zV0hRM2YwZHprSW1hYm5jdTRYWEJyQUFuMkN3M3hYMHVG?=
+ =?utf-8?B?UUFsU0VMMHdObGIvNEtLUkpsVERhME5MeWh4KzZxcnp4WEZyQ1hCZEFMQlZo?=
+ =?utf-8?B?STF3NDVZTTZCSVhDYXVCQkNqWit4dHZWVkFRaHozQ0JRb21sZVVXbHIyQ2N2?=
+ =?utf-8?B?UjJBMHhBcW5NeTJnTGt1WDM5RlhWcDNJTUw2K3A0bkd1M2Z6OURZSW9HbzN5?=
+ =?utf-8?B?bGhkbThZcnR0ZFJWRytqR0xTQWhGQTM2ckdXU2JxczJqRVMrYk1sazM1ZS90?=
+ =?utf-8?B?b0ZkL0YyYWN4OXF3ellEKzQ1Y0RHZjkzSy9GWnkycFBpSGd0VU5qRVZMN2k5?=
+ =?utf-8?B?ODhvUE1hemVNSmpkZ1ZmVXQ0SnZEdWRTT2VQb25FazBHeUdBOHVpQXVnL0Zn?=
+ =?utf-8?B?MzA4QUFrYUdTRkNudE9tNC8wbzhTb1J4VTRTYlM0NGZUY1pIci9qOG9CTGhO?=
+ =?utf-8?B?RlNmMHVITm1xOCszWmJ5S2MrbHByTlBSRTBtSlBPYTZQZGFKSTZtZTdkUzly?=
+ =?utf-8?B?d29FTlBKZk93Q1ROQ0krQ1BwU2lLdlBteEJ3VHZYb0xtanpxcU9BTHhXRVNt?=
+ =?utf-8?B?U0Z1UE9xN0wvVEpTbmVacW5yTWYzeW50NUgvcHlDNFBxc0ZJT0FXTFpObE9K?=
+ =?utf-8?B?SXpDamxlS1cweFY5S0NhZDdBR1pTUTBKS3JVd2Zmb2Yyb1lPTTNoak5mOS9x?=
+ =?utf-8?B?YXVUQ2s3Z3hoVXcvSzBzd0UvdlBBcEtacjZCaWczN0FwMTlnWC9ZbEJkTi92?=
+ =?utf-8?B?Z3dmeUJYZjc2bEcySkhjNG9WQkNHMGxKeUtSb2RIU3JqT1dvNnZCbHcyWE1i?=
+ =?utf-8?B?bll4OUZPOU40QmJKME95MlVWZVNEMzdyakY1QzZnd2VDY25Wd1VhdnNqc2dI?=
+ =?utf-8?B?WFdIbXRhVytHTEhGU1FFNjlDRitqcm9TMldHWTRrd20xNVlVZnNrQ3Nac0Vh?=
+ =?utf-8?B?ZDk1ZjRzcTRScXQvV2lrTXNRKzNyZFFKc1o2eDZHOUJqNmFDYXVLREVDVzJO?=
+ =?utf-8?B?bmxqTXhRdEFaSklYM1orRitMd08ydG9sZ3REQm9YTnl0cjlWcEMvMHA5VEtO?=
+ =?utf-8?B?WGNpMmhpQ0lLc3JMWG5xZ1dyMWJFTitFY25nMmhIQzRzd2tNWnRLM2JlaWxn?=
+ =?utf-8?B?T3pxZ25wME1WUjNIR3ZjMVJSa0UxY1ZsdXZqMERQb29PaDJBSGZSb2NmSHQ3?=
+ =?utf-8?B?V1JUSXIwUEFPYjZaeElYOElJcXI3aUxDQVN2NFdkdUxNZkdsS2JkZkczVEZX?=
+ =?utf-8?B?ZkJGUnBodngxaVduYjdUby95amcrNHorbTJKS3ZQV00rdzBFWEkvcURCeHNs?=
+ =?utf-8?B?QXlJczR4Z2NSTEVkTy9SWE1kRXBOc2l1WHkxbzNCQmhKY0R1MHl6djhxQ2xa?=
+ =?utf-8?B?T05hWU10K1NWeG5JUThvdFl6U1ljdWF1bExJeVR5RmxTM1FNcFE3YS93VDFL?=
+ =?utf-8?B?OUtaYy9FODQwMXpBTHMxWG9YU0JVbTd1OFJGYlV4UWFaTDNScVpJUHMwdUlY?=
+ =?utf-8?B?ZTZjLzhSMnBtNjJJVzRFWFFud1RvajM0Vm9SeHFKeWVsTERHZTRyRTZMUnhV?=
+ =?utf-8?B?TXFmekRrMmpxbzdPR2dZY2VYSUIwNkdMYi9kaVhEdEZkUitjdElBRGsvQ1dM?=
+ =?utf-8?B?TzV4ZVROWlVnQk5wcWt3cmNEVFdkbE1rZXlmN3VDNlMvT25RNnJJMkdqQkM3?=
+ =?utf-8?B?cWI3S0ZRRmNsaHUrcWdtUy9RTWIyOTJHei9WaXlsRUlnUEdxM3VwZ3Z4SHIv?=
+ =?utf-8?B?Ykx0YWJDUGtuT1FjWmIwWUU5TGV1NnNBcmlya0JXNEVHYmVzOStyakMzeWtw?=
+ =?utf-8?B?UTdxMy8vRHhMTEdDblZkTHhjRDRqbmZLWlN3Wk1KYWVEbU5tazlBc1RCSDVa?=
+ =?utf-8?B?dGx5aHpubGU5WkE3alhkeTdjUkxRNm96UW5jbjFYSml3UWVmeW5tdz09?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 688ab9e6-e9c1-4509-b5e0-08defdd400c4
+X-MS-Exchange-CrossTenant-AuthSource: DS0PR12MB7558.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Aug 2026 09:26:52.4014
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: yC5OG0j6fK9rlEhG86VOEbJNQidtr96WPTNx3xn3WnJ1BCHyT2zXPOW2rndtV5ZW/aujmpNRLI1syx/Szv8wcQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR12MB7468
 
-The treewide rename in commit 5e0a760b4441 ("mm, treewide: rename
-MAX_ORDER to MAX_PAGE_ORDER") left a few spots still using the old
-name:
+looks good,
 
-  - two comments in include/net/mana/mana.h and mm/page_alloc.c;
-  - the gdb helper scripts/gdb/linux/mm.py, where self.MAX_ORDER is
-    a local mirror of the kernel's MAX_ORDER define.
-
-Rename the leftover instances to MAX_PAGE_ORDER so the tree is
-consistent.
-
-No functional changes.
-
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Signed-off-by: Qi Xi <xiqi2@huawei.com>
----
-Changes in v2:
-  - Correct the mana.h comment formula to 2^MAX_PAGE_ORDER.
-
- include/net/mana/mana.h | 4 ++--
- mm/page_alloc.c         | 2 +-
- scripts/gdb/linux/mm.py | 8 ++++----
- 3 files changed, 7 insertions(+), 7 deletions(-)
-
-diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
-index 04acb6791dbd..bc331bf9b205 100644
---- a/include/net/mana/mana.h
-+++ b/include/net/mana/mana.h
-@@ -40,8 +40,8 @@ enum TRI_STATE {
- #define COMP_ENTRY_SIZE 64
- 
- /* This Max value for RX buffers is derived from __alloc_page()'s max page
-- * allocation calculation. It allows maximum 2^(MAX_ORDER -1) pages. RX buffer
-- * size beyond this value gets rejected by __alloc_page() call.
-+ * allocation calculation. It allows maximum 2^MAX_PAGE_ORDER pages. RX
-+ * buffer size beyond this value gets rejected by __alloc_page() call.
-  */
- #define MAX_RX_BUFFERS_PER_QUEUE 8192
- #define DEF_RX_BUFFERS_PER_QUEUE 1024
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index ee902a468c2f..42b5b41432c5 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -7803,7 +7803,7 @@ static bool cond_accept_memory(struct zone *zone, unsigned int order,
- 	/*
- 	 * Watermarks have not been initialized yet.
- 	 *
--	 * Accepting one MAX_ORDER page to ensure progress.
-+	 * Accepting one MAX_PAGE_ORDER page to ensure progress.
- 	 */
- 	if (!wmark)
- 		return try_to_accept_memory_one(zone);
-diff --git a/scripts/gdb/linux/mm.py b/scripts/gdb/linux/mm.py
-index dffadccbb01d..28d33624c38b 100644
---- a/scripts/gdb/linux/mm.py
-+++ b/scripts/gdb/linux/mm.py
-@@ -56,7 +56,7 @@ class x86_page_ops():
- 
-         self.MAX_PHYSMEM_BITS = 46
-         self.SECTION_SIZE_BITS = 27
--        self.MAX_ORDER = 10
-+        self.MAX_PAGE_ORDER = 10
- 
-         self.SECTIONS_SHIFT = self.MAX_PHYSMEM_BITS - self.SECTION_SIZE_BITS
-         self.NR_MEM_SECTIONS = 1 << self.SECTIONS_SHIFT
-@@ -233,11 +233,11 @@ class aarch64_page_ops():
-         self.SECTIONS_SHIFT = self.MAX_PHYSMEM_BITS - self.SECTION_SIZE_BITS
- 
-         if str(constants.LX_CONFIG_ARCH_FORCE_MAX_ORDER).isdigit():
--            self.MAX_ORDER = constants.LX_CONFIG_ARCH_FORCE_MAX_ORDER
-+            self.MAX_PAGE_ORDER = constants.LX_CONFIG_ARCH_FORCE_MAX_ORDER
-         else:
--            self.MAX_ORDER = 10
-+            self.MAX_PAGE_ORDER = 10
- 
--        self.MAX_ORDER_NR_PAGES = 1 << (self.MAX_ORDER)
-+        self.MAX_ORDER_NR_PAGES = 1 << (self.MAX_PAGE_ORDER)
-         self.PFN_SECTION_SHIFT = self.SECTION_SIZE_BITS - self.PAGE_SHIFT
-         self.NR_MEM_SECTIONS = 1 << self.SECTIONS_SHIFT
-         self.PAGES_PER_SECTION = 1 << self.PFN_SECTION_SHIFT
--- 
-2.33.0
+Reviewed-by: Max Gurtovoy <mgurtovoy@nvidia.com>
 
