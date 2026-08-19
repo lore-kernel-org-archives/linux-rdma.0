@@ -1,73 +1,77 @@
-Received: from mail-pf1-f175.google.com (mail-pf1-f175.google.com [209.85.210.175])
+Received: from mail-pj1-f46.google.com (mail-pj1-f46.google.com [209.85.216.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC2D019D8AC
-	for <linux-rdma@vger.kernel.org>; Wed, 19 Aug 2026 01:48:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 372363B993B
+	for <linux-rdma@vger.kernel.org>; Wed, 19 Aug 2026 02:10:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787104108; cv=none; b=UHWX9qRFAn9gXq+HLzGVlzOHZlE6cxAXyj03vvCTwqThGPkjknv5lnOg8+1WASO/TTO8Wftb7BzPqjn1FupFPiUEWtVTxGYpe0q+A5IvjUOhEOlEpQGyFcXCaXRw4nDjR/V0XufAY7gBQ3KNbwPF/8e2bSkOPZvm8LnV1/QRgSA=
+	t=1787105423; cv=none; b=RuTKh4nurBkRxIGKtyYCHDM/tVKWxRhlO/HwjECK8xg6e+eg7gqy+WlPVR7NjVYbFI4wHFewAsaC2HSj1ClCVUHYrOTx8kSSAEXXvcCnExm2k6J0NWLcGU5VJ8w7+KreBgn5PLfIyyTRYTAXwVYDgCe2G3/FqGcArN9cX2kuUH4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787104108; c=relaxed/simple;
-	bh=7zDtK1+SZ1zwQMNGkR53n6SIlbE7b0OVVJ8QZq0aRRI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Yfv/UraPmX0DNzapvzVm2q19Od45r2wz2Y6cnfhm4Zoy0serEBkcceUZk9PRqFbNhKfZ5S/2p8Vj+Jj7nsVgMOqK4a4BwGqeTq7cqc+62kgww3YBHrSJohuxe2WcrneQ/LOUVmDzS6QXHOoDRUUHBGJD8c1zZj/dfNGw9D3cf3w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr; spf=none smtp.mailfrom=isslab.korea.ac.kr; dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.b=wQkjyuPy; arc=none smtp.client-ip=209.85.210.175
+	s=arc-20240116; t=1787105423; c=relaxed/simple;
+	bh=wo4Q65uqCkTehgvGTLKylq4RWd/z0F3+iRJ3VNvrdN8=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=h4In/hSQV17d4CzVtGbVtvnuugsbvZcUB5NOpPhfw90HOxWMdmypCWeYIX00nLGVBGvzNtHPDf4Om3xL/mgpXszP3mHboPbU5vHYUIe5QEGT+kXJtaAMpAj4a/uRch3vzW2efXJaT/MoGW/XT7Mei+DIq4vT0CPtzAJTgrZ2YtQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr; spf=none smtp.mailfrom=isslab.korea.ac.kr; dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.b=kNW36Qf/; arc=none smtp.client-ip=209.85.216.46
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=isslab.korea.ac.kr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.b="wQkjyuPy"
-Received: by mail-pf1-f175.google.com with SMTP id d2e1a72fcca58-8485ef63b68so470220b3a.1
-        for <linux-rdma@vger.kernel.org>; Tue, 18 Aug 2026 18:48:26 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.b="kNW36Qf/"
+Received: by mail-pj1-f46.google.com with SMTP id 98e67ed59e1d1-38e347638adso669451a91.0
+        for <linux-rdma@vger.kernel.org>; Tue, 18 Aug 2026 19:10:19 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=isslab-korea-ac-kr.20251104.gappssmtp.com; s=20251104; t=1787104106; x=1787708906; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=siuYPloOqsDQiXuJrGNEWodYtqI8v97Pc5mC2E0cvrM=;
-        b=wQkjyuPy1wsE50PrHHezZqXeY9ZNaX3VyfHLTQNdajIkY7nTn89OVj1tj/fiF3wEv3
-         +Dps52Xdl1nOdTCdv+ixU6afPmx/NfXz6uu/KGL1/3l0mG4ORjqbqrAMGqt035J+ziiH
-         SVu19m/zwGp79t1AFgvxU8RsW0z2s0jOKuUmMrVaBIrkUNiEpkafVHlHSwGSMSG8hVtc
-         U5yKa7gAo/t7HFUQE5zoxY/zE5ZitYHp9jvK0BF5yEL5r27vwlcO6F7sMsCNXzze57f5
-         O6MeACgbVoCWI37SN6Jon3f7DYpaPyjRV7Ol4B7meue23q/7XkUD3VgIn0fvku+Q6wim
-         HgUQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787104106; x=1787708906;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=isslab-korea-ac-kr.20251104.gappssmtp.com; s=20251104; t=1787105419; x=1787710219; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=siuYPloOqsDQiXuJrGNEWodYtqI8v97Pc5mC2E0cvrM=;
-        b=d6yip4VGUZaREx5MgVgF7EpfwpozolRDAsOm+uM8H+ZJtXF+7Ylt09YsczF1YSLSy0
-         S8iZmFv+mnxCBQgOLHwTgbSunzccvWeOvHtpKAembMn2Vd+2cUOx/2Fpsom+qOayNSaA
-         WgdEu1ZSKW0MTjv6Krlk4edtZUzLLpSaXYlUdPjz68Tvjz0I7LDHgzOVYh8/6qCC9B4C
-         iQG27UrRcdiJwEHRJveM8V6NqFx7ZJT/EWbH0hwY87odpk5JLZkXJtAL6wfdWV5s3go1
-         bBGocWHwmJ/MlrVSLaVkmKjD597Kw3fSsdzCHkdjMrEgoAb/jxhiBU37bahEj4IwjmoM
-         URkw==
-X-Gm-Message-State: AOJu0YyksnjnZpAO7fGRbULWgUfwxaKn7NvqBeVLrE5/E8e/JQk/lDrF
-	nCJi8+hh4ts2i1fNN4+55PRuBX6/839GFO8tynhU3iVg+81jyjkx9OXKViULEXitj4t3/0UQyQZ
-	72deXCGc=
-X-Gm-Gg: AR+sD12BpCiit2NOSulNx3jXoT/0t+BcdPN44NifkAIR18nsvDWICPNT/nR9PvVgTil
-	Yku7GyZNvgfKMLrNaCL45AWC+I2trx87KQDl6nquKxM1c/Cu4ZFmhudRM71YDED8PliiJ0yJ4a4
-	wiXcFl+BVc+RnA//DqSjOsQgWLfdZJ/o9O+Nv/Q8Xy77U20EQYUgfECJP/W3+AmTJd1e5FQ5ai5
-	BX3Wgc5/w1QWwdlnoxN5YvR/TI1kqVCX662JV19eggGv0F6smWa7z3X96J5Ar6W5rrDq6ZwA0Kf
-	P3bRLgPlt1iK9kVMBxaWGB5qeeKiD5OG0Kb1SnqgaXWPYGJDnf4R+qu5Exeu79dgJ9Y5AIT0N3S
-	R2WZEdvH9SX07Ho5I/GpZBXItLpAxDn0Z0iKF0Zttfq7BHD3+vAyUDdNx5+fG6dWpBJvqlnJjAT
-	mSIvu/WQCBrZE07gZWedAqBWvZq7XkIgwOksdnTnuzu7y4SWd0Au4slB6Cu6aO3p2lLlBnFfqBu
-	oj28Lc=
-X-Received: by 2002:a05:6a00:3a07:b0:84e:2382:f4f0 with SMTP id d2e1a72fcca58-851d36d2909mr1516620b3a.4.1787104105938;
-        Tue, 18 Aug 2026 18:48:25 -0700 (PDT)
+        bh=wo4Q65uqCkTehgvGTLKylq4RWd/z0F3+iRJ3VNvrdN8=;
+        b=kNW36Qf/dhKkB6jH3FPJrpuQkryIilPMe///0XomJnijBEPQHkzlmIY2/k5ozAtRrg
+         CNupq5oLDpk+wvRhjQ+KFxT+eYv0Kn7QhdrbpHsYTCsyAhzdzrSGsjr4P1fhp8nMMtAA
+         9UJ/HbdM6MJjkzhiYhacGjoVifmfHzck+wismufg3fvSH1mZ/veUvkGtjLocpZFEUeg2
+         4BQIylmUZJ3fleZfUJGO2hhSkGYrPw8uLLVQU0UC5+twoq4xBgXt+GGx1+bZZmVz1+6k
+         XoFdG3j+f9AI5rkgOUUJCNfOr1atZsmIc9Diotn4rN75DMk8b6FHH6rT5XGaAbOy7Bhj
+         Kn/A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1787105419; x=1787710219;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=wo4Q65uqCkTehgvGTLKylq4RWd/z0F3+iRJ3VNvrdN8=;
+        b=BRvJEJfCF+MNAuY0UE11DFIuWoZf6ad7LbYywFEIs5MWmkVNeFbC0mPRsFdugXc9fI
+         zckdIe1IRWYzQXmQxiT1DAdSSCSlTFnzcHMbyN6EBYRYMvlNNfhLdtayyK/P2V30ZyOc
+         sydmf8GeWYRqm7wPIkYk0AO/YLAhUSbxlmFdLt7dNJTIujTT0H+tnd0pJsO4cpY7n4+G
+         kNMxJ2Zy5KsAKALRz6d4U8Epk3CTzFMulOOuvZ4Upd2MRg0FVt90UmdpusMZKpJU8H4q
+         315CM33MSz4mo080RLr+oX2Y0INI2HjIp2Z0CNDFSXtFGgc7KJkkwYKoepxwc4NqQ3aK
+         1R2g==
+X-Forwarded-Encrypted: i=1; AHgh+RocDrUCys2StfEKevSJzxd0lD9GTWKm2pyvhOdLyp22x6LJuxlhRFKDgV2zBKJqlYREHZa/pR96fdb/@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy37ScqF2+QLoyIp7SNTxRlULjvAta6HFnlMg05IQPZq+g8qVBu
+	yxp2/WHT8a/QwMfh2BtXpMfWQaSPgnKwK1V4Dv6IOsLUROsBRn0CDl3JqME9sJM1IWk=
+X-Gm-Gg: AR+sD13PfyI0gZSb03StjnkSLDo4zIWZlRJ5BTHbCXFwlHOUMXNshAOic+oxhIChlKI
+	6ukdqRG98Jfu0OKLN/RBIeRU/QdUVm4Zbmsl8B8DGz//W+7XhTrcJI+hrLUYXDNL88Jrl7NZd4P
+	MJqfrdntlJ8kk2UxIsecA/uZbAS9DSVgnM36N6+W3Y4FHmPs9oZR41kKKOFL8XIn+6bcbWfCyXD
+	Hsm2BsXbuJn2eD9HC59ULwezn66YIla1rM+q5zbzTnSpidoh3aid9xD7t3aGrDRLcoX3g1Lv9rL
+	vvyc6VJspKP1eb8Rk9jAtRbTf9MxvoHxRGZ6JTiSMO4KqZPgQGzJO06ORbZpFpFcDDnj2Vdz5b6
+	pPv0fSJatE+KiyBpE0ARv/AX6X7X3dK50tvx9bH4GJcPHkbfjLBwp8XqHsPBSXFkubrh4ouIZwY
+	lzi0mNYaQykzavBwLrZ4qZoOXiFNbfT9pjyRv5w197Aa0wxh33yt7oMIhDXS9Y2qdCH+CV
+X-Received: by 2002:a17:90b:2241:b0:380:105f:8ffd with SMTP id 98e67ed59e1d1-39581228dbdmr2141544a91.16.1787105419152;
+        Tue, 18 Aug 2026 19:10:19 -0700 (PDT)
 Received: from yhlee-960QFG.. ([125.131.91.97])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-851d33a5b72sm79345b3a.23.2026.08.18.18.48.24
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3957f96cb76sm770351a91.1.2026.08.18.19.10.16
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 18 Aug 2026 18:48:25 -0700 (PDT)
+        Tue, 18 Aug 2026 19:10:18 -0700 (PDT)
 From: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
 To: bvanassche@acm.org
-Cc: linux-rdma@vger.kernel.org,
+Cc: Yehyeong Lee <yhlee@isslab.korea.ac.kr>,
+	linux-rdma@vger.kernel.org,
 	jgg@ziepe.ca,
 	leon@kernel.org,
 	linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org
 Subject: Re: [PATCH v2 1/2] RDMA/srp: fix use-after-free of a request in srp_destroy_qp()
-Date: Wed, 19 Aug 2026 10:48:15 +0900
-Message-ID: <20260819014815.642500-1-yhlee@isslab.korea.ac.kr>
+Date: Wed, 19 Aug 2026 11:10:11 +0900
+Message-ID: <20260819021011.642747-1-yhlee@isslab.korea.ac.kr>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <3ca5809e-96be-4073-8596-4ab53d72d6b9@acm.org>
+References: <3ca5809e-96be-4073-8596-4ab53d72d6b9@acm.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -76,30 +80,10 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-On 8/18/26 9:26 AM, Bart Van Assche wrote:
-> This patch introduces a race condition because it associates a single
-> CQE data structure with multiple concurrently submitted work requests.
+My answer to this went out without In-Reply-To and started its own
+thread:
 
-Thanks for looking at this.
-
-struct ib_cqe holds one member.  After this patch ch->reg_cqe.done and
-ch->inv_cqe.done are written only in srp_create_ch_ib(), either before
-the first QP exists or after srp_destroy_qp() has drained and destroyed
-the previous one, and both writes store the same value every time.
-srp_handle_qp_err() finds the channel through cq->cq_context, so neither
-handler reads the cqe back.
-
-The sharing is not new: one command posts up to mr_per_cmd REG_MR work
-requests, all carrying &req->reg_cqe.  ib_srpt shares ch->zw_cqe the
-same way this patch shares ch->reg_cqe.  Could you point at the two work
-requests you have in mind?
-
-One thing does get worse: "for CQE %p" in srp_handle_qp_err() used to
-differ per request and now takes one of two values per channel.
-
-If a completion has to identify its work request here, I accept that and
-will drop patch 1.  Should patch 2 then carry Cc: stable?  Patch 1 is
-the one tagged now.
+https://lore.kernel.org/linux-rdma/20260819014815.642500-1-yhlee@isslab.korea.ac.kr/
 
 Best regards,
 
