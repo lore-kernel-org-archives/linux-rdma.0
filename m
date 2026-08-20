@@ -1,82 +1,61 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA67C3C1984;
-	Thu, 20 Aug 2026 20:08:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B99B644064C;
+	Thu, 20 Aug 2026 20:38:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787256500; cv=none; b=ZkIFlT2iar3phaiQN6cpAvHiy+aCbc9dAkFe7OVjj7qRP0C0DzhcJz04nWIRUX4EAT/5Vrb+NzDE4X45CINInw7isVqCJqW0c4tgJwx877EZzGFwl04W9bySA4fY1al3vsZi54jFHVw28eFc89JTWRLsY56mo/WBJDcyHF0eCXo=
+	t=1787258314; cv=none; b=jhx0eZbzHho0Y1OTNMhzGWXth+Mrs7gmOIrMxxFrMPB74oegLCaHMkcoPlFvRaQ6iUA3UHU2UTLYgyyFhI2LG4Gyjmv9S2qIS7fLSoQpjBYYb59XQ/0KjDLkwTSsSjA0vSdFYSdpf4Z26Jm/FLJt8JQyz/wgi6U5/kMr9URdfyI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787256500; c=relaxed/simple;
-	bh=LASZoqjW3hFIgVCWSDQhrrobFOL516RWzCqLt9qLnfA=;
+	s=arc-20240116; t=1787258314; c=relaxed/simple;
+	bh=RrPriegdCkzmXYs8bcP+skDHY2Jjfrtiq8o1DAF0cgE=;
 	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=kqaRNGE6PwTdbrQ1/d9fANpyEurCVPbu32WHHdLWTi/uwGezjfvRZFUf8dmUa8UbCgdhQVIbrH56KkKqwuMU7QXkWiGvFGDsx3zTaj1jtN5KOvkS8J+hGk4Bnei9YbV8rOkkEn7TUR2nIcWsMkkZgbnh3lXSQAwqiLGtMlGyOxI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KCCQlewA; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=BwmMAHtLYEYaxItP8rNYMdSZPKBc8a6gdFe9KFs1eHUzx9om6JVXwgHkGEQrLHOsTCTaOL264THp1gr5fjjNnvJgsfntvedXnsNWWlsWQMJ9Dy6CYsqRYpbZ5soFc/eFmEKo1RhY/+xdi5ic2iKHXKV+zUaDjSuxLsKbDNf3Tss=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=F1qYz7Ja; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KCCQlewA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 602041F000E9;
-	Thu, 20 Aug 2026 20:08:18 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="F1qYz7Ja"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1718B1F000E9;
+	Thu, 20 Aug 2026 20:38:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787256498;
-	bh=qYu84t3fABADnPYtP9MVaPEECHRcbhACsJ87Z91nlZo=;
+	s=k20260515; t=1787258313;
+	bh=4M4qz3dT+yaSJnEXa5rDQUZYCv5z2DrqUY/KZqpbKuk=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=KCCQlewAVugu6i/lYy11Xbf976TbBsNlbivTrwKFo8uiw8MARS9p4gYdU9rEc4XLO
-	 AACqMCb6CtSpRcnBoBtS1f15ACokNtOVGPQoXQwXsomHJsBcOGSQwl2BuppNbSaP9v
-	 0FVFC+89xsfzQjekcBi5FJBoUEa4+v+Ur1DcdI/QdLFtfmJmRoAx+i19XJYzVhIdjB
-	 etZMhO8SllYkcwJVX7ynoJQbZbVoT/2GG9OmiI2Jfk4zDdS0bqQh+YtpEyHQT8zOV9
-	 OEsxJLbJT1JFHQXMuI7HlbH9sjCHOubHFH1Ltk7zi6UNDnuXDixqDgV28PkX1cuWIK
-	 4isK79PdAPEOA==
-Date: Thu, 20 Aug 2026 13:08:17 -0700
+	b=F1qYz7Ja8JbJz+B7apHVDk1vMTg8Qs+f93cnCb9n20pK3kKngx0IPCfHS7fkF3h2l
+	 1LWwFZznWgUHriHFg+pmRkwTqEMkMFKMZPQQ2uZb6L+A6bNUGkDl7bSUQAJs5s+IeG
+	 FXSj/Gq93T5T+t0RukN3jExGoVoKtL0HoyEhkyM494vUxQGg3so2v5EnNCVEiTp9wZ
+	 Xd1WT8aIBpJQSGecvp1yRWjBuYhcBZd+In818OszwCq/xXIxBMnOr5ENjcRCxzsE54
+	 7F8Ar2HcgYnkhl1+gyLGpfIKPXy1mdfaFg3xlRnAd1K6I14siQYVLwpByKsPAv0F9J
+	 VJaOYUibiCvgg==
+Date: Thu, 20 Aug 2026 13:38:32 -0700
 From: Jakub Kicinski <kuba@kernel.org>
-To: Abhijit Gangurde <abhijit.gangurde@amd.com>
-Cc: jgg@ziepe.ca, leon@kernel.org, brett.creeley@amd.com,
- andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
- pabeni@redhat.com, allen.hubbe@amd.com, nikhil.agarwal@amd.com,
- linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: Re: [for-next v6 0/2] Add Reorder Completion Queue (RCQ) support
-Message-ID: <20260820130817.43317368@kernel.org>
-In-Reply-To: <c565fa0c-08e7-60b9-90e9-07daa4777a48@amd.com>
-References: <20260813104954.319065-1-abhijit.gangurde@amd.com>
-	<20260814102413.5a26bf8b@kernel.org>
-	<c565fa0c-08e7-60b9-90e9-07daa4777a48@amd.com>
+To: Allison Henderson <achender@kernel.org>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
+ edumazet@google.com, horms@kernel.org, jhubbard@nvidia.com,
+ woni9911@gmail.com, michal.kubiak@intel.com, leon@kernel.org
+Subject: Re: [PATCH net-next v2 0/5] net/rds: own the fastpath locks across
+ connection teardown
+Message-ID: <20260820133832.5384be37@kernel.org>
+In-Reply-To: <20260816001510.73645-1-achender@kernel.org>
+References: <20260816001510.73645-1-achender@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Mon, 17 Aug 2026 12:35:52 +0530 Abhijit Gangurde wrote:
-> On 8/14/26 22:54, Jakub Kicinski wrote:
-> > On Thu, 13 Aug 2026 16:19:52 +0530 Abhijit Gangurde wrote: =20
-> >> Patch 1 extends the net/ionic firmware identity structure to expose the
-> >> rcq_sign_bit field from the RDMA LIF identity. =20
-> > I asked for a PR, based on a tag from Linus's tree with that patch.
-> > Did you send that?
-> >
-> > I only see a PR for rdma-core here =20
->=20
-> Hi Jakub,
->=20
-> I have the PR ready on Linus's v7.2 tag.
->=20
-> The following changes since commit 8d3ae59288f1e7d58d76558a6ee96d533bc501=
-9f:
->=20
->  =C2=A0 Linux 7.2 (2026-08-16 14:32:26 -0700)
->=20
-> are available in the Git repository at:
->=20
->  =C2=A0 https://github.com/abhijitG-xlnx/linux.git ionic_rcq_shared
->=20
-> for you to fetch changes up to bb23acfd05f0399f33dae000df2ef4a88787b7d0:
->=20
->  =C2=A0 net: ionic: Fetch RCQ sign bit from firmware (2026-08-17 10:58:31=
- +0530)
+On Sat, 15 Aug 2026 17:15:05 -0700 Allison Henderson wrote:
+> This is v2 of the follow-up set to "net/rds: Bug fix ports, part 2"
+> [1] (v1 of this set is at [2]).  During review of part 2, the later
+> half of that series needed more work than a respin, so it was split
+> off into this set together with the companion fixes identified along
+> the way.
 
-Thanks! Pulled
+Any thoughts on the AI review?
+https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260816001510.73645-3-achender@kernel.org
+IDK enough about RDS to judge the severity of the last one.
 
-
+BTW we will take these via net now that the 7.2 final was tagged.
+Don't worry about net-next being closed.
