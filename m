@@ -1,152 +1,133 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from fhigh-a8-smtp.messagingengine.com (fhigh-a8-smtp.messagingengine.com [103.168.172.159])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30EC544E655
-	for <linux-rdma@vger.kernel.org>; Thu, 20 Aug 2026 13:25:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 654E845040D;
+	Thu, 20 Aug 2026 13:27:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.159
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787232314; cv=none; b=SNar45EeFJtHaQXaR2nu4Li0TNME53uZpmqEdEoN9p+9+ADK18NXiQ+gcQga7v/LhxxmJeZna+XHwFFmClnbzeLlZEwX3tk6jP9ifnSwNpW+ZCkmjTiSDYhlMvlpaIZM0bqthFnOggcyixpqIvFx1/ieD9WvNaZjOlrZ+ZtxKRw=
+	t=1787232453; cv=none; b=CHCBVygG91nIukWYVIrGgbtXn/19dXwB+bpVtp2apttlFvEAqgAC6v/ciit10pDpHv9ewvo3LNBbmrwvUpi+2s2tjRFpqgXuoRFhU/9RBEvXWWqd3LEzuE0+htG8q8BSiHcvAun5+ONdcstEM42xKyyXZGe3zyvI/TxWyDGOLDs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787232314; c=relaxed/simple;
-	bh=oodidHthKqnaocJR7FdH/865yN9AxJYR0G1qnoJ8P5A=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=Ko4N679dQS4GrvFFsA5uiIwubdwdvkYSTDBcbljxvgEwmn32gqRVlhR5B8FrfmwcD8GXR8l45XgVKTxJa/XYrT8AJ7dniQK/BbGHO88LkEssqmQa1vJSFaVFV75ZEFjBszCMSpUjSuDNIXEiw/pQ5no9mYHOmYQHVuh8zBAVkvo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Xr/SupHD; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=HpSIZZEt; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1787232453; c=relaxed/simple;
+	bh=TAqznz15wgPfHo3xEvzGtxlg0S2lx26s7Bov3a65OPc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=KiQjkpJc3f6oSGyopmSH9ewo9yhpxqRFr5QRLpM0htk1ufwLVMWHvNYlohMIRuvFAALiKdDRfrN4hT0TaI8YlhKZ1xcj3fuzmEmYz775lowNTY2tP8oF9meSYgpqWklYJspM5IUyFPGcDBaaJ9fkaNRhoblvExrE0cDtKEqYCMA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=shutemov.name; spf=pass smtp.mailfrom=shutemov.name; dkim=pass (2048-bit key) header.d=shutemov.name header.i=@shutemov.name header.b=EODRIw3P; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=d4z0BTyc; arc=none smtp.client-ip=103.168.172.159
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=shutemov.name
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=shutemov.name
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Xr/SupHD";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="HpSIZZEt"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1787232311;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=a/0v2ILIh5MBGsD0dXIHABcykS6dXc3s6xjBbGcHl2A=;
-	b=Xr/SupHDrqDpEm7RdFwIOr5S5/2dYpOXAVQDItDSK4xPSiPR5rdVT9DTd+y5qOUIHmKrfH
-	7uUoSN9HU6hkRcRQVaa6HQDdEsDhmXL92LIKkhBjxHSHOfHzTGsHU5R4xsUcnWM0Tc175p
-	9xDyqTKkvQBHlsb8dcLUYfcHCULGJDw=
-Received: from mail-wr1-f69.google.com (mail-wr1-f69.google.com
- [209.85.221.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-110-w5PUnguzPpOHcdL-nvqjJg-1; Thu, 20 Aug 2026 09:25:10 -0400
-X-MC-Unique: w5PUnguzPpOHcdL-nvqjJg-1
-X-Mimecast-MFC-AGG-ID: w5PUnguzPpOHcdL-nvqjJg_1787232309
-Received: by mail-wr1-f69.google.com with SMTP id ffacd0b85a97d-473ac08a6a4so1531482f8f.0
-        for <linux-rdma@vger.kernel.org>; Thu, 20 Aug 2026 06:25:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1787232309; x=1787837109; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:content-language
-         :from:references:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=a/0v2ILIh5MBGsD0dXIHABcykS6dXc3s6xjBbGcHl2A=;
-        b=HpSIZZEtDm2WuTgE6YUUwteDAzT1GpcYXS/cUT13XnqIF3FfGYBUb1I48/va1XyRuw
-         MOxbzs9lZW1uKtkpPQ8ytuz8x034VvlLH9pmvIpErWGTLn4HWCD9Q06YbgElca/8PxNS
-         A8pi9I6It6dl64ThBcTCHCCsX4+Ie5F6l4NQ9+DWrfVuHM1k5qhC4Tz+nveBpGdSm7fn
-         RP3TKQELNCqsORJ597Nf+ktjwj5PMKU0PVAmbmktyllab6vIuWJ+nFdKALviRg8hCU0c
-         JkW0cMnZiQEZhDeCrVorpY/E6/ZIJU990ejsc7NOo9b2PA4SrX9peANovX+rDRJmB77u
-         Hqiw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787232309; x=1787837109;
-        h=content-transfer-encoding:content-type:in-reply-to:content-language
-         :from:references:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=a/0v2ILIh5MBGsD0dXIHABcykS6dXc3s6xjBbGcHl2A=;
-        b=luvrz1VHRUp04i7No/NtF6ZAnvDTtG5vbY5GSGemzE4pOd0pAvO9XSMdcQOyqRj0Fa
-         PmVKJYq9FH6e3AVL44qq5CPhPCzqN665eiOAYtzxlxsyWda00symtEo/GmTlA+Fw2gtj
-         QQp8/7s0v/vcgljOjWAOi8kdvbIdVed1XRPmbjhPBf+bNDYi2QJWNDtl+r7iQm8Rl8d1
-         56zrWY975vq+1cWfECvf4u8+4mS0nlM5IcT8NvjrkBWTzSvW81lq7XPwi5MzKKxUfHYs
-         jwXtodXaB9InMEfXG7JHccHohPxgVQFt9x9+PTpraNeOq1PuaqT0a3kFTr02l8AlGIdh
-         mORA==
-X-Forwarded-Encrypted: i=1; AHgh+RrEoOQFjTyJaQASglJahZdG4mkPndJX894vx/rKaTNaLyuE1UgugDp3AKy70oUxokYQrdalgCt1o9/6@vger.kernel.org
-X-Gm-Message-State: AOJu0YwDTBNYy2e+AhPhSXkwE7EeazXna+X1nWZnsxVvz03XolpZOe95
-	agNnFoi+5UOhRiE9WpuGBWaACcWBYy4FfAYINhOdzWHc7jSCgu4faGwzt6Lmt1G8J6r0AOI//pK
-	Xj03C4fZ7UBbRVh6oqaxveh1cvruTCQlmzkETtqDi9wsmZ2k+wyoFfz0xMo+VHsE=
-X-Gm-Gg: AR+sD12TpY6CKR9aK3WYn2j8qCOLpz645EFtIYmQHFmEQXJEdTUscUhIzIZOFUN7SrP
-	ZITl7n77ZDBE7wzm+XjgIv9h9r8C4ALN7YCCZ7f6M2OmY7as4diXl1D5HN8uE/4i/JexhiA9tf6
-	IshhoyJp8+XxCaKeW9PqOsZMd/XL98aYihqVwr7hyKY1ve1p8AXJBCztPnA/Ypy8MEIIRUMPDaq
-	f3FjaHQ+fq4pqO5VJmTgoCI71U+1qx7YfbC+/udhdHZqHuJvynx4p6BT4N7ozfm2Gon5mgi0UPc
-	YR3s06sSsFTs5Q+zUkDBTBhsSny/vLFo2v+quZWzSKZCaBMKeeOK2Tm/gNiBcG6UE2520jGrgVr
-	tOvF+DU0i7GIBMyYTX/6RriAbmXQ5q2hQC9b1Yc55IY+9oILEYYRh0S7h20VKyJJONFnOv5zxzN
-	Y=
-X-Received: by 2002:a05:600c:a47:b0:499:726a:a017 with SMTP id 5b1f17b1804b1-499aa14a6ebmr196855375e9.1.1787232308899;
-        Thu, 20 Aug 2026 06:25:08 -0700 (PDT)
-X-Received: by 2002:a05:600c:a47:b0:499:726a:a017 with SMTP id 5b1f17b1804b1-499aa14a6ebmr196853915e9.1.1787232308364;
-        Thu, 20 Aug 2026 06:25:08 -0700 (PDT)
-Received: from [192.168.188.103] (ip239-44-231-195.pool-bba.aruba.it. [195.231.44.239])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-499b212fc11sm30099185e9.1.2026.08.20.06.25.05
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 20 Aug 2026 06:25:07 -0700 (PDT)
-Message-ID: <840b8084-3ee8-457c-8717-f3c20cea45d6@redhat.com>
-Date: Thu, 20 Aug 2026 15:25:04 +0200
+	dkim=pass (2048-bit key) header.d=shutemov.name header.i=@shutemov.name header.b="EODRIw3P";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="d4z0BTyc"
+Received: from phl-compute-10.internal (phl-compute-10.internal [10.202.2.50])
+	by mailfhigh.phl.internal (Postfix) with ESMTP id 5DB0914000F9;
+	Thu, 20 Aug 2026 09:27:30 -0400 (EDT)
+Received: from phl-frontend-04 ([10.202.2.163])
+  by phl-compute-10.internal (MEProxy); Thu, 20 Aug 2026 09:27:30 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=shutemov.name;
+	 h=cc:cc:content-type:content-type:date:date:from:from
+	:in-reply-to:in-reply-to:message-id:mime-version:references
+	:reply-to:subject:subject:to:to; s=fm1; t=1787232450; x=
+	1787318850; bh=4Ozy3CczgOizZ3ooFCppKIjSA7fkYEtdaAuwRLg7kbU=; b=E
+	ODRIw3P2o1acvpUAqB72OM7hK828HA4AEGL7JzwwmMOfO/ncvj6zaV25GHFUOXAd
+	4alwM0WIJtrx/07sWpU0q9o0MlmoS516ZXhz5w0/TVVZV+h4s0z76t+RNZvQiA0a
+	Ybqu/tJyb9RbnTHVhInmsdmjhPp1t5S3m7SFdi6LwCNGHyJO+wlfgflYvI1skpEG
+	MwYd1YTdsRKAPowaxhTozYRGj1xkWy2ot/9mbsW9zfyfpT7evJQNWY8Kc36dzrG4
+	X8rx28meskatUlgr9Dqrr/mOk3o0msUdGjuwIIqlzQhbQjGmnY+uw0H4U4Pxv8uy
+	D2crUL7NA7JlIknhkw+Iw==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-type:content-type:date:date
+	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+	:message-id:mime-version:references:reply-to:subject:subject:to
+	:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=
+	1787232450; x=1787318850; bh=4Ozy3CczgOizZ3ooFCppKIjSA7fkYEtdaAu
+	wRLg7kbU=; b=d4z0BTycjChykZU1niYaj7gAn+TEb7PaorwazbN5uNjSN1Gklyz
+	0bGJt0Kf6GrgD4StCK1QcI5v2cElqeLub/EdavWJJ+D0hTgfvOrCy67Z1G2+j31z
+	d1euHASEcrF51Rlg8JkVcns9yvV5j6cwXH9nxjGlV6JUrzr5JN1R+De+iRqLRabn
+	+2Qgt1/U3zwpAkFM9Fbut0v14Dkx/vKwxWrus7omgNVhSgp25LF8M9wMZyXG4Qz4
+	bIVNSpCu87Z1RwXte9hLE611iQMYocKWW6CF/1JkQ1cXI5QDxQ6vBimhzAJlLuT7
+	y1b7IfVWnzAgx1+Wy6oA4Sp+wwp3PXCbDCw==
+X-ME-Sender: <xms:wQCHasFuB8LJ9TeH7QvEB3gn-XxmvGbmB7FDrkBxE5DvIeHl3ER_zw>
+    <xme:wQCHaop8KbndauSCo9fxeOQHmHkV4fqeVRHg_B7zGMUmxX9DTsptntwkiAQkIMjpJ
+    IAxCZY7vexw6rutRJQYXyGTsjWd_uTOOyP3VzLJkHyiL_r_d7co_sGW>
+X-ME-Received: <xmr:wQCHaqOs_aXMJZKFYhML8XvvB3xnXVf-qSaaJVuCzk4umQEgTkIJ9ksI_r4>
+X-ME-Proxy-Cause: dmFkZTEoKWm6bbmmfKi8x+K64Bxlg2CB2ySvnBwPrS1jXCXrk+eT4gF4UsCKBI5mmn6nm6
+    60dm5WiLU3C4ooe5Pk2R042r9JhGRWPI4U8qW/2GOICA1YTtX5yENYuOuFlIecdJVuWR/w
+    5JGXSbmyBZhjSNoTK2zFoJKBzMljg4Jc9hIgPbXyLQw7jrbietBBxSHh1AiAfo1n1bvrLW
+    qn8jrbWy3WhtmSFEgBwZdQxOxJOXdzvw78mkoULr1Y6Q5l0wDkEO1Kdj+eWSSV6ljPRsZA
+    CL5JMXuJcVo7h0NaIjspEMlNGtoTil/pue8HDKYy5THLX0778c/3xdRsjTjEuyjpul/QLt
+    aF4PiCfx1WRJe4eFQAex2bzNi43lzQxmOeRwqDlQnAMimRgm0BpmnF4jgtVcZL+4xxeyYh
+    tXBXiCYKLmv5WaqY5rlD2ICC3W6go5soIqOIegCyG6+m62SVB2j3G4tTKLEdrEX+MynZiF
+    6/cAoU3xCRTJipaFsMy+2toLPoljjNDoqIpl+j3ouLTC5UgptPnjYOunOKRRno9OLqCyHk
+    x2WY6lMCRD+gt8AIe28D55YhWoGNr2WLc7Ybsq8nQjIJQvL7M2ckIEU2Du+HOBNFtBj2yf
+    WWAbNidtxuzP/HJSAAX+Bz8r/0LtsO7Jn68I2EmckseVmg6Ki4jxx5c3AJGg
+X-ME-Proxy: <xmx:wQCHakc9MEuLFfvEzNeb5Pr9JuA039uguEI6PYwYrwEAEPMNl2TqFA>
+    <xmx:wQCHaoQk4LldvSf0eRdTXHa74QTPOGcpuby8QszIaaprPncX9NpdDA>
+    <xmx:wQCHajoqwx894LBwB-ltGDxUGmE992BMq71Jlys4T8xbbx4MtpZpow>
+    <xmx:wQCHau6KVsNnv_pNePY2FqvioCzKQBg-lFQW5Wnhb6PWBbgI_n-cKQ>
+    <xmx:wgCHamfXySBPmm6VzFXjELx3tJldPDBMdhRwZ9pl45wgFfqiBQ1nlqHs>
+Feedback-ID: ie3994620:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
+ 20 Aug 2026 09:27:29 -0400 (EDT)
+Date: Thu, 20 Aug 2026 14:27:27 +0100
+From: Kiryl Shutsemau <kirill@shutemov.name>
+To: Qi Xi <xiqi2@huawei.com>
+Cc: akpm@linux-foundation.org, vbabka@kernel.org, longli@microsoft.com, 
+	kotaranov@microsoft.com, jan.kiszka@siemens.com, kbingham@kernel.org, surenb@google.com, 
+	mhocko@suse.com, brendan.jackman@linux.dev, hannes@cmpxchg.org, ziy@nvidia.com, 
+	linux-hyperv@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, 
+	linux-mm@kvack.org, linux-kernel@vger.kernel.org, sunnanyong@huawei.com, 
+	wangkefeng.wang@huawei.com
+Subject: Re: [PATCH] mm: drop stale MAX_ORDER references
+Message-ID: <aocAePwuxr4te2jG@thinkstation>
+References: <20260818122408.4182417-1-xiqi2@huawei.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next, v3] net/mlx5: Use dma_wmb() for completion queue
- doorbell updates
-To: lirongqing <lirongqing@baidu.com>, Saeed Mahameed <saeedm@nvidia.com>,
- Leon Romanovsky <leon@kernel.org>, Tariq Toukan <tariqt@nvidia.com>,
- Mark Bloch <mbloch@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
- "David S . Miller" <davem@davemloft.net>, Eric Dumazet
- <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
- Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>,
- Jesper Dangaard Brouer <hawk@kernel.org>,
- John Fastabend <john.fastabend@gmail.com>,
- Stanislav Fomichev <sdf@fomichev.me>, Boris Pismenny <borisp@nvidia.com>,
- Richard Cochran <richardcochran@gmail.com>, Cosmin Ratiu
- <cratiu@nvidia.com>, Dragos Tatulea <dtatulea@nvidia.com>,
- Carolina Jubran <cjubran@nvidia.com>, Kees Cook <kees@kernel.org>,
- Akiva Goldberger <agoldberger@nvidia.com>, Simon Horman <horms@kernel.org>,
- netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
- linux-kernel@vger.kernel.org, bpf@vger.kernel.org
-References: <20260816035605.1873-1-lirongqing@baidu.com>
-From: Paolo Abeni <pabeni@redhat.com>
-Content-Language: en-US
-In-Reply-To: <20260816035605.1873-1-lirongqing@baidu.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260818122408.4182417-1-xiqi2@huawei.com>
 
-On 8/16/26 5:56 AM, lirongqing wrote:
-> From: Li RongQing <lirongqing@baidu.com>
+On Tue, Aug 18, 2026 at 08:24:08PM +0800, Qi Xi wrote:
+> The treewide rename in commit 5e0a760b4441 ("mm, treewide: rename
+> MAX_ORDER to MAX_PAGE_ORDER") left a few spots still using the old
+> name:
 > 
-> dma_*() barriers are specifically for ordering writes to DMA
-> coherent memory that is accessible to both the CPU and DMA capable
-> devices.
+>   - two comments in include/net/mana/mana.h and mm/page_alloc.c;
+>   - the gdb helper scripts/gdb/linux/mm.py, where self.MAX_ORDER is
+>     a local mirror of the kernel's MAX_ORDER define.
 > 
-> The dma_wmb() barrier is lighter than wmb() on some architectures
-> because it only ensures ordering for DMA writes, not for all writes
-> including MMIO accesses.
+> Rename the leftover instances to MAX_PAGE_ORDER so the tree is
+> consistent.
 > 
-> In the MLX5 driver, completion queue (CQ) doorbell records are
-> allocated as DMA coherent memory via mlx5_dma_zalloc_coherent_node().
-> The CQ update pattern is:
->   1. Update CQ space (device reads via DMA)
->   2. Update doorbell record (device reads via DMA)
->   3. Memory barrier
->   4. Enable more CQEs
-> Since only DMA coherent memory accesses are involved (no MMIO accesses
-> follow), we can safely use dma_wmb() instead of wmb().
+> No functional changes.
 > 
-> This change improves performance slightly on architectures where
-> dma_wmb() is lighter than wmb().
+> Signed-off-by: Qi Xi <xiqi2@huawei.com>
+> ---
+>  include/net/mana/mana.h | 4 ++--
+>  mm/page_alloc.c         | 2 +-
+>  scripts/gdb/linux/mm.py | 8 ++++----
+>  3 files changed, 7 insertions(+), 7 deletions(-)
 > 
-> Signed-off-by: Li RongQing <lirongqing@baidu.com>
-> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
-## Form letter - net-next-closed
+> diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
+> index 04acb6791dbd..1d5bed71d6a7 100644
+> --- a/include/net/mana/mana.h
+> +++ b/include/net/mana/mana.h
+> @@ -40,8 +40,8 @@ enum TRI_STATE {
+>  #define COMP_ENTRY_SIZE 64
+>  
+>  /* This Max value for RX buffers is derived from __alloc_page()'s max page
+> - * allocation calculation. It allows maximum 2^(MAX_ORDER -1) pages. RX buffer
+> - * size beyond this value gets rejected by __alloc_page() call.
+> + * allocation calculation. It allows maximum 2^(MAX_PAGE_ORDER -1) pages. RX
 
-We have already submitted our pull request with net-next material for v7.3,
-and therefore net-next is closed for new drivers, features, code refactoring
-and optimizations. We are currently accepting bug fixes only.
+Should it reference MAX_ORDER_NR_PAGES instead?
 
-Please repost when net-next reopens after Aug 31st.
+> + * buffer size beyond this value gets rejected by __alloc_page() call.
+>   */
+>  #define MAX_RX_BUFFERS_PER_QUEUE 8192
+>  #define DEF_RX_BUFFERS_PER_QUEUE 1024
 
-RFC patches sent for review only are obviously welcome at any time.
-
-See: https://www.kernel.org/doc/html/next/process/maintainer-netdev.html#development-cycle
-
+-- 
+  Kiryl Shutsemau / Kirill A. Shutemov
