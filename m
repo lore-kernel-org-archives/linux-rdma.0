@@ -1,173 +1,141 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from fhigh-a1-smtp.messagingengine.com (fhigh-a1-smtp.messagingengine.com [103.168.172.152])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 743F635C681;
-	Thu, 20 Aug 2026 14:47:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D44AB8635D;
+	Thu, 20 Aug 2026 15:00:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.152
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787237270; cv=none; b=hUXU3lkNc4ZwKhEISUP304es8J7t1a6/HVAZoMR4wn7oB/v4WHOuj+AyOVK9Zbs0vR/K4as6onbkEwkVhz/VnQNFhYtGZQGfAeUXMiywT5g38AoCSOPSlkLMAzm8tbDFoJLhkpyJvuO2btFBKBovj/WcQgywz15he1cKZ8UV86A=
+	t=1787238037; cv=none; b=riKrfh6lenirNzYO3IoqF8ZaQNZrG3k86l2wpr8ZXA4SwIsTJRgHE1TBPhlmgy94lmipeBKgAOvPUSDUy8SGPIAM/osEAepieJrKc3CXicE8BSwMx4EPdyWheofpsyrfqFj4O8bOX9pm9IctO4E5WW7JiHhWfE59WCAGhofetvM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787237270; c=relaxed/simple;
-	bh=arChOdlx8rIeYlNNqtWf0HvAV6gvlp/4oRxegmFuifs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=N7MtL/5IqOwVl19C8bTpRHqduLI3g0iViwFICLz3B35O2knZHN0G514cpL7FDVz/rl59E49umSgzkOdv0fo5KQYFuiG0VAFPfgUvsRicCRvmRFavfoFXPvHPcPFTKY0wKG4jR9CzIdh+zUWpqOgsvaNby9idYRmhV2+lewaebVs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=isLHpSKk; arc=none smtp.client-ip=148.163.156.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	s=arc-20240116; t=1787238037; c=relaxed/simple;
+	bh=XY4JzP5ma2KQH4gyE4kaYXAqEKpyo5FR9wDQl00t85Y=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=PwcIJxUqElhfnRXuKMVsFctffTGR2LmApDjVrhYCY5OX1FuuUfLgalH+NI9ztWAgsQR3nIbmhcvpEZZtEe0pqT7cgne/EBzLEm4RHKjMUBMJIrNZbtTSRQKe5tlbEIGrGCzsTATNrgJZHipHIYc08SeG3YAXQDnlXLbyAbV7LB8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=shutemov.name; spf=pass smtp.mailfrom=shutemov.name; dkim=pass (2048-bit key) header.d=shutemov.name header.i=@shutemov.name header.b=ybSy9LUp; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=PHxqwqwy; arc=none smtp.client-ip=103.168.172.152
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=shutemov.name
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=shutemov.name
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="isLHpSKk"
-Received: from pps.filterd (m0353729.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 67KEVdAw872857;
-	Thu, 20 Aug 2026 14:47:36 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-transfer-encoding:date:from:message-id:mime-version
-	:subject:to; s=pp1; bh=M6DyRkSuMoqMLORXqiM3rYRtdD8L+5McAvJFbP+st
-	DY=; b=isLHpSKkDaajhqvwV4VQVBt3GlW6Ny6c8ZU7jT5tpPMH3KrXAVDO6Cdkv
-	/V43TFuGgrlPjP+5KJOlgsDBxahMsuGdTOCTrd0uAmu/xuy9nD6DNQRXsHZvBdPX
-	U/qrsK4Sa45Bup44eeYGorUkWhM60I5Gtbqv6xKrAsD2YiAU5+lou7wdVDddIp7C
-	FLEWPaBbEPE3eJyS005bT/9cMmmJpmGpeJGjG3088139CNkWCwbdOJCez5PSJU1q
-	Dn25GSwa6pHpDc3+f+Hxqwe5WN9zmwM2343TeJ1ySi6jFtxEvUGbQZezekSk94iY
-	cIqR/VfcAgOF2uNgMktWpp7HIbzhg==
-Received: from ppma23.wdc07v.mail.ibm.com (5d.69.3da9.ip4.static.sl-reverse.com [169.61.105.93])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4g4yu0b0mb-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 20 Aug 2026 14:47:35 +0000 (GMT)
-Received: from pps.filterd (ppma23.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma23.wdc07v.mail.ibm.com (8.18.1.7/8.18.1.7) with ESMTP id 67KEfGL2013289;
-	Thu, 20 Aug 2026 14:47:34 GMT
-Received: from smtprelay02.fra02v.mail.ibm.com ([9.218.2.226])
-	by ppma23.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4g33xhf3a1-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 20 Aug 2026 14:47:33 +0000 (GMT)
-Received: from smtpav02.fra02v.mail.ibm.com (smtpav02.fra02v.mail.ibm.com [10.20.54.101])
-	by smtprelay02.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 67KElTCx49217938
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 20 Aug 2026 14:47:29 GMT
-Received: from smtpav02.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id BA91E2004B;
-	Thu, 20 Aug 2026 14:47:29 +0000 (GMT)
-Received: from smtpav02.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 7C96920043;
-	Thu, 20 Aug 2026 14:47:29 +0000 (GMT)
-Received: from t83lp68.lnxne.boe (unknown [9.87.84.240])
-	by smtpav02.fra02v.mail.ibm.com (Postfix) with ESMTP;
-	Thu, 20 Aug 2026 14:47:29 +0000 (GMT)
-From: Hidayath Khan <hidayath@linux.ibm.com>
-To: alibuda@linux.alibaba.com, dust.li@linux.alibaba.com,
-        sidraya@linux.ibm.com, mjambigi@linux.ibm.com, andrew+netdev@lunn.ch
-Cc: tonylu@linux.alibaba.com, guwen@linux.alibaba.com, davem@davemloft.net,
-        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-        horms@kernel.org, pasic@linux.ibm.com, hidayath@linux.ibm.com,
-        linux-s390@vger.kernel.org, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org
-Subject: [PATCH net v2] net/smc: fix socket refcount leak in smc_switch_conns()
-Date: Thu, 20 Aug 2026 16:47:29 +0200
-Message-ID: <20260820144729.1019399-1-hidayath@linux.ibm.com>
-X-Mailer: git-send-email 2.52.0
+	dkim=pass (2048-bit key) header.d=shutemov.name header.i=@shutemov.name header.b="ybSy9LUp";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="PHxqwqwy"
+Received: from phl-compute-10.internal (phl-compute-10.internal [10.202.2.50])
+	by mailfhigh.phl.internal (Postfix) with ESMTP id CED8F14000F9;
+	Thu, 20 Aug 2026 11:00:34 -0400 (EDT)
+Received: from phl-frontend-04 ([10.202.2.163])
+  by phl-compute-10.internal (MEProxy); Thu, 20 Aug 2026 11:00:34 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=shutemov.name;
+	 h=cc:cc:content-type:content-type:date:date:from:from
+	:in-reply-to:in-reply-to:message-id:mime-version:references
+	:reply-to:subject:subject:to:to; s=fm1; t=1787238034; x=
+	1787324434; bh=9NHH3MAtXegQM8wmmdhADbFPM8G3Gs+3JvKoiIEVOUc=; b=y
+	bSy9LUpE2TURrJNCOInPhz/J81lPAqVQADV0DEAbsVj6h+mjSiK+Pl5c2no3xAln
+	ZT+pzGa5KiN3qQ1x3RGqaD2pT7iMHj66SjHDcH4vpCe+WtG9UYs1/w1HQt3DgXYw
+	ItJLSrzyMCOODVb9vONn/rL509AB5VFE8/QGOMilyEcJ4sDB3ebU1+mbDFlpyRkA
+	zjdEmsD+LkS6yLwImrIg6rHzcVhXV2236J9+up/B3D0Avpxf0iUqUZosYUgX1Idt
+	LOAcDc3RVspuEr9GEoy+OVY0Lgf6FmLe97KGYBiI9H4Yj5GiICPjiwyAL5TNkSPP
+	v6j3URIh8hBHdCcpwVcOw==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-type:content-type:date:date
+	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+	:message-id:mime-version:references:reply-to:subject:subject:to
+	:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=
+	1787238034; x=1787324434; bh=9NHH3MAtXegQM8wmmdhADbFPM8G3Gs+3JvK
+	oiIEVOUc=; b=PHxqwqwynGL8tEvQeE+15D03uaZFylAb8AkxfjH8V5Vt6Jbvlp7
+	AhiFrpT+7afJNlj81D3/Iq4+NDqmGfRvB5Rr11IX8jH0uj85Dr62ruGO/6sQxZOR
+	g+kdENZsyo9MQ8rah61ds4e2rrVYWo6P+hlDTmsrRUYVubr7bffCwgDcM7qei2SA
+	NWuR1t7zRwAeoEM4wWKYT/BILWDwM8huFhdZiSxg2fSTQsHuyt04/fcxKlpuggyX
+	IuAbbyI85ALz3lifCqJPfyXbX6yD7d+OJAnM2dcgWhVYHjuYRhxBaOwxwU9d0Wl/
+	wCP27Dpn5O/7UcZHkAShrBw+OxBleBUYP9g==
+X-ME-Sender: <xms:khaHamGnNRiFZlkdmJZ4zuJg3rhsgAjyObmc5LXpP_-6mO31if4RTQ>
+    <xme:khaHaqpYN-WTlny29pDASt1_ZFQWgmW1Fx5qHl0s9tyr4ADGxZvU9Yho15Y3g-CAs
+    JIeKX93VxZmhF21HB-OIrBa57AdC_Ofhw_hIgAgUeZhzYKJX4a138E>
+X-ME-Received: <xmr:khaHakMmKYlYiSlWPA-bm_BW25GZzfm-WBHlsMm4cBrPFLv_40aJgT8Rmp0>
+X-ME-Proxy-Cause: dmFkZTE0/9X7WIzT7v0cJ1Q68jjWE24R4f9YD+0vv/l4GrYIP7tL5wuv093UaXVgVH30E8
+    80/ZyKNSEHmGq7ojjVQqWlktXNiRKQYT8pxO4ERvYN1NOvSqsMenUQKZxDhs+dHKXEVPI6
+    UQQI3Cnxqx257NeEinkkbSMAgIyrxGy+3LyIVGD662Q9JoUG3XYDJGL2sXVXCbPKO39QrX
+    iwCOxpG2/06ZaIhxY9r4yHvNjqDfm/OrVj93wsPLClOa0UNxBIXUehNGDPpbqr4MpNbeSo
+    /3U46K13FXumbfTWf33t2x28XQ8MR5zuXgJxJvRFw/xeMsvO6a64SnRydROJmhGIrt/wFH
+    +K37V1yOAoB6fwsiRq0cHC06gi2Y2E1FBp+ddRUkRsBuF3CEoKbKmiOMyflSStNRWTUL1p
+    4YxUt6h0cGoKGpPXs2vMr7wzHwnBvtaQ7z07Q8Nqk4q+/UZeJf/45TWikhigUxinmx3azV
+    gkxUA+qHp/NWcZnaPXxmyxVm/KlKpppJOftyEkqSyzEpWyk6VjF4dxF89yrWKVjrYxs38c
+    6SDNc5ybBk5uGxQycyp0kY3hDW8o0WKvG928wnqhTqjl4XLvTrfde9HVu8Cstdt+S4DcNQ
+    xqQredZLSBYoxAqpvtNV5sv1zjhBl6xxcp0rcFpHtzkKB8a9BpAwcFFa2+RA
+X-ME-Proxy: <xmx:khaHamfGePOUDx_KIr-CYt3fgla9L8ETY60ZgWHB3MG9ENcYDXguvw>
+    <xmx:khaHaiRHdbUzGdikB4dUgxAaZ50EPlCYGgwP-F2hKm_OH9Y37ujDog>
+    <xmx:khaHalqo3uZVoZSbr8MTIBVao_ZEKKDSTO4_xcKgfOBhGywwyYHwSg>
+    <xmx:khaHao7-20IRSnV_KugpYALdKzVrKpiwHmYgttlohevlP5g-tGBAJQ>
+    <xmx:khaHao0eLrIu1KQhhVdJ-QeLxcqyJPJ_P4rsas9Zlo6hPkmOBkTLIK4J>
+Feedback-ID: ie3994620:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
+ 20 Aug 2026 11:00:32 -0400 (EDT)
+Date: Thu, 20 Aug 2026 16:00:31 +0100
+From: Kiryl Shutsemau <kirill@shutemov.name>
+To: Zi Yan <ziy@nvidia.com>
+Cc: Qi Xi <xiqi2@huawei.com>, akpm@linux-foundation.org, vbabka@kernel.org, 
+	longli@microsoft.com, kotaranov@microsoft.com, jan.kiszka@siemens.com, 
+	kbingham@kernel.org, surenb@google.com, mhocko@suse.com, brendan.jackman@linux.dev, 
+	hannes@cmpxchg.org, linux-hyperv@vger.kernel.org, linux-rdma@vger.kernel.org, 
+	netdev@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, 
+	sunnanyong@huawei.com, wangkefeng.wang@huawei.com
+Subject: Re: [PATCH] mm: drop stale MAX_ORDER references
+Message-ID: <aocWWrK_K1iCtq4P@thinkstation>
+References: <20260818122408.4182417-1-xiqi2@huawei.com>
+ <aocAePwuxr4te2jG@thinkstation>
+ <AF9812A4-550F-4E3A-B67C-EAF6F9F56982@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-Reinject: loops=2 maxloops=12
-X-Proofpoint-ORIG-GUID: M8d_DPZNN10dRYlw7H3bifNP7G8oJ_J6
-X-Proofpoint-GUID: n04lYuaoW0nZuDn2q6O7ZsX9GCgwxUqP
-X-Authority-Analysis: v=2.4 cv=RoX16imK c=1 sm=1 tr=0 ts=6a871387 cx=c_pps
- a=3Bg1Hr4SwmMryq2xdFQyZA==:117 a=3Bg1Hr4SwmMryq2xdFQyZA==:17
- a=Sv0fKeRqtYgA:10 a=VkNPw1HP01LnGYTKEx00:22 a=RnoormkPH1_aCDwRdu11:22
- a=uAbxVGIbfxUO_5tXvNgY:22 a=VwQbUJbxAAAA:8 a=VnNF1IyMAAAA:8 a=xNf9USuDAAAA:8
- a=NyngIuOBHUP6-Bjl12gA:9
-X-Proofpoint-Spam-Info: AW1haW4tMjYwODIwMDEwOSBTYWx0ZWRfXydQn5DFT0UL/
- 050eYD8bwUNC8eGBcy6ojbigzqDZeP7u46FiRHCKei26v/O0DPXAF3LtUg+r2S2m6MJdfjfglzf
- wOZ/sYGElULAX1gbH1qpOO6KOiz6P/w=
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwODIwMDEwOSBTYWx0ZWRfX+uFuvdf48T8w
- PIC9wpCmNSiyOf+gqq6JdCUOj4ylOwGM3mEKE+Bnods9A7ZOu73+LVuaEHpVyGYJnIrV2DDcBKl
- jOMhpv0tkfeuigkEeIstSn/Kt5NC84wB9NaDvpBK/Fuukkg+V3NWPSGSoWmbHXU0XpA+z3eFg/l
- zRgzZj6y0T4vEAXgdzdCWVrGcJpHYu2usx7sQ1w+nuBI/llR0xhf1ezGJlBFXC80MucRSYxo0Zz
- B77mhue94OIUVKU2fxtsGFv9ngyiIkW8pXCR6K05ko8oUkjNqNXnomXBvsiSUsw4/0iPFmIQmN8
- TRFqF1CEErTDdhfEBjh1Fmg2Zi/0FI0OtCpnKsPB9qDMwK7qAdF5Dq0tng3BFVqqPlMPcLw+DgT
- keLC1ZCMl3Yw/sqHPwJedjhFPlFPBfr8slF4LVd9Iv+YZHog4KW7WwsHYT8Y1nnlDvlhyBe4isM
- h/tnhEPi2ajXmbj2oGg==
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-08-19_06,2026-08-20_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- priorityscore=1501 impostorscore=0 suspectscore=0 malwarescore=0 adultscore=0
- clxscore=1015 phishscore=0 spamscore=0 bulkscore=0 lowpriorityscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2608200109
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <AF9812A4-550F-4E3A-B67C-EAF6F9F56982@nvidia.com>
 
-smc_switch_conns() takes a reference on the SMC socket before dropping
-lgr->conns_lock, so the connection stays alive while the CDC slot is
-fetched:
+On Thu, Aug 20, 2026 at 09:52:03AM -0400, Zi Yan wrote:
+> On 20 Aug 2026, at 9:27, Kiryl Shutsemau wrote:
+> 
+> > On Tue, Aug 18, 2026 at 08:24:08PM +0800, Qi Xi wrote:
+> >> The treewide rename in commit 5e0a760b4441 ("mm, treewide: rename
+> >> MAX_ORDER to MAX_PAGE_ORDER") left a few spots still using the old
+> >> name:
+> >>
+> >>   - two comments in include/net/mana/mana.h and mm/page_alloc.c;
+> >>   - the gdb helper scripts/gdb/linux/mm.py, where self.MAX_ORDER is
+> >>     a local mirror of the kernel's MAX_ORDER define.
+> >>
+> >> Rename the leftover instances to MAX_PAGE_ORDER so the tree is
+> >> consistent.
+> >>
+> >> No functional changes.
+> >>
+> >> Signed-off-by: Qi Xi <xiqi2@huawei.com>
+> >> ---
+> >>  include/net/mana/mana.h | 4 ++--
+> >>  mm/page_alloc.c         | 2 +-
+> >>  scripts/gdb/linux/mm.py | 8 ++++----
+> >>  3 files changed, 7 insertions(+), 7 deletions(-)
+> >>
+> >> diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
+> >> index 04acb6791dbd..1d5bed71d6a7 100644
+> >> --- a/include/net/mana/mana.h
+> >> +++ b/include/net/mana/mana.h
+> >> @@ -40,8 +40,8 @@ enum TRI_STATE {
+> >>  #define COMP_ENTRY_SIZE 64
+> >>
+> >>  /* This Max value for RX buffers is derived from __alloc_page()'s max page
+> >> - * allocation calculation. It allows maximum 2^(MAX_ORDER -1) pages. RX buffer
+> >> - * size beyond this value gets rejected by __alloc_page() call.
+> >> + * allocation calculation. It allows maximum 2^(MAX_PAGE_ORDER -1) pages. RX
+> >
+> > Should it reference MAX_ORDER_NR_PAGES instead?
+> 
+> It is fixed in v2[1].
 
-        sock_hold(&smc->sk);
-        read_unlock_bh(&lgr->conns_lock);
-        /* pre-fetch buffer outside of send_lock, might sleep */
-        rc = smc_cdc_get_free_slot(conn, to_lnk, &wr_buf, NULL, &pend);
-        if (rc)
-                goto err_out;
+It is not :)
 
-The err_out label only drops the wr_tx link reference, so this early exit
-returns without the matching sock_put(). The second error exit is not
-affected, because sock_put() has already run by then.
+My point is that 2^MAX_PAGE_ORDER is MAX_ORDER_NR_PAGES.
 
-A leaked sk_refcnt means the smc_sock is never destroyed. Its send and
-receive buffers stay allocated, and for a user socket the reference held
-on the network namespace is never released, so the netns can no longer be
-torn down.
+But v2 is good enough.
 
-smc_cdc_get_free_slot() fails when the target link goes down or when the
-connection has been killed while the switch is in progress. Both are
-reachable during the link failover this function implements, so the leak
-is triggered by the same hardware events that make smc_switch_conns() run
-in the first place.
-
-Restructure so there is a single sock_put() covering both outcomes,
-instead of adding a second one to the error path.
-
-Fixes: 95f7f3e7dc6b ("net/smc: improved fix wait on already cleared link")
-Cc: stable@vger.kernel.org
-Reviewed-by: Mahanta Jambigi <mjambigi@linux.ibm.com>
-Reviewed-by: Breno Leitao <leitao@debian.org>
-Signed-off-by: Hidayath Khan <hidayath@linux.ibm.com>
----
-v2:
-- Restructure to a single sock_put() on the common path rather than
-  adding one to the error path (Breno Leitao).
-
- net/smc/smc_core.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
-
-diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-index b4208cb186c5..2f7f9d469272 100644
---- a/net/smc/smc_core.c
-+++ b/net/smc/smc_core.c
-@@ -1148,13 +1148,13 @@ struct smc_link *smc_switch_conns(struct smc_link_group *lgr,
- 		read_unlock_bh(&lgr->conns_lock);
- 		/* pre-fetch buffer outside of send_lock, might sleep */
- 		rc = smc_cdc_get_free_slot(conn, to_lnk, &wr_buf, NULL, &pend);
--		if (rc)
--			goto err_out;
--		/* avoid race with smcr_tx_sndbuf_nonempty() */
--		spin_lock_bh(&conn->send_lock);
--		smc_switch_link_and_count(conn, to_lnk);
--		rc = smc_switch_cursor(smc, pend, wr_buf);
--		spin_unlock_bh(&conn->send_lock);
-+		if (!rc) {
-+			/* avoid race with smcr_tx_sndbuf_nonempty() */
-+			spin_lock_bh(&conn->send_lock);
-+			smc_switch_link_and_count(conn, to_lnk);
-+			rc = smc_switch_cursor(smc, pend, wr_buf);
-+			spin_unlock_bh(&conn->send_lock);
-+		}
- 		sock_put(&smc->sk);
- 		if (rc)
- 			goto err_out;
-
-base-commit: a13dc7dafebe1643676c3d995f0a5651c08387c6
 -- 
-2.52.0
-
+  Kiryl Shutsemau / Kirill A. Shutemov
