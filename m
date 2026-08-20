@@ -1,173 +1,152 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4B4B37FF53;
-	Thu, 20 Aug 2026 04:35:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBE98388E61;
+	Thu, 20 Aug 2026 07:46:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787200559; cv=none; b=rlI14X13EIuurtwZZ7k0WZ4mv/uxzM2oGy5rN8Q0/rfgAQQ3f4VGjNDgTXQp2TcG3w7qJGaJBgjE2yPzN6R+dpAcLHRhbE5LaTv5ilcmAYD8xwQccZtv2L1mt1pFuT7PdQei0NhMf4a31clGhqHLRjfaIR3dMkMC4Guv88fvwzs=
+	t=1787212017; cv=none; b=SgRoN11JiHn+AY2Ce2GeXH3HVRzfrCcAxo0xUmHgPZgxSxPNiB2gIeEV+KuGI+WZzuV+L7AZzYJuyu5rHWbL8jNtQTBFvsWjotpvQstlfxbZrhCxJJA49MVdyYqYU8TzZLvvbB3e62oA5lTpzh6yIxs4ALgKK3z7jiVb0ZdkZXU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787200559; c=relaxed/simple;
-	bh=cHi+EBIsyAL7cVoiVX4cgiKwfxoD+PMM44X8FOBuNWw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=eQ1FAGdlVtWNtdQ2oahi9Up15pSMTblMsqVhoSRYNiH/rlL6Eslo+LDdk6Vx2oaxMFj5PbN220j/QAfQ/d2jP7DPCXCJh4Ar5eTOxmcnXoX8Rh1yA8xB+LpVxdUPJEz5sTGiMtO1Wn/NtMFbIiIWhMqDyWGfJrc+Rt21KvcMXNI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=JXdt2rd0; arc=none smtp.client-ip=198.175.65.20
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1787212017; c=relaxed/simple;
+	bh=ZDs8qeOzQQQP63I+x2vxVjc5XEeEGjTpOeZbCbXWzAI=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=ByFCFg10GHdtBOQiX1kNvDQhAN1I3L6vVJ3+vmXgBvSXbGuxTcqe61E8HhMWhZuXUGhcCa9zXnzB2GyU09mmWTXg8JNCgcoqpIn6Qen+sW6Q5+bmAA9QXXOk6yeHWHyHdW5eUcRwovvHO8Ct0WgIk+Ce/wD4WtrZ1h1Qf6Uj7Js=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=JuCF3fJi; arc=none smtp.client-ip=148.163.156.1
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="JXdt2rd0"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1787200558; x=1818736558;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=cHi+EBIsyAL7cVoiVX4cgiKwfxoD+PMM44X8FOBuNWw=;
-  b=JXdt2rd0ITI4PnPd6cG/6mx9BZrggjM4x1fG7yE4UlNc8jRL4oX9OjkM
-   WlVcBQDw3A9k7DPjMMCidugehAj5Fo5vv3ENimQOj2j3NUAVeT4C9gg+E
-   IMNEB+GlxFPCnw3L7ZpCKOTFH8Pvk5RlMui4x2xiXSuav32K3Y1lilHyT
-   i6DXskx4e7RWqcp/IFSjo7eu5LkzUYJvQs4QlGYmAz71E+tbgfrkn0G5n
-   1HV0blOn5kqdXV9f68HzCmuRqg2GUq+Qh7/F1L6ywU6D77tvETu2mmS3/
-   Av34xIRvPM/w8vOuwglnSuIOQ9fHXqJiW3UkL/vRhZckdFxtlvnDIWQed
-   A==;
-X-CSE-ConnectionGUID: 5N84FpqxRS6as/7EA3DE6A==
-X-CSE-MsgGUID: Peu2KeSDS4G6lKq8iobV6Q==
-X-IronPort-AV: E=McAfee;i="6800,10657,11880"; a="87489142"
-X-IronPort-AV: E=Sophos;i="6.25,232,1779174000"; 
-   d="scan'208";a="87489142"
-Received: from orviesa002.jf.intel.com ([10.64.159.142])
-  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Aug 2026 21:35:58 -0700
-X-CSE-ConnectionGUID: +aWBIx5CTUer/QfAUXjlDA==
-X-CSE-MsgGUID: akvwOtsWQmimi/STGgxPlw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,232,1779174000"; 
-   d="scan'208";a="295745925"
-Received: from lkp-server01.sh.intel.com (HELO 6eda058d650d) ([10.239.97.150])
-  by orviesa002.jf.intel.com with ESMTP; 19 Aug 2026 21:35:56 -0700
-Received: from kbuild by 6eda058d650d with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wwuVM-00000000hn3-2gsY;
-	Thu, 20 Aug 2026 04:35:52 +0000
-Date: Thu, 20 Aug 2026 12:35:45 +0800
-From: kernel test robot <lkp@intel.com>
-To: Guangshuo Li <lgs201920130244@gmail.com>,
-	"Md. Haris Iqbal" <haris.iqbal@ionos.com>,
-	Jack Wang <jinpu.wang@ionos.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	Gioh Kim <gi-oh.kim@cloud.ionos.com>, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
-	Guangshuo Li <lgs201920130244@gmail.com>
-Subject: Re: [PATCH] RDMA/rtrs-clt: Fix double free on path sysfs failure
-Message-ID: <202608201231.bfKSlFoO-lkp@intel.com>
-References: <20260714142838.1723076-1-lgs201920130244@gmail.com>
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="JuCF3fJi"
+Received: from pps.filterd (m0360083.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 67JLW4Df424851;
+	Thu, 20 Aug 2026 07:46:48 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:date:from:in-reply-to:message-id
+	:mime-version:references:subject:to; s=pp1; bh=BN1K/n6JpoBV1479W
+	VRv4ajiQogMB2MfE959YKhtyqo=; b=JuCF3fJihcrvQdGlfyHdp9BKTq8T4oPWN
+	+cUC2KmNJE6C/6Ga965Ssplg7oiJ6miYG8GfPAT/AG9W1/O35ieASpcGbgZUGpEz
+	g8Vw94H8RNFt+NdidBOeWNe/fihaspVI8fgPIADXOPlA6K/Zu7P4DdE2KZNzrEAy
+	sqOu3gX6LKOTdked3k5vTGNGhuipLN0uZ+pYfl1ygEhh/8xrR5W+4C6/jqztRK0z
+	7LwtN8BNTmOIJw8LP+xVNFTHTR+Tuw9rbMC7NL3ilKrMgNQmIZMcSn4LtfTVYx6I
+	vdY8EvdHgTuwDrdMWJew/WF1X1R7WLKLr2qRqjrFsgrxSY8trpCzw==
+Received: from ppma12.dal12v.mail.ibm.com (dc.9e.1632.ip4.static.sl-reverse.com [50.22.158.220])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4g4yu1gs8s-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 20 Aug 2026 07:46:48 +0000 (GMT)
+Received: from pps.filterd (ppma12.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma12.dal12v.mail.ibm.com (8.18.1.7/8.18.1.7) with ESMTP id 67K7fHfS026485;
+	Thu, 20 Aug 2026 07:46:47 GMT
+Received: from smtprelay04.fra02v.mail.ibm.com ([9.218.2.228])
+	by ppma12.dal12v.mail.ibm.com (PPS) with ESMTPS id 4g32eqddvt-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 20 Aug 2026 07:46:47 +0000 (GMT)
+Received: from smtpav01.fra02v.mail.ibm.com (smtpav01.fra02v.mail.ibm.com [10.20.54.100])
+	by smtprelay04.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 67K7khhs28770918
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Thu, 20 Aug 2026 07:46:43 GMT
+Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 79F8120040;
+	Thu, 20 Aug 2026 07:46:43 +0000 (GMT)
+Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 46A8C2004B;
+	Thu, 20 Aug 2026 07:46:43 +0000 (GMT)
+Received: from t83lp68.lnxne.boe (unknown [9.87.84.240])
+	by smtpav01.fra02v.mail.ibm.com (Postfix) with ESMTP;
+	Thu, 20 Aug 2026 07:46:43 +0000 (GMT)
+From: Hidayath Khan <hidayath@linux.ibm.com>
+To: alibuda@linux.alibaba.com, dust.li@linux.alibaba.com,
+        sidraya@linux.ibm.com, mjambigi@linux.ibm.com, andrew+netdev@lunn.ch
+Cc: tonylu@linux.alibaba.com, guwen@linux.alibaba.com, davem@davemloft.net,
+        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+        horms@kernel.org, pasic@linux.ibm.com, hidayath@linux.ibm.com,
+        linux-s390@vger.kernel.org, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+Subject: [PATCH net v2 1/2] net/smc: stop killed, freed and out_of_sync sharing a byte
+Date: Thu, 20 Aug 2026 09:46:41 +0200
+Message-ID: <20260820074642.966856-2-hidayath@linux.ibm.com>
+X-Mailer: git-send-email 2.52.0
+In-Reply-To: <20260820074642.966856-1-hidayath@linux.ibm.com>
+References: <20260820074642.966856-1-hidayath@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260714142838.1723076-1-lgs201920130244@gmail.com>
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-Reinject: loops=2 maxloops=12
+X-Authority-Analysis: v=2.4 cv=LsCiDHdc c=1 sm=1 tr=0 ts=6a86b0e8 cx=c_pps
+ a=bLidbwmWQ0KltjZqbj+ezA==:117 a=bLidbwmWQ0KltjZqbj+ezA==:17
+ a=Sv0fKeRqtYgA:10 a=VkNPw1HP01LnGYTKEx00:22 a=RnoormkPH1_aCDwRdu11:22
+ a=iQ6ETzBq9ecOQQE5vZCe:22 a=VwQbUJbxAAAA:8 a=VnNF1IyMAAAA:8
+ a=GTcdQ6rE3tqjsuqwFHkA:9
+X-Proofpoint-GUID: quY30RAjYBlCH_ZsBMwCZ4dAvys-Rg0k
+X-Proofpoint-Spam-Info: AW1haW4tMjYwODIwMDA1MyBTYWx0ZWRfX4J/F8q2kXSQJ
+ OIEUa671A30GHlWG2ucXxqqXWm6Drrbg5mZSvH0XT6GNv6XdXJKfHdtGCKJ3D4u3D9EV5XjqjFs
+ 0bH0AGPxlGvHX1uCDX/noG59sCGdRCA=
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwODIwMDA1MyBTYWx0ZWRfX7pHneQ6YxfCb
+ VS0YcyD7OanFh4udk26F2oL25s95kcSk5sR5DGSR3zI0e8VjFmA8oR/maHpRo9q2GAjOcERQgYX
+ w+QUrUaDSQ1PtpGPvUe3v4Ei6A5YmzZ7kxPVDFsp7LCxwsMoMLgAdFu2KG9sVGOYitmMldso4Xu
+ yiMh6U9yEhMxGs0J12yJhgpAfTAhqFWdJ8AZ7XwOfRk4+UUSWTpJYUP3KE8166La3mjc4DEZiKi
+ 1qKIaKsmXANxFLAWgaUbgm4E/onblND6CY9gVEdEH7R3wA7kk4Yo4sZnJBG71o5WktQqK33oupO
+ bgxHRylntBm1CymXHu3+DdlC+0tJ8/DfWf4HWoFTQ+tKrdjQrY3LDfx2BBaCRJmsDHnH3Fxejt2
+ dBPJDJXBts+usOqkuPZZQJOVm3lYJDze6DjfPc1fUKdfPIIj7/ReZRW1u60eYPi2rcW0wyStvhI
+ ouQT4Bl5IBD4W19hBEQ==
+X-Proofpoint-ORIG-GUID: 5Tka3A-1cbhhcx2D3DsjtfBgDFC0MwpV
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-08-19_06,2026-08-19_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ malwarescore=0 spamscore=0 priorityscore=1501 lowpriorityscore=0 bulkscore=0
+ adultscore=0 suspectscore=0 impostorscore=0 clxscore=1015 phishscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2608200053
 
-Hi Guangshuo,
+The three connection state flags are single-bit bitfields, so they occupy
+one byte of struct smc_connection and every store to one is a
+read-modify-write of the other two:
 
-kernel test robot noticed the following build warnings:
+    u8  killed : 1;
+    u8  freed : 1;
+    u8  out_of_sync : 1;
 
-[auto build test WARNING on rdma/for-next]
-[also build test WARNING on linus/master v7.2 next-20260819]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+They are not written under a common lock. smc_cdc_msg_validate() sets
+out_of_sync from the receive tasklet, while smc_conn_kill() sets killed
+from process context under lock_sock(), and the receive path does not defer
+to the backlog when the socket is owned -- smc_cdc_msg_recv() takes only
+bh_lock_sock().
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Guangshuo-Li/RDMA-rtrs-clt-Fix-double-free-on-path-sysfs-failure/20260815-173725
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git for-next
-patch link:    https://lore.kernel.org/r/20260714142838.1723076-1-lgs201920130244%40gmail.com
-patch subject: [PATCH] RDMA/rtrs-clt: Fix double free on path sysfs failure
-config: i386-buildonly-randconfig-004-20260820 (https://download.01.org/0day-ci/archive/20260820/202608201231.bfKSlFoO-lkp@intel.com/config)
-compiler: clang version 22.1.3 (https://github.com/llvm/llvm-project e9846648fd6183ee6d8cbdb4502213fcf902a211)
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260820/202608201231.bfKSlFoO-lkp@intel.com/reproduce)
+Give each flag its own byte so a store no longer touches its neighbours.
+All readers test them as booleans and are unchanged. struct smc_connection
+grows by two bytes.
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202608201231.bfKSlFoO-lkp@intel.com/
+Fixes: b286a0651e44 ("net/smc: handle incoming CDC validation message")
+Cc: stable@vger.kernel.org
+Reviewed-by: Mahanta Jambigi <mjambigi@linux.ibm.com>
+Signed-off-by: Hidayath Khan <hidayath@linux.ibm.com>
+---
+New in v2.
 
-All warnings (new ones prefixed by >>):
+ net/smc/smc.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
->> drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c:470:1: warning: unused label 'del_kobj' [-Wunused-label]
-     470 | del_kobj:
-         | ^~~~~~~~~
-   1 warning generated.
+diff --git a/net/smc/smc.h b/net/smc/smc.h
+index 52145df83f6e..427b6d63b993 100644
+--- a/net/smc/smc.h
++++ b/net/smc/smc.h
+@@ -277,9 +277,9 @@ struct smc_connection {
+ 						 * 0 for SMC-R, 32 for SMC-D
+ 						 */
+ 	u64			peer_token;	/* SMC-D token of peer */
+-	u8			killed : 1;	/* abnormal termination */
+-	u8			freed : 1;	/* normal termination */
+-	u8			out_of_sync : 1; /* out of sync with peer */
++	u8			killed;		/* abnormal termination */
++	u8			freed;		/* normal termination */
++	u8			out_of_sync;	/* out of sync with peer */
+ };
+ 
+ struct smc_sock {				/* smc sock container */
+-- 
+2.52.0
 
-
-vim +/del_kobj +470 drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
-
-   424	
-   425	int rtrs_clt_create_path_files(struct rtrs_clt_path *clt_path)
-   426	{
-   427		struct rtrs_clt_sess *clt = clt_path->clt;
-   428		char str[NAME_MAX];
-   429		int err;
-   430		struct rtrs_addr path = {
-   431			.src = &clt_path->s.src_addr,
-   432			.dst = &clt_path->s.dst_addr,
-   433		};
-   434	
-   435		rtrs_addr_to_str(&path, str, sizeof(str));
-   436		err = kobject_init_and_add(&clt_path->kobj, &ktype_sess,
-   437					   clt->kobj_paths,
-   438					   "%s", str);
-   439		if (err) {
-   440			pr_err("kobject_init_and_add: %pe\n", ERR_PTR(err));
-   441			goto free_stats;
-   442		}
-   443		err = sysfs_create_group(&clt_path->kobj, &rtrs_clt_path_attr_group);
-   444		if (err) {
-   445			pr_err("sysfs_create_group(): %pe\n", ERR_PTR(err));
-   446			goto del_kobj_free_stats;
-   447		}
-   448		err = kobject_init_and_add(&clt_path->stats->kobj_stats, &ktype_stats,
-   449					   &clt_path->kobj, "stats");
-   450		if (err) {
-   451			pr_err("kobject_init_and_add: %pe\n", ERR_PTR(err));
-   452			kobject_put(&clt_path->stats->kobj_stats);
-   453			goto remove_group;
-   454		}
-   455	
-   456		err = sysfs_create_group(&clt_path->stats->kobj_stats,
-   457					 &rtrs_clt_stats_attr_group);
-   458		if (err) {
-   459			pr_err("failed to create stats sysfs group, err: %pe\n", ERR_PTR(err));
-   460			goto put_kobj_stats;
-   461		}
-   462	
-   463		return 0;
-   464	
-   465	put_kobj_stats:
-   466		kobject_del(&clt_path->stats->kobj_stats);
-   467		kobject_put(&clt_path->stats->kobj_stats);
-   468	remove_group:
-   469		sysfs_remove_group(&clt_path->kobj, &rtrs_clt_path_attr_group);
- > 470	del_kobj:
-   471		kobject_del(&clt_path->kobj);
-   472		return err;
-   473	
-   474	del_kobj_free_stats:
-   475		kobject_del(&clt_path->kobj);
-   476	free_stats:
-   477		free_percpu(clt_path->stats->pcpu_stats);
-   478		kfree(clt_path->stats);
-   479	
-   480		/*
-   481		 * Leave the path kobject reference to the caller so it can tear
-   482		 * down the connections before rtrs_clt_path_release() frees it.
-   483		 */
-   484	
-   485		return err;
-   486	}
-   487	
-
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
