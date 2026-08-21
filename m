@@ -1,296 +1,163 @@
-Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
+Received: from PH7PR06CU001.outbound.protection.outlook.com (mail-westus3azon11010014.outbound.protection.outlook.com [52.101.201.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C4CB3D566B;
-	Thu, 20 Aug 2026 21:22:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787260966; cv=none; b=C9CUollFQo/LXg+9g9Yy3/Egaa5FKiXFiU5LZNlsoXUtBOT/NBttVefOdrDZXN5M6eO3EzeuxamD+ldex0ZG/hzuUvO2jihJzrC0W4dZhm+D+F/7FyuYhr+DUYX4YgeKVmpor8luxHJxITaG5MOgE7RoxjMQzrrYkEYesToh8mQ=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787260966; c=relaxed/simple;
-	bh=0En8EkEm19HbeogpuP0BWKqgnktwroJc/EPwLAEdJbg=;
-	h=MIME-Version:Date:From:To:Cc:Subject:In-Reply-To:References:
-	 Message-ID:Content-Type; b=CZpC/ALoQejrIDiwfk3IfOlaGWmCaPssaiCubTf1Zd6iL+fzqVKp3Flk07WsO3UERsCaqZJP5Y2HD5X1UQb0JPwYc7EtzREYi3/SNZzwWCYoJQWDzhCxc/cyDwr26Fl9e85+Nb3wnqnZK44QLN6oEi0L8BXYGEQ9ivNg63DoKbY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=YBPdifGr; arc=none smtp.client-ip=213.97.179.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2730F25EF87;
+	Fri, 21 Aug 2026 00:24:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.201.14
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1787271876; cv=fail; b=DXmDYPmb2T7f22WOYM2ecz/5Gap0xjbPWzBWLwzokdls72z23eSCSmriFSndvbCIhekoLH+vRuWYWEGyEVTPM7H5Rv7LtNN4f2DTttT/VFcCtBMS+/UIqY4PJwcfSG64WDRkS1Okfq243hTOg0X/6cr9ahte6hP9tHT1U69tP18=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1787271876; c=relaxed/simple;
+	bh=FNgWQJg8h6HBmGRJ53pnKP/kO4sIjEQMbtuRPq8pjRo=;
+	h=Message-ID:Date:Subject:From:To:Cc:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=aSvgoESf+7MhHHF5+h1usuupY3WjocVAmOcCvxCdZpAuYGp3vY8lU4gbaenFSWfDspczxqRHfJBWLm0vJEL2iVJshJczhNz4Gnw9403ih16/uEBZ4lyAirS9HstcqCT9Wl6ApcEAsQVVMhevt7cAkc9p68OQ5uluN/tlQLVSMUc=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=FmLFgebU; arc=fail smtp.client-ip=52.101.201.14
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="YBPdifGr"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
-	s=20170329; h=Content-Transfer-Encoding:Content-Type:Message-ID:Subject:Cc:To
-	:From:Date:MIME-Version:From:Reply-To;
-	bh=VVmJbA2qSMFaP8opo9Ndr4fLkuQPcO1ld+9q8zqI4gU=; b=YBPdifGreGdx02v4W+03i1hb8P
-	kW1i1NpMNWAZvBa3xGSBVamJJvrLrxcuJJEWscfdKlGsjhU6WczaoYxpVh8lX6/UeYm82kHNbOQQ/
-	glTcrzL2PfmSiprrWg8EpipC3LS6L9xzpcxwylH0PLoofGYIJCpR3ubtgK3ODLKf6oH4qAazKHZ9/
-	uyFFl1bhgqYsfzIHPcKYF0R3ewT+w3J3TUi4sJWELfnHTTCbNxVzuuI0XA5LFc3YpgJGHHpn0PeM8
-	B+2/piTsRzf+T8xDavrRZphMysTDVCOgP3ba1xgFSZj0j6O99zOrgbS3hVt+qVsOk+iUB5PcA91OH
-	VygvGNjA==;
-Received: from maestria.local.igalia.com ([192.168.10.14] helo=mail.igalia.com)
-	by fanzine2.igalia.com with esmtps 
-	(Cipher TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256) (Exim)
-	id 1wxADH-006m8d-Ow; Thu, 20 Aug 2026 23:22:15 +0200
-Received: from webmail.service.igalia.com ([192.168.21.45])
-	by mail.igalia.com with esmtp (Exim)
-	id 1wxADF-00GOZQ-Si; Thu, 20 Aug 2026 23:22:15 +0200
-Received: from localhost ([127.0.0.1] helo=webmail.igalia.com)
-	by webmail.service.igalia.com with esmtp (Exim 4.98.2)
-	(envelope-from <mfo@igalia.com>)
-	id 1wxADF-00000002RTu-3Rre;
-	Thu, 20 Aug 2026 23:22:13 +0200
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="FmLFgebU"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=f7/rxYKWVB3P+AVvATa3I+XSX7sQw/iiG1JErkKM64eKml/dvCZ34sQWlblApOTyvw5lCADefRi/ii8AeRygAek74DSu3+fYYY1xy5MRguQocaKS1UPO9xWMpo+HJ6cpj5Cp9DSW2MyR+2t+6Smv6fpAkhc6xJkEQZi2EqKPdlIVvpAFKikoOuIuWWPxDF6xHHREl5paqyS9IK6vYUUWwPbZ30eZxj86goOhiM1jc9Wz58YkUm0fX5SrzhXza8FcDAZUWbNGHuMvN5xLy+po3+IlCpdfSWYcOz/ZHssAdEJ3wTrk4+MFQXDcBFZwHL9pdlMLsGq5A8yqKA6nNbcSxw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=ypWgHtxmE2//D3FUUFSXA+8Fa0jH1ExPQY7sgyHJmuw=;
+ b=ttVOI575Mz7bE5P6ZVPmvdYS4Uz01EkevxLYEjA4abf72JuwhzqoYqobiMuJkSd+5gujeBZ5FegsLJuJzBk+dFkH7Fds1upDlvM3pPYsbVywVbjxYIsKKrlnd93f7h2614pHxni7+YWIkfSafWLRg+eELoTLMqzvHRhBKUiBD/b9aN6U+Jyq2ERg6vxAURBzxQ9lh8V7Erquu3q3/FWGb9YV+ZsvMkiCcfSTmXkzP77XJHjJK95y7dQKvexJSHnl/rZCy+V0kDxyrjj82DNCzuBfUDYioTTnfk6UdE073JaTlQ0Fel1B0n8pzDYryhn/hCXZHfL3SM2U/rRLKUla4g==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=ypWgHtxmE2//D3FUUFSXA+8Fa0jH1ExPQY7sgyHJmuw=;
+ b=FmLFgebUa8Zzsquhyw9dvIW93YoVY+88/XpJx7FJhuE1ETTKTGJ2Shump/s92NzswAPRzbonPkcvxOHtbhcmistcrdLSTbUyjouTDEy5d3glX2tvyXypYqLErvhDJ2uPRmJd6aSIWU11dayoDTBz+bnqqsQXehQui+HhpphIuxo=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from DS4PR12MB9708.namprd12.prod.outlook.com (2603:10b6:8:278::7) by
+ IA5PR12MB999276.namprd12.prod.outlook.com (2603:10b6:208:60b::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.339.10; Fri, 21 Aug
+ 2026 00:24:32 +0000
+Received: from DS4PR12MB9708.namprd12.prod.outlook.com
+ ([fe80::8570:d817:2f81:c62a]) by DS4PR12MB9708.namprd12.prod.outlook.com
+ ([fe80::8570:d817:2f81:c62a%4]) with mapi id 15.21.0339.007; Fri, 21 Aug 2026
+ 00:24:32 +0000
+Message-ID: <c940bf1d-11d0-4564-ab1e-e423b0c8ceae@amd.com>
+Date: Thu, 20 Aug 2026 17:24:30 -0700
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next 4/4] RDMA/ionic: Add DCQCN parameter
+ configuration via debugfs
+From: Eric Joyner <eric.joyner@amd.com>
+To: netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+ Leon Romanovsky <leon@kernel.org>
+Cc: Brett Creeley <brett.creeley@amd.com>, Andrew Lunn
+ <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>,
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+ Paolo Abeni <pabeni@redhat.com>, Abhijit Gangurde
+ <abhijit.gangurde@amd.com>, Allen Hubbe <allen.hubbe@amd.com>,
+ Jason Gunthorpe <jgg@ziepe.ca>, "Nikhil P . Rao" <nikhil.rao@amd.com>
+References: <20260506041935.1061-1-eric.joyner@amd.com>
+ <20260506041935.1061-5-eric.joyner@amd.com>
+ <bb6f164e-5f95-48ab-a22c-5582dcef721d@amd.com>
+Content-Language: en-US
+In-Reply-To: <bb6f164e-5f95-48ab-a22c-5582dcef721d@amd.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: MW4PR04CA0298.namprd04.prod.outlook.com
+ (2603:10b6:303:89::33) To DS4PR12MB9708.namprd12.prod.outlook.com
+ (2603:10b6:8:278::7)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Date: Thu, 20 Aug 2026 18:22:13 -0300
-From: Mauricio Faria de Oliveira <mfo@igalia.com>
-To: Joel Granados <joel.granados@kernel.org>
-Cc: Kees Cook <kees@kernel.org>, Nathan Chancellor <nathan@kernel.org>,
- Nicolas Schier <nsc@kernel.org>, "David S. Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo
- Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
- kernel-dev@igalia.com, linux-riscv@lists.infradead.org,
- linux-kernel@vger.kernel.org, fsverity@lists.linux.dev,
- keyrings@vger.kernel.org, bpf@vger.kernel.org,
- linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org,
- netdev@vger.kernel.org, linux-wpan@vger.kernel.org,
- lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org, linux-sctp@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
- bridge@lists.linux.dev, mptcp@lists.linux.dev, rds-devel@oss.oracle.com,
- virtualization@lists.linux.dev
-Subject: Re: [PATCH RFC v3 00/13] sysctl: add module aliases
-In-Reply-To: <bpnqwggtidgiec5akns3fa5edbsvl7xf55dxabtwng2xspy4pn@ue554aii2ngk>
-References: <20260819-sysctl-module-aliases-v3-0-aab90569365d@igalia.com>
- <bpnqwggtidgiec5akns3fa5edbsvl7xf55dxabtwng2xspy4pn@ue554aii2ngk>
-Message-ID: <53155340c897560bfc67e61ba9568fd6@igalia.com>
-X-Sender: mfo@igalia.com
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-Spam-Report: NO, Score=-2.9, Tests=ALL_TRUSTED=-3,BAYES_20=-0.001,KAM_DMARC_NONE=0.125,KAM_DMARC_STATUS=0.005
-X-Spam-Score: -28
-X-Spam-Bar: --
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DS4PR12MB9708:EE_|IA5PR12MB999276:EE_
+X-MS-Office365-Filtering-Correlation-Id: 4c8ff19d-0a05-4465-a205-08deff1a9221
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|23010399003|1800799024|366016|6133799003|3023799007|56012099006|10067099003|4143699003|11063799006|22082099003|18002099003;
+X-Microsoft-Antispam-Message-Info:
+	7dRzehGnluSgUxsfq4SEvzgt2xfhrsNWId0wDV0djBMKAIY0p8myPqmTV8CmBSa+ktLo/3AwKkX5UubqTKN2JBaTsTuKkTlkfjJZzbAl2244qXKzex3fFwov5141KPAnqsqq847iC5Ua5dHFpmQnSyGVrJrMpb9hqh8sZCZYssli1xPwYP78Kw5GtEu/PkRCtdEEo22fBNQoesMTWwmJV2CLzpHecB4bPdH3R/qBLj4HTEAKppzbMs12YGHBAsDf84jJoqUO9/wwGpTFkRAq9BuiHwrctqYRfFX60o7KaE9dCSbYcACKEJA3vv9bLqUYvmI8/VKiCKISldmaXQKAHweB/GNPU3MUqomOhVLftDaBTfdO6E7uXkO+hSyi6WyKV9vuKbky/2wwJ28tPLpANnGf8Th9b84pAPsTtzLe7HW5NC3F1TidQvirTADKjH0KXPec3kY+v21nVf9P3gQPbvI/nxaFQsKydYKl7ypm4L0QG2EiQFWzV8g7oGCKQPEUvrLH/O9cRIJPBx6DX33vfGb1ljMUte7Z1O25kKOCcGh8wB6KzKlOwvoBlZB8jVRATb0ECDM2nZJ/awr18T1E9gwspQzftoOHOiPyVq5tD2cJmj8esjMnx6poLdnG8st93HQNQlYUuzlgOBj5ayYEWbcJ8EZT+uZTGSiZS53fMuM=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PR12MB9708.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(23010399003)(1800799024)(366016)(6133799003)(3023799007)(56012099006)(10067099003)(4143699003)(11063799006)(22082099003)(18002099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?RUd3dWhjTjFWTEFLU0JsNkJUZmNVS09oMXh0WlFqWE1WWHFqZnFsRnE5THRT?=
+ =?utf-8?B?RGQzMzdaSGkvWDhGanlWdHN5c1EvRzlCQTdIR0hmeWp6bHRzaHg4UVhmQ0dT?=
+ =?utf-8?B?ZnlHMkhkc1pJTE84bmVHazRsaHhNbHdoQ3cyOHdZRGJ5Q3Ric3lGTlJjeEti?=
+ =?utf-8?B?QSsrR0QzU2dDZ3FXekR6aWZtcjVhdHg1cEdmRVB5eG5za082MTFYSFNUSUZo?=
+ =?utf-8?B?cjh2aDBhR0d3aGlFNjF6TUt0VDd6ci9EYTlXZG1zREdTNVp3cERZbkFSNE1k?=
+ =?utf-8?B?NDIwS3RLbGlOTDhJOVNCbXdGa3o3N0tKRVhUM3BYR0o4MDlEUkdlaHhDSTFu?=
+ =?utf-8?B?UEFaZUVyWVU0eFhrUm1TbnlLWmJlTU9YZkp2ZjdRelJIUDhzYmtWRTkvOGQ3?=
+ =?utf-8?B?M1BFQ0d3K21xbG5JV3l6bTFSV1lETHY0c3dmWDFKUk0zS1ZYell3Tkg3SU1B?=
+ =?utf-8?B?YjVWT2lqWFlnSVJnTzg0dHFFS0RYVHg2V2dxbGJZcFNhbithWHp6cFFyVzZ4?=
+ =?utf-8?B?ZWc1S2E2aXpieEdFV2N2dXIyMnZIUDZaYmgyUGkrYTF5VE4rOUNtMUxiWmJU?=
+ =?utf-8?B?NlN4WjUwLzFONFMvc2Z3MlpZek5ZWXZEQ2VDSFpCdTZxYkt3Q2NNMnk5aUI4?=
+ =?utf-8?B?clBHNDFBRVV0b3Z2L1ZUY0J3RUduTm5tSkg3ZW1oUjhoWnVoaDNCTmpRcFhw?=
+ =?utf-8?B?eTdlQlBWZi9lcEhURlRwOUQ3UXFwWi9aamwzcGJ1bkg3alliL0xER24vbzdN?=
+ =?utf-8?B?aCsxcm10NWQwSnZOd085a0t3WVlISHlhaG5jeGRuTHdFanJQRFlLc3lHank5?=
+ =?utf-8?B?RnUvVDk4K1NVTUZKQ1BxRVpxQnIrSHg3d2VaSVNYSlQ3cDI2TURwMnlJL0Ny?=
+ =?utf-8?B?UWFRM1h1RFFpcGtQeEQ4bUNocFY1V0ErTUhLeDJWUjdDS3JGZ3FsQ09vdVg0?=
+ =?utf-8?B?ZThjUHVpbkxkVEY2UXZ4eFFBWjFTNzBwQVRBTGFnVmZBRGdoT1FDTTFHMlFX?=
+ =?utf-8?B?OXNDWGxYWGhLL2ZjZ0VGMDBTMGE0SXRnQ29PUTNTNDUwMXphbWJ0QVc0UG1U?=
+ =?utf-8?B?Y2dlU3NZQ2VBQXQzMUdYOGFXVWR3Q0E3RHd3dDc3T1ZSUGd0cWd5SlFvaHBB?=
+ =?utf-8?B?WnVoQUhrSDhaS3FtSEx5NFZUSUU2c21mR2twYkdMM2hLQUxnTzM4d1FGM1dF?=
+ =?utf-8?B?ZWJzNGM1akFaUFVOeFRPYm5mRmt0M3J6WjlBdGRacnlUcUhsWFl1czZxMFFj?=
+ =?utf-8?B?UjR2Z3NWZFVYZmRmbGZKdVlaUU1DVXR5ZG5KSDBRSkdUY2VlUjNhVDVpd052?=
+ =?utf-8?B?bHpnU3d1em9Ud0k1ZjZXVHV0dFRZWU96N1NCTFRJVHVuVVRreU1yczFIeXU4?=
+ =?utf-8?B?ckhoZTVnc3drVXpnM0pqQmV4SGFHSUF5OWhheGtxbWJXSzVsbk5BQm91WUpE?=
+ =?utf-8?B?YUdaQmE0cTdsWk5kbVVHMUdHZ0RWenYzbllWWGR5UkRLZmpDUmdPVmZpdEJY?=
+ =?utf-8?B?R3VWMVFIVjFjWUpqMCt6dS9FQjNwV3NHU1NVR09rOTF2ZCt5V2w3Y0t4T2xJ?=
+ =?utf-8?B?eUhtT1lrczEwNGNGZlN1bDh3QXdqd3h0ZnBwL1pPa1MrR2lIRGhYbjZIZ29i?=
+ =?utf-8?B?U0Y2d3hvRmg1SmllQUZoaURvTmg5SDFIODFmeXdQVXBEZzVFUEg1MHI3R3lG?=
+ =?utf-8?B?U3U4VGJCcEFWL1YwN0pFRHlvcFV6cjJBOVZ1YWQ2ZGpMRFNxZnFiUko2WXpG?=
+ =?utf-8?B?NGFWdGo5V1BMazl6RndCM0V2ZUlickM4KzRpa0VyanlNUzRVdk1ZM3BtOWNF?=
+ =?utf-8?B?eFRxWDd4MTl1ckFjM1lIanNvbmJkTXIzOEZuNmJjR3BjN1h0ZDJWbktlU1hi?=
+ =?utf-8?B?RVJDMGl1YXJRbmFLSTAzWkViYzU5YjcwaVRoQ05oN1p5K3IxL3huRU40Vzg2?=
+ =?utf-8?B?UWFHdTJXU3lseUlqbDJIaHNkNmVIQS81bWtnUVFWUEhxeXAwS0xpdXVRZ0pC?=
+ =?utf-8?B?bjdXcGtwbXhMMHhrSmlETmJyWmEzKyttMFdsbDduSkE3d25QUkI3Mk5CY2kv?=
+ =?utf-8?B?ZTNTYnlqOFhKbVJRUEtzNTBFRVdsSmUyZzE5cGJ4OUFRZHdiQ3hBWWltK1E2?=
+ =?utf-8?B?YitpSVdmV2JYaW9FV0Q1YWRFM3NaTk5tY09BUnNod1JxOGNmS3IwUTJ3Mmx5?=
+ =?utf-8?B?ZjRFNGNUR21lcXBjU0x4VWNFTFRDb0RZd1BFaGpXVWRvYlZUeWk2K0RkVEFw?=
+ =?utf-8?B?czR6REtSZXRIOHBJcUZ6NHpTbkpRdVhINTJhNEdFdmFyd0hPaXBzaVM2VWZH?=
+ =?utf-8?Q?nmdC7OJwoSSw6xzqRw?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 4c8ff19d-0a05-4465-a205-08deff1a9221
+X-MS-Exchange-CrossTenant-AuthSource: DS4PR12MB9708.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Aug 2026 00:24:32.0736
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: yn6Y1HX4+sTs4XPMSJnWFeWmPHi9T+TrfkRENLMkr/CjzlSkNTV4De33bta+zB6U
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA5PR12MB999276
 
-On 2026-08-20 09:51, Joel Granados wrote:
-> On Wed, Aug 19, 2026 at 03:16:13PM -0300, Mauricio Faria de Oliveira wrote:
->> This series adds 'sysctl:' aliases to modules that register sysctl tables; e.g.:
->> 
->>         $ modinfo ./mpls_router.ko  | grep sysctl:
->>         alias:          sysctl:*/net/mpls/conf/*/input
->>         alias:          sysctl:*/net/mpls/default_ttl
->>         alias:          sysctl:*/net/mpls/ip_ttl_propagate
->>         alias:          sysctl:*/net/mpls/platform_labels
->> 
->> It provides a trivial way to map /proc/sys files to modules (not trivial today),
->> and for userspace to handle nonexistent /proc/sys files (e.g., procps's sysctl
->> and systemd-sysctl applying tunables) with "modprobe sysctl:<...>" and a retry.
->> 
->> This is done almost automatically with register_sysctl(), register_net_sysctl()
->> and friends as wrappers of MODULE_SYSCTL_TABLE (similar to MODULE_DEVICE_TABLE),
->> which emits symbols for file2alias/modpost to find and parse the sysctl tables.
->> 
->> The big exception to 'almost' are sysctl tables and paths allocated or defined
->> at runtime (e.g., per-namespace or per-device), as all information is required
->> at build-time. Fortunately, such tables and paths are often based on 'templates'
->> which are static and can be used.
->> 
->> This is done by plumbing the template table/path as optional arguments (macros
->> with default values as default_gfp()), so not to create functions for all cases:
->> 
->>         register_sysctl(path, table [, table_tmpl [, path_tmpl]]);
->>         register_net_sysctl(net, path, table [, table_tmpl[, path_tmpl]]);
->>         register_net_sysctl_sz(net, path, table, size [, table_tmpl[, path_tmpl]]);
+On 7/28/2026 4:16 PM, Eric Joyner wrote:
 > 
-> The "what" is described but I'm missing more clarity on the "why". Why
-> does this need to be trivial? Where is it that you will know the sysctl
-> file path of a module and not the module name or alias?
-
-Thanks for looking at this.
-
-The problem this feature addresses is sysctl settings not applied
-because modules aren't yet loaded when systemd-sysctl/procps's sysctl
-runs on boot, and the usage of /etc/modules as a workaround.
-
-This can be addressed with a way for sysctl tools to load the module for
-a non-existent sysctl file path.
-For that, the mapping between a sysctl file path (known) and its module
-(unknown) needs to be trivial.
-
-It may not seem serious at first, but I've seen this consume significant
-engineering time and impact production systems, in a previous technical
-support job.
-An example: cloud deployments with non-scalable network routing
-performance due to nf_conntrack_max not applied after reboot or an
-upgrade because the component which turned out to help with the
-/etc/modules workaround had its placement changed from network router
-nodes.
-
-> Additionally, sysctls are not module specific; they are a way to
-> read/write kernel variables. Putting a module specific aspect in the
-> function arguments (that needs to be ignored in non-module cases) seems
-> wrong. Why not use the module subsys to add sysctl alias instead of the
-> sysctl subsys?
-
-Fair point. The current design has 2 reasons:
-
-1) Use the 'path' argument (raised in [1]), only available in the
-register sysctl functions.
-2) Use a more implicit/transparent approach, instead of more
-explicit/declarative approach. 
-
-I guess that a different design could use MODULE_SYSCTL_TABLE() as
-MODULE_DEVICE_TABLE(), declared per table instead of wrapped into
-register sysctl functions.
-However, it seems to require moving the value of the path argument (or
-its template) into the macro and still referencing it in the function
-(or its instantiation of the template), which adds obfuscation, to all
-callers. 
-
-What do you think?
-
-[snip]
-
->> P.S.
->> ====
->> 
->> I wrote proof-of-concept patches for procps sysctl and systemd-sysctl some time
->> ago, which worked as expected, i.e., successfully set sysctl tunables which did
->> not exist in /proc/sys, by running 'modprobe sysctl:/proc/sys/...' and retrying.
+> Leon,
 > 
-> Do you have links to this? To the old one, not necessarily a new
-> version.
-
-Sure, please see [2] and [3]. I did a quick rebase/refresh, but both
-seem to work:
-
-procps sysctl:
-
-    $ strace -e execve -f -s 64 ./src/sysctl --modprobe=1 -w net.test=1
-2>&1 | grep modprobe
-
-    [pid 505958] execve("/bin/sh", ["sh", "-c", "--", "modprobe
-sysctl:/proc/sys/net/test >/dev/null 2>&1"], 0x7ffc12efff80 /* 63 vars
-*/) = 0
-
-systemd-sysctl:
-
-$ cat /etc/sysctl.d/net-test.conf
-net.test = 1
-
-    $ sudo strace -e execve -f -s 64 ./build/systemd-sysctl
---modprobe=true /etc/sysctl.d/net-test.conf  2>&1 | grep modprobe
-
-[pid 505777] execve("/usr/sbin/modprobe", ["modprobe",
-"sysctl:*/net/test"], 0x7ffd473d1418 /* 20 vars */) = 0
-
-Thanks,
-
-[1]
-https://lore.kernel.org/linux-fsdevel/CAK7LNAR=7zgOiqTD9okXfZXroFH1yagMFsRuq0G-z6OfSUPLQg@mail.gmail.com/
-[2] https://github.com/mfoliveira/procps/commits/sysctl-module-aliases/
-[3] https://github.com/mfoliveira/systemd/commits/sysctl-module-aliases/
-
+> From this thread for Patch 3:
+> https://lore.kernel.org/linux-rdma/20260514163540.GT15586@unreal/, I understand
+> that it's too large and it's exposing too much information; I can shrink that
+> down and remove the entries there.
 > 
-> Best
->> 
->> Should this series eventually be merged, the patches will be submitted upstream
->> as well, for userspace to start consuming it.
->> 
->> Signed-off-by: Mauricio Faria de Oliveira <mfo@igalia.com>
->> 
->> Changes in v3:
->> - All issues were reported by sashiko-bot@kernel.org.
->> - Tested allmodconfig with option enabled on x86_64.
->> - Patch 2:
->>   - Fix typo ('s/options/option/').
->> - Patch 3:
->>   - Fix usage of __UNIQUE_ID().
->>   - Add __must_be_array() in MODULE_SYSCTL_TABLE().
->> - Patch 4:
->>   - Remove trailing backslash in register_sysctl().
->> - Patch 6:
->>   - Fix missing __register_net_sysctl_sz() in !CONFIG_SYSCTL.
->> - Patch 13:
->>   - Fix potential out-of-bounds read in do_sysctl_entry().
->>   - Add check for entry size of zero.
->> - Link to v2: https://lore.kernel.org/r/20260818-sysctl-module-aliases-v2-0-d5a69dae5798@igalia.com
->> 
->> Changes in v2:
->> - This is based on the series submitted 4 years ago,
->>   with Originally-by: tags added in related patches.
->> - Link to v1: https://lore.kernel.org/linux-fsdevel/20220722022416.137548-1-mfo@canonical.com/
->> 
->> ---
->> Mauricio Faria de Oliveira (13):
->>       keys, pidns, fs/verity, riscv/vector: reorder '#include <linux/sysctl.h>'
->>       proc: add config option SYSCTL_MODULE_ALIASES
->>       sysctl, mod_devicetable: add macro MODULE_SYSCTL_TABLE
->>       sysctl: add register_sysctl() wrapper for MODULE_SYSCTL_TABLE
->>       sysctl, parport: update register_sysctl() callers with template arguments
->>       sysctl, net: add register_net_sysctl{_sz}() wrappers for MODULE_SYSCTL_TABLE
->>       sysctl, net: update register_net_sysctl{_sz}() callers with template arguments
->>       sysctl, net: update register_net_sysctl_sz(ARRAY_SIZE(table_tmpl)) with template arguments
->>       sysctl, ipv6: update register_net_sysctl{_sz}() callers with template arguments
->>       sysctl, net: update register_net_sysctl_sz() edge case
->>       sysctl: unrandomize struct ctl_table.procname
->>       modpost: move addend_*_rel() calls into addend_rel()
->>       modpost: handle MODULE_SYSCTL_TABLE symbols
->> 
->>  arch/riscv/kernel/vector.c              |   1 +
->>  drivers/net/vrf.c                       |   3 +-
->>  drivers/parport/procfs.c                |  26 +++-
->>  fs/proc/Kconfig                         |  13 ++
->>  fs/verity/init.c                        |   1 +
->>  include/linux/key.h                     |   1 -
->>  include/linux/mod_devicetable.h         |   7 +
->>  include/linux/pid_namespace.h           |   1 +
->>  include/linux/sysctl.h                  | 110 ++++++++++++++-
->>  include/net/ipv6.h                      |   6 +-
->>  include/net/net_namespace.h             |  47 ++++++-
->>  net/bridge/br_netfilter_hooks.c         |   3 +-
->>  net/core/neighbour.c                    |  11 +-
->>  net/core/sysctl_net_core.c              |   3 +-
->>  net/ieee802154/6lowpan/reassembly.c     |   2 +-
->>  net/ipv4/devinet.c                      |  12 +-
->>  net/ipv4/ip_fragment.c                  |   3 +-
->>  net/ipv4/route.c                        |   3 +-
->>  net/ipv4/sysctl_net_ipv4.c              |   2 +-
->>  net/ipv4/xfrm4_policy.c                 |   3 +-
->>  net/ipv6/addrconf.c                     |   7 +-
->>  net/ipv6/icmp.c                         |   6 +-
->>  net/ipv6/netfilter/nf_conntrack_reasm.c |   4 +-
->>  net/ipv6/reassembly.c                   |   3 +-
->>  net/ipv6/route.c                        |  10 +-
->>  net/ipv6/sysctl_net_ipv6.c              |  13 +-
->>  net/ipv6/xfrm6_policy.c                 |   3 +-
->>  net/mpls/af_mpls.c                      |   9 +-
->>  net/mptcp/ctrl.c                        |   3 +-
->>  net/netfilter/ipvs/ip_vs_ctl.c          |   4 +-
->>  net/netfilter/ipvs/ip_vs_lblc.c         |   3 +-
->>  net/netfilter/ipvs/ip_vs_lblcr.c        |   3 +-
->>  net/netfilter/nf_conntrack_standalone.c |   5 +-
->>  net/netfilter/nf_log.c                  |   9 +-
->>  net/rds/tcp.c                           |   4 +-
->>  net/sctp/sysctl.c                       |   3 +-
->>  net/smc/smc_sysctl.c                    |   2 +-
->>  net/sysctl_net.c                        |  10 +-
->>  net/unix/sysctl_net_unix.c              |   3 +-
->>  net/vmw_vsock/af_vsock.c                |   4 +-
->>  net/xfrm/xfrm_sysctl.c                  |   2 +-
->>  scripts/mod/devicetable-offsets.c       |   6 +
->>  scripts/mod/file2alias.c                | 237 ++++++++++++++++++++++++++++++++
->>  scripts/mod/modpost.c                   |  46 ++++---
->>  scripts/mod/modpost.h                   |  25 ++++
->>  45 files changed, 575 insertions(+), 107 deletions(-)
->> ---
->> base-commit: 2697ef8943c9985c14708a6429e21812693857b2
->> change-id: 20260818-sysctl-module-aliases-2f5801b1eb71
->> 
->> Best regards,
->> -- 
->> Mauricio Faria de Oliveira <mfo@igalia.com>
->>
+> But before I make changes and resubmit, is what this patch is doing okay? It
+> adds DCQCN configuration parameters so that they can be written to in debugfs
+> and propagated to the firmware? Would this be considered too much meddling with
+> the firmware in debugfs, too? We want to have a driver-configured mode for DCQCN
+> and possibly other congestion control profiles.
+> 
+> - Eric
 
--- 
-Mauricio
+Hi Leon,
+
+Can you tell me what an acceptable approach would be in terms of the DCQCN
+configuration? It didn't get mentioned as part of the debugfs discussion on the
+other patch in this series, and I want to know if it's ok if I can modify the
+debugfs implementation to have these DCQCN tuning knobs in there, but to drop
+everything else from the rdma driver debugfs that looks offensive.
+
+- Eric
