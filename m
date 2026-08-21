@@ -1,128 +1,141 @@
-Received: from mail-qt1-f176.google.com (mail-qt1-f176.google.com [209.85.160.176])
+Received: from mta0.migadu.com (out-198.mta0.migadu.com [91.218.175.198])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8BD0320A34
-	for <linux-rdma@vger.kernel.org>; Fri, 21 Aug 2026 13:34:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.176
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787319243; cv=pass; b=fLkY6U1zjUkhkxEZL9I25evm5wuA/rKtZ/mcsxRnp1XNbq5Ezu43pexGHoJkAFOtc7N1M+QMHyHGuW2LrXwIXNKIk59tZnvlN0jvh+L7Hu56qv7WeK0YGh6Z9pv1bpWSn+HeCvqr0u3lbbdWCpTlpQrI4+FCI2ePUOSmXzmzNT0=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787319243; c=relaxed/simple;
-	bh=nYoghiuz9Kdd84pNDouWdj+ruzp0xFI/cFX1/gP+hvE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=TfRNm2i/AWbTQE/UY7+VHGadJP3cv6ZnJK49S+uKiaUC0G+zweEMrVkzxLShtycYPVdUaXLhVXpatFMtjBwdqWKqkAjV+Lv58xLl3gGfkdut+APYw2FF4FK3LGwY7v3g/HpGZ51z53PLheyXzIB2lno6CyBcspZ/pmIC4N3sohU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=L6lBhVqF; arc=pass smtp.client-ip=209.85.160.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7606339DBDB
+	for <linux-rdma@vger.kernel.org>; Fri, 21 Aug 2026 15:27:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.198
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1787326032; cv=none; b=KaGvaALw2VQEagb/Xv3CwsEW5FkVuqNnMYJNyqKXYgLuvJvRgL1vEjWMbA6xlN9hXSnbt7Z+ISSpGoau0FVrz/Dm1k4iigMVZVmMIy/sFanayjdFi03IeidZjU+J2RZns+7gqIrvb2gTtYWcFVHqwYdVDp8zA+zWLiZYMyUmNkg=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1787326032; c=relaxed/simple;
+	bh=OkYrRKIJtK3XNjxfrkfFfe7z95McGGNgCLA+0RoOTRA=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=DrDTFByYr+xTCu1fI1fEOKi244FW4vawJ+JyjxJqKxhvjobroHSW8MEZOQzpagda9btFXEsVk7STJljAx8I2gOZ8uf2JJRq/RyhsTvcpuovWJtoEVOH06ueBvZI+CG1ZelFKo5dgBcine8vTeWX10M7Qt8oAp7KvMnCPTRzTcxo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=b31V6a7k; arc=none smtp.client-ip=91.218.175.198
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="L6lBhVqF"
-Received: by mail-qt1-f176.google.com with SMTP id d75a77b69052e-51c0ecfaee7so6744141cf.0
-        for <linux-rdma@vger.kernel.org>; Fri, 21 Aug 2026 06:34:01 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1787319241; cv=none;
-        d=google.com; s=arc-20260327;
-        b=OJdYeMjIRcTKmLzHnFNGI9VVkAeMVfFRzpqIVqNIi+tA4sP+ttoRByCYBCjE5w79f9
-         9JDf6IhhlvoVpSKRN3XlLpUNkXLjNoJHDmdvgD4asa8oq1e8AmoBOa2eUQAU2xqCgMwj
-         1xoE95W70wqL6oH9PdyBdDDzZW0Vn0VuOCjuOWoAg8lOOj/oFZDDHfH+JSUdLV/KqvVq
-         T346e8Jehj/qNw26NEoLHerzwhNc9GH6qZn/iK5C+3bH55S3Xlgg4uXOo3/wnxd3Mh1g
-         Dy6/Sx4VOrU5f9OVJYbJeRk3TJbZo7TGav5sGdbr1Cv8ZnKoB8xgxU9qR00XHgmfDiwd
-         YYIg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=ss8Ivk3OqymC8x/f9L+J2Hz80x7W0eguZdcZDa7wz+E=;
-        fh=Zzg4kJM/6O5SOJ0S/yjkFSxTWP7oynaWIN9T/RqhfcM=;
-        b=dqSgzbtPl3rNicxSQkm7KeAIht5mfJ/QQDG5pMHHRpxZ4eGUvjjNTzIm/E/vn8333z
-         wQ0O41kDgaMSpt18nOtyxgvqrGpKRYFyd+QlaRsNMQP4uD8Js3LPedPWe4k6fPJ7hIrY
-         AobFCT83S32ScsKkV3j5zmUuGq2nbHHSoBWmffZo7NSm2EyCNc3XNaW2TZYf3l+2XzQ/
-         2EnG2XYSOHrbig5WAekQaqWkN1BNMmATrPmnHcJHTBc+s6LZU+Uyi+pGM0F9YvU6HA11
-         yX+dlkM0gSGxR6oZpNrXtZayT81iFVkwaDASaCST9jfmsU12APEKraxqV+m2O/FUDko6
-         hHcw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1787319241; x=1787924041; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=ss8Ivk3OqymC8x/f9L+J2Hz80x7W0eguZdcZDa7wz+E=;
-        b=L6lBhVqFS9NpZWa4D7h4mBqhfDtv/y56qf3cgAeXMxP2mJun/lAPx7yaxvdHlpwOHB
-         rjEHojVLp6hyWIn+gekpn403abCkDS9hWlkEXW2SOlWK/zuUi504kAcDVhSek7ps30rx
-         kGLnnT3uq4jL6PeI/2+cHhJ63PohWdjP9yOAOVlbRyoNo+vGS9FGrvCOrt2FshLBcDen
-         zq0SvbG0csC0QjB5mHpMZFf9TMd9W7cinTGyLdL84kZfRiualNXSNs4GZlnWI5kpSB4N
-         M+OxtWMgFuvEMJDglg55KxuRi3UKWNAX0yWDhE1GNjBke2RlQGdRzivbgHQcPSy7v7B3
-         DB3Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787319241; x=1787924041;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=ss8Ivk3OqymC8x/f9L+J2Hz80x7W0eguZdcZDa7wz+E=;
-        b=HoSYMUQCz/jtkwT05tZZ+Bfo9+6NNx11JSmwG9LxuxjGW6oOiPQjtTAvqLucEuFpf2
-         A3FyzUWLsLXza/nOIT9g2P15ERXLI53CdkVDUm86rNyBCxqFXFE/j1u9ZQVYJ+UbDAKP
-         Wqhzt9W9Wm1aaqrJFrfbq5mRLELUAy59nHtAaNSv0M8hHOZTCTqq0jh0EwZwhKXadt4m
-         j3i81dteT/ihb2xMsOQaCKcB3TJl2PDJ/N1KjkuFmmUrhC4L0sWTVbAHbm1bsJJIeNzK
-         DctXrkLrwtoyUi0ShBHbT3KK0RxPVWLhLEOF9tBzj34QxXvm+8JOiYZ+DBCZ8o1xHTaO
-         aivA==
-X-Forwarded-Encrypted: i=1; AHgh+Rr6aV4iRgeFFhzKmLBhRHK4uypM/2zXFTY2oOOJglTEVGrzM2tunIZl+1hL65H04/9vBgpu00eZD8By@vger.kernel.org
-X-Gm-Message-State: AOJu0YxSWSOPti+eJBH8onzD3Y6VvL85hgT8zMoAAIG47sqsLCn+DW8i
-	SJnxkoBwKcY5pWwVM7Heb8vtbnGTDEvyZQK+iRZdvSzqC4OsYNRJFiB9LhDHVdQr84xe6PeqA+H
-	JZqq20fTRSmF8bdRpM0a89e1Et3vDnuFawMVcNaZ0
-X-Gm-Gg: AR+sD10l9o2st4rfo1bOUNkALiG9heR/z1cQ/GHlYz4CkusW+SICvnUfX8MoFO/RvFO
-	gk5xr00MrC+75evRJMn9fWjW6A289ngTppDpwS2ey3MOlyZ/RFmfSK/dMCpeemS+T3Vx5Twril2
-	RKwpK6yjaOQkdtWA8ULBKDFLXkt52p8vzY1bwDkBHI9vJOejtMz8YUMcNXcf6hurr5opaqZJeQM
-	RpqHx7uc8UqO48jmm5flG2fi8EfBRABnSuZ8ldZ4Iqi9NOHcC8cLjvZXI/5TcBHZZMvKM6n9HcC
-	AFqxGurJF/hiUyGxIt1Np38SknlgL4E9AcJaLR+x37hs3VhzizdZq23xqm+trLRZAlW41wqyEeX
-	XBr+cPrDL4gSHBuhtPuY5KjaeXelx2k49utGdnNz3bBbaoPdFnq1j3eJsN37Xv1ApYhTY
-X-Received: by 2002:a05:622a:8a:b0:528:17d9:2d99 with SMTP id
- d75a77b69052e-52df5a748c7mr56019081cf.43.1787319239877; Fri, 21 Aug 2026
- 06:33:59 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="b31V6a7k"
+X-Envelope-To: linux-rdma@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=OkYrRKIJtK3XNjxfrkfFfe7z95McGGNgCLA+0RoOTRA=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1787326025; v=1; x=1787930825;
+ b=b31V6a7kXsW20BrNoN1Gtgd79dipHOxHJhuUil4nnBTcsPg3ScaNgKe/pFXVHVYWwBNme4SV
+ 5M4+V9pdT8Lj7730vFpECJ0i5NA3pRAhJE7JssjN4328NI6yO20w0w8KONqJs8S6gSKTmtGzEuv
+ 2i/qaUIcPbZ+7aPFR16tb0v0=
+X-Envelope-To: linux-rdma@vger.kernel.org
+Received: from [IPV6:2a04:ee41:4:15d4:8934:f21b:2683:d2a4] (2a04:ee41:4:15d4:8934:f21b:2683:d2a4)
+	by smtp.migadu.com with ESMTPS id 76576405c15bdc62;
+	Fri, 21 Aug 2026 15:26:55 +0000
+X-Mizu-Trace-ID: 76576405c15bdc62
+X-Migadu-Flow: FLOW_OUT
+Message-ID: <cab4d5b8-7813-4f63-900f-e6ef6f93cf72@linux.dev>
+Date: Fri, 21 Aug 2026 17:26:53 +0200
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260821070512.3122442-1-edumazet@google.com> <20260821132600.GA1114497@ziepe.ca>
-In-Reply-To: <20260821132600.GA1114497@ziepe.ca>
-From: Eric Dumazet <edumazet@google.com>
-Date: Fri, 21 Aug 2026 15:33:47 +0200
-X-Gm-Features: AcwNN1V6oNdvFwAAv3HY3JcQlXjx8ONj-vvgS2EgMpIJf3AFwislXa6y7fMMyxw
-Message-ID: <CANn89i+qesZmW6tO6tOPriGYYqpxr+c2L7Tdvb2OG-GX0H_ODg@mail.gmail.com>
-Subject: Re: [PATCH] RDMA/core: Fix use-after-free in ib_get_eth_speed()
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, 
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org, 
-	eric.dumazet@gmail.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] RDMA/siw: Fix CEP use-after-free in siw_connect()
+To: Shuangpeng Bai <shuangpeng.kernel@gmail.com>, jgg@ziepe.ca,
+ leon@kernel.org
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+ stable@vger.kernel.org
+References: <20260816022619.3629422-1-shuangpeng.kernel@gmail.com>
+From: Bernard Metzler <bernard.metzler@linux.dev>
+In-Reply-To: <20260816022619.3629422-1-shuangpeng.kernel@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Fri, Aug 21, 2026 at 3:26=E2=80=AFPM Jason Gunthorpe <jgg@ziepe.ca> wrot=
-e:
->
-> On Fri, Aug 21, 2026 at 07:05:12AM +0000, Eric Dumazet wrote:
-> > In ib_get_eth_speed(), dev_put(netdev) is called before inspecting
-> > rc and dereferencing netdev->name in pr_warn(). If dev_put() drops
-> > the final reference to netdev, netdev->name accesses freed memory.
-> >
-> > Move dev_put(netdev) after the warning block so netdev is kept
-> > alive while its name is read.
-> >
-> > Fixes: d41861942fc5 ("IB/core: Add generic function to extract IB speed=
- from netdev")
-> > Signed-off-by: Eric Dumazet <edumazet@google.com>
-> > ---
-> >  drivers/infiniband/core/verbs.c | 4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> I was intending to take this patch next cycle:
->
-> https://patchwork.kernel.org/project/linux-rdma/patch/20260812081708.3246=
-8-1-krystianmkaniewski@gmail.com/
+On 16.08.2026 04:26, Shuangpeng Bai wrote:
+> siw_connect() publishes a newly allocated CEP through qp->cep and gives
+> the QP an association reference.
+> 
+> If connection setup fails while the QP is being destroyed, QP teardown
+> can clear qp->cep and drop that reference first. The error path
+> nevertheless drops what it assumes is the association reference. This
+> consumes the local allocation reference and frees the CEP before the
+> error path updates cep->state and releases cep->in_use, causing a
+> use-after-free.
+> 
+Was that use-after-free encountered?
 
-Ah... I missed that.
+Can we see a stack trace?
 
->
-> Which has the same change embedded?
+> Serialize CEP association and error-side detachment with qp->state_lock.
+> Only drop the association reference when qp->cep still points to the CEP
+> being cleaned up, leaving the local reference valid until cleanup is
+> complete.
+> 
+> Fixes: 6c52fdc244b5 ("rdma/siw: connection management")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Shuangpeng Bai <shuangpeng.kernel@gmail.com>
+> ---
+>   drivers/infiniband/sw/siw/siw_cm.c | 15 ++++++++++-----
+>   1 file changed, 10 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/siw/siw_cm.c
+> index 87c79527ac09..7b32158ea49f 100644
+> --- a/drivers/infiniband/sw/siw/siw_cm.c
+> +++ b/drivers/infiniband/sw/siw/siw_cm.c
+> @@ -1467,11 +1467,13 @@ int siw_connect(struct iw_cm_id *id, struct iw_cm_conn_param *params)
+>   	siw_cep_set_inuse(cep);
+>   
+>   	/* Associate QP with CEP */
+> +	down_write(&qp->state_lock);
 
-SGTM thanks.
+What could destroy the QP at this point, so
+that we need a lock? The RDMA core should serialize
+any user initiated QP destroy during the connect.
+
+>   	siw_cep_get(cep);
+>   	qp->cep = cep;
+>   
+>   	/* siw_qp_get(qp) already done by QP lookup */
+>   	cep->qp = qp;
+> +	up_write(&qp->state_lock);
+>   
+>   	id->add_ref(id);
+>   	cep->cm_id = id;
+> @@ -1564,16 +1566,19 @@ int siw_connect(struct iw_cm_id *id, struct iw_cm_conn_param *params)
+>   		siw_socket_disassoc(s);
+>   		sock_release(s);
+>   
+> -		cep->qp = NULL;
+> -
+>   		cep->cm_id = NULL;
+>   		id->rem_ref(id);
+>   
+> -		qp->cep = NULL;
+> -		siw_cep_put(cep);
+> -
+>   		cep->state = SIW_EPSTATE_CLOSED;
+>   
+
+What can destroy the QP at this point?
+
+The only possibility I see is a connection
+drop from peer side, which races with the current
+connect() processing. Having a lock at the cep
+is sufficient to serialize that.
+We hold the cep lock via siw_cep_set_inuse(),
+which releasedonly the th every end of the
+connect via siw_cep_set_free() (success), or
+siw_cep_set_free_and_put() (failure.
+
+
+> +		down_write(&qp->state_lock);
+> +		cep->qp = NULL;
+> +		if (qp->cep == cep) {
+> +			qp->cep = NULL;
+> +			siw_cep_put(cep);
+> +		}
+> +		up_write(&qp->state_lock);
+> +
+>   		siw_cep_set_free_and_put(cep);
+>   
+>   	} else if (s) {
+
