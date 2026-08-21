@@ -1,77 +1,140 @@
-Received: from smtp-relay-services-0.canonical.com (smtp-relay-services-0.canonical.com [185.125.188.250])
+Received: from out30-97.freemail.mail.aliyun.com (out30-97.freemail.mail.aliyun.com [115.124.30.97])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E4DE396B76
-	for <linux-rdma@vger.kernel.org>; Fri, 21 Aug 2026 07:24:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.125.188.250
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 283D13B0581;
+	Fri, 21 Aug 2026 07:40:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.97
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787297066; cv=none; b=pA3Gm8OPNHd7wWP37TWVNGw4OHl+4Hl9/OPcb13a//aZITxX60qmlQ1S75nGFhcLEQbq+kohDPZn9WFRO8BrQES/r0w+EklvipQ7BvJHxUEbHxvDs6eazxIwuP2TjuBNmhJY6PFT7fiGJXWyY+ulKDQ4Z9H2UQ9cByqNGoGI54U=
+	t=1787298022; cv=none; b=W6CuOcK8Vdy3An0LtAViL8/9awziiTM6EGdVI58XBblu2rOhgFoqohyo1+cJHmji83/qaQ4XDMKKOtDrkHXazsjj3ksoD6pzxnS4cuvmvX4kgCks2NHqkwPk0Cs9qReIqpJfXAcvSwAdKUSrjFlMUqLPsWH+uNcoz0MoIwDL54w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787297066; c=relaxed/simple;
-	bh=PgOtu4zlkumYABAgej0G94tJhnRkZ3GRbGGz+Dz/Xyk=;
-	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date; b=huXfKb7WFmt9WVOeTq2VF4VRj93OKP3F87iUFlN6lNBVr9enBQrSNHT9hvmnkZDOOSQvRwHIeC768z6qzNNx4hVttoppJHbRO7Tf606MAIuaVaACnDjIQVcuELEgJ0kstwOFbdjgWQcOM9nXePpMyHetSpWDf0i7W00jBVPO8lQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net; spf=pass smtp.mailfrom=launchpad.net; dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b=D2G1SldT; arc=none smtp.client-ip=185.125.188.250
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=launchpad.net
+	s=arc-20240116; t=1787298022; c=relaxed/simple;
+	bh=BIK6FeWGas+vOHc8L+lchqILJVeY4cgbq0l6axetMb8=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=n1Z23CrRFoRIeowq68+YDnCTtWUb8nyrU4NmqUzC75qcdUHiwz6k3Ux4MIjCKnmavFgbtl0XQfKCXzZP0bF1i0H2SxtFeaLQTdlAAjGbsU9nxrGd4DVocFS4ko9aNndYl9Pbt27Ydnj0tnjPWB0VwyMkMlgx+jo72yRfW8kecKI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=Uws0H671; arc=none smtp.client-ip=115.124.30.97
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b="D2G1SldT"
-Received: from juju-98d295-prod-launchpad-51.localdomain (unknown [10.131.215.15])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-relay-services-0.canonical.com (Postfix) with ESMTPSA id E154C3F28A
-	for <linux-rdma@vger.kernel.org>; Fri, 21 Aug 2026 07:18:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=launchpad.net;
-	s=20210803; t=1787296738;
-	bh=PgOtu4zlkumYABAgej0G94tJhnRkZ3GRbGGz+Dz/Xyk=;
-	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date:
-	 Reply-To;
-	b=D2G1SldTlw2TEzqt1F8YcigxoLU8nRxp9m+TdF1uUES3vYPpWvg5hrkTVuorcIPoB
-	 RwGKt8nqkT6XAXnkAwjeDUADo4wd21mPvZuXVEBfzpNKQa6fRvGe5JZoY3ZbzB2BO9
-	 QsW/BxSKA0RwNXp7fokAC3c76pcmqht4NSyA2wWBCFp88Az2VaNvNC7BvyGOLDYxEf
-	 pk2oIvmfJDpSLyYNV8iNJ2mszFgSe4o176d6mAkVFqXSkQo1UmDwbIFLnhrx6flEdi
-	 ZXdTc/5YAOPmZn6pGKXhyI+h11sEhpOpd9tpFDWrWQSy5Ht1NBtLksR8tZD4Ve7QhZ
-	 MbGrYToVYnSsA==
-Received: from [10.131.215.15] (localhost [127.0.0.1])
-	by juju-98d295-prod-launchpad-51.localdomain (Postfix) with ESMTP id B9EFFBD894
-	for <linux-rdma@vger.kernel.org>; Fri, 21 Aug 2026 07:18:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="Uws0H671"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1787298005; h=From:To:Subject:Date:Message-ID:Content-Type:MIME-Version;
+	bh=pO5YMZPN5pZKeHNfvKxyxBg1SvNVSdVz7HEdqpp7/L4=;
+	b=Uws0H671cJ/pBPsW8bKS0KraUe7NlohgPxxtk6odby/vb1hBLpmO6NbWptLMnPTcyiCHPqPUwMuAuYOaiob4+cOrf3TYHED/vZiNkXkUrjJ0RyjTVk40ec1HYoKF10MOgXP1y5k2S11RfBo11buIHVifRxt3NQ4d595lz3qcfR8=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R171e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037033178;MF=chuyf26@linux.alibaba.com;NM=1;PH=DS;RN=10;SR=0;TI=SMTPD_---0X9Lf98I_1787298004;
+Received: from x31j07255.sqa.na131(mailfrom:Chuyf26@linux.alibaba.com fp:SMTPD_---0X9Lf98I_1787298004 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Fri, 21 Aug 2026 15:40:05 +0800
+From: Chuyf26 <Chuyf26@linux.alibaba.com>
+To: pabeni@redhat.com
+Cc: alibuda@linux.alibaba.com, dust.li@linux.ibm.com, sidraya@linux.ibm.com,
+ mjambigi@linux.ibm.com, tonylu@linux.alibaba.com, guwen@linux.alibaba.com,
+ netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-s390@vger.kernel.org
+Subject: [PATCH v3] net/smc: release the internal TCP sock on IPPROTO_SMC
+ socket creation failure
+Date: Fri, 21 Aug 2026 15:38:23 +0800
+Message-ID: <178729790329.223882.15209084993558811810@linux.alibaba.com>
+In-Reply-To: <20260820111229.153086-1-pabeni@redhat.com>
+References: <20260813060456.b48HqF9m6NTfFXvq_PL9w_Ih493OogqAqxfAHAfU74A@z>
+ <20260820111229.153086-1-pabeni@redhat.com>
 Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-Launchpad-Message-Rationale: Requester @linux-rdma
-X-Launchpad-Message-For: linux-rdma
-X-Launchpad-Notification-Type: recipe-build-status
-X-Launchpad-Archive: ~linux-rdma/ubuntu/rdma-core-daily
-X-Launchpad-Build-State: MANUALDEPWAIT
-To: Linux RDMA <linux-rdma@vger.kernel.org>
-From: noreply@launchpad.net
-Subject: [recipe build #4079504] of ~linux-rdma rdma-core-daily in xenial: Dependency wait
-Message-Id: <178729673868.3849686.7302530361652977623.launchpad@juju-98d295-prod-launchpad-51>
-Date: Fri, 21 Aug 2026 07:18:58 -0000
-Reply-To: noreply@launchpad.net
-Sender: noreply@launchpad.net
-Errors-To: noreply@launchpad.net
-Precedence: bulk
-X-Generated-By: Launchpad (canonical.com); Revision="31c197e5e79ab0f4ab5cdf39f7fb1bdd55aff62f"; Instance="launchpad-buildd-manager"
-X-Launchpad-Hash: bb4545bf7fed483929a283788e26f580f902633d
 
- * State: Dependency wait
- * Recipe: linux-rdma/rdma-core-daily
- * Archive: ~linux-rdma/ubuntu/rdma-core-daily
- * Distroseries: xenial
- * Duration: 12 minutes
- * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-d=
-aily/+recipebuild/4079504/+files/buildlog.txt.gz
- * Upload Log:=20
- * Builder: https://launchpad.net/builders/lcy02-amd64-015
+IPPROTO_SMC sockets create an internal TCP sock ("clcsock") from the
+proto->init hook. When socket creation fails after proto->init has
+run - e.g. a cgroup BPF program attached to BPF_CGROUP_INET_SOCK_CREATE
+denies the socket - sk_common_release() only invokes sk_prot->destroy
+if it is set, but neither smc_inet_prot nor smc_inet6_prot defines it,
+and smc_destruct() returns early unless sk_state is SMC_CLOSED. As a
+result, every failing socket(AF_INET, SOCK_STREAM, IPPROTO_SMC) call
+leaks one tcp_sock, so an unprivileged task able to attach a deny-all
+BPF_CGROUP_INET_SOCK_CREATE program to its own cgroup can grow kernel
+memory unboundedly.
 
---=20
-https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebu=
-ild/4079504
-Your team Linux RDMA is the requester of the build.
+Add a .destroy hook to both protos that releases the clcsock via
+smc_clcsock_release(). smc_sk_init() hashes the sock into the smc
+hashinfo before the clcsock is created, and smc_diag dumps walk that
+hash dereferencing smc->clcsock without taking clcsock_release_lock,
+while sk_common_release() calls .destroy before .unhash. Unhash the
+sock before releasing the clcsock, as __smc_release() does, so a
+concurrent dump cannot observe the release; the second unhash in
+sk_common_release() is a no-op.
 
+Fixes: d25a92ccae6b ("net/smc: Introduce IPPROTO_SMC")
+Reported-by: Abaci <abaci@linux.alibaba.com>
+Assisted-by: abaci:qwen3.8-max
+Signed-off-by: Chuyf26 <Chuyf26@linux.alibaba.com>
+---
+Changes since v2 (answering the review):
+- dropped the smc->clcsock = NULL store: sk_alloc() zeroes the sock
+  (__GFP_ZERO / sk_prot_clear_nulls()), so it is already NULL. The
+  mutex concern does not apply either: .destroy only runs after
+  smc_sk_init() initialized clcsock_release_lock.
+- unhash the sock before releasing the clcsock in .destroy so a
+  concurrent smc_diag dump cannot observe the release
+  (sk_common_release() calls .destroy before .unhash); the second
+  unhash is a no-op. Tested on a KASAN+SMC_DIAG kernel: the v2
+  version hits a KASAN report in __smc_diag_dump() when a diag dump
+  races with failing IPPROTO_SMC socket creation, v3 stays clean
+  under the same stress.
+
+ net/smc/smc_inet.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/net/smc/smc_inet.c b/net/smc/smc_inet.c
+index a94084b4a498..520b666fdd8f 100644
+--- a/net/smc/smc_inet.c
++++ b/net/smc/smc_inet.c
+@@ -15,13 +15,16 @@
+ 
+ #include "smc_inet.h"
+ #include "smc.h"
++#include "smc_close.h"
+ 
+ static int smc_inet_init_sock(struct sock *sk);
++static void smc_inet_destroy_sock(struct sock *sk);
+ 
+ static struct proto smc_inet_prot = {
+ 	.name		= "INET_SMC",
+ 	.owner		= THIS_MODULE,
+ 	.init		= smc_inet_init_sock,
++	.destroy	= smc_inet_destroy_sock,
+ 	.hash		= smc_hash_sk,
+ 	.unhash		= smc_unhash_sk,
+ 	.release_cb	= smc_release_cb,
+@@ -68,6 +71,7 @@ static struct proto smc_inet6_prot = {
+ 	.name		= "INET6_SMC",
+ 	.owner		= THIS_MODULE,
+ 	.init		= smc_inet_init_sock,
++	.destroy	= smc_inet_destroy_sock,
+ 	.hash		= smc_hash_sk,
+ 	.unhash		= smc_unhash_sk,
+ 	.release_cb	= smc_release_cb,
+@@ -116,6 +120,18 @@ static int smc_inet_init_sock(struct sock *sk)
+ 	return smc_create_clcsk(net, sk, sk->sk_family);
+ }
+ 
++static void smc_inet_destroy_sock(struct sock *sk)
++{
++	/* The sock is hashed and smc_diag dumps dereference smc->clcsock
++	 * without clcsock_release_lock, while sk_common_release() calls
++	 * .destroy before .unhash. Unhash first, as __smc_release() does,
++	 * so no dump can observe the clcsock being released; the second
++	 * unhash is a no-op.
++	 */
++	sk->sk_prot->unhash(sk);
++	smc_clcsock_release(smc_sk(sk));
++}
++
+ int __init smc_inet_init(void)
+ {
+ 	int rc;
+-- 
+2.43.5
