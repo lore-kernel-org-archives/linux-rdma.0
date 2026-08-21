@@ -1,140 +1,253 @@
-Received: from mail-pz2-f1.google.com (mail-pz2-f1.google.com [74.125.228.1])
+Received: from mail-pj1-f43.google.com (mail-pj1-f43.google.com [209.85.216.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACD20303A0D
-	for <linux-rdma@vger.kernel.org>; Fri, 21 Aug 2026 01:29:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAEFD35F182
+	for <linux-rdma@vger.kernel.org>; Fri, 21 Aug 2026 02:57:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787275764; cv=none; b=n9PrmLHJdi1r0fUXmJpUv4jcdPNgfsHSakDsSjznF7Mb5cUr/yjll7r4uGEDDVGF/o5ydRK9gPWuA/wogCzQFNisO5vThDCS4oVm/y0VuZ6Ad0b9u04XSf97qH9ppB3A0MRW0qb8hlRSjoeVThey5svQmqPV7+FbQPgCp/8vAkU=
+	t=1787281071; cv=none; b=OysNETwM6XZyylcWmESv7afyCvP++B65vvM6ClNY7KAPmg2swr7KUxRqWZofB9ql8d9HvjKfqCZoaHOzqX2MSU1T8iynHKdKAfB2quSSW/NF9ipVTo0zZynvUzmsZwhculhIInsmsT88wKgiBt+bCYJgmk20+Hbn9z7qwchJ/zA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787275764; c=relaxed/simple;
-	bh=gqWMHjglpbHY/2tqJjSk/6W2N13etU+sr8bVJuTM4ZU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gcOQfOpWLgEs7IzouTgfSRHdoEMbnPjZMD3ZDoNg3D/eA9BBNqkCMjGHS+7arW6afRXBNz/Cg6BvDvSkC71evKVGPFd8g3BiHigiMAnStd/p+qS12xtpheqBT5TVR/j83mgeyG2hxuiZ4vvoN6KsBzvei91VgWzUSPQ0zpJfAk8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KBE9ytoq; arc=none smtp.client-ip=74.125.228.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1787281071; c=relaxed/simple;
+	bh=gAtnSTjeqCtxbumXeOH7maB8s/5xSq0wlmY5q+tZSTQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=j6RNKRy0r62BWFgROC8bmcTeNvZEuQNT835vsgC3Di4L0kqZqY+J0d9NFkP+UXDxMalIkWk43Fb6jW+YC/f13Juout4esxcZpEfldA2/JaXpld0nZQzdELvlK4rYpi2A5h6+LEnDcTQ6fyU24KVi5o5b0LPfnWDd1ceArIzDdkQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr; spf=none smtp.mailfrom=isslab.korea.ac.kr; dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.b=BE9U9amx; arc=none smtp.client-ip=209.85.216.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=isslab.korea.ac.kr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KBE9ytoq"
-Received: by mail-pz2-f1.google.com with SMTP id 41be03b00d2f7-ca7d1dc4554so126375a12.1
-        for <linux-rdma@vger.kernel.org>; Thu, 20 Aug 2026 18:29:22 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.b="BE9U9amx"
+Received: by mail-pj1-f43.google.com with SMTP id 98e67ed59e1d1-3811f512167so626383a91.3
+        for <linux-rdma@vger.kernel.org>; Thu, 20 Aug 2026 19:57:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1787275762; x=1787880562; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=PL4vLuVN0ieJR1wtgaFdgTaFWontBf4roejCfLnzVDs=;
-        b=KBE9ytoqGNRk0tgsofHNaXiCHOv08zLHV/Tn5QNqEU6FbejhbPTrmHgiSqd9X/lPhA
-         ftwsSblQvDRaoeBW7p4WSTkipw5AvSJo+hqSQ8z8EliowpercQxBHDEikzcLz2Jw+jqH
-         1KjueGhPQSH5C9YUHHziDB+0+ChuUzDr0UDHUQqD0Ix7M22vFwKqC51lV70ZXuUj27Bg
-         F6Ul/NxR1NK60cC2O6pEGr9nd2YMcym/hXGdpIADJpJIKHRzFG/0rQnK52RmLCY5q/Se
-         bszGnLCoc7fHLzHo0qTFAMWd27RHLEODylghyZYDHllFAbTFxi3wSHVQfLcnw76hiUCS
-         HrWQ==
+        d=isslab-korea-ac-kr.20251104.gappssmtp.com; s=20251104; t=1787281067; x=1787885867; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=6mHQa0ypxSoviqvT2UnTgyqTypHgMk+xKBTSRPmyyNg=;
+        b=BE9U9amxVkTUBCIumhIw3621Zxo8Wyswp9AgNrvGrOuCbIRLiTu0Sxv3fSGoxcA/jD
+         zG+W9CfVibb4M1uLhFhXKTeFnmCSF4VPwfGbhy3NGDaUfvS8sy5X2ysiSNnoQHADmhGC
+         kGZJ7ipbKFPUlg97QlbVH+0BaZexSnxhINgD7e06GBRWPYiP8onS2izcuu/GDVPc2iSX
+         lFoM9aNuyHd3esDaQe6iwtJNQgxqtC079pkPqgLwjUHm2GuPZMuXHBXmDQLtravj/Hoc
+         NDcsqetngVY9Ki33F6mbp+fzf9ahECc+VpH2MM0dbLZWqL5NOPTFEavZIa05mN38bvEV
+         LWOA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787275762; x=1787880562;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=PL4vLuVN0ieJR1wtgaFdgTaFWontBf4roejCfLnzVDs=;
-        b=Av73PE+0fCg9vYUNIRZLHBrg0Z5uy62Dyn9E0d+kRA3mFbzpdKodVASV2SOrv0vKVw
-         UBHheqbtlsGf5mqPFeZEodwabKxTryCiS/az3pXk6cXxMj/K2dKiN4vlS+4QH990raUi
-         tKQitmw26Tav/08IyVRc3IBq4fc9G5GrsOljKgOKGqRAkbHsX6r27d6VGv3IpUp10qxQ
-         kjLs6Q6QE12nXuiyNPdMKb5bBQNDCt0WXJSlPsNemIR8EehkcS+npVP4JqPBICM4eb4d
-         6Il0cnf4oh6bjG/m22INzmHvEiadkPcYIC5stYOJ3rhoYYSl6jPfQAeOoT1vxw4C0lbl
-         hz7Q==
-X-Forwarded-Encrypted: i=1; AHgh+RpcarPSJCsvnsv3xs53ROEb5aZ/PbMiXWTDDQr8M8YuV7FmnuV54PsBs8ETLY+IM0q1Qo73d9rziCAO@vger.kernel.org
-X-Gm-Message-State: AFuF++mE95/5xHnPFLi7LNyhDZIRI56MYbDPuZGYV1CffQCpP/VOrB/0
-	t1ahKco8RTjRoPqtwKrIouc1CLV9F5MhyCyCl5a7+KMPOTKJZrawEHNY
-X-Gm-Gg: AR+sD11Zjuywgo8d7yHkq5LD1cNoi/MlpL/l8x0TDrQm3Tt4cwQxDMxuaCynUjtrOaw
-	jhKVpCS/Fz/78huvelJV4Kki4SlTo5sL0cGwjM6HO6d2/cutYJj8WQWznm7p9DZyk+RrL7RN7PY
-	skBEl+kwDEqzMPNgoZlkuVfNh7UXR5vbFFmezC6hN2kJBmXPzsvA8f08Mqy87NF6iE5FC+efb0J
-	ZjwIaPeEO2Ygoi+RxyL9Z5fZrYhhCP0O/GLxbMnOtH8nTlEuDOXlvnprstrkuqQ1v+ZI5eGQwik
-	phc1CEsXJbDHA4JYGvB2dFkS8uFQ8VHQbeYHyhay8XvLbVomXgS82B95lgvCZdLCzheA8cUv/zv
-	SCQxAsvtr6zGYYdp4hTFLD8+T7zweFeeKCt2eCImJgVLUye3Eq+tkwuYjO206Kzdp4xoGm/RQ+Y
-	li1psANugrvLE5DRyI9wS9o1FarVtWAmWemg++kLC0hkhfe0G5TkgRbrtDDaaBKk5L
-X-Received: by 2002:a05:6a00:170c:b0:845:e440:d0ca with SMTP id d2e1a72fcca58-851f9f0db82mr3439334b3a.8.1787275761986;
-        Thu, 20 Aug 2026 18:29:21 -0700 (PDT)
-Received: from localhost ([2a03:2880:2ff:2::])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-851d3640dd4sm2169685b3a.41.2026.08.20.18.29.21
+        d=1e100.net; s=20251104; t=1787281067; x=1787885867;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=6mHQa0ypxSoviqvT2UnTgyqTypHgMk+xKBTSRPmyyNg=;
+        b=W2LqP2GbeuJB+w05Wp5m6Ey5BTsUcriClS+pkN5LlsQf5AaLPs7gv/wtiwCvhIFjIq
+         4PlFbEIGAzutvU4WMTxYOKaKADSFEwQ5o+1lnIKQoymRfPNut/gxRJf40OvGKoDkDoJY
+         uvX65UOcPIGDOFD6BpulOF4OOl+tr74xk2dhYD0GPEVL5Y8wYsTXOexBbCz1NprSNpaq
+         ufihI4surbz/cKFl3QwwTXrDryHYpVywnqbGUUZpDB03FG15B8/kCRCQiYndEHB1Zt0t
+         u3rdU3SSYwZWjc6Gp5PXUiwt5NUknUnh9ggWRWtV4fva3MBYDpw0sAxjf+faPls2cCx5
+         lj3A==
+X-Gm-Message-State: AFuF++m5fkR9VS/FI+NFam5qQOi/xUDu/tedpQ1g4OqkLvgNpAlRH3CC
+	ImwjXJT2q8znEsttpX1Bf9Vb+3uA71DCMFgeIHUMpH8Ihjz4BFab5ZNGmaVWXgaoohA=
+X-Gm-Gg: AR+sD126xzk6LgRrX+iQqwQeeHngM15unSaAKtpCNOuu+foYGQG29lEoMKoiuNkrnnC
+	0+FsyHVwkW2fMa6uZh2X9+9UE5D+B84jvxnnZM4CNpimFNjQ1it1ZIh4oOngUGbu7Jl1HunOdIv
+	zMUHfG+/rIVrDpQYVp8HIMJXWQZZlNXY/cVgWyta5QPihzojCXSjaXGUfahjt2VZUZzmSTf7boF
+	DOOJYUGmn8spo+tvzbD/B1oMVOP+fEmP/zLCORFI47zwNzcZPhEm3AM3LLSDHyf39WrnwYTRUfm
+	k765QswO2pMiEAHuQwMr7jobUJhm423AvaAdFpbYVQUMeXzKkraVjvZGso5JtcK5ElH+Se8h4Yx
+	E3tgaUelYdb49+7UKrpK7AmQk4+vujb21IkYuf2dgLUki1pujHzozJxC4H7xy15VN3zGSck4FzL
+	yjG8Q0pihbETJ+kJ81BRhHwNRGmNOABNezNF+/MyVEmvoO6Us6Pv0ErjL6qWxo0kbbzVVC
+X-Received: by 2002:a17:90b:6cc:b0:392:ca3b:370a with SMTP id 98e67ed59e1d1-395c33d786amr6148277a91.2.1787281067091;
+        Thu, 20 Aug 2026 19:57:47 -0700 (PDT)
+Received: from yhlee-960QFG.. ([125.131.91.97])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-395c4697358sm1159077a91.8.2026.08.20.19.57.44
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 20 Aug 2026 18:29:21 -0700 (PDT)
-Date: Thu, 20 Aug 2026 18:29:16 -0700
-From: Stanislav Fomichev <sdf.kernel@gmail.com>
-To: Maciej Fijalkowski <maciej.fijalkowski@intel.com>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, edumazet@google.com, 
-	kuba@kernel.org, pabeni@redhat.com, anthony.l.nguyen@intel.com, 
-	przemyslaw.kitszel@intel.com, andrew+netdev@lunn.ch, saeedm@nvidia.com, tariqt@nvidia.com, 
-	mbloch@nvidia.com, maxime.chevallier@bootlin.com, mcoquelin.stm32@gmail.com, 
-	alexandre.torgue@foss.st.com, aleksander.lobakin@intel.com, horms@kernel.org, 
-	magnus.karlsson@intel.com, sdf@fomichev.me, ast@kernel.org, daniel@iogearbox.net, 
-	hawk@kernel.org, john.fastabend@gmail.com, guoren@kernel.org, dtatulea@nvidia.com, 
-	witu@nvidia.com, martin.lau@kernel.org, yoong.siang.song@intel.com, 
-	intel-wired-lan@lists.osuosl.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, 
-	linux-stm32@st-md-mailman.stormreply.com, linux-arm-kernel@lists.infradead.org, bpf@vger.kernel.org, 
-	linux-csky@vger.kernel.org, leon@kernel.org
-Subject: Re: [PATCH net v3 3/3] net: stmmac: document oversized AF_XDP frame
- handling
-Message-ID: <aoeoJ6-njBxcWs4w@devvm7509.cco0.facebook.com>
-References: <20260819160535.1472459-1-sdf@fomichev.me>
- <20260819160535.1472459-4-sdf@fomichev.me>
- <aoceSoSFMx69Z9up@boxer>
+        Thu, 20 Aug 2026 19:57:46 -0700 (PDT)
+From: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+To: Sagi Grimberg <sagi@grimberg.me>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>
+Cc: linux-rdma@vger.kernel.org,
+	target-devel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Yehyeong Lee <yhlee@isslab.korea.ac.kr>,
+	stable@vger.kernel.org
+Subject: [PATCH] IB/isert: wait for deferred control PDU completions before releasing the connection
+Date: Fri, 21 Aug 2026 11:57:34 +0900
+Message-ID: <20260821025734.1449084-1-yhlee@isslab.korea.ac.kr>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <aoceSoSFMx69Z9up@boxer>
+Content-Transfer-Encoding: 8bit
 
-On 08/20, Maciej Fijalkowski wrote:
-> On Wed, Aug 19, 2026 at 09:05:35AM -0700, Stanislav Fomichev wrote:
-> > stmmac drops AF_XDP zero-copy frames that exceed taprio's queueMaxSDU
-> > after xsk_tx_peek_desc() has reserved their completion entries.
-> > 
-> > Completing a rejected descriptor is unsafe because AF_XDP completions are
-> > ordered: xsk_tx_completed(pool, 1) would complete the oldest outstanding
-> > descriptor, which may still be owned by hardware. Instead, leave the
-> > completion pending so the ring eventually wedges and increment the drop
-> > counter to expose the application error without risking hardware
-> > misbehavior.
-> > 
-> > Document this intentional ring imbalance at the check.
-> > 
-> > Signed-off-by: Stanislav Fomichev <sdf@fomichev.me>
-> > ---
-> >  drivers/net/ethernet/stmicro/stmmac/stmmac_main.c | 4 ++++
-> >  1 file changed, 4 insertions(+)
-> > 
-> > diff --git a/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c b/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
-> > index 62de03e65a90..6a532747c039 100644
-> > --- a/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
-> > +++ b/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
-> > @@ -2713,6 +2713,10 @@ static bool stmmac_xdp_xmit_zc(struct stmmac_priv *priv, u32 queue, u32 budget)
-> >  		if (priv->est && priv->est->enable &&
-> >  		    priv->est->max_sdu[queue] &&
-> >  		    xdp_desc.len > priv->est->max_sdu[queue]) {
-> > +			/* Completions are ordered, so this descriptor cannot
-> > +			 * be completed safely. Wedge the ring to expose the
-> > +			 * application error instead.
-> > +			 */
-> >  			priv->xstats.max_sdu_txq_drop[queue]++;
-> >  			continue;
-> 
-> Hmm. I read the discussion on v2. Maybe we could cancel cq entry here in
-> this branch? Also it feels like something achievable at bind time when
-> taprio is configured and vice versa?
-> 
-> Otherwise we over-commit cq entries.
+isert_send_done() hands ISTATE_SEND_TASKMGTRSP, ISTATE_SEND_REJECT and
+ISTATE_SEND_TEXTRSP completions off to isert_comp_wq and returns.  The work
+item then runs isert_completion_put() -> isert_put_cmd(), which reads
+isert_conn->conn and takes conn->cmd_lock.
 
-What do you want to achieve with the cancel here? IIUC it will make it look
-as if some (if the user has posted many) tx descriptor has not been consumed
-by the kernel?
+Nothing orders that work item against teardown.  isert_wait_conn() queues
+isert_release_work, which frees isert_conn, and iscsit_close_connection()
+frees the iscsit_conn right after it returns, so the queued work can run
+against freed memory.
 
-I do agree that a better idea is to probably do these checks during control
-paths, but it's a bit more involved (and not sure if it's possible? if we
-have a bunch of xsk sockets and we change that max_sdu, do we go over all
-sockets on the system somehow?). My main motivation with this patch was
-to make our LLM reviewers less chatty about preexisting issues.
+Count the deferred control PDU completions per connection and let
+isert_wait_conn() wait for them before the release work is queued.
+
+ISTATE_SEND_LOGOUTRSP is deliberately not counted: that branch runs
+iscsit_logout_post_handler(), which ends up waiting for
+conn->conn_wait_comp, and that completion is only sent by
+iscsit_close_connection() after it has called iscsit_wait_conn().
+Waiting for it here would deadlock.  Its wait stays the existing
+isert_wait4logout().
+
+The splat below is from a kernel with tracing printk()s and an msleep(200)
+injected into isert_do_control_comp() to widen the window:
+
+  BUG: KASAN: slab-use-after-free in isert_put_cmd+0x53d/0x620
+  Read of size 8 at addr ffff8881054f1038 by task kworker/u17:1/182
+
+  CPU: 0 UID: 0 PID: 182 Comm: kworker/u17:1 Tainted: G    B               7.2.0-rc5-TWIDE-gb8babf08acc7 #1 PREEMPT(lazy)
+  Tainted: [B]=BAD_PAGE
+  Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+  Workqueue: isert_comp_wq isert_do_control_comp
+  Call Trace:
+   <TASK>
+   dump_stack_lvl+0x53/0x70
+   print_report+0xd0/0x630
+   ? __pfx__raw_spin_lock_irqsave+0x10/0x10
+   ? _raw_spin_unlock_irqrestore+0x3e/0x70
+   ? isert_put_cmd+0x53d/0x620
+   kasan_report+0xce/0x100
+   ? isert_put_cmd+0x53d/0x620
+   isert_put_cmd+0x53d/0x620
+   ? isert_completion_put+0x305/0x330
+   ? isert_do_control_comp+0x2ef/0x310
+   process_one_work+0x633/0x1030
+   ? assign_work+0x11d/0x370
+   worker_thread+0x45b/0xd10
+   ? __pfx_worker_thread+0x10/0x10
+   ? __pfx_worker_thread+0x10/0x10
+   kthread+0x2c6/0x3b0
+   ? recalc_sigpending+0x15c/0x1e0
+   ? __pfx_kthread+0x10/0x10
+   ret_from_fork+0x36e/0x5a0
+   ? __pfx_ret_from_fork+0x10/0x10
+   ? __switch_to+0x572/0xdd0
+   ? __pfx_kthread+0x10/0x10
+   ret_from_fork_asm+0x1a/0x30
+   </TASK>
+
+  Allocated by task 48:
+   kasan_save_stack+0x33/0x60
+   kasan_save_track+0x14/0x30
+   __kasan_kmalloc+0x8f/0xa0
+   __kmalloc_cache_noprof+0x158/0x370
+   isert_cma_handler+0x1e3/0x2ae0
+   cma_cm_event_handler+0x3e/0x240
+   cma_ib_req_handler+0x17d9/0x4490
+   cm_process_work+0x41/0x330
+   cm_work_handler+0x5727/0xc160
+   process_one_work+0x633/0x1030
+   worker_thread+0x45b/0xd10
+   kthread+0x2c6/0x3b0
+   ret_from_fork+0x36e/0x5a0
+   ret_from_fork_asm+0x1a/0x30
+
+  Freed by task 184:
+   kasan_save_stack+0x33/0x60
+   kasan_save_track+0x14/0x30
+   kasan_save_free_info+0x3b/0x60
+   __kasan_slab_free+0x43/0x70
+   kfree+0x121/0x380
+   iscsit_close_connection+0x7cf/0x1e60
+   iscsit_take_action_for_connection_exit+0x1b6/0x360
+   iscsi_target_tx_thread+0x472/0x690
+   kthread+0x2c6/0x3b0
+   ret_from_fork+0x36e/0x5a0
+   ret_from_fork_asm+0x1a/0x30
+
+Fixes: b8d26b3be8b3 ("iser-target: Add iSCSI Extensions for RDMA (iSER) target driver")
+Cc: stable@vger.kernel.org
+Signed-off-by: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+---
+ drivers/infiniband/ulp/isert/ib_isert.c | 18 ++++++++++++++++++
+ drivers/infiniband/ulp/isert/ib_isert.h |  3 +++
+ 2 files changed, 21 insertions(+)
+
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index 1015a51f750af..84abee9bfa785 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -308,6 +308,8 @@ isert_init_conn(struct isert_conn *isert_conn)
+ 	init_completion(&isert_conn->login_req_comp);
+ 	init_waitqueue_head(&isert_conn->rem_wait);
+ 	kref_init(&isert_conn->kref);
++	atomic_set(&isert_conn->ctrl_comp_cnt, 0);
++	init_waitqueue_head(&isert_conn->ctrl_comp_wait);
+ 	mutex_init(&isert_conn->mutex);
+ 	INIT_WORK(&isert_conn->release_work, isert_release_work);
+ }
+@@ -1668,6 +1670,8 @@ isert_do_control_comp(struct work_struct *work)
+ 	struct isert_conn *isert_conn = isert_cmd->conn;
+ 	struct ib_device *ib_dev = isert_conn->cm_id->device;
+ 	struct iscsit_cmd *cmd = isert_cmd->iscsit_cmd;
++	/* The switch below may free isert_cmd. */
++	bool counted = isert_cmd->ctrl_counted;
+ 
+ 	isert_dbg("Cmd %p i_state %d\n", isert_cmd, cmd->i_state);
+ 
+@@ -1689,6 +1693,10 @@ isert_do_control_comp(struct work_struct *work)
+ 		dump_stack();
+ 		break;
+ 	}
++
++	/* The count is what keeps isert_conn alive, so drop it last. */
++	if (counted && atomic_dec_and_test(&isert_conn->ctrl_comp_cnt))
++		wake_up(&isert_conn->ctrl_comp_wait);
+ }
+ 
+ static void
+@@ -1732,6 +1740,12 @@ isert_send_done(struct ib_cq *cq, struct ib_wc *wc)
+ 	case ISTATE_SEND_TEXTRSP:
+ 		isert_unmap_tx_desc(tx_desc, ib_dev);
+ 
++		/* Paired with the wait in isert_wait_conn(). */
++		isert_cmd->ctrl_counted =
++			isert_cmd->iscsit_cmd->i_state != ISTATE_SEND_LOGOUTRSP;
++		if (isert_cmd->ctrl_counted)
++			atomic_inc(&isert_conn->ctrl_comp_cnt);
++
+ 		INIT_WORK(&isert_cmd->comp_work, isert_do_control_comp);
+ 		queue_work(isert_comp_wq, &isert_cmd->comp_work);
+ 		return;
+@@ -2572,6 +2586,10 @@ static void isert_wait_conn(struct iscsit_conn *conn)
+ 	isert_wait4cmds(conn);
+ 	isert_wait4logout(isert_conn);
+ 
++	/* Paired with the count taken in isert_send_done(). */
++	wait_event(isert_conn->ctrl_comp_wait,
++		   !atomic_read(&isert_conn->ctrl_comp_cnt));
++
+ 	queue_work(isert_release_wq, &isert_conn->release_work);
+ }
+ 
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
+index 0b2dfd6e7e270..17e512090b484 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.h
++++ b/drivers/infiniband/ulp/isert/ib_isert.h
+@@ -153,6 +153,7 @@ struct isert_cmd {
+ 	struct work_struct	comp_work;
+ 	struct scatterlist	sg;
+ 	bool			ctx_init_done;
++	bool			ctrl_counted;
+ };
+ 
+ static inline struct isert_cmd *tx_desc_to_cmd(struct iser_tx_desc *desc)
+@@ -186,6 +187,8 @@ struct isert_conn {
+ 	struct mutex		mutex;
+ 	struct kref		kref;
+ 	struct work_struct	release_work;
++	atomic_t		ctrl_comp_cnt;
++	wait_queue_head_t	ctrl_comp_wait;
+ 	bool                    logout_posted;
+ 	bool                    snd_w_inv;
+ 	wait_queue_head_t	rem_wait;
+-- 
+2.43.0
+
