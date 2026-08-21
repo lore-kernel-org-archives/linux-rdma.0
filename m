@@ -1,107 +1,104 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f199.google.com (mail-qk1-f199.google.com [209.85.222.199])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D9A33F54C6;
-	Fri, 21 Aug 2026 05:07:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D6D330EF80
+	for <linux-rdma@vger.kernel.org>; Fri, 21 Aug 2026 07:05:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.199
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787288849; cv=none; b=og/RnQ6k8nfFiPSwh2Vut82ttS2lqasAVxTAUTOypDyuu9KzkYMorSVWYBbmIgMZ6LFz3TAxxtxJJa9qumsVP3d5B952FDo7GmvMNmdN+pR0F2JicH/V89KEcPkKlXXPg57Vb1t7Hi62Nwx9x73YIKQAK5Tftc0jpQ5rqcOyFuQ=
+	t=1787295917; cv=none; b=sZPiJp5p96Rs19FWItfPox+vl1Xr1w/SnJXpwvhJN91oHaZWxEN36WNcRQWRL4gNzr4JsQIFdq88sHn/LZd39a0EqzXWib9Ei7HIyrTfqyNeWdnjwyMJ87BuYGvjqBucbrlc2jqW2AwaKAZ00LeoTXIZco+24QBRoc54PU9PvLs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787288849; c=relaxed/simple;
-	bh=yro9R2fesggXT/5F+cz6y2n34EAQ5yrwBaQi6FHzUfw=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=Z0Sddr22mmwGnpVryd2eV/vx35rjdht7nQo/fQz+eWXHXzjTvfCS/4OwOGAUHAfyNp+h77B4MxbPov7Z61AtHQRAD34KfBq664CK2c0a3bfRVNLb0nhBtUcuh/K4Gtk+aoE8CubdGcDdyTeY3lnz3rG2qrvyactAa1NNWUb4Cho=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CaHdQrP8; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787295917; c=relaxed/simple;
+	bh=DmJp/vi+6ILWonYXZkj5nFKHTNQ+VfTuwhZy3v5z5S0=;
+	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=RqiYt2ULR7jmLA0GiNYnMVcqimQEvUw5LRR9KY56nWL7xqPhuqM5Gf0/ak+wH8Esy4Qrktg5o5rOTvuz73uy4xfdUNXV3Xz4EjgXXejwxgiNYIQfNSGESgTE+B6J2BVY24hldy9mADmDe/PvL5mvJ7EH2zYL8KIbTf3IN4seKU0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--edumazet.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=kLEiSjEf; arc=none smtp.client-ip=209.85.222.199
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--edumazet.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CaHdQrP8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 865B41F000E9;
-	Fri, 21 Aug 2026 05:07:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787288848;
-	bh=Ml4SGLLYZO9tAklishfHK9SoubleA44hWORl2MU9U7Y=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=CaHdQrP8XsJAVi9s86w9XruqC8CcdKvEwDPJZBsYPnlYvjOcUfudk08p59SlnTCbF
-	 ATogEy0tiM5ZV93E8F1nrIKPfCUAA3oX987OFkT/vICbuPZQl+M9qSyIwVzfqBXEcZ
-	 nMXi5JyAGjm6yUWfVbXRi7sEf/fQKBPrVzjlboWQKgOVdUgDAm+CGmlQ7qtcaIpR30
-	 EkrFZPn11xOW38oz9cDnfc+FE/z/gPUcOlDuS5e6jdvN1LBVk9VTY2wmuQB3lST79q
-	 vmHme+rMspG8+B9j2oDFvSAAOpGni1Rb4OipIQBGuVN4ACDWgIT4Lx8nCIEv5k4gk3
-	 1ol1BM4pXfXSA==
-Message-ID: <c3c9a3f2683a37474256b9f879f9ee896d62704c.camel@kernel.org>
-Subject: Re: [PATCH net-next v2 0/5] net/rds: own the fastpath locks across
- connection teardown
-From: Allison Henderson <achender@kernel.org>
-To: Jakub Kicinski <kuba@kernel.org>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com, 
- edumazet@google.com, horms@kernel.org, jhubbard@nvidia.com,
- woni9911@gmail.com,  michal.kubiak@intel.com, leon@kernel.org
-Date: Thu, 20 Aug 2026 22:07:26 -0700
-In-Reply-To: <20260820133832.5384be37@kernel.org>
-References: <20260816001510.73645-1-achender@kernel.org>
-	 <20260820133832.5384be37@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.52.3-0ubuntu1.1 
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="kLEiSjEf"
+Received: by mail-qk1-f199.google.com with SMTP id af79cd13be357-92e53b8a302so69599985a.1
+        for <linux-rdma@vger.kernel.org>; Fri, 21 Aug 2026 00:05:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1787295914; x=1787900714; darn=vger.kernel.org;
+        h=content-type:cc:to:from:subject:message-id:mime-version:date:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=0zmDvT9S0k3bq8hYlKyXaWcrzslmEN/ZbGYA0GARxd0=;
+        b=kLEiSjEffvueavyr8Tf7Y7HkuLmr3M386MARIl4iK8JNYeOdj676PWXNKUYQsOgKBs
+         YeW+cDtxVEUSJIFtPmA4xQmr8i/2eo1IPSJ6yl4Ec9aVKOn28zWN7WqzYjGCof/3EDM6
+         8UJLI2XmriGWVElj750lTCBgGVbyGKI85jr5YUYOBenR1A0P4r8KVjilEtsmPogQTQyo
+         X0TZ4x+1mLe3Xaciw5UK/McWLQqc33zUZ8rIA9dAwuwvkKGL+cU25BXB5Z3wimwodMHR
+         rV3BRNxOLVhCZ8Au5q1LPTUtqmBSTk5INB1FpCcb4kLOfN2NP0xA8KrknkJ/wH2lCyFU
+         EOng==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1787295914; x=1787900714;
+        h=content-type:cc:to:from:subject:message-id:mime-version:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=0zmDvT9S0k3bq8hYlKyXaWcrzslmEN/ZbGYA0GARxd0=;
+        b=luUgpqFgnvNmZxnBOU+ciOooJWL/q7c8MT45rCu8XTKl/WtGuscu5Me2IDZaDoQLcL
+         66p1ZVRAEXtVeEgCyDOnK7Xe0ZPHNM8gfYMZX+VG40KmXPqwVr23W/kq60Jz+8wwj90m
+         5BYosY58s8h/NI7uLEPq1yJV9uBsUMFDf0c47CvBZlis34UWFCWZQq70RrtPYBnPMH9S
+         joA1lpYoWc0XHBd8pmbQp4Mt/v/uYekBh0HUBoGzfkxR3NNtqRdU1SIj0qPcX3o7hKst
+         YTmld1HUJlUdEuUCUT2xTiXHPM7bWzlLCdJeHPlIOlfPpbICJrpd8wYP6o5suiT2mUKY
+         nKhA==
+X-Gm-Message-State: AOJu0YxQ2WwEur2D7sK80Yy5uMn9FgvzMpefrPqRt+UVp+/BSw6GZLK0
+	bsnN87Hl5DmtqGmPqF/ii2fZheukOsaGh2JDscdSMdA8A0pGXtF7WX4hL0DIjPX0uLR/HnRFWFO
+	ZzqTq4gw4sMfZQg==
+X-Received: from qkjx14.prod.google.com ([2002:a05:620a:14ae:b0:915:7c23:5aa])
+ (user=edumazet job=prod-delivery.src-stubby-dispatcher) by
+ 2002:a05:620a:225a:20b0:936:ad4e:9243 with SMTP id af79cd13be357-937395b1c2cmr243532685a.40.1787295914062;
+ Fri, 21 Aug 2026 00:05:14 -0700 (PDT)
+Date: Fri, 21 Aug 2026 07:05:12 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.55.0.766.g2966f0265a-goog
+Message-ID: <20260821070512.3122442-1-edumazet@google.com>
+Subject: [PATCH] RDMA/core: Fix use-after-free in ib_get_eth_speed()
+From: Eric Dumazet <edumazet@google.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>
+Cc: linux-rdma@vger.kernel.org, Jakub Kicinski <kuba@kernel.org>, 
+	Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org, eric.dumazet@gmail.com, 
+	Eric Dumazet <edumazet@google.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On Thu, 2026-08-20 at 13:38 -0700, Jakub Kicinski wrote:
-> On Sat, 15 Aug 2026 17:15:05 -0700 Allison Henderson wrote:
-> > This is v2 of the follow-up set to "net/rds: Bug fix ports, part 2"
-> > [1] (v1 of this set is at [2]).  During review of part 2, the later
-> > half of that series needed more work than a respin, so it was split
-> > off into this set together with the companion fixes identified along
-> > the way.
->=20
-> Any thoughts on the AI review?
-> https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260816001510.73645-=
-3-achender@kernel.org
-> IDK enough about RDS to judge the severity of the last one.
->=20
-> BTW we will take these via net now that the 7.2 final was tagged.
-> Don't worry about net-next being closed.
+In ib_get_eth_speed(), dev_put(netdev) is called before inspecting
+rc and dereferencing netdev->name in pr_warn(). If dev_put() drops
+the final reference to netdev, netdev->name accesses freed memory.
 
-Hi Jakub,
+Move dev_put(netdev) after the warning block so netdev is kept
+alive while its name is read.
 
-I think the last review in patch 5 isnt as severe as the review makes it
-sound. The shutdown worker can hold RDS_IN_XMIT for the duration of the
-TCP drain, which in the worst case can be up to 5 sec across 50 retries. =
-=20
+Fixes: d41861942fc5 ("IB/core: Add generic function to extract IB speed from netdev")
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+---
+ drivers/infiniband/core/verbs.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-If a duelling SYN shows up in that time, the accept worker on the global
-krdsd queue sleeps waiting for the bit.  That does mean that things in
-the same queue have to wait behind it since it's single threaded. It can't
-deadlock though since the accept worker runs on a different queue than the
-shutdown worker. Shutdowns are on the individual connection path queues.
-So the accept workers wait for the shutdown workers, but nothing on the
-conn path queues wait for anything on the global queue, so eventually the
-drain always finishes and releases the bit.
-
-There is a low-memory fallback where conn paths share the global queue
-instead of allocating their own.   That's what they used to do before
-commit 4716af3897 gave them their own queue.  But that just means
-all the work items are serialized, so they can't race over the bit.
-
-The waiting algorithm itself actually isn't new. The accept path has
-waited on this bit from the krdsd work item since 335b48d980f6 back in
-2016. This series stretches the worst case from "a sender finishes its
-batch" to "the teardown finishes its drain".  Ideally the best fix would
-be asynchronous teardown, and there is another Oracle-tree change that
-coordinates that.  It's another porting effort on my todo list, but
-I try to contain changes in small subsets to keep the reviews manageable
-since a lot of rds patch tend to snowball.=20
-
-The other commentary nits from the review do have merit though. If you
-like, I can send a v3 with those corrected, but I think the code itself
-is ok. The patch 1 comment about cong.c is a pre-existing issue similar
-to the lost-wakeup issue that patch 1 fixes. So I can send a follow-up
-converting those waitqueue_active() calls to wq_has_sleeper().
-
-I hope that helps? Thank you for being accommodating with the branch
-targeting.
-
-Allison
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 86811d31092ce03c8156b444fece47b824231219..57f109c8085dadf90bcc498a9ee64eea3c5f5271 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -2052,8 +2052,6 @@ int ib_get_eth_speed(struct ib_device *dev, u32 port_num, u16 *speed, u8 *width)
+ 	rc = __ethtool_get_link_ksettings(netdev, &lksettings);
+ 	rtnl_unlock();
+ 
+-	dev_put(netdev);
+-
+ 	if (!rc && lksettings.base.speed != (u32)SPEED_UNKNOWN) {
+ 		netdev_speed = lksettings.base.speed;
+ 	} else {
+@@ -2063,6 +2061,8 @@ int ib_get_eth_speed(struct ib_device *dev, u32 port_num, u16 *speed, u8 *width)
+ 				netdev->name, netdev_speed);
+ 	}
+ 
++	dev_put(netdev);
++
+ 	ib_get_width_and_speed(netdev_speed, lksettings.lanes,
+ 			       speed, width);
+ 
+-- 
+2.55.0.766.g2966f0265a-goog
 
