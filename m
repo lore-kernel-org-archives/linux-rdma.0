@@ -1,125 +1,88 @@
-Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD84A3AD524;
-	Sat, 22 Aug 2026 16:57:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 693A0380FCC;
+	Sat, 22 Aug 2026 20:41:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787417877; cv=none; b=PWZICcON09mlh5yYX/YH6fC62fZRhJtCWPtdvTy44GHSe1jyAaEBJg1ci3BLCBE9fdahUicl7fXZMCuFoto6zifmgPZDEX38vqKFRaOCqhHiqUU92trMf3l93bcCoHOObgOgBpNKmDG613M70t99z/L0chXIoAaeeaD1SLlBeas=
+	t=1787431266; cv=none; b=hdWY0p2r2aYndeJzy0xsnf8HdAIvUTeXaq2JkNz8w/VjgRKxSCumS1fCrhDkc2idXdf4TxkhuPK17DsB6c436osFHg3h1MH+mselRQ3hNErcMwGkjTDk/4mAmGnXWjBJQyXBEutDEe7y0CxM8Op7nnZ1B5bK06DaghF9s9oT5Fc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787417877; c=relaxed/simple;
-	bh=ZyUMEwGyn3c46u0NkjvE6TPVTBK/Rka0z+HlcRnaztA=;
-	h=MIME-Version:Date:From:To:Cc:Subject:In-Reply-To:References:
-	 Message-ID:Content-Type; b=qLYInuKIw+SQfQQdUEA6QJ5BE9lNUnohz34zWlmlq6GoA+Ss2Ip8jEdG+6MV+qa4FuG6nZ/t5rSgIsVxGFCr7v8zekAjK6GxXLVbL32Ftv72AZp8uf+YK6K/dKQ3RqGrH/ut64Nho4GM7YWorUyfW7ZZU4yLtlIXAyo4N+SXkgE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=ZbJz80fF; arc=none smtp.client-ip=213.97.179.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
+	s=arc-20240116; t=1787431266; c=relaxed/simple;
+	bh=IR2wLuYQOSE+aMyK2ErvQGVSciuh8LGlAZSiFFC2Z2E=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=iez/6lMGkGybu4sk7JhKiXK6MJB11oo8Wnoj+m/DHu6PGtJZJcU+d3akL/9JPyFEZ4aK+qCRh1uwGvG4R1yzY6UJEiK3+0relx8m0TiI1WVEM/wTv56knwxw9P45PxYLGWtpx9y2ELO6cGfe659ZEvriy/e7yht95IiY7U8IDmE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ONAtDSIe; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="ZbJz80fF"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
-	s=20170329; h=Content-Transfer-Encoding:Content-Type:Message-ID:Subject:Cc:To
-	:From:Date:MIME-Version:From:Reply-To;
-	bh=yYKcqboW2hgBCm128jlsW+fEFCrg/+/6fC0pPe2118M=; b=ZbJz80fFfEN7nkrQcV8gZZ+oUE
-	hK4b5lCtnutJj1yjrMLG1BeMt0eRSLfkdrmKM4eHnKGLezlJuWTp5PE4Yk5I8WwkhFUD/NLwoWW4n
-	Kgoi6umxhGYQrdvfuOl1eQJfSB2LqC2y7kE7ojq4xPJnthVMSJ1B/QHaWoEf/g77lioyDCXJrLvb/
-	oQl5Mf6I5KIUU5NF4+0OK4F/1HCTyG3AyKjVGEAWQTKkqOyLofBPXDv5TiWlXFVXOhetvM/QCUWOj
-	m7wOT9QmpBgbf2IXG+RYeBlApw4DIxLHSB8HUlP5n8fh+hpB0Atv0lItGBl1gr+NsfEKmAfTF0dcm
-	tc6UfpYw==;
-Received: from maestria.local.igalia.com ([192.168.10.14] helo=mail.igalia.com)
-	by fanzine2.igalia.com with esmtps 
-	(Cipher TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256) (Exim)
-	id 1wxp25-007Utx-Ae; Sat, 22 Aug 2026 18:57:25 +0200
-Received: from webmail.service.igalia.com ([192.168.21.45])
-	by mail.igalia.com with esmtp (Exim)
-	id 1wxp24-0013TF-9m; Sat, 22 Aug 2026 18:57:25 +0200
-Received: from localhost ([127.0.0.1] helo=webmail.igalia.com)
-	by webmail.service.igalia.com with esmtp (Exim 4.98.2)
-	(envelope-from <mfo@igalia.com>)
-	id 1wxp24-00000002uHU-0yE7;
-	Sat, 22 Aug 2026 18:57:24 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ONAtDSIe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 931881F000E9;
+	Sat, 22 Aug 2026 20:41:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1787431264;
+	bh=t6sqrQxCWB3rzPouF9yMKAVTFwqFJESx3h3EIMtjiP0=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=ONAtDSIe8DQAjp4WBuHIlWEhZOScs1lAHHuoEEfNWM6oqMFJgVlGQ0bJp6rc+Fzk6
+	 pRz4XnhYt3Pca7W5dTynv6UDjoy1AgcqdC3l5qeMsYf9NxjAwm7yytFsicgpRU5cGG
+	 5nUU5x22e19xr4H74EB/vcKZwx7kunnH9zxOFDLXUcD+Pjts4BZV3gGQWiCl3E/J6i
+	 cYUeTZ9GfvN5/hoBOwJOGlYYkCVZxLds27lEao7t2P/wsU17iKKcBgWFxNy2ZCE2sN
+	 9rutEyWiz4zNM07q4Cgz5+2zkblCMxZOICL3aAuqCwpbpGR8qXx5n6zWe6V3W6Qbcf
+	 dyc9pwfCTmJfw==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 93965380CEF9;
+	Sat, 22 Aug 2026 20:40:14 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Date: Sat, 22 Aug 2026 13:57:24 -0300
-From: Mauricio Faria de Oliveira <mfo@igalia.com>
-To: =?UTF-8?Q?Uwe_Kleine-K=C3=B6nig?= <u.kleine-koenig@baylibre.com>
-Cc: Kees Cook <kees@kernel.org>, Joel Granados <joel.granados@kernel.org>,
- Nathan Chancellor <nathan@kernel.org>, Nicolas Schier <nsc@kernel.org>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon
- Horman <horms@kernel.org>, kernel-dev@igalia.com,
- linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org,
- fsverity@lists.linux.dev, keyrings@vger.kernel.org, bpf@vger.kernel.org,
- linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org,
- netdev@vger.kernel.org, linux-wpan@vger.kernel.org,
- lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org, linux-sctp@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
- bridge@lists.linux.dev, mptcp@lists.linux.dev, rds-devel@oss.oracle.com,
- virtualization@lists.linux.dev
-Subject: Re: [PATCH RFC v3 03/13] sysctl, mod_devicetable: add macro
- MODULE_SYSCTL_TABLE
-In-Reply-To: <aomlfGJM61qZKxx2@monoceros>
-References: <20260819-sysctl-module-aliases-v3-0-aab90569365d@igalia.com>
- <20260819-sysctl-module-aliases-v3-3-aab90569365d@igalia.com>
- <aomlfGJM61qZKxx2@monoceros>
-Message-ID: <4e3eaf1d3419e808be046035f114bf6c@igalia.com>
-X-Sender: mfo@igalia.com
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-Spam-Report: NO, Score=-2.1, Tests=ALL_TRUSTED=-3,BAYES_50=0.8,KAM_DMARC_NONE=0.125,KAM_DMARC_STATUS=0.005
-X-Spam-Score: -20
-X-Spam-Bar: --
+Subject: Re: [PATCH net v7 0/3] net/smc: fix out-of-bounds and use-after-free
+ in
+ SMC-Rv2 LLC processing
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <178743121314.1821669.490736256443928861.git-patchwork-notify@kernel.org>
+Date: Sat, 22 Aug 2026 20:40:13 +0000
+References: <20260819023306.644849-1-yhlee@isslab.korea.ac.kr>
+In-Reply-To: <20260819023306.644849-1-yhlee@isslab.korea.ac.kr>
+To: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+Cc: alibuda@linux.alibaba.com, dust.li@linux.alibaba.com,
+ sidraya@linux.ibm.com, wenjia@linux.ibm.com, kuba@kernel.org,
+ davem@davemloft.net, edumazet@google.com, pabeni@redhat.com,
+ leitao@debian.org, horms@kernel.org, mjambigi@linux.ibm.com,
+ tonylu@linux.alibaba.com, guwen@linux.alibaba.com,
+ guangguan.wang@linux.alibaba.com, kees@kernel.org, gustavoars@kernel.org,
+ netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-s390@vger.kernel.org, linux-hardening@vger.kernel.org,
+ linux-kernel@vger.kernel.org
 
-On 2026-08-22 10:41, Uwe Kleine-König wrote:
-> Hello,
+Hello:
 
-Hey,
+This series was applied to netdev/net.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
 
+On Wed, 19 Aug 2026 11:33:03 +0900 you wrote:
+> Patch 1 fixes a use-after-free of the LLC queue entry in
+> smc_llc_srv_add_link(), patch 2 bounds the peer's rkey counts, and patch 3
+> carries the tail of an oversized v2 message in the queue entry so that both
+> readers are bounded by what arrived. All three are tagged for stable: a
+> tree that takes 1 and 2 without 3 still deletes rkeys read from whatever an
+> earlier message left in the shared receive buffer.
 > 
-> On Wed, Aug 19, 2026 at 03:16:16PM -0300, Mauricio Faria de Oliveira wrote:
->> The MODULE_SYSCTL_TABLE macro emits a struct module_sysctl_table variable
->> with pointers to a sysctl table's path and entries, and table/entry sizes.
-> 
-> That new struct doesn't seem to contain any pointer?
+> [...]
 
-The struct module_sysctl_table fields .path and .table are pointers,
-although with kernel_ulong_t type so that the same 32/64-bit size is
-used in file2alias.c based on KERNEL_ELFCLASS (and not on the host,
-which might differ with CROSS_COMPILE).
+Here is the summary with links:
+  - [net,v7,1/3] net/smc: fix use-after-free of the LLC qentry in smc_llc_srv_add_link()
+    https://git.kernel.org/netdev/net/c/a42a459ef0e5
+  - [net,v7,2/3] net/smc: bound the peer rkey counts in SMC-Rv2 LLC messages
+    https://git.kernel.org/netdev/net/c/2d1e7c5aaa33
+  - [net,v7,3/3] net/smc: carry oversized SMC-Rv2 LLC messages in the queue entry
+    https://git.kernel.org/netdev/net/c/8d3c1ab82c11
 
-> 
->> That symbol will be handled by file2alias.c (modpost) with the changes in
->> mod_devicetable.h and devicetable-offsets.c.
->> 
->> The option macros MODULE_SYSCTL_TABLE_{DISABLE,UNIQUE_ID} can be used on
->> a per-file basis to disable the macro and change the symbol name pattern.
->> 
->> Signed-off-by: Mauricio Faria de Oliveira <mfo@igalia.com>
->> ---
->>  include/linux/mod_devicetable.h   |  7 +++++++
->>  include/linux/sysctl.h            | 42 +++++++++++++++++++++++++++++++++++++++
->>  scripts/mod/devicetable-offsets.c |  6 ++++++
->>  3 files changed, 55 insertions(+)
-> 
-> Please put the new struct in a separate header. Apart from not being
-> about a device table, I'm currently work on removing
-> <linux/mod_devicetable.h>. See commit
-> ad428f5811bd7fb3d91fa002174de533f9da94d7 for more details.
-
-Sure; I looked at that earlier (thanks for the instructive commit
-message, by the way) and found the new struct to be similar to "struct
-cpu_feature isn't really a device_id struct" (not moved), but apparently
-missed the trailing "fow now", which is clearer now. Fixed for v4.
-
-Thank you,
-
-> 
-> Best regards
-> Uwe
-
+You are awesome, thank you!
 -- 
-Mauricio
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
