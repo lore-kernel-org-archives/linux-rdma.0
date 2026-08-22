@@ -1,105 +1,146 @@
-Received: from mail-qv1-f43.google.com (mail-qv1-f43.google.com [209.85.219.43])
+Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CEAD33D6FD
-	for <linux-rdma@vger.kernel.org>; Sat, 22 Aug 2026 11:47:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BABC93BB9FE
+	for <linux-rdma@vger.kernel.org>; Sat, 22 Aug 2026 13:41:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787399248; cv=none; b=C5p19tmSa5/kM8v5JQk3GTt9OkdbmJEdSJzNk7wiFmscHEwA0Q06l8TCE8lz1LnnviKCoPulazL826yzfWi1lOMixzVTjhqHzzEMqxscu5sMla2G7l0SHUnMl0lu1kYLyBae3Q4PhdS7JbCn44EBqPdAOVBpwvOU6QXw30g2py4=
+	t=1787406119; cv=none; b=SZrU7OUetV1KIXu081kwTAPw7UYBfLhwjHu3Yvh1ylxXriUdsgEAiEHRRec7z2/hka3A9I14YLWTnP32hzhYrz6jlWq/OJ/Dwfj0sCAYVEOBokdwX4h17DxY+WbxuntW2Q2UQ+WmhnzdcbRLPK7/ab8wgtH9sUqxCaL2S/zzPuM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787399248; c=relaxed/simple;
-	bh=Ffeo/1lcOYASE/v12HMQ2b/sOz5g/7qcf+xhVlwLQVM=;
+	s=arc-20240116; t=1787406119; c=relaxed/simple;
+	bh=ShtTkIU3ezbFJIydaBLYCMvhC/wGsulze2uz5bQe5G4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=bYPkSUz/yE7ZEmz1e9oIyzpAkIJTNWQFHy8cTnSyfDy3I60y+CFbeTI0DwYi6SJ1NvDTsXL4pBOZHxXsgOcl9orQv+S44Fi0fDF7ZdHBn8e0Mowyw5p5OypFp6yU41CvoRjnQTvx7sk3Sv2wvJ8SPxPlGMuehKUQILCDq1P2Y6U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=mm7dxCEM; arc=none smtp.client-ip=209.85.219.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
+	 Content-Type:Content-Disposition:In-Reply-To; b=fqDGkBcvOV4xbBLMGAdU9fQ/H4OYs+AUyAr5vrXzmzHlJh6M3cM3CnGETa4CKEGlmqOPRQHCA5iklS+YDBwu5uV259R72NbUwG40arytROg8JR2kTc5KBXKjXq7kPfyKIRsTYEV/uFHZsUx6GidjKkOBNPIK3P2tIF+1ucutFFY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b=NWr95Y6+; arc=none smtp.client-ip=209.85.218.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="mm7dxCEM"
-Received: by mail-qv1-f43.google.com with SMTP id 6a1803df08f44-9061a795d76so20737446d6.3
-        for <linux-rdma@vger.kernel.org>; Sat, 22 Aug 2026 04:47:26 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b="NWr95Y6+"
+Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-c15e592da74so276642266b.1
+        for <linux-rdma@vger.kernel.org>; Sat, 22 Aug 2026 06:41:55 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1787399246; x=1788004046; darn=vger.kernel.org;
+        d=baylibre.com; s=google; t=1787406114; x=1788010914; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:content-type:mime-version
          :references:message-id:subject:cc:to:from:date:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=8rW3ecT0AZniCJ1PdocTqb0+9uR2+UDPN17LvBLXUT0=;
-        b=mm7dxCEMHRpkOk5/gu6ts0yPR9d+69dRZ/IbzN07CA2VukddScGF43TdpRxtuNBqLH
-         213mtKcRSB6M8rUUX1T+ujZYVevPvTt+txIwUmsKnY3IufU21wngsYS9AteqLkiAIpGn
-         9+knVG1buJHrFM4F8i3P4PaW/egKG21vHS2ItZFoENEQyGC6Dx6qmA9q3A5TALroW6e0
-         D3csYBSP5OzmyM5JzcADaAaiBnnLm2RT9YC4ODTQK55m+tWqHzHuBlPSUUoiF94TvHXz
-         AmogE/IUE1GTV0JIXrans2dk73gQo6K44XbMi9qn7LEXu4QMPPK942QncShHBCRl2Y7B
-         FCUQ==
+        bh=Aj3ZYubTvLgnR11pZYHVat4EVUJdKX6AnHgTVge4+Wc=;
+        b=NWr95Y6+8gr1dd6kImBWVKkc9Ow7+W1hOqUbome1tczYJ0l7VolXq0eP+XhSlE2lop
+         cfrU27AzjWjNSHtmZZ6RuHDw63H/Aw3j1SR3ZUJxRQSBgNqaamZlv7pWt8qP16vXkNr8
+         RFuxFu+K2wzi5JQkrBzAM56wOg7B0Pw6h7m1cwa5fQL+1N4vZ9VmnU0fSvXmiMFSSbLp
+         PwxvZznnm7VHgzn3KPh0fvhzv105HloBofPB+0hansRG9f8EL4WMC1/pwoxYuig5g5ac
+         rHPjkA9B4VHQUiuu3DSUboCniUrCCNStbMPToZGTj1YRemJ0JduZoppZNUOsUtWyRRr6
+         6eqA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787399246; x=1788004046;
+        d=1e100.net; s=20251104; t=1787406114; x=1788010914;
         h=in-reply-to:content-disposition:content-type:mime-version
          :references:message-id:subject:cc:to:from:date:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=8rW3ecT0AZniCJ1PdocTqb0+9uR2+UDPN17LvBLXUT0=;
-        b=PdapHxAiW9uFczOqA41nFfVRH0S1jK0F2JKRAjW1D8i7f7iqbMbA9D2dVbC0r60Sp1
-         R4CmC7N5lT7Jzi2s0LZjxxERR95Gg4fxJHu95LzfZN2t/Z3v6E5WmESEQzOw6Bef/7Fc
-         8HXNwDRrTqIWHofZ+hIpuub/WbvwsmjFVO9+9MF+1xEgjSINW16XdZ4IraEhJkbcXRun
-         1N9x221cfKaew8/SlvSSjQf2UwupoHHuooR65zyYRWgPHk8mOXQyHiCKDcm+/eVDYhF0
-         9lz3yJkbJNVlt0bX2jbXP4b2+V+o+sJZooqnBbb7E3VO83iGyuWdeOWWF1I4UIC23flC
-         4aVA==
-X-Forwarded-Encrypted: i=1; AHgh+Roi8nbwGX8Y4FYSJ5ym25Ahhj/sCzF5Veg0KT4ISQ70C+ruQyN9bLhi4KkwdLX++XGiKyG/aOFeZ3i7@vger.kernel.org
-X-Gm-Message-State: AFuF++njsIYXZKlBDNqPRJ1IzMETLNXSt2SYqhDhLFECl8IA6KXUSu5q
-	q13kawhyueHS51WguNyT/u0OCZQvFr6A/GaS1oJiUwasy2FLqHbN+d4+/W8vkKZL+uU=
-X-Gm-Gg: AR+sD11cqZrcs2H3WOh9n+FF2+dFNdF6RNA4T0XoSdWjCZb2nWDkcX7zltKsZR8EHvk
-	TlhZJ6vRDrMbk2xvCbrPMVkHWGUNw/+yzgcNYW1szYwc0Ag6wwYpNPufDE8awodM6DgiPB0MF3U
-	gPiEHCubv9hexjaGPA2Tr9n/KCuwTLM+0NoBEsCdvqYSU2M/o7pOp83KrCRCgsvWG6xFBdvv3hB
-	ev+h/t88f8giPzcr2Y6ZRUFuofmBAvZUo54GLuPeortNbDxsbc3nsrepvlCnEHf9OZhZSyvwq3v
-	BpjBahMUuw0YbJuRj2ExIBqnsFH9WOSC1NQVOTH9JRrWI2/xYQq9AKgixHgVco0XHcV+Doyy+MR
-	vGUPdmjvGO6DhQS+1Ywm11xboDly1l0AKYzISOt28FqP9QA6VK9FX1yHXXzZ/pV4yiJIrcj85Lk
-	X8c2FfRV8vgijWZsi+15mOEDlXi8yTb7hZmhcy34h1DPjwOyepgzoouvfFlw+0AdOyNwH1ZbOhI
-	Bsrr4zwyQ2h6fs+Fd6Qk6Y2oV9JCI9077KzTE7mTAm3tL/B+XQ=
-X-Received: by 2002:a05:6214:5191:b0:8f1:2607:ad86 with SMTP id 6a1803df08f44-90c80943ba0mr118771166d6.4.1787399245756;
-        Sat, 22 Aug 2026 04:47:25 -0700 (PDT)
-Received: from ziepe.ca (hlfxns010zw-159-2-239-150.pppoe-dynamic.high-speed.ns.bellaliant.net. [159.2.239.150])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-90c9393202esm12628166d6.27.2026.08.22.04.47.24
+        bh=Aj3ZYubTvLgnR11pZYHVat4EVUJdKX6AnHgTVge4+Wc=;
+        b=ed9QeBIx1cMQAYGuC6ERIX6rhtT+n26dyrpW/hYnTXxwKDLzV/Y1ty8OgXr9sLuf2U
+         worf1jDR+xPs6eNhHvpTvmOSi7VvmrtfQqQTfxFn1f+s8H4kjM6gzWgXk4KtykbyeWI/
+         EiC3/5wXIw9yHmNkX/GtjsJYHNyx2kSUKBohQmTOoyDratr8L5/K5C7jDRYhSBwxty3I
+         Wf7jBEZc+ydpmM7g2wJRZQO8KXH1FisKEefYtpNJ5G1AR44A0jo9n5bvZ2ZltVO66B5e
+         qiYEat+uzvN4lcW84btf7Gzr+pwPkbjjFb/+2lzczl2ukDWoVY3Dz2paxtCBu9IvRFZ5
+         uILA==
+X-Forwarded-Encrypted: i=1; AHgh+RpvKtak7S0i67RSHIofX4YjhWcBS2c6kaRgfagvjhHipz28lv6/w3nouO7tblkZHqD6dA+PEYW55SVx@vger.kernel.org
+X-Gm-Message-State: AFuF++nEGZSwtDxIBTBPnksyBesAzgNGGLqFLGa6DVqxh9zKIu9G1OxK
+	23I8hcf6qv949FE9ezlE1y8y3JaVl095ge1jHYvYFScVDDJByXHfxnw3/f59rYrK/So=
+X-Gm-Gg: AR+sD13ALtVER4V+9pJaIL8Rc7Ma9+k4VqO7ukRNACNUOpWWjaE2wFEuYRf/W5/xtoR
+	/j7/Jaq59LwQV6F7avzuZ8gI17jSjJU08G5OzEly6/J7SRHAGHJqpC4hZXkXvegE6eaK/9ZIMpB
+	YaICX6Q7OW06/NsGtTpGJOi0fchUbsSOUo7jzJ6ZAhBoUNe0g6vWZ0v0FY9cQf6i3ooN/khHm6i
+	1XqoV4px94RiqlLvjZMbxH1CC7rEGwftfHYdTbwQd4OcJuoEP/MqpJpSnrepsruomhCvSvzI15q
+	z0owkAbtrm7SP8rXsKHjAtf0c04nMxSoLpQpga2IDGiI889SsIxyreFD5ToCwAKhPgwHVrZMWxn
+	MTalcvaQpkYqvnkjz7qA5ecyijuCB7CnZna8On/RNNy0hsYuxHsFsywyBf39Ol/3NajGj+d0RaY
+	1CrezCYii7FUS1w/T4GiFIqzRtaMWU4sjsbj/GfnLupf+iU1l3F1G6j6Y8iTf/LRQ9MA==
+X-Received: by 2002:a17:907:8908:b0:c21:35d0:f435 with SMTP id a640c23a62f3a-c24924db408mr547750766b.10.1787406113365;
+        Sat, 22 Aug 2026 06:41:53 -0700 (PDT)
+Received: from localhost ([2a02:8071:56d1:2de0:1d24:d58d:2b65:c291])
+        by smtp.gmail.com with UTF8SMTPSA id a640c23a62f3a-c249606a8fasm387614266b.8.2026.08.22.06.41.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 22 Aug 2026 04:47:24 -0700 (PDT)
-Received: from jgg by wakko with local (Exim 4.97)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1wxkC3-00000008DOW-0dnn;
-	Sat, 22 Aug 2026 08:47:23 -0300
-Date: Sat, 22 Aug 2026 08:47:23 -0300
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Yanze Zhang <zhang.yanze@zte.com.cn>
-Cc: leon@kernel.org, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH rdma v5 0/7] RDMA/zrdma: Add ZTE Dinghai Ethernet
- Protocol Driver for RDMA
-Message-ID: <20260822114723.GB1449020@ziepe.ca>
-References: <20260811093740.2607476-1-zhang.yanze@zte.com.cn>
- <20260822080723.3166603-1-zhang.yanze@zte.com.cn>
+        Sat, 22 Aug 2026 06:41:52 -0700 (PDT)
+Date: Sat, 22 Aug 2026 15:41:50 +0200
+From: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@baylibre.com>
+To: Mauricio Faria de Oliveira <mfo@igalia.com>
+Cc: Kees Cook <kees@kernel.org>, Joel Granados <joel.granados@kernel.org>, 
+	Nathan Chancellor <nathan@kernel.org>, Nicolas Schier <nsc@kernel.org>, 
+	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
+	kernel-dev@igalia.com, linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org, 
+	fsverity@lists.linux.dev, keyrings@vger.kernel.org, bpf@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, netdev@vger.kernel.org, 
+	linux-wpan@vger.kernel.org, lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+	coreteam@netfilter.org, linux-sctp@vger.kernel.org, linux-rdma@vger.kernel.org, 
+	linux-s390@vger.kernel.org, bridge@lists.linux.dev, mptcp@lists.linux.dev, 
+	rds-devel@oss.oracle.com, virtualization@lists.linux.dev
+Subject: Re: [PATCH RFC v3 03/13] sysctl, mod_devicetable: add macro
+ MODULE_SYSCTL_TABLE
+Message-ID: <aomlfGJM61qZKxx2@monoceros>
+References: <20260819-sysctl-module-aliases-v3-0-aab90569365d@igalia.com>
+ <20260819-sysctl-module-aliases-v3-3-aab90569365d@igalia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="akn7oxv4v2qk2wdq"
 Content-Disposition: inline
-In-Reply-To: <20260822080723.3166603-1-zhang.yanze@zte.com.cn>
+In-Reply-To: <20260819-sysctl-module-aliases-v3-3-aab90569365d@igalia.com>
 
-On Sat, Aug 22, 2026 at 04:07:23PM +0800, Yanze Zhang wrote:
-> Hi Jason, Leon,
-> 
-> Apologies, my previous ping was sent to an incorrect address for Jason.
-> Resending with the correct maintainer address from MAINTAINERS.
-> 
-> Gentle ping on this series [1]. I understand we are in the rc phase
-> and new drivers will likely be queued for the v7.3 merge window.
-> Just wanted to make sure nothing was missed or needs further action
-> from my side.
->
-> [1] https://lore.kernel.org/linux-rdma/20260811093740.2607476-1-zhang.yanze@zte.com.cn/
 
-Nobody has looked at it, you should be reviewing your sashiko remarks
+--akn7oxv4v2qk2wdq
+Content-Type: text/plain; protected-headers=v1; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Subject: Re: [PATCH RFC v3 03/13] sysctl, mod_devicetable: add macro
+ MODULE_SYSCTL_TABLE
+MIME-Version: 1.0
 
-https://sashiko.dev/#/patchset/20260811093740.2607476-1-zhang.yanze%40zte.com.cn
+Hello,
 
-Lots of good points in there.
+On Wed, Aug 19, 2026 at 03:16:16PM -0300, Mauricio Faria de Oliveira wrote:
+> The MODULE_SYSCTL_TABLE macro emits a struct module_sysctl_table variable
+> with pointers to a sysctl table's path and entries, and table/entry sizes.
 
-Jason
+That new struct doesn't seem to contain any pointer?
+
+> That symbol will be handled by file2alias.c (modpost) with the changes in
+> mod_devicetable.h and devicetable-offsets.c.
+>=20
+> The option macros MODULE_SYSCTL_TABLE_{DISABLE,UNIQUE_ID} can be used on
+> a per-file basis to disable the macro and change the symbol name pattern.
+>=20
+> Signed-off-by: Mauricio Faria de Oliveira <mfo@igalia.com>
+> ---
+>  include/linux/mod_devicetable.h   |  7 +++++++
+>  include/linux/sysctl.h            | 42 +++++++++++++++++++++++++++++++++=
+++++++
+>  scripts/mod/devicetable-offsets.c |  6 ++++++
+>  3 files changed, 55 insertions(+)
+
+Please put the new struct in a separate header. Apart from not being
+about a device table, I'm currently work on removing
+<linux/mod_devicetable.h>. See commit
+ad428f5811bd7fb3d91fa002174de533f9da94d7 for more details.
+
+Best regards
+Uwe
+
+--akn7oxv4v2qk2wdq
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEP4GsaTp6HlmJrf7Tj4D7WH0S/k4FAmqJpxsACgkQj4D7WH0S
+/k5bfgf9HJoNnVEr9RCdAghOTP5QqFmH5ae7Kbmnodv6c6Pi9JGIjjGbeT5eKw3e
+JkSKqdEnlVMrLoKrhneRsxwTDGPrZvrLZrPLdZwJmPWZn5Fg+kkOO9yFAGPeMsPX
+S6UP1NY9kaCiBtlcsGT9EvMWz0jWVAWX1xb7Y2WcVZJsCWdcPhvWc3/lIbw3E4o7
+PqLtSFblkQmtGl2OL4WkP6xhEPH6qQO9BAmhLVKKZwFW5/l4sHmXRrpgSJlroR3b
+iH3liIeS6wxFp/fMYuFRryGHNMXn6gC447OnOCTmGNEj7+7Y3COwSGivgubcRIzI
+RkmxkMf2Iuntnwp4oQzCbipE5EiKGA==
+=SPY4
+-----END PGP SIGNATURE-----
+
+--akn7oxv4v2qk2wdq--
