@@ -1,45 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F1DF3939A5;
-	Fri, 21 Aug 2026 23:53:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2152FC8EB;
+	Sat, 22 Aug 2026 00:03:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787356420; cv=none; b=WWGHUVUwWcpkE2zZj+U4W0+Vm+FAjwuLLaKRxsnZTGb1XmEKeF6iWw9sRHk80oAL3OEGzEhgQ7iItHJEUTYb3I4t6zeBDTe3UCTVBpgPYOtZM7HrnALH5j0ccseAyn/41MvENH5ybQi5gAesnb/tXxEyl0c/GfAAQPi5Ksu55w8=
+	t=1787357030; cv=none; b=O0P/LOJfMUoOCD2lmIobgREDjLdmqe84EtGmTq63wihCZ+aKfn9Q78eIOcWz0jcXL0VWr4vt+Oz2IA8fQThPcghokOz21rtv7WONvPIxl0twMq9y8dkohPmWGDixqNRvwLUz/2J2yGeHddU8/bRG2FxX8JSfYfxyzyDJ+v7W938=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787356420; c=relaxed/simple;
-	bh=hwwk9t3rEficLuf6tMUozQMN/lzLuXQmUkx6xZRwk7Q=;
+	s=arc-20240116; t=1787357030; c=relaxed/simple;
+	bh=NqoHc45I7VXGON+fDtU9Hag2iX7RjPG6uEFny+9vx4s=;
 	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=iP0rd8+bh0cSAhnKU9RBHKJzlnpdGasiWy+WgEVMNanJqWP3OF+gvQlK9MQz08SOuUZZuGNu+Sit25l6XLvQydpTILDfEXZiEUvVIAbameCJKHmB1pxLAd2MKpo5sxEV/bV73y0DuPljjC1msccsw/qqLnnYBBbLzwtjVPJ0cRQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KIOyvhMq; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=Y5i4aJst7Bcrax67DC6mFS3LwP9MlyL6m1k43jrKLHxWSLg0d/RcKoAbKZQgeUYrZvNVhmSQOvE/p/h7XGxaD45ANfLMiVl3Fd6kgYLsp/5Utqoj9V89DpsXvUdLHRBH1mJsekn0IHHMyhGu53mCCM/l9cBX5WYPfmHESrA/jcQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MXJqTa5Q; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KIOyvhMq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B54C1F000E9;
-	Fri, 21 Aug 2026 23:53:38 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MXJqTa5Q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EF771F000E9;
+	Sat, 22 Aug 2026 00:03:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787356418;
-	bh=z6AE8pCjlSYv6GEenKHXAdh3yhQOesnnHByTacX9u0g=;
+	s=k20260515; t=1787357028;
+	bh=un4boMs1vDHu0wMf34UCmT71RQC3T3xUNRxC7MFg3BI=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=KIOyvhMqPdV2gMfoV0Ae2iLeg0i59zrohj4ZxjxF8p7X+EAABB1Bb+ognys6dZ2Et
-	 9b/4sH+JO4fXHCciaZfH+qyn7lwrj9kTdAMpac0GGQlRibxqtJVwG06XcIwwDPgs/O
-	 TvNEuuIpOs/P2wWfYBWjIJ68oTm9rD2+c9L0Gop0qiZxkwsyyKbAoUP36jEc69mPav
-	 HxWMEZAS1/px13JepTLWaNetkZTeszuSb+ReydV3DnOaTeGvpw8h9DBlQt4SrwJqE2
-	 AqLZergt26lgJKT8zIfzhr+iSalck9vdDTAsRY7QZqs1g9t3ZI0bTKPGQpjfSgcFga
-	 a4YLAEljp5phA==
-Date: Fri, 21 Aug 2026 16:53:38 -0700
+	b=MXJqTa5Qb47WTnnPLzvt5kXZeOpMB2zeX/3buzzwCfEyjYgWJPiPEUhj3KRB8+VT4
+	 qTjZ49HqQHG9tbIjYdEHj7eI8TGD31nV5w79Y2GDUdj7o5D6fx9SvWKR2jhfLpIjmO
+	 n8ejezEguSDVRhJ4+uvLnZNFhwJKULQKGeIDZDYNEhhPU7rgA83C7ZOCJob5aTHpGL
+	 1IGtIYis210PCPYNVK/tFZ97sMbjNSd8XWTN/X61vlpAql4riLTSXLNbQYPk1ItHAC
+	 BwouWHCPHrhymvJfRrsDjYFgBje2LQi3y0NDnqSykxUeJMrU1szP4cnLqFs8M1ksqG
+	 NqdKKo73NH9XA==
+Date: Fri, 21 Aug 2026 17:03:47 -0700
 From: Jakub Kicinski <kuba@kernel.org>
-To: Chuyf26 <Chuyf26@linux.alibaba.com>
-Cc: pabeni@redhat.com, alibuda@linux.alibaba.com, dust.li@linux.ibm.com,
- sidraya@linux.ibm.com, mjambigi@linux.ibm.com, tonylu@linux.alibaba.com,
- guwen@linux.alibaba.com, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org
-Subject: Re: [PATCH v3] net/smc: release the internal TCP sock on
- IPPROTO_SMC socket creation failure
-Message-ID: <20260821165338.21c8d11d@kernel.org>
-In-Reply-To: <178729790329.223882.15209084993558811810@linux.alibaba.com>
-References: <20260813060456.b48HqF9m6NTfFXvq_PL9w_Ih493OogqAqxfAHAfU74A@z>
-	<20260820111229.153086-1-pabeni@redhat.com>
-	<178729790329.223882.15209084993558811810@linux.alibaba.com>
+To: Allison Henderson <achender@kernel.org>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
+ edumazet@google.com, horms@kernel.org, jhubbard@nvidia.com,
+ woni9911@gmail.com, michal.kubiak@intel.com, leon@kernel.org
+Subject: Re: [PATCH net-next v2 0/5] net/rds: own the fastpath locks across
+ connection teardown
+Message-ID: <20260821170347.77cfaadd@kernel.org>
+In-Reply-To: <c3c9a3f2683a37474256b9f879f9ee896d62704c.camel@kernel.org>
+References: <20260816001510.73645-1-achender@kernel.org>
+	<20260820133832.5384be37@kernel.org>
+	<c3c9a3f2683a37474256b9f879f9ee896d62704c.camel@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -49,14 +48,15 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Fri, 21 Aug 2026 15:38:23 +0800 Chuyf26 wrote:
-> Signed-off-by: Chuyf26 <Chuyf26@linux.alibaba.com>
+On Thu, 20 Aug 2026 22:07:26 -0700 Allison Henderson wrote:
+> The other commentary nits from the review do have merit though. If you
+> like, I can send a v3 with those corrected, but I think the code itself
+> is ok. The patch 1 comment about cong.c is a pre-existing issue similar
+> to the lost-wakeup issue that patch 1 fixes. So I can send a follow-up
+> converting those waitqueue_active() calls to wq_has_sleeper().
+> 
+> I hope that helps? Thank you for being accommodating with the branch
+> targeting.
 
-We need something more official-name like for the author
-and the sign off. The numbers do not look right/
-
-It'd also be great if you paid attention to the automated
-emails you're receiving telling to not post new patches
-in reply to the old ones
--- 
-pw-bot: cr
+Thanks, yes! IIUC you don't mind sending a v3 so let's go with that
+option.
