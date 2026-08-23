@@ -1,509 +1,172 @@
-Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mout.web.de (mout.web.de [212.227.15.4])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 550A7322B9F
-	for <linux-rdma@vger.kernel.org>; Sun, 23 Aug 2026 07:19:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20483326928;
+	Sun, 23 Aug 2026 09:37:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.15.4
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787469595; cv=none; b=XB4Y+Szc9VcFQx0H8wNdrnJPBZ9EhEeB7ZmDhReRRsiyK4JLVTYdugaibikBkI7nVEfGgh4RGaLRZHZaGhO3vuU4IQVJ64c1CkOwztP0kYAHhEEtqpNCfPIeps8BVtGtfnRcQT0VHx12bTqH5t/yY+PJhVTyGqEaPlc+t+2EadQ=
+	t=1787477866; cv=none; b=dxc4SBl7ho0JEqocKI++jlFmOoqcTJzBHO2OSRkRh4NJ8fyhRcPZL/AgA4OdY0X10TN6JJO0uKwZBX5M6nUy2E2OJJnEq7h9d8BeDELVdYTB5ov1Prmth+9a5FQK75DmCwivUZDnPXj5sP8CwPWAGq4pGELKBzzaT8bmIIum8qc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787469595; c=relaxed/simple;
-	bh=soPX9URTqu+PEA5vsxlPEJtSFHBOiIVK5TIIyiXZW9g=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=tAXOxXCHtyre5EmP/n8ikuRVHsFwAkSjRgMEcKGM8URIpq0bY4GxNGbYPEMQiLkGYA7uYTM1QIzmZF7Gc8T8RnPDfZoRFq7PHJLEYGnlvS4qVu/KlUuzuc+Lo9cRT0CKsDwK4PtHKtvt2rOaEK01P9L1A+ku6UBW9RK8XOOqSe0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FO1+ab+i; arc=none smtp.client-ip=209.85.214.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1787477866; c=relaxed/simple;
+	bh=3IhnQ/bsl747LvRg8Z7cHIre3mng4fHEY9Ak4ch9eeU=;
+	h=Message-ID:Date:MIME-Version:To:Cc:References:Subject:From:
+	 In-Reply-To:Content-Type; b=OlheY8Xp8a8WdywSSJL55qOi4ku30A7g3vrqSJkwqymcnmpH+SdjhcNPg+5hWqyf5Q8INNNQXsEPpclhYwaIsdMGtdtiI+A7sLzXo4okHBupHToUFqaygUAhwjk7k/uVpYbH3RzyyBiU6bk9q6USMiZpVicWm3ah++MAs1eGzaY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de; spf=pass smtp.mailfrom=web.de; dkim=pass (2048-bit key) header.d=web.de header.i=markus.elfring@web.de header.b=g3ZsYnv+; arc=none smtp.client-ip=212.227.15.4
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=web.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FO1+ab+i"
-Received: by mail-pl1-f179.google.com with SMTP id d9443c01a7336-2caea3f742bso38643425ad.0
-        for <linux-rdma@vger.kernel.org>; Sun, 23 Aug 2026 00:19:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1787469593; x=1788074393; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=DrGHq8r3D01YmLa3ynPoRNi1Se8roY1+DBnK05JQYrk=;
-        b=FO1+ab+iJhJJGYLgrHlAECVDIQ1nGs7P0su931NS5IcIR7MnKcXXFMi79edtV7jReh
-         t1b7vDOP/In0xd6H80svk2cDoy512vHFa9I3N74YVjHOJqtIcDz4AnSREUdtllEA21Ri
-         /RdwkOO9oPjAaOGhdft4nNEr5k4eNlZCb+rpNFI7W32CHdXl1jvslD1pQQGbh9xom2LI
-         VJhzwPu4wCDTTfkDgz9FWNqnmrtwPF/4jsFkcYCQZRE0KO2IDJrZgeS18HSNyYf0ljuw
-         3lG8/Y1NJ+CSKT0HNu7IhEsNS28MfpnIlCj+yuLRV73hQRw8MBS7iAaTX0qB3bWySNF8
-         oAjg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787469593; x=1788074393;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=DrGHq8r3D01YmLa3ynPoRNi1Se8roY1+DBnK05JQYrk=;
-        b=pLoOiqtk0Dv3CXsY/oBloBCjcogoDK051mtCgSZ62H+I8AVaXb1yzwnMUIbj+BtCLC
-         G+jRmrkWk3MKI14nlydy7XuyOPP9BJi0q1BH647QaCGTuErjgSHaM7F7GRhA2qgy4fvm
-         Id1vEAVK3gYrwVywba6TdTtVQ96m2/HtU/Av6ewMsvJHZ+67UqnyqYIlsNDVXFmdKb0w
-         1hsj1FjwJ7Nr2ob5M7tVrLO5eUSwDhTgSbUy2w7QtCbgXC2A/Sp9SmM6046xG8Pvz4lP
-         sA4pCim6F7s4sLYI2QoD+9k4otmFqkNpvuJQk0/VmnXKzqzu+TsKljv4U9dnd4yd+JOC
-         jHMg==
-X-Forwarded-Encrypted: i=1; AHgh+RrFVzK6EMn2Juu4IEbtkvPB0HS56zV2ppzMKYbhBsobBavNfSIPYUypYQxsqsfOqOFamyvzV5W7HqjA@vger.kernel.org
-X-Gm-Message-State: AFuF++nRt/63GEjPdHR2ee/xA5GJUJiSXD5U7EUU6BrjY2bBsb/kTFcx
-	oUShEC0bwFE1Fe1BRrn22eMra+L5eeJQKhQxWS8/FNIiq8OJzudNqCR0
-X-Gm-Gg: AR+sD125nKxtiyN7Jws2d5+I7QJXUAFA8YYpjnNrttwab3JE+r9XDvr4PKI9F02FRUm
-	/TJwaFNS60dl4+5sCku85ifB3lK5tfoq+guA0bwzOZoDTGRoitOdmXuNAYnSK3ZIbmutTBj8Jwg
-	F2jKM86hILUG+4x39usjBVeIlIQwkkjTXbOH6nSq//3GFpIwIlXuN5+248eB9n+aglQB3Lsd1hR
-	5NVrUF3h/bidHTv1qXy2RBuOmghDAS9yb2oIG072eRcHM7OwQMwGYwdRLSW/Xv/D6dbahh8xm7K
-	El6ymVKDVHl5Wdn5dsZfyPa2uoO6S7Lsi5R5tJgxIRz2dvrITZUNMkbIcXldY9h2SXqbbcVoxkX
-	9b8N8UUoEzdEOQJPx+0/Lw3AE11UltKpaDVQS6xfKROcIkJQbzU2y5VlV1BDObhBr4zBlU+pdHE
-	veMAAu/uBCMo9rUD8gFtXV0ylJPCshD3xX2jO14iXrW0kW0YqEgo32eixbyWPHC/mc7OPJHG1oR
-	QXAkoakiJ92ITkctUXgraZACDA7XVOuQ43CxgK3z4ycP4SCUNB6ySoNgJv/xB/pr23/3bOO9/JT
-	PTTu+bs=
-X-Received: by 2002:a05:6a21:1644:b0:3bf:ba48:ca88 with SMTP id adf61e73a8af0-3cd3011c9e3mr35880462637.15.1787469592503;
-        Sun, 23 Aug 2026 00:19:52 -0700 (PDT)
-Received: from 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa ([45.135.228.94])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-327f9209f51sm22644122eec.22.2026.08.23.00.19.45
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 23 Aug 2026 00:19:51 -0700 (PDT)
-From: Qi Zhang <marsy12010123@gmail.com>
-To: alibuda@linux.alibaba.com,
-	dust.li@linux.alibaba.com,
-	sidraya@linux.ibm.com,
-	mjambigi@linux.ibm.com
-Cc: tonylu@linux.alibaba.com,
-	guwen@linux.alibaba.com,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	horms@kernel.org,
-	linux-rdma@vger.kernel.org,
-	linux-s390@vger.kernel.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org,
-	nicoyip.dev@gmail.com,
-	Qi Zhang <marsy12010123@gmail.com>
-Subject: [PATCH net v2] net/smc: prevent device removal during connection setup
-Date: Sun, 23 Aug 2026 15:19:08 +0800
-Message-ID: <20260823071908.93212-1-marsy12010123@gmail.com>
-X-Mailer: git-send-email 2.54.0
+	dkim=pass (2048-bit key) header.d=web.de header.i=markus.elfring@web.de header.b="g3ZsYnv+"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=web.de;
+	s=s29768273; t=1787477841; x=1788082641; i=markus.elfring@web.de;
+	bh=3IhnQ/bsl747LvRg8Z7cHIre3mng4fHEY9Ak4ch9eeU=;
+	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:To:Cc:References:
+	 Subject:From:In-Reply-To:Content-Type:Content-Transfer-Encoding:
+	 cc:content-transfer-encoding:content-type:date:from:message-id:
+	 mime-version:reply-to:subject:to;
+	b=g3ZsYnv+aTvmINkrkzMEQWMivUNZ0+VGpfR3Jwsi6CYTxgELiIU/sJrl5CZ9XC+Y
+	 bujSseQbQjleLAw+0nJaJjEqk9VPMjX+H3bpxKgsIXaVkIN+QRhVn9tW1MBwIO8sZ
+	 O/aspYQZaA/buOjA42/X+507XkAmU3CSyEIDXmF4PLcn+tSKMSAtjxEvwCp8f6ML6
+	 FZJt/Ewt6ty9hlb/FJs5hezLnl7J1Ux2apsmxY9sty1L+1+YhImmbPULRv8KlHOJf
+	 EXqo0gDNw4TIB7k4C51iCT5FXo6LsTn3fkWxGpVr4Zgd2px4ntrgA98Jw39za7xi6
+	 KRI+29oL7+pX80EGSQ==
+X-UI-Sender-Class: 814a7b36-bfc1-4dae-8640-3722d8ec6cd6
+Received: from client.hidden.invalid by smtp.web.de (mrweb006
+ [213.165.67.108]) with ESMTPSA (Nemesis) id 1Movne-1waDp03WQA-00fjkj; Sun, 23
+ Aug 2026 11:37:20 +0200
+Message-ID: <cfd7450e-0098-42e3-af4f-d5b47e842d23@web.de>
+Date: Sun, 23 Aug 2026 11:37:17 +0200
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+To: Qi Zhang <marsy12010123@gmail.com>, Chengfeng Ye <nicoyip.dev@gmail.com>,
+ netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-s390@vger.kernel.org, "D. Wythe" <alibuda@linux.alibaba.com>,
+ Dust Li <dust.li@linux.alibaba.com>, Sidraya Jayagond
+ <sidraya@linux.ibm.com>, Mahanta Jambigi <mjambigi@linux.ibm.com>
+Cc: stable@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Simon Horman <horms@kernel.org>, Tony Lu <tonylu@linux.alibaba.com>,
+ Wen Gu <guwen@linux.alibaba.com>
+References: <20260823071908.93212-1-marsy12010123@gmail.com>
+Subject: Re: [PATCH net v2] net/smc: prevent device removal during connection
+ setup
+Content-Language: en-GB, de-DE
+From: Markus Elfring <Markus.Elfring@web.de>
+In-Reply-To: <20260823071908.93212-1-marsy12010123@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:k0yzVJfrcz//DNIpGWuLggyaZDcq25UOxNoyIY32hAXPWoU51uw
+ OdU2mLCXbcrO7peh9uIKoFK+TJXV64qSHypspOKnVaJe2PT2wP3Lla2FhCkXUN8xlv4oN78
+ /N6kq8I5y5wv73YeSWZbBh7OSagvVkNSdWMaaL+7IV1VLKFw81tai66EB74ph+aG0dY0mxP
+ G/35uwtRnJPOAqjGidPfg==
+X-Spam-Flag: NO
+UI-OutboundReport: notjunk:1;M01:P0:rEY4ripo/OY=;mNio5nelMx7lnKbF0xpJzotcGVH
+ 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
 
-From: Chengfeng Ye <nicoyip.dev@gmail.com>
+=E2=80=A6
+> This change is limited to the reported SMCR lifetime race. SMC-D device
+> selection has a similar pre-existing borrowed-pointer lifetime issue and
+> requires a separate fix.
 
-smc_pnet_determine_gid() stores an smc_ib_device pointer in connection
-initialization data while holding smc_ib_devices.mutex. Connection setup
-keeps using the pointer after releasing the mutex, but device removal only
-waits for links which have already incremented lnk_cnt.
+May lock guards be applied?
+https://elixir.bootlin.com/linux/v7.2/source/include/linux/mutex.h#L253
 
-This permits the following interleaving:
-
-  connection setup                 device removal
-  ----------------                 --------------
-  select smcibdev
-  store ini->smcrv2.ib_dev_v2
-  mutex_unlock()
-                                   remove smcibdev from the device list
-                                   observe lnk_cnt == 0
-                                   return from the remove callback
-                                   kfree(smcibdev)
-  copy smcibdev->pnetid
-
-KASAN reported:
-
-  BUG: KASAN: slab-use-after-free in smc_conn_create+0x1330/0x2680
-  Read of size 16 at addr ffff888112dbd934 by task smc_bug86/97
-  Call Trace:
-   __asan_memcpy
-   smc_conn_create
-   __smc_connect
-   smc_connect
-   __sys_connect
-  Allocated by task 93:
-   smc_ib_add_dev
-   add_client_context
-   ib_register_device
-   nldev_newlink
-  Freed by task 98:
-   kfree
-   remove_client_context
-   __ib_unregister_device
-   nldev_dellink
-
-Hold a lifetime reference on every SMCR device selected for connection
-setup. The reference also pins the underlying ib_device, but does not make
-device removal wait for the peer-controlled CLC handshake.
-
-Before turning the selection into a link, check under
-smc_ib_devices.mutex that the device is still registered. Track only the
-short local interval between that check and publishing the new link group.
-Device removal waits for this interval before terminating links, ensuring
-that it cannot miss a link being created concurrently. Keep the lifetime
-reference until after the final counter decrement and wakeup, and serialize
-begin/end with device delisting so no thread touches a freed smcibdev.
-
-This change is limited to the reported SMCR lifetime race. SMC-D device
-selection has a similar pre-existing borrowed-pointer lifetime issue and
-requires a separate fix.
-
-Fixes: a046d57da19f ("smc: CLC handshake (incl. preparation steps)")
-Cc: stable@vger.kernel.org
-Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
-Signed-off-by: Qi Zhang <marsy12010123@gmail.com>
----
-Changes in v2:
-- Replace the handshake-long removal wait with a lifetime reference that
-  defers object release without blocking device removal.
-- Revalidate the selected device and wait only while a new link is being
-  published, so the removal-side termination pass cannot miss it.
-- Keep a lifetime reference across the final publication-counter decrement
-  and wakeup, and serialize begin/end with device delisting to close the
-  reviewed wake-after-free window.
-- Explicitly scope this patch to SMC-R; the analogous pre-existing SMC-D
-  borrowed-pointer lifetime issue requires a separate fix.
-- Rebase onto net/main at 7cbfb180945c and preserve the intervening LLC
-  qentry lifetime fixes.
-
-v1: https://lore.kernel.org/r/20260804123418.2214979-1-marsy12010123@gmail.com
-Review: https://lore.kernel.org/r/20260805151051.GV51943@horms.kernel.org
-
- net/smc/af_smc.c   | 11 +++++++----
- net/smc/smc_core.c | 29 ++++++++++++++++++++++++----
- net/smc/smc_core.h |  3 +++
- net/smc/smc_ib.c   | 47 +++++++++++++++++++++++++++++++++++++++++++++-
- net/smc/smc_ib.h   |  9 +++++++++
- net/smc/smc_llc.c  |  8 +++++---
- net/smc/smc_pnet.c |  8 ++++++++
- 7 files changed, 103 insertions(+), 12 deletions(-)
-
-diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
-index e9f93b3ab435..d781dee1b329 100644
---- a/net/smc/af_smc.c
-+++ b/net/smc/af_smc.c
-@@ -1225,7 +1225,7 @@ void smc_fill_gid_list(struct smc_link_group *lgr,
- 	       SMC_GID_SIZE);
- 
- out:
--	kfree(alt_ini);
-+	smc_init_info_free(alt_ini);
- }
- 
- static int smc_connect_rdma_v2_prepare(struct smc_sock *smc,
-@@ -1596,14 +1596,14 @@ static int __smc_connect(struct smc_sock *smc)
- 	SMC_STAT_CLNT_SUCC_INC(sock_net(smc->clcsock->sk), aclc);
- 	smc_connect_ism_vlan_cleanup(ini);
- 	kfree(buf);
--	kfree(ini);
-+	smc_init_info_free(ini);
- 	return 0;
- 
- vlan_cleanup:
- 	smc_connect_ism_vlan_cleanup(ini);
- 	kfree(buf);
- fallback:
--	kfree(ini);
-+	smc_init_info_free(ini);
- 	return smc_connect_decline_fallback(smc, rc, version);
- }
- 
-@@ -2344,7 +2344,10 @@ static void smc_find_rdma_v2_device_serv(struct smc_sock *new_smc,
- 
- not_found:
- 	ini->smcr_version &= ~SMC_V2;
-+	if (ini->smcrv2.ib_dev_v2_ref)
-+		smc_ibdev_put(ini->smcrv2.ib_dev_v2);
- 	ini->smcrv2.ib_dev_v2 = NULL;
-+	ini->smcrv2.ib_dev_v2_ref = false;
- 	ini->check_smcrv2 = false;
- }
- 
-@@ -2588,7 +2591,7 @@ static void smc_listen_work(struct work_struct *work)
- 	smc_listen_decline(new_smc, rc, ini ? ini->first_contact_local : 0,
- 			   proposal_version);
- out_free:
--	kfree(ini);
-+	smc_init_info_free(ini);
- 	kfree(buf);
- }
- 
-diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-index 181647982490..d97bc7323106 100644
---- a/net/smc/smc_core.c
-+++ b/net/smc/smc_core.c
-@@ -55,6 +55,17 @@ static void __smc_lgr_terminate(struct smc_link_group *lgr, bool soft);
- 
- static void smc_link_down_work(struct work_struct *work);
- 
-+void smc_init_info_free(struct smc_init_info *ini)
-+{
-+	if (!ini)
-+		return;
-+	if (ini->ib_dev_ref)
-+		smc_ibdev_put(ini->ib_dev);
-+	if (ini->smcrv2.ib_dev_v2_ref)
-+		smc_ibdev_put(ini->smcrv2.ib_dev_v2);
-+	kfree(ini);
-+}
-+
- /* return head of link group list and its lock for a given link group */
- static inline struct list_head *smc_lgr_list_head(struct smc_link_group *lgr,
- 						  spinlock_t **lgr_lock)
-@@ -793,14 +804,21 @@ int smcr_link_init(struct smc_link_group *lgr, struct smc_link *lnk,
- 	int rc;
- 
- 	if (lgr->smc_version == SMC_V2) {
--		lnk->smcibdev = ini->smcrv2.ib_dev_v2;
-+		smcibdev = ini->smcrv2.ib_dev_v2;
- 		lnk->ibport = ini->smcrv2.ib_port_v2;
--		lnk->wr_rx_sge_cnt = lnk->smcibdev->ibdev->attrs.max_recv_sge < 2 ? 1 : 2;
-+	} else {
-+		smcibdev = ini->ib_dev;
-+		lnk->ibport = ini->ib_port;
-+	}
-+	rc = smc_ibdev_init_begin(smcibdev);
-+	if (rc)
-+		return rc;
-+	lnk->smcibdev = smcibdev;
-+	if (lgr->smc_version == SMC_V2) {
-+		lnk->wr_rx_sge_cnt = smcibdev->ibdev->attrs.max_recv_sge < 2 ? 1 : 2;
- 		lnk->wr_rx_buflen = smc_link_shared_v2_rxbuf(lnk) ?
- 			SMC_WR_BUF_SIZE : SMC_WR_BUF_V2_SIZE;
- 	} else {
--		lnk->smcibdev = ini->ib_dev;
--		lnk->ibport = ini->ib_port;
- 		lnk->wr_rx_sge_cnt = 1;
- 		lnk->wr_rx_buflen = SMC_WR_BUF_SIZE;
- 	}
-@@ -882,6 +900,7 @@ int smcr_link_init(struct smc_link_group *lgr, struct smc_link *lnk,
- 	if (!atomic_dec_return(&smcibdev->lnk_cnt))
- 		wake_up(&smcibdev->lnks_deleted);
- 	smc_lgr_put(lgr); /* lgr_hold above */
-+	smc_ibdev_init_end(smcibdev);
- 	return rc;
- }
- 
-@@ -997,6 +1016,8 @@ static int smc_lgr_create(struct smc_sock *smc, struct smc_init_info *ini)
- 	spin_lock_bh(lgr_lock);
- 	list_add_tail(&lgr->list, lgr_list);
- 	spin_unlock_bh(lgr_lock);
-+	if (!ini->is_smcd)
-+		smc_ibdev_init_end(lnk->smcibdev);
- 	return 0;
- 
- free_wq:
-diff --git a/net/smc/smc_core.h b/net/smc/smc_core.h
-index 5c18f08a4c8a..9f5a69a30cb3 100644
---- a/net/smc/smc_core.h
-+++ b/net/smc/smc_core.h
-@@ -403,6 +403,7 @@ struct smc_init_info_smcrv2 {
- 
- 	/* Output fields when saddr is set */
- 	struct smc_ib_device	*ib_dev_v2;
-+	bool			ib_dev_v2_ref; /* owns an smc_ibdev reference */
- 	u8			ib_port_v2;
- 	u8			ib_gid_v2[SMC_GID_SIZE];
- 
-@@ -438,6 +439,7 @@ struct smc_init_info {
- 	u8			peer_mac[ETH_ALEN];
- 	u8			peer_systemid[SMC_SYSTEMID_LEN];
- 	struct smc_ib_device	*ib_dev;
-+	bool			ib_dev_ref; /* owns an smc_ibdev reference */
- 	u8			ib_gid[SMC_GID_SIZE];
- 	u8			ib_port;
- 	u32			ib_clcqpn;
-@@ -594,6 +596,7 @@ void smc_rtoken_set2(struct smc_link_group *lgr, int rtok_idx, int link_id,
- void smc_sndbuf_sync_sg_for_device(struct smc_connection *conn);
- void smc_rmb_sync_sg_for_cpu(struct smc_connection *conn);
- int smc_vlan_by_tcpsk(struct socket *clcsock, struct smc_init_info *ini);
-+void smc_init_info_free(struct smc_init_info *ini);
- 
- void smc_conn_free(struct smc_connection *conn);
- int smc_conn_create(struct smc_sock *smc, struct smc_init_info *ini);
-diff --git a/net/smc/smc_ib.c b/net/smc/smc_ib.c
-index 9bb495707445..d858453c64d9 100644
---- a/net/smc/smc_ib.c
-+++ b/net/smc/smc_ib.c
-@@ -934,6 +934,44 @@ void smc_ib_ndev_change(struct net_device *ndev, unsigned long event)
- 	mutex_unlock(&smc_ib_devices.mutex);
- }
- 
-+static void smc_ibdev_release(struct smc_ib_device *smcibdev)
-+{
-+	put_device(&smcibdev->ibdev->dev);
-+	kfree(smcibdev);
-+}
-+
-+void smc_ibdev_get(struct smc_ib_device *smcibdev)
-+{
-+	refcount_inc(&smcibdev->refcnt);
-+}
-+
-+void smc_ibdev_put(struct smc_ib_device *smcibdev)
-+{
-+	if (refcount_dec_and_test(&smcibdev->refcnt))
-+		smc_ibdev_release(smcibdev);
-+}
-+
-+int smc_ibdev_init_begin(struct smc_ib_device *smcibdev)
-+{
-+	int rc = 0;
-+
-+	mutex_lock(&smc_ib_devices.mutex);
-+	if (list_empty(&smcibdev->list))
-+		rc = -ENODEV;
-+	else
-+		atomic_inc(&smcibdev->init_cnt);
-+	mutex_unlock(&smc_ib_devices.mutex);
-+	return rc;
-+}
-+
-+void smc_ibdev_init_end(struct smc_ib_device *smcibdev)
-+{
-+	mutex_lock(&smc_ib_devices.mutex);
-+	if (atomic_dec_and_test(&smcibdev->init_cnt))
-+		wake_up(&smcibdev->init_wait);
-+	mutex_unlock(&smc_ib_devices.mutex);
-+}
-+
- /* callback function for ib_register_client() */
- static int smc_ib_add_dev(struct ib_device *ibdev)
- {
-@@ -949,7 +987,11 @@ static int smc_ib_add_dev(struct ib_device *ibdev)
- 		return -ENOMEM;
- 
- 	smcibdev->ibdev = ibdev;
-+	get_device(&ibdev->dev);
-+	refcount_set(&smcibdev->refcnt, 1);
- 	INIT_WORK(&smcibdev->port_event_work, smc_ib_port_event_work);
-+	atomic_set(&smcibdev->init_cnt, 0);
-+	init_waitqueue_head(&smcibdev->init_wait);
- 	atomic_set(&smcibdev->lnk_cnt, 0);
- 	init_waitqueue_head(&smcibdev->lnks_deleted);
- 	mutex_init(&smcibdev->mutex);
-@@ -1000,11 +1042,14 @@ static void smc_ib_remove_dev(struct ib_device *ibdev, void *client_data)
- 	mutex_unlock(&smc_ib_devices.mutex);
- 	pr_warn_ratelimited("smc: removing ib device %s\n",
- 			    smcibdev->ibdev->name);
-+	if (atomic_read(&smcibdev->init_cnt))
-+		wait_event(smcibdev->init_wait,
-+			   !atomic_read(&smcibdev->init_cnt));
- 	smc_smcr_terminate_all(smcibdev);
- 	smc_ib_cleanup_per_ibdev(smcibdev);
- 	ib_unregister_event_handler(&smcibdev->event_handler);
- 	cancel_work_sync(&smcibdev->port_event_work);
--	kfree(smcibdev);
-+	smc_ibdev_put(smcibdev);
- }
- 
- static struct ib_client smc_ib_client = {
-diff --git a/net/smc/smc_ib.h b/net/smc/smc_ib.h
-index ef8ac2b7546d..d32547350e8b 100644
---- a/net/smc/smc_ib.h
-+++ b/net/smc/smc_ib.h
-@@ -15,6 +15,7 @@
- #include <linux/interrupt.h>
- #include <linux/if_ether.h>
- #include <linux/mutex.h>
-+#include <linux/refcount.h>
- #include <linux/wait.h>
- #include <rdma/ib_verbs.h>
- #include <net/smc.h>
-@@ -51,6 +52,9 @@ struct smc_ib_device {				/* ib-device infos for smc */
- 	struct work_struct	port_event_work;
- 	unsigned long		port_event_mask;
- 	DECLARE_BITMAP(ports_going_away, SMC_MAX_PORTS);
-+	refcount_t		refcnt;		/* object lifetime */
-+	atomic_t		init_cnt;	/* unpublished link initializations */
-+	wait_queue_head_t	init_wait;	/* wait for links to be published */
- 	atomic_t		lnk_cnt;	/* number of links on ibdev */
- 	wait_queue_head_t	lnks_deleted;	/* wait 4 removal of all links*/
- 	struct mutex		mutex;		/* protect dev setup+cleanup */
-@@ -59,6 +63,11 @@ struct smc_ib_device {				/* ib-device infos for smc */
- 	int			ndev_ifidx[SMC_MAX_PORTS]; /* ndev if indexes */
- };
- 
-+void smc_ibdev_get(struct smc_ib_device *smcibdev);
-+void smc_ibdev_put(struct smc_ib_device *smcibdev);
-+int smc_ibdev_init_begin(struct smc_ib_device *smcibdev);
-+void smc_ibdev_init_end(struct smc_ib_device *smcibdev);
-+
- static inline __be32 smc_ib_gid_to_ipv4(u8 gid[SMC_GID_SIZE])
- {
- 	struct in6_addr *addr6 = (struct in6_addr *)gid;
-diff --git a/net/smc/smc_llc.c b/net/smc/smc_llc.c
-index c9ccd8480369..e16aaa514368 100644
---- a/net/smc/smc_llc.c
-+++ b/net/smc/smc_llc.c
-@@ -1108,6 +1108,7 @@ int smc_llc_cli_add_link(struct smc_link *link, struct smc_llc_qentry *qentry)
- 	rc = smcr_link_init(lgr, lnk_new, lnk_idx, ini);
- 	if (rc)
- 		goto out_reject;
-+	smc_ibdev_init_end(lnk_new->smcibdev);
- 	smc_llc_save_add_link_info(lnk_new, llc);
- 	lnk_new->link_id = llc->link_num;	/* SMC server assigns link id */
- 	smc_llc_link_set_uid(lnk_new);
-@@ -1143,7 +1144,7 @@ int smc_llc_cli_add_link(struct smc_link *link, struct smc_llc_qentry *qentry)
- out_reject:
- 	smc_llc_cli_add_link_reject(qentry);
- out:
--	kfree(ini);
-+	smc_init_info_free(ini);
- 	kfree(qentry);
- 	return rc;
- }
-@@ -1217,7 +1218,7 @@ static void smc_llc_cli_add_link_invite(struct smc_link *link,
- 	smc_llc_send_add_link(link, ini->ib_dev->mac[ini->ib_port - 1],
- 			      ini->ib_gid, NULL, SMC_LLC_REQ);
- out:
--	kfree(ini);
-+	smc_init_info_free(ini);
- 	kfree(qentry);
- }
- 
-@@ -1487,6 +1488,7 @@ int smc_llc_srv_add_link(struct smc_link *link,
- 	if (rc)
- 		goto out;
- 	link_new = &lgr->lnk[lnk_idx];
-+	smc_ibdev_init_end(link_new->smcibdev);
- 
- 	rc = smcr_buf_map_lgr(link_new);
- 	if (rc)
-@@ -1544,7 +1546,7 @@ int smc_llc_srv_add_link(struct smc_link *link,
- 	}
- out:
- 	kfree(qentry);
--	kfree(ini);
-+	smc_init_info_free(ini);
- 	if (send_req_add_link_resp)
- 		smc_llc_send_req_add_link_response(req_qentry);
- 	return rc;
-diff --git a/net/smc/smc_pnet.c b/net/smc/smc_pnet.c
-index 63e286e2dfaa..be1f5137c8ee 100644
---- a/net/smc/smc_pnet.c
-+++ b/net/smc/smc_pnet.c
-@@ -980,14 +980,22 @@ static int smc_pnet_determine_gid(struct smc_ib_device *ibdev, int i,
- 	if (!ini->check_smcrv2 &&
- 	    !smc_ib_determine_gid(ibdev, i, ini->vlan_id, ini->ib_gid, NULL,
- 				  NULL)) {
-+		if (ini->ib_dev_ref)
-+			smc_ibdev_put(ini->ib_dev);
-+		smc_ibdev_get(ibdev);
- 		ini->ib_dev = ibdev;
-+		ini->ib_dev_ref = true;
- 		ini->ib_port = i;
- 		return 0;
- 	}
- 	if (ini->check_smcrv2 &&
- 	    !smc_ib_determine_gid(ibdev, i, ini->vlan_id, ini->smcrv2.ib_gid_v2,
- 				  NULL, &ini->smcrv2)) {
-+		if (ini->smcrv2.ib_dev_v2_ref)
-+			smc_ibdev_put(ini->smcrv2.ib_dev_v2);
-+		smc_ibdev_get(ibdev);
- 		ini->smcrv2.ib_dev_v2 = ibdev;
-+		ini->smcrv2.ib_dev_v2_ref = true;
- 		ini->smcrv2.ib_port_v2 = i;
- 		return 0;
- 	}
--- 
-2.25.1
-
+Regards,
+Markus
