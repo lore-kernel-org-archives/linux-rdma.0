@@ -1,158 +1,212 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mta0.migadu.com (out-27.mta0.migadu.com [91.218.175.27])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54A4D3AAF62;
-	Mon, 24 Aug 2026 08:32:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B37C35FF6E
+	for <linux-rdma@vger.kernel.org>; Mon, 24 Aug 2026 08:58:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.27
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787560343; cv=none; b=Uj15LASRsBzl8BJHCL//eyXHD+mV/aeVx6iATFDS5PZXkRQh6yUau+h0QUbtKXX5nATwkV3WVWjxCl7bhIA2qSGSxfRK3IQblwdFmwe87bM2EV00oyGhT7c5qks8433uqWi909H0Ul8Vm/2CdRkuZUUqXPSNooskYtfbfgT8PPU=
+	t=1787561892; cv=none; b=iqXodM7da9kBbWGccAO5otbN6/vXAp8B2vSKLaFs79mw27zj1jEwZi9QuOXaAiTrEfrWq/UWQBw4XW4OF8Y2fuCCF3CkC3cHaWF9xDrMejy/cfIBFA2/jbbeRv5GHdqA66tIbd4QW0BlYchjMOMSKPUTOQXCCqnYn06MqBtLiUs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787560343; c=relaxed/simple;
-	bh=s0vFBnZMwlAfy6AMmoxszWppenAdjDviStyPtJLJD+w=;
+	s=arc-20240116; t=1787561892; c=relaxed/simple;
+	bh=ynSucjeK+PzB6DXP5JFQIrQofwQd/oItCOq2xfOYX5o=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=ipXo8kiyGES3DG7Q+LTYls7L5V5aFyWcB/vm/EOkdtEkRtiuJwWySTEtOp+cTSDj04/lnRLS6ll2jfzfDHM6COJDO5YStRJJHlxhJaPhdmyV72IBtS375jY+J++T5izDj2CEXeDScCYnxqw+ZTvcIKuUBC1m98gJOmj+HMxnOlQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=N3UbUk9J; arc=none smtp.client-ip=148.163.156.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	 In-Reply-To:Content-Type; b=JanrP3s7rXgntUEVR7k5YvdzOVfV7aV6O4nxkBg559SSQhIO66tdxffaiYrwAsRnqMcdX9eBxEixbCw6oSvWXr9gs5l8HmK2vHSuxdb0CKrDhe/liqfhp9ccorivNEQI6lb2LP9wQqoNVR+4T6Uzgh8E3mP8WbEpI2UVeQCXL3c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=Ts0zr9Dc; arc=none smtp.client-ip=91.218.175.27
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="N3UbUk9J"
-Received: from pps.filterd (m0360083.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 67O5W5H3940186;
-	Mon, 24 Aug 2026 08:32:14 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pp1; bh=1zrRQ2
-	NH/FFY8kJhmuzfVwPT/3VJi62Ewq0b4x/TINU=; b=N3UbUk9J0MUuSPiSElyn5e
-	frrb74QxV6J7ybPWrnyCz093hHjd3x0QartNP/IqhFKbAgd0UCR+xNlKfy4wbF8R
-	E2Z6YeotWDgXdRd5+MJiyx78qP+NRo7W7gml4Gr37KdMlrRK2QP2LctQYsBfMNLq
-	/+/5gsQnWrIWF3MZQ46Ph+kdzTJcfzL731Ns2HqHwADp8haYx4miUt/l27MR5PWS
-	xLMCKQZL+zUmrg5yV9IaEVCOxjzECyfd4HKda+TyqwpmEGprT/HqZORAE2fufjL5
-	RuurqexF0Z2HvmpvZ/07FZyjnGlkGlFcLhuLrUjO55HppPV409y4DOw0pIF3Q3qQ
-	==
-Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4g7393r3mq-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 24 Aug 2026 08:32:13 +0000 (GMT)
-Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma22.wdc07v.mail.ibm.com (8.18.1.7/8.18.1.7) with ESMTP id 67O8QJKe019299;
-	Mon, 24 Aug 2026 08:32:12 GMT
-Received: from smtprelay06.dal12v.mail.ibm.com ([172.16.1.8])
-	by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4g7pfvvx0h-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 24 Aug 2026 08:32:12 +0000 (GMT)
-Received: from smtpav05.wdc07v.mail.ibm.com (smtpav05.wdc07v.mail.ibm.com [10.39.53.232])
-	by smtprelay06.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 67O8WAiJ17629752
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 24 Aug 2026 08:32:11 GMT
-Received: from smtpav05.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id A3E9A5805D;
-	Mon, 24 Aug 2026 08:32:10 +0000 (GMT)
-Received: from smtpav05.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 1524B58053;
-	Mon, 24 Aug 2026 08:32:04 +0000 (GMT)
-Received: from [9.124.213.220] (unknown [9.124.213.220])
-	by smtpav05.wdc07v.mail.ibm.com (Postfix) with ESMTP;
-	Mon, 24 Aug 2026 08:32:03 +0000 (GMT)
-Message-ID: <758a944c-c26f-4509-a898-d93f345c19ca@linux.ibm.com>
-Date: Mon, 24 Aug 2026 14:02:01 +0530
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="Ts0zr9Dc"
+X-Envelope-To: linux-rdma@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=ynSucjeK+PzB6DXP5JFQIrQofwQd/oItCOq2xfOYX5o=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1787561887; v=1; x=1788166687;
+ b=Ts0zr9DcD2+Oph6njbGjvJmKycVvC5PBR30uY/NX59kJ8A1hemQekE2l3CBDTjm62LNOTjbv
+ W5iXrTXWsKnGFbp/PIlpe9xwn4FS3307358zODe580/X1HsYdItgvtJRqywEHRTuRCyggHF8w5i
+ BIfUjWYmtxliP4trvie4jRo0=
+X-Envelope-To: linux-rdma@vger.kernel.org
+Received: from [192.168.38.216] (123.123.40.50)
+	by smtp.migadu.com with ESMTPS id d97ecd1d02598cd1;
+	Mon, 24 Aug 2026 08:58:06 +0000
+X-Mizu-Trace-ID: d97ecd1d02598cd1
+X-Migadu-Flow: FLOW_OUT
+Message-ID: <3702388e-3eb9-5f62-f2ae-cac3a01be716@linux.dev>
+Date: Mon, 24 Aug 2026 16:58:01 +0800
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next v2 2/2] net/smc: reduce TX slot contention with
- exclusive wait
-To: "D. Wythe" <alibuda@linux.alibaba.com>, wenjia@linux.ibm.com,
-        wintera@linux.ibm.com, dust.li@linux.alibaba.com,
-        tonylu@linux.alibaba.com, guwen@linux.alibaba.com
-Cc: kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
-        leonro@nvidia.com, pabeni@redhat.com, edumazet@google.com,
-        sidraya@linux.ibm.com, jaka@linux.ibm.com,
-        oliver.yang@linux.alibaba.com
-References: <20260821091702.21458-1-alibuda@linux.alibaba.com>
- <20260821091702.21458-3-alibuda@linux.alibaba.com>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.12.0
+Subject: Re: [BUG] RDMA/siw: KASAN: slab-use-after-free in siw_accept
+To: Shuangpeng Bai <shuangpeng.kernel@gmail.com>,
+ Bernard Metzler <bernard.metzler@linux.dev>, Jason Gunthorpe <jgg@ziepe.ca>,
+ Leon Romanovsky <leon@kernel.org>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+ stable@vger.kernel.org
+References: <20260821194704.835548-1-shuangpeng.kernel@gmail.com>
 Content-Language: en-US
-From: Mahanta Jambigi <mjambigi@linux.ibm.com>
-In-Reply-To: <20260821091702.21458-3-alibuda@linux.alibaba.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-Reinject: loops=2 maxloops=12
-X-Proofpoint-GUID: WApZ08PhHDNh6VX1HZBLVxf3Zxs2qbhu
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwODI0MDA3NCBTYWx0ZWRfXyvuaPqPotyiN
- E2xAe5dkMdXsA3HsCB8XDxKI/CRUkDLtTvQamoNilyyjeke1ThrZKxL1SGdCOJidysF6luZGSZU
- UNXYM0VPsCZJwJ8xHRAxBJbRal7PWgDGquDdyVRrmtbOQem4ZkIpxm5rxlJo5YSw11hHsYeBA5L
- TqZ9OzucH+TevVPuH6hvIiSA0TBRg5D8vzdduKMasedtwgOkYEEdLM42g5mhhkYr2yf+zDaNwnQ
- N9FTE1wxBXLasVyLRi4SjgQCFwmv4vV92u4cXQ9Wa+FjelImtM2u00fYNM7+on2SEsSEcvJBhzz
- eKdfbwEU+YDFS4SOlWccyZOVY+cscgd25TG1obSLeP3LVSA3WD3jh1q8XJg740CMDVZysCxaAWj
- rKii/n++8RSy8L4bWWJP9oJTTnLLd2c1+DJrwxaPDox+eoIrtrTohZiCpnBk32RHXqDPvLBQ4O6
- xzS4ileDJ5d6kWUp6XQ==
-X-Authority-Analysis: v=2.4 cv=Y/nIdBeN c=1 sm=1 tr=0 ts=6a8c018d cx=c_pps
- a=5BHTudwdYE3Te8bg5FgnPg==:117 a=5BHTudwdYE3Te8bg5FgnPg==:17
- a=IkcTkHD0fZMA:10 a=Sv0fKeRqtYgA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=RnoormkPH1_aCDwRdu11:22 a=iQ6ETzBq9ecOQQE5vZCe:22 a=SRrdq9N9AAAA:8
- a=VnNF1IyMAAAA:8 a=WkmksbYtVH5hfBaYqvIA:9 a=QEXdDO2ut3YA:10
-X-Proofpoint-Spam-Info: AW1haW4tMjYwODI0MDA3NCBTYWx0ZWRfX2d5hFw5ZNCCl
- b5lguwu2dKqcdHcC0ryB8iFR2pYp14vdO+NP4V9/FufiaplOCJfNBVB4+O2iUDYZuTPl1QSuJVh
- gBwoN5AfLQ+76kqooxICx75kYed+rv0=
-X-Proofpoint-ORIG-GUID: pqF10GpYHgGShriTzhZpY2wQhv9uJRsZ
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-08-24_02,2026-08-21_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- spamscore=0 impostorscore=0 priorityscore=1501 adultscore=0 bulkscore=0
- suspectscore=0 malwarescore=0 clxscore=1015 lowpriorityscore=0 phishscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2608240074
+From: Guoqing Jiang <guoqing.jiang@linux.dev>
+In-Reply-To: <20260821194704.835548-1-shuangpeng.kernel@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
+Hi,
 
+On 8/22/26 03:46, Shuangpeng Bai wrote:
+> Hi Kernel Maintainers,
+>
+> I hit the following report while testing current upstream kernel:
+>
+> KASAN: slab-use-after-free in siw_accept
+>
+> on commit: bd5f485f3f026225b86573e559af0b7254ef4184 (2026-08-18)
+>
+> To help trigger the bug more reliably, we applied a minimal diagnostic patch
+> that only adds delays and print statements.
+>
+> The reproducer and .config files are here.
+> https://gist.github.com/shuangpengbai/28addfcbf79470a62d5b4cd784e95cd2
+>
+> The reproducer triggers a concurrent userspace QP transition to ERROR while
+> siw_accept() is unwinding after a QP initialization allocation failure. The
+> QP ERROR path drops qp->cep and frees the same struct siw_cep before
+> siw_accept() stores cep->qp = NULL.
+>
+> This report is separate from the withdrawn follow-up patch:
+> https://lore.kernel.org/linux-rdma/20260816061353.4059242-1-shuangpeng.kernel@gmail.com/
+>
+> That patch concerned a concurrent QP-destruction path. This report instead
+> involves a normal userspace ibv_modify_qp() transition to IBV_QPS_ERR on a
+> still-live QP.
+>
+> We also reproduced this issue on a tree containing
+> a93949718259 ("RDMA/siw: Fix use-after-free in siw_accept()"). That commit
+> covers the qp->cep != cep case; this report exercises the distinct
+> qp->cep == cep race during a concurrent userspace ibv_modify_qp(...,
+> IBV_QPS_ERR).
+>
+> The QP initialization failure was induced through the built-in fail_page_alloc
+> fault injector, restricted to the siw_qp_modify() call stack. The failing
+> vcalloc() path is a real -ENOMEM path.
+>
+> The diagnostic patch shifts source line numbers in the decoded trace; in the
+> unmodified tree, the corresponding access is `siw_cm.c:1758` and the freeing
+> put is `siw_qp.c:663`.
+>
+> I'm happy to test debug patches or provide additional information.
+>
+> Reported-by: Shuangpeng Bai <shuangpeng.kernel@gmail.com>
+>
+> [  409.854273] ==================================================================
+> [  409.856424] BUG: KASAN: slab-use-after-free in siw_accept (drivers/infiniband/sw/siw/siw_cm.c:1766)
+> [  409.858419] Write of size 8 at addr ffff888176620068 by task siw_accept_foll/8801
+>
+> [  409.860281] Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+> [  409.860284] Call Trace:
+> [  409.860288]  <TASK>
+> [  409.860291]  dump_stack_lvl (lib/dump_stack.c:94 lib/dump_stack.c:120)
+> [  409.860298]  print_report (mm/kasan/report.c:378 mm/kasan/report.c:482)
+> [  409.860315]  kasan_report (mm/kasan/report.c:595)
+> [  409.860325]  siw_accept (drivers/infiniband/sw/siw/siw_cm.c:1766)
+> [  409.860382]  iw_cm_accept (drivers/infiniband/core/iwcm.c:670)
+> [  409.860388]  rdma_accept (drivers/infiniband/core/cma.c:4643 drivers/infiniband/core/cma.c:4727)
+> [  409.860484]  ucma_accept (drivers/infiniband/core/ucma.c:1208)
+> [  409.860504]  ucma_write (drivers/infiniband/core/ucma.c:1856)
+> [  409.860528]  vfs_write (fs/read_write.c:685)
+> [  409.860554]  ksys_write (fs/read_write.c:739)
+> [  409.860574]  do_syscall_64 (arch/x86/entry/syscall_64.c:61 arch/x86/entry/syscall_64.c:84)
+> [  409.860579]  entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:121)
+> [  409.860583] RIP: 0033:0x7f179cdf6fef
+> [  409.860588] Code: 89 54 24 18 48 89 74 24 10 89 7c 24 08 e8 29 fd ff ff 48 8b 54 24 18 48 8b 74 24 10 41 89 c0 8b 7c 24 08 b8 01 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 31 44 89 c7 48 89 44 24 08 e8 5c fd ff ff 48
+> All code
+> ========
+>     0:	89 54 24 18          	mov    %edx,0x18(%rsp)
+>     4:	48 89 74 24 10       	mov    %rsi,0x10(%rsp)
+>     9:	89 7c 24 08          	mov    %edi,0x8(%rsp)
+>     d:	e8 29 fd ff ff       	call   0xfffffffffffffd3b
+>    12:	48 8b 54 24 18       	mov    0x18(%rsp),%rdx
+>    17:	48 8b 74 24 10       	mov    0x10(%rsp),%rsi
+>    1c:	41 89 c0             	mov    %eax,%r8d
+>    1f:	8b 7c 24 08          	mov    0x8(%rsp),%edi
+>    23:	b8 01 00 00 00       	mov    $0x1,%eax
+>    28:	0f 05                	syscall
+>    2a:*	48 3d 00 f0 ff ff    	cmp    $0xfffffffffffff000,%rax		<-- trapping instruction
+>    30:	77 31                	ja     0x63
+>    32:	44 89 c7             	mov    %r8d,%edi
+>    35:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
+>    3a:	e8 5c fd ff ff       	call   0xfffffffffffffd9b
+>    3f:	48                   	rex.W
+>
+> Code starting with the faulting instruction
+> ===========================================
+>     0:	48 3d 00 f0 ff ff    	cmp    $0xfffffffffffff000,%rax
+>     6:	77 31                	ja     0x39
+>     8:	44 89 c7             	mov    %r8d,%edi
+>     b:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
+>    10:	e8 5c fd ff ff       	call   0xfffffffffffffd71
+>    15:	48                   	rex.W
+> [  409.860592] RSP: 002b:00007ffe992e7720 EFLAGS: 00000293 ORIG_RAX: 0000000000000001
+> [  409.860599] RAX: ffffffffffffffda RBX: 00007ffe992e79c0 RCX: 00007f179cdf6fef
+> [  409.860602] RDX: 0000000000000130 RSI: 00007ffe992e7800 RDI: 0000000000000003
+> [  409.860605] RBP: 000055f0d1977070 R08: 0000000000000000 R09: 00007f179ca7e700
+> [  409.860608] R10: fffffffffffffaa5 R11: 0000000000000293 R12: 0000000000000000
+> [  409.860610] R13: 0000000000000000 R14: 0000000000000001 R15: 00007ffe992e7800
+> [  409.860615]  </TASK>
+>
+> [  409.897413] Allocated by task 8115 on cpu 1 at 408.747286s:
+> [  409.897984]  kasan_save_track (mm/kasan/common.c:57 mm/kasan/common.c:78)
+> [  409.898409]  __kasan_kmalloc (mm/kasan/common.c:398 mm/kasan/common.c:415)
+> [  409.898822]  __kmalloc_cache_noprof (./include/linux/kasan.h:263 mm/slub.c:5489)
+> [  409.899305]  siw_cep_alloc (./include/linux/slab.h:988 ./include/linux/slab.h:1309 drivers/infiniband/sw/siw/siw_cm.c:210)
+> [  409.899712]  siw_cm_work_handler (drivers/infiniband/sw/siw/siw_cm.c:982 drivers/infiniband/sw/siw/siw_cm.c:1077)
+> [  409.900176]  process_scheduled_works (kernel/workqueue.c:3322 kernel/workqueue.c:3405)
+> [  409.900666]  worker_thread (kernel/workqueue.c:3486)
+> [  409.901080]  kthread (kernel/kthread.c:436)
+> [  409.901451]  ret_from_fork (archkernel/process.c:158)
+> [  409.901865]  ret_from_fork_asm (arch/x86/entry/entry_64.S:245)
+>
+> [  409.902511] Freed by task 8817 on cpu 0 at 409.051801s:
+> [  409.903051]  kasan_save_track (mm/kasan/common.c:57 mm/kasan/common.c:78)
+> [  409.903477]  kasan_save_free_info (mm/kasan/generic.c:584)
+> [  409.903930]  __kasan_slab_free (mm/kasan/common.c:253 mm/kasan/common.c:285)
+> [  409.904366]  kfree (./include/linux/kasan.h:235 mm/slub.c:2677 mm/slub.c:6377 mm/slub.c:6692)
+> [  409.904718]  siw_qp_modify (drivers/infiniband/sw/siw/siw_qp.c:669 drivers/infiniband/sw/siw/siw_qp.c:823)
+> [  409.905144]  siw_verbs_modify_qp (drivers/infiniband/sw/siw/siw_verbs.c:600)
+> [  409.905609]  ib_security_modify_qp (drivers/infiniband/core/security.c:625)
+> [  409.906082]  _ib_modify_qp (drivers/infiniband/core/verbs.c:1912)
+> [  409.906502]  modify_qp (drivers/infiniband/core/uverbs_cmd.c:1925)
+> [  409.906890]  ib_uverbs_modify_qp (drivers/infiniband/core/uverbs_cmd.c:1951)
+> [  409.907339]  ib_uverbs_handler_UVERBS_METHOD_INVOKE_WRITE (drivers/infiniband/core/uverbs_std_types_device.c:44)
+> [  409.907989]  ib_uverbs_cmd_verbs (drivers/infiniband/core/uverbs_ioctl.c:387 drivers/infiniband/core/uverbs_ioctl.c:526)
+> [  409.908469]  ib_uverbs_ioctl (drivers/infiniband/core/uverbs_ioctl.c:555)
+> [  409.908898]  __se_sys_ioctl (fs/ioctl.c:51 fs/ioctl.c:597 fs/ioctl.c:583)
+> [  409.909319]  do_syscall_64 (arch/x86/entry/syscall_64.c:61 arch/x86/entry/syscall_64.c:84)
+> [  409.909729]  entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:121)
+>
+> [  409.910480] The buggy address belongs to the object at ffff888176620000
+> which belongs to the cache kmalloc-256 of size 256
+> [  409.911716] The buggy address is located 104 bytes inside of
+> freed 256-byte region [ffff888176620000, ffff888176620100)
 
-On 21/08/26 2:47 pm, D. Wythe wrote:
-> smc_wr_tx_get_free_slot() waits for a free TX slot with
-> wait_event_interruptible_timeout(). Since the wait_event family
-> enqueues waiters as non-exclusive, wake_up() may wake multiple
-> waiters even though only one can use the slot, causing
-> thundering-herd contention when slots are scarce.
-> 
-> Use an exclusive wait loop with prepare_to_wait_exclusive() so
-> wake_up() wakes only one waiter per freed slot.
-> smc_wr_wakeup_tx_wait() still uses wake_up_all() during link
-> teardown, so teardown behavior is unchanged.
-> 
-> This also corrects the return value on a pending signal: the previous
-> wait_event_interruptible_timeout() path fell through to the "no free
-> slot" case and returned -EPIPE, masking the signal as a connection
-> error. The open-coded loop now returns -ERESTARTSYS, matching the
-> standard interruptible-wait semantics and letting the syscall restart
-> machinery handle it.
-> 
-> Performance
-> ===========
-> 
-> Measured with uperf between two peers over SMC-R. The benefit depends
-> on how often the TX slot wait path is actually taken.
-> 
-> With the default settings, where many connections share a link group
-> and the send queue is small, slots are scarce and the wait path is hot:
-> 
->   net.smc.smcr_max_conns_per_lgr = 255
->   net.smc.smcr_max_send_wr       = 16
->   net.smc.smcr_max_recv_wr       = 48
-> 
->   workload                 baseline      patched     delta
->   ---------------------------------------------------------
->   rr1c-200x1000-50.xml     655.06 Mb/s   1.53 Gb/s   +134%
->   rr1c-1x1-250.xml         371.03 Kb/s   2.07 Mb/s   +458%
+I suppose it is necessary to clear qp and cep before release state_lock 
+since both siw_qp_llp_close and
+siw_qp_modify->siw_qp_llp_close hold the lock during close cep, 
+something like
 
-Overall, I am also seeing significant performance improvements with this
-patch, ranging from approximately 20% to over 150% across several
-workloads. Do we expect to see further improvements once the CQ pooling
-patch is applied?
+@@ -1719,6 +1719,16 @@ int siw_accept(struct iw_cm_id *id, struct 
+iw_cm_conn_param *params)
+                            SIW_QP_ATTR_STATE | SIW_QP_ATTR_LLP_HANDLE |
+                                    SIW_QP_ATTR_ORD | SIW_QP_ATTR_IRD |
+                                    SIW_QP_ATTR_MPA);
++       if (rv) {
++               cep->qp = NULL;
++               qp->cep = NULL;
++               siw_cep_put(cep);
++       }
+         up_write(&qp->state_lock);
 
-> Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
-> Reviewed-by: Wen Gu <guwen@linux.alibaba.com>
-
-Reviewed-by: Mahanta Jambigi <mjambigi@linux.ibm.com>
+Thanks,
+Guoqing
