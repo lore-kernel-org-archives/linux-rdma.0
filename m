@@ -1,45 +1,41 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from out30-119.freemail.mail.aliyun.com (out30-119.freemail.mail.aliyun.com [115.124.30.119])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 497D22931F8;
-	Mon, 24 Aug 2026 00:59:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5511B355F46;
+	Mon, 24 Aug 2026 02:29:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.119
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787533187; cv=none; b=ejzAxFVKbczeYOIgmz+7b9XreikrG/fAAhZ95P3FhD8vmS58bvgNgcMhnnoYiET2tEVbh5To+gcZd8rEIaLo+3Jyy1m71Khr0iLiL5UAs+LMQQN5Up2TMQdY6PJIw96a1h4Nkvyl2j1igCUGnFwc0cBiIjn4DQJ2PO1OI4B+Qzo=
+	t=1787538549; cv=none; b=bD0bNVYkFVhbCHxF5/ibQThPuHjNGufO4rw4E2L5GEeK7es01Z+MY56inQ4y7/ZJYnOyUHt9LUHTceit1FJCvwVMT+sIqTl3or59JFO7HPrtCfeTfI5+HJGjJepPI0t2RjDVIpLadlPJvOHmL/R0OiVtg2pCskkQsfdjxPOeoRI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787533187; c=relaxed/simple;
-	bh=WQHOgBdtwSwK3+RqO190GLrnBwadiTalM22ttbr1Ofs=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=NaeDQUgsFvEdim742PF21UwmBEvVHbq5BzUvdMoGXFOcSMzy+4V+WZWnCsXBlnDW8rYuyH7uH0+va6il8t4GatYscieKQV5FQmixYDK795d0sHhrQDRDsxpikJOlD4V74PQalQ9NQPtfmXCWG+N2owCi1JuBz9QKfVOQZnGexxE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=g1eHwo0e; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787538549; c=relaxed/simple;
+	bh=wfhrvztMUc4WC1jtDFqlzkk/W9KNkCIfnC44B1Tk+3Q=;
+	h=From:To:Cc:Subject:Date:Message-ID:Content-Type:MIME-Version; b=GECcr3gdq6sMyYvLHEtc9DTaGRxqzVzw5UymK6mO54qS+74S8Jr4BiJEPxIP0f0gS+xPLQ9hqGdGJi2H9xSdTFgHmTwLR5+V/dmvV1UpsLVXw9nqpwklmur4vCZcB3HKIwy3UpsviAMeOGe3t7kZ/oi4xXdXmJIG1Aw2Cp6pMo4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=M8sxHZ1V; arc=none smtp.client-ip=115.124.30.119
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="g1eHwo0e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55C7C1F000E9;
-	Mon, 24 Aug 2026 00:59:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787533184;
-	bh=1+DELW2ejNKRUwMVdbCC86eScxE1R534QPkicF5OCt4=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=g1eHwo0eifVMImvTwhHP4Zz496Ho9/6AV4LXn5EqyQN9H5LIDnJ8XOJlyz+S92ikz
-	 93gX+AakwPnnHCNuGQtJW4dD9HH0AplkcB7/smqEvlqsrRU3Vs3MvkInyoF8TzKZv5
-	 +g67vYqS75gxqP+wP7upSOgCu6lwIT4nC0e8tR511fIaoGPyxsmMhFC9VJ8ZB1o+7i
-	 YfGiCLWtYZyAjirkHW5BA0jIyDvsvAqCL8D0IlxO6lcIjNTTYFcKDGOFxeR1qifrqa
-	 UAHuGtGw6+2xOdPMO1u6UVpoe0RoB0Z/slASG+FVjJHKUIOY7qe/lioZmmVsA44zK1
-	 D8z85YJEZ3bPw==
-Message-ID: <5c8ecaffea7e6d64d2464397bda2d1c002561f33.camel@kernel.org>
-Subject: Re: [PATCH net v3 0/5] net/rds: own the fastpath locks across
- connection teardown
-From: Allison Henderson <achender@kernel.org>
-To: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com, 
-	edumazet@google.com, kuba@kernel.org, horms@kernel.org
-Cc: jhubbard@nvidia.com, woni9911@gmail.com, michal.kubiak@intel.com, 
-	leon@kernel.org
-Date: Sun, 23 Aug 2026 17:59:43 -0700
-In-Reply-To: <20260822052459.88017-1-achender@kernel.org>
-References: <20260822052459.88017-1-achender@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="M8sxHZ1V"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1787538538; h=From:To:Subject:Date:Message-ID:Content-Type:MIME-Version;
+	bh=4UXhK0/ZS+/QUhzyQrN4gXQO89r+IvUDRSmnUdprPco=;
+	b=M8sxHZ1V+ZHotzmMD2pdXU2qjk3Ryno5ZsIH4NFweLKoEBRcEiGAmpHkKy+FGmymaabrZsBL7PM8sL8fekjn6QCcBC8Ex8KJcfbHFE6/tyIcR+9pZnBuScFtldPl419s7wtNf19uZ2EYtqo/98FSG3evLM8lpwj5QKtfsG4+RrU=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R801e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037026112;MF=chuyf26@linux.alibaba.com;NM=1;PH=DS;RN=11;SR=0;TI=SMTPD_---0X9Rf1Qe_1787538536;
+Received: from x31j07255.sqa.na131(mailfrom:Chuyf26@linux.alibaba.com fp:SMTPD_---0X9Rf1Qe_1787538536 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Mon, 24 Aug 2026 10:28:57 +0800
+From: Yifei Chu <Chuyf26@linux.alibaba.com>
+To: alibuda@linux.alibaba.com
+Cc: dust.li@linux.alibaba.com, sidraya@linux.ibm.com, mjambigi@linux.ibm.com,
+ kuba@kernel.org, pabeni@redhat.com, tonylu@linux.alibaba.com,
+ guwen@linux.alibaba.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-s390@vger.kernel.org
+Subject: [PATCH v4] net/smc: release the internal TCP sock on IPPROTO_SMC
+ socket creation failure
+Date: Mon, 24 Aug 2026 10:27:19 +0800
+Message-ID: <178753843966.342810.566471390946765094@linux.alibaba.com>
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.52.3-0ubuntu1.1 
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -47,141 +43,100 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-On Fri, 2026-08-21 at 22:24 -0700, Allison Henderson wrote:
-> Hi all,
->=20
-> This is v3 of the follow-up set to "net/rds: Bug fix ports, part 2"
-> [1] (v1 of this set is at [2], v2 at [3]).  During review of part 2,
-> the later half of that series needed more work than a respin, so it
-> was split off into this set together with the companion fixes
-> identified along the way.  As discussed on the v2 thread, it is now
-> targeted at net.
->=20
-> RDS connection teardown quiesces the transmit and receive-refill fast
-> paths by waiting for the RDS_IN_XMIT/RDS_RECV_REFILL bits to be
-> sampled clear.  Sampling a bit clear is not owning it: the fast path
-> can re-take its bit right after the wait returns and then run
-> concurrently with the transport shutdown and the send-state reset.
-> Oracle UEK closed this by making teardown acquire the bits as locks
-> ("rds: Make sure transmit path and connection tear-down does not run
-> concurrently"); patches 4 and 5 do the same for the two
-> rds_send_path_reset() call sites upstream.  These two are effectively
-> v3 of patches 4 and 3 of "net/rds: Bug fix ports, part 2" [1].
->=20
-> Making teardown block on the bits as locks promotes three latent
-> ordering bugs from rare to load-bearing, so they are fixed first:
->=20
->   Patch 1: release_in_xmit() checks waitqueue_active() after
->   clear_bit_unlock(), which does not order that read; the wake-up of
->   the (now uninterruptible, untimed) teardown wait can be lost.  Use
->   wq_has_sleeper().
->=20
->   Patch 2: rds_conn_path_reset() wipes the whole cp_flags word with a
->   plain store.  Once teardown owns bits in that word across the
->   reset, a blanket store would end lock ownership early - and it
->   already races atomic RMWs on the same word today.  Clear the bits
->   the reset is responsible for individually, as Oracle UEK also does.
->=20
->   Patch 3: rds_tcp_reset_callbacks() stores RDS_CONN_RESETTING
->   unconditionally, which can overwrite the RDS_CONN_ERROR or
->   RDS_CONN_DISCONNECTING of a shutdown already in progress on the
->   same path and send that shutdown through an extra drop cycle.  Once
->   the accept path can park for the duration of a teardown (patch 5)
->   that window widens, so make the transition conditional first, as
->   Oracle UEK does.
->=20
-> With those in place, patch 4 converts rds_tcp_reset_callbacks() from
-> waiting on RDS_IN_XMIT to acquiring it, holding it across the socket
-> swap and rds_send_path_reset(), and patch 5 has rds_conn_shutdown()
-> hold both bit locks across the transport shutdown and path reset.
-> The order matters: with the accept path owning the lock first, no
-> intermediate commit leaves it resuming on a socket pointer that a
-> lock-holding teardown has already released.
->=20
-> [PATCH net 1/5] net/rds: use wq_has_sleeper() in release_in_xmit()
->   Restore full barrier before wake-up checks in release_in_xmit()
->=20
-> [PATCH net 2/5] net/rds: clear cp_flags bits individually in rds_conn_pat=
-h_reset()
->   Partial port of commit d04896037223 ("net/rds: Preserve essential conne=
-ction state flags")
->   https://github.com/oracle/linux-uek/commit/d04896037223
->=20
-> [PATCH net 3/5] net/rds: tcp: don't force RDS_CONN_RESETTING over a concu=
-rrent shutdown
->   Port of commit 72c176a1d9ac ("net/rds: Don't force state RDS_CONN_RESET=
-TING")
->   https://github.com/oracle/linux-uek/commit/72c176a1d9ac
->=20
-> [PATCH net 4/5] net/rds: acquire RDS_IN_XMIT in rds_tcp_reset_callbacks()
->   Extend the port in patch 5 to the second rds_send_path_reset() call sit=
-e
->=20
-> [PATCH net 5/5] net/rds: acquire the fastpath locks in rds_conn_shutdown(=
-)
->   Port of commit 2b8aaa4f163b ("rds: Make sure transmit path and connecti=
-on tear-down does not run concurrently")
->   https://github.com/oracle/linux-uek/commit/2b8aaa4f163b
->=20
-> Changes since v2 [3]:
->   - Retargeted at net; rebased onto net/main.
->   - No functional changes apart from patch 5 now releasing
->     RDS_RECV_REFILL with clear_bit_unlock(), matching the RDS_IN_XMIT
->     release beside it, so the teardown's ring and send-state writes
->     are ordered before the bit is seen clear.
->   - Comment and changelog corrections from the v2 review pass:
->     patch 2 no longer claims a quiescence guarantee that only patch 5
->     delivers; patch 3 spells out that the fallback drop replaces the
->     shutdown's state with RDS_CONN_ERROR (which rds_conn_shutdown()
->     tolerates) and queues one more down-work pass; patch 4's block
->     comment names all three t_sock writers and what serializes each;
->     patch 5 refreshes the rds_conn_path_reset() header, the
->     acquire_refill() comment in rds_ib_recv_refill() and the
->     rds_tcp_reset_callbacks() comment to name the teardown as an
->     owner of the bits, and its changelog describes the knock-on
->     effect of the parked accept worker on the shared krdsd workqueue
->     and why that is a bounded stall rather than a deadlock.
->=20
-> The cong.c wq_has_sleeper() conversion mentioned on the v2 thread is
-> a pre-existing issue independent of this set and is sent separately.
->=20
-> Questions and comments appreciated!
->=20
-> Thanks,
-> Allison
+IPPROTO_SMC sockets create an internal TCP sock ("clcsock") from the
+proto->init hook. When socket creation fails after proto->init has
+run - e.g. a cgroup BPF program attached to BPF_CGROUP_INET_SOCK_CREATE
+denies the socket - sk_common_release() only invokes sk_prot->destroy
+if it is set, but neither smc_inet_prot nor smc_inet6_prot defines it,
+and smc_destruct() returns early unless sk_state is SMC_CLOSED. As a
+result, every failing socket(AF_INET, SOCK_STREAM, IPPROTO_SMC) call
+leaks one tcp_sock, so an unprivileged task able to attach a deny-all
+BPF_CGROUP_INET_SOCK_CREATE program to its own cgroup can grow kernel
+memory unboundedly.
 
-Sashiko noticed a socket leak exposed by this set, so i've resent a v4:
-https://lore.kernel.org/all/20260824003759.127353-1-achender@kernel.org/
+Add a .destroy hook to both protos that releases the clcsock via
+smc_clcsock_release(). smc_sk_init() hashes the sock into the smc
+hashinfo before the clcsock is created, and smc_diag dumps walk that
+hash dereferencing smc->clcsock without taking clcsock_release_lock,
+while sk_common_release() calls .destroy before .unhash. Unhash the
+sock before releasing the clcsock, as __smc_release() does, so a
+concurrent dump cannot observe the release; the second unhash in
+sk_common_release() is a no-op.
 
-Thanks!
-Allison
+Fixes: d25a92ccae6b ("net/smc: Introduce IPPROTO_SMC")
+Reported-by: Abaci <abaci@linux.alibaba.com>
+Assisted-by: abaci:qwen3.8-max
+Signed-off-by: Yifei Chu <Chuyf26@linux.alibaba.com>
+---
+Changes since v3:
+- no code change: use full name in Author and Signed-off-by, resend
+  as a new thread instead of a reply, as requested. Previous thread:
+  https://lore.kernel.org/all/20260813060456.b48HqF9m6NTfFXvq_PL9w_Ih493OogqA=
+qxfAHAfU74A@z/
 
->=20
-> [1] https://lore.kernel.org/netdev/20260806072045.1092968-1-achender@kern=
-el.org/
-> [2] https://lore.kernel.org/netdev/20260814013501.43760-1-achender@kernel=
-.org/
-> [3] https://lore.kernel.org/netdev/20260816001510.73645-1-achender@kernel=
-.org/
->=20
-> Allison Henderson (3):
->   net/rds: use wq_has_sleeper() in release_in_xmit()
->   net/rds: clear cp_flags bits individually in rds_conn_path_reset()
->   net/rds: acquire RDS_IN_XMIT in rds_tcp_reset_callbacks()
->=20
-> Gerd Rausch (1):
->   net/rds: tcp: don't force RDS_CONN_RESETTING over a concurrent
->     shutdown
->=20
-> H=C3=A5kon Bugge (1):
->   net/rds: acquire the fastpath locks in rds_conn_shutdown()
->=20
->  net/rds/connection.c | 46 +++++++++++++++++++----
->  net/rds/ib_recv.c    |  4 +-
->  net/rds/send.c       | 12 ++++--
->  net/rds/tcp.c        | 87 +++++++++++++++++++++++++++++++-------------
->  4 files changed, 112 insertions(+), 37 deletions(-)
->=20
->=20
-> base-commit: 4e15e89faac9f308baeb01f46c13a051814d2449
+Changes since v2 (answering the review):
+- dropped the smc->clcsock =3D NULL store: sk_alloc() zeroes the sock
+  (__GFP_ZERO / sk_prot_clear_nulls()), so it is already NULL. The
+  mutex concern does not apply either: .destroy only runs after
+  smc_sk_init() initialized clcsock_release_lock.
+- unhash the sock before releasing the clcsock in .destroy so a
+  concurrent smc_diag dump cannot observe the release
+  (sk_common_release() calls .destroy before .unhash); the second
+  unhash is a no-op. Tested on a KASAN+SMC_DIAG kernel: the v2
+  version hits a KASAN report in __smc_diag_dump() when a diag dump
+  races with failing IPPROTO_SMC socket creation, v3 stays clean
+  under the same stress.
 
+ net/smc/smc_inet.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/net/smc/smc_inet.c b/net/smc/smc_inet.c
+index a94084b4a498..520b666fdd8f 100644
+--- a/net/smc/smc_inet.c
++++ b/net/smc/smc_inet.c
+@@ -15,13 +15,16 @@
+=20
+ #include "smc_inet.h"
+ #include "smc.h"
++#include "smc_close.h"
+=20
+ static int smc_inet_init_sock(struct sock *sk);
++static void smc_inet_destroy_sock(struct sock *sk);
+=20
+ static struct proto smc_inet_prot =3D {
+ 	.name		=3D "INET_SMC",
+ 	.owner		=3D THIS_MODULE,
+ 	.init		=3D smc_inet_init_sock,
++	.destroy	=3D smc_inet_destroy_sock,
+ 	.hash		=3D smc_hash_sk,
+ 	.unhash		=3D smc_unhash_sk,
+ 	.release_cb	=3D smc_release_cb,
+@@ -68,6 +71,7 @@ static struct proto smc_inet6_prot =3D {
+ 	.name		=3D "INET6_SMC",
+ 	.owner		=3D THIS_MODULE,
+ 	.init		=3D smc_inet_init_sock,
++	.destroy	=3D smc_inet_destroy_sock,
+ 	.hash		=3D smc_hash_sk,
+ 	.unhash		=3D smc_unhash_sk,
+ 	.release_cb	=3D smc_release_cb,
+@@ -116,6 +120,18 @@ static int smc_inet_init_sock(struct sock *sk)
+ 	return smc_create_clcsk(net, sk, sk->sk_family);
+ }
+=20
++static void smc_inet_destroy_sock(struct sock *sk)
++{
++	/* The sock is hashed and smc_diag dumps dereference smc->clcsock
++	 * without clcsock_release_lock, while sk_common_release() calls
++	 * .destroy before .unhash. Unhash first, as __smc_release() does,
++	 * so no dump can observe the clcsock being released; the second
++	 * unhash is a no-op.
++	 */
++	sk->sk_prot->unhash(sk);
++	smc_clcsock_release(smc_sk(sk));
++}
++
+ int __init smc_inet_init(void)
+ {
+ 	int rc;
+--=20
+2.43.5
