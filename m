@@ -1,107 +1,77 @@
-Received: from alln-iport-7.cisco.com (alln-iport-7.cisco.com [173.37.142.94])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f53.google.com (mail-ej1-f53.google.com [209.85.218.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91A90439350;
-	Mon, 24 Aug 2026 14:16:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=173.37.142.94
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B0C742DA5A
+	for <linux-rdma@vger.kernel.org>; Mon, 24 Aug 2026 14:41:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787581020; cv=none; b=f2NbCVFXx2ylt9m6idEy2493572W9Wk6awWgdB5sjqGZcDw/WcNxjXUOTmHsq9ArKLVs1NFiAvl9257OwcbShdw6B9qGghWjIROYf6BUAhNj2Tl37JvmlwVVtYyTZN7hrwmqhHpy8C8wNhCgYlMQFzD617TT7coSlZklc4ibaF8=
+	t=1787582495; cv=none; b=WrMAdHunA6wspEgLCGXFyTQn7NuPONkfdMegklrDC+/g5aPGJayz67r1BWW+Brntx0SqGpeo9g8iqwZ8Ius4uCRsIN6FNu54sk7fFpeY2vfVz5BU+NBHlfLcnvmwpm/JtiOHebfCGD+HQBbgTB5O8PdFplpg9V6Xt8zFJgUXiwY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787581020; c=relaxed/simple;
-	bh=417JJ8HfvZqxBwx9TnceZv6+AqItQoNyWs1MKKbognM=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=PMtn9eizlHCqTGzk4RE+3eWM30MgIY46R5h500wGR6N1fjXQ0OZXqWfnqTPkgPiZRmdFMxD1BbCigGq80GNgFNT6xJW3kKshCz87+FEIFkt3wBHBlX34N1/h02mh4YcSwqjBRPgSdK/VqKfPm8mGjUszRWWIhJuLqo9dabEOE2U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cisco.com; spf=pass smtp.mailfrom=cisco.com; dkim=pass (2048-bit key) header.d=cisco.com header.i=@cisco.com header.b=QZ/xh+1s; arc=none smtp.client-ip=173.37.142.94
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cisco.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cisco.com
+	s=arc-20240116; t=1787582495; c=relaxed/simple;
+	bh=YB1kN1yE34OofMdvCRJ4l8peBsR/9Ti6joBfzsqueHk=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=MOSYwcttAgCXNdH4wPyfC808mdKWaw/rEb0LWl41M3rSVGoEavhwdV/oF+QpxuuOzH0TbhS2h0WHrNipUyhtyWniCG2UA+G5YGqlBQQqLufclmXs0lcp9O1F3idAoABSyUX6ZtnlQlqG1bkVmk2msEvnHu8PR1yZw4IM6s5YJeg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bynar.io; spf=pass smtp.mailfrom=bynar.io; dkim=pass (2048-bit key) header.d=bynar.io header.i=@bynar.io header.b=ewDrsIIN; arc=none smtp.client-ip=209.85.218.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bynar.io
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bynar.io
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cisco.com header.i=@cisco.com header.b="QZ/xh+1s"
+	dkim=pass (2048-bit key) header.d=bynar.io header.i=@bynar.io header.b="ewDrsIIN"
+Received: by mail-ej1-f53.google.com with SMTP id a640c23a62f3a-c1677c91969so431986366b.1
+        for <linux-rdma@vger.kernel.org>; Mon, 24 Aug 2026 07:41:33 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=cisco.com; i=@cisco.com; l=2306; q=dns/txt;
-  s=iport01; t=1787581018; x=1788790618;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=uZV/9zCpF//Rk6myhBgkCKBajP+80C4IYP3ESSetPxU=;
-  b=QZ/xh+1so5bq7SPhqgsKm5CrIHpq73+LC9gnFGj6/Q1KwUQe6vi0fl5Z
-   fgD/4etbV0QZAJlUHc/9n9cIadHKq4CvolkgHxNwQRpDPGkhlaXoNAR5X
-   s46zM3LUKj05Ql8lBXeCugXxgvln4rsgyfZwips/1reox//OWs9ey71xO
-   yMiF6BBkoad7jNkiM1rfpmPm7LqrDHDw4uzSBMEHOL9Xd65HG203nD/T6
-   QXknJrptnF9FjmGkwIIdSnSf9eXWWz56+dF5HL9CHYBP9XfwK1+EmADDp
-   bCXIuknIoohQAbq+zMWKAQUKfCoZWJffcZWxg+d1efD58yF2Zuf4WtkJO
-   A==;
-X-CSE-ConnectionGUID: tWnTOmTTQiqnjzeCG/MlWA==
-X-CSE-MsgGUID: 6zTyvV2bSdCgHswh/atKHg==
-X-IPAS-Result: =?us-ascii?q?A0AdAwCVUYxq/44QJK1aglkCghY/gVJDSZQpgiGBFp0Ig?=
- =?us-ascii?q?X4PAQEBD1EEAQGFBQKNbAImNAkOAQIEAwIDAQEBAQEBAQEBAQELAQEFAQEBA?=
- =?us-ascii?q?gEHBYEOE4ZcSQEMAYYEAgEDJwsBRhBRVhmDAoJ1A75ZgXkzgQHeR4FmAQsUA?=
- =?us-ascii?q?YE4jWF2hHwnG4FJRIEVgnMHb4UQhXgEgy6TVUiBHgNZLAFVEw0KCwcFgWYDN?=
- =?us-ascii?q?RIqFTI8Mh2BIz4XgQ0bBgWBHVlPhBAjGTZ8gQlegSspYAESF4EJggcCglqCB?=
- =?us-ascii?q?QIBSUMOB0ciCxgNSBEsNxQZBD5uB45dH4JLATEiMQoUgTIpUQWTSgGDKrAjh?=
- =?us-ascii?q?CihXBozl1+TDZkIpCOFIIFoPIFZMxoIGxWDIlMZD44tFoEUAQLOZEUyPQEBB?=
- =?us-ascii?q?wIHDgMLgWiIZYkZAQE?=
-IronPort-Data: A9a23:ZjrTt64Hs12ehOG0yfKiewxRtO3HchMFZxGqfqrLsTDasY5as4F+v
- jQXXmqGO6uIN2LwKthzYNy3oUIB7JLUy98xGwFp/Ck9Zn8b8sCt6fZ1gavT04J+CuWZESqLO
- u1HMoGowPgcFyGa/lH2dOC98RGQ7InQLpLkEunIJyttcgFtTSYlmHpLlvUw6mJSqYDR7zil5
- 5Wo/qUzBHf/g2QqajJOt/rawP9SlK2aVA0w7wRWic9j5Dcyp1FNZLoDKKe4KWfPQ4U8NoaSW
- +bZwbilyXjS9hErB8nNuu6TnpoiG+O60aCm0xK6aoD66vRwjnVaPpUTaJLwXXxqZwChxLid/
- jniWauYEm/FNoWU8AgUvoIx/ytWZcWq85efSZSzXFD6I0DuKxPRL/tS4E4eIbIexsFyPV139
- OUeKiIART/EouaJ6efuIgVsrpxLwMjDNYcbvDRkiDreF/tjGc2FSKTR7tge1zA17ixMNa+BP
- IxCN3w2MlKZP0cn1lQ/UPrSmM+qmn77dzBEgFmUvqEwpWPUyWSd1ZC9aYSEJY3bFZg9ckCw+
- HD67nrHWBshOPeQ6SGa8jWlmszvknauMG4VPPjinhJwu3Wfz3IeDTUaXEW2pP2+hFL4Xd9DQ
- 2QP9iQGo6839UerQ8e7WhDQiHyDvhhaVdNLD+Qw5QeB4qXR6gedQGMDS1ZpZdA7scYkSCAC2
- ViOkNfkQzdotdW9RXub97qQhTK1NiUcN2UFdWkCQBdty9D4vKkwgwjJQ9IlF7S65vX1EC7z6
- zOHti4zg/MUl8Fj/6am91nvgD+2oJXNCAkv6W3/V2Sp9A5mJ4ioe4Cl93Df8PBGao2ZJnGNo
- HEYhsyT5cgIE5CBlSXLS+IIdJmt6vGDKjr0h0BuE5gosT+q/haLeIpU5zp+DEF3M8oFcHniZ
- 0q7kRhY6ZJfOVOsc657Yov3AMMvpYD8HM7kT+z8aMRPbpl4MgSA+UlGfUea0mbsuFIhnaE2J
- dGQdsPEJXwCB4x5wzesAeQQy7kmwmY532y7bZT6yQm3lLmTfniYTZ8bP1aUKOM09qWJpEPS6
- dk3H8+LzQhPFffyZyD/74EeNxYJIGI9CJSwrNZYHsaFLxZqFX8JFfDc2/UidpZjkqATkf3Hl
- lmmRkZSzFfXm3LKM0OJZ2plZbepWoxwxU/XJgQlOVKunnxmaoG14eJHKt08fKIs86poyvsco
- +Q5Rvhsy89nElzvkwnxp7Gk9uSOqDzDadqyAheY
-IronPort-HdrOrdr: A9a23:SCig5K2GbyNomNzsbRSBJgqjBJIkLtp133Aq2lEZdPWaSKClfq
- eV7ZAmPHDP5gr5NEtLpTnEAtjifZq+z+8R3WByB9aftWDd0QPCEGgh1/qB/9SKIULDH4BmuJ
- uIC5IfNPTASX5nkM39/A60V/wkwNWB7eSUoN229QYLcemvAJsQljuQzW2gYytLeDU=
-X-Talos-CUID: 9a23:ixK8x2OSe3p0j+5DRBZhyGkRJvwcc2TbzmXdCGD/LGJWYejA
-X-Talos-MUID: 9a23:+2wEdgsb2JAlbHhjts2n2iNeJdlWua6VBGsCsY4Zu46NKQ9QNGLI
-X-IronPort-Anti-Spam-Filtered: true
-X-IronPort-AV: E=Sophos;i="6.25,240,1779148800"; 
-   d="scan'208";a="816979985"
-Received: from alln-l-core-05.cisco.com ([173.36.16.142])
-  by alln-iport-7.cisco.com with ESMTP/TLS/TLS_AES_256_GCM_SHA384; 24 Aug 2026 14:16:49 +0000
-Received: from localhost (unknown [10.228.224.45])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by alln-l-core-05.cisco.com (Postfix) with ESMTPS id 8BD78180004BC;
-	Mon, 24 Aug 2026 14:16:49 +0000 (GMT)
-From: Jerome Tollet <jtollet@cisco.com>
-To: netdev@vger.kernel.org
-Cc: saeedm@nvidia.com,
-	tariqt@nvidia.com,
-	mbloch@nvidia.com,
-	leonro@nvidia.com,
-	dtatulea@nvidia.com,
-	daniel@iogearbox.net,
-	andrew+netdev@lunn.ch,
-	davem@davemloft.net,
+        d=bynar.io; s=google; t=1787582492; x=1788187292; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=nf7EVRYxoxQWsxoCyroYFHFo05h0v+nfMkplrl85KEI=;
+        b=ewDrsIIN7H3wOE/CurJ1UQ8cCfjvm1GgTp3Oboun2TD/HOqHSNhCCJmUoLRHLP8BXR
+         wk9bzjOoXK5/HnpTuisD59yBj7hwmKw8WtHkJZbUGJyBlF2gHpHaLPfXJ/HT4GDnd6Uy
+         kZu6jxosRWehD+LrNBQhy7v2cXxL4To908shg/dr4LFpWqo8iqadmBhA2spuP27mgS5e
+         8gthaPGGIwIPC64xQOEyPxrUKABE+RdURgNs8VE1nNm/EfQDQZCyOTjk77MdMefGljZm
+         tQ1izu/C9s/Wy+sVO3e0dXPiTHyqQHQXHHA98l99WgceVoY3L8Xi8dj8itNL/5YhwGzq
+         HCMw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1787582492; x=1788187292;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=nf7EVRYxoxQWsxoCyroYFHFo05h0v+nfMkplrl85KEI=;
+        b=sMqbjhqL5+ryG20aIhrtCjaNcuNgm3rLLYu65/woH1G7mT+uzdxvSqxwoAqIwdlZWp
+         t/fcXqVzDMLTrangCvhjJE+Vuy6OpuduWQjC++mWLYJXlWMshKjPZPef8MiaCRNMZYqh
+         6GqRvhgow5pSSObtjhkiRknI0LJkztLE+/E4rMOE/7N9FnBzUFINgPpwPItZVZUq1mj6
+         v/cjtg4bhxkI9jtW3Al4oYBWdVmwkfWYmK3zp8oO+RhmaNi1YC6M5ho/yHtXR8zfJ7Jo
+         uUqZikmG8sLU9zYjL74yZo7frVgm15BYxNhCgOdoJQsohFZnrjlG9yHPAXhWvARzS85i
+         Adsg==
+X-Forwarded-Encrypted: i=1; AHgh+RoGDU5Qlrj6vpitrU4WRHhjuMPByk2tEQ2BkERDistW6zJZYlb7RWG9n/xoz5DkZnjqC5mP6DWtevFE@vger.kernel.org
+X-Gm-Message-State: AFuF++mIEbMRAU6ykie+BtcSL4H42BvoLcQ5zelOo3/TYIwwVSnYp5b2
+	pSJocqwjeNjg+2AC8SZnAeP7aX+A9/2qb1UuPW52CvXgaOJAnoru9IsEEZVS7860JRqk
+X-Gm-Gg: AR+sD13nA5EIyLNq0dSy/kqNTwlrYr1QCQxv7xh6su2MH/34tzgI+nN8u0uabi8uFof
+	+j1QUDBubYVzIz7x8nAYJBVA72XCitZxuG8DR8ASgszvncfVnq89sMksfBf96ZSHRaUljuJbSh4
+	nEBow/97zSCh3xYWxz26YASIyPGESEbcALuim88YuqtpVXD/DgLPcb4EnWcdiNdjUNB6MdxS0fJ
+	vvavBAJsNAmNHLq4iAn1vQq9+CF4sUWHdtbWGmrfC3mNHZwKyFuEhQ4z4j9tEJJCRszSQ7cyL37
+	W+xJfs/XUJA2sZ0gHiuFoFHVL6pNBgm2IqRTovGR10auH9UI2BAoEmc4AdIFbg+P/UjDO56EMNo
+	4O9ktEYqsGVbZECxfN2qQUbIhR2SL4CJufcJO7WewsW3+gbrgGuJNp1m/XamxRPCUwkJahL2+Y9
+	DAWJR+Jja/XcNfiNfv5YOxM7MuJg84r5A+GUKbpeO7625ZbOiLbtQsmshA0/TYnO00l+DrHtIBn
+	N0fsTIrGMGzJu9yxZTGiOH6D7Wzpbs2Weg5fkhw+Buc3nwdqVnrwLcEjMg5
+X-Received: by 2002:a17:906:6312:b0:c24:6445:d19 with SMTP id a640c23a62f3a-c24926f3cf9mr2285240266b.17.1787582491234;
+        Mon, 24 Aug 2026 07:41:31 -0700 (PDT)
+Received: from localhost.localdomain (cpc69057-oxfd26-2-0-cust39.4-3.cable.virginm.net. [82.6.0.40])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c24968a336fsm1341874566b.60.2026.08.24.07.41.29
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Mon, 24 Aug 2026 07:41:30 -0700 (PDT)
+From: Paula Moutafian <paula@bynar.io>
+To: achender@kernel.org
+Cc: davem@davemloft.net,
 	edumazet@google.com,
 	kuba@kernel.org,
 	pabeni@redhat.com,
-	ast@kernel.org,
-	hawk@kernel.org,
-	john.fastabend@gmail.com,
-	sdf@fomichev.me,
+	horms@kernel.org,
+	netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	bpf@vger.kernel.org,
-	Jerome Tollet <jtollet@cisco.com>,
-	stable@vger.kernel.org
-Subject: [PATCH net v4 1/2] net/mlx5e: Prevent stale XSK buffer release on refill retry
-Date: Mon, 24 Aug 2026 16:16:44 +0200
-Message-ID: <20260824141645.23700-2-jtollet@cisco.com>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260824141645.23700-1-jtollet@cisco.com>
-References: <cover.1787347981.git.jtollet@cisco.com>
- <20260824141645.23700-1-jtollet@cisco.com>
+	rds-devel@oss.oracle.com,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH net] net/rds: fix out-of-bounds write in rds_conn_peer_gen_update()
+Date: Mon, 24 Aug 2026 15:41:24 +0100
+Message-ID: <20260824144124.64756-1-paula@bynar.io>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -109,59 +79,147 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Outbound-Client-TLS: ANONYMOUS;unknown [10.228.224.45];TLSv1.3;TLS_AES_256_GCM_SHA384;256
-X-Outbound-SMTP-Client: 10.228.224.45, [10.228.224.45]
-X-Outbound-Node: alln-l-core-05.cisco.com
 
-When an XDP redirect to an AF_XDP socket fails because its RX ring is
-full, the XSK core frees the buffer. During the subsequent batched refill
-of a legacy cyclic RQ, mlx5e also releases the WQE's XSK buffer before
-allocating a replacement. If that refill succeeds only partially, a WQE
-left without a replacement retains its old buffer pointer.
+rds_conn_peer_gen_update(), rds_start_mprds() and rds_check_all_paths()
+all iterate conn->c_path[] up to RDS_MPATH_WORKERS (8) or conn->c_npaths,
+but c_path is allocated with only
 
-The buffer can meanwhile be allocated to another WQE. A later refill
-retry can then free the live buffer through the stale pointer and publish
-the same UMEM frame twice.
+	npaths = (trans->t_mp_capable ? RDS_MPATH_WORKERS : 1)
 
-Mark the WQE as released immediately after the driver-side free. The flag
-is already cleared when a replacement buffer is assigned, so refill
-retries no longer release stale pointers.
+entries in __rds_conn_create() (net/rds/connection.c).  Only the TCP
+transport sets t_mp_capable, so for the IB/RDMA transport (and the loop
+transport) exactly one rds_conn_path is allocated.
 
-The failure is silent and produces no kernel warning or splat. A
-standalone legacy cyclic-RQ zero-copy libxsk reproducer, using 64-byte UDP
-traffic offered at 12 Mpps, detected it: stock stopped after 2,854,914
-packets in 4.094 seconds, with 4,542 xdp_rx_ring_full events and 64
-ownership/double-publication errors. With this change it processed
-356,904,225 packets in 30 seconds despite 571,405 xdp_rx_ring_full events,
-with no ownership or data errors.
+c_npaths is derived from the peer via the RDS_EXTHDR_NPATHS handshake
+extension header and is only clamped to RDS_MPATH_WORKERS, never to the
+transport's actual allocation.  A remote peer on an RDS/IB (RoCE) fabric
+can therefore complete the unauthenticated handshake and, by sending a
+second RDS_EXTHDR_GEN_NUM with a changed generation number, drive
+rds_conn_peer_gen_update() to walk c_path[1..7] past the end of a
+one-element allocation -- taking cp_lock, writing cp_next_tx_seq /
+cp_next_rx_seq and walking cp_retrans on neighbouring slab objects.
+rds_start_mprds() and rds_check_all_paths() are reachable the same way
+via a peer-supplied c_npaths > 1; note rds_check_all_paths() is a
+do/while and dereferences c_path[0] before testing the bound.
 
-Fixes: 3f93f82988bc ("net/mlx5e: RX, Defer page release in legacy rq for better recycling")
+Reproduced against an unmodified 7.2.0 KASAN build, triggered from a
+hand-rolled RDS/IB peer completing the handshake and sending two probes
+with differing RDS_EXTHDR_GEN_NUM:
+
+BUG: KASAN: slab-out-of-bounds in do_raw_spin_lock+0x55/0x9a
+Write of size 4 at addr ff1100000425a624 by task ksoftirqd/0/13
+Call Trace:
+ do_raw_spin_lock+0x55/0x9a
+ _raw_spin_lock_irqsave+0x12/0x18
+ rds_recv_hs_exthdrs+0x34a/0x52a
+ rds_recv_incoming+0x5a8/0xb33
+ rds_ib_recv_cqe_handler+0xda1/0x12b6
+ poll_rcq+0x8e/0xb1
+ rds_ib_tasklet_fn_recv+0x1c4/0x348
+Allocated by task 10:
+ __rds_conn_create+0x5b3/0x168f
+ rds_conn_create+0x18/0x1b
+ rds_ib_cm_handle_connect+0x486/0xa35
+The buggy address is located 44 bytes to the right of
+ allocated 504-byte region, cache kmalloc-512
+
+The corrupted neighbour's cp_retrans.next is then dereferenced on the
+next line, producing a fatal GPF (RIP: rds_recv_hs_exthdrs+0x3ba/0x52a,
+KASAN: null-ptr-deref) -- a crash, not merely a detected access.
+
+Bound every loop by the number of paths actually allocated, mirroring
+the npaths computation already used in rds_conn_destroy() and
+rds_conn_message_info_cmn() (net/rds/connection.c).  For t_mp_capable
+transports the behaviour is unchanged; for single-path transports the
+loops now stay within the one allocated rds_conn_path.
+
+rds_conn_peer_gen_update() and rds_start_mprds() (net/rds/recv.c) were
+both correct when written, with c_path still a fixed
+RDS_MPATH_WORKERS-element array:
+
+commit 905dd4184e07 ("RDS: TCP: Track peer's connection generation number")
+commit 5916e2c1554f ("RDS: TCP: Enable multipath RDS for TCP")
+
+They became wrong when the allocation was made conditional on
+t_mp_capable without updating either loop:
+
+commit 840df162b3eb ("rds: reduce memory footprint for RDS when transport is RDMA")
+
+rds_check_all_paths() (net/rds/connection.c) is unrelated to that
+regression: it was added new, three years later, and was unbounded
+from the moment it was written:
+
+commit 9ef845f894c9 ("rds: If one path needs re-connection, check all and re-connect")
+
+Fixes: 840df162b3eb ("rds: reduce memory footprint for RDS when transport is RDMA")
+Fixes: 9ef845f894c9 ("rds: If one path needs re-connection, check all and re-connect")
 Cc: stable@vger.kernel.org
-Suggested-by: Daniel Borkmann <daniel@iogearbox.net>
-Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
-Signed-off-by: Jerome Tollet <jtollet@cisco.com>
+Assisted-by: Bynario AI
+Signed-off-by: Paula Moutafian <paula@bynar.io>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_rx.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ net/rds/connection.c |  3 ++-
+ net/rds/recv.c       | 10 ++++++----
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-index 206cf9db3466..7bd0606a5253 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-@@ -410,8 +410,11 @@ static inline void mlx5e_free_rx_wqe(struct mlx5e_rq *rq,
- 
- static void mlx5e_xsk_free_rx_wqe(struct mlx5e_wqe_frag_info *wi)
+diff --git a/net/rds/connection.c b/net/rds/connection.c
+index 7c8ab8e973e1..282e320516f5 100644
+--- a/net/rds/connection.c
++++ b/net/rds/connection.c
+@@ -976,11 +976,12 @@ EXPORT_SYMBOL_GPL(rds_conn_path_connect_if_down);
+  */
+ void rds_check_all_paths(struct rds_connection *conn)
  {
--	if (!(wi->flags & BIT(MLX5E_WQE_FRAG_SKIP_RELEASE)))
--		xsk_buff_free(*wi->xskp);
-+	if (wi->flags & BIT(MLX5E_WQE_FRAG_SKIP_RELEASE))
-+		return;
-+
-+	xsk_buff_free(*wi->xskp);
-+	wi->flags |= BIT(MLX5E_WQE_FRAG_SKIP_RELEASE);
++	int npaths = (conn->c_trans->t_mp_capable ? RDS_MPATH_WORKERS : 1);
+ 	int i = 0;
+ 
+ 	do {
+ 		rds_conn_path_connect_if_down(&conn->c_path[i]);
+-	} while (++i < conn->c_npaths);
++	} while (++i < conn->c_npaths && i < npaths);
  }
  
- static void mlx5e_dealloc_rx_wqe(struct mlx5e_rq *rq, u16 ix)
+ void rds_conn_connect_if_down(struct rds_connection *conn)
+diff --git a/net/rds/recv.c b/net/rds/recv.c
+index cf3884d87931..3813aa323731 100644
+--- a/net/rds/recv.c
++++ b/net/rds/recv.c
+@@ -133,15 +133,16 @@ static void rds_recv_rcvbuf_delta(struct rds_sock *rs, struct sock *sk,
+ static void rds_conn_peer_gen_update(struct rds_connection *conn,
+ 				     u32 peer_gen_num)
+ {
+-	int i;
++	int npaths = (conn->c_trans->t_mp_capable ? RDS_MPATH_WORKERS : 1);
+ 	struct rds_message *rm, *tmp;
+ 	unsigned long flags;
++	int i;
+ 
+ 	WARN_ON(conn->c_trans->t_type != RDS_TRANS_TCP);
+ 	if (peer_gen_num != 0) {
+ 		if (conn->c_peer_gen_num != 0 &&
+ 		    peer_gen_num != conn->c_peer_gen_num) {
+-			for (i = 0; i < RDS_MPATH_WORKERS; i++) {
++			for (i = 0; i < npaths; i++) {
+ 				struct rds_conn_path *cp;
+ 
+ 				cp = &conn->c_path[i];
+@@ -285,12 +286,13 @@ static void rds_recv_hs_exthdrs(struct rds_header *hdr,
+  */
+ static void rds_start_mprds(struct rds_connection *conn)
+ {
+-	int i;
++	int npaths = (conn->c_trans->t_mp_capable ? RDS_MPATH_WORKERS : 1);
+ 	struct rds_conn_path *cp;
++	int i;
+ 
+ 	if (conn->c_npaths > 1 &&
+ 	    rds_addr_cmp(&conn->c_laddr, &conn->c_faddr) < 0) {
+-		for (i = 0; i < conn->c_npaths; i++) {
++		for (i = 0; i < conn->c_npaths && i < npaths; i++) {
+ 			cp = &conn->c_path[i];
+ 			rds_conn_path_connect_if_down(cp);
+ 		}
+
+base-commit: 564973a259ec76f2dad0853420e7034cc43994c4
 -- 
-2.55.0
+2.50.1 (Apple Git-155)
 
