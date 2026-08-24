@@ -1,76 +1,107 @@
-Received: from mail-pj1-f49.google.com (mail-pj1-f49.google.com [209.85.216.49])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from alln-iport-8.cisco.com (alln-iport-8.cisco.com [173.37.142.95])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10AF63F39E2
-	for <linux-rdma@vger.kernel.org>; Mon, 24 Aug 2026 11:17:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C97D43846C;
+	Mon, 24 Aug 2026 14:09:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=173.37.142.95
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787570228; cv=none; b=kOsm6gF7+J3yyM5dLZKB7ctmzgkjhNOXMFBEY0swi7xRatuTDIaeaoBSxo41oxVt6tcxNd6QAa7hOIrhLxC6g6qYhA59KVXCdFeWEEiJMZZDRg2flCZgjAboeD+B1bIreU4eFgDwHB+sQu5qNz+HkIoEMHpNIYJE7y59TTAZtew=
+	t=1787580596; cv=none; b=LeIG2vyPku8CwZhd/gfvaYR2qpq9J41LicG9SN8skJAlfVr9sLsnVUD1JMbUOH/Sva00kJQmUwnF9mcRu0zDG3JUk3xWQ2xGkJFnRP8WKp7nkZe1g6ALkoZiMFwLFrS20bOj4rIPo54ul4RgeIWYhmnVej5LdpzujVf76a+oVX4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787570228; c=relaxed/simple;
-	bh=h84y8IY73k8HDgDFbEOYAH4dnXdhVJJgku0CDx6klyE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=hs6ILiZoQDLT+nHF9sZdPyFeV7Cv3IorTTpftnUEnkrRGDS6aqn2IXP305i8wBz0ufmTTVIU0mmKVLwVBt1K40ORolWasDQ3yrsPZU8p52eEJEk0HpDgVcyZwSs/uLES3OZ8GtwIVuDEaniKGK5K5r+SJph1VAOjm5NJyTixmXA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=R0ZDX0v2; arc=none smtp.client-ip=209.85.216.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1787580596; c=relaxed/simple;
+	bh=EWk4hyPG7+FOgPwNlMRsuGfg5oxxmX/Xb9vd6xeiMSk=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=HgGx+ysnGMuy/rgvRRRoAxgm6C3Mzyakr1J5LXGVZb6K7o9wm0PdPztz/4rNXKrzRvqzI+cHKT2WAP9wqDHDBelIfhrwNsHrga+inkgxZtAD2cdiw+aKnkSPnivV3LK+vuIHkSyiDNmMwwp1tyh80T11UEn3CISxxTMhHgHHztA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cisco.com; spf=pass smtp.mailfrom=cisco.com; dkim=pass (2048-bit key) header.d=cisco.com header.i=@cisco.com header.b=CTvRWbFI; arc=none smtp.client-ip=173.37.142.95
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cisco.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cisco.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="R0ZDX0v2"
-Received: by mail-pj1-f49.google.com with SMTP id 98e67ed59e1d1-38125cebfdaso4992250a91.1
-        for <linux-rdma@vger.kernel.org>; Mon, 24 Aug 2026 04:17:06 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=cisco.com header.i=@cisco.com header.b="CTvRWbFI"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1787570226; x=1788175026; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=AWFyETnr9mq+FduhbKFRct19A7NzPMjqIJldSASGEJw=;
-        b=R0ZDX0v2O7+AAunwhoulRU+ABxtj9hYPybsqIGu59n0/hAKF+qzgev2pzm+00awCvp
-         g3WlQIi+mGFMRazzLFoVE4TU2HWzX8Qzr9dQHy+A1uxXedzQiX4iuWMM+oWf0vtlKKQd
-         Loj89xjBpq4SN1GDBj9dqrpvqWp3ntStd8+PEETJKHXttVjq4QJVaVCbMcIwGD3LV7oR
-         ujPW/ffEi+1ek9eDYEOM1vHSbsQFJATp8bVZremwEQXhAvdYHXGP5X4Of6SbhY3zhlBO
-         1NGBtLOViNuaBZ4/kv4459BnS4b2Eifjr3T1Cij3f/6a758urDabhuCa4+g1/oZAywwT
-         DQZA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787570226; x=1788175026;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=AWFyETnr9mq+FduhbKFRct19A7NzPMjqIJldSASGEJw=;
-        b=py2LB4deiRGIBnBYJxCBAQt1E9QN2rrmTT0CapZSw06So5KbCzvN11e9VcIfVWXN2W
-         DbaUSBx3kAYHQkvMx9NIldinzlVXBe5TK81giKpwptbSWoR8hRixB5mv03MsEBYczvl2
-         KYU4OIg+Bn0ivF/d07wbEqaJEYodJXlA5QXjTdJ/EIUD4bR25IpW0BZ70ky3nnNLjnZG
-         a3AHALvAvosQvd2U0OYB36xixYZrGkW60yx+L3wQATkd06wbVf+1r4uysQsvj387J0f4
-         sofD8WoNjWiJl6Z1lx21O9fywrcOIfIO/NsQfGTlaA/oQy8ZOAvgactLHeEx2WwuPQZf
-         mqJg==
-X-Forwarded-Encrypted: i=1; AHgh+RrUhWvKmY00RJEeWcqjweA6Voz4iI1QqBf3OSP/NpGRGA/TWn0y1N0ju0G7/Q5TCUd05qHb+S8J6vVK@vger.kernel.org
-X-Gm-Message-State: AFuF++kyj+3OX5NtEkKVles1J5ODEAFsNtm+MjZEGlFEq+TLUf6Lsagw
-	rAAWt8n5cyMONEhdK56amVRFcJ+yRfAWeQYTmXo51KwjH3xhTMMsvawkpB4UFQ==
-X-Gm-Gg: AR+sD11WQAxTBb/k6D82YfF41lE3iMgclTXqQ75P+Y8eiq4pQab/QXlBSEXmroYJcQO
-	M06KH9OUhvYe0/wlGlADui+yPzBc3QYyNgDGbOkC8nn75IBBKl5Nd4HUqocZBcABDiK6wdFKV6A
-	t9JdOWTzjYFv7ewRmUEubj6Zun1bUhe66q2C5LntHtLsq8cbNzxlcT8lYRgIorRrWgn3B/v+8ru
-	ET6pD0EuKneGC+ibV4KlXqNpkPOOSf/3e5LF9d3lCJEthQuSneDkIE+gU7VekICOtwRovjU4KDa
-	MdQTUAq3z+nFGQhexnmhlzmTbxd6Zo0S6vFydMdfcwea8bZYLwxAnWpC0TDX6IutZ0Y19s/1KkT
-	/D5oh24d8Qw1G0MiZrRpImZHpIhSir1FCKDgCqXKpBqL5TDiZePxic9fKH9hysKCvNGu13ypPJy
-	SdZiEfkPiAKzYv75Hf2osgEibi0R8LOt8Z8IFrddxp+Yt2cve+XLO/uBxBzA1O4Gcq5OYmVccgd
-	wjnJFzG9sAhe/Xui8sjO0m2xBg=
-X-Received: by 2002:a17:90b:4a81:b0:38e:6f90:eabd with SMTP id 98e67ed59e1d1-395c355c570mr44450182a91.5.1787570226249;
-        Mon, 24 Aug 2026 04:17:06 -0700 (PDT)
-Received: from localhost.localdomain ([180.101.244.72])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-395e4996691sm9650165a91.6.2026.08.24.04.17.03
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 24 Aug 2026 04:17:05 -0700 (PDT)
-From: Aohan Mei <ljp1205831794@gmail.com>
-To: netdev@vger.kernel.org
-Cc: Allison Henderson <achender@kernel.org>,
+  d=cisco.com; i=@cisco.com; l=771; q=dns/txt;
+  s=iport01; t=1787580594; x=1788790194;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=EWk4hyPG7+FOgPwNlMRsuGfg5oxxmX/Xb9vd6xeiMSk=;
+  b=CTvRWbFIGaubNPrCVLp+cFTlhsnlT0Zv7Mk+e5t/pCmswJgSPuMZvTnc
+   ZunkFzYtb08fkinKPCLjusz/UmgLCpiyLpGfujlyxEbxuRhGQcV4ZFvnc
+   RDuNkleDTadoJqIsO1YCDi4bEmJKs6fBdE6US5fOhRBAB9avSEAC5VL9D
+   OALOuQ4K1L7o1RyXXT4tiGfKTnTiXP/E008tgZbRNH7evlqU8xkVjsj0x
+   Zt5XIFs5EVrf+3UoUxzAKwPiBs02TjJJl7On3cT/K6Tu0Dwg7R0GXxnnq
+   2+wa98qORkhSbXZeq+djCPPO1dwdHXzFjbEX+SrSUr0oAf21AYGuwDpq3
+   A==;
+X-CSE-ConnectionGUID: Ch0jTdYOQZmVofPRK3MPUg==
+X-CSE-MsgGUID: Dj2cqU4SQLGstu02LBJnEQ==
+X-IPAS-Result: =?us-ascii?q?A0BnBAA1T4xq/4sQJK1aglmEKUOUcoIhnh6Bfg8BAQEPU?=
+ =?us-ascii?q?QQBAYUFAo1sAiY2Bw4BAgQDAgMBAQEBAQEBAQEBAQsBAQUBAQECAQcFgQ4Th?=
+ =?us-ascii?q?lyGWwIBAzIBRhALDjhWBoMVgnUDvnaCLIEB3keBchWBOI1hdhuEYScbgUlEh?=
+ =?us-ascii?q?A8xPosIBIIigQyTVUgKgRQDWSwBVRMNCgsHBYEjQwM1EioVIw88BS0dgSMhH?=
+ =?us-ascii?q?RcXdhsGBRIgKkFEFQ4DPoEZQQKBdT8jGTZ8gQlegSspYAECEBdGLhWCBwKCW?=
+ =?us-ascii?q?oEnXgIBSUMOB0ciCxgNSBEsNxQZBD5uB5FBBgExSlaBAStvllywI4QooVwaM?=
+ =?us-ascii?q?5dfkw2ZCKlDgW4BNYFZMxoIGxWDI1IZD45fz19FbwEBBwIHDgMLgWiRfgEB?=
+IronPort-Data: A9a23:W4a3yaNwgCZaqh7vrR1vl8FynXyQoLVcMsEvi/4bfWQNrUoqgzZVy
+ zdOD2GGa/ffYWqgf493bY63ph9Q7JCHz9JkSXM5pCpnJ55oRWUpJjg4wmPYZX76whjrFRo/h
+ ykmQoCeaphyFTmE+kvF3oHJ9RFUzbuPSqf3FNnKMyVwQR4MYCo6gHqPocZh6mJTqYb/WV7lV
+ e/a+ZWFZgf1gWIsawr41orawP9RlKWq0N8nlgRWicBj5Df2i3QTBZQDEqC9R1OQapVUBOOzW
+ 9HYx7i/+G7Dlz91Yj9yuu+mGqGiaue60Tmm0hK6aYD76vRxjnBaPpIACRYpQRw/ZwNlMDxG4
+ I4lWZSYEW/FN0BX8QgXe0Ew/ypWZcWq9FJbSJSymZT78qHIT5fj695uVEMKMbw/w9RyP2ZAz
+ cY7cxU1Ux/W0opawJrjIgVtrs0nKM+uOMYUvWttiGmDS/0nWpvEBa7N4Le03h9p2ZsIRqiYP
+ pRfMGE+BPjDS0Un1lM/Co45mOOlmlH0ciZTrxSeoq9fD237nFUhj+C9boeIEjCMbelXxE2Bm
+ z79xkDWGQ0HbIa74xiD30v504cjmgu+Aur+DoaQ+vd0jVi7ymUNBRgSUlWn5/+0liaWQN5RA
+ 0IT/yslraUsskmmJvH/WB2+5nCNpQIVUddWH8U17QiMzuzf5APxLmUIUztIetE6nMAxQjMu2
+ xmCmNaBLTBmtryYTVqc8biZpCm4PjhTK2IeDQcNVhct4NT5pow3yBXVQb5LEKeqjfX2FCv2z
+ jTMqzIx750QkMQC/6a251bKh3SrvJehZgcz6h/aQSGj4x91aZCNY5Gu7x7Q7Z5oIJqQUkSFs
+ XEsndaf4OEHS5qKkUSlROgKGquuz/CbMTHdiBhkGJxJ3zGn/3mofahW/jByJU4vOcEBERfya
+ ULetQZ54oFSMHqjK6RwZuqZF80wzLH8PdL7V/zVZ5xFZZ0ZXBeO9ixoZGaK0mztmVRqmqY6U
+ b+RaciEE3kXE+JkwSCwSuNb1qUkrgg6xGXOVdX4wg6h3L62enGYU/EGPUGIY+R/67mLyC3R8
+ tBCJ46QxxBWePPxbzOR8oMJK10Oa38hCvjercFLeuOdChRpFXtnCPLLx74lPYt/kMx9jfvB9
+ HWwclFXxUC5hnDdLwiOLHd5Z9vSsY1XpHY/O2koeF2vwXVmOdzp56YEfJxxdr4inAB+8cNJo
+ zA+U53oKpxypv7volzxsbGVQFReSSmW
+IronPort-HdrOrdr: A9a23:7hitjKumPSL4Rgy0f8kWD2rZ7skDVtV00zEX/kB9WHVpmwKj+/
+ xG+85rsSMc5wx+ZJhNo7q90ey7MBDhHP1OkOws1NWZPTUO0VHAROpfBMnZsl/d8kbFmdK1u5
+ 0MT0EHMr3NJGk/q9rm6w+lFNtl6tyG/Ke0wdr69R5WPGZXg2UK1XYBNu5deXcGIjV7OQ==
+X-Talos-CUID: =?us-ascii?q?9a23=3Azh53mmiI/0HrjrqmMJZp2NW90zJuWX2FzkvcEmi?=
+ =?us-ascii?q?BO2NXT7Otc3zL3ZtZnJ87?=
+X-Talos-MUID: =?us-ascii?q?9a23=3AaPAE6g2mWk1KVrU7mZaQmuEiaTUjz6b0A1kwza4?=
+ =?us-ascii?q?/n+afKTEoYRO3rjKae9py?=
+X-IronPort-Anti-Spam-Filtered: true
+X-IronPort-AV: E=Sophos;i="6.25,240,1779148800"; 
+   d="scan'208";a="818708655"
+Received: from alln-l-core-02.cisco.com ([173.36.16.139])
+  by alln-iport-8.cisco.com with ESMTP/TLS/TLS_AES_256_GCM_SHA384; 24 Aug 2026 14:09:46 +0000
+Received: from localhost (unknown [10.228.224.45])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by alln-l-core-02.cisco.com (Postfix) with ESMTPS id B3FF51800015B;
+	Mon, 24 Aug 2026 14:09:45 +0000 (GMT)
+From: Jerome Tollet <jtollet@cisco.com>
+To: Dragos Tatulea <dtatulea@nvidia.com>
+Cc: Jerome Tollet <jtollet@cisco.com>,
+	netdev@vger.kernel.org,
+	saeedm@nvidia.com,
+	tariqt@nvidia.com,
+	mbloch@nvidia.com,
+	leonro@nvidia.com,
+	daniel@iogearbox.net,
+	andrew+netdev@lunn.ch,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	ast@kernel.org,
+	hawk@kernel.org,
+	john.fastabend@gmail.com,
+	sdf@fomichev.me,
 	linux-rdma@vger.kernel.org,
-	rds-devel@oss.oracle.com,
 	linux-kernel@vger.kernel.org,
-	Jason Xing <kerneljasonxing@gmail.com>,
-	Aohan Mei <henrymei@tencent.com>,
-	TencentOS Corvus AI <corvus@tencent.com>,
+	bpf@vger.kernel.org,
 	stable@vger.kernel.org
-Subject: [PATCH net] net: rds: fix uninitialized trans dereference in CM event handler
-Date: Mon, 24 Aug 2026 19:17:01 +0800
-Message-ID: <20260824111701.2979194-1-ljp1205831794@gmail.com>
-X-Mailer: git-send-email 2.43.7
+Subject: Re: [PATCH net v3 2/2] net/mlx5e: Prevent stale XSK buffer release on MPWQE refill retry
+Date: Mon, 24 Aug 2026 16:09:43 +0200
+Message-ID: <20260824140943.20665-1-jtollet@cisco.com>
+X-Mailer: git-send-email 2.55.0
+In-Reply-To: <b4abc8e4-aa9e-4e92-97b8-c6a661014c16@nvidia.com>
+References: <20260820151558.11015-1-jtollet@cisco.com> <cover.1787347981.git.jtollet@cisco.com> <675ce8a404cfe305e788a8e273b4091c9a90f867.1787347981.git.jtollet@cisco.com> <b4abc8e4-aa9e-4e92-97b8-c6a661014c16@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -78,67 +109,27 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Outbound-Client-TLS: ANONYMOUS;unknown [10.228.224.45];TLSv1.3;TLS_AES_256_GCM_SHA384;256
+X-Outbound-SMTP-Client: 10.228.224.45, [10.228.224.45]
+X-Outbound-Node: alln-l-core-02.cisco.com
 
-From: Aohan Mei <henrymei@tencent.com>
+Hi Dragos,
 
-rds_rdma_cm_event_handler_cmn() assigns trans only when the RDMA
-device is an InfiniBand CA (RDMA_NODE_IB_CA).  On any other device
-type, e.g. an iWARP RNIC such as siw, trans stays uninitialized, but
-the event switch dereferences it: unconditionally in the
-RDMA_CM_EVENT_CONNECT_REQUEST case via trans->cm_handle_connect(),
-and (with a connection context) in the ROUTE_RESOLVED and
-ESTABLISHED cases.
+Agreed, thanks. I changed the patch to set all skip_release_bitmap bits in
+the common error path of mlx5e_xsk_alloc_rx_mpwqe(), consistently with
+mlx5e_alloc_rx_mpwqe().
 
-An RDS listener on an iWARP device therefore crashes the kernel as
-soon as a connect request arrives: with CONFIG_INIT_STACK_ALL_ZERO
-the wild load becomes a NULL dereference at offset 0xa0
-(&trans->cm_handle_connect) in the iw_cm_wq workqueue.
+I tested both early and partial allocation failures. With three consecutive
+failures on the same MPWQE, the original 16 XSK buffers were released only
+once. Retries observed a full bitmap, and a later successful allocation
+cleared it. The partial case allocated 8 of 16 replacement buffers before
+unwinding.
 
-GCC masks the bug in default builds by folding the uninitialized
-load into &rds_ib_transport; Clang-built kernels take the real
-uninitialized path and oops.
+I also ran a 20-second AF_XDP zero-copy striding-RQ pressure test with the
+clean patch. It exercised 1,575,262 XSK buffer allocation failures and
+reported no invalid descriptors, WQE errors, or kernel warnings.
 
-Reject events that arrive on device types without an RDS transport:
-initialize trans to NULL and bail out before the event switch when
-no transport matched.
+I'll send v4 with this change.
 
-Fixes: dcdede0406d3 ("RDS: Drop stale iWARP RDMA transport")
-Reported-by: TencentOS Corvus AI <corvus@tencent.com>
-Cc: stable@vger.kernel.org
-Assisted-by: CodeBuddy:Kimi-K3
-Signed-off-by: Aohan Mei <henrymei@tencent.com>
----
- net/rds/rdma_transport.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
-
-diff --git a/net/rds/rdma_transport.c b/net/rds/rdma_transport.c
-index b15cf316b23a..ad9244a09848 100644
---- a/net/rds/rdma_transport.c
-+++ b/net/rds/rdma_transport.c
-@@ -52,7 +52,7 @@ static int rds_rdma_cm_event_handler_cmn(struct rdma_cm_id *cm_id,
- {
- 	/* this can be null in the listening path */
- 	struct rds_connection *conn = cm_id->context;
--	struct rds_transport *trans;
-+	struct rds_transport *trans = NULL;
- 	int ret = 0;
- 	int *err;
- 	u8 len;
-@@ -80,6 +80,14 @@ static int rds_rdma_cm_event_handler_cmn(struct rdma_cm_id *cm_id,
- 		}
- 	}
- 
-+	/* No RDS transport exists for this device type (e.g. iWARP RNIC),
-+	 * so trans was never assigned; reject instead of dereferencing it.
-+	 */
-+	if (!trans) {
-+		ret = 1;
-+		goto out;
-+	}
-+
- 	switch (event->event) {
- 	case RDMA_CM_EVENT_CONNECT_REQUEST:
- 		ret = trans->cm_handle_connect(cm_id, event, isv6);
--- 
-2.43.7
-
+Thanks,
+Jerome
