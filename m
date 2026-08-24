@@ -1,163 +1,158 @@
-Received: from mail-ej1-f49.google.com (mail-ej1-f49.google.com [209.85.218.49])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30E41376A0E
-	for <linux-rdma@vger.kernel.org>; Mon, 24 Aug 2026 03:30:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.49
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787542218; cv=pass; b=Zs4JiAY3Qs0AQVAXxOizgwfvHtwzfRjAFHqpbghEaW6KCu832LHGYfwStAPiflrigl5mI5hyLXcZYpiXD+WbOAc0q8BoM/0zYfOSOuwqO1hQDun2GHiH6TuRCIOYeWBQy6B9fRnty7g0MPsV/6fFP2dktADN8Yvxxlp23kmNSGw=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787542218; c=relaxed/simple;
-	bh=+nzZ6tdJPSH4n79gvadSJGNV7wbriV2ZXJzPTGvymEM=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ui3HCBL0v0D9yWEiQc/FXMWg4BZRHnsYnpSzzfqrvvJoQfBmcLeBKcn2a5cN2AztWCJZt9SdobtRFBFyrezIG/4pFaZWjSzkCEcIByQ0RSh67ZqEx+sPgeoG1u3Dg/t0FIZYQQJUkrPfdSrLxHrplJ6SBxVHH4QKBs+XzGkRubk=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cloud.ionos.com; spf=pass smtp.mailfrom=ionos.com; dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b=EXCrPrlV; arc=pass smtp.client-ip=209.85.218.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cloud.ionos.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ionos.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86E793EA949;
+	Mon, 24 Aug 2026 06:59:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1787554758; cv=none; b=efb7ebT8Rr0Q0dpGNR4JimrsAILcV7NURu7JicfW/rCOQRFXl8RnWetRHsl440Aqdi0Ap/9h1IlJ/SYk8vEZzFWo96PP9UfU7909TIQoDVyz4AcpZaEqbl4sEcxKPxx6+A8O7ThAbNPwfAkNGuhdJGjr6o4Es3QBOL4lMyYPuAk=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1787554758; c=relaxed/simple;
+	bh=SKC/TBZZw15QzPzlqIGkVqIlE3FmmfgbbQcvXZl/5EE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=cXaX7pY2Rb2aA3DZ1NKwB6pRbwh4MmJ2zRKdROxkF3qOAsqc/Liy8kD8lXvXUnDnX9k8ff0qjoTnKkbDgVbwKhyAtAB3U0cf1Zi3AvdhW9hY8KRPEiETC8XuZlBXcGxpKsNh/eDcV5kVsT16CJa3FGq+LxoCJKtIRniMFIyrm+Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=hqoyhM8i; arc=none smtp.client-ip=148.163.156.1
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="EXCrPrlV"
-Received: by mail-ej1-f49.google.com with SMTP id a640c23a62f3a-c15f025146dso38903966b.2
-        for <linux-rdma@vger.kernel.org>; Sun, 23 Aug 2026 20:30:15 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1787542214; cv=none;
-        d=google.com; s=arc-20260327;
-        b=XTIyKhh4lvx2gBtHaZ4SCmN8qVwWGPMkQ5iM0VY4HeGRrF9OWrD43Ge5TtGH6W5YH6
-         mLvWOHu9UqhesdO4NE1EkdU1C7LKUgB08bmxChgcxa1KlEpps5G8rzkBofV6ThuJakEZ
-         laUjjs/rQLKqtDihso56D6B8/GaqINt7Qun2kt4vvFa8D1G54OWfK6trrzbgt1/VijbA
-         Rxotq4ErQnRC4gDXmRMKJ6mZsaZQjDUfv4CXSagN+RhwMxs+VLBUbMfK1NbtfV4f4rAQ
-         JltesyX/Tv1tGiamHb32L3Fz0+lHHIg12UEVHH/qdTAXPIYOsnf68BKsnFZZttmQBrhL
-         62Mw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=LLwzd8NaHrfcJF+QUosyNveH08w9wJnwsgT0VI4vxL4=;
-        fh=q3RfSpH9W1Vp6I4ia8A0JqB056iZ65UuroicR+Z9sfE=;
-        b=nBjd1PY2VFaq76Z1SKqZfGY3WYAvfZALjN5KTr9vyF/Oq7+XQD1YtLUnTWbAlS5zrq
-         TMqv1ivYyF5FJ+8ARwmxRt7pR2TzKvkzkIsogS5QZyXWhBYcJsp76jRHH5uibZrtvcZ1
-         vxCxPF0yGhO6dok/Fa5qr06ujuA8viqWzeXQbZkYALuZuCU4hWbotdqDLi0t4b/isih3
-         oY16jii8nDX0Dq8kLG0MYH57zqLStlletB9rIA+eZgoXJEf0QWn7dBzqHiPYLGRKltli
-         DekoVydbHgHfvffzTyE1suECib1hZcmC99iaI4JKKtT/2rI4q6MpEM8TeoQNfKJn8gxh
-         wQLA==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloud.ionos.com; s=google; t=1787542214; x=1788147014; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=LLwzd8NaHrfcJF+QUosyNveH08w9wJnwsgT0VI4vxL4=;
-        b=EXCrPrlVcdfHX56ZeYGCBht4J46EJetSD3gkEB/iUnRO5sIivm1ReqjP3cp/2Yl8/V
-         fZzWrZD1PZYqIrfpV13C1K3QbtkHeQWY/3+I88ezafUxweULr+hHFOIASkt0U1p/0KFZ
-         ES8iaXDeKrMTSzPfhttRxsMHhBGP6XS8CRrRU8jrBNBIH57pMQblIKoi8l6M+/kvaWhA
-         jPGUAPtDORMG/0vWr+27R+UClOT3weLXZZm7JcrQdHflHxdCHjz5BaoDsCxHcGuQeugX
-         Uqmijart5zMT3oBoMGjZIgpsh+xIa8x1c5UcpA712EatZv3rg6Rn2Mc/w55s2cS3YEO1
-         5GpQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787542214; x=1788147014;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=LLwzd8NaHrfcJF+QUosyNveH08w9wJnwsgT0VI4vxL4=;
-        b=lFp9V9d7bMffzDW3cjwonsOgJ0GpMdnTpZq0FWBBMoia/Jif3m/TeinN8jvDAh1qSg
-         ByGzcvwwfGeeotI9X/Ea2tSHICItI7BoU56JgpRZ9Pk5wF0q7+1yGed4M/Ls+yxCBHYt
-         yVrY6fE2EnX79yWGRMhcyIErArZW+xnxlnTuDHwsGS9JXy3w1Bo3j4aZa8MsuvoAdszU
-         VdfDOXeSpQUQH6Spu43zBhnXxDm0LBt8AmYEiRleZ7v91sQ8Pzel6ZVlk5i4sdeyCSiO
-         mZTFDy1up65WdugKeckhD85+lHBeKlxT3Tbtt7HXSqzIMGtYXC+/EVKWS2yzU2NEPMxG
-         XLWQ==
-X-Forwarded-Encrypted: i=1; AHgh+Rq7mairoX9XIq4PRzgxJ09TLzcg6R0MtbstBD6nf/xtk9nM73pQ8ZPek6IndZHvDRp0dIy5vqUFNyiE@vger.kernel.org
-X-Gm-Message-State: AFuF++lEbv9xiO4IlTmZ4910qMQVLKriosWEt1V8iBxLLimmZfoYW1gb
-	2BIvhSFMVzrAU6Qi7gEqCvYi/23nyeHyNUgQJsg1xl5hDN5GitwDv7FvfTDoFrFITM6GEf10xqH
-	pq5jXr+LIq3fRC1rnw/+cEjdulZAVBxxqffZG4yTabQQsRKtBq+zVqQs=
-X-Gm-Gg: AR+sD12TPBXQbU6/lLrohMBH3JqQezPWOkYkRxorTm6a612vpzWXu++Pk4g/l9Kufqg
-	qEu13M6OShR1wHV3abTWBMvcGecULull3Ar6E/AbTM7xRHXkkbZATongmiWPf/x6a0SgSt0WjJE
-	vZtGZInP2bQERG0vyARPgRPlZ0ISf6yAm9Y/jVERSZ3h6k1J9K/HjppXlnUDL9o9+dFv9z3A0z3
-	zdDaLQy0XMzavXCZiW1AYV9dtfueT5WsvBIxvmg8NxqlRh2ZVO3eduhjSlk1WGrtN6l6WV5Qk4a
-	g/tRD4a7K6bIQxtb3uhUJjldecliBS59s+L4JwmhhzyoownGHzxEAqyhWn/ddbBx2SQtDo+NMyY
-	4
-X-Received: by 2002:a17:907:2951:b0:c24:908b:4e2e with SMTP id
- a640c23a62f3a-c24908b53c9mr596750366b.4.1787542209350; Sun, 23 Aug 2026
- 20:30:09 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="hqoyhM8i"
+Received: from pps.filterd (m0353729.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 67O5W88G3284357;
+	Mon, 24 Aug 2026 06:59:10 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:date:from:message-id:mime-version
+	:subject:to; s=pp1; bh=TbAZgqCl5ZDBtQyYNmVXhC4MW9gkDEJq3vbwwpGd7
+	I0=; b=hqoyhM8inGcL2bbm2WWYerNUfEvcJTUBQ3A9o/KC6/WMw0HNKoJaM4yU8
+	WfaYKdFlt9a4QjjLcChAU4ooGgW5bKUD+rGUWemqDvdHrYjlSoGDxR1n22CDPZlP
+	0dIpJNwGYaxrT+t+Td0He7kJLLHh52XklGxE2u0PmSOqzWsrFPb9B0IT2UGniIdn
+	Bt1/K8VOkQqYHjeFakoEHR6H7n7dt3Fu8vQxhnzpSy1vPGPgstvUMRQ+Z4oPuwv3
+	03mMChHlIEfp8Tp9OCIGEQftIeBf96iCOtAP+p6rHDxIHgw3eAq2mSK/i4yqa5/Y
+	xsRGY7oEuG6LCnx9ng5/+lekAWNZw==
+Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4g73eqfn1j-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 24 Aug 2026 06:59:09 +0000 (GMT)
+Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma22.wdc07v.mail.ibm.com (8.18.1.7/8.18.1.7) with ESMTP id 67O6uQ4V007839;
+	Mon, 24 Aug 2026 06:59:08 GMT
+Received: from smtprelay01.fra02v.mail.ibm.com ([9.218.2.227])
+	by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4g7pfvvk7s-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 24 Aug 2026 06:59:08 +0000 (GMT)
+Received: from smtpav07.fra02v.mail.ibm.com (smtpav07.fra02v.mail.ibm.com [10.20.54.106])
+	by smtprelay01.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 67O6x4L629360480
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 24 Aug 2026 06:59:04 GMT
+Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 5431220040;
+	Mon, 24 Aug 2026 06:59:04 +0000 (GMT)
+Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 1FDF22004B;
+	Mon, 24 Aug 2026 06:59:04 +0000 (GMT)
+Received: from tuxmaker.boeblingen.de.ibm.com (unknown [9.87.85.9])
+	by smtpav07.fra02v.mail.ibm.com (Postfix) with SMTP;
+	Mon, 24 Aug 2026 06:59:04 +0000 (GMT)
+Received: by tuxmaker.boeblingen.de.ibm.com (Postfix, from userid 56341)
+	id 076F6161222; Mon, 24 Aug 2026 08:59:04 +0200 (CEST)
+From: Mahanta Jambigi <mjambigi@linux.ibm.com>
+To: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
+        kuba@kernel.org, pabeni@redhat.com, alibuda@linux.alibaba.com,
+        dust.li@linux.alibaba.com, sidraya@linux.ibm.com,
+        hidayath@linux.ibm.com
+Cc: pasic@linux.ibm.com, horms@kernel.org, tonylu@linux.alibaba.com,
+        guwen@linux.alibaba.com, netdev@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
+        stable@vger.kernel.org, Mahanta Jambigi <mjambigi@linux.ibm.com>
+Subject: [PATCH net] net/smc: serialize clcsock teardown in smc_accept_dequeue
+Date: Mon, 24 Aug 2026 08:58:51 +0200
+Message-ID: <20260824065851.1070988-1-mjambigi@linux.ibm.com>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260823034303.163403-1-ryan.mehri1@gmail.com>
-In-Reply-To: <20260823034303.163403-1-ryan.mehri1@gmail.com>
-From: Jinpu Wang <jinpu.wang@cloud.ionos.com>
-Date: Mon, 24 Aug 2026 05:29:56 +0200
-X-Gm-Features: AcwNN1U-n-zUy07z8ztf_sz5VKy4Q0hIyyQkaioNJ_TzpW8wQ8zaTIOvGDpxLS0
-Message-ID: <CAMGffEmnA6RGfnXh461+NioQBxa4iuiXFfZP-R3e4us45ta6ow@mail.gmail.com>
-Subject: Re: [PATCH] RDMA/rtrs: guard against null kobj name
-To: Ryan Mehri <ryan.mehri1@gmail.com>
-Cc: haris.iqbal@ionos.com, jgg@ziepe.ca, leon@kernel.org, 
-	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	syzbot+1695193198994f4e7fed@syzkaller.appspotmail.com
-Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
+X-TM-AS-GCONF: 00
+X-Proofpoint-Reinject: loops=2 maxloops=12
+X-Proofpoint-GUID: Kwd15JpiW7udZ8qcJajes80ZSeylCBO-
+X-Proofpoint-ORIG-GUID: rgrTLSAw4ghOd9XSRimTVnNdy5T90aZx
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwODI0MDA1NiBTYWx0ZWRfX4x5H/z4nbZwx
+ rDYHVzuEkEl9bnhY/X+HSaXPPrEk+/iLfrga+8Vm3aQta7XwiaUXrWpMHcdWcrw6KM28u3ZWAmK
+ seSlCdXdPWPFBHPm4qGq6c8/+AFvRMr7s69ckGQKCdjyrjFR/riWdr8JbgzlnEo+yC5bFmZILv9
+ oLpUbcC3omxcrF70e9NInBaWqAYqqSR39iwcr/3aLLIKNc0xKsQR++OYGPqwGajch4mTU0m+xqc
+ njrp74GlCm119Cc8aXC8aFndIrboH2ACG+Lu+DP/bg4d2R1G5zMS+kyIIZyiI4aqDf5ii7Ogq7/
+ S9aMjowTUp8K3DY18pUatFkVHhpLNNK3aLiJb4cLqVGKEovXkleZlprWvJ9XVNRw80vClXRZ9L7
+ we9HkfwshgHhp84t+xFLQuZCFtvnLb+fxN2E6/xFlLZ8zpUhjVitv9SBm8gH9itjeXo77hXHN34
+ jk8MGIEKtnYMxG2KP8A==
+X-Authority-Analysis: v=2.4 cv=QsRuG1yd c=1 sm=1 tr=0 ts=6a8bebbe cx=c_pps
+ a=5BHTudwdYE3Te8bg5FgnPg==:117 a=5BHTudwdYE3Te8bg5FgnPg==:17
+ a=Sv0fKeRqtYgA:10 a=VkNPw1HP01LnGYTKEx00:22 a=RnoormkPH1_aCDwRdu11:22
+ a=uAbxVGIbfxUO_5tXvNgY:22 a=VnNF1IyMAAAA:8 a=lM2LvyVLlU_OE4QnBS4A:9
+X-Proofpoint-Spam-Info: AW1haW4tMjYwODI0MDA1NiBTYWx0ZWRfX5Xu84L5Jku7I
+ isto+gQs+yKa9vej61C6HNhdXO4/Yz10OkecVEgWagIrZnME5JuYyTCoy5WWr4uRXGDmjA5Hjbg
+ RsWH7e2NNaXwh8qFbZDSj5B0iLcQ5GM=
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-08-24_02,2026-08-21_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ malwarescore=0 adultscore=0 suspectscore=0 priorityscore=1501 impostorscore=0
+ spamscore=0 lowpriorityscore=0 clxscore=1015 bulkscore=0 phishscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2608240056
 
-On Sun, Aug 23, 2026 at 5:43=E2=80=AFAM Ryan Mehri <ryan.mehri1@gmail.com> =
-wrote:
->
-> In the client, if `init_path()` errors, the callee tries to clean up
-> with `rtrs_clt_close_conns()`. However, this can lead to calling the
-> event tracing code with `clt_path->kobj->name` being `NULL` and thus
-> causing a null pointer dereference when trying to copy from it.
->
-> This just adds a guard to check that the name is not `NULL` before
-> copying from it. The server appears to have a similar pattern.
->
-> Fixes: 5a93929d9f9a1 ("RDMA/rtrs-clt: Add event tracing support")
-> Fixes: c16762b7bf54d ("RDMA/rtrs-srv: Add event tracing support")
-> Reported-by: syzbot+1695193198994f4e7fed@syzkaller.appspotmail.com
-> Closes: https://syzkaller.appspot.com/bug?extid=3D1695193198994f4e7fed
-> Signed-off-by: Ryan Mehri <ryan.mehri1@gmail.com>
-lgtm, thx!
-Reviewed-by: Jack Wang <jinpu.wang@cloud.ionos.com>
+smc_accept_dequeue() open-codes clcsock teardown for SMC_CLOSED child soc=
+kets
+without taking clcsock_release_lock:
 
-> ---
->  drivers/infiniband/ulp/rtrs/rtrs-clt-trace.h | 2 +-
->  drivers/infiniband/ulp/rtrs/rtrs-srv-trace.h | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt-trace.h b/drivers/infin=
-iband/ulp/rtrs/rtrs-clt-trace.h
-> index 7738e2676855..29e23404bb7b 100644
-> --- a/drivers/infiniband/ulp/rtrs/rtrs-clt-trace.h
-> +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt-trace.h
-> @@ -55,7 +55,7 @@ DECLARE_EVENT_CLASS(rtrs_clt_conn_class,
->                 __entry->max_reconnect_attempts =3D clt->max_reconnect_at=
-tempts;
->                 __entry->fail_cnt =3D clt_path->stats->reconnects.fail_cn=
-t;
->                 __entry->success_cnt =3D clt_path->stats->reconnects.succ=
-essful_cnt;
-> -               memcpy(__entry->sessname, kobject_name(&clt_path->kobj), =
-NAME_MAX);
-> +               strscpy(__entry->sessname, kobject_name(&clt_path->kobj) =
-?: "", NAME_MAX);
->         ),
->
->         TP_printk("RTRS-CLT: sess=3D'%s' state=3D%s attempts=3D'%d' max-a=
-ttempts=3D'%d' fail=3D'%d' success=3D'%d'",
-> diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv-trace.h b/drivers/infin=
-iband/ulp/rtrs/rtrs-srv-trace.h
-> index 587d3e033081..a7d7b971e6c8 100644
-> --- a/drivers/infiniband/ulp/rtrs/rtrs-srv-trace.h
-> +++ b/drivers/infiniband/ulp/rtrs/rtrs-srv-trace.h
-> @@ -61,7 +61,7 @@ TRACE_EVENT(send_io_resp_imm,
->                 __entry->msg_id =3D id->msg_id;
->                 __entry->wr_cnt =3D atomic_read(&con->c.wr_cnt);
->                 __entry->signal_interval =3D s->signal_interval;
-> -               memcpy(__entry->sessname, kobject_name(&srv_path->kobj), =
-NAME_MAX);
-> +               strscpy(__entry->sessname, kobject_name(&srv_path->kobj) =
-?: "", NAME_MAX);
->         ),
->
->         TP_printk("sess=3D'%s' state=3D'%s' dir=3D%s err=3D'%d' inval=3D'=
-%d' glob-inval=3D'%d' msgid=3D'%u' wrcnt=3D'%d' sig-interval=3D'%u'",
-> --
-> 2.55.0
->
+  new_sk->sk_prot->unhash(new_sk);
+  if (isk->clcsock) {
+      sock_release(isk->clcsock);
+      isk->clcsock =3D NULL;
+  }
+
+This bypasses the clcsock_release_lock discipline used elsewhere in SMC c=
+lcsock
+lifetime handling. In particular, other paths serialize clcsock access an=
+d
+updates with clcsock_release_lock, but this local teardown path does not.
+
+Fix it by taking clcsock_release_lock around the local teardown and by st=
+oring
+NULL before sock_release(), matching the established ordering used by oth=
+er
+clcsock teardown paths.
+
+Fixes: 127f49705823 ("net/smc: release clcsock from tcp_listen_worker")
+Reviewed-by: Hidayath Khan <hidayath@linux.ibm.com>
+Signed-off-by: Mahanta Jambigi <mjambigi@linux.ibm.com>
+---
+ net/smc/af_smc.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+index 00403175b740..bbf8269876ee 100644
+--- a/net/smc/af_smc.c
++++ b/net/smc/af_smc.c
+@@ -1833,10 +1833,14 @@ struct sock *smc_accept_dequeue(struct sock *pare=
+nt,
+ 		smc_accept_unlink(new_sk);
+ 		if (new_sk->sk_state =3D=3D SMC_CLOSED) {
+ 			new_sk->sk_prot->unhash(new_sk);
+-			if (isk->clcsock) {
+-				sock_release(isk->clcsock);
+-				isk->clcsock =3D NULL;
+-			}
++			mutex_lock(&isk->clcsock_release_lock);
++			if (isk->clcsock) {
++				struct socket *clcsock =3D isk->clcsock;
++
++				isk->clcsock =3D NULL;
++				sock_release(clcsock);
++			}
++			mutex_unlock(&isk->clcsock_release_lock);
+ 			sock_put(new_sk); /* final */
+ 			continue;
+ 		}
+--=20
+2.50.1 (Apple Git-155)
