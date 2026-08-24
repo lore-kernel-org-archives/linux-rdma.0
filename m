@@ -1,45 +1,58 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31FDD37B407;
-	Mon, 24 Aug 2026 17:44:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DBCB370AFD;
+	Mon, 24 Aug 2026 18:14:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787593489; cv=none; b=Iun5ioQ0pqhw1yqbTYfrMY7Lh3c/3FxHQX20VcPkv+RptL9S1odRqfcj/DQJCRwQNPlFZEGCD42i3ZN/rB6hsf8iJyzHYDhMas+mQyIf671YMMNCEVx+WrrgA9H7W1aFY8iUqC6uLyty/2IbhF9yCPilzVlVgHxVV2bqKjir+Dg=
+	t=1787595286; cv=none; b=RxuZUf28zVI2aVAe71gQyW6NT6dTV6dDmsFC1G3rKLwj0MlIFqdtehK+xrwDEOJIzC8aRiP5JcUomW42ZU6RihWkdjMlND3yztZkHrgbMHVQsJ83GaAnzRLF8aqGw1guFOGGnd3WDvA1YkXQoR+Ne4KtC74nKJWtbhG1HVFb8OY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787593489; c=relaxed/simple;
-	bh=5RVUR7L0TAJrmEPRLJ47R/yFU6FVmwj1SlAhWvACNYs=;
+	s=arc-20240116; t=1787595286; c=relaxed/simple;
+	bh=Xhe1unRIajt7SrD6EiFDRWwnD7KQaITwQrA/kd2OUMw=;
 	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=NWhzW2PMgsqoNKPwGtIUEmiFND4qQFzF/9+hYpT1LGYztOEMoAT8uGcUZpFTNnkGPQgprTPzsx/VeJXdQNEwSlhDtmztHdGmNTJxZ66bPmhDWYpSLWtJRINDYfGvlhvqDCCJUJ4MA7ANt9PLRcQ3u/FNzF8U2F/sd7H621cM/CI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TzxK/FXT; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=MYBExRgtoVyh4DAh9IW4LHGnbjEyvmfRsA3ChrnTRna0aMyPahN+zat1peqM5UK8cVmJ+95zrWb+As4x/HYJr+kWijlJOkGaDtIVXzeXGTAmNvFaLEWh9QmcIe4q/A1KFGglY1SwXF8iUKNw8m8W9N1ESCbRqWTyHvYMP8wIfbM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jgAXqGNa; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TzxK/FXT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3ACA81F000E9;
-	Mon, 24 Aug 2026 17:44:38 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jgAXqGNa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16CDE1F000E9;
+	Mon, 24 Aug 2026 18:14:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787593478;
-	bh=cwM75j6Ct06d8edJFVPqmdjfyWWFtH2RX/SZGqU7M7o=;
+	s=k20260515; t=1787595285;
+	bh=bBAzJ1wZvTBzk2jjxXm3YqIN0/WHyV3eBtBFUun8nQ0=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=TzxK/FXTk9/LwKjKVHKtCOBg2i+z8se3vWgp9CkvuA4mGrcMzc8lqyozqioeAvBZK
-	 V7aetApjHfa1L5ZeYKaKZ4sIoRLbPQFBdsZ+3Ns8mYXgelqQXWrN1OnMLNeNzHFDj4
-	 qYuFeKhqMOCBu3IirXxcMdYWuQu5uVGC5j7fvNgmQVX2ybZT1zzr8yLsDOGp5msh4v
-	 W4f7domEL1vvnfs7jcyryNHypgMQaU/Anmxx+5lBrKF/q4g7vjM3arMp+35ISIWFO2
-	 ElZ4n0bFQELjYqjpF8OryXeZ37gsCnCHdpw2Yrw72SKKUUQahKH29rV5WEqQOnzn5+
-	 31h0cyGdC15YQ==
-Date: Mon, 24 Aug 2026 10:44:37 -0700
+	b=jgAXqGNasidbaHQMnp5/SMprfR24IUmQiq8GmvgOdzqvGTFc2WNl2gHAGWyK4UJAA
+	 ByhiiLyF1JoFw7QInGYLTqnz+lO0fpq17gGejgBfcoz7NmvTrzJBpPt8adRbXiucr1
+	 L0t2oByWLooDg+TVK0h9NBQUcLB9lymHNbTp8uxRMCiTarrOWYheF9dynLWEDL9JSm
+	 O8q+q9akjuhyhLslrVdA2J35E+njlTzbRjn74YPpXf151DwVAaHU7jc5HQd2inb97W
+	 5Z7HSEz580eRcD1F//V50hLwnc5oh6A1WHNp1zrJNVf2qLx+W9sIf+z6hUf9fyKfHb
+	 pqGoM30MOUnBg==
+Date: Mon, 24 Aug 2026 11:14:43 -0700
 From: Jakub Kicinski <kuba@kernel.org>
-To: "D. Wythe" <alibuda@linux.alibaba.com>
-Cc: mjambigi@linux.ibm.com, wenjia@linux.ibm.com, wintera@linux.ibm.com,
- dust.li@linux.alibaba.com, tonylu@linux.alibaba.com,
- guwen@linux.alibaba.com, davem@davemloft.net, netdev@vger.kernel.org,
- linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, leonro@nvidia.com,
- pabeni@redhat.com, edumazet@google.com, sidraya@linux.ibm.com,
- jaka@linux.ibm.com, oliver.yang@linux.alibaba.com
-Subject: Re: [PATCH net-next v2 0/2] net/smc: fix v2 slot clearing and
- reduce TX slot contention
-Message-ID: <20260824104437.11adefb8@kernel.org>
-In-Reply-To: <20260821091702.21458-1-alibuda@linux.alibaba.com>
-References: <20260821091702.21458-1-alibuda@linux.alibaba.com>
+To: Stanislav Fomichev <sdf.kernel@gmail.com>
+Cc: Maciej Fijalkowski <maciej.fijalkowski@intel.com>,
+ netdev@vger.kernel.org, davem@davemloft.net, edumazet@google.com,
+ pabeni@redhat.com, anthony.l.nguyen@intel.com,
+ przemyslaw.kitszel@intel.com, andrew+netdev@lunn.ch, saeedm@nvidia.com,
+ tariqt@nvidia.com, mbloch@nvidia.com, maxime.chevallier@bootlin.com,
+ mcoquelin.stm32@gmail.com, alexandre.torgue@foss.st.com,
+ aleksander.lobakin@intel.com, horms@kernel.org, magnus.karlsson@intel.com,
+ sdf@fomichev.me, ast@kernel.org, daniel@iogearbox.net, hawk@kernel.org,
+ john.fastabend@gmail.com, guoren@kernel.org, dtatulea@nvidia.com,
+ witu@nvidia.com, martin.lau@kernel.org, yoong.siang.song@intel.com,
+ intel-wired-lan@lists.osuosl.org, linux-kernel@vger.kernel.org,
+ linux-rdma@vger.kernel.org, linux-stm32@st-md-mailman.stormreply.com,
+ linux-arm-kernel@lists.infradead.org, bpf@vger.kernel.org,
+ linux-csky@vger.kernel.org, leon@kernel.org
+Subject: Re: [PATCH net v3 3/3] net: stmmac: document oversized AF_XDP frame
+ handling
+Message-ID: <20260824111443.34bffe04@kernel.org>
+In-Reply-To: <aoiIarzdjk92RkCN@devvm7509.cco0.facebook.com>
+References: <20260819160535.1472459-1-sdf@fomichev.me>
+	<20260819160535.1472459-4-sdf@fomichev.me>
+	<aoceSoSFMx69Z9up@boxer>
+	<aoeoJ6-njBxcWs4w@devvm7509.cco0.facebook.com>
+	<aogpDsa8hz6CPpD3@boxer>
+	<aoiIarzdjk92RkCN@devvm7509.cco0.facebook.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -49,23 +62,23 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Fri, 21 Aug 2026 17:17:00 +0800 D. Wythe wrote:
-> This series contains the two reviewed patches from the previously posted
-> "net/smc: transition to RDMA core CQ pooling" series (v4), reposted as a
-> standalone series so they can land independently. The remaining CQ pooling
-> patch will be reposted separately after these two are merged.
+On Fri, 21 Aug 2026 10:28:47 -0700 Stanislav Fomichev wrote:
+> > > I do agree that a better idea is to probably do these checks during control
+> > > paths, but it's a bit more involved (and not sure if it's possible? if we
+> > > have a bunch of xsk sockets and we change that max_sdu, do we go over all
+> > > sockets on the system somehow?). My main motivation with this patch was
+> > > to make our LLM reviewers less chatty about preexisting issues.  
+> > 
+> > I hear you, however I feel like we do not know this driver too much and
+> > probably we don't have a HW to test out such changes, so maybe let us try
+> > to fix existing behavior?  
+> 
+> Let's definitely fix it properly if you have better ideas. But since we
+> don't have HW, I'm not super confident doing anything sophisticated
+> myself :-D
 
-## Form letter - net-next-closed
+Let me take the first 2 patches and leave the stmmac for later.
+I don't think anyone involved care particularly deeply here.
 
-net-next pull request for v7.3 has already been merged, and therefore
-the net-next tree is closed for new drivers, features, code refactoring
-and optimizations. We are currently accepting bug fixes only.
-
-Please repost when net-next reopens after Aug 31st.
-
-RFC patches sent for review only are obviously welcome at any time.
-
-See: https://www.kernel.org/doc/html/next/process/maintainer-netdev.html#development-cycle
--- 
-pw-bot: defer
-pv-bot: closed
+Maxime said he bought a bunch of relevant HW. If we finally wrap 
+the AF_XDP tests into driver runtime he should be able to help us...
