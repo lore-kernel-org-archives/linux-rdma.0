@@ -1,120 +1,166 @@
-Received: from aer-iport-7.cisco.com (aer-iport-7.cisco.com [173.38.203.69])
+Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9C60382388;
-	Mon, 24 Aug 2026 19:20:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=173.38.203.69
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3CDB38E8A7;
+	Mon, 24 Aug 2026 21:04:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787599228; cv=none; b=VZCKraWDZT5BNl7eU1SIDSDM+d2B5eYUuBilKR3rthCUy+mL+rssNujIRFMcyZzMPoG2suxTjfdNXE49jgnJxxvhcTkunAj9E6ANgd9YghZ0dMibJ6ZBZom+4MitIMqEALYSMHbUhKpvamsl9jO9XaDN+weepnKJbFtWrRTEdYk=
+	t=1787605474; cv=none; b=KMisXyDPE8iQzJgKO4IoXM/RU4TcrkRtJe/1ibppRWAUh3lGF+GVJGFJAQbOIIkJs85X1ZgZ1pL1nkyWzy8QcpPmpiuG9QX2Xn5eb5JOPHbUdNiN3ivkhuEM3ycqQXF3FS4CHvY3O007CYHZ0Q+FN5tWaehWbVY/HmZNF0VHl/4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787599228; c=relaxed/simple;
-	bh=ddIZjjhFHL2Gwf8ToRYLMwIPyRz+Y7EsI1A9KAVtV20=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=tFRnc4vsqCE3xxWuReRh8VO+Q+yFg7/4sAw+PmQg7eITZtc1MKKEfIoi3cNqKjXPEyL9DLSEntfrznEhSwNmfxtQlV3J5JRWgsfzLZ/wofOqg1xnZQfmdHKUWge+NWEjt/rPHCtrB80AZADlzJ+3B1dkKrpi37ug+/sLFs8bWxI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cisco.com; spf=pass smtp.mailfrom=cisco.com; dkim=pass (2048-bit key) header.d=cisco.com header.i=@cisco.com header.b=Rj2GVR4S; arc=none smtp.client-ip=173.38.203.69
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cisco.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cisco.com
+	s=arc-20240116; t=1787605474; c=relaxed/simple;
+	bh=lxWgaRS9cMBj7nzIKwYlcYTMb1BOWwOR02+GTkayrjs=;
+	h=MIME-Version:Date:From:To:Cc:Subject:In-Reply-To:References:
+	 Message-ID:Content-Type; b=tOJcsLmxSt32AlM8oGbzxW3CAcfdRTAb+tn11139PffJiCr5hehlx8+2AVFXu30urmDTAvjcAotF+sKrJBLl0x4CiDhdqiuJOBB85wCO54imV5b9COHMGuTK43tM6l2tksifIbWRaBa2PB9gzdd1VLOBn9S1qql6YVhPMuhEsO4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=iN4IZpg9; arc=none smtp.client-ip=213.97.179.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cisco.com header.i=@cisco.com header.b="Rj2GVR4S"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=cisco.com; i=@cisco.com; l=101; q=dns/txt;
-  s=iport01; t=1787599226; x=1788808826;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=ddIZjjhFHL2Gwf8ToRYLMwIPyRz+Y7EsI1A9KAVtV20=;
-  b=Rj2GVR4S33zSeGVTHsfVuCwE6Tdt1SleCGq6ZRGgmAgZgpuJZ8skvoKi
-   uSplpzN7VrLRlEP7TmvtOQrNvwbWoT7OiOep/8KjDkhvImMzQ5v3HELvh
-   b7HqgclgbBZFMABtqgRCoMJUIFHX/eZMqsze7lNA4dN1OGJ/ViVb0yoj3
-   xIM3PtOjYscAjlC7t1AvRbesgYm0V+B0LwadNN/dLVW+qB8r6iyn84qgF
-   cyFj066SqKMHphGwNuwzTjygmcmEvCvWzuyHOQUOIp3OcO5ITe16SKJb0
-   GsxJmXVjqwb1qQlgz9KhlSFtPx9eNvmr+51+SLU5/evgtyJa660LEKj3c
-   A==;
-X-CSE-ConnectionGUID: lFJ5jWrzSGiJtG9kOKDp6A==
-X-CSE-MsgGUID: qRNzCayMTw+PH41TWYnedQ==
-X-IPAS-Result: =?us-ascii?q?A0BhAwCkmIxq/9BK/pBaglmEKUOFII9SoD+Bfg8BAQEPU?=
- =?us-ascii?q?QQBAYFRAYMpAQkCjWwCJjQJDgECBAMCAwEBAQEBAQEBAQEBCwEBBQEBAQIBB?=
- =?us-ascii?q?wWBDhOGXIZbAgEDIw8BRhALDgwCJgICVgaDFYJ1A75heoEygQHeR4FyFYEKL?=
- =?us-ascii?q?oheAYUCdoR8JxuBSUSEDzE+iB6CagSCIoEMk1VICngcA1ksAVUTDQoLBwWBI?=
- =?us-ascii?q?0MDNRIqFSMPPAUtHYEjIR0XFx5YGwYFEiAqQUQVDgM+gRlBAoF1PyMZNnyBC?=
- =?us-ascii?q?V6BKylgAQIQF0YuFYIHAoJagSdeAgFJQw4HRyILGA1IESw3FBkEPQFuB5JDg?=
- =?us-ascii?q?gJQlnuwI4QooVwaM4NxAZNtkw2ZCKlDgWg8gVkzGggbFYMjUhkPjl/PX0VvA?=
- =?us-ascii?q?QEHAgcOAwuBaJF+AQE?=
-IronPort-Data: A9a23:J35rGq93mDPtsxOyxz2ZDrUDSH6TJUtcMsCJ2f8bNWPcYEJGY0x3x
- mpKCGGEM/beajegc99wPo/loU5UsZ6Bn4RgHQdvrSlEQiMRo6IpJzg2wmQcns+2BpeeJK6yx
- 5xGMrEsFOhtEDmE4EzrauS9xZVF/fngbqLmD+LZMTxGSwZhSSMw4TpugOdRbrRA2bBVOCvT/
- 4mvyyHjEAX9gWAsYjhIs/jrRC5H5ZwehhtJ5jTSWtgT1LPuvyF9JI4SI6i3M0z5TuF8dsamR
- /zOxa2O5WjQ+REgELuNyt4XpWVTH9Y+lSDX4pZnc/DKbipq/0Te4Y5nXBYoUnq7vh3S9zxHJ
- HqhgrTrIeshFvWkdO3wyHC0GQkmVUFN0OevzXRSLaV/wmWeG0YAzcmCA2kyE69F+NltE1ph9
- N4EB2EOSTOvn7yflefTpulE3qzPLeHiMZlavjRryivUSK55B5vCWK7No9Rf2V/chOgXQaqYP
- ZdFL2UzKk6YM3WjOX9PYH46tOW0gX37fiFwo1OOrq1x6G/WpOB0+Oa1bISPIoHXLSlTtl+ig
- HDt9nXcPg5ZDPzDkAa6w3ShitaayEsXX6pXTtVU7MVCjFSNy2k7BBQIWF6/pvelzEizR7p3M
- EAa0iQpqKk59EG1CNzwNzW6p36C+BAVQMZZGeA85CmCz6PV50CSAW1sZjNNddkvpsIqbTMt0
- VCNkpXiAjkHmLGcT3OQ8p+Vqjy/MDIfKn9EYyIYJSMM+MXLo4wpiB/LCNF5H8adjtTqGhnzz
- iqMoSx4gK8c5eYIyq+y1VPKmTShot7OVAFdzgzRUnio8UB/aZKpapKA7UXd67BLLO6xQkWIo
- GUAlsG26v4PAZCE0ieKRY0lGLyu4eyCGDvCgFJuFt8q8DHF03upeYdb4Bl4OkZlM89CcjjsC
- GfIsA5c6Jp7OmWrYa5+JYm2DqwC0aH6FM35fvbKb9ZPa956cwrv1Dlnb0OW3kj3nUQsmL15M
- pCeGe6mFXgyF6tq1ny1Sv0b3LttwToxrUvXRJbm31Gk3KCYaXq9V7gIKh2NY/o/4afCpx/am
- /5bNs2X21BFXOj3SjfY/JRVLl0QK3U/Q5fspKR/cOOfLgd4MH8uBuWXwr47fYFh2aNPmY/g5
- W20UEtV4ETwiGeBKgiQbH1nLrT1Uv5CQWkTNCE2eFLt0H85bMP3s+EUdoA8ev8s8+kLIeNIc
- sTpsv6oWpxnIgkrMRxEBXUhhOSOrCiWuD8=
-IronPort-HdrOrdr: A9a23:lP6cyqALdPhTalvlHemK55DYdb4zR+YMi2TDGXocdfUzSL3+qy
- nOpoV+6faaslgssR0b8+xofZPwIk80lqQFhLX5X43CYOCOggLBR72Kr7GSoQEIcBeQygcy78
- pdmtBFaOHYPBxdkdvw5hW+HpILxdmK973tuMLlpk0dKz2Dr8pbnn9E4sHxKDwOeDV7
-X-Talos-CUID: 9a23:vohuFW8h2TNarzD0wneVv0o6OJ0nTWfP91jRAVOXWGVOa5GNF3bFrQ==
-X-Talos-MUID: 9a23:vUh8igmh6JxPgOgmSnxldnp7DuF6yK2/LXwS0q0m55C4Ch12Njuk2WE=
-X-IronPort-Anti-Spam-Filtered: true
-X-IronPort-AV: E=Sophos;i="6.25,241,1779148800"; 
-   d="scan'208";a="60462055"
-Received: from aer-l-core-07.cisco.com ([144.254.74.208])
-  by aer-iport-7.cisco.com with ESMTP/TLS/TLS_AES_256_GCM_SHA384; 24 Aug 2026 19:19:12 +0000
-Received: from localhost (unknown [10.189.102.136])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by aer-l-core-07.cisco.com (Postfix) with ESMTPS id 7BC731800022C;
-	Mon, 24 Aug 2026 19:19:11 +0000 (GMT)
-From: Jerome Tollet <jtollet@cisco.com>
-To: Dragos Tatulea <dtatulea@nvidia.com>
-Cc: netdev@vger.kernel.org,
-	saeedm@nvidia.com,
-	tariqt@nvidia.com,
-	mbloch@nvidia.com,
-	leonro@nvidia.com,
-	daniel@iogearbox.net,
-	andrew+netdev@lunn.ch,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	ast@kernel.org,
-	hawk@kernel.org,
-	john.fastabend@gmail.com,
-	sdf@fomichev.me,
-	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	bpf@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: Re: [PATCH net v4 2/2] net/mlx5e: Prevent stale XSK buffer release on MPWQE refill retry
-Date: Mon, 24 Aug 2026 21:19:10 +0200
-Message-ID: <20260824191910.64016-1-jtollet@cisco.com>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260824141645.23700-3-jtollet@cisco.com>
-References: <cover.1787347981.git.jtollet@cisco.com> <20260824141645.23700-1-jtollet@cisco.com> <20260824141645.23700-3-jtollet@cisco.com>
+	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="iN4IZpg9"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
+	s=20170329; h=Content-Transfer-Encoding:Content-Type:Message-ID:Subject:Cc:To
+	:From:Date:MIME-Version:From:Reply-To;
+	bh=8Sz3WqkTSXrjfECQs9syX3OabIkTQfaoXng/2r3y3YI=; b=iN4IZpg94uQW7Qq71fa8RM3vEW
+	kYkZAE7Go3UMAHPCbMam59vi5F2G4bm4hWXaQvDe+IlXyYEvE3ysOyCUtZqscnptJn7q2InbNaFyu
+	soOubYTTGaNo34QYmi9ty2VVZJpRy9sTLLWPw/LK3yUGKpUbS/U50cLhVIERjuM4Ft+aoWfPy9dJE
+	gK9eUfYGXhRTBPX+kELcjgSnMYflg6ghgE0MkoYvLv42MzvqNcu61ANFS228b1Ien6EVqp3z8FXTb
+	NuEjADHZt8gwoX1gXWGgh+2+Dm/yjJ9PlQHQ27wXDkIEUhwmsrSPlTWDbQQk59YiDr1KX9MY2E47t
+	G2P9q0Eg==;
+Received: from maestria.local.igalia.com ([192.168.10.14] helo=mail.igalia.com)
+	by fanzine2.igalia.com with esmtps 
+	(Cipher TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256) (Exim)
+	id 1wybpt-008hfh-DY; Mon, 24 Aug 2026 23:04:05 +0200
+Received: from webmail.service.igalia.com ([192.168.21.45])
+	by mail.igalia.com with esmtp (Exim)
+	id 1wybps-003b3A-2i; Mon, 24 Aug 2026 23:04:05 +0200
+Received: from localhost ([127.0.0.1] helo=webmail.igalia.com)
+	by webmail.service.igalia.com with esmtp (Exim 4.98.2)
+	(envelope-from <mfo@igalia.com>)
+	id 1wybps-00000003RKa-04eN;
+	Mon, 24 Aug 2026 23:04:03 +0200
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Date: Mon, 24 Aug 2026 18:04:03 -0300
+From: Mauricio Faria de Oliveira <mfo@igalia.com>
+To: =?UTF-8?Q?Uwe_Kleine-K=C3=B6nig?= <u.kleine-koenig@baylibre.com>
+Cc: Kees Cook <kees@kernel.org>, Joel Granados <joel.granados@kernel.org>,
+ Nathan Chancellor <nathan@kernel.org>, Nicolas Schier <nsc@kernel.org>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon
+ Horman <horms@kernel.org>, kernel-dev@igalia.com,
+ linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org,
+ fsverity@lists.linux.dev, keyrings@vger.kernel.org, bpf@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org,
+ netdev@vger.kernel.org, linux-wpan@vger.kernel.org,
+ lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, linux-sctp@vger.kernel.org,
+ linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
+ bridge@lists.linux.dev, mptcp@lists.linux.dev, rds-devel@oss.oracle.com,
+ virtualization@lists.linux.dev
+Subject: Re: [PATCH RFC v3 03/13] sysctl, mod_devicetable: add macro
+ MODULE_SYSCTL_TABLE
+In-Reply-To: <aotteDcc588iwC6g@monoceros>
+References: <20260819-sysctl-module-aliases-v3-0-aab90569365d@igalia.com>
+ <20260819-sysctl-module-aliases-v3-3-aab90569365d@igalia.com>
+ <aomlfGJM61qZKxx2@monoceros> <4e3eaf1d3419e808be046035f114bf6c@igalia.com>
+ <aotteDcc588iwC6g@monoceros>
+Message-ID: <4aa22e41e8ff4bab6638cf0baaa9d07b@igalia.com>
+X-Sender: mfo@igalia.com
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-Outbound-Client-TLS: ANONYMOUS;unknown [10.189.102.136];TLSv1.3;TLS_AES_256_GCM_SHA384;256
-X-Outbound-SMTP-Client: 10.189.102.136, [10.189.102.136]
-X-Outbound-Node: aer-l-core-07.cisco.com
+X-Spam-Report: NO, Score=-2.1, Tests=ALL_TRUSTED=-3,BAYES_50=0.8,KAM_DMARC_NONE=0.125,KAM_DMARC_STATUS=0.005,KAM_SHORT=0.001
+X-Spam-Score: -20
+X-Spam-Bar: --
 
-Hi Dragos,
+On 2026-08-23 19:12, Uwe Kleine-König wrote:
+> Hello Mauricio,
+> 
+> On Sat, Aug 22, 2026 at 01:57:24PM -0300, Mauricio Faria de Oliveira wrote:
+>> On 2026-08-22 10:41, Uwe Kleine-König wrote:
+>> > On Wed, Aug 19, 2026 at 03:16:16PM -0300, Mauricio Faria de Oliveira wrote:
+>> >> The MODULE_SYSCTL_TABLE macro emits a struct module_sysctl_table variable
+>> >> with pointers to a sysctl table's path and entries, and table/entry sizes.
+>> > 
+>> > That new struct doesn't seem to contain any pointer?
+>> 
+>> The struct module_sysctl_table fields .path and .table are pointers,
+>> although with kernel_ulong_t type so that the same 32/64-bit size is
+>> used in file2alias.c based on KERNEL_ELFCLASS (and not on the host,
+>> which might differ with CROSS_COMPILE).
+> 
+> Cross compilation isn't an issue for the already existing device id
+> structures; many of them also contain pointers.
+> (While modpost doesn't use the pointers, the size of the structures must
+> be known to correctly interpret the arrays.)
 
-Thanks for the review and for suggesting the error-path approach.
+Indeed. I missed some device_id structures with pointers, and that
+devicetable-offsets.c is cross-compiled to generate
+devicetable-offsets.h for file2alias.c to use offsets and sizes of the
+target architecture.
 
-Regards,
-Jerome
+I'll change .path and .table to pointers in the next version.
+
+> Also sizeof(long) differs between architectures and I can compile for
+> arm(32) just fine on amd64.
+> 
+> Additionally there is hardware out there that has sizeof(void *) = 16
+> but sizeof(long) = 8. Up until recently I worked on mainlining that (and
+> it has business reasons only I stopped, so I guess and hope I will
+> continue at some point in the future). See
+> https://lwn.net/Articles/1037974/ for some details if you're interested.
+
+Cool.
+
+> 
+> I would be great if your series didn't introduce a new obstacle for
+> that.
+
+Absolutely. I'll be happy to adjust the series and testing for that.
+
+Could you please confirm one should just follow [1], which uses [2] to
+build the LLVM toolchain, and use it to build the kernel [3]?
+
+[1] https://github.com/cheri-linux#building-and-running
+[2] https://github.com/cheri-linux/buildroot
+[3] https://github.com/CHERI-Alliance/linux/tree/codasip-cheri-riscv-7.1
+
+>> >> That symbol will be handled by file2alias.c (modpost) with the changes in
+>> >> mod_devicetable.h and devicetable-offsets.c.
+>> >> 
+>> >> The option macros MODULE_SYSCTL_TABLE_{DISABLE,UNIQUE_ID} can be used on
+>> >> a per-file basis to disable the macro and change the symbol name pattern.
+>> >> 
+>> >> Signed-off-by: Mauricio Faria de Oliveira <mfo@igalia.com>
+>> >> ---
+>> >>  include/linux/mod_devicetable.h   |  7 +++++++
+>> >>  include/linux/sysctl.h            | 42 +++++++++++++++++++++++++++++++++++++++
+>> >>  scripts/mod/devicetable-offsets.c |  6 ++++++
+>> >>  3 files changed, 55 insertions(+)
+>> > 
+>> > Please put the new struct in a separate header. Apart from not being
+>> > about a device table, I'm currently work on removing
+>> > <linux/mod_devicetable.h>. See commit
+>> > ad428f5811bd7fb3d91fa002174de533f9da94d7 for more details.
+>> 
+>> Sure; I looked at that earlier (thanks for the instructive commit
+>> message, by the way) and found the new struct to be similar to "struct
+>> cpu_feature isn't really a device_id struct" (not moved), but apparently
+>> missed the trailing "fow now", which is clearer now. Fixed for v4.
+> 
+> Yeah, I didn't move that because it was an outlier in the header as it's
+> not a device id. IMHO it should go to something like
+> include/linux/cpu_feature.h.
+
+Ack.
+
+cheers,
+
+> 
+> Best regards
+> Uwe
+
+-- 
+Mauricio
