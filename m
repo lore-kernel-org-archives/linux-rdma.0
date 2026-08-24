@@ -1,212 +1,94 @@
-Received: from mta0.migadu.com (out-27.mta0.migadu.com [91.218.175.27])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B37C35FF6E
-	for <linux-rdma@vger.kernel.org>; Mon, 24 Aug 2026 08:58:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.27
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B285368D79;
+	Mon, 24 Aug 2026 10:30:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787561892; cv=none; b=iqXodM7da9kBbWGccAO5otbN6/vXAp8B2vSKLaFs79mw27zj1jEwZi9QuOXaAiTrEfrWq/UWQBw4XW4OF8Y2fuCCF3CkC3cHaWF9xDrMejy/cfIBFA2/jbbeRv5GHdqA66tIbd4QW0BlYchjMOMSKPUTOQXCCqnYn06MqBtLiUs=
+	t=1787567427; cv=none; b=YNkTOnGhnZTRq1kXOph9SA3eMV3PtTncC4pNpO/2QQwHcWH1a7XgmL4AMyJCt/agOUVKMaF1K1q9Xj226Tep4rgqSDQwYAuKPxq2+CZnOSUXFTBNiifRQe20qdIav2+HQr8l5+ISuQtvWiMbKx6P1JLMIPCo5/tx2yYiVDj41DM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787561892; c=relaxed/simple;
-	bh=ynSucjeK+PzB6DXP5JFQIrQofwQd/oItCOq2xfOYX5o=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=JanrP3s7rXgntUEVR7k5YvdzOVfV7aV6O4nxkBg559SSQhIO66tdxffaiYrwAsRnqMcdX9eBxEixbCw6oSvWXr9gs5l8HmK2vHSuxdb0CKrDhe/liqfhp9ccorivNEQI6lb2LP9wQqoNVR+4T6Uzgh8E3mP8WbEpI2UVeQCXL3c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=Ts0zr9Dc; arc=none smtp.client-ip=91.218.175.27
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1787567427; c=relaxed/simple;
+	bh=wycIIvwXZRxYCgpRVJZz3RmffOZL//Gi0OydGD24uMM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=DY2Dm6nwM7WAYnawkFFyi5O6fKe2h+yykUiQMdufbAFlCs/u2NrGTSm290LciyPozvkUqz5m9cyIx1mFpluZU+w848SUGodNY5HKO7M0IZc2xw/SdwfVU0N0safZsxUuPWlo0uuhxd5/hhUDww5YUYehahOj977lTyxLJ0dZwEA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MXNXJE30; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="Ts0zr9Dc"
-X-Envelope-To: linux-rdma@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=ynSucjeK+PzB6DXP5JFQIrQofwQd/oItCOq2xfOYX5o=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1787561887; v=1; x=1788166687;
- b=Ts0zr9DcD2+Oph6njbGjvJmKycVvC5PBR30uY/NX59kJ8A1hemQekE2l3CBDTjm62LNOTjbv
- W5iXrTXWsKnGFbp/PIlpe9xwn4FS3307358zODe580/X1HsYdItgvtJRqywEHRTuRCyggHF8w5i
- BIfUjWYmtxliP4trvie4jRo0=
-X-Envelope-To: linux-rdma@vger.kernel.org
-Received: from [192.168.38.216] (123.123.40.50)
-	by smtp.migadu.com with ESMTPS id d97ecd1d02598cd1;
-	Mon, 24 Aug 2026 08:58:06 +0000
-X-Mizu-Trace-ID: d97ecd1d02598cd1
-X-Migadu-Flow: FLOW_OUT
-Message-ID: <3702388e-3eb9-5f62-f2ae-cac3a01be716@linux.dev>
-Date: Mon, 24 Aug 2026 16:58:01 +0800
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MXNXJE30"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D36F1F000E9;
+	Mon, 24 Aug 2026 10:30:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1787567425;
+	bh=YTJx4dBRZAybNR3HI9pgVr2GlnnH8dp6QvB0gcnDMNI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=MXNXJE30qWUtcm1NT8yEay24jDlVuNDHRTUdAj5/W9cVv41rPFfmbAxom10H4mxdt
+	 P6kZsPEFe26zd3EhXOSOMXtRElSohFaOu2q74SzHUGIq//2PrtlaVfNzRLR7p8eRc1
+	 vJYYEsit0BTmM+PYbc6/ZLLH2/guLaWEHbv4/LduGpwS8NF/lp2nuzeQKGPCkvGe+t
+	 HnD4AdNDUYsXXz/tqwLOn/Jz7Eo1M/grJNEny0kYXZKLk8deUUo/1OemVnX1xO2pBk
+	 72C7xQkOebsUoITNaW8B0LpYQpygVlp9FBGIBzkQQDBNR2xKhqlyGmfbx0FzVyMFpQ
+	 CJBtDxWoLnqmA==
+Date: Mon, 24 Aug 2026 11:30:20 +0100
+From: Simon Horman <horms@kernel.org>
+To: Hidayath Khan <hidayath@linux.ibm.com>
+Cc: alibuda@linux.alibaba.com, dust.li@linux.alibaba.com,
+	sidraya@linux.ibm.com, mjambigi@linux.ibm.com,
+	andrew+netdev@lunn.ch, tonylu@linux.alibaba.com,
+	guwen@linux.alibaba.com, davem@davemloft.net, edumazet@google.com,
+	kuba@kernel.org, pabeni@redhat.com, pasic@linux.ibm.com,
+	linux-s390@vger.kernel.org, netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org
+Subject: Re: [PATCH net v2 0/2] net/smc: fix use-after-free in
+ smc_rx_pipe_buf_release()
+Message-ID: <20260824103020.GN265046@horms.kernel.org>
+References: <20260820074642.966856-1-hidayath@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.12.0
-Subject: Re: [BUG] RDMA/siw: KASAN: slab-use-after-free in siw_accept
-To: Shuangpeng Bai <shuangpeng.kernel@gmail.com>,
- Bernard Metzler <bernard.metzler@linux.dev>, Jason Gunthorpe <jgg@ziepe.ca>,
- Leon Romanovsky <leon@kernel.org>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
- stable@vger.kernel.org
-References: <20260821194704.835548-1-shuangpeng.kernel@gmail.com>
-Content-Language: en-US
-From: Guoqing Jiang <guoqing.jiang@linux.dev>
-In-Reply-To: <20260821194704.835548-1-shuangpeng.kernel@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260820074642.966856-1-hidayath@linux.ibm.com>
 
-Hi,
+On Thu, Aug 20, 2026 at 09:46:40AM +0200, Hidayath Khan wrote:
+> smc_rx_pipe_buf_release() tests sk_state before taking the socket lock
+> and then dereferences conn->rmb_desc and conn->lgr. A concurrent close
+> runs smc_conn_free() in between, which releases those structures. On the
+> is_reg_err path smcr_buf_unuse() frees the descriptor outright, so this
+> is a use-after-free.
+> 
+> Patch 2/2 fixes this by taking the socket lock first and testing
+> conn->freed instead. smc_conn_free() sets that flag before releasing
+> anything, under the same lock, so the two paths exclude each other.
+> 
+> Patch 1/2 is a prerequisite. conn->freed shares a byte with killed and
+> out_of_sync as single-bit bitfields. out_of_sync is written from the
+> receive tasklet without the socket lock, so a concurrent store to freed
+> from process context can be lost in the read-modify-write. Patch 1/2
+> gives each flag its own byte so stores do not interfere.
+> 
+> Hidayath Khan (2):
+>   net/smc: stop killed, freed and out_of_sync sharing a byte
+>   net/smc: fix use-after-free in smc_rx_pipe_buf_release()
+> 
+>  net/smc/smc.h    |  6 +++---
+>  net/smc/smc_rx.c | 11 +++++------
+>  2 files changed, 8 insertions(+), 9 deletions(-)
+> 
+> ---
+> v2:
+> - Patch 1/2 is new. It is a prerequisite for 2/2.
+> - Patch 2/2 replaces the conn->rmb_desc = NULL approach from v1 with a
+>   conn->freed check. The NULL store exposed smc_cdc_msg_recv_action()
+>   and the sock_diag dump to NULL dereferences on paths that do not take
+>   the socket lock.
 
-On 8/22/26 03:46, Shuangpeng Bai wrote:
-> Hi Kernel Maintainers,
->
-> I hit the following report while testing current upstream kernel:
->
-> KASAN: slab-use-after-free in siw_accept
->
-> on commit: bd5f485f3f026225b86573e559af0b7254ef4184 (2026-08-18)
->
-> To help trigger the bug more reliably, we applied a minimal diagnostic patch
-> that only adds delays and print statements.
->
-> The reproducer and .config files are here.
-> https://gist.github.com/shuangpengbai/28addfcbf79470a62d5b4cd784e95cd2
->
-> The reproducer triggers a concurrent userspace QP transition to ERROR while
-> siw_accept() is unwinding after a QP initialization allocation failure. The
-> QP ERROR path drops qp->cep and frees the same struct siw_cep before
-> siw_accept() stores cep->qp = NULL.
->
-> This report is separate from the withdrawn follow-up patch:
-> https://lore.kernel.org/linux-rdma/20260816061353.4059242-1-shuangpeng.kernel@gmail.com/
->
-> That patch concerned a concurrent QP-destruction path. This report instead
-> involves a normal userspace ibv_modify_qp() transition to IBV_QPS_ERR on a
-> still-live QP.
->
-> We also reproduced this issue on a tree containing
-> a93949718259 ("RDMA/siw: Fix use-after-free in siw_accept()"). That commit
-> covers the qp->cep != cep case; this report exercises the distinct
-> qp->cep == cep race during a concurrent userspace ibv_modify_qp(...,
-> IBV_QPS_ERR).
->
-> The QP initialization failure was induced through the built-in fail_page_alloc
-> fault injector, restricted to the siw_qp_modify() call stack. The failing
-> vcalloc() path is a real -ENOMEM path.
->
-> The diagnostic patch shifts source line numbers in the decoded trace; in the
-> unmodified tree, the corresponding access is `siw_cm.c:1758` and the freeing
-> put is `siw_qp.c:663`.
->
-> I'm happy to test debug patches or provide additional information.
->
-> Reported-by: Shuangpeng Bai <shuangpeng.kernel@gmail.com>
->
-> [  409.854273] ==================================================================
-> [  409.856424] BUG: KASAN: slab-use-after-free in siw_accept (drivers/infiniband/sw/siw/siw_cm.c:1766)
-> [  409.858419] Write of size 8 at addr ffff888176620068 by task siw_accept_foll/8801
->
-> [  409.860281] Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-> [  409.860284] Call Trace:
-> [  409.860288]  <TASK>
-> [  409.860291]  dump_stack_lvl (lib/dump_stack.c:94 lib/dump_stack.c:120)
-> [  409.860298]  print_report (mm/kasan/report.c:378 mm/kasan/report.c:482)
-> [  409.860315]  kasan_report (mm/kasan/report.c:595)
-> [  409.860325]  siw_accept (drivers/infiniband/sw/siw/siw_cm.c:1766)
-> [  409.860382]  iw_cm_accept (drivers/infiniband/core/iwcm.c:670)
-> [  409.860388]  rdma_accept (drivers/infiniband/core/cma.c:4643 drivers/infiniband/core/cma.c:4727)
-> [  409.860484]  ucma_accept (drivers/infiniband/core/ucma.c:1208)
-> [  409.860504]  ucma_write (drivers/infiniband/core/ucma.c:1856)
-> [  409.860528]  vfs_write (fs/read_write.c:685)
-> [  409.860554]  ksys_write (fs/read_write.c:739)
-> [  409.860574]  do_syscall_64 (arch/x86/entry/syscall_64.c:61 arch/x86/entry/syscall_64.c:84)
-> [  409.860579]  entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:121)
-> [  409.860583] RIP: 0033:0x7f179cdf6fef
-> [  409.860588] Code: 89 54 24 18 48 89 74 24 10 89 7c 24 08 e8 29 fd ff ff 48 8b 54 24 18 48 8b 74 24 10 41 89 c0 8b 7c 24 08 b8 01 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 31 44 89 c7 48 89 44 24 08 e8 5c fd ff ff 48
-> All code
-> ========
->     0:	89 54 24 18          	mov    %edx,0x18(%rsp)
->     4:	48 89 74 24 10       	mov    %rsi,0x10(%rsp)
->     9:	89 7c 24 08          	mov    %edi,0x8(%rsp)
->     d:	e8 29 fd ff ff       	call   0xfffffffffffffd3b
->    12:	48 8b 54 24 18       	mov    0x18(%rsp),%rdx
->    17:	48 8b 74 24 10       	mov    0x10(%rsp),%rsi
->    1c:	41 89 c0             	mov    %eax,%r8d
->    1f:	8b 7c 24 08          	mov    0x8(%rsp),%edi
->    23:	b8 01 00 00 00       	mov    $0x1,%eax
->    28:	0f 05                	syscall
->    2a:*	48 3d 00 f0 ff ff    	cmp    $0xfffffffffffff000,%rax		<-- trapping instruction
->    30:	77 31                	ja     0x63
->    32:	44 89 c7             	mov    %r8d,%edi
->    35:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
->    3a:	e8 5c fd ff ff       	call   0xfffffffffffffd9b
->    3f:	48                   	rex.W
->
-> Code starting with the faulting instruction
-> ===========================================
->     0:	48 3d 00 f0 ff ff    	cmp    $0xfffffffffffff000,%rax
->     6:	77 31                	ja     0x39
->     8:	44 89 c7             	mov    %r8d,%edi
->     b:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
->    10:	e8 5c fd ff ff       	call   0xfffffffffffffd71
->    15:	48                   	rex.W
-> [  409.860592] RSP: 002b:00007ffe992e7720 EFLAGS: 00000293 ORIG_RAX: 0000000000000001
-> [  409.860599] RAX: ffffffffffffffda RBX: 00007ffe992e79c0 RCX: 00007f179cdf6fef
-> [  409.860602] RDX: 0000000000000130 RSI: 00007ffe992e7800 RDI: 0000000000000003
-> [  409.860605] RBP: 000055f0d1977070 R08: 0000000000000000 R09: 00007f179ca7e700
-> [  409.860608] R10: fffffffffffffaa5 R11: 0000000000000293 R12: 0000000000000000
-> [  409.860610] R13: 0000000000000000 R14: 0000000000000001 R15: 00007ffe992e7800
-> [  409.860615]  </TASK>
->
-> [  409.897413] Allocated by task 8115 on cpu 1 at 408.747286s:
-> [  409.897984]  kasan_save_track (mm/kasan/common.c:57 mm/kasan/common.c:78)
-> [  409.898409]  __kasan_kmalloc (mm/kasan/common.c:398 mm/kasan/common.c:415)
-> [  409.898822]  __kmalloc_cache_noprof (./include/linux/kasan.h:263 mm/slub.c:5489)
-> [  409.899305]  siw_cep_alloc (./include/linux/slab.h:988 ./include/linux/slab.h:1309 drivers/infiniband/sw/siw/siw_cm.c:210)
-> [  409.899712]  siw_cm_work_handler (drivers/infiniband/sw/siw/siw_cm.c:982 drivers/infiniband/sw/siw/siw_cm.c:1077)
-> [  409.900176]  process_scheduled_works (kernel/workqueue.c:3322 kernel/workqueue.c:3405)
-> [  409.900666]  worker_thread (kernel/workqueue.c:3486)
-> [  409.901080]  kthread (kernel/kthread.c:436)
-> [  409.901451]  ret_from_fork (archkernel/process.c:158)
-> [  409.901865]  ret_from_fork_asm (arch/x86/entry/entry_64.S:245)
->
-> [  409.902511] Freed by task 8817 on cpu 0 at 409.051801s:
-> [  409.903051]  kasan_save_track (mm/kasan/common.c:57 mm/kasan/common.c:78)
-> [  409.903477]  kasan_save_free_info (mm/kasan/generic.c:584)
-> [  409.903930]  __kasan_slab_free (mm/kasan/common.c:253 mm/kasan/common.c:285)
-> [  409.904366]  kfree (./include/linux/kasan.h:235 mm/slub.c:2677 mm/slub.c:6377 mm/slub.c:6692)
-> [  409.904718]  siw_qp_modify (drivers/infiniband/sw/siw/siw_qp.c:669 drivers/infiniband/sw/siw/siw_qp.c:823)
-> [  409.905144]  siw_verbs_modify_qp (drivers/infiniband/sw/siw/siw_verbs.c:600)
-> [  409.905609]  ib_security_modify_qp (drivers/infiniband/core/security.c:625)
-> [  409.906082]  _ib_modify_qp (drivers/infiniband/core/verbs.c:1912)
-> [  409.906502]  modify_qp (drivers/infiniband/core/uverbs_cmd.c:1925)
-> [  409.906890]  ib_uverbs_modify_qp (drivers/infiniband/core/uverbs_cmd.c:1951)
-> [  409.907339]  ib_uverbs_handler_UVERBS_METHOD_INVOKE_WRITE (drivers/infiniband/core/uverbs_std_types_device.c:44)
-> [  409.907989]  ib_uverbs_cmd_verbs (drivers/infiniband/core/uverbs_ioctl.c:387 drivers/infiniband/core/uverbs_ioctl.c:526)
-> [  409.908469]  ib_uverbs_ioctl (drivers/infiniband/core/uverbs_ioctl.c:555)
-> [  409.908898]  __se_sys_ioctl (fs/ioctl.c:51 fs/ioctl.c:597 fs/ioctl.c:583)
-> [  409.909319]  do_syscall_64 (arch/x86/entry/syscall_64.c:61 arch/x86/entry/syscall_64.c:84)
-> [  409.909729]  entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:121)
->
-> [  409.910480] The buggy address belongs to the object at ffff888176620000
-> which belongs to the cache kmalloc-256 of size 256
-> [  409.911716] The buggy address is located 104 bytes inside of
-> freed 256-byte region [ffff888176620000, ffff888176620100)
+Thanks for the updates.
 
-I suppose it is necessary to clear qp and cep before release state_lock 
-since both siw_qp_llp_close and
-siw_qp_modify->siw_qp_llp_close hold the lock during close cep, 
-something like
+The AI-generated reviews provided by sashiko-bot elsewhere in this
+thread appear to relate to pre-existing issues that I don't believe
+should impact the progress of this patch.
 
-@@ -1719,6 +1719,16 @@ int siw_accept(struct iw_cm_id *id, struct 
-iw_cm_conn_param *params)
-                            SIW_QP_ATTR_STATE | SIW_QP_ATTR_LLP_HANDLE |
-                                    SIW_QP_ATTR_ORD | SIW_QP_ATTR_IRD |
-                                    SIW_QP_ATTR_MPA);
-+       if (rv) {
-+               cep->qp = NULL;
-+               qp->cep = NULL;
-+               siw_cep_put(cep);
-+       }
-         up_write(&qp->state_lock);
+For the series:
+Reviewed-by: Simon Horman <horms@kernel.org>
 
-Thanks,
-Guoqing
