@@ -1,187 +1,216 @@
-Received: from mail-ed1-f51.google.com (mail-ed1-f51.google.com [209.85.208.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16C50387348
-	for <linux-rdma@vger.kernel.org>; Sun, 23 Aug 2026 22:12:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CDE51FFC48;
+	Mon, 24 Aug 2026 00:38:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787523165; cv=none; b=FwMA5E9GwyAzbudQa9Elafp4xjX5hB/9XXSmIjEAFKsFaa2+hY/GWx8j0KtxZj+VNnmJTctSi91TsOYE2OXaf2ZYobjK60b+fEi02rdJsRW1OqZggoXqzFVQ3/q8WIi2jUqR17r431mWPL+sMiXtfl12hPfwM79DTIne/MD4Tm8=
+	t=1787531882; cv=none; b=ZmGIFD6nHSxNgeoWdWd5KO/2RRWRLGQ1LQ+8kmJvBXG3LiC7GtagrOXe9xnyH6XOobAuLqQ+r2Ru/9CeghZaDZWC3h3mfe+H77zZHsGRy8d7EdQr6Reqd/SOZFOwtJ+ucSJB6ex6UX2jLHK8I1e8z9usRN/17kuTPmk4qbQLDPg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787523165; c=relaxed/simple;
-	bh=GqPg7liRNMqrm8j4qggfPJWb6w6iifsnP6+v+SgJcSk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=UJoLWNww6ir0/qNi9RS4Mv9hPhkZMhwfT/sJczH1hYBvhxK6UfMEPJxhAGPYmKNT8MR4z5zK027vRQVjFvsVsszpL91vk9cOayryfdYuFUeP0e7dJeCe/sUF4noDfT3SKjjuhx6aZB/FbHhLB8q5MYE0Fg3TFsB+lTb5J9fhUPY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b=HtAiPHmN; arc=none smtp.client-ip=209.85.208.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
+	s=arc-20240116; t=1787531882; c=relaxed/simple;
+	bh=cKdZSxbBOapYM1VprahmYRcrZ0k2ck1qofuq6+iVmZE=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=d/eEj0SkXPG65TkZTs2Oh3ytLbyNEwt+WyeCthX+gxYKnAbJpTs5H3rdPvNZOHXU6JIBLsyo/0AhyE02u84HYB4mFiGGwx5wsehCdcuRibsJH0PdcMrauYLWZeGUL14+VdfCtiIyolB3rm0vA1th5L4z+UUOkSO1YoK+4tFPrQU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Rdlc+e27; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b="HtAiPHmN"
-Received: by mail-ed1-f51.google.com with SMTP id 4fb4d7f45d1cf-6a378f90555so4621432a12.3
-        for <linux-rdma@vger.kernel.org>; Sun, 23 Aug 2026 15:12:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre.com; s=google; t=1787523160; x=1788127960; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=//7iEXuM0dwaErrYwlxiIsbco7Xb10BSWAJJRQqIeEQ=;
-        b=HtAiPHmN2cDwcdR57+nVPm79Bqmt5EFmrechceL9eOdPqvtm7XlhCdN90EfvrYvC30
-         xyiSqLbWFXgRVJ2uF7cDWOuOSFM/OtpL9Jq06wbBN9U7hl0Z1+3VDXlwRWJA1JGakqoF
-         GF5k0u5gF97lYRquh2NIOw3Jj6kZTKKJbn9W1dujbFmfFlYKMGyWLz7i98bVU34bfhD9
-         FKug+jvyVP1TCFBby0MAFYlfcWF7S2nPMhtwgA1iLzf7NwHw5j3a3vdbQVKQGzaaeqVE
-         UAmGHSVqkpdxdl8cqRT18mdu9gBcHZrbPXo/N9A9zPnVIflAQ5qUJyxZlOEMu5wwzbod
-         89ng==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787523160; x=1788127960;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=//7iEXuM0dwaErrYwlxiIsbco7Xb10BSWAJJRQqIeEQ=;
-        b=W8evbjQLN++92GB87/E9WV+ZVN1QrO5o0SnXLSES3O0nYzcVLhHsJNojMUkuzRZkbd
-         Njvdi+xnnLl5wIU8mcycvgCan5f+1hlr64f5Yj3oDX0M6ioKhSJypk3a2mr9+E/2FDqf
-         mCBAm0stfkwd766j+/jMRsazMI1XOqI6tvVDMlsJyAQc530HOOnDqLvg4l8tIMEzLDM3
-         PyCAfviH2X7E/lKQbk2Ej7/wVf0xCB4DbEBQzyjWYaN4flDlkhwBhsGSv9vHZci8CQZo
-         3qDJkZEuJPU/a9CIcRT9nCz+cRkvAKgAOcFcaxlEBN1NCZRXoER+3g3MlcwTC+t8/AF8
-         5APg==
-X-Forwarded-Encrypted: i=1; AHgh+Rqm81HjyiKTl0L+35aSPyUuq/e8l5ayMADTnAmm77tvdqfPuMAoNXrK6T9rAfr7Cn3Qb/bgm+/QkVkv@vger.kernel.org
-X-Gm-Message-State: AFuF++n/5yyzdkHwKXdOuQzfJMl2QrMufJFn74HfaXzYFLVTBM5+u5+m
-	TjbU6sis7kSR+jlGiFChXuNjg8jLBcGE37YCKc7174Z5iQAUq7oOXJzbkGf4ZkWsn2A=
-X-Gm-Gg: AR+sD1239kgXWwix+aPCUZ89Fq2gucbHTSqWxNgKBPd0SPwGcUthccs/HAHSeU7jpPc
-	r/KuCQrU1LS9fdZkLpER3vkp+KQg2hUgex0ezrJaTQZEmHApDhq/X+3ACteclmuA8ThNtnst9+Q
-	GZ2JGjvdfZKzmLtpA6Ogr4NVGIGbXlbEE41pZhFbotcLkGiH7zhclE85N8Va9FiP4lVn0tNhxhS
-	7ybY868uNZG1j97vvQjd7R3I0UD0HsEgbVGQ+QVtiKY+Ix83XHa/Dwxm8JLWDsjVB4Ggmre3obV
-	VNbJMPLqnC7CNH6fOlSYrY6V2nk8mt6K8br4PUz+MLEk1tTRHvyhoj0KmcxIWNyIWkZqmg4BwI6
-	Y4AaCy2S9wxococC0zdf7hWXn1fFTQCTLv0oMyXWg5Diho8Ad8FhMw6gJU01EEcs7IHLrqkZRHR
-	0ejFTccfZrALZUAvlsMJjIKvjLd0i8lDTYwZi3tl4hWeWzR9/BJpnw2Wiy59jYwxYoWXSNKEojs
-	EP4
-X-Received: by 2002:a05:6402:505b:b0:69c:811f:8f5 with SMTP id 4fb4d7f45d1cf-6a42f1b9325mr25356134a12.6.1787523160405;
-        Sun, 23 Aug 2026 15:12:40 -0700 (PDT)
-Received: from localhost ([2a02:8071:56d1:2de0:1d24:d58d:2b65:c291])
-        by smtp.gmail.com with UTF8SMTPSA id 4fb4d7f45d1cf-6a59e00108asm7547158a12.2.2026.08.23.15.12.39
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 23 Aug 2026 15:12:39 -0700 (PDT)
-Date: Mon, 24 Aug 2026 00:12:38 +0200
-From: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@baylibre.com>
-To: Mauricio Faria de Oliveira <mfo@igalia.com>
-Cc: Kees Cook <kees@kernel.org>, Joel Granados <joel.granados@kernel.org>, 
-	Nathan Chancellor <nathan@kernel.org>, Nicolas Schier <nsc@kernel.org>, 
-	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
-	kernel-dev@igalia.com, linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org, 
-	fsverity@lists.linux.dev, keyrings@vger.kernel.org, bpf@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, netdev@vger.kernel.org, 
-	linux-wpan@vger.kernel.org, lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org, 
-	coreteam@netfilter.org, linux-sctp@vger.kernel.org, linux-rdma@vger.kernel.org, 
-	linux-s390@vger.kernel.org, bridge@lists.linux.dev, mptcp@lists.linux.dev, 
-	rds-devel@oss.oracle.com, virtualization@lists.linux.dev
-Subject: Re: [PATCH RFC v3 03/13] sysctl, mod_devicetable: add macro
- MODULE_SYSCTL_TABLE
-Message-ID: <aotteDcc588iwC6g@monoceros>
-References: <20260819-sysctl-module-aliases-v3-0-aab90569365d@igalia.com>
- <20260819-sysctl-module-aliases-v3-3-aab90569365d@igalia.com>
- <aomlfGJM61qZKxx2@monoceros>
- <4e3eaf1d3419e808be046035f114bf6c@igalia.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Rdlc+e27"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 115941F000E9;
+	Mon, 24 Aug 2026 00:38:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1787531880;
+	bh=Ggwu3KZDsppZ4tTYuARs4HRZYK18mlQjF5kY17B5tZI=;
+	h=From:To:Cc:Subject:Date;
+	b=Rdlc+e27oawjPjdfE4wSTgHogJgFP3O8pMCA7U7cVKuO63jyOSe95vfgSN58/qwqi
+	 ZqSgxFfsb3DnGab/9M7sVDEKZfnDYFkmpR/cCRbut31z8twXC0nW9CFeQTfOxyyrCp
+	 sjGg7mTsVsxE3ASafOJfyPihM4m7tXagQQ1W2Ktzq4+KOP75yAGKlTHoQXyajW+0hP
+	 uvQF1HP5+YJ5uouyCGInJiZRuUBAIoj0TVthvOvRjiT8/evdKcCsmY5Nf9MPUgeocj
+	 2jyTZDTNTxSy0PlBQp7uE1uWyw6nN40okwFh13CrY3CdaFsf8MeJBYoJpVRoe8xpVs
+	 cc34u+dVj8OsA==
+From: Allison Henderson <achender@kernel.org>
+To: netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	kuba@kernel.org,
+	horms@kernel.org
+Cc: achender@kernel.org,
+	jhubbard@nvidia.com,
+	woni9911@gmail.com,
+	michal.kubiak@intel.com,
+	leon@kernel.org
+Subject: [PATCH net v4 0/7] net/rds: own the fastpath locks across connection teardown
+Date: Sun, 23 Aug 2026 17:37:52 -0700
+Message-Id: <20260824003759.127353-1-achender@kernel.org>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="6dsww6grbwx7uy7i"
-Content-Disposition: inline
-In-Reply-To: <4e3eaf1d3419e808be046035f114bf6c@igalia.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Hi all,
+
+This is v4 of the follow-up set to "net/rds: Bug fix ports, part 2"
+[1] (v1 at [2], v2 at [3], v3 at [4]).  During review of part 2, the
+later half of that series needed more work than a respin, so it was
+split off into this set together with the companion fixes identified
+along the way.  As discussed on the v2 thread, it is targeted at net.
+
+RDS connection teardown quiesces the transmit and receive-refill fast
+paths by waiting for the RDS_IN_XMIT/RDS_RECV_REFILL bits to be
+sampled clear.  Sampling a bit clear is not owning it: the fast path
+can re-take its bit right after the wait returns and then run
+concurrently with the transport shutdown and the send-state reset.
+Oracle UEK closed this by making teardown acquire the bits as locks
+("rds: Make sure transmit path and connection tear-down does not run
+concurrently"); patches 5 and 6 do the same for the two
+rds_send_path_reset() call sites upstream.
+
+Making teardown block on the bits as locks promotes several latent
+ordering bugs from rare to load-bearing, so they are fixed first:
+
+  Patches 1 and 2 fix the release side of the two bit locks.
+  release_in_xmit() and release_refill() both clear their bit and then
+  test for waiters, but the barrier is on the wrong side of the clear
+  to order the critical section's stores before the release, and the
+  waiter check does not order against the clear.  Once teardown blocks
+  on these bits as locks (uninterruptible and untimed), a lost wake-up
+  or a store observed out of order stops mattering only in theory.
+  Use clear_bit_unlock() and wq_has_sleeper(), the pattern already
+  half-present in release_in_xmit().
+
+  Patch 3: rds_conn_path_reset() wipes the whole cp_flags word with a
+  plain store.  Once teardown owns bits in that word across the reset,
+  a blanket store would end lock ownership early - and it already
+  races atomic RMWs on the same word today.  Clear the bits the reset
+  is responsible for individually, as Oracle UEK also does.
+
+  Patch 4: rds_tcp_reset_callbacks() stores RDS_CONN_RESETTING
+  unconditionally, which can overwrite the RDS_CONN_ERROR or
+  RDS_CONN_DISCONNECTING of a shutdown already in progress on the same
+  path and send that shutdown through an extra drop cycle.  Once the
+  accept path can park for the duration of a teardown (patch 6) that
+  window widens, so make the transition conditional first, as Oracle
+  UEK does.
+
+With those in place, patch 5 converts rds_tcp_reset_callbacks() from
+waiting on RDS_IN_XMIT to acquiring it, holding it across the socket
+swap and rds_send_path_reset(), and patch 6 has rds_conn_shutdown()
+hold both bit locks across the transport shutdown and path reset.
+
+Patch 7 is new in v4 and fixes a pre-existing teardown-state hole that
+this series makes easier to hit but did not introduce.  Since commit
+e97656d03ca0 the final transition in rds_conn_shutdown() accepts
+RDS_CONN_ERROR as well as RDS_CONN_DISCONNECTING, so that a FIN
+processed during the teardown does not derail the shutdown.  But
+consuming that RDS_CONN_ERROR also consumes the shutdown pass that a
+concurrent rds_conn_path_drop() queued along with it.  For a FIN that
+is harmless; for rds_tcp_accept_one() it is not.  A drop can race the
+accept's DOWN -> CONNECTING path claim, the accept then installs the
+freshly accepted socket while the drop's teardown - which sampled
+tc->t_sock before that socket existed - is still running,
+rds_connect_path_complete() fails and drops the path again, and if the
+in-flight shutdown's final transition then swallows that
+RDS_CONN_ERROR, the pass that should reap the just-installed socket
+finds the path already RDS_CONN_DOWN and does nothing.  The socket is
+leaked with its callbacks armed and its rds_tcp_connection still on
+rds_tcp_tc_list, the peer sees an established connection that nothing
+reads, and the path wedges in RDS_CONN_DOWN.  Make the final
+transition DISCONNECTING -> DOWN only and leave a racing drop's
+RDS_CONN_ERROR alone, so the pass it queued runs and tears down
+whatever attached to the path.
+
+This surfaced while re-reviewing v3: whether the
+release-then-transition ordering in patch 6 could let a woken waiter
+install a socket that the teardown then strands.  Chasing that down,
+the reachable form of the leak turned out to be the accept-vs-drop
+race above rather than the parked-waiter path (a path mid-teardown is
+never handed to rds_tcp_reset_callbacks(): rds_tcp_accept_one_path()
+only claims a path it can move DOWN -> CONNECTING), and it predates
+this series.  It reproduces on an instrumented kernel - a test-only
+drop injected into the accept window plus a widened teardown-to-tail
+window - as an ESTABLISHED socket with an ever-growing receive queue
+on a path stuck down; the same kernel runs clean with patch 7.
+
+The set was built per-commit, run through the rds selftests (tcp and
+rdma/rxe) with a clean dmesg, and exercised with a connection/netns
+churn load and module load/unload cycles.
+
+[PATCH net 1/7] net/rds: use wq_has_sleeper() in release_in_xmit()
+  Restore the full barrier before the wake-up check in
+  release_in_xmit()
+
+[PATCH net 2/7] net/rds: use clear_bit_unlock() in release_refill()
+  The matching release-side fix for RDS_RECV_REFILL
+
+[PATCH net 3/7] net/rds: clear cp_flags bits individually in rds_conn_path_reset()
+  Partial port of commit d04896037223 ("net/rds: Preserve essential connection state flags")
+  https://github.com/oracle/linux-uek/commit/d04896037223
+
+[PATCH net 4/7] net/rds: tcp: don't force RDS_CONN_RESETTING over a concurrent shutdown
+  Port of commit 72c176a1d9ac ("net/rds: Don't force state RDS_CONN_RESETTING")
+  https://github.com/oracle/linux-uek/commit/72c176a1d9ac
+
+[PATCH net 5/7] net/rds: acquire RDS_IN_XMIT in rds_tcp_reset_callbacks()
+  Extend the port in patch 6 to the second rds_send_path_reset() call site
+
+[PATCH net 6/7] net/rds: acquire the fastpath locks in rds_conn_shutdown()
+  Port of commit 2b8aaa4f163b ("rds: Make sure transmit path and connection tear-down does not run concurrently")
+  https://github.com/oracle/linux-uek/commit/2b8aaa4f163b
+
+[PATCH net 7/7] net/rds: don't let rds_conn_shutdown() consume a concurrent drop
+  Fix the accept-vs-drop socket leak found while reviewing patch 6
+
+Changes since v3 [4]:
+  - New patch 2 (release_refill clear_bit_unlock/wq_has_sleeper),
+    completing the release-side pairing for the second bit lock that
+    patch 6 now takes; noticed while re-reviewing patch 6.
+  - New patch 7 (don't consume a concurrent drop), fixing the
+    accept-vs-drop socket leak described above; found while
+    re-reviewing patch 6.
+  - Patch 5's block comment now names all four t_sock writers,
+    including the accept-path setter.
+  - Patch 6's changelog gains a note for stable backporters about its
+    dependency on patches 3 and 5.
+  - Patches 1, 3, 4, 5 and 6 are otherwise code-identical to v3.
+
+The cong.c wq_has_sleeper() conversion mentioned on the v2 thread was
+sent separately and has already been reviewed.
+
+Questions and comments appreciated!
+
+Thanks,
+Allison
+
+[1] https://lore.kernel.org/netdev/20260806072045.1092968-1-achender@kernel.org/
+[2] https://lore.kernel.org/netdev/20260814013501.43760-1-achender@kernel.org/
+[3] https://lore.kernel.org/netdev/20260816001510.73645-1-achender@kernel.org/
+[4] https://lore.kernel.org/netdev/20260822052459.88017-1-achender@kernel.org/
+
+Allison Henderson (5):
+  net/rds: use wq_has_sleeper() in release_in_xmit()
+  net/rds: use clear_bit_unlock() in release_refill()
+  net/rds: clear cp_flags bits individually in rds_conn_path_reset()
+  net/rds: acquire RDS_IN_XMIT in rds_tcp_reset_callbacks()
+  net/rds: don't let rds_conn_shutdown() consume a concurrent drop
+
+Gerd Rausch (1):
+  net/rds: tcp: don't force RDS_CONN_RESETTING over a concurrent
+    shutdown
+
+Håkon Bugge (1):
+  net/rds: acquire the fastpath locks in rds_conn_shutdown()
+
+ net/rds/connection.c | 75 +++++++++++++++++++++++++++---------
+ net/rds/ib_recv.c    |  9 +++--
+ net/rds/send.c       | 12 ++++--
+ net/rds/tcp.c        | 92 +++++++++++++++++++++++++++++++-------------
+ 4 files changed, 137 insertions(+), 51 deletions(-)
 
 
---6dsww6grbwx7uy7i
-Content-Type: text/plain; protected-headers=v1; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-Subject: Re: [PATCH RFC v3 03/13] sysctl, mod_devicetable: add macro
- MODULE_SYSCTL_TABLE
-MIME-Version: 1.0
+base-commit: 4e15e89faac9f308baeb01f46c13a051814d2449
+-- 
+2.25.1
 
-Hello Mauricio,
-
-On Sat, Aug 22, 2026 at 01:57:24PM -0300, Mauricio Faria de Oliveira wrote:
-> On 2026-08-22 10:41, Uwe Kleine-K=F6nig wrote:
-> > On Wed, Aug 19, 2026 at 03:16:16PM -0300, Mauricio Faria de Oliveira wr=
-ote:
-> >> The MODULE_SYSCTL_TABLE macro emits a struct module_sysctl_table varia=
-ble
-> >> with pointers to a sysctl table's path and entries, and table/entry si=
-zes.
-> >=20
-> > That new struct doesn't seem to contain any pointer?
->=20
-> The struct module_sysctl_table fields .path and .table are pointers,
-> although with kernel_ulong_t type so that the same 32/64-bit size is
-> used in file2alias.c based on KERNEL_ELFCLASS (and not on the host,
-> which might differ with CROSS_COMPILE).
-
-Cross compilation isn't an issue for the already existing device id
-structures; many of them also contain pointers.
-(While modpost doesn't use the pointers, the size of the structures must
-be known to correctly interpret the arrays.)
-Also sizeof(long) differs between architectures and I can compile for
-arm(32) just fine on amd64.
-
-Additionally there is hardware out there that has sizeof(void *) =3D 16
-but sizeof(long) =3D 8. Up until recently I worked on mainlining that (and
-it has business reasons only I stopped, so I guess and hope I will
-continue at some point in the future). See
-https://lwn.net/Articles/1037974/ for some details if you're interested.
-
-I would be great if your series didn't introduce a new obstacle for
-that.
-
-> >> That symbol will be handled by file2alias.c (modpost) with the changes=
- in
-> >> mod_devicetable.h and devicetable-offsets.c.
-> >>=20
-> >> The option macros MODULE_SYSCTL_TABLE_{DISABLE,UNIQUE_ID} can be used =
-on
-> >> a per-file basis to disable the macro and change the symbol name patte=
-rn.
-> >>=20
-> >> Signed-off-by: Mauricio Faria de Oliveira <mfo@igalia.com>
-> >> ---
-> >>  include/linux/mod_devicetable.h   |  7 +++++++
-> >>  include/linux/sysctl.h            | 42 ++++++++++++++++++++++++++++++=
-+++++++++
-> >>  scripts/mod/devicetable-offsets.c |  6 ++++++
-> >>  3 files changed, 55 insertions(+)
-> >=20
-> > Please put the new struct in a separate header. Apart from not being
-> > about a device table, I'm currently work on removing
-> > <linux/mod_devicetable.h>. See commit
-> > ad428f5811bd7fb3d91fa002174de533f9da94d7 for more details.
->=20
-> Sure; I looked at that earlier (thanks for the instructive commit
-> message, by the way) and found the new struct to be similar to "struct
-> cpu_feature isn't really a device_id struct" (not moved), but apparently
-> missed the trailing "fow now", which is clearer now. Fixed for v4.
-
-Yeah, I didn't move that because it was an outlier in the header as it's
-not a device id. IMHO it should go to something like
-include/linux/cpu_feature.h.
-
-Best regards
-Uwe
-
---6dsww6grbwx7uy7i
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEP4GsaTp6HlmJrf7Tj4D7WH0S/k4FAmqLcFMACgkQj4D7WH0S
-/k74fgf+L2E+C5s7/Uv60MggM8SluqqYOIYVRQMrJ0YZ292Po2lSpcrxuhUuQU2B
-oXhO4fsc1HgZsK331x/O/bMuTOPLltQaKOsxLiMi24UglNQqmujyzSUFLnsr9NlL
-1xjI1icd6tMaie8k1PK7ynotnvtfYE9Fbl/52MAUgNFbTbWqnaXhNv+fzm/C72Cc
-xjp+GuDi0DimbriiFBYP3aUccUEUCgsrwh3Zwss3iQSaV2gZ3Y+jYlUBB3YlBSZQ
-+m5a8ZWC4FeqCD+8NXyqc01adbOF9gkilqmoa2KsUhRY9+jPqn0pQhpfPxEl6Lf9
-/YNG96sk855Er0BHcQ1R8Pg+AcsRrg==
-=t37g
------END PGP SIGNATURE-----
-
---6dsww6grbwx7uy7i--
