@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E1FD23AE87;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B00E22727F3;
 	Mon, 24 Aug 2026 00:38:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787531883; cv=none; b=Elyt5qIILklgEbXPYRDLUXXwjESGHxt8oKqNqlNq4pDD/6mYWb9WE3mQ0BOfOsEMjt2pA+lp+77j9D6a2dUAW4eEBL9UMX9VrUxtYkmT6gYKLWLobrcx+CxY3oPLK2AigF5oPkbN+Qk/5k/2jHpj511r0PC7husmpNa+IlPrkX8=
+	t=1787531883; cv=none; b=CuYyBnZiEsL8BTbSd9beYQauYWWE53zvQJwj+f5N6Ak1+e4mN6H8YrnGh2LEBTF+/vPhCckuFHij+4DKJyQRfgCtx2QzGAsYz47HLLnhbBLAuPhP32ni4j+UkO2s+9GA7CIpCSenrL+L7jFREUHUb/fRSq1jgam5mXfe/8Kd12Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1787531883; c=relaxed/simple;
-	bh=sx+CVfrSxT4XlRzbnqDwTcS5d6UL74YkmqE0L+VInFs=;
+	bh=xEV9FvwzyulzoyQ47QkultXAtXJyMfRBZOVZg7aiRto=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=dvDa0W5aUfApZ5uhDID8TFFCjc4njHY56nlGrL/C4Y15NZux7mHgbLQgFg3KAVSUoI8RQr3LZvp6JN987hyk8I+vfB4MkYM9YZPB/fe2NHQSh568Em3DJm5aPOCvv0bSD9clLSjTSB3pr0mJ1uMjS5GY2i1wQpK7QYtiOYxDRdE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ll2iRx+f; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=CxzXZZY/yIXWXBUIpNaQVA/NJZ0X4uroqWH46cT5YuIhmd/pv1i9Sq0NCKCMOs56lQ4csLRqneLizJ2d34FV+yii+U3GCUtF4xRJA7Pd7V3Y/+0Z9Dux5uAmqoOjqx1+VbT595vOYQdvUOh1gyXJppc0z+y9tgOSNLQ7LBfpSvg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PC7UOuZs; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ll2iRx+f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 679061F00A3D;
-	Mon, 24 Aug 2026 00:38:01 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PC7UOuZs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19B411F00A3A;
+	Mon, 24 Aug 2026 00:38:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787531881;
-	bh=7Q3L5mjUL8rSwwNJD7sm+3P795RHSTUyAKbFuMuWal4=;
+	s=k20260515; t=1787531882;
+	bh=ZOAaWiWIUKczcBnitfBRkmYoFGvQ9kVqJVWoctHw6w8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=Ll2iRx+f3OosiDl6hhxxDiEnJNY9NjNHGubJ1P9fiT4j0n+peBEokq4lDBLlq6dyv
-	 GVbLw1t5kb33WpMrDfxHicwGduoXaIC2p68RZF3ksjQhg5s/X9r+MAte6wx9eCtjzX
-	 wAelA58eYoifyc+OXCoAhEiUTV4mITXzLz+yb+NfpGMv8nOuNDgmehdPS5Vx9mLZhx
-	 I+Rwc1EiebLw29zvZJi8CIaCSx86aTJBoPVNE7YKlrmsWjkFsCGySTjgtGTQt6s/wZ
-	 sTHXwBL/emrDG0vPWh8v9mLbFi7cBlZy35X5opJ0XCJbCdiLqdQczu+OQh69o1VvQS
-	 83tleb+lLTPsA==
+	b=PC7UOuZsH/rU3zxhlkx7SiO7ulJ6U+kIFEUnlx8sqFrixy70A+HqcrcPW+0R9f68T
+	 E/fBYmibzXzWqP2JhcrzQU6NsZXBdBhZXYK/02SI180mTlcq+ke+oSpZicOBiY0Uqw
+	 XR17yD+Tywyf0ZQU/LDnldHCW/snLgIVe2kSwgWzPX7MT6cOVbCY8m8WDqwFABNSVR
+	 wUCJtEjLlOVj4tsu2wPmWP7WoLpL692PevKq3rTpehhf//ixQk/HSzMYW5Zlhm0Kbk
+	 3kW4L66UwbcWV9DOOTSF0HBUQXIgjs7XiL2B8aM3EfzDrZthTj6ALjWHU2Q9GcL43L
+	 Lr4GBnK3/IHMw==
 From: Allison Henderson <achender@kernel.org>
 To: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
@@ -38,9 +38,9 @@ Cc: achender@kernel.org,
 	woni9911@gmail.com,
 	michal.kubiak@intel.com,
 	leon@kernel.org
-Subject: [PATCH net v4 2/7] net/rds: use clear_bit_unlock() in release_refill()
-Date: Sun, 23 Aug 2026 17:37:54 -0700
-Message-Id: <20260824003759.127353-3-achender@kernel.org>
+Subject: [PATCH net v4 3/7] net/rds: clear cp_flags bits individually in rds_conn_path_reset()
+Date: Sun, 23 Aug 2026 17:37:55 -0700
+Message-Id: <20260824003759.127353-4-achender@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20260824003759.127353-1-achender@kernel.org>
 References: <20260824003759.127353-1-achender@kernel.org>
@@ -52,65 +52,69 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-release_refill() drops the RDS_RECV_REFILL bit with a plain
-clear_bit().  clear_bit() has no ordering semantics, and the
-smp_mb__after_atomic() that follows it sits on the wrong side for a
-lock release: it orders the clear against the waitqueue_active() load
-below it, but does nothing to order the refill critical section's ring
-and descriptor stores before the clear itself.
+rds_conn_path_reset() wipes the whole flag word with a plain
+cp->cp_flags = 0 store.  Every other accessor of that word uses
+atomic bitops, and some of them can run concurrently with the reset:
+RDS_LL_SEND_FULL is set from rds_send_xmit() and cleared from the
+transport completion paths, neither of which holds anything that
+excludes the shutdown worker.  A plain store racing an atomic
+read-modify-write on the same word is a data race, and whichever
+side loses has its update silently discarded.
 
-That matters once connection teardown owns RDS_RECV_REFILL as a lock
-across the transport shutdown and path reset, rather than sampling it
-clear, which a later patch in this series arranges: on a weakly
-ordered architecture the teardown can win the bit and start the
-shutdown and reset while some of the refill's stores are not yet
-visible to it.  The same gap existed under the sample-based scheme - a
-waiter that saw the bit clear had no guarantee it also observed the
-refill's stores - but taking the bit as a lock makes the missing
-release pairing load-bearing.
+Clear the two bits the reset is actually responsible for instead.
+RDS_IN_XMIT and RDS_RECV_REFILL need no store at all here: they
+belong to the caller, rds_conn_shutdown(), which waits for both to be
+clear before calling the transport shutdown and this reset.
 
-Switch to clear_bit_unlock(), which orders the critical section before
-the release, and replace the open-coded barrier-plus-waitqueue_active()
-with wq_has_sleeper(), whose internal full barrier keeps the
-store-buffering guarantee between clearing the bit and checking for
-sleepers.  This mirrors what patch 1 does for RDS_IN_XMIT in
-release_in_xmit().
+This also gives every bit in cp_flags a single well-defined writer
+discipline, which the following patches rely on when they turn
+RDS_IN_XMIT and RDS_RECV_REFILL into bit locks held across the
+teardown: a blanket store mid-teardown would destroy lock ownership
+that an atomic clear preserves.
 
-The acquire side, both the fast-path acquire_refill() and the teardown,
-uses test_and_set_bit(), a full-barrier RMW, so it already pairs with
-the release.
+Oracle UEK carries the same conversion ("net/rds: Preserve essential
+connection state flags"), motivated by its asynchronous shutdown
+state machine, whose progress and destroy flags must survive the
+reset.  UEK's variant also clears RDS_IN_XMIT and RDS_RECV_REFILL
+because there the reset runs as the final step of a teardown that
+owns both bits, making those clears its unlock.  Upstream that
+release belongs in rds_conn_shutdown(): once a later patch in this
+series turns the two bits into locks held across the teardown, ending
+ownership needs release semantics and a wake-up that a plain clear
+inside the reset would not provide.
 
-Fixes: 73ce4317bf98 ("RDS: make sure we post recv buffers")
+Based on Oracle UEK commit "net/rds: Preserve essential connection
+state flags" by Gerd Rausch.
+
+Fixes: 00e0f34c6166 ("RDS: Connection handling")
 Assisted-by: Claude-Code:claude-fable-5
 Signed-off-by: Allison Henderson <achender@kernel.org>
 ---
-    New in v4.  Completes the release-side pairing for the second
-    bit lock that patch 6 acquires; raised while re-reviewing patch 6.
- net/rds/ib_recv.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+    v4: no change since v3.
+ net/rds/connection.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c
-index 357128d34a54..a6983861eec7 100644
---- a/net/rds/ib_recv.c
-+++ b/net/rds/ib_recv.c
-@@ -363,15 +363,14 @@ static int acquire_refill(struct rds_connection *conn)
+diff --git a/net/rds/connection.c b/net/rds/connection.c
+index 7c8ab8e973e1..46ac72088f84 100644
+--- a/net/rds/connection.c
++++ b/net/rds/connection.c
+@@ -120,7 +120,15 @@ static void rds_conn_path_reset(struct rds_conn_path *cp)
  
- static void release_refill(struct rds_connection *conn)
- {
--	clear_bit(RDS_RECV_REFILL, &conn->c_flags);
--	smp_mb__after_atomic();
-+	clear_bit_unlock(RDS_RECV_REFILL, &conn->c_flags);
+ 	rds_stats_inc(s_conn_reset);
+ 	rds_send_path_reset(cp);
+-	cp->cp_flags = 0;
++
++	/* Clear the bits the reset is responsible for individually: a
++	 * blanket cp_flags = 0 is a plain store that can clobber a
++	 * concurrent atomic read-modify-write on the same word.
++	 * RDS_IN_XMIT and RDS_RECV_REFILL belong to the caller,
++	 * rds_conn_shutdown(), and are left alone here.
++	 */
++	clear_bit(RDS_LL_SEND_FULL, &cp->cp_flags);
++	clear_bit(RDS_RECONNECT_PENDING, &cp->cp_flags);
  
- 	/* We don't use wait_on_bit()/wake_up_bit() because our waking is in a
- 	 * hot path and finding waiters is very rare.  We don't want to walk
- 	 * the system-wide hashed waitqueue buckets in the fast path only to
- 	 * almost never find waiters.
- 	 */
--	if (waitqueue_active(&conn->c_waitq))
-+	if (wq_has_sleeper(&conn->c_waitq))
- 		wake_up_all(&conn->c_waitq);
- }
- 
+ 	/* Do not clear next_rx_seq here, else we cannot distinguish
+ 	 * retransmitted packets from new packets, and will hand all
 -- 
 2.25.1
 
