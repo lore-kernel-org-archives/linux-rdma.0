@@ -1,77 +1,80 @@
-Received: from alln-iport-6.cisco.com (alln-iport-6.cisco.com [173.37.142.93])
+Received: from alln-iport-5.cisco.com (alln-iport-5.cisco.com [173.37.142.92])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE64942DA4D;
-	Mon, 24 Aug 2026 14:16:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=173.37.142.93
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F284543934D;
+	Mon, 24 Aug 2026 14:16:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=173.37.142.92
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787581014; cv=none; b=jvhD9ufMJxOOfRZAPsSeCLNBjnTroLvpb12Keh08G10FT6IGdsmn1obiKyn1R/sRupHZMl4zZyR/HmgDzaHcW62dsYiT6tbC46GN7hmtOERPEkV0my/sEFHs/u9Arc64+jq+83b1NbcBQfnX4Gzvzj+vlYLtYhwHVjAPRDrIIBA=
+	t=1787581017; cv=none; b=eCPZx68GNzQUYcs1vW35eqyh0WBS7it5aTdu7HpkH2AEwB/ihTwGVRqV+kc/qH2h29BynUb6ZiJrXazfAD4kAuTnB8zPL9pHn9RwiuSFqsRFF32WnSE8Nc7S4FPBMLfTMdJVadr4vT9+TMvdh4kWi5UT1WfRx+DY0vV2sTRnq6o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787581014; c=relaxed/simple;
-	bh=EIHCMUQc/JLupmOSZV2pOn2JscGhvZ9UDM+cY/Admmo=;
+	s=arc-20240116; t=1787581017; c=relaxed/simple;
+	bh=YjZZ/PgEjYNvr8pcEiIS/sYV77/sLXgR3jVgEMwMgZ4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Co/fxl3vO7UcM8wOeAaDr5+wZug7nFkhWaCWWwklPkKyy2rK42DEQUrEXHqJ15aWpIWqhGtg0K9q/fOVlTMOcF/ThsO+0lzvImyvKUksR1+ZD3QXlY2M2uZb58iMX6m7QKS4XRkSMS2nFOsgwArffUlXYp8a0qBlfbyW2rLRTwI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cisco.com; spf=pass smtp.mailfrom=cisco.com; dkim=pass (2048-bit key) header.d=cisco.com header.i=@cisco.com header.b=XTNF01MG; arc=none smtp.client-ip=173.37.142.93
+	 MIME-Version; b=axxbHjI60NM+3OE/y6YnyqWW+rm3xC/ozd7xZZvMFhwB+ygt8ip/CjHWb0PlVYZzJv2gokMI+QUpJM8+k/kDlXsbD6+KHh37zhaEKbo50z8PNsdt9fBGqTLhbuDeRqrkxlPLkbFt2CkwhPTgek1crge3RQ0JC9CceBPLfTBWSP4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cisco.com; spf=pass smtp.mailfrom=cisco.com; dkim=pass (2048-bit key) header.d=cisco.com header.i=@cisco.com header.b=g9obsqck; arc=none smtp.client-ip=173.37.142.92
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cisco.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cisco.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cisco.com header.i=@cisco.com header.b="XTNF01MG"
+	dkim=pass (2048-bit key) header.d=cisco.com header.i=@cisco.com header.b="g9obsqck"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=cisco.com; i=@cisco.com; l=2099; q=dns/txt;
-  s=iport01; t=1787581013; x=1788790613;
+  d=cisco.com; i=@cisco.com; l=1598; q=dns/txt;
+  s=iport01; t=1787581015; x=1788790615;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=q7ne7I+tVhtIe/1r7EzMVEOlt/B1u1kz/bTxSe2FFUw=;
-  b=XTNF01MGDTbGWXzbINRw/6O+Py4pKHaKJPxkkLrPO2I7mdODPsucz9xA
-   DDyurt3dd70Gwvp61Lo2U9kzEYhxkXXoRtSrWTwSPSDVPRRKR6LnZ84nm
-   BG+iy8ee9WZGltwAEzJI9YNxILpMbvu9qWxwm2lbg06kWEuTDBScJlKWx
-   LFWY1oUIHRLSkkA29QZtMWwmOVYp15tEISEpJ5kUbsAXLWcj5kn+L0pKS
-   AhdrxaBSAt7Udse5OPgU9pNmi2BlHCfmX0SbAwxsJZqy5y8SB4sxzRkOw
-   Q+5E5bAayW90976bujg0EoL4nc2Ed6VVpqKrahrfI6is4+RFI3mKlQ8gH
-   w==;
-X-CSE-ConnectionGUID: 2EGB+J+dQw23ZghRG7NdGg==
-X-CSE-MsgGUID: PV/UhBSUQ2af6Ps8rTMzhg==
-X-IPAS-Result: =?us-ascii?q?A0BCAgArUYxq/4sQJK1aglmCV4FSQ0mUKYIhgRadCIF+D?=
- =?us-ascii?q?wEBAQ9RBAEBhQUCjWwCJjQJDgECBAMCAwEBAQEBAQEBAQEBCwEBBQEBAQIBB?=
- =?us-ascii?q?wWBDhOGXIZbAgEDJwsBRhBRVhmDAoJ1A750gXkzgQHeR4FmAQsUAYE4jWF2h?=
- =?us-ascii?q?HwnG4FJRIEVgnMHb4UQhXgEgy6TVUiBHgNZLAFVEw0KCwcFgWYDNRIqFTI8M?=
- =?us-ascii?q?h2BIz4XgQ0bBgWBHVlPhBAjGTZ8gQlegSspYAESF4EJggcCglqCBQIBSUMOB?=
- =?us-ascii?q?0ciCxgNSBEsNxQZBD5uB45dH4JMMUoJCgo5gQErbpZdsCOEKKFcGjOXX5MNm?=
- =?us-ascii?q?QipQ4FoPIFZMxoIGxWDIlMZD45fz19FMj0BAQcCBw4DC4FokX4BAQ?=
-IronPort-Data: A9a23:W/g69Km90lXkHr+y5EICRl3o5gxLJkRdPkR7XQ2eYbSJt1+Wr1Gzt
- xIdDWjUP/rcZ2v1ed8lOY7koU4H7cDWxtQwTVc+/Co9RltH+JHPbTi7wugcHM8zwunrFh8PA
- xA2M4GYRCwMZiaC4E/raf658SUUOZigHtLUEPTDNj16WThqQSIgjQMLs+Mii+aEu/Dha++2k
- Y20+ZC31GONgWYubDpEsf7b8XuDgdyr0N8mlg1mDRx0lAe2e0k9VPo3Oay3Jn3kdYhYdsbSb
- /rD1ryw4lTC9B4rDN6/+p6jGqHdauePVeQmoiM+t5mK2nCulARrukoIHKZ0hXNsttm8t4sZJ
- OOhGnCHYVxB0qXkwIzxWvTDes10FfUuFLTveRBTvSEPpqHLWyOE/hlgMK05Fdc11cw0IyJCz
- ONCcwICbiqs2MS6773uH4GAhux7RCXqFIobvnclyXTSCuwrBMiZBa7L/tRfmjw3g6iiH96HO
- JFfMmQpNUqGOkYeUrsUIMpWcOOAhGX4dzlVtHqepLE85C7YywkZPL3FYIOLJYbTHpoN9qqej
- lr4uFn5KConDYaWx2S96SK2usrdnSyuDer+E5X9rJaGmma7ymUNBRg+WVKlrPy9jUCiHdRSN
- yQ84SYghaY18U2gTtTjGRi1yFaGuR4aHdRZCPEz4gyLxoLb5g+YAi4PSTspQNEqqco/VzE2/
- lCOmNztCHpkt7j9YX6U8LaZqRuzPicYJHUIYj9CSwYZi/Hqu50bjR/VSNtnVqmvgbXdGTjvw
- BiJoTI4irFVitQEv4244FrOqzGhvJ7ESkgy/Aq/dmuj4hl0e82japCk5Ebz6etGKsCSTjGps
- GQNh9Wa4ekmC4+MmC2EBu4KGdmB4/uCNifbqVhxHpUg/nKm/HvLVYVa5DZ1JG9vLMcIeDava
- 0jW0StK7ZJeMH6Ca7F2b4O4Tc8tyMDICd3/V+nIRtxQY5RwfUmM+yQGTVaZ1W3rkWA2nK0/M
- IvdesGpZV4QEapP0jW7XaEe3KUtyyR4wnncLbj/zhK6wf+daWSTRLMtLlSDdKY64bmCrQGT9
- MxQX+OOyhNCQKjkbize2ZAcIEpMLnUhA53y7ctNeYarJAd6FGw/I+HezKlneIF/malR0ODS8
- RmVQVNRwl7yrWPIJB/MaX15br7rG5FlohoG0TcENFKs3T0nJI2o9qpaL8Fxdrg8/+slxvlxJ
- xUYR/i97j10Ymyv01wggVPV9eSOqDzDadqyAheY
-IronPort-HdrOrdr: A9a23:0LJdcKDh5cuB53rlHemM55DYdb4zR+YMi2TDGXocdfUzSL39qy
- nAppomPHPP4gr5HUtQ+uxoW5PwJE80l6QV3WB5B97LNzUO+lHYTr2KhrGM/9SPIUDDH5ZmtZ
- tIQuxZFMD6C0R8gILR5Qm1FMtl/fy8mZrY4ts3CxxWPHhXg2YK1XYeNjqm
-X-Talos-CUID: 9a23:04fQd2BCjeuTWIP6E3NK22RXOIMpS2KHl0XfI3WXVkBlZ7LAHA==
-X-Talos-MUID: 9a23:6WrzmQZ6jZF+YOBTjwGruTFID/pRua2gVngWwY86ntuEOnkl
+  bh=qlBjLbbWHOzQMtsDD6gH8OJm9yf6aXkDkYWCkhUWpBQ=;
+  b=g9obsqckN650liQ1BPjvV0sEEdNUwuqSeOeazDIJoP4sIDSFw5t5B4mj
+   rprqdaW3WlFgPA1qoLmpBB0GXdR0OvP7QX8u1oPaIyxoNwjKNdFZmei6p
+   TEA6ZGVr6zPQiTP1yJCR3hxa1Pgk03+EHzaKBR5Iw82jtQdIohkpbcTwQ
+   SPE4UxdmPMY4aOil76ppORZ/2c95JKeKcVT5QVSVMnZVVWaAcHcygxs3a
+   PJPvivhCS2csSNs0nWpdY0Xv1xEAAkZ+cAoF5TCKiLCma63cK4LVgd4mf
+   sb94Q02QMx7+po4szjSPejGQCxFkGwEruqzc5tqycxf6Xy2a01DhHEZsb
+   A==;
+X-CSE-ConnectionGUID: x0nc4xriQg+tobB/AvdXtA==
+X-CSE-MsgGUID: fLO9AkTlRs+aW4pyGQNpig==
+X-IPAS-Result: =?us-ascii?q?A0BdAwArUYxq/5AQJK1aglmDS15DSQSUJYIhnh6Bfg8BA?=
+ =?us-ascii?q?QEPPRQEAQGFBQKNbAImNAkOAQIEAwIDAQEBAQEBAQEBAQELAQEFAQEBAgEHB?=
+ =?us-ascii?q?YEOE4ZPDYZbAgEDMgFGEFFWGYMCAYJ0AxG+Y4IsgQHeR4FsBhWBOI1hdoR8J?=
+ =?us-ascii?q?xuBSUSED2+FEIV4BIMuk1VIgR4DWSwBVRMNCgsHBYFmAzUSKhUyPDIdgSM+F?=
+ =?us-ascii?q?4ENGwYFgR2BKIQQIxk2fIEJXoErKWABEheBCYIHAoJaggUCAUlDDgdHIgsYD?=
+ =?us-ascii?q?UgRLDcUGQQ+bgeOXR+BWXMxSgkLKxeBAStQAZZ6sCOEKIwilToaM4QEk1uTD?=
+ =?us-ascii?q?ZkIglmLMZVohVGBaDyBWTMaCBsVgyMSQBkPlzbHCEU0AQEBOAEBBwIHDgMLg?=
+ =?us-ascii?q?WiQAi2BTwEB?=
+IronPort-Data: A9a23:sXZO/68hpOmjAUaBZpunDrUDsn6TJUtcMsCJ2f8bNWPcYEJGY0x3z
+ GNKCm6FafaOMGrzfNpxb9/i80sPucfUzIc2GgQ9/n9EQiMRo6IpJzg2wmQcns+2BpeeJK6yx
+ 5xGMrEsFOhtEDmE4EzrauS9xZVF/fngbqLmD+LZMTxGSwZhSSMw4TpugOdRbrRA2bBVOCvT/
+ 4mvyyHjEAX9gWAsYjhIs/vrRC5H5ZwehhtJ5jTSWtgT1LPuvyF9JI4SI6i3M0z5TuF8dsamR
+ /zOxa2O5WjQ+REgELuNyt4XpWVTH9Y+lSDX4pZnc/DKbipq/0Te4Y5nXBYoUnq7vh3S9zxHJ
+ HqhgrTrIeshFvWkdO3wyHC0GQkmVUFN0OevzXRSLaV/wmWeG0YAzcmCA2kmZYsTpvZtAFhBt
+ uAfIhpKRw6Pt/6flefTpulE3qzPLeHiOIcZ/3UlxjbDALN+HtbIQr7B4plT2zJYasJmRKmFI
+ ZFHL2MxKk2cP3WjOX9PYH46tOW0gX37fiFwo1OOrq1x6G/WpOB0+Oi0YYKOIoHbH625mG6Wg
+ kWX1mfFBisBd9WglSKU3UuKnu7AyHaTtIU6UefQGuRRqFGa2GEWIBEfS1a+pf63lgi4Vs43A
+ 1cY9AIgqq0z/0ymUJ/4UnWQonmEuFgSUsFMGuc37g2lxa/d4gLfDW8BJhZMZMEjvd07WRQl0
+ ViGm96vDjtq2JWZQHSc+7O8rDS9NCEPJ2gSIykJUWMt6sL/iII+lBTCSpBkCqHdpt38BjLYw
+ D2QqiU6wbIJgqYj1Lix9HjEjiiqq5yPSRQ6ji3eWG6/4xw6YoO5a4G2wVzG6/AGJ4bxZlWdt
+ WQZn8WXxOYQDJ2MnWqGR+BlNLWk4PCfNxXan19jHpBn/DOok1amd4RX6zFWIlloPscNPzTuZ
+ Sf7ogpc6ZNWFH20bKN2asS6DMFC5bTpD9X8StjScNtCY5E3fwiClAl2bESd2WHFikUgkagjf
+ 5ycdK6EB24UIbpowSDwROoH17IvgCckygv7QZH90gTi0reEYnORYakKPUHIbe0j6q6A5gLP/
+ L53M8qM1gUaSuH7awHJ/oMJa1MHN342AdbxscM/XuiOPgZrBkk/BPLLh7AsYYpom+JSjOigw
+ 52mckZczFy6gTjMLh+HLyg8LrjuRp1463k8OETAIGqV5pTqWq73hI93Snf9VeBPGDBLpRKsc
+ 8Q4Rg==
+IronPort-HdrOrdr: A9a23:u6kDzK2I8RUnHzpTj3Aa1AqjBJIkLtp133Aq2lEZdPWaSKClfq
+ eV7ZAmPHDP5gr5NEtLpTnEAtjifZq+z+8R3WByB9aftWDd0QPCEGgh1/qB/9SKIULDH4BmuJ
+ uIC5IfNPTASX5nkM39/A60V/wkwNWB7eSUoN229QYLcemvAJsQljuQzW2gYytLeDU=
+X-Talos-CUID: =?us-ascii?q?9a23=3ATAHLq2tA1Us/nW2bwkG5hFcj6Is1KnvWkGfKIna?=
+ =?us-ascii?q?3SnpuQpfSYEGcyL9Nxp8=3D?=
+X-Talos-MUID: =?us-ascii?q?9a23=3AILjo+gxWUiMM3H7B/DEdy3DGuPKaqKqKLxEkkqk?=
+ =?us-ascii?q?CgdLHPBMsIyaytRKvQ4Byfw=3D=3D?=
 X-IronPort-Anti-Spam-Filtered: true
 X-IronPort-AV: E=Sophos;i="6.25,240,1779148800"; 
-   d="scan'208";a="816721370"
-Received: from alln-l-core-02.cisco.com ([173.36.16.139])
-  by alln-iport-6.cisco.com with ESMTP/TLS/TLS_AES_256_GCM_SHA384; 24 Aug 2026 14:16:52 +0000
+   d="scan'208";a="819030592"
+Received: from alln-l-core-07.cisco.com ([173.36.16.144])
+  by alln-iport-5.cisco.com with ESMTP/TLS/TLS_AES_256_GCM_SHA384; 24 Aug 2026 14:16:47 +0000
 Received: from localhost (unknown [10.228.224.45])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by alln-l-core-02.cisco.com (Postfix) with ESMTPS id 7CBDB18000216;
-	Mon, 24 Aug 2026 14:16:51 +0000 (GMT)
+	by alln-l-core-07.cisco.com (Postfix) with ESMTPS id 738B0180001E9;
+	Mon, 24 Aug 2026 14:16:47 +0000 (GMT)
 From: Jerome Tollet <jtollet@cisco.com>
 To: netdev@vger.kernel.org
 Cc: saeedm@nvidia.com,
@@ -92,15 +95,13 @@ Cc: saeedm@nvidia.com,
 	linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	bpf@vger.kernel.org,
-	Jerome Tollet <jtollet@cisco.com>,
-	stable@vger.kernel.org
-Subject: [PATCH net v4 2/2] net/mlx5e: Prevent stale XSK buffer release on MPWQE refill retry
-Date: Mon, 24 Aug 2026 16:16:45 +0200
-Message-ID: <20260824141645.23700-3-jtollet@cisco.com>
+	Jerome Tollet <jtollet@cisco.com>
+Subject: [PATCH net v4 0/2] net/mlx5e: Prevent stale XSK buffer release on refill retries
+Date: Mon, 24 Aug 2026 16:16:43 +0200
+Message-ID: <20260824141645.23700-1-jtollet@cisco.com>
 X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260824141645.23700-1-jtollet@cisco.com>
+In-Reply-To: <cover.1787347981.git.jtollet@cisco.com>
 References: <cover.1787347981.git.jtollet@cisco.com>
- <20260824141645.23700-1-jtollet@cisco.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -110,57 +111,44 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Outbound-Client-TLS: ANONYMOUS;unknown [10.228.224.45];TLSv1.3;TLS_AES_256_GCM_SHA384;256
 X-Outbound-SMTP-Client: 10.228.224.45, [10.228.224.45]
-X-Outbound-Node: alln-l-core-02.cisco.com
+X-Outbound-Node: alln-l-core-07.cisco.com
 
-With AF_XDP on a striding RQ, mlx5e defers releasing XSK buffers until
-an MPWQE is refilled. If XSK allocation then returns -ENOMEM,
-actual_wq_head is not advanced and a later NAPI poll retries the same
-WQE.
+Prevent duplicate XSK buffer release when a deferred RX refill fails and
+the same WQE is retried.
 
-mlx5e_free_rx_mpwqe() leaves each released slot marked as releasable. On
-retry it can therefore call xsk_buff_free() again through stale pointers
-after the frames have returned to the XSK pool and been reallocated.
+Patch 1 fixes legacy cyclic RQ. It is unchanged from v3 and retains
+Dragos' Reviewed-by tag.
 
-Set all skip_release_bitmap bits in the common error path of
-mlx5e_xsk_alloc_rx_mpwqe(). This matches mlx5e_alloc_rx_mpwqe(). A
-successful allocation already clears the bitmap after replacing every
-buffer, so retries become idempotent without changing the success path.
+Patch 2 fixes the analogous striding-RQ MPWQE path. Following Dragos'
+review, it now fills skip_release_bitmap in the common error path of
+mlx5e_xsk_alloc_rx_mpwqe(), consistently with mlx5e_alloc_rx_mpwqe().
 
-Fault injection forced three consecutive failures for one selected MPWQE.
-Both an early allocation failure and a partial 8-of-16-buffer unwind
-released the original 16 XSK buffers only once. Each error left a full
-bitmap, the following NAPI retry skipped the release, and a later
-successful allocation cleared it. A 20-second AF_XDP zero-copy pressure
-run exercised 1,575,262 buffer allocation failures without invalid
-descriptors, WQE errors, or kernel warnings.
+Targeted fault injection covered both an early allocation failure and a
+partial 8-of-16-buffer unwind. With three consecutive failures for one
+MPWQE, the original 16 XSK buffers were released only once, retries saw a
+full bitmap, and a later successful allocation cleared it. A clean
+20-second AF_XDP zero-copy pressure run exercised 1,575,262 buffer
+allocation failures without invalid descriptors, WQE errors, or kernel
+warnings.
 
-Fixes: 4c2a13236807 ("net/mlx5e: RX, Defer page release in striding rq for better recycling")
-Cc: stable@vger.kernel.org
-Signed-off-by: Jerome Tollet <jtollet@cisco.com>
----
+Changes in v4:
+- Keep patch 1 unchanged.
+- Move the MPWQE bitmap update from the release loop to the common XSK
+  allocator error path, as suggested by Dragos.
+- Validate both early and partial allocation failures and run an
+  additional zero-copy pressure test.
+
+v3: https://lore.kernel.org/netdev/cover.1787347981.git.jtollet@cisco.com/
+
+Jerome Tollet (2):
+  net/mlx5e: Prevent stale XSK buffer release on refill retry
+  net/mlx5e: Prevent stale XSK buffer release on MPWQE refill retry
+
  drivers/net/ethernet/mellanox/mlx5/core/en/xsk/rx.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/net/ethernet/mellanox/mlx5/core/en_rx.c     | 7 +++++--
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/xsk/rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en/xsk/rx.c
-index 4f984f6a2cb9..55ec6387ab28 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en/xsk/rx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en/xsk/rx.c
-@@ -3,6 +3,7 @@
- 
- #include "rx.h"
- #include "en/xdp.h"
-+#include <linux/bitmap.h>
- #include <net/xdp_sock_drv.h>
- #include <linux/filter.h>
- 
-@@ -156,6 +157,7 @@ err_reuse_batch:
- 		xsk_buff_free(xsk_buffs[batch]);
- 
- err:
-+	bitmap_fill(wi->skip_release_bitmap, rq->mpwqe.pages_per_wqe);
- 	rq->stats->buff_alloc_err++;
- 	return -ENOMEM;
- }
+
+base-commit: 4e15e89faac9f308baeb01f46c13a051814d2449
 -- 
 2.55.0
-
