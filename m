@@ -1,134 +1,178 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f45.google.com (mail-ed1-f45.google.com [209.85.208.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04E2D3C109F;
-	Tue, 25 Aug 2026 06:24:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F7EF3DDDA0
+	for <linux-rdma@vger.kernel.org>; Tue, 25 Aug 2026 08:24:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787639097; cv=none; b=r1pQjajh/H851RXoG8vgf6VU/J0uc6bNghx7aHWWKM6dfIiLhXyEmCEHrmgX9NytIf6kLE+3KhUnOsrHYhIzbTiHlEpc0386h+2maqXP1Vr/EZxdo8UJq3nf8b6MADiOn0MPhMZSXhS0mnRmzsb5VUvT5E1O+eggTv7+kzjEgCA=
+	t=1787646260; cv=none; b=qIaS55SGL5G0qyQo5duk077Ye/K/yy9Icb8aZZFlr+ued31PLcMILuw6nHojBayvD8tNtbvmsILZt2wEO2XkN5qIuSW3bGdHFM30k1JLJ1Xed4cQ2G0b05BDYmcsztqjas9YPzobFy0fmtsVdouhY+Wdr2ZnclJoyRcT4uBInwg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787639097; c=relaxed/simple;
-	bh=Xr4/ogVHoJd1TWU++fUgSw+dYoYcu7TCJGi7k9Ff21I=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=bbdkNcczs5qFrhC4TfJV7AtIbQDKX6C1Dk/tS+0WFqpJfxkOry6ot6bvYuMXYqM0mg5zdtDGtrL6nj/bxqE6zZFABkvKnecXD6fhKlKJk15k/gfrI8aBxtLMcPDTDs2KsbhPmUYcj4iFOjkCtFu7uqtZp4/JKKfjLHQADhu8jcQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZkAX9wAK; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787646260; c=relaxed/simple;
+	bh=DZQvgMF9MtoSMKn9/xxgPT3t+kYxUHeBLkPFZwmxGy0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=RYWa2HC3r+LZAhZmp5WNOjmTu6+EBVFXIcrPD62XfSdZWFKM06uFX9VJbzlfzvfdZSwlYTd/onNGQIeYL1WqpDrblJK2yFZFBMZR5ALu8Hq3gn5ie4azgh58CrO1wb0IKvF2ryBYdwk/IW+ksqDvpFpqeQ7AXt/8QG/CTw9z8DM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b=BFeqlQ0q; arc=none smtp.client-ip=209.85.208.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZkAX9wAK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9631A1F000E9;
-	Tue, 25 Aug 2026 06:24:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787639094;
-	bh=XI1I+ystZ9RJeodzH+bRQW5gDWN31PgOmzzw95y1/mw=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=ZkAX9wAKtL5wr7f7xd+5lqayshEDVMZ13F+xH8QueiD3R5bSftJHRBRT0JyH1zqeC
-	 Sh1NdNbxxd2feA5N4wxVafr+S8FEUPaFoj6kAFDDiYugD7ujDotoWViK5Q9HjUCBW5
-	 u46qZBBZR4L6WIWt64BT+USVUYzyl+I7ToIh8pJTDqI8eaDdJl+/SjaRk46Y10rG1j
-	 GjDg05M9qrp7EOEn8SYF+X6b/a3AOj1PlcKCsIw9PQVwg6k451Zltut5NxOKSPZv+2
-	 XFN9LLXRYFYKqmyZidQwurJE2KpQjo5rGno6v0E272fTWXxN4ncFCzuN2F0dGvbcGz
-	 xOkeHVoLnTCVA==
-Message-ID: <50e5a8e2c6d31732e7d57af2c2b7de164d3f0af5.camel@kernel.org>
-Subject: Re: [PATCH net v2] net: rds: fix uninitialized trans dereference in
- CM event handler
-From: Allison Henderson <achender@kernel.org>
-To: Aohan Mei <ljp1205831794@gmail.com>, netdev@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, 
- linux-kernel@vger.kernel.org, Jason Xing <kerneljasonxing@gmail.com>, Aohan
- Mei <henrymei@tencent.com>, TencentOS Corvus AI <corvus@tencent.com>, 
- stable@vger.kernel.org
-Date: Mon, 24 Aug 2026 23:24:52 -0700
-In-Reply-To: <20260825021223.3483044-1-ljp1205831794@gmail.com>
-References: <20260825021223.3483044-1-ljp1205831794@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.52.3-0ubuntu1.1 
+	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b="BFeqlQ0q"
+Received: by mail-ed1-f45.google.com with SMTP id 4fb4d7f45d1cf-69c600f76ccso7561317a12.0
+        for <linux-rdma@vger.kernel.org>; Tue, 25 Aug 2026 01:24:17 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=baylibre.com; s=google; t=1787646255; x=1788251055; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=DZQvgMF9MtoSMKn9/xxgPT3t+kYxUHeBLkPFZwmxGy0=;
+        b=BFeqlQ0q/iI/Y9xCCyZW9DcLrNuxdKfN+Y+//0GtDmUjYy2yEe/So/1C91iOhFggaa
+         w+PoJMpJllcqUOV1XX00bD7B84xNhMcsllE/0Nmh9dN8tZqJJBTNzbShKDQnxPsEmaEB
+         ADAFZ+g3kLKRuXMS8OJko/112mNWDH4sfjFIo4ughfQq/cnFDH/p9Dc0K0AtS70+B4FM
+         F9fsHPDaiztrmyZ3lyUZT3jElm9oP2eZVU4cOzQu3ucYmiskPZDEWm9d/KJQ6ZtJ4Xeu
+         uIa0swNl0ttsWWPbGXJPM6SHTBQ7jF+5mcgT6fWzV+zAaPzszidX3t44XfJa0Wfi3HSP
+         gdqw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1787646255; x=1788251055;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=DZQvgMF9MtoSMKn9/xxgPT3t+kYxUHeBLkPFZwmxGy0=;
+        b=CJmflHEyK6qFFSjUKoy3I2nZr6bcmG0I78jJRsOgK69QqMKVYqe+SUA5opFWie0zIo
+         iOujj4dYdG3VyLX6+rsdViz/SM+2JmTqJeqBQzFszIoDmxP1LzWD2PNfbpAZ4NRpH+Kq
+         ZVGglJRhGfsQh1+EWhGsnvM64YrjEtQybZTRzEGk+sCJRqKA0PB+2LAnrzIPQ9C6kEcJ
+         F3modiQlEztjK9JPPVBqGBoo4rylfXpOdCNhFRQssK16KSrwyCBETSrCPz7w/GT21Zeb
+         /mg1Sg9D9zUSUNtj85jdtxBTQtirym36Ii9g+GNYo0iatVBxcH7kqYPGfAC43VWFn1KJ
+         gwkw==
+X-Forwarded-Encrypted: i=1; AHgh+RrRD5Y6mlF0mRhfoQMXmDcModyZU0rK3b6YGlFBg6edGZC2nkYDlnyyU95WH8VTnBjirtqsXl4deB1c@vger.kernel.org
+X-Gm-Message-State: AFuF++kZR5IzXKiit3VZU1ofgD8HSuuV8eUDI8nDOohxX42243flHL3I
+	pSSeu2Bk6LQ4htaxOe5oIRBhIx+MIw5jNAuimEmoZMLVM2aRT+LPxXe5L3ozgD6BOaw=
+X-Gm-Gg: AR+sD12VtahDq1siBk79/UgUyXCsStjEqQzl4QI3519lt9vYalLLYPq04aZDgiKO1cT
+	TVGvVeFGDN5c9jDjpkdT0Wkhuz0yJsO+L+6+wn2/xO0n8Q1mh0eZormoLk8EpklE7SoAUE4lQC4
+	WEWA3c0Do4kSH5UJQbxrtq0F63D6Fai7rQDfAVSG/nuBYN8abC0mwdQswK/SFA3b0mNZrhiI5l3
+	dwfEqKegM/V0WHAhjgYBQRWTXiR1Aqvfl9oQ4T+jWG2LNK3TDsp0b+Bw6t7nabrVl094yMQ0eXJ
+	R8VSayGLZBS7EbudrrY/b+9qz/8XH/ilzWM6FdmUiUdTUJFXrg2m65dduNun/I0USDFesG0tAza
+	joPRGYm9iIiGJSqhJ/qNi0ZLlBXg6s4V0ZBE0IPDV2MyE+02eEtW869w18lwQBr9bnDWqm/GzIA
+	FGIE5/nvZM4WGa8RyND+96h2mlxDcWIU3hFUjX6qwV5fGcQq79XtjJYPRBScleSZCrFq90Fwzq9
+	f8SuCSUeCodbqGDDyvZ2dyu/ijBJJ0rF4thZo4+zTrw053zEQ==
+X-Received: by 2002:a17:907:1c07:b0:c15:f26a:3438 with SMTP id a640c23a62f3a-c24e5c1ffd3mr497229766b.24.1787646255345;
+        Tue, 25 Aug 2026 01:24:15 -0700 (PDT)
+Received: from localhost (p200300f65f19a904037016a565660d5e.dip0.t-ipconnect.de. [2003:f6:5f19:a904:370:16a5:6566:d5e])
+        by smtp.gmail.com with UTF8SMTPSA id a640c23a62f3a-c24966f9cbcsm1874351966b.29.2026.08.25.01.24.13
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 25 Aug 2026 01:24:14 -0700 (PDT)
+Date: Tue, 25 Aug 2026 10:24:12 +0200
+From: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@baylibre.com>
+To: Mauricio Faria de Oliveira <mfo@igalia.com>
+Cc: Kees Cook <kees@kernel.org>, Joel Granados <joel.granados@kernel.org>, 
+	Nathan Chancellor <nathan@kernel.org>, Nicolas Schier <nsc@kernel.org>, 
+	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
+	kernel-dev@igalia.com, linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org, 
+	fsverity@lists.linux.dev, keyrings@vger.kernel.org, bpf@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, netdev@vger.kernel.org, 
+	linux-wpan@vger.kernel.org, lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+	coreteam@netfilter.org, linux-sctp@vger.kernel.org, linux-rdma@vger.kernel.org, 
+	linux-s390@vger.kernel.org, bridge@lists.linux.dev, mptcp@lists.linux.dev, 
+	rds-devel@oss.oracle.com, virtualization@lists.linux.dev
+Subject: Re: [PATCH RFC v3 03/13] sysctl, mod_devicetable: add macro
+ MODULE_SYSCTL_TABLE
+Message-ID: <ao1P_mEJdyRExG3v@monoceros>
+References: <20260819-sysctl-module-aliases-v3-0-aab90569365d@igalia.com>
+ <20260819-sysctl-module-aliases-v3-3-aab90569365d@igalia.com>
+ <aomlfGJM61qZKxx2@monoceros>
+ <4e3eaf1d3419e808be046035f114bf6c@igalia.com>
+ <aotteDcc588iwC6g@monoceros>
+ <4aa22e41e8ff4bab6638cf0baaa9d07b@igalia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="ajsyed3ibfmsggn6"
+Content-Disposition: inline
+In-Reply-To: <4aa22e41e8ff4bab6638cf0baaa9d07b@igalia.com>
 
-On Tue, 2026-08-25 at 10:12 +0800, Aohan Mei wrote:
-> From: Aohan Mei <henrymei@tencent.com>
->=20
-> rds_rdma_cm_event_handler_cmn() assigns trans only when the RDMA
-> device is an InfiniBand CA (RDMA_NODE_IB_CA).  On any other device
-> type, e.g. an iWARP RNIC such as siw, trans stays uninitialized, but
-> the event switch dereferences it: unconditionally in the
-> RDMA_CM_EVENT_CONNECT_REQUEST case via trans->cm_handle_connect(),
-> and (with a connection context) in the ROUTE_RESOLVED and
-> ESTABLISHED cases.
->=20
-> An RDS listener on an iWARP device therefore crashes the kernel as
-> soon as a connect request arrives: with CONFIG_INIT_STACK_ALL_ZERO
-> the wild load becomes a NULL dereference at offset 0xa0
-> (&trans->cm_handle_connect) in the iw_cm_wq workqueue.
->=20
-> GCC masks the bug in default builds by folding the uninitialized
-> load into &rds_ib_transport; Clang-built kernels take the real
-> uninitialized path and oops.
->=20
-> The iWARP transport was dropped long ago and IB is the only
-> transport left, so make that explicit: initialize trans to
-> &rds_ib_transport at declaration, drop the conditional assignment,
-> and reject events from non-IB devices before the event switch.
->=20
-> Fixes: dcdede0406d3 ("RDS: Drop stale iWARP RDMA transport")
-> Reported-by: TencentOS Corvus AI <corvus@tencent.com>
-> Cc: stable@vger.kernel.org
-> Assisted-by: CodeBuddy:Kimi-K3
-> Signed-off-by: Aohan Mei <henrymei@tencent.com>
 
-This looks good to me.  Thanks for the quick response.
+--ajsyed3ibfmsggn6
+Content-Type: text/plain; protected-headers=v1; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Subject: Re: [PATCH RFC v3 03/13] sysctl, mod_devicetable: add macro
+ MODULE_SYSCTL_TABLE
+MIME-Version: 1.0
 
-Reviewed-by: Allison Henderson <achender@kernel.org>
+Hello,
 
-> ---
-> v2:
-> - Enforce the IB transport directly instead of NULL-guarding trans,
->   as suggested by Allison Henderson.
-> v1: https://lore.kernel.org/netdev/20260824111701.2979194-1-ljp1205831794=
-@gmail.com
->  net/rds/rdma_transport.c | 11 +++++++----
->  1 file changed, 7 insertions(+), 4 deletions(-)
+On Mon, Aug 24, 2026 at 06:04:03PM -0300, Mauricio Faria de Oliveira wrote:
+> On 2026-08-23 19:12, Uwe Kleine-K=F6nig wrote:
+> > On Sat, Aug 22, 2026 at 01:57:24PM -0300, Mauricio Faria de Oliveira wr=
+ote:
+> >> On 2026-08-22 10:41, Uwe Kleine-K=F6nig wrote:
+> >> > On Wed, Aug 19, 2026 at 03:16:16PM -0300, Mauricio Faria de Oliveira=
+ wrote:
+> >> >> The MODULE_SYSCTL_TABLE macro emits a struct module_sysctl_table va=
+riable
+> >> >> with pointers to a sysctl table's path and entries, and table/entry=
+ sizes.
+> >> >=20
+> >> > That new struct doesn't seem to contain any pointer?
+> >>=20
+> >> The struct module_sysctl_table fields .path and .table are pointers,
+> >> although with kernel_ulong_t type so that the same 32/64-bit size is
+> >> used in file2alias.c based on KERNEL_ELFCLASS (and not on the host,
+> >> which might differ with CROSS_COMPILE).
+> >=20
+> > Cross compilation isn't an issue for the already existing device id
+> > structures; many of them also contain pointers.
+> > (While modpost doesn't use the pointers, the size of the structures must
+> > be known to correctly interpret the arrays.)
 >=20
-> diff --git a/net/rds/rdma_transport.c b/net/rds/rdma_transport.c
-> index b15cf316b23a..2c5481f1fcb4 100644
-> --- a/net/rds/rdma_transport.c
-> +++ b/net/rds/rdma_transport.c
-> @@ -52,7 +52,7 @@ static int rds_rdma_cm_event_handler_cmn(struct rdma_cm=
-_id *cm_id,
->  {
->  	/* this can be null in the listening path */
->  	struct rds_connection *conn =3D cm_id->context;
-> -	struct rds_transport *trans;
-> +	struct rds_transport *trans =3D &rds_ib_transport;
->  	int ret =3D 0;
->  	int *err;
->  	u8 len;
-> @@ -60,9 +60,6 @@ static int rds_rdma_cm_event_handler_cmn(struct rdma_cm=
-_id *cm_id,
->  	rdsdebug("conn %p id %p handling event %u (%s)\n", conn, cm_id,
->  		 event->event, rdma_event_msg(event->event));
-> =20
-> -	if (cm_id->device->node_type =3D=3D RDMA_NODE_IB_CA)
-> -		trans =3D &rds_ib_transport;
-> -
->  	/* Prevent shutdown from tearing down the connection
->  	 * while we're executing. */
->  	if (conn) {
-> @@ -80,6 +77,12 @@ static int rds_rdma_cm_event_handler_cmn(struct rdma_c=
-m_id *cm_id,
->  		}
->  	}
-> =20
-> +	/* Only the IB transport is supported. */
-> +	if (cm_id->device->node_type !=3D RDMA_NODE_IB_CA) {
-> +		ret =3D 1;
-> +		goto out;
-> +	}
-> +
->  	switch (event->event) {
->  	case RDMA_CM_EVENT_CONNECT_REQUEST:
->  		ret =3D trans->cm_handle_connect(cm_id, event, isv6);
+> Indeed. I missed some device_id structures with pointers, and that
+> devicetable-offsets.c is cross-compiled to generate
+> devicetable-offsets.h for file2alias.c to use offsets and sizes of the
+> target architecture.
+>=20
+> I'll change .path and .table to pointers in the next version.
 
+I *think* the existing device-id structs use char[] for strings that are
+relevant for modpost. I look forward to you finding out if there is
+still a justification for that :-D
+
+> > I would be great if your series didn't introduce a new obstacle for
+> > [CHERI].
+>=20
+> Absolutely. I'll be happy to adjust the series and testing for that.
+>=20
+> Could you please confirm one should just follow [1], which uses [2] to
+> build the LLVM toolchain, and use it to build the kernel [3]?
+>=20
+> [1] https://github.com/cheri-linux#building-and-running
+> [2] https://github.com/cheri-linux/buildroot
+> [3] https://github.com/CHERI-Alliance/linux/tree/codasip-cheri-riscv-7.1
+
+I used
+https://github.com/CHERI-Alliance/meta-cheri/tree/codasip-scarthgap and
+didn't care about toolchain and rootfs. It also has qemu integrated, so
+you can actually test it.
+
+Best regards
+Uwe
+
+--ajsyed3ibfmsggn6
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEP4GsaTp6HlmJrf7Tj4D7WH0S/k4FAmqNUSoACgkQj4D7WH0S
+/k5rHwf/eQKyjSm4dfYOnpO+kyESzhGSDXacrU0BK/nrQ7Z3BN+QipNdHe9BZ4f7
+k+3uxaB8pZmyHeh98alfg/5Bq9HBt62YSsVo0f1LrxdEuw+otojZstZ5BajlC1fB
+uCZWsGYJ1lROqcGUkm3WTuwmO+VkI4no1e0+OMnKjMkIdarwm+SRxroNmGXPxjFS
+0c5XzO8ufI4T330xBhTtUCfIGtmOib0XeyZT/dCtT8wNoKlznA36ojMl4ZOArWgW
+VYBN9/JdmoDGTZxdbWqXoETzY//dT0yaCQF2J8+eM7vMW+ay0vkBIpxXkR9QmIGF
+KIDH4l3txv82X35T5GJP5y9myooT6g==
+=Ph6i
+-----END PGP SIGNATURE-----
+
+--ajsyed3ibfmsggn6--
