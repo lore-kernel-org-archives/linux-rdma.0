@@ -1,118 +1,211 @@
-Received: from mail-pj2-f6.google.com (mail-pj2-f6.google.com [74.125.227.134])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBF293DCD8A
-	for <linux-rdma@vger.kernel.org>; Tue, 25 Aug 2026 22:07:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.134
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B3482E2EEE;
+	Tue, 25 Aug 2026 23:16:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787695630; cv=none; b=qzph/BRQ95E/9CLF2O+sNDLl54RdLnAXkaSbfCRdDBu13xKLqojGNVf9mjjkZJkjEOxDYAqEYInnVy6OPbSLtN4aG5F9fKKOhTr2hxSqeYFKZIwLgZlzqGshUywYkR90V5Z7J52mBXdOAgKsQ682oiNW7gYKalZePoPPm2O+8Zw=
+	t=1787699765; cv=none; b=fZLDpIyWrPUyk+W1HCBSzcPUq/WAZOptutgbM+dMBRLR8jcBdfDI7dTf+YfkuHTpKiHdPMEHY3oUooSL376SgbF1Amzayz9i5/zeUQoeYoqRR1e4/0+hbOjcsHp6v6juHiwWwTBvbl+Sn4jt47IFIhSKU5Nb7fuGHAjQckhTAWQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787695630; c=relaxed/simple;
-	bh=63qI2K79bcm4cDczUBl3jeHM3xipML3Gz7DLpnr04Gg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Het3t4PBfPiOWDNr2l2wF8a36/jA0PPVS0dQdnlUzFSnUgystNMyMdR3ey2PMWXpZfvkt1bZIX+WxdTLPWdyoq/E+felebYAXVtO0HeB0ke0tD+RH3gssbo60t/onVcBKgujBFe97qRJi+dGVgQaCfIU4VAoinKecr11L+OEN6c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Yd59fMiL; arc=none smtp.client-ip=74.125.227.134
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1787699765; c=relaxed/simple;
+	bh=yXPRHTpNE/+r66oOJ+ybxt/YZRDn7LfNAZ1LzkF10I0=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=NH3rbeV+jz+D27XKJQBf+uDXEi4EzqF8gfAftUtJowGKeb53GQhmIuMNaX4HCnP+FSsdRbyuMB+6tfV2bdjSHZB8YYxLNXxceD0lK16qeYZHc343oaIhAPxG/9Ue7dTGuIkn0W0hJ4Be/CrbdjPtlja4/qYks5z4wBBtsPtvOjk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AAeDkljO; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Yd59fMiL"
-Received: by mail-pj2-f6.google.com with SMTP id 98e67ed59e1d1-3964deae8a7so129496a91.0
-        for <linux-rdma@vger.kernel.org>; Tue, 25 Aug 2026 15:07:08 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1787695628; x=1788300428; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=E2HRqo0BNmOG+wvSL71FMHVkpYIR+F5v9R73Mp72HJs=;
-        b=Yd59fMiLkFIJFSaPsIB3sDLIkOhLNFFSJ2OohGDo2kEp+Mb7bBfjkPhbYzXsKoDtEc
-         FaYfC+TL965X0LUTYCDhIDa36EfNtR9+jpwimN1ufte8eJSU82m765RVGEXCcLF1iNvr
-         +84R+0SeJ0oEC8f0mLCRlZ/PFjelJ84y3Iw0SepbLLH7NUfwhNK2Q4Pmtmib1bhF+aE5
-         4awltP8HYAr1IldJ4ip5GO8ANpYtn8dq4nAXzbPufhc38milbbM/HQh2hrxR0QsEwD8G
-         Oye1PCF41GB17nFHF1WxRpSFCg1VH8tHC+XWKOJ00JSEJiy7F779FWtSYWPw90kn/ViJ
-         QCcA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787695628; x=1788300428;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=E2HRqo0BNmOG+wvSL71FMHVkpYIR+F5v9R73Mp72HJs=;
-        b=Rm+50i8gZ5UwVRNrJKKw4RR4oIVisQ8GZbakGNHk5OnTamB+vFq87Ddwk7lIUd4Wwt
-         eGEayw9y4GG+b+QsUGl0MyJh55eICsXjl6djOzq0LzIXyxoYYn9FfyxEgy322laOa4dw
-         RkrAzX40H+GWkZKq3jjXkHAcM2cjuN3xcbkegfgV6TUeL2Wj7oovDTJgW3ka8kxsqbA3
-         PvorQrGmnx8sSXCPReYBe8UGFNqG3oOARAZikfQciKYBw0aXD6v0YApBksBqrZ2+Qz5L
-         KBwqcRgZOVVYkohyYVNpifV7jVpFUnZ7zcOHKBU+UZIHmAmWUk6qQSc4RMw+QFMk9myp
-         GbSw==
-X-Forwarded-Encrypted: i=1; AHgh+Rr4J4Yni/QWSMkJPZNYZzW0PALQB91aRpe87eg/0Dd2vxWb6LEjP8JvZ2+Ki2Bl2EAkZ4FMqPwxySoS@vger.kernel.org
-X-Gm-Message-State: AFuF++nM/W+74W1UqM3h5WtR9uxKSKfsHNW+2z8YNHdc/Z3ufm7F9V5n
-	fQtEpKHOCPdHaIE3is7VOY5LqsCJsQ5ilQucsYUmnbn+3XGqYbQhmVYx
-X-Gm-Gg: AR+sD12xb0JflZRr8z+GKZEVGOKYLvQSILDRbq/otH2KwqEK2LFsJO8/OcNlTlXI8IE
-	96CuhO8h1UUtV1x8QMUi/AClCcG7xVEaHiSjNlMtOQjDBWzIzZs8+vB/g1MrOv8Dp/lPemAVHDF
-	OTIJuzzXgV+siiGr1U0zFyzrmhHwhl7reb1ufCCoF8ani75AoWi41LcvXIFGzAMVbij0dixpUOo
-	nTNoUDfQ1uo/C6Ii7GUUR/11I1yXSf1tftODrG+1JaST9K6Cb+bRQYsEqhWmdSkOVWT0PJ9nL0W
-	dK/kAfuCbrMsszgaKo117HeD/o7jrn1QPCTPb9Y9PmJdG0u85ePZE50AJcqf8RAdNsiSotSbBhE
-	OmTTYBLoyW5RDD82MWLGFlHkuFKyCcJnV+eAMNLfCaXgmnqk62u8PRhj7E8RA/Nozv+xzXO+d9r
-	MJNhzl/zvWJmR7k9izznHJybBR6tp3T8FWWE3iaVyTF28JG99lNzCkx+urGt+TzGBA
-X-Received: by 2002:a17:90b:3b4b:b0:381:11eb:d78e with SMTP id 98e67ed59e1d1-3966d8b6295mr4351538a91.14.1787695628197;
-        Tue, 25 Aug 2026 15:07:08 -0700 (PDT)
-Received: from localhost ([2a03:2880:2ff:46::])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-39668a57396sm1314425a91.13.2026.08.25.15.07.07
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 25 Aug 2026 15:07:07 -0700 (PDT)
-Date: Tue, 25 Aug 2026 15:05:46 -0700
-From: Stanislav Fomichev <sdf.kernel@gmail.com>
-To: Jakub Kicinski <kuba@kernel.org>
-Cc: Maciej Fijalkowski <maciej.fijalkowski@intel.com>, 
-	netdev@vger.kernel.org, davem@davemloft.net, edumazet@google.com, pabeni@redhat.com, 
-	anthony.l.nguyen@intel.com, przemyslaw.kitszel@intel.com, andrew+netdev@lunn.ch, 
-	saeedm@nvidia.com, tariqt@nvidia.com, mbloch@nvidia.com, 
-	maxime.chevallier@bootlin.com, mcoquelin.stm32@gmail.com, alexandre.torgue@foss.st.com, 
-	aleksander.lobakin@intel.com, horms@kernel.org, magnus.karlsson@intel.com, sdf@fomichev.me, 
-	ast@kernel.org, daniel@iogearbox.net, hawk@kernel.org, john.fastabend@gmail.com, 
-	guoren@kernel.org, dtatulea@nvidia.com, witu@nvidia.com, martin.lau@kernel.org, 
-	yoong.siang.song@intel.com, intel-wired-lan@lists.osuosl.org, linux-kernel@vger.kernel.org, 
-	linux-rdma@vger.kernel.org, linux-stm32@st-md-mailman.stormreply.com, 
-	linux-arm-kernel@lists.infradead.org, bpf@vger.kernel.org, linux-csky@vger.kernel.org, leon@kernel.org
-Subject: Re: [PATCH net v3 3/3] net: stmmac: document oversized AF_XDP frame
- handling
-Message-ID: <ao4RsulsnIEMOmiG@devvm7509.cco0.facebook.com>
-References: <20260819160535.1472459-1-sdf@fomichev.me>
- <20260819160535.1472459-4-sdf@fomichev.me>
- <aoceSoSFMx69Z9up@boxer>
- <aoeoJ6-njBxcWs4w@devvm7509.cco0.facebook.com>
- <aogpDsa8hz6CPpD3@boxer>
- <aoiIarzdjk92RkCN@devvm7509.cco0.facebook.com>
- <20260824111443.34bffe04@kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AAeDkljO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA5021F000E9;
+	Tue, 25 Aug 2026 23:16:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1787699764;
+	bh=/cNmmNvhGlkxS7SZv8G19FI0tngiieRaSNNGyFvAoN8=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=AAeDkljOs34jOG2uw25vckPNe9JYWAino/q7dBjlAZtrOwBkvXxStswpwzSBXETrg
+	 YCsBeMyPRBJRwDKq+2WK9RjZfPYPLqD66PvwK0vYGy8pJ6hi4NtFjxKYdzBMogIByO
+	 aeXMY7tLL3ey3YC0m17co/MapgPSd8NqSCQU2D0sNwJHuu3YJ/kUV6cPZB+0MIIxyS
+	 HfYRsHkaqk9V3xvmL/5VQAXFOxUTUqkW30OqT5jZd9NRqCiXepAZkfxP/CyKcrphmg
+	 BCulmzTO8VDpggeiBL5dfS815XGqsFQBdqEQN97LY9lboiVAo2mCY98p1C3ciUk6dB
+	 x4nvXrBBCXUtg==
+Message-ID: <9898c771fb10d2a9b774f6ec4c7c94bc7b0129f7.camel@kernel.org>
+Subject: Re: [PATCH v2 net] net/rds: fix out-of-bounds write in
+ rds_conn_peer_gen_update()
+From: Allison Henderson <achender@kernel.org>
+To: pamoutaf <paula@bynar.io>
+Cc: davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+ pabeni@redhat.com,  horms@kernel.org, netdev@vger.kernel.org,
+ linux-rdma@vger.kernel.org,  rds-devel@oss.oracle.com,
+ linux-kernel@vger.kernel.org
+Date: Tue, 25 Aug 2026 16:16:03 -0700
+In-Reply-To: <20260825120132.51636-1-pamoutafpro@gmail.com>
+References: <20260825120132.51636-1-pamoutafpro@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.52.3-0ubuntu1.1 
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260824111443.34bffe04@kernel.org>
 
-On 08/24, Jakub Kicinski wrote:
-> On Fri, 21 Aug 2026 10:28:47 -0700 Stanislav Fomichev wrote:
-> > > > I do agree that a better idea is to probably do these checks during control
-> > > > paths, but it's a bit more involved (and not sure if it's possible? if we
-> > > > have a bunch of xsk sockets and we change that max_sdu, do we go over all
-> > > > sockets on the system somehow?). My main motivation with this patch was
-> > > > to make our LLM reviewers less chatty about preexisting issues.  
-> > > 
-> > > I hear you, however I feel like we do not know this driver too much and
-> > > probably we don't have a HW to test out such changes, so maybe let us try
-> > > to fix existing behavior?  
-> > 
-> > Let's definitely fix it properly if you have better ideas. But since we
-> > don't have HW, I'm not super confident doing anything sophisticated
-> > myself :-D
-> 
-> Let me take the first 2 patches and leave the stmmac for later.
-> I don't think anyone involved care particularly deeply here.
-> 
-> Maxime said he bought a bunch of relevant HW. If we finally wrap 
-> the AF_XDP tests into driver runtime he should be able to help us...
+On Tue, 2026-08-25 at 13:01 +0100, pamoutaf wrote:
+> From: Paula Moutafian <paula@bynar.io>
+>=20
+> rds_conn_peer_gen_update(), rds_start_mprds() and rds_check_all_paths()
+> all iterate conn->c_path[] up to RDS_MPATH_WORKERS (8) or conn->c_npaths,
+> but c_path is allocated with only
+>=20
+> 	npaths =3D (trans->t_mp_capable ? RDS_MPATH_WORKERS : 1)
+>=20
+> entries in __rds_conn_create() (net/rds/connection.c).  Only the TCP
+> transport sets t_mp_capable, so for the IB/RDMA transport (and the loop
+> transport) exactly one rds_conn_path is allocated.
+>=20
+> c_npaths is derived from the peer via the RDS_EXTHDR_NPATHS handshake
+> extension header and is only clamped to RDS_MPATH_WORKERS, never to the
+> transport's actual allocation.  A remote peer on an RDS/IB (RoCE) fabric
+> can therefore complete the unauthenticated handshake and, by sending a
+> second RDS_EXTHDR_GEN_NUM with a changed generation number, drive
+> rds_conn_peer_gen_update() to walk c_path[1..7] past the end of a
+> one-element allocation -- taking cp_lock, writing cp_next_tx_seq /
+> cp_next_rx_seq and walking cp_retrans on neighbouring slab objects.
+> rds_start_mprds() and rds_check_all_paths() are reachable the same way
+> via a peer-supplied c_npaths > 1; note rds_check_all_paths() is a
+> do/while and dereferences c_path[0] before testing the bound.
+>=20
+> Reproduced against an unmodified 7.2.0 KASAN build, triggered from a
+> hand-rolled RDS/IB peer completing the handshake and sending two probes
+> with differing RDS_EXTHDR_GEN_NUM:
+>=20
+> BUG: KASAN: slab-out-of-bounds in do_raw_spin_lock+0x55/0x9a
+> Write of size 4 at addr ff1100000425a624 by task ksoftirqd/0/13
+> Call Trace:
+>  do_raw_spin_lock+0x55/0x9a
+>  _raw_spin_lock_irqsave+0x12/0x18
+>  rds_recv_hs_exthdrs+0x34a/0x52a
+>  rds_recv_incoming+0x5a8/0xb33
+>  rds_ib_recv_cqe_handler+0xda1/0x12b6
+>  poll_rcq+0x8e/0xb1
+>  rds_ib_tasklet_fn_recv+0x1c4/0x348
+> Allocated by task 10:
+>  __rds_conn_create+0x5b3/0x168f
+>  rds_conn_create+0x18/0x1b
+>  rds_ib_cm_handle_connect+0x486/0xa35
+> The buggy address is located 44 bytes to the right of
+>  allocated 504-byte region, cache kmalloc-512
+>=20
+> The corrupted neighbour's cp_retrans.next is then dereferenced on the
+> next line, producing a fatal GPF (RIP: rds_recv_hs_exthdrs+0x3ba/0x52a,
+> KASAN: null-ptr-deref) -- a crash, not merely a detected access.
+>=20
+> Fix conn->c_npaths at the source instead of guarding every reader: in
+> rds_recv_hs_exthdrs() (net/rds/recv.c), clamp the peer-supplied
+> RDS_EXTHDR_NPATHS value to the transport's actual per-connection
+> allocation rather than to the fixed RDS_MPATH_WORKERS ceiling. c_npaths
+> can then never exceed the number of rds_conn_path entries
+> __rds_conn_create() allocated, which takes care of rds_start_mprds()
+> and rds_check_all_paths() -- both already bound their loops by
+> conn->c_npaths -- with no change at either call site.
+>=20
+> rds_conn_peer_gen_update() is different: its loop is bound by the fixed
+> RDS_MPATH_WORKERS constant, not by conn->c_npaths, so the c_npaths fix
+> above does not reach it. It still needs its own bound, computed the same
+> way as the allocation site and mirroring the sibling pattern already used
+> in rds_conn_destroy() (net/rds/connection.c).
+>=20
+> rds_conn_peer_gen_update() and rds_start_mprds() (net/rds/recv.c) were
+> both correct when written, with c_path still a fixed
+> RDS_MPATH_WORKERS-element array:
+>=20
+> commit 905dd4184e07 ("RDS: TCP: Track peer's connection generation number=
+")
+> commit 5916e2c1554f ("RDS: TCP: Enable multipath RDS for TCP")
+>=20
+> They became wrong when the allocation was made conditional on
+> t_mp_capable without updating either loop or the RDS_EXTHDR_NPATHS clamp:
+>=20
+> commit 840df162b3eb ("rds: reduce memory footprint for RDS when transport=
+ is RDMA")
+>=20
+> rds_check_all_paths() (net/rds/connection.c) is unrelated to that
+> regression: it was added new, three years later, and was unbounded
+> from the moment it was written, but is fixed by the same c_npaths clamp:
+>=20
+> commit 9ef845f894c9 ("rds: If one path needs re-connection, check all and=
+ re-connect")
+>=20
+> Fixes: 840df162b3eb ("rds: reduce memory footprint for RDS when transport=
+ is RDMA")
+> Fixes: 9ef845f894c9 ("rds: If one path needs re-connection, check all and=
+ re-connect")
+> Cc: stable@vger.kernel.org
+> Assisted-by: Bynario AI
+> Signed-off-by: Paula Moutafian <paula@bynar.io>
 
-Sounds fair, thanks!
+Ok, this looks good to me.  Thanks Paula!
+Reviewed-by: Allison Henderson <achender@kernel.org>
+
+> ---
+> v2:
+> - Per Allison Henderson's review, clamp conn->c_npaths itself at the
+>   point it is set from the peer's RDS_EXTHDR_NPATHS in
+>   rds_recv_hs_exthdrs(), instead of adding a second bound check at
+>   each of its readers. This covers rds_start_mprds() and
+>   rds_check_all_paths() with no further change at either site;
+>   net/rds/connection.c is unchanged from v1.
+> - rds_conn_peer_gen_update()'s loop is bound by RDS_MPATH_WORKERS
+>   directly, not by conn->c_npaths, so it is unaffected by the above
+>   and keeps its own bound from v1.
+>=20
+> [v1] https://lore.kernel.org/netdev/213829b7380f1fe12aed2f2ae9ba33c2870ad=
+dd5.camel@kernel.org/T/#t
+>=20
+>  net/rds/recv.c | 8 +++++---
+>  1 file changed, 5 insertions(+), 3 deletions(-)
+>=20
+> diff --git a/net/rds/recv.c b/net/rds/recv.c
+> index cf3884d87931..c7f575bad91c 100644
+> --- a/net/rds/recv.c
+> +++ b/net/rds/recv.c
+> @@ -133,15 +133,16 @@ static void rds_recv_rcvbuf_delta(struct rds_sock *=
+rs, struct sock *sk,
+>  static void rds_conn_peer_gen_update(struct rds_connection *conn,
+>  				     u32 peer_gen_num)
+>  {
+> -	int i;
+> +	int npaths =3D (conn->c_trans->t_mp_capable ? RDS_MPATH_WORKERS : 1);
+>  	struct rds_message *rm, *tmp;
+>  	unsigned long flags;
+> +	int i;
+> =20
+>  	WARN_ON(conn->c_trans->t_type !=3D RDS_TRANS_TCP);
+>  	if (peer_gen_num !=3D 0) {
+>  		if (conn->c_peer_gen_num !=3D 0 &&
+>  		    peer_gen_num !=3D conn->c_peer_gen_num) {
+> -			for (i =3D 0; i < RDS_MPATH_WORKERS; i++) {
+> +			for (i =3D 0; i < npaths; i++) {
+>  				struct rds_conn_path *cp;
+> =20
+>  				cp =3D &conn->c_path[i];
+> @@ -210,6 +211,7 @@ static void rds_recv_hs_exthdrs(struct rds_header *hd=
+r,
+>  	u32 new_peer_gen_num =3D 0;
+>  	int new_npaths;
+>  	bool fan_out;
+> +	int npaths =3D (conn->c_trans->t_mp_capable ? RDS_MPATH_WORKERS : 1);
+> =20
+>  	new_npaths =3D conn->c_npaths;
+> =20
+> @@ -221,7 +223,7 @@ static void rds_recv_hs_exthdrs(struct rds_header *hd=
+r,
+>  		/* Process extension header here */
+>  		switch (type) {
+>  		case RDS_EXTHDR_NPATHS:
+> -			new_npaths =3D min_t(int, RDS_MPATH_WORKERS,
+> +			new_npaths =3D min_t(int, npaths,
+>  					   be16_to_cpu(buffer.rds_npaths));
+>  			break;
+>  		case RDS_EXTHDR_GEN_NUM:
+>=20
+> base-commit: 564973a259ec76f2dad0853420e7034cc43994c4
+
