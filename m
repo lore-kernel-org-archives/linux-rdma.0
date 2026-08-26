@@ -1,72 +1,90 @@
-Received: from outbound.baidu.com (mx21.baidu.com [220.181.3.85])
-	by smtp.subspace.kernel.org (Postfix) with SMTP id 599353A1E8C
-	for <linux-rdma@vger.kernel.org>; Wed, 26 Aug 2026 07:44:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.181.3.85
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D0563B71B1;
+	Wed, 26 Aug 2026 08:07:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787730260; cv=none; b=fNKGzGvb9265KdWh1v8PJ48bK6O0lD42rUgDFiKJkyAA3ToIHaD9jNPePHXLB/Ae9THEC6fTGBygUUpV61QBhiFRj04zeNL4GF7WE3P8yK6dSo8YXb9Nhr0pCzQHJaLAOaAKfWOddzpUMsDU79gtKa1tRiMXyDN9QQOGLSu967A=
+	t=1787731655; cv=none; b=fDwPGlwD1rP8eve5j6WqIp5kYXeRxkkgFrzabVImPFhNYOryvCs1K3K4hOw8NyLnawDxz40B6vPhwIvt/5Sj1Wu9ZR/oJ+NrYDmR6AJL7BvW2TjaGgh5fRFH8t7dCepLYhmBn10tUeedNVFkZG+6OUNt+XCuIsDo7FO9DB3eUu4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787730260; c=relaxed/simple;
-	bh=7UeXtpGWKc5mkS57Y1hoM3KbGkeJMThgmpFczZk1L/w=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=BdKpIuZNQM16mSUq1HKDFZLyXvuSeIashAA6fJPjFPWsZ350kyNuZvt2N9FQ2RY7I1Mq1tet7ardSmPoFNNlu5VYHUk+fklv4deP5kp5aohr7oUl+CH8W6qTrk794tm/ZBPrcRKSemVgLCvNnFUg1kjsxmnCDCvUOqIR5uHknEs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com; spf=pass smtp.mailfrom=baidu.com; dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b=nCHn/Uyk; arc=none smtp.client-ip=220.181.3.85
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baidu.com
+	s=arc-20240116; t=1787731655; c=relaxed/simple;
+	bh=Na+hM2wqIe+x1iSSlrnmbc8gCl4Y+1kYtURrp1WaE2c=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=K2X00mJurbrxjFwJ/ny9Bp4epCbl2OhP42xFwZsNgRoaiF6e7BfpStERd4M31M+kwazG+sX6kBpXeMH+RMAbJ6H50heg6unPO6ojK13RqmXmOPonztzYlt0T1de3379ekXGiSCHXFkF8IWjZq7ahGluwBB1HKw3XBXxue2GFqRM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ljEK6VPY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b="nCHn/Uyk"
-X-MD-Sfrom: lirongqing@baidu.com
-X-MD-SrcIP: 172.31.50.47
-From: lirongqing <lirongqing@baidu.com>
-To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Li
- RongQing <lirongqing@baidu.com>, <linux-rdma@vger.kernel.org>
-Subject: [PATCH] RDMA/uverbs: Fix potential leak of resources->collection in flow_resources_alloc()
-Date: Wed, 26 Aug 2026 15:31:46 +0800
-Message-ID: <20260826073146.2203-1-lirongqing@baidu.com>
-X-Mailer: git-send-email 2.17.1
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ljEK6VPY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 525431F000E9;
+	Wed, 26 Aug 2026 08:07:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1787731654;
+	bh=OL2qKXD2a3hLZiL4PnD+sXth26pEZ4d9s0c+PwQlMgc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=ljEK6VPYJByOvio68wXbsZc44mKqYXjolYENTrngPMYOFdPZ0QsMQJlBJ57U6eHo8
+	 xeKCdT5n9HFk41JIZA94pbBOcjvuQ+9eHli/a7I+xl/5fmVh/cVG2EkgtDe7nfi3bf
+	 5++L/oDsaesv1+TjPwfeQCuaJlgg3bTyjjT94087Ig4nA1DoGmG/oERDq7XZmd5AQy
+	 X6opwexPxItbSOXjd5MWYUkvvvfzwvvDO3G/qmRtnHB22cr+mSIHvlWQ2aYK4M4NvC
+	 OSG3qIR2Zz9tP9Kxz/5f9JGauMsHOKTyLq0LiXWLrOoiLTSP8YRg1LQ6LOOzPavhIl
+	 mJ7XxR8IOG56A==
+Date: Wed, 26 Aug 2026 11:07:29 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Eric Joyner <eric.joyner@amd.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+	Brett Creeley <brett.creeley@amd.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Abhijit Gangurde <abhijit.gangurde@amd.com>,
+	Allen Hubbe <allen.hubbe@amd.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+	"Nikhil P . Rao" <nikhil.rao@amd.com>
+Subject: Re: [PATCH net-next 4/4] RDMA/ionic: Add DCQCN parameter
+ configuration via debugfs
+Message-ID: <20260826080729.GA42790@unreal>
+References: <20260506041935.1061-1-eric.joyner@amd.com>
+ <20260506041935.1061-5-eric.joyner@amd.com>
+ <bb6f164e-5f95-48ab-a22c-5582dcef721d@amd.com>
+ <c940bf1d-11d0-4564-ab1e-e423b0c8ceae@amd.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-ClientProxiedBy: bjhj-exc14.internal.baidu.com (172.31.4.12) To
- bjkjy-exc3.internal.baidu.com (172.31.50.47)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=baidu.com;
-	s=selector1; t=1787729516;
-	bh=PIgclrQw2W7XxeIqb7GFgi64VsDG0idLWevAnTrLrJw=;
-	h=From:To:Subject:Date:Message-ID:Content-Type;
-	b=nCHn/UykoLR/VAdRQbAnt+/62xXXfZDOwp5XcBd0ARXE17flaBBCRiHVU7adamde4
-	 MKSrF3siI0HBs0APTVh2nd6h0kQTYSNseenNyRVYDAjZm2pZgsl/LyD/wEXn1mxAJM
-	 M7UEjs4si3FP1QIqUnvekXdvIaW4k0gaiexfdHRfsemUBoPMTScNaFiOaie09CaPqg
-	 jZliaF1XWWkApZ4F9l92GQc65SCACwGJKeQmVKzsTihzZbvrY1eDWO52CAAB1GsJpZ
-	 QdqYj0noScUr293TLeau0EaEZOYuArlUkhj73/Bwbur4e88a/7i9EugbzdcJWRJqUc
-	 8SHK25bCkppdg==
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <c940bf1d-11d0-4564-ab1e-e423b0c8ceae@amd.com>
 
-From: Li RongQing <lirongqing@baidu.com>
+On Thu, Aug 20, 2026 at 05:24:30PM -0700, Eric Joyner wrote:
+> On 7/28/2026 4:16 PM, Eric Joyner wrote:
+> > 
+> > Leon,
+> > 
+> > From this thread for Patch 3:
+> > https://lore.kernel.org/linux-rdma/20260514163540.GT15586@unreal/, I understand
+> > that it's too large and it's exposing too much information; I can shrink that
+> > down and remove the entries there.
+> > 
+> > But before I make changes and resubmit, is what this patch is doing okay? It
+> > adds DCQCN configuration parameters so that they can be written to in debugfs
+> > and propagated to the firmware? Would this be considered too much meddling with
+> > the firmware in debugfs, too? We want to have a driver-configured mode for DCQCN
+> > and possibly other congestion control profiles.
+> > 
+> > - Eric
+> 
+> Hi Leon,
+> 
+> Can you tell me what an acceptable approach would be in terms of the DCQCN
+> configuration? It didn't get mentioned as part of the debugfs discussion on the
+> other patch in this series, and I want to know if it's ok if I can modify the
+> debugfs implementation to have these DCQCN tuning knobs in there, but to drop
+> everything else from the rdma driver debugfs that looks offensive.
 
-The two array allocations are done unconditionally and only checked
-afterwards, so if the counters allocation fails while the collection
-allocation succeeds, the error path frees counters and the containing
-struct but never frees resources->collection, losing the only pointer
-to it.
+Yes, see the HNS driver. It added several debugfs knobs for configuring
+DCQCN.
 
-Signed-off-by: Li RongQing <lirongqing@baidu.com>
----
- drivers/infiniband/core/uverbs_flow.c | 1 +
- 1 file changed, 1 insertion(+)
+Thanks
 
-diff --git a/drivers/infiniband/core/uverbs_flow.c b/drivers/infiniband/core/uverbs_flow.c
-index 1528a29..de5a276 100644
---- a/drivers/infiniband/core/uverbs_flow.c
-+++ b/drivers/infiniband/core/uverbs_flow.c
-@@ -26,6 +26,7 @@ struct ib_uflow_resources *flow_resources_alloc(size_t num_specs)
- 	return resources;
- 
- err:
-+	kfree(resources->collection);
- 	kfree(resources->counters);
- 	kfree(resources);
- 
--- 
-2.9.4
-
+> 
+> - Eric
