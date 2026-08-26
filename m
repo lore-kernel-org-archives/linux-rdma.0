@@ -1,154 +1,95 @@
-Received: from mta0.migadu.com (out-159.mta0.migadu.com [91.218.175.159])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06110493644
-	for <linux-rdma@vger.kernel.org>; Wed, 26 Aug 2026 06:38:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.159
+Received: from outbound.baidu.com (mx22.baidu.com [220.181.50.185])
+	by smtp.subspace.kernel.org (Postfix) with SMTP id 5E65B3B059C
+	for <linux-rdma@vger.kernel.org>; Wed, 26 Aug 2026 07:32:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.181.50.185
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787726310; cv=none; b=jb+xiNdofsEiZsLwPQyIKgwxFiZv0n4L7NRfSS0ZoB7y/2Phya9py1PRlzeqoPx/OVD99J4cO87MVLSJoQ0kuSvDqm22bYXlKvGTgPYF45WfsH8btePAYkzXB4SiJi3HBwDBLo+VoxRw5pDDxabAzBy6DXi0tFEkxCEYA/QOg0U=
+	t=1787729560; cv=none; b=vGoZ2mpPy4z3pj46Oe8r5LMksIc5iiX5jUbFHG2sxwxScPSyUGT6HCdgn8n1Q7ZMQ+ROlM3UNORYtB0SBrKbR5CYEV+LVkAaVMZ8XiYPPizVO2lD9L0Y5X5wEFVZd9OBczQyojkp2nQcJq0wASuvpZlzNf3xInJP2DemtgvwPGU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787726310; c=relaxed/simple;
-	bh=PnQ9469HILs6omf+XgmOfzmONizTzc6Is97yEJ6+nno=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=bLxRJW2QnzZl0ykay4A18+gWVqaxb+yR/M8r8zrvHFvSU+mD15NbD0QWJHvyZFIzOZ44Kd3u8HvIq+kwgawLZR0jMkMBKsa8i/wtjOY5MAqxk3RO8DYRXOLjJLAlYIRxfZGNerkd3BShnQCtgBW2FQx8N5ybaVPFo9LOJavPcKM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=GrtdCUnN; arc=none smtp.client-ip=91.218.175.159
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1787729560; c=relaxed/simple;
+	bh=cpWgN+5qNsJ9I26UEW52j+l/sZk42tyG0W1nTusqDaI=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=W9fUUAjFelg05cBxOGPIkzFyfkgFZO+oWBTbZH6lxULUB0CjwYCORZf54El+cWW1YRb3Nxy9I1y930AyEee8ig8P/vsuvl47g7L6o3HigDoWfIpSaB+iuU+wxa5ECSCFbbLufMPMgPuHpFcsZZDKQa7g/1zbcj1tqFekrmAFzlE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com; spf=pass smtp.mailfrom=baidu.com; dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b=Cpp00MMu; arc=none smtp.client-ip=220.181.50.185
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baidu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="GrtdCUnN"
-X-Envelope-To: linux-rdma@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=PnQ9469HILs6omf+XgmOfzmONizTzc6Is97yEJ6+nno=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1787726304; v=1; x=1788331104;
- b=GrtdCUnNKbG3Qdj0YXpqRXSC8uymq3V7az4N6LwTTuRgFWSJnWvTJeWb4GNP0nb94opWma1w
- hVmT4OakJq+4pbD42FDE3tR8W9O7pfPHkGBHji0uBBRkYJVO3ob9Cr/YyV54hZw9RdM7r0rA1az
- davjZ8RP56qx4je4LKHzVgbo=
-X-Envelope-To: linux-rdma@vger.kernel.org
-Received: from [192.168.38.216] (123.123.45.164)
-	by smtp.migadu.com with ESMTPS id 493f16deaf9ca199;
-	Wed, 26 Aug 2026 06:38:24 +0000
-X-Mizu-Trace-ID: 493f16deaf9ca199
-X-Migadu-Flow: FLOW_OUT
-Message-ID: <05b91f98-e3a3-793a-9197-f09d84acfaf7@linux.dev>
-Date: Wed, 26 Aug 2026 14:38:15 +0800
+	dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b="Cpp00MMu"
+X-MD-Sfrom: lirongqing@baidu.com
+X-MD-SrcIP: 172.31.50.47
+From: lirongqing <lirongqing@baidu.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Li
+ RongQing <lirongqing@baidu.com>, Michael Bommarito
+	<michael.bommarito@gmail.com>, Kees Cook <kees@kernel.org>, Daniel Jurgens
+	<danielj@mellanox.com>, Doug Ledford <dledford@redhat.com>, Paul Moore
+	<paul@paul-moore.com>, <linux-rdma@vger.kernel.org>
+Subject: [PATCH] RDMA/mad: Fix receive buffer leak when PKey enforcement fails
+Date: Wed, 26 Aug 2026 15:32:16 +0800
+Message-ID: <20260826073216.2367-1-lirongqing@baidu.com>
+X-Mailer: git-send-email 2.17.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.12.0
-Subject: Re: [PATCH] RDMA/siw: Clear association under lock if siw_qp_modify
- fails in siw_accept
-To: Bernard Metzler <bernard.metzler@linux.dev>, jgg@ziepe.ca, leon@kernel.org
-Cc: linux-rdma@vger.kernel.org, shuangpeng.kernel@gmail.com
-References: <20260825130954.27327-1-guoqing.jiang@linux.dev>
- <de7ccaed-e270-459b-a34a-d32b2b2ce4e8@linux.dev>
-Content-Language: en-US
-From: Guoqing Jiang <guoqing.jiang@linux.dev>
-In-Reply-To: <de7ccaed-e270-459b-a34a-d32b2b2ce4e8@linux.dev>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: bjhj-exc14.internal.baidu.com (172.31.4.12) To
+ bjkjy-exc3.internal.baidu.com (172.31.50.47)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=baidu.com;
+	s=selector1; t=1787729545;
+	bh=xO2ug/IKX8m+ZXwloLUHSVP68fNywlrCPMOh8q0KmeY=;
+	h=From:To:Subject:Date:Message-ID:Content-Type;
+	b=Cpp00MMuvlCoRFD7ze7WPtNCySm0pd+oJF5yJvltGg1cTvGQarIjg/gdSiA+2BNbI
+	 6AZC+VOYmNC5T2in+72V4+Cv2CoWtDqrRyni16eGPQtFShpXpo9JeY7y+OUG6Gl5rp
+	 xYPWlvIuLiOrFDopRZq9iDkveCl4FemGCQZ33w9cRBFNYTAPj+zLPNz+GiPQCdakLr
+	 PgbcG1nAaWO3HkhWDgjABMYIdWvozPocOSypN/ANi4jGzfgl13OhmkCifvHF0PDNnT
+	 6bKcr4ORAcc8nEL5gizBVucFxyndpwpHPAdux4pPXHT8QPbOzKhao33jwF9waX+KzV
+	 1j8u1o09bL44w==
 
-Hi Bernard,
+From: Li RongQing <lirongqing@baidu.com>
 
-On 8/25/26 21:53, Bernard Metzler wrote:
-> On 25.08.2026 15:09, Guoqing Jiang wrote:
->> We need to clear qp and cep before release state_lock as 
->> siw_qp_llp_closeo
->> and siw_qp_modify->siw_qp_llp_close did.
->>
->> Otherwise if siw_qp_modify() fails in siw_accept(), the QP's state_lock
->> is released before the error path cleanup. A concurrent ibv_modify_qp()
->> transitioning the QP to ERROR can race in this window:
->>
->>    siw_accept()                       ibv_modify_qp(ERROR)
->>    ----------------------             ----------------------
->>    siw_qp_modify() fails
->>    up_write(&qp->state_lock)
->> down_write(&qp->state_lock)
->>                                       nextstate_from_idle():
->>                      if (qp->cep)
->>                                         siw_cep_put(qp->cep) <- frees 
->> cep
->>                                         qp->cep = NULL
->>    goto error
->>      cep->qp = NULL                   <- UAF
->>
->> Clear qp->cep and cep->qp, and drop the association reference taken by
->> siw_cep_get(), all under the write lock held from the initial
->> down_write(&qp->state_lock). Thread B therefore sees qp->cep == NULL,
->> skips its own put, and cannot free the cep before siw_accept() is done
->> with it.
->>
->> Reported-by: Shuangpeng Bai <shuangpeng.kernel@gmail.com>
->> Link: 
->> https://lore.kernel.org/linux-rdma/d6fbe475-a5c2-f975-99b0-a0bd6b6d10e8@linux.dev/T/#m5876c1ff2de8686a9a1173b8f1aa0ff5363a785c
->> Signed-off-by: Guoqing Jiang <guoqing.jiang@linux.dev>
->> ---
->>   drivers/infiniband/sw/siw/siw_cm.c | 8 ++++++--
->>   1 file changed, 6 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/infiniband/sw/siw/siw_cm.c 
->> b/drivers/infiniband/sw/siw/siw_cm.c
->> index 0245b25e7271..1573f2e888b2 100644
->> --- a/drivers/infiniband/sw/siw/siw_cm.c
->> +++ b/drivers/infiniband/sw/siw/siw_cm.c
->> @@ -1719,9 +1719,13 @@ int siw_accept(struct iw_cm_id *id, struct 
->> iw_cm_conn_param *params)
->>                  SIW_QP_ATTR_STATE | SIW_QP_ATTR_LLP_HANDLE |
->>                      SIW_QP_ATTR_ORD | SIW_QP_ATTR_IRD |
->>                      SIW_QP_ATTR_MPA);
->> +    if (rv) {
->> +        cep->qp = NULL;
-> This can better be omitted since done in error_unlock path
-> anyway and is redundant otherwise.
+ib_mad_complete_recv() initializes mad_recv_wc->rmpp_list and then runs
+ib_mad_enforce_security() before linking recv_buf onto that list.  On
+failure it calls ib_free_recv_mad(), which only walks rmpp_list and frees
+the ib_mad_private of every buffer found there.  As the list is still
+empty at that point, nothing is freed at all.
 
-Right, thanks for the review! And probably call siw_cep_put before set 
-qp->cep to
-NULL as other places did.
+The caller cannot clean up either: ib_mad_recv_done() sets recv to NULL
+right after ib_mad_complete_recv() returns, assuming the MAD layer took
+ownership of the buffer.  Every MAD that fails the PKey check therefore
+leaks one ib_mad_private (about 300 bytes per IB port MAD, ~2K for OPA),
+and a remote node can trigger this repeatedly by sending MADs with a
+wrong PKey.
 
-> It would also better retain the logic of calling siw_qp_put(qp) right 
-> after
-> clearing cep's reference to the qp, as done in error path.
+Link recv_buf onto rmpp_list right after the list is initialized, so the
+error path has something to free.
 
-I suppose this change could be okay.
+Fixes: 47a2b338fe63 ("IB/core: Enforce security on management datagrams")
+Signed-off-by: Li RongQing <lirongqing@baidu.com>
+---
+ drivers/infiniband/core/mad.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-@@ -1719,9 +1719,12 @@ int siw_accept(struct iw_cm_id *id, struct 
-iw_cm_conn_param *params)
-                            SIW_QP_ATTR_STATE | SIW_QP_ATTR_LLP_HANDLE |
-                                    SIW_QP_ATTR_ORD | SIW_QP_ATTR_IRD |
-                                    SIW_QP_ATTR_MPA);
-+       if (rv) {
-+               siw_cep_put(cep);
-+               qp->cep = NULL;
-+               goto error_unlock;
-+       }
-         up_write(&qp->state_lock);
--       if (rv)
--               goto error;
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index e0b3b36..3c91f00 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -2059,6 +2059,8 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
+ 	int ret;
+ 
+ 	INIT_LIST_HEAD(&mad_recv_wc->rmpp_list);
++	list_add(&mad_recv_wc->recv_buf.list, &mad_recv_wc->rmpp_list);
++
+ 	ret = ib_mad_enforce_security(mad_agent_priv,
+ 				      mad_recv_wc->wc->pkey_index);
+ 	if (ret) {
+@@ -2067,7 +2069,6 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
+ 		return;
+ 	}
+ 
+-	list_add(&mad_recv_wc->recv_buf.list, &mad_recv_wc->rmpp_list);
+ 	if (is_kernel_rmpp_data_response(mad_agent_priv, mad_recv_wc)) {
+ 		spin_lock_irqsave(&mad_agent_priv->lock, flags);
+ 		mad_send_wr = ib_find_send_mad(mad_agent_priv, mad_recv_wc);
+-- 
+2.9.4
 
-I am wondering if there is another use-after-free case in 
-siw_qp_cm_drop. Because
-the beginning of siw_qp_cm_drop borrows the qp->cep pointer without 
-holding a
-reference. If another thread put the last reference of cep, then 
-siw_qp_cm_drop
-wakes and deferences cep which has been freed.
-
->
-> Thank you!
-> Bernard.> +        qp->cep = NULL;
->> +        siw_cep_put(cep);
->> +        goto error_unlock;
->> +    }
->>       up_write(&qp->state_lock);
->> -    if (rv)
->> -        goto error;
->>         siw_dbg_cep(cep, "[QP %u]: send mpa reply, %d byte pdata\n",
->>               qp_id(qp), params->private_data_len);
-
-Thanks,
-Guoqing
