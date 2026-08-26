@@ -1,211 +1,122 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from out30-97.freemail.mail.aliyun.com (out30-97.freemail.mail.aliyun.com [115.124.30.97])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B3482E2EEE;
-	Tue, 25 Aug 2026 23:16:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 434DE1EFF93;
+	Wed, 26 Aug 2026 03:18:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.97
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787699765; cv=none; b=fZLDpIyWrPUyk+W1HCBSzcPUq/WAZOptutgbM+dMBRLR8jcBdfDI7dTf+YfkuHTpKiHdPMEHY3oUooSL376SgbF1Amzayz9i5/zeUQoeYoqRR1e4/0+hbOjcsHp6v6juHiwWwTBvbl+Sn4jt47IFIhSKU5Nb7fuGHAjQckhTAWQ=
+	t=1787714318; cv=none; b=pu+zAUM8CKaQtj+xr7OqkkF9+ElNrfFyCrgh735DGBgAaJeAsTktFvks/FdvoEJviofIz0I6Cm+LMlJQK6SwC6L54i+c0edzftV+lF51cQ1kCBV9utMWpZWRE0ZQOG2mUEZYanHiVmiXOkHkwxWuUn9FkmMxTL2XEFaiFdc9/Bk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787699765; c=relaxed/simple;
-	bh=yXPRHTpNE/+r66oOJ+ybxt/YZRDn7LfNAZ1LzkF10I0=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=NH3rbeV+jz+D27XKJQBf+uDXEi4EzqF8gfAftUtJowGKeb53GQhmIuMNaX4HCnP+FSsdRbyuMB+6tfV2bdjSHZB8YYxLNXxceD0lK16qeYZHc343oaIhAPxG/9Ue7dTGuIkn0W0hJ4Be/CrbdjPtlja4/qYks5z4wBBtsPtvOjk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AAeDkljO; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787714318; c=relaxed/simple;
+	bh=h8msQHr+CXsejwj0Tg9mxPlXdG/lbLNOfIaOqLqNyqY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=rYpYQXBj5ymfH6MQhNnZfv/Vab41SvOvT2dUh/HpNT5rs8yQekj6APqYbvW2cEcqhGquT85GsypDWlNQvNSNBvL42eZqHwekCuTMp+hWiQjGR11eG6+eaB0aISV6AECS4bcifET1dekpUJ60biw7neSkhfN/hRpf90jJrPDufaA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=c0m3KFNY; arc=none smtp.client-ip=115.124.30.97
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AAeDkljO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA5021F000E9;
-	Tue, 25 Aug 2026 23:16:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787699764;
-	bh=/cNmmNvhGlkxS7SZv8G19FI0tngiieRaSNNGyFvAoN8=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=AAeDkljOs34jOG2uw25vckPNe9JYWAino/q7dBjlAZtrOwBkvXxStswpwzSBXETrg
-	 YCsBeMyPRBJRwDKq+2WK9RjZfPYPLqD66PvwK0vYGy8pJ6hi4NtFjxKYdzBMogIByO
-	 aeXMY7tLL3ey3YC0m17co/MapgPSd8NqSCQU2D0sNwJHuu3YJ/kUV6cPZB+0MIIxyS
-	 HfYRsHkaqk9V3xvmL/5VQAXFOxUTUqkW30OqT5jZd9NRqCiXepAZkfxP/CyKcrphmg
-	 BCulmzTO8VDpggeiBL5dfS815XGqsFQBdqEQN97LY9lboiVAo2mCY98p1C3ciUk6dB
-	 x4nvXrBBCXUtg==
-Message-ID: <9898c771fb10d2a9b774f6ec4c7c94bc7b0129f7.camel@kernel.org>
-Subject: Re: [PATCH v2 net] net/rds: fix out-of-bounds write in
- rds_conn_peer_gen_update()
-From: Allison Henderson <achender@kernel.org>
-To: pamoutaf <paula@bynar.io>
-Cc: davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
- pabeni@redhat.com,  horms@kernel.org, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org,  rds-devel@oss.oracle.com,
- linux-kernel@vger.kernel.org
-Date: Tue, 25 Aug 2026 16:16:03 -0700
-In-Reply-To: <20260825120132.51636-1-pamoutafpro@gmail.com>
-References: <20260825120132.51636-1-pamoutafpro@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.52.3-0ubuntu1.1 
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="c0m3KFNY"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1787714312; h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type;
+	bh=Kyr8+8isRvv+cr0uQOk3l0k7AzeaOzG44yM3F3HZ2c0=;
+	b=c0m3KFNY4Hm/pnCxvfqBZf3rLOzi7KTM7d9ar/g3RdQ8Wz9xUF5d2cmJGSt2Icu6wrfPHoWq5NTRCs580nKqq9LiDtpQklodK042xdUBxKnSCI2GJHyJ3KnZ0lDVd2iAiu5nwhuoBsFS6a3lqoRfzjBvS7awORNGt8jvtoTXDms=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R131e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033045098064;MF=dust.li@linux.alibaba.com;NM=1;PH=DS;RN=17;SR=0;TI=SMTPD_---0X9fbpz2_1787714311;
+Received: from localhost(mailfrom:dust.li@linux.alibaba.com fp:SMTPD_---0X9fbpz2_1787714311 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Wed, 26 Aug 2026 11:18:31 +0800
+Date: Wed, 26 Aug 2026 11:18:31 +0800
+From: Dust Li <dust.li@linux.alibaba.com>
+To: Mahanta Jambigi <mjambigi@linux.ibm.com>, andrew+netdev@lunn.ch,
+	davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+	pabeni@redhat.com, alibuda@linux.alibaba.com, sidraya@linux.ibm.com,
+	hidayath@linux.ibm.com
+Cc: pasic@linux.ibm.com, horms@kernel.org, tonylu@linux.alibaba.com,
+	guwen@linux.alibaba.com, netdev@vger.kernel.org,
+	linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: Re: [PATCH net] net/smc: serialize clcsock teardown in
+ smc_accept_dequeue
+Message-ID: <ao5bB9OCbJ5PQbEp@linux.alibaba.com>
+Reply-To: dust.li@linux.alibaba.com
+References: <20260824065851.1070988-1-mjambigi@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260824065851.1070988-1-mjambigi@linux.ibm.com>
 
-On Tue, 2026-08-25 at 13:01 +0100, pamoutaf wrote:
-> From: Paula Moutafian <paula@bynar.io>
->=20
-> rds_conn_peer_gen_update(), rds_start_mprds() and rds_check_all_paths()
-> all iterate conn->c_path[] up to RDS_MPATH_WORKERS (8) or conn->c_npaths,
-> but c_path is allocated with only
->=20
-> 	npaths =3D (trans->t_mp_capable ? RDS_MPATH_WORKERS : 1)
->=20
-> entries in __rds_conn_create() (net/rds/connection.c).  Only the TCP
-> transport sets t_mp_capable, so for the IB/RDMA transport (and the loop
-> transport) exactly one rds_conn_path is allocated.
->=20
-> c_npaths is derived from the peer via the RDS_EXTHDR_NPATHS handshake
-> extension header and is only clamped to RDS_MPATH_WORKERS, never to the
-> transport's actual allocation.  A remote peer on an RDS/IB (RoCE) fabric
-> can therefore complete the unauthenticated handshake and, by sending a
-> second RDS_EXTHDR_GEN_NUM with a changed generation number, drive
-> rds_conn_peer_gen_update() to walk c_path[1..7] past the end of a
-> one-element allocation -- taking cp_lock, writing cp_next_tx_seq /
-> cp_next_rx_seq and walking cp_retrans on neighbouring slab objects.
-> rds_start_mprds() and rds_check_all_paths() are reachable the same way
-> via a peer-supplied c_npaths > 1; note rds_check_all_paths() is a
-> do/while and dereferences c_path[0] before testing the bound.
->=20
-> Reproduced against an unmodified 7.2.0 KASAN build, triggered from a
-> hand-rolled RDS/IB peer completing the handshake and sending two probes
-> with differing RDS_EXTHDR_GEN_NUM:
->=20
-> BUG: KASAN: slab-out-of-bounds in do_raw_spin_lock+0x55/0x9a
-> Write of size 4 at addr ff1100000425a624 by task ksoftirqd/0/13
-> Call Trace:
->  do_raw_spin_lock+0x55/0x9a
->  _raw_spin_lock_irqsave+0x12/0x18
->  rds_recv_hs_exthdrs+0x34a/0x52a
->  rds_recv_incoming+0x5a8/0xb33
->  rds_ib_recv_cqe_handler+0xda1/0x12b6
->  poll_rcq+0x8e/0xb1
->  rds_ib_tasklet_fn_recv+0x1c4/0x348
-> Allocated by task 10:
->  __rds_conn_create+0x5b3/0x168f
->  rds_conn_create+0x18/0x1b
->  rds_ib_cm_handle_connect+0x486/0xa35
-> The buggy address is located 44 bytes to the right of
->  allocated 504-byte region, cache kmalloc-512
->=20
-> The corrupted neighbour's cp_retrans.next is then dereferenced on the
-> next line, producing a fatal GPF (RIP: rds_recv_hs_exthdrs+0x3ba/0x52a,
-> KASAN: null-ptr-deref) -- a crash, not merely a detected access.
->=20
-> Fix conn->c_npaths at the source instead of guarding every reader: in
-> rds_recv_hs_exthdrs() (net/rds/recv.c), clamp the peer-supplied
-> RDS_EXTHDR_NPATHS value to the transport's actual per-connection
-> allocation rather than to the fixed RDS_MPATH_WORKERS ceiling. c_npaths
-> can then never exceed the number of rds_conn_path entries
-> __rds_conn_create() allocated, which takes care of rds_start_mprds()
-> and rds_check_all_paths() -- both already bound their loops by
-> conn->c_npaths -- with no change at either call site.
->=20
-> rds_conn_peer_gen_update() is different: its loop is bound by the fixed
-> RDS_MPATH_WORKERS constant, not by conn->c_npaths, so the c_npaths fix
-> above does not reach it. It still needs its own bound, computed the same
-> way as the allocation site and mirroring the sibling pattern already used
-> in rds_conn_destroy() (net/rds/connection.c).
->=20
-> rds_conn_peer_gen_update() and rds_start_mprds() (net/rds/recv.c) were
-> both correct when written, with c_path still a fixed
-> RDS_MPATH_WORKERS-element array:
->=20
-> commit 905dd4184e07 ("RDS: TCP: Track peer's connection generation number=
-")
-> commit 5916e2c1554f ("RDS: TCP: Enable multipath RDS for TCP")
->=20
-> They became wrong when the allocation was made conditional on
-> t_mp_capable without updating either loop or the RDS_EXTHDR_NPATHS clamp:
->=20
-> commit 840df162b3eb ("rds: reduce memory footprint for RDS when transport=
- is RDMA")
->=20
-> rds_check_all_paths() (net/rds/connection.c) is unrelated to that
-> regression: it was added new, three years later, and was unbounded
-> from the moment it was written, but is fixed by the same c_npaths clamp:
->=20
-> commit 9ef845f894c9 ("rds: If one path needs re-connection, check all and=
- re-connect")
->=20
-> Fixes: 840df162b3eb ("rds: reduce memory footprint for RDS when transport=
- is RDMA")
-> Fixes: 9ef845f894c9 ("rds: If one path needs re-connection, check all and=
- re-connect")
-> Cc: stable@vger.kernel.org
-> Assisted-by: Bynario AI
-> Signed-off-by: Paula Moutafian <paula@bynar.io>
+On 2026-08-24 08:58:51, Mahanta Jambigi wrote:
+>smc_accept_dequeue() open-codes clcsock teardown for SMC_CLOSED child sockets
+>without taking clcsock_release_lock:
+>
+>  new_sk->sk_prot->unhash(new_sk);
+>  if (isk->clcsock) {
+>      sock_release(isk->clcsock);
+>      isk->clcsock = NULL;
+>  }
+>
+>This bypasses the clcsock_release_lock discipline used elsewhere in SMC clcsock
+>lifetime handling. In particular, other paths serialize clcsock access and
+>updates with clcsock_release_lock, but this local teardown path does not.
+>
+>Fix it by taking clcsock_release_lock around the local teardown and by storing
+>NULL before sock_release(), matching the established ordering used by other
+>clcsock teardown paths.
+>
+>Fixes: 127f49705823 ("net/smc: release clcsock from tcp_listen_worker")
+>Reviewed-by: Hidayath Khan <hidayath@linux.ibm.com>
+>Signed-off-by: Mahanta Jambigi <mjambigi@linux.ibm.com>
+>---
+> net/smc/af_smc.c | 12 ++++++++----
+> 1 file changed, 8 insertions(+), 4 deletions(-)
+>
+>diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+>index 00403175b740..bbf8269876ee 100644
+>--- a/net/smc/af_smc.c
+>+++ b/net/smc/af_smc.c
+>@@ -1833,10 +1833,14 @@ struct sock *smc_accept_dequeue(struct sock *parent,
+> 		smc_accept_unlink(new_sk);
+> 		if (new_sk->sk_state == SMC_CLOSED) {
+> 			new_sk->sk_prot->unhash(new_sk);
+>-			if (isk->clcsock) {
+>-				sock_release(isk->clcsock);
+>-				isk->clcsock = NULL;
+>-			}
+>+			mutex_lock(&isk->clcsock_release_lock);
+>+			if (isk->clcsock) {
+>+				struct socket *clcsock = isk->clcsock;
+>+
+>+				isk->clcsock = NULL;
+>+				sock_release(clcsock);
+>+			}
+>+			mutex_unlock(&isk->clcsock_release_lock);
 
-Ok, this looks good to me.  Thanks Paula!
-Reviewed-by: Allison Henderson <achender@kernel.org>
+Why not call smc_clcsock_release() here ?
 
-> ---
-> v2:
-> - Per Allison Henderson's review, clamp conn->c_npaths itself at the
->   point it is set from the peer's RDS_EXTHDR_NPATHS in
->   rds_recv_hs_exthdrs(), instead of adding a second bound check at
->   each of its readers. This covers rds_start_mprds() and
->   rds_check_all_paths() with no further change at either site;
->   net/rds/connection.c is unchanged from v1.
-> - rds_conn_peer_gen_update()'s loop is bound by RDS_MPATH_WORKERS
->   directly, not by conn->c_npaths, so it is unaffected by the above
->   and keeps its own bound from v1.
->=20
-> [v1] https://lore.kernel.org/netdev/213829b7380f1fe12aed2f2ae9ba33c2870ad=
-dd5.camel@kernel.org/T/#t
->=20
->  net/rds/recv.c | 8 +++++---
->  1 file changed, 5 insertions(+), 3 deletions(-)
->=20
-> diff --git a/net/rds/recv.c b/net/rds/recv.c
-> index cf3884d87931..c7f575bad91c 100644
-> --- a/net/rds/recv.c
-> +++ b/net/rds/recv.c
-> @@ -133,15 +133,16 @@ static void rds_recv_rcvbuf_delta(struct rds_sock *=
-rs, struct sock *sk,
->  static void rds_conn_peer_gen_update(struct rds_connection *conn,
->  				     u32 peer_gen_num)
->  {
-> -	int i;
-> +	int npaths =3D (conn->c_trans->t_mp_capable ? RDS_MPATH_WORKERS : 1);
->  	struct rds_message *rm, *tmp;
->  	unsigned long flags;
-> +	int i;
-> =20
->  	WARN_ON(conn->c_trans->t_type !=3D RDS_TRANS_TCP);
->  	if (peer_gen_num !=3D 0) {
->  		if (conn->c_peer_gen_num !=3D 0 &&
->  		    peer_gen_num !=3D conn->c_peer_gen_num) {
-> -			for (i =3D 0; i < RDS_MPATH_WORKERS; i++) {
-> +			for (i =3D 0; i < npaths; i++) {
->  				struct rds_conn_path *cp;
-> =20
->  				cp =3D &conn->c_path[i];
-> @@ -210,6 +211,7 @@ static void rds_recv_hs_exthdrs(struct rds_header *hd=
-r,
->  	u32 new_peer_gen_num =3D 0;
->  	int new_npaths;
->  	bool fan_out;
-> +	int npaths =3D (conn->c_trans->t_mp_capable ? RDS_MPATH_WORKERS : 1);
-> =20
->  	new_npaths =3D conn->c_npaths;
-> =20
-> @@ -221,7 +223,7 @@ static void rds_recv_hs_exthdrs(struct rds_header *hd=
-r,
->  		/* Process extension header here */
->  		switch (type) {
->  		case RDS_EXTHDR_NPATHS:
-> -			new_npaths =3D min_t(int, RDS_MPATH_WORKERS,
-> +			new_npaths =3D min_t(int, npaths,
->  					   be16_to_cpu(buffer.rds_npaths));
->  			break;
->  		case RDS_EXTHDR_GEN_NUM:
->=20
-> base-commit: 564973a259ec76f2dad0853420e7034cc43994c4
+After looking deeper into this issue, I found smc_diag_msg_common_fill()/
+smc_getname() and many other branches hasn't hold lock_sock() and may also
+have the race issue ? For example, smc_getname() calling smc->clcsock->ops->getname()
+while the other workqueue is releasing the clcsock.
 
+Since SMC has long been plagued by this kind of locking issue, I think we
+should consider a long-term solution to address it.
+
+What about stop releasing the clcsock early and tie its lifetime to the SMC
+socket itself. The early paths don't really need to release it ??? a
+kernel_sock_shutdown()/tcp_abort() is enough to stop it, and calling them more
+than once is safe because the TCP layer already handles that.  sock_release()
+is different: it frees the socket, so it must happen exactly once. If we move
+this single release to the final teardown of the SMC socket, no user can exist
+at that point anymore (fd users are gone after smc_release(), and every
+work/accept-queue context holds a sock reference), which makes both
+clcsock_release_lock and all the if (smc->clcsock) NULL checks removable.
+
+Ideas ?
+
+Best regards,
+Dust
