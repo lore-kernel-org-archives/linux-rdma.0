@@ -1,95 +1,55 @@
-Received: from outbound.baidu.com (mx22.baidu.com [220.181.50.185])
-	by smtp.subspace.kernel.org (Postfix) with SMTP id 5E65B3B059C
-	for <linux-rdma@vger.kernel.org>; Wed, 26 Aug 2026 07:32:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.181.50.185
+Received: from verein.lst.de (verein.lst.de [213.95.11.211])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47E7637DE8A;
+	Wed, 26 Aug 2026 07:42:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.11.211
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787729560; cv=none; b=vGoZ2mpPy4z3pj46Oe8r5LMksIc5iiX5jUbFHG2sxwxScPSyUGT6HCdgn8n1Q7ZMQ+ROlM3UNORYtB0SBrKbR5CYEV+LVkAaVMZ8XiYPPizVO2lD9L0Y5X5wEFVZd9OBczQyojkp2nQcJq0wASuvpZlzNf3xInJP2DemtgvwPGU=
+	t=1787730149; cv=none; b=a1yH+2uiK34dLh4VEHKU8kM7N4SSx9ABCr1Vb8gKp4wOuIof9dVfM+PeRgtQXFlLTyCtOceiFLWDCnfcGCzaj5QkX2iMBlqAveuI/1P9A4Z6YJ0vRbmTkiwNaP6dZM6VY2ghShGSxcwGFwCejMUPOWRZ0yhshZgjx4oWAwAMfNc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787729560; c=relaxed/simple;
-	bh=cpWgN+5qNsJ9I26UEW52j+l/sZk42tyG0W1nTusqDaI=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=W9fUUAjFelg05cBxOGPIkzFyfkgFZO+oWBTbZH6lxULUB0CjwYCORZf54El+cWW1YRb3Nxy9I1y930AyEee8ig8P/vsuvl47g7L6o3HigDoWfIpSaB+iuU+wxa5ECSCFbbLufMPMgPuHpFcsZZDKQa7g/1zbcj1tqFekrmAFzlE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com; spf=pass smtp.mailfrom=baidu.com; dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b=Cpp00MMu; arc=none smtp.client-ip=220.181.50.185
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baidu.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b="Cpp00MMu"
-X-MD-Sfrom: lirongqing@baidu.com
-X-MD-SrcIP: 172.31.50.47
-From: lirongqing <lirongqing@baidu.com>
-To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Li
- RongQing <lirongqing@baidu.com>, Michael Bommarito
-	<michael.bommarito@gmail.com>, Kees Cook <kees@kernel.org>, Daniel Jurgens
-	<danielj@mellanox.com>, Doug Ledford <dledford@redhat.com>, Paul Moore
-	<paul@paul-moore.com>, <linux-rdma@vger.kernel.org>
-Subject: [PATCH] RDMA/mad: Fix receive buffer leak when PKey enforcement fails
-Date: Wed, 26 Aug 2026 15:32:16 +0800
-Message-ID: <20260826073216.2367-1-lirongqing@baidu.com>
-X-Mailer: git-send-email 2.17.1
+	s=arc-20240116; t=1787730149; c=relaxed/simple;
+	bh=PBev44xSzJ2M1MJAmdYELWXheO/ojhCA+pH10s+URWQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=oPlIBgAEboftFOjjQbDS9L3HxsnaCKD58EoRufJ5NmQvPS0MdFBPIU4KFZEEG2AFxjxC+V05CmjnY1W/R6u9P6ZN2046h8oD/FetBDV+7dOH8IPsjg2IcQtpA8Cdzf+h6nN+3LQZS0oJc6Y0tKr4RQnPf9SBPYnruVDNgDZKSbA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de; spf=pass smtp.mailfrom=lst.de; arc=none smtp.client-ip=213.95.11.211
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lst.de
+Received: by verein.lst.de (Postfix, from userid 2407)
+	id AB4F268B05; Wed, 26 Aug 2026 09:42:15 +0200 (CEST)
+Date: Wed, 26 Aug 2026 09:42:15 +0200
+From: Christoph Hellwig <hch@lst.de>
+To: Matthew Wilcox <willy@infradead.org>
+Cc: Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>,
+	Christoph Hellwig <hch@lst.de>, David Howells <dhowells@redhat.com>,
+	John Hubbard <jhubbard@nvidia.com>, Jan Kara <jack@suse.cz>,
+	Rik van Riel <riel@surriel.com>, Qu Wenruo <wqu@suse.com>,
+	"Darrick J. Wong" <djwong@kernel.org>, linux-btrfs@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
+	linux-xfs@vger.kernel.org, linux-rdma@vger.kernel.org,
+	Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@nvidia.com>
+Subject: Re: Removing ->dirty_folio
+Message-ID: <20260826074215.GA18668@lst.de>
+References: <aoyWln-Gt-yvZQkE@casper.infradead.org> <CAG48ez0vXVUu9j4rYUeCqgwyHKAiN_6fL--D90WvX9q7B41V-A@mail.gmail.com> <ao3y8TtEGjniZ_4f@casper.infradead.org> <20260826050733.GB15122@lst.de>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-ClientProxiedBy: bjhj-exc14.internal.baidu.com (172.31.4.12) To
- bjkjy-exc3.internal.baidu.com (172.31.50.47)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=baidu.com;
-	s=selector1; t=1787729545;
-	bh=xO2ug/IKX8m+ZXwloLUHSVP68fNywlrCPMOh8q0KmeY=;
-	h=From:To:Subject:Date:Message-ID:Content-Type;
-	b=Cpp00MMuvlCoRFD7ze7WPtNCySm0pd+oJF5yJvltGg1cTvGQarIjg/gdSiA+2BNbI
-	 6AZC+VOYmNC5T2in+72V4+Cv2CoWtDqrRyni16eGPQtFShpXpo9JeY7y+OUG6Gl5rp
-	 xYPWlvIuLiOrFDopRZq9iDkveCl4FemGCQZ33w9cRBFNYTAPj+zLPNz+GiPQCdakLr
-	 PgbcG1nAaWO3HkhWDgjABMYIdWvozPocOSypN/ANi4jGzfgl13OhmkCifvHF0PDNnT
-	 6bKcr4ORAcc8nEL5gizBVucFxyndpwpHPAdux4pPXHT8QPbOzKhao33jwF9waX+KzV
-	 1j8u1o09bL44w==
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260826050733.GB15122@lst.de>
+User-Agent: Mutt/1.5.17 (2007-11-01)
 
-From: Li RongQing <lirongqing@baidu.com>
+On Wed, Aug 26, 2026 at 07:07:33AM +0200, Christoph Hellwig wrote:
+> The interesting case is FOLL_LONGTERM, as it can pin I/O for a much
+> longer time.  And that also means IFF the user of FOLL_LONGTERM actually
+> wants to be able to persist data on a shared mmap, it has to manually
+> dirty folios one or more times during the FOLL_LONGTERM pin, because
+> otherwise the file system would never know there is dirty data.
+> The set_page_dirty call in ib_umem_odp_unmap_dma_pages is an example
+> for that.
 
-ib_mad_complete_recv() initializes mad_recv_wc->rmpp_list and then runs
-ib_mad_enforce_security() before linking recv_buf onto that list.  On
-failure it calls ib_free_recv_mad(), which only walks rmpp_list and frees
-the ib_mad_private of every buffer found there.  As the list is still
-empty at that point, nothing is freed at all.
-
-The caller cannot clean up either: ib_mad_recv_done() sets recv to NULL
-right after ib_mad_complete_recv() returns, assuming the MAD layer took
-ownership of the buffer.  Every MAD that fails the PKey check therefore
-leaks one ib_mad_private (about 300 bytes per IB port MAD, ~2K for OPA),
-and a remote node can trigger this repeatedly by sending MADs with a
-wrong PKey.
-
-Link recv_buf onto rmpp_list right after the list is initialized, so the
-error path has something to free.
-
-Fixes: 47a2b338fe63 ("IB/core: Enforce security on management datagrams")
-Signed-off-by: Li RongQing <lirongqing@baidu.com>
----
- drivers/infiniband/core/mad.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index e0b3b36..3c91f00 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -2059,6 +2059,8 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
- 	int ret;
- 
- 	INIT_LIST_HEAD(&mad_recv_wc->rmpp_list);
-+	list_add(&mad_recv_wc->recv_buf.list, &mad_recv_wc->rmpp_list);
-+
- 	ret = ib_mad_enforce_security(mad_agent_priv,
- 				      mad_recv_wc->wc->pkey_index);
- 	if (ret) {
-@@ -2067,7 +2069,6 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
- 		return;
- 	}
- 
--	list_add(&mad_recv_wc->recv_buf.list, &mad_recv_wc->rmpp_list);
- 	if (is_kernel_rmpp_data_response(mad_agent_priv, mad_recv_wc)) {
- 		spin_lock_irqsave(&mad_agent_priv->lock, flags);
- 		mad_send_wr = ib_find_send_mad(mad_agent_priv, mad_recv_wc);
--- 
-2.9.4
+... not to forget the epic boss of this genre: vmsplice, which is also
+still using get_user_pages_fast/FOLL_GET through iov_iter_get_pages2.
 
