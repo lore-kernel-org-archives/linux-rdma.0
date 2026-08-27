@@ -1,175 +1,246 @@
-Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1809B40B6D4
-	for <linux-rdma@vger.kernel.org>; Thu, 27 Aug 2026 17:18:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E9D64C901B;
+	Thu, 27 Aug 2026 18:00:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787851105; cv=none; b=NVRQObvvYPMZPj3GxcQtYJXZRCSotVurwwxQugB8J5gP6CKoeXn2eF9kdC7aJ8XB4KEaNkrubpBlwmbhIVaYfa2yK6EXIznYOiyB+4SxXRZI6nu0i+BMEF3V0j/S79wbAc2yqvbicM5DQfwXMQ2NUlDssKRwIBdoPabfEqAB5DI=
+	t=1787853633; cv=none; b=mQ8AkkicawCcWfT86BQKxiJIy3MLhJTQB5ELRdsGAvLNtVokfBmy20i0IfaXlmqsOllZCnFlk62LsEWjqTpndKe9oqFye5jALOR/VRTVBSG6M8tpzXOXNSKllH67b0h2AlZaDgHqqsaeXS8DS6HPYnCatkFW60RJ5pb6ddCYz2A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787851105; c=relaxed/simple;
-	bh=LsMiDXjkerVTOWQnAF0ofr+ci1u/rnEmYltIw6dBU/4=;
-	h=From:Content-Type:Mime-Version:Subject:Message-Id:Date:Cc:To; b=gVzxduX3sjT9/3/ClAa1xp0lOg0fKaDb6Q8q8Bur9h1qaRvWAW82/9LTL532P1Mkwern8r/1bZI1uR3Qy/akVxPP3m2SnUBt4VpWmJbg/4RjxmaY6isElKOHRHW3LqS+htFg6okZcY744qbLdrpPrjbyh0a/3GFFlguMYhRtMaU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=doyensec.com; spf=pass smtp.mailfrom=doyensec.com; dkim=pass (2048-bit key) header.d=doyensec.com header.i=@doyensec.com header.b=MZcGyA0B; arc=none smtp.client-ip=209.85.128.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=doyensec.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=doyensec.com
+	s=arc-20240116; t=1787853633; c=relaxed/simple;
+	bh=RF9+sPfdS/ZMkivsjCQ9ZEB+oSkbBQi93O/a/c+SYKM=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=rPM3wg9tuoethB8n0VtgxU6vfVAQUKbgFnvF+5pcLNusIRohiuK9XQNR9xo6Q9ncwMmjV54ni4q1LLD/xn6AYt11VNEW7CvLPSOaxNHUqlwbB4lL2QV6PT6BwkLgD8FfJIQYL7DwGocYnaVp2wMqAU3/QOHip35Tpkl7IvMCRTg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=d1X/4BJf; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=doyensec.com header.i=@doyensec.com header.b="MZcGyA0B"
-Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-49557167508so10170665e9.1
-        for <linux-rdma@vger.kernel.org>; Thu, 27 Aug 2026 10:18:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=doyensec.com; s=google; t=1787851100; x=1788455900; darn=vger.kernel.org;
-        h=to:cc:date:message-id:subject:mime-version
-         :content-transfer-encoding:content-type:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=5i/oaHxuX43NHIxwgv4BaP7ocJk+hI4zJpfLWe3Zp/c=;
-        b=MZcGyA0Bk70iAdZ+Hluzt+Jf4U4KuS9oqqh05/bLOItmNbHKJ0LTcBXVrmOuwfOaeg
-         /UVogKeJ+CM32vCC/gB3xKW2hl8G+6JpnPPxt4FImNn03KwxFj77Ca9eou/yqBgJwsHP
-         NSGBdxKKJGz4L9Ayw2a9/25LDQ6spRfqSDTXDGgbikMlV9jyGBlTe87EfVMI2P4ZRBMj
-         sjY2V6mvkdWoS+mQWqF/yhlBGRTVrNHF7jt8NzN847oaruoTR9yGoQdDFmf6U6Eb+lOr
-         8D27B8c5TWKoKASKPJg4bdoIEd7vEkQib0PToKQlQghSRC0QNT7iu/tyDEVAoTOEmjJ0
-         4YzQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787851100; x=1788455900;
-        h=to:cc:date:message-id:subject:mime-version
-         :content-transfer-encoding:content-type:from:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=5i/oaHxuX43NHIxwgv4BaP7ocJk+hI4zJpfLWe3Zp/c=;
-        b=baRv3JL2XO+7p0bIClpeugye8G2Q/aEbUtABK/93EHQ+dJIyiT5e/F/22t7HIL9Von
-         c2imlaNB4OFGnx140F6yAQ64Hz7mYsVrIyihjLyxj9AZU5Obd0ZWwYtMYxDosn54/N+Y
-         opdsVwhvWKU/dNC610Pl7ZOAqcAyIBoF+7pk+IEP7QmUtQTIdi9sfVUHbbrabR9rp0HW
-         elxFqYI5MXI2pnRO/4+PVAn6ZQOD/Bu750w9f51km0f7yNTvVPCr+ptr2hyi78/CbLrf
-         F5k2YqVBUO66BrKG8cDdKhISgStRowYbZU6uuk1Ou3sdkmdibrNwVXpJIOkB11PTsE/O
-         dWgg==
-X-Gm-Message-State: AFuF++n+Y2El57n+/RMolD3JHMG37IUiFpyHts1mIiWFT69F9cj8caJQ
-	/RG0B7nycXkH0f9O3AbJv1f/Uq+H9vVKJL2hFbT+IFdvsA7H3umvp8RTlGogf2dfN/WQj1+YaLy
-	pL+nAnJE=
-X-Gm-Gg: AR+sD11ZjS6D2v1IXPqV1cPEBW7n73JfMjGEZXt/QIg6pmj3JeaGmKMMl5CXR44tFKC
-	Et8FBqW4vuBgqYtzVTtth5bnvPwX20A0XaY6p0XxS6bWTX3YbJQLIKrsVzNdZENXdyrFCHgxCzb
-	AnGxS+2+WSrLFYzkLRJ+oPs+UrtK43Jtr7V2yQVW/swQMXPWD2oiLNW/1zv2XB6/jU0RNn2w/OC
-	tNvJB9P2rdRpqaQTzY3r2gG+SOirdq4FxqS/iHHxkRVH+pXBitStzOhZH3EELlq82hL7qBVgcxW
-	SCszC8HuAspbdySCyKApLqInP40pZr3lfDwWi3QrT3vrVjLSjph32Of2CSUM5s6ioemyFB+gz89
-	R7LzbCP5Hf5l7uclXPkSzO3Gl6TfSaaND9hjiehy0NK2GdRk5AmfzhnG//CW2HE8FgsDLN0Xj6w
-	EUuL64hZ4genmJMWpHOCulUkgnLkVSfTifHpINAfUzQyi64ZIAl4NjkiUAMAF/6+ESqw8MBgVkQ
-	Vee/OWCfM0V3vV+2U8DthOrCHi6aAcHf919kEN/GkM3IZ8F/qlugGiY070kcW7saacyqoGsIdaK
-	50/U+iMCcpYXqZnFCfMJuyiKo979QYvSiYbiTQ==
-X-Received: by 2002:a05:600c:4f86:b0:496:bbce:fc with SMTP id 5b1f17b1804b1-49b91c4faa6mr5036425e9.12.1787851100141;
-        Thu, 27 Aug 2026 10:18:20 -0700 (PDT)
-Received: from smtpclient.apple (host-79-57-139-67.business.telecomitalia.it. [79.57.139.67])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49b4e2c1af7sm67145705e9.15.2026.08.27.10.18.18
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 27 Aug 2026 10:18:19 -0700 (PDT)
-From: Norbert Szetei <norbert@doyensec.com>
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="d1X/4BJf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EA5F1F000E9;
+	Thu, 27 Aug 2026 18:00:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1787853624;
+	bh=17+/WLVfRR8qwNCmLtmWH0gUYCkuZEmB63rt6uapm4E=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=d1X/4BJf3TSanFwHTDLZz9awrjbLowU5qIiV7p0/dNS3p1PbVtpiVindvSzaUCyUf
+	 5sWyTlAqKqPe8SmZCsFIl48Qa+lVa8wXSYX12N31sbSf5aoiL4UzsrsdcFCzHA/EcM
+	 9Ybl15P/XB4DcEFikzXd8ocOl/gzH8+QsyLV5TQ8bseS1fEsAIA5yWbAOu6J/18asn
+	 Gw6FQQbz7qyFWRTwKecd116wZPaDfxiEiir5TpwWzCNPJrEKHbdqjFp+ISI/56gQEZ
+	 iof55IvG+mu56KczLyAqqBeateOaxtkrj2Rfff01oKLyfrjl6jsYYkO4oOTq9XtInE
+	 +dtv1re8VLUtg==
+From: Jakub Kicinski <kuba@kernel.org>
+To: marsy12010123@gmail.com
+Cc: Jakub Kicinski <kuba@kernel.org>,
+	alibuda@linux.alibaba.com,
+	dust.li@linux.alibaba.com,
+	sidraya@linux.ibm.com,
+	mjambigi@linux.ibm.com,
+	tonylu@linux.alibaba.com,
+	guwen@linux.alibaba.com,
+	davem@davemloft.net,
+	edumazet@google.com,
+	pabeni@redhat.com,
+	horms@kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-s390@vger.kernel.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org,
+	nicoyip.dev@gmail.com
+Subject: Re: [PATCH net v2] net/smc: prevent device removal during connection setup
+Date: Thu, 27 Aug 2026 11:00:22 -0700
+Message-ID: <20260827180022.3948710-1-kuba@kernel.org>
+X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20260823071908.93212-1-marsy12010123@gmail.com>
+References: <20260823071908.93212-1-marsy12010123@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3826.700.81.1.4\))
-Subject: [PATCH] RDMA/rxe: validate access flags before swapping the MR's PD
-Message-Id: <46E1D5C0-24BE-4D01-BDB3-634FE09B22C5@doyensec.com>
-Date: Thu, 27 Aug 2026 19:18:07 +0200
-Cc: Zhu Yanjun <zyjzyj2000@gmail.com>,
- Jason Gunthorpe <jgg@ziepe.ca>,
- Leon Romanovsky <leon@kernel.org>,
- linux-kernel@vger.kernel.org
-To: linux-rdma@vger.kernel.org
-X-Mailer: Apple Mail (2.3826.700.81.1.4)
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-rxe_rereg_user_mr() reassigns mr->ibmr.pd first and only then
-validates the IB_MR_REREG_ACCESS argument:
-
-	if (flags & IB_MR_REREG_PD) {
-		rxe_put(old_pd);
-		rxe_get(pd);
-		mr->ibmr.pd =3D ibpd;
-	}
-
-	if (flags & IB_MR_REREG_ACCESS) {
-		if (access & ~RXE_ACCESS_SUPPORTED_MR)
-			return ERR_PTR(-EOPNOTSUPP);
-		mr->access =3D access;
-	}
-
-Both flags pass the entry check because RXE_MR_REREG_SUPPORTED is
-IB_MR_REREG_PD | IB_MR_REREG_ACCESS, so a caller can reach the access
-check with mr->ibmr.pd already reassigned.
-
-mr->ibmr.pd is owned by the core, which adjusts pd->usecnt only on the
-success path: ib_uverbs_rereg_mr() jumps to put_new_uobj on a driver =
-error
-without undoing the reassignment, so mr->pd =3D=3D new_pd while the =
-usecnts
-still charge the MR to orig_pd. ib_dereg_mr_user() then decrements
-new_pd, whose count can reach zero while a memory window still =
-references
-it; uverbs_free_pd() frees the PD on that count alone and =
-rxe_mw_cleanup()
-writes to freed memory:
-
-  BUG: KASAN: slab-use-after-free in __rxe_put+0x31/0xa0
-  Write of size 4 at addr ffff8881301dd690 by task rxe_poc/591
-   __rxe_put+0x31/0xa0
-   rxe_mw_cleanup+0x42/0x200
-   __rxe_cleanup+0x115/0x370
-   rxe_dealloc_mw+0x4c/0x80
-  Allocated by task 591:
-   ib_uverbs_alloc_pd+0x258/0x540
-  Freed by task 591:
-   ib_dealloc_pd_user+0x174/0x210
-   uverbs_free_pd+0x8d/0xc0
-   ib_uverbs_dealloc_pd+0x18e/0x1d0
-
-Validate the access flags before mutating any state so the callback =
-either
-applies every requested change or none.
-
-Fixes: 544c7f62cf32 ("RDMA/rxe: Implement rereg_user_mr")
-Cc: stable@vger.kernel.org
-Signed-off-by: Norbert Szetei <norbert@doyensec.com>
+This is an AI-generated review of your patch. The human sending this
+email has considered the AI review valid, or at least plausible.
 ---
- drivers/infiniband/sw/rxe/rxe_verbs.c | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+net/smc: prevent device removal during connection setup
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c =
-b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index 96c7716057fe..3864284522eb 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -1331,19 +1331,20 @@ static struct ib_mr *rxe_rereg_user_mr(struct =
-ib_mr *ibmr, int flags,
- 	if (err)
- 		return ERR_PTR(err);
-=20
-+	if ((flags & IB_MR_REREG_ACCESS) &&
-+	    (access & ~RXE_ACCESS_SUPPORTED_MR)) {
-+		rxe_err_mr(mr, "access =3D %#x not supported\n", =
-access);
-+		return ERR_PTR(-EOPNOTSUPP);
-+	}
-+
- 	if (flags & IB_MR_REREG_PD) {
- 		rxe_put(old_pd);
- 		rxe_get(pd);
- 		mr->ibmr.pd =3D ibpd;
- 	}
-=20
--	if (flags & IB_MR_REREG_ACCESS) {
--		if (access & ~RXE_ACCESS_SUPPORTED_MR) {
--			rxe_err_mr(mr, "access =3D %#x not supported\n", =
-access);
--			return ERR_PTR(-EOPNOTSUPP);
--		}
-+	if (flags & IB_MR_REREG_ACCESS)
- 		mr->access =3D access;
--	}
-=20
- 	return NULL;
- }
---=20
-2.55.0
+This patch adds a refcount to struct smc_ib_device so that an smcibdev
+selected during SMC-R connection setup cannot be freed while the
+initialization data still points at it. It also adds an init_cnt/init_wait
+pair so that ib device removal waits for the interval between revalidating
+the selected device and publishing the resulting link group.
 
+> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+> index 181647982490..d97bc7323106 100644
+> --- a/net/smc/smc_core.c
+> +++ b/net/smc/smc_core.c
+> @@ -55,6 +55,17 @@ static void __smc_lgr_terminate(struct smc_link_group *lgr, bool soft);
+>  
+>  static void smc_link_down_work(struct work_struct *work);
+>  
+> +void smc_init_info_free(struct smc_init_info *ini)
+> +{
+> +	if (!ini)
+> +		return;
+> +	if (ini->ib_dev_ref)
+> +		smc_ibdev_put(ini->ib_dev);
+> +	if (ini->smcrv2.ib_dev_v2_ref)
+> +		smc_ibdev_put(ini->smcrv2.ib_dev_v2);
+> +	kfree(ini);
+> +}
+> +
+
+[Severity: High]
+
+This isn't a bug introduced by this patch, but since the commit message
+mentions the SMC-D case only in passing, can the smcd_dev pointer in
+ini->ism_dev[] be used after free in the same way?
+
+smc_pnet_find_ism_by_pnetid() publishes the raw pointer and then drops the
+selection lock:
+
+net/smc/smc_pnet.c:smc_pnet_find_ism_by_pnetid() {
+	...
+			ini->ism_dev[0] = ismdev;
+			break;
+		}
+	}
+	mutex_unlock(&smcd_dev_list.mutex);
+}
+
+The removal side only waits for already published link groups via lgr_cnt
+and then frees the object:
+
+net/smc/smc_ism.c:smcd_unregister_dev() {
+	...
+	smc_smcd_terminate_all(smcd);
+	destroy_workqueue(smcd->event_wq);
+	kfree(smcd);
+}
+
+A setup that has selected the device but has not created a link group yet
+is not counted anywhere, so the borrowed pointer is still dereferenced
+afterwards by smc_connect_ism_vlan_setup() and
+smc_connect_ism_vlan_cleanup():
+
+	if (ini->vlan_id && smc_ism_get_vlan(ini->ism_dev[0], ini->vlan_id))
+
+and by smc_lgr_create():
+
+		smcd = ini->ism_dev[ini->ism_selected];
+		get_device(&smcd->dibs->dev);
+
+smc_ism_get_vlan() takes spin_lock_irqsave(&smcd->lock), so this is a write
+into the freed object as well. Since smc_init_info_free() only drops the two
+SMC-R references, would it be worth stating in the commit message that
+ini->ism_dev[] stays an unowned pointer on purpose?
+
+> @@ -882,6 +900,7 @@ int smcr_link_init(struct smc_link_group *lgr, struct smc_link *lnk,
+>  	if (!atomic_dec_return(&smcibdev->lnk_cnt))
+>  		wake_up(&smcibdev->lnks_deleted);
+>  	smc_lgr_put(lgr); /* lgr_hold above */
+> +	smc_ibdev_init_end(smcibdev);
+>  	return rc;
+>  }
+
+[Severity: High]
+
+This is a pre-existing issue, but now that a refcount exists, should it also
+cover the lnk_cnt decrement and wakeup above and the identical sequence in
+__smcr_link_clear()?
+
+net/smc/smc_core.c:__smcr_link_clear() {
+	...
+	smcibdev = lnk->smcibdev;
+	memset(lnk, 0, sizeof(struct smc_link));
+	lnk->state = SMC_LNK_UNUSED;
+	if (!atomic_dec_return(&smcibdev->lnk_cnt))
+		wake_up(&smcibdev->lnks_deleted);
+	...
+}
+
+Links take get_device(&lnk->smcibdev->ibdev->dev) but never smc_ibdev_get(),
+so nothing pins the smc_ib_device allocation across the decrement and the
+wake_up().
+
+The waiter can leave the wait purely by re-evaluating the counter:
+
+net/smc/smc_core.c:smc_smcr_terminate_all() {
+	...
+		if (atomic_read(&smcibdev->lnk_cnt))
+			wait_event(smcibdev->lnks_deleted,
+				   !atomic_read(&smcibdev->lnk_cnt));
+	...
+}
+
+If the clearing task is preempted between atomic_dec_return() returning 0 and
+wake_up(), smc_ib_remove_dev() can proceed to smc_ibdev_put() ->
+smc_ibdev_release() -> kfree(smcibdev), and the clearing task then takes the
+waitqueue spinlock inside freed memory. Would an smc_ibdev_get() in
+smcr_link_init() paired with an smc_ibdev_put() after the wakeup close this?
+
+> diff --git a/net/smc/smc_ib.c b/net/smc/smc_ib.c
+> index 9bb495707445..d858453c64d9 100644
+> --- a/net/smc/smc_ib.c
+> +++ b/net/smc/smc_ib.c
+> @@ -1000,11 +1042,14 @@ static void smc_ib_remove_dev(struct ib_device *ibdev, void *client_data)
+>  	mutex_unlock(&smc_ib_devices.mutex);
+>  	pr_warn_ratelimited("smc: removing ib device %s\n",
+>  			    smcibdev->ibdev->name);
+> +	if (atomic_read(&smcibdev->init_cnt))
+> +		wait_event(smcibdev->init_wait,
+> +			   !atomic_read(&smcibdev->init_cnt));
+>  	smc_smcr_terminate_all(smcibdev);
+>  	smc_ib_cleanup_per_ibdev(smcibdev);
+>  	ib_unregister_event_handler(&smcibdev->event_handler);
+>  	cancel_work_sync(&smcibdev->port_event_work);
+> -	kfree(smcibdev);
+> +	smc_ibdev_put(smcibdev);
+>  }
+
+[Severity: High]
+
+This is a pre-existing behaviour of the termination scan rather than
+something the patch introduces, but does the new init_cnt interval really
+give the guarantee the commit message claims?
+
+The commit message says:
+
+  "Device removal waits for this interval before terminating links, ensuring
+  that it cannot miss a link being created concurrently."
+
+smcr_link_init() returns with the new link in SMC_LNK_ACTIVATING:
+
+	lnk->state = SMC_LNK_ACTIVATING;
+	return 0;
+
+and every caller releases init_cnt right away, for example smc_lgr_create():
+
+	if (!ini->is_smcd)
+		smc_ibdev_init_end(lnk->smcibdev);
+
+so the interval ends long before smc_llc_link_active() promotes the link to
+SMC_LNK_ACTIVE. After the init_cnt wait drains, the single scan in
+smc_smcr_terminate_all() reaches smcr_link_down_cond_sched(), which only acts
+on an ACTIVE link:
+
+net/smc/smc_core.c:smcr_link_down_cond_sched() {
+	if (smc_link_downing(&lnk->state)) {
+		...
+}
+
+smc_link_downing() is a cmpxchg from SMC_LNK_ACTIVE to SMC_LNK_INACTIVE, so
+an ACTIVATING link is skipped and the scan is not repeated. The following
+
+		if (atomic_read(&smcibdev->lnk_cnt))
+			wait_event(smcibdev->lnks_deleted,
+				   !atomic_read(&smcibdev->lnk_cnt));
+
+then has no timeout, so if the connection completes and stays up,
+smc_ib_remove_dev() and therefore ib_unregister_device() block until the link
+goes down for an unrelated reason. The ACTIVATING window spans the
+peer-controlled CONFIRM_LINK exchange, so a remote peer can widen it. Would
+it be more robust to hold init_cnt until the link reaches SMC_LNK_ACTIVE, or
+to have the scan also handle ACTIVATING links?
+-- 
+pw-bot: cr
