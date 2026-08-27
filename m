@@ -1,83 +1,155 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f45.google.com (mail-wr1-f45.google.com [209.85.221.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBE4D3DF002;
-	Thu, 27 Aug 2026 09:01:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C65C1A6811
+	for <linux-rdma@vger.kernel.org>; Thu, 27 Aug 2026 10:51:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787821262; cv=none; b=BJg8Pw+2ed2Ei5IOCz/zVzsHFWdN0cgmuh7m246RYu0KuLbQ2sv4zgm1o5Rh9xo4CDS5freKVWFzrCokowr96oSh+fkX8+IUcdJDxqTKhbJTx/z6x1+NikDOpT2gTQXJ6/Deg5V3AasW3uOrjRb/py4V4Bs+akB+6DlHD3tE0cI=
+	t=1787827896; cv=none; b=YTnA8K5gUFiMr+Cc8DrUjEbiClXxnrfp91YKYVaMZId/7BNgFGtLV8GsZwLlasETnDzz97cZbac7o90o2pYAO/nhe9cIfmvs8LRcBzab9w6bN8Dq4ZgJUCSL1svtQ6rOIGNgKIX9hh0o6QOuJ+QxwhijiegrTBvA3veb5ygM2qQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787821262; c=relaxed/simple;
-	bh=Q6whbzRcZ9k4sqkn3vnPC02YqrJxjmQO+AznUzABxII=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=NDX7FX+g/QxEqvDQ62b4cmikbtGY+1Ctj/obv7sE2RuFgI3+Gev5Pds6AuQUBN2CEL58qfl/Nh77roFHN+Y7hjYAMhz82/AI2AQjMsdgdTPaJst0lIxcOYtkq/iWEhEVeVT/VVhFN9O1x9PfpxqAUPLwkE/iPlayUnMn4A9bE7o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ut6r+Eog; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787827896; c=relaxed/simple;
+	bh=NDQK5kwpUVD6obx/yy5Frm7uZq0lf62K9bp2v1Vc1yI=;
+	h=From:Content-Type:Mime-Version:Subject:Message-Id:Date:Cc:To; b=SCROSJoF3OFnvcdc5GC0MHCH73jPaCUirXnpdegy3ke7Q7YxlPWVtFc9RbkOoy6QCd+19TqHyXP3j6yD60gj9WxXd6Xlkqh7SwRT99P6cl5RJ6SAA8NC6jU8g0SaspaC5ivzcWskPGQfrJx47rOKZrrPdw+hSkrcQxtwZ6LvG08=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=doyensec.com; spf=pass smtp.mailfrom=doyensec.com; dkim=pass (2048-bit key) header.d=doyensec.com header.i=@doyensec.com header.b=DKwuhiIg; arc=none smtp.client-ip=209.85.221.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=doyensec.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=doyensec.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ut6r+Eog"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55D751F000E9;
-	Thu, 27 Aug 2026 09:01:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787821260;
-	bh=Cy1WBtGzGohXvJnJquGBxbpK6ws7/jW5rQvvqM89U5M=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=Ut6r+EoghYrldNXwq5zLlSANh6QqOsA19O+Y119Wcu+ZrAINkx6WGuWeqWaOkIlNv
-	 AQ63IbchZDwQ8PKGsbwLdte7DSf1FqE7ZuclhGpC46+tBvicX+Nth8NTN64246aOk/
-	 92ZvAw2trjiLq00kvOR+txon0FBMXToxjLKYojVAk91WWUAMduvmZiFccMUP4PhGKf
-	 +MrALYBLg+wikUO3L3g2A555ii2eDEbg4kWytPI+0sZTQx2nuO4jwSvXMayC6xkO3l
-	 5M65Gg4fEZ8BxrzuKU/hRvbDbcp0OrLwXWvR3jjEJDr9zDFoyd9pG0wijdfEaNvOV4
-	 ccxvcdZnOEkwA==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 197CF3809A13;
-	Thu, 27 Aug 2026 09:00:07 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=doyensec.com header.i=@doyensec.com header.b="DKwuhiIg"
+Received: by mail-wr1-f45.google.com with SMTP id ffacd0b85a97d-4798bea72f9so359195f8f.1
+        for <linux-rdma@vger.kernel.org>; Thu, 27 Aug 2026 03:51:33 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=doyensec.com; s=google; t=1787827892; x=1788432692; darn=vger.kernel.org;
+        h=to:cc:date:message-id:subject:mime-version
+         :content-transfer-encoding:content-type:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=uSbx46qQDT+S0wnvtgnGbS9yof1KhN8VuOkEYs/TPLI=;
+        b=DKwuhiIg6Phv0N9g+cw2i+PR6wpOMr1rCkjLhRr6JgisDDz6mnmEbKFF2x4m9LldHA
+         Sy+Q+4wy8SgVIP11qmLM3Dfc16PbyKpng3yzQxRbiPI4l51cLXljfW/Xt37HuMO7LgLr
+         3lN60d1/r59HZaNdxLE+zSDkWlFmzNN1GR8oxSFELrNb6m2VDf/dX0L+lrnR4TH70D7D
+         p5g2iK63NZ+9U+Rk5F0t8rfIqTda1v4hmp3E/GYjrsElHT4MILtlFzslvKtJShzUDsbp
+         5CNMaWNJg5b0gbiHhu5bO36tqXQ17caLZsXE9yAcO9oeAAhWYy041IwqZ/Adl9z5mfe+
+         xTnQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1787827892; x=1788432692;
+        h=to:cc:date:message-id:subject:mime-version
+         :content-transfer-encoding:content-type:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=uSbx46qQDT+S0wnvtgnGbS9yof1KhN8VuOkEYs/TPLI=;
+        b=rZP/EpalR6pMfAHp3DtmjREkvEBw9fDLXVy/meoxgGVXLsZo4D8xC7kUB9tSWcBSFn
+         IjnyZggGRXaVYYI0/SA9AcGWVtuAQVg4lzAmxf75bFekydXyg1JZnZIIv4RcKhrt0fDY
+         qp5SLEN19h2Y0C8tTB4Zyc1PTCNmngsIZ9cdv26wkiNoXe8sVQioRZrwrynzCyPYLFJa
+         N2343W/m8vSGRLaaOBhIXLtsh8/by+lJa53C1CpH7L0+3ztNyTkn4dNUf4vQ+tn0bYOS
+         P1TA7nSBCaINO9lplaIlid5BXfdBK+t4fxdybZl1wqIHiRNuGw40154PgMPoRlMV1lQs
+         ud4w==
+X-Gm-Message-State: AFuF++mptzeGc5Qqswkid6RQo2jPV3qUXMOhsxNwHyXk6vFHGBDrbJel
+	pQK6dkKRa5dckXzYZL9aUnG3nKfs1UZjgUGZ2P5d2B531AAf7zj23o5/OsvtTu1GB930XXbg2Ok
+	iyxIN/P0=
+X-Gm-Gg: AR+sD13lS4GZYjMIDS/x5jn8YMWMXQtXMbEzz23nEsAlTsdcQCbta+kBWnS2oznFdIS
+	X0HdisOxbjxUiviFAvPlCPSXKAbx0esqihogxttFXq+vSYkTlYr/rpz+SdcpDFBhKtPAASkX4aS
+	oV8fzfGEG8o7GDv8h1yORF7omeKkium+pzr7rjVdxFNz5j9/kZzTH1vW6gCpz6uwxIbE3lwHts8
+	phJNZnETe8bkOmcIY7u91yvz3K9K/wh7xQuvgzXfJ/4a4OftLQEu4/G+T4eH6QAp7PqYm+Zb70Y
+	Lops0XUpxXTjQ4BK61zMK3zSpr3o8WsiNOcfM0IlPncR9V3B0LzPjEm7bRQGsE8xCcREPGx8kRe
+	J0luZJP7wAPbO9rjPS598i3UtVHm4PejeN9Tcs3jg2euyli4V97phubuisgyKUvJGNfdYNCOmH6
+	avKzmb2eNjn/8bIYdT+YareQkKiWOuorjXT8c9kRLmdZGaT+J2fMKLLXZl1LKCOhCxTOsoo1lHA
+	JC7HGKARqQc+jHtByLfDpG/jcSbnw7eUCBMfrti/cYlYWlWWeXZED2Y8FU0EvTXA6rHfYRejfm/
+	OO71izYr0buxp2hhdTiNUdrW695aD8CSw6wcqw==
+X-Received: by 2002:a05:6000:645:b0:481:5b58:c589 with SMTP id ffacd0b85a97d-482e26b380amr15868293f8f.10.1787827892118;
+        Thu, 27 Aug 2026 03:51:32 -0700 (PDT)
+Received: from smtpclient.apple (host-79-57-139-67.business.telecomitalia.it. [79.57.139.67])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-482e28fe2ecsm8191582f8f.37.2026.08.27.03.51.31
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 27 Aug 2026 03:51:31 -0700 (PDT)
+From: Norbert Szetei <norbert@doyensec.com>
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH v4] net/smc: release the internal TCP sock on IPPROTO_SMC
- socket creation failure
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <178782120564.1115437.5627444476394032461.git-patchwork-notify@kernel.org>
-Date: Thu, 27 Aug 2026 09:00:05 +0000
-References: <178753843966.342810.566471390946765094@linux.alibaba.com>
-In-Reply-To: <178753843966.342810.566471390946765094@linux.alibaba.com>
-To: Yifei Chu <Chuyf26@linux.alibaba.com>
-Cc: alibuda@linux.alibaba.com, dust.li@linux.alibaba.com,
- sidraya@linux.ibm.com, mjambigi@linux.ibm.com, kuba@kernel.org,
- pabeni@redhat.com, tonylu@linux.alibaba.com, guwen@linux.alibaba.com,
- netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
- linux-s390@vger.kernel.org
+Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3826.700.81.1.4\))
+Subject: [PATCH] RDMA/rxe: Reject prefetch of a non-ODP MR
+Message-Id: <521D5E74-89E3-43C0-81C7-AC0BE52591E7@doyensec.com>
+Date: Thu, 27 Aug 2026 12:51:20 +0200
+Cc: Zhu Yanjun <zyjzyj2000@gmail.com>,
+ Jason Gunthorpe <jgg@ziepe.ca>,
+ Leon Romanovsky <leon@kernel.org>,
+ linux-kernel@vger.kernel.org
+To: linux-rdma@vger.kernel.org
+X-Mailer: Apple Mail (2.3826.700.81.1.4)
 
-Hello:
+rxe_ib_advise_mr_prefetch() and rxe_ib_prefetch_sg_list() look up the MR
+by lkey and hand it to rxe_odp_do_pagefault_and_lock() without checking
+that it is an ODP MR. That path runs to_ib_umem_odp() on mr->umem, and
+for a non-ODP MR mr->umem is a plain struct ib_umem from ib_umem_get(),
+so the container_of() in to_ib_umem_odp() lands past the end of the
+object and ib_umem_odp_map_dma_and_lock() reads its ib_umem_odp fields
+out of bounds.
 
-This patch was applied to netdev/net.git (main)
-by Paolo Abeni <pabeni@redhat.com>:
+lookup_mr() validates the lkey, PD, access and state but not the MR
+type, and IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH is accepted for any MR.
 
-On Mon, 24 Aug 2026 10:27:19 +0800 you wrote:
-> IPPROTO_SMC sockets create an internal TCP sock ("clcsock") from the
-> proto->init hook. When socket creation fails after proto->init has
-> run - e.g. a cgroup BPF program attached to BPF_CGROUP_INET_SOCK_CREATE
-> denies the socket - sk_common_release() only invokes sk_prot->destroy
-> if it is set, but neither smc_inet_prot nor smc_inet6_prot defines it,
-> and smc_destruct() returns early unless sk_state is SMC_CLOSED. As a
-> result, every failing socket(AF_INET, SOCK_STREAM, IPPROTO_SMC) call
-> leaks one tcp_sock, so an unprivileged task able to attach a deny-all
-> BPF_CGROUP_INET_SOCK_CREATE program to its own cgroup can grow kernel
-> memory unboundedly.
-> 
-> [...]
+  BUG: KASAN: slab-out-of-bounds in =
+ib_umem_odp_map_dma_and_lock+0x884/0x8a0
+  Read of size 8 at addr ffff88810a3ebcf0 by task advi/921
+   ib_umem_odp_map_dma_and_lock+0x884/0x8a0
+   rxe_ib_advise_mr+0x543/0xad0
+   ib_uverbs_handler_UVERBS_METHOD_ADVISE_MR+0x446/0x530
+   ib_uverbs_cmd_verbs+0x2b3c/0x3b20
+   ib_uverbs_ioctl+0x1e3/0x310
+  Allocated by task 921:
+   __ib_umem_get_va+0x13e/0xae0
+   rxe_mr_init_user+0x2ae/0xb00
+   rxe_reg_user_mr+0x337/0x510
+  The buggy address belongs to the object at ffff88810a3ebc80
+   which belongs to the cache kmalloc-96 of size 96
 
-Here is the summary with links:
-  - [v4] net/smc: release the internal TCP sock on IPPROTO_SMC socket creation failure
-    https://git.kernel.org/netdev/net/c/cec261b0b4c5
+Reject a non-ODP MR after lookup_mr() in both the synchronous and
+asynchronous prefetch arms.
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+Fixes: 3576b0df1588 ("RDMA/rxe: Implement synchronous prefetch for ODP =
+MRs")
+Cc: stable@vger.kernel.org
+Signed-off-by: Norbert Szetei <norbert@doyensec.com>
+---
+ drivers/infiniband/sw/rxe/rxe_odp.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
+diff --git a/drivers/infiniband/sw/rxe/rxe_odp.c =
+b/drivers/infiniband/sw/rxe/rxe_odp.c
+index e870efa7a0a3..5c9dde3501a0 100644
+--- a/drivers/infiniband/sw/rxe/rxe_odp.c
++++ b/drivers/infiniband/sw/rxe/rxe_odp.c
+@@ -472,6 +472,11 @@ static int rxe_ib_prefetch_sg_list(struct ib_pd =
+*ibpd,
+ 			return -EINVAL;
+ 		}
+=20
++		if (unlikely(!is_odp_mr(mr))) {
++			rxe_put(mr);
++			return -EOPNOTSUPP;
++		}
++
+ 		if (advice =3D=3D =
+IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH_WRITE &&
+ 		    !mr->umem->writable) {
+ 			rxe_dbg_mr(mr, "missing write permission\n");
+@@ -536,6 +541,12 @@ static int rxe_ib_advise_mr_prefetch(struct ib_pd =
+*ibpd,
+ 			goto err;
+ 		}
+=20
++		if (unlikely(!is_odp_mr(mr))) {
++			rxe_put(mr);
++			mr =3D ERR_PTR(-EOPNOTSUPP);
++			goto err;
++		}
++
+ 		work->frags[i].io_virt =3D sg_list[i].addr;
+ 		work->frags[i].length =3D sg_list[i].length;
+ 		work->frags[i].mr =3D mr;
+--=20
+2.55.0
 
