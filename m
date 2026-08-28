@@ -1,127 +1,136 @@
-Received: from mail-oi2-f4.google.com (mail-oi2-f4.google.com [74.125.231.196])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out30-118.freemail.mail.aliyun.com (out30-118.freemail.mail.aliyun.com [115.124.30.118])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC4AD199920
-	for <linux-rdma@vger.kernel.org>; Fri, 28 Aug 2026 00:23:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.231.196
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7C7A286AC
+	for <linux-rdma@vger.kernel.org>; Fri, 28 Aug 2026 03:03:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.118
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787876612; cv=none; b=bRV2SOZwEQj0jL+4W7AGeJUAPM2d3eYhSw5B1sSx5wrcPP4qBK+moQX92xaO+jINRRyShO8v7yCu47qLTDiSHVxT106kIXvW7RNfkj1mC1wuXS1UC3l3qYHOpGxpRg6e8gLHFlASYIgPPTvp9BsUhJb4xnivY8iUVeKMtn/jBgY=
+	t=1787886232; cv=none; b=LBIM8APFZMLzBdEKxwzN7Z63ypvs2M59pPT/U6I94YWjlh67v3gG4B/Rj8MXrdTxkeRPw6Nd/iiJThJYFx8vSz8zDcyl/640K9gpDDi7PjlXBWHR56y2XlqgPJUOjWaIk0MFnjgjgXeCSo1BEfvVFEyA14wg2+/OuQYgrUwAB3w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787876612; c=relaxed/simple;
-	bh=caimQNcN2rW3DEi03DRHEGcEBfK6kOJ0DZblAcU+G0Q=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=sGSZSot2vq2I6EDWyVP/r1u3fngxvm0+U2cprBblPHXBTAZBBjZyykMls9NO/Cbb6hhd5xWwPdEZeeG6j0W482KLE52U9710AoVv2xrrVzY97N/mum4w5XHqFVChXH4BujUw6PPzSeB8u0oaivIgvs4jEu6H6WCl4ptOYybqmsg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=74.125.231.196
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-oi2-f4.google.com with SMTP id 5614622812f47-4a4d46eea77so220963b6e.1
-        for <linux-rdma@vger.kernel.org>; Thu, 27 Aug 2026 17:23:30 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787876609; x=1788481409;
-        h=content-type:to:from:subject:message-id:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=riI6xZ5vVUH4NJYPmz62/YJnB7GrfXBnz2sLACtuAeA=;
-        b=gc9dS+wmO4l8fzmfKpumRLLrSJIvQa46oa5Nqs4CmBGTu+dwRygsrcd4r/qgBvC3Sj
-         bKSJ/MDTMN4JzFwWiI2JgS7fHQ3XDr95CthXtfqytoq2q61ATJ1JsqlozsYmGS46Ydj1
-         yH9IlhX4G1cCFeX2dqg4QsZIDHYHfyQ9M/+BrtmA5kfusq6rmsV7bnFWO6i7Gad57XuD
-         W+1tujf7A5Hss4sqiq80EaUZbp7ZFYeVhqVBoViD1ehhRQK0frdw+EP3hHgbrUFo2CPV
-         2uejt6yxfE3wa54AFwe4MLIXMa0TAOPR4XhNYk3vJ8fpI9XwHPrFwLWJVAr+3Ie59uRs
-         UNow==
-X-Forwarded-Encrypted: i=1; AHgh+RqQR65fr9jhC63geN5KIIWooCcTJy2JvTr0LWfrVjk6sD532rRkT4mjmbLwwJJZNbvdd2C6uBLrhy3t@vger.kernel.org
-X-Gm-Message-State: AFuF++m4BlfieiEYfGBkrXLTDC5jD1I6sGYNwto4o3qgy/6C5AFcMBhB
-	9q3EnptN2pY5BxbkF/Xyg3PZ+vrqJZB+FbyklAWZeEGxs0nsnQYsM6QZs/ywFWitsMOW0Y+Pdtf
-	+IDfNmybN2EdldNjMH+04teYeW3/t0zxZqHDXLdYFHy2anx6H87ZLow1qcq0=
+	s=arc-20240116; t=1787886232; c=relaxed/simple;
+	bh=hsd2sI4FspglJm60BACtddMxGwytuCfNqsfLZrBXGSM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=atn3kPZzsWuXwRhTQnjHOIFmO8oDo2Lr3K3185TKtQGM4T3axCBnqAYkRyMas0o+PmwnGcacfKvod6LjiJSszsRrzlYY5BglmL2G5zXinqdEo4mkvll+K165VAdvn6xajRDO6Yt4UROLRGW1b5Dic0sad5jaGwLB1Yb+/1GZVco=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=WUupyh8X; arc=none smtp.client-ip=115.124.30.118
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="WUupyh8X"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1787886226; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=BHgiApYA9N0fXvVJQ4y8CKsS82SqB8icNGFQL2xHnu0=;
+	b=WUupyh8XXlLexzvUx+JN1nWcrXJh33YfjjTne4ZPCeSxm2x6iye6yRVOuC4IOcBh0Mm22+ikeAVYC9cFvYAw7neyrU+vGnNbVr8mFdxq9ZVWB9J6DgXtG7cIcZckUOVenhg8mCAN+XZBZOy3pjpdF5wkSOKw4iF5el7VIq8p5og=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R851e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033045133197;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0X9l7HFj_1787886224;
+Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0X9l7HFj_1787886224 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Fri, 28 Aug 2026 11:03:45 +0800
+From: Cheng Xu <chengyou@linux.alibaba.com>
+To: jgg@ziepe.ca,
+	leon@kernel.org
+Cc: linux-rdma@vger.kernel.org,
+	KaiShen@linux.alibaba.com
+Subject: [PATCH for-rc v2] RDMA/erdma: Use IRQ-safe XArray helpers for QP and CQ tables
+Date: Fri, 28 Aug 2026 11:03:44 +0800
+Message-ID: <20260828030344.88021-1-chengyou@linux.alibaba.com>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6808:c165:b0:4ab:3210:b31a with SMTP id
- 5614622812f47-4b398253454mr3588570b6e.14.1787876609677; Thu, 27 Aug 2026
- 17:23:29 -0700 (PDT)
-Date: Thu, 27 Aug 2026 17:23:29 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6a90d501.1d9ded08.62e62.00df.GAE@google.com>
-Subject: [syzbot] [rdma?] WARNING in ib_cq_pool_cleanup
-From: syzbot <syzbot+d396918a29afb8543e1c@syzkaller.appspotmail.com>
-To: jgg@ziepe.ca, leon@kernel.org, linux-kernel@vger.kernel.org, 
-	linux-rdma@vger.kernel.org, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-Hello,
+Locked QP and CQ lookups from EQ interrupts can deadlock with
+create-path XArray updates. If an interrupt arrives while the create
+path holds the plain xa_lock, the lookup spins forever trying to
+acquire the same lock.
 
-syzbot found the following issue on:
+Use IRQ-safe XArray helpers for all QP and CQ create-path updates,
+including the GSI QP store and error paths. Initialize both arrays with
+XA_FLAGS_LOCK_IRQ so sleeping allocations preserve interrupt state.
 
-HEAD commit:    73e3f0710014 Merge tag 'nfs-for-7.3-1' of git://git.linux-..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=12977415580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=c2d3e2a7997c1d5c
-dashboard link: https://syzkaller.appspot.com/bug?extid=d396918a29afb8543e1c
-compiler:       gcc (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44
-
-Unfortunately, I don't have any reproducer for this issue yet.
-
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/725c76492ae5/disk-73e3f071.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/b4b32ef07d3c/vmlinux-73e3f071.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/afd59682ac03/bzImage-73e3f071.xz
-
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+d396918a29afb8543e1c@syzkaller.appspotmail.com
-
-smbdirect: ib_dev[syz2] removed
-------------[ cut here ]------------
-cq->cqe_used
-WARNING: drivers/infiniband/core/cq.c:370 at ib_cq_pool_cleanup+0x248/0x370 drivers/infiniband/core/cq.c:370, CPU#1: kworker/u8:22/17817
-Modules linked in:
-CPU: 1 UID: 0 PID: 17817 Comm: kworker/u8:22 Tainted: G             L      syzkaller #0 PREEMPT(full) 
-Tainted: [L]=SOFTLOCKUP
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/16/2026
-Workqueue: ib-unreg-wq ib_unregister_work
-RIP: 0010:ib_cq_pool_cleanup+0x248/0x370 drivers/infiniband/core/cq.c:370
-Code: 41 f9 41 83 fe 03 0f 85 01 fe ff ff e8 21 92 41 f9 48 83 c4 20 5b 5d 41 5c 41 5d 41 5e 41 5f e9 fe b1 06 03 e8 09 92 41 f9 90 <0f> 0b 90 eb 84 e8 3e 76 b4 f9 e9 67 ff ff ff 48 8b 34 24 48 c7 c7
-RSP: 0018:ffffc90004bcfac8 EFLAGS: 00010293
-RAX: 0000000000000000 RBX: dffffc0000000000 RCX: 0000000000000000
-RDX: ffff88802e53a580 RSI: ffffffff88ca43e7 RDI: ffff88802e53a580
-RBP: ffff888028e1c000 R08: 0000000000000005 R09: 0000000000000000
-R10: 0000000000000804 R11: 0000000000000000 R12: ffff888058b09840
-R13: ffff88807d614ed0 R14: 0000000000000804 R15: ffff888058b09800
-FS:  0000000000000000(0000) GS:ffff888123c6b000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007efff0e27dac CR3: 000000005a096000 CR4: 00000000003526f0
-Call Trace:
- <TASK>
- disable_device+0x161/0x280 drivers/infiniband/core/device.c:1328
- __ib_unregister_device+0x2b4/0x480 drivers/infiniband/core/device.c:1571
- ib_unregister_work+0x19/0x30 drivers/infiniband/core/device.c:1683
- process_one_work+0xac7/0x1b10 kernel/workqueue.c:3387
- process_scheduled_works kernel/workqueue.c:3470 [inline]
- worker_thread+0x5ef/0xe50 kernel/workqueue.c:3551
- kthread+0x373/0x450 kernel/kthread.c:436
- ret_from_fork+0x730/0xd60 arch/x86/kernel/process.c:158
- ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
- </TASK>
-
-
+Fixes: 98df2aee1459 ("RDMA/erdma: Hold CQ references when processing EQ events")
+Fixes: a52eeff32024 ("RDMA/erdma: Hold QP references for AE and CM processing")
+Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
 ---
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+Changes from v1:
+- Add XA_FLAGS_LOCK_IRQ to the QP and CQ XArrays to fix an issue identified
+  by the Sashiko automated review.
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+ drivers/infiniband/hw/erdma/erdma_main.c  |  4 ++--
+ drivers/infiniband/hw/erdma/erdma_verbs.c | 18 +++++++++---------
+ 2 files changed, 11 insertions(+), 11 deletions(-)
 
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
+diff --git a/drivers/infiniband/hw/erdma/erdma_main.c b/drivers/infiniband/hw/erdma/erdma_main.c
+index 7e87a815e853..445182c6bc5d 100644
+--- a/drivers/infiniband/hw/erdma/erdma_main.c
++++ b/drivers/infiniband/hw/erdma/erdma_main.c
+@@ -572,8 +572,8 @@ static int erdma_ib_device_add(struct pci_dev *pdev)
+ 	INIT_LIST_HEAD(&dev->cep_list);
+ 
+ 	spin_lock_init(&dev->lock);
+-	xa_init_flags(&dev->qp_xa, XA_FLAGS_ALLOC1);
+-	xa_init_flags(&dev->cq_xa, XA_FLAGS_ALLOC1);
++	xa_init_flags(&dev->qp_xa, XA_FLAGS_ALLOC1 | XA_FLAGS_LOCK_IRQ);
++	xa_init_flags(&dev->cq_xa, XA_FLAGS_ALLOC1 | XA_FLAGS_LOCK_IRQ);
+ 	dev->next_alloc_cqn = 1;
+ 	dev->next_alloc_qpn = 1;
+ 
+diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.c b/drivers/infiniband/hw/erdma/erdma_verbs.c
+index 65b1af1e6623..f18b88bba281 100644
+--- a/drivers/infiniband/hw/erdma/erdma_verbs.c
++++ b/drivers/infiniband/hw/erdma/erdma_verbs.c
+@@ -1021,15 +1021,15 @@ int erdma_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attrs,
+ 	init_completion(&qp->safe_free);
+ 
+ 	if (qp->ibqp.qp_type == IB_QPT_GSI) {
+-		old_entry = xa_store(&dev->qp_xa, 1, qp, GFP_KERNEL);
++		old_entry = xa_store_irq(&dev->qp_xa, 1, qp, GFP_KERNEL);
+ 		if (xa_is_err(old_entry))
+ 			ret = xa_err(old_entry);
+ 		else
+ 			qp->ibqp.qp_num = 1;
+ 	} else {
+-		ret = xa_alloc_cyclic(&dev->qp_xa, &qp->ibqp.qp_num, qp,
+-				      XA_LIMIT(1, dev->attrs.max_qp - 1),
+-				      &dev->next_alloc_qpn, GFP_KERNEL);
++		ret = xa_alloc_cyclic_irq(&dev->qp_xa, &qp->ibqp.qp_num, qp,
++					  XA_LIMIT(1, dev->attrs.max_qp - 1),
++					  &dev->next_alloc_qpn, GFP_KERNEL);
+ 	}
+ 
+ 	if (ret < 0) {
+@@ -1089,7 +1089,7 @@ int erdma_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attrs,
+ 	else
+ 		free_kernel_qp(qp);
+ err_out_xa:
+-	xa_erase(&dev->qp_xa, QP_ID(qp));
++	xa_erase_irq(&dev->qp_xa, QP_ID(qp));
+ err_out:
+ 	return ret;
+ }
+@@ -1993,9 +1993,9 @@ int erdma_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 	refcount_set(&cq->refcount, 1);
+ 	init_completion(&cq->free);
+ 
+-	ret = xa_alloc_cyclic(&dev->cq_xa, &cq->cqn, cq,
+-			      XA_LIMIT(1, dev->attrs.max_cq - 1),
+-			      &dev->next_alloc_cqn, GFP_KERNEL);
++	ret = xa_alloc_cyclic_irq(&dev->cq_xa, &cq->cqn, cq,
++				  XA_LIMIT(1, dev->attrs.max_cq - 1),
++				  &dev->next_alloc_cqn, GFP_KERNEL);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -2041,7 +2041,7 @@ int erdma_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 	}
+ 
+ err_out_xa:
+-	xa_erase(&dev->cq_xa, cq->cqn);
++	xa_erase_irq(&dev->cq_xa, cq->cqn);
+ 
+ 	return ret;
+ }
+-- 
+2.31.1
