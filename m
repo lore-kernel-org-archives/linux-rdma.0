@@ -1,127 +1,256 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BC152DC783
-	for <linux-rdma@vger.kernel.org>; Fri, 28 Aug 2026 09:22:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 867DB54781;
+	Fri, 28 Aug 2026 11:18:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787908970; cv=none; b=oLOVXk+qlpKtoZTJ4iO0lSseDOMM/QUVuTj9eWDYQH6FstPvMcyioNcnzweILEtvAG51zuLLzW/H7ERnuKrKGbc1qS1gwFPtixsVp1Rmn58p9yQdSSKqd58P/47cCdWi0it5xvemWXRjD3WwP5kGUsy/Xfz6rWKHxI8wtNBChV4=
+	t=1787915927; cv=none; b=iYMEnd+rY++ZwM2XWFN7lIlCd3qdhX12RzsUzqK6wYZndUXXIjlPHki19d0hGbzuT9DUh7oR9/b8Wu5kORTHzB4q2zvcfq6sHmO/cx1FhKaVfUJVyysj4DJJDR40FqY+JPLW+C20DcqCOSO32LDRVU45YVYzUl+BKEpj9H/VrS8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787908970; c=relaxed/simple;
-	bh=en6lDMvt8JFBllrn7r9KNDg8ZvcwzB+OR17BzZwxjOw=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=ho/lfElBBNJSq+lRm3nT0wUra74gbXi9EQ3IoJrcCTNamKENEzHVR9IQqJdnJfFOz0JLXGfW/QGeL/TEnSTkYnKUyPNIyE/sVG8AEakOZeKSfOgogf3Rev60PuUsfwDUxKmYRuTGN6HKvvpoDo/LSBbllGdBxocwNT8bWbIPDxQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=D2GsGCIl; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787915927; c=relaxed/simple;
+	bh=40OGTXvkyX9kCgnxQAz0kJQv/uRHqrGkln+TPeUALFo=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=OFtDHQfs5o1Y5pc48daud4IHTUONbKGa3wTEZzZ6ZMk1eHPlzaY7FRK5tJIsOM2+2r9RCnwJNkLNtGvFJH7xBFyjubL/RxJy3bjllnB/idGZ8Q/z7yHvOKlbDouhERl7lAZVRY6r935o0lTCED/JnP5/vcXBxGdqg/48uv3Qtrg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=rBZpW7uP; arc=none smtp.client-ip=148.163.158.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="D2GsGCIl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E57561F00A3D;
-	Fri, 28 Aug 2026 09:22:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787908969;
-	bh=TXsN7t85EQh9DbYY4Dvr8QpGb2jMshb+emvptP30IO0=;
-	h=Date:From:To:Cc:In-Reply-To:References:Subject;
-	b=D2GsGCIlm9CZevlE5mEeY8mtru5ip2MGWu49+Hs+IixxbSzegOsSDfZ+hdLR9XutT
-	 TZqtQIGR/WX7yVacQxGB6Lmj0LFOlOFhjGzy65uqdfqYTv7D9COljrdVpsFNzKYfXH
-	 AtiwVmtYl4SaYRQf+ti26yk8C2XoQy84eH/TOMUQj5sjW7f+a6gTVxdG+5m5XbKlx7
-	 DKoTV4usFsi9KH8/eMzdra6NSghpitHW8B2xdGoA2VQkpu6ngIvDwaUcDN5iMgDXqo
-	 vjQl3XB0lhCOq+nWe8BfFSiFfz/IwO0KqS9igKgDRsKc+jd5z9hxlmLEHEgfwzFkx6
-	 v3wAv3Kzw7oOg==
-Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
-	by mailfauth.phl.internal (Postfix) with ESMTP id 939F5F40066;
-	Fri, 28 Aug 2026 05:22:47 -0400 (EDT)
-Received: from phl-imap-17 ([10.202.2.105])
-  by phl-compute-04.internal (MEProxy); Fri, 28 Aug 2026 05:22:47 -0400
-X-ME-Sender: <xms:Z1ORai4Ef6U3UZUfMkeP4k0KwuwQA0oc5jO-MtIkEWEJ0c1nYivhsg>
-    <xme:Z1ORamvvzC7OmY-qGV6DL656b69A0NQoF-VEDB0LVl-w7DX_HzolteED1NmL46sW4
-    p_ufcbr_CdtOVHCzcX4S9iQVeIA4tiFCUrCbzS1Qi2H57vLAbx262BD>
-X-ME-Proxy-Cause: dmFkZTE0Ut545sXRdAJYqyCm5LhWKi17AVJGxAe8/4Xbd9c2AlY4x7aXlpOQvYainGz8ps
-    KO0n79yO2AlOubqGgKwEOmXhWwTqg7niYTlPeFnzArzDnJkVtX5+q/uFOin7D7hWZCO5gY
-    cW+0VBw+WkfWZwyPaIts1s7W7t+jRjPtCVWdVbAYydl4PNy+sxS4TS0e6LeDN29T7E2ibY
-    c/uu5BoMOcfAYvBnJJSb73cLvTNf3VSIHDV6zymW+SUZn5BpmJgS/u+HI79qG//Qcjq4km
-    9q1+UJFIWgo3O+6xguj48fWal8ZOe68ZHjPw8iHVqMEVISA85Gkn30YULjn1a8Ri1KIal+
-    qAzEhMks3wR3WuOJYeRfhWR4YAxrKiA53UT93fs0Nr61NybA4JbLaZ3PqkVZ8kSJl1MiLP
-    p+PcowGRHYeu3Iw3zQwU0BG8+olaynJWNNE2ufBcBIg0BEboBoArdENaP9Au+oind8EHe4
-    H0TXTPZFQkFQTakA+rg5IMLcvtRgCpKjDJe+jUKbw4IDmk9qHIxF7RNJjjU0+RUynLxb+4
-    NwJUSj/VGy7S4YZg23VX2i3tPtRjtdDwFxZJUwR5dmxrUQAuP3KAEL15MgmMRHB8lvrBcC
-    bztXrEfGtpIKOAlRt8D4Q36x074d1c1SytIyVewSv/oT+JfjmIL2YcC32esA
-X-ME-Proxy: <xmx:Z1ORaqUIFDDyWOsUTqDhFCFiO9DO-YRZpiie1EZJaeEkfa7YUEPmqA>
-    <xmx:Z1ORat05301bWMAIxftZ2HEXP-eeGT8vjVJEaLuyT2m89UdTkuchDQ>
-    <xmx:Z1ORapR4ROQm41ULRVkpNtIuxymXpIaH8E5j3BXBJoxMDVBlrlI7Lg>
-    <xmx:Z1ORahTXVlVMz_nAmHrURr4aPt88Ssy1RbEd8kCkjZCiuCsb9mY6KA>
-    <xmx:Z1ORaqXKw5fZE-r4fLWTHyTbqFDRDZ36P5W4ohwPhFRML_J9xv0JrdaX>
-Feedback-ID: i927946fb:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 6E068C40072; Fri, 28 Aug 2026 05:22:47 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="rBZpW7uP"
+Received: from pps.filterd (m0360072.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 67SAVnaW1786489;
+	Fri, 28 Aug 2026 11:18:38 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=pp1; bh=LikB6L
+	nH5QAX96t5zPtNKkLOOknAJ09H1RoqHlCixfQ=; b=rBZpW7uPhGrJUI//XSdg0K
+	Iy/RM2apgE9/aN4QMZEjKrOkRO++PVfBv6gth3Qs10pSTzJ8D6IcR8wtJb8jtpiQ
+	j2DOxKtAd9HtXIuZchFAqMfwnOjECveuTpY83vFfgqSm9E6wU72Nya6NBOiXLp6e
+	5c9UlmS7RfkDkitDf08Tieul7wuwXqGdn62EYtsO6po7r/lzZZZPK03Z4w3K5wp2
+	VncW5IOX+zSaWpQKpxQwFZ8QPM+aM5bnQgbVOaPKlCUvYENgd4YnMuVvQ/gxQliR
+	HnIWPCKFt+R6sioVYHTDFU+E9tOZyoZRgvkjGGh4ChxKcKlNd/PQWchkh5vrah3Q
+	==
+Received: from ppma23.wdc07v.mail.ibm.com (5d.69.3da9.ip4.static.sl-reverse.com [169.61.105.93])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4g73dxub89-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 28 Aug 2026 11:18:38 +0000 (GMT)
+Received: from pps.filterd (ppma23.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma23.wdc07v.mail.ibm.com (8.18.1.7/8.18.1.7) with ESMTP id 67SBBMTT004908;
+	Fri, 28 Aug 2026 11:18:37 GMT
+Received: from smtprelay04.dal12v.mail.ibm.com ([172.16.1.6])
+	by ppma23.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4g7qkhnqwh-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 28 Aug 2026 11:18:37 +0000 (GMT)
+Received: from smtpav03.dal12v.mail.ibm.com (smtpav03.dal12v.mail.ibm.com [10.241.53.102])
+	by smtprelay04.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 67SBIacD56361246
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 28 Aug 2026 11:18:36 GMT
+Received: from smtpav03.dal12v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 7B47158056;
+	Fri, 28 Aug 2026 11:18:36 +0000 (GMT)
+Received: from smtpav03.dal12v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 307505803F;
+	Fri, 28 Aug 2026 11:18:30 +0000 (GMT)
+Received: from [9.39.24.98] (unknown [9.39.24.98])
+	by smtpav03.dal12v.mail.ibm.com (Postfix) with ESMTP;
+	Fri, 28 Aug 2026 11:18:29 +0000 (GMT)
+Message-ID: <d2b3f465-9ebb-4963-8dcd-3ec2969e9465@linux.ibm.com>
+Date: Fri, 28 Aug 2026 16:48:28 +0530
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Date: Fri, 28 Aug 2026 12:22:26 +0300
-From: "Leon Romanovsky" <leon@kernel.org>
-To: "Abhijit Gangurde" <abhijit.gangurde@amd.com>,
- "Jason Gunthorpe" <jgg@ziepe.ca>
-Cc: brett.creeley@amd.com, "Andrew Lunn" <andrew+netdev@lunn.ch>,
- "David Miller" <davem@davemloft.net>, "Eric Dumazet" <edumazet@google.com>,
- "Paolo Abeni" <pabeni@redhat.com>, allen.hubbe@amd.com,
- nikhil.agarwal@amd.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, "Jakub Kicinski" <kuba@kernel.org>
-Message-Id: <4b766824-5d60-4298-89c8-8d48c6f52827@app.fastmail.com>
-In-Reply-To: <a9a9d118-fe06-654c-68a2-75d6c1ce875a@amd.com>
-References: <20260813104954.319065-1-abhijit.gangurde@amd.com>
- <20260814102413.5a26bf8b@kernel.org>
- <c565fa0c-08e7-60b9-90e9-07daa4777a48@amd.com>
- <20260820130817.43317368@kernel.org>
- <a9a9d118-fe06-654c-68a2-75d6c1ce875a@amd.com>
-Subject: Re: [for-next v6 0/2] Add Reorder Completion Queue (RCQ) support
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net] net/smc: serialize clcsock teardown in
+ smc_accept_dequeue
+To: dust.li@linux.alibaba.com, andrew+netdev@lunn.ch, davem@davemloft.net,
+        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+        alibuda@linux.alibaba.com, sidraya@linux.ibm.com,
+        hidayath@linux.ibm.com
+Cc: pasic@linux.ibm.com, horms@kernel.org, tonylu@linux.alibaba.com,
+        guwen@linux.alibaba.com, netdev@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
+        stable@vger.kernel.org
+References: <20260824065851.1070988-1-mjambigi@linux.ibm.com>
+ <ao5bB9OCbJ5PQbEp@linux.alibaba.com>
+ <bd56d983-e5bf-4343-910e-8965c3ff57dc@linux.ibm.com>
+ <apBErK3BBw0KHd6Y@linux.alibaba.com>
+Content-Language: en-US
+From: Mahanta Jambigi <mjambigi@linux.ibm.com>
+In-Reply-To: <apBErK3BBw0KHd6Y@linux.alibaba.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-Reinject: loops=2 maxloops=12
+X-Proofpoint-Spam-Info: AW1haW4tMjYwODI4MDA5NSBTYWx0ZWRfX9YP4BpnbNgBA
+ MCCspOwSO3DRdQzQl0Uq7uGeXUjC9lt5aSEVC+ayjn/Hj3WMTt121cBfprCpZrdLWEGgIJnohag
+ PErx0wohOLazaKSfgZW/ut1HSx4p0lU=
+X-Authority-Analysis: v=2.4 cv=AYuB2XXG c=1 sm=1 tr=0 ts=6a916e8e cx=c_pps
+ a=3Bg1Hr4SwmMryq2xdFQyZA==:117 a=3Bg1Hr4SwmMryq2xdFQyZA==:17
+ a=IkcTkHD0fZMA:10 a=Sv0fKeRqtYgA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=RnoormkPH1_aCDwRdu11:22 a=RzCfie-kr_QcCd8fBx8p:22 a=VnNF1IyMAAAA:8
+ a=Ufga3e-GiP3M9VsWNqUA:9 a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
+X-Proofpoint-ORIG-GUID: rETWW2M-M4O3vQ0w_t7XyioreBIQeFVp
+X-Proofpoint-GUID: ZT0EdV3588wCDsv6_StVc-of58-BiDGF
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwODI4MDA5NSBTYWx0ZWRfX4I9yH4fxhXdn
+ +TP6YE15ZsSdeTeF/7ARjASQe8U5NeNliukkKMFKLFmvlGHgsq/8F77Q9OzZFeWzqNNWB7Z+CV/
+ HZWSjl8GOBsS6Umrh9mh9UJy6f6naXAvFy8Rz5VOIZ/SxiNhNBALqW/Z8vPGwfpIQNAw++Pfh/i
+ +6W5EYJaABUR7aRDhcBJcYj3iVs8oPn5UyhctCNMNHdq/kCDrgW1g/yaT9BZ+Sor9sJAO+dBjWx
+ EqUVwyDxIi+NBevHtxbY+134KcdLlOo02cebOjAsDJFvGyJwr7VFzph81mCJvwO7bJiLZ4u8Rvv
+ Xrm4eSXJGlbbJjxnAAcOrA/9jGyCzSw+yFKZNZYreeiKGzpQOM89yMi5dNRzu5nyN4ctbIYpCLp
+ Pdq3d34hbR4EvlXPitBmPMbGlcPrUM7X+PuXqZYTdvQlY4BCXxaXaRGLYDiSUQMrwYaoyB+HsQX
+ d1YeUioq3GybrMo30Pg==
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-08-28_03,2026-08-27_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ malwarescore=0 phishscore=0 clxscore=1015 adultscore=0 bulkscore=0
+ impostorscore=0 priorityscore=1501 lowpriorityscore=0 spamscore=0
+ suspectscore=0 classifier=typeunknown authscore=0 authtc= authcc=
+ route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2606150000
+ definitions=main-2608280095
 
 
 
-On Fri, Aug 28, 2026, at 12:02, Abhijit Gangurde wrote:
-> On 8/21/26 01:38, Jakub Kicinski wrote:
->> On Mon, 17 Aug 2026 12:35:52 +0530 Abhijit Gangurde wrote:
->>> On 8/14/26 22:54, Jakub Kicinski wrote:
->>>> On Thu, 13 Aug 2026 16:19:52 +0530 Abhijit Gangurde wrote:
->>>>> Patch 1 extends the net/ionic firmware identity structure to expos=
-e the
->>>>> rcq_sign_bit field from the RDMA LIF identity.
->>>> I asked for a PR, based on a tag from Linus's tree with that patch.
->>>> Did you send that?
+On 27/08/26 7:37 pm, Dust Li wrote:
+> On 2026-08-26 14:42:31, Mahanta Jambigi wrote:
+>>
+>>
+>> On 26/08/26 8:48 am, Dust Li wrote:
+>>> On 2026-08-24 08:58:51, Mahanta Jambigi wrote:
+>>>> smc_accept_dequeue() open-codes clcsock teardown for SMC_CLOSED child sockets
+>>>> without taking clcsock_release_lock:
 >>>>
->>>> I only see a PR for rdma-core here
->>> Hi Jakub,
+>>>>  new_sk->sk_prot->unhash(new_sk);
+>>>>  if (isk->clcsock) {
+>>>>      sock_release(isk->clcsock);
+>>>>      isk->clcsock = NULL;
+>>>>  }
+>>>>
+>>>> This bypasses the clcsock_release_lock discipline used elsewhere in SMC clcsock
+>>>> lifetime handling. In particular, other paths serialize clcsock access and
+>>>> updates with clcsock_release_lock, but this local teardown path does not.
+>>>>
+>>>> Fix it by taking clcsock_release_lock around the local teardown and by storing
+>>>> NULL before sock_release(), matching the established ordering used by other
+>>>> clcsock teardown paths.
+>>>>
+>>>> Fixes: 127f49705823 ("net/smc: release clcsock from tcp_listen_worker")
+>>>> Reviewed-by: Hidayath Khan <hidayath@linux.ibm.com>
+>>>> Signed-off-by: Mahanta Jambigi <mjambigi@linux.ibm.com>
+>>>> ---
+>>>> net/smc/af_smc.c | 12 ++++++++----
+>>>> 1 file changed, 8 insertions(+), 4 deletions(-)
+>>>>
+>>>> diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+>>>> index 00403175b740..bbf8269876ee 100644
+>>>> --- a/net/smc/af_smc.c
+>>>> +++ b/net/smc/af_smc.c
+>>>> @@ -1833,10 +1833,14 @@ struct sock *smc_accept_dequeue(struct sock *parent,
+>>>> 		smc_accept_unlink(new_sk);
+>>>> 		if (new_sk->sk_state == SMC_CLOSED) {
+>>>> 			new_sk->sk_prot->unhash(new_sk);
+>>>> -			if (isk->clcsock) {
+>>>> -				sock_release(isk->clcsock);
+>>>> -				isk->clcsock = NULL;
+>>>> -			}
+>>>> +			mutex_lock(&isk->clcsock_release_lock);
+>>>> +			if (isk->clcsock) {
+>>>> +				struct socket *clcsock = isk->clcsock;
+>>>> +
+>>>> +				isk->clcsock = NULL;
+>>>> +				sock_release(clcsock);
+>>>> +			}
+>>>> +			mutex_unlock(&isk->clcsock_release_lock);
 >>>
->>> I have the PR ready on Linus's v7.2 tag.
->>>
->>> The following changes since commit 8d3ae59288f1e7d58d76558a6ee96d533=
-bc5019f:
->>>
->>>   =C2=A0 Linux 7.2 (2026-08-16 14:32:26 -0700)
->>>
->>> are available in the Git repository at:
->>>
->>>   =C2=A0 https://github.com/abhijitG-xlnx/linux.git ionic_rcq_shared
->>>
->>> for you to fetch changes up to bb23acfd05f0399f33dae000df2ef4a88787b=
-7d0:
->>>
->>>   =C2=A0 net: ionic: Fetch RCQ sign bit from firmware (2026-08-17 10=
-:58:31 +0530)
->> Thanks! Pulled
+>>> Why not call smc_clcsock_release() here ?
 >>
+>> I initially considered *smc_clcsock_release()*, but it unconditionally
+>> calls cancel_work_sync() for child sockets (since listen_smc is always
+>> set and current_work() != &smc->smc_listen_work is always true here).
+>> Even though smc_listen_work has already completed before
+>> smc_accept_enqueue() is called, cancel_work_sync() is not truly free on
+>> that path — it still acquires the worker pool spinlock and scans the
+>> executing-worker list before determining the work is idle. The inline
+>> open-coding avoids that overhead entirely.
+> 
+> OK
+
+For this patch specifically, the smc_accept_dequeue() path is a clear
+lock ordering violation that can cause a crash independently of the
+broader design issue — would you prefer I withdraw this patch and
+address everything together in the larger refactor, or keep this narrow
+fix and do the refactor separately?
+
+> 
 >>
-> Hi Jason/Leon,
->
-> Can RDMA patches also be merged?
+>>>
+>>> After looking deeper into this issue, I found smc_diag_msg_common_fill()/
+>>> smc_getname() and many other branches hasn't hold lock_sock() and may also
+>>> have the race issue ? For example, smc_getname() calling smc->clcsock->ops->getname()
+>>> while the other workqueue is releasing the clcsock.
+>>
+>> I am addressing the smc_diag_msg_common_fill() issue via a separate
+>> patch[1].
+> 
+> What about other places that dereference clcsock, like smc_getname()/smc_set_keepalive() ?
 
-We are in merge window now and don't take any next material during that =
-period.
+Yes, smc_getname(), smc_set_keepalive(), and all other unprotected
+clcsock dereferences would be fixed as part of this refactor, and in
+fact they are the strongest argument for doing it.
 
-Thanks=20
+The reason they become safe is structural, not incremental: once
+sock_release(clcsock) is deferred to the SMC socket destructor, clcsock
+is guaranteed non-NULL for the entire observable lifetime of the SMC
+socket. Any caller that holds a sock reference — whether it is a syscall
+path, a workqueue, or a timer callback — is by definition executing
+before the destructor runs. So smc_getname(), smc_set_keepalive(),
+smc_poll(), smc_diag_msg_common_fill(), and every other reader can
+dereference clcsock directly with no lock and no NULL check, and all the
+if (smc->clcsock) guards become dead code that can be removed.
 
->
-> Abhijit
+clcsock_release_lock itself would also be removed entirely, along with
+all its lock/unlock sites, since the mutex only exists to coordinate
+multiple sock_release() callers — a problem that disappears when there
+is only one.
+
+>>>
+>>> Since SMC has long been plagued by this kind of locking issue, I think we
+>>> should consider a long-term solution to address it.
+>>>
+>>> What about stop releasing the clcsock early and tie its lifetime to the SMC
+>>> socket itself. The early paths don't really need to release it ??? a
+>>> kernel_sock_shutdown()/tcp_abort() is enough to stop it, and calling them more
+>>> than once is safe because the TCP layer already handles that.  sock_release()
+>>> is different: it frees the socket, so it must happen exactly once. If we move
+>>> this single release to the final teardown of the SMC socket, no user can exist
+>>> at that point anymore (fd users are gone after smc_release(), and every
+>>> work/accept-queue context holds a sock reference), which makes both
+>>> clcsock_release_lock and all the if (smc->clcsock) NULL checks removable.
+>>>
+>>> Ideas ?
+>>
+>> I agree, but it is a significant refactor touching every early-release
+>> path in af_smc.c, smc_close.c etc & it warrants its own patch series
+>> with careful ordering of changes.
+> 
+> Yes, that should be a bit refactor, are you interested in doing that ?
+
+Sure, I can take that up. It will need a bit of careful work — the close
+state machine has multiple paths that currently call
+smc_clcsock_release() early, and the smc_tcp_listen_work() error path
+where kernel_accept() creates a clcsock that is never assigned to an SMC
+socket will need special handling. I would plan to send it as a small
+series rather than a single patch.
+
+I am currently occupied with a few other things so it may take some
+time, but I will pick it up once I have bandwidth. If you have any
+specific ideas on the approach or would like to co-develop it, I am very
+happy to collaborate — feel free to share your thoughts and we can work
+through the design together.
+
+> 
+> Best regards,
+> Dust
+
