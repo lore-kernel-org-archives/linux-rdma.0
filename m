@@ -1,256 +1,65 @@
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 867DB54781;
-	Fri, 28 Aug 2026 11:18:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABC7B46D543;
+	Fri, 28 Aug 2026 13:50:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787915927; cv=none; b=iYMEnd+rY++ZwM2XWFN7lIlCd3qdhX12RzsUzqK6wYZndUXXIjlPHki19d0hGbzuT9DUh7oR9/b8Wu5kORTHzB4q2zvcfq6sHmO/cx1FhKaVfUJVyysj4DJJDR40FqY+JPLW+C20DcqCOSO32LDRVU45YVYzUl+BKEpj9H/VrS8=
+	t=1787925039; cv=none; b=qLkN3u190Zm09gz2D4hDhhbZjkrkopgVgBp5iYGAmSJSkUIKzVzEh1mpcqGx+xC1snYZb19+V5azj8DhzbSVjDwc5WR4QN9DfndTzOx0brEZocfEdEJQiM/9JaU8vUxFv0lO2tIYSQsupaUA7A7YC8NoaSGuuPYE1l23Vb25HbI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787915927; c=relaxed/simple;
-	bh=40OGTXvkyX9kCgnxQAz0kJQv/uRHqrGkln+TPeUALFo=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=OFtDHQfs5o1Y5pc48daud4IHTUONbKGa3wTEZzZ6ZMk1eHPlzaY7FRK5tJIsOM2+2r9RCnwJNkLNtGvFJH7xBFyjubL/RxJy3bjllnB/idGZ8Q/z7yHvOKlbDouhERl7lAZVRY6r935o0lTCED/JnP5/vcXBxGdqg/48uv3Qtrg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=rBZpW7uP; arc=none smtp.client-ip=148.163.158.5
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	s=arc-20240116; t=1787925039; c=relaxed/simple;
+	bh=zSITZ+sDBVwfMVJL6DfXexhqM2yjjr4I99sW59+6T4M=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=MePTtcjdl0rL0Pl00WgbrOUlyrz+d0LsWVVTdpXv4j1Y0y5VMYewiBG1acbOPXGvdijsHkP4iVnxwMajX2qsEuEGepfpNouFnte4RLhk05c7U01tAY5Y1I0r2+MSjY3rElkN/P/PNzdyVWVpMb/Te+0RhuJWSgZ4xlpTThptCrA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ijtSTARa; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="rBZpW7uP"
-Received: from pps.filterd (m0360072.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 67SAVnaW1786489;
-	Fri, 28 Aug 2026 11:18:38 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pp1; bh=LikB6L
-	nH5QAX96t5zPtNKkLOOknAJ09H1RoqHlCixfQ=; b=rBZpW7uPhGrJUI//XSdg0K
-	Iy/RM2apgE9/aN4QMZEjKrOkRO++PVfBv6gth3Qs10pSTzJ8D6IcR8wtJb8jtpiQ
-	j2DOxKtAd9HtXIuZchFAqMfwnOjECveuTpY83vFfgqSm9E6wU72Nya6NBOiXLp6e
-	5c9UlmS7RfkDkitDf08Tieul7wuwXqGdn62EYtsO6po7r/lzZZZPK03Z4w3K5wp2
-	VncW5IOX+zSaWpQKpxQwFZ8QPM+aM5bnQgbVOaPKlCUvYENgd4YnMuVvQ/gxQliR
-	HnIWPCKFt+R6sioVYHTDFU+E9tOZyoZRgvkjGGh4ChxKcKlNd/PQWchkh5vrah3Q
-	==
-Received: from ppma23.wdc07v.mail.ibm.com (5d.69.3da9.ip4.static.sl-reverse.com [169.61.105.93])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4g73dxub89-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 28 Aug 2026 11:18:38 +0000 (GMT)
-Received: from pps.filterd (ppma23.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma23.wdc07v.mail.ibm.com (8.18.1.7/8.18.1.7) with ESMTP id 67SBBMTT004908;
-	Fri, 28 Aug 2026 11:18:37 GMT
-Received: from smtprelay04.dal12v.mail.ibm.com ([172.16.1.6])
-	by ppma23.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4g7qkhnqwh-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 28 Aug 2026 11:18:37 +0000 (GMT)
-Received: from smtpav03.dal12v.mail.ibm.com (smtpav03.dal12v.mail.ibm.com [10.241.53.102])
-	by smtprelay04.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 67SBIacD56361246
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 28 Aug 2026 11:18:36 GMT
-Received: from smtpav03.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 7B47158056;
-	Fri, 28 Aug 2026 11:18:36 +0000 (GMT)
-Received: from smtpav03.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 307505803F;
-	Fri, 28 Aug 2026 11:18:30 +0000 (GMT)
-Received: from [9.39.24.98] (unknown [9.39.24.98])
-	by smtpav03.dal12v.mail.ibm.com (Postfix) with ESMTP;
-	Fri, 28 Aug 2026 11:18:29 +0000 (GMT)
-Message-ID: <d2b3f465-9ebb-4963-8dcd-3ec2969e9465@linux.ibm.com>
-Date: Fri, 28 Aug 2026 16:48:28 +0530
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ijtSTARa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FD901F00A3D;
+	Fri, 28 Aug 2026 13:50:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1787925038;
+	bh=I1itcvWvI5v6xHrt95PdL6sm4ktfl/GDz+05F7LSid0=;
+	h=From:To:Cc:Subject:Date;
+	b=ijtSTARaK8nfN92wf3LtBCcU4dRnV7ysaArZO9kkLH/tbgDdEnMSWfI9kvZyhLzIG
+	 gYZhOCIFTXYo4bodJTkTl76JQspTbMT32IC6Lx6Tf5IBiln8Y5MhYM4cLctuup8ZLn
+	 B7eNmi14m0XlGe0gvV2Gtdk2TdtDw+qXqVskDokrl4S6NtPEb35OUINzbNR+CjFOxL
+	 SZbCYMRKMgQGoSo/8KJc8bTGV9JqMEpLt2Wa0sUJDi+CoRKca8MyHccYvut+4i/NF0
+	 3k1oXibct/0lghsStUp9Ao6KC/1s4jW98Aq5jzSO+k0saGPoY+Aa3h7BLX2syxAfjc
+	 ZbGWNHUPGPPZw==
+From: Chuck Lever <cel@kernel.org>
+To: NeilBrown <neilb@ownmail.net>,
+	Jeff Layton <jlayton@kernel.org>,
+	Olga Kornievskaia <okorniev@redhat.com>,
+	Dai Ngo <dai.ngo@oracle.com>,
+	Tom Talpey <tom@talpey.com>
+Cc: <linux-nfs@vger.kernel.org>,
+	<linux-rdma@vger.kernel.org>
+Subject: [PATCH 0/3] Minor fixes for svcrdma
+Date: Fri, 28 Aug 2026 09:50:33 -0400
+Message-ID: <20260828135036.796842-1-cel@kernel.org>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net] net/smc: serialize clcsock teardown in
- smc_accept_dequeue
-To: dust.li@linux.alibaba.com, andrew+netdev@lunn.ch, davem@davemloft.net,
-        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-        alibuda@linux.alibaba.com, sidraya@linux.ibm.com,
-        hidayath@linux.ibm.com
-Cc: pasic@linux.ibm.com, horms@kernel.org, tonylu@linux.alibaba.com,
-        guwen@linux.alibaba.com, netdev@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
-        stable@vger.kernel.org
-References: <20260824065851.1070988-1-mjambigi@linux.ibm.com>
- <ao5bB9OCbJ5PQbEp@linux.alibaba.com>
- <bd56d983-e5bf-4343-910e-8965c3ff57dc@linux.ibm.com>
- <apBErK3BBw0KHd6Y@linux.alibaba.com>
-Content-Language: en-US
-From: Mahanta Jambigi <mjambigi@linux.ibm.com>
-In-Reply-To: <apBErK3BBw0KHd6Y@linux.alibaba.com>
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-Reinject: loops=2 maxloops=12
-X-Proofpoint-Spam-Info: AW1haW4tMjYwODI4MDA5NSBTYWx0ZWRfX9YP4BpnbNgBA
- MCCspOwSO3DRdQzQl0Uq7uGeXUjC9lt5aSEVC+ayjn/Hj3WMTt121cBfprCpZrdLWEGgIJnohag
- PErx0wohOLazaKSfgZW/ut1HSx4p0lU=
-X-Authority-Analysis: v=2.4 cv=AYuB2XXG c=1 sm=1 tr=0 ts=6a916e8e cx=c_pps
- a=3Bg1Hr4SwmMryq2xdFQyZA==:117 a=3Bg1Hr4SwmMryq2xdFQyZA==:17
- a=IkcTkHD0fZMA:10 a=Sv0fKeRqtYgA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=RnoormkPH1_aCDwRdu11:22 a=RzCfie-kr_QcCd8fBx8p:22 a=VnNF1IyMAAAA:8
- a=Ufga3e-GiP3M9VsWNqUA:9 a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
-X-Proofpoint-ORIG-GUID: rETWW2M-M4O3vQ0w_t7XyioreBIQeFVp
-X-Proofpoint-GUID: ZT0EdV3588wCDsv6_StVc-of58-BiDGF
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwODI4MDA5NSBTYWx0ZWRfX4I9yH4fxhXdn
- +TP6YE15ZsSdeTeF/7ARjASQe8U5NeNliukkKMFKLFmvlGHgsq/8F77Q9OzZFeWzqNNWB7Z+CV/
- HZWSjl8GOBsS6Umrh9mh9UJy6f6naXAvFy8Rz5VOIZ/SxiNhNBALqW/Z8vPGwfpIQNAw++Pfh/i
- +6W5EYJaABUR7aRDhcBJcYj3iVs8oPn5UyhctCNMNHdq/kCDrgW1g/yaT9BZ+Sor9sJAO+dBjWx
- EqUVwyDxIi+NBevHtxbY+134KcdLlOo02cebOjAsDJFvGyJwr7VFzph81mCJvwO7bJiLZ4u8Rvv
- Xrm4eSXJGlbbJjxnAAcOrA/9jGyCzSw+yFKZNZYreeiKGzpQOM89yMi5dNRzu5nyN4ctbIYpCLp
- Pdq3d34hbR4EvlXPitBmPMbGlcPrUM7X+PuXqZYTdvQlY4BCXxaXaRGLYDiSUQMrwYaoyB+HsQX
- d1YeUioq3GybrMo30Pg==
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-08-28_03,2026-08-27_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- malwarescore=0 phishscore=0 clxscore=1015 adultscore=0 bulkscore=0
- impostorscore=0 priorityscore=1501 lowpriorityscore=0 spamscore=0
- suspectscore=0 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2606150000
- definitions=main-2608280095
 
+Rediscovered these while cleaning out old development branches.
+All minor fixes.
 
+Chuck Lever (3):
+  svcrdma: Grant credits from the clamped sc_max_requests
+  svcrdma: Clear XPT_DATA when the last receive context is consumed
+  SUNRPC: Skip xpt_reserved accounting for non-UDP transports
 
-On 27/08/26 7:37 pm, Dust Li wrote:
-> On 2026-08-26 14:42:31, Mahanta Jambigi wrote:
->>
->>
->> On 26/08/26 8:48 am, Dust Li wrote:
->>> On 2026-08-24 08:58:51, Mahanta Jambigi wrote:
->>>> smc_accept_dequeue() open-codes clcsock teardown for SMC_CLOSED child sockets
->>>> without taking clcsock_release_lock:
->>>>
->>>>  new_sk->sk_prot->unhash(new_sk);
->>>>  if (isk->clcsock) {
->>>>      sock_release(isk->clcsock);
->>>>      isk->clcsock = NULL;
->>>>  }
->>>>
->>>> This bypasses the clcsock_release_lock discipline used elsewhere in SMC clcsock
->>>> lifetime handling. In particular, other paths serialize clcsock access and
->>>> updates with clcsock_release_lock, but this local teardown path does not.
->>>>
->>>> Fix it by taking clcsock_release_lock around the local teardown and by storing
->>>> NULL before sock_release(), matching the established ordering used by other
->>>> clcsock teardown paths.
->>>>
->>>> Fixes: 127f49705823 ("net/smc: release clcsock from tcp_listen_worker")
->>>> Reviewed-by: Hidayath Khan <hidayath@linux.ibm.com>
->>>> Signed-off-by: Mahanta Jambigi <mjambigi@linux.ibm.com>
->>>> ---
->>>> net/smc/af_smc.c | 12 ++++++++----
->>>> 1 file changed, 8 insertions(+), 4 deletions(-)
->>>>
->>>> diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
->>>> index 00403175b740..bbf8269876ee 100644
->>>> --- a/net/smc/af_smc.c
->>>> +++ b/net/smc/af_smc.c
->>>> @@ -1833,10 +1833,14 @@ struct sock *smc_accept_dequeue(struct sock *parent,
->>>> 		smc_accept_unlink(new_sk);
->>>> 		if (new_sk->sk_state == SMC_CLOSED) {
->>>> 			new_sk->sk_prot->unhash(new_sk);
->>>> -			if (isk->clcsock) {
->>>> -				sock_release(isk->clcsock);
->>>> -				isk->clcsock = NULL;
->>>> -			}
->>>> +			mutex_lock(&isk->clcsock_release_lock);
->>>> +			if (isk->clcsock) {
->>>> +				struct socket *clcsock = isk->clcsock;
->>>> +
->>>> +				isk->clcsock = NULL;
->>>> +				sock_release(clcsock);
->>>> +			}
->>>> +			mutex_unlock(&isk->clcsock_release_lock);
->>>
->>> Why not call smc_clcsock_release() here ?
->>
->> I initially considered *smc_clcsock_release()*, but it unconditionally
->> calls cancel_work_sync() for child sockets (since listen_smc is always
->> set and current_work() != &smc->smc_listen_work is always true here).
->> Even though smc_listen_work has already completed before
->> smc_accept_enqueue() is called, cancel_work_sync() is not truly free on
->> that path — it still acquires the worker pool spinlock and scans the
->> executing-worker list before determining the work is idle. The inline
->> open-coding avoids that overhead entirely.
-> 
-> OK
+ include/linux/sunrpc/svc_xprt.h          |  5 +++-
+ net/sunrpc/svc_xprt.c                    | 30 +++++++++++++++---------
+ net/sunrpc/svcsock.c                     |  1 +
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c  | 18 ++++++++++----
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |  3 ++-
+ 5 files changed, 40 insertions(+), 17 deletions(-)
 
-For this patch specifically, the smc_accept_dequeue() path is a clear
-lock ordering violation that can cause a crash independently of the
-broader design issue — would you prefer I withdraw this patch and
-address everything together in the larger refactor, or keep this narrow
-fix and do the refactor separately?
-
-> 
->>
->>>
->>> After looking deeper into this issue, I found smc_diag_msg_common_fill()/
->>> smc_getname() and many other branches hasn't hold lock_sock() and may also
->>> have the race issue ? For example, smc_getname() calling smc->clcsock->ops->getname()
->>> while the other workqueue is releasing the clcsock.
->>
->> I am addressing the smc_diag_msg_common_fill() issue via a separate
->> patch[1].
-> 
-> What about other places that dereference clcsock, like smc_getname()/smc_set_keepalive() ?
-
-Yes, smc_getname(), smc_set_keepalive(), and all other unprotected
-clcsock dereferences would be fixed as part of this refactor, and in
-fact they are the strongest argument for doing it.
-
-The reason they become safe is structural, not incremental: once
-sock_release(clcsock) is deferred to the SMC socket destructor, clcsock
-is guaranteed non-NULL for the entire observable lifetime of the SMC
-socket. Any caller that holds a sock reference — whether it is a syscall
-path, a workqueue, or a timer callback — is by definition executing
-before the destructor runs. So smc_getname(), smc_set_keepalive(),
-smc_poll(), smc_diag_msg_common_fill(), and every other reader can
-dereference clcsock directly with no lock and no NULL check, and all the
-if (smc->clcsock) guards become dead code that can be removed.
-
-clcsock_release_lock itself would also be removed entirely, along with
-all its lock/unlock sites, since the mutex only exists to coordinate
-multiple sock_release() callers — a problem that disappears when there
-is only one.
-
->>>
->>> Since SMC has long been plagued by this kind of locking issue, I think we
->>> should consider a long-term solution to address it.
->>>
->>> What about stop releasing the clcsock early and tie its lifetime to the SMC
->>> socket itself. The early paths don't really need to release it ??? a
->>> kernel_sock_shutdown()/tcp_abort() is enough to stop it, and calling them more
->>> than once is safe because the TCP layer already handles that.  sock_release()
->>> is different: it frees the socket, so it must happen exactly once. If we move
->>> this single release to the final teardown of the SMC socket, no user can exist
->>> at that point anymore (fd users are gone after smc_release(), and every
->>> work/accept-queue context holds a sock reference), which makes both
->>> clcsock_release_lock and all the if (smc->clcsock) NULL checks removable.
->>>
->>> Ideas ?
->>
->> I agree, but it is a significant refactor touching every early-release
->> path in af_smc.c, smc_close.c etc & it warrants its own patch series
->> with careful ordering of changes.
-> 
-> Yes, that should be a bit refactor, are you interested in doing that ?
-
-Sure, I can take that up. It will need a bit of careful work — the close
-state machine has multiple paths that currently call
-smc_clcsock_release() early, and the smc_tcp_listen_work() error path
-where kernel_accept() creates a clcsock that is never assigned to an SMC
-socket will need special handling. I would plan to send it as a small
-series rather than a single patch.
-
-I am currently occupied with a few other things so it may take some
-time, but I will pick it up once I have bandwidth. If you have any
-specific ideas on the approach or would like to co-develop it, I am very
-happy to collaborate — feel free to share your thoughts and we can work
-through the design together.
-
-> 
-> Best regards,
-> Dust
+-- 
+2.54.0
 
