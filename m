@@ -1,207 +1,197 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mta1.migadu.com (out-200.mta1.migadu.com [95.215.58.200])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 500CE3911AB;
-	Fri, 28 Aug 2026 03:55:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C9F6387378
+	for <linux-rdma@vger.kernel.org>; Fri, 28 Aug 2026 04:56:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.200
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787889325; cv=none; b=HmuEeIi1+jq0IS9qBYPTCuKiQFIHYd1v2e4kAi4MZ5X6ZcVNcwwlteN4VuT2DT0Ny1Lv69ZW02rpgkQOhCqfSINJhsp3Gh9avpFr59LZ+xgDKAOzHCKBo6xPbSse308GcRiEyQuyoBakGNO+VNQ1fF1VOLzGoOm5CI21iAg0EFI=
+	t=1787892981; cv=none; b=GoDyycbwP2eDrI5EymDskJUg4dC177CIIRbUe7Rc32zpoWh8VzG8fDxkbuX7gS3r4DjDT6hCXHD3o4KWeT27wvgs3xXr82LTxgqAAfWQX2BKDcVklJjrtE764Z2SYgvfW+LHBbxj5pTM2TR/SODNSdNQci0Y3SR+2dP534ine7k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787889325; c=relaxed/simple;
-	bh=FCpEZDxc4jEepPZ3bdAy23c/UIgwajhvEbvF74xOfpA=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=Z6Oa8bCtmXnMieZSqFEXQcyUaIBZLsde8QjTZHL8Yc6PiysfrpDz0QtYJixIeGaYplGDLTh689cmU2hJ060nbWy6mM8A3z9sAvUFFrvdUgjKiF3K4f4Ea8wCmmE2KQBHf86C38N266kz+VU2MHMkhFtNA2NHM3gBM2Rx4nkTvvM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UoNaC3y+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787892981; c=relaxed/simple;
+	bh=fZhglLoWTNrH1aaF5Azu3NNgyHJwxU8ggLwqo+Wjufo=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=AyznylBOiBdR+B+M0wyzwNXJoeQwTdut7r9R4fj4e3+tW8lTuaT0r+oIcLhZKinITc34Wtauyp48YInCjFMXDVA0OwQRbokHT17VDuJ5XS6Oy8kcRbjzqoFt391dD2KSNMb73/5Xwf/UUydz/i1h92+XmMshGerZrCH7E0Hw/po=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cressey.dev; spf=pass smtp.mailfrom=cressey.dev; dkim=pass (2048-bit key) header.d=cressey.dev header.i=@cressey.dev header.b=WHJEB2Yq; arc=none smtp.client-ip=95.215.58.200
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cressey.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cressey.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UoNaC3y+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3A801F000E9;
-	Fri, 28 Aug 2026 03:55:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787889324;
-	bh=4+zCmYDgwdjFjvy4pwMM+TuoalPKK3GwFiN1mmUURkE=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=UoNaC3y+DvalM35SWgtiNtZVjEaqCu7pHPeVItgXMgS2fUheBfbH8H5WccHo9bxqw
-	 nJLYCC/TqBI/GZ73S+AF/SSuBJACyhLQW9pKFTF/QgVO8DASb+3XQ+Em1Of70X0kM3
-	 eeyN2M95I1Px1ecEbqqPr0nFjrnvQpYPa9ZR8xmlVxP6/q4ecFd8l2GTCC5vk7W0qW
-	 dVlcSrEsABZC9SR2B+0Rm0rosuR3HJ0bH85lmjFnQwUKEhbyDSNA/SGpBpw16jbLKe
-	 iUqKmX/0Poacbsxy/wAzm+9RB+xbalIgbdD711xj404sPmJPecDSm4bA+JCwtXyZB9
-	 gUoA79kiMmNdw==
-Message-ID: <f61be21da825131657194f9fec83a77d7a92fe8a.camel@kernel.org>
-Subject: Re: [PATCH net v2] net: rds: fix uninitialized trans dereference in
- CM event handler
-From: Allison Henderson <achender@kernel.org>
-To: Jakub Kicinski <kuba@kernel.org>, ljp1205831794@gmail.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, 
-	rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org, 
-	kerneljasonxing@gmail.com, henrymei@tencent.com, corvus@tencent.com, 
-	stable@vger.kernel.org
-Date: Thu, 27 Aug 2026 20:55:22 -0700
-In-Reply-To: <20260827161820.3867858-1-kuba@kernel.org>
-References: <20260825021223.3483044-1-ljp1205831794@gmail.com>
-	 <20260827161820.3867858-1-kuba@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.52.3-0ubuntu1.1 
+	dkim=pass (2048-bit key) header.d=cressey.dev header.i=@cressey.dev header.b="WHJEB2Yq"
+X-Envelope-To: linux-rdma@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=fZhglLoWTNrH1aaF5Azu3NNgyHJwxU8ggLwqo+Wjufo=;
+ c=simple/simple; d=cressey.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1787892976; v=1; x=1788497776;
+ b=WHJEB2YqzV6teklhLC5KJGY9yqMNDvbp8H/4fw9/VZyRjHNoLQPEEuc5MZwbDZzZ/7CSr1IQ
+ 5sbtHDcavG3xh8Nvs7y7XLOnbG0cEsju/M1eKtxnP/q8WlpCUZYDXjUFZEpIF40SpY405SXUlFg
+ Q9az4hnCLiH8PWeLS90bOXXWSToCTlng72mVegf6Jvau/cNHfNcNMG+wf4knMZrYGJjnXr0Bb94
+ 1GkdwVUjuSat/3Gbx2U/ipGeLWMQrBhc3oOGelBzpohGCW8dpf7aVSLRlht86nmrByeM7Yw0bt2
+ 2nuu/wPgrrdm6O5Zh2GVtxWSeYBEz3A3E8e2rgrtGxhdw==
+X-Envelope-To: linux-rdma@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id ef95467f80a113ed;
+	Fri, 28 Aug 2026 04:56:15 +0000
+X-Mizu-Trace-ID: ef95467f80a113ed
+X-Migadu-Flow: FLOW_OUT
+From: Ben Cressey <ben@cressey.dev>
+Date: Fri, 28 Aug 2026 04:55:52 +0000
+Subject: [PATCH net] Revert "net/mlx5: Add sensor name to temperature event
+ message"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260828-b4-mlx5-temp-warn-revert-v1-1-4e2ae5a0351f@cressey.dev>
+X-B4-Tracking: v=1; b=H4sIANcUkWoC/02NTQ6CMBCFr0Jm7QRshKBXMS6mZZAKlGZahYRwd
+ wtuXL7v/a0QWCwHuGUrCH9ssJNL4nzKwHTknoy2SRpUoaqiVjXqC47DUmLk0eNM4jDVWCJeG1U
+ 3RMS6aiHVvXBrl2P6Do4jPH4wvPWLTdxH95imwKiFnOl2NPjcTPMkPUt+WH3wA0VUZfn3G9iFS
+ WDbvsN3x6TAAAAA
+X-Change-ID: 20260828-b4-mlx5-temp-warn-revert-9d28daaaeb6f
+To: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
+ Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, 
+ Andrew Lunn <andrew+netdev@lunn.ch>, 
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+ Shahar Shitrit <shshitrit@nvidia.com>, Carolina Jubran <cjubran@nvidia.com>, 
+ Simon Horman <horms@kernel.org>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, stable@vger.kernel.org, 
+ Will Mortensen <will@extrahop.com>, 
+ "Jose Fernandez (Anthropic)" <jose.fernandez@linux.dev>, 
+ Ben Cressey <ben@cressey.dev>
+X-Mailer: b4 0.15.2
 
-On Thu, 2026-08-27 at 09:18 -0700, Jakub Kicinski wrote:
-> This is an AI-generated review of your patch. The human sending this
-> email has considered the AI review valid, or at least plausible.
-> ---
-> net: rds: fix uninitialized trans dereference in CM event handler
->=20
-> This initializes trans to &rds_ib_transport at declaration in
-> rds_rdma_cm_event_handler_cmn(), drops the conditional assignment based o=
-n
-> cm_id->device->node_type, and adds an early bail-out that returns 1 for a=
-ny
-> event arriving on a device that is not RDMA_NODE_IB_CA.
->=20
-> > diff --git a/net/rds/rdma_transport.c b/net/rds/rdma_transport.c
-> > index b15cf316b23a2..2c5481f1fcb4f 100644
-> > --- a/net/rds/rdma_transport.c
-> > +++ b/net/rds/rdma_transport.c
->=20
-> [ ... ]
->=20
-> > @@ -80,6 +77,12 @@ static int rds_rdma_cm_event_handler_cmn(struct rdma=
-_cm_id *cm_id,
-> >  		}
-> >  	}
-> > =20
-> > +	/* Only the IB transport is supported. */
-> > +	if (cm_id->device->node_type !=3D RDMA_NODE_IB_CA) {
-> > +		ret =3D 1;
-> > +		goto out;
-> > +	}
-> > +
->=20
-> [Severity: High]
-> Should this non-zero return be limited to RDMA_CM_EVENT_CONNECT_REQUEST?
-> As written it applies to every event type.
->=20
-> include/rdma/rdma_cm.h documents what a non-zero return means:
->=20
-> /**
->  * rdma_cm_event_handler - Callback used to report user events.
->  *
->  * Notes: Users may not call rdma_destroy_id from this callback to destro=
-y
->  *   the passed in id, or a corresponding listen id.  Returning a
->  *   non-zero value from the callback will destroy the passed in id.
->  */
->=20
-> The cma dispatchers implement exactly that, for example addr_handler() an=
-d
-> cma_work_handler() in drivers/infiniband/core/cma.c:
->=20
-> 	if (cma_cm_event_handler(id_priv, &event)) {
-> 		destroy_id_handler_unlock(id_priv);
-> 		return;
-> 	}
->=20
-> But RDS keeps ownership of connection cm_ids.  rds_ib_conn_path_connect()
-> stores it:
->=20
-> 	ic->i_cm_id =3D rdma_create_id(&init_net, handler, conn,
-> 				     RDMA_PS_TCP, IB_QPT_RC);
->=20
-> and rds_ib_conn_path_shutdown() later dereferences and destroys the same
-> pointer, clearing it only afterwards:
->=20
-> 	if (ic->i_cm_id) {
-> 		rdsdebug("disconnecting cm %p\n", ic->i_cm_id);
-> 		err =3D rdma_disconnect(ic->i_cm_id);
-> 	...
-> 		rdma_destroy_id(ic->i_cm_id);
-> 	...
-> 		ic->i_cm_id =3D NULL;
->=20
-> So if any event other than CONNECT_REQUEST is delivered with conn !=3D NU=
-LL on
-> a cm_id whose device node_type is not RDMA_NODE_IB_CA, does the core free=
- the
-> cm_id while ic->i_cm_id still points at it?  Can the following conn drop,
-> socket close or module unload then hit freed memory in
-> rds_ib_conn_path_shutdown(), including a second rdma_destroy_id() on the =
-same
-> id?
->=20
-> A reachable path without any race: rds_ib_laddr_check() short-circuits vi=
-a
-> rds_ib_get_device(), which only walks the ipaddr_list of RDS's own IB
-> devices:
->=20
-> net/rds/ib_rdma.c:rds_ib_get_device() {
-> 	list_for_each_entry_rcu(rds_ibdev, &rds_ib_devices, list) {
-> 		list_for_each_entry_rcu(i_ipaddr, &rds_ibdev->ipaddr_list, list) {
-> 			if (i_ipaddr->ipaddr =3D=3D ipaddr) {
-> 	...
-> }
->=20
-> while the device actually bound for the outgoing connection is picked lat=
-er
-> by cma_acquire_dev_by_src_ip(), which walks the global cma dev_list and c=
-an
-> match a siw device on the same address.  siw_device_create() sets:
->=20
-> 	base_dev->node_type =3D RDMA_NODE_RNIC;
->=20
-> In that configuration, rdma_resolve_addr() from rds_ib_conn_path_connect(=
-)
-> binds a RDMA_NODE_RNIC device, and the resulting RDMA_CM_EVENT_ADDR_RESOL=
-VED
-> with conn !=3D NULL now returns 1, so addr_handler() destroys the id whil=
-e RDS
-> still tracks it.
->=20
-> The same function a few lines above already documents the opposite
-> convention:
->=20
-> 		/* If the connection is being shut down, bail out
-> 		 * right away. We return 0 so cm_id doesn't get
-> 		 * destroyed prematurely */
-> 		if (rds_conn_state(conn) =3D=3D RDS_CONN_DISCONNECTING) {
-> 			/* Reject incoming connections while we're tearing
-> 			 * down an existing one. */
-> 			if (event->event =3D=3D RDMA_CM_EVENT_CONNECT_REQUEST)
-> 				ret =3D 1;
-> 			goto out;
-> 		}
->=20
-> Separately, does the unconditional goto out also skip the rds_conn_drop()
-> that the ADDR_ERROR, ROUTE_ERROR, CONNECT_ERROR, UNREACHABLE,
-> DEVICE_REMOVAL, ADDR_CHANGE, DISCONNECTED and TIMEWAIT_EXIT cases perform=
-,
-> leaving the RDS connection stuck in CONNECTING or UP with no error
-> propagated?
->=20
-> Would something along these lines match the existing convention, while st=
-ill
-> dropping the conn for the remaining events:
->=20
-> 	ret =3D (event->event =3D=3D RDMA_CM_EVENT_CONNECT_REQUEST) ? 1 : 0;
->=20
-> or moving the node_type test into the RDMA_CM_EVENT_CONNECT_REQUEST case?
+This reverts commit 46fd50cfcc12368bed9ae5257cc3beaea5b3c193.
 
-I think the cleaner solution here would be to hoist the check into the call=
-ing function.  So in
-rds_rdma_cm_event_handler_cmn():
+print_sensor_names_in_bit_set() passes the sensor index from the
+temperature warning event to hwmon_get_sensor_name(), which uses it
+as an index into temp_channel_desc[]. That array is indexed by hwmon
+channel, not by sensor index: it has one entry per ASIC or platform
+sensor the device reports, plus at most one module sensor
+(module_scount is 0 or 1). Module sensors have index 64 and up, so a
+module temperature warning reads far past the end of the allocation
+and prints whatever memory follows it, up to the next NUL byte, into
+the log.
 
-        case RDMA_CM_EVENT_CONNECT_REQUEST:
-		/* Only the IB transport is supported. */
-                if (cm_id->device->node_type =3D=3D RDMA_NODE_IB_CA)
-                        ret =3D trans->cm_handle_connect(cm_id, event, isv6=
-);
-                else
-                	ret =3D 1;
-                break;
+The mapping from sensor index to hwmon channel cannot be made
+reliable here: the driver registers at most one module channel, while
+the event can carry bits for other ports' modules, and the bitmap in
+the existing warning already distinguishes the ASIC sensor (bit 0)
+from module sensors (bit 64 and up). Drop the name lookup rather than
+fix the mapping, as suggested in review of an earlier fix [1].
 
-Thanks for working on this!
-Allison
+Fixes: 46fd50cfcc12 ("net/mlx5: Add sensor name to temperature event message")
+Cc: stable@vger.kernel.org
+Suggested-by: Leon Romanovsky <leon@kernel.org>
+Link: https://lore.kernel.org/netdev/20260518112555.GM33515@unreal/
+Reported-by: Will Mortensen <will@extrahop.com>
+Closes: https://lore.kernel.org/netdev/20260512-b4-mlx5-sensor-fix-v2-1-531fee4fd7fd@extrahop.com/
+Link: https://lore.kernel.org/netdev/20260515-b4-mlx5-sensor-fix-v3-1-f537ce191d6c@extrahop.com/ [1]
+Assisted-by: LLM
+Reviewed-by: Jose Fernandez (Anthropic) <jose.fernandez@linux.dev>
+Signed-off-by: Ben Cressey <ben@cressey.dev>
+---
+The restored warning string intentionally lacks the trailing period
+and newline: this is a pure revert of 46fd50cfcc12, the commit that
+added them.
+
+Will - happy for you to carry this as v4 if you'd prefer.
+---
+ drivers/net/ethernet/mellanox/mlx5/core/events.c | 31 +++---------------------
+ drivers/net/ethernet/mellanox/mlx5/core/hwmon.c  |  5 ----
+ drivers/net/ethernet/mellanox/mlx5/core/hwmon.h  |  1 -
+ 3 files changed, 3 insertions(+), 34 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/events.c b/drivers/net/ethernet/mellanox/mlx5/core/events.c
+index 4d7f35b968761..a5d4586edf435 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/events.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/events.c
+@@ -6,7 +6,6 @@
+ #include "mlx5_core.h"
+ #include "lib/eq.h"
+ #include "lib/events.h"
+-#include "hwmon.h"
+ 
+ struct mlx5_event_nb {
+ 	struct mlx5_nb  nb;
+@@ -154,28 +153,11 @@ static int any_notifier(struct notifier_block *nb,
+ 	return NOTIFY_OK;
+ }
+ 
+-#if IS_ENABLED(CONFIG_HWMON)
+-static void print_sensor_names_in_bit_set(struct mlx5_core_dev *dev, struct mlx5_hwmon *hwmon,
+-					  u64 bit_set, int bit_set_offset)
+-{
+-	unsigned long *bit_set_ptr = (unsigned long *)&bit_set;
+-	int num_bits = sizeof(bit_set) * BITS_PER_BYTE;
+-	int i;
+-
+-	for_each_set_bit(i, bit_set_ptr, num_bits) {
+-		const char *sensor_name = hwmon_get_sensor_name(hwmon, i + bit_set_offset);
+-
+-		mlx5_core_warn(dev, "Sensor name[%d]: %s\n", i + bit_set_offset, sensor_name);
+-	}
+-}
+-#endif /* CONFIG_HWMON */
+-
+ /* type == MLX5_EVENT_TYPE_TEMP_WARN_EVENT */
+ static int temp_warn(struct notifier_block *nb, unsigned long type, void *data)
+ {
+ 	struct mlx5_event_nb *event_nb = mlx5_nb_cof(nb, struct mlx5_event_nb, nb);
+ 	struct mlx5_events   *events   = event_nb->ctx;
+-	struct mlx5_core_dev *dev      = events->dev;
+ 	struct mlx5_eqe      *eqe      = data;
+ 	u64 value_lsb;
+ 	u64 value_msb;
+@@ -187,17 +169,10 @@ static int temp_warn(struct notifier_block *nb, unsigned long type, void *data)
+ 	value_lsb &= 0x1;
+ 	value_msb = be64_to_cpu(eqe->data.temp_warning.sensor_warning_msb);
+ 
+-	if (net_ratelimit()) {
+-		mlx5_core_warn(dev, "High temperature on sensors with bit set %#llx %#llx.\n",
++	if (net_ratelimit())
++		mlx5_core_warn(events->dev,
++			       "High temperature on sensors with bit set %#llx %#llx",
+ 			       value_msb, value_lsb);
+-#if IS_ENABLED(CONFIG_HWMON)
+-		if (dev->hwmon) {
+-			print_sensor_names_in_bit_set(dev, dev->hwmon, value_lsb, 0);
+-			print_sensor_names_in_bit_set(dev, dev->hwmon, value_msb,
+-						      sizeof(value_lsb) * BITS_PER_BYTE);
+-		}
+-#endif
+-	}
+ 
+ 	return NOTIFY_OK;
+ }
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/hwmon.c b/drivers/net/ethernet/mellanox/mlx5/core/hwmon.c
+index afcdebac9c4fd..bf36c1c9bf781 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/hwmon.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/hwmon.c
+@@ -416,8 +416,3 @@ void mlx5_hwmon_dev_unregister(struct mlx5_core_dev *mdev)
+ 	mlx5_hwmon_free(hwmon);
+ 	mdev->hwmon = NULL;
+ }
+-
+-const char *hwmon_get_sensor_name(struct mlx5_hwmon *hwmon, int channel)
+-{
+-	return hwmon->temp_channel_desc[channel].sensor_name;
+-}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/hwmon.h b/drivers/net/ethernet/mellanox/mlx5/core/hwmon.h
+index f38271c22c105..999654a9b9da5 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/hwmon.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/hwmon.h
+@@ -10,7 +10,6 @@
+ 
+ int mlx5_hwmon_dev_register(struct mlx5_core_dev *mdev);
+ void mlx5_hwmon_dev_unregister(struct mlx5_core_dev *mdev);
+-const char *hwmon_get_sensor_name(struct mlx5_hwmon *hwmon, int channel);
+ 
+ #else
+ static inline int mlx5_hwmon_dev_register(struct mlx5_core_dev *mdev)
+
+---
+base-commit: 4e15e89faac9f308baeb01f46c13a051814d2449
+change-id: 20260828-b4-mlx5-temp-warn-revert-9d28daaaeb6f
 
