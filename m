@@ -1,235 +1,253 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E895639A4D8;
-	Fri, 28 Aug 2026 22:38:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0549939A4D8;
+	Fri, 28 Aug 2026 22:39:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787956733; cv=none; b=JMyY8mF5l47V0fnGranhuCR1wbfDH/2NexIECc5NpH0dbQTNxI/16pEbn7uo2WAvxhXPl1+OnmXtkTyHqT2D9VFNB+fNyXJs7xXuRu9Ich2VLE2gO/pUfChlh591DSE0Jn/QY5PcUMWaa4gzY5YCpRNz8rIeCWi+KmgtjyQPkD4=
+	t=1787956764; cv=none; b=fR5aNCynLLMf/Ej1vhLxZUcMyu5PeReUbNcIqsrgVPcgTv6hzVEFJ/wM9I3NZS8M4LP6i/s1jEZY5MpQMKRh/7sd1fwnxS2Pf0GtduG90kptu/ZHH/FriqujQj45gmhb1VHJj46UCTS1eQZ1sIs1ToGUoU9IGU+9cZgaK7Heryw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787956733; c=relaxed/simple;
-	bh=dlySJw2QZhmRojFLyWlPNi4KJjlTm7jEG5msEkNNohE=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=AAljEBGETL+dHy9ad+Jv74v1kynDQ3atMEEl2rMQACvEji8tLUlWwcXzI2PYaZEbFCYLoDEHt6JvzEwYSclQm6ix8lxubQL72EkdyH8QgrdHnqYnHz1mzW0GMyI1HPhitnEynwj+DXogaR0rMFtXk4gcrA/PIasTFjrsqZE+cuA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Oa1m0bNr; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787956764; c=relaxed/simple;
+	bh=b23OrmMZXnM1Ts3oD3e5ypjM2Z3yJKCmZ4IHTZWVn2Y=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=g9x1PP0EBQcRt6p7T1Y6wRwKU0pIqPsW2Uc1Cp4gv1xe5kdNeUCDtTX7WBG32zx74vnhK4D9kZdATgvwJ7STEi8OEYIVCMKNYAjTB45P4XxsbyHCW4oYrsLS3YCktDHm8V9t9bRagWBYBYiCtgxzUl+BxrRXxwVyOPuI6FaIe9Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dJcrTjOL; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Oa1m0bNr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E24A1F000E9;
-	Fri, 28 Aug 2026 22:38:51 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dJcrTjOL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D5051F00A3D;
+	Fri, 28 Aug 2026 22:39:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787956731;
-	bh=4Yk3nAoqOslhQlUkJR+OPYk325ktI/r+tDp/JrXHKek=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=Oa1m0bNrWCV9doLzMZeeaStThvlkuEpM+Bj5Qd4Vi0IlAe//Yfkz5UX7Xn/wywO35
-	 dKzGVumRtvSqMozQtpbAs/aECB6I61/OV9Mgr0xHBZHrCWoZWv9eHwgaOMnvJNMHeo
-	 CoUpise7ll2y8m4ACklFYAglbighAx7A5R17HBQMMoix0tlK1nwQQfzPeftugyNuPP
-	 cTk7SpoKhLrjKiK1LZbcjoPWl7ozURHNadpX/cHwPgX1hl/7uvttCfVrryiKmuRhZ6
-	 WKLsb8Gkw2HIwvDk8S6sg7+TrKfTinjg/Na5Hck1+Tuh67EsUtO0d7amLaL8cbwiV7
-	 W68i7sW/YwMHg==
-Message-ID: <319a48c139fc42eec01067575277a6a706eebc78.camel@kernel.org>
-Subject: Re: [PATCH net v4 7/7] net/rds: don't let rds_conn_shutdown()
- consume a concurrent drop
+	s=k20260515; t=1787956762;
+	bh=F9caGn1m/7VyO3OqoDPiMejNjiBNNFH3Fbm6Qr48Fv4=;
+	h=From:To:Cc:Subject:Date;
+	b=dJcrTjOLFEhuxgjVVLL2Miab5A4/3JrA9oqvmlTvlIFjlqBvPgvYTnyakh0AqK1IW
+	 Wf52O1h61dnFNWISUFYjH1Ak6gEeoEbwf3AQV8JMrB4QOuUMPoSbrXKbdueY01Lmwb
+	 n+2c/3bF1fv4q8tPgAXEAHOzN0S7gKfpLVz2yY9pUUlQLwA7ad31GRQtCXRNpqLjMa
+	 CYApBzlkHbxOLzMW8q6/y8BUZBAPJ25wHMnhHisy3JELidG52t8XcRYPttPaCrbPyg
+	 9Z+psVHT8oF4NzadqjCtthF5jBohiMNo7pbeS4Bg9tRrokXVFeIWbg6j8Xum3iTlWE
+	 q55km/G76iffw==
 From: Allison Henderson <achender@kernel.org>
-To: Jakub Kicinski <kuba@kernel.org>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com, 
- edumazet@google.com, horms@kernel.org, jhubbard@nvidia.com,
- woni9911@gmail.com,  michal.kubiak@intel.com, leon@kernel.org
-Date: Fri, 28 Aug 2026 15:38:50 -0700
-In-Reply-To: <20260827180221.3951040-1-kuba@kernel.org>
-References: <20260824003759.127353-8-achender@kernel.org>
-	 <20260827180221.3951040-1-kuba@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.52.3-0ubuntu1.1 
+To: netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	kuba@kernel.org,
+	horms@kernel.org
+Cc: achender@kernel.org,
+	jhubbard@nvidia.com,
+	woni9911@gmail.com,
+	michal.kubiak@intel.com,
+	leon@kernel.org
+Subject: [PATCH net v5 0/7] net/rds: own the fastpath locks across connection teardown
+Date: Fri, 28 Aug 2026 15:39:14 -0700
+Message-Id: <20260828223921.202913-1-achender@kernel.org>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Thu, 2026-08-27 at 11:02 -0700, Jakub Kicinski wrote:
-> This is an AI-generated review of your patch. The human sending this
-> email has considered the AI review valid, or at least plausible.
-> ---
-> net/rds: don't let rds_conn_shutdown() consume a concurrent drop
->=20
-> This restricts the final state transition in rds_conn_shutdown() to
-> DISCONNECTING -> DOWN, and returns quietly when the path is found in
-> RDS_CONN_ERROR so that the shutdown pass queued by the racing drop is the
-> one that finishes the teardown.  The comments in rds_conn_shutdown() and
-> rds_tcp_reset_callbacks() are rewritten to describe the new rule.
->=20
-> > diff --git a/net/rds/connection.c b/net/rds/connection.c
-> > index fbbac55a0e818..73b4fa8a4b963 100644
-> > --- a/net/rds/connection.c
-> > +++ b/net/rds/connection.c
-> > @@ -447,20 +447,27 @@ void rds_conn_shutdown(struct rds_conn_path *cp)
-> >  		wake_up_all(&cp->cp_waitq);
-> > =20
-> >  		if (!rds_conn_path_transition(cp, RDS_CONN_DISCONNECTING,
-> > -					      RDS_CONN_DOWN) &&
-> > -		    !rds_conn_path_transition(cp, RDS_CONN_ERROR,
-> >  					      RDS_CONN_DOWN)) {
-> > -			/* This can happen - eg when we're in the middle of tearing
-> > -			 * down the connection, and someone unloads the rds module.
-> > -			 * Quite reproducible with loopback connections.
-> > -			 * Mostly harmless.
-> > +			/* The path was dropped again while we tore it
-> > +			 * down: by a socket state-change callback in
-> > +			 * irq context on receipt of a FIN, or by an
-> > +			 * accept that claimed the path just before a
-> > +			 * drop put it back to RDS_CONN_ERROR and then
-> > +			 * installed a fresh socket on it.  The drop
-> > +			 * queued another shutdown pass, and that pass
-> > +			 * must run, because it is what tears down
-> > +			 * whatever attached to the path after the
-> > +			 * transport shutdown above sampled its state.
-> > +			 * Consuming the RDS_CONN_ERROR here would turn
-> > +			 * that pass into a no-op: leave the state
-> > +			 * alone, and let the pass finish the job.
-> >  			 *
-> > -			 * Note that this also happens with rds-tcp because
-> > -			 * we could have triggered rds_conn_path_drop in irq
-> > -			 * mode from rds_tcp_state change on the receipt of
-> > -			 * a FIN, thus we need to recheck for RDS_CONN_ERROR
-> > -			 * here.
-> > +			 * Anything else - e.g. a module unload pulling
-> > +			 * the connection down mid-teardown - keeps the
-> > +			 * usual noisy drop.
-> >  			 */
-> > +			if (rds_conn_path_state(cp) =3D=3D RDS_CONN_ERROR)
-> > +				return;
->=20
-> [Severity: High]
-> The new return does not just skip the reconnect - it leaves
-> rds_conn_shutdown() before its whole tail, which is also where
-> cancel_delayed_work_sync(&cp->cp_conn_w) runs, where
-> RDS_RECONNECT_PENDING is cleared, and where conn_slots_available()
-> is called.  Who performs that work when this return fires?
->=20
-> For the ordinary case the changelog's answer holds: the pass that the
-> racing rds_conn_path_drop() queued runs later and reaches the tail.
-> But the drop does not always queue a pass.  rds_conn_path_drop(cp,
-> false) stores RDS_CONN_ERROR unconditionally and only then checks
-> rds_destroy_pending(cp->cp_conn), returning without queue_work() when
-> a destroy is in progress - which is precisely the qualification the
-> new rds_tcp_reset_callbacks() comment in this patch spells out, and
-> which the changelog answers with "rds_conn_path_destroy() performs the
-> final drop and flush itself".
->=20
-> That answer looks one pass short.  rds_conn_path_destroy() does a
-> single rds_conn_path_drop(cp, true) followed by
-> flush_work(&cp->cp_down_w).  If the flushed pass is the one that a
-> concurrent FIN turns into this silent return - rds_tcp_state_change()
-> -> rds_conn_path_drop(cp, false) during the conn_path_shutdown() and
-> quiesce window, destroy pending, so RDS_CONN_ERROR is stored and no
-> cp_down_w is queued - then no pass ever reaches the tail, and there is
-> nothing left to flush.  rds_conn_path_destroy() continues into
->=20
-> 	WARN_ON(delayed_work_pending(&cp->cp_conn_w));
->=20
-> and then frees the transport data and the path with cp_conn_w still
-> armed.  The WARN_ON is itself the evidence that destroy relies on
-> rds_conn_shutdown() having cancelled that work; if a cp_conn_w queued
-> by an earlier rds_queue_reconnect() has not yet expired, its timer
-> fires on a freed rds_conn_path.  Before this patch the ERROR -> DOWN
-> leg of the final transition kept the tail reachable in exactly this
-> situation, so the cancel always ran.
->=20
-> So two questions.  Should the RDS_CONN_ERROR return be placed after
-> cancel_delayed_work_sync(&cp->cp_conn_w) (and after the
-> RDS_RECONNECT_PENDING clear), so the path's timers are quiesced no
-> matter which pass completes the state transition?  Or should
-> rds_conn_path_destroy() stop depending on the shutdown pass and cancel
-> cp_conn_w itself before the WARN_ONs?  Either way, the destroy-pending
-> case deserves a comment here, because that is the one case where the
-> "let the pass finish the job" argument has no pass to lean on.
+Hi all,
 
-This finding is real, thanks for the catch.=C2=A0 Reproduced on an
-instrumented kernel to=C2=A0inject the FIN drop into the teardown window
-of a dying netns with a long reconnect backoff.
+This is v5 of the follow-up set to "net/rds: Bug fix ports, part 2"
+[1] (v1 at [2], v2 at [3], v3 at [4], v4 at [5]).  During review of part 2, the
+later half of that series needed more work than a respin, so it was
+split off into this set together with the companion fixes identified
+along the way.  As discussed on the v2 thread, it is targeted at net.
 
-I'll move the RDS_CONN_ERROR after the cancel_delayed_work_sync as
-suggested, and add some more comments for the destroy pending case.
+RDS connection teardown quiesces the transmit and receive-refill fast
+paths by waiting for the RDS_IN_XMIT/RDS_RECV_REFILL bits to be
+sampled clear.  Sampling a bit clear is not owning it: the fast path
+can re-take its bit right after the wait returns and then run
+concurrently with the transport shutdown and the send-state reset.
+Oracle UEK closed this by making teardown acquire the bits as locks
+("rds: Make sure transmit path and connection tear-down does not run
+concurrently"); patches 5 and 6 do the same for the two
+rds_send_path_reset() call sites upstream.
 
+Making teardown block on the bits as locks promotes several latent
+ordering bugs from rare to load-bearing, so they are fixed first:
 
->=20
-> [Severity: Medium]
-> Does the new comment in rds_conn_shutdown() match the code below it?
->=20
-> It says a module unload "keeps the usual noisy drop", but the unload path
-> goes through rds_conn_destroy() -> rds_conn_path_destroy() ->
-> rds_conn_path_drop(cp, true), and rds_conn_path_drop() starts with an
-> unconditional state store:
->=20
-> net/rds/connection.c:rds_conn_path_drop() {
-> 	atomic_set(&cp->cp_state, RDS_CONN_ERROR);
->=20
-> 	rcu_read_lock();
-> 	if (!destroy && rds_destroy_pending(cp->cp_conn)) {
-> 		rcu_read_unlock();
-> 		return;
-> 	}
-> 	queue_work(cp->cp_wq, &cp->cp_down_w);
-> 	rcu_read_unlock();
-> }
->=20
-> So an unload racing an in-flight shutdown leaves the path in
-> RDS_CONN_ERROR and takes the new silent return, not the
-> rds_conn_path_error() branch the comment points at.  The old comment that
-> documented exactly that case ("someone unloads the rds module ... Mostly
-> harmless") is removed in the same hunk, so is the unload scenario now
-> described against the wrong branch?
->=20
-Yes, the comment is stale. I will update the comment here, and mention the
-module unload's drop stores RDS_CONN_ERROR like every other drop.
+  Patches 1 and 2 fix the release side of the two bit locks.
+  release_in_xmit() and release_refill() both clear their bit and then
+  test for waiters, but the barrier is on the wrong side of the clear
+  to order the critical section's stores before the release, and the
+  waiter check does not order against the clear.  Once teardown blocks
+  on these bits as locks (uninterruptible and untimed), a lost wake-up
+  or a store observed out of order stops mattering only in theory.
+  Use clear_bit_unlock() and wq_has_sleeper(), the pattern already
+  half-present in release_in_xmit().
 
-> Second question on the same comment: it states flatly that "The drop
-> queued another shutdown pass".  In the snippet above, a
-> rds_conn_path_drop(cp, false) returns before queue_work() when
-> rds_destroy_pending() is true:
->=20
-> net/rds/rds.h:rds_destroy_pending() {
-> 	return !check_net(rds_conn_net(conn)) ||
-> 	       (conn->c_trans->t_unloading && conn->c_trans->t_unloading(conn));
-> }
->=20
-> The comment this patch adds to rds_tcp_reset_callbacks() carries that
-> qualification:
->=20
-> 	 * and, unless a pending destroy is about to reap the whole
-> 	 * connection anyway, queues one more shutdown pass.
->=20
-> Should the connection.c comment carry the same "unless a destroy is
-> pending" wording so the two new comments agree?
->=20
-Yes, will update the comment to carry the same wording that
-rds_tcp_reset_callbacks() does. =20
+  Patch 3: rds_conn_path_reset() wipes the whole cp_flags word with a
+  plain store.  Once teardown owns bits in that word across the reset,
+  a blanket store would end lock ownership early - and it already
+  races atomic RMWs on the same word today.  Clear the bits the reset
+  is responsible for individually, as Oracle UEK also does.
 
+  Patch 4: rds_tcp_reset_callbacks() stores RDS_CONN_RESETTING
+  unconditionally, which can overwrite the RDS_CONN_ERROR or
+  RDS_CONN_DISCONNECTING of a shutdown already in progress on the same
+  path and send that shutdown through an extra drop cycle.  Once the
+  accept path can park for the duration of a teardown (patch 6) that
+  window widens, so make the transition conditional first, as Oracle
+  UEK does.
 
-> Last question: which state actually reaches rds_conn_path_error() here?
-> Every other writer of cp_state uses a cmpxchg from a non-DISCONNECTING
-> state - rds_connect_path_complete() from CONNECTING/RESETTING,
-> rds_tcp_reset_callbacks() from CONNECTING/RESETTING, rds_connect_worker()
-> from DOWN - and the only unconditional store is the RDS_CONN_ERROR in
-> rds_conn_path_drop().  If nothing can leave a DISCONNECTING path in a
-> state other than RDS_CONN_ERROR, is the noisy branch the comment
-> illustrates reachable at all?
->=20
-> > +			rds_conn_path_error(cp, "%s: failed to transition "
-> >  					    "to state DOWN, current state "
-> >  					    "is %d\n", __func__,
->=20
-> [ ... ]
+With those in place, patch 5 converts rds_tcp_reset_callbacks() from
+waiting on RDS_IN_XMIT to acquiring it, holding it across the socket
+swap and rds_send_path_reset(), and patch 6 has rds_conn_shutdown()
+hold both bit locks across the transport shutdown and path reset.
 
+Patch 7 fixes a pre-existing teardown-state hole that this series
+makes easier to hit but did not introduce.  Since commit
+e97656d03ca0 the final transition in rds_conn_shutdown() accepts
+RDS_CONN_ERROR as well as RDS_CONN_DISCONNECTING, so that a FIN
+processed during the teardown does not derail the shutdown.  But
+consuming that RDS_CONN_ERROR also consumes the shutdown pass that a
+concurrent rds_conn_path_drop() queued along with it.  For a FIN that
+is harmless; for rds_tcp_accept_one() it is not.  A drop can race the
+accept's DOWN -> CONNECTING path claim, the accept then installs the
+freshly accepted socket while the drop's teardown - which sampled
+tc->t_sock before that socket existed - is still running,
+rds_connect_path_complete() fails and drops the path again, and if the
+in-flight shutdown's final transition then swallows that
+RDS_CONN_ERROR, the pass that should reap the just-installed socket
+finds the path already RDS_CONN_DOWN and does nothing.  The socket is
+leaked with its callbacks armed and its rds_tcp_connection still on
+rds_tcp_tc_list, the peer sees an established connection that nothing
+reads, and the path wedges in RDS_CONN_DOWN.  Make the final
+transition DISCONNECTING -> DOWN only and leave a racing drop's
+RDS_CONN_ERROR alone, so the pass it queued runs and tears down
+whatever attached to the path; the branch quiesces the reconnect
+timer itself, since a pending destroy can suppress that pass (see the
+changes below).
 
-I dont think so since no current cp_state writer can leave a DISCONNECTING
-path in anything but RDS_CONN_ERROR.  Every other writer is a cmpxchg from =
-a
-non-DISCONNECTING state.  So the print is more defensive really.  I'll upda=
-te
-the comment to clarify.
+This surfaced while re-reviewing v3: whether the
+release-then-transition ordering in patch 6 could let a woken waiter
+install a socket that the teardown then strands.  Chasing that down,
+the reachable form of the leak turned out to be the accept-vs-drop
+race above rather than the parked-waiter path (a path mid-teardown is
+never handed to rds_tcp_reset_callbacks(): rds_tcp_accept_one_path()
+only claims a path it can move DOWN -> CONNECTING), and it predates
+this series.  It reproduces on an instrumented kernel - a test-only
+drop injected into the accept window plus a widened teardown-to-tail
+window - as an ESTABLISHED socket with an ever-growing receive queue
+on a path stuck down; the same kernel runs clean with patch 7.
 
-Thanks for the reviews!
+The set was built per-commit, run through the rds selftests (tcp and
+rdma/rxe), and exercised with a connection/netns churn load and
+module load/unload cycles; the patch 7 destroy-window fix was
+additionally verified against an instrumented kernel that reproduces
+the timer-left-armed WARN deterministically (fires on every destroyed
+path unfixed, silent with the fix).
+
+[PATCH net 1/7] net/rds: use wq_has_sleeper() in release_in_xmit()
+  Restore the full barrier before the wake-up check in
+  release_in_xmit()
+
+[PATCH net 2/7] net/rds: use clear_bit_unlock() in release_refill()
+  The matching release-side fix for RDS_RECV_REFILL
+
+[PATCH net 3/7] net/rds: clear cp_flags bits individually in rds_conn_path_reset()
+  Partial port of commit d04896037223 ("net/rds: Preserve essential connection state flags")
+  https://github.com/oracle/linux-uek/commit/d04896037223
+
+[PATCH net 4/7] net/rds: tcp: don't force RDS_CONN_RESETTING over a concurrent shutdown
+  Port of commit 72c176a1d9ac ("net/rds: Don't force state RDS_CONN_RESETTING")
+  https://github.com/oracle/linux-uek/commit/72c176a1d9ac
+
+[PATCH net 5/7] net/rds: acquire RDS_IN_XMIT in rds_tcp_reset_callbacks()
+  Extend the port in patch 6 to the second rds_send_path_reset() call site
+
+[PATCH net 6/7] net/rds: acquire the fastpath locks in rds_conn_shutdown()
+  Port of commit 2b8aaa4f163b ("rds: Make sure transmit path and connection tear-down does not run concurrently")
+  https://github.com/oracle/linux-uek/commit/2b8aaa4f163b
+
+[PATCH net 7/7] net/rds: don't let rds_conn_shutdown() consume a concurrent drop
+  Fix the accept-vs-drop socket leak found while reviewing patch 6
+
+Changes since v4 [5]:
+  - Patch 7: fixed a hole the v4 review found in the new quiet return:
+    it left rds_conn_shutdown() before the tail that cancels
+    cp_conn_w, and when a pending destroy had kept the racing drop
+    from queueing a successor pass, nothing ever cancelled it -
+    rds_conn_path_destroy() would then trip its
+    WARN_ON(delayed_work_pending(&cp->cp_conn_w)) and free the path
+    with the reconnect timer still armed.  The failure branch now
+    quiesces cp_conn_w and clears RDS_RECONNECT_PENDING itself before
+    returning, so every exit of a shutdown pass leaves the timer
+    idle no matter which pass completes the transition.  Reproduced
+    on an instrumented kernel (deterministic destroy-window drop) as
+    the destroy-time WARN_ON firing with the timer armed; the same
+    kernel runs clean with the fix.  The comment in the branch also
+    no longer claims a module unload takes the noisy path (an
+    unload's drop stores RDS_CONN_ERROR and takes the quiet return
+    like everything else), and notes the remaining noisy branch is
+    defensive.
+  - Patch 6: changelog corrections from the review - the backport
+    paragraph now names all four prerequisites (patches 2, 3, 5 and
+    the follow-up patch 7); the krdsd paragraph no longer claims the
+    teardown "never waits on krdsd" and instead explains why the
+    mutual waits cannot cycle (the holder's sync cancels target
+    pending-at-most items on the ordered cp_wq); the "up to 5 s"
+    bound is scoped to TCP, with a note that IB's uncapped drain has
+    no blocking waiter to park.  Two comments updated to match: the
+    send.c ordering comment now attributes the guarantee to the
+    atomic RMW on the cp_flags word rather than cross-variable
+    ordering, and the sync cancels in rds_tcp_reset_callbacks() now
+    document the ordered-cp_wq reliance.
+  - Patch 4: the call-site comment in rds_tcp_accept_one() no longer
+    promises rds_connect_path_complete() will mark the path
+    RDS_CONN_UP; it names the drop-and-reap outcome too.
+    Investigated possible patch re-ordering with patches 5/6, but
+    retaining this ordering to avoid widening the pre-existing race
+    window betwen accept and shutdown before the conditional transition
+    is in place.
+  - Patch 2: changelog now names the companion and dependent patches
+    by subject instead of series position, and describes the
+    teardown's acquire side as of the end of the series.
+  - Patches 1, 3 and 5 are unchanged; patches 1-6 are code-identical
+    to v4 apart from the two comments noted above.
+
+The cong.c wq_has_sleeper() conversion mentioned on the v2 thread was
+sent separately and has already been reviewed.
+
+Questions and comments appreciated!
+
+Thanks,
 Allison
+
+[1] https://lore.kernel.org/netdev/20260806072045.1092968-1-achender@kernel.org/
+[2] https://lore.kernel.org/netdev/20260814013501.43760-1-achender@kernel.org/
+[3] https://lore.kernel.org/netdev/20260816001510.73645-1-achender@kernel.org/
+[4] https://lore.kernel.org/netdev/20260822052459.88017-1-achender@kernel.org/
+[5] https://lore.kernel.org/netdev/20260824003759.127353-1-achender@kernel.org/
+
+Allison Henderson (5):
+  net/rds: use wq_has_sleeper() in release_in_xmit()
+  net/rds: use clear_bit_unlock() in release_refill()
+  net/rds: clear cp_flags bits individually in rds_conn_path_reset()
+  net/rds: acquire RDS_IN_XMIT in rds_tcp_reset_callbacks()
+  net/rds: don't let rds_conn_shutdown() consume a concurrent drop
+
+Gerd Rausch (1):
+  net/rds: tcp: don't force RDS_CONN_RESETTING over a concurrent
+    shutdown
+
+Håkon Bugge (1):
+  net/rds: acquire the fastpath locks in rds_conn_shutdown()
+
+ net/rds/connection.c |  89 ++++++++++++++++++++++++++++++--------
+ net/rds/ib_recv.c    |   9 ++--
+ net/rds/send.c       |  14 ++++--
+ net/rds/tcp.c        | 101 +++++++++++++++++++++++++++++++------------
+ net/rds/tcp_listen.c |   6 ++-
+ 5 files changed, 166 insertions(+), 53 deletions(-)
+
+
+base-commit: 4e15e89faac9f308baeb01f46c13a051814d2449
+-- 
+2.25.1
+
