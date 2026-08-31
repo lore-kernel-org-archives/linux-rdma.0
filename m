@@ -1,51 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE50A45629A;
-	Mon, 31 Aug 2026 13:34:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A1D6463B85;
+	Mon, 31 Aug 2026 13:34:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788183276; cv=none; b=NU+YHcbrQbvF2xAVSm+KDcssGx8Xkx/ILT5sYqlOwdpOp38oDEfzEaTrKPSLnfdqemnVjL7tgKwFNGI8vugMm+9Oc2OUHwgLMLHIMIUoaopu7FLacutqmj8ojabeJCs+KNpRfEu+ux94FjOLBLKFoDs/OQ/V8FLAtYPUWpjtfMk=
+	t=1788183288; cv=none; b=exNHY+irBHFRAkzUe97BivOdOt7NXU57+diM8tUf0Oo/QhAptLgnXT1Moi4TcSneszW9+yInUEPuTCZCoCVo2epG1cFg9olnkBsF5KEqkNGuufNbDqmTrCK7xkHGTh1ZnlzWXKc/oODzM1zy+UUC44WD/6SdtSqyc0UuDqkVeVs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788183276; c=relaxed/simple;
-	bh=XTlDyMPjqqpGEJ0fRTilMvCe868kWUmjSD8KnH9twIU=;
+	s=arc-20240116; t=1788183288; c=relaxed/simple;
+	bh=oJKRo6iYUwu6JiBDwUYbeLd7bBD9F63TofeajU3Q+OI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=TuLBIqvAjUOjKClxeFVIjhL12LhRVDH2WzoVhgpsd3eTUc9oHoVr9TEzCcpHIioEX18DLwospblMNPx1Kud2lnuvcFRI3Il+4+uZ48YptCJPEtuwp9eVMa7dBBFcA9n4VW8Nku8X73H55Z68I1zTwXf+vlBxpawW0Owh0dtdi50=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TmX/6qrJ; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=PZVlyTt7zPlhufoipUgdysXEKuZUx7SfzwpiJiFcBncBWTVWz2a/PsunFXP0MMmhVZYe/r/eQUNNMnFxkTQs56mLid1cbdJd7jW4AIm98gxYXQ/LVsdDOIyldC3sJ5f9OVJHp+lougL+1mUWnG4+hnDX+88M/9R2SHbX2boB/iE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Q0MGuAvo; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TmX/6qrJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2E7B1F00A3E;
-	Mon, 31 Aug 2026 13:34:32 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Q0MGuAvo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A4E11F00A3E;
+	Mon, 31 Aug 2026 13:34:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788183274;
-	bh=A7UcETNau9qk8awitJqCLxjvw7lf1xGvDC5YSGu0tas=;
+	s=k20260515; t=1788183285;
+	bh=3GlkRAyGJi4s/IJJOfmPlV2PSzAFfMCOhL/uc1k0p9U=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=TmX/6qrJINgTk7nytiuaxkO2Lt0RwH+HWBISgrmUPqkJDDs+0wLeWMbSYpnesghsF
-	 1C4077MyJzTrnH5i67HJNuqjNbwr2xPShLB+zRMXTsqYE/bSGrle+OKXm/rcmKMDel
-	 40pcuIeeQtwLgF1JBT8TKEyxeZNIpPbcd/iFNjpKL9qN4k2InZ3OHt2VlNml6E+F17
-	 o586pQZaYgIx7Lo+DRxzFeGCpAvOSgLpoqdOjS+Ku0eWIkz5q+h+vaHn1OI52njYE+
-	 fAwepYOH8CvNXP3D2zgvrlOUdEGUOjO40t8ZJKjrVbBDeWeXveuPAIhlPIHgGWdknm
-	 gNUJHg7fyfglA==
+	b=Q0MGuAvoV/43moSGMxGcQuc/azCPy3lhsgv9nYI9vXJfhAnk8Zgq2MNM8hbmqFIir
+	 60BNJRILRNbQsfMYqOe6LadOxlhDvRGrqR/gDniJTYrpMmhvGYFmwP7ML1pwhwMGfC
+	 6KYbzPpNEQozE/P3Rm+V5/FKiFdTDX4iAUn7wDZQ/1jTiRrEr3efB4x46hgHbC26FD
+	 6xWUpt8Gr02TLCUc6Pq6Zq8Z1PKl56zl8RYWfA+c8zCe/C6v5dzlMxsNjG6vNqPf57
+	 HqXvs3eMOjH1kq9wVrWaHLVVb20VkDWpOdiboOmlPEqqhM2vTl7x4ODK1L59tdiNxW
+	 C9QQu8PMUtaIA==
 From: Sasha Levin <sashal@kernel.org>
 To: patches@lists.linux.dev,
 	stable@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	Sabrina Dubroca <sd@queasysnail.net>,
-	Jakub Kicinski <kuba@kernel.org>,
+Cc: Jason Gunthorpe <jgg@nvidia.com>,
 	Sasha Levin <sashal@kernel.org>,
-	saeedm@nvidia.com,
-	tariqt@nvidia.com,
-	mbloch@nvidia.com,
-	andrew+netdev@lunn.ch,
-	davem@davemloft.net,
-	edumazet@google.com,
-	pabeni@redhat.com,
-	netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.18-6.1] eth: mlx5: fix macsec dependency
-Date: Mon, 31 Aug 2026 09:21:17 -0400
-Message-ID: <20260831133314.4125787-49-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.18] RDMA/umem: Make ib_umem_is_contiguous() safe on 32 bit
+Date: Mon, 31 Aug 2026 09:21:25 -0400
+Message-ID: <20260831133314.4125787-57-sashal@kernel.org>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260831133314.4125787-1-sashal@kernel.org>
 References: <20260831133314.4125787-1-sashal@kernel.org>
@@ -61,400 +51,391 @@ X-stable-base: Linux 6.18.48
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Arnd Bergmann <arnd@arndb.de>
+From: Jason Gunthorpe <jgg@nvidia.com>
 
-[ Upstream commit 87ab8276ed24d688febfef4d0c1794896e778192 ]
+[ Upstream commit 55d984dae65262fbb0a673cff7cc9824a5e19bdb ]
 
-Configurations with mlx5 built-in but macsec=m fail to link:
+Sashiko points out the roundup_pow_of_two() only uses unsigned long but
+dma_addr_t can be u64.
 
-x86_64-linux-ld: drivers/infiniband/hw/mlx5/macsec.o: in function `mlx5r_add_gid_macsec_operations':
-macsec.c:(.text+0x77d): undefined reference to `macsec_netdev_is_offloaded'
-x86_64-linux-ld: drivers/infiniband/hw/mlx5/macsec.o: in function `mlx5r_del_gid_macsec_operations':
-macsec.c:(.text+0xe81): undefined reference to `macsec_netdev_is_offloaded'
+Change this algorithm to be simpler, compute the page size, if any page
+size is found and it results in a single block then it is contiguous.
 
-Fix the dependency so this configuration cannot happen.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Sabrina Dubroca <sd@queasysnail.net>
-Link: https://patch.msgid.link/20260622124229.2444502-1-arnd@kernel.org
-Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Link: https://patch.msgid.link/r/3-v1-88303e9e509f+f7-ib_umem_types_jgg@nvidia.com
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
 
 LLM Generated explanations, may be completely bogus:
 
-# Stable Backport Analysis: `eth: mlx5: fix macsec dependency`
-
-**Local tree:** Linux **6.18.44** (`git describe HEAD` →
-`v6.18.44-1-g2736c32da98b9`)
-
----
-
-## PHASE 1: COMMIT MESSAGE FORENSICS
+## Phase 1: Commit Message Forensics
 
 ### Step 1.1: Subject Line
-**Record:** `[eth: mlx5]` `[fix]` — Correct a Kconfig dependency for
-mlx5 MACsec offload so invalid build configurations cannot be selected.
+**Record:** `[RDMA/umem]` `[Make/safe]` — Make `ib_umem_is_contiguous()`
+safe on 32-bit by fixing type truncation in page-size computation.
 
 ### Step 1.2: Tags
 **Record:**
-- **Signed-off-by:** Arnd Bergmann `<arnd@arndb.de>` (author)
-- **Reviewed-by:** Sabrina Dubroca `<sd@queasysnail.net>`
-- **Link:**
-  https://patch.msgid.link/20260622124229.2444502-1-arnd@kernel.org
-- **Signed-off-by:** Jakub Kicinski `<kuba@kernel.org>` (net maintainer
-  merge)
-- No `Fixes:`, `Reported-by:`, `Cc: stable@vger.kernel.org`, or `Tested-
-  by:` tags
-- Notable: Reviewed by a netdev reviewer; merged by net maintainer. No
-  syzbot report.
+- **Link:** https://patch.msgid.link/r/3-v1-88303e9e509f+f7-
+  ib_umem_types_jgg@nvidia.com
+- **Signed-off-by:** Jason Gunthorpe \<jgg@nvidia.com\>
+- No Fixes:, Reported-by:, Tested-by:, Reviewed-by:, or Cc: stable in
+  the commit message itself
+- **Notable:** Patch is **[PATCH 3/3]** in series "Fix typing issues in
+  the umem code"; cover letter and patch 1 CC `stable@vger.kernel.org`.
+  Author is RDMA subsystem maintainer.
 
 ### Step 1.3: Body Analysis
 **Record:**
-- **Bug:** Kernel configurations with `MLX5_CORE=y` (built-in) and
-  `MACSEC=m` (module) can enable `MLX5_MACSEC=y`, but linking fails with
-  undefined references to `macsec_netdev_is_offloaded` from
-  `drivers/infiniband/hw/mlx5/macsec.c`.
-- **Symptom:** Link-time failure (`undefined reference to
-  'macsec_netdev_is_offloaded'`) during kernel build — not a runtime
-  crash.
-- **Root cause:** `MLX5_MACSEC` depends only on `MACSEC` (any tristate
-  value), which does not prevent built-in mlx5 from referencing symbols
-  exported only by a modular MACsec driver.
-- **Author note (from lore):** Bug likely old; first noticed on
-  `next-20260615`; rare in randconfig due to other dependency
-  constraints.
+- **Bug:** `roundup_pow_of_two()` operates on `unsigned long`, but its
+  input involves `dma_addr_t` which can be `u64` on 32-bit kernels with
+  `CONFIG_ARCH_DMA_ADDR_T_64BIT`.
+- **Symptom:** Incorrect page-size computation in
+  `ib_umem_is_contiguous()`, yielding wrong contiguous/non-contiguous
+  results.
+- **Root cause:** Silent truncation of a 64-bit DMA-address expression
+  to 32-bit `unsigned long` before `roundup_pow_of_two()`.
+- **Fix approach:** Replace XOR/roundup algorithm with
+  `ib_umem_find_best_pgsz()` + `ib_umem_num_dma_blocks() == 1` check.
 
 ### Step 1.4: Hidden Bug Fix?
-**Record:** No — this is an explicit build-fix, not disguised cleanup.
-Same class of fix Arnd has done before for mlx5 (TLS, psample).
+**Record:** Yes — despite no "fix" in the subject, this is a type-
+truncation correctness bug, not cleanup. Reported by Sashiko per commit
+message.
 
 ---
 
-## PHASE 2: DIFF ANALYSIS
+## Phase 2: Diff Analysis
 
 ### Step 2.1: Inventory
 **Record:**
-- **Files:** `drivers/net/ethernet/mellanox/mlx5/core/Kconfig` — 1 line
-  changed (+1/-1)
-- **Functions modified:** None (Kconfig only)
-- **Scope:** Single-file, surgical Kconfig fix
+- **Files:** `include/rdma/ib_umem.h` only (+3 / -8 lines)
+- **Functions:** `ib_umem_is_contiguous()`
+- **Scope:** Single-file, surgical inline-helper fix
 
 ### Step 2.2: Code Flow Change
 **Record:**
-- **Before:** `MLX5_MACSEC` selectable whenever `MACSEC` is enabled at
-  any tristate value (`y` or `m`), even when `MLX5_CORE=y` and
-  `MACSEC=m`.
-- **After:** `MLX5_MACSEC` only selectable when `MACSEC=y` (built-in) OR
-  `MACSEC=MLX5_CORE` (MACsec built as module only when mlx5 core is also
-  a module).
-- **Affected path:** Kconfig resolution at build configuration time;
-  prevents a configuration that cannot link.
+- **Before:** Compute `pgsz = roundup_pow_of_two((dma_addr ^
+  (umem->length - 1 + dma_addr)) + 1)`, then call
+  `ib_umem_find_best_pgoff(umem, pgsz, U64_MAX)`.
+- **After:** `pgsz = ib_umem_find_best_pgsz(umem, ULONG_MAX,
+  ib_umem_start_dma_addr(umem))`, return true iff `pgsz &&
+  ib_umem_num_dma_blocks(umem, pgsz) == 1`.
+- **Path affected:** Any caller checking umem contiguity (EFA CQ
+  external-memory creation).
 
 ### Step 2.3: Bug Mechanism
-**Record:** **Build/configuration bug (h).** Built-in mlx5
-(`MLX5_CORE=y`) links `macsec.o` into `mlx5_ib` when
-`CONFIG_MLX5_MACSEC=y`, calling `macsec_netdev_is_offloaded()` from
-`drivers/net/macsec.c`. With `MACSEC=m`, that symbol lives in a loadable
-module and is unavailable at link time for built-in code.
+**Record:**
+- **Category:** Type/size truncation (endianness/type bug family)
+- **Mechanism:** On 32-bit with 64-bit `dma_addr_t`, `(dma_addr ^
+  (umem->length - 1 + dma_addr)) + 1` is computed in 64-bit arithmetic
+  but implicitly truncated when passed to `roundup_pow_of_two(unsigned
+  long)`, producing wrong `pgsz` and wrong contiguity result.
 
 ### Step 2.4: Fix Quality
-**Record:**
-- **Obviously correct:** Yes — mirrors the established mlx5 pattern used
-  for TLS (`TLS=y || MLX5_CORE=m` at line 162) and psample (`PSAMPLE=y
-  || PSAMPLE=n || MLX5_CORE=m` at line 115).
-- **Minimal:** One-line change, no unrelated edits.
-- **Regression risk:** Very low — only removes an invalid Kconfig
-  combination; does not change runtime behavior for configurations that
-  already built successfully.
+**Record:** Obviously correct and simpler. Uses existing helpers that
+already handle `dma_addr_t` internally for SG traversal. Low regression
+risk. **Caveat:** Full correctness on 32-bit also requires patch 2/3 of
+the same series (changing `ib_umem_find_best_pgsz()`'s `virt` parameter
+from `unsigned long` to `u64`), which is not yet in this tree.
 
 ---
 
-## PHASE 3: GIT HISTORY INVESTIGATION
+## Phase 3: Git History Investigation
 
 ### Step 3.1: Blame
-**Record:**
-- `depends on MACSEC` introduced by **8ff0ac5be14469** (Lior Nahmanson,
-  2022-09-05) — `net/mlx5: Add MACsec offload Tx command support`
-- `config MLX5_MACSEC` symbol added by **7390762a07374** (Patrisious
-  Haddad, 2022-11-29)
-- RoCE MACsec code calling `macsec_netdev_is_offloaded()` added in
-  **758ce14aee825** (2022-05-03) and expanded in **58dbd6428a681**
-  (2023-04-13)
-- `macsec_netdev_is_offloaded()` itself added in **f132fdd9dc81e**
-  (2023-08-20)
-- Bug has been latent since RoCE MACsec started referencing the MACsec
-  core symbol with insufficient Kconfig constraints
+**Record:** Buggy `ib_umem_is_contiguous()` introduced in
+`c897c2c8b8e82` ("RDMA/core: Add umem is_contiguous and start_dma_addr
+helpers", 2025-07-08). Present in this 6.18.y tree.
 
 ### Step 3.2: Fixes: Tag
-**Record:** N/A — no `Fixes:` tag in commit message.
+**Record:** N/A — no Fixes: tag on this commit.
 
 ### Step 3.3: Related File History
 **Record:**
-- **c3cd281e2bc8d** (2018): `net/mlx5e: fix TLS dependency` — identical
-  class of fix by same author
-- **7a7dd5114f538** (2021): `mlx5: fix psample_sample_packet link error`
-  — same author, same Kconfig file
-- **96c34151d1577** (2020): mlx5 Kconfig weak-dependency conversion
-  after kconfig `imply` semantics change
-- Standalone one-patch fix, not part of a series
+- Part of 3-patch series by Jason Gunthorpe (2026-06-01):
+  1. `15fe76e23615f` — Fix truncation for block sizes >= 4G (`iter.c`) —
+     **already backported** as `afd35fec92971`
+  2. `09ea6837a0434` — Boundary conditions in `ib_umem_find_best_pgsz()`
+     — **NOT in tree**
+  3. `55d984dae6526` — This commit — **NOT in tree**
+- `ib_umem_is_contiguous()` caller added in `9fb3dd85197f5` (EFA CQ
+  external memory support), also in tree.
 
 ### Step 3.4: Author Context
-**Record:** Arnd Bergmann is a long-standing contributor who routinely
-fixes Kconfig/link-dependency issues across the kernel. Multiple prior
-mlx5 Kconfig fixes from him are already in this tree.
+**Record:** Jason Gunthorpe is core RDMA maintainer. Recent related work
+includes `ib_umem_find_best_pgsz()` improvements and umem typing fixes.
 
 ### Step 3.5: Dependencies
-**Record:** No prerequisite commits. Uses `MACSEC=MLX5_CORE` Kconfig
-symbol-equality syntax, which is already present elsewhere in this
-6.18.44 tree (e.g., `BACKLIGHT_CLASS_DEVICE=FB_RIVA`,
-`HID=SND_SOC_SDCA`). Applies standalone.
+**Record:** Patch 2 (`09ea6837a0434`) changes `ib_umem_find_best_pgsz()`
+to accept `u64 virt` instead of `unsigned long virt`. This commit passes
+`ib_umem_start_dma_addr(umem)` (`dma_addr_t`) as that argument. **For a
+complete 32-bit fix, patch 2 should accompany this commit.** Patch 3
+compiles and applies standalone but retains `virt` truncation without
+patch 2.
 
 ---
 
-## PHASE 4: MAILING LIST AND EXTERNAL RESEARCH
+## Phase 4: Mailing List and External Research
 
 ### Step 4.1: Original Discussion
 **Record:**
-- **URL:** https://lists.openwall.net/linux-kernel/2026/06/22/987
-- **Series revisions:** v1 only (single patch)
-- **Reviewer feedback:** No NAKs found; `Reviewed-by: Sabrina Dubroca`
-- **Stable nomination:** None in thread
-- **Author context:** Notes bug is probably old, first seen on
-  next-20260615
+- **URL:** https://patch.msgid.link/3-v1-88303e9e509f+f7-
+  ib_umem_types_jgg@nvidia.com (via `b4 dig -c 55d984dae6526`)
+- **Series:** v1 only found; applied to mainline by Jason Gunthorpe on
+  2026-06-05 ("Applied")
+- **Cover letter:** "Fix various silent truncations, issues on 32 bit
+  compiles and understandability"
 
 ### Step 4.2: Reviewers
-**Record:** To: mlx5 maintainers (Saeed Mahameed, Leon Romanovsky,
-etc.), netdev maintainers (Andrew Lunn, David Miller, Jakub Kicinski,
-Paolo Abeni, Eric Dumazet). Cc: netdev@, linux-rdma@, linux-kernel@.
-Reviewed-by from Sabrina Dubroca (netdev).
+**Record:** To: Leon Romanovsky, linux-rdma; Cc:
+patches@lists.linux.dev, Shiraz Saleem, **stable@vger.kernel.org**
 
 ### Step 4.3: Bug Report
-**Record:** No external bug report or syzbot link. Failure documented
-via reproducible linker error in commit message and lore submission.
-Syzbot CI skipped the patch as having no functional/runtime impact
-(Kconfig-only).
+**Record:** No formal bugzilla/syzbot report. Issue raised by Sashiko
+during review (per commit message). No stack traces or crash reports.
 
 ### Step 4.4: Related Patches
-**Record:** No multi-patch series. Direct precedent: TLS and psample
-mlx5 Kconfig fixes already in tree.
+**Record:** 3-patch series; patch 1 already backported to 6.18.y.
+Patches 2+3 remain.
 
 ### Step 4.5: Stable List History
-**Record:** No stable@ discussion found. Not searched exhaustively on
-lore stable@, but absence is not a negative signal per review
-guidelines.
+**Record:** Author CC'd stable on cover letter and patch 1 (which was
+backported). Explicit stable nomination signal.
 
 ---
 
-## PHASE 5: CODE SEMANTIC ANALYSIS
+## Phase 5: Code Semantic Analysis
 
 ### Step 5.1: Key Functions
-**Record:** No C functions modified. Affected symbols at build time:
-- `mlx5r_add_gid_macsec_operations()` /
-  `mlx5r_del_gid_macsec_operations()` in
-  `drivers/infiniband/hw/mlx5/macsec.c` (call
-  `macsec_netdev_is_offloaded()`)
-- `macsec_netdev_is_offloaded()` in `drivers/net/macsec.c`
-  (EXPORT_SYMBOL_GPL)
+**Record:** `ib_umem_is_contiguous()`, `ib_umem_find_best_pgsz()`,
+`ib_umem_num_dma_blocks()`, `ib_umem_start_dma_addr()`
 
 ### Step 5.2: Callers
-**Record:** `mlx5r_add/del_gid_macsec_operations()` called from
-`drivers/infiniband/hw/mlx5/main.c` during RoCE GID add/delete. Only
-compiled when `CONFIG_MLX5_MACSEC=y`. `mlx5_ib-$(CONFIG_MLX5_MACSEC) +=
-macsec.o` in `drivers/infiniband/hw/mlx5/Makefile`.
+**Record:** Single caller in this tree:
+- `drivers/infiniband/hw/efa/efa_verbs.c` — EFA CQ creation with
+  external memory; rejects non-contiguous buffers with `-EINVAL`.
 
 ### Step 5.3: Callees
-**Record:** `macsec_netdev_is_offloaded()` checks whether a netdevice
-has MACsec offload enabled — exported GPL symbol from MACsec core
-driver.
+**Record:** `ib_umem_find_best_pgsz()` walks SG table using
+`dma_addr_t`; `ib_umem_num_dma_blocks()` counts blocks from `umem->iova`
+and `umem->length`.
 
 ### Step 5.4: Reachability
-**Record:** Bug is reachable at **build time** when a user/distro
-selects `MLX5_CORE=y`, `MACSEC=m`, `MLX5_MACSEC=y`. Not a runtime
-userspace trigger, but blocks kernel compilation entirely for that
-config.
+**Record:** Reachable from userspace via RDMA uverbs CQ creation ioctl
+(EFA driver, `CONFIG_INFINIBAND_EFA`). Requires
+`CONFIG_INFINIBAND_USER_MEM`.
 
 ### Step 5.5: Similar Patterns
-**Record:** Same Kconfig dependency pattern already used in this file:
-- `MLX5_EN_TLS`: `depends on TLS=y || MLX5_CORE=m` (line 162)
-- `MLX5_TC_SAMPLE`: `depends on PSAMPLE=y || PSAMPLE=n || MLX5_CORE=m`
-  (line 115)
+**Record:** Same series addresses related truncation in `iter.c`
+(already backported) and `ib_umem_find_best_pgsz()` (patch 2, not yet
+backported).
 
 ---
 
-## PHASE 6: CROSS-REFERENCING AGAINST LOCAL TREE (6.18.44)
+## Phase 6: Cross-Reference Against Local Tree
 
-### Step 6.1: Does Buggy Code Exist?
-**Record:** **YES.** Current tree at
-`drivers/net/ethernet/mellanox/mlx5/core/Kconfig:146` still has `depends
-on MACSEC`. RoCE MACsec code and `macsec_netdev_is_offloaded()`
-references are present. Fix commit is **not yet applied** to this
-checkout.
+### Step 6.1: Buggy Code Present?
+**Record:** **Yes.** Tree is **v6.18.44** (`linux-6.18.y`). Buggy
+`roundup_pow_of_two()` code is at lines 122–134 of
+`include/rdma/ib_umem.h`. Introduced July 2025, well within 6.18's
+lifetime.
 
 ### Step 6.2: Backport Complications
-**Record:** **Clean apply expected.** Single-line change.
-`MACSEC=MLX5_CORE` syntax is supported in 6.18.44 Kconfig (verified via
-grep of other `=SYMBOL` patterns in tree). No conflicting recent churn
-on this Kconfig block.
+**Record:** Clean apply expected — single hunk in one header. No
+conflicting changes found. **Recommend backporting patch 2 alongside for
+complete fix.**
 
 ### Step 6.3: Related Fixes Already Present?
-**Record:** TLS and psample mlx5 Kconfig link fixes are present. No
-equivalent MACsec fix found (`git log --grep="macsec dependency"`
-returns nothing in this tree).
+**Record:** Patch 1 of series (`afd35fec92971`) already backported.
+Patches 2 and 3 are not. No alternative fix for this specific bug.
 
 ---
 
-## PHASE 7: SUBSYSTEM AND MAINTAINER CONTEXT
+## Phase 7: Subsystem Context
 
 ### Step 7.1: Subsystem
-**Record:** **drivers/net/ethernet/mellanox/mlx5** +
-**drivers/infiniband/hw/mlx5** (RDMA/RoCE MACsec). Criticality:
-**IMPORTANT** — affects Mellanox ConnectX users building custom or
-distro kernels with MACsec offload; not universal core-path but affects
-a widely deployed NIC family.
+**Record:** RDMA core (`include/rdma/ib_umem.h`) — **IMPORTANT**
+(affects RDMA memory registration path, used by multiple drivers via
+shared helpers).
 
 ### Step 7.2: Activity
-**Record:** mlx5 Kconfig actively maintained; recent commits include PSP
-offload, VXLAN co-dependency removal, HWS support. MACsec Kconfig
-dependency has been unchanged since 2022.
+**Record:** Actively developed; `ib_umem_is_contiguous()` is relatively
+new (2025).
 
 ---
 
-## PHASE 8: IMPACT AND RISK ASSESSMENT
+## Phase 8: Impact and Risk Assessment
 
 ### Step 8.1: Who Is Affected
-**Record:** Kernel builders (distro maintainers, embedded vendors,
-advanced users) configuring `MLX5_CORE=y` + `MACSEC=m` +
-`MLX5_MACSEC=y`. Hardware-specific (Mellanox/NVIDIA ConnectX with RoCE
-MACsec offload).
+**Record:** Users of RDMA with `CONFIG_INFINIBAND_USER_MEM` on **32-bit
+architectures with 64-bit DMA addresses** (e.g., ARM with
+`CONFIG_ARCH_DMA_ADDR_T_64BIT`). Currently impacts EFA external-memory
+CQ path directly; helper is available for other drivers.
 
 ### Step 8.2: Trigger Conditions
-**Record:** Selecting the invalid Kconfig combination during `make
-menuconfig` / defconfig customization. Uncommon but explicitly allowed
-by current Kconfig. Not user-triggerable at runtime.
+**Record:** Creating an RDMA memory region where DMA addresses or span
+computations exceed 32-bit when truncated. Requires EFA (currently) +
+external memory CQ. Not every boot, but reachable from userspace RDMA
+operations.
 
 ### Step 8.3: Failure Mode Severity
-**Record:** **Build failure** — linker error, kernel cannot be built.
-Per `Documentation/process/stable-kernel-rules.rst` line 19, build
-errors are explicitly listed as valid stable material (excluding
-CONFIG_BROKEN). Severity for stable purposes: **qualifying build
-error**.
+**Record:**
+- **False negative** (contiguous reported as non-contiguous): `-EINVAL`,
+  CQ creation fails — **MEDIUM**
+- **False positive** (non-contiguous reported as contiguous): device
+  programmed with wrong memory layout — potential **data corruption /
+  hardware malfunction** — **HIGH**
+- Not a typical kernel oops/panic, but correctness bug with corruption
+  potential.
 
 ### Step 8.4: Risk-Benefit
 **Record:**
-- **Benefit:** Unblocks valid-intent builders; prevents wasted build
-  time hitting link failure; aligns Kconfig with link requirements
-- **Risk:** Minimal — one-line Kconfig constraint, proven pattern
-- **Ratio:** High benefit, very low risk
+- **Benefit:** MEDIUM-HIGH — fixes real type bug in shared RDMA helper;
+  author nominated for stable; series already partially backported
+- **Risk:** LOW — 3-line net change, uses existing well-tested helpers
+- **Ratio:** Favorable
 
 ---
 
-## PHASE 9: FINAL SYNTHESIS
+## Phase 9: Final Synthesis
 
 ### Step 9.1: Evidence Summary
 
-**FOR backport:**
-- Fixes a real, reproducible linker failure
-- Explicitly listed stable category: build error
-- One-line, obviously correct fix
-- Same author fixed identical mlx5 Kconfig class before (TLS, psample) —
-  those are in this tree
-- Reviewed-by from netdev reviewer; merged by net maintainer
-- Buggy code confirmed present in 6.18.44
-- Clean backport expected
+**FOR:**
+- Real type-truncation bug on 32-bit with 64-bit `dma_addr_t`
+- Small, surgical, obviously correct fix from RDMA maintainer
+- Author CC'd stable; patch 1 of same series already in 6.18.y
+- False-positive contiguity could cause serious RDMA misprogramming
+- Buggy code confirmed present in v6.18.44
 
-**AGAINST backport:**
-- Rare configuration (author notes randconfig rarely hits it)
-- No runtime/user-visible crash — build-time only
-- No explicit stable nomination or user bug reports
+**AGAINST:**
+- Niche platform config (32-bit + 64-bit DMA + RDMA)
+- Only one direct caller today (EFA)
+- Complete fix requires patch 2 (`09ea6837a0434`) not yet in tree
+- No crash report or syzbot reproduction
 
-**Unresolved:** Whether any distro actually ships this broken config
-combination in practice (unverified; not needed for decision — build
-errors are stable-worthy regardless).
+**Unresolved:** No runtime test results in mailing list thread.
 
 ### Step 9.2: Stable Rules Checklist
-1. Obviously correct and tested? **PASS** — proven Kconfig pattern,
-   Reviewed-by present
-2. Fixes real bug affecting users? **PASS** — reproducible link failure
-   blocks kernel build
-3. Important issue? **PASS** — build error per stable-kernel-rules.rst
-4. Small and contained? **PASS** — 1 line, 1 file
-5. No new features/APIs? **PASS** — Kconfig constraint only
-6. Can apply to local tree? **PASS** — buggy code present, syntax
-   supported, clean apply
+1. Obviously correct and tested? **PASS** — logic is sound; applied to
+   mainline; no objections in review
+2. Fixes a real bug? **PASS** — confirmed type truncation in existing
+   code
+3. Important issue? **PASS** — correctness bug with potential data
+   corruption (false positive path)
+4. Small and contained? **PASS** — 3 lines net, one file
+5. No new features/APIs? **PASS** — same function signature and
+   semantics
+6. Can apply to local tree? **PASS** — applies cleanly; patch 2 should
+   accompany for completeness
 
-### Step 9.3: Exception Category
-**Record:** **Build fix** — Kconfig dependency correction preventing
-link failure.
+### Step 9.3: Exception Categories
+**Record:** N/A — standard bug fix, not device-ID/quirk/build/doc
+exception.
 
 ### Step 9.4: Decision Rationale
 
-For **Linux 6.18.44**, this commit should be backported. The tree still
-has the insufficient `depends on MACSEC` constraint while RoCE MACsec
-code unconditionally references `macsec_netdev_is_offloaded()` when
-`CONFIG_MLX5_MACSEC=y`. The fix is a one-line Kconfig change using an
-established mlx5 pattern and syntax already supported in 6.18.y. It
-meets all stable kernel criteria, including the explicit allowance for
-build errors in `stable-kernel-rules.rst`.
+This commit fixes a real, verifiable type-truncation bug in
+`ib_umem_is_contiguous()` that exists in the 6.18.44 tree. The buggy
+code was introduced in July 2025 and can cause incorrect contiguity
+detection on 32-bit kernels where `dma_addr_t` is 64-bit. While the
+immediate caller is the EFA driver's external-memory CQ path, the helper
+is shared RDMA infrastructure.
+
+The fix is minimal, low-risk, and from the RDMA maintainer who
+explicitly CC'd stable. Patch 1 of the same 3-patch series is already
+backported to this tree (`afd35fec92971`), establishing precedent.
+**Patch 2 (`09ea6837a0434`) should be backported together with this
+commit** for a complete 32-bit fix, since this commit passes a
+`dma_addr_t` to `ib_umem_find_best_pgsz()` which still takes `unsigned
+long virt` in 6.18.y. Even standalone, removing the broken
+`roundup_pow_of_two()` path is a meaningful improvement.
 
 ---
 
 ## Verification
 
-- **[Phase 1]** `git describe HEAD` → v6.18.44; parsed commit message
-  tags from user query and lore
-- **[Phase 1]** WebFetch lore: https://lists.openwall.net/linux-
-  kernel/2026/06/22/987 — confirmed patch content and author notes
-- **[Phase 2]** Read `Kconfig` lines 143–165 — confirmed current
-  `depends on MACSEC` and TLS precedent at line 162
-- **[Phase 2]** Grep `macsec_netdev_is_offloaded` — found in
-  `drivers/infiniband/hw/mlx5/macsec.c:246,332` and
-  `drivers/net/macsec.c:4355`
-- **[Phase 3]** `git blame` on Kconfig:143-150 — `depends on MACSEC`
-  from 8ff0ac5be14469 (2022-09-05)
-- **[Phase 3]** `git show 8ff0ac5be14469`, `758ce14aee825`,
-  `58dbd6428a681` — MACsec Kconfig and RoCE MACsec introduction
-- **[Phase 3]** `git show c3cd281e2bc8d`, `7a7dd5114f538` — prior Arnd
-  mlx5 Kconfig link fixes
-- **[Phase 3]** `git log --oneline -20 --
-  drivers/net/ethernet/mellanox/mlx5/core/Kconfig` — recent file history
-- **[Phase 3]** `git show f132fdd9dc81e` — `macsec_netdev_is_offloaded`
-  added 2023-08-20
-- **[Phase 4]** b4 dig requires commit hash; commit not in local tree —
-  used WebFetch lore instead
-- **[Phase 4]** WebSearch — found lore URL, GitHub commit 87ab827,
-  syzbot CI skip (no runtime test needed)
-- **[Phase 5]** Read `drivers/infiniband/hw/mlx5/Makefile:33` —
-  `mlx5_ib-$(CONFIG_MLX5_MACSEC) += macsec.o`
-- **[Phase 5]** Grep `=MLX5_CORE` and `=SYMBOL` patterns —
-  `MACSEC=MLX5_CORE` syntax supported in 6.18.44 tree
-- **[Phase 6]** Grep confirmed fix NOT present (`depends on MACSEC`
-  without `MACSEC=y || MACSEC=MLX5_CORE`)
-- **[Phase 6]** `git log --grep="macsec dependency"` — no fix already in
-  tree
-- **[Phase 7]** Read `Documentation/process/stable-kernel-rules.rst:19`
-  — build errors explicitly allowed
-- **[Phase 8]** Confirmed failure mode is link-time build failure, not
-  runtime crash
+- **[Phase 1]** Parsed commit message: subsystem RDMA/umem, Link tag,
+  Jason Gunthorpe SOB, Sashiko attribution
+- **[Phase 2]** Diff analysis: 3 insertions, 8 deletions in
+  `ib_umem_is_contiguous()`; removes `roundup_pow_of_two()` call
+- **[Phase 3]** `git blame`: buggy code from `c897c2c8b8e82`
+  (2025-07-08), present in tree
+- **[Phase 3]** `git merge-base --is-ancestor c897c2c8b8e82 HEAD`: intro
+  commit IS in tree
+- **[Phase 3]** Series check: patch 1 (`afd35fec92971`) IN tree; patches
+  2 (`09ea6837a0434`) and 3 (`55d984dae6526`) NOT in tree
+- **[Phase 3]** `git log --oneline -20 -- include/rdma/ib_umem.h`:
+  confirmed recent umem history
+- **[Phase 4]** `b4 dig -c 55d984dae6526`: found thread at
+  patch.msgid.link
+- **[Phase 4]** `b4 dig -c 55d984dae6526 -a`: v1 series, 3 patches
+- **[Phase 4]** `b4 dig -c 55d984dae6526 -w`: stable@vger.kernel.org
+  CC'd
+- **[Phase 4]** `b4 dig -m /tmp/umem_thread.mbox`: cover letter
+  describes 32-bit truncation fixes; "Applied" reply from author
+- **[Phase 5]** `grep ib_umem_is_contiguous`: one caller in
+  `efa_verbs.c:1222`
+- **[Phase 5]** Read `efa_verbs.c:1215-1230`: rejects non-contiguous
+  with `-EINVAL`
+- **[Phase 5]** Read `ib_umem_find_best_pgsz()` in `umem.c`: uses
+  `dma_addr_t` internally for SG traversal
+- **[Phase 6]** `git describe HEAD`: v6.18.44; `make kernelversion`:
+  6.18.44
+- **[Phase 6]** Read current `ib_umem.h:122-134`: confirmed buggy code
+  still present
+- **[Phase 6]** `include/linux/types.h:157-161`: `dma_addr_t` is `u64`
+  when `CONFIG_ARCH_DMA_ADDR_T_64BIT`
+- **[Phase 6]** `include/linux/log2.h:174-181`: `roundup_pow_of_two()`
+  uses `unsigned long` / `1UL`
+- **[Phase 8]** Failure mode: wrong contiguity → EINVAL or potential
+  RDMA misprogramming
 
-**YES**
+**YES**The analysis is complete: **this commit should be backported to
+the 6.18.y tree (v6.18.44).**
 
- drivers/net/ethernet/mellanox/mlx5/core/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+**Why:** `ib_umem_is_contiguous()` truncates 64-bit `dma_addr_t` values
+through `roundup_pow_of_two()` on 32-bit kernels with 64-bit DMA
+addresses. That can mis-detect memory contiguity and break EFA external-
+memory CQ creation (or worse, accept non-contiguous memory).
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/Kconfig b/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
-index 3c3e84100d5aa..925ee25d05b47 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
-@@ -143,7 +143,7 @@ config MLX5_CORE_IPOIB
- config MLX5_MACSEC
- 	bool "Connect-X support for MACSec offload"
- 	depends on MLX5_CORE_EN
--	depends on MACSEC
-+	depends on MACSEC=y || MACSEC=MLX5_CORE
- 	default n
- 	help
- 	  Build support for MACsec cryptography-offload acceleration in the NIC.
+**Scope:** Small, low-risk change in `include/rdma/ib_umem.h` (3 lines
+net). The buggy code from July 2025 is present in this tree; the fix is
+not.
+
+**Follow-up for stable maintainers:** Backport patch 2 of the same
+series (`09ea6837a0434` — changes `ib_umem_find_best_pgsz()` to take
+`u64 virt`) together with this commit for a complete 32-bit fix. Patch 1
+of the series is already in 6.18.y as `afd35fec92971`.
+
+ include/rdma/ib_umem.h | 11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
+
+diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
+index 0cda3e6425d2e..8a74153332577 100644
+--- a/include/rdma/ib_umem.h
++++ b/include/rdma/ib_umem.h
+@@ -121,16 +121,11 @@ static inline unsigned long ib_umem_find_best_pgoff(struct ib_umem *umem,
+ 
+ static inline bool ib_umem_is_contiguous(struct ib_umem *umem)
+ {
+-	dma_addr_t dma_addr;
+ 	unsigned long pgsz;
+ 
+-	/*
+-	 * Select the smallest aligned page that can contain the whole umem if
+-	 * it was contiguous.
+-	 */
+-	dma_addr = ib_umem_start_dma_addr(umem);
+-	pgsz = roundup_pow_of_two((dma_addr ^ (umem->length - 1 + dma_addr)) + 1);
+-	return !!ib_umem_find_best_pgoff(umem, pgsz, U64_MAX);
++	pgsz = ib_umem_find_best_pgsz(umem, ULONG_MAX,
++				      ib_umem_start_dma_addr(umem));
++	return pgsz && ib_umem_num_dma_blocks(umem, pgsz) == 1;
+ }
+ 
+ struct ib_umem_dmabuf *ib_umem_dmabuf_get(struct ib_device *device,
 -- 
 2.53.0
 
