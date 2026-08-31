@@ -1,180 +1,148 @@
-Received: from SJ2PR03CU001.outbound.protection.outlook.com (mail-westusazon11012011.outbound.protection.outlook.com [52.101.43.11])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEF9F3A4F4B;
-	Mon, 31 Aug 2026 08:47:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.43.11
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788166081; cv=fail; b=P0ZmdMm/Y/BfC8p9SvRDNqm3mQpx37urL2pS40htinqTOhdKjrPjNsz1ryIxe1vvdX7yFKS0CC9uhRshOf2cTQzeMmyHwPnSQjSoVhIQEFwswgcz25R+GSjgqCi4ORcawwdYbJ52W44C7AcKfOFVKzoM6IoLzYf+fNqh8wYQIbU=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788166081; c=relaxed/simple;
-	bh=YDQz9xalNsJYc+0UsCxCHPPI4dn/CCANyBUqkgoTLiY=;
-	h=Message-ID:Date:Subject:To:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=ogKWcnROybFnji67M9UUnZcIU66rHjmgKLGho94Wq22iHk1nO4+3Gko2wqmClyHAhLyXXA/Ry5wE3uFbPc2xFicCRR7hY1fg7oQTRWig9o+MrxaW31l8KcpRmaS6fxc17yrRdh6+lb8s1e8oAiHdhOH/+5bnz5wbLauJqR1od7E=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=hGPoWO8r; arc=fail smtp.client-ip=52.101.43.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 458F23FBB44;
+	Mon, 31 Aug 2026 12:31:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788179461; cv=none; b=mBg2NONQ6SNPcaodl3mIU8DL0DwN/JXOV/TxQlK0lOR9EiLAGkcn++UuAxO6ux7xGbbyQRn1eMUCCsbMkQ+p3bKw9xx+CpkF+Opz5+lVwtf2L2ObIANQcBlgri4MZ7OG9RqTNGm5szjsoFkRbtNlG3AlU35MvZuu+654NkdW6XE=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788179461; c=relaxed/simple;
+	bh=8kESiFRNnkEyqsmqiEeTAtwD/twPIyY5fNwDn00OYEY=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=BuhhQWc9DmUQWunNPGit7T1CzSqucMOykKHPh1eqSenj5dQbTca8czDLLdJi94EysLUE/O8koYucxbs91i3OJGt1ZtMxlqeEfHcNMkcCmpGRj4Cu/zzyiVpcsHatq81woxKWX++ozqtu6i78G0pzLSoynfqyycCSMlrUxfEzkCQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nrJf7jzC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="hGPoWO8r"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=n4R8EIV6M5tLGVqHKm79CAkKSbVNIL083lnzQmnRZ1lK5iMvx4dO8pf/6wg6Oy81yOhku+uuMyabr90Qcg0ZTBOLBW29RvarKEBjpbBensoFYGzqxJnFLNadWtYq4Od64akPOFzKogetCU2lq5+spNdoXcBXCITmL9cPA53zfM6EBrzhHb+ItdfE/+2+0dUEJ21Afg6bKt+4u0ogQW8CQuOgstfRGEal+1zECGZOe/q/nbVkGo/iczXMF5/upKdFizg621oYZEPb3GyMpHli+SVHidWicVByiACrsOdy80fsq27Ob5/gTWlAvmB8lzzmi3nXnn/OgTEvfGf4NH2Jlg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=0qunzlDVybyncnNMApW71pYFeTG3N7I8/5zQ+8rpicg=;
- b=FL5Z6cZw1xmWgjQ82XzYoiJTPaxA596IWJhDS4ilF93gY5bYLFLEjPHcnElpDWJpbBajkH9arrtMLayc9BnJTFrLYXkdEQlFLJmq9OHUuNrmrClgM98C9wVK2pLhPscT7nKnfxzstBcY/n3zcV2qHY3rwbUX6gmtaKbsGuhr67EYDb4NYxPVrPca8TgW1nZMCb2p/WkCVzgeOYrNtbsT/iZvXLljyn3fak8YPLtIiBmkoQJd/xgYPdB23u8u9Rmmio6tI3rzwd3PgglL6ovnRCEASyCXTF1cXvrGPHC0XUpXVFWKsY4+nTzkq/IicExhtWv7Cu2cgrzTRaIeAkdH+w==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=0qunzlDVybyncnNMApW71pYFeTG3N7I8/5zQ+8rpicg=;
- b=hGPoWO8rA88CE4TFl0AUSzOdJj2u040k8kxov8olrhYBVhRx1DFSpaWBITLxJJah7G46+NfhTtwaIpLWbw7UVjrI/Kz5G936FlJmTqHs/CVSbMok+6qRixDhJo9YrmHj5bRWUAaYA/4RVi1oPOPSnveazyXm2ud8efKMChsyI2s1r8KWgH4G19hSD5myScmzYBk+pmTfn/Tfd6QtoDUnUJtCMC3sm2eZWFctR7CDYI/q3lyS8ERLZq2gHUKmMkdQVA2LoD5Yl7pgoD8aZQySS5pOTr7Z8wYRodk39uoUZBFebQbLQg+eqFQ/vgrSFvA82BG9nbFOA9ZBv6NXPNDKIQ==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from CH3PR12MB8728.namprd12.prod.outlook.com (2603:10b6:610:171::12)
- by CH3PR12MB8329.namprd12.prod.outlook.com (2603:10b6:610:12e::10) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.360.13; Mon, 31 Aug
- 2026 08:47:57 +0000
-Received: from CH3PR12MB8728.namprd12.prod.outlook.com
- ([fe80::2641:1046:bdf3:93d7]) by CH3PR12MB8728.namprd12.prod.outlook.com
- ([fe80::2641:1046:bdf3:93d7%6]) with mapi id 15.21.0360.008; Mon, 31 Aug 2026
- 08:47:56 +0000
-Message-ID: <f5ca7380-7c23-4e99-9ec5-64a1a248775f@nvidia.com>
-Date: Mon, 31 Aug 2026 10:47:52 +0200
-User-Agent: Mozilla Thunderbird Beta
-Subject: Re: [PATCH net] net/mlx5e: Order ICOSQ cc update after CQ doorbell
-To: lirongqing <lirongqing@baidu.com>, Saeed Mahameed <saeedm@nvidia.com>,
- Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
- Leon Romanovsky <leon@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>,
- "David S . Miller" <davem@davemloft.net>, Eric Dumazet
- <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20260820030821.1731-1-lirongqing@baidu.com>
-Content-Language: en-US
-From: Dragos Tatulea <dtatulea@nvidia.com>
-In-Reply-To: <20260820030821.1731-1-lirongqing@baidu.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: FR2P281CA0040.DEUP281.PROD.OUTLOOK.COM
- (2603:10a6:d10:92::7) To CH3PR12MB8728.namprd12.prod.outlook.com
- (2603:10b6:610:171::12)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nrJf7jzC"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id E2641C2BCB8;
+	Mon, 31 Aug 2026 12:31:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1788179460;
+	bh=8kESiFRNnkEyqsmqiEeTAtwD/twPIyY5fNwDn00OYEY=;
+	h=From:Date:Subject:To:Cc:Reply-To:From;
+	b=nrJf7jzCqO8Juaw8ag7xft6eHX1Aerh16Ysoq3vc2Awgkw/1NOq4gWiHG6r9MGxdc
+	 cfuaL20QK2CFZcRkiInZNHHU79Guge9y0wXq2rs7G/FdVa+jHNODeNhLzrRVfuTlUw
+	 cR8O3GM6OdytbEOaYM9y7BHXMsB4nFO8Zj9QAJQpQclDiX7dPuIreb9vTI2vxDz8gm
+	 WgtRl69kZ3jMyjNOjP1ckITC4kLe0XI67/TM+3+k/Khdw7IXdWfg8nX/1EhbrHkFue
+	 b/E5Z/iPg9kuHFutSTxGw0QyFFwWdj/548ShsqX+kvOOQsBL2gXtkrICM8omTw/zMM
+	 SwobR34RWf0ag==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8969C624A4;
+	Mon, 31 Aug 2026 12:31:00 +0000 (UTC)
+From: Quanye Yang via B4 Relay <devnull+quanyeyang.proton.me@kernel.org>
+Date: Mon, 31 Aug 2026 20:30:58 +0800
+Subject: [PATCH] RDMA/ucma: Serialize join and leave on copy_to_user
+ failure
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH3PR12MB8728:EE_|CH3PR12MB8329:EE_
-X-MS-Office365-Filtering-Correlation-Id: 9d09400f-71f7-4377-69d4-08df073c8d9d
-X-LD-Processed: 43083d15-7273-40c1-b7db-39efd9ccc17a,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|1800799024|23010399003|7416014|366016|921020|11063799006|10067099003|18002099003|22082099003|56012099006;
-X-Microsoft-Antispam-Message-Info:
-	qtq9DNNyMwn0h3uqjwQ/Mx9NjYRRA6m9/VPUrQhNRkiOIMIvvc24dCWZei3QEg0FGdWcdbjXE4xvC13AlFPsDPS73NZwlg2qetr+Sf+jMo5/42beyNYJVeM1h6owDxiDGGZCHDmhSgs+fZJoN3EUzTYZngzrFjvG631ZSjq3r2ktLqMVNZDT+TqIKTMRYyLA0J88JE9deGzBE1dcVL00lW52dcywqk0aZF+o+c/dmNC2Ig4RHJ2N96H3Thd7u4ca54TZz3RXhE01layO6GCPGpAOCPckG2mEzMynnG1Fs3fg0v51Q2mlPdgq8wcTM2pgozZYlCwU99iZ8HIj6Vj9tltOhPk5T1KLRbay/bXqPSgZkCTEZ358RgWPSQpnrkAwF4gCOdY/7BcM8rhmmeK7Q7o9Sv6jgBKNNZP5O2GXZSbDChkWs2EfNlXBMWoocTNoPj5eMENQNk3py/Ri1bCn68c46/gAR2sqSrIIftgnZYkds8QXWLnQBN4PRdYIo1MINemFxbMj8HsZJgKaw7jhGeBD4DyZX534+Qc4LeMviv0AegRgxqj0yMuffh96lt4IGafJjgvW3x4Xx6YFiCQEwj2pSi0xQoiUkGGAb5arMaDQaoQ0cFCFuI/+iJKQ/nlDUejeFk4RKTqCsgQkEd07yvqBTsyK5av94qU7wF/DtfTwPPnf9O98CxzEDnvqnSUdqGpryB2Uwt4y062Ur/0WVw==
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH3PR12MB8728.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(1800799024)(23010399003)(7416014)(366016)(921020)(11063799006)(10067099003)(18002099003)(22082099003)(56012099006);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?Wk54U3kxZ2Y1K2VlekJyMjNnMG9Ud1Jra0o0QWJraVpLYkRqQUU4c1lGQkFG?=
- =?utf-8?B?OFVjckVHakpUU3ZHa0xRdmdCMkh1NlpaS3paU2x5NzZ2aURNVmt2VlJhdjJU?=
- =?utf-8?B?ZUhzd2xGa25abzBBM0xFajVkRGZjN2IxZmduUmh0aXdwTDd2TVNPa3ZXS2dr?=
- =?utf-8?B?SHU2R0htOFFtVUpMZ3NKNDk3MVcycnBzWWJ6WW1kbExrSklLZlNuVVJOUEF6?=
- =?utf-8?B?NzRDS2lXYXZBb0N0WUpXU3huOHFPbVY1NkZyVnFLblRuZDBRdGJCdW1JOXph?=
- =?utf-8?B?UFowRXBySUl2UU5MSlNkVWNFaG5WbVNmeEhPekZGanVUUXhudk9jMkwreTI5?=
- =?utf-8?B?Vi93TkdFa3hxZWJDdG9CQVNhci9FSEw1dUhrZFhmb0UwdENhL1B3T2QzSnZn?=
- =?utf-8?B?NHVFYlArVGpJYnJVNGJEU2ppU0dEaWVpSVlWd3dSRDJVNldOYzVUb0JEZ0do?=
- =?utf-8?B?ZHk3Z2RpK25CaVgyUGhHNTZEc1FZLzl3QUVvWWRxMSt4QXJiVkVQb0RNc2ho?=
- =?utf-8?B?WlE4dFVFdEsvSCtQZ3BjaER2T0pnOVRBVVA3Rzg3ZytWUVhldkEzUmlxRWlC?=
- =?utf-8?B?RE96MFI3bVpmWU5tdmVvWGp4OFFya1pkV1Ewa3c0TEFhb0xyVjVuekx5cG5M?=
- =?utf-8?B?TTFEV200aERaWldMTG5pMStMSHIvdStNZVVFTkdZdWwzQklHMDVjV3VRZ1k3?=
- =?utf-8?B?UVAvUVp5Nnh1eEF1OWtEd1JqeFJNTnIvYVZjcHIwZHNZVkY5a3NVQzdhZi9X?=
- =?utf-8?B?dEdpbnkzdW5VWnJacjdqOXRicDNzMUY5L01oUDBtUUVKMXdQazVCSVZjNFpj?=
- =?utf-8?B?aFZwekVwQjZOZ3pMY0xld21xaFhmQWhVZWNQdGdKd3dvY3V2ekNIQXBWR2x0?=
- =?utf-8?B?UHBsa2xxdndYMUtzNjR1QithK2dXVHJCa2FwU21ONS9MK2prOGM2YlhyVVBi?=
- =?utf-8?B?cFgwbGZyQ3dSTVhQN2QxR0lVbXdjQUl2UU9NR1ppZmw1alBMT293SkpXQU5r?=
- =?utf-8?B?Y3pEQWdPSEtWRGttYTdBY1BQZDY5YWhJbWlBQmMwS3lEMlJyMlFqM0JCNUR6?=
- =?utf-8?B?WlgvNGJKUEZnMHdSV3VlZWFVTTFYUUQ3YzdoY0VVVEVTL2VmQXFheFllOGI1?=
- =?utf-8?B?bkN6N2orcG5YbWtTc0t5UVhhRDhXdGZEQWZ1UEtxZ040VXozRnFBSDZUalNH?=
- =?utf-8?B?Mmx3R2VjcThiaDNtRjgzTVFJRjFCM0R2STJoUSttamJiam1vT0F4TFFyZzBP?=
- =?utf-8?B?dkZuemMrdGRwRCtKZGZnQXJBYmZadGpuanpqTmF5TWhFOTF0U1BESXp3SDBD?=
- =?utf-8?B?NXJNL3RVOVBKbFZZaHdUandBbzBjcE1CMlhLM3Exa2p1K01VRWgwTGVjeWhk?=
- =?utf-8?B?L2FuRmtCS2ZyWDJXZ3BlWDk3MVZjVkZxYjJHMXgwQW5wWGlIaEhHQUNXenZK?=
- =?utf-8?B?dlZObVJtMThmUjg5MUxDYURVOEhkaE1nOUFlU1JQYnh3cUhTbTBYa2Y1R3o0?=
- =?utf-8?B?VzMvTi9yOURxTUpNd2R4bTBjV2ptMStVUzZ1T0JDeXZENDhyNU1hd2FVSHlp?=
- =?utf-8?B?SlJWKzN0Y1hNN3dyV005WkhPeFlnWWtiSDN6NjJ1R28yT0djYkpibFprYXJr?=
- =?utf-8?B?SEpmVXpOUDZjVUliL1JhdjBCTk5pNTlrRjNHY3EwYktib0pmSituYk43anlW?=
- =?utf-8?B?WUtIZzZISXlGQ0pvc2szSjFoSFl3bVRtRGgxa0hkbkV5d1RkK0lRVlFQZGtt?=
- =?utf-8?B?ZTMvUWxuQUdqYWgzSk5pekl1SDZ0NU9YRWtTSVVydm1rSDNQMzRzanh1aTRQ?=
- =?utf-8?B?NlNpU2JzcmduSnFRZjJaazlqc0dPTlhmMW4zR2VDQzB1YVBMaDJ5TjZEWjFh?=
- =?utf-8?B?QzEzL3VpZFpzQnVHMUs3Z0FiTWI0WUZuSUtGOVVyejhuMUR1RWQxQ1B1T3or?=
- =?utf-8?B?ckdKL0VaK2JwTC9mVnlYbzBHdjNNcEJqaEhxdzQzWFA0TTJ1ZFZaSjMyMjdP?=
- =?utf-8?B?Smg3K0tqb3pmTjlldUR5bTFLMDJ4SFhCdXdSR2wwUHBwdnYrL1R1MXZnT3E3?=
- =?utf-8?B?MjRtUEFBTGZLMWV0NG43U3B0cmovUFRDTk8xOHN6WWlZYkNWanhUR1Q1aEQ2?=
- =?utf-8?B?Q044dDVXby9Oc2hSSTZHVkdna0xOM0FSRWVqSGE0MElRVjNBcTIxZ0w0N1lq?=
- =?utf-8?B?TVZxWVNReWwvcVRGWVpZVFlyRUt5TnJZdTlueWNEOW1iOTVRWmNwSnpTRW50?=
- =?utf-8?B?ZHp0TjZKUlp4TVVpZ0pFY0tpSWdWa0N6S0xVZXByNnIzOWZjWmY3bTNJZjdO?=
- =?utf-8?B?OTRUR2JZSFJoREFBNTdmbUxEL0tkOGtiV0xpbGtGcEgxMDJnTkgrdz09?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 9d09400f-71f7-4377-69d4-08df073c8d9d
-X-MS-Exchange-CrossTenant-AuthSource: CH3PR12MB8728.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 31 Aug 2026 08:47:56.7519
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: q2E1LbuvtxuZQpltGS37RM+ZsOeOA/T5Rh52yCSGmmgih9WUyMd9lyXY0uJ0VtOnyd6bY+NrjEMH0REb0GXrSw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB8329
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260831-rdma-ucma-mc-uaf-v1-1-b8eeb7046aff@proton.me>
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyDHUUlJIzE
+ vPSU3UzU4B8JSMDIzMDC2ND3aKU3ETd0mQgkZusW5qYpmuZZJ5oYGGZZGmQaKwE1FZQlJqWWQE
+ 2MjoWwi8uTcpKTS4BmaNUWwsAh1Te03QAAAA=
+X-Change-ID: 20260831-rdma-ucma-mc-uaf-9b7a089b90a3
+To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
+ Avihai Horon <avihaih@nvidia.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ syzbot+a6ffe86390c8a6afc818@syzkaller.appspotmail.com, 
+ stable@vger.kernel.org, Quanye Yang <quanyeyang@proton.me>
+X-Mailer: b4 0.15.2
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1788179458; l=2901;
+ i=quanyeyang@proton.me; s=20260801; h=from:subject:message-id;
+ bh=N3XkbQXD0jkOovzK5vafwV1Ou+3QGRVYe0LDvdcx34w=;
+ b=IxVh3gAhyL0mBxvWCrkT21TIG7bhE4/cOXVYVi7bUaf+5wjESyYMnZDFcznT1819Fj+uxfp9U
+ QB9yZwh8dm/CzZryGy83ptOgevddwWJSAupMaSBNI5RcNPTl2H4xYNp
+X-Developer-Key: i=quanyeyang@proton.me; a=ed25519;
+ pk=9L9FrcvzMgxPaBRU6XV0EnqTgjDqVO596rQKSZ9qZoY=
+X-Endpoint-Received: by B4 Relay for quanyeyang@proton.me/20260801 with
+ auth_id=963
+X-Original-From: Quanye Yang <quanyeyang@proton.me>
+Reply-To: quanyeyang@proton.me
+
+From: Quanye Yang <quanyeyang@proton.me>
+
+rdma_join_multicast() queues RoCE work that later reads the ucma_multicast
+through event->param.ud.private_data, then list_add()s the CMA multicast
+at the head of id_priv->mc_list. rdma_leave_multicast() matches only by
+sockaddr and destroys the first hit.
+
+ucma_process_join() used to drop ctx->mutex after a successful join and
+retake it only if copy_to_user() failed. Two concurrent JOIN_MCAST calls
+with the same address can therefore insert a second CMA entry before the
+first thread's leave. leave then cancels the newer work and the older
+worker still dereferences the ucma_multicast that the first thread frees.
+
+Keep ctx->mutex held from rdma_join_multicast() through copy_to_user() and,
+on -EFAULT, through rdma_leave_multicast() so leave cannot miss this join.
+Do not leave if join itself failed: that path never published this address
+on mc_list, and a leave-by-addr would destroy an earlier successful join.
+
+Reported-by: syzbot+a6ffe86390c8a6afc818@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=a6ffe86390c8a6afc818
+Fixes: fe454dc31e84 ("RDMA/ucma: Fix use-after-free bug in ucma_create_uevent")
+Cc: stable@vger.kernel.org
+Signed-off-by: Quanye Yang <quanyeyang@proton.me>
+---
+KASAN + rxe, virtme-ng. The syzbot C repro (two concurrent JOIN_MCAST
+with response=0) no longer reports slab-use-after-free in
+ucma_create_uevent.
+
+Based on linus/master
+---
+ drivers/infiniband/core/ucma.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index 4929636f7c53..c3611e2f3248 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -1556,27 +1556,27 @@ static ssize_t ucma_process_join(struct ucma_file *file,
+ 	mutex_lock(&ctx->mutex);
+ 	ret = rdma_join_multicast(ctx->cm_id, (struct sockaddr *)&mc->addr,
+ 				  join_state, mc);
+-	mutex_unlock(&ctx->mutex);
+-	if (ret)
++	if (ret) {
++		mutex_unlock(&ctx->mutex);
+ 		goto err_xa_erase;
++	}
+ 
+ 	resp.id = mc->id;
+ 	if (copy_to_user(u64_to_user_ptr(cmd->response),
+ 			 &resp, sizeof(resp))) {
+ 		ret = -EFAULT;
+-		goto err_leave_multicast;
++		rdma_leave_multicast(ctx->cm_id, (struct sockaddr *)&mc->addr);
++		mutex_unlock(&ctx->mutex);
++		ucma_cleanup_mc_events(mc);
++		goto err_xa_erase;
+ 	}
++	mutex_unlock(&ctx->mutex);
+ 
+ 	xa_store(&multicast_table, mc->id, mc, 0);
+ 
+ 	ucma_put_ctx(ctx);
+ 	return 0;
+ 
+-err_leave_multicast:
+-	mutex_lock(&ctx->mutex);
+-	rdma_leave_multicast(ctx->cm_id, (struct sockaddr *) &mc->addr);
+-	mutex_unlock(&ctx->mutex);
+-	ucma_cleanup_mc_events(mc);
+ err_xa_erase:
+ 	xa_lock(&multicast_table);
+ 	list_del(&mc->list);
+
+---
+base-commit: cee9395acd8043be0644b25c34bfa86623f2b935
+change-id: 20260831-rdma-ucma-mc-uaf-9b7a089b90a3
+
+Best regards,
+--  
+Quanye Yang <quanyeyang@proton.me>
 
 
-
-On 20.08.26 05:08, lirongqing wrote:
-> From: Li RongQing <lirongqing@baidu.com>
-> 
-> mlx5e_poll_ico_cq() requires sq->cc to be updated only after
-> mlx5_cqwq_update_db_record(), otherwise a CQ overrun may occur.
-> 
-> The current implementation updates sq->cc before the CQ doorbell
-> record, violating this ordering requirement.
-> 
-> Update the CQ doorbell record first and use dma_wmb() before updating
-> sq->cc. This ensures that the CQ space is released to the device
-> before the corresponding ICOSQ consumer index is updated by software.
-> 
-> Fixes: fd9b4be8002c ("net/mlx5e: RX, Support multiple outstanding UMR posts")
-> Signed-off-by: Li RongQing <lirongqing@baidu.com>
-> ---
->  drivers/net/ethernet/mellanox/mlx5/core/en_rx.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-> index f6eff03..01867dd 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-> @@ -905,10 +905,12 @@ int mlx5e_poll_ico_cq(struct mlx5e_cq *cq)
->  		} while (!last_wqe);
->  	} while ((++i < MLX5E_TX_CQ_POLL_BUDGET) && (cqe = mlx5_cqwq_get_cqe(&cq->wq)));
->  
-> -	sq->cc = sqcc;
-> -
->  	mlx5_cqwq_update_db_record(&cq->wq);
->  
-> +	/* ensure cq space is freed before enabling more cqes */
-> +	dma_wmb();
-> +
-> +	sq->cc = sqcc;
->  	return i;
->  }
->  
-Thanks for your patch. The patch looks good but we want to pass it through our
-internal regressions.
-
-Thanks,
-Dragos
