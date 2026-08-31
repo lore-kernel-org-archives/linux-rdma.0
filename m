@@ -1,148 +1,213 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from out30-111.freemail.mail.aliyun.com (out30-111.freemail.mail.aliyun.com [115.124.30.111])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 458F23FBB44;
-	Mon, 31 Aug 2026 12:31:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5613B1CD1E4;
+	Mon, 31 Aug 2026 12:43:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.111
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788179461; cv=none; b=mBg2NONQ6SNPcaodl3mIU8DL0DwN/JXOV/TxQlK0lOR9EiLAGkcn++UuAxO6ux7xGbbyQRn1eMUCCsbMkQ+p3bKw9xx+CpkF+Opz5+lVwtf2L2ObIANQcBlgri4MZ7OG9RqTNGm5szjsoFkRbtNlG3AlU35MvZuu+654NkdW6XE=
+	t=1788180230; cv=none; b=W1vdn8jtWxfy9nS+WjzKjEi5++MNcOrUkLh2mYhWgLJrXmyBnMQCcksOaS21INy4XNA/wnENpQY7EbUBj3FVPQ1EOXpANHagBpGYdorLBaRcHgGXojhs6MBXkVDMCz04R3JINbEzDZh7gQrP3GAsaaEtznZZOxhkd2fcP1qO1SY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788179461; c=relaxed/simple;
-	bh=8kESiFRNnkEyqsmqiEeTAtwD/twPIyY5fNwDn00OYEY=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=BuhhQWc9DmUQWunNPGit7T1CzSqucMOykKHPh1eqSenj5dQbTca8czDLLdJi94EysLUE/O8koYucxbs91i3OJGt1ZtMxlqeEfHcNMkcCmpGRj4Cu/zzyiVpcsHatq81woxKWX++ozqtu6i78G0pzLSoynfqyycCSMlrUxfEzkCQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nrJf7jzC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1788180230; c=relaxed/simple;
+	bh=Qon2GcefADdCTNebfMC59ZmH2icWwE8zU8HWAUX9vVM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=UgSNjX1G1bAiv4n+Cr/q8f64pHfyhGi0HwyqzzpPpuTPYQGbveWHyW6+AD82sab/bmYDORWuRntoOXWkUDBfFw9xlKAoT8qU2COJhWHvIuV8zCgvj9OAvEoDRH3XLfnDC7e+EuWsdJ58aGsJk7UzgyGg63p/m0Wl9GY/hcaUZHo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=fNaQ1HOA; arc=none smtp.client-ip=115.124.30.111
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nrJf7jzC"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id E2641C2BCB8;
-	Mon, 31 Aug 2026 12:31:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1788179460;
-	bh=8kESiFRNnkEyqsmqiEeTAtwD/twPIyY5fNwDn00OYEY=;
-	h=From:Date:Subject:To:Cc:Reply-To:From;
-	b=nrJf7jzCqO8Juaw8ag7xft6eHX1Aerh16Ysoq3vc2Awgkw/1NOq4gWiHG6r9MGxdc
-	 cfuaL20QK2CFZcRkiInZNHHU79Guge9y0wXq2rs7G/FdVa+jHNODeNhLzrRVfuTlUw
-	 cR8O3GM6OdytbEOaYM9y7BHXMsB4nFO8Zj9QAJQpQclDiX7dPuIreb9vTI2vxDz8gm
-	 WgtRl69kZ3jMyjNOjP1ckITC4kLe0XI67/TM+3+k/Khdw7IXdWfg8nX/1EhbrHkFue
-	 b/E5Z/iPg9kuHFutSTxGw0QyFFwWdj/548ShsqX+kvOOQsBL2gXtkrICM8omTw/zMM
-	 SwobR34RWf0ag==
-Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8969C624A4;
-	Mon, 31 Aug 2026 12:31:00 +0000 (UTC)
-From: Quanye Yang via B4 Relay <devnull+quanyeyang.proton.me@kernel.org>
-Date: Mon, 31 Aug 2026 20:30:58 +0800
-Subject: [PATCH] RDMA/ucma: Serialize join and leave on copy_to_user
- failure
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="fNaQ1HOA"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1788180219; h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type;
+	bh=UL2vDvxzkPaK73d2MOOzUisYqdbGkPmdsXRoPyCyMUk=;
+	b=fNaQ1HOA6R2MQTP/yNnpmsjir/NQBxLpT2/hVn8PadzGn9TV0FzqOajJImJDVQrw3q0GboTEYBhUcGItHNPT9clC4lQmSyDxSfSIf0/hr5n3JY9KRpvl4Xmc9V/EwBwD4uBDXDeiagTXuND+i2u+E6mAS8lLU3K2Yn4zLEJtl/I=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R191e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam011083073210;MF=dust.li@linux.alibaba.com;NM=1;PH=DS;RN=17;SR=0;TI=SMTPD_---0X9yvHlE_1788180217;
+Received: from localhost(mailfrom:dust.li@linux.alibaba.com fp:SMTPD_---0X9yvHlE_1788180217 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Mon, 31 Aug 2026 20:43:38 +0800
+Date: Mon, 31 Aug 2026 20:43:37 +0800
+From: Dust Li <dust.li@linux.alibaba.com>
+To: Mahanta Jambigi <mjambigi@linux.ibm.com>, andrew+netdev@lunn.ch,
+	davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+	pabeni@redhat.com, alibuda@linux.alibaba.com, sidraya@linux.ibm.com,
+	hidayath@linux.ibm.com
+Cc: pasic@linux.ibm.com, horms@kernel.org, tonylu@linux.alibaba.com,
+	guwen@linux.alibaba.com, netdev@vger.kernel.org,
+	linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: Re: [PATCH net] net/smc: serialize clcsock teardown in
+ smc_accept_dequeue
+Message-ID: <apV2-XsGaE45KudZ@linux.alibaba.com>
+Reply-To: dust.li@linux.alibaba.com
+References: <20260824065851.1070988-1-mjambigi@linux.ibm.com>
+ <ao5bB9OCbJ5PQbEp@linux.alibaba.com>
+ <bd56d983-e5bf-4343-910e-8965c3ff57dc@linux.ibm.com>
+ <apBErK3BBw0KHd6Y@linux.alibaba.com>
+ <d2b3f465-9ebb-4963-8dcd-3ec2969e9465@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260831-rdma-ucma-mc-uaf-v1-1-b8eeb7046aff@proton.me>
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyDHUUlJIzE
- vPSU3UzU4B8JSMDIzMDC2ND3aKU3ETd0mQgkZusW5qYpmuZZJ5oYGGZZGmQaKwE1FZQlJqWWQE
- 2MjoWwi8uTcpKTS4BmaNUWwsAh1Te03QAAAA=
-X-Change-ID: 20260831-rdma-ucma-mc-uaf-9b7a089b90a3
-To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
- Avihai Horon <avihaih@nvidia.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
- syzbot+a6ffe86390c8a6afc818@syzkaller.appspotmail.com, 
- stable@vger.kernel.org, Quanye Yang <quanyeyang@proton.me>
-X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1788179458; l=2901;
- i=quanyeyang@proton.me; s=20260801; h=from:subject:message-id;
- bh=N3XkbQXD0jkOovzK5vafwV1Ou+3QGRVYe0LDvdcx34w=;
- b=IxVh3gAhyL0mBxvWCrkT21TIG7bhE4/cOXVYVi7bUaf+5wjESyYMnZDFcznT1819Fj+uxfp9U
- QB9yZwh8dm/CzZryGy83ptOgevddwWJSAupMaSBNI5RcNPTl2H4xYNp
-X-Developer-Key: i=quanyeyang@proton.me; a=ed25519;
- pk=9L9FrcvzMgxPaBRU6XV0EnqTgjDqVO596rQKSZ9qZoY=
-X-Endpoint-Received: by B4 Relay for quanyeyang@proton.me/20260801 with
- auth_id=963
-X-Original-From: Quanye Yang <quanyeyang@proton.me>
-Reply-To: quanyeyang@proton.me
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <d2b3f465-9ebb-4963-8dcd-3ec2969e9465@linux.ibm.com>
 
-From: Quanye Yang <quanyeyang@proton.me>
+On 2026-08-28 16:48:28, Mahanta Jambigi wrote:
+>
+>
+>On 27/08/26 7:37 pm, Dust Li wrote:
+>> On 2026-08-26 14:42:31, Mahanta Jambigi wrote:
+>>>
+>>>
+>>> On 26/08/26 8:48 am, Dust Li wrote:
+>>>> On 2026-08-24 08:58:51, Mahanta Jambigi wrote:
+>>>>> smc_accept_dequeue() open-codes clcsock teardown for SMC_CLOSED child sockets
+>>>>> without taking clcsock_release_lock:
+>>>>>
+>>>>>  new_sk->sk_prot->unhash(new_sk);
+>>>>>  if (isk->clcsock) {
+>>>>>      sock_release(isk->clcsock);
+>>>>>      isk->clcsock = NULL;
+>>>>>  }
+>>>>>
+>>>>> This bypasses the clcsock_release_lock discipline used elsewhere in SMC clcsock
+>>>>> lifetime handling. In particular, other paths serialize clcsock access and
+>>>>> updates with clcsock_release_lock, but this local teardown path does not.
+>>>>>
+>>>>> Fix it by taking clcsock_release_lock around the local teardown and by storing
+>>>>> NULL before sock_release(), matching the established ordering used by other
+>>>>> clcsock teardown paths.
+>>>>>
+>>>>> Fixes: 127f49705823 ("net/smc: release clcsock from tcp_listen_worker")
+>>>>> Reviewed-by: Hidayath Khan <hidayath@linux.ibm.com>
+>>>>> Signed-off-by: Mahanta Jambigi <mjambigi@linux.ibm.com>
+>>>>> ---
+>>>>> net/smc/af_smc.c | 12 ++++++++----
+>>>>> 1 file changed, 8 insertions(+), 4 deletions(-)
+>>>>>
+>>>>> diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+>>>>> index 00403175b740..bbf8269876ee 100644
+>>>>> --- a/net/smc/af_smc.c
+>>>>> +++ b/net/smc/af_smc.c
+>>>>> @@ -1833,10 +1833,14 @@ struct sock *smc_accept_dequeue(struct sock *parent,
+>>>>> 		smc_accept_unlink(new_sk);
+>>>>> 		if (new_sk->sk_state == SMC_CLOSED) {
+>>>>> 			new_sk->sk_prot->unhash(new_sk);
+>>>>> -			if (isk->clcsock) {
+>>>>> -				sock_release(isk->clcsock);
+>>>>> -				isk->clcsock = NULL;
+>>>>> -			}
+>>>>> +			mutex_lock(&isk->clcsock_release_lock);
+>>>>> +			if (isk->clcsock) {
+>>>>> +				struct socket *clcsock = isk->clcsock;
+>>>>> +
+>>>>> +				isk->clcsock = NULL;
+>>>>> +				sock_release(clcsock);
+>>>>> +			}
+>>>>> +			mutex_unlock(&isk->clcsock_release_lock);
+>>>>
+>>>> Why not call smc_clcsock_release() here ?
+>>>
+>>> I initially considered *smc_clcsock_release()*, but it unconditionally
+>>> calls cancel_work_sync() for child sockets (since listen_smc is always
+>>> set and current_work() != &smc->smc_listen_work is always true here).
+>>> Even though smc_listen_work has already completed before
+>>> smc_accept_enqueue() is called, cancel_work_sync() is not truly free on
+>>> that path — it still acquires the worker pool spinlock and scans the
+>>> executing-worker list before determining the work is idle. The inline
+>>> open-coding avoids that overhead entirely.
+>> 
+>> OK
+>
+>For this patch specifically, the smc_accept_dequeue() path is a clear
+>lock ordering violation that can cause a crash independently of the
+>broader design issue — would you prefer I withdraw this patch and
+>address everything together in the larger refactor, or keep this narrow
+>fix and do the refactor separately?
 
-rdma_join_multicast() queues RoCE work that later reads the ucma_multicast
-through event->param.ud.private_data, then list_add()s the CMA multicast
-at the head of id_priv->mc_list. rdma_leave_multicast() matches only by
-sockaddr and destroys the first hit.
+I think you can keep this one for stable tree.
 
-ucma_process_join() used to drop ctx->mutex after a successful join and
-retake it only if copy_to_user() failed. Two concurrent JOIN_MCAST calls
-with the same address can therefore insert a second CMA entry before the
-first thread's leave. leave then cancels the newer work and the older
-worker still dereferences the ucma_multicast that the first thread frees.
+>
+>> 
+>>>
+>>>>
+>>>> After looking deeper into this issue, I found smc_diag_msg_common_fill()/
+>>>> smc_getname() and many other branches hasn't hold lock_sock() and may also
+>>>> have the race issue ? For example, smc_getname() calling smc->clcsock->ops->getname()
+>>>> while the other workqueue is releasing the clcsock.
+>>>
+>>> I am addressing the smc_diag_msg_common_fill() issue via a separate
+>>> patch[1].
+>> 
+>> What about other places that dereference clcsock, like smc_getname()/smc_set_keepalive() ?
+>
+>Yes, smc_getname(), smc_set_keepalive(), and all other unprotected
+>clcsock dereferences would be fixed as part of this refactor, and in
+>fact they are the strongest argument for doing it.
+>
+>The reason they become safe is structural, not incremental: once
+>sock_release(clcsock) is deferred to the SMC socket destructor, clcsock
+>is guaranteed non-NULL for the entire observable lifetime of the SMC
+>socket. Any caller that holds a sock reference — whether it is a syscall
+>path, a workqueue, or a timer callback — is by definition executing
+>before the destructor runs. So smc_getname(), smc_set_keepalive(),
+>smc_poll(), smc_diag_msg_common_fill(), and every other reader can
+>dereference clcsock directly with no lock and no NULL check, and all the
+>if (smc->clcsock) guards become dead code that can be removed.
+>
+>clcsock_release_lock itself would also be removed entirely, along with
+>all its lock/unlock sites, since the mutex only exists to coordinate
+>multiple sock_release() callers — a problem that disappears when there
+>is only one.
 
-Keep ctx->mutex held from rdma_join_multicast() through copy_to_user() and,
-on -EFAULT, through rdma_leave_multicast() so leave cannot miss this join.
-Do not leave if join itself failed: that path never published this address
-on mc_list, and a leave-by-addr would destroy an earlier successful join.
+Yeah, this is exactly what I expected for the refactor.
 
-Reported-by: syzbot+a6ffe86390c8a6afc818@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=a6ffe86390c8a6afc818
-Fixes: fe454dc31e84 ("RDMA/ucma: Fix use-after-free bug in ucma_create_uevent")
-Cc: stable@vger.kernel.org
-Signed-off-by: Quanye Yang <quanyeyang@proton.me>
----
-KASAN + rxe, virtme-ng. The syzbot C repro (two concurrent JOIN_MCAST
-with response=0) no longer reports slab-use-after-free in
-ucma_create_uevent.
 
-Based on linus/master
----
- drivers/infiniband/core/ucma.c | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+>
+>>>>
+>>>> Since SMC has long been plagued by this kind of locking issue, I think we
+>>>> should consider a long-term solution to address it.
+>>>>
+>>>> What about stop releasing the clcsock early and tie its lifetime to the SMC
+>>>> socket itself. The early paths don't really need to release it ??? a
+>>>> kernel_sock_shutdown()/tcp_abort() is enough to stop it, and calling them more
+>>>> than once is safe because the TCP layer already handles that.  sock_release()
+>>>> is different: it frees the socket, so it must happen exactly once. If we move
+>>>> this single release to the final teardown of the SMC socket, no user can exist
+>>>> at that point anymore (fd users are gone after smc_release(), and every
+>>>> work/accept-queue context holds a sock reference), which makes both
+>>>> clcsock_release_lock and all the if (smc->clcsock) NULL checks removable.
+>>>>
+>>>> Ideas ?
+>>>
+>>> I agree, but it is a significant refactor touching every early-release
+>>> path in af_smc.c, smc_close.c etc & it warrants its own patch series
+>>> with careful ordering of changes.
+>> 
+>> Yes, that should be a bit refactor, are you interested in doing that ?
+>
+>Sure, I can take that up. It will need a bit of careful work — the close
+>state machine has multiple paths that currently call
+>smc_clcsock_release() early, and the smc_tcp_listen_work() error path
+>where kernel_accept() creates a clcsock that is never assigned to an SMC
+>socket will need special handling. I would plan to send it as a small
+>series rather than a single patch.
 
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 4929636f7c53..c3611e2f3248 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -1556,27 +1556,27 @@ static ssize_t ucma_process_join(struct ucma_file *file,
- 	mutex_lock(&ctx->mutex);
- 	ret = rdma_join_multicast(ctx->cm_id, (struct sockaddr *)&mc->addr,
- 				  join_state, mc);
--	mutex_unlock(&ctx->mutex);
--	if (ret)
-+	if (ret) {
-+		mutex_unlock(&ctx->mutex);
- 		goto err_xa_erase;
-+	}
- 
- 	resp.id = mc->id;
- 	if (copy_to_user(u64_to_user_ptr(cmd->response),
- 			 &resp, sizeof(resp))) {
- 		ret = -EFAULT;
--		goto err_leave_multicast;
-+		rdma_leave_multicast(ctx->cm_id, (struct sockaddr *)&mc->addr);
-+		mutex_unlock(&ctx->mutex);
-+		ucma_cleanup_mc_events(mc);
-+		goto err_xa_erase;
- 	}
-+	mutex_unlock(&ctx->mutex);
- 
- 	xa_store(&multicast_table, mc->id, mc, 0);
- 
- 	ucma_put_ctx(ctx);
- 	return 0;
- 
--err_leave_multicast:
--	mutex_lock(&ctx->mutex);
--	rdma_leave_multicast(ctx->cm_id, (struct sockaddr *) &mc->addr);
--	mutex_unlock(&ctx->mutex);
--	ucma_cleanup_mc_events(mc);
- err_xa_erase:
- 	xa_lock(&multicast_table);
- 	list_del(&mc->list);
+That's perfectly fine.
 
----
-base-commit: cee9395acd8043be0644b25c34bfa86623f2b935
-change-id: 20260831-rdma-ucma-mc-uaf-9b7a089b90a3
+>
+>I am currently occupied with a few other things so it may take some
+>time, but I will pick it up once I have bandwidth. If you have any
+>specific ideas on the approach or would like to co-develop it, I am very
+>happy to collaborate — feel free to share your thoughts and we can work
+>through the design together.
+
+I shared my thoughts with my agent and had it implement a draft version for
+me — let me send it over so you can take a look, and we can figure out how
+to move forward together.
 
 Best regards,
---  
-Quanye Yang <quanyeyang@proton.me>
-
-
+Dust
