@@ -1,44 +1,50 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DCFB43030D;
-	Mon, 31 Aug 2026 13:37:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74EE9499F2B;
+	Mon, 31 Aug 2026 13:38:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788183451; cv=none; b=IvI2RjLq17PGn6Qa6FoIqT+53O58D166PsEMTvKNK1VOi46sDPsgRvdVhCmg9i6snQ4IPDyZxpydO+3W0sBPtb+nPVxmY+mlOFH/lQJ3pBdUfTfWgaV+g/miy+nLDcgKS0oYtQ3Z9yBiPHj6sShT2qDTlcS2sjqxoau8EwocH6Q=
+	t=1788183530; cv=none; b=rxZAQrLxwz5dfTF6mXbtsOsUb3KpzZmmm9xiHfRqaYMtRPhEZfB4sUlu05IyCBuKawM1ZrZTsLeID8LXqoUt0tzQSLC3N5lPzcxZa3mxN7lYFrjyrWKex422Ze+A+uWCkYeJeJf5aPv7EXTMZaKTiMMsS3cOG++yNJ0IX2JfiWo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788183451; c=relaxed/simple;
-	bh=0y9VTU2fRdaAgEjxRvyLkgI+fw1mXY7dglzR/p93Q+I=;
+	s=arc-20240116; t=1788183530; c=relaxed/simple;
+	bh=jTx1zry5rzdixxC0RgC2msoPn8d7KKD2kbIkXCNjnU4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=apPjN/zoqgNnNDpmYovxy9QTJ/frhpw59uz+jlezMUzVQl7TgN72N4H1508kfP6yfTw0Pp3+fY3gUzyqoYOuLcj7hUVozcyYxPIc6p+n6KQ+jGIpzRiFgRPB3rGZ5pjlek6z4qQuRQAzeSaFC7HQmpomtyqD7n6uPj2Xqpo4/d4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DikXe3/K; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=IiJB09zmr56Ks9TOYyI9EKPZU0T54dmie+g5VM2VX6yL1aN3C1R9RtYM64dUZwjvXOtubnUUkjfYScijdn9M95wwQjQt4AmTaZbhwexVJ8Tr7rBARG8dZidvcZACFjM4eJenJ+Wq22hDHZHKPOJxZVxS2gGaVZoN31xWUDeHfV0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lrZfyaSQ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DikXe3/K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 479D81F000E9;
-	Mon, 31 Aug 2026 13:37:28 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lrZfyaSQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8942E1F00ADE;
+	Mon, 31 Aug 2026 13:38:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788183449;
-	bh=AI3JJqq2/kuyWXFJ4VLo48DAMR2Fci8tpdtAYaLuyFE=;
+	s=k20260515; t=1788183528;
+	bh=IXXvlLiatEpQKDiVZfBexoB5OaI/sRGWE1Z6th1AgUA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=DikXe3/Kg/NztfEKBo3+JzTDWYaw9Jjgvh0mwfU6F9hwj10sKT0u8/IJEgGfz35RA
-	 thzpZU6K7kIntk4KLB+qC4U6lTQiJkAe5MZwlBlgtfKk90t5j4S6WVL6J3Joi353Gz
-	 o5ZUD9klYZEflIFqF7DReTjo9+AYQX1m2CLCaPHO4IdL3TpWBH4e/Vz/tuepcNRNUY
-	 vQ4fPTf+FXjeqFi2Ge6sK0kr1Ao97LpjTavoVuvYP1RHYbJeellevx+Wj4L65vSi9+
-	 wQIIphbLNW+OAvuxVyg+WOKPX6pEH/kNSDyCJjsp3WGEQlqhLsWYc5UVGG6/YkI7Kx
-	 V7qY+hDKtdi9g==
+	b=lrZfyaSQMpKJcyP1q0MRb7Xo5lylWUf4H0/gyaSMfUtIp/AgxyYRnJ0JhQy9u93+y
+	 lv3bxGJHtYDoRGsRsq6I8oSmtVwuny24HV/jHkRX6MSEH4IlZ9KgTchkupB/KQ97DI
+	 reFuQjFEwLNiwGgEc19Otj/xkF1ZEIW0vu4ZAHoNpms58tXoa6jaiR5vbZL0MZ4fjQ
+	 GmIIgNdmkqWZ7g13PUfsMyAlI2+UUggY8weYjSOeUMsifjv4q9aDb7B7WthkxS2n4q
+	 telKzQDUeKMtSS7JKwYua1Ptbi6GnH3jpjbIR/kPPjXJiAFEGbpMkQ9zgd2XSaV2s9
+	 MeMzL1/+SSP5A==
 From: Sasha Levin <sashal@kernel.org>
 To: patches@lists.linux.dev,
 	stable@vger.kernel.org
-Cc: Aurelien DESBRIERES <aurelien@hackers.camp>,
-	Md Haris Iqbal <haris.iqbal@ionos.com>,
-	Jason Gunthorpe <jgg@nvidia.com>,
+Cc: Shay Drory <shayd@nvidia.com>,
+	Mark Bloch <mbloch@nvidia.com>,
+	Tariq Toukan <tariqt@nvidia.com>,
+	Jakub Kicinski <kuba@kernel.org>,
 	Sasha Levin <sashal@kernel.org>,
-	jinpu.wang@ionos.com,
+	saeedm@nvidia.com,
+	andrew+netdev@lunn.ch,
+	davem@davemloft.net,
+	edumazet@google.com,
+	pabeni@redhat.com,
+	netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.18-5.15] RDMA/rtrs-srv: Fix integer underflow in process_read and process_write
-Date: Mon, 31 Aug 2026 09:22:11 -0400
-Message-ID: <20260831133314.4125787-103-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.18-6.6] net/mlx5: E-Switch, align disable sequence with switchdev-to-legacy transition
+Date: Mon, 31 Aug 2026 09:22:58 -0400
+Message-ID: <20260831133314.4125787-150-sashal@kernel.org>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260831133314.4125787-1-sashal@kernel.org>
 References: <20260831133314.4125787-1-sashal@kernel.org>
@@ -54,80 +60,68 @@ X-stable-base: Linux 6.18.48
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Aurelien DESBRIERES <aurelien@hackers.camp>
+From: Shay Drory <shayd@nvidia.com>
 
-[ Upstream commit 54bf38b27afc08a0eb6b732f9c14eb8a4bcb66b5 ]
+[ Upstream commit b48b6308dfaeae49fcda61b4066773cb5e8a9ce8 ]
 
-usr_len is read from a network-supplied message field (le16_to_cpu)
-and used to compute data_len = off - usr_len without validating that
-usr_len <= off. A malicious RDMA client can send usr_len > off causing
-an integer underflow, resulting in data_len wrapping to a huge size_t
-value which is then passed to the rdma_ev callback as a memory length,
-leading to out-of-bounds memory access.
+This patch align the eswitch disable sequence with the
+switchdev-to-legacy mode transition, where eswitch must be disabled
+before device detachment. The consistent ordering is required for proper
+SD LAG cleanup which depends on eswitch state during teardown.
 
-Fix by reading and validating usr_len <= off before rtrs_srv_get_ops_ids()
-in both process_read() and process_write(), ensuring the early return
-path acquires no reference and has no resource leak.
-
-Link: https://patch.msgid.link/r/20260608134802.5019-1-aurelien@hackers.camp
-Reported-by: Aurelien DESBRIERES <aurelien@hackers.camp>
-Reviewed-by: Md Haris Iqbal <haris.iqbal@ionos.com>
-Signed-off-by: Aurelien DESBRIERES <aurelien@hackers.camp>
-Assisted-by: Claude <claude-sonnet-4-6>
-Acked-by: Md Haris Iqbal <haris.iqbal@ionos.com>
-Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+Signed-off-by: Shay Drory <shayd@nvidia.com>
+Reviewed-by: Mark Bloch <mbloch@nvidia.com>
+Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+Link: https://patch.msgid.link/20260531113954.395443-3-tariqt@nvidia.com
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
 
 LLM Generated explanations, may be completely bogus:
 
-# Stable Backport Analysis: RDMA/rtrs-srv integer underflow fix
+# Stable Backport Analysis: `net/mlx5: E-Switch, align disable sequence
+with switchdev-to-legacy transition`
 
-**Local tree:** `v6.18.44` (`6.18.44` per `make kernelversion`)
+**Local tree:** Linux **6.18.44** (`v6.18.44`, `VERSION=6 PATCHLEVEL=18
+SUBLEVEL=44`)
 
 ---
 
 ## PHASE 1: COMMIT MESSAGE FORENSICS
 
 ### Step 1.1: Subject line
-**Record:** `[RDMA/rtrs-srv]` `[Fix]` — integer underflow in
-`process_read()` and `process_write()` when computing `data_len` from
-network-supplied `usr_len` and offset `off`.
+**Record:** `[net/mlx5: E-Switch] [align] — reorder eswitch disable to
+match switchdev-to-legacy teardown ordering`
 
 ### Step 1.2: Tags
 **Record:**
+- **Signed-off-by:** Shay Drory `<shayd@nvidia.com>` (author)
+- **Reviewed-by:** Mark Bloch `<mbloch@nvidia.com>`
+- **Signed-off-by:** Tariq Toukan `<tariqt@nvidia.com>`
 - **Link:**
-  https://patch.msgid.link/r/20260608134802.5019-1-aurelien@hackers.camp
-- **Reported-by:** Aurelien DESBRIERES \<aurelien@hackers.camp\>
-- **Reviewed-by:** Md Haris Iqbal \<haris.iqbal@ionos.com\> (IONOS RTRS
-  maintainer)
-- **Acked-by:** Md Haris Iqbal \<haris.iqbal@ionos.com\>
-- **Signed-off-by:** Aurelien DESBRIERES, Jason Gunthorpe (RDMA
-  maintainer)
-- **Assisted-by:** Claude (notable but not decision-critical)
-- No **Fixes:** tag (expected for manual review pipeline)
-- No **Cc: stable** tag (absence is not a negative signal per
-  instructions)
-
-Notable: security-relevant report from researcher, reviewed and acked by
-subsystem maintainer, signed off by RDMA maintainer.
+  https://patch.msgid.link/20260531113954.395443-3-tariqt@nvidia.com
+  (patch **3/3** in a series)
+- **Signed-off-by:** Jakub Kicinski `<kuba@kernel.org>` (net maintainer)
+- No `Fixes:`, `Reported-by:`, `Cc: stable@vger.kernel.org`, or syzbot
+  tags
+- Message-ID suffix `-3-` indicates this is the third patch in a series
 
 ### Step 1.3: Body analysis
 **Record:**
-- **Bug:** `usr_len` is read from wire (`le16_to_cpu(msg->usr_len)`) and
-  used as `data_len = off - usr_len` without checking `usr_len <= off`.
-- **Symptom:** Integer underflow wraps `data_len` to a huge `size_t`,
-  passed to `rdma_ev()` as a memory length → out-of-bounds memory
-  access.
-- **Attack model:** Malicious RDMA client sends crafted messages.
-- **Fix approach:** Validate `usr_len <= off` before
-  `rtrs_srv_get_ops_ids()` so early return does not leak references.
+- **Bug:** E-switch disable runs too late in driver unload paths — after
+  `mlx5_detach_device()` / `mlx5_unregister_device()` — while the
+  switchdev-to-legacy transition disables eswitch **before** detachment.
+- **Symptom/failure mode:** Improper **SD LAG** (Socket Direct / shared-
+  FDB LAG) cleanup during teardown; commit does not include a crash
+  trace.
+- **Root cause (author):** SD LAG cleanup in `mlx5_eswitch_disable()`
+  depends on eswitch still being in the correct state and representors
+  still being present; detaching/unregistering auxiliary devices first
+  breaks that.
 
-### Step 1.4: Hidden bug fix detection
-**Record:** Not disguised — explicitly labeled a fix. The “no resource
-leak on early return” note is a secondary correctness detail (placing
-validation before `rtrs_srv_get_ops_ids()` avoids acquiring
-`ids_inflight_ref` on invalid input).
+### Step 1.4: Hidden bug fix?
+**Record:** Yes. Described as “align,” but it fixes a **teardown
+ordering bug** — same class as other mlx5 LAG/eswitch unload issues.
 
 ---
 
@@ -135,222 +129,220 @@ validation before `rtrs_srv_get_ops_ids()` avoids acquiring
 
 ### Step 2.1: Inventory
 **Record:**
-- **File:** `drivers/infiniband/ulp/rtrs/rtrs-srv.c` only
-- **Scope:** +16 lines, −2 lines moved (net +14); two functions modified
-- **Functions:** `process_read()`, `process_write()`
-- **Classification:** Single-file, surgical security fix
+- **File:** `drivers/net/ethernet/mellanox/mlx5/core/main.c` only
+- **Scope:** ~3 lines moved (net zero lines); 3 functions touched
+- **Functions modified:** `mlx5_unload()`, `mlx5_uninit_one()`,
+  `mlx5_unload_one_devl_locked()`
+- **Classification:** Single-file, surgical reordering
 
-### Step 2.2: Code flow change
-**Record:**
+### Step 2.2: Code flow per hunk
 
-**`process_read()` hunk:**
-- **Before:** After state/sg_cnt checks → `rtrs_srv_get_ops_ids()` →
-  read `usr_len` → `data_len = off - usr_len` → `rdma_ev()`
-- **After:** Read `usr_len` → if `usr_len > off`, return early (no ref
-  acquired) → then existing path
+**Hunk 1 — `mlx5_unload()`:**
+- **Before:** `mlx5_eswitch_disable()` was the first call in
+  `mlx5_unload()`.
+- **After:** Removed from `mlx5_unload()`.
 
-**`process_write()` hunk:** Same pattern.
+**Hunk 2 — `mlx5_uninit_one()`:**
+- **Before:** `mlx5_unregister_device()` → … → `mlx5_unload()` (which
+  disabled eswitch).
+- **After:** `mlx5_eswitch_disable()` → `mlx5_unregister_device()` → … →
+  `mlx5_unload()`.
+
+**Hunk 3 — `mlx5_unload_one_devl_locked()`:**
+- **Before:** `mlx5_detach_device()` → … → `mlx5_unload()` (which
+  disabled eswitch).
+- **After:** `mlx5_eswitch_disable()` → `mlx5_detach_device()` → … →
+  `mlx5_unload()`.
+
+**Record:** Both primary unload paths now disable eswitch **before**
+tearing down auxiliary devices.
 
 ### Step 2.3: Bug mechanism
-**Record:**
-- **Category:** Buffer overflow / out-of-bounds access via integer
-  underflow (unsigned wraparound)
-- **Mechanism:** `usr_len` is `size_t`, `off` is `u32`. Expression `off
-  - usr_len` uses unsigned arithmetic; when `usr_len > off`, `data_len`
-  wraps to ~`SIZE_MAX`. That length is passed to upper-layer `rdma_ev()`
-  callbacks with `data` pointing at a fixed-size chunk page
-  (`max_chunk_size`, default 128 KiB).
+**Record:** **Teardown ordering / logic correctness bug**
+- `mlx5_eswitch_disable()` calls `mlx5_lag_disable_change()` →
+  `mlx5_disable_lag()`.
+- For shared-FDB LAG (`MLX5_LAG_MODE_FLAG_SHARED_FDB`),
+  `mlx5_disable_lag()` calls `mlx5_eswitch_reload_ib_reps()`, which
+  requires `esw->mode == MLX5_ESWITCH_OFFLOADS` and `REP_LOADED`
+  representors.
+- `mlx5_detach_device()` / `mlx5_unregister_device()` remove auxiliary
+  devices (including eswitch representors) **before** `mlx5_unload()`
+  ran, so SD LAG cleanup could not run correctly.
+- `mlx5_devlink_eswitch_mode_set()` already disables eswitch **before**
+  mode transition — the unload paths were inconsistent.
 
 ### Step 2.4: Fix quality
 **Record:**
-- Fix is minimal and obviously correct: reject invalid wire input before
-  any side effects.
-- Moving validation before `rtrs_srv_get_ops_ids()` is correct — without
-  it, early return would leak a percpu ref.
-- **Regression risk:** Very low. Legitimate clients must satisfy
-  `usr_len <= off` by protocol; invalid messages are silently dropped
-  with `pr_debug()`.
+- Fix is minimal and mirrors the known-good
+  `mlx5_devlink_eswitch_mode_set()` ordering.
+- `mlx5_eswitch_disable()` requires devlink lock; both call sites
+  already hold `devl_lock()`.
+- **Regression risk:** Low for main unload paths. **Note:**
+  `mlx5_unload()` is still called from init error paths (`err_register`,
+  `err_attach`) without the new early `mlx5_eswitch_disable()` — those
+  paths typically run before switchdev/SD LAG is configured (unverified
+  for all edge cases).
 
 ---
 
 ## PHASE 3: GIT HISTORY INVESTIGATION
 
 ### Step 3.1: Blame
-**Record:** Buggy lines (`usr_len = le16_to_cpu(...); data_len = off -
-usr_len`) introduced in **9cb837480424** (“RDMA/rtrs: server: main
-functionality”, Jack Wang, 2020-05-11). Confirmed ancestor of HEAD.
+**Record:**
+- `mlx5_eswitch_disable()` in `mlx5_unload()`: added/moved to first
+  position by **85b47dc40bbc7** (Sep 2023, Jiri Pirko).
+- `mlx5_detach_device()` before `mlx5_unload()` in
+  `mlx5_unload_one_devl_locked()`: **72ed5d5624af3** (Jan 2023).
+- `mlx5_unregister_device()` before `mlx5_unload()` in
+  `mlx5_uninit_one()`: longstanding (Leon Romanovsky, 2020).
+- Original `mlx5_eswitch_disable` in unload: **f019679ea5f2a** (May
+  2022).
+- **Ordering mismatch has existed since ~2023** when detach was placed
+  before `mlx5_unload()` while eswitch disable remained inside
+  `mlx5_unload()`.
 
 ### Step 3.2: Fixes: tag
-**Record:** No `Fixes:` tag in commit message. N/A.
+**Record:** N/A — no `Fixes:` tag.
 
 ### Step 3.3: Related file history
-**Record:** Recent related security fix already in this tree:
-- **5a45d0aa1fa50** — “RDMA/rtrs-srv: Bound RDMA-Write length to chunk
-  size in rdma_write_sg” (different OOB vector, same file, has `Cc:
-  stable`, backported by Greg K-H)
-- Other recent commits are error-handling and mapping fixes, not
-  duplicates of this issue.
-- This underflow fix is **not** present in the tree (grep shows
-  vulnerable code at lines 1059–1060, 1112–1113).
+**Record:**
+- Shared-FDB LAG introduced **af8c0e25f249a** (Aug 2021) — present in
+  this tree.
+- Related crash fix **4b8eeed4fb105** (Mar 2025): bridge + shared-FDB
+  LAG teardown oops — same subsystem, similar LAG teardown sensitivity.
+- Patch appears standalone (only `main.c`); patches 1–2 of the series
+  were not found locally.
 
 ### Step 3.4: Author context
-**Record:** Aurelien DESBRIERES is a security researcher (reporter).
-Reviewer/acker Md Haris Iqbal is an active IONOS RTRS contributor with
-multiple recent commits in `drivers/infiniband/ulp/rtrs/`. Jason
-Gunthorpe is RDMA maintainer.
+**Record:** Shay Drory is an active mlx5 contributor (eswitch, LAG,
+devlink). Reviewed by Mark Bloch (mlx5 maintainer). Committed via Jakub
+Kicinski (netdev).
 
 ### Step 3.5: Dependencies
-**Record:** Standalone fix. No series markers (“patch X/Y”). No
-prerequisite commits. `git apply --check` with the provided diff: **exit
-0** (applies cleanly to current tree).
+**Record:** Self-contained for `main.c`. No structural/API prerequisites
+identified. Patches 1–2 of the series were **not found** in this
+workspace; this patch does not appear to depend on them functionally.
 
 ---
 
 ## PHASE 4: MAILING LIST AND EXTERNAL RESEARCH
 
 ### Step 4.1: Original discussion
-**Record:** `b4 dig -c <commit>` not possible — fix commit not in this
-checkout. WebFetch of Link URL returned Anubis bot-wall (no content).
-Lore.kernel.org returned 403. **UNVERIFIED:** full mailing-list thread
-content.
+**Record:** `b4 dig -c HEAD` did not match (commit not in tree). Lore
+search returned **403 Forbidden**. patch.msgid.link blocked by bot
+protection. **Could not retrieve mailing list thread.**
 
-### Step 4.2: Reviewers (b4 dig -w)
-**Record:** Not run (no commit hash in tree). From commit message: Md
-Haris Iqbal reviewed and acked; Jason Gunthorpe signed off.
+### Step 4.2: Reviewers
+**Record:** Mark Bloch (Reviewed-by). Jakub Kicinski merged. Full
+recipient list unavailable (b4 `-w` requires commit in tree).
 
 ### Step 4.3: Bug report
-**Record:** Reported-by Aurelien DESBRIERES with Link to patch
-submission. Mechanism described in commit message is consistent with
-code analysis. No syzbot report.
+**Record:** No external bug report, syzbot link, or crash trace in the
+commit message.
 
-### Step 4.4: Related patches
-**Record:** Same subsystem recently received **5a45d0aa1fa50** (remote
-peer OOB in `rdma_write_sg`), indicating active security hardening of
-rtrs-srv. This fix addresses a separate, earlier code path.
+### Step 4.4: Series context
+**Record:** Message-ID indicates patch **3/3**; patches 1–2 not
+identified locally. This change is independently applicable.
 
 ### Step 4.5: Stable list history
-**Record:** **UNVERIFIED** — could not access lore stable archive (403).
-Related commit 5a45d0aa1fa50 was explicitly nominated for stable (`Cc:
-stable@vger.kernel.org`).
+**Record:** Not searched (lore inaccessible). No stable nomination found
+in commit message.
 
 ---
 
 ## PHASE 5: CODE SEMANTIC ANALYSIS
 
 ### Step 5.1: Key functions
-**Record:** `process_read()`, `process_write()` (modified); callers:
-`process_io_req()`; entry: `rtrs_srv_rdma_done()` on
-`IB_WC_RECV_RDMA_WITH_IMM`.
+**Record:** `mlx5_eswitch_disable()`, `mlx5_unload()`,
+`mlx5_uninit_one()`, `mlx5_unload_one_devl_locked()`,
+`mlx5_detach_device()`, `mlx5_unregister_device()`,
+`mlx5_disable_lag()`, `mlx5_eswitch_reload_ib_reps()`
 
-### Step 5.2: Callers
+### Step 5.2: Callers of affected paths
 **Record:**
-```
-rtrs_srv_rdma_done()  [IB completion, off bounded < max_chunk_size]
-  → process_io_req()
-    → process_read() / process_write()
-      → ctx->ops.rdma_ev()  [upper-layer callback]
-```
-
-`off` is validated in `rtrs_srv_rdma_done()` at line 1273 (`off >=
-max_chunk_size` rejected), but **`usr_len` is not validated there** — it
-lives inside the RDMA-written message buffer.
+- `mlx5_uninit_one()` ← `remove_one()` (module/PCI remove), SF driver
+  teardown
+- `mlx5_unload_one_devl_locked()` ← `mlx5_unload_one()` ← devlink
+  reload, firmware reset, health recovery, suspend/resume
+- Both are common operational paths for mlx5 users
 
 ### Step 5.3: Callees
-**Record:** `rtrs_srv_get_ops_ids()` (percpu ref),
-`rtrs_srv_update_rdma_stats()`, `page_address()`, `ctx->ops.rdma_ev()`.
+**Record:** `mlx5_eswitch_disable()` → `mlx5_lag_disable_change()` →
+`mlx5_disable_lag()` → (shared FDB) `mlx5_eswitch_reload_ib_reps()`;
+`mlx5_detach_device()` tears down auxiliary drivers in reverse order
 
-### Step 5.4: Reachability / impact chain
-**Record:** Reachable by any connected RDMA peer sending
-`RDMA_WRITE_WITH_IMM` I/O requests. Primary consumer in this tree:
-
-- `drivers/block/rnbd/rnbd-srv.c` registers `rnbd_srv_rdma_ev` via
-  `rtrs_srv_open()`
-- `rnbd_srv_rdma_ev()` → `process_rdma()` → `bio_add_virt_nofail(bio,
-  data, datalen)` when `datalen != 0`
-
-A wrapped `datalen` causes the block layer to reference memory far
-beyond the 128 KiB chunk page → **kernel OOB access, potential crash or
-information disclosure**.
-
-**Trigger:** Remote RDMA client on the fabric (not arbitrary
-unprivileged local users, but a real remote attacker for RNBD/RTRS
-deployments).
+### Step 5.4: Reachability
+**Record:** Triggered on driver remove, devlink reload, FW reset
+recovery — admin-initiated but routine in datacenter deployments.
+Requires **CONFIG_MLX5_ESWITCH**, switchdev mode, and multi-PF Socket
+Direct / shared-FDB LAG.
 
 ### Step 5.5: Similar patterns
-**Record:** Same file already has `off >= max_chunk_size` check in
-`rtrs_srv_rdma_done()` and `plist->length > max_chunk_size` check in
-`rdma_write_sg()` (5a45d0aa1fa50). This patch closes the missing
-validation on `usr_len` vs `off`.
+**Record:** `mlx5_devlink_eswitch_mode_set()` disables eswitch before
+cleanup (lines 3832–3866 in `eswitch_offloads.c`). Bridge+LAG crash fix
+**4b8eeed4fb105** shows mlx5 shared-FDB LAG teardown ordering can cause
+kernel oops.
 
 ---
 
-## PHASE 6: CROSS-REFERENCE AGAINST LOCAL TREE (6.18.44)
+## PHASE 6: CROSS-REFERENCE WITH LOCAL TREE (6.18.44)
 
 ### Step 6.1: Buggy code present?
-**Record:** **YES.** Current tree at lines 1059–1060 and 1112–1113:
-
-```1059:1063:drivers/infiniband/ulp/rtrs/rtrs-srv.c
-        usr_len = le16_to_cpu(msg->usr_len);
-        data_len = off - usr_len;
-        data = page_address(srv->chunks[buf_id]);
-        ret = ctx->ops.rdma_ev(srv->priv, id, data, data_len,
-                           data + data_len, usr_len);
-```
-
-Bug present since 9cb837480424 (2020); not introduced after 6.18 branch.
+**Record:** **YES.** Current tree has:
+- `mlx5_eswitch_disable()` at line 1430 inside `mlx5_unload()`
+- `mlx5_detach_device()` at line 1623 **before** `mlx5_unload()` at line
+  1632
+- `mlx5_unregister_device()` at line 1539 **before** `mlx5_unload()` at
+  line 1550
 
 ### Step 6.2: Backport complications
-**Record:** Clean apply verified (`git apply --check` exit 0). No
-structural refactoring conflicts in this area. Minor context difference:
-error messages in current tree use `%d` instead of `%pe` for errors —
-unrelated to this hunk.
+**Record:** Expected **clean apply** with minor context adjustment (line
+ordering in `mlx5_unload()` differs slightly from the provided diff —
+`mlx5_vhca_event_stop` position — but the semantic change is identical).
 
 ### Step 6.3: Related fixes already present?
-**Record:** The **5a45d0aa1fa50** `rdma_write_sg` bound fix is present.
-The **usr_len underflow fix is NOT** present. No duplicate fix found via
-grep/log.
+**Record:** **4b8eeed4fb105** (bridge LAG crash) is in tree. This
+specific eswitch-disable ordering fix is **not** present.
 
 ---
 
 ## PHASE 7: SUBSYSTEM CONTEXT
 
 ### Step 7.1: Subsystem criticality
-**Record:** `drivers/infiniband/ulp/rtrs/` — RDMA transport layer;
-server module (`CONFIG_INFINIBAND_RTRS_SERVER`) used by RNBD server.
-**IMPORTANT** for RDMA block-export deployments; not universal like
-mm/net core, but security-critical for those users.
+**Record:** `drivers/net/ethernet/mellanox/mlx5` — **IMPORTANT**
+(datacenter NIC driver, widely deployed on stable/LTS kernels)
 
-### Step 7.2: Activity
-**Record:** Active maintenance in 6.18.y — multiple rtrs-srv fixes in
-recent history including security-related bounds checking.
+### Step 7.2: Subsystem activity
+**Record:** Actively maintained; frequent mlx5 commits in 6.18.y.
 
 ---
 
 ## PHASE 8: IMPACT AND RISK ASSESSMENT
 
 ### Step 8.1: Who is affected
-**Record:** Systems with `CONFIG_INFINIBAND_RTRS_SERVER` loaded
-(typically via `rtrs_srv` / `rnbd-srv` modules) exposed to RDMA network
-peers.
+**Record:** Users of **Mellanox ConnectX multi-PF Socket Direct**
+configurations with **shared-FDB LAG** in **switchdev** mode —
+datacenter/cloud NIC deployments. Not universal; config-specific.
 
 ### Step 8.2: Trigger conditions
-**Record:** Malicious or buggy RTRS client sends I/O message with
-`usr_len > off`. `off` can be as small as 0; `usr_len` is `u16` (up to
-65535). **Easily triggerable** by a connected peer.
+**Record:** Driver unload, devlink reload, FW-reset recovery, or suspend
+on configured SD LAG + switchdev. Admin-initiated but routine.
+Unprivileged users cannot directly trigger.
 
 ### Step 8.3: Failure mode severity
-**Record:** Out-of-bounds memory access via oversized `datalen` passed
-to `rdma_ev` → potential **kernel crash, memory corruption, or
-information disclosure**. **Severity: CRITICAL/HIGH** (security-relevant
-remote attack on RDMA server).
+**Record:** Improper LAG/eswitch teardown;
+`mlx5_eswitch_reload_ib_reps()` silently skipped when reps already
+detached. Can leave inconsistent LAG state; related mlx5 LAG teardown
+bugs have caused **kernel oops** (4b8eeed4fb105). **Severity: MEDIUM-
+HIGH** for affected configs; **LOW** for typical single-PF users.
 
 ### Step 8.4: Risk-benefit
 **Record:**
-- **Benefit:** HIGH — closes exploitable remote integer-underflow → OOB
-  path
-- **Risk:** VERY LOW — 8 lines of validation per function, no API
-  changes
-- **Ratio:** Strongly favors backport
+- **Benefit:** MEDIUM for affected enterprise users; prevents broken SD
+  LAG teardown on common unload paths
+- **Risk:** LOW — 3-line reorder, mirrors existing mode-set path,
+  reviewed by subsystem maintainer
+- **Ratio:** Favorable for backport
 
 ---
 
@@ -359,135 +351,132 @@ remote attack on RDMA server).
 ### Step 9.1: Evidence summary
 
 **FOR backport:**
-- Real security bug: unsigned underflow → huge length → OOB in `rdma_ev`
-  callback
-- Verified vulnerable code exists in 6.18.44 since rtrs server inception
-  (2020)
-- Small, surgical, applies cleanly
-- Reviewed/acked by subsystem maintainer, signed off by RDMA maintainer
-- Same subsystem already received a related OOB fix (5a45d0aa1fa50) in
-  this tree
-- Fix also prevents ref leak on error path (correct placement before
-  `get_ops_ids`)
+- Verified ordering bug: detach/unregister before eswitch disable in
+  both main unload paths
+- SD LAG cleanup (`mlx5_disable_lag` → `mlx5_eswitch_reload_ib_reps`)
+  requires eswitch/rep state that detach destroys
+- Matches proven-correct `mlx5_devlink_eswitch_mode_set()` ordering
+- Small, surgical, low regression risk
+- Bug present since ~2023; shared-FDB LAG in tree since 2021
+- Same subsystem had LAG teardown oops fixed for stable (4b8eeed4fb105)
+- NVIDIA maintainer review
 
 **AGAINST backport:**
-- Affects only RTRS server users (niche vs whole kernel) — but those
-  users face real remote attack surface
-- Mailing-list thread content unverified (does not weaken technical
-  case)
+- No crash trace, syzbot report, or user bug report in commit message
+- Affects niche multi-PF Socket Direct + switchdev configuration
+- Patch 3/3 — series context unavailable
+- Init error paths (`err_register`/`err_attach`) still call
+  `mlx5_unload()` without early eswitch disable (likely low impact —
+  switchdev typically not configured at probe failure)
 
-**UNRESOLVED:**
-- Full lore/kernel.org discussion not accessible (403/bot wall)
+**Unresolved:**
+- Full mailing list review thread (lore inaccessible)
+- Patches 1–2 of the series not found
+- No quantitative report of how often this causes visible failures
 
 ### Step 9.2: Stable rules checklist
-1. Obviously correct and tested? **PASS** — simple bounds check;
-   reviewed by maintainer
-2. Fixes real bug affecting users? **PASS** — remote peer can trigger
-   OOB via crafted `usr_len`
-3. Important issue? **PASS** — security / OOB memory access (CRITICAL
-   for affected deployments)
-4. Small and contained? **PASS** — one file, ~16 lines
-5. No new features/APIs? **PASS** — input validation only
-6. Can apply to local tree? **PASS** — `git apply --check` succeeded
+1. Obviously correct and tested? **PASS** — ordering matches mode-set
+   path; Reviewed-by from mlx5 maintainer (no Tested-by)
+2. Fixes a real bug? **PASS** — verifiable teardown ordering violation
+3. Important issue? **PASS (MEDIUM)** — improper teardown on
+   unload/reload for SD LAG; related bugs caused oopses, though this one
+   lacks explicit crash report
+4. Small and contained? **PASS** — single file, ~3 lines moved
+5. No new features/APIs? **PASS**
+6. Can apply to local tree? **PASS** — code exists; clean/minor-context
+   apply expected
 
 ### Step 9.3: Exception categories
-**Record:** None of the special exceptions (device ID, quirk, DT, build,
-docs). This is a straight security bug fix.
+**Record:** None (not device ID, quirk, DT, build fix, or docs fix).
+Standard bug-fix backport.
 
 ### Step 9.4: Decision rationale
-For **6.18.44**, the vulnerable code is present, the bug has existed
-since the rtrs server was added, a remote RDMA client can trigger
-integer underflow leading to out-of-bounds memory access in the
-`rdma_ev` path (including RNBD block I/O), and the fix is minimal with
-negligible regression risk. This meets all stable-kernel criteria for a
-security fix.
+For **Linux 6.18.44**, the buggy ordering is present and the fix is
+minimal, obviously correct, and aligns unload paths with the already-
+correct switchdev-to-legacy transition. While the affected configuration
+(multi-PF Socket Direct + shared-FDB LAG + switchdev) is niche and the
+commit lacks a crash report, the mechanism is verified in code, the
+subsystem has a history of LAG teardown oopses, and the fix carries very
+low risk. This meets stable criteria for an important driver teardown
+correctness fix.
 
 ---
 
 ## Verification
 
-- [Phase 1] Parsed subject, tags, body from user-provided commit message
-- [Phase 1] Identified Reported-by, Reviewed-by, Acked-by, Link tags
-- [Phase 2] Read current `rtrs-srv.c` lines 1027–1135; confirmed
-  vulnerable `data_len = off - usr_len` pattern
-- [Phase 2] Confirmed `usr_len` is `size_t`, `off` is `u32` — unsigned
-  underflow verified by type inspection
-- [Phase 3] `git blame -L 1055,1065`: buggy code from 9cb837480424
-  (2020-05-11)
-- [Phase 3] `git merge-base --is-ancestor 9cb837480424 HEAD`: buggy
-  commit is in tree
-- [Phase 3] `git log --oneline -20 -- drivers/infiniband/ulp/rtrs/rtrs-
-  srv.c`: related security fix 5a45d0aa1fa50 present; underflow fix
-  absent
-- [Phase 3] `git apply --check` with provided diff: exit 0 (clean apply)
-- [Phase 4] WebFetch Link URL: blocked by Anubis — **UNVERIFIED** thread
-  content
-- [Phase 4] curl lore.kernel.org: 403 — **UNVERIFIED** stable-list
-  discussion
-- [Phase 4] `b4 dig -c`: not run — commit not in checkout
-- [Phase 5] Traced call chain: `rtrs_srv_rdma_done` → `process_io_req` →
-  `process_read`/`process_write`
-- [Phase 5] Verified `off >= max_chunk_size` check at line 1273 does not
-  cover `usr_len`
-- [Phase 5] `grep rtrs_srv_open`: only `rnbd-srv.c` uses server; traced
-  to `bio_add_virt_nofail(bio, data, datalen)`
-- [Phase 6] `git describe HEAD`: v6.18.44
-- [Phase 6] `make kernelversion`: 6.18.44
-- [Phase 6] Grep confirmed fix NOT applied; vulnerable code at
-  1059–1060, 1112–1113
-- [Phase 7] Kconfig: `CONFIG_INFINIBAND_RTRS_SERVER` tristate module
-- [Phase 8] `DEFAULT_MAX_CHUNK_SIZE` = 128 KiB; chunk is fixed-size page
-  — OOB impact confirmed
+- **[Phase 1]** Parsed commit message and tags from user-provided diff
+- **[Phase 2]** Analyzed diff: 3 hunks in `main.c`, eswitch disable
+  moved from `mlx5_unload` to `mlx5_uninit_one` and
+  `mlx5_unload_one_devl_locked`
+- **[Phase 3]** `git describe HEAD` → `v6.18.44`; `Makefile` → 6.18.44
+- **[Phase 3]** `git blame` on lines 1428–1450, 1530–1558, 1618–1636 of
+  `main.c` — ordering history confirmed
+- **[Phase 3]** `git show 85b47dc40bbc7` — eswitch disable moved to
+  first in `mlx5_unload` (2023)
+- **[Phase 3]** `git show f019679ea5f2a` — original addition of eswitch
+  disable to unload (2022)
+- **[Phase 3]** `git show af8c0e25f249a` — shared-FDB LAG since Aug 2021
+- **[Phase 3]** `git show 4b8eeed4fb105` — related bridge+LAG oops fix
+  in tree
+- **[Phase 4]** `b4 dig -c HEAD` — no match (commit not in tree)
+- **[Phase 4]** Lore/patch.msgid.link fetch — blocked (403/bot
+  protection); thread not retrieved
+- **[Phase 4]** Workspace `.mbx` search for `align disable sequence` /
+  `395443` — not found
+- **[Phase 5]** Read `mlx5_eswitch_disable()` in `eswitch.c:1780–1790` —
+  calls `mlx5_lag_disable_change`
+- **[Phase 5]** Read `mlx5_disable_lag()` in `lag.c:900–937` — shared-
+  FDB path calls `mlx5_eswitch_reload_ib_reps`
+- **[Phase 5]** Read `mlx5_eswitch_reload_ib_reps()` in
+  `eswitch_offloads.c:3346–3368` — requires OFFLOADS mode and REP_LOADED
+- **[Phase 5]** Read `mlx5_detach_device()` in `dev.c:414–454` — removes
+  auxiliary devices before unload
+- **[Phase 5]** Read `mlx5_devlink_eswitch_mode_set()` in
+  `eswitch_offloads.c:3807–3890` — disables eswitch before mode change
+- **[Phase 5]** `grep mlx5_unload(` — callers: err_register,
+  mlx5_uninit_one, err_attach, mlx5_unload_one_devl_locked
+- **[Phase 6]** Read current `main.c:1428–1645` — buggy ordering
+  confirmed in 6.18.44
+- **[Phase 6]** `grep mlx5_eswitch_disable` — present in tree, not yet
+  reordered
+- **[Phase 8]** Confirmed SD = Socket Direct via `mlx5_get_sd()` usage
+  in `eswitch_offloads.c:3826–3828`
+- **UNVERIFIED:** Mailing list reviewer stable nominations; patches 1–2
+  of series; explicit user crash reports for this specific bug
 
 **YES**
 
- drivers/infiniband/ulp/rtrs/rtrs-srv.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/main.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-index 1fc67fdff9fc2..12a9a888fe0ee 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-@@ -1049,6 +1049,11 @@ static void process_read(struct rtrs_srv_con *con,
- 			    "Processing read request failed, invalid message\n");
- 		return;
- 	}
-+	usr_len = le16_to_cpu(msg->usr_len);
-+	if (usr_len > off) {
-+		pr_debug("rtrs-srv: Invalid usr_len %zu > off %u\n", usr_len, off);
-+		return;
-+	}
- 	rtrs_srv_get_ops_ids(srv_path);
- 	rtrs_srv_update_rdma_stats(srv_path->stats, off, READ);
- 	id = srv_path->ops_ids[buf_id];
-@@ -1056,7 +1061,6 @@ static void process_read(struct rtrs_srv_con *con,
- 	id->dir		= READ;
- 	id->msg_id	= buf_id;
- 	id->rd_msg	= msg;
--	usr_len = le16_to_cpu(msg->usr_len);
- 	data_len = off - usr_len;
- 	data = page_address(srv->chunks[buf_id]);
- 	ret = ctx->ops.rdma_ev(srv->priv, id, data, data_len,
-@@ -1102,6 +1106,11 @@ static void process_write(struct rtrs_srv_con *con,
- 			     rtrs_srv_state_str(srv_path->state));
- 		return;
- 	}
-+	usr_len = le16_to_cpu(req->usr_len);
-+	if (usr_len > off) {
-+		pr_debug("rtrs-srv: Invalid usr_len %zu > off %u\n", usr_len, off);
-+		return;
-+	}
- 	rtrs_srv_get_ops_ids(srv_path);
- 	rtrs_srv_update_rdma_stats(srv_path->stats, off, WRITE);
- 	id = srv_path->ops_ids[buf_id];
-@@ -1109,7 +1118,6 @@ static void process_write(struct rtrs_srv_con *con,
- 	id->dir    = WRITE;
- 	id->msg_id = buf_id;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index 22bdefe5696c9..42bc553d034b5 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -1427,7 +1427,6 @@ static int mlx5_load(struct mlx5_core_dev *dev)
  
--	usr_len = le16_to_cpu(req->usr_len);
- 	data_len = off - usr_len;
- 	data = page_address(srv->chunks[buf_id]);
- 	ret = ctx->ops.rdma_ev(srv->priv, id, data, data_len,
+ static void mlx5_unload(struct mlx5_core_dev *dev)
+ {
+-	mlx5_eswitch_disable(dev->priv.eswitch);
+ 	mlx5_devlink_traps_unregister(priv_to_devlink(dev));
+ 	mlx5_sf_dev_table_destroy(dev);
+ 	mlx5_sriov_detach(dev);
+@@ -1536,6 +1535,7 @@ void mlx5_uninit_one(struct mlx5_core_dev *dev)
+ 
+ 	mlx5_hwmon_dev_unregister(dev);
+ 	mlx5_crdump_disable(dev);
++	mlx5_eswitch_disable(dev->priv.eswitch);
+ 	mlx5_unregister_device(dev);
+ 
+ 	if (!test_bit(MLX5_INTERFACE_STATE_UP, &dev->intf_state)) {
+@@ -1620,6 +1620,7 @@ void mlx5_unload_one_devl_locked(struct mlx5_core_dev *dev, bool suspend)
+ 	devl_assert_locked(priv_to_devlink(dev));
+ 	mutex_lock(&dev->intf_state_mutex);
+ 
++	mlx5_eswitch_disable(dev->priv.eswitch);
+ 	mlx5_detach_device(dev, suspend);
+ 
+ 	if (!test_bit(MLX5_INTERFACE_STATE_UP, &dev->intf_state)) {
 -- 
 2.53.0
 
