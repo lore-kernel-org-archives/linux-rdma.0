@@ -1,42 +1,42 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 070D44A0124;
-	Mon, 31 Aug 2026 13:41:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E946E4A015A;
+	Mon, 31 Aug 2026 13:41:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788183680; cv=none; b=ctp53Q+hvLk+YxpjKUxukhIMSWdFPkDanSj16Rud13wt0clgG96B9PoY7ZrPIUpy0Z6tzjEs1wCaVkyUcFwNBQVnV7dcSgD84dyYkTowzrCz52nSOzVUBEmWma5FMtThgTDtohycHvb/T0jTxqs52pPdJZeo9ChjmXBWCixJvwI=
+	t=1788183687; cv=none; b=vC+pYYqH27606HVGj/bp0MjlaIq9DwwrzPGwmnFWDTHur8V6FayuNhyOCHbcHo33geisn4qRVEoYxk9VDUL6fMg6o361xUbx62723WKKdMvX4mAGtDqk2h7OY0iTTkCVG+j4VsmMPgLjX4tdWrHccfhmmiDo5mXc99peeoqz/rk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788183680; c=relaxed/simple;
-	bh=TweDbUO6D6WDrjVFJqDI+Zwc0n2Ahu5sW6+eU7R8L4U=;
+	s=arc-20240116; t=1788183687; c=relaxed/simple;
+	bh=ExYEIBHflgKX7wH0/UegyqsqQrnI96Pdxdc1zx3k55c=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=gBogtTZBdCUFZOfHSY7Z8GjpJiaSqxbt7lNpMgu78twQc+oHaxYaSyfYjK/hZNq246x8RnxBn9Mv7B51GgZxMJ3rYwgHVy6ykgiivPWpualIwmvCdJgQzkgW7nB2wKnzZDCx4UBfsSg/usd9f7HsdVMxzsdLVFGinsIs+umSq8o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Y/TCkBZb; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=F3GVAEL2zoqghhJ1C1+Wo+8R8kvdgk5lUj1ciRZ1Pjnpf3pEDv5ygHfQkoEt91PnkHK1lFIBAcF3+uTpWq/qsd6P4DB4ddZihLXX/UgyXzmoL+Ly5h+0oZMhLt+K/IRVMqzTyUQVjSsLCtN0CYgka4r3FD2NLyDSKg8dzOeOLcs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XehznNZO; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Y/TCkBZb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4BD51F00A3D;
-	Mon, 31 Aug 2026 13:41:15 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XehznNZO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 003E01F000E9;
+	Mon, 31 Aug 2026 13:41:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788183676;
-	bh=uWT3EYYqQS6pN+gsd++jUXHyRppgcYRYjDcFtshUMlo=;
+	s=k20260515; t=1788183684;
+	bh=Z+/9zkiq29qZCLnLy+ynK/JkEFK4uDrWz9KvtCHAk9Q=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=Y/TCkBZb7I1gZIVnwVVSAtE4M9usJDYtJXY33OvAXTS1wWrq7P2bCvUqgE2i8cRKg
-	 wxzuB3fEHmyjdSGaqWaThX3LQCoA2mnOt8wsH3kNuuQ1DpD7yBnaPNAPArcFRossho
-	 3Bl/DsAMZr3A9C01mu2c1RJVmOAlvpO6lbMTD/wbzXM3XIdw7mG6fPnRhHEd2XFhdQ
-	 IzCss6Jj5brjN1LEnWqm/yYK1Vhh3tvVU4p95u7cv2tbLEgp9NyXQWh0XXcfcFz3Ug
-	 bDdy8ugxZkQpXIIL0s72dH0Q8uAyb+Wmq+cjNbR2BMAFUn7nT5uwomSYLDg9y9Foof
-	 YL7oeV//fNa/A==
+	b=XehznNZOkTmLfdKlABoXtpKMe8rNUTCCkFLbQS3eM2W/iKSYd74OvwXHuBCPzdkeP
+	 f9YLeNuUWM3izKPXs3mGctndAhP7R2cypAAQr3QigQ83/YsdixWHeOkem+GRE5iAF7
+	 eITqUNGxp4/eWJFVPMVA+ub1yuYSSdoWpXA6lMaBNRSp8WKMSgWWrJr5yJ1Lf+zgSA
+	 8/hfkHh/sRP0yZMGnpmEVUZG0SsmtITRLjwYVW+/D0rx35Zmu7C2Zy2To3kV+ggkeT
+	 soaTUnTGAygcP4LE10CaMzuS2g2fbCaDIsDFZJXxYQZc1m56qlFB9WYazfRdskX54p
+	 C9uZXknMeWbSw==
 From: Sasha Levin <sashal@kernel.org>
 To: patches@lists.linux.dev,
 	stable@vger.kernel.org
-Cc: Li RongQing <lirongqing@baidu.com>,
+Cc: Tao Cui <cuitao@kylinos.cn>,
 	Jason Gunthorpe <jgg@nvidia.com>,
 	Sasha Levin <sashal@kernel.org>,
 	linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.18-5.10] RDMA/mlx5: Fix state and counter desync on loopback enable failure
-Date: Mon, 31 Aug 2026 09:24:26 -0400
-Message-ID: <20260831133314.4125787-238-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.18] RDMA/counter: Fix num_counters leak on bind_qp failure in alloc_and_bind()
+Date: Mon, 31 Aug 2026 09:24:31 -0400
+Message-ID: <20260831133314.4125787-243-sashal@kernel.org>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260831133314.4125787-1-sashal@kernel.org>
 References: <20260831133314.4125787-1-sashal@kernel.org>
@@ -46,425 +46,416 @@ List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 X-stable: review
 X-Patchwork-Hint: Ignore
 X-stable-base: Linux 6.18.48
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Li RongQing <lirongqing@baidu.com>
+From: Tao Cui <cuitao@kylinos.cn>
 
-[ Upstream commit 0d32eabccbe4b2f8d45be3192c5f3c76c8af703d ]
+[ Upstream commit 4fbc8230009f5b1bcd13cc74c5a6a43ddba141fd ]
 
-In mlx5_ib_enable_lb(), dev->lb.enabled was unconditionally set
-to true even if mlx5_nic_vport_update_local_lb() failed.
+When __rdma_counter_bind_qp() fails in alloc_and_bind(), the error path
+jumps to err_mode which frees the counter without decrementing
+port_counter->num_counters. The only place that decrements is
+rdma_counter_free(), which is unreachable since the counter was never
+successfully bound.
 
-Fix this by only setting dev->lb.enabled on success. On failure,
-roll back the reference counters and return the error.
+This leak accumulates across repeated failures, permanently preventing
+the port from switching to AUTO mode (-EBUSY in __counter_set_mode())
+and blocking the MANUAL→NONE auto-revert in rdma_counter_free(). When
+the mode was NONE before the call, the MANUAL mode set by
+__counter_set_mode() also leaks since the revert logic is never
+reached.
 
-Link: https://patch.msgid.link/r/20260601095818.2227-1-lirongqing@baidu.com
-Signed-off-by: Li RongQing <lirongqing@baidu.com>
+Add an err_bind label between the num_counters increment and the
+existing err_mode label. It decrements num_counters and mirrors the
+MANUAL→NONE revert from rdma_counter_free(), ensuring the port state
+is fully restored on bind failure.
+
+Link: https://patch.msgid.link/r/20260520104546.1776253-2-cuitao@kylinos.cn
+Signed-off-by: Tao Cui <cuitao@kylinos.cn>
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
 
 LLM Generated explanations, may be completely bogus:
 
-## PHASE 1: COMMIT MESSAGE FORENSICS
+# Stable Backport Analysis: RDMA/counter num_counters leak fix
 
-### Step 1.1: PARSE THE SUBJECT LINE
-**Record:** `[RDMA/mlx5]` `[Fix]` — Correct state/counter
-desynchronization when vport loopback enable fails in
-`mlx5_ib_enable_lb()`.
-
-### Step 1.2: PARSE ALL COMMIT MESSAGE TAGS
-**Record:**
-- **Link:** `https://patch.msgid.link/r/20260601095818.2227-1-
-  lirongqing@baidu.com`
-- **Signed-off-by:** Li RongQing `<lirongqing@baidu.com>` (author)
-- **Signed-off-by:** Jason Gunthorpe `<jgg@nvidia.com>` (RDMA
-  maintainer)
-- No `Fixes:`, `Reported-by:`, `Tested-by:`, `Reviewed-by:`, `Acked-
-  by:`, or `Cc: stable@vger.kernel.org` tags
-- Notable: Signed-off-by from Jason Gunthorpe (RDMA subsystem
-  maintainer) is a strong quality signal
-
-### Step 1.3: ANALYZE THE COMMIT BODY TEXT
-**Record:**
-- **Bug description:** In `mlx5_ib_enable_lb()`, `dev->lb.enabled` is
-  set to `true` unconditionally after calling
-  `mlx5_nic_vport_update_local_lb()`, even when that call fails.
-- **Symptom/failure mode:** Software state (`enabled` flag and reference
-  counters `user_td`/`qps`) becomes inconsistent with hardware state. SW
-  believes loopback is enabled; HW is not.
-- **Root cause:** Missing error check before setting `enabled`, and
-  missing rollback of incremented counters on failure.
-- **Version info:** None stated in commit message.
-
-### Step 1.4: DETECT HIDDEN BUG FIXES
-**Record:** Not hidden — explicitly labeled as a fix. This is a classic
-error-path state-machine bug (logic/correctness), not cosmetic cleanup.
+**Local tree:** Linux **6.18.44** (`git describe HEAD` → `v6.18.44`,
+`make kernelversion` → `6.18.44`)
 
 ---
 
-## PHASE 2: DIFF ANALYSIS - LINE BY LINE
+## PHASE 1: COMMIT MESSAGE FORENSICS
 
-### Step 2.1: INVENTORY THE CHANGES
+### Step 1.1: Parse the subject line
+**Record:** `[RDMA/counter]` `[Fix]` — Fix `num_counters` leak on
+`bind_qp` failure in `alloc_and_bind()`.
+
+### Step 1.2: Parse all commit message tags
 **Record:**
-- **Files:** `drivers/infiniband/hw/mlx5/main.c` only (+11 / -0 net)
-- **Function modified:** `mlx5_ib_enable_lb()`
-- **Scope:** Single-file, surgical fix in one function
+- **Link:** `https://patch.msgid.link/r/20260520104546.1776253-2-
+  cuitao@kylinos.cn`
+- **Signed-off-by:** Tao Cui `<cuitao@kylinos.cn>`
+- **Signed-off-by:** Jason Gunthorpe `<jgg@nvidia.com>` (RDMA
+  maintainer)
+- No `Fixes:`, `Reported-by:`, `Tested-by:`, `Reviewed-by:`, `Cc:
+  stable@vger.kernel.org`
+- Notable: part of a 2-patch series; sibling patch (`1776253-3`) is
+  already backported to this tree as `9420871183eab`.
 
-### Step 2.2: UNDERSTAND THE CODE FLOW CHANGE
+### Step 1.3: Analyze commit body
 **Record:**
+- **Bug:** On `__rdma_counter_bind_qp()` failure in `alloc_and_bind()`,
+  error path jumps to `err_mode` and frees the counter without
+  decrementing `port_counter->num_counters`.
+- **Symptom:** Leak accumulates across repeated failures; port cannot
+  switch to AUTO mode (`-EBUSY` from `__counter_set_mode()`);
+  MANUAL→NONE auto-revert never runs; if mode was NONE before call,
+  MANUAL mode also leaks.
+- **Root cause:** `num_counters` is incremented before bind; decrement
+  only happens in `rdma_counter_free()`, which is unreachable when bind
+  never succeeded.
+- **Fix approach:** Add `err_bind` label that decrements `num_counters`
+  and mirrors MANUAL→NONE revert from `rdma_counter_free()`.
 
-**Hunk (enable path):**
-- **Before:** Increment `user_td`/`qps`, call
-  `mlx5_nic_vport_update_local_lb()`, always set `dev->lb.enabled =
-  true`, unlock, return `err` (possibly non-zero).
-- **After:** On `mlx5_nic_vport_update_local_lb()` failure, jump to
-  `err_rollback`, decrement the counters that were just incremented,
-  unlock, return error. Only set `enabled = true` on success.
+### Step 1.4: Detect hidden bug fixes
+**Record:** Not disguised — explicitly a resource/state leak fix on an
+error path.
 
-**Affected path:** Error path inside loopback enable, triggered when
-`user_td == 2` or `qps == 1`.
+---
 
-### Step 2.3: IDENTIFY THE BUG MECHANISM
+## PHASE 2: DIFF ANALYSIS
+
+### Step 2.1: Inventory the changes
 **Record:**
-- **Bug category:** Logic/correctness fix — error-path state
-  desynchronization (related to reference-counting semantics).
-- **Mechanism:** On `mlx5_nic_vport_update_local_lb()` failure, counters
-  remain inflated and `enabled` is wrongly `true`. Future calls skip re-
-  enabling (`if (!dev->lb.enabled)` guard), and disable thresholds
-  (`user_td == 1 && qps == 0`) may never be reached again. State
-  corruption persists until driver reload.
+- **File:** `drivers/infiniband/core/counters.c` (+9 / -1 lines)
+- **Function:** `alloc_and_bind()`
+- **Scope:** Single-file surgical fix
 
-### Step 2.4: ASSESS THE FIX QUALITY
+### Step 2.2: Code flow change
 **Record:**
-- **Fix quality:** Obviously correct. Mirrors the existing pattern in
-  `mlx5_ib_enable_lb_mp()` in the same file, which already checks errors
-  from `mlx5_nic_vport_update_local_lb()` before updating state.
-- **Regression risk:** Very low. Only affects the failure path; success
-  path unchanged.
-- **Red flags:** None.
+- **Hunk 1 (bind failure):** `goto err_mode` → `goto err_bind`
+- **Hunk 2 (new `err_bind`):** Lock `port_counter`, decrement
+  `num_counters`, if zero and MANUAL mode call
+  `__counter_set_mode(NONE)`, unlock, then fall through to `err_mode`
+- **Before:** Bind failure leaked counter refcount state and left port
+  mode stuck
+- **After:** Bind failure fully restores port counter state before
+  freeing counter object
+
+### Step 2.3: Bug mechanism
+**Record:** **Category:** Error-path resource/state leak (reference-
+count-like counter + mode state machine).
+- `num_counters++` at line 191 happens before `__rdma_counter_bind_qp()`
+  at line 199
+- Current tree still has `goto err_mode` on failure (lines 200–201),
+  skipping decrement/revert
+- Fix mirrors existing cleanup in `rdma_counter_free()` (lines 220–225)
+
+### Step 2.4: Fix quality
+**Record:** Obviously correct — duplicates proven cleanup logic from
+`rdma_counter_free()`. Minimal, no API changes. Low regression risk;
+uses existing lock and `__counter_set_mode()` patterns.
 
 ---
 
 ## PHASE 3: GIT HISTORY INVESTIGATION
 
-### Step 3.1: BLAME THE CHANGED LINES
+### Step 3.1: Blame changed lines
+**Record:** Buggy lines blame to `e664048784506` (tree import merge).
+Shallow stable-tree history; counters subsystem predates 6.18 (file
+copyright 2019 Mellanox; sibling fix references `Fixes: 56594ae1d250`).
+
+### Step 3.2: Follow Fixes: tag
+**Record:** N/A — no `Fixes:` tag on this commit. Sibling patch fixes
+`56594ae1d250` (mutex annotation commit in RDMA core).
+
+### Step 3.3: Related file history
 **Record:**
-- Buggy logic introduced in `0042f9e458a560` (Mark Bloch, 2018-09-21):
-  "RDMA/mlx5: Enable vport loopback when user context or QP mandate"
-- `dev->lb.enabled = true` unconditionally after
-  `mlx5_nic_vport_update_local_lb()` has been present since 2018
-- Verified: `git merge-base --is-ancestor 0042f9e458a560 HEAD` → bug
-  commit is in v6.18.44
+- `9420871183eab` — "RDMA/counter: Fix incorrect port index in
+  rdma_counter_init() error cleanup" — **already in this 6.18.44 tree**
+  (same author, same series, committed by Greg K-H)
+- This `num_counters` leak fix is **not** yet in the tree
 
-### Step 3.2: FOLLOW THE FIXES: TAG
-**Record:** No `Fixes:` tag present. N/A.
+### Step 3.4: Author context
+**Record:** Tao Cui authored both patches; Jason Gunthorpe (maintainer)
+Signed-off-by and replied "Applied to for-next" on the series.
 
-### Step 3.3: CHECK FILE HISTORY FOR RELATED CHANGES
-**Record:**
-- Related commit already in tree: `65e344925fa30` — "IB/mlx5: Fix
-  transport-domain rollback and initialize lb mutex earlier"
-  - Fixes TD leak when `mlx5_ib_enable_lb()` returns error from
-    `mlx5_ib_alloc_transport_domain()`
-  - Does **not** fix the internal state corruption inside
-    `mlx5_ib_enable_lb()` itself
-- This commit is standalone (not part of a numbered series)
-- Complementary to `65e344925fa30`: that commit handles the caller; this
-  one fixes the callee's state machine
-
-### Step 3.4: CHECK THE AUTHOR'S OTHER COMMITS
-**Record:** No prior commits from Li RongQing in mlx5 in this tree.
-Jason Gunthorpe (Signed-off-by) is a core RDMA maintainer.
-
-### Step 3.5: CHECK FOR DEPENDENT/PREREQUISITE COMMITS
-**Record:** No dependencies. Applies cleanly to current
-`mlx5_ib_enable_lb()` in v6.18.44. Fix is self-contained.
+### Step 3.5: Dependencies
+**Record:** Standalone 2-patch series; patches are independent. This
+patch applies cleanly to current `counters.c` (pre-patch index
+`c3aa6d7fc66b6` matches current file). No prerequisite commits required
+beyond existing counters code.
 
 ---
 
 ## PHASE 4: MAILING LIST AND EXTERNAL RESEARCH
 
-### Step 4.1: FIND THE ORIGINAL PATCH DISCUSSION
-**Record:** UNVERIFIED — `b4 dig -c <commit>` not possible (commit not
-yet in tree). Lore.kernel.org and patch.msgid.link blocked by bot
-protection (Anubis). Could not retrieve review thread.
+### Step 4.1: Original patch discussion
+**Record:**
+- **URL:** https://lkml.iu.edu/2605.2/07986.html (patch 1/2)
+- **Cover:** https://lkml.iu.edu/2605.2/07985.html
+- **Series:** 2 patches, both error-path fixes in `counters.c`
+- **Maintainer response:** Jason Gunthorpe: "Applied to for-next"
+  (https://lists.openwall.net/linux-kernel/2026/05/25/1182)
+- No NAKs found; no explicit stable nomination in thread
+- `b4 dig -c <hash>` failed (commit not in local tree); lore.kernel.org
+  blocked by bot protection
 
-### Step 4.2: CHECK WHO REVIEWED THE PATCH
-**Record:** UNVERIFIED via b4 dig -w. Commit message shows Jason
-Gunthorpe Signed-off-by (maintainer acceptance).
+### Step 4.2: Reviewers
+**Record:** CC'd: `leon@kernel.org`, `linux-rdma@vger.kernel.org`,
+`linux-kernel@vger.kernel.org`. Jason Gunthorpe reviewed and applied.
 
-### Step 4.3: SEARCH FOR THE BUG REPORT
-**Record:** No `Reported-by:` or syzbot link. Bug identified through
-code analysis (author's commit message). No external bug report
-retrieved.
+### Step 4.3: Bug report
+**Record:** No external bug report or syzbot — found via code review in
+a small 2-patch series.
 
-### Step 4.4: CHECK FOR RELATED PATCHES AND SERIES
-**Record:** Standalone 1-commit fix. Related but separate:
-`65e344925fa30` already in v6.18.44.
+### Step 4.4: Related patches
+**Record:** Patch 2/2 (`rdma_counter_init()` port index) already
+backported here as `9420871183eab` (upstream `b86fd95805a7`).
 
-### Step 4.5: CHECK STABLE MAILING LIST HISTORY
-**Record:** UNVERIFIED — lore.kernel.org inaccessible.
+### Step 4.5: Stable mailing list
+**Record:** Not searched (no stable-specific discussion found in
+available sources).
 
 ---
 
 ## PHASE 5: CODE SEMANTIC ANALYSIS
 
-### Step 5.1: IDENTIFY KEY FUNCTIONS IN THE DIFF
-**Record:** `mlx5_ib_enable_lb()` (modified)
+### Step 5.1: Key functions
+**Record:** `alloc_and_bind()`, `__rdma_counter_bind_qp()`,
+`__counter_set_mode()`, `rdma_counter_free()`
 
-### Step 5.2: TRACE CALLERS
-**Record:** Three call sites verified via grep:
-
-1. **`mlx5_ib_alloc_transport_domain()`** (`main.c:1946`) — called
-   during ucontext creation (`main.c:2144`). Userspace-triggered via
-   `ibv_open_device()` / RDMA ucontext alloc. **High-impact path.**
-2. **`create_raw_packet_qp_tir()`** (`qp.c:1554`) — raw packet QP with
-   self-LB flags
-3. **RSS raw QP TIR creation** (`qp.c:1875`)
-
-On failure at sites 2/3, callers invoke destroy paths that call
-`mlx5_ib_disable_lb()`, partially mitigating `qps` counter drift. Site 1
-does **not** call `disable_lb` on failure (only deallocates TD per
-`65e344925fa30`).
-
-### Step 5.3: TRACE CALLEES
-**Record:** `mlx5_nic_vport_update_local_lb()` (`vport.c:896`) can fail
-with:
-- `-ENOMEM` from `kvzalloc()`
-- Error from `mlx5_cmd_exec_in()` (firmware/HW command failure)
-
-### Step 5.4: FOLLOW THE CALL CHAIN
+### Step 5.2: Callers of `alloc_and_bind()`
 **Record:**
-- Userspace opens RDMA device → `mlx5_ib_alloc_ucontext()` →
-  `mlx5_ib_alloc_transport_domain()` → `mlx5_ib_enable_lb(dev, true,
-  false)`
-- Reachable from unprivileged userspace on mlx5 RoCE devices with
-  `disable_local_lb_uc` or `disable_local_lb_mc` capability
-- On transient failure, `user_td` stuck at 2 and `enabled=true`
-  permanently breaks loopback for all subsequent operations until module
-  reload
+- `rdma_counter_bind_qp_auto()` — called from `verbs.c` during QP
+  RST→INIT with port specified (common QP creation path)
+- `rdma_counter_bind_qpn_alloc()` — called from `nldev.c` via RDMA
+  netlink/devlink counter configuration
 
-### Step 5.5: SEARCH FOR SIMILAR PATTERNS
-**Record:** `mlx5_ib_enable_lb_mp()` in the same file
-(`main.c:1849-1868`) already implements correct error handling — enable
-HW, check error, only then update state; rollback on failure. The fix
-brings `mlx5_ib_enable_lb()` in line with this established pattern.
+### Step 5.3: Callees
+**Record:** `__rdma_counter_bind_qp()` → driver `counter_bind_qp` op
+(e.g. mlx5 `mlx5_ib_counter_bind_qp()` which can fail on hardware
+counter allocation or flow binding)
+
+### Step 5.4: Reachability
+**Record:** Reachable from userspace via RDMA devlink netlink
+(`nldev.c`) and from QP modification during IB/RDMA workload setup.
+Unprivileged users with RDMA device access can trigger counter bind
+operations.
+
+### Step 5.5: Similar patterns
+**Record:** Correct cleanup already exists in `rdma_counter_free()`;
+this fix adds the missing mirror on the alloc/bind error path.
 
 ---
 
-## PHASE 6: CROSS-REFERENCING AGAINST THE LOCAL TREE
+## PHASE 6: CROSS-REFERENCING AGAINST LOCAL TREE
 
-### Step 6.1: DOES THE BUGGY CODE EXIST IN THIS TREE?
-**Record:** **YES.** Local tree is **v6.18.44** (`git describe HEAD`).
-Buggy code at `main.c:1897-1898`:
+### Step 6.1: Does buggy code exist?
+**Record:** **YES.** Current tree at lines 191–201 increments
+`num_counters` then `goto err_mode` on bind failure without decrement:
 
-```1896:1899:drivers/infiniband/hw/mlx5/main.c
-                if (!dev->lb.enabled) {
-                        err = mlx5_nic_vport_update_local_lb(dev->mdev,
-true);
-                        dev->lb.enabled = true;
-                }
+```191:201:drivers/infiniband/core/counters.c
+        port_counter->num_counters++;
+        mutex_unlock(&port_counter->lock);
+        // ...
+        ret = __rdma_counter_bind_qp(counter, qp, port);
+        if (ret)
+                goto err_mode;
 ```
 
-Fix not yet applied (`git log -S "err_rollback"` returns nothing).
+### Step 6.2: Backport complications
+**Record:** Clean apply expected — file matches pre-patch blob index
+from the patch (`c3aa6d7fc66b6`). Sibling fix from same series already
+applied without conflict.
 
-### Step 6.2: CHECK FOR BACKPORT COMPLICATIONS
-**Record:** Expected **clean apply**. No recent refactoring of this
-function. Only `force_enable` early-return added in 2025
-(`08aae7860450c8`); fix integrates cleanly around existing structure.
-
-### Step 6.3: CHECK IF RELATED FIXES ARE ALREADY HERE
-**Record:** `65e344925fa30` (TD rollback on `enable_lb` error) is
-present. The internal state corruption inside `mlx5_ib_enable_lb()`
-itself is **not** fixed by that commit and remains unfixed.
+### Step 6.3: Related fixes already present?
+**Record:** `9420871183eab` (rdma_counter_init port-index fix) is
+present. This `num_counters` leak fix is **not** present.
 
 ---
 
 ## PHASE 7: SUBSYSTEM AND MAINTAINER CONTEXT
 
-### Step 7.1: IDENTIFY THE SUBSYSTEM AND ITS CRITICALITY
-**Record:** RDMA/mlx5 (Mellanox/NVIDIA ConnectX InfiniBand/RoCE driver).
-**IMPORTANT** — widely deployed in HPC, cloud, and enterprise RDMA
-workloads. Not universal like mm/net core, but critical for mlx5 users.
+### Step 7.1: Subsystem criticality
+**Record:** **RDMA/InfiniBand core** — IMPORTANT for HPC, cloud, and
+RoCE deployments using hardware counters (mlx5, ionic, etc.)
 
-### Step 7.2: ASSESS SUBSYSTEM ACTIVITY
-**Record:** Actively maintained — multiple mlx5 fixes in recent `main.c`
-history (`65e344925fa30`, `d3ff718c0c715`, etc.).
+### Step 7.2: Subsystem activity
+**Record:** Actively maintained; recent stable backport activity in this
+tree for same file/author.
 
 ---
 
 ## PHASE 8: IMPACT AND RISK ASSESSMENT
 
-### Step 8.1: DETERMINE WHO IS AFFECTED
-**Record:** Users of mlx5 RoCE devices where `disable_local_lb_uc` or
-`disable_local_lb_mc` firmware capabilities are set — devices requiring
-explicit vport loopback enable for self-loopback QPs and transport
-domains.
+### Step 8.1: Who is affected
+**Record:** Users of RDMA hardware counters on devices with
+`counter_bind_qp` support (notably mlx5). Config-dependent on
+`CONFIG_INFINIBAND` and counter-capable hardware.
 
-### Step 8.2: DETERMINE THE TRIGGER CONDITIONS
-**Record:**
-- **Trigger:** `mlx5_nic_vport_update_local_lb()` fails during ucontext
-  open or QP creation (ENOMEM or firmware command error)
-- **Likelihood:** Uncommon but realistic under memory pressure or
-  transient HW/firmware issues
-- **Userspace reachable:** Yes — ucontext allocation is a normal
-  userspace operation
+### Step 8.2: Trigger conditions
+**Record:** Any `__rdma_counter_bind_qp()` failure after
+`alloc_and_bind()` increments `num_counters` — e.g. mlx5 hardware
+counter allocation failure (`mlx5_cmd_exec_inout`) or op-counter flow
+binding failure (`mlx5r_fs_bind_op_fc`). Repeated failures accumulate
+the leak.
 
-### Step 8.3: DETERMINE THE FAILURE MODE SEVERITY
-**Record:**
-- **Failure mode:** Persistent driver state corruption — SW/HW loopback
-  state mismatch, inflated counters prevent recovery
-- **User impact:** Loopback traffic broken for device lifetime after one
-  transient failure; RDMA apps using self-loopback may fail silently or
-  behave incorrectly
-- **Severity:** **MEDIUM-HIGH** — not a kernel crash or security issue,
-  but persistent functional corruption on a common initialization path.
-  Complements the already-backported TD leak fix.
+### Step 8.3: Failure mode severity
+**Record:** No kernel crash/oops, but **permanent functional breakage**
+until reboot:
+- `-EBUSY` when trying to enable AUTO mode
+- Port stuck in MANUAL when it should revert to NONE
+- Counter management via devlink becomes unusable
+**Severity: MEDIUM-HIGH** (persistent admin/operational failure, not
+data corruption or security)
 
-### Step 8.4: CALCULATE RISK-BENEFIT RATIO
+### Step 8.4: Risk-benefit
 **Record:**
-- **Benefit:** Prevents permanent loopback state corruption on error
-  paths; completes the error-handling story started by `65e344925fa30`
-- **Risk:** Very low — ~11 lines, error-path only, matches existing
-  `mlx5_ib_enable_lb_mp()` pattern
+- **Benefit:** Restores correct counter state on bind failure; completes
+  the already-started backport of this 2-patch series
+- **Risk:** Very low — 9 lines mirroring existing `rdma_counter_free()`
+  logic
 - **Ratio:** Favorable for backport
 
 ---
 
 ## PHASE 9: FINAL SYNTHESIS
 
-### Step 9.1: COMPILE THE EVIDENCE
+### Step 9.1: Evidence summary
 
-**FOR backporting:**
-- Real, long-standing bug (since 2018, commit `0042f9e458a560`)
-- Buggy code confirmed present in v6.18.44
-- Small, surgical, obviously correct fix
-- Maintainer Signed-off-by (Jason Gunthorpe)
-- Matches existing correct pattern in same file (`mlx5_ib_enable_lb_mp`)
-- Userspace-reachable via ucontext allocation
-- Persistent state corruption on transient failure
-- Complements already-backported `65e344925fa30`
-- No new APIs or features
+**FOR backport:**
+- Real, verified state leak on error path in production RDMA counter
+  code
+- User-visible permanent `-EBUSY` / stuck MANUAL mode until reboot
+- Small, obviously correct fix reviewed by RDMA maintainer
+- Buggy code confirmed present in Linux 6.18.44
+- Companion patch from same series already backported to this tree
+- Reachable from userspace devlink and QP creation paths
+- `mlx5_ib_counter_bind_qp()` has multiple real failure paths
 
-**AGAINST backporting:**
-- Only triggers on error paths (ENOMEM, firmware cmd failure) — not
-  common
-- No crash, security vulnerability, or data corruption reported
-- No user bug reports or syzbot findings documented
-- Severity is functional state corruption, not oops/panic
+**AGAINST backport:**
+- Not a crash, security issue, or data corruption
+- Only affects RDMA counter users (subset of kernel users)
+- Requires bind failure (not every-day path)
+- No syzbot/user bug report
 
-**UNRESOLVED:**
-- Mailing list review discussion (lore blocked)
-- Whether reviewers explicitly nominated for stable
+**Unresolved:** Exact upstream commit SHA not in local tree; precise
+introduction commit of `alloc_and_bind()` error path not determinable
+from shallow stable history (but code clearly present and long-
+standing).
 
-### Step 9.2: APPLY THE STABLE RULES CHECKLIST
-1. Obviously correct and tested? **PASS** — logic is clear; maintainer
-   SOB; mirrors existing code pattern. No explicit Tested-by.
-2. Fixes a real bug that affects users? **PASS** — persistent SW/HW
-   state desync on mlx5 RoCE loopback enable failure.
-3. Important issue? **PASS (borderline)** — persistent driver state
-   corruption on userspace-initiated path; functional breakage until
-   reload, though not crash-level.
-4. Small and contained? **PASS** — 1 file, ~11 lines, 1 function.
-5. No new features or APIs? **PASS**
-6. Can apply to the local tree? **PASS** — buggy code present; clean
-   apply expected.
+### Step 9.2: Stable rules checklist
+1. Obviously correct and tested? **PASS** — mirrors
+   `rdma_counter_free()`; maintainer applied to for-next
+2. Fixes real bug affecting users? **PASS** — state leak with permanent
+   counter-mode breakage
+3. Important issue? **PASS (moderate)** — persistent functional failure
+   of RDMA counter subsystem, not crash-level but operationally
+   significant
+4. Small and contained? **PASS** — 9 lines, 1 file
+5. No new features/APIs? **PASS**
+6. Can apply to local tree? **PASS** — code present, clean apply
+   expected
 
-### Step 9.3: CHECK FOR EXCEPTION CATEGORIES
-**Record:** None apply directly (not device ID, quirk, DT, build, or
-docs fix). Standard bug fix.
+### Step 9.3: Exception categories
+**Record:** N/A — standard error-path bug fix, not device
+ID/quirk/build/doc exception.
 
-### Step 9.4: DECISION RATIONALE
+### Step 9.4: Decision rationale
 
-This commit fixes a real error-path state machine bug in widely used
-mlx5 RDMA driver code that has existed since 2018. When
-`mlx5_nic_vport_update_local_lb()` fails during ucontext creation, the
-driver permanently corrupts its loopback tracking state, preventing
-recovery without reload. The fix is minimal, follows an established
-pattern in the same file, and completes error handling partially
-addressed by the already-backported `65e344925fa30`. While the trigger
-is an uncommon error path and severity is functional rather than crash-
-level, persistent state corruption on a userspace-initiated
-initialization path meets stable backport criteria for mlx5 driver
-correctness fixes.
+This commit fixes a genuine error-path state leak in `alloc_and_bind()`
+that leaves `num_counters` inflated and can permanently block AUTO mode
+(`-EBUSY`) or leave ports stuck in MANUAL mode. The bug is present in
+this 6.18.44 tree, the fix is minimal and mirrors existing cleanup
+logic, and the sibling patch from the same 2-patch series is already
+backported here. While the failure mode is operational rather than a
+kernel panic, the impact is persistent until reboot and affects real
+RDMA counter management paths used in production InfiniBand/RoCE
+environments.
 
 ---
 
 ## Verification
 
-- **[Phase 1]** Parsed subject, tags; found Link and Jason Gunthorpe
-  SOB; no Fixes/Reported-by/syzbot
-- **[Phase 2]** Diff analysis: adds error check + `err_rollback` counter
-  decrement in `mlx5_ib_enable_lb()`
-- **[Phase 3]** `git blame`: buggy code from `0042f9e458a560`
-  (2018-09-21); `git merge-base --is-ancestor` confirms in tree
-- **[Phase 3]** `git show 65e344925fa30`: related TD rollback fix
-  already in tree; does not fix internal `enable_lb` state
-- **[Phase 3]** `git log -S "err_rollback"`: fix not yet in tree
-- **[Phase 4]** UNVERIFIED: lore.kernel.org and patch.msgid.link
-  blocked; `b4 dig` requires commit hash not in tree
-- **[Phase 5]** `grep mlx5_ib_enable_lb`: 3 call sites in `main.c` and
-  `qp.c`
-- **[Phase 5]** Read `mlx5_nic_vport_update_local_lb()` at
-  `vport.c:896-933`: returns `-ENOMEM` or cmd errors
-- **[Phase 5]** Read `mlx5_ib_enable_lb_mp()` at `main.c:1849-1868`:
-  correct error-handling pattern exists
-- **[Phase 5]** Read ucontext alloc path `main.c:2144-2147`: `enable_lb`
-  failure path does not call `disable_lb`
-- **[Phase 6]** `git describe HEAD`: v6.18.44; buggy code at
-  `main.c:1897-1898` confirmed
-- **[Phase 6]** No conflicting fix found in tree
-- **[Phase 8]** Failure mode: persistent loopback state corruption,
+- **[Phase 1]** Parsed subject, tags, body from provided commit message
+- **[Phase 1]** Confirmed part of 2-patch series via lkml cover letter
+  (https://lkml.iu.edu/2605.2/07985.html)
+- **[Phase 2]** Read diff: +9/-1 in `alloc_and_bind()`, new `err_bind`
+  label
+- **[Phase 2]** Read current `counters.c` lines 145–232: confirmed bug
+  at 200–201 (`goto err_mode` without decrement)
+- **[Phase 2]** Read `rdma_counter_free()` lines 215–225: confirmed fix
+  mirrors existing cleanup
+- **[Phase 2]** Read `__counter_set_mode()` lines 13–28: confirmed
+  `-EBUSY` when `num_counters != 0` in AUTO mode
+- **[Phase 3]** `git describe HEAD` → v6.18.44; `make kernelversion` →
+  6.18.44
+- **[Phase 3]** `git blame -L 191,201`: lines present in tree
+- **[Phase 3]** `git log --grep="num_counters leak"` → empty (fix not
+  applied)
+- **[Phase 3]** `git show 9420871183eab`: sibling patch already
+  backported to this tree
+- **[Phase 4]** lkml.iu.edu/2605.2/07986.html: patch content matches
+- **[Phase 4]** lists.openwall.net reply: Jason Gunthorpe "Applied to
+  for-next"
+- **[Phase 4]** `b4 dig -c <hash>`: failed (commit not in tree) —
+  UNVERIFIED via b4
+- **[Phase 4]** lore.kernel.org: blocked by bot protection — UNVERIFIED
+  via lore
+- **[Phase 5]** `grep alloc_and_bind`: callers in
+  `rdma_counter_bind_qp_auto()` and `rdma_counter_bind_qpn_alloc()`
+- **[Phase 5]** `verbs.c:1854`: `rdma_counter_bind_qp_auto()` on QP
+  RST→INIT
+- **[Phase 5]** `nldev.c:2050-2064`: netlink paths to counter bind/auto-
+  mode
+- **[Phase 5]** `mlx5/counters.c:624-669`: `mlx5_ib_counter_bind_qp()`
+  has failure paths returning errors
+- **[Phase 6]** Confirmed buggy code exists at lines 191–201 in local
+  tree
+- **[Phase 6]** Confirmed fix NOT applied (`grep err_bind` in counters.c
+  → no match)
+- **[Phase 6]** Confirmed sibling fix IS applied (rdma_counter_init uses
+  `port_data[i]` at line 664)
+- **[Phase 8]** Assessed failure mode: permanent `-EBUSY`/stuck MANUAL,
   severity MEDIUM-HIGH
 
-**YES**The background searches finished:
+**YES**
 
-- **Keyword search** (`counter desync`, `loopback enable failure`): no
-  matches — this fix is **not yet in v6.18.44**.
-- **Related commit search**: found `65e344925fa30` (TD rollback when
-  `mlx5_ib_enable_lb()` fails), which is already in the tree but does
-  not fix the internal state/counter desync inside `mlx5_ib_enable_lb()`
-  itself.
+ drivers/infiniband/core/counters.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-That supports the earlier **YES** verdict: the bug is present here, and
-this commit is still needed.
-
- drivers/infiniband/hw/mlx5/main.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
-
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 09709ae5bd471..09d76952372de 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1895,6 +1895,9 @@ int mlx5_ib_enable_lb(struct mlx5_ib_dev *dev, bool td, bool qp)
- 	    dev->lb.qps == 1) {
- 		if (!dev->lb.enabled) {
- 			err = mlx5_nic_vport_update_local_lb(dev->mdev, true);
-+			if (err)
-+				goto err_rollback;
-+
- 			dev->lb.enabled = true;
- 		}
- 	}
-@@ -1902,6 +1905,14 @@ int mlx5_ib_enable_lb(struct mlx5_ib_dev *dev, bool td, bool qp)
- 	mutex_unlock(&dev->lb.mutex);
+diff --git a/drivers/infiniband/core/counters.c b/drivers/infiniband/core/counters.c
+index 5dad5d77ce274..a9e189194c130 100644
+--- a/drivers/infiniband/core/counters.c
++++ b/drivers/infiniband/core/counters.c
+@@ -198,12 +198,20 @@ static struct rdma_counter *alloc_and_bind(struct ib_device *dev, u32 port,
  
- 	return err;
-+
-+err_rollback:
-+	if (td)
-+		dev->lb.user_td--;
-+	if (qp)
-+		dev->lb.qps--;
-+	mutex_unlock(&dev->lb.mutex);
-+	return err;
- }
+ 	ret = __rdma_counter_bind_qp(counter, qp, port);
+ 	if (ret)
+-		goto err_mode;
++		goto err_bind;
  
- void mlx5_ib_disable_lb(struct mlx5_ib_dev *dev, bool td, bool qp)
+ 	rdma_restrack_parent_name(&counter->res, &qp->res);
+ 	rdma_restrack_add(&counter->res);
+ 	return counter;
+ 
++err_bind:
++	mutex_lock(&port_counter->lock);
++	port_counter->num_counters--;
++	if (!port_counter->num_counters &&
++	    port_counter->mode.mode == RDMA_COUNTER_MODE_MANUAL)
++		__counter_set_mode(port_counter, RDMA_COUNTER_MODE_NONE, 0,
++				   false);
++	mutex_unlock(&port_counter->lock);
+ err_mode:
+ 	rdma_free_hw_stats_struct(counter->stats);
+ err_stats:
 -- 
 2.53.0
 
