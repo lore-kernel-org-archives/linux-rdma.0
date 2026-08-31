@@ -1,50 +1,42 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74EE9499F2B;
-	Mon, 31 Aug 2026 13:38:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 070D44A0124;
+	Mon, 31 Aug 2026 13:41:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788183530; cv=none; b=rxZAQrLxwz5dfTF6mXbtsOsUb3KpzZmmm9xiHfRqaYMtRPhEZfB4sUlu05IyCBuKawM1ZrZTsLeID8LXqoUt0tzQSLC3N5lPzcxZa3mxN7lYFrjyrWKex422Ze+A+uWCkYeJeJf5aPv7EXTMZaKTiMMsS3cOG++yNJ0IX2JfiWo=
+	t=1788183680; cv=none; b=ctp53Q+hvLk+YxpjKUxukhIMSWdFPkDanSj16Rud13wt0clgG96B9PoY7ZrPIUpy0Z6tzjEs1wCaVkyUcFwNBQVnV7dcSgD84dyYkTowzrCz52nSOzVUBEmWma5FMtThgTDtohycHvb/T0jTxqs52pPdJZeo9ChjmXBWCixJvwI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788183530; c=relaxed/simple;
-	bh=jTx1zry5rzdixxC0RgC2msoPn8d7KKD2kbIkXCNjnU4=;
+	s=arc-20240116; t=1788183680; c=relaxed/simple;
+	bh=TweDbUO6D6WDrjVFJqDI+Zwc0n2Ahu5sW6+eU7R8L4U=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=IiJB09zmr56Ks9TOYyI9EKPZU0T54dmie+g5VM2VX6yL1aN3C1R9RtYM64dUZwjvXOtubnUUkjfYScijdn9M95wwQjQt4AmTaZbhwexVJ8Tr7rBARG8dZidvcZACFjM4eJenJ+Wq22hDHZHKPOJxZVxS2gGaVZoN31xWUDeHfV0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lrZfyaSQ; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=gBogtTZBdCUFZOfHSY7Z8GjpJiaSqxbt7lNpMgu78twQc+oHaxYaSyfYjK/hZNq246x8RnxBn9Mv7B51GgZxMJ3rYwgHVy6ykgiivPWpualIwmvCdJgQzkgW7nB2wKnzZDCx4UBfsSg/usd9f7HsdVMxzsdLVFGinsIs+umSq8o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Y/TCkBZb; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lrZfyaSQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8942E1F00ADE;
-	Mon, 31 Aug 2026 13:38:46 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Y/TCkBZb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4BD51F00A3D;
+	Mon, 31 Aug 2026 13:41:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788183528;
-	bh=IXXvlLiatEpQKDiVZfBexoB5OaI/sRGWE1Z6th1AgUA=;
+	s=k20260515; t=1788183676;
+	bh=uWT3EYYqQS6pN+gsd++jUXHyRppgcYRYjDcFtshUMlo=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=lrZfyaSQMpKJcyP1q0MRb7Xo5lylWUf4H0/gyaSMfUtIp/AgxyYRnJ0JhQy9u93+y
-	 lv3bxGJHtYDoRGsRsq6I8oSmtVwuny24HV/jHkRX6MSEH4IlZ9KgTchkupB/KQ97DI
-	 reFuQjFEwLNiwGgEc19Otj/xkF1ZEIW0vu4ZAHoNpms58tXoa6jaiR5vbZL0MZ4fjQ
-	 GmIIgNdmkqWZ7g13PUfsMyAlI2+UUggY8weYjSOeUMsifjv4q9aDb7B7WthkxS2n4q
-	 telKzQDUeKMtSS7JKwYua1Ptbi6GnH3jpjbIR/kPPjXJiAFEGbpMkQ9zgd2XSaV2s9
-	 MeMzL1/+SSP5A==
+	b=Y/TCkBZb7I1gZIVnwVVSAtE4M9usJDYtJXY33OvAXTS1wWrq7P2bCvUqgE2i8cRKg
+	 wxzuB3fEHmyjdSGaqWaThX3LQCoA2mnOt8wsH3kNuuQ1DpD7yBnaPNAPArcFRossho
+	 3Bl/DsAMZr3A9C01mu2c1RJVmOAlvpO6lbMTD/wbzXM3XIdw7mG6fPnRhHEd2XFhdQ
+	 IzCss6Jj5brjN1LEnWqm/yYK1Vhh3tvVU4p95u7cv2tbLEgp9NyXQWh0XXcfcFz3Ug
+	 bDdy8ugxZkQpXIIL0s72dH0Q8uAyb+Wmq+cjNbR2BMAFUn7nT5uwomSYLDg9y9Foof
+	 YL7oeV//fNa/A==
 From: Sasha Levin <sashal@kernel.org>
 To: patches@lists.linux.dev,
 	stable@vger.kernel.org
-Cc: Shay Drory <shayd@nvidia.com>,
-	Mark Bloch <mbloch@nvidia.com>,
-	Tariq Toukan <tariqt@nvidia.com>,
-	Jakub Kicinski <kuba@kernel.org>,
+Cc: Li RongQing <lirongqing@baidu.com>,
+	Jason Gunthorpe <jgg@nvidia.com>,
 	Sasha Levin <sashal@kernel.org>,
-	saeedm@nvidia.com,
-	andrew+netdev@lunn.ch,
-	davem@davemloft.net,
-	edumazet@google.com,
-	pabeni@redhat.com,
-	netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.18-6.6] net/mlx5: E-Switch, align disable sequence with switchdev-to-legacy transition
-Date: Mon, 31 Aug 2026 09:22:58 -0400
-Message-ID: <20260831133314.4125787-150-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.18-5.10] RDMA/mlx5: Fix state and counter desync on loopback enable failure
+Date: Mon, 31 Aug 2026 09:24:26 -0400
+Message-ID: <20260831133314.4125787-238-sashal@kernel.org>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260831133314.4125787-1-sashal@kernel.org>
 References: <20260831133314.4125787-1-sashal@kernel.org>
@@ -60,423 +52,419 @@ X-stable-base: Linux 6.18.48
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Shay Drory <shayd@nvidia.com>
+From: Li RongQing <lirongqing@baidu.com>
 
-[ Upstream commit b48b6308dfaeae49fcda61b4066773cb5e8a9ce8 ]
+[ Upstream commit 0d32eabccbe4b2f8d45be3192c5f3c76c8af703d ]
 
-This patch align the eswitch disable sequence with the
-switchdev-to-legacy mode transition, where eswitch must be disabled
-before device detachment. The consistent ordering is required for proper
-SD LAG cleanup which depends on eswitch state during teardown.
+In mlx5_ib_enable_lb(), dev->lb.enabled was unconditionally set
+to true even if mlx5_nic_vport_update_local_lb() failed.
 
-Signed-off-by: Shay Drory <shayd@nvidia.com>
-Reviewed-by: Mark Bloch <mbloch@nvidia.com>
-Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
-Link: https://patch.msgid.link/20260531113954.395443-3-tariqt@nvidia.com
-Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Fix this by only setting dev->lb.enabled on success. On failure,
+roll back the reference counters and return the error.
+
+Link: https://patch.msgid.link/r/20260601095818.2227-1-lirongqing@baidu.com
+Signed-off-by: Li RongQing <lirongqing@baidu.com>
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
 
 LLM Generated explanations, may be completely bogus:
 
-# Stable Backport Analysis: `net/mlx5: E-Switch, align disable sequence
-with switchdev-to-legacy transition`
-
-**Local tree:** Linux **6.18.44** (`v6.18.44`, `VERSION=6 PATCHLEVEL=18
-SUBLEVEL=44`)
-
----
-
 ## PHASE 1: COMMIT MESSAGE FORENSICS
 
-### Step 1.1: Subject line
-**Record:** `[net/mlx5: E-Switch] [align] — reorder eswitch disable to
-match switchdev-to-legacy teardown ordering`
+### Step 1.1: PARSE THE SUBJECT LINE
+**Record:** `[RDMA/mlx5]` `[Fix]` — Correct state/counter
+desynchronization when vport loopback enable fails in
+`mlx5_ib_enable_lb()`.
 
-### Step 1.2: Tags
+### Step 1.2: PARSE ALL COMMIT MESSAGE TAGS
 **Record:**
-- **Signed-off-by:** Shay Drory `<shayd@nvidia.com>` (author)
-- **Reviewed-by:** Mark Bloch `<mbloch@nvidia.com>`
-- **Signed-off-by:** Tariq Toukan `<tariqt@nvidia.com>`
-- **Link:**
-  https://patch.msgid.link/20260531113954.395443-3-tariqt@nvidia.com
-  (patch **3/3** in a series)
-- **Signed-off-by:** Jakub Kicinski `<kuba@kernel.org>` (net maintainer)
-- No `Fixes:`, `Reported-by:`, `Cc: stable@vger.kernel.org`, or syzbot
-  tags
-- Message-ID suffix `-3-` indicates this is the third patch in a series
+- **Link:** `https://patch.msgid.link/r/20260601095818.2227-1-
+  lirongqing@baidu.com`
+- **Signed-off-by:** Li RongQing `<lirongqing@baidu.com>` (author)
+- **Signed-off-by:** Jason Gunthorpe `<jgg@nvidia.com>` (RDMA
+  maintainer)
+- No `Fixes:`, `Reported-by:`, `Tested-by:`, `Reviewed-by:`, `Acked-
+  by:`, or `Cc: stable@vger.kernel.org` tags
+- Notable: Signed-off-by from Jason Gunthorpe (RDMA subsystem
+  maintainer) is a strong quality signal
 
-### Step 1.3: Body analysis
+### Step 1.3: ANALYZE THE COMMIT BODY TEXT
 **Record:**
-- **Bug:** E-switch disable runs too late in driver unload paths — after
-  `mlx5_detach_device()` / `mlx5_unregister_device()` — while the
-  switchdev-to-legacy transition disables eswitch **before** detachment.
-- **Symptom/failure mode:** Improper **SD LAG** (Socket Direct / shared-
-  FDB LAG) cleanup during teardown; commit does not include a crash
-  trace.
-- **Root cause (author):** SD LAG cleanup in `mlx5_eswitch_disable()`
-  depends on eswitch still being in the correct state and representors
-  still being present; detaching/unregistering auxiliary devices first
-  breaks that.
+- **Bug description:** In `mlx5_ib_enable_lb()`, `dev->lb.enabled` is
+  set to `true` unconditionally after calling
+  `mlx5_nic_vport_update_local_lb()`, even when that call fails.
+- **Symptom/failure mode:** Software state (`enabled` flag and reference
+  counters `user_td`/`qps`) becomes inconsistent with hardware state. SW
+  believes loopback is enabled; HW is not.
+- **Root cause:** Missing error check before setting `enabled`, and
+  missing rollback of incremented counters on failure.
+- **Version info:** None stated in commit message.
 
-### Step 1.4: Hidden bug fix?
-**Record:** Yes. Described as “align,” but it fixes a **teardown
-ordering bug** — same class as other mlx5 LAG/eswitch unload issues.
+### Step 1.4: DETECT HIDDEN BUG FIXES
+**Record:** Not hidden — explicitly labeled as a fix. This is a classic
+error-path state-machine bug (logic/correctness), not cosmetic cleanup.
 
 ---
 
-## PHASE 2: DIFF ANALYSIS
+## PHASE 2: DIFF ANALYSIS - LINE BY LINE
 
-### Step 2.1: Inventory
+### Step 2.1: INVENTORY THE CHANGES
 **Record:**
-- **File:** `drivers/net/ethernet/mellanox/mlx5/core/main.c` only
-- **Scope:** ~3 lines moved (net zero lines); 3 functions touched
-- **Functions modified:** `mlx5_unload()`, `mlx5_uninit_one()`,
-  `mlx5_unload_one_devl_locked()`
-- **Classification:** Single-file, surgical reordering
+- **Files:** `drivers/infiniband/hw/mlx5/main.c` only (+11 / -0 net)
+- **Function modified:** `mlx5_ib_enable_lb()`
+- **Scope:** Single-file, surgical fix in one function
 
-### Step 2.2: Code flow per hunk
-
-**Hunk 1 — `mlx5_unload()`:**
-- **Before:** `mlx5_eswitch_disable()` was the first call in
-  `mlx5_unload()`.
-- **After:** Removed from `mlx5_unload()`.
-
-**Hunk 2 — `mlx5_uninit_one()`:**
-- **Before:** `mlx5_unregister_device()` → … → `mlx5_unload()` (which
-  disabled eswitch).
-- **After:** `mlx5_eswitch_disable()` → `mlx5_unregister_device()` → … →
-  `mlx5_unload()`.
-
-**Hunk 3 — `mlx5_unload_one_devl_locked()`:**
-- **Before:** `mlx5_detach_device()` → … → `mlx5_unload()` (which
-  disabled eswitch).
-- **After:** `mlx5_eswitch_disable()` → `mlx5_detach_device()` → … →
-  `mlx5_unload()`.
-
-**Record:** Both primary unload paths now disable eswitch **before**
-tearing down auxiliary devices.
-
-### Step 2.3: Bug mechanism
-**Record:** **Teardown ordering / logic correctness bug**
-- `mlx5_eswitch_disable()` calls `mlx5_lag_disable_change()` →
-  `mlx5_disable_lag()`.
-- For shared-FDB LAG (`MLX5_LAG_MODE_FLAG_SHARED_FDB`),
-  `mlx5_disable_lag()` calls `mlx5_eswitch_reload_ib_reps()`, which
-  requires `esw->mode == MLX5_ESWITCH_OFFLOADS` and `REP_LOADED`
-  representors.
-- `mlx5_detach_device()` / `mlx5_unregister_device()` remove auxiliary
-  devices (including eswitch representors) **before** `mlx5_unload()`
-  ran, so SD LAG cleanup could not run correctly.
-- `mlx5_devlink_eswitch_mode_set()` already disables eswitch **before**
-  mode transition — the unload paths were inconsistent.
-
-### Step 2.4: Fix quality
+### Step 2.2: UNDERSTAND THE CODE FLOW CHANGE
 **Record:**
-- Fix is minimal and mirrors the known-good
-  `mlx5_devlink_eswitch_mode_set()` ordering.
-- `mlx5_eswitch_disable()` requires devlink lock; both call sites
-  already hold `devl_lock()`.
-- **Regression risk:** Low for main unload paths. **Note:**
-  `mlx5_unload()` is still called from init error paths (`err_register`,
-  `err_attach`) without the new early `mlx5_eswitch_disable()` — those
-  paths typically run before switchdev/SD LAG is configured (unverified
-  for all edge cases).
+
+**Hunk (enable path):**
+- **Before:** Increment `user_td`/`qps`, call
+  `mlx5_nic_vport_update_local_lb()`, always set `dev->lb.enabled =
+  true`, unlock, return `err` (possibly non-zero).
+- **After:** On `mlx5_nic_vport_update_local_lb()` failure, jump to
+  `err_rollback`, decrement the counters that were just incremented,
+  unlock, return error. Only set `enabled = true` on success.
+
+**Affected path:** Error path inside loopback enable, triggered when
+`user_td == 2` or `qps == 1`.
+
+### Step 2.3: IDENTIFY THE BUG MECHANISM
+**Record:**
+- **Bug category:** Logic/correctness fix — error-path state
+  desynchronization (related to reference-counting semantics).
+- **Mechanism:** On `mlx5_nic_vport_update_local_lb()` failure, counters
+  remain inflated and `enabled` is wrongly `true`. Future calls skip re-
+  enabling (`if (!dev->lb.enabled)` guard), and disable thresholds
+  (`user_td == 1 && qps == 0`) may never be reached again. State
+  corruption persists until driver reload.
+
+### Step 2.4: ASSESS THE FIX QUALITY
+**Record:**
+- **Fix quality:** Obviously correct. Mirrors the existing pattern in
+  `mlx5_ib_enable_lb_mp()` in the same file, which already checks errors
+  from `mlx5_nic_vport_update_local_lb()` before updating state.
+- **Regression risk:** Very low. Only affects the failure path; success
+  path unchanged.
+- **Red flags:** None.
 
 ---
 
 ## PHASE 3: GIT HISTORY INVESTIGATION
 
-### Step 3.1: Blame
+### Step 3.1: BLAME THE CHANGED LINES
 **Record:**
-- `mlx5_eswitch_disable()` in `mlx5_unload()`: added/moved to first
-  position by **85b47dc40bbc7** (Sep 2023, Jiri Pirko).
-- `mlx5_detach_device()` before `mlx5_unload()` in
-  `mlx5_unload_one_devl_locked()`: **72ed5d5624af3** (Jan 2023).
-- `mlx5_unregister_device()` before `mlx5_unload()` in
-  `mlx5_uninit_one()`: longstanding (Leon Romanovsky, 2020).
-- Original `mlx5_eswitch_disable` in unload: **f019679ea5f2a** (May
-  2022).
-- **Ordering mismatch has existed since ~2023** when detach was placed
-  before `mlx5_unload()` while eswitch disable remained inside
-  `mlx5_unload()`.
+- Buggy logic introduced in `0042f9e458a560` (Mark Bloch, 2018-09-21):
+  "RDMA/mlx5: Enable vport loopback when user context or QP mandate"
+- `dev->lb.enabled = true` unconditionally after
+  `mlx5_nic_vport_update_local_lb()` has been present since 2018
+- Verified: `git merge-base --is-ancestor 0042f9e458a560 HEAD` → bug
+  commit is in v6.18.44
 
-### Step 3.2: Fixes: tag
-**Record:** N/A — no `Fixes:` tag.
+### Step 3.2: FOLLOW THE FIXES: TAG
+**Record:** No `Fixes:` tag present. N/A.
 
-### Step 3.3: Related file history
+### Step 3.3: CHECK FILE HISTORY FOR RELATED CHANGES
 **Record:**
-- Shared-FDB LAG introduced **af8c0e25f249a** (Aug 2021) — present in
-  this tree.
-- Related crash fix **4b8eeed4fb105** (Mar 2025): bridge + shared-FDB
-  LAG teardown oops — same subsystem, similar LAG teardown sensitivity.
-- Patch appears standalone (only `main.c`); patches 1–2 of the series
-  were not found locally.
+- Related commit already in tree: `65e344925fa30` — "IB/mlx5: Fix
+  transport-domain rollback and initialize lb mutex earlier"
+  - Fixes TD leak when `mlx5_ib_enable_lb()` returns error from
+    `mlx5_ib_alloc_transport_domain()`
+  - Does **not** fix the internal state corruption inside
+    `mlx5_ib_enable_lb()` itself
+- This commit is standalone (not part of a numbered series)
+- Complementary to `65e344925fa30`: that commit handles the caller; this
+  one fixes the callee's state machine
 
-### Step 3.4: Author context
-**Record:** Shay Drory is an active mlx5 contributor (eswitch, LAG,
-devlink). Reviewed by Mark Bloch (mlx5 maintainer). Committed via Jakub
-Kicinski (netdev).
+### Step 3.4: CHECK THE AUTHOR'S OTHER COMMITS
+**Record:** No prior commits from Li RongQing in mlx5 in this tree.
+Jason Gunthorpe (Signed-off-by) is a core RDMA maintainer.
 
-### Step 3.5: Dependencies
-**Record:** Self-contained for `main.c`. No structural/API prerequisites
-identified. Patches 1–2 of the series were **not found** in this
-workspace; this patch does not appear to depend on them functionally.
+### Step 3.5: CHECK FOR DEPENDENT/PREREQUISITE COMMITS
+**Record:** No dependencies. Applies cleanly to current
+`mlx5_ib_enable_lb()` in v6.18.44. Fix is self-contained.
 
 ---
 
 ## PHASE 4: MAILING LIST AND EXTERNAL RESEARCH
 
-### Step 4.1: Original discussion
-**Record:** `b4 dig -c HEAD` did not match (commit not in tree). Lore
-search returned **403 Forbidden**. patch.msgid.link blocked by bot
-protection. **Could not retrieve mailing list thread.**
+### Step 4.1: FIND THE ORIGINAL PATCH DISCUSSION
+**Record:** UNVERIFIED — `b4 dig -c <commit>` not possible (commit not
+yet in tree). Lore.kernel.org and patch.msgid.link blocked by bot
+protection (Anubis). Could not retrieve review thread.
 
-### Step 4.2: Reviewers
-**Record:** Mark Bloch (Reviewed-by). Jakub Kicinski merged. Full
-recipient list unavailable (b4 `-w` requires commit in tree).
+### Step 4.2: CHECK WHO REVIEWED THE PATCH
+**Record:** UNVERIFIED via b4 dig -w. Commit message shows Jason
+Gunthorpe Signed-off-by (maintainer acceptance).
 
-### Step 4.3: Bug report
-**Record:** No external bug report, syzbot link, or crash trace in the
-commit message.
+### Step 4.3: SEARCH FOR THE BUG REPORT
+**Record:** No `Reported-by:` or syzbot link. Bug identified through
+code analysis (author's commit message). No external bug report
+retrieved.
 
-### Step 4.4: Series context
-**Record:** Message-ID indicates patch **3/3**; patches 1–2 not
-identified locally. This change is independently applicable.
+### Step 4.4: CHECK FOR RELATED PATCHES AND SERIES
+**Record:** Standalone 1-commit fix. Related but separate:
+`65e344925fa30` already in v6.18.44.
 
-### Step 4.5: Stable list history
-**Record:** Not searched (lore inaccessible). No stable nomination found
-in commit message.
+### Step 4.5: CHECK STABLE MAILING LIST HISTORY
+**Record:** UNVERIFIED — lore.kernel.org inaccessible.
 
 ---
 
 ## PHASE 5: CODE SEMANTIC ANALYSIS
 
-### Step 5.1: Key functions
-**Record:** `mlx5_eswitch_disable()`, `mlx5_unload()`,
-`mlx5_uninit_one()`, `mlx5_unload_one_devl_locked()`,
-`mlx5_detach_device()`, `mlx5_unregister_device()`,
-`mlx5_disable_lag()`, `mlx5_eswitch_reload_ib_reps()`
+### Step 5.1: IDENTIFY KEY FUNCTIONS IN THE DIFF
+**Record:** `mlx5_ib_enable_lb()` (modified)
 
-### Step 5.2: Callers of affected paths
+### Step 5.2: TRACE CALLERS
+**Record:** Three call sites verified via grep:
+
+1. **`mlx5_ib_alloc_transport_domain()`** (`main.c:1946`) — called
+   during ucontext creation (`main.c:2144`). Userspace-triggered via
+   `ibv_open_device()` / RDMA ucontext alloc. **High-impact path.**
+2. **`create_raw_packet_qp_tir()`** (`qp.c:1554`) — raw packet QP with
+   self-LB flags
+3. **RSS raw QP TIR creation** (`qp.c:1875`)
+
+On failure at sites 2/3, callers invoke destroy paths that call
+`mlx5_ib_disable_lb()`, partially mitigating `qps` counter drift. Site 1
+does **not** call `disable_lb` on failure (only deallocates TD per
+`65e344925fa30`).
+
+### Step 5.3: TRACE CALLEES
+**Record:** `mlx5_nic_vport_update_local_lb()` (`vport.c:896`) can fail
+with:
+- `-ENOMEM` from `kvzalloc()`
+- Error from `mlx5_cmd_exec_in()` (firmware/HW command failure)
+
+### Step 5.4: FOLLOW THE CALL CHAIN
 **Record:**
-- `mlx5_uninit_one()` ← `remove_one()` (module/PCI remove), SF driver
-  teardown
-- `mlx5_unload_one_devl_locked()` ← `mlx5_unload_one()` ← devlink
-  reload, firmware reset, health recovery, suspend/resume
-- Both are common operational paths for mlx5 users
+- Userspace opens RDMA device → `mlx5_ib_alloc_ucontext()` →
+  `mlx5_ib_alloc_transport_domain()` → `mlx5_ib_enable_lb(dev, true,
+  false)`
+- Reachable from unprivileged userspace on mlx5 RoCE devices with
+  `disable_local_lb_uc` or `disable_local_lb_mc` capability
+- On transient failure, `user_td` stuck at 2 and `enabled=true`
+  permanently breaks loopback for all subsequent operations until module
+  reload
 
-### Step 5.3: Callees
-**Record:** `mlx5_eswitch_disable()` → `mlx5_lag_disable_change()` →
-`mlx5_disable_lag()` → (shared FDB) `mlx5_eswitch_reload_ib_reps()`;
-`mlx5_detach_device()` tears down auxiliary drivers in reverse order
-
-### Step 5.4: Reachability
-**Record:** Triggered on driver remove, devlink reload, FW reset
-recovery — admin-initiated but routine in datacenter deployments.
-Requires **CONFIG_MLX5_ESWITCH**, switchdev mode, and multi-PF Socket
-Direct / shared-FDB LAG.
-
-### Step 5.5: Similar patterns
-**Record:** `mlx5_devlink_eswitch_mode_set()` disables eswitch before
-cleanup (lines 3832–3866 in `eswitch_offloads.c`). Bridge+LAG crash fix
-**4b8eeed4fb105** shows mlx5 shared-FDB LAG teardown ordering can cause
-kernel oops.
+### Step 5.5: SEARCH FOR SIMILAR PATTERNS
+**Record:** `mlx5_ib_enable_lb_mp()` in the same file
+(`main.c:1849-1868`) already implements correct error handling — enable
+HW, check error, only then update state; rollback on failure. The fix
+brings `mlx5_ib_enable_lb()` in line with this established pattern.
 
 ---
 
-## PHASE 6: CROSS-REFERENCE WITH LOCAL TREE (6.18.44)
+## PHASE 6: CROSS-REFERENCING AGAINST THE LOCAL TREE
 
-### Step 6.1: Buggy code present?
-**Record:** **YES.** Current tree has:
-- `mlx5_eswitch_disable()` at line 1430 inside `mlx5_unload()`
-- `mlx5_detach_device()` at line 1623 **before** `mlx5_unload()` at line
-  1632
-- `mlx5_unregister_device()` at line 1539 **before** `mlx5_unload()` at
-  line 1550
+### Step 6.1: DOES THE BUGGY CODE EXIST IN THIS TREE?
+**Record:** **YES.** Local tree is **v6.18.44** (`git describe HEAD`).
+Buggy code at `main.c:1897-1898`:
 
-### Step 6.2: Backport complications
-**Record:** Expected **clean apply** with minor context adjustment (line
-ordering in `mlx5_unload()` differs slightly from the provided diff —
-`mlx5_vhca_event_stop` position — but the semantic change is identical).
+```1896:1899:drivers/infiniband/hw/mlx5/main.c
+                if (!dev->lb.enabled) {
+                        err = mlx5_nic_vport_update_local_lb(dev->mdev,
+true);
+                        dev->lb.enabled = true;
+                }
+```
 
-### Step 6.3: Related fixes already present?
-**Record:** **4b8eeed4fb105** (bridge LAG crash) is in tree. This
-specific eswitch-disable ordering fix is **not** present.
+Fix not yet applied (`git log -S "err_rollback"` returns nothing).
+
+### Step 6.2: CHECK FOR BACKPORT COMPLICATIONS
+**Record:** Expected **clean apply**. No recent refactoring of this
+function. Only `force_enable` early-return added in 2025
+(`08aae7860450c8`); fix integrates cleanly around existing structure.
+
+### Step 6.3: CHECK IF RELATED FIXES ARE ALREADY HERE
+**Record:** `65e344925fa30` (TD rollback on `enable_lb` error) is
+present. The internal state corruption inside `mlx5_ib_enable_lb()`
+itself is **not** fixed by that commit and remains unfixed.
 
 ---
 
-## PHASE 7: SUBSYSTEM CONTEXT
+## PHASE 7: SUBSYSTEM AND MAINTAINER CONTEXT
 
-### Step 7.1: Subsystem criticality
-**Record:** `drivers/net/ethernet/mellanox/mlx5` — **IMPORTANT**
-(datacenter NIC driver, widely deployed on stable/LTS kernels)
+### Step 7.1: IDENTIFY THE SUBSYSTEM AND ITS CRITICALITY
+**Record:** RDMA/mlx5 (Mellanox/NVIDIA ConnectX InfiniBand/RoCE driver).
+**IMPORTANT** — widely deployed in HPC, cloud, and enterprise RDMA
+workloads. Not universal like mm/net core, but critical for mlx5 users.
 
-### Step 7.2: Subsystem activity
-**Record:** Actively maintained; frequent mlx5 commits in 6.18.y.
+### Step 7.2: ASSESS SUBSYSTEM ACTIVITY
+**Record:** Actively maintained — multiple mlx5 fixes in recent `main.c`
+history (`65e344925fa30`, `d3ff718c0c715`, etc.).
 
 ---
 
 ## PHASE 8: IMPACT AND RISK ASSESSMENT
 
-### Step 8.1: Who is affected
-**Record:** Users of **Mellanox ConnectX multi-PF Socket Direct**
-configurations with **shared-FDB LAG** in **switchdev** mode —
-datacenter/cloud NIC deployments. Not universal; config-specific.
+### Step 8.1: DETERMINE WHO IS AFFECTED
+**Record:** Users of mlx5 RoCE devices where `disable_local_lb_uc` or
+`disable_local_lb_mc` firmware capabilities are set — devices requiring
+explicit vport loopback enable for self-loopback QPs and transport
+domains.
 
-### Step 8.2: Trigger conditions
-**Record:** Driver unload, devlink reload, FW-reset recovery, or suspend
-on configured SD LAG + switchdev. Admin-initiated but routine.
-Unprivileged users cannot directly trigger.
-
-### Step 8.3: Failure mode severity
-**Record:** Improper LAG/eswitch teardown;
-`mlx5_eswitch_reload_ib_reps()` silently skipped when reps already
-detached. Can leave inconsistent LAG state; related mlx5 LAG teardown
-bugs have caused **kernel oops** (4b8eeed4fb105). **Severity: MEDIUM-
-HIGH** for affected configs; **LOW** for typical single-PF users.
-
-### Step 8.4: Risk-benefit
+### Step 8.2: DETERMINE THE TRIGGER CONDITIONS
 **Record:**
-- **Benefit:** MEDIUM for affected enterprise users; prevents broken SD
-  LAG teardown on common unload paths
-- **Risk:** LOW — 3-line reorder, mirrors existing mode-set path,
-  reviewed by subsystem maintainer
+- **Trigger:** `mlx5_nic_vport_update_local_lb()` fails during ucontext
+  open or QP creation (ENOMEM or firmware command error)
+- **Likelihood:** Uncommon but realistic under memory pressure or
+  transient HW/firmware issues
+- **Userspace reachable:** Yes — ucontext allocation is a normal
+  userspace operation
+
+### Step 8.3: DETERMINE THE FAILURE MODE SEVERITY
+**Record:**
+- **Failure mode:** Persistent driver state corruption — SW/HW loopback
+  state mismatch, inflated counters prevent recovery
+- **User impact:** Loopback traffic broken for device lifetime after one
+  transient failure; RDMA apps using self-loopback may fail silently or
+  behave incorrectly
+- **Severity:** **MEDIUM-HIGH** — not a kernel crash or security issue,
+  but persistent functional corruption on a common initialization path.
+  Complements the already-backported TD leak fix.
+
+### Step 8.4: CALCULATE RISK-BENEFIT RATIO
+**Record:**
+- **Benefit:** Prevents permanent loopback state corruption on error
+  paths; completes the error-handling story started by `65e344925fa30`
+- **Risk:** Very low — ~11 lines, error-path only, matches existing
+  `mlx5_ib_enable_lb_mp()` pattern
 - **Ratio:** Favorable for backport
 
 ---
 
 ## PHASE 9: FINAL SYNTHESIS
 
-### Step 9.1: Evidence summary
+### Step 9.1: COMPILE THE EVIDENCE
 
-**FOR backport:**
-- Verified ordering bug: detach/unregister before eswitch disable in
-  both main unload paths
-- SD LAG cleanup (`mlx5_disable_lag` → `mlx5_eswitch_reload_ib_reps`)
-  requires eswitch/rep state that detach destroys
-- Matches proven-correct `mlx5_devlink_eswitch_mode_set()` ordering
-- Small, surgical, low regression risk
-- Bug present since ~2023; shared-FDB LAG in tree since 2021
-- Same subsystem had LAG teardown oops fixed for stable (4b8eeed4fb105)
-- NVIDIA maintainer review
+**FOR backporting:**
+- Real, long-standing bug (since 2018, commit `0042f9e458a560`)
+- Buggy code confirmed present in v6.18.44
+- Small, surgical, obviously correct fix
+- Maintainer Signed-off-by (Jason Gunthorpe)
+- Matches existing correct pattern in same file (`mlx5_ib_enable_lb_mp`)
+- Userspace-reachable via ucontext allocation
+- Persistent state corruption on transient failure
+- Complements already-backported `65e344925fa30`
+- No new APIs or features
 
-**AGAINST backport:**
-- No crash trace, syzbot report, or user bug report in commit message
-- Affects niche multi-PF Socket Direct + switchdev configuration
-- Patch 3/3 — series context unavailable
-- Init error paths (`err_register`/`err_attach`) still call
-  `mlx5_unload()` without early eswitch disable (likely low impact —
-  switchdev typically not configured at probe failure)
+**AGAINST backporting:**
+- Only triggers on error paths (ENOMEM, firmware cmd failure) — not
+  common
+- No crash, security vulnerability, or data corruption reported
+- No user bug reports or syzbot findings documented
+- Severity is functional state corruption, not oops/panic
 
-**Unresolved:**
-- Full mailing list review thread (lore inaccessible)
-- Patches 1–2 of the series not found
-- No quantitative report of how often this causes visible failures
+**UNRESOLVED:**
+- Mailing list review discussion (lore blocked)
+- Whether reviewers explicitly nominated for stable
 
-### Step 9.2: Stable rules checklist
-1. Obviously correct and tested? **PASS** — ordering matches mode-set
-   path; Reviewed-by from mlx5 maintainer (no Tested-by)
-2. Fixes a real bug? **PASS** — verifiable teardown ordering violation
-3. Important issue? **PASS (MEDIUM)** — improper teardown on
-   unload/reload for SD LAG; related bugs caused oopses, though this one
-   lacks explicit crash report
-4. Small and contained? **PASS** — single file, ~3 lines moved
-5. No new features/APIs? **PASS**
-6. Can apply to local tree? **PASS** — code exists; clean/minor-context
-   apply expected
+### Step 9.2: APPLY THE STABLE RULES CHECKLIST
+1. Obviously correct and tested? **PASS** — logic is clear; maintainer
+   SOB; mirrors existing code pattern. No explicit Tested-by.
+2. Fixes a real bug that affects users? **PASS** — persistent SW/HW
+   state desync on mlx5 RoCE loopback enable failure.
+3. Important issue? **PASS (borderline)** — persistent driver state
+   corruption on userspace-initiated path; functional breakage until
+   reload, though not crash-level.
+4. Small and contained? **PASS** — 1 file, ~11 lines, 1 function.
+5. No new features or APIs? **PASS**
+6. Can apply to the local tree? **PASS** — buggy code present; clean
+   apply expected.
 
-### Step 9.3: Exception categories
-**Record:** None (not device ID, quirk, DT, build fix, or docs fix).
-Standard bug-fix backport.
+### Step 9.3: CHECK FOR EXCEPTION CATEGORIES
+**Record:** None apply directly (not device ID, quirk, DT, build, or
+docs fix). Standard bug fix.
 
-### Step 9.4: Decision rationale
-For **Linux 6.18.44**, the buggy ordering is present and the fix is
-minimal, obviously correct, and aligns unload paths with the already-
-correct switchdev-to-legacy transition. While the affected configuration
-(multi-PF Socket Direct + shared-FDB LAG + switchdev) is niche and the
-commit lacks a crash report, the mechanism is verified in code, the
-subsystem has a history of LAG teardown oopses, and the fix carries very
-low risk. This meets stable criteria for an important driver teardown
-correctness fix.
+### Step 9.4: DECISION RATIONALE
+
+This commit fixes a real error-path state machine bug in widely used
+mlx5 RDMA driver code that has existed since 2018. When
+`mlx5_nic_vport_update_local_lb()` fails during ucontext creation, the
+driver permanently corrupts its loopback tracking state, preventing
+recovery without reload. The fix is minimal, follows an established
+pattern in the same file, and completes error handling partially
+addressed by the already-backported `65e344925fa30`. While the trigger
+is an uncommon error path and severity is functional rather than crash-
+level, persistent state corruption on a userspace-initiated
+initialization path meets stable backport criteria for mlx5 driver
+correctness fixes.
 
 ---
 
 ## Verification
 
-- **[Phase 1]** Parsed commit message and tags from user-provided diff
-- **[Phase 2]** Analyzed diff: 3 hunks in `main.c`, eswitch disable
-  moved from `mlx5_unload` to `mlx5_uninit_one` and
-  `mlx5_unload_one_devl_locked`
-- **[Phase 3]** `git describe HEAD` → `v6.18.44`; `Makefile` → 6.18.44
-- **[Phase 3]** `git blame` on lines 1428–1450, 1530–1558, 1618–1636 of
-  `main.c` — ordering history confirmed
-- **[Phase 3]** `git show 85b47dc40bbc7` — eswitch disable moved to
-  first in `mlx5_unload` (2023)
-- **[Phase 3]** `git show f019679ea5f2a` — original addition of eswitch
-  disable to unload (2022)
-- **[Phase 3]** `git show af8c0e25f249a` — shared-FDB LAG since Aug 2021
-- **[Phase 3]** `git show 4b8eeed4fb105` — related bridge+LAG oops fix
-  in tree
-- **[Phase 4]** `b4 dig -c HEAD` — no match (commit not in tree)
-- **[Phase 4]** Lore/patch.msgid.link fetch — blocked (403/bot
-  protection); thread not retrieved
-- **[Phase 4]** Workspace `.mbx` search for `align disable sequence` /
-  `395443` — not found
-- **[Phase 5]** Read `mlx5_eswitch_disable()` in `eswitch.c:1780–1790` —
-  calls `mlx5_lag_disable_change`
-- **[Phase 5]** Read `mlx5_disable_lag()` in `lag.c:900–937` — shared-
-  FDB path calls `mlx5_eswitch_reload_ib_reps`
-- **[Phase 5]** Read `mlx5_eswitch_reload_ib_reps()` in
-  `eswitch_offloads.c:3346–3368` — requires OFFLOADS mode and REP_LOADED
-- **[Phase 5]** Read `mlx5_detach_device()` in `dev.c:414–454` — removes
-  auxiliary devices before unload
-- **[Phase 5]** Read `mlx5_devlink_eswitch_mode_set()` in
-  `eswitch_offloads.c:3807–3890` — disables eswitch before mode change
-- **[Phase 5]** `grep mlx5_unload(` — callers: err_register,
-  mlx5_uninit_one, err_attach, mlx5_unload_one_devl_locked
-- **[Phase 6]** Read current `main.c:1428–1645` — buggy ordering
-  confirmed in 6.18.44
-- **[Phase 6]** `grep mlx5_eswitch_disable` — present in tree, not yet
-  reordered
-- **[Phase 8]** Confirmed SD = Socket Direct via `mlx5_get_sd()` usage
-  in `eswitch_offloads.c:3826–3828`
-- **UNVERIFIED:** Mailing list reviewer stable nominations; patches 1–2
-  of series; explicit user crash reports for this specific bug
+- **[Phase 1]** Parsed subject, tags; found Link and Jason Gunthorpe
+  SOB; no Fixes/Reported-by/syzbot
+- **[Phase 2]** Diff analysis: adds error check + `err_rollback` counter
+  decrement in `mlx5_ib_enable_lb()`
+- **[Phase 3]** `git blame`: buggy code from `0042f9e458a560`
+  (2018-09-21); `git merge-base --is-ancestor` confirms in tree
+- **[Phase 3]** `git show 65e344925fa30`: related TD rollback fix
+  already in tree; does not fix internal `enable_lb` state
+- **[Phase 3]** `git log -S "err_rollback"`: fix not yet in tree
+- **[Phase 4]** UNVERIFIED: lore.kernel.org and patch.msgid.link
+  blocked; `b4 dig` requires commit hash not in tree
+- **[Phase 5]** `grep mlx5_ib_enable_lb`: 3 call sites in `main.c` and
+  `qp.c`
+- **[Phase 5]** Read `mlx5_nic_vport_update_local_lb()` at
+  `vport.c:896-933`: returns `-ENOMEM` or cmd errors
+- **[Phase 5]** Read `mlx5_ib_enable_lb_mp()` at `main.c:1849-1868`:
+  correct error-handling pattern exists
+- **[Phase 5]** Read ucontext alloc path `main.c:2144-2147`: `enable_lb`
+  failure path does not call `disable_lb`
+- **[Phase 6]** `git describe HEAD`: v6.18.44; buggy code at
+  `main.c:1897-1898` confirmed
+- **[Phase 6]** No conflicting fix found in tree
+- **[Phase 8]** Failure mode: persistent loopback state corruption,
+  severity MEDIUM-HIGH
 
-**YES**
+**YES**The background searches finished:
 
- drivers/net/ethernet/mellanox/mlx5/core/main.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+- **Keyword search** (`counter desync`, `loopback enable failure`): no
+  matches — this fix is **not yet in v6.18.44**.
+- **Related commit search**: found `65e344925fa30` (TD rollback when
+  `mlx5_ib_enable_lb()` fails), which is already in the tree but does
+  not fix the internal state/counter desync inside `mlx5_ib_enable_lb()`
+  itself.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index 22bdefe5696c9..42bc553d034b5 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -1427,7 +1427,6 @@ static int mlx5_load(struct mlx5_core_dev *dev)
+That supports the earlier **YES** verdict: the bug is present here, and
+this commit is still needed.
+
+ drivers/infiniband/hw/mlx5/main.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 09709ae5bd471..09d76952372de 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1895,6 +1895,9 @@ int mlx5_ib_enable_lb(struct mlx5_ib_dev *dev, bool td, bool qp)
+ 	    dev->lb.qps == 1) {
+ 		if (!dev->lb.enabled) {
+ 			err = mlx5_nic_vport_update_local_lb(dev->mdev, true);
++			if (err)
++				goto err_rollback;
++
+ 			dev->lb.enabled = true;
+ 		}
+ 	}
+@@ -1902,6 +1905,14 @@ int mlx5_ib_enable_lb(struct mlx5_ib_dev *dev, bool td, bool qp)
+ 	mutex_unlock(&dev->lb.mutex);
  
- static void mlx5_unload(struct mlx5_core_dev *dev)
- {
--	mlx5_eswitch_disable(dev->priv.eswitch);
- 	mlx5_devlink_traps_unregister(priv_to_devlink(dev));
- 	mlx5_sf_dev_table_destroy(dev);
- 	mlx5_sriov_detach(dev);
-@@ -1536,6 +1535,7 @@ void mlx5_uninit_one(struct mlx5_core_dev *dev)
+ 	return err;
++
++err_rollback:
++	if (td)
++		dev->lb.user_td--;
++	if (qp)
++		dev->lb.qps--;
++	mutex_unlock(&dev->lb.mutex);
++	return err;
+ }
  
- 	mlx5_hwmon_dev_unregister(dev);
- 	mlx5_crdump_disable(dev);
-+	mlx5_eswitch_disable(dev->priv.eswitch);
- 	mlx5_unregister_device(dev);
- 
- 	if (!test_bit(MLX5_INTERFACE_STATE_UP, &dev->intf_state)) {
-@@ -1620,6 +1620,7 @@ void mlx5_unload_one_devl_locked(struct mlx5_core_dev *dev, bool suspend)
- 	devl_assert_locked(priv_to_devlink(dev));
- 	mutex_lock(&dev->intf_state_mutex);
- 
-+	mlx5_eswitch_disable(dev->priv.eswitch);
- 	mlx5_detach_device(dev, suspend);
- 
- 	if (!test_bit(MLX5_INTERFACE_STATE_UP, &dev->intf_state)) {
+ void mlx5_ib_disable_lb(struct mlx5_ib_dev *dev, bool td, bool qp)
 -- 
 2.53.0
 
