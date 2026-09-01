@@ -1,44 +1,42 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48DF33EEACB;
-	Tue,  1 Sep 2026 14:04:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C27E43C048;
+	Tue,  1 Sep 2026 14:04:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788271452; cv=none; b=ue5mOaUH/G/8MqHAoqwMWz7acjCYAoFJ696WYoZ1ECoYnZV3bvhkEgr1wv/2ZYa9Pl+5g6SPZ79zmzRzzmRMuyRUkrOeCgRCMgW1CquwdQt54Nh/gm35pdl2aP5o/0CCI3xMX+Sks8XwSdXlwxPDxLhHAtDtMbx2Q2CbvsfLjYk=
+	t=1788271455; cv=none; b=KBcxiNWXXPGWN4d7UMbH0mnd/8fgxnimNERi23O4C35uljCQobMzff64Dpfrx0Z1sSBsU0EGYjeH1Z5OiiUaJFVLuT8srznZxDqO5AHuunvEwJDQyLysaNR2KfSjx1whnVeKlG/Zi7Q8HmUh25eGg8sPGUFwD8r1SV9wpRtJF4o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788271452; c=relaxed/simple;
-	bh=Xfv2jt4cOB8bmx9v7TXqvrTMEmyMl+0EWxhvEqFVwBk=;
+	s=arc-20240116; t=1788271455; c=relaxed/simple;
+	bh=FjZcK7e1CF5aHDjOLRq3C1gu4xll2u1WO9cXVHsqbVQ=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=kXP6I7ThXggMM2XdPqy250vq6a7afuFaymvQmyzf80I0VdTBUddddubonUC0Mm8CcOrMKp9GOOTfkAnvknOuTLMp1/8s0TQqJZXFK3kU0ZF4NSnoK5WxSEjRp6R2LuFCW5Z1ne9oYuKdXBXmfvqER4yoK73KH7JEX+Jxg+5O7+M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ds0Xkq+i; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=RKQ1F1zF9K8srHaUuIf84d8APgLMVugqQkrKC1EUboGVxM52gKhuPxbX9dwKGal/zr4BvZgynwHuzGj0+awWc6AApKkgsf1R+NgHBKU3wUHSVf0+iHfAsodHoOZ1bvKpTAcqn/aF3O4Mf45VXAPTfD37fARnIsUQs09cg0SHZVg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MPeL705n; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ds0Xkq+i"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44FC71F000E9;
-	Tue,  1 Sep 2026 14:04:10 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MPeL705n"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58FD61F00A3D;
+	Tue,  1 Sep 2026 14:04:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788271450;
-	bh=FHZybySiaPe14dbMDMUulMa6M5fWVpsEsQ/tKYxAVJc=;
+	s=k20260515; t=1788271453;
+	bh=jpPELLiQ+nEEj5cM12bp3iMB765IticdEVx9fTL9+wE=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=Ds0Xkq+iDyAQ8C7jxQx8gVXYNunKJg6MbnhXtCfOZ/379srL6K0LXUWFor1r43s/Z
-	 1Z7dzVLbj8wkKeGwM9vWlnKiXRswoSr4PE7GBXhxHL056oznRRU+2gs8m0yKbdzolS
-	 vgtpZzBUHYvl+3ZFy27xa0i2tsBJWZPec0kpLhUQjFfh20oI85RNlRPC3GQEbW/h9s
-	 q17oo5pEjUZ0hLNXKpumfqiCH98dgSRfq+9CaTMK68YvkU+IjIlDF4p7KJ2XmLBnES
-	 L1PVOEFuq913Vz+Xg/0F6S0BDIACI60Kq3fWyId3T2l+PlllhypSAzsNu/H3Xj/Mzo
-	 nBeV1RXapTOTw==
+	b=MPeL705nZabJK8GgLiR6eiULKdE9rU/dWLPYNqKLzRRkSLTRxeNHXWrOCJhp6M6yK
+	 TXHKEhzmETbreDVBXUU/8SZWyWT9/w4exAhdaupas+tHplDmFsnc/69qAeX6G2Rdwy
+	 TLAegWbvV8gpT0zmQ7PEYRCiYxuLkxQN6A55+xdhWgDX9WNXletie7x0GJlz16hLbS
+	 WEgF/XnRYMov4Y5U4PRqPl9HC9YMY1U+Ub9lOQNbpFtPlCxBFMd20mLNFGzG6IXwYN
+	 tJsY+8kUuDC8WGG7vEBK/OF0Rfz7R3klLlwQkan1z69FYls2i5kDj4DtxynGd+SpKL
+	 rqN8h+4JyOApA==
 From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>, 
- Junxian Huang <huangjunxian6@hisilicon.com>, 
- Chengchang Tang <tangchengchang@huawei.com>, 
- Edward Srouji <edwards@nvidia.com>
+To: yishaih@nvidia.com, jgg@ziepe.ca, 
+ Shuangpeng Bai <shuangpeng.kernel@gmail.com>
 Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
- Or Har-Toov <ohartoov@nvidia.com>
-In-Reply-To: <20260811-fix-mmap-lockdep-v1-1-1151b41063b4@nvidia.com>
-References: <20260811-fix-mmap-lockdep-v1-1-1151b41063b4@nvidia.com>
-Subject: Re: [PATCH rdma-next] RDMA/uverbs: Fix
- mmap_lock/disassociation_lock circular dependency
-Message-Id: <178827144803.1380198.18045973124694867362.b4-ty@kernel.org>
-Date: Tue, 01 Sep 2026 10:04:08 -0400
+ stable@vger.kernel.org
+In-Reply-To: <20260816044510.3848996-1-shuangpeng.kernel@gmail.com>
+References: <20260816044510.3848996-1-shuangpeng.kernel@gmail.com>
+Subject: Re: [PATCH] IB/mlx4: Fix use-after-free on pkey sysfs registration
+ failure
+Message-Id: <178827145124.1380198.18104190586374811553.b4-ty@kernel.org>
+Date: Tue, 01 Sep 2026 10:04:11 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -50,21 +48,24 @@ Content-Transfer-Encoding: 7bit
 X-Mailer: b4 0.15-dev-18f8f
 
 
-On Tue, 11 Aug 2026 19:19:16 +0300, Edward Srouji wrote:
-> Commit 51976c6cd786 ("RDMA/core: Provide rdma_user_mmap_disassociate()
-> to disassociate mmap pages") introduced disassociation_lock to protect
-> new mmap registrations against uverbs_user_mmap_disassociate(), but
-> created an ABBA deadlock:
+On Sun, 16 Aug 2026 00:45:10 -0400, Shuangpeng Bai wrote:
+> register_pkey_tree() ignores errors from register_one_pkey_tree() and
+> continues registering the remaining slaves. The per-slave error path has
+> already released the pkey parent kobjects, but their pointers remain
+> stored in the device. A later device cleanup therefore passes the stale
+> pointers to kobject_put(), causing a use-after-free.
 > 
->   Thread A (mmap / fork):
->     mmap_lock -> disassociation_lock
+> Clear the parent pointers after releasing a failed slave tree and skip
+> unregistered trees during device cleanup. This preserves the existing
+> best-effort registration behavior while preventing a second cleanup of
+> the failed tree.
 > 
 > [...]
 
 Applied, thanks!
 
-[1/1] RDMA/uverbs: Fix mmap_lock/disassociation_lock circular dependency
-      https://git.kernel.org/rdma/rdma/c/a44a3f175eaee7
+[1/1] IB/mlx4: Fix use-after-free on pkey sysfs registration failure
+      https://git.kernel.org/rdma/rdma/c/1af874e9f4ce22
 
 Best regards,
 -- 
