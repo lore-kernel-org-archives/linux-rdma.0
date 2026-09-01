@@ -1,42 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8959647DD4A;
-	Tue,  1 Sep 2026 13:28:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4166E64;
+	Tue,  1 Sep 2026 13:38:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788269310; cv=none; b=CEpM0iJUFcD7grShSx2YDUdwaLYBjMM8RAGU3D/oXzueNERmTtsECYFo806LARhOA+hwlrtj7gdXhg1L4vx/cWQ3Pnw35ke6KWQQ1lTHY3VzlX+V+dRFEFBV2MuHFH78C8TS/AOo6VgYcgiqJN800s9o0MuNWzBED3eZZrMT/qc=
+	t=1788269927; cv=none; b=iDlgJllUyzbXgkdu4EWVUVvtuhi8kE7fyWGvSKM5PZ/qSwn0rhFuuYqxFzTh1h/BM3f3rVmOnNskWs0D9U59Fxa04/Ud9KWhUpfzt6Xuc9JaxrsdFnBc3Ty+CxKEj6FksrYazZlHHbPRpJPKqHEHFFX9kGqLBkxM2jMqrx+iYoo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788269310; c=relaxed/simple;
-	bh=Lu0k7sjYQHHbQ2m/WT7qCYZW1SWPxZMolX6nsjpwv0A=;
+	s=arc-20240116; t=1788269927; c=relaxed/simple;
+	bh=wnEx4rDNkziZBTzK4aZ7qaCWiw57NIRKirHCSXvWtSg=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=TJPW71nMmjSQBz6us+y82SqftSA1PM4pzHknmxOw71N3Bj8wv7mmU+gul3UAhY5fsq7oicobW/suUouwq5WrDQs9fgWB4dLJCpWsiuitOGGqDz4yMttA0Atbkl8xQzIRnVbt+UHYzqDhIjR1WnyIRbmVEp1U/EBIi2h84+m3re8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lzDXCcxq; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=s7t+dLbhGaaMLGtKRYDgDvDmNAnGp6GtukmXcpSSxbiPw0u6Im2/rKMn/TiT+MmCGMPahHrJAEWU0znt3hfmvXcaHmET2WV6aHxiJmZqxYNjm4LaJ8VRbncqidAMJWjGJzh13vwpLfKsmKHgJL7dbioW1bXvPRziq7SQC9+op9I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=E1KlXXTu; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lzDXCcxq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA57C1F000E9;
-	Tue,  1 Sep 2026 13:28:28 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="E1KlXXTu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BAFE1F00A3D;
+	Tue,  1 Sep 2026 13:38:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788269309;
-	bh=zN3XYf0D0kctUoOKLG8Di1BW/gwrgOKCubyunL34Y0o=;
+	s=k20260515; t=1788269926;
+	bh=jCOmXUqUA0JFX/6v0B8YEvtU3s0Uus/ZFSIva0GOO3M=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=lzDXCcxqOTOslXKesTHnHBaljHgBFhe7IB7Fz8F5Pf2DHiG1be6jcSukjTPJPRicp
-	 tEeVud98jDAYWAihpHo69Q2ptZiZSu86ez1s6FXezRx4EZ0S3Hb6yBvfcbD3QxhuYu
-	 UY+feIrmn+e321kl4Gv8zMI127mhGZno5z7nyoueX1bqJpv5pufs638mqSZ53IKDr4
-	 03AZl88aePSwP1bozBvv2Qkmo3yr8woJ1sv+YNanf2XpWMJhoUs0JVhf1ukH/7Gz3R
-	 6p0K4FkagLezvjTTjJgv0vkWmjD9ddT1jP2qcoYcJezYMnWaYO4ac+vhxjXVXMxKlc
-	 f62sm+yKiy1Sg==
+	b=E1KlXXTuq1zN2r8vbLV2O20CQIu/+R49FhOl8Dw9a0dt/DMvSS4fA1N47wOoD+sNm
+	 pMM08fhmeXJ10nVpNqXTJ9EC8p7K1sMFiHWr3+cIS8GbshzD8FuuvTfPR3ZOI7hgqf
+	 MslrySwSwfJWC9iARh0NmPk3YS24WkMIwHz/pV0od4Ay13LW2CFX/bPmGRXb8JNuc6
+	 QSY3vciEulvqMp5RM5XGHaeqjMBf8tB4GmHwSCQIbYCG9mGgDRFKhgc3HEEkGvCBaN
+	 B9zg7nYZpoBlqClPdkr/fJghBaf/eHtyfgHHZVlMB25+BMBuQqe23gt42HQhdgH0Ry
+	 qYRcGRK2VqbKw==
 From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>, Or Har-Toov <ohartoov@nvidia.com>, 
- Mark Bloch <mbloch@nvidia.com>, Edward Srouji <edwards@nvidia.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
- Shay Drory <shayd@nvidia.com>
-In-Reply-To: <20260811-remove-warn-on-miss-rep-v1-1-eccf399bc6af@nvidia.com>
-References: <20260811-remove-warn-on-miss-rep-v1-1-eccf399bc6af@nvidia.com>
-Subject: Re: [PATCH rdma-next] RDMA/mlx5: Remove warn on missing
- representor in query_port_speed
-Message-Id: <178826930675.1340197.11507310539690943779.b4-ty@kernel.org>
-Date: Tue, 01 Sep 2026 09:28:26 -0400
+To: linux-rdma@vger.kernel.org, Ruizhe Zhou <zhouruizhe@resnics.com>
+Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, 
+ Jason Gunthorpe <jgg@ziepe.ca>, linux-kernel@vger.kernel.org
+In-Reply-To: <20260812033647.2281547-1-zhouruizhe@resnics.com>
+References: <20260812033647.2281547-1-zhouruizhe@resnics.com>
+Subject: Re: [PATCH 0/2] RDMA: Remove obsolete 32-bit DMA mask fallbacks
+Message-Id: <178826992328.1353295.521040898136090856.b4-ty@kernel.org>
+Date: Tue, 01 Sep 2026 09:38:43 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -48,25 +46,29 @@ Content-Transfer-Encoding: 7bit
 X-Mailer: b4 0.15-dev-18f8f
 
 
-On Tue, 11 Aug 2026 19:25:57 +0300, Edward Srouji wrote:
-> The representor ib_device's phys_port_cnt is set to the total vport
-> count when the uplink vport rep loads. Individual port[i].rep entries
-> are populated only as each VF/SF vport rep registers. A NULL .rep for
-> a given port index is therefore expected while VF reps are still
-> loading or haven't been enabled yet.
+On Wed, 12 Aug 2026 11:36:45 +0800, Ruizhe Zhou wrote:
+> hfi1 and mlx5 data direct both set a 64-bit DMA mask and retry with a
+> 32-bit mask if the first call fails. This treats the return value of
+> dma_set_mask_and_coherent() as an indication that the platform requires
+> a narrower DMA width.
 > 
-> Tools like ibstat and ibv_devinfo iterate over all ports of all RDMA
-> devices. Some ports may not have an eswitch representor, causing
-> repeated dmesg warnings when these tools run without a device argument.
-> This causes dmesg to be flooded with this message on every ibstat
-> invocation.
+> That is not a correct interpretation of dma_set_mask_and_coherent().
+> The mask describes the DMA addresses the device can accept and constrains
+> subsequent mappings to that range. A 64-bit mask includes every address
+> permitted by a 32-bit mask, including addresses from a platform that only
+> produces 32-bit DMA addresses. Retrying with 32 bits therefore adds a stricter
+> constraint and cannot correct a failure to establish the 64-bit mask.
+> The DMA API HOWTO explicitly calls this fallback pattern incorrect [1].
+> See [2] and [3] for details.
 > 
 > [...]
 
 Applied, thanks!
 
-[1/1] RDMA/mlx5: Remove warn on missing representor in query_port_speed
-      https://git.kernel.org/rdma/rdma/c/2be77295316c2d
+[1/2] RDMA/hfi1: Remove obsolete 32-bit DMA mask fallback
+      https://git.kernel.org/rdma/rdma/c/901c15a2099d43
+[2/2] RDMA/mlx5: Remove obsolete 32-bit DMA mask fallback
+      https://git.kernel.org/rdma/rdma/c/08a978db86e877
 
 Best regards,
 -- 
