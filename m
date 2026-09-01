@@ -1,20 +1,20 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 31A9D3D4112;
-	Tue,  1 Sep 2026 01:45:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 38E733CF95E;
+	Tue,  1 Sep 2026 01:45:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788227138; cv=none; b=Ay/j3bkUmtA4AjLgLeGmxsAnZjhkjX9lb5XnLxTZZWWXjzsuoxv/NzARhSep42TNxa9QRQtXuFurZiFNXuC42SlrV4eLtK6FBzYl3u435K1kmgIiCBWq0Iz/lK3wEWuyvAcMVtvuRs7abY3a/+yyjRknL4aGdxyilTMKs3HDKWQ=
+	t=1788227138; cv=none; b=V8OblNjzWkch/Qi8QSi7SolYwxIlNt+gQ8gFOWsIBbRcG2UAr/nNvVnEUB9wBtRw2INN65B5FSsOCGq0xjAFd5IeROlyYs2qx5LKXtza/DgO+wRB5RdNsvFFbq7vQRDHuN8OQd8gWtZD4ok8Moy+Z7Ncy0gw6aUkQCN6RZ46VCA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1788227138; c=relaxed/simple;
-	bh=SQbmJ2Q8J0wU2RW6D0dpVNHziFLixf/b5qoRhJ2Nmbc=;
+	bh=8ewdqON8GtF7hWFs9pCc1PTwsghk8Mat9GxLyK+RN+4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=QqQ2MmNjeau5tPPl8PeKYiNIQnxX4dqyf+TVOmD33Sx6tVWYe1yyP8G0xgpqsuLg/AXrnpNie5zhX8cF4H3fI6d6/uCCzpg3DhK2adCCaV80+ZdgbJg0FmrMhCWCYSnapxhwYV2A9tDxL/e9l2CzJeQEpoqMuynEzi7M4qxhGtk=
+	 MIME-Version; b=ea4xa4hQSWb8d6UjmO6jSH12WZ3LO01I15b0urpgwYNC+3YUT7NUS+3racWiY5nyaXytPgdyAi0TykO01PWA4gVMxcWpbqyrHELfypjjU39O1UiycCpU0S6ivoNrsZPNeYuf/l5ALbrUJVkRxBFCxH6dQFR+GQjTYzDS14hfmAI=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Received: by linux.microsoft.com (Postfix, from userid 1202)
-	id A0D2020B6F0C; Mon, 31 Aug 2026 18:44:56 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com A0D2020B6F0C
+	id 0908F20B6F21; Mon, 31 Aug 2026 18:44:56 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 0908F20B6F21
 From: Long Li <longli@microsoft.com>
 To: Long Li <longli@microsoft.com>,
 	Konstantin Taranov <kotaranov@microsoft.com>,
@@ -38,9 +38,9 @@ Cc: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	linux-hyperv@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH net-next v3 12/13] net: mana: keep the surviving queues when the channel count is reduced
-Date: Mon, 31 Aug 2026 18:44:41 -0700
-Message-ID: <20260901014442.2945689-13-longli@microsoft.com>
+Subject: [PATCH net-next v3 11/13] net: mana: keep a user-configured RSS table across a queue rebuild
+Date: Mon, 31 Aug 2026 18:44:40 -0700
+Message-ID: <20260901014442.2945689-12-longli@microsoft.com>
 X-Mailer: git-send-email 2.43.7
 In-Reply-To: <20260901014442.2945689-1-longli@microsoft.com>
 References: <20260901014442.2945689-1-longli@microsoft.com>
@@ -52,246 +52,175 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-A channel-count reduction rebuilds every queue it keeps, even though none
-of their properties change. Shrinking 16 channels to 8 creates 8 TX and 8
-RX queues and then destroys all 16 of each:
+A queue rebuild regenerates the RSS indirection table from the driver
+default, so a table the user installed with "ethtool -X" is silently
+replaced by any reconfiguration that rebuilds the queues.
 
-  set_channels 16 -> 8   created SQ=8  RQ=8  | destroyed SQ=16 RQ=16
-
-A queue is derived from the ring sizes, the MTU/priv-flag/XDP buffer
-layout and its EQ, none of which depend on the count, and queue i is
-bound to EQ i at any count. Carry the survivors over and retire only the
-tail: a reduction allocates two pointer arrays and a steering table
-instead of a full queue set, the peak stays at one set rather than two,
-and the queues that stay keep their page pools, posted RX buffers and
-NAPI state.
-
-A ring resize, MTU change, priv-flag toggle or XDP attach changes a
-property of every queue, so those still rebuild.
+Carry it over instead when the queue count is unchanged: the entries are
+queue indices, so they stay meaningful. A driver-generated table is
+still regenerated, and a table that cannot be honoured for the new queue
+count is reported to the core as lost - but only once the new set is
+actually live, so a failed reconfiguration does not clear
+IFF_RXFH_CONFIGURED on a port that kept its old queues.
 
 Signed-off-by: Long Li <longli@microsoft.com>
 ---
- drivers/net/ethernet/microsoft/mana/mana_en.c | 130 +++++++++++++++++-
- .../ethernet/microsoft/mana/mana_ethtool.c    |  42 +++++-
- include/net/mana/mana.h                       |   4 +
- 3 files changed, 171 insertions(+), 5 deletions(-)
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 78 +++++++++++++++++--
+ include/net/mana/mana.h                       |  6 ++
+ 2 files changed, 79 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index 6769faada11bcd898d3991d0c286578a736eba12..ae7c664bf76ef2740ccbf73315931b4aca7bd43f 100644
+index 2295769da0306888f0a0bd7bb7a6098e908289f1..6769faada11bcd898d3991d0c286578a736eba12 100644
 --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
 +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -4327,7 +4327,135 @@ void mana_qset_scratch_free(struct mana_port_context *scratch)
- 	kvfree(scratch);
+@@ -3634,6 +3634,38 @@ static void mana_rss_table_init(struct mana_port_context *apc)
+ 			ethtool_rxfh_indir_default(i, apc->num_queues);
  }
  
--/* Build a queue set in @scratch, sized and configured from the arguments. The
-+/* Carve the live set into a kept prefix [0, @new_count) in @out_new and a
-+ * tail to retire in @out_tail. @apc is untouched, on failure too.
++/* Whether @apc's indirection table can be carried to a set of @num_queues,
++ * rather than rebuilt from the driver default.
 + *
-+ * Queue i is built from the ring sizes and the buffer layout and keeps EQ i
-+ * at any count, so a reduction carries the survivors over and destroys only
-+ * the tail. Allocates two pointer arrays and a steering table, nothing else:
-+ * the queues that stay keep their page pools, posted buffers and NAPI.
++ * Only a user table ("ethtool -X") is kept; a driver one is rebuilt to spread
++ * over the new count. ethtool_check_max_channel() already refuses a reduction
++ * that leaves a user table pointing past the last queue, so the bounds check
++ * below only guards rebuild paths that bypass ethtool.
++ *
++ * @lost reports a table that cannot be carried instead of calling
++ * ethtool_rxfh_indir_lost() here, since the swap may still fail and leave the
++ * port on queues where the table still applies. False when none was set.
 + */
-+int mana_split_qset(struct mana_port_context *apc,
-+		    struct mana_port_context *scratch, unsigned int new_count,
-+		    struct mana_qset *out_new, struct mana_qset *out_tail)
++static bool mana_rss_table_keep(struct mana_port_context *apc,
++				unsigned int num_queues, bool *lost)
 +{
-+	unsigned int old_count = apc->num_queues;
-+	struct mana_tx_qp **new_tx, **tail_tx;
-+	struct mana_rxq **new_rx, **tail_rx;
-+	unsigned int tail_count;
++	u32 i;
++
++	*lost = false;
++
++	if (!netif_is_rxfh_configured(apc->ndev))
++		return false;
++
++	for (i = 0; i < apc->indir_table_sz; i++) {
++		if (apc->indir_table[i] >= num_queues) {
++			*lost = true;
++			return false;
++		}
++	}
++
++	return true;
++}
++
+ int mana_disable_vport_rx(struct mana_port_context *apc)
+ {
+ 	return mana_cfg_vport_steering(apc, TRI_STATE_FALSE, false, false,
+@@ -3904,6 +3936,7 @@ int mana_alloc_queues(struct net_device *ndev)
+ {
+ 	struct mana_port_context *apc = netdev_priv(ndev);
+ 	struct gdma_dev *gd = apc->ac->gdma_dev;
 +	bool indir_lost;
-+	unsigned int i;
-+	int err;
-+
-+	ASSERT_RTNL();
-+
-+	if (WARN_ON(new_count == 0 || new_count >= old_count))
-+		return -EINVAL;
-+	if (WARN_ON(!apc->tx_qp || !apc->rxqs))
-+		return -EINVAL;
-+
-+	tail_count = old_count - new_count;
-+
-+	/* Build the smaller set's steering table separately: mana_config_rss()
-+	 * would otherwise index the shorter rxqs[] with entries still referring
-+	 * to retired queues.
+ 	int err;
+ 
+ 	err = mana_create_vport(apc, ndev);
+@@ -3949,7 +3982,18 @@ int mana_alloc_queues(struct net_device *ndev)
+ 		goto destroy_rxq;
+ 	}
+ 
+-	mana_rss_table_init(apc);
++	/* Keep a user-configured RSS table across a rebuild; the entries are
++	 * queue indices, so they stay meaningful as long as the queue count
++	 * is unchanged. Only a driver-generated table is regenerated here.
++	 *
++	 * Nothing to roll back to here, so report the loss as soon as it is
++	 * decided and keep the table and the core's view of it in step.
 +	 */
-+	scratch->num_queues = new_count;
-+	err = mana_rss_table_alloc(scratch);
-+	if (err)
-+		return err;
++	if (!mana_rss_table_keep(apc, apc->num_queues, &indir_lost)) {
++		if (indir_lost)
++			ethtool_rxfh_indir_lost(ndev);
++		mana_rss_table_init(apc);
++	}
+ 
+ 	err = mana_config_rss(apc, TRI_STATE_TRUE, true, true);
+ 	if (err) {
+@@ -4207,11 +4251,15 @@ static void mana_qset_snapshot(const struct mana_port_context *ctx,
+ 	out->priv_flags		= ctx->priv_flags;
+ 	out->mtu		= ctx->configured_mtu;
+ 	out->bpf_prog		= ctx->bpf_prog;
 +
-+	if (mana_rss_table_keep(apc, new_count, &indir_lost))
++	/* A set taken from a live context has nothing pending; the builders
++	 * set this after snapshotting if they had to drop the user's table.
++	 */
++	out->rxfh_indir_lost	= false;
+ }
+ 
+-/* Install @qset's fields onto @ctx. The vport (port_handle,
+- * vport_use_count) and the port-level debugfs dir are deliberately not
+- * touched: they outlive any individual queue set.
++/* The vport (port_handle, vport_use_count) and the port-level debugfs dir are
++ * not touched: they outlive any individual queue set.
+  */
+ static void mana_qset_install(struct mana_port_context *ctx,
+ 			      const struct mana_qset *qset)
+@@ -4290,6 +4338,7 @@ int mana_alloc_qset(struct mana_port_context *apc,
+ 		    struct mana_qset *out)
+ {
+ 	struct net_device *ndev = scratch->ndev;
++	bool indir_lost;
+ 	int err;
+ 
+ 	ASSERT_RTNL();
+@@ -4333,9 +4382,19 @@ int mana_alloc_qset(struct mana_port_context *apc,
+ 	if (err)
+ 		goto cleanup_rxq;
+ 
+-	mana_rss_table_init(scratch);
++	/* Carry a user-configured RSS table over to the new set. The entries
++	 * are queue indices, so mana_config_rss() in mana_publish_qset() maps
++	 * them onto the new set's RX objects. A driver-generated table is
++	 * rebuilt instead, so it covers every queue of the new set.
++	 */
++	if (mana_rss_table_keep(apc, num_queues, &indir_lost))
 +		memcpy(scratch->indir_table, apc->indir_table,
 +		       apc->indir_table_sz * sizeof(*apc->indir_table));
 +	else
 +		mana_rss_table_init(scratch);
-+
-+	new_tx = kzalloc_objs(struct mana_tx_qp *, new_count);
-+	new_rx = kzalloc_objs(struct mana_rxq *, new_count);
-+	tail_tx = kzalloc_objs(struct mana_tx_qp *, tail_count);
-+	tail_rx = kzalloc_objs(struct mana_rxq *, tail_count);
-+	if (!new_tx || !new_rx || !tail_tx || !tail_rx) {
-+		err = -ENOMEM;
-+		goto free_arrays;
-+	}
-+
-+	for (i = 0; i < new_count; i++) {
-+		new_tx[i] = apc->tx_qp[i];
-+		new_rx[i] = apc->rxqs[i];
-+	}
-+	for (i = 0; i < tail_count; i++) {
-+		tail_tx[i] = apc->tx_qp[new_count + i];
-+		tail_rx[i] = apc->rxqs[new_count + i];
-+	}
-+
-+	/* The kept prefix, with the new steering table. */
-+	out_new->tx_qp		= new_tx;
-+	out_new->rxqs		= new_rx;
-+	out_new->indir_table	= scratch->indir_table;
-+	out_new->indir_table_sz	= scratch->indir_table_sz;
-+	out_new->rxobj_table	= scratch->rxobj_table;
-+	out_new->default_rxobj	= apc->rxqs[0]->rxobj;
-+	out_new->num_queues	= new_count;
-+	out_new->rx_queue_size	= apc->rx_queue_size;
-+	out_new->tx_queue_size	= apc->tx_queue_size;
-+	out_new->priv_flags	= apc->priv_flags;
-+	out_new->mtu		= apc->configured_mtu;
-+	out_new->bpf_prog	= apc->bpf_prog;
-+	out_new->rxfh_indir_lost = indir_lost;
-+
-+	/* Ownership of the table moved to @out_new. */
-+	scratch->indir_table	= NULL;
-+	scratch->rxobj_table	= NULL;
-+
-+	/* The tail. It owns no steering table; bpf_prog is carried so that
-+	 * retiring it drops exactly the tail's per-queue program references
-+	 * and leaves the kept ones alone.
-+	 */
-+	memset(out_tail, 0, sizeof(*out_tail));
-+	out_tail->tx_qp		= tail_tx;
-+	out_tail->rxqs		= tail_rx;
-+	out_tail->default_rxobj	= INVALID_MANA_HANDLE;
-+	out_tail->num_queues	= tail_count;
-+	out_tail->rx_queue_size	= apc->rx_queue_size;
-+	out_tail->tx_queue_size	= apc->tx_queue_size;
-+	out_tail->priv_flags	= apc->priv_flags;
-+	out_tail->mtu		= apc->configured_mtu;
-+	out_tail->bpf_prog	= apc->bpf_prog;
-+
-+	return 0;
-+
-+free_arrays:
-+	kfree(new_tx);
-+	kfree(new_rx);
-+	kfree(tail_tx);
-+	kfree(tail_rx);
-+	mana_cleanup_indir_table(scratch);
-+	return err;
-+}
-+
-+/**
-+ * mana_discard_split - drop the containers built by mana_split_qset()
-+ * @newq:  set that was never published
-+ * @tailq: matching tail
-+ *
-+ * Frees the pointer arrays and the steering table only: the queues they refer
-+ * to are still owned by the live port context.
-+ */
-+void mana_discard_split(struct mana_qset *newq, struct mana_qset *tailq)
-+{
-+	kfree(newq->tx_qp);
-+	kfree(newq->rxqs);
-+	kfree(newq->indir_table);
-+	kfree(newq->rxobj_table);
-+	kfree(tailq->tx_qp);
-+	kfree(tailq->rxqs);
-+	memset(newq, 0, sizeof(*newq));
-+	memset(tailq, 0, sizeof(*tailq));
-+}
-+
-+/* Rebuild the queues at the current count in @scratch, for callers changing a
-+ * per-queue property; a reduction goes through mana_split_qset() instead. The
-  * installed set keeps serving traffic meanwhile. On error nothing is left
-  * allocated.
-  */
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-index c7ddd26cada258cdbb2dc8410e6af14d2cedae1e..b5587764333f1f357df6b86795c92ef2985f9ed3 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-@@ -681,10 +681,11 @@ static int mana_set_coalesce(struct net_device *ndev,
+ 
+ 	mana_qset_snapshot(scratch, out);
++	out->rxfh_indir_lost = indir_lost;
  	return 0;
- }
  
--/* Build the new queue set while the current one keeps serving traffic, then
-- * swap. On failure the existing queues keep running and the requested value is
-- * never replaced by a fallback. The vport is never torn down, so RDMA cannot
-- * take it mid-reconfiguration.
-+/* A reduction leaves every surviving queue configured as it was, so it retires
-+ * the tail rather than rebuilding; an increase still builds a new set. On
-+ * failure the existing queues keep running and the requested value is never
-+ * replaced by a fallback. The vport is never torn down, so RDMA cannot take it
-+ * mid-reconfiguration.
-  */
- static int mana_set_channels(struct net_device *ndev,
- 			     struct ethtool_channels *channels)
-@@ -754,6 +755,39 @@ static int mana_set_channels(struct net_device *ndev,
- 		goto clear_flag;
- 	}
+ cleanup_rxq:
+@@ -4583,6 +4642,15 @@ int mana_publish_qset(struct mana_port_context *apc, struct mana_qset *newq,
+ 	WRITE_ONCE(apc->port_is_up, true);
+ 	mana_start_txqs(apc);
  
-+	/* A reduction keeps its queues configured identically, so carry them
-+	 * over and retire only the tail: no DMA ring, no hardware WQ object,
-+	 * and no old+new peak.
++	/* The set that could not carry the user's indirection table is the one
++	 * serving traffic now, so the table really is gone. Reporting it here
++	 * rather than while the set was being built keeps a failed swap from
++	 * clearing IFF_RXFH_CONFIGURED on a port that kept its old queues, and
++	 * with them a table that is still valid and still programmed.
 +	 */
-+	if (new_count < apc->num_queues) {
-+		struct mana_qset tailq;
++	if (newq->rxfh_indir_lost)
++		ethtool_rxfh_indir_lost(ndev);
 +
-+		err = mana_split_qset(apc, scratch, new_count, &newq, &tailq);
-+		if (err)
-+			goto free_scratch; /* current qset untouched */
-+
-+		err = mana_publish_qset(apc, &newq, &oldq);
-+		if (err) {
-+			/* The old set is live again; drop only the containers
-+			 * built above, never the queues they point at.
-+			 */
-+			mana_discard_split(&newq, &tailq);
-+			goto free_scratch;
-+		}
-+
-+		/* @oldq holds the original arrays and steering table. Every
-+		 * queue they referenced is now owned by either the published
-+		 * set or the tail, so only the containers are freed here.
-+		 */
-+		kfree(oldq.tx_qp);
-+		kfree(oldq.rxqs);
-+		kfree(oldq.indir_table);
-+		kfree(oldq.rxobj_table);
-+
-+		mana_free_qset(apc, scratch, &tailq);
-+		goto free_scratch;
-+	}
-+
- 	err = mana_alloc_qset(apc, scratch, new_count, apc->rx_queue_size,
- 			      apc->tx_queue_size, apc->priv_flags,
- 			      apc->configured_mtu, apc->bpf_prog, &newq);
+ 	return 0;
+ 
+ rollback:
 diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
-index 9d08257bc1fc47e7accc30a2ef2ae3db7acc7b9d..9fd555164df0de9ecd00fb840891025d566c0143 100644
+index 140948b2b45d5afa91e37d72219bb89783a030d5..9d08257bc1fc47e7accc30a2ef2ae3db7acc7b9d 100644
 --- a/include/net/mana/mana.h
 +++ b/include/net/mana/mana.h
-@@ -800,6 +800,10 @@ int mana_alloc_qset(struct mana_port_context *apc,
- 		    unsigned int rx_queue_size, unsigned int tx_queue_size,
- 		    u32 priv_flags, int mtu, struct bpf_prog *bpf_prog,
- 		    struct mana_qset *out);
-+int mana_split_qset(struct mana_port_context *apc,
-+		    struct mana_port_context *scratch, unsigned int new_count,
-+		    struct mana_qset *out_new, struct mana_qset *out_tail);
-+void mana_discard_split(struct mana_qset *newq, struct mana_qset *tailq);
- int mana_publish_qset(struct mana_port_context *apc, struct mana_qset *newq,
- 		      struct mana_qset *out_old);
- void mana_publish_close_if_needed(struct mana_port_context *apc);
+@@ -762,6 +762,12 @@ struct mana_qset {
+ 	int			mtu;
+ 	struct bpf_prog		*bpf_prog;
+ 
++	/* The user's RSS indirection table could not be carried onto this set,
++	 * so a default one was generated for it. mana_publish_qset() tells the
++	 * core once this set is live; until then the port is still running on
++	 * a set where the user's table applies.
++	 */
++	bool			rxfh_indir_lost;
+ };
+ 
+ netdev_tx_t mana_start_xmit(struct sk_buff *skb, struct net_device *ndev);
 -- 
 2.43.0
 
