@@ -1,70 +1,137 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B92063603FB
-	for <linux-rdma@vger.kernel.org>; Tue,  1 Sep 2026 12:30:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 746FA371053;
+	Tue,  1 Sep 2026 12:41:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788265850; cv=none; b=h1SoBg1xDBv3pEnQfhp0XdMsF/cp47bIqeV2V16H7vL9QePCsso0j9L6AgEsQkWkMMmh7IK7DuPtTr0B5nV+8ruHiPTWonN7vzvBOE+0qFG6l1La0FG5wli6HH5DLBs37uH96iZpEwd54cMaT6/S8UxQo3KzWgH74G+tVZYPMZc=
+	t=1788266469; cv=none; b=LDwSDUp2ifi30rDiLEH9sTIph2FlIHVqmMEOHe8x/TR1wmAcd5o0p3Jssi54C6iZInhrB9jWsp72O6voZJverulkBu7WzuY3DcP0IVoeUOgdhB5r1ODu2rB9oTN5fyEaIK1B0VKr3B5i5kzT4bXmmaNfil4Mj4JfP/p40xCpD+M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788265850; c=relaxed/simple;
-	bh=PKlSPwkl1f4GRz+KsBflgznyl9s4C4OSh/QplTE38gY=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=pDsfXZri61hGLeOq1LwgxyoGLqttH7PK5duK/30f/38Vje1qxVTrXnsk/5lS3asMacDOAhsYycmx1OmmhrRCBxsxEmEf255YjVZzxyFascdPELjrjtOvoF0nkkd4Hcpwe+dGNU47aX7OcG3GKvVvwmb4ZBeIDUzEIh83PfGvxys=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IJ1bjCWg; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788266469; c=relaxed/simple;
+	bh=mJo4l/y4MxbMvXcw1tprHy5vAB2h6U3R8qtue/noZ9Y=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Q4pKvcqV1sDYF1RJM/Yo7v+IQsmPMR+5wphhC8jeY3M6J4meV6ijCdaCswW/jAXteXe0elQEAgQ1ULZDVFlEyGJX1ijhh3Kc0rPqscXy+uSvZSc59YAmovNCITxLBAiODpzoY1Ewz7iR+4UptDCt1b59h2Yqn9J3tW/FnVsU2U0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QF3m0Q1F; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IJ1bjCWg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D95471F000E9;
-	Tue,  1 Sep 2026 12:30:48 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QF3m0Q1F"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E5021F000E9;
+	Tue,  1 Sep 2026 12:41:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788265849;
-	bh=5eWRrkLDg2uHC2wgQFPeB5ouZPEe3ZemKA2c+LLnPQo=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=IJ1bjCWgrZko7hds6+MBKFGgyESolJ418K9NhO1Gv6dJjRqOEXyxy1T9ybMjhSsCT
-	 ALFN4QD3boXMHjEHbLk4i34S3Tg5cA/FtkJwHybuk3gf6BRvglXoHlG5Up4wKaZde3
-	 HCWwasQDyA9FQMLIL0ldLxzYHAfgCHDRiRPhZAjphbm0maXr5MqVPwNXXQCxayRr5j
-	 QtTCB6tGTm1EhcrF4kIJv5ukTHNYGOabsMG/vYZ3WFl3Rw6qcHV8SH7e8g4WwMO4w0
-	 jmClg1iXbwkLKcjxZoo4zEPzhflu2vNuujkdTAfKCmiiN70PLkVC8t+1hFXlFCtAnZ
-	 yr3t07QHoXzOg==
+	s=k20260515; t=1788266468;
+	bh=8E/4HEhZ+01WRW16r1kh+DTxQ/1UAOLeU+xLOlmoQrA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=QF3m0Q1FNTtxaECBq2LCYXalGE6aM1//FUA1jWjZwrYLMTd0dklCHmF+54khHi923
+	 k3Z4F1sqcdQRrgJ66QqjtMfAUZ8Ijv84XvJDPfK4nynCoMlh9DElVKpMPq0Mz6hZFC
+	 J/EKXuVwVgjD/uunoVMrZkjDGl89L1NLd+oq+R3Nx5XeFuhDaIJkD4dt1jWibGPAbm
+	 4lfWzYHq7OwpDj1M8KnOCcEAXs0VkgrmqzWrIbrGbq0s3UE8RuSEttTUhbe4JDuN+c
+	 vNsiky0jcDl80mZhYjrGiIF9NKqSZBM08MAOjTqiHh6NbME65+kozouZB1aC6P4fBk
+	 13MGrFDmwqGdw==
+Date: Tue, 1 Sep 2026 15:41:03 +0300
 From: Leon Romanovsky <leon@kernel.org>
-To: linux-rdma@vger.kernel.org, Weiming Shi <bestswngs@gmail.com>
-Cc: Zhu Yanjun <yanjun.zhu@linux.dev>, Hongqiang Luo <wanbafv@gmail.com>, 
- Xinyu Ma <mmmxny@gmail.com>, Shaomin Chen <eeesssooo020@gmail.com>, 
- Rui Ding <threonine42@gmail.com>, Miao Zhao <muel@nova.gal>, 
- Jason Gunthorpe <jgg@ziepe.ca>
-In-Reply-To: <20260726111533.1037819-1-bestswngs@gmail.com>
-References: <20260726111533.1037819-1-bestswngs@gmail.com>
-Subject: Re: [PATCH] RDMA/rxe: Restore HMM_PFN_WRITE check in ODP write
- paths
-Message-Id: <178826584661.1269032.15690045668135890983.b4-ty@kernel.org>
-Date: Tue, 01 Sep 2026 08:30:46 -0400
+To: Yunseong Kim <yunseong.kim@est.tech>,
+	Stefan Metzmacher <metze@samba.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Jacob Moroni <jmoroni@google.com>,
+	Bart Van Assche <bvanassche@acm.org>,
+	Steve French <smfrench@gmail.com>,
+	Namjae Jeon <linkinjeon@kernel.org>, Tom Talpey <tom@talpey.com>,
+	Yunseong Kim <yunseong.kim@ericsson.com>,
+	linux-cifs@vger.kernel.org, samba-technical@lists.samba.org,
+	linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+Subject: Re: [RFC PATCH] RDMA/iwcm: allow aborting an active connect awaiting
+ CONNECT_REPLY
+Message-ID: <20260901124103.GL24140@unreal>
+References: <20260805000159.321645-2-yunseong.kim@est.tech>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-18f8f
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260805000159.321645-2-yunseong.kim@est.tech>
 
-
-On Sun, 26 Jul 2026 19:15:30 +0800, Weiming Shi wrote:
-> Commit 0b261d7c1cd3 ("RDMA/rxe: Break endless pagefault loop for RO
-> pages") dropped the access permission test from rxe_check_pagefault()
-> and left only HMM_PFN_VALID. A page faulted in read-only, for example
-> a page-cache folio behind a PROT_READ file mapping, then satisfies the
-> check and ODP write operations (RDMA WRITE, RDMA READ response, SEND
-> payload, atomics) modify it through kmap without ever breaking CoW.
+On Wed, Aug 05, 2026 at 02:02:00AM +0200, Yunseong Kim wrote:
+> After a successful connect downcall, iw_cm_connect() returns with
+> IWCM_F_CONNECT_WAIT still set and the cm_id in IW_CM_STATE_CONN_SENT.
+> The only thing that clears the flag is the provider delivering
+> IW_CM_EVENT_CONNECT_REPLY (cm_conn_rep_handler()).  Until that event
+> arrives, iw_cm_disconnect() and destroy_cm_id() sleep uninterruptibly
+> in
 > 
-> [...]
+> 	wait_event(cm_id_priv->connect_wait,
+> 		   !test_bit(IWCM_F_CONNECT_WAIT, &cm_id_priv->flags));
+> 
+> and both state machines treat IW_CM_STATE_CONN_SENT as BUG(), so the
+> API has no way to cancel a pending active connect.  If the provider
+> never generates the reply, because the peer died in the middle of
+> connection setup or because of a provider bug, every teardown path
+> (rdma_disconnect(), rdma_destroy_id()) blocks in D state forever and
+> the ULP cannot recover: there is no way to disconnect after
+> rdma_connect() was called without risking an unbounded hang.
+> 
+> This class of problem is not theoretical.  The pending smbdirect
+> change "smb: smbdirect: bound the disconnect wait in destroy_sync" [1]
+> had to work around it on the ULP side:
+> smbdirect_socket_destroy_sync() waited unbounded for the socket to
+> reach SMBDIRECT_SOCKET_DISCONNECTED, a transition that depends on an
+> asynchronous RDMA CM disconnect event, and when the peer died abruptly
+> (a killed client, or Soft-RoCE/RXE where no graceful disconnect
+> completes) that event never arrived.  The destroy ran on the single
+> ksmbd-conn-release workqueue, every later connection release queued
+> behind it in D state, and the whole server wedged until hung_task
+> fired.  That change bounded the wait and drove the socket state
+> machine to DISCONNECTED locally on timeout; ULPs should not have to
+> resort to that, the CM should offer a teardown they can rely on.
+> 
+> IWCM_F_CONNECT_WAIT currently guards two different windows:
+> 
+>  * the connect/accept downcall into the provider being in progress;
+>    teardown must keep waiting for that, it is short and bounded;
+> 
+>  * an issued active connect waiting for CONNECT_REPLY, which is
+>    potentially unbounded.
+> 
+> Mark the second window with a new flag, IWCM_F_CONNECT_SENT: set by
+> iw_cm_connect() once the downcall has returned successfully, cleared
+> by cm_conn_rep_handler().  The teardown waits now complete when either
+> the downcall has finished (!IWCM_F_CONNECT_WAIT, as before) or the
+> pending-reply window has been entered (IWCM_F_CONNECT_SENT), and the
+> previously BUG() CONN_SENT cases become:
+> 
+>  * iw_cm_disconnect(): return -ENOTCONN; there is no established
+>    connection to disconnect, aborting is the destroy path's job;
+> 
+>  * destroy_cm_id(): abort the pending connect locally by moving to
+>    DESTROYING and putting the QP into error so the provider tears the
+>    connection attempt down.
+> 
+> A CONNECT_REPLY that arrives after the abort is dropped: either
+> cm_work_handler() sees IWCM_F_DROP_EVENTS, or cm_conn_rep_handler()
+> now recognizes IW_CM_STATE_DESTROYING (the abort and the reply
+> serialize on cm_id_priv->lock) and frees the event without touching
+> the QP that destroy_cm_id() already released.  The cm_id memory stays
+> valid for such a late reply because the provider holds its own
+> reference (cm_id->add_ref) for as long as it can deliver events.
+> 
+> The passive side has a sibling gap, where after a successful accept
+> downcall the flag stays set until the provider's ESTABLISHED event
+> arrives, which this patch deliberately does not change.
+> 
+> [1] https://github.com/smfrench/smb3-kernel/commit/26d0f82a02c8a9c9c8cdfc138acb7ed0bf8e01a9
+> 
+> Suggested-by: Stefan Metzmacher <metze@samba.org>
+> Signed-off-by: Yunseong Kim <yunseong.kim@est.tech>
+> ---
+>  drivers/infiniband/core/iwcm.c | 76 +++++++++++++++++++++++++++++-----
+>  drivers/infiniband/core/iwcm.h |  1 +
+>  2 files changed, 67 insertions(+), 10 deletions(-)
 
-Applied, thanks!
+I'm not sure what to do with this patch, as the iWARP folks have
+remained silent.
 
-[1/1] RDMA/rxe: Restore HMM_PFN_WRITE check in ODP write paths
-      https://git.kernel.org/rdma/rdma/c/769001ce838d90
+Stefan,
 
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
+Do you still need this patch? Have you tested it?
 
+Thanks,
