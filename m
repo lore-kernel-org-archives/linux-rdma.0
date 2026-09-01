@@ -1,20 +1,20 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id DC5AF3D170E;
-	Tue,  1 Sep 2026 01:45:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 31A9D3D4112;
+	Tue,  1 Sep 2026 01:45:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788227137; cv=none; b=YxPloUGcZgsF/3aqp0ToD1DHutFH4skWVbjD23+RWCsMD1G2gqyWLIbn8gsrXCFbv+J7kq9c/OIUzn0LrvYL29G7oiafZs6Jd2oRT2VmiMu1deebk9fCNRQIAVe1DWFAV0HD8ZBk0zYWNXf+G8LjmsGxPwsMQzmCkeaA5ixEnhM=
+	t=1788227138; cv=none; b=Ay/j3bkUmtA4AjLgLeGmxsAnZjhkjX9lb5XnLxTZZWWXjzsuoxv/NzARhSep42TNxa9QRQtXuFurZiFNXuC42SlrV4eLtK6FBzYl3u435K1kmgIiCBWq0Iz/lK3wEWuyvAcMVtvuRs7abY3a/+yyjRknL4aGdxyilTMKs3HDKWQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788227137; c=relaxed/simple;
-	bh=QWaze7Wo1lhH1zM9++Qqj/IL+jJI5CwCW2IutMhKVk8=;
+	s=arc-20240116; t=1788227138; c=relaxed/simple;
+	bh=SQbmJ2Q8J0wU2RW6D0dpVNHziFLixf/b5qoRhJ2Nmbc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=jbu295+TvxPhPRFT9iIM+VR0opIN6jA/T4aojjzfsPDfSPjcs895yVsTJyigJ7sHg1uMO12ZuKB5GOTWEFTkol0xyEsig9XcWKyTtap3+Ck4/p0IbWZmWAKfFjgjtJbgV2iCMRoL/mDHW04yvpJYry7JIU2Hk0HCjkynvJEHIRA=
+	 MIME-Version; b=QqQ2MmNjeau5tPPl8PeKYiNIQnxX4dqyf+TVOmD33Sx6tVWYe1yyP8G0xgpqsuLg/AXrnpNie5zhX8cF4H3fI6d6/uCCzpg3DhK2adCCaV80+ZdgbJg0FmrMhCWCYSnapxhwYV2A9tDxL/e9l2CzJeQEpoqMuynEzi7M4qxhGtk=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Received: by linux.microsoft.com (Postfix, from userid 1202)
-	id 481CD20B7166; Mon, 31 Aug 2026 18:44:57 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 481CD20B7166
+	id A0D2020B6F0C; Mon, 31 Aug 2026 18:44:56 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com A0D2020B6F0C
 From: Long Li <longli@microsoft.com>
 To: Long Li <longli@microsoft.com>,
 	Konstantin Taranov <kotaranov@microsoft.com>,
@@ -38,9 +38,9 @@ Cc: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	linux-hyperv@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH net-next v3 13/13] net: mana: keep the existing queues when the channel count is raised
-Date: Mon, 31 Aug 2026 18:44:42 -0700
-Message-ID: <20260901014442.2945689-14-longli@microsoft.com>
+Subject: [PATCH net-next v3 12/13] net: mana: keep the surviving queues when the channel count is reduced
+Date: Mon, 31 Aug 2026 18:44:41 -0700
+Message-ID: <20260901014442.2945689-13-longli@microsoft.com>
 X-Mailer: git-send-email 2.43.7
 In-Reply-To: <20260901014442.2945689-1-longli@microsoft.com>
 References: <20260901014442.2945689-1-longli@microsoft.com>
@@ -52,292 +52,76 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The reduction path already carries its surviving queues over. An increase
-still builds a complete second set and throws the running one away, even
-though it keeps every queue it already had:
+A channel-count reduction rebuilds every queue it keeps, even though none
+of their properties change. Shrinking 16 channels to 8 creates 8 TX and 8
+RX queues and then destroys all 16 of each:
 
-  set_channels 4 -> 8    created SQ=8  RQ=8  | destroyed SQ=4  RQ=4
+  set_channels 16 -> 8   created SQ=8  RQ=8  | destroyed SQ=16 RQ=16
 
-The same reasoning applies in both directions. Carry the running queues
-over and build only the new tail, so growing 4 channels to 8 creates 4
-SQ/RQ pairs instead of 8 and never holds 12 of each against the vport
-maximum.
+A queue is derived from the ring sizes, the MTU/priv-flag/XDP buffer
+layout and its EQ, none of which depend on the count, and queue i is
+bound to EQ i at any count. Carry the survivors over and retire only the
+tail: a reduction allocates two pointer arrays and a steering table
+instead of a full queue set, the peak stays at one set rather than two,
+and the queues that stay keep their page pools, posted RX buffers and
+NAPI state.
 
-This completes the conversion, so advertise it to the firmware. Every
-resize path - channel count, ring size, MTU, the full-page RX private
-flag and XDP attach - now builds the new set before retiring the old and
-keeps the old one running if that fails.
+A ring resize, MTU change, priv-flag toggle or XDP attach changes a
+property of every queue, so those still rebuild.
 
 Signed-off-by: Long Li <longli@microsoft.com>
 ---
- .../net/ethernet/microsoft/mana/mana_bpf.c    |   2 +-
- drivers/net/ethernet/microsoft/mana/mana_en.c | 252 +++++++++++++++---
- .../ethernet/microsoft/mana/mana_ethtool.c    |  51 ++--
- include/net/mana/gdma.h                       |  11 +-
- include/net/mana/mana.h                       |   7 +-
- 5 files changed, 266 insertions(+), 57 deletions(-)
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 130 +++++++++++++++++-
+ .../ethernet/microsoft/mana/mana_ethtool.c    |  42 +++++-
+ include/net/mana/mana.h                       |   4 +
+ 3 files changed, 171 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_bpf.c b/drivers/net/ethernet/microsoft/mana/mana_bpf.c
-index 547fc8c769cb4c4f440a80d19092cab86e19894b..ebc20904e5cdb94edae283cfd1318bbdeef15ae6 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_bpf.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_bpf.c
-@@ -213,7 +213,7 @@ static int mana_xdp_set(struct net_device *ndev, struct bpf_prog *prog,
- 			return -ENOMEM;
- 		}
- 
--		err = mana_alloc_qset(apc, scratch, apc->num_queues,
-+		err = mana_alloc_qset(apc, scratch,
- 				      apc->rx_queue_size, apc->tx_queue_size,
- 				      apc->priv_flags, apc->configured_mtu,
- 				      prog, &newq);
 diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index ae7c664bf76ef2740ccbf73315931b4aca7bd43f..67bfea57e6ed2d2f852351ac40440a25b1226bc3 100644
+index 6769faada11bcd898d3991d0c286578a736eba12..ae7c664bf76ef2740ccbf73315931b4aca7bd43f 100644
 --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
 +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -960,7 +960,7 @@ static int mana_change_mtu(struct net_device *ndev, int new_mtu)
- 	if (!scratch)
- 		return -ENOMEM;
- 
--	err = mana_alloc_qset(mpc, scratch, mpc->num_queues, mpc->rx_queue_size,
-+	err = mana_alloc_qset(mpc, scratch, mpc->rx_queue_size,
- 			      mpc->tx_queue_size, mpc->priv_flags, new_mtu,
- 			      mpc->bpf_prog, &newq);
- 	if (err)
-@@ -2958,7 +2958,11 @@ static void mana_deinit_txq(struct mana_port_context *apc, struct mana_txq *txq)
- 	mana_gd_destroy_queue(gd->gdma_context, txq->gdma_sq);
+@@ -4327,7 +4327,135 @@ void mana_qset_scratch_free(struct mana_port_context *scratch)
+ 	kvfree(scratch);
  }
  
--static void mana_destroy_txq(struct mana_port_context *apc)
-+/* The array itself is left in place: the grow path tears down only a range,
-+ * and the queues below @first are still live and still referenced by it.
-+ */
-+static void mana_destroy_txq_from(struct mana_port_context *apc,
-+				  unsigned int first)
- {
- 	struct napi_struct *napi;
- 	int i;
-@@ -2966,7 +2970,7 @@ static void mana_destroy_txq(struct mana_port_context *apc)
- 	if (!apc->tx_qp)
- 		return;
- 
--	for (i = 0; i < apc->num_queues; i++) {
-+	for (i = first; i < apc->num_queues; i++) {
- 		if (!apc->tx_qp[i])
- 			continue;
- 
-@@ -2991,6 +2995,14 @@ static void mana_destroy_txq(struct mana_port_context *apc)
- 
- 		kvfree(apc->tx_qp[i]);
- 	}
-+}
-+
-+static void mana_destroy_txq(struct mana_port_context *apc)
-+{
-+	if (!apc->tx_qp)
-+		return;
-+
-+	mana_destroy_txq_from(apc, 0);
- 
- 	kfree(apc->tx_qp);
- 	apc->tx_qp = NULL;
-@@ -3021,8 +3033,12 @@ static void mana_create_txq_debugfs(struct mana_port_context *apc, int idx)
- 			    tx_qp->tx_cq.gdma_cq, &mana_dbg_q_fops);
- }
- 
-+/* @first is non-zero only for the grow path, which supplies an already
-+ * allocated apc->tx_qp[] holding the carried-over queues. On error only the
-+ * queues this call created are torn down.
-+ */
- static int mana_create_txq(struct mana_port_context *apc,
--			   struct net_device *net)
-+			   struct net_device *net, unsigned int first)
- {
- 	struct mana_context *ac = apc->ac;
- 	struct gdma_dev *gd = ac->gdma_dev;
-@@ -3037,9 +3053,14 @@ static int mana_create_txq(struct mana_port_context *apc,
- 	int err;
- 	int i;
- 
--	apc->tx_qp = kzalloc_objs(struct mana_tx_qp *, apc->num_queues);
--	if (!apc->tx_qp)
--		return -ENOMEM;
-+	if (first) {
-+		if (WARN_ON(!apc->tx_qp))
-+			return -EINVAL;
-+	} else {
-+		apc->tx_qp = kzalloc_objs(struct mana_tx_qp *, apc->num_queues);
-+		if (!apc->tx_qp)
-+			return -ENOMEM;
-+	}
- 
- 	/*  The minimum size of the WQE is 32 bytes, hence
- 	 *  apc->tx_queue_size represents the maximum number of WQEs
-@@ -3056,7 +3077,7 @@ static int mana_create_txq(struct mana_port_context *apc,
- 
- 	gc = gd->gdma_context;
- 
--	for (i = 0; i < apc->num_queues; i++) {
-+	for (i = first; i < apc->num_queues; i++) {
- 		apc->tx_qp[i] = kvzalloc_obj(*apc->tx_qp[i]);
- 		if (!apc->tx_qp[i]) {
- 			err = -ENOMEM;
-@@ -3164,7 +3185,10 @@ static int mana_create_txq(struct mana_port_context *apc,
- out:
- 	netdev_err(net, "Failed to create %d TX queues, %d\n",
- 		   apc->num_queues, err);
--	mana_destroy_txq(apc);
-+	if (first)
-+		mana_destroy_txq_from(apc, first);
-+	else
-+		mana_destroy_txq(apc);
- 	return err;
- }
- 
-@@ -3526,14 +3550,18 @@ static void mana_create_rxq_debugfs(struct mana_port_context *apc, int idx)
- 			    &mana_dbg_q_fops);
- }
- 
-+/* @first is non-zero only for the grow path; the slots below it already hold
-+ * carried-over queues. Queues created before a failure are left in
-+ * apc->rxqs[] for the caller to tear down.
-+ */
- static int mana_add_rx_queues(struct mana_port_context *apc,
--			      struct net_device *ndev)
-+			      struct net_device *ndev, unsigned int first)
- {
- 	struct mana_rxq *rxq;
- 	int err = 0;
- 	int i;
- 
--	for (i = 0; i < apc->num_queues; i++) {
-+	for (i = first; i < apc->num_queues; i++) {
- 		rxq = mana_create_rxq(apc, i, &apc->eqs[i], ndev);
- 		if (IS_ERR(rxq)) {
- 			err = PTR_ERR(rxq);
-@@ -3551,14 +3579,16 @@ static int mana_add_rx_queues(struct mana_port_context *apc,
- 	return err;
- }
- 
--static void mana_destroy_rxqs(struct mana_port_context *apc)
-+/* The array is left in place; see mana_destroy_txq_from(). */
-+static void mana_destroy_rxqs_from(struct mana_port_context *apc,
-+				   unsigned int first)
- {
- 	struct mana_rxq *rxq;
- 	u32 rxq_idx;
- 
- 	if (apc->rxqs) {
- 
--		for (rxq_idx = 0; rxq_idx < apc->num_queues; rxq_idx++) {
-+		for (rxq_idx = first; rxq_idx < apc->num_queues; rxq_idx++) {
- 			rxq = apc->rxqs[rxq_idx];
- 			if (!rxq)
- 				continue;
-@@ -3569,6 +3599,11 @@ static void mana_destroy_rxqs(struct mana_port_context *apc)
- 	}
- }
- 
-+static void mana_destroy_rxqs(struct mana_port_context *apc)
-+{
-+	mana_destroy_rxqs_from(apc, 0);
-+}
-+
- static void mana_destroy_vport(struct mana_port_context *apc)
- {
- 	struct gdma_dev *gd = apc->ac->gdma_dev;
-@@ -3953,7 +3988,7 @@ int mana_alloc_queues(struct net_device *ndev)
- 		goto destroy_vport;
- 	}
- 
--	err = mana_create_txq(apc, ndev);
-+	err = mana_create_txq(apc, ndev, 0);
- 	if (err) {
- 		netdev_err(ndev, "Failed to create TXQ on vPort %u: %d\n",
- 			   apc->port_idx, err);
-@@ -3968,7 +4003,7 @@ int mana_alloc_queues(struct net_device *ndev)
- 		goto destroy_txq;
- 	}
- 
--	err = mana_add_rx_queues(apc, ndev);
-+	err = mana_add_rx_queues(apc, ndev, 0);
- 	if (err)
- 		goto destroy_rxq;
- 
-@@ -4454,13 +4489,161 @@ void mana_discard_split(struct mana_qset *newq, struct mana_qset *tailq)
- 	memset(tailq, 0, sizeof(*tailq));
- }
- 
-+/* The mirror image of mana_split_qset(): carry the existing queues over into
-+ * @out_new and build only the [old, @new_count) tail. Growing 4 channels to 8
-+ * creates 4 SQ/RQ pairs, not 8, and never holds 12 against the vport maximum.
+-/* Build a queue set in @scratch, sized and configured from the arguments. The
++/* Carve the live set into a kept prefix [0, @new_count) in @out_new and a
++ * tail to retire in @out_tail. @apc is untouched, on failure too.
 + *
-+ * @out_fresh names just the queues created here, so a failed publish retires
-+ * exactly those. On failure @apc is untouched.
++ * Queue i is built from the ring sizes and the buffer layout and keeps EQ i
++ * at any count, so a reduction carries the survivors over and destroys only
++ * the tail. Allocates two pointer arrays and a steering table, nothing else:
++ * the queues that stay keep their page pools, posted buffers and NAPI.
 + */
-+int mana_grow_qset(struct mana_port_context *apc,
-+		   struct mana_port_context *scratch, unsigned int new_count,
-+		   struct mana_qset *out_new, struct mana_qset *out_fresh)
++int mana_split_qset(struct mana_port_context *apc,
++		    struct mana_port_context *scratch, unsigned int new_count,
++		    struct mana_qset *out_new, struct mana_qset *out_tail)
 +{
 +	unsigned int old_count = apc->num_queues;
-+	struct mana_tx_qp **new_tx, **fresh_tx;
-+	struct mana_rxq **new_rx, **fresh_rx;
-+	struct net_device *ndev = apc->ndev;
-+	unsigned int fresh_count;
++	struct mana_tx_qp **new_tx, **tail_tx;
++	struct mana_rxq **new_rx, **tail_rx;
++	unsigned int tail_count;
 +	bool indir_lost;
 +	unsigned int i;
 +	int err;
 +
 +	ASSERT_RTNL();
 +
-+	if (WARN_ON(new_count <= old_count))
++	if (WARN_ON(new_count == 0 || new_count >= old_count))
 +		return -EINVAL;
 +	if (WARN_ON(!apc->tx_qp || !apc->rxqs))
 +		return -EINVAL;
 +
-+	fresh_count = new_count - old_count;
++	tail_count = old_count - new_count;
 +
-+	new_tx = kzalloc_objs(struct mana_tx_qp *, new_count);
-+	new_rx = kzalloc_objs(struct mana_rxq *, new_count);
-+	fresh_tx = kzalloc_objs(struct mana_tx_qp *, fresh_count);
-+	fresh_rx = kzalloc_objs(struct mana_rxq *, fresh_count);
-+	if (!new_tx || !new_rx || !fresh_tx || !fresh_rx) {
-+		err = -ENOMEM;
-+		goto free_arrays;
-+	}
-+
-+	for (i = 0; i < old_count; i++) {
-+		new_tx[i] = apc->tx_qp[i];
-+		new_rx[i] = apc->rxqs[i];
-+	}
-+
-+	/* @scratch now describes the merged set; the builders fill only the
-+	 * [old_count, new_count) slots.
++	/* Build the smaller set's steering table separately: mana_config_rss()
++	 * would otherwise index the shorter rxqs[] with entries still referring
++	 * to retired queues.
 +	 */
 +	scratch->num_queues = new_count;
-+	scratch->tx_qp = new_tx;
-+	scratch->rxqs = new_rx;
-+
 +	err = mana_rss_table_alloc(scratch);
 +	if (err)
-+		goto free_arrays;
-+
-+	/* Same shared, port-owned EQ pool as a full rebuild; this only adds
-+	 * the vectors the extra queues need.
-+	 */
-+	err = mana_grow_eqs(apc, new_count);
-+	if (err)
-+		goto cleanup_rss;
-+
-+	scratch->eqs = apc->eqs;
-+	scratch->num_eqs = apc->num_eqs;
-+
-+	err = mana_create_txq(scratch, ndev, old_count);
-+	if (err)
-+		goto cleanup_rss; /* create_txq already undid its own work */
-+
-+	err = mana_add_rx_queues(scratch, ndev, old_count);
-+	if (err)
-+		goto cleanup_rxq;
++		return err;
 +
 +	if (mana_rss_table_keep(apc, new_count, &indir_lost))
 +		memcpy(scratch->indir_table, apc->indir_table,
@@ -345,329 +129,169 @@ index ae7c664bf76ef2740ccbf73315931b4aca7bd43f..67bfea57e6ed2d2f852351ac40440a25
 +	else
 +		mana_rss_table_init(scratch);
 +
-+	mana_qset_snapshot(scratch, out_new);
-+	out_new->rxfh_indir_lost = indir_lost;
-+
-+	for (i = 0; i < fresh_count; i++) {
-+		fresh_tx[i] = new_tx[old_count + i];
-+		fresh_rx[i] = new_rx[old_count + i];
++	new_tx = kzalloc_objs(struct mana_tx_qp *, new_count);
++	new_rx = kzalloc_objs(struct mana_rxq *, new_count);
++	tail_tx = kzalloc_objs(struct mana_tx_qp *, tail_count);
++	tail_rx = kzalloc_objs(struct mana_rxq *, tail_count);
++	if (!new_tx || !new_rx || !tail_tx || !tail_rx) {
++		err = -ENOMEM;
++		goto free_arrays;
 +	}
 +
-+	memset(out_fresh, 0, sizeof(*out_fresh));
-+	out_fresh->tx_qp	= fresh_tx;
-+	out_fresh->rxqs		= fresh_rx;
-+	out_fresh->default_rxobj = INVALID_MANA_HANDLE;
-+	out_fresh->num_queues	= fresh_count;
-+	out_fresh->rx_queue_size = apc->rx_queue_size;
-+	out_fresh->tx_queue_size = apc->tx_queue_size;
-+	out_fresh->priv_flags	= apc->priv_flags;
-+	out_fresh->mtu		= apc->configured_mtu;
-+	out_fresh->bpf_prog	= apc->bpf_prog;
++	for (i = 0; i < new_count; i++) {
++		new_tx[i] = apc->tx_qp[i];
++		new_rx[i] = apc->rxqs[i];
++	}
++	for (i = 0; i < tail_count; i++) {
++		tail_tx[i] = apc->tx_qp[new_count + i];
++		tail_rx[i] = apc->rxqs[new_count + i];
++	}
 +
-+	/* mana_publish_qset() cannot do this: mana_chn_setxdp() decides from
-+	 * rxqs[0], a carried-over queue that already holds the program, and
-+	 * returns early. Address only the new queues through @out_fresh so
-+	 * exactly fresh_count references are taken.
++	/* The kept prefix, with the new steering table. */
++	out_new->tx_qp		= new_tx;
++	out_new->rxqs		= new_rx;
++	out_new->indir_table	= scratch->indir_table;
++	out_new->indir_table_sz	= scratch->indir_table_sz;
++	out_new->rxobj_table	= scratch->rxobj_table;
++	out_new->default_rxobj	= apc->rxqs[0]->rxobj;
++	out_new->num_queues	= new_count;
++	out_new->rx_queue_size	= apc->rx_queue_size;
++	out_new->tx_queue_size	= apc->tx_queue_size;
++	out_new->priv_flags	= apc->priv_flags;
++	out_new->mtu		= apc->configured_mtu;
++	out_new->bpf_prog	= apc->bpf_prog;
++	out_new->rxfh_indir_lost = indir_lost;
++
++	/* Ownership of the table moved to @out_new. */
++	scratch->indir_table	= NULL;
++	scratch->rxobj_table	= NULL;
++
++	/* The tail. It owns no steering table; bpf_prog is carried so that
++	 * retiring it drops exactly the tail's per-queue program references
++	 * and leaves the kept ones alone.
 +	 */
-+	mana_qset_install(scratch, out_fresh);
-+	mana_chn_setxdp(scratch, mana_xdp_get(apc));
++	memset(out_tail, 0, sizeof(*out_tail));
++	out_tail->tx_qp		= tail_tx;
++	out_tail->rxqs		= tail_rx;
++	out_tail->default_rxobj	= INVALID_MANA_HANDLE;
++	out_tail->num_queues	= tail_count;
++	out_tail->rx_queue_size	= apc->rx_queue_size;
++	out_tail->tx_queue_size	= apc->tx_queue_size;
++	out_tail->priv_flags	= apc->priv_flags;
++	out_tail->mtu		= apc->configured_mtu;
++	out_tail->bpf_prog	= apc->bpf_prog;
 +
 +	return 0;
 +
-+cleanup_rxq:
-+	mana_destroy_rxqs_from(scratch, old_count);
-+	mana_destroy_txq_from(scratch, old_count);
-+cleanup_rss:
-+	mana_cleanup_indir_table(scratch);
 +free_arrays:
-+	/* Only the containers: every queue they name is still live on @apc. */
-+	scratch->tx_qp = NULL;
-+	scratch->rxqs = NULL;
 +	kfree(new_tx);
 +	kfree(new_rx);
-+	kfree(fresh_tx);
-+	kfree(fresh_rx);
-+
-+	/* Give back any EQ this attempt added rather than holding its MSI-X
-+	 * vectors: the live set still needs only apc->num_queues of them, and
-+	 * every CQ this call created has been destroyed above.
-+	 */
-+	mana_shrink_eqs(apc, apc->num_queues);
-+
-+	netdev_err(ndev, "%s(num_queues=%u) failed: %d\n", __func__,
-+		   new_count, err);
++	kfree(tail_tx);
++	kfree(tail_rx);
++	mana_cleanup_indir_table(scratch);
 +	return err;
 +}
 +
 +/**
-+ * mana_discard_grow - drop the merged containers built by mana_grow_qset()
-+ * @newq: set that was never published
++ * mana_discard_split - drop the containers built by mana_split_qset()
++ * @newq:  set that was never published
++ * @tailq: matching tail
 + *
-+ * Frees the pointer arrays and steering table only: carried-over queues
-+ * belong to the live context, fresh ones are retired through @out_fresh.
++ * Frees the pointer arrays and the steering table only: the queues they refer
++ * to are still owned by the live port context.
 + */
-+void mana_discard_grow(struct mana_qset *newq)
++void mana_discard_split(struct mana_qset *newq, struct mana_qset *tailq)
 +{
 +	kfree(newq->tx_qp);
 +	kfree(newq->rxqs);
 +	kfree(newq->indir_table);
 +	kfree(newq->rxobj_table);
++	kfree(tailq->tx_qp);
++	kfree(tailq->rxqs);
 +	memset(newq, 0, sizeof(*newq));
++	memset(tailq, 0, sizeof(*tailq));
 +}
 +
- /* Rebuild the queues at the current count in @scratch, for callers changing a
-- * per-queue property; a reduction goes through mana_split_qset() instead. The
-- * installed set keeps serving traffic meanwhile. On error nothing is left
-- * allocated.
-+ * per-queue property; a count change goes through mana_split_qset() or
-+ * mana_grow_qset(), so this never has to add an EQ. The installed set keeps
-+ * serving traffic meanwhile. On error nothing is left allocated.
++/* Rebuild the queues at the current count in @scratch, for callers changing a
++ * per-queue property; a reduction goes through mana_split_qset() instead. The
+  * installed set keeps serving traffic meanwhile. On error nothing is left
+  * allocated.
   */
- int mana_alloc_qset(struct mana_port_context *apc,
--		    struct mana_port_context *scratch, unsigned int num_queues,
-+		    struct mana_port_context *scratch,
- 		    unsigned int rx_queue_size, unsigned int tx_queue_size,
- 		    u32 priv_flags, int mtu, struct bpf_prog *bpf_prog,
- 		    struct mana_qset *out)
-@@ -4471,7 +4654,7 @@ int mana_alloc_qset(struct mana_port_context *apc,
- 
- 	ASSERT_RTNL();
- 
--	scratch->num_queues	= num_queues;
-+	scratch->num_queues	= apc->num_queues;
- 	scratch->rx_queue_size	= rx_queue_size;
- 	scratch->tx_queue_size	= tx_queue_size;
- 	scratch->priv_flags	= priv_flags;
-@@ -4491,22 +4674,19 @@ int mana_alloc_qset(struct mana_port_context *apc,
- 	if (err)
- 		goto cleanup_rxq_array;
- 
--	/* Grow the port's shared EQ pool if this set needs more. The pool
--	 * belongs to @apc, not to either queue set, so both sets can be
--	 * live at once without double-booking MSI-X vectors.
-+	/* The queue count is unchanged, so the port's shared EQ pool already
-+	 * has an EQ for every queue this set will build. Both sets reference
-+	 * the same pool while they are live, so a swap never needs old + new
-+	 * MSI-X vectors.
- 	 */
--	err = mana_grow_eqs(apc, num_queues);
--	if (err)
--		goto cleanup_rss;
--
- 	scratch->eqs = apc->eqs;
- 	scratch->num_eqs = apc->num_eqs;
- 
--	err = mana_create_txq(scratch, ndev);
-+	err = mana_create_txq(scratch, ndev, 0);
- 	if (err)
- 		goto cleanup_rss;
- 
--	err = mana_add_rx_queues(scratch, ndev);
-+	err = mana_add_rx_queues(scratch, ndev, 0);
- 	if (err)
- 		goto cleanup_rxq;
- 
-@@ -4515,7 +4695,7 @@ int mana_alloc_qset(struct mana_port_context *apc,
- 	 * them onto the new set's RX objects. A driver-generated table is
- 	 * rebuilt instead, so it covers every queue of the new set.
- 	 */
--	if (mana_rss_table_keep(apc, num_queues, &indir_lost))
-+	if (mana_rss_table_keep(apc, scratch->num_queues, &indir_lost))
- 		memcpy(scratch->indir_table, apc->indir_table,
- 		       apc->indir_table_sz * sizeof(*apc->indir_table));
- 	else
-@@ -4538,15 +4718,11 @@ int mana_alloc_qset(struct mana_port_context *apc,
- 	kfree(scratch->rxqs);
- 	scratch->rxqs = NULL;
- out_err:
--	/* Give back any EQ this attempt added to the shared pool rather than
--	 * holding its MSI-X vectors until some later teardown: the live set
--	 * still needs only apc->num_queues of them. Safe here because this
--	 * set's CQs have already been destroyed above.
-+	/* No EQ to give back: this path never adds one, it reuses the pool
-+	 * the live set is already using.
- 	 */
--	mana_shrink_eqs(apc, apc->num_queues);
--
- 	netdev_err(ndev, "%s(num_queues=%u) failed: %d\n", __func__,
--		   num_queues, err);
-+		   apc->num_queues, err);
- 	return err;
- }
- 
-@@ -4861,7 +5037,7 @@ int mana_publish_qset(struct mana_port_context *apc, struct mana_qset *newq,
-  * Idempotent: a carried-over queue keeps its node; suppressed creation leaves
-  * an error pointer, not NULL, so both read as "no node". Under RTNL.
-  */
--static void mana_qset_debugfs_publish(struct mana_port_context *apc)
-+void mana_qset_debugfs_publish(struct mana_port_context *apc)
- {
- 	unsigned int i;
- 
 diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-index b5587764333f1f357df6b86795c92ef2985f9ed3..4e5da22f52dcd6b7f245ca896aacadd7dc899f92 100644
+index c7ddd26cada258cdbb2dc8410e6af14d2cedae1e..b5587764333f1f357df6b86795c92ef2985f9ed3 100644
 --- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
 +++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-@@ -681,11 +681,11 @@ static int mana_set_coalesce(struct net_device *ndev,
+@@ -681,10 +681,11 @@ static int mana_set_coalesce(struct net_device *ndev,
  	return 0;
  }
  
--/* A reduction leaves every surviving queue configured as it was, so it retires
-- * the tail rather than rebuilding; an increase still builds a new set. On
-- * failure the existing queues keep running and the requested value is never
-- * replaced by a fallback. The vport is never torn down, so RDMA cannot take it
-- * mid-reconfiguration.
-+/* A count change leaves every surviving queue configured as it was, so
-+ * neither direction rebuilds: a reduction retires the tail, an increase
-+ * builds only the queues added. On failure the existing queues keep running
-+ * and the requested value is never replaced by a fallback. The vport is never
-+ * torn down, so RDMA cannot take it mid-reconfiguration.
+-/* Build the new queue set while the current one keeps serving traffic, then
+- * swap. On failure the existing queues keep running and the requested value is
+- * never replaced by a fallback. The vport is never torn down, so RDMA cannot
+- * take it mid-reconfiguration.
++/* A reduction leaves every surviving queue configured as it was, so it retires
++ * the tail rather than rebuilding; an increase still builds a new set. On
++ * failure the existing queues keep running and the requested value is never
++ * replaced by a fallback. The vport is never torn down, so RDMA cannot take it
++ * mid-reconfiguration.
   */
  static int mana_set_channels(struct net_device *ndev,
  			     struct ethtool_channels *channels)
-@@ -693,7 +693,7 @@ static int mana_set_channels(struct net_device *ndev,
- 	struct mana_port_context *apc = netdev_priv(ndev);
- 	unsigned int new_count = channels->combined_count;
- 	struct mana_port_context *scratch;
--	struct mana_qset newq, oldq;
-+	struct mana_qset newq, oldq, freshq;
- 	int err;
- 
- 	if (new_count < 1 || new_count > apc->max_queues) {
-@@ -788,19 +788,41 @@ static int mana_set_channels(struct net_device *ndev,
- 		goto free_scratch;
+@@ -754,6 +755,39 @@ static int mana_set_channels(struct net_device *ndev,
+ 		goto clear_flag;
  	}
  
--	err = mana_alloc_qset(apc, scratch, new_count, apc->rx_queue_size,
--			      apc->tx_queue_size, apc->priv_flags,
--			      apc->configured_mtu, apc->bpf_prog, &newq);
-+	/* An increase does not change the queues that already exist either, so
-+	 * carry them over as well and build only the queues being added. The
-+	 * peak stays at the new count instead of old + new.
++	/* A reduction keeps its queues configured identically, so carry them
++	 * over and retire only the tail: no DMA ring, no hardware WQ object,
++	 * and no old+new peak.
 +	 */
-+	err = mana_grow_qset(apc, scratch, new_count, &newq, &freshq);
- 	if (err)
- 		goto free_scratch; /* current qset untouched, nothing to undo */
- 
- 	err = mana_publish_qset(apc, &newq, &oldq);
- 	if (err) {
--		mana_free_qset(apc, scratch, &newq);
-+		/* The old set is live again. Retire the queues that were just
-+		 * built - @freshq names exactly those - and then drop the
-+		 * merged containers without touching the carried-over queues.
++	if (new_count < apc->num_queues) {
++		struct mana_qset tailq;
++
++		err = mana_split_qset(apc, scratch, new_count, &newq, &tailq);
++		if (err)
++			goto free_scratch; /* current qset untouched */
++
++		err = mana_publish_qset(apc, &newq, &oldq);
++		if (err) {
++			/* The old set is live again; drop only the containers
++			 * built above, never the queues they point at.
++			 */
++			mana_discard_split(&newq, &tailq);
++			goto free_scratch;
++		}
++
++		/* @oldq holds the original arrays and steering table. Every
++		 * queue they referenced is now owned by either the published
++		 * set or the tail, so only the containers are freed here.
 +		 */
-+		mana_free_qset(apc, scratch, &freshq);
-+		mana_discard_grow(&newq);
- 		goto free_scratch;
- 	}
- 
--	mana_free_qset(apc, scratch, &oldq);
-+	/* Nothing is retired by a grow: every queue @oldq referenced is now
-+	 * part of the published set, and so is every queue in @freshq. Only
-+	 * the containers of both are released here.
-+	 */
-+	kfree(oldq.tx_qp);
-+	kfree(oldq.rxqs);
-+	kfree(oldq.indir_table);
-+	kfree(oldq.rxobj_table);
-+	kfree(freshq.tx_qp);
-+	kfree(freshq.rxqs);
++		kfree(oldq.tx_qp);
++		kfree(oldq.rxqs);
++		kfree(oldq.indir_table);
++		kfree(oldq.rxobj_table);
 +
-+	/* A grow retires nothing, so mana_free_qset() never runs to hand out
-+	 * the debugfs names. The queues that were just added are the only
-+	 * ones missing a node, and no retiring set is holding their names.
-+	 */
-+	mana_qset_debugfs_publish(apc);
- 
- free_scratch:
- 	mana_publish_close_if_needed(apc);
-@@ -880,7 +902,7 @@ static int mana_set_ringparam(struct net_device *ndev,
- 		goto clear_flag;
- 	}
- 
--	err = mana_alloc_qset(apc, scratch, apc->num_queues, new_rx, new_tx,
-+	err = mana_alloc_qset(apc, scratch, new_rx, new_tx,
- 			      apc->priv_flags, apc->configured_mtu,
- 			      apc->bpf_prog, &newq);
- 	if (err) {
-@@ -900,9 +922,6 @@ static int mana_set_ringparam(struct net_device *ndev,
- 	mana_free_qset(apc, scratch, &oldq);
- 
- free_scratch:
--	/* After the caller-side cleanup above, so the EQ pool outlives the
--	 * CQs that reference it.
--	 */
- 	mana_publish_close_if_needed(apc);
- 	mana_qset_scratch_free(scratch);
- clear_flag:
-@@ -979,7 +998,7 @@ static int mana_set_priv_flags(struct net_device *ndev, u32 priv_flags)
- 		goto clear_flag;
- 	}
- 
--	err = mana_alloc_qset(apc, scratch, apc->num_queues, apc->rx_queue_size,
-+	err = mana_alloc_qset(apc, scratch, apc->rx_queue_size,
- 			      apc->tx_queue_size, priv_flags,
++		mana_free_qset(apc, scratch, &tailq);
++		goto free_scratch;
++	}
++
+ 	err = mana_alloc_qset(apc, scratch, new_count, apc->rx_queue_size,
+ 			      apc->tx_queue_size, apc->priv_flags,
  			      apc->configured_mtu, apc->bpf_prog, &newq);
- 	if (err)
-diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
-index 308950f9b54b0485bac66b80d63e257eaf5f787e..bab3f4b2efee0bb8e062093b9922b5b4066a9be5 100644
---- a/include/net/mana/gdma.h
-+++ b/include/net/mana/gdma.h
-@@ -686,6 +686,14 @@ enum {
- /* Driver supports non-contiguous queue buffers */
- #define GDMA_DRV_CAP_FLAG_1_NON_CONTIGUOUS_BUFFERS BIT(30)
- 
-+/* Driver recovers by itself when a queue resize fails: a failed resize leaves
-+ * the queues that were already serving traffic in place, so the host does not
-+ * have to bring the port back. This covers the resize itself failing. It does
-+ * not promise recovery when restoring the previous queue set fails too, which
-+ * leaves the port administratively down for the admin to bring back up.
-+ */
-+#define GDMA_DRV_CAP_FLAG_1_SELF_RECOVERY_ON_QUEUE_RESIZE_FAILURE BIT(31)
-+
- #define GDMA_DRV_CAP_FLAGS1 \
- 	(GDMA_DRV_CAP_FLAG_1_EQ_SHARING_MULTI_VPORT | \
- 	 GDMA_DRV_CAP_FLAG_1_NAPI_WKDONE_FIX | \
-@@ -703,7 +711,8 @@ enum {
- 	 GDMA_DRV_CAP_FLAG_1_HWC_TIMEOUT_RECOVERY | \
- 	 GDMA_DRV_CAP_FLAG_1_EQ_MSI_UNSHARE_MULTI_VPORT | \
- 	 GDMA_DRV_CAP_FLAG_1_DYN_INTERRUPT_MODERATION | \
--	 GDMA_DRV_CAP_FLAG_1_NON_CONTIGUOUS_BUFFERS)
-+	 GDMA_DRV_CAP_FLAG_1_NON_CONTIGUOUS_BUFFERS | \
-+	 GDMA_DRV_CAP_FLAG_1_SELF_RECOVERY_ON_QUEUE_RESIZE_FAILURE)
- 
- #define GDMA_DRV_CAP_FLAGS2 0
- 
 diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
-index 9fd555164df0de9ecd00fb840891025d566c0143..81708c157b69102740ea395458fbcade675bf72e 100644
+index 9d08257bc1fc47e7accc30a2ef2ae3db7acc7b9d..9fd555164df0de9ecd00fb840891025d566c0143 100644
 --- a/include/net/mana/mana.h
 +++ b/include/net/mana/mana.h
-@@ -796,7 +796,7 @@ static inline struct mana_stats_rx *mana_rxq_stats(struct mana_rxq *rxq)
- }
- 
- int mana_alloc_qset(struct mana_port_context *apc,
--		    struct mana_port_context *scratch, unsigned int num_queues,
-+		    struct mana_port_context *scratch,
+@@ -800,6 +800,10 @@ int mana_alloc_qset(struct mana_port_context *apc,
  		    unsigned int rx_queue_size, unsigned int tx_queue_size,
  		    u32 priv_flags, int mtu, struct bpf_prog *bpf_prog,
  		    struct mana_qset *out);
-@@ -804,11 +804,16 @@ int mana_split_qset(struct mana_port_context *apc,
- 		    struct mana_port_context *scratch, unsigned int new_count,
- 		    struct mana_qset *out_new, struct mana_qset *out_tail);
- void mana_discard_split(struct mana_qset *newq, struct mana_qset *tailq);
-+int mana_grow_qset(struct mana_port_context *apc,
-+		   struct mana_port_context *scratch, unsigned int new_count,
-+		   struct mana_qset *out_new, struct mana_qset *out_fresh);
-+void mana_discard_grow(struct mana_qset *newq);
++int mana_split_qset(struct mana_port_context *apc,
++		    struct mana_port_context *scratch, unsigned int new_count,
++		    struct mana_qset *out_new, struct mana_qset *out_tail);
++void mana_discard_split(struct mana_qset *newq, struct mana_qset *tailq);
  int mana_publish_qset(struct mana_port_context *apc, struct mana_qset *newq,
  		      struct mana_qset *out_old);
  void mana_publish_close_if_needed(struct mana_port_context *apc);
- void mana_free_qset(struct mana_port_context *apc,
- 		    struct mana_port_context *scratch, struct mana_qset *qset);
-+void mana_qset_debugfs_publish(struct mana_port_context *apc);
- 
- void mana_dim_change(struct mana_cq *cq, bool enable);
- 
 -- 
 2.43.0
 
