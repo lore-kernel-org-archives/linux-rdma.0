@@ -1,153 +1,155 @@
-Received: from hr2.samba.org (hr2.samba.org [144.76.82.148])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FD96399D00;
-	Tue,  1 Sep 2026 16:50:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=144.76.82.148
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9835345560D;
+	Tue,  1 Sep 2026 20:01:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788281431; cv=none; b=t3x1MERKW3y7kZo+nW5osx+ythqvV1cdUo4gsZJXbaRLzU4o8Pf4Lg8RGsH5PMPGJw9gFy3+oRDK+tQiqJ9KFVmIzJenPo2vBb+e7o9xRVvoezwA2DrFPyRldd7fGshM0hLubpzaktBgZE3fRdZpM5nL9pPnWP8op1MFZZdlS6s=
+	t=1788292867; cv=none; b=bhRFWE3XC45+p/HP9nAm53gGNLowVJH+sDHpMlpFkZJVYMcL0qqDZg1mo8T0175tgL+I1YLArNxDxuxkXJXlIJQKHIjleMI34V3Oo55zJaY8KtrosplX6QT4BHa1+8oWRxK0rtWDCI6PTgRye1qxrgiHhQ51LgBPCasUDfkVHa4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788281431; c=relaxed/simple;
-	bh=SDOwRP58mmnKlrUHlccngVQYFwJN3D63qUx2AYvxIKE=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=gQ/UcgC7BvCxI+dpKwrz+ezqo98DTRU3/3F+MP4dgg6eKBEUjGWwXq2hfBQeCJ4Fd3yn29zBE7V/Foyhv//f5eHipF3MzVf9tTnYCemKSs1f2bZ7aYTcZWZqRXw/8VxzbWnzzF7WRvgLtkhVZQPiDrM5afkvmnTErEpvbQkgrXA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=samba.org; spf=pass smtp.mailfrom=samba.org; dkim=pass (3072-bit key) header.d=samba.org header.i=@samba.org header.b=VPmxNb81; arc=none smtp.client-ip=144.76.82.148
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=samba.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samba.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (3072-bit key) header.d=samba.org header.i=@samba.org header.b="VPmxNb81"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=samba.org;
-	s=42; h=From:Cc:To:Date:Message-ID;
-	bh=C30V8qWM8Ula8+RBcfws0g6Mkjg3NA2ZsU4qGPGdJpk=; b=VPmxNb81eFyfOgf41a72wjEHKf
-	VWtl5rilUbWLhd3Ag+s8wGuWXK/MHFl/l3jpHoinBn0VaJQTC4a3ZBMlgiuxXtPzLfpRLFnTo0gMt
-	yr0mpLzhEcvf96lznYG5lDpBJTELFMuhSnZ1x6kGpWvrQPBfa6Rb7Dqugb/gODCE+9122JQ8WkxNx
-	hKRCQuRkd2ZH25o2eDWAT30xsruNPeacFiovgHMeN4NuVbRoOKImWgs9EM505OLHnfKl7ZJzenir3
-	HLljfqgOmt1LwqNK9enMIGeI5bAhInphbI5ncZcbMzodhHW2hhOBWQKs6z6S1fQ88OKNLw6E+U6N5
-	aT2h94xtYjeyeaEjvYYkg5Ow/wqDrYSxftOgiT8Rg1w1pcWDOHUntfOLMg7KJIF0OryuyxBT4733M
-	S26EBYmF76txlsiPae8TZgp1aZCTS9kN6pks2W1HG36GIWBNQGdCr2sXQexxsh0Y8fU8pSKC5HeKZ
-	TI4KU7YJBztMejqMf4DxnNJv;
-Received: from [127.0.0.2] (localhost [127.0.0.1])
-	by hr2.samba.org with esmtpsa (TLS1.3:ECDHE_SECP256R1__ECDSA_SECP256R1_SHA256__CHACHA20_POLY1305:256)
-	(Exim)
-	id 1x1Rgg-00000002P6e-0jyo;
-	Tue, 01 Sep 2026 16:50:18 +0000
-Message-ID: <47142579-3af7-453b-875c-ff6d610f26a7@samba.org>
-Date: Tue, 1 Sep 2026 18:50:15 +0200
+	s=arc-20240116; t=1788292867; c=relaxed/simple;
+	bh=KHoqP4WNh378MH1e2xQZFd7aitAGYyEJiGcs1HzscKE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=flzovBHPlj6FjtdTDMZuQ9HQr0jFlfe3IDZmGBBqwuHOinwoMSSlGLG51ZvZa+p46Cs44Aur0t9ojg6qaQHPm3uvUAMfxHWf032cCpGtrTFCRSpe0HkpN3zfVPd/Wg+kJs/WZm7Af9rkYJGbCjVTDzZGiB4CJXVYJ5jBaoVltds=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+Received: by linux.microsoft.com (Postfix, from userid 1202)
+	id 3A29220B7166; Tue,  1 Sep 2026 13:00:30 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 3A29220B7166
+From: Long Li <longli@microsoft.com>
+To: Long Li <longli@microsoft.com>,
+	Konstantin Taranov <kotaranov@microsoft.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	"David S . Miller" <davem@davemloft.net>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Eric Dumazet <edumazet@google.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>,
+	Haiyang Zhang <haiyangz@microsoft.com>,
+	"K . Y . Srinivasan" <kys@microsoft.com>,
+	Wei Liu <wei.liu@kernel.org>,
+	Dexuan Cui <decui@microsoft.com>,
+	shradhagupta@linux.microsoft.com,
+	Simon Horman <horms@kernel.org>,
+	ernis@linux.microsoft.com,
+	stephen@networkplumber.org,
+	shirazsaleem@microsoft.com
+Cc: netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-hyperv@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH net-next v4 0/4] net: mana: concurrent HWC requests and dynamic queue depth
+Date: Tue,  1 Sep 2026 13:00:12 -0700
+Message-ID: <20260901200018.3194525-1-longli@microsoft.com>
+X-Mailer: git-send-email 2.43.7
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH] RDMA/iwcm: allow aborting an active connect awaiting
- CONNECT_REPLY
-To: Leon Romanovsky <leon@kernel.org>, Yunseong Kim <yunseong.kim@est.tech>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Jacob Moroni <jmoroni@google.com>,
- Bart Van Assche <bvanassche@acm.org>, Namjae Jeon <linkinjeon@kernel.org>,
- Tom Talpey <tom@talpey.com>, Yunseong Kim <yunseong.kim@ericsson.com>,
- linux-cifs@vger.kernel.org, samba-technical@lists.samba.org,
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
- Bernard Metzler <bernard.metzler@linux.dev>
-References: <20260805000159.321645-2-yunseong.kim@est.tech>
- <20260901124103.GL24140@unreal>
-Content-Language: en-US
-From: Stefan Metzmacher <metze@samba.org>
-In-Reply-To: <20260901124103.GL24140@unreal>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-Hi Leon,
+The MANA Hardware Channel (HWC) is the control path the driver uses to
+talk to the device.  It is created at a fixed depth of one outstanding
+request, so every management command serialises behind the previous one.
+This series lets several commands be in flight and raises the queue depth
+to what the device reports.
 
-> On Wed, Aug 05, 2026 at 02:02:00AM +0200, Yunseong Kim wrote:
->> After a successful connect downcall, iw_cm_connect() returns with
->> IWCM_F_CONNECT_WAIT still set and the cm_id in IW_CM_STATE_CONN_SENT.
->> The only thing that clears the flag is the provider delivering
->> IW_CM_EVENT_CONNECT_REPLY (cm_conn_rep_handler()).  Until that event
->> arrives, iw_cm_disconnect() and destroy_cm_id() sleep uninterruptibly
->> in
->>
->> 	wait_event(cm_id_priv->connect_wait,
->> 		   !test_bit(IWCM_F_CONNECT_WAIT, &cm_id_priv->flags));
->>
->> and both state machines treat IW_CM_STATE_CONN_SENT as BUG(), so the
->> API has no way to cancel a pending active connect.  If the provider
->> never generates the reply, because the peer died in the middle of
->> connection setup or because of a provider bug, every teardown path
->> (rdma_disconnect(), rdma_destroy_id()) blocks in D state forever and
->> the ULP cannot recover: there is no way to disconnect after
->> rdma_connect() was called without risking an unbounded hang.
->>
->> This class of problem is not theoretical.  The pending smbdirect
->> change "smb: smbdirect: bound the disconnect wait in destroy_sync" [1]
->> had to work around it on the ULP side:
->> smbdirect_socket_destroy_sync() waited unbounded for the socket to
->> reach SMBDIRECT_SOCKET_DISCONNECTED, a transition that depends on an
->> asynchronous RDMA CM disconnect event, and when the peer died abruptly
->> (a killed client, or Soft-RoCE/RXE where no graceful disconnect
->> completes) that event never arrived.  The destroy ran on the single
->> ksmbd-conn-release workqueue, every later connection release queued
->> behind it in D state, and the whole server wedged until hung_task
->> fired.  That change bounded the wait and drove the socket state
->> machine to DISCONNECTED locally on timeout; ULPs should not have to
->> resort to that, the CM should offer a teardown they can rely on.
->>
->> IWCM_F_CONNECT_WAIT currently guards two different windows:
->>
->>   * the connect/accept downcall into the provider being in progress;
->>     teardown must keep waiting for that, it is short and bounded;
->>
->>   * an issued active connect waiting for CONNECT_REPLY, which is
->>     potentially unbounded.
->>
->> Mark the second window with a new flag, IWCM_F_CONNECT_SENT: set by
->> iw_cm_connect() once the downcall has returned successfully, cleared
->> by cm_conn_rep_handler().  The teardown waits now complete when either
->> the downcall has finished (!IWCM_F_CONNECT_WAIT, as before) or the
->> pending-reply window has been entered (IWCM_F_CONNECT_SENT), and the
->> previously BUG() CONN_SENT cases become:
->>
->>   * iw_cm_disconnect(): return -ENOTCONN; there is no established
->>     connection to disconnect, aborting is the destroy path's job;
->>
->>   * destroy_cm_id(): abort the pending connect locally by moving to
->>     DESTROYING and putting the QP into error so the provider tears the
->>     connection attempt down.
->>
->> A CONNECT_REPLY that arrives after the abort is dropped: either
->> cm_work_handler() sees IWCM_F_DROP_EVENTS, or cm_conn_rep_handler()
->> now recognizes IW_CM_STATE_DESTROYING (the abort and the reply
->> serialize on cm_id_priv->lock) and frees the event without touching
->> the QP that destroy_cm_id() already released.  The cm_id memory stays
->> valid for such a late reply because the provider holds its own
->> reference (cm_id->add_ref) for as long as it can deliver events.
->>
->> The passive side has a sibling gap, where after a successful accept
->> downcall the flag stays set until the provider's ESTABLISHED event
->> arrives, which this patch deliberately does not change.
->>
->> [1] https://github.com/smfrench/smb3-kernel/commit/26d0f82a02c8a9c9c8cdfc138acb7ed0bf8e01a9
->>
->> Suggested-by: Stefan Metzmacher <metze@samba.org>
->> Signed-off-by: Yunseong Kim <yunseong.kim@est.tech>
->> ---
->>   drivers/infiniband/core/iwcm.c | 76 +++++++++++++++++++++++++++++-----
->>   drivers/infiniband/core/iwcm.h |  1 +
->>   2 files changed, 67 insertions(+), 10 deletions(-)
-> 
-> I'm not sure what to do with this patch, as the iWARP folks have
-> remained silent.
-> 
-> Stefan,
-> 
-> Do you still need this patch? Have you tested it?
+Patches 1-2 are preparation and change no behaviour on their own.  Patch 1
+records whether mana_smc_setup_hwc() got as far as handing the queue
+addresses to the PF, which the reinit path in patch 4 needs in order to
+know whether the device may still be using the queues.  Patch 2 gives each
+message slot its own lock, refcount and completion state, which is what
+makes more than one slot usable at a time.
 
-I'll test it soon.
+Patch 3 makes the channel actually concurrent: a per-queue lock around
+mana_gd_post_and_ring(), a bounded wait for a free slot, and a teardown
+that drains in-flight senders before freeing the HWC.
 
-But the problem is real and I hit it very often in the past and the only option
-was a reboot.
+Patch 4 bootstraps the HWC at depth 1, queries the device maximum and, if
+it is larger, tears the queues down and rebuilds them at that depth.  The
+device-reported dimensions are validated before they size DMA allocations,
+and the dynamic-depth capability is advertised so firmware enables it only
+for drivers that support it.
 
-I added Bernard explicitly...
+None of the four carries a Fixes: tag; the bug fixes that used to be part
+of this series are being handled separately (see below).
 
-metze
+Changes since v2:
+
+ - Split the series.  v2 mixed five Fixes:-tagged bug fixes with the two
+   feature patches and targeted net-next.  Per review feedback [1] the
+   fixes now go via the net tree on their own, and this series carries
+   only the feature work.  It no longer depends on that series: it
+   applies to net-next as it stands today.
+
+ - Because the fixes are no longer in front of them, the two feature
+   patches were reworked rather than rebased.  The groundwork they used
+   to inherit is now provided by the two preparation patches 1-2, which
+   are deliberately not fixes and carry no Fixes: tag.
+
+ - patch 3: the slot admission was reworked.  Acquisition uses
+   down_timeout() so a caller expires rather than blocking on a slot
+   that a timed-out request is still holding, and channel_up is
+   re-checked under the bitmap lock once a permit is held so teardown
+   cannot be missed.
+
+ - patch 3: a slot whose request timed out is no longer released back to
+   the pool -- only the matching response, or teardown, reclaims it.
+   Releasing it early let a late response land on whichever command had
+   since reused the slot.  mlx5 gates its command slots the same way
+   ("only real completion can free the cmd slot", drivers/net/ethernet/
+   mellanox/mlx5/core/cmd.c).
+
+ - patch 4: validate the device-reported dimensions before they size DMA
+   allocations -- require the negotiated message sizes to match the
+   bootstrap ones, bound the depth by HW_CHANNEL_MAX_QUEUE_DEPTH, check
+   that q_depth * max_msg_size plus alignment fits in u32, and carry the
+   depth as u32 since the device field is 24-bit and truncating to u16
+   could wrap a large value to a small depth.
+
+ - patch 4: refuse the channel if the initialisation handshake did not
+   supply a doorbell, rather than letting INVALID_DOORBELL reach
+   mana_gd_ring_doorbell().
+
+ - patch 4: a device that refuses the larger-depth establish now falls
+   back to a working bootstrap channel instead of failing probe, but
+   only once a retried DESTROY_HWC has confirmed the queue mappings are
+   gone.
+
+Testing on Azure hardware, with the series applied on net-next:
+
+ - 17518 HWC commands, all completing successfully, with up to 2 in
+   flight at once (the bootstrap channel can only ever have 1).
+ - PCI remove/rescan x3: the reinit path runs every time, and the
+   channel comes back at the larger depth.
+ - iperf3 -P16: 1.24 TBytes at 182 Gbit/s, no taint and no splats.
+ - Fault injection: with every HWC response dropped so that all slots
+   end up held by timed-out requests, callers return -ETIMEDOUT in
+   sub-millisecond time instead of blocking, no hung tasks, and the
+   driver recovers once responses resume.
+
+[1] https://lore.kernel.org/all/7108c005-6b8d-4dda-82cc-e665cbe3b6a4@redhat.com/
+
+ - v2: https://lore.kernel.org/all/20260721234339.1476932-1-longli@microsoft.com/
+ - v1: https://lore.kernel.org/netdev/20260715032942.3945317-1-longli@microsoft.com/
+
+Long Li (4):
+  net: mana: track when the HWC has been handed to the PF
+  net: mana: give each HWC message slot its own completion state
+  net: mana: support concurrent HWC requests
+  net: mana: add dynamic HWC queue depth with reinit path
+
+ .../net/ethernet/microsoft/mana/gdma_main.c   |  63 +-
+ .../net/ethernet/microsoft/mana/hw_channel.c  | 763 ++++++++++++++++--
+ .../net/ethernet/microsoft/mana/shm_channel.c |  11 +-
+ include/net/mana/gdma.h                       |  19 +
+ include/net/mana/hw_channel.h                 |  64 +-
+ include/net/mana/shm_channel.h                |   2 +-
+ 6 files changed, 862 insertions(+), 60 deletions(-)
+
+
+base-commit: 1bb784eb6e38fd73143f021608e4ef3095d0c0d7
+-- 
+2.43.0
 
