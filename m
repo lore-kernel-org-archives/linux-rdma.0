@@ -1,43 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0036049DB87
-	for <linux-rdma@vger.kernel.org>; Wed,  2 Sep 2026 16:14:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40C0149C4C8
+	for <linux-rdma@vger.kernel.org>; Wed,  2 Sep 2026 16:23:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788365678; cv=none; b=TOA5nVdAowfAvrUB9b37bfqmgpoIzudX+SoxmuxJNvLTXIcqi+I48pBXhctSh0/K3jGekalLfiqTQF5V1kBaTvmJ72BlUrChqrlNYDaWE030hbsWwKrmmE8k1SyuRTysLxQTQM9qt38KtWewGF6JK0Dy/l5tsw69etoLe2guEdc=
+	t=1788366222; cv=none; b=JqR2sBQQBBTkxo5lKDfcpmzhHWf8uUfXj7r7/XZ1ICzMlMCGnkYOKRH255GQnbU9HZWQfPuxxSwzar+MOgsREzjbUi2ZnevQsaBquQOBpIc7xp7sumqszz865X9/dAscvHnbfinhzNXmlC2AT5kJuzn18aKCc6rmKmj+ffjeTEk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788365678; c=relaxed/simple;
-	bh=UM2t81yFxKS8/t3lclfwcgtxomPrWWYOWmiM5j0kbjs=;
-	h=From:To:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=OAhFL51QanmgKRTf5r+Ei7bkOubohbDiER6mQ1INHJmzawnp9UgRw+ihhApPqykZDSq1FMVSjbCf5GgZtIeE5dlF60FExdmMCwbHjcMoyy1GfPwQqxp1hXd5vX3+6l9CK6G28/gPKRxuFZYdQ+TN6GtWY8iA+/MWopeU2MY8uvQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lIf9JoGm; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788366222; c=relaxed/simple;
+	bh=MxH5ibgqSDj6ZGFg4bkHFSIBONNl8wYT8MgKGwYLqFQ=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=Nj88PFnBmrI0m4TFQP1RfckUzbYjLW49YAbgh0uXLAykz4YyDRg2TgD/ldp0+MXKh2gOMBNmS7R9uAnqaKvVKiLWQEVeaYtdhqBBbWdF2DCD0XxcjzlM1yQT4Y1ZqJ5FERhjQ9b+xhQ7/7/QLmWQt7l7thCPW73VuRUf9hOtNxw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bkJcW7C4; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lIf9JoGm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFE181F000E9;
-	Wed,  2 Sep 2026 16:14:35 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bkJcW7C4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D9851F000E9;
+	Wed,  2 Sep 2026 16:23:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788365676;
-	bh=sMdK7yBu4uFPSxZy6vcBoXRXdoPUkyMnLV6O45GSdrU=;
-	h=From:To:In-Reply-To:References:Subject:Date;
-	b=lIf9JoGmnr/GetunQuYTa9v66QHkshkVMaToqmdf5iKfQj4rtgyHZ+IFkoEMGfe3F
-	 lLXwcSgNUwMa/vQ/WaSiaiOo07dJGa2rJPBKPh3mXv6T8u89iOGXRYP6YDJSYW/n6E
-	 MPx+nIFN2x62T7yfKdvSlqbFLQmYLpea9Yc7WYL4FG4ERJ7p5ofjHlITgQ4fnKqEmt
-	 jsW9DNbagcqyqCIhRkaF+yfr2mB8Af20tnVgL985g9A90n093zcqPS3x0ZINye+b3g
-	 LAZd54mQ75DEWoh2yuI05nqe3JC1j70QF24NwiD4fJWzhcPGMqEVtfCXDSpcmzYHyI
-	 5Q9Wx/gP1e0AA==
+	s=k20260515; t=1788366221;
+	bh=CUX9QXrRFQ/4Y3F/hHTJt9n603oDp+5wrcPomFjytxw=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=bkJcW7C4k3CY6KFHxVOJhTKeug9bWqo+1+uOnYUS9Y7Q/sbxEZVs95oVXJGIF7MMm
+	 /++o7BqnTBm8QvpV6Vt5KRVTadvoh04tdBU8A5YLxDGIDzdMEUrCegETg8g/z289nb
+	 3y2FpIrLxx8ysjBxG8xrGlekl3faB1uo+NvkDNokdWPwAycmViaQX5MXA2sYeu9YiA
+	 uKcOYxBVH3AYiGIQFQmXrHaTji7O13EdA1RsJ35/eq5KkXCSABkVW11IsD2DSSB+f+
+	 EaUcj0F2L1u/Lk7ehTTdNCzIJyOnEk8b9+4lQbW3KCvDqtlDju/13SGYBh05ZlMfCR
+	 +Ksgvd0Q3eZyw==
 From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>, 
- Michael Bommarito <michael.bommarito@gmail.com>, 
- Kees Cook <kees@kernel.org>, Daniel Jurgens <danielj@mellanox.com>, 
- Doug Ledford <dledford@redhat.com>, Paul Moore <paul@paul-moore.com>, 
- linux-rdma@vger.kernel.org, lirongqing <lirongqing@baidu.com>
-In-Reply-To: <20260826073216.2367-1-lirongqing@baidu.com>
-References: <20260826073216.2367-1-lirongqing@baidu.com>
-Subject: Re: [PATCH] RDMA/mad: Fix receive buffer leak when PKey
- enforcement fails
-Message-Id: <178836567373.2546256.16753889656136218502.b4-ty@kernel.org>
-Date: Wed, 02 Sep 2026 12:14:33 -0400
+To: jgg@ziepe.ca, Cheng Xu <chengyou@linux.alibaba.com>
+Cc: linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com
+In-Reply-To: <20260828030344.88021-1-chengyou@linux.alibaba.com>
+References: <20260828030344.88021-1-chengyou@linux.alibaba.com>
+Subject: Re: [PATCH for-rc v2] RDMA/erdma: Use IRQ-safe XArray helpers for
+ QP and CQ tables
+Message-Id: <178836621813.2566521.11374895753812623340.b4-ty@kernel.org>
+Date: Wed, 02 Sep 2026 12:23:38 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -49,26 +46,22 @@ Content-Transfer-Encoding: 7bit
 X-Mailer: b4 0.15-dev-18f8f
 
 
-On Wed, 26 Aug 2026 15:32:16 +0800, lirongqing wrote:
-> ib_mad_complete_recv() initializes mad_recv_wc->rmpp_list and then runs
-> ib_mad_enforce_security() before linking recv_buf onto that list.  On
-> failure it calls ib_free_recv_mad(), which only walks rmpp_list and frees
-> the ib_mad_private of every buffer found there.  As the list is still
-> empty at that point, nothing is freed at all.
+On Fri, 28 Aug 2026 11:03:44 +0800, Cheng Xu wrote:
+> Locked QP and CQ lookups from EQ interrupts can deadlock with
+> create-path XArray updates. If an interrupt arrives while the create
+> path holds the plain xa_lock, the lookup spins forever trying to
+> acquire the same lock.
 > 
-> The caller cannot clean up either: ib_mad_recv_done() sets recv to NULL
-> right after ib_mad_complete_recv() returns, assuming the MAD layer took
-> ownership of the buffer.  Every MAD that fails the PKey check therefore
-> leaks one ib_mad_private (about 300 bytes per IB port MAD, ~2K for OPA),
-> and a remote node can trigger this repeatedly by sending MADs with a
-> wrong PKey.
+> Use IRQ-safe XArray helpers for all QP and CQ create-path updates,
+> including the GSI QP store and error paths. Initialize both arrays with
+> XA_FLAGS_LOCK_IRQ so sleeping allocations preserve interrupt state.
 > 
 > [...]
 
 Applied, thanks!
 
-[1/1] RDMA/mad: Fix receive buffer leak when PKey enforcement fails
-      https://git.kernel.org/rdma/rdma/c/3476c28c9addfa
+[1/1] RDMA/erdma: Use IRQ-safe XArray helpers for QP and CQ tables
+      https://git.kernel.org/rdma/rdma/c/00baeade709fb6
 
 Best regards,
 -- 
