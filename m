@@ -1,181 +1,156 @@
-Received: from outbound.baidu.com (mx14.baidu.com [220.181.3.101])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0311028E0;
-	Wed,  2 Sep 2026 02:36:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.181.3.101
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03861353A75;
+	Wed,  2 Sep 2026 07:15:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788316626; cv=none; b=DhqaeT01vwh1pLALiPz7fPJvmsEQMvbYUZF7LT0Y6gKeU76/9DxuGStIb8+PCxs+5hlP1noDFts3btMCeyAFZb1dN+w1+0hlVqhRTJC6pUHbAgQVoyq9asAP+tpkjKlVYKFyQX+6z0TQVa2gmJmk/8UNcU3wZLei6czA8rM9ecc=
+	t=1788333343; cv=none; b=j8bjktn1OJz0G7jKojsHxaIFRvjC3jCX7hT+wHIl5Aw1zRiYeALsIe4CYDTt9oA69iOaR0SJUgo5pGjBfKom89DLIwxFIBOya2eXUqOLwoE20PhUnWXk6pLz3w2s6ysoqpGtOdRy5tfzI3vVbQOtHsBg585ZPq8SDd0gPvhy5os=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788316626; c=relaxed/simple;
-	bh=6cbLuym+1cqRI7P7D4gMdqm+OHpINkJYcn9natJyGsk=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=tF7wq0CflTfb24wNmYhffdWCGTeDzGm0DDgatMlhkiPkyw2Krqhl8o/7j0mlYPJkTsh6QwZFWRMzPwQuPLoTSxx33rmoD6I3i5cZcHGBcR4LrZm/bP6ixNPLaCgfV6RSTXsahMbNufC9oZCIsx+rcYuPrJIq/EVh7xRTV/af1gY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com; spf=pass smtp.mailfrom=baidu.com; dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b=RTSrWvBk; arc=none smtp.client-ip=220.181.3.101
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baidu.com
+	s=arc-20240116; t=1788333343; c=relaxed/simple;
+	bh=OKy5yup/CYY4kcxfwb4lGlnPb5ToVewK7dTd3Qc8wpI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=eHS12KOgKmLRIu4L9g17XZh0GLM3SnfTH/wZZtxTXOkVYNmB6pBVfPYaQ1bdzsJRFcWDrMGsdM2/3Af8OaXJxBfwEpAA66syX3v8+gwInJC0XGyGz/6adNMuPwCss8B6Jz6CWNRS9CFlPwhEGpNS0O9idcmNI4xMbvTK84MORCE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=R93//Y3/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b="RTSrWvBk"
-X-MD-Sfrom: lirongqing@baidu.com
-X-MD-SrcIP: 172.31.50.47
-From: lirongqing <lirongqing@baidu.com>
-To: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
-	Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, Andrew Lunn
-	<andrew+netdev@lunn.ch>, "David S . Miller" <davem@davemloft.net>, Eric
- Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
-	<pabeni@redhat.com>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann
-	<daniel@iogearbox.net>, Jesper Dangaard Brouer <hawk@kernel.org>, John
- Fastabend <john.fastabend@gmail.com>, Stanislav Fomichev <sdf@fomichev.me>,
-	Boris Pismenny <borisp@nvidia.com>, Richard Cochran
-	<richardcochran@gmail.com>, Cosmin Ratiu <cratiu@nvidia.com>, Dragos Tatulea
-	<dtatulea@nvidia.com>, Carolina Jubran <cjubran@nvidia.com>, Li RongQing
-	<lirongqing@baidu.com>, Kees Cook <kees@kernel.org>, Akiva Goldberger
-	<agoldberger@nvidia.com>, Simon Horman <horms@kernel.org>,
-	<netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <bpf@vger.kernel.org>
-Subject: [PATCH net-next, v3] net/mlx5: Use dma_wmb() for completion queue doorbell updates
-Date: Wed, 2 Sep 2026 10:34:29 +0800
-Message-ID: <20260902023429.1717-1-lirongqing@baidu.com>
-X-Mailer: git-send-email 2.17.1
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="R93//Y3/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10B7A1F00A3A;
+	Wed,  2 Sep 2026 07:15:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788333341;
+	bh=P+AuOxa+N9qYbUUYycRh4JCzPQGFmXmYbqmzEftVe64=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=R93//Y3/ZEIMcg5tdMBsW5gD1ENAb0xx0YEa5J8jNJMV6Nv/bqgaINFhKobBEu6ae
+	 mJS8+tjQ+j723vQzfc/M9ocjCogr2PQurnL13ywd8fFytZECMuLVcydynbXuE7Hz/q
+	 y15dN0M7XDAAS+m15RJs+EDCQvlxJ2Lt0TKkJYAgnfNGeH4OBdMrRDz/ANacc7fx1D
+	 4iKwINUtjRhgnlk3jl6wqti1qzcblpriSCTC2m4NHXuVhjcIR1KXhL5ake/ptkQYOg
+	 3UJzVoze9pHIJ8X0udUeLO2WstfUM75VgNJkZaE3fMuJZ5I1kKXyu2ilsEWAiLvCRO
+	 D6u7GAtfRiTGg==
+Date: Wed, 2 Sep 2026 10:15:38 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Stefan Metzmacher <metze@samba.org>
+Cc: Yunseong Kim <yunseong.kim@est.tech>, Jason Gunthorpe <jgg@ziepe.ca>,
+	Jacob Moroni <jmoroni@google.com>,
+	Bart Van Assche <bvanassche@acm.org>,
+	Namjae Jeon <linkinjeon@kernel.org>, Tom Talpey <tom@talpey.com>,
+	Yunseong Kim <yunseong.kim@ericsson.com>,
+	linux-cifs@vger.kernel.org, samba-technical@lists.samba.org,
+	linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+	Bernard Metzler <bernard.metzler@linux.dev>
+Subject: Re: [RFC PATCH] RDMA/iwcm: allow aborting an active connect awaiting
+ CONNECT_REPLY
+Message-ID: <20260902071538.GP24140@unreal>
+References: <20260805000159.321645-2-yunseong.kim@est.tech>
+ <20260901124103.GL24140@unreal>
+ <47142579-3af7-453b-875c-ff6d610f26a7@samba.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-ClientProxiedBy: bjkjy-exc9.internal.baidu.com (172.31.50.19) To
- bjkjy-exc3.internal.baidu.com (172.31.50.47)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=baidu.com;
-	s=selector1; t=1788316486;
-	bh=CoCztr6XAGEBvv7TN377FtTXgA/2hXdT8SEOdZBtANs=;
-	h=From:To:Subject:Date:Message-ID:Content-Type;
-	b=RTSrWvBkT6wcxnTJbHlv8m6ygevUd/hqx5QtZwAwa1bSs6Ld881jzOcPYQ8ACKO9g
-	 yqXWZJ5rQtotBmBQKzGaTY8CyVVax3T9UYLCvm5MkXoh0i2RZvqOsMkDSzCcigzFHL
-	 KRRQLpwTMyu+z0NN2VftvO+2QqnDsQgqGo17BuD6tBMEcVKE0Be34Ruyi06pGhSRtj
-	 k/tlyRlUnnX6wXszuv5BUFZ9X+qQ+ZBSEY24pC8Qyeh6Zt5TlKSA9YLCFN/RfOmy/L
-	 jIclxKb830AkPiR0lDbejKOls+0elib26MVRzsYeFRf0h76hBtvBIPez0hnerXJV2v
-	 vj6uE/xGh85VA==
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <47142579-3af7-453b-875c-ff6d610f26a7@samba.org>
 
-From: Li RongQing <lirongqing@baidu.com>
+On Tue, Sep 01, 2026 at 06:50:15PM +0200, Stefan Metzmacher wrote:
+> Hi Leon,
+> 
+> > On Wed, Aug 05, 2026 at 02:02:00AM +0200, Yunseong Kim wrote:
+> > > After a successful connect downcall, iw_cm_connect() returns with
+> > > IWCM_F_CONNECT_WAIT still set and the cm_id in IW_CM_STATE_CONN_SENT.
+> > > The only thing that clears the flag is the provider delivering
+> > > IW_CM_EVENT_CONNECT_REPLY (cm_conn_rep_handler()).  Until that event
+> > > arrives, iw_cm_disconnect() and destroy_cm_id() sleep uninterruptibly
+> > > in
+> > > 
+> > > 	wait_event(cm_id_priv->connect_wait,
+> > > 		   !test_bit(IWCM_F_CONNECT_WAIT, &cm_id_priv->flags));
+> > > 
+> > > and both state machines treat IW_CM_STATE_CONN_SENT as BUG(), so the
+> > > API has no way to cancel a pending active connect.  If the provider
+> > > never generates the reply, because the peer died in the middle of
+> > > connection setup or because of a provider bug, every teardown path
+> > > (rdma_disconnect(), rdma_destroy_id()) blocks in D state forever and
+> > > the ULP cannot recover: there is no way to disconnect after
+> > > rdma_connect() was called without risking an unbounded hang.
+> > > 
+> > > This class of problem is not theoretical.  The pending smbdirect
+> > > change "smb: smbdirect: bound the disconnect wait in destroy_sync" [1]
+> > > had to work around it on the ULP side:
+> > > smbdirect_socket_destroy_sync() waited unbounded for the socket to
+> > > reach SMBDIRECT_SOCKET_DISCONNECTED, a transition that depends on an
+> > > asynchronous RDMA CM disconnect event, and when the peer died abruptly
+> > > (a killed client, or Soft-RoCE/RXE where no graceful disconnect
+> > > completes) that event never arrived.  The destroy ran on the single
+> > > ksmbd-conn-release workqueue, every later connection release queued
+> > > behind it in D state, and the whole server wedged until hung_task
+> > > fired.  That change bounded the wait and drove the socket state
+> > > machine to DISCONNECTED locally on timeout; ULPs should not have to
+> > > resort to that, the CM should offer a teardown they can rely on.
+> > > 
+> > > IWCM_F_CONNECT_WAIT currently guards two different windows:
+> > > 
+> > >   * the connect/accept downcall into the provider being in progress;
+> > >     teardown must keep waiting for that, it is short and bounded;
+> > > 
+> > >   * an issued active connect waiting for CONNECT_REPLY, which is
+> > >     potentially unbounded.
+> > > 
+> > > Mark the second window with a new flag, IWCM_F_CONNECT_SENT: set by
+> > > iw_cm_connect() once the downcall has returned successfully, cleared
+> > > by cm_conn_rep_handler().  The teardown waits now complete when either
+> > > the downcall has finished (!IWCM_F_CONNECT_WAIT, as before) or the
+> > > pending-reply window has been entered (IWCM_F_CONNECT_SENT), and the
+> > > previously BUG() CONN_SENT cases become:
+> > > 
+> > >   * iw_cm_disconnect(): return -ENOTCONN; there is no established
+> > >     connection to disconnect, aborting is the destroy path's job;
+> > > 
+> > >   * destroy_cm_id(): abort the pending connect locally by moving to
+> > >     DESTROYING and putting the QP into error so the provider tears the
+> > >     connection attempt down.
+> > > 
+> > > A CONNECT_REPLY that arrives after the abort is dropped: either
+> > > cm_work_handler() sees IWCM_F_DROP_EVENTS, or cm_conn_rep_handler()
+> > > now recognizes IW_CM_STATE_DESTROYING (the abort and the reply
+> > > serialize on cm_id_priv->lock) and frees the event without touching
+> > > the QP that destroy_cm_id() already released.  The cm_id memory stays
+> > > valid for such a late reply because the provider holds its own
+> > > reference (cm_id->add_ref) for as long as it can deliver events.
+> > > 
+> > > The passive side has a sibling gap, where after a successful accept
+> > > downcall the flag stays set until the provider's ESTABLISHED event
+> > > arrives, which this patch deliberately does not change.
+> > > 
+> > > [1] https://github.com/smfrench/smb3-kernel/commit/26d0f82a02c8a9c9c8cdfc138acb7ed0bf8e01a9
+> > > 
+> > > Suggested-by: Stefan Metzmacher <metze@samba.org>
+> > > Signed-off-by: Yunseong Kim <yunseong.kim@est.tech>
+> > > ---
+> > >   drivers/infiniband/core/iwcm.c | 76 +++++++++++++++++++++++++++++-----
+> > >   drivers/infiniband/core/iwcm.h |  1 +
+> > >   2 files changed, 67 insertions(+), 10 deletions(-)
+> > 
+> > I'm not sure what to do with this patch, as the iWARP folks have
+> > remained silent.
+> > 
+> > Stefan,
+> > 
+> > Do you still need this patch? Have you tested it?
+> 
+> I'll test it soon.
+> 
+> But the problem is real and I hit it very often in the past and the only option
+> was a reboot.
 
-dma_*() barriers are specifically for ordering writes to DMA
-coherent memory that is accessible to both the CPU and DMA capable
-devices.
+I see. I'll wait for a tag (Acked-by, Reviewed-by, Tested-by, etc.) from
+either you or Bernard.
 
-The dma_wmb() barrier is lighter than wmb() on some architectures
-because it only ensures ordering for DMA writes, not for all writes
-including MMIO accesses.
+Thanks
 
-In the MLX5 driver, completion queue (CQ) doorbell records are
-allocated as DMA coherent memory via mlx5_dma_zalloc_coherent_node().
-The CQ update pattern is:
-  1. Update CQ space (device reads via DMA)
-  2. Update doorbell record (device reads via DMA)
-  3. Memory barrier
-  4. Enable more CQEs
-Since only DMA coherent memory accesses are involved (no MMIO accesses
-follow), we can safely use dma_wmb() instead of wmb().
-
-This change improves performance slightly on architectures where
-dma_wmb() is lighter than wmb().
-
-Signed-off-by: Li RongQing <lirongqing@baidu.com>
-Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
----
-V3: Kept the original wmb() barrier inside wc.c 
-
-V2: rebased.
-https://patchwork.kernel.org/project/netdevbpf/patch/20260811064750.3218024-1-tariqt@nvidia.com/
-
-V1:
-https://patchwork.kernel.org/project/netdevbpf/patch/20260402055206.2311-1-lirongqing@baidu.com/
-
- drivers/net/ethernet/mellanox/mlx5/core/en/ptp.c    | 2 +-
- drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c    | 2 +-
- drivers/net/ethernet/mellanox/mlx5/core/en_rx.c     | 2 +-
- drivers/net/ethernet/mellanox/mlx5/core/en_tx.c     | 2 +-
- drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c | 2 +-
- drivers/net/ethernet/mellanox/mlx5/core/lib/aso.c   | 2 +-
- 6 files changed, 6 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/ptp.c b/drivers/net/ethernet/mellanox/mlx5/core/en/ptp.c
-index 723f66a..17084d7 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en/ptp.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en/ptp.c
-@@ -259,7 +259,7 @@ static bool mlx5e_ptp_poll_ts_cq(struct mlx5e_cq *cq, int napi_budget)
- 	mlx5_cqwq_update_db_record(cqwq);
- 
- 	/* ensure cq space is freed before enabling more cqes */
--	wmb();
-+	dma_wmb();
- 
- 	while (metadata_buff_sz > 0)
- 		mlx5e_ptp_metadata_fifo_push(&ptpsq->metadata_freelist,
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c b/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
-index 77ea51b..ee0986b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
-@@ -817,7 +817,7 @@ bool mlx5e_poll_xdpsq_cq(struct mlx5e_cq *cq)
- 	mlx5_cqwq_update_db_record(&cq->wq);
- 
- 	/* ensure cq space is freed before enabling more cqes */
--	wmb();
-+	dma_wmb();
- 
- 	sq->cc = sqcc;
- 	return (i == MLX5E_TX_CQ_POLL_BUDGET);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-index 6fbc044..3c80193 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-@@ -2507,7 +2507,7 @@ int mlx5e_poll_rx_cq(struct mlx5e_cq *cq, int budget)
- 	mlx5_cqwq_update_db_record(cqwq);
- 
- 	/* ensure cq space is freed before enabling more cqes */
--	wmb();
-+	dma_wmb();
- 
- 	return work_done;
- }
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
-index 0b5e600..14479da 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
-@@ -849,7 +849,7 @@ bool mlx5e_poll_tx_cq(struct mlx5e_cq *cq, int napi_budget)
- 	mlx5_cqwq_update_db_record(&cq->wq);
- 
- 	/* ensure cq space is freed before enabling more cqes */
--	wmb();
-+	dma_wmb();
- 
- 	sq->dma_fifo_cc = dma_fifo_cc;
- 	sq->cc = sqcc;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
-index 1f6bde5..1341874 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
-@@ -384,7 +384,7 @@ static inline void mlx5_fpga_conn_cqes(struct mlx5_fpga_conn *conn,
- 
- 	mlx5_fpga_dbg(conn->fdev, "Re-arming CQ with cc# %u\n", conn->cq.wq.cc);
- 	/* ensure cq space is freed before enabling more cqes */
--	wmb();
-+	dma_wmb();
- 	mlx5_fpga_conn_arm_cq(conn);
- }
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/aso.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/aso.c
-index 614cd57..8f7a89a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lib/aso.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/aso.c
-@@ -421,7 +421,7 @@ int mlx5_aso_poll_cq(struct mlx5_aso *aso, bool with_data)
- 	mlx5_cqwq_update_db_record(&cq->wq);
- 
- 	/* ensure cq space is freed before enabling more cqes */
--	wmb();
-+	dma_wmb();
- 
- 	if (with_data)
- 		aso->cc += MLX5_ASO_WQEBBS_DATA;
--- 
-2.9.4
-
+> 
+> I added Bernard explicitly...
+> 
+> metze
+> 
