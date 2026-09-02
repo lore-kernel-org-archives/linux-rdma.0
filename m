@@ -1,191 +1,152 @@
-Received: from PH8PR06CU001.outbound.protection.outlook.com (mail-westus3azon11012041.outbound.protection.outlook.com [40.107.209.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f53.google.com (mail-ej1-f53.google.com [209.85.218.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25C194ACC88;
-	Wed,  2 Sep 2026 16:48:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.209.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 082544A8A13
+	for <linux-rdma@vger.kernel.org>; Wed,  2 Sep 2026 16:48:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.53
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788367683; cv=fail; b=Zie7kRLa7ENFKCQpTNvbA5fCCx0FDt017A70PsL2mAwhD+z3ZOHMqyRlXbo084cAdTdzQAxgrCxJOijtd9NUR5RkA6qw5X4kn6dCqktWB+5/HDbqDzWUgPGOd+jDIRmWEwDoSqSoeVQy8iaVgiM3Fck1HzaJYPDacFhWpnGn+Bg=
+	t=1788367739; cv=pass; b=WAkIVYMzN0j3V40mx2L8f0hQn8F2tVkh+hBRDdPmsbCH/50YnBhZh5xyZI9391kKtKmAmSS+XraBiEwJ27DjDLiHA49E1UedY7/YSpkCRKeQ9bF/KFBzRrweE0R+LdepVCkEZLYjlFXy1bJC8PVFt+jY9in+WQ0t0WVmswQ2CgI=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788367683; c=relaxed/simple;
-	bh=o8liquoPgyQMv7VEAD66g4mCaQ8bDgn6BwqdYxwew34=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=OjXwsepAbgHKj0zSDClJtDhVdG6Q3Qdprq5AtHDBfMS+bLYRanxm/ULBdymdPmr5uHM5iZDufOGvRXC+RPLsoSC9FW2UFVc12GJ8oGPBIXLghf3bHYLqbJ6qrD5c9Lgiz5OdG4z4ryYjcKuDb8/AFu585u2oPj3qIgs6Qlf8cCc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=r+475SHL; arc=fail smtp.client-ip=40.107.209.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	s=arc-20240116; t=1788367739; c=relaxed/simple;
+	bh=XYkJRYoV1HNAeSeUYGdPMaepouf9MvMiK/gkMich3kY=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=EU3yDENW7vDCEctz99+QyZLN9RbDN6uIf1N+kaEaohFj2z7oFC5B+q26otT43P3XzflwuNAQrAxokTqRIcHNT4CWPp3iGuUUCope07iol5OgQf6xXGdCSwnrbfbKXmPSzzgLQl7fiZi/rpLj2cjfhGzbNyIEiDm7Emf18KOoGlw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cloud.ionos.com; spf=pass smtp.mailfrom=ionos.com; dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b=CTOdsFHI; arc=pass smtp.client-ip=209.85.218.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cloud.ionos.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ionos.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="r+475SHL"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=XnDVKDZhYGdWmQfVOGj2aivUonwlanqyapzgsRchqSUp9KCxEa3bq3VHgPVVU6auRhDAe0UExBtIftSx2h40liokRfnsLOMy1YzkRxPpKQZ0U8mhLxjmhqCXmgPmA81gRlaEKazcppRu/amPaNOO67FZ8sB8Q+grYZvw3RLfTPZnDA5PlP6/ARBdSvu10PimmRlEkhQE2sTq56/j/mrPLJQaAkjC1Ny+ofPjmiZc6yiv+JgMuByPG1SSIYfLUb5SOhGgKvs06Uie+hm1r5AaICtVLZtwwpoCHiC6qkpz6DN3u4PDFJuwjYQWBXzabEdhMiEn9KHjT9MS9GboUqhfIw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=5mdoGrb0cWFdGzpkjl/Wrt7hgSr2nisP9rrhCMRkVng=;
- b=MOc9ueWrArtSGR1KXBRJOociBRtRrFFN9Dmf6qztFHq7LO4EAcOqHpxkUTqJBVQAFouYK9rLp3ECasa1eZ0ytbz2Rklb4YGatuqvAeJ8St6Ih45P/lTmQNVtfPwwVNP69V9CfgwJObL4X4iBveFeWu04gt3XC+QxMMwmsBeN9wyXFe7ZRCFLo0yvmIIyp7Xp3E2Hx8CwkZQWhxnYgTLWMfs8o3v0wj8mVEM5zSFnn+zF3KnJNZE5y3k2nvL1ltcgwj15LQ/hGaLyJopwDtvvKpnzsHldjOtj1CXKk2rlVq5mkAjHvZYOwMAvnD3we5Nq7Q0RBwIwpvbJp6mB2gMu5A==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.232) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=5mdoGrb0cWFdGzpkjl/Wrt7hgSr2nisP9rrhCMRkVng=;
- b=r+475SHL8AP3oPz5XiYEsza+IBIflMulG+w5CHFmoUMKKKneSVTWQjkzjaLvVEB5y11nHCG71b15tUf+PZ9XNgCzAExgSRhfK5HD7Q+KNaorie0RzwKGeIb9m9ZcRCjNSeMTEzFvPW6NeqXrCirVw+27cdkoNS6fZ9uxUUkucki6jXBKZ9R7l3TTZ7gtGyeSVfsGLv2L0lWz4Eui2pekXjpuwq1k1gmQP7BLyFcl0HFRCL1LQ8W+YWKnJQBUf/ztyyG4TqcboSrgK6I5DFuCQcqZM/xVStSXWhCdX0HArzI0C9brnVt4ulyAZpI07pkwEyxiuEJ6QTsPz9lOsEocLQ==
-Received: from BN9P223CA0021.NAMP223.PROD.OUTLOOK.COM (2603:10b6:408:10b::26)
- by CH0PR12MB8578.namprd12.prod.outlook.com (2603:10b6:610:18e::15) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.382.10; Wed, 2 Sep
- 2026 16:47:53 +0000
-Received: from BN7PEPF00000093.namprd03.prod.outlook.com
- (2603:10b6:408:10b:cafe::57) by BN9P223CA0021.outlook.office365.com
- (2603:10b6:408:10b::26) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.360.13 via Frontend Transport; Wed, 2
- Sep 2026 16:47:52 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.232)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.232 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.232) by
- BN7PEPF00000093.mail.protection.outlook.com (10.167.245.71) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.382.8 via Frontend Transport; Wed, 2 Sep 2026 16:47:52 +0000
-Received: from drhqmail203.nvidia.com (10.126.190.182) by mail.nvidia.com
- (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.46; Wed, 2 Sep
- 2026 09:47:24 -0700
-Received: from drhqmail202.nvidia.com (10.126.190.181) by
- drhqmail203.nvidia.com (10.126.190.182) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.46; Wed, 2 Sep 2026 09:47:23 -0700
-Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
- (10.126.190.181) with Microsoft SMTP Server id 15.2.2562.46 via Frontend
- Transport; Wed, 2 Sep 2026 09:47:19 -0700
-From: Tariq Toukan <tariqt@nvidia.com>
-To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
-	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
-	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>
-CC: Dragos Tatulea <dtatulea@nvidia.com>, Eran Ben Elisha <eranbe@nvidia.com>,
-	Gal Pressman <gal@nvidia.com>, Jianbo Liu <jianbol@nvidia.com>, "Leon
- Romanovsky" <leon@kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-rdma@vger.kernel.org>, Mark Bloch <mbloch@nvidia.com>, Moshe Shemesh
-	<moshe@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>, Shahar Shitrit
-	<shshitrit@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>, Yael Chemla
-	<ychemla@nvidia.com>
-Subject: [PATCH net 3/3] net/mlx5e: Fix reporting support for all RS FEC variants
-Date: Wed, 2 Sep 2026 19:46:34 +0300
-Message-ID: <20260902164634.3657606-4-tariqt@nvidia.com>
-X-Mailer: git-send-email 2.44.0
-In-Reply-To: <20260902164634.3657606-1-tariqt@nvidia.com>
-References: <20260902164634.3657606-1-tariqt@nvidia.com>
+	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="CTOdsFHI"
+Received: by mail-ej1-f53.google.com with SMTP id a640c23a62f3a-c166ec26696so21156166b.0
+        for <linux-rdma@vger.kernel.org>; Wed, 02 Sep 2026 09:48:56 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1788367735; cv=none;
+        d=google.com; s=arc-20260327;
+        b=XPTP2ZKPSw2JF196puf1QRhAPSzpVkKC4gH5DCuZEfGr7eJEdelEkJKxriuTyM1cjv
+         eKSzWbbPfXiaKc6t9ytfpiVcCKv26XoNMElNvZJfPo4R5K2IWJBDiRFdWQtfMzPM4s8C
+         sq2m+K7L19x70NOVFNzm7WpaY8wROSl7aRIXYHJEeHUNdRCGaqfU7wHbFDdU6sdCEKbd
+         ZIdzYeDT0ty9W7z5FoNsF9gNV7vLc0UdTukJr+H6P8t1f2z1YMKhrRbonxfOsX17Yh3l
+         w5Wwzw9AhlDv0lVoc2EWR5jo81H5xsFG15dafqDLeqSybqZX8s+7SZPVFVnrHsSILH7D
+         gfVg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=c+zZDLZrzFygr/kaoUDVb3zzLB8Z2nkBsMg0+94/Yy0=;
+        fh=RpxXL5vOWhxP3wQtZ9ECJZGzQGzD9IXkhBhZ2uvkXwQ=;
+        b=mqnzXvwtTw0kPopyZZxdrsbsEVaSmKNR8v+x7tEnwTuk9TuLxLRrllY2A/b89AP0uj
+         tXaxVdanCE1R+XBKhV6u9uqF+oh9bBBe24LqwyhEjTaOVdwii3nKXHfPpsIsDeXMq/mq
+         PQjnYrK4fyVtRTtU5Z5ExuTD7XaCLtAo19N1EPCs4iy6aS5QP+lsrYsHWoeiMWJ4fBXF
+         P6DLEYxBQNrxRVNBGpwH2fu53MV4tIQTx8POHjBKXC6AzeQ4QUC82sgatruU5wyVdylh
+         di6zCPsNxq5OQp06hat9nDIyuOoUiUCqVfpzUsaNshJyk7YnWp6m06AgjPRPo3ZwXxBg
+         V1dw==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=cloud.ionos.com; s=google; t=1788367735; x=1788972535; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=c+zZDLZrzFygr/kaoUDVb3zzLB8Z2nkBsMg0+94/Yy0=;
+        b=CTOdsFHIj00YsZ/DQEeHqPdgEuI6/fqQdVbKeKk1rVmoE3jlI1lcpP+jZ/AeHAs256
+         SEeSfAzFwEpYVgWCRUkvB+WR6KJPC7HvIGj6n0V1Zg6lxdGuF1MQU1XDC98QbFwix9G8
+         qyVyw8wM6wVMrwGxxTM7lKmyz7hrw//2utj1qdsMyKzl1Y6SD9zdW57/ow5Z9TOJVhhk
+         tGmHFbYXJc+e6cvCKgmPfaitojykqcqhzlr4au60nP9oRZeqJxH4dUbtEnG5qYoxtsFH
+         vNFSrXSBLsM4kk1V1LtJAubixWGtQzjUW/QP4tYVzvRpb19RkbvHxRB0sdO/IspuPdVc
+         0Y0Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788367735; x=1788972535;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=c+zZDLZrzFygr/kaoUDVb3zzLB8Z2nkBsMg0+94/Yy0=;
+        b=g4i2vr+zz3LGWeLDUFvNlHG+Yrj6x5hdsve7/uXKeB70/5H9oZ9uNn3EJ/PDXhotmQ
+         /1x4mhSKsF//i2ZTfAS3mjuwAcEtHRid8x87S1AkSFPYJXHkVZsacj2K84HJTIqWAG5D
+         xAiZ4m03TZ0XFxZ0fnIOV/d1fte3EXryaekrSniGVY5M4WoZB2BzW83JuwB8jpJFFBMW
+         yaUdInX7t6M0DPEmtLwa1wM39s73YwKz9mETXhLw3+WjRV1FBZN4AgAh0KcaRPoeiSoQ
+         sKJzO/3rg6YtaOQ8m4zjtuZ5O9eCjUBEgXXGc5UXA/oct/Kw/A/XJGw+pVmIcAvxIIlF
+         y/NQ==
+X-Forwarded-Encrypted: i=1; AKwUvBwy4HZY8qIWnv70lwyFluj+e9IEYVb2XYNg4Xe88qoUJVO6UI7eev3wMTAp4C7q+mmLP8hQ60K0wke1@vger.kernel.org
+X-Gm-Message-State: AFuF++l4HLcIDUzoXK8uFunOXgCFZGWpgez98plmoGU8M62VHVVMRvnw
+	GTV1g+rl8lnk6J3E6CudRYr8JpdoHJnBIOlL478YFYSqD6tC3CVIi5FhkTeyBkWbJMzfpFzgc0T
+	3xxILDSRysSCeU1PRzVsm2EOZq5dHvXZUq/VWmoyCnw==
+X-Gm-Gg: AYBFou1jx8OZKC+HqLShOsgA2cpMoy9dxg7P9KOPMxt9CtjhHfvCJTgNYlmrrHBK6n8
+	oxhdZnwK2Vw64Fb0AHv6NT9MhYOWQvzEyXLxNzAZi27ZWEdctWpAH9M2nOJrqGJ00E65i8HDb03
+	nRgPWG2TqBzxNkC8mazViqNxrngsUhjRDyORoy0RzYWbQ5nnEhFq0XB90Pv7/q54Mq1Ir/yOyE/
+	ew8pIEFse09cAPnOW2UcwtqRHZ05MjDW/fsywRl5Om0Y+XBCWEZNpCOf1N0ioxaitnzOBXIad3V
+	KQg6EIkrl0Sw9EcKM2WHRAnOUPRIZGUwczB/hw5lY2eSK1Cs+kQO0/yq9Qaih0cnzxvA4oiq2Cj
+	Pl80oyZVAGu0F
+X-Received: by 2002:a17:907:9405:b0:c25:2ded:ad36 with SMTP id
+ a640c23a62f3a-c25d4c9659cmr211413866b.0.1788367735185; Wed, 02 Sep 2026
+ 09:48:55 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN7PEPF00000093:EE_|CH0PR12MB8578:EE_
-X-MS-Office365-Filtering-Correlation-Id: 1ff1265c-f255-49f9-5655-08df0911ee51
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700016|1800799024|376014|82310400026|23010399003|10067099003|56012099006|11063799006|22082099003|18002099003;
-X-Microsoft-Antispam-Message-Info:
-	fBrzqR4iEZsLyqTybNCsV+mtg3wilQBPMAsH51Cbins8Rgjo9NbEXNVJaRxXQsOp2/tgbz8EuunBiEZHo8O1aMDAuuaFSLHFZZ9f+ptBSuUCf72eS6Hv64zJQZMUO2wzRDPmLhoNFlZCpy5aNuXBeHHJ9eEaUatXwj8vap7wTWb82ZpTKnzMfr+xlKVEcuyyAEprr7D+vsWqzPuCofgf5yAlatPmRTc9dZyht3qYUUykD7rxPgF1m19yk0nHjO+fNZmRnmhhAG/AsYswG5/9q/0NhIZ3JmCYw79SGK5SMa1SVH23A7RLbJgqYWY6dpPpxqzIoCC6v8xzxiGxmRylob/lAsM/ZyTSQIbJ75zVCwHakMZdqZDIPWmrU7pZu6Efd9mxQ8mzMxioBXMRnykXux6DqEC2zPGstgCqK5PqM7CDONJjizzAdQiaxNqlOFRhHg9YELL821qvQFCJMoTaI7Z9fI3J6BM/UuMQG9Qf67w43H4ssQ8UcNuyb4aucaEcpXL/noEO4ISSnGO4U/Qika0gMQ5nnj0Qb6gbRSEa3Rltggh05iHvubYFe48lGprsFhvj+a28RYnK2Jei7jo8tXfgXfwHUTXYUY14XkVodUAit9aCSxgF++/X7w/pWAl5KOcH5dAjnEDR9fFsvbaqUS9BulimH+wGEg44mVap/NYiFYJg+D51EPQD7cRxrQQPXlj+37evsNF9jvuxnp6ytg==
-X-Forefront-Antispam-Report:
-	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(1800799024)(376014)(82310400026)(23010399003)(10067099003)(56012099006)(11063799006)(22082099003)(18002099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	yQsBTO/y59W8yGeoNyhmLQqcuAxvvjw9iCqcGl8b2ACZzAoSgSp27YZ7ZFZsm4dbikIdT6zZS+nZHMXOtMP+1tXw7xHA5/md08HA+Xp0i/aOzJJsN9nPAaDw/4FX6l25Fu8iwNDB1o/5BFbEc/yYB/ZvzrRtJXOq7gBmR+aPi7TAIgDgfr1SiBcXMDGKKb64MeKqVS5+h1lexqwVueiiyytKuLMZCFLL3sqUmH7mJcUWHSGk/guqVPt39N44U+gBIsF49Q52zkDrKYXBYkgCP2/AlvfWvO154UMdz4ZoZ/ezhfHKH6km6kvM4usjwt8/dy1J1GXD2GiHdrA3lWzxvis35tGNHh7F7VMUruYd2O7yob99WT4xb1LJs72m/o0RoU3XbZuTxMEOc/b8mG1lfPT9zlxPSWM38dCFlYByBvFwB3r9+ElXZ5UOt3sA/baH
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Sep 2026 16:47:52.4976
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 1ff1265c-f255-49f9-5655-08df0911ee51
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	BN7PEPF00000093.namprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH0PR12MB8578
+References: <20260830-rdma-rtrs-clt-cq-pool-leak-v1-1-b169434fd3df@proton.me> <20260902162518.GW24140@unreal>
+In-Reply-To: <20260902162518.GW24140@unreal>
+From: Jinpu Wang <jinpu.wang@cloud.ionos.com>
+Date: Wed, 2 Sep 2026 18:48:44 +0200
+X-Gm-Features: AcwNN1XFdGQqS1dSNDFwEx4DS2Ose8g86nKoPp3TAhbxN7pNr8uBNxboksiPoSQ
+Message-ID: <CAMGffEmz_QSy2TLM5OBQ5GUaOiRozkLyuTNOXV8f9CnbvhPYSQ@mail.gmail.com>
+Subject: Re: [PATCH] RDMA/rtrs-clt: Fix CQ pool leak when connect is interrupted
+To: Leon Romanovsky <leon@kernel.org>, quanyeyang@proton.me
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	syzbot+d396918a29afb8543e1c@syzkaller.appspotmail.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-From: Shahar Shitrit <shshitrit@nvidia.com>
+Hi Leon, hi Quanye,
 
-get_fec_supported_advertised() populates the FEC modes reported as
-supported to userspace. The MLX5E_ADVERTISE_SUPPORTED_FEC macro only
-checked MLX5E_FEC_RS_528_514, causing devices that support only the
-other RS variants (RS_544_514_INTERLEAVED_QUAD or RS_544_514) to not
-advertise RS as supported to ethtool at all.
+I had a look at the report. The syzbot bug seems to be triggered with
+smbdirect (ib_dev[syz2] removed), so I'm not sure how this change in
+RTRS client would fix that issue.
 
-Introduce MLX5E_FEC_RS_MASK covering all three RS bit positions,
-update the macro to accept a bitmask directly rather than a single
-enum value, and pass MLX5E_FEC_RS_MASK for the RS entry.
+Thanks,
+Jinpu
 
-Fixes: b5ede32d3329 ("net/mlx5e: Add support for FEC modes based on 50G per lane links")
-Fixes: 4e343c11efbb ("net/mlx5e: Support FEC settings for 200G per lane link modes")
-Signed-off-by: Shahar Shitrit <shshitrit@nvidia.com>
-Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
-Reviewed-by: Yael Chemla <ychemla@nvidia.com>
-Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/en/port.h    |  4 ++++
- drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c | 12 ++++++------
- 2 files changed, 10 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/port.h b/drivers/net/ethernet/mellanox/mlx5/core/en/port.h
-index fa2283dd383b..53dbdf77bcce 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en/port.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en/port.h
-@@ -66,4 +66,8 @@ enum {
- 	MLX5E_FEC_LLRS_272_257_1 = 9,
- };
- 
-+#define MLX5E_FEC_RS_MASK (BIT(MLX5E_FEC_RS_528_514) | \
-+			   BIT(MLX5E_FEC_RS_544_514_INTERLEAVED_QUAD) | \
-+			   BIT(MLX5E_FEC_RS_544_514))
-+
- #endif
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
-index f285ad88b6d5..3ed59ced0407 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
-@@ -1002,9 +1002,9 @@ static u32 pplm2ethtool_fec(u_long fec_mode, unsigned long size)
- 	return 0;
- }
- 
--#define MLX5E_ADVERTISE_SUPPORTED_FEC(mlx5_fec, ethtool_fec)		\
-+#define MLX5E_ADVERTISE_SUPPORTED_FEC(fec_mask, ethtool_fec)		\
- 	do {								\
--		if (mlx5e_fec_in_caps(dev, 1 << (mlx5_fec)))		\
-+		if (mlx5e_fec_in_caps(dev, fec_mask))			\
- 			__set_bit(ethtool_fec,				\
- 				  link_ksettings->link_modes.supported);\
- 	} while (0)
-@@ -1030,13 +1030,13 @@ static int get_fec_supported_advertised(struct mlx5_core_dev *dev,
- 	if (err)
- 		return (err == -EOPNOTSUPP) ? 0 : err;
- 
--	MLX5E_ADVERTISE_SUPPORTED_FEC(MLX5E_FEC_NOFEC,
-+	MLX5E_ADVERTISE_SUPPORTED_FEC(BIT(MLX5E_FEC_NOFEC),
- 				      ETHTOOL_LINK_MODE_FEC_NONE_BIT);
--	MLX5E_ADVERTISE_SUPPORTED_FEC(MLX5E_FEC_FIRECODE,
-+	MLX5E_ADVERTISE_SUPPORTED_FEC(BIT(MLX5E_FEC_FIRECODE),
- 				      ETHTOOL_LINK_MODE_FEC_BASER_BIT);
--	MLX5E_ADVERTISE_SUPPORTED_FEC(MLX5E_FEC_RS_528_514,
-+	MLX5E_ADVERTISE_SUPPORTED_FEC(MLX5E_FEC_RS_MASK,
- 				      ETHTOOL_LINK_MODE_FEC_RS_BIT);
--	MLX5E_ADVERTISE_SUPPORTED_FEC(MLX5E_FEC_LLRS_272_257_1,
-+	MLX5E_ADVERTISE_SUPPORTED_FEC(BIT(MLX5E_FEC_LLRS_272_257_1),
- 				      ETHTOOL_LINK_MODE_FEC_LLRS_BIT);
- 
- 	active_fec_long = active_fec;
--- 
-2.44.0
-
+On Wed, Sep 2, 2026 at 6:25=E2=80=AFPM Leon Romanovsky <leon@kernel.org> wr=
+ote:
+>
+> On Sun, Aug 30, 2026 at 03:09:55PM +0800, Quanye Yang via B4 Relay wrote:
+> > From: Quanye Yang <quanyeyang@proton.me>
+> >
+> > The client borrows shared CQ credits in the ADDR_RESOLVED handler via
+> > ib_cq_pool_get(), before the peer is connected. create_cm() can return
+> > -ERESTARTSYS from wait_event_interruptible_timeout() without destroying
+> > the CM ID. The init_conns() and stop-and-destroy paths then call
+> > destroy_con_cq_qp() while cq is still NULL (no PUT) and only afterwards
+> > rdma_destroy_id().
+> >
+> > CMA serializes the handler against rdma_destroy_id() with handler_mutex=
+,
+> > but that does not order the GET against destroy_con_cq_qp(). If
+> > ADDR_RESOLVED has already passed the DESTROYING check, it can take
+> > con_mutex, GET credits, and then lose the con to kfree. Device
+> > unregister later hits WARN_ON(cq->cqe_used) in ib_cq_pool_cleanup().
+> >
+> > Set a per-connection flag under con_mutex before CQ/QP teardown so a
+> > racing ADDR_RESOLVED cannot borrow credits after teardown has begun.
+> >
+> > Reported-by: syzbot+d396918a29afb8543e1c@syzkaller.appspotmail.com
+> > Closes: https://syzkaller.appspot.com/bug?extid=3Dd396918a29afb8543e1c
+> > Fixes: 3b89e92c2a95 ("RDMA/rtrs: Use new shared CQ mechanism")
+> > Signed-off-by: Quanye Yang <quanyeyang@proton.me>
+> > ---
+> > Fix a syzbot WARNING in ib_cq_pool_cleanup(): an ADDR_RESOLVED handler
+> > can ib_cq_pool_get() after connection teardown has already skipped the
+> > matching PUT.
+> >
+> > Reproduced on rxe with rnbd-client only (no rtrs server): write
+> > map_device with path=3Dip:127.0.0.1, interrupt create_cm() with a signa=
+l,
+> > then rdma link delete. Device unregister no longer reports leftover
+> > cqe_used after this change.
+> > ---
+> >  drivers/infiniband/ulp/rtrs/rtrs-clt.c | 8 ++++++++
+> >  drivers/infiniband/ulp/rtrs/rtrs-clt.h | 2 ++
+> >  2 files changed, 10 insertions(+)
+>
+> Haris, Jack?
+>
+> Thanks
