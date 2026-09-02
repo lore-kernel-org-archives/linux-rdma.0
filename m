@@ -1,140 +1,94 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mta0.migadu.com (out-121.mta0.migadu.com [91.218.175.121])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E10563264C2;
-	Wed,  2 Sep 2026 07:56:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3C7D399899
+	for <linux-rdma@vger.kernel.org>; Wed,  2 Sep 2026 07:58:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.121
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788335819; cv=none; b=r6vg9ILW4ERXRxgblGtws14C3jPZll01cLM6x0pYRjlyIV287xPjMKr2CuZ/iaRbZWcJaN9irbbxDFLnBpgwzHk9aY1W46LsaIwMIuO06qPfXr+Bl0j+zloXSUIFvAVUsKQ+63d4upRkt6nXM1nq7Oa6SCTEcYlR2Spn+gHNQCg=
+	t=1788335924; cv=none; b=I6hr3Okb0Sk5BaIuJOmFPThj1+fbykXa7ciuJgY12yzz+C047fSYlrNbdSiBsIKqSPappwfNjq9aDFwLO/w1TM1sJdDTjI2Dq49ghGqhPw3w5vrxNiY1nJwYt7bXq/+aUx34yPZj3wMHvbx47NSZj3BJvRbcIxaQIAtTXsMCT6Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788335819; c=relaxed/simple;
-	bh=di/0XyP/axSGEY1GTyFzlDteqybhE8FTbzpPZ2XA0qQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jmJ3dHubJDY0mS+z8iYKnkbNch1oa4pHJ3LRj2cVGUYxMmgggPXk6jiex9RiI2EI2RN3MsFd+vplBLKt0G0dFPeJnykKycovXhiOYkI3RfTd1jPcGeHvtrXJgUPqY/qyaWALgrDkOF42ltCpCy2j5ekJk2x8C7P1mDuc9jnwsOc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Rp2T5mpI; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788335924; c=relaxed/simple;
+	bh=8/mxER8tQ/jM0UjHuhFZAfTGDg4iwkRPnN25i6PnJtE=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=YzAJhUkO6bGu0EKKVI/58MnjyxuOckrEbhYhx0jjt5DGvIHMLb2MQUMPqtDm/gHcM+m3U/Xdr+XAzuEDblsZn/6lFUxMAGxZ6azDOvlkyNha87eJZ+UphDvFiwl6uZI9BZWSmX64ghojtAqVz6vMJRoR8Hmvkg1A4sYhZ/LhzYk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=DmcB4DGn; arc=none smtp.client-ip=91.218.175.121
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Rp2T5mpI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9F8D1F000E9;
-	Wed,  2 Sep 2026 07:56:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788335817;
-	bh=LlS6WptXFYmw4bxd0+YZEKg/kMaFVKt7tLZqARxHEMA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Rp2T5mpIz89wNIiSwvpQtAbhewh8JG7dmyTqFED86nJihbpT9sju9HZUdVBIbuqvS
-	 bYm/qSjPGBIYVaaZEVnto5b/coYrflbQoFXppQCU+JwzY+ts7uq1ilciskN25dfyum
-	 qyWlBc5TnQiIpvqFPipX7MDRCDlsBRf4VQmnai/bTOYCU8J52sdWI3HAWPEZevZ7jP
-	 PyW6IMnl7tW7WgJa1NM6YdQCdUuOiYKpAVmzir4G5TEgb/2EKegUnp8aaIxzO1sEX7
-	 /r7VzDQu6KN3AwrbhcJXMpXweTzeEoT3RExeVs4SxtWVh10zm+steh325c2oALcxPo
-	 4uE+JGZ/wEc5Q==
-Date: Wed, 2 Sep 2026 10:56:53 +0300
-From: Leon Romanovsky <leon@kernel.org>
-To: Serhat Kumral <serhatkumral1@gmail.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Parav Pandit <parav@nvidia.com>,
-	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] RDMA/core: Fix use-after-free when netns exit races
- compat dev removal
-Message-ID: <20260902075653.GS24140@unreal>
-References: <20260818080920.13555-1-serhatkumral1@gmail.com>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="DmcB4DGn"
+X-Envelope-To: linux-rdma@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=8/mxER8tQ/jM0UjHuhFZAfTGDg4iwkRPnN25i6PnJtE=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1788335920; v=1; x=1788940720;
+ b=DmcB4DGnhxVtLX7GW8b/MvZBYS4pg8qxltGa2ZHrnjYy1iYgEGGTDud1v8ysezrhpYThfZb8
+ V1nwKrna8P5b0cHUInfyK5bRDia59OsKzt0HYSeZQazXvS70FYlWs2i1saBMMUWs12J0tGNKNmc
+ womcIgWtt11IldLST/zwiMik=
+X-Envelope-To: linux-rdma@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id 1dce99fdb7487cf3;
+	Wed, 02 Sep 2026 07:58:40 +0000
+X-Mizu-Trace-ID: 1dce99fdb7487cf3
+X-Migadu-Flow: FLOW_OUT
+Message-ID: <2e005595-3761-4a29-9c62-e7f935c8691e@linux.dev>
+Date: Wed, 2 Sep 2026 10:58:39 +0300
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260818080920.13555-1-serhatkumral1@gmail.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH for-rc] RDMA/efa: Fix race between admin command timeout
+ and completion
+To: Yonatan Nachum <ynachum@amazon.com>, jgg@nvidia.com, leon@kernel.org,
+ linux-rdma@vger.kernel.org
+Cc: mrgolin@amazon.com, sleybo@amazon.com, matua@amazon.com,
+ Tom Sela <tomsela@amazon.com>
+References: <20260901113016.581935-1-ynachum@amazon.com>
+From: Gal Pressman <gal.pressman@linux.dev>
+Content-Language: en-US
+In-Reply-To: <20260901113016.581935-1-ynachum@amazon.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Tue, Aug 18, 2026 at 11:09:20AM +0300, Serhat Kumral wrote:
-> A compat device is removed from two places: disable_device() during the
-> ib device unregistration, and rdma_dev_exit_net() when the netns it
-> belongs to dies. remove_one_compat_dev() lets the xa_erase() decide
-> which of the two performs the removal, but drops compat_devs_mutex
-> before device_del(), so the caller that finds nothing to erase returns
-> without waiting for the removal the other one is running.
+On 01/09/2026 14:30, Yonatan Nachum wrote:
+> When an admin command times out, there is a potential race between the
+> interrupt handler processing the completion and the timeout path
+> releasing the completion context. The interrupt handler may observe the
+> command as still submitted and attempt to complete it while the timeout
+> path is concurrently freeing the context.
 > 
-> When that caller is rdma_dev_exit_net(), cleanup_net() carries on while
-> the compat device is still alive. Its kobject is tagged with the dying
-> net, so the device_del() still in progress dereferences net->uevent_sock
-> after uevent_net_exit() has freed it:
+> Fix this by introducing a timed-out state in the completion context. On
+> timeout, both the polling and interrupt wait paths set the status to
+> timed-out under the CQ lock before returning. The completion handler
+> only process commands in submitted state, eliminating the race.
 > 
->  CPU0 (ib-unreg-wq)                CPU1 (netns wq)
->  ------------------                ---------------
->  __ib_unregister_device()
->    disable_device()
->      remove_compat_devs()
->        remove_one_compat_dev()
->          xa_erase()
->          device_del(cdev)
->          ...
->                                    cleanup_net()
->                                      rdma_dev_exit_net()
->                                        remove_one_compat_dev()
->                                          xa_erase()
->                                        // returns without waiting
->                                      uevent_net_exit()
->                                        kfree(net->uevent_sock)
->          kobject_uevent_env()
->            net->uevent_sock->sk    // UAF
-> 
->   BUG: KASAN: slab-use-after-free in kobject_uevent_env+0xb6f/0xc80
->   Read of size 8 at addr ffff888103806490 by task kworker/u16:1/41
->   Workqueue: ib-unreg-wq ib_unregister_work
->   Call Trace:
->    kobject_uevent_env+0xb6f/0xc80
->    device_del+0x737/0xc10
->    disable_device+0x1ad/0x230
->    __ib_unregister_device+0x229/0x3f0
->   Freed by task 12:
->    kfree+0x1b3/0x550
->    ops_undo_list+0x273/0x8c0
->    cleanup_net+0x3b3/0x720
-
-Please don't trim kernel panic logs. Please post the full output,
-including the steps required to reproduce the issue.
-
-Thanks
-
-> 
-> Fix by holding compat_devs_mutex across the whole removal, so that once
-> remove_one_compat_dev() returns the compat device is gone no matter
-> which caller removed it.
-> 
-> Fixes: 4e0f7b907072 ("RDMA/core: Implement compat device/sysfs tree in net namespace")
-> Assisted-by: Claude:claude-opus-5
-> Signed-off-by: Serhat Kumral <serhatkumral1@gmail.com>
+> Fixes: 0420e542569b ("RDMA/efa: Implement functions that submit and complete admin commands")
+> Reviewed-by: Tom Sela <tomsela@amazon.com>
+> Signed-off-by: Yonatan Nachum <ynachum@amazon.com>
 > ---
-> With this patch applied the report no longer shows up.
+>  drivers/infiniband/hw/efa/efa_com.c | 9 ++++++++-
+>  1 file changed, 8 insertions(+), 1 deletion(-)
 > 
->  drivers/infiniband/core/device.c | 8 +++++++-
->  1 file changed, 7 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-> index d954eda63134..a80ac69ef986 100644
-> --- a/drivers/infiniband/core/device.c
-> +++ b/drivers/infiniband/core/device.c
-> @@ -1005,14 +1005,20 @@ static void remove_one_compat_dev(struct ib_device *device, u32 id)
->  {
->  	struct ib_core_device *cdev;
+> diff --git a/drivers/infiniband/hw/efa/efa_com.c b/drivers/infiniband/hw/efa/efa_com.c
+> index 583b1cf0d721..a91de9283b6b 100644
+> --- a/drivers/infiniband/hw/efa/efa_com.c
+> +++ b/drivers/infiniband/hw/efa/efa_com.c
+> @@ -41,6 +41,7 @@ enum efa_cmd_status {
+>  	EFA_CMD_ALLOCATED,
+>  	EFA_CMD_SUBMITTED,
+>  	EFA_CMD_COMPLETED,
+> +	EFA_CMD_TIMED_OUT,
+>  };
 >  
-> +	/*
-> +	 * Hold the lock across device_del(): the other remover may have won
-> +	 * the xa_erase() and still be inside device_del(), and the netns exit
-> +	 * path has to wait for it instead of letting cleanup_net() free the
-> +	 * netns state the compat device is still tagged with.
-> +	 */
->  	mutex_lock(&device->compat_devs_mutex);
->  	cdev = xa_erase(&device->compat_devs, id);
-> -	mutex_unlock(&device->compat_devs_mutex);
->  	if (cdev) {
->  		ib_free_port_attrs(cdev);
->  		device_del(&cdev->dev);
->  		put_device(&cdev->dev);
->  	}
-> +	mutex_unlock(&device->compat_devs_mutex);
->  }
+>  struct efa_comp_ctx {
+> @@ -605,6 +606,10 @@ static int efa_com_wait_and_process_admin_cq_polling(struct efa_comp_ctx *comp_c
+>  			break;
 >  
->  static void remove_compat_devs(struct ib_device *device)
-> -- 
-> 2.53.0
-> 
+>  		if (time_is_before_jiffies(timeout)) {
+> +			spin_lock_irqsave(&aq->cq.lock, flags);
+> +			comp_ctx->status = EFA_CMD_TIMED_OUT;
+> +			spin_unlock_irqrestore(&aq->cq.lock, flags);
+
+This smells bad, a few lines above 'comp_ctx->status' is being read
+without a lock. Can't it change during this window?
