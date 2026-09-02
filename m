@@ -1,60 +1,85 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from PH8PR06CU001.outbound.protection.outlook.com (mail-westus3azon11012068.outbound.protection.outlook.com [40.107.209.68])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 480584AA407;
-	Wed,  2 Sep 2026 16:46:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788367574; cv=none; b=qj8gxtnUKnYVkMS/XNGvfWEjtaZ2ekgsogumtL/3X9UUt+8iLaIlp3iNsz4fL/a4CXckgS3GlawRK7C447haHLfFBJKB9Ejv5snKxuNohN9MAByYzu8A8zbp8n0gj00g2hwqt2VyiwD5Wq2XoAjdwV0FeGlHIIQXmzNN9/lqsRM=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788367574; c=relaxed/simple;
-	bh=zic0TrT16v8VJIkBRRUBGqdxOSQx7/8Ug7AavmbH9mU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=UR8O7qVXqpPamnEBxlpl8BswS5lHfpnpkaMQJ3PqWeCd3U1lM78VmVIEe+F74EiQWoQjU59fnsk2WCNM+rRHTtEZZYLPw80fPeSSwKHsbh8P8BK+7bSA9FxXYZAqZonJorQF8510znNXri4PzwsaI9BWKqRZdE2dsm3GtK3jF+Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=G+rxEDTe; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45E2E47F782;
+	Wed,  2 Sep 2026 16:47:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.209.68
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788367667; cv=fail; b=OOLsfBHIP1oS6eXESnJtjyBdrbbfwK/g1KU1K4Lx4Ie00kdlA6o7xD/FRJ63nGP0x4uAGQo4e/OBNnpHxkxpw9E/qiEePDLYf92QZ4ZraxaunPNccBCbZZQKaiLnjjwWyM+sNg4ulqB5SwkZduqmHaHWNxB9GhosMUrwqfNX+t8=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788367667; c=relaxed/simple;
+	bh=6lpnV6ObLMGOH8BKRUkrCgpi9QBueBFsaBzEzMcm5zk=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=duMKCqyiaIXF7KlgRLH34OZuy5bjl1qF9lwReu1EiageC03Sary9FYght1pgdyHPOaQiD6hbv4l+I9BkiJrhw894l96jYkzJJxRGYevnz+VamJQLtbmIDixKIQMsBKlicVbvXUgLQrObTxEVX18ieEVGOIMheDBAfLWE8pKFPlc=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=b65/C9+J; arc=fail smtp.client-ip=40.107.209.68
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="G+rxEDTe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5D371F000E9;
-	Wed,  2 Sep 2026 16:46:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788367571;
-	bh=+q6EDF1wgOiC60/E1opKcjImp2c2cIOLj39OZi27oXE=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=G+rxEDTeZjEZJwYiDoBPhbJhFyp06/8gcaBaG8IMrkn4rqRA85hg5+A6Md+HjPCSM
-	 DwLlQkBrkhLVVDLKUQEqsStxNGqWLoenlKeylAgn4/yMnCSF/3KYBxYFBrXPRXdxYL
-	 yYI3cG43Szzm6n6yKwVNHdStEUpBe6ws1H8eQizy7avwRfD8f1J63r2558VuScLp3W
-	 tfykK9IPUlcMfKOHQZ5y19Hzcw7f5FuP4iYRj+L6K/FwsHcF7sS9mpShB7Nk8r/ahk
-	 n/IFiNvmO2I5gmNQUJFDeRHs/WjxvMvaGRZicwbR7UZltAjgismXAJMbnTbt1EBF+u
-	 Dx9xCEVNf/ICg==
-From: Simon Horman <horms@kernel.org>
-To: longli@microsoft.com
-Cc: Simon Horman <horms@kernel.org>,
-	kotaranov@microsoft.com,
-	kuba@kernel.org,
-	davem@davemloft.net,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	andrew+netdev@lunn.ch,
-	jgg@ziepe.ca,
-	leon@kernel.org,
-	haiyangz@microsoft.com,
-	kys@microsoft.com,
-	wei.liu@kernel.org,
-	decui@microsoft.com,
-	shradhagupta@linux.microsoft.com,
-	ernis@linux.microsoft.com,
-	stephen@networkplumber.org,
-	shirazsaleem@microsoft.com,
-	netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	linux-hyperv@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net v2] net: mana: Clear RDMA teardown and suspend state in mana_rdma_probe()
-Date: Wed,  2 Sep 2026 17:44:46 +0100
-Message-ID: <20260902164445.528471-2-horms@kernel.org>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260828001202.2110938-1-longli@microsoft.com>
-References: <20260828001202.2110938-1-longli@microsoft.com>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="b65/C9+J"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=mF/x6Jk//xz42i6CRXjtRkGPIrSBj0gcHcm9/6iBrRXocG6CgC5OLWQPJCthoCGKnrwn807tOzdiA+w4VYOY0jNzax/uRUoSYz6Et/tB2wQyagO3wrYtqqbIWwjd7EzvkFUtPtXvb07gfMjmmG355Er1XsCOjcJZoMA9o22NVG4Hi9OmhMWueLT1EgFTE4YPmHVT5gG/CjbWj0GLR/ktE+SqiYYKUQbb8hFS2gU/R+xVp8OwEsMzt+4y42Stm5J6GroooO/YorjnBUCEpS30hlP2QYuTJdqChr/VGDbo7CaExbUuc7lnrDa+uVoX5kHYch5psaVxWilwjzZcgL48nQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=C9ny1+aT0nCe90ULX407QVwHl0F3iJ1br2JHleobQfE=;
+ b=QIsK+v5bJfru1zgZCQciOfdGHWEs8WyHvBEnIgwizIf0zKFXUA8B/kW+t6/DxNMuPLxvkggDOao2eC/xttP4XsgORnnrhK5AykvyRg37uFlUnpqfHUS7HIfVGa5/gjsv2OR0ydKZO2rpdfo5KUW8kNsnHcxo79bA2Mm6sPKTfEGwGRVp3xRV3qgV4A5/yf9EWjy91iJ7jhAny7KYJewR3qkr7OMNZyXG7Wuo5qxLdsiqKtSklgDnltoe9zcaq2HKFsO6Aj0XbNQkB6m/uHepGQUBqk54iMekOHQFtaV+lZfva+AEkwib32uY7TzyLcvsWBBGRjTLvtKzxYN1IcSzdQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.118.232) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=C9ny1+aT0nCe90ULX407QVwHl0F3iJ1br2JHleobQfE=;
+ b=b65/C9+JQv66SuAg2tX8iDNtCtbQVOd1FBTnDf4OvhOVmjSTMQckjiUOe84qEKG1G4akgigqrV+clecGldgPjMV52u35gulO5XiEAYyd2Gp7A0AkL82d66FZs6Bww3RwP6/AH2UVQ8MIG7g+wD2OFtzXe8iNaVgHexgb2/l3jIZxOEx2o4H6aChyggZLZ6Ml1b6HJBai6qVBjl1ag4CbdWRlTViyEkYr2nKtpY/4rF2APhFx093myiS41TK+Lwx9ws5VAxR/FFtlBk53ywEFvg2knYKunnxhRnhWqAKYgIIkOY8vJJNy2zzAWruk+iyQfwK7hM5sHWc1jgj7uR89qw==
+Received: from BN9PR03CA0373.namprd03.prod.outlook.com (2603:10b6:408:f7::18)
+ by SJ0PR12MB6965.namprd12.prod.outlook.com (2603:10b6:a03:448::18) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.360.12; Wed, 2 Sep
+ 2026 16:47:41 +0000
+Received: from BN7PEPF00000095.namprd03.prod.outlook.com
+ (2603:10b6:408:f7:cafe::99) by BN9PR03CA0373.outlook.office365.com
+ (2603:10b6:408:f7::18) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.360.13 via Frontend Transport; Wed, 2
+ Sep 2026 16:47:40 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.232)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.118.232 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.118.232) by
+ BN7PEPF00000095.mail.protection.outlook.com (10.167.245.73) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.382.8 via Frontend Transport; Wed, 2 Sep 2026 16:47:40 +0000
+Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
+ (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.46; Wed, 2 Sep
+ 2026 09:47:14 -0700
+Received: from drhqmail202.nvidia.com (10.126.190.181) by
+ drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.46; Wed, 2 Sep 2026 09:47:13 -0700
+Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
+ (10.126.190.181) with Microsoft SMTP Server id 15.2.2562.46 via Frontend
+ Transport; Wed, 2 Sep 2026 09:47:09 -0700
+From: Tariq Toukan <tariqt@nvidia.com>
+To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
+	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
+	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>
+CC: Dragos Tatulea <dtatulea@nvidia.com>, Eran Ben Elisha <eranbe@nvidia.com>,
+	Gal Pressman <gal@nvidia.com>, Jianbo Liu <jianbol@nvidia.com>, "Leon
+ Romanovsky" <leon@kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-rdma@vger.kernel.org>, Mark Bloch <mbloch@nvidia.com>, Moshe Shemesh
+	<moshe@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>, Shahar Shitrit
+	<shshitrit@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>, Yael Chemla
+	<ychemla@nvidia.com>
+Subject: [PATCH net 1/3] net/mlx5e: Fix missing FEC mode mapping for RS_544_514_INTERLEAVED_QUAD
+Date: Wed, 2 Sep 2026 19:46:32 +0300
+Message-ID: <20260902164634.3657606-2-tariqt@nvidia.com>
+X-Mailer: git-send-email 2.44.0
+In-Reply-To: <20260902164634.3657606-1-tariqt@nvidia.com>
+References: <20260902164634.3657606-1-tariqt@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -62,152 +87,69 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BN7PEPF00000095:EE_|SJ0PR12MB6965:EE_
+X-MS-Office365-Filtering-Correlation-Id: a34d3eb1-640a-4a91-8e77-08df0911e701
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|82310400026|36860700016|23010399003|1800799024|376014|10067099003|18002099003|22082099003|11063799006|56012099006;
+X-Microsoft-Antispam-Message-Info:
+	Qk/faABke+ytKuTE7UD+z0z49rkUi6jqRz1YYw3WG6gYGgvAXDaWNeYTMRNYrC9GHVlEsL5V1u5FQER8dbA6tK/oLZYPNxReL/aBpZ3nAI7ytsQB/Iq+F8zNCv6QB3X3t5G59+jBQR5pW1GC9plkQeki4oVA/MIJj23tVGqzSLTJYU3LUZn4BWvWffnfpEXl+qCCdJlK7EZodzJeKvTX6fsUuitifUqzYtTYLnNd1MUKw/mtXImsAda3DBfSAjjUTNCh9WT/hcDZjYdGm16emc4NzKpSCaIJhUmT1/4vIga/bN71Wi0YS8qGWVW6Qz26nDldcCaOGMTj1Nc1ma16dMNmntkTFqehAuDGoMpz6pYWIi8dPe8nXP0l75zXyrZVQrLi4dTSthhpsSHCu+C8VbWlfWl+G5t/CrhmDsJmWkPoQyVFV5Q69tvMQqCo0m4KTeDAbwidb1GUiMr5u9Fm2DN/FQZDQc0ab/0z+usVhUddxQrVpCG5/RBjaUcflfSvsL7H4klfJW7bK5M1trxBi9MVO7sc/QBmFz886NhFAyHAC52QAUznf2oWPH1zhAWW6bVjmchQnX4ihAJltXRmwIIMsysHW8MpjNXerRMwKpMi1A6YiPfjhAbo9WFi1iOVkZOnXUMngvTbJzAJ/cCC9rJDfAS3CHtwG9acIyqqdIAYhs/xn9Dcar99V3+0G2mfS8jmsNnIPigDSJmLFr1ODw==
+X-Forefront-Antispam-Report:
+	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(36860700016)(23010399003)(1800799024)(376014)(10067099003)(18002099003)(22082099003)(11063799006)(56012099006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	A25TG4TP3TmGWaVlsRxdYKQ5SVigfRFGMQQGUbWTLyJanKgoaujMN+Ve9rKLQtDBfKUbEiuqCJGJL084lYeVJoc7Agf361kccv5YNcm3yqMCaZFkjHHPbmsBtW14RaONiYhMxZGOw05RwOCmgq/DOBqoj0YVwL8/0w0a7vpGdwJDFvzvzC3pQk1bJmGKYAzolJrat1r1h5NT6L/9XD3wG2xLJR5KH3kGyMi//e5aj2l1A1v7khbKINMU/wXAmkdNdpVd4V6aXjN28xAZKfm4xGRxenaSDVLTE+XbBkKwug1vzBPxQUI8vD2k/Uos8Hk54HuAvZ3bzXmlWs49yuQ0n0UT0u1OGzh5lVZ4OV6QgpH8ZrbLPf9wqXQE998rsYhL8YqYNiMmZNWgk80S6fnNOtIQHqKpuF649JV6TLrG+8gi1ocgBeSirxgKNDlbG9j+
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Sep 2026 16:47:40.2680
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: a34d3eb1-640a-4a91-8e77-08df0911e701
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BN7PEPF00000095.namprd03.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR12MB6965
 
-This is an AI-generated review of your patch. The human sending this
-email has considered the AI review valid, or at least plausible.
-Full review at: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260828001202.2110938-1-longli@microsoft.com?part=1
+From: Shahar Shitrit <shshitrit@nvidia.com>
+
+MLX5E_FEC_RS_544_514_INTERLEAVED_QUAD is missing from
+pplm_fec_2_ethtool_linkmodes[], leaving index 4 zero-initialized.
+As a result, when this FEC mode is active, find_first_bit() returns
+index 4, causing __set_bit() to set bit 0
+(ETHTOOL_LINK_MODE_10baseT_Half_BIT) instead of
+ETHTOOL_LINK_MODE_FEC_RS_BIT. Consequently, ethtool reports:
+
+  Advertised FEC modes: Not reported
+
+Add the missing mapping to ETHTOOL_LINK_MODE_FEC_RS_BIT.
+
+Fixes: 4e343c11efbb ("net/mlx5e: Support FEC settings for 200G per lane link modes")
+Signed-off-by: Shahar Shitrit <shshitrit@nvidia.com>
+Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
+Reviewed-by: Yael Chemla <ychemla@nvidia.com>
+Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
-net: mana: Clear RDMA teardown and suspend state in mana_rdma_probe()
+ drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-This clears gd->rdma_teardown and gd->is_suspended in mana_rdma_probe() so
-that RDMA servicing events are handled again after a hardware service reset
-cycle. The gate is re-opened with smp_store_release(), paired with a new
-smp_load_acquire() in mana_rdma_service_handle().
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
+index 112926d07634..f285ad88b6d5 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
+@@ -1013,6 +1013,7 @@ static const u32 pplm_fec_2_ethtool_linkmodes[] = {
+ 	[MLX5E_FEC_NOFEC] = ETHTOOL_LINK_MODE_FEC_NONE_BIT,
+ 	[MLX5E_FEC_FIRECODE] = ETHTOOL_LINK_MODE_FEC_BASER_BIT,
+ 	[MLX5E_FEC_RS_528_514] = ETHTOOL_LINK_MODE_FEC_RS_BIT,
++	[MLX5E_FEC_RS_544_514_INTERLEAVED_QUAD] = ETHTOOL_LINK_MODE_FEC_RS_BIT,
+ 	[MLX5E_FEC_RS_544_514] = ETHTOOL_LINK_MODE_FEC_RS_BIT,
+ 	[MLX5E_FEC_LLRS_272_257_1] = ETHTOOL_LINK_MODE_FEC_LLRS_BIT,
+ };
+-- 
+2.44.0
 
-> diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-> index 7a1ac853e3abc..56f426da72864 100644
-> --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-> +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-> @@ -3983,7 +3983,8 @@ static void mana_rdma_service_handle(struct work_struct *work)
->  	struct device *dev = gd->gdma_context->dev;
->  	int ret;
->  
-> -	if (READ_ONCE(gd->rdma_teardown))
-> +	/* Pairs with the smp_store_release() in mana_rdma_probe(). */
-> +	if (smp_load_acquire(&gd->rdma_teardown))
->  		goto out;
->  
->  	switch (serv_work->event) {
-
-[ ... ]
-
-> @@ -4279,6 +4280,17 @@ int mana_rdma_probe(struct gdma_dev *gd)
->  	if (err)
->  		return err;
->  
-> +	/* Clear the state left by a previous mana_rdma_remove() so servicing
-> +	 * events are handled again after a reset cycle.
-> +	 */
-> +	gd->is_suspended = false;
-
-[Severity: Low]
-
-Does the invariant described in the commit message hold on the initial probe
-path?  The commit message says:
-
-    is_suspended is otherwise only touched by mana_rdma_service_handle() on
-    the ordered service workqueue, so clear it while rdma_teardown still
-    gates that handler
-
-That is true for the reset path, where mana_rdma_remove() set rdma_teardown
-and flushed gc->service_wq first.  On mana_gd_probe() -> mana_probe() ->
-mana_rdma_probe() the gate was never closed: gc comes from vzalloc(), so both
-gd->rdma_teardown and gd->is_suspended are already false, and mana_gd_setup()
-has already created gc->service_wq and brought up the HWC and EQs before
-mana_rdma_probe() runs.
-
-So on that path the smp_store_release() is a false -> false store and the
-handler's smp_load_acquire() has no state change to order against, while the
-plain write of gd->is_suspended here (and add_adev()'s plain write of
-gd->adev) can run concurrently with the handler's plain accesses to the same
-two fields with no lock on either side.
-
-The outcome looks benign today, since is_suspended is already false and the
-handler is a no-op in that window, but would it be worth wording the comment
-and commit message so they only claim the property that actually holds?
-
-> +
-> +	/* Publish is_suspended before re-opening the gate, so the handler
-> +	 * cannot act on a stale value.  Pairs with the smp_load_acquire()
-> +	 * in mana_rdma_service_handle().
-> +	 */
-> +	smp_store_release(&gd->rdma_teardown, false);
-> +
->  	err = add_adev(gd, "rdma");
->  	if (err)
->  		mana_gd_deregister_device(gd);
-
-[Severity: Medium]
-
-Is the gate re-opened too early here, i.e. before add_adev() has published
-gd->adev?  add_adev() stores it as its last step, after
-auxiliary_device_add() has already synchronously probed mana_ib:
-
-drivers/net/ethernet/microsoft/mana/mana_en.c:add_adev() {
-	...
-	ret = auxiliary_device_add(adev);
-	if (ret)
-		goto add_fail;
-
-	gd->adev = adev;
-	...
-}
-
-A GDMA_SERVICE_TYPE_RDMA_SUSPEND work item that runs inside that window
-passes the acquire load, but sees gd->adev == NULL because remove_adev()
-cleared it during the preceding mana_rdma_remove():
-
-mana_rdma_service_handle() {
-	case GDMA_SERVICE_TYPE_RDMA_SUSPEND:
-		if (!gd->adev || gd->is_suspended)
-			break;
-
-		remove_adev(gd);
-		gd->is_suspended = true;
-		break;
-
-so the suspend event is consumed without setting gd->is_suspended, and the
-matching GDMA_SERVICE_TYPE_RDMA_RESUME then also breaks on
-!gd->is_suspended.  Doesn't that leave the freshly created RDMA auxiliary
-device live across a servicing operation that explicitly asked for it to be
-quiesced, which is the same silently-dropped-servicing behaviour this change
-sets out to fix, now confined to the probe window?
-
-Can the two contexts really overlap?  mana_serv_reset() runs on the system
-workqueue via mana_schedule_serv_work()/schedule_work() (or from
-mana_recovery_delayed_func()) and calls mana_gd_suspend() ->
-mana_rdma_remove() then mana_gd_resume() -> mana_gd_setup() ->
-mana_rdma_probe(), while the handler runs on gc->service_wq, which
-mana_gd_setup() re-creates before mana_rdma_probe() is called:
-
-mana_rdma_service_event() {
-	...
-	INIT_WORK(&serv_work->work, mana_rdma_service_handle);
-	queue_work(gc->service_wq, &serv_work->work);
-
-Different workqueues, and GC_IN_SERVICE only serializes further reset
-requests.
-
-Related to the new comment: the handler's read of gd->adev is a plain read
-racing with add_adev()'s plain write, so "the handler cannot act on a stale
-value" holds for is_suspended but not for gd->adev.
-
-mana_rdma_remove() uses the opposite ordering, closing the gate and draining
-the workqueue before touching gd->adev:
-
-mana_rdma_remove() {
-	WRITE_ONCE(gd->rdma_teardown, true);
-
-	if (gc->service_wq)
-		flush_workqueue(gc->service_wq);
-
-	if (gd->adev)
-		remove_adev(gd);
-
-Would doing the mirror image in probe work here, i.e. keeping the
-gd->is_suspended = false store where it is but issuing
-smp_store_release(&gd->rdma_teardown, false) only after add_adev() has
-succeeded?  Note that ordering alone still drops such an event, just via the
-gate instead; serializing mana_rdma_probe(), mana_rdma_remove() and the
-handler body with a mutex rather than extending the bool gate would close the
-window entirely.
