@@ -1,175 +1,181 @@
-Received: from mail-oo2-f6.google.com (mail-oo2-f6.google.com [74.125.231.134])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from outbound.baidu.com (mx14.baidu.com [220.181.3.101])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF33E2EB10
-	for <linux-rdma@vger.kernel.org>; Wed,  2 Sep 2026 00:23:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.231.134
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0311028E0;
+	Wed,  2 Sep 2026 02:36:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.181.3.101
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788308614; cv=none; b=pA+mmwqYGuhVbkhFMNSyJT7gTJu7ETuRvSTnvq2zgtpCeQN4lZ1i7c06Yl9d4oTn6Ruo3LpeZyBJqOEMg88N1dXwAm2KE6TB08rU1YNbUUrAyN6qYQrAq2YLQNofzNXPZ92C5Rt3Vh45F8KA0WPKzaQOG21dcSSVvdtsLGUV+us=
+	t=1788316626; cv=none; b=DhqaeT01vwh1pLALiPz7fPJvmsEQMvbYUZF7LT0Y6gKeU76/9DxuGStIb8+PCxs+5hlP1noDFts3btMCeyAFZb1dN+w1+0hlVqhRTJC6pUHbAgQVoyq9asAP+tpkjKlVYKFyQX+6z0TQVa2gmJmk/8UNcU3wZLei6czA8rM9ecc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788308614; c=relaxed/simple;
-	bh=/y6NWVFREyIb7dyi4XE6+zQbOzqGko5Ub0NX5ovQpYY=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=cYpY1dX9XfPCUH48DYQjNnVa6bZbwgK+wwcfrxFaRqUOlYp5U2MP+AN4NU0j6y/B29GBZG45GM5BqguCn8uFECc9O2tfae9bUC6/AEJczPLfcexJNQMKKTFluUMqg/8Y5kbB/U5pwQAayKizFstZOx1oDLOv4SodARhk3K3z3Ag=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=74.125.231.134
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-oo2-f6.google.com with SMTP id 006d021491bc7-6aafac56856so112214eaf.1
-        for <linux-rdma@vger.kernel.org>; Tue, 01 Sep 2026 17:23:32 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788308611; x=1788913411;
-        h=content-type:to:from:subject:message-id:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=8JSmnxQApi8XjQdw22ipTDSC+e2v8+0n5C7epgLYDig=;
-        b=m1nv49rJvZKGIS7J9LhGgXzV44D//WkI58dOQmP6bvFIEnpx6b1prvI1PpmPWuIhwb
-         VwlplKAnsIUpDQfxQW1rt36f5Kne6o2R/SWg750hk5eipKkVDzCSuihXYfkFtigShQuV
-         93RTFMdLVoqKQ2Y52RtjNCjMhbY8JfIJouWftcNH1kVz7XwloiJs/D0GLAS9Ch65N8TZ
-         eQ6kaDHQnhEnAHGtv4Yu61IeiZ8o3+gpTElP6OTzWoPmDCEOd9/JjCrt5UJX+o7U3Dbg
-         Dae1jLAmGBXv8hFXHnzrgl+6FW9j9WJ3Y0WCTXXumBb+DYBQKjTO2iXka7QM9lEnC8DC
-         ycCA==
-X-Forwarded-Encrypted: i=1; AHgh+RrZU7x681xGWze+8G0k5Uw+7Iey4NRKapCVO4r7sDGtl1niXkLTDHdhw0F3kfnQPfalB/w8+igtvb2S@vger.kernel.org
-X-Gm-Message-State: AFuF++kZWOZYoROSVMc48C35w8aqIjsvEI2+BC9XrfcDCye9UcGK35nn
-	za/NonEDnxJcFXMSTtUexBGriKuloKAYQutVGYiFvgow6x4E0znEa5M0xmkn7tr9/gsALkJlXBI
-	mEO4X1usnKxk97Hc9GWfqh2znUUW7w/10JInqX+5mn3rUdcVWal0os8JOKIs=
+	s=arc-20240116; t=1788316626; c=relaxed/simple;
+	bh=6cbLuym+1cqRI7P7D4gMdqm+OHpINkJYcn9natJyGsk=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=tF7wq0CflTfb24wNmYhffdWCGTeDzGm0DDgatMlhkiPkyw2Krqhl8o/7j0mlYPJkTsh6QwZFWRMzPwQuPLoTSxx33rmoD6I3i5cZcHGBcR4LrZm/bP6ixNPLaCgfV6RSTXsahMbNufC9oZCIsx+rcYuPrJIq/EVh7xRTV/af1gY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com; spf=pass smtp.mailfrom=baidu.com; dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b=RTSrWvBk; arc=none smtp.client-ip=220.181.3.101
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baidu.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b="RTSrWvBk"
+X-MD-Sfrom: lirongqing@baidu.com
+X-MD-SrcIP: 172.31.50.47
+From: lirongqing <lirongqing@baidu.com>
+To: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
+	Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, Andrew Lunn
+	<andrew+netdev@lunn.ch>, "David S . Miller" <davem@davemloft.net>, Eric
+ Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
+	<pabeni@redhat.com>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann
+	<daniel@iogearbox.net>, Jesper Dangaard Brouer <hawk@kernel.org>, John
+ Fastabend <john.fastabend@gmail.com>, Stanislav Fomichev <sdf@fomichev.me>,
+	Boris Pismenny <borisp@nvidia.com>, Richard Cochran
+	<richardcochran@gmail.com>, Cosmin Ratiu <cratiu@nvidia.com>, Dragos Tatulea
+	<dtatulea@nvidia.com>, Carolina Jubran <cjubran@nvidia.com>, Li RongQing
+	<lirongqing@baidu.com>, Kees Cook <kees@kernel.org>, Akiva Goldberger
+	<agoldberger@nvidia.com>, Simon Horman <horms@kernel.org>,
+	<netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <bpf@vger.kernel.org>
+Subject: [PATCH net-next, v3] net/mlx5: Use dma_wmb() for completion queue doorbell updates
+Date: Wed, 2 Sep 2026 10:34:29 +0800
+Message-ID: <20260902023429.1717-1-lirongqing@baidu.com>
+X-Mailer: git-send-email 2.17.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6820:161e:b0:6ac:b178:97f9 with SMTP id
- 006d021491bc7-6b48193f585mr620743eaf.31.1788308611663; Tue, 01 Sep 2026
- 17:23:31 -0700 (PDT)
-Date: Tue, 01 Sep 2026 17:23:31 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6a976c83.9266084e.bf0d7.0003.GAE@google.com>
-Subject: [syzbot] [rdma?] WARNING: refcount bug in iwpm_find_nlmsg_request
-From: syzbot <syzbot+bd317784d628820741b5@syzkaller.appspotmail.com>
-To: jgg@ziepe.ca, leon@kernel.org, linux-kernel@vger.kernel.org, 
-	linux-rdma@vger.kernel.org, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
+X-ClientProxiedBy: bjkjy-exc9.internal.baidu.com (172.31.50.19) To
+ bjkjy-exc3.internal.baidu.com (172.31.50.47)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=baidu.com;
+	s=selector1; t=1788316486;
+	bh=CoCztr6XAGEBvv7TN377FtTXgA/2hXdT8SEOdZBtANs=;
+	h=From:To:Subject:Date:Message-ID:Content-Type;
+	b=RTSrWvBkT6wcxnTJbHlv8m6ygevUd/hqx5QtZwAwa1bSs6Ld881jzOcPYQ8ACKO9g
+	 yqXWZJ5rQtotBmBQKzGaTY8CyVVax3T9UYLCvm5MkXoh0i2RZvqOsMkDSzCcigzFHL
+	 KRRQLpwTMyu+z0NN2VftvO+2QqnDsQgqGo17BuD6tBMEcVKE0Be34Ruyi06pGhSRtj
+	 k/tlyRlUnnX6wXszuv5BUFZ9X+qQ+ZBSEY24pC8Qyeh6Zt5TlKSA9YLCFN/RfOmy/L
+	 jIclxKb830AkPiR0lDbejKOls+0elib26MVRzsYeFRf0h76hBtvBIPez0hnerXJV2v
+	 vj6uE/xGh85VA==
 
-Hello,
+From: Li RongQing <lirongqing@baidu.com>
 
-syzbot found the following issue on:
+dma_*() barriers are specifically for ordering writes to DMA
+coherent memory that is accessible to both the CPU and DMA capable
+devices.
 
-HEAD commit:    548e7bcd0c54 Merge tag 'ceph-for-7.3-rc1' of https://githu..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=11644c15580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=85bc5cc2fc7394d9
-dashboard link: https://syzkaller.appspot.com/bug?extid=bd317784d628820741b5
-compiler:       gcc (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44
-userspace arch: i386
+The dma_wmb() barrier is lighter than wmb() on some architectures
+because it only ensures ordering for DMA writes, not for all writes
+including MMIO accesses.
 
-Unfortunately, I don't have any reproducer for this issue yet.
+In the MLX5 driver, completion queue (CQ) doorbell records are
+allocated as DMA coherent memory via mlx5_dma_zalloc_coherent_node().
+The CQ update pattern is:
+  1. Update CQ space (device reads via DMA)
+  2. Update doorbell record (device reads via DMA)
+  3. Memory barrier
+  4. Enable more CQEs
+Since only DMA coherent memory accesses are involved (no MMIO accesses
+follow), we can safely use dma_wmb() instead of wmb().
 
-Downloadable assets:
-disk image (non-bootable): https://storage.googleapis.com/syzbot-assets/d900f083ada3/non_bootable_disk-548e7bcd.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/33981fd8947d/vmlinux-548e7bcd.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/d17bd4bd3299/bzImage-548e7bcd.xz
+This change improves performance slightly on architectures where
+dma_wmb() is lighter than wmb().
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+bd317784d628820741b5@syzkaller.appspotmail.com
-
-netlink: 16 bytes leftover after parsing attributes in process `syz.2.3511'.
-iwpm_mapping_error_cb: Received msg seq = 0 err code = 5 client = 2
-------------[ cut here ]------------
-refcount_t: addition on 0; use-after-free.
-WARNING: lib/refcount.c:25 at refcount_warn_saturate+0x111/0x130 lib/refcount.c:25, CPU#0: syz.2.3511/18531
-Modules linked in:
-CPU: 0 UID: 0 PID: 18531 Comm: syz.2.3511 Tainted: G             L      syzkaller #0 PREEMPT(full) 
-Tainted: [L]=SOFTLOCKUP
-Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-RIP: 0010:refcount_warn_saturate+0x111/0x130 lib/refcount.c:25
-Code: 06 e8 53 6d e3 fc 48 8d 3d dc 53 28 0c 67 48 0f b9 3a e8 42 6d e3 fc 5b 5d c3 cc cc cc cc e8 36 6d e3 fc 48 8d 3d cf 53 28 0c <67> 48 0f b9 3a e8 25 6d e3 fc 5b 5d e9 ce 8f a8 06 48 89 df e8 46
-RSP: 0000:ffffc90007ddf448 EFLAGS: 00010087
-RAX: 0000000000001c55 RBX: ffff888024890878 RCX: ffffc9000c001000
-RDX: 0000000000080000 RSI: ffffffff8527c5fa RDI: ffffffff915019d0
-RBP: 0000000000000002 R08: 0000000000000005 R09: 0000000000000004
-R10: 0000000000000002 R11: 000000000000001f R12: ffff888024890878
-R13: dffffc0000000000 R14: 0000000000000283 R15: 0000000000000000
-FS:  0000000000000000(0000) GS:ffff888096968000(0063) knlGS:00000000f5456b40
-CS:  0010 DS: 002b ES: 002b CR0: 0000000080050033
-CR2: 00000000f73d8568 CR3: 00000000774e3000 CR4: 0000000000352ef0
-DR0: 0000000000000009 DR1: 0000000000000009 DR2: 0000000000000003
-DR3: 0000000000000008 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Call Trace:
- <TASK>
- __refcount_add include/linux/refcount.h:289 [inline]
- __refcount_inc include/linux/refcount.h:366 [inline]
- refcount_inc include/linux/refcount.h:383 [inline]
- kref_get include/linux/kref.h:45 [inline]
- iwpm_find_nlmsg_request+0x13d/0x160 drivers/infiniband/core/iwpm_util.c:360
- iwpm_mapping_error_cb.cold+0x97/0x277 drivers/infiniband/core/iwpm_msg.c:794
- netlink_dump+0x532/0xd00 net/netlink/af_netlink.c:2331
- __netlink_dump_start+0x6d6/0x990 net/netlink/af_netlink.c:2446
- netlink_dump_start include/linux/netlink.h:341 [inline]
- rdma_nl_rcv_msg+0x568/0x6f0 drivers/infiniband/core/netlink.c:190
- rdma_nl_rcv_skb.constprop.0.isra.0+0x2cb/0x410 drivers/infiniband/core/netlink.c:239
- netlink_unicast_kernel net/netlink/af_netlink.c:1319 [inline]
- netlink_unicast+0x585/0x850 net/netlink/af_netlink.c:1345
- netlink_sendmsg+0x8b0/0xda0 net/netlink/af_netlink.c:1900
- sock_sendmsg_nosec net/socket.c:800 [inline]
- __sock_sendmsg net/socket.c:815 [inline]
- ____sys_sendmsg+0xa4d/0xbe0 net/socket.c:2713
- ___sys_sendmsg+0x190/0x1e0 net/socket.c:2767
- __sys_sendmsg+0x160/0x210 net/socket.c:2799
- do_syscall_32_irqs_on arch/x86/entry/syscall_32.c:79 [inline]
- __do_fast_syscall_32+0x13a/0x8b0 arch/x86/entry/syscall_32.c:291
- do_fast_syscall_32+0x32/0x70 arch/x86/entry/syscall_32.c:316
- entry_SYSENTER_compat_after_hwframe+0x84/0x8e
-RIP: 0023:0xf7f94fec
-Code: Unable to access opcode bytes at 0xf7f94fc2.
-RSP: 002b:00000000f545650c EFLAGS: 00000292 ORIG_RAX: 0000000000000172
-RAX: ffffffffffffffda RBX: 0000000000000007 RCX: 0000000080000100
-RDX: 0000000000000004 RSI: 0000000000000000 RDI: 0000000000000000
-RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000292 R12: 0000000000000000
-R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
- </TASK>
-----------------
-Code disassembly (best guess), 1 bytes skipped:
-   0:	e8 53 6d e3 fc       	call   0xfce36d58
-   5:	48 8d 3d dc 53 28 0c 	lea    0xc2853dc(%rip),%rdi        # 0xc2853e8
-   c:	67 48 0f b9 3a       	ud1    (%edx),%rdi
-  11:	e8 42 6d e3 fc       	call   0xfce36d58
-  16:	5b                   	pop    %rbx
-  17:	5d                   	pop    %rbp
-  18:	c3                   	ret
-  19:	cc                   	int3
-  1a:	cc                   	int3
-  1b:	cc                   	int3
-  1c:	cc                   	int3
-  1d:	e8 36 6d e3 fc       	call   0xfce36d58
-  22:	48 8d 3d cf 53 28 0c 	lea    0xc2853cf(%rip),%rdi        # 0xc2853f8
-* 29:	67 48 0f b9 3a       	ud1    (%edx),%rdi <-- trapping instruction
-  2e:	e8 25 6d e3 fc       	call   0xfce36d58
-  33:	5b                   	pop    %rbx
-  34:	5d                   	pop    %rbp
-  35:	e9 ce 8f a8 06       	jmp    0x6a89008
-  3a:	48 89 df             	mov    %rbx,%rdi
-  3d:	e8                   	.byte 0xe8
-  3e:	46                   	rex.RX
-
-
+Signed-off-by: Li RongQing <lirongqing@baidu.com>
+Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+V3: Kept the original wmb() barrier inside wc.c 
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+V2: rebased.
+https://patchwork.kernel.org/project/netdevbpf/patch/20260811064750.3218024-1-tariqt@nvidia.com/
 
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
+V1:
+https://patchwork.kernel.org/project/netdevbpf/patch/20260402055206.2311-1-lirongqing@baidu.com/
 
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
+ drivers/net/ethernet/mellanox/mlx5/core/en/ptp.c    | 2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c    | 2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/en_rx.c     | 2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/en_tx.c     | 2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c | 2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/lib/aso.c   | 2 +-
+ 6 files changed, 6 insertions(+), 6 deletions(-)
 
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/ptp.c b/drivers/net/ethernet/mellanox/mlx5/core/en/ptp.c
+index 723f66a..17084d7 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/ptp.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/ptp.c
+@@ -259,7 +259,7 @@ static bool mlx5e_ptp_poll_ts_cq(struct mlx5e_cq *cq, int napi_budget)
+ 	mlx5_cqwq_update_db_record(cqwq);
+ 
+ 	/* ensure cq space is freed before enabling more cqes */
+-	wmb();
++	dma_wmb();
+ 
+ 	while (metadata_buff_sz > 0)
+ 		mlx5e_ptp_metadata_fifo_push(&ptpsq->metadata_freelist,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c b/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
+index 77ea51b..ee0986b 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
+@@ -817,7 +817,7 @@ bool mlx5e_poll_xdpsq_cq(struct mlx5e_cq *cq)
+ 	mlx5_cqwq_update_db_record(&cq->wq);
+ 
+ 	/* ensure cq space is freed before enabling more cqes */
+-	wmb();
++	dma_wmb();
+ 
+ 	sq->cc = sqcc;
+ 	return (i == MLX5E_TX_CQ_POLL_BUDGET);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+index 6fbc044..3c80193 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+@@ -2507,7 +2507,7 @@ int mlx5e_poll_rx_cq(struct mlx5e_cq *cq, int budget)
+ 	mlx5_cqwq_update_db_record(cqwq);
+ 
+ 	/* ensure cq space is freed before enabling more cqes */
+-	wmb();
++	dma_wmb();
+ 
+ 	return work_done;
+ }
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
+index 0b5e600..14479da 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
+@@ -849,7 +849,7 @@ bool mlx5e_poll_tx_cq(struct mlx5e_cq *cq, int napi_budget)
+ 	mlx5_cqwq_update_db_record(&cq->wq);
+ 
+ 	/* ensure cq space is freed before enabling more cqes */
+-	wmb();
++	dma_wmb();
+ 
+ 	sq->dma_fifo_cc = dma_fifo_cc;
+ 	sq->cc = sqcc;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
+index 1f6bde5..1341874 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
+@@ -384,7 +384,7 @@ static inline void mlx5_fpga_conn_cqes(struct mlx5_fpga_conn *conn,
+ 
+ 	mlx5_fpga_dbg(conn->fdev, "Re-arming CQ with cc# %u\n", conn->cq.wq.cc);
+ 	/* ensure cq space is freed before enabling more cqes */
+-	wmb();
++	dma_wmb();
+ 	mlx5_fpga_conn_arm_cq(conn);
+ }
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/aso.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/aso.c
+index 614cd57..8f7a89a 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lib/aso.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/aso.c
+@@ -421,7 +421,7 @@ int mlx5_aso_poll_cq(struct mlx5_aso *aso, bool with_data)
+ 	mlx5_cqwq_update_db_record(&cq->wq);
+ 
+ 	/* ensure cq space is freed before enabling more cqes */
+-	wmb();
++	dma_wmb();
+ 
+ 	if (with_data)
+ 		aso->cc += MLX5_ASO_WQEBBS_DATA;
+-- 
+2.9.4
 
-If you want to undo deduplication, reply with:
-#syz undup
