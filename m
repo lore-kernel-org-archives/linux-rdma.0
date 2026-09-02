@@ -1,188 +1,347 @@
-Received: from PH0PR06CU001.outbound.protection.outlook.com (mail-westus3azon11011037.outbound.protection.outlook.com [40.107.208.37])
+Received: from mx0a-00082601.pphosted.com (mx0a-00082601.pphosted.com [67.231.145.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BC9A37A847;
-	Wed,  2 Sep 2026 19:40:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.208.37
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 113AD3AFCE6
+	for <linux-rdma@vger.kernel.org>; Wed,  2 Sep 2026 20:54:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=67.231.145.42
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788378073; cv=fail; b=KQUDH+ngiVdI1l3J2lSnCPJB4UJQeHDnEgZZ4g2Bc7/pi+h9WStMgfKllF34Q7zez2RbhOwqdu/IRVriFpI1es2gwFlegXWtuLjCIy2L69HodsmeJbP1KTnqjXF5e6+NeK0JmLU4Ql6JjmyfNFmBnGVkKyItcjGLQ1JvDilk3/g=
+	t=1788382446; cv=pass; b=S2jzFJ3kr/h9WjMkQ3eUtWginGgB0qNGwChwGDZCMUS9gSKHQtx9pTOCl5NqIXYbs8W24w9eTR4GPwL+8MxgF7xaDTD7uV8I+DvoYAF0d2HMk0lOkGLKtIpubu9mw/GeSL5yKF84qf2UEqH6A79k88UhrjPann+Pb8A6u/236p0=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788378073; c=relaxed/simple;
-	bh=+gZwyzxc5skxzO6CLlrR8mGjtbKxIBoXc5mNjWIf0oY=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=oPyqjUGIrM1NzlysFpNFbhuRpL4qtXGCs01J5HqEDLz3nQ97tvuJl9eJ8znlmpP2/4ZU3AjebLvi5VNHnSi++doauMWnftPheIfNyZGuCPQgm8+0ROa3lcMKhzB1cBEvM/5ceKJQbZdanbF0MZsYcqr77N0hc2+ihkmzUY0eFUE=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=f4WI8Upy; arc=fail smtp.client-ip=40.107.208.37
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	s=arc-20240116; t=1788382446; c=relaxed/simple;
+	bh=UyfVQsMxJuVHDr9tnaZqx4XeRllFUZGvJm2XPpQicuY=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=TvqEWlVUPoSzrMfmO0YQIZ82z8N5fN+a0FeFj1meaHDo4BvJ3ZRXMKCx3xQkNucK7AiZ4uQk84ZkM81w/dLoLGIU3X904VB8ox8z9wyP+cON41qncIYRU18Ew42pFUQnLUmuwikwLERr4OOpZwlvWYA8tYY7NBSdwKOXClDRG1Y=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com; spf=pass smtp.mailfrom=meta.com; dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b=E1BnX78Q; arc=pass smtp.client-ip=67.231.145.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="f4WI8Upy"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=d7U5jUdctpXyiq6OD9myquhckOTGybO5snr9n5j563S/F2mr3sOeVp7jkhy5+evTZTQJTNW76HvmL5BzQ1vvLtL+gxj8cqaunAioQFQ+MVI5hd/gSkKZXLHn3dvcuxUH64pH14XNdLutrZfoAQ1ABUrWu/sWy3dyWMYfwUk++q07jiJMyGMwSwnm1ePaHtMvoF8PSpTwPH0mMZNgMnwVp4gL6qMeAwdhJ8V0YpIDdrRMQHAlL516YGYN/thJ78VeDovgHplmgchKfk3KJcboAAqg26HNf0+hUacaUA9G4b/BOzIiv5DQh1zE9px1dFhM/Sn8Y1iq993dURfXFmO4sQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=9yy9L+s+nggMa0cHpqzgZ2qv11i57VgdKpudk0ZPtpY=;
- b=FM5PQ/T7BTYQLE5stTJQ4nWzwCo6IyLP5w+Xcf4lD1zxIkpxX3ZJ5C2567Np7vOlXtoShcfar8RPd5nHk8SxA5jB3yM+VEI9t3svRAyAlTN0chthiPnRrYLxwuHLHlGa3MnpoIjelvRSGSHHp5Glmy5D61yaM74Nz0+/ndoe1KSdCh/TdvXq2d02TxzrLhqhMC3Z9Ho5Ga52A18S2hw18IPuofR1Yg4SK57OcN0OmfiH/TWt8V0EDXRCPhmIJLSP0N096vf+lGiR/kSQGrdc7wcPX0Ndbrb1Zg3EE2tCRVjOw6AdSeQvJTj5cCncJFk42TLNdQienZIT6DCeatcZ5A==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.233) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=9yy9L+s+nggMa0cHpqzgZ2qv11i57VgdKpudk0ZPtpY=;
- b=f4WI8UpymLW+A6QJbJmN67IJzilgxcrpiCFyo/KILHstLyK6hmB3mejIYfpG8rfDJdoz+/uwE1LflBhJDPAJRE96qUTlqk6U6FM/rJOpAWEOvKP6hAV7IuZjWZJMvekl3Thh3LzEKImezOTqyR+GYF8tGNc5NopZrXxddyCZ38arwRutamrMrUtI+WsHm1aNj2JayioHIt0vzV/Pq7+NkHswwwcVqjmWnnVxBg+oNF7d8W2c+pGWlOUAJHRJuZ3RqEkEuM98dOt+CZKeNsPH8S6xUFKnETD/YVeYvBubszhe07pz6a+4wpDdyEkbVnzmLgtX7Gi7QrEtJWZySNHVfQ==
-Received: from SJ0PR03CA0163.namprd03.prod.outlook.com (2603:10b6:a03:338::18)
- by DS0PR12MB6461.namprd12.prod.outlook.com (2603:10b6:8:c7::22) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.360.13; Wed, 2 Sep
- 2026 19:39:35 +0000
-Received: from MWH0EPF000A6730.namprd04.prod.outlook.com
- (2603:10b6:a03:338:cafe::8d) by SJ0PR03CA0163.outlook.office365.com
- (2603:10b6:a03:338::18) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.382.10 via Frontend Transport; Wed, 2
- Sep 2026 19:39:34 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.233) by
- MWH0EPF000A6730.mail.protection.outlook.com (10.167.249.22) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.382.8 via Frontend Transport; Wed, 2 Sep 2026 19:39:34 +0000
-Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
- (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.46; Wed, 2 Sep
- 2026 12:39:05 -0700
-Received: from drhqmail202.nvidia.com (10.126.190.181) by
- drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.46; Wed, 2 Sep 2026 12:39:04 -0700
-Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
- (10.126.190.181) with Microsoft SMTP Server id 15.2.2562.46 via Frontend
- Transport; Wed, 2 Sep 2026 12:39:00 -0700
-From: Tariq Toukan <tariqt@nvidia.com>
-To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
-	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
-	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>
-CC: Cosmin Ratiu <cratiu@nvidia.com>, Gal Pressman <gal@nvidia.com>, "Lama
- Kayal" <lkayal@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
-	<linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>, Maor Dickman
-	<maord@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, Saeed Mahameed
-	<saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>
-Subject: [PATCH net] net/mlx5: E-Switch, prevent mc_list repopulation during vport disable
-Date: Wed, 2 Sep 2026 22:38:54 +0300
-Message-ID: <20260902193854.3669035-1-tariqt@nvidia.com>
-X-Mailer: git-send-email 2.44.0
+	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b="E1BnX78Q"
+Received: from pps.filterd (m0109333.ppops.net [127.0.0.1])
+	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 682KIdmm2333212
+	for <linux-rdma@vger.kernel.org>; Wed, 2 Sep 2026 13:54:00 -0700
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=
+	pps82601-s2048-2026-q3; bh=slP6R/eaA5o7SI2c2fvL5HowCLSeF5yWKjN3z
+	D5fFhc=; b=E1BnX78QMPOajuTpKiFcgnyOA637N6mEbVYBap7iq3JFNa20fU1yk
+	7cYBnwisH6q1ygtZ2lRFyza9f5+R3zeypp0Z6N//luTubwhqvthDfKEtHBDG91p2
+	KIv6N+01vZyHWwGg2HhXwQ3EkUlbDcLvtsVioORnzBblxazv+DqDq9thZ1somu0i
+	H6FCuK7vJCntpe7f568BAufpH0KR9XgsPL/Iixe/1SRJAD9fChVpFj/Ew5goBYER
+	XbfDIJnH+lGkvHzzT74WvPSAXKEuOeP/4MfqT2aVrkOUu2fus6j2nCYcy5xk+LFo
+	j49p983gU7k9YS3S61lgqyC0tONksP2og==
+Received: from mail-ot1-f70.google.com (mail-ot1-f70.google.com [209.85.210.70])
+	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4gdxqp3p6f-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-rdma@vger.kernel.org>; Wed, 02 Sep 2026 13:53:59 -0700 (PDT)
+Received: by mail-ot1-f70.google.com with SMTP id 46e09a7af769-7f4fa572ba2so864066a34.3
+        for <linux-rdma@vger.kernel.org>; Wed, 02 Sep 2026 13:53:59 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1788382439; cv=none;
+        d=google.com; s=arc-20260327;
+        b=TAvtRKlckAeSmPoGhfviNCIUlB0g41cNc2e8jQmiy0T7r3wGLeLnuR4tcp4og7Gp5O
+         hD9HMTHIVMAcu/kMyFUzTpKRU5wIkiMPnyiMyYMfRfLC4EoHJQix8ONnSW2ZH9cRrHG2
+         4HEBAsjJYdkiLxn6fSEWzcJW6+GTsQlG+qiOPlfp72wGzPx8h8QMAjD5FNmotqdhSe7X
+         hzUJl7FFx6BPlzp31yx4tJDKTTZEtX37OMoKIQ9OZR40erD132F7ooTfAKxNGdBjUn1z
+         TGRJGVI2XWK872BHJWv7J9FNyjh34U9BmvH3MlBbKN5H8Y9Frq7oJEV3omymCJUYvXPN
+         rC5g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version;
+        bh=slP6R/eaA5o7SI2c2fvL5HowCLSeF5yWKjN3zD5fFhc=;
+        fh=7f6gTvExMk5iw2cLza9Zag48FnVF7XqB+cdPEVPv6Vg=;
+        b=CbbNkc3Q5497hcoWBXWZqcqhL0g+C+r9/cb3LgtvBR3yHjBENSSQD1NExIzbl5BSYs
+         t487UNfTSEOu/mMpYyTp895ho9SKJGG0aBsJfv4PdOncRTIET/AcZGZlfGoGwEjAuepm
+         RRAod1irlG+NvrWa+bSDJi9FQLAXkqyiXvNWkNPLvWh7pLjf1X6HXYwl2Qv17VhVo7Mw
+         0lVLLW4Q8Q16SZncNAczwcw/6nvduD7YV/APra+k7KWN1y/hBu049dp4NpPKiap5YVs2
+         LMQaGreebVfRMipgTHXWvbfezy4VJWx62PM92y8jfLEuLwLTwBjNhidv6NknVmglyla9
+         FxoA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788382439; x=1788987239;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=slP6R/eaA5o7SI2c2fvL5HowCLSeF5yWKjN3zD5fFhc=;
+        b=E/y7NDEKIbeD/cy87HXkZUsRy6B03Wu8EreAGY5hwJAQDVh2Cb67UXZCfGRbhSSub8
+         sjJSQhtcWrey4BCzRfHN0AlKeOOCrEYDgLrnE3VJzLwJ0+V+aiXbUAMcvRmsBSKkVa8K
+         aUeBfSTs6aILUMwwstnsAy0YioWr0Mvx5UHh6CFCobPOEYLXCrBhzaxULiGMsvvTDNUD
+         A+a080s8i+nYQo8LiABe36sFJerOCC0Je2jIMCLliXbe90Ro9cBDArrMK+81UN5YJivV
+         5l9iL4YtfzyvE1Imz0HQVKH9ZA5ET9pQClfpFJSYaZNKqSXP1b/M+jUYAdjchkqq0/K1
+         HkRg==
+X-Forwarded-Encrypted: i=1; AHgh+Rp85QiXN4cZPvcUQjeHubOVhyVvgKbyjXGdlvTa37xzFZIS/K7ZqpQqdn1N201bk45kVa8fhOoucY0D@vger.kernel.org
+X-Gm-Message-State: AFuF++nviLjjUDSCybaAITDa1ebj8gDepOQSQQ/SSLLC123bPHEZcthp
+	7c/cEU+vZmOL+OP47sB9STdfqVxo0a0QDCBzHIwGjqsyNhQQz5vKFJjFjLL1vPD7bm0W/h1Rj09
+	eBk7K4+hQAzkh3wnP7ILY/NnJRBQLR1xLF4st8gSQbXh5Uyani99sKCAOT1WMeYqwZ5SLFWr7xe
+	SA7kqugNxCICJUwm8Qyx4ZF4Ye6Vgbm3sfSBTN
+X-Gm-Gg: AR+sD13mMd7K1RR5IVzl5q9eX7s7U/b645qqfrVluJKKXmRtPwljtgJuWWIC+HRKSjq
+	HEOaegW7UDppGGVamaOcAFfEXDekhoptZBonpeVZ92Wljh4+X2+A+1HaTnKs5YENTlyXzhbacEP
+	dVc1O/sqX9an0S0hLPfLDE74C+jQ0safay6kB4/xF7griNDcr4u9vNOdaPdY4z9LthrOOW836q
+X-Received: by 2002:a05:6830:2318:b0:7dc:e336:c828 with SMTP id 46e09a7af769-7f78118c5bfmr7645628a34.10.1788382438956;
+        Wed, 02 Sep 2026 13:53:58 -0700 (PDT)
+X-Received: by 2002:a05:6830:2318:b0:7dc:e336:c828 with SMTP id
+ 46e09a7af769-7f78118c5bfmr7645573a34.10.1788382438385; Wed, 02 Sep 2026
+ 13:53:58 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWH0EPF000A6730:EE_|DS0PR12MB6461:EE_
-X-MS-Office365-Filtering-Correlation-Id: 4c0ec54d-315a-4f28-68c3-08df0929eaae
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|376014|23010399003|82310400026|36860700016|56012099006|10067099003|11063799006|18002099003;
-X-Microsoft-Antispam-Message-Info:
-	njWPNbUSMwNoYawqY8SAuysfJBdyPVmu6fTIqT12PAR2UmxAFDwB86SWc3Hi/mym+ipyQ136HmDOKe57dlY+oPSCdcAv8iQ8+mJD7VFDNnPMuyS+CHgqtMdAeNXf5NBHZH2HS2n1E4wnvK9HUKwdSKORi0mX3CIg3etf+k08zIiIz5O1TWEzNatLSZOU7AhPivmDmeltyC1uSNX5omtE/UeyNeQeNipJnmx0XfkB+XnZc97lBpsicn3Am1kWbqmWJhIuYa1pYn0Ryvdk7/ZSErECIGf7IcZY0CvZRtfHqbwehSi0npK1Ao7z0/fID31rWYcWCuPPE9/Wwjn8W9zYM0J7hfEUD9OLSwbR+W83M6yyTyChrdqk2Us5oBM3rwjq/7OEtGbp/JM/W407QwEbytW7Em3BR2Ag6uBG1pfTV4L4BV7j/pOwOuXuMC836ww9J8nbm3kqFfpDAgqC7PGs9yawtXdjYbGN5QMyNB1kl0mwhMwliQJ2FAFjCWdWSUrNY/RYgJzn5G1ruiYapkTfKlBraxC178ul8+AKvQdsdFck9CI+4mi6DpxBeFewmKo9z8m5RWS7yjx1lq+WpLuYYf1jUNprYFwr+Gk4C7h7PT2Anx+zA0GhXhPVH8IHuu+Z/zj9Xx4u+JUJZuBIHYL+WYa4Xot0SmSumYxVh1GmnzwIcwv/Gc+tW6PwoLjg7X7Z
-X-Forefront-Antispam-Report:
-	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(376014)(23010399003)(82310400026)(36860700016)(56012099006)(10067099003)(11063799006)(18002099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	fy71QtAQq7vV8KKi6R+OzWy9QudvnvFKA0BNvIixwxAuXPzfp1PeTZdKA3ojWgWp6TOeZA5MZe/9f3Qt/wRooMAlsf14CJcdv9+29ngsZe9Ji1BxP1m3EuvuxJxdONb2x/CRTQNoygFxEE9G4DPiiSuTw5tPmOA4bpb+MDwqLZxCMpi77354zYo6q2kt7TXgN31O6rg+BQDhyf1Y4O8fp9c/bGph7MVsc5f4OJA52I7xZnUmfK6K30MrvGpEGx8lzPruQLmHyWmj1VfjjGTL0xDeYqboSeE/4BJBoggHAUQ0Jp+DBt2dS0lnzQXfwOSYVXmXJU6XK5XFbXn9M9BiXt1JmXcDRMtvDMcIZoMVV1y4Sse9o24M//eUw0de2xgbIV5yzWYcDvQJNJnUy4y2XMU7A8ExZpX6ZfD8olVclBpsfxiqlf8cSgZZe+dMnaHc
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Sep 2026 19:39:34.4614
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 4c0ec54d-315a-4f28-68c3-08df0929eaae
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	MWH0EPF000A6730.namprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB6461
+References: <20260731211601.3033906-1-zhipingz@meta.com> <CAH3zFs0vQidHOWif_LmS0=65S9iiCo7yGibqLvFT5jadjj8wVA@mail.gmail.com>
+In-Reply-To: <CAH3zFs0vQidHOWif_LmS0=65S9iiCo7yGibqLvFT5jadjj8wVA@mail.gmail.com>
+From: Zhiping Zhang <zhipingz@meta.com>
+Date: Wed, 2 Sep 2026 13:53:47 -0700
+X-Gm-Features: AcwNN1XXj8kbotAle5RRTxM4j9lLg4IWUd1UaMxGDPIdO-M5-6hRyJEApT1F7Gg
+Message-ID: <CAH3zFs2XnH6gT0fO4=WLi4x1SL2+Y0S=Jo45SWkR=unPegQ8Hw@mail.gmail.com>
+Subject: Re: [PATCH v13 0/5] vfio/dma-buf: add TPH support for peer-to-peer access
+To: Christian Konig <christian.koenig@amd.com>
+Cc: kvm@vger.kernel.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, Bjorn Helgaas <bhelgaas@google.com>,
+        Alex Williamson <alex@shazbot.org>, Jason Gunthorpe <jgg@ziepe.ca>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+X-Authority-Analysis: v=2.4 cv=U6yiy+ru c=1 sm=1 tr=0 ts=6a988ce8 cx=c_pps
+ a=7uPEO8VhqeOX8vTJ3z8K6Q==:117 a=IkcTkHD0fZMA:10 a=VdqzKS8jKosA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22 a=tpM8CJlwf7uhpglF1g9U:22
+ a=VwQbUJbxAAAA:8 a=VabnemYjAAAA:8 a=Tz3jYIXQlW6mLFCxu40A:9 a=QEXdDO2ut3YA:10
+ a=EXS-LbY8YePsIyqnH6vw:22 a=gKebqoRLp9LExxC7YDUY:22
+X-Proofpoint-GUID: zS9rQelswP34uEdyKOEEBoMYoTgUY5Md
+X-Proofpoint-ORIG-GUID: zS9rQelswP34uEdyKOEEBoMYoTgUY5Md
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTAyMDE4NCBTYWx0ZWRfXyjWCY3hAnNTN
+ Hbwzs2beSWTSGPdwFpxXISxPLgGwCgY4zbWWXvOdWLh6VzjSI62Qe77DxLUR+OT2mLx9tTrx23l
+ VZeaSqu443vfPJJq7tjHFuuv74jr+OlLFlZBZMDAqcxTzN/Ag9mroWOmlPej9kVF3L/hQ3O/NwH
+ QmgYarFrNIKMmGexxSVCx4eH6cwpmMNKFtYGYaDyGwBmW8dXEY1xgjq9rdw+qAjtCBrZdNQq42s
+ MMuEq2xxUl+V53oKGpZyz0FAOQ77d4SUJolsRA7nY9Ef6Je/TdrkiKvdyXD6fznHA3fZsdd+uFj
+ azqPGT21bwE121EQt//DPk3R3JN6Gw4OnHwqtTc8OBE0hfjTWnP+iYqah4ikk0zz1n6ZwDOjFL3
+ OSAhRz33Ge//YbZOSKhuKn1eeH8lnLsbsImeG6zflaDydxSGsrRIc6Gli0//rmG1c0g8SN9S4Db
+ PVOemQP53phc91y1xRA==
+X-Proofpoint-Spam-Info: AW1haW4tMjYwOTAyMDE4NCBTYWx0ZWRfX6GYs0Rx2PWGj
+ whfgNu6MooFJsiyg3oVIjazK8ahY+TxEJKTtyH2CU22VxAE1yEBbqqGr1LYiQEEkCPtOfWgI1LE
+ 9PIxfMuysPzidBBaWTkOs4ibQDM8I60=
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-09-02_05,2026-09-02_04,2025-10-01_01
 
-From: Lama Kayal <lkayal@nvidia.com>
+Hi Christian,
 
-In mlx5_esw_vport_disable(), move esw_apply_vport_rx_mode() ahead
-of esw_vport_change_handle_locked() so vport->allmulti_rule is
-NULL before the change handler observes it.
+Another ping on this series for your attention. Pls see below for more deta=
+ils.
 
-During FW-fatal recovery the disable runs while dev->state ==
-INTERNAL_ERROR. The promisc query inside esw_update_vport_rx_mode()
-fails and returns early, leaving vport->allmulti_rule intact, so
-esw_update_vport_mc_promisc() runs and adds MLX5_ACTION_ADD entries
-to vport->mc_list whose flow rules are then installed in the FDB
-by esw_add_mc_addr(). esw_destroy_legacy_table() tears down the
-FDB with those refs still held, corrupting the sub-tree and
-leaving dangling flow_rule pointers in vport->mc_list.
+Thanks,
+Zhiping
 
-Two-stage failure on `echo 1 > /sys/bus/pci/devices/<bdf>/reset`:
-
-  refcount_t: underflow; use-after-free.
-   tree_put_node+0xef/0x110 [mlx5_core]
-   clean_tree+0x44/0xd0 [mlx5_core] (x5)
-   mlx5_fs_core_cleanup+0x57/0x1c0 [mlx5_core]
-   mlx5_unload+0x65/0xd0 [mlx5_core]
-   ... mlx5_health_try_recover
-
-  BUG: unable to handle page fault for address: 0000000003000055
-   down_write+0x1c/0x60
-   mlx5_del_flow_rules+0x33/0x1f0 [mlx5_core]
-   esw_del_mc_addr+0x7b/0x170 [mlx5_core]
-   esw_apply_vport_addr_list+0x56/0xf0 [mlx5_core]
-   esw_vport_change_handle_locked+0x28b/0x310 [mlx5_core]
-   mlx5_esw_vport_enable+0x270/0x4a0 [mlx5_core]
-   ... mlx5_load ... mlx5_health_try_recover
-
-esw_apply_vport_rx_mode(false, false) clears vport->allmulti_rule
-via its local state machine even when the FW del fails. With the
-rule NULL the !IS_ERR_OR_NULL(allmulti_rule) gate in the change
-handler closes, no rules are installed during disable, and the
-reload starts with a clean mc_list.
-
-Fixes: 922f56e9a795 ("net/mlx5: Fix steering rules cleanup")
-Signed-off-by: Lama Kayal <lkayal@nvidia.com>
-Reviewed-by: Cosmin Ratiu <cratiu@nvidia.com>
-Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-index b6e2c153b4f7..4c7fa4a52b0e 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-@@ -1040,13 +1040,19 @@ void mlx5_esw_vport_disable(struct mlx5_eswitch *esw, struct mlx5_vport *vport)
- 	    (vport->info.ipsec_crypto_enabled || vport->info.ipsec_packet_enabled))
- 		esw->enabled_ipsec_vf_count--;
- 
-+	/* Clear rx-mode before esw_vport_change_handle_locked(): on
-+	 * MLX5_VPORT_PROMISC_CHANGE it calls esw_update_vport_mc_promisc()
-+	 * when vport->allmulti_rule is set, repopulating mc_list with FDB
-+	 * rules that dangle once the FDB is destroyed. NULL allmulti_rule
-+	 * here skips that path.
-+	 */
-+	esw_apply_vport_rx_mode(esw, vport, false, false);
- 	/* We don't assume VFs will cleanup after themselves.
- 	 * Calling vport change handler while vport is disabled will cleanup
- 	 * the vport resources.
- 	 */
- 	esw_vport_change_handle_locked(vport);
- 	vport->enabled_events = 0;
--	esw_apply_vport_rx_mode(esw, vport, false, false);
- 	esw_vport_cleanup(esw, vport);
- 	esw->enabled_vports--;
- 
--- 
-2.44.0
-
+On Fri, Aug 14, 2026 at 11:08=E2=80=AFAM Zhiping Zhang <zhipingz@meta.com> =
+wrote:
+>
+>  Hi Christian,
+>
+> A gentle ping on this series, especially patch 3, which adds the
+> optional dma-buf get_pci_tph() callback. Could you please review this
+> when you have a chance?
+>
+> https://lore.kernel.org/linux-pci/20260731211601.3033906-4-zhipingz@meta.=
+com/
+>
+> Thanks,
+> Zhiping
+>
+>
+> On Fri, Jul 31, 2026 at 2:22=E2=80=AFPM Zhiping Zhang <zhipingz@meta.com>=
+ wrote:
+> >
+> > This series adds TLP Processing Hints (TPH) support to the VFIO dma-buf
+> > export path, allowing importing drivers (e.g. mlx5) to use the
+> > exporter's steering tag when performing peer-to-peer DMA into a
+> > VFIO-owned device.
+> >
+> > There is no separate in-tree vendor kernel driver for the target device=
+:
+> > vfio-pci is the in-tree driver and the targeted device is managed
+> > from userspace via VFIO passthrough. That is why the ST has to flow
+> > through a uAPI: userspace owns the device and its ST table, so it is th=
+e
+> > entity that can configure a meaningful value for a given dma-buf. The
+> > kernel-visible participants are still in-tree: vfio-pci exports the
+> > dma-buf and mlx5 imports it.
+> >
+> > On the effect: the endpoint's PCIe ingress block uses the ST as
+> > an in-band instruction for the incoming P2P TLP -- selecting a target
+> > cache partition and, on writes, an in-flight operation on the data
+> > before it lands. The dma-buf callback keeps this opaque to the
+> > framework -- only the producer (userspace owner of the VFIO device)
+> > and the consumer (endpoint block) need to interpret the value. The
+> > dma-buf get_pci_tph callback itself is optional, but workloads that
+> > depend on the endpoint's in-flight operation need it because fallback
+> > does not produce the same result.
+> >
+> > The dma-buf hook is intentionally generic and discoverable rather than
+> > a private side channel. The exporter owns the completing address
+> > space for the dma-buf and decides whether it can provide a meaningful
+> > ST/PH tuple for that completer; the dma-buf core keeps the tuple opaque=
+,
+> > and importers merely request the namespace they support and place the
+> > returned value on generated TLPs. Exporters that cannot derive a
+> > meaningful tuple simply return -EOPNOTSUPP.
+> >
+> > TPH is advisory: a steering tag that is not honored on the path (for
+> > example an intermediate routing element that does not forward the TPH
+> > prefix) is ignored and the request completes as an ordinary,
+> > non-TPH transaction (PCIe Base 6.4 sec 2.2.7.1). This series therefore
+> > targets the same-Root-Port / common-switch topology, where the ST
+> > reaches the completer; cross-Root-Port P2P is best-effort and is not
+> > gated in the uAPI, since supplying an unused ST is harmless and there
+> > is no discoverable "TPH routing" capability to test against.
+> >
+> > Patch 1 folds the reserved 0b10 "TPH Completer Supported" encoding into
+> > "not supported" in get_rp_completer_type(), so only architected values
+> > can reach the TPH Requester Enable field. It was previously posted
+> > standalone to linux-pci; per Alex Williamson's v12 review it now travel=
+s
+> > with the series, which removes the cross-tree ordering dependency and
+> > lets review tooling apply the series as posted.
+> > Patch 2 adds small PCI/TPH type helpers so drivers can query the enable=
+d
+> > TPH requester mode and the device's TPH Completer Supported field
+> > without reaching into pci_dev internals (and so callers in
+> > CONFIG_PCIE_TPH=3Dn builds get a clean fallback). pcie_tph_completer_ty=
+pe()
+> > applies the same reserved-encoding fold as get_rp_completer_type(),
+> > inlined locally so the helper is self-contained.
+> > Patch 3 adds the optional dma_buf_ops::get_pci_tph callback plus the
+> > dma_buf_get_pci_tph() importer wrapper so importers can fetch TPH
+> > metadata from an exporter under dmabuf->resv.
+> > Patch 4 implements get_pci_tph in vfio-pci and adds the new uAPI
+> > (VFIO_DEVICE_FEATURE_DMA_BUF_TPH) for userspace to attach the metadata.
+> > Patch 5 wires up the mlx5 RDMA driver as a consumer. It also enforces t=
+he
+> > dma_buf_get_pci_tph() steering-tag lifetime: the tag is only valid for =
+the
+> > mapping it was queried against, and the mkey's TPH fields cannot be
+> > reprogrammed in place. mlx5 therefore records the registration-time tup=
+le
+> > and re-queries after each dma-buf mapping is established under
+> > dmabuf->resv; unchanged tuples continue with the existing mkey, while
+> > changed or missing tuples fail the remap rather than continue with a
+> > stale hint. For vfio-pci BAR dma-bufs this is expected to be a no-op
+> > because invalidation is revoke/quiesce, not movement to a new backing
+> > placement, and the userspace-provided tuple is not changed by the
+> > revoke/un-revoke path.
+> >
+> > Build-tested with both CONFIG_PCIE_TPH=3Dy and CONFIG_PCIE_TPH=3Dn.
+> > Functional validation on the target topology: PCIe analyzer captures
+> > on the P2P TLPs confirm the ST emitted by mlx5 matches the value
+> > configured through VFIO_DEVICE_FEATURE_DMA_BUF_TPH, and the end-to-end
+> > P2P workload only produces results consistent with the endpoint's
+> > ST-selected in-flight operation. For example, with userspace
+> > configuring 8-bit ST=3D0xf0 and PH=3D2, an analyzer capture of a peer-t=
+o-
+> > peer MWr64 shows "STP MWr64 TC=3D0 OHC=3D2 ..." followed by "OHC-B
+> > ST=3DF0h PH=3D2 HV=3D1":
+> > (TLP Captures)
+> > 08000260 -> STP MWr64 TC=3D0 OHC=3D2 TS=3D0 Attr=3D0 L=3D8
+> > F0000004 -> RID=3D4h:0h.0h EP- Tag=3DF0h
+> > E0200000 -> AddrH=3D000020E0h
+> > 00080006 -> AddrL=3D06000800h
+> > 90F00000 -> OHC-B ST=3DF0h PH=3D2 HV=3D1 AMA=3D0 AV-
+> >
+> > The dma-buf get_pci_tph interface has also been exercised by a second,
+> > independent importer: a different vendor's NIC whose driver is not yet
+> > upstream, locally taught to call dma_buf_get_pci_tph(). A PCIe analyzer
+> > confirmed the ST it placed on outbound P2P TLPs matches the value
+> > configured through VFIO_DEVICE_FEATURE_DMA_BUF_TPH, the same result as
+> > with mlx5. Two unrelated importer drivers exercising the callback
+> > end-to-end shows the interface is not tied to a single consumer. That
+> > importer change is out-of-tree and not part of this series. For that
+> > second importer, with userspace configuring 8-bit ST=3D0xe0 and PH=3D0,
+> > an analyzer capture shows:
+> > (TLP Captures)
+> > 08200260 -> STP MWr64 TC=3D0 OHC=3D2 TS=3D1 Attr=3D0 L=3D8
+> > 4E00004C -> RID=3D4Ch:0h.0h EP- Tag=3D4Eh
+> > 00170000 -> AddrH=3D00001700h
+> > 00200006 -> AddrL=3D06002000h
+> > 10E00000 -> OHC-B ST=3DE0h PH=3D0 HV=3D1 AMA=3D0 AV-
+> >
+> > Changes since v12:
+> >   Patch 1 (PCI/TPH, new to the series): the reserved-encoding fold,
+> >   previously posted standalone to linux-pci [1], is now the first patch
+> >   here (Alex Williamson). Sashiko could not apply v12 because of that
+> >   external dependency; with the fold in-series and the mlx5 leak fix in
+> >   linux-next, v13 has none. The code is unchanged from the standalone
+> >   v3; the Fixes: tag is dropped, since no code path can reach the
+> >   reserved encoding today and the patch is hardening rather than a fix
+> >   for observed silicon.
+> >
+> >   Patch 2 (PCI/TPH): inline the reserved-encoding fold in
+> >   pcie_tph_completer_type() rather than calling the helper that earlier
+> >   folding revisions added; that helper was dropped in folding v3 per
+> >   Bjorn Helgaas and Wei Huang.
+> >
+> >   Patch 3 (dma-buf): no functional change.
+> >
+> >   Patch 4 (vfio/pci): also gate the DMA_BUF_TPH feature on
+> >   vdev->pci_ops->get_dmabuf_phys, matching
+> >   vfio_pci_core_feature_dma_buf(). Without it PROBE reported the featur=
+e
+> >   as supported on a device that advertises TPH Completer support but
+> >   cannot export a vfio dma-buf at all, so nothing could ever carry the
+> >   metadata (Alex Williamson, who raised this to uAPI-affecting
+> >   severity).
+> >
+> >   Patch 5 (mlx5): keep the !dev->st early-out in mlx5_st_alloc_index()
+> >   ahead of the pcie_tph_get_cpu_st() call, so splitting out
+> >   mlx5_st_alloc_index_by_tag() neither adds an ACPI _DSM invocation on
+> >   devices without ST support nor changes the errno userspace sees when
+> >   the _DSM lookup fails (Alex Williamson). The commit message now
+> >   describes this rather than presenting the split as a pure extraction.
+> >
+> > Previous link:
+> > v12: https://lore.kernel.org/linux-pci/20260715204008.3911275-1-zhiping=
+z@meta.com/
+> > v11: https://lore.kernel.org/linux-pci/20260702181025.2694961-1-zhiping=
+z@meta.com/
+> > v10: https://lore.kernel.org/linux-pci/20260630224328.3218796-1-zhiping=
+z@meta.com/
+> > v9: https://lore.kernel.org/dri-devel/20260622184211.2229399-1-zhipingz=
+@meta.com/
+> > v8: https://lore.kernel.org/dri-devel/20260615065912.2177918-1-zhipingz=
+@meta.com/
+> > v7: https://lore.kernel.org/dri-devel/20260611161546.4075580-1-zhipingz=
+@meta.com/
+> > v6: https://lore.kernel.org/dri-devel/20260608185646.4085127-1-zhipingz=
+@meta.com/
+> > v5: https://lore.kernel.org/dri-devel/20260526144401.1485788-1-zhipingz=
+@meta.com/
+> > v4: https://lore.kernel.org/linux-pci/20260519201401.1558410-1-zhipingz=
+@meta.com/
+> > v3: https://lore.kernel.org/linux-pci/20260512184755.4137227-1-zhipingz=
+@meta.com/
+> > v2: https://lore.kernel.org/linux-pci/20260430200704.352228-1-zhipingz@=
+meta.com/
+> >
+> > Zhiping Zhang (5):
+> >   PCI/TPH: treat reserved 0b10 completer encoding as unsupported
+> >   PCI/TPH: Add requester/completer type helpers
+> >   dma-buf: add optional get_pci_tph() callback
+> >   vfio/pci: implement get_pci_tph and DMA_BUF_TPH feature
+> >   RDMA/mlx5: get tph for p2p access when registering dma-buf mr
+> >
+> >  drivers/dma-buf/dma-buf.c                     |  32 ++++
+> >  drivers/infiniband/hw/mlx5/main.c             |   1 +
+> >  drivers/infiniband/hw/mlx5/mlx5_ib.h          |  11 ++
+> >  drivers/infiniband/hw/mlx5/mr.c               | 151 +++++++++++++++++-
+> >  drivers/infiniband/hw/mlx5/odp.c              |   7 +
+> >  .../net/ethernet/mellanox/mlx5/core/lib/st.c  |  52 +++++-
+> >  drivers/pci/tph.c                             |  55 ++++++-
+> >  drivers/vfio/pci/vfio_pci_core.c              |   3 +
+> >  drivers/vfio/pci/vfio_pci_dmabuf.c            | 120 +++++++++++++-
+> >  drivers/vfio/pci/vfio_pci_priv.h              |  13 ++
+> >  include/linux/dma-buf.h                       |  25 +++
+> >  include/linux/mlx5/driver.h                   |  15 ++
+> >  include/linux/pci-tph.h                       |   8 +
+> >  include/uapi/linux/vfio.h                     |  43 +++++
+> >  14 files changed, 517 insertions(+), 19 deletions(-)
+> >
+> > --
+> > 2.53.0-Meta
+> >
