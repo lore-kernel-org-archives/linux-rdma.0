@@ -1,32 +1,32 @@
-Received: from out30-97.freemail.mail.aliyun.com (out30-97.freemail.mail.aliyun.com [115.124.30.97])
+Received: from out30-101.freemail.mail.aliyun.com (out30-101.freemail.mail.aliyun.com [115.124.30.101])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E91CB423A80
-	for <linux-rdma@vger.kernel.org>; Thu,  3 Sep 2026 12:38:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.97
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 625BC49EC75
+	for <linux-rdma@vger.kernel.org>; Thu,  3 Sep 2026 12:40:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.101
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788439137; cv=none; b=oAxSmA1fUmKRgIkwshw6bIoJoP7/bxwiwt3SZVmruuQZnBUv3eDY+PsQp4jHa+iS/NxKGRqNFYoO9EVknUfst2Mr05uXEQ1DmkcLoYjXzZQJJMX+9ZQsO730BtJxVI5iLPJKARjPY9wVybkLVARfw80ZnVoU0Up6Buf51guJE1k=
+	t=1788439208; cv=none; b=ZKB3JmBNlL4z6l0zj/jWh6P2EAHAP8Dl+Ue+65xV5CYJPbeRn2cywHVEA3139L84Vi4pobgwTVX2j3RVZJZbrVY8Htzysaj5MIjKvRG5w6l5IDgZ6gZ2jl3HCIdjjUkand44ZJtYVI0rwy/aL7cBRoQuG2l21ZYGLpCjafQqyW0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788439137; c=relaxed/simple;
-	bh=QWYwWiahmym+4yuhASgmzFu87Kfq/qqPK98+6Ag4LRc=;
+	s=arc-20240116; t=1788439208; c=relaxed/simple;
+	bh=1DTEyZ9jiqnJzcZSAEO7di7nFVYVuemp4sLwu8rbr+E=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=GxhJvtkHtcJo9tg/ZvcOzD9Vb9x+5YsJFtR7WyHVMVrvWgaV8NbfZjvnscrtywiZPUhjMFjO2MJzs9fi1q1aWXYnJo0BHmlHyUEtzQAwffZ76rF6B/rK5ptrO3mbz4vAiTaePlePsOMBGPeGxkFKhD1N123P2NryNhbG5ZaojDw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=PSAClVZs; arc=none smtp.client-ip=115.124.30.97
+	 In-Reply-To:Content-Type; b=ASNl0dqJ8bZTLsh/H/GPh20XwB4iUg8mbDjdPCf3T4U7Vb90yJBsPcoHa3hPUiLbjWp5cfNULmcDxYIQoJLCJaub5G+kwkYz0HotRNwR0bUBoWZx4hXfyMOIA5pPM0Wq/2+DK6AMFhHtrgT4KZ66fzFv3+Chh442+l9tEg+fW60=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=VeagGMWz; arc=none smtp.client-ip=115.124.30.101
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="PSAClVZs"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="VeagGMWz"
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1788439130; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
-	bh=ddaJmXGpsOWiRELEAdp/woW0PSrTqi209z/sPgpvlxs=;
-	b=PSAClVZs0pK74qz6kSbsq4ne/muuHRmO/R+owY0btxk+gcx3XSRssBnZQiJUQJnkRrkwXcsS/zd/vXVhJPezzyBcSLMZQepM7PuZ4VEIdFBpXKG/bVO6ri8i9Rjin27/YX9pT9i5n05SMP4P8j8ESQAJEMyexKesre/YVkuZTcA=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R921e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037026112;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0XAG3W6R_1788439129;
-Received: from 30.221.104.67(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0XAG3W6R_1788439129 cluster:ay36)
+	t=1788439203; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
+	bh=pBjP6MPhO15WkBxzlIFbM+8KAn6B2Tond4jVXH3je7E=;
+	b=VeagGMWz0eT7x8+mHDozZfGR90UuR4RPZgMV6UHvuis2EsCaxW7bD5Z8ClWgP+5ZASCUMsGW2YFMe7x0ptnUL1bYNKq76gzi+lrv3u6S41mDeiylmUCqmUYh2hR6d6JdU0SLyOiaG/DigRWrLwDTOutEQeUDgb4zdw8y/Uv/ydA=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R101e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033045098064;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0XAFwLNT_1788439202;
+Received: from 30.221.104.67(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0XAFwLNT_1788439202 cluster:ay36)
           by smtp.aliyun-inc.com;
-          Thu, 03 Sep 2026 20:38:50 +0800
-Message-ID: <07bb48b7-5a44-51d1-0b55-d9960f63aab2@linux.alibaba.com>
-Date: Thu, 3 Sep 2026 20:38:49 +0800
+          Thu, 03 Sep 2026 20:40:03 +0800
+Message-ID: <9cd75ed4-9486-3fd6-4812-2786467abd08@linux.alibaba.com>
+Date: Thu, 3 Sep 2026 20:40:02 +0800
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -35,173 +35,73 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
  Gecko/20100101 Thunderbird/102.15.1
-Subject: Re: [PATCH for-next v2 1/4] RDMA/erdma: Support non-contiguous kernel
- QP buffers
+Subject: Re: [PATCH for-next v2 3/4] RDMA/erdma: Unify userspace and kernel
+ queue buffer management
 Content-Language: en-US
 To: Leon Romanovsky <leon@kernel.org>
 Cc: jgg@ziepe.ca, linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com
 References: <20260827082523.36294-1-chengyou@linux.alibaba.com>
- <20260827082523.36294-2-chengyou@linux.alibaba.com>
- <20260903091033.GY24140@unreal>
+ <20260827082523.36294-4-chengyou@linux.alibaba.com>
+ <20260903091246.GZ24140@unreal>
 From: Cheng Xu <chengyou@linux.alibaba.com>
-In-Reply-To: <20260903091033.GY24140@unreal>
+In-Reply-To: <20260903091246.GZ24140@unreal>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
 
 
-On 9/3/26 5:10 PM, Leon Romanovsky wrote:
-> On Thu, Aug 27, 2026 at 04:25:20PM +0800, Cheng Xu wrote:
->> A single coherent allocation for kernel QP queues can fail for large
->> queues when memory is fragmented.
->>
->> Allocate page-sized coherent buffers and describe them with the existing
->> MTT. Keep the userspace QP path unchanged.
+On 9/3/26 5:12 PM, Leon Romanovsky wrote:
+> On Thu, Aug 27, 2026 at 04:25:22PM +0800, Cheng Xu wrote:
+>> Userspace and kernel space queue buffers use separate helpers despite
+>> sharing MTT metadata and lifetime rules. Manage both through
+>> erdma_mem_init() and erdma_mem_uninit(), while keeping backing allocation
+>> and release type-specific.
 >>
 >> Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
 >> ---
->>  drivers/infiniband/hw/erdma/erdma_cq.c    |   4 +-
->>  drivers/infiniband/hw/erdma/erdma_qp.c    |  38 +++--
->>  drivers/infiniband/hw/erdma/erdma_verbs.c | 195 +++++++++++++---------
->>  drivers/infiniband/hw/erdma/erdma_verbs.h |  44 ++++-
->>  4 files changed, 179 insertions(+), 102 deletions(-)
+>>  drivers/infiniband/hw/erdma/erdma_verbs.c | 281 ++++++++++++++--------
+>>  drivers/infiniband/hw/erdma/erdma_verbs.h |  17 +-
+>>  2 files changed, 191 insertions(+), 107 deletions(-)
+>>
+>> diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.c b/drivers/infiniband/hw/erdma/erdma_verbs.c
+>> index b0a47c82cbdf..aaef2b3621b0 100644
+>> --- a/drivers/infiniband/hw/erdma/erdma_verbs.c
+>> +++ b/drivers/infiniband/hw/erdma/erdma_verbs.c
+>> @@ -19,9 +19,9 @@
+>>  #include "erdma_cm.h"
+>>  #include "erdma_verbs.h"
 > 
 > <...>
 > 
->> +static void erdma_free_kmem(struct erdma_dev *dev, struct erdma_mem *mem)
->> +{
->> +	struct erdma_buf_list *buf_list;
->> +	u32 i;
->> +
->> +	if (!mem->kmem)
->> +		return;
+>> -static int get_mtt_entries(struct erdma_dev *dev, struct erdma_mem *mem,
+>> -			   u64 start, u64 len, int access, u64 virt,
+>> -			   unsigned long req_page_size, bool force_continuous)
+>> +static void erdma_mem_free(struct erdma_dev *dev, struct erdma_mem *mem)
+>>  {
+>> -	int ret = 0;
+>> +	switch (mem->type) {
+>> +	case ERDMA_UMEM:
+>> +		if (mem->umem) {
 > 
-> Can it be null?
-
-Yes. With the current init_kernel_qp() implementation, failures go
-through the common free_kernel_qp() path instead of unwinding each
-completed allocation in reverse order. As a result, erdma_free_kmem()
-may be called more than once for partially initialized memory, and
-mem->kmem can be NULL.
-
-This is not ideal. I will add a separate preparatory patch to implement
-explicit error unwinding in init_kernel_qp().
-
-> 
->> +
->> +	buf_list = mem->kmem->buf_list;
->> +	if (buf_list) {
-> 
-> Write the unwinding section of erdma_alloc_kmem() to don't call to
-> erdma_free_kmem().
-
-Agreed. Patch #3 already refactors erdma_alloc_kmem() to unwind its
-allocations explicitly instead of calling erdma_free_kmem(). However,
-each intermediate patch should have correct error handling, so I will
-move the change into this patch.
-
-> 
->> +		for (i = 0; i < mem->page_cnt; i++)
->> +			if (buf_list[i].buf)
->> +				dma_free_coherent(&dev->pdev->dev, PAGE_SIZE,
->> +						  buf_list[i].buf,
->> +						  buf_list[i].dma_addr);
->> +		kfree(buf_list);
->> +	}
->> +
->> +	kfree(mem->kmem);
->> +	mem->kmem = NULL;
->> +}
->> +
->> +static int erdma_alloc_kmem(struct erdma_dev *dev, struct erdma_mem *mem,
->> +			    size_t size)
->> +{
->> +	struct erdma_buf_list *buf_list;
->> +	u32 i;
->> +
->> +	mem->type = ERDMA_KMEM;
->> +	mem->page_size = PAGE_SIZE;
->> +	mem->page_offset = 0;
->> +	mem->page_cnt = DIV_ROUND_UP(size, PAGE_SIZE);
->> +	mem->mtt_nents = mem->page_cnt;
->> +	mem->len = size;
->> +
->> +	mem->kmem = kzalloc_obj(*mem->kmem);
->> +	if (!mem->kmem)
->> +		goto err_free_mem;
-> 
-> There is no point to call to erdma_free_kmem() here and you can return
-> immediately.
+> I expect that if you call to this function, mem->umem is already valid.
 > 
 
-Right. No kmem resource has been allocated at this point, so it should
-return -ENOMEM directly. This is already handled in patch #3, and I
-will move the change into this patch.
-
->> +
->> +	buf_list = kcalloc(mem->page_cnt, sizeof(*buf_list), GFP_KERNEL);
->> +	if (!buf_list)
->> +		goto err_free_mem;
-> 
-> Please write error unwinding explicitly.
-
-Likewise. The explicit error-unwinding paths are already introduced in
-patch #3. I will move them into this patch.
-
-
-> 
->> +	mem->kmem->buf_list = buf_list;
->> +
->> +	for (i = 0; i < mem->page_cnt; i++) {
->> +		buf_list[i].buf = dma_alloc_coherent(&dev->pdev->dev, PAGE_SIZE,
->> +						     &buf_list[i].dma_addr,
->> +						     GFP_KERNEL);
->> +		if (!buf_list[i].buf)
->> +			goto err_free_mem;
->> +	}
->> +
->> +	mem->mtt = erdma_create_mtt(dev, MTT_SIZE(mem->page_cnt), true);
->> +	if (IS_ERR(mem->mtt)) {
->> +		mem->mtt = NULL;
-> 
-> Why? You will release mem anyway.
-> 
-
-This was needed because the current code lacks explicit error
-unwinding. The common cleanup path only checks mem->mtt for NULL and
-would otherwise pass the ERR_PTR to erdma_destroy_mtt().
-
-This has the same root cause as the first issue, and I will fix it in
-this patch as part of the same error-unwinding change.
-
-
->> +		goto err_free_mem;
->> +	}
->> +	for (i = 0; i < mem->page_cnt; i++)
->> +		mem->mtt->buf[i] = buf_list[i].dma_addr;
->> +
->> +	return 0;
->> +
->> +err_free_mem:
->> +	erdma_free_kmem(dev, mem);
->> +	return -ENOMEM;
->> +}
->> +
-> 
-> <...>
-> 
->> +struct erdma_buf_list {
->> +	void *buf;
->> +	dma_addr_t dma_addr;
->> +};
-> 
-> This struct is very similar to scatter-gather list, why don't you use it
-> directly?
-
-Good idea. I will use struct scatterlist in the next revision.
+Sure, I will fix it.
 
 Thanks,
 Cheng Xu
 
+>> +			ib_umem_release(mem->umem);
+>> +			mem->umem = NULL;
+>> +		}
+>> +		break;
+>> +	case ERDMA_KMEM:
+>> +		erdma_kmem_free(dev, mem);
+>> +		break;
+>> +	default:
+>> +		break;
+>> +	}
+>> +}
+>>  
 > 
 > Thanks
