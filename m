@@ -1,36 +1,36 @@
-Received: from mta0.migadu.com (out-238.mta0.migadu.com [91.218.175.238])
+Received: from mta1.migadu.com (out-232.mta1.migadu.com [95.215.58.232])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12847397930
-	for <linux-rdma@vger.kernel.org>; Thu,  3 Sep 2026 10:36:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.238
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9D2340B0FC
+	for <linux-rdma@vger.kernel.org>; Thu,  3 Sep 2026 10:42:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.232
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788431786; cv=none; b=P/5guw2jJTZtebI8k+HUtSh65TpdVTUS/96BpBbaBnJFS4z9uPRPsl6Z+3JP3I8K3x0xnyqn32pAD/lXTubhtRfX7R4GDcqEbOcSuQbEPXVClUUmo3kXHSOHfG68vcl+anLtAkWDIBiK6psHlRAw5DDHdAi3pMgr7bqiOf1lRxw=
+	t=1788432149; cv=none; b=TYtciRKckGiWGcDv9tDwM13+mfbZIJ6m/osUOAzODdzpeaQum3EMbGwulKPxnRcn+pwrlAa+mH+Cm0JRVaIjwPrcD0xpc//ZuSqco85z5TuVmOiFCjNg6iIcAeiN6zCh37gaO7xTzfidcqiJpQ6Qo2uqmBTge5aArxFNh+PD7Ss=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788431786; c=relaxed/simple;
-	bh=hPnvmN+ed4I7sDQZeeSQFGf0rqmwsLQ5tR6puj11d0E=;
+	s=arc-20240116; t=1788432149; c=relaxed/simple;
+	bh=LY41AWwZgTNGgRkVR34EfSW+VvJaa0ABgmH1Yoknl/A=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=MFQ7RnJ7ZjONDrbxrCGVL0/YiOZ0tsrkC6rJad4OXoTkAGtR/vYXH4pQSFKyotlDHon8emhUUeESDz+IT4qF6zZXvZBlZK3ylpm73mMxP7RY5jSkPBY5xVOLv+yW6g9mbpouANIoqmvlF+fEhB1YIFppsRM+SFQ1kWvgm0HeSjQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=VmaW2pbH; arc=none smtp.client-ip=91.218.175.238
+	 In-Reply-To:Content-Type; b=bXaae9pxvpSYxlPnNgLDTUWbNGh+WGsluVe2eW5Oky3QP/XsB5DJ0vUJ+bhBHCwAdyNqwMLMeMIcgCupHcQpknrD3Ki/UU97o93E8N6/s4i15KILNQpBQlRPsoDQIJtunaKDtgL96vsLp8ezA8ZOcz69WIm8UOMdMgHcJPbai9M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=RfECx5lI; arc=none smtp.client-ip=95.215.58.232
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="VmaW2pbH"
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="RfECx5lI"
 X-Envelope-To: linux-rdma@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=hPnvmN+ed4I7sDQZeeSQFGf0rqmwsLQ5tR6puj11d0E=;
+DKIM-Signature: a=rsa-sha256; bh=LY41AWwZgTNGgRkVR34EfSW+VvJaa0ABgmH1Yoknl/A=;
  c=simple/simple; d=linux.dev;
  h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1788431778; v=1; x=1789036578;
- b=VmaW2pbHSQQYmUZzeo6Fuz6cUqE45BE6F9JiT3QOM3Mpap78I/SVRTb9Aqi/cJ4Ds2/NFQxw
- oYySHG/cG4hJxT33zWPaN8IAhpVvMFxj6a4CgeSSLMEBsqXL4xNUv/KBsKTq4P2YKHAPMLw4k8T
- XaRIgnZKnOVy2JH6iZJbcVGc=
+ t=1788432144; v=1; x=1789036944;
+ b=RfECx5lIWKZIreKyAHTL9L7mW/SBKzqBFlOX0jJwgp6ws+wshw10mpjD63BH2fgtUfWBKS1q
+ +hVaDaiWrvSug7BOhoLCRD6+O1Mi5GY9qRGmcaj1jpbX0nNXWGP30f332snFBaZY5gliykiVfJQ
+ 1NKfm0Zm7qYW2g4AfqN1Beww=
 X-Envelope-To: linux-rdma@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id 75467c2e337fc301;
-	Thu, 03 Sep 2026 10:36:18 +0000
-X-Mizu-Trace-ID: 75467c2e337fc301
+Received: by smtp.migadu.com with ESMTPS id f601bdfda607a2b4;
+	Thu, 03 Sep 2026 10:42:14 +0000
+X-Mizu-Trace-ID: f601bdfda607a2b4
 X-Migadu-Flow: FLOW_OUT
-Message-ID: <98c99860-90b0-4c0f-ba09-4aa75a3bcb16@linux.dev>
-Date: Thu, 3 Sep 2026 12:36:17 +0200
+Message-ID: <46f83a1c-02ed-4c64-9eeb-2fc435fdfb24@linux.dev>
+Date: Thu, 3 Sep 2026 12:42:09 +0200
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -38,97 +38,119 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2] RDMA/siw: Clear association under lock if
- siw_qp_modify fails in siw_accept
-To: Leon Romanovsky <leon@kernel.org>, Zhu Yanjun <zyjzyj2000@gmail.com>
-Cc: Guoqing Jiang <guoqing.jiang@linux.dev>, jgg@ziepe.ca,
- linux-rdma@vger.kernel.org, shuangpeng.kernel@gmail.com
-References: <20260827125553.12831-1-guoqing.jiang@linux.dev>
- <b08cb248-e7eb-48ea-9873-02032c0ed0ff@linux.dev>
- <20260901073230.GF24140@unreal>
+Subject: Re: [RFC PATCH] RDMA/iwcm: allow aborting an active connect awaiting
+ CONNECT_REPLY
+To: Stefan Metzmacher <metze@samba.org>, Leon Romanovsky <leon@kernel.org>,
+ Yunseong Kim <yunseong.kim@est.tech>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Jacob Moroni <jmoroni@google.com>,
+ Bart Van Assche <bvanassche@acm.org>, Namjae Jeon <linkinjeon@kernel.org>,
+ Tom Talpey <tom@talpey.com>, Yunseong Kim <yunseong.kim@ericsson.com>,
+ linux-cifs@vger.kernel.org, samba-technical@lists.samba.org,
+ linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+References: <20260805000159.321645-2-yunseong.kim@est.tech>
+ <20260901124103.GL24140@unreal>
+ <47142579-3af7-453b-875c-ff6d610f26a7@samba.org>
 From: Bernard Metzler <bernard.metzler@linux.dev>
-In-Reply-To: <20260901073230.GF24140@unreal>
+In-Reply-To: <47142579-3af7-453b-875c-ff6d610f26a7@samba.org>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 01.09.2026 09:32, Leon Romanovsky wrote:
-> On Thu, Aug 27, 2026 at 03:28:20PM +0200, Bernard Metzler wrote:
->> On 27.08.2026 14:55, Guoqing Jiang wrote:
->>> We need to clear cep before release state_lock as siw_qp_llp_close and
->>> siw_qp_modify->siw_qp_llp_close did.
+On 01.09.2026 18:50, Stefan Metzmacher wrote:
+> Hi Leon,
+> 
+>> On Wed, Aug 05, 2026 at 02:02:00AM +0200, Yunseong Kim wrote:
+>>> After a successful connect downcall, iw_cm_connect() returns with
+>>> IWCM_F_CONNECT_WAIT still set and the cm_id in IW_CM_STATE_CONN_SENT.
+>>> The only thing that clears the flag is the provider delivering
+>>> IW_CM_EVENT_CONNECT_REPLY (cm_conn_rep_handler()).  Until that event
+>>> arrives, iw_cm_disconnect() and destroy_cm_id() sleep uninterruptibly
+>>> in
 >>>
->>> Otherwise if siw_qp_modify() fails in siw_accept(), the QP's state_lock
->>> is released before the error path cleanup. A concurrent ibv_modify_qp()
->>> transitioning the QP to ERROR can race in this window:
+>>>     wait_event(cm_id_priv->connect_wait,
+>>>            !test_bit(IWCM_F_CONNECT_WAIT, &cm_id_priv->flags));
 >>>
->>>     siw_accept()                       ibv_modify_qp(ERROR)
->>>     ----------------------             ----------------------
->>>     siw_qp_modify() fails
->>>     up_write(&qp->state_lock)
->>>                                        down_write(&qp->state_lock)
->>>                                        nextstate_from_idle():
->>> 				     if (qp->cep)
->>>                                          siw_cep_put(qp->cep) <- frees cep
->>>                                          qp->cep = NULL
->>>     goto error
->>>       cep->qp = NULL                   <- UAF
+>>> and both state machines treat IW_CM_STATE_CONN_SENT as BUG(), so the
+>>> API has no way to cancel a pending active connect.  If the provider
+>>> never generates the reply, because the peer died in the middle of
+>>> connection setup or because of a provider bug, every teardown path
+>>> (rdma_disconnect(), rdma_destroy_id()) blocks in D state forever and
+>>> the ULP cannot recover: there is no way to disconnect after
+>>> rdma_connect() was called without risking an unbounded hang.
 >>>
->>> Clear qp->cep and drop the association reference taken by siw_cep_get(),
->>> all under the write lock held from the initial down_write(&qp->state_lock).
->>> Thread B therefore sees qp->cep == NULL, skips its own put, and cannot free
->>> the cep before siw_accept() is done with it.
+>>> This class of problem is not theoretical.  The pending smbdirect
+>>> change "smb: smbdirect: bound the disconnect wait in destroy_sync" [1]
+>>> had to work around it on the ULP side:
+>>> smbdirect_socket_destroy_sync() waited unbounded for the socket to
+>>> reach SMBDIRECT_SOCKET_DISCONNECTED, a transition that depends on an
+>>> asynchronous RDMA CM disconnect event, and when the peer died abruptly
+>>> (a killed client, or Soft-RoCE/RXE where no graceful disconnect
+>>> completes) that event never arrived.  The destroy ran on the single
+>>> ksmbd-conn-release workqueue, every later connection release queued
+>>> behind it in D state, and the whole server wedged until hung_task
+>>> fired.  That change bounded the wait and drove the socket state
+>>> machine to DISCONNECTED locally on timeout; ULPs should not have to
+>>> resort to that, the CM should offer a teardown they can rely on.
 >>>
->>> Reported-by: Shuangpeng Bai <shuangpeng.kernel@gmail.com>
->>> Link: https://lore.kernel.org/linux-rdma/d6fbe475-a5c2-f975-99b0-a0bd6b6d10e8@linux.dev/T/#m5876c1ff2de8686a9a1173b8f1aa0ff5363a785c
->>> Signed-off-by: Guoqing Jiang <guoqing.jiang@linux.dev>
+>>> IWCM_F_CONNECT_WAIT currently guards two different windows:
+>>>
+>>>   * the connect/accept downcall into the provider being in progress;
+>>>     teardown must keep waiting for that, it is short and bounded;
+>>>
+>>>   * an issued active connect waiting for CONNECT_REPLY, which is
+>>>     potentially unbounded.
+>>>
+>>> Mark the second window with a new flag, IWCM_F_CONNECT_SENT: set by
+>>> iw_cm_connect() once the downcall has returned successfully, cleared
+>>> by cm_conn_rep_handler().  The teardown waits now complete when either
+>>> the downcall has finished (!IWCM_F_CONNECT_WAIT, as before) or the
+>>> pending-reply window has been entered (IWCM_F_CONNECT_SENT), and the
+>>> previously BUG() CONN_SENT cases become:
+>>>
+>>>   * iw_cm_disconnect(): return -ENOTCONN; there is no established
+>>>     connection to disconnect, aborting is the destroy path's job;
+>>>
+>>>   * destroy_cm_id(): abort the pending connect locally by moving to
+>>>     DESTROYING and putting the QP into error so the provider tears the
+>>>     connection attempt down.
+>>>
+>>> A CONNECT_REPLY that arrives after the abort is dropped: either
+>>> cm_work_handler() sees IWCM_F_DROP_EVENTS, or cm_conn_rep_handler()
+>>> now recognizes IW_CM_STATE_DESTROYING (the abort and the reply
+>>> serialize on cm_id_priv->lock) and frees the event without touching
+>>> the QP that destroy_cm_id() already released.  The cm_id memory stays
+>>> valid for such a late reply because the provider holds its own
+>>> reference (cm_id->add_ref) for as long as it can deliver events.
+>>>
+>>> The passive side has a sibling gap, where after a successful accept
+>>> downcall the flag stays set until the provider's ESTABLISHED event
+>>> arrives, which this patch deliberately does not change.
+>>>
+>>> [1] https://github.com/smfrench/smb3-kernel/commit/26d0f82a02c8a9c9c8cdfc138acb7ed0bf8e01a9
+>>>
+>>> Suggested-by: Stefan Metzmacher <metze@samba.org>
+>>> Signed-off-by: Yunseong Kim <yunseong.kim@est.tech>
 >>> ---
->>> V2: remove redundant code per Bernard's review
->>>
->>>    drivers/infiniband/sw/siw/siw_cm.c | 7 +++++--
->>>    1 file changed, 5 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/siw/siw_cm.c
->>> index 0245b25e7271..ed49818793dd 100644
->>> --- a/drivers/infiniband/sw/siw/siw_cm.c
->>> +++ b/drivers/infiniband/sw/siw/siw_cm.c
->>> @@ -1719,9 +1719,12 @@ int siw_accept(struct iw_cm_id *id, struct iw_cm_conn_param *params)
->>>    			   SIW_QP_ATTR_STATE | SIW_QP_ATTR_LLP_HANDLE |
->>>    				   SIW_QP_ATTR_ORD | SIW_QP_ATTR_IRD |
->>>    				   SIW_QP_ATTR_MPA);
->>> +	if (rv) {
->>> +		qp->cep = NULL;
->>> +		siw_cep_put(cep);
->>> +		goto error_unlock;
->>> +	}
->>>    	up_write(&qp->state_lock);
->>> -	if (rv)
->>> -		goto error;
->>>    	siw_dbg_cep(cep, "[QP %u]: send mpa reply, %d byte pdata\n",
->>>    		    qp_id(qp), params->private_data_len);
+>>>   drivers/infiniband/core/iwcm.c | 76 +++++++++++++++++++++++++++++-----
+>>>   drivers/infiniband/core/iwcm.h |  1 +
+>>>   2 files changed, 67 insertions(+), 10 deletions(-)
 >>
->> Looks good. Thank you, Guoqing.
+>> I'm not sure what to do with this patch, as the iWARP folks have
+>> remained silent.
 >>
->> Acked-by: Bernard Metzler <bernard.metzler@linux.dev>
+>> Stefan,
+>>
+>> Do you still need this patch? Have you tested it?
 > 
-> Bernard,
+> I'll test it soon.
 > 
-> I will take this patch. However, siw_accept() looks wrong to me. It
-> mixes locking, qp->cep handling, and siw_cep_put() in a seemingly
-> inconsistent manner.
+> But the problem is real and I hit it very often in the past and the only option
+> was a reboot.
 > 
-> For example, here you clear qp->cep and call siw_cep_put() while holding
-> the lock, whereas in the error unwind path you do exactly the opposite.
+> I added Bernard explicitly...
 > 
-> Be aware that AI-generated suggestions for SIW are complete garbage. If
-> you do not clean up these code paths, your driver will soon end up in a
-> broken and unmaintainable state. The same applies to RXE.
+> metze
 > 
-> Thanks
+I follow Yunseong's and Stefan's argumentation.
 
-That's probably an accurate assessment. Thanks for your candid remarks.
-I will try to clean up some obvious things.
-
-I share you opinion on those current AI generated remarks.
-
-Thnk you,
+Thanks,
 Bernard.
