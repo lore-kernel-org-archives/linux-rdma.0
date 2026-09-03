@@ -1,91 +1,81 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mail-4325.protonmail.ch (mail-4325.protonmail.ch [185.70.43.25])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68F5A2AD03;
-	Thu,  3 Sep 2026 03:01:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A48432110E
+	for <linux-rdma@vger.kernel.org>; Thu,  3 Sep 2026 04:06:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.70.43.25
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788404480; cv=none; b=MjkEvKokIJM0dMnbUrE9RfIgUpKZf41YP2wqZBHgO69VOVaa2JTa+v2onjahoylJhkLL7GDBBO2DOh8vQt6mmn2fHyuRNI8pEWmPfwjZ9GxkwM8EuWoFRkE7zPL1klDUPBVZBELp2yvL+Moxg+nuLlQcM+VOibRPM7lS58CSVT4=
+	t=1788408422; cv=none; b=rfWAMAEvMInmSRY5uGpWp7mL4tsaUXbCZv01b5E2otxc4HpjQ8fCmZQdbxjSwb137jBG00dbJ6/OOM92IS2EbJVAAeA9GpKdkZcXr5zmV9EoDB2eSyi9PoZ4k4qdW2j/LYkraO+TUKS2Kq7VrwCm33fTyuBgfx1u5rr0x9pHdiM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788404480; c=relaxed/simple;
-	bh=2wjBNr9zTeYBzJvMLcuEBJDe85XHin4tX2QnoAgrx0U=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=dLws43PPBrztd6CLmikuGK+Z1T9nD7wivYSa3YmyHsKFhhU1R2Ekf9RglBtIZGrft++lG/qCxMVh1EGTXARMkpcAtMGnbPs5RM+x9j+bfdPag9FMcoVh51h7yJZ1Vkmf7RJ5Y/qNldantsKmXsVrPky8jMtq4rYqsc3d1sO1DK4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jhS/qaCo; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788408422; c=relaxed/simple;
+	bh=gAmwA/Rxqppk70vzbQnOlL1N+OV0qNrSDg5aE/U2TY0=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=Upi8XYZdHfXIvCVVPTnEHGuDcwPWe1V7xKiGXXwdJ57uPst+aq6abkFGXcx190aGaSzLQIvyl1dhHhesRJjwOR9dJ4I0Ry5780TNqFUCeLNqrbXZQAvRXYZrYXcvz9GkJ1cb9vCiNcpc5CfyqhVhEszOInN1ejMBZXMWCC5q6iE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me; spf=pass smtp.mailfrom=proton.me; dkim=pass (2048-bit key) header.d=proton.me header.i=@proton.me header.b=TQ6MHhXq; arc=none smtp.client-ip=185.70.43.25
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proton.me
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jhS/qaCo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 404301F000E9;
-	Thu,  3 Sep 2026 03:01:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788404478;
-	bh=dti6P2+fpan/PWRRo7IXt81V3LD0ZHyIpNZKNTiMv7s=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=jhS/qaCoEEHLJyM7vqa6Ade3SeGgNeTY7bC1c4ugZal04x8VjEa/6uRQyCB9tnqvW
-	 fBhaYYASwOel6BpZUpk5AXJ5PIdlE52AsxtS9Y9uE+fxtKXJf2moItwdBixyBZQFhr
-	 BmCbv5VBg8ViWysBMvE5eeF2JBP6XXgWBNbboTM5FNzoeX02lJWB9qWztwZ6XchB/K
-	 a9wTTV9BerNueyAU/mG3lCCUAj4hqZeSg6ADmO8V0ibOSTbBrOTtChTKA15R97D0Ar
-	 fAb3YgoCm1fGO840kdO6dLzmkfjFmopILtP+x4Ho0DSXPvhR8LG0JCEL0Lc46OH5I8
-	 OQYq5YEgkf2mw==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 19A7D392705B;
-	Thu,  3 Sep 2026 03:00:21 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=proton.me header.i=@proton.me header.b="TQ6MHhXq"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=proton.me;
+	s=protonmail; t=1788408405; x=1788667605;
+	bh=gAmwA/Rxqppk70vzbQnOlL1N+OV0qNrSDg5aE/U2TY0=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
+	 Message-ID:BIMI-Selector;
+	b=TQ6MHhXqFegbQyFZyZbuIkQXOyjTY7c8J3jvM/pFtHN1i9jaR7DJk8eyXkh0kO5Bb
+	 IqGNY/0Grq3JQ0lPluvJ0JtIp8gNcFgLrv9krDlyawY4+PBd8AugGuFjKuGNK1a7qd
+	 s4oXgabZTwvzi1OPq/47UFJUKUU1XIZZ9PpXhpRksmBCW39RlVBnGRfHE8cCFxcXGy
+	 qg0Q1vZ7vnNCKKXqsGsosOg1+TORxmUOQ0OXDTDiTtJdesTQvMeAUsRyxrPbSZ2Vl8
+	 kdH0RUVeghYzVXrQvUW1M0VNQrCRpHFx1Ic5e9T54sH8zL2jw56RN94huDgoR3lHyV
+	 4FcSVqS1Z+6nA==
+Date: Thu, 03 Sep 2026 04:06:44 +0000
+To: Jinpu Wang <jinpu.wang@cloud.ionos.com>
+From: quanyeyang <quanyeyang@proton.me>
+Cc: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, syzbot+d396918a29afb8543e1c@syzkaller.appspotmail.com
+Subject: Re: [PATCH] RDMA/rtrs-clt: Fix CQ pool leak when connect is interrupted
+Message-ID: <ANOSEdInjxoti993P_wPWGuTPEEr-eZDjuLNMkXhG0yW63ECGVftgiFWetVMMKjLBrQc6dUiZtThzpFuEvDy4hqbNjooSjKeY2UW9qR7pk0=@proton.me>
+In-Reply-To: <CAMGffEmz_QSy2TLM5OBQ5GUaOiRozkLyuTNOXV8f9CnbvhPYSQ@mail.gmail.com>
+References: <20260830-rdma-rtrs-clt-cq-pool-leak-v1-1-b169434fd3df@proton.me> <20260902162518.GW24140@unreal> <CAMGffEmz_QSy2TLM5OBQ5GUaOiRozkLyuTNOXV8f9CnbvhPYSQ@mail.gmail.com>
+Feedback-ID: 206494642:user:proton
+X-Pm-Message-ID: d2cea401a73f162c98d43d78310855efc9434a06
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net v5 0/7] net/rds: own the fastpath locks across
- connection
- teardown
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <178840441963.3061644.9034056329969697998.git-patchwork-notify@kernel.org>
-Date: Thu, 03 Sep 2026 03:00:19 +0000
-References: <20260828223921.202913-1-achender@kernel.org>
-In-Reply-To: <20260828223921.202913-1-achender@kernel.org>
-To: Allison Henderson <achender@kernel.org>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
- edumazet@google.com, kuba@kernel.org, horms@kernel.org, jhubbard@nvidia.com,
- woni9911@gmail.com, michal.kubiak@intel.com, leon@kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Hello:
+On Thursday, September 3rd, 2026 at AM 12:48, Jinpu Wang <jinpu.wang@cloud.=
+ionos.com> wrote:
 
-This series was applied to netdev/net.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
+> Hi Leon, hi Quanye,
+>=20
+> I had a look at the report. The syzbot bug seems to be triggered with
+> smbdirect (ib_dev[syz2] removed), so I'm not sure how this change in
+> RTRS client would fix that issue.
 
-On Fri, 28 Aug 2026 15:39:14 -0700 you wrote:
-> Hi all,
-> 
-> This is v5 of the follow-up set to "net/rds: Bug fix ports, part 2"
-> [1] (v1 at [2], v2 at [3], v3 at [4], v4 at [5]).  During review of part 2, the
-> later half of that series needed more work than a respin, so it was
-> split off into this set together with the companion fixes identified
-> along the way.  As discussed on the v2 thread, it is targeted at net.
-> 
-> [...]
+Hi Jinpu,
 
-Here is the summary with links:
-  - [net,v5,1/7] net/rds: use wq_has_sleeper() in release_in_xmit()
-    https://git.kernel.org/netdev/net/c/6d0c8b707391
-  - [net,v5,2/7] net/rds: use clear_bit_unlock() in release_refill()
-    https://git.kernel.org/netdev/net/c/17c4476dbb9c
-  - [net,v5,3/7] net/rds: clear cp_flags bits individually in rds_conn_path_reset()
-    https://git.kernel.org/netdev/net/c/103c4b13c4f5
-  - [net,v5,4/7] net/rds: tcp: don't force RDS_CONN_RESETTING over a concurrent shutdown
-    https://git.kernel.org/netdev/net/c/e8e60d74fec4
-  - [net,v5,5/7] net/rds: acquire RDS_IN_XMIT in rds_tcp_reset_callbacks()
-    https://git.kernel.org/netdev/net/c/02c5f9dc2efd
-  - [net,v5,6/7] net/rds: acquire the fastpath locks in rds_conn_shutdown()
-    https://git.kernel.org/netdev/net/c/813f3582ac7a
-  - [net,v5,7/7] net/rds: don't let rds_conn_shutdown() consume a concurrent drop
-    https://git.kernel.org/netdev/net/c/260c6308fe2e
+The smbdirect line is from ib_client->remove() during disable_device(),
+which always runs before ib_cq_pool_cleanup(). smbdirect just logs that
+the IB device is going away; it does not use ib_cq_pool_get().
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+rtrs is not an ib_client, so it does not appear in that remove loop.
+The leftover cqe_used comes from rtrs-clt borrowing pool credits in
+ADDR_RESOLVED and then dropping the con without PUT, which we hit
+locally with rnbd-client only (no smbdirect traffic): map_device with
+path=3Dip:127.0.0.1, interrupt create_cm(), then rdma link delete.
+
+The same "ib_dev[...] removed" line shows up in that repro right before
+the WARN, for the same reason it shows up on syzbot.
+
+Thanks,
+Quanye
+
+>=20
+> Thanks,
+> Jinpu
 
 
