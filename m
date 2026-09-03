@@ -1,73 +1,71 @@
-Received: from PH7PR06CU001.outbound.protection.outlook.com (mail-westus3azon11020075.outbound.protection.outlook.com [52.101.201.75])
+Received: from BL2PR02CU003.outbound.protection.outlook.com (mail-eastusazon11021097.outbound.protection.outlook.com [52.101.52.97])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45F904AFE17
-	for <linux-rdma@vger.kernel.org>; Thu,  3 Sep 2026 17:55:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.201.75
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B3804FDE45
+	for <linux-rdma@vger.kernel.org>; Thu,  3 Sep 2026 17:55:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.52.97
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788458128; cv=fail; b=S+UtpAfoeKIXkRKRBsE1iebOwwu47Chwh5Nyy9oKSvf2doicLgTpodcZ79PjmdDeGMaERrJZNn9eeYzDZiA4FEW7tD4oSUnAtWO+uUA605rcVO3uHhwblrOKo14OyQiFQAkv1PGOrh/J/zh8ZqdSrpCvmPP20xtjUHYvvfHjx9o=
+	t=1788458135; cv=fail; b=p8CB2NojNu9hpLvmUAZNG23zkzIiDRsD36h0t7I7L4eQ1oowRp90OrR6NXSnESaJrcxf0qOmILqetBWntA8pt35vMRmOGMIYlduoRBjIvj5AY/ElU1xRGwm2+RE+eo1hWKLYgSKXVC4I4arMxg6zoo1TczCX9FchNE7loJcpkjs=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788458128; c=relaxed/simple;
-	bh=/p2MsSNlR6KU5ulpdz1AjWpzAcEmF+5FUq3gPM14Z6U=;
+	s=arc-20240116; t=1788458135; c=relaxed/simple;
+	bh=H9/lYIjy/wH1CQy4btO4VK2cq91GfM5QhOQ719nvBq8=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=b2k7z56hagSdKGU5jUEEPcjeJNoaCra4c+wWNTewRr0GnhkX2gP4/Ccn2MUQJKEJNtMsgXGEa90wAeQfywHHFJjr2/ueD17NNoU/KMV9QG1ut+ojmXq17DKsmLgPisHhXpyKdDtcVsrUfWWJm0tzBkalTHiz15w/N+AGOIqEutM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com; spf=pass smtp.mailfrom=cornelisnetworks.com; dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b=KhGv7LKR; arc=fail smtp.client-ip=52.101.201.75
+	 MIME-Version:Content-Type; b=elYdgz92484VzcPQeR9S8IPzWkSMxJ2e4MIWdgtJs8VYLVHrRgyAcpW9R1++Lm7pXNolvhXUuOUW5hSFYJfvZUEpXFclokncNbSGmkXtLJY8kBJw0l4UWE38WKh4WgfOEH5K20uO6fEHp2GLn7zYR3raP7s80xaTHVSfEuP23UY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com; spf=pass smtp.mailfrom=cornelisnetworks.com; dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b=cisPS9OY; arc=fail smtp.client-ip=52.101.52.97
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cornelisnetworks.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b="KhGv7LKR"
+	dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b="cisPS9OY"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=vX5+Ka7JVj2XOsjpuG9LM1XmujwuxCDkYXPTw0VMNYqt+dYoSeh81acyoL1LpxCwNXg1mQdlw8VFWv097nXWdjuw2rlVUADn5dmiKfs6fQIQJwfoq1CAFf1tP4kTWhcAKB4GCgQU4wjCcOILHw9Dkr3E7BBmoSpaqkekg25wUrasmU4BDZLOHx2pruCV0zg6eVxU4e9a2QeVX1vQ3yrsnA2mKYCwcMTzJu8dzYoLdVhmHuCaYw1c29ox4RrqyeS81QEX9FTXXrC5BSq/iHc1HkJB6sb8XEFZu8/1bb++HG61z7oFLitMYzI0Genu5lTMNFpKb8btqOAUPbN7qiwxUA==
+ b=pkV/EIqlhNImDtA2WoJxggWcMQ3Kblu2W6cUO2yxJHInBOUq8yBwlA+ChttOo3VyCmk/A0w8nSv2Y6Vpo2HKx1Ig8YvSgkHJ37EfHCO1PrFrrJdXHkBx2dWWjrJzk/qOygZlB8qc6/KqSwCGhhfeIqldF/IJeYSL9RAowKEGnLv1i4VU4+TrNRu8VsUw1zWjecsTousbgs7lUaDRT2M6K25TsNPG8fmbQf/Y+45OJi5CR/nl4IXRQRATYCJXRtfMR7lIKpSdrViu+qTyauLL2+Fv+gERzlLR0Svg3lIq7RmLBksho98rtMRQ+iGKrUMVnnCXKoywsyLoQ6ygtyIK6A==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=lLNpm+al7zLzTjY/tq6HAGRkEdlnpheevt11GQ/HS4A=;
- b=sVnsPIr9gNTiv7wp8MAoBpIQwIghv8RdrLYhB6H3O3YHQ1zp10lg/6c8chLxqN0P8t/X4zuh4B0mqqzkIP0u9OYgD9rLUjaAk91HDHnQmzR/NHkiwDqcCmBHOCpDf4qajyl5oKlTOhTt3/LQ3GZNtw28h7uv3XRLLvAzBB7028GCr+4fqHcQJsidwoJ2uUzU1KVyZjitQ3LbAqd5nHzY8+KL3koWauzfaIMFyuDmCoiMWX22zsxlXcJQOkHhlUQ1+QKN0iuuOpqxCrWQahLvQhW9v8LkrWGJOHPY1Pl42qz8HEXZPK1q+44wERmA5j8ryu6cU/MhbGGGFVgIhzd8Pg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=fail (sender ip is
- 50.148.235.34) smtp.rcpttodomain=cornelisnetworks.com
- smtp.mailfrom=cornelisnetworks.com; dmarc=fail (p=none sp=none pct=100)
+ bh=H8IAin1IEAi5ByeqxIjq9S3OuvkW3fSTrYvytbAkfuo=;
+ b=OGx3DTX7xMwc+p82/HyzeIHsDvk4XjcAR8QCkQTnJpz7bjai8NhKaBEL+5VWad9m3lozJvo8tCsrFmkrOO9+TnFCsgCNAKZOq2QOUjws2MqIPMzgVIlKuFBWznIrrlQgbfSNV5DwoJ0ytSsrw4Wu7HzHVanFPpRYCCZWiZQRxhL6dOCyfxmSIVKhlFtpBvKcOp4zPngm6L9RsNnF4lw3GLClDYl5WDnPcEsvezcPR9ZYY3uXV+ufSUyOm15J3gA0k8zhOl8T4TP13IvHzqjn+R4ecSQ97pB6jMXcuO3j7RWXUi7vWGKu670JLE5d6ld7J+w2sk3feZIxPaBBvPlTWw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 208.255.156.42) smtp.rcpttodomain=cornelisnetworks.com
+ smtp.mailfrom=cornelisnetworks.com; dmarc=pass (p=none sp=none pct=100)
  action=none header.from=cornelisnetworks.com; dkim=none (message not signed);
  arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cornelisnetworks.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=lLNpm+al7zLzTjY/tq6HAGRkEdlnpheevt11GQ/HS4A=;
- b=KhGv7LKROGEawBtjD0bESMznBVRmi9FUKT56oQErBOFnoQkFQfYZK48ESxw0nSIKbAH9dZ/1MfyyBzVsPFx68hpYjWV8iibADiV57p7NR3sFbV8Ccn27H3P5aFVDS2533yq0odYWA6UQPrsxaWM85aQQcji6dkh0G3byBetDYubRZfWMyZaCTvEiRVgLet04B0IWzd1xaFaMtBP70zTzFDyHpNAl588WP25JPdSHcKQVnVM9tTM2MN17FFUezVOeObB1IqMX/ZvizYDYaS7y9QzVqNKBwX0wedqF0oczDneVwYiOlz7juAqKH6J7VhDtTPcfQBFfWx5XKd+mbFZIbw==
-Received: from MN0PR05CA0009.namprd05.prod.outlook.com (2603:10b6:208:52c::29)
- by DS4PR01MB9227.prod.exchangelabs.com (2603:10b6:8:27e::7) with Microsoft
+ bh=H8IAin1IEAi5ByeqxIjq9S3OuvkW3fSTrYvytbAkfuo=;
+ b=cisPS9OYnrmU17SIcRuVcdqRBQtDuMYKIr7Suog7qN1NVSWuBh4dh7wxIWX/Hxb/kps6Aiq7eGWug4q+nnP0++B47xh2Kg9r4Fg5x8ytEZX+8tOT/qwDB66TH6QRM19Qw3nA7CdhFU/r6zqE5Lo87pkawLNslE6OUBJqj4EEPHxYrTyI3vo88dV+5ESv1kJk8ybxmwvHedgkKWQCeyuuWkO3Ic+SVR2u97mbc4v/ROPeHt1tMQm+bIJnoImZ/NURPMaO3Dr8+QkY5e/tUXT5Fyj1w1ZT0g+aa2cCpQytxzqE5SzgUT/I19FWmE0O7u6IDgv8Qq5lZd74uTAnktmQVQ==
+Received: from BYAPR21CA0029.namprd21.prod.outlook.com (2603:10b6:a03:114::39)
+ by DM8PR01MB7128.prod.exchangelabs.com (2603:10b6:5:315::11) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.360.13; Thu, 3 Sep 2026 17:55:13 +0000
-Received: from BL02EPF0001A104.namprd05.prod.outlook.com
- (2603:10b6:208:52c:cafe::81) by MN0PR05CA0009.outlook.office365.com
- (2603:10b6:208:52c::29) with Microsoft SMTP Server (version=TLS1_3,
+ 15.21.360.13; Thu, 3 Sep 2026 17:55:25 +0000
+Received: from SJ1PEPF00001CDC.namprd05.prod.outlook.com
+ (2603:10b6:a03:114:cafe::9f) by BYAPR21CA0029.outlook.office365.com
+ (2603:10b6:a03:114::39) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.21.406.4 via Frontend Transport; Thu, 3
- Sep 2026 17:55:13 +0000
-X-MS-Exchange-Authentication-Results: spf=fail (sender IP is 50.148.235.34)
+ Sep 2026 17:55:25 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 208.255.156.42)
  smtp.mailfrom=cornelisnetworks.com; dkim=none (message not signed)
- header.d=none;dmarc=fail action=none header.from=cornelisnetworks.com;
-Received-SPF: Fail (protection.outlook.com: domain of cornelisnetworks.com
- does not designate 50.148.235.34 as permitted sender)
- receiver=protection.outlook.com; client-ip=50.148.235.34;
- helo=cn-mailer-00.localdomain;
-Received: from cn-mailer-00.localdomain (50.148.235.34) by
- BL02EPF0001A104.mail.protection.outlook.com (10.167.241.135) with Microsoft
+ header.d=none;dmarc=pass action=none header.from=cornelisnetworks.com;
+Received-SPF: Pass (protection.outlook.com: domain of cornelisnetworks.com
+ designates 208.255.156.42 as permitted sender)
+ receiver=protection.outlook.com; client-ip=208.255.156.42;
+ helo=cn-mailer-00.localdomain; pr=C
+Received: from cn-mailer-00.localdomain (208.255.156.42) by
+ SJ1PEPF00001CDC.mail.protection.outlook.com (10.167.242.4) with Microsoft
  SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.21.382.8
- via Frontend Transport; Thu, 3 Sep 2026 17:55:13 +0000
+ via Frontend Transport; Thu, 3 Sep 2026 17:55:23 +0000
 Received: from awdrv-04.localdomain (unknown [10.228.212.218])
-	by cn-mailer-00.localdomain (Postfix) with ESMTPS id E5A261FA26E;
-	Thu,  3 Sep 2026 13:55:12 -0400 (EDT)
+	by cn-mailer-00.localdomain (Postfix) with ESMTPS id 091C11FA26E;
+	Thu,  3 Sep 2026 13:55:23 -0400 (EDT)
 Received: from [10.228.212.218] (localhost [IPv6:::1])
-	by awdrv-04.localdomain (Postfix) with ESMTP id E10AE18129B28;
-	Thu,  3 Sep 2026 13:55:12 -0400 (EDT)
-Subject: [PATCH v5 for-next 09/24] RDMA/hfi2: Add driver and interrupt
- infrastructure
+	by awdrv-04.localdomain (Postfix) with ESMTP id 0647E18129B23;
+	Thu,  3 Sep 2026 13:55:23 -0400 (EDT)
+Subject: [PATCH v5 for-next 11/24] RDMA/hfi2: Add cport management
 From: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 To: jgg@ziepe.ca, leon@kernel.org
 Cc: Dean Luick <dean.luick@cornelisnetworks.com>,
- Breandan Cunningham <brendan.cunningham@cornelisnetworks.com>,
  Douglas Miller <doug.miller@cornelisnetworks.com>, linux-rdma@vger.kernel.org
-Date: Thu, 03 Sep 2026 13:55:12 -0400
-Message-ID: <178845811287.2825126.6833388620275162838.stgit@awdrv-04>
+Date: Thu, 03 Sep 2026 13:55:23 -0400
+Message-ID: <178845812299.2825126.2074559058620748929.stgit@awdrv-04>
 In-Reply-To: <178845806706.2825126.2210865708266527909.stgit@awdrv-04>
 References: <178845806706.2825126.2210865708266527909.stgit@awdrv-04>
 User-Agent: StGit/1.5
@@ -81,2878 +79,1091 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL02EPF0001A104:EE_|DS4PR01MB9227:EE_
-X-MS-Office365-Filtering-Correlation-Id: 75fbdccd-6d5d-4ee7-cd7c-08df09e480ff
+X-MS-TrafficTypeDiagnostic: SJ1PEPF00001CDC:EE_|DM8PR01MB7128:EE_
+X-MS-Office365-Filtering-Correlation-Id: a5f9848a-aeb7-4e93-bd36-08df09e48777
 X-MS-Exchange-AtpMessageProperties: SA
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|1800799024|376014|36860700016|23010399003|55112099003|22082099003|18002099003|3023799007|56012099006|10067099003|5023799004|6133799003;
+	BCL:0;ARA:13230040|82310400026|1800799024|36860700016|23010399003|376014|6133799003|55112099003|18002099003|22082099003|3023799007|56012099006|5023799004|10067099003;
 X-Microsoft-Antispam-Message-Info:
-	/zjVYyfsfIQkkF9CVpC7UlwqAM4I1jH+dQTGKpCp0Mc1v1j4MmkyM1RJrMm3kCibIXw/77wDPj+tK9MzsQSy9jXSAljacc9vdeDWwc9eiI+Xr0tGmzWk04kNkETRy1MeYdeYQGvLz8/PEpJN/bMOYSUky0rqc9sloF8MADgS328SvpkUY+xurBgWCb6jQaVy3muMHbMPIqlGu7W4XYC+mXfmenHbiQC7KWeTtV6jICi51+Xne57m7A0ZE8FX+e55cvZ59EgLwwD2YOtDiJnFXW84ChHPynG/WmMLD0sAhFgApYoLG5yTge9aciN8O2gVBGxvGufpHkiMTXFWCfVpVUdJL+f2wXfJNGaaQ4oBKEfnKZvREpd6nqPlqHBZwL7TQmnRlvc5U+I54V1Bsqzo4BDTvUe46vugQsy/id1aCFCO4VLMlNELpl1n21RQ1X0DnjxutMTXVKzJHxalvJZPIxYCkjF/IGya2CGdv26AccWZgbacrH7RYXzyDC3zzJ/q7vsQAnsTWkgf3gwE0DmlXtuhf+ibvx9TIc+9gIAABtUe9qmTTYyqSZdBS28PZQVgNUvi5ssXhr42RQOros5xjTrLW31FEqrSCWCl2uC2puaNM+IjLtXtBtl9VOh0TGiLE95dlqWt0tHQ32qkdiijKFs/hDx9A9BE6mtBQQ+ULBpXu2IswLV5j/710OWxKtUzxmS99l4VscXQgbchGRdhWw==
+	sbNDqz7ZJ1GruuM5hAgVtU3MrXeNuClJa0H5Oc1o3QUaHsIu8Asi6koeaGhlHFs920fcu+4KFR4V9EisAbD0w0k7/wnUqDhF4aJHAYSHo+QCle3GvltJuYvxFi497fuh3VOXb/RiyGLQ0vSvPUyNTNlAHqg4qVauO7vVRf4FgPjOlcgTIaubRlpyK/LZexv1MuWg25YnRRHmemksmVfz4lBZ1vlj/QunaXfrX70Aj7zHy2TGeh3Zczdb0w3S2+Xr8oiM5M7xI3w7sWx22j9QZZhl5lupGcaLVip7dhTl1zR+uS9PY6gWKO5qIpUwMIY8GCA+XT0DgAXsEV+MsKBg1uTnjA/57vWB+qGjkxytjG5iWjS734kbqUjsLEkDywYnMu+VAh5NGYOf0dXjQFci+hREqATwi47UXP9NtcHvCX6dab0qggGxc5lJFrtIQSp8M6FAINNLB4Wi98x19g+3EN8MA5OG+eDZErxFH3PkHQaENs7nsPf9rEuaaJ+lvuOaJKGl06YOlvwnWx7/jxOEKxA+GTHiMRdz0RNhUQD8OsPLBrKj62Qs/NPYWeIZlcgTK9cmqlT2s65HFFkjyVafKAquBvyIUaDLLhiJJp0l84zndKwHxYTc1ya/CIwmGBXnqEYIHE9NV63p6Zj3+7xqVqdV1m2T0Co6Xd4rql/6J+o+kWC5Um89SfkiJHbxecfUFvCJEM1TV99fWfYHxzs6Eg==
 X-Forefront-Antispam-Report:
-	CIP:50.148.235.34;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:cn-mailer-00.localdomain;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(376014)(36860700016)(23010399003)(55112099003)(22082099003)(18002099003)(3023799007)(56012099006)(10067099003)(5023799004)(6133799003);DIR:OUT;SFP:1102;
+	CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:cn-mailer-00.localdomain;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(36860700016)(23010399003)(376014)(6133799003)(55112099003)(18002099003)(22082099003)(3023799007)(56012099006)(5023799004)(10067099003);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	Ea6ON5NlGQ3d1PwjDq1X1K6j+56BidOtLDAUVpvI31lyCykAFlJNrSgQGKEQjHbu8FAP+GkS0yr3UL14nGT2nf+BIh1F8wsuDlGrmrNQFPRWUocVgGWdoav3trIM5iYAspBANMEJrnCCyGMN+rT/sPncXm1foQpErHJtPYN0cWaulGbrICqGKPcVQ9oetU/+UIQJgP26qFLVf5SVNHU9xuUKIcW4mn3LSkbqeiKyTPkAD3+BMA/Aev/AbO93lUsjIrGNWXppwM6x4rpd5iskToKNSy9QlmRUsbOUVEvp/rEccCsDknf4jg/p0uHMaRunKzgmH4qtOHH9dzfr85vVdoLf30XrjxW6Prvu3kXcZudMK/6JMKm7kB+upQ69n9eU3q9F7G1Cw9WYhj2/Ug5R5sUSOzhr2tq+5HvLmyefbn2DVSCGPEoZAV8vYn0+3AHH
+	9GwjrfZDL2KAOzocV44oOCWkjayjthbgMdFzTjoqZ+dIbIcXbQ2jpY4JYhhI9oyJyGPy3/haFozIL4Ee0wtWC2EYaZsQMlgtc21EzcH8bG6wfNDjkjScAzMnl7GPOEz3OkVl/FnybuXiCX75+Ef0FYHP2mFIqadEuT1n6XwcQwpr/ENIpe6YVffXKYqKoASFJXK0RsIg33Nn84yP3Bt6k+My0B0pCM0QNWw3+XDxRenfhFyF8tCggenUzGoPGh8RAdzQX/WccARrT7mEXrE2Cz7IUVOmYvg3wdeQIHB1KmN++eA+uAkOa72jsiL0zMayaTmAp12V93zdcoWEabwjB7nl6gnbY3XLe7ReJRrfUSgoh/CH7SolLC+WjlGRbyNnArGqGSctE0uWiGJXsEZusEBm2jYMviWFD704Tma/SERlXEzrwCndMLt/8MaDt3vj
 X-OriginatorOrg: cornelisnetworks.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Sep 2026 17:55:13.0758
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Sep 2026 17:55:23.8055
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 75fbdccd-6d5d-4ee7-cd7c-08df09e480ff
+X-MS-Exchange-CrossTenant-Network-Message-Id: a5f9848a-aeb7-4e93-bd36-08df09e48777
 X-MS-Exchange-CrossTenant-Id: 4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a;Ip=[50.148.235.34];Helo=[cn-mailer-00.localdomain]
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a;Ip=[208.255.156.42];Helo=[cn-mailer-00.localdomain]
 X-MS-Exchange-CrossTenant-AuthSource:
-	BL02EPF0001A104.namprd05.prod.outlook.com
+	SJ1PEPF00001CDC.namprd05.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS4PR01MB9227
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM8PR01MB7128
 
-Add the core driver entry points, interrupt handling, MSI-X management,
-and EFI variable support.
+Add the cport.c file which implements communication with the embedded
+micro controller on the chip for port management operations.
 
 Co-developed-by: Dean Luick <dean.luick@cornelisnetworks.com>
 Signed-off-by: Dean Luick <dean.luick@cornelisnetworks.com>
-Co-developed-by: Bendan Cunningham <brendan.cunningham@cornelisnetworks.com>
-Signed-off-by: Breandan Cunningham <brendan.cunningham@cornelisnetworks.com>
 Co-developed-by: Douglas Miller <doug.miller@cornelisnetworks.com>
 Signed-off-by: Douglas Miller <doug.miller@cornelisnetworks.com>
 Assisted-by: LLM
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 ---
   Changes since v2:
-  - intr.c: hfi2_go_port_active() now calls signal_ib_event() instead of
-    dispatching IB_EVENT_PORT_ACTIVE directly, adding the HFI2_INITTED
-    guard to fix IPoIB no-carrier race on driver load.
-  - Fix kernel-doc @dd -> @ppd parameter name.
-
-  Changes since v1:
-  - Remove MSIx affinity management code (Leon Romanovsky).
-  - Remove custom ASPM handling (Leon Romanovsky).
-  - Remove module_param for affinity (Leon Romanovsky).
+  - Use spin_lock_irqsave for lost_mctxt_intr since irq_src_lock is also
+    taken with irqsave in hardirq context.
+  - Use timer_shutdown_sync for lost_int_timer.
+  - Use cancel_work_sync for mctxt_work.
+  - Change new_ctxts from u8 to u32 with U8_MAX overflow guard in
+    cw_pad_size.
+  - Add bounds check in hfi2_cport_resp_set before memcpy.
+  - Remove dead tautological comparisons.
 ---
- drivers/infiniband/hw/hfi2/driver.c | 1917 +++++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/hfi2/efivar.c |  139 +++
- drivers/infiniband/hw/hfi2/hfi2.h   |    2 
- drivers/infiniband/hw/hfi2/intr.c   |  298 +++++
- drivers/infiniband/hw/hfi2/msix.c   |  422 ++++++++
- 5 files changed, 2776 insertions(+), 2 deletions(-)
- create mode 100644 drivers/infiniband/hw/hfi2/driver.c
- create mode 100644 drivers/infiniband/hw/hfi2/efivar.c
- create mode 100644 drivers/infiniband/hw/hfi2/intr.c
- create mode 100644 drivers/infiniband/hw/hfi2/msix.c
+ drivers/infiniband/hw/hfi2/cport.c | 1030 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 1030 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hfi2/cport.c
 
-diff --git a/drivers/infiniband/hw/hfi2/driver.c b/drivers/infiniband/hw/hfi2/driver.c
+diff --git a/drivers/infiniband/hw/hfi2/cport.c b/drivers/infiniband/hw/hfi2/cport.c
 new file mode 100644
-index 000000000000..9913d510d35a
+index 000000000000..ef65905918ae
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/driver.c
-@@ -0,0 +1,1917 @@
-+// SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
++++ b/drivers/infiniband/hw/hfi2/cport.c
+@@ -0,0 +1,1030 @@
++// SPDX-License-Identifier: GPL-2.0 or BSD-3-Clause
 +/*
-+ * Copyright(c) 2015-2020 Intel Corporation.
 + * Copyright(c) 2025-2026 Cornelis Networks, Inc.
 + */
 +
-+#include <linux/spinlock.h>
-+#include <linux/pci.h>
++/*
++ * Implementation details of CPORT communications.
++ */
++
++#include <linux/semaphore.h>
 +#include <linux/io.h>
-+#include <linux/delay.h>
-+#include <linux/netdevice.h>
-+#include <linux/vmalloc.h>
-+#include <linux/module.h>
-+#include <linux/prefetch.h>
-+#include <rdma/ib_verbs.h>
-+#include <linux/etherdevice.h>
 +
 +#include "hfi2.h"
-+#include "trace.h"
-+#include "qp.h"
-+#include "sdma.h"
-+#include "debugfs.h"
-+#include "fault.h"
++#include "chip_jkr.h"
++#include "cport.h"
 +
-+#include "ipoib.h"
-+#include "netdev.h"
++static uint cport_ping_to;
 +
-+#undef pr_fmt
-+#define pr_fmt(fmt) DRIVER_NAME ": " fmt
++uint hfi2_cport_adm_to = 1;
 +
-+DEFINE_MUTEX(hfi2_mutex); /* general driver use */
++static bool cport_mctxt_recovery = true;
 +
-+unsigned int hfi2_max_mtu = HFI2_DEFAULT_MAX_MTU;
++static void cport_send_req_fn(struct work_struct *work);
++static void cport_send_rsp_fn(struct work_struct *work);
 +
-+unsigned int hfi2_cu = 1;
++#undef CPORT_XA_DEBUG /* every tid assigned from xarray */
++#undef CPORT_RCV_DEBUG /* every message (header) received, and outbox empty */
++#undef CPORT_SND_DEBUG /* every message (header) sent */
++#undef CPORT_INT_DEBUG /* every interrupt processed, and status in timeouts */
++#define LOST_INT_DEBUG /* print if lost intr detected */
 +
-+unsigned long hfi2_cap_mask = HFI2_CAP_MASK_DEFAULT;
-+
-+MODULE_LICENSE("Dual BSD/GPL");
-+MODULE_DESCRIPTION("Cornelis Omni-Path Express driver");
++static unsigned int cport_lost_int = 1 * HZ;
 +
 +/*
-+ * MAX_PKT_RCV is the max # if packets processed per receive interrupt.
++ * This limit needs to balance memory consuption against
++ * the need to ensure tids don't repeat during periods of
++ * CPORT stall and message timeout.
++ *
++ * Also note that the limit parameter passed to xa_alloc*()
++ * gets modified, so we cannot use a static structure here.
 + */
-+#define MAX_PKT_RECV 64
-+/*
-+ * MAX_PKT_THREAD_RCV is the max # of packets processed before
-+ * the qp_wait_list queue is flushed.
-+ */
-+#define MAX_PKT_RECV_THREAD (MAX_PKT_RECV * 4)
-+#define EGR_HEAD_UPDATE_THRESHOLD 16
-+
-+struct hfi2_ib_stats hfi2_stats;
-+
-+struct pci_dev *hfi2_get_pci_dev(struct rvt_dev_info *rdi)
-+{
-+	struct hfi2_ibdev *ibdev = container_of(rdi, struct hfi2_ibdev, rdi);
-+	struct hfi2_devdata *dd =
-+		container_of(ibdev, struct hfi2_devdata, verbs_dev);
-+	return dd->pcidev;
-+}
++#define cport_tid_limit XA_LIMIT(0, 255)
 +
 +/*
-+ * Return count of units with at least one port ACTIVE.
++ * The "header" (first qword) of a message to/from CPORT.
 + */
-+int hfi2_count_active_units(void)
-+{
-+	struct hfi2_devdata *dd;
-+	struct hfi2_pportdata *ppd;
-+	unsigned long index, flags;
-+	int pidx, nunits_active = 0;
-+
-+	xa_lock_irqsave(&hfi2_dev_table, flags);
-+	xa_for_each(&hfi2_dev_table, index, dd) {
-+		if (!(dd->flags & HFI2_PRESENT))
-+			continue;
-+		for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+			ppd = dd->pport + pidx;
-+			if (ppd->lid && ppd->linkup) {
-+				nunits_active++;
-+				break;
-+			}
-+		}
-+	}
-+	xa_unlock_irqrestore(&hfi2_dev_table, flags);
-+	return nunits_active;
-+}
-+
-+/*
-+ * Get address of eager buffer from it's index (allocated in chunks, not
-+ * contiguous).
-+ */
-+static inline void *get_egrbuf(const struct hfi2_packet *packet, u8 *update)
-+{
-+	struct hfi2_ctxtdata *rcd = packet->rcd;
-+	u32 idx = packet->egr_index;
-+	u32 offset = rhf_egr_buf_offset(packet->rhf);
-+
-+	*update |= !(idx & (rcd->egrbufs.threshold - 1)) && !offset;
-+	return (void *)(((u64)(rcd->egrbufs.rcvtids[idx].addr)) +
-+			(offset * RCV_BUF_BLOCK_SIZE));
-+}
-+
-+static inline void *hfi2_get_header(struct hfi2_ctxtdata *rcd, __le32 *rhf_addr)
-+{
-+	u32 offset = rhf_hdrq_offset(rhf_to_cpu(rhf_addr));
-+
-+	return (void *)(rhf_addr - rcd->rhf_offset + offset);
-+}
-+
-+static inline struct ib_header *hfi2_get_msgheader(struct hfi2_ctxtdata *rcd,
-+						   __le32 *rhf_addr)
-+{
-+	return (struct ib_header *)hfi2_get_header(rcd, rhf_addr);
-+}
-+
-+static inline struct hfi2_16b_header *
-+hfi2_get_16B_header(struct hfi2_ctxtdata *rcd, __le32 *rhf_addr)
-+{
-+	return (struct hfi2_16b_header *)hfi2_get_header(rcd, rhf_addr);
-+}
-+
-+/*
-+ * Validate and encode the a given RcvArray Buffer size.
-+ * The function will check whether the given size falls within
-+ * allowed size ranges for the respective type and, optionally,
-+ * return the proper encoding.
-+ */
-+int hfi2_rcvbuf_validate(u32 size, u8 type, u16 *encoded)
-+{
-+	if (unlikely(!PAGE_ALIGNED(size)))
-+		return 0;
-+	if (unlikely(size < MIN_EAGER_BUFFER))
-+		return 0;
-+	if (size > (type == PT_EAGER ? MAX_EAGER_BUFFER : MAX_EXPECTED_BUFFER))
-+		return 0;
-+	if (encoded)
-+		*encoded = ilog2(size / PAGE_SIZE) + 1;
-+	return 1;
-+}
-+
-+static void rcv_hdrerr(struct hfi2_ctxtdata *rcd, struct hfi2_pportdata *ppd,
-+		       struct hfi2_packet *packet)
-+{
-+	struct ib_header *rhdr = packet->hdr;
-+	u32 rte = rhe_rcv_type_err(packet);
-+	u32 mlid_base;
-+	struct hfi2_ibport *ibp = rcd_to_iport(rcd);
-+	struct hfi2_devdata *dd = ppd->dd;
-+	struct hfi2_ibdev *verbs_dev = &dd->verbs_dev;
-+	struct rvt_dev_info *rdi = &verbs_dev->rdi;
-+
-+	if (rhe_crk_err(packet) && hfi2_dbg_fault_suppress_err(verbs_dev))
-+		return;
-+
-+	if (rhe_icrc_err(packet))
-+		return;
-+
-+	if (packet->etype == RHF_RCV_TYPE_BYPASS) {
-+		goto drop;
-+	} else {
-+		u8 lnh = ib_get_lnh(rhdr);
-+
-+		mlid_base = be16_to_cpu(IB_MULTICAST_LID_BASE);
-+		if (lnh == HFI2_LRH_BTH) {
-+			packet->ohdr = &rhdr->u.oth;
-+		} else if (lnh == HFI2_LRH_GRH) {
-+			packet->ohdr = &rhdr->u.l.oth;
-+			packet->grh = &rhdr->u.l.grh;
-+		} else {
-+			goto drop;
-+		}
-+	}
-+
-+	if (rhe_tid_err(packet)) {
-+		/* For TIDERR and RC QPs preemptively schedule a NAK */
-+		u32 tlen = rhf_pkt_len(packet->rhf); /* in bytes */
-+		u32 dlid = ib_get_dlid(rhdr);
-+		u32 qp_num;
-+
-+		/* Sanity check packet */
-+		if (tlen < 24)
-+			goto drop;
-+
-+		/* Check for GRH */
-+		if (packet->grh) {
-+			u32 vtf;
-+			struct ib_grh *grh = packet->grh;
-+
-+			if (grh->next_hdr != IB_GRH_NEXT_HDR)
-+				goto drop;
-+			vtf = be32_to_cpu(grh->version_tclass_flow);
-+			if ((vtf >> IB_GRH_VERSION_SHIFT) != IB_GRH_VERSION)
-+				goto drop;
-+		}
-+
-+		/* Get the destination QP number. */
-+		qp_num = ib_bth_get_qpn(packet->ohdr);
-+		if (dlid < mlid_base) {
-+			struct rvt_qp *qp;
-+			unsigned long flags;
-+
-+			rcu_read_lock();
-+			qp = rvt_lookup_qpn(rdi, &ibp->rvp, qp_num);
-+			if (!qp) {
-+				rcu_read_unlock();
-+				goto drop;
-+			}
-+
-+			/*
-+			 * Handle only RC QPs - for other QP types drop error
-+			 * packet.
-+			 */
-+			spin_lock_irqsave(&qp->r_lock, flags);
-+
-+			/* Check for valid receive state. */
-+			if (!(ib_rvt_state_ops[qp->state] &
-+			      RVT_PROCESS_RECV_OK)) {
-+				ibp->rvp.n_pkt_drops++;
-+			}
-+
-+			switch (qp->ibqp.qp_type) {
-+			case IB_QPT_RC:
-+				hfi2_rc_hdrerr(rcd, packet, qp);
-+				break;
-+			default:
-+				/* For now don't handle any other QP types */
-+				break;
-+			}
-+
-+			spin_unlock_irqrestore(&qp->r_lock, flags);
-+			rcu_read_unlock();
-+		} /* Unicast QP */
-+	} /* Valid packet with TIDErr */
-+
-+	/* handle "RcvTypeErr" flags */
-+	switch (rte) {
-+	case RHF_RTE_ERROR_OP_CODE_ERR: {
-+		void *ebuf = NULL;
-+		u8 opcode;
-+
-+		if (rhf_use_egr_bfr(packet->rhf))
-+			ebuf = packet->ebuf;
-+
-+		if (!ebuf)
-+			goto drop; /* this should never happen */
-+
-+		opcode = ib_bth_get_opcode(packet->ohdr);
-+		if (opcode == IB_OPCODE_CNP) {
-+			/*
-+			 * Only in pre-B0 h/w is the CNP_OPCODE handled
-+			 * via this code path.
-+			 */
-+			struct rvt_qp *qp = NULL;
-+			u32 lqpn, rqpn;
-+			u16 rlid;
-+			u8 svc_type, sl, sc5;
-+
-+			sc5 = hfi2_9B_get_sc5(rhdr, packet->sc4);
-+			sl = ibp->sc_to_sl[sc5];
-+
-+			lqpn = ib_bth_get_qpn(packet->ohdr);
-+			rcu_read_lock();
-+			qp = rvt_lookup_qpn(rdi, &ibp->rvp, lqpn);
-+			if (!qp) {
-+				rcu_read_unlock();
-+				goto drop;
-+			}
-+
-+			switch (qp->ibqp.qp_type) {
-+			case IB_QPT_UD:
-+				rlid = 0;
-+				rqpn = 0;
-+				svc_type = IB_CC_SVCTYPE_UD;
-+				break;
-+			case IB_QPT_UC:
-+				rlid = ib_get_slid(rhdr);
-+				rqpn = qp->remote_qpn;
-+				svc_type = IB_CC_SVCTYPE_UC;
-+				break;
-+			default:
-+				rcu_read_unlock();
-+				goto drop;
-+			}
-+
-+			hfi2_process_becn(ppd, sl, rlid, lqpn, rqpn, svc_type);
-+			rcu_read_unlock();
-+		}
-+
-+		packet->rhf &= ~RHF_RCV_TYPE_ERR_SMASK;
-+		break;
-+	}
-+	default:
-+		break;
-+	}
-+
-+drop:
-+	return;
-+}
-+
-+/* cache values derived from the RHF that are chip dependent */
-+static void cache_rhf_values(struct hfi2_packet *packet)
-+{
-+	struct hfi2_ctxtdata *rcd = packet->rcd;
-+	u64 rhf = packet->rhf;
-+
-+	if (rcd->dd->params->chip_type == CHIP_WFR) {
-+		packet->egr_index = wfr_rhf_egr_index(rhf);
-+		packet->sc4 = !!wfr_rhf_dc_info(rhf);
-+		packet->rcv_seq = wfr_rhf_rcv_seq(rhf);
-+		packet->err_flags = wfr_rhf_err_flags(rhf);
-+		packet->has_errs = packet->err_flags != 0;
-+	} else {
-+		packet->egr_index = (rhf >> 16) & 0xffff; /* RHF.EgrIndex */
-+		packet->sc4 = (rhf >> 53) & 0x1; /* RHF.L2Type9bSc4 */
-+		packet->rcv_seq = jkr_rhf_rcv_seq(rhf); /* RHF.RcvSeq */
-+		packet->has_errs = (rhf >> 63) & 0x1; /* RHF.RheValid */
-+		/*
-+		 * NOTE: (1) The divide can be changed to a shift.  Should
-+		 *           pre-calculate the value.
-+		 *       (2) rhqoff (head) and rsize are both in words.
-+		 */
-+		if (packet->has_errs)
-+			packet->err_flags =
-+				((u64 *)(rcd->rheq))[packet->rhqoff /
-+						     packet->rsize];
-+		else
-+			packet->err_flags = 0;
-+	}
-+}
-+
-+static inline void init_packet(struct hfi2_ctxtdata *rcd,
-+			       struct hfi2_packet *packet)
-+{
-+	packet->rsize = get_hdrqentsize(rcd); /* words */
-+	packet->maxcnt = get_hdrq_cnt(rcd) * packet->rsize; /* words */
-+	packet->rcd = rcd;
-+	packet->updegr = 0;
-+	packet->etail = -1;
-+	packet->rhqoff = hfi2_rcd_head(rcd);
-+	packet->numpkt = 0;
-+	packet->rhf_addr = get_rhf_addr(rcd);
-+	packet->rhf = rhf_to_cpu(packet->rhf_addr);
-+	cache_rhf_values(packet);
-+}
-+
-+/* We support only two types - 9B and 16B for now */
-+static const hfi2_handle_cnp hfi2_handle_cnp_tbl[2] = {
-+	[HFI2_PKT_TYPE_9B] = &hfi2_return_cnp,
-+	[HFI2_PKT_TYPE_16B] = &hfi2_return_cnp_16B
++union cport_header {
++	struct {
++		u64 len : 15;
++		u64 _resv1 : 1;
++		u64 is_req : 1;
++		u64 no_rsp : 1;
++		u64 seq_no : 6;
++		u64 sts : 8;
++		u64 tid : 16;
++		u64 sideband : 8;
++		u64 op_code : 8;
++	};
++	u64 qw;
 +};
 +
-+/**
-+ * hfi2_process_ecn_slowpath - Process FECN or BECN bits
-+ * @qp: The packet's destination QP
-+ * @pkt: The packet itself.
-+ * @prescan: Is the caller the RXQ prescan
-+ *
-+ * Process the packet's FECN or BECN bits. By now, the packet
-+ * has already been evaluated whether processing of those bit should
-+ * be done.
-+ * The significance of the @prescan argument is that if the caller
-+ * is the RXQ prescan, a CNP will be send out instead of waiting for the
-+ * normal packet processing to send an ACK with BECN set (or a CNP).
++#define CPORT_SEQNO_MASK 0x3f
++
++#define CPORT_HDR_DEF 0x0000007ec0000000ul
++#define CPORT_HDR_LEN 48 /* bit position of length in CPORT_HDR_DEF */
++#define CPORT_HDR_SEQ 28 /* bit position of SEQ_NO */
++#define CPORT_HDR_EOM 30 /* bit position of EOM */
++#define CPORT_HDR_SOM 31 /* bit position of SOM */
++
++#define CPORT_IN_SCRATCH (JKR_ASIC_CFG_SCRATCH + 0)
++#define CPORT_OUT_SCRATCH (JKR_ASIC_CFG_SCRATCH + sizeof(u64))
++
++/*
++ * Assignment of bits in JKR_MCTXT_CPORT_INT_STATUS and
++ * JKR_MCTXT_PF0_INT_STATUS.
 + */
-+bool hfi2_process_ecn_slowpath(struct rvt_qp *qp, struct hfi2_packet *pkt,
-+			       bool prescan)
-+{
-+	struct hfi2_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
-+	struct hfi2_pportdata *ppd = ppd_from_ibp(ibp);
-+	struct ib_other_headers *ohdr = pkt->ohdr;
-+	struct ib_grh *grh = pkt->grh;
-+	u32 rqpn = 0;
-+	u16 pkey;
-+	u32 rlid, slid, dlid = 0;
-+	u8 hdr_type, sc, svc_type, opcode;
-+	bool is_mcast = false, ignore_fecn = false, do_cnp = false, fecn, becn;
++#define JKR_MCTXT_INT_OUTBOX_EMPTY 0b00000001
++#define JKR_MCTXT_INT_INBOX_FULL 0b00000010
 +
-+	/* can be called from prescan */
-+	if (pkt->etype == RHF_RCV_TYPE_BYPASS) {
-+		pkey = hfi2_16B_get_pkey(pkt->hdr);
-+		sc = hfi2_16B_get_sc(pkt->hdr);
-+		dlid = hfi2_16B_get_dlid(pkt->hdr);
-+		slid = hfi2_16B_get_slid(pkt->hdr);
-+		is_mcast = hfi2_is_16B_mcast(dlid);
-+		opcode = ib_bth_get_opcode(ohdr);
-+		hdr_type = HFI2_PKT_TYPE_16B;
-+		fecn = hfi2_16B_get_fecn(pkt->hdr);
-+		becn = hfi2_16B_get_becn(pkt->hdr);
-+	} else {
-+		pkey = ib_bth_get_pkey(ohdr);
-+		sc = hfi2_9B_get_sc5(pkt->hdr, pkt->sc4);
-+		dlid = qp->ibqp.qp_type != IB_QPT_UD ? ib_get_dlid(pkt->hdr) :
-+						       ppd->lid;
-+		slid = ib_get_slid(pkt->hdr);
-+		is_mcast = (dlid > be16_to_cpu(IB_MULTICAST_LID_BASE)) &&
-+			   (dlid != be16_to_cpu(IB_LID_PERMISSIVE));
-+		opcode = ib_bth_get_opcode(ohdr);
-+		hdr_type = HFI2_PKT_TYPE_9B;
-+		fecn = ib_bth_get_fecn(ohdr);
-+		becn = ib_bth_get_becn(ohdr);
-+	}
++/*
++ * The remainder is private to the host driver.
++ * CPORT firmware has no need of this interface.
++ */
 +
-+	switch (qp->ibqp.qp_type) {
-+	case IB_QPT_UD:
-+		rlid = slid;
-+		rqpn = ib_get_sqpn(pkt->ohdr);
-+		svc_type = IB_CC_SVCTYPE_UD;
-+		break;
-+	case IB_QPT_SMI:
-+	case IB_QPT_GSI:
-+		rlid = slid;
-+		rqpn = ib_get_sqpn(pkt->ohdr);
-+		svc_type = IB_CC_SVCTYPE_UD;
-+		break;
-+	case IB_QPT_UC:
-+		rlid = rdma_ah_get_dlid(&qp->remote_ah_attr);
-+		rqpn = qp->remote_qpn;
-+		svc_type = IB_CC_SVCTYPE_UC;
-+		break;
-+	case IB_QPT_RC:
-+		rlid = rdma_ah_get_dlid(&qp->remote_ah_attr);
-+		rqpn = qp->remote_qpn;
-+		svc_type = IB_CC_SVCTYPE_RC;
-+		break;
-+	default:
-+		return false;
-+	}
-+
-+	ignore_fecn = is_mcast || (opcode == IB_OPCODE_CNP) ||
-+		      (opcode == IB_OPCODE_RC_ACKNOWLEDGE);
-+	/*
-+	 * ACKNOWLEDGE packets do not get a CNP but this will be
-+	 * guarded by ignore_fecn above.
-+	 */
-+	do_cnp = prescan ||
-+		 (opcode >= IB_OPCODE_RC_RDMA_READ_RESPONSE_FIRST &&
-+		  opcode <= IB_OPCODE_RC_ATOMIC_ACKNOWLEDGE) ||
-+		 opcode == TID_OP(READ_RESP) || opcode == TID_OP(ACK);
-+
-+	/* Call appropriate CNP handler */
-+	if (!ignore_fecn && do_cnp && fecn)
-+		hfi2_handle_cnp_tbl[hdr_type](ibp, qp, rqpn, pkey, dlid, rlid,
-+					      sc, grh);
-+
-+	if (becn) {
-+		u32 lqpn = be32_to_cpu(ohdr->bth[1]) & RVT_QPN_MASK;
-+		u8 sl = ibp->sc_to_sl[sc];
-+
-+		hfi2_process_becn(ppd, sl, rlid, lqpn, rqpn, svc_type);
-+	}
-+	return !ignore_fecn && fecn;
-+}
-+
-+struct ps_mdata {
-+	struct hfi2_ctxtdata *rcd;
-+	u32 rsize;
-+	u32 maxcnt;
-+	u32 ps_head;
-+	u32 ps_tail;
-+	u32 ps_seq;
++/*
++ * How the MCTXT CSRs are interpreted.
++ */
++union mctxt_mem {
++	union cport_header hdr;
++	u64 qw[JKR_C_MCTXT_MEM_SIZE_IN_QWORDS];
 +};
 +
-+static inline void init_ps_mdata(struct ps_mdata *mdata,
-+				 struct hfi2_packet *packet)
-+{
-+	struct hfi2_ctxtdata *rcd = packet->rcd;
-+
-+	mdata->rcd = rcd;
-+	mdata->rsize = packet->rsize;
-+	mdata->maxcnt = packet->maxcnt;
-+	mdata->ps_head = packet->rhqoff;
-+
-+	if (get_dma_rtail_setting(rcd)) {
-+		mdata->ps_tail = get_rcvhdrtail(rcd);
-+		if (hfi2_is_control_context(rcd))
-+			mdata->ps_seq = hfi2_seq_cnt(rcd);
-+		else
-+			mdata->ps_seq = 0; /* not used with DMA_RTAIL */
-+	} else {
-+		mdata->ps_tail = 0; /* used only with DMA_RTAIL*/
-+		mdata->ps_seq = hfi2_seq_cnt(rcd);
-+	}
-+}
-+
-+static inline int ps_done(struct ps_mdata *mdata, u64 rhf,
-+			  struct hfi2_ctxtdata *rcd)
-+{
-+	if (get_dma_rtail_setting(rcd))
-+		return mdata->ps_head == mdata->ps_tail;
-+	return mdata->ps_seq != hfi2_slow_rhf_rcv_seq(rcd, rhf);
-+}
-+
-+static inline int ps_skip(struct ps_mdata *mdata, u64 rhf,
-+			  struct hfi2_ctxtdata *rcd)
-+{
-+	/*
-+	 * Control context can potentially receive an invalid rhf.
-+	 * Drop such packets.
-+	 */
-+	if (hfi2_is_control_context(rcd) && (mdata->ps_head != mdata->ps_tail))
-+		return mdata->ps_seq != hfi2_slow_rhf_rcv_seq(rcd, rhf);
-+
-+	return 0;
-+}
-+
-+static inline void update_ps_mdata(struct ps_mdata *mdata,
-+				   struct hfi2_ctxtdata *rcd)
-+{
-+	mdata->ps_head += mdata->rsize;
-+	if (mdata->ps_head >= mdata->maxcnt)
-+		mdata->ps_head = 0;
-+
-+	/* Control context must do seq counting */
-+	if (!get_dma_rtail_setting(rcd) || hfi2_is_control_context(rcd))
-+		mdata->ps_seq = hfi2_seq_incr_wrap(mdata->ps_seq);
-+}
-+
 +/*
-+ * prescan_rxq - search through the receive queue looking for packets
-+ * containing Excplicit Congestion Notifications (FECNs, or BECNs).
-+ * When an ECN is found, process the Congestion Notification, and toggle
-+ * it off.
-+ * This is declared as a macro to allow quick checking of the port to avoid
-+ * the overhead of a function call if not enabled.
++ * The common structure used to implement CPORT messages in hfi2.
 + */
-+#define prescan_rxq(rcd, packet)               \
-+	do {                                   \
-+		if (rcd->ppd->cc_prescan)      \
-+			__prescan_rxq(packet); \
-+	} while (0)
-+static void __prescan_rxq(struct hfi2_packet *packet)
-+{
-+	struct hfi2_ctxtdata *rcd = packet->rcd;
-+	struct ps_mdata mdata;
-+
-+	init_ps_mdata(&mdata, packet);
-+
-+	while (1) {
-+		struct hfi2_ibport *ibp = rcd_to_iport(rcd);
-+		__le32 *rhf_addr = (__le32 *)rcd->rcvhdrq + mdata.ps_head +
-+				   packet->rcd->rhf_offset;
-+		struct rvt_qp *qp;
-+		struct ib_header *hdr;
-+		struct rvt_dev_info *rdi = &rcd->dd->verbs_dev.rdi;
-+		u64 rhf = rhf_to_cpu(rhf_addr);
-+		u32 etype = rhf_rcv_type(rhf), qpn, bth1;
-+		u8 lnh;
-+
-+		if (ps_done(&mdata, rhf, rcd))
-+			break;
-+
-+		if (ps_skip(&mdata, rhf, rcd))
-+			goto next;
-+
-+		if (etype != RHF_RCV_TYPE_IB)
-+			goto next;
-+
-+		packet->hdr = hfi2_get_msgheader(packet->rcd, rhf_addr);
-+		hdr = packet->hdr;
-+		lnh = ib_get_lnh(hdr);
-+
-+		if (lnh == HFI2_LRH_BTH) {
-+			packet->ohdr = &hdr->u.oth;
-+			packet->grh = NULL;
-+		} else if (lnh == HFI2_LRH_GRH) {
-+			packet->ohdr = &hdr->u.l.oth;
-+			packet->grh = &hdr->u.l.grh;
-+		} else {
-+			goto next; /* just in case */
-+		}
-+
-+		if (!hfi2_may_ecn(packet))
-+			goto next;
-+
-+		bth1 = be32_to_cpu(packet->ohdr->bth[1]);
-+		qpn = bth1 & RVT_QPN_MASK;
-+		rcu_read_lock();
-+		qp = rvt_lookup_qpn(rdi, &ibp->rvp, qpn);
-+
-+		if (!qp) {
-+			rcu_read_unlock();
-+			goto next;
-+		}
-+
-+		hfi2_process_ecn_slowpath(qp, packet, true);
-+		rcu_read_unlock();
-+
-+		/* turn off BECN, FECN */
-+		bth1 &= ~(IB_FECN_SMASK | IB_BECN_SMASK);
-+		packet->ohdr->bth[1] = cpu_to_be32(bth1);
-+next:
-+		update_ps_mdata(&mdata, rcd);
-+	}
-+}
-+
-+static void process_rcv_qp_work(struct hfi2_packet *packet)
-+{
-+	struct rvt_qp *qp, *nqp;
-+	struct hfi2_ctxtdata *rcd = packet->rcd;
-+
-+	/*
-+	 * Iterate over all QPs waiting to respond.
-+	 * The list won't change since the IRQ is only run on one CPU.
-+	 */
-+	list_for_each_entry_safe(qp, nqp, &rcd->qp_wait_list, rspwait) {
-+		list_del_init(&qp->rspwait);
-+		if (qp->r_flags & RVT_R_RSP_NAK) {
-+			qp->r_flags &= ~RVT_R_RSP_NAK;
-+			packet->qp = qp;
-+			hfi2_send_rc_ack(packet, 0);
-+		}
-+		if (qp->r_flags & RVT_R_RSP_SEND) {
-+			unsigned long flags;
-+
-+			qp->r_flags &= ~RVT_R_RSP_SEND;
-+			spin_lock_irqsave(&qp->s_lock, flags);
-+			if (ib_rvt_state_ops[qp->state] &
-+			    RVT_PROCESS_OR_FLUSH_SEND)
-+				hfi2_schedule_send(qp);
-+			spin_unlock_irqrestore(&qp->s_lock, flags);
-+		}
-+		rvt_put_qp(qp);
-+	}
-+}
-+
-+static noinline int max_packet_exceeded(struct hfi2_packet *packet, int thread)
-+{
-+	if (thread) {
-+		if ((packet->numpkt & (MAX_PKT_RECV_THREAD - 1)) == 0)
-+			/* allow defered processing */
-+			process_rcv_qp_work(packet);
-+		cond_resched();
-+		return RCV_PKT_OK;
-+	}
-+	this_cpu_inc(*packet->rcd->dd->rcv_limit);
-+	return RCV_PKT_LIMIT;
-+}
-+
-+static inline int check_max_packet(struct hfi2_packet *packet, int thread)
-+{
-+	int ret = RCV_PKT_OK;
-+
-+	if (unlikely((packet->numpkt & (MAX_PKT_RECV - 1)) == 0))
-+		ret = max_packet_exceeded(packet, thread);
-+	return ret;
-+}
-+
-+static noinline int skip_rcv_packet(struct hfi2_packet *packet, int thread)
-+{
-+	int ret;
-+
-+	packet->rcd->dd->ctx0_seq_drop++;
-+	/* Set up for the next packet */
-+	packet->rhqoff += packet->rsize;
-+	if (packet->rhqoff >= packet->maxcnt)
-+		packet->rhqoff = 0;
-+
-+	packet->numpkt++;
-+	ret = check_max_packet(packet, thread);
-+
-+	packet->rhf_addr = (__le32 *)packet->rcd->rcvhdrq + packet->rhqoff +
-+			   packet->rcd->rhf_offset;
-+	packet->rhf = rhf_to_cpu(packet->rhf_addr);
-+	cache_rhf_values(packet);
-+
-+	return ret;
-+}
-+
-+static void process_rcv_packet_napi(struct hfi2_packet *packet)
-+{
-+	packet->etype = rhf_rcv_type(packet->rhf);
-+
-+	/* total length */
-+	packet->tlen = rhf_pkt_len(packet->rhf); /* in bytes */
-+	/* retrieve eager buffer details */
-+	packet->etail = packet->egr_index;
-+	packet->ebuf = get_egrbuf(packet, &packet->updegr);
-+	/*
-+	 * Prefetch the contents of the eager buffer.  It is
-+	 * OK to send a negative length to prefetch_range().
-+	 * The +2 is the size of the RHF.
-+	 */
-+	prefetch_range(packet->ebuf,
-+		       packet->tlen - ((packet->rcd->rcvhdrqentsize -
-+					(rhf_hdrq_offset(packet->rhf) + 2)) *
-+				       4));
-+
-+	packet->rcd->rhf_rcv_function_map[packet->etype](packet);
-+	packet->numpkt++;
-+
-+	/* Set up for the next packet */
-+	packet->rhqoff += packet->rsize;
-+	if (packet->rhqoff >= packet->maxcnt)
-+		packet->rhqoff = 0;
-+
-+	packet->rhf_addr = (__le32 *)packet->rcd->rcvhdrq + packet->rhqoff +
-+			   packet->rcd->rhf_offset;
-+	packet->rhf = rhf_to_cpu(packet->rhf_addr);
-+	cache_rhf_values(packet);
-+}
-+
-+static inline int process_rcv_packet(struct hfi2_packet *packet, int thread)
-+{
-+	int ret;
-+
-+	packet->etype = rhf_rcv_type(packet->rhf);
-+
-+	/* total length */
-+	packet->tlen = rhf_pkt_len(packet->rhf); /* in bytes */
-+	/* retrieve eager buffer details */
-+	packet->ebuf = NULL;
-+	if (rhf_use_egr_bfr(packet->rhf)) {
-+		packet->etail = packet->egr_index;
-+		packet->ebuf = get_egrbuf(packet, &packet->updegr);
-+		/*
-+		 * Prefetch the contents of the eager buffer.  It is
-+		 * OK to send a negative length to prefetch_range().
-+		 * The +2 is the size of the RHF.
-+		 */
-+		prefetch_range(packet->ebuf,
-+			       packet->tlen -
-+				       ((get_hdrqentsize(packet->rcd) -
-+					 (rhf_hdrq_offset(packet->rhf) + 2)) *
-+					4));
-+	}
-+
-+	/*
-+	 * Call a type specific handler for the packet. We
-+	 * should be able to trust that etype won't be beyond
-+	 * the range of valid indexes. If so something is really
-+	 * wrong and we can probably just let things come
-+	 * crashing down. There is no need to eat another
-+	 * comparison in this performance critical code.
-+	 */
-+	packet->rcd->rhf_rcv_function_map[packet->etype](packet);
-+	packet->numpkt++;
-+
-+	/* Set up for the next packet */
-+	packet->rhqoff += packet->rsize;
-+	if (packet->rhqoff >= packet->maxcnt)
-+		packet->rhqoff = 0;
-+
-+	ret = check_max_packet(packet, thread);
-+
-+	packet->rhf_addr = (__le32 *)packet->rcd->rcvhdrq + packet->rhqoff +
-+			   packet->rcd->rhf_offset;
-+	packet->rhf = rhf_to_cpu(packet->rhf_addr);
-+	cache_rhf_values(packet);
-+
-+	return ret;
-+}
-+
-+static inline void process_rcv_update(int last, struct hfi2_packet *packet)
-+{
-+	/*
-+	 * Update head regs etc., every 16 packets, if not last pkt,
-+	 * to help prevent rcvhdrq overflows, when many packets
-+	 * are processed and queue is nearly full.
-+	 * Don't request an interrupt for intermediate updates.
-+	 */
-+	if (!last && !(packet->numpkt & 0xf)) {
-+		hfi2_update_usrhead(packet->rcd, packet->rhqoff, packet->updegr,
-+			       packet->etail, 0, 0);
-+		packet->updegr = 0;
-+	}
-+	packet->grh = NULL;
-+}
-+
-+static inline void finish_packet(struct hfi2_packet *packet)
-+{
-+	/*
-+	 * Nothing we need to free for the packet.
-+	 *
-+	 * The only thing we need to do is a final update and call for an
-+	 * interrupt
-+	 */
-+	hfi2_update_usrhead(packet->rcd, hfi2_rcd_head(packet->rcd), packet->updegr,
-+		       packet->etail, hfi2_rcv_intr_dynamic, packet->numpkt);
-+}
-+
-+/*
-+ * hfi2_handle_receive_interrupt_napi_fp - receive a packet
-+ * @rcd: the context
-+ * @budget: polling budget
-+ *
-+ * Called from interrupt handler for receive interrupt.
-+ * This is the fast path interrupt handler
-+ * when executing napi soft irq environment.
-+ */
-+int hfi2_handle_receive_interrupt_napi_fp(struct hfi2_ctxtdata *rcd, int budget)
-+{
-+	struct hfi2_packet packet;
-+
-+	init_packet(rcd, &packet);
-+	if (last_rcv_seq(rcd, packet.rcv_seq))
-+		goto bail;
-+
-+	while (packet.numpkt < budget) {
-+		process_rcv_packet_napi(&packet);
-+		if (hfi2_seq_incr(rcd, packet.rcv_seq))
-+			break;
-+
-+		process_rcv_update(0, &packet);
-+	}
-+	hfi2_set_rcd_head(rcd, packet.rhqoff);
-+bail:
-+	finish_packet(&packet);
-+	return packet.numpkt;
-+}
-+
-+/*
-+ * Handle receive interrupts when using the no dma rtail option.
-+ */
-+int hfi2_handle_receive_interrupt_nodma_rtail(struct hfi2_ctxtdata *rcd, int thread)
-+{
-+	int last = RCV_PKT_OK;
-+	struct hfi2_packet packet;
-+
-+	init_packet(rcd, &packet);
-+	if (last_rcv_seq(rcd, packet.rcv_seq)) {
-+		last = RCV_PKT_DONE;
-+		goto bail;
-+	}
-+
-+	prescan_rxq(rcd, &packet);
-+
-+	while (last == RCV_PKT_OK) {
-+		last = process_rcv_packet(&packet, thread);
-+		if (hfi2_seq_incr(rcd, packet.rcv_seq))
-+			last = RCV_PKT_DONE;
-+		process_rcv_update(last, &packet);
-+	}
-+	process_rcv_qp_work(&packet);
-+	hfi2_set_rcd_head(rcd, packet.rhqoff);
-+bail:
-+	finish_packet(&packet);
-+	return last;
-+}
-+
-+int hfi2_handle_receive_interrupt_dma_rtail(struct hfi2_ctxtdata *rcd, int thread)
-+{
-+	u32 hdrqtail;
-+	int last = RCV_PKT_OK;
-+	struct hfi2_packet packet;
-+
-+	init_packet(rcd, &packet);
-+	hdrqtail = get_rcvhdrtail(rcd);
-+	if (packet.rhqoff == hdrqtail) {
-+		last = RCV_PKT_DONE;
-+		goto bail;
-+	}
-+	smp_rmb(); /* prevent speculative reads of dma'ed hdrq */
-+
-+	prescan_rxq(rcd, &packet);
-+
-+	while (last == RCV_PKT_OK) {
-+		last = process_rcv_packet(&packet, thread);
-+		if (packet.rhqoff == hdrqtail)
-+			last = RCV_PKT_DONE;
-+		process_rcv_update(last, &packet);
-+	}
-+	process_rcv_qp_work(&packet);
-+	hfi2_set_rcd_head(rcd, packet.rhqoff);
-+bail:
-+	finish_packet(&packet);
-+	return last;
-+}
-+
-+static void set_all_fastpath(struct hfi2_ctxtdata *rcd)
-+{
-+	struct hfi2_devdata *dd = rcd->dd;
-+	struct hfi2_pportdata *ppd = rcd->ppd;
-+	struct hfi2_portrsrcs *pr = &dd->rsrcs.ppr[ppd->hw_pidx];
-+	u16 i;
-+
-+	/*
-+	 * For dynamically allocated kernel contexts switch
-+	 * interrupt handler only for that context. Otherwise, switch
-+	 * interrupt handler for all statically allocated kernel contexts.
-+	 */
-+	if (hfi2_is_user_context(rcd)) {
-+		hfi2_rcd_get(rcd);
-+		hfi2_set_fast(rcd);
-+		hfi2_rcd_put(rcd);
-+		return;
-+	}
-+
-+	for (i = 0; i < pr->num_rcv_contexts; i++) {
-+		u16 ctxt = pr->rcv_context_base + i;
-+
-+		rcd = hfi2_rcd_get_by_index(dd, ctxt);
-+		if (rcd && !hfi2_is_control_context(rcd) && (hfi2_is_kernel_context(rcd)))
-+			hfi2_set_fast(rcd);
-+		hfi2_rcd_put(rcd);
-+	}
-+}
-+
-+void hfi2_set_all_slowpath(struct hfi2_pportdata *ppd)
-+{
-+	struct hfi2_devdata *dd = ppd->dd;
-+	struct hfi2_portrsrcs *pr = &dd->rsrcs.ppr[ppd->hw_pidx];
-+	struct hfi2_ctxtdata *rcd;
-+	u16 i;
-+
-+	/* control context must always use the slow path interrupt handler */
-+	for (i = 0; i < pr->num_rcv_contexts; i++) {
-+		u16 ctxt = pr->rcv_context_base + i;
-+
-+		rcd = hfi2_rcd_get_by_index(dd, ctxt);
-+		if (!rcd)
-+			continue;
-+		if (!hfi2_is_control_context(rcd) && (hfi2_is_kernel_context(rcd)))
-+			rcd->do_interrupt = rcd->slow_handler;
-+
-+		hfi2_rcd_put(rcd);
-+	}
-+}
-+
-+static bool __set_armed_to_active(struct hfi2_packet *packet)
-+{
-+	u8 etype = rhf_rcv_type(packet->rhf);
-+	u8 sc = SC15_PACKET;
-+
-+	if (etype == RHF_RCV_TYPE_IB) {
-+		struct ib_header *hdr =
-+			hfi2_get_msgheader(packet->rcd, packet->rhf_addr);
-+		sc = hfi2_9B_get_sc5(hdr, packet->sc4);
-+	} else if (etype == RHF_RCV_TYPE_BYPASS) {
-+		struct hfi2_16b_header *hdr =
-+			hfi2_get_16B_header(packet->rcd, packet->rhf_addr);
-+		sc = hfi2_16B_get_sc(hdr);
-+	}
-+	if (sc != SC15_PACKET) {
-+		int hwstate = hfi2_driver_lstate(packet->rcd->ppd);
-+		struct work_struct *lsaw =
-+			&packet->rcd->ppd->linkstate_active_work;
-+
-+		if (hwstate != IB_PORT_ACTIVE) {
-+			dd_dev_info(packet->rcd->dd,
-+				    "Unexpected link state %s\n",
-+				    ib_port_state_to_str(hwstate));
-+			return false;
-+		}
-+
-+		queue_work(packet->rcd->ppd->link_wq, lsaw);
-+		return true;
-+	}
-+	return false;
-+}
-+
-+/**
-+ * set_armed_to_active  - the fast path for armed to active
-+ * @packet: the packet structure
-+ *
-+ * Return true if packet processing needs to bail.
-+ */
-+static bool set_armed_to_active(struct hfi2_packet *packet)
-+{
-+	if (likely(packet->rcd->ppd->host_link_state != HLS_UP_ARMED))
-+		return false;
-+	return __set_armed_to_active(packet);
-+}
-+
-+/*
-+ * hfi2_handle_receive_interrupt - receive a packet
-+ * @rcd: the context
-+ *
-+ * Called from interrupt handler for errors or receive interrupt.
-+ * This is the slow path interrupt handler.
-+ */
-+int hfi2_handle_receive_interrupt(struct hfi2_ctxtdata *rcd, int thread)
-+{
-+	struct hfi2_devdata *dd = rcd->dd;
-+	u32 hdrqtail;
-+	int needset, last = RCV_PKT_OK;
-+	struct hfi2_packet packet;
-+	int skip_pkt = 0;
-+	bool is_control = hfi2_is_control_context(rcd);
-+
-+	if (!rcd->rcvhdrq)
-+		return RCV_PKT_OK;
-+	/* Control context will always use the slow path interrupt handler */
-+	needset = is_control ? 0 : 1;
-+
-+	init_packet(rcd, &packet);
-+
-+	if (!get_dma_rtail_setting(rcd)) {
-+		if (last_rcv_seq(rcd, packet.rcv_seq)) {
-+			last = RCV_PKT_DONE;
-+			goto bail;
-+		}
-+		hdrqtail = 0;
-+	} else {
-+		hdrqtail = get_rcvhdrtail(rcd);
-+		if (packet.rhqoff == hdrqtail) {
-+			last = RCV_PKT_DONE;
-+			goto bail;
-+		}
-+		smp_rmb(); /* prevent speculative reads of dma'ed hdrq */
-+
-+		/*
-+		 * Control context can potentially receive an invalid
-+		 * rhf. Drop such packets.
-+		 */
-+		if (is_control)
-+			if (last_rcv_seq(rcd, packet.rcv_seq))
-+				skip_pkt = 1;
-+	}
-+
-+	prescan_rxq(rcd, &packet);
-+
-+	while (last == RCV_PKT_OK) {
-+		if (hfi2_need_drop(dd)) {
-+			/* On to the next packet */
-+			packet.rhqoff += packet.rsize;
-+			packet.rhf_addr = (__le32 *)rcd->rcvhdrq +
-+					  packet.rhqoff + rcd->rhf_offset;
-+			packet.rhf = rhf_to_cpu(packet.rhf_addr);
-+			cache_rhf_values(&packet);
-+
-+		} else if (skip_pkt) {
-+			last = skip_rcv_packet(&packet, thread);
-+			skip_pkt = 0;
-+		} else {
-+			if (set_armed_to_active(&packet))
-+				goto bail;
-+			last = process_rcv_packet(&packet, thread);
-+		}
-+
-+		if (!get_dma_rtail_setting(rcd)) {
-+			if (hfi2_seq_incr(rcd, packet.rcv_seq))
-+				last = RCV_PKT_DONE;
-+		} else {
-+			if (packet.rhqoff == hdrqtail)
-+				last = RCV_PKT_DONE;
-+			/*
-+			 * Control context can potentially receive an invalid
-+			 * rhf. Drop such packets.
-+			 */
-+			if (is_control) {
-+				bool lseq;
-+
-+				lseq = hfi2_seq_incr(rcd, packet.rcv_seq);
-+				if (!last && lseq)
-+					skip_pkt = 1;
-+			}
-+		}
-+
-+		if (needset) {
-+			needset = false;
-+			set_all_fastpath(rcd);
-+		}
-+		process_rcv_update(last, &packet);
-+	}
-+
-+	process_rcv_qp_work(&packet);
-+	hfi2_set_rcd_head(rcd, packet.rhqoff);
-+
-+bail:
-+	/*
-+	 * Always write head at end, and setup rcv interrupt, even
-+	 * if no packets were processed.
-+	 */
-+	finish_packet(&packet);
-+	return last;
-+}
-+
-+/*
-+ * hfi2_handle_receive_interrupt_napi_sp - receive a packet
-+ * @rcd: the context
-+ * @budget: polling budget
-+ *
-+ * Called from interrupt handler for errors or receive interrupt.
-+ * This is the slow path interrupt handler
-+ * when executing napi soft irq environment.
-+ */
-+int hfi2_handle_receive_interrupt_napi_sp(struct hfi2_ctxtdata *rcd, int budget)
-+{
-+	struct hfi2_devdata *dd = rcd->dd;
-+	int last = RCV_PKT_OK;
-+	bool needset = true;
-+	struct hfi2_packet packet;
-+
-+	init_packet(rcd, &packet);
-+	if (last_rcv_seq(rcd, packet.rcv_seq))
-+		goto bail;
-+
-+	while (last != RCV_PKT_DONE && packet.numpkt < budget) {
-+		if (hfi2_need_drop(dd)) {
-+			/* On to the next packet */
-+			packet.rhqoff += packet.rsize;
-+			packet.rhf_addr = (__le32 *)rcd->rcvhdrq +
-+					  packet.rhqoff + rcd->rhf_offset;
-+			packet.rhf = rhf_to_cpu(packet.rhf_addr);
-+			cache_rhf_values(&packet);
-+		} else {
-+			if (set_armed_to_active(&packet))
-+				goto bail;
-+			process_rcv_packet_napi(&packet);
-+		}
-+
-+		if (hfi2_seq_incr(rcd, packet.rcv_seq))
-+			last = RCV_PKT_DONE;
-+
-+		if (needset) {
-+			needset = false;
-+			set_all_fastpath(rcd);
-+		}
-+
-+		process_rcv_update(last, &packet);
-+	}
-+
-+	hfi2_set_rcd_head(rcd, packet.rhqoff);
-+
-+bail:
-+	/*
-+	 * Always write head at end, and setup rcv interrupt, even
-+	 * if no packets were processed.
-+	 */
-+	finish_packet(&packet);
-+	return packet.numpkt;
-+}
-+
-+/*
-+ * We may discover in the interrupt that the hardware link state has
-+ * changed from ARMED to ACTIVE (due to the arrival of a non-SC15 packet),
-+ * and we need to update the driver's notion of the link state.  We cannot
-+ * run hfi2_set_link_state from interrupt context, so we queue this function on
-+ * a workqueue.
-+ *
-+ * We delay the regular interrupt processing until after the state changes
-+ * so that the link will be in the correct state by the time any application
-+ * we wake up attempts to send a reply to any message it received.
-+ * (Subsequent receive interrupts may possibly force the wakeup before we
-+ * update the link state.)
-+ *
-+ * The rcd is freed in hfi2_free_ctxtdata after hfi2_postinit_cleanup invokes
-+ * dd->f_cleanup(dd) to disable the interrupt handler and flush workqueues,
-+ * so we're safe from use-after-free of the rcd.
-+ */
-+void hfi2_receive_interrupt_work(struct work_struct *work)
-+{
-+	struct hfi2_pportdata *ppd = container_of(work, struct hfi2_pportdata,
-+						  linkstate_active_work);
-+	struct hfi2_devdata *dd = ppd->dd;
-+	struct hfi2_portrsrcs *pr = &dd->rsrcs.ppr[ppd->hw_pidx];
-+	struct hfi2_ctxtdata *rcd;
-+	u16 i;
-+
-+	/* Received non-SC15 packet implies neighbor_normal */
-+	ppd->neighbor_normal = 1;
-+	hfi2_set_link_state(ppd, HLS_UP_ACTIVE);
-+
-+	/*
-+	 * Interrupt all statically allocated kernel contexts that could
-+	 * have had an interrupt during auto activation.
-+	 */
-+	for (i = pr->rcv_context_base; i < pr->first_dyn_alloc_ctxt; i++) {
-+		rcd = hfi2_rcd_get_by_index(dd, i);
-+		if (rcd)
-+			hfi2_force_recv_intr(rcd);
-+		hfi2_rcd_put(rcd);
-+	}
-+}
-+
-+/*
-+ * Convert a given MTU size to the on-wire MAD packet enumeration.
-+ * Return -1 if the size is invalid.
-+ */
-+int hfi2_mtu_to_enum(u32 mtu, int default_if_bad)
-+{
-+	switch (mtu) {
-+	case 0:
-+		return OPA_MTU_0;
-+	case 256:
-+		return OPA_MTU_256;
-+	case 512:
-+		return OPA_MTU_512;
-+	case 1024:
-+		return OPA_MTU_1024;
-+	case 2048:
-+		return OPA_MTU_2048;
-+	case 4096:
-+		return OPA_MTU_4096;
-+	case 8192:
-+		return OPA_MTU_8192;
-+	case 10240:
-+		return OPA_MTU_10240;
-+	}
-+	return default_if_bad;
-+}
-+
-+u16 hfi2_enum_to_mtu(int mtu)
-+{
-+	switch (mtu) {
-+	case OPA_MTU_0:
-+		return 0;
-+	case OPA_MTU_256:
-+		return 256;
-+	case OPA_MTU_512:
-+		return 512;
-+	case OPA_MTU_1024:
-+		return 1024;
-+	case OPA_MTU_2048:
-+		return 2048;
-+	case OPA_MTU_4096:
-+		return 4096;
-+	case OPA_MTU_8192:
-+		return 8192;
-+	case OPA_MTU_10240:
-+		return 10240;
-+	default:
-+		return 0xffff;
-+	}
-+}
-+
-+/*
-+ * hfi2_set_mtu - set the MTU
-+ * @ppd: the per port data
-+ *
-+ * We can handle "any" incoming size, the issue here is whether we
-+ * need to restrict our outgoing size.  We do not deal with what happens
-+ * to programs that are already running when the size changes.
-+ */
-+int hfi2_set_mtu(struct hfi2_pportdata *ppd)
-+{
-+	struct hfi2_devdata *dd = ppd->dd;
-+	int i, drain, ret = 0, is_up = 0;
-+
-+	ppd->ibmtu = 0;
-+	for (i = 0; i < ppd->vls_supported; i++)
-+		if (ppd->ibmtu < ppd->vld[i].mtu)
-+			ppd->ibmtu = ppd->vld[i].mtu;
-+	ppd->ibmaxlen = ppd->ibmtu + hfi2_lrh_max_header_bytes(ppd);
-+
-+	mutex_lock(&ppd->hls_lock);
-+	if (ppd->host_link_state == HLS_UP_INIT ||
-+	    ppd->host_link_state == HLS_UP_ARMED ||
-+	    ppd->host_link_state == HLS_UP_ACTIVE)
-+		is_up = 1;
-+
-+	drain = !hfi2_is_ax(dd) && is_up;
-+
-+	if (drain)
-+		/*
-+		 * MTU is specified per-VL. To ensure that no packet gets
-+		 * stuck (due, e.g., to the MTU for the packet's VL being
-+		 * reduced), empty the per-VL FIFOs before adjusting MTU.
-+		 */
-+		ret = hfi2_stop_drain_data_vls(ppd);
-+
-+	if (ret) {
-+		dd_dev_err(
-+			dd,
-+			"%s: cannot stop/drain VLs - refusing to change per-VL MTUs\n",
-+			__func__);
-+		goto err;
-+	}
-+
-+	hfi2_set_ib_cfg(ppd, HFI2_IB_CFG_MTU, 0);
-+
-+	if (drain)
-+		hfi2_open_fill_data_vls(ppd); /* reopen all VLs */
-+
-+err:
-+	mutex_unlock(&ppd->hls_lock);
-+
-+	return ret;
-+}
-+
-+int hfi2_set_lid(struct hfi2_pportdata *ppd, u32 lid, u8 lmc)
-+{
-+	ppd->lid = lid;
-+	ppd->lmc = lmc;
-+	hfi2_set_ib_cfg(ppd, HFI2_IB_CFG_LIDLMC, 0);
-+
-+	ppd_dev_info(ppd, "got a lid: 0x%x\n", lid);
-+
-+	return 0;
-+}
-+
-+/* Control LED state */
-+void hfi2_setextled(struct hfi2_pportdata *ppd, u32 on)
-+{
-+	if (on)
-+		hfi2_write_csr(ppd->dd, DCC_CFG_LED_CNTRL, 0x1F);
-+	else
-+		hfi2_write_csr(ppd->dd, DCC_CFG_LED_CNTRL, 0x10);
-+}
-+
-+void hfi2_shutdown_led_override(struct hfi2_pportdata *ppd)
-+{
-+	struct hfi2_devdata *dd = ppd->dd;
-+
-+	/*
-+	 * This pairs with the memory barrier in hfi2_start_led_override to
-+	 * ensure that we read the correct state of LED beaconing represented
-+	 * by led_override_timer_active
-+	 */
-+	smp_rmb();
-+	if (atomic_read(&ppd->led_override_timer_active)) {
-+		timer_delete_sync(&ppd->led_override_timer);
-+		atomic_set(&ppd->led_override_timer_active, 0);
-+		/* Ensure the atomic_set is visible to all CPUs */
-+		smp_wmb();
-+	}
-+
-+	/* Hand control of the LED to the DC for normal operation */
-+	hfi2_write_csr(dd, DCC_CFG_LED_CNTRL, 0);
-+}
-+
-+static void run_led_override(struct timer_list *t)
-+{
-+	struct hfi2_pportdata *ppd =
-+		timer_container_of(ppd, t, led_override_timer);
-+	struct hfi2_devdata *dd = ppd->dd;
-+	unsigned long timeout;
-+	int phase_idx;
-+
-+	if (!(dd->flags & HFI2_INITTED))
-+		return;
-+
-+	phase_idx = ppd->led_override_phase & 1;
-+
-+	hfi2_setextled(ppd, phase_idx);
-+
-+	timeout = ppd->led_override_vals[phase_idx];
-+
-+	/* Set up for next phase */
-+	ppd->led_override_phase = !ppd->led_override_phase;
-+
-+	mod_timer(&ppd->led_override_timer, jiffies + timeout);
-+}
-+
-+/*
-+ * To have the LED blink in a particular pattern, provide timeon and timeoff
-+ * in milliseconds.
-+ * To turn off custom blinking and return to normal operation, use
-+ * hfi2_shutdown_led_override()
-+ */
-+void hfi2_start_led_override(struct hfi2_pportdata *ppd, unsigned int timeon,
-+			     unsigned int timeoff)
-+{
-+	if (!(ppd->dd->flags & HFI2_INITTED))
-+		return;
-+
-+	/* Convert to jiffies for direct use in timer */
-+	ppd->led_override_vals[0] = msecs_to_jiffies(timeoff);
-+	ppd->led_override_vals[1] = msecs_to_jiffies(timeon);
-+
-+	/* Arbitrarily start from LED on phase */
-+	ppd->led_override_phase = 1;
-+
-+	/*
-+	 * If the timer has not already been started, do so. Use a "quick"
-+	 * timeout so the handler will be called soon to look at our request.
-+	 */
-+	if (!timer_pending(&ppd->led_override_timer)) {
-+		timer_setup(&ppd->led_override_timer, run_led_override, 0);
-+		ppd->led_override_timer.expires = jiffies + 1;
-+		add_timer(&ppd->led_override_timer);
-+		atomic_set(&ppd->led_override_timer_active, 1);
-+		/* Ensure the atomic_set is visible to all CPUs */
-+		smp_wmb();
-+	}
-+}
-+
-+/**
-+ * hfi2_reset_device - reset the chip if possible
-+ * @unit: the device to reset
-+ *
-+ * Whether or not reset is successful, we attempt to re-initialize the chip
-+ * (that is, much like a driver unload/reload).  We clear the INITTED flag
-+ * so that the various entry points will fail until we reinitialize.  For
-+ * now, we only allow this if no user contexts are open that use chip resources
-+ */
-+int hfi2_reset_device(int unit)
-+{
-+	int ret;
-+	struct hfi2_devdata *dd = hfi2_lookup(unit);
-+	struct hfi2_pportdata *ppd;
-+	int pidx;
-+
-+	if (!dd) {
-+		ret = -ENODEV;
-+		goto bail;
-+	}
-+
-+	dd_dev_info(dd, "Reset on unit %u requested\n", unit);
-+
-+	if (!(dd->flags & HFI2_PRESENT)) {
-+		dd_dev_info(
-+			dd,
-+			"Invalid unit number %u or not initialized or not present\n",
-+			unit);
-+		ret = -ENXIO;
-+		goto bail;
-+	}
-+
-+	/* If there are any user contexts, we cannot reset */
-+	mutex_lock(&hfi2_mutex);
-+	if (dd->rcd)
-+		if (hfi2_stats.sps_ctxts) {
-+			mutex_unlock(&hfi2_mutex);
-+			ret = -EBUSY;
-+			goto bail;
-+		}
-+	mutex_unlock(&hfi2_mutex);
-+
-+	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+		ppd = dd->pport + pidx;
-+
-+		dd->params->hfi2_shutdown_led_override(ppd);
-+	}
-+	if (dd->flags & HFI2_HAS_SEND_DMA)
-+		hfi2_sdma_exit(dd);
-+
-+	hfi2_reset_cpu_counters(dd);
-+
-+	ret = hfi2_init(dd, 1);
-+
-+	if (ret)
-+		dd_dev_err(dd,
-+			   "Reinitialize unit %u after reset failed with %d\n",
-+			   unit, ret);
-+	else
-+		dd_dev_info(dd, "Reinitialized unit %u after resetting\n",
-+			    unit);
-+
-+bail:
-+	return ret;
-+}
-+
-+static inline void hfi2_setup_ib_header(struct hfi2_packet *packet)
-+{
-+	packet->hdr = (struct hfi2_ib_message_header *)hfi2_get_msgheader(
-+		packet->rcd, packet->rhf_addr);
-+	packet->hlen = (u8 *)packet->rhf_addr - (u8 *)packet->hdr;
-+}
-+
-+static int hfi2_bypass_ingress_pkt_check(struct hfi2_packet *packet)
-+{
-+	struct hfi2_pportdata *ppd = packet->rcd->ppd;
-+
-+	/* slid and dlid cannot be 0 */
-+	if ((!packet->slid) || (!packet->dlid))
-+		return -EINVAL;
-+
-+	/* Compare port lid with incoming packet dlid */
-+	if ((!(hfi2_is_16B_mcast(packet->dlid))) &&
-+	    (packet->dlid !=
-+	     opa_get_lid(be32_to_cpu(OPA_LID_PERMISSIVE), 16B))) {
-+		if ((packet->dlid & ~((1 << ppd->lmc) - 1)) != ppd->lid)
-+			return -EINVAL;
-+	}
-+
-+	/* No multicast packets with SC15 */
-+	if ((hfi2_is_16B_mcast(packet->dlid)) && (packet->sc == 0xF))
-+		return -EINVAL;
-+
-+	/* Packets with permissive DLID always on SC15 */
-+	if ((packet->dlid ==
-+	     opa_get_lid(be32_to_cpu(OPA_LID_PERMISSIVE), 16B)) &&
-+	    (packet->sc != 0xF))
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static int hfi2_setup_9B_packet(struct hfi2_packet *packet)
-+{
-+	struct hfi2_ibport *ibp = rcd_to_iport(packet->rcd);
-+	struct ib_header *hdr;
-+	u8 lnh;
-+
-+	hfi2_setup_ib_header(packet);
-+	hdr = packet->hdr;
-+
-+	lnh = ib_get_lnh(hdr);
-+	if (lnh == HFI2_LRH_BTH) {
-+		packet->ohdr = &hdr->u.oth;
-+		packet->grh = NULL;
-+	} else if (lnh == HFI2_LRH_GRH) {
-+		u32 vtf;
-+
-+		packet->ohdr = &hdr->u.l.oth;
-+		packet->grh = &hdr->u.l.grh;
-+		if (packet->grh->next_hdr != IB_GRH_NEXT_HDR)
-+			goto drop;
-+		vtf = be32_to_cpu(packet->grh->version_tclass_flow);
-+		if ((vtf >> IB_GRH_VERSION_SHIFT) != IB_GRH_VERSION)
-+			goto drop;
-+	} else {
-+		goto drop;
-+	}
-+
-+	/* Query commonly used fields from packet header */
-+	packet->payload = packet->ebuf;
-+	packet->opcode = ib_bth_get_opcode(packet->ohdr);
-+	packet->slid = ib_get_slid(hdr);
-+	packet->dlid = ib_get_dlid(hdr);
-+	if (unlikely((packet->dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE)) &&
-+		     (packet->dlid != be16_to_cpu(IB_LID_PERMISSIVE))))
-+		packet->dlid += opa_get_mcast_base(OPA_MCAST_NR) -
-+				be16_to_cpu(IB_MULTICAST_LID_BASE);
-+	packet->sl = ib_get_sl(hdr);
-+	packet->sc = hfi2_9B_get_sc5(hdr, packet->sc4);
-+	packet->pad = ib_bth_get_pad(packet->ohdr);
-+	packet->extra_byte = 0;
-+	packet->pkey = ib_bth_get_pkey(packet->ohdr);
-+	packet->migrated = ib_bth_is_migration(packet->ohdr);
-+
-+	return 0;
-+drop:
-+	ibp->rvp.n_pkt_drops++;
-+	return -EINVAL;
-+}
-+
-+static int hfi2_setup_bypass_packet(struct hfi2_packet *packet)
-+{
-+	/*
-+	 * Bypass packets have a different header/payload split
-+	 * compared to an IB packet.
-+	 * Current split is set such that 16 bytes of the actual
-+	 * header is in the header buffer and the remining is in
-+	 * the eager buffer. We chose 16 since hfi2 driver only
-+	 * supports 16B bypass packets and we will be able to
-+	 * receive the entire LRH with such a split.
-+	 */
-+
-+	struct hfi2_ctxtdata *rcd = packet->rcd;
-+	struct hfi2_pportdata *ppd = rcd->ppd;
-+	struct hfi2_ibport *ibp = &ppd->ibport_data;
-+	u8 l4;
-+
-+	packet->hdr = (struct hfi2_16b_header *)hfi2_get_16B_header(
-+		packet->rcd, packet->rhf_addr);
-+	l4 = hfi2_16B_get_l4(packet->hdr);
-+	if (l4 == OPA_16B_L4_IB_LOCAL) {
-+		packet->ohdr = packet->ebuf;
-+		packet->grh = NULL;
-+		packet->opcode = ib_bth_get_opcode(packet->ohdr);
-+		packet->pad = hfi2_16B_bth_get_pad(packet->ohdr);
-+		/* hfi2_hdr_len_by_opcode already has an IB LRH factored in */
-+		packet->hlen = hfi2_hdr_len_by_opcode[packet->opcode] +
-+			       (LRH_16B_BYTES - LRH_9B_BYTES);
-+		packet->migrated = opa_bth_is_migration(packet->ohdr);
-+	} else if (l4 == OPA_16B_L4_IB_GLOBAL) {
-+		u32 vtf;
-+		u8 grh_len = sizeof(struct ib_grh);
-+
-+		packet->ohdr = packet->ebuf + grh_len;
-+		packet->grh = packet->ebuf;
-+		packet->opcode = ib_bth_get_opcode(packet->ohdr);
-+		packet->pad = hfi2_16B_bth_get_pad(packet->ohdr);
-+		/* hfi2_hdr_len_by_opcode already has an IB LRH factored in */
-+		packet->hlen = hfi2_hdr_len_by_opcode[packet->opcode] +
-+			       (LRH_16B_BYTES - LRH_9B_BYTES) + grh_len;
-+		packet->migrated = opa_bth_is_migration(packet->ohdr);
-+
-+		if (packet->grh->next_hdr != IB_GRH_NEXT_HDR)
-+			goto drop;
-+		vtf = be32_to_cpu(packet->grh->version_tclass_flow);
-+		if ((vtf >> IB_GRH_VERSION_SHIFT) != IB_GRH_VERSION)
-+			goto drop;
-+	} else if (l4 == OPA_16B_L4_FM) {
-+		packet->mgmt = packet->ebuf;
-+		packet->ohdr = NULL;
-+		packet->grh = NULL;
-+		packet->opcode = IB_OPCODE_UD_SEND_ONLY;
-+		packet->pad = OPA_16B_L4_FM_PAD;
-+		packet->hlen = OPA_16B_L4_FM_HLEN;
-+		packet->migrated = false;
-+	} else {
-+		goto drop;
-+	}
-+
-+	/* Query commonly used fields from packet header */
-+	packet->payload = packet->ebuf + packet->hlen - LRH_16B_BYTES;
-+	packet->slid = hfi2_16B_get_slid(packet->hdr);
-+	packet->dlid = hfi2_16B_get_dlid(packet->hdr);
-+	if (unlikely(hfi2_is_16B_mcast(packet->dlid)))
-+		packet->dlid +=
-+			opa_get_mcast_base(OPA_MCAST_NR) -
-+			opa_get_lid(opa_get_mcast_base(OPA_MCAST_NR), 16B);
-+	packet->sc = hfi2_16B_get_sc(packet->hdr);
-+	packet->sl = ibp->sc_to_sl[packet->sc];
-+	packet->extra_byte = SIZE_OF_LT;
-+	packet->pkey = hfi2_16B_get_pkey(packet->hdr);
-+
-+	if (hfi2_bypass_ingress_pkt_check(packet))
-+		goto drop;
-+
-+	return 0;
-+drop:
-+	hfi2_cdbg(PKT, "%s: packet dropped", __func__);
-+	ibp->rvp.n_pkt_drops++;
-+	return -EINVAL;
-+}
-+
-+static void show_eflags_errs(struct hfi2_packet *packet)
-+{
-+	struct hfi2_ctxtdata *rcd = packet->rcd;
-+	u32 rte = rhe_rcv_type_err(packet);
-+
-+	if (rcd->dd->params->chip_type == CHIP_WFR) {
-+		dd_dev_err(
-+			rcd->dd,
-+			"receive context %d: rhf 0x%016llx, errs [ %s%s%s%s%s%s%s] rte 0x%x\n",
-+			rcd->ctxt, packet->rhf,
-+			packet->rhf & RHF_K_HDR_LEN_ERR ? "k_hdr_len " : "",
-+			packet->rhf & RHF_DC_UNC_ERR ? "dc_unc " : "",
-+			packet->rhf & RHF_DC_ERR ? "dc " : "",
-+			packet->rhf & RHF_TID_ERR ? "tid " : "",
-+			packet->rhf & RHF_LEN_ERR ? "len " : "",
-+			packet->rhf & RHF_ECC_ERR ? "ecc " : "",
-+			packet->rhf & RHF_ICRC_ERR ? "icrc " : "", rte);
-+	} else {
-+		dd_dev_err(
-+			rcd->dd,
-+			"receive context %d: rhf 0x%016llx, errs 0x%016llx, rte 0x%x\n",
-+			rcd->ctxt, packet->rhf, packet->err_flags, rte);
-+	}
-+}
-+
-+void hfi2_handle_eflags(struct hfi2_packet *packet)
-+{
-+	struct hfi2_ctxtdata *rcd = packet->rcd;
-+
-+	rcv_hdrerr(rcd, rcd->ppd, packet);
-+	if (packet->has_errs)
-+		show_eflags_errs(packet);
-+}
-+
-+static void hfi2_ipoib_ib_rcv(struct hfi2_packet *packet)
-+{
-+	struct hfi2_ibport *ibp;
-+	struct net_device *netdev;
-+	struct hfi2_ctxtdata *rcd = packet->rcd;
-+	struct napi_struct *napi = rcd->napi;
-+	struct sk_buff *skb;
-+	struct hfi2_netdev_rxq *rxq =
-+		container_of(napi, struct hfi2_netdev_rxq, napi);
-+	u32 extra_bytes;
-+	u32 tlen, qpnum;
-+	bool do_work, do_cnp;
-+
-+	trace_hfi2_rcvhdr(packet);
-+
-+	hfi2_setup_ib_header(packet);
-+
-+	packet->ohdr = &((struct ib_header *)packet->hdr)->u.oth;
-+	packet->grh = NULL;
-+
-+	if (unlikely(packet->has_errs)) {
-+		hfi2_handle_eflags(packet);
-+		return;
-+	}
-+
-+	qpnum = ib_bth_get_qpn(packet->ohdr);
-+	netdev = hfi2_netdev_get_data(rcd->ppd, qpnum);
-+	if (!netdev)
-+		goto drop_no_nd;
-+
-+	trace_input_ibhdr(rcd->dd, packet, packet->sc4);
-+	trace_ctxt_rsm_hist(rcd->ctxt);
-+
-+	/* handle congestion notifications */
-+	do_work = hfi2_may_ecn(packet);
-+	if (unlikely(do_work)) {
-+		do_cnp = (packet->opcode != IB_OPCODE_CNP);
-+		(void)hfi2_process_ecn_slowpath(hfi2_ipoib_priv(netdev)->qp,
-+						packet, do_cnp);
-+	}
-+
-+	/*
-+	 * We have split point after last byte of DETH
-+	 * lets strip padding and CRC and ICRC.
-+	 * tlen is whole packet len so we need to
-+	 * subtract header size as well.
-+	 */
-+	tlen = packet->tlen;
-+	extra_bytes = ib_bth_get_pad(packet->ohdr) + (SIZE_OF_CRC << 2) +
-+		      packet->hlen;
-+	if (unlikely(tlen < extra_bytes))
-+		goto drop;
-+
-+	tlen -= extra_bytes;
-+
-+	skb = hfi2_ipoib_prepare_skb(rxq, tlen, packet->ebuf);
-+	if (unlikely(!skb))
-+		goto drop;
-+
-+	dev_sw_netstats_rx_add(netdev, skb->len);
-+
-+	skb->dev = netdev;
-+	skb->pkt_type = PACKET_HOST;
-+	netif_receive_skb(skb);
-+
-+	return;
-+
-+drop:
-+	++netdev->stats.rx_dropped;
-+drop_no_nd:
-+	ibp = rcd_to_iport(packet->rcd);
-+	++ibp->rvp.n_pkt_drops;
-+}
-+
-+/*
-+ * The following functions are called by the interrupt handler. They are type
-+ * specific handlers for each packet type.
-+ */
-+static void process_receive_ib(struct hfi2_packet *packet)
-+{
-+	if (hfi2_setup_9B_packet(packet))
-+		return;
-+
-+	if (unlikely(hfi2_dbg_should_fault_rx(packet)))
-+		return;
-+
-+	trace_hfi2_rcvhdr(packet);
-+
-+	if (unlikely(packet->has_errs)) {
-+		hfi2_handle_eflags(packet);
-+		return;
-+	}
-+
-+	hfi2_ib_rcv(packet);
-+}
-+
-+static void process_receive_bypass(struct hfi2_packet *packet)
-+{
-+	struct hfi2_devdata *dd = packet->rcd->dd;
-+
-+	if (hfi2_setup_bypass_packet(packet))
-+		return;
-+
-+	trace_hfi2_rcvhdr(packet);
-+
-+	if (unlikely(packet->has_errs)) {
-+		hfi2_handle_eflags(packet);
-+		return;
-+	}
-+
-+	if (hfi2_16B_get_l2(packet->hdr) == 0x2) {
-+		hfi2_16B_rcv(packet);
-+	} else {
-+		dd_dev_err(
-+			dd,
-+			"Bypass packets other than 16B are not supported in normal operation. Dropping\n");
-+		incr_cntr64(&dd->sw_rcv_bypass_packet_errors);
-+		if (!(dd->err_info_rcvport.status_and_code &
-+		      OPA_EI_STATUS_SMASK)) {
-+			u64 *flits = packet->ebuf;
-+
-+			if (flits && !rhe_len_err(packet)) {
-+				dd->err_info_rcvport.packet_flit1 = flits[0];
-+				dd->err_info_rcvport.packet_flit2 =
-+					packet->tlen > sizeof(flits[0]) ?
-+						flits[1] :
-+						0;
-+			}
-+			dd->err_info_rcvport.status_and_code |=
-+				(OPA_EI_STATUS_SMASK | BAD_L2_ERR);
-+		}
-+	}
-+}
-+
-+static void process_receive_error(struct hfi2_packet *packet)
-+{
-+	/* KHdrHCRCErr -- KDETH packet with a bad HCRC */
-+	if (unlikely(hfi2_dbg_fault_suppress_err(&packet->rcd->dd->verbs_dev) &&
-+		     (rhe_rcv_type_err(packet) == RHF_RCV_TYPE_ERROR ||
-+		      rhe_crk_err(packet))))
-+		return;
-+
-+	hfi2_setup_ib_header(packet);
-+	hfi2_handle_eflags(packet);
-+
-+	if (unlikely(packet->has_errs))
-+		dd_dev_err(packet->rcd->dd,
-+			   "Unhandled error packet received. Dropping.\n");
-+}
-+
-+static void kdeth_process_expected(struct hfi2_packet *packet)
-+{
-+	hfi2_setup_9B_packet(packet);
-+	if (unlikely(hfi2_dbg_should_fault_rx(packet)))
-+		return;
-+
-+	if (unlikely(packet->has_errs)) {
-+		struct hfi2_ctxtdata *rcd = packet->rcd;
-+
-+		if (hfi2_handle_kdeth_eflags(rcd, rcd->ppd, packet))
-+			return;
-+	}
-+
-+	hfi2_kdeth_expected_rcv(packet);
-+}
-+
-+static void kdeth_process_eager(struct hfi2_packet *packet)
-+{
-+	hfi2_setup_9B_packet(packet);
-+	if (unlikely(hfi2_dbg_should_fault_rx(packet)))
-+		return;
-+
-+	trace_hfi2_rcvhdr(packet);
-+	if (unlikely(packet->has_errs)) {
-+		struct hfi2_ctxtdata *rcd = packet->rcd;
-+
-+		show_eflags_errs(packet);
-+		if (hfi2_handle_kdeth_eflags(rcd, rcd->ppd, packet))
-+			return;
-+	}
-+
-+	hfi2_kdeth_eager_rcv(packet);
-+}
-+
-+static void process_receive_invalid(struct hfi2_packet *packet)
-+{
-+	dd_dev_err(packet->rcd->dd, "Invalid packet type %d. Dropping\n",
-+		   rhf_rcv_type(packet->rhf));
-+}
-+
-+#define HFI2_RCVHDR_DUMP_MAX 5
-+
-+void hfi2_seqfile_dump_rcd(struct seq_file *s, struct hfi2_ctxtdata *rcd)
-+{
-+	struct hfi2_packet packet;
-+	struct ps_mdata mdata;
-+	int i;
-+
-+	seq_printf(
-+		s,
-+		"Rcd %u: RcvHdr cnt %u entsize %u %s kctrl 0x%08llx rctrl 0x%08llx status 0x%08llx, head %llu tail %llu  sw head %u\n",
-+		rcd->ctxt, get_hdrq_cnt(rcd), get_hdrqentsize(rcd),
-+		get_dma_rtail_setting(rcd) ? "dma_rtail" : "nodma_rtail",
-+		read_kctxt_csr(rcd->dd, rcd->ctxt,
-+			       rcd->dd->params->rcv_kctxt_ctrl_reg),
-+		read_rctxt_csr(rcd->dd, rcd->ctxt,
-+			       rcd->dd->params->rcv_rctxt_ctrl_reg),
-+		read_ku_csr(rcd->dd, rcd->ctxt,
-+			    rcd->dd->params->rcv_ctxt_status_reg),
-+		read_uctxt_csr(rcd->dd, rcd->ctxt,
-+			       rcd->dd->params->rcv_hdr_head_reg) &
-+			RCV_HDR_HEAD_HEAD_MASK,
-+		read_uctxt_csr(rcd->dd, rcd->ctxt,
-+			       rcd->dd->params->rcv_hdr_tail_reg),
-+		rcd->head);
-+
-+	init_packet(rcd, &packet);
-+	init_ps_mdata(&mdata, &packet);
-+
-+	for (i = 0; i < HFI2_RCVHDR_DUMP_MAX; i++) {
-+		__le32 *rhf_addr = (__le32 *)rcd->rcvhdrq + mdata.ps_head +
-+				   rcd->rhf_offset;
-+		struct ib_header *hdr;
-+		u64 rhf = rhf_to_cpu(rhf_addr);
-+		u32 etype = rhf_rcv_type(rhf), qpn;
-+		u8 opcode;
-+		u32 psn;
-+		u8 lnh;
-+
-+		if (ps_done(&mdata, rhf, rcd))
-+			break;
-+
-+		if (ps_skip(&mdata, rhf, rcd))
-+			goto next;
-+
-+		if (etype > RHF_RCV_TYPE_IB)
-+			goto next;
-+
-+		packet.hdr = hfi2_get_msgheader(rcd, rhf_addr);
-+		hdr = packet.hdr;
-+
-+		lnh = be16_to_cpu(hdr->lrh[0]) & 3;
-+
-+		if (lnh == HFI2_LRH_BTH)
-+			packet.ohdr = &hdr->u.oth;
-+		else if (lnh == HFI2_LRH_GRH)
-+			packet.ohdr = &hdr->u.l.oth;
-+		else
-+			goto next; /* just in case */
-+
-+		opcode = (be32_to_cpu(packet.ohdr->bth[0]) >> 24);
-+		qpn = be32_to_cpu(packet.ohdr->bth[1]) & RVT_QPN_MASK;
-+		psn = mask_psn(be32_to_cpu(packet.ohdr->bth[2]));
-+
-+		seq_printf(s, "\tEnt %u: opcode 0x%x, qpn 0x%x, psn 0x%x\n",
-+			   mdata.ps_head, opcode, qpn, psn);
-+next:
-+		update_ps_mdata(&mdata, rcd);
-+	}
-+}
-+
-+const rhf_rcv_function_ptr hfi2_normal_rhf_rcv_functions[] = {
-+	[RHF_RCV_TYPE_EXPECTED] = kdeth_process_expected,
-+	[RHF_RCV_TYPE_EAGER] = kdeth_process_eager,
-+	[RHF_RCV_TYPE_IB] = process_receive_ib,
-+	[RHF_RCV_TYPE_ERROR] = process_receive_error,
-+	[RHF_RCV_TYPE_BYPASS] = process_receive_bypass,
-+	[RHF_RCV_TYPE_INVALID5] = process_receive_invalid,
-+	[RHF_RCV_TYPE_INVALID6] = process_receive_invalid,
-+	[RHF_RCV_TYPE_INVALID7] = process_receive_invalid,
++struct cport_work {
++	struct work_struct work;
++	struct kref kref;
++	int flags;
++	u8 n_mctxts; /* len of mctxt_mem req/rsp arrays */
++	u8 mctxts_done; /* number of mctxs sent/received */
++	long timeout;
++	struct semaphore *sem; /* only valid in send, if request w/response */
++	struct hfi2_devdata *dd; /* only valid in recv context */
++	union mctxt_mem *req;
++	union mctxt_mem *rsp; /* only used for request w/response */
 +};
 +
-+const rhf_rcv_function_ptr hfi2_netdev_rhf_rcv_functions[] = {
-+	[RHF_RCV_TYPE_EXPECTED] = process_receive_invalid,
-+	[RHF_RCV_TYPE_EAGER] = process_receive_invalid,
-+	[RHF_RCV_TYPE_IB] = hfi2_ipoib_ib_rcv,
-+	[RHF_RCV_TYPE_ERROR] = process_receive_error,
-+	[RHF_RCV_TYPE_BYPASS] = process_receive_invalid,
-+	[RHF_RCV_TYPE_INVALID5] = process_receive_invalid,
-+	[RHF_RCV_TYPE_INVALID6] = process_receive_invalid,
-+	[RHF_RCV_TYPE_INVALID7] = process_receive_invalid,
-+};
-diff --git a/drivers/infiniband/hw/hfi2/efivar.c b/drivers/infiniband/hw/hfi2/efivar.c
-new file mode 100644
-index 000000000000..fa7fd77f8ec3
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/efivar.c
-@@ -0,0 +1,139 @@
-+// SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
-+/*
-+ * Copyright(c) 2015, 2016 Intel Corporation.
-+ * Copyright(c) 2025-2026 Cornelis Networks, Inc.
-+ */
-+
-+#include <linux/string.h>
-+#include <linux/string_helpers.h>
-+
-+#include "efivar.h"
-+
-+/* GUID for HFI2 variables in EFI */
-+#define HFI2_EFIVAR_GUID EFI_GUID(0xc50a953e, 0xa8b2, 0x42a6, \
-+		0xbf, 0x89, 0xd3, 0x33, 0xa6, 0xe9, 0xe6, 0xd4)
-+/* largest EFI data size we expect */
-+#define EFI_DATA_SIZE 4096
++#define CW_FLAG_SEND 0x01 /* struct originated in send */
++#define CW_FLAG_RECV 0x02 /* struct originated in receive */
 +
 +/*
-+ * Read the named EFI variable.  Return the size of the actual data in *size
-+ * and a kmalloc'ed buffer in *return_data.  The caller must free the
-+ * data.  It is guaranteed that *return_data will be NULL and *size = 0
-+ * if this routine fails.
-+ *
-+ * Return 0 on success, -errno on failure.
++ * Suspected lost interrupt, try to recover if possible.
 + */
-+static int read_efi_var(const char *name, unsigned long *size,
-+			void **return_data)
++static void lost_mctxt_intr(struct hfi2_devdata *dd)
 +{
-+	efi_status_t status;
-+	efi_char16_t *uni_name;
-+	efi_guid_t guid;
-+	unsigned long temp_size;
-+	void *temp_buffer;
-+	void *data;
-+	int i;
-+	int ret;
-+
-+	/* set failure return values */
-+	*size = 0;
-+	*return_data = NULL;
-+
-+	if (!efi_rt_services_supported(EFI_RT_SUPPORTED_GET_VARIABLE))
-+		return -EOPNOTSUPP;
-+
-+	uni_name = kcalloc(strlen(name) + 1, sizeof(efi_char16_t), GFP_KERNEL);
-+	temp_buffer = kzalloc(EFI_DATA_SIZE, GFP_KERNEL);
-+
-+	if (!uni_name || !temp_buffer) {
-+		ret = -ENOMEM;
-+		goto fail;
-+	}
-+
-+	/* input: the size of the buffer */
-+	temp_size = EFI_DATA_SIZE;
-+
-+	/* convert ASCII to unicode - it is a 1:1 mapping */
-+	for (i = 0; name[i]; i++)
-+		uni_name[i] = name[i];
-+
-+	/* need a variable for our GUID */
-+	guid = HFI2_EFIVAR_GUID;
-+
-+	/* call into EFI runtime services */
-+	status = efi.get_variable(
-+			uni_name,
-+			&guid,
-+			NULL,
-+			&temp_size,
-+			temp_buffer);
-+
-+	/*
-+	 * It would be nice to call efi_status_to_err() here, but that
-+	 * is in the EFIVAR_FS code and may not be compiled in.
-+	 * However, even that is insufficient since it does not cover
-+	 * EFI_BUFFER_TOO_SMALL which could be an important return.
-+	 * For now, just split out success or not found.
-+	 */
-+	ret = status == EFI_SUCCESS   ? 0 :
-+	      status == EFI_NOT_FOUND ? -ENOENT :
-+					-EINVAL;
-+	if (ret)
-+		goto fail;
-+
-+	/*
-+	 * We have successfully read the EFI variable into our
-+	 * temporary buffer.  Now allocate a correctly sized
-+	 * buffer.
-+	 */
-+	data = kmemdup(temp_buffer, temp_size, GFP_KERNEL);
-+	if (!data) {
-+		ret = -ENOMEM;
-+		goto fail;
-+	}
-+
-+	*size = temp_size;
-+	*return_data = data;
-+
-+fail:
-+	kfree(uni_name);
-+	kfree(temp_buffer);
-+
-+	return ret;
-+}
-+
-+/*
-+ * Read an HFI2 EFI variable of the form:
-+ *	<PCIe address>-<kind>
-+ * Return an kalloc'ed array and size of the data.
-+ *
-+ * Returns 0 on success, -errno on failure.
-+ */
-+int hfi2_read_hfi2_efi_var(struct hfi2_devdata *dd, const char *kind,
-+		      unsigned long *size, void **return_data)
-+{
-+	char prefix_name[64];
-+	char name[128];
-+	int result;
-+
-+	/* create a common prefix */
-+	snprintf(prefix_name, sizeof(prefix_name), "%04x:%02x:%02x.%x",
-+		 pci_domain_nr(dd->pcidev->bus),
-+		 dd->pcidev->bus->number,
-+		 PCI_SLOT(dd->pcidev->devfn),
-+		 PCI_FUNC(dd->pcidev->devfn));
-+	snprintf(name, sizeof(name), "%s-%s", prefix_name, kind);
-+	result = read_efi_var(name, size, return_data);
-+
-+	/*
-+	 * If reading the lowercase EFI variable fail, read the uppercase
-+	 * variable.
-+	 */
-+	if (result) {
-+		string_upper(prefix_name, prefix_name);
-+		snprintf(name, sizeof(name), "%s-%s", prefix_name, kind);
-+		result = read_efi_var(name, size, return_data);
-+	}
-+
-+	return result;
-+}
-diff --git a/drivers/infiniband/hw/hfi2/hfi2.h b/drivers/infiniband/hw/hfi2/hfi2.h
-index ae8b4e81681f..8293babb8fe9 100644
---- a/drivers/infiniband/hw/hfi2/hfi2.h
-+++ b/drivers/infiniband/hw/hfi2/hfi2.h
-@@ -691,8 +691,6 @@ struct hfi2_msix_entry {
- 	enum irq_type type;
- 	int irq;
- 	void *arg;
--	cpumask_t mask;
--	struct irq_affinity_notify notify;
- };
- 
- struct hfi2_msix_info {
-diff --git a/drivers/infiniband/hw/hfi2/intr.c b/drivers/infiniband/hw/hfi2/intr.c
-new file mode 100644
-index 000000000000..778c780338ea
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/intr.c
-@@ -0,0 +1,298 @@
-+// SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
-+/*
-+ * Copyright(c) 2015, 2016 Intel Corporation.
-+ * Copyright(c) 2025-2026 Cornelis Networks, Inc.
-+ */
-+
-+#include <linux/pci.h>
-+#include <linux/delay.h>
-+#include <linux/bitmap.h>
-+
-+#include "hfi2.h"
-+#include "file_ops.h"
-+#include "common.h"
-+#include "sdma.h"
-+
-+#define LINK_UP_DELAY 500 /* in microseconds */
-+
-+static void set_mgmt_allowed(struct hfi2_pportdata *ppd)
-+{
-+	u32 frame;
-+	struct hfi2_devdata *dd = ppd->dd;
-+
-+	if (ppd->neighbor_type == NEIGHBOR_TYPE_HFI) {
-+		ppd->mgmt_allowed = 1;
-+	} else {
-+		hfi2_read_8051_config(dd, REMOTE_LNI_INFO, GENERAL_CONFIG,
-+				      &frame);
-+		ppd->mgmt_allowed = (frame >> MGMT_ALLOWED_SHIFT) &
-+				    MGMT_ALLOWED_MASK;
-+	}
-+}
-+
-+/*
-+ * Our neighbor has indicated that we are allowed to act as a fabric
-+ * manager, so place the full management partition key in the second
-+ * (0-based) pkey array position. Note that we should already have
-+ * the limited management partition key in array element 1, and also
-+ * that the port is not yet up when add_full_mgmt_pkey() is invoked.
-+ */
-+static void add_full_mgmt_pkey(struct hfi2_pportdata *ppd)
-+{
-+	/* Sanity check - ppd->pkeys[2] should be 0, or already initialized */
-+	if (!((ppd->pkeys[2] == 0) || (ppd->pkeys[2] == FULL_MGMT_P_KEY)))
-+		ppd_dev_warn(
-+			ppd,
-+			"%s pkey[2] already set to 0x%x, resetting it to 0x%x\n",
-+			__func__, ppd->pkeys[2], FULL_MGMT_P_KEY);
-+	ppd->pkeys[2] = FULL_MGMT_P_KEY;
-+	(void)hfi2_set_ib_cfg(ppd, HFI2_IB_CFG_PKEYS, 0);
-+	hfi2_event_pkey_change(ppd->dd, ppd->port);
-+}
-+
-+static void signal_ib_event(struct hfi2_pportdata *ppd, enum ib_event_type ev)
-+{
-+	struct ib_event event;
-+	struct hfi2_devdata *dd = ppd->dd;
-+
-+	/*
-+	 * Only call ib_dispatch_event() if the IB device has been
-+	 * registered.  HFI2_INITED is set iff the driver has successfully
-+	 * registered with the IB core.
-+	 */
-+	if (!(dd->flags & HFI2_INITTED))
-+		return;
-+	event.device = &dd->verbs_dev.rdi.ibdev;
-+	event.element.port_num = ppd->port;
-+	event.event = ev;
-+	ib_dispatch_event(&event);
-+}
-+
-+/**
-+ * hfi2_handle_linkup_change - finish linkup/down state changes
-+ * @ppd: valid port data
-+ * @linkup: link state information
-+ *
-+ * Handle a linkup or link down notification.
-+ * The HW needs time to finish its link up state change. Give it that chance.
-+ *
-+ * This is called outside an interrupt.
-+ *
-+ */
-+void hfi2_handle_linkup_change(struct hfi2_pportdata *ppd, u32 linkup)
-+{
-+	struct hfi2_devdata *dd = ppd->dd;
-+	enum ib_event_type ev;
-+
-+	if (dd->cport) {
-+		ppd_dev_err(ppd, "%s should not be called for JKR\n", __func__);
-+		return;
-+	}
-+	if (!(ppd->linkup ^ !!linkup))
-+		return; /* no change, nothing to do */
-+
-+	if (linkup) {
-+		/*
-+		 * Quick linkup does not trigger or implement:
-+		 *	- VerifyCap interrupt
-+		 *	- VerifyCap frames
-+		 * But rather moves directly to LinkUp.
-+		 *
-+		 * Do the work of the VerifyCap interrupt handler,
-+		 * hfi2_handle_verify_cap(), but do not try moving the state to
-+		 * LinkUp as we are already there.
-+		 *
-+		 * NOTE: This uses this device's vAU, vCU, and vl15_init for
-+		 * the remote values.  Both sides must be using the values.
-+		 */
-+		if (hfi2_quick_linkup) {
-+			hfi2_set_up_vau(ppd, dd->vau);
-+			hfi2_set_up_vl15(ppd, dd->vl15_init);
-+			hfi2_assign_remote_cm_au_table(ppd, dd->vcu);
-+		}
-+
-+		ppd->neighbor_guid =
-+			hfi2_read_csr(dd, DC_DC8051_STS_REMOTE_GUID);
-+		ppd->neighbor_type =
-+			hfi2_read_csr(dd, DC_DC8051_STS_REMOTE_NODE_TYPE) &
-+			DC_DC8051_STS_REMOTE_NODE_TYPE_VAL_MASK;
-+		ppd->neighbor_port_number =
-+			hfi2_read_csr(dd, DC_DC8051_STS_REMOTE_PORT_NO) &
-+			DC_DC8051_STS_REMOTE_PORT_NO_VAL_SMASK;
-+		ppd->neighbor_fm_security =
-+			hfi2_read_csr(dd, DC_DC8051_STS_REMOTE_FM_SECURITY) &
-+			DC_DC8051_STS_LOCAL_FM_SECURITY_DISABLED_MASK;
-+		ppd_dev_info(ppd, "Neighbor Guid %llx, Type %d, Port Num %d\n",
-+			     ppd->neighbor_guid, ppd->neighbor_type,
-+			     ppd->neighbor_port_number);
-+
-+		/* HW needs LINK_UP_DELAY to settle, give it that chance */
-+		udelay(LINK_UP_DELAY);
-+
-+		/*
-+		 * 'MgmtAllowed' information, which is exchanged during
-+		 * LNI, is available at this point.
-+		 */
-+		set_mgmt_allowed(ppd);
-+
-+		if (ppd->mgmt_allowed)
-+			add_full_mgmt_pkey(ppd);
-+
-+		/* physical link went up */
-+		ppd->linkup = 1;
-+		ppd->offline_disabled_reason =
-+			HFI2_ODR_MASK(OPA_LINKDOWN_REASON_NONE);
-+
-+		/* link widths are not available until the link is fully up */
-+		hfi2_get_linkup_link_widths(ppd);
-+
-+	} else {
-+		/* physical link went down */
-+		ppd->linkup = 0;
-+
-+		/* clear HW details of the previous connection */
-+		ppd->actual_vls_operational = 0;
-+		hfi2_reset_link_credits(ppd);
-+
-+		/* freeze after a link down to guarantee a clean egress */
-+		hfi2_start_freeze_handling(dd, FREEZE_SELF | FREEZE_LINK_DOWN);
-+
-+		ev = IB_EVENT_PORT_ERR;
-+
-+		hfi2_set_uevent_bits(ppd, _HFI2_EVENT_LINKDOWN_BIT);
-+
-+		/* if we are down, the neighbor is down */
-+		ppd->neighbor_normal = 0;
-+
-+		/* notify IB of the link change */
-+		signal_ib_event(ppd, ev);
-+	}
-+}
-+
-+/* Special version of hfi2_handle_linkup_change() for systems with a CPORT */
-+void hfi2_cport_handle_linkup_change(struct hfi2_pportdata *ppd,
-+				     struct opa_port_info *pi, u32 linkup)
-+{
-+	struct hfi2_devdata *dd = ppd->dd;
-+	enum ib_event_type ev;
-+
-+	if (!(ppd->linkup ^ !!linkup))
-+		return; /* no change, nothing to do */
-+
-+	if (linkup) {
-+		ppd->neighbor_guid = be64_to_cpu(pi->neigh_node_guid);
-+		ppd->neighbor_port_number = pi->neigh_port_num;
-+		ppd->neighbor_type = pi->port_neigh_mode &
-+				     OPA_PI_MASK_NEIGH_NODE_TYPE;
-+		ppd->mgmt_allowed = !!(pi->port_neigh_mode &
-+				       OPA_PI_MASK_NEIGH_MGMT_ALLOWED);
-+		ppd->neighbor_fm_security = !!(
-+			pi->port_neigh_mode & OPA_PI_MASK_NEIGH_FW_AUTH_BYPASS);
-+
-+		ppd_dev_info(ppd, "Neighbor Guid %llx, Type %d, Port Num %d\n",
-+			     ppd->neighbor_guid, ppd->neighbor_type,
-+			     ppd->neighbor_port_number);
-+
-+		if (ppd->mgmt_allowed) {
-+			if (!(ppd->pkeys[2] == 0 ||
-+			      ppd->pkeys[2] == FULL_MGMT_P_KEY))
-+				ppd_dev_warn(
-+					ppd,
-+					"%s pkey[2] already set to 0x%x, resetting it to 0x%x\n",
-+					__func__, ppd->pkeys[2],
-+					FULL_MGMT_P_KEY);
-+			ppd->pkeys[2] = FULL_MGMT_P_KEY;
-+			hfi2_event_pkey_change(ppd->dd, ppd->port);
-+		}
-+
-+		/* physical link went up */
-+		ppd->linkup = 1;
-+		ppd->offline_disabled_reason =
-+			HFI2_ODR_MASK(OPA_LINKDOWN_REASON_NONE);
-+
-+		/* link widths are not available until the link is fully up */
-+		ppd->link_width_enabled = be16_to_cpu(pi->link_width.enabled);
-+		ppd->link_width_supported =
-+			be16_to_cpu(pi->link_width.supported);
-+		ppd->link_width_active = be16_to_cpu(pi->link_width.active);
-+		ppd->link_width_downgrade_supported =
-+			be16_to_cpu(pi->link_width_downgrade.supported);
-+		ppd->link_width_downgrade_enabled =
-+			be16_to_cpu(pi->link_width_downgrade.enabled);
-+		ppd->link_width_downgrade_tx_active =
-+			be16_to_cpu(pi->link_width_downgrade.tx_active);
-+		ppd->link_width_downgrade_rx_active =
-+			be16_to_cpu(pi->link_width_downgrade.rx_active);
-+		ppd->link_speed_supported =
-+			be16_to_cpu(pi->link_speed.supported);
-+		ppd->link_speed_active = be16_to_cpu(pi->link_speed.active);
-+		ppd->link_speed_enabled = be16_to_cpu(pi->link_speed.enabled);
-+
-+		/*
-+		 * Rewrite the KDETH indicator.  The firmware overwrites it
-+		 * when resetting the link.  All ports are rewritten, but
-+		 * the same value is always used - a noop on other ports.
-+		 */
-+		hfi2_init_kdeth_qp(dd);
-+
-+	} else {
-+		/* physical link went down */
-+		ppd->linkup = 0;
-+
-+		/* clear HW details of the previous connection */
-+		ppd->actual_vls_operational = 0;
-+
-+		/* what's left from hfi2_reset_link_credits() */
-+		dd->vl15buf_cached = 0;
-+
-+		hfi2_start_linkdown_handling(ppd);
-+
-+		ev = IB_EVENT_PORT_ERR;
-+
-+		hfi2_set_uevent_bits(ppd, _HFI2_EVENT_LINKDOWN_BIT);
-+
-+		/* if we are down, the neighbor is down */
-+		ppd->neighbor_normal = 0;
-+
-+		/* notify IB of the link change */
-+		signal_ib_event(ppd, ev);
-+	}
-+}
-+
-+/**
-+ * hfi2_go_port_active - All steps needed when the port goes active.
-+ * @ppd: port structure
-+ *
-+ * Take non-chip specific steps for transition from INIT to ACTIVE.  This
-+ * routine expects the port to already in INIT.  This routine is not
-+ * responsible for setting the state.
-+ */
-+void hfi2_go_port_active(struct hfi2_pportdata *ppd)
-+{
-+	signal_ib_event(ppd, IB_EVENT_PORT_ACTIVE);
-+}
-+
-+/*
-+ * Handle receive or urgent interrupts for user contexts.  This means a user
-+ * process was waiting for a packet to arrive, and didn't want to poll.
-+ */
-+void hfi2_handle_user_interrupt(struct hfi2_ctxtdata *rcd)
-+{
-+	struct hfi2_devdata *dd = rcd->dd;
 +	unsigned long flags;
++	u64 ints;
 +
-+	spin_lock_irqsave(&dd->uctxt_lock, flags);
-+	if (bitmap_empty(rcd->in_use_ctxts, HFI2_MAX_SHARED_CTXTS))
-+		goto done;
-+
-+	if (test_and_clear_bit(HFI2_CTXT_WAITING_RCV, &rcd->event_flags)) {
-+		wake_up_interruptible(&rcd->wait);
-+		hfi2_rcvctrl(dd, HFI2_RCVCTRL_INTRAVAIL_DIS, rcd);
-+	} else if (test_and_clear_bit(HFI2_CTXT_WAITING_URG,
-+				      &rcd->event_flags)) {
-+		rcd->urgent++;
-+		wake_up_interruptible(&rcd->wait);
++	spin_lock_irqsave(&dd->irq_src_lock, flags);
++	ints = hfi2_read_csr(dd, JKR_MCTXT_PF0_INT_STATUS_ENABLED);
++	/* if bits set, assume lost interrupt and attempt recovery. */
++	if (ints) {
++#ifdef LOST_INT_DEBUG
++		dd_dev_info(dd, "%s forcing int for %llx\n", __func__, ints);
++#endif
++		hfi2_force_intr(dd, JKR_MCTXT_CPORT_TO_PCIE_INT);
 +	}
-+done:
-+	spin_unlock_irqrestore(&dd->uctxt_lock, flags);
++	spin_unlock_irqrestore(&dd->irq_src_lock, flags);
 +}
-diff --git a/drivers/infiniband/hw/hfi2/msix.c b/drivers/infiniband/hw/hfi2/msix.c
-new file mode 100644
-index 000000000000..ed3c2cbc4bd2
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/msix.c
-@@ -0,0 +1,422 @@
-+// SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause)
++
++static void cport_lost_int_chk(struct timer_list *t)
++{
++	struct hfi2_cport *cport = timer_container_of(cport, t, lost_int_timer);
++
++	if (cport_lost_int) {
++		lost_mctxt_intr(cport->dd);
++		mod_timer(&cport->lost_int_timer, jiffies + cport_lost_int);
++	}
++}
++
 +/*
-+ * Copyright(c) 2018 - 2020 Intel Corporation.
-+ * Copyright(c) 2025-2026 Cornelis Networks, Inc.
++ * Acquire a reference to the message structure
 + */
-+
-+#include "hfi2.h"
-+#include "sdma.h"
-+#include "netdev.h"
-+#include "vf2pf.h"
-+
-+/**
-+ * hfi2_msix_initialize() - Calculate, request and configure MSIx IRQs
-+ * @dd: valid hfi2 devdata
-+ *
-+ */
-+int hfi2_msix_initialize(struct hfi2_devdata *dd)
++static inline void cwget(struct cport_work *cw)
 +{
-+	struct hfi2_devrsrcs *dr = &dd->rsrcs;
-+	u32 total;
-+	int ret;
-+	int pidx;
-+	struct hfi2_msix_entry *entries;
++	kref_get(&cw->kref);
++}
 +
-+	/*
-+	 * MSIx interrupt count:
-+	 *	one for the general, "slow path" interrupt
-+	 *	as needed for vf2pf
-+	 *	one per used SDMA engine
-+	 *	one per kernel receive context
-+	 *      ...any new IRQs should be added here.
-+	 */
-+	total = 1 + hfi2_vf2pf_num_irq(dd) +
-+		(dr->last_sdma_engine - dr->first_sdma_engine);
-+	for (pidx = 0; pidx < dd->num_pports; pidx++) {
-+		struct hfi2_portrsrcs *pr = &dr->ppr[pidx];
++/*
++ * Locate and remove the 'id' message in the xarray and atomically
++ * acquire a reference to the message structure.
++ */
++static inline struct cport_work *cwget_xa(struct hfi2_devdata *dd, u32 id)
++{
++	struct cport_work *cw;
 +
-+		total += pr->n_krcv_queues + pr->num_netdev_contexts;
++	xa_lock(&dd->cport->tid_xa);
++	cw = __xa_erase(&dd->cport->tid_xa, id);
++	if (cw)
++		cwget(cw);
++	xa_unlock(&dd->cport->tid_xa);
++	return cw;
++}
++
++static void cwrelease(struct kref *kref)
++{
++	struct cport_work *cw = container_of(kref, struct cport_work, kref);
++
++	kfree(cw->req);
++	kfree(cw->rsp);
++
++	kfree(cw);
++}
++
++static void cwput(struct cport_work *cw)
++{
++	kref_put(&cw->kref, cwrelease);
++}
++
++static struct cport_work *cwalloc(int flag)
++{
++	struct cport_work *cw = kzalloc(sizeof(*cw), GFP_KERNEL);
++
++	if (!cw)
++		return NULL;
++
++	cw->flags = flag;
++	cw->n_mctxts = 1;
++	cw->req = kzalloc_obj(cw->req, GFP_KERNEL);
++	if (!cw->req) {
++		kfree(cw);
++		return NULL;
 +	}
 +
-+	if (total >= CCE_NUM_MSIX_VECTORS)
++	cw->rsp = kzalloc(sizeof(*cw->rsp), GFP_KERNEL);
++	if (!cw->rsp) {
++		kfree(cw->req);
++		kfree(cw);
++		return NULL;
++	}
++
++	kref_init(&cw->kref);
++	return cw;
++}
++
++/* set "external" (non-alloc) response payload */
++static void pld_rsp_set(struct cport_work *cw, void *pld, int len)
++{
++	memcpy(&cw->rsp->qw[1], pld, len);
++	cw->rsp->hdr.len = len + sizeof(cw->rsp->hdr);
++}
++
++static int cw_pad_size(struct cport_work *msg, u32 size)
++{
++	union mctxt_mem *new_reqs, *new_rsps;
++	u32 new_ctxts;
++
++	/* already large enough */
++	if (size <= msg->n_mctxts * (sizeof(*new_reqs)))
++		return 0;
++
++	/* round up to next mctxt buffer len */
++	new_ctxts = (size + (sizeof(*new_reqs) - 1)) / sizeof(*new_reqs);
++	if (new_ctxts > U8_MAX)
 +		return -EINVAL;
-+
-+	ret = pci_alloc_irq_vectors(dd->pcidev, total, total, PCI_IRQ_MSIX);
-+	if (ret < 0) {
-+		dd_dev_err(dd, "pci_alloc_irq_vectors() failed: %d\n", ret);
-+		return ret;
-+	}
-+
-+	entries =
-+		kcalloc(total, sizeof(*dd->msix_info.msix_entries), GFP_KERNEL);
-+	if (!entries) {
-+		pci_free_irq_vectors(dd->pcidev);
++	new_reqs =
++		krealloc(msg->req, new_ctxts * sizeof(*new_reqs), GFP_KERNEL);
++	if (!new_reqs)
 +		return -ENOMEM;
-+	}
++	msg->req = new_reqs;
 +
-+	dd->msix_info.msix_entries = entries;
-+	spin_lock_init(&dd->msix_info.msix_lock);
-+	bitmap_zero(dd->msix_info.in_use_msix, total);
-+	dd->msix_info.max_requested = total;
-+	dd_dev_info(dd, "%u MSI-X interrupts allocated\n", total);
++	new_rsps =
++		krealloc(msg->rsp, new_ctxts * sizeof(*new_reqs), GFP_KERNEL);
++	if (!new_rsps)
++		return -ENOMEM;
 +
-+	return 0;
-+}
-+
-+/**
-+ * msix_request_irq() - Allocate a free MSIx IRQ
-+ * @dd: valid devdata
-+ * @arg: context information for the IRQ
-+ * @handler: IRQ handler
-+ * @thread: IRQ thread handler (could be NULL)
-+ * @type: affinty IRQ type
-+ * @name: IRQ name
-+ *
-+ * Allocated an MSIx vector if available, and then create the appropriate
-+ * meta data needed to keep track of the pci IRQ request.
-+ *
-+ * Return:
-+ *   < 0   Error
-+ *   >= 0  MSIx vector
-+ *
-+ */
-+static int msix_request_irq(struct hfi2_devdata *dd, void *arg,
-+			    irq_handler_t handler, irq_handler_t thread,
-+			    enum irq_type type, const char *name)
-+{
-+	unsigned long nr;
-+	int irq;
-+	int ret;
-+	struct hfi2_msix_entry *me;
-+
-+	/* Allocate an MSIx vector */
-+	spin_lock(&dd->msix_info.msix_lock);
-+	nr = find_first_zero_bit(dd->msix_info.in_use_msix,
-+				 dd->msix_info.max_requested);
-+	if (nr < dd->msix_info.max_requested)
-+		__set_bit(nr, dd->msix_info.in_use_msix);
-+	spin_unlock(&dd->msix_info.msix_lock);
-+
-+	if (nr == dd->msix_info.max_requested) {
-+		pr_err("%s: failed, nr %ld, max_requested %d, -ENOSPC\n",
-+		       __func__, nr, dd->msix_info.max_requested);
-+		return -ENOSPC;
-+	}
-+
-+	if (type < IRQ_SDMA || type >= IRQ_OTHER)
-+		return -EINVAL;
-+
-+	irq = pci_irq_vector(dd->pcidev, nr);
-+	ret = pci_request_irq(dd->pcidev, nr, handler, thread, arg, name);
-+	if (ret) {
-+		dd_dev_err(dd,
-+			   "%s: request for IRQ %d failed, MSIx %lx, err %d\n",
-+			   name, irq, nr, ret);
-+		spin_lock(&dd->msix_info.msix_lock);
-+		__clear_bit(nr, dd->msix_info.in_use_msix);
-+		spin_unlock(&dd->msix_info.msix_lock);
-+		return ret;
-+	}
-+
-+	/*
-+	 * assign arg after pci_request_irq call, so it will be
-+	 * cleaned up
-+	 */
-+	me = &dd->msix_info.msix_entries[nr];
-+	me->irq = irq;
-+	me->arg = arg;
-+	me->type = type;
-+
-+	return nr;
-+}
-+
-+static int msix_request_rcd_irq_common(struct hfi2_ctxtdata *rcd,
-+				       irq_handler_t handler,
-+				       irq_handler_t thread, const char *name)
-+{
-+	u32 source;
-+	int nr;
-+
-+	nr = msix_request_irq(rcd->dd, rcd, handler, thread, IRQ_RCVCTXT, name);
-+	if (nr < 0)
-+		return nr;
-+
-+	/*
-+	 * Set the interrupt register and mask for this context's interrupt.
-+	 */
-+	source = rcd->dd->params->is_rcvavail_start + rcd->ctxt;
-+	rcd->ireg = source / 64;
-+	rcd->imask = ((u64)1) << (source % 64);
-+	rcd->msix_intr = nr;
-+	hfi2_remap_intr(rcd->dd, source, nr);
++	msg->rsp = new_rsps;
++	msg->n_mctxts = new_ctxts;
 +
 +	return 0;
 +}
 +
-+/**
-+ * hfi2_msix_request_rcd_irq() - Helper function for RCVAVAIL IRQs
-+ * @rcd: valid rcd context
-+ *
-+ */
-+int hfi2_msix_request_rcd_irq(struct hfi2_ctxtdata *rcd)
++static int cwcopy(struct cport_work *msg, void *from, u32 offset, u32 len,
++		  bool req)
 +{
-+	char name[MAX_NAME_SIZE];
-+
-+	snprintf(name, sizeof(name), DRIVER_NAME "_%d kctxt%d", rcd->dd->unit,
-+		 rcd->ctxt);
-+
-+	return msix_request_rcd_irq_common(rcd, hfi2_receive_context_interrupt,
-+					   hfi2_receive_context_thread, name);
-+}
-+
-+/**
-+ * hfi2_msix_netdev_request_rcd_irq  - Helper function for RCVAVAIL IRQs
-+ * for netdev context
-+ * @rcd: valid netdev contexti
-+ */
-+int hfi2_msix_netdev_request_rcd_irq(struct hfi2_ctxtdata *rcd)
-+{
-+	char name[MAX_NAME_SIZE];
-+
-+	snprintf(name, sizeof(name), DRIVER_NAME "_%d nd kctxt%d",
-+		 rcd->dd->unit, rcd->ctxt);
-+	return msix_request_rcd_irq_common(rcd, hfi2_receive_context_interrupt_napi,
-+					   NULL, name);
-+}
-+
-+/**
-+ * hfi2_msix_request_sdma_irq  - Helper for getting SDMA IRQ resources
-+ * @sde: valid sdma engine
-+ *
-+ */
-+int hfi2_msix_request_sdma_irq(struct sdma_engine *sde)
-+{
-+	int nr;
-+	char name[MAX_NAME_SIZE];
-+
-+	snprintf(name, sizeof(name), DRIVER_NAME "_%d sdma%d", sde->dd->unit,
-+		 sde->this_idx);
-+	nr = msix_request_irq(sde->dd, sde, hfi2_sdma_interrupt, hfi2_sdma_interrupt_thr,
-+			      IRQ_SDMA, name);
-+	if (nr < 0)
-+		return nr;
-+	sde->msix_intr = nr;
-+	hfi2_remap_sdma_interrupts(sde->dd, sde->this_idx, nr);
-+
-+	return 0;
-+}
-+
-+/**
-+ * hfi2_msix_request_general_irq - Helper for getting general IRQ
-+ * resources
-+ * @dd: valid device data
-+ */
-+int hfi2_msix_request_general_irq(struct hfi2_devdata *dd)
-+{
-+	int nr;
-+	char name[MAX_NAME_SIZE];
-+
-+	snprintf(name, sizeof(name), DRIVER_NAME "_%d", dd->unit);
-+	nr = msix_request_irq(dd, dd, hfi2_general_interrupt, NULL, IRQ_GENERAL,
-+			      name);
-+	if (nr < 0)
-+		return nr;
-+
-+	/* general interrupt must be MSIx vector 0 */
-+	if (nr) {
-+		hfi2_msix_free_irq(dd, (u8)nr);
-+		dd_dev_err(dd, "Invalid index %d for GENERAL IRQ\n", nr);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * enable_sdma_srcs - Helper to enable SDMA IRQ srcs
-+ * @dd: valid devdata structure
-+ * @i: index of SDMA engine
-+ */
-+static void enable_sdma_srcs(struct hfi2_devdata *dd, int i)
-+{
-+	hfi2_set_intr_bits(dd, dd->params->is_sdma_start + i,
-+		      dd->params->is_sdma_start + i, true);
-+	hfi2_set_intr_bits(dd, dd->params->is_sdma_progress_start + i,
-+		      dd->params->is_sdma_progress_start + i, true);
-+	hfi2_set_intr_bits(dd, dd->params->is_sdma_idle_start + i,
-+		      dd->params->is_sdma_idle_start + i, true);
-+	hfi2_set_intr_bits(dd, dd->params->is_sdmaeng_err_start + i,
-+		      dd->params->is_sdmaeng_err_start + i, true);
-+}
-+
-+/**
-+ * hfi2_msix_request_irqs() - Allocate SDMA and receive IRQs
-+ * @dd: valid devdata structure
-+ *
-+ * Helper function to request MSIx IRQs for SDMA and receive.
-+ */
-+int hfi2_msix_request_irqs(struct hfi2_devdata *dd)
-+{
-+	struct hfi2_devrsrcs *dr = &dd->rsrcs;
-+	int i;
-+	int j;
-+	int ret = 0;
-+
-+	for (i = dr->first_sdma_engine; i < dr->last_sdma_engine; i++) {
-+		struct sdma_engine *sde = &dd->per_sdma[i];
-+
-+		ret = hfi2_msix_request_sdma_irq(sde);
-+		if (ret)
-+			return ret;
-+		enable_sdma_srcs(sde->dd, i);
-+	}
-+
-+	for (i = 0; i < dd->num_pports; i++) {
-+		struct hfi2_portrsrcs *pr = &dr->ppr[i];
-+
-+		for (j = 0; j < pr->n_krcv_queues; j++) {
-+			u16 ctxt = pr->rcv_context_base + j;
-+			struct hfi2_ctxtdata *rcd =
-+				hfi2_rcd_get_by_index(dd, ctxt);
-+
-+			if (rcd)
-+				ret = hfi2_msix_request_rcd_irq(rcd);
-+			hfi2_rcd_put(rcd);
-+			if (ret)
-+				return ret;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * hfi2_msix_early_request_irqs() - Allocate needed early IRQs.
-+ * @dd: valid devdata structure
-+ *
-+ * Helper function to request an MSIx IRQs for anthing needed early in the
-+ * device initialize.  Presently, only the general interrupt handler.
-+ */
-+int hfi2_msix_early_request_irqs(struct hfi2_devdata *dd)
-+{
++	union mctxt_mem *mc;
 +	int ret;
 +
-+	ret = hfi2_msix_request_general_irq(dd);
++	ret = cw_pad_size(msg, offset + len);
 +	if (ret)
 +		return ret;
-+	/*
-+	 * Only VFs can/must init VF2PF IRQs this early.
-+	 * The PF must wait until CPORT f/w has reset all
-+	 * resources in hfi2_start_cport().
-+	 */
-+	if (dd->is_vf)
-+		ret = hfi2_vf2pf_init_irq(dd);
 +
++	mc = req ? msg->req : msg->rsp;
++	memcpy(((u8 *)mc) + offset, from, len);
++
++	return 0;
++}
++
++/*
++ * Send request, non-blocking, with timeout for OUTBOX_EMPTY wait.
++ * Caller must watch 'wait' semaphore for completion, and
++ * then call hfi2_cport_send_comp() or hfi2_cport_send_cancel() to finalize everything.
++ * Returns handle for hfi2_cport_send_comp()/_cancel(), or ERR_PTR().
++ *
++ * See hfi2_cport_send_req() for example usage.
++ */
++void *hfi2_cport_send_req_nb(struct hfi2_devdata *dd, u8 op, u8 sideband,
++			     void *payload, int len, struct semaphore *wait,
++			     long timeout)
++{
++	int ret;
++	struct cport_work *msg;
++	u32 idx;
++
++	if (!dd->cport)
++		return ERR_PTR(-EINVAL);
++
++	msg = cwalloc(CW_FLAG_SEND);
++	if (!msg)
++		return ERR_PTR(-ENOMEM);
++	msg->dd = dd;
++	msg->timeout = timeout;
++	ret = cwcopy(msg, payload, sizeof(union cport_header), len, true);
++	if (ret) {
++		cwput(msg);
++		return ERR_PTR(ret);
++	}
++	ret = xa_alloc_cyclic(&dd->cport->tid_xa, &idx, msg, cport_tid_limit,
++			      &dd->cport->tid_next, GFP_KERNEL);
++	if (ret < 0) {
++		cwput(msg);
++		return ERR_PTR(ret);
++	}
++#ifdef CPORT_XA_DEBUG
++	dd_dev_info(dd, "CPORT tid is %04x\n", idx);
++#endif
++	msg->req->hdr.op_code = op;
++	msg->req->hdr.sideband = sideband;
++	msg->req->hdr.is_req = 1;
++	msg->req->hdr.no_rsp = 0;
++	msg->req->hdr.tid = idx;
++	msg->req->hdr.len = len + sizeof(msg->req->hdr);
++	msg->sem = wait;
++	cwget(msg); /* extra ref so not freed after send */
++	INIT_WORK(&msg->work, cport_send_req_fn);
++	queue_work(dd->hfi2_wq, &msg->work);
++	return msg;
++}
++
++/*
++ * Extract results from response and drop (last) reference to structure.
++ * Returns status from response header.
++ * Must never be called twice for the same message (message has been freed).
++ * Must never be called on a message that has not received response (up'ed wait).
++ */
++int hfi2_cport_send_comp(struct hfi2_devdata *dd, void *handle, void **rsp_pld,
++			 int *rsp_len)
++{
++	struct cport_work *msg = handle;
++	void *ptr;
++	int ret;
++	int len;
++
++	*rsp_len = len = msg->rsp->hdr.len - sizeof(msg->rsp->hdr);
++	if (rsp_pld) {
++		ptr = kzalloc(len, GFP_KERNEL);
++		if (!ptr)
++			return -ENOMEM;
++		memcpy(ptr, &msg->rsp[0].qw[1], len);
++		*rsp_pld = ptr;
++	}
++	ret = msg->rsp->hdr.sts;
++	cwput(msg);
 +	return ret;
 +}
 +
-+/**
-+ * hfi2_msix_free_irq() - Free the specified MSIx resources and IRQ
-+ * @dd: valid devdata
-+ * @msix_intr: MSIx vector to free.
-+ *
++/*
++ * Cleanup aborted wait for response.
++ * Only called for requests w/responses.
++ * Must never be called twice for the same message (message has been freed).
 + */
-+void hfi2_msix_free_irq(struct hfi2_devdata *dd, u8 msix_intr)
++void hfi2_cport_send_cancel(struct hfi2_devdata *dd, void *handle)
 +{
-+	struct hfi2_msix_entry *me;
++	struct cport_work *msg = handle;
 +
-+	if (msix_intr >= dd->msix_info.max_requested)
-+		return;
-+
-+	me = &dd->msix_info.msix_entries[msix_intr];
-+
-+	if (!me->arg)
-+		return;
-+
-+	pci_free_irq(dd->pcidev, msix_intr, me->arg);
-+
-+	me->arg = NULL;
-+
-+	spin_lock(&dd->msix_info.msix_lock);
-+	__clear_bit(msix_intr, dd->msix_info.in_use_msix);
-+	spin_unlock(&dd->msix_info.msix_lock);
-+}
-+
-+/**
-+ * hfi2_msix_clean_up_interrupts  - Free all MSIx IRQ resources
-+ * @dd: valid device data structure
-+ *
-+ * Free the MSIx and associated PCI resources, if they have been allocated.
-+ */
-+void hfi2_msix_clean_up_interrupts(struct hfi2_devdata *dd)
-+{
-+	int i;
-+
-+	/* remove irqs - must happen before disabling/turning off */
-+	for (i = 0; i < dd->msix_info.max_requested; i++)
-+		hfi2_msix_free_irq(dd, i);
-+
-+	/* clean structures */
-+	kfree(dd->msix_info.msix_entries);
-+	dd->msix_info.msix_entries = NULL;
-+	dd->msix_info.max_requested = 0;
-+
-+	pci_free_irq_vectors(dd->pcidev);
++	cancel_work(&msg->work); /* cport_send() drops ref on all paths */
++	xa_erase(&dd->cport->tid_xa, msg->req->hdr.tid);
++	cwput(msg);
 +}
 +
 +/*
-+ * hfi2_msix_shut_down_interrupts - Free all or most IRQs
-+ * @dd: device data structure
-+ * @keep_gen: when true, keep general interrupt
++ * Send request and wait for response, with timeout.
++ * Caller must be able to sleep.
++ * Returns status from response header, and response payload data, on success.
++ * Response payload was from k[z]alloc() and caller must kfree().
++ * On error, returns -errno (response status is always 0-15).
++ */
++int hfi2_cport_send_req(struct hfi2_devdata *dd, u8 op, u8 sideband,
++			void *payload, int len, void **rsp_pld, int *rsp_len,
++			long timeout)
++{
++	int ret;
++	struct cport_work *msg;
++	struct semaphore comp;
++
++	sema_init(&comp, 0);
++
++	might_sleep();
++
++	msg = hfi2_cport_send_req_nb(dd, op, sideband, payload, len, &comp,
++				     timeout);
++	if (IS_ERR(msg))
++		return PTR_ERR(msg);
++	if (timeout > 0 && timeout != MAX_SCHEDULE_TIMEOUT)
++		ret = down_timeout(&comp, timeout);
++	else
++		ret = down_killable(&comp);
++	if (ret) {
++#ifdef CPORT_INT_DEBUG
++		u64 ints;
++
++		ints = hfi2_read_csr(dd, JKR_MCTXT_PF0_INT_STATUS);
++		dd_dev_err(
++			dd,
++			"CPORT request wait interrupted %016llx (%d) [%02llx]\n",
++			msg->req->hdr.qw, ret, ints);
++#else
++		dd_dev_err(dd, "CPORT request wait interrupted %016llx (%d)\n",
++			   msg->req->hdr.qw, ret);
++#endif
++		hfi2_cport_send_cancel(dd, msg);
++		lost_mctxt_intr(dd); /* attempt recovery */
++		return ret;
++	}
++	return hfi2_cport_send_comp(dd, msg, rsp_pld, rsp_len);
++}
++
++int hfi2_cport_send_notif(struct hfi2_devdata *dd, u8 op, u8 sideband,
++			  void *payload, int len, long timeout)
++{
++	struct cport_work *msg;
++	int ret;
++
++	if (!dd->cport)
++		return -EINVAL;
++
++	msg = cwalloc(CW_FLAG_SEND);
++	if (!msg)
++		return -ENOMEM;
++	msg->dd = dd;
++	msg->timeout = timeout;
++	ret = cwcopy(msg, payload, sizeof(union cport_header), len, true);
++	if (ret) {
++		cwput(msg);
++		return ret;
++	}
++	msg->req->hdr.len = len + sizeof(msg->req->hdr);
++	msg->req->hdr.op_code = op;
++	msg->req->hdr.sideband = sideband;
++	msg->req->hdr.is_req = 1;
++	msg->req->hdr.no_rsp = 1;
++	INIT_WORK(&msg->work, cport_send_req_fn);
++	queue_work(dd->hfi2_wq, &msg->work);
++	return 0;
++}
++
++/*
++ ********************************************************************
++ * Internal routines.
++ */
++
++/*
++ * Send a response to CPORT's request.
 + *
-+ * Free all IRQs with the possible exception of the general IRQ.  Retain all
-+ * structures.  This should eventually be followed by a call to
-+ * hfi2_msix_clean_up_interrupts().
++ * Re-uses message structure from request. Queues to send workqueue.
 + */
-+void hfi2_msix_shut_down_interrupts(struct hfi2_devdata *dd, bool keep_gen)
++static int cport_send_rsp(struct cport_work *msg, int sts)
 +{
-+	struct hfi2_msix_entry *me;
-+	int i;
++	struct hfi2_devdata *dd = msg->dd;
 +
-+	/* remove irqs - must happen before disabling/turning off */
-+	for (i = 0; i < dd->msix_info.max_requested; i++) {
-+		me = &dd->msix_info.msix_entries[i];
-+		if (keep_gen && me->type == IRQ_GENERAL)
-+			continue;
-+		hfi2_msix_free_irq(dd, i);
++	/* rsp.hdr.len and rsp.qw[1..] already setup, also rsp.op_code/rsp.tid */
++	msg->rsp->hdr.is_req = 0;
++	msg->rsp->hdr.sts = sts;
++	INIT_WORK(&msg->work, cport_send_rsp_fn);
++	queue_work(dd->hfi2_wq, &msg->work);
++	return 0;
++}
++
++static void cport_send(struct cport_work *msg, bool req)
++{
++	union mctxt_mem *mc = req ? msg->req : msg->rsp;
++	struct hfi2_devdata *dd = msg->dd;
++	u32 csr_i, tot_len, len_sent;
++	u64 cport_hdr;
++	u8 seq_no;
++	u64 *ptr;
++	int ret, mcxt_len;
++
++	/* sleep until OutboxEmpty... */
++	if (msg->timeout > 0 && msg->timeout != MAX_SCHEDULE_TIMEOUT)
++		ret = down_timeout(&dd->cport->outbox, msg->timeout);
++	else
++		ret = down_killable(&dd->cport->outbox);
++	if (ret) {
++		dd_dev_err(dd, "CPORT Send OUTBOX_EMPTY killed %016llx (%d)\n",
++			   msg->req->hdr.qw, ret);
++		cwput(msg);
++		lost_mctxt_intr(dd); /* attempt recovery */
++		return; /* no way to report error to caller */
++	}
++
++	/* sequential under lock, check if there are unfinished messages */
++	if (dd->cport->incomplete_mctxt_msg_tx &&
++	    dd->cport->incomplete_mctxt_msg_tx != msg) {
++		/* give up empty outbox, the incomplete msg must finish next */
++		up(&dd->cport->outbox);
++		/* reschedule this work until next time */
++		queue_work(dd->hfi2_wq, &msg->work);
++		return;
++	}
++
++#ifdef CPORT_SND_DEBUG
++	dd_dev_info(dd, "MCTXT sent %016llx\n", mc->hdr.qw);
++#endif
++	tot_len = mc->hdr.len;
++	len_sent = msg->mctxts_done * sizeof(union mctxt_mem);
++	ptr = &mc[msg->mctxts_done].qw[0];
++	seq_no = msg->mctxts_done;
++	mcxt_len =
++		min_t(int, (int)(tot_len - len_sent), sizeof(union mctxt_mem));
++	/* NOTE: "CPORT IN" is our output */
++	csr_i = JKR_MCTXT_CPORT_IN;
++	cport_hdr = CPORT_HDR_DEF;
++	cport_hdr |= ((u64)mcxt_len << CPORT_HDR_LEN);
++
++	cport_hdr |= (((u64)seq_no & 0x3) << CPORT_HDR_SEQ);
++
++	/* CPORT_HDR_DEF sets SOM/EOM, clear if not */
++	if (msg->mctxts_done)
++		cport_hdr &= ~((u64)1 << CPORT_HDR_SOM);
++	else
++		mc->hdr.seq_no = atomic_fetch_inc(&dd->cport->seqno);
++
++	if (msg->mctxts_done + 1 < msg->n_mctxts)
++		cport_hdr &= ~((u64)1 << CPORT_HDR_EOM);
++
++	hfi2_write_csr(dd, CPORT_IN_SCRATCH, cport_hdr);
++	while (mcxt_len > 0) {
++		hfi2_write_csr(dd, csr_i, *ptr++);
++		csr_i += sizeof(u64);
++		mcxt_len -= sizeof(u64);
++	}
++	hfi2_write_csr(dd, JKR_MCTXT_CPORT_INT_STATUS,
++		       JKR_MCTXT_INT_INBOX_FULL);
++
++	/* did we complete the message? */
++	if (++msg->mctxts_done < msg->n_mctxts) {
++		dd->cport->incomplete_mctxt_msg_tx = msg;
++		queue_work(dd->hfi2_wq,
++			   &msg->work); /* reschedule the remaining sends */
++
++		return;
++	}
++
++	dd->cport->incomplete_mctxt_msg_tx = NULL;
++	/* reset mctxts_done for response parsing */
++	if (req)
++		msg->mctxts_done = 0;
++	cwput(msg); /* may or may not free memory */
++}
++
++/*
++ * Low-level send to CPORT via MCTXT.
++ *
++ * Interfaces with MCTXT.
++ */
++static void cport_send_req_fn(struct work_struct *work)
++{
++	struct cport_work *msg = container_of(work, struct cport_work, work);
++
++	cport_send(msg, true);
++}
++
++static void cport_send_rsp_fn(struct work_struct *work)
++{
++	struct cport_work *msg = container_of(work, struct cport_work, work);
++
++	cport_send(msg, false);
++}
++
++static int echo_req(struct hfi2_devdata *dd, u8 op, u8 sideband, void *pld,
++		    int pll, void *handle)
++{
++	struct cport_work *msg = handle;
++
++	dd_dev_info(msg->dd, "cport ping %02x (%d)\n", sideband, pll);
++	/* Leave payload in-tact (echo). */
++	pld_rsp_set(msg, pld, pll);
++	return MSG_RSP_STATUS_OK;
++}
++
++static int inval_req(struct hfi2_devdata *dd, u8 op, u8 sideband, void *pld,
++		     int pll, void *handle)
++{
++	return MSG_RSP_STATUS_OPCODE_UNSUPPORTED;
++}
++
++/*
++ * Process a request from CPORT.
++ *
++ * May be dispatched to external function from handlers[].
++ */
++static void cport_req_fn(struct work_struct *work)
++{
++	struct cport_work *msg = container_of(work, struct cport_work, work);
++	cport_handler func;
++	int ret = MSG_RSP_STATUS_OK;
++	void *pld;
++	int pll;
++
++	pll = msg->req->hdr.len - sizeof(msg->req->hdr);
++	pld = &msg->req->qw[1];
++	msg->rsp->hdr.qw = msg->req->hdr.qw;
++	/* default to no payload in response (if any) */
++	msg->rsp->hdr.len = sizeof(msg->req->hdr);
++	func = msg->dd->cport->handlers[msg->req->hdr.op_code];
++	if (func)
++		ret = func(msg->dd, msg->req->hdr.op_code,
++			   msg->req->hdr.sideband, pld, pll, msg);
++	else
++		ret = inval_req(msg->dd, msg->req->hdr.op_code,
++				msg->req->hdr.sideband, pld, pll, msg);
++	if (msg->req->hdr.no_rsp) {
++		if (ret)
++			dd_dev_err_ratelimited(msg->dd,
++					       "Op %d %02x failed (%d)\n",
++					       msg->req->hdr.op_code,
++					       msg->req->hdr.sideband, ret);
++		cwput(msg);
++	} else {
++		/* msg->rsp->qw[*] and msg->rsp->hdr.len have been updated */
++		ret = cport_send_rsp(msg, ret);
++		if (ret)
++			dd_dev_err(msg->dd, "Response send failed (%d)\n", ret);
 +	}
 +}
 +
-+/**
-+ * hfi2_msix_netdev_synchronize_irq - netdev IRQ synchronize
-+ * @ppd: valid port data
++/*
++ * Handler for MCTXT Inbox Full interrupt.
++ *
++ * Only one can be queued/run until JKR_MCTXT_INT_OUTBOX_EMPTY is cleared.
++ * Run in a workqueue (not interrupt context).
 + */
-+void hfi2_msix_netdev_synchronize_irq(struct hfi2_pportdata *ppd)
++static void cport_mctxt_fn(struct work_struct *work)
 +{
-+	int i;
-+	int ctxt_count = hfi2_netdev_ctxt_count(ppd);
++	struct hfi2_cport *cport =
++		container_of(work, struct hfi2_cport, mctxt_work);
++	struct hfi2_devdata *dd = cport->dd;
++	int ret = 0;
++	u8 is_start, is_end;
++	int len;
++	u64 *ptr;
++	u64 mhdr;
++	u32 i;
++	struct cport_work *msg;
++	union cport_header hdr;
 +
-+	for (i = 0; i < ctxt_count; i++) {
-+		struct hfi2_ctxtdata *rcd = hfi2_netdev_get_ctxt(ppd, i);
-+		struct hfi2_msix_entry *me;
++	/*
++	 * CPORT output MCTXT is our input.
++	 */
++	i = JKR_MCTXT_CPORT_OUT;
 +
-+		me = &ppd->dd->msix_info.msix_entries[rcd->msix_intr];
-+
-+		synchronize_irq(me->irq);
++	mhdr = hfi2_read_csr(dd, CPORT_OUT_SCRATCH);
++	len = (mhdr >> CPORT_HDR_LEN) & 0xfff;
++	len = min_t(int, len, sizeof(union mctxt_mem));
++	is_start = (mhdr >> CPORT_HDR_SOM) & 1;
++	is_end = (mhdr >> CPORT_HDR_EOM) & 1;
++	if (is_start) {
++		hdr.qw = hfi2_read_csr(dd, i);
++	} else if (cport->incomplete_mctxt_msg_rx) {
++		msg = cport->incomplete_mctxt_msg_rx;
++		if (msg->flags & CW_FLAG_RECV) {
++			ptr = &msg->req[msg->mctxts_done++].qw[0];
++			hdr.qw = msg->req->hdr.qw;
++		} else {
++			ptr = &msg->rsp[msg->mctxts_done++].qw[0];
++			hdr.qw = msg->rsp->hdr.qw;
++		}
++		dd_dev_info(dd, "%s: got continuation of %u\n", __func__,
++			    hdr.seq_no);
++		/* skip all the start-message parsing/allocation */
++		goto copy;
++	} else {
++		/* this is bad, just skip the message */
++		dd_dev_warn(dd, "cport sent unexpected non-start packet\n");
++		goto fail;
 +	}
++#ifdef CPORT_RCV_DEBUG
++	dd_dev_info(dd, "%s() %016llx\n", __func__, hdr.qw);
++#endif
++	if (hdr.len < sizeof(hdr)) {
++		/* assume message is invalid  - cannot be processed */
++		ret = -EDOM;
++		goto fail;
++	}
++	i += sizeof(u64);
++	/* No need for atomics here, we are single threaded */
++	if (hdr.seq_no != cport->rseqno) {
++		dd_dev_info(dd, "Recv out of sequence: %d -> %d\n",
++			    cport->rseqno, hdr.seq_no);
++		cport->rseqno = hdr.seq_no;
++	}
++	cport->rseqno = (cport->rseqno + 1) & CPORT_SEQNO_MASK;
++	if (hdr.is_req) {
++		/* Request from CPORT, has no existing message context */
++		msg = cwalloc(CW_FLAG_RECV);
++		if (!msg) {
++			ret = -ENOMEM;
++			goto fail; /* drop message, with error */
++		}
++		ret = cw_pad_size(msg, hdr.len);
++		if (ret)
++			goto fail;
++		ptr = &msg->req->qw[msg->mctxts_done++];
++	} else {
++		/*
++		 * Responses already have a 'msg', extra ref was already taken.
++		 * Take an additional ref against possible race with timeout
++		 * (hfi2_cport_send_cancel()) between here and the up().
++		 */
++		msg = cwget_xa(dd, hdr.tid);
++		if (!msg) {
++			ret = -ESRCH;
++			goto fail; /* drop message, with error */
++		}
++		ret = cw_pad_size(msg, hdr.len);
++		if (ret)
++			goto fail;
++		ptr = &msg->rsp->qw[msg->mctxts_done++];
++		/* assert msg->req->hdr ~= hdr */
++	}
++	*ptr++ = hdr.qw;
++	len -= sizeof(hdr);
++copy:
++	/* now copy payload into chosen buffer */
++	while (len > 0) {
++		*ptr++ = hfi2_read_csr(dd, i);
++		i += sizeof(u64);
++		len -= sizeof(u64);
++	}
++	/*
++	 * We are finished with the dd->cport->mctxt_work struct,
++	 * and the MCTXT, so it can all be re-used now.
++	 */
++	hfi2_write_csr(dd, JKR_MCTXT_CPORT_INT_STATUS,
++		       JKR_MCTXT_INT_OUTBOX_EMPTY);
++#ifdef CPORT_RCV_DEBUG
++	dd_dev_info(dd, "%s() set CPORT OUTBOX_EMPTY\n", __func__);
++#endif
++	/*
++	 * if we do not contain the end of the message then we need to wait
++	 * until next mailbox
++	 */
++	if (!is_end) {
++		cport->incomplete_mctxt_msg_rx = msg;
++		dd_dev_info(dd, "%s: expecting continuation of %u\n", __func__,
++			    hdr.seq_no);
++		return;
++	}
++	cport->incomplete_mctxt_msg_rx = NULL;
++
++	/* responses don't require any more work here - just wakeup requester */
++	if (!hdr.is_req) {
++		up(msg->sem);
++		cwput(msg);
++		return;
++	}
++	msg->dd = dd;
++
++	/* reset mctxts for response parsing */
++	msg->mctxts_done = 0;
++
++	/* dispatch 'msg' request */
++	INIT_WORK(&msg->work, cport_req_fn);
++	/* don't care about locality */
++	queue_work(dd->hfi2_wq, &msg->work);
++	return;
++fail:
++	hfi2_write_csr(dd, JKR_MCTXT_CPORT_INT_STATUS,
++		       JKR_MCTXT_INT_OUTBOX_EMPTY);
++	dd_dev_err(dd, "Dropping incoming CPORT message %016llx (%d)\n", hdr.qw,
++		   ret);
 +}
 +
-+int hfi2_msix_request_irq_remap(struct hfi2_devdata *dd, u16 ctxt,
-+			   enum irq_type type, int src, irq_handler_t handler,
-+			   irq_handler_t thread, void *arg, const char *name)
++/*
++ * Handler for PF0 MCTXT interrupts.
++ *
++ * Called when one of the enabled MCTXT_PF0 conditions occurs.
++ * 'source' is always 0. Called in interrupt context.
++ *
++ * Since this interrupt is exclusive to MCTXT, there is no doubt
++ * about which transport to use (always is MCTXT).
++ */
++void hfi2_is_cport_int(struct hfi2_devdata *dd, unsigned int source)
 +{
-+	int nr;
++	u64 ints;
++	const int limit = 100; /* arbitrary */
++	int count;
 +
-+	nr = msix_request_irq(dd, arg, handler, thread, type, name);
-+	if (nr < 0)
-+		return nr;
++	if (!dd->cport)
++		return;
 +
-+	src = dd->params->is_rcvavail_start + ctxt;
-+	hfi2_remap_intr(dd, src, nr);
-+	return nr;
++	/*
++	 * MctxtCportToPcieInt is a "one shot" merged interrupt.  To ensure
++	 * nothing is missed, ensure that its source, MctxtPf0IntStatusEnabled,
++	 * is cleared and reads as zero.
++	 */
++	ints = 0;
++	for (count = 0; count < limit; count++) {
++		u64 temp;
++
++		temp = hfi2_read_csr(dd, JKR_MCTXT_PF0_INT_STATUS_ENABLED);
++		if (temp == 0)
++			break;
++		ints |= temp;
++		hfi2_write_csr(dd, JKR_MCTXT_PF0_INT_ACK, temp);
++	}
++	if (count == limit)
++		dd_dev_warn(dd, "MCTXT interrupt too many loops\n");
++	if (!ints) {
++		dd_dev_warn(dd, "MCTXT interrupt, but no status bits set\n");
++		return;
++	}
++
++#ifdef CPORT_INT_DEBUG
++	dd_dev_info(dd, "%s() %02llx\n", __func__, ints);
++#endif
++	if (ints & JKR_MCTXT_INT_INBOX_FULL)
++		queue_work(dd->hfi2_wq, &dd->cport->mctxt_work);
++	if (ints & JKR_MCTXT_INT_OUTBOX_EMPTY)
++		up(&dd->cport->outbox);
++}
++
++/***************************************************
++ * API for handling notifications from CPORT
++ */
++
++int hfi2_cport_resp_set(void *handle, void *payload, int len)
++{
++	struct cport_work *msg = handle;
++
++	if (!msg || !payload || len <= 0)
++		return -EINVAL;
++	if (len > (int)(sizeof(*msg->rsp) - sizeof(msg->rsp->hdr)))
++		return -EINVAL;
++	msg->rsp->hdr.len = len + sizeof(msg->rsp->hdr);
++	memcpy(&msg->rsp->qw[1], payload, len);
++	return 0;
++}
++
++int hfi2_cport_register_cb(struct hfi2_devdata *dd, u8 op_start, u8 op_end,
++			   cport_handler func)
++{
++	int x;
++
++	if (op_start > op_end)
++		return -ERANGE;
++	if (!dd->cport)
++		return -EINVAL;
++
++	/* 'func' may be NULL, to unregister */
++	for (x = op_start; x <= op_end; ++x) {
++		dd->cport->handlers[x] = func;
++	}
++	return 0;
++}
++
++static int cport_ping(void *data)
++{
++	struct hfi2_devdata *dd = data;
++	char buf[16];
++	int len;
++	unsigned int num;
++	void *rspbuf;
++	int rsplen;
++	int rc;
++
++	while (!kthread_should_stop() &&
++	       (num = atomic_read(&dd->cport->nping)) > 0) {
++		len = snprintf(buf, sizeof(buf), "ping %u", num);
++		rspbuf = NULL;
++		rc = hfi2_cport_send_req(dd, CH_OP_PING, 0, buf, len, &rspbuf,
++					 &rsplen,
++					 cport_ping_to ? cport_ping_to * HZ :
++							 MAX_SCHEDULE_TIMEOUT);
++		if (rc < 0) {
++			dd_dev_info(dd, "CPORT \"%s\" error %d\n", buf, rc);
++			if (!cport_ping_to)
++				break;
++		} else {
++			dd_dev_info(dd, "CPORT \"%s\" -> %d \"%.*s\"\n", buf,
++				    rc, rsplen, (char *)rspbuf);
++		}
++		kfree(rspbuf);
++		atomic_dec(&dd->cport->nping);
++	}
++	dd->cport->ping_th = NULL;
++	atomic_set(&dd->cport->nping, 0);
++	return 0;
++}
++
++int hfi2_cport_ping_start(struct hfi2_devdata *dd, unsigned int count)
++{
++	int rc;
++
++	if (!count) {
++		if (dd->cport->ping_th)
++			kthread_stop(dd->cport->ping_th);
++		/* kthread will zero count when exiting */
++		else
++			atomic_set(&dd->cport->nping, 0);
++		return 0;
++	}
++	atomic_set(&dd->cport->nping, count);
++	if (dd->cport->ping_th)
++		return 0;
++
++	dd->cport->ping_th =
++		kthread_create_on_node(cport_ping, dd, dd->node, "cport_ping");
++	if (IS_ERR(dd->cport->ping_th)) {
++		rc = PTR_ERR(dd->cport->ping_th);
++		dd->cport->ping_th = NULL;
++		dd_dev_err(dd, "Failed to create CPORT ping thread %d\n", rc);
++		return rc;
++	}
++	wake_up_process(dd->cport->ping_th);
++	return 0;
++}
++
++#ifdef CONFIG_HFI_CPORT_POLLING
++static int cport_poll(void *data)
++{
++	struct hfi2_devdata *dd = data;
++	u64 v;
++
++	while (!kthread_should_stop()) {
++		v = hfi2_read_csr(dd, JKR_MCTXT_PF0_INT_STATUS);
++		if (v & 0xff)
++			hfi2_is_cport_int(dd, 0);
++		fsleep(30);
++	}
++	return 0;
++}
++#endif
++
++/*
++ * Initialization/setup of MCTXT CPORT communications channel.
++ */
++int hfi2_cport_init(struct hfi2_devdata *dd)
++{
++	struct hfi2_cport *cport;
++
++	if (dd->params->chip_type == CHIP_WFR || dd->is_vf)
++		return 0;
++
++	cport = kzalloc_obj(cport, GFP_KERNEL);
++	if (!cport)
++		goto err1;
++
++	INIT_WORK(&cport->mctxt_work, cport_mctxt_fn);
++	xa_init_flags(&cport->tid_xa, XA_FLAGS_ALLOC);
++	xa_init_flags(&cport->trap_xa, XA_FLAGS_ALLOC);
++
++	/*
++	 * Setting initial state can be problematic.
++	 * We require that CPORT set JKR_MCTXT_INT_OUTBOX_EMPTY in
++	 * JKR_MCTXT_PF0_INT_STATUS or we will never start sending.
++	 * We also require that CPORT never set JKR_MCTXT_INT_OUTBOX_EMPTY
++	 * gratuitously, or we get a semaphore count > 1 and will
++	 * start overrunning MCTXT. Essentially, CPORT must set this
++	 * exactly once when entering the "ready to receive" state
++	 * (initially and after processing each message).
++	 */
++	sema_init(&cport->outbox, 0);
++
++	cport->dd = dd;
++	dd->cport = cport;
++
++	hfi2_cport_register_cb(dd, CH_OP_PING, CH_OP_PING, echo_req);
++
++	if (cport_mctxt_recovery) {
++		u64 is, ie;
++
++		is = hfi2_read_csr(dd, JKR_MCTXT_PF0_INT_STATUS);
++		ie = hfi2_read_csr(dd, JKR_MCTXT_PF0_INT_ENABLE);
++		if (!(is & JKR_MCTXT_INT_OUTBOX_EMPTY) && ie) {
++			dd_dev_warn(dd, "recovering CPORT MCTXT state\n");
++			hfi2_write_csr(dd, JKR_MCTXT_PF0_INT_ENABLE, 0);
++			hfi2_write_csr(dd, JKR_MCTXT_PF0_INT_STATUS,
++				       JKR_MCTXT_INT_OUTBOX_EMPTY);
++		}
++	}
++
++#ifdef CONFIG_HFI_CPORT_POLLING
++	cport->poll_th =
++		kthread_create_on_node(cport_poll, dd, dd->node, "cport_poll");
++	if (!cport->poll_th)
++		dd_dev_err(dd, "Failed to create CPORT polling thread\n");
++	else
++		wake_up_process(dd->cport->poll_th);
++#else
++	/* Enable intr source for MCTXT from CPORT (to PF0) */
++	hfi2_write_csr(dd, JKR_MCTXT_PF0_INT_ENABLE,
++		       JKR_MCTXT_INT_INBOX_FULL | JKR_MCTXT_INT_OUTBOX_EMPTY);
++	hfi2_set_intr_bits(dd, JKR_MCTXT_CPORT_TO_PCIE_INT,
++			   JKR_MCTXT_CPORT_TO_PCIE_INT, true);
++	timer_setup(&cport->lost_int_timer, cport_lost_int_chk, 0);
++	if (cport_lost_int)
++		mod_timer(&cport->lost_int_timer, jiffies + cport_lost_int);
++#endif
++
++	/*
++	 * Must reset/resync sequence numbers as CPORT is strictly enforcing
++	 * sequence number order. Use a timeout to allow easier cleanup should
++	 * init fail.
++	 */
++	hfi2_cport_send_notif(dd, CH_OP_PING, 0, NULL, 0,
++			      hfi2_cport_adm_to * HZ);
++	return 0;
++
++err1:
++	return -ENOMEM;
++}
++
++/*
++ * Deinitialization of MCTXT CPORT communications channel.
++ */
++int hfi2_cport_exit(struct hfi2_devdata *dd)
++{
++	if (!dd->cport)
++		return 0;
++
++	timer_shutdown_sync(&dd->cport->lost_int_timer);
++	/* flush all cport queued tasks (plus anything else on this queue) */
++	flush_workqueue(dd->hfi2_wq);
++
++	/* Disable intr source for MCTXT from CPORT (to PF0) */
++	hfi2_set_intr_bits(dd, JKR_MCTXT_CPORT_TO_PCIE_INT,
++			   JKR_MCTXT_CPORT_TO_PCIE_INT, false);
++	hfi2_write_csr(dd, JKR_MCTXT_PF0_INT_ENABLE, 0);
++	/* leave JKR_MCTXT_INT_OUTBOX_EMPTY set so that future users are ready-to-go */
++	hfi2_write_csr(dd, JKR_MCTXT_PF0_INT_STATUS,
++		       JKR_MCTXT_INT_OUTBOX_EMPTY);
++#ifdef CONFIG_HFI_CPORT_POLLING
++	if (dd->cport->poll_th)
++		kthread_stop(dd->cport->poll_th);
++#endif
++	if (dd->cport->ping_th)
++		kthread_stop(dd->cport->ping_th);
++
++	cancel_work_sync(&dd->cport->mctxt_work);
++
++	xa_destroy(&dd->cport->tid_xa);
++	xa_destroy(&dd->cport->trap_xa);
++	kfree(dd->cport);
++	dd->cport = NULL;
++
++	return 0;
 +}
 
 
