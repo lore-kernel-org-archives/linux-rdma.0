@@ -1,256 +1,252 @@
-Received: from mail-pf1-f226.google.com (mail-pf1-f226.google.com [209.85.210.226])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from CH5PR02CU005.outbound.protection.outlook.com (mail-northcentralusazon11022094.outbound.protection.outlook.com [40.107.200.94])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FD654DA528
-	for <linux-rdma@vger.kernel.org>; Thu,  3 Sep 2026 15:29:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.226
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788449374; cv=none; b=D1scsUHTmQeECTXb9bysW5JiY/DTl8L4DLoljh4WKvQKyCYiji6MVu2WT0VaVSinioTB054m+atphhAVeMpjhDgOgLou+CpLtxL7dneW2U29QNhJcZ9BWSbEZ6/pp431Ym3DyAaxDzA3M2eOPQG7h+HW/pX7XTocc1vQF0ChsnM=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788449374; c=relaxed/simple;
-	bh=b+vF9QwtOZbarGAU8wZwcRgxsyqFZLz6AHuOiDaP8Hc=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=d08hNJ2wP+91ZItmBFvl4d6adhcDUO+v4P9v8eDCFGpMtd1ri2XJPz1GtY30GMcEeWielD2wy/sruL96KBL0qckDLWOqLzoj9zPgpFXitSxdTrISYLiH86a5XPjARfDumHr6FgPadS5qg2utU6YjSMY3HruJsa72cmP/VEU4QjY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=AYkTmwg+; arc=none smtp.client-ip=209.85.210.226
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69583476CD2
+	for <linux-rdma@vger.kernel.org>; Thu,  3 Sep 2026 17:54:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.200.94
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788458077; cv=fail; b=oInVAlamRVdY5Tr0EOZfklVJOVkzGxyN0IRQNQLtVu/qi10F+Ry7B6798/PlpUMK97x9wQtgHpHuftnZsTDHjNceNFjZtVuUzbH4iGxFPEpnXp63Ms5NHKQI0wlaWblQkPTkHk6tXkiXnT69cCpc4UteoixzhJny/A9MVTdl6H4=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788458077; c=relaxed/simple;
+	bh=cztlzV/2ry1O6AXbcdfvyHBZ89RVoBZ3CyKRBReKTUI=;
+	h=Subject:From:To:Cc:Date:Message-ID:MIME-Version:Content-Type; b=W9XHNxV8wtNjId/19Qk33dnh4hKf8VGwpAH+BR3ikjQQVE0xxVU71q/m5fJ7A/xiXfPwFDQhQzsFD88xewmeoN7qlYqdoi11MqdJtKLVxQ1M8nFLitpzN3v1YQrEw+UIgowMO/MuLhCjULHmEx+Tsh0I07hvUFvGkpnRp0RpTHA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com; spf=pass smtp.mailfrom=cornelisnetworks.com; dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b=hGuKnnEp; arc=fail smtp.client-ip=40.107.200.94
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cornelisnetworks.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="AYkTmwg+"
-Received: by mail-pf1-f226.google.com with SMTP id d2e1a72fcca58-8541875f596so1195564b3a.0
-        for <linux-rdma@vger.kernel.org>; Thu, 03 Sep 2026 08:29:32 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788449372; x=1789054172;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:dkim-signature:x-gm-gg:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=b+vF9QwtOZbarGAU8wZwcRgxsyqFZLz6AHuOiDaP8Hc=;
-        b=XWp9CkgWiOGDhPdYVtl8xJMSjpOWU8M5TMa2F5OnGju+HQuZKOSMpkMRbObeLDb7St
-         TPSKMSinVdSiyK0U+a9LiGvrq2nYoVzzrDxItAA6Qss2g4zgcTsdHcmMhho1PY0yoQj4
-         kqzhqtdrDLivRcOMosLUsMzuLyh7NBn/va4o3uVfbJE55DEppU9lcgNToXh7McPoxYJR
-         zv1HhOF92FuUB0kxfF1QV5ix4U4EJwP9pDzHp4GPgp7CJtJMRuTKXUMsM5MO93516CQn
-         SpYa0aNUN68iK62bm4H7rkQO7UyVxD7AAMOF+os3uq6USjfL1FXXw3m5IfQwsNMEsrcg
-         zE2Q==
-X-Forwarded-Encrypted: i=1; AKwUvByDNsnNpm2V+m19Gzo0Rmeop/C+amQR9BA5tNAWC4Yjo7EnOm/OBzfLDOO38obWhqrQTpj9GAs68KGU@vger.kernel.org
-X-Gm-Message-State: AFuF++kxOhBn+Y0W/LOTb47ASH7SgTaKGgSlTFgWa4FqSdS2jRfXFph0
-	fmHDdnYU+w0pGa6D5O68FBrYh2mv8741WTw3M3KDEuGreLsKBwW5Y/BExeljN4iShlVRYXUo5eh
-	Fep/XGGjl+VB8EffzgifW0cF1KHyjeoelvtAGp478uQNAMSLabuZoifGmEZj+GcaNM8OhDZa+kn
-	QuPV5nm0lNvElOSLoU9nqbd540JNpyqQSImALZ/HVvePoBynqAD02Zo0n2cWcjTTn4WmOuYPsjC
-	46xd43iA41T/armT2WH8Y8y9WhWVQ==
-X-Gm-Gg: AYBFou2cj914HtgVf7rHuoUBtsOnZOLjiczb/RyChywVYOOGG4Dyij6tvkeg7RqNEmh
-	XBAbi4gHE7Cr1oAQhbIRdvpAt/Ex9tFtgM76b5/F9FY0J9xCjZ1Pu9IBIIZRjOySfqeLDddQwj9
-	KoL8sZmSGOZDTpNh4mwUOWeCucuAfe2puejCbrsIsbumOR4ym5Qg9RR2dKusGXxB6mNqzWSJYIp
-	eM2/QwSmPmhkfobZKFJ9Z6vnBXUoA39SoNFnfAHwHVEO16+737xrLx2OXkI8Lqg9V/HfgrMRgGf
-	/xg7xRZWavhekPJyOVgJgIQRAVU8S+QaT9e9nRdq0SF89UQEmXjYyVyNx6KFUPYKeojGOx7bEIl
-	eB/WY/Dkg+xJOdflvgZv1Q4mLbtUaYUGr712YSwcaYAKG9D5g7I4HWWeryzHoVLA+agelrxkatZ
-	la/+rmLuUQQk9RH+M3Po1OSAmY/YLeEx/YZ93CdjV9IhLKEp9t
-X-Received: by 2002:a05:6a00:4505:b0:857:73e2:9108 with SMTP id d2e1a72fcca58-85ed98befbbmr19000117b3a.24.1788449372108;
-        Thu, 03 Sep 2026 08:29:32 -0700 (PDT)
-Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-25.dlp.protect.broadcom.com. [144.49.247.25])
-        by smtp-relay.gmail.com with ESMTPS id d2e1a72fcca58-8614b297b3asm43438b3a.0.2026.09.03.08.29.31
-        for <linux-rdma@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 03 Sep 2026 08:29:32 -0700 (PDT)
-X-Relaying-Domain: broadcom.com
-X-CFilter-Loop: Reflected
-Received: by mail-pg1-f200.google.com with SMTP id 41be03b00d2f7-cc1b6f65dacso40322a12.1
-        for <linux-rdma@vger.kernel.org>; Thu, 03 Sep 2026 08:29:31 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1788449370; x=1789054170; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=b+vF9QwtOZbarGAU8wZwcRgxsyqFZLz6AHuOiDaP8Hc=;
-        b=AYkTmwg+ieSspMeWnMC23PstQn02Rrz91CwCavep0Vjzb5o6hk0mEu66S3iHL1EXoA
-         fRubQbC37iWiF057Wlbnxik0xmdPvBFO8R9GudrghdNpl/6kXhBrivCDhmYh9zFcP5TF
-         n3EjMNxXKrg45FcXQMmj2iNm2D80I4SKjFi0U=
-X-Forwarded-Encrypted: i=1; AKwUvByJf18rUolIqON9XK4EsYB4W1CTuG3d4oF0vlPc2RXPAVhL8pab7m+pQUw1cYUmKuA0E6grUpIeMrpY@vger.kernel.org
-X-Received: by 2002:a05:6a00:139a:b0:835:6388:655d with SMTP id d2e1a72fcca58-85ed8ed87b8mr18330695b3a.14.1788449370159;
-        Thu, 03 Sep 2026 08:29:30 -0700 (PDT)
-X-Received: by 2002:a05:6a00:139a:b0:835:6388:655d with SMTP id
- d2e1a72fcca58-85ed8ed87b8mr18330620b3a.14.1788449369554; Thu, 03 Sep 2026
- 08:29:29 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b="hGuKnnEp"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=O7+1Vpd6cFYjUBkBxCEYCquLVAURvsTg42OIDcOovTOS2PXwf0L6SM3BZcAHQfBCWkAZN2OtlnMNHtqATDhKLNFb9ewK9+tty6Evibnes/wL1KfoAnKvCZzXkKJxEWswHpCfXUmwml7uv50te/l2TKi1QZ4QuWbAebixkHJhN+aOP5tRMuC48c9i0L9DIBsVpGcfXofsHYMyWvVyb5sNSfsAwGMwzBGW6zWawIURYJQgl4g+71QO45C+2wErZrNrZoQ/1VtOXebS1wGTGSsfm9HjTtRrG+eFscQpPaV8xQeJ2SJoMwrDdwRtzSgIi6z1PSVi7j2+X/C8H1lLHBcOuw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=IPD5fyakjph/gd43JMve/k12il8l9KGddetK1ZMGBn0=;
+ b=BsvjBgDndrTxhteN1LBau2gKaMB2HTttKMNoVMxsuleaFX0AWP39zdCOzK0kCb094bLOG66dk2XAnlv+ODyVuhVbgdPMDWAK2iB3Xwde/hnjt080GmJMNTbXkQOqVvIAY6A9riN+ikE1AexnzIw07dLYcKR7oAmOsZ+mA9AdCM/NXEIoOfiPzLd4dTHtSTCglNQhCXBzsoUqoY35/RkjvjQRGMRsSzGobvO8Wbj24gL1qvKYUyA7wL0XEEkTOk7btm5cRGQ1tmXw/ywA5SFxM8wBeQ5YaqhhTHDOgrSBQNbBw+MxTN0aXUHGNY/jFO519YLdHbntDKqjNzI0i/aOnA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 208.255.156.42) smtp.rcpttodomain=arndb.de
+ smtp.mailfrom=cornelisnetworks.com; dmarc=pass (p=none sp=none pct=100)
+ action=none header.from=cornelisnetworks.com; dkim=none (message not signed);
+ arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cornelisnetworks.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=IPD5fyakjph/gd43JMve/k12il8l9KGddetK1ZMGBn0=;
+ b=hGuKnnEptmperurDZyI7LNmxyS4sDT1tiARo2xulKnV6SLtiQwnX0czW9B7aofzJtmFieV9i+4Fv2elqYb97rlUqQNZSn/WCxcWCFe53wz4Yf4qXBMeVafCJdUqh6RjkU7gy+q9bR2ihNOp1skSs2I3iPhhMh6nWjZg2PgXD286ob4m2uPwuN6dTe6ExEhGthewFIHk2zGb6OjvogcQcZNj71KtY+M0OOuMM4gCFc8nqWFGF17AYR8mfEAvwjiRknA62w5EyZ6RzsQXC4N27YFr31E4UQu9yAXi4lz8U/raWpwvoXBE9aALGVsgWtkSfqMOmVDDJjWDT/JdM94QptQ==
+Received: from MN0PR04CA0013.namprd04.prod.outlook.com (2603:10b6:208:52d::18)
+ by DM8PR01MB7159.prod.exchangelabs.com (2603:10b6:8:d::16) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.360.13; Thu, 3 Sep 2026 17:54:28 +0000
+Received: from BN2PEPF000044AA.namprd04.prod.outlook.com
+ (2603:10b6:208:52d:cafe::8e) by MN0PR04CA0013.outlook.office365.com
+ (2603:10b6:208:52d::18) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.382.12 via Frontend Transport; Thu, 3
+ Sep 2026 17:54:27 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 208.255.156.42)
+ smtp.mailfrom=cornelisnetworks.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=cornelisnetworks.com;
+Received-SPF: Pass (protection.outlook.com: domain of cornelisnetworks.com
+ designates 208.255.156.42 as permitted sender)
+ receiver=protection.outlook.com; client-ip=208.255.156.42;
+ helo=cn-mailer-00.localdomain; pr=C
+Received: from cn-mailer-00.localdomain (208.255.156.42) by
+ BN2PEPF000044AA.mail.protection.outlook.com (10.167.243.105) with Microsoft
+ SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.21.382.8
+ via Frontend Transport; Thu, 3 Sep 2026 17:54:27 +0000
+Received: from awdrv-04.localdomain (unknown [10.228.212.218])
+	by cn-mailer-00.localdomain (Postfix) with ESMTPS id 6BD591FA26E;
+	Thu,  3 Sep 2026 13:54:27 -0400 (EDT)
+Received: from [10.228.212.218] (localhost [IPv6:::1])
+	by awdrv-04.localdomain (Postfix) with ESMTP id 585DC18129B23;
+	Thu,  3 Sep 2026 13:54:27 -0400 (EDT)
+Subject: [PATCH v5 00/24] Migrate to hfi2 driver
+From: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
+To: jgg@ziepe.ca, leon@kernel.org
+Cc: Dean Luick <dean.luick@cornelisnetworks.com>,
+ Douglas Miller <doug.miller@cornelisnetworks.com>,
+ Breandan Cunningham <brendan.cunningham@cornelisnetworks.com>,
+ Arnd Bergmann <arnd@arndb.de>, linux-rdma@vger.kernel.org
+Date: Thu, 03 Sep 2026 13:54:27 -0400
+Message-ID: <178845806706.2825126.2210865708266527909.stgit@awdrv-04>
+User-Agent: StGit/1.5
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260903-64-bit-iova-is-silently-truncated-to-v1-0-96e878ea6873@nvidia.com>
- <20260903-64-bit-iova-is-silently-truncated-to-v1-2-96e878ea6873@nvidia.com>
-In-Reply-To: <20260903-64-bit-iova-is-silently-truncated-to-v1-2-96e878ea6873@nvidia.com>
-From: Kalesh Anakkur Purayil <kalesh-anakkur.purayil@broadcom.com>
-Date: Thu, 3 Sep 2026 20:59:15 +0530
-X-Gm-Features: AcwNN1U_7SRY207nVO2e40U-fvwTEuF82VJHAG_LK7dgLCcn04xG3zYyNMMAeyM
-Message-ID: <CAH-L+nOSRQ+XyrwO4h61_JPUQBsCqCwY7xsLuu53GRVrCstFVg@mail.gmail.com>
-Subject: Re: [PATCH rdma-next 2/2] RDMA/irdma: Remove unused post_sq arguments
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Tatyana Nikolova <tatyana.e.nikolova@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
-	Mustafa Ismail <mustafa.ismail@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>, 
-	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-	boundary="0000000000006fd6d6065a95d11b"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BN2PEPF000044AA:EE_|DM8PR01MB7159:EE_
+X-MS-Office365-Filtering-Correlation-Id: 10a76fe5-f3e9-4c6d-9194-08df09e465f4
+X-MS-Exchange-AtpMessageProperties: SA
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|82310400026|36860700016|1800799024|23010399003|376014|18002099003|55112099003|56012099006|3023799007|10067099003|6133799003;
+X-Microsoft-Antispam-Message-Info:
+	4HmjgIRFJdPP3QLvA2mPsYC6CAvC/zOLQw15h9TJb0D/uSR0AsDa+36BPihcKpvWkM7wPb38QwgH0AaISSQ0CDTaHEz8A/FgU2vR6uOvCvlSsbVq5GGbwQUXs8E9UTo32KjI7VpuZy9OPAH/7XDKEvsYo8TCv8Xl2lSGkmgT9zxulf7q8QvrjkOCNHrxet4gfmgHYlVkWTfjZZbLjArmtGgw+thJeuR5lKZmu2DxSNmm5lzFdoNOh1ZNt5f7toCZ0U/XJxAiJmTPJYU/RzRLl8pVcdIMjz1qfnmnuEjQcsZtzhgFduq5jvILwUuIEK0tkcrtExoK2yNsNRH9bRoBDBWguat72AIN0jbzwyA/6fNrjZF1pvmEx9Uqgb6qYIjETXb0VIbNgjGlUj1RwNDw0PraormohUvG1OuJtne4levIOR3/VNkzih28BzpcQZQZeVOTb1ZCNGbP/ToLQLA8D2VGt9UwGe5703JGqBfn94QPeAh1uHhc7qnRGLl9qkYp61ZZ5d4hCvwP+mbNjlteXsooJgXT4zpaC8cOnRkRFOVTgQDUUzoJOIE189GSHPZf2maGCpoZbGSqivv1O7abLY3t4tPw+aRfXZL3jUui7YR2+Cz5pnIEt/MmqaGK2KYyx9VH5/e5dlbtLUE3zNGwAuUbrSGJ5mExN1MZ+vyu4UJdF21n+GEQ1M8XyiTovgfcKrpUaNDE8mRlQ8oUil+fBw==
+X-Forefront-Antispam-Report:
+	CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:cn-mailer-00.localdomain;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(36860700016)(1800799024)(23010399003)(376014)(18002099003)(55112099003)(56012099006)(3023799007)(10067099003)(6133799003);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	22B2omdxbnxWjo4dQeg8WlByCR8vlsU25uz0Ra3wkCQs3KIgxZ99NK9NAS5O5I2F23XIc6d7z0nT9mUSzFqWgTP5jZ9DDKWB/aKEtycocmdIvE7YgqQOw/cm4v4FDaUQjddsLZ/yFdnM8rBBNZOl+hCoDg0rpym372BLqA8lGLWiTbnKFYRuYnhZocKXYT20WkB6V3cQxpqGFuhlkRpqhZgpav2SfNMQTQkXFurXg8+L846JMGQcBFkIjOk4RlxFW7V3vDohHZZxhCd4Z3fiBeauFowuMJ/uuSHHHI6MhxyhEyY3DfpLLWcH/LBBEwwQvI4cTiAyu/PtBSjIiAwwPG9l0BkUc1CjXFfrlETcKYevAn+m1ZwoJ1m64lzIRyKvuVaqcvZyK1aIfSrNw3gwfYhm3MERVBgPLSlkldn7qi3iM6AvBDqVvp54FeJ3ot5B
+X-OriginatorOrg: cornelisnetworks.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Sep 2026 17:54:27.6792
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 10a76fe5-f3e9-4c6d-9194-08df09e465f4
+X-MS-Exchange-CrossTenant-Id: 4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a;Ip=[208.255.156.42];Helo=[cn-mailer-00.localdomain]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BN2PEPF000044AA.namprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM8PR01MB7159
 
---0000000000006fd6d6065a95d11b
-Content-Type: multipart/alternative; boundary="0000000000005f3e5f065a95d19f"
+While sharing similar bones, the chip for the Cornelis Networks next
+generation fabric technology has some fundamental differences that
+resulted in a near complete re-write of the driver. It also does not
+use the private cdev interface that the hfi1 driver exposes. After
+discussing this with the RDMA maintainers we have decided to go with
+the approach of moving to a new driver and declaring hfi1 obsolete.
 
---0000000000005f3e5f065a95d19f
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+It is desirable to keep hfi1 around temporarily to let user APIs
+catch up to support access through the uverbs device rather than the
+private hfi1 cdev.
 
-On Thu, Sep 3, 2026 at 5:11=E2=80=AFPM Leon Romanovsky <leon@kernel.org> wr=
-ote:
+This driver is designed to support future products as well.
 
-> From: Leon Romanovsky <leonro@nvidia.com>
->
-> The only callers of irdma_sc_qp_flush_wqes() and
-> irdma_sc_mr_fast_register() always request their respective send queues t=
-o
-> be posted, so their post_sq false branches are unreachable.
->
-> Remove both arguments and post the queues unconditionally. Drop the
-> redundant QP flush request assignments as well.
->
-> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+Portions of this series were developed with the assistance of a large
+language model (LLM), reviewed and verified by the author. Each
+commit affected carries an "Assisted-by: LLM" trailer per
+Documentation/process/coding-assistants.rst.
 
+This series applies on top of the rdma/for-next branch.
 
-Reviewed-by: Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
+Changes since v4:
+- cport.c: rate-limit the "Op N SS failed" error log in cport_req_fn() and fix a
+  use-after-free where msg->req->hdr fields were read after cwput(msg) had
+  already freed msg, by moving the error log before the cwput() call.
+- mad.c: treat undersized CH_OP_UMAD_9B/16B payloads in cport_umad_handler() as
+  a normal, expected occurrence (e.g. periodic SM keep-alive/poll probes)
+  rather than a protocol error; count them via n_vl15_dropped and silently
+  drop instead of returning MSG_RSP_STATUS_INVALID_STATE, to avoid flooding
+  the console.
+- Updated the AI attribution trailer on all commits from
+  "Assisted-by: AGENT:MODEL" to the simplified "Assisted-by: LLM" per updated
+  upstream guidance.
 
---=20
-Regards,
-Kalesh AP
+Changes since v3:
+- Folded in the "Sync with upstream hfi1 fixes and cleanups" series and
+  the MAINTAINERS entry addition, applying each into the patch that
+  first introduces the file(s) it touches rather than carrying them as
+  separate trailing patches.
 
---0000000000005f3e5f065a95d19f
-Content-Type: text/html; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Changes since v2:
+- Address Sashiko automated review findings (Critical and High severity):
+  - pio.c: drop spinlock around sc_wait_for_packet_egress() in
+    hfi2_sc_disable() to prevent 50ms mdelay under IRQ-disabled lock.
+  - sdma.h: add bounds guard in _make_tx_sdma_desc() to prevent heap
+    overflow when num_desc reaches MAX_DESC.
+  - user_sdma.c: use wait_event (uninterruptible) in free_queues() to
+    prevent UAF when a signal interrupts teardown.
+  - uc.c: fix RDMA_WRITE_LAST tlen guard to use extra_bytes instead of
+    pad+4, correctly handling 16B headers.
+  - rdmavt/cq.c, rdmavt/srq.c: add synchronize_rcu() before vfree() in
+    rvt_resize_cq() and rvt_modify_srq() to close free-while-mapped race.
+  - ipoib_tx.c: add iowait_sdma_drain() before hfi2_ipoib_drain_tx_ring()
+    in hfi2_ipoib_napi_tx_disable() to wait for in-flight SDMA completions.
+  - cport.c: use spin_lock_irqsave for lost_mctxt_intr; timer_shutdown_sync
+    for lost_int_timer; cancel_work_sync for mctxt_work; u32 for new_ctxts
+    with overflow guard; bounds check in hfi2_cport_resp_set.
+  - firmware.c: fix HM_TIMEOUT (10ms->100ms); add NULL guard in
+    check_meta_version; add bounds checks in hfi2_parse_platform_config
+    and hfi2_get_platform_config_field.
+  - mad.c: add OPA_16B_L4_IB_GLOBAL and OPA_16B_L4_9B cases to
+    get_mad_offset(); fix cport_mad_handler len check; add sts=0 for
+    no-op attribute IDs in cport_subn_set_opa; add len bounds checks.
+  - init.c: fix hfi2_mod_init error path; add rcu_read_lock in
+    hfi2_lookup; fix hfi2_register_cport_trap error path; re-dispatch
+    IB_EVENT_PORT_ACTIVE after HFI2_INITTED is set.
+  - intr.c: hfi2_go_port_active() uses signal_ib_event() to add
+    HFI2_INITTED guard, fixing IPoIB no-carrier on driver load.
+  - verbs.c: fix double-free in hfi2_verbs_send_dma(); fix txreq leak
+    on pkey check failure; timer_shutdown_sync for mem_timer.
+  - qp.c: add INIT_WORK for opfn_work in hfi2_qp_priv_alloc().
+  - uverbs.c: remove old mmap entry before overwriting in
+    hfi2_mmap_entry_insert() to prevent leak on repeated USER_INFO calls.
+  - netdev_rx.c: fix resource leaks in hfi2_alloc_rx() and hfi2_free_rx().
+- Add hfi2 to kernel build system (drivers/infiniband/Kconfig and
+  drivers/infiniband/hw/Makefile) so make produces hfi2.ko.
+- trace_tx.h: fix UAF in hfi2_ipoib_txq_template trace event by capturing
+  sde->this_idx and sde->cpu into entry fields at trace time instead of
+  dereferencing the sde pointer in the deferred TP_printk context.
+- sdma.c: fix trace-after-free in sdma_flush_descq; add bounds check in
+  hfi2_sdma_set_cpu_to_sde_map to prevent heap overflow; add synchronize_rcu()
+  before freeing rhashtable node; add cancel_work_sync() for three workers in
+  hfi2_sdma_exit to prevent UAF on engine teardown.
+- user_exp_rcv.c: fix TID/page leak on error path in hfi2_user_exp_rcv_setup
+  by replacing broken tinfo->tidlist=kernel_ptr + hfi2_user_exp_rcv_clear()
+  (which fails SMAP) with a direct unprogram_rcvarray() loop.
+- verbs.c: use spin_lock_irqsave in verbs_sdma_complete() since it is called
+  from interrupt context; fix AHG branch in build_verbs_tx_desc() to include
+  extra_bytes in the tlen passed to sdma_txinit_ahg().
+- tid_rdma.c: add missing 'return false' after rvt_error_qp() in the !tidlen
+  error path of hfi2_build_tid_rdma_packet() to prevent use-after-free.
+- fault.c: guard 'data[size-1] = newline' with 'if (size > 0)' to prevent
+  OOB write when the opcode bitmap is empty.
+- ipoib_main.c: remove manual free_percpu(dev->tstats) from ndo_uninit;
+  the netdev core owns tstats lifecycle when NETDEV_PCPU_STAT_TSTATS is set.
 
-<div dir=3D"ltr"><div dir=3D"ltr"><br></div><br><div class=3D"gmail_quote g=
-mail_quote_container"><div dir=3D"ltr" class=3D"gmail_attr">On Thu, Sep 3, =
-2026 at 5:11=E2=80=AFPM Leon Romanovsky &lt;<a href=3D"mailto:leon@kernel.o=
-rg">leon@kernel.org</a>&gt; wrote:<br></div><blockquote class=3D"gmail_quot=
-e" style=3D"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204)=
-;padding-left:1ex">From: Leon Romanovsky &lt;<a href=3D"mailto:leonro@nvidi=
-a.com" target=3D"_blank">leonro@nvidia.com</a>&gt;<br>
-<br>
-The only callers of irdma_sc_qp_flush_wqes() and<br>
-irdma_sc_mr_fast_register() always request their respective send queues to<=
-br>
-be posted, so their post_sq false branches are unreachable.<br>
-<br>
-Remove both arguments and post the queues unconditionally. Drop the<br>
-redundant QP flush request assignments as well.<br>
-<br>
-Signed-off-by: Leon Romanovsky &lt;<a href=3D"mailto:leonro@nvidia.com" tar=
-get=3D"_blank">leonro@nvidia.com</a>&gt;</blockquote><div>=C2=A0</div><div>=
-Reviewed-by: Kalesh AP &lt;<a href=3D"mailto:kalesh-anakkur.purayil@broadco=
-m.com">kalesh-anakkur.purayil@broadcom.com</a>&gt;=C2=A0</div></div><div><b=
-r></div><span class=3D"gmail_signature_prefix">-- </span><br><div dir=3D"lt=
-r" class=3D"gmail_signature"><div dir=3D"ltr">Regards,<div>Kalesh AP</div><=
-/div></div></div>
+Changes since v1:
+- Broke up the large MAD and verbs patches that exceeded 3K LOC.
+  Machine-generated counter accessor functions are now separated
+  from real logic into their own patches (Leon Romanovsky).
+- Removed all TODO stubs (e.g., jkr_handle_link_bounce()) that only
+  printed a warning. Cleaned up unnecessary casts, unused parameters,
+  and other minor style issues (Jason Gunthorpe).
+- Removed dead declarations from system core headers, including
+  hfi2_cdev_cleanup() and similar functions that were declared but
+  never defined (Jason Gunthorpe).
+- Modernized hfi2_rdma_mmap() to use the rdma_user_mmap_io /
+  rdma_user_mmap_entry infrastructure as required for new drivers
+  (Jason Gunthorpe).
+- The opa_vnic removal is being submitted as a separate independent
+  series per reviewer request (Leon Romanovsky).
+- Replaced the writev-on-uverbs-fd approach with an anonymous
+  'hfi2-sdma' file descriptor returned via ioctl. The data path
+  write_iter is registered on the anonymous fd, avoiding any changes
+  to the uverbs core.
+- Audited all commit messages to ensure they accurately describe patch
+  contents; moved changelog notes to the --- block where they had been
+  incorrectly placed in the commit body; fixed minor typos.
 
---0000000000005f3e5f065a95d19f--
+---
 
---0000000000006fd6d6065a95d11b
-Content-Type: application/pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
+Dennis Dalessandro (24):
+      RDMA/hfi2: Start hfi2 driver by basing off of hfi1
+      RDMA/hfi2: Add in HW register definition files
+      RDMA/hfi2: Add counter accessor functions
+      RDMA/hfi2: Add in HW register access support
+      RDMA/hfi2: Add in trace header files
+      RDMA/hfi2: Add in trace support
+      RDMA/hfi2: Add system core header files
+      RDMA/hfi2: Add driver and interrupt infrastructure
+      RDMA/hfi2: Add initialization and firmware support
+      RDMA/hfi2: Add in MAD handling related headers
+      RDMA/hfi2: Add cport management
+      RDMA/hfi2: Implement MAD handling
+      RDMA/hfi2: Add IO related headers
+      RDMA/hfi2: Add PIO send infrastructure
+      RDMA/hfi2: Add SDMA infrastructure
+      RDMA/hfi2: Implement data moving infrastructure
+      RDMA/hfi2: Add verbs core
+      RDMA/hfi2: Add RC protocol support
+      RDMA/hfi2: Add in support for verbs
+      RDMA/hfi2: Add misc header files
+      RDMA/hfi2: Add the rest of the driver
+      RDMA/hfi2: Make it build and add TODO list
+      RDMA/hfi2: Modernize mmap to use rdma_user_mmap_entry infrastructure
+      RDMA/hfi2: Support ipoib
 
-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
-tJVewHuOmXgWQxNWV7Oiszu1d9xAcqyj65s1PrEIIaHnxEM3eTK+teecLEy8QymZjjDTrCHg4x36
-2AczdlQAIiq5TSAucGja5VP8g1zTnfL/RAxEZvLS471GABptArolXY2hMVHdVEYcTduZlu8aHARc
-phXveOB5/l3bPqpMVf2aFalv4ab733Aw6cPuQkbtwpMFifp9Y3s/0HGBfADomK4OeDTDJfuvCp8g
-a907E48SjOJBGkh6c6B3ace2XH+CyB7+WBsoK6hsrV5twAXSe7frgP4lN/4Cm2isQl3D7vXM3PBQ
-ddI2aZzmewTfbgZptt4KCUhZh+t7FGB6ZKppQ++Rx0zsGN1s71MtjJnhXvJyPs9UyL1n7KQPTEX/
-07kwIwdMjxC/hpbZmVq0mVccpMy7FYlTuiwFD+TEnhmxGDTVTJ267fcfrySVBHioA7vugeXaX3yL
-SqGQdCWnsz5LyCxWvcfI7zjiXJLwefechLp0LWEBIH5+0fJPB1lfiy1DUutGDJTh9WZHeXfVVFsf
-rSQ3y0VaTqBESMjYsJnFFYQJ9tZJScBluOYacW6gqPGC6EU+bNYC1wpngwVayaQQMIIGtzCCBJ+g
-AwIBAgIMEvVs5DNhf00RSyR0MA0GCSqGSIb3DQEBCwUAMFIxCzAJBgNVBAYTAkJFMRkwFwYDVQQK
-ExBHbG9iYWxTaWduIG52LXNhMSgwJgYDVQQDEx9HbG9iYWxTaWduIEdDQyBSNiBTTUlNRSBDQSAy
-MDIzMB4XDTI1MDYyMDEzNDI1N1oXDTI3MDYyMTEzNDI1N1owgfUxCzAJBgNVBAYTAlVTMRMwEQYD
-VQQIEwpDYWxpZm9ybmlhMREwDwYDVQQHEwhTYW4gSm9zZTEZMBcGA1UEYRMQTlRSVVMrREUtNjYx
-MDExNzEYMBYGA1UEBBMPQW5ha2t1ciBQdXJheWlsMQ8wDQYDVQQqEwZLYWxlc2gxFjAUBgNVBAoT
-DUJST0FEQ09NIElOQy4xLDAqBgNVBAMMI2thbGVzaC1hbmFra3VyLnB1cmF5aWxAYnJvYWRjb20u
-Y29tMTIwMAYJKoZIhvcNAQkBFiNrYWxlc2gtYW5ha2t1ci5wdXJheWlsQGJyb2FkY29tLmNvbTCC
-ASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAOG5Nf+oQkB79NOTXl/T/Ixz4F6jXeF0+Qnn
-3JsEcyfkKD4bFwFz3ruqhN2XmFFaK0T8gjJ3ZX5J7miihNKl0Jxo5asbWsM4wCQLdq3/+QwN/xAm
-+ZAt/5BgDoPqdN61YPyPs8KNAQ8zHt8iZA0InZgmNkDcHhnOJ38cszc1S0eSlOqFa4W9TiQXDRYT
-NFREznPoL3aCNNbDPWAkAc+0/X1XdV1kt4D9jrei4RoDevg15euOaij9X7stUsj+IMgzCt2Fyp7+
-CeElPmNQ0YOba2ws52no4x/sT5R2k3DTPisRieErWuQNhePfW2fZFFXYv7N2LMgfMi9hiLi2Q3eO
-1jMCAwEAAaOCAecwggHjMA4GA1UdDwEB/wQEAwIFoDAMBgNVHRMBAf8EAjAAMIGTBggrBgEFBQcB
-AQSBhjCBgzBGBggrBgEFBQcwAoY6aHR0cDovL3NlY3VyZS5nbG9iYWxzaWduLmNvbS9jYWNlcnQv
-Z3NnY2NyNnNtaW1lY2EyMDIzLmNydDA5BggrBgEFBQcwAYYtaHR0cDovL29jc3AuZ2xvYmFsc2ln
-bi5jb20vZ3NnY2NyNnNtaW1lY2EyMDIzMGUGA1UdIAReMFwwCQYHZ4EMAQUDAzALBgkrBgEEAaAy
-ASgwQgYKKwYBBAGgMgoDAjA0MDIGCCsGAQUFBwIBFiZodHRwczovL3d3dy5nbG9iYWxzaWduLmNv
-bS9yZXBvc2l0b3J5LzBBBgNVHR8EOjA4MDagNKAyhjBodHRwOi8vY3JsLmdsb2JhbHNpZ24uY29t
-L2dzZ2NjcjZzbWltZWNhMjAyMy5jcmwwLgYDVR0RBCcwJYEja2FsZXNoLWFuYWtrdXIucHVyYXlp
-bEBicm9hZGNvbS5jb20wEwYDVR0lBAwwCgYIKwYBBQUHAwQwHwYDVR0jBBgwFoAUACk2nlx6ug+v
-LVAt26AjhRiwoJIwHQYDVR0OBBYEFJ/R8BNY0JEVQpirvzzFQFgflqtJMA0GCSqGSIb3DQEBCwUA
-A4ICAQCLsxTSA9ERT90FGuX/UM2ZQboBpTPs7DwZPq12XIrkD58GkHWgWAYS2xL1yyvD7pEtN28N
-8d4+o6IcPz7yPrfWUCCpAitaeSbu0QiZzIAZlFWNUaOXCgZmHam8Oc+Lp/+XJFrRLhNkzczcw3zT
-cyViuRF/upsrQ3KY/kqimiQjR9BduvKiX/w/tMWDib1UhbVhXxuhuWMr8j8sja2/QR9fk670ViD9
-amx7b5x595AulQfiDhcN0qxG4fr7L22Y/RYX8fCoBAGo0SF7IpxSukVsp6z5uZp5ggdNr2Cq88qk
-if7GG/Oy1beosYD9I5S5dIRcP25oNbcJkbCb/GuvWegzGfxCCBuirb09mTSZRxaBmb1P6dANmPvh
-PdqGqxfFrXagvwbO15DN46GarD9KiHa8QHyTtWghL3q+G6ZHlZUWnyS4YMacrx8Ngy0x7HR4dNdT
-pqAqOOsOwDmQFBNRYomMdAaOXm6x6MFDnp51sIWVNGWK2u4le2VI6RJMzEqLzMZKL0vTW+HPqMaT
-hWv2s5x6cJdLio1vP63rDxJS7vH++zMaY0Jcptrx6eAhzfcq+y/TkHJaZ4dWrtbof1yw3z5EpCvT
-YDxV0XFQiCRLNKuZhkVvQ8dtmVhcpiT/mENrWKWOt0DwNEeC/3Fr1ruoyriggbnRmBQt1bC5uxfv
-+CEHcDGCAlcwggJTAgEBMGIwUjELMAkGA1UEBhMCQkUxGTAXBgNVBAoTEEdsb2JhbFNpZ24gbnYt
-c2ExKDAmBgNVBAMTH0dsb2JhbFNpZ24gR0NDIFI2IFNNSU1FIENBIDIwMjMCDBL1bOQzYX9NEUsk
-dDANBglghkgBZQMEAgEFAKCBxzAvBgkqhkiG9w0BCQQxIgQgS6h/9y6snTx07V3RNQbLGUX3Nipr
-fN1HsQsgiNz2jbMwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjYw
-OTAzMTUyOTMwWjBcBgkqhkiG9w0BCQ8xTzBNMAsGCWCGSAFlAwQBKjALBglghkgBZQMEARYwCwYJ
-YIZIAWUDBAECMAoGCCqGSIb3DQMHMAsGCSqGSIb3DQEBBzALBglghkgBZQMEAgEwDQYJKoZIhvcN
-AQEBBQAEggEAt05T3fbzdWHQe9wsy7FEGNLq1fovEF8cs7LboFqz9Ihdm21qLSRwle7QVVgHIQ9T
-gtN9agl3Zs7UoYnB49AoCf5mPAatO2TMe0C2EH2lyRq4ryUHJkm00gr49UYg0GmrCdgoPq9h22sy
-NwEToIxbSxo56JPCCzI/AOPQC0eup8VedmwMAtzykSO6dxNvEa0B7ZWqamDO8S97PRcrR25oBwgx
-DDDa7p6w01Zw0kEF/h9A5oLZEbMy91rAkQoGiw3+KAHkYXba+O60anyoujvI5p3LgV7tT0Le+WDV
-suLzXwQxSsyfjCubaT8MYguCKcS+BYjf2FYF0XGnNxh/yfEm4A==
---0000000000006fd6d6065a95d11b--
