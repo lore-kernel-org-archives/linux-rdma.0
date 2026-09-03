@@ -1,72 +1,72 @@
-Received: from SA9PR02CU001.outbound.protection.outlook.com (mail-southcentralusazon11023122.outbound.protection.outlook.com [40.93.196.122])
+Received: from SA9PR02CU001.outbound.protection.outlook.com (mail-southcentralusazon11023111.outbound.protection.outlook.com [40.93.196.111])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 727E24A385E
-	for <linux-rdma@vger.kernel.org>; Thu,  3 Sep 2026 17:55:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.196.122
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85DD2453A4B
+	for <linux-rdma@vger.kernel.org>; Thu,  3 Sep 2026 17:55:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.196.111
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788458113; cv=fail; b=XL0WxGTe7/ZDtwhUGlG8jCV1j06rHHKk98hyoLjne+LG5ly/+BEuP0qAc5ImcDOhMO0wyag5Jk92QKef7V+Pf9zT5Uv+jIugHyHUDbV/oh8U8nARS0UIzAH/9nikQIMaSUGim01SYz6sI0qP1U5Eh9SgPvO+3C4XDvuGd7tGV4k=
+	t=1788458119; cv=fail; b=DFaEWRNfzPP/QH7MvD69VciGT/37YfhtgCBI0Gel298/Dp9bwP4MhVmfppnpFLys2FTLag/M+bG70ungkASywpWt5Lh+PCJXnzG2NYiyHnJ3GeuXp5BamvY7FaZNmfFDIHa95GCamL7JHvq9pu0T637zdklP2Q81a0zCzqe1CWw=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788458113; c=relaxed/simple;
-	bh=IpqCaYqNnCYh60wU4JLO48JgU46Ww64x0HbUMJmXPBM=;
+	s=arc-20240116; t=1788458119; c=relaxed/simple;
+	bh=UdjIDsLpXl9Vv419al4pdPCmZXyBhvOqf0zow5TDFMs=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Bd56K8m/7SaH2eZTvAQM81Re6tqz27qLhS93vKJrsDqjGyw/AAj1NH3LIxs6u6+4q89EHrWpxUlqJ9uLgktX0+IG0QpFoi+sxJFSeBlCDShE/MhbVKwzUmkobIKbu8x3eFvBYTq7JNFxSS940iHbuo8EsINfuwKOC0XKyma4kOo=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com; spf=pass smtp.mailfrom=cornelisnetworks.com; dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b=XYw3/KQI; arc=fail smtp.client-ip=40.93.196.122
+	 MIME-Version:Content-Type; b=DhncMZED7/hf9DIr5f3eaUbDhvPFnm6g8CufEmgMJy9k7Xa0PjpHi7DAZuwFZ7N7LVrfoP1xknlcG5G3e+B1XlWXBCo42mbuL8Z+Y5sVMUGtUN7+bQ+w2bLMq+OIbF5WiRvQDgBv0jzTAcJXID7qVt8G0YxwYod6Y/QzVk/I8XA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com; spf=pass smtp.mailfrom=cornelisnetworks.com; dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b=D+ANI7S6; arc=fail smtp.client-ip=40.93.196.111
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cornelisnetworks.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cornelisnetworks.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b="XYw3/KQI"
+	dkim=pass (2048-bit key) header.d=cornelisnetworks.com header.i=@cornelisnetworks.com header.b="D+ANI7S6"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=ABOqGcyRmFs6ET/a6wC9rGeyX9ceWapGCe1MjpIJIhBkZmVOOpNo+d5gW55Q9cnTKHejnncx1T5GQO5k8VFcY6VZ5t19B600FDSJX4kiZmCyTZ/UtjDV7ePy+c1ZylDjTN8A2lGmji33njlfq+SOJQXbIFO5ItCT0TGMsrKD61006ABzTyBJHczR+zQy8I9CNzHP3AtcVkZq34LnHDgcQF8XMIe0BO1aUBCa5ye64dkFGb3qmXw7gw9H65BjaMJlFVGZWR6F1GIUl1WZoK4BI5Q0MltWg6IhdurJmPWpgpdCeOuayIllg8fnAQ1UuvBtMk9KMuwjnLlycAdxQ07tVQ==
+ b=GHnzZiREf5W7hcDAs14YfuAWNQOyW3a8Ouhr9VuYy1obETyQEIcx4Y2KQZrT2UWpFfVJJbibfD3uUX0l5pElnAkCowynpq+aUNwkSZVfj4zyaCN/PN+i06XJgvvbecMUC7KI1DJVXdgx5QOv/fhkecxKdCwsNw8rPenSMQRP1sUEsVQKBH+mIxmyha/1YIJP4nykvKZ2VZguoP+WVrTpr5x97gRtj7ysW2eaEZDmYcxf2XP55eKXFkDDRDAnE9bHuAJE9Ki6qoeLOMxTe0V61PFqpeSNaeoXYkQ6WaoaebSN2idEu+9O3QyiVY12v3pXdr5jcc+ExqBfDf3/rf5tcQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=nJ4510NzTqrxSVf91BGGEYaJa1f92yB8Pg1KWhgFopI=;
- b=EEhB4zCaMoixMuome2+PZaxRwspTKuz9AjFd7NGDUfvN0DmNIP7c54gJUunRShPG13ja7CjvYK5FTIGLqb8lNub3FstKYm9PhVBPXjF8R2HVD5/W8755/JdvJNt7IAkL1D3YFaRC3guyo01PSE2WwI9+lI5eVzRNljKtEuwFw4TqeGYENVCHD5PpQrWWPiWuppd9uv8yVdAJ+t/nDY0/2J9WP14tkfSk7brUHRc2dvG/VirbCNvCpnPy/r2CZmoEuGOMB4yETWqNfiha4khRMl8vYot7l8tW33uDF/yz+esSVyISqwYwgXdlAGNA/aVrCHDUulLEQDas40vUEe6o9Q==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 208.255.156.42) smtp.rcpttodomain=cornelisnetworks.com
- smtp.mailfrom=cornelisnetworks.com; dmarc=pass (p=none sp=none pct=100)
+ bh=mwKuCcfJzXx4PycXfLbHaAMVTjlYoAQ7yPQ99lPl5WY=;
+ b=zVNC9EJPSZvx7AxPAF5vn061l9D/XV+ooUkIjxzSjKvpNITKHqowQktPBl0UKi2nTNL5mXU6rtFqbOZQe3CyqgvEjRQPzriPxxc6wArGPtbj7zyIef1+h8d5Umci84n+UXjMxJy46ku/kQCxlL/2yqF5MPbFf0s3ErJyJa38rd10uaj4wiVY6yqrVDgjuIcDd2Vu8XuGTnN6F5bVPoVgP5PGjfO1xTU1Tcli0jfk4KVn+0PYWqoeo8Qsrqz0BlVzz1yGNoQE6TloiE1Oy4ka5Axcs+hsa3GGtBNJhG6b2dWJs1dKEPMsy61AlhDMxgZoTyl2YZyLcGLNHuCPx1ZTUA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=fail (sender ip is
+ 50.148.235.34) smtp.rcpttodomain=cornelisnetworks.com
+ smtp.mailfrom=cornelisnetworks.com; dmarc=fail (p=none sp=none pct=100)
  action=none header.from=cornelisnetworks.com; dkim=none (message not signed);
  arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cornelisnetworks.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=nJ4510NzTqrxSVf91BGGEYaJa1f92yB8Pg1KWhgFopI=;
- b=XYw3/KQIUFxLrlnA+uiM6ryDoXm2fskBRnFpbaMaAzeNlhXJDPYnB8n39ba69p7NV+XKFm7XDTvHDCfm6/PUmM2LKhpPv/9UJre+0XO/fVDi5fp32mO8f6CPiY2pZbOuCRQRhckeNIgVOne08ObGukKwtcUCnkQK1zMKYR0ezX9ClK3kchmSJaF+SqARDDaaQKeQPdwLi+85zNqKRqNrP/j9voBgyhhcFUR+4lJL/db67rxAshXkB6bBlDgVsJHb2PWy6+cap3T/uNZZpEjRCq/VTjyEvWtGx4YHh9IDNUqVR73lGk4TY4zk3v1Lc4r7Cv33CzKSFBII/A1enHu2zw==
-Received: from MW4PR03CA0225.namprd03.prod.outlook.com (2603:10b6:303:b9::20)
- by CO1PR01MB6728.prod.exchangelabs.com (2603:10b6:303:f5::13) with Microsoft
+ bh=mwKuCcfJzXx4PycXfLbHaAMVTjlYoAQ7yPQ99lPl5WY=;
+ b=D+ANI7S6CcAZpony0WxR943X5MYhE/+GlGJzEVgwzSNHcvn5ggHBDpGWgmRb+gl1LXCSDJG0VINshsD43fRfylX/28cNGzgXz67Ka8hC8P1plvgzTX/4DG9l+Gv+8al4j/ZqArHhDn+vQTwLgrN6G2vfE+mHNFUgNkNOk7/GdtHRIsVIjxhxzxDn3HHTffoVAON7AAQK9owQfk7Y3OW+F5AaA1S/UzupGqeC6/y3V2Strl10C+9AMGQSwl3gyPrvZIJyDMU8/D0wqs7XpKP43dM/H/ne6gYIWFHu4UpuHkIoZIHPck6FevFAx9Gz3DdHw2ToSnUd5Ij05lAcYO+IbA==
+Received: from SJ0PR13CA0037.namprd13.prod.outlook.com (2603:10b6:a03:2c2::12)
+ by LV3PR01MB8649.prod.exchangelabs.com (2603:10b6:408:1b7::12) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.360.13; Thu, 3 Sep 2026 17:55:04 +0000
-Received: from CO1PEPF000066EB.namprd05.prod.outlook.com
- (2603:10b6:303:b9:cafe::24) by MW4PR03CA0225.outlook.office365.com
- (2603:10b6:303:b9::20) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.382.12 via Frontend Transport; Thu, 3
- Sep 2026 17:55:04 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 208.255.156.42)
+ 15.21.360.13; Thu, 3 Sep 2026 17:55:09 +0000
+Received: from MWH0EPF000C6190.namprd02.prod.outlook.com
+ (2603:10b6:a03:2c2:cafe::19) by SJ0PR13CA0037.outlook.office365.com
+ (2603:10b6:a03:2c2::12) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.406.4 via Frontend Transport; Thu, 3
+ Sep 2026 17:55:09 +0000
+X-MS-Exchange-Authentication-Results: spf=fail (sender IP is 50.148.235.34)
  smtp.mailfrom=cornelisnetworks.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=cornelisnetworks.com;
-Received-SPF: Pass (protection.outlook.com: domain of cornelisnetworks.com
- designates 208.255.156.42 as permitted sender)
- receiver=protection.outlook.com; client-ip=208.255.156.42;
- helo=cn-mailer-00.localdomain; pr=C
-Received: from cn-mailer-00.localdomain (208.255.156.42) by
- CO1PEPF000066EB.mail.protection.outlook.com (10.167.249.7) with Microsoft
+ header.d=none;dmarc=fail action=none header.from=cornelisnetworks.com;
+Received-SPF: Fail (protection.outlook.com: domain of cornelisnetworks.com
+ does not designate 50.148.235.34 as permitted sender)
+ receiver=protection.outlook.com; client-ip=50.148.235.34;
+ helo=cn-mailer-00.localdomain;
+Received: from cn-mailer-00.localdomain (50.148.235.34) by
+ MWH0EPF000C6190.mail.protection.outlook.com (10.167.249.101) with Microsoft
  SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.21.382.8
- via Frontend Transport; Thu, 3 Sep 2026 17:55:03 +0000
+ via Frontend Transport; Thu, 3 Sep 2026 17:55:08 +0000
 Received: from awdrv-04.localdomain (unknown [10.228.212.218])
-	by cn-mailer-00.localdomain (Postfix) with ESMTPS id D03FB1FA26E;
-	Thu,  3 Sep 2026 13:55:02 -0400 (EDT)
+	by cn-mailer-00.localdomain (Postfix) with ESMTPS id DA3081FA26E;
+	Thu,  3 Sep 2026 13:55:07 -0400 (EDT)
 Received: from [10.228.212.218] (localhost [IPv6:::1])
-	by awdrv-04.localdomain (Postfix) with ESMTP id CB37D18129B28;
-	Thu,  3 Sep 2026 13:55:02 -0400 (EDT)
-Subject: [PATCH v5 for-next 07/24] RDMA/hfi2: Add in trace support
+	by awdrv-04.localdomain (Postfix) with ESMTP id D57BA18129B28;
+	Thu,  3 Sep 2026 13:55:07 -0400 (EDT)
+Subject: [PATCH v5 for-next 08/24] RDMA/hfi2: Add system core header files
 From: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 To: jgg@ziepe.ca, leon@kernel.org
 Cc: Dean Luick <dean.luick@cornelisnetworks.com>,
  Breandan Cunningham <brendan.cunningham@cornelisnetworks.com>,
  linux-rdma@vger.kernel.org
-Date: Thu, 03 Sep 2026 13:55:02 -0400
-Message-ID: <178845810279.2825126.8530998717786714195.stgit@awdrv-04>
+Date: Thu, 03 Sep 2026 13:55:07 -0400
+Message-ID: <178845810783.2825126.6750483446263350611.stgit@awdrv-04>
 In-Reply-To: <178845806706.2825126.2210865708266527909.stgit@awdrv-04>
 References: <178845806706.2825126.2210865708266527909.stgit@awdrv-04>
 User-Agent: StGit/1.5
@@ -80,33 +80,35 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CO1PEPF000066EB:EE_|CO1PR01MB6728:EE_
-X-MS-Office365-Filtering-Correlation-Id: f714f0bb-718e-4fc8-1227-08df09e47b6e
+X-MS-TrafficTypeDiagnostic: MWH0EPF000C6190:EE_|LV3PR01MB8649:EE_
+X-MS-Office365-Filtering-Correlation-Id: e5ff0d46-c275-448f-b144-08df09e47e78
 X-MS-Exchange-AtpMessageProperties: SA
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|23010399003|1800799024|82310400026|36860700016|10067099003|56012099006|55112099003|22082099003|18002099003;
+	BCL:0;ARA:13230040|1800799024|376014|23010399003|82310400026|36860700016|56012099006|10067099003|6133799003|55112099003|22082099003|18002099003;
 X-Microsoft-Antispam-Message-Info:
-	05Ny/6FKlYiUMJIuRFW96tlBZkIfOUGsYay+EWzZw2qPe8kwVoV51glQfmJ33pOhUnMWboC9fOeDg5YWpylJOT/7vqtgaA1sHJF30ZFwL9/glvRf2MsM8npMxwKMDoMiqXTHeilg1/BTH/ghK0jUtUXw9TGJqJvfnPLn78AVKpBJV3wJh4CKIDcv86xaT8fp/DUC6i8HJdhBaaqFLs0qURIg7Am/sp9Lz65TR3tmEyEe5/DF9kZb9BMAynLWi01CV/EEpyuOxU3ZNW7BKPo2GzGa6im5tE3nHbeGbisdEiBnkdaZ1ljioNphYxZAxAzgP6qmKKQBc8nDjBQZuHVdqidjh24k9T/N5cKPQ+K0854nzJ+R4s2gH/VHH0Vo4E8CFIdcFKnwFmBCHaYVZ02TOSmyZOkbg6lS4eTfXHN2xELXGaigA7CEK5GwtVxtQE3CsuigFtV0ku44a+nnz36CBJvwtWVYFFBXze3tkgsoHlZxBtiBGWYIj9L5XgvKmGw8e62R6LteVCe2JbRTuArqzKGidIAGAyCfJWMRF4vHejTw/ww5CtFM0NbDkpN9nV4iW5iEfwHJD5r/TZ8QtTvhMIAq+p0oZ0n+zbaCKM5B/W1rNU5vxU1UpLZSnLJPuye1k3v0j8z+zKz3Y+YYN+bnH5RUSt4dFTQVbkctgHdeyrC8B0NW1UVeWTnV3zPmwE5+WzCAuIQp6j3xKL3vL4iYIg==
+	eYxc8E2GTWU/rfc6zJB0RBT9cXzoPWvwRWMB4bQEdeERA35STfjMQyQFnakEi77n+i+u+kqsn2BY9Ij6gdPoYNBEb6Q8PSYNb0xaXJ4lzHw9pfeiED4xzgd5i4e33aQEmwFW+CTfgaJ1GXtSSA8e+SAnYnT14tv9ZzxpaVmV3aexpFjS+CgdhktIF6dPxlP+1xG5tGsRhI36xVfOSR/brXqUules73o3uyZHJ0bQkrraxZE5FpsNa9UPFk5Xvv+IOdu99vSYFyzHqhx5FsFo5cFPFdjqeFvl3YW/4qlghyGeKtuC8tYcN2xqYqnn2mZzjS9NorG2liCmQQ6wWSDSbESnh0cjgg/OBHvTSPNwAHy3jrKlF+c6iE2FPhtQvsed2hjueifdUt+pc2pAnsZdJXQm/7AEw3boC9rcZoOfNhL9sCBw0GgWBS8n6Azbk1h5mh7OcbGZN9mvXBuULjfCyKAeIaW5EUmaXkeRfwZwH5Eyeihl9yHsHGxUjbBuoGVTR4lFENA9HtYWEidTRESHUH6ZgQ1piwF3bBcSHayCKuh6vJlyq2LsBUC7krkkx487hD8IeK5my3Odl2i7Gt2dQi7kRDzS4n31mhY9c6ZLOg5YUcpDTQc5tkT/HkicuF4qDDt69vMcIuKW4TsU07B1C2PNkCzEu6/Pi9asjQwSdRb0Qj9Htt1Q8KEXJbhu8i3J
 X-Forefront-Antispam-Report:
-	CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:cn-mailer-00.localdomain;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(376014)(23010399003)(1800799024)(82310400026)(36860700016)(10067099003)(56012099006)(55112099003)(22082099003)(18002099003);DIR:OUT;SFP:1102;
+	CIP:50.148.235.34;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:cn-mailer-00.localdomain;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(376014)(23010399003)(82310400026)(36860700016)(56012099006)(10067099003)(6133799003)(55112099003)(22082099003)(18002099003);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	KctjAd8z54gUWV9i0X311YJi/7QUG326BDEUTTQpuFBzWIqINDWE8KHMD9Vd55mH4zEtottR7vWKY7DVadmjeROS+5v7MKyDzbZ9487578pbIAQ/FWpzaeOS5DeNzf7PaY5D8ptUPjGk5RrO3/2OoTovQ4DQTGdkoQOTXWcAEWVthPeBIfZv2cOiQNZ2/iAdjv6XkwgCvhQo5ScuXSCLtE0fNCQLz7xbrlCyGTWMSDlYp1iiVIgO2ikb/cDIH4kKs9237EbMca1FpEGo03OZ0qc5vlu9gu+f7wXIKEWjRlvFpwwum1vNHVJXEdvGOkn2G12P1WjAFosumvrZy13wf/drsRrk0UeSZY5isss0VM4gGyLUFCMxgAmJ/8vhjSdCsvV9GJM+6b9cBuzhtF4e9t8O01HArqQZUhV/rCOy5eFl4soZfxOu6qIao7+QBKPH
+	LHx9PX1sbHX9vzQdKKhBXCWI0NukLZZrQY2JwRDhiTcAxvs3qc8g6CF3fZgW4/+zyQQjXjJxjGhLb5V3YRYbyhIbS4by6JIgztOogLrmQWODvKZksunXuVuICEWiOaC0kqFGdcwG3ity1E/uvlOqdC3v4QHLp4jPktjUT0UTkQG94yEaapMY2gTZXp98c75TBdZsUuTEUReFfbawJ2K42OZtdqUL9nEpwh7OKMXnssgAsnuxgOsScAXS25ATtmwtoIbJeWmjRsST7UOxlBMG5w5Dvt2RJ0LT3o5NKxjX6/+QgbASPxYNicdfKZyA9TmznBHcWWxORZy+JrGwze4hI3mC3M3zNha4pdEmizU4yEqhqrkcp7y+heW8qsdXbRqTsGSF9O6MpUetneGTb58AB1uYAB0VQHo+5UbQspcQu4KKrKyZRoo8pO+jPR2OuzFB
 X-OriginatorOrg: cornelisnetworks.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Sep 2026 17:55:03.5350
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Sep 2026 17:55:08.6337
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: f714f0bb-718e-4fc8-1227-08df09e47b6e
+X-MS-Exchange-CrossTenant-Network-Message-Id: e5ff0d46-c275-448f-b144-08df09e47e78
 X-MS-Exchange-CrossTenant-Id: 4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a;Ip=[208.255.156.42];Helo=[cn-mailer-00.localdomain]
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a;Ip=[50.148.235.34];Helo=[cn-mailer-00.localdomain]
 X-MS-Exchange-CrossTenant-AuthSource:
-	CO1PEPF000066EB.namprd05.prod.outlook.com
+	MWH0EPF000C6190.namprd02.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CO1PR01MB6728
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV3PR01MB8649
 
-Adds the base trace event support for the driver.
+Add header and support files for hooking into the core system, things
+like IRQs. Includes mmu_rb.c for MMU range-based invalidation support
+used by the expected receive and TID RDMA subsystems.
 
 Co-developed-by: Dean Luick <dean.luick@cornelisnetworks.com>
 Signed-off-by: Dean Luick <dean.luick@cornelisnetworks.com>
@@ -115,551 +117,546 @@ Signed-off-by: Breandan Cunningham <brendan.cunningham@cornelisnetworks.com>
 Assisted-by: LLM
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 ---
- drivers/infiniband/hw/hfi2/trace.c |  536 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 536 insertions(+)
- create mode 100644 drivers/infiniband/hw/hfi2/trace.c
+  Changes since v1:
+  - Remove MSIx affinity management code (Leon Romanovsky).
+  - Remove custom ASPM handling (Leon Romanovsky).
+---
+ drivers/infiniband/hw/hfi2/efivar.h |   17 ++
+ drivers/infiniband/hw/hfi2/eprom.h  |   11 +
+ drivers/infiniband/hw/hfi2/hfi2.h   |    1 
+ drivers/infiniband/hw/hfi2/mmu_rb.c |  344 +++++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/hfi2/mmu_rb.h |   78 ++++++++
+ drivers/infiniband/hw/hfi2/msix.h   |   32 +++
+ 6 files changed, 482 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/infiniband/hw/hfi2/efivar.h
+ create mode 100644 drivers/infiniband/hw/hfi2/eprom.h
+ create mode 100644 drivers/infiniband/hw/hfi2/mmu_rb.c
+ create mode 100644 drivers/infiniband/hw/hfi2/mmu_rb.h
+ create mode 100644 drivers/infiniband/hw/hfi2/msix.h
 
-diff --git a/drivers/infiniband/hw/hfi2/trace.c b/drivers/infiniband/hw/hfi2/trace.c
+diff --git a/drivers/infiniband/hw/hfi2/efivar.h b/drivers/infiniband/hw/hfi2/efivar.h
 new file mode 100644
-index 000000000000..c9c5e8687a60
+index 000000000000..a756758034ec
 --- /dev/null
-+++ b/drivers/infiniband/hw/hfi2/trace.c
-@@ -0,0 +1,536 @@
-+// SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
++++ b/drivers/infiniband/hw/hfi2/efivar.h
+@@ -0,0 +1,17 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
 +/*
-+ * Copyright(c) 2015 - 2020 Intel Corporation.
++ * Copyright(c) 2015, 2016 Intel Corporation.
 + * Copyright(c) 2025-2026 Cornelis Networks, Inc.
 + */
-+#define CREATE_TRACE_POINTS
++
++#ifndef _HFI2_EFIVAR_H
++#define _HFI2_EFIVAR_H
++
++#include <linux/efi.h>
++
++#include "hfi2.h"
++
++int hfi2_read_hfi2_efi_var(struct hfi2_devdata *dd, const char *kind,
++		      unsigned long *size, void **return_data);
++
++#endif /* _HFI2_EFIVAR_H */
+diff --git a/drivers/infiniband/hw/hfi2/eprom.h b/drivers/infiniband/hw/hfi2/eprom.h
+new file mode 100644
+index 000000000000..b6bb0dcc03c2
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/eprom.h
+@@ -0,0 +1,11 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/*
++ * Copyright(c) 2015, 2016 Intel Corporation.
++ * Copyright(c) 2025-2026 Cornelis Networks, Inc.
++ */
++
++struct hfi2_devdata;
++
++int hfi2_eprom_init(struct hfi2_devdata *dd);
++int hfi2_eprom_read_platform_config(struct hfi2_devdata *dd, void **buf_ret,
++			       u32 *size_ret);
+diff --git a/drivers/infiniband/hw/hfi2/hfi2.h b/drivers/infiniband/hw/hfi2/hfi2.h
+index 2dbe22177f1d..ae8b4e81681f 100644
+--- a/drivers/infiniband/hw/hfi2/hfi2.h
++++ b/drivers/infiniband/hw/hfi2/hfi2.h
+@@ -43,7 +43,6 @@ struct hfi2_devrsrcs;
+ #include "mad.h"
+ #include "qsfp.h"
+ #include "platform.h"
+-#include "affinity.h"
+ #include "msix.h"
+ #include "cport.h"
+ #ifdef CONFIG_HFI_L8SIM
+diff --git a/drivers/infiniband/hw/hfi2/mmu_rb.c b/drivers/infiniband/hw/hfi2/mmu_rb.c
+new file mode 100644
+index 000000000000..7ebdc5ab691c
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/mmu_rb.c
+@@ -0,0 +1,344 @@
++// SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
++/*
++ * Copyright(c) 2025-2026 Cornelis Networks, Inc.
++ * Copyright(c) 2016 - 2017 Intel Corporation.
++ * Copyright(c) 2025-2026 Cornelis Networks, Inc.
++ */
++
++#include <linux/list.h>
++#include <linux/rculist.h>
++#include <linux/mmu_notifier.h>
++#include <linux/interval_tree_generic.h>
++#include <linux/sched/mm.h>
++
++#include "mmu_rb.h"
 +#include "trace.h"
-+#include "exp_rcv.h"
-+#include "ipoib.h"
 +
-+static u8 __get_ib_hdr_len(struct ib_header *hdr)
++static unsigned long mmu_node_start(struct mmu_rb_node *);
++static unsigned long mmu_node_last(struct mmu_rb_node *);
++static int mmu_notifier_range_start(struct mmu_notifier *,
++		const struct mmu_notifier_range *);
++static struct mmu_rb_node *__mmu_rb_search(struct mmu_rb_handler *,
++					   unsigned long, unsigned long);
++static void release_immediate(struct kref *refcount);
++static void handle_remove(struct work_struct *work);
++
++static const struct mmu_notifier_ops mn_opts = {
++	.invalidate_range_start = mmu_notifier_range_start,
++};
++
++INTERVAL_TREE_DEFINE(struct mmu_rb_node, node, unsigned long, __last,
++		     mmu_node_start, mmu_node_last, static, __mmu_int_rb);
++
++static unsigned long mmu_node_start(struct mmu_rb_node *node)
 +{
-+	struct ib_other_headers *ohdr;
-+	u8 opcode;
-+
-+	if (ib_get_lnh(hdr) == HFI2_LRH_BTH)
-+		ohdr = &hdr->u.oth;
-+	else
-+		ohdr = &hdr->u.l.oth;
-+	opcode = ib_bth_get_opcode(ohdr);
-+	return hfi2_hdr_len_by_opcode[opcode] == 0 ?
-+	       0 : hfi2_hdr_len_by_opcode[opcode] - (12 + 8);
++	return node->addr & PAGE_MASK;
 +}
 +
-+static u8 __get_16b_hdr_len(struct hfi2_16b_header *hdr)
++static unsigned long mmu_node_last(struct mmu_rb_node *node)
 +{
-+	struct ib_other_headers *ohdr = NULL;
-+	u8 opcode;
-+	u8 l4 = hfi2_16B_get_l4(hdr);
++	return PAGE_ALIGN(node->addr + node->len) - 1;
++}
 +
-+	if (l4 == OPA_16B_L4_FM) {
-+		opcode = IB_OPCODE_UD_SEND_ONLY;
-+		return (8 + 8); /* No BTH */
++static int _hfi2_mmu_rb_register(void *ops_arg,
++				 const struct mmu_rb_ops *ops,
++				 struct workqueue_struct *wq,
++				 struct mmu_rb_handler **handler,
++				 const struct mmu_notifier_ops *mnops)
++{
++	struct mmu_rb_handler *h;
++	void *free_ptr;
++	int ret;
++
++	free_ptr = kzalloc(sizeof(*h) + cache_line_size() - 1, GFP_KERNEL);
++	if (!free_ptr)
++		return -ENOMEM;
++
++	h = PTR_ALIGN(free_ptr, cache_line_size());
++	h->root = RB_ROOT_CACHED;
++	h->ops = ops;
++	h->ops_arg = ops_arg;
++	INIT_HLIST_NODE(&h->mn.hlist);
++	spin_lock_init(&h->lock);
++	h->mn.ops = &mn_opts;
++	INIT_WORK(&h->del_work, handle_remove);
++	INIT_LIST_HEAD(&h->del_list);
++	INIT_LIST_HEAD(&h->lru_list);
++	h->wq = wq;
++	h->free_ptr = free_ptr;
++
++	ret = mmu_notifier_register(&h->mn, current->mm);
++	if (ret) {
++		kfree(free_ptr);
++		return ret;
 +	}
 +
-+	if (l4 == OPA_16B_L4_IB_LOCAL)
-+		ohdr = &hdr->u.oth;
-+	else
-+		ohdr = &hdr->u.l.oth;
-+
-+	opcode = ib_bth_get_opcode(ohdr);
-+	return hfi2_hdr_len_by_opcode[opcode] == 0 ?
-+	       0 : hfi2_hdr_len_by_opcode[opcode] - (12 + 8 + 8);
++	*handler = h;
++	return 0;
 +}
 +
-+u8 hfi2_trace_packet_hdr_len(struct hfi2_packet *packet)
++int hfi2_mmu_rb_register(void *ops_arg,
++			 const struct mmu_rb_ops *ops,
++			 struct workqueue_struct *wq,
++			 struct mmu_rb_handler **handler)
 +{
-+	if (packet->etype != RHF_RCV_TYPE_BYPASS)
-+		return __get_ib_hdr_len(packet->hdr);
-+	else
-+		return __get_16b_hdr_len(packet->hdr);
++	return _hfi2_mmu_rb_register(ops_arg, ops, wq, handler, &mn_opts);
 +}
 +
-+u8 hfi2_trace_opa_hdr_len(struct hfi2_opa_header *opa_hdr)
++void hfi2_mmu_rb_unregister(struct mmu_rb_handler *handler)
 +{
-+	if (!opa_hdr->hdr_type)
-+		return __get_ib_hdr_len(&opa_hdr->ibh);
-+	else
-+		return __get_16b_hdr_len(&opa_hdr->opah);
-+}
++	struct mmu_rb_node *rbnode;
++	struct rb_node *node;
++	unsigned long flags;
++	struct list_head del_list;
 +
-+const char *hfi2_trace_get_packet_l4_str(u8 l4)
-+{
-+	if (l4)
-+		return "16B";
-+	else
-+		return "9B";
-+}
++	/* Prevent freeing of mm until we are completely finished. */
++	mmgrab(handler->mn.mm);
 +
-+const char *hfi2_trace_get_packet_l2_str(u8 l2)
-+{
-+	switch (l2) {
-+	case 0:
-+		return "0";
-+	case 1:
-+		return "1";
-+	case 2:
-+		return "16B";
-+	case 3:
-+		return "9B";
++	/* Unregister first so we don't get any more notifications. */
++	mmu_notifier_unregister(&handler->mn, handler->mn.mm);
++
++	/*
++	 * Make sure the wq delete handler is finished running.  It will not
++	 * be triggered once the mmu notifiers are unregistered above.
++	 */
++	flush_work(&handler->del_work);
++
++	INIT_LIST_HEAD(&del_list);
++
++	spin_lock_irqsave(&handler->lock, flags);
++	while ((node = rb_first_cached(&handler->root))) {
++		rbnode = rb_entry(node, struct mmu_rb_node, node);
++		rb_erase_cached(node, &handler->root);
++		/* move from LRU list to delete list */
++		list_move(&rbnode->list, &del_list);
 +	}
-+	return "";
-+}
++	spin_unlock_irqrestore(&handler->lock, flags);
 +
-+#define IMM_PRN  "imm:%d"
-+#define RETH_PRN "reth vaddr:0x%.16llx rkey:0x%.8x dlen:0x%.8x"
-+#define AETH_PRN "aeth syn:0x%.2x %s msn:0x%.8x"
-+#define DETH_PRN "deth qkey:0x%.8x sqpn:0x%.6x"
-+#define DETH_ENTROPY_PRN "deth qkey:0x%.8x sqpn:0x%.6x entropy:0x%.2x"
-+#define IETH_PRN "ieth rkey:0x%.8x"
-+#define ATOMICACKETH_PRN "origdata:%llx"
-+#define ATOMICETH_PRN "vaddr:0x%llx rkey:0x%.8x sdata:%llx cdata:%llx"
-+#define TID_RDMA_KDETH "kdeth0 0x%x kdeth1 0x%x"
-+#define TID_RDMA_KDETH_DATA "kdeth0 0x%x: kver %u sh %u intr %u tidctrl %u tid %x offset %x kdeth1 0x%x: jkey %x"
-+#define TID_READ_REQ_PRN "tid_flow_psn 0x%x tid_flow_qp 0x%x verbs_qp 0x%x"
-+#define TID_READ_RSP_PRN "verbs_qp 0x%x"
-+#define TID_WRITE_REQ_PRN "original_qp 0x%x"
-+#define TID_WRITE_RSP_PRN "tid_flow_psn 0x%x tid_flow_qp 0x%x verbs_qp 0x%x"
-+#define TID_WRITE_DATA_PRN "verbs_qp 0x%x"
-+#define TID_ACK_PRN "tid_flow_psn 0x%x verbs_psn 0x%x tid_flow_qp 0x%x verbs_qp 0x%x"
-+#define TID_RESYNC_PRN "verbs_qp 0x%x"
-+
-+#define OP(transport, op) IB_OPCODE_## transport ## _ ## op
-+
-+static const char *parse_syndrome(u8 syndrome)
-+{
-+	switch (syndrome >> 5) {
-+	case 0:
-+		return "ACK";
-+	case 1:
-+		return "RNRNAK";
-+	case 3:
-+		return "NAK";
++	while (!list_empty(&del_list)) {
++		rbnode = list_first_entry(&del_list, struct mmu_rb_node, list);
++		list_del(&rbnode->list);
++		kref_put(&rbnode->refcount, release_immediate);
 +	}
-+	return "";
++
++	/* Now the mm may be freed. */
++	mmdrop(handler->mn.mm);
++
++	kfree(handler->free_ptr);
 +}
 +
-+void hfi2_trace_parse_9b_bth(struct ib_other_headers *ohdr,
-+			     u8 *ack, bool *becn, bool *fecn, u8 *mig,
-+			     u8 *se, u8 *pad, u8 *opcode, u8 *tver,
-+			     u16 *pkey, u32 *psn, u32 *qpn)
++int hfi2_mmu_rb_insert(struct mmu_rb_handler *handler,
++		       struct mmu_rb_node *mnode)
 +{
-+	*ack = ib_bth_get_ackreq(ohdr);
-+	*becn = ib_bth_get_becn(ohdr);
-+	*fecn = ib_bth_get_fecn(ohdr);
-+	*mig = ib_bth_get_migreq(ohdr);
-+	*se = ib_bth_get_se(ohdr);
-+	*pad = ib_bth_get_pad(ohdr);
-+	*opcode = ib_bth_get_opcode(ohdr);
-+	*tver = ib_bth_get_tver(ohdr);
-+	*pkey = ib_bth_get_pkey(ohdr);
-+	*psn = mask_psn(ib_bth_get_psn(ohdr));
-+	*qpn = ib_bth_get_qpn(ohdr);
-+}
++	struct mmu_rb_node *node;
++	unsigned long flags;
++	int ret = 0;
 +
-+void hfi2_trace_parse_16b_bth(struct ib_other_headers *ohdr,
-+			      u8 *ack, u8 *mig, u8 *opcode,
-+			      u8 *pad, u8 *se, u8 *tver,
-+			      u32 *psn, u32 *qpn)
-+{
-+	*ack = ib_bth_get_ackreq(ohdr);
-+	*mig = ib_bth_get_migreq(ohdr);
-+	*opcode = ib_bth_get_opcode(ohdr);
-+	*pad = ib_bth_get_pad(ohdr);
-+	*se = ib_bth_get_se(ohdr);
-+	*tver = ib_bth_get_tver(ohdr);
-+	*psn = mask_psn(ib_bth_get_psn(ohdr));
-+	*qpn = ib_bth_get_qpn(ohdr);
-+}
++	trace_hfi2_mmu_rb_insert(mnode);
 +
-+void hfi2_trace_parse_9b_hdr(struct ib_header *hdr, bool sc5,
-+			     u8 *lnh, u8 *lver, u8 *sl, u8 *sc,
-+			     u16 *len, u32 *dlid, u32 *slid)
-+{
-+	*lnh = ib_get_lnh(hdr);
-+	*lver = ib_get_lver(hdr);
-+	*sl = ib_get_sl(hdr);
-+	*sc = ib_get_sc(hdr) | (sc5 << 4);
-+	*len = ib_get_len(hdr);
-+	*dlid = ib_get_dlid(hdr);
-+	*slid = ib_get_slid(hdr);
-+}
++	if (current->mm != handler->mn.mm)
++		return -EPERM;
 +
-+void hfi2_trace_parse_16b_hdr(struct hfi2_16b_header *hdr,
-+			      u8 *age, bool *becn, bool *fecn,
-+			      u8 *l4, u8 *rc, u8 *sc,
-+			      u16 *entropy, u16 *len, u16 *pkey,
-+			      u32 *dlid, u32 *slid)
-+{
-+	*age = hfi2_16B_get_age(hdr);
-+	*becn = hfi2_16B_get_becn(hdr);
-+	*fecn = hfi2_16B_get_fecn(hdr);
-+	*l4 = hfi2_16B_get_l4(hdr);
-+	*rc = hfi2_16B_get_rc(hdr);
-+	*sc = hfi2_16B_get_sc(hdr);
-+	*entropy = hfi2_16B_get_entropy(hdr);
-+	*len = hfi2_16B_get_len(hdr);
-+	*pkey = hfi2_16B_get_pkey(hdr);
-+	*dlid = hfi2_16B_get_dlid(hdr);
-+	*slid = hfi2_16B_get_slid(hdr);
-+}
-+
-+#define LRH_PRN "len:%d sc:%d dlid:0x%.4x slid:0x%.4x "
-+#define LRH_9B_PRN "lnh:%d,%s lver:%d sl:%d"
-+#define LRH_16B_PRN "age:%d becn:%d fecn:%d l4:%d " \
-+		    "rc:%d sc:%d pkey:0x%.4x entropy:0x%.4x"
-+const char *hfi2_trace_fmt_lrh(struct trace_seq *p, bool bypass,
-+			       u8 age, bool becn, bool fecn, u8 l4,
-+			       u8 lnh, const char *lnh_name, u8 lver,
-+			       u8 rc, u8 sc, u8 sl, u16 entropy,
-+			       u16 len, u16 pkey, u32 dlid, u32 slid)
-+{
-+	const char *ret = trace_seq_buffer_ptr(p);
-+
-+	trace_seq_printf(p, LRH_PRN, len, sc, dlid, slid);
-+
-+	if (bypass)
-+		trace_seq_printf(p, LRH_16B_PRN,
-+				 age, becn, fecn, l4, rc, sc, pkey, entropy);
-+
-+	else
-+		trace_seq_printf(p, LRH_9B_PRN,
-+				 lnh, lnh_name, lver, sl);
-+	trace_seq_putc(p, 0);
-+
++	spin_lock_irqsave(&handler->lock, flags);
++	node = __mmu_rb_search(handler, mnode->addr, mnode->len);
++	if (node) {
++		ret = -EEXIST;
++		goto unlock;
++	}
++	__mmu_int_rb_insert(mnode, &handler->root);
++	list_add_tail(&mnode->list, &handler->lru_list);
++	mnode->handler = handler;
++unlock:
++	spin_unlock_irqrestore(&handler->lock, flags);
 +	return ret;
 +}
 +
-+#define BTH_9B_PRN \
-+	"op:0x%.2x,%s se:%d m:%d pad:%d tver:%d pkey:0x%.4x " \
-+	"f:%d b:%d qpn:0x%.6x a:%d psn:0x%.8x"
-+#define BTH_16B_PRN \
-+	"op:0x%.2x,%s se:%d m:%d pad:%d tver:%d " \
-+	"qpn:0x%.6x a:%d psn:0x%.8x"
-+#define L4_FM_16B_PRN \
-+	"op:0x%.2x,%s dest_qpn:0x%.6x src_qpn:0x%.6x"
-+const char *hfi2_trace_fmt_rest(struct trace_seq *p, bool bypass, u8 l4,
-+				u8 ack, bool becn, bool fecn, u8 mig,
-+				u8 se, u8 pad, u8 opcode, const char *opname,
-+				u8 tver, u16 pkey, u32 psn, u32 qpn,
-+				u32 dest_qpn, u32 src_qpn)
++/* Caller must hold handler lock */
++struct mmu_rb_node *hfi2_mmu_rb_get_first(struct mmu_rb_handler *handler,
++					  unsigned long addr, unsigned long len)
 +{
-+	const char *ret = trace_seq_buffer_ptr(p);
++	struct mmu_rb_node *node;
 +
-+	if (bypass)
-+		if (l4 == OPA_16B_L4_FM)
-+			trace_seq_printf(p, L4_FM_16B_PRN,
-+					 opcode, opname, dest_qpn, src_qpn);
-+		else
-+			trace_seq_printf(p, BTH_16B_PRN,
-+					 opcode, opname,
-+					 se, mig, pad, tver, qpn, ack, psn);
-+
-+	else
-+		trace_seq_printf(p, BTH_9B_PRN,
-+				 opcode, opname,
-+				 se, mig, pad, tver, pkey, fecn, becn,
-+				 qpn, ack, psn);
-+	trace_seq_putc(p, 0);
-+
-+	return ret;
++	trace_hfi2_mmu_rb_search(addr, len);
++	node = __mmu_int_rb_iter_first(&handler->root, addr, (addr + len) - 1);
++	if (node)
++		list_move_tail(&node->list, &handler->lru_list);
++	return node;
 +}
 +
-+const char *hfi2_parse_everbs_hdrs(
-+	struct trace_seq *p,
-+	u8 opcode, u8 l4, u32 dest_qpn, u32 src_qpn,
-+	void *ehdrs)
++/* Caller must hold handler lock */
++static struct mmu_rb_node *__mmu_rb_search(struct mmu_rb_handler *handler,
++					   unsigned long addr,
++					   unsigned long len)
 +{
-+	union ib_ehdrs *eh = ehdrs;
-+	const char *ret = trace_seq_buffer_ptr(p);
++	struct mmu_rb_node *node = NULL;
 +
-+	if (l4 == OPA_16B_L4_FM) {
-+		trace_seq_printf(p, "mgmt pkt");
-+		goto out;
++	trace_hfi2_mmu_rb_search(addr, len);
++	if (!handler->ops->filter) {
++		node = __mmu_int_rb_iter_first(&handler->root, addr,
++					       (addr + len) - 1);
++	} else {
++		for (node = __mmu_int_rb_iter_first(&handler->root, addr,
++						    (addr + len) - 1);
++		     node;
++		     node = __mmu_int_rb_iter_next(node, addr,
++						   (addr + len) - 1)) {
++			if (handler->ops->filter(node, addr, len))
++				return node;
++		}
 +	}
++	return node;
++}
 +
-+	switch (opcode) {
-+	/* imm */
-+	case OP(RC, SEND_LAST_WITH_IMMEDIATE):
-+	case OP(UC, SEND_LAST_WITH_IMMEDIATE):
-+	case OP(RC, SEND_ONLY_WITH_IMMEDIATE):
-+	case OP(UC, SEND_ONLY_WITH_IMMEDIATE):
-+	case OP(RC, RDMA_WRITE_LAST_WITH_IMMEDIATE):
-+	case OP(UC, RDMA_WRITE_LAST_WITH_IMMEDIATE):
-+		trace_seq_printf(p, IMM_PRN,
-+				 be32_to_cpu(eh->imm_data));
-+		break;
-+	/* reth + imm */
-+	case OP(RC, RDMA_WRITE_ONLY_WITH_IMMEDIATE):
-+	case OP(UC, RDMA_WRITE_ONLY_WITH_IMMEDIATE):
-+		trace_seq_printf(p, RETH_PRN " " IMM_PRN,
-+				 get_ib_reth_vaddr(&eh->rc.reth),
-+				 be32_to_cpu(eh->rc.reth.rkey),
-+				 be32_to_cpu(eh->rc.reth.length),
-+				 be32_to_cpu(eh->rc.imm_data));
-+		break;
-+	/* reth */
-+	case OP(RC, RDMA_READ_REQUEST):
-+	case OP(RC, RDMA_WRITE_FIRST):
-+	case OP(UC, RDMA_WRITE_FIRST):
-+	case OP(RC, RDMA_WRITE_ONLY):
-+	case OP(UC, RDMA_WRITE_ONLY):
-+		trace_seq_printf(p, RETH_PRN,
-+				 get_ib_reth_vaddr(&eh->rc.reth),
-+				 be32_to_cpu(eh->rc.reth.rkey),
-+				 be32_to_cpu(eh->rc.reth.length));
-+		break;
-+	case OP(RC, RDMA_READ_RESPONSE_FIRST):
-+	case OP(RC, RDMA_READ_RESPONSE_LAST):
-+	case OP(RC, RDMA_READ_RESPONSE_ONLY):
-+	case OP(RC, ACKNOWLEDGE):
-+		trace_seq_printf(p, AETH_PRN, be32_to_cpu(eh->aeth) >> 24,
-+				 parse_syndrome(be32_to_cpu(eh->aeth) >> 24),
-+				 be32_to_cpu(eh->aeth) & IB_MSN_MASK);
-+		break;
-+	case OP(TID_RDMA, WRITE_REQ):
-+		trace_seq_printf(p, TID_RDMA_KDETH " " RETH_PRN " "
-+				 TID_WRITE_REQ_PRN,
-+				 le32_to_cpu(eh->tid_rdma.w_req.kdeth0),
-+				 le32_to_cpu(eh->tid_rdma.w_req.kdeth1),
-+				 ib_u64_get(&eh->tid_rdma.w_req.reth.vaddr),
-+				 be32_to_cpu(eh->tid_rdma.w_req.reth.rkey),
-+				 be32_to_cpu(eh->tid_rdma.w_req.reth.length),
-+				 be32_to_cpu(eh->tid_rdma.w_req.verbs_qp));
-+		break;
-+	case OP(TID_RDMA, WRITE_RESP):
-+		trace_seq_printf(p, TID_RDMA_KDETH " " AETH_PRN " "
-+				 TID_WRITE_RSP_PRN,
-+				 le32_to_cpu(eh->tid_rdma.w_rsp.kdeth0),
-+				 le32_to_cpu(eh->tid_rdma.w_rsp.kdeth1),
-+				 be32_to_cpu(eh->tid_rdma.w_rsp.aeth) >> 24,
-+				 parse_syndrome(/* aeth */
-+					 be32_to_cpu(eh->tid_rdma.w_rsp.aeth)
-+					 >> 24),
-+				 (be32_to_cpu(eh->tid_rdma.w_rsp.aeth) &
-+				  IB_MSN_MASK),
-+				 be32_to_cpu(eh->tid_rdma.w_rsp.tid_flow_psn),
-+				 be32_to_cpu(eh->tid_rdma.w_rsp.tid_flow_qp),
-+				 be32_to_cpu(eh->tid_rdma.w_rsp.verbs_qp));
-+		break;
-+	case OP(TID_RDMA, WRITE_DATA_LAST):
-+	case OP(TID_RDMA, WRITE_DATA):
-+		trace_seq_printf(p, TID_RDMA_KDETH_DATA " " TID_WRITE_DATA_PRN,
-+				 le32_to_cpu(eh->tid_rdma.w_data.kdeth0),
-+				 KDETH_GET(eh->tid_rdma.w_data.kdeth0, KVER),
-+				 KDETH_GET(eh->tid_rdma.w_data.kdeth0, SH),
-+				 KDETH_GET(eh->tid_rdma.w_data.kdeth0, INTR),
-+				 KDETH_GET(eh->tid_rdma.w_data.kdeth0, TIDCTRL),
-+				 KDETH_GET(eh->tid_rdma.w_data.kdeth0, TID),
-+				 KDETH_GET(eh->tid_rdma.w_data.kdeth0, OFFSET),
-+				 le32_to_cpu(eh->tid_rdma.w_data.kdeth1),
-+				 KDETH_GET(eh->tid_rdma.w_data.kdeth1, JKEY),
-+				 be32_to_cpu(eh->tid_rdma.w_data.verbs_qp));
-+		break;
-+	case OP(TID_RDMA, READ_REQ):
-+		trace_seq_printf(p, TID_RDMA_KDETH " " RETH_PRN " "
-+				 TID_READ_REQ_PRN,
-+				 le32_to_cpu(eh->tid_rdma.r_req.kdeth0),
-+				 le32_to_cpu(eh->tid_rdma.r_req.kdeth1),
-+				 ib_u64_get(&eh->tid_rdma.r_req.reth.vaddr),
-+				 be32_to_cpu(eh->tid_rdma.r_req.reth.rkey),
-+				 be32_to_cpu(eh->tid_rdma.r_req.reth.length),
-+				 be32_to_cpu(eh->tid_rdma.r_req.tid_flow_psn),
-+				 be32_to_cpu(eh->tid_rdma.r_req.tid_flow_qp),
-+				 be32_to_cpu(eh->tid_rdma.r_req.verbs_qp));
-+		break;
-+	case OP(TID_RDMA, READ_RESP):
-+		trace_seq_printf(p, TID_RDMA_KDETH_DATA " " AETH_PRN " "
-+				 TID_READ_RSP_PRN,
-+				 le32_to_cpu(eh->tid_rdma.r_rsp.kdeth0),
-+				 KDETH_GET(eh->tid_rdma.r_rsp.kdeth0, KVER),
-+				 KDETH_GET(eh->tid_rdma.r_rsp.kdeth0, SH),
-+				 KDETH_GET(eh->tid_rdma.r_rsp.kdeth0, INTR),
-+				 KDETH_GET(eh->tid_rdma.r_rsp.kdeth0, TIDCTRL),
-+				 KDETH_GET(eh->tid_rdma.r_rsp.kdeth0, TID),
-+				 KDETH_GET(eh->tid_rdma.r_rsp.kdeth0, OFFSET),
-+				 le32_to_cpu(eh->tid_rdma.r_rsp.kdeth1),
-+				 KDETH_GET(eh->tid_rdma.r_rsp.kdeth1, JKEY),
-+				 be32_to_cpu(eh->tid_rdma.r_rsp.aeth) >> 24,
-+				 parse_syndrome(/* aeth */
-+					 be32_to_cpu(eh->tid_rdma.r_rsp.aeth)
-+					 >> 24),
-+				 (be32_to_cpu(eh->tid_rdma.r_rsp.aeth) &
-+				  IB_MSN_MASK),
-+				 be32_to_cpu(eh->tid_rdma.r_rsp.verbs_qp));
-+		break;
-+	case OP(TID_RDMA, ACK):
-+		trace_seq_printf(p, TID_RDMA_KDETH " " AETH_PRN " "
-+				 TID_ACK_PRN,
-+				 le32_to_cpu(eh->tid_rdma.ack.kdeth0),
-+				 le32_to_cpu(eh->tid_rdma.ack.kdeth1),
-+				 be32_to_cpu(eh->tid_rdma.ack.aeth) >> 24,
-+				 parse_syndrome(/* aeth */
-+					 be32_to_cpu(eh->tid_rdma.ack.aeth)
-+					 >> 24),
-+				 (be32_to_cpu(eh->tid_rdma.ack.aeth) &
-+				  IB_MSN_MASK),
-+				 be32_to_cpu(eh->tid_rdma.ack.tid_flow_psn),
-+				 be32_to_cpu(eh->tid_rdma.ack.verbs_psn),
-+				 be32_to_cpu(eh->tid_rdma.ack.tid_flow_qp),
-+				 be32_to_cpu(eh->tid_rdma.ack.verbs_qp));
-+		break;
-+	case OP(TID_RDMA, RESYNC):
-+		trace_seq_printf(p, TID_RDMA_KDETH " " TID_RESYNC_PRN,
-+				 le32_to_cpu(eh->tid_rdma.resync.kdeth0),
-+				 le32_to_cpu(eh->tid_rdma.resync.kdeth1),
-+				 be32_to_cpu(eh->tid_rdma.resync.verbs_qp));
-+		break;
-+	/* aeth + atomicacketh */
-+	case OP(RC, ATOMIC_ACKNOWLEDGE):
-+		trace_seq_printf(p, AETH_PRN " " ATOMICACKETH_PRN,
-+				 be32_to_cpu(eh->at.aeth) >> 24,
-+				 parse_syndrome(be32_to_cpu(eh->at.aeth) >> 24),
-+				 be32_to_cpu(eh->at.aeth) & IB_MSN_MASK,
-+				 ib_u64_get(&eh->at.atomic_ack_eth));
-+		break;
-+	/* atomiceth */
-+	case OP(RC, COMPARE_SWAP):
-+	case OP(RC, FETCH_ADD):
-+		trace_seq_printf(p, ATOMICETH_PRN,
-+				 get_ib_ateth_vaddr(&eh->atomic_eth),
-+				 eh->atomic_eth.rkey,
-+				 get_ib_ateth_swap(&eh->atomic_eth),
-+				 get_ib_ateth_compare(&eh->atomic_eth));
-+		break;
-+	/* deth */
-+	case OP(UD, SEND_ONLY):
-+		trace_seq_printf(p, DETH_ENTROPY_PRN,
-+				 be32_to_cpu(eh->ud.deth[0]),
-+				 be32_to_cpu(eh->ud.deth[1]) & RVT_QPN_MASK,
-+				 be32_to_cpu(eh->ud.deth[1]) >>
-+					     HFI2_IPOIB_ENTROPY_SHIFT);
-+		break;
-+	case OP(UD, SEND_ONLY_WITH_IMMEDIATE):
-+		trace_seq_printf(p, DETH_PRN,
-+				 be32_to_cpu(eh->ud.deth[0]),
-+				 be32_to_cpu(eh->ud.deth[1]) & RVT_QPN_MASK);
-+		break;
-+	/* ieth */
-+	case OP(RC, SEND_LAST_WITH_INVALIDATE):
-+	case OP(RC, SEND_ONLY_WITH_INVALIDATE):
-+		trace_seq_printf(p, IETH_PRN,
-+				 be32_to_cpu(eh->ieth));
-+		break;
++/*
++ * Must NOT call while holding mnode->handler->lock.
++ * mnode->handler->ops->remove() may sleep and mnode->handler->lock is a
++ * spinlock.
++ */
++static void release_immediate(struct kref *refcount)
++{
++	struct mmu_rb_node *mnode =
++		container_of(refcount, struct mmu_rb_node, refcount);
++	trace_hfi2_mmu_release_node(mnode);
++	mnode->handler->ops->remove(mnode->handler->ops_arg, mnode);
++}
++
++/* Caller must hold mnode->handler->lock */
++static void release_nolock(struct kref *refcount)
++{
++	struct mmu_rb_node *mnode =
++		container_of(refcount, struct mmu_rb_node, refcount);
++	list_move(&mnode->list, &mnode->handler->del_list);
++	queue_work(mnode->handler->wq, &mnode->handler->del_work);
++}
++
++/*
++ * struct mmu_rb_node->refcount kref_put() callback.
++ * Adds mmu_rb_node to mmu_rb_node->handler->del_list and queues
++ * handler->del_work on handler->wq.
++ * Does not remove mmu_rb_node from handler->lru_list or handler->rb_root.
++ * Acquires mmu_rb_node->handler->lock; do not call while already holding
++ * handler->lock.
++ */
++void hfi2_mmu_rb_release(struct kref *refcount)
++{
++	struct mmu_rb_node *mnode =
++		container_of(refcount, struct mmu_rb_node, refcount);
++	struct mmu_rb_handler *handler = mnode->handler;
++	unsigned long flags;
++
++	spin_lock_irqsave(&handler->lock, flags);
++	list_move(&mnode->list, &mnode->handler->del_list);
++	spin_unlock_irqrestore(&handler->lock, flags);
++	queue_work(handler->wq, &handler->del_work);
++}
++
++void hfi2_mmu_rb_evict(struct mmu_rb_handler *handler, void *evict_arg)
++{
++	struct mmu_rb_node *rbnode, *ptr;
++	struct list_head del_list;
++	unsigned long flags;
++	bool stop = false;
++
++	if (current->mm != handler->mn.mm)
++		return;
++
++	INIT_LIST_HEAD(&del_list);
++
++	spin_lock_irqsave(&handler->lock, flags);
++	list_for_each_entry_safe(rbnode, ptr, &handler->lru_list, list) {
++		/* refcount == 1 implies mmu_rb_handler has only rbnode ref */
++		if (kref_read(&rbnode->refcount) > 1)
++			continue;
++
++		if (handler->ops->evict(handler->ops_arg, rbnode, evict_arg,
++					&stop)) {
++			__mmu_int_rb_remove(rbnode, &handler->root);
++			/* move from LRU list to delete list */
++			list_move(&rbnode->list, &del_list);
++			++handler->internal_evictions;
++		}
++		if (stop)
++			break;
 +	}
-+out:
-+	trace_seq_putc(p, 0);
-+	return ret;
++	spin_unlock_irqrestore(&handler->lock, flags);
++
++	list_for_each_entry_safe(rbnode, ptr, &del_list, list) {
++		trace_hfi2_mmu_rb_evict(rbnode);
++		kref_put(&rbnode->refcount, release_immediate);
++	}
 +}
 +
-+const char *hfi2_parse_sdma_flags(struct trace_seq *p, u64 *qw, u8 first, u8 last)
++unsigned long hfi2_mmu_rb_for_n(struct mmu_rb_handler *handler,
++				unsigned long start, int count,
++				void (*fn)(const struct mmu_rb_node *rb_node, void *),
++				void *arg)
 +{
-+	const char *ret = trace_seq_buffer_ptr(p);
-+	char flags[5] = { 'x', 'x', 'x', 'x', 0 };
-+
-+	flags[0] = (qw[1] & SDMA_DESC1_INT_REQ_FLAG) ? 'I' : '-';
-+	flags[1] = (qw[1] & SDMA_DESC1_HEAD_TO_HOST_FLAG) ?  'H' : '-';
-+	flags[2] = first ? 'F' : '-';
-+	flags[3] = last ? 'L' : '-';
-+	trace_seq_printf(p, "%s", flags);
-+	if (first)
-+		trace_seq_printf(p, " amode:%u aidx:%u alen:%u",
-+				 (u8)((qw[1] >> SDMA_DESC1_HEADER_MODE_SHIFT) &
-+				      SDMA_DESC1_HEADER_MODE_MASK),
-+				 (u8)((qw[1] >> SDMA_DESC1_HEADER_INDEX_SHIFT) &
-+				      SDMA_DESC1_HEADER_INDEX_MASK),
-+				 (u8)((qw[1] >> SDMA_DESC1_HEADER_DWS_SHIFT) &
-+				      SDMA_DESC1_HEADER_DWS_MASK));
-+	return ret;
-+}
-+
-+const char *hfi2_print_u32_array(
-+	struct trace_seq *p,
-+	u32 *arr, int len)
-+{
++	struct mmu_rb_node *node = NULL, *next;
 +	int i;
-+	const char *ret = trace_seq_buffer_ptr(p);
 +
-+	for (i = 0; i < len ; i++)
-+		trace_seq_printf(p, "%s%#x", i == 0 ? "" : " ", arr[i]);
-+	trace_seq_putc(p, 0);
-+	return ret;
++	next = __mmu_int_rb_iter_first(&handler->root, start, ~0ULL - start);
++	for (i = 0; i < count; i++) {
++		node = next;
++		if (!node)
++			return ~0UL;
++
++		next = __mmu_int_rb_iter_next(node, start + node->len, ~0ULL);
++		fn(node, arg);
++	}
++	return node->addr;
 +}
 +
-+u8 hfi2_trace_get_tid_ctrl(u32 ent)
++static int mmu_notifier_range_start(struct mmu_notifier *mn,
++		const struct mmu_notifier_range *range)
 +{
-+	return EXP_TID_GET(ent, CTRL);
++	struct mmu_rb_handler *handler =
++		container_of(mn, struct mmu_rb_handler, mn);
++	struct rb_root_cached *root = &handler->root;
++	struct mmu_rb_node *node, *ptr = NULL;
++	unsigned long flags;
++
++	spin_lock_irqsave(&handler->lock, flags);
++	for (node = __mmu_int_rb_iter_first(root, range->start, range->end-1);
++	     node; node = ptr) {
++		/* Guard against node removal. */
++		ptr = __mmu_int_rb_iter_next(node, range->start,
++					     range->end - 1);
++		trace_hfi2_mmu_mem_invalidate(node);
++		/* Remove from rb tree and lru_list. */
++		__mmu_int_rb_remove(node, root);
++		list_del_init(&node->list);
++		kref_put(&node->refcount, release_nolock);
++		handler->external_evictions++;
++	}
++	spin_unlock_irqrestore(&handler->lock, flags);
++
++	return 0;
 +}
 +
-+u16 hfi2_trace_get_tid_len(u32 ent)
++/*
++ * Work queue function to remove all nodes that have been queued up to
++ * be removed.  The key feature is that mm->mmap_lock is not being held
++ * and the remove callback can sleep while taking it, if needed.
++ */
++static void handle_remove(struct work_struct *work)
 +{
-+	return EXP_TID_GET(ent, LEN);
-+}
++	struct mmu_rb_handler *handler = container_of(work,
++						struct mmu_rb_handler,
++						del_work);
++	struct list_head del_list;
++	unsigned long flags;
++	struct mmu_rb_node *node;
 +
-+u16 hfi2_trace_get_tid_idx(u32 ent)
-+{
-+	return EXP_TID_GET(ent, IDX);
-+}
++	/* remove anything that is queued to get removed */
++	spin_lock_irqsave(&handler->lock, flags);
++	list_replace_init(&handler->del_list, &del_list);
++	spin_unlock_irqrestore(&handler->lock, flags);
 +
-+struct hfi2_ctxt_hist {
-+	atomic_t count;
-+	atomic_t data[255];
++	while (!list_empty(&del_list)) {
++		node = list_first_entry(&del_list, struct mmu_rb_node, list);
++		list_del(&node->list);
++		trace_hfi2_mmu_release_node(node);
++		handler->ops->remove(handler->ops_arg, node);
++	}
++}
+diff --git a/drivers/infiniband/hw/hfi2/mmu_rb.h b/drivers/infiniband/hw/hfi2/mmu_rb.h
+new file mode 100644
+index 000000000000..05a277f44582
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/mmu_rb.h
+@@ -0,0 +1,78 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/*
++ * Copyright(c) 2025-2026 Cornelis Networks, Inc.
++ * Copyright(c) 2016 Intel Corporation.
++ * Copyright(c) 2025-2026 Cornelis Networks, Inc.
++ */
++
++#ifndef _HFI2_MMU_RB_H
++#define _HFI2_MMU_RB_H
++
++#include "hfi2.h"
++
++struct mmu_rb_node {
++	unsigned long addr;
++	unsigned long len;
++	unsigned long __last;
++	struct rb_node node;
++	struct mmu_rb_handler *handler;
++	struct list_head list;
++	struct kref refcount;
 +};
 +
-+static struct hfi2_ctxt_hist hist = {
-+	.count = ATOMIC_INIT(0)
++/* filter and evict must not sleep. Only remove is allowed to sleep. */
++struct mmu_rb_ops {
++	bool (*filter)(struct mmu_rb_node *node, unsigned long addr,
++		       unsigned long len);
++	void (*remove)(void *ops_arg, struct mmu_rb_node *mnode);
++	int (*evict)(void *ops_arg, struct mmu_rb_node *mnode,
++		     void *evict_arg, bool *stop);
 +};
 +
-+const char *hfi2_trace_print_rsm_hist(struct trace_seq *p, unsigned int ctxt)
-+{
-+	int i, len = ARRAY_SIZE(hist.data);
-+	const char *ret = trace_seq_buffer_ptr(p);
-+	unsigned long packet_count = atomic_fetch_inc(&hist.count);
++struct mmu_rb_handler {
++	/*
++	 * struct mmu_notifier is 56 bytes, and spinlock_t is 4 bytes, so
++	 * they fit together in one cache line.  mn is relatively rarely
++	 * accessed, so co-locating the spinlock with it achieves much of
++	 * the cacheline contention reduction of giving the spinlock its own
++	 * cacheline without the overhead of doing so.
++	 */
++	struct mmu_notifier mn;
++	spinlock_t lock;        /* protect the RB tree */
 +
-+	trace_seq_printf(p, "packet[%lu]", packet_count);
-+	for (i = 0; i < len; ++i) {
-+		unsigned long val;
-+		atomic_t *count = &hist.data[i];
++	/* Begin on a new cachline boundary here */
++	struct rb_root_cached root ____cacheline_aligned_in_smp;
++	void *ops_arg;
++	const struct mmu_rb_ops *ops;
++	struct list_head lru_list;
++	struct work_struct del_work;
++	struct list_head del_list;
++	struct workqueue_struct *wq;
++	size_t hits;
++	size_t misses;
++	size_t hint_hits;
++	size_t hint_misses;
++	size_t internal_evictions;
++	size_t external_evictions;
++	void *free_ptr;
++};
 +
-+		if (ctxt == i)
-+			val = atomic_fetch_inc(count);
-+		else
-+			val = atomic_read(count);
++int hfi2_mmu_rb_register(void *ops_arg,
++			 const struct mmu_rb_ops *ops,
++			 struct workqueue_struct *wq,
++			 struct mmu_rb_handler **handler);
++void hfi2_mmu_rb_unregister(struct mmu_rb_handler *handler);
++int hfi2_mmu_rb_insert(struct mmu_rb_handler *handler,
++		       struct mmu_rb_node *mnode);
++void hfi2_mmu_rb_release(struct kref *refcount);
 +
-+		if (val)
-+			trace_seq_printf(p, "(%d:%lu)", i, val);
-+	}
-+	trace_seq_putc(p, 0);
-+	return ret;
-+}
++void hfi2_mmu_rb_evict(struct mmu_rb_handler *handler, void *evict_arg);
++struct mmu_rb_node *hfi2_mmu_rb_get_first(struct mmu_rb_handler *handler,
++					  unsigned long addr,
++					  unsigned long len);
++unsigned long hfi2_mmu_rb_for_n(struct mmu_rb_handler *handler,
++				unsigned long start, int count,
++				void (*fn)(const struct mmu_rb_node *rb_node, void *),
++				void *arg);
 +
-+const char *hfi2_memtype_str(unsigned int mt)
-+{
-+	switch (mt) {
-+	case HFI2_MEMINFO_TYPE_SYSTEM:
-+		return "System";
-+	}
++#endif /* _HFI2_MMU_RB_H */
+diff --git a/drivers/infiniband/hw/hfi2/msix.h b/drivers/infiniband/hw/hfi2/msix.h
+new file mode 100644
+index 000000000000..8d17b1613dc5
+--- /dev/null
++++ b/drivers/infiniband/hw/hfi2/msix.h
+@@ -0,0 +1,32 @@
++/* SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause) */
++/*
++ * Copyright(c) 2018 - 2020 Intel Corporation.
++ * Copyright(c) 2025-2026 Cornelis Networks, Inc.
++ */
 +
-+	return "<unknown>";
-+}
++#ifndef _HFI2_MSIX_H
++#define _HFI2_MSIX_H
 +
-+__hfi2_trace_fn(AFFINITY);
-+__hfi2_trace_fn(PKT);
-+__hfi2_trace_fn(PROC);
-+__hfi2_trace_fn(SDMA);
-+__hfi2_trace_fn(LINKVERB);
-+__hfi2_trace_fn(DEBUG);
-+__hfi2_trace_fn(SNOOP);
-+__hfi2_trace_fn(CNTR);
-+__hfi2_trace_fn(PIO);
-+__hfi2_trace_fn(DC8051);
-+__hfi2_trace_fn(FIRMWARE);
-+__hfi2_trace_fn(RCVCTRL);
-+__hfi2_trace_fn(TID);
-+__hfi2_trace_fn(MMU);
-+__hfi2_trace_fn(IOCTL);
++#include "hfi2.h"
++
++enum irq_type { IRQ_SDMA, IRQ_RCVCTXT, IRQ_NETDEVCTXT, IRQ_GENERAL, IRQ_OTHER };
++
++/* MSIx interface */
++int hfi2_msix_initialize(struct hfi2_devdata *dd);
++int hfi2_msix_early_request_irqs(struct hfi2_devdata *dd);
++int hfi2_msix_request_irqs(struct hfi2_devdata *dd);
++void hfi2_msix_clean_up_interrupts(struct hfi2_devdata *dd);
++void hfi2_msix_shut_down_interrupts(struct hfi2_devdata *dd, bool keep_general);
++int hfi2_msix_request_general_irq(struct hfi2_devdata *dd);
++int hfi2_msix_request_rcd_irq(struct hfi2_ctxtdata *rcd);
++int hfi2_msix_request_sdma_irq(struct sdma_engine *sde);
++void hfi2_msix_free_irq(struct hfi2_devdata *dd, u8 msix_intr);
++int hfi2_msix_request_irq_remap(struct hfi2_devdata *dd, u16 ctxt,
++			   enum irq_type type, int src, irq_handler_t handler,
++			   irq_handler_t thread, void *arg, const char *name);
++
++/* Netdev interface */
++void hfi2_msix_netdev_synchronize_irq(struct hfi2_pportdata *ppd);
++int hfi2_msix_netdev_request_rcd_irq(struct hfi2_ctxtdata *rcd);
++
++#endif
 
 
