@@ -1,68 +1,68 @@
-Received: from MW6PR02CU001.outbound.protection.outlook.com (mail-westus2azon11012049.outbound.protection.outlook.com [52.101.48.49])
+Received: from SA9PR02CU001.outbound.protection.outlook.com (mail-southcentralusazon11013041.outbound.protection.outlook.com [40.93.196.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE3A3466B1B;
-	Thu,  3 Sep 2026 08:56:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.48.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71B8D47A875;
+	Thu,  3 Sep 2026 08:56:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.196.41
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788425783; cv=fail; b=ul3XJmtvWQpEoL5XD+MNM/2xy13b1SPmQZIvpZVtgQlbQx2Jtb8hmgQqe+XQZ99xcAGxBPFkVMe+NpXmC3TveeTaNlYyTGrdb3+1vI6Dqtc6UigUgtzH15GajBYa++JvyAnn3YUNxQJa7NRn0IR8S071DIYYdn+XPWatJ/bejqU=
+	t=1788425791; cv=fail; b=HDrSUcIphiVEX31GuhaCSWk2U2tLKGxPx63q9bRs3w3/+8fyZ3iV7mqV+OXWMsa1iAIzH3i4KtjZbAVCebN51rtvD1Nk9+px7V2pfpt+w8Fd4b/d4J4CHY+f8jv9FHuNAxs+69PfupdnFfUBDd3as41V3zGncfSEfxMRoSAc46c=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788425783; c=relaxed/simple;
-	bh=llmkiTKntU8isghstGnS7rZUsF8QNehE/mWMq7zX1T4=;
+	s=arc-20240116; t=1788425791; c=relaxed/simple;
+	bh=Xs+PLI2MN9p/LcZhufrikGJSrfbC8l3WCT60KZgXFBM=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=CKbrkwAZDw7IyjivMLOFtH+9M04lfllwEOUris95ww1d2rPKELlUTkqcOOpN/FGY7LpZRperV+v8boYzBA6cpdBaw2cKO6ywfqOFziTDgZDZJDZwvnyi6oaoeEUY1hT2qZNwN6eEy+hURd2LIruKMJe1T3lRCSkGP7s5GSzaNZo=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=ny3cgP+J; arc=fail smtp.client-ip=52.101.48.49
+	 MIME-Version:Content-Type; b=PZw5vGqrvhOnU9X+O0N6rOIJ32k7GOwEi9bhy6F5mZ4+AHASFEHybDqSW5Fgb+RAqG6hd6LBDVt6IblXAMowvCa8wEp+BNr/fAIGAkn3S8O/ptgXGkt2pgdx9KaIxMHkRiDJL32ZpYOp5HtvvkUa4FS2+yyzl1U5OJwMURfvzCk=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=PabGUr41; arc=fail smtp.client-ip=40.93.196.41
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="ny3cgP+J"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="PabGUr41"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=RvOjF6D642NSC3LuUEtSM/Tp3fwCLfaQmYlKUmzO9pmI6FnfIi24uvGSLqjG+UdedpBEOeCzhr7ru7B9CIMz37MiTSeI46Mo9UCmscQMBn7ZtNlQLh/lBZnu0kSBGhOvpM9YLVpN6aiG5GrJelZu2KnUHOjscRb+6Wi5zwT4IQJ8GuR4WRZvt4ABAHC7yuN2KT0mZIAKr1n6nhTSRx2DYrVPrJnxQj6FeOoIHTfhkizn0s7bDVf4Z7wopfcpNK+nTgln9uUr02+jglHlVfvsmvlZy8Zn2ZpqaGp/S9wwWu67Fczyr3kx7vShelZJI5TEaIKu8rPxMGxWKEogQyQi2Q==
+ b=US6xufsOwAZd0FSyXEYOFM+lb0ypFssFOiqCcWkgcg/YJAZYnduIFlnf7UWuB+IHRQVi3DkXhskzrf+NnAe/slJFTtT+gDUaggm5DE25Bb/AF0RmDvJSukJJHhxW6LK3H5dLoepdddyXwb4O2thcuqaAjqU+VwjCR8mVdundaRzC95ySRSY2dzMgLkyzygdpSQfsl0X08ovhFfhxik8aMl8LsLpZ7TrPYvZU1YPt4ICv/i1W5rB7C/ch0UGualp7Y68W1ZevgVnI/OoaVafW5rvne4Bff68PvYPAkdNpaGx19cojNjju7jnJ4V/MNBzMZ2a0a101AbhBRkNpXJ9KHA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Gl10A/OtWPHv6zXSDXs6qpU9nWErCMrDYCbo/fFQhS4=;
- b=tULet4VimzdkaeL3Tw/EFyxN6E8B58b2DDhBcJMhOAc4mAz4xueVaNR44r7lDlDkY4Ga8f4T+3OIFiuevWAEuA/XdPdlGKnmbCfeuhRfyyK+fY3GOomVIB2o+GfPFRxYNjRZ8/K+tzDw+Pu8tuuWvPcpK9eXp2KbMYa3vyizQCf2PBT6CmMHq6usRKGvRCCQC3oUKwi6iYZEEtwajrQ77n3C4E5ABOsWjbTNzgA20ZRkdS3R6heEpYC7PM4AprlJPaEYLvDrSQY92bw78afA+jsMILV0oiZm8fyHiFkfWRMjK6o7zC50GDqgxwuFmdZaOYUpEplI7sfZ+bPei3bxYg==
+ bh=qBFhyW9EStcu9NwduBwuDsJn/mvRuKxgEY5dK6ADfAo=;
+ b=rWyynr7a6WoPYZTJqx1z2zyR/2ZssJrFN4Mii3bS+8zYg8q+ImZ3x0HRLb/IhQ03b/bIrdgvYzOpjn/PU8civm2MJr/dP74i4H/lYX9QL8xnd/MwAnuGZhmfkoIzAtKFW8m42tQ+fAY6X0BQ2GfMMWW6vW0SlIkV/SLFyoM0w8laPto0OryaRt4HJU2FOFrUWvoLdHSQKXJBtkjCN3YrbOXTtz37yGx1/p0nEDjLE1k44nzfAEfGGEb9YBFgUMcq+sFH1AZj2jpSG7FHOxAU4MTdt2AA1uSMXVZvo4Aidjbc1078s0c4q1T1RFJqYbWkpqHgLjXM/z6KBLxXxupJkA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.161) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
+ 216.228.117.160) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Gl10A/OtWPHv6zXSDXs6qpU9nWErCMrDYCbo/fFQhS4=;
- b=ny3cgP+JXiwahJtN3YaMayIz+IZBDpCD2Bhklp0AFagfI1WYNLwL8ytYeGpLbNsweLETxCO3SiQYJKcLxBBJgRQSBqowmasWTHbftrbjWFLLzBlgmOO/7yio9x3EA4KmtMjvJEKzjuN0wpja+1veBadVVccw+OnqIinLxhyxwgPmjrG7Sihp58qnwfCjCInDeInT9H+rNDCLme8d+U0F1d+UfDgZQIdvDtIq1TwlO3qBcKodkxPkqRVzhwhlY3edcGjF+YugtHFgL9eT89CpVN2of8j19RTD1n8404t6ob7EAc4hBJXvvEoz6NFpE9BQWC4dKnqiMYq3Ajndq/EakA==
-Received: from BY1P220CA0021.NAMP220.PROD.OUTLOOK.COM (2603:10b6:a03:5c3::16)
- by SN7PR12MB7911.namprd12.prod.outlook.com (2603:10b6:806:32a::19) with
+ bh=qBFhyW9EStcu9NwduBwuDsJn/mvRuKxgEY5dK6ADfAo=;
+ b=PabGUr41Jy5WVWKejjvN1VNWd47CEuMVi0LHk8MJ+Ur4uZNl6QhFMeJADUv47qAvpw3lPX7KM6W1GBMDvUdn6T/fUnCKOkLR5ABLmQTUD2U4ChiasSpR6PdNan21W5ZBkoumLcvhpIVAlvBR9DLU98WhtTbdOCG57MaYf9crn7YqaiZCcVOuJQaPdaSX6mcUFfFWcjq0hF7gfROa/xKQMeSXNsCDHjYDc8IYaL/89Cr0pPouwxOpCItfxPTG5a/IX2oI0HdpFYU1nwKmKJZMos4qk4Hu2foS5U53yWkByCi3ynSuxhlIeZIJG6ZEG8PZ+4OtkLY8+TWzJOXYZrIFmQ==
+Received: from CH2PR10CA0027.namprd10.prod.outlook.com (2603:10b6:610:4c::37)
+ by SAWPR12MB999291.namprd12.prod.outlook.com (2603:10b6:806:55f::10) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.360.13; Thu, 3 Sep
- 2026 08:56:11 +0000
-Received: from CO1PEPF000075ED.namprd03.prod.outlook.com
- (2603:10b6:a03:5c3:cafe::79) by BY1P220CA0021.outlook.office365.com
- (2603:10b6:a03:5c3::16) with Microsoft SMTP Server (version=TLS1_3,
+ 2026 08:56:23 +0000
+Received: from BN2PEPF0000A800.namprd02.prod.outlook.com
+ (2603:10b6:610:4c:cafe::5e) by CH2PR10CA0027.outlook.office365.com
+ (2603:10b6:610:4c::37) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.21.382.11 via Frontend Transport; Thu, 3
- Sep 2026 08:56:11 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
+ Sep 2026 08:56:23 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.161) by
- CO1PEPF000075ED.mail.protection.outlook.com (10.167.249.36) with Microsoft
+ 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.160) by
+ BN2PEPF0000A800.mail.protection.outlook.com (10.167.245.167) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.382.8 via Frontend Transport; Thu, 3 Sep 2026 08:56:11 +0000
-Received: from rnnvmail202.nvidia.com (10.129.68.7) by mail.nvidia.com
- (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ 15.21.382.8 via Frontend Transport; Thu, 3 Sep 2026 08:56:22 +0000
+Received: from rnnvmail203.nvidia.com (10.129.68.9) by mail.nvidia.com
+ (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.46; Thu, 3 Sep
- 2026 01:55:49 -0700
-Received: from rnnvmail202.nvidia.com (10.129.68.7) by rnnvmail202.nvidia.com
- (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
+ 2026 01:56:02 -0700
+Received: from rnnvmail202.nvidia.com (10.129.68.7) by rnnvmail203.nvidia.com
+ (10.129.68.9) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.46; Thu, 3 Sep
- 2026 01:55:49 -0700
+ 2026 01:56:01 -0700
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.7)
  with Microsoft SMTP Server id 15.2.2562.46 via Frontend Transport; Thu, 3 Sep
- 2026 01:55:37 -0700
+ 2026 01:55:49 -0700
 From: Tariq Toukan <tariqt@nvidia.com>
 To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
 	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
@@ -92,9 +92,9 @@ CC: Aleksandr Loktionov <aleksandr.loktionov@intel.com>, Alexei Lazar
  Fomichev <sdf@fomichev.me>, Stanislav Fomichev <sdf.kernel@gmail.com>, Tariq
  Toukan <tariqt@nvidia.com>, Willem de Bruijn <willemb@google.com>, Willem de
  Bruijn <willemdebruijn.kernel@gmail.com>
-Subject: [PATCH net-next V3 14/15] selftests: net: gro: Add PSP encapsulation and encryption
-Date: Thu, 3 Sep 2026 11:52:14 +0300
-Message-ID: <20260903085215.3691657-15-tariqt@nvidia.com>
+Subject: [PATCH net-next V3 15/15] selftests: drv-net: Add PSP HW GRO conformance tests
+Date: Thu, 3 Sep 2026 11:52:15 +0300
+Message-ID: <20260903085215.3691657-16-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.44.0
 In-Reply-To: <20260903085215.3691657-1-tariqt@nvidia.com>
 References: <20260903085215.3691657-1-tariqt@nvidia.com>
@@ -109,529 +109,325 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CO1PEPF000075ED:EE_|SN7PR12MB7911:EE_
-X-MS-Office365-Filtering-Correlation-Id: 5d6aa77b-63f5-4955-0312-08df099933ce
+X-MS-TrafficTypeDiagnostic: BN2PEPF0000A800:EE_|SAWPR12MB999291:EE_
+X-MS-Office365-Filtering-Correlation-Id: f597ec9b-11de-4e81-77b2-08df09993acb
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|7416014|376014|1800799024|23010399003|82310400026|36860700016|56012099006|10067099003|11063799006|6133799003|3023799007|22082099003|18002099003;
+	BCL:0;ARA:13230040|36860700016|23010399003|82310400026|376014|7416014|1800799024|6133799003|10067099003|11063799006|56012099006|3023799007|18002099003|22082099003;
 X-Microsoft-Antispam-Message-Info:
-	UOjumwfs47TLNFXQvSB1G+Q0GcdVFTr8pR3lJVohBDULIQ9nJaBEXik0Ki2s5poELHlhSBCSSKW9VA+fbWs4AQng3H7HIg8TFRALC33RgndseA3N79U8shoH/yl7ZEMLs84mA7ca5tLJYeQm2NCr6ptFIbxABzrmeVBA4cTqi/1raEPpzI9pFx+sePLQqicd/1vAmbKHAqrmnPQevftJ1YB56I+Zx6o3CZniX4Yb6oHHpCgdYS9gFdy8Y+LAWWbG9/3XBCBrE3epNC8lM1Jl+zaCyxaRt5X7BXrkdkX75QuFi2dI6BMCGw/ruPfqD7mv6YxmJWnOJYhsyF+a5HsF3A3g3kmm9VgQvu1YgD/DmGNNnxDRkrRcBtvqeE9Kb6R8B5hm/ckpmEd7soOHpQ5lTqwyumKEf106rLakjS02Z3sVCaP2QSZEYGfCxMkcvJdikHsQI50vrScv454K+QdBYuzKkrFuOSBr5wN0Ce7fSzF18eyUyaF4zd+5mLGyZHUNQDGmJqRgLHjVl45778Dq0Xp36Zn5831BJG5BkCC8BD0yeCVQQ71xXXACStmm6FlSXbX8FswBVgqNF4MnrRl/WZDkBxSaVH9CA8K2dPqhmWx3fqUQqvFxEEDZBfC5fPqQhVqzpMgkI6qYG5SJhv1ArxRaMAmBA0vezXR/JNNF1HtoDaCVCwJNOOJZjrOVUFhzj7A2Uz3dAZrHmq89/pZmVg==
+	Lj7r6VgySRj0tsp7FH4pL6y7cY8DUAb9Wm+wWVtOvM8nUmrg1phoUzyAG6o9oiHl5hrsvJgYt8CMlzFhtZEmdFqDcX0GI6cCzJkxVrNz9Pa45J9hhzbFCe+XA9chTVq0bg54TB97HJHONqIdAW7p9uLQvPnXVyrMR2gmA5TjrgdLIT9ycGnk8gUD1b67Tv4yMLBQSTGIvTeuBrDJ4hw+7BzBRf9kE64sVCDh9z5re9Yoxrelk2lF7UJXQxicJqz2ksYpG5Ib4vDoCPKbHThVh34vVcFjU4pX7kTOCNeGSbcjs19+6hm2H1mF9r/XXM8Cp50xK5eEBLJZRw5sUn7DxsrjZsry9lIadAtDujOsTeDRzuHjPCkVybWehXG7QlAbSq3Y2SaYgOo1FchLhEMa6FSFTqDrmHDPXfTw1etkPjpcIYQKAZYECeMX7/trkTSCOIy1rEiLw3H1DHZotaXso7sULk3EgovA9m+v3/CUVriH8OyQxGs6/2cmtzxJJCFLfsg49sV/DrpGrx4IjJV+YCxgl6XwWvICVa1ttFlNA/KYdpfdflsVya4m/IVJtdSY/M67QipDKVeMhkqUlNCckCwHJ07ceKAMJCCoaBU77FSMBxoKIHoBvbcm35kCZ6DGAcmBIkkavPiTFGh3tyV/ZP8mfuf3GvJjWH0zyvHp18R0pNUAch+ZtHAVmxLWMejHmWBm6jtwsr2/l/eaytjEbA==
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(7416014)(376014)(1800799024)(23010399003)(82310400026)(36860700016)(56012099006)(10067099003)(11063799006)(6133799003)(3023799007)(22082099003)(18002099003);DIR:OUT;SFP:1101;
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(23010399003)(82310400026)(376014)(7416014)(1800799024)(6133799003)(10067099003)(11063799006)(56012099006)(3023799007)(18002099003)(22082099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	by37uDIupwpEJTGBW+SqR4+BeaXP9JdMi7JHKXUZaTdEC9/qEPpnnBOOlM8h2johFtX8yfCw328UYfBGXQCuxngPwMAZn2G0uf4qz8SgFr/RIx54WfzIBl6nlGIMLb33znBIsOi5MCYDX4C7qq+mazNPyD7pnacWkWxjz8e/qyWErnF1OgvTgRJYx2ccdD7VIzVkVjBl0SM32Ywnd/gF4R7qPlGO6LAyronz4KgMmVfJCEUbaYP8DXXhFdxo9zETlEagu7Z2B8L6L0MGiKJm62zjAHvyslo5GUbdUv53tONV6sfbvrn719h4mReEfxtMUUCTOJTX1oZSdtnncZaMBuh4GhbFKQ100hnH6fZm1vIuTjm/qj9xJmTRI32o7MLAjzSGELw+XX+l4t4d+8cDqPueZWKVzY2e3aqJwW30Aim/PQ22xNFXZ0FDp92q2b+N
+	H7FHFLtaLp8YFfg3oUBg5bszE+W+FaZMrUaPFzw26yTjXzWLTE+9c4coSHWrRb84V1bb6vwDf8JEHMAj3zA3TAojcPGhdDTRJwWb9NGPQcj3/ea/0LPy1p+okdYUnR45Jnj1dq76H/7Qi13QfwYbxSHQwimEmm/vfI2X/iDW+xpvq0s707bMU6PGaQEWR/+IpWL2YYL/UH148qrEFaPeFTWOr1xiw0jkLLC+tb2Lqjkr+KJSVNrX//8q1tIF73iT1YQZyUzze26Z6+VwYg4tXqy37fJsB2uCTbJef+f5Gc66NKL9UT0y1D/hpUp95lp2b0H/N4uBfkEscejqC0Pylq7CgdcLkOS5Pzy+q9UUsxSZnh10lvhl8nSB9YZw9EWBR2teD3GMYKxkWDYY6HK83n1BOGKJ1Yz1KusMnzCpgXpEwNf8k+cegKCGbH5LG6s5
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Sep 2026 08:56:11.2612
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Sep 2026 08:56:22.9471
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 5d6aa77b-63f5-4955-0312-08df099933ce
+X-MS-Exchange-CrossTenant-Network-Message-Id: f597ec9b-11de-4e81-77b2-08df09993acb
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	CO1PEPF000075ED.namprd03.prod.outlook.com
+	BN2PEPF0000A800.namprd02.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB7911
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SAWPR12MB999291
 
 From: Cosmin Ratiu <cratiu@nvidia.com>
 
-Add a PSP mode which wraps every transmitted frame in PSP transport
-mode and encrypts them in SW with the help of OpenSSL.
-The receiving NIC decrypts and decapsulates, so the frame the
-receiver sees on its AF_PACKET socket is identical to the non-PSP one
-and every geometry assertion in this file applies unchanged.
+Add PSP conformance tests using the same gro helper binary as gro.py
+does, but in --psp mode. SPIs are procured by psp_gro.py from a real PSP
+device and handed off to the gro sender & receiver. The sender crafts
+and encrypts packets in software, the receiver relies fully on the HW to
+decrypt, decapsulate and do HW GRO.
 
-Sender packet construction is unchange, PSP uses a different buffer to
-avoid double encryption.
+Because the NIC decrypts and decapsulates before the frames reach the
+receiver AF_PACKET tap, it sees the plain frames and the assertions
+remain exactly the same as gro.py.
 
-A few PSP-only cases are added: psp_spi_diff, psp_ver_diff, psp_mixed,
-to cover coalescing scenarios which only exist for PSP.
+So these tests verify, at length, that the device does PSP HW-GRO the
+same way as plain TCP.
 
-OpenSSL is optional and scoped to this binary: gro is deployed by
-several suites, so a missing libcrypto costs only the PSP mode.
+Additional PSP-specific tests are defined to check that GRO doesn't
+merge packets across PSP versions, SPIs, encryption-status, etc.
+
+Some tests from gro.py are not included because they don't work:
+- ip_csum: the checksum is recomputed by psp_dev_rcv().
+- tcp_csum: packets are marked with CHECKSUM_UNNECESSARY.
+- ip_frag4/ip_frag6: PSP is incompatible with IP fragmentation.
+- IPv6 extension header tests: PSP doesn't deal with IPv6 ext headers.
 
 Signed-off-by: Cosmin Ratiu <cratiu@nvidia.com>
 Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
 Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
- tools/testing/selftests/net/lib/Makefile |  16 ++
- tools/testing/selftests/net/lib/gro.c    | 337 ++++++++++++++++++++++-
- 2 files changed, 351 insertions(+), 2 deletions(-)
+ .../testing/selftests/drivers/net/gro_lib.py  |  14 +-
+ .../testing/selftests/drivers/net/hw/Makefile |  17 ++
+ .../selftests/drivers/net/hw/psp_gro.py       | 172 ++++++++++++++++++
+ 3 files changed, 201 insertions(+), 2 deletions(-)
+ create mode 100755 tools/testing/selftests/drivers/net/hw/psp_gro.py
 
-diff --git a/tools/testing/selftests/net/lib/Makefile b/tools/testing/selftests/net/lib/Makefile
-index ff83603397d0..ce67e8d3e4f6 100644
---- a/tools/testing/selftests/net/lib/Makefile
-+++ b/tools/testing/selftests/net/lib/Makefile
-@@ -22,4 +22,20 @@ TEST_INCLUDES := $(wildcard py/*.py sh/*.sh)
+diff --git a/tools/testing/selftests/drivers/net/gro_lib.py b/tools/testing/selftests/drivers/net/gro_lib.py
+index 4e3d704397fe..519986028980 100644
+--- a/tools/testing/selftests/drivers/net/gro_lib.py
++++ b/tools/testing/selftests/drivers/net/gro_lib.py
+@@ -121,9 +121,14 @@ def setup_hw_gro(cfg):
  
- include ../../lib.mk
  
-+# gro optionally needs OpenSSL for PSP.
+ # pylint: disable=too-many-arguments,too-many-positional-arguments
++# pylint: disable=too-many-locals
+ def run_gro_bin(cfg, test_name, protocol=None, num_flows=None,
+-                order_check=False, verbose=False, fail=False):
+-    """Runs gro binary with given test and return the process result."""
++                order_check=False, verbose=False, fail=False,
++                common_args=None):
++    """Runs gro binary with given test and return the process result.
++
++    common_args is a list of extra arguments passed to both ends.
++    """
+     if not hasattr(cfg, "bin_remote"):
+         cfg.bin_local = cfg.net_lib_dir / "gro"
+         cfg.bin_remote = cfg.remote.deploy(cfg.bin_local)
+@@ -150,6 +155,8 @@ def run_gro_bin(cfg, test_name, protocol=None, num_flows=None,
+         base_args.append("--order-check")
+     if verbose:
+         base_args.append("--verbose")
++    if common_args:
++        base_args += common_args
+ 
+     args = " ".join(base_args)
+ 
+@@ -169,6 +176,9 @@ def run_with_retries(cfg, test_name, protocol=None, **kwargs):
+     packets that should coalesce will be considered in the same flow on
+     every try.  Over-coalescing is a hard failure, retries can only
+     cause false negatives there.
++
++    Extra keyword arguments (num_flows, order_check, verbose,
++    common_args) are forwarded to run_gro_bin().
+     """
+     max_retries = 6
+     for attempt in range(max_retries):
+diff --git a/tools/testing/selftests/drivers/net/hw/Makefile b/tools/testing/selftests/drivers/net/hw/Makefile
+index 78bb0169350b..0a7851846708 100644
+--- a/tools/testing/selftests/drivers/net/hw/Makefile
++++ b/tools/testing/selftests/drivers/net/hw/Makefile
+@@ -13,6 +13,20 @@ else
+ $(warning excluding iouring tests, liburing not installed or too old)
+ endif
+ 
++# psp_gro.py uses the gro binary in PSP mode, which requires OpenSSL.
 +PKG_CONFIG ?= pkg-config
-+LIBCRYPTO_CFLAGS := $(shell $(PKG_CONFIG) --cflags libcrypto 2>/dev/null)
-+LIBCRYPTO_LIBS := $(shell $(PKG_CONFIG) --libs libcrypto 2>/dev/null || \
-+		    echo -lcrypto)
 +HAVE_OPENSSL := $(shell echo 'int main(void) { return 0; }' | \
-+		  $(CC) -x c - -include openssl/evp.h $(LIBCRYPTO_CFLAGS) \
-+		  $(LIBCRYPTO_LIBS) -o /dev/null >/dev/null 2>&1 && echo 1)
++		  $(CC) -x c - -include openssl/evp.h \
++		  $(shell $(PKG_CONFIG) --cflags --libs libcrypto 2>/dev/null \
++			  || echo -lcrypto) \
++		  -o /dev/null >/dev/null 2>&1 && echo 1)
 +
 +ifeq ($(HAVE_OPENSSL),1)
-+$(OUTPUT)/gro: CFLAGS += -DHAVE_OPENSSL $(LIBCRYPTO_CFLAGS)
-+$(OUTPUT)/gro: LDLIBS += $(LIBCRYPTO_LIBS)
++COND_PROGS += psp_gro.py
 +else
-+$(warning libcrypto not found, gro will be built without PSP support)
++$(warning excluding PSP GRO tests, libcrypto not installed)
 +endif
 +
- include ../bpf.mk
-diff --git a/tools/testing/selftests/net/lib/gro.c b/tools/testing/selftests/net/lib/gro.c
-index 7a333155de1a..25f54eed601f 100644
---- a/tools/testing/selftests/net/lib/gro.c
-+++ b/tools/testing/selftests/net/lib/gro.c
-@@ -64,6 +64,7 @@
- #define _GNU_SOURCE
+ TEST_GEN_FILES := \
+ 	$(COND_GEN_FILES) \
+ # end of TEST_GEN_FILES
+@@ -40,6 +54,7 @@ TEST_PROGS = \
+ 	nk_qlease.py \
+ 	ntuple.py \
+ 	pp_alloc_fail.py \
++	$(COND_PROGS) \
+ 	rss_api.py \
+ 	rss_ctx.py \
+ 	rss_drv.py \
+@@ -64,6 +79,8 @@ TEST_FILES := \
  
- #include <arpa/inet.h>
-+#include <endian.h>
- #include <errno.h>
- #include <error.h>
- #include <getopt.h>
-@@ -79,14 +80,22 @@
- #include <netinet/ip.h>
- #include <netinet/ip6.h>
- #include <netinet/tcp.h>
-+#include <netinet/udp.h>
- #include <stdbool.h>
- #include <stddef.h>
- #include <stdio.h>
- #include <stdarg.h>
-+#include <stdlib.h>
- #include <string.h>
- #include <time.h>
- #include <unistd.h>
- 
-+#include <linux/psp.h>
+ TEST_INCLUDES := \
+ 	$(wildcard lib/py/*.py ../lib/py/*.py) \
++	../gro_lib.py \
++	../psp_lib.py \
+ 	../../../net/lib.sh \
+ 	../../../net/forwarding/ipip_lib.sh \
+ 	../../../net/forwarding/lib.sh \
+diff --git a/tools/testing/selftests/drivers/net/hw/psp_gro.py b/tools/testing/selftests/drivers/net/hw/psp_gro.py
+new file mode 100755
+index 000000000000..9af80a022a17
+--- /dev/null
++++ b/tools/testing/selftests/drivers/net/hw/psp_gro.py
+@@ -0,0 +1,172 @@
++#!/usr/bin/env python3
++# SPDX-License-Identifier: GPL-2.0
 +
-+#ifdef HAVE_OPENSSL
-+#include <openssl/evp.h>
-+#endif
++"""
++PSP conformance tests built on the GRO test binary.
 +
- #include "kselftest.h"
- #include "ksft.h"
- 
-@@ -110,6 +119,38 @@
- 
- #define EXIT_OVER_COALESCE	42
- 
-+/* PSP transport mode encapsulation, as built by the sender:
-+ *
-+ *	[eth][IP][UDP dport=1000][PSP hdr][encrypted L4][ICV]
-+ *
-+ * Can't use the kernel-only include/net/psp/types.h header, so copy the
-+ * encoding here.
-+ */
-+struct psphdr {
-+	uint8_t		nexthdr;
-+	uint8_t		hdrlen;
-+	uint8_t		crypt_offset;
-+	uint8_t		verfl;
-+	uint32_t	spi;		/* big endian */
-+	uint64_t	iv;		/* big endian */
-+} __packed;
++This reuses the gro binary in --psp mode:
++The sender crafts encapsulated & sw-encrypted PSP packets with the receiver PSP
++rx-assoc, and the receiver device decrypts and decapsulates the packets before
++an AF_PACKET tap gets to analyze them.
 +
-+#define PSP_UDP_PORT		1000
-+#define PSP_UDP_LEN		sizeof(struct udphdr)
-+#define PSP_HDR_LEN		sizeof(struct psphdr)
-+#define PSP_ICV_LEN		16
-+/* total frame growth: the inserted headers plus the trailing ICV */
-+#define PSP_ENCAP_LEN		(PSP_UDP_LEN + PSP_HDR_LEN + PSP_ICV_LEN)
-+#define PSP_HDRLEN_NOOPT	1	/* (1 + 1) * 8 == PSP_HDR_LEN */
-+#define PSP_VERFL_ONE		0x01
-+#define PSP_VERFL_VER_SHIFT	2
-+#define PSP_MAX_ASSOC		2
-+#define PSP_KEY_LEN_MAX		32
++All tests from gro.py which could run with PSP are included.
++"""
 +
-+enum {
-+	OPT_PSP_ASSOC = 256,
-+};
++import socket
 +
- #define ipv6_optlen(p)  (((p)->hdrlen+1) << 3) /* calculate IPv6 extension header len */
- #define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
- 
-@@ -143,6 +184,9 @@ static bool pppoe;
- static uint64_t txtime_ns;
- static int num_flows = 4;
- static bool order_check;
-+static bool psp_enabled;
-+static int psp_idx;
-+static int psp_num_assoc;
- 
- #define CAPACITY_PAYLOAD_LEN 200
- 
-@@ -158,7 +202,8 @@ static int max_payload(void)
- 
- static int calc_mss(void)
- {
--	return ASSUMED_MTU - (total_hdr_len - ETH_HLEN);
-+	return ASSUMED_MTU - (total_hdr_len - ETH_HLEN) -
-+		(psp_enabled ? PSP_ENCAP_LEN : 0);
- }
- 
- static int num_large_pkt(void)
-@@ -384,6 +429,215 @@ static void fill_transportlayer(void *buf, int seq_offset, int ack_offset,
- 	tcph->check = tcp_checksum(tcph, payload_len);
- }
- 
-+#ifdef HAVE_OPENSSL
++from lib.py import ksft_run, ksft_exit
++from lib.py import ksft_variants, KsftNamedVariant
++from lib.py import KsftSkipEx
++from lib.py import NetDrvEpEnv, PSPFamily
++from lib.py import defer, ethtool
 +
-+struct psp_assoc {
-+	uint32_t	spi;
-+	uint8_t		key[PSP_KEY_LEN_MAX];
-+	int		keylen;
-+	int		version;
-+	EVP_CIPHER_CTX	*ctx;
-+};
++# The helpers live next to their other users, gro.py and psp.py. Importing
++# lib.py above puts the selftests root on sys.path, which is what makes these
++# two resolve, so they have to stay after it - pylint wants the opposite.
++# pylint: disable=wrong-import-order,import-error
++from drivers.net.gro_lib import run_with_retries, set_mtu_restore, setup_hw_gro
++from drivers.net.psp_lib import init_psp_dev, require_version
++# pylint: enable=wrong-import-order,import-error
 +
-+static struct psp_assoc psp_assocs[PSP_MAX_ASSOC];
-+static uint64_t psp_next_iv = 1;
 +
-+static char psp_scratch[L2_HLEN_MAX + IP_MAXPACKET + PSP_ENCAP_LEN];
++# Tests for both IP versions, a subset of gro.py. Missing:
++# - tcp_csum: PSP packets are validated by HW (with the ICV) and marked with
++# CHECKSUM_UNNECESSARY.
++_COMMON = ["data_same", "data_lrg_sml", "data_sml_lrg", "data_lrg_1byte",
++           "data_burst",
++           "ack",
++           "flags_psh", "flags_syn", "flags_rst", "flags_urg", "flags_cwr",
++           "tcp_seq", "tcp_ts", "tcp_opt",
++           "ip_ecn", "ip_tos",
++           "large_max", "large_rem",
++]
 +
-+static int psp_key_len(int version)
-+{
-+	switch (version) {
-+	case PSP_VERSION_HDR0_AES_GCM_128:
-+	case PSP_VERSION_HDR0_AES_GMAC_128:
-+		return 16;
-+	case PSP_VERSION_HDR0_AES_GCM_256:
-+	case PSP_VERSION_HDR0_AES_GMAC_256:
-+		return 32;
-+	default:
-+		error(1, 0, "psp: unknown version %d", version);
-+		return 0;
-+	}
-+}
++# Tests specific to IPv4, a subset of gro.py. Missing:
++# - ip_csum: psp_dev_rcv() recomputes the IP checksum.
++# - ip_frag4: PSP is incompatible with IP fragmentation.
++_V4 = ["ip_ttl", "ip_opt",
++       "ip_id_df1_inc", "ip_id_df1_fixed",
++       "ip_id_df0_inc", "ip_id_df0_fixed",
++       "ip_id_df1_inc_fixed", "ip_id_df1_fixed_inc",
++]
 +
-+static bool psp_version_is_gmac(int version)
-+{
-+	return version == PSP_VERSION_HDR0_AES_GMAC_128 ||
-+	       version == PSP_VERSION_HDR0_AES_GMAC_256;
-+}
++# No IPv6-only tests:
++# - ip_frag6: PSP doesn't support fragmentation
++# - ip_v6ext_same, ip_v6ext_diff: PSP doesn't support IPv6 ext headers.
 +
-+/* Parses one --psp-assoc "version,spi,key".
-+ * The SPI and key (both hex) is a PSP RX assoc from the device under test.
-+ */
-+static void psp_parse_assoc(char *arg)
-+{
-+	char *ver_s, *spi_s, *key_s, *end;
-+	const EVP_CIPHER *cipher;
-+	struct psp_assoc *assoc;
-+	unsigned long val;
-+	size_t len, i;
 +
-+	if (psp_num_assoc == PSP_MAX_ASSOC)
-+		error(1, 0, "psp: at most %d associations", PSP_MAX_ASSOC);
-+	assoc = &psp_assocs[psp_num_assoc];
++def _psp_variants():
++    for ver in range(4):
++        for proto in ["ipv4", "ipv6"]:
++            for test_name in _COMMON + (_V4 if proto == "ipv4" else []):
++                yield KsftNamedVariant(f"v{ver}_{proto}_{test_name}",
++                                       ver, proto, test_name)
 +
-+	ver_s = strtok(arg, ",");
-+	spi_s = strtok(NULL, ",");
-+	key_s = strtok(NULL, ",");
-+	if (!ver_s || !spi_s || !key_s || strtok(NULL, ","))
-+		error(1, 0, "psp: --psp-assoc wants version,spi,key");
 +
-+	errno = 0;
-+	val = strtoul(ver_s, &end, 10);
-+	if (errno || end == ver_s || *end ||
-+	    val > PSP_VERSION_HDR0_AES_GMAC_256)
-+		error(1, 0, "psp: bad version '%s'", ver_s);
-+	assoc->version = val;
++def _ip_variants():
++    """IPv4/IPv6."""
++    for proto in ("ipv4", "ipv6"):
++        yield KsftNamedVariant(proto, proto)
 +
-+	errno = 0;
-+	val = strtoul(spi_s, &end, 16);
-+	if (errno || end == spi_s || *end || val > 0xffffffffUL)
-+		error(1, 0, "psp: bad SPI '%s'", spi_s);
-+	assoc->spi = val;
 +
-+	len = strlen(key_s);
-+	if (len != (size_t)psp_key_len(assoc->version) * 2 ||
-+	    strspn(key_s, "0123456789abcdefABCDEF") != len)
-+		error(1, 0, "psp: version %d needs a %d byte key, got '%s'",
-+		      assoc->version, psp_key_len(assoc->version), key_s);
++def _psp_assoc(cfg, version=0):
++    # This socket receives no traffic, exists solely to own the rx assoc.
++    s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
++    defer(s.close)
++    return cfg.pspnl.rx_assoc({"version": version, "dev-id": cfg.psp_dev_id,
++                               "sock-fd": s.fileno()})['rx-key']
 +
-+	assoc->keylen = len / 2;
-+	for (i = 0; i < len; i += 2) {
-+		unsigned int byte;
 +
-+		if (sscanf(key_s + i, "%2x", &byte) != 1)
-+			error(1, 0, "psp: bad key '%s'", key_s);
-+		assoc->key[i / 2] = byte;
-+	}
++def _setup(cfg, version, test_name):
++    """Enables PSP and HW GRO on the device under test."""
++    init_psp_dev(cfg)
++    require_version(cfg, version)
 +
-+	cipher = assoc->keylen == 16 ? EVP_aes_128_gcm() : EVP_aes_256_gcm();
-+	assoc->ctx = EVP_CIPHER_CTX_new();
-+	if (!assoc->ctx)
-+		error(1, 0, "psp: EVP_CIPHER_CTX_new");
-+	if (EVP_EncryptInit_ex(assoc->ctx, cipher, NULL, assoc->key,
-+			       NULL) != 1)
-+		error(1, 0, "psp: EVP_EncryptInit_ex key");
-+	psp_num_assoc++;
-+	psp_enabled = true;
-+}
++    if not hasattr(cfg, "feat"):
++        cfg.feat = ethtool(f"-k {cfg.ifname}", json=True)[0]
 +
-+static void psp_crypt(struct psp_assoc *assoc, const uint8_t *nonce,
-+		      const uint8_t *aad, int aad_len,
-+		      uint8_t *data, int data_len, uint8_t *icv)
-+{
-+	uint8_t *crypt_data = psp_version_is_gmac(assoc->version) ? NULL : data;
-+	EVP_CIPHER_CTX *ctx = assoc->ctx;
-+	int outl;
++    setup_hw_gro(cfg)
 +
-+	if (EVP_EncryptInit_ex(ctx, NULL, NULL, NULL, nonce) != 1)
-+		error(1, 0, "psp: EVP_EncryptInit_ex nonce");
-+	if (EVP_EncryptUpdate(ctx, NULL, &outl, aad, aad_len) != 1)
-+		error(1, 0, "psp: EVP_EncryptUpdate aad");
-+	if (EVP_EncryptUpdate(ctx, crypt_data, &outl, data, data_len) != 1)
-+		error(1, 0, "psp: EVP_EncryptUpdate data");
-+	if (EVP_EncryptFinal_ex(ctx, icv, &outl) != 1)
-+		error(1, 0, "psp: EVP_EncryptFinal_ex");
-+	if (EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_GET_TAG, PSP_ICV_LEN,
-+				icv) != 1)
-+		error(1, 0, "psp: EVP_CTRL_GCM_GET_TAG");
-+}
++    # "large_*" tests need at least 4k MTU
++    if test_name.startswith("large_"):
++        set_mtu_restore(cfg.dev, 4096, None)
++        set_mtu_restore(cfg.remote_dev, 4096, cfg.remote)
 +
-+/* Encapsulates & encrypts @pkt with PSP transport mode into psp_scratch.
-+ * Returns the scratch buffer and updates *@lenp.
-+ */
-+static char *psp_encapsulate(const char *pkt, int *lenp)
-+{
-+	struct psp_assoc *assoc = &psp_assocs[psp_idx];
-+	int ip_hlen, l4_off, l4_len, aad_len;
-+	struct psphdr *psph;
-+	struct udphdr *udph;
-+	__be16 sport, dport;
-+	uint8_t *data, *icv;
-+	int len = *lenp;
-+	uint8_t nexthdr;
 +
-+	if (len + PSP_ENCAP_LEN > (int)sizeof(psp_scratch))
-+		error(1, 0, "psp: %d byte frame does not fit", len);
++def _psp_args(cfg, versions):
++    """Produces PSP associations as gro binary --psp-assoc arguments."""
++    keys = [_psp_assoc(cfg, ver) for ver in versions]
++    return [f"--psp-assoc {ver},{key['spi']:x},{key['key'].hex()}"
++            for ver, key in zip(versions, keys)]
 +
-+	memcpy(psp_scratch, pkt, len);
 +
-+	if (proto == PF_INET) {
-+		struct iphdr *iph = (struct iphdr *)(psp_scratch + ETH_HLEN);
++def _run(cfg, test_name, protocol, versions):
++    """Sets up, associates and runs one gro test case under PSP."""
++    ipver = protocol[-1]
++    cfg.require_ipver(ipver)
 +
-+		ip_hlen = iph->ihl * 4;
-+		nexthdr = iph->protocol;
-+	} else {
-+		struct ipv6hdr *ip6h =
-+			(struct ipv6hdr *)(psp_scratch + ETH_HLEN);
++    _setup(cfg, max(versions), test_name)
 +
-+		ip_hlen = sizeof(*ip6h);
-+		nexthdr = ip6h->nexthdr;
-+	}
++    run_with_retries(cfg, test_name, protocol=protocol, verbose=True,
++                     common_args=_psp_args(cfg, versions))
 +
-+	l4_off = ETH_HLEN + ip_hlen;
-+	l4_len = len - l4_off;
-+	if (l4_len < 4)
-+		error(1, 0, "psp: no room for an L4 header");
 +
-+	sport = *(__be16 *)(psp_scratch + l4_off);
-+	dport = *(__be16 *)(psp_scratch + l4_off + sizeof(sport));
++@ksft_variants(_psp_variants())
++def test_psp_gro(cfg, version, protocol, test_name):
++    """Runs one gro conformance case with PSP encapsulation."""
++    _run(cfg, test_name, protocol, [version])
 +
-+	memmove(psp_scratch + l4_off + PSP_UDP_LEN + PSP_HDR_LEN,
-+		psp_scratch + l4_off, l4_len);
 +
-+	udph = (struct udphdr *)(psp_scratch + l4_off);
-+	udph->source = sport ^ dport;
-+	udph->dest = htons(PSP_UDP_PORT);
-+	udph->len = htons(PSP_UDP_LEN + PSP_HDR_LEN + l4_len + PSP_ICV_LEN);
-+	udph->check = 0;
++# PSP-specific GRO tests
 +
-+	psph = (struct psphdr *)(udph + 1);
-+	psph->nexthdr = nexthdr;
-+	psph->hdrlen = PSP_HDRLEN_NOOPT;
-+	psph->crypt_offset = 0;  /* Matches the kernel. */
-+	psph->verfl = (assoc->version << PSP_VERFL_VER_SHIFT) | PSP_VERFL_ONE;
-+	psph->spi = htonl(assoc->spi);
-+	psph->iv = htobe64(psp_next_iv++);
++@ksft_variants(_ip_variants())
++def test_psp_spi_diff(cfg, protocol):
++    """Frames from two different SPIs must not coalesce."""
++    _run(cfg, "psp_spi_diff", protocol, [0, 0])
 +
-+	data = (uint8_t *)psph + PSP_HDR_LEN;
-+	icv = (uint8_t *)psph + PSP_HDR_LEN + l4_len;
-+	aad_len = PSP_HDR_LEN;
 +
-+	/* The GCM nonce is wire (spi, iv), which are contiguous. */
-+	psp_crypt(assoc,
-+		  (const uint8_t *)psph + offsetof(struct psphdr, spi),
-+		  (const uint8_t *)psph, aad_len, data, l4_len, icv);
++@ksft_variants(_ip_variants())
++def test_psp_ver_diff(cfg, protocol):
++    """Frames from two different PSP versions must not coalesce."""
++    init_psp_dev(cfg)
++    if len(cfg.psp_info['psp-versions-cap']) < 2:
++        raise KsftSkipEx("Device supports a single PSP version")
 +
-+	if (proto == PF_INET) {
-+		struct iphdr *iph = (struct iphdr *)(psp_scratch + ETH_HLEN);
++    _run(cfg, "psp_ver_diff", protocol, [0, 1])
 +
-+		iph->tot_len = htons(ntohs(iph->tot_len) + PSP_ENCAP_LEN);
-+		iph->protocol = IPPROTO_UDP;
-+		iph->check = 0;
-+		iph->check = checksum_fold(iph, ip_hlen, 0);
-+	} else {
-+		struct ipv6hdr *ip6h =
-+			(struct ipv6hdr *)(psp_scratch + ETH_HLEN);
 +
-+		ip6h->payload_len =
-+			htons(ntohs(ip6h->payload_len) + PSP_ENCAP_LEN);
-+		ip6h->nexthdr = IPPROTO_UDP;
-+	}
++@ksft_variants(_ip_variants())
++def test_psp_mixed(cfg, protocol):
++    """A PSP frame must not coalesce with a clear text one."""
++    _run(cfg, "psp_mixed", protocol, [0])
 +
-+	*lenp = len + PSP_ENCAP_LEN;
-+	return psp_scratch;
-+}
-+#else
-+static void psp_parse_assoc(char *arg)
-+{
-+	error(1, 0, "gro was built without OpenSSL, PSP is not available");
-+}
-+#endif  /* HAVE_OPENSSL */
 +
- static void write_packet(int fd, char *buf, int len, struct sockaddr_ll *daddr)
- {
- 	char control[CMSG_SPACE(sizeof(uint64_t))];
-@@ -392,6 +646,11 @@ static void write_packet(int fd, char *buf, int len, struct sockaddr_ll *daddr)
- 	struct cmsghdr *cm;
- 	int ret = -1;
- 
-+#ifdef HAVE_OPENSSL
-+	if (psp_enabled)
-+		buf = psp_encapsulate(buf, &len);
-+#endif
++@ksft_variants(_ip_variants())
++def test_psp_after_reconfig(cfg, protocol):
++    """Verifies that decap still works after PSP off + on."""
++    cfg.require_ipver(protocol[-1])
 +
- 	iov.iov_base = buf;
- 	iov.iov_len = len;
- 
-@@ -572,6 +831,10 @@ static void send_large(int fd, struct sockaddr_ll *daddr, int remainder)
- 	const int mss = calc_mss();
- 	int i;
- 
-+	if (num_pkt > MAX_LARGE_PKT_CNT)
-+		error(1, 0, "too many large packets: %d > %zu", num_pkt,
-+		      (size_t)MAX_LARGE_PKT_CNT);
++    _setup(cfg, 0, "data_same")
 +
- 	for (i = 0; i < num_pkt; i++)
- 		create_packet(pkts[i], i * mss, 0, mss, 0);
- 	create_packet(last, num_pkt * mss, 0, remainder, 0);
-@@ -1111,6 +1374,39 @@ static void send_changed_pppoe_sid(int fd, struct sockaddr_ll *daddr)
- 	write_packet(fd, buf, pkt_size, daddr);
- }
- 
-+/* PSP packets don't coalesce across SPIs or versions. */
-+static void send_psp_assoc_switch(int fd, struct sockaddr_ll *daddr)
-+{
-+	static char buf[MAX_HDR_LEN + PAYLOAD_LEN];
-+	int pkt_size = total_hdr_len + PAYLOAD_LEN;
++    cap = cfg.psp_info['psp-versions-cap']
++    cfg.pspnl.dev_set({'id': cfg.psp_dev_id, 'psp-versions-ena': []})
++    cfg.pspnl.dev_set({'id': cfg.psp_dev_id, 'psp-versions-ena': cap})
 +
-+	if (psp_num_assoc < 2)
-+		error(1, 0, "%s needs two PSP associations", testname);
++    run_with_retries(cfg, "data_same", protocol=protocol, verbose=True,
++                     common_args=_psp_args(cfg, [0]))
 +
-+	create_packet(buf, 0, 0, PAYLOAD_LEN, 0);
-+	write_packet(fd, buf, pkt_size, daddr);
 +
-+	create_packet(buf, PAYLOAD_LEN, 0, PAYLOAD_LEN, 0);
-+	psp_idx = 1;
-+	write_packet(fd, buf, pkt_size, daddr);
-+	psp_idx = 0;
-+}
++def main() -> None:
++    """ Ksft boiler plate main """
 +
-+/* A PSP packet and a cleartext packet of the same flow don't coalesce. */
-+static void send_psp_mixed(int fd, struct sockaddr_ll *daddr)
-+{
-+	static char buf[MAX_HDR_LEN + PAYLOAD_LEN];
-+	int pkt_size = total_hdr_len + PAYLOAD_LEN;
++    with NetDrvEpEnv(__file__, nsim_test=False) as cfg:
++        cfg.pspnl = PSPFamily()
 +
-+	create_packet(buf, 0, 0, PAYLOAD_LEN, 0);
-+	write_packet(fd, buf, pkt_size, daddr);
++        ksft_run(cases=[test_psp_gro, test_psp_spi_diff, test_psp_ver_diff,
++                        test_psp_mixed, test_psp_after_reconfig],
++                 args=(cfg, ))
++    ksft_exit()
 +
-+	create_packet(buf, PAYLOAD_LEN, 0, PAYLOAD_LEN, 0);
-+	psp_enabled = false;
-+	write_packet(fd, buf, pkt_size, daddr);
-+	psp_enabled = true;
-+}
 +
- static void bind_packetsocket(int fd)
- {
- 	struct sockaddr_ll daddr = {};
-@@ -1559,6 +1855,16 @@ static void gro_sender(void)
- 		usleep(fin_delay_us);
- 		write_packet(txfd, fin_pkt, total_hdr_len, &daddr);
- 
-+	/* PSP sub-tests */
-+	} else if (strcmp(testname, "psp_spi_diff") == 0 ||
-+		   strcmp(testname, "psp_ver_diff") == 0) {
-+		send_psp_assoc_switch(txfd, &daddr);
-+		usleep(fin_delay_us);
-+		write_packet(txfd, fin_pkt, total_hdr_len, &daddr);
-+	} else if (strcmp(testname, "psp_mixed") == 0) {
-+		send_psp_mixed(txfd, &daddr);
-+		usleep(fin_delay_us);
-+		write_packet(txfd, fin_pkt, total_hdr_len, &daddr);
- 	} else {
- 		error(1, 0, "Unknown testcase: %s", testname);
- 	}
-@@ -1782,6 +2088,22 @@ static void gro_receiver(void)
- 		printf("different PPPoE session ID doesn't coalesce: ");
- 		check_recv_pkts(rxfd, correct_payload, 2);
- 
-+	/* PSP sub-tests */
-+	} else if (strcmp(testname, "psp_spi_diff") == 0) {
-+		correct_payload[0] = PAYLOAD_LEN;
-+		correct_payload[1] = PAYLOAD_LEN;
-+		printf("different PSP SPI doesn't coalesce: ");
-+		check_recv_pkts(rxfd, correct_payload, 2);
-+	} else if (strcmp(testname, "psp_ver_diff") == 0) {
-+		correct_payload[0] = PAYLOAD_LEN;
-+		correct_payload[1] = PAYLOAD_LEN;
-+		printf("different PSP version doesn't coalesce: ");
-+		check_recv_pkts(rxfd, correct_payload, 2);
-+	} else if (strcmp(testname, "psp_mixed") == 0) {
-+		correct_payload[0] = PAYLOAD_LEN;
-+		correct_payload[1] = PAYLOAD_LEN;
-+		printf("PSP and cleartext don't coalesce: ");
-+		check_recv_pkts(rxfd, correct_payload, 2);
- 	} else {
- 		error(1, 0, "Test case error: unknown testname %s", testname);
- 	}
-@@ -1802,6 +2124,7 @@ static void parse_args(int argc, char **argv)
- 		{ "ip6ip6", no_argument, NULL, 'E' },
- 		{ "pppoev4", no_argument, NULL, 'p' },
- 		{ "pppoev6", no_argument, NULL, 'P' },
-+		{ "psp-assoc", required_argument, NULL, OPT_PSP_ASSOC },
- 		{ "num-flows", required_argument, NULL, 'n' },
- 		{ "rx", no_argument, NULL, 'r' },
- 		{ "saddr", required_argument, NULL, 's' },
-@@ -1813,8 +2136,12 @@ static void parse_args(int argc, char **argv)
- 	};
- 	int c;
- 
--	while ((c = getopt_long(argc, argv, "46d:D:eEi:n:pPrs:S:t:ov", opts, NULL)) != -1) {
-+	while ((c = getopt_long(argc, argv, "46d:D:eEi:n:pPrs:S:t:ov",
-+			       opts, NULL)) != -1) {
- 		switch (c) {
-+		case OPT_PSP_ASSOC:
-+			psp_parse_assoc(optarg);
-+			break;
- 		case '4':
- 			proto = PF_INET;
- 			ethhdr_proto = htons(ETH_P_IP);
-@@ -1904,6 +2231,12 @@ int main(int argc, char **argv)
- 		error(1, 0, "Protocol family is not ipv4 or ipv6");
- 	}
- 
-+	if (psp_enabled && (ipip || ip6ip6 || pppoe))
-+		error(1, 0, "--psp-assoc doesn't support ipip, ip6ip6 or PPPoE");
-+
-+	if (!strncmp(testname, "psp_", 4) && !psp_enabled)
-+		error(1, 0, "test %s requires --psp-assoc", testname);
-+
- 	read_MAC(src_mac, smac);
- 	read_MAC(dst_mac, dmac);
- 
++if __name__ == "__main__":
++    main()
 -- 
 2.44.0
 
