@@ -1,197 +1,207 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from out30-97.freemail.mail.aliyun.com (out30-97.freemail.mail.aliyun.com [115.124.30.97])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDF4E49365E;
-	Thu,  3 Sep 2026 11:39:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E91CB423A80
+	for <linux-rdma@vger.kernel.org>; Thu,  3 Sep 2026 12:38:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.97
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788435580; cv=none; b=cBuS9x7XfLeb7UcUCcg68+P93fi+14RbqrIFnru/YPJ+gfe9j4JrAzju1DmVIPtBcJcY64Zz+Lqtt2oqd/DehxYxjUpmEvKNsHO8vRsEWs1EO6dqwjJWC+He6vO9VaIANX0M+xJD0Sh5Fzh2lgtxIgOZOs4svZnQmDEApv0aY0E=
+	t=1788439137; cv=none; b=oAxSmA1fUmKRgIkwshw6bIoJoP7/bxwiwt3SZVmruuQZnBUv3eDY+PsQp4jHa+iS/NxKGRqNFYoO9EVknUfst2Mr05uXEQ1DmkcLoYjXzZQJJMX+9ZQsO730BtJxVI5iLPJKARjPY9wVybkLVARfw80ZnVoU0Up6Buf51guJE1k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788435580; c=relaxed/simple;
-	bh=AJIc5N0F/9oRP1GVO7re1aTaqN+tiE6xeHhjPBDj5AE=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=SSU9B8J124D5C+geSh5ZXA1cMHnixerIdcsB71K50FsoAMK+X/k2VUKPXIW6s/oSvX68OesexVs/nu7bVrLUaEozrFP6Qz+CkqCndCtwDmTnfOHnnf5jyZUtvmjxzSf9Ygvkk0ZlTHD23uoQwYrehXgGx//5kSGDyl1VthMaZfY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=g7X51+zv; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788439137; c=relaxed/simple;
+	bh=QWYwWiahmym+4yuhASgmzFu87Kfq/qqPK98+6Ag4LRc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=GxhJvtkHtcJo9tg/ZvcOzD9Vb9x+5YsJFtR7WyHVMVrvWgaV8NbfZjvnscrtywiZPUhjMFjO2MJzs9fi1q1aWXYnJo0BHmlHyUEtzQAwffZ76rF6B/rK5ptrO3mbz4vAiTaePlePsOMBGPeGxkFKhD1N123P2NryNhbG5ZaojDw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=PSAClVZs; arc=none smtp.client-ip=115.124.30.97
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="g7X51+zv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 186241F00A3A;
-	Thu,  3 Sep 2026 11:39:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788435559;
-	bh=E2t47qhW08QRVg919yYZxedVwTq3QyOUhueS1OAKMgw=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=g7X51+zv1ayBdqd0eM2Omc1MSSokNdyN1FjUm5IWRAaQE/e1wplqZKKrTX/lXdoQ8
-	 RaRZX/e7SmJc/ez06ezdLK4R3TawR/5kKfnip/T6t3miqUVkqtVITiSR8HxCumFPLD
-	 BoZnp3a99J87Om3AENw7bwbIol2++66B+Ro0cvspRD+Mqua6Xw1YTGWcMmbiUTpUEk
-	 0XkspHfy459YEiWe7g+dxFXy1K4VfL1C2i38EnG90wwQwDn7bCuMkLgpJA7DHKpU+8
-	 d1/uIfQiF6kzLix3bGDwqpHQNWDlOHM5NZZMhOaeJjsGlp2RAOib+r39wp5/Exp41B
-	 j7rXgxut5id5g==
-From: Leon Romanovsky <leon@kernel.org>
-To: Tatyana Nikolova <tatyana.e.nikolova@intel.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	Mustafa Ismail <mustafa.ismail@intel.com>,
-	Shiraz Saleem <shiraz.saleem@intel.com>
-Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next 2/2] RDMA/irdma: Remove unused post_sq arguments
-Date: Thu,  3 Sep 2026 14:39:00 +0300
-Message-ID: <20260903-64-bit-iova-is-silently-truncated-to-v1-2-96e878ea6873@nvidia.com>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260903-64-bit-iova-is-silently-truncated-to-v1-0-96e878ea6873@nvidia.com>
-References: <20260903-64-bit-iova-is-silently-truncated-to-v1-0-96e878ea6873@nvidia.com>
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="PSAClVZs"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1788439130; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
+	bh=ddaJmXGpsOWiRELEAdp/woW0PSrTqi209z/sPgpvlxs=;
+	b=PSAClVZs0pK74qz6kSbsq4ne/muuHRmO/R+owY0btxk+gcx3XSRssBnZQiJUQJnkRrkwXcsS/zd/vXVhJPezzyBcSLMZQepM7PuZ4VEIdFBpXKG/bVO6ri8i9Rjin27/YX9pT9i5n05SMP4P8j8ESQAJEMyexKesre/YVkuZTcA=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R921e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037026112;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0XAG3W6R_1788439129;
+Received: from 30.221.104.67(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0XAG3W6R_1788439129 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Thu, 03 Sep 2026 20:38:50 +0800
+Message-ID: <07bb48b7-5a44-51d1-0b55-d9960f63aab2@linux.alibaba.com>
+Date: Thu, 3 Sep 2026 20:38:49 +0800
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Mailer: b4 0.15-dev-18f8f
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
+ Gecko/20100101 Thunderbird/102.15.1
+Subject: Re: [PATCH for-next v2 1/4] RDMA/erdma: Support non-contiguous kernel
+ QP buffers
+Content-Language: en-US
+To: Leon Romanovsky <leon@kernel.org>
+Cc: jgg@ziepe.ca, linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com
+References: <20260827082523.36294-1-chengyou@linux.alibaba.com>
+ <20260827082523.36294-2-chengyou@linux.alibaba.com>
+ <20260903091033.GY24140@unreal>
+From: Cheng Xu <chengyou@linux.alibaba.com>
+In-Reply-To: <20260903091033.GY24140@unreal>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Leon Romanovsky <leonro@nvidia.com>
 
-The only callers of irdma_sc_qp_flush_wqes() and
-irdma_sc_mr_fast_register() always request their respective send queues to
-be posted, so their post_sq false branches are unreachable.
 
-Remove both arguments and post the queues unconditionally. Drop the
-redundant QP flush request assignments as well.
+On 9/3/26 5:10 PM, Leon Romanovsky wrote:
+> On Thu, Aug 27, 2026 at 04:25:20PM +0800, Cheng Xu wrote:
+>> A single coherent allocation for kernel QP queues can fail for large
+>> queues when memory is fragmented.
+>>
+>> Allocate page-sized coherent buffers and describe them with the existing
+>> MTT. Keep the userspace QP path unchanged.
+>>
+>> Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
+>> ---
+>>  drivers/infiniband/hw/erdma/erdma_cq.c    |   4 +-
+>>  drivers/infiniband/hw/erdma/erdma_qp.c    |  38 +++--
+>>  drivers/infiniband/hw/erdma/erdma_verbs.c | 195 +++++++++++++---------
+>>  drivers/infiniband/hw/erdma/erdma_verbs.h |  44 ++++-
+>>  4 files changed, 179 insertions(+), 102 deletions(-)
+> 
+> <...>
+> 
+>> +static void erdma_free_kmem(struct erdma_dev *dev, struct erdma_mem *mem)
+>> +{
+>> +	struct erdma_buf_list *buf_list;
+>> +	u32 i;
+>> +
+>> +	if (!mem->kmem)
+>> +		return;
+> 
+> Can it be null?
 
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/hw/irdma/ctrl.c   | 17 +++++------------
- drivers/infiniband/hw/irdma/hw.c     |  2 --
- drivers/infiniband/hw/irdma/protos.h |  3 +--
- drivers/infiniband/hw/irdma/type.h   |  3 +--
- drivers/infiniband/hw/irdma/verbs.c  |  4 ++--
- 5 files changed, 9 insertions(+), 20 deletions(-)
+Yes. With the current init_kernel_qp() implementation, failures go
+through the common free_kernel_qp() path instead of unwinding each
+completed allocation in reverse order. As a result, erdma_free_kmem()
+may be called more than once for partially initialized memory, and
+mem->kmem can be NULL.
 
-diff --git a/drivers/infiniband/hw/irdma/ctrl.c b/drivers/infiniband/hw/irdma/ctrl.c
-index 7af1c68b2fb2..0db73fd7d01b 100644
---- a/drivers/infiniband/hw/irdma/ctrl.c
-+++ b/drivers/infiniband/hw/irdma/ctrl.c
-@@ -1689,11 +1689,9 @@ static int irdma_sc_mw_alloc(struct irdma_sc_dev *dev,
-  * irdma_sc_mr_fast_register - Posts RDMA fast register mr WR to iwarp qp
-  * @qp: sc qp struct
-  * @info: fast mr info
-- * @post_sq: flag for cqp db to ring
-  */
- int irdma_sc_mr_fast_register(struct irdma_sc_qp *qp,
--			      struct irdma_fast_reg_stag_info *info,
--			      bool post_sq)
-+			      struct irdma_fast_reg_stag_info *info)
- {
- 	u64 temp, hdr;
- 	__le64 *wqe;
-@@ -1753,8 +1751,7 @@ int irdma_sc_mr_fast_register(struct irdma_sc_qp *qp,
- 	print_hex_dump_debug("WQE: FAST_REG WQE", DUMP_PREFIX_OFFSET, 16, 8,
- 			     wqe, IRDMA_QP_WQE_MIN_SIZE, false);
- 
--	if (post_sq)
--		irdma_uk_qp_post_wr(&qp->qp_uk);
-+	irdma_uk_qp_post_wr(&qp->qp_uk);
- 
- 	return 0;
- }
-@@ -2623,11 +2620,9 @@ static int irdma_sc_manage_ws_node(struct irdma_sc_cqp *cqp,
-  * @qp: sc qp
-  * @info: dlush information
-  * @scratch: u64 saved to be used during cqp completion
-- * @post_sq: flag for cqp db to ring
-  */
- int irdma_sc_qp_flush_wqes(struct irdma_sc_qp *qp,
--			   struct irdma_qp_flush_info *info, u64 scratch,
--			   bool post_sq)
-+			   struct irdma_qp_flush_info *info, u64 scratch)
- {
- 	u64 temp = 0;
- 	__le64 *wqe;
-@@ -2695,8 +2690,7 @@ int irdma_sc_qp_flush_wqes(struct irdma_sc_qp *qp,
- 
- 	print_hex_dump_debug("WQE: QP_FLUSH WQE", DUMP_PREFIX_OFFSET, 16, 8,
- 			     wqe, IRDMA_CQP_WQE_SIZE * 8, false);
--	if (post_sq)
--		irdma_sc_cqp_post_sq(cqp);
-+	irdma_sc_cqp_post_sq(cqp);
- 
- 	return 0;
- }
-@@ -6112,8 +6106,7 @@ static int irdma_exec_cqp_cmd(struct irdma_sc_dev *dev,
- 	case IRDMA_OP_QP_FLUSH_WQES:
- 		status = irdma_sc_qp_flush_wqes(pcmdinfo->in.u.qp_flush_wqes.qp,
- 						&pcmdinfo->in.u.qp_flush_wqes.info,
--						pcmdinfo->in.u.qp_flush_wqes.scratch,
--						pcmdinfo->post_sq);
-+						pcmdinfo->in.u.qp_flush_wqes.scratch);
- 		break;
- 	case IRDMA_OP_GEN_AE:
- 		status = irdma_sc_gen_ae(pcmdinfo->in.u.gen_ae.qp,
-diff --git a/drivers/infiniband/hw/irdma/hw.c b/drivers/infiniband/hw/irdma/hw.c
-index c345cc654256..cae4f316def4 100644
---- a/drivers/infiniband/hw/irdma/hw.c
-+++ b/drivers/infiniband/hw/irdma/hw.c
-@@ -2742,7 +2742,6 @@ int irdma_hw_flush_wqes(struct irdma_pci_f *rf, struct irdma_sc_qp *qp,
- 	hw_info = &cqp_request->info.in.u.qp_flush_wqes.info;
- 	memcpy(hw_info, info, sizeof(*hw_info));
- 	cqp_info->cqp_cmd = IRDMA_OP_QP_FLUSH_WQES;
--	cqp_info->post_sq = 1;
- 	cqp_info->in.u.qp_flush_wqes.qp = qp;
- 	cqp_info->in.u.qp_flush_wqes.scratch = (uintptr_t)cqp_request;
- 	status = irdma_handle_cqp_op(rf, cqp_request);
-@@ -2789,7 +2788,6 @@ int irdma_hw_flush_wqes(struct irdma_pci_f *rf, struct irdma_sc_qp *qp,
- 				hw_info = &new_req->info.in.u.qp_flush_wqes.info;
- 				memcpy(hw_info, info, sizeof(*hw_info));
- 				cqp_info->cqp_cmd = IRDMA_OP_QP_FLUSH_WQES;
--				cqp_info->post_sq = 1;
- 				cqp_info->in.u.qp_flush_wqes.qp = qp;
- 				cqp_info->in.u.qp_flush_wqes.scratch = (uintptr_t)new_req;
- 
-diff --git a/drivers/infiniband/hw/irdma/protos.h b/drivers/infiniband/hw/irdma/protos.h
-index 324cfbf21764..561a0287b945 100644
---- a/drivers/infiniband/hw/irdma/protos.h
-+++ b/drivers/infiniband/hw/irdma/protos.h
-@@ -19,8 +19,7 @@ void irdma_sc_rt_init(struct irdma_sc_dev *dev);
- void irdma_sc_cqp_post_sq(struct irdma_sc_cqp *cqp);
- __le64 *irdma_sc_cqp_get_next_send_wqe(struct irdma_sc_cqp *cqp, u64 scratch);
- int irdma_sc_mr_fast_register(struct irdma_sc_qp *qp,
--			      struct irdma_fast_reg_stag_info *info,
--			      bool post_sq);
-+			      struct irdma_fast_reg_stag_info *info);
- /* HMC/FPM functions */
- int irdma_sc_init_iw_hmc(struct irdma_sc_dev *dev, u8 hmc_fn_id);
- /* stats misc */
-diff --git a/drivers/infiniband/hw/irdma/type.h b/drivers/infiniband/hw/irdma/type.h
-index 81c5c5da1988..8b4d2c0b283f 100644
---- a/drivers/infiniband/hw/irdma/type.h
-+++ b/drivers/infiniband/hw/irdma/type.h
-@@ -1381,8 +1381,7 @@ int irdma_sc_qp_create(struct irdma_sc_qp *qp,
- int irdma_sc_qp_destroy(struct irdma_sc_qp *qp, u64 scratch,
- 			bool remove_hash_idx, bool ignore_mw_bnd, bool post_sq);
- int irdma_sc_qp_flush_wqes(struct irdma_sc_qp *qp,
--			   struct irdma_qp_flush_info *info, u64 scratch,
--			   bool post_sq);
-+			   struct irdma_qp_flush_info *info, u64 scratch);
- int irdma_sc_qp_init(struct irdma_sc_qp *qp, struct irdma_qp_init_info *info);
- int irdma_sc_qp_modify(struct irdma_sc_qp *qp,
- 		       struct irdma_modify_qp_info *info, u64 scratch,
-diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-index c0a9fc862d43..7d3540824e3a 100644
---- a/drivers/infiniband/hw/irdma/verbs.c
-+++ b/drivers/infiniband/hw/irdma/verbs.c
-@@ -4283,8 +4283,8 @@ static int irdma_post_send(struct ib_qp *ibqp,
- 			stag_info.local_fence = ib_wr->send_flags & IB_SEND_FENCE;
- 			if (iwmr->npages > IRDMA_MIN_PAGES_PER_FMR)
- 				stag_info.chunk_size = 1;
--			err = irdma_sc_mr_fast_register(&iwqp->sc_qp, &stag_info,
--							true);
-+			err = irdma_sc_mr_fast_register(&iwqp->sc_qp,
-+							&stag_info);
- 			break;
- 		}
- 		default:
+This is not ideal. I will add a separate preparatory patch to implement
+explicit error unwinding in init_kernel_qp().
 
--- 
-2.55.0
+> 
+>> +
+>> +	buf_list = mem->kmem->buf_list;
+>> +	if (buf_list) {
+> 
+> Write the unwinding section of erdma_alloc_kmem() to don't call to
+> erdma_free_kmem().
 
+Agreed. Patch #3 already refactors erdma_alloc_kmem() to unwind its
+allocations explicitly instead of calling erdma_free_kmem(). However,
+each intermediate patch should have correct error handling, so I will
+move the change into this patch.
+
+> 
+>> +		for (i = 0; i < mem->page_cnt; i++)
+>> +			if (buf_list[i].buf)
+>> +				dma_free_coherent(&dev->pdev->dev, PAGE_SIZE,
+>> +						  buf_list[i].buf,
+>> +						  buf_list[i].dma_addr);
+>> +		kfree(buf_list);
+>> +	}
+>> +
+>> +	kfree(mem->kmem);
+>> +	mem->kmem = NULL;
+>> +}
+>> +
+>> +static int erdma_alloc_kmem(struct erdma_dev *dev, struct erdma_mem *mem,
+>> +			    size_t size)
+>> +{
+>> +	struct erdma_buf_list *buf_list;
+>> +	u32 i;
+>> +
+>> +	mem->type = ERDMA_KMEM;
+>> +	mem->page_size = PAGE_SIZE;
+>> +	mem->page_offset = 0;
+>> +	mem->page_cnt = DIV_ROUND_UP(size, PAGE_SIZE);
+>> +	mem->mtt_nents = mem->page_cnt;
+>> +	mem->len = size;
+>> +
+>> +	mem->kmem = kzalloc_obj(*mem->kmem);
+>> +	if (!mem->kmem)
+>> +		goto err_free_mem;
+> 
+> There is no point to call to erdma_free_kmem() here and you can return
+> immediately.
+> 
+
+Right. No kmem resource has been allocated at this point, so it should
+return -ENOMEM directly. This is already handled in patch #3, and I
+will move the change into this patch.
+
+>> +
+>> +	buf_list = kcalloc(mem->page_cnt, sizeof(*buf_list), GFP_KERNEL);
+>> +	if (!buf_list)
+>> +		goto err_free_mem;
+> 
+> Please write error unwinding explicitly.
+
+Likewise. The explicit error-unwinding paths are already introduced in
+patch #3. I will move them into this patch.
+
+
+> 
+>> +	mem->kmem->buf_list = buf_list;
+>> +
+>> +	for (i = 0; i < mem->page_cnt; i++) {
+>> +		buf_list[i].buf = dma_alloc_coherent(&dev->pdev->dev, PAGE_SIZE,
+>> +						     &buf_list[i].dma_addr,
+>> +						     GFP_KERNEL);
+>> +		if (!buf_list[i].buf)
+>> +			goto err_free_mem;
+>> +	}
+>> +
+>> +	mem->mtt = erdma_create_mtt(dev, MTT_SIZE(mem->page_cnt), true);
+>> +	if (IS_ERR(mem->mtt)) {
+>> +		mem->mtt = NULL;
+> 
+> Why? You will release mem anyway.
+> 
+
+This was needed because the current code lacks explicit error
+unwinding. The common cleanup path only checks mem->mtt for NULL and
+would otherwise pass the ERR_PTR to erdma_destroy_mtt().
+
+This has the same root cause as the first issue, and I will fix it in
+this patch as part of the same error-unwinding change.
+
+
+>> +		goto err_free_mem;
+>> +	}
+>> +	for (i = 0; i < mem->page_cnt; i++)
+>> +		mem->mtt->buf[i] = buf_list[i].dma_addr;
+>> +
+>> +	return 0;
+>> +
+>> +err_free_mem:
+>> +	erdma_free_kmem(dev, mem);
+>> +	return -ENOMEM;
+>> +}
+>> +
+> 
+> <...>
+> 
+>> +struct erdma_buf_list {
+>> +	void *buf;
+>> +	dma_addr_t dma_addr;
+>> +};
+> 
+> This struct is very similar to scatter-gather list, why don't you use it
+> directly?
+
+Good idea. I will use struct scatterlist in the next revision.
+
+Thanks,
+Cheng Xu
+
+> 
+> Thanks
