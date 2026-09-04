@@ -1,145 +1,188 @@
-Received: from mail-qt1-f176.google.com (mail-qt1-f176.google.com [209.85.160.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out30-118.freemail.mail.aliyun.com (out30-118.freemail.mail.aliyun.com [115.124.30.118])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0498C4A2A7F
-	for <linux-rdma@vger.kernel.org>; Fri,  4 Sep 2026 13:50:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24CC0474247;
+	Fri,  4 Sep 2026 15:21:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.118
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788529851; cv=none; b=ONb6gDS+wB2B6BQrnQ42ujlX5iXh2YKEC1nZg4m1g7oxMOM4MmeYVcfKjAA+CwPM8sZEqjxEsitww1dwTb99KYHuXLgxE6+Qg/h0Tw0bTKS4cFegL0S1wz8rPIjh9o1n2XuTDP2ZRA1rGuKY369IV6vnZAupCf14+m55zEAh2BA=
+	t=1788535318; cv=none; b=MOX7wCZx9ryV3L8l4GZsdMg4aNzu0+84hFcvUZMSm16VzphMpJDIrtVJoh42sjPJ+8B3oY0RLxS8deZRwFD/ZBtlVOzv6C8zFQhrAUXXocSsIjOAJfK5X3yuezcQ1LL+/xXr5x29Mzh4nPKwVW4iHIpXX/htT1iyJiqI4v6mJPg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788529851; c=relaxed/simple;
-	bh=Z8hNnyHSVmt549ei10OsDc7fux/5aK6L6Q+U/yY2ZJw=;
-	h=Mime-Version:Content-Type:Date:Message-Id:From:To:Cc:Subject:
-	 References:In-Reply-To; b=DjKbfAbCb+OZjaafdNTCtyntLqEWr46dAq+mVA8ClrXWHjDnCJkSVBa1row2IUNIdNZxPET0MQcocNLeAEs+JiuW5hTfe9kboXQ/g0kET1G7OcCJIve3ygI8vHz87ydc1/cSbzO0ZfJ4+NGsGl34RqrJE3eNl4siZR/LlBD2f3c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TQFelx79; arc=none smtp.client-ip=209.85.160.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1788535318; c=relaxed/simple;
+	bh=PJ/iaFn65SbkWEpJ+KcHytetjVJYyvroM9gBmN3nDXI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=n3KSScUfgNgS2bL43+7OuK4xuI4M9mzW0EZRy/CZhXKbQ1KLdeSjKKVHrke8KlZbL4r5jD4LS25FIRVzpiLK1+R8m+VlCaezZdNFfnokg5zPrAnvddrOm1XqyX/kg54mgk/+DH1okSBMLxSrZU0mdhife9Y+D9rfsVUnR3FGNvw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=O5fVMovz; arc=none smtp.client-ip=115.124.30.118
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TQFelx79"
-Received: by mail-qt1-f176.google.com with SMTP id d75a77b69052e-5300bdf61d9so12716931cf.3
-        for <linux-rdma@vger.kernel.org>; Fri, 04 Sep 2026 06:50:49 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1788529849; x=1789134649; darn=vger.kernel.org;
-        h=in-reply-to:references:subject:cc:to:from:message-id:date
-         :content-type:content-transfer-encoding:mime-version:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=RloxBmq1OFFdMW2QFzzJPyBKTHQtM11rCubg4Pmtdw0=;
-        b=TQFelx79SVUXXk6lPuhJkCpNgaMkUrKUBvxqQfxohmyi9xBVmosK/MQjKHh6cJDyOc
-         osRB1ymPJcn7Cv+hbYnmld0znVmwVN20tnZZas/tFaar2aXm2/nV++oBqfK1VEkvVwvk
-         FQ2FAmermUrsgjpeDDBOCnSofvfnRQ33piuv0X8JVt5fzJo5EVy7DxWUHVwAHmFbLDkd
-         QJ9R9g6p3baFaj4+zUR1I2OWxDOVzISlhO3wADzQkzwf9PJ2CejpVpInaA6xQksstza2
-         VNqFu7xMhyFVGbwoRwQVDe2dhEOK/lGGa2GmGTjDnxhc1GLT7kw24Nsod6YXjDxPJX/w
-         KLKw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788529849; x=1789134649;
-        h=in-reply-to:references:subject:cc:to:from:message-id:date
-         :content-type:content-transfer-encoding:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=RloxBmq1OFFdMW2QFzzJPyBKTHQtM11rCubg4Pmtdw0=;
-        b=fFW1W2QNxnzMhhfr16synJu994JpsQg54pyZIUwzRYxRo1055q6TzSWDzo5kqStDWL
-         5PxOmQIYxA35qx8RCd+8cla0l4kmpIQXQulZo19nZKRfTXFL3+NKVpQ5WXwFfyTafDPR
-         ilHdA8NUZSiDH0Ur6aD1kErDWjdncfjx/WmlDHdQRw6tz7YhKcvq67mm3BOWSaduAxdQ
-         NrBNC8NvWk/AwQyZxsvAwokZD1dqyrGzW8rpnSX24S7NqMxcuQsSlTUPjt1oPuvJRCNY
-         GLP2V/LvjrukbkrR/fD8JWrvLqeLWUE86JCvNb8XE5SdTyQXMFSngwsi1rPZztau1c64
-         2SJg==
-X-Forwarded-Encrypted: i=1; AKwUvBzyo5hFv62/PYfJv2gYdemJKPD404yzQxX0PwDdKzAwwEPQipRLaqT2iJczb/vy6aKiGiVqh/lBUpvc@vger.kernel.org
-X-Gm-Message-State: AFuF++maMqUWjwH2SCYW0QSc1tLWtA3/uHDsRm1rdgyp7HtmxM0jR3qU
-	pXo4V/nwu6m8aKaYjTDTczY1Qu8r26CSd3ri8ZhYll4sfanONFD6PvcR
-X-Gm-Gg: AYBFou2uavif7J60tUGt76czM3lGXmxTtBPWVuYQ7SHlZR3W+SMwSU6uu2IT/q+fKbI
-	cS4BVzRdFC7hPsIuvaGnJGKjdBuBhpMvad3kgV040MPk/K4DfhAEpqN7F+p5guz4Wyk43UH7CE8
-	a2j8T5BFmhmEe69RXllpjmHkgrPH59NMQb3R3z5eidSmR5X52ENewyo6bo76dg8DTnaJY9YPp/Y
-	Ytwsk4Pfo8UFlQzmIxKMPBLLKbJpbNduRg+sQVTMJiOsCUPDjNvLvKez3MlqLsh7rA25z/ZLH2m
-	69h58bNA7tCMWeWnZhD2hQ89JKzqLMywDobOx8jWu8jQ6X/2pgRHtXkyXyPb/gpKINDyd52D1u+
-	1TIhbAkyQyGHL3xXud+oMwjh/vIDLt0vRkg2mUZEW0y3QRVGuX31kaaUvnPQzndC9K89M1tvsln
-	xsM1PpTbX2G2OOfBKrsERbNhR/+njMyM2S2dkw8n54ms5chCqc3fOtIUOEn9fkEJpuayetoIeEj
-	dM7
-X-Received: by 2002:ac8:5945:0:b0:530:42d4:4c9a with SMTP id d75a77b69052e-53054a34924mr61953591cf.44.1788529848638;
-        Fri, 04 Sep 2026 06:50:48 -0700 (PDT)
-Received: from localhost ([2600:4040:9399:4000:e553:72e5:7d37:c7ef])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-910406940f3sm20714426d6.38.2026.09.04.06.50.46
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 04 Sep 2026 06:50:47 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="O5fVMovz"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1788535310; h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type;
+	bh=j9m5ViHj7Wr5tcjqUghEvku+z8E9B+JmWiAOPmmoD3g=;
+	b=O5fVMovzXr8OsEtQ/AC9hTWRqOaPsNNxhfM5sj0x3qs3nwrsowuuFhDjAHGlGSu17bRQDVhC4P3xg4Lyqjcl0U3mxI3XzlHCeUYsgC6IUaX5N5Nv6a0QyP2He0cLEyOSAed2J9b0lvoMDDT9b6WqWRcUbD1PHtCddGERQqHMm8w=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R941e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033045133197;MF=dust.li@linux.alibaba.com;NM=1;PH=DS;RN=17;SR=0;TI=SMTPD_---0XAJ1SQ-_1788535309;
+Received: from localhost(mailfrom:dust.li@linux.alibaba.com fp:SMTPD_---0XAJ1SQ-_1788535309 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Fri, 04 Sep 2026 23:21:50 +0800
+Date: Fri, 4 Sep 2026 23:21:49 +0800
+From: Dust Li <dust.li@linux.alibaba.com>
+To: Mahanta Jambigi <mjambigi@linux.ibm.com>, andrew+netdev@lunn.ch,
+	davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+	pabeni@redhat.com, alibuda@linux.alibaba.com, sidraya@linux.ibm.com,
+	hidayath@linux.ibm.com
+Cc: pasic@linux.ibm.com, horms@kernel.org, tonylu@linux.alibaba.com,
+	guwen@linux.alibaba.com, stable@vger.kernel.org,
+	netdev@vger.kernel.org, linux-s390@vger.kernel.org,
+	linux-rdma@vger.kernel.org
+Subject: Re: [PATCH net v2 0/2] net/smc: fix diag dump lifetime races
+Message-ID: <apriDec7yHBkQgNv@linux.alibaba.com>
+Reply-To: dust.li@linux.alibaba.com
+References: <20260828065439.3582783-1-mjambigi@linux.ibm.com>
+ <apWEzobrZ3QR3IfN@linux.alibaba.com>
+ <4f303f9f-fd20-475a-8004-1a670dfd34df@linux.ibm.com>
+ <apbMyLc0IhLMKwwA@linux.alibaba.com>
+ <85fa9f02-7516-4595-b5a8-4ae4ca845121@linux.ibm.com>
+ <apgTu9dRGIQE6tm3@linux.alibaba.com>
+ <899816c9-c908-4d64-8f5c-ba35619f78f2@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
-Date: Fri, 04 Sep 2026 09:50:45 -0400
-Message-Id: <DL6KX0CC3BM1.1GLV02ZNIK4M2@gmail.com>
-From: "Daniel Zahka" <daniel.zahka@gmail.com>
-To: "Tariq Toukan" <tariqt@nvidia.com>, "Andrew Lunn"
- <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, "Eric
- Dumazet" <edumazet@google.com>, "Jakub Kicinski" <kuba@kernel.org>,
- <netdev@vger.kernel.org>, "Paolo Abeni" <pabeni@redhat.com>, "Sabrina
- Dubroca" <sd@queasysnail.net>
-Cc: "Aleksandr Loktionov" <aleksandr.loktionov@intel.com>, "Alexei Lazar"
- <alazar@nvidia.com>, "Alexei Starovoitov" <ast@kernel.org>, "Allison
- Henderson" <allison.henderson@oracle.com>, "Antonio Quartulli"
- <antonio@openvpn.net>, "Anubhav Singh" <anubhavsinggh@google.com>, "Bobby
- Eshleman" <bobbyeshleman@meta.com>, "Boris Pismenny" <borisp@nvidia.com>,
- <bpf@vger.kernel.org>, "Carolina Jubran" <cjubran@nvidia.com>, "Chris Mi"
- <cmi@nvidia.com>, "Cosmin Ratiu" <cratiu@nvidia.com>, "Daniel Borkmann"
- <daniel@iogearbox.net>, "Daniel Zahka" <daniel.zahka@gmail.com>, "David
- Wei" <dw@davidwei.uk>, "Doruk Tan Ozturk" <doruk@0sec.ai>, "Dragos Tatulea"
- <dtatulea@nvidia.com>, "Gal Pressman" <gal@nvidia.com>, "Jacob Keller"
- <Jacob.e.keller@intel.com>, "Jesper Dangaard Brouer" <hawk@kernel.org>,
- "Jianbo Liu" <jianbol@nvidia.com>, "John Fastabend"
- <john.fastabend@gmail.com>, "Kees Cook" <kees@kernel.org>, "Lama Kayal"
- <lkayal@nvidia.com>, "Leon Romanovsky" <leon@kernel.org>, "open list"
- <linux-kernel@vger.kernel.org>, <linux-kselftest@vger.kernel.org>,
- <linux-rdma@vger.kernel.org>, "Mark Bloch" <mbloch@nvidia.com>, "Matthieu
- Baerts (NGI0)" <matttbe@kernel.org>, "Patrisious Haddad"
- <phaddad@nvidia.com>, "Petr Machata" <petrm@nvidia.com>, "Raed Salem"
- <raeds@nvidia.com>, "Rahul Rameshbabu" <rrameshbabu@nvidia.com>, "Richard
- Gobert" <richardbgobert@gmail.com>, "Saeed Mahameed" <saeedm@nvidia.com>,
- "Shuah Khan" <shuah@kernel.org>, "Shuah Khan" <skhan@linuxfoundation.org>,
- "Simon Horman" <horms@kernel.org>, "Stanislav Fomichev" <sdf@fomichev.me>,
- "Stanislav Fomichev" <sdf.kernel@gmail.com>, "Willem de Bruijn"
- <willemb@google.com>, "Willem de Bruijn" <willemdebruijn.kernel@gmail.com>
-Subject: Re: [PATCH net-next V3 15/15] selftests: drv-net: Add PSP HW GRO
- conformance tests
-X-Mailer: aerc 0.21.0-threadmapfix
-References: <20260903085215.3691657-1-tariqt@nvidia.com>
- <20260903085215.3691657-16-tariqt@nvidia.com>
-In-Reply-To: <20260903085215.3691657-16-tariqt@nvidia.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <899816c9-c908-4d64-8f5c-ba35619f78f2@linux.ibm.com>
 
-On Thu Sep 3, 2026 at 4:52 AM EDT, Tariq Toukan wrote:
-> From: Cosmin Ratiu <cratiu@nvidia.com>
+On 2026-09-03 13:26:30, Mahanta Jambigi wrote:
+> On 02/09/26 5:46 pm, Dust Li wrote:
+> > I think we can close this window by holding the SMC hash table lock in
+> > smcr_link_clear()? [...]
 >
-> Add PSP conformance tests using the same gro helper binary as gro.py
-> does, but in --psp mode. SPIs are procured by psp_gro.py from a real PSP
-> device and handed off to the gro sender & receiver. The sender crafts
-> and encrypts packets in software, the receiver relies fully on the HW to
-> decrypt, decapsulate and do HW GRO.
+> Hi Dust,
 >
-> Because the NIC decrypts and decapsulates before the frames reach the
-> receiver AF_PACKET tap, it sees the plain frames and the assertions
-> remain exactly the same as gro.py.
->
-> So these tests verify, at length, that the device does PSP HW-GRO the
-> same way as plain TCP.
->
-> Additional PSP-specific tests are defined to check that GRO doesn't
-> merge packets across PSP versions, SPIs, encryption-status, etc.
->
-> Some tests from gro.py are not included because they don't work:
-> - ip_csum: the checksum is recomputed by psp_dev_rcv().
-> - tcp_csum: packets are marked with CHECKSUM_UNNECESSARY.
-> - ip_frag4/ip_frag6: PSP is incompatible with IP fragmentation.
-> - IPv6 extension header tests: PSP doesn't deal with IPv6 ext headers.
->
-> Signed-off-by: Cosmin Ratiu <cratiu@nvidia.com>
-> Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
-> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
-> ---
->  .../testing/selftests/drivers/net/gro_lib.py  |  14 +-
->  .../testing/selftests/drivers/net/hw/Makefile |  17 ++
->  .../selftests/drivers/net/hw/psp_gro.py       | 172 ++++++++++++++++++
+> After debugging further, I believe that __smcr_link_clear() cannot be
+> called from smc_switch_link_and_count() because
+> refcount_dec_and_test(&lnk->refcnt) is always false on that path — the
+> initial ref (set in smcr_link_init(), released only in
+> smcr_link_clear()) is always held while the switch executes. So there is
+> no UAF from that path. The only consequence is that the diag reader may
+> observe a stale conn->lnk pointer value — pointing to the old link which
+> is still fully live — and read the old link's ibport/link_id/ibname from it.
 
-There's a chance I don't use the config snippets correctly, but I don't
-include configs from parent directories. So maybe add CONFIG_INET_PSP=3Dy
-to ./tools/testing/selftests/drivers/net/hw/config?
+Hi Mahanta,
+
+Sorry for the late reply. I've done some more thinking on this topic.
+
+That's true, but strictly I think there is still a small gap. The old link is
+memset later, in smcr_link_clear() after all connections have migrated, so a
+reader that loaded conn->lnk just before its own connection was switched has a
+few-instruction window before it dereferences. In practice this window is
+really narrow: the clear path runs the whole switch + LLC + QP teardown, orders
+of magnitude longer than the reader's load+deref.
+
+> The real UAF is via smc_conn_free(): it drops both the connection-owned
+> conn->lnk reference via smcr_link_put() and the connection-owned
+> conn->lgr reference via smc_lgr_put(), while the socket is still visible
+> in the hash table. [...] The current patch tries to fix this using
+> lgr_lnk_lock. Since you suggested we fix it with *unhash-before-free*, I
+> thought about it and here is my proposal.
+>
+> Proposed fix (high level):
+>
+> Introduce a smc_conn_unhash() helper with a per-connection unhashed flag
+> that ensures the socket is removed from the hash table exactly once.
+> Call it at the top of smc_conn_free(), before any lgr/lnk references are
+> dropped.
+>
+> This establishes the invariant: any socket still visible to the diag
+> reader under read_lock(hash->lock) has valid conn->lgr and conn->lnk
+> pointers. [...]
+>
+> Does this design look reasonable to you?
+
+Yes, I think it's the right fix and we can go ahead and fix it this way first.
+
+> There is a separate minor issue — smc_switch_link_and_count() updates
+> conn->lnk under send_lock while the diag reader loads it without any
+> lock, which can cause stale ibport/link_id/ibname in *smcss -R* during a
+> failover event. This is a data race but not a safety issue since the
+> link struct is always live at that point.
+>
+> This race is very rare in practice [...] Even when it occurs, the effect
+> is transient: one dump may show the old link's ibport/link_id/ibname, and
+> the next dump will show the correct values.
+
+I think this is acceptable.
+
+---
+
+I've been re-thinking this a bit more. We've been plagued by SMC's tangled
+locks and ad-hoc lifetime handling for years — every fix adds another lock or
+another ordering rule. I think it's time to step back and refactor this area as
+a whole, and set up some rules for how we use locks/refcounts in SMC, instead of
+keeping patching individual races. Below are some rough thoughts.
+
+1. Object layering
+
+SMC really has three lifetime tiers, and the top one has to be split the way
+TCP splits struct socket from struct sock:
+
+- the file (struct socket) — lifetime tied to fput;
+- the connection sock (smc_sock, with conn embedded) — lifetime tied to
+  sk_refcnt; like a TCP sock it can be orphaned and outlive the file. On an
+  active close, close(fd) orphans it first, but it stays alive — still bound to
+  the transport — to finish the close handshake;
+- the shared transport (lgr / link / device) — lifetime by refcount, multiplexed
+  across connections.
+
+It's the socket/sock split, plus one more tier because our transport is shared
+(TCP's sock is 1:1, our lgr/link is not). Today smc_conn_free() mixes all three
+and is called from the transport layer while the socket is still hashed —
+that's exactly where these races come from.
+
+With the tiers separated, teardown becomes two independent, idempotent steps
+rather than one:
+
+- orphan (file <-> sock): at fput, via sock_orphan();
+- transport-detach (sock <-> transport): the connection drops its lgr/link
+  refs. On an active close this happens later, after the handshake completes;
+  on a transport fault it happens immediately.
+
+The sock is freed only once it is orphaned, transport-detached, and the last
+sock_put lands; the order of the two steps just depends on who initiates
+teardown (app close vs. transport fault).
+
+2. Lifetime & boundary contract
+
+Give each tier the right tool, and a clear boundary between them:
+
+- ownership by kref; traversal by RCU (conn->lgr / conn->lnk become RCU
+  pointers, the lgr is freed with kfree_rcu); fd-visible objects (clcsock)
+  released only after the last fput; and no in-place mutation of a published
+  object (stop memset()ing a link — mark it dead and reclaim it with the lgr
+  after a grace period);
+
+- boundary rule: on a transport fault the lower layer only signals and
+  transport-detaches; it never orphans, unhashes, or frees the sock.
+  - signal = wake the app with an error (sk_err + wakeup);
+  - transport-detach = publish rcu_assign_pointer(conn->lgr/lnk, NULL), then
+    drop the usage references (smc_lgr_put / smcr_link_put). The transport
+    object itself is reclaimed later by its own refcount + kfree_rcu; the sock
+    is left untouched.
+  Handle-side teardown (orphan, unhash, clcsock release, final sock_put)
+  belongs to the connection/file side and is driven by close — never by the
+  transport layer.
+
+With that, a diag reader under rcu_read_lock is guaranteed the link/lgr
+outlives its critical section, so the per-connection lgr_lnk_lock is no longer
+needed and smc_conn_unhash() can be retired too. (clcsock_release_lock goes
+away separately, via the clcsock lifetime series.) It's a larger, mostly
+mechanical change and would take a lot of careful rework, so I'd do it as a
+follow-up. Your smc_conn_unhash() is the right fix to take now (and for
+stable); the rework, if we agree on this direction, would retire it afterwards.
+
+Best regards,
+Dust
