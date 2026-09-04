@@ -1,290 +1,169 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f54.google.com (mail-ej1-f54.google.com [209.85.218.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B11E42E004;
-	Fri,  4 Sep 2026 07:02:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2254D29B781
+	for <linux-rdma@vger.kernel.org>; Fri,  4 Sep 2026 07:49:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788505376; cv=none; b=DBejzIZgxNLQ8MtwieuYMHsZ0CnopIa8LEk8RDi5XYq320IB0Pj8R0gDo+Far/5JHCOzPm69JF4Dqv10gwNWLPFXNjBSeVq5mLmrcW8BFJylwzDH+NLCC5AlKEhPHpqy5vt0hNvY9np5DE6O45o3+ZHI1024C0M6rUMuAm8i1v8=
+	t=1788508184; cv=none; b=OjjOQExlJWhl96JVEiwXb7fKykxOHn16YMOS/QXAgY93Tj2CGgccg50ae3yePqTD/PLDIuIfp+R4yVvbeK+48Nr/gSfCn+B3wdbvcUpslm9I8mQQg8tuV7uroifIuTHMKzHMUe6YtntUZx4cOEl15J++hwh3boJGfCqebeTGUI8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788505376; c=relaxed/simple;
-	bh=jZZsd1VLLAZSSgS8DqRxoKP7CuSD3adocwUdAVAEyRQ=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=cJ+nbQAW6XkUaDd5HiYFLR/W2sULJaIqSeLR2VjMODfAr9g/oU5KENUzPzJ7zjkDrXAUkHLyTTdUs7mlZOXSbVVagrpAMM0T7I7NGRPldrRNbdFCPg64UlBz/ePLDhajAt77dN3g5lPrf2NIGQ1Gtp8mJVsm9VaOPmN6yIDb/no=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eozpotQJ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788508184; c=relaxed/simple;
+	bh=YB8ar/qQYP+4I/nZAw48tAdIZWF5CsS+pPJCCTS+pqU=;
+	h=Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:
+	 Message-Id:References:To; b=Nqt8m+/VndqHGWQRlCOfRak4h8R4sIyA0vj0dqNUt6+i5vk7JpdtiFGhWN55MnkFFv0DHwIBtWyL6ZFT9W94t2xxbAn9NEBfoMESLfYK2TyuBqOy7cjc7DUmJvksA9ufvcZj5yCIKtFSjtA8vPkjmDS6TWJE9p8vYdf1/AFWgdE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=doyensec.com; spf=pass smtp.mailfrom=doyensec.com; dkim=pass (2048-bit key) header.d=doyensec.com header.i=@doyensec.com header.b=UIIU055p; arc=none smtp.client-ip=209.85.218.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=doyensec.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=doyensec.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eozpotQJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A09321F00ACF;
-	Fri,  4 Sep 2026 07:02:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788505374;
-	bh=qXoYUQv4HD9R2iQn9ygTYRFIditVHNogTcg+QXJhQT4=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=eozpotQJdxKYfUwZ1+x7MEjAKsgySovR7UehZzfb5X15vOBft2yJoc3ArICS1C2gs
-	 LVrg1ipqUTGcztFpclilmLX5NQ4px8fLDr7oqxElpqfT1TFl4xhP/vmNhBp65OPAMo
-	 TU+ZuTFtuUa+idP3JFRYkOoyS/TERTnr3BttHusRP5W73a9U5Iq+0j9Oo9MXL71Oby
-	 wZFO7c6tqP519q75BYPWxXcaLVII2WW8XXZ06iOPTP0Jb7Osn60aLblxeXkp1Uledi
-	 fFJSbJMG9Wd00PB0W8nCxw5NV+GgacwDVUkGcAywL46n9AvSiMgahAuRknuwZWkDhT
-	 s/AYVKvwWqK0w==
-From: Allison Henderson <achender@kernel.org>
-To: netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	kuba@kernel.org,
-	horms@kernel.org
-Cc: achender@kernel.org,
-	nicoyip.dev@gmail.com
-Subject: [PATCH net-next 6/6] net/rds: hold a connection reference from struct rds_incoming
-Date: Fri,  4 Sep 2026 00:02:48 -0700
-Message-Id: <20260904070248.160384-7-achender@kernel.org>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20260904070248.160384-1-achender@kernel.org>
-References: <20260904070248.160384-1-achender@kernel.org>
+	dkim=pass (2048-bit key) header.d=doyensec.com header.i=@doyensec.com header.b="UIIU055p"
+Received: by mail-ej1-f54.google.com with SMTP id a640c23a62f3a-c1712a04ddaso115156266b.2
+        for <linux-rdma@vger.kernel.org>; Fri, 04 Sep 2026 00:49:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=doyensec.com; s=google; t=1788508179; x=1789112979; darn=vger.kernel.org;
+        h=to:references:message-id:content-transfer-encoding:cc:date
+         :in-reply-to:from:subject:mime-version:content-type:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=DyGbWz3XmSBAI3MaQKHTZ3YRCUHCb6c/vSa3rh92CwE=;
+        b=UIIU055p9DOBR/bT4oPnJfltTLVvBlpgSL1KMQRb8Uc/BKiFy2TeBLIsq5W1NQ3d4g
+         MBPvG3tAJCWHPYlDWVx+UUlkYbuzd7kDQGiQF5ScJS4r94Y4hinLLKXmrB8WKNWQnfk/
+         6+KrJ3f+neAqTOAEfIT6tRx3WETC7stZUYN/My6/TcmLEr1HhK5LHto3ZSSCVL3oCTod
+         XARnmfMhI27GjwtEU1IRtX7Ajluqip3EXdE+I2XzWeQKD+t7z4U8B4vnGqx0nCWS4jpP
+         PZFAMvdIRs57F5mojDgViCLHAZ46F1gK6ZO7zHeoRgCXVvGGP/pu7kpiBXdyG3ET5+c7
+         uqqQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788508179; x=1789112979;
+        h=to:references:message-id:content-transfer-encoding:cc:date
+         :in-reply-to:from:subject:mime-version:content-type:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=DyGbWz3XmSBAI3MaQKHTZ3YRCUHCb6c/vSa3rh92CwE=;
+        b=bFGSfc4nGhUNGLgwTkOeErMxNQw5s9gmoIxxBXYWyUY3L2GHizFABkFvMpoK0m9jfm
+         WCAcK7RgPi8gMlsVY46QUl/T2/NctdNPj4TZetnxNgYKW7EIKjNdnFZ7gGSvv68QONkr
+         ML7kxCSl6bchL2FbMTWjy+7OTkBnCOO7QG4YhLJCGTZ83BHzqVpkOYnEzWpklO3hDnHa
+         wg5qQqhbQiZBQtiPRHchVmZUb80vCdVpdvRLpyuK3PVPIBdWE+/i83WMRXqQQGLUVQWj
+         WoC4qXnXoJZco64eMBiZmzHz+9fakDAX5DFm1P7Np6IxSSIMo05tedHKR1Cwq2YUjLkN
+         86tA==
+X-Gm-Message-State: AFuF++lGQFA6KPRrC5GTzP//vWsmjROIxw0b0worrBj9gEqP/KMd+LUw
+	QR1Xrq/jfw6ykXnZMsofWc02eEpK2pkFOVXGvUSWX7OTs6DFgDwKa68KozkP7WRsRU4=
+X-Gm-Gg: AYBFou38hE+BBah3S6a/bOBOlsiLsXTpqlYjiDU2QF0EhrjA8mTZCR3wSVs3UQKc+L7
+	PwEifHPNQTYvBjYk3DJcLfLZnCj+ghvqjYqzQA1cSla0nzfo4CZYRzgqLCSTH5lspAmrsZ4l98g
+	qXHh3DSOYxH1xtqABq67C2naVRCNyVK23AU6EQWKwCjd6mad2na/vUx8knBeWpAELgSLB6GLvFG
+	QW+26ytxStMvE4burYmj7pZGBbrRwTwhC5Eh/9ZdH/FecS8yNRAbcjcofa3WqOofVeXeAWZRAfk
+	Q6H44CNYiDJAT0l82SFSQr66B4SEoNpRUG9wEKbSpuDHDmKowIk9QPC3edND9XRwp39ZAfcXNQY
+	5CnyGPRA9DkXBPHPm75kKNw+hbeMtbx4itLSwl6plL93tjX4g5hKWjHyKMdWvB3UQp0tpwBMAUZ
+	sXNeuE46IOYtoqnOrzqbByHKVMXMoo8eHVJ78SIa75J86y0tkov8UBFGaxpaXe2dZY+SAJy7M3X
+	1F91fBiKcW9nhm0xwfb5rEBzARg9Ol1d0xpf1Wu7Q==
+X-Received: by 2002:a17:907:94c7:b0:c1c:3b06:ed03 with SMTP id a640c23a62f3a-c260cb54617mr208786566b.23.1788508179329;
+        Fri, 04 Sep 2026 00:49:39 -0700 (PDT)
+Received: from smtpclient.apple (83.10.35.35.ipv4.supernova.orange.pl. [83.10.35.35])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c260d53c37csm67302066b.32.2026.09.04.00.49.37
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 04 Sep 2026 00:49:38 -0700 (PDT)
+Content-Type: text/plain;
+	charset=us-ascii
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3826.700.81.1.4\))
+Subject: Re: [PATCH] RDMA/rxe: Reject prefetch of a non-ODP MR
+From: Norbert Szetei <norbert@doyensec.com>
+In-Reply-To: <20260901075611.GG24140@unreal>
+Date: Fri, 4 Sep 2026 09:49:26 +0200
+Cc: linux-rdma@vger.kernel.org,
+ Zhu Yanjun <zyjzyj2000@gmail.com>,
+ Jason Gunthorpe <jgg@ziepe.ca>,
+ linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <874DA83D-C81E-4858-B9E7-D2A3BFE0137D@doyensec.com>
+References: <521D5E74-89E3-43C0-81C7-AC0BE52591E7@doyensec.com>
+ <20260901075611.GG24140@unreal>
+To: Leon Romanovsky <leon@kernel.org>
+X-Mailer: Apple Mail (2.3826.700.81.1.4)
 
-From: Sharath Srinivasan <sharath.srinivasan@oracle.com>
+On Sep 1, 2026, at 09:56, Leon Romanovsky <leon@kernel.org> wrote:
+>=20
+> On Thu, Aug 27, 2026 at 12:51:20PM +0200, Norbert Szetei wrote:
+>> rxe_ib_advise_mr_prefetch() and rxe_ib_prefetch_sg_list() look up the =
+MR
+>> by lkey and hand it to rxe_odp_do_pagefault_and_lock() without =
+checking
+>> that it is an ODP MR. That path runs to_ib_umem_odp() on mr->umem, =
+and
+>> for a non-ODP MR mr->umem is a plain struct ib_umem from =
+ib_umem_get(),
+>> so the container_of() in to_ib_umem_odp() lands past the end of the
+>> object and ib_umem_odp_map_dma_and_lock() reads its ib_umem_odp =
+fields
+>> out of bounds.
+>>=20
+>> lookup_mr() validates the lkey, PD, access and state but not the MR
+>> type, and IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH is accepted for any MR.
+>>=20
+>>  BUG: KASAN: slab-out-of-bounds in =
+ib_umem_odp_map_dma_and_lock+0x884/0x8a0
+>>  Read of size 8 at addr ffff88810a3ebcf0 by task advi/921
+>>   ib_umem_odp_map_dma_and_lock+0x884/0x8a0
+>>   rxe_ib_advise_mr+0x543/0xad0
+>>   ib_uverbs_handler_UVERBS_METHOD_ADVISE_MR+0x446/0x530
+>>   ib_uverbs_cmd_verbs+0x2b3c/0x3b20
+>>   ib_uverbs_ioctl+0x1e3/0x310
+>>  Allocated by task 921:
+>>   __ib_umem_get_va+0x13e/0xae0
+>>   rxe_mr_init_user+0x2ae/0xb00
+>>   rxe_reg_user_mr+0x337/0x510
+>>  The buggy address belongs to the object at ffff88810a3ebc80
+>>   which belongs to the cache kmalloc-96 of size 96
+>>=20
+>> Reject a non-ODP MR after lookup_mr() in both the synchronous and
+>> asynchronous prefetch arms.
+>>=20
+>> Fixes: 3576b0df1588 ("RDMA/rxe: Implement synchronous prefetch for =
+ODP MRs")
+>> Cc: stable@vger.kernel.org
+>> Signed-off-by: Norbert Szetei <norbert@doyensec.com>
+>> ---
+>> drivers/infiniband/sw/rxe/rxe_odp.c | 11 +++++++++++
+>> 1 file changed, 11 insertions(+)
+>>=20
+>> diff --git a/drivers/infiniband/sw/rxe/rxe_odp.c =
+b/drivers/infiniband/sw/rxe/rxe_odp.c
+>> index e870efa7a0a3..5c9dde3501a0 100644
+>> --- a/drivers/infiniband/sw/rxe/rxe_odp.c
+>> +++ b/drivers/infiniband/sw/rxe/rxe_odp.c
+>> @@ -472,6 +472,11 @@ static int rxe_ib_prefetch_sg_list(struct ib_pd =
+*ibpd,
+>> return -EINVAL;
+>> }
+>>=20
+>> + if (unlikely(!is_odp_mr(mr))) {
+>> + rxe_put(mr);
+>> + return -EOPNOTSUPP;
+>> + }
+>=20
+> The idea is correct, but the implementation needs some improvement.
+>=20
+> RXE stores the access flags in the MR, including IB_ACCESS_ON_DEMAND,
+> which indicates that the MR was created as an ODP MR. lookup_mr()
+> should check this flag and perform the lookup accordingly.
 
-struct rds_incoming->i_conn stores a pointer to the connection a message
-it belongs to, for both received messages and messages the socket sends.
-But without taking a reference, nothing keeps that connection alive.
-Embedded as the messages m_inc, an inc routinely outlives the connection
-it points at, by sitting in the socket's receive queue until the
-application reads it, while the connection is destroyed by device removal,
-netns teardown or module unload - and every dereference of i_conn after
-that point touches freed memory.
+Do you mean lookup_mr() should take IB_ACCESS_ON_DEMAND into account, so =
+that
+the existing (access & mr->access) !=3D access test rejects the non-ODP =
+MR?
 
-Chengfeng Ye reported one way to reach it, where the socket info
-callbacks walk a receive queue after rmmod freed the connections:
+rxe_rereg_user_mr() with IB_MR_REREG_ACCESS assigns mr->access directly, =
+and
+IB_ACCESS_ON_DEMAND is part of RXE_ACCESS_SUPPORTED_MR. So userspace can =
+set
+that flag on a plain MR after registration, without the umem changing. =
+Am I
+missing something there?=20
 
-  BUG: KASAN: slab-use-after-free in rds6_inc_info_copy+0x459/0x530 [rds]
-  Read of size 1 at addr ffff888106031c50 by task poc/101
-  Call Trace:
-   rds6_inc_info_copy+0x459/0x530 [rds]
-   rds6_sock_inc_info+0x2b9/0x3c0 [rds]
-   rds_info_getsockopt+0x19d/0x380 [rds]
-   do_sock_getsockopt+0x2ac/0x480
-   __sys_getsockopt+0x128/0x210
-  Freed by task 102:
-   kmem_cache_free+0x1b5/0x3d0
-   rds_conn_destroy+0x484/0x600 [rds]
-   rds_loop_exit_net+0x32/0x50 [rds]
-   unregister_pernet_device+0x2c/0x50
-   rds_conn_exit+0x13/0xa0 [rds]
-   rds_exit+0x1a/0xc40 [rds]
-   __do_sys_delete_module+0x30a/0x4d0
+Thanks.
 
-Closing the socket gets there too, with no reader of i_conn other than
-RDS itself: freeing an IB inc dereferences i_conn to hand the inc and
-its fragments back to the connection's recycle cache, so draining the
-receive queue of a socket whose connection is gone crashes in the
-transport:
+>=20
+> Thanks.
 
-  panic
-  ...
-  rds_ib_recv_cache_put (net/rds/ib_recv.c:703)
-  rds_ib_inc_free (net/rds/ib_recv.c:207)
-  rds_clear_recv_queue (net/rds/recv.c:909)
-  rds_release (net/rds/af_rds.c:212)
-  __sock_release (net/socket.c:649)
-  sock_close (net/socket.c:1336)
-
-with the freed connection confirmed by its now-zero reference count:
-
-  -trace[9]["inc"].i_conn.c_refcount
-  (struct kref){
-          .refcount = (refcount_t){
-                  .refs = (atomic_t){
-                          .counter = (int)0,
-                  },
-          },
-  }
-
-Now that connections are reference counted, make every holder of i_conn
-own a reference.  The pointer is assigned in six places - rds_inc_init()
-and rds_inc_path_init() for received messages, rds_recv_incoming() when
-it re-points an inc at the connection it arrived on, and
-rds_send_queue_rm(), rds_send_probe() and the congestion-map path of
-rds_send_xmit() for m_inc - and each of them now takes a reference.  The
-references are dropped from rds_inc_put() and rds_message_put(), which
-are the points where the last user of the pointer goes away.
-rds_recv_incoming() takes the new reference before dropping the old one,
-so re-pointing an inc at the connection it already refers to cannot free
-it.  rds_inc_put() drops its reference through a local copy, since
-inc_free() may free the memory the inc lives in.
-
-This keeps a connection allocated for as long as messages that arrived
-over it are queued on sockets, which is longer than before but costs
-only the connection's memory: rds_conn_destroy() still quiesces the
-connection synchronously, so a lingering inc holds nothing running.
-
-The final rds_conn_put() runs the free path, which destroys the per-path
-workqueues and therefore may sleep, so the last reference has to be
-dropped from process context.  It always is.  While a connection is
-alive its hash-table entry holds the initial reference, so a put from a
-completion handler or tasklet can never be the last one; that reference
-is dropped by rds_conn_destroy(), from process context, after the
-connection has been quiesced and its queued messages freed.  The
-references that survive that point are the ones held by incs on socket
-receive queues and by messages on socket send queues, and those are
-dropped from recvmsg and from close - process context in both cases.
-
-This is not a stable candidate: reaching the use-after-free requires
-freeing a connection out from under a live socket, which needs
-CAP_SYS_MODULE, netns teardown or physical device removal, and the fix
-depends on the connection reference counting introduced earlier in this
-series.
-
-Based on Oracle UEK commit 99b9a3715419 ("net/rds: fix crash by
-expanding kref coverage to rds_incoming.i_conn").
-
-Reported-by: Chengfeng Ye <nicoyip.dev@gmail.com>
-Closes: https://lore.kernel.org/netdev/20260720184955.3008978-1-nicoyip.dev@gmail.com/
-Signed-off-by: Sharath Srinivasan <sharath.srinivasan@oracle.com>
-Signed-off-by: Samasth Norway Ananda <samasth.norway.ananda@oracle.com>
-[achender: port to net-next: same six assignment sites, but upstream
- splits the message free across rds_message_unpin_worker(), so the
- m_inc reference is dropped from a shared rds_message_free() helper
- that both paths call; rds_recv_incoming() takes the new reference
- before dropping the old; rewrite commit message]
-Assisted-by: Claude-Code:claude-opus-5
-Signed-off-by: Allison Henderson <achender@kernel.org>
----
- net/rds/message.c | 16 ++++++++++++++--
- net/rds/recv.c    | 21 ++++++++++++++++++++-
- net/rds/send.c    |  3 +++
- 3 files changed, 37 insertions(+), 3 deletions(-)
-
-diff --git a/net/rds/message.c b/net/rds/message.c
-index f25f2592586f..29e95028e61e 100644
---- a/net/rds/message.c
-+++ b/net/rds/message.c
-@@ -182,6 +182,18 @@ static void rds_message_purge(struct rds_message *rm)
- 		kref_put(&rm->atomic.op_rdma_mr->r_kref, __rds_put_mr_final);
- }
- 
-+static void rds_message_free(struct rds_message *rm)
-+{
-+	/* get in rds_send_queue_rm(), rds_send_probe() or the congestion
-+	 * map path of rds_send_xmit().  Messages that were never queued on
-+	 * a connection have no reference to drop.
-+	 */
-+	if (rm->m_inc.i_conn)
-+		rds_conn_put(rm->m_inc.i_conn);
-+
-+	kfree(rm);
-+}
-+
- static void rds_message_unpin_worker(struct work_struct *work)
- {
- 	struct rds_message *rm = container_of(work, struct rds_message,
-@@ -192,7 +204,7 @@ static void rds_message_unpin_worker(struct work_struct *work)
- 	if (rm->atomic.op_unpin_deferred)
- 		rds_atomic_op_unpin_page(&rm->atomic);
- 
--	kfree(rm);
-+	rds_message_free(rm);
- }
- 
- void rds_message_put(struct rds_message *rm)
-@@ -217,7 +229,7 @@ void rds_message_put(struct rds_message *rm)
- 			return;
- 		}
- 
--		kfree(rm);
-+		rds_message_free(rm);
- 	}
- }
- EXPORT_SYMBOL_GPL(rds_message_put);
-diff --git a/net/rds/recv.c b/net/rds/recv.c
-index 6204e577a90a..b031c0b43af8 100644
---- a/net/rds/recv.c
-+++ b/net/rds/recv.c
-@@ -46,6 +46,7 @@ void rds_inc_init(struct rds_incoming *inc, struct rds_connection *conn,
- {
- 	refcount_set(&inc->i_refcount, 1);
- 	INIT_LIST_HEAD(&inc->i_item);
-+	rds_conn_get(conn);	/* put in rds_inc_put() */
- 	inc->i_conn = conn;
- 	inc->i_conn_path = NULL;
- 	inc->i_saddr = *saddr;
-@@ -61,6 +62,7 @@ void rds_inc_path_init(struct rds_incoming *inc, struct rds_conn_path *cp,
- {
- 	refcount_set(&inc->i_refcount, 1);
- 	INIT_LIST_HEAD(&inc->i_item);
-+	rds_conn_get(cp->cp_conn);	/* put in rds_inc_put() */
- 	inc->i_conn = cp->cp_conn;
- 	inc->i_conn_path = cp;
- 	inc->i_saddr = *saddr;
-@@ -81,9 +83,19 @@ void rds_inc_put(struct rds_incoming *inc)
- {
- 	rdsdebug("put inc %p ref %d\n", inc, refcount_read(&inc->i_refcount));
- 	if (refcount_dec_and_test(&inc->i_refcount)) {
-+		struct rds_connection *conn = inc->i_conn;
-+
- 		BUG_ON(!list_empty(&inc->i_item));
- 
--		inc->i_conn->c_trans->inc_free(inc);
-+		/* inc_free() can free the memory @inc lives in, so the
-+		 * connection reference has to be dropped through the
-+		 * copy taken above.
-+		 */
-+		conn->c_trans->inc_free(inc);
-+		/* get in rds_inc_init(), rds_inc_path_init() or
-+		 * rds_recv_incoming()
-+		 */
-+		rds_conn_put(conn);
- 	}
- }
- EXPORT_SYMBOL_GPL(rds_inc_put);
-@@ -325,6 +337,13 @@ void rds_recv_incoming(struct rds_connection *conn, struct in6_addr *saddr,
- 	unsigned long flags;
- 	struct rds_conn_path *cp;
- 
-+	/* every caller initialized @inc with rds_inc_init() or
-+	 * rds_inc_path_init() first, so i_conn already holds a reference.
-+	 * Take the new one before dropping the old, so that re-pointing an
-+	 * inc at the connection it already refers to cannot free it.
-+	 */
-+	rds_conn_get(conn);
-+	rds_conn_put(inc->i_conn);
- 	inc->i_conn = conn;
- 	inc->i_rx_jiffies = jiffies;
- 	if (conn->c_trans->t_mp_capable)
-diff --git a/net/rds/send.c b/net/rds/send.c
-index 036a68372e2f..045eb3c3f977 100644
---- a/net/rds/send.c
-+++ b/net/rds/send.c
-@@ -290,6 +290,7 @@ int rds_send_xmit(struct rds_conn_path *cp)
- 			}
- 			rm->data.op_active = 1;
- 			rm->m_inc.i_conn_path = cp;
-+			rds_conn_get(cp->cp_conn);	/* put in rds_message_put() */
- 			rm->m_inc.i_conn = cp->cp_conn;
- 
- 			cp->cp_xmit_rm = rm;
-@@ -947,6 +948,7 @@ static int rds_send_queue_rm(struct rds_sock *rs, struct rds_connection *conn,
- 		/* The code ordering is a little weird, but we're
- 		   trying to minimize the time we hold c_lock */
- 		rds_message_populate_header(&rm->m_inc.i_hdr, sport, dport, 0);
-+		rds_conn_get(conn);	/* put in rds_message_put() */
- 		rm->m_inc.i_conn = conn;
- 		rm->m_inc.i_conn_path = cp;
- 		rds_message_addref(rm);
-@@ -1554,6 +1556,7 @@ rds_send_probe(struct rds_conn_path *cp, __be16 sport,
- 	list_add_tail(&rm->m_conn_item, &cp->cp_send_queue);
- 	set_bit(RDS_MSG_ON_CONN, &rm->m_flags);
- 	rds_message_addref(rm);
-+	rds_conn_get(cp->cp_conn);	/* put in rds_message_put() */
- 	rm->m_inc.i_conn = cp->cp_conn;
- 	rm->m_inc.i_conn_path = cp;
- 
--- 
-2.25.1
 
