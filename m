@@ -1,95 +1,131 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 464F04FECF2;
-	Fri,  4 Sep 2026 20:27:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA5AC3B635B
+	for <linux-rdma@vger.kernel.org>; Fri,  4 Sep 2026 23:00:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788553663; cv=none; b=hYqir7SGyOy2JYtLiuE7Z2p424NXnVo/2PC96RfkUBoIYtdecjw6mKYhtvZZs3ttlFFkeFXYMI/cO365TpaBgcTs0dPSHW1ukWWpKfvluCA60RShPhFAnl9LEAsxx+eN7//Kp+6w3aKOdHz9utEz0MES+nFm84wxBmPEpV12iHA=
+	t=1788562812; cv=none; b=qHaaQ/39eBFznqLsXuDo9c0gsosMwjqaJA2d0rZ9drUcbp9RZpTWgs8Cp47fXv2C3kGLXPjApIr1kd0S5tdGwhXn7VGMhDtB31zAvI9ZxIZ11ibB1YhGZrT86czDmW6oZHVVZMvf3Nf8wNm5EQI9g6v9I8ZGahfU2Ai0UOcXE00=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788553663; c=relaxed/simple;
-	bh=bVEKSvzw0dN9Fi8lwDSBwxTVPXdWFQOikJ8eH4oAuNM=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=bbwSx+71U8HEXenqKAnn6gHCpEmyAd158ihYjZm+xww088qZuqBkz+eU5m+XwqwQR9NwUIVQRTI/bbYnB1BQYErZal6tZb/zuqviRFH0ocCe4iVEtrpEyrTX/JX/w/MCjynxvPQNQqewgPst8c5gihV6EOcdORAJAHaqjFGbqNg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
-Received: by linux.microsoft.com (Postfix, from userid 1202)
-	id F259E20B7167; Fri,  4 Sep 2026 13:26:56 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com F259E20B7167
-From: Long Li <longli@microsoft.com>
-To: Long Li <longli@microsoft.com>,
-	Konstantin Taranov <kotaranov@microsoft.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	"David S . Miller" <davem@davemloft.net>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Eric Dumazet <edumazet@google.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	Haiyang Zhang <haiyangz@microsoft.com>,
-	"K . Y . Srinivasan" <kys@microsoft.com>,
-	Wei Liu <wei.liu@kernel.org>,
-	Dexuan Cui <decui@microsoft.com>,
-	shradhagupta@linux.microsoft.com,
-	Simon Horman <horms@kernel.org>,
-	ernis@linux.microsoft.com,
-	stephen@networkplumber.org,
-	shirazsaleem@microsoft.com
-Cc: netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	linux-hyperv@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	bpf@vger.kernel.org,
-	sdf@fomichev.me,
-	daniel@iogearbox.net,
-	hawk@kernel.org,
-	ast@kernel.org,
-	john.fastabend@gmail.com
-Subject: [PATCH net] net: mana: restore the XDP program pointer when pre-allocation fails
-Date: Fri,  4 Sep 2026 13:26:40 -0700
-Message-ID: <20260904202640.3900685-1-longli@microsoft.com>
-X-Mailer: git-send-email 2.43.7
+	s=arc-20240116; t=1788562812; c=relaxed/simple;
+	bh=byQkFS346xcxD6ACrFeFRWtIELFIMMfEEHW0OqbcdwA=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=XiyMf+bzGKsgMHRUQcTZYTPtGMLoflZJFZZBw3T/kDGnLhMoTLc4c0B7MWaIySPRpDQEP2ORxchdv80oB3i3EHlvAGWoTUy0f45SXlYNd37bLV5mzygXRuf8PwefHN/rw2Y9pfNGi8mg9h/ZKoNT89OSYiKtdsdgx2r2OauKQvo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=S7imRAI9; arc=none smtp.client-ip=198.175.65.20
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="S7imRAI9"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1788562810; x=1820098810;
+  h=date:from:to:cc:subject:message-id;
+  bh=byQkFS346xcxD6ACrFeFRWtIELFIMMfEEHW0OqbcdwA=;
+  b=S7imRAI95ociKGRRHzWxUH1sSVlEf2TXHUlg9VA27eZ/Wz+pOp39jYMW
+   lvQfsxrtvbIzdIfi4BBIXmlnp3mJlAa8VkyXdk/vXEj6SvqMMmnPfu6Sr
+   w8HLv4uNM8pjvDjY+M9vGWf8iJkz4ormiqUIeVV9fWE/cUZKeoXqWOsnp
+   agRcdezpFHowuiH8y6xZRfDJP1cF03IXpwNNMbklGXqAQm8Qw+pe+24Ff
+   kgSzr/J7NPWuc+xg1qHuT0F3gaJu3d3Iw0tO+SUG1dFLQ3DSmfLDyF7ZQ
+   BJcil9C6m2qIbnIObjhFEW2SgD4FmrE206jeIQ5eE2OeqrqOj+ceLXre2
+   A==;
+X-CSE-ConnectionGUID: s66veHRQSwGlVaHE7FXPjg==
+X-CSE-MsgGUID: IkAEtyFSTX6DBrIAvcnJgw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11896"; a="88832355"
+X-IronPort-AV: E=Sophos;i="6.25,262,1779174000"; 
+   d="scan'208";a="88832355"
+Received: from orviesa007.jf.intel.com ([10.64.159.147])
+  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Sep 2026 16:00:09 -0700
+X-CSE-ConnectionGUID: 3V83/fcwSrKSXzpupD+DMg==
+X-CSE-MsgGUID: 1XDvdaNARmGpvFmhwAnSMA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,262,1779174000"; 
+   d="scan'208";a="270133075"
+Received: from lkp-server01.sh.intel.com (HELO bfac249b2189) ([10.239.97.150])
+  by orviesa007.jf.intel.com with ESMTP; 04 Sep 2026 16:00:07 -0700
+Received: from kbuild by bfac249b2189 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1x2ctA-00000000AEk-21CD;
+	Fri, 04 Sep 2026 23:00:04 +0000
+Date: Sat, 05 Sep 2026 06:59:09 +0800
+From: kernel test robot <lkp@intel.com>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>,
+ Jason Gunthorpe <jgg+lists@ziepe.ca>, linux-rdma@vger.kernel.org
+Subject: [rdma:for-rc] BUILD SUCCESS
+ 3fb905f07ea45b31c8f67ba6e4668de46f527e65
+Message-ID: <202609050606.DRKKgVUA-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-mana_xdp_set() publishes the new program into apc->bpf_prog before it
-allocates anything, because mana_pre_alloc_rxbufs() sizes the buffers
-from it via mana_get_rxbuf_cfg(). When that allocation fails the
-function returns the error directly, skipping the err_dealloc_rxbuffs
-label which is the only place that restores the previous pointer.
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git for-rc
+branch HEAD: 3fb905f07ea45b31c8f67ba6e4668de46f527e65  RDMA/irdma: Enforce local fence for IB_WR_REG_MR
 
-The attach is reported as failed, so the BPF core drops the reference it
-held for the caller and the program can be freed, while apc->bpf_prog
-still points at it. The next consumer of mana_xdp_get() - typically
-mana_chn_setxdp() from mana_alloc_queues() on the following ifup, or
-after a TX timeout reset - then calls bpf_prog_add() on freed memory.
+elapsed time: 3250m
 
-This is reachable from an ordinary "ip link set dev ethX xdp obj ..."
-whenever the per-queue RX buffer pre-allocation cannot be satisfied.
+configs tested: 53
+configs skipped: 2
 
-Restore the previous program on that error path.
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-Fixes: 730ff06d3f5c ("net: mana: Use page pool fragments for RX buffers instead of full pages to improve memory efficiency.")
-Signed-off-by: Long Li <longli@microsoft.com>
----
- drivers/net/ethernet/microsoft/mana/mana_bpf.c | 1 +
- 1 file changed, 1 insertion(+)
+tested configs:
+alpha         allnoconfig    gcc-16.1.0
+alpha        allyesconfig    gcc-16.1.0
+arc          allmodconfig    clang-24
+arc           allnoconfig    gcc-16.1.0
+arc          allyesconfig    clang-24
+arm           allnoconfig    gcc-16.1.0
+arm          allyesconfig    clang-24
+arm64        allmodconfig    clang-24
+arm64         allnoconfig    gcc-16.1.0
+csky         allmodconfig    gcc-16.1.0
+csky          allnoconfig    gcc-16.1.0
+hexagon      allmodconfig    gcc-16.1.0
+hexagon       allnoconfig    gcc-16.1.0
+i386         allmodconfig    clang-22
+i386          allnoconfig    gcc-16.1.0
+i386         allyesconfig    clang-22
+loongarch    allmodconfig    clang-24
+loongarch     allnoconfig    gcc-16.1.0
+m68k         allmodconfig    gcc-16.1.0
+m68k          allnoconfig    gcc-16.1.0
+m68k         allyesconfig    clang-24
+microblaze    allnoconfig    gcc-16.1.0
+microblaze   allyesconfig    gcc-16.1.0
+mips         allmodconfig    gcc-16.1.0
+mips          allnoconfig    gcc-16.1.0
+mips         allyesconfig    gcc-16.1.0
+nios2        allmodconfig    clang-20
+nios2         allnoconfig    clang-24
+openrisc     allmodconfig    clang-20
+openrisc      allnoconfig    clang-24
+parisc       allmodconfig    gcc-16.1.0
+parisc        allnoconfig    clang-24
+parisc       allyesconfig    gcc-16.1.0
+powerpc      allmodconfig    gcc-16.1.0
+powerpc       allnoconfig    clang-24
+riscv        allmodconfig    clang-24
+riscv         allnoconfig    clang-24
+riscv        allyesconfig    clang-24
+s390          allnoconfig    clang-24
+s390         allyesconfig    gcc-16.1.0
+sh           allmodconfig    gcc-16.1.0
+sh            allnoconfig    clang-24
+sh           allyesconfig    gcc-16.1.0
+sparc         allnoconfig    clang-24
+sparc64      allmodconfig    clang-20
+um            allnoconfig    clang-24
+um           allyesconfig    gcc-16.1.0
+x86_64       allmodconfig    clang-22
+x86_64        allnoconfig    clang-24
+x86_64       allyesconfig    clang-22
+x86_64      rhel-9.4-rust    clang-22
+xtensa        allnoconfig    clang-24
+xtensa       allyesconfig    clang-20
 
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_bpf.c b/drivers/net/ethernet/microsoft/mana/mana_bpf.c
-index 53308e139cbe917b074dd381c83546fc74d7b79f..5c9961ee9747ab7747ce2f51eb40f3e7a55510cf 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_bpf.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_bpf.c
-@@ -208,6 +208,7 @@ static int mana_xdp_set(struct net_device *ndev, struct bpf_prog *prog,
- 		if (err) {
- 			NL_SET_ERR_MSG_MOD(extack,
- 					   "XDP: Insufficient memory for tx/rx re-config");
-+			apc->bpf_prog = old_prog;
- 			return err;
- 		}
- 
--- 
-2.43.0
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
