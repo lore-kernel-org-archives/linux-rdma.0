@@ -1,78 +1,78 @@
-Received: from mail-qt1-f226.google.com (mail-qt1-f226.google.com [209.85.160.226])
+Received: from mail-pj1-f100.google.com (mail-pj1-f100.google.com [209.85.216.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D1F54756DF
-	for <linux-rdma@vger.kernel.org>; Fri,  4 Sep 2026 10:52:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.226
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A03FE472088
+	for <linux-rdma@vger.kernel.org>; Fri,  4 Sep 2026 10:52:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.100
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788519145; cv=none; b=Ct4tIvbXbYZ7PNOmZMBW9x7kN8mkQiOOpH7VxLEnMijzmG23pdGo8F3xNZ7xEWxXhR3IDRyviAHnQKzqXW3gsIyOjR01QXRBOwgPjNSoh/kiJIBKfQjQRY93ZR8FLt/FXUUWUrbZfzmAuoEFf4th5fJmwhhg3Ph9TcaUbiC/MyY=
+	t=1788519155; cv=none; b=EpJwgfJLvz1RHVIscPevtW8uydsZUU03c9SamtkkbOjw711RLykhyagoSpDifsdL4wsq0AQOVfKuY/2q9ZfjsSGfM5nw+5+jek6nD7x76iVJbjHtIR0KGpLLeUIvfO9xomM6W659ZG19DSD14PwxO71Bd6W1ayXObI8g2lV8eKI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788519145; c=relaxed/simple;
-	bh=NCEZsl84HHiKcZvDUyy2UoV9CL6yoj9KYOuoXiClFsk=;
+	s=arc-20240116; t=1788519155; c=relaxed/simple;
+	bh=31EO+obuyVyJy7sDrrORj0J7yrJ18PO1XejkzTuAIG4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=JDYnJxeWPCHDfzykPZfQu+9jAD1sR/de+edaQszkz98hLnoaKAYwqTlDY8v4jKznBKUhplMqP9WGIt6xoRW2QtOJxQqSWPDyq2a+LJd/PnP7ZITVTU04BZqZsTAUZTY630ALwFE9Sw3F7AerQRCHxjXaf3At8CVdqfOu/jocOP0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=EHLe9DdO; arc=none smtp.client-ip=209.85.160.226
+	 MIME-Version; b=oBtRCM01/ciap2Jx7Bsc+F2xsMal1chZwaeQ7bRQjez1bJjDOySDV9s7pJiLo55L+yRuEchjlF8QgbBl2LKuW2kMb0N4wStUKzvMP5tUfj4OGZ8+AFjpjDdxkkIUpl6NBRxcJ2XA79I7yBTWCZqjy1FdrEk7uP4YqxNZdGS5Zos=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=IO12Vuhn; arc=none smtp.client-ip=209.85.216.100
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="EHLe9DdO"
-Received: by mail-qt1-f226.google.com with SMTP id d75a77b69052e-52f83889a93so12715481cf.2
-        for <linux-rdma@vger.kernel.org>; Fri, 04 Sep 2026 03:52:22 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="IO12Vuhn"
+Received: by mail-pj1-f100.google.com with SMTP id 98e67ed59e1d1-3990fe066ebso659125a91.1
+        for <linux-rdma@vger.kernel.org>; Fri, 04 Sep 2026 03:52:31 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788519142; x=1789123942;
+        d=1e100.net; s=20251104; t=1788519149; x=1789123949;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:dkim-signature:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=6MGbG+t89gZz/Gg0XOe1OiNev2BX7ANIyZVE4l7ZKwg=;
-        b=jvBMUldu6vTZT/6SHAqKhBimV+M4YVkYI4C+pjwJW9zeWc/wXXJGV59tJKu/GG5j3n
-         7QqIgeQmddECFWHXjlXlF7/WVbRdJdnGuQwnsKWdGs/EyVo2g5VBoUSYOXmVpwdEqcW7
-         BFGnpFQ+i+pCDRvEWa0NLMml2MnMoFeuJv6joDWXCDTcMeEEQGwspme86eoYF/SirEBc
-         ptEX9ZQpR5c+Ij7mBcBooZ9ea/8NXSPWLbfPaSmB4T1pYyyhTunA6vFp1vcsrAWTgxdP
-         OABPKpTczdF0RtL3awRndDt37ZyLhj/Ew838Z7pbbmwjFdfPicF6QcpPiK5OrYB+82BU
-         vy2w==
-X-Forwarded-Encrypted: i=1; AKwUvBxUg8JUuAcIqiLwjtCqlQCb8VsD/5odByyehuYjZE5OBwGtgyR9wh40IwUXutXIUQj3Oz1xf1HARsMm@vger.kernel.org
-X-Gm-Message-State: AFuF++mYOPq5a1s8erswq0IMSGlVbJuaUv9yVQ3ebCdUJaPZYvMUfSPv
-	99IZVtF1raziplzrNdMSLEOm5izVxzks+A6l/KK+s2mKch9h2iJVzde0bESS40+pGSE76H3tnpd
-	AzCCO3Wxwa2iErSq6Dfz7MuWteJYCuGiEMUIl/V0Ra/YUTmN2685GcII46/wmbQOS/G+B26h6QQ
-	6lwoEHbI3R3qQwYBI3+SEMbrROfFh/MT6n/YmqRS48wm2O+DMtaJ6JRXSql6d1m+lL2sXY8+Cng
-	QIo3G1q6dAf4lET4A==
-X-Gm-Gg: AYBFou3IVQHeyWFImkmfgFufPWDjW99doDNyAzQ17WX4T7XTUwPprIDhDBGwQJh1yaO
-	ScD3VeQiog88RSTX2mCtgc7tenACCyO7ks6emzdRqX9691AsegxqgWjAc7LdfMEknAqRRQdeCbJ
-	gvn9DZEOWSkVUo6zuwDzDiVDFGHWgiefXUCEjIl49ZlqCbO2hanMVPsymNIQmnFiw495wbeuXkx
-	iOzXxe45sBMsg+DECk+1fwT/GtKLMCC3SeWNzLZTPVI9ziDIjLihbA5PFk7J6PcShKqf0PpDeX6
-	cWjjyQPa6BLYOK9bsMcRlzqCfPKoHRZEx0DM9z0vSso1dVx3FRaplbjTVd6T0kc6TtUDlNLRDt4
-	xKWRkSfWrGyoP0qhZVi6OMtxIZdnmKHRCYQMZdPMku0VNYE9yF8KhW60sgQyTNsnwJcHG7ZuGSo
-	9fx7KP+qbbbnp4hiaxOWSsnXvJ/4TSG3yYKA==
-X-Received: by 2002:a05:622a:2616:b0:517:8d24:64d8 with SMTP id d75a77b69052e-5305482802cmr48822031cf.13.1788519141912;
-        Fri, 04 Sep 2026 03:52:21 -0700 (PDT)
+        bh=6Vh9JXE6CrP53vg0mGaWkyinhC/KwcpsssZ0zP5EyaQ=;
+        b=PZDDAZPR0VSyKn+d+RdeZ+mgeb52wv0SYl8HLNdXisLjMu5UksuT1L1hFm1DIsG4TZ
+         OsUCvrt191o7qVcE++0Jh9GWBgbWskJZiBDOQ63mNZSEQvxSk5ShVTWv2n4Dc2OM2JOG
+         f1zvcKt9WNPxg1j4NuPLFLsKtG54Ost3RLH+0CfYP6gnPLQrmLnpt1Czyy88hryCly6O
+         2EVPFX6EB3JTjGJLQDkDqWND/469WwX6D6x1BkaYwDUPeOj2OyAxOkc4PYxlFhnlhxsy
+         j4xgXnWlRYWR00daXGu7DcV7BmpfPFEH3vduQczQY82dgzvu44BlzSCsfaNOWvEc4LAN
+         /qDQ==
+X-Forwarded-Encrypted: i=1; AKwUvByhwCBVM/zDE2R65Yb/DUwtxSRvZKt92/oMr7hQTJR1HARNb1Pdn43jZ7FKhLSgkCW7rzxP+fhhoXV0@vger.kernel.org
+X-Gm-Message-State: AFuF++nyg//W7542HCqaAoM9OcKVywBzLgw9+7P6CElJWPl1WtBAVXfY
+	oSm+e0DEmA15D34gS+yGAGuW6YWj3onTJKBC6ZHAMY39ntrMDaMU4xO/kxsuxV2ZcrpK6fWMubE
+	0a9XV9+laEbaTzFrAiLwN1wUPwjIMrQhz1anrUVMWjE11sRyD36LJqf1T4FfBQZp9CroyRyKFGu
+	ghFjlfbk3GTY8qNvFHcOHGmxaODhcCGo3tExh16CA77Ii6yF/BBNs9B/nPITxLm/pwLE9K+AqvY
+	RcpR+zrIGt6in/93g==
+X-Gm-Gg: AYBFou0ZauL5R7xLrCKI/sFNt8y5VIwgeJP8KH1kX84vJGMx0znt52C/jLXlWkG3faD
+	L9fWJn5gSrSTYceC2BQYm+eXV2NTalMCJe/ykb2mH+oABKdYEIZleOZuq2NLJAHTPE/2JZDUFkw
+	rE804ARsycDQHLKdSXH0v29BZaeGbTtdIlY0prOqPgSm7UYUogjCMBFPaYS0uhG89b67OFLgVaZ
+	SshCSgoR6uzgPveI1EkB2hm7COWb5E7jcWrvFyC2YydNpjAj0yWWnoCK7h/BtAg2Ls0kGY4IWli
+	HJsZLrGBSAe/BGnGLA7HxdpWWSqg4xZ9TAlRp/uy3MlP1UCuQRjIwcooEI2PX957xc23oepcJqh
+	pFvmmw3Dslg6i8ZfBb60ZIRGn5N1axtAg6vlZrp18CnqPWITdKM4mWttR+jZ0U+l257d/RzXmkX
+	lNTX/FyNHN9RONQpl0bTz3RHzDyO7AlMULwQ==
+X-Received: by 2002:a17:90a:c10e:b0:398:c3ca:1ebc with SMTP id 98e67ed59e1d1-39b2622b3afmr7868641a91.18.1788519149261;
+        Fri, 04 Sep 2026 03:52:29 -0700 (PDT)
 Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-25.dlp.protect.broadcom.com. [144.49.247.25])
-        by smtp-relay.gmail.com with ESMTPS id d75a77b69052e-530541af7e5sm194101cf.28.2026.09.04.03.52.21
+        by smtp-relay.gmail.com with ESMTPS id 98e67ed59e1d1-39b16055f3fsm2546457a91.6.2026.09.04.03.52.28
         for <linux-rdma@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 04 Sep 2026 03:52:21 -0700 (PDT)
+        Fri, 04 Sep 2026 03:52:29 -0700 (PDT)
 X-Relaying-Domain: broadcom.com
 X-CFilter-Loop: Reflected
-Received: by mail-pj1-f71.google.com with SMTP id 98e67ed59e1d1-38f57e31b6eso1043374a91.1
-        for <linux-rdma@vger.kernel.org>; Fri, 04 Sep 2026 03:52:21 -0700 (PDT)
+Received: by mail-pj1-f70.google.com with SMTP id 98e67ed59e1d1-39906175917so1080772a91.2
+        for <linux-rdma@vger.kernel.org>; Fri, 04 Sep 2026 03:52:28 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1788519140; x=1789123940; darn=vger.kernel.org;
+        d=broadcom.com; s=google; t=1788519147; x=1789123947; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=6MGbG+t89gZz/Gg0XOe1OiNev2BX7ANIyZVE4l7ZKwg=;
-        b=EHLe9DdOmjnIuG515OuVErJVuRjQ4M+KgMJJpKv6/FlAz0yrQReTvOlyNtxN6amB0g
-         tZvP9sJXALKFS78GBRZ9nmKkKkovSvH0CP+361wUbdKD/byGyJoOQDRa8NAw//6GV5Hi
-         4Mi+C1EFaGnKlOkzphlb9RFbD5dthZLfSpqus=
-X-Forwarded-Encrypted: i=1; AKwUvBw3IN+BKFjFL5g7HjAlqXIb1KIzhunS+nPUhIs3ZGhwdj7JkhtmvuCgEiqVHn+gia1L6cpdNzkvyZEL@vger.kernel.org
-X-Received: by 2002:a17:90b:5289:b0:398:e96a:8999 with SMTP id 98e67ed59e1d1-39b261d0d83mr8637703a91.16.1788519140363;
-        Fri, 04 Sep 2026 03:52:20 -0700 (PDT)
-X-Received: by 2002:a17:90b:5289:b0:398:e96a:8999 with SMTP id 98e67ed59e1d1-39b261d0d83mr8637631a91.16.1788519139909;
-        Fri, 04 Sep 2026 03:52:19 -0700 (PDT)
+        bh=6Vh9JXE6CrP53vg0mGaWkyinhC/KwcpsssZ0zP5EyaQ=;
+        b=IO12Vuhn62j7/MyVhG/hF4wcDlmUsmuxO7RQeadJ2QKwVWE6wftqNLHvlTkE1n/Ox6
+         qgy5b0jwX3PGX1bkEvzm58lj/uXw54dPoZnU6cKElQzLBV182VbWr12QX35g8NcHmt5b
+         bRScRJ4eXJHCvyxh3qVTLkuM02JQ8cH18+kWA=
+X-Forwarded-Encrypted: i=1; AKwUvBwhqt/tRSaylSIMucc7mi0OUhJnRhbvg4LSo/OHfSee7zdHIFUBK+IeaVcm5aY/LoL1+e2jGIuXWbOz@vger.kernel.org
+X-Received: by 2002:a17:90b:4cce:b0:38f:240d:b857 with SMTP id 98e67ed59e1d1-39b260dd4e9mr8763705a91.2.1788519147567;
+        Fri, 04 Sep 2026 03:52:27 -0700 (PDT)
+X-Received: by 2002:a17:90b:4cce:b0:38f:240d:b857 with SMTP id 98e67ed59e1d1-39b260dd4e9mr8763623a91.2.1788519147004;
+        Fri, 04 Sep 2026 03:52:27 -0700 (PDT)
 Received: from mgmt5.dhcp.broadcom.net ([192.19.222.250])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3339a534d0asm6171170eec.8.2026.09.04.03.52.19
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3339a534d0asm6171170eec.8.2026.09.04.03.52.25
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 04 Sep 2026 03:52:19 -0700 (PDT)
+        Fri, 04 Sep 2026 03:52:25 -0700 (PDT)
 From: Siva Reddy Kallam <siva.kallam@broadcom.com>
 To: leonro@nvidia.com,
 	jgg@nvidia.com,
@@ -85,13 +85,11 @@ To: leonro@nvidia.com,
 Cc: netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
-	Sachin Holla <sachin.holla@broadcom.com>,
-	Siva Reddy Kallam <siva.kallam@broadcom.com>,
-	Vikas Gupta <vikas.gupta@broadcom.com>,
-	Dharmender Garg <dharmender.garg@broadcom.com>
-Subject: [PATCH 03/15] bnge: reserve TX/completion rings for the RoCE MPC channel
-Date: Fri,  4 Sep 2026 03:43:11 -0700
-Message-ID: <20260904104328.763768-4-siva.kallam@broadcom.com>
+	Usman Ansari <usman.ansari@broadcom.com>,
+	Siva Reddy Kallam <siva.kallam@broadcom.com>
+Subject: [PATCH 05/15] RDMA/bng_re: Add support verbs
+Date: Fri,  4 Sep 2026 03:43:13 -0700
+Message-ID: <20260904104328.763768-6-siva.kallam@broadcom.com>
 X-Mailer: git-send-email 2.43.5
 In-Reply-To: <20260904104328.763768-1-siva.kallam@broadcom.com>
 References: <20260904104328.763768-1-siva.kallam@broadcom.com>
@@ -104,97 +102,397 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 
-From: Sachin Holla <sachin.holla@broadcom.com>
+From: Usman Ansari <usman.ansari@broadcom.com>
 
-When RoCE is enabled, the bng_re driver allocates its own TX/CQ rings
-for the MPC control channel out of the same per-function FW ring pool.
-Enhanced bnge_reserve_rings() to account for this extra ring count to
-avoid pool overflow while allocating netdev rings.
+This patch adds below verbs.
+- bng_re_query_device
+- bng_re_modify_device
+- bng_re_query_fw_str
+- bng_re_query_port
+- bng_re_get_link_layer
+- bng_re_get_port_immutable
+- bng_re_process_mad
+- bng_re_query_pkey
 
-Signed-off-by: Sachin Holla <sachin.holla@broadcom.com>
+Signed-off-by: Usman Ansari <usman.ansari@broadcom.com>
 Signed-off-by: Siva Reddy Kallam <siva.kallam@broadcom.com>
-Reviewed-by: Vikas Gupta <vikas.gupta@broadcom.com>
-Reviewed-by: Dharmender Garg <dharmender.garg@broadcom.com>
 ---
- .../net/ethernet/broadcom/bnge/bnge_resc.c    | 32 ++++++++++++++++---
- 1 file changed, 28 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/bng_re/Makefile    |   3 +-
+ drivers/infiniband/hw/bng_re/bng_dev.c   |  16 ++
+ drivers/infiniband/hw/bng_re/bng_re.h    |  11 ++
+ drivers/infiniband/hw/bng_re/bng_sp.h    |   1 +
+ drivers/infiniband/hw/bng_re/bng_verbs.c | 200 +++++++++++++++++++++++
+ drivers/infiniband/hw/bng_re/bng_verbs.h |  30 ++++
+ include/uapi/rdma/bng_re-abi.h           |  12 ++
+ include/uapi/rdma/ib_user_ioctl_verbs.h  |   1 +
+ 8 files changed, 273 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/infiniband/hw/bng_re/bng_verbs.c
+ create mode 100644 drivers/infiniband/hw/bng_re/bng_verbs.h
+ create mode 100644 include/uapi/rdma/bng_re-abi.h
 
-diff --git a/drivers/net/ethernet/broadcom/bnge/bnge_resc.c b/drivers/net/ethernet/broadcom/bnge/bnge_resc.c
-index 4711dd4945ff..9dfb22b7c7c7 100644
---- a/drivers/net/ethernet/broadcom/bnge/bnge_resc.c
-+++ b/drivers/net/ethernet/broadcom/bnge/bnge_resc.c
-@@ -110,9 +110,24 @@ static u16 bnge_nqs_demand(struct bnge_dev *bd)
- 	return bd->nq_nr_rings + bnge_aux_get_msix(bd);
- }
+diff --git a/drivers/infiniband/hw/bng_re/Makefile b/drivers/infiniband/hw/bng_re/Makefile
+index ea0c6951728f..1b954a35993b 100644
+--- a/drivers/infiniband/hw/bng_re/Makefile
++++ b/drivers/infiniband/hw/bng_re/Makefile
+@@ -12,4 +12,5 @@ bng_re-y := \
+ 	bng_debugfs.o \
+ 	bng_fw.o \
+ 	bng_dev.o \
+-	bng_sp.o
++	bng_sp.o \
++	bng_verbs.o
+diff --git a/drivers/infiniband/hw/bng_re/bng_dev.c b/drivers/infiniband/hw/bng_re/bng_dev.c
+index ea6528e80ce3..05665c82b4e1 100644
+--- a/drivers/infiniband/hw/bng_re/bng_dev.c
++++ b/drivers/infiniband/hw/bng_re/bng_dev.c
+@@ -6,6 +6,7 @@
+ #include <linux/auxiliary_bus.h>
  
-+static u16 bnge_tx_rings_demand(struct bnge_dev *bd)
+ #include <rdma/ib_verbs.h>
++#include <rdma/bng_re-abi.h>
+ 
+ #include "bng_res.h"
+ #include "bng_sp.h"
+@@ -17,11 +18,26 @@
+ #include "bng_debugfs.h"
+ #include "bng_re_mpc_roce.h"
+ #include "bng_xid.h"
++#include "bng_verbs.h"
+ 
+ MODULE_AUTHOR("Siva Reddy Kallam <siva.kallam@broadcom.com>");
+ MODULE_DESCRIPTION(BNG_RE_DESC);
+ MODULE_LICENSE("Dual BSD/GPL");
+ 
++static const struct ib_device_ops bng_re_dev_ops = {
++	.owner			= THIS_MODULE,
++	.driver_id              = RDMA_DRIVER_BNG_RE,
++	.uverbs_abi_ver         = BNG_RE_ABI_VERSION,
++	.query_device		= bng_re_query_device,
++	.modify_device		= bng_re_modify_device,
++	.get_dev_fw_str		= bng_re_query_fw_str,
++	.query_port		= bng_re_query_port,
++	.get_link_layer		= bng_re_get_link_layer,
++	.get_port_immutable	= bng_re_get_port_immutable,
++	.process_mad		= bng_re_process_mad,
++	.query_pkey		= bng_re_query_pkey,
++};
++
+ static struct bng_re_dev *bng_re_dev_add(struct auxiliary_device *adev,
+ 					 struct bnge_auxr_dev *aux_dev)
+ {
+diff --git a/drivers/infiniband/hw/bng_re/bng_re.h b/drivers/infiniband/hw/bng_re/bng_re.h
+index d6fb205d9f12..4fa5db15625f 100644
+--- a/drivers/infiniband/hw/bng_re/bng_re.h
++++ b/drivers/infiniband/hw/bng_re/bng_re.h
+@@ -21,6 +21,14 @@
+ #define BNG_RE_MIN_MSIX		2
+ #define BNG_RE_MAX_MSIX		BNGE_MAX_ROCE_MSIX
+ 
++#define BNG_RE_PAGE_SHIFT_1G	(30)
++#define BNG_RE_MAX_MR_SIZE_LOW	BIT_ULL(BNG_RE_PAGE_SHIFT_1G)
++#define BNG_RE_MAX_MR_SIZE_HIGH	BIT_ULL(39)
++#define BNG_RE_MAX_MR_SIZE		BNG_RE_MAX_MR_SIZE_HIGH
++
++#define BNG_RE_DEFAULT_ACK_DELAY	16
++#define BNG_RE_PAGE_SIZE_SUPPORTED	0x7FFFF000 /* 4kb - 1G */
++
+ #define BNG_RE_CREQ_NQ_IDX	0
+ 
+ #define BNGE_INVALID_STATS_CTX_ID	-1
+@@ -250,6 +258,9 @@ struct bng_re_dev {
+ 	struct bng_mpc_ctx	*mpc;
+ };
+ 
++#define to_bng_re_dev(ptr, member)	\
++	container_of((ptr), struct bng_re_dev, member)
++
+ int bng_re_net_ring_alloc(struct bng_re_dev *rdev,
+ 			  struct bng_re_ring_attr *ring_attr,
+ 			  u16 *fw_ring_id);
+diff --git a/drivers/infiniband/hw/bng_re/bng_sp.h b/drivers/infiniband/hw/bng_re/bng_sp.h
+index 91faa5ac7464..4dac43540f54 100644
+--- a/drivers/infiniband/hw/bng_re/bng_sp.h
++++ b/drivers/infiniband/hw/bng_re/bng_sp.h
+@@ -24,6 +24,7 @@ struct bng_re_dev_attr {
+ 	u32				max_qp_rd_atom;
+ 	u32				max_qp_init_rd_atom;
+ 	u32				max_qp_wqes;
++	u32				max_sq_wqes;
+ 	u32				max_qp_sges;
+ 	u32				max_cq;
+ 	u32				max_cq_wqes;
+diff --git a/drivers/infiniband/hw/bng_re/bng_verbs.c b/drivers/infiniband/hw/bng_re/bng_verbs.c
+new file mode 100644
+index 000000000000..25996133c83d
+--- /dev/null
++++ b/drivers/infiniband/hw/bng_re/bng_verbs.c
+@@ -0,0 +1,200 @@
++// SPDX-License-Identifier: GPL-2.0
++// Copyright (c) 2026 Broadcom.
++
++#include <linux/interrupt.h>
++#include <linux/types.h>
++#include <linux/pci.h>
++#include <linux/io.h>
++#include <net/addrconf.h>
++#include <rdma/ib_cache.h>
++#include <rdma/ib_verbs.h>
++#include <rdma/ib_umem.h>
++#include <rdma/ib_pack.h>
++#include <rdma/ib_addr.h>
++#include <rdma/ib_mad.h>
++#include <rdma/uverbs_ioctl.h>
++#include <rdma/bng_re-abi.h>
++
++#include "bng_res.h"
++#include "bng_fw.h"
++#include "bnge.h"
++#include "bnge_auxr.h"
++#include "bng_re.h"
++#include "bng_verbs.h"
++
++int bng_re_query_device(struct ib_device *ibdev,
++			struct ib_device_attr *ib_attr,
++			struct ib_udata *udata)
 +{
-+	u16 tx_rings = bd->tx_nr_rings;
++	struct bng_re_dev *rdev = to_bng_re_dev(ibdev, ibdev);
++	struct bng_re_dev_attr *dev_attr = rdev->dev_attr;
 +
-+	if (bnge_is_roce_en(bd))
-+		tx_rings += 1; /* For MPC TX ring */
++	memset(ib_attr, 0, sizeof(*ib_attr));
++	memcpy(&ib_attr->fw_ver, dev_attr->fw_ver,
++	       min(sizeof(dev_attr->fw_ver),
++		   sizeof(ib_attr->fw_ver)));
++	addrconf_addr_eui48((u8 *)&ib_attr->sys_image_guid,
++			    rdev->netdev->dev_addr);
++	ib_attr->max_mr_size = BNG_RE_MAX_MR_SIZE;
++	ib_attr->page_size_cap = BNG_RE_PAGE_SIZE_SUPPORTED;
++	ib_attr->vendor_id = rdev->aux_dev->pdev->vendor;
++	ib_attr->vendor_part_id = rdev->aux_dev->pdev->device;
++	ib_attr->hw_ver = rdev->aux_dev->pdev->revision;
++	ib_attr->max_qp = dev_attr->max_qp;
++	ib_attr->max_qp_wr = dev_attr->max_sq_wqes;
++	ib_attr->device_cap_flags = IB_DEVICE_CURR_QP_STATE_MOD
++				    | IB_DEVICE_RC_RNR_NAK_GEN
++				    | IB_DEVICE_SHUTDOWN_PORT
++				    | IB_DEVICE_SYS_IMAGE_GUID
++				    | IB_DEVICE_RESIZE_MAX_WR
++				    | IB_DEVICE_PORT_ACTIVE_EVENT
++				    | IB_DEVICE_N_NOTIFY_CQ
++				    | IB_DEVICE_MEM_WINDOW
++				    | IB_DEVICE_MEM_WINDOW_TYPE_2B
++				    | IB_DEVICE_MEM_MGT_EXTENSIONS;
++	ib_attr->kernel_cap_flags = IBK_LOCAL_DMA_LKEY;
++	ib_attr->max_send_sge = dev_attr->max_qp_sges;
++	ib_attr->max_recv_sge = dev_attr->max_qp_sges;
++	ib_attr->max_sge_rd = dev_attr->max_qp_sges;
++	ib_attr->max_cq = dev_attr->max_cq;
++	ib_attr->max_cqe = dev_attr->max_cq_wqes;
++	ib_attr->max_mr = dev_attr->max_mr;
++	ib_attr->max_pd = dev_attr->max_pd;
++	ib_attr->max_qp_rd_atom = dev_attr->max_qp_rd_atom;
++	ib_attr->max_qp_init_rd_atom = dev_attr->max_qp_init_rd_atom;
++	ib_attr->atomic_cap = IB_ATOMIC_NONE;
++	ib_attr->masked_atomic_cap = IB_ATOMIC_NONE;
++	if (dev_attr->is_atomic) {
++		ib_attr->atomic_cap = IB_ATOMIC_GLOB;
++		ib_attr->masked_atomic_cap = IB_ATOMIC_GLOB;
++	}
++	ib_attr->max_ee_rd_atom = 0;
++	ib_attr->max_res_rd_atom = 0;
++	ib_attr->max_ee_init_rd_atom = 0;
++	ib_attr->max_ee = 0;
++	ib_attr->max_rdd = 0;
++	ib_attr->max_mw = dev_attr->max_mw;
++	ib_attr->max_raw_ipv6_qp = 0;
++	ib_attr->max_raw_ethy_qp = dev_attr->max_raw_ethy_qp;
++	ib_attr->max_mcast_grp = 0;
++	ib_attr->max_mcast_qp_attach = 0;
++	ib_attr->max_total_mcast_qp_attach = 0;
++	ib_attr->max_ah = dev_attr->max_ah;
++	ib_attr->max_srq = dev_attr->max_srq;
++	ib_attr->max_srq_wr = dev_attr->max_srq_wqes;
++	ib_attr->max_srq_sge = dev_attr->max_srq_sges;
++	ib_attr->max_fast_reg_page_list_len = MAX_PBL_LVL_1_PGS;
++	ib_attr->max_pkeys = 1;
++	ib_attr->local_ca_ack_delay = BNG_RE_DEFAULT_ACK_DELAY;
 +
-+	return tx_rings;
++	return 0;
 +}
 +
- static u16 bnge_cprs_demand(struct bnge_dev *bd)
- {
--	return bd->tx_nr_rings + bd->rx_nr_rings;
-+	u16 cprs = bd->tx_nr_rings + bd->rx_nr_rings;
++int bng_re_modify_device(struct ib_device *ibdev,
++			 int device_modify_mask,
++			 struct ib_device_modify *device_modify)
++{
++	ibdev_dbg(ibdev, "Modify device with mask 0x%x", device_modify_mask);
 +
-+	if (bnge_is_roce_en(bd))
-+		cprs += 1; /* For MPC CQ ring */
++	if (device_modify_mask & ~IB_DEVICE_MODIFY_NODE_DESC)
++		return -EOPNOTSUPP;
 +
-+	return cprs;
- }
- 
- static u16 bnge_get_avail_msix(struct bnge_dev *bd, int num)
-@@ -250,7 +265,7 @@ static bool bnge_need_reserve_rings(struct bnge_dev *bd)
- 	u16 nqs = bnge_nqs_demand(bd);
- 	u16 vnic;
- 
--	if (hw_resc->resv_tx_rings != bd->tx_nr_rings)
-+	if (hw_resc->resv_tx_rings != bnge_tx_rings_demand(bd))
- 		return true;
- 
- 	vnic = bnge_get_total_vnics(bd, rx);
-@@ -275,6 +290,7 @@ int bnge_reserve_rings(struct bnge_dev *bd)
- 	u16 nq = bd->nq_nr_rings;
- 	u16 aux_msix = 0;
- 	bool sh = false;
-+	u16 tx_demand;
- 	u16 tx_cp;
- 	int rc;
- 
-@@ -293,11 +309,12 @@ int bnge_reserve_rings(struct bnge_dev *bd)
- 		hwr.nq = bnge_nqs_demand(bd);
- 	}
- 
--	hwr.tx = bd->tx_nr_rings;
-+	tx_demand = bnge_tx_rings_demand(bd);
-+	hwr.tx = tx_demand;
- 	hwr.rx = bd->rx_nr_rings;
- 	if (bd->flags & BNGE_EN_SHARED_CHNL)
- 		sh = true;
--	hwr.cmpl = hwr.rx + hwr.tx;
-+	hwr.cmpl = bnge_cprs_demand(bd);
- 
- 	hwr.vnic = bnge_get_total_vnics(bd, hwr.rx);
- 
-@@ -327,6 +344,13 @@ int bnge_reserve_rings(struct bnge_dev *bd)
- 	if (hwr.stat > bnge_aux_get_stat_ctxs(bd))
- 		hwr.stat -= bnge_aux_get_stat_ctxs(bd);
- 	hwr.nq = min_t(u16, hwr.nq, hwr.stat);
-+	/* Drop MPC TX ring from L2 TX ring count; it is owned by RoCE driver */
-+	if (bnge_is_roce_en(bd)) {
-+		if (hwr.tx >= tx_demand)
-+			hwr.tx -= 1;
-+		else
-+			return -ENOMEM;
++	if (!(device_modify_mask & IB_DEVICE_MODIFY_NODE_DESC))
++		return 0;
++
++	memcpy(ibdev->node_desc, device_modify->node_desc, IB_DEVICE_NODE_DESC_MAX);
++
++	return 0;
++}
++
++void bng_re_query_fw_str(struct ib_device *ibdev, char *str)
++{
++	struct bng_re_dev *rdev = to_bng_re_dev(ibdev, ibdev);
++
++	sprintf(str, "%d.%d.%d.%d", rdev->dev_attr->fw_ver[0],
++		rdev->dev_attr->fw_ver[1], rdev->dev_attr->fw_ver[2],
++		rdev->dev_attr->fw_ver[3]);
++}
++
++int bng_re_query_port(struct ib_device *ibdev, u32 port_num,
++		      struct ib_port_attr *port_attr)
++{
++	struct bng_re_dev *rdev = to_bng_re_dev(ibdev, ibdev);
++	struct bng_re_dev_attr *dev_attr = rdev->dev_attr;
++	int rc;
++
++	memset(port_attr, 0, sizeof(*port_attr));
++
++	if (netif_running(rdev->netdev) && netif_carrier_ok(rdev->netdev)) {
++		port_attr->state = IB_PORT_ACTIVE;
++		port_attr->phys_state = IB_PORT_PHYS_STATE_LINK_UP;
++	} else {
++		port_attr->state = IB_PORT_DOWN;
++		port_attr->phys_state = IB_PORT_PHYS_STATE_DISABLED;
 +	}
++	port_attr->max_mtu = IB_MTU_4096;
++	port_attr->active_mtu = iboe_get_mtu(rdev->netdev->mtu);
++	port_attr->gid_tbl_len = dev_attr->max_sgid;
++	port_attr->port_cap_flags = IB_PORT_CM_SUP | IB_PORT_REINIT_SUP |
++				    IB_PORT_DEVICE_MGMT_SUP |
++				    IB_PORT_VENDOR_CLASS_SUP;
++	port_attr->ip_gids = true;
++
++	port_attr->max_msg_sz = (u32)BNG_RE_MAX_MR_SIZE_LOW;
++	port_attr->bad_pkey_cntr = 0;
++	port_attr->qkey_viol_cntr = 0;
++	port_attr->pkey_tbl_len = dev_attr->max_pkey;
++	port_attr->lid = 0;
++	port_attr->sm_lid = 0;
++	port_attr->lmc = 0;
++	port_attr->max_vl_num = 4;
++	port_attr->sm_sl = 0;
++	port_attr->subnet_timeout = 0;
++	port_attr->init_type_reply = 0;
++	rc = ib_get_eth_speed(&rdev->ibdev, port_num, &port_attr->active_speed,
++			      &port_attr->active_width);
++
++	return rc;
++}
++
++enum rdma_link_layer bng_re_get_link_layer(struct ib_device *ibdev, u32 port_num)
++{
++	return IB_LINK_LAYER_ETHERNET;
++}
++
++int bng_re_get_port_immutable(struct ib_device *ibdev, u32 port_num,
++			      struct ib_port_immutable *immutable)
++{
++	struct ib_port_attr port_attr;
++
++	if (bng_re_query_port(ibdev, port_num, &port_attr))
++		return -EINVAL;
++
++	immutable->pkey_tbl_len = port_attr.pkey_tbl_len;
++	immutable->gid_tbl_len = port_attr.gid_tbl_len;
++	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_ROCE;
++	immutable->core_cap_flags |= RDMA_CORE_CAP_PROT_ROCE_UDP_ENCAP;
++	immutable->max_mad_size = IB_MGMT_MAD_SIZE;
++
++	return 0;
++}
++
++int bng_re_query_pkey(struct ib_device *ibdev, u32 port_num,
++		      u16 index, u16 *pkey)
++{
++	if (index > 0)
++		return -EINVAL;
++
++	*pkey = IB_DEFAULT_PKEY_FULL;
++
++	return 0;
++}
++
++int bng_re_process_mad(struct ib_device *ibdev, int process_mad_flags,
++		       u32 port_num, const struct ib_wc *in_wc,
++		       const struct ib_grh *in_grh,
++		       const struct ib_mad *in_mad, struct ib_mad *out_mad,
++		       size_t *out_mad_size, u16 *out_mad_pkey_index)
++{
++	return IB_MAD_RESULT_FAILURE;
++}
+diff --git a/drivers/infiniband/hw/bng_re/bng_verbs.h b/drivers/infiniband/hw/bng_re/bng_verbs.h
+new file mode 100644
+index 000000000000..5875ec565ea4
+--- /dev/null
++++ b/drivers/infiniband/hw/bng_re/bng_verbs.h
+@@ -0,0 +1,30 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++// Copyright (c) 2026 Broadcom.
++
++#ifndef __BNG_RE_VERBS_H__
++#define __BNG_RE_VERBS_H__
++
++#include <linux/refcount.h>
++#include <rdma/ib_verbs.h>
++
++#include "bng_sp.h"
++#include "bng_re.h"
++
++int bng_re_query_device(struct ib_device *ibdev, struct ib_device_attr *ib_attr,
++			struct ib_udata *udata);
++int bng_re_modify_device(struct ib_device *ibdev, int device_modify_mask,
++			 struct ib_device_modify *device_modify);
++void bng_re_query_fw_str(struct ib_device *ibdev, char *str);
++int bng_re_query_port(struct ib_device *ibdev, u32 port_num,
++		      struct ib_port_attr *port_attr);
++int bng_re_get_port_immutable(struct ib_device *ibdev, u32 port_num,
++			      struct ib_port_immutable *immutable);
++int bng_re_query_pkey(struct ib_device *ibdev, u32 port_num, u16 index, u16 *pkey);
++enum rdma_link_layer bng_re_get_link_layer(struct ib_device *ibdev, u32 port_num);
++int bng_re_process_mad(struct ib_device *ibdev, int mad_flags,
++		       u32 port_num, const struct ib_wc *in_wc,
++		       const struct ib_grh *in_grh,
++		       const struct ib_mad *in_mad, struct ib_mad *out_mad,
++		       size_t *out_mad_size, u16 *out_mad_pkey_index);
++#endif /* __BNG_RE_VERBS_H__ */
++
+diff --git a/include/uapi/rdma/bng_re-abi.h b/include/uapi/rdma/bng_re-abi.h
+new file mode 100644
+index 000000000000..cea056dc8610
+--- /dev/null
++++ b/include/uapi/rdma/bng_re-abi.h
+@@ -0,0 +1,12 @@
++/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause) */
++/* Copyright (c) 2025 Broadcom */
++
++#ifndef __BNG_RE_UVERBS_ABI_H__
++#define __BNG_RE_UVERBS_ABI_H__
++
++#include <linux/types.h>
++#include <rdma/ib_user_ioctl_cmds.h>
++
++#define BNG_RE_ABI_VERSION	1
++
++#endif /* __BNG_RE_UVERBS_ABI_H__*/
+diff --git a/include/uapi/rdma/ib_user_ioctl_verbs.h b/include/uapi/rdma/ib_user_ioctl_verbs.h
+index 21f86cc7bb1f..d8ffeb6fbb4a 100644
+--- a/include/uapi/rdma/ib_user_ioctl_verbs.h
++++ b/include/uapi/rdma/ib_user_ioctl_verbs.h
+@@ -257,6 +257,7 @@ enum rdma_driver_id {
+ 	RDMA_DRIVER_ERDMA,
+ 	RDMA_DRIVER_MANA,
+ 	RDMA_DRIVER_IONIC,
++	RDMA_DRIVER_BNG_RE,
+ };
  
- 	/* Adjust the rings */
- 	rc = bnge_adjust_rings(bd, &rx_rings, &hwr.tx, hwr.nq, sh);
+ enum ib_uverbs_gid_type {
 -- 
 2.43.5
 
