@@ -1,30 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C0533932E1;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E5743AA9F8;
 	Fri,  4 Sep 2026 07:02:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788505371; cv=none; b=UgGb6eQumaHwBnC8FIhYJyQuvkDPsCbeMQrN1VjQVl8b6rpzGCC9rfUrMCb7hj0L+PsWG/ObCD0M0t+jp1U+FhS0TIn/2fpgfpj5VIZ/xTdLHsj9V3djzc2L/0QPCM0SkYreWy4ojSSA308FloTBpUmyHWdQUyCYzJISDzsTP98=
+	t=1788505372; cv=none; b=VomXgpytoiHYRayQpVliQtuvz9/2mtDIFW/2jACMT8BpOhAvHXXWcGH2uIX9Iyy33WX1oA9lLwK2TkcKwSfn8Q41t4iySTntuCqT3Io1fWc2N5ke5aZGTeHoWgS80pabGDYnIhx/cqKbY2J5tco0EMA2or8jyj2XHSRd3KXCmYI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788505371; c=relaxed/simple;
-	bh=2x0UUSQzfkPS1nfjFDYK4m0MbvWtWlQ74cxd6TmjI9Y=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=COTnStt0+42jRUcG7fY2+Ea7oD9CrgfwmbOadhi36jqNbks6rf8mbueEwti/tkubUgQzfuuedam+8LcPZxb9TZB5/oyD6VIwb4XI/HBqW5FLAbjiwrPPKIKtcRBGayzamirQnMHXGfecUb4xX0Q1vNBmNG7Wj1Y1ZB+5y93wNz8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kUA+CG1q; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788505372; c=relaxed/simple;
+	bh=PSPtmh0jznqMPWwWo5/dvyP91D0olB43iFwtupdgnUU=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=Hwpu4mx+oUXSbrI8c0q0J2zg+EmgFsAKEfJEMVBbB3a8C+OJj7CYYFZgW9n9+RFfF8zYWjjYlLHgmeQxnQ3Lk1KUW62DA8K0zjlX/VCM7+vWe+5sGbZPjdhXBQXauvQC0Jioc5IIbsyq9Q2aUAylcnVVzyUbPQmj9yod/YoTwSk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KXkB/BLB; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kUA+CG1q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 689DC1F00A3D;
-	Fri,  4 Sep 2026 07:02:49 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KXkB/BLB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 212C21F00A3E;
+	Fri,  4 Sep 2026 07:02:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788505369;
-	bh=anFcLtO6Ah4HidMYiPOW81QlmYKA4TzQgsqOVmRInhU=;
-	h=From:To:Cc:Subject:Date;
-	b=kUA+CG1qni2ieMxc9NYPQudcbHK8uU/d52L9ElFgbV+0r2VfDqqtJ0+cXRWDz2JuK
-	 VLTuMbU4/rG5DQrzvLZCB4mURzd7sRi+ZY8FfSr9+sPpYMxAh1h1BTLBHWjwk/Qd5P
-	 FReMbCU6l3QiVyK9o3fLTsX7vAeA0d8ZenM3723vDJMahsRi+vRHd8igpeH9xeUNGd
-	 zfx/PYvAfWDyqwJZkR7PdJGn9b/Tf8oQw4S2wr8rQSLE9hAy1lz1dd3eiUVZxFooOE
-	 +SQmnsFSITsSSK1I4iW5quf7C0R0ABTQ69svD+LIEE7DBtSLGRTIHXIKFSkRLkbHU0
-	 EfaJpy+xse9PQ==
+	s=k20260515; t=1788505370;
+	bh=Zk+q8ogaZVGiWtFXGz5hemisUGhKlb4NtYCvfPwQw0E=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=KXkB/BLB5o9wy0aoAjY0ybn4BZ4SqCaU1GLTzvBE7mhpb7aQHkrr93Lc8UhQOUN01
+	 xw1pXTu9VfjBP4jPUElBP29t1cRWHLUkgt+mDEbDepVv9DTrioDFKExbCh8hLyn+hb
+	 2m//S2b7t84inJVL5UAPzwyhUq587r7kDGeop4WDdLGkRL9aa1ldoqJU+pgc3gcuPX
+	 jLETuWVWlRy6R13rcIs5DqeQkTF9SpVCLefgsYXr4EmNyqM3pJnj89DKsASB4Kq8Ty
+	 L+qx3VT7KE0Na1O3jJFYOTWkWzZennR4RS7N3aNX6ujFtcgigojz6b7Wf3QWdtGZIh
+	 gZwK00aBLH1rA==
 From: Allison Henderson <achender@kernel.org>
 To: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
@@ -34,10 +35,12 @@ To: netdev@vger.kernel.org,
 	horms@kernel.org
 Cc: achender@kernel.org,
 	nicoyip.dev@gmail.com
-Subject: [PATCH net-next 0/6] net/rds: make connection lifetime reference-counted
-Date: Fri,  4 Sep 2026 00:02:42 -0700
-Message-Id: <20260904070248.160384-1-achender@kernel.org>
+Subject: [PATCH net-next 1/6] net/rds: make rds_destroy_pending() cover single-connection destroy
+Date: Fri,  4 Sep 2026 00:02:43 -0700
+Message-Id: <20260904070248.160384-2-achender@kernel.org>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20260904070248.160384-1-achender@kernel.org>
+References: <20260904070248.160384-1-achender@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -46,120 +49,137 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi all,
+rds_conn_destroy() cancels the path works and then destroys the
+per-path workqueue.  However, nothing currently stops the
+work-requeueing sites from queueing new work on the connection while
+that happens.  The existing code would suggest that this protection
+is supposed to come from rds_destroy_pending(), since all of those
+sites already guard the queueing with rds_destroy_pending() under
+rcu_read_lock(), and rds_conn_destroy() already issues a
+synchronize_rcu() after unhashing the connection.  But the predicate
+only tests for the two global teardown cases (netns destruction via
+check_net(), module unload via ->t_unloading).  Because the conn
+itself lacks any indication that a destroy is in progress, the
+predicate does not cover the destruction of a single connection
+outside these two cases.
 
-This set is the next stage of the RDS stabilization work, following
-"net/rds: own the fastpath locks across connection teardown", now
-net-next.  This series is targeted to net-next as well. Though the 
-series fixes real use-after-frees (one syzbot report and one report
-from Chengfeng Ye below), it does so by reworking connection lifetime,
-which is a substantial change.
+rds_conn_destroy() is not limited to the global paths: rds_ib
+destroys connections whose underlying IB device was removed
+(rds_ib_destroy_nodev_conns()) and connections whose peer negotiated
+an unsupported protocol version (rds_ib_cm_connect_complete()).
+While one of those runs, a concurrent rds_cong_queue_updates() can
+still find the connection on the congestion map's m_conn_list (the
+conn is only removed from it after the paths are torn down) and call
+queue_delayed_work() on a cp_wq that destroy_workqueue() has already
+freed.  Additionally, the other requeueing sites can likewise re-arm
+works that live in the about-to-be-freed connection unless
+rds_destroy_pending() has something to guard it with.
 
-rds_conn_destroy() frees the connection, its paths and its workqueues
-on the spot, relying on the documented assumption that "no one else is
-referencing the connection".  That assumption stopped being true a
-long time ago.  Connections are destroyed not only on rmmod but also
-on IB device removal and on protocol-version mismatch, while pointers
-to them still live in socket rs_conn caches, congestion-map conn
-lists, CM callbacks and workers, and - for as long as an application
-leaves data unread - in every rds_incoming sitting on a receive
-queue.  Each of those is a use-after-free waiting for its trigger, and
-no single Fixes: commit covers the rot, so the series carries
-Reported-by tags where there are concrete reports instead.
+The version-mismatch path used to be covered: commit c90ecbfaf50d2
+("rds: Use atomic flag to track connections being destroyed")
+introduced the RDS_DESTROY_PENDING cp_flags bit for exactly this, and
+after commit ebeeb1ad9b8ad ("rds: tcp: use rds_destroy_pending() to
+synchronize netns/module teardown and rds connection/workq management")
+it was set right before that rds_conn_destroy() call and
+tested via rds_ib_is_unloading().  Commit cdc306a5c9cd3 ("rds: make
+v3.1 as compat version") then removed the last set_bit while leaving
+the test behind, so the bit has been dead ever since and per-conn
+destroy has run unguarded.
 
-  Patch 1 gives the connection itself a destroy-in-progress marker so
-  that rds_destroy_pending() covers single-connection destroy, not
-  just the netns-teardown and module-unload cases.  Without it, the
-  work-requeueing sites can re-arm works on a connection whose
-  workqueues are about to be destroyed.
-  Based on UEK commits:
-     e2f5005adf63 net/rds: Add krefs to struct rds_connection
-     https://github.com/oracle/linux-uek/commit/e2f5005adf63
+Bring the protection back at the connection level, where it also
+covers the device-removal path that was never guarded: set
+conn->c_destroy_in_prog before the unhash + synchronize_rcu() sequence
+in rds_conn_destroy() and test it in rds_destroy_pending().  The
+existing rcu_read_lock() around every check-and-queue site pairs with
+that synchronize_rcu(): once it returns, every new reader observes the
+flag and refuses to queue, and anything queued before it is flushed or
+cancelled by the existing teardown.  Drop the now-unreferenced
+RDS_DESTROY_PENDING bit and its dead test.
 
-     6c53ef92f46e net/rds: Merge uses of conn->c_destroy_in_prog & RDS_DESTROY_PENDING
-     https://github.com/oracle/linux-uek/commit/6c53ef92f46e
+In the Oracle UEK kernel the equivalent conn->c_destroy_in_prog flag
+is part of the larger connection refcounting rework ("net/rds: Add
+krefs to struct rds_connection"), including ("net/rds: Merge uses of
+conn->c_destroy_in_prog & RDS_DESTROY_PENDING").  This ports the
+missing pieces of the requeue guard, which stand on their own.
 
-  Patch 2 splits rds_conn_destroy() into a quiesce phase and a
-  kref-governed free, so a connection with references still
-  outstanding stays allocated (quiesced, unhashed and unusable) until
-  the last reference is dropped.
-  Based on UEK commits:
-     2c8569e4c880 ("net/rds: Add krefs to struct rds_connection").
-     https://github.com/oracle/linux-uek/commit/2c8569e4c880
+Fixes: cdc306a5c9cd3 ("rds: make v3.1 as compat version")
+Suggested-by: Sharath Srinivasan <sharath.srinivasan@oracle.com>
+Assisted-by: Claude-Code:claude-fable-5
+Signed-off-by: Allison Henderson <achender@kernel.org>
+---
+ net/rds/connection.c | 8 ++++++++
+ net/rds/ib.c         | 5 +----
+ net/rds/rds.h        | 8 ++++++--
+ 3 files changed, 15 insertions(+), 6 deletions(-)
 
-  Patch 3 hands out real references everywhere a connection pointer
-  previously escaped bare: rds_conn_lookup(), __rds_conn_create()'s
-  return, the rs_conn sendmsg cache, and the parent's c_passive
-  pointer.
-  Based on UEK commits:
-     2c8569e4c880 ("net/rds: Add krefs to struct rds_connection")
-     https://github.com/oracle/linux-uek/commit/2c8569e4c880
-
-     0e9e3a72b7f7 ("net/rds: rds_sendmsg must use rs_conn only when not being destroyed").
-     https://github.com/oracle/linux-uek/commit/0e9e3a72b7f7
-
-  Patch 4 makes each transport's exit path wait for its own
-  connections to actually be freed before the module text goes away,
-  since the free - including the transport's conn_free - is now
-  asynchronous.
-  Based on UEK commits:
-     ece4b4e39afa ("net/rds: wait_event_timeout until zero connections during rmmod")
-     https://github.com/oracle/linux-uek/commit/ece4b4e39afa
-
-     905ec90e6166 ("net/rds: Each RDS transport should keep its own connection count")
-     https://github.com/oracle/linux-uek/commit/905ec90e6166
-
-  Patch 5 is the cleanup fallout of patch 4: the global rds_conn_count
-  has no remaining consumer besides a workqueue-name seed, so switch
-  the seed to the per-transport count and remove it.
-  Based on UEK commits:
-     905ec90e6166 ("net/rds: Each RDS transport should keep its own connection count").
-     https://github.com/oracle/linux-uek/commit/905ec90e6166
-
-  Patch 6 makes struct rds_incoming hold a reference on i_conn, which
-  is the fix for the KASAN use-after-free Chengfeng Ye reported [1],
-  where rds_info_getsockopt() walks a socket receive queue whose incs
-  point at connections rmmod already freed.
-  Based on UEK commits:
-      99b9a3715419 ("net/rds: fix crash by expanding kref coverage to rds_incoming.i_conn").
-      https://github.com/oracle/linux-uek/commit/99b9a3715419
-
-Patches 2, 3, 4 and 6 are ports of the connection kref work Sharath
-Srinivasan did for Oracle UEK, adapted to the upstream code.
-
-The series has been validated with the RDS selftests over both
-loopback-TCP and RXE-RDMA transports, plus targeted churn tests that
-delete network namespaces and unload the modules under live rds-stress
-traffic - the paths this series changes.
-
-[1] https://lore.kernel.org/netdev/20260720184955.3008978-1-nicoyip.dev@gmail.com/
-
-Allison
-
-
-Allison Henderson (2):
-  net/rds: make rds_destroy_pending() cover single-connection destroy
-  net/rds: drop rds_conn_count in favor of t_conn_count
-
-Sharath Srinivasan (4):
-  net/rds: split connection destroy into quiesce and kref-governed free
-  net/rds: hold connection references in lookup, sockets and c_passive
-  net/rds: wait for connections to be freed on transport unload
-  net/rds: hold a connection reference from struct rds_incoming
-
- net/rds/af_rds.c     |   8 ++
- net/rds/connection.c | 189 ++++++++++++++++++++++++++++++++++++++-----
- net/rds/ib.c         |  14 +++-
- net/rds/ib_cm.c      |   8 +-
- net/rds/loop.c       |   2 +
- net/rds/message.c    |  16 +++-
- net/rds/rds.h        |  25 +++++-
- net/rds/recv.c       |  21 ++++-
- net/rds/send.c       |  45 +++++++++--
- net/rds/tcp.c        |   1 +
- net/rds/tcp_listen.c |   5 +-
- 11 files changed, 297 insertions(+), 37 deletions(-)
-
+diff --git a/net/rds/connection.c b/net/rds/connection.c
+index b6c4beb50eaf..50e1b6bfceea 100644
+--- a/net/rds/connection.c
++++ b/net/rds/connection.c
+@@ -574,6 +574,14 @@ void rds_conn_destroy(struct rds_connection *conn)
+ 		 "%pI4\n", conn, &conn->c_laddr,
+ 		 &conn->c_faddr);
+ 
++	/* Make rds_destroy_pending() true for this conn.  Together with
++	 * the synchronize_rcu() below this stops the work-requeueing
++	 * sites (which all test rds_destroy_pending() under
++	 * rcu_read_lock()) from queueing new work on the path
++	 * workqueues once we start cancelling and destroying them.
++	 */
++	WRITE_ONCE(conn->c_destroy_in_prog, true);
++
+ 	/* Ensure conn will not be scheduled for reconnect */
+ 	spin_lock_irq(&rds_conn_lock);
+ 	hlist_del_init_rcu(&conn->c_hash_node);
+diff --git a/net/rds/ib.c b/net/rds/ib.c
+index 786f39169bc1..9fe3b9951bd3 100644
+--- a/net/rds/ib.c
++++ b/net/rds/ib.c
+@@ -525,10 +525,7 @@ static void rds_ib_set_unloading(void)
+ 
+ static bool rds_ib_is_unloading(struct rds_connection *conn)
+ {
+-	struct rds_conn_path *cp = &conn->c_path[0];
+-
+-	return (test_bit(RDS_DESTROY_PENDING, &cp->cp_flags) ||
+-		atomic_read(&rds_ib_unloading) != 0);
++	return atomic_read(&rds_ib_unloading) != 0;
+ }
+ 
+ void rds_ib_exit(void)
+diff --git a/net/rds/rds.h b/net/rds/rds.h
+index 2db49573dacd..cede2b03baa5 100644
+--- a/net/rds/rds.h
++++ b/net/rds/rds.h
+@@ -89,7 +89,6 @@ enum {
+ #define RDS_RECONNECT_PENDING	1
+ #define RDS_IN_XMIT		2
+ #define RDS_RECV_REFILL		3
+-#define	RDS_DESTROY_PENDING	4
+ 
+ /* Max number of multipaths per RDS connection. Must be a power of 2 */
+ #define	RDS_MPATH_WORKERS	8
+@@ -148,6 +147,10 @@ struct rds_connection {
+ 				c_pad_to_32:29;
+ 	int			c_npaths;
+ 	bool			c_with_sport_idx;
++	/* Set (under RCU) when rds_conn_destroy() starts on this conn;
++	 * read through rds_destroy_pending().
++	 */
++	bool			c_destroy_in_prog;
+ 	struct rds_connection	*c_passive;
+ 	struct rds_transport	*c_trans;
+ 
+@@ -994,7 +997,8 @@ void __rds_put_mr_final(struct kref *kref);
+ 
+ static inline bool rds_destroy_pending(struct rds_connection *conn)
+ {
+-	return !check_net(rds_conn_net(conn)) ||
++	return READ_ONCE(conn->c_destroy_in_prog) ||
++	       !check_net(rds_conn_net(conn)) ||
+ 	       (conn->c_trans->t_unloading && conn->c_trans->t_unloading(conn));
+ }
+ 
 -- 
 2.25.1
 
