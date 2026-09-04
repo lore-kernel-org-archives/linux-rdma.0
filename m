@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEF3F3EF640;
-	Fri,  4 Sep 2026 04:46:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 755D8404BC8;
+	Fri,  4 Sep 2026 04:46:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788497208; cv=none; b=ikI1RfixhOAxF86JtXVW8zbbEP4721r68W5y/9F5jj0+fmAEwnQKoCbK+xxQfx8WhD8afPWOsEy/+acEZrZk2hKdYU4nqzcAq8+1Yku0UgCx+skD9I9mQPrlYrFwZ0jmcC3OgZRQxcJ0KPY4kNA0g16TjKj0Ch+ZR8s8eIGEjNc=
+	t=1788497216; cv=none; b=FFqXXSxuoLC0+MLJLaCMvZiHJE/lfCguGFgEGDQX4sZozcEo/dn9eiVIo+0xemxG6QyyqJa1YPqrdo5Zo7fRSTW8LPsivo2UINfF8BAGQg2o2cIU4VYwhLvW7X0KkTAm4oSnXohpA6hnAkq8nd1eB8sQV4KeTK9cowfIHyGdFK8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788497208; c=relaxed/simple;
-	bh=PeJ9MQQ3/XiQZCe79kWYqmV4AjWMDibAzkfdeO/kszg=;
+	s=arc-20240116; t=1788497216; c=relaxed/simple;
+	bh=6QaXqzvy4fOyQUYzn5Jb5QYwLipI/02Z5mT+ns+ZJGY=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=ivlSxZv12E6UE0waPXyk/NS7u3rXVENCGpet34CQquBpfhRaJ1pzL0KXN+T4+JFX6embu1fmz7ilHekoGr8hxPfbwHC7RcR42oESWmRPuJ2erAPUwM7o5Ags+T8mFhU5G4FyRgKl+ZtCQRp48qI85jAfcZAOtXqVcZiz5jKMNfk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jRA6WOru; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=nuBRduWDPjSBnJBJObBkJUhUOQctZBabzXaQE+LSjS/ODCkP/SZULNSRctMOQD0g5dduGihHtOhieuE/A98CA98K4jtURAc6KixziY3umtGS0BAdq83j6WwdsWGiv5JTykKNYxI99yLlbl8p9lZYdWPLgb8Oj5m8H+aL9rsm29Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ezyylc34; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jRA6WOru"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3162C1F00A3F;
-	Fri,  4 Sep 2026 04:46:45 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ezyylc34"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13E561F00A3E;
+	Fri,  4 Sep 2026 04:46:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788497206;
-	bh=EVD33EPJ0lba6sumOJMm5i8lfYFjtvqAe3OIbYDG2Ow=;
+	s=k20260515; t=1788497208;
+	bh=XeHOhlquQFW7UEGANg5YhjOBiv+si49UrUHi497WpQo=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=jRA6WOrui5b0d8V9DREzOFr7yMsRsB/Cq1aXnS1V74+jDHMpUPVARZoXFJSOspAPq
-	 Mnp2DKnTsGwKLJqarIGqHLbiGe/gwnVldUEpqJD8VCRp98GRLAoizK0l9j4wjRuOFK
-	 lyTb/Zmpa+OS3NNA1WyYlxaF7fBj6eRlC86EfRPL1zKoo3cflek/6ilYv+GlxWfU0w
-	 poHtGbX6l2UU99ZHfEvSibwgh12yZG2ma7JCIwzDkO5q/rESi8onnBkFCSxgruBnoo
-	 3JAMS/qbR6+XX3ZITZo7apVUkSXC6HipwUYSGemPksjczfaUBlVai82d0HQ5ToYHSf
-	 avpWM0qTNdWBA==
-Subject: Re: [PATCH net-next v3 05/13] net: mana: swap queue sets in
- mana_set_priv_flags
+	b=ezyylc346iZY5AFi8Vee80r3Dlyt1eSSx24/B/yt8kCZIAxwlhx/I4OgFibpPhB5K
+	 nMz4izbCxWp4KJ2ueUXzzqx9nYuSVUPpxb19eQgoliGZFiJj4YKVuows3gF1+gP+se
+	 oNOzpqii8aFGH0hJgFMry4HoPSV+1I9OE1zv0FeYD3D4hdFEOX9Edioj4SZYhhKlBU
+	 nB2RHc9i+k98iAtaBRwVzBUugL7XJGZ+10SPNgV8qsriDu6JK7wu/50lNTz0/w7BKt
+	 8QdHxBpWFxS7WEa+aJwid9KdgmUHJCxMrEgXUX9X2MO5VahTPFDy+M4wutkPO+u0SC
+	 MSZjVjJOonSgw==
+Subject:
+ Re: [PATCH net-next v3 06/13] net: mana: swap queue sets in mana_change_mtu
 From: netdev-bot+sashiko@kernel.org
 To: longli@microsoft.com
 Cc: kotaranov@microsoft.com, kuba@kernel.org, davem@davemloft.net,
@@ -38,10 +38,10 @@ Cc: kotaranov@microsoft.com, kuba@kernel.org, davem@davemloft.net,
  shirazsaleem@microsoft.com, netdev@vger.kernel.org,
  linux-rdma@vger.kernel.org, linux-hyperv@vger.kernel.org,
  linux-kernel@vger.kernel.org
-Date: Fri, 04 Sep 2026 04:46:44 +0000
-Message-ID: <178849720471.4131868.3760536310056862823@kernel.org>
-In-Reply-To: <20260901014442.2945689-6-longli@microsoft.com>
-References: <20260901014442.2945689-6-longli@microsoft.com>
+Date: Fri, 04 Sep 2026 04:46:46 +0000
+Message-ID: <178849720665.4131868.15282701493753909076@kernel.org>
+In-Reply-To: <20260901014442.2945689-7-longli@microsoft.com>
+References: <20260901014442.2945689-7-longli@microsoft.com>
 X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -52,193 +52,121 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 2 potential
+Thank you for your contribution! Sashiko AI review found 1 potential
 issue(s) to consider:
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 1 (1)
+Critical: 0 · High: 0 · Medium: 1 · Low: 0
 
-- [Medium] Commit message describes a change the patch does not make:
-  "Scheduling queue_reset_work() on failure goes with it, leaving the TX…
-- [Low] Understated failure impact in the commit message: "a failure
-  returns the error with both the queues and the flag word untouched"…
-
-Pre-existing issues:
-- [Low] Claimed comment-vs-code mismatch: the kernel-doc comment on
-  struct mana_port_context::channel_changing states it is "Set by…
+- [Medium] `mana_change_mtu()` now builds a complete second queue set —
+  `mana_alloc_qset()` → `mana_create_txq()` + `mana_add_rx_queues()` on…
 
 --
 
-net: mana: swap queue sets in mana_set_priv_flags
+net: mana: swap queue sets in mana_change_mtu
 
-This converts the MANA_PRIV_FLAG_USE_FULL_PAGE_RXBUF toggle from an
-in-place detach/attach cycle into a pre-allocate-then-swap using
-mana_qset_scratch_alloc(), mana_alloc_qset(), mana_publish_qset() and
-mana_free_qset().  The flag value is passed into the new queue set instead
-of being written to apc->priv_flags before the rebuild, and the existing
-shortcuts (down port, jumbo MTU, attached XDP program) are folded into one
-condition.
+The MTU becomes part of the queue-set configuration, so mana_change_mtu()
+now pre-allocates a new queue set for the new MTU while the running set
+still serves traffic. ndev->mtu is published in mana_publish_qset() once
+the new set is live, instead of being written before mana_attach() and
+rolled back on failure.
 
-No Link: tags are present in the commit header.
-
-A couple of questions about the commit message and one note on an existing
-comment follow.
-
-The commit message says:
-
-    Scheduling queue_reset_work() on failure goes with it, leaving the TX
-    timeout handler as its only user.
-
-[Severity: Medium]
-Is this description accurate for this tree?
-
-The pre-patch mana_set_priv_flags() in mana_ethtool.c does not schedule
-queue_reset_work() at all - the removed code only calls
-mana_pre_alloc_rxbufs(), mana_detach(), mana_attach() and
-mana_pre_dealloc_rxbufs().  A grep for queue_reset_work at the parent
-revision matches only mana_en.c and mana.h, never mana_ethtool.c, so there
-appears to be nothing of that kind to remove here.
-
-After the patch, queue_reset_work() still has three queue_work() sites in
-mana_en.c:
-
-  mana_tx_timeout()
-        queue_work(ac->per_port_queue_reset_wq, &apc->queue_reset_work);
-
-  mana_dealloc_queues()
-        netdev_err(ac->ports[i],
-                   "queues reset by a sibling port, scheduling rebuild\n");
-        queue_work(ac->per_port_queue_reset_wq,
-                   &sib->queue_reset_work);
-
-  mana_free_qset()
-        netdev_err(scratch->ndev,
-                   "device reset while retiring a queue set, scheduling port reset\n");
-        queue_work(ac->per_port_queue_reset_wq,
-                   &sib->queue_reset_work);
-
-The last one is reached from the new success and publish-failure paths added
-by this patch, so is the TX timeout handler really the only user now?
-Could this paragraph be dropped or reworded?
-
-> diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-> index 24353dfddde3c..eab7df3fb888b 100644
-> --- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-> +++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-
-[ ... ]
-
-> @@ -882,54 +886,53 @@ static int mana_set_priv_flags(struct net_device *ndev, u32 priv_flags)
-
-[ ... ]
-
-> -		/* Block RDMA from grabbing the vport during detach/attach */
-> -		mutex_lock(&apc->vport_mutex);
-> -		apc->channel_changing = true;
-> +	/* Block RDMA from acquiring the vport for the duration. */
-> +	mutex_lock(&apc->vport_mutex);
-> +	if (apc->channel_changing) {
->  		mutex_unlock(&apc->vport_mutex);
-> +		return -EBUSY;
-> +	}
-> +	apc->channel_changing = true;
-> +	mutex_unlock(&apc->vport_mutex);
-
-[Severity: Low]
-This isn't a bug introduced by this patch, but the kernel-doc comment on
-channel_changing in struct mana_port_context (include/net/mana/mana.h) is
-getting further out of date:
-
-        /* Set by mana_set_channels() under vport_mutex to block RDMA
-         * from grabbing the vport during the detach/attach window.
-         * Checked by mana_cfg_vport() when called from the RDMA path.
-         */
-        bool channel_changing;
-
-It already named only mana_set_channels() at the baseline while
-mana_set_priv_flags() and mana_per_port_queue_reset_work_handler() also set
-the flag, and the region guarded here is now a pre-allocate/swap rather than
-a detach/attach window.  Would it make sense to refresh that comment along
-with this conversion?
-
-> -		err = mana_pre_alloc_rxbufs(apc, ndev->mtu, apc->num_queues);
-> -		if (err) {
-> -			netdev_err(ndev,
-> -				   "Insufficient memory for new allocations\n");
-> -			apc->priv_flags = old_priv_flags;
-> -			goto clear_flag;
-> -		}
-> +	scratch = mana_qset_scratch_alloc(apc);
-> +	if (!scratch) {
-> +		err = -ENOMEM;
-> +		goto clear_flag;
-> +	}
+> diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
+> index 880a3ba37fd3e..2c5aa5e5d1a11 100644
+> --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
+> +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
+> @@ -917,35 +917,49 @@ int mana_pre_alloc_rxbufs(struct mana_port_context *mpc, int new_mtu, int num_qu
+>  	return -ENOMEM;
+>  }
 >  
-> -		err = mana_detach(ndev, false);
-> -		if (err) {
-> -			netdev_err(ndev, "mana_detach failed: %d\n", err);
-> -			apc->priv_flags = old_priv_flags;
-> -			goto out;
-> -		}
-> +	err = mana_alloc_qset(apc, scratch, apc->num_queues, apc->rx_queue_size,
-> +			      apc->tx_queue_size, priv_flags, &newq);
-> +	if (err)
-> +		goto free_scratch; /* current qset and priv_flags untouched */
+> +/* ndev->mtu is updated only once the new set is live (mana_publish_qset), so
+> + * a failed allocation leaves the queues and the advertised MTU untouched.
+> + */
+>  static int mana_change_mtu(struct net_device *ndev, int new_mtu)
+>  {
+>  	struct mana_port_context *mpc = netdev_priv(ndev);
+> -	unsigned int old_mtu = ndev->mtu;
+> +	struct mana_port_context *scratch;
+> +	struct mana_qset newq, oldq;
+>  	int err;
 >  
-> -		err = mana_attach(ndev);
-> -		if (err) {
-> -			netdev_err(ndev, "mana_attach failed: %d\n", err);
-> -			apc->priv_flags = old_priv_flags;
-> -		}
-> +	err = mana_publish_qset(apc, &newq, &oldq);
-> +	if (err) {
-> +		mana_free_qset(scratch, &newq);
-> +		goto free_scratch;
+> -	/* Pre-allocate buffers to prevent failure in mana_attach later */
+> -	err = mana_pre_alloc_rxbufs(mpc, new_mtu, mpc->num_queues);
+> -	if (err) {
+> -		netdev_err(ndev, "Insufficient memory for new MTU\n");
+> -		return err;
+> +	/* Port is down: no queues to rebuild, just record the new MTU.
+> +	 * mana_open() will size the RX buffers accordingly.
+> +	 */
+> +	if (!mpc->port_is_up) {
+> +		mpc->configured_mtu = new_mtu;
+> +		WRITE_ONCE(ndev->mtu, new_mtu);
+> +		return 0;
 >  	}
 >  
-> -out:
-> -	mana_pre_dealloc_rxbufs(apc);
-> +	mana_free_qset(scratch, &oldq);
-> +
-> +free_scratch:
-> +	mana_publish_close_if_needed(apc);
-> +	mana_qset_scratch_free(scratch);
+> -	err = mana_detach(ndev, false);
+> -	if (err) {
+> -		netdev_err(ndev, "mana_detach failed: %d\n", err);
+> -		goto out;
+> -	}
+> +	scratch = mana_qset_scratch_alloc(mpc);
+> +	if (!scratch)
+> +		return -ENOMEM;
+>  
+> -	WRITE_ONCE(ndev->mtu, new_mtu);
+> +	err = mana_alloc_qset(mpc, scratch, mpc->num_queues,
+> +			      mpc->rx_queue_size, mpc->tx_queue_size,
+> +			      mpc->priv_flags, new_mtu, &newq);
+> +	if (err)
+> +		goto free_scratch; /* current qset and ndev->mtu untouched */
 
-[Severity: Low]
-The commit message states:
+[Severity: Medium]
+Can an MTU change now be refused at high channel counts where the old
+detach-then-attach sequence succeeded?
 
-    a failure returns the error with both the queues and the flag word
-    untouched
+mana_alloc_qset() here builds a complete second set on the scratch
+context, mana_alloc_qset()->mana_create_txq() plus
+mana_alloc_qset()->mana_add_rx_queues(), so num_queues firmware SQ/RQ WQ
+objects and their CQs come into existence while apc->tx_qp[] and
+apc->rxqs[] still own theirs on the same vport. The transient peak is
+2 * num_queues SQ/RQ objects, and twice the CQ count against
+gc->max_num_cqs / gc->cq_table.
 
-Does that hold for a failure inside mana_publish_qset()?
+mana_init_port() clamps the ceiling to what the vport actually offers:
 
-mana_publish_qset() can fail on mana_config_rss(), which is an HWC command
-and can fail on an unhealthy device.  Its rollback re-runs
-mana_config_rss(), and if that fails too it calls mana_publish_give_up():
+	max_queues = min_t(u32, max_txq, max_rxq);
+	if (apc->max_queues > max_queues)
+		apc->max_queues = max_queues;
+	if (apc->max_queues > gc->max_num_queues_vport)
+		apc->max_queues = gc->max_num_queues_vport;
 
-        apc->carrier_forced_off = netif_carrier_ok(apc->ndev);
-        netif_carrier_off(apc->ndev);
-        apc->publish_dead_end = true;
+and mana_set_channels() permits num_queues to reach that ceiling:
 
-mana_set_priv_flags() then reaches free_scratch and calls
-mana_publish_close_if_needed(apc) unconditionally, which does:
+	if (new_count < 1 || new_count > apc->max_queues) {
 
-        if (mana_dealloc_queues(apc->ndev))
-                netdev_err(apc->ndev,
-                           "failed to close the port after a failed rollback\n");
+So after "ethtool -L ens1 combined <max_queues>", does
+"ip link set dev ens1 mtu 9000" ask the firmware for one more SQ/RQ than
+the vport advertises? The RX-side DMA footprint doubles for the same
+window as well.
 
-So ethtool --set-priv-flags can return an error while the port is left
-closed with the carrier down until a manual down/up.  The flag word does
-look preserved (mana_qset_install() restores qset->priv_flags), so only the
-queues half of the claim seems affected.  Could the guarantee in the commit
-message be qualified for the dead-end rollback case?
+The design comment this series adds ahead of mana_qset_snapshot() says
+exactly that:
 
-> clear_flag:
->  	mutex_lock(&apc->vport_mutex);
->  	apc->channel_changing = false;
->  	mutex_unlock(&apc->vport_mutex);
-> -
->  	return err;
->  }
+ * and the vport is never torn down, so RDMA cannot take it mid-swap. The cost
+ * is room for both sets at once, so a rebuild at the vport's maximum queue
+ * count can be refused; EQs are shared from a port-owned pool, not doubled.
+
+The later patch "net: mana: keep the existing queues when the channel
+count is raised" avoids that peak for the channel-count path by carrying
+the existing queues over, but the MTU path still allocates a full second
+set, both here and at the end of the series (bf2a8b43). Would it be worth
+either applying a similar mitigation here or noting the new peak in the
+changelog?
+
+Failure itself looks graceful: mana_alloc_qset() tears down its partial
+set and the live queues and ndev->mtu are untouched, so the visible
+effect is the MTU change returning an error.
+
+[ ... ]
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260901014442.2945689-1-longli%40microsoft.com
