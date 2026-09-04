@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DE023F58E9;
-	Fri,  4 Sep 2026 04:46:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54B144078E9;
+	Fri,  4 Sep 2026 04:46:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788497216; cv=none; b=RpcYrINBpNZA5ZA8U9kOUwtes7y9/HHGhqdMZrl7bEdB0PSu96RJJt8iD1Jwe89tDFAwxWWisoC572FYgXktI7t4C9o5aAoaLLy2bqkeyctf6Tj1oOKRB6HrOJcJi4B1J56jNGInMdO4vnMNO+UuV75XEneAOf3q1mbAdFja6xA=
+	t=1788497217; cv=none; b=UycIOgrc8URXeUFiVpW0kZX2SYM2rIo/KV5Fc2boRXujLb2CqZs4nR4ZFvnYuDc/2q5MOhNnNTlDs6zRPcUEYntCDAvHVdJDCt9ZtrRdPJLq61rdAGOkZDgtZs6ex3Hb4vEHmMMGJ1VO0EDHmh8Y9nxBOde+FryaIeefezQQk/c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788497216; c=relaxed/simple;
-	bh=W56N4t6I4HjGQK1hogyVA+hHqypn6jpORLJu/xGKvZM=;
+	s=arc-20240116; t=1788497217; c=relaxed/simple;
+	bh=mrwkMv76ipxkle2wFg3ooQWmzwu38I0EWdmvFna7p1M=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=VP1puGAzFpmlFbwt+7ykatOucJjLVmnhrGfBkC4GfD5yZsbQXK6JkICaD2l0A4MwTTAmcouYX99faDzcPc77DgFTFb3O8HTtJL5fevv4WSWTkhgWsEqi4kDip6vthFppvRbOQaMGW7RtXzugAlrJl5WeQ9voSRgPRUaSeCpx/F4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MolYAJF5; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=ez2pc1ijrevTtq0hbTBdG+0Dz89dZK6ShoNant0jgl5MklORDRVy73D4X3wdUxUVz6CUabB8Q94WEQvp9aLjnmg8jX115OfkS7AAUx/m14gmSasaTPIg2zZOIOgJAXwf9RMOUNJUWgtsVayG3lXI6lSE/iSSR9lkPi3R6yU/QwA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hTlLqmAk; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MolYAJF5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FD431F00ACA;
-	Fri,  4 Sep 2026 04:46:54 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hTlLqmAk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD6651F00A3D;
+	Fri,  4 Sep 2026 04:46:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788497215;
-	bh=2kmFX9vwJvTT0sA2enn+IbDETQYPV/ns2zKHt9VF4pg=;
+	s=k20260515; t=1788497210;
+	bh=v1bVrfEOm8UTfaQGmsv6VhKXH9sLNH8eu1Wk0+4Sg3A=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=MolYAJF5kt5TxOu/gjrWrdozBoL6apBuUQAo1rygqDX6zdhHd5XRX/nb169sfhkLA
-	 4A2BKnFRcxAL6AgAfGM/7k5PjuUQEugLcd6Ox87MupsdWTiFhOu2uCnA5uOpVoWA7Q
-	 3z/DnAPZYQtIRYXk3PemHKISuL54WCsSMxJufnCFtUkQUzOtfpEQ3I947bIGMChfno
-	 myqP7vnP4UXhbsVAbJOxx9zw1sDNFMgEOiW24mHXh3B0J6E5dzmui0O2RjtB8iZ0jk
-	 8YfKhymDkwO1OKNJ6tG6w4ZSa1agKC9NQ4gF/G6IPGZs6HOTPKmbt3CQQXRtH/tURT
-	 aZI6mFXpht98w==
-Subject: Re: [PATCH net-next v3 10/13] net: mana: release EQs left idle by a
- channel-count reduction
+	b=hTlLqmAkRmpuCdnNBxDvbaYihvspAG7IGSqH0JJhsFFbErOMF6KP/wFIn4V9EuYYN
+	 VNsxIBjkQ72M0OrBizOZ9Fm2R54aS8B7ifXmKG4GIwbZc9B/kRDSHdafYq/Ibb5567
+	 V6zlO7I6ZGT3PwNSJp438/xWaUm1hHOqsf0SGIKbL6ciWQ320MwroJFF1ltHS+SBaS
+	 /+3FR3Ihmw9U6Nx95SZTSsxwzatuyNZTx8wQf+htwj/gQ4BMldi1Hz5uKBWzv9Ftml
+	 WPl8hh6HEqy2MOzfgd93PblNOyf90tWTlaJzRlLWuNTmghA+G13x40iGFEyUGLbqBG
+	 3zeUzCddOBz4g==
+Subject:
+ Re: [PATCH net-next v3 07/13] net: mana: swap queue sets in mana_xdp_set
 From: netdev-bot+sashiko@kernel.org
 To: longli@microsoft.com
 Cc: kotaranov@microsoft.com, kuba@kernel.org, davem@davemloft.net,
@@ -38,10 +38,10 @@ Cc: kotaranov@microsoft.com, kuba@kernel.org, davem@davemloft.net,
  shirazsaleem@microsoft.com, netdev@vger.kernel.org,
  linux-rdma@vger.kernel.org, linux-hyperv@vger.kernel.org,
  linux-kernel@vger.kernel.org
-Date: Fri, 04 Sep 2026 04:46:53 +0000
-Message-ID: <178849721360.4131868.16488957686392708957@kernel.org>
-In-Reply-To: <20260901014442.2945689-11-longli@microsoft.com>
-References: <20260901014442.2945689-11-longli@microsoft.com>
+Date: Fri, 04 Sep 2026 04:46:48 +0000
+Message-ID: <178849720830.4131868.15408619523737884191@kernel.org>
+In-Reply-To: <20260901014442.2945689-8-longli@microsoft.com>
+References: <20260901014442.2945689-8-longli@microsoft.com>
 X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -52,195 +52,125 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 3 potential
+Thank you for your contribution! Sashiko AI review found 1 potential
 issue(s) to consider:
 
-Critical: 0 · High: 0 · Medium: 0 · Low: 3
+Critical: 0 · High: 0 · Medium: 0 · Low: 1
 
-- [Low] Three comments (and the commit message) state a shrink
-  precondition that this patch itself violates, and one pre-existing…
-- [Low] mana_free_qset() gains a leading `struct mana_port_context *apc`
-  parameter (exported prototype in include/net/mana/mana.h plus eight…
-- [Low] Concern (assessed as a false positive): the commit lacks a Fixes:
-  trailer for the commit that made the grow-only EQ pool reachable.
+- [Low] The rewrite silently repairs a real, user-triggerable failure-
+  path bug in the code it replaces, without documenting it or carrying a…
 
 --
 
-net: mana: release EQs left idle by a channel-count reduction
+net: mana: swap queue sets in mana_xdp_set
 
-The shared EQ pool previously only grew, so a port kept the high-water mark
-of every channel count it had ever used. This adds mana_shrink_eqs() to
-release the EQs above the live queue count once a retiring set is gone, and
-fixes mana_create_eq_debugfs() to record the dentry in apc->eqs[i] so a
-single EQ's debugfs directory can be removed.
+The patch converts mana_xdp_set() from the detach/attach sequence to the
+pre-allocate-and-swap scheme, so the RX queues are rebuilt for the new
+buffer layout before anything live is touched. The XDP program becomes
+part of struct mana_qset so it is installed and rolled back together with
+the queues it was sized for.
 
-> diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-> index 69e34fab8fe8e..2295769da0306 100644
-> --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-> +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
+> diff --git a/drivers/net/ethernet/microsoft/mana/mana_bpf.c b/drivers/net/ethernet/microsoft/mana/mana_bpf.c
+> index e16ce2a071583..d2093625956bb 100644
+> --- a/drivers/net/ethernet/microsoft/mana/mana_bpf.c
+> +++ b/drivers/net/ethernet/microsoft/mana/mana_bpf.c
 
 [ ... ]
 
-> @@ -2084,6 +2085,37 @@ static int mana_grow_eqs(struct mana_port_context *apc, unsigned int need)
->  	return err;
->  }
+> @@ -198,46 +205,46 @@ static int mana_xdp_set(struct net_device *ndev, struct bpf_prog *prog,
+>  		return -EOPNOTSUPP;
+>  	}
 >  
-> +/* Release EQs above @keep, returning the MSI-X vectors freed. Only safe once
-> + * no set references them, i.e. after mana_free_qset(), or a live CQ would
-> + * point at a destroyed EQ.
-> + */
+> -	/* One refcnt of the prog is hold by the caller already, so
+> -	 * don't increase refcnt for this one.
+> -	 */
+> -	apc->bpf_prog = prog;
+> -
+>  	if (apc->port_is_up) {
+> -		/* Re-create rxq's after xdp prog was loaded or unloaded.
+> -		 * Ex: re create rxq's to switch from full pages to smaller
+> -		 * size page fragments when xdp prog is unloaded and
+> -		 * vice-versa.
+> -		 */
+> -
+> -		/* Pre-allocate buffers to prevent failure in mana_attach */
+> -		err = mana_pre_alloc_rxbufs(apc, ndev->mtu, apc->num_queues);
+> -		if (err) {
+> +		scratch = mana_qset_scratch_alloc(apc);
+> +		if (!scratch) {
+>  			NL_SET_ERR_MSG_MOD(extack,
+> -					   "XDP: Insufficient memory for tx/rx re-config");
+> -			return err;
+> +					   "XDP: Insufficient memory for re-config");
+> +			return -ENOMEM;
+>  		}
+>  
+> -		err = mana_detach(ndev, false);
+> +		err = mana_alloc_qset(apc, scratch, apc->num_queues,
+> +				      apc->rx_queue_size, apc->tx_queue_size,
+> +				      apc->priv_flags, apc->configured_mtu,
+> +				      prog, &newq);
+>  		if (err) {
+> -			netdev_err(ndev,
+> -				   "mana_detach failed at xdp set: %d\n", err);
+>  			NL_SET_ERR_MSG_MOD(extack,
+> -					   "XDP: Re-config failed at detach");
+> -			goto err_dealloc_rxbuffs;
+> +					   "XDP: Re-config failed at alloc");
+> +			mana_qset_scratch_free(scratch);
+> +			return err;
+>  		}
 
 [Severity: Low]
+Does this hunk quietly fix a failure-path bug in the code it replaces?
 
-This comment says a shrink is only safe after mana_free_qset(), and the
-commit message says the same:
+In the removed version, apc->bpf_prog was assigned before any allocation:
 
-  "Release the EQs above the live queue count once a retiring set has been
-  torn down. That is the only safe point"
+	apc->bpf_prog = prog;
 
-The same patch also calls mana_shrink_eqs() from mana_alloc_qset()'s
-out_err path, which is not after mana_free_qset().  Can the two be
-reconciled?
+	if (apc->port_is_up) {
+		err = mana_pre_alloc_rxbufs(apc, ndev->mtu, apc->num_queues);
+		if (err) {
+			NL_SET_ERR_MSG_MOD(extack,
+					   "XDP: Insufficient memory for tx/rx re-config");
+			return err;
+		}
 
-The rule that appears to hold at both sites is "no CQ of any set
-references eqs[keep..num_eqs-1]": mana_alloc_qset()'s out_err is reached
-either before any queue was built, or after mana_destroy_rxqs(scratch) and
-mana_destroy_txq(scratch) destroyed the CQs that attempt created.  Would
-stating that condition instead be more accurate, here and in
-mana_free_qset()'s "Safe here and only here" comment below?
+That early return skips the err_dealloc_rxbuffs label, which is the only
+place that restored the old pointer:
 
-Separately, the error exit of mana_grow_eqs() just above this new helper
-still reads:
+	err_dealloc_rxbuffs:
+		apc->bpf_prog = old_prog;
 
-	out:
-		/* Keep whatever was created: the running queue set still needs its
-		 * own EQs, and the extras are reused by the next attempt.
-		 */
-		return err;
+So on -ENOMEM from mana_pre_alloc_rxbufs() the attach is reported as failed
+to userspace, the BPF core drops the caller's reference, and apc->bpf_prog
+keeps pointing at the released program. A later mana_xdp_get() consumer such
+as mana_chn_setxdp() from mana_alloc_queues() (next ifup, or after a reset)
+would then bpf_prog_add() on that pointer.
 
-Since its only caller, mana_alloc_qset(), now runs
-mana_shrink_eqs(apc, apc->num_queues) on that same error return, is
-anything still kept for the next attempt?
+The new code leaves the live configuration alone until mana_alloc_qset() and
+mana_publish_qset() succeed, so the stale pointer can no longer happen.
 
-> +static void mana_shrink_eqs(struct mana_port_context *apc, unsigned int keep)
-> +{
-> +	struct gdma_context *gc = apc->ac->gdma_dev->gdma_context;
-> +	struct gdma_queue *eq;
-> +	unsigned int msi;
-> +	unsigned int i;
-> +
-> +	if (!apc->eqs || keep >= apc->num_eqs)
-> +		return;
-> +
-> +	for (i = keep; i < apc->num_eqs; i++) {
-> +		eq = apc->eqs[i].eq;
-> +		if (!eq)
-> +			continue;
-> +
-> +		debugfs_remove_recursive(apc->eqs[i].mana_eq_debugfs);
-> +		apc->eqs[i].mana_eq_debugfs = NULL;
-> +
-> +		msi = eq->eq.msix_index;
-> +		mana_gd_destroy_queue(gc, eq);
-> +		mana_gd_put_gic(gc, !gc->msi_sharing, msi);
-> +		apc->eqs[i].eq = NULL;
-> +	}
-> +
-> +	apc->num_eqs = keep;
-> +}
-> +
->  static int mana_fence_rq(struct mana_port_context *apc, struct mana_rxq *rxq)
->  {
->  	struct mana_fence_rq_resp resp = {};
+The commit message only mentions the queue swap and the window where queues
+ran without a program:
 
-> @@ -4319,6 +4351,13 @@ int mana_alloc_qset(struct mana_port_context *apc,
->  	kfree(scratch->rxqs);
->  	scratch->rxqs = NULL;
->  out_err:
-> +	/* Give back any EQ this attempt added to the shared pool rather than
-> +	 * holding its MSI-X vectors until some later teardown: the live set
-> +	 * still needs only apc->num_queues of them. Safe here because this
-> +	 * set's CQs have already been destroyed above.
-> +	 */
-> +	mana_shrink_eqs(apc, apc->num_queues);
-> +
->  	netdev_err(ndev, "%s(num_queues=%u) failed: %d\n", __func__,
->  		   num_queues, err);
->  	return err;
+    The program becomes part of the queue-set configuration, so it is
+    swapped atomically with the queues it was built for and restored by the
+    rollback path. Program references follow the same swap, so attaching no
+    longer leaves the queues briefly running without one.
 
-> @@ -4649,7 +4688,8 @@ static void mana_qset_debugfs_publish(struct mana_port_context *apc)
->  /* Tear down @qset, no longer installed on @apc, against @scratch so the live
->   * context never points at queues being freed.
->   */
-> -void mana_free_qset(struct mana_port_context *scratch, struct mana_qset *qset)
-> +void mana_free_qset(struct mana_port_context *apc,
-> +		    struct mana_port_context *scratch, struct mana_qset *qset)
->  {
->  	struct bpf_prog *retiring_prog;
->  	unsigned int retiring_queues;
+Could it also note the corrected failure behaviour? The defect appears to
+date back to 730ff06d3f5c ("net: mana: Use page pool fragments for RX
+buffers instead of full pages to improve memory efficiency."). Since this
+refactor is not backportable, would a separate minimal fix for net, or a
+Fixes tag, help stable triage here?
 
-[Severity: Low]
-
-Does the new apc parameter carry anything the function cannot already
-derive?  mana_qset_scratch_alloc() does *scratch = *apc, so
-netdev_priv(scratch->ndev) == apc for every one of the eight call sites,
-which is exactly what this patch relies on when it replaces
-mana_qset_debugfs_publish(netdev_priv(scratch->ndev)) with
-mana_qset_debugfs_publish(apc).
-
-The TX-drain-failure block inside the same function still has:
-
-	if (mana_drain_txqs(scratch)) {
-		...
-		struct mana_port_context *apc = netdev_priv(scratch->ndev);
-
-so that local now shadows the new parameter, which -Wshadow / W=2 builds
-will flag.
-
-Nothing verifies that a caller passes a matching (apc, scratch) pair, and a
-mismatched pair would let the mana_shrink_eqs() call below destroy another
-port's EQs.  Would dropping either the parameter or the inner declaration
-be preferable?
-
-The exported prototype in include/net/mana/mana.h changes with it - is that
-signature change worth a line in the commit message?
-
-> @@ -4745,12 +4785,19 @@ void mana_free_qset(struct mana_port_context *scratch, struct mana_qset *qset)
 >  
->  	memset(qset, 0, sizeof(*qset));
->  
-> +	/* This set is gone, so any EQ above the live queue count is now
-> +	 * unreferenced. Release those vectors instead of holding them at the
-> +	 * high-water mark. Safe here and only here: the retiring set's CQs
-> +	 * have just been destroyed.
-> +	 */
-> +	mana_shrink_eqs(apc, apc->num_queues);
-> +
->  	/* Queues built through a scratch context carry no debugfs nodes,
->  	 * because both sets are alive during the swap and would collide on
->  	 * the same names. The retiring set's nodes are gone now, so the
->  	 * published queues can finally take those names.
->  	 */
-> -	mana_qset_debugfs_publish(netdev_priv(scratch->ndev));
-> +	mana_qset_debugfs_publish(apc);
->  }
->  
->  /* --- end of pre-allocate + swap reconfiguration path ---------------------- */
-> diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
-> index 9a43856760776..140948b2b45d5 100644
-> --- a/include/net/mana/mana.h
-> +++ b/include/net/mana/mana.h
-> @@ -797,7 +797,8 @@ int mana_alloc_qset(struct mana_port_context *apc,
->  int mana_publish_qset(struct mana_port_context *apc, struct mana_qset *newq,
->  		      struct mana_qset *out_old);
->  void mana_publish_close_if_needed(struct mana_port_context *apc);
-> -void mana_free_qset(struct mana_port_context *scratch, struct mana_qset *qset);
-> +void mana_free_qset(struct mana_port_context *apc,
-> +		    struct mana_port_context *scratch, struct mana_qset *qset);
+> -		err = mana_attach(ndev);
+> +		err = mana_publish_qset(apc, &newq, &oldq);
+>  		if (err) {
 
-Both observations above are documentation and readability points; I did not
-find a path where either shrink call site touches an EQ that a live CQ
-still references.
+[ ... ]
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260901014442.2945689-1-longli%40microsoft.com
