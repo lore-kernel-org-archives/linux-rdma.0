@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 321EC40B0F7;
-	Fri,  4 Sep 2026 04:46:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2BFB4028EE;
+	Fri,  4 Sep 2026 04:47:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788497222; cv=none; b=uGL+lENnkZgQqFn+OrATyBdsfOKotyorT277v1Ye8/35RqiHWx8lE5Y0PBG+SdZB2LXPdRjEGQJGv+6yliKb2MuE18oUHqr3qhlY7+1/Y46Cd6taKiAXuux5241i+9ZA3tLI3b/B4zKfd17FVO/V2/YIrlDzLb9mruJavEDAUJE=
+	t=1788497223; cv=none; b=pE7ek7pIVvp7Z/w3LzbnSHPiV9x38BkEXFlSJmFisGMRu5j4dQ8LkfNSzDfUqEchl2atYZIxZOGjbCjrEH/+LCYImVqnjq8cc8FL1fl8u3qo3nsb2XYAbe3aEd48KbqyGklN4EkzTduVMRYd6JPIm56QyUZI/UeP1kgRChO4s9c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788497222; c=relaxed/simple;
-	bh=Ifu4+1U98z+2NuAZCZKtUkVz/xvsI50uK4KQ7FNqHlU=;
+	s=arc-20240116; t=1788497223; c=relaxed/simple;
+	bh=AwqOShEIJdBbQ699iE24FcsF3aS6M0VazuAXBEapsVw=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=uT4ixRBDSr8s2LivB9T4zN0KL9MuFXA0i9jX90ZP+NOjRrRUEGvGuRW4n7N6KW0VH5Q9NXqz26GGBDswFZFBsR4gPG3gJ3BIzxPnPkLSZQqNUWf4QRebGgFDwnz2iAL8bZFZOl/Ee9pgUpBEXqV8Ufgh8A9OgLArjz9QbQVNwEE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QhuQPxB7; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=U/YUpkPq3zylHukojy7BbMNHgZdkO6132PRRll15BYuOK9x/sI3GCZB7kpMjiT3jy4lHwny/bT1drB4xlRbXbXNtviN0ua+9f4z/QnVU2taC+/VYQ5tpwUCDKnCTUyYMQa2SePTGRTe9xrrOZ6sawvEOyc6CHRf8Jk+f7dVikm4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=R2D2XWFZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QhuQPxB7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C40971F00ACF;
-	Fri,  4 Sep 2026 04:46:55 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="R2D2XWFZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3666A1F00ACA;
+	Fri,  4 Sep 2026 04:46:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788497216;
-	bh=F2GiotPcOhKO759+SeFyJe8VEBH1J78CNf5rqAoLHQQ=;
+	s=k20260515; t=1788497220;
+	bh=w4ryqUQLjRQpK++qeuJJrLUfbYhyB5v+st0yHndw1MA=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=QhuQPxB7IOc+3G3Xj1JazfJwYRa37lkAh3EBEucICUpHMseu/uKb+JwB5q/VEgu/U
-	 ssp4O/j+HjM62JXJm0KU2n0v7ielHLCRQzvIAU26IoRRQCARXy5AowQSw7vXO/Qux4
-	 nM8k6qzVGy1srTQmF0H3fpuwFrvMuH3qCExrUEQ9KLZNXmJibWveDaMrhaFcnd3prH
-	 iMEqJgOgdjFa3uoi0kxXpGscVHSrSFwS+fulRNuPc/zQBE/T24LJiIoVjUEinAjniz
-	 JlhqZC6qaDHCVpTrd5O6tZTYGlwyrDdoCgAQGIRxxwLu5S9LdOZ7kpJJtfiye8F6gq
-	 jSlZA1yUOjYxg==
-Subject: Re: [PATCH net-next v3 11/13] net: mana: keep a user-configured RSS
- table across a queue rebuild
+	b=R2D2XWFZH1DR5/7gCVLAE0fBHJ8d5O9owxrNguHbK1/x2kyv9Bq2v4/F0lZhdzE54
+	 z5uJ77oas9pu2mxKTBcd2GhmSCPpUSiw/Tewm2lGkTuL6OBGyf2CvbawRu65aY31gM
+	 h83dWJaZ72Go5O27ETdrUDh4gIeQMGUa77AIM3eZe4/UcupLyrkq1fsuAvYdGDdQ/b
+	 zi7MGLlMaKjD99uayi5NRufcwYy7uzdHdcLSnqRde7xI2g+FWzM70g1P2beZI4xc7w
+	 k3x6NUA7rW1u+AMRXbTPA1BFUhnbxW1R7ehN40pWuDgyDr2f4arEE6g+gei794wfFT
+	 bSAmeNG1egGOw==
+Subject: Re: [PATCH net-next v3 13/13] net: mana: keep the existing queues
+ when the channel count is raised
 From: netdev-bot+sashiko@kernel.org
 To: longli@microsoft.com
 Cc: kotaranov@microsoft.com, kuba@kernel.org, davem@davemloft.net,
@@ -38,11 +38,11 @@ Cc: kotaranov@microsoft.com, kuba@kernel.org, davem@davemloft.net,
  shirazsaleem@microsoft.com, netdev@vger.kernel.org,
  linux-rdma@vger.kernel.org, linux-hyperv@vger.kernel.org,
  linux-kernel@vger.kernel.org
-Date: Fri, 04 Sep 2026 04:46:55 +0000
-Message-ID: <178849721538.4131868.12369566910595448575@kernel.org>
-In-Reply-To: <20260901014442.2945689-12-longli@microsoft.com>
-References: <20260901014442.2945689-12-longli@microsoft.com>
-X-sashiko-severity: Medium
+Date: Fri, 04 Sep 2026 04:46:58 +0000
+Message-ID: <178849721880.4131868.8845620290538329303@kernel.org>
+In-Reply-To: <20260901014442.2945689-14-longli@microsoft.com>
+References: <20260901014442.2945689-14-longli@microsoft.com>
+X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -52,166 +52,203 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 3 potential
+Thank you for your contribution! Sashiko AI review found 1 potential
 issue(s) to consider:
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 2
+Critical: 0 · High: 0 · Medium: 0 · Low: 1
 
-- [Medium] In mana_alloc_queues() the loss is reported before the driver
-  state it describes is updated: ethtool_rxfh_indir_lost(ndev) is called…
-- [Low] Commit message and the in-code comment describe a narrower rule
-  than the code implements.
-- [Low] The patch is a user-visible bug fix (a user-installed `ethtool
-  -X` indirection table was silently replaced by the driver default on…
+- [Low] Claim of latent double-free/use-after-free: the new helper
+  mana_destroy_txq_from()…
 
 --
 
-net: mana: keep a user-configured RSS table across a queue rebuild
+net: mana: keep the existing queues when the channel count is raised
 
-The patch stops mana from unconditionally regenerating the RSS indirection
-table when the queues are rebuilt, so a table installed with "ethtool -X"
-survives a reconfiguration.  A table that cannot be applied to the new
-queue count is reported to the core with ethtool_rxfh_indir_lost(), and for
-the swap path that report is deferred until the new set is live.
-
-A couple of questions below about the described condition, the missing
-Fixes: tag, and the ordering of the loss report in mana_alloc_queues().
-
-> Carry it over instead when the queue count is unchanged: the entries are
-> queue indices, so they stay meaningful.
-
-[Severity: Low]
-Is "when the queue count is unchanged" the condition the code actually
-implements?  mana_rss_table_keep() tests netif_is_rxfh_configured() plus a
-per-entry bounds check against the requested count:
-
-	if (!netif_is_rxfh_configured(apc->ndev))
-		return false;
-
-	for (i = 0; i < apc->indir_table_sz; i++) {
-		if (apc->indir_table[i] >= num_queues) {
-
-and mana_alloc_qset() passes the new count, which mana_set_channels() only
-reaches when new_count differs from apc->num_queues.
-
-So "ethtool -L" also carries a user table over now instead of rebuilding
-it.  Growing 4 -> 8 combined channels leaves every old entry in range, the
-table is copied verbatim, and the four new RX queues get no steered
-traffic.  mana_get_tx_queue() indexes apc->indir_table[] too, so the new TX
-queues stay unused as well until the user re-runs "ethtool -X".
-
-The semantics match what other drivers do (ice, mlx5, bnxt, idpf and others
-skip default regeneration when netif_is_rxfh_configured() is set), so could
-the changelog state the real predicate (entries still in range for the new
-count) and mention the "ethtool -L" effect?
-
-[Severity: Low]
-Should this carry a Fixes: tag?  In the baseline tree mana_alloc_queues()
-called mana_rss_table_init(apc) unconditionally, so every detach/attach
-cycle (reset recovery, resume, MTU/ringparam/channel/priv-flag/XDP
-reconfiguration) overwrote apc->indir_table with the driver default while
-the core kept IFF_RXFH_CONFIGURED set, since netif_is_rxfh_configured()
-reads dev->ethtool->rss_indir_user_size and the driver never cleared it.
-
-That is a user-visible loss of configuration, which makes this part a fix.
-The unconditional initialization came in with ca9c54d2d6a5 ("net: mana: Add
-a driver for Microsoft Azure Network Adapter (MANA)"), which also added
-mana_set_rxfh().  Would a Fixes: trailer, or splitting the
-mana_alloc_queues() change out as a standalone fix, be appropriate here?
+Growing the channel count now carries the running queues over and builds
+only the [old, new) tail, instead of building a full second queue set and
+discarding the old one. mana_alloc_qset() loses its num_queues argument
+since a count change goes through mana_split_qset() or the new
+mana_grow_qset(), and the self-recovery-on-resize-failure capability bit is
+advertised to the firmware.
 
 > diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-> index 2295769da0306..6769faada11bc 100644
+> index ae7c664bf76ef..67bfea57e6ed2 100644
 > --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
 > +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
 
 [ ... ]
 
-> @@ -3949,7 +3982,18 @@ int mana_alloc_queues(struct net_device *ndev)
->  		goto destroy_rxq;
+> @@ -2958,7 +2958,11 @@ static void mana_deinit_txq(struct mana_port_context *apc, struct mana_txq *txq)
+>  	mana_gd_destroy_queue(gd->gdma_context, txq->gdma_sq);
+>  }
+>  
+> -static void mana_destroy_txq(struct mana_port_context *apc)
+> +/* The array itself is left in place: the grow path tears down only a range,
+> + * and the queues below @first are still live and still referenced by it.
+> + */
+> +static void mana_destroy_txq_from(struct mana_port_context *apc,
+> +				  unsigned int first)
+>  {
+>  	struct napi_struct *napi;
+>  	int i;
+> @@ -2966,7 +2970,7 @@ static void mana_destroy_txq(struct mana_port_context *apc)
+>  	if (!apc->tx_qp)
+>  		return;
+>  
+> -	for (i = 0; i < apc->num_queues; i++) {
+> +	for (i = first; i < apc->num_queues; i++) {
+>  		if (!apc->tx_qp[i])
+>  			continue;
+>  
+> @@ -2991,6 +2995,14 @@ static void mana_destroy_txq(struct mana_port_context *apc)
+>  
+>  		kvfree(apc->tx_qp[i]);
 >  	}
->  
-> -	mana_rss_table_init(apc);
-> +	/* Keep a user-configured RSS table across a rebuild; the entries are
-> +	 * queue indices, so they stay meaningful as long as the queue count
-> +	 * is unchanged. Only a driver-generated table is regenerated here.
-> +	 *
-> +	 * Nothing to roll back to here, so report the loss as soon as it is
-> +	 * decided and keep the table and the core's view of it in step.
-> +	 */
-> +	if (!mana_rss_table_keep(apc, apc->num_queues, &indir_lost)) {
-> +		if (indir_lost)
-> +			ethtool_rxfh_indir_lost(ndev);
-> +		mana_rss_table_init(apc);
-> +	}
+> +}
 
-[Severity: Medium]
-Can this report the wrong table to userspace?  ethtool_rxfh_indir_lost() is
-not just a flag clear:
+[Severity: Low]
+This isn't a bug today, but should this loop clear the slot after the
+kvfree(), the way the RX sibling added in this same patch does?
 
-net/ethtool/common.c:ethtool_rxfh_indir_lost() {
-	...
-	dev->ethtool->rss_indir_user_size = 0;
-	ethtool_rss_notify(dev, ETHTOOL_MSG_RSS_NTF, 0);
-	...
-}
+The comment above mana_destroy_txq_from() says the array is deliberately
+left in place, and the loop guard is:
 
-That notification re-enters the driver synchronously:
+	if (!apc->tx_qp[i])
+		continue;
 
-ethtool_rss_notify()->ethnl_notify()->ethnl_default_notify()->
-  rss_prepare_data()->rss_prepare()->rss_prepare_get()
+but nothing sets apc->tx_qp[i] = NULL after kvfree(), so for the
+[first, num_queues) range that guard can no longer tell "already
+destroyed" from "live".
 
-net/ethtool/rss.c:rss_prepare_get() {
-	...
-	ret = ops->get_rxfh(dev, &rxfh);
-	...
-}
+mana_destroy_rxqs_from() does clear its slot:
 
-and mana_get_rxfh() copies apc->indir_table[] verbatim.  At that point
-mana_rss_table_init(apc) has not run yet, so the broadcast RSS_NTF carries
-the table that mana_rss_table_keep() just rejected (it has at least one
-entry >= apc->num_queues), and mana_config_rss() has not programmed
-anything.  No further notification is emitted once the default table is
-installed, so a listener caching notification state keeps the discarded
-table.
+	mana_destroy_rxq(apc, rxq, true);
+	apc->rxqs[rxq_idx] = NULL;
 
-Reachable in the documented case: mana_init_port() clamps apc->num_queues
-down to a smaller device-reported max after a reset, and a user table with
-a higher entry then makes mana_rss_table_keep() set *lost.
+I traced the three call sites and none of them re-reads a stale slot at the
+moment:
 
-Would swapping the two statements, so the loss is reported after
-mana_rss_table_init(apc), be better?  That matches the ordering of the
-other new call site, which reports only once the new set is live:
+  mana_destroy_txq()                 -> first == 0, immediately followed by
+                                        kfree(apc->tx_qp); apc->tx_qp = NULL;
+  mana_create_txq() out: (first != 0) -> caller mana_grow_qset() jumps to
+                                        cleanup_rss, skipping cleanup_rxq
+  mana_grow_qset() cleanup_rxq       -> falls into free_arrays, which just
+                                        kfree()s new_tx without walking it
 
-	if (newq->rxfh_indir_lost)
-		ethtool_rxfh_indir_lost(ndev);
+So the only thing keeping the tail from being torn down twice is the label
+choice in mana_grow_qset() below. Would a single store keep the two helpers
+symmetric and make that independent of the caller?
 
 >  
->  	err = mana_config_rss(apc, TRI_STATE_TRUE, true, true);
->  	if (err) {
+> +static void mana_destroy_txq(struct mana_port_context *apc)
+> +{
+> +	if (!apc->tx_qp)
+> +		return;
+> +
+> +	mana_destroy_txq_from(apc, 0);
+>  
+>  	kfree(apc->tx_qp);
+>  	apc->tx_qp = NULL;
 
 [ ... ]
 
-> @@ -4333,9 +4382,19 @@ int mana_alloc_qset(struct mana_port_context *apc,
->  	if (err)
->  		goto cleanup_rxq;
->  
-> -	mana_rss_table_init(scratch);
-> +	/* Carry a user-configured RSS table over to the new set. The entries
-> +	 * are queue indices, so mana_config_rss() in mana_publish_qset() maps
-> +	 * them onto the new set's RX objects. A driver-generated table is
-> +	 * rebuilt instead, so it covers every queue of the new set.
-> +	 */
-> +	if (mana_rss_table_keep(apc, num_queues, &indir_lost))
-> +		memcpy(scratch->indir_table, apc->indir_table,
-> +		       apc->indir_table_sz * sizeof(*apc->indir_table));
+> @@ -3164,7 +3185,10 @@ static int mana_create_txq(struct mana_port_context *apc,
+>  out:
+>  	netdev_err(net, "Failed to create %d TX queues, %d\n",
+>  		   apc->num_queues, err);
+> -	mana_destroy_txq(apc);
+> +	if (first)
+> +		mana_destroy_txq_from(apc, first);
 > +	else
-> +		mana_rss_table_init(scratch);
->  
->  	mana_qset_snapshot(scratch, out);
-> +	out->rxfh_indir_lost = indir_lost;
->  	return 0;
+> +		mana_destroy_txq(apc);
+>  	return err;
+>  }
+
+[Severity: Low]
+This is the first standalone caller of mana_destroy_txq_from(): it tears
+down [first, num_queues) and returns without freeing the container, so the
+freed-but-non-NULL pointers survive back into mana_grow_qset().
 
 [ ... ]
+
+> @@ -3569,6 +3599,11 @@ static void mana_destroy_rxqs(struct mana_port_context *apc)
+>  	}
+>  }
+>  
+> +static void mana_destroy_rxqs(struct mana_port_context *apc)
+> +{
+> +	mana_destroy_rxqs_from(apc, 0);
+> +}
+> +
+
+[ ... ]
+
+> @@ -4454,13 +4489,161 @@ void mana_discard_split(struct mana_qset *newq, struct mana_qset *tailq)
+
+[ ... ]
+
+> +	err = mana_create_txq(scratch, ndev, old_count);
+> +	if (err)
+> +		goto cleanup_rss; /* create_txq already undid its own work */
+> +
+> +	err = mana_add_rx_queues(scratch, ndev, old_count);
+> +	if (err)
+> +		goto cleanup_rxq;
+
+[Severity: Low]
+Related to the comment on mana_destroy_txq_from(): correctness here rests
+entirely on this goto targeting cleanup_rss rather than cleanup_rxq.
+
+If a later change routed the mana_create_txq() failure to cleanup_rxq
+instead, mana_destroy_txq_from(scratch, old_count) would run a second time
+over the tail slots that mana_create_txq()'s out: path already kvfree()d,
+re-running napi_disable_locked() / cancel_work_sync() on freed memory.
+
+Is that invariant worth making explicit, either with the NULL store in the
+helper or a note at this label?
+
+[ ... ]
+
+> +cleanup_rxq:
+> +	mana_destroy_rxqs_from(scratch, old_count);
+> +	mana_destroy_txq_from(scratch, old_count);
+> +cleanup_rss:
+> +	mana_cleanup_indir_table(scratch);
+> +free_arrays:
+> +	/* Only the containers: every queue they name is still live on @apc. */
+> +	scratch->tx_qp = NULL;
+> +	scratch->rxqs = NULL;
+> +	kfree(new_tx);
+> +	kfree(new_rx);
+> +	kfree(fresh_tx);
+> +	kfree(fresh_rx);
+
+[ ... ]
+
+> @@ -4861,7 +5037,7 @@ int mana_publish_qset(struct mana_port_context *apc, struct mana_qset *newq,
+>   * Idempotent: a carried-over queue keeps its node; suppressed creation leaves
+>   * an error pointer, not NULL, so both read as "no node". Under RTNL.
+>   */
+> -static void mana_qset_debugfs_publish(struct mana_port_context *apc)
+> +void mana_qset_debugfs_publish(struct mana_port_context *apc)
+>  {
+>  	unsigned int i;
+>  
+
+[Severity: Low]
+One more consumer of the same convention, now that this is no longer
+static:
+
+	if (apc->tx_qp && apc->tx_qp[i] &&
+	    IS_ERR_OR_NULL(apc->tx_qp[i]->mana_tx_debugfs))
+
+It treats any non-NULL tx_qp[i] as live and dereferences it. I confirmed it
+cannot be reached with a stale array today, because every grow-failure path
+frees the container without publishing it, and after a failed
+mana_publish_qset() the rollback reinstalls the original apc->tx_qp.
+
+Does relying on that reachability argument, rather than on the slot being
+cleared, seem like the right long-term contract for the helper?
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260901014442.2945689-1-longli%40microsoft.com
