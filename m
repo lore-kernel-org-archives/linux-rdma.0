@@ -1,50 +1,43 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC4BB2F28EA;
-	Sun,  6 Sep 2026 14:02:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30A1A332906;
+	Sun,  6 Sep 2026 14:44:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788703347; cv=none; b=ifyY3j7PjnbuCzmKX0yQuvXdzn3l8aMa8RV+Sekgy6xQBV31Cu7SFP2oitTQZ8Lv3OYopMVEiyi9aF64fQjHWakBRONHdF6/1NzeiQLlP4X23Qr2xyKXBXmC2PUw20fW9pTca6yhuT2hjJ/TBsiuvoMzkw2Iht3IdPN6PGIZdS4=
+	t=1788705844; cv=none; b=Qpc1Uy/zVQcHEybmyXH/W5HWxQwH0j61EgJBSrxGs8dUpiKCN6Otko0hjqYhXIv24dfhdcjokJxm0me5n7H1ZVgoz5fnrg4OE6FTdHWnPZ2YWde2UTto4s7mLc4Lo6cvgtEUfYfN+HltC137kKQxExHHZsbvGfzAcuGuoCHKapA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788703347; c=relaxed/simple;
-	bh=m4X/qxNbi5DcgokuXTbaLgnScflV54NCxGlaOr5BYog=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=sDiKPAEEssM1j8fPlThrinWOGMIZVwXt0004kdxVVQKpzKhLE4Qjc2+1NIX04Pf8hDFqmLdQEV0+Ql5nUUlR2iTHbgzDM/Lrl3LQgP7VdgQmr8OpOucOjocBi0hc9Ziwipdss3udX5YrwsjxaEUSSS8C4QnActCHdlnN2FIAaUU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GmtJ4cEa; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788705844; c=relaxed/simple;
+	bh=f6E14dPxs9/EdiAyv7Qjb8W4Xupsto9s8SfquMix/dw=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=JTaIHfvpj+0c2qiUokMB49bXZM7g6h2GnRoXUKg0962KCBF62Hv6ckniaFiNaTF/DBDdYfZgEoXKxhvcut5CCSBn04Ao/kWqcEiw5zcdWMrjyYlf8gjXAfj6ud1JBhCVHoZT3a56FauzlPBpApxQnXtt+5IE8Ib9F3Nubtk015s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZqGEkiyX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GmtJ4cEa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0F3E1F00A3A;
-	Sun,  6 Sep 2026 14:02:24 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZqGEkiyX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 832751F00A3A;
+	Sun,  6 Sep 2026 14:44:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788703346;
-	bh=S8NZJkDhSbWcg/zqEMAu07Aymn+Ww7scUyc2kjcPZ8I=;
+	s=k20260515; t=1788705842;
+	bh=FhBvWn5zlBVcn4zzysQ5WRpXl36PT0HjiqVbtNJef5g=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=GmtJ4cEaFQky9q89CCrrW3M6THul8DmpcMe1FumeHcq4bxnu/uNJJRh1QBgQZ516s
-	 sfuBlxJckHl83CEzvsX6+wa0hERbPYsJnmavRRcJUziWKEKoe9tdNiUrQMTgSRTb63
-	 VTJ+fweg8X6eNxh+upzc6AwLXzEbHTIUWRF25qbcfXbhDVLsy36gfMX5x+kYfi2SxU
-	 YPMJ3QIJY2+91if9+QdRpc76BK/crgiOw+ZNxeFNwNRIFH9wq0PCCA1V/4fxS1F8kg
-	 irIAFVOnUv7n9hZNc+wEUCgdobRAOTgY4fAWgNJg3vik3bQDvLvnv48Uggxp4r0Uky
-	 OIFNA/4bppocA==
-Subject: Re: [PATCH net-next, v3] net/mlx5: Use dma_wmb() for completion queue
- doorbell updates
-From: netdev-bot+sashiko@kernel.org
-To: lirongqing@baidu.com
-Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
- andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
- kuba@kernel.org, pabeni@redhat.com, ast@kernel.org, daniel@iogearbox.net,
- hawk@kernel.org, john.fastabend@gmail.com, sdf@fomichev.me, borisp@nvidia.com,
- richardcochran@gmail.com, cratiu@nvidia.com, dtatulea@nvidia.com,
- cjubran@nvidia.com, kees@kernel.org, agoldberger@nvidia.com, horms@kernel.org,
- netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
- linux-kernel@vger.kernel.org, bpf@vger.kernel.org
-Date: Sun, 06 Sep 2026 14:02:24 +0000
-Message-ID: <178870334429.219967.11248144823139889707@kernel.org>
-In-Reply-To: <20260902023429.1717-1-lirongqing@baidu.com>
-References: <20260902023429.1717-1-lirongqing@baidu.com>
-X-sashiko-severity: Medium
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	b=ZqGEkiyXzaYCUf9g/U/KT1mYjQdnBxWeEeAYgeWLv0Wv0auosb95PCWcb6C330SqQ
+	 s4SPTY5T3WVpnXYGxQ5i5v0kHWz1kj/fiRot3Ejrg6Dg72GseqfROgwlp5nmeTAv3R
+	 EXMk9CdMlOO9+lvt8Oo+YuzhQWBiReEeiUrb4i1npQ9XCRhB2j71d83aU5ooIiSuxt
+	 twDNDOqqW4f4+N0MV0TIBuRZlK6sGpDtpahaxm25li5+rF39DyOxjZYXQNgGD3Goga
+	 N71+i30kySu4VcPlhTAtIKSYUgYDWQbzLUBPrZfHaMEvKWq0iNA8sPe/B10YBOxyOo
+	 WOKeQjljYkXmw==
+Message-ID: <6cd13a40ffaf62bfb9b967bdd4dd28a38af3e7b1.camel@kernel.org>
+Subject: Re: [PATCH net] net/rds: fix tcp stream corruption with large pages
+From: Allison Henderson <achender@kernel.org>
+To: Greg Marsden <greg.marsden@oracle.com>
+Cc: kuba@kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, 
+	rds-devel@oss.oracle.com
+Date: Sun, 06 Sep 2026 07:44:01 -0700
+In-Reply-To: <apxJjxvStibPI0AS@oracle.com>
+References: <apxJjxvStibPI0AS@oracle.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.52.3-0ubuntu1.1 
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -52,95 +45,45 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue(s) to consider:
+On Sat, 2026-09-05 at 10:00 -0700, Greg Marsden wrote:
+> rds_message_map_pages() assigns PAGE_SIZE bytes to every
+> scatterlist entry, even when total_len ends in a partial page. The RDS
+> congestion map is defined as 8192 bytes, so on systems with PAGE_SIZE
+> greater than 8192 the scatterlist maps bytes beyond the end of the
+> congestion map.  RDS-TCP transmits the SG contents according to those
+> lengths, so the extra bytes become part of the TCP RDS stream and are
+> interpreted as subsequent RDS message headers, corrupting the stream.
+>=20
+> Limit the final scatterlist mapping to the number of bytes remaining.
+> This has no effect on systems with a 4K page size and allows RDS-TCP to
+> be used on systems with 16K and larger page sizes. =20
+>=20
+> The RDS selftest, which previously hung on 16K pages, now passes.
+>=20
+> Fixes: 7875e18e0996 ("RDS: Message parsing")
+> Signed-off-by: Greg Marsden <greg.marsden@oracle.com>
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 0
+Looks good, thanks for the catch!
+Reviewed-by: Allison Henderson <achender@kernel.org>
 
-- [Medium] Commit message justification is factually wrong for at least
-  one converted site, and the change's correctness silently depends on…
+> ---
+>  net/rds/message.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/net/rds/message.c b/net/rds/message.c
+> index f25f2592586f..47d5e9ab9b10 100644
+> --- a/net/rds/message.c
+> +++ b/net/rds/message.c
+> @@ -431,7 +431,9 @@ struct rds_message *rds_message_map_pages(unsigned lo=
+ng *page_addrs, unsigned in
+>  	for (i =3D 0; i < rm->data.op_nents; ++i) {
+>  		sg_set_page(&rm->data.op_sg[i],
+>  				virt_to_page((void *)page_addrs[i]),
+> -				PAGE_SIZE, 0);
+> +				i =3D=3D rm->data.op_nents - 1
+> +					? total_len - (i * PAGE_SIZE)
+> +					: PAGE_SIZE, 0);
+>  	}
+> =20
+>  	return rm;
 
---
-
-net/mlx5: Use dma_wmb() for completion queue doorbell updates
-
-This converts the wmb() that follows mlx5_cqwq_update_db_record() into
-dma_wmb() at six CQ polling sites in the mlx5 driver.  The reasoning given
-is that only DMA coherent memory is written around the barrier, so the
-lighter DMA barrier is sufficient.  The wmb() in wc.c is intentionally left
-alone.
-
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/ptp.c b/drivers/net/ethernet/mellanox/mlx5/core/en/ptp.c
-
-[ ... ]
-
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
-> index 1f6bde5d76265..1341874ee58a3 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
-> @@ -384,7 +384,7 @@ static inline void mlx5_fpga_conn_cqes(struct mlx5_fpga_conn *conn,
->  
->  	mlx5_fpga_dbg(conn->fdev, "Re-arming CQ with cc# %u\n", conn->cq.wq.cc);
->  	/* ensure cq space is freed before enabling more cqes */
-> -	wmb();
-> +	dma_wmb();
->  	mlx5_fpga_conn_arm_cq(conn);
->  }
-
-[Severity: Medium]
-The commit message says:
-
-    Since only DMA coherent memory accesses are involved (no MMIO accesses
-    follow), we can safely use dma_wmb() instead of wmb().
-
-Is that accurate for mlx5_fpga_conn_cqes()?  The statement right after the
-converted barrier is mlx5_fpga_conn_arm_cq(), which reaches an MMIO write:
-
-drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c:
-static void mlx5_fpga_conn_arm_cq(struct mlx5_fpga_conn *conn)
-{
-	mlx5_cq_arm(&conn->cq.mcq, MLX5_CQ_DB_REQ_NOT,
-		    conn->fdev->conn_res.uar->map, conn->cq.wq.cc);
-}
-
-include/linux/mlx5/cq.h:mlx5_cq_arm() {
-	*cq->arm_db = cpu_to_be32(sn << 28 | cmd | ci);
-
-	/* Make sure that the doorbell record in host memory is
-	 * written before ringing the doorbell via PCI MMIO.
-	 */
-	wmb();
-	...
-	mlx5_write64(doorbell, uar_page + MLX5_CQ_DOORBELL);
-}
-
-and mlx5_write64() uses __raw_writeq()/__raw_writel(), which carry no
-implicit barriers.
-
-The same holds indirectly for the other four converted sites,
-mlx5e_poll_rx_cq(), mlx5e_poll_tx_cq(), mlx5e_poll_xdpsq_cq() and
-mlx5e_ptp_poll_ts_cq(): the NAPI caller in en_txrx.c arms the CQ over MMIO
-shortly after the poll returns:
-
-drivers/net/ethernet/mellanox/mlx5/core/en/txrx.h:
-static inline void mlx5e_cq_arm(struct mlx5e_cq *cq)
-{
-	mlx5_cq_arm(&cq->mcq, MLX5_CQ_DB_REQ_NOT, cq->uar->map, cq->wq.cc);
-}
-
-dma_wmb() is strictly weaker than wmb() on some architectures (arm64
-dmb(oshst) versus dsb(st)), and by itself it does not order the coherent
-memory consumer-index store against a later MMIO write.  So is the change
-relying on the wmb() inside mlx5_cq_arm() to provide that ordering?
-
-If so, could the changelog state that instead, and could the code comment
-be updated from "ensure cq space is freed before enabling more cqes" to
-mention that the MMIO ordering comes from mlx5_cq_arm()?  Otherwise a later
-change that relaxes the wmb() in mlx5_cq_arm(), or a new arm path without
-one, would quietly lose the CQ consumer-index versus arm-doorbell ordering
-with nothing in the history pointing at it.
-
-[ ... ]
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260902023429.1717-1-lirongqing%40baidu.com
