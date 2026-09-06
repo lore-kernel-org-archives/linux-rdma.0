@@ -1,81 +1,76 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C85F3AAF62;
-	Sat,  5 Sep 2026 20:31:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A883A45038
+	for <linux-rdma@vger.kernel.org>; Sun,  6 Sep 2026 06:13:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788640273; cv=none; b=sE06wdSUVeGngPf+CSQet7+imaWXixMGqxJu4YJqZA1ZWEdKdw4ner8EcQoNjG/vw1qwBrs2IJfVi8ovaOfCkV4gSFGRWOXBW6VV3akHchqFQzwN4lR+8JHPt6txAV7ely6wBzDSdtpAWQ/CYuCqzzfMi8367Bdw3+SD7/PB/m8=
+	t=1788675238; cv=none; b=SnczrV3xG8gw6dHWdxJKMsCEyux8iv+wgOg2x7wp5bhzsqY7tcQCIggupSRdHMylbDtzzSBLhvi/ZZnKH9OYk/PsgtoQqsHV8yJqzndP+Lyr3KuBRqdgfdaDzbunXOQH/+2YXrnhyjUECt/slbf0dfRLle70N/vtybrwrL2NJBk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788640273; c=relaxed/simple;
-	bh=J5abHtuB9NeV0IndTcI8H7iVZb9mfeAMgSHiruLi3N0=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=CsxBlviS3ybJ+u7V/wvNSxzb9f7EwYywzcDDLHQZz2O2Dvjs55cEI/TStPJJqaIz/ZoklwYHTSJLZ74oqLiTJmT76SXEzo4RndZbXEinAXA6PvFJRLMjGKvJH5uOPL/0jw3R9m9qgLCldLCrdleyX5qiMlXumkif/QK23akqF1k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=C2vEcp2X; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788675238; c=relaxed/simple;
+	bh=9ZG5lGBVy3Updp+uGRuJk2PL/ry2F280NMF/pQ6TFAI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=POm0bkE8UARpfIDLKGQkYvs/T9CgGN8qmTzVjvTP42/pOFyRag7hAMIfjMOLmRfNXfSi8XWNYnhp1+RMwxLEI5vnfJpFz7lv4mTdfT+Jx4BcLTcuvpvolrAsjtBdwsJw90Ql1e+0PjjHhQAyySVUDBzBaEFeXti4px7QYFCOsmk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UxdQPA+c; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="C2vEcp2X"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 381DF1F00A3A;
-	Sat,  5 Sep 2026 20:31:12 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UxdQPA+c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5314C1F00A3A;
+	Sun,  6 Sep 2026 06:13:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788640272;
-	bh=jbSlT5NAs1eknPzS3r70rzaqbvNLexaGw5/MBBI/x08=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=C2vEcp2XzTXUHNMLItP6npJ/BMWJEw6j2evNv9RFy8iDHmwDwnCW+bKR146Xx73mf
-	 4K2gmoLocuu59SgsTSi2HvXdGMbsSt5+MRrvVANidh/v6z+MRYN4glGSiFXYH5Ea6Z
-	 w7IKjGLuFnWlwpXB8EumsRsCys/jY6OwcOa4ImqZ/hPqAyvzLysPxawUlygo3xLFzI
-	 6oKJkayZDJ3U/J7Ks7d55K3NmjbGiX49LISM5XPiqlb24auR7lfwqFnk8Pw5uWjviS
-	 8nM8d9Hl1bEHzqjSwsyJ0QWVXSjf6hKgSgxSwaw3DUAKAWT9aWRepKSj+exFbcOmyk
-	 zLcF2D9ui731w==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 93BC03924FED;
-	Sat,  5 Sep 2026 20:30:13 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=k20260515; t=1788675236;
+	bh=ogE5EW9VU2hECLVrFVvXpprs37Mbqd+ytzQbo+fs5jg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=UxdQPA+c7olXQNk1tXefNnKIGNiroQuqpIrqmUoH74H5tLPqc2/pxlEkqXzkw4Pe0
+	 Iquzn6ZEAC+w8ao/OHEHBuaBnR1xX5Jz0NpUlJCgOmyvbbLoQw066axSkDfFEQyFcV
+	 ALUBX21JUx1PiBuhwL026le5EfwO8JtMFWasvifsfk17mFIWwV5V1iNKWhs++7MSAP
+	 wsF+nRaj4IV3/0FfK/GXqe5sWDILcsJOdRvMEALQbUcgxJarUI2uKWpUBie39kmESJ
+	 24nhr9p/bapU9kZH2Nbj3RfHzdl2ds8c8q9i5UznXNbpxQ17HhIMMW/G5CLd768pPi
+	 VpTnXtV/3Gu5g==
+Date: Sun, 6 Sep 2026 09:13:52 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: lirongqing <lirongqing@baidu.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Stefan Metzmacher <metze@samba.org>,
+	Kees Cook <kees@kernel.org>, Or Gerlitz <ogerlitz@ddn.com>,
+	Norbert Szetei <norbert@doyensec.com>,
+	Marco Crivellari <marco.crivellari@suse.com>,
+	Vlad Dumitrescu <vdumitrescu@nvidia.com>,
+	Mark Zhang <markzhang@nvidia.com>,
+	Or Har-Toov <ohartoov@nvidia.com>, linux-rdma@vger.kernel.org
+Subject: Re: [PATCH] RDMA/cma: publish service records after initializing them
+Message-ID: <20260906061352.GA13683@unreal>
+References: <20260826110213.18378-1-lirongqing@baidu.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net] net/mlx5: E-Switch: fix use-after-free in
- mlx5_eswitch_termtbl_put
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <178864021214.1345393.10049217548777927998.git-patchwork-notify@kernel.org>
-Date: Sat, 05 Sep 2026 20:30:12 +0000
-References: <20260902193514.3668880-1-tariqt@nvidia.com>
-In-Reply-To: <20260902193514.3668880-1-tariqt@nvidia.com>
-To: Tariq Toukan <tariqt@nvidia.com>
-Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
- kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com,
- dtatulea@nvidia.com, gal@nvidia.com, leon@kernel.org,
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, mbloch@nvidia.com,
- saeedm@nvidia.com, ychemla@nvidia.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260826110213.18378-1-lirongqing@baidu.com>
 
-Hello:
-
-This patch was applied to netdev/net.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
-
-On Wed, 2 Sep 2026 22:35:14 +0300 you wrote:
-> From: Yael Chemla <ychemla@nvidia.com>
+On Wed, Aug 26, 2026 at 07:02:13PM +0800, lirongqing wrote:
+> From: Li RongQing <lirongqing@baidu.com>
 > 
-> In mlx5_eswitch_termtbl_put(), the zero-ref cleanup check reads
-> tt->ref_count after termtbl_mutex has been released.  Two concurrent
-> callers on the same mlx5_termtbl_handle race: one decrements ref_count
-> to zero, removes the hash entry, and calls kfree(tt) while the other
-> has already dropped the mutex and is about to evaluate
-> if (!tt->ref_count), producing a use-after-free.
+> cma_query_ib_service_handler() stores the freshly allocated
+> service_recs array and its count before the records are filled in:
 > 
-> [...]
+> 	id_priv->id.route.service_recs = kmalloc_objs(*recs, num_recs);
+> 	...
+> 	id_priv->id.route.num_service_recs = num_recs;
+> 	memcpy(id_priv->id.route.service_recs, recs, ...);
+> 
+> ucma_query_ib_service() only holds ctx->mutex and is not serialized
+> against this SA callback.
 
-Here is the summary with links:
-  - [net] net/mlx5: E-Switch: fix use-after-free in mlx5_eswitch_termtbl_put
-    https://git.kernel.org/netdev/net/c/7ee07f601f8f
+No, this sentence is wrong.
+ucma_query_ib_service() holds ctx->mutex and cma_query_ib_service_handler()
+is executed under same mutex too.
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+mutex_lock(&ctx->mutex)
+rdma_resolve_ib_service() ->
+	cma_resolve_ib_service() ->
+		ib_sa_service_rec_get() ->
+			cma_query_ib_service_handler()
 
-
+Thanks
