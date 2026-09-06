@@ -1,76 +1,76 @@
-Received: from mail-pl1-f227.google.com (mail-pl1-f227.google.com [209.85.214.227])
+Received: from mail-vk1-f228.google.com (mail-vk1-f228.google.com [209.85.221.228])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C2603D0C09
-	for <linux-rdma@vger.kernel.org>; Sun,  6 Sep 2026 17:46:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.227
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E89743D2FF4
+	for <linux-rdma@vger.kernel.org>; Sun,  6 Sep 2026 17:46:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.228
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788716763; cv=none; b=Meef0pCnPZDLs0pPPB25cTGJVJBbebczDY0mWGz8NRxXwatRTscntYgECHICEEWPIPUcvzGZ2lsG3uo8acxwNq9KCkLahN1JYi26P8k0dgskBhN5sfM4tSqX/4XuxvfgNbDh8/EaaKLCHZUnjxN9RjVh98KLFxCAGMjsEjMVjL0=
+	t=1788716766; cv=none; b=TRy33AAB/qaNZ60BYyll1FM9RT8IaGAu7dDJjs8jLxdqg9ETR6Ed7/tN9WQkaE2k7ItR4WGikA+VsR1a9DXuMoTGwFyqTF0LxXeyPYLtHmXjuJBbQODqMGVeulVaYinei+qmrdYE6ZaNDh9mtnqlDx2vrvKiHMgVvaSynjLPS68=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788716763; c=relaxed/simple;
-	bh=nyHzpFZddIUARAancNs0u4Se0RQCLUiBQU0QadOJlDo=;
+	s=arc-20240116; t=1788716766; c=relaxed/simple;
+	bh=DGVic7suNxLLqWDF69xmI8uiCqeegazxE/HjkldmZwM=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=oyZ/Jl7ReT+FITmRmA6hot5sqFfRIjJjNVX6usnt3dw1KQB7/jLjKXaFeN9sSiUkCmEYOotVKZvNHxyP5ufteF3YTS6vJrwMr5U8aLduFLVSEXXXya3siEPVDi3gIOTuotlAmN9VBXKn+/rW5QVfALCkITmx/x8stpHSxlbmc00=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=fvBTRsx6; arc=none smtp.client-ip=209.85.214.227
+	 MIME-Version; b=kbrkxQP4QSKPNw84/LeznqS/7LbF4MUVtYX4uL5cbEGslNLcyn3FtV5CR03zHWzDJaWgO11rBypIEpeZEfBV6g+2X3Q8uFuS2MlHi06TWjn6sMpfywiATjqD5R41OMFCWlsuWXvlEUdylWoVlZpyHJWjYUmPc5IYdWZUBXMrNbY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=aAPTXWRr; arc=none smtp.client-ip=209.85.221.228
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="fvBTRsx6"
-Received: by mail-pl1-f227.google.com with SMTP id d9443c01a7336-2d58efc7356so34285875ad.1
-        for <linux-rdma@vger.kernel.org>; Sun, 06 Sep 2026 10:46:01 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="aAPTXWRr"
+Received: by mail-vk1-f228.google.com with SMTP id 71dfb90a1353d-5c652293bcdso3274192e0c.1
+        for <linux-rdma@vger.kernel.org>; Sun, 06 Sep 2026 10:46:04 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788716761; x=1789321561;
+        d=1e100.net; s=20251104; t=1788716763; x=1789321563;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:dkim-signature:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=2KTEnu/wDi12ltmIR8vM/A4bsy6DjZieTYGS1jyZ2wo=;
-        b=iW9GLUd4FR5zDs25sTV5dtymgpt97ysg2ya3w6LJ0AFiMxurm3H+LVJqsFlLJiKwr7
-         nH81k2Z/5644lQpsPvAL8lH1qvOFQ9rB1oIRWX8vHfG8YXstoedEMkZOCyNVIEqhcfKh
-         a9LEHc1olGF7Rds43UUUbBFp6HqqwamCw1ALoIAgM/jOXk+kzrI3lTea5LH80KdfDSLa
-         Wq8iPq7vcH34WzWkpGkblWj8KKQlJ4yrbOaQqdVNvwJ/4EA/Y/+PuBlZas4Fp07Yq7X8
-         hhrGsHEljiEsJ3AXIToH+9ho9xhejfnXnfXiTrWpfFjmAUY0b9atsTBSQfMM4w7PpOOk
-         5EUg==
-X-Gm-Message-State: AFuF++me8Gm0GBVmzMtMvv/K06NuS3m9tP4XzMT4wjPwWjJyOalJ/POB
-	ME0eHG+1ygAbY3FfkdqgLCo4cX4+0stKZudzU3Bny8lZ06VOsxIEx6EjOVUtJqQv8BEyYeqIRBi
-	OulM0muq1Ib7C9VTtBj4WqM6A+pdHN1/Un2VMQpuv9aGSe179z3DBTR4wFq7xzb9VYMlKU2teQm
-	9T45+ce6EqlzFBm2MkWPxBcFOBZ1YmH9XeSvO64tj0TtncyMuXkGFtR0R/7PmXNPhdCBtuqD+eY
-	kKLIMKulxmSwGthdQ==
-X-Gm-Gg: AYBFou2oxAC1id6S0pgnKzIVIv6gaCx1yA06lV5dHpqXmNcgvzGJaj51nhF/cGUNCNw
-	nrXYCdy8RSgOz+5bQVmBT+FkJOVfxv9P9dxtF7uNmGNGKfC+J56y2AdVeRsGEbyY7xBzri/LNrZ
-	G7EO9swqt4i7O/tvIqCETxfxVDofmoGPCGqNZk5iTGUAR6g08BX08Jxe53xUK6EpybQgzjNL214
-	068GsHgBbpRbncHibNCYqpt8ubpVi+O5eOxvzbxAwu1WP4uS8lhA5vSQRIMllHSf6FSSZj3fCGJ
-	5tj/xQL8hTAfJwFF7sfppIt9zu0iJ+7bG1K+21zzaC/VUkG9bSOg4NWYkp1Y/dXJxCOz635HDQ8
-	+Q8riRJaZ2L+01n5WM/ie0y9RB6avwzilJIk7uSGIF/rWCZgtzrH0FgZ7pfxrQ5tTotwqh60T5D
-	FfZUFNGkBgPTKWT3hSkDtEiyvk9ukyHpRKobuZ
-X-Received: by 2002:a17:90b:3b46:b0:398:dcfe:967a with SMTP id 98e67ed59e1d1-39b2620a2ecmr26995583a91.17.1788716760717;
-        Sun, 06 Sep 2026 10:46:00 -0700 (PDT)
-Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-27.dlp.protect.broadcom.com. [144.49.247.27])
-        by smtp-relay.gmail.com with ESMTPS id 98e67ed59e1d1-39ae8dfd9d4sm1824335a91.3.2026.09.06.10.46.00
+        bh=/mbemSCvdTcBPg5TTH5npOyd4Ba3fsyO6I7o+rhTaR0=;
+        b=OtWNxXXG5K7JOSkuV2+mtXJXPOmTO5bRJoH2W9v3InBTHbiafjgz6YfU5Sw/RYmIWE
+         lY/219UFe7NjL+wTlgQTDJx1Hu8yaJZNZSlOLH+JQjZfUYr3agqC4ozpOZ0v/r25Zawz
+         G4hsC/occE2fxLDWf6/OvtImWX2aEHfRlIEUZsLKzyNM1nLibCMD0CLMqQHe2dVGlAdl
+         pEFZ8nIHXdgt10DPLCKbueME2CumsIYzwCjAETl387L58ZccOcV17bYDcPHYAsnXBxzQ
+         Gn+ulqMNrI0s76CKlsge3vphkOPPt7m0D5VQF1knLQH0GFj7drrb0DVRBVQCs/iAIT6U
+         Kbqw==
+X-Gm-Message-State: AFuF++mxOy7fY+d8Ar92H+5cPv9+ywgUb5rxdLYjjxsUocgwo7XIQCJw
+	GqneY1E2z6cUvvwrDI3NpAK0stZpbiUZOshe80D7n6b878U0ui438Mwzi/S9Uu9al+PSUx3eWXP
+	KLWb6i4JCOq4wY4e3xNa6PhTyAXiHdHQ4s7mhz5EDVh0qHcmnScrwgSPil3I8giHAiXqhXVgXgj
+	PfFe6ilBzoU3rAEwegNTudjvN2n5vjONa/x58MlKH8Qisu/lWPTrRIa1nhvy+N0jD9ufdZVAify
+	XtaBWp0XQwFmq0aaw==
+X-Gm-Gg: AYBFou1DasEUsDNhj/QT8wuH7ng1mXWu9kT8Du82uCJqMWfhrBoxfwnh43goXM1kzZK
+	hhNUBKSfgG5Lx/KTXdqah4YZj4jSl8U5y6iN1b7p/Gt6anMruwwkEsoW7d88RzE4D32NN2p+65+
+	gW3m9YaD1fiejiAmI9NreecofEUx0AUdCSJfde4Qz5TpHD7SyDOXT/pWd7KkMFXuAzKeyGj68eV
+	6LJMTVMFiR4XZ9dFFRhtNebb/DVTFuXY7+D7hG8HxuJYyLQJC3u5k/As9NFJk9QEGEGhgfohgXz
+	7Z2wUEvDrUGLDcBt63ACmk2+Gn/Mxbh6NWIlx32dBUXFedH98brpZ8IamVIzycSrWYHu8Gtls19
+	ItEUolqFN4kuUf3yp3pVaTCkr8l7oJxbq7pK+tjkwd4P66tdA7TsbrLy+E9FWannrpYExunvXR0
+	F+RX6HMIf7LTh0k6yo8EKi/4jKrsMrHGdjkxf8
+X-Received: by 2002:a05:6122:4b17:b0:5c7:fb4e:2cee with SMTP id 71dfb90a1353d-5c7fb4e2dbfmr5715710e0c.1.1788716763425;
+        Sun, 06 Sep 2026 10:46:03 -0700 (PDT)
+Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-25.dlp.protect.broadcom.com. [144.49.247.25])
+        by smtp-relay.gmail.com with ESMTPS id 71dfb90a1353d-5c7ec1386b0sm4040422e0c.1.2026.09.06.10.46.03
         for <linux-rdma@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 06 Sep 2026 10:46:00 -0700 (PDT)
+        Sun, 06 Sep 2026 10:46:03 -0700 (PDT)
 X-Relaying-Domain: broadcom.com
 X-CFilter-Loop: Reflected
-Received: by mail-pl1-f200.google.com with SMTP id d9443c01a7336-2d52734fc41so50317165ad.1
-        for <linux-rdma@vger.kernel.org>; Sun, 06 Sep 2026 10:45:59 -0700 (PDT)
+Received: by mail-pg1-f197.google.com with SMTP id 41be03b00d2f7-cc1b8088202so2531682a12.3
+        for <linux-rdma@vger.kernel.org>; Sun, 06 Sep 2026 10:46:02 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1788716759; x=1789321559; darn=vger.kernel.org;
+        d=broadcom.com; s=google; t=1788716762; x=1789321562; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=2KTEnu/wDi12ltmIR8vM/A4bsy6DjZieTYGS1jyZ2wo=;
-        b=fvBTRsx608ql20jEqhT/F8zoRmSrHKXLK6llI/Pim1veRLQKMNt9DkGw7afqWjmFYq
-         SUaJLmTeSkWBC4uMho867NFkw709Sf89w8s0HwNRZ2hU7wlcztAO7JsaXCdLUuXHD3/5
-         VdpTkImxuqImgOmECn2I6d9kEjX9KbusrgAt0=
-X-Received: by 2002:a17:902:da8a:b0:2ce:9c48:22d3 with SMTP id d9443c01a7336-2db127ce3bcmr273331885ad.11.1788716758650;
-        Sun, 06 Sep 2026 10:45:58 -0700 (PDT)
-X-Received: by 2002:a17:902:da8a:b0:2ce:9c48:22d3 with SMTP id d9443c01a7336-2db127ce3bcmr273331565ad.11.1788716758220;
-        Sun, 06 Sep 2026 10:45:58 -0700 (PDT)
+        bh=/mbemSCvdTcBPg5TTH5npOyd4Ba3fsyO6I7o+rhTaR0=;
+        b=aAPTXWRro7ZsJ/CYQRaROefPWHVlugm8PPsruFKyIOXRN5BBhsWAIJJ2ekQKDrlx3d
+         nhwOcVbEHPPMWpjFBn93C+F8gvaNC75ZffKswvd7ee3zXX7p69UxDjshdjdwugSPoHpu
+         vTGj/9/iEHZYjiG+1uvsx0uFyQwBoOsVnxClg=
+X-Received: by 2002:a17:90b:2e4b:b0:398:a145:5d3d with SMTP id 98e67ed59e1d1-39b26151b89mr29158981a91.6.1788716761902;
+        Sun, 06 Sep 2026 10:46:01 -0700 (PDT)
+X-Received: by 2002:a17:90b:2e4b:b0:398:a145:5d3d with SMTP id 98e67ed59e1d1-39b26151b89mr29158922a91.6.1788716761331;
+        Sun, 06 Sep 2026 10:46:01 -0700 (PDT)
 Received: from dhcp-10-123-156-114.dhcp.broadcom.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3356dc5c04dsm11075108eec.8.2026.09.06.10.45.55
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3356dc5c04dsm11075108eec.8.2026.09.06.10.45.58
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 06 Sep 2026 10:45:57 -0700 (PDT)
+        Sun, 06 Sep 2026 10:46:00 -0700 (PDT)
 From: Selvin Xavier <selvin.xavier@broadcom.com>
 To: leon@kernel.org,
 	jgg@ziepe.ca
@@ -78,9 +78,9 @@ Cc: linux-rdma@vger.kernel.org,
 	andrew.gospodarek@broadcom.com,
 	kalesh-anakkur.purayil@broadcom.com,
 	Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: [PATCH for-rc 4/8] RDMA/bnxt_re: Validate SRQ max_sge at create time
-Date: Sun,  6 Sep 2026 16:06:56 -0700
-Message-Id: <20260906230700.12233-5-selvin.xavier@broadcom.com>
+Subject: [PATCH for-rc 5/8] RDMA/bnxt_re: Fix rdev lifetime races in  suspend/resume/shutdown
+Date: Sun,  6 Sep 2026 16:06:57 -0700
+Message-Id: <20260906230700.12233-6-selvin.xavier@broadcom.com>
 X-Mailer: git-send-email 2.39.3
 In-Reply-To: <20260906230700.12233-1-selvin.xavier@broadcom.com>
 References: <20260906230700.12233-1-selvin.xavier@broadcom.com>
@@ -93,57 +93,116 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 
-bnxt_re_create_srq() validates attr.max_wr but copies attr.max_sge
-into srq->qplib_srq.max_sge unvalidated. This lets an unprivileged
-user request an arbitrarily large max_sge, defeating the num_sge
-check added in bnxt_re_post_srq_recv() and overflowing the fixed
-13-entry (BNXT_VAR_MAX_SGE) sg_list[] array in bnxt_re_build_sgl().
+en_info->rdev is read by unlocked L2 ULP callbacks
+(bnxt_re_stop_irq/start_irq/async_notifier), which rely on rdev
+being cleared before it is freed, not after. bnxt_re_add_device()
+cleared it too late on a bnxt_re_dev_init() failure and
+bnxt_re_resume() didn't check the return value, risking a
+use-after-free/NULL deref. bnxt_re_suspend() froze and freed rdev
+before clearing en_info->rdev, opening the same UAF window.
+bnxt_re_shutdown() took no lock, never checked rdev for NULL, never
+cleared en_info->rdev, and never freed rdev at all.
 
-Reject max_sge > dev_attr->max_srq_sges at create time, as create_qp
-already does for QP send/recv SGEs. Also clamp max_srq_sges itself in
-bnxt_qplib_get_dev_attr() to BNXT_STATIC_MAX_SGE (6), the actual max
-SGEs an SRQ ring entry supports, since it was taken straight from
-firmware with no bound.
+Fix the ordering in bnxt_re_add_device()/bnxt_re_suspend(), add the
+missing return-value check in bnxt_re_resume(), and rewrite
+bnxt_re_shutdown() to take the lock, check for NULL, and reuse
+bnxt_re_remove_device() with the same clear-before-free ordering.
 
-Fixes: 37cb11acf1f7 ("RDMA/bnxt_re: Add SRQ support for Broadcom adapters")
+Fixes: dee3da3422d5 ("RDMA/bnxt_re: Change aux driver data to en_info to hold more information")
+Fixes: cc5b9b48d447 ("RDMA/bnxt_re: Recover the device when FW error is detected")
 Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
 ---
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 8 ++++++++
- drivers/infiniband/hw/bnxt_re/qplib_sp.c | 2 +-
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/bnxt_re/main.c | 32 ++++++++++++++++++++++------
+ 1 file changed, 25 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index ab5d06034c20..b3aa3c9f8941 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -2235,6 +2235,14 @@ int bnxt_re_create_srq(struct ib_srq *ib_srq,
- 		goto exit;
- 	}
+diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
+index 17654a9e23fe..91c2edebdb93 100644
+--- a/drivers/infiniband/hw/bnxt_re/main.c
++++ b/drivers/infiniband/hw/bnxt_re/main.c
+@@ -2433,11 +2433,14 @@ static int bnxt_re_add_device(struct auxiliary_device *adev, u8 op_type)
+ 	bnxt_re_update_en_info_rdev(rdev, en_info, adev);
  
-+	if (srq_init_attr->attr.max_sge > dev_attr->max_srq_sges) {
-+		ibdev_err(&rdev->ibdev,
-+			  "Create SRQ failed - max_sge %d exceeds supported %d",
-+			  srq_init_attr->attr.max_sge, dev_attr->max_srq_sges);
-+		rc = -EINVAL;
-+		goto exit;
+ 	rc = bnxt_re_dev_init(rdev, op_type);
+-	if (rc)
++	if (rc) {
++		bnxt_re_update_en_info_rdev(NULL, en_info, adev);
+ 		goto re_dev_dealloc;
 +	}
-+
- 	if (srq_init_attr->srq_type != IB_SRQT_BASIC) {
- 		rc = -EOPNOTSUPP;
- 		goto exit;
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.c b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-index ec9eb52a8ebf..9aaa2b5204b8 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-@@ -160,7 +160,7 @@ int bnxt_qplib_get_dev_attr(struct bnxt_qplib_rcfw *rcfw)
  
- 	attr->max_srq = le16_to_cpu(sb->max_srq);
- 	attr->max_srq_wqes = le32_to_cpu(sb->max_srq_wr) - 1;
--	attr->max_srq_sges = sb->max_srq_sge;
-+	attr->max_srq_sges = min_t(u32, sb->max_srq_sge, BNXT_STATIC_MAX_SGE);
- 	attr->max_pkey = 1;
- 	attr->max_inline_data = attr->max_qp_sges * sizeof(struct sq_sge);
- 	if (!bnxt_qplib_is_chip_gen_p7(rcfw->res->cctx))
+ 	rc = bnxt_re_ib_init(rdev);
+ 	if (rc) {
++		bnxt_re_update_en_info_rdev(NULL, en_info, adev);
+ 		pr_err("Failed to register with IB: %s",
+ 			aux_priv->aux_dev.name);
+ 		goto re_dev_uninit;
+@@ -2448,7 +2451,6 @@ static int bnxt_re_add_device(struct auxiliary_device *adev, u8 op_type)
+ 	return 0;
+ 
+ re_dev_uninit:
+-	bnxt_re_update_en_info_rdev(NULL, en_info, adev);
+ 	bnxt_re_dev_uninit(rdev, BNXT_RE_COMPLETE_REMOVE);
+ re_dev_dealloc:
+ 	ib_dealloc_device(&rdev->ibdev);
+@@ -2517,9 +2519,13 @@ static int bnxt_re_suspend(struct auxiliary_device *adev, pm_message_t state)
+ 	struct bnxt_en_dev *en_dev;
+ 	struct bnxt_re_dev *rdev;
+ 
++	mutex_lock(&bnxt_re_mutex);
+ 	rdev = en_info->rdev;
++	if (!rdev) {
++		mutex_unlock(&bnxt_re_mutex);
++		return 0;
++	}
+ 	en_dev = en_info->en_dev;
+-	mutex_lock(&bnxt_re_mutex);
+ 
+ 	ibdev_info(&rdev->ibdev, "Handle device suspend call");
+ 	/* Check the current device state from bnxt_en_dev and move the
+@@ -2539,8 +2545,9 @@ static int bnxt_re_suspend(struct auxiliary_device *adev, pm_message_t state)
+ 
+ 	ibdev_info(&rdev->ibdev, "%s: L2 driver notified to stop en_state 0x%lx",
+ 		   __func__, en_dev->en_state);
+-	bnxt_re_remove_device(rdev, BNXT_RE_PRE_RECOVERY_REMOVE, adev);
++
+ 	bnxt_re_update_en_info_rdev(NULL, en_info, adev);
++	bnxt_re_remove_device(rdev, BNXT_RE_PRE_RECOVERY_REMOVE, adev);
+ 	mutex_unlock(&bnxt_re_mutex);
+ 
+ 	return 0;
+@@ -2550,9 +2557,14 @@ static int bnxt_re_resume(struct auxiliary_device *adev)
+ {
+ 	struct bnxt_re_en_dev_info *en_info = auxiliary_get_drvdata(adev);
+ 	struct bnxt_re_dev *rdev;
++	int rc;
+ 
+ 	mutex_lock(&bnxt_re_mutex);
+-	bnxt_re_add_device(adev, BNXT_RE_POST_RECOVERY_INIT);
++	rc = bnxt_re_add_device(adev, BNXT_RE_POST_RECOVERY_INIT);
++	if (rc) {
++		mutex_unlock(&bnxt_re_mutex);
++		return rc;
++	}
+ 	rdev = en_info->rdev;
+ 	ibdev_info(&rdev->ibdev, "Device resume completed");
+ 	mutex_unlock(&bnxt_re_mutex);
+@@ -2565,9 +2577,15 @@ static void bnxt_re_shutdown(struct auxiliary_device *adev)
+ 	struct bnxt_re_en_dev_info *en_info = auxiliary_get_drvdata(adev);
+ 	struct bnxt_re_dev *rdev;
+ 
++	mutex_lock(&bnxt_re_mutex);
+ 	rdev = en_info->rdev;
+-	ib_unregister_device(&rdev->ibdev);
+-	bnxt_re_dev_uninit(rdev, BNXT_RE_COMPLETE_REMOVE);
++	if (!rdev)
++		goto out;
++
++	bnxt_re_update_en_info_rdev(NULL, en_info, adev);
++	bnxt_re_remove_device(rdev, BNXT_RE_COMPLETE_REMOVE, adev);
++out:
++	mutex_unlock(&bnxt_re_mutex);
+ }
+ 
+ static const struct auxiliary_device_id bnxt_re_id_table[] = {
 -- 
 2.39.3
 
