@@ -1,76 +1,76 @@
-Received: from mail-vk1-f228.google.com (mail-vk1-f228.google.com [209.85.221.228])
+Received: from mail-pj1-f99.google.com (mail-pj1-f99.google.com [209.85.216.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E89743D2FF4
-	for <linux-rdma@vger.kernel.org>; Sun,  6 Sep 2026 17:46:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.228
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D016E3CA4AB
+	for <linux-rdma@vger.kernel.org>; Sun,  6 Sep 2026 17:46:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.99
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788716766; cv=none; b=TRy33AAB/qaNZ60BYyll1FM9RT8IaGAu7dDJjs8jLxdqg9ETR6Ed7/tN9WQkaE2k7ItR4WGikA+VsR1a9DXuMoTGwFyqTF0LxXeyPYLtHmXjuJBbQODqMGVeulVaYinei+qmrdYE6ZaNDh9mtnqlDx2vrvKiHMgVvaSynjLPS68=
+	t=1788716768; cv=none; b=LOJqgQk4ynasV9Xw3nLE4qAHE91k3RxmkR4guKae4CiWxBjgzYPWkwQnBHXHg2t4d490EO6Kcpk7lN82v8OcUBVgqzZf/oODZU9srp+trWPmej6PkHUHSmvCAo30cqVnbjN6mrIpZ4K5RKV7tbyYL1O+XKzFQn9nwVQ37VLDje8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788716766; c=relaxed/simple;
-	bh=DGVic7suNxLLqWDF69xmI8uiCqeegazxE/HjkldmZwM=;
+	s=arc-20240116; t=1788716768; c=relaxed/simple;
+	bh=0OnVbxbBR5VT7ytB1nVCkzZlF32151hCNLDHdqjWXX0=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=kbrkxQP4QSKPNw84/LeznqS/7LbF4MUVtYX4uL5cbEGslNLcyn3FtV5CR03zHWzDJaWgO11rBypIEpeZEfBV6g+2X3Q8uFuS2MlHi06TWjn6sMpfywiATjqD5R41OMFCWlsuWXvlEUdylWoVlZpyHJWjYUmPc5IYdWZUBXMrNbY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=aAPTXWRr; arc=none smtp.client-ip=209.85.221.228
+	 MIME-Version; b=TY8Ov+x5KIGAbUfzMH0QdtnDmeYh55ggqH/pvS32LTbbD/wqd+YSD109l5UFIEQZ3OyGIos9E6LiLSKV/ksViUNoHIwZ2vMleVDTeQcLFftnSDtFDgFuqdEOoGq5fUKGKmhCG2zc6xtKpw1WDFdOJZyvjMKrTjft+hd1EgsjKWc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=RwDQWyko; arc=none smtp.client-ip=209.85.216.99
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="aAPTXWRr"
-Received: by mail-vk1-f228.google.com with SMTP id 71dfb90a1353d-5c652293bcdso3274192e0c.1
-        for <linux-rdma@vger.kernel.org>; Sun, 06 Sep 2026 10:46:04 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="RwDQWyko"
+Received: by mail-pj1-f99.google.com with SMTP id 98e67ed59e1d1-3966791a6eeso3298708a91.3
+        for <linux-rdma@vger.kernel.org>; Sun, 06 Sep 2026 10:46:06 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788716763; x=1789321563;
+        d=1e100.net; s=20251104; t=1788716766; x=1789321566;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:dkim-signature:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=/mbemSCvdTcBPg5TTH5npOyd4Ba3fsyO6I7o+rhTaR0=;
-        b=OtWNxXXG5K7JOSkuV2+mtXJXPOmTO5bRJoH2W9v3InBTHbiafjgz6YfU5Sw/RYmIWE
-         lY/219UFe7NjL+wTlgQTDJx1Hu8yaJZNZSlOLH+JQjZfUYr3agqC4ozpOZ0v/r25Zawz
-         G4hsC/occE2fxLDWf6/OvtImWX2aEHfRlIEUZsLKzyNM1nLibCMD0CLMqQHe2dVGlAdl
-         pEFZ8nIHXdgt10DPLCKbueME2CumsIYzwCjAETl387L58ZccOcV17bYDcPHYAsnXBxzQ
-         Gn+ulqMNrI0s76CKlsge3vphkOPPt7m0D5VQF1knLQH0GFj7drrb0DVRBVQCs/iAIT6U
-         Kbqw==
-X-Gm-Message-State: AFuF++mxOy7fY+d8Ar92H+5cPv9+ywgUb5rxdLYjjxsUocgwo7XIQCJw
-	GqneY1E2z6cUvvwrDI3NpAK0stZpbiUZOshe80D7n6b878U0ui438Mwzi/S9Uu9al+PSUx3eWXP
-	KLWb6i4JCOq4wY4e3xNa6PhTyAXiHdHQ4s7mhz5EDVh0qHcmnScrwgSPil3I8giHAiXqhXVgXgj
-	PfFe6ilBzoU3rAEwegNTudjvN2n5vjONa/x58MlKH8Qisu/lWPTrRIa1nhvy+N0jD9ufdZVAify
-	XtaBWp0XQwFmq0aaw==
-X-Gm-Gg: AYBFou1DasEUsDNhj/QT8wuH7ng1mXWu9kT8Du82uCJqMWfhrBoxfwnh43goXM1kzZK
-	hhNUBKSfgG5Lx/KTXdqah4YZj4jSl8U5y6iN1b7p/Gt6anMruwwkEsoW7d88RzE4D32NN2p+65+
-	gW3m9YaD1fiejiAmI9NreecofEUx0AUdCSJfde4Qz5TpHD7SyDOXT/pWd7KkMFXuAzKeyGj68eV
-	6LJMTVMFiR4XZ9dFFRhtNebb/DVTFuXY7+D7hG8HxuJYyLQJC3u5k/As9NFJk9QEGEGhgfohgXz
-	7Z2wUEvDrUGLDcBt63ACmk2+Gn/Mxbh6NWIlx32dBUXFedH98brpZ8IamVIzycSrWYHu8Gtls19
-	ItEUolqFN4kuUf3yp3pVaTCkr8l7oJxbq7pK+tjkwd4P66tdA7TsbrLy+E9FWannrpYExunvXR0
-	F+RX6HMIf7LTh0k6yo8EKi/4jKrsMrHGdjkxf8
-X-Received: by 2002:a05:6122:4b17:b0:5c7:fb4e:2cee with SMTP id 71dfb90a1353d-5c7fb4e2dbfmr5715710e0c.1.1788716763425;
-        Sun, 06 Sep 2026 10:46:03 -0700 (PDT)
+        bh=vWwt5BbfO0xTfwcqu5Tba/4OVavavIe3TAsdtieQA9E=;
+        b=Lchs2GzUWZjzWkhK/59kfYRaGmulX5qFmmrJ7Gmch1wkyFva06sNku5wBeui0AkI/f
+         j3Km5bNmjV6+ba7zFE2h3S/NWejFjqevm4HxdWTFIr32RZm2ONAAtNPUVLHJ1ybNUrMw
+         iPWLLzJOADjqqtfdrDu4Frm8jhS+NWPNlxzDHv0azdXyH6rjD9bJaG8t2zV7oXV/yYj2
+         +isBqRSQ8p1umlAgPOr2Rb2QXQ0klG9tQGEFyvifNaXSDWSDB7ATmDoq7JQa8ZKu3/rf
+         6z+OzjF9JT8f4NAiRZmd4lPOI4bitnAukk2lKahQohGwdVsTtQWuQnuAZ0W589/v7out
+         1ACw==
+X-Gm-Message-State: AFuF++mC7Y+i+SCKd6XIoedjuvLIH5Yqe4T0i7cgxl0NS/dpvPYOb6zN
+	tdiD6mKoxSOi1pihUCTrXHk0LNzLdoB6zMfO9JwXvhMRYvz65JA9ChIrjOwZ9j24wmcncK6MP6P
+	BoAw2n8Qi6YY8QPmRhlBm+6cVZFzZYH0tj6cxcG0b5pwADQ20QMM6hqiXvf1wND8nLFiHLnfIz4
+	G0fzLQ8Hq03aKqGQW64QafQtA1Go/BCKf1qAN+784ipJqqYO95TvcmwxwjHHq+HTYae9Ay42/RR
+	DFiR7BfC15aXC5LzQ==
+X-Gm-Gg: AYBFou1nDvnXjKTEIBQ8Yck9wW45Zc5ixCEY+DQpAuBvxuvY66YfuXhdFTJxrj+1vO6
+	tGnooqVfsmtM7agBbX7oyPxYZfnt+QEB5Ldf8FL4uhpbx0fmOBO2zx+Bw0MrNna3pitjbSesP8t
+	Aq0umiWCbgbw3Ecoiac9cXoARp98jOWintuvgiMr/Y5Fv2iNirexDJxDZnhc3p8rx2qA/CQHFrH
+	3jHQLdl8486txUX351LTfoGyau6qaAfBzjcBQYbhPI50jI98+PWJRzfbGljitrupbbJHFPvmFK0
+	nmpcJiyG6tqOq93uN195M7eocEVjtpQsI3m7GWDx5WeXJpNXHdbQdVV/ng7JIh8MjISPmQpDpog
+	JdE4y1IvW/xiJXbuYgWjQNj971nnxbZn4GyWCdY1p5SE9H14Gsn7qPu+mFbK9VmgZyi/WPKkDnJ
+	8y8XJL+gbuF+z73eHgxJYLVSg4KMhWCpTIiMc7
+X-Received: by 2002:a17:90a:e7ce:b0:398:bacb:1137 with SMTP id 98e67ed59e1d1-39b2624a1bbmr26652210a91.19.1788716766195;
+        Sun, 06 Sep 2026 10:46:06 -0700 (PDT)
 Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-25.dlp.protect.broadcom.com. [144.49.247.25])
-        by smtp-relay.gmail.com with ESMTPS id 71dfb90a1353d-5c7ec1386b0sm4040422e0c.1.2026.09.06.10.46.03
+        by smtp-relay.gmail.com with ESMTPS id 98e67ed59e1d1-39b1600a8fbsm6747955a91.3.2026.09.06.10.46.05
         for <linux-rdma@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 06 Sep 2026 10:46:03 -0700 (PDT)
+        Sun, 06 Sep 2026 10:46:06 -0700 (PDT)
 X-Relaying-Domain: broadcom.com
 X-CFilter-Loop: Reflected
-Received: by mail-pg1-f197.google.com with SMTP id 41be03b00d2f7-cc1b8088202so2531682a12.3
-        for <linux-rdma@vger.kernel.org>; Sun, 06 Sep 2026 10:46:02 -0700 (PDT)
+Received: by mail-pg1-f199.google.com with SMTP id 41be03b00d2f7-c89704da8c7so3447229a12.0
+        for <linux-rdma@vger.kernel.org>; Sun, 06 Sep 2026 10:46:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1788716762; x=1789321562; darn=vger.kernel.org;
+        d=broadcom.com; s=google; t=1788716765; x=1789321565; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=/mbemSCvdTcBPg5TTH5npOyd4Ba3fsyO6I7o+rhTaR0=;
-        b=aAPTXWRro7ZsJ/CYQRaROefPWHVlugm8PPsruFKyIOXRN5BBhsWAIJJ2ekQKDrlx3d
-         nhwOcVbEHPPMWpjFBn93C+F8gvaNC75ZffKswvd7ee3zXX7p69UxDjshdjdwugSPoHpu
-         vTGj/9/iEHZYjiG+1uvsx0uFyQwBoOsVnxClg=
-X-Received: by 2002:a17:90b:2e4b:b0:398:a145:5d3d with SMTP id 98e67ed59e1d1-39b26151b89mr29158981a91.6.1788716761902;
-        Sun, 06 Sep 2026 10:46:01 -0700 (PDT)
-X-Received: by 2002:a17:90b:2e4b:b0:398:a145:5d3d with SMTP id 98e67ed59e1d1-39b26151b89mr29158922a91.6.1788716761331;
-        Sun, 06 Sep 2026 10:46:01 -0700 (PDT)
+        bh=vWwt5BbfO0xTfwcqu5Tba/4OVavavIe3TAsdtieQA9E=;
+        b=RwDQWykoHOw1/l2gsoTIpwIY2PQzXkVIEMBtJuQDdiqkD3S8v2R5ScjRJDSV1+M+qX
+         Ly1NG1Bb76C2kVqQIyM0Jepue1v8wPKUuq7mBaeRnaljIFzYYLwfF1ifO0qH0hEPBUjv
+         Lo7PQOOPhPz69Lp37rKApSFSAEQdFfXbucsDk=
+X-Received: by 2002:a05:6a21:6f12:b0:398:8870:b58f with SMTP id adf61e73a8af0-3da3a03ef42mr28356314637.14.1788716764709;
+        Sun, 06 Sep 2026 10:46:04 -0700 (PDT)
+X-Received: by 2002:a05:6a21:6f12:b0:398:8870:b58f with SMTP id adf61e73a8af0-3da3a03ef42mr28356277637.14.1788716764248;
+        Sun, 06 Sep 2026 10:46:04 -0700 (PDT)
 Received: from dhcp-10-123-156-114.dhcp.broadcom.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3356dc5c04dsm11075108eec.8.2026.09.06.10.45.58
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3356dc5c04dsm11075108eec.8.2026.09.06.10.46.01
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 06 Sep 2026 10:46:00 -0700 (PDT)
+        Sun, 06 Sep 2026 10:46:03 -0700 (PDT)
 From: Selvin Xavier <selvin.xavier@broadcom.com>
 To: leon@kernel.org,
 	jgg@ziepe.ca
@@ -78,9 +78,9 @@ Cc: linux-rdma@vger.kernel.org,
 	andrew.gospodarek@broadcom.com,
 	kalesh-anakkur.purayil@broadcom.com,
 	Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: [PATCH for-rc 5/8] RDMA/bnxt_re: Fix rdev lifetime races in  suspend/resume/shutdown
-Date: Sun,  6 Sep 2026 16:06:57 -0700
-Message-Id: <20260906230700.12233-6-selvin.xavier@broadcom.com>
+Subject: [PATCH for-rc 6/8] RDMA/bnxt_re: Fix the PD and DPI table size
+Date: Sun,  6 Sep 2026 16:06:58 -0700
+Message-Id: <20260906230700.12233-7-selvin.xavier@broadcom.com>
 X-Mailer: git-send-email 2.39.3
 In-Reply-To: <20260906230700.12233-1-selvin.xavier@broadcom.com>
 References: <20260906230700.12233-1-selvin.xavier@broadcom.com>
@@ -93,116 +93,59 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 
-en_info->rdev is read by unlocked L2 ULP callbacks
-(bnxt_re_stop_irq/start_irq/async_notifier), which rely on rdev
-being cleared before it is freed, not after. bnxt_re_add_device()
-cleared it too late on a bnxt_re_dev_init() failure and
-bnxt_re_resume() didn't check the return value, risking a
-use-after-free/NULL deref. bnxt_re_suspend() froze and freed rdev
-before clearing en_info->rdev, opening the same UAF window.
-bnxt_re_shutdown() took no lock, never checked rdev for NULL, never
-cleared en_info->rdev, and never freed rdev at all.
+The PD and DPI bitmaps were sized as max >> 3 (bytes),
+but bitmap ops (set_bit(), clear_bit(), find_first_bit(),
+test_and_set_bit()) operate on whole unsigned long words,
+so whenever max isn't a multiple of BITS_PER_LONG,
+the buffer under-allocates and the top word's bitops
+read/write past the end of the kmalloc()'d buffer.
+Most exposed on the DPI table, since dpit->max comes from the
+firmware-reported dev_attr->max_dpi with no alignment guarantee.
 
-Fix the ordering in bnxt_re_add_device()/bnxt_re_suspend(), add the
-missing return-value check in bnxt_re_resume(), and rewrite
-bnxt_re_shutdown() to take the lock, check for NULL, and reuse
-bnxt_re_remove_device() with the same clear-before-free ordering.
+Fix the size both allocations with BITS_TO_LONGS(max) * sizeof(unsigned long).
 
-Fixes: dee3da3422d5 ("RDMA/bnxt_re: Change aux driver data to en_info to hold more information")
-Fixes: cc5b9b48d447 ("RDMA/bnxt_re: Recover the device when FW error is detected")
+Fixes: 1ac5a4047975 ("RDMA/bnxt_re: Add bnxt_re RoCE driver")
 Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
 ---
- drivers/infiniband/hw/bnxt_re/main.c | 32 ++++++++++++++++++++++------
- 1 file changed, 25 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/bnxt_re/qplib_res.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
-index 17654a9e23fe..91c2edebdb93 100644
---- a/drivers/infiniband/hw/bnxt_re/main.c
-+++ b/drivers/infiniband/hw/bnxt_re/main.c
-@@ -2433,11 +2433,14 @@ static int bnxt_re_add_device(struct auxiliary_device *adev, u8 op_type)
- 	bnxt_re_update_en_info_rdev(rdev, en_info, adev);
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.c b/drivers/infiniband/hw/bnxt_re/qplib_res.c
+index 756f8b5f042a..7ff587ce9126 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_res.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_res.c
+@@ -45,6 +45,7 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/if_vlan.h>
+ #include <linux/vmalloc.h>
++#include <linux/bitops.h>
+ #include <rdma/ib_verbs.h>
+ #include <rdma/iter.h>
  
- 	rc = bnxt_re_dev_init(rdev, op_type);
--	if (rc)
-+	if (rc) {
-+		bnxt_re_update_en_info_rdev(NULL, en_info, adev);
- 		goto re_dev_dealloc;
-+	}
- 
- 	rc = bnxt_re_ib_init(rdev);
- 	if (rc) {
-+		bnxt_re_update_en_info_rdev(NULL, en_info, adev);
- 		pr_err("Failed to register with IB: %s",
- 			aux_priv->aux_dev.name);
- 		goto re_dev_uninit;
-@@ -2448,7 +2451,6 @@ static int bnxt_re_add_device(struct auxiliary_device *adev, u8 op_type)
- 	return 0;
- 
- re_dev_uninit:
--	bnxt_re_update_en_info_rdev(NULL, en_info, adev);
- 	bnxt_re_dev_uninit(rdev, BNXT_RE_COMPLETE_REMOVE);
- re_dev_dealloc:
- 	ib_dealloc_device(&rdev->ibdev);
-@@ -2517,9 +2519,13 @@ static int bnxt_re_suspend(struct auxiliary_device *adev, pm_message_t state)
- 	struct bnxt_en_dev *en_dev;
- 	struct bnxt_re_dev *rdev;
- 
-+	mutex_lock(&bnxt_re_mutex);
- 	rdev = en_info->rdev;
-+	if (!rdev) {
-+		mutex_unlock(&bnxt_re_mutex);
-+		return 0;
-+	}
- 	en_dev = en_info->en_dev;
--	mutex_lock(&bnxt_re_mutex);
- 
- 	ibdev_info(&rdev->ibdev, "Handle device suspend call");
- 	/* Check the current device state from bnxt_en_dev and move the
-@@ -2539,8 +2545,9 @@ static int bnxt_re_suspend(struct auxiliary_device *adev, pm_message_t state)
- 
- 	ibdev_info(&rdev->ibdev, "%s: L2 driver notified to stop en_state 0x%lx",
- 		   __func__, en_dev->en_state);
--	bnxt_re_remove_device(rdev, BNXT_RE_PRE_RECOVERY_REMOVE, adev);
-+
- 	bnxt_re_update_en_info_rdev(NULL, en_info, adev);
-+	bnxt_re_remove_device(rdev, BNXT_RE_PRE_RECOVERY_REMOVE, adev);
- 	mutex_unlock(&bnxt_re_mutex);
- 
- 	return 0;
-@@ -2550,9 +2557,14 @@ static int bnxt_re_resume(struct auxiliary_device *adev)
+@@ -668,9 +669,9 @@ static int bnxt_qplib_alloc_pd_tbl(struct bnxt_qplib_res *res,
  {
- 	struct bnxt_re_en_dev_info *en_info = auxiliary_get_drvdata(adev);
- 	struct bnxt_re_dev *rdev;
-+	int rc;
+ 	u32 bytes;
  
- 	mutex_lock(&bnxt_re_mutex);
--	bnxt_re_add_device(adev, BNXT_RE_POST_RECOVERY_INIT);
-+	rc = bnxt_re_add_device(adev, BNXT_RE_POST_RECOVERY_INIT);
-+	if (rc) {
-+		mutex_unlock(&bnxt_re_mutex);
-+		return rc;
-+	}
- 	rdev = en_info->rdev;
- 	ibdev_info(&rdev->ibdev, "Device resume completed");
- 	mutex_unlock(&bnxt_re_mutex);
-@@ -2565,9 +2577,15 @@ static void bnxt_re_shutdown(struct auxiliary_device *adev)
- 	struct bnxt_re_en_dev_info *en_info = auxiliary_get_drvdata(adev);
- 	struct bnxt_re_dev *rdev;
+-	bytes = max >> 3;
++	bytes = BITS_TO_LONGS(max) * sizeof(unsigned long);
+ 	if (!bytes)
+-		bytes = 1;
++		bytes = sizeof(unsigned long);
+ 	pdt->tbl = kmalloc(bytes, GFP_KERNEL);
+ 	if (!pdt->tbl)
+ 		return -ENOMEM;
+@@ -848,9 +849,9 @@ static int bnxt_qplib_alloc_dpi_tbl(struct bnxt_qplib_res *res,
+ 	if (!dpit->app_tbl)
+ 		return -ENOMEM;
  
-+	mutex_lock(&bnxt_re_mutex);
- 	rdev = en_info->rdev;
--	ib_unregister_device(&rdev->ibdev);
--	bnxt_re_dev_uninit(rdev, BNXT_RE_COMPLETE_REMOVE);
-+	if (!rdev)
-+		goto out;
-+
-+	bnxt_re_update_en_info_rdev(NULL, en_info, adev);
-+	bnxt_re_remove_device(rdev, BNXT_RE_COMPLETE_REMOVE, adev);
-+out:
-+	mutex_unlock(&bnxt_re_mutex);
- }
+-	bytes = dpit->max >> 3;
++	bytes = BITS_TO_LONGS(dpit->max) * sizeof(unsigned long);
+ 	if (!bytes)
+-		bytes = 1;
++		bytes = sizeof(unsigned long);
  
- static const struct auxiliary_device_id bnxt_re_id_table[] = {
+ 	dpit->tbl = kmalloc(bytes, GFP_KERNEL);
+ 	if (!dpit->tbl) {
 -- 
 2.39.3
 
