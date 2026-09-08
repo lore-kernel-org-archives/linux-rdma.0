@@ -1,281 +1,326 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBC2658125F;
-	Tue,  8 Sep 2026 16:23:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E2A33A16B8;
+	Tue,  8 Sep 2026 20:02:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788884615; cv=none; b=cWcB8x+hvYhGR/9czX2p2ko/PknA660qlqTcaSIC87G+LbTW7fjd8RaolpeGNtiWaI3Th4isy+GgK9nZaoKRN5+mQGQ/tg/MYG2GErSErnwgferotX1vLFIGuK2AkabKwomde8jbIBHiQ5NsmhECnIwqEWljPo0w5s+veIXcPHQ=
+	t=1788897750; cv=none; b=sU+qyda9VZ4jIiRrPb+RYn5LO/DxQebfRULHJAweVIm7AEi1nPs6A+A/9w51lo4YtPDOaCA0yYt9yN1TFnDdga9cCsXSPaVOwA9EsalqRmTmgCvA2D1k1Yr6ycTt2NYVImqJEWy5UGvcO0wXPZo3PIfDzkMp+Z+cS8zuoBBo55g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788884615; c=relaxed/simple;
-	bh=+J5zbQKf4eywIo9CTA7KsIV5ls2Wo3WhMctuUU7SK+c=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=kalur+Pky3Ng96aNoe7PoXYJPiZ7wdbT8589vbBPtJpF6FsdUb5kX5zU3ujrzNQhqpfpLFO0IwfuzmyB3gwiiF62aQzw2r2YoB8r70kySFSEV8+qOFTpaHs991ggxOPeFUtTVXzZ34ph2AixQixjP3aDaSHNKSkXyOgWsb14s+Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=OxMoiTT3; arc=none smtp.client-ip=148.163.156.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	s=arc-20240116; t=1788897750; c=relaxed/simple;
+	bh=bmDihYBTPF4s+vtesyigFctx5fwOO/lCZ7Euwx9606c=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=XJmRzSPlXimAh9YXLQuZLIFMEmyKpSie9J7zBjqVd4k3mAcn5glixTjg5Uoy8dXMYNnwntZPrRXeqcV5/du5urY6dTX6c4OqlX81yFSrD9PP2ITghPdf5c5I5YOcwpnwklnYfUpw7WCed0xmKu4au00QefBeIkKBt2dVgpOm3AE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YU+Xck8C; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="OxMoiTT3"
-Received: from pps.filterd (m0353729.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 688F1fuZ3545300;
-	Tue, 8 Sep 2026 16:23:27 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pp1; bh=QlgXXB
-	rorwGSyIXIkqlXdkMnkEsNf07rcyafcNglo0U=; b=OxMoiTT3c/Ussz9PJBxF/c
-	nO8Z4HkunOcO8bUBNwD4iT9FylsfgTV4dy+XyslnL/C4vDS784n1AAdLKWp0070F
-	oiQvpooAUQ5pVgvHh9NAbYTgOg/AAP06KvE9PLKR3sgmsQ/uldbbJmVP+UxyrINi
-	h8BFzUWjPRPxFWJz7UOyRq8TQLZjaMhC0d9flDJCku529pAZT3t67tM95OTQbrUW
-	W3rFXwMbC5znBVSzChVEZ7vEt6CA3t7p0VrUAQ/eCUoSZex1DGScpqyZ1gCyUN7n
-	D4hp5ndA8M64bJwd+QGgzkHAAj057msIPMPqsCOuUHGiEV3P8SGfI2Bb95m0Xb5Q
-	==
-Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4ggbqk0awr-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 08 Sep 2026 16:23:26 +0000 (GMT)
-Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma13.dal12v.mail.ibm.com (8.18.1.7/8.18.1.7) with ESMTP id 688GBGdV024172;
-	Tue, 8 Sep 2026 16:23:25 GMT
-Received: from smtprelay04.dal12v.mail.ibm.com ([172.16.1.6])
-	by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 4ggymgcumc-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 08 Sep 2026 16:23:25 +0000 (GMT)
-Received: from smtpav01.wdc07v.mail.ibm.com (smtpav01.wdc07v.mail.ibm.com [10.39.53.228])
-	by smtprelay04.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 688GNO9o22413862
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 8 Sep 2026 16:23:24 GMT
-Received: from smtpav01.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 0D6E35804B;
-	Tue,  8 Sep 2026 16:23:24 +0000 (GMT)
-Received: from smtpav01.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id C44F458055;
-	Tue,  8 Sep 2026 16:23:16 +0000 (GMT)
-Received: from [9.39.31.24] (unknown [9.39.31.24])
-	by smtpav01.wdc07v.mail.ibm.com (Postfix) with ESMTP;
-	Tue,  8 Sep 2026 16:23:16 +0000 (GMT)
-Message-ID: <3803428a-2edc-4a5c-88e8-025f2f3322f4@linux.ibm.com>
-Date: Tue, 8 Sep 2026 21:53:14 +0530
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YU+Xck8C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2BE11F00A3D;
+	Tue,  8 Sep 2026 20:01:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788897747;
+	bh=uIndAhwL3wqvdcSni3GXyOpISzBISCVdYFz9JNsvqeQ=;
+	h=From:Subject:Date:To:Cc;
+	b=YU+Xck8C+XjnsENVDQG6USbnOUb+aYEb+z3QjWcnFUpRoboWzDSJm/ve55xNBXnPz
+	 VgRvExc5Kva/9BnOHdurKjRPDm3Ft1OrcC3qMwbvTUAozMre+hC/kspsJ1SR2kOznE
+	 2P5inHtPA2s1ewMeO1/CgjKzGee8eAkXi9bnCLISEPEdn7EifxSjL1/CRvt/8Kabid
+	 /D6G0BjYPYuszsaBnSin5vkycvI7daTPfopP1YmxREAxMj5DAp4A6TEyCzXVgJmAY+
+	 wG7DfK1fw/6V47qtZWrjBKL/Mjo6hmM0E31ATaPUyDdYzTBKabLRqWnDJArfZK5EH5
+	 i+cxeDdU6Vgaw==
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: [PATCH 00/39] mm: make VMA flag semantics explicit, eliminate
+ VM_SPECIAL
+Date: Tue, 08 Sep 2026 21:01:04 +0100
+Message-Id: <20260908-b4-mmap-prepare-vma-flag-sanify-v1-0-dacf19cce22b@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net v2 0/2] net/smc: fix diag dump lifetime races
-To: dust.li@linux.alibaba.com, Mahanta Jambigi <mjambigi@linux.ibm.com>,
-        andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
-        kuba@kernel.org, pabeni@redhat.com, alibuda@linux.alibaba.com,
-        sidraya@linux.ibm.com
-Cc: pasic@linux.ibm.com, horms@kernel.org, tonylu@linux.alibaba.com,
-        guwen@linux.alibaba.com, stable@vger.kernel.org,
-        netdev@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-rdma@vger.kernel.org
-References: <20260828065439.3582783-1-mjambigi@linux.ibm.com>
- <apWEzobrZ3QR3IfN@linux.alibaba.com>
- <4f303f9f-fd20-475a-8004-1a670dfd34df@linux.ibm.com>
- <apbMyLc0IhLMKwwA@linux.alibaba.com>
- <85fa9f02-7516-4595-b5a8-4ae4ca845121@linux.ibm.com>
- <apgTu9dRGIQE6tm3@linux.alibaba.com>
- <899816c9-c908-4d64-8f5c-ba35619f78f2@linux.ibm.com>
- <apriDec7yHBkQgNv@linux.alibaba.com>
-Content-Language: en-GB
-From: Hidayath Khan <hidayath@linux.ibm.com>
-In-Reply-To: <apriDec7yHBkQgNv@linux.alibaba.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-Reinject: loops=2 maxloops=12
-X-Proofpoint-ORIG-GUID: 5fqY98Q1398DB3b0Upo0ygA0QZu-PKtT
-X-Proofpoint-Spam-Info: AW1haW4tMjYwOTA4MDE3MyBTYWx0ZWRfXxi3vi/YAyguo
- KS1Fn/n5o5NuWN+TnL6nSzxBQuA8Zx09IqbMYdyauPHdH3fOVLvu/6BvJ7VhpFR4WRJFD7DUVU7
- UeF8fGCnGNFl+eJXeuRaBD4W/Ucefqk=
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTA4MDE3MyBTYWx0ZWRfX/Ig7ORl5GMQ2
- YJbFZlrVJNAKyxZWh+t8Ur5RsBRk5PVIP/cpUAooHYqpL4dPii/kUZ8v4MpHOyD2/Os9RwFrKQD
- hcrIXGPBPDc0Mo415ZUuF1bctDCGzwmhgQ6TwktPMUjNBpnBUdHECniwEPXlTYTmd0fcE42DmLJ
- +kFnGFFCYu0ha6OiE8PbNhWOZbu1NyYRIzcG+jvMyL3JjAcknIZssKyhhsqJ5K2UEnrEwjs8lT2
- XzzFXk4haZ71zOL8GquaIDDrB6nVxtQyXz/0whc10f1Brlv6iBD5hXc14AGWA3TfexbvpQ4xfIx
- AUPsz0VXdAQ9+xfC5MZGrK2gpUI/G+dfLYEK5Q9KaTI6D6jJBc+1pYNpV/g5IR/ZZqjN3VcLydy
- Ug4d6NKAHlu7IseOiHNcvbmWo5PWpN3EnA0vIdP8tvxKxwi/FD05dTLNhFdnjZ5vTa+9ChauztQ
- 3vAnYqRKiLh5CQgpk2Q==
-X-Authority-Analysis: v=2.4 cv=JaKMa0KV c=1 sm=1 tr=0 ts=6aa0367e cx=c_pps
- a=AfN7/Ok6k8XGzOShvHwTGQ==:117 a=AfN7/Ok6k8XGzOShvHwTGQ==:17
- a=IkcTkHD0fZMA:10 a=VdqzKS8jKosA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=RnoormkPH1_aCDwRdu11:22 a=uAbxVGIbfxUO_5tXvNgY:22 a=eYgAQB3uTrKrHDNDXAgA:9
- a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
-X-Proofpoint-GUID: XEin1-ch5SiKkVuMRGtEIR_blwOEQr7o
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-09-08_03,2026-09-08_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- malwarescore=0 spamscore=0 phishscore=0 impostorscore=0 lowpriorityscore=0
- adultscore=0 bulkscore=0 priorityscore=1501 suspectscore=0 clxscore=1015
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2609080173
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yXN0QrCMAyF4VcZuTbQhk3BVxEvsi2dEVtLo2Nj7
+ N2tevnB4T8bmBQVg3OzQZFZTZ+pwh8aGG6cJkEdq4EcHd2JPPYtxsgZc5HMRXCOjOHBExonDSu
+ Sd66lbgwdM9RK3QVdfg+X69/27u8yvL5Z2PcPxx1VW4MAAAA=
+X-Change-ID: 20260721-b4-mmap-prepare-vma-flag-sanify-2100425df5aa
+To: Andrew Morton <akpm@linux-foundation.org>, 
+ "Liam R. Howlett" <liam@infradead.org>, Vlastimil Babka <vbabka@kernel.org>, 
+ Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
+ David Hildenbrand <david@kernel.org>, Mike Rapoport <rppt@kernel.org>, 
+ Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, 
+ Jonathan Corbet <corbet@lwn.net>, 
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+ Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, 
+ Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
+ Paul Moore <paul@paul-moore.com>, 
+ Stephen Smalley <stephen.smalley.work@gmail.com>, 
+ Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
+ Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
+ Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>, 
+ Kumar Kartikeya Dwivedi <memxor@gmail.com>, Zi Yan <ziy@nvidia.com>, 
+ Baolin Wang <baolin.wang@linux.alibaba.com>, 
+ Nico Pache <nico.pache@linux.dev>, Ryan Roberts <ryan.roberts@arm.com>, 
+ Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
+ Lance Yang <lance.yang@linux.dev>, Usama Arif <usama.arif@linux.dev>, 
+ Kiryl Shutsemau <kas@kernel.org>, Doug Gilbert <dgilbert@interlog.com>, 
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, 
+ "Martin K. Petersen" <mkp@kernel.org>, Jaya Kumar <jayalk@intworks.biz>, 
+ Simona Vetter <simona@ffwll.ch>, Helge Deller <deller@gmx.de>, 
+ Sebastian Reichel <sre@kernel.org>, John Hubbard <jhubbard@nvidia.com>, 
+ Peter Xu <peterx@redhat.com>, Masami Hiramatsu <mhiramat@kernel.org>, 
+ Oleg Nesterov <oleg@redhat.com>, Peter Zijlstra <peterz@infradead.org>, 
+ Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, 
+ Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, 
+ x86@kernel.org, Arnaldo Carvalho de Melo <acme@kernel.org>, 
+ Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
+ Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, 
+ Juri Lelli <juri.lelli@redhat.com>, 
+ Vincent Guittot <vincent.guittot@linaro.org>, 
+ Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
+ Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
+ David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>, 
+ "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, 
+ Nick Piggin <npiggin@gmail.com>, Arnd Bergmann <arnd@arndb.de>, 
+ Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
+ "Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+ Marc Zyngier <maz@kernel.org>, Oliver Upton <oupton@kernel.org>, 
+ Catalin Marinas <catalin.marinas@arm.com>, 
+ Madhavan Srinivasan <maddy@linux.ibm.com>, Anup Patel <anup@brainfault.org>, 
+ Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, 
+ Albert Ou <aou@eecs.berkeley.edu>, 
+ Christian Borntraeger <borntraeger@linux.ibm.com>, 
+ Janosch Frank <frankja@linux.ibm.com>, 
+ Claudio Imbrenda <imbrenda@linux.ibm.com>, 
+ Alexander Gordeev <agordeev@linux.ibm.com>, 
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com>, 
+ Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
+ "David S. Miller" <davem@davemloft.net>, 
+ Andreas Larsson <andreas@gaisler.com>, 
+ Alexander Viro <viro@zeniv.linux.org.uk>, 
+ Christian Brauner <brauner@kernel.org>, 
+ Matthew Brost <matthew.brost@intel.com>, 
+ Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, 
+ Byungchul Park <byungchul@sk.com>, Gregory Price <gourry@gourry.net>, 
+ Ying Huang <ying.huang@linux.alibaba.com>, 
+ Alistair Popple <apopple@nvidia.com>, Chris Li <chrisl@kernel.org>, 
+ Kairui Song <kasong@tencent.com>, Kemeng Shi <shikemeng@huaweicloud.com>, 
+ Nhat Pham <nphamcs@gmail.com>, Baoquan He <baoquan.he@linux.dev>, 
+ Youngjun Park <youngjun.park@lge.com>, Johannes Weiner <hannes@cmpxchg.org>, 
+ Qi Zheng <qi.zheng@linux.dev>, Shakeel Butt <shakeel.butt@linux.dev>, 
+ Axel Rasmussen <axelrasmussen@google.com>, Yuanchu Xie <yuanchu@google.com>, 
+ Wei Xu <weixugc@google.com>, Xu Xin <xu.xin16@zte.com.cn>, 
+ Chengming Zhou <chengming.zhou@linux.dev>, Michal Hocko <mhocko@kernel.org>, 
+ Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, 
+ linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, 
+ linux-rdma@vger.kernel.org, selinux@vger.kernel.org, 
+ linux-sound@vger.kernel.org, bpf@vger.kernel.org, 
+ linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org, 
+ dri-devel@lists.freedesktop.org, linux-trace-kernel@vger.kernel.org, 
+ linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org, 
+ linux-fsdevel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+ kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org, 
+ kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org, 
+ linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, 
+ fuse-devel@lists.linux.dev, "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+X-Mailer: b4 0.14.3
+X-Developer-Signature: v=1; a=openpgp-sha256; l=9577; i=ljs@kernel.org;
+ h=from:subject:message-id; bh=bmDihYBTPF4s+vtesyigFctx5fwOO/lCZ7Euwx9606c=;
+ b=owGbwMvMwCV2fu7ZrsZH9SKMp9WSGLIWZG5gXXD/6AsmSxPurl1NWQeuatoyue3v8zrcIerNb
+ Z7iceJhRykLgxgXg6yYIsvzL+L7g0TC5nVe8HeDmcPKBDKEgYtTACai/IThF/Py3YWvW1dcT9wh
+ H5qbnp6/PNRhjYKI6OYvUvUbbHZMbGVk2Lrs/nedQ1eiioIs/nuuf/H/Xkd/77w/O3b++q6ToOE
+ 8nw8A
+X-Developer-Key: i=ljs@kernel.org; a=openpgp;
+ fpr=E7F417BF5214569E89D04F46CF9DCD8A81E27F14
 
+The VM_SPECIAL / VMA_SPECIAL_FLAGS mask conflates several unrelated
+properties:
 
-On 04/09/26 8:51 pm, Dust Li wrote:
-> On 2026-09-03 13:26:30, Mahanta Jambigi wrote:
->> On 02/09/26 5:46 pm, Dust Li wrote:
->>> I think we can close this window by holding the SMC hash table lock in
->>> smcr_link_clear()? [...]
->> Hi Dust,
->>
->> After debugging further, I believe that __smcr_link_clear() cannot be
->> called from smc_switch_link_and_count() because
->> refcount_dec_and_test(&lnk->refcnt) is always false on that path — the
->> initial ref (set in smcr_link_init(), released only in
->> smcr_link_clear()) is always held while the switch executes. So there is
->> no UAF from that path. The only consequence is that the diag reader may
->> observe a stale conn->lnk pointer value — pointing to the old link which
->> is still fully live — and read the old link's ibport/link_id/ibname from it.
-> Hi Mahanta,
->
-> Sorry for the late reply. I've done some more thinking on this topic.
->
-> That's true, but strictly I think there is still a small gap. The old link is
-> memset later, in smcr_link_clear() after all connections have migrated, so a
-> reader that loaded conn->lnk just before its own connection was switched has a
-> few-instruction window before it dereferences. In practice this window is
-> really narrow: the clear path runs the whole switch + LLC + QP teardown, orders
-> of magnitude longer than the reader's load+deref.
->
->> The real UAF is via smc_conn_free(): it drops both the connection-owned
->> conn->lnk reference via smcr_link_put() and the connection-owned
->> conn->lgr reference via smc_lgr_put(), while the socket is still visible
->> in the hash table. [...] The current patch tries to fix this using
->> lgr_lnk_lock. Since you suggested we fix it with *unhash-before-free*, I
->> thought about it and here is my proposal.
->>
->> Proposed fix (high level):
->>
->> Introduce a smc_conn_unhash() helper with a per-connection unhashed flag
->> that ensures the socket is removed from the hash table exactly once.
->> Call it at the top of smc_conn_free(), before any lgr/lnk references are
->> dropped.
->>
->> This establishes the invariant: any socket still visible to the diag
->> reader under read_lock(hash->lock) has valid conn->lgr and conn->lnk
->> pointers. [...]
->>
->> Does this design look reasonable to you?
-> Yes, I think it's the right fix and we can go ahead and fix it this way first.
->
->> There is a separate minor issue — smc_switch_link_and_count() updates
->> conn->lnk under send_lock while the diag reader loads it without any
->> lock, which can cause stale ibport/link_id/ibname in *smcss -R* during a
->> failover event. This is a data race but not a safety issue since the
->> link struct is always live at that point.
->>
->> This race is very rare in practice [...] Even when it occurs, the effect
->> is transient: one dump may show the old link's ibport/link_id/ibname, and
->> the next dump will show the correct values.
-> I think this is acceptable.
->
-> ---
->
-> I've been re-thinking this a bit more. We've been plagued by SMC's tangled
-> locks and ad-hoc lifetime handling for years — every fix adds another lock or
-> another ordering rule. I think it's time to step back and refactor this area as
-> a whole, and set up some rules for how we use locks/refcounts in SMC, instead of
-> keeping patching individual races. Below are some rough thoughts.
->
-> 1. Object layering
->
-> SMC really has three lifetime tiers, and the top one has to be split the way
-> TCP splits struct socket from struct sock:
->
-> - the file (struct socket) — lifetime tied to fput;
-> - the connection sock (smc_sock, with conn embedded) — lifetime tied to
->    sk_refcnt; like a TCP sock it can be orphaned and outlive the file. On an
->    active close, close(fd) orphans it first, but it stays alive — still bound to
->    the transport — to finish the close handshake;
-> - the shared transport (lgr / link / device) — lifetime by refcount, multiplexed
->    across connections.
->
-> It's the socket/sock split, plus one more tier because our transport is shared
-> (TCP's sock is 1:1, our lgr/link is not). Today smc_conn_free() mixes all three
-> and is called from the transport layer while the socket is still hashed —
-> that's exactly where these races come from.
->
-> With the tiers separated, teardown becomes two independent, idempotent steps
-> rather than one:
->
-> - orphan (file <-> sock): at fput, via sock_orphan();
-> - transport-detach (sock <-> transport): the connection drops its lgr/link
->    refs. On an active close this happens later, after the handshake completes;
->    on a transport fault it happens immediately.
->
-> The sock is freed only once it is orphaned, transport-detached, and the last
-> sock_put lands; the order of the two steps just depends on who initiates
-> teardown (app close vs. transport fault).
->
-> 2. Lifetime & boundary contract
->
-> Give each tier the right tool, and a clear boundary between them:
->
-> - ownership by kref; traversal by RCU (conn->lgr / conn->lnk become RCU
->    pointers, the lgr is freed with kfree_rcu); fd-visible objects (clcsock)
->    released only after the last fput; and no in-place mutation of a published
->    object (stop memset()ing a link — mark it dead and reclaim it with the lgr
->    after a grace period);
->
-> - boundary rule: on a transport fault the lower layer only signals and
->    transport-detaches; it never orphans, unhashes, or frees the sock.
->    - signal = wake the app with an error (sk_err + wakeup);
->    - transport-detach = publish rcu_assign_pointer(conn->lgr/lnk, NULL), then
->      drop the usage references (smc_lgr_put / smcr_link_put). The transport
->      object itself is reclaimed later by its own refcount + kfree_rcu; the sock
->      is left untouched.
->    Handle-side teardown (orphan, unhash, clcsock release, final sock_put)
->    belongs to the connection/file side and is driven by close — never by the
->    transport layer.
->
-> With that, a diag reader under rcu_read_lock is guaranteed the link/lgr
-> outlives its critical section, so the per-connection lgr_lnk_lock is no longer
-> needed and smc_conn_unhash() can be retired too. (clcsock_release_lock goes
-> away separately, via the clcsock lifetime series.) It's a larger, mostly
-> mechanical change and would take a lot of careful rework, so I'd do it as a
-> follow-up. Your smc_conn_unhash() is the right fix to take now (and for
-> stable); the rework, if we agree on this direction, would retire it afterwards.
-Hi Dust,
+* Is this kernel-owned, whether MMIO, kernel-allocated pages, or ordinary
+  pages a driver maps itself?
+* Can it be expanded or merged?
+* Is this a 'weird' case like mlock where migration might race and we
+  'have' to set invalid flags to notify?
+* Is it another 'weird' case where we just want to stop GUP from touching
+  it?
 
-Thanks for writing this up and for the pointer from my abort_work patch.
+Driver writers have often been confused about this, and who can blame them?
 
-You describe three tiers, with lgr, link and device as the transport one.
-I was not sure where the buffer descriptor fits. It does not seem to
-follow the lgr: smc_buf_unuse() returns conn->rmb_desc to lgr->rmbs, and
-smc_buf_get_slot() can then hand it to another connection while the lgr is
-still alive.
+It also interacts badly with the eternal edgecase known as hugetlb - which
+sets VMA_DONTEXPAND_BIT but doesn't also want to be treated like a
+'special' flag.
 
-Two places look like they can outlive it:
+Another issue is that we cannot make sensible assumptions about flag
+use. It's not possible to assume VMA_IO_BIT means iommu because drivers
+abuse it and mlock abuses it.
 
-- a splice reader still holding pipe pages, since smc_buf_unuse() does not
-   consult conn->splice_pending;
+Special is also an overloaded term in mm. VDSO and VVAR mappings are also
+called 'special' but they're special in a... special way.
 
-- smc_cdc_msg_recv_action() and smc_cdc_handle_urg_data_arrival(), which
-   read conn->rmb_desc after smc_cdc_rx_handler() has already left
-   conns_lock. On the is_reg_err path smcr_buf_unuse() frees the
-   descriptor rather than recycling it.
+Sometimes things are called special that are a subset of
+VMA_SPECIAL_FLAGS (VMA_PFNMAP_BIT and VMA_MIXEDMAP_BIT for instance when it
+comes to zapping or vm_normal_folio()).
 
-Have you already considered the descriptor in this model? Would it need
-its own kref, or is it meant to sit inside the transport tier? I may be
-missing something here.
+There's a specific kind of special for THP too, which considers
+PFN map, mixed map 'special' but DAX not.
 
-One smaller question, on the boundary rule. The SMC-D side already looks
-close to what you describe: smcd_handle_irq() holds smcd->lock across both
-the lookup and the tasklet_schedule(), and smc_ism_unset_conn() clears the
-slot under the same lock. The SMC-R receive path drops conns_lock between
-the lookup and the action. Is that difference something the refactor
-would make uniform, or is there a reason the receive path cannot hold the
-lock that long?
+It's all rather a mess.
 
-If it would be useful, I can write up the lifetime assumptions I have run
-into while working through the teardown paths. Please tell me if that
-helps, or if it would only repeat what you already have.
+This series brings some order to things by both limiting what drivers can
+do with VMA flags and switching to using predicates that describe
+behaviour, not arbitrary flags.
 
-Thanks,
-Hidayath
->
-> Best regards,
-> Dust
+It establishes the invariant that only kernel-owned mappings may set
+VMA_IO_BIT or clear VMA_MAYWRITE_BIT in an mmap hook, enforcing this by
+validating VMA state after every mmap and mmap_prepare hook.
+
+It updates usbmon and sg to mmap_prepare in order to do so, adding a new
+mmap action for mapping discontiguous kernel pages, and has hfi1 and the
+ALSA PCM status page map their pages eagerly instead.
+
+It also establishes the invariant that VMA_MIXEDMAP_BIT be set when mapping
+kernel memory, something that is usually the case but happens not to be for
+some users - specifically defio, cmt_speech, uprobes and the bpf arena, all
+of which are updated to do the right thing.
+
+It replaces VM_SPECIAL and arbitrary flag tests with predicates that say
+what is actually being tested:
+
+   vma_is_kernel_owned()   Does a driver or kernel code manage a VMA's
+                           life cycle?
+
+  vma_is_fixed_mapping()   Is the VMA not permitted to be expanded or
+                           merged?
+
+     vma_is_persistent()   Do bytes written to the VMA stay written, and
+                           bytes read stay the same unless userland changes
+                           them?
+
+         vma_can_merge()   Can the VMA be merged with a compatible
+                           neighbour?
+
+           vma_can_gup()   Can GUP obtain pages from the VMA, i.e. is it
+                           neither a PFN map nor memory-mapped I/O?
+
+Remaining raw VMA_IO_BIT, VMA_PFNMAP_BIT and VMA_MIXEDMAP_BIT tests
+scattered across mm are also converted to predicates where it makes sense
+to do so.
+
+And also the opportunity is taken to eliminate THP's vma_is_special_huge()
+which was an existing source of confusion.
+
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+---
+Lorenzo Stoakes (ARM) (39):
+      mm/vma: predicate setting mmap_prepare VMA fields on new vma alloc
+      mm/vma: introduce and use vma_[flags_]can_merge()
+      mm: consistently validate VMA state after mmap[_prepare] hooks
+      mm/vma: ensure mmap_prepare doesn't set actions on a mergeable vma
+      mm: make map_kernel_pages_[prepare,complete] internal and unexported
+      mm/vma: tidy up map kernel pages enum values
+      mm: add mmap action for discontiguous kernel page mapping
+      docs: filesystems: update mmap_prepare docs for discontig kernel pgs
+      drivers/usb/mon: update to use mmap_prepare + map kernel pages
+      infiniband: update hfi1 to use remap_vmalloc_range()
+      selinux: reject writable opens of policy file, drop mmap shared/write check
+      ALSA: pcm: use vm_insert_page() to map PCM status page
+      bpf: arena: mark arena_map_mmap() mappings VM_MIXEDMAP
+      mm/vma: add vma[_flags]_is_kernel_owned() predicates
+      mm/vma: only allow mmap to clear VMA_MAYWRITE_BIT if kernel-owned
+      mm/vma: add and use vma_[flags]_is_fixed_mapping
+      scsi: sg: convert mmap hook to mmap_prepare and rework
+      fbdev: defio: assert FBINFO_VIRTFB, drop VM_IO, add VM_MIXEDMAP
+      HSI: cmt_speech: convert mmap hook to mmap_prepare, refactor
+      mm/gup: error out early on !VMA_MAYREAD_BIT VMAs
+      uprobes: remove VM_IO, set VM_MIXEDMAP for mapped kernel pages
+      mm/mlock: clear VMA_LOCKED_MASK over mmap callback
+      mm/mlock: eliminate weird VMA_IO_BIT abuse and simplify
+      mm/vma: enforce that only kernel-owned mappings may set VMA_IO_BIT
+      mm: remove VMA_IO_BIT check in vma[_flags]_is_kernel_owned()
+      mm: remove hugetlb_inline.h
+      mm: rename is_vm_hugetlb_page() to vma_is_hugetlb()
+      mm: drop some redundant checks around hugetlb VMAs
+      mm/madvise: update is_valid_guard_vma() to use vma_can_merge()
+      mm/vma: introduce vma[_flags]_is_persistent()
+      mm/uffd: use predicates for userfaultfd checks
+      mm/madvise: use predicates for madvise(..., MADV_DOFORK)
+      mm: eliminate VMA_SPECIAL_FLAGS usage when hugetlb explicitly tested
+      mm: eliminate VMA_SPECIAL_FLAGS check in lru_gen_look_around()
+      mm: avoid use of VMA_SPECIAL_FLAGS in migrate_vma_setup()
+      mm: eliminate VM_SPECIAL, VMA_SPECIAL_FLAGS
+      fuse: dax: do not set VM_MIXEDMAP
+      mm/huge_memory: remove vma_is_special_huge()
+      mm/vma: introduce and use vma[_flags]_can_gup()
+
+ Documentation/filesystems/mmap_prepare.rst |  81 +++++++++
+ arch/arm64/kvm/mmu.c                       |   4 +-
+ arch/powerpc/mm/book3s64/radix_tlb.c       |   6 +-
+ arch/powerpc/mm/nohash/e500_hugetlbpage.c  |   2 +-
+ arch/powerpc/mm/nohash/tlb.c               |   2 +-
+ arch/riscv/kvm/mmu.c                       |   2 +-
+ arch/riscv/mm/tlbflush.c                   |   2 +-
+ arch/s390/mm/gmap_helpers.c                |   6 +-
+ arch/sparc/mm/init_64.c                    |   2 +-
+ arch/x86/kernel/uprobes.c                  |   2 +-
+ drivers/gpu/drm/drm_gpusvm.c               |   5 +-
+ drivers/hsi/clients/cmt_speech.c           |  33 +---
+ drivers/infiniband/hw/hfi1/file_ops.c      |  79 +++------
+ drivers/scsi/sg.c                          | 115 ++++++-------
+ drivers/usb/mon/mon_bin.c                  |  82 +++++----
+ drivers/video/fbdev/core/fb_defio.c        |   6 +-
+ drivers/video/fbdev/ssd1307fb.c            |   2 +
+ fs/coredump.c                              |   6 +-
+ fs/fuse/dax.c                              |   2 +-
+ fs/hugetlbfs/inode.c                       |   2 +-
+ fs/proc/task_mmu.c                         |   8 +-
+ include/asm-generic/tlb.h                  |   4 +-
+ include/linux/hugetlb.h                    |   5 +-
+ include/linux/hugetlb_inline.h             |  28 ---
+ include/linux/mm.h                         | 266 +++++++++++++++++++++++++++--
+ include/linux/mm_types.h                   |  50 +++++-
+ include/linux/pagemap.h                    |   1 -
+ include/linux/rmap.h                       |   2 +-
+ include/linux/userfaultfd_k.h              |   1 -
+ kernel/bpf/arena.c                         |   3 +-
+ kernel/events/core.c                       |   2 +-
+ kernel/events/uprobes.c                    |   4 +-
+ kernel/sched/fair.c                        |   3 +-
+ mm/folio.c                                 |   2 +-
+ mm/gup.c                                   |  15 +-
+ mm/hmm.c                                   |   3 +-
+ mm/huge_memory.c                           |  31 ++--
+ mm/hugetlb.c                               |  14 +-
+ mm/internal.h                              |  71 ++++----
+ mm/ksm.c                                   |   4 +-
+ mm/madvise.c                               |  28 +--
+ mm/memory.c                                | 142 ++++++++++++---
+ mm/mempolicy.c                             |   5 +-
+ mm/migrate_device.c                        |  12 +-
+ mm/mlock.c                                 |  51 +++---
+ mm/mmap.c                                  |   2 +-
+ mm/mmu_gather.c                            |   2 +-
+ mm/mprotect.c                              |   5 +-
+ mm/mremap.c                                |  11 +-
+ mm/page_vma_mapped.c                       |   4 +-
+ mm/pagewalk.c                              |   2 +-
+ mm/rmap.c                                  |   4 +-
+ mm/swapfile.c                              |   2 +-
+ mm/userfaultfd.c                           |  45 +++--
+ mm/util.c                                  |  22 ++-
+ mm/vma.c                                   | 161 +++++++++++++----
+ mm/vma.h                                   |  24 ++-
+ mm/vma_internal.h                          |   1 -
+ mm/vmscan.c                                |   9 +-
+ security/selinux/selinuxfs.c               |  11 +-
+ sound/core/pcm_native.c                    |  37 ++--
+ tools/testing/vma/include/dup.h            |  60 +++++--
+ tools/testing/vma/include/stubs.h          |   2 +-
+ tools/testing/vma/tests/merge.c            |  10 +-
+ 64 files changed, 1071 insertions(+), 539 deletions(-)
+---
+base-commit: d118502628f8b673be9023db8bdf878f64a7ed45
+change-id: 20260721-b4-mmap-prepare-vma-flag-sanify-2100425df5aa
+
+Best regards,
+-- 
+Lorenzo Stoakes (ARM) <ljs@kernel.org>
+
