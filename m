@@ -1,427 +1,265 @@
-Received: from CO1PR03CU002.outbound.protection.outlook.com (mail-westus2azon11010050.outbound.protection.outlook.com [52.101.46.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr2-f12.google.com (mail-wr2-f12.google.com [74.125.225.76])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED0843A0B3B;
-	Tue,  8 Sep 2026 06:55:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.46.50
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788850537; cv=fail; b=bm8q/6RwzflOlsTmo/bgjkbL8458XcwGLduRHUvsVzarpQOMrsolRRkgddsvtfFEy5XLgzx7aVE0iB0VRbAVlGaOT+A0YXHAp96Avye2+xhVcv5xAib40FaZfkjsau6qgOq9WHSlK4QkBxzIcOlic5c7zUaifwLvrDR/uRhOehA=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788850537; c=relaxed/simple;
-	bh=iF96JdLWujOkuBsKtX/ea7pKnCZf08RRzTn1wqij5ww=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=rywVIPlMN58GWmk9SxJrTip6/LM3ioOKgdTtAzsMFY8dVe152tLOJIsxBIjU/ImmqK65i2GWQkUpzitsYtlm2FURtlp8Z9iApGXHvon49v4S9Cl2xG7Aa9c/sBNBbBdwklt4KELxlDBg9lv/TztNPzZWhQ4V6RNsL+z4t/nDySU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=YAExET/j; arc=fail smtp.client-ip=52.101.46.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6B272192F4
+	for <linux-rdma@vger.kernel.org>; Tue,  8 Sep 2026 07:35:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.76
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788852955; cv=none; b=Vt+s+T4KCRTCNdtnxpw1goNii5v02toutCnKycCUv9WesDmxF1k7AfvH9AZbDYT5lxbKqJuSG6i1FyKJrBZNdAl84Dj5GZYV0zKPsqqMj4LwwIH+YACpuhQFKGi82p7X5BUhFwmvOMlXPHMPiOXbUHXhCs4W8lvPQ/+KnW1FEhg=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788852955; c=relaxed/simple;
+	bh=w34PiXT9SC+k/0T+RoDd5XeWmlTObvuDaqVPSeS2Q8c=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=ZPHjVQQmtu3go5jq2px1A99tk/GgfY1VmOTYA5yTjB/CERFljXtBA/CEaYVt8cbJgug6tCiJ04W5vFL23NesPqGALxCwOu/Pz9itLusPhsSDdiOViH/+jXJOt1mjsoVS1foLhs1wvQXS9ZUecVAWnlf8IrA9rUlHz8baKMEJAZY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=YNB1BV9W; arc=none smtp.client-ip=74.125.225.76
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="YAExET/j"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=jMXdr9zhYS8FOAM9AT1vu0nrEFKmTXYnbjd7BJqamrheZR+jSOSp+X4wjIxSDfKboawXP8m1poakNm6jk2ak6z+dyx9Q4Oo2lc6eCqSWgEXyGxoOC5z2bIJ/aHkIkq1Kg9nekpCYTS2zxnkT/4PTmPZswUZVBOoC7QsJuLMdGjbJJhnnO3TvQCCPNIl1m9psqBF4RBj3IHaW/XM/IEaBwgwPbmCAYYD1iC1cBMB8rvNSnarEkKsDYFnr10S8K1+qFfUxvoAf5Bnv4XyJ29IUgo+ZEyNyUwJ0LgDR97ulZv4ffq+6XW8i4GB3h/Aodyu9y57dhD4aD3sAWOeEdsYQkQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=gnzSzms0oM+0R0eSPIXHaC3vuWCVPAeDHMnoKRlM7H4=;
- b=e80M/GuaCT5tkkqeMyNHzxvj2QaJiZ/YaXB0505XPP/do0HUbpMOFvw8xg51J2lMFbqdcoAAJRKr6qv+MgdYuR1kur0IAOtCU/IhUuoQl2XUE4+Ivc22HAW3WPMR1HvTrQS8mRld9qOvjFjkc/ra5pUllKiGIDvucaHY9JKl5Dv01sDkJWAHxDKpr4OVSDX9RcWpttXOBj01fNKrZdjDNt5ZJQcRWHtIL9vXgK6NsKSk63Ukwkt0bq3Lv697YrbzSakKO3BN0MMSJXV+HisbwO0u0+kZf70Jh+hTHiO7Z62w29u/QwYlfhy0lWelRHOQBILvi8ssNS0HDDcPSalLIQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.161) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=gnzSzms0oM+0R0eSPIXHaC3vuWCVPAeDHMnoKRlM7H4=;
- b=YAExET/j8+J3nE+SgAnxQuHW1RXJBTZyT5xdSurnFXB6HKIwNyt3NylhjZfep6RGZW5XY7ln7XWurv9luXTkkA9g727/FRkaU4HZx3nVxNgqkJ9Ps4kB5ssrfIBE2Pfh1CcrxXGkKWt4+9WI7jzIyW4Q0qik9Kp7gO6TV4dmdN4wZFMyyUDfVVIubVQDMVpCtwLs2mh1+Fbjx9JMmJpNtPylHWjWCMnhtrtAoWOd+QTKyexaiEy8AuJUUf1IlPVBSCF27z7alxZGVaBx1X7mePjQxmDU6gXvAlMb6ZaD3VCtI03Y9aUFDVpcPlYp0huSClFXqCcoCcOJtUxMKt/RKA==
-Received: from BN8PR04CA0050.namprd04.prod.outlook.com (2603:10b6:408:d4::24)
- by DS0PR12MB7607.namprd12.prod.outlook.com (2603:10b6:8:13f::13) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.382.13; Tue, 8 Sep
- 2026 06:55:28 +0000
-Received: from BN7PEPF000000AB.namprd05.prod.outlook.com
- (2603:10b6:408:d4:cafe::13) by BN8PR04CA0050.outlook.office365.com
- (2603:10b6:408:d4::24) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.382.15 via Frontend Transport; Tue, 8
- Sep 2026 06:55:27 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.161) by
- BN7PEPF000000AB.mail.protection.outlook.com (10.167.245.235) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.406.5 via Frontend Transport; Tue, 8 Sep 2026 06:55:27 +0000
-Received: from rnnvmail205.nvidia.com (10.129.68.10) by mail.nvidia.com
- (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.46; Mon, 7 Sep
- 2026 23:55:12 -0700
-Received: from rnnvmail203.nvidia.com (10.129.68.9) by rnnvmail205.nvidia.com
- (10.129.68.10) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.46; Mon, 7 Sep
- 2026 23:55:12 -0700
-Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.9)
- with Microsoft SMTP Server id 15.2.2562.46 via Frontend Transport; Mon, 7 Sep
- 2026 23:55:04 -0700
-From: Tariq Toukan <tariqt@nvidia.com>
-To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
-	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
-	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Sabrina Dubroca <sd@queasysnail.net>
-CC: Bobby Eshleman <bobbyeshleman@meta.com>, Boris Pismenny
-	<borisp@nvidia.com>, Carolina Jubran <cjubran@nvidia.com>, Cosmin Ratiu
-	<cratiu@nvidia.com>, Daniel Zahka <daniel.zahka@gmail.com>, Doruk Tan Ozturk
-	<doruk@0sec.ai>, Dragos Tatulea <dtatulea@nvidia.com>, Gal Pressman
-	<gal@nvidia.com>, Jianbo Liu <jianbol@nvidia.com>, Kees Cook
-	<kees@kernel.org>, Leon Romanovsky <leon@kernel.org>, open list
-	<linux-kernel@vger.kernel.org>, <linux-kselftest@vger.kernel.org>,
-	<linux-rdma@vger.kernel.org>, Mark Bloch <mbloch@nvidia.com>, Petr Machata
-	<petrm@nvidia.com>, Raed Salem <raeds@nvidia.com>, Rahul Rameshbabu
-	<rrameshbabu@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>, Shuah Khan
-	<shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Simon Horman
-	<horms@kernel.org>, Tariq Toukan <tariqt@nvidia.com>, Willem de Bruijn
-	<willemb@google.com>, Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Subject: [PATCH net-next V4 14/14] selftests: drv-net: Add PSP HW GRO conformance tests
-Date: Tue, 8 Sep 2026 09:52:44 +0300
-Message-ID: <20260908065244.3799142-15-tariqt@nvidia.com>
-X-Mailer: git-send-email 2.44.0
-In-Reply-To: <20260908065244.3799142-1-tariqt@nvidia.com>
-References: <20260908065244.3799142-1-tariqt@nvidia.com>
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="YNB1BV9W"
+Received: by mail-wr2-f12.google.com with SMTP id ffacd0b85a97d-482e1b30c94so261215f8f.1
+        for <linux-rdma@vger.kernel.org>; Tue, 08 Sep 2026 00:35:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=suse.com; s=google; t=1788852952; x=1789457752; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:autocrypt:from
+         :content-language:references:to:subject:user-agent:mime-version:date
+         :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=ElpqtHVC7jMTpwo4iy/7Zs2kCnpT328w0BszAUno6nA=;
+        b=YNB1BV9WdXh+MXhWfvffoJKypjIdxDIWooXAPZfsgMgEgneWQ2ucJmmFnvNnFT/AAA
+         Xx4gjcDatB9NH1R9TbVyDt/1NVbsDC+ZQOFfc8rV4I0glzWVvfXwQyCYFmRn6DkE4Uq4
+         GR3amYkKhPxBU4a6kZr66TDl1zMnIZLsm3CeJ1sMxtlYTt92HDypG8u9m12whMbq5lE1
+         deQk9mxnc78mI2NimFXnuYEXAQzbhQ5b0NbKu7yPXjDsbIVcr26X+lqxDrscueF79Ggp
+         44LDdrjAON0E7+nIxU7WoNi/a7VrHM4soHkxF0qDlPOv8yNQ4c8yU1hhRClHXCwf0XmF
+         +weQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788852952; x=1789457752;
+        h=content-transfer-encoding:content-type:in-reply-to:autocrypt:from
+         :content-language:references:to:subject:user-agent:mime-version:date
+         :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=ElpqtHVC7jMTpwo4iy/7Zs2kCnpT328w0BszAUno6nA=;
+        b=jjsLNzAdNC7tygt5ymQir08jqDA44EtMCNTuxvUuXYNLig0Fxpl374T8jtC8hcce0w
+         Nqfi8hp+lvHYW7+i/3QX9QGtznhyHVRQ0yv4Faf3Md4VWmOzGtelE2nEHYv7yM5KakoA
+         erYFgK74lWzj7CCpRo1ehi9Q7utEcmSmNZ/avdrSwFZmo/VVyZuMWax4r0+PQ9ZZNHal
+         grm5aPtpASe+jrTdSHz+B63jXTEhVQANHRuH0YuZJA2fcLTUMAKdOFrV9Wn+iC255EQc
+         Vck5sN/3+BM8YB5QDfiGwDCDBT04TRsF6AiaodVmoEJ7RE1kLD5/juxKo9dsP6AJJDn4
+         HObQ==
+X-Forwarded-Encrypted: i=1; AKwUvByXOILT/+RfZSaAREDwn57Zp8WMMA+RrGGLnaAIsHJZnAPtes0s+pTXy4E23Yy42SFnS+NNae9KCW3Q@vger.kernel.org
+X-Gm-Message-State: AFuF++nTDAFru2b5jDl8Ar+xakJF8PYYha/v5kBDBC8A5/Irt8aNIDv6
+	MhiwEdiD83qsjUjt5LNxTmACDezgZyvx5RgwYJgpzkBpfSKwxbXlNUqOoilqfdLwfBQ=
+X-Gm-Gg: AYBFou3jfrFbUyxv7YhudXFAgD1NTq8qsMIk/w5wDkrEi6IOBxHwbEw8K4XUB2lsBOd
+	7HSJxXg5WJAYEH/GP2OOEAGCHPABpg6tmF6zCrVysNUAz42Xr54ZMfM2O8uaW6h8w9QpXb8AiGy
+	ab8/NUFmB8ZPBhVLbTLVuGSZEBiYRS2mnrVJSLQpLcgn5j9T2yZyJ719kXWtwyJgMF9XZSlx01e
+	Yihe2P6B9Yak7hZxYNu8U25Za6eeADt3+zr+pILfg2V1l7SlV367OAZgpc9gcuVoiZQ9B9+uLR9
+	/VzsBMtAFt7nCmw1xtW8jeVllXkd+UGOlVz8TqFXoN43QL+cN0G9xt/uqMgOKsW6p71BO2jB4Sz
+	MKVPiqtWrKTE6aG62g2Xpqumw/8Qr5c5SxiGnQ1oNCODDg/MlQ1Qk0pSgNeolosAq3Jh6ob/jsw
+	G1NXz8183btI2Pq9Z5elZzNk4iBR2cMi7HJKYDJUBcLtQeqOXhh5/tCsrsav5xZAdRXtw1Z4SPk
+	nEJaFAr6iQK6xvqdFhWnAleIEi1ats=
+X-Received: by 2002:a05:600c:530d:b0:49c:e363:c66e with SMTP id 5b1f17b1804b1-49d01dce86fmr169773115e9.1.1788852951560;
+        Tue, 08 Sep 2026 00:35:51 -0700 (PDT)
+Received: from [10.20.0.128] (lfbn-ann-1-199-252.w86-200.abo.wanadoo.fr. [86.200.161.252])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49d0656e7bbsm267934475e9.10.2026.09.08.00.35.50
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 08 Sep 2026 00:35:51 -0700 (PDT)
+Message-ID: <a8d64435-2fd8-4e2b-9b48-aea496630e07@suse.com>
+Date: Tue, 8 Sep 2026 09:35:50 +0200
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] RDMA/rxe: Use validated num_sge in local buffer
+To: Zhu Yanjun <yanjun.zhu@linux.dev>, Zhu Yanjun <zyjzyj2000@gmail.com>,
+ Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
+ Tristan Madani <tristmd@gmail.com>,
+ "open list:SOFT-ROCE DRIVER (rxe)" <linux-rdma@vger.kernel.org>,
+ open list <linux-kernel@vger.kernel.org>
+References: <20260907161550.716670-1-nmorey@suse.com>
+ <27376486-9cab-4d42-8ed7-36e13231dd91@linux.dev>
+ <681ae665-523a-441b-bbd8-dbae51ee64f1@suse.com>
+ <4bb04e58-7e69-46bc-9ecf-283605b18340@linux.dev>
+Content-Language: fr, en-GB
+From: Nicolas Morey <nmorey@suse.com>
+Autocrypt: addr=nmorey@suse.com; keydata=
+ xsBNBFjZETwBCADEkoe7QWAXzd9xpSiPbQK6P2F4wKdxyTp6r0aN4I0O+4fc8xWXvmwOrCjF
+ UsuoGZ3CxJaHgdB/3ueW/IhMO5Ldz7pylhKVlG/moUh4CBK2eRUdaG7mHID01GyJMtR3VQqu
+ 22hJhHPYy0erpYViyr+I4MzQA9QZLoQhSxn4imjZOZPcj20JE+lRfXppNv9g7vQiRLMcXjTi
+ KcnrqG5owOi6Cn1sZ201YfdeztGxKA+jvjWO+6absTTlorIlZNGUf85s2+caGDsqa31u2DPs
+ hVv5UUTy1g/5aP2wacSWI3Qm4n2MWl1aCnHN2h737PCXXfBk5iGJsgBUnSQULgdgEAt1ABEB
+ AAHNH05pY29sYXMgTW9yZXkgPG5tb3JleUBzdXNlLmNvbT7CwI4EEwEIADgWIQRC0lOFwaHA
+ K4sbHG+AG924JZiPZAUCY5G8SAIbAwULCQgHAgYVCgkICwIEFgIDAQIeAQIXgAAKCRCAG924
+ JZiPZMZiB/9QkcGfH248qvFUWZig3jssK5IgijfOFDKB0YK4e844M5C8LVSuWpu7Z+lM+cql
+ 3mbrikW6mlZjPEusrQ/KGvT6TdfOM9VCQWjlshMzt7uiRDdzufHGtE5hhk/67UnkEVjmplpD
+ k8cb1O0VsBfGym7e0nySHTlDWqr++9EcwgV3uo4psYYEqm6Aon1yKqjbmj+vfl/C5iW3V4lq
+ DhBk8w21AvNS+tdEqJzhruxuXkEDZZ07wYFS7m8OxLNb4sMzn/Nz9x/NXeweBWx2ujIERtAq
+ 1e/hh0ZAcoPVR3CfO2QTmfTfrzVdpZrZ8F54337ze3+BUNnrFGObQhlNe26NqNYWzsBNBFjZ
+ ETwBCAC9zAzCRlTgzyO9siVLQYwbRUhcL1TUJU/FiOQWQTmL3uDdBc6MgVBs+hp82RwPbbXT
+ v4W4rghBYPKdmFXvRN+jvGDLq1f2hsuCSiE1ckTMzFV+sKoWRIEC12tEpw5ncEFGm+1k/rJR
+ Lk9eHxuqn+yRjPryN8CK6tK4+b4tZ2urKlP29XG+T3l/mbUSoqfjqvyeKaW6xw7ku89EX2Xo
+ QWP/pm92RxUd6VDU9vpVW/T7qPZRl0wtUnDnO2wePoZmvUfEr5Osh3MNvm1myG+v4EV2Hgva
+ NT6pa27IptrUq06cA6dDsIKwPtMuThJQp8/xumgl5Q9A/ErQoJTrB9rclIm7ABEBAAHCwF8E
+ GAECAAkFAljZETwCGwwACgkQgBvduCWYj2QwNwf/eOIpFB67cKoUJvcm3JWcvnagZOuyasCw
+ xwH9a0o9jORcq+nsJoynS/DpjUKGyZagy7+F7sBrF7Xx0cXF2f5Bo42XNNiQDE5P/VLwvgn9
+ 62AJ3q0dp4O7oQI8UgNmdsocQhNaBHHCoOabLGrgNobDTaLBeb9zaOZqz8CBuAiZ0bVABEpg
+ 50hDEYTHp4jCgWpadhAsp/eCgm93Tc+Y+e1fqtE3FmoOLxyhFa6evhn0Q1iX0kCasMZwlzse
+ zqLZjTM1Koqn6+UIHXE3QaULyFKD1GDhisXxyolOB6P2TXsyfvitYdIZ3CCtI7PVDxzmX2Xk
+ kvEz9bMtStoMpse9qAsmHQ==
+In-Reply-To: <4bb04e58-7e69-46bc-9ecf-283605b18340@linux.dev>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN7PEPF000000AB:EE_|DS0PR12MB7607:EE_
-X-MS-Office365-Filtering-Correlation-Id: a274e3ec-20a0-41d8-205d-08df0d762a72
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|36860700016|1800799024|23010399003|376014|7416014|10067099003|56012099006|11063799006|6133799003|3023799007|18002099003|22082099003;
-X-Microsoft-Antispam-Message-Info:
-	b5+dydtyB4a5eCgW5XmMqpuL1Z+x4XP2vyCLRh3AjwoATpU8VDZiX7bOlonmEu4jJV4DMSPmcK4jGzKd2KF/RRdFdokvlssSdurCkC6aTo4Jli0+Jx3Y9PutZFuOls1C34LA5W3u/x9P1AsFTMnZHNejwc7XENKh58sqgzGsaBdfYrbJvuvFieWtn9OZwy9ZZK+04QldmLeDe+WiYz+sFTt21Dv9NrZvD4Up3lNaKi39VDQxJrajCu7cKi07+olL5LqC9Old+DAEEeICZcIhOiAt1rq3ykw2x1tsaggdTJssnZY9QZJor98ggaiOvfSHkjx0TWgd5thF1fucGAgynodYpK4F3WOHq7QGudNVJYNK7KMO/mfC06mJ2+YL6t8QGav14MuVgL5df4jfKdVRxXR+/9RIrrvCqnwAaZh/XyJgQjmtHpeOIcj6fPcV4v1rdsNZsQ/ODQok+5O8JwEa+oagg8o3SCl4BU9Ks8aGxneGviQaegX7728RiXn4bbIchLWWKI3ceAF9vWYQdT448xSHjIoi/OwIcr9BE1g/JQ4MlCwuVUcxqUaZqw15LKjUkU2ltcnLGEq8SKF2/DTuQwISmWcoHJJWLJtkwVZ7LtFRFNhZwOttm8C6gycBdccjTGnlkRY+ooceBIkqtGtGUfFvl/j2bjdFkB7TuWgG2CNKzMz3KQ00AyTAaosnLsGXdfbbK2mCk0XFuzC/adNBhw==
-X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(36860700016)(1800799024)(23010399003)(376014)(7416014)(10067099003)(56012099006)(11063799006)(6133799003)(3023799007)(18002099003)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	FmmC4YM5QNRO+RYrcjjE2xkB3LPM5EmGuOkRroougjgRp+f6LLOOTxTv+BeJYJXnMTtN6TqASru3jnHlp2jXTS0ZAK2/OzzU5pqYe3u0PF/IRR/Bydj19G5XDAG97NRjbUKeEnTeQFbECEY1AB1VZFxNIJipHIDo+5GWIUysu9wDNIBbXADglxs8rJFoxEr0ckUZYj2yInDElTHdOYobWnsLOLhAjsq84xFKVYk8dP8NTxUX2y2e/VxVxf5BvDqlmA6F+iPkevPD4Y9IaTZ3iENyNlzbWRuueGq025tmZ4lhtbaAwrwuaFqnrAP1hTxRShO7luR1jwKecH1hLlvMpBgNj3DQFQzVLDztCzMdayJ7Jkiacw7KXKvbh86yeYRGBg1JFYznngPOgPOjN66xWXeQiyv6k5VRcD9BcdYtHgyE/kE1HPaUHFm8SPy0vQJI
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Sep 2026 06:55:27.7459
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: a274e3ec-20a0-41d8-205d-08df0d762a72
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	BN7PEPF000000AB.namprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB7607
 
-From: Cosmin Ratiu <cratiu@nvidia.com>
+On 2026-09-08 05:07, Zhu Yanjun wrote:
+> 在 2026/9/7 14:44, Nicolas Morey 写道:
+>> On 2026-09-07 23:20, Zhu Yanjun wrote:
+>>> 在 2026/9/7 9:15, Nicolas Morey 写道:
+>>>> For both SRQ and non-SRQ receive paths, the WQE is copied into a local
+>>>> buffer to provide a kernel-owned, validated copy. While calculating the
+>>>> memcpy size from the validated num_sge prevents overflow during the
+>>>> copy, memcpy() itself still copies num_sge from shared memory.
+>>>>
+>>>> A concurrent userspace modification before or during memcpy() leaves
+>>>> an unvalidated num_sge in the local buffer, leading to potential
+>>>> out-of-bounds reads in rxe_resp_check_length() and copy_data().
+>>>>
+>>>
+>>> Hi Nicolas,
+>>>
+>>> Thanks for the patch. The logic makes total sense to prevent the TOCTOU race condition after memcpy.
+>>>
+>>> Just out of curiosity, do you happen to have a reproducer or a POC script that demonstrates this race in practice?
+>>>
+>>> It would be great to know if this can be reliably reproduced or integrated into testing setups (like rdma-core tests, or tools/testing/selftests/rdma) to catch similar double-read issues in the future.
+>>>
+>>
+>> No reproducer or PoC sadly. I haven't tried to make one though.
+>> This got caught by one of our AI tools when checking the backport of CVE-2026-74377.
+> 
+> Hi, Nicolas
+> 
+> Thanks for sharing this. Could you clarify whether your AI tool detected this purely through static analysis (and provided a suggested fix), or if it actually triggered a runtime bug with a backtrace/calltrace?
+> 
+> If you have a calltrace, please share it—that would help a lot in understanding the issue. Also, if this was flagged and fixed by a specific AI tool, adding an Assisted-by: tag (or referencing the tool in the commit description) would be appropriate.
+> 
+> Thanks,
+> 
+> Zhu Yanjun
+> 
 
-Add PSP conformance tests using the same gro helper binary as other gro
-tests , but in --psp mode. SPIs are procured by psp_gro.py from a real
-PSP device and handed off to the gro sender & receiver. The sender
-crafts and encrypts packets in software, the receiver relies fully on
-the HW to decrypt, decapsulate and do HW GRO.
+Hi Zhu,
 
-Because the NIC decrypts and decapsulates before the frames reach the
-receiver AF_PACKET tap, the gro receiver sees the plain frames and the
-assertions remain exactly the same as other gro tests.
+The tool is a LLM static analyser that simply detected that d6ab440240a0 ("RDMA/rxe: Copy WQE to local buffer in non-SRQ receive path") was a valid patch but did not fix the whole issue. It did not suggest any breaker PoC nor any fix.
+All the rest is human (me) made.
+Does that warrant an Assisted-by tag ? 
+It seems sashiko picked the same issue for 22b8fbded65b ("RDMA/rxe: Fix TOCTOU heap overflow in get_srq_wqe")
+https://sashiko.dev/#/patchset/20260518215040.1598586-1-tristan%40talencesecurity.com
 
-So these tests verify, at length, that the device does PSP HW-GRO the
-same way as plain TCP.
+> If a concurrent userspace thread modifies wqe->dma.num_sge after the
+> bounds check but before the memcpy completes, doesn't this copy the
+> unvalidated value into the kernel heap?
 
-Additional PSP-specific tests are defined to check that GRO doesn't
-merge packets across PSP versions, SPIs, encryption-status, etc.
+By tweaking the reproducer from Tristan, I have been able to reproduce it once out of sheer luck I think:
+==================================================================
+BUG: KASAN: slab-out-of-bounds in rxe_receiver+0x8109/0x9ec0 [rdma_rxe]
+Read of size 4 at addr ffff88812c4867f8 by task kworker/u9:6/361
 
-Some gro tests are not included because they don't work:
-- ip_csum: the checksum is recomputed by psp_dev_rcv().
-- tcp_csum: packets are marked with CHECKSUM_UNNECESSARY.
-- ip_frag4/ip_frag6: PSP is incompatible with IP fragmentation.
-- IPv6 extension header tests: PSP doesn't deal with IPv6 ext headers.
+CPU: 0 UID: 0 PID: 361 Comm: kworker/u9:6 Tainted: G            E       7.3.0-rc2-00006-g28924df2a08f #3 PREEMPT(full)  318a88bba3045f81bad31a7694727561b4bd4965
+Tainted: [E]=UNSIGNED_MODULE
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.16.3-2-gc13ff2cd-prebuilt.qemu.org 04/01/2014
+Workqueue: rxe_wq do_work [rdma_rxe]
+Call Trace:
+ <TASK>
+ dump_stack_lvl+0x4b/0x70
+ print_report+0x153/0x4b5
+ ? __pfx__raw_spin_lock_irqsave+0x10/0x10
+ ? stack_trace_save+0x93/0xd0
+ kasan_report+0xbc/0xf0
+ ? rxe_receiver+0x8109/0x9ec0 [rdma_rxe b8d153a5fa9911e345612beff278ac3241bac327]
+ ? rxe_receiver+0x8109/0x9ec0 [rdma_rxe b8d153a5fa9911e345612beff278ac3241bac327]
+ rxe_receiver+0x8109/0x9ec0 [rdma_rxe b8d153a5fa9911e345612beff278ac3241bac327]
+ ? pick_task_fair+0x12e/0x1b50
+ ? __pfx_rxe_receiver+0x10/0x10 [rdma_rxe b8d153a5fa9911e345612beff278ac3241bac327]
+ ? __pfx__raw_spin_lock_irqsave+0x10/0x10
+ ? hrtimer_start_range_ns+0xe7/0x320
+ ? ktime_get+0xe3/0x170
+ ? _raw_spin_unlock+0xe/0x30
+ ? _raw_spin_lock_irqsave+0x8a/0xf0
+ ? __pfx__raw_spin_lock_irqsave+0x10/0x10
+ ? __pfx_rxe_receiver+0x10/0x10 [rdma_rxe b8d153a5fa9911e345612beff278ac3241bac327]
+ do_work+0x149/0x610 [rdma_rxe b8d153a5fa9911e345612beff278ac3241bac327]
+ process_one_work+0x726/0x10a0
+ ? __pfx___schedule+0x10/0x10
+ ? __pfx_process_one_work+0x10/0x10
+ ? _raw_spin_lock_irq+0x85/0xe0
+ ? __pfx__raw_spin_lock_irq+0x10/0x10
+ worker_thread+0x500/0xd70
+ ? __kthread_parkme+0x8d/0x170
+ ? __pfx_worker_thread+0x10/0x10
+ ? __pfx_worker_thread+0x10/0x10
+ kthread+0x329/0x410
+ ? recalc_sigpending+0x15c/0x200
+ ? __pfx_kthread+0x10/0x10
+ ret_from_fork+0x4cf/0x760
+ ? __pfx_ret_from_fork+0x10/0x10
+ ? __switch_to+0x575/0x11c0
+ ? __pfx_kthread+0x10/0x10
+ ret_from_fork_asm+0x1a/0x30
+ </TASK>
 
-Signed-off-by: Cosmin Ratiu <cratiu@nvidia.com>
-Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
-Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
----
- .../testing/selftests/drivers/net/gro_lib.py  |  15 +-
- .../testing/selftests/drivers/net/hw/Makefile |  17 ++
- tools/testing/selftests/drivers/net/hw/config |   1 +
- .../selftests/drivers/net/hw/psp_gro.py       | 157 ++++++++++++++++++
- 4 files changed, 186 insertions(+), 4 deletions(-)
- create mode 100755 tools/testing/selftests/drivers/net/hw/psp_gro.py
+Allocated by task 1698:
+ kasan_save_stack+0x20/0x40
+ kasan_save_track+0x14/0x30
+ __kasan_kmalloc+0x9a/0xb0
+ __kmalloc_noprof+0x209/0x560
+ create_qp.part.0+0x760/0x9d0 [ib_core]
+ ib_create_qp_user+0xa2/0x500 [ib_core]
+ ib_uverbs_handler_UVERBS_METHOD_QP_CREATE+0x99b/0x12af [ib_uverbs]
+ ib_uverbs_cmd_verbs+0x214b/0x32d0 [ib_uverbs]
+ ib_uverbs_ioctl+0x131/0x200 [ib_uverbs]
+ __x64_sys_ioctl+0x13c/0x1c0
+ do_syscall_64+0xba/0x530
+ entry_SYSCALL_64_after_hwframe+0x76/0x7e
 
-diff --git a/tools/testing/selftests/drivers/net/gro_lib.py b/tools/testing/selftests/drivers/net/gro_lib.py
-index 45ded8477a50..8edae7d736a9 100644
---- a/tools/testing/selftests/drivers/net/gro_lib.py
-+++ b/tools/testing/selftests/drivers/net/gro_lib.py
-@@ -189,7 +189,8 @@ def _setup_queue_count(cfg, num_queues):
- 
- 
- def _run_gro_bin(cfg, test_name, protocol=None, num_flows=None,
--                 order_check=False, verbose=False, fail=False):
-+                 order_check=False, verbose=False, fail=False,
-+                 common_args=None):
-     """Run gro binary with given test and return the process result."""
-     if not hasattr(cfg, "bin_remote"):
-         cfg.bin_local = cfg.net_lib_dir / "gro"
-@@ -217,6 +218,8 @@ def _run_gro_bin(cfg, test_name, protocol=None, num_flows=None,
-         base_args.append("--order-check")
-     if verbose:
-         base_args.append("--verbose")
-+    if common_args:
-+        base_args += common_args
- 
-     args = " ".join(base_args)
- 
-@@ -341,8 +344,11 @@ def _gro_variants():
-                 yield protocol, test_name
- 
- 
--def run_test(cfg, mode, protocol, test_name):
--    """Run a single GRO test with retries."""
-+def run_test(cfg, mode, protocol, test_name, common_args=None):
-+    """Run a single GRO test with retries.
-+
-+    common_args are extra arguments passed to both gro sender and receiver.
-+    """
- 
-     ipver = "6" if protocol[-1] == "6" else "4"
-     cfg.require_ipver(ipver)
-@@ -356,7 +362,8 @@ def run_test(cfg, mode, protocol, test_name):
-     for attempt in range(max_retries):
-         fail_now = attempt >= max_retries - 1
-         rx_proc = _run_gro_bin(cfg, test_name, protocol=protocol,
--                               verbose=True, fail=fail_now)
-+                               verbose=True, fail=fail_now,
-+                               common_args=common_args)
- 
-         if rx_proc.ret == 0:
-             return
-diff --git a/tools/testing/selftests/drivers/net/hw/Makefile b/tools/testing/selftests/drivers/net/hw/Makefile
-index 6105be8e590f..daa7e52f236e 100644
---- a/tools/testing/selftests/drivers/net/hw/Makefile
-+++ b/tools/testing/selftests/drivers/net/hw/Makefile
-@@ -13,6 +13,20 @@ else
- $(warning excluding iouring tests, liburing not installed or too old)
- endif
- 
-+# psp_gro.py uses the gro binary in PSP mode, which requires OpenSSL.
-+PKG_CONFIG ?= pkg-config
-+HAVE_OPENSSL := $(shell echo 'int main(void) { return 0; }' | \
-+		  $(CC) -x c - -include openssl/evp.h \
-+		  $(shell $(PKG_CONFIG) --cflags --libs libcrypto 2>/dev/null \
-+			  || echo -lcrypto) \
-+		  -o /dev/null >/dev/null 2>&1 && echo 1)
-+
-+ifeq ($(HAVE_OPENSSL),1)
-+COND_PROGS += psp_gro.py
-+else
-+$(warning excluding PSP GRO tests, libcrypto not installed)
-+endif
-+
- TEST_GEN_FILES := \
- 	$(COND_GEN_FILES) \
- # end of TEST_GEN_FILES
-@@ -40,6 +54,7 @@ TEST_PROGS = \
- 	nk_qlease.py \
- 	ntuple.py \
- 	pp_alloc_fail.py \
-+	$(COND_PROGS) \
- 	rss_api.py \
- 	rss_ctx.py \
- 	rss_drv.py \
-@@ -64,6 +79,8 @@ TEST_FILES := \
- 
- TEST_INCLUDES := \
- 	$(wildcard lib/py/*.py ../lib/py/*.py) \
-+	../gro_lib.py \
-+	../psp_lib.py \
- 	../../../net/lib.sh \
- 	../../../net/forwarding/ipip_lib.sh \
- 	../../../net/forwarding/lib.sh \
-diff --git a/tools/testing/selftests/drivers/net/hw/config b/tools/testing/selftests/drivers/net/hw/config
-index d89a9ba17655..060ed1423bf3 100644
---- a/tools/testing/selftests/drivers/net/hw/config
-+++ b/tools/testing/selftests/drivers/net/hw/config
-@@ -8,6 +8,7 @@ CONFIG_INET6_ESP=y
- CONFIG_INET6_ESP_OFFLOAD=y
- CONFIG_INET_ESP=y
- CONFIG_INET_ESP_OFFLOAD=y
-+CONFIG_INET_PSP=y
- CONFIG_IO_URING=y
- CONFIG_IPV6=y
- CONFIG_IPV6_GRE=y
-diff --git a/tools/testing/selftests/drivers/net/hw/psp_gro.py b/tools/testing/selftests/drivers/net/hw/psp_gro.py
-new file mode 100755
-index 000000000000..3a069c944ae1
---- /dev/null
-+++ b/tools/testing/selftests/drivers/net/hw/psp_gro.py
-@@ -0,0 +1,157 @@
-+#!/usr/bin/env python3
-+# SPDX-License-Identifier: GPL-2.0
-+
-+"""
-+PSP HW GRO conformance tests.
-+
-+This reuses the gro binary in --psp mode:
-+The sender crafts encapsulated & SW-encrypted PSP packets with receiver's PSP
-+rx-assoc, and the receiver's device decrypts and decapsulates the packets
-+before an AF_PACKET tap gets to analyze them.
-+
-+All GRO conformance tests which could run with PSP are included.
-+"""
-+
-+import socket
-+
-+from lib.py import ksft_run, ksft_exit
-+from lib.py import ksft_variants, KsftNamedVariant
-+from lib.py import KsftSkipEx
-+from lib.py import NetDrvEpEnv, PSPFamily
-+from lib.py import defer
-+
-+# The helpers live next to their other users, gro_*.py and psp.py. Importing
-+# lib.py above puts the selftests root on sys.path, which is what makes these
-+# two resolve, so they have to stay after it - pylint wants the opposite.
-+# pylint: disable=wrong-import-order,import-error
-+from drivers.net.gro_lib import run_test
-+from drivers.net.psp_lib import init_psp_dev, require_version
-+# pylint: enable=wrong-import-order,import-error
-+
-+
-+# Tests for both IP versions, a subset of gro tests. Missing:
-+# - tcp_csum: PSP packets are validated by HW (with the ICV) and marked with
-+# CHECKSUM_UNNECESSARY.
-+_COMMON = ["data_same", "data_lrg_sml", "data_sml_lrg", "data_lrg_1byte",
-+           "data_burst",
-+           "ack",
-+           "flags_psh", "flags_syn", "flags_rst", "flags_urg", "flags_cwr",
-+           "tcp_seq", "tcp_ts", "tcp_opt",
-+           "ip_ecn", "ip_tos",
-+           "large_max", "large_rem",
-+]
-+
-+# Tests specific to IPv4, a subset of gro tests. Missing:
-+# - ip_csum: psp_dev_rcv() recomputes the IP checksum.
-+# - ip_frag4: PSP is incompatible with IP fragmentation.
-+_V4 = ["ip_ttl", "ip_opt",
-+       "ip_id_df1_inc", "ip_id_df1_fixed",
-+       "ip_id_df0_inc", "ip_id_df0_fixed",
-+       "ip_id_df1_inc_fixed", "ip_id_df1_fixed_inc",
-+]
-+
-+# No IPv6-only tests:
-+# - ip_frag6: PSP doesn't support fragmentation
-+# - ip_v6ext_same, ip_v6ext_diff: PSP doesn't support IPv6 ext headers.
-+
-+
-+def _psp_variants():
-+    for ver in range(4):
-+        for proto in ["ipv4", "ipv6"]:
-+            for test_name in _COMMON + (_V4 if proto == "ipv4" else []):
-+                yield KsftNamedVariant(f"v{ver}_{proto}_{test_name}",
-+                                       ver, proto, test_name)
-+
-+
-+def _ip_variants():
-+    """IPv4/IPv6."""
-+    for proto in ("ipv4", "ipv6"):
-+        yield KsftNamedVariant(proto, proto)
-+
-+
-+def _psp_assoc(cfg, version=0):
-+    # This socket receives no traffic, exists solely to own the rx assoc.
-+    s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
-+    defer(s.close)
-+    return cfg.pspnl.rx_assoc({"version": version, "dev-id": cfg.psp_dev_id,
-+                               "sock-fd": s.fileno()})['rx-key']
-+
-+
-+def _setup(cfg, version):
-+    """Enables PSP on the device under test."""
-+    init_psp_dev(cfg)
-+    require_version(cfg, version)
-+
-+
-+def _psp_args(cfg, versions):
-+    """Produces PSP associations as gro binary --psp-assoc arguments."""
-+    keys = [_psp_assoc(cfg, ver) for ver in versions]
-+    return [f"--psp-assoc {ver},{key['spi']:x},{key['key'].hex()}"
-+            for ver, key in zip(versions, keys)]
-+
-+
-+def _run(cfg, test_name, protocol, versions):
-+    """Sets up, associates and runs one gro test case under PSP + HW GRO."""
-+    _setup(cfg, max(versions))
-+
-+    run_test(cfg, "hw", protocol, test_name,
-+             common_args=_psp_args(cfg, versions))
-+
-+
-+@ksft_variants(_psp_variants())
-+def test_psp_gro(cfg, version, protocol, test_name):
-+    """Runs one gro conformance case with PSP encapsulation."""
-+    _run(cfg, test_name, protocol, [version])
-+
-+
-+# PSP-specific GRO tests
-+
-+@ksft_variants(_ip_variants())
-+def test_psp_spi_diff(cfg, protocol):
-+    """Frames from two different SPIs must not coalesce."""
-+    _run(cfg, "psp_spi_diff", protocol, [0, 0])
-+
-+
-+@ksft_variants(_ip_variants())
-+def test_psp_ver_diff(cfg, protocol):
-+    """Frames from two different PSP versions must not coalesce."""
-+    init_psp_dev(cfg)
-+    if len(cfg.psp_info['psp-versions-cap']) < 2:
-+        raise KsftSkipEx("Device supports a single PSP version")
-+
-+    _run(cfg, "psp_ver_diff", protocol, [0, 1])
-+
-+
-+@ksft_variants(_ip_variants())
-+def test_psp_mixed(cfg, protocol):
-+    """A PSP frame must not coalesce with a clear text one."""
-+    _run(cfg, "psp_mixed", protocol, [0])
-+
-+
-+@ksft_variants(_ip_variants())
-+def test_psp_after_reconfig(cfg, protocol):
-+    """Verifies that decap still works after PSP off + on."""
-+    _setup(cfg, 0)
-+
-+    cap = cfg.psp_info['psp-versions-cap']
-+    cfg.pspnl.dev_set({'id': cfg.psp_dev_id, 'psp-versions-ena': []})
-+    cfg.pspnl.dev_set({'id': cfg.psp_dev_id, 'psp-versions-ena': cap})
-+
-+    run_test(cfg, "hw", protocol, "data_same",
-+             common_args=_psp_args(cfg, [0]))
-+
-+
-+def main() -> None:
-+    """ Ksft boiler plate main """
-+
-+    with NetDrvEpEnv(__file__, nsim_test=False) as cfg:
-+        cfg.pspnl = PSPFamily()
-+
-+        ksft_run(cases=[test_psp_gro, test_psp_spi_diff, test_psp_ver_diff,
-+                        test_psp_mixed, test_psp_after_reconfig],
-+                 args=(cfg, ))
-+    ksft_exit()
-+
-+
-+if __name__ == "__main__":
-+    main()
--- 
-2.44.0
+Last potentially related work creation:
+ kasan_save_stack+0x20/0x40
+ kasan_record_aux_stack+0xb0/0xc0
+ __queue_work+0x8c5/0x11f0
+ queue_work_on+0x60/0x70
+ rxe_sched_task+0x1d2/0x250 [rdma_rxe]
+ rxe_rcv+0x847/0x1830 [rdma_rxe]
+ rxe_xmit_packet+0x408/0x950 [rdma_rxe]
+ rxe_requester+0x1878/0x5460 [rdma_rxe]
+ rxe_sender+0x17/0x40 [rdma_rxe]
+ do_work+0x149/0x610 [rdma_rxe]
+ process_one_work+0x726/0x10a0
+ worker_thread+0x500/0xd70
+ kthread+0x329/0x410
+ ret_from_fork+0x4cf/0x760
+ ret_from_fork_asm+0x1a/0x30
 
+The buggy address belongs to the object at ffff88812c486000
+ which belongs to the cache kmalloc-part-13-2k of size 2048
+The buggy address is located 0 bytes to the right of
+ allocated 2040-byte region [ffff88812c486000, ffff88812c4867f8)
+
+The buggy address belongs to the physical page:
+page: refcount:0 mapcount:0 mapping:0000000000000000 index:0xffff88812c480000 pfn:0x12c480
+head: order:3 mapcount:0 entire_mapcount:0 nr_pages_mapped:0 pincount:0
+flags: 0x17ffffc0000240(workingset|head|node=0|zone=2|lastcpupid=0x1fffff)
+page_type: f5(slab)
+raw: 0017ffffc0000240 ffff888100059140 ffffea0004499010 ffffea00049a7a10
+raw: ffff88812c480000 0000000200080007 00000000f5000000 0000000000000000
+head: 0017ffffc0000240 ffff888100059140 ffffea0004499010 ffffea00049a7a10
+head: ffff88812c480000 0000000200080007 00000000f5000000 0000000000000000
+head: 0017ffffc0000003 fffffffffffffe01 00000000ffffffff 00000000ffffffff
+head: ffffffffffffffff 0000000000000000 00000000ffffffff 0000000000000008
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88812c486680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff88812c486700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff88812c486780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 fc
+                                                                ^
+ ffff88812c486800: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88812c486880: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================
