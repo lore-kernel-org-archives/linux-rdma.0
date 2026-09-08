@@ -1,28 +1,28 @@
-Received: from SJ2PR03CU001.outbound.protection.outlook.com (mail-westusazon11012049.outbound.protection.outlook.com [52.101.43.49])
+Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012056.outbound.protection.outlook.com [40.93.195.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 990694A3F1D
-	for <linux-rdma@vger.kernel.org>; Tue,  8 Sep 2026 15:31:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.43.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED546568525
+	for <linux-rdma@vger.kernel.org>; Tue,  8 Sep 2026 15:31:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.195.56
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788881496; cv=fail; b=VzsscLK0WYVKs0gJ+EJIg4u8NAopbkk9A+dc5HtIUePCDwAWNMDqRLwsjL6qycx9X6zb3LNOnJRCA+kpzJ/MMumE/YRW8xTLeCurFMGNZxQ8SiFYCodmvIzGVhRv4l6gNPMw1FOgrPiDurXTagtSde8FueZ8aYXC8yHahzeQKLw=
+	t=1788881499; cv=fail; b=VmpaE7Ihloe0UcCnDQO0fVGePjjMpyTVhQA4yq7uRL6syVNCO3iy+BxrrDpYxDvLDeTS51mYwMn+QJ2t4bMKRJgrolwEK0+gv+0IfvYounl6QhiJ7/XYIwF24mvWzFshmVU0ZvbXrFzmSRDjy6tYxMckhYAlY3Zo60F/sUaz7XY=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788881496; c=relaxed/simple;
-	bh=deEIQSKthw0kj25eoVpkhWCnERpNpD3LFx8dA/I8N/A=;
+	s=arc-20240116; t=1788881499; c=relaxed/simple;
+	bh=FcudszKAbVX9WtPUXnNAVr7UjX8A3G3Ki4GuIpt/R6E=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=F/2WKvaV/7l7q3Ly7oZCR1E3jKjnPCKZ2r8rqpU5DXyDplt2NGK4RYjISbEgWnl8sSZvY6tgnyBGMJ3J11HxMAMoNEQqejSbl5FaWGH8eKMMNjnZ7zdW46VIrFpHmtKbMA7MzDhMgATw2xRO7mVoMk79LZ/HBGc97oPcCk+FMd0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=C8GMPJQX; arc=fail smtp.client-ip=52.101.43.49
+	 MIME-Version:Content-Type; b=CJgWL/W8SJG0dJRnTRL2GiEs3Koc/09GCR1PRDwf2rJdanK4QU72VeenFv+dfoMF31oZ89BHTne8p7TNhOt+JSl6x8ssM3x2fsMX3/1vYVSocsFnQ5NvndaXWiPgJ8aXkSlt2W+faUy9ftJFoMwE3m9tNLZWOWPHBSq/V3J8XaY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=bpxwwfZg; arc=fail smtp.client-ip=40.93.195.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="C8GMPJQX"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="bpxwwfZg"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=wbgoShoYSP0yuNQMc3yQVQvwposNGMa6m06hXl1uaHQ9fjraQjMpD18ABz0a+Fy5CdkbcHLiwUDpfHgyh4atT28e0SXhgEtiCYy8uia3MzGma53fbbGLwMJR6pao6Jg4eHrM7c22xW6X+RND9ry5Fx1hkjwUYfqdqoQ2Yskus0rM6w9Kek9wkq8WGljnh8AWxq7gYPqk9jWIN/YDCTPgT+aC+8azsmb2S43gsdSweaynIteC/AnZQlDrpGfZ8qgKZdxWYhjsbaSwMJdC2X79fDjUq/0B97khiQe6frJSqlPEz9D/M4fPwS6dxQjQZxELuey2HGn2Cy6DXOTK2eNJKw==
+ b=pYknoq5AwSgzXnXSneUIbJjYP7xKvhB8wlbnnFNaSQhBuY1XmZIDYL7O8qmAB2v9wBw7VG9cMbsV9GB3HfTP0LTzMdMuNEPe9oMnODXVCjelgKdM5DWUX6dheY7YxWPqGfgVpu5rGJnNfb90IVW5ReWCA3mWbAF+O9LKl/wYFY2Bwmju5ECRl/HTVFIRor37P4yvWnx5BPviRhD1W07sesJI9D0OVpJKkCds1dLyirG7E3LNwY8NMUnVkkM722VqaUfIJibCSSAkecuIjBmaVhjCpgSgtm9Ah6PxsnQyrOb2rpWoCYBJk+tOeE16zYRkmqzzjE0bh3T3GoZqxbjFhg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=nZXuGhhE+HO7bQWG9cZm1hKpWmZbVo6S5CX3DmNE2DM=;
- b=WZoqwrXYFF/Rj/R6zj4KU1ZZ0usJKcIqKjc6MYaB0C3HyNOz56YQxcjn1uN2Dka5vsca9ATKj1xX3scD/y3KTBR33tG0tKS6U7cBRcQY6nKvk1lxSyBzRJ2sMBchpux7AVNBCg7p/D34d+DS+UcqU+p5NA76DpKTNzIPN/FxQVS2PG2sQqIyaSOFLI8WFUYJe+bn7FW1VS53Tjq41vlCjyS+WE+sdQhbytntRAcuQSin6eWAZiLY4V31LSBKhIl41U9RXoP61OHKKejOcX8aEZmkNXIPszdjQXUwB4VMNJuxL9pAdBYHQ3cagd96QECBR3BiAe0qWpJDK1sShf2xig==
+ bh=an+gFN8wrAK0deMmJ5fSdYwRAbHi51h4gIS+LV5GDdc=;
+ b=Eg0giuXl2StRuwTKBmoZf6M1EDM/Uog7QygF5/MBxdR2B+qjUG90gnAIErLalMqu9ZYl+6zkcLwQCCFfxtFkDmPapm4hQ154R5XydjSoFA6K5CDUL5O6aMtdzvp/XUaJFYXnGo9cLRgC5XyJVAPYxxKpoY1w5Bb4C/R0oMZNDZRiEzAgQj466rP1MjLTXYZrgBZ/6dlkPJ/R+jFki3vBzwMwbn2LimfQu3HLvjKzmizDKkIcfHFL1B1d3CQ9bcGbv8lynzNevTqgid4rr3L0txWnMrGTVaeek2Vv2WXa8P6S6QThKUcdTN4izAP0G3pH7hB9t0WgQy5gvTorBP1Ypw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  216.228.117.160) smtp.rcpttodomain=ziepe.ca smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -30,18 +30,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=nZXuGhhE+HO7bQWG9cZm1hKpWmZbVo6S5CX3DmNE2DM=;
- b=C8GMPJQXiJN5G2beMNJt7obCRwzggdUPopUMn2PV8ayrdbeQCoFyDK1tpswDdUkU9ex6CNy5a5y7mwJyMLtIturL6kz/gFqhOEAgGmoafCF+2KAIX09xOZZ1bvaWijm5TsAreC5XIIDJU/UiO6+DYp/DV86/i3iRYAJflge9amNAqxiwDRSfnr/fw8f0mu1LVkp33QXlpeTVLzPdFM0VpuIYzkJqOINKlfAtJR8mgCGmMg4qYKD+yuCHNBM0FPK8Zecy/mJz/sQ3GX5tf5fATTAuPIOSSPjgeDiSUsGaE+rl8hACDKh0ghix3VK2pR4t0kR2pnlZM1dE9N8yz49scg==
-Received: from CH2PR04CA0027.namprd04.prod.outlook.com (2603:10b6:610:52::37)
- by SJ1PR12MB6218.namprd12.prod.outlook.com (2603:10b6:a03:457::17) with
+ bh=an+gFN8wrAK0deMmJ5fSdYwRAbHi51h4gIS+LV5GDdc=;
+ b=bpxwwfZgxIvMiB3oh119cN2HNVEhiZCFq6hJ1WPNUfz0H4fCungpsw6m9qX7Dk9gSZEpiL1y53fvmG3+AhFYSwVfXQ+yNQe86R/hnV7Lp44QmnD/FMX3CeQ8eZnXOswR6ugE65KzaP/QxMWyrjkp9oznnKUwQFNkLL69EuSLTnv0kF0+W6eXp6XbAPFRRQCFz58OhoNYsEqL6vM3GBLoIrEUkW+CC6LqZ3KeX0mNb/NScLgQ2uj5f42Obvtvo5hsxdXlWRsbXXsUZUeH/oZaS0GYwSNLykfKhkJrD7rTX3uZF2em1Eq1mK4Tv8HAeUrXsi20CxQM6E8KPgmL4WHdoA==
+Received: from PH8P221CA0027.NAMP221.PROD.OUTLOOK.COM (2603:10b6:510:2d8::6)
+ by BL1PR12MB5753.namprd12.prod.outlook.com (2603:10b6:208:390::15) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.382.15; Tue, 8 Sep
- 2026 15:31:18 +0000
-Received: from BN2PEPF0000A891.namprd04.prod.outlook.com
- (2603:10b6:610:52:cafe::5b) by CH2PR04CA0027.outlook.office365.com
- (2603:10b6:610:52::37) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.382.15 via Frontend Transport; Tue, 8
- Sep 2026 15:31:16 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.360.11; Tue, 8 Sep
+ 2026 15:31:23 +0000
+Received: from BN2PEPF0000A893.namprd04.prod.outlook.com
+ (2603:10b6:510:2d8:cafe::12) by PH8P221CA0027.outlook.office365.com
+ (2603:10b6:510:2d8::6) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.406.7 via Frontend Transport; Tue, 8
+ Sep 2026 15:31:22 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -49,20 +49,20 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
  216.228.117.160 as permitted sender) receiver=protection.outlook.com;
  client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
 Received: from mail.nvidia.com (216.228.117.160) by
- BN2PEPF0000A891.mail.protection.outlook.com (10.167.248.183) with Microsoft
+ BN2PEPF0000A893.mail.protection.outlook.com (10.167.248.185) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.406.5 via Frontend Transport; Tue, 8 Sep 2026 15:31:16 +0000
-Received: from rnnvmail203.nvidia.com (10.129.68.9) by mail.nvidia.com
+ 15.21.406.5 via Frontend Transport; Tue, 8 Sep 2026 15:31:22 +0000
+Received: from rnnvmail204.nvidia.com (10.129.68.6) by mail.nvidia.com
  (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.46; Tue, 8 Sep
- 2026 08:30:37 -0700
-Received: from rnnvmail205.nvidia.com (10.129.68.10) by rnnvmail203.nvidia.com
- (10.129.68.9) with Microsoft SMTP Server (version=TLS1_2,
+ 2026 08:30:42 -0700
+Received: from rnnvmail205.nvidia.com (10.129.68.10) by rnnvmail204.nvidia.com
+ (10.129.68.6) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.46; Tue, 8 Sep
- 2026 08:30:36 -0700
+ 2026 08:30:41 -0700
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.10)
  with Microsoft SMTP Server id 15.2.2562.46 via Frontend Transport; Tue, 8 Sep
- 2026 08:30:31 -0700
+ 2026 08:30:37 -0700
 From: Yishai Hadas <yishaih@nvidia.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <selvin.xavier@broadcom.com>,
@@ -72,9 +72,9 @@ CC: <linux-rdma@vger.kernel.org>, <selvin.xavier@broadcom.com>,
 	<allen.hubbe@amd.com>, <longli@microsoft.com>, <kotaranov@microsoft.com>,
 	<mkalderon@marvell.com>, <bryan-bt.tan@broadcom.com>,
 	<vishnu.dasa@broadcom.com>, <yishaih@nvidia.com>, <maorg@nvidia.com>
-Subject: [PATCH rdma-next 13/15] RDMA/mlx5: Set QP event handler before firmware QPC insertion
-Date: Tue, 8 Sep 2026 18:28:49 +0300
-Message-ID: <20260908152851.1307294-14-yishaih@nvidia.com>
+Subject: [PATCH rdma-next 14/15] RDMA/mlx5: Initialize QP/RQ/SQ resource refcount before publishing it
+Date: Tue, 8 Sep 2026 18:28:50 +0300
+Message-ID: <20260908152851.1307294-15-yishaih@nvidia.com>
 X-Mailer: git-send-email 2.49.0
 In-Reply-To: <20260908152851.1307294-1-yishaih@nvidia.com>
 References: <20260908152851.1307294-1-yishaih@nvidia.com>
@@ -89,184 +89,92 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN2PEPF0000A891:EE_|SJ1PR12MB6218:EE_
-X-MS-Office365-Filtering-Correlation-Id: a9d0ebe0-ec61-43db-ebfd-08df0dbe3919
+X-MS-TrafficTypeDiagnostic: BN2PEPF0000A893:EE_|BL1PR12MB5753:EE_
+X-MS-Office365-Filtering-Correlation-Id: 6f490a19-7b04-4dec-2f0d-08df0dbe3d02
 X-LD-Processed: 43083d15-7273-40c1-b7db-39efd9ccc17a,ExtAddr
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|1800799024|36860700016|7416014|376014|23010399003|6133799003|3023799007|10067099003|11063799006|56012099006|18002099003|22082099003;
+	BCL:0;ARA:13230040|23010399003|1800799024|82310400026|36860700016|7416014|376014|10067099003|6133799003|11063799006|22082099003|18002099003|56012099006;
 X-Microsoft-Antispam-Message-Info:
-	jvN0ScgSwjZtFyq7NsdjuB10SFDsFjRgc6t7Uba71ZC+ABRHMK8htStX4FfQ1D5bKRFwy5GAke3lZYJXP75CF5+NqC04Brfc3iPYkB30xIDdzPTJbjr5hsyyxUu1vZ8YFczip3HvKJMiqrQkElGiVpLVXLIT9xOdw5EF4PlrFdpNuY5CFXuq+ueZAVvrsw6THzZssPhH9Ed87HtdrQB8FAH/t9jX1XWESmajbAjgN6DJFvEdQZJekEKf/pro2jr2SbQr5dXCu4F8LLjOJRL1/X1Dw6H2PrZz7j717j5uMLKQ74Kc0p0Ev3LIutAO3/KvojBwllsllfihg0FZhUcSJ8jv75OCpfa2Np7IsxZxg/GzQHiIcBm7/h5hwQYjCjuGNj4dhPx+Zws8RiIaMVEchNzegxi6BrPK40lVMI1wNyKZURYmXAdGisKSP3GwfIOYy63kFd1ZK9/r+c8sL42gjVeKzCy8VrFgHMuA3Wz9dlriQ1ZEq5lsOoC07jOogVQ9OIdieBqeBdpsyqwDUd1tOuDsioifUVpodSM5inLXrLNgxr3rDWC8+C3b7pYJxV+PVepZ/QCNzbnUVa0o9mHEKyWW9fPgXFN0kT3ozF2B4Sr2z68tHYJzqzrgV+9y9CkL3DMGBrFGfgeDPYQLWDlqyqGDRpm0lBwr1D4YmB1WPgDRj8Es6BCde/QlwXfgzsSvIfuJcwuL00okhzUFJ5O+xQ==
+	pPd/CpnndDqCcNW/YyN++w3weIG4t8UIHg9U5EJ4RRkNG8qyfGO0f8m/KIF5XvAlj6mXdXSOKRNP+BxJBCPksST8s5dUSRZG8LmZUVX4iv72tltNpdlKmoK8Ys6Ytn5T+2EQC5pdHK1M0P78jGHqhgW5iLeq9nWBBpTN1iSYX+aVUsaOone9UaiXkc+w9BILts5lk5Rh1z0/KsizuLp1wuNsLlj7laAMpF0y4s+Utl3OrgcSDcJJleEIz/0OQPOo6291pF+5uehR4HDv9m1bqnBIc831eDViFEw6xUKhRTwN+QnzTYxIBJu23AeM65EtCA+p7s9njy7D0obaB+cyLOcJ64mFq3mTCixPIsAODUnuY/9l5p3ELPmknvxNoyuU0uF3pJOgOfUio/+Z0zOP6wXnCQlZjsTQuY9tRPU0v4LW3VBX0AHGq0qHRaOapW9nlTLZ6yOhlnIGGeGxjA4DykNwds0H5Ug65vy3Jh6Tg23Sl6JZwYmAwEVvoezHMTaFKzGP+l2cepSuS/uXwG2A5PlIk/3AJKNN+AfHkIsFrV8RewziTQHoD9uR7PBoVXzGbAfClskq8JQGlno5ZjFJ8PLsv+9tcRV0aDcn5K7j7MziQ1Yx6XWJFioXppbZzJYQamImdiKFodXPFK+PFB7XBY4Q1zl4pIEKVVgnC/yc12gwyi0K/8WYN7T6A03zxLy3/OgtgSLNeOm/1ZWkHPKxow==
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(36860700016)(7416014)(376014)(23010399003)(6133799003)(3023799007)(10067099003)(11063799006)(56012099006)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(1800799024)(82310400026)(36860700016)(7416014)(376014)(10067099003)(6133799003)(11063799006)(22082099003)(18002099003)(56012099006);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	gslvgGWwujyyLWnBLbriUZRMoQvJq7WTYA0S56/7rKL+/adcmbWA82YBJ9ChRsvHFbrYM03Alpus8e3GbYcR6uPDHczi3ZPyFYZ5eH7qxj/s62NSVQujHZ+qDXoDt4YxmoruYiBhoO5AEPu3iPRfS20tJHaolhfmD1hbcD43c+QP1koqGYI16pXRYNs1j6OoN2462qoO/R9OLHdzWWqv7/yu65jeX24Wx8OSk355wJhWs11St60qVoatHNVVD1+rMNjtfqTTTRimF/OPw63YF3y50C9L3+6O+q46/kCz7lxVPBNYy1a6CEY3+fRQ0/VZN87bCP6ABz54ra2AAC6YNjGGaLOICqI7hhlon2m6zk/k27952fI3iK74IiWNVZv7oAFAwH1sdogf7NPT5bvmni9LrYpvqgyVbeFLtfLcwEeVj3jiTA1YfUnzF/3PZiLr
+	FmfD+gyKHHL10w0AHuQcKGQuyRZ/eo4DRQ8AJnWgA7du6fZ3Rc+0zlN30qlgADMx4iAdRjfY6ysUyN82V/5VqgojWS/WZgTe5cZbgf27qJxnzYf76nMYGnx+2lf2mPO6aq7ocaB03Xgw0iXXNu390sYJwBeRyCfe0ZT1AsS5xArZzUCXhHRFYn8BqwL3HXMzjrpWtBk5q7ULthlHYp5s/AGF7ZGK9w6hEYbJfHY7RiIV5oJuP2tj7s6b482EHzIAZFqVCLiE0d8RlOvGTLPg/5AoapdSNAt2JifkeLDwWMKdhVhke5DqKChb8utgEvXsO1RMgaMgJQiKSOLF3slgS+SwBiop13mP7eQJYPo+eal7mdg+2ekNpSgt5/v81NTf0nOobRRfkz8/NTKi6/TRdibZFViIITEgkhbwSgtBzc6irTjOUd8J57x7mUKxIusr
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Sep 2026 15:31:16.0995
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Sep 2026 15:31:22.6594
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: a9d0ebe0-ec61-43db-ebfd-08df0dbe3919
+X-MS-Exchange-CrossTenant-Network-Message-Id: 6f490a19-7b04-4dec-2f0d-08df0dbe3d02
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	BN2PEPF0000A891.namprd04.prod.outlook.com
+	BN2PEPF0000A893.namprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ1PR12MB6218
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL1PR12MB5753
 
-Four QP create paths (create_xrc_tgt_qp, create_dci, create_qp's default
-path for create_user_qp/create_kernel_qp, and the raw-packet QP SQ
-object in create_raw_packet_qp) assigned base->container_mibqp and
-base->mqp.event only after mlx5_qpc_create_qp() /
-create_raw_packet_qp_sq() returned. Those functions insert the QPC into
-dev->qp_table.tree, making it immediately visible to
-rsc_event_notifier(). A hostile NIC can fire a QP error EQE for the new
-QPN/SQN in that window, reaching qp->event() with a NULL function
-pointer and causing a kernel oops. This is the same class of bug already
-fixed for the raw-packet QP's RQ object in a previous commit.
+create_resource_common() inserted the resource into dev->qp_table.tree
+before initializing its refcount and completion:
 
-Move both assignments before the firmware create call in each path so
-the event handler is always valid by the time the resource is reachable
-by events. to_mibqp() indirects through container_mibqp, so it must also
-be set before insertion.
+  spin_lock_irq(&table->lock);
+  err = radix_tree_insert(&table->tree, ..., qp);
+  spin_unlock_irq(&table->lock);
+  ...
+  refcount_set(&qp->common.refcount, 1);
+  init_completion(&qp->common.free);
 
-Add a WARN_ON_ONCE(!qp->event) guard in rsc_event_notifier() as a
-belt-and-suspenders defense against any future code paths that may
-re-introduce the same ordering hazard.
+Once inserted, the resource is reachable by mlx5_get_rsc(), called from
+rsc_event_notifier() on any matching firmware event, which does:
 
-Also set ibqp.qp_num in mlx5_qpc_create_qp() before
-create_resource_common() inserts the QP into the radix tree, so an EQE
-arriving in that window does not observe qp_num == 0. create_qp() still
-overrides this with 0/1 for QP0/QP1 afterwards, and DCT sets its own
-identifier independently since it does not go through this function.
+  common = radix_tree_lookup(&table->tree, rsn);
+  if (common && !common->invalid)
+	  refcount_inc(&common->refcount);
+
+qp->common.refcount is zero-initialized (the object is allocated with
+kzalloc_obj()) until refcount_set() runs. An EQE arriving in the window
+between insertion and refcount_set() calls refcount_inc() on a
+still-zero refcount_t, which the refcount API treats as a use-after-free
+class bug: it saturates the counter and emits a WARN, permanently
+wedging that resource's refcounting for the rest of its lifetime.
+
+Move refcount_set(), init_completion(), and the qp->pid assignment
+before the radix_tree_insert() call, so the resource is always fully
+initialized by the time it becomes visible to lookups.
 
 Fixes: e126ba97dba9 ("mlx5: Add driver for Mellanox Connect-IB adapters")
 Signed-off-by: Yishai Hadas <yishaih@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/qp.c  | 22 ++++++++++------------
- drivers/infiniband/hw/mlx5/qpc.c | 10 ++++++++++
- 2 files changed, 20 insertions(+), 12 deletions(-)
+ drivers/infiniband/hw/mlx5/qpc.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 7f18ff364e62..2af599b81886 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1624,6 +1624,8 @@ static int create_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 		if (err)
- 			return err;
+diff --git a/drivers/infiniband/hw/mlx5/qpc.c b/drivers/infiniband/hw/mlx5/qpc.c
+index 77ddab666ecd..8b5bd33a7f0f 100644
+--- a/drivers/infiniband/hw/mlx5/qpc.c
++++ b/drivers/infiniband/hw/mlx5/qpc.c
+@@ -167,6 +167,10 @@ static int create_resource_common(struct mlx5_ib_dev *dev,
+ 	int err;
  
-+		sq->base.container_mibqp = qp;
-+		sq->base.mqp.event = mlx5_ib_qp_event;
- 		err = create_raw_packet_qp_sq(dev, udata, attrs, sq, in, pd,
- 					      to_mcq(init_attr->send_cq));
- 		if (err)
-@@ -1635,9 +1637,6 @@ static int create_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 			resp->sqn = sq->base.mqp.qpn;
- 			resp->comp_mask |= MLX5_IB_CREATE_QP_RESP_MASK_SQN;
- 		}
--
--		sq->base.container_mibqp = qp;
--		sq->base.mqp.event = mlx5_ib_qp_event;
- 	}
- 
- 	if (qp->rq.wqe_cnt) {
-@@ -2093,13 +2092,13 @@ static int create_xrc_tgt_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 	}
- 
- 	base = &qp->trans_qp.base;
-+	base->container_mibqp = qp;
-+	base->mqp.event = mlx5_ib_qp_event;
- 	err = mlx5_qpc_create_qp(dev, &base->mqp, in, inlen, out);
- 	kvfree(in);
+ 	qp->common.res = rsc_type;
++	refcount_set(&qp->common.refcount, 1);
++	init_completion(&qp->common.free);
++	qp->pid = current->pid;
++
+ 	spin_lock_irq(&table->lock);
+ 	err = radix_tree_insert(&table->tree,
+ 				qp->qpn | (rsc_type << MLX5_USER_INDEX_LEN),
+@@ -175,10 +179,6 @@ static int create_resource_common(struct mlx5_ib_dev *dev,
  	if (err)
  		return err;
  
--	base->container_mibqp = qp;
--	base->mqp.event = mlx5_ib_qp_event;
- 	if (MLX5_CAP_GEN(mdev, ece_support))
- 		params->resp.ece_options = MLX5_GET(create_qp_out, out, ece);
- 
-@@ -2237,14 +2236,14 @@ static int create_dci(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 		qp->flags &= ~IB_QP_CREATE_PCI_WRITE_END_PADDING;
- 	}
- 
-+	base->container_mibqp = qp;
-+	base->mqp.event = mlx5_ib_qp_event;
- 	err = mlx5_qpc_create_qp(dev, &base->mqp, in, inlen, out);
- 
- 	kvfree(in);
- 	if (err)
- 		goto err_create;
- 
--	base->container_mibqp = qp;
--	base->mqp.event = mlx5_ib_qp_event;
- 	if (MLX5_CAP_GEN(mdev, ece_support))
- 		params->resp.ece_options = MLX5_GET(create_qp_out, out, ece);
- 
-@@ -2433,6 +2432,8 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 		qp->flags &= ~IB_QP_CREATE_PCI_WRITE_END_PADDING;
- 	}
- 
-+	base->container_mibqp = qp;
-+	base->mqp.event = mlx5_ib_qp_event;
- 	if (init_attr->qp_type == IB_QPT_RAW_PACKET ||
- 	    qp->flags & IB_QP_CREATE_SOURCE_QPN) {
- 		qp->raw_packet_qp.sq.ubuffer.buf_addr = ucmd->sq_buf_addr;
-@@ -2447,8 +2448,6 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	if (err)
- 		goto err_create;
- 
--	base->container_mibqp = qp;
--	base->mqp.event = mlx5_ib_qp_event;
- 	if (MLX5_CAP_GEN(mdev, ece_support))
- 		params->resp.ece_options = MLX5_GET(create_qp_out, out, ece);
- 
-@@ -2578,14 +2577,13 @@ static int create_kernel_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	    MLX5_CAP_GEN(mdev, go_back_n))
- 		MLX5_SET(qpc, qpc, retry_mode, MLX5_QP_RM_GO_BACK_N);
- 
-+	base->container_mibqp = qp;
-+	base->mqp.event = mlx5_ib_qp_event;
- 	err = mlx5_qpc_create_qp(dev, &base->mqp, in, inlen, out);
- 	kvfree(in);
- 	if (err)
- 		goto err_create;
- 
--	base->container_mibqp = qp;
--	base->mqp.event = mlx5_ib_qp_event;
+-	refcount_set(&qp->common.refcount, 1);
+-	init_completion(&qp->common.free);
+-	qp->pid = current->pid;
 -
- 	get_cqs(qp->type, attr->send_cq, attr->recv_cq,
- 		&send_cq, &recv_cq);
- 	spin_lock_irqsave(&dev->reset_flow_resource_lock, flags);
-diff --git a/drivers/infiniband/hw/mlx5/qpc.c b/drivers/infiniband/hw/mlx5/qpc.c
-index a7a4f9420271..77ddab666ecd 100644
---- a/drivers/infiniband/hw/mlx5/qpc.c
-+++ b/drivers/infiniband/hw/mlx5/qpc.c
-@@ -146,6 +146,8 @@ static int rsc_event_notifier(struct notifier_block *nb,
- 	case MLX5_RES_RQ:
- 	case MLX5_RES_SQ:
- 		qp = (struct mlx5_core_qp *)common;
-+		if (WARN_ON_ONCE(!qp->event))
-+			goto out;
- 		qp->event(qp, event_type);
- 		/* Need to put resource in event handler */
- 		return NOTIFY_OK;
-@@ -258,6 +260,14 @@ int mlx5_qpc_create_qp(struct mlx5_ib_dev *dev, struct mlx5_core_qp *qp,
+ 	return 0;
+ }
  
- 	qp->uid = MLX5_GET(create_qp_in, in, uid);
- 	qp->qpn = MLX5_GET(create_qp_out, out, qpn);
-+	/* Set ibqp.qp_num before create_resource_common() inserts the QP into
-+	 * the radix tree and makes it visible to EQE processing.  The
-+	 * assignment in create_qp() happens only after this function returns,
-+	 * leaving a window where an arriving EQE would observe qp_num == 0.
-+	 * create_qp() still overrides this with 0/1 for QP0/QP1, and sets it
-+	 * independently for DCT (which does not go through this function).
-+	 */
-+	to_mibqp(qp)->ibqp.qp_num = qp->qpn;
- 
- 	err = create_resource_common(dev, qp, MLX5_RES_QP);
- 	if (err)
 -- 
 2.18.1
 
