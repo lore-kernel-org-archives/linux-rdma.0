@@ -1,100 +1,117 @@
-Received: from mta1.migadu.com (out-103.mta1.migadu.com [95.215.58.103])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out30-118.freemail.mail.aliyun.com (out30-118.freemail.mail.aliyun.com [115.124.30.118])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 811BE1A680C
-	for <linux-rdma@vger.kernel.org>; Tue,  8 Sep 2026 03:08:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.103
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B2DE30B517;
+	Tue,  8 Sep 2026 03:22:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.118
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788836891; cv=none; b=SwjBLLdOsEAfJ0OJcKdUoKFEv9dKCJ7QQUP8SAF8FTZed82+pZnWuE//GGXp6eW1vp/pYodjBVYl9tILIc0rt2df2V29yNDy/ec6T920A5BEhv5lFRD1I4qnODRb/1eWwSI/JRQjheZF3sSxhgNeNpeQj48LRAam16O/d/ysKXo=
+	t=1788837761; cv=none; b=p9U+ne3HFO/G0WxmKLdEQzOfL+RjZfGOAYjhewrVV0g+1SFpvmUY2Z769/D3jOSAYhcWYE7xq053gwRADw5y4E6Rk+WFLX3TejuVp5TP8UNygAdLYBUtQaV7gtVSjGLhysz/5Splbs8N+GR+MZX/5IubYGcOb7qVq8sZdVbKyXA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788836891; c=relaxed/simple;
-	bh=BmCauOLoaxAXfvUP8OS0W9ObbGWZblXO6KayfYFvswc=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=qoPaBB0u4/A9iRS+1nJI/3Qrawog99it9TNNluq9tHRWVT2iM0B2oVZ6NVI40j36E0w4jZMhX7Rbx3yRODDkl1wc9AbHPx93JrvR8SeLy/wkgeAn8VAsavkpelxBxfEy35mJ0CryCO3zeVgUwF/VcQuf78HqiUnCB7QEw5sWuKU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=qeYISuiZ; arc=none smtp.client-ip=95.215.58.103
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1788837761; c=relaxed/simple;
+	bh=Itk99Hsm4qcvis/e8VoZg8ExIu1OKk5Wvvy4gGx1KQo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=qxC1GZLlrb3j9jx2anAWR4vQz7QL3Sgu8aLg9bN5s7uIbNwSS3BehxZ2xDyhJS395cSRPbXdSW0bMSkR25lGZT+K+MdmCQkA5Utfk+rEl2COscaHNJW4SAzkaOmuEXQ22Zp8RpVrdj8YpycCIgVjWTY3xWOF5rUBE5X1tEFq5bc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=j6DXNnJt; arc=none smtp.client-ip=115.124.30.118
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="qeYISuiZ"
-X-Envelope-To: linux-rdma@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=BmCauOLoaxAXfvUP8OS0W9ObbGWZblXO6KayfYFvswc=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1788836887; v=1; x=1789441687;
- b=qeYISuiZa04atPB64iE1hUqelkvdGMJV97UfF/5wrOEuJLErw2QlvVsHveke2M1qfOvuK8h9
- fdMnrCOn28s8xHmCOgd+ySvTHFmHSdYQoZxaKtOTDA0PISEjyinA3Omg3+4OPiK837ah1FrSjCs
- 47Vt2uVorKUMSOdP6/El7QB0=
-X-Envelope-To: linux-rdma@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id 6f099c21813941e7;
-	Tue, 08 Sep 2026 03:07:57 +0000
-X-Mizu-Trace-ID: 6f099c21813941e7
-X-Migadu-Flow: FLOW_OUT
-Message-ID: <4bb04e58-7e69-46bc-9ecf-283605b18340@linux.dev>
-Date: Mon, 7 Sep 2026 20:07:54 -0700
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="j6DXNnJt"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1788837754; h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type;
+	bh=+/kMDDLkf7Y6JJc45zDEOVV2sG3ehocg7qxV9pm6GCI=;
+	b=j6DXNnJtGVrKr+6BzNin0gKcleo3sE56PzsnAkT5prDcbTkpedEgYqDOKTLtmkaWB1GhUGKFE73td2PATF5mSQu740ABDUbV/ty1IsuBwMKfLvlsmAq4h4fE7kQGq+pR7HbCrogSbv8sW3bUKjxdWcMt528TyOdu1BnLf4prvGU=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R151e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033045133197;MF=dust.li@linux.alibaba.com;NM=1;PH=DS;RN=16;SR=0;TI=SMTPD_---0XAa8pVd_1788837753;
+Received: from localhost(mailfrom:dust.li@linux.alibaba.com fp:SMTPD_---0XAa8pVd_1788837753 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Tue, 08 Sep 2026 11:22:33 +0800
+Date: Tue, 8 Sep 2026 11:22:33 +0800
+From: Dust Li <dust.li@linux.alibaba.com>
+To: Hidayath Khan <hidayath@linux.ibm.com>, alibuda@linux.alibaba.com,
+	sidraya@linux.ibm.com, mjambigi@linux.ibm.com,
+	andrew+netdev@lunn.ch
+Cc: tonylu@linux.alibaba.com, guwen@linux.alibaba.com, davem@davemloft.net,
+	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+	horms@kernel.org, pasic@linux.ibm.com, linux-s390@vger.kernel.org,
+	netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Subject: Re: [PATCH net v2] net/smc: fix abort_work termination in
+ smc_conn_free()
+Message-ID: <ap9_eZanOQkbYZVB@linux.alibaba.com>
+Reply-To: dust.li@linux.alibaba.com
+References: <20260907114721.1303498-1-hidayath@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] RDMA/rxe: Use validated num_sge in local buffer
-To: Nicolas Morey <nmorey@suse.com>, Zhu Yanjun <zyjzyj2000@gmail.com>,
- Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
- Tristan Madani <tristmd@gmail.com>,
- "open list:SOFT-ROCE DRIVER (rxe)" <linux-rdma@vger.kernel.org>,
- open list <linux-kernel@vger.kernel.org>,
- "yanjun.zhu@linux.dev" <yanjun.zhu@linux.dev>
-References: <20260907161550.716670-1-nmorey@suse.com>
- <27376486-9cab-4d42-8ed7-36e13231dd91@linux.dev>
- <681ae665-523a-441b-bbd8-dbae51ee64f1@suse.com>
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
-In-Reply-To: <681ae665-523a-441b-bbd8-dbae51ee64f1@suse.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260907114721.1303498-1-hidayath@linux.ibm.com>
 
-在 2026/9/7 14:44, Nicolas Morey 写道:
-> On 2026-09-07 23:20, Zhu Yanjun wrote:
->> 在 2026/9/7 9:15, Nicolas Morey 写道:
->>> For both SRQ and non-SRQ receive paths, the WQE is copied into a local
->>> buffer to provide a kernel-owned, validated copy. While calculating the
->>> memcpy size from the validated num_sge prevents overflow during the
->>> copy, memcpy() itself still copies num_sge from shared memory.
->>>
->>> A concurrent userspace modification before or during memcpy() leaves
->>> an unvalidated num_sge in the local buffer, leading to potential
->>> out-of-bounds reads in rxe_resp_check_length() and copy_data().
->>>
->>
->> Hi Nicolas,
->>
->> Thanks for the patch. The logic makes total sense to prevent the TOCTOU race condition after memcpy.
->>
->> Just out of curiosity, do you happen to have a reproducer or a POC script that demonstrates this race in practice?
->>
->> It would be great to know if this can be reliably reproduced or integrated into testing setups (like rdma-core tests, or tools/testing/selftests/rdma) to catch similar double-read issues in the future.
->>
-> 
-> No reproducer or PoC sadly. I haven't tried to make one though.
-> This got caught by one of our AI tools when checking the backport of CVE-2026-74377.
+On 2026-09-07 13:47:21, Hidayath Khan wrote:
+>smc_conn_free() disposes of a pending conn->abort_work, but it gets three
+>things wrong:
+>
+>1. Deadlock: smc_conn_free() runs with the socket lock held and calls
+>   cancel_work_sync(), while smc_conn_abort_work() takes the same lock.
+>   If the work has already started on another CPU and is waiting for that
+>   lock, the cancel waits for the work and the work waits for the caller.
+>   The current_work() test only stops the work from cancelling itself,
+>   not when the two run on different CPUs.
+>
+>2. Reference leak: Schedulers of abort_work take a socket reference, and
+>   smc_conn_abort_work() drops it when it runs. If cancel_work_sync()
+>   removes a pending work item before it runs, that reference is never
+>   returned and the socket is never freed.
+>
+>Both are fixed the way smc_close_cancel_work() handles close_work: drop
+>the socket lock around the cancel, and release the reference when the
+>cancel reports that it removed a pending item.
+>
+>3. Late-queued work race: smc_cdc_rx_handler() finds the connection and
+>   drops lgr->conns_lock before smc_cdc_msg_validate() decides to queue:
+>
+>     CPU0 (smc_conn_free)              CPU1 (smc_cdc_rx_handler)
+>                                       conn = smc_lgr_find_conn()
+>                                       sock_hold()
+>                                       read_unlock_bh(&lgr->conns_lock)
+>     cancel_work_sync()                  /* nothing queued yet */
+>     smc_buf_unuse()
+>                                       smc_cdc_msg_validate()
+>                                         queue_work(&conn->abort_work)
+>
+>   cancel_work_sync() only guarantees that the work is not pending or
+>   running when it returns; a racing enqueue lands after that. The work
+>   then calls smc_conn_kill() on a connection whose buffers have already
+>   been returned.
+>
+>Nothing smc_conn_free() does can prevent that enqueue, because the
+>receiver already holds the connection pointer. Make the late work
+>harmless instead: smc_conn_free() sets conn->freed with the socket lock
+>held before it releases anything, and smc_conn_abort_work() takes the same
+>lock. Check conn->freed inside smc_conn_abort_work() to skip
+>smc_conn_kill() if teardown has started. The work still drops its socket
+>reference.
+>
+>Fixes: b286a0651e44 ("net/smc: handle incoming CDC validation message")
+>Cc: stable@vger.kernel.org
+>Reviewed-by: Mahanta Jambigi <mjambigi@linux.ibm.com>
+>Signed-off-by: Hidayath Khan <hidayath@linux.ibm.com>
 
-Hi, Nicolas
+Hi Hidayath,
 
-Thanks for sharing this. Could you clarify whether your AI tool detected 
-this purely through static analysis (and provided a suggested fix), or 
-if it actually triggered a runtime bug with a backtrace/calltrace?
+Thanks for the fix. I think this is the right fix, and we can go ahead
+and fix it this way for now.
 
-If you have a calltrace, please share it—that would help a lot in 
-understanding the issue. Also, if this was flagged and fixed by a 
-specific AI tool, adding an Assisted-by: tag (or referencing the tool in 
-the commit description) would be appropriate.
+Mahanta's smc_diag dump fix may need some rework on top of this one.
 
-Thanks,
+I believe the refactor I discussed with Mahanta in another thread would
+address the root cause of these bugs more cleanly:
+https://lore.kernel.org/netdev/apriDec7yHBkQgNv@linux.alibaba.com/
 
-Zhu Yanjun
+Reviewed-by: Dust Li <dust.li@linux.alibaba.com>
 
-> 
-> I assumed from the 2 existing fixes (ending up as CVEs) that this could happened.
-> 
-> Nicolas
+Best regards,
+Dust
 
