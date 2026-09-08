@@ -1,20 +1,20 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 569A53242BE;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 0177231B83B;
 	Tue,  8 Sep 2026 03:29:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788838172; cv=none; b=PITC/Z7e5FHFBAhcx4HUBUv9qyYB50mZw7QIdosj8zDrSmwgZFLR23obYOwwhLCVBaxrHIfKnx2Eil1/lnCTgDtM+pejF/6hXXhnv84gI71T5ApWKE47WrN6bid419nNc59wQ5Tpeb1NDKKi3EBgH5AGQlK9440+UHzx/FEtdSs=
+	t=1788838172; cv=none; b=BGYHMLlM4J53tcI0MgH+76FxSCLHndZv7O9qrfh4BX3SGrva4IXbP030Ve2ECf2qcVF/AWrs23umeiQKF7bQQxE2qJVjxWU3DfP+ZIEdwJ6qiNT4/T3Xnb1VU+xquh4GRuXpcan9LFVhk9g8Ggo9KFfYVLk4BdBkOrZHXJavaqM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1788838172; c=relaxed/simple;
-	bh=OU05ud58Ncr7sPAfe9Mre/p6OwnL9gn/FeTUaqQ6hY8=;
+	bh=O+V3agtSYKt7bhuuYlk4TzCjoB/jO0o3XRToWUxtvlo=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=hvTrG/HTnqPwG0h+Fl/tONvR2cgzorXf7p658Mj3ZU8JgYKotyNr+l61TE+9tmQ7nOE4FLt6TR2qJjxMWjw2hGDE1NX2I54BjUPJ8k7Rl+tkYQYC1+wZnYBlUsR+uWVPot/dkIrDIJM0skLAc1wL+62KLHbFTMSlyTMK6nTRRgY=
+	 MIME-Version; b=cVAWPqXSpZVnuIirjiVVsmv5ntcbnPHwrBM45ldCcRqLhkvKmTdwXAKkEIuV2DFVegUQvSJ1J//W8+z/z/rJmQyBgBDtZ8/Jv8A5YWj9crxyZhugaRr9kkRKQKrqM/RL9bs3fJt/LHiSkoI0lmgORjUXV6dicOzgHDtQ+wMxXTs=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Received: by linux.microsoft.com (Postfix, from userid 1202)
-	id 34D8D20B7007; Mon,  7 Sep 2026 20:28:48 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 34D8D20B7007
+	id 0D61D20B7138; Mon,  7 Sep 2026 20:28:47 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 0D61D20B7138
 From: Long Li <longli@microsoft.com>
 To: Long Li <longli@microsoft.com>,
 	Long Li <longli@kernel.org>,
@@ -38,11 +38,10 @@ To: Long Li <longli@microsoft.com>,
 Cc: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	linux-hyperv@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Dipayaan Roy <dipayanroy@linux.microsoft.com>
-Subject: [PATCH net-next v4 08/13] net: mana: do not bail out of mana_detach on dealloc failure
-Date: Mon,  7 Sep 2026 20:28:38 -0700
-Message-ID: <20260908032843.397667-9-longli@microsoft.com>
+	linux-kernel@vger.kernel.org
+Subject: [PATCH net-next v4 05/13] net: mana: swap queue sets in mana_set_priv_flags
+Date: Mon,  7 Sep 2026 20:28:35 -0700
+Message-ID: <20260908032843.397667-6-longli@microsoft.com>
 X-Mailer: git-send-email 2.43.7
 In-Reply-To: <20260908032843.397667-1-longli@microsoft.com>
 References: <20260908032843.397667-1-longli@microsoft.com>
@@ -54,40 +53,123 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Dipayaan Roy <dipayanroy@linux.microsoft.com>
+Rebuild queues through the swap path when USE_FULL_PAGE_RXBUF changes
+the RX layout. Carry priv_flags with the queue set so allocation failure
+leaves the live configuration unchanged and rollback restores the flags.
 
-Remove the early return after mana_dealloc_queues() so detach continues
-its device and port-context cleanup.
+Retain the shortcuts for a down port or a configuration that already
+requires full-page RX. A failed rollback closes the port.
 
-The return is currently unreachable: mana_dealloc_queues() only rejects
-an up port, and mana_detach() clears port_is_up before calling it. This
-is a robustness cleanup, not a fix for a reachable reset failure.
-
-Signed-off-by: Dipayaan Roy <dipayanroy@linux.microsoft.com>
 Signed-off-by: Long Li <longli@microsoft.com>
 ---
 Changes in v4:
-  - Frame this as removal of an unreachable error return, not a fix
-    for a reachable fatal reset failure.
+  - Distinguish allocation failure from failed rollback; drop the
+    incorrect claim about removing queue_reset_work scheduling.
+  - Shorten comments and the commit message.
 
- drivers/net/ethernet/microsoft/mana/mana_en.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ .../ethernet/microsoft/mana/mana_ethtool.c    | 72 +++++++++----------
+ 1 file changed, 34 insertions(+), 38 deletions(-)
 
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index 62c11af2fc422206f0ab8e144a4d082d62f7737d..5752e3745ccc6ba26bdd8f9be3108e4f3de69be0 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -4340,10 +4340,8 @@ int mana_detach(struct net_device *ndev, bool from_close)
+diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
+index 96f355de9779cc865a896f4834f780a158cdc058..adc65b9146c7e74703db587a619678439ff0d84b 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
++++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
+@@ -851,7 +851,8 @@ static int mana_set_priv_flags(struct net_device *ndev, u32 priv_flags)
+ {
+ 	struct mana_port_context *apc = netdev_priv(ndev);
+ 	u32 changed = apc->priv_flags ^ priv_flags;
+-	u32 old_priv_flags = apc->priv_flags;
++	struct mana_port_context *scratch;
++	struct mana_qset newq, oldq;
+ 	int err = 0;
  
- 	if (apc->port_st_save) {
- 		err = mana_dealloc_queues(ndev);
+ 	if (!changed)
+@@ -861,54 +862,49 @@ static int mana_set_priv_flags(struct net_device *ndev, u32 priv_flags)
+ 	if (priv_flags & ~GENMASK(MANA_PRIV_FLAG_MAX - 1, 0))
+ 		return -EINVAL;
+ 
+-	apc->priv_flags = priv_flags;
+-
+-	if (changed & BIT(MANA_PRIV_FLAG_USE_FULL_PAGE_RXBUF)) {
+-		if (!apc->port_is_up)
+-			return 0;
+-
+-		/* If XDP is attached or MTU is jumbo, single-buffer-per-page
+-		 * is already forced regardless of this flag. Skip the
+-		 * expensive detach/attach cycle since nothing changes.
+-		 */
+-		if (ndev->mtu + MANA_RXBUF_PAD > PAGE_SIZE / 2 ||
+-		    mana_xdp_get(apc))
+-			return 0;
++	/* Skip rebuilding when full-page RX is already required. */
++	if (!(changed & BIT(MANA_PRIV_FLAG_USE_FULL_PAGE_RXBUF)) ||
++	    !apc->port_is_up ||
++	    ndev->mtu + MANA_RXBUF_PAD > PAGE_SIZE / 2 ||
++	    mana_xdp_get(apc)) {
++		apc->priv_flags = priv_flags;
++		return 0;
++	}
+ 
+-		/* Block RDMA from grabbing the vport during detach/attach */
+-		mutex_lock(&apc->vport_mutex);
+-		apc->channel_changing = true;
++	mutex_lock(&apc->vport_mutex);
++	if (apc->channel_changing) {
+ 		mutex_unlock(&apc->vport_mutex);
++		return -EBUSY;
++	}
++	apc->channel_changing = true;
++	mutex_unlock(&apc->vport_mutex);
+ 
+-		err = mana_pre_alloc_rxbufs(apc, ndev->mtu, apc->num_queues);
 -		if (err) {
-+		if (err)
- 			netdev_err(ndev, "%s failed to deallocate queues: %d\n", __func__, err);
--			return err;
+-			netdev_err(ndev,
+-				   "Insufficient memory for new allocations\n");
+-			apc->priv_flags = old_priv_flags;
+-			goto clear_flag;
 -		}
++	scratch = mana_qset_scratch_alloc(apc);
++	if (!scratch) {
++		err = -ENOMEM;
++		goto clear_flag;
++	}
+ 
+-		err = mana_detach(ndev, false);
+-		if (err) {
+-			netdev_err(ndev, "mana_detach failed: %d\n", err);
+-			apc->priv_flags = old_priv_flags;
+-			goto out;
+-		}
++	err = mana_alloc_qset(apc, scratch, apc->num_queues, apc->rx_queue_size,
++			      apc->tx_queue_size, priv_flags, &newq);
++	if (err)
++		goto free_scratch;
+ 
+-		err = mana_attach(ndev);
+-		if (err) {
+-			netdev_err(ndev, "mana_attach failed: %d\n", err);
+-			apc->priv_flags = old_priv_flags;
+-		}
++	err = mana_publish_qset(apc, &newq, &oldq);
++	if (err) {
++		mana_free_qset(scratch, &newq);
++		goto free_scratch;
  	}
  
- 	if (!from_close) {
+-out:
+-	mana_pre_dealloc_rxbufs(apc);
++	mana_free_qset(scratch, &oldq);
++
++free_scratch:
++	mana_publish_close_if_needed(apc);
++	mana_qset_scratch_free(scratch);
+ clear_flag:
+ 	mutex_lock(&apc->vport_mutex);
+ 	apc->channel_changing = false;
+ 	mutex_unlock(&apc->vport_mutex);
+-
+ 	return err;
+ }
+ 
 -- 
 2.43.0
