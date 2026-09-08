@@ -1,68 +1,68 @@
-Received: from DM5PR21CU001.outbound.protection.outlook.com (mail-centralusazon11011010.outbound.protection.outlook.com [52.101.62.10])
+Received: from CH4PR04CU002.outbound.protection.outlook.com (mail-northcentralusazon11013049.outbound.protection.outlook.com [40.107.201.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E59522E719B;
-	Tue,  8 Sep 2026 06:55:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.62.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13F5F38DC64;
+	Tue,  8 Sep 2026 06:55:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.201.49
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788850509; cv=fail; b=lBPS3kzgA8JP1ys+Kmsl0K4umjXrYTOFrfdy2uyzaT/SbFFtDUl7nqxwqlfjyDmXsflC8xCCOIvq0IP0K/b2h+mF6TYz0ZntF0DHb4ItldIHBMYF0ScG8Vrret0FMxKNlWoDfzMyYi7m3ne5f79tCRcfizPh4CeB3AscVe2kIno=
+	t=1788850521; cv=fail; b=IgWzeVgqddn9cqOX0eJl9YfjPq61KSRvH8Jkv1hdPAf3JLFeVH42HbtsY7n9mfVLJ/3PrKpSiDDv79qOzj1INI8LY/qI1vOfmpr858obAhJ+uKGrH2kB72DVJlHFK0d0H5KtX6WqQhpIY1Xp6Pq5ss1ENbREbYbemhBUMRw1ha0=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788850509; c=relaxed/simple;
-	bh=CX9T/Lo5qcKEw2zNVpisTUWqU6m0Jrx383ZmHgJbGOU=;
+	s=arc-20240116; t=1788850521; c=relaxed/simple;
+	bh=//XTi84jj8Qk/LFagutunU7kh5JOdVQ+pKUMU5hBUGI=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=fTiFeqWqxUiw5ND9LjEpF0YzyxbyfoakpddDywNflXoHqXshokBsTBXDIPQsjPpkjL0qImVGXVDPgAWSK/ODVTs9Xp3weYMqAKf9sd9pBsWgkDhgQ2dKvO0+95ldqCcx3Ue62H2GIyTmAPLyOGkcel4dx57tU/4kQqaIFxdKDtY=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=nzrmqVnG; arc=fail smtp.client-ip=52.101.62.10
+	 MIME-Version:Content-Type; b=W6rHPS63yPrt2wVQLN8wQhu3cdWHtuRHOPj0DAdM8Z2O65AeoPePQap0P65dnmPhbjxKeIOnVvh1yhonJ7Y5PjhezyF6mKHs3Sjt6idwQoDKn4rT43zx68LERRqz4aM1oayRUqBDSxK3qqeH4Xv72bRO3ECSB5DJZ2vlnN7iSQo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=RyqO0WXk; arc=fail smtp.client-ip=40.107.201.49
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="nzrmqVnG"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="RyqO0WXk"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=D9sEt7f/p8Wbgv4lgZy+lkKu403k15gvLsCT0Np10ogorVPuHXPaEDo0ED69fYWLn5oygXOIFq4Gc1QBeNRE5ZBPQ86NYvoYiM066AfZs3uVREwLUVZidvXPLeXITYXKux7Qajzw/+EjuGtlsrdPDB/Hk71i+0+lAerjaLY0cliBmvSficktuSOOLNoELCK+LFqQFlfJ4lRI25e3rKtvKvze26S+9e50R4cWQggC2l+wBzE0+B3FGoZ7Gz+ixWseddAMdQy/wVUlCmQNEBLy+90oxCMCuav2Hhnmk04giRM3GjUgB1eggFw2Afq8+OLIu4J4vqmfrx8oevdbh8tDjg==
+ b=PhC0MYGE/I87gIFgjsV9UtPk1JzmoVGf2BOMwOI5XJnKQVaFOaod/QUPVGyBbfOKik+gL4kCUujUGryWO9Kx5WVFooPEL1GYbqOA8S3YduE4RG69l8o35wqpuRhfW/mWJG075ZwXyGZ9jFXieRE5bWgi0E05hZQ//xTFH/ttwaoLBd90JvjUa6mETaaEvq3lDfu02WHS2UDYbFffyqTiHUAfsjmvflNoV5XbBVjP3JygOF0kBmJdpWDPyPukHb6/JkGhEXGoGTWF62TP/c25KikxZ+m/EBvL3zIHJkeG00LP6eQKyc1OA78MKiWBCZilczhjrmlmoswnSQOEM24TTA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=iNSZKl+BLCp9hJ2K3pSkvo2oJbNQ3+Kaj3aeUNoBIqc=;
- b=ksAc4mEu4ZPZVBo/tnMvWE0NslmcegkpxPVNbPp6ON4ck/Mc/TOSOq5yp3rs8XKYJkcorZHdiS+VFnDySsZgKq7e7a6LclyiqjYvtldb4AWjzMbLGMtYDTe6qcdiwas//AZ50zhhDnAx7gLTd2Zb76inne5PZQ8/axNZeODKhdURDIMUZw6tS0QiHi+hJqK/Y6e1jUfZy+emISY1PijR+GJigQSaK6oQ6sIZNtq6FHWKThdQvLHZpCyeYZqA4Xdsry/kFHMYZUbiydvzbWyJbH98fWYyumppvFyQCfTw8Wrs1PqjS0OOlOga8k+XrrXP15ekNF3aFsAjgSbz8H323A==
+ bh=UZnhXXFCkGDujobVeixBCUOTW7Zd1VeEGHLjX9fsERc=;
+ b=xebyzkgAP/OHMAmRIclS/sJa94djPRNJY0M7XFAbMWasoWjI6/ZuyFEypmwJmzXyUTyfVVan+p1YhPzN5u3Pv3w4JR4ZmLcrzUhQdPJ7vlCYmDVwD6lhAI7OYaR06tXSssY1RprjF5MS3CA7baGVcTPLzk5qNyHLlabESAsNeF1+3a+5Fzd0yTfFBWW4x9p+dvGAeDsx+h2J8yDgkKWDv+3UshYaRgaoMvJ3l5WCfvCRyujSyZXNxW7W1yQll4fVbEWZqvmVC/OgcBH+l3q1dOwkwfQYzetLRE6tDBtB4fmKRI3K/eMVSAS8v64pV23a9Xqp31LTgo56qJJCtnWI4A==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.161) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
+ 216.228.117.160) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=iNSZKl+BLCp9hJ2K3pSkvo2oJbNQ3+Kaj3aeUNoBIqc=;
- b=nzrmqVnGKZ/e638kr1NEj2nes0bUzPdI1TRH0QFPpLsBtskolN6xCG9+i4B7324BtiftsBDbV0beoaEt93RHr4VyJIvmgpqw4sodOl1IMpeRQF40ewEYYfLsrl+rBs9/IBVLudru3wMXf0y+vQPdwRqC2kWHiEkI0lslH6WowS7SRZ7/r65mZ2DefoOYHs2jSsO+GERRBJyesVfh9apeMvA3HfJZxgiDeoblA8823BBcaYUUIfPP8sDYHEwccirCtRZEUtcMbgQInXO90LUF3WG2ByrPaJEpHvQI2rmA6YiD9Gvs+Ok2cZtBxS3YGJxnbCqwQcpyEra9svj6aqXpdg==
-Received: from BN8PR04CA0062.namprd04.prod.outlook.com (2603:10b6:408:d4::36)
- by PH8PR12MB7206.namprd12.prod.outlook.com (2603:10b6:510:226::5) with
+ bh=UZnhXXFCkGDujobVeixBCUOTW7Zd1VeEGHLjX9fsERc=;
+ b=RyqO0WXkKP2Og5xb7fl0uyYP49IeHWKq+SqjRsfju95J/3gGadHnUFISplo/EEf9pBaNYn7u413zL6kPGgi0h36oPTL261JJaaCG7IJTlp3iJcjNSSGJ4Q7wdC2hn1nbuuell+i4V8L24EBuBCdLrUrKETHpZTQDDTm6haw9RGgr7wEISobxlW5eVJ/K90mM/ZqWpp4UxQadUVlewoML60I3ni5U+BPM559TtfR/bi/mduyDzhHwlcqAKrlfNy2h1IzeNQ36InQPrPVKA/Ze7EpbeskvkJzbiLLHccSnKl/9v4IOjDq2rLYj/FPWyFmpXKnIdu1EzZXDlZg2vxNDig==
+Received: from BN9PR03CA0437.namprd03.prod.outlook.com (2603:10b6:408:113::22)
+ by SJ2PR12MB8737.namprd12.prod.outlook.com (2603:10b6:a03:545::21) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.382.14; Tue, 8 Sep
- 2026 06:55:02 +0000
-Received: from BN7PEPF000000AB.namprd05.prod.outlook.com
- (2603:10b6:408:d4:cafe::7e) by BN8PR04CA0062.outlook.office365.com
- (2603:10b6:408:d4::36) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.406.7 via Frontend Transport; Tue, 8
- Sep 2026 06:55:02 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.360.7; Tue, 8 Sep 2026
+ 06:55:13 +0000
+Received: from BN1PEPF0000468E.namprd05.prod.outlook.com
+ (2603:10b6:408:113:cafe::1a) by BN9PR03CA0437.outlook.office365.com
+ (2603:10b6:408:113::22) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.382.15 via Frontend Transport; Tue, 8
+ Sep 2026 06:55:12 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.161) by
- BN7PEPF000000AB.mail.protection.outlook.com (10.167.245.235) with Microsoft
+ 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.160) by
+ BN1PEPF0000468E.mail.protection.outlook.com (10.167.243.139) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.406.5 via Frontend Transport; Tue, 8 Sep 2026 06:55:02 +0000
+ 15.21.406.5 via Frontend Transport; Tue, 8 Sep 2026 06:55:12 +0000
 Received: from rnnvmail203.nvidia.com (10.129.68.9) by mail.nvidia.com
- (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.46; Mon, 7 Sep
- 2026 23:54:48 -0700
+ 2026 23:54:56 -0700
 Received: from rnnvmail203.nvidia.com (10.129.68.9) by rnnvmail203.nvidia.com
  (10.129.68.9) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.46; Mon, 7 Sep
- 2026 23:54:48 -0700
+ 2026 23:54:56 -0700
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.9)
  with Microsoft SMTP Server id 15.2.2562.46 via Frontend Transport; Mon, 7 Sep
- 2026 23:54:40 -0700
+ 2026 23:54:48 -0700
 From: Tariq Toukan <tariqt@nvidia.com>
 To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
 	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
@@ -81,9 +81,9 @@ CC: Bobby Eshleman <bobbyeshleman@meta.com>, Boris Pismenny
 	<shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Simon Horman
 	<horms@kernel.org>, Tariq Toukan <tariqt@nvidia.com>, Willem de Bruijn
 	<willemb@google.com>, Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Subject: [PATCH net-next V4 11/14] net/mlx5e: psp: Dynamically reconfigure based on SHAMPO mode
-Date: Tue, 8 Sep 2026 09:52:41 +0300
-Message-ID: <20260908065244.3799142-12-tariqt@nvidia.com>
+Subject: [PATCH net-next V4 12/14] selftests: drv-net: psp: Extract shared helpers into psp_lib.py
+Date: Tue, 8 Sep 2026 09:52:42 +0300
+Message-ID: <20260908065244.3799142-13-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.44.0
 In-Reply-To: <20260908065244.3799142-1-tariqt@nvidia.com>
 References: <20260908065244.3799142-1-tariqt@nvidia.com>
@@ -98,173 +98,357 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN7PEPF000000AB:EE_|PH8PR12MB7206:EE_
-X-MS-Office365-Filtering-Correlation-Id: aa2693ec-9d01-4585-a719-08df0d761b7c
+X-MS-TrafficTypeDiagnostic: BN1PEPF0000468E:EE_|SJ2PR12MB8737:EE_
+X-MS-Office365-Filtering-Correlation-Id: 0ed02a7e-288b-4761-a639-08df0d762166
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|36860700016|7416014|82310400026|1800799024|376014|10067099003|18002099003|22082099003|11063799006|56012099006;
+	BCL:0;ARA:13230040|23010399003|82310400026|1800799024|376014|7416014|36860700016|6133799003|11063799006|5023799004|56012099006|10067099003|18002099003|22082099003;
 X-Microsoft-Antispam-Message-Info:
-	LB9RMwsa9Gx2TGAn0YjYC6SV0zGhvAzUsJhm6LsQuiHw2wd0+KiVF6vpl8XRNwTGgR6+M3RJnzDd+oBWCqXacQe2t0yHDZxN1J53GJcqjISazgBD8UE50AQygVE1F8JFXqvA5zkAF39PpFyJcUxEB8JNz/Mj3HJPiiQhudZMxHwKSSp6vgvgwS011byKLU9nW3uPTTD5RkKQorbDtqON2IgO0fbI4l51T23BpIhl07lKUkfRvmhYSIsuOI9X2EnVj5c675yZohZ7/hCdn/PtiBrYoGmlJJuyG2sobjCWBsU6vOyzw2fSeiu9vZSra+9yzkYv7VDkrMNX6fzg+6xp0kH47tfmUfkdvhe9mOc7AMDLPylf6fCIToihR0n/Pnea0e3TfyopluaPVa8DM7EFQ+6wbpKggkpu891ts4NQcC3voGPkDNJ2ffX9h/iGkT4ibfvIgI8EHw6SAdvSc7HGQcgvKtmYBDOxgaK7dX3LGQu2oS0s4dmgTjD7JCtmk8LdniVJ7mG+S7F+jJfuRBJncvIJpq4VRtNMjgDHjJj6HyiSqwUhPyFos2YkkE+zueYcrtJxDvAQ+O0pTnvGhKjHyYzvVSguXZ5KANRiDV35QGHpXnJddk5JJrdgMILTY3y8BGXut5T6DleSXcYTip45WvVs6GyRq5VVeEzvo1jj8UwbkatJGDBYdTbmV9MPYk5nMDK4P4O68f1ugs7M7195jA==
+	i43m891qHpnecrYk5myFhYlaRcBDReuROMpNQ9ZL3KkxDOEG3E93Bx8IaX3fhAEfHdP32X5OaZOIxbx1+aOTgQL/8nYgTmgxOkMAZFJ5R2B4gI1Ek1KFY2OQZvuNk477FCtKqh3TQFfrfIjNyMrINFe49C2qkSF3TehMktCFEtcCSPUV7UbmONDxc1ROkuvGcW9jIzlGGevu/QXhSQ8/S9Wzn7Sf/aQ41V/r/OzP8uisOPMbCl+efPADzxpzfh75k6vdMj9rE1JFYxVQLuIKHkWlFR1RvA/8BDdKI6l5Dd+ny0FnkK3lURzfy8+x2fVTVERm7qCH2G7NtbWAOS5Z6+D6t6c9G7Imc5XIgkV7nA98alzCZxQImMZ/LQI+bU4zVqh1BBEt6e1XaqY/n2jStN7qg3Mi/xClr9yrkHSC6zcATbMztXG24t73CQjGbxP0/MzfafG9+BW8dUGt61iuhnguAcOaCd0ukWe6pmeti5YiKcaXY0eQHla6avciC8uyOIeVz+wCG/ZyArcoW8WooEcA3BaLccw8jq9I+fxqK7oEgS+WGO5h2rL0Q7Hg+dA/qC3L9GoZ7QBBU0fdG34xgxFRvvL6MJ1QU+ZE3QgqQHIN/xPNbBE6QU6aeWuTqFm/6EW/Q2e+29tkc/UCo6Se5LKqSh/Wng/nZQd8K57cugMrH1niVSlQ2yt4O3Koyx3nM0DzW6yKTOZkWToAre2mbA==
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(36860700016)(7416014)(82310400026)(1800799024)(376014)(10067099003)(18002099003)(22082099003)(11063799006)(56012099006);DIR:OUT;SFP:1101;
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(82310400026)(1800799024)(376014)(7416014)(36860700016)(6133799003)(11063799006)(5023799004)(56012099006)(10067099003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	PQRZ36m0LiuxhOHDUX2B1RX4z1Q9GplYHWLdck4+Xpb//muol/JuHVSeizfy10r/8ULYcJ/Z+FHOn+cOOtyY2nUgecsYIIfadKPxEM0IEmxyFCbmVsbKhSEgbRq4A4GNjUhuPmoxfpAqa17XmT6kfx6afRteG++uOVtsrjpbDm+qTyaPf5ymvkmiacvZ2w5Fb2BAnYuvJtgbSJL7GbgMayF1TPFfZ2+CpFQ/EOGV8Ygk+0dhTDQ3awIj3ppk3nA7ge3sFq59qjDMw/ZhxTI+DAt+Z2ygXMoVj5KAE5usp6UfrtINomx0Dwi8uTCSRrR5A+XG50q/rnWEsuxzPVHJD4iJyOIq1oykU6xJh/wQ0UwuPoZlFCY+3QDLIj7R3ABdJZnljxizZuWkhNE+lJ3n0pqhBR6+yckK+0+WAxwlpYl02qsfZIwb0MV1K0VbdzD4
+	1zA1Q4s0dPPD7XlPFDuXMPZoTnHe23S7tocsA598sC2bOGdfNoowhTa8D70sNvstZVY6+8IjJShpEsK7kmsz4oI+8o97Y1gpo1mDtCGQipYCgaQsgjZSPnFKvBdjwdu25no3QdMzotys2DSqtPBCuLMOb9n2FAcrllB2XIACHwMMB8EWcXfGlOBRcNIeDrRRgaN+Z8mGACaksJl9VeecA9EtxmRHoSXsTfdKTHXi4emLw3WPmzoKxIwTyLZbsTJyfjicc9IYhyzIXddZ0ieYgi1QdvA9STI2PI+aVfiMeIfU7IW7y7QC3ub9+D8yrUXx70ByLViuu9S+9tAD9ZsUTWkX22J8f/3bdK9x82egN06YENwrgZNfcGH+bIzildxFNNBiyBuJryscJoA+UVDRofvbDPIEDDtFI/RxlOsAcajneND9q59zUiE/wAm0FAzP
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Sep 2026 06:55:02.6363
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Sep 2026 06:55:12.5649
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: aa2693ec-9d01-4585-a719-08df0d761b7c
+X-MS-Exchange-CrossTenant-Network-Message-Id: 0ed02a7e-288b-4761-a639-08df0d762166
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	BN7PEPF000000AB.namprd05.prod.outlook.com
+	BN1PEPF0000468E.namprd05.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH8PR12MB7206
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR12MB8737
 
 From: Cosmin Ratiu <cratiu@nvidia.com>
 
-Add an mlx5e_update_nic_rx() -> mlx5e_psp_update_rx() hook.
-This allows PSP steering to reconfigure when netdev features change.
+Put init_psp_dev() and the logic for requiring a psp version into a
+shared lib, since they will soon be used by a second test file.
 
-When this signal is received, toggle PSP between standard and
-decap modes when SHAMPO mode changes, optionally creating the decap
-steering table.
-
-The toggling of traffic is atomic (a single steering rule update), so no
-packets should get eaten/lost. It is probable though that the rxhash
-will change, and decapsulated packets will be received by a different
-core than before. Established PSP connections receiving traffic might
-experience reordering/retransmits as a result.
-
-Also enable decap when configuring the device if the mode indicates it.
+No functional change for psp.py.
 
 Signed-off-by: Cosmin Ratiu <cratiu@nvidia.com>
 Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
 Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
- .../mellanox/mlx5/core/en_accel/en_accel.h    |  5 ++++
- .../mellanox/mlx5/core/en_accel/psp.c         | 23 +++++++++++++++++--
- .../mellanox/mlx5/core/en_accel/psp.h         |  2 ++
- .../net/ethernet/mellanox/mlx5/core/en_main.c | 10 +++++++-
- 4 files changed, 37 insertions(+), 3 deletions(-)
+ tools/testing/selftests/drivers/net/Makefile  |  1 +
+ tools/testing/selftests/drivers/net/psp.py    | 77 ++++++-------------
+ .../testing/selftests/drivers/net/psp_lib.py  | 57 ++++++++++++++
+ 3 files changed, 82 insertions(+), 53 deletions(-)
+ create mode 100644 tools/testing/selftests/drivers/net/psp_lib.py
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/en_accel.h b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/en_accel.h
-index 8a2ea7616440..98709d48b801 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/en_accel.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/en_accel.h
-@@ -251,6 +251,11 @@ static inline void mlx5e_accel_cleanup_rx(struct mlx5e_priv *priv)
- 	mlx5_accel_psp_fs_cleanup_rx_tables(priv);
- }
+diff --git a/tools/testing/selftests/drivers/net/Makefile b/tools/testing/selftests/drivers/net/Makefile
+index 1f21e17d8c22..8cea66fa323c 100644
+--- a/tools/testing/selftests/drivers/net/Makefile
++++ b/tools/testing/selftests/drivers/net/Makefile
+@@ -32,6 +32,7 @@ TEST_PROGS := \
  
-+static inline void mlx5e_accel_update_rx(struct mlx5e_priv *priv)
-+{
-+	mlx5e_psp_update_rx(priv);
-+}
+ TEST_FILES := \
+ 	gro_lib.py \
++	psp_lib.py \
+ # end of TEST_FILES
+ 
+ # YNL files, must be before "include ..lib.mk"
+diff --git a/tools/testing/selftests/drivers/net/psp.py b/tools/testing/selftests/drivers/net/psp.py
+index 315648a770d0..47983fb8c7c2 100755
+--- a/tools/testing/selftests/drivers/net/psp.py
++++ b/tools/testing/selftests/drivers/net/psp.py
+@@ -11,6 +11,8 @@ import struct
+ import termios
+ import time
+ 
++from psp_lib import init_psp_dev, require_version
 +
- static inline int mlx5e_accel_init_tx(struct mlx5e_priv *priv)
- {
- 	return mlx5e_ktls_init_tx(priv);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
-index 84133cbf8689..c40d2ddf6af2 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
-@@ -92,6 +92,12 @@ struct mlx5e_psp_fs {
- 	struct mlx5e_psp_rx_table rx;
- };
+ from lib.py import defer
+ from lib.py import ksft_run, ksft_exit, ksft_pr
+ from lib.py import ksft_true, ksft_eq, ksft_ne, ksft_gt, ksft_raises
+@@ -122,34 +124,13 @@ def _get_stat(cfg, key):
+ # Test case boiler plate
+ #
  
-+static bool shampo_enabled(struct mlx5e_priv *priv)
-+{
-+	return priv->channels.params.packet_merge.type ==
-+		MLX5E_PACKET_MERGE_SHAMPO;
-+}
+-def _init_psp_dev(cfg, use_psp_ifindex=False):
+-    if not hasattr(cfg, 'psp_dev_id'):
+-        # Figure out which local device we are testing against
+-        # For NetDrvContEnv: use psp_ifindex instead of ifindex
+-        target_ifindex = cfg.psp_ifindex if use_psp_ifindex else cfg.ifindex
+-        for dev in cfg.pspnl.dev_get({}, dump=True):
+-            if dev['ifindex'] == target_ifindex:
+-                cfg.psp_info = dev
+-                cfg.psp_dev_id = cfg.psp_info['id']
+-                break
+-        else:
+-            raise KsftSkipEx("No PSP devices found")
+-
+-    # Enable PSP if necessary
+-    cap = cfg.psp_info['psp-versions-cap']
+-    ena = cfg.psp_info['psp-versions-ena']
+-    if cap != ena:
+-        cfg.pspnl.dev_set({'id': cfg.psp_dev_id, 'psp-versions-ena': cap})
+-        defer(cfg.pspnl.dev_set, {'id': cfg.psp_dev_id,
+-                                  'psp-versions-ena': ena })
+-
+ #
+ # Test cases
+ #
+ 
+ def dev_list_devices(cfg):
+     """ Dump all devices """
+-    _init_psp_dev(cfg)
++    init_psp_dev(cfg)
+ 
+     devices = cfg.pspnl.dev_get({}, dump=True)
+ 
+@@ -161,7 +142,7 @@ def dev_list_devices(cfg):
+ 
+ def dev_get_device(cfg):
+     """ Get the device we intend to use """
+-    _init_psp_dev(cfg)
++    init_psp_dev(cfg)
+ 
+     dev = cfg.pspnl.dev_get({'id': cfg.psp_dev_id})
+     ksft_eq(dev['id'], cfg.psp_dev_id)
+@@ -180,7 +161,7 @@ def dev_get_device_bad(cfg):
+ 
+ def dev_rotate(cfg):
+     """ Test key rotation """
+-    _init_psp_dev(cfg)
++    init_psp_dev(cfg)
+ 
+     prev_rotations = _get_stat(cfg, 'key-rotations')
+ 
+@@ -195,7 +176,7 @@ def dev_rotate(cfg):
+ 
+ def dev_rotate_spi(cfg):
+     """ Test key rotation and SPI check """
+-    _init_psp_dev(cfg)
++    init_psp_dev(cfg)
+ 
+     top_a = top_b = 0
+     with socket.socket(socket.AF_INET6, socket.SOCK_STREAM) as s:
+@@ -217,7 +198,7 @@ def dev_rotate_spi(cfg):
+ 
+ def assoc_basic(cfg):
+     """ Test creating associations """
+-    _init_psp_dev(cfg)
++    init_psp_dev(cfg)
+ 
+     with socket.socket(socket.AF_INET6, socket.SOCK_STREAM) as s:
+         assoc = cfg.pspnl.rx_assoc({"version": 0,
+@@ -237,7 +218,7 @@ def assoc_basic(cfg):
+ 
+ def assoc_bad_dev(cfg):
+     """ Test creating associations with bad device ID """
+-    _init_psp_dev(cfg)
++    init_psp_dev(cfg)
+ 
+     with socket.socket(socket.AF_INET6, socket.SOCK_STREAM) as s:
+         with ksft_raises(NlError) as cm:
+@@ -249,7 +230,7 @@ def assoc_bad_dev(cfg):
+ 
+ def assoc_sk_only_conn(cfg):
+     """ Test creating associations based on socket """
+-    _init_psp_dev(cfg)
++    init_psp_dev(cfg)
+ 
+     with _make_clr_conn(cfg) as s:
+         assoc = cfg.pspnl.rx_assoc({"version": 0,
+@@ -263,7 +244,7 @@ def assoc_sk_only_conn(cfg):
+ 
+ def assoc_sk_only_mismatch(cfg):
+     """ Test creating associations based on socket (dev mismatch) """
+-    _init_psp_dev(cfg)
++    init_psp_dev(cfg)
+ 
+     with _make_clr_conn(cfg) as s:
+         with ksft_raises(NlError) as cm:
+@@ -278,7 +259,7 @@ def assoc_sk_only_mismatch(cfg):
+ 
+ def assoc_sk_only_mismatch_tx(cfg):
+     """ Test creating associations based on socket (dev mismatch) """
+-    _init_psp_dev(cfg)
++    init_psp_dev(cfg)
+ 
+     with _make_clr_conn(cfg) as s:
+         with ksft_raises(NlError) as cm:
+@@ -296,7 +277,7 @@ def assoc_sk_only_mismatch_tx(cfg):
+ 
+ def assoc_sk_only_unconn(cfg):
+     """ Test creating associations based on socket (unconnected, should fail) """
+-    _init_psp_dev(cfg)
++    init_psp_dev(cfg)
+ 
+     with socket.socket(socket.AF_INET6, socket.SOCK_STREAM) as s:
+         with ksft_raises(NlError) as cm:
+@@ -309,7 +290,7 @@ def assoc_sk_only_unconn(cfg):
+ 
+ def assoc_version_mismatch(cfg):
+     """ Test creating associations where Rx and Tx PSP versions do not match """
+-    _init_psp_dev(cfg)
++    init_psp_dev(cfg)
+ 
+     versions = list(cfg.psp_info['psp-versions-cap'])
+     if len(versions) < 2:
+@@ -335,7 +316,7 @@ def assoc_version_mismatch(cfg):
+ 
+ def assoc_twice(cfg):
+     """ Test reusing Tx assoc for two sockets """
+-    _init_psp_dev(cfg)
++    init_psp_dev(cfg)
+ 
+     def rx_assoc_check(s):
+         assoc = cfg.pspnl.rx_assoc({"version": 0,
+@@ -369,19 +350,9 @@ def assoc_twice(cfg):
+ 
+ def _data_basic_send(cfg, version, ipver):
+     """ Test basic data send """
+-    _init_psp_dev(cfg)
+-
+-    # Version 0 is required by spec, don't let it skip
+-    if version:
+-        name = cfg.pspnl.consts["version"].entries_by_val[version].name
+-        if name not in cfg.psp_info['psp-versions-cap']:
+-            with socket.socket(socket.AF_INET6, socket.SOCK_STREAM) as s:
+-                with ksft_raises(NlError) as cm:
+-                    cfg.pspnl.rx_assoc({"version": version,
+-                                        "dev-id": cfg.psp_dev_id,
+-                                        "sock-fd": s.fileno()})
+-                ksft_eq(cm.exception.nl_msg.error, -errno.EOPNOTSUPP)
+-            raise KsftSkipEx("PSP version not supported", name)
++    init_psp_dev(cfg)
 +
- /* PSP RX flow steering */
- static enum mlx5_traffic_types fs_psp2tt(enum accel_fs_psp_type i)
- {
-@@ -767,6 +773,7 @@ static void accel_psp_fs_rx_destroy(struct mlx5e_psp_fs *fs)
- }
++    require_version(cfg, version)
  
- static int accel_psp_fs_rx_create(struct mlx5e_psp_fs *fs,
-+				  bool decap_enable,
- 				  struct netlink_ext_ack *extack)
- {
- 	struct mlx5_ttc_table *ttc = mlx5e_fs_get_ttc(fs->fs, false);
-@@ -808,7 +815,7 @@ static int accel_psp_fs_rx_create(struct mlx5e_psp_fs *fs,
- 		mlx5_ttc_fwd_dest(ttc, fs_psp2tt(i), &dest);
- 	}
+     s = _make_psp_conn(cfg, version, ipver)
  
--	accel_psp_fs_rx_reconfigure(fs, false);
-+	accel_psp_fs_rx_reconfigure(fs, decap_enable);
+@@ -418,7 +389,7 @@ def __bad_xfer_do(cfg, s, tx, version='hdr0-aes-gcm-128'):
  
- 	return 0;
+ def data_send_bad_key(cfg):
+     """ Test send data with bad key """
+-    _init_psp_dev(cfg)
++    init_psp_dev(cfg)
  
-@@ -1078,7 +1085,8 @@ static int accel_psp_fs_create(struct mlx5e_priv *priv,
- {
- 	int err;
+     s = _make_psp_conn(cfg)
  
--	err = accel_psp_fs_rx_create(priv->psp->fs, extack);
-+	err = accel_psp_fs_rx_create(priv->psp->fs, shampo_enabled(priv),
-+				     extack);
- 	if (err)
- 		return err;
+@@ -433,7 +404,7 @@ def data_send_bad_key(cfg):
  
-@@ -1355,3 +1363,14 @@ void mlx5e_psp_cleanup(struct mlx5e_priv *priv)
- 	priv->psp = NULL;
- 	kfree(psp);
- }
+ def data_send_disconnect(cfg):
+     """ Test socket close after sending data """
+-    _init_psp_dev(cfg)
++    init_psp_dev(cfg)
+ 
+     with _make_psp_conn(cfg) as s:
+         assoc = cfg.pspnl.rx_assoc({"version": 0,
+@@ -451,7 +422,7 @@ def data_send_disconnect(cfg):
+ 
+ 
+ def _data_mss_adjust(cfg, ipver):
+-    _init_psp_dev(cfg)
++    init_psp_dev(cfg)
+ 
+     # First figure out what the MSS would be without any adjustments
+     s = _make_clr_conn(cfg, ipver)
+@@ -491,7 +462,7 @@ def _data_mss_adjust(cfg, ipver):
+ 
+ def data_stale_key(cfg):
+     """ Test send on a double-rotated key """
+-    _init_psp_dev(cfg)
++    init_psp_dev(cfg)
+ 
+     prev_stale = _get_stat(cfg, 'stale-events')
+     s = _make_psp_conn(cfg)
+@@ -766,7 +737,7 @@ def _psp_dev_get_check_netkit_psp_assoc(cfg):
+ 
+ def _dev_assoc_no_nsid(cfg):
+     """ Test dev-assoc and dev-disassoc without nsid attribute """
+-    _init_psp_dev(cfg, True)
++    init_psp_dev(cfg, True)
+ 
+     # Associate without nsid - should look up ifindex in caller's netns
+     cfg.pspnl.dev_assoc({'id': cfg.psp_dev_id,
+@@ -800,7 +771,7 @@ def _psp_dev_assoc_cleanup_on_netkit_del(cfg):
+     Creates a disposable netkit pair for this test to avoid destroying
+     the shared environment.
+     """
+-    _init_psp_dev(cfg, True)
++    init_psp_dev(cfg, True)
+     defer(delattr, cfg, 'psp_dev_id')
+     defer(delattr, cfg, 'psp_info')
+ 
+@@ -877,7 +848,7 @@ def _try_disassoc(cfg, psp_dev_id, ifindex, nsid=None):
+ 
+ def _assoc_nk_guest(cfg):
+     """Associate nk_guest with PSP device and register cleanup via defer()."""
+-    _init_psp_dev(cfg, True)
++    init_psp_dev(cfg, True)
+ 
+     cfg.pspnl.dev_assoc({'id': cfg.psp_dev_id,
+                          'ifindex': cfg.nk_guest_ifindex,
+diff --git a/tools/testing/selftests/drivers/net/psp_lib.py b/tools/testing/selftests/drivers/net/psp_lib.py
+new file mode 100644
+index 000000000000..d450db81cfc2
+--- /dev/null
++++ b/tools/testing/selftests/drivers/net/psp_lib.py
+@@ -0,0 +1,57 @@
++# SPDX-License-Identifier: GPL-2.0
 +
-+void mlx5e_psp_update_rx(struct mlx5e_priv *priv)
-+{
-+	struct mlx5e_psp *psp = priv->psp;
++"""Shared helpers for the PSP selftests."""
 +
-+	netdev_assert_locked(priv->netdev);
-+	if (!psp || !psp->fs->check.ft)
-+		return;
++import errno
++import socket
 +
-+	accel_psp_fs_rx_reconfigure(psp->fs, shampo_enabled(priv));
-+}
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.h b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.h
-index 3f441e7dd55a..43571a039ea6 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.h
-@@ -49,6 +49,7 @@ int mlx5e_psp_register(struct mlx5e_priv *priv);
- void mlx5e_psp_unregister(struct mlx5e_priv *priv);
- int mlx5e_psp_init(struct mlx5e_priv *priv);
- void mlx5e_psp_cleanup(struct mlx5e_priv *priv);
-+void mlx5e_psp_update_rx(struct mlx5e_priv *priv);
- #else
- static inline void mlx5_accel_psp_fs_cleanup_rx_tables(struct mlx5e_priv *priv) { }
- static inline void mlx5_accel_psp_fs_cleanup_tx_tables(struct mlx5e_priv *priv) { }
-@@ -61,5 +62,6 @@ static inline int mlx5e_psp_register(struct mlx5e_priv *priv) { return 0; }
- static inline void mlx5e_psp_unregister(struct mlx5e_priv *priv) { }
- static inline int mlx5e_psp_init(struct mlx5e_priv *priv) { return 0; }
- static inline void mlx5e_psp_cleanup(struct mlx5e_priv *priv) { }
-+static inline void mlx5e_psp_update_rx(struct mlx5e_priv *priv) { }
- #endif /* CONFIG_MLX5_EN_PSP */
- #endif /* __MLX5E_ACCEL_PSP_H__ */
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index fc110a7d16e8..b5449d849838 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -6288,7 +6288,15 @@ static void mlx5e_nic_disable(struct mlx5e_priv *priv)
- 
- static int mlx5e_update_nic_rx(struct mlx5e_priv *priv)
- {
--	return mlx5e_refresh_tirs(priv->mdev, false, false);
-+	int err;
++from lib.py import defer
++from lib.py import ksft_eq, ksft_raises
++from lib.py import KsftSkipEx
++from lib.py import NlError
 +
-+	err = mlx5e_refresh_tirs(priv->mdev, false, false);
-+	if (err)
-+		return err;
 +
-+	mlx5e_accel_update_rx(priv);
++def require_version(cfg, version):
++    """Skip unless the device supports a PSP version.
 +
-+	return 0;
- }
- 
- static const struct mlx5e_profile mlx5e_nic_profile = {
++    Version 0 is required by the spec, so it never skips.  Before
++    skipping, check that the kernel rejects the unsupported version
++    properly - this is the only coverage that path gets.
++    """
++    if not version:
++        return
++
++    name = cfg.pspnl.consts["version"].entries_by_val[version].name
++    if name in cfg.psp_info['psp-versions-cap']:
++        return
++
++    with socket.socket(socket.AF_INET6, socket.SOCK_STREAM) as s:
++        with ksft_raises(NlError) as cm:
++            cfg.pspnl.rx_assoc({"version": version,
++                                "dev-id": cfg.psp_dev_id,
++                                "sock-fd": s.fileno()})
++        ksft_eq(cm.exception.nl_msg.error, -errno.EOPNOTSUPP)
++    raise KsftSkipEx("PSP version not supported", name)
++
++
++def init_psp_dev(cfg, use_psp_ifindex=False):
++    """Find the PSP device under test and enable all supported versions."""
++    if not hasattr(cfg, 'psp_dev_id'):
++        # Figure out which local device we are testing against
++        # For NetDrvContEnv: use psp_ifindex instead of ifindex
++        target_ifindex = cfg.psp_ifindex if use_psp_ifindex else cfg.ifindex
++        for dev in cfg.pspnl.dev_get({}, dump=True):
++            if dev['ifindex'] == target_ifindex:
++                cfg.psp_info = dev
++                cfg.psp_dev_id = cfg.psp_info['id']
++                break
++        else:
++            raise KsftSkipEx("No PSP devices found")
++
++    # Enable PSP if necessary
++    cap = cfg.psp_info['psp-versions-cap']
++    ena = cfg.psp_info['psp-versions-ena']
++    if cap != ena:
++        cfg.pspnl.dev_set({'id': cfg.psp_dev_id, 'psp-versions-ena': cap})
++        defer(cfg.pspnl.dev_set, {'id': cfg.psp_dev_id,
++                                  'psp-versions-ena': ena})
 -- 
 2.44.0
 
