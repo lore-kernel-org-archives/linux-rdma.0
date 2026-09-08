@@ -1,159 +1,308 @@
-Received: from PH0PR06CU001.outbound.protection.outlook.com (mail-westus3azon11011041.outbound.protection.outlook.com [40.107.208.41])
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14BCC526A93;
-	Tue,  8 Sep 2026 09:10:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.208.41
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788858610; cv=fail; b=IgS43V/6LSSHXSgnfqKqfzkusU38k9yZaD/E2jQ5OHvrXkSw+qyHuNby2YpviZVh2s5s8ThHA/d9Of7Pxjiy0/XYTCGkml5P8rWWq5Q9M2xOZoTWVJwxWx5Kg1NhVu12zc1pbawIq+3BQjbQMJdsSuGWuQYtUHempWEKJGHIRIo=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788858610; c=relaxed/simple;
-	bh=rZcKvHi0QRdRY8huIX0N3hxoVnb1HeINqsEgVY4dlfU=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=qY07SgJhYy9zXP5wUP02wmByr5d3K/EfJRDEoymMP7ftwC9BKVJyYzSxcH3EZ7yqOqxW98jwRpm0npmUBe16QfLelhMk3JwacqSptDaalYJy6VyH1WxOgzWFjQq/Is9hMJC8hlCk7TLHXeUBy/POae0inABYVqnjh3qvNZgMM9o=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=fnZ6mRkr; arc=fail smtp.client-ip=40.107.208.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17B724B0498;
+	Tue,  8 Sep 2026 09:23:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788859392; cv=none; b=QX5gY19EKG2BRm+sGfzUwSN7n88AbUVKxBwsTrNnQdeihd+msEom82Om4Y5UV3JSQgaO9mcZqurmnnsw9vEU3mlgBYbjQAiH1W3rLtxD0MyrgYHLiJv3WC5SmA7oWmYlL4a/X82zRNeYRKIDfhE5h4GV+vYIJkkcbyff4Ki4C8Y=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788859392; c=relaxed/simple;
+	bh=i/GI2R0kd1CVpJlWX/yiZQi5V2+wB6ixZSZQiNPQdT8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=MvKG0NlEMf7lpDQ0cWSFE7t5EtrbjBRaLWCnabLZJP9juByCLVKsfPMtU5Nr3K7pptNHY0d/4+uHnGwxU3eYB97x7Ay8OZMX6XOZ4AkKDUi0YsirWgpDxqYVAczovG1EcX1K2yzG7S53AQ3sud1clsheHhONtWUIyj+4GG9cO8w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=ofIa+itA; arc=none smtp.client-ip=148.163.158.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="fnZ6mRkr"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=uVQTU8/t0BpXQe0kPZpL2q83e5F3L6Yqkw/hECO1uBiZEjQ4upae+ZHj8HG4HG7vme956i3C9Hd9doB3Q+NKdVnZsNhIgkd3Ku/x5O3FJbzWLITiY9ohfimYZO4OO86gaceKkM4nmwmY8WXQaXbRhE98ALY9e8rhpp9gRe4+hJmnxN++JeKZhXbkR96sALEOU5PLSd1LnDHsDCD5B45YnLy+4yyzyRSm61p4D5P0Cbp5JpQE7o1jPc7uIGG8r8U9I+VK+G62duT08Wg8cAWPA2q0RlzOwDRk0wdq/Vln1K4q0omNH0TfbmFKEWZbbLCcF7anRirMs+SOxpSvXUPsRA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=z7Sc8T4dR6PoIvnv89UiSo98QDWsj/oilX6WBzax2x4=;
- b=XT+nxUa0tK8Z3snZ0Xr8Qm/ibvih2qTIeNn3CkeFlOQ7SxJr8lanQjYXsdrDmwY/e7yV/Rrqtn2BepOC4aCHkwyLgGLWtMFs1+QfS4MSpvW+QiAFnRnmMS+aK5gWtsjuG3TDmzgThdo7n76t+7GQke+QRkpP5ivOjWiAqHmUff0uKb9Whhpoh6FdY8EhReO3t9zea5mt0Bf+Z0C9tLXPvXWA+8IcfB0HeLWHOPeKLNg7a0fIgJuh2Jun+t+ZJoeC4a92a1dq6gsCRohGVoxoVWsxj3/+ALqtLvmxRrunAa3yjbtFLlf6go9scagtYVbX2KG2ebfnZpfK5n+HNu5zQw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=ziepe.ca smtp.mailfrom=amd.com; dmarc=pass
- (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=z7Sc8T4dR6PoIvnv89UiSo98QDWsj/oilX6WBzax2x4=;
- b=fnZ6mRkr2JmmVTZHKEw/f2CDj6uWqUsZdpalGB/L0AWQz7pRHwnjPQlasjsvGwWouFVO3yIpkVa+3RihqqG3SCs2zbMj9aO356rpP1NCqj2CZElmTfyZOew5pf6UbeoQz15havf2Zr2i2dVKPN1Dfayo2BV2n8Ozka3omC+hRYI=
-Received: from SJ0PR05CA0132.namprd05.prod.outlook.com (2603:10b6:a03:33d::17)
- by DSVPR12MB999171.namprd12.prod.outlook.com (2603:10b6:8:388::22) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.406.7; Tue, 8 Sep 2026
- 09:08:53 +0000
-Received: from BY1PEPF00026959.namprd05.prod.outlook.com
- (2603:10b6:a03:33d:cafe::a8) by SJ0PR05CA0132.outlook.office365.com
- (2603:10b6:a03:33d::17) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.406.5 via Frontend Transport; Tue, 8
- Sep 2026 09:08:53 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
-Received: from satlexmb07.amd.com (165.204.84.17) by
- BY1PEPF00026959.mail.protection.outlook.com (10.167.244.170) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.406.5 via Frontend Transport; Tue, 8 Sep 2026 09:08:52 +0000
-Received: from Satlexmb09.amd.com (10.181.42.218) by satlexmb07.amd.com
- (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.46; Tue, 8 Sep
- 2026 04:08:52 -0500
-Received: from satlexmb07.amd.com (10.181.42.216) by satlexmb09.amd.com
- (10.181.42.218) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.46; Tue, 8 Sep
- 2026 04:08:51 -0500
-Received: from xhdipdslab46.xilinx.com (10.180.168.240) by satlexmb07.amd.com
- (10.181.42.216) with Microsoft SMTP Server id 15.2.2562.46 via Frontend
- Transport; Tue, 8 Sep 2026 04:08:47 -0500
-From: Abhijit Gangurde <abhijit.gangurde@amd.com>
-To: <jgg@ziepe.ca>, <leon@kernel.org>, <brett.creeley@amd.com>,
-	<andrew+netdev@lunn.ch>, <davem@davemloft.net>, <edumazet@google.com>,
-	<kuba@kernel.org>, <pabeni@redhat.com>
-CC: <allen.hubbe@amd.com>, <nikhil.agarwal@amd.com>,
-	<linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, Abhijit Gangurde <abhijit.gangurde@amd.com>
-Subject: [for-next v1 0/5] RDMA/ionic: add SRQ support and firmware assigned CQ and SRQ IDs 
-Date: Tue, 8 Sep 2026 14:37:56 +0530
-Message-ID: <20260908090802.152142-1-abhijit.gangurde@amd.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="ofIa+itA"
+Received: from pps.filterd (m0356516.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6886VXg34125339;
+	Tue, 8 Sep 2026 09:23:02 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:date:from:message-id:mime-version
+	:subject:to; s=pp1; bh=mS9e0xT5mcwrOA87PaxxeFNdOnTjDOlBb+fWt4HYX
+	Y8=; b=ofIa+itA/yEpx8c75SUi0/YmXa7+1k51ZCsMypXIrrdEAK/0qyM3qaHQU
+	GiarBHDwI1zjWma2aMIT9mFACtQ6zIflbEJ439tRKl8/GkoDM9YtdVrmRb3E8593
+	rw1rf7wEUuU4YRE2uXLms4K9PRychYmUZuKcgufvXDd6nP/D8BRDqZbt5rYDNWCV
+	mae/Q1dZrA9VUjWGXv6coRQrx3rLWQ8MqpdLnk/gaqlxg1ghhvSTMYt6l0qspOkK
+	Ytg8voT2ZLRByzGELwS7BsTtBKTFFV57B8JxVjsO85CM1y0ZvONOBxYygaPoRoYq
+	lxsKykhm7i6mf5YxInRo1+PS6aY6A==
+Received: from ppma23.wdc07v.mail.ibm.com (5d.69.3da9.ip4.static.sl-reverse.com [169.61.105.93])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4ggbj85njr-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 08 Sep 2026 09:23:02 +0000 (GMT)
+Received: from pps.filterd (ppma23.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma23.wdc07v.mail.ibm.com (8.18.1.7/8.18.1.7) with ESMTP id 6889BHiL030682;
+	Tue, 8 Sep 2026 09:23:01 GMT
+Received: from smtprelay07.fra02v.mail.ibm.com ([9.218.2.229])
+	by ppma23.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4ggxwh2tqf-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 08 Sep 2026 09:23:01 +0000 (GMT)
+Received: from smtpav07.fra02v.mail.ibm.com (smtpav07.fra02v.mail.ibm.com [10.20.54.106])
+	by smtprelay07.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 6889MvpB44630458
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 8 Sep 2026 09:22:57 GMT
+Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 1C5672004B;
+	Tue,  8 Sep 2026 09:22:57 +0000 (GMT)
+Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id D189520043;
+	Tue,  8 Sep 2026 09:22:56 +0000 (GMT)
+Received: from tuxmaker.boeblingen.de.ibm.com (unknown [9.87.85.9])
+	by smtpav07.fra02v.mail.ibm.com (Postfix) with SMTP;
+	Tue,  8 Sep 2026 09:22:56 +0000 (GMT)
+Received: by tuxmaker.boeblingen.de.ibm.com (Postfix, from userid 56341)
+	id B896E160E25; Tue, 08 Sep 2026 11:22:56 +0200 (CEST)
+From: Mahanta Jambigi <mjambigi@linux.ibm.com>
+To: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
+        kuba@kernel.org, pabeni@redhat.com, alibuda@linux.alibaba.com,
+        dust.li@linux.alibaba.com, sidraya@linux.ibm.com
+Cc: pasic@linux.ibm.com, horms@kernel.org, tonylu@linux.alibaba.com,
+        guwen@linux.alibaba.com, hidayath@linux.ibm.com,
+        stable@vger.kernel.org, netdev@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
+        Mahanta Jambigi <mjambigi@linux.ibm.com>
+Subject: [PATCH net v3] net/smc: fix lgr/lnk lifetime vs diag reader race
+Date: Tue,  8 Sep 2026 11:22:52 +0200
+Message-ID: <20260908092252.3832975-1-mjambigi@linux.ibm.com>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BY1PEPF00026959:EE_|DSVPR12MB999171:EE_
-X-MS-Office365-Filtering-Correlation-Id: 996915d8-2d85-4f06-e5e4-08df0d88cdd1
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|36860700016|1800799024|82310400026|376014|7416014|10067099003|18002099003|11063799006|56012099006|13003099007;
-X-Microsoft-Antispam-Message-Info:
-	EEeJgL4eVduSBIZf8pnpxse/xzPr0cd3JmFDqVNLyyYHnU0IPC28OOHBmjMgHyoKyBCuX/DsMaasbTh2Tj8MbAwrghixSEc145XrhtnHVsRcQEEnCNApi+rh3Qnl21WLM9NrDVIEnlAXJkHUJ23Mjs1tdowcAJ1PnvS8mGd5Vb6d/XiG74ZyKeIjSrY0nLCIFncDafXgzsAWVM7S7TzjzvkviTYqxiq4GWiE6J+Lw864j2AijC26HTzl7UJ8am1XHvYogcuoMRVENecUZCRjeA1zq+KG2nCE9Mb7mRu3OeKFsG1JoCnfs0jUrHRLWi9Xz9LjFPeDp+s9CKq9Olp2akmg0i2sVRkplSX6L5il9jdIKgnBuVPWxfedWttAEt9KQ5a6k7EzGiXIKgh3fj+A4MQqvV3mnk+bmDIG3m8kycG/IFZjPM51JJxI7RwKac8SFwNQdCLzKFAD73TIgIhReoIKZL7jxinxdgE8/ys6z7Qzw8SL3GvT8omjtm8aXnnzvoe62ZHwhfSbWf24gbt5n1e1kzoLWljRJs3LVALISgArFN69Mc2r27C37d9XowMY+K7M1A0h5lnS0rVEc9WMSFHvI0hd8DnK0IA2RiL7JJ0BPh8HVlJp1AB2J5YpThmgXXpV8GDI1fp5pEtntG2QRzBPdlBrO3kCc501irDDdjMIfrpHpPd/LieTeTT/ZtZXmrn4vIoWv5VAFtdXE2I0jQ==
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(23010399003)(36860700016)(1800799024)(82310400026)(376014)(7416014)(10067099003)(18002099003)(11063799006)(56012099006)(13003099007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	rqOLnT8dFDrFuwLGI5GejDdnS1gcQZ3BAyqjCAQh0vlCQNbXVb/oW77gIpG8qS0Dijwjf8uZwKH326AGbmZeow8MpVUu7bYSTKuPTaUJSCDHTsdPYrxaO+4Qadp6vdgX1dYynag+BqKqWrZkeTImvXrv0+2xXHkKka3QKL0H1gBcVJRgBO+GceiIWfzkIPnZEMtiYCCV5Rra7GLDTNxNIAZkckIFmB4OkrzlAP7WhHMYr3PJDOuCTCBT8LcwrSBoZg5KaX+Z1G/vmjp+pER+6rSkqvcTsaBn3tNeA6QrkombXrD7P3/zJT+MiJiB1CL1DkCQbTHSdufsZmGqA3m7BrrOcFSXEG4Z+UikhVqQkv92oEeEIQwnXlmp2SwD4XYMMP4r4WdJ1M6fmxA6vYr3m+eYonyswfizLUD62smpzEdn2OfsQLMjWDZ4ZDdqcFGS
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Sep 2026 09:08:52.8408
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 996915d8-2d85-4f06-e5e4-08df0d88cdd1
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	BY1PEPF00026959.namprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DSVPR12MB999171
+Content-Transfer-Encoding: quoted-printable
+X-TM-AS-GCONF: 00
+X-Proofpoint-Reinject: loops=2 maxloops=12
+X-Proofpoint-GUID: 6vKcp2BlReI_DphWAd8dXL1kccoRN6_r
+X-Proofpoint-ORIG-GUID: VR7QYvXtEk3u-siCrTjB_0u8qsBmfMF8
+X-Authority-Analysis: v=2.4 cv=RNCD2Yi+ c=1 sm=1 tr=0 ts=6a9fd3f6 cx=c_pps
+ a=3Bg1Hr4SwmMryq2xdFQyZA==:117 a=3Bg1Hr4SwmMryq2xdFQyZA==:17
+ a=VdqzKS8jKosA:10 a=VkNPw1HP01LnGYTKEx00:22 a=RnoormkPH1_aCDwRdu11:22
+ a=Y2IxJ9c9Rs8Kov3niI8_:22 a=VnNF1IyMAAAA:8 a=1D_QaxW2Y1NEVYoI354A:9
+X-Proofpoint-Spam-Info: AW1haW4tMjYwOTA4MDA5NCBTYWx0ZWRfX9AWlNC1izf4G
+ EAWdcjCdqkd0hvlJeuaHqjFr7gIZ0U4VUUX6XhCpGdUGz8D7IkO1HB3Pdcp7DiRFPkvtFyswAL+
+ UIefKTRmmqlw+6t/moTE/2jF4O1Kbm8=
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTA4MDA5NCBTYWx0ZWRfX6r+klDav+Ww/
+ EfsaDVMbI2FVjeVGjNi1F2G6zFT2PZXNzAalVve8QrgH3V3xj/uq69fewJWuXnoHFDTmEYpWRPb
+ 78dArT2JM42xLFs46NsQBlzNKDbbTZmbaLidISIvOpah77IyPL+RprLPdqGQEjIdGwP9FzuR9rG
+ R7+x/EOcN+lSnq9Hf52j5UQBKAL0uJNMG2+nInB7ycN09MDVxOOf5QJa3mWXS9T+LyfAjmznvdA
+ Eh4muUHhqMkSFHotE/+QBK0Ij0YAQyHjf43iwAHPGUmlVtjgMHk4haXc/2Z2MgHvRIGPZrb/rs+
+ m/dhtHroW72bZFRzKQJOjVwaTAbS7nqvtmPsm1+UDWnpyk8/63kQ17bzUEwUZSI5Hs6vqtbU+2M
+ rje50YSMIM5IdYr73RWKah33UoX5XslkvqY+UJ8OC44/+SPZAW913uUvIs9NQMQekNQouh8x5gf
+ SFiQBYiTY1/9Gm7Kjtg==
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-09-08_01,2026-09-07_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ priorityscore=1501 lowpriorityscore=0 bulkscore=0 clxscore=1015 spamscore=0
+ impostorscore=0 adultscore=0 phishscore=0 suspectscore=0 malwarescore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2609080094
 
-This series adds ionic Shared Receive Queue support and lets firmware assign
-CQ/SRQ IDs when the LIF advertises qid-allocation capability.
+The SMC diag dump path reads conn->lgr and conn->lnk while iterating the =
+socket
+hash table under a read_lock.  Concurrently, RDMA link failure teardown
+(__smc_lgr_terminate -> smc_conn_kill -> smc_close_active_abort ->
+smc_conn_free) and the passive close workqueue path (smc_close_passive_wo=
+rk ->
+smc_conn_free) can drop the connection-owned references to lgr and lnk wh=
+ile the
+socket is still visible in the hash, allowing the diag reader to derefere=
+nce a
+freed lgr or lnk.
 
-Patch 1: extends the RDMA LIF identity with SRQ qtype and alloc_qid_cap.
-Patch 2: uses that for firmware-assigned CQ IDs and splits CQ create/destroy
-so cq_tbl is updated only after the ID is known, and removed before the ID
-is returned to firmware.
-Patches 3: Refactor RQ state into ionic_rq so QP RQ and SRQ share init/destroy.
-Patches 4-5: add SRQ verbs and EQ events. Userspace ABI field srqid is new
-with this series;
+Fix this by ensuring that for all non-fallback paths the socket is remove=
+d from
+the hash table before the lgr/lnk references are dropped in smc_conn_free=
+().
 
-rdma-core PR: https://github.com/linux-rdma/rdma-core/pull/1799
-Net changes pull request:
-  The following changes since commit df2908090cda368b01ff43709f51890076c56157:
+Introduce smc_conn_unhash() with a per-connection 'unhashed' flag so that=
+ the
+unhash executes exactly once regardless of which path reaches smc_conn_fr=
+ee()
+first.  smc_conn_free() calls smc_conn_unhash() before the lgr_put/link_p=
+ut
+sequence, establishing the invariant: any socket still visible to the dia=
+g
+reader under the hash read_lock has valid conn->lgr and conn->lnk pointer=
+s.
 
-    Linux 7.3-rc2 (2026-09-06 15:07:20 -0700)
+__smc_release() is updated to use smc_conn_unhash() for non-fallback sock=
+ets (so
+the flag is honoured when smc_conn_free() already ran, e.g.  via smc_conn=
+_kill()
+ahead of the user-space close()), and keeps the direct sk->sk_prot->unhas=
+h()
+call only for fallback sockets, which never call smc_conn_free().
 
-  are available in the Git repository at:
+The diag path therefore reduces to:
+  hold hash read_lock -> read conn->lgr -> if non-NULL, dereference -> do=
+ne
+with no new lock, no extra reference count, and no trylock.
 
-    https://github.com/abhijitG-xlnx/linux.git ionic-shared
+Fixes: f16a7dd5cf27 ("smc: netlink interface for SMC sockets")
+Fixes: 9dbe086c69b8 ("net/smc: fix invalid link access in dumping SMC-R c=
+onnections")
+Reviewed-by: Sidraya Jayagond <sidraya@linux.ibm.com>
+Signed-off-by: Mahanta Jambigi <mjambigi@linux.ibm.com>
+---
+Changes in v3:
+- redesigned as a single patch; dropped the lgr_lnk_lock spinlock
+  approach and the 2-patch split
+- fix is now at the socket hash layer: introduce smc_conn_unhash() with
+  a per-connection unhashed flag; smc_conn_free() unhashes before droppin=
+g
+  lgr/lnk refs, so any socket visible to the diag reader under the hash
+  read_lock has valid conn->lgr and conn->lnk pointers
+- __smc_release() updated to call smc_conn_unhash() for non-fallback
+  sockets so the flag is honoured when smc_conn_free() already ran first
+- smc_diag.c needs no changes; the hash read_lock invariant is
+  sufficient without any per-connection lock in the dump path
+- dropped the clcsock/mutex_trylock fix as that will be addressed separat=
+ely
 
-  for you to fetch changes up to 4d77450be558f140997fe23b362e4049c0ff0d74:
+Changes in v2:
+- this is v2 of the 2-patch series; the earlier submission was mislabelle=
+d
+  [PATCH v3] but was in fact the first version sent to the list
+- split into a 2-patch series; patch 1/2 adds per-connection lgr_lnk_lock
+  infrastructure to smc_core, patch 2/2 fixes the diag dump path using it
+- dropped lock_sock()/release_sock() from __smc_diag_dump(); v1 held the
+  socket lock across all lgr/lnk dereferences, requiring the hash read_lo=
+ck
+  to be dropped and re-acquired around each socket
+- dropped the restart-from-head loop in smc_diag_dump_proto(); the new
+  design does not drop the hash read_lock mid-walk so the hlist truncatio=
+n
+  concern no longer applies
+- dropped refcount_inc_not_zero() socket pinning from the dump loop for t=
+he
+  same reason: the hash read_lock is now held for the full walk
+- added per-connection lgr_lnk_lock spinlock to struct smc_connection;
+  conn->lgr and conn->lnk are NULLed under this lock in smc_conn_free()
+  before borrowed references are released, establishing the invariant: a
+  non-NULL conn->lgr seen under lgr_lnk_lock guarantees the lgr is alive
+- added lgr_lnk_lock to smc_switch_link_and_count() to protect the conn->=
+lnk
+  pointer swap from concurrent diag readers
+- replaced mutex_lock() on clcsock_release_lock in smc_diag_msg_common_fi=
+ll()
+  with mutex_trylock(); mutex_lock() was valid in v1 because the hash
+  spinlock had been dropped, but the new design holds the hash read_lock
+  throughout so only a non-sleeping trylock is safe; a failed trylock lea=
+ves
+  address fields zeroed, which is acceptable for a monitoring tool
+- all conn->lgr and conn->lnk accesses in __smc_diag_dump() use a
+  snapshot-then-use pattern: fields are copied into local stack variables
+  under lgr_lnk_lock and nla_put() is called after releasing the lock,
+  avoiding any sleeping operation under the spinlock
 
-    net: ionic: Fetch qid allocation and SRQ capability from firmware
+ net/smc/af_smc.c   | 10 +++++++++-
+ net/smc/smc.h      |  1 +
+ net/smc/smc_core.c | 20 ++++++++++++++++++++
+ net/smc/smc_core.h |  1 +
+ 4 files changed, 32 insertions(+), 1 deletion(-)
 
-Abhijit Gangurde (2):
-  net: ionic: Fetch qid allocation and SRQ capability from firmware
-  RDMA/ionic: support firmware-assigned CQ IDs
+diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+index e9f93b3ab435..8c781a4a4485 100644
+--- a/net/smc/af_smc.c
++++ b/net/smc/af_smc.c
+@@ -310,7 +310,15 @@ static int __smc_release(struct smc_sock *smc)
+ 		smc_restore_fallback_changes(smc);
+ 	}
 
-Amit Kumar (3):
-  RDMA/ionic: segregate rq related fields from ionic_qp into a new
-    ionic_rq struct
-  RDMA/ionic: add Shared receive queue (SRQ) support
-  RDMA/ionic: implement SRQ event handling support
+-	sk->sk_prot->unhash(sk);
++	/* Fallback sockets never call smc_conn_free(), so unhash directly.
++	 * Non-fallback sockets use smc_conn_unhash() so that the conn->unhashe=
+d
++	 * flag keeps the unhash exactly once even when smc_conn_free() already=
+ ran
++	 * first (e.g. via smc_conn_kill()).
++	 */
++	if (smc->use_fallback)
++		sk->sk_prot->unhash(sk);
++	else
++		smc_conn_unhash(&smc->conn);
 
- drivers/infiniband/hw/ionic/ionic_admin.c     | 117 ++-
- .../infiniband/hw/ionic/ionic_controlpath.c   | 771 +++++++++++++-----
- drivers/infiniband/hw/ionic/ionic_datapath.c  |  82 +-
- drivers/infiniband/hw/ionic/ionic_fw.h        |  74 +-
- drivers/infiniband/hw/ionic/ionic_ibdev.c     |  20 +
- drivers/infiniband/hw/ionic/ionic_ibdev.h     |  87 +-
- drivers/infiniband/hw/ionic/ionic_lif_cfg.c   |   2 +
- drivers/infiniband/hw/ionic/ionic_lif_cfg.h   |   2 +
- .../net/ethernet/pensando/ionic/ionic_if.h    |  31 +-
- include/uapi/rdma/ionic-abi.h                 |   2 +-
- 10 files changed, 907 insertions(+), 281 deletions(-)
+ 	if (sk->sk_state =3D=3D SMC_CLOSED) {
+ 		if (smc->clcsock) {
+diff --git a/net/smc/smc.h b/net/smc/smc.h
+index 427b6d63b993..075312278835 100644
+--- a/net/smc/smc.h
++++ b/net/smc/smc.h
+@@ -279,6 +279,7 @@ struct smc_connection {
+ 	u64			peer_token;	/* SMC-D token of peer */
+ 	u8			killed;		/* abnormal termination */
+ 	u8			freed;		/* normal termination */
++	u8			unhashed;	/* removed from sock hash */
+ 	u8			out_of_sync;	/* out of sync with peer */
+ };
 
--- 
-2.43.0
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index 04aedd957543..e302221c35e3 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -1251,6 +1251,20 @@ static void smc_buf_unuse(struct smc_connection *c=
+onn,
+ 	}
+ }
 
++/* unhash the socket once; owns the single unhash for all non-fallback p=
+aths.
++ * Every caller holds lock_sock for this socket, so conn->unhashed is pr=
+otected
++ * by that lock and no separate synchronisation is needed.
++ */
++void smc_conn_unhash(struct smc_connection *conn)
++{
++	struct smc_sock *smc =3D container_of(conn, struct smc_sock, conn);
++
++	if (!conn->unhashed) {
++		conn->unhashed =3D 1;
++		smc->sk.sk_prot->unhash(&smc->sk);
++	}
++}
++
+ /* remove a finished connection from its link group */
+ void smc_conn_free(struct smc_connection *conn)
+ {
+@@ -1263,6 +1277,11 @@ void smc_conn_free(struct smc_connection *conn)
+ 		return;
+
+ 	conn->freed =3D 1;
++	/* Unhash before dropping lgr/lnk refs so the diag reader, which
++	 * iterates under the socket hash read_lock, cannot see a connection wh=
+ose
++	 * lgr or lnk is being freed concurrently.
++	 */
++	smc_conn_unhash(conn);
+ 	if (!smc_conn_lgr_valid(conn))
+ 		/* Connection has already unregistered from
+ 		 * link group.
+@@ -2053,6 +2072,7 @@ int smc_conn_create(struct smc_sock *smc, struct sm=
+c_init_info *ini)
+ 	if (!conn->lgr->is_smcd)
+ 		smcr_link_hold(conn->lnk); /* link_put in smc_conn_free() */
+ 	conn->freed =3D 0;
++	conn->unhashed =3D 0;
+ 	conn->local_tx_ctrl.common.type =3D SMC_CDC_MSG_TYPE;
+ 	conn->local_tx_ctrl.len =3D SMC_WR_TX_SIZE;
+ 	conn->urg_state =3D SMC_URG_READ;
+diff --git a/net/smc/smc_core.h b/net/smc/smc_core.h
+index 5c18f08a4c8a..f23d60aef0b7 100644
+--- a/net/smc/smc_core.h
++++ b/net/smc/smc_core.h
+@@ -595,6 +595,7 @@ void smc_sndbuf_sync_sg_for_device(struct smc_connect=
+ion *conn);
+ void smc_rmb_sync_sg_for_cpu(struct smc_connection *conn);
+ int smc_vlan_by_tcpsk(struct socket *clcsock, struct smc_init_info *ini)=
+;
+
++void smc_conn_unhash(struct smc_connection *conn);
+ void smc_conn_free(struct smc_connection *conn);
+ int smc_conn_create(struct smc_sock *smc, struct smc_init_info *ini);
+ int smc_core_init(void);
+--=20
+2.50.1 (Apple Git-155)
