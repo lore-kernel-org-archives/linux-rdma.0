@@ -1,126 +1,177 @@
-Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 801C037C0FC;
-	Wed,  9 Sep 2026 17:29:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8E4EA3D45CF;
+	Wed,  9 Sep 2026 22:25:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788974998; cv=none; b=R6/YiAQskoq0KQt6FN+n1A+bmyloJq62Nr8D0IZueSLhK4TQ+RLwipgDSe3JIGX7yWmpx8M+q2ObyOu/12SCEyAIlacxV8Ocpm1i7MATTiLL8T/xtiEpXcHJJCN+panfBiKuXPhpWGLCLvxFzwTjJPmP+RAwCzItkLaVEtXotJQ=
+	t=1788992713; cv=none; b=unJO6zn8J7QuvKPrRwPndIyHOFRTsEntwZtFcdcd9r2wDM5Ea511kRQHd8K5lVD9qfeSMw7kxxWj5ltNM0aoWZhfgxCiDPyCPyP8gYo0WTHRaXvkE+Fb5ejB4JCUbNWFSEg/MHQ4nQPuTUrT5e61/m/bLoTTtqFBQewgt0h9wQ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788974998; c=relaxed/simple;
-	bh=5D7SoVhjzEokScNygSteAqf9Ex3y5nz2gk7swf3GT9c=;
-	h=MIME-Version:Date:From:To:Cc:Subject:In-Reply-To:References:
-	 Message-ID:Content-Type; b=gDmwF+J/rj7iNGvZy3//wBz1/35Picg7f9t1poNBw0/DUxD5eepICxeAVl+LFazpl9xLP0p89B86qUlsMLn/t4T8AyA/J2RZKBC6ioBxB3fQ1NlqIGKe9lu1n92gP6M5r0iwAFB7yqqwxruQpoDsxBasB4WA0viOKdfBu8MVEXk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=KMw6Bqep; arc=none smtp.client-ip=213.97.179.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="KMw6Bqep"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
-	s=20170329; h=Content-Transfer-Encoding:Content-Type:Message-ID:Subject:Cc:To
-	:From:Date:MIME-Version:From:Reply-To;
-	bh=ixMZSD8+UhNtarF+6aKvQsI19PdlMWk8UdPjHUJ+BP8=; b=KMw6Bqep7POVCO8ABQLqn26u4z
-	Vm92Tg+j/0+PmqqK/dvW828O7HrV+w+lZ60KY8e00z2BinoAcJO+teusI18GQwPZa93g46fWpKzrh
-	AgVGA7OW13ikcCWBdkNHyCF5MJrQ4LKcZ+GKP5SaO3VjFYCmljrmH6AfZWccpFDtmCtNfrdPm7mPs
-	y4KaCldihKnLxKrccLdvn9dRcj2yIzJUCoUAgq4c2VAAZwBqHbq49TxRAg0vo9Q8rWDVmDAvS1GYm
-	9TAWMFQFYzZ/e/mtZNAnThAS4lu2g6BMirzitO5ItyIEr8XkzcaGF4jYGgtJDCV/itEvyRHzncwMa
-	n8Da47kw==;
-Received: from maestria.local.igalia.com ([192.168.10.14] helo=mail.igalia.com)
-	by fanzine2.igalia.com with esmtps 
-	(Cipher TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256) (Exim)
-	id 1x4M72-00HA6O-2e; Wed, 09 Sep 2026 19:29:32 +0200
-Received: from webmail.service.igalia.com ([192.168.21.45])
-	by mail.igalia.com with esmtp (Exim)
-	id 1x4M71-008Hsn-5l; Wed, 09 Sep 2026 19:29:31 +0200
-Received: from localhost ([127.0.0.1] helo=webmail.igalia.com)
-	by webmail.service.igalia.com with esmtp (Exim 4.98.2)
-	(envelope-from <mfo@igalia.com>)
-	id 1x4M71-00000007Q64-0Tnk;
-	Wed, 09 Sep 2026 19:29:30 +0200
+	s=arc-20240116; t=1788992713; c=relaxed/simple;
+	bh=PWCWMYo8hgMcaBt8wD+rzXheDC4ftdx7H2aB8V3pp/4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=iKsER55gnQE5SvrnnIh8Q0ngT3a7UA7OdXL9K96fPTxhFKTslQNYPDx4iBQvbBG+yU487KabTdsiSmtMAdVcAGT7IYff48ql7NHrAJLaib9PK3sWRJzb8V4X6bERy+iXf/NLTf/lQ27by5gA9Tn8qOgqcHGd3D2etEnXzcQpsb8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+Received: by linux.microsoft.com (Postfix, from userid 1202)
+	id 309C120B7169; Wed,  9 Sep 2026 15:24:29 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 309C120B7169
+From: Long Li <longli@microsoft.com>
+To: Long Li <longli@microsoft.com>,
+	Long Li <longli@kernel.org>,
+	Konstantin Taranov <kotaranov@microsoft.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	"David S . Miller" <davem@davemloft.net>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Eric Dumazet <edumazet@google.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>,
+	Haiyang Zhang <haiyangz@microsoft.com>,
+	"K . Y . Srinivasan" <kys@microsoft.com>,
+	Wei Liu <wei.liu@kernel.org>,
+	Dexuan Cui <decui@microsoft.com>,
+	shradhagupta@linux.microsoft.com,
+	Simon Horman <horms@kernel.org>,
+	ernis@linux.microsoft.com,
+	stephen@networkplumber.org,
+	shirazsaleem@microsoft.com
+Cc: netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-hyperv@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH net-next v5 00/13] net: mana: reconfigure by replacing the queue set
+Date: Wed,  9 Sep 2026 15:24:03 -0700
+Message-ID: <20260909222416.884246-1-longli@microsoft.com>
+X-Mailer: git-send-email 2.43.7
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Date: Wed, 09 Sep 2026 14:29:30 -0300
-From: Mauricio Faria de Oliveira <mfo@igalia.com>
-To: Joel Granados <joel.granados@kernel.org>
-Cc: Kees Cook <kees@kernel.org>, Nathan Chancellor <nathan@kernel.org>,
- Nicolas Schier <nsc@kernel.org>, "David S. Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo
- Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
- kernel-dev@igalia.com, linux-riscv@lists.infradead.org,
- linux-kernel@vger.kernel.org, fsverity@lists.linux.dev,
- keyrings@vger.kernel.org, bpf@vger.kernel.org,
- linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org,
- netdev@vger.kernel.org, linux-wpan@vger.kernel.org,
- lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org, linux-sctp@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
- bridge@lists.linux.dev, mptcp@lists.linux.dev, rds-devel@oss.oracle.com,
- virtualization@lists.linux.dev
-Subject: Re: [PATCH RFC v3 00/13] sysctl: add module aliases
-In-Reply-To: <rywhz6soawf5dzyui5g7dnbufsgpxr7ma7honuhejwgncemzrm@f32at7hl6ugm>
-References: <20260819-sysctl-module-aliases-v3-0-aab90569365d@igalia.com>
- <bpnqwggtidgiec5akns3fa5edbsvl7xf55dxabtwng2xspy4pn@ue554aii2ngk>
- <53155340c897560bfc67e61ba9568fd6@igalia.com>
- <mokz5pdtwswkyab4byfq7q7m6ac2g6ceoi6jflyxmaszaibzqa@su6m4kamtdpy>
- <b1a6cec17e7c828fcebe310ca2a0d25b@igalia.com>
- <rywhz6soawf5dzyui5g7dnbufsgpxr7ma7honuhejwgncemzrm@f32at7hl6ugm>
-Message-ID: <6e93af907298022f077126f1be7bd386@igalia.com>
-X-Sender: mfo@igalia.com
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-Spam-Report: NO, Score=-2.1, Tests=ALL_TRUSTED=-3,BAYES_50=0.8,KAM_DMARC_NONE=0.125,KAM_DMARC_STATUS=0.005
-X-Spam-Score: -20
-X-Spam-Bar: --
+Content-Transfer-Encoding: 8bit
 
-On 2026-09-09 11:07, Joel Granados wrote:
-> On Fri, Sep 04, 2026 at 02:45:23PM -0300, Mauricio Faria de Oliveira wrote:
->> On 2026-09-04 10:41, Joel Granados wrote:
->> > On Thu, Aug 20, 2026 at 06:22:13PM -0300, Mauricio Faria de Oliveira wrote:
->> >> On 2026-08-20 09:51, Joel Granados wrote:
->> >> > On Wed, Aug 19, 2026 at 03:16:13PM -0300, Mauricio Faria de Oliveira wrote:
->> >> >> This series adds 'sysctl:' aliases to modules that register sysctl tables; e.g.:
-> <... snip ...>
->> > use the correct call moving forward?
->> 
->> This scheme currently covers all modules, AFAIK, as it is wrapped in the
->> functions that register sysctl tables.
->> 
->> On moving forward: usage of such functions in a way that breaks a
->> requirement of this series (e.g., failing to specify the template
->> table/path parameter(s), or not having constant initializers) hits a
->> build error, as the requirements are actually from the compiler.
->> 
->> >> I guess that a different design could use MODULE_SYSCTL_TABLE() as
->> >> MODULE_DEVICE_TABLE(), declared per table instead of wrapped into
->> >> register sysctl functions.
->> >> However, it seems to require moving the value of the path argument (or
->> >> its template) into the macro and still referencing it in the function
->> >> (or its instantiation of the template), which adds obfuscation, to all
->> >> callers. 
->> >> 
->> >> What do you think?
->> > It might be that having it inside the module subsys is more work, but I
->> > believe that there is the right place to have it. I still don't see that
->> > adding a module specific arg to the sysctl register is a good thing.
->> 
->> Ok, cool. I can work on a different design.
->> 
->> Please just let me know whether you are OK with the remaining (above),
->> and I'll be happy to tackle this.
-> 
-> What is "the remaining"?
+Replace detach/attach reconfiguration with pre-allocation and queue-set
+replacement. Allocation failure leaves the running configuration intact.
+Publication failure attempts rollback; if rollback also fails, the port
+is stopped and requires administrative recovery.
 
-I meant the rest of the email, addressing the points/questions you
-raised.
+EQs and statistics belong to the port, and valid user RSS tables survive
+queue rebuilds. Channel-count changes reuse surviving queues: reductions
+retire only the tail, and increases allocate only the added queues. Ring,
+MTU, private-flag and XDP changes that rebuild queues still require both
+sets temporarily and can fail at hardware resource limits.
 
-cheers,
+Patch layout:
+  1-2:   Queue-set helpers and the shared EQ pool.
+  3-7:   Convert channel, ring, private-flag, MTU and XDP reconfiguration.
+  8:     Remove an unreachable early return from mana_detach().
+  9-11:  Preserve statistics, release unused EQs and preserve RSS tables.
+  12-13: Reuse queues across channel-count reductions and increases.
 
-> 
-> Best
+Overlap with submitted net fixes:
 
+Two independent fixes have been submitted to net:
+
+  [1] net: mana: restore the XDP program pointer when pre-allocation fails
+  https://lore.kernel.org/all/20260904202640.3900685-1-longli@microsoft.com/
+
+  [2] net: mana: do not discard an ethtool-configured RSS table on a queue
+      rebuild
+  https://lore.kernel.org/all/20260905004401.3937066-1-longli@microsoft.com/
+
+Neither is a prerequisite for this series, and they are not resent here
+as standalone patches. Their handling is incorporated into patches 7
+and 11, respectively. Merging the trees can conflict in these blocks:
+
+  - Patch 7, mana_bpf.c: retain the queue-set version of mana_xdp_set().
+    It leaves the live program unchanged during allocation, replacing
+    the pre-allocation failure path repaired by [1].
+  - Patch 11, mana_en.c: retain the three-argument mana_rss_table_keep()
+    and its callers, which validate the prospective queue count and
+    defer swap-path loss notifications until publication succeeds.
+    ETHTOOL_OP_NEEDS_RTNL_RSS in mana_ethtool.c is identical in [2] and
+    this series.
+
+These resolutions apply to the overlapping blocks, not unrelated net
+changes. The two patch mails also carry the corresponding merge notes.
+
+Changes in v5:
+
+  - Rebase onto net-next at ce48a0fdc564 ("Merge branch
+    'dpll-fix-lies-in-the-netlink-spec'").
+  - Refresh patch 1's mana_bpf.c context after upstream commit
+    8d5f1bda7e8b ("net: mana: remove unreachable dead code in mana_bpf()").
+    This resolves v4's application failure caused by the removed
+    "return ret;" context.
+  - No functional changes to the series; patches 2-13 are unchanged
+    apart from rebasing.
+
+Changes in v4:
+
+  - Retain pcie_flr() instead of pci_try_reset_function(), avoiding the
+    device-lock conflict in the remove path.
+  - Delay lowering real_num_rx_queues until retiring RQs are destroyed,
+    including after rollback.
+  - Add the full barrier between reopening port_is_up and reading TX
+    ring state, preventing a missed queue wakeup.
+  - Report persistent statistics while down or swapping; keep only the
+    hardware PHY query gated on port_is_up.
+  - Derive the live port inside mana_free_qset() instead of passing a
+    redundant port argument.
+  - Require RTNL for RSS setters. Remove loss notification from the
+    non-swap allocation path, whose callers do not consistently hold
+    the required netdev instance lock.
+  - Wait for TX-selection readers before freeing the old RSS table in
+    both channel-count paths. Clear TX slots after partial teardown.
+  - Shorten comments and commit messages; correct failure-path,
+    ownership and resource-limit descriptions. Document the two net
+    submissions and their merge overlap.
+
+Changes in v3:
+
+  - Move shared EQ ownership before the first converted caller.
+  - Separate retiring RX statistics and fold them on teardown or rollback.
+  - Preserve carrier through successful swaps and rollback, and track
+    software-forced carrier shutdown separately from hardware link events.
+  - Correct kernel-doc and EQ/vector lifetime descriptions.
+  - Rebase onto net-next and move the resize-recovery capability to BIT(31).
+
+Changes in v2:
+
+  - Replace post-failure retries with pre-allocated queue-set replacement.
+
+Previous versions:
+  v4: https://lore.kernel.org/all/20260908032843.397667-1-longli@microsoft.com/
+  v3: https://lore.kernel.org/all/20260901014442.2945689-1-longli@microsoft.com/
+  v2: https://patchwork.kernel.org/project/netdevbpf/list/?series=1145125
+  v1: https://lore.kernel.org/netdev/20260711041415.3008868-1-dipayanroy@linux.microsoft.com/
+
+Dipayaan Roy (1):
+  net: mana: do not bail out of mana_detach on dealloc failure
+
+Long Li (12):
+  net: mana: add queue-set allocation and teardown helpers
+  net: mana: share the EQ pool across a queue-set swap
+  net: mana: swap queue sets in mana_set_channels
+  net: mana: swap queue sets in mana_set_ringparam
+  net: mana: swap queue sets in mana_set_priv_flags
+  net: mana: swap queue sets in mana_change_mtu
+  net: mana: swap queue sets in mana_xdp_set
+  net: mana: keep per-queue statistics in the port context
+  net: mana: release EQs left idle by a channel-count reduction
+  net: mana: keep a user-configured RSS table across a queue rebuild
+  net: mana: keep the surviving queues when the channel count is reduced
+  net: mana: keep the existing queues when the channel count is raised
+
+ .../net/ethernet/microsoft/mana/mana_bpf.c    |   94 +-
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 1256 +++++++++++++++--
+ .../ethernet/microsoft/mana/mana_ethtool.c    |  312 ++--
+ include/net/mana/gdma.h                       |    8 +-
+ include/net/mana/mana.h                       |  105 +-
+ 5 files changed, 1524 insertions(+), 251 deletions(-)
+
+
+base-commit: ce48a0fdc56464b1afb03471dbdf38a5e0d571ad
 -- 
-Mauricio
+2.43.0
+
