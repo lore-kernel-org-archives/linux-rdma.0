@@ -1,61 +1,59 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E0A13546C4;
-	Wed,  9 Sep 2026 03:29:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A5D03546C6;
+	Wed,  9 Sep 2026 03:29:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788924588; cv=none; b=Qal9Kvu/3jMiSTHqRJ1Szo8Gv8tZYVIQmhhcGeUwXnAOkkz33uhTIBmXQ2yiSVJuN7VXzipIHRZ3pqK6KtJLQPgaLHmVfognP4vIGsYz1DyQ5Z7H/uOgtbN6nMqOfdMrKEHdIylahY1PnhEo3j4xvHzkRBYRzyqkWwzWOyUPzE8=
+	t=1788924589; cv=none; b=kqNcBkCQDlC6PmylvOIquo+DuuD08svbKkbFkNzwDxojSuP+a0dtocWNVynXtctpDbf2GQf/MPy4RtcmZO2vf9OFBH2P9TsLFQ0kRX5G1GIG6UU2XNnLyxpmIcDJ2NJp6hcrn+alcam3ZysJgB9i6f1a16icvkLhEJH8RPiyuFk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788924588; c=relaxed/simple;
-	bh=OYEwoIRCk3t++faIBgHLn2LzdDv7EbSTlhPRChZ4gdk=;
+	s=arc-20240116; t=1788924589; c=relaxed/simple;
+	bh=P0gRf2e9bd7FI6yHbtrE+LSJe+6es6XH9GADS7VhNU4=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=Nx2TdEt5ZjXZUSX9wORHOSbQoHvxbRQhM9L6e/litXeYABwy1HtUR+e7SR9nyQFeaLvwTf8RZQfFgp1OzUXHfvM0PC4voiRU8RQz9ql8A41KRHrd86UTkQ/s5ofJCz6ocm8ftHxax/Gt9lnX53xxG5BoyWgJpVkUUVE3rUd6pYA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dHpdQ6d2; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=lspH+pvms45OQHTM9ePWEDFKtyMQHULi+X9++udM5WUrIAlX79ETdUVXmUKAe/JjHuvcEnwlico3wsAL51/dlFg+3nW14m5t3yHh8wrJ3hGJrOrHVgJwdKwEu/Q32dHVcBO3+0V9MlyukFwOpilGukAmVljSY+OHCaYmLz/W+BM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HUgGdt8Z; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dHpdQ6d2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CB801F00A3A;
-	Wed,  9 Sep 2026 03:29:47 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HUgGdt8Z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0EFE31F00A3D;
+	Wed,  9 Sep 2026 03:29:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788924587;
-	bh=OYEwoIRCk3t++faIBgHLn2LzdDv7EbSTlhPRChZ4gdk=;
+	s=k20260515; t=1788924588;
+	bh=P0gRf2e9bd7FI6yHbtrE+LSJe+6es6XH9GADS7VhNU4=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=dHpdQ6d2WMJGzhPlqI2R7Dv1QPVJPDRQcj/oib8pkuekhh+ibebPX06svxLM1s+LE
-	 2Qgkr6/0YiuwfO4BIHC3c0RA40pjIlH+pvZ/1tCG5fc4MyyG4IuAAU9MW+OabHLzB0
-	 wYO7/bJyJqM1djEHVF0zlc0vzFP5QScyOliDPuywEoy5x0u21HJObIdsEona/vCVGN
-	 2+UhLVASNeOJKaTg4eq2lhlOKX6Ld/J3i2Z2kGJoZeLAntmXc6gA/Fc4sLPH4tL3Di
-	 1bxyqFBWpOufGxDu4fegU9X98APDn3FDHaLynJZvSECJ1yHpb34inAqdHXZ/1sLIpq
-	 i2m9aeUFqfSqA==
+	b=HUgGdt8ZDl5aaYarxoNwRzFhL+VBfWnFB2ojgsI368x0zoeRMPl9JA+PN0F6/nQR0
+	 O7KcQ5ft4SY2HhDosw+qNsclKKI84g+sQ7iP3DTAzkcSFV1Smt9r1PtguYcdzX3goy
+	 Oo3NiWUrxcmlIW0HEPrIe66JBREBuIuypdJXMqP1EVyLfZikwfboihnpkkaXSrQl+S
+	 8hCpl80FTo1RDPdAwNlLD62lrn3FVmuK/DNB3iWiZrTtF85mjjZupQ5HDpkFW0dc6r
+	 0wJatjVLTzd7rBjbGLzHAUlvAWN/pqQo8NvDpZmxg7MPyABqb+oUHPMqBfCh0eSk6q
+	 7b5BdbFhyyExQ==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next v4 01/13] net: mana: add queue-set allocation
- and teardown helpers
+Subject: Re: [PATCH net-next v4 09/13] net: mana: keep per-queue statistics
+ in the port context
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Long Li" <longli@microsoft.com>
 Cc: linux-hyperv@vger.kernel.org, linux-rdma@vger.kernel.org
-In-Reply-To: <20260908032843.397667-2-longli@microsoft.com>
+In-Reply-To: <20260908032843.397667-10-longli@microsoft.com>
 References: <20260908032843.397667-1-longli@microsoft.com>
- <20260908032843.397667-2-longli@microsoft.com>
+ <20260908032843.397667-10-longli@microsoft.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 09 Sep 2026 03:29:46 +0000
-Message-Id: <20260909032947.5CB801F00A3A@smtp.kernel.org>
+Date: Wed, 09 Sep 2026 03:29:47 +0000
+Message-Id: <20260909032948.0EFE31F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-> Add queue-set allocation and teardown helpers using a scratch port
-> context, without releasing the vport. These prepare the reconfiguration
-> paths to retain their running queues if replacement allocation fails.
+> Move RX/TX counters into port-lifetime arrays so queue rebuilds do not
+> reset them. Sum all max_queues slots for ndo_get_stats64(); keep the
+> current queue count for ethtool's per-queue output.
 >=20
-> Extract the TX drain, retaining pcie_flr(). On reset failure, leave
-> pending TX SKBs mapped; this does not prevent subsequent ring and RX
-> teardown. Track successful drain-initiated resets and request best-effort
-> sibling rebuilds, without reinitializing the HWC. Clear removed ports
-> from ac->ports[] before those walks can reach them.
+> Retiring RX queues count into private drain_stats. Destruction and
+> rollback fold these into separate port slots after writer quiescence.
+> Report counters while down too, but gate the PHY query on port_is_up.
 >=20
-> The new queue-set helpers have no callers yet.
+> DIM now samples the persistent live counters and skips retiring queues.
 >=20
 > Signed-off-by: Long Li <longli@microsoft.com>
 
@@ -63,5 +61,5 @@ Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260908032843.3976=
-67-1-longli@microsoft.com?part=3D1
+67-1-longli@microsoft.com?part=3D9
 
