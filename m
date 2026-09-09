@@ -1,109 +1,180 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7D893D5656;
-	Wed,  9 Sep 2026 07:09:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DE7D3002B9;
+	Wed,  9 Sep 2026 07:38:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788937775; cv=none; b=mVGyQqcetz4l4bcA24iWSOGPolF7XxB2lrlxAsEEd0omc8EHUvpe50aPMXQJjrLOBdfQX3oB7G38/8Vz9QKBfd1F3jPp9Wo59AxjT48bO4zpJoCupTbCWXqhDs9hDEzhapq19F6GIGIjKGWZV79cbWGNGTZJ1F+qce1GiQJFB7k=
+	t=1788939485; cv=none; b=LPpDvO14P9dvovPn8DBpbgZboEWgWseOh56r4Yl3HRsELiuo6wI5iGUvzvwyG7C2cybqA2tGiUKe2XyOvDNn17v21zvSMlnoP/DWtW19w+kjr4mq8hfcJYaeIMQkZuEmjQKtYsjAJRIVumrnWTQ1eFr4PDHQJUlqspWXIOWdwrs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788937775; c=relaxed/simple;
-	bh=1FAIQnZhZLFZV/kJb7P8mASwsdd4Z8mss2/nHoa+KR0=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=c2XeP2nMHz1pmLsDP8pEYKz+YS7KCWswzxnRMHVdhczlQVAApxecpzTuPWHpfnj2kgCDvcgFx/p7e/ugNNuBfU0BmMPzV4sEU+Xb9Ap0TWXPze4tZpPayH0Ag6zjx3NSh9kVSenV1uDxfJE7ChwwuMKa9WQ4hqmmWf+22KIIMGY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dqZcA2zc; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788939485; c=relaxed/simple;
+	bh=nTAm35845aAqmOQtS6HyRYHkKn+bOdSMAV3QF5uJvY8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ZdQmzFnen4pGM4M62lN7CkOLWz1/1MCEJEt2hgKO7FlRi4xKC9STZLFtV+TYQNNzy6w4guOP7Nnf0JOeDgs+Fl7UJqdo2lV+8wa+WPR92q+n7cn+23HaVocVKLhTHI0KyyiHyqIHIp0yxOlO+SUikaYa/YdguoVldsNeaQK4tos=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=fMvwOMtK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dqZcA2zc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1D011F00A3A;
-	Wed,  9 Sep 2026 07:09:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788937773;
-	bh=07RL5PmXNvtCfGUStJ5pEHV1wfyEpGPOcdrgmnwqvqQ=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=dqZcA2zcPrzpT4MGF+wy9U90QV4SzDzwQbpPlgCkQkbHMU6g4WLGrTe0R3zRArkpc
-	 qd5Ru50M9+AaZs9l4w4kHrGHaVqEd/4w2os7TbO+5hTHS1SpOcLPDOylGfuwHgUHhM
-	 P4WgCA+ll+bnSSpoTq5d830ZcDQlZFpEo06aLSaaIU6WhX0TEfi5Ru7aDFnVglF+M7
-	 VUcvj+yimtv4lFoBxgMfV9BcvxL9NxcaicDCWpptT6iEj+j4ruAGLDDOR0TTNt1YNE
-	 vWoPAUeYzfNT+cWhExflaf8h0trCwWz7fV6kjufvUc9uDgoZ9iOD6p8Zi3YFCGB/kO
-	 vfpUgZhfsgG2Q==
-Message-ID: <4fda023c1e7152aee2d5f977f5045dcddcd08d8d.camel@kernel.org>
-Subject: Re: [PATCH net] rds: ib: use rds_conn_drop() on protocol version
- mismatch
-From: Allison Henderson <achender@kernel.org>
-To: henrymei <ljp1205831794@gmail.com>, netdev@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, 
-	santosh.shilimkar@oracle.com, davem@davemloft.net, edumazet@google.com, 
-	kuba@kernel.org, pabeni@redhat.com, horms@kernel.org, Aohan Mei
-	 <henrymei@tencent.com>, TencentOS Corvus AI <corvus@tencent.com>, 
-	stable@vger.kernel.org
-Date: Wed, 09 Sep 2026 00:09:32 -0700
-In-Reply-To: <20260908123356.1163970-1-henrymei@tencent.com>
-References: <20260908123356.1163970-1-henrymei@tencent.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.52.3-0ubuntu1.1 
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="fMvwOMtK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8484C1F00A3A;
+	Wed,  9 Sep 2026 07:38:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxfoundation.org;
+	s=korg; t=1788939483;
+	bh=z7WoiQ3kTHyw/Ii8U53W3jB43VLKD3M/+zE0Et0v4Dk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=fMvwOMtKjnQJHWqbGOBFRkxLXNBsibipPgj2Q6P064WQJWMW7wfdq4gqVuVvBLOBi
+	 mw2LdSGq7nWqdIa6eYDVqIpvJUSLUA2zonOikKUX6K36rwbteoOJo/Gwa7LLNDfbhI
+	 EHt9w7bjV4yHdhIGfrHtCRftSsoS+o6rrCDY1usY=
+Date: Wed, 9 Sep 2026 09:37:54 +0200
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	"Liam R. Howlett" <liam@infradead.org>,
+	Vlastimil Babka <vbabka@kernel.org>, Jann Horn <jannh@google.com>,
+	Pedro Falcato <pfalcato@suse.de>,
+	David Hildenbrand <david@kernel.org>,
+	Mike Rapoport <rppt@kernel.org>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>,
+	Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
+	Paul Moore <paul@paul-moore.com>,
+	Stephen Smalley <stephen.smalley.work@gmail.com>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>,
+	Alexei Starovoitov <ast@kernel.org>,
+	Daniel Borkmann <daniel@iogearbox.net>,
+	Andrii Nakryiko <andrii@kernel.org>,
+	Eduard Zingerman <eddyz87@gmail.com>,
+	Kumar Kartikeya Dwivedi <memxor@gmail.com>, Zi Yan <ziy@nvidia.com>,
+	Baolin Wang <baolin.wang@linux.alibaba.com>,
+	Nico Pache <nico.pache@linux.dev>,
+	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>,
+	Barry Song <baohua@kernel.org>, Lance Yang <lance.yang@linux.dev>,
+	Usama Arif <usama.arif@linux.dev>, Kiryl Shutsemau <kas@kernel.org>,
+	Doug Gilbert <dgilbert@interlog.com>,
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+	"Martin K. Petersen" <mkp@kernel.org>,
+	Jaya Kumar <jayalk@intworks.biz>, Simona Vetter <simona@ffwll.ch>,
+	Helge Deller <deller@gmx.de>, Sebastian Reichel <sre@kernel.org>,
+	John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>,
+	Masami Hiramatsu <mhiramat@kernel.org>,
+	Oleg Nesterov <oleg@redhat.com>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+	Arnaldo Carvalho de Melo <acme@kernel.org>,
+	Namhyung Kim <namhyung@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>,
+	Juri Lelli <juri.lelli@redhat.com>,
+	Vincent Guittot <vincent.guittot@linaro.org>,
+	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+	Maxime Ripard <mripard@kernel.org>,
+	Thomas Zimmermann <tzimmermann@suse.de>,
+	David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>,
+	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>,
+	Nick Piggin <npiggin@gmail.com>, Arnd Bergmann <arnd@arndb.de>,
+	Muchun Song <muchun.song@linux.dev>,
+	Oscar Salvador <osalvador@suse.de>,
+	"Matthew Wilcox (Oracle)" <willy@infradead.org>,
+	Jan Kara <jack@suse.cz>, Marc Zyngier <maz@kernel.org>,
+	Oliver Upton <oupton@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Anup Patel <anup@brainfault.org>, Paul Walmsley <pjw@kernel.org>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Albert Ou <aou@eecs.berkeley.edu>,
+	Christian Borntraeger <borntraeger@linux.ibm.com>,
+	Janosch Frank <frankja@linux.ibm.com>,
+	Claudio Imbrenda <imbrenda@linux.ibm.com>,
+	Alexander Gordeev <agordeev@linux.ibm.com>,
+	Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	Vasily Gorbik <gor@linux.ibm.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Andreas Larsson <andreas@gaisler.com>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>,
+	Matthew Brost <matthew.brost@intel.com>,
+	Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>,
+	Byungchul Park <byungchul@sk.com>,
+	Gregory Price <gourry@gourry.net>,
+	Ying Huang <ying.huang@linux.alibaba.com>,
+	Alistair Popple <apopple@nvidia.com>, Chris Li <chrisl@kernel.org>,
+	Kairui Song <kasong@tencent.com>,
+	Kemeng Shi <shikemeng@huaweicloud.com>,
+	Nhat Pham <nphamcs@gmail.com>, Baoquan He <baoquan.he@linux.dev>,
+	Youngjun Park <youngjun.park@lge.com>,
+	Johannes Weiner <hannes@cmpxchg.org>, Qi Zheng <qi.zheng@linux.dev>,
+	Shakeel Butt <shakeel.butt@linux.dev>,
+	Axel Rasmussen <axelrasmussen@google.com>,
+	Yuanchu Xie <yuanchu@google.com>, Wei Xu <weixugc@google.com>,
+	Xu Xin <xu.xin16@zte.com.cn>,
+	Chengming Zhou <chengming.zhou@linux.dev>,
+	Michal Hocko <mhocko@kernel.org>,
+	Miklos Szeredi <miklos@szeredi.hu>, linux-mm@kvack.org,
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-rdma@vger.kernel.org,
+	selinux@vger.kernel.org, linux-sound@vger.kernel.org,
+	bpf@vger.kernel.org, linux-scsi@vger.kernel.org,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-trace-kernel@vger.kernel.org,
+	linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org,
+	kvm@vger.kernel.org, kvm-riscv@lists.infradead.org,
+	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org, fuse-devel@lists.linux.dev
+Subject: Re: [PATCH 09/39] drivers/usb/mon: update to use mmap_prepare + map
+ kernel pages
+Message-ID: <2026090947-daycare-gentleman-9796@gregkh>
+References: <20260908-b4-mmap-prepare-vma-flag-sanify-v1-0-dacf19cce22b@kernel.org>
+ <20260908-b4-mmap-prepare-vma-flag-sanify-v1-9-dacf19cce22b@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260908-b4-mmap-prepare-vma-flag-sanify-v1-9-dacf19cce22b@kernel.org>
 
-On Tue, 2026-09-08 at 20:33 +0800, henrymei wrote:
-> From: Aohan Mei <henrymei@tencent.com>
->=20
-> rds_ib_cm_connect_complete() runs from the RDMA-CM event handler with
-> conn->c_cm_lock held.  When the peer negotiates a protocol version
-> older than RDS_PROTOCOL_COMPAT_VERSION, the handler calls
-> rds_conn_destroy(), which is only safe in the rmmod path: it
-> synchronously tears the connection down and flush_work()es the
-> shutdown work cp_down_w.
->=20
-> That shutdown work (rds_conn_shutdown()) needs cp_cm_lock, which is
-> the very lock the event handler still holds, so the flush never
-> completes: the two workers wait on each other and the RDS connection
-> workqueues stall for good.
->=20
-> All other RDMA-CM failure paths (REJECTED, CONNECT_ERROR,
-> DISCONNECTED) use rds_conn_drop(), which marks the connection
-> RDS_CONN_ERROR and schedules the shutdown work asynchronously.  Use
-> it here as well.
->=20
-> Fixes: cdc306a5c9cd ("rds: make v3.1 as compat version")
+On Tue, Sep 08, 2026 at 09:01:13PM +0100, Lorenzo Stoakes (ARM) wrote:
+> Replace the deprecated .mmap hook with its replacement .mmap_prepare. As
+> part of this change, additionally take the approach of mapping pages upon
+> mmap rather than providing a fault handler.
+> 
+> The page span cannot be mutated when an mmap mapping is in place, so this
+> is safe to do in advance (the MON_IOCT_RING_SIZE ioctl operation exits
+> -EBUSY if it's attempted, gated by the rp->mmap_active reference count).
+> 
+> Utilise the newly introduced mmap_action_map_discontig_kernel_pages() to do
+> this, which allows for iteration over pages in mon_bin_discontig_get().
+> 
+> mon_bin_discontig_init() increments the rp->mmap_active reference count to
+> stabilise page spans. Should an error arise the core unmaps the VMA and
+> mon_bin_vma_close() drops the reference again.
+> 
+> The vm_ops->close hook implemented in mon_bin_vma_close() will ensure
+> correct reference count arithmetic upon unmap (with mon_bin_vma_open()
+> accounting for splitting).
+> 
+> The existing semantics are all retained, including not mapping past the
+> range of available pages, with a SIGBUS being raised in a userland process
+> that attempts to access past this point.
+> 
+> Ultimately insert_page() is invoked to insert each page, which increments
+> the reference count on each mapped page. This mimics what was being done
+> previously, only we pre-map the entire range rather than doing so on
+> demand.
+> 
+> The existing fault handler did nothing that required demand paging, and was
+> presumably implemented this way due for historic reasons.
+> 
+> One behavioural difference: pages are no longer faulted in on demand, so a
+> page discarded with MADV_DONTNEED is not repopulated and a subsequent
+> access raises SIGBUS, as with other pre-populated kernel mappings.
+> 
+> Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 
-Hi Aohan,
-
-Thanks for the catch, this looks correct to me.  Just one nit on the
-fixes tag.  I think we want: f147dd9ecabf ("RDS/IB: Disallow connections
-less than RDS 3.1").  That looks like the commit that added the
-rds_conn_destroy() call to the version check.  Other than that, I think
-this patch looks good.  With the Fixes tag corrected, you can add my rvb:
-
-Reviewed-by: Allison Henderson <achender@kernel.org>
-
-Thanks!
-Allison
-
-> Reported-by: TencentOS Corvus AI <corvus@tencent.com>
-> Cc: stable@vger.kernel.org
-> Assisted-by: CodeBuddy:Kimi-K3
-> Signed-off-by: Aohan Mei <henrymei@tencent.com>
-> ---
->  net/rds/ib_cm.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
-> index d46146887ba4..2909da8363f3 100644
-> --- a/net/rds/ib_cm.c
-> +++ b/net/rds/ib_cm.c
-> @@ -115,7 +115,7 @@ void rds_ib_cm_connect_complete(struct rds_connection=
- *conn, struct rdma_cm_even
->  				  &conn->c_laddr, &conn->c_faddr,
->  				  RDS_PROTOCOL_MAJOR(conn->c_version),
->  				  RDS_PROTOCOL_MINOR(conn->c_version));
-> -			rds_conn_destroy(conn);
-> +			rds_conn_drop(conn);
->  			return;
->  		}
->  	}
-
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
