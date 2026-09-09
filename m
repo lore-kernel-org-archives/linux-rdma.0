@@ -1,247 +1,256 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B613154529E;
-	Wed,  9 Sep 2026 12:08:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33B9F4317D;
+	Wed,  9 Sep 2026 12:15:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788955741; cv=none; b=KLz8pHbYvCDCMZRab5KuwIwHeEyYsJlj0w00jBJgrQhWnAPpeKI6oOtrpGz4nxhPOGHV/pQgSe5xYnJc0+SoH+qyVuBwuMGtJV9EMqyc/2Y+2liB7VNXQ7mrMZ20RGpm+CyxDDQpH9DB5PSWVvqysKNNGgpYeB88zydbYPsZVTc=
+	t=1788956147; cv=none; b=djtv87hHCapfRWI8jmL5BMansVtjkzYf6e6PCzmxNQfX++6grK1ELQ+Cvw7lXWdyoMeBtqnRgpjMnBP/oM8v0sbqXVR2ExLT5uTBCbmgs1qY42KjFnwr34gO3kDZWdskER3tbduoYtYzTFOy/hldu+6ydn6Lu8/Z032qauWk0Wo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788955741; c=relaxed/simple;
-	bh=Tr7NeP1XAHfJ7HqrKKBxhlWmTq0V2hBOX4MjlUrY6wo=;
-	h=Date:Message-ID:From:To:Cc:Subject:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=sqMLKM8J5IWYEAJnG86qNukqnCpAebe15zIsiE9vuONNxw4cu1jUP4egA13BMjfD7Kn6QDx2DIgbfaGxr8TDbPfulDQVJii7NrDw6hr3qWn9kRSL21Gfv+nDhBNX0FPf+ZiPCKEnP/sCntgEminfaJaZDYDgBwvvObRFFw+kbZw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QSBO7XfB; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788956147; c=relaxed/simple;
+	bh=9Elz70sprz2mHx7hwE4XTXp7M453PMiA1Le4CZ1uVRg=;
+	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=XWHeTa4TaN0TyQFjZ+9WVbIGFjkfu+qn8dDWFmgTT97+ErqbY9i9gxUiqYxV0PFw745vhieN0waby02jYveNogs1Cj+tj25GSv52ClG3FaFVwlx2Id4XKpuRx+EZZgZ21Qh8czD1p+aYA6lP/fvGheDhKez0xVV28slohNZyuYk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OUPkUjzT; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QSBO7XfB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFC671F00A3E;
-	Wed,  9 Sep 2026 12:08:58 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OUPkUjzT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 894591F00A3A;
+	Wed,  9 Sep 2026 12:15:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788955739;
-	bh=+vl7JXesMvOyLvN4TqdpRFvW5tHWQV0Z6fTfMaOZcos=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=QSBO7XfB9eJuCgdZw4woX9h6hLVv1DAAKEMcqqTtIlfNGaiMpuLvQbzhC/HsUDqDy
-	 15tzsyERcKb/dCy0KrTkU176RhbTCcy21TSs/XRVe0a2CeHrpUDlqlX+4eqWNdQmSP
-	 ZwfdXLWGjYgxyEXXB+UjA+lgDSAN24eS4K+Y/at+9+bmLKnF2sQtudlKc4XZf2yWBT
-	 GWiqoV+03Qgq8XKU5kEPlMdYwMF4DBOmSD8P6FFdNW88ziMwb+5x2tUJ7KBFC2OEkv
-	 y0F1ASE9ljvI2KQ6gM2g9pgM4YchyP5SgcvLLQZd8YcLUPlszfpfiqg7ho1AxZsTq8
-	 3yCEIs6vu9sRQ==
-Received: from sofa.misterjones.org ([185.219.108.64] helo=goblin-girl.misterjones.org)
-	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.98.2)
-	(envelope-from <maz@kernel.org>)
-	id 1x4H6m-00000006flL-2cBD;
-	Wed, 09 Sep 2026 12:08:56 +0000
-Date: Wed, 09 Sep 2026 13:08:55 +0100
-Message-ID: <86wlsu39uw.wl-maz@kernel.org>
-From: Marc Zyngier <maz@kernel.org>
-To: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	"Liam R. Howlett" <liam@infradead.org>,
-	Vlastimil Babka <vbabka@kernel.org>,
-	Jann Horn <jannh@google.com>,
-	Pedro Falcato <pfalcato@suse.de>,
-	David Hildenbrand <david@kernel.org>,
-	Mike Rapoport <rppt@kernel.org>,
-	Suren Baghdasaryan <surenb@google.com>,
-	Michal Hocko <mhocko@suse.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	Paul Moore <paul@paul-moore.com>,
-	Stephen Smalley <stephen.smalley.work@gmail.com>,
-	Jaroslav Kysela <perex@perex.cz>,
-	Takashi Iwai <tiwai@suse.com>,
-	Alexei Starovoitov <ast@kernel.org>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	Andrii Nakryiko <andrii@kernel.org>,
-	Eduard Zingerman <eddyz87@gmail.com>,
-	Kumar Kartikeya Dwivedi <memxor@gmail.com>,
-	Zi Yan <ziy@nvidia.com>,
-	Baolin Wang <baolin.wang@linux.alibaba.com>,
-	Nico Pache <nico.pache@linux.dev>,
-	Ryan Roberts <ryan.roberts@arm.com>,
-	Dev Jain <dev.jain@arm.com>,
-	Barry Song <baohua@kernel.org>,
-	Lance Yang <lance.yang@linux.dev>,
-	Usama Arif <usama.arif@linux.dev>,
-	Kiryl Shutsemau <kas@kernel.org>,
-	Doug Gilbert <dgilbert@interlog.com>,
-	"James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
-	"Martin K. Petersen" <mkp@kernel.org>,
-	Jaya Kumar <jayalk@intworks.biz>,
-	Simona Vetter <simona@ffwll.ch>,
-	Helge Deller <deller@gmx.de>,
-	Sebastian Reichel <sre@kernel.org>,
-	John Hubbard <jhubbard@nvidia.com>,
-	Peter Xu <peterx@redhat.com>,
-	Masami Hiramatsu <mhiramat@kernel.org>,
-	Oleg Nesterov <oleg@redhat.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Thomas Gleixner <tglx@kernel.org>,
-	Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	x86@kernel.org,
-	Arnaldo Carvalho de Melo <acme@kernel.org>,
-	Namhyung Kim <namhyung@kernel.org>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Rik van Riel <riel@surriel.com>,
-	Harry Yoo <harry@kernel.org>,
-	Juri Lelli <juri.lelli@redhat.com>,
-	Vincent Guittot <vincent.guittot@linaro.org>,
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-	Maxime Ripard <mripard@kernel.org>,
-	Thomas Zimmermann <tzimmermann@suse.de>,
-	David Airlie <airlied@gmail.com>,
-	Will Deacon <will@kernel.org>,
-	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>,
-	Nick Piggin <npiggin@gmail.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Muchun Song <muchun.song@linux.dev>,
-	Oscar Salvador <osalvador@suse.de>,
-	"Matthew Wilcox (Oracle)" <willy@infradead.org>,
-	Jan Kara <jack@suse.cz>,
-	Oliver Upton <oupton@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Anup Patel <anup@brainfault.org>,
-	Paul Walmsley <pjw@kernel.org>,
-	Palmer Dabbelt <palmer@dabbelt.com>,
-	Albert Ou <aou@eecs.berkeley.edu>,
-	Christian Borntraeger <borntraeger@linux.ibm.com>,
-	Janosch Frank <frankja@linux.ibm.com>,
-	Claudio Imbrenda <imbrenda@linux.ibm.com>,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
-	Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Vasily Gorbik <gor@linux.ibm.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>,
-	Matthew Brost <matthew.brost@intel.com>,
-	Joshua Hahn <joshua.hahnjy@gmail.com>,
-	Rakie Kim <rakie.kim@sk.com>,
-	Byungchul Park <byungchul@sk.com>,
-	Gregory Price <gourry@gourry.net>,
-	Ying Huang <ying.huang@linux.alibaba.com>,
-	Alistair Popple <apopple@nvidia.com>,
-	Chris Li <chrisl@kernel.org>,
-	Kairui Song <kasong@tencent.com>,
-	Kemeng Shi <shikemeng@huaweicloud.com>,
-	Nhat Pham <nphamcs@gmail.com>,
-	Baoquan He <baoquan.he@linux.dev>,
-	Youngjun Park <youngjun.park@lge.com>,
-	Johannes Weiner <hannes@cmpxchg.org>,
-	Qi Zheng <qi.zheng@linux.dev>,
-	Shakeel Butt <shakeel.butt@linux.dev>,
-	Axel Rasmussen <axelrasmussen@google.com>,
-	Yuanchu Xie <yuanchu@google.com>,
-	Wei Xu <weixugc@google.com>,
-	Xu Xin <xu.xin16@zte.com.cn>,
-	Chengming Zhou <chengming.zhou@linux.dev>,
-	Michal Hocko <mhocko@kernel.org>,
-	Miklos Szeredi <miklos@szeredi.hu>,
-	linux-mm@kvack.org,
-	linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	linux-usb@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	selinux@vger.kernel.org,
-	linux-sound@vger.kernel.org,
-	bpf@vger.kernel.org,
-	linux-scsi@vger.kernel.org,
-	linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	linux-trace-kernel@vger.kernel.org,
-	linux-perf-users@vger.kernel.org,
-	linux-arch@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	kvmarm@lists.linux.dev,
-	linuxppc-dev@lists.ozlabs.org,
-	kvm@vger.kernel.org,
-	kvm-riscv@lists.infradead.org,
-	linux-riscv@lists.infradead.org,
-	linux-s390@vger.kernel.org,
-	sparclinux@vger.kernel.org,
-	fuse-devel@lists.linux.dev
-Subject: Re: [PATCH 28/39] mm: drop some redundant checks around hugetlb VMAs
-In-Reply-To: <20260908-b4-mmap-prepare-vma-flag-sanify-v1-28-dacf19cce22b@kernel.org>
-References: <20260908-b4-mmap-prepare-vma-flag-sanify-v1-0-dacf19cce22b@kernel.org>
-	<20260908-b4-mmap-prepare-vma-flag-sanify-v1-28-dacf19cce22b@kernel.org>
-User-Agent: Wanderlust/2.15.9 (Almost Unreal) SEMI-EPG/1.14.7 (Harue)
- FLIM-LB/1.14.9 (=?UTF-8?B?R29qxY0=?=) APEL-LB/10.8 EasyPG/1.0.0 Emacs/30.1
- (aarch64-unknown-linux-gnu) MULE/6.0 (HANACHIRUSATO)
+	s=k20260515; t=1788956145;
+	bh=YEBpeLVH/7XPGWdIJ4tKqiidSSg0qXXWJQlmAYH7iwc=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=OUPkUjzTScUWCEyk0KIgklG71TRigzXIb5a0baIx9BMe7U+FEnEOO9Lb6lG5l5AUy
+	 fKhf1g9Dh9zMKsyxtOf0RW8wY944bOUh365HVCcOXyqMqMUDr84eBA2JvXCEQblK3e
+	 izA6Df5qIwT0I+sOrC0gKCUUdHvFr94BcBpVq3+6eL2iCJf4n7rjYXQ/8euB83hHG1
+	 uFRIlAAKRDsMeaYscDA80FGTEnoCsHGkHasNHnnoMde+sCqRbvviG179NIEXj27XhC
+	 ZetjFA+5N8nfSURpJkCYjjRON0VToWWRTxbQwxF1x9iPtAc9m3mIVIJWZaKI5CsKD2
+	 t27EpYD0jmZ+g==
+Subject: Re: [PATCH net V2 1/4] net/mlx5: SD, serialize SD LAG init/cleanup
+ against LAG mode changes
+From: netdev-bot+sashiko@kernel.org
+To: tariqt@nvidia.com
+Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
+ kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com,
+ agoldberger@nvidia.com, edwards@nvidia.com, gal@nvidia.com, kees@kernel.org,
+ leon@kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+ msanalla@nvidia.com, mbloch@nvidia.com, ohartoov@nvidia.com, parav@nvidia.com,
+ phaddad@nvidia.com, saeedm@nvidia.com, shayd@nvidia.com, horms@kernel.org
+Date: Wed, 09 Sep 2026 12:15:44 +0000
+Message-ID: <178895614406.219967.15894719869066376557@kernel.org>
+In-Reply-To: <20260906071332.3759199-2-tariqt@nvidia.com>
+References: <20260906071332.3759199-2-tariqt@nvidia.com>
+X-sashiko-severity: High
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0 (generated by SEMI-EPG 1.14.7 - "Harue")
-Content-Type: text/plain; charset=US-ASCII
-X-SA-Exim-Connect-IP: 185.219.108.64
-X-SA-Exim-Rcpt-To: ljs@kernel.org, akpm@linux-foundation.org, liam@infradead.org, vbabka@kernel.org, jannh@google.com, pfalcato@suse.de, david@kernel.org, rppt@kernel.org, surenb@google.com, mhocko@suse.com, corbet@lwn.net, gregkh@linuxfoundation.org, dennis.dalessandro@cornelisnetworks.com, jgg@ziepe.ca, leon@kernel.org, paul@paul-moore.com, stephen.smalley.work@gmail.com, perex@perex.cz, tiwai@suse.com, ast@kernel.org, daniel@iogearbox.net, andrii@kernel.org, eddyz87@gmail.com, memxor@gmail.com, ziy@nvidia.com, baolin.wang@linux.alibaba.com, nico.pache@linux.dev, ryan.roberts@arm.com, dev.jain@arm.com, baohua@kernel.org, lance.yang@linux.dev, usama.arif@linux.dev, kas@kernel.org, dgilbert@interlog.com, James.Bottomley@HansenPartnership.com, mkp@kernel.org, jayalk@intworks.biz, simona@ffwll.ch, deller@gmx.de, sre@kernel.org, jhubbard@nvidia.com, peterx@redhat.com, mhiramat@kernel.org, oleg@redhat.com, peterz@infradead.org, tglx@kernel.org, mingo@redhat.com, bp@alien8.de, dave.hansen
- @linux.intel.com, x86@kernel.org, acme@kernel.org, namhyung@kernel.org, mark.rutland@arm.com, riel@surriel.com, harry@kernel.org, juri.lelli@redhat.com, vincent.guittot@linaro.org, maarten.lankhorst@linux.intel.com, mripard@kernel.org, tzimmermann@suse.de, airlied@gmail.com, will@kernel.org, aneesh.kumar@kernel.org, npiggin@gmail.com, arnd@arndb.de, muchun.song@linux.dev, osalvador@suse.de, willy@infradead.org, jack@suse.cz, oupton@kernel.org, catalin.marinas@arm.com, maddy@linux.ibm.com, anup@brainfault.org, pjw@kernel.org, palmer@dabbelt.com, aou@eecs.berkeley.edu, borntraeger@linux.ibm.com, frankja@linux.ibm.com, imbrenda@linux.ibm.com, agordeev@linux.ibm.com, gerald.schaefer@linux.ibm.com, hca@linux.ibm.com, gor@linux.ibm.com, davem@davemloft.net, andreas@gaisler.com, viro@zeniv.linux.org.uk, brauner@kernel.org, matthew.brost@intel.com, joshua.hahnjy@gmail.com, rakie.kim@sk.com, byungchul@sk.com, gourry@gourry.net, ying.huang@linux.alibaba.com, apopple@nvidia.com, chrisl@kernel.
- org, kasong@tencent.com, shikemeng@huaweicloud.com, nphamcs@gmail.com, baoquan.he@linux.dev, youngjun.park@lge.com, hannes@cmpxchg.org, qi.zheng@linux.dev, shakeel.butt@linux.dev, axelrasmussen@google.com, yuanchu@google.com, weixugc@google.com, xu.xin16@zte.com.cn, chengming.zhou@linux.dev, mhocko@kernel.org, miklos@szeredi.hu, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, linux-rdma@vger.kernel.org, selinux@vger.kernel.org, linux-sound@vger.kernel.org, bpf@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-trace-kernel@vger.kernel.org, linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org, kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, fuse-d
- evel@lists.linux.dev
-X-SA-Exim-Mail-From: maz@kernel.org
-X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
+MIME-Version: 1.0
 
-On Tue, 08 Sep 2026 21:01:32 +0100,
-"Lorenzo Stoakes (ARM)" <ljs@kernel.org> wrote:
-> 
-> Adjust code which inadvertently perform redundant checks on hugetlb VMAs
-> and clean them up:
-> 
-> * hugetlb VMAs have VMA_DONTEXPAND_BIT set so a VMA_SPECIAL_FLAGS check
->   suffices. (migrate_vma_setup() regains an explicit hugetlb test later in
->   the series, once VMA_SPECIAL_FLAGS is removed.)
-> 
-> * hugetlb VMAs unconditionally set vma->vm_ops, so they are never
->   anonymous.
-> 
-> * hugetlb VMAs do not set VMA_PFNMAP_BIT so checking for this is redundant.
-> 
-> While we're here also drop a VM_BUG_ON() which the simplified check above
-> makes unreachable, and use the new VMA flag API.
-> 
-> No functional change intended.
-> 
-> Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-> ---
->  arch/arm64/kvm/mmu.c         | 4 +---
->  drivers/gpu/drm/drm_gpusvm.c | 3 +--
->  mm/migrate_device.c          | 4 ++--
->  3 files changed, 4 insertions(+), 7 deletions(-)
-> 
-> diff --git a/arch/arm64/kvm/mmu.c b/arch/arm64/kvm/mmu.c
-> index a7968f8d24bf..3c1240ffc38d 100644
-> --- a/arch/arm64/kvm/mmu.c
-> +++ b/arch/arm64/kvm/mmu.c
-> @@ -1463,14 +1463,12 @@ static int get_vma_page_shift(struct vm_area_struct *vma, unsigned long hva)
->  {
->  	unsigned long pa;
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue(s) to consider:
+
+Critical: 0 · High: 1 · Medium: 0 (1) · Low: 0
+
+- [High] New unbounded `msleep(100)` wait loops in `sd_lag_init()` and
+  `sd_lag_cleanup()` (drivers/net/ethernet/mellanox/mlx5/core/lib/sd.c)…
+
+Pre-existing issues:
+- [Medium] `sd_lag_cleanup()`
+  (drivers/net/ethernet/mellanox/mlx5/core/lib/sd.c:386-412) dismantles…
+
+--
+
+net/mlx5: SD, serialize SD LAG init/cleanup against LAG mode changes
+
+This makes sd_lag_init() and sd_lag_cleanup() wait for
+ldev->mode_changes_in_progress to reach zero before touching ldev, folds
+the SD shared-FDB teardown in mlx5_lag_disable_change() into the main
+locked section, and moves mlx5_sd_eswitch_mode_set() in
+mlx5_eswitch_disable() after mlx5_lag_enable_change(). A couple of
+questions below about the new wait loop and about the group_id handling in
+the relocated teardown loop.
+
+[ ... ]
+
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+> index 2285c889c215e..aee5ce471eba7 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+> @@ -2589,6 +2589,8 @@ void mlx5_lag_disable_change(struct mlx5_core_dev *dev)
+>  	mpesw = ldev->mode == MLX5_LAG_MODE_MPESW;
+>  	if (mpesw)
+>  		mlx5_mpesw_sd_devcoms_lock(ldev);
+> +	else if (sd_devcom)
+> +		mlx5_devcom_comp_lock(sd_devcom);
+>  	mutex_lock(&ldev->lock);
 >  
-> -	if (vma_is_hugetlb(vma) && !(vma->vm_flags & VM_PFNMAP))
-> +	if (vma_is_hugetlb(vma))
->  		return huge_page_shift(hstate_vma(vma));
+>  	ldev->mode_changes_in_progress++;
+> @@ -2599,26 +2601,22 @@ void mlx5_lag_disable_change(struct mlx5_core_dev *dev)
+>  			mlx5_disable_lag(ldev);
+>  	}
 >  
->  	if (!(vma->vm_flags & VM_PFNMAP))
->  		return PAGE_SHIFT;
->  
-> -	VM_BUG_ON(vma_is_hugetlb(vma));
+> +	if (sd_devcom) {
+> +		mlx5_lag_for_each(i, 0, ldev, MLX5_LAG_FILTER_ALL) {
+> +			pf = mlx5_lag_pf(ldev, i);
+> +			if (pf->dev == dev && pf->sd_fdb_active) {
+> +				mlx5_lag_shared_fdb_destroy(ldev, pf->group_id);
+> +				break;
+> +			}
+> +		}
+> +	}
+
+[Severity: Medium]
+
+This is a pre-existing issue and not introduced by this patch, but since
+the loop is being relocated here: pf->group_id is passed to
+mlx5_lag_shared_fdb_destroy() without checking that it is non-zero, and
+mlx5_lag_shared_fdb_destroy() in lag/shared_fdb.c treats zero as
+"everything":
+
+	u32 filter = group_id ? group_id : MLX5_LAG_FILTER_ALL;
+	...
+	if (filter == MLX5_LAG_FILTER_PORTS || filter == MLX5_LAG_FILTER_ALL) {
+		err = mlx5_deactivate_lag(ldev);
+
+while lag.h documents group_id 0 as "not SD":
+
+	u32 group_id;        /* SD group ID, 0 = not SD */
+	bool sd_fdb_active;  /* set on all SD group members */
+
+sd_lag_cleanup() zeroes group_id but never looks at sd_fdb_active, and
+mlx5_lag_shared_fdb_create() sets sd_fdb_active on every member of the
+group, so the primary can be left with sd_fdb_active == true and
+group_id == 0. sd_lag_init()'s error path produces the same combination.
+
+Do the normal teardown paths hide this because
+mlx5_unload_one_devl_locked() calls mlx5_eswitch_disable() before
+mlx5_detach_device(), so sd_fdb_active is already false by the time
+sd_lag_cleanup() runs?
+
+What happens on a manual auxiliary driver unbind, where mlx5e_remove() ->
+mlx5_sd_cleanup() -> sd_lag_cleanup() runs with the eswitch still in
+switchdev and the SD shared FDB armed? From there it looks like the
+per-group single-FDB association, the peer-miss rules and the secondary
+FDB-root alias are left installed, sd_cmd_unset_secondary() goes on to
+silence the secondary TX root and destroy the alias flow table object, and
+a later mlx5_lag_disable_change() reaching the loop above with
+group_id == 0 would take the MLX5_LAG_FILTER_ALL / mlx5_deactivate_lag()
+path rather than the SD group path.
+
+Would it make sense for sd_lag_cleanup() to call
+mlx5_lag_shared_fdb_destroy(ldev, group_id) (or at least warn when
+sd_fdb_active is set) before erasing the group's lag_func entries?
+
+> +
+>  	mutex_unlock(&ldev->lock);
+>  	if (mpesw)
+>  		mlx5_mpesw_sd_devcoms_unlock(ldev);
+> +	else if (sd_devcom)
+> +		mlx5_devcom_comp_unlock(sd_devcom);
+>  	mlx5_devcom_comp_unlock(primary->priv.hca_devcom_comp);
 > -
->  	pa = (vma->vm_pgoff << PAGE_SHIFT) + (hva - vma->vm_start);
+> -	if (!sd_devcom)
+> -		return;
+> -
+> -	/* Teardown SD shared FDB for this device's group if active */
+> -	mlx5_devcom_comp_lock(sd_devcom);
+> -	mutex_lock(&ldev->lock);
+> -	mlx5_lag_for_each(i, 0, ldev, MLX5_LAG_FILTER_ALL) {
+> -		pf = mlx5_lag_pf(ldev, i);
+> -		if (pf->dev == dev && pf->sd_fdb_active) {
+> -			mlx5_lag_shared_fdb_destroy(ldev, pf->group_id);
+> -			break;
+> -		}
+> -	}
+> -	mutex_unlock(&ldev->lock);
+> -	mlx5_devcom_comp_unlock(sd_devcom);
+>  }
 >  
->  #ifndef __PAGETABLE_PMD_FOLDED
+>  void mlx5_lag_enable_change(struct mlx5_core_dev *dev)
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/sd.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/sd.c
+> index 4cdc50cd6f038..99cf455a61e1a 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/lib/sd.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/sd.c
+> @@ -345,7 +345,14 @@ static void sd_lag_init(struct mlx5_core_dev *dev)
+>  		return;
+>  	}
+>  
+> +recheck:
+>  	mutex_lock(&ldev->lock);
+> +	if (ldev->mode_changes_in_progress) {
+> +		mutex_unlock(&ldev->lock);
+> +		msleep(100);
+> +		goto recheck;
+> +	}
+> +
 
-Acked-by: Marc Zyngier <maz@kernel.org>
+[Severity: High]
 
-	M.
+Can this loop sleep while holding the locks that the mode-change thread
+needs in order to make progress?
+
+sd_lag_init() is called from mlx5_sd_init() with sd->devcom held, and
+mlx5_sd_init() itself runs from adrv->probe/resume, i.e. inside the
+hca_devcom_comp write semaphore taken by mlx5_attach_device() /
+mlx5_register_device(). The same is true of the copy of this loop in
+sd_lag_cleanup(), reached via mlx5_detach_device() -> mlx5e_suspend() /
+mlx5e_remove() -> mlx5_sd_cleanup(). So the msleep() poll runs with two
+devcom write semaphores held.
+
+On the other side, mlx5_lag_disable_change() raises
+mode_changes_in_progress and then drops every lock, and code running
+inside that window re-takes hca_devcom_comp:
+
+mlx5_devlink_eswitch_mode_set()
+  mlx5_lag_disable_change(esw->dev)   /* mode_changes_in_progress++, locks dropped */
+  esw_offloads_start()
+    esw_mode_change()
+      mlx5_devcom_comp_lock(esw->dev->priv.hca_devcom_comp)  /* blocks */
+  mlx5_lag_enable_change(esw->dev)    /* never reached, counter stays > 0 */
+
+and mlx5_devcom_comp_lock() is a write semaphore shared by all devices
+matching the same sw system image GUID:
+
+drivers/net/ethernet/mellanox/mlx5/core/lib/devcom.c:
+void mlx5_devcom_comp_lock(struct mlx5_devcom_comp_dev *devcom)
+{
+	if (!devcom)
+		return;
+	down_write(&devcom->comp->sem);
+}
+
+The two threads can be on different devlink instances (mode change on one
+PF, aux probe/remove on another PF of the same ldev), so the devlink lock
+does not serialize them. msleep() is uninterruptible and the loop has no
+timeout or bail-out, and since the wait is a poll on a plain int it is
+also invisible to lockdep.
+
+The commit message says the new loop is "mirroring mlx5_lag_remove_mdev()"
+- mlx5_lag_remove_mdev() polls the same counter but holds no devcom
+semaphore. Is the mirror still valid for callers that do hold sd->devcom
+and hca_devcom_comp?
+
+>  	pf = mlx5_lag_pf_by_dev(ldev, primary);
+>  	if (!pf) {
+>  		sd_warn(primary, "%s: primary not registered in ldev, skipping\n",
+> @@ -388,7 +395,13 @@ static void sd_lag_cleanup(struct mlx5_core_dev *dev)
+>  	if (!ldev)
+>  		return;
+>  
+> +recheck:
+>  	mutex_lock(&ldev->lock);
+> +	if (ldev->mode_changes_in_progress) {
+> +		mutex_unlock(&ldev->lock);
+> +		msleep(100);
+> +		goto recheck;
+> +	}
+>  	mlx5_sd_for_each_secondary(i, primary, pos)
+>  		mlx5_ldev_remove_mdev(ldev, pos);
+>
 
 -- 
-Without deviation from the norm, progress is not possible.
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260906071332.3759199-1-tariqt%40nvidia.com
