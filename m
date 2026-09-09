@@ -1,115 +1,64 @@
-Received: from out30-100.freemail.mail.aliyun.com (out30-100.freemail.mail.aliyun.com [115.124.30.100])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE66726A1AC
-	for <linux-rdma@vger.kernel.org>; Wed,  9 Sep 2026 06:21:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.100
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E205C3A873C
+	for <linux-rdma@vger.kernel.org>; Wed,  9 Sep 2026 06:55:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788934911; cv=none; b=RTHG7JXhmK1kC6F6Na8dGPhR6nALjZR0W4SswTnQ8wi9LVw7p2vnRkR2KwAkG1Y7SgV1YVfQ0hAX2E4E4q+xgRhNpwGm4GYa4hGmU7jgKNM0vPqjRoSiLHAS13zbmliRmp/+fhLklsXueerCKRj26zAW1LuNIH2YqQh9VWzBaqw=
+	t=1788936939; cv=none; b=Hxg/9542ZTD70a/l45eFpgPEouZcF3ymsBuwpdqjhpO/yaHXXjvcrPCq7HN+vOASypnUzsxZ37m8IGv03hVRLk81bjaMZO7cLPfx60qjorFRnHP3bjSTpDJXRMX1MzywXfodnndWfLcwR8/PXN4DdZ4boubd3bIB6vk5OLPB9w4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788934911; c=relaxed/simple;
-	bh=1PORtQHOVufl1/zlrpy2xJ7mfhc82/k7QEWq4MFa1XI=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=OYneJ5FEcWkhjMzsb2/9SAd6Co+k2IUnSXn/DFXfpw3kJn10JmgPz4eptyxE+m9HqvY0UUuOvL/FTyfg6nC2BaSQUOh4Xk3AHNyBbPz5u/QTc6jSZIMJ/BsKOYEXX9LTJQB8WYyjtrcWFr0K/uytxZALU2douKaYLLKiaOneOKU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=AxOHlgwF; arc=none smtp.client-ip=115.124.30.100
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1788936939; c=relaxed/simple;
+	bh=oBb/27DAY9sSUqD+lAKLo/ukJ0+Vbmrj6gwPZvHxiR8=;
+	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
+	 Message-Id; b=MjJNyBx1kMJebwB60Ff4g1JnUTvY3n7pjWRups7iDEG0lJfAxfEhaJ8NVV0B7YtJuXwa3dJBCmGRiciC6MCTAbSSSpBjJBDw95CZlxqmv/4rf+Xe5Syjr6rqSJ6FJ+SRePmcbJ7gmNaTUT0kh9fPd7mIOw6yUn9Gul/oEwKsDW4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RldNgmS9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="AxOHlgwF"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1788934899; h=Message-ID:Date:MIME-Version:Subject:From:To:Content-Type;
-	bh=/sGZlYdtnT8QDBXDCIW96/57QLTiNQ7j58XbpwvL1Lc=;
-	b=AxOHlgwFRsld/6VOFexIC6gO4PLCZDDP3NoYFA4jJCdy+Pi4ZUVFz4nGdzw7rWlLONyqSrDcUAaF6lRp0U1wkvVuGLWyaW2NaXBTOD2XEYzbXxOtRka06T+tAYScs6HYWu1KGqBWYzGDBiYh8ZwTxE/b5sWxqiOF1BZDZZllPi8=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R101e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033045098064;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0XAdxgwn_1788934897;
-Received: from 30.221.104.67(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0XAdxgwn_1788934897 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Wed, 09 Sep 2026 14:21:38 +0800
-Message-ID: <78e1d57a-7c12-482b-c274-2d9c7991ab1a@linux.alibaba.com>
-Date: Wed, 9 Sep 2026 14:21:37 +0800
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RldNgmS9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C0DF1F00A3A;
+	Wed,  9 Sep 2026 06:55:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788936937;
+	bh=oBb/27DAY9sSUqD+lAKLo/ukJ0+Vbmrj6gwPZvHxiR8=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=RldNgmS9EZrRnfwQdm6EmQNGCjkSjOfx+VoYrSjVEM/rhHehaOdZesyvhd45SpCXF
+	 vMNhwjpRmzYOno3BLhmI9Dp5jVZRK55wLjMuajs2g5+cYlGvv14ap+42Nn5DqwEacK
+	 IMtxM4J88+haM/7QlR9Nuq+pijIOlsTuDCGuHZR6xUxpq2hnbJzVBByXtrpt0Kh3R+
+	 laT+7SEWzqiR5PRdTttOS6TYzvxmOYoHJHsR8L7axvU/fM9Gkck+0hcPI7NPl/HXzq
+	 fYtxXNPICSgatCwyGtsySIfdt6AlydcbC1OjkgLxhJey5geFdl9oYwzmd60FE2IMoy
+	 pMXNfwj/Bxx9Q==
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net-next V4 02/14] net/mlx5e: ipsec: Block TC offload
+ when IPsec is enabled
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Tariq Toukan" <tariqt@nvidia.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20260908065244.3799142-3-tariqt@nvidia.com>
+References: <20260908065244.3799142-1-tariqt@nvidia.com>
+ <20260908065244.3799142-3-tariqt@nvidia.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Wed, 09 Sep 2026 06:55:37 +0000
+Message-Id: <20260909065537.7C0DF1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
- Gecko/20100101 Thunderbird/102.15.1
-Subject: Re: [PATCH for-next v2 1/4] RDMA/erdma: Support non-contiguous kernel
- QP buffers
-Content-Language: en-US
-From: Cheng Xu <chengyou@linux.alibaba.com>
-To: Leon Romanovsky <leon@kernel.org>
-Cc: jgg@ziepe.ca, linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com
-References: <20260827082523.36294-1-chengyou@linux.alibaba.com>
- <20260827082523.36294-2-chengyou@linux.alibaba.com>
- <20260903091033.GY24140@unreal>
- <07bb48b7-5a44-51d1-0b55-d9960f63aab2@linux.alibaba.com>
-In-Reply-To: <07bb48b7-5a44-51d1-0b55-d9960f63aab2@linux.alibaba.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 
+> From: Cosmin Ratiu <cratiu@nvidia.com>
+>=20
+> Currently the mutual exclusion mechanism is only used in packet offload
+> mode. But with the upcoming changes to flow_tag, all RX IPsec flows need
+> to block TC offload, so do that with the help of a small helper.
+>=20
+> Signed-off-by: Cosmin Ratiu <cratiu@nvidia.com>
+> Reviewed-by: Carolina Jubran <cjubran@nvidia.com>
+> Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
+> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 
+Sashiko has reviewed this patch and found no issues. It looks great!
 
-On 9/3/26 8:38 PM, Cheng Xu wrote:
-> 
-> 
-> On 9/3/26 5:10 PM, Leon Romanovsky wrote:
->> On Thu, Aug 27, 2026 at 04:25:20PM +0800, Cheng Xu wrote:
->>> A single coherent allocation for kernel QP queues can fail for large
->>> queues when memory is fragmented.
->>>
->>> Allocate page-sized coherent buffers and describe them with the existing
->>> MTT. Keep the userspace QP path unchanged.
->>>
->>> Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
->>> ---
->>>  drivers/infiniband/hw/erdma/erdma_cq.c    |   4 +-
->>>  drivers/infiniband/hw/erdma/erdma_qp.c    |  38 +++--
->>>  drivers/infiniband/hw/erdma/erdma_verbs.c | 195 +++++++++++++---------
->>>  drivers/infiniband/hw/erdma/erdma_verbs.h |  44 ++++-
->>>  4 files changed, 179 insertions(+), 102 deletions(-)
->>
->> <...>
->>
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260908065244.3799=
+142-1-tariqt@nvidia.com?part=3D2
 
-<...>
-
->>
->>> +struct erdma_buf_list {
->>> +	void *buf;
->>> +	dma_addr_t dma_addr;
->>> +};
->>
->> This struct is very similar to scatter-gather list, why don't you use it
->> directly?
-> 
-> Good idea. I will use struct scatterlist in the next revision.
-
-Hi Leon,
-
-I switched to scatterlist in v3, but Sashiko pointed out an issue with
-using sg_set_buf() and sg_virt() on dma_alloc_coherent() memory [1].
-
-To handle this correctly, the driver would still need to retain the
-original CPU addresses returned by dma_alloc_coherent(). Using scatterlist
-does not simplify this implementation: we still need separate storage for
-the CPU addresses, and the only scatterlist field we actually need is the
-DMA address. A small structure holding both addresses would therefore be
-simpler.
-
-I would like to switch back to a small structure holding the CPU and DMA
-addresses in v4. This would keep the implementation simpler while
-preserving the original addresses returned by dma_alloc_coherent().
-
-[1] https://sashiko.dev/#/patchset/20260908033709.89898-1-chengyou%40linux.alibaba.com
-
-Thanks,
-Cheng Xu
-
-
-> Thanks,
-> Cheng Xu
-> 
->>
->> Thanks
