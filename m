@@ -1,236 +1,243 @@
-Received: from SN4PR0501CU005.outbound.protection.outlook.com (mail-southcentralusazon11021116.outbound.protection.outlook.com [40.93.194.116])
+Received: from PH8PR06CU001.outbound.protection.outlook.com (mail-westus3azon11012068.outbound.protection.outlook.com [40.107.209.68])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5972B489FD8;
-	Wed,  9 Sep 2026 23:25:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.194.116
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F13F46C85B;
+	Wed,  9 Sep 2026 23:57:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.209.68
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788996335; cv=fail; b=IQh4YzVDwxI9P+dl/wHcLHIN7PyPmXXp+akR6b33Jtl/AsXc9VMzY5vyOfy3luTpYozS19TJbhWlAmb3TAAp0Y9cQJllR4PPYXLrNzj1oCF1cgMKixxBQFnZfEw6VbTcmYKPeByn4fEirGG1QLKRar94Q5sIUJQrDURHIAKXVAI=
+	t=1788998265; cv=fail; b=Zq7kSXt4/nGR18bl47MPw6MLeBZ17Eo+vABrTSprGpBKmfEgN5xBrblLjfZ5ZwiZ471RU1F0P4/d8uje6aSi5QgkSRIwFQ9pmQyPYjaR+ZvA5D9VYeyLRgLFJd5Gzov9nNxlo8XboChOVDgPRO2zzlelShfIvTFBdQ0lZe8cWxw=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788996335; c=relaxed/simple;
-	bh=T0UjzKWp4HpR+RBiry25boLFtCWTd3JhP/qGaTefW/U=;
-	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=YdMKCW6kZK9oUwasRQmO5BRrxplaKt/MkCTQWfBBrA8X21e/oj4oKa+jbi4hLTgu3ZIrHi9Mpx+5tEnyoHAe2RM22mjSooFiI0Nu4D8JkL/RSfiH9nforxa7WB4NULJ7gHWjQKkEkukX7nPW8wZfx4SR6G+sImeAZw83pjqj7d4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=microsoft.com; dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b=gYWwzYFT; arc=fail smtp.client-ip=40.93.194.116
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=microsoft.com
+	s=arc-20240116; t=1788998265; c=relaxed/simple;
+	bh=K5P+ejhqrGICImPswlMSA5RajCWrFSHdNcjG63fN990=;
+	h=From:To:Cc:Subject:Date:Message-ID:Content-Type:MIME-Version; b=N53JMvTwJ1envb/p8NDQsMU8S4ZxGxViBvTbx2xcgI/UXuyFb0UzzBLAf1qn5SEvktQ7ZWXKms8yhMfn/u1Rveog/xVumndtPi8mSsVuu47xu88YzvzEtoqzQfdzjWfVW6MngoPlXuZhHsUdjoRtRjPVLlvePC/tNmrMG+v2UG8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=p5LYB2IR; arc=fail smtp.client-ip=40.107.209.68
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b="gYWwzYFT"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="p5LYB2IR"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=AhVlBCZAeYXkcGIMJgi+ML962opvohMoavEinlU94conWm47hXHc0pIjigKPm+QOdYNzHJYoFKDqe5fpUf1PEGFOuklbi5OKGKakdClndp91gFdUbOck8EJrWDeqLxwiMNLKHh6Hv5ZwkIeUA88jUOsYgXu8NUn1paemtmAS36zfdRPPAIbLsi16d/9OxK3wm6NwIgSB8+wm85zc9/Wb9rTuf+vqcEnU6fgM3HOksiRbiE51KLf2D1+Jv6Nm0upOP6EXFukZ6blMtzqnt51Tx7EnYT0y63/1Be3CPSlrSFhzGiSKM3+9TFYMmP5At4B/zzHbiSoVPn8iAVCNzSkjKA==
+ b=maT+jsqfez7U+4jdKMeSlR2MqP0FbLeiKr6Hmja+euoNeYKtQNGhVXcyCguLtg2GrqRLxJzPHl+khKjUWgbljTrqalA1EmCpA0C1Q47CJUpVkpX91iPoJgLm6uLRmjn4T7bM6dmfyOmUIoDToBQ0buB6GYIgdsq5B51S8d/UhkwH/VM4W0QyXi6CKMx/AEdKyXxmgr3TVAF/9MMLAemicCj3mEdMezMSwaJscZXUbBmk/Mwpmxh2mi6I+aQo10rrbqXhoy2PcU+0R39MGyV4irObPNZkPlAzOm04VUZ6R/JhS8B9BUt7jD8uPRztSI/kSBWmy4wuM7w8cZKellhvhw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=pJ4H7oXg/wCA6ifWPiTlB3t3rFs+N9MeJ5CMUFfjsQM=;
- b=yvXKO3eJNwqld/ZMOAfpe7Ud6WtBHXDxhBSw4qomvTd3gVFX0wzRCeQT533oFJFd1AkO8NluQ/Yd9mK++hNENADAZC2ii4b9sU2I0amJlP4t4VfD+72UCljX18pp7MOF0AK15VJiRT29mRzLhMjynOcBwBuFMXLsOLeeNV8RX+GZPbtckaC6v9zRvi2wATF5FpkhbS96SK5Ljh4X1faloQp6WIz/99cOtk3GA+go/io48XAXQpCnaX4qg6+A6AokuuLCZA0yql/gbX9fIS3peIjmnfTtIfMg95DAMqa5NBH1KvYLHeAZ5h0Nt5QVUHbRh1mC8GP2bqGCK663t0WTFA==
+ bh=MdNin1YUUYUdK4yP7rRfarX/3Gb9v2b8chCdJTTniZs=;
+ b=GMQs0zvm9s6+/yLBiEqOsCa5xJLcDqqp9tBhc6sgAZT2oY4ALeCt9Ai7fvUoyHjKHoE9roEK3jkQC5u++cSGbLcEMPCGvxa+YRVD6N6XenatPRjEqkFg3DhLPcB0oj/vpdW6yUvVz2ZIdssXFj8ElGxdTtolXBmHJSIOz13+6LiaYSEeBFyVlRJVlsRRF123guBQvHcOLep0ATKH53NX9MxDNTWhAJOc5/O5sYnauCSwH6RHdlwI1mXpUixOCSPudr/O8qZ2T7VULxmfv7cYF0F51nzb4p5bn+oLl2mTqqnbb4L+Zxt5eP1hbUeScu0glxXWBUoFk9PyZg9vKaQuew==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=microsoft.com; dmarc=pass action=none
- header.from=microsoft.com; dkim=pass header.d=microsoft.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=pJ4H7oXg/wCA6ifWPiTlB3t3rFs+N9MeJ5CMUFfjsQM=;
- b=gYWwzYFTZJKdCPwkO5CLbnvWjMc0P+fgbTXzQPp2AeXeInyqfLPwvyJVlBzNK+uYV/zTiJiUs3gh8JqKm5lT/6WGYpvGgQk2Xulnde1P0DeL8EtjF8j5FSnlXcrsqZxUYxVWrdafaEgDeMUQTK/rR8Gud7qh4HF58Ez7w8oV5sE=
-Received: from SA1PR21MB6683.namprd21.prod.outlook.com (2603:10b6:806:4a4::6)
- by SA1PR21MB6394.namprd21.prod.outlook.com (2603:10b6:806:4a6::23) with
+ bh=MdNin1YUUYUdK4yP7rRfarX/3Gb9v2b8chCdJTTniZs=;
+ b=p5LYB2IR7i8rATcOJnkPLC5MHXX0cZYsWw30UJe+GjNWwHSCswJ8HJFFMfaEK9ZfjinkG8KxQK8OP7QIqHg4yRWWmRLQgUkB9Gsl4fe4bZaAvhy4WUS/Bz+4QGpRyJ5m3SdoLEKd+I0bCsQw5s0Cbm1lCz5IPnehaiJSY2GrAGLSUrP8b0bF9ue47+3AkB6n76U9eONYl9zWDlhzJVq/C1L2dBK58GI8YUyu8rweVFiuumiRkCMXudatK1WmdvnjXiEENL/Nw8RampPMCtOogy7bogWTvFIE4UbkUS/QlfKAF12IvxLngygpMuVwhHxVQx83Hjoz1SwviHQ7etXb/Q==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from LV8PR12MB9620.namprd12.prod.outlook.com (2603:10b6:408:2a1::19)
+ by DS7PR12MB8418.namprd12.prod.outlook.com (2603:10b6:8:e9::16) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.428.3; Wed, 9 Sep 2026
- 23:25:30 +0000
-Received: from SA1PR21MB6683.namprd21.prod.outlook.com
- ([fe80::8bad:6294:8a07:fe18]) by SA1PR21MB6683.namprd21.prod.outlook.com
- ([fe80::8bad:6294:8a07:fe18%6]) with mapi id 15.21.0315.008; Wed, 9 Sep 2026
- 23:25:30 +0000
-From: Long Li <longli@microsoft.com>
-To: "sashiko-reviews@lists.linux.dev" <sashiko-reviews@lists.linux.dev>
-CC: "linux-hyperv@vger.kernel.org" <linux-hyperv@vger.kernel.org>,
-	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Subject: RE: [EXTERNAL] Re: [PATCH net-next v4 04/13] net: mana: swap queue
- sets in mana_set_ringparam
-Thread-Topic: [EXTERNAL] Re: [PATCH net-next v4 04/13] net: mana: swap queue
- sets in mana_set_ringparam
-Thread-Index: AQHdP0JDeQfyxfzra0mdIplxYnuDerbFmGUAgAFNocA=
-Date: Wed, 9 Sep 2026 23:25:29 +0000
-Message-ID:
- <SA1PR21MB6683ABC6FD97252DC632A3AFCEB02@SA1PR21MB6683.namprd21.prod.outlook.com>
-References: <20260908032843.397667-1-longli@microsoft.com>
- <20260908032843.397667-5-longli@microsoft.com>
- <20260909032945.2C3E41F00A3A@smtp.kernel.org>
-In-Reply-To: <20260909032945.2C3E41F00A3A@smtp.kernel.org>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-msip_labels:
- MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ActionId=6a9f4d4d-7222-467a-abbc-aebdee5bee5e;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ContentBits=0;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Enabled=true;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Method=Standard;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Name=Internal;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SetDate=2026-09-09T23:23:50Z;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SiteId=72f988bf-86f1-41af-91ab-2d7cd011db47;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Tag=10,
- 3, 0, 1;
-authentication-results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=microsoft.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: SA1PR21MB6683:EE_|SA1PR21MB6394:EE_
-x-ms-office365-filtering-correlation-id: ae94020c-a9ef-41dc-dd61-08df0ec9a345
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam:
- BCL:0;ARA:13230040|366016|23010399003|376014|1800799024|38070700021|6133799003|56012099006|7146999003|4133799003|10067099003|4143699003|5023799004|11063799006|18002099003|22082099003;
-x-microsoft-antispam-message-info:
- C8ReC8aVBZYQP5+oQo4m/Dj2d6DXm0iwsXtGxAdGW+JsqbKXOXfBqMTq376McH8uhqMl1c88lixPapod65h5dgO3Z+nU7Nn5CJv5dc+M5jfyepl4WHK0D85CF6rqn3yP6lBog7YkiE1+0lmu5PMIqajO+d+uhjmXqKoOi3Bg6U2QzD8bxg6rzwcRSjR1DckOw4Fyakfu8khVtQfPyz07Vz83zeIIsri5/uw2FcGm54fcSNGJhsUwOFh2/gZJpCCVKI186iBWgwg2CQTy9B9BNAVYC+/xsYrg+gTDmUc3D9jCgfbkurydXu+xDN9i8tpwCp4Hk/MoY42jYxK8/gjGx5vm13MLglsjgOrBSzfFNWj0+QhyrOjVmyydJLcHDsLUpF3MGJWDRCNaPDCmnE2j8zQd2kjOC3OHfRR0eQx3jo6w6K20PvfjGFksDypnkq29tvJO34NRFCqOkWJvbl52Vl6rykhr1RH+MrHj1yM/G0Hq3fVlvELRF/ws28A5e8rXoYoIAokvYoSgCLi5oGGSzIRzJ0gPhnDAuWophUSWOKj7jAWr20SrQKCbi5CrCyaUMHzeKaAqBo49zRE37R/w9yxHAn7LqodS5CoTtdkBpbvQ1oF2mdDhSlOhchlnALlx2qJHWc2I9U80tql7FxSb1A1djvjVRYmFjav9gOd8vNI=
-x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR21MB6683.namprd21.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(23010399003)(376014)(1800799024)(38070700021)(6133799003)(56012099006)(7146999003)(4133799003)(10067099003)(4143699003)(5023799004)(11063799006)(18002099003)(22082099003);DIR:OUT;SFP:1102;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?us-ascii?Q?Hcg2LgHlhdpdtfBPlIDTJPSk1+M8tGqSIn4YmHkYIS6RILRm3tSWyC+6lNn6?=
- =?us-ascii?Q?mgsVDqCVI3KX/np39ibPPAj2ChNYgW1aXz3BL5TyuwkuUVLhLdElHDOQmq4q?=
- =?us-ascii?Q?pm/Vrd6Oxyo4cgdclVgaFMhirXmZbQ+tkurRpVeT1vIdeBTMpgplFY3sOBoJ?=
- =?us-ascii?Q?daw2TazgEimYBisudq/G+ZqoKlsTqQrXYqQmRRpN/Se7fPf+xg2lhyQeMu6v?=
- =?us-ascii?Q?JxZIqD2FwV4Ozq0Pb0DEOfn0rLVnxbMRMuOzNxeCo6xYmdfSpZ7YZjrvfLpT?=
- =?us-ascii?Q?l9N1OlJlfZ6/DQ7uszSC8Swdu7wUFhVq/SG+YibXyZJFMk889wy9/KAgmCiC?=
- =?us-ascii?Q?gCxKMWzUyI9a86tn5DSguqF3iXhIjLfzV+5F+9Sc2ewSQABd+QaSYlIBnFAO?=
- =?us-ascii?Q?FXzH107jtORT0+u3ZG5wlquSROI2OcZxJ10ThDhy12guHZz1CX2B1xcVMCdx?=
- =?us-ascii?Q?eGlhP+YDtSCW9jY0OOzjSVxOrV/PmLpmNsnaPiAO3dX9jtDOw/vjt3RCF3Vg?=
- =?us-ascii?Q?1knScglRiCM90pJUqGlgUC9P/u1NEp99n0QdPu+pm0/5Q7X25wz/qC0OZd5F?=
- =?us-ascii?Q?jQ2Hl2riGr9w2fDOf9phS84/KwcrYuMC8zMWbe2Sb5PM3v9uEbeAYxDu02jS?=
- =?us-ascii?Q?FDPESOSnFIWI/Gdht3dAz5+CHkNY9ZBNy96SIJz8udDMKUF6nSPar3iAmMAj?=
- =?us-ascii?Q?KrXcemWIFSA/6jsjbmSBOOV1fGIfbT5P5FrIi+eJAl/NjnR2W0NZZUk2G0tK?=
- =?us-ascii?Q?gnuWmqlMzkdC2YvmeGrISqiyZm0fUV6IJNb78tDNetoul8C9mwcn6Rzk500U?=
- =?us-ascii?Q?Gb3GGjlxfD7VNnrHcvnYknNC6I4QcPvbCotS6sx6h8/gtTomKQWESWxhKYzn?=
- =?us-ascii?Q?puZuwYYm44erLCob19ISWSLgO1te90dKfB9CWMBgdcSeZB9/d/yX/vm+3vdc?=
- =?us-ascii?Q?LCTVHxeZ3XpTB8luDyAAEeTXEwsqkiOH2CYPlx7RHX1VyM9X5+9xE1d9pH8q?=
- =?us-ascii?Q?X3St115l4HCxRc4jsT9WKaSTg4/HnvOTG0A+Su4qDQLIPTM9eQRx1dNlf7Uj?=
- =?us-ascii?Q?7dkIf3a4CRKZfOTi8UIYjGrUnXPkvSj/MkURsMnw7CuVERA7tVu2pflsEdo1?=
- =?us-ascii?Q?FL59C+BIk3Ih60npRPepgHs5ByvBbu5FaYNoDNZ2ERO3DvF7hHlGJsmvu6PF?=
- =?us-ascii?Q?7WxTeROpLJoJWjJt1/7V/H/5xsWsddvRIuRK1nD4IV61rRCcXE2QHuSVLaJ8?=
- =?us-ascii?Q?D4oVKfvvLs9J8Cqa8UIUVSMQ5jExwWvobn7FlCS3VmVzW+2TV0cdXRTgUpr8?=
- =?us-ascii?Q?sP4fWRovo724WsxOa57tpTLF2xBxxiOVafRBZaX+ELxhva3qxHXjUOulxkqN?=
- =?us-ascii?Q?D6pD54XLciutoqFWIDkyiZfOihCeLrt80eBzxS1R9k6n89VR3KS4qo8CnTYA?=
- =?us-ascii?Q?7YbZCpeXRyaRNpwMM2DvYVzGC5kdpkJjVi3e/rnNPkhb7UEYTe2+kAqBFrc+?=
- =?us-ascii?Q?qPDf4vOOmvOAb4Mbg974pMTCUpzGsS0Wq5MdQQVkL/Kv9QryukFvKRVCsPF/?=
- =?us-ascii?Q?RFQkas6diPnGAxM/yG41Grf12xcWqej4y5nvHZrT7oQEc4UzjLe1EISKtVnK?=
- =?us-ascii?Q?xByh4/MesI0dD376DB56V4HdUfBcF6x0OEjRc+F9RWvXWwW2TYK5zaFN+8pI?=
- =?us-ascii?Q?hy/+wgie43yDfFaifC1MZqvcLgf5qdT8JmYAAXrcYCYuiCNq?=
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.406.8; Wed, 9 Sep 2026
+ 23:57:38 +0000
+Received: from LV8PR12MB9620.namprd12.prod.outlook.com
+ ([fe80::299d:f5e0:3550:1528]) by LV8PR12MB9620.namprd12.prod.outlook.com
+ ([fe80::299d:f5e0:3550:1528%4]) with mapi id 15.21.0406.007; Wed, 9 Sep 2026
+ 23:57:38 +0000
+From: Jason Gunthorpe <jgg@nvidia.com>
+To: Alex Williamson <alex@shazbot.org>,
+	David Matlack <dmatlack@google.com>,
+	kvm@vger.kernel.org,
+	Leon Romanovsky <leon@kernel.org>,
+	linux-kselftest@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	Mark Bloch <mbloch@nvidia.com>,
+	netdev@vger.kernel.org,
+	Saeed Mahameed <saeedm@nvidia.com>,
+	Shuah Khan <shuah@kernel.org>,
+	Tariq Toukan <tariqt@nvidia.com>
+Cc: patches@lists.linux.dev
+Subject: [PATCH v5 00/10] mlx5 support for VFIO self test
+Date: Wed,  9 Sep 2026 20:57:26 -0300
+Message-ID: <0-v5-4cacb99249f6+1b4-mlx5st_jgg@nvidia.com>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: YT4PR01CA0436.CANPRD01.PROD.OUTLOOK.COM
+ (2603:10b6:b01:10d::8) To LV8PR12MB9620.namprd12.prod.outlook.com
+ (2603:10b6:408:2a1::19)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-OriginatorOrg: microsoft.com
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: LV8PR12MB9620:EE_|DS7PR12MB8418:EE_
+X-MS-Office365-Filtering-Correlation-Id: a08d7312-9daa-4dc6-2d24-08df0ece2050
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|366016|23010399003|1800799024|921020|6133799003|3023799007|10067099003|56012099006|11063799006|18002099003;
+X-Microsoft-Antispam-Message-Info:
+	hGQA4e6vhTXlpssSWpMcaFxuU+7FF1iGs8j4iz1QRNzL9yX53eT20z1VmUuxvnlfTh1malYJoqsT2CUrcNEIDCDQSCo8jAITYzqs+1t6Ppsh4MbauZt1oHe2FPqjnZgHYyHBWAKxeI2mc193QZ8MNdb4ugubFdQQZfXzV3GHNa3yzsdQeee1Gsaw7j16wL4obULF2QA+8JQxmI0+bSo/Go0h4pnzBEHkk7w8jXHjpWC3v90s6m93NJxhkrhgteJbvosHz1+KOSWQtA+mkDn/Gz0+xTFGzzc9qtPdHYImFDhPlWaiEYeak8jrtalmVGDzpgMfyvZiffW/FnrO5cq7iBT/gZ1yVHZiTeNt5w+Bh739rtQOZDxKgi7tbvImpEiwtBFfeqH1lPGMXDKS56MuRRK+z+uNJV9TxhXxKWjNEUKTKhbMTkOcoegmxVmf174hvbVMdgU3tKgK3GHm9aK0WpjUvyyG6StE25frn7CeGurjpmJYv+Oa06TZjbRHopLr86sv9EpIZ2jJ5HEBuhprEMRQC12830xznIPHO/q1YmkyZXAJSVIDULWaqE3kOGYGxlGpsfno30CcJrk4oY9GvGWOe0p4JqYzDkRf9gE2bZLTkL7NguwDSJGXas2tnDlUTU5vozYv+bV6wRtiru4TjX9n1chPnrPFpKumGuFIVEUYyQWfhrvoIsoc58eSwxm1Pau76adukeU5VySEkCs7fw==
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV8PR12MB9620.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(366016)(23010399003)(1800799024)(921020)(6133799003)(3023799007)(10067099003)(56012099006)(11063799006)(18002099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?s+PgWkU7pui8wDB4cbxmmp/CIbtozkGLakH/tzA6+2nH/52gVUqEZ9KrcTr8?=
+ =?us-ascii?Q?XzC/Z9l5qf1FUTCPY+ozlESAVJYSc/82FpXJi8bwFbsxABWrdvi4o8PhqVc0?=
+ =?us-ascii?Q?zB43iVuMi+I2DN+WWxs2JfNaMy5HYVqyoHq9mPdi/UWj0XhS3iGwZ7bQggft?=
+ =?us-ascii?Q?NjtDDf1Kgs2BfPBxjbDFewwHg+fLnjf0fcspgoUUb/gYwoEnz9yNNY0nySdz?=
+ =?us-ascii?Q?tKFUiWDg//mkcsj8f9JvImOOdHzjhdYzbKmJTHKf3xPPVVXBNLPdzG81nQJB?=
+ =?us-ascii?Q?BXGJXKfxDSTS80c/2WfPDTEBt8nPTDH4ex+8JyU616GSeVLVEgbldVhf12u5?=
+ =?us-ascii?Q?I7+MbDOjzE5bspT83A1/Z4HRXAUqYYX0/+Wrt+sydXr4DTDLh82toT3oGSl4?=
+ =?us-ascii?Q?RZCYKrQBvmB2OspLvfmsgtvQdVR+7IEkz4fCEfBjL/Gj2E5QEvHvHzigoUEL?=
+ =?us-ascii?Q?8qG00u5QBtOFd6ko5GiZNovkt1Tt4u8Bc1TSZ4kMwZ0nmuCcKpk3/tYqlFbj?=
+ =?us-ascii?Q?vK/DMLpEy1FYV2lP5SXDvJhwAsD3rL7KzjLrIoCURxhI7ggZQwpoHDA+Tk5h?=
+ =?us-ascii?Q?9LNPA4uyBWNCqpk5gE36xrWPfjQnHTR5uN+6vF10xE7CJffzBQZpglp3xe8a?=
+ =?us-ascii?Q?S1hYAC961lIv8i18u/2XVsA78Z9Q/mqaxD9bv7rX9XSZ6JzBe0LO9+RQ4y8U?=
+ =?us-ascii?Q?GRnpp2da9j1A0uMiHpOVuorUikuGp8FNOHFRZMlBlsxw5rJlBAjbsKksWEKZ?=
+ =?us-ascii?Q?VPEALPLI4dlcXBAHUQzGWppmwS+3yq/Et1tL9lsiEZAp6GJc/6ZAS9d8oCI2?=
+ =?us-ascii?Q?D9Laoe984edo46nIG5uNfi1p7FIkT7XB042Uv/lBli2WCDLe5GkZr0iJ93RL?=
+ =?us-ascii?Q?XF83Rv4GdVUpP2Z/mWSvJOmysu3uDWwVvG+IiNxydUi7c9CJXBjnC+nCH9wb?=
+ =?us-ascii?Q?qO9+LwwdJsg3KKWlcWk5MZSl376qbeyT3B+0Rt5xoK50sFPhTl1064hmKjfv?=
+ =?us-ascii?Q?t1oEJvti4tmJ6aDPaCtMOYj3xiX8EjSp/Q9Bhma10yws34lyKra/IqqzndVW?=
+ =?us-ascii?Q?QsIfdEm5maiq1AOoxs4QrcLfIVOUU4ql0UX4XI0jPpSnarEgnS8baoKqNaLh?=
+ =?us-ascii?Q?vdhoq0ZRBAqcmFYvTDNfKEt94vnSQfo3ZrOhgpOTGcE/pcTAf7yyOVzLi3jZ?=
+ =?us-ascii?Q?AWEpSVFFZ7Nt3SCZO2I5DJAMa3wa9HFSFb4zkasOBHpa/ctcrWV0qyy0IKxz?=
+ =?us-ascii?Q?29ZCeojlAWQljVFQ0cQdpPkTexx6qclHnRGQxEuOYGoc1nPMbppDfxCwzUaS?=
+ =?us-ascii?Q?fXZ1TBRGNTNAA2eI2jroBAB0XdTFML4iedIYtRD935OcLe/JY6dNhUmlMimn?=
+ =?us-ascii?Q?Pat5eU11oNvhpVJ/DD6YLbQHoimSYVxNjlpal8nqIPX+iDsqNSroxSaEztb/?=
+ =?us-ascii?Q?vqmASe/9LysBxFSCuxNL6vF9G3qorazWP95IoWXXx/jhKwY5qqXmOIEAhXg9?=
+ =?us-ascii?Q?klhsC6WhYvFM01RgMz9cpYn9JfPRtgctta0VDjRcmRG39F1BYZiifF+K6LHQ?=
+ =?us-ascii?Q?KOi/ZyFNdZF+blg8uIemJ5J8rP9SAI7C5OUF0G0fWfIiIAfcDrQdN0qCNnYk?=
+ =?us-ascii?Q?7PB4j3OZLH1FLofHmrKgD3g51vtQpl316mqAwZvNVEMWPq22ziHVfjV2Di/+?=
+ =?us-ascii?Q?nwYpaIjH3UB6+e26UmsiZ8pYm8PCwD6tWBXFZMIvNxiczQLD?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: a08d7312-9daa-4dc6-2d24-08df0ece2050
+X-MS-Exchange-CrossTenant-AuthSource: LV8PR12MB9620.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: SA1PR21MB6683.namprd21.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: ae94020c-a9ef-41dc-dd61-08df0ec9a345
-X-MS-Exchange-CrossTenant-originalarrivaltime: 09 Sep 2026 23:25:29.9904
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Sep 2026 23:57:38.0160
  (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 72f988bf-86f1-41af-91ab-2d7cd011db47
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: U0D9nYxaYBJGKGTtOwLg6D8mmz5X2yNyo6Xi+K5LEwxLMNmpVOxVE2AgLY334ukBs+PKiUfBGNL2i+T/vV63Ng==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR21MB6394
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: TfV84ynBnCK2zDe+2lKfuRNRfG6n6umCDPfolZKM5nuN57iCpl9hU7Q3TIyDbZ23
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR12MB8418
 
->=20
-> Thank you for your contribution! Sashiko AI review found 1 potential issu=
-e(s)
-> to consider:
-> - [Medium] The patch introduces an ad-hoc locking pattern using a boolean
-> flag (`apc->channel_changing`) to guard the reconfiguration critical sect=
-ion in
-> `mana_set_ringparam`.
-> --
->=20
-> commit 40668ebf41a83bf44835ffb33803930c039ce405
-> Author: Long Li <longli@microsoft.com>
->=20
-> net: mana: swap queue sets in mana_set_ringparam
->=20
-> This commit replaces detach/attach operations in mana_set_ringparam() wit=
-h
-> queue-set allocation and publication. Failed allocations now leave the
-> running queues and ring sizes unchanged instead of risking a detached por=
-t.
->=20
-> > diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-> > b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-> > --- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-> > +++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-> [ ... ]
-> > @@ -774,32 +772,56 @@ static int mana_set_ringparam(struct net_device
-> *ndev,
-> >  	netdev_info(ndev, "Using nearest power of 2 values for Txq:%d
-> Rxq:%d\n",
-> >  		    new_tx, new_rx);
-> >
-> > -	/* pre-allocating new buffers to prevent failures in mana_attach()
-> later */
-> > -	apc->rx_queue_size =3D new_rx;
-> > -	err =3D mana_pre_alloc_rxbufs(apc, ndev->mtu, apc->num_queues);
-> > -	apc->rx_queue_size =3D old_rx;
-> > -	if (err) {
-> > -		netdev_err(ndev, "Insufficient memory for new
-> allocations\n");
-> > -		return err;
-> > +	if (new_rx =3D=3D apc->rx_queue_size && new_tx =3D=3D apc->tx_queue_s=
-ize)
-> > +		return 0;
-> > +
-> > +	if (!apc->port_is_up) {
-> > +		apc->rx_queue_size =3D new_rx;
-> > +		apc->tx_queue_size =3D new_tx;
-> > +		return 0;
-> >  	}
-> >
-> > -	err =3D mana_detach(ndev, false);
-> > -	if (err) {
-> > -		netdev_err(ndev, "mana_detach failed: %d\n", err);
-> > -		goto out;
-> > +	/* Exclude RDMA through failure cleanup, which may release the
-> vport. */
-> > +	mutex_lock(&apc->vport_mutex);
-> > +	if (apc->channel_changing) {
-> > +		mutex_unlock(&apc->vport_mutex);
-> > +		return -EBUSY;
-> > +	}
-> > +	apc->channel_changing =3D true;
-> > +	mutex_unlock(&apc->vport_mutex);
->=20
-> [Severity: Medium]
-> Does this code introduce an ad-hoc locking pattern using the
-> apc->channel_changing boolean flag?
->=20
-> The networking drivers subsystem guidelines indicate that using a boolean
-> flag set on entry and cleared on exit to guard a reconfiguration critical=
- section
-> bypasses lockdep and provides weaker synchronization guarantees than usin=
-g
-> a proper lock.
->=20
-> Could a standard kernel synchronization primitive be used for this critic=
-al
-> section in mana_set_ringparam() instead of relying on the
-> apc->channel_changing flag?
+Add an mlx5 driver to VFIO self test. This is largely a remix of the
+existing VFIO mlx5 driver in rdma-core. It uses an RDMA loopback QP
+to issue RDMA WRITE operations which effectively perform memory
+copies using DMA. Since mlx5 has a stable programming ABI this
+should work on devices from CX5 to current HW. The device FW must
+support the QP loopback configuration.
 
-This locking pattern has existed in the base code for a long time; this is =
-not introduced by this patch.
+Also support send_msi by arming completion events of the RDMA WRITE
+to trigger MSI delivery.
 
-This patch just uses this locking pattern for the vport changing states.
+mlx5 device startup is very complex and most of this code is just
+booting the device, with a smaller amount for operating the QP.
+
+This entire series was coded by Claude Code in about 4 days. It
+used about 4.5M output tokens, 30 individual sessions and 5600 lines
+of AI-generated .md files. I spent an annoying amount of time
+de-slopping and cleaning its work product to make it presentable.
+However, previous VFIO drivers have taken on the order of 1-2
+months to write, so getting one in a week is pretty remarkable.
+
+For those interested, the flow I used was broadly a prompt sequence
+sort of like:
+
+ - Hey Claude, go look at the falcon series, VFIO self test, the
+   mlx5 driver, rdma-core and some PDF documentation and make a
+   plan to put mlx5 under the selftest.
+ - Write an rdma-core application using the built-in VFIO provider
+   that can do the required memcpy operations that vfio selftests
+   wants.
+   (This resulted in a 1k loc C file that compiled and ran the
+    first time but had a few bugs related to device programming
+    that the AI resolved.)
+ - Replace the rdma-core components with open-coded versions to
+   create a fully stand-alone program that does the DMA memcpy.
+ - Review and audit the thing.
+ [Pause and de-slop it]
+ - Make it work on a PF too (this is surprisingly hard!).
+ [Move to a kernel tree and copy all the .md files and .c program
+  it made]
+ - Hey Claude, look at all this stuff and make a broad plan to
+   actually build a VFIO self test.
+ - Here is my 1 sentence advice on what each patch should look
+   like, make a detailed plan to make a patch for every one.
+ [Pause and polish the patch plans]
+ - Execute plan X then commit it [pause and de-slop each patch,
+   repeat].
+ [Review and final polish]
+
+v5:
+ - Rebase on v7.3-rc1
+ - Adjust how region_size is computed to min it to getpagesize()
+v4: https://patch.msgid.link/r/0-v4-021df3fb5a3f+98e-mlx5st_jgg@nvidia.com
+ - Rebase on vfio next, update igb and falcon
+ - Move rounding to iova_allocator_alloc()
+ - Remove arm barrier changes
+v3: https://patch.msgid.link/r/0-v3-76f117ad04f1+28a90-mlx5st_jgg@nvidia.com
+ - Move max into vfio_pci_driver_probe()
+ - Rebase on v7.2-rc3
+v2: https://patch.msgid.link/r/0-v2-72e9640932fd+2c64-mlx5st_jgg@nvidia.com
+ - Rebase on v7.1-rc3, drop falcon patches
+ - dev_dbg checks the format string even in non debug builds
+ - Sort includes
+ - Adjust comments/commit messageas
+ - Use linux/pci_ids.h
+ - Compute the driver.max_memcpy_size the same as mlx5 kernel driver, it
+   should be GBs now on most devices
+ - Put region_size into all drivers instead of allowing 0
+v1: https://patch.msgid.link/r/0-v1-dc5fa250ca1d+3213-mlx5st_jgg@nvidia.com
+
+Jason Gunthorpe (10):
+  net/mlx5: Add IFC structures for CQE and WQE
+  net/mlx5: Move HW constant groups from device.h/cq.h to mlx5_ifc.h
+  net/mlx5: Extract MLX5_SET/GET macros into mlx5_ifc_macros.h
+  net/mlx5: Add ONCE and MMIO accessor variants to mlx5_ifc_macros.h
+  selftests: Add additional kernel functions to tools/include/
+  vfio: selftests: Allow drivers to specify required region size
+  vfio: selftests: Add dev_dbg
+  vfio: selftests: Add mlx5 driver - HW init and command interface
+  vfio: selftests: Add mlx5 driver - data path and memcpy ops
+  vfio: selftests: mlx5 driver - add send_msi support
+
+ include/linux/mlx5/cq.h                       |   10 -
+ include/linux/mlx5/device.h                   |  231 +-
+ include/linux/mlx5/mlx5_ifc.h                 |  178 ++
+ include/linux/mlx5/mlx5_ifc_macros.h          |  185 ++
+ tools/arch/arm64/include/asm/barrier.h        |    4 +
+ tools/arch/x86/include/asm/barrier.h          |    5 +
+ tools/include/asm-generic/io.h                |   28 +
+ tools/include/asm/barrier.h                   |    8 +
+ tools/include/linux/stddef.h                  |   10 +
+ .../selftests/vfio/lib/drivers/dsa/dsa.c      |    1 +
+ .../selftests/vfio/lib/drivers/igb/igb.c      |    1 +
+ .../selftests/vfio/lib/drivers/ioat/ioat.c    |    1 +
+ .../selftests/vfio/lib/drivers/mlx5/mlx5.c    | 1928 +++++++++++++++++
+ .../selftests/vfio/lib/drivers/mlx5/mlx5_hw.h |  114 +
+ .../vfio/lib/drivers/mlx5/mlx5_ifc.h          |    1 +
+ .../vfio/lib/drivers/mlx5/mlx5_ifc_fpga.h     |    1 +
+ .../vfio/lib/drivers/mlx5/mlx5_ifc_macros.h   |    1 +
+ .../vfio/lib/drivers/nv_falcon/nv_falcon.c    |    1 +
+ .../lib/include/libvfio/vfio_pci_device.h     |   11 +
+ .../lib/include/libvfio/vfio_pci_driver.h     |    6 +
+ .../selftests/vfio/lib/iova_allocator.c       |    7 +-
+ tools/testing/selftests/vfio/lib/libvfio.mk   |    1 +
+ .../selftests/vfio/lib/vfio_pci_driver.c      |    6 +
+ .../selftests/vfio/vfio_pci_driver_test.c     |    3 +-
+ 24 files changed, 2501 insertions(+), 241 deletions(-)
+ create mode 100644 include/linux/mlx5/mlx5_ifc_macros.h
+ create mode 100644 tools/include/linux/stddef.h
+ create mode 100644 tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5.c
+ create mode 100644 tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_hw.h
+ create mode 120000 tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_ifc.h
+ create mode 120000 tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_ifc_fpga.h
+ create mode 120000 tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_ifc_macros.h
 
 
->=20
-> [ ... ]
-> > +clear_flag:
-> > +	mutex_lock(&apc->vport_mutex);
-> > +	apc->channel_changing =3D false;
-> > +	mutex_unlock(&apc->vport_mutex);
-> >  	return err;
-> >  }
->=20
-> --
-> Sashiko AI
-> review * https://nam06.safelinks.protection.outlook.com/?url=3Dhttps%3A%2=
-F%
-> 2Fsashiko.dev%2F%23%2Fpatchset%2F20260908032843.397667-1-
-> longli%40microsoft.com%3Fpart%3D4&data=3D05%7C02%7Clongli%40microsoft.
-> com%7Cc67f289fbf6d44697aa108df0e229871%7C72f988bf86f141af91ab2d7cd
-> 011db47%7C1%7C0%7C639245213896893836%7CUnknown%7CTWFpbGZsb3
-> d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOI
-> joiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&sdata=3Dbb9IsrgM5js%2BYCF
-> uaioyc5OMJmhNDee3ut65iShCesk%3D&reserved=3D0
+base-commit: df2908090cda368b01ff43709f51890076c56157
+-- 
+2.43.0
+
