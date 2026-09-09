@@ -1,113 +1,109 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E1E73B5DED
-	for <linux-rdma@vger.kernel.org>; Wed,  9 Sep 2026 06:55:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7D893D5656;
+	Wed,  9 Sep 2026 07:09:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788936948; cv=none; b=Ozkow64OEdhCNYRDqPLewCtteiCoBqD/zGyPHvZ7pZBJ7irMRuKrwRRdGzAHruIddMI1B/aaFWuHEStzTTgGVdycivx/gj7UQW38K+yplmnObvgzPIXluKLD8w0r9qiH60eaLluEq04I6q4qfFd1n3Ucmzzev+hGuBE0sLrme5s=
+	t=1788937775; cv=none; b=mVGyQqcetz4l4bcA24iWSOGPolF7XxB2lrlxAsEEd0omc8EHUvpe50aPMXQJjrLOBdfQX3oB7G38/8Vz9QKBfd1F3jPp9Wo59AxjT48bO4zpJoCupTbCWXqhDs9hDEzhapq19F6GIGIjKGWZV79cbWGNGTZJ1F+qce1GiQJFB7k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788936948; c=relaxed/simple;
-	bh=Bz3YwL0chaCMBnCDEopPF1C6U84WHmBwKmy+OsoWE0w=;
-	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=uoKpcnmw2LSUy0ddMv1rgZgf6TCfo4/A16xgOd9y1zRxo9rQezTTd2gNhpbBx/WMpR1zaTeeV8DP323m6wwxSwCdUWDMevyTYDAMx+OHwPE9H8adLe1ws6QY9YZDaMSv44lLSKxlWsKQYmPNMz60qmYDkPNkJHUFbIdV/HTlJtA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lAnjPgf3; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788937775; c=relaxed/simple;
+	bh=1FAIQnZhZLFZV/kJb7P8mASwsdd4Z8mss2/nHoa+KR0=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=c2XeP2nMHz1pmLsDP8pEYKz+YS7KCWswzxnRMHVdhczlQVAApxecpzTuPWHpfnj2kgCDvcgFx/p7e/ugNNuBfU0BmMPzV4sEU+Xb9Ap0TWXPze4tZpPayH0Ag6zjx3NSh9kVSenV1uDxfJE7ChwwuMKa9WQ4hqmmWf+22KIIMGY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dqZcA2zc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lAnjPgf3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD2C91F00A3F;
-	Wed,  9 Sep 2026 06:55:46 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dqZcA2zc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1D011F00A3A;
+	Wed,  9 Sep 2026 07:09:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788936947;
-	bh=4Wz5r3bkovseDZXXE/3vCh6AS15KQiCU/AZXL0MyQ30=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=lAnjPgf3oATisdkW3y9sir/Yc/vSaGfL+jcwt+Sbdn5NqDoPAKFfaCNPGXLU0s82T
-	 vxktN/DG7UV/CdDlL+U+QqXopOZHI6hOeXxttY9Q2GOhDT4zlM0uxX1GJEUZdHew49
-	 7ikuiiWyKoBYkCoazRHO09aAd5cWjYDDfr1QjJshJm3lXJp7SzpTKHNKEQ5lULMs76
-	 hIQvPTF2nA7nuzRgwvC9hp9cT64Scfm89OSmm1QDGMsxQ6UzYuCIkqvyhoLHFCXlqC
-	 s7tUFqIJWu5wt7Nre0qMzqwrd5wsLc+X7u/5Eb3sFwN6ob7jXyrwK2zXb/9zec3qjb
-	 AsdST9Dkm53xg==
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next V4 14/14] selftests: drv-net: Add PSP HW GRO
- conformance tests
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Tariq Toukan" <tariqt@nvidia.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260908065244.3799142-15-tariqt@nvidia.com>
-References: <20260908065244.3799142-1-tariqt@nvidia.com>
- <20260908065244.3799142-15-tariqt@nvidia.com>
-Content-Type: text/plain; charset=utf-8
+	s=k20260515; t=1788937773;
+	bh=07RL5PmXNvtCfGUStJ5pEHV1wfyEpGPOcdrgmnwqvqQ=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=dqZcA2zcPrzpT4MGF+wy9U90QV4SzDzwQbpPlgCkQkbHMU6g4WLGrTe0R3zRArkpc
+	 qd5Ru50M9+AaZs9l4w4kHrGHaVqEd/4w2os7TbO+5hTHS1SpOcLPDOylGfuwHgUHhM
+	 P4WgCA+ll+bnSSpoTq5d830ZcDQlZFpEo06aLSaaIU6WhX0TEfi5Ru7aDFnVglF+M7
+	 VUcvj+yimtv4lFoBxgMfV9BcvxL9NxcaicDCWpptT6iEj+j4ruAGLDDOR0TTNt1YNE
+	 vWoPAUeYzfNT+cWhExflaf8h0trCwWz7fV6kjufvUc9uDgoZ9iOD6p8Zi3YFCGB/kO
+	 vfpUgZhfsgG2Q==
+Message-ID: <4fda023c1e7152aee2d5f977f5045dcddcd08d8d.camel@kernel.org>
+Subject: Re: [PATCH net] rds: ib: use rds_conn_drop() on protocol version
+ mismatch
+From: Allison Henderson <achender@kernel.org>
+To: henrymei <ljp1205831794@gmail.com>, netdev@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, 
+	santosh.shilimkar@oracle.com, davem@davemloft.net, edumazet@google.com, 
+	kuba@kernel.org, pabeni@redhat.com, horms@kernel.org, Aohan Mei
+	 <henrymei@tencent.com>, TencentOS Corvus AI <corvus@tencent.com>, 
+	stable@vger.kernel.org
+Date: Wed, 09 Sep 2026 00:09:32 -0700
+In-Reply-To: <20260908123356.1163970-1-henrymei@tencent.com>
+References: <20260908123356.1163970-1-henrymei@tencent.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 09 Sep 2026 06:55:46 +0000
-Message-Id: <20260909065546.DD2C91F00A3F@smtp.kernel.org>
+User-Agent: Evolution 3.52.3-0ubuntu1.1 
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 2 potential issue(=
-s) to consider:
-- [Medium] Hardcoded PSP versions [0, 1] in test_psp_ver_diff instead of dy=
-namically using supported capabilities.
-- [Medium] Unconditional creation of AF_INET6 socket crashes on IPv6-disabl=
-ed systems.
---
+On Tue, 2026-09-08 at 20:33 +0800, henrymei wrote:
+> From: Aohan Mei <henrymei@tencent.com>
+>=20
+> rds_ib_cm_connect_complete() runs from the RDMA-CM event handler with
+> conn->c_cm_lock held.  When the peer negotiates a protocol version
+> older than RDS_PROTOCOL_COMPAT_VERSION, the handler calls
+> rds_conn_destroy(), which is only safe in the rmmod path: it
+> synchronously tears the connection down and flush_work()es the
+> shutdown work cp_down_w.
+>=20
+> That shutdown work (rds_conn_shutdown()) needs cp_cm_lock, which is
+> the very lock the event handler still holds, so the flush never
+> completes: the two workers wait on each other and the RDS connection
+> workqueues stall for good.
+>=20
+> All other RDMA-CM failure paths (REJECTED, CONNECT_ERROR,
+> DISCONNECTED) use rds_conn_drop(), which marks the connection
+> RDS_CONN_ERROR and schedules the shutdown work asynchronously.  Use
+> it here as well.
+>=20
+> Fixes: cdc306a5c9cd ("rds: make v3.1 as compat version")
 
-commit 2fbb01e97add94de0a14266aa0b2565a8246c7ea
-Author: Cosmin Ratiu <cratiu@nvidia.com>
+Hi Aohan,
 
-selftests: drv-net: Add PSP HW GRO conformance tests
+Thanks for the catch, this looks correct to me.  Just one nit on the
+fixes tag.  I think we want: f147dd9ecabf ("RDS/IB: Disallow connections
+less than RDS 3.1").  That looks like the commit that added the
+rds_conn_destroy() call to the version check.  Other than that, I think
+this patch looks good.  With the Fixes tag corrected, you can add my rvb:
 
-This commit adds PSP conformance tests to kselftests using the gro helper
-binary in --psp mode. The sender crafts encapsulated and SW-encrypted PSP
-packets, and the receiver's device decrypts and decapsulates the packets
-before an AF_PACKET tap gets to analyze them.
+Reviewed-by: Allison Henderson <achender@kernel.org>
 
-[ ... ]
+Thanks!
+Allison
 
-> diff --git a/tools/testing/selftests/drivers/net/hw/psp_gro.py b/tools/te=
-sting/selftests/drivers/net/hw/psp_gro.py
-> new file mode 100755
-> index 0000000000000..3a069c944ae1e
-> --- /dev/null
-> +++ b/tools/testing/selftests/drivers/net/hw/psp_gro.py
+> Reported-by: TencentOS Corvus AI <corvus@tencent.com>
+> Cc: stable@vger.kernel.org
+> Assisted-by: CodeBuddy:Kimi-K3
+> Signed-off-by: Aohan Mei <henrymei@tencent.com>
+> ---
+>  net/rds/ib_cm.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
+> index d46146887ba4..2909da8363f3 100644
+> --- a/net/rds/ib_cm.c
+> +++ b/net/rds/ib_cm.c
+> @@ -115,7 +115,7 @@ void rds_ib_cm_connect_complete(struct rds_connection=
+ *conn, struct rdma_cm_even
+>  				  &conn->c_laddr, &conn->c_faddr,
+>  				  RDS_PROTOCOL_MAJOR(conn->c_version),
+>  				  RDS_PROTOCOL_MINOR(conn->c_version));
+> -			rds_conn_destroy(conn);
+> +			rds_conn_drop(conn);
+>  			return;
+>  		}
+>  	}
 
-[ ... ]
-
-> +def _psp_assoc(cfg, version=3D0):
-> +    # This socket receives no traffic, exists solely to own the rx assoc.
-> +    s =3D socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
-
-[Severity: Medium]
-Will unconditionally creating an AF_INET6 socket here crash the test framew=
-ork
-with an OSError (EAFNOSUPPORT) on systems where IPv6 is disabled at boot?
-
-If the test is running an IPv4 variant on such a system, should the socket
-creation match the protocol family, or gracefully skip the test instead of
-failing?
-
-[ ... ]
-
-> +@ksft_variants(_ip_variants())
-> +def test_psp_ver_diff(cfg, protocol):
-> +    """Frames from two different PSP versions must not coalesce."""
-> +    init_psp_dev(cfg)
-> +    if len(cfg.psp_info['psp-versions-cap']) < 2:
-> +        raise KsftSkipEx("Device supports a single PSP version")
-> +
-> +    _run(cfg, "psp_ver_diff", protocol, [0, 1])
-
-[Severity: Medium]
-Could this hardcoded list of versions [0, 1] cause the test to fail on
-devices that support multiple versions but do not support version 0 (for
-example, if they only support versions 1 and 2)?
-
-Since the test verifies len(cfg.psp_info['psp-versions-cap']) < 2 to ensure
-at least two versions are supported, would it be better to dynamically pick
-the first two versions from that capabilities array instead of hardcoding t=
-hem?
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260908065244.3799=
-142-1-tariqt@nvidia.com?part=3D14
