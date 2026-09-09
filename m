@@ -1,150 +1,126 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 873433A4F30
-	for <linux-rdma@vger.kernel.org>; Wed,  9 Sep 2026 08:50:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A6FD10F1
+	for <linux-rdma@vger.kernel.org>; Wed,  9 Sep 2026 08:50:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788943838; cv=none; b=mRr7o0z/bXYkzBd5Cxm20OSoKzIYyxZcvFWQXg9h/nxZpEFusZZEg2CWKLsKF/DRNZUHdoGkWVF7afHll4LHXy1bisUqcxz939eJyGIJdgWxiEbVVj9J+av8cmO3qPwBI5jdAZhbr2W72lmkW7qcjOJwZwcGWik0qJu37RMPWxI=
+	t=1788943839; cv=none; b=jjmO5oJxe8dqkBS7t/D7F42xsug5j85KK5GloV01Orlm0CiHYgvagO+zSk6nikKhrNYxAuIfq1eCgokehV9aKSO17eM5I2sR1VIqiG/LycZmV4u+ZcIpKrXsrbth0VKTxpM6+6s5xTxWOvs3es5ul6zb2TXdbPKv3dilbv5SrbM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788943838; c=relaxed/simple;
-	bh=a4ihGqfVmjjUyds7mJY1inYLiQTp9Gy4V55Cqmj7rNA=;
+	s=arc-20240116; t=1788943839; c=relaxed/simple;
+	bh=FfJFove3Km+TbbbpvwmuroGuZk8/9fncya3Z6y0st5c=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=fUh8xAnqeCATlEx+Mj4W68IeX9cOVL2ZKrjAj05wfjTCB0qsWRIzeKg+QfsYFsmgm0E0+0iNfCJ5a1H/kfcAZDYDx8VEsvavxGNGTHy0f11W3YRAZUmqTp8i6yDU3r4JlyaVNCzoDPFCUnM4d003L3wf2/i2sGfQdAubyAHuZlw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TStcTgEy; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=idPJwgOKyhQex/vzezgwmrdqcK1aZF/V7dHrTrugaVEZkGYnQlloI7SMnOZlc8Kl1t4ufoi8dsYjGYiBs7/AjEw0gH6AmNqWE0AqklQKv+Rv1gvs1rMfACIr7nmzyDywGl++Z2K/nqWLfVR4hNSscimWsZQt2bg4nOGlGf6TUkc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Qxa7ChZq; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TStcTgEy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B0F11F00A3A;
-	Wed,  9 Sep 2026 08:50:36 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Qxa7ChZq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBB881F00A3D;
+	Wed,  9 Sep 2026 08:50:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1788943837;
-	bh=r+nFa7sw2qlUWtvXOd+lKvnQxPpSUYRQcs+3oCnW7dw=;
+	bh=mSUk3tKK98xPubnOrf7d9vWBSiyL/bP5Y85cjUrjI7U=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=TStcTgEyhg9S2IKGyPL6wsUZuQEOYhmTS4YFlT9nDl8qAt4GgAZG45FGgXsO3uvXp
-	 2fWLbOP8PTC1kuxggdN6NCMvXC2nfSnGJlcZNMsWdIXfnMmnKF8dSWrpB6dObDkLTj
-	 8/XOnPCw49zwIC0SNQYZueKEz/kC++ph9wb5kEgDa3Qw/uldHY11WiXW7Wwjdwweea
-	 je5TP9foyphXkYxbt5n0pGMBrDdkRcS2ThOqGMQ+nXPQ6b73o/fTguZJ5pwTM9VzNO
-	 XcxRVyTL/bNficJGcYgutvLnwZRNhT87KecvHhYeh0b2phVpekoQgE2dNiapY8Sblh
-	 VNVGzn7/reqqg==
+	b=Qxa7ChZqj2he951fAmCBCDTKlXib6fU+L2PgznQQnf5J3EQ4+4huOc5O75xKwbHkt
+	 +9v4m11NGOclHVVjNuQNeA5+8tWiFfQqbcQ1d2PV/1iGifjzGYihCpYHAZKGcPN7Cj
+	 T6ivFKz4qt+HOkLbfjzI7fF2hXhUIETXE/Ok/5es+tEBge5OVK5N7J+RPnOER7LV34
+	 ZQgTfq2P2nxRJYiJ8JYedHqyBzsKzc5Tng77+v4sAxpGKz83AG6ENyA7Cw+EokC4IV
+	 mnlSdJwqhDRgDNZOc3xs3MuuSKbVqDX6dFkeRDwtKPtZVe7wk2Ju5DNQI6bG0SUoLk
+	 8XJ5HG7+36jTQ==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH for-rc v2 5/8] RDMA/bnxt_re: Fix rdev lifetime races in
-  suspend/resume/shutdown
+Subject: Re: [PATCH for-rc v2 3/8] RDMA/bnxt_re: Validate num_sge in
+ bnxt_re_post_srq_recv()
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Selvin Xavier" <selvin.xavier@broadcom.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260909135244.122747-5-selvin.xavier@broadcom.com>
+In-Reply-To: <20260909135244.122747-3-selvin.xavier@broadcom.com>
 References: <20260909135244.122747-1-selvin.xavier@broadcom.com>
- <20260909135244.122747-5-selvin.xavier@broadcom.com>
+ <20260909135244.122747-3-selvin.xavier@broadcom.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 09 Sep 2026 08:50:36 +0000
-Message-Id: <20260909085037.0B0F11F00A3A@smtp.kernel.org>
+Date: Wed, 09 Sep 2026 08:50:37 +0000
+Message-Id: <20260909085037.BBB881F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-Thank you for your contribution! Sashiko AI review found 3 potential issue(=
+Thank you for your contribution! Sashiko AI review found 2 potential issue(=
 s) to consider:
 
+New issues:
+- [Medium] Unconditional error logging on fast-path enables unprivileged lo=
+g spam (Denial of Service)
+
 Pre-existing issues:
-- [High] The patch misses applying the Use-After-Free fix to `bnxt_re_remov=
-e()`, leaving the exact same race window open during device unbind or modul=
-e unload.
-- [High] Use-After-Free during `bnxt_re_dev_init()` failure path due to int=
-ernal resource teardown while `en_info->rdev` is still valid.
-- [High] Insufficient synchronization between `bnxt_re_update_en_info_rdev(=
-)` (`rtnl_lock`) and lockless RCU readers like `bnxt_re_async_notifier()`, =
-leading to Use-After-Free.
+- [High] Uninitialized stack memory in hardware work queue descriptor (wqe.=
+flags)
 --
 
-commit 1f3564eb53548d58fabdef6b5b5a607d2ac66cdf
+commit a50a4d21bcd2c8e40025a33fa29a7f621d05a408
 Author: Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: RDMA/bnxt_re: Fix rdev lifetime races in suspend/resume/shutdown
 
-This commit attempts to fix use-after-free windows in the suspend, resume,
-and shutdown paths by ensuring the rdev pointer is cleared before device
-resources are freed.
+RDMA/bnxt_re: Validate num_sge in bnxt_re_post_srq_recv()
 
-> diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw=
-/bnxt_re/main.c
-> index ce72db1b4bc34..142bf9a8ca4a4 100644
-> --- a/drivers/infiniband/hw/bnxt_re/main.c
-> +++ b/drivers/infiniband/hw/bnxt_re/main.c
-> @@ -2427,11 +2427,14 @@ static int bnxt_re_add_device(struct auxiliary_de=
-vice *adev, u8 op_type)
->  	bnxt_re_update_en_info_rdev(rdev, en_info, adev);
+This commit adds a validation check in bnxt_re_post_srq_recv() to ensure
+that the number of scatter/gather elements (SGE) provided for a Shared
+Receive Queue (SRQ) does not exceed the device's configured maximum.
+
+> diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniban=
+d/hw/bnxt_re/ib_verbs.c
+> index e56830a669bf4..ab9d4d6bf5b02 100644
+> --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> @@ -2386,9 +2386,16 @@ int bnxt_re_post_srq_recv(struct ib_srq *ib_srq, c=
+onst struct ib_recv_wr *wr,
+>  			  const struct ib_recv_wr **bad_wr)
+>  {
+>  	struct bnxt_re_srq *srq =3D container_of(ib_srq, struct bnxt_re_srq,
+>  					       ib_srq);
+>  	struct bnxt_qplib_swqe wqe;
+
+[Severity: High]
+This is a pre-existing issue, but does this allocation leave wqe.flags
+uninitialized before the structure is passed to the hardware?
+
+Any legitimate call to bnxt_re_post_srq_recv allocates the wqe structure on
+the stack without zeroing it. The function sets specific fields but appears
+to leave wqe.flags uninitialized before calling bnxt_qplib_post_srq_recv,
+which writes the flags field into the hardware's ring buffer descriptor.
+
+Can this result in unpredictable hardware behavior or dropped work requests
+if the garbage stack data is misinterpreted by the hardware datapath?
+
+>  	unsigned long flags;
+>  	int rc =3D 0;
 > =20
->  	rc =3D bnxt_re_dev_init(rdev, op_type);
-> -	if (rc)
-> +	if (rc) {
-> +		bnxt_re_update_en_info_rdev(NULL, en_info, adev);
->  		goto re_dev_dealloc;
-> +	}
+>  	spin_lock_irqsave(&srq->lock, flags);
+>  	while (wr) {
+>  		/* Transcribe each ib_recv_wr to qplib_swqe */
+>  		wqe.num_sge =3D wr->num_sge;
+> +		if (wr->num_sge > srq->qplib_srq.max_sge) {
+> +			ibdev_err(&srq->rdev->ibdev,
+> +				  "Limit exceeded for SRQ Receive SGEs");
 
-[Severity: High]
-This is a pre-existing issue, but does this approach fully prevent the race
-during a device initialization failure?
+[Severity: Medium]
+Since this function is on a fast-path datapath reachable from unprivileged
+userspace via the RDMA uverbs API, could this unconditional error log lead
+to log spam?
 
-If bnxt_re_dev_init() fails internally after registering the netdev, it
-jumps to its internal fail label and calls bnxt_re_dev_uninit(). At this
-stage, en_info->rdev is still valid.
+An unprivileged userspace application could intentionally flood the kernel
+ring buffer by passing a wr->num_sge that is valid for the system call but
+exceeds the driver's max_sge limit.=20
 
-If an async ULP callback triggers during this teardown, could it access
-partially destroyed resources before bnxt_re_dev_init() returns and the
-pointer is finally cleared here?
+Would it be better to rate-limit this ibdev_err call, or remove it entirely
+to prevent potential denial of service through disk space exhaustion and
+system performance degradation?
 
-[ ... ]
-
-> @@ -2533,8 +2539,9 @@ static int bnxt_re_suspend(struct auxiliary_device =
-*adev, pm_message_t state)
-> =20
->  	ibdev_info(&rdev->ibdev, "%s: L2 driver notified to stop en_state 0x%lx=
-",
->  		   __func__, en_dev->en_state);
-> -	bnxt_re_remove_device(rdev, BNXT_RE_PRE_RECOVERY_REMOVE, adev);
-> +
-> +	bnxt_re_update_en_info_rdev(NULL, en_info, adev);
-> +	bnxt_re_remove_device(rdev, BNXT_RE_PRE_RECOVERY_REMOVE, adev);
->  	mutex_unlock(&bnxt_re_mutex);
-
-[Severity: High]
-This is a pre-existing issue, but is there sufficient synchronization betwe=
-en
-the pointer clearing and lockless RCU readers?
-
-While bnxt_re_update_en_info_rdev() uses rtnl_lock() to clear the pointer,
-readers like bnxt_re_async_notifier() read it under rcu_read_lock().
-
-Because bnxt_re_remove_device() subsequently destroys the workqueue via
-bnxt_re_uninit_dcb_wq() without waiting for synchronize_rcu(), could an
-active concurrent RCU reader proceed to call queue_work() on the destroyed
-workqueue?
-
-
-Looking at the rest of the file, it appears a similar pattern exists in
-bnxt_re_remove() which is not covered by this patch:
-
-drivers/infiniband/hw/bnxt_re/main.c:bnxt_re_remove() {
-        ...
-        rdev =3D en_info->rdev;
-
-        if (rdev)
-                bnxt_re_remove_device(rdev, BNXT_RE_COMPLETE_REMOVE, adev);
-        ...
-}
-
-[Severity: High]
-This is a pre-existing issue, but since the patch fixes the use-after-free
-window during suspend, resume, and shutdown, does bnxt_re_remove() need the
-same fix?
-
-When the auxiliary device is removed, bnxt_re_remove() calls
-bnxt_re_remove_device() to destroy resources without first clearing
-en_info->rdev. Could an asynchronous L2 ULP callback fire concurrently and
-access the freed memory?
+> +			rc =3D -EINVAL;
+> +			*bad_wr =3D wr;
+> +			break;
+> +		}
+>  		bnxt_re_build_sgl(wr->sg_list, wqe.sg_list, wr->num_sge);
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260909135244.1227=
-47-1-selvin.xavier@broadcom.com?part=3D5
+47-1-selvin.xavier@broadcom.com?part=3D3
