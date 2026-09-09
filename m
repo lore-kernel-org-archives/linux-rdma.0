@@ -1,112 +1,121 @@
-Received: from mail-pj1-f47.google.com (mail-pj1-f47.google.com [209.85.216.47])
+Received: from mail-pf1-f227.google.com (mail-pf1-f227.google.com [209.85.210.227])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF0B43AA1BF
-	for <linux-rdma@vger.kernel.org>; Wed,  9 Sep 2026 08:13:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 674342192FA
+	for <linux-rdma@vger.kernel.org>; Wed,  9 Sep 2026 08:29:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.227
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788941618; cv=none; b=rR8gPr9c4mGD+eRRiMjD3NvCBMl5t8fSyH5soUk9JEkUZLD+YV7wyT++Ldgph77286HBjiuOCe4Um++otHmHNotZZCUus/vqvWnKmkBHUSPWd/7wxp7WKqArOcF9kTAPtwn8a1H8EWy5krCd0G6nlC+1hPE0iXv9jToRxt6VMDg=
+	t=1788942562; cv=none; b=kCwzZbBZZ9lLainPjXgsltyrRa3IDr01S6bSFp9a0+/T/2rv7NjwNHivoBxVUF9/DZxM3sufZn1I6lqYY/WXtmRmczfMfn9wdGuOGrh6NKIbunlBdXPxfUIMKmNimyn/QjIYT892N7CnPuoyv6tPWjIS0tzgCKuB3FSSzOX0Fu8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788941618; c=relaxed/simple;
-	bh=4SlUJRZ6lCSLtCoC2eC7TwJ396NKEP6ndS27ONkS898=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=MErE/pcMyhLtncDk825AJSye4ZUVAkbUy5l5dCjQ+009+UA2OV24MjpmCLEiGaxk6OS4NNIs1IXXeuR7J8HFtAc+ehIZm9ZOWAD56OgBaNu1a9XqWeo/Iskrnk1MfTV3NkfmFeo0mddCsZbw6j/FLv1WPnIzUcmnS8EgZ8t4iJs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Zq4wA4uC; arc=none smtp.client-ip=209.85.216.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1788942562; c=relaxed/simple;
+	bh=otTS3tcVA4IVxcFRmMXjpKGDYyshBZbawkRvXrlWSuE=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=ltVaSXWgdGf7XZn7f+0knMzdn7VL+R0buAXAFmLcnZdivk/g+KPG0YqHWWQ4NET+3Euv2tSq3bA9Ni8fr1Bo8H404K8eB9U96cJOyxp1pLnCdb4Lcd6m7glWy/Sw8gBSHEVKJ23IEAIWSXENJrBDbQEUMBqQdr6WVO7sELfGF1M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=JgwSuUiK; arc=none smtp.client-ip=209.85.210.227
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Zq4wA4uC"
-Received: by mail-pj1-f47.google.com with SMTP id 98e67ed59e1d1-39675172593so4557739a91.2
-        for <linux-rdma@vger.kernel.org>; Wed, 09 Sep 2026 01:13:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1788941615; x=1789546415; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from:references
-         :cc:to:content-language:subject:user-agent:mime-version:date
-         :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=By31MJJOFbdY4DAev1nT7iD7DtFZXUQ34u/cf8nMk/A=;
-        b=Zq4wA4uCrghFCyJKgQNkH2SKLrxviMR3hMt4Q/i/pPRt9AL2SgmBptOWE6NLRlRTph
-         tW7SGIbeNx/1HejTBDZDdDt1wpzCML9b6NmgQ1+GRz1HlfFrebcdWoF+6bKaJCI4YosS
-         Cnkwt7whgT/GKYf1x2gD6oWzzOGFbxwMaYI4wx/pJkUtwHtJk//8NR3ib4UQletbpC+2
-         Ya6MKBcsl1mauoVxhfyUTNQh01s8sYs1iPc5Q0NlDFhpjskEzqMPqvoczEBDrHmC9q1N
-         NJwXO3mXBglE9gr1tJQ/Ls1GTUgDd194zHoGBAkUF2u4Aydaqq73zHkHxoYgEWrDYZaL
-         o9vQ==
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="JgwSuUiK"
+Received: by mail-pf1-f227.google.com with SMTP id d2e1a72fcca58-853c07a76adso5351668b3a.0
+        for <linux-rdma@vger.kernel.org>; Wed, 09 Sep 2026 01:29:20 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788941615; x=1789546415;
-        h=content-transfer-encoding:content-type:in-reply-to:from:references
-         :cc:to:content-language:subject:user-agent:mime-version:date
-         :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=By31MJJOFbdY4DAev1nT7iD7DtFZXUQ34u/cf8nMk/A=;
-        b=q0/erxlQs/Pha280YJ2f6aq/xWsNa3f/GvxPat49UnOwzvznOyMF3vsO4NNY6BVg/Q
-         y5erQaDVHIBGfetTQjLQAQcyc2O57WOmqhLIJRc8CdBVjNVuTJO7mRmRZD3nLWrCOQj5
-         WglOck1/HVjztatf19am0X9nllLtN1QWDag9HwOmVwEyfGxwhYsQcdy50SIQujAeMEF2
-         PNK9pVnw5GBoxO5uKPuMCDWAptwysC36uYlWAVqi6l9r5fbOy5gX9yguu9i1odNjPlgc
-         Xw8ZFmSfDwvEhxgCELkaSYLv2UTLWYkAsLKEHW1QqA/gt/rlaE/MoVqYlIkrU/PDZ0nN
-         0Ulw==
-X-Forwarded-Encrypted: i=1; AKwUvBzMv2OZcRUT+uhn5bqnn/LeB+F8D60tefeZCHNz5sdqSELGbXlnq6MBuJb6ladmv2MOeDHrKZTclJLe@vger.kernel.org
-X-Gm-Message-State: AFuF++nlR8ovKQ3yXErc7kChXSO9l5ItykgJ+Kmjk7ZHdAhnsaMCMd6q
-	f2IRuxItvsu1lymknVAuHZLE9KhRpoxIbUC1lUKEfg54H3MYerIKekvg
-X-Gm-Gg: AYBFou1VxDhtuEtmg0DR9uAyP0ghuRk+4BKTB6bSpC7x6+l20Qszffm+V54cXb2Rj2y
-	nSOKYQmZ5jdVjWiEB6yLk6c7xS/EZxNA1Q2FAjG7I5JoX/lvOsTgu7tHxm0bpof+Qi3EVF/2Qzv
-	fY9WxFB51RGTwYgVESloF+V1CR4Kyka+81/vLeOkEjb/Brnz8TPe1aZcypzsg2mNy2tDZgWsq/d
-	YDsHpiJ2GtteNWS/gJZKQkZqtpJJFSdsjNOgwYoBTbtRpiXWe1giD5hxgqWpjsbmkvT9J5UqAOY
-	nddZWnyew/A3pWZhljqTyeTBYislLFNO21vYAhfCeTWUbRAIFVHcJXQ+PQvOL09Dss2Oxs9gNSM
-	IY4ySLxNS6Fsona3N/bv59ipqrFaPYzQOiXwnUrLM9x0Q1HFC/3CVpiDXmjs3zKkwR4K+46usLl
-	ScN4HKo8+S1XLthW2TkQvX2ewtSUXIX8uJf8dBrWpkGO5EkC2xJCLJIxr/b3hiEkcWWO48aAcaT
-	IPabLebrahOJPjoJtSTD7Q3nu0CejZa/gDqu6hVXcLR2qA0L76ZEwxNKQK5dheF+QAGXaSKVbQ=
-X-Received: by 2002:a17:90b:3fd0:b0:398:d6e6:4671 with SMTP id 98e67ed59e1d1-39b262981a2mr48566902a91.25.1788941615120;
-        Wed, 09 Sep 2026 01:13:35 -0700 (PDT)
-Received: from ?IPV6:2600:1702:7bd1:29f:8000::1? ([2600:1702:7bd1:29f:8000::1])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1434c745a09sm10347066c88.7.2026.09.09.01.13.34
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 09 Sep 2026 01:13:34 -0700 (PDT)
-Message-ID: <297da587-b4bb-4ae2-bdc7-29749144f5ea@gmail.com>
-Date: Wed, 9 Sep 2026 01:13:33 -0700
+        d=1e100.net; s=20251104; t=1788942560; x=1789547360;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:dkim-signature:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=GJ7NXtG8KT/Nkh/AdNTsN9m1UyI+HMg3XwPiCeRLzgo=;
+        b=ZksHXU2XeXhtRSNTuZ9/+7ooSDWhOYowuXfvqiDrvCzZVnnnjuHfmLirBFzN8mngvq
+         XkwStkMvAM5jLqEbBFQJwl7nJGtQTe4SW0CrwevHRWXLYdL1sUOXO3Ch2O5uR/rwLQyi
+         PEGQfqhfYKoFMOpCjLtFJse4UP2VByc/mw2xfbEl3gRf9DLGbjtNaglLecAYwOzBMFly
+         Ltx6hiDmBeXw3G8t/0xpgReyStYDYYqFieiCopmKbAY+p/HDLy2IJthXg8VmFwibEtkE
+         rqhkXR0PJXJ/QXrrnAQGC4QSI6FY9GjU+i06+sNvhXehYSrcqhrwBzt29DKCn+otWlW+
+         LGUA==
+X-Gm-Message-State: AFuF++lQ3J/NkRU5IpdMH3l6vE/uyJ3yHVvwGi8tO0g3vreD6ay3CP53
+	hhgoD4saztGSmQRbY0gVCOCfTP8sJoume1kl4Yh2bZWCnxUD/dQ3Py3MvSriULnqycpXBOmHPDZ
+	UHv9RLP6St/dfX35rRwl3aDHATlHYVchY3HNOeUEZnis8iGU1vMNYFPTqrHGyCfiB3fFK8NtfmM
+	qXT+OXg8C4D33ywBPQbwOcwot8or89ZC9U+ZF4p7IsNC6OqpCPfpslNV3unxCMDtffH0/9y8ORl
+	Z8G/OH2u+vzVckefA==
+X-Gm-Gg: AYBFou1Lka5ncgVTLEcMUONQIYJFL8Tq35LEVbBTqUW7gha18oCrXF6S+yrnfx04Nj2
+	vnA60kGjIiAlotplyXuHc+EP9xnqZ9taoUeDyNCy63PW+odUrfv0kfui8KC9UVON8e0KiUzLLNo
+	28QGkeAEVxSwoEbuedcmLRO/ewaP3/YN+ttrMao3b23ptCeJ/UoPSg/BOUMeSz8/UtH6gKKVPDs
+	kNb3pVEl9gpPMHS34eQ7VYWkewWFP1jbsJ8fp54MRcvATAxF3nsJe8gG8PARHvTqrN6BUcDskwk
+	1I8EMGPN2lpy2V6vT3t+ZL+BepEE7u03xF7Rq0xIzr13XkLB6nqIomcUUmBqBtp/ZWXFptpe8f8
+	wqXpO0fpzrYKegNnWWOdFIvdhGyTq97AXtsfAw0vu+nXlG8s+WymBiPAWZ0RdNHj0nHgTfPL4tD
+	BCXgJAzy8M8LMggYAVtmrG1Xhuyt7o5r7z4d2o
+X-Received: by 2002:a05:6a00:1a17:b0:868:d657:3dae with SMTP id d2e1a72fcca58-868d6574063mr2147875b3a.11.1788942559643;
+        Wed, 09 Sep 2026 01:29:19 -0700 (PDT)
+Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-25.dlp.protect.broadcom.com. [144.49.247.25])
+        by smtp-relay.gmail.com with ESMTPS id d2e1a72fcca58-86150750042sm4990094b3a.3.2026.09.09.01.29.19
+        for <linux-rdma@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 09 Sep 2026 01:29:19 -0700 (PDT)
+X-Relaying-Domain: broadcom.com
+X-CFilter-Loop: Reflected
+Received: by mail-pg1-f200.google.com with SMTP id 41be03b00d2f7-cbee6bb8408so6842287a12.3
+        for <linux-rdma@vger.kernel.org>; Wed, 09 Sep 2026 01:29:18 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=broadcom.com; s=google; t=1788942558; x=1789547358; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=GJ7NXtG8KT/Nkh/AdNTsN9m1UyI+HMg3XwPiCeRLzgo=;
+        b=JgwSuUiK3TPULngVvJaMOUfgHmtUFfMMH+gimAEHMNu8v2lBXAuAuRLVF3SJJ3TYbH
+         sA1jIcNnCaOmNefLHvdtdw99f6XWS36pCDfnZavSL508wwZbjwroXjzYx3Ny0qpYxkeO
+         zxVbqy4BFR4HhvmwshuAVYl+Hv9ZdGt+o35mY=
+X-Received: by 2002:a17:90b:1c8b:b0:398:9bd5:490c with SMTP id 98e67ed59e1d1-39b26214502mr47256826a91.19.1788942557827;
+        Wed, 09 Sep 2026 01:29:17 -0700 (PDT)
+X-Received: by 2002:a17:90b:1c8b:b0:398:9bd5:490c with SMTP id 98e67ed59e1d1-39b26214502mr47256771a91.19.1788942557294;
+        Wed, 09 Sep 2026 01:29:17 -0700 (PDT)
+Received: from dhcp-10-123-156-114.dhcp.broadcom.net ([192.19.234.250])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1432423f99fsm39157065c88.1.2026.09.09.01.29.14
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 09 Sep 2026 01:29:16 -0700 (PDT)
+From: Selvin Xavier <selvin.xavier@broadcom.com>
+To: leon@kernel.org,
+	jgg@ziepe.ca
+Cc: linux-rdma@vger.kernel.org,
+	andrew.gospodarek@broadcom.com,
+	kalesh-anakkur.purayil@broadcom.com,
+	Selvin Xavier <selvin.xavier@broadcom.com>
+Subject: [PATCH for-rc v2 0/8] RDMA/bnxt_re: Fix input validation and lifetime bugs
+Date: Wed,  9 Sep 2026 06:50:11 -0700
+Message-Id: <20260909135019.122711-1-selvin.xavier@broadcom.com>
+X-Mailer: git-send-email 2.39.3
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 0/2] smbdirect: don't hang on netdev reconfiguration
-Content-Language: en-US
-To: Stefan Metzmacher <metze@samba.org>, linux-rdma@vger.kernel.org
-Cc: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>,
- Namjae Jeon <linkinjeon@kernel.org>, Paulo Alcantara <pc@manguebit.org>,
- Tom Talpey <tom@talpey.com>, linux-cifs@vger.kernel.org,
- samba-technical@lists.samba.org, linux-kernel@vger.kernel.org,
- Ammar Ratnani <aratnani@nvidia.com>, Kechen Lu <kechenl@nvidia.com>,
- Mithun Maragiri <mmaragiri@nvidia.com>
-References: <20260908154454.10966-1-ammrat13@gmail.com>
- <c46d2974-04fa-4f49-a9ec-43ac8c1dd4db@samba.org>
-From: Ammar Ratnani <ammrat13@gmail.com>
-In-Reply-To: <c46d2974-04fa-4f49-a9ec-43ac8c1dd4db@samba.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 
-Thank you for the very quick response, Stefan!
+This series fixes some of the bugs found while auditing bnxt_re's handling
+of user-supplied values and object/device lifetimes.
 
-> Given you have some automation to reproduce it I'm
-> wondering if you could also test the iwarp case, see
-> https://lore.kernel.org/linux-rdma/20260805000159.321645-2-yunseong.kim@est.tech/
+Please review and apply the series.
 
-I tried running my setup for iWARP. I used the old "bad" kernel, and the
-only thing I changed was that I used an siw device instead of an rxe. I
-do not get a hang in that case. To be more precise, I see the following
-at the end of dmesg:
+Thanks,
+Selvin Xavier
+ v0 -> v1:
+  Handle review comment about clearing VM_MAYEXEC vma flag
 
-    [   40.006460] siw0: Port: 1 Link DOWN
-    [   40.012912] siw0: Port: 1 Link ACTIVE
+Selvin Xavier (8):
+  RDMA/bnxt_re: Reject executable mappings of the DBR and toggle pages
+  RDMA/bnxt_re: Detect wrong sge_len passed for inline
+  RDMA/bnxt_re: Validate num_sge in bnxt_re_post_srq_recv()
+  RDMA/bnxt_re: Validate SRQ max_sge at create time
+  RDMA/bnxt_re: Fix rdev lifetime races in  suspend/resume/shutdown
+  RDMA/bnxt_re: Fix the PD and DPI table size
+  RDMA/bnxt_re: Use bnxt_ext_stats_supported for counter count selection
+  RDMA/bnxt_re: Check is_in_used before trusting RCFW completion
 
-But I don't see any message of the form "INFO: task ... blocked for more
-than ... seconds." Additionally, I'm able to list and read a file off
-the CIFS mount, even after bringing the interface down and up.
+ drivers/infiniband/hw/bnxt_re/hw_counters.c |  6 ++--
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c    | 26 +++++++++++++----
+ drivers/infiniband/hw/bnxt_re/main.c        | 32 ++++++++++++++++-----
+ drivers/infiniband/hw/bnxt_re/qplib_rcfw.c  | 12 +++++---
+ drivers/infiniband/hw/bnxt_re/qplib_res.c   |  9 +++---
+ drivers/infiniband/hw/bnxt_re/qplib_sp.c    |  2 +-
+ 6 files changed, 64 insertions(+), 23 deletions(-)
 
-For this test, I used commit 2beb1b31a12b ("Merge tag 'bpf-fixes' of
-git://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf"). This is a later
-tree than what I used in my last email, but I confirmed that I get the
-same behavior I described in that email.
+-- 
+2.39.3
 
-Thank you,
-- Ammar Ratnani
