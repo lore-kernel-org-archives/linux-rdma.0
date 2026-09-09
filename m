@@ -1,207 +1,236 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from SN4PR0501CU005.outbound.protection.outlook.com (mail-southcentralusazon11021116.outbound.protection.outlook.com [40.93.194.116])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD39449BD6D;
-	Wed,  9 Sep 2026 22:55:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788994523; cv=none; b=LaADddVTuzx9FzR6/rptMjxjreIZ5pqyGQTUZv6jOGxv87/8XNzimGJEmrqkHxyscBgZOn6FK5ABJqrcExKZXDDraCmPWhjcu0ScU0QYogy5bKWLuL3AMB73UWdCqwSb0YPzUDIpolzLp/gns8AgckZ8seakT2ec1g90mrZnpyw=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788994523; c=relaxed/simple;
-	bh=J2728F4foT8Qc+xgSemhOh57i62t9cihVg1iZPKFuxg=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=VBAKzM0LCJ0kD5And7HTu4jbAhtX8utKFaYaQZLHzDJRugD5ZKo4jagpjcDPiaspvXizoDhPxOddg+XSXg5T3Y4JKaGyAF5OpRmKUOjHWEg+6/0N6NwCfYS/OI8mZ8gXnl3ZdjdE6Y9P8jwkCgw5Aq3eAfGaL16OgSikYIe+82c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PLQfoO+K; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5972B489FD8;
+	Wed,  9 Sep 2026 23:25:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.194.116
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788996335; cv=fail; b=IQh4YzVDwxI9P+dl/wHcLHIN7PyPmXXp+akR6b33Jtl/AsXc9VMzY5vyOfy3luTpYozS19TJbhWlAmb3TAAp0Y9cQJllR4PPYXLrNzj1oCF1cgMKixxBQFnZfEw6VbTcmYKPeByn4fEirGG1QLKRar94Q5sIUJQrDURHIAKXVAI=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788996335; c=relaxed/simple;
+	bh=T0UjzKWp4HpR+RBiry25boLFtCWTd3JhP/qGaTefW/U=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=YdMKCW6kZK9oUwasRQmO5BRrxplaKt/MkCTQWfBBrA8X21e/oj4oKa+jbi4hLTgu3ZIrHi9Mpx+5tEnyoHAe2RM22mjSooFiI0Nu4D8JkL/RSfiH9nforxa7WB4NULJ7gHWjQKkEkukX7nPW8wZfx4SR6G+sImeAZw83pjqj7d4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=microsoft.com; dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b=gYWwzYFT; arc=fail smtp.client-ip=40.93.194.116
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PLQfoO+K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F9E51F00893;
-	Wed,  9 Sep 2026 22:55:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788994507;
-	bh=2TZdWTY90rywMETvvm5EfpEqXvpvgxXVuMDFvw5wwhY=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=PLQfoO+KQGf4wyatV55b3IQnDxBzeRIye175psfhuv55euch4eeaHIQlWVfL8XxSM
-	 y3zjQ8hyTzMM4y2MgpWL5fev6dkxxNmx/5kW6nNqdh4nXe93uzrZcmjd9dLo3d4fQu
-	 lZieG4z+43F27CxyQ5rYPYF+UYvnsQbqKuIFMOMCFOhf5aBtJiaAJEOjqPURMEefDZ
-	 KronESeXU3Ukudbs9UaOdeQqk7GEct0t5D1mDG6XJAeVUMCdUMMuPgmJJSHDLOH6fZ
-	 vxzP2Je2MbP3r1AA0bEjAcNjGLlKjyIjcvqF0vADhJu+bP2rBpNseYA8gIjZDzz+eh
-	 qwcQG1KUa1XyQ==
-Message-ID: <2338b4729960abdf0c753d39cb3b7056421bac18.camel@kernel.org>
-Subject: Re: [rds-devel] [External] : Re: [PATCH net] rds: ib: use
- rds_conn_drop() on protocol version mismatch
-From: Allison Henderson <achender@kernel.org>
-To: Gerd Rausch <gerd.rausch@oracle.com>, henrymei
- <ljp1205831794@gmail.com>,  netdev@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, 
-	santosh.shilimkar@oracle.com, davem@davemloft.net, edumazet@google.com, 
-	kuba@kernel.org, pabeni@redhat.com, horms@kernel.org, Aohan Mei
-	 <henrymei@tencent.com>, TencentOS Corvus AI <corvus@tencent.com>, 
-	stable@vger.kernel.org
-Date: Wed, 09 Sep 2026 15:55:05 -0700
-In-Reply-To: <10cf2701-211a-42fe-bb1b-c218d718ed2b@oracle.com>
-References: <20260908123356.1163970-1-henrymei@tencent.com>
-	 <4fda023c1e7152aee2d5f977f5045dcddcd08d8d.camel@kernel.org>
-	 <10cf2701-211a-42fe-bb1b-c218d718ed2b@oracle.com>
-Content-Type: text/plain; charset="UTF-8"
+	dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b="gYWwzYFT"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=AhVlBCZAeYXkcGIMJgi+ML962opvohMoavEinlU94conWm47hXHc0pIjigKPm+QOdYNzHJYoFKDqe5fpUf1PEGFOuklbi5OKGKakdClndp91gFdUbOck8EJrWDeqLxwiMNLKHh6Hv5ZwkIeUA88jUOsYgXu8NUn1paemtmAS36zfdRPPAIbLsi16d/9OxK3wm6NwIgSB8+wm85zc9/Wb9rTuf+vqcEnU6fgM3HOksiRbiE51KLf2D1+Jv6Nm0upOP6EXFukZ6blMtzqnt51Tx7EnYT0y63/1Be3CPSlrSFhzGiSKM3+9TFYMmP5At4B/zzHbiSoVPn8iAVCNzSkjKA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=pJ4H7oXg/wCA6ifWPiTlB3t3rFs+N9MeJ5CMUFfjsQM=;
+ b=yvXKO3eJNwqld/ZMOAfpe7Ud6WtBHXDxhBSw4qomvTd3gVFX0wzRCeQT533oFJFd1AkO8NluQ/Yd9mK++hNENADAZC2ii4b9sU2I0amJlP4t4VfD+72UCljX18pp7MOF0AK15VJiRT29mRzLhMjynOcBwBuFMXLsOLeeNV8RX+GZPbtckaC6v9zRvi2wATF5FpkhbS96SK5Ljh4X1faloQp6WIz/99cOtk3GA+go/io48XAXQpCnaX4qg6+A6AokuuLCZA0yql/gbX9fIS3peIjmnfTtIfMg95DAMqa5NBH1KvYLHeAZ5h0Nt5QVUHbRh1mC8GP2bqGCK663t0WTFA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=microsoft.com; dmarc=pass action=none
+ header.from=microsoft.com; dkim=pass header.d=microsoft.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=pJ4H7oXg/wCA6ifWPiTlB3t3rFs+N9MeJ5CMUFfjsQM=;
+ b=gYWwzYFTZJKdCPwkO5CLbnvWjMc0P+fgbTXzQPp2AeXeInyqfLPwvyJVlBzNK+uYV/zTiJiUs3gh8JqKm5lT/6WGYpvGgQk2Xulnde1P0DeL8EtjF8j5FSnlXcrsqZxUYxVWrdafaEgDeMUQTK/rR8Gud7qh4HF58Ez7w8oV5sE=
+Received: from SA1PR21MB6683.namprd21.prod.outlook.com (2603:10b6:806:4a4::6)
+ by SA1PR21MB6394.namprd21.prod.outlook.com (2603:10b6:806:4a6::23) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.428.3; Wed, 9 Sep 2026
+ 23:25:30 +0000
+Received: from SA1PR21MB6683.namprd21.prod.outlook.com
+ ([fe80::8bad:6294:8a07:fe18]) by SA1PR21MB6683.namprd21.prod.outlook.com
+ ([fe80::8bad:6294:8a07:fe18%6]) with mapi id 15.21.0315.008; Wed, 9 Sep 2026
+ 23:25:30 +0000
+From: Long Li <longli@microsoft.com>
+To: "sashiko-reviews@lists.linux.dev" <sashiko-reviews@lists.linux.dev>
+CC: "linux-hyperv@vger.kernel.org" <linux-hyperv@vger.kernel.org>,
+	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Subject: RE: [EXTERNAL] Re: [PATCH net-next v4 04/13] net: mana: swap queue
+ sets in mana_set_ringparam
+Thread-Topic: [EXTERNAL] Re: [PATCH net-next v4 04/13] net: mana: swap queue
+ sets in mana_set_ringparam
+Thread-Index: AQHdP0JDeQfyxfzra0mdIplxYnuDerbFmGUAgAFNocA=
+Date: Wed, 9 Sep 2026 23:25:29 +0000
+Message-ID:
+ <SA1PR21MB6683ABC6FD97252DC632A3AFCEB02@SA1PR21MB6683.namprd21.prod.outlook.com>
+References: <20260908032843.397667-1-longli@microsoft.com>
+ <20260908032843.397667-5-longli@microsoft.com>
+ <20260909032945.2C3E41F00A3A@smtp.kernel.org>
+In-Reply-To: <20260909032945.2C3E41F00A3A@smtp.kernel.org>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+msip_labels:
+ MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ActionId=6a9f4d4d-7222-467a-abbc-aebdee5bee5e;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ContentBits=0;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Enabled=true;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Method=Standard;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Name=Internal;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SetDate=2026-09-09T23:23:50Z;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SiteId=72f988bf-86f1-41af-91ab-2d7cd011db47;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Tag=10,
+ 3, 0, 1;
+authentication-results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=microsoft.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: SA1PR21MB6683:EE_|SA1PR21MB6394:EE_
+x-ms-office365-filtering-correlation-id: ae94020c-a9ef-41dc-dd61-08df0ec9a345
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam:
+ BCL:0;ARA:13230040|366016|23010399003|376014|1800799024|38070700021|6133799003|56012099006|7146999003|4133799003|10067099003|4143699003|5023799004|11063799006|18002099003|22082099003;
+x-microsoft-antispam-message-info:
+ C8ReC8aVBZYQP5+oQo4m/Dj2d6DXm0iwsXtGxAdGW+JsqbKXOXfBqMTq376McH8uhqMl1c88lixPapod65h5dgO3Z+nU7Nn5CJv5dc+M5jfyepl4WHK0D85CF6rqn3yP6lBog7YkiE1+0lmu5PMIqajO+d+uhjmXqKoOi3Bg6U2QzD8bxg6rzwcRSjR1DckOw4Fyakfu8khVtQfPyz07Vz83zeIIsri5/uw2FcGm54fcSNGJhsUwOFh2/gZJpCCVKI186iBWgwg2CQTy9B9BNAVYC+/xsYrg+gTDmUc3D9jCgfbkurydXu+xDN9i8tpwCp4Hk/MoY42jYxK8/gjGx5vm13MLglsjgOrBSzfFNWj0+QhyrOjVmyydJLcHDsLUpF3MGJWDRCNaPDCmnE2j8zQd2kjOC3OHfRR0eQx3jo6w6K20PvfjGFksDypnkq29tvJO34NRFCqOkWJvbl52Vl6rykhr1RH+MrHj1yM/G0Hq3fVlvELRF/ws28A5e8rXoYoIAokvYoSgCLi5oGGSzIRzJ0gPhnDAuWophUSWOKj7jAWr20SrQKCbi5CrCyaUMHzeKaAqBo49zRE37R/w9yxHAn7LqodS5CoTtdkBpbvQ1oF2mdDhSlOhchlnALlx2qJHWc2I9U80tql7FxSb1A1djvjVRYmFjav9gOd8vNI=
+x-forefront-antispam-report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR21MB6683.namprd21.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(23010399003)(376014)(1800799024)(38070700021)(6133799003)(56012099006)(7146999003)(4133799003)(10067099003)(4143699003)(5023799004)(11063799006)(18002099003)(22082099003);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?us-ascii?Q?Hcg2LgHlhdpdtfBPlIDTJPSk1+M8tGqSIn4YmHkYIS6RILRm3tSWyC+6lNn6?=
+ =?us-ascii?Q?mgsVDqCVI3KX/np39ibPPAj2ChNYgW1aXz3BL5TyuwkuUVLhLdElHDOQmq4q?=
+ =?us-ascii?Q?pm/Vrd6Oxyo4cgdclVgaFMhirXmZbQ+tkurRpVeT1vIdeBTMpgplFY3sOBoJ?=
+ =?us-ascii?Q?daw2TazgEimYBisudq/G+ZqoKlsTqQrXYqQmRRpN/Se7fPf+xg2lhyQeMu6v?=
+ =?us-ascii?Q?JxZIqD2FwV4Ozq0Pb0DEOfn0rLVnxbMRMuOzNxeCo6xYmdfSpZ7YZjrvfLpT?=
+ =?us-ascii?Q?l9N1OlJlfZ6/DQ7uszSC8Swdu7wUFhVq/SG+YibXyZJFMk889wy9/KAgmCiC?=
+ =?us-ascii?Q?gCxKMWzUyI9a86tn5DSguqF3iXhIjLfzV+5F+9Sc2ewSQABd+QaSYlIBnFAO?=
+ =?us-ascii?Q?FXzH107jtORT0+u3ZG5wlquSROI2OcZxJ10ThDhy12guHZz1CX2B1xcVMCdx?=
+ =?us-ascii?Q?eGlhP+YDtSCW9jY0OOzjSVxOrV/PmLpmNsnaPiAO3dX9jtDOw/vjt3RCF3Vg?=
+ =?us-ascii?Q?1knScglRiCM90pJUqGlgUC9P/u1NEp99n0QdPu+pm0/5Q7X25wz/qC0OZd5F?=
+ =?us-ascii?Q?jQ2Hl2riGr9w2fDOf9phS84/KwcrYuMC8zMWbe2Sb5PM3v9uEbeAYxDu02jS?=
+ =?us-ascii?Q?FDPESOSnFIWI/Gdht3dAz5+CHkNY9ZBNy96SIJz8udDMKUF6nSPar3iAmMAj?=
+ =?us-ascii?Q?KrXcemWIFSA/6jsjbmSBOOV1fGIfbT5P5FrIi+eJAl/NjnR2W0NZZUk2G0tK?=
+ =?us-ascii?Q?gnuWmqlMzkdC2YvmeGrISqiyZm0fUV6IJNb78tDNetoul8C9mwcn6Rzk500U?=
+ =?us-ascii?Q?Gb3GGjlxfD7VNnrHcvnYknNC6I4QcPvbCotS6sx6h8/gtTomKQWESWxhKYzn?=
+ =?us-ascii?Q?puZuwYYm44erLCob19ISWSLgO1te90dKfB9CWMBgdcSeZB9/d/yX/vm+3vdc?=
+ =?us-ascii?Q?LCTVHxeZ3XpTB8luDyAAEeTXEwsqkiOH2CYPlx7RHX1VyM9X5+9xE1d9pH8q?=
+ =?us-ascii?Q?X3St115l4HCxRc4jsT9WKaSTg4/HnvOTG0A+Su4qDQLIPTM9eQRx1dNlf7Uj?=
+ =?us-ascii?Q?7dkIf3a4CRKZfOTi8UIYjGrUnXPkvSj/MkURsMnw7CuVERA7tVu2pflsEdo1?=
+ =?us-ascii?Q?FL59C+BIk3Ih60npRPepgHs5ByvBbu5FaYNoDNZ2ERO3DvF7hHlGJsmvu6PF?=
+ =?us-ascii?Q?7WxTeROpLJoJWjJt1/7V/H/5xsWsddvRIuRK1nD4IV61rRCcXE2QHuSVLaJ8?=
+ =?us-ascii?Q?D4oVKfvvLs9J8Cqa8UIUVSMQ5jExwWvobn7FlCS3VmVzW+2TV0cdXRTgUpr8?=
+ =?us-ascii?Q?sP4fWRovo724WsxOa57tpTLF2xBxxiOVafRBZaX+ELxhva3qxHXjUOulxkqN?=
+ =?us-ascii?Q?D6pD54XLciutoqFWIDkyiZfOihCeLrt80eBzxS1R9k6n89VR3KS4qo8CnTYA?=
+ =?us-ascii?Q?7YbZCpeXRyaRNpwMM2DvYVzGC5kdpkJjVi3e/rnNPkhb7UEYTe2+kAqBFrc+?=
+ =?us-ascii?Q?qPDf4vOOmvOAb4Mbg974pMTCUpzGsS0Wq5MdQQVkL/Kv9QryukFvKRVCsPF/?=
+ =?us-ascii?Q?RFQkas6diPnGAxM/yG41Grf12xcWqej4y5nvHZrT7oQEc4UzjLe1EISKtVnK?=
+ =?us-ascii?Q?xByh4/MesI0dD376DB56V4HdUfBcF6x0OEjRc+F9RWvXWwW2TYK5zaFN+8pI?=
+ =?us-ascii?Q?hy/+wgie43yDfFaifC1MZqvcLgf5qdT8JmYAAXrcYCYuiCNq?=
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.52.3-0ubuntu1.1 
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-
-On Wed, 2026-09-09 at 10:25 -0700, Gerd Rausch wrote:
-> Hi,
->=20
-> On 2026-09-09 00:09, Allison Henderson via rds-devel wrote:
-> > On Tue, 2026-09-08 at 20:=E2=80=8A33 +0800, henrymei wrote: > From: Aoh=
-an Mei <henrymei@=E2=80=8Atencent.=E2=80=8Acom> > > rds_ib_cm_connect_compl=
-ete() runs from the RDMA-CM event handler with > conn->c_cm_lock held. When=
- the peer negotiates a protocol
-> > On Tue, 2026-09-08 at 20:33 +0800, henrymei wrote:
-> > > From: Aohan Mei <henrymei@tencent.com>
-> > >=20
-> > > rds_ib_cm_connect_complete() runs from the RDMA-CM event handler with
-> > > conn->c_cm_lock held.  When the peer negotiates a protocol version
-> > > older than RDS_PROTOCOL_COMPAT_VERSION, the handler calls
-> > > rds_conn_destroy(), which is only safe in the rmmod path: it
-> > > synchronously tears the connection down and flush_work()es the
-> > > shutdown work cp_down_w.
-> > >=20
-> > > That shutdown work (rds_conn_shutdown()) needs cp_cm_lock, which is
-> > > the very lock the event handler still holds, so the flush never
-> > > completes: the two workers wait on each other and the RDS connection
-> > > workqueues stall for good.
-> > >=20
-> > > All other RDMA-CM failure paths (REJECTED, CONNECT_ERROR,
-> > > DISCONNECTED) use rds_conn_drop(), which marks the connection
-> > > RDS_CONN_ERROR and schedules the shutdown work asynchronously.  Use
-> > > it here as well.
-> > >=20
->=20
-> I don't get this.
->=20
-> So RDS should just keep on retrying to connect every second instead
-> of giving up on that incompatible peer? Forever?
->=20
-> The version number the peer uses remains the same until it gets upgraded =
-somehow.
-
-Hi Gerd,
-
-You're right that this ends up as a ~1s retry loop.  While that may
-not be pretty, I think it's still the right call for a net/stable
-fix, for a few reasons.
-
-First, it's already what we do for the same condition in the other
-direction.  When the passive side rejects us with RDS_RDMA_REJ_INCOMPAT,
-the REJECTED case in rds_rdma_cm_event_handler_cmn() calls
-rds_conn_drop(), we reconnect with the usual backoff (capped at
-rds_sysctl_reconnect_max_jiffies, one second), and we log a pr_warn
-on every attempt.  That's the common direction, a new node talking to
-an old one.  Aohan's patch just makes the rare direction behave the
-same way instead of wedging.
-
-Second, rds_conn_destroy() doesn't actually give up on the peer either.
-Nothing in RDS remembers that a peer is incompatible.  Destroy frees
-the conn, and the next rds_sendmsg() to that address either reuses the
-socket's cached rs->rs_conn or goesthrough rds_conn_create_outgoing()
-and rds_conn_connect_if_down() and then connects again.  With an
-application actively sending, that's a create/connect/mismatch/destroy
-cycle at the application level.  With an idle application the only
-difference from the drop is whether the retry is timer-driven or
-send-driven.  Deferring the destroy to a worker doesn't change that
-picture, it just avoids the deadlock.
-
+X-OriginatorOrg: microsoft.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: SA1PR21MB6683.namprd21.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: ae94020c-a9ef-41dc-dd61-08df0ec9a345
+X-MS-Exchange-CrossTenant-originalarrivaltime: 09 Sep 2026 23:25:29.9904
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 72f988bf-86f1-41af-91ab-2d7cd011db47
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: U0D9nYxaYBJGKGTtOwLg6D8mmz5X2yNyo6Xi+K5LEwxLMNmpVOxVE2AgLY334ukBs+PKiUfBGNL2i+T/vV63Ng==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR21MB6394
 
 >=20
-> I understand how the rds_conn_destroy() path is full of bugs.
+> Thank you for your contribution! Sashiko AI review found 1 potential issu=
+e(s)
+> to consider:
+> - [Medium] The patch introduces an ad-hoc locking pattern using a boolean
+> flag (`apc->channel_changing`) to guard the reconfiguration critical sect=
+ion in
+> `mana_set_ringparam`.
+> --
 >=20
-> But shouldn't that just mean those bugs ought to be fixed,
-
-While that code path does have bugs, making rds_conn_destroy()
-safe to call from the CM path is a much bigger change, and one that
-should probably go through net-next rather than holding up a small
-fix like this.  The current code hangs every RDS connection on the
-node the first time this fires, and a one second retry on one conn is
-strictly better than that.
-
-> instead of no longer retiring any connection ever,
-> even to old & incompatible peers we can't really talk to?
+> commit 40668ebf41a83bf44835ffb33803930c039ce405
+> Author: Long Li <longli@microsoft.com>
 >=20
-> Thanks,
+> net: mana: swap queue sets in mana_set_ringparam
 >=20
->    Gerd
+> This commit replaces detach/attach operations in mana_set_ringparam() wit=
+h
+> queue-set allocation and publication. Failed allocations now leave the
+> running queues and ring sizes unchanged instead of risking a detached por=
+t.
 >=20
+> > diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
+> > b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
+> > --- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
+> > +++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
+> [ ... ]
+> > @@ -774,32 +772,56 @@ static int mana_set_ringparam(struct net_device
+> *ndev,
+> >  	netdev_info(ndev, "Using nearest power of 2 values for Txq:%d
+> Rxq:%d\n",
+> >  		    new_tx, new_rx);
+> >
+> > -	/* pre-allocating new buffers to prevent failures in mana_attach()
+> later */
+> > -	apc->rx_queue_size =3D new_rx;
+> > -	err =3D mana_pre_alloc_rxbufs(apc, ndev->mtu, apc->num_queues);
+> > -	apc->rx_queue_size =3D old_rx;
+> > -	if (err) {
+> > -		netdev_err(ndev, "Insufficient memory for new
+> allocations\n");
+> > -		return err;
+> > +	if (new_rx =3D=3D apc->rx_queue_size && new_tx =3D=3D apc->tx_queue_s=
+ize)
+> > +		return 0;
+> > +
+> > +	if (!apc->port_is_up) {
+> > +		apc->rx_queue_size =3D new_rx;
+> > +		apc->tx_queue_size =3D new_tx;
+> > +		return 0;
+> >  	}
+> >
+> > -	err =3D mana_detach(ndev, false);
+> > -	if (err) {
+> > -		netdev_err(ndev, "mana_detach failed: %d\n", err);
+> > -		goto out;
+> > +	/* Exclude RDMA through failure cleanup, which may release the
+> vport. */
+> > +	mutex_lock(&apc->vport_mutex);
+> > +	if (apc->channel_changing) {
+> > +		mutex_unlock(&apc->vport_mutex);
+> > +		return -EBUSY;
+> > +	}
+> > +	apc->channel_changing =3D true;
+> > +	mutex_unlock(&apc->vport_mutex);
+>=20
+> [Severity: Medium]
+> Does this code introduce an ad-hoc locking pattern using the
+> apc->channel_changing boolean flag?
+>=20
+> The networking drivers subsystem guidelines indicate that using a boolean
+> flag set on entry and cleared on exit to guard a reconfiguration critical=
+ section
+> bypasses lockdep and provides weaker synchronization guarantees than usin=
+g
+> a proper lock.
+>=20
+> Could a standard kernel synchronization primitive be used for this critic=
+al
+> section in mana_set_ringparam() instead of relying on the
+> apc->channel_changing flag?
 
-I do think there's potential for a good follow-up in what you're
-describing through. A separate patch could fix both directions at
-once: a per-conn flag set from the REJ_INCOMPAT case and from this one
-that makes rds_conn_shutdown() skip the timer-driven rds_queue_reconnect().
-Then the conn would then sit in RDS_CONN_DOWN until a socket actually sends
-to it.  At which point rds_conn_connect_if_down() gives the peer another
-chance in case it was upgraded.  That also gets rid of the once-a-second
-log line, which we have today on the REJECTED side too.  That seems like
-net-next material to me rather than something to hold this fix on, but
-I'd be happy to review it.
+This locking pattern has existed in the base code for a long time; this is =
+not introduced by this patch.
 
-I also think it's worth pointing out which peers this actually affects.
-Upstream has RDS_PROTOCOL_VERSION and RDS_PROTOCOL_COMPAT_VERSION both
-at 3.1.  So this branch only fires for a 3.0 peer (OFED 1.3 era) or for
-an accept that carries no or truncated private data.  That would leave
-c_version at 0 on a fresh conn.  In practice that's a broken or non-RDS
-peer on the RDS port, not a cluster of un-upgraded nodes. So retrying
-those on a backoff like any other unreachable peer seems appropriate.
+This patch just uses this locking pattern for the vport changing states.
 
-Thanks,
-Allison   =20
 
-> > > Fixes: cdc306a5c9cd ("rds: make v3.1 as compat version")
-> >=20
-> > Hi Aohan,
-> >=20
-> > Thanks for the catch, this looks correct to me.  Just one nit on the
-> > fixes tag.  I think we want: f147dd9ecabf ("RDS/IB: Disallow connection=
-s
-> > less than RDS 3.1").  That looks like the commit that added the
-> > rds_conn_destroy() call to the version check.  Other than that, I think
-> > this patch looks good.  With the Fixes tag corrected, you can add my rv=
-b:
-> >=20
-> > Reviewed-by: Allison Henderson <achender@kernel.org>
-> >=20
-> > Thanks!
-> > Allison
-> >=20
-> > > Reported-by: TencentOS Corvus AI <corvus@tencent.com>
-> > > Cc: stable@vger.kernel.org
-> > > Assisted-by: CodeBuddy:Kimi-K3
-> > > Signed-off-by: Aohan Mei <henrymei@tencent.com>
-> > > ---
-> > >  net/rds/ib_cm.c | 2 +-
-> > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > >=20
-> > > diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
-> > > index d46146887ba4..2909da8363f3 100644
-> > > --- a/net/rds/ib_cm.c
-> > > +++ b/net/rds/ib_cm.c
-> > > @@ -115,7 +115,7 @@ void rds_ib_cm_connect_complete(struct rds_connec=
-tion *conn, struct rdma_cm_even
-> > >  				  &conn->c_laddr, &conn->c_faddr,
-> > >  				  RDS_PROTOCOL_MAJOR(conn->c_version),
-> > >  				  RDS_PROTOCOL_MINOR(conn->c_version));
-> > > -			rds_conn_destroy(conn);
-> > > +			rds_conn_drop(conn);
-> > >  			return;
-> > >  		}
-> > >  	}
-> >=20
-> >=20
-> > _______________________________________________
-> > rds-devel mailing list
-> > rds-devel@oss.oracle.com
-> > https://oss.oracle.com/mailman/listinfo/rds-devel
-> >=20
-
+>=20
+> [ ... ]
+> > +clear_flag:
+> > +	mutex_lock(&apc->vport_mutex);
+> > +	apc->channel_changing =3D false;
+> > +	mutex_unlock(&apc->vport_mutex);
+> >  	return err;
+> >  }
+>=20
+> --
+> Sashiko AI
+> review * https://nam06.safelinks.protection.outlook.com/?url=3Dhttps%3A%2=
+F%
+> 2Fsashiko.dev%2F%23%2Fpatchset%2F20260908032843.397667-1-
+> longli%40microsoft.com%3Fpart%3D4&data=3D05%7C02%7Clongli%40microsoft.
+> com%7Cc67f289fbf6d44697aa108df0e229871%7C72f988bf86f141af91ab2d7cd
+> 011db47%7C1%7C0%7C639245213896893836%7CUnknown%7CTWFpbGZsb3
+> d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOI
+> joiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&sdata=3Dbb9IsrgM5js%2BYCF
+> uaioyc5OMJmhNDee3ut65iShCesk%3D&reserved=3D0
