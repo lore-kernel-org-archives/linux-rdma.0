@@ -1,76 +1,76 @@
-Received: from mail-ot1-f98.google.com (mail-ot1-f98.google.com [209.85.210.98])
+Received: from mail-pf1-f225.google.com (mail-pf1-f225.google.com [209.85.210.225])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F49A478E5D
-	for <linux-rdma@vger.kernel.org>; Wed,  9 Sep 2026 08:31:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.98
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41283471271
+	for <linux-rdma@vger.kernel.org>; Wed,  9 Sep 2026 08:31:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.225
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788942699; cv=none; b=R4EhDSvhZs94VrhzOjjQZ2/ohhcwxGIrw6rhor5W9HcTrOvL1Nk81jbLdn/NerounHL2/VMdPAfzE3ftNt0znKvLGt0z6XptapXEa3yJusF0haKUz36UidEdqnOKvrD6sZ8A0Y+xixwzjbnDJZEdxNgzciKiP/f6axa29Lrw66M=
+	t=1788942702; cv=none; b=DXD8FmZu9o5q8ZjoFvf6BmnwQ+veI24gZcGn9JDD4v0ziCiP/3auhlOZlVJl34deDT/QMvBSyF4PU63z41kglIOXlWxeR+dW+TDYfvpXHx5C//oC1oUf3FYFtFWjsUGH0YU+Cp8hLK84o4Zr7iwGfOv1RC7wfiKjYOwdbqCwcLA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788942699; c=relaxed/simple;
-	bh=brRb//m+/m4Lv2qomnZdmrwJSKqqphUGq3K+gMNECy8=;
+	s=arc-20240116; t=1788942702; c=relaxed/simple;
+	bh=uDLNxhbJgkz0/NSwy7S9jmNTyJ0BMSFl8QEG5JPhLbM=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=eHfOrxeUihbeotlQqotZ+32KfmB5kSIL2qq1A0d2fBfV35lZuryAss0x7cwZYWAcjmAke6Zn3Fc0KXKEIVW4yd1hbQeLn+Lg0ulta76CkRsuCvN8rwf3XCZ1JUl5f7YYJJy/9JOjJiAt41Ave13V2o1HcYtlj00CfvHTGCaK3Gk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=RsNoo+K0; arc=none smtp.client-ip=209.85.210.98
+	 MIME-Version; b=WvmMIPTQA3Rie7K1Cj/CoJNKYkJA1S5FbIMo7WrEOgwcBPVh/Dc6gs3/Y4p/D1pG7lvd7dHrQnHg82Bg7W3kZhTWaNWsvUngVIOhX2Gdk+XO0bdEAb05daqMer0Lg41h4RyJZkQcowzfvFRboIuO+WU4rBYOB2lM21v5dyRD9sQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=DnLdVRsS; arc=none smtp.client-ip=209.85.210.225
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="RsNoo+K0"
-Received: by mail-ot1-f98.google.com with SMTP id 46e09a7af769-7f4f3683fbcso5433841a34.0
-        for <linux-rdma@vger.kernel.org>; Wed, 09 Sep 2026 01:31:38 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="DnLdVRsS"
+Received: by mail-pf1-f225.google.com with SMTP id d2e1a72fcca58-868b3248b2cso445150b3a.1
+        for <linux-rdma@vger.kernel.org>; Wed, 09 Sep 2026 01:31:41 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788942697; x=1789547497;
+        d=1e100.net; s=20251104; t=1788942700; x=1789547500;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:dkim-signature:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=Ru1DueZqhWiwjCwqgljsC86WrC8vaKrn2xQzdYgc9no=;
-        b=iKSg3ACkIhZ2E8siMnUwWPsTk67BqIqPcUhkFCqM2ScHiVniQ8qdLbAfVFbLnTosWY
-         5YaNO3yLwVxCWbfqZWt9Mmc1GPs/XGla21HIWFK7I4a0g3crLEuSImN+b9NEKD8ZIqfo
-         JEelLBlPI0FG41iCAw5eCX20r2mGo9BG912rX5xYG06teDnufzEiGyjQ4mTWmBvmEayb
-         NxUCyNZiFEq0XHAf43I3KpjvXVX9jGJUfeZoIsW45NXBEb5ks9kjofhLZ981mDOy6sUC
-         9AAdahxkQvc2l2VdaRLmKRmEVmREgmX3El2J9p1MNRwiI3waU7oMzGD0S+1O2VvjZxzg
-         FV2A==
-X-Gm-Message-State: AFuF++ln0S+ntiCWoBsfuX62QTYOMplUBANETp7HaecTYr78kj58FL6u
-	saSU/1gyNI77Pu5eM304za5CkLg7jAN+d5ZLRtFlzRGTwrS65SwvdFN2E9YqON/pf0CprdHTanO
-	t19C8AuSdqzR+ULxcUTS9R4uGOYmmroMwXKXyXAhKemfXhi514FK9zneTZv4eHJXJQc++Kx1Ns9
-	oDMg08zZvwANSEfhYQ5T6bp+H7NgRLpjxRzsLRk7oO7l+fIk9IUiXKXCIgvlJj8JJRB4estEN76
-	s/vFIp06LF1YnqlgQ==
-X-Gm-Gg: AYBFou1rTYdSzwytKn90HpdF5MG0ERNe/8BKtp+hb1nLGCCo9dU02fZcnCdZqDLyTYr
-	MDg+5PVd1JihIxhXKSmnCBHQDV52SFXU/MvIQgD6dx3SkI0YvGoTTNzZaK0+5Onz9aR9KbDBUOc
-	7sexE7u9JzDlBpRDGdt/4oTKK3Xu1KrLOS99HNNH9m9HyCZvYTv4I8bGprNlDH3u/UJlZoYlG7F
-	6s9EhTRv20ipbjCHGbr1pAfFw90EO4q3kHfFHXUzjHt4BJCL9DffxPTiSJ6IKGhHMiMOl/ujUqg
-	hVEw3y8r06130yNpxY/uYXu9SIDHQ/4N3KqExDZ4Tj8Dn5HJCz8PeJriY2sPNmvBpfx+pgFRJ9r
-	nVRF85gqhKwsxLxSG3rDkIZYixkY+8r3D2f1YhvrlJhaLM0YQa0rlz993oUgMux+8jtBEqsG9Ds
-	FyB2n8ZpaExak89DGVrxO7PaxjXRPX+YtCeg==
-X-Received: by 2002:a05:6830:c0b:b0:7f4:3902:3a26 with SMTP id 46e09a7af769-7ff475c2afcmr4608251a34.1.1788942697113;
-        Wed, 09 Sep 2026 01:31:37 -0700 (PDT)
-Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-2.dlp.protect.broadcom.com. [144.49.247.2])
-        by smtp-relay.gmail.com with ESMTPS id 46e09a7af769-7f9f668f694sm2121182a34.4.2026.09.09.01.31.36
+        bh=aF2YYLviQC7k0gOePiuYzdYi8in7fV8VgUF3QZqs4ww=;
+        b=nwUp/Pv+d0gCzwHgWiO71FWsAwnHDAhaZHw4+ZwwqgMIWam3/Uw2PWhpBCJIPRfmzO
+         QeJF9QSaiL4dAEfEDzP5hfaJ3HLjndEyosHRUiiicPkijAgQmaDGVKK6i2RvCXISi9ST
+         nzmYS5yxa8beAqMD4DDBAk4kwmvbRIhyXKLEpTLc2LHbDdYKcMRWhuJRWCUW18znjD0j
+         SL6553uka+I/6ppYxxDUO69jrRDCPhxv8nFQ3MfSM2rtshpkDbUhC9MO8kxtwZoZNo2n
+         XXlzUTfJ7nQplDVN3K94U7XQPfHFED+s7v8npIUcKOA9GDIeOwD82m2b+JLU4HtCTD6k
+         npsA==
+X-Gm-Message-State: AFuF++lpOoUCr0vUuO6LZymybIUgITtUNCCrS3+xiQvTc/JOiXgrJDKO
+	Ee3kd2fJ7GtKSekhpfetvRtf+eaEjtV1FB1hGflbhrMh2/VQ2retX5IvF7nC8PH00b2RXJBjzlw
+	jupJzGIb5hikLhUipsxsSkacw2veGssTNhBi7HN1mBOIUCHaW/jwTciX0pwL05fl3/YToPUqsL4
+	7Cgpl53vbELFhUOySUdUHfeFgunhr3MF6L30PvA+S7L0YTJMEA2ECZ+PiaMIsFnPdIe5Tsnyl7E
+	ns2HebWg+BIGWq66w==
+X-Gm-Gg: AYBFou0t5ARgJYU/ihymA0AOwkEi+/0ZsjQMMIE1jufZdfaFNe1sM6i3YK4lkMHY34G
+	F0d7lVFGUx5+rbo37Xz4pfW+eNZGGmSdFpjyTapmawaizoZq+fCfRk75h6SjJ4eokNQiBH3qfV+
+	7jS574KO5RAT3kogwG2YEzBRz8GQA2+jbJMVRZBsQp+KpeUXW98ES70RTILrd42XWXKz9y1+9zH
+	GKPgyDAahUTL9uc1pIhpomn4KlVaSdt0YRXvBWAn4ZfVepSS7o2JUidtevUgE7Rqqf3v5O7+ghr
+	zRSYY/GcbbC5gOSVyVSNomO1GR7rkwltbS3bHKI5/gSRBi4ml3yUAyZ1nHKoJWP26mMlPvsQNou
+	nULuVmo3Pdq81Xt8g5q78qG9rbl464QiBQjADgKxG+UtW9phMlMquONoNxryO72/8OZRfejmbsN
+	Lry3f9BwkIkx3ZSgKi0RgJCWE+PCurhmpLsenLpv0=
+X-Received: by 2002:a05:6a00:4298:b0:848:4754:28e4 with SMTP id d2e1a72fcca58-86169e6ecfbmr45785055b3a.15.1788942700576;
+        Wed, 09 Sep 2026 01:31:40 -0700 (PDT)
+Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-125.dlp.protect.broadcom.com. [144.49.247.125])
+        by smtp-relay.gmail.com with ESMTPS id d2e1a72fcca58-8652a30058bsm2488550b3a.8.2026.09.09.01.31.40
         for <linux-rdma@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 09 Sep 2026 01:31:37 -0700 (PDT)
+        Wed, 09 Sep 2026 01:31:40 -0700 (PDT)
 X-Relaying-Domain: broadcom.com
 X-CFilter-Loop: Reflected
-Received: by mail-pj1-f72.google.com with SMTP id 98e67ed59e1d1-398dc3d8f0fso6635878a91.0
-        for <linux-rdma@vger.kernel.org>; Wed, 09 Sep 2026 01:31:36 -0700 (PDT)
+Received: by mail-pj1-f71.google.com with SMTP id 98e67ed59e1d1-398fe469aa0so9022539a91.2
+        for <linux-rdma@vger.kernel.org>; Wed, 09 Sep 2026 01:31:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1788942696; x=1789547496; darn=vger.kernel.org;
+        d=broadcom.com; s=google; t=1788942698; x=1789547498; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=Ru1DueZqhWiwjCwqgljsC86WrC8vaKrn2xQzdYgc9no=;
-        b=RsNoo+K0UKPU02PnjSBou6LWuD/ff1yaASuY2Zb5owdd58plvrFK+IOtIA6aDwSFgS
-         eVBoa+HlfzAlcacb5Zw07FLyxPGvLJqtwuKeh6Si1YOnk3YzHLe0rp1vSs/jnsRyiIiI
-         hbNb1VsvxtGGy7iOtonDds2BWxOoQKlZ5NBDM=
-X-Received: by 2002:a17:90b:4b04:b0:396:4ce0:6400 with SMTP id 98e67ed59e1d1-39b07f33963mr43365397a91.2.1788942695539;
-        Wed, 09 Sep 2026 01:31:35 -0700 (PDT)
-X-Received: by 2002:a17:90b:4b04:b0:396:4ce0:6400 with SMTP id 98e67ed59e1d1-39b07f33963mr43365359a91.2.1788942694980;
-        Wed, 09 Sep 2026 01:31:34 -0700 (PDT)
+        bh=aF2YYLviQC7k0gOePiuYzdYi8in7fV8VgUF3QZqs4ww=;
+        b=DnLdVRsSN+bgUpgl75iX25GTmTBsz5o4O32I8I2n8YmUw6tDufq2M/+KZ4tU/+gXHM
+         zfnMsaRchsNd6ipC1dp3yyvN0reIpAYkIHntjis8jFcNkVM7Fnubv0pV5eGVAGxYP4Xa
+         jiGfhYElvbp5wucOYLANGx9aUZ8QpRynaxx04=
+X-Received: by 2002:a17:90b:1d45:b0:398:9bd4:d1a with SMTP id 98e67ed59e1d1-39b262995b8mr49409055a91.25.1788942698468;
+        Wed, 09 Sep 2026 01:31:38 -0700 (PDT)
+X-Received: by 2002:a17:90b:1d45:b0:398:9bd4:d1a with SMTP id 98e67ed59e1d1-39b262995b8mr49408997a91.25.1788942697899;
+        Wed, 09 Sep 2026 01:31:37 -0700 (PDT)
 Received: from dhcp-10-123-156-114.dhcp.broadcom.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1433171a97esm45999620c88.12.2026.09.09.01.31.32
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1433171a97esm45999620c88.12.2026.09.09.01.31.35
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 09 Sep 2026 01:31:34 -0700 (PDT)
+        Wed, 09 Sep 2026 01:31:37 -0700 (PDT)
 From: Selvin Xavier <selvin.xavier@broadcom.com>
 To: leon@kernel.org,
 	jgg@ziepe.ca
@@ -78,9 +78,9 @@ Cc: linux-rdma@vger.kernel.org,
 	andrew.gospodarek@broadcom.com,
 	kalesh-anakkur.purayil@broadcom.com,
 	Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: [PATCH for-rc v2 7/8] RDMA/bnxt_re: Use bnxt_ext_stats_supported for counter count selection
-Date: Wed,  9 Sep 2026 06:52:43 -0700
-Message-Id: <20260909135244.122747-7-selvin.xavier@broadcom.com>
+Subject: [PATCH for-rc v2 8/8] RDMA/bnxt_re: Check is_in_used before trusting RCFW completion
+Date: Wed,  9 Sep 2026 06:52:44 -0700
+Message-Id: <20260909135244.122747-8-selvin.xavier@broadcom.com>
 X-Mailer: git-send-email 2.39.3
 In-Reply-To: <20260909135244.122747-1-selvin.xavier@broadcom.com>
 References: <20260909135244.122747-1-selvin.xavier@broadcom.com>
@@ -93,45 +93,79 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 
-Selecting between BNXT_RE_NUM_EXT_COUNTERS and
-BNXT_RE_NUM_STD_COUNTERS relied only on
-bnxt_qplib_is_chip_gen_p5_p7(), which doesn't account for the
-extended stats capability flag or the PF/VF restriction. Use
-bnxt_ext_stats_supported() instead, matching the check already
-used to populate the extended stats, so the counter count stays
-consistent with what gets filled in.
+Gate the crsqe->resp memcpy in bnxt_qplib_process_qp_event() on
+is_in_used in addition to is_waiter_alive, since a late/duplicate
+completion for an already-retired cookie could still write through a
+stale resp pointer.
 
-Fixes: 8238c7bd8420 ("RDMA/bnxt_re: Fix the statistics for Gen P7 VF")
-Reviewed-by: Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
+Also disarm the waiter and clear resp when a wait call bails out early
+on ERR_DEVICE_DETACHED, and require is_in_used before re-triggering
+__destroy_timedout_ah(), closing the same stale-cookie exposure
+elsewhere in the completion path.
+
+Fixes: 691eb7c6110f ("RDMA/bnxt_re: handle command completions after driver detect a timedout")
 Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
 ---
- drivers/infiniband/hw/bnxt_re/hw_counters.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/bnxt_re/qplib_rcfw.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/hw_counters.c b/drivers/infiniband/hw/bnxt_re/hw_counters.c
-index 651cf9d0e0c7..575b97030587 100644
---- a/drivers/infiniband/hw/bnxt_re/hw_counters.c
-+++ b/drivers/infiniband/hw/bnxt_re/hw_counters.c
-@@ -413,7 +413,8 @@ int bnxt_re_ib_get_hw_stats(struct ib_device *ibdev,
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+index 9ee0d500436c..0339e55bea88 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+@@ -511,14 +511,16 @@ static int __bnxt_qplib_rcfw_send_message(struct bnxt_qplib_rcfw *rcfw,
+ 	else
+ 		rc = __poll_for_resp(rcfw, cookie);
+ 
+-	if (rc) {
++	if (rc || test_bit(ERR_DEVICE_DETACHED, &rcfw->cmdq.flags)) {
+ 		spin_lock_bh(&rcfw->cmdq.hwq.lock);
+ 		crsqe = &rcfw->crsqe_tbl[cookie];
+ 		crsqe->is_waiter_alive = false;
++		crsqe->resp = NULL;
+ 		if (rc == -ENODEV)
+ 			set_bit(FIRMWARE_STALL_DETECTED, &rcfw->cmdq.flags);
+ 		spin_unlock_bh(&rcfw->cmdq.hwq.lock);
+-		return -ETIMEDOUT;
++		if (rc)
++			return -ETIMEDOUT;
  	}
  
- done:
--	return bnxt_qplib_is_chip_gen_p5_p7(rdev->chip_ctx) ?
-+	return bnxt_ext_stats_supported(rdev->chip_ctx, rdev->dev_attr->dev_cap_flags,
-+					 rdev->is_virtfn) ?
- 		BNXT_RE_NUM_EXT_COUNTERS : BNXT_RE_NUM_STD_COUNTERS;
- }
+ 	if (evnt->status) {
+@@ -627,6 +629,7 @@ static int bnxt_qplib_process_qp_event(struct bnxt_qplib_rcfw *rcfw,
+ 	struct bnxt_qplib_qp *qp;
+ 	u16 cookie, blocked = 0;
+ 	bool is_waiter_alive;
++	bool is_in_used;
+ 	struct pci_dev *pdev;
+ 	u32 wait_cmds = 0;
+ 	int rc = 0;
+@@ -682,7 +685,7 @@ static int bnxt_qplib_process_qp_event(struct bnxt_qplib_rcfw *rcfw,
+ 		if (crsqe->is_internal_cmd && !qp_event->status)
+ 			atomic_dec(&rcfw->timeout_send);
  
-@@ -423,7 +424,8 @@ struct rdma_hw_stats *bnxt_re_ib_alloc_hw_port_stats(struct ib_device *ibdev,
- 	struct bnxt_re_dev *rdev = to_bnxt_re_dev(ibdev, ibdev);
- 	int num_counters = 0;
+-		if (crsqe->is_waiter_alive) {
++		if (crsqe->is_waiter_alive && crsqe->is_in_used) {
+ 			if (crsqe->resp) {
+ 				memcpy(crsqe->resp, qp_event, sizeof(*qp_event));
+ 				/* Insert write memory barrier to ensure that
+@@ -697,6 +700,7 @@ static int bnxt_qplib_process_qp_event(struct bnxt_qplib_rcfw *rcfw,
  
--	if (bnxt_qplib_is_chip_gen_p5_p7(rdev->chip_ctx))
-+	if (bnxt_ext_stats_supported(rdev->chip_ctx, rdev->dev_attr->dev_cap_flags,
-+				     rdev->is_virtfn))
- 		num_counters = BNXT_RE_NUM_EXT_COUNTERS;
- 	else
- 		num_counters = BNXT_RE_NUM_STD_COUNTERS;
+ 		req_size = crsqe->req_size;
+ 		is_waiter_alive = crsqe->is_waiter_alive;
++		is_in_used = crsqe->is_in_used;
+ 
+ 		crsqe->req_size = 0;
+ 		if (!is_waiter_alive)
+@@ -718,7 +722,7 @@ static int bnxt_qplib_process_qp_event(struct bnxt_qplib_rcfw *rcfw,
+ 		 * resource leak and relatively not critical +  unlikely
+ 		 * scenario. Current design is not to handle such case.
+ 		 */
+-		if (!is_waiter_alive && !qp_event->status &&
++		if (is_in_used && !is_waiter_alive && !qp_event->status &&
+ 		    qp_event->event == CREQ_QP_EVENT_EVENT_CREATE_AH)
+ 			__destroy_timedout_ah(rcfw,
+ 					      (struct creq_create_ah_resp *)
 -- 
 2.39.3
 
