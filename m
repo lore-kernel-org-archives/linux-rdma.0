@@ -1,110 +1,113 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 792103AE1AD
-	for <linux-rdma@vger.kernel.org>; Wed,  9 Sep 2026 06:55:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E1E73B5DED
+	for <linux-rdma@vger.kernel.org>; Wed,  9 Sep 2026 06:55:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788936947; cv=none; b=bVeFayOgkdIht9NT5fY6Bpx7OsLNVN3G+uoHjkS9LmdIu4jdWK0Z5uKqGtOjrXdDh9XRk8dLKEGRaHOqWjijv79AwigRVUsZdy8AdvoCmUa9sbp3sfs3IGCBHPjf+rpJKUVMb8BOZHkS5zghxvN8FdrzOI6plkCX9OqxuK07Z20=
+	t=1788936948; cv=none; b=Ozkow64OEdhCNYRDqPLewCtteiCoBqD/zGyPHvZ7pZBJ7irMRuKrwRRdGzAHruIddMI1B/aaFWuHEStzTTgGVdycivx/gj7UQW38K+yplmnObvgzPIXluKLD8w0r9qiH60eaLluEq04I6q4qfFd1n3Ucmzzev+hGuBE0sLrme5s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788936947; c=relaxed/simple;
-	bh=LXaVI2wCMVyp3Ihy3N1H2SaoKvqKLQSIAlfbMvI9p4w=;
+	s=arc-20240116; t=1788936948; c=relaxed/simple;
+	bh=Bz3YwL0chaCMBnCDEopPF1C6U84WHmBwKmy+OsoWE0w=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=p3IOhXRRumjyRXbOUbq9YtelhHXiGi7XTvuE68VLCBazHOBQWX1FqRSQTeVxJv+w9JyECsf4ojITTZ62r8LkRIGwDOZQUMINsTF2vTnD/BwUVlvcL01efq50gsy7jTRb1M1T2uvqk4dsLBAS8gga8MfPhnRMMVszm8vfSaD3x7g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bAeC4ulb; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=uoKpcnmw2LSUy0ddMv1rgZgf6TCfo4/A16xgOd9y1zRxo9rQezTTd2gNhpbBx/WMpR1zaTeeV8DP323m6wwxSwCdUWDMevyTYDAMx+OHwPE9H8adLe1ws6QY9YZDaMSv44lLSKxlWsKQYmPNMz60qmYDkPNkJHUFbIdV/HTlJtA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lAnjPgf3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bAeC4ulb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37E3A1F00A3D;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lAnjPgf3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD2C91F00A3F;
 	Wed,  9 Sep 2026 06:55:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788936946;
-	bh=SFMq9r041JdrRdu82ciT3i1IHBCRfgyi4MkE+5feMTs=;
+	s=k20260515; t=1788936947;
+	bh=4Wz5r3bkovseDZXXE/3vCh6AS15KQiCU/AZXL0MyQ30=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=bAeC4ulb3CbtbgHzBLLzbwJt2/zeZyQqUNW7dRm2Y8tNN1oMA8ihyVHRf0hRLtTqr
-	 vYxIcwj9Q0WcQHUQCQkPkHhJfYRHCHO4DipJ/ToytGpanPG17GzD23KB2976440zMO
-	 ijy8+FTu4gJyV0tPq2kPGRO2Gm8Hq2s/FuTeQ++ZJnYx7aMIH4XqTGsJ6p+knWACBe
-	 dTbL+twqsgEufR4rmo4YQPuv7o2BTi/j+zbWIVcEcMqlPveoF/Q1w+WES5HYtKCRAi
-	 AYxvh2SN444V2Rt7rZSFf6mAgAe0Seoi6JTVLx328glNvk9+KpJ2Ko8ZdNfZmhX+Tp
-	 vjyEkXYDoocvQ==
+	b=lAnjPgf3oATisdkW3y9sir/Yc/vSaGfL+jcwt+Sbdn5NqDoPAKFfaCNPGXLU0s82T
+	 vxktN/DG7UV/CdDlL+U+QqXopOZHI6hOeXxttY9Q2GOhDT4zlM0uxX1GJEUZdHew49
+	 7ikuiiWyKoBYkCoazRHO09aAd5cWjYDDfr1QjJshJm3lXJp7SzpTKHNKEQ5lULMs76
+	 hIQvPTF2nA7nuzRgwvC9hp9cT64Scfm89OSmm1QDGMsxQ6UzYuCIkqvyhoLHFCXlqC
+	 s7tUFqIJWu5wt7Nre0qMzqwrd5wsLc+X7u/5Eb3sFwN6ob7jXyrwK2zXb/9zec3qjb
+	 AsdST9Dkm53xg==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next V4 13/14] selftests: net: gro: Add PSP
- encapsulation and encryption
+Subject: Re: [PATCH net-next V4 14/14] selftests: drv-net: Add PSP HW GRO
+ conformance tests
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Tariq Toukan" <tariqt@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260908065244.3799142-14-tariqt@nvidia.com>
+In-Reply-To: <20260908065244.3799142-15-tariqt@nvidia.com>
 References: <20260908065244.3799142-1-tariqt@nvidia.com>
- <20260908065244.3799142-14-tariqt@nvidia.com>
+ <20260908065244.3799142-15-tariqt@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 09 Sep 2026 06:55:45 +0000
-Message-Id: <20260909065546.37E3A1F00A3D@smtp.kernel.org>
+Date: Wed, 09 Sep 2026 06:55:46 +0000
+Message-Id: <20260909065546.DD2C91F00A3F@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+Thank you for your contribution! Sashiko AI review found 2 potential issue(=
 s) to consider:
-- [Medium] Casting a statically allocated byte array (`psp_scratch`) to str=
-uct pointers violates strict aliasing rules and causes potential unaligned =
-memory access traps.
+- [Medium] Hardcoded PSP versions [0, 1] in test_psp_ver_diff instead of dy=
+namically using supported capabilities.
+- [Medium] Unconditional creation of AF_INET6 socket crashes on IPv6-disabl=
+ed systems.
 --
 
-commit bedf89d5cc02c2e4bc6f000e8888dc6adb4414c6
+commit 2fbb01e97add94de0a14266aa0b2565a8246c7ea
 Author: Cosmin Ratiu <cratiu@nvidia.com>
 
-selftests: net: gro: Add PSP encapsulation and encryption
+selftests: drv-net: Add PSP HW GRO conformance tests
 
-This commit adds a PSP mode to the gro selftest which wraps transmitted
-frames in PSP transport mode and encrypts them using OpenSSL. The receiver
-decapsulates the frames for unchanged geometry assertions.
-
-> diff --git a/tools/testing/selftests/net/lib/gro.c b/tools/testing/selfte=
-sts/net/lib/gro.c
-> index 7a333155de1ab..fe4a4c0e17ae9 100644
-> --- a/tools/testing/selftests/net/lib/gro.c
-> +++ b/tools/testing/selftests/net/lib/gro.c
+This commit adds PSP conformance tests to kselftests using the gro helper
+binary in --psp mode. The sender crafts encapsulated and SW-encrypted PSP
+packets, and the receiver's device decrypts and decapsulates the packets
+before an AF_PACKET tap gets to analyze them.
 
 [ ... ]
 
-> +static char *psp_encapsulate(const char *pkt, int *lenp)
-> +{
+> diff --git a/tools/testing/selftests/drivers/net/hw/psp_gro.py b/tools/te=
+sting/selftests/drivers/net/hw/psp_gro.py
+> new file mode 100755
+> index 0000000000000..3a069c944ae1e
+> --- /dev/null
+> +++ b/tools/testing/selftests/drivers/net/hw/psp_gro.py
+
 [ ... ]
-> +	if (proto =3D=3D PF_INET) {
-> +		struct iphdr *iph =3D (struct iphdr *)(psp_scratch + ETH_HLEN);
-[ ... ]
-> +	sport =3D *(__be16 *)(psp_scratch + l4_off);
-> +	dport =3D *(__be16 *)(psp_scratch + l4_off + sizeof(sport));
-[ ... ]
-> +	udph =3D (struct udphdr *)(psp_scratch + l4_off);
-> +	udph->source =3D sport ^ dport;
-> +	udph->dest =3D htons(PSP_UDP_PORT);
-> +	udph->len =3D htons(PSP_UDP_LEN + PSP_HDR_LEN + l4_len + PSP_ICV_LEN);
-> +	udph->check =3D 0;
-> +
-> +	psph =3D (struct psphdr *)(udph + 1);
+
+> +def _psp_assoc(cfg, version=3D0):
+> +    # This socket receives no traffic, exists solely to own the rx assoc.
+> +    s =3D socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
 
 [Severity: Medium]
-Does casting a statically allocated byte array directly to structure pointe=
-rs
-violate strict aliasing rules?
+Will unconditionally creating an AF_INET6 socket here crash the test framew=
+ork
+with an OSError (EAFNOSUPPORT) on systems where IPv6 is disabled at boot?
 
-Looking at psp_encapsulate(), the statically allocated psp_scratch array is
-directly cast to struct iphdr, __be16, struct udphdr, and struct psphdr
-pointers.
-
-Because the tools compilation environment assumes standard -fstrict-aliasin=
-g,
-can this cause the compiler to incorrectly optimize away reads or writes?
-
-Additionally, can this lead to fatal unaligned access traps on architectures
-that enforce strict alignment, since a byte array is not guaranteed to align
-to the requirements of these structures?
+If the test is running an IPv4 variant on such a system, should the socket
+creation match the protocol family, or gracefully skip the test instead of
+failing?
 
 [ ... ]
+
+> +@ksft_variants(_ip_variants())
+> +def test_psp_ver_diff(cfg, protocol):
+> +    """Frames from two different PSP versions must not coalesce."""
+> +    init_psp_dev(cfg)
+> +    if len(cfg.psp_info['psp-versions-cap']) < 2:
+> +        raise KsftSkipEx("Device supports a single PSP version")
+> +
+> +    _run(cfg, "psp_ver_diff", protocol, [0, 1])
+
+[Severity: Medium]
+Could this hardcoded list of versions [0, 1] cause the test to fail on
+devices that support multiple versions but do not support version 0 (for
+example, if they only support versions 1 and 2)?
+
+Since the test verifies len(cfg.psp_info['psp-versions-cap']) < 2 to ensure
+at least two versions are supported, would it be better to dynamically pick
+the first two versions from that capabilities array instead of hardcoding t=
+hem?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260908065244.3799=
-142-1-tariqt@nvidia.com?part=3D13
+142-1-tariqt@nvidia.com?part=3D14
