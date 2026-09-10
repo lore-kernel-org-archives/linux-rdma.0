@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29606481FC2;
-	Thu, 10 Sep 2026 11:33:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44A714825CD;
+	Thu, 10 Sep 2026 11:33:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789039999; cv=none; b=WdGMDHRD2AZbXuCfhP+71u8+G6BHg+GeqmC4fl/0oXFkXkhnAipfjlOIx5dlUhZatK9X6k2Hg2WQzHJ+xkfETgqw3C9UIfgBzUn2arDN0DR22d2C3xn/KiawGq26XzFLN2A2J3bNL+zB2t/WyUDc3eTyHTuUqP7GwOSkqIEx4aI=
+	t=1789040001; cv=none; b=U8WoIYUImaazPXnuSD29Drv5nq/XaNk4ORd3zo1GPPJiqMXLDalPtjPy+63ZWAf1PBtLr4Indr/gtGxEmLwAQqNbkIiE4JMjMo0ENW8YsmnpJPxWEi0GIGa9R7O4JQNGYBDxljWfQttIjK1jLPCgQ/6U16S2iJOktK6ykUdrD6s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789039999; c=relaxed/simple;
-	bh=AhSwuYq8izIYeDSBz6OCwbM12Cifd8T1NxqOGMNPwsU=;
+	s=arc-20240116; t=1789040001; c=relaxed/simple;
+	bh=HnOE7KxRMQDSoSWzdw0jEvJl+vqEH71USKekBD/2CmA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ojXmwB4jj6kETCZK3wyPEKa6eifZIpqz76sNLTqGWvFovH30oJx6xFb4tOrbU1zNAPdX6yw8gWeXNcwH4M0MvYgGYyrI5udxYWZFMRjjEnOjoLSJSoe42PLC3W7rGUkUbHEE08HQ3gN/Xw3jH40KuB5ABUvUE6OXwy4Z4TuwT7Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YD9lGSLI; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=g7kg4U8wbHXes+3nJ7phPogiOiVgTZXORRg3xQ4w4UPnsca6UF2DrBG2Al8IMSwc4aJHo8sBJwGDEmaPA9rSXmw6H4G51cmFs6eTuHFTDvDPavYr2ucbkBiyA8bTx1D2rOcjlO9OvkfGOX+j0SjQDjmuQMm7Hpq5Eq+szr1PRdc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=L2DWUUe3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YD9lGSLI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 385781F00893;
-	Thu, 10 Sep 2026 11:33:15 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="L2DWUUe3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D5DD1F00898;
+	Thu, 10 Sep 2026 11:33:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789039995;
-	bh=YwVvJhRoi+Lr5LSgnNr8iWhw0NvaGa2ylJrrKFpMPaI=;
+	s=k20260515; t=1789039999;
+	bh=tVEndtM1ZMkTnl3oy8jWZNBW5Ka8c12aDzrffOz7F7s=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=YD9lGSLIf498vHtkHjXYHrg3tRoHnA6KLALmZyJN6hSvhOx6t/ZghnY+QyRBpQTWB
-	 bjxuZaJ3tUwLZIHj8yrTZ3mT46d6mZ2/ecVpNMtZXZq2X8E3Rs6Axl3VCA1Hfxg1cO
-	 8n/rkApNJZahESrfTKQMbbH9nNPc6jyuFkBgJ/5OO+CZVXhp4hAP9jh63/A0K80idj
-	 UXGVWvgGr5M71T6MFnSbVM/Jz4NOjVln/M8pYR7qqZVdjDQKQIr6ODydAMNgYR8tLH
-	 xnnwbdMsLSAu91VQolijkZf870hqnAg5hAEXpB6dvoUV+K2e2fZ9vIJ4l0QgEAvHtT
-	 w1yX+Qgkd0jRQ==
+	b=L2DWUUe36TRIQVb7AMqWGmMpNntSEztZ0qry9hebj42vUWTDSaF9MS6n34PaQ4fyW
+	 DM+TFYDAVsOJaQx3QfWDxaq+BC4XZATCAMO18311no75oSZV+WJJpqEHS3a9s78hu8
+	 cOJF4/J7tlNNUVHYFr3e97shW8aifqWEfL6YBTjQaUUw1pskfaIg2VK0K2vx0O26wT
+	 ASy/sRXS/fBTx3orHKl8ZHvUvsLkXBLQ6HlKVtpztJoSiguowdmqebRUdvaY/o4Ass
+	 YaRX5Fng3uGUE555P19PJ7EXWQO2I/57eS0MCsO/b7FONX5rtdHtevKIHUYMfK9cQh
+	 muqwvD3GleIoA==
 From: Leon Romanovsky <leon@kernel.org>
 To: Bjorn Helgaas <bhelgaas@google.com>,
 	Logan Gunthorpe <logang@deltatee.com>,
@@ -54,9 +54,9 @@ Cc: linux-pci@vger.kernel.org,
 	linaro-mm-sig@lists.linaro.org,
 	linux-rdma@vger.kernel.org,
 	kvm@vger.kernel.org
-Subject: [PATCH v5 13/18] PCI/P2PDMA: Add KUnit tests for the ACS routing decisions
-Date: Thu, 10 Sep 2026 14:32:08 +0300
-Message-ID: <20260910-fix-p2p-acs-v4-0-v5-13-856087f63c0d@nvidia.com>
+Subject: [PATCH v5 17/18] dma-buf: Let importers ask how peer-to-peer traffic is routed
+Date: Thu, 10 Sep 2026 14:32:12 +0300
+Message-ID: <20260910-fix-p2p-acs-v4-0-v5-17-856087f63c0d@nvidia.com>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20260910-fix-p2p-acs-v4-0-v5-0-856087f63c0d@nvidia.com>
 References: <20260910-fix-p2p-acs-v4-0-v5-0-856087f63c0d@nvidia.com>
@@ -72,277 +72,236 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-pci_acs_p2pdma_request() and pci_acs_p2pdma_completion() turn an ACS
-Control register and a TLP class into a routing decision. Which bits apply
-to which direction and which class is easy to get wrong, and hardware that
-exposes a given combination may not be at hand.
+Exporters keep the &struct p2pdma_provider in their own private data and
+hand it to dma_buf_phys_vec_to_sgt() on every map. An importer cannot reach
+it, so it has no way to learn how its own peer-to-peer traffic would be
+routed before it programs its hardware.
 
-Drive both from a table of register values and classes, covering the
-redirect controls per direction and Translation Blocking, Direct Translated
-P2P and Relaxed Ordering. Direct Translated P2P gets a case with and
-without a redirect to override, since it changes nothing without one.
-Exposing the two helpers moves their state enum into pci.h.
+Publish the provider through &struct dma_buf_export_info instead, and add
+dma_buf_p2pdma_map_type() for importers to query it by TLP class. It is
+fixed at export time, so dma_buf_phys_vec_to_sgt() no longer needs it as an
+argument and the two exporters no longer need a copy of it.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/pci/Kconfig        |  15 ++++++
- drivers/pci/Makefile       |   1 +
- drivers/pci/p2pdma.c       |  13 ++---
- drivers/pci/pci.h          |  16 ++++++
- drivers/pci/pci_acs_test.c | 121 +++++++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 157 insertions(+), 9 deletions(-)
+ drivers/dma-buf/dma-buf-mapping.c                 | 41 +++++++++++++++++++----
+ drivers/dma-buf/dma-buf.c                         |  1 +
+ drivers/infiniband/core/uverbs.h                  |  1 -
+ drivers/infiniband/core/uverbs_std_types_dmabuf.c |  7 ++--
+ drivers/vfio/pci/vfio_pci_dmabuf.c                |  8 ++---
+ include/linux/dma-buf-mapping.h                   |  4 ++-
+ include/linux/dma-buf.h                           |  5 +++
+ 7 files changed, 49 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
-index 0c7408509ba2..7a3eb5beb328 100644
---- a/drivers/pci/Kconfig
-+++ b/drivers/pci/Kconfig
-@@ -226,6 +226,21 @@ config PCI_P2PDMA
+diff --git a/drivers/dma-buf/dma-buf-mapping.c b/drivers/dma-buf/dma-buf-mapping.c
+index 794acff2546a..8b431000e906 100644
+--- a/drivers/dma-buf/dma-buf-mapping.c
++++ b/drivers/dma-buf/dma-buf-mapping.c
+@@ -6,6 +6,32 @@
+ #include <linux/dma-buf-mapping.h>
+ #include <linux/dma-resv.h>
  
- 	  If unsure, say N.
- 
-+config PCI_ACS_KUNIT_TEST
-+	tristate "KUnit tests for PCI ACS P2P routing" if !KUNIT_ALL_TESTS
-+	depends on PCI_P2PDMA && KUNIT
-+	default KUNIT_ALL_TESTS
-+	help
-+	  Enable KUnit tests for the PCI ACS peer-to-peer routing decision
-+	  logic, including direction-specific Request and Completion
-+	  controls that cannot all be exercised on typical peer-to-peer
-+	  hardware.
-+
-+	  For more information on KUnit and unit tests in general, refer to
-+	  the KUnit documentation in Documentation/dev-tools/kunit/.
-+
-+	  If unsure, say N.
-+
- config PCI_LABEL
- 	def_bool y if (DMI || ACPI)
- 	select NLS
-diff --git a/drivers/pci/Makefile b/drivers/pci/Makefile
-index 41ebc3b9a518..6305d128d3df 100644
---- a/drivers/pci/Makefile
-+++ b/drivers/pci/Makefile
-@@ -31,6 +31,7 @@ obj-$(CONFIG_PCI_STUB)		+= pci-stub.o
- obj-$(CONFIG_PCI_PF_STUB)	+= pci-pf-stub.o
- obj-$(CONFIG_PCI_ECAM)		+= ecam.o
- obj-$(CONFIG_PCI_P2PDMA)	+= p2pdma.o
-+obj-$(CONFIG_PCI_ACS_KUNIT_TEST) += pci_acs_test.o
- obj-$(CONFIG_XEN_PCIDEV_FRONTEND) += xen-pcifront.o
- obj-$(CONFIG_VGA_ARB)		+= vgaarb.o
- obj-$(CONFIG_PCI_DOE)		+= doe.o
-diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index 60bd9ec5f993..955e3b41ec1f 100644
---- a/drivers/pci/p2pdma.c
-+++ b/drivers/pci/p2pdma.c
-@@ -515,13 +515,6 @@ static struct pci_dev *find_parent_pci_dev(struct device *dev)
- 	return NULL;
- }
- 
--enum pci_acs_p2pdma_state {
--	PCI_ACS_P2PDMA_NOT_SUPPORTED,
--	PCI_ACS_P2PDMA_DIRECT,
--	PCI_ACS_P2PDMA_REDIRECT,
--	PCI_ACS_P2PDMA_BLOCKED,
--};
--
- /*
-  * Decide how a peer-to-peer Request at an ACS-capable ingress port routes,
-  * from that port's ACS Control register and the Request's Address Type.
-@@ -531,7 +524,7 @@ enum pci_acs_p2pdma_state {
-  * selects are a direct route and an ACS Violation, and neither one lets peer
-  * bus addressing be assumed.
-  */
--static enum pci_acs_p2pdma_state
-+VISIBLE_IF_KUNIT enum pci_acs_p2pdma_state
- pci_acs_p2pdma_request(u16 ctrl, unsigned int tlp_flags)
- {
- 	if (tlp_flags & PCI_P2PDMA_TLP_TRANSLATED) {
-@@ -558,6 +551,7 @@ pci_acs_p2pdma_request(u16 ctrl, unsigned int tlp_flags)
- 	return ctrl & (PCI_ACS_RR | PCI_ACS_EC) ?
- 		PCI_ACS_P2PDMA_REDIRECT : PCI_ACS_P2PDMA_DIRECT;
- }
-+EXPORT_SYMBOL_IF_KUNIT(pci_acs_p2pdma_request);
- 
- /*
-  * Decide how a peer-to-peer Completion at an ACS-capable ingress port routes.
-@@ -565,7 +559,7 @@ pci_acs_p2pdma_request(u16 ctrl, unsigned int tlp_flags)
-  * affects a Completion, and that one leaves Completions carrying the Relaxed
-  * Ordering attribute alone.
-  */
--static enum pci_acs_p2pdma_state
-+VISIBLE_IF_KUNIT enum pci_acs_p2pdma_state
- pci_acs_p2pdma_completion(u16 ctrl, unsigned int tlp_flags)
- {
- 	if (tlp_flags & PCI_P2PDMA_TLP_RELAXED_CPL)
-@@ -574,6 +568,7 @@ pci_acs_p2pdma_completion(u16 ctrl, unsigned int tlp_flags)
- 	return ctrl & PCI_ACS_CR ? PCI_ACS_P2PDMA_REDIRECT :
- 				   PCI_ACS_P2PDMA_DIRECT;
- }
-+EXPORT_SYMBOL_IF_KUNIT(pci_acs_p2pdma_completion);
- 
- static const char *pci_acs_p2pdma_state_name(enum pci_acs_p2pdma_state state)
- {
-diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
-index ba3c3fddddc2..c0d2711d73f9 100644
---- a/drivers/pci/pci.h
-+++ b/drivers/pci/pci.h
-@@ -2,6 +2,7 @@
- #ifndef DRIVERS_PCI_H
- #define DRIVERS_PCI_H
- 
-+#include <kunit/visibility.h>
- #include <linux/bug.h>
- #include <linux/align.h>
- #include <linux/bitfield.h>
-@@ -1093,6 +1094,21 @@ resource_size_t pci_min_window_alignment(struct pci_bus *bus,
- 
- void pci_acs_init(struct pci_dev *dev);
- void pci_enable_acs(struct pci_dev *dev);
-+
-+enum pci_acs_p2pdma_state {
-+	PCI_ACS_P2PDMA_NOT_SUPPORTED,
-+	PCI_ACS_P2PDMA_DIRECT,
-+	PCI_ACS_P2PDMA_REDIRECT,
-+	PCI_ACS_P2PDMA_BLOCKED,
-+};
-+
-+#if IS_ENABLED(CONFIG_KUNIT)
-+enum pci_acs_p2pdma_state pci_acs_p2pdma_request(u16 ctrl,
-+						unsigned int tlp_flags);
-+enum pci_acs_p2pdma_state pci_acs_p2pdma_completion(u16 ctrl,
-+						    unsigned int tlp_flags);
-+#endif
-+
- #ifdef CONFIG_PCI_QUIRKS
- int pci_dev_specific_acs_enabled(struct pci_dev *dev, u16 acs_flags);
- int pci_dev_specific_enable_acs(struct pci_dev *dev);
-diff --git a/drivers/pci/pci_acs_test.c b/drivers/pci/pci_acs_test.c
-new file mode 100644
-index 000000000000..ce6b9375da36
---- /dev/null
-+++ b/drivers/pci/pci_acs_test.c
-@@ -0,0 +1,121 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * KUnit tests for PCI ACS peer-to-peer routing decisions.
++/**
++ * dma_buf_p2pdma_map_type - How peer-to-peer traffic to a buffer is routed
++ * @attach:	attachment of the importer that will issue the traffic
++ * @tlp_flags:	&enum pci_p2pdma_tlp_flags describing the TLPs it will issue
 + *
-+ * These exercise Request and Completion routing independently of the ACS
-+ * settings exposed by available PCIe hardware.
++ * Reports how the PCIe fabric routes @tlp_flags traffic between the buffer
++ * behind @attach and the importer attached to it, so that an importer can
++ * choose the TLP attributes that earn it a direct route before it programs
++ * its hardware.
++ *
++ * Return: the mapping type for @tlp_flags traffic, or PCI_P2PDMA_MAP_NONE
++ * when the exporter named no &struct p2pdma_provider and nothing is known
++ * about the route.
 + */
-+#include <kunit/test.h>
-+
-+#include <linux/pci.h>
-+#include <linux/pci-p2pdma.h>
-+#include <linux/pci_regs.h>
-+
-+#include "pci.h"
-+
-+struct acs_decision_case {
-+	const char *desc;
-+	u16 ctrl;
-+	unsigned int tlp_flags;
-+	enum pci_acs_p2pdma_state expect;
-+};
-+
-+/* Shorthands to keep the tables below readable. */
-+#define ACS_DIRECT	PCI_ACS_P2PDMA_DIRECT
-+#define ACS_REDIR	PCI_ACS_P2PDMA_REDIRECT
-+#define ACS_RO		PCI_P2PDMA_TLP_RELAXED_CPL
-+#define ACS_AT		PCI_P2PDMA_TLP_TRANSLATED
-+#define ACS_BLOCK	PCI_ACS_P2PDMA_BLOCKED
-+
-+/* Request routing ignores Completion Redirect. */
-+static const struct acs_decision_case acs_request_cases[] = {
-+	{ "req/none", 0, 0, ACS_DIRECT },
-+	{ "req/rr", PCI_ACS_RR, 0, ACS_REDIR },
-+	{ "req/cr", PCI_ACS_CR, 0, ACS_DIRECT },
-+	{ "req/rr_cr", PCI_ACS_RR | PCI_ACS_CR, 0, ACS_REDIR },
-+	{ "req/ec", PCI_ACS_EC, 0, ACS_REDIR },
-+	{ "req/ec_cr", PCI_ACS_EC | PCI_ACS_CR, 0, ACS_REDIR },
-+
-+	/*
-+	 * Direct Translated P2P overrides the redirect controls, but only for
-+	 * a Request that actually carries a Translated address.
-+	 */
-+	{ "req/dt", PCI_ACS_DT, 0, ACS_DIRECT },
-+	{ "req/dt_rr", PCI_ACS_DT | PCI_ACS_RR, 0, ACS_REDIR },
-+	{ "req/at", 0, ACS_AT, ACS_DIRECT },
-+	{ "req/at_rr", PCI_ACS_RR, ACS_AT, ACS_REDIR },
-+	{ "req/at_dt_rr", PCI_ACS_DT | PCI_ACS_RR, ACS_AT, ACS_DIRECT },
-+	{ "req/at_dt_ec", PCI_ACS_DT | PCI_ACS_EC, ACS_AT, ACS_DIRECT },
-+
-+	/*
-+	 * Translation Blocking rejects a Translated address outright, and
-+	 * makes the port ignore Direct Translated P2P.
-+	 */
-+	{ "req/tb", PCI_ACS_TB, 0, ACS_DIRECT },
-+	{ "req/tb_rr", PCI_ACS_TB | PCI_ACS_RR, 0, ACS_REDIR },
-+	{ "req/at_tb", PCI_ACS_TB, ACS_AT, ACS_BLOCK },
-+	{ "req/at_tb_dt", PCI_ACS_TB | PCI_ACS_DT, ACS_AT, ACS_BLOCK },
-+};
-+
-+/* Completion routing depends only on Completion Redirect. */
-+static const struct acs_decision_case acs_completion_cases[] = {
-+	{ "cpl/none", 0, 0, ACS_DIRECT },
-+	{ "cpl/rr", PCI_ACS_RR, 0, ACS_DIRECT },
-+	{ "cpl/cr", PCI_ACS_CR, 0, ACS_REDIR },
-+	{ "cpl/rr_cr", PCI_ACS_RR | PCI_ACS_CR, 0, ACS_REDIR },
-+	{ "cpl/ec", PCI_ACS_EC, 0, ACS_DIRECT },
-+	{ "cpl/ec_cr", PCI_ACS_EC | PCI_ACS_CR, 0, ACS_REDIR },
-+
-+	/* Relaxed Ordering Completions are never redirected. */
-+	{ "cpl/ro", 0, ACS_RO, ACS_DIRECT },
-+	{ "cpl/ro_cr", PCI_ACS_CR, ACS_RO, ACS_DIRECT },
-+	{ "cpl/ro_rr_cr", PCI_ACS_RR | PCI_ACS_CR, ACS_RO, ACS_DIRECT },
-+};
-+
-+#undef ACS_DIRECT
-+#undef ACS_REDIR
-+#undef ACS_RO
-+#undef ACS_AT
-+#undef ACS_BLOCK
-+
-+static void acs_decision_desc(const struct acs_decision_case *c, char *desc)
++enum pci_p2pdma_map_type
++dma_buf_p2pdma_map_type(struct dma_buf_attachment *attach,
++			unsigned int tlp_flags)
 +{
-+	strscpy(desc, c->desc, KUNIT_PARAM_DESC_SIZE);
++	if (!attach->dmabuf->provider)
++		return PCI_P2PDMA_MAP_NONE;
++
++	return pci_p2pdma_map_type_tlp(attach->dmabuf->provider, attach->dev,
++				       tlp_flags);
 +}
++EXPORT_SYMBOL_NS_GPL(dma_buf_p2pdma_map_type, "DMA_BUF");
 +
-+KUNIT_ARRAY_PARAM(acs_request, acs_request_cases, acs_decision_desc);
-+KUNIT_ARRAY_PARAM(acs_completion, acs_completion_cases, acs_decision_desc);
+ static struct scatterlist *fill_sg_entry(struct scatterlist *sgl, size_t length,
+ 					 dma_addr_t addr)
+ {
+@@ -71,7 +97,6 @@ struct dma_buf_dma {
+  * from arrays of physical vectors. This funciton is intended for MMIO memory
+  * only.
+  * @attach:	[in]	attachment whose scatterlist is to be returned
+- * @provider:	[in]	p2pdma provider
+  * @phys_vec:	[in]	array of physical vectors
+  * @nr_ranges:	[in]	number of entries in phys_vec array
+  * @size:	[in]	total size of phys_vec
+@@ -85,16 +110,17 @@ struct dma_buf_dma {
+  *
+  * A mapping must be unmapped by using dma_buf_free_sgt().
+  *
+- * NOTE: This function is intended for exporters. If direct traffic routing is
+- * mandatory exporter should call routing pci_p2pdma_map_type() before calling
+- * this function.
++ * NOTE: This function is intended for exporters, and works on MMIO memory
++ * only, so &dma_buf.provider must have been set at export time. If direct
++ * traffic routing is mandatory the exporter should call
++ * pci_p2pdma_map_type() before calling this function.
+  */
+ struct sg_table *dma_buf_phys_vec_to_sgt(struct dma_buf_attachment *attach,
+-					 struct p2pdma_provider *provider,
+ 					 struct phys_vec *phys_vec,
+ 					 size_t nr_ranges, size_t size,
+ 					 enum dma_data_direction dir)
+ {
++	struct p2pdma_provider *provider;
+ 	unsigned int nents, mapped_len = 0;
+ 	struct dma_buf_dma *dma;
+ 	struct scatterlist *sgl;
+@@ -104,10 +130,11 @@ struct sg_table *dma_buf_phys_vec_to_sgt(struct dma_buf_attachment *attach,
+ 
+ 	dma_resv_assert_held(attach->dmabuf->resv);
+ 
+-	if (WARN_ON(!attach || !attach->dmabuf || !provider))
+-		/* This function is supposed to work on MMIO memory only */
++	if (WARN_ON(!attach || !attach->dmabuf || !attach->dmabuf->provider))
+ 		return ERR_PTR(-EINVAL);
+ 
++	provider = attach->dmabuf->provider;
 +
-+static void pci_acs_p2pdma_request_test(struct kunit *test)
-+{
-+	const struct acs_decision_case *c = test->param_value;
+ 	dma = kzalloc_obj(*dma);
+ 	if (!dma)
+ 		return ERR_PTR(-ENOMEM);
+diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+index d504c636dc29..c2b9944e9659 100644
+--- a/drivers/dma-buf/dma-buf.c
++++ b/drivers/dma-buf/dma-buf.c
+@@ -747,6 +747,7 @@ struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info)
+ 	dmabuf->size = exp_info->size;
+ 	dmabuf->exp_name = exp_info->exp_name;
+ 	dmabuf->owner = exp_info->owner;
++	dmabuf->provider = exp_info->provider;
+ 	spin_lock_init(&dmabuf->name_lock);
+ 	init_waitqueue_head(&dmabuf->poll);
+ 	dmabuf->cb_in.poll = dmabuf->cb_out.poll = &dmabuf->poll;
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index c64dd6b94e10..fbdac18b69ca 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -139,7 +139,6 @@ struct ib_uverbs_dmabuf_file {
+ 	struct list_head dmabufs_elm;
+ 	struct rdma_user_mmap_entry *mmap_entry;
+ 	struct phys_vec phys_vec;
+-	struct p2pdma_provider *provider;
+ 	struct kref kref;
+ 	struct completion comp;
+ 	u8 revoked :1;
+diff --git a/drivers/infiniband/core/uverbs_std_types_dmabuf.c b/drivers/infiniband/core/uverbs_std_types_dmabuf.c
+index 2411ebee69e2..94d3719a34da 100644
+--- a/drivers/infiniband/core/uverbs_std_types_dmabuf.c
++++ b/drivers/infiniband/core/uverbs_std_types_dmabuf.c
+@@ -33,9 +33,8 @@ uverbs_dmabuf_map(struct dma_buf_attachment *attachment,
+ 	if (priv->revoked)
+ 		return ERR_PTR(-ENODEV);
+ 
+-	ret = dma_buf_phys_vec_to_sgt(attachment, priv->provider,
+-				      &priv->phys_vec, 1, priv->phys_vec.len,
+-				      dir);
++	ret = dma_buf_phys_vec_to_sgt(attachment, &priv->phys_vec, 1,
++				      priv->phys_vec.len, dir);
+ 	if (IS_ERR(ret))
+ 		return ret;
+ 
+@@ -108,7 +107,7 @@ static int UVERBS_HANDLER(UVERBS_METHOD_DMABUF_ALLOC)(
+ 		return -EINVAL;
+ 
+ 	ret = ib_dev->ops.mmap_get_pfns(mmap_entry, &uverbs_dmabuf->phys_vec,
+-					&uverbs_dmabuf->provider);
++					&exp_info.provider);
+ 	if (ret)
+ 		goto err;
+ 
+diff --git a/drivers/vfio/pci/vfio_pci_dmabuf.c b/drivers/vfio/pci/vfio_pci_dmabuf.c
+index c16f460c01d6..10f47992e7f5 100644
+--- a/drivers/vfio/pci/vfio_pci_dmabuf.c
++++ b/drivers/vfio/pci/vfio_pci_dmabuf.c
+@@ -15,7 +15,6 @@ struct vfio_pci_dma_buf {
+ 	struct list_head dmabufs_elm;
+ 	size_t size;
+ 	struct phys_vec *phys_vec;
+-	struct p2pdma_provider *provider;
+ 	u32 nr_ranges;
+ 	struct kref kref;
+ 	struct completion comp;
+@@ -59,9 +58,8 @@ vfio_pci_dma_buf_map(struct dma_buf_attachment *attachment,
+ 	if (priv->revoked)
+ 		return ERR_PTR(-ENODEV);
+ 
+-	ret = dma_buf_phys_vec_to_sgt(attachment, priv->provider,
+-				      priv->phys_vec, priv->nr_ranges,
+-				      priv->size, dir);
++	ret = dma_buf_phys_vec_to_sgt(attachment, priv->phys_vec,
++				      priv->nr_ranges, priv->size, dir);
+ 	if (IS_ERR(ret))
+ 		return ret;
+ 
+@@ -274,7 +272,7 @@ int vfio_pci_core_feature_dma_buf(struct vfio_pci_core_device *vdev, u32 flags,
+ 	priv->vdev = vdev;
+ 	priv->nr_ranges = get_dma_buf.nr_ranges;
+ 	priv->size = length;
+-	ret = vdev->pci_ops->get_dmabuf_phys(vdev, &priv->provider,
++	ret = vdev->pci_ops->get_dmabuf_phys(vdev, &exp_info.provider,
+ 					     get_dma_buf.region_index,
+ 					     priv->phys_vec, dma_ranges,
+ 					     priv->nr_ranges);
+diff --git a/include/linux/dma-buf-mapping.h b/include/linux/dma-buf-mapping.h
+index 09bde3f748e4..d63ac4d52aa5 100644
+--- a/include/linux/dma-buf-mapping.h
++++ b/include/linux/dma-buf-mapping.h
+@@ -7,8 +7,10 @@
+ #define __DMA_BUF_MAPPING_H__
+ #include <linux/dma-buf.h>
+ 
++enum pci_p2pdma_map_type
++dma_buf_p2pdma_map_type(struct dma_buf_attachment *attach,
++			unsigned int tlp_flags);
+ struct sg_table *dma_buf_phys_vec_to_sgt(struct dma_buf_attachment *attach,
+-					 struct p2pdma_provider *provider,
+ 					 struct phys_vec *phys_vec,
+ 					 size_t nr_ranges, size_t size,
+ 					 enum dma_data_direction dir);
+diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+index d1203da56fc5..81c136fcee6e 100644
+--- a/include/linux/dma-buf.h
++++ b/include/linux/dma-buf.h
+@@ -368,6 +368,9 @@ struct dma_buf {
+ 	/** @priv: exporter specific private data for this buffer object. */
+ 	void *priv;
+ 
++	/** @provider: The peer-to-peer provider backing this buffer. */
++	struct p2pdma_provider *provider;
 +
-+	KUNIT_EXPECT_EQ(test, pci_acs_p2pdma_request(c->ctrl, c->tlp_flags),
-+			c->expect);
-+}
-+
-+static void pci_acs_p2pdma_completion_test(struct kunit *test)
-+{
-+	const struct acs_decision_case *c = test->param_value;
-+
-+	KUNIT_EXPECT_EQ(test, pci_acs_p2pdma_completion(c->ctrl, c->tlp_flags),
-+			c->expect);
-+}
-+
-+static struct kunit_case pci_acs_test_cases[] = {
-+	KUNIT_CASE_PARAM(pci_acs_p2pdma_request_test,
-+			 acs_request_gen_params),
-+	KUNIT_CASE_PARAM(pci_acs_p2pdma_completion_test,
-+			 acs_completion_gen_params),
-+	{}
-+};
-+
-+static struct kunit_suite pci_acs_test_suite = {
-+	.name = "pci_acs",
-+	.test_cases = pci_acs_test_cases,
-+};
-+kunit_test_suite(pci_acs_test_suite);
-+
-+MODULE_IMPORT_NS("EXPORTED_FOR_KUNIT_TESTING");
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("KUnit tests for PCI ACS peer-to-peer routing decisions");
+ 	/**
+ 	 * @resv:
+ 	 *
+@@ -501,6 +504,7 @@ struct dma_buf_attachment {
+  * @flags:	mode flags for the file
+  * @resv:	reservation-object, NULL to allocate default one
+  * @priv:	Attach private data of allocator to this buffer
++ * @provider:	Peer-to-peer provider backing the buffer
+  *
+  * This structure holds the information required to export the buffer. Used
+  * with dma_buf_export() only.
+@@ -512,6 +516,7 @@ struct dma_buf_export_info {
+ 	size_t size;
+ 	int flags;
+ 	struct dma_resv *resv;
++	struct p2pdma_provider *provider;
+ 	void *priv;
+ };
+ 
 
 -- 
 2.55.0
