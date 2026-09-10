@@ -1,44 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56FC93E4C95
-	for <linux-rdma@vger.kernel.org>; Thu, 10 Sep 2026 10:46:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A50D136196E
+	for <linux-rdma@vger.kernel.org>; Thu, 10 Sep 2026 10:46:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789037191; cv=none; b=XY5hk0CWtJv+hEJro+4Xye91u+BJ4hCb1bwcEN4INBBVRmkH8dZFGqVy5ZTr6ebOWssRPp9YXJQ5P8r/xnKFK+LLSdY7LwNhTCGEGoj5TIh/kJg2PVQQWVTKFCpJgDpSw77twaKhu3TdVeegrjLbK+Y9igCqSE6nHwjdqW9thA0=
+	t=1789037191; cv=none; b=Er3lxltv14FoijUJ7i1DQq5QYOQEC66844k2ExS3UhoUhDEo8NUHTiy0cr81R4YRYIeIGFd9MLNCqgMfDj+85p0MnyJHXPE/FGZmvFb3ehUwcGBdIRFbWaMSmaPzBRbtczrJyjWGw8ro6IdLzgksuvAfIa+WyKrDlAj5F6HLGtM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1789037191; c=relaxed/simple;
-	bh=9EZb85cL2FA6MRDyU2EyM9ivmwTih+kzrfWcCBBmz/s=;
+	bh=vRM28poga4FKKFokN7iAkWbTGLNFoC3BkcmsmJHBMJ4=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=VWACahTq/2vP5mlDkeAX02PGcZaPvHbP7ZFWDmUULKoIEckdT91nAg38XHJrnUQZDX8et/Bdg20z6zNn7ZARWUcPRU+2S3OsWUhIxX5yHjVu63MRYLXATWPswyz3RTvnKkuZrFZlqGJT7kVjkkok0Pd9QvyElDj0QEVtsGb3zlI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=e72GrD5u; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=A6chGskL64CRVAOCxmKCMsrReYJMAwAXOtWS8fF6X0PaJPEZaaErX7se9RpvXA0a2CLyRZk0Qbw8F36xiX/VLDRlkRqaX5CXd78Y3WjLhq9NKNkokpeBHptIqOmUOkNHF1Q9Nbm29xD1UgUgZFeu0kvAcJ5Gdzy8W/N+CjQLycE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Fkb9iuEm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="e72GrD5u"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B72301F000FF;
-	Thu, 10 Sep 2026 10:46:29 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Fkb9iuEm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66DEA1F00893;
+	Thu, 10 Sep 2026 10:46:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789037189;
-	bh=9EZb85cL2FA6MRDyU2EyM9ivmwTih+kzrfWcCBBmz/s=;
+	s=k20260515; t=1789037190;
+	bh=8KtKypASmn/3njJhuy20loBTUs9fKwq4oR4B1jXu+ek=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=e72GrD5uzwxdp1QDPpN8dj4p1G3aocfKwMII0flYC+V5yx4AHg+GGIjoqz1xKhXD2
-	 tl7TVl983gZP4f50BpMtPe428fUbDR+Z8h02anGW2EDyx4K3oKyYIpTycqkaSJCgqk
-	 zIY3dl+eUPslANPmxL9FvJ7bfYm/IaOC/7o7pZEhgAWdPEELg9v8H3vp5+klsqA/Yi
-	 crOsndYVfvJTblyjZRd6GCoXHeZIi8o6Nu5ecTs8UClwdtu3L27U6tL/sojXZXDRCR
-	 oZWubIiqW6npUSeQYeX2znhpUv0sFV+KPW3lTGXwTvXvhYqA+z8ABWXmJDOEXb6bVW
-	 oTv2AL6Yd0NKA==
+	b=Fkb9iuEme5GUsuJcA57EjwCmaEFWC4SsIj7IPxPyyO5S/wuhAu37Sz/1MyCsoJ6n+
+	 P9HBEhtozkqfXScDG1KH0XtreUf3cijdVXO0QwewkK7CsDBFxASe87EQlEK7oVpQwp
+	 D9nVeLsvRL0/snrScWnfQPbkmcTJx3ADGRDDGvW7GCj2RTEJjs8odB6OFXVliQOSoN
+	 el7iNI4bvmLO+LbMvAqTu/z09j+wGu+GnL51eVipE13KD9xfQDwSBGYzwAav4xqBtx
+	 pbu/QxhY70IDrg+fRkrFYyBlGW/z/u/GgA4HipflTN4jPZXMYdXkpyuVdmBxWDIB7G
+	 3VkDjgbxR4utA==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net 5/5] {RDMA,net}/mlx5: notify RoCE LAG speed change
- via driver event
+Subject: Re: [PATCH net 1/5] net/mlx5: Lag, split aggregate speed into oper
+ and max helpers
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Tariq Toukan" <tariqt@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260910102432.3845360-6-tariqt@nvidia.com>
+In-Reply-To: <20260910102432.3845360-2-tariqt@nvidia.com>
 References: <20260910102432.3845360-1-tariqt@nvidia.com>
- <20260910102432.3845360-6-tariqt@nvidia.com>
+ <20260910102432.3845360-2-tariqt@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 10 Sep 2026 10:46:29 +0000
-Message-Id: <20260910104629.B72301F000FF@smtp.kernel.org>
+Date: Thu, 10 Sep 2026 10:46:30 +0000
+Message-Id: <20260910104630.66DEA1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -47,17 +47,20 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 > From: Or Har-Toov <ohartoov@nvidia.com>
 >=20
-> In RoCE LAG we don't modify any max_tx_speed, so no
-> IB_EVENT_DEVICE_SPEED_CHANGE is ever fired.
+> Split mlx5_lag_sum_devices_speed into mlx5_lag_get_devices_oper_speed
+> and mlx5_lag_get_devices_max_speed. The oper function reflects only
+> the speed currently available and the max function is state-independent
+> and represents the maximum achievable speed, taking the best single
+> port for active-backup and summing all ports for XOR, LACP and MPESW.
 >=20
-> Raise IB_EVENT_DEVICE_SPEED_CHANGE from the LAG layer, in
-> mlx5_lag_update_agg_speed(), right after the cached aggregate is
-> updated. That cache is where the IB layer now takes the effective speed
-> from, so a consumer that queries after receiving the event is
-> guaranteed to read the new value.
+> The oper function skips a port for two reasons:
+> - the bonding driver set tx_enabled=3Dfalse - LACP converging or
+>   active-backup standby slave, where carrier may still be up but the
+>   port is intentionally not forwarding traffic.
+> - the link is down.
 >=20
-> Fixes: c6df9a65cbb0 ("net/mlx5: Skip disabled vports when setting max TX =
-speed")
+> Fixes: 50f1d188c580 ("net/mlx5: Propagate LAG effective max_tx_speed to v=
+ports")
 > Signed-off-by: Or Har-Toov <ohartoov@nvidia.com>
 > Reviewed-by: Shay Drori <shayd@nvidia.com>
 > Reviewed-by: Mark Bloch <mbloch@nvidia.com>
@@ -67,5 +70,5 @@ Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260910102432.3845=
-360-1-tariqt@nvidia.com?part=3D5
+360-1-tariqt@nvidia.com?part=3D1
 
