@@ -1,214 +1,209 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from CY7PR03CU001.outbound.protection.outlook.com (mail-westcentralusazon11020117.outbound.protection.outlook.com [40.93.198.117])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 407A258E2C6;
-	Thu, 10 Sep 2026 18:55:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789066546; cv=none; b=qI04ZCD/mffz8cpWqepYGMFV8Mp+SckjY1mMcAa6rsDe9kbC0stcfx2zD+J7+I3u1JbuCYOfprkKBtOdQXCzDaRdWO8wC3s07a4U34v1gZM4aPdg96uWmghvXCkFNLpDqk3ix6QSKvlbeFommd9l3PlW59y1YVogEyWBeklnOxg=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789066546; c=relaxed/simple;
-	bh=jA1OIjMBwv91UuOt5Tn56hy+6IGDF/xyXBVDc+O0W7c=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=A+ac7OsFdCSk2ZgjggUEYNyk4qABfHooj+hlO9MbViUc0WCRtXI5eLFkxpk7W9dQ5JYKjN2SCapwFEuOSIMOYCeUAUznU6rWrRcXDK+Uv8sJjOm3BmsrZD6qMF1fS9r9KQgw8cQJYtc7xANVQGzoX0yYNcmROoSIKr0IrqWz3ac=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=F6i3O5AT; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04F2641443D;
+	Thu, 10 Sep 2026 20:00:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.198.117
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789070462; cv=fail; b=J5Z2ENB/89JvqV4GC8AvfNGqRTL0JW/7HMn4kN+77aSY8gY+0BmzCkxR2AlkV32/al/ZyZ8vpclLT7pDJYV4uwNTnpIB1zavO6NaBcevndk1rZQMBmmeMDdmEbk5d5ycnTM11V1TYvLzejILRg7Xb83t8aSQOiyIqCqJei0itGA=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789070462; c=relaxed/simple;
+	bh=UN7jVSi1Rzl9n1deCk9RFYXpu2b/ISZy7FBsf1AUcm4=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=YhJAJl17zBkn/kiIsgF3J6/1ZjD99ytKXw+GRqknsjAM39cywlmNgQYWsvqib+U0pONXXdAs0DLA891vyaE4LLPyyOZIZrI2v/TXf1a1iQiTD19JK20pA32+YsyrVw2R6jOo6wAZdPJYT/YJL3b2E8YMV9nZDms9WPRvr+yB7N0=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=microsoft.com; dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b=KpNxT5ON; arc=fail smtp.client-ip=40.93.198.117
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="F6i3O5AT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4DDF1F008A1;
-	Thu, 10 Sep 2026 18:55:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789066544;
-	bh=CrpBp6UrC3ldEa5GcKmmPo3oz74G2RAnpQBvJ2o9k1k=;
-	h=Date:From:To:Cc:In-Reply-To:References:Subject;
-	b=F6i3O5AT5R2f9Yx+JsX4oi2MbBVZy6vhmuah8fyZ7HoRM4fcwu9ko/hMOipVkG55B
-	 1Zmg31PLcmFyjN/6qwvx+Gi14CUmpNgqwIW3GIcgTV8r/HdYjj80cmHBvTlnPKg5uR
-	 OFZIpZsE3LqRG10E9rSuJaexxU9wT5CasLzhcaoOUlc1HtwpM6VduzyZ+RCbNEeTCG
-	 7mnywN+8+H6LvsHwXafWrsaQmZDzIueYYyazPefKJGcMkw5e44QHRXV4epY9oIt8b/
-	 VxUYOa++vQ7n7D+qHzq2qnf380yDhptkzXHvt9CgqRKD1Qe5yMUYoD9jvQW061SukA
-	 KzIemnQ3+sQfA==
-Received: from phl-compute-10.internal (phl-compute-10.internal [10.202.2.50])
-	by mailfauth.phl.internal (Postfix) with ESMTP id C451EF40069;
-	Thu, 10 Sep 2026 14:55:42 -0400 (EDT)
-Received: from phl-imap-15 ([10.202.2.104])
-  by phl-compute-10.internal (MEProxy); Thu, 10 Sep 2026 14:55:42 -0400
-X-ME-Sender: <xms:Lv2iajO020W1DUB7kxvyyEY7DfRl-e2BIJTX073yLiFUhMClSPWBiA>
-    <xme:Lv2iaoxfBFeDEd_VmLtT0qd94HDtXRhhpDvUfHkJM_m66XDNqrBNS-B2koOqMN4lP
-    Sa0Ug9f_2FH0Kq2r3-yqf79TNecZT6-Lakr_OXpOKrFWd9sWBuPoBo>
-X-ME-Proxy-Cause: dmFkZTF4DbH3FZ3dPjetu62giaNH+KK3h7Vnr+fEg85PysIt/4nck/4imrawKEp8DsE6Pr
-    r0whIQLHunubPaHCLLANlXfZ8RvcApjV2EH4HvJnIa7IIlTjW/aieFsEYioNdVnIC1pGZ7
-    r7+Be7rv47aINSOQmPbhGzYvhtHf8def9lEg4PtjWAs9LAnZxAA8HHEDG0Nu5Q4D+ErnGo
-    wbL3v3GuUBm9m4647OHl9jiHICZ+8M7+WaOVrci5hxhVfG9CY47ExztZrbckd1/ZxcD0FZ
-    vwDE7nYg/E3N/QLZgdrUVACuceWMJkJ6Wb+Z2hJc7h8HgoI8f/4b+gnUnlKGDgCx/5CDPJ
-    po6DIC9Q8yofj6Gyo3f7FKL5mt0EHv82L6g17/YO3gWxVRbIFJetz+YWg8fgbv7WuFfefm
-    hnLsmWUjBQVBzx6B9SMuUsPATs4OJtGO1f+mnt0J/1peJ5Nq63D3J9EC8B1PaX5BKnWN5n
-    NTUc5qHazXKrxzCndz85zJiyINbeiTNLTCeRjTR7RMcNSUFcXqheUFmGnh70f88dysYIhz
-    x/wWpwuzN1bBTEbUGCyOiSyCxaCxeioaasg+88aeLfS3v1QhYfc5bHYGwrmHrU/cjZ20YX
-    SgmgetWptaxFGpGrTy/DDcJdYBDIVEtFh7oH120w4eOuhoZaxlVn3LGzD7xQ
-X-ME-Proxy: <xmx:Lv2iagKDhe4ENuyDEBPe0XuX5JV95iH3pOzVxXrfT1HwGt5hmy731g>
-    <xmx:Lv2iavY0YWPFwc5heNSQaejsEbm3T9Hzm9qfGqn3H3Ql0pmX2TgP2A>
-    <xmx:Lv2ias4lIQtLaB1oGx0UNzfhFXq0OCShC-yE9ybCKPEj_MhGksso3A>
-    <xmx:Lv2iaoJl7Z6wMLyQsn5RJgRWdIhUrImOwvxM7EqgPgmRZWBE2AuVGw>
-    <xmx:Lv2iaqawY0GSonv8zq4bA_iHkDoRcvBDh1ekvmmQAljAmwqWH4krgir7>
-Feedback-ID: ifa6e4810:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 8F75E7811F0; Thu, 10 Sep 2026 14:55:42 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b="KpNxT5ON"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=fC2+xXAjvJqYN8HeI/O2PQmi03iqa+vaAhhrjIjPFExygymE7voGe85At5YUxXo/83WW2gieDaEx/5PcrBbI41ldhn5wTXSAiTDdwkZ5XcPrJo9zhEv9BdAxzSivYKhRaFiQeqKgdS+CXSEhUPOdu8i/89EWSdRawQBbIN+2EroJLEmioOWf83pLLxR+rurHgoOnuw8Rlbb4FwGi3TF/oVdqczyK7FaA2fmavICHxYepJ1a73PsRYKiTTh5LeHUmqNGj+pH4GG0a2uUdlP4S8vHcO/NZ4xPZ+iFdhlHCPy3fjrVa09sWbrsd7fK7easAyXTJTZjl/kO0h9q9SrN8Fg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=JE3sKJgeV2PvsQgq+G6lEqsGGcS0tLc6DM9LesawalA=;
+ b=mwCrEE2wTWgSgeb3+Uvgc5NI+G5aRCpfg01cWeRvpe0FKQicP/tmkTPO5etpwltGHKsNpFg1/OYf1dRevaTRUZrP8xI9+FHiSPifLfBMnhqbWJBGbN+K2VOLpmW5qRF8gSZ02fk8wg8Xlt71HGd99NKTT/CkRS1rrNico3BhuhKST/cag6QKZW8XpMdPq+IXdZPRW+ANLv2xrdjRTn+FL6GZuPWkWvZ542PhHJGvia1SotliIMBAehSlaUWW/Uy0rBZS7KdK10WV+VC1mN6xj9KTJjfLxdImqsQvkAHrXjljv/2itT2Pb/lIDlYlxye0XDz8YY1oU/mZ9fgYRqtxTQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=microsoft.com; dmarc=pass action=none
+ header.from=microsoft.com; dkim=pass header.d=microsoft.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=JE3sKJgeV2PvsQgq+G6lEqsGGcS0tLc6DM9LesawalA=;
+ b=KpNxT5ONrbCr3oZrwo8/9UYIrRotOlhR5EGXg88ds5DGhTPsXvjSruOrQepIdmRqFVGUVDR6Ft7/DLYD9eYMbXD4NwAKFNeYyOtqpVzU8+9xQi3EEkCKuYe2a31kqDN+U6C0G7eysE6/8rTVEUIx0Rdq8StwgAL+Zjo2aDIokl0=
+Received: from SA1PR21MB6683.namprd21.prod.outlook.com (2603:10b6:806:4a4::6)
+ by LV5PR21MB5282.namprd21.prod.outlook.com (2603:10b6:408:302::9) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.428.5; Thu, 10 Sep
+ 2026 20:00:54 +0000
+Received: from SA1PR21MB6683.namprd21.prod.outlook.com
+ ([fe80::8bad:6294:8a07:fe18]) by SA1PR21MB6683.namprd21.prod.outlook.com
+ ([fe80::8bad:6294:8a07:fe18%6]) with mapi id 15.21.0406.007; Thu, 10 Sep 2026
+ 20:00:53 +0000
+From: Long Li <longli@microsoft.com>
+To: Jakub Kicinski <kuba@kernel.org>
+CC: Konstantin Taranov <kotaranov@microsoft.com>, "David S . Miller"
+	<davem@davemloft.net>, Paolo Abeni <pabeni@redhat.com>, Eric Dumazet
+	<edumazet@google.com>, Andrew Lunn <andrew+netdev@lunn.ch>, Jason Gunthorpe
+	<jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Haiyang Zhang
+	<haiyangz@microsoft.com>, KY Srinivasan <kys@microsoft.com>, Wei Liu
+	<wei.liu@kernel.org>, Dexuan Cui <DECUI@microsoft.com>,
+	"shradhagupta@linux.microsoft.com" <shradhagupta@linux.microsoft.com>, Simon
+ Horman <horms@kernel.org>, "ernis@linux.microsoft.com"
+	<ernis@linux.microsoft.com>, "stephen@networkplumber.org"
+	<stephen@networkplumber.org>, "shirazsaleem@microsoft.com"
+	<shirazsaleem@microsoft.com>, "netdev@vger.kernel.org"
+	<netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org"
+	<linux-rdma@vger.kernel.org>, "linux-hyperv@vger.kernel.org"
+	<linux-hyperv@vger.kernel.org>, "linux-kernel@vger.kernel.org"
+	<linux-kernel@vger.kernel.org>
+Subject: RE: [EXTERNAL] Re: [PATCH net] net: mana: do not discard an
+ ethtool-configured RSS table on a queue rebuild
+Thread-Topic: [EXTERNAL] Re: [PATCH net] net: mana: do not discard an
+ ethtool-configured RSS table on a queue rebuild
+Thread-Index: AQHdPM/AFo/mFPjv3kSEyv8Y/PH4f7bH9ZIAgABO0gA=
+Date: Thu, 10 Sep 2026 20:00:52 +0000
+Message-ID:
+ <SA1PR21MB668352D9E929B8BBC7DA1BA7CEBF2@SA1PR21MB6683.namprd21.prod.outlook.com>
+References: <20260905004401.3937066-1-longli@microsoft.com>
+ <20260910081814.1b5b7b36@kernel.org>
+In-Reply-To: <20260910081814.1b5b7b36@kernel.org>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+msip_labels:
+ MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ActionId=ecf67674-d1ce-49dd-8721-21c003a04764;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ContentBits=0;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Enabled=true;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Method=Standard;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Name=Internal;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SetDate=2026-09-10T20:00:20Z;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SiteId=72f988bf-86f1-41af-91ab-2d7cd011db47;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Tag=10,
+ 3, 0, 1;
+authentication-results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=microsoft.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: SA1PR21MB6683:EE_|LV5PR21MB5282:EE_
+x-ms-office365-filtering-correlation-id: 27dabc8e-4437-4076-7636-08df0f763881
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam:
+ BCL:0;ARA:13230040|7416014|376014|366016|23010399003|1800799024|4143699003|56012099006|11063799006|10067099003|18002099003|22082099003|7146999003|38070700021;
+x-microsoft-antispam-message-info:
+ DI64J5zp8gLZAhDPSrdqNtn/5QoO0safMJzdADfNEtNB9kNQ7F/Sy+sxGVGn4AYy6zIIAMjMmiHTo1tRzzC5XmbXY15NbAynHCYsU1ja3PDbuhB4R0bLU/fG9/JpCY3FDpyt4hJ4FSGdtwI/Iv753hmZflIUY5NMF0ZOHLaMqFl/f0hqHAOjHJxlQT7nuPRtKZJlyuS9VhJxZJOwHCx8oJgLuyGPw8TQmhYdT0Nj8+HiJpfEkBhofDUTbb3wK/YkETJQjDuqYOuAp/JMUMoFKGfpcJZSDsMpw5FmW4Co8iKip5HyO6caV8vNd7ywREufy5J0/HqD1akN3bV22IiDGgJ7IlOzdyhgEG/0MpfK3bwPucIlHY03MdXOiNnM5lg59tgpB3Tejcrp0siTR0WYgds8Mosbf1IxeDHWFqoL0wE6QrM3c7Xz5LBMR/3qIqTe4ehoIWUp3xV8UAgtE/AWqSkn/mKVXXRuEVkFMjekOk+kgE/EL3rctD1pfFwDhsszlw6D27bmjgCGJqcnZCltpqKidNftCheDWRDBUQLDBN+QR/hRVIrMp3oQor5vBDlZeXALtpfEdB2kFSERueHXUhkn4efUMd8liDFQVyCLiGlcx8bifEh1KkXCRmLla2Q2R05QxBzmg7hZSjjFUOvJcdKv8zFjh+3hNyyQPwZyFiNxAaANu6ULaJYmBnOTTS3SHfpMGLq2JisuUn6RqOx2jU2+y/qJ+zMMYxoEIJ6Jr5Y=
+x-forefront-antispam-report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR21MB6683.namprd21.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(366016)(23010399003)(1800799024)(4143699003)(56012099006)(11063799006)(10067099003)(18002099003)(22082099003)(7146999003)(38070700021);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?us-ascii?Q?B+2OiuxMXXq8qPDEfkPbTwv6bqNQLY8jBt8Ro/EZSHlBBc4SqsNousNtmNly?=
+ =?us-ascii?Q?qfFBvmRyKL1B4TvU9CjxPpMGOFipkmkqvx701RVWJA2yrgVtkCM4asiLRA2k?=
+ =?us-ascii?Q?PtjW6RmyalZarqWc4YNtNAHLdFOpAi9l5xa91nzNstWUahI8KJI4ljBjpIDw?=
+ =?us-ascii?Q?Ff5GZ0svjAhHC9EO8hN6JSoD5US0vZwpnaaKaBacC+6CnWghwVnDHwns8/ZG?=
+ =?us-ascii?Q?J/Y9jLCt7PCTjMk27Ep4E0JKRFbencW0ppjnk53wCpupqH48Ds85cLZYu6Gy?=
+ =?us-ascii?Q?zWK5ST4HLYk918i+PO8fyzQZ0VVYa8FJ4fctxzqkyJeVqaqIJ8kUT1Cm3snX?=
+ =?us-ascii?Q?wbn7M1ZGw1M4yQYTmj4e1oOjCkA/t2aZTBvPdTJ1E99c9BPHUNnzbjD/GkC7?=
+ =?us-ascii?Q?VeV/1KcKgtSIDhTBo3XsOVraWM/qHcR3li9skgGW7ppfqMWPJhhCUIfLTGxO?=
+ =?us-ascii?Q?LNAa10TvtwvCcimnPbrn7wH/+Z9pnhDwJUeRmNFX+eWSICQB9lAOtqXccnxZ?=
+ =?us-ascii?Q?cY2MJH91BlhdPQPf6Uy7U/XHU4a+TIGAbHWj2Jqfedtf7Psbd0a6hYSbcav9?=
+ =?us-ascii?Q?b+mRa30r5qtLXsYu0rAPC8AeVy1eEo8AudNFucaBo/hAa+JzDRGtiyPqOKLG?=
+ =?us-ascii?Q?dSNXZUa0twYHopmv9dJ0frao2EB8zU23YDuMNrS7R3WwW467xvvC/PJZdAaB?=
+ =?us-ascii?Q?UBBIwZHysCWmaoBKnkznnC4jamTQ0pf7vDHqMyG+3L/oiAdFh9SVYQ9RB66h?=
+ =?us-ascii?Q?3M0m02pzyew2KzyWnbT2oKEsuK9TCV9BtPk6K35Q0yZ7btj21BEFS+yG9w1X?=
+ =?us-ascii?Q?vQHXJKQ/8N0DoQrByXiCpWChPlSrjbkhWqPyrKHq/69Pxuz9ErEAk3XagpQu?=
+ =?us-ascii?Q?EUChENWsuki5DphRSMkwP9kn6Sxk5QvANxKlrkCnzdlw+mtcw0MAWOMib/qk?=
+ =?us-ascii?Q?PRRxMUUshJQlHfe3Vk8lOi7WLaOqo0fKiVRne34uA71ZDKXGLCui5tXu5wPO?=
+ =?us-ascii?Q?8ERzIUwYVpnFkOnrn08hBUr3A0uguUDLF5O0gRsTWKwAGA9tRdRupvFIq/Ku?=
+ =?us-ascii?Q?8xO/p3ScQdO9k9I8ttiQCf5CEFBZXDFKeViNSBMCSb0qe9bFPJrn/UR45J4i?=
+ =?us-ascii?Q?GLtwJqasusV9VREXesdJ15Tz2a3kB26NYK6R7p7YOezgfQmlYQvinKdfXT+U?=
+ =?us-ascii?Q?Eyoirvuaq1CW8oQg8nYrPKjHn/6teaqh67ZJr5STgz5Ml1n7nEybOgKB1rsO?=
+ =?us-ascii?Q?zFoX7vTyUuBKeCXm43N1QRVzS/JyWzISFkToFYRAuoGeYjqO9g+khFLqgleM?=
+ =?us-ascii?Q?fIFpktjkjN39Bgj32TzT2hmy1n/tzpG9/FLvhXtKxJofhPS5bQ+jYMCLiXLx?=
+ =?us-ascii?Q?CjWaYew6mjNWIQ2EQluc5gWtPzDvoh5rvpFPsFrhvo25lw6XCR/tjKbApEU2?=
+ =?us-ascii?Q?hYU1lQ6r/OcuDV9z/rjuZyF9ebFW2KQRq2m4fwTc++5Ug+THbqFcmnhYYVGe?=
+ =?us-ascii?Q?xh2DD14P/DE/mFe88yWjrceayeoocWSTIKrXkZ4EXhTugOQqirJOJ7+dP/Os?=
+ =?us-ascii?Q?1cjjjWLxO3LrJF84zmaZay4ShdTmC1E5ImZvIGD0oVlv7MLRdxVze+HM8B29?=
+ =?us-ascii?Q?Wq0bT/09RVNYkd+6dD5KY4Eh/Xb4zTAhE/7hiwDVvAaJu0msSq7T8DLSFrGB?=
+ =?us-ascii?Q?zQ5jC0ogNQwxrljvO2afrwmstKes/fYjw8pwr216GCpG1iu9?=
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ThreadId: AHIlAaKAQArc
-Date: Thu, 10 Sep 2026 14:55:20 -0400
-From: "Chuck Lever" <cel@kernel.org>
-To: "Fernando Fernandez Mancera" <fmancera@suse.de>, netdev@vger.kernel.org
-Cc: "Simon Horman" <horms@kernel.org>, "Jakub Kicinski" <kuba@kernel.org>,
- "Paolo Abeni" <pabeni@redhat.com>, edumazet@google.com,
- davem@davemloft.net, "Jason Gunthorpe" <jgg@ziepe.ca>,
- "Leon Romanovsky" <leon@kernel.org>,
- "Andrew Lunn" <andrew+netdev@lunn.ch>,
- "Tony Nguyen" <anthony.l.nguyen@intel.com>,
- "Przemek Kitszel" <przemyslaw.kitszel@intel.com>,
- "Elad Nachman" <enachman@marvell.com>,
- "Saeed Mahameed" <saeedm@nvidia.com>, "Tariq Toukan" <tariqt@nvidia.com>,
- "Mark Bloch" <mbloch@nvidia.com>, "Ido Schimmel" <idosch@nvidia.com>,
- "Petr Machata" <petrm@nvidia.com>,
- "Edward Cree" <ecree.xilinx@gmail.com>,
- "Maxime Chevallier" <maxime.chevallier@bootlin.com>,
- "Maxime Coquelin" <mcoquelin.stm32@gmail.com>,
- "Alexandre Torgue" <alexandre.torgue@foss.st.com>,
- "Arend van Spriel" <arend.vanspriel@broadcom.com>,
- "Miri Korenblit" <miriam.rachel.korenblit@intel.com>,
- "Keith Busch" <kbusch@kernel.org>, "Jens Axboe" <axboe@kernel.dk>,
- "Christoph Hellwig" <hch@lst.de>, "Sagi Grimberg" <sagi@grimberg.me>,
- "Chaitanya Kulkarni" <kch@nvidia.com>,
- "Saurav Kashyap" <skashyap@marvell.com>,
- "Javed Hasan" <jhasan@marvell.com>,
- GR-QLogic-Storage-Upstream@marvell.com,
- "James Bottomley" <James.Bottomley@hansenpartnership.com>,
- "Martin K. Petersen" <mkp@kernel.org>,
- "Nilesh Javali" <njavali@marvell.com>,
- "Manish Rangankar" <mrangankar@marvell.com>,
- "Varun Prakash" <varun@chelsio.com>,
- "Alexander Viro" <viro@zeniv.linux.org.uk>,
- "Christian Brauner" <brauner@kernel.org>, "Jan Kara" <jack@suse.cz>,
- "David Howells" <dhowells@redhat.com>,
- "Marc Dionne" <marc.dionne@auristor.com>,
- "Trond Myklebust" <trondmy@kernel.org>,
- "Anna Schumaker" <anna@kernel.org>, "Jeff Layton" <jlayton@kernel.org>,
- NeilBrown <neil@brown.name>, "Olga Kornievskaia" <okorniev@redhat.com>,
- "Dai Ngo" <Dai.Ngo@oracle.com>, "Tom Talpey" <tom@talpey.com>,
- "Marek Lindner" <marek.lindner@mailbox.org>,
- "Simon Wunderlich" <sw@simonwunderlich.de>,
- "Antonio Quartulli" <antonio@mandelbit.com>,
- "Sven Eckelmann" <sven@narfation.org>,
- "Nikolay Aleksandrov" <razor@blackwall.org>,
- "Pablo Neira Ayuso" <pablo@netfilter.org>,
- "Florian Westphal" <fw@strlen.de>, "Phil Sutter" <phil@nwl.cc>,
- "Johannes Berg" <johannes@sipsolutions.net>,
- "Matthieu Baerts" <matttbe@kernel.org>,
- "Mat Martineau" <martineau@kernel.org>,
- "Geliang Tang" <geliang@kernel.org>, "Julian Anastasov" <ja@ssi.bg>,
- "Aaron Conole" <aconole@redhat.com>,
- "Eelco Chaudron" <echaudro@redhat.com>,
- "Ilya Maximets" <i.maximets@ovn.org>,
- "Allison Henderson" <achender@kernel.org>,
- "Jamal Hadi Salim" <jhs@mojatatu.com>, "Jiri Pirko" <jiri@resnulli.us>,
- "Marcelo Ricardo Leitner" <marcelo.leitner@gmail.com>,
- "Xin Long" <lucien.xin@gmail.com>,
- "D. Wythe" <alibuda@linux.alibaba.com>,
- "Dust Li" <dust.li@linux.alibaba.com>,
- "Sidraya Jayagond" <sidraya@linux.ibm.com>,
- "Mahanta Jambigi" <mjambigi@linux.ibm.com>,
- "Tony Lu" <tonylu@linux.alibaba.com>, "Wen Gu" <guwen@linux.alibaba.com>,
- "Jon Maloy" <jmaloy@redhat.com>,
- "Tung Quang Nguyen" <tung.quang.nguyen@est.tech>,
- "Steffen Klassert" <steffen.klassert@secunet.com>,
- "Herbert Xu" <herbert@gondor.apana.org.au>,
- "Casey Schaufler" <casey@schaufler-ca.com>,
- "Paul Moore" <paul@paul-moore.com>, "James Morris" <jmorris@namei.org>,
- "Serge E. Hallyn" <serge@hallyn.com>,
- "Vikas Gupta" <vikas.gupta@broadcom.com>,
- "Bhargava Marreddy" <bhargava.marreddy@broadcom.com>,
- "Rajashekar Hudumula" <rajashekar.hudumula@broadcom.com>,
- "Nicolai Buchwitz" <nb@tipi-net.de>,
- =?UTF-8?Q?Markus_Bl=C3=B6chl?= <markus@blochl.de>,
- "Arnd Bergmann" <arnd@arndb.de>,
- "Heiner Kallweit" <hkallweit1@gmail.com>,
- "Florian Fainelli" <florian.fainelli@broadcom.com>,
- "Krzysztof Kozlowski" <krzk@kernel.org>,
- "Qingfang Deng" <qingfang.deng@linux.dev>,
- "Julian Braha" <julianbraha@gmail.com>,
- "Ethan Nelson-Moore" <enelsonmoore@gmail.com>,
- "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
- "Eric Biggers" <ebiggers@kernel.org>, "Ard Biesheuvel" <ardb@kernel.org>,
- "Neal Cardwell" <ncardwell@google.com>,
- "Kuniyuki Iwashima" <kuniyu@google.com>,
- "Willem de Bruijn" <willemb@google.com>, "Alyssa Ross" <hi@alyssa.is>,
- "Joel Granados" <joel.granados@kernel.org>,
- "Oleg Nesterov" <oleg@redhat.com>, linux-rdma@vger.kernel.org,
- linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org,
- oss-drivers@corigine.com, linux-net-drivers@amd.com,
- linux-stm32@st-md-mailman.stormreply.com,
- linux-arm-kernel@lists.infradead.org, linux-wireless@vger.kernel.org,
- brcm80211@lists.linux.dev, brcm80211-dev-list.pdl@broadcom.com,
- linux-nvme@lists.infradead.org,
- "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
- target-devel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- linux-afs@lists.infradead.org, linux-nfs@vger.kernel.org,
- b.a.t.m.a.n@lists.open-mesh.org, bridge@lists.linux.dev,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- mptcp@lists.linux.dev, lvs-devel@vger.kernel.org, dev@openvswitch.org,
- rds-devel@oss.oracle.com, linux-sctp@vger.kernel.org,
- linux-s390@vger.kernel.org, tipc-discussion@lists.sourceforge.net,
- linux-security-module@vger.kernel.org
-Message-Id: <ff6ff699-e942-455f-8816-49af24afb370@app.fastmail.com>
-In-Reply-To: <20260910144914.8025-2-fmancera@suse.de>
-References: <20260910144914.8025-1-fmancera@suse.de>
- <20260910144914.8025-2-fmancera@suse.de>
-Subject: Re: [PATCH 01/13 net-next] net: ipv4: introduce CONFIG_IPV4 to decouple the
- IPv4 stack
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+X-OriginatorOrg: microsoft.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: SA1PR21MB6683.namprd21.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 27dabc8e-4437-4076-7636-08df0f763881
+X-MS-Exchange-CrossTenant-originalarrivaltime: 10 Sep 2026 20:00:52.4084
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 72f988bf-86f1-41af-91ab-2d7cd011db47
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: 2ppLAswL/53b7SLFXInIyZx/HP+FpeHxXEr0ifBqzE8sLSzvbUhwJFTRH1nDTTlf/6ukxxhV0W5NAeB19qJgCQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV5PR21MB5282
 
+> On Fri,  4 Sep 2026 17:44:01 -0700 Long Li wrote:
+> > mana_alloc_queues() regenerates the RSS indirection table from the
+> > driver default every time the queues are built, so a table installed
+> > with "ethtool -X" is silently replaced by any operation that rebuilds t=
+hem:
+> > an MTU change, a ring-size, channel-count or private-flag change, an
+> > XDP attach, TX-timeout reset recovery, or resume.
+> >
+> > The driver never clears the core's IFF_RXFH_CONFIGURED, so
+> > netif_is_rxfh_configured() keeps reporting a user table while the
+> > hardware has been reprogrammed with the default one. "ethtool -x" then
+> > shows a table the user did not ask for, with no indication it changed:
+> >
+> >   # ethtool -X ens1 equal 2
+> >   # ethtool -x ens1
+> >   RX flow hash indirection table for ens1 with 16 RX ring(s):
+> >       0:      0     1     0     1     0     1     0     1
+> >       8:      0     1     0     1     0     1     0     1
+> >   # ip link set ens1 mtu 1400
+> >   # ethtool -x ens1
+> >   RX flow hash indirection table for ens1 with 16 RX ring(s):
+> >       0:      0     1     2     3     4     5     6     7
+> >       8:      8     9    10    11    12    13    14    15
+> >
+> > Keep the table instead, and rebuild it only when it is
+> > driver-generated or cannot be honoured. An entry may not be kept if it
+> > points past the last queue: mana_config_rss() uses these entries to
+> > index apc->rxqs[], which holds apc->num_queues pointers. That is
+> > reachable because
+> > mana_attach() calls mana_init_port(), which lowers apc->num_queues to
+> > the maximum the device reports, so a table configured for more queues
+> > can outlive them.
+>=20
+> To be clear this is only acceptable if the number of queues drops due to =
+re-
+> negotiation of caps with the device, not for example if XDP requires some
+> queues to be used for other purposes. In the latter case just refuse the =
+config
+> change.
+>=20
+> > A table that cannot be kept is still replaced by the default silently,
+> > without ethtool_rxfh_indir_lost(). That helper sends
+> > ETHTOOL_MSG_RSS_NTF, which requires the netdev instance lock, and
+> > mana_alloc_queues() runs both with that lock held, from ndo_open, and
+> > without it, from mana_attach() on the reset and resume paths. Leaving
+> > the core's view untouched is what the driver did for every table
+> > before this change.
+>=20
+> Okay, so you have a problem of not having the lock...
+>=20
+> > Opt the RSS ethtool operations into rtnl_lock() while here. Reading
+> > the table in mana_alloc_queues() has to be serialized against
+> > mana_set_rxfh() replacing it, and the two had no lock in common:
+> > mana_set_rxfh() ran under the netdev instance lock alone, while
+> > mana_alloc_queues() reaches this point holding only RTNL, from
+> > ndo_open and from mana_attach() on the reset and resume paths. Taking
+> > the instance lock there instead is not possible, since ndo_open
+> > already runs with it held. The same flag covers the netlink and ioctl e=
+ntry
+> points.
+>=20
+> .. and yet your fix is not to try to take it but the reverse, to add a di=
+fferent
+> lock? You need to explain why reset path can't take the instance lock. Of
+> course you can't take it _inside_ ndo_open, but the caller should be able=
+ to.
 
-
-On Thu, Sep 10, 2026, at 10:48 AM, Fernando Fernandez Mancera wrote:
-> Historically, the IPv4 protocol has been linked to the core INET
-> subsystem. Because shared infrastructure like the TCP/UDP engine,
-> routing or INET hashtables live inside net/ipv4/, it has been impossible
-> to compile a kernel with only IPv6 support.
->
-> This patch introduces the CONFIG_IPV4 Kconfig symbol, which is set to
-> 'def_bool y' for now. This does not allow to completely disable the
-> IPv4 stack yet but it lays the necessary build-system work for that
-> goal.
->
-> In addition, multiple subsystems Kconfig symbols across networking
-> features like tunnels, drivers and filesystems have been adjusted to
-> depend on IPv4. Keep on mind that follow-up work is required to convert
-> the Kconfig symbol to bool and remove the dependency on IPv4 where it
-> makes sense.
->
-> Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
-
-> diff --git a/net/sunrpc/Kconfig b/net/sunrpc/Kconfig
-> index e7808e5714dc..58e6f6db3100 100644
-> --- a/net/sunrpc/Kconfig
-> +++ b/net/sunrpc/Kconfig
-> @@ -1,7 +1,7 @@
->  # SPDX-License-Identifier: GPL-2.0-only
->  config SUNRPC
->  	tristate
-> -	depends on MULTIUSER
-> +	depends on MULTIUSER && IPV4
-> 
->  config SUNRPC_GSS
->  	tristate
-
-Acked-by: Chuck Lever <cel@kernel.org>
-
-
--- 
-Chuck Lever (Come to NFS bake-a-thon! https://nfsv4bat.org)
+Okay, will send a patch implementing the locks.
