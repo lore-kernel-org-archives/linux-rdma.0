@@ -1,89 +1,69 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F34403DB64B;
-	Thu, 10 Sep 2026 15:21:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F792384CF6;
+	Thu, 10 Sep 2026 15:23:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789053680; cv=none; b=GJ9tEBwcn1ke4hOsO62SbNTyVXZRr+jna5/iR5zmnlXN5MfBXEi3pgD4UDS0zP9VKkUXXx/k5/A0bJZASxJOYNWpKD/iKNpoXFXpxK19fyaM4+1jDfia49YnSPmiln6Py4CV0x7/ac4MGKmilOkNnL1TQo1YKDNdEe4N+nAmoNw=
+	t=1789053791; cv=none; b=ns0E9eTg4be6oJSAtbQTiPqyQNLW9FpM7g3mt6ZvbHvSfNkjwu4vrk8n2fW9UhkLHgVx3kErHB1bXvOHDIhw6yKyR7CAfowi1qCnHyRTcUBVsklc+bORCRA9PpCdO7cALZw6Q65w6wr2E4Q2k0OFpx40F/wYsyHQMRKRnQEWik4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789053680; c=relaxed/simple;
-	bh=lQrR/NQniI4VsVmRj+f09Njkvc/mgDaiKYr85iY4+ls=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=HC/Ys4Z/eOzTjTa4erNTLtCK45hTn2YJMzyVlSUifKoWBLhBOQXXnUs9ctqbkXv7Nta23A2IdLQmv2rIm16hFiD7ZZhToMEkeBUy62qVNMHOkXY5tOyAmOXCTkxiM/4Req9cPaIdWxAkcUqmGoAxyumtlE8Ycnchk5TRizO+iAg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TyA7lnfN; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789053791; c=relaxed/simple;
+	bh=hnWZhXwHUJSQ7slQueqP5zSAQK4IKFTOz4dsjZZNSAs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=EMsXu3nn0OEgvC4VUopTSsgcqY68bngaoe6l+a9SSyd1Sgi7yMw8H4zLmxZ8WoN0EwTFu0o28hn9Dc81s0m9z8UatmNjbqumrK3BRmgxzr0o8VirXYGVoeieJAI1G/ZybUTPkuhIyvv9rQuXx0pOzwIArp6uMl4GokWQqwRYLiM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TPw/xgsC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TyA7lnfN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 665DF1F00893;
-	Thu, 10 Sep 2026 15:21:08 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TPw/xgsC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71C871F000FF;
+	Thu, 10 Sep 2026 15:23:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789053668;
-	bh=/o6Lf7XnOGTlaFywaXjjRieZKJoqvdthEim0g1lVyOQ=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=TyA7lnfNOlGk5PC7wmVwZW1HJ+GAujB2fAgFp+iXSl9UwUtzk3g/3wQiUligwNj4D
-	 jWcTqWnCCOO5YwnC7hMiBvCmrFKBpS+k8QLRgZ6Llsgo3RNaY/MMBs8b2DTN8TY0GR
-	 t2WRGUl1OKeJzi4ta8ybYbeFj2FzEmuk0isHpWldS7z9xIfiK7BOUwcyLoqOBDptCl
-	 OS0x7GfUQLgmHDocrw2yRcdn1UDRGmbGIEcHR5DKvm8zm55wrcKeh+5RPy4Ijc1eMy
-	 nhmn8gkdHui7Uhkaa73SbTiXk2gUzbbUuE6/WvzsRqxN+m3OJ8O0OlkvTToZbAlJhN
-	 zTF+nHCOqmuoQ==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 19929380CEF8;
-	Thu, 10 Sep 2026 15:20:07 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=k20260515; t=1789053782;
+	bh=m0wROt3YxDKuV+RbvHS9GTMSx7Pe6Lf6m5J3ePOAiZs=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=TPw/xgsCJICDARGk+6yxTduN28e2JMgVK6MCLcRovk+pJD6VRY1kofIHc5SbZDmN9
+	 qLzFf+xqMaMORje+HfMSwqzS/XfpDGx04phz81hds/jPGMef30xz7oghaZnAGByuQk
+	 3mXraZqvPnVPZi+AJaH46nAlwSaAGoqnQggM8F5+hUSmQ9I3oqvwZ/7/mOKBGO/JsP
+	 bgx7wT6Mev+S2JDDfZ5BH7ae1VMQvO127U50pPKI4dUh15PKtAq6O6YwbmQhvfZtPD
+	 mbClS3JcBAAzog2RPfrWOR3rfr+yQ7BHn3kj6KRpDHJgK+Mwgb3XbT1L6U5B3CGxYf
+	 DYT0Ms/qvlkbg==
+Date: Thu, 10 Sep 2026 18:22:58 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: "Nimal Prabudoss [C]" <nprabudoss@marvell.com>,
+	"linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"jmeneghi@redhat.com" <jmeneghi@redhat.com>,
+	"mschmidt@redhat.com" <mschmidt@redhat.com>,
+	"Sharad Padol [C]" <spadol@marvell.com>,
+	"Yogesh Sawant [C]" <ysawant@marvell.com>,
+	Nilesh Javali <njavali@marvell.com>,
+	Manish Rangankar <mrangankar@marvell.com>,
+	GR-ETH-Storage-Upstream <GR-ETH-Storage-Upstream@marvell.com>
+Subject: Re: [PATCH v3] MAINTAINERS: Update maintainers and group list for
+ QLogic and Broadcom drivers
+Message-ID: <20260910152258.GS13683@unreal>
+References: <PH0PR18MB4799279C272F238CDF36698DC9B22@PH0PR18MB4799.namprd18.prod.outlook.com>
+ <PH0PR18MB4799B6A39977C80374EA4FA6C9B22@PH0PR18MB4799.namprd18.prod.outlook.com>
+ <20260908174718.18b46925@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net] net: mana: restore the XDP program pointer when
- pre-allocation fails
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <178905360563.1492964.7576375446845174702.git-patchwork-notify@kernel.org>
-Date: Thu, 10 Sep 2026 15:20:05 +0000
-References: <20260904202640.3900685-1-longli@microsoft.com>
-In-Reply-To: <20260904202640.3900685-1-longli@microsoft.com>
-To: Long Li <longli@microsoft.com>
-Cc: kotaranov@microsoft.com, kuba@kernel.org, davem@davemloft.net,
- pabeni@redhat.com, edumazet@google.com, andrew+netdev@lunn.ch, jgg@ziepe.ca,
- leon@kernel.org, haiyangz@microsoft.com, kys@microsoft.com,
- wei.liu@kernel.org, decui@microsoft.com, shradhagupta@linux.microsoft.com,
- horms@kernel.org, ernis@linux.microsoft.com, stephen@networkplumber.org,
- shirazsaleem@microsoft.com, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-hyperv@vger.kernel.org,
- linux-kernel@vger.kernel.org, bpf@vger.kernel.org, sdf@fomichev.me,
- daniel@iogearbox.net, hawk@kernel.org, ast@kernel.org,
- john.fastabend@gmail.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260908174718.18b46925@kernel.org>
 
-Hello:
-
-This patch was applied to netdev/net.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
-
-On Fri,  4 Sep 2026 13:26:40 -0700 you wrote:
-> mana_xdp_set() publishes the new program into apc->bpf_prog before it
-> allocates anything, because mana_pre_alloc_rxbufs() sizes the buffers
-> from it via mana_get_rxbuf_cfg(). When that allocation fails the
-> function returns the error directly, skipping the err_dealloc_rxbuffs
-> label which is the only place that restores the previous pointer.
+On Tue, Sep 08, 2026 at 05:47:18PM -0700, Jakub Kicinski wrote:
+> On Mon, 7 Sep 2026 12:26:25 +0000 Nimal Prabudoss [C] wrote:
+> > Signed-off-by: Nimal Prabudoss mailto:nprabudoss@marvell.com
 > 
-> The attach is reported as failed, so the BPF core drops the reference it
-> held for the caller and the program can be freed, while apc->bpf_prog
-> still points at it. The next consumer of mana_xdp_get() - typically
-> mana_chn_setxdp() from mana_alloc_queues() on the following ifup, or
-> after a TX timeout reset - then calls bpf_prog_add() on freed memory.
-> 
-> [...]
+> This is your v3? Look, if you can't send a valid patch you should
+> probably not be a maintainer :/
 
-Here is the summary with links:
-  - [net] net: mana: restore the XDP program pointer when pre-allocation fails
-    https://git.kernel.org/netdev/net/c/4c46beb807ef
++1, it is hard to find anything correct in that patch.
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+Thanks
