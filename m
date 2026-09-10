@@ -1,42 +1,42 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF4C5319851;
-	Thu, 10 Sep 2026 01:03:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3E0332AAA8;
+	Thu, 10 Sep 2026 01:03:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789002185; cv=none; b=bZYqRCLIXzBk6her/1CfqhuyZ6mnzIgoTMqI7HJjDKYdMPnpd000Z/AzSkWsumzKkZQLHf4aol8LWWchBeIHyw3zS9ItT+NJ2gSUmkBMlW3++qC7hOBjRWP7YCbG0w5jkpKlqq/4Wnphl5CyKM7ccp/6ZbY4VtFA9ZjR00tzGtk=
+	t=1789002187; cv=none; b=dfb5WBo5YutEfu9aZB8QyOvGI9YwKdQCmAM6tOMY49advnnMlEYnZc54qhTawG5ttBJohAkLuRqfwLZdjZMLGpnxqT+iwZRVtUHx9bn0yvyDB+Ehb1lB4hfEkvYMjjz1zsYAEwVFFU2NWUcf/MhzeoIFYg1LZkPMY6/bIEE57IA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789002185; c=relaxed/simple;
-	bh=W5ikgruGDJVCfgzI2RXbBJlnuBmWJ0hmSkqsM+e+gfI=;
+	s=arc-20240116; t=1789002187; c=relaxed/simple;
+	bh=gCZrb71Bv4zRfNQQ+5BzDpOADRm7L/zvdxOXhUiKh3c=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=Y+Ea164LVPXhWpF6KuaRZDliurZGRp3MJ/TXzJm3UZKgGA2rzMKn63uKrlajTFy3UAblvuz4Yfj3IAR9uhlQvY7/P1IDfn5lHXS4K9jg2du+e5ZCar7RBeWoPKXg40Gs3570T248bqh+6cPcDRBM29sipkv8C6mnOkmTVmjvPYw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CJv7H6J3; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=C5hXLbBNqVcic8K/KJhKAX+MYC97Tt+ItpAk4esDEVnIUh4mhs/Zn/wVx4Mf0z6lWkuUJMRmRJQvKD/NxjFjyvmzi6MkXAmilFYJQCygqfpEFg8agWP3Wu4m6l6EF4rjLhDX38Wi+J8sU0VKoj8wzjK+3ANRzhCI+r3xWD1hXVM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iiazVTLK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CJv7H6J3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65BA91F00893;
-	Thu, 10 Sep 2026 01:03:03 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iiazVTLK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B35C1F000FF;
+	Thu, 10 Sep 2026 01:03:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789002183;
-	bh=2Dj/orflIRDzSIVkzby/Vu/Kglyjipm3yxS8NWmi8NU=;
+	s=k20260515; t=1789002185;
+	bh=+zYLQYlgkSd5N4WkoEgPyW6TOZtQGMTb1OImKHeoai8=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=CJv7H6J3brIag1Dvs+K1u6pGe+3h3tInR3Js7wSLebdWLN13KE9aB0AvkR644vOct
-	 mPhlXogeSFLOBHQ0dbBJb6EB7bcAdYWVlMZai744gZsovGgRMtW8TGev89hMk3UJnY
-	 SuLMrmWbBxbTFTgyu9JGZ5/izCimqoVoP6D0Qk5xxn9H6y3Meg1ip83oENxfy96sSi
-	 zrBYNNn9y1ATNQuF55MavG1ZWc8iSqMHJfwCzQg5GhioQor4T9flDFzcHK/X+jkwA/
-	 Syhhrkw9eD83SxYZi47fmwUuw2XTRDZwJuYC98XJkG8BpmYFZRfZIZ8f3asXg9i5Bj
-	 vUHYJTsdsqGhw==
-Subject: Re: [PATCH net-next 2/6] net/rds: split connection destroy into
- quiesce and kref-governed free
+	b=iiazVTLK5yYs3IKQSE5kah3TjVTw6yMwxAoMUfYIyGy04p9Z6TmXrdiH+rRKqr4XZ
+	 e4HwgtSi8HHEaSrHXaw4mc5jD80doRGxpsg1yWJA0cT1hh7H+3ndn6U/BaGmUxLdQ2
+	 zas3aE2Cz/v4LztfarqMkh3ef2+FKjvYAkKUn6icjc0SJTktKm5h1F+4+TfsPNOwJM
+	 HK/Q9tolQtsxWRf8dgVIOTgEJuKumZjzq/W/VwHm2G1AwJtvOn6s7plNKJ3HzpqnJP
+	 08W28own4aGifo1HiScLcEAU5kHxGyO+QY6lHlN6GQ1N00s1AqKJYTMZgRdAnYfiLW
+	 Ax+189C01p1jA==
+Subject: Re: [PATCH net-next 4/6] net/rds: wait for connections to be freed on
+ transport unload
 From: netdev-bot+sashiko@kernel.org
 To: achender@kernel.org
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
  edumazet@google.com, kuba@kernel.org, horms@kernel.org, nicoyip.dev@gmail.com
-Date: Thu, 10 Sep 2026 01:03:02 +0000
-Message-ID: <178900218299.219967.18130567079488498198@kernel.org>
-In-Reply-To: <20260904070248.160384-3-achender@kernel.org>
-References: <20260904070248.160384-3-achender@kernel.org>
-X-sashiko-severity: Low
+Date: Thu, 10 Sep 2026 01:03:05 +0000
+Message-ID: <178900218508.219967.15363319078412796930@kernel.org>
+In-Reply-To: <20260904070248.160384-5-achender@kernel.org>
+References: <20260904070248.160384-5-achender@kernel.org>
+X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -46,155 +46,298 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 3 potential
+Thank you for your contribution! Sashiko AI review found 4 potential
 issue(s) to consider:
 
-Critical: 0 · High: 0 (1) · Medium: 0 · Low: 3
+Critical: 0 · High: 3 · Medium: 1 · Low: 0
 
-- [Low] Commit message misattributes the non-rmmod destroy paths.
-- [Low] Concern (assessed as a false positive, retained for policy
-  reasons): the new c_refcount comment in net/rds/rds.h:140-144 was read…
-- [Low] Stale symbol reference after the rename performed by this patch:
-  the correctness argument inside rds_conn_shutdown() still says…
-
-Pre-existing issues:
-- [High] Deadlock when an IB connection is destroyed from the CM event
-  handler after unsupported protocol negotiation:…
+- [High] rds_conn_wait_conns_freed() (net/rds/connection.c) is the entire
+  enforcement mechanism the commit adds, but it is a `void` function…
+- [High] The IB call site violates the documented precondition of the new
+  helper.
+- [High] The new wait is placed in rds_tcp_exit()/rds_ib_exit() *after*
+  rds_tcp_destroy_conns()/rds_ib_destroy_nodev_conns() have returned, so…
+- [Medium] Series ordering: this commit repairs a hazard that the
+  immediately preceding commit in the same series creates.
 
 --
 
-net/rds: split connection destroy into quiesce and kref-governed free
+net/rds: wait for connections to be freed on transport unload
 
-This patch adds a kref to struct rds_connection and splits the teardown so
-that rds_conn_destroy() still quiesces synchronously while the frees (the
-transport conn_free, the path workqueues, the c_path array and the slab
-object) move to rds_conn_destroy_fini(), which runs from the last
-rds_conn_put().  rds_conn_get()/rds_conn_put() are exported for the
-reference holders added in later patches.
-
-No Link: tags are present in the commit header.
-
-A couple of questions below, one about the changelog and two about the
-teardown path.
-
-[Severity: Low]
-
-The changelog says:
-
-    Today, connections can also be destroyed when the underlying IB
-    device is removed (in rds_ib_destroy_nodev_conns()), or when a peer
-    negotiates an unsupported protocol version.
-
-Is rds_ib_destroy_nodev_conns() the device removal path?  It has a single
-caller, rds_ib_exit(), which is the rds_rdma module unload path, i.e. the
-same rmmod case the old comment allowed.
-
-The IB device removal path, rds_ib_dev_shutdown(), only drops paths:
-
-	list_for_each_entry(ic, &rds_ibdev->conn_list, ib_node)
-		rds_conn_path_drop(&ic->conn->c_path[0], true);
-
-Meanwhile the two destroy paths that really are not rmmod are the netns
-teardown ones, and they are not mentioned:
-
-	rds_tcp_exit_net() -> rds_tcp_kill_sock() -> rds_conn_destroy()
-	rds_loop_exit_net() -> rds_loop_kill_conns() -> rds_conn_destroy()
-
-Would citing those two, together with the peer protocol version case in
-rds_ib_cm_connect_complete(), describe the motivation more accurately?
+This adds a per-transport live connection count (t_conn_count) that is
+incremented when a connection is published in __rds_conn_create() and
+decremented at the end of rds_conn_destroy_fini().  The transport exit
+paths then call a new rds_conn_wait_conns_freed() helper that waits, with
+a 10 second bound, for that count to drop to zero before unloading.
 
 > diff --git a/net/rds/connection.c b/net/rds/connection.c
-> index 50e1b6bfceeab..f45fd1fb1843d 100644
+> index df26959b0fdce..90d660a45662e 100644
 > --- a/net/rds/connection.c
 > +++ b/net/rds/connection.c
 
 [ ... ]
 
-> @@ -515,10 +516,12 @@ void rds_conn_shutdown(struct rds_conn_path *cp)
->  		conn->c_trans->conn_slots_available(conn, false);
+> @@ -633,7 +638,31 @@ static void rds_conn_destroy_fini(struct kref *kref)
+>  	spin_lock_irqsave(&rds_conn_lock, flags);
+>  	rds_conn_count--;
+>  	spin_unlock_irqrestore(&rds_conn_lock, flags);
+> +
+> +	/* only after everything the transport module owns has been
+> +	 * freed above may its unload proceed
+> +	 */
+> +	if (!atomic_dec_return(&trans->t_conn_count))
+> +		wake_up_all(&rds_conn_freed_waitq);
+> +}
+
+[Severity: Medium]
+
+A question about the ordering of this series rather than this hunk itself.
+
+The commit "net/rds: split connection destroy into quiesce and kref-governed
+free" is described as functionally equivalent, since the initial reference is
+still the only one, so the free continues to happen inline in
+rds_conn_destroy().
+
+The commit "net/rds: hold connection references in lookup, sockets and
+c_passive" appears to be the first point at which rds_conn_lookup(), rs_conn
+and c_passive hold real references, i.e. the first point at which
+rds_conn_destroy() can return with c_trans->conn_free() still pending.
+
+The wait that covers that window only arrives here, one commit later.  Does
+the tree therefore pass through a state where rmmod rds_tcp / rmmod rds_rdma
+racing a pending free has no barrier at all?  Would it make sense to place
+this wait ahead of (or squash it into) the commit that adds the extra
+reference holders, or at least mention the dependency in that commit
+message?
+
+> +
+> +/* Wait for all of @trans's connections to be freed; the free runs
+> + * asynchronously once rds_conn_destroy() has quiesced a connection.
+> + * Called on transport module unload, after the transport destroyed
+> + * all of its connections: anything still holding a connection
+> + * reference at that point is a short-lived lookup-style holder, so
+> + * a bounded wait suffices - but warn if it expires, since the frees
+> + * that follow the unload will then touch freed module text.
+> + */
+> +void rds_conn_wait_conns_freed(struct rds_transport *trans)
+> +{
+> +	if (!wait_event_timeout(rds_conn_freed_waitq,
+> +				!atomic_read(&trans->t_conn_count),
+> +				msecs_to_jiffies(RDS_CONN_FREE_TIMEOUT_MS)))
+> +		WARN(1, "RDS/%s: %d connection(s) not freed\n",
+> +		     trans->t_name, atomic_read(&trans->t_conn_count));
 >  }
->  
-> -/* destroy a single rds_conn_path. rds_conn_destroy() iterates over
-> - * all paths using rds_conn_path_destroy()
-> +/* quiesce a single rds_conn_path: shut it down and tear down any
-> + * queued messages.  rds_conn_destroy() iterates over all paths using
-> + * rds_conn_path_quiesce(); the transport state and the workqueue are
-> + * freed later, from rds_conn_path_free().
->   */
-> -static void rds_conn_path_destroy(struct rds_conn_path *cp)
-
-[Severity: Low]
-
-With rds_conn_path_destroy() gone, the comment inside rds_conn_shutdown()
-that justifies the cancel_delayed_work_sync(&cp->cp_conn_w) call still
-names it:
-
-			 * Quiesce the reconnect timer before bailing
-			 * out, though.  When a pending destroy did
-			 * suppress the queue, no later pass runs, and
-			 * rds_conn_path_destroy() is about to flush
-			 * cp_down_w and free the path: it must not
-			 * find cp_conn_w still armed.
-
-That comment is now the only match for rds_conn_path_destroy in the tree,
-and it stays that way through the end of the series.  Since the flush of
-cp_down_w is done by rds_conn_path_quiesce() while the free happens later
-in rds_conn_path_free(), should the comment be reworded to name
-rds_conn_path_quiesce() and note that the free is deferred?
-
-> +static void rds_conn_path_quiesce(struct rds_conn_path *cp)
->  {
->  	struct rds_message *rm, *rtmp;
->  
+> +EXPORT_SYMBOL_GPL(rds_conn_wait_conns_freed);
 
 [Severity: High]
 
-This isn't a bug introduced by this patch, the same sequence exists in the
-baseline rds_conn_path_destroy(), but can the quiesce deadlock when it is
-reached from the RDMA CM event handler?
+Is the use-after-free this patch describes still reachable through the
+timeout branch of rds_conn_wait_conns_freed()?
 
-rds_conn_path_quiesce() keeps the drop plus synchronous flush:
+The helper returns void, so on expiry it warns and returns, and none of the
+three callers can react.  Teardown then continues unconditionally:
 
-	rds_conn_path_drop(cp, true);
-	flush_work(&cp->cp_down_w);
+  rds_tcp_exit()
+	rds_conn_wait_conns_freed(&rds_tcp_transport);	/* may time out */
+	rds_trans_unregister(&rds_tcp_transport);
+	rds_tcp_recv_exit();
+	kmem_cache_destroy(rds_tcp_conn_slab);
 
-rds_rdma_cm_event_handler_cmn() holds the mutex across the callback:
-
-	if (conn) {
-		mutex_lock(&conn->c_cm_lock);
+  rds_ib_exit()
+	rds_conn_wait_conns_freed(&rds_ib_transport);	/* may time out */
 	...
-		trans->cm_connect_complete(conn, event);
+	rds_ib_recv_exit();		/* destroys rds_ib_incoming_slab,
+					 * rds_ib_frag_slab */
+	rds_trans_unregister(&rds_ib_transport);
+	rds_ib_mr_exit();
 
-and rds_single_path.h aliases that mutex to the path one:
+  rds_loop_exit() returns into rds_exit()/rds_conn_exit(), which destroys
+  rds_conn_slab.
 
-	#define	c_cm_lock		c_path[0].cp_cm_lock
+When the pending free finally runs, rds_conn_destroy_fini() does two things
+that touch the unloaded module:
 
-If the peer negotiates a version below RDS_PROTOCOL_VERSION,
-rds_ib_cm_connect_complete() destroys the connection with that mutex still
-held:
+	for (i = 0; i < npaths; i++)
+		rds_conn_path_free(&conn->c_path[i]);	/* -> c_trans->conn_free() */
+	...
+	if (!atomic_dec_return(&trans->t_conn_count))
 
-		rds_conn_destroy(conn);
-		return;
+The first is an indirect call into freed module text; the second is a write
+into the module's freed data image.  For TCP the deferred
+rds_tcp_conn_free() also lands in kmem_cache_free() on the already destroyed
+rds_tcp_conn_slab, and for IB rds_ib_recv_free_caches() frees into slabs
+destroyed by rds_ib_recv_exit().
 
-rds_conn_path_drop(cp, true) sets cp_state to RDS_CONN_ERROR and queues
-cp_down_w, so the flushed worker runs rds_shutdown_worker() ->
-rds_conn_shutdown(), where the initial transition fails and it blocks on
-the same mutex:
+The comment added on t_conn_count in rds.h says unload "has to wait for this
+to reach zero", and the commit message says "if it expires anyway, warn - the
+pending frees will touch freed module text".  Since a WARN is a diagnostic
+rather than synchronisation, would an unbounded wait, a per-connection
+module reference on trans->t_owner, or moving the transport-owned frees off
+the asynchronous path be a better fit here?
 
-	if (!rds_conn_path_transition(cp, RDS_CONN_DOWN, RDS_CONN_DOWN)) {
-		...
-		mutex_lock(&cp->cp_cm_lock);
+As a side effect, does rmmod now block for up to 10 seconds, and does the
+WARN take down machines running with panic_on_warn=1?
 
-Does flush_work() then wait for a worker that is waiting for the mutex the
-blocked CM handler owns?  The chain has no trylock or timeout, and it is
-unchanged at the head of the series, so would this be a good place to
-break the cycle while the destroy path is being reworked?
+[Severity: High]
 
->  	WARN_ON(delayed_work_pending(&cp->cp_recv_w));
->  	WARN_ON(delayed_work_pending(&cp->cp_conn_w));
->  	WARN_ON(work_pending(&cp->cp_down_w));
+Can the deferred free write into an already popped stack frame?
+
+The wait is placed after rds_tcp_destroy_conns() and
+rds_ib_destroy_nodev_conns() have returned, so it cannot keep their
+stack-local list heads alive:
+
+net/rds/tcp.c:rds_tcp_destroy_conns() {
+	LIST_HEAD(tmp_list);
+	...
+		if (!list_has_conn(&tmp_list, tc->t_cpath->cp_conn))
+			list_move_tail(&tc->t_tcp_node, &tmp_list);
+	...
+	list_for_each_entry_safe(tc, _tc, &tmp_list, t_tcp_node)
+		rds_conn_destroy(tc->t_cpath->cp_conn);
+}
+
+Entries whose free is deferred stay linked in tmp_list, and
+t_tcp_node_detached is left false, so the deferred free later does:
+
+net/rds/tcp.c:rds_tcp_conn_free() {
+	spin_lock_irqsave(&rds_tcp_conn_lock, flags);
+	if (!tc->t_tcp_node_detached)
+		list_del(&tc->t_tcp_node);
+	spin_unlock_irqrestore(&rds_tcp_conn_lock, flags);
+	...
+}
+
+For an entry adjacent to the dead &tmp_list head, list_del() writes two
+pointers into that popped frame, while the exit thread is sitting in
+rds_conn_wait_conns_freed() -> wait_event_timeout() -> schedule_timeout()
+on the same stack region.
+
+The IB side is the same shape, with an unconditional list_del():
+
+net/rds/ib_rdma.c:rds_ib_destroy_nodev_conns() {
+	LIST_HEAD(tmp_list);
+	spin_lock_irq(&ib_nodev_conns_lock);
+	list_splice(&ib_nodev_conns, &tmp_list);
+	spin_unlock_irq(&ib_nodev_conns_lock);
+	...
+}
+
+net/rds/ib_cm.c:rds_ib_conn_free() {
+	spin_lock_irq(lock_ptr);
+	list_del(&ic->ib_node);
+	spin_unlock_irq(lock_ptr);
+	...
+}
+
+Note that rds_conn_destroy_fini() calls conn_free() before decrementing
+t_conn_count, so the exit thread cannot observe completion ahead of the
+write.  A conn already marked c_destroy_in_prog is guaranteed not to be
+freed inside the destroy loop, since rds_conn_destroy() returns immediately
+for it.
+
+Would moving the wait inside the destroy helpers, or splicing onto a
+non-stack list head, address this?  rds_loop_exit() looks safe only
+incidentally, because its tmp_list and the wait share one frame.  The same
+pattern appears in rds_tcp_kill_sock() and rds_loop_kill_conns() on netns
+teardown.
+
+> diff --git a/net/rds/ib.c b/net/rds/ib.c
+> index 9fe3b9951bd32..7556905833259 100644
+> --- a/net/rds/ib.c
+> +++ b/net/rds/ib.c
+> @@ -538,6 +538,15 @@ void rds_ib_exit(void)
+>  #endif
+>  	rds_ib_unregister_client();
+>  	rds_ib_destroy_nodev_conns();
+> +	rds_conn_wait_conns_freed(&rds_ib_transport);
+
+[Severity: High]
+
+Does this call site meet the precondition stated in the new helper's
+comment, that it is called "after the transport destroyed all of its
+connections"?
+
+Connections still attached to a device do not appear to be destroyed by
+either preceding call.  ib_unregister_client() -> rds_ib_remove_one() ->
+rds_ib_dev_shutdown() only queues work:
+
+net/rds/ib.c:rds_ib_dev_shutdown() {
+	spin_lock_irqsave(&rds_ibdev->spinlock, flags);
+	list_for_each_entry(ic, &rds_ibdev->conn_list, ib_node)
+		rds_conn_path_drop(&ic->conn->c_path[0], true);
+	spin_unlock_irqrestore(&rds_ibdev->spinlock, flags);
+}
+
+and rds_conn_path_drop() does queue_work(cp->cp_wq, &cp->cp_down_w) on the
+per-path ordered workqueue, which the flush_workqueue(rds_wq) inside
+rds_ib_unregister_client() does not drain.
+
+An rds_ib_connection whose cp_down_w has not completed rds_ib_conn_shutdown()
+-> rds_ib_remove_conn() is still on rds_ibdev->conn_list rather than
+ib_nodev_conns, and rds_ib_destroy_nodev_conns() only walks ib_nodev_conns:
+
+net/rds/ib_rdma.c:rds_ib_destroy_nodev_conns() {
+	spin_lock_irq(&ib_nodev_conns_lock);
+	list_splice(&ib_nodev_conns, &tmp_list);
+	spin_unlock_irq(&ib_nodev_conns_lock);
+
+	list_for_each_entry_safe(ic, _ic, &tmp_list, ib_node)
+		rds_conn_destroy(ic->conn);
+}
+
+If such a connection's initial reference is never dropped, can t_conn_count
+ever reach zero?  That would make the 10 second stall plus WARN the ordinary
+outcome of rmmod rds_rdma with live IB connections, leave the module unloaded
+with a live connection, and leak the rds_ib_connection along with its device
+reference (so rds_ib_dev_free() never runs and the PD and MR pools are never
+released).
+
+Would draining the per-path workqueues, or destroying the per-device
+conn_lists, before waiting cover these connections?
+
+> +
+> +	/* Tearing down the last connection may have dropped the final
+> +	 * reference on a device, deferring rds_ib_dev_free() to rds_wq.
+> +	 * Drain it before the module goes away; it queues nothing
+> +	 * further on rds_wq.
+> +	 */
+> +	flush_workqueue(rds_wq);
+> +
+>  	rds_ib_sysctl_exit();
+>  	rds_ib_recv_exit();
+>  	rds_trans_unregister(&rds_ib_transport);
 
 [ ... ]
+
+> diff --git a/net/rds/rds.h b/net/rds/rds.h
+> index e27e5e2e33293..35760dd6b077f 100644
+> --- a/net/rds/rds.h
+> +++ b/net/rds/rds.h
+> @@ -553,6 +553,12 @@ struct rds_transport {
+>  	unsigned int		t_prefer_loopback:1,
+>  				t_mp_capable:1;
+>  	unsigned int		t_type;
+> +	/* Connections of this transport not yet freed; freeing runs
+> +	 * asynchronously once rds_conn_destroy() has quiesced a
+> +	 * connection, so transport module unload has to wait for this
+> +	 * to reach zero (rds_conn_wait_conns_freed()).
+> +	 */
+> +	atomic_t		t_conn_count;
+
+[ ... ]
+
+> diff --git a/net/rds/tcp.c b/net/rds/tcp.c
+> index 774a71f88d375..2685ee21a22d1 100644
+> --- a/net/rds/tcp.c
+> +++ b/net/rds/tcp.c
+> @@ -805,6 +805,7 @@ static void rds_tcp_exit(void)
+>  #endif
+>  	unregister_pernet_device(&rds_tcp_net_ops);
+>  	rds_tcp_destroy_conns();
+> +	rds_conn_wait_conns_freed(&rds_tcp_transport);
+>  	rds_trans_unregister(&rds_tcp_transport);
+>  	rds_tcp_recv_exit();
+>  	kmem_cache_destroy(rds_tcp_conn_slab);
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260904070248.160384-1-achender%40kernel.org
