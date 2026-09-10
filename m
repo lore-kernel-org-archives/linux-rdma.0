@@ -1,1775 +1,273 @@
-Received: from PH7PR06CU001.outbound.protection.outlook.com (mail-westus3azon11010052.outbound.protection.outlook.com [52.101.201.52])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A93F25427FB;
-	Wed,  9 Sep 2026 23:58:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.201.52
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788998299; cv=fail; b=FnvOLnSCe5la9RGy7rqBPLpim1g0dkW3NC5jrYqUqkQGJe8RXK5OlZ9nrA/JeevQgjunLEtM13Xlsf8I3Zehs6PXW2/8NrgY7fiCHFcyUjUwB0NSsFz2KBTDocdYFbi9Noype0BCwxbZ8nQo5EyXajgAAnLGJQ/CrdlDqzJ7qY0=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788998299; c=relaxed/simple;
-	bh=XZrQevfRtRNU6IW5Q8HXoxo5Yy29YYitcGkT7f6gLHM=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=NyaToy4yTiiIz/neXr1N4DH910KqD3KKxQsvnRNEuNDKIvacyn8s0c4s9rI8uLlYVut2ZT8IXLjk96CTv3nC+nz7eZQD3L7wzpwwEHoo3hjEEY3PrdONhMWqBlMhQBKKHJVaRUOB2o1wTiX5ZpuaVHMJnzxN29iGBI60iByoUH4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=siGHITUC; arc=fail smtp.client-ip=52.101.201.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43721327C08;
+	Thu, 10 Sep 2026 01:03:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789002184; cv=none; b=GymbtOtQMxSmtsYikZqhLuezxfBOom+E8YYpJ7rCklGwEmWsi1+2RpFGXB8STCa+8osAQf18W/+PoFNNi/bLVbOjyj5GZU+uHtE3YAudoug6eZNkyuML3aiTfzSWtkAq/weT9AuHgSWGE/7L9m159e1+B9/023HMOO9woV+vOFk=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789002184; c=relaxed/simple;
+	bh=tsNLJDuZhSipRceswnwHhDRJmSRm0hrBOQDHsfN+Z6c=;
+	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=iKdb+CimfZAGV7/xwmTCstJo6YyHcHQuPe61OYEk/Obqt0hS/1m0UReYncV0FK1/6YiuyzMgeKR+ajJq0j5cfTN8lSQmo2qJMU4e6cDNTFbH6JvT59CcJH8kjRC+XmpG2EdK3HpQl83PKxDMR9y5ouj0wSAp4ns6Bh2ipB19zaA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=S85dq2Ae; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="siGHITUC"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=RsxC/cCvnlEIhBDbucsB6nVwTS1wg+4M6xbVu+zDag1htBVZ7u5eFMJvbHfcopCESGt4McF86dOnozB1NNrjJafEyzwVcIh5jjunuAm46Mxd996j8Prx9Mcafjag2elw0oUbyQSvNLbDA8lc8dKChENpcH7bXGnA1DMtunOLflum9/HLLvXk4KIoyA4l81KkkpjC2O6eyn3M5lLWhjWP3LRRLXYFk3qLr7Ab6bhn3RJV3d5gOTXiiLqsnd9HqPENd6Q5zXdDbec5i0njgy8dpFKT8jqL4tG1RYnqJquUhHc/KbymzlvsM8rhVvyHG0O2jVuRqn8XkiyE98tzxCV12w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=86V5Wg8QUCNtim4JGF6spxWMF9uoYuBQxIg4TEYlh0A=;
- b=MD6K4eL+27R3/hG7gsZnVUkEEF+mJ0athEnfLDqrDdkEdSVcK85J3ma7/UUwiIWVSOTaLaY2gPRUm1ew02PHsWlBQxw4dt1JzArvMe7IMhOnDyTyWKZ1428T1vbKw+KRv0UzMRoGn7xnCEaFB21kBqP19nW2XXZnjsFmQ20XboE38sZB1fnoz1p5zqHweFrn5YnQrH13nUbTAKp+Xx7CgVwRdg6OlaoLsvGCQ/12ZXuHfJMOQJRCZJ7/NKpvtkuhHBC+7WbvcA51EUjxV92lPWsFq2A/X+LA1C25lEvjJx0nUQvQJSmjSTXI81qsW0e8Uvxx1bmBu7jYs8lomE9kCg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=86V5Wg8QUCNtim4JGF6spxWMF9uoYuBQxIg4TEYlh0A=;
- b=siGHITUCzXugVlqWmp47uM9OT4pG5n+EZHiFQ+41LMv7ZIkTmepzGDjnPp+YDS/uEm2Q9kkjO9GKC29CbBJK+MShLODX4qvRpPOqtTVUFRN8CwuBbIsjZXEMuj8zoTowXBmgm+rz9yXoLqefcmNG4ahkQLK2SoY7udN4I3AuIAcsnmHyV2RrAsGDW4rkUA2hD3Fe+oM0GkKoKX85NOvLeT+4pnP1wUyb1gKAbsKnr6Ck8D8E3YTofKOXWTWAyTupIlcGrT06uma8w6Tvysdaz63UQD23idrdshCtjzCxWfQGX6tEsxf4a6IISDXfCcb5J0L1R3ziAgloeSLh40soNw==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from LV8PR12MB9620.namprd12.prod.outlook.com (2603:10b6:408:2a1::19)
- by LV3PR12MB9440.namprd12.prod.outlook.com (2603:10b6:408:215::5) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.382.14; Wed, 9 Sep
- 2026 23:57:41 +0000
-Received: from LV8PR12MB9620.namprd12.prod.outlook.com
- ([fe80::299d:f5e0:3550:1528]) by LV8PR12MB9620.namprd12.prod.outlook.com
- ([fe80::299d:f5e0:3550:1528%4]) with mapi id 15.21.0406.007; Wed, 9 Sep 2026
- 23:57:41 +0000
-From: Jason Gunthorpe <jgg@nvidia.com>
-To: Alex Williamson <alex@shazbot.org>,
-	David Matlack <dmatlack@google.com>,
-	kvm@vger.kernel.org,
-	Leon Romanovsky <leon@kernel.org>,
-	linux-kselftest@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	Mark Bloch <mbloch@nvidia.com>,
-	netdev@vger.kernel.org,
-	Saeed Mahameed <saeedm@nvidia.com>,
-	Shuah Khan <shuah@kernel.org>,
-	Tariq Toukan <tariqt@nvidia.com>
-Cc: patches@lists.linux.dev
-Subject: [PATCH v5 08/10] vfio: selftests: Add mlx5 driver - HW init and command interface
-Date: Wed,  9 Sep 2026 20:57:34 -0300
-Message-ID: <8-v5-4cacb99249f6+1b4-mlx5st_jgg@nvidia.com>
-In-Reply-To: <0-v5-4cacb99249f6+1b4-mlx5st_jgg@nvidia.com>
-References:
-Content-Type: text/plain; charset=UTF-8
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="S85dq2Ae"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 606EC1F000FF;
+	Thu, 10 Sep 2026 01:03:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1789002182;
+	bh=+xsDggvhf7ZM1q9dGc/jKsdUwQCPbGLaEpv1sLYLiRo=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=S85dq2AeKAdlIGAM+RoHgnQzw81FDZSg4WU6is5XWof9aG2HYIaE7ngQAOGb3SgMW
+	 iuTo7lwbq7TCxUd5PgVc5BU2jmSSuS23gbm7uKjX1vsZiRqpM9GnzAIwLWnpPN6SPt
+	 8tNrqB1wdoPLB0LrvDP3w4SNQWDlXi/ycOCLjY3ddZquh00nbqr5lbW4uJhErfGD3z
+	 wJqO3eOZ1tLMclrb18R45N4PEfnsWhSWOx8QbIi+KtuhC0W9fXeD8baVLfhxB3xiBr
+	 VR8IoOcSw/vaQVxQd4saxS64bDufm7PNUukGuT8Gk+41IeGD6SpRAcjYBqvDic2jIN
+	 H3mqdvlgI8kmg==
+Subject: Re: [PATCH net-next 1/6] net/rds: make rds_destroy_pending() cover
+ single-connection destroy
+From: netdev-bot+sashiko@kernel.org
+To: achender@kernel.org
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
+ edumazet@google.com, kuba@kernel.org, horms@kernel.org, nicoyip.dev@gmail.com
+Date: Thu, 10 Sep 2026 01:03:01 +0000
+Message-ID: <178900218191.219967.11767581907135487885@kernel.org>
+In-Reply-To: <20260904070248.160384-2-achender@kernel.org>
+References: <20260904070248.160384-2-achender@kernel.org>
+X-sashiko-severity: High
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: YT2PR01CA0027.CANPRD01.PROD.OUTLOOK.COM
- (2603:10b6:b01:38::32) To LV8PR12MB9620.namprd12.prod.outlook.com
- (2603:10b6:408:2a1::19)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: LV8PR12MB9620:EE_|LV3PR12MB9440:EE_
-X-MS-Office365-Filtering-Correlation-Id: 011d373d-5165-4a60-eb4d-08df0ece20ee
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|1800799024|23010399003|366016|921020|6133799003|3023799007|10067099003|11063799006|18002099003|22082099003|56012099006;
-X-Microsoft-Antispam-Message-Info:
-	Qq1IjSMlMVBV/zyooJ5ckHWBDpR3H1PaxWy/WikkASC8lAy07GGdnPoSXpLUS1/2czMECam9Jq+/y4er947hjoyb1P3TcWIQlgTqOvVtY9vtE5o2eMEK92o48ozkpppJ6hQsBDV7JCMRH0gjaSoafS+XPRtqIfoR1Dsv1++5XrGNHB5liH6DXaxB31k8xtRqK664TOwgUDf2FhV6Fouv8s8ttHvbVJYf9VIANkKryR4X7xIQdA97ZFc6QBmQV0rYtg9a1sRPYQ/Wt5rGyH9YgSG0yYi90cqZ2H72tl9k9ymxlsgP93GZobLBCYt1B82/RmLbUDbqMSxk+4ZB0jXFSxFCwnK/M4y97cG+B4s3cejILvG6T+gM40/gpnbjRQmlkjbxMP5PB0bNxVgWii7O01p7SICvaqFQO3jYe0iO2fgObSkHtqcf4NmaMbSLgbO2aoBbAtqdBMk4//1hBumxMTrsLJhbYPyrGsVqsfELCOMR1BFc2ADv83mr/+WjrBYwyNdJyGAbTrrcyoj3Avyih1As2Oe8q8dkLKMNSfJ6GU4xrvGDsvSSdl7trR+qR0WH/5ON3PHDqHodZ3sHbB2ev9Tf5AUQiA7sbhTdpinev7pWwRqSEKTkGDyRrb5SpYsbee3iGj6h+iBAvksIJpGENLtMdXwBhtTzqSpdMr8fd3aFJDpTM+GpMrQtxv31ulEyw/HQ70E6vU0T5x8px5at0g==
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV8PR12MB9620.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(1800799024)(23010399003)(366016)(921020)(6133799003)(3023799007)(10067099003)(11063799006)(18002099003)(22082099003)(56012099006);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?S3pvenQ3Yzh3dHpYMDUzQkVBdGs4NW1KRXNYaW5waUNZMVJvODRsN1hKcHB4?=
- =?utf-8?B?b0RNNlFRWGNBaVdLV1BWR0hJSE1ScFd1cG5oVEgrYmxXVkVETEp0ZGxjbS9X?=
- =?utf-8?B?MHpjZ2l2WnBpNG94Q2I0MXBEQkhEVUNQcDBPSk52VGFNU29KVDZsSHlyUWIv?=
- =?utf-8?B?dkRweVU5OE15dmgxbHlxa0cwb2V2NVBHQ0FwTU41YXFXVlczWnQ2R3NlSjg4?=
- =?utf-8?B?OFJYdkhhTlR6Zll4TzlnanNWdVVNWXZtWW1OdXNQcmkzU29KbTV2NC9ZL0xL?=
- =?utf-8?B?TVBOMlQydnlwc09nQ2Q2YmJ6c3VOZmZXV0dBWFhhdmRPOEhrZDVWemZIeHFl?=
- =?utf-8?B?RDFwU2pkNW5Ma3NHd3NvcFUwREx1QjJNVDlnZXFvNC81eXJXejQzcmVYZENF?=
- =?utf-8?B?Uy9aUVg2b2tZWkpRNzdrWnl3azluNnVQY3gxeVV2V0s1QkZRalNCTVV5Yk5B?=
- =?utf-8?B?NXBoOEJCQUJMTnErek0rWU5WYXE1dFo4QytKTjJmcUt1Z1FLZjVZS0pOMHJV?=
- =?utf-8?B?NndkQVRWR3BsaTMwNVBEdWJPZFIyWGYyaHRpbWFnSTdkYzEvSG5sKzRYVXFK?=
- =?utf-8?B?Q1FENDZZSU1kQ0I4blQrcmkrL1REOEQ2ckxyNWxLdFZYMys1Q2kyYnpKZTlO?=
- =?utf-8?B?TnkwOWkwSENnRmJpQzZMTW04ZWYzcmY1V2o3L3pSZUptQ1JhdlM0c3l1eVJE?=
- =?utf-8?B?eGVuZVN3aU5GNWczYVFpT1pUZ3VtVE1GSEZzdWtrWS9xYy9hbUlFVk1DU3hr?=
- =?utf-8?B?QVIzU3NNWllCUHdyczIxYm1CTEdsWEVIR0hEQXJTbThOZU1hR1Aya2pxczJW?=
- =?utf-8?B?dmU0d2JnbGtMVWpORXBVVXdhcytLL0taSzdaaHc2UHRvZnEwTFhZeUhuOXpt?=
- =?utf-8?B?R1psVVZaMXk1Y0dFV2dIaFdVbXFoR3FZSnZuTmxLYk8wdE9NVG5Ldk80ZzVU?=
- =?utf-8?B?ZDNoTGxCWDlWUVdUQnVUcEV1cHhpMUxCUjRvQXJEZ2cvSFVDWXhiTjNaZFBE?=
- =?utf-8?B?bnB6SlpZc1hPSXIrUjBLOGE5U29rVWZjRWtpUE53di9WYWFwZ1JoVWlreUNx?=
- =?utf-8?B?NE9mMFdhSkQrZS9oYm9RNVN4RXRPVmxjMXY3Z21qd3R6aU1qS2Q4UFVFNkVm?=
- =?utf-8?B?ZVVONFhBSld5Y2d1ckhReTZZU29kNGlKdktTY3MvODhtMVJpcGRVR0ZYcU1x?=
- =?utf-8?B?WjF6dzQxbzVGRnhYU0NISHFnQ0tLbE0yV1VOUUJ5Z2RycXl4Qm9wQXgyZ0dR?=
- =?utf-8?B?Z1AxbjJDeGc2ZWliN0s5b0tva09ndmhRQWNoWm5saHI1dGxrUHI4M2dHSldn?=
- =?utf-8?B?dWlaaHBTSGJ6akd3VlcrcTdVb21RSHJPMkNIOHdMYzgzNGJFdDRHRFFaRFJX?=
- =?utf-8?B?UDJsNC9IT1I5bWZTb1dMM0JSN01wbnBtcGdKZS90cDRrbTIremNYdWR3Ukpv?=
- =?utf-8?B?RGhVMEZuOWljYy9MSG1sbTZ2RTBVNThHVVBIdi9nUDZaL2p3TGRLRGJyR3Z6?=
- =?utf-8?B?WHZ0ZUt6N1hnYTJRSUN6dFNtTHQ4T3Z4cDR2WVZzOERqSWlUV3Z2WmJBY3BS?=
- =?utf-8?B?cFFRd1lqeDYra2VLeE1icUhKZEl4aDcvTXN0UFZ1d3pKUkRCMXpEM2VhZmdE?=
- =?utf-8?B?Mm9aVUNJZlJaQTRoTnBNL1VlVkZycEorRkF2c1FpMklya1FKTHhNbEoycXRs?=
- =?utf-8?B?NUtpM1o1SVY5bVh3RDFBSWtJRUdOSW8vK0hlOW9KODl2b1J2WnNZVlI5NkVp?=
- =?utf-8?B?VVZLQkIwcm83dG5LVHBrakdpY1kvL3MvY2drdnNJeW9XZWtzSExOT0dKNll0?=
- =?utf-8?B?blFQYTY5V1JtbnRXeUpSb01Ya2tDa05KbjdSTVRIUHJDZ3dSY0VpaVNIMm91?=
- =?utf-8?B?SGF2dVJIZ3E0QzNKV1BvQUxxclBlY3AwZithY21zQ3dpZUpJSDJTWERPcjBx?=
- =?utf-8?B?SngwN3lrbjM5Y203Q21BTkliVHUyZDlNL2FCY3huZmFHbkM4OU50em55V3Bn?=
- =?utf-8?B?TWFJMEhONklIa1VNOHJONjNmOHNONjBOSWZTVDYweC9hZGUzak5jK2Z1TGs2?=
- =?utf-8?B?OTJ1dkp2bzdtRXF3WUpXZGVjY3ZlRVZ1Q3BaSDNTSEpqNVpTeUFKYlZHNlds?=
- =?utf-8?B?MzhGVE5kVWpBRTNKSG5ERU9uRjgxblZpM2JrcFJ4WDBmREZaaHNpcFcvQk1V?=
- =?utf-8?B?aGhDbnQ4S01TdUJDOWRvQ3V6S0hKekllM09qWkVGT0pLcGNLQm1rRGx3VE13?=
- =?utf-8?B?NzVDNVh1MGwyZTFKYXlKWm1RWTBRTW5NelNiemlVRDZsV0lYUUF3N3U4YUZR?=
- =?utf-8?Q?+Y5kLLXnYBEkkwprpS?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 011d373d-5165-4a60-eb4d-08df0ece20ee
-X-MS-Exchange-CrossTenant-AuthSource: LV8PR12MB9620.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Sep 2026 23:57:39.6623
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: Jf2o4NErxHQ60gaNcYSFZeJhk6ZFGBE+IHqhwyQyQHuCOLpPYmdTdmErJAuH/tkC
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV3PR12MB9440
 
-Add an mlx5 ConnectX selftest driver that programs VFs and PFs
-through the command interface. Create the driver skeleton with
-probe(), the command interface, HCA boot sequence, and all resource
-allocation up through ALLOC_PD + CREATE_MKEY.
+Thank you for your contribution! Sashiko AI review found 3 potential
+issue(s) to consider:
 
-The driver implements vfio_pci_driver_ops (probe/init/remove) and
-registers with the VFIO selftest framework.  It matches the same
-mlx5 ConnectX device IDs that the kernel matches.
+Critical: 0 · High: 1 · Medium: 1 · Low: 1
 
-init() brings the HCA to a running state:
-  - Command interface setup (two-slot: regular + async pages)
-  - ENABLE_HCA -> SET_ISSI -> QUERY/MANAGE_PAGES -> SET_HCA_CAP ->
-    INIT_HCA
-  - EQ creation (CMD + PAGE_REQUEST events for PF support)
-  - ALLOC_PD, CREATE_MKEY (PA-mode, covers all IOVAs)
-  - Force-loopback capability check
+- [High] The fix is incomplete against its own stated invariant, so the
+  bug class it claims to close stays reachable.
+- [Medium] The commit message mischaracterizes which destroy paths this
+  patch actually newly guards.
+- [Low] The comment on the new struct field misdescribes the write side.
 
-remove() tears down in reverse order through TEARDOWN_HCA and
-DISABLE_HCA, including async pages slot drain and FW page reclaim.
+--
 
-The driver region (~18MB) holds all HW-visible DMA buffers (command
-queue, mailboxes, EQ, FW pages) overlaid as a single struct on
-device->driver.region.vaddr.
+net/rds: make rds_destroy_pending() cover single-connection destroy
 
-Data path ops (memcpy_start/memcpy_wait) are left as stubs for the
-next patch.
+This adds a per-connection c_destroy_in_prog flag, set in
+rds_conn_destroy() before the unhash + synchronize_rcu() sequence and
+tested in rds_destroy_pending(), and removes the now-dead
+RDS_DESTROY_PENDING cp_flags bit along with its test in
+rds_ib_is_unloading().
 
-Assisted-by: Claude:claude-opus-4.6
-Acked-by: David Matlack <dmatlack@google.com>
-Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
----
- .../selftests/vfio/lib/drivers/mlx5/mlx5.c    | 1414 +++++++++++++++++
- .../selftests/vfio/lib/drivers/mlx5/mlx5_hw.h |  108 ++
- .../vfio/lib/drivers/mlx5/mlx5_ifc.h          |    1 +
- .../vfio/lib/drivers/mlx5/mlx5_ifc_fpga.h     |    1 +
- .../vfio/lib/drivers/mlx5/mlx5_ifc_macros.h   |    1 +
- tools/testing/selftests/vfio/lib/libvfio.mk   |    1 +
- .../selftests/vfio/lib/vfio_pci_driver.c      |    2 +
- 7 files changed, 1528 insertions(+)
- create mode 100644 tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5.c
- create mode 100644 tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_hw.h
- create mode 120000 tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_ifc.h
- create mode 120000 tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_ifc_fpga.h
- create mode 120000 tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_ifc_macros.h
+> diff --git a/net/rds/connection.c b/net/rds/connection.c
+> index b6c4beb50eaf0..50e1b6bfceeab 100644
+> --- a/net/rds/connection.c
+> +++ b/net/rds/connection.c
+> @@ -574,6 +574,14 @@ void rds_conn_destroy(struct rds_connection *conn)
+>  		 "%pI4\n", conn, &conn->c_laddr,
+>  		 &conn->c_faddr);
+>  
+> +	/* Make rds_destroy_pending() true for this conn.  Together with
+> +	 * the synchronize_rcu() below this stops the work-requeueing
+> +	 * sites (which all test rds_destroy_pending() under
+> +	 * rcu_read_lock()) from queueing new work on the path
+> +	 * workqueues once we start cancelling and destroying them.
+> +	 */
+> +	WRITE_ONCE(conn->c_destroy_in_prog, true);
 
-diff --git a/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5.c b/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5.c
-new file mode 100644
-index 00000000000000..804801cc564e7a
---- /dev/null
-+++ b/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5.c
-@@ -0,0 +1,1414 @@
-+// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
-+/*
-+ * mlx5 VFIO selftest driver
-+ *
-+ * Programs mlx5 ConnectX VFs and PFs through the bare-metal command interface
-+ * and RDMA WRITE self-loopback to perform DMA.  Implements vfio_pci_driver_ops
-+ * (probe/init/remove) and plugs into the VFIO selftest framework.
-+ */
-+#include <sched.h>
-+#include <stdbool.h>
-+#include <stdint.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <time.h>
-+#include <unistd.h>
-+
-+#include <linux/errno.h>
-+#include <linux/io.h>
-+#include <linux/log2.h>
-+#include <linux/pci_regs.h>
-+#include <linux/pci_ids.h>
-+
-+#include <libvfio.h>
-+
-+#include "mlx5_hw.h"
-+
-+/*
-+ * Driver state — overlaid on device->driver.region.vaddr.
-+ *
-+ * Contains both software-only state and HW-visible DMA buffers. HW buffers need
-+ * strict IOVA alignment.
-+ */
-+struct mlx5st_device {
-+	/* Back pointer */
-+	struct vfio_pci_device *device;
-+
-+	/* BAR0 */
-+	struct mlx5st_initial_seg __iomem *init_seg;
-+	void __iomem *bar0;
-+
-+	/* Command interface */
-+	struct mlx5st_cmd_queue_entry *cmd_lay;
-+	struct mlx5st_cmd_queue_entry *pages_cmd_lay;
-+	u8 cmd_log_stride;
-+	unsigned int pages_slot;
-+	u8 cmd_token;
-+	bool cmd_sig_enabled;
-+
-+	/* PD */
-+	u32 pdn;
-+
-+	/* Global PA-mode MKEY */
-+	u32 global_lkey;
-+	u32 global_rkey;
-+	u32 mkey_index;
-+
-+	/* CQ */
-+	u32 cqn;
-+	u32 cq_ci;
-+
-+	/* UAR */
-+	u32 uar_page;
-+	void __iomem *uar_base;
-+	unsigned int uar_bf_offset;
-+
-+	/* EQ */
-+	u32 eqn;
-+	u32 eq_cons_index;
-+	bool have_eq;
-+
-+	/* Async pages slot state */
-+	bool pages_slot_in_use;
-+	bool pages_slot_is_reclaim;
-+	unsigned int pages_reclaim_npages;
-+	unsigned int pages_pending_give;
-+	unsigned int pages_pending_reclaim;
-+	u16 pages_pending_func_id;
-+	bool pages_func_id_seen;
-+
-+	/* QP */
-+	u32 qpn;
-+	u32 sq_pi;
-+	u32 sq_ci;
-+
-+	/* FW pages bitmap */
-+	u64 fw_pages_bitmap[MAX_FW_PAGES / 64];
-+	u32 fw_pages_given;
-+	u16 fw_func_id;
-+
-+	/* Capabilities */
-+	bool fl_supported;
-+	u8 log_max_msg;
-+
-+	/*
-+	 * HW-visible DMA buffers below — device reads/writes via DMA.
-+	 */
-+	struct mlx5st_cmd_queue_entry cmd_queue
-+		[MLX5_HW_PAGE_SIZE / sizeof(struct mlx5st_cmd_queue_entry)]
-+		__aligned(MLX5_HW_PAGE_SIZE);
-+	struct mlx5st_send_wqe sq_buf[SQ_WQE_CNT];
-+	struct mlx5st_dbrec cq_dbrec;
-+	struct mlx5st_dbrec qp_dbrec;
-+	struct mlx5st_cqe64 cq_buf[CQ_CQE_CNT];
-+
-+	/* Slot 0 mailboxes (regular commands) */
-+	struct mlx5st_mbox_entry cmd_in_mbox[CMD_MBOX_NENT];
-+	struct mlx5st_mbox_entry cmd_out_mbox[CMD_MBOX_NENT];
-+
-+	/* Pages slot mailboxes (async MANAGE_PAGES) */
-+	struct mlx5st_mbox_entry pages_in_mbox[CMD_MBOX_NENT];
-+	struct mlx5st_mbox_entry pages_out_mbox[CMD_MBOX_NENT];
-+
-+	/* EQ does not support page_offset */
-+	struct mlx5st_eqe eq_buf[EQ_NENT] __aligned(MLX5_HW_PAGE_SIZE);
-+
-+	u8 fw_pages[MAX_FW_PAGES][MLX5_HW_PAGE_SIZE]
-+		__aligned(MLX5_HW_PAGE_SIZE);
-+};
-+
-+/* Check against HW limits on IOVA alignment */
-+static_assert(offsetof(struct mlx5st_device, cmd_in_mbox) %
-+			      CMD_MBOX_STRIDE == 0,
-+	      "cmd_in_mbox must be stride-aligned");
-+static_assert(offsetof(struct mlx5st_device, pages_in_mbox) %
-+			      CMD_MBOX_STRIDE == 0,
-+	      "pages_in_mbox must be stride-aligned");
-+static_assert(offsetof(struct mlx5st_device, cq_buf) % 64 == 0,
-+	      "cq_buf must be 64-byte aligned");
-+static_assert(offsetof(struct mlx5st_device, sq_buf) % 64 == 0,
-+	      "sq_buf must be 64-byte aligned");
-+static_assert(offsetof(struct mlx5st_device, cq_dbrec) % 64 == 0,
-+	      "cq_dbrec must be 64-byte aligned");
-+static_assert(offsetof(struct mlx5st_device, qp_dbrec) % 64 == 0,
-+	      "qp_dbrec must be 64-byte aligned");
-+static_assert(offsetof(struct mlx5st_device, eq_buf) %
-+			      MLX5_HW_PAGE_SIZE == 0,
-+	      "eq_buf must be page-aligned");
-+static_assert(offsetof(struct mlx5st_device, fw_pages) %
-+			      MLX5_HW_PAGE_SIZE == 0,
-+	      "fw_pages must be page-aligned");
-+
-+static struct mlx5st_device *to_mlx5st(struct vfio_pci_device *device)
-+{
-+	return device->driver.region.vaddr;
-+}
-+
-+/*
-+ * Fill a PAS (Physical Address Segment) for a buffer in the driver region.
-+ * Sets pas[0] to the page-aligned IOVA and returns the page_offset (the
-+ * buffer's byte offset within that page, in units of 64 bytes).
-+ */
-+static unsigned int mlx5st_fill_pas(struct vfio_pci_device *device, void *buf,
-+				    __be64 *pas)
-+{
-+	u64 iova = to_iova(device, buf);
-+
-+	pas[0] = cpu_to_be64(iova & ~(u64)(MLX5_HW_PAGE_SIZE - 1));
-+	return (iova & (MLX5_HW_PAGE_SIZE - 1)) / 64;
-+}
-+
-+/*
-+ * Probe — match mlx5 devices by PCI vendor/device ID.
-+ */
-+
-+static int mlx5st_probe(struct vfio_pci_device *device)
-+{
-+	static const u16 mlx5st_pci_ids[] = {
-+		0x1011, /* Connect-IB */
-+		0x1012, /* Connect-IB VF */
-+		0x1013, /* ConnectX-4 */
-+		0x1014, /* ConnectX-4 VF */
-+		0x1015, /* ConnectX-4LX */
-+		0x1016, /* ConnectX-4LX VF */
-+		0x1017, /* ConnectX-5 */
-+		0x1018, /* ConnectX-5 VF */
-+		0x1019, /* ConnectX-5 Ex */
-+		0x101a, /* ConnectX-5 Ex VF */
-+		0x101b, /* ConnectX-6 */
-+		0x101c, /* ConnectX-6 VF */
-+		0x101d, /* ConnectX-6 Dx */
-+		0x101e, /* ConnectX-6 Dx VF */
-+		0x101f, /* ConnectX-6 LX */
-+		0x1021, /* ConnectX-7 */
-+		0x1023, /* ConnectX-8 */
-+		0x1025, /* ConnectX-9 */
-+		0x1027, /* ConnectX-10 */
-+		0x2101, /* ConnectX-10 NVLink-C2C */
-+		0xa2d2, /* BlueField integrated ConnectX-5 */
-+		0xa2d3, /* BlueField integrated ConnectX-5 VF */
-+		0xa2d6, /* BlueField-2 integrated ConnectX-6 Dx */
-+		0xa2dc, /* BlueField-3 integrated ConnectX-7 */
-+		0xa2df, /* BlueField-4 integrated ConnectX-8 */
-+	};
-+	unsigned int i;
-+	u16 did;
-+
-+	if (vfio_pci_config_readw(device, PCI_VENDOR_ID) !=
-+	    PCI_VENDOR_ID_MELLANOX)
-+		return -ENODEV;
-+
-+	did = vfio_pci_config_readw(device, PCI_DEVICE_ID);
-+	for (i = 0; i < ARRAY_SIZE(mlx5st_pci_ids); i++) {
-+		if (mlx5st_pci_ids[i] == did)
-+			return 0;
-+	}
-+
-+	return -ENODEV;
-+}
-+
-+/*
-+ * Command interface
-+ */
-+
-+static u8 xor8_buf(const void *buf, size_t offset, size_t len)
-+{
-+	const u8 *p = buf;
-+	u8 sum = 0;
-+	size_t i;
-+
-+	for (i = offset; i < offset + len; i++)
-+		sum ^= p[i];
-+	return sum;
-+}
-+
-+#define CMD_IF_BOX_CTRL_OFF MLX5_BYTE_OFF(cmd_if_box, reserved_at_1000)
-+#define CMD_IF_BOX_CTRL_SIG_OFF MLX5_BYTE_OFF(cmd_if_box, ctrl_signature)
-+#define CMD_IF_BOX_SIG_OFF MLX5_BYTE_OFF(cmd_if_box, signature)
-+
-+static void mlx5st_cmd_calc_block_sig(struct mlx5st_cmd_if_box *blk)
-+{
-+	MLX5_SET(cmd_if_box, blk, ctrl_signature,
-+		 ~xor8_buf(blk, CMD_IF_BOX_CTRL_OFF,
-+			   CMD_IF_BOX_CTRL_SIG_OFF - CMD_IF_BOX_CTRL_OFF));
-+	MLX5_SET(cmd_if_box, blk, signature,
-+		 ~xor8_buf(blk, 0, CMD_IF_BOX_SIG_OFF));
-+}
-+
-+static int mlx5st_cmd_verify_block_sig(struct mlx5st_cmd_if_box *blk)
-+{
-+	if (xor8_buf(blk, CMD_IF_BOX_CTRL_OFF,
-+		     CMD_IF_BOX_SIG_OFF - CMD_IF_BOX_CTRL_OFF) != 0xff)
-+		return -1;
-+	if (xor8_buf(blk, 0, sizeof(struct mlx5st_cmd_if_box)) != 0xff)
-+		return -1;
-+	return 0;
-+}
-+
-+static unsigned int mlx5st_cmd_setup_mbox_chain(struct vfio_pci_device *device,
-+						struct mlx5st_mbox_entry *mbox,
-+						unsigned int nblocks, u8 token)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < nblocks; i++) {
-+		struct mlx5st_cmd_if_box *blk = &mbox[i].block;
-+		u64 next_iova;
-+
-+		memset(blk, 0, sizeof(struct mlx5st_cmd_if_box));
-+		MLX5_SET(cmd_if_box, blk, block_number, i);
-+		MLX5_SET(cmd_if_box, blk, token, token);
-+		if (i < nblocks - 1) {
-+			next_iova = to_iova(device, &mbox[i + 1]);
-+			MLX5_SET(cmd_if_box, blk, next_pointer_63_32,
-+				 next_iova >> 32);
-+			MLX5_SET(cmd_if_box, blk, next_pointer_31_10,
-+				 (u32)next_iova >> 10);
-+		}
-+	}
-+	return nblocks;
-+}
-+
-+static void mlx5st_cmd_copy_to_mbox(struct mlx5st_mbox_entry *mbox,
-+				     const void *data, unsigned int len)
-+{
-+	const u8 *src = data;
-+	unsigned int i = 0;
-+
-+	while (len > 0) {
-+		unsigned int chunk = len < MLX5_CMD_DATA_BLOCK_SIZE ?
-+					     len :
-+					     MLX5_CMD_DATA_BLOCK_SIZE;
-+
-+		memcpy(MLX5_ADDR_OF(cmd_if_box, &mbox[i].block, mailbox_data),
-+		       src, chunk);
-+		src += chunk;
-+		len -= chunk;
-+		i++;
-+	}
-+}
-+
-+static void mlx5st_cmd_copy_from_mbox(void *data,
-+				       const struct mlx5st_mbox_entry *mbox,
-+				       unsigned int len)
-+{
-+	unsigned int i = 0;
-+	u8 *dst = data;
-+
-+	while (len > 0) {
-+		unsigned int chunk = len < MLX5_CMD_DATA_BLOCK_SIZE ?
-+					     len :
-+					     MLX5_CMD_DATA_BLOCK_SIZE;
-+
-+		memcpy(dst,
-+		       MLX5_ADDR_OF(cmd_if_box, &mbox[i].block, mailbox_data),
-+		       chunk);
-+		dst += chunk;
-+		len -= chunk;
-+		i++;
-+	}
-+}
-+
-+/* Forward declaration — cmd_exec polls events during command wait */
-+static void mlx5st_process_events(struct mlx5st_device *dev);
-+
-+static const char *mlx5st_cmd_name(u16 opcode)
-+{
-+	switch (opcode) {
-+	case MLX5_CMD_OP_QUERY_HCA_CAP: return "QUERY_HCA_CAP";
-+	case MLX5_CMD_OP_INIT_HCA: return "INIT_HCA";
-+	case MLX5_CMD_OP_TEARDOWN_HCA: return "TEARDOWN_HCA";
-+	case MLX5_CMD_OP_ENABLE_HCA: return "ENABLE_HCA";
-+	case MLX5_CMD_OP_DISABLE_HCA: return "DISABLE_HCA";
-+	case MLX5_CMD_OP_QUERY_PAGES: return "QUERY_PAGES";
-+	case MLX5_CMD_OP_MANAGE_PAGES: return "MANAGE_PAGES";
-+	case MLX5_CMD_OP_SET_HCA_CAP: return "SET_HCA_CAP";
-+	case MLX5_CMD_OP_SET_ISSI: return "SET_ISSI";
-+	case MLX5_CMD_OP_CREATE_MKEY: return "CREATE_MKEY";
-+	case MLX5_CMD_OP_DESTROY_MKEY: return "DESTROY_MKEY";
-+	case MLX5_CMD_OP_CREATE_EQ: return "CREATE_EQ";
-+	case MLX5_CMD_OP_DESTROY_EQ: return "DESTROY_EQ";
-+	case MLX5_CMD_OP_CREATE_CQ: return "CREATE_CQ";
-+	case MLX5_CMD_OP_DESTROY_CQ: return "DESTROY_CQ";
-+	case MLX5_CMD_OP_CREATE_QP: return "CREATE_QP";
-+	case MLX5_CMD_OP_DESTROY_QP: return "DESTROY_QP";
-+	case MLX5_CMD_OP_RST2INIT_QP: return "RST2INIT_QP";
-+	case MLX5_CMD_OP_INIT2RTR_QP: return "INIT2RTR_QP";
-+	case MLX5_CMD_OP_RTR2RTS_QP: return "RTR2RTS_QP";
-+	case MLX5_CMD_OP_ALLOC_PD: return "ALLOC_PD";
-+	case MLX5_CMD_OP_DEALLOC_PD: return "DEALLOC_PD";
-+	case MLX5_CMD_OP_ALLOC_UAR: return "ALLOC_UAR";
-+	case MLX5_CMD_OP_DEALLOC_UAR: return "DEALLOC_UAR";
-+	default: return "UNKNOWN";
-+	}
-+}
-+
-+/*
-+ * Post a command on a given slot: fill the cmd_queue_entry, set up mailbox
-+ * chains, compute signatures, hand ownership to FW, and ring the doorbell.
-+ */
-+static void mlx5st_cmd_post(struct mlx5st_device *dev,
-+			     struct mlx5st_cmd_queue_entry *cmd,
-+			     struct mlx5st_mbox_entry *in_mbox,
-+			     struct mlx5st_mbox_entry *out_mbox,
-+			     void *in, unsigned int ilen, unsigned int olen,
-+			     u32 doorbell)
-+{
-+	struct vfio_pci_device *device = dev->device;
-+	unsigned int in_remain, out_remain, in_nblk, out_nblk;
-+	unsigned int i;
-+	void *cin, *cout;
-+	u8 token;
-+
-+	/* Rotating non-zero token ties cmd entry to its mailbox blocks */
-+	token = ++dev->cmd_token;
-+	if (!token)
-+		token = ++dev->cmd_token;
-+
-+	in_remain = ilen > MLX5_CMD_INLINE_SZ ? ilen - MLX5_CMD_INLINE_SZ : 0;
-+	out_remain = olen > MLX5_CMD_INLINE_SZ ? olen - MLX5_CMD_INLINE_SZ : 0;
-+	in_nblk = (in_remain + MLX5_CMD_DATA_BLOCK_SIZE - 1) /
-+		  MLX5_CMD_DATA_BLOCK_SIZE;
-+	out_nblk = (out_remain + MLX5_CMD_DATA_BLOCK_SIZE - 1) /
-+		   MLX5_CMD_DATA_BLOCK_SIZE;
-+
-+	/* Set up mailbox chains */
-+	if (in_nblk > 0) {
-+		mlx5st_cmd_setup_mbox_chain(device, in_mbox, in_nblk, token);
-+		mlx5st_cmd_copy_to_mbox(in_mbox,
-+					(u8 *)in + MLX5_CMD_INLINE_SZ,
-+					in_remain);
-+	}
-+	if (out_nblk > 0)
-+		mlx5st_cmd_setup_mbox_chain(device, out_mbox, out_nblk, token);
-+
-+	/* Copy inline input */
-+	cin = MLX5_ADDR_OF(cmd_queue_entry, cmd, command_input_inline_data);
-+	memset(cin, 0, MLX5_CMD_INLINE_SZ);
-+	memcpy(cin, in, ilen < MLX5_CMD_INLINE_SZ ? ilen : MLX5_CMD_INLINE_SZ);
-+	MLX5_SET(cmd_queue_entry, cmd, input_length, ilen);
-+	MLX5_SET(cmd_queue_entry, cmd, token, token);
-+
-+	/* Zero inline output */
-+	cout = MLX5_ADDR_OF(cmd_queue_entry, cmd, command_output_inline_data);
-+	memset(cout, 0, MLX5_CMD_INLINE_SZ);
-+	MLX5_SET(cmd_queue_entry, cmd, output_length, olen);
-+
-+	/*
-+	 * Compute signatures: mailbox blocks first, then cmd_queue_entry.
-+	 * The sig must cover the final state including ownership=0x1, but
-+	 * we must not set ownership until after the sig is in place -
-+	 * XOR in the 0x1 without storing it to memory.
-+	 */
-+	for (i = 0; i < in_nblk; i++)
-+		mlx5st_cmd_calc_block_sig(&in_mbox[i].block);
-+	for (i = 0; i < out_nblk; i++)
-+		mlx5st_cmd_calc_block_sig(&out_mbox[i].block);
-+	MLX5_SET(cmd_queue_entry, cmd, signature, 0);
-+	MLX5_SET(cmd_queue_entry, cmd, signature,
-+		 ~(xor8_buf(cmd, 0, sizeof(struct mlx5st_cmd_queue_entry)) ^
-+		   0x1));
-+
-+	/* Ensure all cmd data (including sig) is visible, then hand to FW */
-+	dma_wmb();
-+	MLX5_SET_ONCE(cmd_queue_entry, cmd, ownership, 1);
-+
-+	/* Ring doorbell */
-+	MLX5_SET_MMIO(initial_seg, dev->init_seg, command_doorbell_vector,
-+		      doorbell);
-+}
-+
-+static void mlx5st_cmd_exec(struct mlx5st_device *dev, void *in,
-+			     unsigned int ilen, void *out, unsigned int olen)
-+{
-+	struct mlx5st_cmd_queue_entry *cmd = dev->cmd_lay;
-+	unsigned int out_remain, out_nblk;
-+	struct timespec start, now;
-+	unsigned int elapsed;
-+	unsigned int i;
-+	void *cout;
-+
-+	mlx5st_cmd_post(dev, cmd, dev->cmd_in_mbox, dev->cmd_out_mbox, in,
-+			ilen, olen, 1);
-+
-+	out_remain = olen > MLX5_CMD_INLINE_SZ ? olen - MLX5_CMD_INLINE_SZ : 0;
-+	out_nblk = (out_remain + MLX5_CMD_DATA_BLOCK_SIZE - 1) /
-+		   MLX5_CMD_DATA_BLOCK_SIZE;
-+
-+	/* Poll for completion — also process EQ events for PF page requests */
-+	clock_gettime(CLOCK_MONOTONIC, &start);
-+	for (;;) {
-+		if (!MLX5_GET_ONCE(cmd_queue_entry, cmd, ownership))
-+			break;
-+		if (dev->have_eq)
-+			mlx5st_process_events(dev);
-+		sched_yield();
-+		clock_gettime(CLOCK_MONOTONIC, &now);
-+		elapsed = (now.tv_sec - start.tv_sec) * 1000 +
-+			  (now.tv_nsec - start.tv_nsec) / 1000000;
-+		if (elapsed > MLX5_CMD_TIMEOUT_MS)
-+			VFIO_FAIL("cmd timeout after %d ms", elapsed);
-+	}
-+	/* Ensure output data reads happen after ownership is seen clear */
-+	dma_rmb();
-+
-+	/* Verify output signatures when FW has checksums enabled */
-+	if (dev->cmd_sig_enabled) {
-+		if (xor8_buf(cmd, 0,
-+			     sizeof(struct mlx5st_cmd_queue_entry)) != 0xff)
-+			VFIO_FAIL("cmd output signature mismatch");
-+		for (i = 0; i < out_nblk; i++) {
-+			if (mlx5st_cmd_verify_block_sig(
-+				    &dev->cmd_out_mbox[i].block))
-+				VFIO_FAIL("cmd output mailbox block %d signature mismatch",
-+					  i);
-+		}
-+	}
-+
-+	/* Copy output: inline first */
-+	cout = MLX5_ADDR_OF(cmd_queue_entry, cmd, command_output_inline_data);
-+	memcpy(out, cout, olen < MLX5_CMD_INLINE_SZ ? olen : MLX5_CMD_INLINE_SZ);
-+
-+	/* Copy remaining from output mailbox chain */
-+	if (out_remain > 0)
-+		mlx5st_cmd_copy_from_mbox((u8 *)out + MLX5_CMD_INLINE_SZ,
-+					  dev->cmd_out_mbox, out_remain);
-+
-+	/* Check command status */
-+	if (MLX5_GET(enable_hca_out, out, status) != MLX5_CMD_STAT_OK)
-+		VFIO_FAIL("%s: status=0x%x syndrome=0x%x",
-+			  mlx5st_cmd_name(MLX5_GET(enable_hca_in, in, opcode)),
-+			  MLX5_GET(enable_hca_out, out, status),
-+			  MLX5_GET(enable_hca_out, out, syndrome));
-+}
-+
-+static struct mlx5st_cmd_queue_entry *
-+mlx5st_cmd_slot_init(struct mlx5st_device *dev, unsigned int slot,
-+		     struct mlx5st_mbox_entry *in_mbox,
-+		     struct mlx5st_mbox_entry *out_mbox)
-+{
-+	struct vfio_pci_device *device = dev->device;
-+	struct mlx5st_cmd_queue_entry *cmd =
-+		&dev->cmd_queue[(slot << dev->cmd_log_stride) /
-+				sizeof(struct mlx5st_cmd_queue_entry)];
-+	u64 iova;
-+
-+	MLX5_SET(cmd_queue_entry, cmd, type,
-+		 MLX5_CMD_QUEUE_ENTRY_TYPE_PCIE_CMD_IF_TRANSPORT);
-+	iova = to_iova(device, in_mbox);
-+	MLX5_SET(cmd_queue_entry, cmd, input_mailbox_pointer_63_32,
-+		 iova >> 32);
-+	MLX5_SET(cmd_queue_entry, cmd, input_mailbox_pointer_31_9, iova >> 9);
-+	iova = to_iova(device, out_mbox);
-+	MLX5_SET(cmd_queue_entry, cmd, output_mailbox_pointer_63_32,
-+		 iova >> 32);
-+	MLX5_SET(cmd_queue_entry, cmd, output_mailbox_pointer_31_9,
-+		 iova >> 9);
-+	return cmd;
-+}
-+
-+static void mlx5st_cmd_init(struct mlx5st_device *dev)
-+{
-+	struct mlx5st_initial_seg __iomem *seg = dev->init_seg;
-+	struct vfio_pci_device *device = dev->device;
-+	u16 cmdif_rev;
-+	u8 log_sz;
-+	u64 iova;
-+
-+	cmdif_rev = MLX5_GET_MMIO(initial_seg, seg, cmd_interface_rev);
-+	VFIO_ASSERT_EQ(cmdif_rev, 5);
-+
-+	/* Read command queue geometry from BAR */
-+	log_sz = MLX5_GET_MMIO(initial_seg, seg, log_cmdq_size);
-+	dev->cmd_log_stride = MLX5_GET_MMIO(initial_seg, seg, log_cmdq_stride);
-+	dev->pages_slot = (1 << log_sz) - 1;
-+
-+	VFIO_ASSERT_LE((unsigned int)(1 << log_sz), 32u);
-+	VFIO_ASSERT_GE((unsigned int)(1 << dev->cmd_log_stride),
-+		       (unsigned int)sizeof(struct mlx5st_cmd_queue_entry));
-+	VFIO_ASSERT_LE((unsigned int)((dev->pages_slot + 1) <<
-+				      dev->cmd_log_stride),
-+		       (unsigned int)sizeof(dev->cmd_queue));
-+
-+	/* Set up slot 0 — regular commands */
-+	dev->cmd_lay = mlx5st_cmd_slot_init(dev, 0, dev->cmd_in_mbox,
-+					    dev->cmd_out_mbox);
-+
-+	/* Set up pages slot — async MANAGE_PAGES */
-+	dev->pages_cmd_lay = mlx5st_cmd_slot_init(dev, dev->pages_slot,
-+						  dev->pages_in_mbox,
-+						  dev->pages_out_mbox);
-+
-+	/* Write command queue page address to BAR0 */
-+	iova = to_iova(device, dev->cmd_queue);
-+	MLX5_SET_MMIO(initial_seg, seg, cmdq_phy_addr_63_32, iova >> 32);
-+	MLX5_SET_MMIO(initial_seg, seg, cmdq_phy_addr_31_12, iova >> 12);
-+
-+	dev_dbg(device,
-+		 "Command interface initialized (cmdif_rev=5, log_sz=%u, log_stride=%u, pages_slot=%u)\n",
-+		 log_sz, dev->cmd_log_stride, dev->pages_slot);
-+}
-+
-+/*
-+ * FW pages: bitmap allocator + MANAGE_PAGES
-+ */
-+
-+static void mlx5st_fw_pages_alloc(struct mlx5st_device *dev,
-+				   unsigned int npages, u64 *iovas)
-+{
-+	struct vfio_pci_device *device = dev->device;
-+	unsigned int found = 0;
-+	unsigned int w, b;
-+	u64 word;
-+
-+	for (w = 0; w < MAX_FW_PAGES / 64 && found < npages; w++) {
-+		word = dev->fw_pages_bitmap[w];
-+
-+		for (b = 0; b < 64 && found < npages; b++) {
-+			if (!(word & (1ULL << b))) {
-+				unsigned int idx = w * 64 + b;
-+
-+				dev->fw_pages_bitmap[w] |= (1ULL << b);
-+				iovas[found++] = to_iova(device,
-+							 dev->fw_pages[idx]);
-+			}
-+		}
-+	}
-+	VFIO_ASSERT_EQ(found, npages);
-+	dev->fw_pages_given += npages;
-+}
-+
-+static void mlx5st_fw_pages_free(struct mlx5st_device *dev,
-+				  unsigned int npages, const u64 *iovas)
-+{
-+	struct vfio_pci_device *device = dev->device;
-+	unsigned int i, idx;
-+	u64 off;
-+
-+	for (i = 0; i < npages; i++) {
-+		off = iovas[i] - to_iova(device, dev->fw_pages);
-+		idx = off / MLX5_HW_PAGE_SIZE;
-+
-+		VFIO_ASSERT_TRUE(idx < MAX_FW_PAGES);
-+		dev->fw_pages_bitmap[idx / 64] &= ~(1ULL << (idx % 64));
-+	}
-+	dev->fw_pages_given -= npages;
-+}
-+
-+static void *mlx5st_build_manage_pages_give(u16 func_id, unsigned int npages,
-+					     const u64 *iovas,
-+					     unsigned int *out_inlen)
-+{
-+	unsigned int inlen = MLX5_ST_SZ_BYTES(manage_pages_in) + npages * 8;
-+	unsigned int i;
-+	void *in;
-+
-+	in = calloc(1, inlen);
-+	VFIO_ASSERT_NOT_NULL(in);
-+
-+	MLX5_SET(manage_pages_in, in, opcode, MLX5_CMD_OP_MANAGE_PAGES);
-+	MLX5_SET(manage_pages_in, in, op_mod,
-+		 MLX5_MANAGE_PAGES_IN_OP_MOD_ALLOCATION_SUCCESS);
-+	MLX5_SET(manage_pages_in, in, function_id, func_id);
-+	MLX5_SET(manage_pages_in, in, input_num_entries, npages);
-+
-+	for (i = 0; i < npages; i++)
-+		MLX5_ARRAY_SET64(manage_pages_in, in, pas, i, iovas[i]);
-+
-+	*out_inlen = inlen;
-+	return in;
-+}
-+
-+static void mlx5st_fw_pages_give_one(struct mlx5st_device *dev, u16 func_id,
-+				      unsigned int npages, u64 *iovas)
-+{
-+	u32 out[MLX5_ST_SZ_DW(manage_pages_out)] = {};
-+	unsigned int inlen;
-+	void *in;
-+
-+	in = mlx5st_build_manage_pages_give(func_id, npages, iovas, &inlen);
-+	mlx5st_cmd_exec(dev, in, inlen, out, sizeof(out));
-+	free(in);
-+}
-+
-+static void mlx5st_fw_pages_give(struct mlx5st_device *dev, u16 func_id,
-+				  unsigned int npages)
-+{
-+	unsigned int remaining = npages;
-+	u64 *iovas;
-+
-+	if (!npages)
-+		return;
-+
-+	iovas = calloc(npages, sizeof(u64));
-+	VFIO_ASSERT_NOT_NULL(iovas);
-+
-+	mlx5st_fw_pages_alloc(dev, npages, iovas);
-+
-+	/* Batch into chunks that fit in one mailbox */
-+	for (unsigned int off = 0; remaining > 0;) {
-+		unsigned int batch = remaining < MAX_FW_PAGES_PER_CMD ?
-+					     remaining :
-+					     MAX_FW_PAGES_PER_CMD;
-+
-+		mlx5st_fw_pages_give_one(dev, func_id, batch, iovas + off);
-+		off += batch;
-+		remaining -= batch;
-+	}
-+
-+	dev_dbg(dev->device, "MANAGE_PAGES GIVE: %d pages to func_id=%u\n",
-+		 npages, func_id);
-+	free(iovas);
-+}
-+
-+static void mlx5st_fw_pages_satisfy(struct mlx5st_device *dev, int boot)
-+{
-+	u32 qo[MLX5_ST_SZ_DW(query_pages_out)] = {};
-+	u32 qi[MLX5_ST_SZ_DW(query_pages_in)] = {};
-+	u16 func_id;
-+	int npages;
-+
-+	MLX5_SET(query_pages_in, qi, opcode, MLX5_CMD_OP_QUERY_PAGES);
-+	MLX5_SET(query_pages_in, qi, op_mod, boot ? 0x01 : 0x02);
-+	mlx5st_cmd_exec(dev, qi, sizeof(qi), qo, sizeof(qo));
-+
-+	npages = MLX5_GET(query_pages_out, qo, num_pages);
-+	func_id = MLX5_GET(query_pages_out, qo, function_id);
-+	dev_dbg(dev->device, "QUERY_PAGES (%s): %d pages (func_id=%u)\n",
-+		 boot ? "boot" : "init", npages, func_id);
-+
-+	if (npages > 0) {
-+		dev->fw_func_id = func_id;
-+		mlx5st_fw_pages_give(dev, func_id, npages);
-+	}
-+}
-+
-+/*
-+ * Async MANAGE_PAGES on the pages command slot.
-+ *
-+ * On PFs, firmware sends PAGE_REQUEST events via the EQ during command
-+ * execution.  We must respond with MANAGE_PAGES on a second command slot
-+ * before the first (regular) command can complete.
-+ */
-+
-+static void mlx5st_pages_slot_post(struct mlx5st_device *dev, void *in,
-+				    unsigned int ilen, unsigned int olen)
-+{
-+	mlx5st_cmd_post(dev, dev->pages_cmd_lay, dev->pages_in_mbox,
-+			dev->pages_out_mbox, in, ilen, olen,
-+			1 << dev->pages_slot);
-+}
-+
-+static void mlx5st_pages_slot_give(struct mlx5st_device *dev, u16 func_id,
-+				    unsigned int npages)
-+{
-+	unsigned int inlen;
-+	u64 *iovas;
-+	void *in;
-+
-+	iovas = calloc(npages, sizeof(u64));
-+	VFIO_ASSERT_NOT_NULL(iovas);
-+
-+	mlx5st_fw_pages_alloc(dev, npages, iovas);
-+
-+	in = mlx5st_build_manage_pages_give(func_id, npages, iovas, &inlen);
-+	free(iovas);
-+
-+	mlx5st_pages_slot_post(dev, in, inlen,
-+			       MLX5_ST_SZ_BYTES(manage_pages_out));
-+	dev->pages_slot_in_use = true;
-+	dev->pages_slot_is_reclaim = false;
-+	free(in);
-+
-+	dev_dbg(dev->device,
-+		 "PAGE_REQUEST: %d pages given async to func_id=%u\n",
-+		 npages, func_id);
-+}
-+
-+static void mlx5st_pages_slot_reclaim(struct mlx5st_device *dev, u16 func_id,
-+				       unsigned int npages)
-+{
-+	unsigned int inlen = MLX5_ST_SZ_BYTES(manage_pages_in);
-+	unsigned int outlen =
-+		MLX5_ST_SZ_BYTES(manage_pages_out) + npages * 8;
-+	void *in;
-+
-+	in = calloc(1, inlen);
-+	VFIO_ASSERT_NOT_NULL(in);
-+
-+	MLX5_SET(manage_pages_in, in, opcode, MLX5_CMD_OP_MANAGE_PAGES);
-+	MLX5_SET(manage_pages_in, in, op_mod,
-+		 MLX5_MANAGE_PAGES_IN_OP_MOD_HCA_RETURN_PAGES);
-+	MLX5_SET(manage_pages_in, in, function_id, func_id);
-+	MLX5_SET(manage_pages_in, in, input_num_entries, npages);
-+
-+	mlx5st_pages_slot_post(dev, in, inlen, outlen);
-+	dev->pages_slot_in_use = true;
-+	dev->pages_slot_is_reclaim = true;
-+	dev->pages_reclaim_npages = npages;
-+	free(in);
-+
-+	dev_dbg(dev->device,
-+		 "PAGE_REQUEST: reclaim %d pages async from func_id=%u\n",
-+		 npages, func_id);
-+}
-+
-+static void mlx5st_pages_slot_kick(struct mlx5st_device *dev)
-+{
-+	unsigned int batch;
-+
-+	if (dev->pages_slot_in_use)
-+		return;
-+
-+	if (dev->pages_pending_give) {
-+		batch = dev->pages_pending_give < MAX_FW_PAGES_PER_CMD ?
-+				dev->pages_pending_give :
-+				MAX_FW_PAGES_PER_CMD;
-+		dev->pages_pending_give -= batch;
-+		mlx5st_pages_slot_give(dev, dev->pages_pending_func_id, batch);
-+	} else if (dev->pages_pending_reclaim) {
-+		batch = dev->pages_pending_reclaim < MAX_FW_PAGES_PER_CMD ?
-+				dev->pages_pending_reclaim :
-+				MAX_FW_PAGES_PER_CMD;
-+		dev->pages_pending_reclaim -= batch;
-+		mlx5st_pages_slot_reclaim(dev, dev->pages_pending_func_id,
-+					  batch);
-+	}
-+}
-+
-+static void mlx5st_fw_pages_give_async(struct mlx5st_device *dev,
-+					u16 func_id, unsigned int npages)
-+{
-+	if (!npages)
-+		return;
-+
-+	dev->pages_pending_give += npages;
-+	dev->pages_pending_func_id = func_id;
-+	mlx5st_pages_slot_kick(dev);
-+}
-+
-+static void mlx5st_fw_pages_reclaim_async(struct mlx5st_device *dev,
-+					   u16 func_id, unsigned int npages)
-+{
-+	dev->pages_pending_reclaim += npages;
-+	dev->pages_pending_func_id = func_id;
-+	mlx5st_pages_slot_kick(dev);
-+}
-+
-+static void mlx5st_pages_slot_complete(struct mlx5st_device *dev)
-+{
-+	struct mlx5st_cmd_queue_entry *cmd = dev->pages_cmd_lay;
-+	void *cout;
-+
-+	dma_rmb();
-+
-+	cout = MLX5_ADDR_OF(cmd_queue_entry, cmd, command_output_inline_data);
-+	if (MLX5_GET(enable_hca_out, cout, status) != MLX5_CMD_STAT_OK)
-+		VFIO_FAIL("async MANAGE_PAGES failed: status=0x%x syndrome=0x%x",
-+			  MLX5_GET(enable_hca_out, cout, status),
-+			  MLX5_GET(enable_hca_out, cout, syndrome));
-+
-+	if (dev->pages_slot_is_reclaim) {
-+		unsigned int outlen = MLX5_ST_SZ_BYTES(manage_pages_out) +
-+				      dev->pages_reclaim_npages * 8;
-+		unsigned int num_claimed;
-+		unsigned int i;
-+		void *out;
-+		u64 *iovas;
-+
-+		out = calloc(1, outlen);
-+		iovas = calloc(dev->pages_reclaim_npages, sizeof(u64));
-+		VFIO_ASSERT_NOT_NULL(out);
-+		VFIO_ASSERT_NOT_NULL(iovas);
-+
-+		/* Copy inline output */
-+		memcpy(out, cout, MLX5_CMD_INLINE_SZ);
-+		if (outlen > MLX5_CMD_INLINE_SZ)
-+			mlx5st_cmd_copy_from_mbox(
-+				(u8 *)out + MLX5_CMD_INLINE_SZ,
-+				dev->pages_out_mbox,
-+				outlen - MLX5_CMD_INLINE_SZ);
-+
-+		num_claimed =
-+			MLX5_GET(manage_pages_out, out, output_num_entries);
-+		for (i = 0; i < num_claimed; i++)
-+			iovas[i] = MLX5_ARRAY_GET64(manage_pages_out, out, pas,
-+						    i);
-+
-+		mlx5st_fw_pages_free(dev, num_claimed, iovas);
-+		dev_dbg(dev->device, "PAGE_REQUEST: reclaimed %d pages\n",
-+			 num_claimed);
-+
-+		free(iovas);
-+		free(out);
-+	}
-+
-+	dev->pages_slot_in_use = false;
-+	mlx5st_pages_slot_kick(dev);
-+}
-+
-+/*
-+ * UAR alloc/dealloc
-+ */
-+
-+static void mlx5st_alloc_uar(struct mlx5st_device *dev)
-+{
-+	u32 out[MLX5_ST_SZ_DW(alloc_uar_out)] = {};
-+	u32 in[MLX5_ST_SZ_DW(alloc_uar_in)] = {};
-+
-+	MLX5_SET(alloc_uar_in, in, opcode, MLX5_CMD_OP_ALLOC_UAR);
-+	mlx5st_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+
-+	dev->uar_page = MLX5_GET(alloc_uar_out, out, uar);
-+	dev->uar_base = (u8 __iomem*)dev->bar0 + dev->uar_page * MLX5_HW_PAGE_SIZE;
-+	dev->uar_bf_offset = MLX5_BF_OFFSET;
-+
-+	dev_dbg(dev->device,
-+		 "Allocated UAR page_id=%u, doorbell offset=0x%x\n",
-+		 dev->uar_page,
-+		 dev->uar_page * MLX5_HW_PAGE_SIZE + MLX5_BF_OFFSET);
-+}
-+
-+static void mlx5st_dealloc_uar(struct mlx5st_device *dev)
-+{
-+	u32 out[MLX5_ST_SZ_DW(dealloc_uar_out)] = {};
-+	u32 in[MLX5_ST_SZ_DW(dealloc_uar_in)] = {};
-+
-+	MLX5_SET(dealloc_uar_in, in, opcode, MLX5_CMD_OP_DEALLOC_UAR);
-+	MLX5_SET(dealloc_uar_in, in, uar, dev->uar_page);
-+	mlx5st_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+}
-+
-+/*
-+ * EQ infrastructure
-+ */
-+
-+static struct mlx5st_eqe *mlx5st_eq_get_eqe(struct mlx5st_device *dev, u32 cc)
-+{
-+	u32 ci = dev->eq_cons_index + cc;
-+	struct mlx5st_eqe *eqe = &dev->eq_buf[ci % EQ_NENT];
-+	u8 owner = MLX5_GET_ONCE(eqe, eqe, owner);
-+	u8 expected = !!(ci & EQ_NENT);
-+
-+	if (owner != expected)
-+		return NULL;
-+	dma_rmb();
-+	return eqe;
-+}
-+
-+static void mlx5st_eq_update_ci(struct mlx5st_device *dev, u32 cc, bool arm)
-+{
-+	u32 val;
-+
-+	dev->eq_cons_index += cc;
-+	val = (dev->eq_cons_index & 0xffffff) | (dev->eqn << 24);
-+	iowrite32be(val, (u8 __iomem *)dev->uar_base + MLX5_EQ_DOORBELL_OFFSET +
-+				 (arm ? 0 : 8));
-+}
-+
-+static void mlx5st_create_eq(struct mlx5st_device *dev)
-+{
-+	struct vfio_pci_device *device = dev->device;
-+	u64 in[MLX5_ST_SZ_QW(create_eq_in) + 1] = {};
-+	u32 out[MLX5_ST_SZ_DW(create_eq_out)] = {};
-+	struct mlx5_ifc_eqc_bits *eqc;
-+	unsigned int i;
-+	__be64 *pas;
-+
-+	/* Initialize EQE owner bits */
-+	for (i = 0; i < EQ_NENT; i++) {
-+		struct mlx5st_eqe *eqe = &dev->eq_buf[i];
-+
-+		MLX5_SET_ONCE(eqe, eqe, owner, 1);
-+	}
-+
-+	MLX5_SET(create_eq_in, in, opcode, MLX5_CMD_OP_CREATE_EQ);
-+
-+	/* Subscribe to CMD completions and PAGE_REQUEST events */
-+	MLX5_ARRAY_SET64(create_eq_in, in, event_bitmask, 0,
-+			 (1ULL << MLX5_EVENT_TYPE_CMD) |
-+				 (1ULL << MLX5_EVENT_TYPE_PAGE_REQUEST));
-+
-+	eqc = MLX5_ADDR_OF(create_eq_in, in, eq_context_entry);
-+	MLX5_SET(eqc, eqc, log_eq_size, LOG_EQ_SIZE);
-+	MLX5_SET(eqc, eqc, uar_page, dev->uar_page);
-+	pas = MLX5_ADDR_OF(create_eq_in, in, pas);
-+	VFIO_ASSERT_EQ(mlx5st_fill_pas(device, dev->eq_buf, pas), 0u);
-+	MLX5_SET(eqc, eqc, log_page_size, 0);
-+
-+	mlx5st_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+
-+	dev->eqn = MLX5_GET(create_eq_out, out, eq_number);
-+	dev->eq_cons_index = 0;
-+	mlx5st_eq_update_ci(dev, 0, 0);
-+	dev->have_eq = true;
-+
-+	dev_dbg(device, "Created EQ: eqn=%u, %d entries (CMD+PAGE_REQUEST)\n",
-+		 dev->eqn, EQ_NENT);
-+}
-+
-+static void mlx5st_destroy_eq(struct mlx5st_device *dev)
-+{
-+	u32 out[MLX5_ST_SZ_DW(destroy_eq_out)] = {};
-+	u32 in[MLX5_ST_SZ_DW(destroy_eq_in)] = {};
-+
-+	MLX5_SET(destroy_eq_in, in, opcode, MLX5_CMD_OP_DESTROY_EQ);
-+	MLX5_SET(destroy_eq_in, in, eq_number, dev->eqn);
-+	mlx5st_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+}
-+
-+/*
-+ * Drain all pending EQ events.  Dispatches PAGE_REQUEST to the async pages
-+ * slot and CMD completions to the pages slot completion handler.
-+ */
-+static void mlx5st_process_events(struct mlx5st_device *dev)
-+{
-+	struct mlx5st_eqe *eqe;
-+	u32 cc = 0;
-+
-+	while ((eqe = mlx5st_eq_get_eqe(dev, cc))) {
-+		u8 type = MLX5_GET(eqe, eqe, event_type);
-+
-+		switch (type) {
-+		case MLX5_EVENT_TYPE_PAGE_REQUEST: {
-+			void *evdata = MLX5_ADDR_OF(eqe, eqe, event_data);
-+			u16 func_id = MLX5_GET(pages_req_event, evdata,
-+					       function_id);
-+			s32 npages = (s32)MLX5_GET(pages_req_event, evdata,
-+						   num_pages);
-+
-+			/*
-+			 * The selftest doesn't use more than one func_id so a
-+			 * simple counter approach is possible.
-+			 */
-+			if (dev->pages_func_id_seen)
-+				VFIO_ASSERT_EQ(func_id,
-+					       dev->pages_pending_func_id);
-+			dev->pages_func_id_seen = true;
-+
-+			if (npages > 0)
-+				mlx5st_fw_pages_give_async(dev, func_id,
-+							   npages);
-+			else if (npages < 0)
-+				mlx5st_fw_pages_reclaim_async(dev, func_id,
-+							      -npages);
-+			break;
-+		}
-+		case MLX5_EVENT_TYPE_CMD: {
-+			void *evdata = MLX5_ADDR_OF(eqe, eqe, event_data);
-+			u32 vector = MLX5_GET(cmd_inter_comp_event, evdata,
-+					      command_completion_vector);
-+
-+			if (vector & (1U << dev->pages_slot))
-+				mlx5st_pages_slot_complete(dev);
-+			break;
-+		}
-+		default:
-+			break;
-+		}
-+		cc++;
-+	}
-+
-+	if (cc)
-+		mlx5st_eq_update_ci(dev, cc, 0);
-+}
-+
-+/*
-+ * HCA init / teardown
-+ */
-+
-+#define FW_INIT_TIMEOUT_MS 120000
-+#define FW_INIT_WAIT_MS 200
-+
-+static void mlx5st_wait_fw_init(struct mlx5st_device *dev)
-+{
-+	struct timespec start, now;
-+	unsigned int elapsed;
-+
-+	clock_gettime(CLOCK_MONOTONIC, &start);
-+	while (MLX5_GET_MMIO(initial_seg, dev->init_seg, initializing)) {
-+		usleep(FW_INIT_WAIT_MS * 1000);
-+		clock_gettime(CLOCK_MONOTONIC, &now);
-+		elapsed = (now.tv_sec - start.tv_sec) * 1000 +
-+			  (now.tv_nsec - start.tv_nsec) / 1000000;
-+		if (elapsed > FW_INIT_TIMEOUT_MS)
-+			VFIO_FAIL("FW init timeout after %d ms", elapsed);
-+	}
-+}
-+
-+static void mlx5st_set_issi(struct mlx5st_device *dev)
-+{
-+	u32 out[MLX5_ST_SZ_DW(set_issi_out)] = {};
-+	u32 in[MLX5_ST_SZ_DW(set_issi_in)] = {};
-+
-+	MLX5_SET(set_issi_in, in, opcode, MLX5_CMD_OP_SET_ISSI);
-+	MLX5_SET(set_issi_in, in, current_issi, 1);
-+	mlx5st_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+	dev_dbg(dev->device, "SET_ISSI: OK (issi=1)\n");
-+}
-+
-+static void mlx5st_set_hca_caps(struct mlx5st_device *dev)
-+{
-+	u32 qout[MLX5_ST_SZ_DW(query_hca_cap_out)] = {};
-+	u32 qin[MLX5_ST_SZ_DW(query_hca_cap_in)] = {};
-+	u32 sout[MLX5_ST_SZ_DW(set_hca_cap_out)] = {};
-+	u32 sin[MLX5_ST_SZ_DW(set_hca_cap_in)] = {};
-+	struct mlx5_ifc_cmd_hca_cap_bits *set_hca_cap;
-+	u32 max_checksum;
-+
-+	/* Query max caps to learn cmdif_checksum support */
-+	MLX5_SET(query_hca_cap_in, qin, opcode, MLX5_CMD_OP_QUERY_HCA_CAP);
-+	MLX5_SET(query_hca_cap_in, qin, op_mod,
-+		 MLX5_SET_HCA_CAP_OP_MOD_GENERAL_DEVICE);
-+	mlx5st_cmd_exec(dev, qin, sizeof(qin), qout, sizeof(qout));
-+
-+	max_checksum = MLX5_GET(
-+		cmd_hca_cap,
-+		MLX5_ADDR_OF(query_hca_cap_out, qout, capability),
-+		cmdif_checksum);
-+
-+	/* Query current caps as base for SET */
-+	memset(qout, 0, sizeof(qout));
-+	MLX5_SET(query_hca_cap_in, qin, op_mod,
-+		 MLX5_SET_HCA_CAP_OP_MOD_GENERAL_DEVICE |
-+			 HCA_CAP_OPMOD_GET_CUR);
-+	mlx5st_cmd_exec(dev, qin, sizeof(qin), qout, sizeof(qout));
-+
-+	set_hca_cap = MLX5_ADDR_OF(set_hca_cap_in, sin, capability);
-+	memcpy(set_hca_cap,
-+	       MLX5_ADDR_OF(query_hca_cap_out, qout, capability),
-+	       MLX5_ST_SZ_BYTES(cmd_hca_cap));
-+
-+	MLX5_SET(cmd_hca_cap, set_hca_cap, cmdif_checksum, max_checksum);
-+	MLX5_SET(cmd_hca_cap, set_hca_cap, log_uar_page_sz, 0);
-+
-+	MLX5_SET(set_hca_cap_in, sin, opcode, MLX5_CMD_OP_SET_HCA_CAP);
-+	MLX5_SET(set_hca_cap_in, sin, op_mod,
-+		 MLX5_SET_HCA_CAP_OP_MOD_GENERAL_DEVICE);
-+
-+	mlx5st_cmd_exec(dev, sin, sizeof(sin), sout, sizeof(sout));
-+
-+	dev->cmd_sig_enabled = max_checksum == 0x3;
-+	dev_dbg(dev->device, "SET_HCA_CAP: OK (cmdif_checksum=%u)\n",
-+		 max_checksum);
-+}
-+
-+static void mlx5st_hca_init(struct mlx5st_device *dev)
-+{
-+	u32 out[MLX5_ST_SZ_DW(enable_hca_out)] = {};
-+	u32 in[MLX5_ST_SZ_DW(enable_hca_in)] = {};
-+
-+	mlx5st_wait_fw_init(dev);
-+	dev_dbg(dev->device, "Firmware ready\n");
-+
-+	MLX5_SET(enable_hca_in, in, opcode, MLX5_CMD_OP_ENABLE_HCA);
-+	mlx5st_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+	dev_dbg(dev->device, "ENABLE_HCA: OK\n");
-+
-+	mlx5st_set_issi(dev);
-+	mlx5st_fw_pages_satisfy(dev, 1);
-+
-+	mlx5st_set_hca_caps(dev);
-+	mlx5st_fw_pages_satisfy(dev, 0);
-+
-+	memset(in, 0, sizeof(in));
-+	memset(out, 0, sizeof(out));
-+	MLX5_SET(init_hca_in, in, opcode, MLX5_CMD_OP_INIT_HCA);
-+	mlx5st_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+	dev_dbg(dev->device, "INIT_HCA: OK\n");
-+
-+	/*
-+	 * Create EQ immediately after INIT_HCA so PAGE_REQUEST events
-+	 * are captured during all subsequent commands.
-+	 */
-+	mlx5st_alloc_uar(dev);
-+	mlx5st_create_eq(dev);
-+}
-+
-+static void mlx5st_disable_hca(struct mlx5st_device *dev)
-+{
-+	u32 out[MLX5_ST_SZ_DW(disable_hca_out)] = {};
-+	u32 in[MLX5_ST_SZ_DW(disable_hca_in)] = {};
-+
-+	MLX5_SET(disable_hca_in, in, opcode, MLX5_CMD_OP_DISABLE_HCA);
-+	mlx5st_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+}
-+
-+static void mlx5st_fw_pages_reclaim(struct mlx5st_device *dev, u16 func_id)
-+{
-+	unsigned int npages = dev->fw_pages_given;
-+	unsigned int total_claimed = 0;
-+
-+	while (npages > 0) {
-+		unsigned int batch = npages < MAX_FW_PAGES_PER_CMD ?
-+					     npages :
-+					     MAX_FW_PAGES_PER_CMD;
-+		unsigned int outlen =
-+			MLX5_ST_SZ_BYTES(manage_pages_out) + batch * 8;
-+		unsigned int inlen = MLX5_ST_SZ_BYTES(manage_pages_in);
-+		unsigned int num_claimed;
-+		unsigned int i;
-+		void *in, *out;
-+		u64 *iovas;
-+
-+		in = calloc(1, inlen);
-+		out = calloc(1, outlen);
-+		iovas = calloc(batch, sizeof(u64));
-+		VFIO_ASSERT_NOT_NULL(in);
-+		VFIO_ASSERT_NOT_NULL(out);
-+		VFIO_ASSERT_NOT_NULL(iovas);
-+
-+		MLX5_SET(manage_pages_in, in, opcode,
-+			 MLX5_CMD_OP_MANAGE_PAGES);
-+		MLX5_SET(manage_pages_in, in, op_mod,
-+			 MLX5_MANAGE_PAGES_IN_OP_MOD_HCA_RETURN_PAGES);
-+		MLX5_SET(manage_pages_in, in, function_id, func_id);
-+		MLX5_SET(manage_pages_in, in, input_num_entries, batch);
-+
-+		mlx5st_cmd_exec(dev, in, inlen, out, outlen);
-+
-+		num_claimed =
-+			MLX5_GET(manage_pages_out, out, output_num_entries);
-+		for (i = 0; i < num_claimed; i++)
-+			iovas[i] = MLX5_ARRAY_GET64(manage_pages_out, out, pas,
-+						    i);
-+
-+		mlx5st_fw_pages_free(dev, num_claimed, iovas);
-+		total_claimed += num_claimed;
-+		npages -= num_claimed;
-+
-+		free(iovas);
-+		free(in);
-+		free(out);
-+
-+		if (!num_claimed && !dev->fw_pages_given)
-+			break;
-+		if (!num_claimed)
-+			VFIO_FAIL("MANAGE_PAGES RECLAIM: FW returned 0 but %d pages still given",
-+				  dev->fw_pages_given);
-+	}
-+
-+	dev_dbg(dev->device,
-+		 "MANAGE_PAGES RECLAIM: %d pages (%d still given)\n",
-+		 total_claimed, dev->fw_pages_given);
-+}
-+
-+static void mlx5st_hca_teardown(struct mlx5st_device *dev)
-+{
-+	u32 out[MLX5_ST_SZ_DW(teardown_hca_out)] = {};
-+	u32 in[MLX5_ST_SZ_DW(teardown_hca_in)] = {};
-+
-+	/* Drain async pages slot, then stop EQ processing */
-+	while (dev->pages_slot_in_use) {
-+		if (!MLX5_GET_ONCE(cmd_queue_entry, dev->pages_cmd_lay,
-+				   ownership))
-+			mlx5st_pages_slot_complete(dev);
-+		else
-+			sched_yield();
-+	}
-+	dev->have_eq = false;
-+
-+	if (dev->eqn) {
-+		mlx5st_destroy_eq(dev);
-+		dev->eqn = 0;
-+	}
-+	if (dev->uar_page) {
-+		mlx5st_dealloc_uar(dev);
-+		dev->uar_page = 0;
-+	}
-+
-+	dev_dbg(dev->device, "  hca_teardown: TEARDOWN_HCA\n");
-+	MLX5_SET(teardown_hca_in, in, opcode, MLX5_CMD_OP_TEARDOWN_HCA);
-+	MLX5_SET(teardown_hca_in, in, profile,
-+		 MLX5_TEARDOWN_HCA_IN_PROFILE_GRACEFUL_CLOSE);
-+	mlx5st_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+
-+	if (dev->fw_pages_given > 0) {
-+		dev_dbg(dev->device, "  hca_teardown: reclaim %d pages\n",
-+			 dev->fw_pages_given);
-+		mlx5st_fw_pages_reclaim(dev, dev->fw_func_id);
-+	}
-+
-+	dev_dbg(dev->device, "  hca_teardown: DISABLE_HCA\n");
-+	mlx5st_disable_hca(dev);
-+}
-+
-+/*
-+ * Query capabilities
-+ */
-+static void mlx5st_query_fl_caps(struct mlx5st_device *dev)
-+{
-+	u32 out[MLX5_ST_SZ_DW(query_hca_cap_out)] = {};
-+	u32 in[MLX5_ST_SZ_DW(query_hca_cap_in)] = {};
-+	bool fl_roce_en, fl_roce_dis;
-+
-+	/* Query RoCE capabilities */
-+	MLX5_SET(query_hca_cap_in, in, opcode, MLX5_CMD_OP_QUERY_HCA_CAP);
-+	MLX5_SET(query_hca_cap_in, in, op_mod,
-+		 MLX5_SET_HCA_CAP_OP_MOD_ROCE | HCA_CAP_OPMOD_GET_CUR);
-+
-+	mlx5st_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+
-+	fl_roce_en = MLX5_GET(query_hca_cap_out, out,
-+			      capability.roce_cap.fl_rc_qp_when_roce_enabled);
-+	fl_roce_dis = MLX5_GET(query_hca_cap_out, out,
-+			       capability.roce_cap.fl_rc_qp_when_roce_disabled);
-+
-+	/* Also check general caps */
-+	memset(in, 0, sizeof(in));
-+	memset(out, 0, sizeof(out));
-+	MLX5_SET(query_hca_cap_in, in, opcode, MLX5_CMD_OP_QUERY_HCA_CAP);
-+	MLX5_SET(query_hca_cap_in, in, op_mod,
-+		 MLX5_SET_HCA_CAP_OP_MOD_GENERAL_DEVICE |
-+			 HCA_CAP_OPMOD_GET_CUR);
-+
-+	mlx5st_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+
-+	fl_roce_dis |=
-+		MLX5_GET(query_hca_cap_out, out,
-+			 capability.cmd_hca_cap.fl_rc_qp_when_roce_disabled);
-+
-+	dev->fl_supported = fl_roce_en || fl_roce_dis;
-+	dev->log_max_msg = MLX5_GET(query_hca_cap_out, out,
-+				    capability.cmd_hca_cap.log_max_msg);
-+	dev_dbg(dev->device,
-+		 "HCA capabilities: fl_roce_enabled=%d fl_roce_disabled=%d log_max_msg=%u\n",
-+		 fl_roce_en, fl_roce_dis, dev->log_max_msg);
-+
-+	VFIO_ASSERT_TRUE(dev->fl_supported,
-+			 "Force-loopback not supported on this device");
-+}
-+
-+/*
-+ * Resource allocation
-+ */
-+
-+static void mlx5st_alloc_pd(struct mlx5st_device *dev)
-+{
-+	u32 out[MLX5_ST_SZ_DW(alloc_pd_out)] = {};
-+	u32 in[MLX5_ST_SZ_DW(alloc_pd_in)] = {};
-+
-+	MLX5_SET(alloc_pd_in, in, opcode, MLX5_CMD_OP_ALLOC_PD);
-+	mlx5st_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+
-+	dev->pdn = MLX5_GET(alloc_pd_out, out, pd);
-+	dev_dbg(dev->device, "Allocated PD pdn=%u\n", dev->pdn);
-+}
-+
-+static void mlx5st_dealloc_pd(struct mlx5st_device *dev)
-+{
-+	u32 out[MLX5_ST_SZ_DW(dealloc_pd_out)] = {};
-+	u32 in[MLX5_ST_SZ_DW(dealloc_pd_in)] = {};
-+
-+	MLX5_SET(dealloc_pd_in, in, opcode, MLX5_CMD_OP_DEALLOC_PD);
-+	MLX5_SET(dealloc_pd_in, in, pd, dev->pdn);
-+	mlx5st_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+}
-+
-+static void mlx5st_create_mkey(struct mlx5st_device *dev)
-+{
-+	u32 out[MLX5_ST_SZ_DW(create_mkey_out)] = {};
-+	u32 in[MLX5_ST_SZ_DW(create_mkey_in)] = {};
-+	struct mlx5_ifc_mkc_bits *mkc;
-+
-+	MLX5_SET(create_mkey_in, in, opcode, MLX5_CMD_OP_CREATE_MKEY);
-+
-+	mkc = MLX5_ADDR_OF(create_mkey_in, in, memory_key_mkey_entry);
-+	MLX5_SET(mkc, mkc, access_mode_1_0, MLX5_MKC_ACCESS_MODE_PA);
-+	MLX5_SET(mkc, mkc, length64, 1);
-+	MLX5_SET(mkc, mkc, pd, dev->pdn);
-+	MLX5_SET(mkc, mkc, qpn, 0xffffff);
-+	MLX5_SET(mkc, mkc, lr, 1);
-+	MLX5_SET(mkc, mkc, lw, 1);
-+	MLX5_SET(mkc, mkc, rw, 1);
-+	MLX5_SET(mkc, mkc, rr, 1);
-+
-+	mlx5st_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+
-+	dev->mkey_index = MLX5_GET(create_mkey_out, out, mkey_index);
-+	dev->global_lkey = mlx5st_idx_to_mkey(dev->mkey_index);
-+	dev->global_rkey = dev->global_lkey;
-+
-+	dev_dbg(dev->device, "Created global PA-mode MKEY: lkey=0x%x\n",
-+		 dev->global_lkey);
-+}
-+
-+static void mlx5st_destroy_mkey(struct mlx5st_device *dev)
-+{
-+	u32 out[MLX5_ST_SZ_DW(destroy_mkey_out)] = {};
-+	u32 in[MLX5_ST_SZ_DW(destroy_mkey_in)] = {};
-+
-+	MLX5_SET(destroy_mkey_in, in, opcode, MLX5_CMD_OP_DESTROY_MKEY);
-+	MLX5_SET(destroy_mkey_in, in, mkey_index, dev->mkey_index);
-+	mlx5st_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+}
-+
-+/*
-+ * Driver ops callbacks
-+ */
-+
-+static void mlx5st_init(struct vfio_pci_device *device)
-+{
-+	struct mlx5st_device *dev = to_mlx5st(device);
-+	iova_t iova_align =
-+		device->driver.region.iova % __alignof__(struct mlx5st_device);
-+
-+	VFIO_ASSERT_GE(device->driver.region.size, sizeof(*dev));
-+	VFIO_ASSERT_EQ(iova_align, 0);
-+	memset(dev, 0, sizeof(*dev));
-+
-+	dev->device = device;
-+	dev->bar0 = device->bars[0].vaddr;
-+	dev->init_seg = dev->bar0;
-+
-+	vfio_pci_config_writew(device, PCI_COMMAND,
-+			       vfio_pci_config_readw(device, PCI_COMMAND) |
-+				       PCI_COMMAND_MASTER);
-+
-+	mlx5st_wait_fw_init(dev);
-+
-+	mlx5st_cmd_init(dev);
-+	mlx5st_hca_init(dev);
-+	mlx5st_query_fl_caps(dev);
-+	mlx5st_alloc_pd(dev);
-+	mlx5st_create_mkey(dev);
-+
-+	dev_dbg(device, "mlx5 driver initialized\n");
-+}
-+
-+static void mlx5st_remove(struct vfio_pci_device *device)
-+{
-+	struct mlx5st_device *dev = to_mlx5st(device);
-+
-+	dev_dbg(device, "teardown: destroy_mkey\n");
-+	if (dev->mkey_index) {
-+		mlx5st_destroy_mkey(dev);
-+		dev->mkey_index = 0;
-+	}
-+
-+	dev_dbg(device, "teardown: dealloc_pd\n");
-+	if (dev->pdn) {
-+		mlx5st_dealloc_pd(dev);
-+		dev->pdn = 0;
-+	}
-+
-+	dev_dbg(device, "teardown: hca_teardown\n");
-+	mlx5st_hca_teardown(dev);
-+
-+	vfio_pci_config_writew(device, PCI_COMMAND,
-+			       vfio_pci_config_readw(device, PCI_COMMAND) &
-+				       ~(u16)PCI_COMMAND_MASTER);
-+
-+	dev_dbg(device, "Teardown complete\n");
-+}
-+
-+struct vfio_pci_driver_ops mlx5st_ops = {
-+	.name = "mlx5",
-+	.region_size = sizeof(struct mlx5st_device),
-+	.probe = mlx5st_probe,
-+	.init = mlx5st_init,
-+	.remove = mlx5st_remove,
-+	.memcpy_start = NULL,
-+	.memcpy_wait = NULL,
-+	.send_msi = NULL,
-+};
-diff --git a/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_hw.h b/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_hw.h
-new file mode 100644
-index 00000000000000..a2506ec8a19523
---- /dev/null
-+++ b/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_hw.h
-@@ -0,0 +1,108 @@
-+/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
-+/*
-+ * mlx5 VFIO selftest driver - HW definitions
-+ *
-+ * Typed wrappers, constants, and helpers for programming mlx5 hardware
-+ * via the VFIO selftest framework.  Most HW constants and all MLX5_SET/GET
-+ * macros come from the kernel headers (mlx5_ifc.h, mlx5_ifc_macros.h).
-+ */
-+#ifndef SELFTESTS_VFIO_MLX5_HW_H
-+#define SELFTESTS_VFIO_MLX5_HW_H
-+
-+#include <linux/io.h>
-+#include <linux/build_bug.h>
-+#include <vdso/bits.h>
-+
-+#include "mlx5_ifc.h"
-+#include "mlx5_ifc_macros.h"
-+
-+/*
-+ * Typed HW object wrappers for driver region arrays.
-+ *
-+ * The IFC _bits structs have sizeof == num_bits (not bytes), so they cannot
-+ * be used as array elements.  These wrappers provide byte-sized types.
-+ */
-+#define MLX5ST_MAKE_DATA32(name)               \
-+	struct mlx5st_##name {                 \
-+		u32 data[MLX5_ST_SZ_DW(name)]; \
-+	}
-+#define MLX5ST_MAKE_DATA64(name)               \
-+	struct mlx5st_##name {                 \
-+		u64 data[MLX5_ST_SZ_QW(name)]; \
-+	}
-+
-+MLX5ST_MAKE_DATA32(initial_seg);
-+MLX5ST_MAKE_DATA64(cmd_queue_entry);
-+MLX5ST_MAKE_DATA64(cmd_if_box);
-+MLX5ST_MAKE_DATA64(wqe_ctrl_seg);
-+MLX5ST_MAKE_DATA64(wqe_raddr_seg);
-+MLX5ST_MAKE_DATA64(wqe_data_seg);
-+MLX5ST_MAKE_DATA64(cqe64) __aligned(64);
-+MLX5ST_MAKE_DATA64(eqe);
-+
-+/*
-+ * Mailbox blocks: 512 data + 64 header = 576 bytes, but the
-+ * next_pointer field stores bits [31:10], requiring 1024-byte alignment.
-+ */
-+#define CMD_MBOX_SIZE (2 * MLX5_HW_PAGE_SIZE)
-+#define CMD_MBOX_STRIDE 1024
-+#define CMD_MBOX_NENT (CMD_MBOX_SIZE / CMD_MBOX_STRIDE)
-+/* Stride-aligned mailbox entry — block + padding to 1024 bytes */
-+struct mlx5st_mbox_entry {
-+	struct mlx5st_cmd_if_box block;
-+} __aligned(CMD_MBOX_STRIDE);
-+
-+#define MLX5_CMD_INLINE_SZ \
-+	MLX5_FLD_SZ_BYTES(cmd_queue_entry, command_input_inline_data)
-+
-+/* Command interface mailbox block (512 data + 64 header) */
-+#define MLX5_CMD_DATA_BLOCK_SIZE MLX5_FLD_SZ_BYTES(cmd_if_box, mailbox_data)
-+
-+/* RDMA Write WQE — one basic block: ctrl + raddr + data + padding */
-+struct mlx5st_send_wqe {
-+	struct mlx5st_wqe_ctrl_seg ctrl;
-+	struct mlx5st_wqe_raddr_seg raddr;
-+	struct mlx5st_wqe_data_seg data;
-+} __aligned(64);
-+static_assert(sizeof(struct mlx5st_send_wqe) == 64,
-+	      "send WQE segments must fit in one BB");
-+
-+/* DS = number of 16-byte segments in the WQE (ctrl + raddr + data) */
-+#define MLX5_RDMA_WRITE_DS 3
-+
-+/* Doorbell record — two __be32 in a 64-byte aligned pair */
-+struct mlx5st_dbrec {
-+	__be32 recv_counter;
-+	__be32 send_counter;
-+} __aligned(64);
-+
-+/* UAR BlueFlame buffer offsets within a UAR page */
-+#define MLX5_BF_OFFSET 0x800
-+#define MLX5_BF_SIZE 0x100
-+
-+/* EQ doorbell offset within UAR page */
-+#define MLX5_EQ_DOORBELL_OFFSET 0x40
-+
-+#define MLX5_HW_PAGE_SIZE 4096
-+
-+/*
-+ * Test parameters
-+ */
-+#define SQ_WQE_CNT 16
-+#define LOG_SQ_SIZE 4
-+#define CQ_CQE_CNT 16
-+#define LOG_CQ_SIZE 4
-+#define EQ_NENT 64
-+#define LOG_EQ_SIZE 6
-+
-+#define MAX_FW_PAGES 8192
-+#define MAX_FW_PAGES_PER_CMD 512
-+
-+#define MLX5_CMD_TIMEOUT_MS 5000
-+
-+static inline u32 mlx5st_idx_to_mkey(u32 mkey_idx)
-+{
-+	return mkey_idx << 8;
-+}
-+
-+#endif /* SELFTESTS_VFIO_MLX5_HW_H */
-diff --git a/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_ifc.h b/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_ifc.h
-new file mode 120000
-index 00000000000000..7dcbb79e1af061
---- /dev/null
-+++ b/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_ifc.h
-@@ -0,0 +1 @@
-+../../../../../../../include/linux/mlx5/mlx5_ifc.h
-\ No newline at end of file
-diff --git a/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_ifc_fpga.h b/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_ifc_fpga.h
-new file mode 120000
-index 00000000000000..865d99e2aeecd3
---- /dev/null
-+++ b/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_ifc_fpga.h
-@@ -0,0 +1 @@
-+../../../../../../../include/linux/mlx5/mlx5_ifc_fpga.h
-\ No newline at end of file
-diff --git a/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_ifc_macros.h b/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_ifc_macros.h
-new file mode 120000
-index 00000000000000..97408c247f06ca
---- /dev/null
-+++ b/tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_ifc_macros.h
-@@ -0,0 +1 @@
-+../../../../../../../include/linux/mlx5/mlx5_ifc_macros.h
-\ No newline at end of file
-diff --git a/tools/testing/selftests/vfio/lib/libvfio.mk b/tools/testing/selftests/vfio/lib/libvfio.mk
-index bcfa74ae040e78..eff95828719e05 100644
---- a/tools/testing/selftests/vfio/lib/libvfio.mk
-+++ b/tools/testing/selftests/vfio/lib/libvfio.mk
-@@ -15,6 +15,7 @@ LIBVFIO_C += drivers/ioat/ioat.c
- LIBVFIO_C += drivers/dsa/dsa.c
- endif
- 
-+LIBVFIO_C += drivers/mlx5/mlx5.c
- LIBVFIO_C += drivers/nv_falcon/nv_falcon.c
- LIBVFIO_C += drivers/igb/igb.c
- 
-diff --git a/tools/testing/selftests/vfio/lib/vfio_pci_driver.c b/tools/testing/selftests/vfio/lib/vfio_pci_driver.c
-index 64135ac43877e9..b31abfe2c7ffc2 100644
---- a/tools/testing/selftests/vfio/lib/vfio_pci_driver.c
-+++ b/tools/testing/selftests/vfio/lib/vfio_pci_driver.c
-@@ -6,6 +6,7 @@
- extern struct vfio_pci_driver_ops dsa_ops;
- extern struct vfio_pci_driver_ops ioat_ops;
- #endif
-+extern struct vfio_pci_driver_ops mlx5st_ops;
- extern struct vfio_pci_driver_ops nv_falcon_ops;
- extern struct vfio_pci_driver_ops igb_ops;
- 
-@@ -14,6 +15,7 @@ static struct vfio_pci_driver_ops *driver_ops[] = {
- 	&dsa_ops,
- 	&ioat_ops,
- #endif
-+	&mlx5st_ops,
- 	&nv_falcon_ops,
- 	&igb_ops,
- };
+[Severity: High]
+Is the claim in this comment that the requeueing sites "all test
+rds_destroy_pending() under rcu_read_lock()" accurate for the current
+tree?
+
+A grep of the queue_work()/queue_delayed_work() callers under net/rds
+turns up several arming sites that never consult the predicate at all,
+so the new flag cannot suppress them:
+
+net/rds/ib_send.c:rds_ib_send_cqe_handler()
+	if (test_and_clear_bit(RDS_LL_SEND_FULL, &conn->c_flags) ||
+	    test_bit(0, &conn->c_map_queued))
+		queue_delayed_work(conn->c_path->cp_wq, &conn->c_send_w, 0);
+
+net/rds/ib_send.c:rds_ib_send_add_credits()
+	if (test_and_clear_bit(RDS_LL_SEND_FULL, &conn->c_flags))
+		queue_delayed_work(conn->c_path->cp_wq, &conn->c_send_w, 0);
+
+net/rds/ib_recv.c:rds_ib_recv_refill()
+		queue_delayed_work(conn->c_path->cp_wq, &conn->c_recv_w, 1);
+
+net/rds/tcp_listen.c:rds_tcp_accept_one()
+		queue_delayed_work(cp->cp_wq, &cp->cp_recv_w, 0);
+
+net/rds/send.c:rds_sendmsg()
+		if (!test_and_set_bit(RDS_RECONNECT_PENDING,
+				      &conn->c_path[0].cp_flags))
+			queue_delayed_work(conn->c_path[0].cp_wq,
+					   &conn->c_path[0].cp_conn_w, 0);
+
+Also, the one rds_destroy_pending(conn) test that rds_sendmsg() does
+perform is not inside an RCU read-side section (send.c holds
+rcu_read_lock() only around the three cp_send_w arming sites), so
+the synchronize_rcu() in rds_conn_destroy() does not order against that
+reader either.
+
+Given that, can the window that rds_conn_path_quiesce() already warns
+about still end in a crash?  It cancels the works while the path is
+still RDS_CONN_UP:
+
+	cancel_delayed_work_sync(&cp->cp_send_w);
+	cancel_delayed_work_sync(&cp->cp_recv_w);
+
+	rds_conn_path_drop(cp, true);
+	flush_work(&cp->cp_down_w);
+	...
+	WARN_ON(delayed_work_pending(&cp->cp_send_w));
+	WARN_ON(delayed_work_pending(&cp->cp_recv_w));
+	WARN_ON(delayed_work_pending(&cp->cp_conn_w));
+
+and teardown then proceeds regardless of the warning to
+
+		destroy_workqueue(cp->cp_wq);
+		cp->cp_wq = NULL;
+
+followed by kfree(conn->c_path) in rds_conn_destroy().  An IB send or
+receive completion landing in that window re-arms through one of the
+unguarded sites above.  With delay 0 and cp_wq already NULL,
+__queue_delayed_work() falls through to __queue_work(cpu, NULL, work);
+with the delay 1 arming in rds_ib_recv_refill() the timer is invisible
+to destroy_workqueue() and delayed_work_timer_fn() later calls
+__queue_work(dwork->cpu, dwork->wq, ...) on the destroyed workqueue,
+from a timer_list living in the freed c_path array.
+
+Would it make sense to either extend the rcu_read_lock() +
+rds_destroy_pending() pattern to those sites (or move the workqueue
+teardown behind the transport quiesce), or otherwise to soften the
+blanket coverage claim in this comment and in the changelog?
+
+>  
+>  	/* Ensure conn will not be scheduled for reconnect */
+>  	spin_lock_irq(&rds_conn_lock);
+>  	hlist_del_init_rcu(&conn->c_hash_node);
+> diff --git a/net/rds/ib.c b/net/rds/ib.c
+> index 786f39169bc14..9fe3b9951bd32 100644
+> --- a/net/rds/ib.c
+> +++ b/net/rds/ib.c
+> @@ -525,10 +525,7 @@ static void rds_ib_set_unloading(void)
+>  
+>  static bool rds_ib_is_unloading(struct rds_connection *conn)
+>  {
+> -	struct rds_conn_path *cp = &conn->c_path[0];
+> -
+> -	return (test_bit(RDS_DESTROY_PENDING, &cp->cp_flags) ||
+> -		atomic_read(&rds_ib_unloading) != 0);
+> +	return atomic_read(&rds_ib_unloading) != 0;
+>  }
+
+[Severity: Medium]
+Does the changelog describe the right set of paths that this patch newly
+guards?  It says:
+
+    rds_conn_destroy() is not limited to the global paths: rds_ib
+    destroys connections whose underlying IB device was removed
+    (rds_ib_destroy_nodev_conns())
+
+and
+
+    Bring the protection back at the connection level, where it also
+    covers the device-removal path that was never guarded
+
+At this revision net/rds/ib.c has no rds_conn_destroy() call at all; the
+device removal path (rds_ib_remove_one() / rds_ib_dev_shutdown() /
+rds_ib_remove_conn()) only drops connections and moves them onto
+ib_nodev_conns.
+
+rds_ib_destroy_nodev_conns() has a single caller, rds_ib_exit(), which
+runs before it:
+
+net/rds/ib.c:rds_ib_exit() {
+	rds_ib_set_unloading();
+	synchronize_rcu();
+	...
+	rds_ib_unregister_client();
+	rds_ib_destroy_nodev_conns();
+	...
+}
+
+Since rds_ib_is_unloading() is the IB ->t_unloading callback and returns
+atomic_read(&rds_ib_unloading) != 0 for the whole of rds_ib_exit(),
+wasn't rds_destroy_pending() already true for every conn destroyed on
+that path, so the new flag adds nothing there?
+
+That would leave the version-mismatch rds_conn_destroy() in
+rds_ib_cm_connect_complete() as the only genuinely unguarded per-conn
+destroy, which matches the Fixes: cdc306a5c9cd3 tag.  Could the
+changelog be narrowed to that, so stable backport triage does not read
+it as "hot-removing an IB device can queue work on a destroyed cp_wq"?
+
+>  
+>  void rds_ib_exit(void)
+> diff --git a/net/rds/rds.h b/net/rds/rds.h
+> index 2db49573dacd5..cede2b03baa50 100644
+> --- a/net/rds/rds.h
+> +++ b/net/rds/rds.h
+
+[ ... ]
+
+> @@ -148,6 +147,10 @@ struct rds_connection {
+>  				c_pad_to_32:29;
+>  	int			c_npaths;
+>  	bool			c_with_sport_idx;
+> +	/* Set (under RCU) when rds_conn_destroy() starts on this conn;
+> +	 * read through rds_destroy_pending().
+> +	 */
+> +	bool			c_destroy_in_prog;
+
+[Severity: Low]
+This isn't a bug, but does "Set (under RCU)" match the setter?  The only
+write is the plain WRITE_ONCE(conn->c_destroy_in_prog, true) in
+rds_conn_destroy(), which is not inside an rcu_read_lock() section; the
+RCU involvement is the synchronize_rcu() that follows.
+
+Would it also be worth spelling out the reader-side requirement here,
+namely that rcu_read_lock() must be held across both the
+rds_destroy_pending() test and the queue_work()/queue_delayed_work()
+that follows?  As written, the field comment permits the pattern already
+present in rds_sendmsg():
+
+net/rds/send.c:rds_sendmsg() {
+	...
+	if (rds_destroy_pending(conn)) {
+		ret = -EAGAIN;
+		goto out;
+	}
+	...
+}
+
+where the predicate is read outside any RCU read section and the
+synchronize_rcu() in rds_conn_destroy() fences nothing.
+
+>  	struct rds_connection	*c_passive;
+>  	struct rds_transport	*c_trans;
+>  
+> @@ -994,7 +997,8 @@ void __rds_put_mr_final(struct kref *kref);
+>  
+>  static inline bool rds_destroy_pending(struct rds_connection *conn)
+>  {
+> -	return !check_net(rds_conn_net(conn)) ||
+> +	return READ_ONCE(conn->c_destroy_in_prog) ||
+> +	       !check_net(rds_conn_net(conn)) ||
+>  	       (conn->c_trans->t_unloading && conn->c_trans->t_unloading(conn));
+>  }
+
+Thanks for looking at these.
+
 -- 
-2.43.0
-
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260904070248.160384-1-achender%40kernel.org
