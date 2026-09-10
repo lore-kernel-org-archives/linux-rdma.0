@@ -1,69 +1,76 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F792384CF6;
-	Thu, 10 Sep 2026 15:23:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B13C4A5C4A;
+	Thu, 10 Sep 2026 15:31:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789053791; cv=none; b=ns0E9eTg4be6oJSAtbQTiPqyQNLW9FpM7g3mt6ZvbHvSfNkjwu4vrk8n2fW9UhkLHgVx3kErHB1bXvOHDIhw6yKyR7CAfowi1qCnHyRTcUBVsklc+bORCRA9PpCdO7cALZw6Q65w6wr2E4Q2k0OFpx40F/wYsyHQMRKRnQEWik4=
+	t=1789054268; cv=none; b=CiMdcK1BxIP8CWIWL+nSvAyj2kuHiiRoU8THikrFeirKHJ28npAEQkiw2dCO6rhKGL9t9RHdOF4WoChCZBZ84O+XHn/oYPZgiPVRhaFT3rhagMrxJ523HxSzfeP4vD+0oDWTSe8kC5sNQ8t3hgRka+pb2jqTCRBKZF1GXF6+JuY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789053791; c=relaxed/simple;
-	bh=hnWZhXwHUJSQ7slQueqP5zSAQK4IKFTOz4dsjZZNSAs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=EMsXu3nn0OEgvC4VUopTSsgcqY68bngaoe6l+a9SSyd1Sgi7yMw8H4zLmxZ8WoN0EwTFu0o28hn9Dc81s0m9z8UatmNjbqumrK3BRmgxzr0o8VirXYGVoeieJAI1G/ZybUTPkuhIyvv9rQuXx0pOzwIArp6uMl4GokWQqwRYLiM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TPw/xgsC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789054268; c=relaxed/simple;
+	bh=f1yVzWTtVeeT8SyrsjV5eY/chI2ENCt7jYNJrmu4prE=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=ft3eTLkg3UJqSulYJZEEcNgwj7l8AUAKv+dKYmCZbUDRRw9IElswsdGGK4FmIETSzKADJLHBHvN2IkZh3ZE8z73zEJf/6r5oV5F4ac4bDFC1hhkI0UNpRLQ6S/B6pyZlXHUXIENxPEAunATWh8DlgA0QwPiyq73DvI5MMY8CAvc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UP7EHk+T; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TPw/xgsC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71C871F000FF;
-	Thu, 10 Sep 2026 15:23:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UP7EHk+T"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF6681F000FF;
+	Thu, 10 Sep 2026 15:31:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789053782;
-	bh=m0wROt3YxDKuV+RbvHS9GTMSx7Pe6Lf6m5J3ePOAiZs=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=TPw/xgsCJICDARGk+6yxTduN28e2JMgVK6MCLcRovk+pJD6VRY1kofIHc5SbZDmN9
-	 qLzFf+xqMaMORje+HfMSwqzS/XfpDGx04phz81hds/jPGMef30xz7oghaZnAGByuQk
-	 3mXraZqvPnVPZi+AJaH46nAlwSaAGoqnQggM8F5+hUSmQ9I3oqvwZ/7/mOKBGO/JsP
-	 bgx7wT6Mev+S2JDDfZ5BH7ae1VMQvO127U50pPKI4dUh15PKtAq6O6YwbmQhvfZtPD
-	 mbClS3JcBAAzog2RPfrWOR3rfr+yQ7BHn3kj6KRpDHJgK+Mwgb3XbT1L6U5B3CGxYf
-	 DYT0Ms/qvlkbg==
-Date: Thu, 10 Sep 2026 18:22:58 +0300
-From: Leon Romanovsky <leon@kernel.org>
-To: Jakub Kicinski <kuba@kernel.org>
-Cc: "Nimal Prabudoss [C]" <nprabudoss@marvell.com>,
-	"linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"jmeneghi@redhat.com" <jmeneghi@redhat.com>,
-	"mschmidt@redhat.com" <mschmidt@redhat.com>,
-	"Sharad Padol [C]" <spadol@marvell.com>,
-	"Yogesh Sawant [C]" <ysawant@marvell.com>,
-	Nilesh Javali <njavali@marvell.com>,
-	Manish Rangankar <mrangankar@marvell.com>,
-	GR-ETH-Storage-Upstream <GR-ETH-Storage-Upstream@marvell.com>
-Subject: Re: [PATCH v3] MAINTAINERS: Update maintainers and group list for
- QLogic and Broadcom drivers
-Message-ID: <20260910152258.GS13683@unreal>
-References: <PH0PR18MB4799279C272F238CDF36698DC9B22@PH0PR18MB4799.namprd18.prod.outlook.com>
- <PH0PR18MB4799B6A39977C80374EA4FA6C9B22@PH0PR18MB4799.namprd18.prod.outlook.com>
- <20260908174718.18b46925@kernel.org>
+	s=k20260515; t=1789054266;
+	bh=R203kj4NwhLlXEEyQnbzDWHHyTZDyGq+LQZedwgw5R0=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=UP7EHk+TGRUU95/lnVo6Cbg3UbaumvIyOPeU9H67yihg+pKQHiyG182z1pQP5Sr6i
+	 pPaPHI2QewqxpkRMFzkiBEgDAD1hgd9uvx5r3aflZMKeMTK9wDy70+g1IAFbf7pBSc
+	 9keqtnmXN+b754GEv1aDJW+aeG1yvT1YUG8uV03C2my8iFQlY+O7/2s/h3YpKhMTtc
+	 56TuNxnecBUqf9Soqy4vpa5mhukfkD5zaH0e3NT1YOtlcG67lIt7MSWrcJOyo6wodo
+	 6G3hV6JTezkYL+RwQLO5qhFgTp8Etu7TfJHSJb+RFcfmQzejh42V/CySquUC0tmFK7
+	 66rbPQ4SketHA==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 93853380CEF9;
+	Thu, 10 Sep 2026 15:30:05 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260908174718.18b46925@kernel.org>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net] net/rds: fix tcp stream corruption with large pages
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <178905420439.1498636.4544893733469196000.git-patchwork-notify@kernel.org>
+Date: Thu, 10 Sep 2026 15:30:04 +0000
+References: <apxJjxvStibPI0AS@oracle.com>
+In-Reply-To: <apxJjxvStibPI0AS@oracle.com>
+To: Greg Marsden <greg.marsden@oracle.com>
+Cc: achender@kernel.org, kuba@kernel.org, netdev@vger.kernel.org,
+ linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
 
-On Tue, Sep 08, 2026 at 05:47:18PM -0700, Jakub Kicinski wrote:
-> On Mon, 7 Sep 2026 12:26:25 +0000 Nimal Prabudoss [C] wrote:
-> > Signed-off-by: Nimal Prabudoss mailto:nprabudoss@marvell.com
+Hello:
+
+This patch was applied to netdev/net.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
+
+On Sat, 5 Sep 2026 10:00:41 -0700 you wrote:
+> rds_message_map_pages() assigns PAGE_SIZE bytes to every
+> scatterlist entry, even when total_len ends in a partial page. The RDS
+> congestion map is defined as 8192 bytes, so on systems with PAGE_SIZE
+> greater than 8192 the scatterlist maps bytes beyond the end of the
+> congestion map.  RDS-TCP transmits the SG contents according to those
+> lengths, so the extra bytes become part of the TCP RDS stream and are
+> interpreted as subsequent RDS message headers, corrupting the stream.
 > 
-> This is your v3? Look, if you can't send a valid patch you should
-> probably not be a maintainer :/
+> [...]
 
-+1, it is hard to find anything correct in that patch.
+Here is the summary with links:
+  - [net] net/rds: fix tcp stream corruption with large pages
+    https://git.kernel.org/netdev/net/c/2ac09b5353fe
 
-Thanks
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
