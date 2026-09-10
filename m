@@ -1,55 +1,35 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 0E9588248B;
-	Thu, 10 Sep 2026 01:44:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 844AD1C3BFC;
+	Thu, 10 Sep 2026 03:11:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789004680; cv=none; b=iWfbAwVzCgbmnEazwhqovM3+zg5/QlXGJUgo/7TODy5ul+gmd80qdeu5GWZ41QsZ6cvFXYCRdSe29njwblJYTCUDcijmkVphJZ5isaCcLVmY1agcvYOhMDOhgnu4L6DdVqIJIb5JNDJXsPD13ycHfJeJvk7yOEb0t6u13uR2Sxg=
+	t=1789009867; cv=none; b=ezLj+eg6QhgqCshWiOiKbITBshnpP9a2GNx54EPrEHgZJ5aAQJ5p8CgwNNm8L17MIBrGFQaUwY/GLUU4fr3p6Z+v3fBLQsed/+aaf8LrhYvUUI3DkYLdHIfspRPJ8JC9IphEYosnVb9jqvuRUmQKEBoF2kyOKqh5yGa2w4ouMbU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789004680; c=relaxed/simple;
-	bh=q+Mng43P5Szizwq43/WZgjuVDVsCTw3DVzSy+r00qwY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=rhktdU9t5q5ceOBqv5kk/fRgwtkmc1loUKPp5PFVl8CFkK4avWVrddtJmaDkyav+JWy9FKjx2PBbBps8AQwIyIdaBSY3cALnzyL3oZU/v3Ef5HsKe+3GYKw0MZ3d7/c19RbknsJvmO117Bf6XIGtRUa1bwj9qzS/ddVrm1dVPFM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=lnLy8pZY; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	s=arc-20240116; t=1789009867; c=relaxed/simple;
+	bh=15hXHIEA+G+GFzukycQPOAOo2ITHoNnxowjxcxAaEtA=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=INX2pwviztGx7p3NFQKtVXmg5SENmipFTFvzHMSeRDBrx8SdvSaLXImC0OCdANemnWLyDffrsr0T11y+z3Gq7d7kh2L/bPn4mCBnmRPCcX3TA1fYHhG/vWxImNBBpfBPs6DmBSt9DCflnNhUAm+5A8TNBhTYxE/Ib6t1s/MDnJA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=V3LnHlUn; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="lnLy8pZY"
-Received: from CPC-mawas-YGKSX.localdomain (unknown [70.37.26.40])
-	by linux.microsoft.com (Postfix) with ESMTPSA id A838020B7169;
-	Wed,  9 Sep 2026 18:43:57 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com A838020B7169
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1789004637;
-	bh=AeESt3dXLhZu5c+z2nK4ARnEplzM+ZS2BXOM01nvXAo=;
-	h=From:To:Cc:Subject:Date:From;
-	b=lnLy8pZYww4VzTi0LF/KQFDNs1haDfuVYLWX8ttiDlF3pgYs0N9PZcHMaILmlIN8I
-	 N+SaVRqZPjMZMfrrpF98SEWUFOWhhaKIThhQ4VnmkM0cbizPbVnNrsDb5fsq+bNf+T
-	 U2x4nGvhrg2EEPrc1Y2V7Gt07nHUME7R4C02OIPE=
-From: Manish Awasthi <mawasthi@linux.microsoft.com>
-To: kys@microsoft.com,
-	haiyangz@microsoft.com,
-	wei.liu@kernel.org,
-	decui@microsoft.com,
-	longli@microsoft.com,
-	andrew+netdev@lunn.ch,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	kotaranov@microsoft.com
-Cc: linux-hyperv@vger.kernel.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	horms@kernel.org,
-	gargaditya@linux.microsoft.com,
-	ernis@linux.microsoft.com,
-	kees@kernel.org,
-	paulros@microsoft.com,
-	mawasthi@microsoft.com
-Subject: [PATCH net-next v2] net: mana: Use the HWC destination queues reported by the hardware
-Date: Thu, 10 Sep 2026 01:44:27 +0000
-Message-ID: <20260910014427.54272-1-mawasthi@linux.microsoft.com>
-X-Mailer: git-send-email 2.54.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="V3LnHlUn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 235F71F000FF;
+	Thu, 10 Sep 2026 03:11:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1789009866;
+	bh=Dfmp/qJolIcZdYfOuuuuSCHVvZ02bDHMoGGhyetY/Tg=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=V3LnHlUnew58JI1wTo/jsrxlLrCkfEWfnpsNQx0kD2Zj1Dtej6e7Ir59FlSCZzGaL
+	 TSr39XLT8Ubk4ZvLZj26QVFnEg5iZ3CMksVJxlIwN59yGKTRAAsFpeo7TLwYE5tSfY
+	 N2tS+wwXtgPHeN9Kg0/i3SzlGlPY4GfDdDY9cgVnk6scWC+FvpwoIGkE8IkRZZ7kjm
+	 6hNYRuHxubvjjy9tLlEVX3reiffBjjKM3EKyiYKKDism2clf1PbzKDsle2BmOLlTCf
+	 yo/2o5EVP2kijkxwgi7AbzUBzBEBIBkqiPYTs8KEuXqmIU7OEA1n6wo9jCgUo23rS/
+	 4S/7ncY1lTZzw==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 199E6380CEC7;
+	Thu, 10 Sep 2026 03:10:05 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -57,109 +37,60 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net V2] net/mlx5e: Move representor vnic reporter to
+ eswitch
+ devlink port
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <178900980389.1168652.5408559475805106477.git-patchwork-notify@kernel.org>
+Date: Thu, 10 Sep 2026 03:10:03 +0000
+References: <20260906090700.3761260-1-tariqt@nvidia.com>
+In-Reply-To: <20260906090700.3761260-1-tariqt@nvidia.com>
+To: Tariq Toukan <tariqt@nvidia.com>
+Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
+ kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com,
+ cjubran@nvidia.com, cratiu@nvidia.com, gal@nvidia.com, leon@kernel.org,
+ linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+ msanalla@nvidia.com, mbloch@nvidia.com, moshe@nvidia.com,
+ ohartoov@nvidia.com, saeedm@nvidia.com
 
-The hardware provides valid HWC destination vRQ and vRCQ IDs for all PFs
-and VFs. Use these IDs unconditionally in mana_hwc_send_request(), as
-the PF-specific gate is not required.
+Hello:
 
-Signed-off-by: Manish Awasthi <mawasthi@linux.microsoft.com>
-Reviewed-by: Long Li <longli@microsoft.com>
-Reviewed-by: Haiyang Zhang <haiyangz@microsoft.com>
----
-Changes in v2:
-- State that the hardware supplies valid destination IDs for all PFs and
-  VFs, so the PF-specific gate is unnecessary.
-- Drop the PF prefix from the context fields and init-event constants.
+This patch was applied to netdev/net.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
 
-v1:
-https://lore.kernel.org/netdev/20260903184104.3194819-1-mawasthi@linux.microsoft.com/
+On Sun, 6 Sep 2026 12:07:00 +0300 you wrote:
+> From: Carolina Jubran <cjubran@nvidia.com>
+> 
+> The representor vnic devlink health reporter is created and destroyed
+> along the representor netdev (un)load path, which is not serialized by
+> the devlink instance lock. Destroying the reporter from there triggers
+> a devl_assert_locked() splat on driver unbind:
+>   WARNING: net/devlink/core.c:259 at devl_assert_locked+0x54/0x70, CPU#2: bash/3758
+>   Modules linked in: mlx5_vdpa vringh vdpa mlx5_ib mlx5_fwctl mlx5_core ...
+>   CPU: 2 UID: 0 PID: 3758 Comm: bash Tainted: G        W           6.19.0+ #1 PREEMPT
+>   Tainted: [W]=WARN
+>   Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), ...
+>   RIP: 0010:devl_assert_locked+0x54/0x70
+>   Call Trace:
+>    <TASK>
+>    devl_health_reporter_destroy+0x3a/0x1b0
+>    mlx5e_vport_rep_unload+0x12d/0x2b0 [mlx5_core]
+>    mlx5_eswitch_unregister_vport_reps+0x1b8/0x220 [mlx5_core]
+>    ? __esw_offloads_unload_rep+0x190/0x190 [mlx5_core]
+>    ? kernfs_remove_by_name_ns+0xc3/0xf0
+>    device_release_driver_internal+0x3b2/0x560
+>    unbind_store+0xce/0xf0
+> 
+> [...]
 
- drivers/net/ethernet/microsoft/mana/hw_channel.c | 24 +++++++++++++-----------
- include/net/mana/hw_channel.h                    |  8 ++++----
- 2 files changed, 17 insertions(+), 15 deletions(-)
+Here is the summary with links:
+  - [net,V2] net/mlx5e: Move representor vnic reporter to eswitch devlink port
+    https://git.kernel.org/netdev/net/c/7f26a5e8040b
 
-diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-index 263e7c4e2934186af037be4c80350a6e322b6771..3bca4b683134b8e5461c4071d59f6085da954cd7 100644
---- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
-+++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-@@ -170,12 +170,12 @@ static void mana_hwc_init_event_handler(void *ctx, struct gdma_queue *q_self,
- 			hwc->txq->msg_buf->gpa_mkey = val;
- 			break;
- 
--		case HWC_INIT_DATA_PF_DEST_RQ_ID:
--			hwc->pf_dest_vrq_id = val;
-+		case HWC_INIT_DATA_DEST_RQ_ID:
-+			hwc->dest_vrq_id = val;
- 			break;
- 
--		case HWC_INIT_DATA_PF_DEST_CQ_ID:
--			hwc->pf_dest_vrcq_id = val;
-+		case HWC_INIT_DATA_DEST_CQ_ID:
-+			hwc->dest_vrcq_id = val;
- 			break;
- 		}
- 
-@@ -855,13 +855,12 @@ void mana_hwc_destroy_channel(struct gdma_context *gc)
- int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
- 			  const void *req, u32 resp_len, void *resp)
- {
--	struct gdma_context *gc = hwc->gdma_dev->gdma_context;
- 	struct hwc_work_request *tx_wr;
- 	struct hwc_wq *txq = hwc->txq;
- 	struct gdma_req_hdr *req_msg;
- 	struct hwc_caller_ctx *ctx;
--	u32 dest_vrcq = 0;
--	u32 dest_vrq = 0;
-+	u32 dest_vrcq;
-+	u32 dest_vrq;
- 	u32 command;
- 	u16 msg_id;
- 	int err;
-@@ -890,10 +889,13 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
- 	tx_wr->msg_size = req_len;
- 	command = req_msg->req.msg_type;
- 
--	if (gc->is_pf) {
--		dest_vrq = hwc->pf_dest_vrq_id;
--		dest_vrcq = hwc->pf_dest_vrcq_id;
--	}
-+	/* The hardware reports the HWC destination queues through
-+	 * HWC_INIT_DATA_DEST_RQ_ID and HWC_INIT_DATA_DEST_CQ_ID, and
-+	 * always supplies values that are valid for this function, so no
-+	 * PF-specific handling is needed here.
-+	 */
-+	dest_vrq = hwc->dest_vrq_id;
-+	dest_vrcq = hwc->dest_vrcq_id;
- 
- 	err = mana_hwc_post_tx_wqe(txq, tx_wr, dest_vrq, dest_vrcq, false);
- 	if (err) {
-diff --git a/include/net/mana/hw_channel.h b/include/net/mana/hw_channel.h
-index 16feb39616c1bead1a043b3fadc2e18a90651516..1ab2d66c891e42f3a847e62acf75b69fcf7ffb1e 100644
---- a/include/net/mana/hw_channel.h
-+++ b/include/net/mana/hw_channel.h
-@@ -20,8 +20,8 @@
- #define HWC_INIT_DATA_MAX_NUM_CQS	7
- #define HWC_INIT_DATA_PDID		8
- #define HWC_INIT_DATA_GPA_MKEY		9
--#define HWC_INIT_DATA_PF_DEST_RQ_ID	10
--#define HWC_INIT_DATA_PF_DEST_CQ_ID	11
-+#define HWC_INIT_DATA_DEST_RQ_ID	10
-+#define HWC_INIT_DATA_DEST_CQ_ID	11
- 
- #define HWC_DATA_CFG_HWC_TIMEOUT 1
- #define HWC_DATA_HW_LINK_CONNECT 2
-@@ -195,8 +195,8 @@ struct hw_channel_context {
- 	struct semaphore sema;
- 	struct gdma_resource inflight_msg_res;
- 
--	u32 pf_dest_vrq_id;
--	u32 pf_dest_vrcq_id;
-+	u32 dest_vrq_id;
-+	u32 dest_vrcq_id;
- 	u32 hwc_timeout;
- 
- 	struct hwc_caller_ctx *caller_ctx;
-
-base-commit: ce48a0fdc56464b1afb03471dbdf38a5e0d571ad
+You are awesome, thank you!
 -- 
-2.54.0
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
