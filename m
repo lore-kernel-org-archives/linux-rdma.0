@@ -1,155 +1,139 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f44.google.com (mail-pj1-f44.google.com [209.85.216.44])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC5373ACEE2;
-	Thu, 10 Sep 2026 07:29:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05E453AFD03
+	for <linux-rdma@vger.kernel.org>; Thu, 10 Sep 2026 08:30:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789025361; cv=none; b=rUO1sQycoKLkbggS8bViJ0LydPdWXaQMvUYKuS7Ugf62YM2hlQaeIS0r6i7Mq4RsT/PTk1YGW704s0It72/+RXWcz55gNZDndKrOYnN7B0ywYampJtTMRMzzVXvFk/gjnJK7o5CC04R3TzGcMxW55L+CuSGt3N/tn3QjFn4u4uU=
+	t=1789029046; cv=none; b=cdgvSFQ0kE2/gnoMD1+mPVnDf4ydTsrvlt0GZmtdZhtl5e8IRWCJfsftJlgsAGKylbKWtEIHZ5fLaSJMPG1XtElbtsQGbN34HY9eeaJGtcXIxyqFAsf1Z9pYkIJLnUdIXD2j7fZoR5DlgqE4iYjcrJ8ikgkqbNrJB2+EQQjR7ho=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789025361; c=relaxed/simple;
-	bh=SDMg6oyZQw6A03eQKQ3Uptuv442Scy0myCx4pmCTZ2Y=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=FHQz6scCWV33MkIR946szX9zjH0u7lV9vCWs1XGSf+MwewJQ2+lwTvHvcjy54nNBUGWh+FgOhgvS46fSujU5m7guQMTpMa9KkMvP/tWCxIWQysMQCEL5mfbYFsPKEZ/UQ1W0gzce9ntQMpDOvf9JvApGqT0DyADNmn132ATMePU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MY03GOet; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789029046; c=relaxed/simple;
+	bh=ofD9vuZ8WriYaz45r03nVr4VI+oGJALE7F2gieVLqec=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=sDRWOKyBO2xhUljskF97wZkBxNlvTCAgE6DnQMk7DnrNyxIaTrFWVUFVNpyqEDX/JB3G6e2U/CDws1NzKtgAAPMM9CFGFdedd5cpNPZikP2xaNPM80RJMpIOT2yHEZXVE8MWnwy2D99y7yiRIikFowXlB4oHUR0HMUTNjLMhlpY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EXAIdTxa; arc=none smtp.client-ip=209.85.216.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MY03GOet"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9E611F0089E;
-	Thu, 10 Sep 2026 07:29:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789025359;
-	bh=u3R7KOyofrS0wRSjak8aNV75X2Czsw9QjnW4+38O/ZQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=MY03GOetu5SKBp9nkWTrxqdG7Jl6/NG2Hl+PUb+xVMhfRY77IW+ocH4B48v9OlZH+
-	 2jNjsuE5l7TpMAH4tErFkuASZJQp1s4gqxabcfqFAipFRFLnJoAF9of4isP7Umzi7X
-	 Br84MtRcqTzhRIQx94sSrFT2GUsb/WfFTvrliT9WRrtFns/42kuCEHMX+eQj6SGnZj
-	 6SKyKJyXMZFLIO/MXaq1HQg5I1fUaIXvYvH2imSIKOP1ZdPpYtxN5Nzhby8vBAnpSq
-	 IKWJdVIggpp6it5npUAN6DPsZWIKMJdRJSMqtDQcP+//G3+4DT/6tHCVZ5uOWCi/vM
-	 lQfu9E+dLqOeg==
-Date: Thu, 10 Sep 2026 09:29:14 +0200
-From: Joel Granados <joel.granados@kernel.org>
-To: Mauricio Faria de Oliveira <mfo@igalia.com>
-Cc: Kees Cook <kees@kernel.org>, Nathan Chancellor <nathan@kernel.org>, 
-	Nicolas Schier <nsc@kernel.org>, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
-	Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, kernel-dev@igalia.com, 
-	linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org, fsverity@lists.linux.dev, 
-	keyrings@vger.kernel.org, bpf@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	linux-kbuild@vger.kernel.org, netdev@vger.kernel.org, linux-wpan@vger.kernel.org, 
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	linux-sctp@vger.kernel.org, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, 
-	bridge@lists.linux.dev, mptcp@lists.linux.dev, rds-devel@oss.oracle.com, 
-	virtualization@lists.linux.dev
-Subject: Re: [PATCH RFC v3 00/13] sysctl: add module aliases
-Message-ID: <uufwu7rqyxf7h55lgavcwrnylnq5gdbd7o5d7mfugrxpblds2d@adra5c2z22gg>
-References: <20260819-sysctl-module-aliases-v3-0-aab90569365d@igalia.com>
- <bpnqwggtidgiec5akns3fa5edbsvl7xf55dxabtwng2xspy4pn@ue554aii2ngk>
- <53155340c897560bfc67e61ba9568fd6@igalia.com>
- <mokz5pdtwswkyab4byfq7q7m6ac2g6ceoi6jflyxmaszaibzqa@su6m4kamtdpy>
- <b1a6cec17e7c828fcebe310ca2a0d25b@igalia.com>
- <rywhz6soawf5dzyui5g7dnbufsgpxr7ma7honuhejwgncemzrm@f32at7hl6ugm>
- <6e93af907298022f077126f1be7bd386@igalia.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EXAIdTxa"
+Received: by mail-pj1-f44.google.com with SMTP id 98e67ed59e1d1-3990fe066ebso5595105a91.1
+        for <linux-rdma@vger.kernel.org>; Thu, 10 Sep 2026 01:30:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1789029044; x=1789633844; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=W6wVmYC8X8kmr5SDuvDPNWubkvtX+YkviT8aumfGWPQ=;
+        b=EXAIdTxah2KUEznolYA9QbHZuHtM8f7JXCVE2rZomou/NVA/YKI2D2rIg9gYRBCQro
+         l7ecsmLJunERYT8/afzvt+Xy1C0pd/Wk1LUjc8YZJA2RNb9xAF6Whtxzyq0BkTbtecBV
+         vaLjrJ/SD03SDu67nHkkFfdCu4D54XerLNQHPgaHNFj1XzE3766AKU9j4MlryQ9XPtzN
+         aNV2+m2HIY1SG8Kj/9V/Dm14agA0nhywDSBjhdgjAU7NlScG9S7a5gKELOFdlj2tFNE0
+         ErMbKxF6JwFZBrwR2btwcytalwtcw2TSjsXG4mtM2NkmLBowET9HM1MdhJVMqDeNmUl9
+         ZkyQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1789029044; x=1789633844;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=W6wVmYC8X8kmr5SDuvDPNWubkvtX+YkviT8aumfGWPQ=;
+        b=Bd/f+zfMRkyIlCI6ySJCln3ihhJxRm3d0O9FQU64WoAi943WXaPBYlrp6onLJ7rpeP
+         w53l6UvhVT80TAaLxd2ecJBrnNXZKcB9SP419y9s1KWLMDxQn1Mt/h/gubPqyAtzvuqf
+         OPhIZtbuFcosPJfjgdZT7jRvPePydrTgyFGz8ReKXj6y0PJiF8mr1mMVlvpbwC5auARp
+         jO/NdQQj1uFcOJU++ldMCBpQX7MhB4K+yJO2fgruFNmQ4N7DQ9MwEin72pjQFPQ4rIgs
+         MVlp26YptdftHZLli1rnHVxtQ0UOsUW5JM5TrbuVo41mIJJHsfuAv8PDOsxMP52KlcH8
+         Lqdw==
+X-Forwarded-Encrypted: i=1; AKwUvByjbciBH4EF4klcnxrxf0QS61QSl3pKJ5YpeuyIGE5P0SLLCiAjs12xYtugYrjyj3hMyzMH+fzevgB7@vger.kernel.org
+X-Gm-Message-State: AFuF++nPAVbcuhfDXpYO8tyQlACNL0RLGvK+8TyBcEWr71ltu44oMCqV
+	pevvikTv5oN6pBH1rUikFxCTqNpX6rgbn3MLyqZN6VMFCNWe6jSudxRJ
+X-Gm-Gg: AYBFou1YyiC8HWIghyODOIDhlmM1n39zsxQKSSsZ8gDxWXv7ASMR9zuS4QBeidNWu+4
+	LBmqm8ordhSup3uQIUEyeB1hug3d0rVbBAAx1osCjbfOLQNsoRIeY/ht/cyP9Ek+XCRMBpcTBqx
+	8nBBsyhC9mfjFdRQ9no+Q//7689q44ERvtvBT1t3UlTJX8JM54s3iguBF3U/y4wckqodknfVyBP
+	XUXJdTAhw7Xkw3e9CyyDLLacNPU15kqb0A7XzwpEx3U19/zRsfexIzQhE2aa2Qa+foaVX0kvHU0
+	gyTDoRb9eNCtdtElDEatDgjxMr9YmXwfzYZm5SqTYwxOLE0MglpJtdHav05YRT0F0FF5t/r+O6t
+	4WGhnou1sQfAIwrN0t5hikPRohQykMC27CWSrHVtfMplZnee0tPgj/RU/QwZnAMkz/KKi+/blim
+	hBz3gplX4D2TTZcmtHXJjpxC4b9BrJ+D1ODvghK6b/N4s3K+F2pl8R2cmL416b17ACDQSCxL1nh
+	Aa+CWZgEvdxCt4r6t5e4yZidfG/uKjGPw==
+X-Received: by 2002:a17:90b:384b:b0:38e:524:8797 with SMTP id 98e67ed59e1d1-39b261e79f1mr57365893a91.13.1789029027189;
+        Thu, 10 Sep 2026 01:30:27 -0700 (PDT)
+Received: from localhost.localdomain ([180.101.244.70])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-39d776184fesm4464576a91.17.2026.09.10.01.30.22
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 10 Sep 2026 01:30:26 -0700 (PDT)
+From: henrymei <ljp1205831794@gmail.com>
+X-Google-Original-From: henrymei <henrymei@tencent.com>
+To: netdev@vger.kernel.org
+Cc: achender@kernel.org,
+	linux-rdma@vger.kernel.org,
+	rds-devel@oss.oracle.com,
+	santosh.shilimkar@oracle.com,
+	gerd.rausch@oracle.com,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	horms@kernel.org,
+	Aohan Mei <henrymei@tencent.com>,
+	TencentOS Corvus AI <corvus@tencent.com>,
+	stable@vger.kernel.org
+Subject: [PATCH net v2] rds: ib: use rds_conn_drop() on protocol version mismatch
+Date: Thu, 10 Sep 2026 16:30:15 +0800
+Message-ID: <20260910083015.2695284-1-henrymei@tencent.com>
+X-Mailer: git-send-email 2.43.7
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="fccfp65dlmdatj3e"
-Content-Disposition: inline
-In-Reply-To: <6e93af907298022f077126f1be7bd386@igalia.com>
+Content-Transfer-Encoding: 8bit
 
+From: Aohan Mei <henrymei@tencent.com>
 
---fccfp65dlmdatj3e
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+rds_ib_cm_connect_complete() runs from the RDMA-CM event handler with
+conn->c_cm_lock held.  When the peer negotiates a protocol version
+older than RDS_PROTOCOL_COMPAT_VERSION, the handler calls
+rds_conn_destroy(), which is only safe in the rmmod path: it
+synchronously tears the connection down and flush_work()es the
+shutdown work cp_down_w.
 
-On Wed, Sep 09, 2026 at 02:29:30PM -0300, Mauricio Faria de Oliveira wrote:
-> On 2026-09-09 11:07, Joel Granados wrote:
-> > On Fri, Sep 04, 2026 at 02:45:23PM -0300, Mauricio Faria de Oliveira wr=
-ote:
-> >> On 2026-09-04 10:41, Joel Granados wrote:
-> >> > On Thu, Aug 20, 2026 at 06:22:13PM -0300, Mauricio Faria de Oliveira=
- wrote:
-> >> >> On 2026-08-20 09:51, Joel Granados wrote:
-> >> >> > On Wed, Aug 19, 2026 at 03:16:13PM -0300, Mauricio Faria de Olive=
-ira wrote:
-> >> >> >> This series adds 'sysctl:' aliases to modules that register sysc=
-tl tables; e.g.:
-> > <... snip ...>
-> >> > use the correct call moving forward?
-> >>=20
-> >> This scheme currently covers all modules, AFAIK, as it is wrapped in t=
-he
-> >> functions that register sysctl tables.
-> >>=20
-> >> On moving forward: usage of such functions in a way that breaks a
-> >> requirement of this series (e.g., failing to specify the template
-> >> table/path parameter(s), or not having constant initializers) hits a
-> >> build error, as the requirements are actually from the compiler.
-> >>=20
-> >> >> I guess that a different design could use MODULE_SYSCTL_TABLE() as
-> >> >> MODULE_DEVICE_TABLE(), declared per table instead of wrapped into
-> >> >> register sysctl functions.
-> >> >> However, it seems to require moving the value of the path argument =
-(or
-> >> >> its template) into the macro and still referencing it in the functi=
-on
-> >> >> (or its instantiation of the template), which adds obfuscation, to =
-all
-> >> >> callers.=20
-> >> >>=20
-> >> >> What do you think?
-> >> > It might be that having it inside the module subsys is more work, bu=
-t I
-> >> > believe that there is the right place to have it. I still don't see =
-that
-> >> > adding a module specific arg to the sysctl register is a good thing.
-> >>=20
-> >> Ok, cool. I can work on a different design.
-> >>=20
-> >> Please just let me know whether you are OK with the remaining (above),
-> >> and I'll be happy to tackle this.
-> >=20
-> > What is "the remaining"?
->=20
-> I meant the rest of the email, addressing the points/questions you
-> raised.
+That shutdown work (rds_conn_shutdown()) needs cp_cm_lock, which is
+the very lock the event handler still holds, so the flush never
+completes: the two workers wait on each other and the RDS connection
+workqueues stall for good.
 
-* The dependency on a sysctl path to load a module still is
-  backwards to me. It should be: I need feature A, I load modules
-  M{1,2,3} for A and I set sysctl S{1,2,3...}. Not sure why sysctl tools
-  do it the other way around.
+All other RDMA-CM failure paths (REJECTED, CONNECT_ERROR,
+DISCONNECTED) use rds_conn_drop(), which marks the connection
+RDS_CONN_ERROR and schedules the shutdown work asynchronously.  Use
+it here as well.
 
-* The fact that the invariance is in the sysctl path and not the module
-  identifier maybe points to a deeper issue.=20
+Fixes: f147dd9ecabf ("RDS/IB: Disallow connections less than RDS 3.1")
+Reported-by: TencentOS Corvus AI <corvus@tencent.com>
+Cc: stable@vger.kernel.org
+Assisted-by: CodeBuddy:Kimi-K3
+Reviewed-by: Allison Henderson <achender@kernel.org>
+Signed-off-by: Aohan Mei <henrymei@tencent.com>
+---
+v1 -> v2:
+- Point Fixes at f147dd9ecabf, which introduced the rds_conn_destroy()
+  call in the version check, instead of the later refactor cdc306a5c9cd
+  (Allison)
+- Add Allison's Reviewed-by
+- Link to v1: https://lore.kernel.org/netdev/20260908123356.1163970-1-henrymei@tencent.com/
 
-* I still believe that this is better placed outside the sysctl
-  subsys as it does not cater solely to module loading.
+ net/rds/ib_cm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Best
+diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
+index d46146887ba4..2909da8363f3 100644
+--- a/net/rds/ib_cm.c
++++ b/net/rds/ib_cm.c
+@@ -115,7 +115,7 @@ void rds_ib_cm_connect_complete(struct rds_connection *conn, struct rdma_cm_even
+ 				  &conn->c_laddr, &conn->c_faddr,
+ 				  RDS_PROTOCOL_MAJOR(conn->c_version),
+ 				  RDS_PROTOCOL_MINOR(conn->c_version));
+-			rds_conn_destroy(conn);
++			rds_conn_drop(conn);
+ 			return;
+ 		}
+ 	}
+-- 
+2.43.7
 
-
-
-
---fccfp65dlmdatj3e
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQGzBAABCgAdFiEErkcJVyXmMSXOyyeQupfNUreWQU8FAmqiXEIACgkQupfNUreW
-QU+Jpgv/QNMzfwgyYS5bGcjcIdeGmbwPVB4niFRMrcLkDpeUPt2bAuU2q0Si+c2j
-8ZRwIaAx22BLUNWWDpobcza7W5C1A17rIR76XCMUnFSb0n/IWP5htK0UHazibk/r
-s8lxhIQXP5lQAHUSyOaKXEqmO60aWL/VkIxb+qJe3ThcHSESPRVQxL56e054d/fG
-0Hh+/ckA3Yy8AAKkaF1Q52F6thgEqtHKMSNZkdp+XN3Q+IQHRUGULXvXeTgvp4QY
-u5WK/w8RJz5+KQwW6//kpXBCY9uVado45tRrFS/H0fClXF6ovdXuTK169krtJi92
-qouie+C4qFsAjPRGPOQjOYXmCIa8/sKwsArW4CmTg0J9WN3BwQxJksy0jWqaxULM
-xRPx9OxYsSrYZGglZitaJMnNQnc+X20/vQ4lBotfmrMPdUgSrMAzOHO0AcFXBUs9
-s1DSQoFZe+/Kg4RCkGzgk55VbnT0V81UPFbcYx6yuyjb+yZWoTMUpHy8Q47//r54
-Y5lWmFsv
-=Y70+
------END PGP SIGNATURE-----
-
---fccfp65dlmdatj3e--
