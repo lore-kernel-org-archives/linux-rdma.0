@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8434F44F57A;
-	Thu, 10 Sep 2026 21:54:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B98B457E76;
+	Thu, 10 Sep 2026 21:54:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789077276; cv=none; b=i28HUxyvjUT9m4EzLX+iakGry6uoWrSQcWsr/LHdVbrNM3y/ZIna7Llv9fknYfuGDsGN97Ean8lb6TSxS/XOcUArUhJWLBgb+H3khboY8YQf4nh464n65Gi46BjSnZ0EYocj2nygapLTR/155lNWpnEwWXBOqWgWb1tQC+YTGd8=
+	t=1789077279; cv=none; b=KHtRJ9LFfiFqtAIcvCiiGRjRnPSS+t423/f29SwekuAPx5h1/JHZDf6+qzMDzzkFx3qe54whbYK1Hxg0sI64NcklAu/XzjzycI8X2OS0U3ujSVGXdYR3TL2Zbkb+wQceb1DSExgYU1BWABUuMpBYMWVn6PN8jke2ZyZsIZjLwWs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789077276; c=relaxed/simple;
-	bh=1Y3VzRTFlBrokFLTu3xRpPC6l5Oq5ZtvNMh55k4A3n4=;
+	s=arc-20240116; t=1789077279; c=relaxed/simple;
+	bh=mymvh+C5y57DOwgNGI0tFgJk47ni6jiScNxb7gW7x8U=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=atWYejpDy8SWMPCvxGkyqh6xxiMbrZ1ZTGJ5koROOhsx0n74i3Xb6aKWJ6P6DFeDO3v5EaTorQICQ9PL4+1FjRDAYKaOOSEYauluQn7oGcSmdeaWCq7+eDTzBbC7pZcWe/D8mNR02JfxJQ9r4eaCGQr74322zHePQFi4qRjWxDk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WkC9UtKT; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=bbi3tq0u2ON+QHOwXbFaOjvSTZD9Nqyz9QZajbDy9NRoS0sYTW9nJqpId9Krc4Y9qHsTqJcXG+rcrR2C5DiyhMk0NiABjCiG1RYaSxHtL5CbGCBgbPaQONL4NeBDPyBGLu6gezRzrbD+0vTAeVjyCt02w19Ptwgg6usq8hDImDw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ElSisVVz; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WkC9UtKT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 881231F00898;
-	Thu, 10 Sep 2026 21:54:33 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ElSisVVz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1F451F000FF;
+	Thu, 10 Sep 2026 21:54:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789077275;
-	bh=qYbawNJsHUtq6q1bd9DO/sUtHz0H5c8qbmBt7m217hI=;
+	s=k20260515; t=1789077277;
+	bh=bOmbMRVPhEjBQMu73RN2GS0UGFB3o3X1o99OAz2BmCM=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=WkC9UtKTGXyykFGzNqj3Rthp5i1XAhjn7S+J1xEITt3SPDC4z8GbGI3PmC0Yr4G4p
-	 Cwm18BYPLTXGA4fl2iUXjhNISYCbP+fYD8ZI1eClDlbAHYRW4J/qMu8SGLTfaBsdWl
-	 8hp5jQn4lHmiCt0ievTOKSfeq0X3KT76yZwNhwSwn8qDlenOOnuh8x0C02GrsKsIDo
-	 nfUPewYfweWZCeJLJ32hx3/3iJYEb9VLWy/swKBytTVse+BKgran1K2FzYlfnSRRTy
-	 BrfRj/M/0Ibd39pNhwKd5E7vZk92dXefQnuYCa7lR65lNmrTv33v5+hJN2ARf2MqI8
-	 zOYhLF4aDJ91A==
-Subject: Re: [PATCH net-next V4 10/14] net/mlx5e: shampo: Flush session on PSP
- mismatch
+	b=ElSisVVz4gpeEhSIF4W2t9bZ3GpFRTiv09FEl29STuDeO7qt5L5pNNkDQqF0xst5J
+	 ZvJGdGEOsnanMsvIG0dkieJXMTRzzEFOLptNcCM4iKRQqarI7kCD5gamqAlTne+lU/
+	 OajaeiavFQiijmkkHl12Z7nWxWwbTt9yQkVsmt4hXWtPWh+bVRcsR44T5Yu0xWS20h
+	 uvXMUd+6SnDA1DW8LWi8BlprXX0Wi+aPXHM9JmKUjqQ2DFD/cIzOA4e8/uzg6sMGyb
+	 9lfgjGWSkMpZfqeHQ9yWh8907G6ADC7qBGlvIZQwcLzE1O/0pGVkjadCjWqdR31l3U
+	 6O7EBDUjfGRZA==
+Subject: Re: [PATCH net-next V4 11/14] net/mlx5e: psp: Dynamically reconfigure
+ based on SHAMPO mode
 From: netdev-bot+sashiko@kernel.org
 To: tariqt@nvidia.com
 Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
@@ -40,10 +40,10 @@ Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
  mbloch@nvidia.com, petrm@nvidia.com, raeds@nvidia.com, rrameshbabu@nvidia.com,
  saeedm@nvidia.com, shuah@kernel.org, skhan@linuxfoundation.org,
  horms@kernel.org, willemb@google.com, willemdebruijn.kernel@gmail.com
-Date: Thu, 10 Sep 2026 21:54:33 +0000
-Message-ID: <178907727309.219967.8541655657773031767@kernel.org>
-In-Reply-To: <20260908065244.3799142-11-tariqt@nvidia.com>
-References: <20260908065244.3799142-11-tariqt@nvidia.com>
+Date: Thu, 10 Sep 2026 21:54:35 +0000
+Message-ID: <178907727544.219967.2356323073395306766@kernel.org>
+In-Reply-To: <20260908065244.3799142-12-tariqt@nvidia.com>
+References: <20260908065244.3799142-12-tariqt@nvidia.com>
 X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -59,112 +59,114 @@ issue(s) to consider:
 
 Critical: 0 · High: 0 · Medium: 1 · Low: 0
 
-- [Medium] Understated impact / missing Fixes: tag.
+- [Medium] In mlx5e_update_nic_rx()
+  (drivers/net/ethernet/mellanox/mlx5/core/en_main.c:6289-6300) the…
 
 --
 
-net/mlx5e: shampo: Flush session on PSP mismatch
+net/mlx5e: psp: Dynamically reconfigure based on SHAMPO mode
 
-This adds mlx5e_hw_gro_psp_match() and wires it into the SHAMPO session
-match test in mlx5e_handle_rx_cqe_mpwrq_shampo(), so a session is flushed
-when the PSP status changes, when SPI/version differ, or when the CQE
-indicates a non-decapsulated PSP packet.
+This adds an mlx5e_update_nic_rx() -> mlx5e_accel_update_rx() ->
+mlx5e_psp_update_rx() hook so PSP steering can switch between standard and
+decap modes when the SHAMPO mode changes.  It also enables decap at fs
+creation time when shampo_enabled() says so.
 
-(No Link: tags present in the commit header.)
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
+> index 84133cbf8689..c40d2ddf6af2 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-> index e3f915beebe1..9eb11be7abe0 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-> @@ -2224,6 +2224,33 @@ static bool mlx5e_hw_gro_skb_has_enough_space(struct sk_buff *skb,
->  		return page_size * nr_frags + data_bcnt <= GRO_LEGACY_MAX_SIZE;
+[ ... ]
+
+> @@ -1355,3 +1363,14 @@ void mlx5e_psp_cleanup(struct mlx5e_priv *priv)
+>  	priv->psp = NULL;
+>  	kfree(psp);
 >  }
->  
-> +static bool mlx5e_hw_gro_psp_match(struct sk_buff *skb, struct mlx5_cqe64 *cqe)
+> +
+> +void mlx5e_psp_update_rx(struct mlx5e_priv *priv)
 > +{
-> +#ifdef CONFIG_MLX5_EN_PSP
-> +	struct psp_skb_ext *pse = skb_ext_find(skb, SKB_EXT_PSP);
-> +	bool is_psp = mlx5e_psp_is_rx_flow(cqe);
+> +	struct mlx5e_psp *psp = priv->psp;
 > +
-> +	if (likely(!is_psp && !pse))
-> +		return true;
+> +	netdev_assert_locked(priv->netdev);
+> +	if (!psp || !psp->fs->check.ft)
+> +		return;
 > +
-> +	/* No match on PSP status change (no crypto -> crypto or vice-versa). */
-> +	if (unlikely(is_psp != !!pse))
-> +		return false;
+> +	accel_psp_fs_rx_reconfigure(psp->fs, shampo_enabled(priv));
+> +}
+
+[ ... ]
+
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> index fc110a7d16e8..b5449d849838 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> @@ -6288,7 +6288,15 @@ static void mlx5e_nic_disable(struct mlx5e_priv *priv)
+>  
+>  static int mlx5e_update_nic_rx(struct mlx5e_priv *priv)
+>  {
+> -	return mlx5e_refresh_tirs(priv->mdev, false, false);
+> +	int err;
 > +
-> +	/* SPI and version are only available in CQE metadata for decap flows.
-> +	 * Non-decap PSP cannot be matched here, force a flush.
-> +	 */
-> +	if (unlikely(!mlx5e_psp_is_decap(cqe)))
-> +		return false;
+> +	err = mlx5e_refresh_tirs(priv->mdev, false, false);
+> +	if (err)
+> +		return err;
+> +
+> +	mlx5e_accel_update_rx(priv);
+> +
+> +	return 0;
+>  }
 
 [Severity: Medium]
-Is the commit message understating what this particular hunk fixes?  The
-message says:
+Should the new PSP hook be gated on the TIR refresh result?  The two
+operations look unrelated (TIR self-loopback refresh versus the PSP check
+rule destination), so a failing mlx5e_refresh_tirs() now also skips the PSP
+steering reconfiguration.
 
-    The session is also forcefully flushed if non-decapsulated packets are
-    received. This could happen if, for example, the decap table could not
-    be created so HW GRO is active but there's no decapsulation.
+mlx5e_refresh_tirs() does have reachable failure modes on devices where
+MLX5_CAP_GEN(mdev, tis_tir_td_order) is 0, since it then calls
+mlx5e_modify_tirs_lb() in en_common.c, which returns -ENOMEM when
+mlx5e_tir_builder_alloc() fails and otherwise propagates the MODIFY_TIR
+firmware error:
 
-At the baseline commit (bc6fe9d301d5), non-decap looks like the only PSP
-RX mode rather than an exceptional fallback:
-mlx5e_psp_offload_handle_rx_skb() in en_accel/psp_rxtx.c only calls
-psp_dev_rcv(), and mlx5e_psp_update_rx()/shampo_enabled() coupling between
-PSP and NETIF_F_GRO_HW is only added by a later patch in this series.
+drivers/net/ethernet/mellanox/mlx5/core/en_common.c:mlx5e_modify_tirs_lb() {
+	builder = mlx5e_tir_builder_alloc(true);
+	if (!builder)
+		return -ENOMEM;
+	...
+		err = mlx5e_tir_modify(tir, builder);
+		if (err) {
+	...
+			break;
+}
 
-If that is right, does the following sequence mis-deliver payload bytes
-today, without this patch?
+The live reconfiguration caller does not look at the return value either,
+and it has already committed the new channel params by then:
 
-mlx5e_handle_rx_cqe_mpwrq_shampo()
-  -> HW coalesces several PSP datagrams sharing the outer IP/UDP 5-tuple
-     (mlx5e_shampo_update_hdr() -> mlx5e_shampo_update_ipv4_udp_hdr()
-      sets SKB_GSO_UDP_L4, so UDP flows are aggregated too)
-  -> mlx5e_shampo_complete_rx_cqe():
+drivers/net/ethernet/mellanox/mlx5/core/en_main.c:mlx5e_switch_priv_channels() {
+	priv->channels = *new_chs;
+	...
+	priv->profile->update_rx(priv);
+	...
+	mlx5e_activate_priv_channels(priv);
+}
 
-	if (NAPI_GRO_CB(skb)->count != 1)
-		return false;
+In that case the datapath runs with the new packet_merge.type while
+fs->decap_enabled still reflects the old mode, and nothing re-evaluates it,
+because shampo_enabled() is only consulted from mlx5e_psp_update_rx() and
+accel_psp_fs_create().  When SHAMPO has just been enabled the PSP check rule
+keeps pointing at fs->rx.ft rather than fs->decap.ft, so HW GRO for PSP stays
+unavailable, and unlike accel_psp_fs_rx_reconfigure()'s own error path there
+is no mlx5_core_warn() to indicate it.
 
-	if (mlx5e_build_rx_skb(cqe, cqe_bcnt, rq, skb))
-		return true;
+The RX path itself appears to tolerate the mismatch, since
+mlx5e_psp_is_decap() keys off the per-CQE flow tag and en_rx.c flushes the
+SHAMPO session for non-decap PSP packets, and the state self-heals on the
+next channel switch or open.  Would calling mlx5e_accel_update_rx(priv)
+unconditionally, or before mlx5e_refresh_tirs(), be preferable here?
 
-so mlx5e_build_rx_skb() -> mlx5e_psp_offload_handle_rx_skb() ->
-psp_dev_rcv() runs only for the first record of a session.  psp_dev_rcv()
-in net/psp/psp_main.c strips one 16-byte PSP header plus one 16-byte
-trailer and adjusts iph->tot_len once, so do the PSP headers and ICVs of
-records 2..N remain embedded in the payload handed to the socket?
-
-If so, should the commit message say that PSP + HW GRO
-(ethtool -K <dev> rx-gro-hw on, also implied by tcp-data-split) is broken
-in the current tree, and should the patch carry a Fixes: tag so stable
-kernels shipping mlx5e PSP pick it up?  A natural candidate looks like
-29d7f433fcec ("net/mlx5e: Add Rx data path offload"), even if a backport
-needs adjustment because mlx5e_psp_is_decap() is new in this series.
-
-> +
-> +	/* No match on security parameters change. */
-> +	return pse->spi == mlx5e_psp_get_spi(cqe) &&
-> +		pse->version == mlx5e_psp_get_version(cqe);
-> +#else
-> +	return true;
-> +#endif
-> +}
-> +
->  static void mlx5e_handle_rx_cqe_mpwrq_shampo(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe)
->  {
->  	u16 data_bcnt		= mpwrq_get_cqe_byte_cnt(cqe) - cqe->shampo.header_size;
-> @@ -2266,8 +2293,9 @@ static void mlx5e_handle_rx_cqe_mpwrq_shampo(struct mlx5e_rq *rq, struct mlx5_cq
->  	}
->  
->  	if (*skb &&
-> -	    !(match && mlx5e_hw_gro_skb_has_enough_space(*skb, data_bcnt,
-> -							 page_size))) {
-> +	    !(match &&
-> +	      mlx5e_hw_gro_skb_has_enough_space(*skb, data_bcnt, page_size) &&
-> +	      mlx5e_hw_gro_psp_match(*skb, cqe))) {
->  		match = false;
->  		mlx5e_shampo_flush_skb(rq, cqe, match);
->  	}
+This condition is still present at the end of the series
+(a9e41034d482a6cbfe0487f9ed8050c5bf5c3ce1), where mlx5e_update_nic_rx() is
+unchanged.
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260908065244.3799142-1-tariqt%40nvidia.com
