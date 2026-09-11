@@ -1,147 +1,264 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D90B3A9D80
-	for <linux-rdma@vger.kernel.org>; Fri, 11 Sep 2026 06:22:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25BA73EEADF
+	for <linux-rdma@vger.kernel.org>; Fri, 11 Sep 2026 06:45:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789107723; cv=none; b=XoEN5UWIXSIoPtH7I3Ca9BoBSLCBPCKsHdr1e0wa1Cx3sd+dHLUu7Euz8uxm1DrTwNokBDCc2XdGv6tKqt+0Hu29u3C6kas2ae3NPleZsv4gVh8hedYXqEgX5pAuTGrCkgI/rK/tPkf+XyJIUud1V8Hi4UbmYGKhvjAKzAIRJ4U=
+	t=1789109136; cv=none; b=biGUAHHzaSLquQH7rb81lXmaOs7OYa0MKppUXDV4vGqrjwScWJLkvnYL9AyFMa5pR9lkrnXjQbxTK00v+DsY3a4pGfA+qj5Apxlr7SLUsz8/ZkMxpySAnthImEyTpdODxS10NTrCH2Ij0gWnxsJ4UcZ+Awr4DZCplAKL4J5ipgI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789107723; c=relaxed/simple;
-	bh=egKY/Qmgxo13K4GBt64gvpa+PzKZB0zq1yNuqExdcU0=;
-	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=q5U/2isBg8IONECqAdoh2XrVVzhD/Qjb2LMvTDqO4T2H1IwTgNb6/fN8qd2Pa/LKqJ24ZLRQdJqTZ1ymDmH2y2Pjr2bjEFQ/U3KVBX6Txf3KOkoDvshWq91LJZEJ/+G7L1jA/VHOREL0g0L2O/8zqdk0m2L5TGi23ii06ky6dis=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JuFNiUoD; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789109136; c=relaxed/simple;
+	bh=awMsJz2XiwRRiKTklx2saMG93r7PTENE1T4idjSfxnk=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=naIUnR7wjENynuIRDhbpeJmAMag08Prg9N8Dzl2leeSzwiZT6jXhDEV9z5obNPHAKUwHXbZ+w7BvO48a3zaAX0+1uFnTGcrpAVuMNYgnHyVwaA8BwplwV6AVkdzSdmuWKiUEGILNjSzARMBDcGhSt8Ov35zz+A7blFKrj/eWZO4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=GP8+KXqy; arc=none smtp.client-ip=192.198.163.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JuFNiUoD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B28391F000FF;
-	Fri, 11 Sep 2026 06:22:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789107721;
-	bh=ek0EQZKHgWOqwrZT14hGKybqGyNjEJPQxYu9tC0qYtA=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=JuFNiUoDlFVh76COmFmED6g47rYi70jHfkwSi13xqcKdSh2UdC6trcpjatHWf+tuo
-	 LmseTG6aFWjk3/Uq4doKYie0zjjnawTyqZc8at8t0AOpkS1MNCkuLakIMQ6x177JlU
-	 If+8WnBi/5omMX2wldHgbcYGTtX2n7sckFddKAE4HgWr3nphe27okHXT5BuOIPPuVQ
-	 qbVM+uy6YSyubDiIj+QI+wXPKan1OWf/PrvaADrpHw1KtAhVUQPHY864rg4Sa+dZQd
-	 MQ6a3OUau9IiNoSjX9qVI4DjWqZCfG11RKGym2V1aUiH/jCSn6tuS+rgdgxs+PBx1F
-	 p0HiWkaM7zITQ==
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH RFC] RDMA/irdma: check vport device allocation
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Slavin Liu" <bolin.liu@seu.edu.cn>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260911060909.94219-1-bolin.liu@seu.edu.cn>
-References: <20260911060909.94219-1-bolin.liu@seu.edu.cn>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Fri, 11 Sep 2026 06:22:01 +0000
-Message-Id: <20260911062201.B28391F000FF@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="GP8+KXqy"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1789109129; x=1820645129;
+  h=date:from:to:cc:subject:message-id;
+  bh=awMsJz2XiwRRiKTklx2saMG93r7PTENE1T4idjSfxnk=;
+  b=GP8+KXqy7SkLXss9WjQRBoh/qYbBfDx2NrSoL/se7wIIpoyjSNVexRtl
+   RM92k3Ovjowwhi42HxvLEliz7RzhchrFpREB+mBfOpR6d3wVjfS/ulMRL
+   NaA51iEoMrnFHqfHue+3CACSNsLrOzUqbBSImKIK28p5Poin78+Ua2uf/
+   g4080cDpbm52LP2ZFQH8H9DxDZucUWN2lYFhFpCUhnPepGx4y6ml3TCjz
+   js9RJoYf1y7KjD1fHEVivqNuFwpIEfrnwxBNQLgLec3FWg7URZUQV55Dz
+   cX0CxFV1gcqj5pJhjwIoYtUn4BEM9K1wYmcJ148X9daRfNb0155faxPNF
+   A==;
+X-CSE-ConnectionGUID: sTKYTsohRUi6h6rSvHbiKg==
+X-CSE-MsgGUID: InOmVluCQVeU3klZzG8urw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11901"; a="88511826"
+X-IronPort-AV: E=Sophos;i="6.27,96,1787036400"; 
+   d="scan'208";a="88511826"
+Received: from orviesa007.jf.intel.com ([10.64.159.147])
+  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Sep 2026 23:45:21 -0700
+X-CSE-ConnectionGUID: v1012yMSSe6yv6VZtIWC8Q==
+X-CSE-MsgGUID: ShJaKYpLSWG9Ho+piIfmtw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,96,1787036400"; 
+   d="scan'208";a="271820919"
+Received: from lkp-server02.sh.intel.com (HELO 0a3643a6ed9d) ([10.239.97.151])
+  by orviesa007.jf.intel.com with ESMTP; 10 Sep 2026 23:45:19 -0700
+Received: from kbuild by 0a3643a6ed9d with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1x4v0W-000000001B4-22I3;
+	Fri, 11 Sep 2026 06:45:13 +0000
+Date: Fri, 11 Sep 2026 14:44:07 +0800
+From: kernel test robot <lkp@intel.com>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>,
+ Jason Gunthorpe <jgg+lists@ziepe.ca>, linux-rdma@vger.kernel.org
+Subject: [rdma:wip:leon-for-next] BUILD SUCCESS
+ 3e1de7f906ab162b23d6fe0eabccf687a98fa25f
+Message-ID: <202609111402.lekTNRgA-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/leon-for-next
+branch HEAD: 3e1de7f906ab162b23d6fe0eabccf687a98fa25f  RDMA: fix repeated words in comments
 
-Pre-existing issues:
-- [High] Double-free and Use-After-Free in the probe error paths when irdma=
-_ib_register_device() fails, due to redundant irdma_rt_deinit_hw() and irdm=
-a_ctrl_deinit_hw() calls.
+elapsed time: 1111m
+
+configs tested: 186
+configs skipped: 2
+
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+tested configs:
+alpha                             allnoconfig    gcc-16.1.0
+alpha                            allyesconfig    gcc-16.1.0
+alpha                               defconfig    gcc-16.1.0
+arc                              allmodconfig    clang-24
+arc                              allmodconfig    gcc-16.1.0
+arc                               allnoconfig    gcc-16.1.0
+arc                              allyesconfig    clang-24
+arc                              allyesconfig    gcc-16.1.0
+arc                                 defconfig    gcc-16.1.0
+arc                   randconfig-001-20260911    clang-24
+arc                   randconfig-002-20260911    clang-24
+arm                               allnoconfig    clang-17
+arm                               allnoconfig    gcc-16.1.0
+arm                              allyesconfig    clang-24
+arm                              allyesconfig    gcc-16.1.0
+arm                       aspeed_g5_defconfig    clang-20
+arm                         assabet_defconfig    clang-20
+arm                                 defconfig    gcc-16.1.0
+arm                          exynos_defconfig    clang-20
+arm                   randconfig-001-20260911    clang-24
+arm                   randconfig-002-20260911    clang-24
+arm                   randconfig-003-20260911    clang-24
+arm                   randconfig-004-20260911    clang-24
+arm                           sama5_defconfig    gcc-16.1.0
+arm64                            allmodconfig    clang-24
+arm64                             allnoconfig    gcc-16.1.0
+arm64                               defconfig    gcc-16.1.0
+arm64                 randconfig-001-20260911    gcc-16.1.0
+arm64                 randconfig-002-20260911    gcc-16.1.0
+arm64                 randconfig-003-20260911    gcc-16.1.0
+arm64                 randconfig-004-20260911    gcc-16.1.0
+csky                             allmodconfig    gcc-16.1.0
+csky                              allnoconfig    gcc-16.1.0
+csky                                defconfig    gcc-16.1.0
+csky                  randconfig-001-20260911    gcc-16.1.0
+csky                  randconfig-002-20260911    gcc-16.1.0
+hexagon                          allmodconfig    gcc-16.1.0
+hexagon                           allnoconfig    clang-24
+hexagon                           allnoconfig    gcc-16.1.0
+hexagon                             defconfig    gcc-16.1.0
+i386                             allmodconfig    clang-22
+i386                              allnoconfig    gcc-14
+i386                              allnoconfig    gcc-16.1.0
+i386                             allyesconfig    clang-22
+i386        buildonly-randconfig-001-20260911    clang-22
+i386        buildonly-randconfig-002-20260911    clang-22
+i386        buildonly-randconfig-003-20260911    clang-22
+i386        buildonly-randconfig-004-20260911    clang-22
+i386        buildonly-randconfig-005-20260911    clang-22
+i386        buildonly-randconfig-006-20260911    clang-22
+i386                                defconfig    gcc-16.1.0
+i386                  randconfig-001-20260911    clang-22
+i386                  randconfig-002-20260911    clang-22
+i386                  randconfig-003-20260911    clang-22
+i386                  randconfig-004-20260911    clang-22
+i386                  randconfig-005-20260911    clang-22
+i386                  randconfig-006-20260911    clang-22
+i386                  randconfig-007-20260911    clang-22
+loongarch                        allmodconfig    clang-19
+loongarch                        allmodconfig    clang-24
+loongarch                         allnoconfig    clang-20
+loongarch                         allnoconfig    gcc-16.1.0
+loongarch                           defconfig    clang-24
+m68k                             allmodconfig    gcc-16.1.0
+m68k                              allnoconfig    gcc-16.1.0
+m68k                             allyesconfig    clang-24
+m68k                             allyesconfig    gcc-16.1.0
+m68k                                defconfig    clang-24
+m68k                       m5249evb_defconfig    gcc-16.1.0
+m68k                       m5275evb_defconfig    gcc-16.1.0
+microblaze                        allnoconfig    gcc-16.1.0
+microblaze                       allyesconfig    gcc-16.1.0
+microblaze                          defconfig    clang-24
+mips                             allmodconfig    gcc-16.1.0
+mips                              allnoconfig    gcc-16.1.0
+mips                             allyesconfig    gcc-16.1.0
+mips                        vocore2_defconfig    clang-20
+nios2                            allmodconfig    clang-20
+nios2                            allmodconfig    gcc-11.5.0
+nios2                             allnoconfig    clang-24
+nios2                             allnoconfig    gcc-11.5.0
+nios2                               defconfig    clang-24
+openrisc                         allmodconfig    clang-20
+openrisc                         allmodconfig    gcc-16.1.0
+openrisc                          allnoconfig    clang-24
+openrisc                          allnoconfig    gcc-16.1.0
+openrisc                            defconfig    gcc-16.1.0
+parisc                           alldefconfig    clang-20
+parisc                           allmodconfig    gcc-16.1.0
+parisc                            allnoconfig    clang-24
+parisc                            allnoconfig    gcc-16.1.0
+parisc                           allyesconfig    gcc-16.1.0
+parisc                              defconfig    gcc-16.1.0
+parisc                randconfig-001-20260911    gcc-8.5.0
+parisc                randconfig-002-20260911    gcc-8.5.0
+parisc64                            defconfig    clang-24
+powerpc                          allmodconfig    gcc-16.1.0
+powerpc                           allnoconfig    clang-24
+powerpc                           allnoconfig    gcc-16.1.0
+powerpc                 mpc836x_rdk_defconfig    clang-20
+powerpc               randconfig-001-20260911    gcc-8.5.0
+powerpc               randconfig-002-20260911    gcc-8.5.0
+powerpc64             randconfig-001-20260911    gcc-8.5.0
+powerpc64             randconfig-002-20260911    gcc-8.5.0
+riscv                            allmodconfig    clang-24
+riscv                             allnoconfig    clang-24
+riscv                             allnoconfig    gcc-16.1.0
+riscv                            allyesconfig    clang-24
+riscv                               defconfig    gcc-16.1.0
+riscv                    nommu_k210_defconfig    gcc-16.1.0
+riscv                 randconfig-001-20260911    gcc-16.1.0
+riscv                 randconfig-002-20260911    gcc-16.1.0
+s390                             allmodconfig    clang-24
+s390                              allnoconfig    clang-24
+s390                             allyesconfig    gcc-16.1.0
+s390                                defconfig    gcc-16.1.0
+s390                  randconfig-001-20260911    gcc-16.1.0
+s390                  randconfig-002-20260911    gcc-16.1.0
+sh                               allmodconfig    gcc-16.1.0
+sh                                allnoconfig    clang-24
+sh                                allnoconfig    gcc-16.1.0
+sh                               allyesconfig    gcc-16.1.0
+sh                        apsh4ad0a_defconfig    gcc-16.1.0
+sh                                  defconfig    gcc-14
+sh                    randconfig-001-20260911    gcc-16.1.0
+sh                    randconfig-002-20260911    gcc-16.1.0
+sh                           se7619_defconfig    gcc-16.1.0
+sh                   sh7770_generic_defconfig    gcc-16.1.0
+sh                            shmin_defconfig    clang-20
+sh                          urquell_defconfig    clang-20
+sparc                             allnoconfig    clang-24
+sparc                             allnoconfig    gcc-16.1.0
+sparc                               defconfig    gcc-16.1.0
+sparc                 randconfig-001-20260911    gcc-13.4.0
+sparc                 randconfig-002-20260911    gcc-13.4.0
+sparc64                          allmodconfig    clang-20
+sparc64                             defconfig    gcc-14
+sparc64               randconfig-001-20260911    gcc-13.4.0
+sparc64               randconfig-002-20260911    gcc-13.4.0
+um                               allmodconfig    clang-17
+um                                allnoconfig    clang-17
+um                                allnoconfig    clang-24
+um                               allyesconfig    gcc-16.1.0
+um                                  defconfig    gcc-14
+um                             i386_defconfig    gcc-14
+um                    randconfig-001-20260911    gcc-13.4.0
+um                    randconfig-002-20260911    gcc-13.4.0
+um                           x86_64_defconfig    gcc-14
+x86_64                           allmodconfig    clang-22
+x86_64                            allnoconfig    clang-22
+x86_64                            allnoconfig    clang-24
+x86_64                           allyesconfig    clang-22
+x86_64      buildonly-randconfig-001-20260911    gcc-14
+x86_64      buildonly-randconfig-002-20260911    gcc-14
+x86_64      buildonly-randconfig-003-20260911    gcc-14
+x86_64      buildonly-randconfig-004-20260911    gcc-14
+x86_64      buildonly-randconfig-005-20260911    gcc-14
+x86_64      buildonly-randconfig-006-20260911    gcc-14
+x86_64                              defconfig    gcc-14
+x86_64                                  kexec    clang-22
+x86_64                randconfig-001-20260911    clang-22
+x86_64                randconfig-002-20260911    clang-22
+x86_64                randconfig-003-20260911    clang-22
+x86_64                randconfig-004-20260911    clang-22
+x86_64                randconfig-005-20260911    clang-22
+x86_64                randconfig-006-20260911    clang-22
+x86_64                randconfig-071-20260911    gcc-14
+x86_64                randconfig-072-20260911    gcc-14
+x86_64                randconfig-073-20260911    gcc-14
+x86_64                randconfig-074-20260911    gcc-14
+x86_64                randconfig-075-20260911    gcc-14
+x86_64                randconfig-076-20260911    gcc-14
+x86_64                               rhel-9.4    clang-22
+x86_64                           rhel-9.4-bpf    gcc-14
+x86_64                          rhel-9.4-func    clang-22
+x86_64                    rhel-9.4-kselftests    clang-22
+x86_64                         rhel-9.4-kunit    gcc-14
+x86_64                           rhel-9.4-ltp    gcc-14
+x86_64                          rhel-9.4-rust    clang-22
+xtensa                            allnoconfig    clang-24
+xtensa                            allnoconfig    gcc-16.1.0
+xtensa                           allyesconfig    clang-20
+xtensa                           allyesconfig    gcc-16.1.0
+xtensa                generic_kc705_defconfig    gcc-16.1.0
+xtensa                randconfig-001-20260911    gcc-13.4.0
+xtensa                randconfig-002-20260911    gcc-13.4.0
+
 --
-
-commit 0981212030a2affcec23860d2a7ba06344c067f0
-Author: Slavin Liu <bolin.liu@seu.edu.cn>
-
-RDMA/irdma: check vport device allocation
-
-This commit adds a missing NULL pointer check after allocating iwdev in
-ig3rdma_vport_probe(). It returns -ENOMEM to prevent initializing the
-structure if the allocation fails.
-
-> diff --git a/drivers/infiniband/hw/irdma/main.c b/drivers/infiniband/hw/i=
-rdma/main.c
-> index 95957d52883dd..106915b51e7cb 100644
-> --- a/drivers/infiniband/hw/irdma/main.c
-> +++ b/drivers/infiniband/hw/irdma/main.c
-> @@ -80,6 +80,8 @@ static int ig3rdma_vport_probe(struct auxiliary_device =
-*aux_dev,
->  		return -ENOMEM;
->  	}
->  	iwdev =3D ib_alloc_device(irdma_device, ibdev);
-> +	if (!iwdev)
-> +		return -ENOMEM;
->  	/* Fill iwdev info */
->  	iwdev->is_vport =3D true;
->  	iwdev->rf =3D rf;
-
-[Severity: High]
-This is a pre-existing issue, but does the error handling later in
-ig3rdma_vport_probe() trigger a double-free if irdma_ib_register_device()
-fails?
-
-If irdma_ib_register_device() fails after setting the .dealloc_driver
-callback, the error unrolling logic manually tears down resources and then
-calls ib_dealloc_device():
-
-drivers/infiniband/hw/irdma/main.c:ig3rdma_vport_probe() {
-    ...
-err_ibreg:
-	irdma_rt_deinit_hw(iwdev);
-err_rt_init:
-	ib_dealloc_device(&iwdev->ibdev);
-
-	return err;
-}
-
-Because ib_dealloc_device() automatically invokes the registered
-.dealloc_driver callback, it calls irdma_ib_dealloc_device() which
-redundantly repeats the teardown:
-
-drivers/infiniband/hw/irdma/verbs.c:irdma_ib_dealloc_device() {
-	struct irdma_device *iwdev =3D to_iwdev(ibdev);
-
-	irdma_rt_deinit_hw(iwdev);
-    ...
-}
-
-Would calling irdma_rt_deinit_hw() a second time cause a double kfree() on
-iwdev->vsi.pestat and a double destroy_workqueue() on iwdev->cleanup_wq?
-
-drivers/infiniband/hw/irdma/hw.c:irdma_rt_deinit_hw() {
-    ...
-	if (iwdev->vsi.pestat) {
-		irdma_vsi_stats_free(&iwdev->vsi);
-		kfree(iwdev->vsi.pestat);
-	}
-	if (iwdev->cleanup_wq)
-		destroy_workqueue(iwdev->cleanup_wq);
-    ...
-}
-
-Additionally, does this same pattern cause a use-after-free in non-vport
-drivers?
-
-drivers/infiniband/hw/irdma/i40iw_if.c:i40iw_open() {
-    ...
-err_ctrl_init:
-	kfree(iwdev->rf);
-	ib_dealloc_device(&iwdev->ibdev);
-    ...
-}
-
-Since the unexpected dealloc_driver callback dereferences iwdev->rf,
-wouldn't this guarantee a use-after-free on iwdev->rf?
-
-drivers/infiniband/hw/irdma/verbs.c:irdma_ib_dealloc_device() {
-    ...
-	if (!iwdev->is_vport) {
-		irdma_ctrl_deinit_hw(iwdev->rf);
-    ...
-}
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260911060909.9421=
-9-1-bolin.liu@seu.edu.cn?part=3D1
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
