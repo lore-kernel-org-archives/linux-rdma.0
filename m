@@ -1,305 +1,172 @@
-Received: from mail-pf1-f228.google.com (mail-pf1-f228.google.com [209.85.210.228])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 248083E5EF2
-	for <linux-rdma@vger.kernel.org>; Fri, 11 Sep 2026 03:06:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.228
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B362F37E317;
+	Fri, 11 Sep 2026 03:54:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789095981; cv=none; b=Es1R9YSb5ECJ8EBs84TqFqdgRMqmRbzxOrvKLku8fAoxJeJVnZ0mbEL9M2ifk+SCpUvOQ4LsT+F02oUU/VWrWTKFywnaObZO8UAnfhTv9h9Rjd26+2Fqh0HUKQBw23q9DiZg6QsqK0GAUnTUqyFiOImgYknWHlCpGlUr52jaDHA=
+	t=1789098865; cv=none; b=qlrdGdVwhvl8vmn0GEWi+z7w5EqIF58toE28t9q+u1+R4wlwd0Rcf6S67byoJTBdEZYUuBbc4lHmvQJeg363bon8Mxo2KQz8CXkaHuD5TvBVPG6tVjwQc+25KqGmrPyFPI298N5BXPjG8cmHnTuCkgor1UuF4YMEwEJGS0nKgNk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789095981; c=relaxed/simple;
-	bh=tiO0peKg0ozCUjwS2j0/XpvFFzxuUlIjJsuyle8Asrc=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=rPcfIqH0LXQJnfRd9E15cQuOyNpmHyRTfdCWj3DyLlMdoZGjdYI2qYvETq+4hBbp34hWZ6RGTQ2/ke9iotzWkhLmmHK2VxJBRmAz3Hc7CTu31RNEs7kCoK9ggDw1j2ddMMshv2qFWI9nT0bsw6axcZF5tVDjZdFbBvUKTrgBxXA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=KhUYuF0e; arc=none smtp.client-ip=209.85.210.228
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
+	s=arc-20240116; t=1789098865; c=relaxed/simple;
+	bh=4CNeuAiMXKDFzrKGBHnq1HcwHcW5lIpm1pwAxGeDApo=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=antb711uFqhPyXRP2v/j5K728moYpBszayUvyEPVxMyUOo8agn2hPFdnSvl0JnzsGET3uquq70GTn+aYSqA5ejGgzHYdy8hwKXIm0hLcQ6Lcr9mjkCyIhgpqT/V6D01I+d5SY5RBBueOxrWiizfCzpL8XvEW41DnjDb38kBFs+A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=Zf2oZX2j; arc=none smtp.client-ip=148.163.158.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="KhUYuF0e"
-Received: by mail-pf1-f228.google.com with SMTP id d2e1a72fcca58-852c481415fso546482b3a.3
-        for <linux-rdma@vger.kernel.org>; Thu, 10 Sep 2026 20:06:19 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1789095979; x=1789700779;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:dkim-signature:x-gm-gg:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=ObjNaPaFtcEd3HH2rMTVz2iSgLELsjZfgvKxm8u7zVU=;
-        b=ULlzqwQWSvX7v/VCLUYC9ek7zCN3TF67IOaiW5xP0mZKmuS59sXuJFPqYgbM5/GWO6
-         PnPlhyS5IBHyWYf5PIBT4YUegw4oukMs6Xx0Uif2r7Euo9IIqATZ9hmp3NRK/MNufSBd
-         YuZ6kOvSgoeDzJLVs6yXmrj//xQeWLG8epkgM5c/7BfmSb20pMEZahzHAgr7AhR0J6M1
-         vGqjg27hCXIHiX17dnUr/0UjzRBydh/XNLVz553DbBu4jcGQFw2o7PHc/0MMkG4MQC84
-         T2uTxCv5YrfrdmdJ94/tYWJYYjMF02qKhzqMeQT4wo6ijDWkPmirCkpn+mI1aUjqcB4X
-         /XjQ==
-X-Forwarded-Encrypted: i=1; AKwUvBz1BqN/j3OICSL92AiIzeqrv0foGELInSbmkt5CCnfYKmfF4iW5186PPLutv4Ce7eicix6JvdVtyasa@vger.kernel.org
-X-Gm-Message-State: AFuF++khk9+vtVGbQd5DODq6tHfc+2dyrf9oxBS/OwWBEE632VoYUkQi
-	9qUhlPe3QLCeumT2Xn9hayiptNT1i8FRKueOKssyGn1r9dvtnHTjjIN9ZpZadirgQbmj0sbitJU
-	bSXtZ1WGNBPKDKxAGAneVx+JP+v6yUHLFMxXZAB/6nYDTfCX39o5+wZYp8x0YI2AZBZAXofNlcQ
-	OPrGPahllw/Y2Yab06gynafM5LF/hxBJ4a8UO/mzke0t7KVPot+NdQMXRceWrptn9Th5IZfW9Du
-	Tr9PAHaPxeBXyVYi/djsjQB4eOtbA==
-X-Gm-Gg: AYBFou1HkTJ4ytTODQYwAyzuu8FT5IzMcBBtLPo3h709arZg/qxoB2A7URgouYGyrCY
-	FcBG8xgVodR+zUSrdnemtskD2z+T+hQyAymAq4Wb4AmxQpdrvf9PsnjojgRkevgdwRb0R+EKRt+
-	XglDkVtjXeugN0rnP1kYcfu9sJufWkKrH56NEo6xTz6xnE7f8cyzTDLgS2Lhv0G2c6isYGlLOFp
-	ixvXsSHQc7kEvrAG3j+8UgCipQLMkvIPSz4Dw7eucvqDVROSUV7xEhthdYpYIP/6Jya4lDqF3/d
-	vCak6lXD366Tj3mIFHOSy8kTW6S3wnrwutiDikFVT7NAoM6jqRbDxu2QAGF0n/kbZ12Vj3sjdAx
-	SJ20RjYOSfmf2RqAVIVe/urO+nUiEdBMNJcJXXVQgTLoOWfzsLFPYEjV0igrzBYuVCzbwh2qpi+
-	foROen5xNcUgHNgSDrXEgnYTKfcyvV8XfJKnJ/W3fSvOayroIw
-X-Received: by 2002:a05:6a00:178e:b0:84f:b01d:3693 with SMTP id d2e1a72fcca58-86b3011a646mr3139074b3a.15.1789095978798;
-        Thu, 10 Sep 2026 20:06:18 -0700 (PDT)
-Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-25.dlp.protect.broadcom.com. [144.49.247.25])
-        by smtp-relay.gmail.com with ESMTPS id d2e1a72fcca58-86b6358bea2sm204343b3a.1.2026.09.10.20.06.18
-        for <linux-rdma@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 10 Sep 2026 20:06:18 -0700 (PDT)
-X-Relaying-Domain: broadcom.com
-X-CFilter-Loop: Reflected
-Received: by mail-pf1-f198.google.com with SMTP id d2e1a72fcca58-8623e5d4279so883104b3a.1
-        for <linux-rdma@vger.kernel.org>; Thu, 10 Sep 2026 20:06:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1789095977; x=1789700777; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=ObjNaPaFtcEd3HH2rMTVz2iSgLELsjZfgvKxm8u7zVU=;
-        b=KhUYuF0eac2fl8yq7LcmmH9dZsQUvfeHZN8rnyJP5EopSSJt64d8sgseAXDqZ71Y2Y
-         7p3F/7sLxJBaTuhL3299T92Uab5wllzTtWmuX/lhU2iOv/RFcS+2zV6Jpjx5xnf2TBiJ
-         Z6HvaTtL1pOGSZ+yEoPlwOLcVNJS8yjVq5H6w=
-X-Forwarded-Encrypted: i=1; AKwUvBw8UUudXe9Cm+1G0wolcNW/4wNUenWRuuMzSFOxHUofHA+jm/Tx2E2dJ+HV+q/0th+E5X4HHtswLX5n@vger.kernel.org
-X-Received: by 2002:a05:6a00:28c3:b0:848:62ab:7b7 with SMTP id d2e1a72fcca58-86b3011a6efmr3462890b3a.16.1789095976853;
-        Thu, 10 Sep 2026 20:06:16 -0700 (PDT)
-X-Received: by 2002:a05:6a00:28c3:b0:848:62ab:7b7 with SMTP id
- d2e1a72fcca58-86b3011a6efmr3462854b3a.16.1789095976463; Thu, 10 Sep 2026
- 20:06:16 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="Zf2oZX2j"
+Received: from pps.filterd (m0353725.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68B12QOM3366978;
+	Fri, 11 Sep 2026 03:54:17 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=pp1; bh=G/DDPX
+	8uJURHubi8aSxS5N+qxiioihbQfkz1SsalV/I=; b=Zf2oZX2jrSd1tFrOGz+8xh
+	S8JdiB1Su0jQT2pFm4ic8z7etn4aIKrrmKMT1wroxdmsiYBlAej4Pw2vSfBrjZ7V
+	ZA9KafUZ2axrCW4nj6v891P5QKx1TC6YRL8Uh3om7Sd/yRrD1eM2PpkByb/xzEbN
+	JUk/XFUpHFfgEx7vJXvImktE7FCqeY2y0ZkXtH2dHjtRkf3d73PKENIpd9lqNinD
+	4f/k6Crb5+9m3mawu0m6AaAsKBvUNjG7V42S9qD2622yP4xBcGhbdNgpaCzdND3V
+	hRsT2eK63fD4fo4KG1FSGQkLfAzq1MokNI3Xy295T027BH+otp177Zv9k9lcOV+g
+	==
+Received: from ppma21.wdc07v.mail.ibm.com (5b.69.3da9.ip4.static.sl-reverse.com [169.61.105.91])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4gkd8q92t5-1
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
+	Fri, 11 Sep 2026 03:54:16 +0000 (GMT)
+Received: from pps.filterd (ppma21.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma21.wdc07v.mail.ibm.com (8.18.1.11/8.18.1.11) with ESMTP id 68B15Db2855289;
+	Fri, 11 Sep 2026 03:54:16 GMT
+Received: from smtprelay04.dal12v.mail.ibm.com ([172.16.1.6])
+	by ppma21.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4gkvvrc4u2-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 11 Sep 2026 03:54:16 +0000 (GMT)
+Received: from smtpav04.dal12v.mail.ibm.com (smtpav04.dal12v.mail.ibm.com [10.241.53.103])
+	by smtprelay04.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 68B3sEve7602890
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 11 Sep 2026 03:54:15 GMT
+Received: from smtpav04.dal12v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id CFF025805A;
+	Fri, 11 Sep 2026 03:54:14 +0000 (GMT)
+Received: from smtpav04.dal12v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 9905F58052;
+	Fri, 11 Sep 2026 03:54:09 +0000 (GMT)
+Received: from [9.111.170.138] (unknown [9.111.170.138])
+	by smtpav04.dal12v.mail.ibm.com (Postfix) with ESMTP;
+	Fri, 11 Sep 2026 03:54:09 +0000 (GMT)
+Message-ID: <1347240c-080d-4bcf-be88-231d4e1477bf@linux.ibm.com>
+Date: Fri, 11 Sep 2026 09:24:08 +0530
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260911021557.2113-1-lirongqing@baidu.com>
-In-Reply-To: <20260911021557.2113-1-lirongqing@baidu.com>
-From: Kalesh Anakkur Purayil <kalesh-anakkur.purayil@broadcom.com>
-Date: Fri, 11 Sep 2026 08:36:04 +0530
-X-Gm-Features: AcwNN1WtQzrhW1nHluzacCV-vm6n4mJlk-aqBrDMpRxpHeG-wnWS52vxetk8q-w
-Message-ID: <CAH-L+nPWk-fxwoNKjxW_ctyWL0hmkW+i4eE1wM+FS4-QmuNypg@mail.gmail.com>
-Subject: Re: [PATCH v2] RDMA/uverbs: Make CQ handle mandatory for WQ creation
-To: lirongqing <lirongqing@baidu.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Yishai Hadas <yishaih@mellanox.com>, 
-	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-	boundary="00000000000030a083065b2c5eb2"
-
---00000000000030a083065b2c5eb2
-Content-Type: multipart/alternative; boundary="0000000000002588de065b2c5edc"
-
---0000000000002588de065b2c5edc
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, Sep 11, 2026 at 7:46=E2=80=AFAM lirongqing <lirongqing@baidu.com> w=
-rote:
-
-> From: Li RongQing <lirongqing@baidu.com>
->
-> UVERBS_ATTR_CREATE_WQ_CQ_HANDLE is declared UA_OPTIONAL in the ioctl
-> method definition, so the mandatory attribute bitmap does not enforce
-> its presence.  When userspace omits it, uverbs_attr_get_obj() returns
-> ERR_PTR(-ENOENT) and the handler stores that error pointer into
-> wq_init_attr.cq without validation.
->
-> The bogus cq pointer is then passed to the driver's create_wq callback.
-> In the mlx5 case, create_rq() calls to_mcq(init_attr->cq) which applies
-> container_of to the ERR_PTR value, producing a near-NULL pointer.  The
-> subsequent access in get_rq_ts_format() triggers a kernel NULL pointer
-> dereference:
->
->   BUG: kernel NULL pointer dereference, address: 0000000000000296
->   RIP: 0010:create_rq+0x32/0x550 [mlx5_ib]
->   Call Trace:
->    mlx5_ib_create_wq+0x14a/0x210 [mlx5_ib]
->    ib_uverbs_handler_UVERBS_METHOD_WQ_CREATE+0x1f0/0x320 [ib_uverbs]
->    ib_uverbs_run_method+0x296/0x320 [ib_uverbs]
->    ib_uverbs_cmd_verbs+0x1a0/0x260 [ib_uverbs]
->    ib_uverbs_ioctl+0xa8/0x120 [ib_uverbs]
->
-> A WQ without a CQ was never valid; the legacy write path always required
-> one via uobj_get_obj_read() in ib_uverbs_ex_create_wq().  Declare the
-> attribute UA_MANDATORY so the uverbs framework rejects the ioctl early
-> when the CQ handle is missing, before the handler ever runs.
->
-> Fixes: ef3bc084a8ed ("IB/uverbs: Introduce create/destroy WQ commands ove=
-r
-> ioctl")
-> Signed-off-by: Li RongQing <lirongqing@baidu.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next 2/2] net/smc: reduce TX slot contention with
+ exclusive wait
+To: "D. Wythe" <alibuda@linux.alibaba.com>, wenjia@linux.ibm.com,
+        wintera@linux.ibm.com, dust.li@linux.alibaba.com,
+        tonylu@linux.alibaba.com, guwen@linux.alibaba.com
+Cc: kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
+        leonro@nvidia.com, pabeni@redhat.com, edumazet@google.com,
+        sidraya@linux.ibm.com, jaka@linux.ibm.com,
+        oliver.yang@linux.alibaba.com
+References: <20260910104446.41423-1-alibuda@linux.alibaba.com>
+ <20260910104446.41423-3-alibuda@linux.alibaba.com>
+Content-Language: en-US
+From: Mahanta Jambigi <mjambigi@linux.ibm.com>
+In-Reply-To: <20260910104446.41423-3-alibuda@linux.alibaba.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-Reinject: loops=2 maxloops=12
+X-Proofpoint-ORIG-GUID: 2YDA34b_9ra1Xa-sEbpvW_QxI8j1lpkc
+X-Proofpoint-Spam-Info: AW1haW4tMjYwOTExMDA0NSBTYWx0ZWRfX7vLBCc9wuimc
+ zshcK4rGnW0lXWJGd1hEMVi7tky2lIN37HBWvtOsJvMf6KxblN+LcCPnef4jh7nMStP++n9LWfd
+ n/WF2ePHi5TQC7XUBOxMO45mjRv8VLU=
+X-Authority-Analysis: v=2.4 cv=E/dYNqdl c=1 sm=1 tr=0 ts=6aa37b69 cx=c_pps
+ a=GFwsV6G8L6GxiO2Y/PsHdQ==:117 a=GFwsV6G8L6GxiO2Y/PsHdQ==:17
+ a=IkcTkHD0fZMA:10 a=VdqzKS8jKosA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=RnoormkPH1_aCDwRdu11:22 a=V8glGbnc2Ofi9Qvn3v5h:22 a=SRrdq9N9AAAA:8
+ a=VnNF1IyMAAAA:8 a=WkmksbYtVH5hfBaYqvIA:9 a=QEXdDO2ut3YA:10
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTExMDA0NSBTYWx0ZWRfX0G03dXi5uHKX
+ jkL/gYXA/Vi+MO1qlWd811qKjpXgyKv8Ay6VNQkszdqpoPYL0KKTO4P5zOWwDxn1DN1gGvTCYkm
+ W/NVjVLulbFdtwDZllszKTe/MA7vtzNcGiePX8J73NzHeRV/nC9zAqurOvIzovVCnllzJMgN8j+
+ MWLzLNsM1XPSISALrgSoAwxxNek8AQFmeOJo7TjhDGWUywm7nBAsMv8yVGvLB9LkoH4GLD60QQk
+ toVBL87EXD+vWpkZ512CKrYtIp8Q2HZLPRhNxfNDlHOr/gLc68JFQXjcKO/czr9y2z0o0M7iZth
+ S8NcRhbWuHvtGZ4SuDVIHL0bjSlSZjl/p4l5kGNKDOYI1+3XRj1yPE6KYvshaeZ6BRjasj2jagu
+ /FAJ+3k4sAShN7YWyhRJYZeO5oHxWvk/q1PwptUUaTAjUVWvRUcqUhsw9/ilOeh1KtnjSDHrK5R
+ ugpNZHoaF5DbBcT4JUQ==
+X-Proofpoint-GUID: jTBoy7z2KF5k7P7Xyb8JNSQE_kSj8aTs
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-09-11_01,2026-09-09_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ priorityscore=1501 suspectscore=0 spamscore=0 bulkscore=0 clxscore=1015
+ impostorscore=0 phishscore=0 adultscore=0 lowpriorityscore=0 malwarescore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2609040000 definitions=main-2609110045
 
 
-LGTM,
-Reviewed-by: Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
 
+On 10/09/26 4:14 pm, D. Wythe wrote:
+> smc_wr_tx_get_free_slot() waits for a free TX slot with
+> wait_event_interruptible_timeout(). Since the wait_event family
+> enqueues waiters as non-exclusive, wake_up() may wake multiple
+> waiters even though only one can use the slot, causing
+> thundering-herd contention when slots are scarce.
+> 
+> Use an exclusive wait loop with prepare_to_wait_exclusive() so
+> wake_up() wakes only one waiter per freed slot.
+> smc_wr_wakeup_tx_wait() still uses wake_up_all() during link
+> teardown, so teardown behavior is unchanged.
+> 
+> This also corrects the return value on a pending signal: the previous
+> wait_event_interruptible_timeout() path fell through to the "no free
+> slot" case and returned -EPIPE, masking the signal as a connection
+> error. The open-coded loop now returns -ERESTARTSYS, matching the
+> standard interruptible-wait semantics and letting the syscall restart
+> machinery handle it.
+> 
+> Performance
+> ===========
+> 
+> Measured with uperf between two peers over SMC-R. The benefit depends
+> on how often the TX slot wait path is actually taken.
+> 
+> With the default settings, where many connections share a link group
+> and the send queue is small, slots are scarce and the wait path is hot:
+> 
+>   net.smc.smcr_max_conns_per_lgr = 255
+>   net.smc.smcr_max_send_wr       = 16
+>   net.smc.smcr_max_recv_wr       = 48
+> 
+>   workload                 baseline      patched     delta
+>   ---------------------------------------------------------
+>   rr1c-200x1000-50.xml     655.06 Mb/s   1.53 Gb/s   +134%
+>   rr1c-1x1-250.xml         371.03 Kb/s   2.07 Mb/s   +458%
+> 
+> With a tuned configuration, where slots are mostly available and the
+> wait path is rarely entered, the change is neutral to slightly positive:
+> 
+>   net.smc.smcr_max_conns_per_lgr = 32
+>   net.smc.smcr_max_send_wr       = 64
+>   net.smc.smcr_max_recv_wr       = 64
+> 
+>   workload                 baseline      patched     delta
+>   ---------------------------------------------------------
+>   rr1c-200x1000-50.xml     1.74 Gb/s     1.80 Gb/s   +3.4%
+>   rr1c-1x1-250.xml         3.11 Mb/s     3.14 Mb/s   +1.0%
+> 
+> So the change does not regress the uncontended case, and recovers most
+> of the throughput lost to thundering-herd wakeups once slots become
+> scarce.
+> 
+> Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+> Reviewed-by: Wen Gu <guwen@linux.alibaba.com>
+> Reviewed-by: Mahanta Jambigi <mjambigi@linux.ibm.com>
 
---=20
-Regards,
-Kalesh AP
-
---0000000000002588de065b2c5edc
-Content-Type: text/html; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-<div dir=3D"ltr"><div dir=3D"ltr"><br></div><br><div class=3D"gmail_quote g=
-mail_quote_container"><div dir=3D"ltr" class=3D"gmail_attr">On Fri, Sep 11,=
- 2026 at 7:46=E2=80=AFAM lirongqing &lt;<a href=3D"mailto:lirongqing@baidu.=
-com">lirongqing@baidu.com</a>&gt; wrote:<br></div><blockquote class=3D"gmai=
-l_quote" style=3D"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,20=
-4,204);padding-left:1ex">From: Li RongQing &lt;<a href=3D"mailto:lirongqing=
-@baidu.com" target=3D"_blank">lirongqing@baidu.com</a>&gt;<br>
-<br>
-UVERBS_ATTR_CREATE_WQ_CQ_HANDLE is declared UA_OPTIONAL in the ioctl<br>
-method definition, so the mandatory attribute bitmap does not enforce<br>
-its presence.=C2=A0 When userspace omits it, uverbs_attr_get_obj() returns<=
-br>
-ERR_PTR(-ENOENT) and the handler stores that error pointer into<br>
-wq_init_attr.cq without validation.<br>
-<br>
-The bogus cq pointer is then passed to the driver&#39;s create_wq callback.=
-<br>
-In the mlx5 case, create_rq() calls to_mcq(init_attr-&gt;cq) which applies<=
-br>
-container_of to the ERR_PTR value, producing a near-NULL pointer.=C2=A0 The=
-<br>
-subsequent access in get_rq_ts_format() triggers a kernel NULL pointer<br>
-dereference:<br>
-<br>
-=C2=A0 BUG: kernel NULL pointer dereference, address: 0000000000000296<br>
-=C2=A0 RIP: 0010:create_rq+0x32/0x550 [mlx5_ib]<br>
-=C2=A0 Call Trace:<br>
-=C2=A0 =C2=A0mlx5_ib_create_wq+0x14a/0x210 [mlx5_ib]<br>
-=C2=A0 =C2=A0ib_uverbs_handler_UVERBS_METHOD_WQ_CREATE+0x1f0/0x320 [ib_uver=
-bs]<br>
-=C2=A0 =C2=A0ib_uverbs_run_method+0x296/0x320 [ib_uverbs]<br>
-=C2=A0 =C2=A0ib_uverbs_cmd_verbs+0x1a0/0x260 [ib_uverbs]<br>
-=C2=A0 =C2=A0ib_uverbs_ioctl+0xa8/0x120 [ib_uverbs]<br>
-<br>
-A WQ without a CQ was never valid; the legacy write path always required<br=
->
-one via uobj_get_obj_read() in ib_uverbs_ex_create_wq().=C2=A0 Declare the<=
-br>
-attribute UA_MANDATORY so the uverbs framework rejects the ioctl early<br>
-when the CQ handle is missing, before the handler ever runs.<br>
-<br>
-Fixes: ef3bc084a8ed (&quot;IB/uverbs: Introduce create/destroy WQ commands =
-over ioctl&quot;)<br>
-Signed-off-by: Li RongQing &lt;<a href=3D"mailto:lirongqing@baidu.com" targ=
-et=3D"_blank">lirongqing@baidu.com</a>&gt;</blockquote><div>=C2=A0</div><di=
-v><span style=3D"background-color:transparent">LGTM,</span>=C2=A0</div><div=
->Reviewed-by: Kalesh AP &lt;<a href=3D"mailto:kalesh-anakkur.purayil@broadc=
-om.com">kalesh-anakkur.purayil@broadcom.com</a>&gt;=C2=A0</div></div><div><=
-br clear=3D"all"></div><div><br></div><span class=3D"gmail_signature_prefix=
-">-- </span><br><div dir=3D"ltr" class=3D"gmail_signature"><div dir=3D"ltr"=
->Regards,<div>Kalesh AP</div></div></div></div>
-
---0000000000002588de065b2c5edc--
-
---00000000000030a083065b2c5eb2
-Content-Type: application/pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-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
-tJVewHuOmXgWQxNWV7Oiszu1d9xAcqyj65s1PrEIIaHnxEM3eTK+teecLEy8QymZjjDTrCHg4x36
-2AczdlQAIiq5TSAucGja5VP8g1zTnfL/RAxEZvLS471GABptArolXY2hMVHdVEYcTduZlu8aHARc
-phXveOB5/l3bPqpMVf2aFalv4ab733Aw6cPuQkbtwpMFifp9Y3s/0HGBfADomK4OeDTDJfuvCp8g
-a907E48SjOJBGkh6c6B3ace2XH+CyB7+WBsoK6hsrV5twAXSe7frgP4lN/4Cm2isQl3D7vXM3PBQ
-ddI2aZzmewTfbgZptt4KCUhZh+t7FGB6ZKppQ++Rx0zsGN1s71MtjJnhXvJyPs9UyL1n7KQPTEX/
-07kwIwdMjxC/hpbZmVq0mVccpMy7FYlTuiwFD+TEnhmxGDTVTJ267fcfrySVBHioA7vugeXaX3yL
-SqGQdCWnsz5LyCxWvcfI7zjiXJLwefechLp0LWEBIH5+0fJPB1lfiy1DUutGDJTh9WZHeXfVVFsf
-rSQ3y0VaTqBESMjYsJnFFYQJ9tZJScBluOYacW6gqPGC6EU+bNYC1wpngwVayaQQMIIGtzCCBJ+g
-AwIBAgIMEvVs5DNhf00RSyR0MA0GCSqGSIb3DQEBCwUAMFIxCzAJBgNVBAYTAkJFMRkwFwYDVQQK
-ExBHbG9iYWxTaWduIG52LXNhMSgwJgYDVQQDEx9HbG9iYWxTaWduIEdDQyBSNiBTTUlNRSBDQSAy
-MDIzMB4XDTI1MDYyMDEzNDI1N1oXDTI3MDYyMTEzNDI1N1owgfUxCzAJBgNVBAYTAlVTMRMwEQYD
-VQQIEwpDYWxpZm9ybmlhMREwDwYDVQQHEwhTYW4gSm9zZTEZMBcGA1UEYRMQTlRSVVMrREUtNjYx
-MDExNzEYMBYGA1UEBBMPQW5ha2t1ciBQdXJheWlsMQ8wDQYDVQQqEwZLYWxlc2gxFjAUBgNVBAoT
-DUJST0FEQ09NIElOQy4xLDAqBgNVBAMMI2thbGVzaC1hbmFra3VyLnB1cmF5aWxAYnJvYWRjb20u
-Y29tMTIwMAYJKoZIhvcNAQkBFiNrYWxlc2gtYW5ha2t1ci5wdXJheWlsQGJyb2FkY29tLmNvbTCC
-ASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAOG5Nf+oQkB79NOTXl/T/Ixz4F6jXeF0+Qnn
-3JsEcyfkKD4bFwFz3ruqhN2XmFFaK0T8gjJ3ZX5J7miihNKl0Jxo5asbWsM4wCQLdq3/+QwN/xAm
-+ZAt/5BgDoPqdN61YPyPs8KNAQ8zHt8iZA0InZgmNkDcHhnOJ38cszc1S0eSlOqFa4W9TiQXDRYT
-NFREznPoL3aCNNbDPWAkAc+0/X1XdV1kt4D9jrei4RoDevg15euOaij9X7stUsj+IMgzCt2Fyp7+
-CeElPmNQ0YOba2ws52no4x/sT5R2k3DTPisRieErWuQNhePfW2fZFFXYv7N2LMgfMi9hiLi2Q3eO
-1jMCAwEAAaOCAecwggHjMA4GA1UdDwEB/wQEAwIFoDAMBgNVHRMBAf8EAjAAMIGTBggrBgEFBQcB
-AQSBhjCBgzBGBggrBgEFBQcwAoY6aHR0cDovL3NlY3VyZS5nbG9iYWxzaWduLmNvbS9jYWNlcnQv
-Z3NnY2NyNnNtaW1lY2EyMDIzLmNydDA5BggrBgEFBQcwAYYtaHR0cDovL29jc3AuZ2xvYmFsc2ln
-bi5jb20vZ3NnY2NyNnNtaW1lY2EyMDIzMGUGA1UdIAReMFwwCQYHZ4EMAQUDAzALBgkrBgEEAaAy
-ASgwQgYKKwYBBAGgMgoDAjA0MDIGCCsGAQUFBwIBFiZodHRwczovL3d3dy5nbG9iYWxzaWduLmNv
-bS9yZXBvc2l0b3J5LzBBBgNVHR8EOjA4MDagNKAyhjBodHRwOi8vY3JsLmdsb2JhbHNpZ24uY29t
-L2dzZ2NjcjZzbWltZWNhMjAyMy5jcmwwLgYDVR0RBCcwJYEja2FsZXNoLWFuYWtrdXIucHVyYXlp
-bEBicm9hZGNvbS5jb20wEwYDVR0lBAwwCgYIKwYBBQUHAwQwHwYDVR0jBBgwFoAUACk2nlx6ug+v
-LVAt26AjhRiwoJIwHQYDVR0OBBYEFJ/R8BNY0JEVQpirvzzFQFgflqtJMA0GCSqGSIb3DQEBCwUA
-A4ICAQCLsxTSA9ERT90FGuX/UM2ZQboBpTPs7DwZPq12XIrkD58GkHWgWAYS2xL1yyvD7pEtN28N
-8d4+o6IcPz7yPrfWUCCpAitaeSbu0QiZzIAZlFWNUaOXCgZmHam8Oc+Lp/+XJFrRLhNkzczcw3zT
-cyViuRF/upsrQ3KY/kqimiQjR9BduvKiX/w/tMWDib1UhbVhXxuhuWMr8j8sja2/QR9fk670ViD9
-amx7b5x595AulQfiDhcN0qxG4fr7L22Y/RYX8fCoBAGo0SF7IpxSukVsp6z5uZp5ggdNr2Cq88qk
-if7GG/Oy1beosYD9I5S5dIRcP25oNbcJkbCb/GuvWegzGfxCCBuirb09mTSZRxaBmb1P6dANmPvh
-PdqGqxfFrXagvwbO15DN46GarD9KiHa8QHyTtWghL3q+G6ZHlZUWnyS4YMacrx8Ngy0x7HR4dNdT
-pqAqOOsOwDmQFBNRYomMdAaOXm6x6MFDnp51sIWVNGWK2u4le2VI6RJMzEqLzMZKL0vTW+HPqMaT
-hWv2s5x6cJdLio1vP63rDxJS7vH++zMaY0Jcptrx6eAhzfcq+y/TkHJaZ4dWrtbof1yw3z5EpCvT
-YDxV0XFQiCRLNKuZhkVvQ8dtmVhcpiT/mENrWKWOt0DwNEeC/3Fr1ruoyriggbnRmBQt1bC5uxfv
-+CEHcDGCAlcwggJTAgEBMGIwUjELMAkGA1UEBhMCQkUxGTAXBgNVBAoTEEdsb2JhbFNpZ24gbnYt
-c2ExKDAmBgNVBAMTH0dsb2JhbFNpZ24gR0NDIFI2IFNNSU1FIENBIDIwMjMCDBL1bOQzYX9NEUsk
-dDANBglghkgBZQMEAgEFAKCBxzAvBgkqhkiG9w0BCQQxIgQge3KFIeYhq2huaCZ7cR52j9SyIfXm
-G7aejIQVDU8mTHYwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjYw
-OTExMDMwNjE3WjBcBgkqhkiG9w0BCQ8xTzBNMAsGCWCGSAFlAwQBKjALBglghkgBZQMEARYwCwYJ
-YIZIAWUDBAECMAoGCCqGSIb3DQMHMAsGCSqGSIb3DQEBBzALBglghkgBZQMEAgEwDQYJKoZIhvcN
-AQEBBQAEggEAyM/9jgzLBEOMM5XUrA2lK4dsl3qyuRh8QKyvamNRuE11kF3ht7UYv8ildH6vpMt+
-3HENO7yl0k5wNHTF3YykKZ8TGYniexwBf0QEA2NMt9XGpo61evxGVhNYPtVH4EhWlapf+YC3+auw
-vM45oN5gPTiVdKr8lrDtfNdX6OdIknRLnLfqZ9EEg8OAoGSAsf5EEUHOojzQFmW87CdwLu7i/5nm
-5YMhUFoR3gJsOkCW2U/hxYigZ105jYV6vgPIs3IyZJZkhabR7djApiYkX2H7tHKAMlFCi4ZHLTpK
-aXalAmb/PN1BIXeqBCDZ4Lo4iPxRW2jUTcUt4lIq4lwEoSHhbg==
---00000000000030a083065b2c5eb2--
+I don't see a changelog describing what has changed since the previous
+version. Any Sashiko comments were addressed? Could you explain why this
+is being reposted?
