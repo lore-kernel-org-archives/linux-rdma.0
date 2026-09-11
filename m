@@ -1,202 +1,147 @@
-Received: from mail-oo2-f12.google.com (mail-oo2-f12.google.com [74.125.231.140])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05672376A09
-	for <linux-rdma@vger.kernel.org>; Fri, 11 Sep 2026 15:06:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.231.140
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789139173; cv=pass; b=tPf5FKVGTum14qvnsrB7piz7D4vOCztHE3lVNbYnnwKYc71XWQDZbO6hu+Pdu2sIG2uN9XJAL9Ha0BH3IvpRjNuY6kupKW5136TJdGYQ8P2d2wUZvR/7g/efLR7XkqfvmoiODBz3gH83ITckc+MPOZVE11PG4I1sY2yejaGQ0BI=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789139173; c=relaxed/simple;
-	bh=31WGPI9CsS8AEb1QmZigfY8oBbhGb6+EPuGPGJKusUg=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=HCA2fGO8sod4Fy21P2qMmrbxvnpK04Gi2qS74OS0kukjcCYTaFxwB6TW8WGuM1a4j6Vfz8wn67SFXbxZ9tSzpLyic+vHcDupxVcXs6u9/0VXIIegOt0Crd6qcaauDVxM/gxXyqOHdqDKXH8KrooO8wpCt9v55MVhhO1cCtyUHaA=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=qUJmVijz; arc=pass smtp.client-ip=74.125.231.140
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFE3A374A17;
+	Fri, 11 Sep 2026 15:15:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789139741; cv=none; b=Q6Vi5khbURLpjF4i58BHZQMAvnEIQ71f4K0uMTdVJ8ioJr0kQKjBF6cKyVpEoQCUnaLSDo0j4cfbMZ6gVSYGMVQl4HOPCgz4Anz4Vt6j5V40apA3JNu81iHaqrrM6tnOkkBI4M5j0d9xmZoZe3aP2L+3zxaTE+KX3G22i7Tw+zE=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789139741; c=relaxed/simple;
+	bh=+JMr+qGMs3sFTxbkwI95qYwIaFt6UtAXLV76Pl4C2Xs=;
+	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
+	 Message-Id; b=Rka04Upn2tgRKNeshl0QsMWeXf3UtJfcXvH/ixs8LE4NsaDhr+pXqHLDC94u+lwGKRpaMzEJiOvwsYELa8kXE25njioV404UOXdbzpxK6dP0ax6Ql47fDgy2Q3WvfaGiysiLosiq1DIEm3YkcwPeijnPXY+4WcCtUPtoS5bJJHQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=awHF7upi; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="qUJmVijz"
-Received: by mail-oo2-f12.google.com with SMTP id 006d021491bc7-6b1ae6f5fc5so581441eaf.0
-        for <linux-rdma@vger.kernel.org>; Fri, 11 Sep 2026 08:06:09 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1789139169; cv=none;
-        d=google.com; s=arc-20260327;
-        b=APbvDhep1tfknGzxVMMQbHghwg1Oe3eRxSukwKuvOMCtNE4Q7wlspJg2nAZMkX8gTJ
-         YoZr5XuA2EzdurURq3hdw39oQu9x/21wRk+BsgyfH2SmRS61GrO7IuwFIbSvjKrQw8ql
-         znUEymLe02cB7UlDBmakUC3F+Ccuk7rxIMzu2THQFHXLAvlEJahSc5e0oFUdCN7CLjT5
-         5fVARlI4xEcIHYGI+FE2XJ+/fi+Aufqi/rbvlax28Brb09/GCdQVRjQpLto0+zPwHP8V
-         nqBaeO2PBhxBzVRnpnivRxRfvCAmvjjK1kQz1WzffZdflyK2Qtwh/hzIdWWLMgV7pSJA
-         y15g==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=31WGPI9CsS8AEb1QmZigfY8oBbhGb6+EPuGPGJKusUg=;
-        fh=vKtIOl0YJle3w6DBMmho9qykx0dg2DSCUfdbx7srwaA=;
-        b=QBOyzo1UcUviUcz/EINp6vfPQNF3g3BXQY7OxqlYC+tr9cN5X7GCZO9zuIHUH4OBLQ
-         OKhmBYVdMWwQi0vS3DKCIo3EVbMoCC5Ud6+EHhxG54pU/EOOjgT1Usi0jKKAOSgQ6s3k
-         g0Px0piF1XSfXuw0YKhdxzg2dt2uePYwOh5cvOH1kQSWJ5sJbIbOhUuc6Eqc8Ou4+0cR
-         /A2n9hLB8bEqAoausyibtxP383QbUW4kAIBCyg7jkz79e1V2vQ9AAxNPvG1w9/fikdq3
-         f8vOU57qVusEWXbwNbQeDcqRbm9lxGQ1A/j6qz1d4xNw3vnWfIXakl0vgZJPH7ejljOm
-         eszw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1789139169; x=1789743969; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=31WGPI9CsS8AEb1QmZigfY8oBbhGb6+EPuGPGJKusUg=;
-        b=qUJmVijzNEk2CFd/2JKrWKzj5OmgEMFOKvrh0RGm0n62p5d07lbv7bYFKZ4eoKjugP
-         QYSUcrsAA+c0AC27+gjFGpBkZ1a1c9ABcQ1Fl8BDYr6h86r5AUW0twP+0XWZRX7zfazr
-         WEe6kAFGuCoQJNfIOrlZ1Y4cXE0+DuMMuYG5O6jqgitmJVAWNdT6ULGieq+wSEvSt+GR
-         VLr9QgoNO08ZRPxx3H1SiOPsijt847d48Y5SbIVoEaG8wcJJK23s+hXBs0U+z63F9Nr0
-         c/S7CJ9EFmUrGuwhSykK1cuReZLfisdthyJt0xRBaUYoDFWgwq9cl6gQg/hPBAD3m+j/
-         rUvQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1789139169; x=1789743969;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=31WGPI9CsS8AEb1QmZigfY8oBbhGb6+EPuGPGJKusUg=;
-        b=RBta/4R+26NYWGZu9HjbFGwtnkMl+FqScZgZ0D+1HICVSkrTzwPtOvMRLXJB3Jlb68
-         H/fp5OJP7kCoRDSk9MPDg1UE4GMTMiByrPFVG5uMI6ECnMqgU8KcM2tqOdW6uV/BC9EV
-         8BbKVzcL17jlb2drBulcneH6bXniPAkiwmAELolOw2I+1JeSCP3HBh/tgocF6Y7YSgFt
-         NqKgFxhzLVQlI7dKPs7qzI+dY+WuDfSQ155uhUFAhgpzvIoRjLOyBGkpGnj8CidEUtIK
-         4E//H1G//Yhe+0V6dbhb5d6spjh2mjUVYg1QH0SGIDvQTJp5DRZjGwdOc1rnmJlC6Wq8
-         RVkg==
-X-Forwarded-Encrypted: i=1; AKwUvBwTs1dQY2ins1DbM7g6IK+6uBNUYKZx+l9wlBcbYCnA7IDvnkChxYnNQyGyuHML3E+kbcjddkmdnZZw@vger.kernel.org
-X-Gm-Message-State: AFuF++mZzSYl90VqxNy+fUHG2mcaKLXsBpKjv7jfJWC0Ew/QSuOcEBlo
-	BIhe2TFyUBPnFJ6ECUdjWdQ5TE7NzgoflQmUuqIb3KLhqbAaX53/g5pY99WDSYN+hdWXPbWKuvT
-	RGwdEw4q3YQ8hQdwXELjNlhiMFZkJ0Ug=
-X-Gm-Gg: AYBFou1dTq4YrimDYM9JpJKjeVYKYeqUJFySM/SO2DlGaprPvMZCZ1XCFOx+IGyFDPz
-	MYT2yQPXQ0ejAaUex4Z/kxjguocDWrYXNWQY4fxdEcRey405eXtsWlpH7OqUDdedhHDVzgkhPYn
-	KIODME0LHZBvOkMXx92XoIwXq64xbAMwz+pNv6lxRJPa0opWVm0esOGLiw6HPBLn5taAO58DOf5
-	YKPcwcaQdDo+f9N5BCPvuA+o1j4IIAEMHyaf4laIAB6MDa063M72mkAJj0ijRQoNWqzOsNkRXXQ
-	j69CGE0+K6mP7695/uglZ3rfRXJmQRb4kb76tpfiQWvfP+s3QZoVLsU=
-X-Received: by 2002:a05:6820:8585:20b0:6b1:be9f:ce6c with SMTP id
- 006d021491bc7-6c0b9d4e35dmr4967721eaf.4.1789139168581; Fri, 11 Sep 2026
- 08:06:08 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="awHF7upi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FBC61F00898;
+	Fri, 11 Sep 2026 15:15:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1789139739;
+	bh=spXyrTowUXWc/69WlA9MNUyghCeh7E7kfBS+3vu+KRc=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=awHF7upiS9J2W4k1vFwqMV+vv0xK2E/MZVYL0TNSj931LhDb++1c+P07HRXDHo5cE
+	 I6WNIDrC30zjaNT2jislU0t3tsPDOG0E3s94GKpqdvYKab5klA/m3OhVLtFVfw8zoG
+	 icIAXzo7+JJsL4wbfUPKmIZCnRR9jic9KuLDR+MqqQIAr3Z+xMaQIgPgiLG+7ZIG4l
+	 +YReFDCcSQ695Gof1ffTn2eChOCUgl57DNXVi1kj7vWBxUJv9efzzgWOPgGHMcyITX
+	 KOr0r9DHA5OVZmtWsNzL39JEDk6kxXcP4OlwrP5tOpMPNJNVPZXaXoFdJmB3wKJgz9
+	 g0K4atLQzEIxw==
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH 01/13 net-next] net: ipv4: introduce CONFIG_IPV4 to
+ decouple the IPv4 stack
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Fernando Fernandez Mancera" <fmancera@suse.de>
+Cc: sven@narfation.org, "Christian Borntraeger" <borntraeger@linux.ibm.com>, marek.lindner@mailbox.org, sw@simonwunderlich.de, "Jeff
+ Layton" <jlayton@kernel.org>, antonio@mandelbit.com, mptcp@lists.linux.dev, linux-rdma@vger.kernel.org, "Heiko
+ Carstens" <hca@linux.ibm.com>, linux-scsi@vger.kernel.org, "Anna Schumaker" <anna@kernel.org>, linux-s390@vger.kernel.org, "Alexander
+ Gordeev" <agordeev@linux.ibm.com>, "Vasily Gorbik" <gor@linux.ibm.com>, "Chuck
+ Lever" <cel@kernel.org>
+In-Reply-To: <20260910144914.8025-2-fmancera@suse.de>
+References: <20260910144914.8025-1-fmancera@suse.de>
+ <20260910144914.8025-2-fmancera@suse.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Fri, 11 Sep 2026 15:15:38 +0000
+Message-Id: <20260911151538.6FBC61F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20260908-b4-mmap-prepare-vma-flag-sanify-v1-0-dacf19cce22b@kernel.org>
- <20260908-b4-mmap-prepare-vma-flag-sanify-v1-11-dacf19cce22b@kernel.org>
- <CAEjxPJ7hXSi=oLtQPV+7GEvN+txfYwZ-u-v_EysNHM0gSGNrCw@mail.gmail.com> <aqPUqU3eZeFrykj3@gremlin>
-In-Reply-To: <aqPUqU3eZeFrykj3@gremlin>
-From: Stephen Smalley <stephen.smalley.work@gmail.com>
-Date: Fri, 11 Sep 2026 11:05:57 -0400
-X-Gm-Features: AcwNN1UL9TCHStClpz4OqpdpVCOHFGRlTtL1ELl-GfcxGBMtPjfBSuHNlaSY27Y
-Message-ID: <CAEjxPJ6P19eKF-c+mm2BSr5_WpmhMTZjjUfSamv3SfOPO4SGVw@mail.gmail.com>
-Subject: Re: [PATCH 11/39] selinux: reject writable opens of policy file, drop
- mmap shared/write check
-To: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, "Liam R. Howlett" <liam@infradead.org>, 
-	Vlastimil Babka <vbabka@kernel.org>, Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
-	David Hildenbrand <david@kernel.org>, Mike Rapoport <rppt@kernel.org>, 
-	Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
-	Leon Romanovsky <leon@kernel.org>, Paul Moore <paul@paul-moore.com>, Jaroslav Kysela <perex@perex.cz>, 
-	Takashi Iwai <tiwai@suse.com>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
-	Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>, 
-	Kumar Kartikeya Dwivedi <memxor@gmail.com>, Zi Yan <ziy@nvidia.com>, 
-	Baolin Wang <baolin.wang@linux.alibaba.com>, Nico Pache <nico.pache@linux.dev>, 
-	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
-	Lance Yang <lance.yang@linux.dev>, Usama Arif <usama.arif@linux.dev>, 
-	Kiryl Shutsemau <kas@kernel.org>, Doug Gilbert <dgilbert@interlog.com>, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, 
-	"Martin K. Petersen" <mkp@kernel.org>, Jaya Kumar <jayalk@intworks.biz>, Simona Vetter <simona@ffwll.ch>, 
-	Helge Deller <deller@gmx.de>, Sebastian Reichel <sre@kernel.org>, John Hubbard <jhubbard@nvidia.com>, 
-	Peter Xu <peterx@redhat.com>, Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
-	Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, 
-	Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
-	Arnaldo Carvalho de Melo <acme@kernel.org>, Namhyung Kim <namhyung@kernel.org>, 
-	Mark Rutland <mark.rutland@arm.com>, Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, 
-	Juri Lelli <juri.lelli@redhat.com>, Vincent Guittot <vincent.guittot@linaro.org>, 
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>, 
-	Thomas Zimmermann <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>, 
-	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, Nick Piggin <npiggin@gmail.com>, 
-	Arnd Bergmann <arnd@arndb.de>, Muchun Song <muchun.song@linux.dev>, 
-	Oscar Salvador <osalvador@suse.de>, "Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Marc Zyngier <maz@kernel.org>, Oliver Upton <oupton@kernel.org>, 
-	Catalin Marinas <catalin.marinas@arm.com>, Madhavan Srinivasan <maddy@linux.ibm.com>, 
-	Anup Patel <anup@brainfault.org>, Paul Walmsley <pjw@kernel.org>, 
-	Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
-	Christian Borntraeger <borntraeger@linux.ibm.com>, Janosch Frank <frankja@linux.ibm.com>, 
-	Claudio Imbrenda <imbrenda@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
-	Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Heiko Carstens <hca@linux.ibm.com>, 
-	Vasily Gorbik <gor@linux.ibm.com>, "David S. Miller" <davem@davemloft.net>, 
-	Andreas Larsson <andreas@gaisler.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
-	Christian Brauner <brauner@kernel.org>, Matthew Brost <matthew.brost@intel.com>, 
-	Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, 
-	Byungchul Park <byungchul@sk.com>, Gregory Price <gourry@gourry.net>, 
-	Ying Huang <ying.huang@linux.alibaba.com>, Alistair Popple <apopple@nvidia.com>, 
-	Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>, 
-	Kemeng Shi <shikemeng@huaweicloud.com>, Nhat Pham <nphamcs@gmail.com>, 
-	Baoquan He <baoquan.he@linux.dev>, Youngjun Park <youngjun.park@lge.com>, 
-	Johannes Weiner <hannes@cmpxchg.org>, Qi Zheng <qi.zheng@linux.dev>, 
-	Shakeel Butt <shakeel.butt@linux.dev>, Axel Rasmussen <axelrasmussen@google.com>, 
-	Yuanchu Xie <yuanchu@google.com>, Wei Xu <weixugc@google.com>, Xu Xin <xu.xin16@zte.com.cn>, 
-	Chengming Zhou <chengming.zhou@linux.dev>, Michal Hocko <mhocko@kernel.org>, 
-	Miklos Szeredi <miklos@szeredi.hu>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, 
-	linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, 
-	linux-rdma@vger.kernel.org, selinux@vger.kernel.org, 
-	linux-sound@vger.kernel.org, bpf@vger.kernel.org, linux-scsi@vger.kernel.org, 
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, 
-	linux-trace-kernel@vger.kernel.org, linux-perf-users@vger.kernel.org, 
-	linux-arch@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, kvmarm@lists.linux.dev, 
-	linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org, 
-	kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org, 
-	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, 
-	fuse-devel@lists.linux.dev
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Fri, Sep 11, 2026 at 6:16=E2=80=AFAM Lorenzo Stoakes (ARM) <ljs@kernel.o=
-rg> wrote:
->
-> On Thu, Sep 10, 2026 at 02:11:18PM -0400, Stephen Smalley wrote:
-> > On Tue, Sep 8, 2026 at 4:07=E2=80=AFPM Lorenzo Stoakes (ARM) <ljs@kerne=
-l.org> wrote:
-> > >
-> > > The policy file has no write method and is exposed read-only (S_IRUGO=
- in
-> > > selinux_files[]), yet sel_open_policy() performs no open mode check, =
-so a
-> > > CAP_DAC_OVERRIDE caller can open it O_RDWR. Reject FMODE_WRITE at ope=
-n, as
-> > > kernfs does.
-> > >
-> > > The file can then never be mapped with FMODE_WRITE, so do_mmap() alwa=
-ys
-> > > clears VM_MAYWRITE and VM_SHARED for MAP_SHARED mappings and the VM_S=
-HARED
-> > > check in sel_mmap_policy() cannot be reached. Remove it.
-> > >
-> > > This also stops sel_mmap_policy() clearing VM_MAYWRITE on a mapping t=
-hat is
-> > > neither a PFN map nor a mixed map, ahead of the core enforcing that o=
-nly
-> > > such mappings may do so.
-> > >
-> > > Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-> >
-> > We should likely do something similar for the other sel_open_*() and
-> > sel_mmap_*() functions too.
-> > In particular, truncation of the status file can bring down systemd
-> > since it is mapped by libselinux.
->
-> Yeah I think there's definitely more that can be done there.
->
-> Though I think obviously that kind of stuff is better as a follow up as t=
-his
-> patch is focused on eliminating a case where VMA_MAYWRITE_BIT is cleared
-> incorrectly.
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+s) to consider:
+- [High] Layer-2 networking features and core drivers incorrectly depend on=
+ IPV4, breaking INET=3Dn builds.
+--
 
-Agreed, posted one for the status handlers at:
-https://lore.kernel.org/selinux/20260911145840.19039-2-stephen.smalley.work=
-@gmail.com/
+commit a6e6a467093e978fadc9f73c8f0d22f0bf0ee577
+Author: Fernando Fernandez Mancera <fmancera@suse.de>
+Subject: net: ipv4: introduce CONFIG_IPV4 to decouple the IPv4 stack
+
+Historically, the IPv4 protocol has been linked to the core INET subsystem.
+This patch introduces the CONFIG_IPV4 Kconfig symbol and adds it as a
+dependency to multiple networking Kconfig symbols.
+
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/Kconfig b/drivers/ne=
+t/ethernet/mellanox/mlx5/core/Kconfig
+> index 925ee25d05b47..86b0884968b67 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
+> @@ -12,6 +12,7 @@ config MLX5_CORE
+>  	depends on PTP_1588_CLOCK_OPTIONAL
+>  	depends on PCI_HYPERV_INTERFACE || !PCI_HYPERV_INTERFACE
+>  	depends on HWMON || !HWMON
+> +	depends on IPV4
+
+[Severity: High]
+Does adding this dependency on IPV4 mean the Mellanox core driver can no
+longer be used for L2/DPDK in IP-less kernels?
+
+The IPV4 symbol is sourced inside the if INET block in net/Kconfig, so it
+evaluates to n when INET=3Dn. This seems to prevent selecting MLX5_CORE wit=
+hout
+TCP/IP, which causes a regression for valid Layer-2-only kernel configurati=
+ons.
+
+[ ... ]
+
+> diff --git a/net/bridge/Kconfig b/net/bridge/Kconfig
+> index 318715c8fc9bc..421892a031299 100644
+> --- a/net/bridge/Kconfig
+> +++ b/net/bridge/Kconfig
+> @@ -7,6 +7,7 @@ config BRIDGE
+>  	tristate "802.1d Ethernet Bridging"
+>  	select LLC
+>  	select STP
+> +	depends on IPV4
+
+[Severity: High]
+Is it intentional that Ethernet bridging requires IPV4 here?
+
+Bridging is a Layer-2 feature that does not require INET, but since IPV4 is
+evaluated as n in INET=3Dn builds, this completely disables bridging in ker=
+nels
+configured without TCP/IP, resulting in a configuration regression.
+
+[ ... ]
+
+> diff --git a/net/mac80211/Kconfig b/net/mac80211/Kconfig
+> index d6bc295e23a1a..ec485da283730 100644
+> --- a/net/mac80211/Kconfig
+> +++ b/net/mac80211/Kconfig
+> @@ -1,7 +1,7 @@
+>  # SPDX-License-Identifier: GPL-2.0-only
+>  config MAC80211
+>  	tristate "Generic IEEE 802.11 Networking Stack (mac80211)"
+> -	depends on CFG80211
+> +	depends on CFG80211 && IPV4
+
+[Severity: High]
+Does the generic 802.11 stack need to be rendered unavailable if INET=3Dn?
+
+Since it does not require IP, adding the IPV4 dependency seems to cause a
+regression for valid Layer-2-only configurations.
+
+[ ... ]
+
+> diff --git a/net/packet/Kconfig b/net/packet/Kconfig
+> index 2997382d597c2..00fda9e08cb0b 100644
+> --- a/net/packet/Kconfig
+> +++ b/net/packet/Kconfig
+> @@ -5,6 +5,7 @@
+> =20
+>  config PACKET
+>  	tristate "Packet socket"
+> +	depends on IPV4
+
+[Severity: High]
+Can packet sockets (AF_PACKET) still be used when INET=3Dn?
+
+They provide direct Layer-2 access and are independent of INET, but this
+dependency causes a regression by making them unavailable in INET=3Dn build=
+s.
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260910144914.8025=
+-1-fmancera@suse.de?part=3D1
