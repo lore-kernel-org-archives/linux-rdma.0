@@ -1,264 +1,260 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25BA73EEADF
-	for <linux-rdma@vger.kernel.org>; Fri, 11 Sep 2026 06:45:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AF2842E407;
+	Fri, 11 Sep 2026 06:53:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789109136; cv=none; b=biGUAHHzaSLquQH7rb81lXmaOs7OYa0MKppUXDV4vGqrjwScWJLkvnYL9AyFMa5pR9lkrnXjQbxTK00v+DsY3a4pGfA+qj5Apxlr7SLUsz8/ZkMxpySAnthImEyTpdODxS10NTrCH2Ij0gWnxsJ4UcZ+Awr4DZCplAKL4J5ipgI=
+	t=1789109613; cv=none; b=sJEATNOzLDf8Ba4PAtW+sH3fHVEegmAVJPoYybJKtihZLBCA2/vdm1vjvTcNVHGQerMjxTYTk9B2M6hcjJ3nVag2rwFvkim7JZxqbLVp7ll7MMS3AjfWkK6JoIUNiFwkW8AAAXjYTi9I+Myn6FxXcmv00+D0sIsptBJM4+voVSQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789109136; c=relaxed/simple;
-	bh=awMsJz2XiwRRiKTklx2saMG93r7PTENE1T4idjSfxnk=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=naIUnR7wjENynuIRDhbpeJmAMag08Prg9N8Dzl2leeSzwiZT6jXhDEV9z5obNPHAKUwHXbZ+w7BvO48a3zaAX0+1uFnTGcrpAVuMNYgnHyVwaA8BwplwV6AVkdzSdmuWKiUEGILNjSzARMBDcGhSt8Ov35zz+A7blFKrj/eWZO4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=GP8+KXqy; arc=none smtp.client-ip=192.198.163.19
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1789109613; c=relaxed/simple;
+	bh=BTk1YZDI+uDisbn4s5VtAu26iTR4cqp7ysNeJFhaD70=;
+	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=uD0Zo27PDlOyix0yXX+rHCzo1QwphYghDQqihKtpv6u4Kt0ogmqHFArZd2/8hh8gFXuTfKXSercKc5Ac8A3NnUZgFtwlOjk+40IiW4mQb1WpeBLu2GTE8BtauW0kI+3sGe7r92d4kWThqTiU4w5V1xFTLgyRHCndmOfGOkaitEo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oOvp20pp; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="GP8+KXqy"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1789109129; x=1820645129;
-  h=date:from:to:cc:subject:message-id;
-  bh=awMsJz2XiwRRiKTklx2saMG93r7PTENE1T4idjSfxnk=;
-  b=GP8+KXqy7SkLXss9WjQRBoh/qYbBfDx2NrSoL/se7wIIpoyjSNVexRtl
-   RM92k3Ovjowwhi42HxvLEliz7RzhchrFpREB+mBfOpR6d3wVjfS/ulMRL
-   NaA51iEoMrnFHqfHue+3CACSNsLrOzUqbBSImKIK28p5Poin78+Ua2uf/
-   g4080cDpbm52LP2ZFQH8H9DxDZucUWN2lYFhFpCUhnPepGx4y6ml3TCjz
-   js9RJoYf1y7KjD1fHEVivqNuFwpIEfrnwxBNQLgLec3FWg7URZUQV55Dz
-   cX0CxFV1gcqj5pJhjwIoYtUn4BEM9K1wYmcJ148X9daRfNb0155faxPNF
-   A==;
-X-CSE-ConnectionGUID: sTKYTsohRUi6h6rSvHbiKg==
-X-CSE-MsgGUID: InOmVluCQVeU3klZzG8urw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11901"; a="88511826"
-X-IronPort-AV: E=Sophos;i="6.27,96,1787036400"; 
-   d="scan'208";a="88511826"
-Received: from orviesa007.jf.intel.com ([10.64.159.147])
-  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Sep 2026 23:45:21 -0700
-X-CSE-ConnectionGUID: v1012yMSSe6yv6VZtIWC8Q==
-X-CSE-MsgGUID: ShJaKYpLSWG9Ho+piIfmtw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,96,1787036400"; 
-   d="scan'208";a="271820919"
-Received: from lkp-server02.sh.intel.com (HELO 0a3643a6ed9d) ([10.239.97.151])
-  by orviesa007.jf.intel.com with ESMTP; 10 Sep 2026 23:45:19 -0700
-Received: from kbuild by 0a3643a6ed9d with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1x4v0W-000000001B4-22I3;
-	Fri, 11 Sep 2026 06:45:13 +0000
-Date: Fri, 11 Sep 2026 14:44:07 +0800
-From: kernel test robot <lkp@intel.com>
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>,
- Jason Gunthorpe <jgg+lists@ziepe.ca>, linux-rdma@vger.kernel.org
-Subject: [rdma:wip:leon-for-next] BUILD SUCCESS
- 3e1de7f906ab162b23d6fe0eabccf687a98fa25f
-Message-ID: <202609111402.lekTNRgA-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oOvp20pp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93FE61F000FF;
+	Fri, 11 Sep 2026 06:53:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1789109602;
+	bh=QErj2RuPUXOYAikXEmg5mKDTcSF6GR0WVee0QcGfDdI=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=oOvp20ppAEoJnCsW/ZEut4/ns3yJOpSnAxMorUZN9eJk6HOqEA7a5r4+pFFrV6e/G
+	 LqMrICaDj6Fz+yKNJT9AdPbmJ1S2KTDeN0uo2wuwo7QcmjNzLl71wJLXksYdklXZ+N
+	 6Oaw1qPNhEdlumkh+ldQG4JJWDLuPNq9zTvkRKmpaxM4KI3nkFM0taKkD8FVmAX6f2
+	 6ju8Ma3gEqgtcweZyjRxeIOUjHa7jtjpMbfttWAAywSnRB3tHgfOHT9i1iZXk1HEQN
+	 aUXNh5aiArGyxEt1muwyATd+y43cOQZ4nVhuScwMCVDx0TldIeyTeCp5hioaRu+M/1
+	 Odk1P9QspH8Mw==
+Subject: Re: [PATCH net-next v5 1/4] net: mana: track when the HWC has been
+ handed to the PF
+From: netdev-bot+sashiko@kernel.org
+To: longli@microsoft.com
+Cc: longli@kernel.org, kotaranov@microsoft.com, kuba@kernel.org,
+ davem@davemloft.net, pabeni@redhat.com, edumazet@google.com,
+ andrew+netdev@lunn.ch, jgg@ziepe.ca, leon@kernel.org, haiyangz@microsoft.com,
+ kys@microsoft.com, wei.liu@kernel.org, decui@microsoft.com,
+ shradhagupta@linux.microsoft.com, horms@kernel.org, ernis@linux.microsoft.com,
+ stephen@networkplumber.org, shirazsaleem@microsoft.com,
+ netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-hyperv@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Fri, 11 Sep 2026 06:53:21 +0000
+Message-ID: <178910960115.219967.13830871915506436112@kernel.org>
+In-Reply-To: <20260908035201.402424-2-longli@microsoft.com>
+References: <20260908035201.402424-2-longli@microsoft.com>
+X-sashiko-severity: Medium
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/leon-for-next
-branch HEAD: 3e1de7f906ab162b23d6fe0eabccf687a98fa25f  RDMA: fix repeated words in comments
+Thank you for your contribution! Sashiko AI review found 2 potential
+issue(s) to consider:
 
-elapsed time: 1111m
+Critical: 0 · High: 0 (1) · Medium: 2 · Low: 0
 
-configs tested: 186
-configs skipped: 2
+- [Medium] The patch silently converts a real correctness fix but is
+  presented as pure preparation and carries no Fixes: tag.
+- [Medium] `hwc->setup_active` is written in `mana_smc_setup_hwc()`
+  (shm_channel.c:149 and 237) and read/cleared in…
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-tested configs:
-alpha                             allnoconfig    gcc-16.1.0
-alpha                            allyesconfig    gcc-16.1.0
-alpha                               defconfig    gcc-16.1.0
-arc                              allmodconfig    clang-24
-arc                              allmodconfig    gcc-16.1.0
-arc                               allnoconfig    gcc-16.1.0
-arc                              allyesconfig    clang-24
-arc                              allyesconfig    gcc-16.1.0
-arc                                 defconfig    gcc-16.1.0
-arc                   randconfig-001-20260911    clang-24
-arc                   randconfig-002-20260911    clang-24
-arm                               allnoconfig    clang-17
-arm                               allnoconfig    gcc-16.1.0
-arm                              allyesconfig    clang-24
-arm                              allyesconfig    gcc-16.1.0
-arm                       aspeed_g5_defconfig    clang-20
-arm                         assabet_defconfig    clang-20
-arm                                 defconfig    gcc-16.1.0
-arm                          exynos_defconfig    clang-20
-arm                   randconfig-001-20260911    clang-24
-arm                   randconfig-002-20260911    clang-24
-arm                   randconfig-003-20260911    clang-24
-arm                   randconfig-004-20260911    clang-24
-arm                           sama5_defconfig    gcc-16.1.0
-arm64                            allmodconfig    clang-24
-arm64                             allnoconfig    gcc-16.1.0
-arm64                               defconfig    gcc-16.1.0
-arm64                 randconfig-001-20260911    gcc-16.1.0
-arm64                 randconfig-002-20260911    gcc-16.1.0
-arm64                 randconfig-003-20260911    gcc-16.1.0
-arm64                 randconfig-004-20260911    gcc-16.1.0
-csky                             allmodconfig    gcc-16.1.0
-csky                              allnoconfig    gcc-16.1.0
-csky                                defconfig    gcc-16.1.0
-csky                  randconfig-001-20260911    gcc-16.1.0
-csky                  randconfig-002-20260911    gcc-16.1.0
-hexagon                          allmodconfig    gcc-16.1.0
-hexagon                           allnoconfig    clang-24
-hexagon                           allnoconfig    gcc-16.1.0
-hexagon                             defconfig    gcc-16.1.0
-i386                             allmodconfig    clang-22
-i386                              allnoconfig    gcc-14
-i386                              allnoconfig    gcc-16.1.0
-i386                             allyesconfig    clang-22
-i386        buildonly-randconfig-001-20260911    clang-22
-i386        buildonly-randconfig-002-20260911    clang-22
-i386        buildonly-randconfig-003-20260911    clang-22
-i386        buildonly-randconfig-004-20260911    clang-22
-i386        buildonly-randconfig-005-20260911    clang-22
-i386        buildonly-randconfig-006-20260911    clang-22
-i386                                defconfig    gcc-16.1.0
-i386                  randconfig-001-20260911    clang-22
-i386                  randconfig-002-20260911    clang-22
-i386                  randconfig-003-20260911    clang-22
-i386                  randconfig-004-20260911    clang-22
-i386                  randconfig-005-20260911    clang-22
-i386                  randconfig-006-20260911    clang-22
-i386                  randconfig-007-20260911    clang-22
-loongarch                        allmodconfig    clang-19
-loongarch                        allmodconfig    clang-24
-loongarch                         allnoconfig    clang-20
-loongarch                         allnoconfig    gcc-16.1.0
-loongarch                           defconfig    clang-24
-m68k                             allmodconfig    gcc-16.1.0
-m68k                              allnoconfig    gcc-16.1.0
-m68k                             allyesconfig    clang-24
-m68k                             allyesconfig    gcc-16.1.0
-m68k                                defconfig    clang-24
-m68k                       m5249evb_defconfig    gcc-16.1.0
-m68k                       m5275evb_defconfig    gcc-16.1.0
-microblaze                        allnoconfig    gcc-16.1.0
-microblaze                       allyesconfig    gcc-16.1.0
-microblaze                          defconfig    clang-24
-mips                             allmodconfig    gcc-16.1.0
-mips                              allnoconfig    gcc-16.1.0
-mips                             allyesconfig    gcc-16.1.0
-mips                        vocore2_defconfig    clang-20
-nios2                            allmodconfig    clang-20
-nios2                            allmodconfig    gcc-11.5.0
-nios2                             allnoconfig    clang-24
-nios2                             allnoconfig    gcc-11.5.0
-nios2                               defconfig    clang-24
-openrisc                         allmodconfig    clang-20
-openrisc                         allmodconfig    gcc-16.1.0
-openrisc                          allnoconfig    clang-24
-openrisc                          allnoconfig    gcc-16.1.0
-openrisc                            defconfig    gcc-16.1.0
-parisc                           alldefconfig    clang-20
-parisc                           allmodconfig    gcc-16.1.0
-parisc                            allnoconfig    clang-24
-parisc                            allnoconfig    gcc-16.1.0
-parisc                           allyesconfig    gcc-16.1.0
-parisc                              defconfig    gcc-16.1.0
-parisc                randconfig-001-20260911    gcc-8.5.0
-parisc                randconfig-002-20260911    gcc-8.5.0
-parisc64                            defconfig    clang-24
-powerpc                          allmodconfig    gcc-16.1.0
-powerpc                           allnoconfig    clang-24
-powerpc                           allnoconfig    gcc-16.1.0
-powerpc                 mpc836x_rdk_defconfig    clang-20
-powerpc               randconfig-001-20260911    gcc-8.5.0
-powerpc               randconfig-002-20260911    gcc-8.5.0
-powerpc64             randconfig-001-20260911    gcc-8.5.0
-powerpc64             randconfig-002-20260911    gcc-8.5.0
-riscv                            allmodconfig    clang-24
-riscv                             allnoconfig    clang-24
-riscv                             allnoconfig    gcc-16.1.0
-riscv                            allyesconfig    clang-24
-riscv                               defconfig    gcc-16.1.0
-riscv                    nommu_k210_defconfig    gcc-16.1.0
-riscv                 randconfig-001-20260911    gcc-16.1.0
-riscv                 randconfig-002-20260911    gcc-16.1.0
-s390                             allmodconfig    clang-24
-s390                              allnoconfig    clang-24
-s390                             allyesconfig    gcc-16.1.0
-s390                                defconfig    gcc-16.1.0
-s390                  randconfig-001-20260911    gcc-16.1.0
-s390                  randconfig-002-20260911    gcc-16.1.0
-sh                               allmodconfig    gcc-16.1.0
-sh                                allnoconfig    clang-24
-sh                                allnoconfig    gcc-16.1.0
-sh                               allyesconfig    gcc-16.1.0
-sh                        apsh4ad0a_defconfig    gcc-16.1.0
-sh                                  defconfig    gcc-14
-sh                    randconfig-001-20260911    gcc-16.1.0
-sh                    randconfig-002-20260911    gcc-16.1.0
-sh                           se7619_defconfig    gcc-16.1.0
-sh                   sh7770_generic_defconfig    gcc-16.1.0
-sh                            shmin_defconfig    clang-20
-sh                          urquell_defconfig    clang-20
-sparc                             allnoconfig    clang-24
-sparc                             allnoconfig    gcc-16.1.0
-sparc                               defconfig    gcc-16.1.0
-sparc                 randconfig-001-20260911    gcc-13.4.0
-sparc                 randconfig-002-20260911    gcc-13.4.0
-sparc64                          allmodconfig    clang-20
-sparc64                             defconfig    gcc-14
-sparc64               randconfig-001-20260911    gcc-13.4.0
-sparc64               randconfig-002-20260911    gcc-13.4.0
-um                               allmodconfig    clang-17
-um                                allnoconfig    clang-17
-um                                allnoconfig    clang-24
-um                               allyesconfig    gcc-16.1.0
-um                                  defconfig    gcc-14
-um                             i386_defconfig    gcc-14
-um                    randconfig-001-20260911    gcc-13.4.0
-um                    randconfig-002-20260911    gcc-13.4.0
-um                           x86_64_defconfig    gcc-14
-x86_64                           allmodconfig    clang-22
-x86_64                            allnoconfig    clang-22
-x86_64                            allnoconfig    clang-24
-x86_64                           allyesconfig    clang-22
-x86_64      buildonly-randconfig-001-20260911    gcc-14
-x86_64      buildonly-randconfig-002-20260911    gcc-14
-x86_64      buildonly-randconfig-003-20260911    gcc-14
-x86_64      buildonly-randconfig-004-20260911    gcc-14
-x86_64      buildonly-randconfig-005-20260911    gcc-14
-x86_64      buildonly-randconfig-006-20260911    gcc-14
-x86_64                              defconfig    gcc-14
-x86_64                                  kexec    clang-22
-x86_64                randconfig-001-20260911    clang-22
-x86_64                randconfig-002-20260911    clang-22
-x86_64                randconfig-003-20260911    clang-22
-x86_64                randconfig-004-20260911    clang-22
-x86_64                randconfig-005-20260911    clang-22
-x86_64                randconfig-006-20260911    clang-22
-x86_64                randconfig-071-20260911    gcc-14
-x86_64                randconfig-072-20260911    gcc-14
-x86_64                randconfig-073-20260911    gcc-14
-x86_64                randconfig-074-20260911    gcc-14
-x86_64                randconfig-075-20260911    gcc-14
-x86_64                randconfig-076-20260911    gcc-14
-x86_64                               rhel-9.4    clang-22
-x86_64                           rhel-9.4-bpf    gcc-14
-x86_64                          rhel-9.4-func    clang-22
-x86_64                    rhel-9.4-kselftests    clang-22
-x86_64                         rhel-9.4-kunit    gcc-14
-x86_64                           rhel-9.4-ltp    gcc-14
-x86_64                          rhel-9.4-rust    clang-22
-xtensa                            allnoconfig    clang-24
-xtensa                            allnoconfig    gcc-16.1.0
-xtensa                           allyesconfig    clang-20
-xtensa                           allyesconfig    gcc-16.1.0
-xtensa                generic_kc705_defconfig    gcc-16.1.0
-xtensa                randconfig-001-20260911    gcc-13.4.0
-xtensa                randconfig-002-20260911    gcc-13.4.0
+Pre-existing issues:
+- [High] In `mana_hwc_destroy_channel()`
+  (drivers/net/ethernet/microsoft/mana/hw_channel.c:818-824), a failed…
 
 --
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+
+net: mana: track when the HWC has been handed to the PF
+
+This adds a setup_active flag to struct hw_channel_context, set inside
+mana_smc_setup_hwc() around the point where the ESTABLISH_HWC message is
+published to the PF, and uses that flag instead of gc->max_num_cqs as the
+gate for issuing DESTROY_HWC from mana_hwc_destroy_channel().
+
+A few questions on the behaviour changes that come with this.
+
+> diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
+> index 263e7c4e29341..88e92e94e2e90 100644
+> --- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
+> +++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
+> @@ -683,7 +683,7 @@ static int mana_hwc_establish_channel(struct gdma_context *gc, u16 *q_depth,
+>  				 cq->mem_info.dma_handle,
+>  				 rq->mem_info.dma_handle,
+>  				 sq->mem_info.dma_handle,
+> -				 eq->eq.msix_index);
+> +				 eq->eq.msix_index, &hwc->setup_active);
+>  	if (err)
+>  		return err;
+>  
+> @@ -815,13 +815,13 @@ void mana_hwc_destroy_channel(struct gdma_context *gc)
+>  	if (!hwc)
+>  		return;
+>  
+> -	/* gc->max_num_cqs is set in mana_hwc_init_event_handler(). If it's
+> -	 * non-zero, the HWC worked and we should tear down the HWC here.
+> -	 */
+> -	if (gc->max_num_cqs > 0) {
+> -		mana_smc_teardown_hwc(&gc->shm_channel, false);
+> -		gc->max_num_cqs = 0;
+> +	if (hwc->setup_active) {
+> +		if (!mana_smc_teardown_hwc(&gc->shm_channel, false))
+> +			hwc->setup_active = false;
+
+[Severity: Medium]
+
+The changelog presents this as preparation work, but doesn't this hunk also
+change behaviour on an existing failure path?
+
+gc->max_num_cqs is only set once HWC_INIT_DATA_MAX_NUM_CQS arrives in
+mana_hwc_init_event_handler(). So with the old gate, when ESTABLISH_HWC had
+already been submitted but establish failed before that data arrived,
+DESTROY_HWC was skipped entirely.
+
+Two such cases in mana_hwc_establish_channel():
+
+	if (!wait_for_completion_timeout(&hwc->hwc_init_eqe_comp, 60 * HZ))
+		return -ETIMEDOUT;
+
+and a failing mana_smc_read_response() inside mana_smc_setup_hwc(). In both
+cases mana_hwc_create_channel() -> out: mana_hwc_destroy_channel() then went
+on to free the EQ/CQ/RQ/SQ DMA memory whose frame addresses had already been
+published to the PF.
+
+mana_smc_teardown_hwc() documents why that ordering matters:
+
+	/* Read shmem response (polling for VF possession) and validate.
+	 * For teardown, waiting for response is required to ensure hardware
+	 * invalidates MST entries before software frees memory.
+	 */
+
+Since the new gate closes that window, should this patch carry a Fixes: tag
+and state that it fixes the skipped teardown, instead of being described as
+tracking/preparation only?
+
+> +		else
+> +			dev_err(hwc->dev, "Failed to tear down HWC\n");
+>  	}
+> +	gc->max_num_cqs = 0;
+>  
+>  	if (hwc->txq)
+>  		mana_hwc_destroy_wq(hwc, hwc->txq);
+
+[Severity: High]
+
+This isn't a bug introduced by this patch, since the pre-patch code ignored
+the mana_smc_teardown_hwc() return value as well, but the new gate makes the
+failing-teardown case reachable for every submitted-but-unconfirmed
+establish, so it seems worth asking about here.
+
+On failure the return value is only logged, setup_active is left true, and
+execution falls straight through to:
+
+	if (hwc->txq)
+		mana_hwc_destroy_wq(hwc, hwc->txq);
+
+	if (hwc->rxq)
+		mana_hwc_destroy_wq(hwc, hwc->rxq);
+
+	if (hwc->cq)
+		mana_hwc_destroy_cq(hwc->gdma_dev->gdma_context, hwc->cq);
+	...
+	kfree(hwc);
+
+Those helpers reach mana_hwc_dealloc_dma_buf() and mana_gd_destroy_queue()
+-> mana_gd_free_memory() (dma_free_coherent), releasing exactly the four
+regions whose frame addresses were handed to the PF by the ESTABLISH_HWC
+writel loop.
+
+mana_smc_teardown_hwc() fails when mana_smc_poll_register() times out after
+roughly 20 seconds because the PF never returns aperture possession, or when
+mana_smc_read_response() reports an error or an invalid response. In that
+state its own comment says the MST entries may still be valid:
+
+	 * For teardown, waiting for response is required to ensure hardware
+	 * invalidates MST entries before software frees memory.
+
+Can the device then keep writing EQEs/CQEs into pages handed back to the
+allocator, or into unmapped pages once the IOMMU mapping is gone? The EQ
+MSI-X is also released while the PF may still raise it, and kfree(hwc) drops
+the state that would be needed to retry the teardown later.
+
+The commit message says "Resources are still freed if teardown fails" - what
+makes freeing safe here, given the comment above?
+
+> diff --git a/drivers/net/ethernet/microsoft/mana/shm_channel.c b/drivers/net/ethernet/microsoft/mana/shm_channel.c
+> index d21b5db06e509..3cf6a9f8e32c4 100644
+> --- a/drivers/net/ethernet/microsoft/mana/shm_channel.c
+> +++ b/drivers/net/ethernet/microsoft/mana/shm_channel.c
+> @@ -129,9 +129,12 @@ void mana_smc_init(struct shm_channel *sc, struct device *dev,
+>  	sc->base = base;
+>  }
+>  
+> +/* Requires no outstanding HWC handover. *submitted records possible PF
+> + * ownership, including when setup fails after submission.
+> + */
+>  int mana_smc_setup_hwc(struct shm_channel *sc, bool reset_vf, u64 eq_addr,
+>  		       u64 cq_addr, u64 rq_addr, u64 sq_addr,
+> -		       u32 eq_msix_index)
+> +		       u32 eq_msix_index, bool *submitted)
+>  {
+
+[ ... ]
+
+> @@ -229,6 +234,7 @@ int mana_smc_setup_hwc(struct shm_channel *sc, bool reset_vf, u64 eq_addr,
+>  	/* Write 256-message buffer to shared memory (final 32-bit write
+>  	 * triggers HW to set possession bit to PF).
+>  	 */
+> +	*submitted = true;
+>  	dword = (u32 *)shm_buf;
+>  	for (i = 0; i < SMC_APERTURE_DWORDS; i++)
+>  		writel(*dword++, sc->base + i * SMC_BASIC_UNIT);
+
+[Severity: Medium]
+
+setup_active is stored here (and cleared at function entry) and is
+read/cleared in mana_hwc_destroy_channel(), with no lock and no
+READ_ONCE()/WRITE_ONCE(). What serializes the two contexts?
+
+mana_schedule_serv_work() queues the worker on the system workqueue:
+
+	INIT_WORK(&mns_wk->serv_work, mana_serv_func);
+	schedule_work(&mns_wk->serv_work);
+
+Neither mana_gd_remove() nor mana_gd_cleanup_device() cancels or flushes it,
+and the worker path mana_serv_reset() -> mana_gd_suspend()/mana_gd_resume()
+-> mana_gd_setup() -> mana_hwc_create_channel() -> mana_smc_setup_hwc() runs
+without device_lock, so it can overlap remove/shutdown/PM.
+
+That gives this interleaving on the single shared-memory aperture:
+
+CPU0 mana_smc_setup_hwc()
+	*submitted = true;
+	writel() loop			/* ESTABLISH_HWC handed to PF */
+	mana_smc_read_response()	/* polling */
+
+CPU1 mana_hwc_destroy_channel()
+	if (hwc->setup_active) {			/* reads true */
+		if (!mana_smc_teardown_hwc(...))	/* writels DESTROY_HWC */
+
+Can CPU0 then consume the DESTROY_HWC request header written by CPU1 (a
+bogus -EPROTO), or CPU1 consume the ESTABLISH_HWC response, leaving the
+PF/VF handover state inconsistent while both also race on the plain
+read-modify-write of setup_active?
+
+With the old gc->max_num_cqs > 0 gate this window was closed by accident,
+because the counter is still zero during the setup handover, so the destroy
+path issued no shared-memory access at all.
+
+The underlying unserialized create-versus-destroy of the HWC context
+predates this patch, and later in the series mana_hwc_destroy_channel()
+gains the comment "The caller must serialize setup and teardown operations".
+Would it help to state that requirement in this patch, next to the new
+setup_active field, since this is where the flag starts gating aperture
+access?
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260908035201.402424-1-longli%40microsoft.com
