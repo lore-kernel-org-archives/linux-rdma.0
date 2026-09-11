@@ -1,74 +1,67 @@
-Received: from BL0PR03CU003.outbound.protection.outlook.com (mail-eastusazon11012036.outbound.protection.outlook.com [52.101.53.36])
+Received: from CH1PR05CU001.outbound.protection.outlook.com (mail-northcentralusazon11010060.outbound.protection.outlook.com [52.101.193.60])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DB26457E7A;
-	Fri, 11 Sep 2026 07:52:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.53.36
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5055383C67;
+	Fri, 11 Sep 2026 07:58:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.193.60
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789113127; cv=fail; b=XAwihs9qnbK0dy2Bhej2tSCLRZagHrRCBVNvEpPwin2PpK7QMUwzd2vkMjb17Ve1pgda9lq1VsCYk1/H62IHAgSXm4hS0pT7e5e0oLdH/AkKYOuwcsYOsDwCp+YWaaKrchrdaWA4SEilKSfW3OyO5PlrWzBq7FgYfqcGvC3182k=
+	t=1789113517; cv=fail; b=ZuPmUC5xZ5dz8TG0BwvBJrwPl+/yOFckoMQyFBTxPVKaS6PaZfqPYIFOxjSonFCpd52S6gZbgYea9x7rtagp7lg2ENaDjHBw9rN0Etqvderr8JZhzRuKrRcomURSQvssexFMopPqdtBeu2dUj/jgkP7B99qdjBFRjy6TTZ/Ym48=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789113127; c=relaxed/simple;
-	bh=0MC+WU+nWp7J4mqjn6M0OPVMUtm/qMSCKXW9xkJevys=;
+	s=arc-20240116; t=1789113517; c=relaxed/simple;
+	bh=bPnrCRPcX+rmsQa3LdhWwcjZvRMcqvTVAMM6iw801fg=;
 	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=Z9gRuqxnG363GYs2KbPyV5Gc7a8ER2P7eHcGQIrExOngg6a3r9HNqIfVnUJZPNTPNhMQ6SV2L3C9wV+Dcy/mq8NbCEHSnEeGRibJN5OEUj38Lv6nuEh2CJLLUflqFr/irfeNIypCmrBQeSPb3uSyU9ab+k8kmNNTClr4XSyWfNs=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=1MS+g7mm; arc=fail smtp.client-ip=52.101.53.36
+	 Content-Type:MIME-Version; b=s4IE182iJni7nWD7l4kS3hd4m+J0J96TuzaSgtqhMxW+BJosQsFcpBADX9Zeyp5DI1s2QqxXNky36ZSTraPxeeKmKdqsAnYKUj1hlSVYquAIF6KAC5Xg2mSYQLu0f2rKfWcF9uVl+fKk6MAWiEZfL63+48jrOiC33V3lwF+bmTo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=OX04SZ0M; arc=fail smtp.client-ip=52.101.193.60
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="1MS+g7mm"
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="OX04SZ0M"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=e8P+kX/naPg+xKlYg+V5PosbashBFMv2uIhS59s3ovOAd0sY6DIKjw6hfP+GN8yK8UfgRrsLPj3xcSFG2mJ9HRZU0us79j3uvDjvAFge5pgCNhvRhlVZrfpt+Lk/NTsZ9dWhB8c8smevjg8n057b6MU/3co4aqKwhr7InNPtULpl3Oj/PiYuPa1GTWq/Y/f0/ejsVtb+PXiCPyL1b/Max4wRMEnj8nWhTgeKW7whVvi6v34Abo8B7Ct+uLdDEpdqQl1NnHLCu899va5BpLpxzhzbwi67L8m/+2vHCuaz7AwSmis49+fT/BqrXrkDEk1XgNLLyCOsxJjRXGVgRh3iOA==
+ b=ofHgP5xIuNkTtRZPvGSJwqZ4QxwLdXIcJ5/lLpq5p0cK6r4pocCQGym4K4Ujt9NPKc9Ml9qbEKA1fKu1Sxzx3kGaqeCecQ0x5VVQ49N0OmIMpbO+6gU+J9s/rxND87WdODP1dTTk6BHLoIexcJYut6THoiMqO0r3u3kDdsHS14J819d+M04yhvfDpy/Oztt6HHQBZJeK6DtZD5TCX4MwlAffVUclnJdq2vWsbfIdVlaNNt8WZEOFD0Ay6Jq3LjiR3AvihtzCxQyKxyo7OXW/FMyHM8bzWkNQUpy/tRsOp5mo/xpX4xT3p/1Beryr/OKGV/ll7+9EO/LIzQReVqmEKg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=U4xsf7EBCyH2cj8ZFFkA8wuthLDfQyDMumPJc3wfx3o=;
- b=Ujn11UANmzarCjrBtlOVGmg90I0ulIdlf8+ll6KLdR9Kti/6iocvdPNIN8uZySQ5++g8OEDeb7JNiZghYtuUOsAVvEj2LPpAenda2BoYk047Sx2BCeHFFheUjJArPbYuJGWy0kSmSkushOzajEpSTQdWN1BHb7YV5cL3zJ7HCymE4/jmoYMWXVsoQNxBCkW4TMZUyqa0SFSTwguMZeFoXAdh0yE80vT5zztRd2IgYFHv9tiC4zqG6VaHA/aBj12sqztK15QdCEcoTKTXXf0YFmwupujRCpoT9x85/JRra4NlQx8/qpi9AC9eNrOfNSKfEtiMVNTEYYYPOenR+MhHhw==
+ bh=7wN7S3L9YhbhqLrBindsZgMO2eXt4YANXX9yCyIonxI=;
+ b=C3tJtq158XmWQDv2F+b53+1eq8G5NGeYDV0JlYlYlZK0jgBcRqVf3Dt1EqHtBi7DBheKN5LPyeKFRY4ovtV5rRUfokI09zVbUOtEEvxRn8GVMyeV/zw7JNTCUsrddbsyL6xwKw1frezrAUXaH34MnIWoZIeXre0DosXMO0Xex5C3HgJ5bazI1pe1tfdI9Rn3b+V0RjDpFzVGiKXlj+jvaJR2HFaktqS3/mvFWfO2qSZPHsBPRmkSbqxLp42/U6J9By+k1937f+bHE+MF/+5N42SRwJ8GOHjLRSNVYuwNE5ExVA+Sp8UmjagpT0JwwiLjjiOmKuEKvtcHkTGC9mjrtQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
  header.d=amd.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=U4xsf7EBCyH2cj8ZFFkA8wuthLDfQyDMumPJc3wfx3o=;
- b=1MS+g7mm5XrJRi4/G4jqy8IRNv4jNzr9X1mGwV0B9MCerHIV5KGPNRx0iMkXAQWir0Gzp6MmcnqPQqfypz6F2mUJ9Y6X3VQrVj+v/Tn3yj6av9YkhJBaf/HX91LF550acJPJTPefaAYllJ1SqTTEkMLbyGoKkwuKeFFDtUOxXMw=
+ bh=7wN7S3L9YhbhqLrBindsZgMO2eXt4YANXX9yCyIonxI=;
+ b=OX04SZ0MgVW5UtgGQE8funZkEPuXsjveAoB04xGFQll3ae1HMC6joQbROIaNKxWPG5UXa+1wjGjCiZlyqDB0r4XBzcapaMcUwpaq9guKv5Q8NHhnlrm/zCRd+/OmQrht6jjOQN+23k89ecmtSQ9SPNUH4aUkCzMoNKjV4FyvCnc=
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=amd.com;
 Received: from PH7PR12MB5685.namprd12.prod.outlook.com (2603:10b6:510:13c::22)
- by CH3PR12MB8481.namprd12.prod.outlook.com (2603:10b6:610:157::21) with
+ by SA1PR12MB6918.namprd12.prod.outlook.com (2603:10b6:806:24d::8) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.406.9; Fri, 11 Sep
- 2026 07:52:01 +0000
+ 2026 07:58:32 +0000
 Received: from PH7PR12MB5685.namprd12.prod.outlook.com
  ([fe80::ce69:cfae:774d:a65c]) by PH7PR12MB5685.namprd12.prod.outlook.com
  ([fe80::ce69:cfae:774d:a65c%3]) with mapi id 15.21.0406.005; Fri, 11 Sep 2026
- 07:51:55 +0000
-Message-ID: <7805bb89-2c46-46f6-9f15-8dce842d5ae5@amd.com>
-Date: Fri, 11 Sep 2026 09:51:48 +0200
+ 07:58:32 +0000
+Message-ID: <c0c8dea4-1571-482e-be33-f965c7c357d2@amd.com>
+Date: Fri, 11 Sep 2026 09:58:28 +0200
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5 17/18] dma-buf: Let importers ask how peer-to-peer
- traffic is routed
-To: Leon Romanovsky <leon@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
- Logan Gunthorpe <logang@deltatee.com>, Chaitanya Kulkarni <kch@nvidia.com>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jens Axboe
- <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
- Ankit Agrawal <ankita@nvidia.com>, Jason Gunthorpe <jgg@ziepe.ca>,
- Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>,
- "Joerg Roedel (AMD)" <joro@8bytes.org>, Will Deacon <will@kernel.org>,
- Robin Murphy <robin.murphy@arm.com>, Randy Dunlap <rdunlap@infradead.org>,
- Sumit Semwal <sumit.semwal@linaro.org>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-doc@vger.kernel.org, iommu@lists.linux.dev,
- Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
- dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
- linux-rdma@vger.kernel.org, kvm@vger.kernel.org
-References: <20260910-fix-p2p-acs-v4-0-v5-0-856087f63c0d@nvidia.com>
- <20260910-fix-p2p-acs-v4-0-v5-17-856087f63c0d@nvidia.com>
+Subject: Re: [PATCH v13 0/5] vfio/dma-buf: add TPH support for peer-to-peer
+ access - ping
+To: Zhiping Zhang <zhipingz@meta.com>
+Cc: kvm@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-pci@vger.kernel.org, dri-devel@lists.freedesktop.org,
+ Bjorn Helgaas <bhelgaas@google.com>, Alex Williamson <alex@shazbot.org>,
+ Jason Gunthorpe <jgg@ziepe.ca>
+References: <20260731211601.3033906-1-zhipingz@meta.com>
+ <CAH3zFs0vQidHOWif_LmS0=65S9iiCo7yGibqLvFT5jadjj8wVA@mail.gmail.com>
+ <CAH3zFs2XnH6gT0fO4=WLi4x1SL2+Y0S=Jo45SWkR=unPegQ8Hw@mail.gmail.com>
+ <CAH3zFs2X8=x-XMXhwC7_aUZivCCPQOSuyXMy-ryKqxLEFY9u-Q@mail.gmail.com>
 Content-Language: en-US
 From: =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>
-In-Reply-To: <20260910-fix-p2p-acs-v4-0-v5-17-856087f63c0d@nvidia.com>
+In-Reply-To: <CAH3zFs2X8=x-XMXhwC7_aUZivCCPQOSuyXMy-ryKqxLEFY9u-Q@mail.gmail.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: FR4P281CA0141.DEUP281.PROD.OUTLOOK.COM
- (2603:10a6:d10:b8::9) To PH7PR12MB5685.namprd12.prod.outlook.com
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: FR4P281CA0406.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:d10:d0::11) To PH7PR12MB5685.namprd12.prod.outlook.com
  (2603:10b6:510:13c::22)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -77,314 +70,303 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH7PR12MB5685:EE_|CH3PR12MB8481:EE_
-X-MS-Office365-Filtering-Correlation-Id: c4ced7f8-639b-4d66-a7ca-08df0fd98c7b
+X-MS-TrafficTypeDiagnostic: PH7PR12MB5685:EE_|SA1PR12MB6918:EE_
+X-MS-Office365-Filtering-Correlation-Id: 254c8a56-1bb5-4b7a-9f4b-08df0fda794b
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|366016|23010399003|7416014|1800799024|376014|5023799004|921020|56012099006|11063799006|10067099003|22082099003|18002099003|4143699003;
+	BCL:0;ARA:13230040|366016|1800799024|23010399003|376014|10067099003|6133799003|3023799007|5023799004|11063799006|4143699003|56012099006|22082099003|18002099003;
 X-Microsoft-Antispam-Message-Info:
-	Dj2bG12+Yz3d53wtUG5XGKfXmCbpe8D8VDeT5KGdgUKvutE9CClrX3gP0nRk16631aTud++kjT3awU/C0WmUQYR3fo+5DVCJFe4LmgDtZXff+ZcGRyPKvcsoSShC3GYvzUgbSBDrWTEM+vLncGb36qoC5I3I/HjbsKMQL2eG9bk/lC/rhPF/u2PaQYsp2hBgmsK9e3BtMMsnmVtgwyWgIuAvqqpA1hOLGUf6CRhnCeKPf7z8Zk6GgbPOx+3TWWxNCnnC62p59E83ThecaaHNR95CmEmzFOWFEOSeflEYJgvEQ0MPV3GO5US1GzsRxsbeVCG4IvPJWFhUcJAEpdmyHFzZHJ4kDbTFTs2FdDcGwZnGXfq72JtPwkAHPkw8r9L1X0RrAM3v4POnvBwRkkdm7XZX5xaRPLN2k1bk432WEAUxlf6wRfIZtzjj77lGiQ70H7SNCZnwgM9YG8BFN1V2WxM5yYVXcxFk+PJV/Sw2+eKmHj7cqNDXDR5Q5/DYAv6jUD2B3OB+cJdxyHSP0Vj2KQs+nkBUVqEzXRHxJZnIRQaa3q8hSFym8hbx50EWORK87dUdvbF7wLxn+1r5+3ictcBpuCzF6V1smWxnz1bKiup0w8f3gmGf3BZNClOAD/sB4+mJaZPbKj/7EY8ubRivsfWmmGlpgaLYgAmM18M93HhfEdY9anjKxXrj2N/My3Q4qNPtIGreF8QcdF9OH41ykw==
+	njM/dl89oxLkPMYu5IcBLTZZaeS4HJQ3+sMLIM+99gc9Xf6cbJV0BlFsnz0O9R16iJbIluqXKJTzZIP91lYBDU6e+mJQbxypTUIwk+nfOJpdHiMykPdnoM1bRN3WG0pY1omg0aPWdESmTsEyq5qwiqjaaZAL56yr8Gbv6FJ8SJDaMhIMN5MqLmiTSaWHAtzj4NCvFswKq8+TJhvsAO9/mJWEVw06x/thW0MtWKQj59YvNEbKiZjJEbqAQ4pw9/FUileQENyS4VhtaaZ79wYecAlgidNXTAWm7ym9WA9uDuYJr5BMaxLs6AMLtWK/PC5EpdDwg0T9qjZ2H37E3xNNgOVvJiUnrruu7IOX8SD5k2LEn1Goh5BZ/J4stQzTyRCUtW7KTay2vnFd7P9OsxZOd5McHJNoXgxPSk3tWfXWxqCyRaLUayDi+Pb8IMCYE/VJzccNxjEpLAHKIG9gfNuLIiEq9TJR20quMoY8XHRlHQg3jC/03ZoYGPyP23A6nBVgrP6EP9ybIPr8XHaVXfThA/FXeCDyKhjq50rxZzIM9DG2fZE9HJTdzbV/UBoLYltwPhkW6+it5kG1X9M1yjSD/WK38ZQcSGip4xewV2OxByHVNasvtL/JGHjfzo3uKR+TNz0BPn74iwBwAoDJWWgU4AAoWvESqZQxYiOcYKzbNyM=
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR12MB5685.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(23010399003)(7416014)(1800799024)(376014)(5023799004)(921020)(56012099006)(11063799006)(10067099003)(22082099003)(18002099003)(4143699003);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR12MB5685.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(23010399003)(376014)(10067099003)(6133799003)(3023799007)(5023799004)(11063799006)(4143699003)(56012099006)(22082099003)(18002099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?MjcvSFV4eGFwK2hiZDZzaXdIR2pmR2VlRmdlNm9pSkpkVjRSUnlOeEloQ01P?=
- =?utf-8?B?Zmp1Y1FtUjZFWHNMSUFSZVQvbG1RQTZmemxCSENFRmIrU29CZjY3WEFCY2Fu?=
- =?utf-8?B?WEFySXBQV0VLemh5WVQ1OWVQMVBOTGNQT0JGVy9lZmlkQnozWlJRVlBiVE1I?=
- =?utf-8?B?cHhWeFNucnZCTHB5djdydFo2bVNTNW1Id296RzdBT1N4alBLaXBubG94VjRK?=
- =?utf-8?B?bjlEZjRxbWQ0YjNwK0F3QzVvUXVTWnZLQ000R0hENUd2M3VtYXZyNVU5MkJ5?=
- =?utf-8?B?alZTYzdhMkRNdkdhaUhjcVlock1xN1pRRE8wdW1PUmVTeW04S2dEcGFSb2tZ?=
- =?utf-8?B?UVUwWjNWREZYOXJuSG1uYWZwL2Uxa1RtdXdnaVJncDd0bGhDQzVoU0kzd1d2?=
- =?utf-8?B?K0ZPRDN3WmJTWE5jekJ5czlXanFUek04b1kyM1ZsZC9kVkNnQkFlbXc5WGt2?=
- =?utf-8?B?MW10TlFTZXMyMVZWRzcrWVVtNFdvTlgwbEswVmF2ditueFJlQ2EwRUV2Yklp?=
- =?utf-8?B?Y1M0UmRUNWhxa09WTGZaRVJvNVpuWlNxYmp3bm5vdTI4Uk9Wc0E3ZHlmbDVs?=
- =?utf-8?B?emVLNCtyUm42dEFQSTFGNDNIcDFWVlNUVG9kSE1KVU9sMkpnc3ZLUUZQZ01Y?=
- =?utf-8?B?cnJ5QWZhR3htUUFJbmJZQnFaVlZ1Q21hS210c3EzWEo2d3pRYUt1cU9JYnM4?=
- =?utf-8?B?aUhsdWhlNWNmbFVFaTZhSDQ1MlRpT0JRNW9pMzk5ZWFuOWlCSU44Nk5GeGxQ?=
- =?utf-8?B?OGFNeDducCtNb0dIc2tsVkpqWWwzaEJiSXNjMXNXaGF0SFhxT0VqaEJUK05G?=
- =?utf-8?B?ZExyMEZ4d0NhMldENFhTVElUOExiVHN0dndReVpqVDJMZnQ5YVBWc3hYWnpC?=
- =?utf-8?B?UzFLbTAwVFJobnZpOXRoZisvU0hNZ2RiTXJrSHJPaEhuaU0za2FCYXBUa1VT?=
- =?utf-8?B?TUR5T2ZRdDhMTDMweHRoNUgxY1BVbklLQm9aODJOTzdGRzJ0alR6b1dVbTJk?=
- =?utf-8?B?TlAzZjVPY2t5Tmd5c0wwM0hkQm9JSXpTRGd2MjhjT1NweUdFNjFDR1FjeEt1?=
- =?utf-8?B?U0lkdm5qVkZzcCtNci9KbloyaTlERHhHSUNFaHdFOERTME1reTNtS1ZWOUJr?=
- =?utf-8?B?bGFXMXpSaFd2U0hvcEhjdjV6R0pibUJzbU5pbFFaWDc5WmdzSzJ2U1RsLzFQ?=
- =?utf-8?B?ZkVCY2xRZUMrcU40Z0FkVDFXK056WXhYUWIxU24vaUdWY0dkZXcyU2Q1SnZM?=
- =?utf-8?B?dFAyRXRrd3lUN0N2SUNFZU85RWMwL3VidDRPK0oxMXc0eEpaOUNleWorVlFi?=
- =?utf-8?B?RXlQNFZRbXZXRXNhV21pcjFHOFU2V3N4QWl1VGU2K0FKMEF0czRxdy9IQW5M?=
- =?utf-8?B?YktSY05qQmZFeHowWEU5aUNMTC9kSnBSeFpGQldCM0hqZGdUQWlPNEhQOVBP?=
- =?utf-8?B?c1hLSllDdGdNampvOXZ4ek5OYzdRa29qbHdpQWtEUDd6UFVaQ1RJcitldUZX?=
- =?utf-8?B?RXJZOThMV3k5U3lUVXduN2JkY1VCbnYxeGYwZXFDZjhWYnJEUVpvWVArME5o?=
- =?utf-8?B?QzArU1BQd2FXeXFnUjJTL1JOWGpCV0xHRG1DV01QSE9Vb0pRRjVJdWVZaHdL?=
- =?utf-8?B?TjByRmM5MmthQ2RIQU9kQnNmZmlPRVBkbkZVVGZaMTk5bG1NanJYWmxkMTI1?=
- =?utf-8?B?SzNLbkNnU2xOQWdNOGN5bXpRejRLN0w3UDV2eFRJUlJKNkFTamFCeDUvdWlz?=
- =?utf-8?B?TUNwWFFoYWpXZU0xVXBZVHpaM3BzNlVQenFrRVJpNkdKWm9YeHN1MzZwaXdq?=
- =?utf-8?B?OWJjSjhkSGRTVG44ZmZGZ1BncVlTTnc5dXhTemNwc2s1WGxhTkJuU3JET0pE?=
- =?utf-8?B?T0UrU1hCMGR3RitQR0U1cEIvWjJxMy82cm9CSi9XT1N0VUVLWnh3VlQzYm1H?=
- =?utf-8?B?T2xhd3FxVUhiR0dERWR1aVpKKzQ0eDFDYWJaTllMZVZjaGVpamU3QjcwSHZ5?=
- =?utf-8?B?YWJFeUVKS0NxVVA5blh4RHd2R0Fua254SVlGYWh2NHdiK2VBNlJ2U3ZwNHMy?=
- =?utf-8?B?RVlJUW5OWndXRTMyTThRVXBEWUdWcUVJN2hsTU41eG5yTW1QRVF5UE1oOHhF?=
- =?utf-8?B?dk9lN2Jqb3BJYTFQRDcwUHpnOGp6K2RGNVZKNjM0QkRiTitQb2YyUUh1THhE?=
- =?utf-8?B?VkNqTEREcXl0QjhnVHhPZmpHZEU4ZTNGSW50N1BpT255WDZjYVpCbWkxUnZE?=
- =?utf-8?B?Rlpzd3BiUGMxZ0F2R2M1TnNtZFZicjlpWVNRanVHNDkybUdNQ0R3ajd2UFBS?=
- =?utf-8?Q?Y9KBBdUheuq75GdHac?=
+	=?utf-8?B?OEFZY0VRZ0N0KzE1bENNd0wwN0lETUZGdU8yRER0MkJlZkVZdGtUQzJucytC?=
+ =?utf-8?B?ckd1MVMzMC9vNThackRGYjV2c1FKVkljRVh0a2EyMzRmTW92eU93bkJHV1RW?=
+ =?utf-8?B?U0FmTWZzdGd0SUtMdGVKamRweWEzQ3dOcjB6SytVMm1XMlF3RDNJamY0c24z?=
+ =?utf-8?B?MU81c1lNMW1OUmRLcWFneUdsUmp5bUhSSUdiRDVreGJoaVVWTXhFK0dsN2x2?=
+ =?utf-8?B?QXV6YXZlUGZ2TjVYOXRpek51K3ZPRkpvSU52VStyS3l2alcxcnA2WkNNamky?=
+ =?utf-8?B?eFI3Y2V3d0FKaEdtdzVBWEVaZU10Z1RRUHpFelFEU25zR1ROdzUwWWIva1Jr?=
+ =?utf-8?B?b3JNcnB6ZjRGTXZJVjBIaTFlSXJwQ3pCUUI2eUJZR3lrd2krR1EvOXYwbDg0?=
+ =?utf-8?B?ZFJMQkNxYzhuYklVWFBVUEt6TWlBVkdSQVl4eDBMc0dpVXZQUE45ZVlhOWVP?=
+ =?utf-8?B?ckIzelpySVcrR2swdGRFZDhGUkdZVVE1TklPaWFMTGhLTUFSV2tMazVTSmEw?=
+ =?utf-8?B?OVdEcWJXdTBvN1FLMXROK3Q4TGJCRFQzQ0FQUHdKWkVJeDZ4d2taK0ZsQU1n?=
+ =?utf-8?B?MDJVaUVFZFFmQUN6WnlMZDMydXlLWVM3SklzeVh5Vno3WnJhbW9OemdydW5r?=
+ =?utf-8?B?a0hsdThlZUpkd1k5bVdsa0Zyc2NrSUZqUTkxc1VoYzVRSEZ4Y3NyMDhybFFQ?=
+ =?utf-8?B?aGhObitsYmV5WW51Qi9RaVN1UkEyMWk0cWpzUHg0cTg5Z0p5UXk2NjRieWlH?=
+ =?utf-8?B?dzIwcmU5ZUpiTXJpUUVQQmRFYlI5K1MxK2VzNUg1aG1DWWN5L1RRMGQwSUR1?=
+ =?utf-8?B?VDl1RGNuaHZjOWlkREJQbG9MM051bThpQTlkOFlVSEZ0bVNMSmpqSUpsZFFU?=
+ =?utf-8?B?aUVPWlEvTWN6V1l1NDRTdnhmVWVPRVpJSk4wOTI4SzJFaG5SeUgyMkRwVVNy?=
+ =?utf-8?B?cnNldnlqM3cvdUJyQ3ZvdXpVRjJhNlFWMTBZdyt0a2VPWlhMenVnS1lXQlc0?=
+ =?utf-8?B?UGNDZHZaYU03dndya0Q3RC9ucjhaOHRQcEx2MEY3YzIvMU9xbDRoM05rcjBz?=
+ =?utf-8?B?di82SXl5TG9lSlNQRkNiVXlRdm1TRk5rRHVkcWQreWJ2dEdPQTRLM0F4a09C?=
+ =?utf-8?B?SkZFbXdjQUszNzU1ZVRBS1dIMDdBblV1MW5JQ0UwNHJOZDRENDdGOGdmR0pM?=
+ =?utf-8?B?UmRNK1hUNVBGbC8yM2RqcWtPWWV2MCtVUnVzeGVWd2NSQ1Bvdi9xcnZPMWRO?=
+ =?utf-8?B?OEk1VDRxay92YnU4OVd1U25POHhGcjdsMll0dm9OeENRbm45WVVHeXQxSnM1?=
+ =?utf-8?B?L3lFZ3UyZWNOeHB2WGkxLy8rYjhHM29OYkhhRllweUZQRk04eCtmTG1Rbi9T?=
+ =?utf-8?B?M3dNZDJXaUh6SDRCSTZmdmlqemxHdld0MnJ6ZzVUdEhyVUFoenpUM2R4SG9i?=
+ =?utf-8?B?aXZCa055UDdjNGNoV3FUTkJzYklPUUdGS0tnc3JsWGNRdFl5YmZ5clVIU0J1?=
+ =?utf-8?B?Wlg2YlNSK0NEak0wQ0tVVjdibGQ2dDVCZWpCUkJMWDdlRnptU1FDekx3dzdr?=
+ =?utf-8?B?em02QnU3L1JyWDlEa0hzQkZodUpsTzByaWVEcGlETW1jc1dDRWc0eFJVL05N?=
+ =?utf-8?B?Qmt1OWhlWkM5S0NOZnNyM1F6aS9keXJrTkd4cVlESUdZc0dBaUp2MC9BZU1o?=
+ =?utf-8?B?QTZxZ3ZUUEJYYkhtVXZpR3BUcEpnOFpMT1dydHJzOGR5ZFVzRlNqaGpHeXdn?=
+ =?utf-8?B?VVBHbExnWS93WXd3QStveGhYZGtJNkRrbC9FalR5TTBFenRNcE1LclJHWGZw?=
+ =?utf-8?B?VFNGa2lBS0oyQkFZMXpUK1AwOUl1RzdUSi8rbXY3ZUlBNW1RSXZoWlNWdU9s?=
+ =?utf-8?B?bWJtOHBpdE1JaDRGVXFadTk5SGFBVWRmeFo1TUxtSmpSemxIVURHMXF6QUhq?=
+ =?utf-8?B?NEdUL21GVVdLMUdyUk5UcXJSSjZubFlrdWNYYzZLWXZTbzJUOUlPa2Nnbjdt?=
+ =?utf-8?B?cVY5Qm9qVEtjRHM1ZDV1KzhISHF5R05YbElQUkRUVjk1ZWxETGx0NVpJeXpw?=
+ =?utf-8?B?dnpHckJPYUFGRjRJMVV0ZE04NXI3WTF1UE9BSllwVWJoYm5NVGxLWnEyOEJ2?=
+ =?utf-8?B?dlkvdy9RSlBwc3ArR0srbjlyVTd5TXpvcEh3WFZQWjlMNWpqRXJQakg4aVdh?=
+ =?utf-8?B?WlgwdUlvN3NDbnBnUFRrS1J2RmI5ays2VmJLYVVrQzFzMEpSa3VWc0pSRkJs?=
+ =?utf-8?B?cC8zSXZLOXRGamlxMW1UZ2dVKzhMaTF3Z1MyQ0labklNZVVKMjR3WjlVSmlI?=
+ =?utf-8?Q?3BL6PeBS8+x8X44AlA?=
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: c4ced7f8-639b-4d66-a7ca-08df0fd98c7b
+X-MS-Exchange-CrossTenant-Network-Message-Id: 254c8a56-1bb5-4b7a-9f4b-08df0fda794b
 X-MS-Exchange-CrossTenant-AuthSource: PH7PR12MB5685.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Sep 2026 07:51:55.1383
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Sep 2026 07:58:32.3745
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: F25tz68ME8GnsWHbNXtfcMji+a+CuFqY6NwOWMPBWkzOzdPj4pBP2M0UZSNbY9Zr
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB8481
+X-MS-Exchange-CrossTenant-UserPrincipalName: 6faJbqjkLEq0GDGxRJoE5cjl7PpUtMWYtN7Vb9NPPHH662qzVbRIgLOW/8OT64LH
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR12MB6918
 
-On 9/10/26 13:32, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@nvidia.com>
-> 
-> Exporters keep the &struct p2pdma_provider in their own private data and
-> hand it to dma_buf_phys_vec_to_sgt() on every map. An importer cannot reach
-> it, so it has no way to learn how its own peer-to-peer traffic would be
-> routed before it programs its hardware.
+Hi Zhiping,
 
-Why should that be interesting to importers?
+sorry I'm completely underwater at the moment and don't have time to take another look at the full set.
 
-In general importers should just consome the data provided by a DMA-buf and don't participate in any way in the decision how that data is made available.
- 
-> Publish the provider through &struct dma_buf_export_info instead,
+But IIRC you already fixed my documentation requirements and skimming over the patch once more I can't see anything wrong of hand.
 
-That is a very bad idea and not even remotely acceptable.
-
-This needs to be a callback instead if that should really fly.
+So feel free to add Acked-by: Christian König <christian.koenig@amd.com> to patch "dma-buf: add optional get_pci_tph() callback" and push it upstream through the VFIO channels.
 
 Regards,
 Christian.
 
-> and add
-> dma_buf_p2pdma_map_type() for importers to query it by TLP class. It is
-> fixed at export time, so dma_buf_phys_vec_to_sgt() no longer needs it as an
-> argument and the two exporters no longer need a copy of it.
+On 9/10/26 23:46, Zhiping Zhang wrote:
+> Hi Christian,
 > 
-> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
-> ---
->  drivers/dma-buf/dma-buf-mapping.c                 | 41 +++++++++++++++++++----
->  drivers/dma-buf/dma-buf.c                         |  1 +
->  drivers/infiniband/core/uverbs.h                  |  1 -
->  drivers/infiniband/core/uverbs_std_types_dmabuf.c |  7 ++--
->  drivers/vfio/pci/vfio_pci_dmabuf.c                |  8 ++---
->  include/linux/dma-buf-mapping.h                   |  4 ++-
->  include/linux/dma-buf.h                           |  5 +++
->  7 files changed, 49 insertions(+), 18 deletions(-)
+> Third ping on this series. The only patch still without review is 3/5,
+> which adds an optional get_pci_tph() callback to dma_buf_ops:
 > 
-> diff --git a/drivers/dma-buf/dma-buf-mapping.c b/drivers/dma-buf/dma-buf-mapping.c
-> index 794acff2546a..8b431000e906 100644
-> --- a/drivers/dma-buf/dma-buf-mapping.c
-> +++ b/drivers/dma-buf/dma-buf-mapping.c
-> @@ -6,6 +6,32 @@
->  #include <linux/dma-buf-mapping.h>
->  #include <linux/dma-resv.h>
->  
-> +/**
-> + * dma_buf_p2pdma_map_type - How peer-to-peer traffic to a buffer is routed
-> + * @attach:	attachment of the importer that will issue the traffic
-> + * @tlp_flags:	&enum pci_p2pdma_tlp_flags describing the TLPs it will issue
-> + *
-> + * Reports how the PCIe fabric routes @tlp_flags traffic between the buffer
-> + * behind @attach and the importer attached to it, so that an importer can
-> + * choose the TLP attributes that earn it a direct route before it programs
-> + * its hardware.
-> + *
-> + * Return: the mapping type for @tlp_flags traffic, or PCI_P2PDMA_MAP_NONE
-> + * when the exporter named no &struct p2pdma_provider and nothing is known
-> + * about the route.
-> + */
-> +enum pci_p2pdma_map_type
-> +dma_buf_p2pdma_map_type(struct dma_buf_attachment *attach,
-> +			unsigned int tlp_flags)
-> +{
-> +	if (!attach->dmabuf->provider)
-> +		return PCI_P2PDMA_MAP_NONE;
-> +
-> +	return pci_p2pdma_map_type_tlp(attach->dmabuf->provider, attach->dev,
-> +				       tlp_flags);
-> +}
-> +EXPORT_SYMBOL_NS_GPL(dma_buf_p2pdma_map_type, "DMA_BUF");
-> +
->  static struct scatterlist *fill_sg_entry(struct scatterlist *sgl, size_t length,
->  					 dma_addr_t addr)
->  {
-> @@ -71,7 +97,6 @@ struct dma_buf_dma {
->   * from arrays of physical vectors. This funciton is intended for MMIO memory
->   * only.
->   * @attach:	[in]	attachment whose scatterlist is to be returned
-> - * @provider:	[in]	p2pdma provider
->   * @phys_vec:	[in]	array of physical vectors
->   * @nr_ranges:	[in]	number of entries in phys_vec array
->   * @size:	[in]	total size of phys_vec
-> @@ -85,16 +110,17 @@ struct dma_buf_dma {
->   *
->   * A mapping must be unmapped by using dma_buf_free_sgt().
->   *
-> - * NOTE: This function is intended for exporters. If direct traffic routing is
-> - * mandatory exporter should call routing pci_p2pdma_map_type() before calling
-> - * this function.
-> + * NOTE: This function is intended for exporters, and works on MMIO memory
-> + * only, so &dma_buf.provider must have been set at export time. If direct
-> + * traffic routing is mandatory the exporter should call
-> + * pci_p2pdma_map_type() before calling this function.
->   */
->  struct sg_table *dma_buf_phys_vec_to_sgt(struct dma_buf_attachment *attach,
-> -					 struct p2pdma_provider *provider,
->  					 struct phys_vec *phys_vec,
->  					 size_t nr_ranges, size_t size,
->  					 enum dma_data_direction dir)
->  {
-> +	struct p2pdma_provider *provider;
->  	unsigned int nents, mapped_len = 0;
->  	struct dma_buf_dma *dma;
->  	struct scatterlist *sgl;
-> @@ -104,10 +130,11 @@ struct sg_table *dma_buf_phys_vec_to_sgt(struct dma_buf_attachment *attach,
->  
->  	dma_resv_assert_held(attach->dmabuf->resv);
->  
-> -	if (WARN_ON(!attach || !attach->dmabuf || !provider))
-> -		/* This function is supposed to work on MMIO memory only */
-> +	if (WARN_ON(!attach || !attach->dmabuf || !attach->dmabuf->provider))
->  		return ERR_PTR(-EINVAL);
->  
-> +	provider = attach->dmabuf->provider;
-> +
->  	dma = kzalloc_obj(*dma);
->  	if (!dma)
->  		return ERR_PTR(-ENOMEM);
-> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-> index d504c636dc29..c2b9944e9659 100644
-> --- a/drivers/dma-buf/dma-buf.c
-> +++ b/drivers/dma-buf/dma-buf.c
-> @@ -747,6 +747,7 @@ struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info)
->  	dmabuf->size = exp_info->size;
->  	dmabuf->exp_name = exp_info->exp_name;
->  	dmabuf->owner = exp_info->owner;
-> +	dmabuf->provider = exp_info->provider;
->  	spin_lock_init(&dmabuf->name_lock);
->  	init_waitqueue_head(&dmabuf->poll);
->  	dmabuf->cb_in.poll = dmabuf->cb_out.poll = &dmabuf->poll;
-> diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-> index c64dd6b94e10..fbdac18b69ca 100644
-> --- a/drivers/infiniband/core/uverbs.h
-> +++ b/drivers/infiniband/core/uverbs.h
-> @@ -139,7 +139,6 @@ struct ib_uverbs_dmabuf_file {
->  	struct list_head dmabufs_elm;
->  	struct rdma_user_mmap_entry *mmap_entry;
->  	struct phys_vec phys_vec;
-> -	struct p2pdma_provider *provider;
->  	struct kref kref;
->  	struct completion comp;
->  	u8 revoked :1;
-> diff --git a/drivers/infiniband/core/uverbs_std_types_dmabuf.c b/drivers/infiniband/core/uverbs_std_types_dmabuf.c
-> index 2411ebee69e2..94d3719a34da 100644
-> --- a/drivers/infiniband/core/uverbs_std_types_dmabuf.c
-> +++ b/drivers/infiniband/core/uverbs_std_types_dmabuf.c
-> @@ -33,9 +33,8 @@ uverbs_dmabuf_map(struct dma_buf_attachment *attachment,
->  	if (priv->revoked)
->  		return ERR_PTR(-ENODEV);
->  
-> -	ret = dma_buf_phys_vec_to_sgt(attachment, priv->provider,
-> -				      &priv->phys_vec, 1, priv->phys_vec.len,
-> -				      dir);
-> +	ret = dma_buf_phys_vec_to_sgt(attachment, &priv->phys_vec, 1,
-> +				      priv->phys_vec.len, dir);
->  	if (IS_ERR(ret))
->  		return ret;
->  
-> @@ -108,7 +107,7 @@ static int UVERBS_HANDLER(UVERBS_METHOD_DMABUF_ALLOC)(
->  		return -EINVAL;
->  
->  	ret = ib_dev->ops.mmap_get_pfns(mmap_entry, &uverbs_dmabuf->phys_vec,
-> -					&uverbs_dmabuf->provider);
-> +					&exp_info.provider);
->  	if (ret)
->  		goto err;
->  
-> diff --git a/drivers/vfio/pci/vfio_pci_dmabuf.c b/drivers/vfio/pci/vfio_pci_dmabuf.c
-> index c16f460c01d6..10f47992e7f5 100644
-> --- a/drivers/vfio/pci/vfio_pci_dmabuf.c
-> +++ b/drivers/vfio/pci/vfio_pci_dmabuf.c
-> @@ -15,7 +15,6 @@ struct vfio_pci_dma_buf {
->  	struct list_head dmabufs_elm;
->  	size_t size;
->  	struct phys_vec *phys_vec;
-> -	struct p2pdma_provider *provider;
->  	u32 nr_ranges;
->  	struct kref kref;
->  	struct completion comp;
-> @@ -59,9 +58,8 @@ vfio_pci_dma_buf_map(struct dma_buf_attachment *attachment,
->  	if (priv->revoked)
->  		return ERR_PTR(-ENODEV);
->  
-> -	ret = dma_buf_phys_vec_to_sgt(attachment, priv->provider,
-> -				      priv->phys_vec, priv->nr_ranges,
-> -				      priv->size, dir);
-> +	ret = dma_buf_phys_vec_to_sgt(attachment, priv->phys_vec,
-> +				      priv->nr_ranges, priv->size, dir);
->  	if (IS_ERR(ret))
->  		return ret;
->  
-> @@ -274,7 +272,7 @@ int vfio_pci_core_feature_dma_buf(struct vfio_pci_core_device *vdev, u32 flags,
->  	priv->vdev = vdev;
->  	priv->nr_ranges = get_dma_buf.nr_ranges;
->  	priv->size = length;
-> -	ret = vdev->pci_ops->get_dmabuf_phys(vdev, &priv->provider,
-> +	ret = vdev->pci_ops->get_dmabuf_phys(vdev, &exp_info.provider,
->  					     get_dma_buf.region_index,
->  					     priv->phys_vec, dma_ranges,
->  					     priv->nr_ranges);
-> diff --git a/include/linux/dma-buf-mapping.h b/include/linux/dma-buf-mapping.h
-> index 09bde3f748e4..d63ac4d52aa5 100644
-> --- a/include/linux/dma-buf-mapping.h
-> +++ b/include/linux/dma-buf-mapping.h
-> @@ -7,8 +7,10 @@
->  #define __DMA_BUF_MAPPING_H__
->  #include <linux/dma-buf.h>
->  
-> +enum pci_p2pdma_map_type
-> +dma_buf_p2pdma_map_type(struct dma_buf_attachment *attach,
-> +			unsigned int tlp_flags);
->  struct sg_table *dma_buf_phys_vec_to_sgt(struct dma_buf_attachment *attach,
-> -					 struct p2pdma_provider *provider,
->  					 struct phys_vec *phys_vec,
->  					 size_t nr_ranges, size_t size,
->  					 enum dma_data_direction dir);
-> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-> index d1203da56fc5..81c136fcee6e 100644
-> --- a/include/linux/dma-buf.h
-> +++ b/include/linux/dma-buf.h
-> @@ -368,6 +368,9 @@ struct dma_buf {
->  	/** @priv: exporter specific private data for this buffer object. */
->  	void *priv;
->  
-> +	/** @provider: The peer-to-peer provider backing this buffer. */
-> +	struct p2pdma_provider *provider;
-> +
->  	/**
->  	 * @resv:
->  	 *
-> @@ -501,6 +504,7 @@ struct dma_buf_attachment {
->   * @flags:	mode flags for the file
->   * @resv:	reservation-object, NULL to allocate default one
->   * @priv:	Attach private data of allocator to this buffer
-> + * @provider:	Peer-to-peer provider backing the buffer
->   *
->   * This structure holds the information required to export the buffer. Used
->   * with dma_buf_export() only.
-> @@ -512,6 +516,7 @@ struct dma_buf_export_info {
->  	size_t size;
->  	int flags;
->  	struct dma_resv *resv;
-> +	struct p2pdma_provider *provider;
->  	void *priv;
->  };
->  
+> https://lore.kernel.org/kvm/20260731211601.3033906-4-zhipingz@meta.com/
 > 
+> It lets an exporter report the PCIe TPH steering tag for a
+> peer-to-peer mapping. The callback is optional -- exporters that don't
+> implement it behave exactly as today -- and nothing else in dma-buf
+> changes.
+> 
+> The rest of the series is settled: Chengwen acked patch 2, the
+> automated review is clean, and there are no open comments from v12.
+> Alex is holding his ack until the dma-buf side has been looked at, so
+> this one callback is gating the whole series.
+> 
+> If you have concerns about the API shape or the locking, I'll respin.
+> If someone else should review the dma-buf side, tell me who and I'll
+> take it there. Otherwise I'll check with Alex and Jason next week on
+> how to proceed, since 7.3 is in rc and the next window is about a
+> month out.
+> 
+> Thanks,
+> Zhiping
+> 
+> On Wed, Sep 2, 2026 at 1:53 PM Zhiping Zhang <zhipingz@meta.com> wrote:
+>>
+>> Hi Christian,
+>>
+>> Another ping on this series for your attention. Pls see below for more details.
+>>
+>> Thanks,
+>> Zhiping
+>>
+>> On Fri, Aug 14, 2026 at 11:08 AM Zhiping Zhang <zhipingz@meta.com> wrote:
+>>>
+>>>  Hi Christian,
+>>>
+>>> A gentle ping on this series, especially patch 3, which adds the
+>>> optional dma-buf get_pci_tph() callback. Could you please review this
+>>> when you have a chance?
+>>>
+>>> https://lore.kernel.org/linux-pci/20260731211601.3033906-4-zhipingz@meta.com/
+>>>
+>>> Thanks,
+>>> Zhiping
+>>>
+>>>
+>>> On Fri, Jul 31, 2026 at 2:22 PM Zhiping Zhang <zhipingz@meta.com> wrote:
+>>>>
+>>>> This series adds TLP Processing Hints (TPH) support to the VFIO dma-buf
+>>>> export path, allowing importing drivers (e.g. mlx5) to use the
+>>>> exporter's steering tag when performing peer-to-peer DMA into a
+>>>> VFIO-owned device.
+>>>>
+>>>> There is no separate in-tree vendor kernel driver for the target device:
+>>>> vfio-pci is the in-tree driver and the targeted device is managed
+>>>> from userspace via VFIO passthrough. That is why the ST has to flow
+>>>> through a uAPI: userspace owns the device and its ST table, so it is the
+>>>> entity that can configure a meaningful value for a given dma-buf. The
+>>>> kernel-visible participants are still in-tree: vfio-pci exports the
+>>>> dma-buf and mlx5 imports it.
+>>>>
+>>>> On the effect: the endpoint's PCIe ingress block uses the ST as
+>>>> an in-band instruction for the incoming P2P TLP -- selecting a target
+>>>> cache partition and, on writes, an in-flight operation on the data
+>>>> before it lands. The dma-buf callback keeps this opaque to the
+>>>> framework -- only the producer (userspace owner of the VFIO device)
+>>>> and the consumer (endpoint block) need to interpret the value. The
+>>>> dma-buf get_pci_tph callback itself is optional, but workloads that
+>>>> depend on the endpoint's in-flight operation need it because fallback
+>>>> does not produce the same result.
+>>>>
+>>>> The dma-buf hook is intentionally generic and discoverable rather than
+>>>> a private side channel. The exporter owns the completing address
+>>>> space for the dma-buf and decides whether it can provide a meaningful
+>>>> ST/PH tuple for that completer; the dma-buf core keeps the tuple opaque,
+>>>> and importers merely request the namespace they support and place the
+>>>> returned value on generated TLPs. Exporters that cannot derive a
+>>>> meaningful tuple simply return -EOPNOTSUPP.
+>>>>
+>>>> TPH is advisory: a steering tag that is not honored on the path (for
+>>>> example an intermediate routing element that does not forward the TPH
+>>>> prefix) is ignored and the request completes as an ordinary,
+>>>> non-TPH transaction (PCIe Base 6.4 sec 2.2.7.1). This series therefore
+>>>> targets the same-Root-Port / common-switch topology, where the ST
+>>>> reaches the completer; cross-Root-Port P2P is best-effort and is not
+>>>> gated in the uAPI, since supplying an unused ST is harmless and there
+>>>> is no discoverable "TPH routing" capability to test against.
+>>>>
+>>>> Patch 1 folds the reserved 0b10 "TPH Completer Supported" encoding into
+>>>> "not supported" in get_rp_completer_type(), so only architected values
+>>>> can reach the TPH Requester Enable field. It was previously posted
+>>>> standalone to linux-pci; per Alex Williamson's v12 review it now travels
+>>>> with the series, which removes the cross-tree ordering dependency and
+>>>> lets review tooling apply the series as posted.
+>>>> Patch 2 adds small PCI/TPH type helpers so drivers can query the enabled
+>>>> TPH requester mode and the device's TPH Completer Supported field
+>>>> without reaching into pci_dev internals (and so callers in
+>>>> CONFIG_PCIE_TPH=n builds get a clean fallback). pcie_tph_completer_type()
+>>>> applies the same reserved-encoding fold as get_rp_completer_type(),
+>>>> inlined locally so the helper is self-contained.
+>>>> Patch 3 adds the optional dma_buf_ops::get_pci_tph callback plus the
+>>>> dma_buf_get_pci_tph() importer wrapper so importers can fetch TPH
+>>>> metadata from an exporter under dmabuf->resv.
+>>>> Patch 4 implements get_pci_tph in vfio-pci and adds the new uAPI
+>>>> (VFIO_DEVICE_FEATURE_DMA_BUF_TPH) for userspace to attach the metadata.
+>>>> Patch 5 wires up the mlx5 RDMA driver as a consumer. It also enforces the
+>>>> dma_buf_get_pci_tph() steering-tag lifetime: the tag is only valid for the
+>>>> mapping it was queried against, and the mkey's TPH fields cannot be
+>>>> reprogrammed in place. mlx5 therefore records the registration-time tuple
+>>>> and re-queries after each dma-buf mapping is established under
+>>>> dmabuf->resv; unchanged tuples continue with the existing mkey, while
+>>>> changed or missing tuples fail the remap rather than continue with a
+>>>> stale hint. For vfio-pci BAR dma-bufs this is expected to be a no-op
+>>>> because invalidation is revoke/quiesce, not movement to a new backing
+>>>> placement, and the userspace-provided tuple is not changed by the
+>>>> revoke/un-revoke path.
+>>>>
+>>>> Build-tested with both CONFIG_PCIE_TPH=y and CONFIG_PCIE_TPH=n.
+>>>> Functional validation on the target topology: PCIe analyzer captures
+>>>> on the P2P TLPs confirm the ST emitted by mlx5 matches the value
+>>>> configured through VFIO_DEVICE_FEATURE_DMA_BUF_TPH, and the end-to-end
+>>>> P2P workload only produces results consistent with the endpoint's
+>>>> ST-selected in-flight operation. For example, with userspace
+>>>> configuring 8-bit ST=0xf0 and PH=2, an analyzer capture of a peer-to-
+>>>> peer MWr64 shows "STP MWr64 TC=0 OHC=2 ..." followed by "OHC-B
+>>>> ST=F0h PH=2 HV=1":
+>>>> (TLP Captures)
+>>>> 08000260 -> STP MWr64 TC=0 OHC=2 TS=0 Attr=0 L=8
+>>>> F0000004 -> RID=4h:0h.0h EP- Tag=F0h
+>>>> E0200000 -> AddrH=000020E0h
+>>>> 00080006 -> AddrL=06000800h
+>>>> 90F00000 -> OHC-B ST=F0h PH=2 HV=1 AMA=0 AV-
+>>>>
+>>>> The dma-buf get_pci_tph interface has also been exercised by a second,
+>>>> independent importer: a different vendor's NIC whose driver is not yet
+>>>> upstream, locally taught to call dma_buf_get_pci_tph(). A PCIe analyzer
+>>>> confirmed the ST it placed on outbound P2P TLPs matches the value
+>>>> configured through VFIO_DEVICE_FEATURE_DMA_BUF_TPH, the same result as
+>>>> with mlx5. Two unrelated importer drivers exercising the callback
+>>>> end-to-end shows the interface is not tied to a single consumer. That
+>>>> importer change is out-of-tree and not part of this series. For that
+>>>> second importer, with userspace configuring 8-bit ST=0xe0 and PH=0,
+>>>> an analyzer capture shows:
+>>>> (TLP Captures)
+>>>> 08200260 -> STP MWr64 TC=0 OHC=2 TS=1 Attr=0 L=8
+>>>> 4E00004C -> RID=4Ch:0h.0h EP- Tag=4Eh
+>>>> 00170000 -> AddrH=00001700h
+>>>> 00200006 -> AddrL=06002000h
+>>>> 10E00000 -> OHC-B ST=E0h PH=0 HV=1 AMA=0 AV-
+>>>>
+>>>> Changes since v12:
+>>>>   Patch 1 (PCI/TPH, new to the series): the reserved-encoding fold,
+>>>>   previously posted standalone to linux-pci [1], is now the first patch
+>>>>   here (Alex Williamson). Sashiko could not apply v12 because of that
+>>>>   external dependency; with the fold in-series and the mlx5 leak fix in
+>>>>   linux-next, v13 has none. The code is unchanged from the standalone
+>>>>   v3; the Fixes: tag is dropped, since no code path can reach the
+>>>>   reserved encoding today and the patch is hardening rather than a fix
+>>>>   for observed silicon.
+>>>>
+>>>>   Patch 2 (PCI/TPH): inline the reserved-encoding fold in
+>>>>   pcie_tph_completer_type() rather than calling the helper that earlier
+>>>>   folding revisions added; that helper was dropped in folding v3 per
+>>>>   Bjorn Helgaas and Wei Huang.
+>>>>
+>>>>   Patch 3 (dma-buf): no functional change.
+>>>>
+>>>>   Patch 4 (vfio/pci): also gate the DMA_BUF_TPH feature on
+>>>>   vdev->pci_ops->get_dmabuf_phys, matching
+>>>>   vfio_pci_core_feature_dma_buf(). Without it PROBE reported the feature
+>>>>   as supported on a device that advertises TPH Completer support but
+>>>>   cannot export a vfio dma-buf at all, so nothing could ever carry the
+>>>>   metadata (Alex Williamson, who raised this to uAPI-affecting
+>>>>   severity).
+>>>>
+>>>>   Patch 5 (mlx5): keep the !dev->st early-out in mlx5_st_alloc_index()
+>>>>   ahead of the pcie_tph_get_cpu_st() call, so splitting out
+>>>>   mlx5_st_alloc_index_by_tag() neither adds an ACPI _DSM invocation on
+>>>>   devices without ST support nor changes the errno userspace sees when
+>>>>   the _DSM lookup fails (Alex Williamson). The commit message now
+>>>>   describes this rather than presenting the split as a pure extraction.
+>>>>
+>>>> Previous link:
+>>>> v12: https://lore.kernel.org/linux-pci/20260715204008.3911275-1-zhipingz@meta.com/
+>>>> v11: https://lore.kernel.org/linux-pci/20260702181025.2694961-1-zhipingz@meta.com/
+>>>> v10: https://lore.kernel.org/linux-pci/20260630224328.3218796-1-zhipingz@meta.com/
+>>>> v9: https://lore.kernel.org/dri-devel/20260622184211.2229399-1-zhipingz@meta.com/
+>>>> v8: https://lore.kernel.org/dri-devel/20260615065912.2177918-1-zhipingz@meta.com/
+>>>> v7: https://lore.kernel.org/dri-devel/20260611161546.4075580-1-zhipingz@meta.com/
+>>>> v6: https://lore.kernel.org/dri-devel/20260608185646.4085127-1-zhipingz@meta.com/
+>>>> v5: https://lore.kernel.org/dri-devel/20260526144401.1485788-1-zhipingz@meta.com/
+>>>> v4: https://lore.kernel.org/linux-pci/20260519201401.1558410-1-zhipingz@meta.com/
+>>>> v3: https://lore.kernel.org/linux-pci/20260512184755.4137227-1-zhipingz@meta.com/
+>>>> v2: https://lore.kernel.org/linux-pci/20260430200704.352228-1-zhipingz@meta.com/
+>>>>
+>>>> Zhiping Zhang (5):
+>>>>   PCI/TPH: treat reserved 0b10 completer encoding as unsupported
+>>>>   PCI/TPH: Add requester/completer type helpers
+>>>>   dma-buf: add optional get_pci_tph() callback
+>>>>   vfio/pci: implement get_pci_tph and DMA_BUF_TPH feature
+>>>>   RDMA/mlx5: get tph for p2p access when registering dma-buf mr
+>>>>
+>>>>  drivers/dma-buf/dma-buf.c                     |  32 ++++
+>>>>  drivers/infiniband/hw/mlx5/main.c             |   1 +
+>>>>  drivers/infiniband/hw/mlx5/mlx5_ib.h          |  11 ++
+>>>>  drivers/infiniband/hw/mlx5/mr.c               | 151 +++++++++++++++++-
+>>>>  drivers/infiniband/hw/mlx5/odp.c              |   7 +
+>>>>  .../net/ethernet/mellanox/mlx5/core/lib/st.c  |  52 +++++-
+>>>>  drivers/pci/tph.c                             |  55 ++++++-
+>>>>  drivers/vfio/pci/vfio_pci_core.c              |   3 +
+>>>>  drivers/vfio/pci/vfio_pci_dmabuf.c            | 120 +++++++++++++-
+>>>>  drivers/vfio/pci/vfio_pci_priv.h              |  13 ++
+>>>>  include/linux/dma-buf.h                       |  25 +++
+>>>>  include/linux/mlx5/driver.h                   |  15 ++
+>>>>  include/linux/pci-tph.h                       |   8 +
+>>>>  include/uapi/linux/vfio.h                     |  43 +++++
+>>>>  14 files changed, 517 insertions(+), 19 deletions(-)
+>>>>
+>>>> --
+>>>> 2.53.0-Meta
+>>>>
 
