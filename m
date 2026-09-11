@@ -1,84 +1,154 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from out30-99.freemail.mail.aliyun.com (out30-99.freemail.mail.aliyun.com [115.124.30.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 044F33DB31B
-	for <linux-rdma@vger.kernel.org>; Fri, 11 Sep 2026 02:29:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDADD18787A
+	for <linux-rdma@vger.kernel.org>; Fri, 11 Sep 2026 02:41:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.99
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789093793; cv=none; b=Ehmp3yb3Rt5p8gCqdyO2FzLuwPBQN6QJBN3LmJ9KTA/af6hvmE/FDHOjrEMXoZSzrIYNlwV02/3mKxyBT0uhPYBRiaoSdWwYZdP/4hFjENdlYRH3IAxJUui/qYzUrVhm5iKworUptcFEloPMqSDdla9t6e6K1mitV4zFpGHgU8Y=
+	t=1789094519; cv=none; b=OfVcG2PgnUF5jMBSwz2n3LC52CQgn3GFSu2IF0648Qr7gxx6F+JyoKaa/5Tt22f1U7WFgRqvcNrmcDu4w3Ju3vShQ5VwY8vKNNHL9IBQFk8l8TGhDCtRH8b2camT8dGZY2slKJy/mjde9Oclb3SolklVRrC906Vsbky4WOfwp8g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789093793; c=relaxed/simple;
-	bh=4+2voUG4a8T1x/8HLm03FtcnNObDSt3nQ8Ap+XsVuL4=;
-	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=A5OPJZc+TYKguTHp0gT33umK1F12wFUxf5/LR9FwOdsp07ri+MdoZyMEHbANNmpJu61DT/iSHmR8mdHvPvoGp+payEbyP2rYaTAhC/Kb3wk/LDWBaMDPxDmgYwvXxxBcAT5HzLB/od+HwG4jPN1V2aALPTRz1GtZwpszt1XmCp8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SQTed3bE; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789094519; c=relaxed/simple;
+	bh=ESP0FX0/w3x4afTOtCMns82vqHA10tbh+mj6CQ6nTgc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=TVBJdZp+H7aPcGlHGphO2gYswOURkeoRR9sb0aSkWtkRNKHwj/Oe2PiI2TxhJbXonI9a18poAuPVCi5E7SxkZ0h+kgBDeHQF7xh8tscLcT4Ho5xmgWC+5U3CYY14TdG3XdXYX++68BdEAkpa1c4J3GN3F/M3vAWDWKy5bYyNPO0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=NT9fLQok; arc=none smtp.client-ip=115.124.30.99
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SQTed3bE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59BE91F000FF;
-	Fri, 11 Sep 2026 02:29:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789093791;
-	bh=BkGLEsWJT9rJQB6yVHGlIa7pugGcT/BNDz62MQh6iBQ=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=SQTed3bECKtHIQ0rk9Xtjovzuqua25T3LFT09D7U6V/pQkiKzfvG00CwCKVfs8yHa
-	 FK89Obv7ddL8klpu2IAX6hugIJm9iMI/Gj4HmH4pv6nOLdDHmLLBdXoi7inNGysM04
-	 g1w619+9rTx9MUXXYc6h+uxdxlhV5ga5JWgIZQyQ9SAZR3hss9loSOgd3cH3/qqPm3
-	 rOAO0eT8A5bExRPTUZxkLQm/j1d54GOAdKWBfnJptK9ByOumAdk8cV/rlzcg9olGOc
-	 EA8PCBDh/oCbQMrXT23+rEJt9Pg50RP2WFAtUqs32kHQBZaA6YalyMM8Aq52ezmViJ
-	 zVfxwq0VZ+Jcw==
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v2] RDMA/uverbs: Make CQ handle mandatory for WQ
- creation
-Reply-To: sashiko-reviews@lists.linux.dev
-To: lirongqing <lirongqing@baidu.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260911021557.2113-1-lirongqing@baidu.com>
-References: <20260911021557.2113-1-lirongqing@baidu.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Fri, 11 Sep 2026 02:29:50 +0000
-Message-Id: <20260911022951.59BE91F000FF@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="NT9fLQok"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1789094514; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
+	bh=n2P2020oMD82FKDJEN38xmUKm1L2aN7nf6yV7/rTqxE=;
+	b=NT9fLQok8gU2plJX6CsJ4Jx7YFYBuxRXGmtOl4NK+Vda2n5vuyb60t6jyzA6dvXOxJzHmZapzt7+zEF+E3TbJSxHJEv8BzJNhBy7WpcnkhIcoIUbWtFX5QKZ6Q2y/3TWiRwJSh+0kY1KHK7vk7+kccUUfUvXITyLPUvvsmSCTq4=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R121e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033032089153;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0XAj1abi_1789094512;
+Received: from 30.221.104.67(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0XAj1abi_1789094512 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Fri, 11 Sep 2026 10:41:53 +0800
+Message-ID: <f1d33bae-f016-5928-197f-817e1017a345@linux.alibaba.com>
+Date: Fri, 11 Sep 2026 10:41:52 +0800
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
+ Gecko/20100101 Thunderbird/102.15.1
+Subject: Re: [PATCH for-next v2 1/4] RDMA/erdma: Support non-contiguous kernel
+ QP buffers
+Content-Language: en-US
+To: Leon Romanovsky <leon@kernel.org>
+Cc: jgg@ziepe.ca, linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com
+References: <20260827082523.36294-1-chengyou@linux.alibaba.com>
+ <20260827082523.36294-2-chengyou@linux.alibaba.com>
+ <20260903091033.GY24140@unreal>
+ <07bb48b7-5a44-51d1-0b55-d9960f63aab2@linux.alibaba.com>
+ <78e1d57a-7c12-482b-c274-2d9c7991ab1a@linux.alibaba.com>
+ <20260910153351.GU13683@unreal>
+From: Cheng Xu <chengyou@linux.alibaba.com>
+In-Reply-To: <20260910153351.GU13683@unreal>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-> From: Li RongQing <lirongqing@baidu.com>
->=20
-> UVERBS_ATTR_CREATE_WQ_CQ_HANDLE is declared UA_OPTIONAL in the ioctl
-> method definition, so the mandatory attribute bitmap does not enforce
-> its presence.  When userspace omits it, uverbs_attr_get_obj() returns
-> ERR_PTR(-ENOENT) and the handler stores that error pointer into
-> wq_init_attr.cq without validation.
->=20
-> The bogus cq pointer is then passed to the driver's create_wq callback.
-> In the mlx5 case, create_rq() calls to_mcq(init_attr->cq) which applies
-> container_of to the ERR_PTR value, producing a near-NULL pointer.  The
-> subsequent access in get_rq_ts_format() triggers a kernel NULL pointer
-> dereference:
->=20
->   BUG: kernel NULL pointer dereference, address: 0000000000000296
->   RIP: 0010:create_rq+0x32/0x550 [mlx5_ib]
->   Call Trace:
->    mlx5_ib_create_wq+0x14a/0x210 [mlx5_ib]
->    ib_uverbs_handler_UVERBS_METHOD_WQ_CREATE+0x1f0/0x320 [ib_uverbs]
->    ib_uverbs_run_method+0x296/0x320 [ib_uverbs]
->    ib_uverbs_cmd_verbs+0x1a0/0x260 [ib_uverbs]
->    ib_uverbs_ioctl+0xa8/0x120 [ib_uverbs]
->=20
-> A WQ without a CQ was never valid; the legacy write path always required
-> one via uobj_get_obj_read() in ib_uverbs_ex_create_wq().  Declare the
-> attribute UA_MANDATORY so the uverbs framework rejects the ioctl early
-> when the CQ handle is missing, before the handler ever runs.
->=20
-> Fixes: ef3bc084a8ed ("IB/uverbs: Introduce create/destroy WQ commands ove=
-r ioctl")
-> Signed-off-by: Li RongQing <lirongqing@baidu.com>
 
-Sashiko has reviewed this patch and found no issues. It looks great!
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260911021557.2113=
--1-lirongqing@baidu.com?part=3D1
+On 9/10/26 11:33 PM, Leon Romanovsky wrote:
+> On Wed, Sep 09, 2026 at 02:21:37PM +0800, Cheng Xu wrote:
+>>
+>>
+>> On 9/3/26 8:38 PM, Cheng Xu wrote:
+>>>
+>>>
+>>> On 9/3/26 5:10 PM, Leon Romanovsky wrote:
+>>>> On Thu, Aug 27, 2026 at 04:25:20PM +0800, Cheng Xu wrote:
+>>>>> A single coherent allocation for kernel QP queues can fail for large
+>>>>> queues when memory is fragmented.
+>>>>>
+>>>>> Allocate page-sized coherent buffers and describe them with the existing
+>>>>> MTT. Keep the userspace QP path unchanged.
+>>>>>
+>>>>> Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
+>>>>> ---
+>>>>>  drivers/infiniband/hw/erdma/erdma_cq.c    |   4 +-
+>>>>>  drivers/infiniband/hw/erdma/erdma_qp.c    |  38 +++--
+>>>>>  drivers/infiniband/hw/erdma/erdma_verbs.c | 195 +++++++++++++---------
+>>>>>  drivers/infiniband/hw/erdma/erdma_verbs.h |  44 ++++-
+>>>>>  4 files changed, 179 insertions(+), 102 deletions(-)
+>>>>
+>>>> <...>
+>>>>
+>>
+>> <...>
+>>
+>>>>
+>>>>> +struct erdma_buf_list {
+>>>>> +	void *buf;
+>>>>> +	dma_addr_t dma_addr;
+>>>>> +};
+>>>>
+>>>> This struct is very similar to scatter-gather list, why don't you use it
+>>>> directly?
+>>>
+>>> Good idea. I will use struct scatterlist in the next revision.
+>>
+>> Hi Leon,
+>>
+>> I switched to scatterlist in v3, but Sashiko pointed out an issue with
+>> using sg_set_buf() and sg_virt() on dma_alloc_coherent() memory [1].
+>>
+>> To handle this correctly, the driver would still need to retain the
+>> original CPU addresses returned by dma_alloc_coherent(). Using scatterlist
+>> does not simplify this implementation: we still need separate storage for
+>> the CPU addresses, and the only scatterlist field we actually need is the
+>> DMA address. A small structure holding both addresses would therefore be
+>> simpler.
+> 
+> Sashiko thinks that you are creating SG list to feed it to dma_map_sg()
+> later which is not. You are using SG as simple database and you will get
+> iterators for free.
+> 
+> cpu_address = sg_page()
+> dma_address = sg_dma_address()
+> 
 
+Hi Leon,
+
+Maybe I misunderstood something. My understanding of Sashiko's concern is
+that the CPU address returned by dma_alloc_coherent() is not guaranteed to
+be valid for virt_to_page(), as used by sg_set_buf(). Consequently, the
+struct page later returned by sg_page() may be invalid.
+
+Although this works on the x86 platforms we tested, it may not be portable
+to architectures where coherent memory is remapped outside the linear
+mapping. From this perspective, would a small structure that explicitly
+stores the CPU and DMA addresses, similar to those used by HNS and mlx5, be
+more appropriate than scatterlist here?
+
+I collected some information related to this below [1][2][3].
+
+[1] include/linux/scatterlist.h:
+
+#ifdef CONFIG_DEBUG_SG
+	BUG_ON(!virt_addr_valid(buf));
+#endif
+sg_set_page(sg, virt_to_page(buf), buflen, offset_in_page(buf));
+
+[2] kernel/dma/mapping.c:
+
+/*
+ * The whole dma_get_sgtable() idea is fundamentally unsafe ...
+ * 1. Not all memory allocated via the coherent DMA APIs is backed by
+ *    a struct page
+ */
+
+[3] drivers/infiniband/hw/mthca/mthca_memfree.c:
+
+/* We use sg_set_buf for coherent allocs, which assumes low memory */
+
+Thanks,
+Cheng Xu
+
+
+> Thanks
+> 
