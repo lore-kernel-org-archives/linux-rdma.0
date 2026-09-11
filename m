@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AF2842E407;
-	Fri, 11 Sep 2026 06:53:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20A93446050;
+	Fri, 11 Sep 2026 06:53:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789109613; cv=none; b=sJEATNOzLDf8Ba4PAtW+sH3fHVEegmAVJPoYybJKtihZLBCA2/vdm1vjvTcNVHGQerMjxTYTk9B2M6hcjJ3nVag2rwFvkim7JZxqbLVp7ll7MMS3AjfWkK6JoIUNiFwkW8AAAXjYTi9I+Myn6FxXcmv00+D0sIsptBJM4+voVSQ=
+	t=1789109617; cv=none; b=kunZyTxfDeUQdgqdpIdRmAA33tG8mCCu0MqoMFOU/gCOAGQKpELtuaEyU1u+FQAz2hPaMbc8B8yDwJHKRHNepJdnkM5gNbb9bewu0lRWN2UC57J9Cu1eFvNVbrIF3CSCscclZGrluyjMb4cg0qedhG6ZyC1Uk7clhX0As7ITgXo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789109613; c=relaxed/simple;
-	bh=BTk1YZDI+uDisbn4s5VtAu26iTR4cqp7ysNeJFhaD70=;
+	s=arc-20240116; t=1789109617; c=relaxed/simple;
+	bh=V6PevJtMaldMBIuKhY5OTMTpsP8/OaTaZNJ6JwCg5Ig=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=uD0Zo27PDlOyix0yXX+rHCzo1QwphYghDQqihKtpv6u4Kt0ogmqHFArZd2/8hh8gFXuTfKXSercKc5Ac8A3NnUZgFtwlOjk+40IiW4mQb1WpeBLu2GTE8BtauW0kI+3sGe7r92d4kWThqTiU4w5V1xFTLgyRHCndmOfGOkaitEo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oOvp20pp; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=MD92Sno4u/gg8SkYAut1y8WR/YQVoTWtudLen4DIWz/XcJNem+xeSAWzEzvMhvweuFwYNynRGF0gM4wvLLHQHqdhvpOZHozVtmoQlcZWsTboRAt0dsEPox3JeXG2GA5+kyze1IE3TQqUqtdRHF31vHyvVcWOlq76/1biGvd+mvg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gr3viyrh; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oOvp20pp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93FE61F000FF;
-	Fri, 11 Sep 2026 06:53:21 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gr3viyrh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 565AA1F00893;
+	Fri, 11 Sep 2026 06:53:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789109602;
-	bh=QErj2RuPUXOYAikXEmg5mKDTcSF6GR0WVee0QcGfDdI=;
+	s=k20260515; t=1789109604;
+	bh=OI582xf4NLba9h8yVtZBm9NmlvYnHp+pmv7cBxAtG6M=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=oOvp20ppAEoJnCsW/ZEut4/ns3yJOpSnAxMorUZN9eJk6HOqEA7a5r4+pFFrV6e/G
-	 LqMrICaDj6Fz+yKNJT9AdPbmJ1S2KTDeN0uo2wuwo7QcmjNzLl71wJLXksYdklXZ+N
-	 6Oaw1qPNhEdlumkh+ldQG4JJWDLuPNq9zTvkRKmpaxM4KI3nkFM0taKkD8FVmAX6f2
-	 6ju8Ma3gEqgtcweZyjRxeIOUjHa7jtjpMbfttWAAywSnRB3tHgfOHT9i1iZXk1HEQN
-	 aUXNh5aiArGyxEt1muwyATd+y43cOQZ4nVhuScwMCVDx0TldIeyTeCp5hioaRu+M/1
-	 Odk1P9QspH8Mw==
-Subject: Re: [PATCH net-next v5 1/4] net: mana: track when the HWC has been
- handed to the PF
+	b=gr3viyrhJ6nmGb7jVSdDNiyVwgznsgn8megIpCB2JC/GIVfR7p7N4602dGfqJX2J6
+	 Z7mLWFMQLlU6nOtAvMV/4XmOefrKyixZ7y4cURSS25eysYrumLi+bKRpROGcslRQL5
+	 OeTTGHSOYzu29RgCt5IDaWRvJuQODqMDjfZVtXTp60xfSYPzwe/JJw6dZ06N28rHZx
+	 2XZQAS/YM8hHm4iqdgM8x5fwsiQCSF6mlnh4nrMNrkrUfV9+fNjk9qQDOVI0FwWspr
+	 ixAxcRbk9YVvVaw4soz/sZh7k1wvWHQbabxxgOEjuNojUJj0yaZA4ck7Er4n6g6Zr5
+	 LeJzVQVnf5Dbg==
+Subject: Re: [PATCH net-next v5 2/4] net: mana: give each HWC message slot its
+ own completion state
 From: netdev-bot+sashiko@kernel.org
 To: longli@microsoft.com
 Cc: longli@kernel.org, kotaranov@microsoft.com, kuba@kernel.org,
@@ -38,10 +38,10 @@ Cc: longli@kernel.org, kotaranov@microsoft.com, kuba@kernel.org,
  stephen@networkplumber.org, shirazsaleem@microsoft.com,
  netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
  linux-hyperv@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Fri, 11 Sep 2026 06:53:21 +0000
-Message-ID: <178910960115.219967.13830871915506436112@kernel.org>
-In-Reply-To: <20260908035201.402424-2-longli@microsoft.com>
-References: <20260908035201.402424-2-longli@microsoft.com>
+Date: Fri, 11 Sep 2026 06:53:22 +0000
+Message-ID: <178910960289.219967.5929065773405833614@kernel.org>
+In-Reply-To: <20260908035201.402424-3-longli@microsoft.com>
+References: <20260908035201.402424-3-longli@microsoft.com>
 X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -55,206 +55,252 @@ MIME-Version: 1.0
 Thank you for your contribution! Sashiko AI review found 2 potential
 issue(s) to consider:
 
-Critical: 0 · High: 0 (1) · Medium: 2 · Low: 0
+Critical: 0 · High: 0 (1) · Medium: 1 (1) · Low: 1
 
-- [Medium] The patch silently converts a real correctness fix but is
-  presented as pure preparation and carries no Fixes: tag.
-- [Medium] `hwc->setup_active` is written in `mana_smc_setup_hwc()`
-  (shm_channel.c:149 and 237) and read/cleared in…
+- [Medium] The commit message presents this patch as pure preparation
+  ("Add per-slot locking, sender/response references and a responded…
+- [Low] The new field comments added to struct hwc_caller_ctx in
+  include/net/mana/hw_channel.h describe a narrower contract than…
 
 Pre-existing issues:
-- [High] In `mana_hwc_destroy_channel()`
-  (drivers/net/ethernet/microsoft/mana/hw_channel.c:818-824), a failed…
+- [High] In this patch, mana_hwc_send_request()'s out: label latches
+  ctx->responded, clears output_buf and drops both the sender and the…
+- [Medium] hwc->hwc_timeout is read and read-modify-written by senders in
+  process context (`wait_ms = hwc->hwc_timeout;` and `if…
 
 --
 
-net: mana: track when the HWC has been handed to the PF
+net: mana: give each HWC message slot its own completion state
 
-This adds a setup_active flag to struct hw_channel_context, set inside
-mana_smc_setup_hwc() around the point where the ESTABLISH_HWC message is
-published to the PF, and uses that flag instead of gc->max_num_cqs as the
-gate for issuing DESTROY_HWC from mana_hwc_destroy_channel().
+This adds a per-slot spinlock, a sender/response reference pair and a
+responded flag to struct hwc_caller_ctx, makes ctx->error signed, and
+withdraws the caller's response buffer once the sender stops waiting.
+It also ignores a zero timeout value in a GDMA_QUERY_HWC_TIMEOUT reply.
 
-A few questions on the behaviour changes that come with this.
+No Link: tags in the commit header.
 
 > diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-> index 263e7c4e29341..88e92e94e2e90 100644
+> index 88e92e94e2e90..6605e7a9c481b 100644
 > --- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
 > +++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-> @@ -683,7 +683,7 @@ static int mana_hwc_establish_channel(struct gdma_context *gc, u16 *q_depth,
->  				 cq->mem_info.dma_handle,
->  				 rq->mem_info.dma_handle,
->  				 sq->mem_info.dma_handle,
-> -				 eq->eq.msix_index);
-> +				 eq->eq.msix_index, &hwc->setup_active);
->  	if (err)
->  		return err;
->  
-> @@ -815,13 +815,13 @@ void mana_hwc_destroy_channel(struct gdma_context *gc)
->  	if (!hwc)
->  		return;
->  
-> -	/* gc->max_num_cqs is set in mana_hwc_init_event_handler(). If it's
-> -	 * non-zero, the HWC worked and we should tear down the HWC here.
-> -	 */
-> -	if (gc->max_num_cqs > 0) {
-> -		mana_smc_teardown_hwc(&gc->shm_channel, false);
-> -		gc->max_num_cqs = 0;
-> +	if (hwc->setup_active) {
-> +		if (!mana_smc_teardown_hwc(&gc->shm_channel, false))
-> +			hwc->setup_active = false;
-
-[Severity: Medium]
-
-The changelog presents this as preparation work, but doesn't this hunk also
-change behaviour on an existing failure path?
-
-gc->max_num_cqs is only set once HWC_INIT_DATA_MAX_NUM_CQS arrives in
-mana_hwc_init_event_handler(). So with the old gate, when ESTABLISH_HWC had
-already been submitted but establish failed before that data arrived,
-DESTROY_HWC was skipped entirely.
-
-Two such cases in mana_hwc_establish_channel():
-
-	if (!wait_for_completion_timeout(&hwc->hwc_init_eqe_comp, 60 * HZ))
-		return -ETIMEDOUT;
-
-and a failing mana_smc_read_response() inside mana_smc_setup_hwc(). In both
-cases mana_hwc_create_channel() -> out: mana_hwc_destroy_channel() then went
-on to free the EQ/CQ/RQ/SQ DMA memory whose frame addresses had already been
-published to the PF.
-
-mana_smc_teardown_hwc() documents why that ordering matters:
-
-	/* Read shmem response (polling for VF possession) and validate.
-	 * For teardown, waiting for response is required to ensure hardware
-	 * invalidates MST entries before software frees memory.
-	 */
-
-Since the new gate closes that window, should this patch carry a Fixes: tag
-and state that it fixes the skipped teardown, instead of being described as
-tracking/preparation only?
-
-> +		else
-> +			dev_err(hwc->dev, "Failed to tear down HWC\n");
->  	}
-> +	gc->max_num_cqs = 0;
->  
->  	if (hwc->txq)
->  		mana_hwc_destroy_wq(hwc, hwc->txq);
-
-[Severity: High]
-
-This isn't a bug introduced by this patch, since the pre-patch code ignored
-the mana_smc_teardown_hwc() return value as well, but the new gate makes the
-failing-teardown case reachable for every submitted-but-unconfirmed
-establish, so it seems worth asking about here.
-
-On failure the return value is only logged, setup_active is left true, and
-execution falls straight through to:
-
-	if (hwc->txq)
-		mana_hwc_destroy_wq(hwc, hwc->txq);
-
-	if (hwc->rxq)
-		mana_hwc_destroy_wq(hwc, hwc->rxq);
-
-	if (hwc->cq)
-		mana_hwc_destroy_cq(hwc->gdma_dev->gdma_context, hwc->cq);
-	...
-	kfree(hwc);
-
-Those helpers reach mana_hwc_dealloc_dma_buf() and mana_gd_destroy_queue()
--> mana_gd_free_memory() (dma_free_coherent), releasing exactly the four
-regions whose frame addresses were handed to the PF by the ESTABLISH_HWC
-writel loop.
-
-mana_smc_teardown_hwc() fails when mana_smc_poll_register() times out after
-roughly 20 seconds because the PF never returns aperture possession, or when
-mana_smc_read_response() reports an error or an invalid response. In that
-state its own comment says the MST entries may still be valid:
-
-	 * For teardown, waiting for response is required to ensure hardware
-	 * invalidates MST entries before software frees memory.
-
-Can the device then keep writing EQEs/CQEs into pages handed back to the
-allocator, or into unmapped pages once the IOMMU mapping is gone? The EQ
-MSI-X is also released while the PF may still raise it, and kfree(hwc) drops
-the state that would be needed to retry the teardown later.
-
-The commit message says "Resources are still freed if teardown fails" - what
-makes freeing safe here, given the comment above?
-
-> diff --git a/drivers/net/ethernet/microsoft/mana/shm_channel.c b/drivers/net/ethernet/microsoft/mana/shm_channel.c
-> index d21b5db06e509..3cf6a9f8e32c4 100644
-> --- a/drivers/net/ethernet/microsoft/mana/shm_channel.c
-> +++ b/drivers/net/ethernet/microsoft/mana/shm_channel.c
-> @@ -129,9 +129,12 @@ void mana_smc_init(struct shm_channel *sc, struct device *dev,
->  	sc->base = base;
->  }
->  
-> +/* Requires no outstanding HWC handover. *submitted records possible PF
-> + * ownership, including when setup fails after submission.
-> + */
->  int mana_smc_setup_hwc(struct shm_channel *sc, bool reset_vf, u64 eq_addr,
->  		       u64 cq_addr, u64 rq_addr, u64 sq_addr,
-> -		       u32 eq_msix_index)
-> +		       u32 eq_msix_index, bool *submitted)
->  {
 
 [ ... ]
 
-> @@ -229,6 +234,7 @@ int mana_smc_setup_hwc(struct shm_channel *sc, bool reset_vf, u64 eq_addr,
->  	/* Write 256-message buffer to shared memory (final 32-bit write
->  	 * triggers HW to set possession bit to PF).
->  	 */
-> +	*submitted = true;
->  	dword = (u32 *)shm_buf;
->  	for (i = 0; i < SMC_APERTURE_DWORDS; i++)
->  		writel(*dword++, sc->base + i * SMC_BASIC_UNIT);
+> @@ -19,6 +21,17 @@ static int mana_hwc_get_msg_index(struct hw_channel_context *hwc, u16 *msg_id)
+>  	index = find_first_zero_bit(hwc->inflight_msg_res.map,
+>  				    hwc->inflight_msg_res.size);
+>  
+> +	ctx = &hwc->caller_ctx[index];
+> +	reinit_completion(&ctx->comp_event);
+> +	/* Take both references (sender + handle_resp) before publishing the
+> +	 * slot, so an early response cannot free it under the sender.
+> +	 */
+> +	refcount_set(&ctx->refcnt, 2);
+> +	ctx->responded = false;
+> +	ctx->msg_id = index;
+> +	ctx->error = -EINPROGRESS;
+> +
+> +	/* Publish the slot last, after it is fully initialised. */
+>  	bitmap_set(hwc->inflight_msg_res.map, index, 1);
+>  
+>  	spin_unlock_irqrestore(&r->lock, flags);
+
+[ ... ]
+
+> @@ -90,22 +110,35 @@ static void mana_hwc_handle_resp(struct hw_channel_context *hwc, u32 resp_len,
+>  	}
+>  
+>  	ctx = hwc->caller_ctx + msg_id;
+> -	err = mana_hwc_verify_resp_msg(ctx, resp_msg, resp_len);
+> -	if (err)
+> -		goto out;
+>  
+> -	ctx->status_code = resp_msg->status;
+> +	spin_lock(&ctx->lock);
+>  
+> -	memcpy(ctx->output_buf, resp_msg, resp_len);
+> -out:
+> +	/* Honour a response only while the sender owns the slot (output_buf
+> +	 * published) and has not already been answered; otherwise drop it as
+> +	 * premature, stale or duplicate without touching the refcount.
+> +	 */
+> +	if (!ctx->output_buf || ctx->responded) {
+> +		spin_unlock(&ctx->lock);
+> +		mana_hwc_post_rx_wqe(hwc->rxq, rx_req);
+> +		return;
+> +	}
+> +	ctx->responded = true;
 
 [Severity: Medium]
+Should this hunk carry a Fixes: tag rather than being described as
+preparation?
 
-setup_active is stored here (and cleared at function entry) and is
-read/cleared in mana_hwc_destroy_channel(), with no lock and no
-READ_ONCE()/WRITE_ONCE(). What serializes the two contexts?
+The commit message says:
 
-mana_schedule_serv_work() queues the worker on the system workqueue:
+    Add per-slot locking, sender/response references and a responded flag;
+    make ctx->error signed. Stop copying after buffer withdrawal or
+    completion.
 
-	INIT_WORK(&mns_wk->serv_work, mana_serv_func);
-	schedule_work(&mns_wk->serv_work);
+"Stop copying after buffer withdrawal or completion" reads like a refactor
+item, but at the baseline mana_hwc_send_request() released the message slot
+on timeout while leaving ctx->output_buf and ctx->output_buflen pointing at
+the caller's response buffer, which is usually on the caller's stack:
 
-Neither mana_gd_remove() nor mana_gd_cleanup_device() cancels or flushes it,
-and the worker path mana_serv_reset() -> mana_gd_suspend()/mana_gd_resume()
--> mana_gd_setup() -> mana_hwc_create_channel() -> mana_smc_setup_hwc() runs
-without device_lock, so it can overlap remove/shutdown/PM.
+drivers/net/ethernet/microsoft/mana/gdma_main.c:mana_gd_query_hwc_timeout() {
+	struct gdma_query_hwc_timeout_resp resp = {};
+	...
+	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
+}
 
-That gives this interleaving on the single shared-memory aperture:
+The baseline mana_hwc_handle_resp() then copied a late response into that
+pointer as soon as the bit was set again by the next sender:
 
-CPU0 mana_smc_setup_hwc()
-	*submitted = true;
-	writel() loop			/* ESTABLISH_HWC handed to PF */
-	mana_smc_read_response()	/* polling */
+	if (!test_bit(msg_id, hwc->inflight_msg_res.map)) {
+		...
+	}
+	ctx = hwc->caller_ctx + msg_id;
+	err = mana_hwc_verify_resp_msg(ctx, resp_msg, resp_len);
+	...
+	memcpy(ctx->output_buf, resp_msg, resp_len);
 
-CPU1 mana_hwc_destroy_channel()
-	if (hwc->setup_active) {			/* reads true */
-		if (!mana_smc_teardown_hwc(...))	/* writels DESTROY_HWC */
+With HW_CHANNEL_VF_BOOTSTRAP_QUEUE_DEPTH == 1 the same index is always
+reused, so the write lands in a stack frame that has already returned, and
+the length check runs against the stale output_buflen.
 
-Can CPU0 then consume the DESTROY_HWC request header written by CPU1 (a
-bogus -EPROTO), or CPU1 consume the ESTABLISH_HWC response, leaving the
-PF/VF handover state inconsistent while both also race on the plain
-read-modify-write of setup_active?
+Is the new output_buf test here, together with the ctx->output_buf = NULL
+withdrawal in mana_hwc_send_request(), what closes that window? If so, would
+a Fixes: ca9c54d2d6a5 ("net: mana: Add a driver for Microsoft Azure Network
+Adapter (MANA)") and a mention of the corruption in the changelog make this
+visible to stable? The changelog notes the work was re-targeted from a "net
+fixes-only posting" to net-next, which makes the fix easy to miss.
 
-With the old gc->max_num_cqs > 0 gate this window was closed by accident,
-because the counter is still zero during the setup handover, so the destroy
-path issued no shared-memory access at all.
+>  
+>  	err = mana_hwc_verify_resp_msg(ctx, resp_msg, resp_len);
+> +	if (!err) {
+> +		ctx->status_code = resp_msg->status;
+> +		memcpy(ctx->output_buf, resp_msg, resp_len);
+> +	}
+>  	ctx->error = err;
+>  
+> -	/* Must post rx wqe before complete(), otherwise the next rx may
+> -	 * hit no_wqe error.
+> +	/* Post RX WQE before completing — the next response may arrive
+> +	 * immediately and needs a posted buffer.
+>  	 */
+>  	mana_hwc_post_rx_wqe(hwc->rxq, rx_req);
+> -
+>  	complete(&ctx->comp_event);
+> +	spin_unlock(&ctx->lock);
+> +
+> +	hwc_ctx_put(hwc, ctx);
+>  }
 
-The underlying unserialized create-versus-destroy of the HWC context
-predates this patch, and later in the series mana_hwc_destroy_channel()
-gains the comment "The caller must serialize setup and teardown operations".
-Would it help to state that requirement in this patch, next to the new
-setup_active field, since this is where the flag starts gating aperture
-access?
+[ ... ]
+
+> @@ -878,8 +925,11 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
+>  	}
+>  
+>  	ctx = hwc->caller_ctx + msg_id;
+> +
+> +	spin_lock_irqsave(&ctx->lock, flags);
+>  	ctx->output_buf = resp;
+>  	ctx->output_buflen = resp_len;
+> +	spin_unlock_irqrestore(&ctx->lock, flags);
+
+[ ... ]
+
+> @@ -895,43 +945,108 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
+> +	wait_ms = hwc->hwc_timeout;
+>  	if (!wait_for_completion_timeout(&ctx->comp_event,
+> -					 (msecs_to_jiffies(hwc->hwc_timeout)))) {
+> -		if (hwc->hwc_timeout != 0)
+> +					 msecs_to_jiffies(wait_ms))) {
+> +		/* Clear output_buf so a late response cannot write the caller's
+> +		 * buffer, then check whether one already arrived
+> +		 * (error != -EINPROGRESS).
+> +		 */
+> +		spin_lock_irqsave(&ctx->lock, flags);
+> +		ctx->output_buf = NULL;
+> +		err = ctx->error;
+> +		status = ctx->status_code;
+> +		spin_unlock_irqrestore(&ctx->lock, flags);
+
+[ ... ]
+
+>  out:
+> -	mana_hwc_put_msg_index(hwc, msg_id);
+> +	/* Error, no-wait teardown, or timeout: drop the sender's and the
+> +	 * response-side references.  Latch ->responded so a racing response
+> +	 * is a no-op, and only drop the response-side ref if it has not.
+> +	 */
+> +	ctx = hwc->caller_ctx + msg_id;
+> +	spin_lock_irqsave(&ctx->lock, flags);
+> +	ctx->output_buf = NULL;
+> +	drop_resp_ref = !ctx->responded;
+> +	ctx->responded = true;
+> +	spin_unlock_irqrestore(&ctx->lock, flags);
+> +	if (drop_resp_ref)
+> +		refcount_dec(&ctx->refcnt);
+> +	hwc_ctx_put(hwc, ctx);
+> +done:
+>  	return err;
+>  }
+> diff --git a/include/net/mana/hw_channel.h b/include/net/mana/hw_channel.h
+> index befa09674ce56..b377e221aa5c8 100644
+> --- a/include/net/mana/hw_channel.h
+> +++ b/include/net/mana/hw_channel.h
+> @@ -171,8 +171,24 @@ struct hwc_caller_ctx {
+>  	void *output_buf;
+>  	u32 output_buflen;
+>  
+> -	u32 error; /* Linux error code */
+> +	int error; /* Linux error code (negative errno or 0) */
+>  	u32 status_code;
+> +
+> +	/* Protects output_buf against concurrent access from
+> +	 * handle_resp() (CQ interrupt) and the sender timeout path.
+> +	 */
+> +	spinlock_t lock;
+> +
+> +	/* Tracks sender + handle_resp ownership.  The last put
+> +	 * (refcount reaches 0) releases the bitmap slot.
+> +	 */
+> +	refcount_t refcnt;
+> +	u16 msg_id;
+> +
+> +	/* Set by the first handle_resp(), or by the sender's timeout path,
+> +	 * so a later or duplicate response is dropped.
+> +	 */
+> +	bool responded;
+>  };
+
+[Severity: Low]
+These three comments look narrower than what hw_channel.c actually relies
+on. Could they be extended?
+
+The lock comment mentions output_buf only, but the out: block in
+mana_hwc_send_request() also uses it to serialize ->responded and to decide
+who owns the response-side reference:
+
+	spin_lock_irqsave(&ctx->lock, flags);
+	ctx->output_buf = NULL;
+	drop_resp_ref = !ctx->responded;
+	ctx->responded = true;
+	spin_unlock_irqrestore(&ctx->lock, flags);
+
+and ctx->error / ctx->status_code are read and written under the same lock
+in both mana_hwc_handle_resp() and mana_hwc_send_request().
+
+The responded comment says it is set "by the first handle_resp(), or by the
+sender's timeout path", but the out: block above is also reached from the
+req_len > tx_wr->buf_len rejection, from mana_hwc_post_tx_wqe() failure, and
+from the no-wait teardown path where hwc_timeout is 0.
+
+The error comment says "Linux error code (negative errno or 0)", while
+mana_hwc_get_msg_index() stores -EINPROGRESS as an in-band "no response yet"
+state that mana_hwc_send_request() special-cases with
+if (err != -EINPROGRESS). Should that sentinel be documented next to the
+field, since every reader of ->error has to know about it?
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260908035201.402424-1-longli%40microsoft.com
