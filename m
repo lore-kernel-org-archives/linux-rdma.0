@@ -1,136 +1,235 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A15D4388391
-	for <linux-rdma@vger.kernel.org>; Sun, 13 Sep 2026 03:50:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E11338239B
+	for <linux-rdma@vger.kernel.org>; Sun, 13 Sep 2026 03:50:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789271442; cv=none; b=uwzHxgLY4K3rh4pwsTUzdsFwJ0eLWqjPqRJM8Syf5AiNdAo+3YPXvGBinpuWWacA8zNR6bQquRX0q8k5BpBzlkvK+cTa5e1se8sBlpYvV4VqpacU3BNBFxdhp+sjORAMDpwxmOXhEDSJPaNv7FaK0rV63nvZw/ZlEMy/N3O+jp4=
+	t=1789271443; cv=none; b=S381Sjx5AQdWK4gVYiHzRqv3oz0JILf7flxEdgvy5HXLmzLJvWmFYliEJUYoJ4j02SAogni1Xt13BW6ThGmY6aME4EyxuDZvu1RP3IrXGAeKG5YCmOIuilt1zIGbnITa8VtwbWh/jh/QeCClj5MNzbneaY8T+M907OgptL4+TxA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789271442; c=relaxed/simple;
-	bh=YlXCPi7EXTFOTZrqVfhqmH7OUsdhK4oud/NV0/QMHWk=;
+	s=arc-20240116; t=1789271443; c=relaxed/simple;
+	bh=ODPJaKV37TbFjwVNuRnoMMLDnSLawTWF0QfaxRha9kw=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=P+VNIWsKGE9Sb6dtxqx7wm6kL/nUFWWqxfVerOQ8vId/DKheuUHv3zoIBIB6V62ac8I+YpGG13kEoCkERCFhYZ+heh6+bNHpfOUQ4Yhbs2Atk83XGoTyqtb4zOmeqaOtoscd/UzPsJy7S06EIQwtNdPNyfi7n5ey7TF6v3g5TR4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PoX0vKEV; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=LA2AsUvTmng91U8rzlyGtTwvDyN685cczThSarJnx136ymyLwoubttpMF527HIlsfTjw8TOYT/S1Hr85NB+nfB6pl0pgHdB+317G+z0BIVrlkrHP95GHeAqA8hEKlOo0bzBZW8XZQ3Dp7pcDpZHWDSVxD9ys1wJwdyaVD5eyH8s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YwYtOM5v; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PoX0vKEV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68CEE1F00893;
-	Sun, 13 Sep 2026 03:50:41 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YwYtOM5v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 239FB1F00898;
+	Sun, 13 Sep 2026 03:50:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789271441;
-	bh=DmbQN0kpp9agHw2rfEx2+ZzHyExkExlxC/D+i5kSDzU=;
+	s=k20260515; t=1789271442;
+	bh=wjku3v92oQlgSaxp1iidOCkOezDZp95QW6oF/uVlliE=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=PoX0vKEVEf/3WAiDdBLGDFU8xYZPoAvQhRx+qR0LorIg02r10wlaC8WSUHQPd5h81
-	 v0jWvuiEnws7nwCX0Sjwq9s3WNF+GOhfozp7NhxbiE7VTV3153+4K/Gy2KRYOCo40c
-	 vjscjJYPp8WTp6kXI3bZkybIDRrL+bKW25RVyFRI24EFoc1tRjmTGgpq0AKlWP9wC+
-	 KLy4mhR+EWDQQSZPdbJ3cOMjsWxjt6cFq9+qtN1WqfChElAkMfxjALOvdg73OYK8S3
-	 ybyF7AlYbl7l1Xus9kEngXoa34HHnHFgC95KHGpHaLuCErDyZtkS/Gzw72B5FI6I5v
-	 Xd72bgsLsePuw==
+	b=YwYtOM5vfbXAT4QWFKE4uVSTc+wHVjI4SWgZ0ic0i1ZEGqLVNKrv6zQ6VXY6OJH/B
+	 7Rb4AWRtJy8vHR4MpGjm67TIwJlaGhvJHbnlsQvi5V2PaFHG5KprbTVmFs/UUvlegU
+	 WBEnGFVPyOFpTcIogtwSjTwdmEev/VPv1YwJ7Qj1P95mltVoYB1EEWCtlCo4zp1Iwg
+	 +IQyhEHMXRS+x9SFeDgtUsSBGEa+gecQFcwSIAvTbDln0MnWBJAbnmDPx6RB94B914
+	 z3OTlQz4mzVQkffkPl6Br3yfBFj68LbJneyAzINNbYRb5oiL13mSHVQyw4Qvgm0aHt
+	 SRfjV1TLNVn3A==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next v2 4/9] net/rds: wait for connections to be
- freed on transport unload
+Subject: Re: [PATCH net-next v2 6/9] net/rds: hold connection references in
+ lookup, sockets and c_passive
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Allison Henderson" <achender@kernel.org>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260912035027.27447-5-achender@kernel.org>
+In-Reply-To: <20260912035027.27447-7-achender@kernel.org>
 References: <20260912035027.27447-1-achender@kernel.org>
- <20260912035027.27447-5-achender@kernel.org>
+ <20260912035027.27447-7-achender@kernel.org>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Date: Sun, 13 Sep 2026 03:50:41 +0000
-Message-Id: <20260913035041.68CEE1F00893@smtp.kernel.org>
+Message-Id: <20260913035042.239FB1F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+Thank you for your contribution! Sashiko AI review found 4 potential issue(=
 s) to consider:
-- [High] Repeatedly calling `rds_ib_destroy_nodev_conns` as a resweep callb=
-ack causes list corruption and an infinite loop because `list_splice` does =
-not reinitialize the list head.
+
+New issues:
+- [High] Linked-list corruption in cp_send_queue because rds_conn_path_quie=
+sce() mutates it without holding cp_lock, racing with rds_sendmsg().
+- [High] rds_tcp_accept_one() can attach a newly accepted socket to a dying=
+ RDS connection, leading to a Use-After-Free when the connection is freed.
+- [Medium] Mismatched locks used for reading and writing `rs->rs_tos` in `r=
+ds_ioctl`.
+
+Pre-existing issues:
+- [High] rds_ib_conn_free() uses spin_unlock_irq(), which illegally enables=
+ interrupts while the caller __rds_conn_create() holds an outer irqsave spi=
+nlock.
 --
 
-commit 597676df37a14231916bc15aaa2d2b879b415a67
+commit d9df1c8410e812fbc2590e40004d81636ec5259e
 Author: Sharath Srinivasan <sharath.srinivasan@oracle.com>
 
-net/rds: wait for connections to be freed on transport unload
+net/rds: hold connection references in lookup, sockets and c_passive
 
-This patch tracks the number of live connections per transport and adds a
-polling wait loop on transport unload to ensure all connections are fully
-destroyed before the module exits. It also provides a resweep callback for
-transports like IB that detach asynchronously.
+This patch introduces reference counting for struct rds_connection objects =
+to
+prevent use-after-free bugs. It hands out live references on connection
+lookup, creation, and within the rs_conn sendmsg cache. The c_passive
+connection pointer also now owns a reference that is dropped during parent
+destruction.
+
+Closes: https://syzkaller.appspot.com/bug?extid=3D879c1877016972360186
+
+> diff --git a/net/rds/af_rds.c b/net/rds/af_rds.c
+> index d5defe9172e36..63baac8aeb2d1 100644
+> --- a/net/rds/af_rds.c
+> +++ b/net/rds/af_rds.c
+[ ... ]
+> @@ -255,6 +263,7 @@ static int rds_ioctl(struct socket *sock, unsigned in=
+t cmd, unsigned long arg)
+[ ... ]
+> -		spin_lock_bh(&rds_sock_lock);
+> +		spin_lock_irqsave(&rs->rs_lock, flags);
+>  		if (rs->rs_tos || rs->rs_conn) {
+> -			spin_unlock_bh(&rds_sock_lock);
+> +			spin_unlock_irqrestore(&rs->rs_lock, flags);
+>  			return -EINVAL;
+>  		}
+>  		rs->rs_tos =3D tos;
+> -		spin_unlock_bh(&rds_sock_lock);
+> +		spin_unlock_irqrestore(&rs->rs_lock, flags);
+>  		break;
+>  	case SIOCRDSGETTOS:
+>  		spin_lock_bh(&rds_sock_lock);
+>  		tos =3D rs->rs_tos;
+>  		spin_unlock_bh(&rds_sock_lock);
+
+[Severity: Medium]
+Could this introduce a data race on rs->rs_tos?
+
+This patch updates the SIOCRDSSETTOS write path to use the new per-socket
+rs->rs_lock, but the SIOCRDSGETTOS read path still uses the global
+rds_sock_lock:
+
+	spin_lock_bh(&rds_sock_lock);
+	tos =3D rs->rs_tos;
+	spin_unlock_bh(&rds_sock_lock);
+
+Would concurrent ioctl calls with SIOCRDSSETTOS and SIOCRDSGETTOS on the
+same socket cause a locking mismatch and potential KCSAN splat?
 
 > diff --git a/net/rds/connection.c b/net/rds/connection.c
+> index 5848dd295911a..1ec141d6faa38 100644
 > --- a/net/rds/connection.c
 > +++ b/net/rds/connection.c
 [ ... ]
-> @@ -591,7 +596,51 @@ static void rds_conn_destroy_fini(struct kref *kref)
-[ ... ]
-> +void rds_conn_wait_conns_freed(struct rds_transport *trans,
-> +			       void (*resweep)(void))
-> +{
-> +	unsigned long warn_interval =3D
-> +			msecs_to_jiffies(RDS_CONN_FREE_WARN_INTERVAL_MS);
-> +	unsigned long warn_at =3D jiffies + warn_interval;
-> +
-> +	while (!wait_event_timeout(rds_conn_freed_waitq,
-> +				   !atomic_read(&trans->t_conn_count),
-> +				   msecs_to_jiffies(RDS_CONN_FREE_POLL_MS))) {
-> +		/* A transport whose teardown is asynchronous (IB moves a
-> +		 * connection off its device from the shutdown work) gives
-> +		 * us a resweep to destroy what has arrived since.
-> +		 */
-> +		if (resweep)
-> +			resweep();
-> +		if (time_after_eq(jiffies, warn_at)) {
-[ ... ]
-> diff --git a/net/rds/ib.c b/net/rds/ib.c
-> --- a/net/rds/ib.c
-> +++ b/net/rds/ib.c
-[ ... ]
-> @@ -537,7 +537,24 @@ void rds_ib_exit(void)
-[ ... ]
-> +	/* rds_ib_dev_shutdown() only dropped the connections still
-> +	 * attached to a device; each moves itself to ib_nodev_conns
-> +	 * from its shutdown work.  Destroy what is there now and keep
-> +	 * sweeping the list while the wait sees connections outstanding,
-> +	 * so a late arrival is destroyed rather than waited on forever.
-> +	 */
->  	rds_ib_destroy_nodev_conns();
-> +	rds_conn_wait_conns_freed(&rds_ib_transport,
-> +				  rds_ib_destroy_nodev_conns);
+> @@ -318,13 +353,44 @@ static struct rds_connection *__rds_conn_create(str=
+uct net *net,
+>  	spin_lock_irqsave(&rds_conn_lock, flags);
+>  	if (parent) {
+>  		/* Creating passive conn */
+> -		if (parent->c_passive) {
+> +		if (READ_ONCE(parent->c_destroy_in_prog)) {
+> +			/* The parent's destroy has begun (it sets the
+> +			 * flag and snatches c_passive under this
+> +			 * lock); do not install a new passive conn
+> +			 * that nothing would ever destroy.
+> +			 */
+> +			trans->conn_free(conn->c_path[0].cp_transport_data);
 
 [Severity: High]
-Can this lead to list corruption if rds_ib_destroy_nodev_conns() is called
-multiple times?
+This is a pre-existing issue, but does calling trans->conn_free() here=20
+unintentionally enable hardware interrupts?
 
-The new polling loop in rds_conn_wait_conns_freed() will repeatedly call the
-resweep function if the transport connection count is greater than zero.
+__rds_conn_create() acquires rds_conn_lock using spin_lock_irqsave(),
+disabling interrupts. When it calls trans->conn_free(), for IB connections
+this invokes rds_ib_conn_free(), which uses spin_unlock_irq():
 
-Looking at rds_ib_destroy_nodev_conns() in net/rds/ib_rdma.c, it uses
-list_splice() without reinitializing the original list:
-
-net/rds/ib_rdma.c:rds_ib_destroy_nodev_conns() {
-    ...
-    spin_lock_irq(&ib_nodev_conns_lock);
-    list_splice(&ib_nodev_conns, &tmp_list);
-    spin_unlock_irq(&ib_nodev_conns_lock);
-    ...
+net/rds/ib_cm.c:rds_ib_conn_free() {
+	...
+	spin_lock_irq(lock_ptr);
+	if (!list_empty(&ic->ib_node))
+		list_del(&ic->ib_node);
+	spin_unlock_irq(lock_ptr);
+	...
 }
 
-Because list_splice() leaves the ib_nodev_conns head pointing to elements
-that are then moved to tmp_list and freed, a second call to this function
-during the wait loop will evaluate list_empty() as false and execute
-__list_splice() with stale pointers.
+Using spin_unlock_irq() unconditionally enables hardware interrupts, which
+destroys the original irqsave state of the caller. Can this break mutual
+exclusion or cause deadlocks?
 
-This can result in a use-after-free write to the prev and next fields of
-freed memory.
+[ ... ]
+> @@ -696,7 +771,38 @@ void rds_conn_destroy(struct rds_connection *conn)
+[ ... ]
+>  	spin_unlock_irq(&rds_conn_lock);
+> +	if (parent)
+> +		rds_conn_put(parent);
+>  	synchronize_rcu();
+> =20
+>  	/* shut the connection down */
 
-Could this use list_splice_init() instead so the list head is safely
-emptied for subsequent polling iterations?
+[Severity: High]
+Can this concurrent teardown corrupt the cp_send_queue linked list?
+
+With this patch, a connection can be quiesced via rds_conn_destroy() while
+a send is in flight. During teardown, rds_conn_path_quiesce() is called and
+locklessly iterates over and mutates the cp_send_queue:
+
+net/rds/connection.c:rds_conn_path_quiesce() {
+	...
+	list_for_each_entry_safe(rm, rtmp, &cp->cp_send_queue, m_conn_item) {
+		list_del_init(&rm->m_conn_item);
+	...
+}
+
+Concurrently, a racing rds_sendmsg() can add messages to the queue using
+the cp_lock:
+
+net/rds/send.c:rds_send_queue_rm() {
+	...
+	spin_lock(&cp->cp_lock);
+	list_add_tail(&rm->m_conn_item, &cp->cp_send_queue);
+	...
+	spin_unlock(&cp->cp_lock);
+}
+
+Does modifying this queue without cp_lock during teardown risk memory leaks
+or kernel crashes when racing with active senders?
+
+> diff --git a/net/rds/tcp_listen.c b/net/rds/tcp_listen.c
+> index 8a0c54aced5ea..dcac10a91a67f 100644
+> --- a/net/rds/tcp_listen.c
+> +++ b/net/rds/tcp_listen.c
+[ ... ]
+> @@ -229,6 +229,7 @@ int rds_tcp_accept_one(struct rds_tcp_net *rtn)
+> =20
+>  	if (IS_ERR(conn)) {
+>  		ret =3D PTR_ERR(conn);
+> +		conn =3D NULL;
+>  		goto out;
+>  	}
+>  	/* An incoming SYN request came in, and TCP just accepted it.
+
+[Severity: High]
+Can rds_tcp_accept_one() attach a newly accepted socket to a dying connecti=
+on?
+
+This patch allows rds_conn_destroy() to run concurrently with active network
+events. However, after creating or looking up a connection, this path lacks=
+ a
+check for rds_destroy_pending(conn) before attaching the socket:
+
+net/rds/tcp_listen.c:rds_tcp_accept_one() {
+	...
+	rds_tcp_set_callbacks(new_sock, cp);
+	rds_connect_path_complete(cp, RDS_CONN_CONNECTING);
+	...
+}
+
+If the connection's destruction has already begun, rds_tcp_accept_one() cou=
+ld
+attach the socket and drop its reference while the connection is subsequent=
+ly
+freed. The socket would remain alive with sk_user_data pointing to the freed
+connection path, potentially leading to a use-after-free when network data
+arrives. Should we check if the connection is dying before attaching to it?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260912035027.2744=
-7-1-achender@kernel.org?part=3D4
+7-1-achender@kernel.org?part=3D6
