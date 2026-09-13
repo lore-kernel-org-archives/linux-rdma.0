@@ -1,126 +1,124 @@
-Received: from mail-ej2-f12.google.com (mail-ej2-f12.google.com [74.125.228.140])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A7AF38F253
-	for <linux-rdma@vger.kernel.org>; Sun, 13 Sep 2026 11:53:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.140
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D25E61F1534
+	for <linux-rdma@vger.kernel.org>; Sun, 13 Sep 2026 11:58:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789300413; cv=none; b=iKLsPqn1mqzukpfI7Gu9F3a8iClMkgDwpCycGIinO2V8UrkyJdARUSmlW+MwQn3JYt9PGS9cdppAkVd/P5tO5FWuGHN6sCFNIdGlIgPmQALGjLB6sLYj0hOd4FfguUM45wEzXQR2Sk3Kn+2hmIYuuiR3aRLViiv6Vk/yfckA9oI=
+	t=1789300711; cv=none; b=Yqh529B+zaSCNN5e9Z+XizFJ+JnLCALYHm7z14KkBRGAUMO6OksKcxC2Ce+qlD1fo9Hh1rqgMxKoLXrbnzbIvDs5tKhw52dOn+Fbm4gpmU6nUydiU2s0Bd8ViqrFj80Q+iljfyzf34Yfd3jqPp3aLyTy50DVMxfG7nHUr1mNHgo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789300413; c=relaxed/simple;
-	bh=hFcc5IUBsp7LuuzDVvAup5go7TdJI4e/FsVLrCdqdF8=;
-	h=Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:
-	 Message-Id:References:To; b=mdAnc7G5QQLoCwCJbvOdbc5rqB+SHgK1oMzynezs2qOkgOw9Vh6ykBepV3FGs1bDwCc5AqE/Mgids0TZ4RSr3VXPwC5lAC/s+FG5yLiZ5m8fKBbLK5s4joDqMtcTWj4/+v1FUKabdc/hx3spucDVITHR1syCqfNVP9DYRgKs2ZY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=doyensec.com; spf=pass smtp.mailfrom=doyensec.com; dkim=pass (2048-bit key) header.d=doyensec.com header.i=@doyensec.com header.b=VHcIJPNC; arc=none smtp.client-ip=74.125.228.140
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=doyensec.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=doyensec.com
+	s=arc-20240116; t=1789300711; c=relaxed/simple;
+	bh=y/TnpKLDdTVY4VPFwhewQeCi/JA9oT6Ozxfz1dH0f6o=;
+	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
+	 Message-Id; b=mjpYwyecTrhj3bHYW31o36PINsdEotxqw3S3f6Cuir+yfWJsQJnXqNINqXaWzvCpeKZbFnPpNufsU+QuMwkdmbyPV9mDn2wpjPYez27Q075Iw0XlvIVXBmvCUP/ZUi3dMLX2D1yJeUbv3sl9izHIYMXRbBZlW0XfCEwwS5IexFA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=I9bVBalU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=doyensec.com header.i=@doyensec.com header.b="VHcIJPNC"
-Received: by mail-ej2-f12.google.com with SMTP id a640c23a62f3a-c293c683202so142917966b.3
-        for <linux-rdma@vger.kernel.org>; Sun, 13 Sep 2026 04:53:31 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=doyensec.com; s=google; t=1789300410; x=1789905210; darn=vger.kernel.org;
-        h=to:references:message-id:content-transfer-encoding:cc:date
-         :in-reply-to:from:subject:mime-version:content-type:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=hFcc5IUBsp7LuuzDVvAup5go7TdJI4e/FsVLrCdqdF8=;
-        b=VHcIJPNChMzm24LcUwgiPDZMaArtQjncU7bIw+Q9mcQklRw5UAtmDKPrqjJcyLrk78
-         kbJA6OKW8QmGsdz5QccXQHWfaEY3k0Efwig00K/ZIpO/fiAVtwLtp8CoO9o3+jdmWr31
-         7fwFu7H4MBMjhf54LjU9pCX9oD7svTbrKtagCy5l1fooLlu4L7xmotsQB82YG8EjGbXS
-         tYK+zPxcl7edNTGInGi71eSrfYAFgFMkYuRywdykoAp7DjhSYhDu+l/KC/uHEZjAcWv0
-         7zIccbYR4jXGNxLOO/xTQOCEqDC12S1Nd6k3TfIANbCCfam5EOQL+UjH37v/UlqT15LN
-         iyGw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1789300410; x=1789905210;
-        h=to:references:message-id:content-transfer-encoding:cc:date
-         :in-reply-to:from:subject:mime-version:content-type:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=hFcc5IUBsp7LuuzDVvAup5go7TdJI4e/FsVLrCdqdF8=;
-        b=mUaiDo8efYJwo0Q4DrDyocGQ+/5VMvZ56fRtsRYEhB6Id7b1cs0qu7a+/KRavjamh4
-         WtkOKztcV6rqZeO1meelETT2I3VBmFdF5psE8k8AjiUKfaxQBiJmez7q9IjzPntF0Wzc
-         hpzTDwKIxjc/QIKluxTeGMubJKhqYaFrs4ynnHpKoFRuCgjJlIRyGf2RBOvUiUgDA2NJ
-         JFDvEgudl2ev+sGfNe3iXuQ31DU42pmtzIo4zR9ewEPvugZAz3NXl8bzypfsPClqCowR
-         qsi40c1JRihOOV0v+DdOmaOnkY8dQG7i7wiv9ICHp/iwdN+BoVs4AeDI+ZvCepZW7h7p
-         Bjkw==
-X-Gm-Message-State: AFuF++kwN/VhhqjMag2Pk2qtkaplQ+0Tk+dD2T936qHBVvK0R5eHKHNO
-	/p/Cd1+1iYqgh8N/MDwv0VvvzZR2j1oFyMKcL2SlvqZoHPph66E5aVDItfThgDKCrIZzWEu7cbx
-	hI2JICOw=
-X-Gm-Gg: AYBFou0gpJoiAcNmhmA6l3rDvUHBmlx9zQx3mOxde9yzVXxQs0cbX184WykAlpR8Lmp
-	VQPnkqRdrwLtx7Vb5J/5V3VPmkUmXWEHUn22GTLVN8Q3wZNhgCHnL0SWUBEwLsWNvWfI56I16Pm
-	3KO8o9yn6Z8Wnu2QTD2q5J2NHOGH0N1WPPLn8p9VsmT+gFsOyegEXv01Y8wSUUJU2VAoc+SnqgS
-	i/SbVHgzjwhEB6KYYZgv7S7FdDy/VsOPtOWXfUiCYzDfeH27iPeVyYm1twx1jh6ac4FnpBh6o4/
-	rB8O+jX8PSoZ2SOR2EkbjvT6iF2jFyQZAPMsMptMJ+/DvUwQCQKRCX8znfTMjkCjat7/OYOfWup
-	MnNetNawHqv5bu3oB0K4sUt8GJhItp5zOTMuZUqyWJZBTBhT7MI6Yr57EcQRA6oAF7A4fSDWIHd
-	wm1YRfTOgV60s/FP6N52/fHH7eNYcErjRCxZD3yDpd0E0modK4y/ZcNM9D2RpGKiixym1c1DhVp
-	GuN4BVc+yGRu7cS/zJK7BiPB6oYXhURK103yx5fhHU+dR7H/Ej0/SkvaO2oDKU=
-X-Received: by 2002:a17:907:97d0:b0:c26:19de:9ac3 with SMTP id a640c23a62f3a-c29858810c7mr355624066b.27.1789300409693;
-        Sun, 13 Sep 2026 04:53:29 -0700 (PDT)
-Received: from smtpclient.apple (80.49.147.201.ipv4.supernova.orange.pl. [80.49.147.201])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c29660ead51sm288527566b.49.2026.09.13.04.53.28
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 13 Sep 2026 04:53:29 -0700 (PDT)
-Content-Type: text/plain;
-	charset=us-ascii
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="I9bVBalU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2056D1F000FF;
+	Sun, 13 Sep 2026 11:58:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1789300709;
+	bh=2L01S3dmtthooGr2lHXYocvpr4EyfxTv02us10YTGRA=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=I9bVBalUdthoI8jD7gNkPe+LN8IHwVLD89HIJpx6fEWaz6L5Wh4uE+eHVzBYYWXnO
+	 qXQtWjhs278vu1yHxQp0334/h4LhjJl484E4Dubu/Vu4tQV1WzOIK4hVPq0wYIfapQ
+	 bH6QOczUiqWbvPx7S1vADZdUPc7OyEFCfFKCnu2BXfgORMj1K+NW09fpVCb9l2yNh9
+	 aS8yScs4QL5wUgzsqxzcFE+mryNQTmIF2zPrXTVtI7aodVlwuINOSnBpfiVvws/e/G
+	 V2U2iRNaybJQ2vjcuYtTbXv/L1Q3mz8uLD3vGD/wUZjKHXU390caYABlrl6sC6JCc5
+	 hsuZtrZwWTsCA==
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH v2 2/2] RDMA/rxe: Reject prefetch of a non-ODP MR
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Norbert Szetei" <norbert@doyensec.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20260913-rxe-advise-mr-v2-v2-2-b806c789871c@doyensec.com>
+References: <20260913-rxe-advise-mr-v2-v2-0-b806c789871c@doyensec.com>
+ <20260913-rxe-advise-mr-v2-v2-2-b806c789871c@doyensec.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Sun, 13 Sep 2026 11:58:28 +0000
+Message-Id: <20260913115829.2056D1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3864.700.51.1.1\))
-Subject: Re: [PATCH] RDMA/rxe: Reject prefetch of a non-ODP MR
-From: Norbert Szetei <norbert@doyensec.com>
-In-Reply-To: <20260906090149.GB13683@unreal>
-Date: Sun, 13 Sep 2026 13:53:17 +0200
-Cc: linux-rdma@vger.kernel.org,
- Zhu Yanjun <zyjzyj2000@gmail.com>,
- Jason Gunthorpe <jgg@ziepe.ca>,
- linux-kernel@vger.kernel.org
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <744A1792-201E-4D0F-B423-4D4EDDD3DF72@doyensec.com>
-References: <521D5E74-89E3-43C0-81C7-AC0BE52591E7@doyensec.com>
- <20260901075611.GG24140@unreal>
- <874DA83D-C81E-4858-B9E7-D2A3BFE0137D@doyensec.com>
- <20260906090149.GB13683@unreal>
-To: Leon Romanovsky <leon@kernel.org>
-X-Mailer: Apple Mail (2.3864.700.51.1.1)
 
-On Sep 6, 2026, at 11:01, Leon Romanovsky <leon@kernel.org> wrote:
->>>=20
->> Do you mean lookup_mr() should take IB_ACCESS_ON_DEMAND into account, =
-so that
->> the existing (access & mr->access) !=3D access test rejects the =
-non-ODP MR?
->=20
-> I expected lookup_mr(..., IB_ACCESS_ON_DEMAND) to be called and to
-> perform all the necessary checks internally.
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+s) to consider:
 
-Done in v2.
+Pre-existing issues:
+- [High] Prefetch incorrectly requires IB_ACCESS_LOCAL_WRITE unconditionall=
+y, breaking read-prefetch on read-only ODP MRs and making the writable chec=
+k redundant.
+--
 
->> rxe_rereg_user_mr() with IB_MR_REREG_ACCESS assigns mr->access =
-directly, and
->> IB_ACCESS_ON_DEMAND is part of RXE_ACCESS_SUPPORTED_MR. So userspace =
-can set
->> that flag on a plain MR after registration, without the umem =
-changing. Am I
->> missing something there?
->=20
-> I assume this is a bug that needs to be fixed.
+commit a9cc6b0ff5adbd3d36fe2189b597deea1078f23c
+Author: Norbert Szetei <norbert@doyensec.com>
 
-OK, I just sent the series that includes that too. It depends on =
-ae36a5b609ae=20
-("RDMA/rxe: validate access flags before swapping the MR's PD"), which =
-moved=20
-the validation above the mr->ibmr.pd swap. v2 is based on for-rc.
+RDMA/rxe: Reject prefetch of a non-ODP MR
 
-N.
+This commit modifies the prefetch paths in rxe_odp.c to require
+IB_ACCESS_ON_DEMAND when calling lookup_mr. This prevents out-of-bounds
+reads that occur when non-ODP MRs are erroneously processed by ODP
+pagefault handlers.
 
-> Thanks
->=20
->>=20
->> Thanks.
->>=20
->>>=20
->>> Thanks.
+Cc: stable@vger.kernel.org
 
+> diff --git a/drivers/infiniband/sw/rxe/rxe_odp.c b/drivers/infiniband/sw/=
+rxe/rxe_odp.c
+> --- a/drivers/infiniband/sw/rxe/rxe_odp.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_odp.c
+> @@ -469,7 +469,7 @@ static int rxe_ib_prefetch_sg_list(struct ib_pd *ibpd,
+>  		struct rxe_mr *mr;
+>  		struct ib_umem_odp *umem_odp;
+> =20
+> -		mr =3D lookup_mr(pd, IB_ACCESS_LOCAL_WRITE,
+> +		mr =3D lookup_mr(pd, IB_ACCESS_LOCAL_WRITE | IB_ACCESS_ON_DEMAND,
+>  			       sg_list[i].lkey, RXE_LOOKUP_LOCAL);
 
+[Severity: High]
+This isn't a bug introduced by this patch, but does this require local write
+access for all synchronous prefetches?
+
+It appears this might improperly break read-prefetch for read-only ODP MRs.
+Valid ibv_advise_mr calls for read-only ODP MRs requesting
+IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH could fail with -EINVAL.
+
+> =20
+>  		if (!mr) {
+>  			rxe_dbg_pd(pd, "mr with lkey %x not found\n",
+>  				   sg_list[i].lkey);
+>  			return -EINVAL;
+>  		}
+> =20
+>  		if (advice =3D=3D IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH_WRITE &&
+>  		    !mr->umem->writable) {
+
+[Severity: High]
+This is also a pre-existing issue, but does lookup_mr already strictly enfo=
+rce
+IB_ACCESS_LOCAL_WRITE?
+
+If so, does that render this missing write permission check completely dead=
+ code?
+
+[ ... ]
+
+> @@ -535,7 +535,7 @@ static int rxe_ib_advise_mr_prefetch(struct ib_pd *ib=
+pd,
+> =20
+>  	for (i =3D 0; i < num_sge; ++i) {
+>  		/* Takes a reference, which will be released in the queued work */
+> -		mr =3D lookup_mr(pd, IB_ACCESS_LOCAL_WRITE,
+> +		mr =3D lookup_mr(pd, IB_ACCESS_LOCAL_WRITE | IB_ACCESS_ON_DEMAND,
+>  			       sg_list[i].lkey, RXE_LOOKUP_LOCAL);
+
+[Severity: High]
+This is a pre-existing issue, but does the asynchronous path also suffer fr=
+om
+the same incorrect IB_ACCESS_LOCAL_WRITE enforcement?
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260913-rxe-advise=
+-mr-v2-v2-0-b806c789871c@doyensec.com?part=3D2
