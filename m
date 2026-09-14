@@ -1,60 +1,75 @@
-Received: from CY7PR03CU001.outbound.protection.outlook.com (mail-westcentralusazon11010007.outbound.protection.outlook.com [40.93.198.7])
+Received: from CO1PR03CU002.outbound.protection.outlook.com (mail-westus2azon11010020.outbound.protection.outlook.com [52.101.46.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14AAA474247;
-	Mon, 14 Sep 2026 13:48:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.198.7
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 145E03E0C5C;
+	Mon, 14 Sep 2026 14:27:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.46.20
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789393682; cv=fail; b=cxW5HhKPk7qUi4ZA3+KV7RcJQ27yGAcO68xovUHzbhVgCixUF4KD69gFNzGqB1vQS+KfBDFcQGuFKDJNLQ79/Szcxu6PUS0l+f1wXgRh9eKA2/yCPDnnzw11vOEMiXy1JAssgwZroxfG1HlcbiHXLydVY9JekfadCxahodF8ueI=
+	t=1789396034; cv=fail; b=q0OR7Wtd4brZugYUkS6htW2x7M382FKW7bij8tJQ/8JtC2NSapJNWztlNXSuPLe/6ihb1W0Yx4e64wiY/OcRpc4AcASFopISTLT4o6m9CfQcKOza3nV53SJ07BvOvTFyqJcXOoueIIEqmFNRRQj5t3un4593m25NXtAYTPp6h3o=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789393682; c=relaxed/simple;
-	bh=cADowz7JQRnbuIwqF03raAyZFhiQQ9aaPS6mrskSKQE=;
-	h=Date:From:To:Cc:Subject:Message-ID:Content-Type:
-	 Content-Disposition:MIME-Version; b=DPlnsPWDq9SeDHlYV5PIrcFhIfkAu2LkRerGGCGKjaFgwYA3tGujyfCxILZ4i1x7PNR4XIvW1hnIAO/5cuuG4e+bqb7Acnl9vyT1ON6Jdk1927eVQYnLvDprnXkJFW7vdxDquuYHCXrQKeMS/bhobnqweyTg0pd9DlWgEKaB99Q=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=sNBTEPal; arc=fail smtp.client-ip=40.93.198.7
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	s=arc-20240116; t=1789396034; c=relaxed/simple;
+	bh=TWQ2feNja6wOTztd1ksvCavZFvEg8mGEMMyywTjmSyE=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=flcMLM2MGMaaYC1OK0SPhy7K+HmY5TvRbnYc2BHBD9BJE2n7P7OSCQVCazMGwxVnQnIeCmQxS+FOSPR7DjUja1vBQFNM3n+i0XQY+q84Sa5nvwpIhrY6gh0OlJfVBipJmhnUqt7IKUDjtWV8G4ekf28s1WTBa6U3KaTmXy8/tqY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=sTlp/X+a; arc=fail smtp.client-ip=52.101.46.20
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="sNBTEPal"
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="sTlp/X+a"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=tJS6gKpO2FrWc0r4EXxKqla9KUtLU6eKvzWCPRILbRovqDvPPw1Yj6Na4a14gEEtOrhmlvCHVR+QBNUffgE0LStZqpijTnFSTnqnxTi3fRvMg224GBTejyLTQhBoc0D1Jk9dltzHJPcoYphZ2hFo5ZuyW+vZNSi4AOEeYXyQEm4KCzuO95eFwvuId0hp0JqDXHfK7AcgNGo/ChiAQKNBn9urQJjD2kPW1NhbsZG+d+6zk47zytQC1+IA0UJo1Z0vN8ahVlvZLGdsX7Ambqy2+ee/skVMpJnVWTbChMuoD1ESAz3C0dUCAcanlPYYGEoQbrofgoqnY2bBjX7oqdM5Tw==
+ b=fjhzNVLrvmSAcTX5ZftRhRb26tjBOIzbiHpp+fK+a94TVptNTzzRX+H0/7XxbYemipiBvusTT0r/Cz0BHfX2CUtLidHr0fVwWUVKDdGf9M4eJdX5ZaPFc9POsABN/E3yG6nT8oH5iYyH1TEccxpnNuew9g9x6Yp5d+cTJMDNyuKeCEXqtMJkxhcHEx0TRXptHO/AwfrRlvge9Pm6R163PyOBV5MF53n2EeuskmuENYiZV8m4AGVCRN5zNfKCcNCFCKNNvaLV6y2mLoNZbzN+onTmCow7roDj3c0qwSzEaElRsdJlPqysjc3iLUZYDFRCWQ/wydeGiiARL8jqJp7p8w==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=hLTuOuy4XO6MJ72t2cWz1QXytbVCZhwB1rQ3Y/8t6vo=;
- b=nSLZBYb+JT3wQW2M+cahJpAP7GWoE+UVF3pnO0T/ndythsxJmCNDrzdtbwkXdkCdID8lPbkrNKz+QHv+sdqYrUX1o0yO07mTcb14Bkpqjfy4jLOHIZNraBVh3XDBcBAGpW9hUZSj9R5Uxgifk1WRBisEsD5CeVtPuFfsz2lCaHNExJQJpP69BeQWdti1O8dOiZUyDKyWIIPzegHjkcOv1dEsYg7m4NPYriSYU7JQ4BAQoSjaumejaO1Hv25bSI9Zk020wjAZvhoyJvqCdo9EbilQNvR5azuoBpwRNGGMG+MXJO0VA2albmkw+yED1iceC5AP6FsMJa9uTVGoPCmxqw==
+ bh=7Dql893JRWlhROYV0BvfSIJ2xw0z+unPgSLAVRC0fuw=;
+ b=Q5roa+Y0D73Qyq3Lze2fpG8uorWMcikhF3WSXr8ydMLc07XyMPfGwgI2wBilOJGHnz4cCQJfo93LokA0VYLVgEqswwKLHvCFzP5h24MNsRd4FgnKzdP9YSDB+8pbYKi/AabaUTbGty3Twm4m1aZZ3wIQ2GRcL83M/HPFA75pL+v5C9FkhvSYuRwx8bPy5gMgFTxD8p0isu/d4Wfc75i2beB38ivq6Ea2qhQcXqf8Rt+y69tF2XRHnTBLi4Z/ttx0264jgDCAHnCv63smMvnzk6iSuE6s0tuZs/SoEc+Z02B2fYBzWCrGDFRa81BC45YEE1VddI5yKsZqnGxnOjgj0Q==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=hLTuOuy4XO6MJ72t2cWz1QXytbVCZhwB1rQ3Y/8t6vo=;
- b=sNBTEPalZQ6c0ghzQxujL4RRK9xDWhti28266SsAU4cRShbkHcJn7/IvBUs3mwjI9Wm9wBUAMcUxwABjVrcyUoaCdQKgs4oDN8T4F9JTNuNWgMNUTxesX3QVVpiTSQ0Uo336HEqtMUDN9MkgRWhKFjLjjl6p5UlPChPFORCdYJjhnpcCiabZYHh1PwFZK4tFafnypnZfNfKkuYkWdXCGgLdixyGb3++LOhf7rE19BCjHBPOnLfi4rslnNpBEe9fb/i23C6AfpxExdihdPzbNKSXlBtcBGKi35sQ1qTp2zhG9qyOxhKqswqwO8io9fKY2jXrwLUeVVteDVWZ5DSon6Q==
+ bh=7Dql893JRWlhROYV0BvfSIJ2xw0z+unPgSLAVRC0fuw=;
+ b=sTlp/X+adYt1ntxUXlyF5+I12YQMkL2bAlG8Wgng3CEcqOzhnwhhNVoLXDIZXgVigHz2LVXuposMGByim+8GAOT+ikPWl7UGM9DeH8luCjLwbKhBJWsI35TbxT+tP2cTi3ZbX5CaBTWVtF3mHzDwNlWH1NEedVJtvcAAdrYwUS8=
 Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from CHBPR12MB731189.namprd12.prod.outlook.com
- (2603:10b6:610:33d::12) by DSSPR12MB999236.namprd12.prod.outlook.com
- (2603:10b6:8:374::10) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.406.11; Mon, 14 Sep
- 2026 13:47:57 +0000
-Received: from CHBPR12MB731189.namprd12.prod.outlook.com
- ([fe80::b0e5:123d:fe06:e10d]) by CHBPR12MB731189.namprd12.prod.outlook.com
- ([fe80::b0e5:123d:fe06:e10d%6]) with mapi id 15.21.0406.007; Mon, 14 Sep 2026
- 13:47:56 +0000
-Date: Mon, 14 Sep 2026 10:47:56 -0300
-From: Jason Gunthorpe <jgg@nvidia.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Leon Romanovsky <leonro@nvidia.com>
-Subject: [GIT PULL] Please pull RDMA subsystem changes
-Message-ID: <20260914134756.GA192443@nvidia.com>
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="NJBR7btByq5qizc/"
-Content-Disposition: inline
-X-ClientProxiedBy: YT3PR01CA0043.CANPRD01.PROD.OUTLOOK.COM
- (2603:10b6:b01:82::10) To CHBPR12MB731189.namprd12.prod.outlook.com
- (2603:10b6:610:33d::12)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from PH7PR12MB5685.namprd12.prod.outlook.com (2603:10b6:510:13c::22)
+ by SA0PR12MB4349.namprd12.prod.outlook.com (2603:10b6:806:98::21) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.406.12; Mon, 14 Sep
+ 2026 14:27:08 +0000
+Received: from PH7PR12MB5685.namprd12.prod.outlook.com
+ ([fe80::ce69:cfae:774d:a65c]) by PH7PR12MB5685.namprd12.prod.outlook.com
+ ([fe80::ce69:cfae:774d:a65c%3]) with mapi id 15.21.0406.005; Mon, 14 Sep 2026
+ 14:27:08 +0000
+Message-ID: <d3fb7ea0-019f-4311-bf0f-00d25bdebda0@amd.com>
+Date: Mon, 14 Sep 2026 16:27:00 +0200
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v6 17/18] dma-buf: Let importers ask how peer-to-peer
+ traffic is routed
+To: Leon Romanovsky <leon@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
+ Logan Gunthorpe <logang@deltatee.com>, Chaitanya Kulkarni <kch@nvidia.com>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jens Axboe
+ <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
+ Ankit Agrawal <ankita@nvidia.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+ Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>,
+ "Joerg Roedel (AMD)" <joro@8bytes.org>, Will Deacon <will@kernel.org>,
+ Robin Murphy <robin.murphy@arm.com>, Randy Dunlap <rdunlap@infradead.org>,
+ Sumit Semwal <sumit.semwal@linaro.org>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-doc@vger.kernel.org, iommu@lists.linux.dev,
+ Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+ linux-rdma@vger.kernel.org, kvm@vger.kernel.org
+References: <20260914-fix-p2p-acs-v4-0-v6-0-5ef07ec9ef06@nvidia.com>
+ <20260914-fix-p2p-acs-v4-0-v6-17-5ef07ec9ef06@nvidia.com>
+Content-Language: en-US
+From: =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>
+In-Reply-To: <20260914-fix-p2p-acs-v4-0-v6-17-5ef07ec9ef06@nvidia.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: BLAPR03CA0092.namprd03.prod.outlook.com
+ (2603:10b6:208:32a::7) To PH7PR12MB5685.namprd12.prod.outlook.com
+ (2603:10b6:510:13c::22)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -62,252 +77,249 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CHBPR12MB731189:EE_|DSSPR12MB999236:EE_
-X-MS-Office365-Filtering-Correlation-Id: dbaf2235-4b0f-4f02-6342-08df1266c864
+X-MS-TrafficTypeDiagnostic: PH7PR12MB5685:EE_|SA0PR12MB4349:EE_
+X-MS-Office365-Filtering-Correlation-Id: dcffc161-2a03-4621-2d6a-08df126c41ae
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|1800799024|23010399003|366016|18002099003|56012099006|11063799006|10067099003|6133799003;
+	BCL:0;ARA:13230040|376014|7416014|23010399003|366016|1800799024|921020|4143699003|6133799003|10067099003|5023799004|11063799006|56012099006|18002099003|22082099003;
 X-Microsoft-Antispam-Message-Info:
-	/laXYMUZ3odH3oWKV9YewItlwAJEVTHwxDZ5oRdMVVwBOhd3FwC2GgxKB7AXTo+f8yv91jRMGq4kJ2BtqPdMmmEz4sIHrQUryPXpQYYYOy7yKN745ApypHlWPddAkpjoKigG9PWcE3RIo/06Ey+pLscRbNyCMwy6wrz6g5zWEzwSDY5rLqV1Gj0zP/SkkpjwJ8lSVMej7Fxhg/5rddi1x+iujxKicStUCJHBxGkwVqUjbZ+w1xSA7fT1zlN9Y6ep7y64MNrCcj4335e7iXtDnrkhhaix+aKqeVOUBQ89CwenCydOrO7qbz31jwhyoFgLDrqzSP/vs8RNNLqQjKV11fQMN0DefZRX9q244FeTGehghOKlG6ch9BHLpf5x9rDgX+CB40mlHqu9zRQXp0j/5VnSNVynz9oVqvHPPw8Pkf8tNGf+rp8A+Mn9ctx5OYC8eiM7w3hVUpxg0GEPdXu5SuzX1R9azwIYXEbfFidFsKMpkrZFv3HihfKgCqEWIE9lGi1fZ7zX6qFnRxL9llJaKy1wf+yQ72KgaUtBwfYVxVlr/u2O5el6S69j5dTB6F4P6i6e5V+l7aI+DQqrGy9VrYX1SmQcQ3qk+BwQeaYwNYPhLPkBe7C3YlXofbbw7ZsYwlMe9CEU09DqjDZVkWeXXL7eEGFhmbTjYus2Z8MqAnE=
+	DwAjwAr87okZYfDGFWllejVVlBzvbvTHy+41dzVYbOOcwU1bVvSsuW60+xtrYd0yAZrdo5a4aLfl+x8teEtxrPmRsIbVtiqll5t3dFnn9PjReQQyAiU6BdZJRH035VTaDUL0h2pdud1hvtfPRHrEuJtzTsysCiH7DM7cTuAb4GBEUrN7hE2HZwICr/Z+qc0OGpUIuChZShAjkO/GWz7/QKfR6hWJC7JnUmoQO49VgxjnZsro/SMYuZW7yraxHLcyzatc/ntNONhH/owo77NrRK6GVn8iCsVhon+g5erX0jYtyLmEPihxsk/reA4gbi1yHzfyRE4PcZyN1O2vOFQn593pzz3f6uUGO9ckkdS/Z/glPWve+KZqdzeuwIYgauL3Ca32w4xN2YEDbUP/52rNGbbwLgJa7Of2X861msT+e/OtVbYKcuYj+8WgPj1zczNzlWIPYg+E2LvYqMB0vZ+9VbBLqOQGAJBEnez9Wp4spFalq+aKZEezGuVeMxP4VtoM2HcyAfOfFTwN/k9NHClVvzyXdUJmPrp6j6MMROPX4gg+g6nXf7x6hfc7+DPA15KA8KMxBEecAAogwfGTvz9gqmJBpvmQus+I5q7qHGZMYyH2T/78DsnGp4hULK/uDJ5VUg/e3ncx63Oudv5MRPvSthivelPo+Xk3AePrLsbgXkrXVcWNjCkHWsukSYP0GYv1ivoX9D5qZeYrzy6AlOYtIA==
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CHBPR12MB731189.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(1800799024)(23010399003)(366016)(18002099003)(56012099006)(11063799006)(10067099003)(6133799003);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR12MB5685.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(7416014)(23010399003)(366016)(1800799024)(921020)(4143699003)(6133799003)(10067099003)(5023799004)(11063799006)(56012099006)(18002099003)(22082099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?US9zbEVqV2hiMnJra1FBeFk2RjZ4RHdhb29JdTF5NFNuUHF3QlhxMytkZzlK?=
- =?utf-8?B?LzlSUHo1NUJ0WDl6c1NkY1dCRFVXSGxpYjVqOTBzMHNGekF5VHQ4MVJtR0hS?=
- =?utf-8?B?NVZ0cmJKUmhwcTdYeXJlRFVLNVM0WGRzSStWcWNON0pBMldjdXNYTWJFWmpL?=
- =?utf-8?B?Wkt2YjlabnU5NWtpME9ic2xlZENvemw0aGoxR2NGbjJDVHBrWnkwM1BvcmZ4?=
- =?utf-8?B?OUNJSDd5RHkrczBGeXM2dDhISHBHV3BkbWVoRVFuZW0zOERONkowOFNCSEpW?=
- =?utf-8?B?S29Zb3ZwUEJDQUF3aDlTelJBekxMOU5hZ1VqMVlYWTlmbCtSZjNKakNmdnJh?=
- =?utf-8?B?Z2Q3RmRjcDdwSU1ocWZaYTNCU1A2KzVNSWRXblFPdmpxNTVCbWQ1S3pITVpq?=
- =?utf-8?B?UE90c3E3SW0yMUU0eVFreFNaWm95dXFVV2pqMCtBSVJPTlcwckdDaW5tVDFn?=
- =?utf-8?B?c1ZzcmZnRGphN3RlSy8rYmxyNTRORTFiRDUyVXVYTFpWRk5ya3ozanUyYXJ5?=
- =?utf-8?B?QlA1VDlGbmVreHYrdG1PTUc5Z0tmalVtNzRIQllOQ3l1a0x0MjB4aExBbHUx?=
- =?utf-8?B?ZWNYSXlabmhXS1NrYzlyVEpVb0lXWkdWOFQxZnA0SnNyNmx5TFA2R3k5Y3Zj?=
- =?utf-8?B?YUhWa3A0elRVRTdJcTBUVzJlMWtCZVJVRGp3Y1JqRFRwM1Z3NUFUOGlkQ2VF?=
- =?utf-8?B?OCtqQXZRbE9DekNXSHdrMnpRT0JYT3ZZay9ESHNYdFdXL09DRGhYNm92Qy9Q?=
- =?utf-8?B?cnRsQVAzZ2FQNmRhbVN1cGpqWk9ocW9qU2tpU3QrRDNKRjJvbWtCQ0JtVk5m?=
- =?utf-8?B?NjBwUFkrNzk0T2J6YjNWREs4OU9PbmlZNXF3OGFxdU80RDBMUkh6bE1SRGZy?=
- =?utf-8?B?V05yRTVBa01pK1d3VWVFZFJleGZtZUJ6N3RRTVBvQk9ld3JtczdLMitRWjFs?=
- =?utf-8?B?T0M4MWZYRVgvZ2FOWjM4YVdQT2dDNjkyRnZEN1JHTnpZVHgxVG14ZWRURitO?=
- =?utf-8?B?V3BKQ0wzaC9CS0Z5YjVhMlZLaVFLQjRZOS9pRlo5UUhuZTI4Zi8vdnFsYmV5?=
- =?utf-8?B?STI1dTdyRlUvSlR4Wk1vdkZ5RWV1Ti92cnVNcmNJbGRIS1hjVDNoRTVHT0Vl?=
- =?utf-8?B?czY5Ny9XSDBLU3lrWHV6Y0lTVFBzaDlmV1phTHZHdFJpRXRDemRzcUpzTjIr?=
- =?utf-8?B?d3NkWTZMK3lpRE9ZMytOb2xoYXMrYjFQT0xrRzI2QkRIdnR1RXA5QXFqNmRR?=
- =?utf-8?B?MXlkMElLdlhWYlE5a1ZNOFVRbUR3dWVMR3pndnVXYTYzTUJSekd1aUVnUVBI?=
- =?utf-8?B?SWpsbHkxOXpUYmwyc2hhZXhtRWdnWXNxcy9ZbXZFUTl2OE9XWU1mU1M4RUhK?=
- =?utf-8?B?UVExYXJ2SXJpTXU5eGhTOXN4MHVEZnJkZ2FManNuaDY2RlByVUFIellsSWh2?=
- =?utf-8?B?VkdyL1ViM3JFNzFQbWFwYW1GK2FJQnRaeXk1Q3MxZXhKNFBrMkhValVqa1dp?=
- =?utf-8?B?QTIveEVqSEFsOU1GMHJ3RTNRMjVpbjVuaHE1WUFxL1cwZ0NMbTJmemVjUjZH?=
- =?utf-8?B?R3BDTnRLUzdkQWxTYnNQQ3lzZkEvZmI2clpRSGo2NFhCRDN0a0NkNEJaWjRR?=
- =?utf-8?B?NjVQczQ3dXBvQ3BnbjdPTmsvTjFmdlRMTGYrYlFkbWRwOTJqTDZmcmcvOEdo?=
- =?utf-8?B?eU1nV2Y1UHVYR2s2NTV3ajh1TmlFTmF0Vk5KN2QwdDVZbmVzbXF4OWRrSFZW?=
- =?utf-8?B?blIyeXBjUkFyYi84TjlHQWdtbWhIUE4rVGdZdHQzYlVIUERvclBWdm5iQUNU?=
- =?utf-8?B?Nm0xclNMckhmWlFUS24yWS9nczVtTjE1MkYrSTJ0VXVlZ2dYMzJxVGVnclpN?=
- =?utf-8?B?L2ZVTjNRSlFsbUFFSFAzRFdESlNFSWYrQ056cTRZTnUxNUhzdEZra2VVUjZj?=
- =?utf-8?B?K1JuYTJZUWJCU1h0SHA1ZnhNL012QS9uWVBZVnpybXdrL2FhV2FSYloxQjdI?=
- =?utf-8?B?TXVkYTgvNlJNbHdSWUxQb1E2RWc1UjB6cXNvblV1RnI1Q043VkRYbm5OZTVw?=
- =?utf-8?B?cWpPZERiaENabjN3ZDRSVTgwRFc3akluTGFhVm1HbnBKYmdxem9FTkJ5M3o3?=
- =?utf-8?B?anFYUUNnanNkTU9PdXN0cGlBQlhOaDZLOFVnWDNGOFNxSmZPOUkra3ZRUlZO?=
- =?utf-8?B?Q2JpUGg2NFQ2Z3FhR3BCdmtXREJ3V202aDJ5b0VyRTBoc0t4ZDhuVXBja0VC?=
- =?utf-8?B?LytyeE0wVVRxTkd4cUQydzE2R2R2OEZjZkJjeWtFcjhGZlpHLzRzcW1jUjNz?=
- =?utf-8?Q?yhmF65zAUhwQ34Y0m2?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: dbaf2235-4b0f-4f02-6342-08df1266c864
-X-MS-Exchange-CrossTenant-AuthSource: CHBPR12MB731189.namprd12.prod.outlook.com
+	=?utf-8?B?K3FhSjB2bVdFb2srOVlzdGxXSnd4STYzdDJHTm54VlV4ZEVWT3cyaEx4c2w4?=
+ =?utf-8?B?b0hYSmsvREtVUEtuZWNpRGRVVjk1ZGNBc1B5RnRhOWlBbWwyK0ZsYnZFYTBI?=
+ =?utf-8?B?SVh4VmxHR1FRclFhSmhmWXY4Zi9CNjdJNE1DdlVybVZBcXVka0pOWmdaYWl1?=
+ =?utf-8?B?c0N4aTQ0SFFPcS90OU9IdDZoa1FCMnQ0OG1EWXJEUU5OU2VoUXVteG5La0pO?=
+ =?utf-8?B?M2doeS9FTzRjalppTldoWGk5VTdQa0tGdTBiV1JIQTBENDI2emNiUUw1dGNW?=
+ =?utf-8?B?TVFkQzRUNnpCcmdmNC9QTkdkMXFuZm5yTk1QbDFpWWVrakhRU0lud2lPb09S?=
+ =?utf-8?B?ZDAzVkNNbWdHc3R4WUl3c3BxWTVwTmFOOW1KVWVSM2VoY1RxbjRyTm9OeTJk?=
+ =?utf-8?B?eGszTzcrYjJDc1FYejdWYVQ1WEJseGRPS1hNcWloYlZkWngzbG8zRWh5OWg5?=
+ =?utf-8?B?cVNUSWNJTElzem1xcktSWXZEN2dFUmwrbVpvc25CWkY2NE5VTm9icCtNWDdn?=
+ =?utf-8?B?OVJpeHVmYXlYZVBjQTkreFNGNjFHV0VmU2lCOElQSE10ZGtocmRPR1FiMkNl?=
+ =?utf-8?B?NnIxaHdwWWxrSUNhZTdzdEZab0ZLaHRhMDdpR1dYR08zZzJtNFQ2cDRoVE1h?=
+ =?utf-8?B?TTNET2JxM0d6T29aNTR2M3V0eXBmcS9hQmp4VU9rcko2VDQveFpNVHpzU3Js?=
+ =?utf-8?B?eis0WERJV0ljTitnaUhtRTZXeWtEMC9NM0NLZ3ZDUGl4bU1ZU0pQQ0VvNWZo?=
+ =?utf-8?B?SFAzMTJrZnBwK2h3K0xhYVJLQ1laMm1JQUtLdHY3bHlpVXdZdC81MHZ3M0VV?=
+ =?utf-8?B?dWtuc0RSSzd5aWJjQkYwTTVCMHBRSmZCeUthbVRMUTZsRFZhSDVHVEhDZU1J?=
+ =?utf-8?B?MkJQQng3cVNYSVdKalNUR09xbG5Oc3NjV3hOQ0Z2eUw0cStxRVpWYUFjUVZj?=
+ =?utf-8?B?MUJ1WUtwMDJwL3Z4aUJ6NlVFbFlFaDlZclF4bks4YmwvYzUzU1BUM1NPbTF6?=
+ =?utf-8?B?azBpUjZUclYwODlIaHZlcTZneHB3RjRWbDBNQXgzUUxhdFBxWW0zNG5HMmpy?=
+ =?utf-8?B?K2pvelhmUUtIM2thUFdWYnJiMXhJVWMwTzZad3Z2eTJReHg2QVRVcGJ4bWhP?=
+ =?utf-8?B?VUZ2OVpQV3hjMzRTNGphUkxaNTNqa21pYnBYam1XYU5SOVJYVzhMQ3JWZTYy?=
+ =?utf-8?B?S0xmakU4Y3FpV1gwSlhLSU5obkZ5dzFLdzFkUDJIV1VKdGtyZVZkVFVyWE1H?=
+ =?utf-8?B?U1RsMm9vd1NTT1lMek1DQ2tyOS9vcmRBMXdEZzZCbEMwTEdrU0YxZjVxSHhL?=
+ =?utf-8?B?YTd5eWgyVWlpbkJhS0t6aEJER1ZUdnRheGJkbDZNTlMydjFPc1BBOEUycXNZ?=
+ =?utf-8?B?YXlRUEw5RkdIczBQTC81bW83SmcrbFVITkJsdUFHUFlLOVZOcjI4RDhUbVE0?=
+ =?utf-8?B?aG1ITmNIYzd4NXRpVXVXdVpBbFNQNjZnbitNMnM2bERKd1ZIRGFPcGVzVlBJ?=
+ =?utf-8?B?dEM2MmtYai9mY2JJNzNZUytvMng3eStuZTlGY2VVakFnOUxGU29qb0dEd0Nv?=
+ =?utf-8?B?dHJjR1JLUzkwL1BncEpCT21qbUNMbUIzV2V4VGVOM0U5STBNVjN4UFJrZnAw?=
+ =?utf-8?B?Q0diNmdueDRBMEVCNElhTVo4TU90NGpjRzVLMXN4OVNrajJncW9vT1Y0OUxR?=
+ =?utf-8?B?NjV5VEt1K2w0aHg5Zk1FdVF2OThOTlB0OUJkc2x6cjUvQ0VGRUpxejdVN3RH?=
+ =?utf-8?B?U051VVFYSnJRVFRkMEcrQk5mRVorMDlGT1BTZmZJa09mdTViL0RKZXdBR01V?=
+ =?utf-8?B?bWVaeU8zcnlLZStyQmlFbFhQM2lnWVV3dmJWZWhRUVV1NkxST25VaFdqamR4?=
+ =?utf-8?B?WjY5cGRKc3BHUmdBdTRKQ2duTzVTNnZiMTF2SG1LUEVHcTdDWGpQeGVzcnE0?=
+ =?utf-8?B?bnFIQUJZZ0t6SU1Uazg2bFFQVWFaOGlMRXNnS2p2OUw2d1YrbFptQ0xQZDF6?=
+ =?utf-8?B?akFTai9DVURYQjAvYUxvdk5ud3JNQk9NbXJJRXFZS1NzNG9wUjlLSTZLRFkz?=
+ =?utf-8?B?T2Y0WE5iQ0x6OVk2SkppNUlHRjY0VnNjRVJsV0JRU2RJaVlnZkd4ajVIRWVj?=
+ =?utf-8?B?VUdubXRrKys4ZkdBSUlrWlhTNDU5bVQ2cHQ3aHFVa2x1K1NDK1hLaEE2NFQ1?=
+ =?utf-8?B?djhqdkcwOHF2dHh4VXEzYUZiUWpjRDFLQmVLeldUU1A0RjdYcFFlQWNvbGtD?=
+ =?utf-8?B?ZkpGRExHWkhRMjA0RTZNRVowR05oRWpCLzRyQ2J5dGJacWRhZVZ4bE05YWt4?=
+ =?utf-8?Q?MuftXWeeS1b0jZoJsA?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: dcffc161-2a03-4621-2d6a-08df126c41ae
+X-MS-Exchange-CrossTenant-AuthSource: PH7PR12MB5685.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Sep 2026 13:47:56.8947
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Sep 2026 14:27:07.9161
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 7B7I12p1y+uaa9q4NoTKSi+ALRf9z70nxjU06U6SANn2kJfQwiXftKHhmphJCmY+
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DSSPR12MB999236
+X-MS-Exchange-CrossTenant-UserPrincipalName: /Kn8umPTtNqmFVW7oPMfi3R1jasEzJWvv/pBJlhaP/Fup7pyq3zg+HOTVvpbWNVH
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA0PR12MB4349
 
---NJBR7btByq5qizc/
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 9/14/26 13:22, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@nvidia.com>
+> 
+> Exporters keep the &struct p2pdma_provider backing a buffer in their own
+> private data. An importer cannot reach it, so it has no way to learn how
+> its own peer-to-peer traffic would be routed before it programs its
+> hardware.
+> 
+> Add an optional @p2pdma_provider callback for an exporter to hand that
+> provider out, and dma_buf_p2pdma_map_type() for an importer to ask by TLP
+> class. Exporters keep the provider where it already lives, so this adds an
+> operation rather than changing any existing signature or structure.
+> 
+> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+> ---
+>  drivers/dma-buf/dma-buf-mapping.c                 | 32 +++++++++++++++++++++++
+>  drivers/infiniband/core/uverbs_std_types_dmabuf.c | 12 +++++++++
+>  drivers/vfio/pci/vfio_pci_dmabuf.c                | 12 +++++++++
+>  include/linux/dma-buf-mapping.h                   |  3 +++
+>  include/linux/dma-buf.h                           | 17 ++++++++++++
+>  5 files changed, 76 insertions(+)
+> 
+> diff --git a/drivers/dma-buf/dma-buf-mapping.c b/drivers/dma-buf/dma-buf-mapping.c
+> index 794acff2546a..fb03a698b381 100644
+> --- a/drivers/dma-buf/dma-buf-mapping.c
+> +++ b/drivers/dma-buf/dma-buf-mapping.c
+> @@ -6,6 +6,38 @@
+>  #include <linux/dma-buf-mapping.h>
+>  #include <linux/dma-resv.h>
+>  
+> +/**
+> + * dma_buf_p2pdma_map_type - How peer-to-peer traffic to a buffer is routed
+> + * @attach:	attachment of the importer that will issue the traffic
+> + * @tlp_flags:	&enum pci_p2pdma_tlp_flags describing the TLPs it will issue
+> + *
+> + * Reports how the PCIe fabric routes @tlp_flags traffic between the buffer
+> + * behind @attach and the importer attached to it, so that an importer can
+> + * choose the TLP attributes that earn it a direct route before it programs
+> + * its hardware.
+> + *
+> + * Return: the mapping type for @tlp_flags traffic, or PCI_P2PDMA_MAP_NONE
+> + * when the exporter names no &struct p2pdma_provider and nothing is known
+> + * about the route.
+> + */
+> +enum pci_p2pdma_map_type
+> +dma_buf_p2pdma_map_type(struct dma_buf_attachment *attach,
+> +			unsigned int tlp_flags)
+> +{
+> +	struct dma_buf *dmabuf = attach->dmabuf;
+> +	struct p2pdma_provider *provider;
+> +
+> +	if (!dmabuf->ops->p2pdma_provider)
+> +		return PCI_P2PDMA_MAP_NONE;
+> +
+> +	provider = dmabuf->ops->p2pdma_provider(dmabuf);
+> +	if (!provider)
+> +		return PCI_P2PDMA_MAP_NONE;
+> +
+> +	return pci_p2pdma_map_type_tlp(provider, attach->dev, tlp_flags);
 
-Hi Linus,
+Calling PCI subsystem functions from dma-buf is a hard NO-GO.
 
-Collected rc fixes, as usual alot of probably AI fuelled stuff, and a
-few bugs that people were actually hitting.
+Then wrappers for DMA-buf backend functions should be in dma-buf.c and not here.
 
-Thanks,
-Jason
+I shouldn't have allowed the mapping functions to be added to DMA-buf in the first place, all of this belongs either into the DMA layer or the exporter.
 
-The following changes since commit cee9395acd8043be0644b25c34bfa86623f2b935:
+We should probably have a single callback the exporter provides to fill in a structure with PCI specific information for a mapping.
 
-  Linux 7.3-rc1 (2026-08-30 13:34:40 -0700)
 
-are available in the Git repository at:
+> +}
+> +EXPORT_SYMBOL_NS_GPL(dma_buf_p2pdma_map_type, "DMA_BUF");
+> +
+>  static struct scatterlist *fill_sg_entry(struct scatterlist *sgl, size_t length,
+>  					 dma_addr_t addr)
+>  {
+> diff --git a/drivers/infiniband/core/uverbs_std_types_dmabuf.c b/drivers/infiniband/core/uverbs_std_types_dmabuf.c
+> index 2411ebee69e2..5a6a1ee430a7 100644
+> --- a/drivers/infiniband/core/uverbs_std_types_dmabuf.c
+> +++ b/drivers/infiniband/core/uverbs_std_types_dmabuf.c
+> @@ -76,6 +76,17 @@ static void uverbs_dmabuf_release(struct dma_buf *dmabuf)
+>  	uverbs_uobject_release(&priv->uobj);
+>  }
+>  
+> +static struct p2pdma_provider *
+> +uverbs_dmabuf_provider(struct dma_buf *dmabuf)
+> +{
+> +	struct ib_uverbs_dmabuf_file *priv = dmabuf->priv;
+> +
+> +	if (priv->revoked)
+> +		return NULL;
+> +
+> +	return priv->provider;
+> +}
+> +
+>  static const struct dma_buf_ops uverbs_dmabuf_ops = {
+>  	.attach = uverbs_dmabuf_attach,
+>  	.map_dma_buf = uverbs_dmabuf_map,
+> @@ -83,6 +94,7 @@ static const struct dma_buf_ops uverbs_dmabuf_ops = {
+>  	.pin = uverbs_dmabuf_pin,
+>  	.unpin = uverbs_dmabuf_unpin,
+>  	.release = uverbs_dmabuf_release,
+> +	.p2pdma_provider = uverbs_dmabuf_provider,
+>  };
+>  
+>  static int UVERBS_HANDLER(UVERBS_METHOD_DMABUF_ALLOC)(
+> diff --git a/drivers/vfio/pci/vfio_pci_dmabuf.c b/drivers/vfio/pci/vfio_pci_dmabuf.c
+> index c16f460c01d6..fcf392cfc3c5 100644
+> --- a/drivers/vfio/pci/vfio_pci_dmabuf.c
+> +++ b/drivers/vfio/pci/vfio_pci_dmabuf.c
+> @@ -99,11 +99,23 @@ static void vfio_pci_dma_buf_release(struct dma_buf *dmabuf)
+>  	kfree(priv);
+>  }
+>  
+> +static struct p2pdma_provider *
+> +vfio_pci_dma_buf_provider(struct dma_buf *dmabuf)
+> +{
+> +	struct vfio_pci_dma_buf *priv = dmabuf->priv;
+> +
+> +	if (priv->revoked)
+> +		return NULL;
+> +
+> +	return priv->provider;
+> +}
+> +
+>  static const struct dma_buf_ops vfio_pci_dmabuf_ops = {
+>  	.attach = vfio_pci_dma_buf_attach,
+>  	.map_dma_buf = vfio_pci_dma_buf_map,
+>  	.unmap_dma_buf = vfio_pci_dma_buf_unmap,
+>  	.release = vfio_pci_dma_buf_release,
+> +	.p2pdma_provider = vfio_pci_dma_buf_provider,
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
+Please split up the patch into the actual DMA-buf changes, exporter changes and importer changes.
 
-for you to fetch changes up to 9ff797e516dbc1ecb73701ec4c24055712d44411:
+Regards,
+Christian.
 
-  RDMA/siw: Bound fragmented header copies by the remaining length (2026-09=
--10 11:15:46 -0400)
+>  };
+>  
+>  /*
+> diff --git a/include/linux/dma-buf-mapping.h b/include/linux/dma-buf-mapping.h
+> index 09bde3f748e4..37b3da10b17a 100644
+> --- a/include/linux/dma-buf-mapping.h
+> +++ b/include/linux/dma-buf-mapping.h
+> @@ -7,6 +7,9 @@
+>  #define __DMA_BUF_MAPPING_H__
+>  #include <linux/dma-buf.h>
+>  
+> +enum pci_p2pdma_map_type
+> +dma_buf_p2pdma_map_type(struct dma_buf_attachment *attach,
+> +			unsigned int tlp_flags);
+>  struct sg_table *dma_buf_phys_vec_to_sgt(struct dma_buf_attachment *attach,
+>  					 struct p2pdma_provider *provider,
+>  					 struct phys_vec *phys_vec,
+> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+> index d1203da56fc5..cff1ee0838f0 100644
+> --- a/include/linux/dma-buf.h
+> +++ b/include/linux/dma-buf.h
+> @@ -186,6 +186,23 @@ struct dma_buf_ops {
+>  	 * if the call would block.
+>  	 */
+>  
+> +	/**
+> +	 * @p2pdma_provider:
+> +	 *
+> +	 * Returns the &struct p2pdma_provider backing this buffer, so that an
+> +	 * importer can ask how its peer-to-peer traffic would be routed before
+> +	 * it programs its hardware. Importers reach this through
+> +	 * dma_buf_p2pdma_map_type() rather than calling it directly.
+> +	 *
+> +	 * Exporters of MMIO memory that is reachable peer-to-peer should
+> +	 * implement this. This callback is optional.
+> +	 *
+> +	 * Returns:
+> +	 *
+> +	 * The provider backing the buffer.
+> +	 */
+> +	struct p2pdma_provider *(*p2pdma_provider)(struct dma_buf *dmabuf);
+> +
+>  	/**
+>  	 * @release:
+>  	 *
+> 
 
-----------------------------------------------------------------
-RDMA v7.3 first rc pull
-
-Lots of bug fixes from the last weeks:
-
-- Various error unwind bugs
-
-- Several more races and bugs in siw and rxe, including remote triggerable
-
-- HFI1 corruption with its credit scheme
-
-- Remove a bogus user triggerable dev_warn
-
-- Lock __ethtool_get_link_ksettings() properly
-
-- Fix a lockdep loop with diassociation
-
-- Several storage related bugs, some triggerable remotely
-
-- Do no leak physical addresses to userspace in bnxt_re
-
-- Fix wrong irq context for the xarrays in erdma
-
-- User triggerable race in ucma with multicast
-
-- Race in ipoib with multicast flushing and destruction
-
-----------------------------------------------------------------
-Bart Van Assche (1):
-      RDMA/srp: Fix srp_remove_target()
-
-Carolina Jubran (1):
-      IB/IPoIB: Avoid restoring OPER_UP after multicast flush
-
-Cheng Xu (1):
-      RDMA/erdma: Use IRQ-safe XArray helpers for QP and CQ tables
-
-Gang Yan (1):
-      RDMA/rxe: Fix integer overflow in mr_check_range() leading to OOB acc=
-ess
-
-Guoqing Jiang (1):
-      RDMA/siw: Clear association under lock if siw_qp_modify fails in siw_=
-accept
-
-Jacob Moroni (1):
-      RDMA/irdma: Enforce local fence for IB_WR_REG_MR
-
-Jeffin Philip (1):
-      RDMA/core: fix refcount bug in iwpm_get_nlmsg_request()
-
-J=C3=A9r=C3=A9my Jean (1):
-      RDMA/siw: Bound fragmented header copies by the remaining length
-
-Krystian Kaniewski (1):
-      RDMA/core: Reject unregistering netdevs in ib_get_eth_speed
-
-Leon Romanovsky (2):
-      RDMA/efa: Keep admin queues alive while IRQ is registered
-      RDMA/efa: Keep EQ resources alive while IRQ is registered
-
-Li RongQing (2):
-      RDMA/uverbs: Fix potential leak of resources->collection in flow_reso=
-urces_alloc()
-      RDMA/mad: Fix receive buffer leak when PKey enforcement fails
-
-Linkai Gong (1):
-      RDMA/bnxt_re: check create_singlethread_workqueue() in DCB setup
-
-Michael Bommarito (1):
-      RDMA/rxe: insert mcg into mcg_tree only after rxe_mcast_add() succeeds
-
-Norbert Szetei (1):
-      RDMA/rxe: validate access flags before swapping the MR's PD
-
-Or Har-Toov (2):
-      RDMA/mlx5: Remove warn on missing representor in query_port_speed
-      RDMA/uverbs: Fix mmap_lock/disassociation_lock circular dependency
-
-Quanye Yang (2):
-      RDMA/rtrs-clt: Fix CQ pool leak when connect is interrupted
-      RDMA/ucma: Serialize join and leave on copy_to_user failure
-
-Ryan Mehri (1):
-      RDMA/rtrs: guard against null kobj name
-
-Shuangpeng Bai (1):
-      IB/mlx4: Fix use-after-free on pkey sysfs registration failure
-
-Shuhei Takeshita (2):
-      IB/hfi1: Resolve the credit-return buffer through the send context's =
-node
-      IB/hfi1: Fix the PIO_CRED credit-return mmap
-
-Sriharsha Basavapatna (1):
-      RDMA/bnxt_re: Avoid exposing umdbr to userspace
-
-Weiming Shi (1):
-      RDMA/rxe: Restore HMM_PFN_WRITE check in ODP write paths
-
-Yehyeong Lee (2):
-      IB/iser: reject a remote invalidation of an unregistered direction
-      IB/isert: wait for deferred control PDU completions before releasing =
-the connection
-
- drivers/infiniband/core/iwpm_util.c            |  9 ++---
- drivers/infiniband/core/mad.c                  |  3 +-
- drivers/infiniband/core/rdma_core.c            |  1 -
- drivers/infiniband/core/ucma.c                 |  7 ++--
- drivers/infiniband/core/uverbs_flow.c          |  1 +
- drivers/infiniband/core/uverbs_main.c          | 25 ++++++-------
- drivers/infiniband/core/verbs.c                | 12 ++++---
- drivers/infiniband/hw/bnxt_re/main.c           | 10 ++++--
- drivers/infiniband/hw/bnxt_re/uapi.c           |  6 ++--
- drivers/infiniband/hw/efa/efa_com.c            |  7 ++--
- drivers/infiniband/hw/efa/efa_com.h            |  1 +
- drivers/infiniband/hw/efa/efa_main.c           | 33 +++++++++--------
- drivers/infiniband/hw/erdma/erdma_main.c       |  4 +--
- drivers/infiniband/hw/erdma/erdma_verbs.c      | 18 +++++-----
- drivers/infiniband/hw/hfi1/file_ops.c          | 23 ++++++++----
- drivers/infiniband/hw/irdma/verbs.c            |  2 +-
- drivers/infiniband/hw/mlx4/sysfs.c             |  4 +++
- drivers/infiniband/hw/mlx5/main.c              |  7 ++--
- drivers/infiniband/sw/rxe/rxe_mcast.c          | 50 ++++++++++++++++++----=
-----
- drivers/infiniband/sw/rxe/rxe_mr.c             |  3 +-
- drivers/infiniband/sw/rxe/rxe_odp.c            | 16 ++++++---
- drivers/infiniband/sw/rxe/rxe_verbs.c          | 13 +++----
- drivers/infiniband/sw/siw/siw_cm.c             |  7 ++--
- drivers/infiniband/sw/siw/siw_qp_rx.c          |  2 +-
- drivers/infiniband/ulp/ipoib/ipoib.h           |  7 ++++
- drivers/infiniband/ulp/ipoib/ipoib_ib.c        | 12 ++++---
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 16 ++++-----
- drivers/infiniband/ulp/iser/iser_initiator.c   | 16 ++++++---
- drivers/infiniband/ulp/isert/ib_isert.c        | 22 ++++++++++++
- drivers/infiniband/ulp/isert/ib_isert.h        |  2 ++
- drivers/infiniband/ulp/rtrs/rtrs-clt-trace.h   |  2 +-
- drivers/infiniband/ulp/rtrs/rtrs-clt.c         |  8 +++++
- drivers/infiniband/ulp/rtrs/rtrs-clt.h         |  2 ++
- drivers/infiniband/ulp/rtrs/rtrs-srv-trace.h   |  2 +-
- drivers/infiniband/ulp/srp/ib_srp.c            | 14 +++++---
- include/rdma/uverbs_types.h                    |  2 --
- include/uapi/rdma/bnxt_re-abi.h                |  2 +-
- 37 files changed, 240 insertions(+), 131 deletions(-)
-
---=20
-Jason
-
---NJBR7btByq5qizc/
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQRRRCHOFoQz/8F5bUaFwuHvBreFYQUCaqf7CgAKCRCFwuHvBreF
-Yf2zAQCWHxA34KBKiEN4HNVscPodT62Jm9PjLXtE1wLqJf4rDwD/ewF66iPWnKkd
-lrir1BG+sizp63JXQNqFxKOPRULM/wA=
-=brns
------END PGP SIGNATURE-----
-
---NJBR7btByq5qizc/--
