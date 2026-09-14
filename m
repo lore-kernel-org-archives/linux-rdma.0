@@ -1,70 +1,72 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 755C244CAFB;
-	Mon, 14 Sep 2026 12:10:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from outbound.baidu.com (mx22.baidu.com [220.181.50.185])
+	by smtp.subspace.kernel.org (Postfix) with SMTP id 825EB368D51
+	for <linux-rdma@vger.kernel.org>; Mon, 14 Sep 2026 12:13:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.181.50.185
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789387812; cv=none; b=s7G4hOplwfMm6ugMC1R16sGSDUHM++R8pY7AtEDIAQqJr16KgvirFz1Es6LH3m7VM7ChTXWYH/zOL+4A+vOfVELHMGGFd27y0PnhBXQ+YdQgAr68xdgQJy6DuLvNP+/1YOVoiucS863RWSCQEB/P0YSKlJsRwTaopYokAcqyTWM=
+	t=1789387992; cv=none; b=JSNO/m0DqVfzsYczOC3d3Y46uOs0urzF9wUlAzlYI5uFozAtyhe8ci71RYeFdToP8GL1oc38wJGoxZkuTo3D5XNBaKCY2D0/ZJ3cVoCr/OkQ8j2CzhmOXSTERGA1iFxQwdExcnNco3KMltHMcwhfhM0TUEvSJrgm1qB9qFKIXlo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789387812; c=relaxed/simple;
-	bh=a1Dm1iDUftrgwWmqeEj0ag45Qt6coZ5OKqNcNwOpcxc=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=DTIa4LQ4CfrAu0UYea4ZDRiyrteA0YPD6aruLdswWmwlqzy8RCEE7iIcGD/eDTUP1YvJ6kHBj07MuaKUZ+tlYKQF7NkmUBlyEknR8CKS/ogI881By/mfp719FhpJo8i80jmgZA90RclcD1Cyr4HZa+TpefZKaxP7NxRUrE1iMR8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RQ0lzCbh; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789387992; c=relaxed/simple;
+	bh=Y8ZvQ0N71lShvCW6RI5Bnkj1c3UzVfIXH7wcqCgGmds=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=G0COJrfXl5TTFHjhd7rSFz23enHyulMBVcaGa0w3Gqio3BdWUCQyvEfWeLzNtcPHYTJJD0IP9WrO5cQZ2p66N8f/87xzypxaeEswkwxh5n3nNWv/KTj4g24N1hrWO79IK/LX0QCFQ5gA8XCpULx//+1pdeAJgMTVRDERAmmILdU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com; spf=pass smtp.mailfrom=baidu.com; dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b=GY7AngAT; arc=none smtp.client-ip=220.181.50.185
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baidu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RQ0lzCbh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 128401F000FF;
-	Mon, 14 Sep 2026 12:10:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789387809;
-	bh=mXx/TndpDRT2oBFFbCreBr+6apbVIxKnYsg4iSBp4Ec=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=RQ0lzCbhgstDWg7J9bXi1Onfnw0de2OOL7na0qgVF3R50kKglLT9GrEXN1Pimuqr7
-	 4LTd4TZjqQRsEEu4ZXzUFAyTZ5SXNExGYfwQoYYlAbsZ1BRGGiibMY8nMP8/KdAcgm
-	 1W57Gh061pZomkwHqx3G6FpSW37dzKralWHmI5vgaPrytRLv0reaYlSnd5w5zP3FWS
-	 x+Shl1Fv+QUFpJE0g8oZJwFitbelj1/C0bpZi/YhnRkWp8NdWsqaF/6hrcTftxIfYd
-	 09X3vVgHOC7nYib/qJnkYxoHKtUiEvSVW9wgdbHEet4BeJ0AkxpW+8/QG41aDHCJNy
-	 hqJjFFUwSAwfg==
-From: Leon Romanovsky <leon@kernel.org>
-To: Zhu Yanjun <zyjzyj2000@gmail.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
- Tristan Madani <tristmd@gmail.com>, linux-rdma@vger.kernel.org, 
- linux-kernel@vger.kernel.org, Nicolas Morey <nmorey@suse.com>
-Cc: Zhu Yanjun <yanjun.zhu@linux.dev>
-In-Reply-To: <20260909160132.1491248-1-nmorey@suse.com>
-References: <20260909160132.1491248-1-nmorey@suse.com>
-Subject: Re: [PATCH v2] RDMA/rxe: Use validated num_sge in local buffer
-Message-Id: <178938780667.974012.344479087887135840.b4-ty@kernel.org>
-Date: Mon, 14 Sep 2026 08:10:06 -0400
+	dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b="GY7AngAT"
+X-MD-Sfrom: lirongqing@baidu.com
+X-MD-SrcIP: 172.31.50.47
+From: lirongqing <lirongqing@baidu.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
+	<linux-rdma@vger.kernel.org>
+CC: Li RongQing <lirongqing@baidu.com>
+Subject: [PATCH] RDMA/mlx5: Print err code when create_qp fails
+Date: Mon, 14 Sep 2026 20:12:53 +0800
+Message-ID: <20260914121253.2193-1-lirongqing@baidu.com>
+X-Mailer: git-send-email 2.17.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-18f8f
+Content-Type: text/plain
+X-ClientProxiedBy: bjhj-exc9.internal.baidu.com (172.31.3.19) To
+ bjkjy-exc3.internal.baidu.com (172.31.50.47)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=baidu.com;
+	s=selector1; t=1789387981;
+	bh=yV1bSr2uTEzx2rrnon64QKwvVfgCUjEw1GlkPvxl9dU=;
+	h=From:To:CC:Subject:Date:Message-ID:Content-Type;
+	b=GY7AngAT9fytZbUhwJ/Wz9Nk2Ixq21orWN+mErjDhRVKCQFpkecBD+AypKfVg1VTv
+	 57Ba1DZnuyhRtWDBm12CQ3bzE4JBNqiMFSdOu7XMQ2tfHhzZ4TmKkrEt7lGF2QdVEC
+	 HLd+33+E/obMtikH95HtshWfQ45KmwW2oUI1Nz+tuRSLrLOQqaFPlhELY7jk/oy5tL
+	 DB1s3fxJbzxlbrrh4cgWJecQ/Wc+QfvRcvHhGPpSV/a8M5me3WgJKHIDafA+hRrpeg
+	 W8dEOaNKO0XQNUIhVzLa3R0o957Gz1+wcF8i6N0bkfqIHGlAIRDssRNktNYpBXLPww
+	 6/xyOYuaBaKcw==
 
+From: Li RongQing <lirongqing@baidu.com>
 
-On Wed, 09 Sep 2026 18:01:31 +0200, Nicolas Morey wrote:
-> For both SRQ and non-SRQ receive paths, the WQE is copied into a local
-> buffer to provide a kernel-owned, validated copy. While calculating the
-> memcpy size from the validated num_sge prevents overflow during the
-> copy, memcpy() itself still copies num_sge from shared memory.
-> 
-> A concurrent userspace modification before or during memcpy() leaves
-> an unvalidated num_sge in the local buffer, leading to potential
-> out-of-bounds reads in rxe_resp_check_length() and copy_data() causing:
-> 
-> [...]
+Add the actual error code to the "Create QP type %d failed" log
+line in create_qp(), so failures can be diagnosed from dmesg
+alone without guessing the underlying error.
 
-Applied, thanks!
+Signed-off-by: Li RongQing <lirongqing@baidu.com>
+---
+ drivers/infiniband/hw/mlx5/qp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-[1/1] RDMA/rxe: Use validated num_sge in local buffer
-      https://git.kernel.org/rdma/rdma/c/112f2b6925c2d7
-
-Best regards,
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 0d4f8b1..2f05817 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -3186,7 +3186,7 @@ static int create_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 
+ out:
+ 	if (err) {
+-		mlx5_ib_err(dev, "Create QP type %d failed\n", qp->type);
++		mlx5_ib_err(dev, "Create QP type %d failed, err = %d\n", qp->type, err);
+ 		return err;
+ 	}
+ 
 -- 
-Leon Romanovsky <leon@kernel.org>
+2.9.4
 
