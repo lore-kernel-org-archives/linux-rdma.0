@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCDD944605E;
-	Mon, 14 Sep 2026 11:23:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23DB645C6F0;
+	Mon, 14 Sep 2026 11:23:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789385025; cv=none; b=W5w/9zfUGEW3n1s+6Grk1a2ve/Am/uDUv9O2z/dMwdAycO6fWQpXAvyviCBxifYRnGcIYiMhjnVKxcLc6zjRklNHQiiChQM7miPtNAk8pNYaNjB8rFkybpR/BOBIqmmcwfE7e/35XLyXO2T8RlqX0z+a9MPQ2MTy4a5z9z3fJlc=
+	t=1789385029; cv=none; b=ccH3/vNVpc7fLi+n8N/mhW9vK0UTCE5/bsjOOVzvwlcRQypYsaMsQBGILM3s7drOfvPaszltnKUlSkEQCL2F2/svphaXNo9It/NEvmXysKOu9OrlWAWj+dP10jExEwaXi2HwBJbuZHxXES7Lu7mPWLn4wFTmarWhFRbHSytTa6Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789385025; c=relaxed/simple;
-	bh=/t+DL64LGojkS4yQIOZuTZFiWTkp2eiaWsTM89A9nnY=;
+	s=arc-20240116; t=1789385029; c=relaxed/simple;
+	bh=rnozbo6WPNXEUp1nGqmyJYJm2RHYtPXRxYfEE7dCTQ8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=eTTzhh7iFNyA3ItxA8qJ9AmId27yiyyB2100KIf/xip5IoOAm2J7f6DXBYLn/BNASVWuAigS6Lhc39i9Ne/WmIKbFKZAjsuaj/mtdcRcTBn9L03+Oer17hULJ+uG/5Q3ZxNwbiqMHoBXLgtFbo0m+UyF55I8Reiz9kNovrAZESQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Cx0yORcu; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=oYf+qqJI6lOpyk4LgBOonPSECpasvTyfAAJV4Qkr1/3hmRzpZbY50lzGvH7lUlhIq6iEei1ziJ7tK59oxqBzAxywK3yQgjCbGnX5svQSpvVnCjWGQDd9As6NvMglvhhwjouPtjzvnb8L/UAQQFcldtoVKnYtbAzH5JFjW1XRGb0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=a26S/jc9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Cx0yORcu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 288E21F00893;
-	Mon, 14 Sep 2026 11:23:43 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="a26S/jc9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12DB61F000FF;
+	Mon, 14 Sep 2026 11:23:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789385023;
-	bh=Z4R3ZMvcrefwd60N4dKDap5+w8BxOMwsC13REnzGF7c=;
+	s=k20260515; t=1789385026;
+	bh=MokxU+jbZ05FjPz9z/JZ/TnUqRIqBMJqRRb9uIlLdik=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=Cx0yORcuOY5IVevBTfT/RWXTv7Rnc2btCL/+asRkojSB61usOaqHwO+xDItCz4Rg9
-	 y/gFBqPW1LZ+QOolHA3tsr8WItlsyT5e39Cdob1sVf6uvnBKB3Yh43OtitH+yGEpnf
-	 pMRWHRnQwBhod0egFXI+l14CnUWxmy3ejWKi3LjDl4tO46rF/Kxfojts42XZ+4r0ti
-	 6u6ukpLLo8OK1ocJHY9NAWAoXcSyCZQ+LRieBg4eom3VIpzsNyB+8l/xmzquQ6A7xl
-	 5anRvxa6PHPZyTQlQwvV0BlzRDu0axvRZCCtbLiBTHxEXslz0B5SLU/7eegTwWMZfr
-	 TJlTUaMgwwrwQ==
+	b=a26S/jc9xervkXoxclAywYyGHUutmvHhPsfl1nIMjFXvP9MDwTJdtFcm+8QujaWfX
+	 T2i5/rM3wu5hGfwYM8rKDcZ5kk9kiUThmxP1/zdt4CNFb5Aq5ieahZbkzfLH0MR+Ga
+	 JHkhtSGjxbBkq+V0xMku0f/FhFaYuo65vlvczCsGQF9l0CL24tV/7o4iR4IXHRCDMF
+	 5IQW0iDmd7s1QVkQQzVia5rNgTGbjxuaYEmROzVDNK2Ac4Iit2FOak+phDXyZQrAVV
+	 VXLp20DI/8Ua1iWdfATyd45FIieqNc/wL9Ec5XRKAQ+S/74uRDCrzK0l5KnGx1Wmtt
+	 U8qbQeLzpw9Mw==
 From: Leon Romanovsky <leon@kernel.org>
 To: Bjorn Helgaas <bhelgaas@google.com>,
 	Logan Gunthorpe <logang@deltatee.com>,
@@ -54,9 +54,9 @@ Cc: linux-pci@vger.kernel.org,
 	linaro-mm-sig@lists.linaro.org,
 	linux-rdma@vger.kernel.org,
 	kvm@vger.kernel.org
-Subject: [PATCH v6 10/18] PCI/P2PDMA: Reject Translated Requests blocked by Translation Blocking
-Date: Mon, 14 Sep 2026 14:22:43 +0300
-Message-ID: <20260914-fix-p2p-acs-v4-0-v6-10-5ef07ec9ef06@nvidia.com>
+Subject: [PATCH v6 17/18] dma-buf: Let importers ask how peer-to-peer traffic is routed
+Date: Mon, 14 Sep 2026 14:22:50 +0300
+Message-ID: <20260914-fix-p2p-acs-v4-0-v6-17-5ef07ec9ef06@nvidia.com>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20260914-fix-p2p-acs-v4-0-v6-0-5ef07ec9ef06@nvidia.com>
 References: <20260914-fix-p2p-acs-v4-0-v6-0-5ef07ec9ef06@nvidia.com>
@@ -72,213 +72,168 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-A Downstream Port with ACS Translation Blocking enabled treats every
-Upstream Memory Request whose Address Type is not Untranslated as an ACS
-Violation, ahead of "any applicable ACS P2P control mechanisms" per PCIe
-r7.0 sec 6.12.1.1. P2PDMA never looks at that bit, so it reports a
-bus-addressable path where an ATS client's Requests would be rejected.
+Exporters keep the &struct p2pdma_provider backing a buffer in their own
+private data. An importer cannot reach it, so it has no way to learn how
+its own peer-to-peer traffic would be routed before it programs its
+hardware.
 
-Add PCI_ACS_P2PDMA_BLOCKED, and because blocking is not a routing control,
-scan the whole client-side path for it rather than the divergence port
-alone. A blocked Request has no host bridge fallback, since the Address
-Type is rejected wherever the Request is addressed.
+Add an optional @p2pdma_provider callback for an exporter to hand that
+provider out, and dma_buf_p2pdma_map_type() for an importer to ask by TLP
+class. Exporters keep the provider where it already lives, so this adds an
+operation rather than changing any existing signature or structure.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/pci/p2pdma.c | 105 ++++++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 96 insertions(+), 9 deletions(-)
+ drivers/dma-buf/dma-buf-mapping.c                 | 32 +++++++++++++++++++++++
+ drivers/infiniband/core/uverbs_std_types_dmabuf.c | 12 +++++++++
+ drivers/vfio/pci/vfio_pci_dmabuf.c                | 12 +++++++++
+ include/linux/dma-buf-mapping.h                   |  3 +++
+ include/linux/dma-buf.h                           | 17 ++++++++++++
+ 5 files changed, 76 insertions(+)
 
-diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index 327b6a14e07d..94c0760f27e5 100644
---- a/drivers/pci/p2pdma.c
-+++ b/drivers/pci/p2pdma.c
-@@ -519,11 +519,12 @@ enum pci_acs_p2pdma_state {
- 	PCI_ACS_P2PDMA_NOT_SUPPORTED,
- 	PCI_ACS_P2PDMA_DIRECT,
- 	PCI_ACS_P2PDMA_REDIRECT,
-+	PCI_ACS_P2PDMA_BLOCKED,
+diff --git a/drivers/dma-buf/dma-buf-mapping.c b/drivers/dma-buf/dma-buf-mapping.c
+index 794acff2546a..fb03a698b381 100644
+--- a/drivers/dma-buf/dma-buf-mapping.c
++++ b/drivers/dma-buf/dma-buf-mapping.c
+@@ -6,6 +6,38 @@
+ #include <linux/dma-buf-mapping.h>
+ #include <linux/dma-resv.h>
+ 
++/**
++ * dma_buf_p2pdma_map_type - How peer-to-peer traffic to a buffer is routed
++ * @attach:	attachment of the importer that will issue the traffic
++ * @tlp_flags:	&enum pci_p2pdma_tlp_flags describing the TLPs it will issue
++ *
++ * Reports how the PCIe fabric routes @tlp_flags traffic between the buffer
++ * behind @attach and the importer attached to it, so that an importer can
++ * choose the TLP attributes that earn it a direct route before it programs
++ * its hardware.
++ *
++ * Return: the mapping type for @tlp_flags traffic, or PCI_P2PDMA_MAP_NONE
++ * when the exporter names no &struct p2pdma_provider and nothing is known
++ * about the route.
++ */
++enum pci_p2pdma_map_type
++dma_buf_p2pdma_map_type(struct dma_buf_attachment *attach,
++			unsigned int tlp_flags)
++{
++	struct dma_buf *dmabuf = attach->dmabuf;
++	struct p2pdma_provider *provider;
++
++	if (!dmabuf->ops->p2pdma_provider)
++		return PCI_P2PDMA_MAP_NONE;
++
++	provider = dmabuf->ops->p2pdma_provider(dmabuf);
++	if (!provider)
++		return PCI_P2PDMA_MAP_NONE;
++
++	return pci_p2pdma_map_type_tlp(provider, attach->dev, tlp_flags);
++}
++EXPORT_SYMBOL_NS_GPL(dma_buf_p2pdma_map_type, "DMA_BUF");
++
+ static struct scatterlist *fill_sg_entry(struct scatterlist *sgl, size_t length,
+ 					 dma_addr_t addr)
+ {
+diff --git a/drivers/infiniband/core/uverbs_std_types_dmabuf.c b/drivers/infiniband/core/uverbs_std_types_dmabuf.c
+index 2411ebee69e2..5a6a1ee430a7 100644
+--- a/drivers/infiniband/core/uverbs_std_types_dmabuf.c
++++ b/drivers/infiniband/core/uverbs_std_types_dmabuf.c
+@@ -76,6 +76,17 @@ static void uverbs_dmabuf_release(struct dma_buf *dmabuf)
+ 	uverbs_uobject_release(&priv->uobj);
+ }
+ 
++static struct p2pdma_provider *
++uverbs_dmabuf_provider(struct dma_buf *dmabuf)
++{
++	struct ib_uverbs_dmabuf_file *priv = dmabuf->priv;
++
++	if (priv->revoked)
++		return NULL;
++
++	return priv->provider;
++}
++
+ static const struct dma_buf_ops uverbs_dmabuf_ops = {
+ 	.attach = uverbs_dmabuf_attach,
+ 	.map_dma_buf = uverbs_dmabuf_map,
+@@ -83,6 +94,7 @@ static const struct dma_buf_ops uverbs_dmabuf_ops = {
+ 	.pin = uverbs_dmabuf_pin,
+ 	.unpin = uverbs_dmabuf_unpin,
+ 	.release = uverbs_dmabuf_release,
++	.p2pdma_provider = uverbs_dmabuf_provider,
+ };
+ 
+ static int UVERBS_HANDLER(UVERBS_METHOD_DMABUF_ALLOC)(
+diff --git a/drivers/vfio/pci/vfio_pci_dmabuf.c b/drivers/vfio/pci/vfio_pci_dmabuf.c
+index c16f460c01d6..fcf392cfc3c5 100644
+--- a/drivers/vfio/pci/vfio_pci_dmabuf.c
++++ b/drivers/vfio/pci/vfio_pci_dmabuf.c
+@@ -99,11 +99,23 @@ static void vfio_pci_dma_buf_release(struct dma_buf *dmabuf)
+ 	kfree(priv);
+ }
+ 
++static struct p2pdma_provider *
++vfio_pci_dma_buf_provider(struct dma_buf *dmabuf)
++{
++	struct vfio_pci_dma_buf *priv = dmabuf->priv;
++
++	if (priv->revoked)
++		return NULL;
++
++	return priv->provider;
++}
++
+ static const struct dma_buf_ops vfio_pci_dmabuf_ops = {
+ 	.attach = vfio_pci_dma_buf_attach,
+ 	.map_dma_buf = vfio_pci_dma_buf_map,
+ 	.unmap_dma_buf = vfio_pci_dma_buf_unmap,
+ 	.release = vfio_pci_dma_buf_release,
++	.p2pdma_provider = vfio_pci_dma_buf_provider,
  };
  
  /*
-  * Decide how a peer-to-peer Request at an ACS-capable ingress port routes,
-- * from that port's ACS Control register.
-+ * from that port's ACS Control register and the Request's Address Type.
-  *
-  * Linux does not read the Egress Control Vector, so Egress Control is treated
-  * conservatively as a redirect. Per PCIe r7.0 Table 6-11 the outcomes it
-@@ -533,6 +534,18 @@ enum pci_acs_p2pdma_state {
- static enum pci_acs_p2pdma_state
- pci_acs_p2pdma_request(u16 ctrl, unsigned int tlp_flags)
- {
-+	if (tlp_flags & PCI_P2PDMA_TLP_TRANSLATED) {
-+		/*
-+		 * PCIe r7.0 sec 6.12.1.1: Translation Blocking makes every
-+		 * Upstream Memory Request whose Address Type is not
-+		 * Untranslated an ACS Violation, taking precedence over the
-+		 * P2P controls. Sec 7.7.12.5: Direct Translated P2P "is
-+		 * ignored if ACS Translation Blocking Enable is 1b".
-+		 */
-+		if (ctrl & PCI_ACS_TB)
-+			return PCI_ACS_P2PDMA_BLOCKED;
-+	}
-+
- 	return ctrl & (PCI_ACS_RR | PCI_ACS_EC) ?
- 		PCI_ACS_P2PDMA_REDIRECT : PCI_ACS_P2PDMA_DIRECT;
- }
-@@ -572,6 +585,35 @@ static bool pci_acs_p2pdma_ctrl(struct pci_dev *pdev, u16 *ctrl)
- 	return !pci_read_config_word(pdev, pos + PCI_ACS_CTRL, ctrl);
- }
+diff --git a/include/linux/dma-buf-mapping.h b/include/linux/dma-buf-mapping.h
+index 09bde3f748e4..37b3da10b17a 100644
+--- a/include/linux/dma-buf-mapping.h
++++ b/include/linux/dma-buf-mapping.h
+@@ -7,6 +7,9 @@
+ #define __DMA_BUF_MAPPING_H__
+ #include <linux/dma-buf.h>
  
-+/*
-+ * Report whether any port between @client and @divergence rejects Translated
-+ * addresses. @common bounds the walk; @divergence itself is read along with
-+ * the routing controls. A port whose ACS Control cannot be read counts as
-+ * blocking, which withdraws only the Translated classes because an
-+ * Untranslated Request is routed at the divergence.
-+ */
-+static bool pci_p2pdma_path_blocks_translation(struct pci_dev *client,
-+					       struct pci_dev *divergence,
-+					       struct pci_dev *common)
-+{
-+	struct pci_dev *pdev;
-+	u16 ctrl;
-+
-+	for (pdev = pci_upstream_bridge(client); pdev && pdev != common;
-+	     pdev = pci_upstream_bridge(pdev)) {
-+		if (pdev == divergence)
-+			continue;
-+
-+		if (!pci_acs_p2pdma_ctrl(pdev, &ctrl))
-+			return true;
-+
-+		if (ctrl & PCI_ACS_TB)
-+			return true;
-+	}
-+
-+	return false;
-+}
-+
- static void seq_buf_print_bus_devfn(struct seq_buf *buf, struct pci_dev *pdev)
- {
- 	if (!buf)
-@@ -590,14 +632,35 @@ static void seq_buf_print_bus_devfn(struct seq_buf *buf, struct pci_dev *pdev)
-  *		than upstream, so it is where the Request controls apply.
-  * @cpl_ctrl:	ACS Control of the provider-side divergence port, likewise for
-  *		the Completions travelling back.
-+ * @tb_below:	A port between the client and the divergence blocks Translated
-+ *		addresses.
-  * @unreadable:	First port whose ACS Control could not be read, if any.
-  */
- struct pci_p2pdma_acs_path {
- 	u16 req_ctrl;
- 	u16 cpl_ctrl;
-+	bool tb_below;
- 	struct pci_dev *unreadable;
- };
++enum pci_p2pdma_map_type
++dma_buf_p2pdma_map_type(struct dma_buf_attachment *attach,
++			unsigned int tlp_flags);
+ struct sg_table *dma_buf_phys_vec_to_sgt(struct dma_buf_attachment *attach,
+ 					 struct p2pdma_provider *provider,
+ 					 struct phys_vec *phys_vec,
+diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+index d1203da56fc5..cff1ee0838f0 100644
+--- a/include/linux/dma-buf.h
++++ b/include/linux/dma-buf.h
+@@ -186,6 +186,23 @@ struct dma_buf_ops {
+ 	 * if the call would block.
+ 	 */
  
-+/*
-+ * ACS Translation Blocking is not a routing control, so unlike the redirect
-+ * controls it is not decided at the divergence alone. PCIe r7.0 sec 6.12.1.1
-+ * has every Downstream Port check the Address Type of each Upstream Memory
-+ * Request it receives, ahead of "any applicable ACS P2P control mechanisms".
-+ * A port below the divergence cannot redirect the Request anywhere it was not
-+ * already going, but it can still reject a Translated address.
-+ */
-+static enum pci_acs_p2pdma_state
-+pci_p2pdma_request_state(const struct pci_p2pdma_acs_path *path,
-+			 unsigned int tlp_flags)
-+{
-+	if (tlp_flags & PCI_P2PDMA_TLP_TRANSLATED && path->tb_below)
-+		return PCI_ACS_P2PDMA_BLOCKED;
-+
-+	return pci_acs_p2pdma_request(path->req_ctrl, tlp_flags);
-+}
-+
- /*
-  * Combine both directions into a mapping type. Only a path that routes the
-  * Request and the Completions it generates directly can be programmed with
-@@ -607,11 +670,23 @@ static enum pci_p2pdma_map_type
- pci_p2pdma_route(const struct pci_p2pdma_acs_path *path,
- 		 unsigned int tlp_flags)
- {
-+	enum pci_acs_p2pdma_state req;
-+
- 	if (path->unreadable)
- 		return PCI_P2PDMA_MAP_NOT_SUPPORTED;
- 
--	if (pci_acs_p2pdma_request(path->req_ctrl, tlp_flags) ==
--		    PCI_ACS_P2PDMA_DIRECT &&
-+	req = pci_p2pdma_request_state(path, tlp_flags);
-+
-+	/*
-+	 * Translation Blocking rejects the Address Type rather than the
-+	 * target, so a blocked Request stays blocked however it is addressed.
-+	 * No host bridge fallback keeps a Translated address working; the
-+	 * caller has to issue a different kind of Request instead.
++	/**
++	 * @p2pdma_provider:
++	 *
++	 * Returns the &struct p2pdma_provider backing this buffer, so that an
++	 * importer can ask how its peer-to-peer traffic would be routed before
++	 * it programs its hardware. Importers reach this through
++	 * dma_buf_p2pdma_map_type() rather than calling it directly.
++	 *
++	 * Exporters of MMIO memory that is reachable peer-to-peer should
++	 * implement this. This callback is optional.
++	 *
++	 * Returns:
++	 *
++	 * The provider backing the buffer.
 +	 */
-+	if (req == PCI_ACS_P2PDMA_BLOCKED)
-+		return PCI_P2PDMA_MAP_NOT_SUPPORTED;
++	struct p2pdma_provider *(*p2pdma_provider)(struct dma_buf *dmabuf);
 +
-+	if (req == PCI_ACS_P2PDMA_DIRECT &&
- 	    pci_acs_p2pdma_completion(path->cpl_ctrl, tlp_flags) ==
- 		    PCI_ACS_P2PDMA_DIRECT)
- 		return PCI_P2PDMA_MAP_BUS_ADDR;
-@@ -640,12 +715,19 @@ static void pci_p2pdma_warn_path(struct pci_dev *client,
- 		return;
- 	}
- 
-+	if (pci_p2pdma_request_state(path, tlp_flags) ==
-+	    PCI_ACS_P2PDMA_BLOCKED) {
-+		pci_warn(client,
-+			 "ACS Translation Blocking rejects Translated Requests to provider %s\n",
-+			 pci_name(provider));
-+		return;
-+	}
-+
- 	seq_buf_init(&acs_list, buf, sizeof(buf));
- 	if (pci_acs_p2pdma_completion(path->cpl_ctrl, tlp_flags) !=
- 	    PCI_ACS_P2PDMA_DIRECT)
- 		seq_buf_print_bus_devfn(&acs_list, a_child);
--	if (pci_acs_p2pdma_request(path->req_ctrl, tlp_flags) !=
--	    PCI_ACS_P2PDMA_DIRECT)
-+	if (pci_p2pdma_request_state(path, tlp_flags) != PCI_ACS_P2PDMA_DIRECT)
- 		seq_buf_print_bus_devfn(&acs_list, b_child);
- 
- 	/* Drop the final semicolon; the list is not empty here. */
-@@ -864,8 +946,11 @@ pci_p2pdma_map_types_unpack(unsigned long val, unsigned int tlp_flags)
-  * redirection setting of the ports along the path.
-  *
-  * The client initiates Requests to provider memory. At the path divergence,
-- * check Request Redirect and Egress Control on the client-side port, and
-- * Completion Redirect for read Completions on the provider-side port.
-+ * check Request Redirect, Egress Control, Translation Blocking and Direct
-+ * Translated P2P on the client-side port, and Completion Redirect for read
-+ * Completions on the provider-side port. Translation Blocking is checked on
-+ * every client-side port instead, because it rejects a Request rather than
-+ * routing it.
-  *
-  * Those controls apply to different TLPs, so every class named by &enum
-  * pci_p2pdma_tlp_flags is decided from the one walk and cached together;
-@@ -873,8 +958,8 @@ pci_p2pdma_map_types_unpack(unsigned long val, unsigned int tlp_flags)
-  *
-  * If ACS redirects traffic at either divergence port, return
-  * PCI_P2PDMA_MAP_THRU_HOST_BRIDGE. If the ACS Control register cannot be
-- * read, return PCI_P2PDMA_MAP_NOT_SUPPORTED. Otherwise, return
-- * PCI_P2PDMA_MAP_BUS_ADDR.
-+ * read, or Translation Blocking rejects the class being asked about, return
-+ * PCI_P2PDMA_MAP_NOT_SUPPORTED. Otherwise, return PCI_P2PDMA_MAP_BUS_ADDR.
-  *
-  * Any two devices that have a data path that goes through the host bridge
-  * will consult a whitelist. If the host bridge is in the whitelist, return
-@@ -945,6 +1030,8 @@ calc_map_type_and_dist(struct pci_dev *provider, struct pci_dev *client,
- 		if (!pci_acs_p2pdma_ctrl(b_child, &path.req_ctrl) &&
- 		    !path.unreadable)
- 			path.unreadable = b_child;
-+		path.tb_below = pci_p2pdma_path_blocks_translation(client,
-+								   b_child, a);
- 	}
- 
- 	/*
+ 	/**
+ 	 * @release:
+ 	 *
 
 -- 
 2.55.0
