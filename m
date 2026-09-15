@@ -1,129 +1,91 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C29003C1D5F
-	for <linux-rdma@vger.kernel.org>; Tue, 15 Sep 2026 13:24:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7773F3B6BF4;
+	Tue, 15 Sep 2026 13:37:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789478670; cv=none; b=BBVvm/HLN259gCQ2dNzgN1cMyRW7rjyj6e3WNbQDYUwsOC8zQiDmDitzhuy550NFgE5smCvQ+Od22I1B6aYhLVFsVU/CVeSVOwPJSOnYXa63KXRq4FgRqm/BIOubmmvYxdR0l1+Z1V+3/JP6hj5fPbUmqRP5+dFUwhuA9gaZeJA=
+	t=1789479455; cv=none; b=JlJi/c+O1vAm6Py/xrLSdcdUT+kWV41AiE7S5AR2cI7MpQ7PmQA251csl4pi2+uFnP6msv8aO8E5Fu60C1XIiWzpB/zZu1Erd4T25tSXSibFXpF8r6lyz/eBgXf/046IImP8qDZtLsQc2bbvjKUDAaS2jw/waPuzCw0rtsuhpGU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789478670; c=relaxed/simple;
-	bh=78UhYf5Z1anogbpEfJxfCHKZJKdE7rCB/xhk00FzvoY=;
-	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=UyvPcWw4ylGIQirL2Vf0yn2VZJpJqbJzngssFe7Jp6GlZrc/5jFv2YGpAd/Wn53HFwfrvnizwsw5QVAVR6ILhfFPJZbdx1jKmNRrDpGhcc744bqiHheSk5T4ZgChK1M4EPljU9g0gJX6pWbSj8igPwUMfL2ZfTXt8drs7K9NlgM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XC5Lx4pg; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789479455; c=relaxed/simple;
+	bh=XbkzJmU+ohpQZw6QRlajImSOTkSJ3D6nxxEIRSVEvsQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=P19/y94E4lbIlz2odaPrqumPSepBSozZOFbxoUaNoK5LoT4wzfXItSJWYQgWn74agV1j6t1brDSaL+HOzf4Q35bq0WIyz+huMo8DFM/xJdodKnCDhmcPFcXwE5SQ2DAA9n6dJ8up/AeD8Sy//n4zkW50R8TkBchKTR0lAw7seic=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RvFjMZIS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XC5Lx4pg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C67B1F0089B;
-	Tue, 15 Sep 2026 13:24:28 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RvFjMZIS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 439941F00893;
+	Tue, 15 Sep 2026 13:37:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789478668;
-	bh=FxEGMXXLMpBQqJfGCKgaelOTiIbzOIWYB7hV0DzZfig=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=XC5Lx4pg547DMeVgN+/jOfuO+0dRPzkbi7FKmbEbJAT9gVluyb4VGMh0tU7CNSsg/
-	 sF2IJPLF71nSlUXgXJ/I/+8L0PoGmSqJTLVJEvll4JemXRC8nJFocPD7ch3kcei/WK
-	 vRHDxUxDR1SDlaXW3RzRB8nZDwuaJgVq/As9rFKKusmV5goWJAKrj6+0doabdPwZu7
-	 iFCaZeuOODkcAFwpxc4SLCVndR9GCxuIz27aZIGikzcC0DZWMIMvrirMC7yjFkf3dL
-	 jUS1wyQdRhHzqZ8Tl+ePN2xhrYGDpYqMAMqeB7iHZHh4RpjmsE/GGikZ5U86jqFekf
-	 F1wJNlCQjZIfQ==
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next] RDMA/bnxt_re: Limit SRQ depth to the firmware
- command field
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Leon Romanovsky" <leon@kernel.org>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260915-silent-16-bit-truncation-of-srq-size-v1-1-3199f8fe94bc@nvidia.com>
-References: <20260915-silent-16-bit-truncation-of-srq-size-v1-1-3199f8fe94bc@nvidia.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Tue, 15 Sep 2026 13:24:27 +0000
-Message-Id: <20260915132428.2C67B1F0089B@smtp.kernel.org>
+	s=k20260515; t=1789479453;
+	bh=BM51LqCTQKkxQjHuUWYfXlc+A3jyZ7CPDkL+FFiZnQU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=RvFjMZISrAofoxatI3txRLvKezud9CwyRisHK6u/f7qV4yUT2+fhG50Licn4tOFTn
+	 aUpbIemAcM0nYY73vFMmlmR1G3bd+rt/EKqZZnRrCEtiulHGzVYlo1mfwJKw5wEt1L
+	 veYt//N/IyOSrGXAkw1MeTdTZ2AM54UXpTGiPVffI88yWhxPkdAceI85FeCNds2r4u
+	 sMz8bBUFz776GaC6PwE+AI/nJ0iZQZZSS6dOKyITBPk7GK5hUpSLwFzs/e94djAAI5
+	 B1VOzp9xLYXS5P36Ut/yF0LzCU8F2BPhT15C5ehGRRkZgEiLj+ihYaoD/RGFGUzvdG
+	 Nl076XXX2qyeQ==
+Date: Tue, 15 Sep 2026 16:37:29 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>
+Cc: Zhiping Zhang <zhipingz@meta.com>, kvm@vger.kernel.org,
+	linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Alex Williamson <alex@shazbot.org>, Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH v13 0/5] vfio/dma-buf: add TPH support for peer-to-peer
+ access - ping
+Message-ID: <20260915133729.GO13683@unreal>
+References: <20260731211601.3033906-1-zhipingz@meta.com>
+ <CAH3zFs0vQidHOWif_LmS0=65S9iiCo7yGibqLvFT5jadjj8wVA@mail.gmail.com>
+ <CAH3zFs2XnH6gT0fO4=WLi4x1SL2+Y0S=Jo45SWkR=unPegQ8Hw@mail.gmail.com>
+ <CAH3zFs2X8=x-XMXhwC7_aUZivCCPQOSuyXMy-ryKqxLEFY9u-Q@mail.gmail.com>
+ <c0c8dea4-1571-482e-be33-f965c7c357d2@amd.com>
+ <20260915113752.GK13683@unreal>
+ <92950084-ddd1-4868-a81a-bfe214184122@amd.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <92950084-ddd1-4868-a81a-bfe214184122@amd.com>
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
-- [High] RDMA/bnxt_re: silent SRQ desync for legacy userspace due to non-po=
-wer-of-two cap
---
+On Tue, Sep 15, 2026 at 02:59:43PM +0200, Christian König wrote:
+> On 9/15/26 13:37, Leon Romanovsky wrote:
+> > On Fri, Sep 11, 2026 at 09:58:28AM +0200, Christian König wrote:
+> >> Hi Zhiping,
+> >>
+> >> sorry I'm completely underwater at the moment and don't have time to take another look at the full set.
+> >>
+> >> But IIRC you already fixed my documentation requirements and skimming over the patch once more I can't see anything wrong of hand.
+> >>
+> >> So feel free to add Acked-by: Christian König <christian.koenig@amd.com> to patch "dma-buf: add optional get_pci_tph() callback" and push it upstream through the VFIO channels.
+> > 
+> > Christian,
+> > 
+> > I'm slightly confused here. In the other thread, you expressed concerns
+> > about having PCI details common to every device in the P2P world in the
+> > dma-buf code, but here you seem fine with adding a niche P2P feature.
+> 
+> That one is only using u16 and u8 types and has no dependency on the PCI subsystem whatsoever.
+> 
+> Giving those adjacent information sounds perfectly fine to me, we just can't have any hard dependency on PCI subsystem types or functions.
+> 
+> DMA-buf itself is massively used with vendor specific P2P interconnects, PCI P2P is just a special case of that.
 
-commit a0fff360dfd527e4f635aa0d8696bce687733ce9
-Author: Leon Romanovsky <leon@kernel.org>
+You are looking at it from the DRM perspective. Outside the DRM world, PCI is
+THE interconnect, everything else is a special case :).
 
-RDMA/bnxt_re: Limit SRQ depth to the firmware command field
+Thanks
 
-Firmware can report an SRQ depth above 16 bits, but CREATE_SRQ carries the
-allocated depth in a 16-bit field. Requests near the advertised limit can
-therefore truncate the command value and make firmware use a different
-depth than the allocated queue.
-
-> diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniban=
-d/hw/bnxt_re/ib_verbs.c
-> index ef08d42f377e6..43ff3e7a459fa 100644
-> --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> @@ -2229,8 +2229,8 @@ int bnxt_re_create_srq(struct ib_srq *ib_srq,
->  	dev_attr =3D rdev->dev_attr;
->  	srq =3D container_of(ib_srq, struct bnxt_re_srq, ib_srq);
-> =20
-> -	if (srq_init_attr->attr.max_wr >=3D dev_attr->max_srq_wqes) {
-> -		ibdev_err(&rdev->ibdev, "Create CQ failed - max exceeded");
-> +	if (srq_init_attr->attr.max_wr > dev_attr->max_srq_wqes) {
-> +		ibdev_err(&rdev->ibdev, "Create SRQ failed - max exceeded");
->  		rc =3D -EINVAL;
->  		goto exit;
->  	}
-> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.c b/drivers/infiniban=
-d/hw/bnxt_re/qplib_sp.c
-> index ec9eb52a8ebf7..63dcbb9d80f4b 100644
-> --- a/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-> +++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-> @@ -159,7 +159,8 @@ int bnxt_qplib_get_dev_attr(struct bnxt_qplib_rcfw *r=
-cfw)
->  	attr->max_ah =3D le32_to_cpu(sb->max_ah);
-> =20
->  	attr->max_srq =3D le16_to_cpu(sb->max_srq);
-> -	attr->max_srq_wqes =3D le32_to_cpu(sb->max_srq_wr) - 1;
-> +	attr->max_srq_wqes =3D min_t(u32, le32_to_cpu(sb->max_srq_wr),
-> +				   U16_MAX) - 1;
-
-[Severity: High]
-Does capping max_srq_wqes to 65534 break legacy userspace applications that
-rely on power-of-two queue sizes?
-
-If a legacy application requests an SRQ size that rounds up to 65536
-(e.g. 32768), bnxt_re_create_srq() will pass dev_attr->max_srq_wqes + 1
-(65535) as the maximum to bnxt_re_init_depth():
-
-drivers/infiniband/hw/bnxt_re/ib_verbs.c:bnxt_re_create_srq() {
-    ...
-	srq->qplib_srq.max_wqe =3D
-		bnxt_re_init_depth(srq_init_attr->attr.max_wr + 1,
-				   dev_attr->max_srq_wqes + 1, uctx);
-    ...
-}
-
-In bnxt_re_init_depth(), this results in min(65536, 65535) and returns 6553=
-5:
-
-drivers/infiniband/hw/bnxt_re/ib_verbs.h:bnxt_re_init_depth() {
-    ...
-	if (uctx && !(uctx->cmask & BNXT_RE_UCNTX_CAP_POW2_DISABLED))
-		return min(roundup_pow_of_two(ent), max);
-    ...
-}
-
-Because 65535 is not a power of two, legacy userspace masking (e.g., idx &
-0xFFFE) becomes mathematically incorrect, immediately corrupting ring state
-and causing producer/consumer desynchronization without throwing an error.
-
->  	attr->max_srq_sges =3D sb->max_srq_sge;
->  	attr->max_pkey =3D 1;
->  	attr->max_inline_data =3D attr->max_qp_sges * sizeof(struct sq_sge);
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260915-silent-16-=
-bit-truncation-of-srq-size-v1-1-3199f8fe94bc@nvidia.com?part=3D1
+> 
+> Regards,
+> Christian.
+> 
+> > 
+> > Thanks,
