@@ -1,41 +1,39 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36A4E493646;
-	Tue, 15 Sep 2026 11:16:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54B7749B201
+	for <linux-rdma@vger.kernel.org>; Tue, 15 Sep 2026 11:16:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789470991; cv=none; b=so+WD84FK/fXP+9UrCwTbflW0ESFu+L18/DHvO1A3XYqU5uBrkaCPNOHuV9/wOBPNZdfMUmFRRdm0130DzoRsu+3vyj3j2tnaUuJUk+MpC5BKYpltaEQJ6iavyBqHOzNgaXwfnSKFKmRELxu/Sb1p6QROOWu+pA/otrDfVeiwB8=
+	t=1789470994; cv=none; b=Qh+aTV+VoSR7mzqbFxIspb/BwGappJfUQPfugUOfYTgtZrYyxrTJcl277oK/VAFoOtPRLLz2Swsd91NRPvSKBS6nA0CsEXoHTPq6/oaN3dKBpETFbLchzAxEfHh0wPMuIliHT2vN+M/tQUvCyX/7hzqk6YCAOTJCLUCfpPDEQN0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789470991; c=relaxed/simple;
-	bh=eRGHVoKYzXdjnkH5LznyqUqVZdIKv9ZTvmeMvsMfG+0=;
+	s=arc-20240116; t=1789470994; c=relaxed/simple;
+	bh=yRgayEehfplI/nzGlBaCQkCibM+F0mM1emO3yMcI8H8=;
 	h=From:To:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=Wjjh5abzZTmWGg3w6ZbxI6yzCHZ6KrnEPKDhBDid3Houi5uW8BMgXw9MWwQyyog0a2ONjNqzsnCacAeqFQS7nAanRYHqlkrwLQGV67sjYgspf0lcFMRLyOvECA2+icvsBGgrZTIoXmD2g5R1ri6kvFYs3T1IstcPS0gtgZxrDb8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=G8EfeTs3; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=bvwLaZEwY+d/OStGu16l+RRPTvrPxICAX4yve9ZxpmIewRa8VtKRl/xfMAzZnwtHdwagqvprrQ1zkRN/Pryvx9y0NejkV/XXIC2bbNoVM8GZidGAC+SJyffpPXUm1j5F80YBQl23xEsHOjXZgN4SPDB+3mvC2iRPzviraR1smSA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gfdt8l+y; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="G8EfeTs3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3561B1F00893;
-	Tue, 15 Sep 2026 11:16:29 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gfdt8l+y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CE821F00893;
+	Tue, 15 Sep 2026 11:16:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789470989;
-	bh=bBHa0nrpFqvj1h4STpmvMh3HTgPBp9v0aoOLPqed4KY=;
+	s=k20260515; t=1789470993;
+	bh=VO8QP/bwTO41dWFYu2QAwoLubLaZtl35r2Pe0rVMmfk=;
 	h=From:To:In-Reply-To:References:Subject:Date;
-	b=G8EfeTs3VPdpkBXraU0FYK4/I5Rlvd0KWgg7bqxe+3nl1BROKrYBdQnbSubT2GrP4
-	 51AuYZ9vymYFFh3TV8qjJyCN1q6x8R1skWp7NT3Qx829yVaCERhX37UpltNB4sDZzV
-	 /cBGxL+2gm15N/qR5BsFR9djsFi4hQs5m1mgQxtqhDCh6hHjwV0dAPvbQzIF4FBIpc
-	 tkl73Qfo6VnqfxRXyltUOvERPKT9oGzPHpevb5W02Lm6vjfthG7g/2Z9uHVbJc87Hf
-	 P0Fyz50WfhGgY0Oa7wPqUlpXyDuKu/Ky+73UthAXnBmQm1e/qSHWL3ByXPeGy3swpv
-	 tWlAj7dqFmK4Q==
+	b=gfdt8l+yWbyVUX4EA4yzN91Ny38LhD1R/V1DC3202VmPyOIAK/tYlPaQ0ri+QOJAu
+	 IODvUu4NS+gkblXIoxytXz1ZVcgDPV2qHkG2P9xpjrUtS9ME1sgT7qkPFshWDqG/F7
+	 9gjQ4nQa01Rv+5ct8NvAZUkQc44bT6msNCl6P32nzi9zBm8G8ck0eOzdM/T1H1Q9xU
+	 5uVUoLZt20AYLpUi971knpX3FWeI0DuZAL57QwhWKPLupoMqYlMHoid1V8fMlIQGN2
+	 UMbwiPzxUSuUMQIYCwXJ5UZ0Cio12/EsKRnBXPgJaypkaNjdT3wOX+kytLVXvc/bAs
+	 kE+2tYH9ZulPw==
 From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>, Yishai Hadas <yishaih@mellanox.com>, 
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
+To: Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, 
  lirongqing <lirongqing@baidu.com>
-In-Reply-To: <20260911021557.2113-1-lirongqing@baidu.com>
-References: <20260911021557.2113-1-lirongqing@baidu.com>
-Subject: Re: [PATCH v2] RDMA/uverbs: Make CQ handle mandatory for WQ
- creation
-Message-Id: <178947098678.1230106.15681890155815264544.b4-ty@kernel.org>
-Date: Tue, 15 Sep 2026 07:16:26 -0400
+In-Reply-To: <20260914121253.2193-1-lirongqing@baidu.com>
+References: <20260914121253.2193-1-lirongqing@baidu.com>
+Subject: Re: [PATCH] RDMA/mlx5: Print err code when create_qp fails
+Message-Id: <178947099020.1230106.14053311297942379715.b4-ty@kernel.org>
+Date: Tue, 15 Sep 2026 07:16:30 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -47,25 +45,15 @@ Content-Transfer-Encoding: 7bit
 X-Mailer: b4 0.15-dev-18f8f
 
 
-On Fri, 11 Sep 2026 10:15:57 +0800, lirongqing wrote:
-> UVERBS_ATTR_CREATE_WQ_CQ_HANDLE is declared UA_OPTIONAL in the ioctl
-> method definition, so the mandatory attribute bitmap does not enforce
-> its presence.  When userspace omits it, uverbs_attr_get_obj() returns
-> ERR_PTR(-ENOENT) and the handler stores that error pointer into
-> wq_init_attr.cq without validation.
-> 
-> The bogus cq pointer is then passed to the driver's create_wq callback.
-> In the mlx5 case, create_rq() calls to_mcq(init_attr->cq) which applies
-> container_of to the ERR_PTR value, producing a near-NULL pointer.  The
-> subsequent access in get_rq_ts_format() triggers a kernel NULL pointer
-> dereference:
-> 
-> [...]
+On Mon, 14 Sep 2026 20:12:53 +0800, lirongqing wrote:
+> Add the actual error code to the "Create QP type %d failed" log
+> line in create_qp(), so failures can be diagnosed from dmesg
+> alone without guessing the underlying error.
 
 Applied, thanks!
 
-[1/1] RDMA/uverbs: Make CQ handle mandatory for WQ creation
-      https://git.kernel.org/rdma/rdma/c/f7d28791433d37
+[1/1] RDMA/mlx5: Print err code when create_qp fails
+      https://git.kernel.org/rdma/rdma/c/8d946772ce6b33
 
 Best regards,
 -- 
