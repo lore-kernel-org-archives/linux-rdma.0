@@ -1,74 +1,71 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C8E3408612
-	for <linux-rdma@vger.kernel.org>; Tue, 15 Sep 2026 03:37:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21D1E431499;
+	Tue, 15 Sep 2026 04:31:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789443463; cv=none; b=IQIIXgbGodP5r3Omp/2MpvVQWI/s5A/4liT6eZxP1vlxc802L348EkFK8iVP2nZ6azcqbT/t1pvW2mRwjvCQ6sI2Xq3aLBoUJw/C5aPkFoSRLd8TKia1p9pbvI1EYFrSB3/px/BY1x9IOiUqS33L6HgA/qqMe5wD/wXh6adoskg=
+	t=1789446697; cv=none; b=MzUEF+Mn/99IcsXBv7o5u5X3PuSHiwBTujFb99za5+0HzNwRmLA8WSXeK/48SqRxeC+rt2Ib+GHMvx7kd0DnVWjc+1azC6EcZ7EdqIpRHcuqHJJrR9JThVobDNvLNFi/VrHAVhIhUffOa5Pnp+8rn8cvEfuceAMrJvZFiJ9r9M0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789443463; c=relaxed/simple;
-	bh=Txged/zpT+c/iqH8oMVI5H/2zk+s1bKsGaz82B1L2zU=;
-	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=ot+uOdg4tiU+gBB5KDXAvHz4ZG1WPAWwctLnt88wH96eR1oTKAPwzHLsCQRb4tcGaN+mfAP0oB/V4oAcozDQTERb+1Cbn8SkWgd/OGqX/Iz0feYWMDIP/iKYZd5MfjKRiWt48/fLbtrpWpaRX36pbU/Y9/kOb1tVRvQvMxsVudk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aHv5Q1dt; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789446697; c=relaxed/simple;
+	bh=kyzN3dg3O5j4C+ixXMm2PPn2r2u8wrUq+gKl+V1RvsI=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=KTFfkwUfEQASVCvXbJOomwQyq1XFSX5BDj2wPH5cOlmNeOkx3RU/RHcO4gq2We/TZR62rMFKiREi6hObiPjnTAQQy5Loef2SVKEdR2EztE2jzpXd/UOz8+XuAXBOwCMosMA0GtMC7/l1akjx2tSn/c9ejERvwKWvDibodsfCzUk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GCSxHa6b; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aHv5Q1dt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6DE01F00898;
-	Tue, 15 Sep 2026 03:37:40 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GCSxHa6b"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7D3E1F00893;
+	Tue, 15 Sep 2026 04:31:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789443461;
-	bh=hshEsj1tj2G6NcT1HBoBWrt+sZZzQNmPA9iSMcefQxw=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=aHv5Q1dtLv7f3lANRngL6r5pkhkIIbhjkifZM2FU02gRwZfC0MDA5IUH/rgpHeW89
-	 khllL/64EB4WAqZSFQsb5uhC0AlTCPnzHX5+1CB8s6g9LitPok6GeiJ+EsCcKHph/I
-	 3KS3JC275VtuR5MzNSwxOB3k95qgWJyRDvzqAqRDZL+Xf+rjpB9+DGabEh7LQak5i1
-	 1Ze0ssbFwWOWRBH6aIwUP3NZ+Jlq0mct0NxwjqYCysETFLRaKa5aL3Ros+887kcA2s
-	 ZOyAevA/IKI1NQES+p09B4k6wRnoQpkbowcjm5NFOO/FU1JPRpkBiiprCMljePjN2p
-	 ddevxnfaytkjg==
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next v3 12/13] net/rds: drop rds_conn_count in favor
- of t_conn_count
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Allison Henderson" <achender@kernel.org>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260914033719.138057-13-achender@kernel.org>
-References: <20260914033719.138057-1-achender@kernel.org>
- <20260914033719.138057-13-achender@kernel.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Tue, 15 Sep 2026 03:37:40 +0000
-Message-Id: <20260915033740.E6DE01F00898@smtp.kernel.org>
+	s=k20260515; t=1789446685;
+	bh=ZX8p0xKhWvzdMr3cMuo+x22JfL3TAIzCrrx12gcubGI=;
+	h=From:To:Cc:Subject:Date;
+	b=GCSxHa6b6IMWGpMHqqle6pvir1NCwpqc7yuEqQ5a1PmqsgtKKJ1GvemvM8iSRPckp
+	 tC0HCTdPpttqM6X/O3Z55dgKvJGy/66pcrB6BVD+kq7clGUoKb6aqsMCBN9l3OFewl
+	 eF1sjSFj5KKjLCPYqg5AZcv5e6W49xZjH/pqUHyntjM2eb+e3NHqL5/4c15gGEkwLc
+	 lNSLxywm23ygQAjthwviHZizbgXPeMFF2e0MZODpnWdTeaJF5pJAviuyVCynE5Zsze
+	 l7aexr9HCKm8a7LY5Sclzki/ch2PtMAV8ljpPDNrZAkzcRAcswxHqIQVd1fwxhB+Vh
+	 68ER1Q3wBxf0g==
+From: Long Li <longli@kernel.org>
+To: jgg@ziepe.ca,
+	leon@kernel.org
+Cc: weh@microsoft.com,
+	kotaranov@microsoft.com,
+	linux-rdma@vger.kernel.org,
+	linux-hyperv@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Long Li <longli@kernel.org>
+Subject: [PATCH] MAINTAINERS: hand over MANA RDMA driver to Wei Hu
+Date: Mon, 14 Sep 2026 21:31:21 -0700
+Message-Id: <20260915043121.10370-1-longli@kernel.org>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-> The previous patch gave each transport its own connection count in
-> t_conn_count, incremented and decremented at exactly the points where
-> the global rds_conn_count is.  That leaves rds_conn_count with a
-> single remaining consumer: the seed of the per-path workqueue names
-> in __rds_conn_create().
->=20
-> Switch the name seed to t_conn_count, as UEK does, and remove
-> rds_conn_count.  The numbering becomes per-transport instead of
-> global, so connections of different transports can now receive the
-> same seed; workqueue names carry no uniqueness requirement, and the
-> seed was already reused as the count rose and fell.  Removing the
-> counter also removes the rds_conn_lock round-trip that
-> rds_conn_destroy_fini() took solely to decrement it, leaving the
-> free path lock-free.
->=20
-> Based on the Oracle UEK commit "net/rds: Each RDS transport
-> should keep its own connection count".
->=20
-> Assisted-by: Claude-Code:claude-fable-5
-> Signed-off-by: Allison Henderson <achender@kernel.org>
+Wei Hu takes over maintainership of the Microsoft MANA RDMA driver.
 
-Sashiko has reviewed this patch and found no issues. It looks great!
+Signed-off-by: Long Li <longli@kernel.org>
+---
+ MAINTAINERS | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260914033719.1380=
-57-1-achender@kernel.org?part=3D12
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 3b2eb2a7a..ee9328178 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -18046,7 +18046,7 @@ F:	include/linux/cciss*.h
+ F:	include/uapi/linux/cciss*.h
+ 
+ MICROSOFT MANA RDMA DRIVER
+-M:	Long Li <longli@microsoft.com>
++M:	Wei Hu <weh@microsoft.com>
+ M:	Konstantin Taranov <kotaranov@microsoft.com>
+ L:	linux-rdma@vger.kernel.org
+ L:	linux-hyperv@vger.kernel.org
+-- 
+2.34.1
 
