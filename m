@@ -1,73 +1,73 @@
-Received: from mail-vk1-f227.google.com (mail-vk1-f227.google.com [209.85.221.227])
+Received: from mail-pl1-f226.google.com (mail-pl1-f226.google.com [209.85.214.226])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6013D46DFF0
-	for <linux-rdma@vger.kernel.org>; Tue, 15 Sep 2026 08:31:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.227
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39C65360EF7
+	for <linux-rdma@vger.kernel.org>; Tue, 15 Sep 2026 08:34:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.226
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789461112; cv=none; b=BJanXEfIZs1n+sx6HLv7JX1Z1Y5DV3lvUMHjccP6MFc94fBifj//9UacYY/NeEglVY6oOX7tJo6XuAkYaLi9uiG9cqNaP9+3cdV/1VwbFmHfwqVInfCneOBOSFUkdRF+O226r6Usnb6AjYLzd5fd3WFtXLo0NuQVfm8k+rYMqOw=
+	t=1789461280; cv=none; b=YkwBSfpoXpOCc8/hjgpR61tnauqc4W35hsveqZCuDGH3agAXD7n/Uqb4Jl3H+Oh9pEIPB9iIUcFJQkb5vfMYGdoD+OeRUY+1oDqsjFDtkO0KieA/1g3ssqrcOezEvWv+Ob/xpARHERTmtERjWRM87aBIKZ7cJzXUvHQ8HunMVLw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789461112; c=relaxed/simple;
-	bh=L7RD5s26S/DB2ccyOm4dda/qhcxL/voBIWld5IvohRE=;
+	s=arc-20240116; t=1789461280; c=relaxed/simple;
+	bh=Oc4CsPdaPtZgjjsSJlkB0STOfl7IGSScLUhNoin5Rvc=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Fm92HAL+hF92lzo9hl801rXtkmVM5JPusqVQ7HxdV8Rk5Px2UV/Cwq7LinKhv5pQAol+jy5JlULaHgP6CigpxD0iR0YbnNyipzU/PvSk6tYqs/CKzGYR6PDxTPZbY4fLGx6QueHdIAv+aBYShmOziPZ0Nhu1Ho5VsMc/oDgPnPE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=Hs+xD1DS; arc=none smtp.client-ip=209.85.221.227
+	 To:Cc:Content-Type; b=t49mxKmgTCcN9bZzlMtOzrmeRiRPTE/4sOYcF1FCAgRTPkIeTRmPcXaKQQvTFazuRKjp1S+EOEXnVHuHToSgcc8RaRCmxT9RsRxl7NeiaRLtleImo8UKJFZ6lvS3bIR/PXwsKCtgsBc2tUSECcR3mJ9h/okRl7/sPJ0rCMxqteY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=OjEM0GvI; arc=none smtp.client-ip=209.85.214.226
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="Hs+xD1DS"
-Received: by mail-vk1-f227.google.com with SMTP id 71dfb90a1353d-5c989be99abso387128e0c.1
-        for <linux-rdma@vger.kernel.org>; Tue, 15 Sep 2026 01:31:51 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="OjEM0GvI"
+Received: by mail-pl1-f226.google.com with SMTP id d9443c01a7336-2d58efc7356so36603775ad.1
+        for <linux-rdma@vger.kernel.org>; Tue, 15 Sep 2026 01:34:37 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789461110; x=1790065910;
+        d=1e100.net; s=20260707; t=1789461277; x=1790066077;
         h=content-type:cc:to:subject:message-id:date:from:in-reply-to
          :references:mime-version:dkim-signature:x-gm-gg:x-gm-message-state
          :from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=5OsC6yM64NepIzbxtkIh9aok8XmnmHDYy7yrsqioWZE=;
-        b=z17EAWf21Yv0eSlpQArhZeZtbER+awBxnyOJ97mzBsJxKB6J0dq2NOSc1hoZjF+bIo
-         tPW2tV6/7U9KL5gGE3cw07d9LcBQbytyrZyuTxF4QgFNAlmrb/kEnQ41BErk/d7KOt6v
-         TwU4eQaOIOFm8Udhvcl3OfhwJwpNRsG4lHqbR1tvPbq9wlaKqjjbKyhzPVdJIlp3L7Jp
-         2SQXx2hg9KEQOQ9jk+E7H45cM7Uc0UFLgVE13HOsTVNQ+J4Uvgcznyfjey6QJpHX8iet
-         fJ+N9bRYcRbGgyip9gKvCNkDmIXp/+lZHoQ62VUD5XaHI8SjWJd3EqLU77hpPdsupcCc
-         /Qug==
-X-Forwarded-Encrypted: i=1; AKwUvBxJF5pUa5kJ2pwn3lWlhqbVmhmOizbOuDx+cDmNT4bVQpGZmgeFnTymcnOqsTbvIyC4/dl4VF+UEzsU@vger.kernel.org
-X-Gm-Message-State: AFuF++lXOwsuhddXJWraXvEB8h6rv11Wx3ww3L1bsNuGvNRgeQEso/AK
-	QoDzIQaZCOzrJOXsY4NVJxOaSbCl8w0Cn+lKhxlw+EO6Ynl9IfZGooQXlPjd69fKv4pRO89jeO0
-	7sS96XQoDe7nuU+2SlDmtMBtiM1P9BfVBtSZHeOX1GYCbLgYQGj7jmfacVLW3Anz88nuszCPJ5V
-	vLYeSY0x0GsqRYXc1LxB0ByKpCnFb6w3LjwOZZ/1/XCYDBg0kzKDIeYDVfgOJkQFSo/B98NCoYl
-	0WNPjzK1HXy5aX1Rg==
-X-Gm-Gg: AYBFou1BBtA8uNBtfvPjs7y9V+l4O+FtzU+EslZehabuXePELnqS++U+QuLPuPS1KV9
-	CEicxSKWfN50mTpxICcckkbi/M6RRQhuCokg+YQOkafsB4iINs7qBmGryEH/HPq4ZqHCxy9+FGK
-	W3BAuDAwmoWOPQmmyBiwz+Z5F/gtM7kCkgZ+xHMmM+dAe2WJXM5CYy/2dDHgMUfvgcvvcAqKC5j
-	j4968GRG0pcqbN1RNemoN5nUrg8kMPsSx9D+o5TyWLO6UYsZFh74Qv+pp7RS65D7wklsxmlVuIY
-	FYjxalem0y5ktX8cTRyl+riDfueVL9y22E9fLUabqieq9uaZOhtviestv2hyeFdgYlwExg8toF6
-	vn5sJ31RPxkyO+AhCwjxiosM8DtZBgz9fSF5qQNZy0NK/7h04jgNoyfRcL4Df
-X-Received: by 2002:a05:6122:698c:b0:5bf:a181:d46d with SMTP id 71dfb90a1353d-5c993a98da4mr332e0c.3.1789461110060;
-        Tue, 15 Sep 2026 01:31:50 -0700 (PDT)
+        bh=Nw7sKlFsRBN0D7g78ANvv6w/wVhhSfVcfDxf+3BxxfA=;
+        b=F9nLaUhkHxK1R/Hc8OQ+V2hqQwaX8RdoyEsdWjinmeVU796sDvMbh55ccBbNUbLwcR
+         ANVJzKQ1Nygcu2jvWSSXm6NjMTU5G2qwStJJbZUNoyCWLIT4OAkSHAoukEygtCB3cKrE
+         qCwEFi1kRFWcyjQnslIj3Yni/KKit9NezfeMIBttXldkLN7iLbs8Ca5cBhb6BTa7fSZB
+         OcryTJtex37DMgyBWsvvm94Oc97Q80G9eJA7N3MTLxypJzzlk9qXQ1lTbwCylZE6yNTK
+         Y6ZlEqpA1Z+dNZMzmGmuxuGkVquhP5xCQsHIme2txGtVhztRxpKJoKpUIh+O3LIzEns6
+         LF1Q==
+X-Forwarded-Encrypted: i=1; AKwUvByVrsTyV98rARVn6+GLAoL6Y8KU4jrHkZJjye4kgQznlU7/aH2fhZSuocUZ7zApWupGWYMGZemcKWZF@vger.kernel.org
+X-Gm-Message-State: AFuF++lNU04ER3USLMSWSo7evZgDxiTIxGFVcGTtZy59HC5/d65f7krE
+	0673bZgP30bp1FLVB4m+jCLaPJJTUPQjmIhf+5H1fHTTEREGohI7v8tOMbkEtsZEU9rq0vYahsT
+	6OnBT7T7hUc6ozstnVFiJ2vbjA9PfvKbSjOS2Ibavx6MWR+pqnmlU3pBdLbusabPveTXVRbQXP2
+	sWXu9gFXHH3wcQ6I0JFuEklpGgTVnDxs+11WSMfCoYSFnFIBpDmpfL93j6SaSac39oKT7DGiGIN
+	klvApf53I28FA77iw==
+X-Gm-Gg: AYBFou3EmqiBhS8JZXy3Y3hqGfxfcOdQc+/1+K5ju4ub7zKKGPAFFEq8z01QrdJepli
+	9+HsLC9iPToGcadSvFjxCBTSkzifx+LtOlzVEW4eP+lqSoLZx7j+2gL4HTK1Nep4jwBEtwcqypX
+	qz59M26U86X6vUDPUZaKX1TBw1lGc0UYx4NnT8X1BZSiKXgNKQfqmmHLXU6Yg9hkgJgiIQFlWE6
+	JJF+bqUTqBw9gyv2kRALEJDgvVOmhIY+1uxzchUVHqMmnSGywYRSeAm8NFuXhGlVRlWMdLaA12S
+	3tWmjpn4KBOyjCeDdnGVtkK7N9JXgiR09uAGABHWXzdVkLyPIS1tcZsiD1zrWCmHDxrlgk/LhTR
+	Mx9RxZnoZtd/A8RmyDlCEo6/bf2hh9E6NG143fSjPucZsNIveChCz32SB66+y
+X-Received: by 2002:a17:902:f712:b0:2db:20fa:9443 with SMTP id d9443c01a7336-2dd6c6db8c2mr126823015ad.13.1789461276154;
+        Tue, 15 Sep 2026 01:34:36 -0700 (PDT)
 Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com ([144.49.247.127])
-        by smtp-relay.gmail.com with ESMTPS id 71dfb90a1353d-5c97d662b26sm2281970e0c.8.2026.09.15.01.31.49
+        by smtp-relay.gmail.com with ESMTPS id d9443c01a7336-2dd2d0343adsm5951225ad.45.2026.09.15.01.34.34
         for <linux-rdma@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 15 Sep 2026 01:31:50 -0700 (PDT)
+        Tue, 15 Sep 2026 01:34:36 -0700 (PDT)
 X-Relaying-Domain: broadcom.com
 X-CFilter-Loop: Reflected
-Received: by mail-oa1-f69.google.com with SMTP id 586e51a60fabf-46509ab0149so5327131fac.2
-        for <linux-rdma@vger.kernel.org>; Tue, 15 Sep 2026 01:31:49 -0700 (PDT)
+Received: by mail-oa1-f71.google.com with SMTP id 586e51a60fabf-455ad408573so7618951fac.3
+        for <linux-rdma@vger.kernel.org>; Tue, 15 Sep 2026 01:34:34 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1789461109; x=1790065909; darn=vger.kernel.org;
+        d=broadcom.com; s=google; t=1789461274; x=1790066074; darn=vger.kernel.org;
         h=content-type:cc:to:subject:message-id:date:from:in-reply-to
          :references:mime-version:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=5OsC6yM64NepIzbxtkIh9aok8XmnmHDYy7yrsqioWZE=;
-        b=Hs+xD1DSZ057vGXcJaVKhedNYy+py+7fF/Shj2dX/QEZxGcPJgDjNlUJ0Q8tYQUXkH
-         10Ay0XtsVLi4WV8S+J5vEzuQJonvbeeYsz7BgW/U/LhjTUAYYLEWgxGw4u5cl/dQ1Duy
-         9tq5U15GGlF0Zjbuvhymr/G09dcpEqIup1f+U=
-X-Forwarded-Encrypted: i=1; AKwUvBxb81UZIqOjs1tHKwDpBxHAf3af8GI9+BqCidKgZZrRCpWtyshrnobH2g+8aBfA36kAgEF5XUNsR/To@vger.kernel.org
-X-Received: by 2002:a05:6871:547:b0:456:4c93:a7f8 with SMTP id 586e51a60fabf-481f7b29064mr4152234fac.6.1789461109213;
-        Tue, 15 Sep 2026 01:31:49 -0700 (PDT)
-X-Received: by 2002:a05:6871:547:b0:456:4c93:a7f8 with SMTP id
- 586e51a60fabf-481f7b29064mr4151972fac.6.1789461103985; Tue, 15 Sep 2026
- 01:31:43 -0700 (PDT)
+        bh=Nw7sKlFsRBN0D7g78ANvv6w/wVhhSfVcfDxf+3BxxfA=;
+        b=OjEM0GvITy/XePK+iCMIgLZTnHAsjh4hinLH6Bd4oSQSXzHoXGBTXLmTSrNH4p21MW
+         R0LwdfttwMPjlkLqU9tKKTjwLcRFk+Blns3W0kl0dR8hR4w7ixKtu3Y2HDimxyOtLz7y
+         4AE9FlugLx/KvK+utWxobSMEQIOwoPPIm+sSE=
+X-Forwarded-Encrypted: i=1; AKwUvBzzgIgazbTE5gaV5VDuWVJ0zdtpU8cKgw9rLKzVknp9baYH/h3fYwE8zQNKP7E/6RGALQPvo//UcfeZ@vger.kernel.org
+X-Received: by 2002:a05:6871:c963:b0:468:2c18:a031 with SMTP id 586e51a60fabf-481f82452a1mr4431338fac.12.1789461274096;
+        Tue, 15 Sep 2026 01:34:34 -0700 (PDT)
+X-Received: by 2002:a05:6871:c963:b0:468:2c18:a031 with SMTP id
+ 586e51a60fabf-481f82452a1mr4431297fac.12.1789461273182; Tue, 15 Sep 2026
+ 01:34:33 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -76,12 +76,13 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20260906230700.12233-1-selvin.xavier@broadcom.com>
  <20260906230700.12233-2-selvin.xavier@broadcom.com> <20260908134553.GO13683@unreal>
- <20260909132948.GI2543240@ziepe.ca> <20260910092651.GP13683@unreal> <20260910134743.GC4083318@ziepe.ca>
-In-Reply-To: <20260910134743.GC4083318@ziepe.ca>
+ <20260909132948.GI2543240@ziepe.ca> <20260910092651.GP13683@unreal>
+ <20260910134743.GC4083318@ziepe.ca> <CA+sbYW2_jnyMkFbqk-MHAcu=UswVJ90cQg_EgcXSnF0b_RaWkQ@mail.gmail.com>
+In-Reply-To: <CA+sbYW2_jnyMkFbqk-MHAcu=UswVJ90cQg_EgcXSnF0b_RaWkQ@mail.gmail.com>
 From: Selvin Xavier <selvin.xavier@broadcom.com>
-Date: Tue, 15 Sep 2026 14:01:31 +0530
-X-Gm-Features: AcwNN1XwRyty3L6FtmlFm726nAGXcqevAA3yCsICEBNELqiQZECDO81dAfCpbBA
-Message-ID: <CA+sbYW2_jnyMkFbqk-MHAcu=UswVJ90cQg_EgcXSnF0b_RaWkQ@mail.gmail.com>
+Date: Tue, 15 Sep 2026 14:04:20 +0530
+X-Gm-Features: AcwNN1VgmgOkeJZwdYq9A3ELN271e_Gws8azGSp60BN8AB_sMsMWj8w4ac8Vv-k
+Message-ID: <CA+sbYW2tOKp33LwrfePC3YZoCEEW__pQ=XPKB7iUBYCwMbRGMA@mail.gmail.com>
 Subject: Re: [PATCH for-rc 1/8] RDMA/bnxt_re: Reject executable mappings of
  the DBR and toggle pages
 To: Jason Gunthorpe <jgg@ziepe.ca>
@@ -90,79 +91,85 @@ Cc: Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org,
 	Yousef Alhouseen <alhouseenyousef@gmail.com>
 X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-	boundary="000000000000c5b943065b81618d"
+	boundary="000000000000994d4a065b816baf"
 
---000000000000c5b943065b81618d
+--000000000000994d4a065b816baf
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Sep 10, 2026 at 7:17=E2=80=AFPM Jason Gunthorpe <jgg@ziepe.ca> wrot=
-e:
+On Tue, Sep 15, 2026 at 2:01=E2=80=AFPM Selvin Xavier
+<selvin.xavier@broadcom.com> wrote:
 >
-> On Thu, Sep 10, 2026 at 12:26:51PM +0300, Leon Romanovsky wrote:
-> > On Wed, Sep 09, 2026 at 10:29:48AM -0300, Jason Gunthorpe wrote:
-> > > On Tue, Sep 08, 2026 at 04:45:53PM +0300, Leon Romanovsky wrote:
-> > > > On Sun, Sep 06, 2026 at 04:06:53PM -0700, Selvin Xavier wrote:
-> > > > > The BNXT_RE_MMAP_DBR_PAGE and BNXT_RE_MMAP_TOGGLE_PAGE cases of
-> > > > > bnxt_re_mmap() hand out kernel pages that userspace is only suppo=
-sed to
-> > > > > read. VM_WRITE was already rejected, but VM_EXEC was not, so user=
-space
-> > > > > could map these kernel pages executable. Reject VM_EXEC as well.
-> > > > > Also, return EPERM instead of EFAULT.
-> > > > >
-> > > > > Fixes: 9b66c9af7172 ("RDMA/bnxt_re: Clear VM_MAYWRITE on DBR/togg=
-le page mmap")
-> > > > > CC: Yousef Alhouseen <alhouseenyousef@gmail.com>
-> > > > > Reviewed-by: Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
-> > > > > Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
-> > > > > ---
-> > > > >  drivers/infiniband/hw/bnxt_re/ib_verbs.c | 8 ++++----
-> > > > >  1 file changed, 4 insertions(+), 4 deletions(-)
-> > > > >
-> > > > > diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/i=
-nfiniband/hw/bnxt_re/ib_verbs.c
-> > > > > index ccd2702db78b..e39f99434923 100644
-> > > > > --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> > > > > +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> > > > > @@ -5057,11 +5057,11 @@ int bnxt_re_mmap(struct ib_ucontext *ib_u=
-ctx, struct vm_area_struct *vma)
-> > > > >                 break;
-> > > > >         case BNXT_RE_MMAP_DBR_PAGE:
-> > > > >         case BNXT_RE_MMAP_TOGGLE_PAGE:
-> > > > > -               /* Driver doesn't expect write access for user sp=
-ace */
-> > > > > -               if (vma->vm_flags & VM_WRITE) {
-> > > > > -                       ret =3D -EFAULT;
-> > > > > +               /* Driver doesn't expect write and exec access fo=
-r user space */
-> > > > > +               if (vma->vm_flags & (VM_WRITE | VM_EXEC)) {
-> > > > > +                       ret =3D -EPERM;
-> > > > >                 } else {
-> > > > > -                       vm_flags_clear(vma, VM_MAYWRITE);
-> > > > > +                       vm_flags_clear(vma, VM_MAYWRITE | VM_MAYE=
-XEC);
-> > > >
-> > > > This is an opposite to 10bf13c33450 ("RDMA/mlx5: Remove MAYEXEC fla=
-g")
-> > > > commit.
-> > >
-> > > Why did we do that? These MMIO mmap should never be executable
+> On Thu, Sep 10, 2026 at 7:17=E2=80=AFPM Jason Gunthorpe <jgg@ziepe.ca> wr=
+ote:
 > >
-> > I don't remember the rationale, but if I understood my findings correct=
-ly,
-> > clearing VM_MAYEXEC broke memcopy.
+> > On Thu, Sep 10, 2026 at 12:26:51PM +0300, Leon Romanovsky wrote:
+> > > On Wed, Sep 09, 2026 at 10:29:48AM -0300, Jason Gunthorpe wrote:
+> > > > On Tue, Sep 08, 2026 at 04:45:53PM +0300, Leon Romanovsky wrote:
+> > > > > On Sun, Sep 06, 2026 at 04:06:53PM -0700, Selvin Xavier wrote:
+> > > > > > The BNXT_RE_MMAP_DBR_PAGE and BNXT_RE_MMAP_TOGGLE_PAGE cases of
+> > > > > > bnxt_re_mmap() hand out kernel pages that userspace is only sup=
+posed to
+> > > > > > read. VM_WRITE was already rejected, but VM_EXEC was not, so us=
+erspace
+> > > > > > could map these kernel pages executable. Reject VM_EXEC as well=
+.
+> > > > > > Also, return EPERM instead of EFAULT.
+> > > > > >
+> > > > > > Fixes: 9b66c9af7172 ("RDMA/bnxt_re: Clear VM_MAYWRITE on DBR/to=
+ggle page mmap")
+> > > > > > CC: Yousef Alhouseen <alhouseenyousef@gmail.com>
+> > > > > > Reviewed-by: Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
+> > > > > > Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
+> > > > > > ---
+> > > > > >  drivers/infiniband/hw/bnxt_re/ib_verbs.c | 8 ++++----
+> > > > > >  1 file changed, 4 insertions(+), 4 deletions(-)
+> > > > > >
+> > > > > > diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers=
+/infiniband/hw/bnxt_re/ib_verbs.c
+> > > > > > index ccd2702db78b..e39f99434923 100644
+> > > > > > --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> > > > > > +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> > > > > > @@ -5057,11 +5057,11 @@ int bnxt_re_mmap(struct ib_ucontext *ib=
+_uctx, struct vm_area_struct *vma)
+> > > > > >                 break;
+> > > > > >         case BNXT_RE_MMAP_DBR_PAGE:
+> > > > > >         case BNXT_RE_MMAP_TOGGLE_PAGE:
+> > > > > > -               /* Driver doesn't expect write access for user =
+space */
+> > > > > > -               if (vma->vm_flags & VM_WRITE) {
+> > > > > > -                       ret =3D -EFAULT;
+> > > > > > +               /* Driver doesn't expect write and exec access =
+for user space */
+> > > > > > +               if (vma->vm_flags & (VM_WRITE | VM_EXEC)) {
+> > > > > > +                       ret =3D -EPERM;
+> > > > > >                 } else {
+> > > > > > -                       vm_flags_clear(vma, VM_MAYWRITE);
+> > > > > > +                       vm_flags_clear(vma, VM_MAYWRITE | VM_MA=
+YEXEC);
+> > > > >
+> > > > > This is an opposite to 10bf13c33450 ("RDMA/mlx5: Remove MAYEXEC f=
+lag")
+> > > > > commit.
+> > > >
+> > > > Why did we do that? These MMIO mmap should never be executable
+> > >
+> > > I don't remember the rationale, but if I understood my findings corre=
+ctly,
+> > > clearing VM_MAYEXEC broke memcopy.
+> >
+> > That doesn't make sense..
 >
-> That doesn't make sense..
-
-Shall i post a v3 series with v1 contents again?
-
-Thanks,
-Selvin
+> Shall i post a v3 series with v1 contents again?
+Sashiko review mentioned to clear VM_MAYEXEC also. For your reference.
+https://sashiko.dev/#/message/20260909084241.570431F00A3A%40smtp.kernel.org
 >
-> Jason
+> Thanks,
+> Selvin
+> >
+> > Jason
 
---000000000000c5b943065b81618d
+--000000000000994d4a065b816baf
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -256,13 +263,13 @@ B3fwJWxl7miwNFjWuu9M6Z+rcjm3JF5srcAu2fp/VzQD4AE5Kq7ywukMvlU4Y3X2t+D2eU1DH8pk
 c8mM1CtQWfWUboaoLABVmYmYfihDvTURkzGCAlcwggJTAgEBMGIwUjELMAkGA1UEBhMCQkUxGTAX
 BgNVBAoTEEdsb2JhbFNpZ24gbnYtc2ExKDAmBgNVBAMTH0dsb2JhbFNpZ24gR0NDIFI2IFNNSU1F
 IENBIDIwMjMCDDy76dRYp65lyF2c4zANBglghkgBZQMEAgEFAKCBxzAvBgkqhkiG9w0BCQQxIgQg
-ObF0hiIMqjOVk/YlTzctzZJUWvSICeD/80mdY0VGB1YwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEH
-ATAcBgkqhkiG9w0BCQUxDxcNMjYwOTE1MDgzMTQ5WjBcBgkqhkiG9w0BCQ8xTzBNMAsGCWCGSAFl
+c88XcywnWrdvNKSxL54rjdqS7+FcBvjetBjE2OKnC6MwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEH
+ATAcBgkqhkiG9w0BCQUxDxcNMjYwOTE1MDgzNDM0WjBcBgkqhkiG9w0BCQ8xTzBNMAsGCWCGSAFl
 AwQBKjALBglghkgBZQMEARYwCwYJYIZIAWUDBAECMAoGCCqGSIb3DQMHMAsGCSqGSIb3DQEBBzAL
-BglghkgBZQMEAgEwDQYJKoZIhvcNAQEBBQAEggEArTm+SoFZlbeTP9CmAGrWSdctO8v62CUNo/LU
-T3cR4WJ/1RKg9ZCjY/JtkgNy/Qv7b/7Y4814gegCozo5XvnCQYKAjsURgU0ySsR6EqsUS06AiXVV
-WruaWqM7EeUOXZJ2jkwZdwIHBzV7zdy7EFtqfgTG+jZPJUQSyckx4YE8gYa0gs1eHxrYbY3nu/ZY
-Xcqo9w/HojQBU2Q6EjRIPajccB63tommJZ8fIDQF7eoUmot1SYPAbNEQH50US65r+Sej5ut70EzR
-2v+1C7gPAsY7dSh4pHKja6VusdSlw4OejTlUQBulgGMnm2ZXAZq5FenDUN2zkZLFO03WhyN74i2n
-DA==
---000000000000c5b943065b81618d--
+BglghkgBZQMEAgEwDQYJKoZIhvcNAQEBBQAEggEAcUXGLxNSGgraFjS8rXOueUmJCJO9Z6Seqqex
+dGn4jqcJycKQhvOLoqvWMwdEz9qzKwhR0La7PtvffsHbt4nMOJKmdUblPnEhqeo6NkW9BFwhTcip
+WgNYebo+ERuWHgwG9XHhkBWXpoF/x+ijHwCViuazYqHRJmeUuC2KPbSL1iMT2HaJi7iyuJcglbeh
+TfntI0ntejE3zp7bhd9IHwSjKqmMwnLxWn/qzTbtg8N3sMjU56lp5lGaxrk6BYdCoeJS+YtM8UHH
+Ju3rpSq2Ms7fJub4z6doE0UwPIhyTCsBAe2ma48pE8fGDWeY8uKToXms9yEDsdtzdFg0rRH1BQty
+rw==
+--000000000000994d4a065b816baf--
