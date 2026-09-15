@@ -1,44 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B58704A5C54
-	for <linux-rdma@vger.kernel.org>; Tue, 15 Sep 2026 11:47:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75E254A5C54
+	for <linux-rdma@vger.kernel.org>; Tue, 15 Sep 2026 11:47:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789472876; cv=none; b=cs093ZMoeTFQDExUUAs9PXk9b99ylU0YXUjYdE5RsB9R9+el26q+J6mGuWfOPBWKs3IodvtmT8IOLesyOH5Qa/zjaIAvc+uTRLA4S9VxIoCirEUjI5G9xsv/kf4FxYApCUc/9vnrRNW9nngs9uZ3fPQWR7VGQ95TZJbs1Ikb+Us=
+	t=1789472878; cv=none; b=L42STpPNxV+ktcmZoYR5NF8/vIOH3QyHx6lwfaA/R6U7LMgA4wue4pznZISQ4b8Ek/k2z7sVNXZ840DvvH8x+Q6O4x8GdsF9a+td+EMpJcYuFMhspUZxQrmNlqWTj2i2jJguwCx50vyNAWjZliWwo7dBPbH6vM6j+1Y34g5daGo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789472876; c=relaxed/simple;
-	bh=WOZb2BRdSvz3NnW6DmGbJfYQm6Df7Q+/DKAspx2SNjg=;
+	s=arc-20240116; t=1789472878; c=relaxed/simple;
+	bh=g2QAtRnhtr0jEttJK6u6cQXI86vzNRFoi8rPa9pSjJg=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=WSet+vjUtxqWMTqBOtt1tNsG/RRayardX6lqsn+JLHBH2mko87RtSqv4Kqe33ACk9scWAJd7Smhal94RCwlHMhRGv1qmxHsXtrvFUsybWs08MH6ZHWeUYYl3+iiGgSDOKOla9bZfSDlNhuBmTDUTLFufhBc5MogmWbci9c5Q5kY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=M9pHq3Wb; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=txqu2+MVPMt0zNNWL2M+ajUUUjpMir05L05p84JE3rIwSna1ghW5jJQaHb8WskhMY3/aXrQ5gNgdhfRW1Bk8nW028oPg3of0EQSP3o4D2Q1ZVBGiRRaam5TXJqEf65CMNyWRr5HrqrG3BomOVbiOt+XzE3fzb4WTa2xK3EH8QSQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GSOdzDu2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="M9pHq3Wb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B1361F00893;
-	Tue, 15 Sep 2026 11:47:55 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GSOdzDu2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 264D21F00898;
+	Tue, 15 Sep 2026 11:47:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789472875;
-	bh=WOZb2BRdSvz3NnW6DmGbJfYQm6Df7Q+/DKAspx2SNjg=;
+	s=k20260515; t=1789472876;
+	bh=g2QAtRnhtr0jEttJK6u6cQXI86vzNRFoi8rPa9pSjJg=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=M9pHq3Wbfh1O9QE/pgVeCL/78jPlxAU0wBh0B3Wx1u11FN7Wqr3vanaa5g4KbgYoD
-	 +w4bGfkqJBYxzrZugEE2mAH4gjSuBEqvaYYxSYkW+r8QXD/GoD8GcIMhFLX5ZZnmKo
-	 7OPDWcxI8FdHCNFDaKzNJG2XHqTymtH9CqjNnbiZ9R5JW/mMkpidjplV8acj3tAcjz
-	 4RLj8fuYgRYvsQuF1zULNSPb8fvyLOqHGtBWwX5d8YrogLU8VbCbhHdPkwFNFPUR7v
-	 yPOi2/06/LuRxIVoRbf+n28/bD66lrtiQOut8On25fBMDjbrt+8joAfiPTA89OVyjI
-	 qzbYFrXU8VE4Q==
+	b=GSOdzDu2a1bOlvyO4arg3k8ANYxscn2So47mG7WcOTKpPlagyX/xSe320Ozu2CwHg
+	 obuOyPbpIjNZhWJdbI55eM16uVcKnXQ/ZKhJp64TgCOEuLxUJR9+LGZ0OldAvatoO/
+	 IodhkqqG2sml8WOnOuVEU9R+6clo7Xvt3Eusc9y1/MP+5x7iu9Z7hgz/z9Uibs638C
+	 JHENfyhf2UMvSLBpzZkrJIqUAyJf7uYdbg9E31HNYaCK6A8HCDJWYTyLgWsECP3sYO
+	 +AERZfr7JlObMwiLVDwHoYA8orEbRgUHXBy54o8n6QhrxyqzbtwjGyk+k7TNZ0oFLL
+	 6wo8dRhBM1NzA==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net V3 3/3] net/mlx5: LAG, reload IB reps of LAG master
- before the rest
+Subject: Re: [PATCH net V3 2/3] net/mlx5: SD, unload reps on shared FDB
+ create error path
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Tariq Toukan" <tariqt@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260915113459.3934760-4-tariqt@nvidia.com>
+In-Reply-To: <20260915113459.3934760-3-tariqt@nvidia.com>
 References: <20260915113459.3934760-1-tariqt@nvidia.com>
- <20260915113459.3934760-4-tariqt@nvidia.com>
+ <20260915113459.3934760-3-tariqt@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Date: Tue, 15 Sep 2026 11:47:55 +0000
-Message-Id: <20260915114755.7B1361F00893@smtp.kernel.org>
+Message-Id: <20260915114756.264D21F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -47,18 +47,18 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 > From: Shay Drory <shayd@nvidia.com>
 >=20
-> In a shared-FDB LAG the master device creates the bond IB device; the
-> other LAG members do not create their own, they populate a port inside
-> the master's IB device. mlx5_lag_reload_ib_reps_unlocked() reloaded the
-> members' IB reps in iteration order, with no guarantee the master is
-> reloaded first. When a non-master member is reloaded before the master,
-> it tries to populate its port in an IB device that has not been
-> recreated yet.
+> mlx5_lag_shared_fdb_create() sets sd_fdb_active on every group member
+> before reloading the representors, so mlx5_lag_is_active() is already
+> true and the guard in mlx5_esw_offloads_rep_load() does not skip the
+> VF/SF reps. If the reload then fails, the error path clears
+> sd_fdb_active and destroys the shared FDB, leaving the reps loaded
+> while SD LAG is inactive - the state cited commit was written
+> to prevent.
 >=20
-> Hence, reload the master's IB reps first, then every other member.
+> Unload the reps in the error path as well.
 >=20
-> Fixes: 2b204cdb1206 ("net/mlx5: LAG, use xa_alloc to manage LAG device in=
-dices")
+> Fixes: 68c2dd59a6c7 ("net/mlx5: E-Switch, Tie rep load/unload to SD LAG s=
+tate")
 > Signed-off-by: Shay Drory <shayd@nvidia.com>
 > Reviewed-by: Akiva Goldberger <agoldberger@nvidia.com>
 > Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
@@ -67,5 +67,5 @@ Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260915113459.3934=
-760-1-tariqt@nvidia.com?part=3D3
+760-1-tariqt@nvidia.com?part=3D2
 
