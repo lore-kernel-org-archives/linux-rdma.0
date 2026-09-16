@@ -1,41 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95747379C40;
-	Wed, 16 Sep 2026 04:36:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 907373B7749;
+	Wed, 16 Sep 2026 04:36:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789533412; cv=none; b=J5Fmq955jooVBJyOAPf3uRatAi44F01fy3Dz0vgVIf0WvlIIHDT4eWpIgkOnFW7XnM0eTaA6fvXdpO6tvWIF5QGTeeR0eqZpT0Ov9cxB+ShXEgzcN0kORgSVzYJy1QDau8G/wPPbs6MnP1BQPKKB0wPAKvCx+j8eKMPWbX1KqE8=
+	t=1789533413; cv=none; b=RAO1afXUYn0fKVkjC9wYeognwYvR7EMul7wNxmqBcyfZ8FxPBtBRemLEbTYiSCBNSmlb448BP6PCg8/S3hLx6AwDA7bMwDcOluAW1IiWeABnmy0Nlyag6D8lF9V6L7ENHoqcv6Y74cb3lscuXpbY/XiLuC0SgCPIENNHVjBq3sU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789533412; c=relaxed/simple;
-	bh=gGgqnDmzpu6PWLrMlgdT3Lyfemlr4tM3rdbvoK4NDto=;
+	s=arc-20240116; t=1789533413; c=relaxed/simple;
+	bh=PYH5yUWQKGG2jj/PHswv+dP18uRh+PAQehHZflsbolc=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=OBb19vr8mgU5pAEKmJ5UfA22CdbKZAZnHU7LOQzrFDlgmcK2nM6HRtNrLMLHTQnSir+TJDtXYGiO/+mBcjdc6qVvl0iH33GanhPauaSHaMG+mrAl8OT34SkS8gW0yci+u3HTvtxxxPxac8eZ4NxkdFs0Qsjaowa/llRyEkOpcAk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=C8Y4iGMR; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=DUzgSwzKBjH/Cnq8uybzBef5YCmHO3Pk75/IChs8nm7Xp4jIdUmw/9S/g54eEMGbm0cVAm+haIs3EIyQbghqvzOpzP33wUuvmjTmlm229aqG9TeYyXiRs4F1MpIPAJagn2t/+mwaFCAik8jPjLaqadYHV201OWfZvKFHjzb+jCM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Hn/OGjLQ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="C8Y4iGMR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16FE91F00899;
-	Wed, 16 Sep 2026 04:36:51 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Hn/OGjLQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A9A91F000FF;
+	Wed, 16 Sep 2026 04:36:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789533411;
-	bh=tDVkrkfkB4/KiHCzG3hNLwqX7O0DdUn50y8/99gIvhg=;
+	s=k20260515; t=1789533412;
+	bh=YEnae5C4Id2yrTp/5M8MCke2lpYvwXxBUYH7lMMZ824=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=C8Y4iGMRE8htTwuo49anZa77TtS9wBKNAcU/FMMfz57pCVCGO4QmJ8AqhzhbJh6Z8
-	 1QWUYNk0LgqZsJEzN50VCWM6QNkFmNEyGvloy4mSVz+BPXZ+kcaKfrpbJRXwDeJHOh
-	 FbS48325mk58VWqxOZX9YAwwBpcKwJVnjE6NURFRz1D6W9PRuGl2koHX+NDqG/ItpE
-	 cE6UAX80r2ffuspNW/w1lW4AaPixrTMVcDh8fbpNHb4JVmoCrcvEmTh8ufUfR92P34
-	 F0CfzFEqaRcGFt8g/nEwjpQuZqyp5MRkhI14ZPIhC1LXY3UL69dYjHWm5meYG1EDX2
-	 yVy0b0ZG6aYeQ==
-Subject: Re: [PATCH net-next v2 8/9] net/rds: drop rds_conn_count in favor of
- t_conn_count
+	b=Hn/OGjLQHENefDOC1KYYtw3uwBt/3rsq1dFYQloy58scf+qBpizzimw0VLcWvpyCM
+	 8XAO6fUwLfxZJ0BbxqLad3tJUTEO58KFQPYpT9KAS/OYjJAD0y2yeSmeHYJ1OZCBS0
+	 RgdUo+S8myNDjtCm/2qivW7vGX/7mdV6KeKyRedHLzWncHu6cuyLqmd+LjgPG5rmv4
+	 s+ZKSXtCNY6NsaZeDD9BYE+95chdsl8iT4rMNlBO7waO+9VNwoPkM+6i7b7cPOEG1V
+	 HPybvlkivin5Nq3m0r7Zs3S1H6exGZ0gjjxC25KBxRhTNvLSJZsf/PJ6oNNpNCatJb
+	 Cj9I2cySRlXyQ==
+Subject: Re: [PATCH net-next v2 9/9] net/rds: hold a connection reference from
+ struct rds_incoming
 From: netdev-bot+sashiko@kernel.org
 To: achender@kernel.org
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
  edumazet@google.com, kuba@kernel.org, horms@kernel.org, nicoyip.dev@gmail.com
-Date: Wed, 16 Sep 2026 04:36:50 +0000
-Message-ID: <178953341064.22033.4344829262087873675@kernel.org>
-In-Reply-To: <20260912035027.27447-9-achender@kernel.org>
-References: <20260912035027.27447-9-achender@kernel.org>
+Date: Wed, 16 Sep 2026 04:36:51 +0000
+Message-ID: <178953341168.22033.7134703325658795703@kernel.org>
+In-Reply-To: <20260912035027.27447-10-achender@kernel.org>
+References: <20260912035027.27447-10-achender@kernel.org>
 X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -46,90 +46,119 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 1 potential
+Thank you for your contribution! Sashiko AI review found 2 potential
 issue(s) to consider:
 
-Critical: 0 · High: 0 · Medium: 0 · Low: 1
+Critical: 0 · High: 0 · Medium: 0 · Low: 2
 
-- [Low] Changelog inaccuracy in "net/rds: drop rds_conn_count in favor of
-  t_conn_count": the commit message states that removing the…
+- [Low] The commit fixes a reported, user-visible use-after-free (KASAN
+  slab-use-after-free in rds6_inc_info_copy() via rds_info_getsockopt(),…
+- [Low] In rds_recv_incoming() (net/rds/recv.c), the cross-netns
+  rejection comment at lines 424-431 still states that netns teardown…
 
 --
 
-net/rds: drop rds_conn_count in favor of t_conn_count
+net/rds: hold a connection reference from struct rds_incoming
 
-This removes the global rds_conn_count now that each transport tracks its
-own connections in t_conn_count, and seeds the per-path workqueue names
-from t_conn_count instead.  The rds_conn_lock round-trip that existed only
-to decrement rds_conn_count is dropped from rds_conn_destroy_fini().
+Every assignment of struct rds_incoming->i_conn now takes a connection
+reference, so an inc parked on a socket receive queue (or an m_inc on a
+send queue) keeps its connection allocated. The references are dropped
+from rds_inc_put() and from a new rds_message_free() helper.
 
-> Removing the counter also removes the rds_conn_lock round-trip that
-> rds_conn_destroy_fini() took solely to decrement it, leaving the
-> free path lock-free.
+Closes: https://lore.kernel.org/netdev/20260720184955.3008978-1-nicoyip.dev@gmail.com/
+
+Two questions, one about the tag block and one about a comment that the
+patch appears to make stale.
+
+>     Reported-by: Chengfeng Ye <nicoyip.dev@gmail.com>
+>     Closes: https://lore.kernel.org/netdev/20260720184955.3008978-1-nicoyip.dev@gmail.com/
+>     Signed-off-by: Sharath Srinivasan <sharath.srinivasan@oracle.com>
 
 [Severity: Low]
-Is the free path really lock-free after this change?
+Should this carry a Fixes: tag?  The change closes a reported
+slab-use-after-free (rds6_inc_info_copy() reached from
+rds_info_getsockopt(), and the panic in rds_ib_recv_cache_put() reached
+through rds_release()->rds_clear_recv_queue()->rds_ib_inc_free()), but no
+originating commit is named.
 
-rds_conn_destroy_fini() still calls rds_conn_path_free() for every path,
-and that ends up in destroy_workqueue():
+git blame on the inc->i_conn = conn assignment in rds_inc_init() points at
+bdbe6fbc6a2f ("RDS: recv.c"), so the origin looks identifiable.  Other
+patches in this series do carry the tag, for example "net/rds: make
+rds_destroy_pending() cover single-connection destroy" with Fixes:
+cdc306a5c9cd3 and "net/rds: guard every work-requeueing site with
+rds_destroy_pending()" with Fixes: ebeeb1ad9b8a.
 
-net/rds/connection.c:rds_conn_path_free() {
-	if (cp->cp_wq != rds_wq) {
-		destroy_workqueue(cp->cp_wq);
-		cp->cp_wq = NULL;
-	}
-	...
-}
+The commit message says in prose:
 
-destroy_workqueue() drains the queue and takes wq_pool_mutex, so it can
-sleep.  The tail of rds_conn_destroy_fini() also takes the wait-queue
-spinlock via wake_up_all(&rds_conn_freed_waitq).  What this patch removes
-is the last rds_conn_lock acquisition, not all locking.
+    This is not a stable candidate: reaching the use-after-free requires
+    freeing a connection out from under a live socket
 
-The concern with the current wording is that a later reader or a
-backporter could take "lock-free" to mean the final rds_conn_put() may be
-dropped from atomic, IRQ or softirq context, which this path cannot
-tolerate because destroy_workqueue() may sleep.
+That reasoning is fine, but it is not something backport tooling parses,
+and the tag block on its own does not say how far back the defect reaches.
 
-The last patch of this series, "net/rds: hold a connection reference from
-struct rds_incoming", states the opposite property:
-
-  "The final rds_conn_put() runs the free path, which destroys the
-   per-path workqueues and therefore may sleep, so the last reference has
-   to be dropped from process context"
-
-Would something like "removes the last rds_conn_lock round-trip from the
-free path" be more accurate here?
-
-> diff --git a/net/rds/connection.c b/net/rds/connection.c
-> index 1ec141d6faa38..11813f93961d1 100644
-> --- a/net/rds/connection.c
-> +++ b/net/rds/connection.c
+> diff --git a/net/rds/recv.c b/net/rds/recv.c
+> index 6204e577a90ae..b031c0b43af83 100644
+> --- a/net/rds/recv.c
+> +++ b/net/rds/recv.c
+> @@ -46,6 +46,7 @@ void rds_inc_init(struct rds_incoming *inc, struct rds_connection *conn,
+>  {
+>  	refcount_set(&inc->i_refcount, 1);
+>  	INIT_LIST_HEAD(&inc->i_item);
+> +	rds_conn_get(conn);	/* put in rds_inc_put() */
+>  	inc->i_conn = conn;
+>  	inc->i_conn_path = NULL;
+>  	inc->i_saddr = *saddr;
 
 [ ... ]
 
-> @@ -656,7 +654,6 @@ static void rds_conn_destroy_fini(struct kref *kref)
->  						   c_refcount);
->  	int npaths = (conn->c_trans->t_mp_capable ? RDS_MPATH_WORKERS : 1);
->  	struct rds_transport *trans = conn->c_trans;
-> -	unsigned long flags;
->  	int i;
+> @@ -325,6 +337,13 @@ void rds_recv_incoming(struct rds_connection *conn, struct in6_addr *saddr,
+>  	unsigned long flags;
+>  	struct rds_conn_path *cp;
 >  
->  	for (i = 0; i < npaths; i++)
-> @@ -665,10 +662,6 @@ static void rds_conn_destroy_fini(struct kref *kref)
->  	kfree(conn->c_path);
->  	kmem_cache_free(rds_conn_slab, conn);
->  
-> -	spin_lock_irqsave(&rds_conn_lock, flags);
-> -	rds_conn_count--;
-> -	spin_unlock_irqrestore(&rds_conn_lock, flags);
-> -
->  	/* only after everything the transport module owns has been
->  	 * freed above may its unload proceed
->  	 */
+> +	/* every caller initialized @inc with rds_inc_init() or
+> +	 * rds_inc_path_init() first, so i_conn already holds a reference.
+> +	 * Take the new one before dropping the old, so that re-pointing an
+> +	 * inc at the connection it already refers to cannot free it.
+> +	 */
+> +	rds_conn_get(conn);
+> +	rds_conn_put(inc->i_conn);
+>  	inc->i_conn = conn;
+>  	inc->i_rx_jiffies = jiffies;
+>  	if (conn->c_trans->t_mp_capable)
 
-The code change itself looks fine; only the changelog wording seems to
-overstate the result.
+[Severity: Low]
+Does this make the cross-netns comment further down in the same function
+inaccurate?  That comment still reads:
+
+net/rds/recv.c:rds_recv_incoming() {
+    ...
+	/*
+	 * rds_find_bound() uses a global (netns-agnostic) hash table.
+	 * An RDS connection created in netns A can match a socket bound
+	 * in the init netns, delivering inc cross-netns with inc->i_conn
+	 * pointing into netns A.  When cleanup_net() then frees that conn,
+	 * any subsequent dereference of inc->i_conn is a use-after-free.
+	 * Drop the inc if the receiving socket lives in a different netns.
+	 */
+	if (!net_eq(sock_net(rds_rs_to_sk(rs)), rds_conn_net(conn))) {
+    ...
+}
+
+After this patch the inc owns a reference from rds_inc_init() or
+rds_inc_path_init(), and rds_inc_put() releases it only after
+->inc_free() has run:
+
+		conn->c_trans->inc_free(inc);
+		rds_conn_put(conn);
+
+rds_conn_put() reaches kmem_cache_free() only when the kref hits zero, so
+a cross-netns inc sitting on a receive queue keeps its connection
+allocated across cleanup_net().
+
+The check itself still looks wanted, since cross-netns delivery is wrong on
+its own and an outliving conn leaves conn->c_net stale.  Could the comment
+be reworded to state that reason rather than a use-after-free this patch
+removes?
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260912035027.27447-1-achender%40kernel.org
