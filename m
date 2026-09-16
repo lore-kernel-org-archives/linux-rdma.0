@@ -1,275 +1,190 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.4])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CA053B635B;
-	Wed, 16 Sep 2026 01:42:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D2629460;
+	Wed, 16 Sep 2026 03:23:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.4
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789522945; cv=none; b=omSnc06o1Y0iXMaVRvHbrT+hBb9264bXEBldqQcfK0yc8ZYhkY/BfTPr477Wh9X0TWne/JA8VREhsmFsadOVQboFJb5oFCD9H0NQyok9c19BF+ZnwK0GOvmIDFTkIBpV68LpEom31O9sVLFvNnkaRIlzBVswPGnEoI9k4TsFRNk=
+	t=1789529034; cv=none; b=UVfRrLGb8BHGT4JQuCVzJNEaY2/zQz7XUVMaYINXC40KSWu4hWRt5M81sD+RIhRdlEHqr/JBv7A4+Al4TVrcyLxybmXLaZXYxLMx1GQ8H4u/2l7K7+ttpD4ymBH8YXbFnh7ec1cPbPkb6qqNrY5EVzWVMxPoOmpeX8oUUBSp280=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789522945; c=relaxed/simple;
-	bh=AwrVRBPhDpXcKY0iy5b/cYsIpuJy4/5nyi2xLmjXP6c=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=OS3CjDbA2B4ZcaaNSdFL239bVnKLft0cl8DZAjkLK4BuYoF7q9lxo/3Gd1qOI1Y/dWsk5TaOjm/F3/otdLADav7R+hBKC5wZdAfM6YIEm6ToxgwQ9eWrktjz6FLm/DiLV0Wpe4roc/hssYIOw9uGP4q5lOfnNeV5rfx7JXEzGp8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IBaQMYBA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789529034; c=relaxed/simple;
+	bh=YZEeBTjZ4j94kPxqHjiN0sv6nxgqNvmqXycd1yft3tU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=dgQWw42MM32Hk3xkW8GybxR71UIcHszrf66wrrPWor7afbrBVjS6Bq8N2mKfc5b/C2kQ7Ql3acJ68PmGhkZsuC+gsJuLkFNz6VUFGw1u6zFoVux5FQb/iBOwNBo4GfVxS0J84fT52RImcUCXYuQgdnAF9sziiHyWqMKmda8aqp8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=Driynu42; arc=none smtp.client-ip=117.135.210.4
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IBaQMYBA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2BDA1F000FF;
-	Wed, 16 Sep 2026 01:41:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789522919;
-	bh=5cmq7j5dFWsdJe8vMEZudPayoONeU3vLTPoQkNIm2SM=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=IBaQMYBAG9t5BbSgkVwPxHhryDu5MkSpM8JUf03ouItPuemw0Fng3zCZBMveZ0HUu
-	 BJhYy1CeDg9IXAnEdD1DDuQDckscR4jlj7eIcCRAck1EyZlyvEH/Qo4yg3Nk6GAwxy
-	 jtO+w+CmRXCL7hRTVuXJR1iLkthNjLhYrnb6CUce2D8/3QEaMa54Fv1iQvWVcHgd5W
-	 +9213rnqiEiQym/Bo/eOZc/+qf42SG9PGJYcNIC4u5uzGKuEa+pVJfvRdrXFrfHn+7
-	 4fFgoBarf2JS1EclNgdJrEXfKjnL8321N5FIZu0+QGGxTDcErMakOi+SqsBOxzaOaa
-	 C9Fkvuk9t5Icg==
-From: Jakub Kicinski <kuba@kernel.org>
-To: alibuda@linux.alibaba.com
-Cc: Jakub Kicinski <kuba@kernel.org>,
-	mjambigi@linux.ibm.com,
-	wenjia@linux.ibm.com,
-	wintera@linux.ibm.com,
-	dust.li@linux.alibaba.com,
-	tonylu@linux.alibaba.com,
-	guwen@linux.alibaba.com,
-	davem@davemloft.net,
-	netdev@vger.kernel.org,
-	linux-s390@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	leonro@nvidia.com,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	sidraya@linux.ibm.com,
-	jaka@linux.ibm.com,
-	oliver.yang@linux.alibaba.com
-Subject: Re: [PATCH net-next 2/2] net/smc: reduce TX slot contention with exclusive wait
-Date: Tue, 15 Sep 2026 18:41:57 -0700
-Message-ID: <20260916014157.1670940-1-kuba@kernel.org>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260910104446.41423-3-alibuda@linux.alibaba.com>
-References: <20260910104446.41423-3-alibuda@linux.alibaba.com>
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="Driynu42"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=Date:From:To:Subject:Message-ID:MIME-Version:
+	Content-Type; bh=8I2KYbRF+uZjmyOxg+G/X0kJ975qnJ+ZHzGU4sG05zc=;
+	b=Driynu42NHjYuU+fyCA/Z7tplDXzXRV8JKepXA1uFue54HBYRmeN8eAme80fV2
+	KcAAyGZZOidaQAl7mpV8F5yW+f2tFWhfHtjtf8PidFAdM76McmBiK4yH1z1Ch5YI
+	6zbcgkvDPkevMERFFIUtMH7D8+kCtoqJAluyaN+QeeM7Y=
+Received: from localhost (unknown [])
+	by gzsmtp1 (Coremail) with SMTP id PCgvCgCHk4m5C6pqEpRePQ--.9601S2;
+	Wed, 16 Sep 2026 11:23:38 +0800 (CST)
+Date: Wed, 16 Sep 2026 11:23:37 +0800
+From: Honggang LI <honggangli@163.com>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: zyjzyj2000@gmail.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] RDMA/rxe: Fix out-of-range unsigned-to-signed conversion
+ for RDMA message in 2GiB size
+Message-ID: <aqoLuVxDIOHMuePi@fedora>
+References: <20260915064532.194540-1-honggangli@163.com>
+ <20260915114914.GL13683@unreal>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260915114914.GL13683@unreal>
+X-CM-TRANSID:PCgvCgCHk4m5C6pqEpRePQ--.9601S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxZr1DKFWrGw15tFWxAF4Utwb_yoWrAFyfpF
+	WrJ3Z8Kr43XF4I9FsFyws8ZFWay3Z8GasrKF9Iq34aqFyUCayagFnFkrW7uay5JFyDCw4x
+	tw12yrWDGr1fGFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zRaFAXUUUUU=
+X-CM-SenderInfo: 5krqwwxdqjzxi6rwjhhfrp/xtbC6xo2e2qqC7qyNQAA3K
 
-This is an AI-generated review of your patch. The human sending this
-email has considered the AI review valid, or at least plausible.
+On Tue, Sep 15, 2026 at 02:49:14PM +0300, Leon Romanovsky wrote:
+> > After fixed it, the active side of RDMA READ failed with error code
+> > "IB_WC_LOC_PROT_ERR". When RDMA_READ_RESPONSE_FIRST packet recived by
+> > the active side, `do_read` call `copy_data`. dma->resid is u32 0x80000000.
+> > 
+> >    int resid	= dma->resid;
+> > 
+> > This conversion set resid to -2147483648. `copy_data` abort as length
+> > greater than resid. Change resid to int64_t fixes this issue.
+> 
+> Why not size_t?
+
+First, size_t is u64. dma->resid is u32. If use unsigned type, u32 is enough.
+
+Second, I'm not sure it is right to use unsigned type. In `copy_data`,
+the loop terminate on negative value of `length`.
+
+Use int64_t is safe and minimal changes of the code.
+
+int copy_data(
+..................
+	while (length > 0) {
+	^^^^^^^^^^^^^^^^^^^^^^^^
+		bytes = length;
+..............
+		if (bytes > sge->length - offset)
+			bytes = sge->length - offset;
+
+		if (bytes > 0) {
+			iova = sge->addr + offset;
+			err = rxe_mr_copy(mr, iova, addr, bytes, dir);
+
+			offset	+= bytes;
+			resid	-= bytes;
+			length	-= bytes;
+			addr	+= bytes;
+		}
+	}
+
+> 
+> >  
+> > -	payload = min_t(int, res->read.resid, mtu);
+> > +	payload = min_t(u32, res->read.resid, mtu);
+> 
+> Why don't we use the proper types from the start to avoid the need for
+> u32 casts?
+
+Again, minimal the changes with u32 casts. We need something like this
+to use u32.
+
 ---
-net/smc: reduce TX slot contention with exclusive wait
+ drivers/infiniband/sw/rxe/rxe_loc.h  |  2 +-
+ drivers/infiniband/sw/rxe/rxe_net.c  |  2 +-
+ drivers/infiniband/sw/rxe/rxe_resp.c | 15 ++++++++-------
+ 3 files changed, 10 insertions(+), 9 deletions(-)
 
-This replaces the wait_event_interruptible_timeout() in
-smc_wr_tx_get_free_slot() with an open-coded loop built on
-prepare_to_wait_exclusive(), so a wake_up() on link->wr_tx_wait only wakes
-one waiter per freed TX slot.  It also changes the return value on a
-pending signal from -EPIPE to -ERESTARTSYS.
+diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
+index 64d636bf80fd..ceb9321add96 100644
+--- a/drivers/infiniband/sw/rxe/rxe_loc.h
++++ b/drivers/infiniband/sw/rxe/rxe_loc.h
+@@ -91,7 +91,7 @@ void rxe_mw_cleanup(struct rxe_pool_elem *elem);
+ 
+ /* rxe_net.c */
+ struct sk_buff *rxe_init_packet(struct rxe_dev *rxe, struct rxe_av *av,
+-				int paylen, struct rxe_pkt_info *pkt);
++				u32 paylen, struct rxe_pkt_info *pkt);
+ int rxe_prepare(struct rxe_av *av, struct rxe_pkt_info *pkt,
+ 		struct sk_buff *skb);
+ int rxe_xmit_packet(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+index 53daaf4c1eb2..f548f312b393 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.c
++++ b/drivers/infiniband/sw/rxe/rxe_net.c
+@@ -536,7 +536,7 @@ int rxe_xmit_packet(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
+ }
+ 
+ struct sk_buff *rxe_init_packet(struct rxe_dev *rxe, struct rxe_av *av,
+-				int paylen, struct rxe_pkt_info *pkt)
++				u32 paylen, struct rxe_pkt_info *pkt)
+ {
+ 	unsigned int hdr_len;
+ 	struct sk_buff *skb = NULL;
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index 02b16e2b49b8..383706de0b29 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -827,20 +827,21 @@ static enum resp_states atomic_write_reply(struct rxe_qp *qp,
+ static struct sk_buff *prepare_ack_packet(struct rxe_qp *qp,
+ 					  struct rxe_pkt_info *ack,
+ 					  int opcode,
+-					  int payload,
++					  u32 payload,
+ 					  u32 psn,
+ 					  u8 syndrome)
+ {
+ 	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
+ 	struct sk_buff *skb;
+-	int paylen;
+-	int pad;
++	u32 paylen;
++	u32 pad = 0;
+ 	int err;
+ 
+ 	/*
+ 	 * allocate packet
+ 	 */
+-	pad = (-payload) & 0x3;
++	if (payload % 4)
++		pad = 4 - payload % 4;
+ 	paylen = rxe_opcode[opcode].length + payload + pad + RXE_ICRC_SIZE;
+ 
+ 	skb = rxe_init_packet(rxe, &qp->pri_av, paylen, ack);
+@@ -934,9 +935,9 @@ static enum resp_states read_reply(struct rxe_qp *qp,
+ {
+ 	struct rxe_pkt_info ack_pkt;
+ 	struct sk_buff *skb;
+-	int mtu = qp->mtu;
++	u32 mtu = qp->mtu;
+ 	enum resp_states state;
+-	int payload;
++	u32 payload;
+ 	int opcode;
+ 	int err;
+ 	struct resp_res *res = qp->resp.res;
+@@ -982,7 +983,7 @@ static enum resp_states read_reply(struct rxe_qp *qp,
+ 
+ 	res->state = rdatm_res_state_next;
+ 
+-	payload = min_t(int, res->read.resid, mtu);
++	payload = min(res->read.resid, mtu);
+ 
+ 	skb = prepare_ack_packet(qp, &ack_pkt, opcode, payload,
+ 				 res->cur_psn, AETH_ACK_UNLIMITED);
 
-A few questions below about the new wait loop and about the changed return
-code.
+---
+Thanks				 
 
-The commit message says:
-
-  This also corrects the return value on a pending signal: the previous
-  wait_event_interruptible_timeout() path fell through to the "no free
-  slot" case and returned -EPIPE, masking the signal as a connection
-  error.
-
-[Severity: Low]
-
-Should this part carry a Fixes: tag?  git blame on the baseline points the
-wait_event_interruptible_timeout() call and the timeout-only "if (!rc)"
-handling at f38ba179c6ca ("smc: work request (WR) base for use by LLC and
-CDC"), with later touches in 15e1b99aadfb27 and 87523930a16eb5.  The
-corrected value is user visible via smc_shutdown() -> smc_close_active()
--> smc_close_final() -> smc_wr_tx_get_free_slot().
-
-Also, would it make sense to split the return-code correction from the
-wait-queue rework?  As it stands both live in the same hunk, so the
-corrected error code cannot be backported without the performance change.
-
-> diff --git a/net/smc/smc_wr.c b/net/smc/smc_wr.c
-> index def2ab84b0c71..64413008f9c17 100644
-> --- a/net/smc/smc_wr.c
-> +++ b/net/smc/smc_wr.c
-> @@ -198,11 +198,13 @@ int smc_wr_tx_get_free_slot(struct smc_link *link,
->  			    struct smc_rdma_wr **wr_rdma_buf,
->  			    struct smc_wr_tx_pend_priv **wr_pend_priv)
->  {
-> +	unsigned long timeout = SMC_WR_TX_WAIT_FREE_SLOT_TIME;
->  	struct smc_link_group *lgr = smc_get_lgr(link);
->  	struct smc_wr_tx_pend *wr_pend;
->  	u32 idx = link->wr_tx_cnt;
->  	struct ib_send_wr *wr_ib;
->  	u64 wr_id;
-> +	DEFINE_WAIT(wait);
->  	int rc;
->  
->  	*wr_buf = NULL;
-> @@ -212,17 +214,31 @@ int smc_wr_tx_get_free_slot(struct smc_link *link,
->  		if (rc)
->  			return rc;
->  	} else {
-> -		rc = wait_event_interruptible_timeout(
-> -			link->wr_tx_wait,
-> -			!smc_link_sendable(link) ||
-> -			lgr->terminating ||
-> -			(smc_wr_tx_get_free_slot_index(link, &idx) != -EBUSY),
-> -			SMC_WR_TX_WAIT_FREE_SLOT_TIME);
-> -		if (!rc) {
-> -			/* timeout - terminate link */
-> -			smcr_link_down_cond_sched(link);
-> -			return -EPIPE;
-> +		rc = 0;
-> +		for (;;) {
-> +			prepare_to_wait_exclusive(&link->wr_tx_wait, &wait,
-> +						  TASK_INTERRUPTIBLE);
-> +			if (!smc_link_sendable(link) || lgr->terminating ||
-> +			    smc_wr_tx_get_free_slot_index(link, &idx) != -EBUSY)
-> +				break;
-> +			timeout = schedule_timeout(timeout);
-> +			/* re-check */
-> +			if (!smc_link_sendable(link) || lgr->terminating ||
-> +			    smc_wr_tx_get_free_slot_index(link, &idx) != -EBUSY)
-> +				break;
-
-[Severity: Medium]
-
-Can a freed TX slot end up unclaimed while another waiter keeps sleeping?
-
-prepare_to_wait_exclusive() queues the entry with WQ_FLAG_EXCLUSIVE and sets
-TASK_INTERRUPTIBLE before the condition is evaluated, and the condition here
-is not cheap - smc_wr_tx_get_free_slot_index() scans up to wr_tx_cnt bits:
-
-net/smc/smc_wr.c:smc_wr_tx_get_free_slot_index() {
-	...
-	for_each_clear_bit(*idx, link->wr_tx_mask, link->wr_tx_cnt) {
-		if (!test_and_set_bit(*idx, link->wr_tx_mask))
-			return 0;
-	}
-	*idx = link->wr_tx_cnt;
-	return -EBUSY;
-}
-
-Both slot producers use plain wake_up(), which is nr_exclusive = 1, so
-exactly one exclusive waiter is woken per freed slot:
-
-net/smc/smc_wr.c:smc_wr_tx_process_cqe() {
-	...
-	wake_up(&link->wr_tx_wait);
-}
-
-net/smc/smc_wr.c:smc_wr_tx_put_slot() {
-	...
-	test_and_clear_bit(idx, link->wr_tx_mask);
-	wake_up(&link->wr_tx_wait);
-}
-
-The interleaving I have in mind:
-
-  1) all slots busy, waiter W sleeps on link->wr_tx_wait
-  2) a CQE frees slot i, wake_up() wakes W, autoremove_wake_function()
-     dequeues W, the credit is consumed
-  3) before W runs, a fresh process-context caller T enters the loop,
-     prepare_to_wait_exclusive() queues T, T's first scan takes slot i
-     (a bare test_and_set_bit(), no reservation) and T breaks out
-  4) W re-checks, finds nothing free, requeues and sleeps again
-  5) slot j is freed, wake_up() walks the queue, reaches T first (still
-     queued and TASK_INTERRUPTIBLE), T absorbs the credit and returns
-
-Slot j is now free while W sleeps.  Since the loop never issues another
-wake_up(&link->wr_tx_wait) when it exits without consuming the announced
-slot, is that credit simply dropped by finish_wait()?  Would a
-wake_up(&link->wr_tx_wait) on the paths that leave the queue without
-claiming the announced slot be appropriate here?
-
-With the previous non-exclusive wait_event_interruptible_timeout(), every
-wake_up() re-evaluated the condition for all waiters, so a free slot could
-not coexist with sleeping waiters.
-
-> +			if (!timeout) {
-> +				/* timeout - terminate link */
-> +				smcr_link_down_cond_sched(link);
-> +				break;
-> +			}
-
-Related to the above: if a waiter misses its wakeup and no further slot is
-released within SMC_WR_TX_WAIT_FREE_SLOT_TIME, does it reach this branch and
-call smcr_link_down_cond_sched(), tearing down the link for the whole link
-group even though a TX slot was actually available?
-
-> +			if (signal_pending(current)) {
-> +				rc = -ERESTARTSYS;
-> +				break;
-> +			}
-
-[Severity: Medium]
-
-Is returning raw -ERESTARTSYS to all callers of
-smc_wr_tx_get_free_slot() safe?  The sibling blocking helper in the same
-file converts it:
-
-net/smc/smc_wr.c:smc_wr_reg_send() {
-	...
-	if (rc == -ERESTARTSYS)
-		return -EINTR;
-	...
-}
-
-The path I traced is shutdown(fd, SHUT_RDWR) on an SMC_ACTIVE socket:
-
-  smc_shutdown() -> smc_close_active() -> smc_close_final() ->
-  smc_cdc_get_slot_and_msg_send() -> smc_cdc_get_free_slot() ->
-  smc_wr_tx_get_free_slot()
-
-smc_close_active() advances the state machine before it looks at the return
-value, setting local_tx_ctrl.conn_state_flags.peer_conn_closed = 1 and
-sk->sk_state = SMC_PEERCLOSEWAIT1.  With all TX slots busy and a signal
-pending, -ERESTARTSYS now reaches smc_shutdown(), which returns it verbatim.
-
-With SA_RESTART the syscall is restarted transparently, re-enters
-smc_shutdown() in state SMC_PEERCLOSEWAIT1 where smc_close_sent_any_close()
-is already true, so nothing is sent and shutdown() returns 0.  Does this
-report success to the application although the SMC close message was never
-transmitted?  The baseline returned -EPIPE here, so the failure was visible.
-
-The commit message states the new value is "matching the standard
-interruptible-wait semantics and letting the syscall restart machinery
-handle it" - does that hold for a call site that has already committed side
-effects before the error is returned?
-
-Other callers only special-case -EBUSY, for example:
-
-net/smc/smc_tx.c:smcr_tx_sndbuf_nonempty() {
-	...
-	rc = smc_cdc_get_free_slot(conn, link, &wr_buf, &wr_rdma_buf, &pend);
-	if (rc < 0) {
-		smc_wr_tx_link_put(link);
-		if (rc == -EBUSY) { ... }
-		return rc;
-	}
-	...
-}
-
-so -ERESTARTSYS is propagated as a hard error with no retry queued.
-
-For completeness on what I could not confirm: on the connect path every
-error is converted to an SMC_CLC_DECL_* code before reaching
-"smc->sk.sk_err = -rc", so -ERESTARTSYS does not appear to leak out through
-SO_ERROR or poll, and I could not demonstrate signal_pending() becoming true
-inside workqueue workers.
-
->  		}
-> +		finish_wait(&link->wr_tx_wait, &wait);
-> +		if (rc)
-> +			return rc;
->  		if (idx == link->wr_tx_cnt)
->  			return -EPIPE;
->  	}
-
-[ ... ]
