@@ -1,90 +1,96 @@
-Received: from cstnet.cn (smtp25.cstnet.cn [159.226.251.25])
-	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+Received: from mail-oa2-f12.google.com (mail-oa2-f12.google.com [74.125.231.76])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44D794CEE4E;
-	Wed, 16 Sep 2026 18:31:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.25
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789583519; cv=none; b=Prg3TOvdfKR7x1MnJ+6Vs578LXZhfvFlTWDEs7UXmdBbaM1TKwa1fHo3qsCSzhx71THJCYLljuc//vDjgOnBc/dj3XFBiTfwhSADXIBqfR/bzP0fvXSlf579tpCEZgCVA1BwVGko/besyzM4PcS+N56EScnu4DUyXlpCKGJ561w=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789583519; c=relaxed/simple;
-	bh=gjxokh6OHwc7UZ3LW9PeRfmpfzV+NRArtIASdIXkxAE=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=EcppxZXTm97BS/mQ/F9OUZGsgkqV+Q+uKcsA2H+aA5RsTBSCzX/PCQ9exaNp+dgbF8pq18/nsjWblEgbZs7YgbdsjeOhJ/S0pe1lOO91r3Z0aL4Mgu1pmhDR61j/gYCIvbpCYuUJl1+Ua4BtluTz7UgrI7jiAgJltJNSY34kkFQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.25
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
-Received: from dfae2b116770.home.arpa (unknown [36.110.52.2])
-	by APP-05 (Coremail) with SMTP id zQCowAAHcz2B4Kpq+5RvCA--.24255S2;
-	Thu, 17 Sep 2026 02:31:29 +0800 (CST)
-From: Wentao Liang <vulab@iscas.ac.cn>
-To: dsahern@kernel.org
-Cc: jgg@ziepe.ca,
-	leon@kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	yanjun.zhu@linux.dev,
-	Wentao Liang <vulab@iscas.ac.cn>,
-	stable@vger.kernel.org
-Subject: [PATCH] RDMA/nldev: Fix ib_device reference leak in nldev_dellink()
-Date: Wed, 16 Sep 2026 18:31:01 +0000
-Message-Id: <20260916183101.2092246-1-vulab@iscas.ac.cn>
-X-Mailer: git-send-email 2.34.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F9274C9E07
+	for <linux-rdma@vger.kernel.org>; Wed, 16 Sep 2026 18:32:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.231.76
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789583562; cv=pass; b=RKi6gGnqhN4d7OBa8VMLelb66nSLUNcct6dCAuENSfbzz5zQkygLmiWXklMpcryqN1/Owl3R8W4o6Il9a4MGCOFdA0193rGdl387l+kXQFWWSchZQ6aKnu7uf651j0lvUMlhRHbK17Q7tR42S8z3dMUW1YOJuYeUB6aRI8qqZes=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789583562; c=relaxed/simple;
+	bh=bEYZXb/7L/YtOWAVT4ctcRizZUVUDEWDX8/RG8wgZzc=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=QScbXLsEX/S5u9lajb2OV1NYxrnh2pFcB7ZLWXN6LI97RO+/Vn3AmAVmEbhph5LhuggCEbmQmEpJBX3E3G50pMkDR1YA5WX3Cr+HYKlK1t1kVF/CPygS/JflrfEaeI0m48EVuZ9xZUWKcyqijXtg+XDg3q57JE95eO94iuG9UY8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=kP27ggtT; arc=pass smtp.client-ip=74.125.231.76
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="kP27ggtT"
+Received: by mail-oa2-f12.google.com with SMTP id 586e51a60fabf-466cc9ab667so1667094fac.0
+        for <linux-rdma@vger.kernel.org>; Wed, 16 Sep 2026 11:32:24 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1789583541; cv=none;
+        d=google.com; s=arc-20260327;
+        b=NhkXC/tV6AdgS9y21kxl5vWDQ8zJKlBEtKmTYW2Rk+wY/VhgzUQ4Eul2nqqQJOHNUj
+         Vhw1S4Vh48qUrpb9ubSDKRbPv8YghaKGS5TgBjZCYMpy/vW3yEj7WYYnu0YNoWO+YI4k
+         8mKX2RlGBBSJjytIqePjwgKnIDPiuNh1KxRpZ7k8Q6+79aPe/lf4UH6IaD2ZyCBip4gj
+         RT9j6XzOtwWXrtxufyTMZZ0ga/jgzi6DQGZ5gat8xjkyWEyHR5928J8YMZkPg/P29uC8
+         jWfFj27Ov3g6O2WHSfxZwQQ9ORrK3Aiv2Dql9GzZIqZAvxrT6KYe2lRO7xgdIhrXTxkB
+         WSmw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=bEYZXb/7L/YtOWAVT4ctcRizZUVUDEWDX8/RG8wgZzc=;
+        fh=ugPK49R/QArtakbvE4JXKLTZlT+nehbGAsL58GWGR3k=;
+        b=Tn3OkQ3NDdPRXMGdxRhmDU1zi+PAyxaUMqU+LJraODANJwx3lzEoffCiA9wB1RpwhV
+         itSPIDmFtVdUxsZAaRoISy8faZ1Hty7nwPBp54ZW1yJfrsNuMmTwbK4q+WuOeEq3H96j
+         AqMFOux6x/5MQMn1HJO8eLFMU8U70FN7QQ+57jnzqVBh5UqfySFCijubQI/Ohere/MSK
+         UVfWSI3JWA0FLbfktqsMMqn+IW+U+QNVjTsGCLHVD9YoT4xYDZtzxkCaNV/Yl46TO2h6
+         DXMS55zQKpgywzcAA8UU0EGe/fCeZ1wONFb1y/17yoxPFUI60CQGGommPmYXg1lsNHXU
+         rdIw==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1789583541; x=1790188341; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=bEYZXb/7L/YtOWAVT4ctcRizZUVUDEWDX8/RG8wgZzc=;
+        b=kP27ggtT+Jo8YlZungVX9dA+3qp2/gGI6i6qN+6MGlYW2rOSWmWt0QBNx8Cb76Vbig
+         6OtK8D6yPihXcMBI14tO7CJcN0fcLQ1bqNy6BA6HCPFGEcOWxivJayb+A2E8Uqr3yUJS
+         1n71VxFLiWh0mPahzoN5/0D+aC9z+7RRPrxGZGOKdVcR4qnk+hvAPEk842Jah2UZQ2yN
+         eZm1qjFuMPgaggDvqXKLigIYQ109GxG2CEeY0TxSXEfOdPlR3C3ZTuDj+wavnS9Yf16x
+         c+ouK0CGbHLdhnoH7YVikpybQRUszEuGZKiGb+gKqie+qCtk8xIl3pAd1yxtmiuWHlyP
+         oCtA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1789583541; x=1790188341;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=bEYZXb/7L/YtOWAVT4ctcRizZUVUDEWDX8/RG8wgZzc=;
+        b=z/g5T6j3NUTw+ygHjEA2g566BnTVvrog0dF8QvYI0vjuiTAPE9VE26NeOEJongKv1n
+         U0lgNzVmWLhsQckhIiS5zWwTqGX6e7eh9YG+KvcBVY3/wwvbTklsslwKFHrV1CG8oXRt
+         l7eIvlkI22u+0EVbdG3Di/AxhES72ArD/Xmfq5DZLzEHDVpLUnjtubkPmgHHAl7BK0Dm
+         q4he5ro/PNwjcQ0KpZjzPKYrTRlTp1vlAKIAlESJy89SD5wjmAl7yekbazRbDAwc3s9+
+         6dKlGHrHOdEpkuIJG5Y4GyP6jCU2GmXCG/8SwiQhWmDSS5lnBk+jiSMpWQ/6EAHigrEy
+         B1jw==
+X-Forwarded-Encrypted: i=1; AKwUvBzQcPgQWGOM7M832zlSpRM8t+LIujwj2xB9hy5zsTEYGqezgbmpHNy4gSukV5KegkDy25kbQfugmSt5@vger.kernel.org
+X-Gm-Message-State: AFuF++nOUKzrwSth6d3A3r8hh/sDGWYzEIk/kBbQON/591wEYBptBPqM
+	hsNnVPR4L22qixWGpyiIFM8ta3avmk/X7J6J+7l3iWWcAyAW2R5HTNPXUCcbtWnQdL++9HOUIQr
+	BB7l/wjokp7iTMtIIoKWFOMWq2RXGrBwudKxtcG2Y
+X-Gm-Gg: AYBFou0bw1I0vZviGwiO9ICs002q59ejS3PYlFqQ5mMsXbWkzKlidu0xUiwAEi+kjSb
+	tW0Do5uP6VfmwtyDaagFZ8vm39x9dNESvo17NbG4j2+lq8CyoSBReRRSZbfzIBcASQiFNCE2XPT
+	cvqQXRH2pHqACBW8WH11Ass3E9lmyY1vrkqoR5SYl3A3ntRqCTt94GDGKuKm2s+VNmxuNSIus+s
+	ZBGPTkKxK/B5Z8HxhVyPzaTaL7nxpUFoiEJ4H212LykHen6L1933NbDrTe/uZDmFpnW4Rz4jcKE
+	roZnz/3ZiclSY0RGGXrSsMNPQDlD2QB3qv5OcGR12BzQRajY+PirhJJBpaA+YDh3zPJJZ8YAlrR
+	qR4+nM4aeG/7pdsFr7jBUBWCb
+X-Received: by 2002:a05:6870:9490:b0:434:5c90:9d87 with SMTP id
+ 586e51a60fabf-48475d862ffmr3569677fac.12.1789583539634; Wed, 16 Sep 2026
+ 11:32:19 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:zQCowAAHcz2B4Kpq+5RvCA--.24255S2
-X-Coremail-Antispam: 1UD129KBjvdXoWrtrW3XF4fKw1fZr1UKw4rXwb_yoWkZFg_Wr
-	ykZr97XF1xCFnayrnrCrn3AFn2vr12gF4fWF4vqF1fAryjqrWDX3sIqF9Yyr4Igay0kr17
-	JFnrJrs3Ww17WjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-	9fnUUIcSsGvfJTRUUUbxAFF20E14v26r4j6ryUM7CY07I20VC2zVCF04k26cxKx2IYs7xG
-	6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48ve4kI8w
-	A2z4x0Y4vE2Ix0cI8IcVAFwI0_Xr0_Ar1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI0_Gr1j
-	6F4UJwA2z4x0Y4vEx4A2jsIE14v26r4UJVWxJr1l84ACjcxK6I8E87Iv6xkF7I0E14v26r
-	xl6s0DM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj
-	6xIIjxv20xvE14v26r1q6rW5McIj6I8E87Iv67AKxVWxJVW8Jr1lOx8S6xCaFVCjc4AY6r
-	1j6r4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc8vx2IErcIFxwCY1x0262kKe7AK
-	xVWUAVWUtwCF04k20xvY0x0EwIxGrwCFx2IqxVCFs4IE7xkEbVWUJVW8JwC20s026c02F4
-	0E14v26r1j6r18MI8I3I0E7480Y4vE14v26r106r1rMI8E67AF67kF1VAFwI0_Jw0_GFyl
-	IxkGc2Ij64vIr41lIxAIcVC0I7IYx2IY67AKxVWUCVW8JwCI42IY6xIIjxv20xvEc7CjxV
-	AFwI0_Gr1j6F4UJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_
-	Cr0_Gr1UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Cr1j6rxdYxBIdaVFxhVjvjDU0xZFpf9x0J
-	UJuc_UUUUU=
-X-CM-SenderInfo: pyxotu46lvutnvoduhdfq/1tbiBwUMA2qqpVh9AQABsN
+References: <20260916173203.2555458-1-jbongio@google.com> <20260916174213.832221F000FF@smtp.kernel.org>
+In-Reply-To: <20260916174213.832221F000FF@smtp.kernel.org>
+From: Jacob Moroni <jmoroni@google.com>
+Date: Wed, 16 Sep 2026 14:32:07 -0400
+X-Gm-Features: AcwNN1XIDTmzw8R_5GectK79olTXaZFOwnus1SogcYy3Or_QoWrpI-xe7GX8NIk
+Message-ID: <CAHYDg1Qk16RM=nbiHSV7AS065CL_H4_WtBmbBHewD+1jM+AAFg@mail.gmail.com>
+Subject: Re: [PATCH] RDMA/irdma: Use kvzalloc for lvl2 leafmem allocation
+To: sashiko-reviews@lists.linux.dev
+Cc: Jeremy Bongio <jbongio@google.com>, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-nldev_dellink() takes a reference on the ib_device with
-ib_device_get_by_index().  When the driver's dellink callback fails,
-the function returns the error directly without dropping that
-reference, leaking it.  Call ib_device_put() on the dellink error
-path before returning, matching the handling of the other error
-exits in this function.
-
-Fixes: a60e3f3d6fba ("RDMA/nldev: Add dellink function pointer")
-Cc: stable@vger.kernel.org
-Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
----
- drivers/infiniband/core/nldev.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 5aaba2b9746b..e4a9562313fa 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -1850,8 +1850,10 @@ static int nldev_dellink(struct sk_buff *skb, struct nlmsghdr *nlh,
- 		mutex_lock(&nldev_dellink_mutex);
- 		err = device->link_ops->dellink(device);
- 		mutex_unlock(&nldev_dellink_mutex);
--		if (err)
-+		if (err) {
-+			ib_device_put(device);
- 			return err;
-+		}
- 	}
- 
- 	ib_unregister_device_and_put(device);
--- 
-2.34.1
-
+Tested-by: Jacob Moroni <jmoroni@google.com>
