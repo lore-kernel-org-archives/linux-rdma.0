@@ -1,44 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A95794E56FD
-	for <linux-rdma@vger.kernel.org>; Wed, 16 Sep 2026 11:20:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2AA14A1E12
+	for <linux-rdma@vger.kernel.org>; Wed, 16 Sep 2026 11:20:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789557660; cv=none; b=L6biD99yvJ9O1UMBLZ4QAlZH+Gym/wPNzoVA4P6Z3jJ6v2e8dqQqoQO68bg8XO6ckn/Bx0qYl1cL7U3m+uMaF2MuDeXeSH5WMBjwcl8dXSpbKRhjLKxzaOFpYHT6RkxcXuoaiVSaV8E7snb5V9mc50DT0+GSpFCVh9YcEDVtyzk=
+	t=1789557665; cv=none; b=d1V7yJa2BIC03+0zILJJDEGasz1rk6M2HNRQ4AzdbWjIgTia5nT2qRhxvNWTnGCJt/CNlquu4mEaAejxq1pmwXohafblSEe5g0wpoIXeRcF2w0RBvYyFVmHo4EGuIdn7s61CUwBx3BUq+d9j+2Z3gHzzFU8wI3ZZjiwRGnQbA+I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789557660; c=relaxed/simple;
-	bh=nubzpTzPQVkuok1sPCCegqSBcFcucZva+0bnRFX17sg=;
+	s=arc-20240116; t=1789557665; c=relaxed/simple;
+	bh=sJKosASc5fzF/FBxrmDAJSwFc0/O9UptP/t4CO6XH+Y=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=a88UkEsRJFvPr49JfrJyv0yGfe7ZsyCLliOx9+3wQGeBQR3D8PIVeYcd4CLjCuQ6FR5jUCsrsTTxid2/XCBEjOtBb5Rsi1VIYki1A/ODA9muk7HMNrXEAyneRaVwojESr+Kl1sfemvoheysduz7r5ZrU/to0bBkO+lxRP95FOUU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cp390Jaj; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=GLdFqbXBKvbdaa/oBehA54DImLT/XFx3oVD8bLcdj5GD4U4aN4sL94Mhzu8EKQ1W7vSRmoGn41EYsSgZPXjXLI5P8tGYVnVVHUW9EZOzBM0Rv2xvFsTX88wtTXYZoxYiQBGIcXUG9KHGxGUv0fj1Yu1FmctfCr4qKRfOhwVx/r8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GiW+p/f8; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cp390Jaj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82BD21F0089B;
-	Wed, 16 Sep 2026 11:20:31 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GiW+p/f8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 394901F0089C;
+	Wed, 16 Sep 2026 11:20:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789557631;
-	bh=nubzpTzPQVkuok1sPCCegqSBcFcucZva+0bnRFX17sg=;
+	s=k20260515; t=1789557632;
+	bh=sJKosASc5fzF/FBxrmDAJSwFc0/O9UptP/t4CO6XH+Y=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=cp390JajRwqK95mwi7NXNF+MYCmRAFh9VwrU9mE0O8dkrHU2vpp/lyFEOQULz+mw5
-	 En50B+9p4iqlCLgMNbrGWpIbszMo0GrFciLK2EfJ7jVlJen9nElIA+wiv8LLy1fwZo
-	 EV4z0rLW7mbK7I7TKRsketU0dc3/b87mtNrk8UheY45nffmx3eS4rEvPviSDbBId+x
-	 pCy3LBkjjf/oiksAcLcaNcLACm87kDMG8i7PMWHe6s+/Yps2WA5bzmKp+MUDRhVhgx
-	 5iQcdmxjoP8Xpe4ETBPF/6I84HSY3nmwhxi7HzB3S4F8+86zXL9dEOthqt4QRKvTpn
-	 TG/sX/wJKsA0Q==
+	b=GiW+p/f8pcFibWxW4Pi6NUSkIh55cyOBfWBmitIO6nIajDiSi0yjcLufQa0rCoyzs
+	 eEetQGGuQYoWEq4C3Drh8M8OGMjI5g2Wv8U1JttQg7Ko6KT5HqJqZsNMOUmzWg6TMF
+	 p5W5C0cpR+H1/IWcCA80PyVaoSVJH7aoGuPE6gN6wx2yHd7d89m67RTqY4cgVisKan
+	 8I3h3v0mB4Tum4UJWLEmw9WuSTQdJdptvw7jT+WPIuPzfM2sLTLuXzIYvjISzsu+u8
+	 SXG3rnJzb0YxuD8a1E1VsQ6KalSEMs/LH+C/85rV1s/sQJ4pEGiTjxPNg6/PmCbOP2
+	 gcuusElnqKElA==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next 2/6] net/mlx5: HWS, Fix error message in
- mlx5hws_cmd_generate_wqe
+Subject: Re: [PATCH net-next 6/6] net/mlx5: HWS, Remove unneeded WRITE_ONCE
+ in post send
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Tariq Toukan" <tariqt@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260915111912.3926585-3-tariqt@nvidia.com>
+In-Reply-To: <20260915111912.3926585-7-tariqt@nvidia.com>
 References: <20260915111912.3926585-1-tariqt@nvidia.com>
- <20260915111912.3926585-3-tariqt@nvidia.com>
+ <20260915111912.3926585-7-tariqt@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Date: Wed, 16 Sep 2026 11:20:31 +0000
-Message-Id: <20260916112031.82BD21F0089B@smtp.kernel.org>
+Message-Id: <20260916112032.394901F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -47,7 +47,12 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 > From: Yevgeny Kliteynik <kliteyn@nvidia.com>
 >=20
-> Kernel log messages should end with '\n' for proper formatting.
+> Remove the unneeded WRITE_ONCE, for two reasons:
+> a) This write is erroneous - it just writes to a local variable
+> and doesn't have any effect.
+> b) This code originated from another place (copy-paste bug),
+> where there was actually a CQ polling right after this line,
+> and the WRITE_ONCE was writing to another place.
 >=20
 > Signed-off-by: Yevgeny Kliteynik <kliteyn@nvidia.com>
 > Reviewed-by: Erez Shitrit <erezsh@nvidia.com>
@@ -57,5 +62,5 @@ Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260915111912.3926=
-585-1-tariqt@nvidia.com?part=3D2
+585-1-tariqt@nvidia.com?part=3D6
 
