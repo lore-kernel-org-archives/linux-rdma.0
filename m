@@ -1,41 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C8003AE1A5;
-	Wed, 16 Sep 2026 04:36:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95747379C40;
+	Wed, 16 Sep 2026 04:36:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789533412; cv=none; b=ISk3g4nllI3DEjyV/YKyl7EnI095kGxUrJQK2U4a/OvzG76RxnSkyw5f5nIPT7UdO+Dc/QXhjuYBnGP1NVjeE65sNyfAKPcQqz5DiA5YiS2TlGVfSF7OOPh/VPvctXpwb+NMg+AyRNPfkgFCs3UmVpfk+iyI57qsZ2/cK+lMVh8=
+	t=1789533412; cv=none; b=J5Fmq955jooVBJyOAPf3uRatAi44F01fy3Dz0vgVIf0WvlIIHDT4eWpIgkOnFW7XnM0eTaA6fvXdpO6tvWIF5QGTeeR0eqZpT0Ov9cxB+ShXEgzcN0kORgSVzYJy1QDau8G/wPPbs6MnP1BQPKKB0wPAKvCx+j8eKMPWbX1KqE8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1789533412; c=relaxed/simple;
-	bh=XW0y8RK5xV9MHBAFin6bt3WiNmZ/EOPx1H4VToDT1OM=;
+	bh=gGgqnDmzpu6PWLrMlgdT3Lyfemlr4tM3rdbvoK4NDto=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=Bo7owdNguddaIXkPuR+kgotKwu/U2ljCi/TB9zqHR/LzP5g8xL0YidZr5BsGiEdPqX/SY1xpxfSCB9THnZ/IkuDGLYQ1fF2NmNRoJHWIZS3OK1uYAllSycj7SUK1gJ7WRLzsCpJ+QH9w9kgIQfn1E9CnmLcSIB6TW6vh8yv8Lj4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NgDSOhCB; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=OBb19vr8mgU5pAEKmJ5UfA22CdbKZAZnHU7LOQzrFDlgmcK2nM6HRtNrLMLHTQnSir+TJDtXYGiO/+mBcjdc6qVvl0iH33GanhPauaSHaMG+mrAl8OT34SkS8gW0yci+u3HTvtxxxPxac8eZ4NxkdFs0Qsjaowa/llRyEkOpcAk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=C8Y4iGMR; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NgDSOhCB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 170101F000FF;
-	Wed, 16 Sep 2026 04:36:50 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="C8Y4iGMR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16FE91F00899;
+	Wed, 16 Sep 2026 04:36:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789533410;
-	bh=XdnGPRVtz/irOPRZzgO0rsB5kacCLtWcgNEH7EKkHWM=;
+	s=k20260515; t=1789533411;
+	bh=tDVkrkfkB4/KiHCzG3hNLwqX7O0DdUn50y8/99gIvhg=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=NgDSOhCB8qbp3yqz+LwevACYDOrcTK9S+Y1Sq60pIslmYLp53F8ZpfVxIInxIn+/F
-	 h9JxAbQ4Li5v7vRb6YJRzDZEqeFYC0RgZk1So8lX8xbc3hJ1VOgdGpnfTJALcw3dHy
-	 Be7eTtRFh8VgPP0FU6/ffcZcftsUVUVgggMHjrwX9jkwpMVtNrBL9y0+ytfcquRc43
-	 0WpGPRHuQEYFFG0QNXH6lfUPLNrAGGMwQCVsRFQqMiuK8gWctHZxAjwfT3a3L6XDSR
-	 lDsbzG85EtxU7VFfuRapQY4GQqAbSgzRp9czdmtejyVsvkdQDCzdneT9HWRmyaOUuB
-	 acgQfaPJwqhFg==
-Subject: Re: [PATCH net-next v2 7/9] net/rds: pin the connection across
- RDMA-CM event handling
+	b=C8Y4iGMRE8htTwuo49anZa77TtS9wBKNAcU/FMMfz57pCVCGO4QmJ8AqhzhbJh6Z8
+	 1QWUYNk0LgqZsJEzN50VCWM6QNkFmNEyGvloy4mSVz+BPXZ+kcaKfrpbJRXwDeJHOh
+	 FbS48325mk58VWqxOZX9YAwwBpcKwJVnjE6NURFRz1D6W9PRuGl2koHX+NDqG/ItpE
+	 cE6UAX80r2ffuspNW/w1lW4AaPixrTMVcDh8fbpNHb4JVmoCrcvEmTh8ufUfR92P34
+	 F0CfzFEqaRcGFt8g/nEwjpQuZqyp5MRkhI14ZPIhC1LXY3UL69dYjHWm5meYG1EDX2
+	 yVy0b0ZG6aYeQ==
+Subject: Re: [PATCH net-next v2 8/9] net/rds: drop rds_conn_count in favor of
+ t_conn_count
 From: netdev-bot+sashiko@kernel.org
 To: achender@kernel.org
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
  edumazet@google.com, kuba@kernel.org, horms@kernel.org, nicoyip.dev@gmail.com
-Date: Wed, 16 Sep 2026 04:36:49 +0000
-Message-ID: <178953340967.22033.16717739111073634410@kernel.org>
-In-Reply-To: <20260912035027.27447-8-achender@kernel.org>
-References: <20260912035027.27447-8-achender@kernel.org>
+Date: Wed, 16 Sep 2026 04:36:50 +0000
+Message-ID: <178953341064.22033.4344829262087873675@kernel.org>
+In-Reply-To: <20260912035027.27447-9-achender@kernel.org>
+References: <20260912035027.27447-9-achender@kernel.org>
 X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -49,172 +49,87 @@ MIME-Version: 1.0
 Thank you for your contribution! Sashiko AI review found 1 potential
 issue(s) to consider:
 
-Critical: 0 · High: 0 (2) · Medium: 0 · Low: 1
+Critical: 0 · High: 0 · Medium: 0 · Low: 1
 
-- [Low] Commit message misattributes a pre-existing use-after-free to the
-  kref split, and never names the triggering callback.
-
-Pre-existing issues:
-- [High] Self-deadlock on the very callback path this patch relies on.
-- [High] In the function this patch modifies, struct rds_transport
-  *trans; (net/rds/rdma_transport.c:55) is assigned only under `if…
+- [Low] Changelog inaccuracy in "net/rds: drop rds_conn_count in favor of
+  t_conn_count": the commit message states that removing the…
 
 --
 
-net/rds: pin the connection across RDMA-CM event handling
+net/rds: drop rds_conn_count in favor of t_conn_count
 
-This adds a reference on the connection that rds_rdma_cm_event_handler_cmn()
-picks up from cm_id->context, held for the duration of the handler, and skips
-events for connections that are already being freed.  It also re-checks
-rds_destroy_pending() under c_cm_lock in rds_ib_cm_handle_connect() so a
-connect request cannot install a new cm_id and QP on a quiesced connection.
+This removes the global rds_conn_count now that each transport tracks its
+own connections in t_conn_count, and seeds the per-path workqueue names
+from t_conn_count instead.  The rds_conn_lock round-trip that existed only
+to decrement rds_conn_count is dropped from rds_conn_destroy_fini().
 
-No Link: tags in the commit header.
-
-A few questions below, mostly about the surrounding code that the new
-reference is meant to protect.
-
-First, on the changelog itself:
-
-> Now that a connection is freed by its last reference rather than by
-> rds_conn_destroy() itself, a callback that drops the last reference other
-> than the handler's implicit one leaves the final mutex_unlock() running on
-> freed memory.
+> Removing the counter also removes the rds_conn_lock round-trip that
+> rds_conn_destroy_fini() took solely to decrement it, leaving the
+> free path lock-free.
 
 [Severity: Low]
+Is the free path really lock-free after this change?
 
-Is the hazard really new to this series?  In the baseline, rds_conn_destroy()
-ended with:
+rds_conn_destroy_fini() still calls rds_conn_path_free() for every path,
+and that ends up in destroy_workqueue():
 
-	kfree(conn->c_path);
-	kmem_cache_free(rds_conn_slab, conn);
-
-so the connection was freed synchronously, and the handler's
-mutex_unlock(&conn->c_cm_lock) at out: already ran on freed memory whenever a
-callback destroyed the conn - unconditionally, not only when the last
-reference happened to be dropped.
-
-Also, which callback is meant here?  The only handler-reachable one seems to
-be rds_ib_cm_connect_complete() on RDMA_CM_EVENT_ESTABLISHED, when the peer
-advertises a protocol version below 3.1.  Could the changelog name that
-trigger, so backporters know what to look for?
-
-And what is "the handler's implicit one" reference?  Before this patch
-cm_id->context carries no reference at all.
-
-> diff --git a/net/rds/rdma_transport.c b/net/rds/rdma_transport.c
-> index b15cf316b23a2..584e9867810f4 100644
-> --- a/net/rds/rdma_transport.c
-> +++ b/net/rds/rdma_transport.c
-> @@ -63,6 +63,18 @@ static int rds_rdma_cm_event_handler_cmn(struct rdma_cm_id *cm_id,
->  	if (cm_id->device->node_type == RDMA_NODE_IB_CA)
->  		trans = &rds_ib_transport;
->  
-
-[Severity: High]
-
-This isn't a bug introduced by this patch, but while looking at these lines:
-can trans stay uninitialized here?  In
-rds_rdma_cm_event_handler_cmn() it is a plain local:
-
-	struct rds_transport *trans;
+net/rds/connection.c:rds_conn_path_free() {
+	if (cp->cp_wq != rds_wq) {
+		destroy_workqueue(cp->cp_wq);
+		cp->cp_wq = NULL;
+	}
 	...
-	if (cm_id->device->node_type == RDMA_NODE_IB_CA)
-		trans = &rds_ib_transport;
+}
 
-There is no else branch and no early return, yet the CONNECT_REQUEST case
-calls through it:
+destroy_workqueue() drains the queue and takes wq_pool_mutex, so it can
+sleep.  The tail of rds_conn_destroy_fini() also takes the wait-queue
+spinlock via wake_up_all(&rds_conn_freed_waitq).  What this patch removes
+is the last rds_conn_lock acquisition, not all locking.
 
-	case RDMA_CM_EVENT_CONNECT_REQUEST:
-		ret = trans->cm_handle_connect(cm_id, event, isv6);
+The concern with the current wording is that a later reader or a
+backporter could take "lock-free" to mean the final rds_conn_put() may be
+dropped from atomic, IRQ or softirq context, which this path cannot
+tolerate because destroy_workqueue() may sleep.
 
-RDS never calls rdma_restrict_node_type(), so cma_listen_on_dev() keeps
-restricted_node_type == RDMA_NODE_UNSPECIFIED and installs the RDS listener
-on every RDMA device, including iWARP RNICs (siw, cxgb4, irdma, qedr and
-erdma all set node_type = RDMA_NODE_RNIC).  An incoming connect on such a
-device reaches iw_conn_req_handler(), which creates a child id inheriting the
-listener's event_handler and NULL context, and delivers CONNECT_REQUEST here.
+The last patch of this series, "net/rds: hold a connection reference from
+struct rds_incoming", states the opposite property:
 
-Since conn is NULL on that path, the new rds_conn_get_unless_zero() guard
-does not change reachability, so this ends up as an indirect call through an
-uninitialized stack slot driven by a remote peer.  Would an explicit else
-that rejects non-IB node types be appropriate while touching this function?
+  "The final rds_conn_put() runs the free path, which destroys the
+   per-path workqueues and therefore may sleep, so the last reference has
+   to be dropped from process context"
 
-> +	/* cm_id->context carries no reference of its own.  Pin the
-> +	 * connection for the duration of the handler: what the callbacks
-> +	 * below do may drop the last reference other than ours, and the
-> +	 * mutex released at out: lives in the connection's path array.
-> +	 * A connection already being freed gets no events handled.
-> +	 */
-> +	if (conn && !rds_conn_get_unless_zero(conn)) {
-> +		rdsdebug("conn %p id %p is being freed, ignoring event\n",
-> +			 conn, cm_id);
-> +		return 0;
-> +	}
-> +
+Would something like "removes the last rds_conn_lock round-trip from the
+free path" be more accurate here?
 
-[Severity: High]
-
-This is a pre-existing issue, not something this patch introduces, but it is
-the exact callback path the comment above refers to: can the handler ever
-return from that callback?
-
-c_cm_lock is conn->c_path[0].cp_cm_lock, taken just below and held until
-out:, and the ESTABLISHED case dispatches with it held:
-
-	case RDMA_CM_EVENT_ESTABLISHED:
-		if (conn)
-			trans->cm_connect_complete(conn, event);
-
-rds_ib_cm_connect_complete() takes the peer's protocol major/minor straight
-from the REP private data with no validation, and since RDS_PROTOCOL_VERSION
-and RDS_PROTOCOL_COMPAT_VERSION are both RDS_PROTOCOL_3_1, any advertised
-version below 3.1 makes both tests true:
-
-	if (conn->c_version < RDS_PROTOCOL_VERSION) {
-		if (conn->c_version != RDS_PROTOCOL_COMPAT_VERSION) {
-			...
-			rds_conn_destroy(conn);
-
->From there the cycle looks like this:
-
-rds_rdma_cm_event_handler_cmn()
-  mutex_lock(&conn->c_cm_lock)
-  trans->cm_connect_complete()
-    rds_ib_cm_connect_complete()
-      rds_conn_destroy()
-        rds_conn_path_quiesce()
-          rds_conn_path_drop(cp, true)   /* sets ERROR, queues cp_down_w */
-          flush_work(&cp->cp_down_w)
-            rds_shutdown_worker()
-              rds_conn_shutdown()
-                mutex_lock(&cp->cp_cm_lock)   /* held by the CM handler */
-
-rds_conn_shutdown()'s first transition DOWN -> DOWN fails because
-rds_conn_path_drop() left the state at RDS_CONN_ERROR, so it goes on to take
-cp_cm_lock and blocks.  flush_work() then never returns, and the
-
-	out:
-		if (conn) {
-			mutex_unlock(&conn->c_cm_lock);
-			rds_conn_put(conn);
-		}
-
-that this patch adds is never reached, so the new pin can never be exercised
-on this path.  The comment in rds_conn_shutdown() states the assumption that
-is inverted here ("we may be deadlocking with the CM handler ... the CM event
-handler is supposed to check for state DISCONNECTING") - here the CM handler
-is the one starting the shutdown while holding the lock.
-
-Should rds_ib_cm_connect_complete() defer the destroy (for example via
-rds_conn_path_drop() without the synchronous flush) instead of calling
-rds_conn_destroy() under c_cm_lock?
-
->  	/* Prevent shutdown from tearing down the connection
->  	 * while we're executing. */
->  	if (conn) {
+> diff --git a/net/rds/connection.c b/net/rds/connection.c
+> index 1ec141d6faa38..11813f93961d1 100644
+> --- a/net/rds/connection.c
+> +++ b/net/rds/connection.c
 
 [ ... ]
+
+> @@ -656,7 +654,6 @@ static void rds_conn_destroy_fini(struct kref *kref)
+>  						   c_refcount);
+>  	int npaths = (conn->c_trans->t_mp_capable ? RDS_MPATH_WORKERS : 1);
+>  	struct rds_transport *trans = conn->c_trans;
+> -	unsigned long flags;
+>  	int i;
+>  
+>  	for (i = 0; i < npaths; i++)
+> @@ -665,10 +662,6 @@ static void rds_conn_destroy_fini(struct kref *kref)
+>  	kfree(conn->c_path);
+>  	kmem_cache_free(rds_conn_slab, conn);
+>  
+> -	spin_lock_irqsave(&rds_conn_lock, flags);
+> -	rds_conn_count--;
+> -	spin_unlock_irqrestore(&rds_conn_lock, flags);
+> -
+>  	/* only after everything the transport module owns has been
+>  	 * freed above may its unload proceed
+>  	 */
+
+The code change itself looks fine; only the changelog wording seems to
+overstate the result.
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260912035027.27447-1-achender%40kernel.org
