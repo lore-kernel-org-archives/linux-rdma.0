@@ -1,83 +1,67 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D8432765DF;
-	Wed, 16 Sep 2026 01:01:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E38202874E6;
+	Wed, 16 Sep 2026 01:06:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789520471; cv=none; b=PZajSvk8U1dyugitqrAW3PslZFA3MKP0m43yj2LbjJNtbItN30WXIdKWVw6KSjwOLN/eXVLgWuMwnRaGpMHln9ZFYTrW9P/4tmBS5DwvjNMepicvuzYZVdU9TnXiPJ/Noz39bbba0wqvyf9AfnM3YAs7BlPPkzXbphLmg5unZ7c=
+	t=1789520766; cv=none; b=HfJ+zGJiSgw/o/kynGTiXa9o3CnbVRCo3Ea3VWkbhT6wm6hkBJtrXl3FGUza+80I2HO0UBkzustteioXRVUbJcFOQK3yeKHWzH3V1/mjtymPv7myjYaVvtVuUwHkji90a1TZni/bMw7DgkMzh6qpyjbDIiL29USlWiiy7jnPXCI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789520471; c=relaxed/simple;
-	bh=9gc2wxDRVNySeG1wffhpjDGFp1KH+YlSZyJ1bd3qLNE=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=gekTMLyrC8BALQK8I+zpGqp23tT/XPwzBSOX4fPrID/g8CiVfi1OpzS0pQIeb8Z7ffJOkIbe6qVm1G9bW6KbAAnM/idwf3jBPztDJAzGy+kAarJJN0mPlwWI02ts8pw2tC4MFsCCSr9oydD9VDQrxNe2PMqs3a/sYGuXQdeabbs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ki2URNy4; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789520766; c=relaxed/simple;
+	bh=ZkIMFahVBYH1CQ4o/QIlzjjKpE2FkezKAhx3Tah8uC0=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=p7t7KStPbKxKCtg8l+t8VK8ktv4n9DXMQHNyiKGhPXvwQXbukwK44P8+xn7pwe2QwUNI1MDDr8TqAcenaT8dF3BF93rbpEbQVfZzIBaKgcgZ6hF0eoIk6EN0RzEO8+DHtW5FuKd+IISWWjhHUN7WLv/N0ThAdv+EFonDCn/Zq0s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DNbnkCpO; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ki2URNy4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAF871F000FF;
-	Wed, 16 Sep 2026 01:01:09 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DNbnkCpO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C83F1F000FF;
+	Wed, 16 Sep 2026 01:06:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789520469;
-	bh=GkVTuFIlCWtgACl+1vvYBeFucxC8Jlxo3kUZZYYG1HY=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=Ki2URNy4nXA/xuG7bO4MFkSyW/JwG1QTknX/Vdl6jDtwjqX8Xin8eiygIgNpn1yT5
-	 ntD+O5/hi+gwc8qCR1oVULWRsvxMUne7lftJx1rZmrXF0Dby2dUr4Z8KjuT7hn/zy9
-	 rarpHSV+OBiAccXQK8F4oMmY7Nzb6n1iCBXEYuAN639s8K0AP0Fd9cdvm6AAjWITjF
-	 gjjMUUtipwQfPNoZjsZ5aku3dn3SS3pQ1w3KPcUToa2isnxhO+LeTfYNJohmxHeZ/n
-	 +PRIqTmmMGx8iSmMylUmhyvmWMMzE+Z/gPY+5huqHWVMIZUH2QUjQvoxvz2VPZ3xbs
-	 Nzq7qkidgYOHQ==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 56A2E3927074;
-	Wed, 16 Sep 2026 01:00:05 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=k20260515; t=1789520765;
+	bh=u21N0zd2LeVS+La3mGIX7olO+1XgqdEuoZs0E93JSOw=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=DNbnkCpO+RTWtTF+MVpzhyfYZzE/anDN19wGD6KS7dCNoHJMUO+zlpDD29UiuLAWq
+	 IxP21HIFOlCRCSRyMn+WpLvjHiXuk/cgjLc5K8twZmviveZcA+tJMbhDFHpnN7x6N5
+	 4vYGI90ehW0pDSNMigSrH9ugUF+m+Z1gqt7SopIaksHbSzuPZafNp24dhN1NAAH4jz
+	 kKbQj1Cf+dEjiulI/+vEki9T3fdffYjaMMbUr1gC7dSVZTYoOP/TTP1Zj/xQkOePHY
+	 bc2jYMTtVsi3jwVleMbNxnD3xixzkIFrWwISFlYaN4sPrmF/ZPFYWMYDByd6i/uPhg
+	 M4DCwW+Pa3X3w==
+Date: Tue, 15 Sep 2026 18:06:03 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Long Li <longli@microsoft.com>
+Cc: Long Li <longli@kernel.org>, Konstantin Taranov
+ <kotaranov@microsoft.com>, "David S . Miller" <davem@davemloft.net>, Paolo
+ Abeni <pabeni@redhat.com>, Eric Dumazet <edumazet@google.com>, Andrew Lunn
+ <andrew+netdev@lunn.ch>, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky
+ <leon@kernel.org>, Haiyang Zhang <haiyangz@microsoft.com>, "K . Y .
+ Srinivasan" <kys@microsoft.com>, Wei Liu <wei.liu@kernel.org>, Dexuan Cui
+ <decui@microsoft.com>, shradhagupta@linux.microsoft.com, Simon Horman
+ <horms@kernel.org>, ernis@linux.microsoft.com, stephen@networkplumber.org,
+ shirazsaleem@microsoft.com, netdev@vger.kernel.org,
+ linux-rdma@vger.kernel.org, linux-hyperv@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net-next v5 00/13] net: mana: reconfigure by replacing
+ the queue set
+Message-ID: <20260915180603.7434fad8@kernel.org>
+In-Reply-To: <20260909222416.884246-1-longli@microsoft.com>
+References: <20260909222416.884246-1-longli@microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next v2] net: mana: Use the HWC destination queues
- reported by the hardware
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <178952040388.2343259.9924466903523811336.git-patchwork-notify@kernel.org>
-Date: Wed, 16 Sep 2026 01:00:03 +0000
-References: <20260910014427.54272-1-mawasthi@linux.microsoft.com>
-In-Reply-To: <20260910014427.54272-1-mawasthi@linux.microsoft.com>
-To: Manish Awasthi <mawasthi@linux.microsoft.com>
-Cc: kys@microsoft.com, haiyangz@microsoft.com, wei.liu@kernel.org,
- decui@microsoft.com, longli@microsoft.com, andrew+netdev@lunn.ch,
- davem@davemloft.net, edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
- kotaranov@microsoft.com, linux-hyperv@vger.kernel.org,
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-rdma@vger.kernel.org, horms@kernel.org, gargaditya@linux.microsoft.com,
- ernis@linux.microsoft.com, kees@kernel.org, paulros@microsoft.com,
- mawasthi@microsoft.com
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Hello:
+On Wed,  9 Sep 2026 15:24:03 -0700 Long Li wrote:
+> Replace detach/attach reconfiguration with pre-allocation and queue-set
+> replacement. Allocation failure leaves the running configuration intact.
+> Publication failure attempts rollback; if rollback also fails, the port
+> is stopped and requires administrative recovery.
 
-This patch was applied to netdev/net-next.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
-
-On Thu, 10 Sep 2026 01:44:27 +0000 you wrote:
-> The hardware provides valid HWC destination vRQ and vRCQ IDs for all PFs
-> and VFs. Use these IDs unconditionally in mana_hwc_send_request(), as
-> the PF-specific gate is not required.
-> 
-> Signed-off-by: Manish Awasthi <mawasthi@linux.microsoft.com>
-> Reviewed-by: Long Li <longli@microsoft.com>
-> Reviewed-by: Haiyang Zhang <haiyangz@microsoft.com>
-> 
-> [...]
-
-Here is the summary with links:
-  - [net-next,v2] net: mana: Use the HWC destination queues reported by the hardware
-    https://git.kernel.org/netdev/net-next/c/4e8b65ecb64c
-
-You are awesome, thank you!
+Does not apply cleanly, also the AI email reporting had an outage late
+last week so please check if any of the feedback is actionable:
+https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260909222416.884246-11-longli@microsoft.com
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+pw-bot: cr
