@@ -1,45 +1,80 @@
-Received: from out30-119.freemail.mail.aliyun.com (out30-119.freemail.mail.aliyun.com [115.124.30.119])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv2-f43.google.com (mail-qv2-f43.google.com [74.125.230.171])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6676C39B4A1;
-	Wed, 16 Sep 2026 15:24:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.119
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BACBA517BCF
+	for <linux-rdma@vger.kernel.org>; Wed, 16 Sep 2026 16:21:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.230.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789572286; cv=none; b=BRW5D9e/P0DCsqoRuitxOXXDrxJJh5WBX9uhFhLvRtq4yiqAyJRPnbpMUmBKkCUU/zSEQ0A+nihomFp6S+dcQ+jxaxgaCZCpvnWbpwrnH/GqZGxj5cle07COmO8FO3cHXAKGEMJ1sQ8VG86UPdEK0B5GWtr6rjXemBDCeYwJ3GQ=
+	t=1789575685; cv=none; b=VQMDqkDpFZXvQmheoz/cp79wMshQNyxKFBorg1BdFUga5IPVmsuFq0gIBKwJprc7QG4jOrj09mGyCwK4QuJ/1oZT1MzvbJwkoqPF5FY7kuHXu3ASYMuoQ0TkIthr5yk6nOy7wslcalFMSMYXmqm6JYcnnlEsJXNPAVHEykpem6I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789572286; c=relaxed/simple;
-	bh=48ov771l7rFfx5BnK/hpYiF20PYqHQ/HNCUJ+lqMgo0=;
+	s=arc-20240116; t=1789575685; c=relaxed/simple;
+	bh=8aZkNP08PVvZg7BWbE33AZXpZ6tdXswnwBF9qWrlNhg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=JGzGVoIy0FGleuusGgtcLAo0YXJhgPWwIek9actksOnmLO/sH7i1HWRX2AVj9UH++XYRSFGEq0wXxvJYckqAddIH3q5S7Q8FePwlhs0F2wQKJpq6nbJE+swKbFZnLjRVa2cwWXjedfL8hK5ctJcIyGS/UvkvJdyHC2ULsUz87Ps=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=igzB62xN; arc=none smtp.client-ip=115.124.30.119
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=ddN1xRQjhH35pMJRBQPzAjGPj7iCFt8FrYV3kw8hBm2D60MMqP8WbDFbGw7c2mIgGFGCJxvtMD5zkx/eQBEqo3EKQfzERvDrkL+Js9/RMkREaYr5P37OfVNRvbTxLEDEiYHn5HDlxeQ6vsgNHRHIFNV0p+rJu5HUgy6HEVPuTC0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=jOVowhAj; arc=none smtp.client-ip=74.125.230.171
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="igzB62xN"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1789572272; h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type;
-	bh=0SvDXyzZzPJmVIqjiPPsLDemSHDxY7/l7W7nRbF8vlw=;
-	b=igzB62xNXbWx4rpFjlApBkBt8roC/UM5nE0UmmwdOwpz9qp8p/jn2AuSE1x7afD1Yt30hNSIeJKXC1sF2qrUYP/orsRPqj4TvlCVhk/MBuYUrW4zN8yRXwU/lEvT4m06/5hZtYTQxuPf1Q+GtoUHY68sW9ZsyUy0qFRbHwK5uSU=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R151e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037026112;MF=dust.li@linux.alibaba.com;NM=1;PH=DS;RN=17;SR=0;TI=SMTPD_---0XB5IWPz_1789572271;
-Received: from localhost(mailfrom:dust.li@linux.alibaba.com fp:SMTPD_---0XB5IWPz_1789572271 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Wed, 16 Sep 2026 23:24:31 +0800
-Date: Wed, 16 Sep 2026 23:24:30 +0800
-From: Dust Li <dust.li@linux.alibaba.com>
-To: Mahanta Jambigi <mjambigi@linux.ibm.com>, andrew+netdev@lunn.ch,
-	davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-	pabeni@redhat.com, alibuda@linux.alibaba.com, sidraya@linux.ibm.com
-Cc: pasic@linux.ibm.com, horms@kernel.org, tonylu@linux.alibaba.com,
-	guwen@linux.alibaba.com, hidayath@linux.ibm.com,
-	stable@vger.kernel.org, netdev@vger.kernel.org,
-	linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH net v4] net/smc: fix lgr/lnk lifetime vs diag reader race
-Message-ID: <aqq0rnQjiKymR3TM@linux.alibaba.com>
-Reply-To: dust.li@linux.alibaba.com
-References: <20260911090906.1949163-1-mjambigi@linux.ibm.com>
- <aqlgtaEk3kNcg-Yp@linux.alibaba.com>
- <69676c38-3d68-41db-8b26-3e589d7477d5@linux.ibm.com>
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="jOVowhAj"
+Received: by mail-qv2-f43.google.com with SMTP id 6a1803df08f44-910537b51a0so7858516d6.3
+        for <linux-rdma@vger.kernel.org>; Wed, 16 Sep 2026 09:21:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1789575682; x=1790180482; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=/muLCENQ3ztU+dyE1LuzDRQMa5pSiiT+WmL99wCRWBs=;
+        b=jOVowhAjMSUqLSMGs3Ddi94lMt4+OrizP4ZcNnmXKfuDh7uHyPMgfYwAQHtFfka6mr
+         zaOrljo4n818ISYogU4qf/8wUvUjQEVI6JQeDol275PqeS4id6Ii5vE1ZTY9CeFDFcwP
+         bLT39it4x2o6XfyOh96LknrvO97XRCsIBZZOY7caW1U14/1if56SKNpxWMNVv41Xup0q
+         y7NUYOvKxtgWf/eXf2j7A2j3ZuMFjl6bgKoAUZvbDodNl5oJmibA40hng/cYJX054nEn
+         RAde+Drj4rKkAf5FKGjFQpHUwceS0F2BJOSI4WH4a7fGr6fGc2l0NVlNvqt67OYsIniX
+         2Iug==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1789575682; x=1790180482;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=/muLCENQ3ztU+dyE1LuzDRQMa5pSiiT+WmL99wCRWBs=;
+        b=P6CpqFldxxDvwvNLOkU8bM6E/IPpYv8QDWMjHcVwc55cC4cYsEsxvYp8VGYbHwPCEd
+         q/Qg0+GbHRP3T4FwCtRekB3xSb+kdNWSH/RteC8AtyjXRJEwTyOr+cpPPu7FD4tGU1Ov
+         r1wiWD5WoZAjJq2ehaJYeEI04Gs+lpNme0rMQWLhpb1cZg76rE/Xphw+cER0fjtHddEZ
+         p5mwH3vrVRopQdluNzhNet7+fkf4mocNN/lJr5GWXKqAscenibrsPD0lMUcCqNH7q1BK
+         PQIqz55LB+ykTSayVFxxX8BvCnaMTMgI71/1H61gSs4kY/Wzyz6VK6QHouTLztnOVbhP
+         XFNQ==
+X-Forwarded-Encrypted: i=1; AKwUvBxXME/NRqgafNidhkaUrVx1qMHTA6fLQiolVprEfA/yq1f2Ktm+4J8mOSzTHlsUhChWkDi13ADQIUao@vger.kernel.org
+X-Gm-Message-State: AFuF++k3QL4odHQq1mWsOxAaQxrJ0Kz/QIb+KmAOFdYBj3SjB2syDgc9
+	k5glyRPKLVNFZkc2Oe3EBSMWtdTGMT0gmuh5fncY86KoGLzm3nuhtb4+FwodveC/tsk=
+X-Gm-Gg: AYBFou1BsJkx8W8Ku5iz3gjbvMF3RpXVFnrbzNN8KdVl44PYOLNTGw2xzvN5rgscYIa
+	CJXPgibEFtQ0zNd42naEsUrpYL174xWBsg89kvtvp+NAzzkiSNoZWyhA+meYwIqbxfl/vlfsIQ/
+	1+KT2zu3+GGUKYE5l/6IBPb5S8x3NjhPVl+lg4aR+Ly0cZt20+Y3uSXvPysTkJinjUjLFA/MdNW
+	QYwoedCeo2xr4fDAsUPJX7dhO+mANvLTQVdo+DCsrr3rINIvxZ/jtqWOD0Xfa06jDoveKWmu8XG
+	jpINeIdz/PZc4Co60dCmMuVi/aaSjvu/tb8dOTI4sGmaRLakvl3SMkANWYaopl1gsp4QumlK3JC
+	yh4mH88nXeCzqk+xj+e/ZzZAjV3wLxY1dSFCn9uXl/f35sZ+jIMOfZiipvC8e92AbyGFxK63Lcm
+	3W7L3DhFJHjw081CWU+JGxprCYwEuSSmWIZHQw9Qk+I0rbdWccSXsgxE3oLjpNnxXR6OQ90zlRm
+	AbYSfjPqJATZAqnnny+9fFEymCCYItG/eP7Su9nRfUhoe5aecTwXnUc5anTvboysRA=
+X-Received: by 2002:a05:6214:20a4:b0:90e:98c9:548 with SMTP id 6a1803df08f44-9123d722130mr58507346d6.1.1789575682451;
+        Wed, 16 Sep 2026 09:21:22 -0700 (PDT)
+Received: from ziepe.ca (hlfxns010zw-159-2-239-150.pppoe-dynamic.high-speed.ns.bellaliant.net. [159.2.239.150])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-9123bddd42fsm28905456d6.7.2026.09.16.09.21.21
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 16 Sep 2026 09:21:21 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.97)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1x6sNt-00000009d5Z-0kli;
+	Wed, 16 Sep 2026 13:21:21 -0300
+Date: Wed, 16 Sep 2026 13:21:21 -0300
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Honggang LI <honggangli@163.com>
+Cc: Leon Romanovsky <leon@kernel.org>, zyjzyj2000@gmail.com,
+	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] RDMA/rxe: Fix out-of-range unsigned-to-signed conversion
+ for RDMA message in 2GiB size
+Message-ID: <20260916162121.GF3196566@ziepe.ca>
+References: <20260915064532.194540-1-honggangli@163.com>
+ <20260915114914.GL13683@unreal>
+ <aqoLuVxDIOHMuePi@fedora>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -48,97 +83,38 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <69676c38-3d68-41db-8b26-3e589d7477d5@linux.ibm.com>
+In-Reply-To: <aqoLuVxDIOHMuePi@fedora>
 
-On 2026-09-16 14:04:42, Mahanta Jambigi wrote:
->
->
->On 15/09/26 8:43 pm, Dust Li wrote:
->> On 2026-09-11 11:09:06, Mahanta Jambigi wrote:
->>> The diag dump walks the socket hash table under a read_lock and
->>> dereferences conn->lgr and conn->lnk.  Two terminal teardown paths
->>> drop those references via smc_conn_free() while the socket is still
->>> hashed:
->>> 
->>> - smc_conn_kill() -> smc_close_active_abort() -> smc_conn_free() -
->>> smc_close_passive_work() -> smc_conn_free()
->>> 
->>> This allows the diag reader to dereference a freed lgr or lnk.
->>> 
->>> Fix it by unhashing the socket before smc_conn_free() is called at
->>> each of these two sites.  Any socket visible to the diag reader
->>> under the hash read_lock then has valid conn->lgr and conn->lnk
->>> pointers.
->>> 
->>> Fixes: f16a7dd5cf27 ("smc: netlink interface for SMC sockets") Fixes:
->>> 9dbe086c69b8 ("net/smc: fix invalid link access in dumping SMC-R
->>> connections") Signed-off-by: Mahanta Jambigi <mjambigi@linux.ibm.com>
->>> --- Changes in v4: - dropped smc_conn_unhash() wrapper, conn-
->>> >unhashed flag, and all changes to af_smc.c, smc.h, smc_core.c and
->>> smc_core.h; smc_unhash_sk() is already idempotent via sk_hashed(),
->>> so direct calls at the two teardown sites in smc_close.c are
->>> sufficient - dropped the __smc_release() hunk: it needs no change
->>> since the subsequent unhash there is already a safe no-op - fixed
->>> premature-unhash issue present in v3: smc_conn_free() must not unhash
->>> because smc_conn_abort() calls it before smc_switch_to_fallback() in
->>> both smc_listen_decline() and smc_connect_rdma() error paths; unhashing
->>> there would make live fallback sockets invisible to smcss -
->>> likewise, the ISM/RDMA retry loops (smc_find_ism_v2_device_serv(), 
->>> smc_find_rdma_v2_device_serv()) call smc_conn_abort() on a failed attempt
->>> and then smc_conn_create() on the next device; unhashing in 
->>> smc_conn_free() would permanently hide the established connection
->>> from smc_diag since smc_conn_create() does not re-hash the socket
->> 
->> Hi Mahanta,
->> 
->> This version looks clean. And you explained why we can't call unhash
->> in smc_conn_abort() well. But smc_conn_abort() still calls
->> smc_conn_free(), when the smc_sk is still hashed, is there still a
->> race window with dump ?
->
->Hi Dust,
->
->Thank you for catching this corner case!
->
->During early handshake setup (when sk_state is *SMC_INIT*),
->smc_conn_abort() can be called on connection failure/fallback and
->invokes smc_conn_free() while the socket remains hashed, leaving a
->window where a concurrent diag dump could evaluate smc_conn_lgr_valid()
->and dereference conn->lgr / conn->lnk.
->
->Since sockets in *SMC_INIT* are in a transient embryonic handshake phase
->and userspace (smcss) *skips displaying link-group, DMB, and connection
->details for INIT state sockets anyway*, we could have __smc_diag_dump()
->skip inspecting connection/link-group extensions when r->diag_state ==
->SMC_INIT:
->
->diff --git a/net/smc/smc_diag.c b/net/smc/smc_diag.c
->--- a/net/smc/smc_diag.c
->+++ b/net/smc/smc_diag.c
->@@ -90,6 +90,9 @@ static int __smc_diag_dump(struct sock *sk, struct
->sk_buff *skb,
-> 	r->diag_state = sk->sk_state;
->+	if (r->diag_state == SMC_INIT)
->+		return 0;
->+
-> 	if (smc->use_fallback)
-> 		r->diag_mode = SMC_DIAG_MODE_FALLBACK_TCP;
-> 	else if (smc_conn_lgr_valid(&smc->conn) && smc->conn.lgr->is_smcd)
->
->Together with unhashing before smc_conn_free() in smc_close.c for
->established and closing sockets, this cleanly closes the race window
->across all socket states without touching the hash table mechanics
->during fallback/retry.
->
->Does this approach look good to you? If you agree, I will prepare and
->submit v5 with this change. Please let me know if you have any other
->suggestions or alternative approaches, and I'll be happy to look into them.
+On Wed, Sep 16, 2026 at 11:23:37AM +0800, Honggang LI wrote:
+> On Tue, Sep 15, 2026 at 02:49:14PM +0300, Leon Romanovsky wrote:
+> > > After fixed it, the active side of RDMA READ failed with error code
+> > > "IB_WC_LOC_PROT_ERR". When RDMA_READ_RESPONSE_FIRST packet recived by
+> > > the active side, `do_read` call `copy_data`. dma->resid is u32 0x80000000.
+> > > 
+> > >    int resid	= dma->resid;
+> > > 
+> > > This conversion set resid to -2147483648. `copy_data` abort as length
+> > > greater than resid. Change resid to int64_t fixes this issue.
+> > 
+> > Why not size_t?
+> 
+> First, size_t is u64. dma->resid is u32. If use unsigned type, u32 is enough.
+> 
+> Second, I'm not sure it is right to use unsigned type. In `copy_data`,
+> the loop terminate on negative value of `length`.
 
-What about this path ?
+Please do not use signed values to store must-be-unsized quantities in
+rdma land..
 
-smc_listen_decline() -> smc_listen_out_err(), where smc_conn_abort() has
-already run, and the sock state is then changed from SMC_INIT to SMC_CLOSED.
+> > > -	payload = min_t(int, res->read.resid, mtu);
+> > > +	payload = min_t(u32, res->read.resid, mtu);
+> > 
+> > Why don't we use the proper types from the start to avoid the need for
+> > u32 casts?
+> 
+> Again, minimal the changes with u32 casts. We need something like this
+> to use u32.
 
-Best regards,
-Dust
+This seems better to me
 
+Jason
