@@ -1,96 +1,98 @@
-Received: from mail-oa2-f12.google.com (mail-oa2-f12.google.com [74.125.231.76])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from cstnet.cn (smtp25.cstnet.cn [159.226.251.25])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F9274C9E07
-	for <linux-rdma@vger.kernel.org>; Wed, 16 Sep 2026 18:32:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.231.76
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789583562; cv=pass; b=RKi6gGnqhN4d7OBa8VMLelb66nSLUNcct6dCAuENSfbzz5zQkygLmiWXklMpcryqN1/Owl3R8W4o6Il9a4MGCOFdA0193rGdl387l+kXQFWWSchZQ6aKnu7uf651j0lvUMlhRHbK17Q7tR42S8z3dMUW1YOJuYeUB6aRI8qqZes=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789583562; c=relaxed/simple;
-	bh=bEYZXb/7L/YtOWAVT4ctcRizZUVUDEWDX8/RG8wgZzc=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=QScbXLsEX/S5u9lajb2OV1NYxrnh2pFcB7ZLWXN6LI97RO+/Vn3AmAVmEbhph5LhuggCEbmQmEpJBX3E3G50pMkDR1YA5WX3Cr+HYKlK1t1kVF/CPygS/JflrfEaeI0m48EVuZ9xZUWKcyqijXtg+XDg3q57JE95eO94iuG9UY8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=kP27ggtT; arc=pass smtp.client-ip=74.125.231.76
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="kP27ggtT"
-Received: by mail-oa2-f12.google.com with SMTP id 586e51a60fabf-466cc9ab667so1667094fac.0
-        for <linux-rdma@vger.kernel.org>; Wed, 16 Sep 2026 11:32:24 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1789583541; cv=none;
-        d=google.com; s=arc-20260327;
-        b=NhkXC/tV6AdgS9y21kxl5vWDQ8zJKlBEtKmTYW2Rk+wY/VhgzUQ4Eul2nqqQJOHNUj
-         Vhw1S4Vh48qUrpb9ubSDKRbPv8YghaKGS5TgBjZCYMpy/vW3yEj7WYYnu0YNoWO+YI4k
-         8mKX2RlGBBSJjytIqePjwgKnIDPiuNh1KxRpZ7k8Q6+79aPe/lf4UH6IaD2ZyCBip4gj
-         RT9j6XzOtwWXrtxufyTMZZ0ga/jgzi6DQGZ5gat8xjkyWEyHR5928J8YMZkPg/P29uC8
-         jWfFj27Ov3g6O2WHSfxZwQQ9ORrK3Aiv2Dql9GzZIqZAvxrT6KYe2lRO7xgdIhrXTxkB
-         WSmw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=bEYZXb/7L/YtOWAVT4ctcRizZUVUDEWDX8/RG8wgZzc=;
-        fh=ugPK49R/QArtakbvE4JXKLTZlT+nehbGAsL58GWGR3k=;
-        b=Tn3OkQ3NDdPRXMGdxRhmDU1zi+PAyxaUMqU+LJraODANJwx3lzEoffCiA9wB1RpwhV
-         itSPIDmFtVdUxsZAaRoISy8faZ1Hty7nwPBp54ZW1yJfrsNuMmTwbK4q+WuOeEq3H96j
-         AqMFOux6x/5MQMn1HJO8eLFMU8U70FN7QQ+57jnzqVBh5UqfySFCijubQI/Ohere/MSK
-         UVfWSI3JWA0FLbfktqsMMqn+IW+U+QNVjTsGCLHVD9YoT4xYDZtzxkCaNV/Yl46TO2h6
-         DXMS55zQKpgywzcAA8UU0EGe/fCeZ1wONFb1y/17yoxPFUI60CQGGommPmYXg1lsNHXU
-         rdIw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1789583541; x=1790188341; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=bEYZXb/7L/YtOWAVT4ctcRizZUVUDEWDX8/RG8wgZzc=;
-        b=kP27ggtT+Jo8YlZungVX9dA+3qp2/gGI6i6qN+6MGlYW2rOSWmWt0QBNx8Cb76Vbig
-         6OtK8D6yPihXcMBI14tO7CJcN0fcLQ1bqNy6BA6HCPFGEcOWxivJayb+A2E8Uqr3yUJS
-         1n71VxFLiWh0mPahzoN5/0D+aC9z+7RRPrxGZGOKdVcR4qnk+hvAPEk842Jah2UZQ2yN
-         eZm1qjFuMPgaggDvqXKLigIYQ109GxG2CEeY0TxSXEfOdPlR3C3ZTuDj+wavnS9Yf16x
-         c+ouK0CGbHLdhnoH7YVikpybQRUszEuGZKiGb+gKqie+qCtk8xIl3pAd1yxtmiuWHlyP
-         oCtA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789583541; x=1790188341;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=bEYZXb/7L/YtOWAVT4ctcRizZUVUDEWDX8/RG8wgZzc=;
-        b=z/g5T6j3NUTw+ygHjEA2g566BnTVvrog0dF8QvYI0vjuiTAPE9VE26NeOEJongKv1n
-         U0lgNzVmWLhsQckhIiS5zWwTqGX6e7eh9YG+KvcBVY3/wwvbTklsslwKFHrV1CG8oXRt
-         l7eIvlkI22u+0EVbdG3Di/AxhES72ArD/Xmfq5DZLzEHDVpLUnjtubkPmgHHAl7BK0Dm
-         q4he5ro/PNwjcQ0KpZjzPKYrTRlTp1vlAKIAlESJy89SD5wjmAl7yekbazRbDAwc3s9+
-         6dKlGHrHOdEpkuIJG5Y4GyP6jCU2GmXCG/8SwiQhWmDSS5lnBk+jiSMpWQ/6EAHigrEy
-         B1jw==
-X-Forwarded-Encrypted: i=1; AKwUvBzQcPgQWGOM7M832zlSpRM8t+LIujwj2xB9hy5zsTEYGqezgbmpHNy4gSukV5KegkDy25kbQfugmSt5@vger.kernel.org
-X-Gm-Message-State: AFuF++nOUKzrwSth6d3A3r8hh/sDGWYzEIk/kBbQON/591wEYBptBPqM
-	hsNnVPR4L22qixWGpyiIFM8ta3avmk/X7J6J+7l3iWWcAyAW2R5HTNPXUCcbtWnQdL++9HOUIQr
-	BB7l/wjokp7iTMtIIoKWFOMWq2RXGrBwudKxtcG2Y
-X-Gm-Gg: AYBFou0bw1I0vZviGwiO9ICs002q59ejS3PYlFqQ5mMsXbWkzKlidu0xUiwAEi+kjSb
-	tW0Do5uP6VfmwtyDaagFZ8vm39x9dNESvo17NbG4j2+lq8CyoSBReRRSZbfzIBcASQiFNCE2XPT
-	cvqQXRH2pHqACBW8WH11Ass3E9lmyY1vrkqoR5SYl3A3ntRqCTt94GDGKuKm2s+VNmxuNSIus+s
-	ZBGPTkKxK/B5Z8HxhVyPzaTaL7nxpUFoiEJ4H212LykHen6L1933NbDrTe/uZDmFpnW4Rz4jcKE
-	roZnz/3ZiclSY0RGGXrSsMNPQDlD2QB3qv5OcGR12BzQRajY+PirhJJBpaA+YDh3zPJJZ8YAlrR
-	qR4+nM4aeG/7pdsFr7jBUBWCb
-X-Received: by 2002:a05:6870:9490:b0:434:5c90:9d87 with SMTP id
- 586e51a60fabf-48475d862ffmr3569677fac.12.1789583539634; Wed, 16 Sep 2026
- 11:32:19 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE86F3DA7E4;
+	Wed, 16 Sep 2026 18:33:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.25
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789583648; cv=none; b=IIHyBtOUoTeA2TS9Sg6COHql7Bo7d5VT/TUFh2RUCJnj/HgqbA8xLRAf7nIEcAvK3S6UpS3NnSNu/XPlOab+v/vdSLnMJ7YJyl+ZWAmMLQnLlN9yGOGDqGcZS4xU4tvKhV0hhd8iPXEyg4NZQf2J9l+zSE1LLnFcXoeL0TKPsN4=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789583648; c=relaxed/simple;
+	bh=wqGQJFxvZNp1iyyk6tqUxkLKafrnCV6iotPlpsp7Cz0=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=oJ8EZ9nnd3t53oC2xSaJXLNrlh7iS58yFnUcabM+vJw0QNAHEJvneFUKanmXyIImkHfy5iw0nfUJQzojScGJZ2/bjo4CltoMz4Lr9uU/PXhA8o2Q3v5w0ixyJT59dtAuHdcQtlWwYPO5nFMmGO6jIewwqcTCq92J9cUllXsUN8Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.25
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
+Received: from dfae2b116770.home.arpa (unknown [36.110.52.2])
+	by APP-05 (Coremail) with SMTP id zQCowAA3oDr+4KpqWp1vCA--.24004S2;
+	Thu, 17 Sep 2026 02:33:34 +0800 (CST)
+From: Wentao Liang <vulab@iscas.ac.cn>
+To: benve@cisco.com
+Cc: dledford@redhat.com,
+	jgg@ziepe.ca,
+	leon@kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	monis@mellanox.com,
+	selvin.xavier@broadcom.com,
+	yuval.shaia@oracle.com,
+	Wentao Liang <vulab@iscas.ac.cn>,
+	stable@vger.kernel.org
+Subject: [PATCH 2/5] RDMA/core: Fix netdev use-after-free in ib_get_eth_speed()
+Date: Wed, 16 Sep 2026 18:33:06 +0000
+Message-Id: <20260916183306.2092381-1-vulab@iscas.ac.cn>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260916173203.2555458-1-jbongio@google.com> <20260916174213.832221F000FF@smtp.kernel.org>
-In-Reply-To: <20260916174213.832221F000FF@smtp.kernel.org>
-From: Jacob Moroni <jmoroni@google.com>
-Date: Wed, 16 Sep 2026 14:32:07 -0400
-X-Gm-Features: AcwNN1XIDTmzw8R_5GectK79olTXaZFOwnus1SogcYy3Or_QoWrpI-xe7GX8NIk
-Message-ID: <CAHYDg1Qk16RM=nbiHSV7AS065CL_H4_WtBmbBHewD+1jM+AAFg@mail.gmail.com>
-Subject: Re: [PATCH] RDMA/irdma: Use kvzalloc for lvl2 leafmem allocation
-To: sashiko-reviews@lists.linux.dev
-Cc: Jeremy Bongio <jbongio@google.com>, linux-rdma@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:zQCowAA3oDr+4KpqWp1vCA--.24004S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7uFWUXF4DJw17CF4DurWxWFg_yoW8Jw17pa
+	18ta47KFy8GF43Aa18Xa1j9ryYg3s3GanrW397Gw1Uur15XFZaqFsYkrWagFy8ArWfA3Wr
+	tF1jvFZ8u3y8CFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUU9q14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
+	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
+	1l84ACjcxK6xIIjxv20xvE14v26ryj6F1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4U
+	JVWxJr1l84ACjcxK6I8E87Iv67AKxVW8Jr0_Cr1UM28EF7xvwVC2z280aVCY1x0267AKxV
+	W0oVCq3wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv
+	7VC0I7IYx2IY67AKxVWUtVWrXwAv7VC2z280aVAFwI0_Cr0_Gr1UMcvjeVCFs4IE7xkEbV
+	WUJVW8JwACjcxG0xvY0x0EwIxGrwACjI8F5VA0II8E6IAqYI8I648v4I1lFIxGxcIEc7Cj
+	xVA2Y2ka0xkIwI1lc7CjxVAaw2AFwI0_Jw0_GFyl42xK82IYc2Ij64vIr41l4I8I3I0E4I
+	kC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWU
+	WwC2zVAF1VAY17CE14v26r1q6r43MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_JF
+	I_Gr1lIxAIcVC0I7IYx2IY6xkF7I0E14v26r4UJVWxJr1lIxAIcVCF04k26cxKx2IYs7xG
+	6r1j6r1xMIIF0xvEx4A2jsIE14v26F4j6r4UJwCI42IY6I8E87Iv6xkF7I0E14v26F4UJV
+	W0obIYCTnIWIevJa73UjIFyTuYvjfUFhL0UUUUU
+X-CM-SenderInfo: pyxotu46lvutnvoduhdfq/1tbiDAEMA2qqpO+AKwAAsi
 
-Tested-by: Jacob Moroni <jmoroni@google.com>
+The device reference is dropped before netdev->name is read in the
+warning emitted when __ethtool_get_link_ksettings() fails.  If that was
+the last reference the name is read from a freed netdev.
+
+Move dev_put() below the last use of netdev.
+
+Fixes: d41861942fc5 ("IB/core: Add generic function to extract IB speed from netdev")
+Cc: stable@vger.kernel.org
+Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
+---
+ drivers/infiniband/core/verbs.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index bac87de9cc67..f11ac039e085 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -2055,8 +2055,6 @@ int ib_get_eth_speed(struct ib_device *dev, u32 port_num, u16 *speed, u8 *width)
+ 	rc = __ethtool_get_link_ksettings(netdev, &lksettings);
+ 	rtnl_unlock();
+ 
+-	dev_put(netdev);
+-
+ 	if (!rc && lksettings.base.speed != (u32)SPEED_UNKNOWN) {
+ 		netdev_speed = lksettings.base.speed;
+ 	} else {
+@@ -2066,6 +2064,8 @@ int ib_get_eth_speed(struct ib_device *dev, u32 port_num, u16 *speed, u8 *width)
+ 				netdev->name, netdev_speed);
+ 	}
+ 
++	dev_put(netdev);
++
+ 	ib_get_width_and_speed(netdev_speed, lksettings.lanes,
+ 			       speed, width);
+ 
+-- 
+2.34.1
+
