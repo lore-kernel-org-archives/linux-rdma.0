@@ -1,29 +1,29 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E3E485013A2;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 37BD9509F00;
 	Wed, 16 Sep 2026 13:49:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789566574; cv=none; b=X6/bKysRg/yGOlrxKGEy9P1kNJs/vnnY5OsUfq1RserllOfx1i7DKsM8u202lUh+9+Hh5u6Xh3GwHyBpmdMz2/EqJsQF9HozHnMBONkWmqyelYd013hQi4fDC1Cmal9PDSuMa8zB18ULJgqF3xr+uKRziBHnRI63z52F4Sj6Fbk=
+	t=1789566574; cv=none; b=Nr6ZhBjMp0kKW+zclqw/8z4x7SAXDuY5dnc1BGAJoHNG8xJchaLhjVi8xu/3BhCmwwCRhBBg/in1GzVHfayZjvlxUO/ueB9UU1tFlTwIHG0Dmaa3WiOoz9INz8BKBqLA1V3BIYNVuS8R+/AswFR3418XsxlyOGBZMP9AaJfL5Bg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1789566574; c=relaxed/simple;
-	bh=z7/BK0u3kgCp4PG/fOXs/qExKngaQVK2g8OpMVpSxHQ=;
+	bh=acjhOO/eOE/dYA+oM6qlFRbN6b7UfIAiur4l+q+ZRt8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=JWt3JWdQUbUxHOPJVKtBJEiGUX3DO5qCKLWR/8p7W7KPrDkkEFklPv+cHReTKL9ed/PMXXdYove5QFYauLPclUtL9vqO3Lk4KVUN/051+iSvbAEn6BDhrSxfCuvrojhr7az8yYpdBkdxZUPiQkCkj5zPWkIAIBqKNYBTRufF4KU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=HEoCLQTI; arc=none smtp.client-ip=13.77.154.182
+	 MIME-Version; b=Zyl+m6ps7ZeW/DfnwGhbFGvgW8QMCbnVBjO96ZrgaKuSl5sRhXmE0GTFrxh0h2WZegqnaSEGoFEDawWGnZZYu6oE/2zViRwL6RQ170Jl9hquvxrsVMs9z+39mu0Gk0uLwYES/BdrJsRiiWG98T//6GYYkak8GMfSvwmtrP9SsUU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=aYjZt6v9; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="HEoCLQTI"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="aYjZt6v9"
 Received: by linux.microsoft.com (Postfix, from userid 1186)
-	id F0CF620B716E; Wed, 16 Sep 2026 06:48:35 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com F0CF620B716E
+	id D6F6420B716C; Wed, 16 Sep 2026 06:48:35 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com D6F6420B716C
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
 	s=default; t=1789566515;
-	bh=ZupIgrRkieWCGWPvw0zTisqapOOPuNbRVZPpgZLrRMU=;
+	bh=EwkEq1/CvgvPZe9JlzQl/h2kfDtzU6mu9rYK53rEzGM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=HEoCLQTIn1KB7idRYB4d0MoHoTGSTNCj0PiI+fS3CDl7FsmZyO9IdqkzmymscYX0i
-	 oRn9HvUDjazF1aMqr1xWkARfak79fjewXOwI2ywD65dqm0ZESfY/08LFca6Qw5qRFx
-	 y02QtxrSBWg/s4H/+6PfaJJanFdeudp+TgmGYVNc=
+	b=aYjZt6v9thCfeytuDzae2195rwXGKyg1dE4LkgtiJwhUn7gOpY10dHggT+iyfONJi
+	 K7fGnttLRq7KfRoVhTgwnPZYP6QPnjS+BlmcFbOJn2h3j5bxUF7g5276LpSaa82Zr6
+	 AK1r0RMsggb4xQPE2vDNN1HDHR4CgZ4I8s6K5T8Q=
 From: Konstantin Taranov <kotaranov@linux.microsoft.com>
 To: kotaranov@microsoft.com,
 	snsanghvi@microsoft.com,
@@ -32,9 +32,9 @@ To: kotaranov@microsoft.com,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next 4/5] RDMA/mana_ib: Make kernel CQ arming robust
-Date: Wed, 16 Sep 2026 06:48:34 -0700
-Message-ID: <20260916134835.2380971-5-kotaranov@linux.microsoft.com>
+Subject: [PATCH rdma-next 2/5] RDMA/mana_ib: Revise UD send posting and WQE definitions
+Date: Wed, 16 Sep 2026 06:48:32 -0700
+Message-ID: <20260916134835.2380971-3-kotaranov@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.7
 In-Reply-To: <20260916134835.2380971-1-kotaranov@linux.microsoft.com>
 References: <20260916134835.2380971-1-kotaranov@linux.microsoft.com>
@@ -48,203 +48,210 @@ Content-Transfer-Encoding: 8bit
 
 From: Konstantin Taranov <kotaranov@microsoft.com>
 
-Track CQ polling credits across owner-bit wraps and serialize arming
-with polling under cq_lock. Check the relevant owner bits before
-advancing an outstanding arm, and update the hardware consumer position
-when polling exhausts its credits.
+Batch a linked list of UD or GSI send requests behind one doorbell,
+returning the first failed WR while publishing all successful entries.
+Move the send PSN into common QP state and describe the extended RDMA
+send and receive OOB layouts needed by subsequent RC support.
 
-Expose the allocated CQ capacity to the core. Pull the explicit-index
-GDMA doorbell helper and its declaration forward here because CQ arming
-is its first consumer; ordinary GDMA doorbells retain their zero client
-offset. RC-specific PSN doorbell use is introduced later.
+Keep UD's inline OOB explicitly at INLINE_OOB_LARGE_SIZE even though
+the shared software OOB structure now describes larger formats. UD
+therefore continues using the existing GDMA encoder; extended GDMA
+WQE encoding and RC feature gating remain in their later patches.
 
 Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
 ---
- drivers/infiniband/hw/mana/cq.c               | 55 ++++++++++++++++++-
- drivers/infiniband/hw/mana/mana_ib.h          |  1 +
- .../net/ethernet/microsoft/mana/gdma_main.c   | 20 +++++--
- include/net/mana/gdma.h                       |  2 +
- 4 files changed, 72 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/mana/mana_ib.h | 40 ++++++++++++++++++-
+ drivers/infiniband/hw/mana/wr.c      | 58 ++++++++++++++++------------
+ 2 files changed, 72 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mana/cq.c b/drivers/infiniband/hw/mana/cq.c
-index 14a48409e..6764e2de0 100644
---- a/drivers/infiniband/hw/mana/cq.c
-+++ b/drivers/infiniband/hw/mana/cq.c
-@@ -64,6 +64,9 @@ int mana_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 		doorbell = mdev->gdma_dev->doorbell;
- 	}
+diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
+index 4da110b30..619578f16 100644
+--- a/drivers/infiniband/hw/mana/mana_ib.h
++++ b/drivers/infiniband/hw/mana/mana_ib.h
+@@ -206,7 +206,6 @@ enum mana_ud_queue_type {
  
-+	ibcq->cqe = cq->cqe;
-+	cq->poll_credit = (cq->cqe << (GDMA_CQE_OWNER_BITS - 1)) - 1;
+ struct mana_ib_ud_qp {
+ 	struct mana_ib_queue queues[MANA_UD_QUEUE_TYPE_MAX];
+-	u32 sq_psn;
+ };
+ 
+ struct mana_ib_qp {
+@@ -222,6 +221,7 @@ struct mana_ib_qp {
+ 
+ 	/* The port on the IB device, starting with 1 */
+ 	u32 port;
++	u32 sq_psn;
+ 
+ 	struct list_head cq_send_list;
+ 	struct list_head cq_recv_list;
+@@ -525,7 +525,16 @@ struct mana_rnic_set_qp_state_resp {
+ 
+ enum WQE_OPCODE_TYPES {
+ 	WQE_TYPE_UD_SEND = 0,
++	WQE_TYPE_RC_SEND = 2,
++	WQE_TYPE_RC_SEND_IMM = 3,
++	WQE_TYPE_RC_SEND_INV = 4,
++	WQE_TYPE_WRITE = 5,
++	WQE_TYPE_WRITE_IMM = 6,
++	WQE_TYPE_READ = 7,
+ 	WQE_TYPE_UD_RECV = 8,
++	WQE_TYPE_RC_RECV = 9,
++	WQE_TYPE_REG_MR = 10,
++	WQE_TYPE_LOCAL_INV = 12,
+ }; /* HW DATA */
+ 
+ struct rdma_send_oob {
+@@ -544,7 +553,36 @@ struct rdma_send_oob {
+ 			u32 reserved1;
+ 			u32 reserved2;
+ 		} ud_send;
++		union {
++			u32 immediate;
++			u32 invalidate_key;
++		} rc_send;
++		struct {
++			u32 address_hi;
++			u32 address_low;
++			u32 rkey;
++			u32 dma_len;
++		} rdma;
++		struct {
++			u32 mkey;
++		} mm;
+ 	};
++	union {
++		u32 immediate_ext;
++		struct {
++			u16 rsn;
++			u16 reserved;
++		} read;
++	};
++	u32 fsn : 24;
++	u32 reserved2   : 8;
++}; /* HW DATA */
 +
- 	if (is_rnic_cq) {
- 		err = mana_ib_gd_create_cq(mdev, cq, doorbell);
- 		if (err) {
-@@ -174,15 +177,62 @@ void mana_ib_remove_cq_cb(struct mana_ib_dev *mdev, struct mana_ib_cq *cq)
- 	gc->cq_table[cq->queue.id] = NULL;
++struct rdma_recv_oob {
++	u32 psn_start   : 24;
++	u32 reserved1   : 8;
++	u32 msn         : 24;
++	u32 reserved2   : 8;
+ }; /* HW DATA */
+ 
+ struct mana_rdma_cqe {
+diff --git a/drivers/infiniband/hw/mana/wr.c b/drivers/infiniband/hw/mana/wr.c
+index 8cd2980d4..f25df2fad 100644
+--- a/drivers/infiniband/hw/mana/wr.c
++++ b/drivers/infiniband/hw/mana/wr.c
+@@ -71,7 +71,7 @@ int mana_ib_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
+ 	return err;
  }
  
-+static inline bool gdma_cq_idx_produced(struct gdma_queue *gdma_cq, uint32_t idx)
-+{
-+	struct gdma_mem_info *gmi = &gdma_cq->mem_info;
-+	u32 num_cqe = gdma_cq->queue_size / GDMA_CQE_SIZE;
-+	u32 expected_bits = (idx / num_cqe) & GDMA_CQE_OWNER_MASK;
-+	u32 offset = (idx % num_cqe) * GDMA_CQE_SIZE;
-+	struct gdma_cqe *cqe;
-+
-+	if (gmi->nr_pages)
-+		cqe = gmi->pages_va[offset / PAGE_SIZE] +
-+		      (offset & (PAGE_SIZE - 1));
-+	else
-+		cqe = gdma_cq->queue_mem_ptr + offset;
-+
-+	return cqe->cqe_info.owner_bits == expected_bits;
-+}
-+
-+static inline void mana_ib_cq_doorbell(struct mana_ib_cq *cq, uint8_t arm)
-+{
-+	struct mana_ib_dev *mdev = container_of(cq->ibcq.device, struct mana_ib_dev, ib_dev);
-+	struct gdma_queue *gdma_cq = cq->queue.kmem;
-+	u32 num_cqe, max_credit, idx;
-+
-+	num_cqe = gdma_cq->queue_size / GDMA_CQE_SIZE;
-+	max_credit = num_cqe << (GDMA_CQE_OWNER_BITS - 1);
-+	idx = gdma_cq->head;
-+
-+	if (cq->poll_credit >= max_credit) {
-+		if (gdma_cq_idx_produced(gdma_cq, idx + cq->poll_credit - max_credit))
-+			cq->poll_credit++;
-+		else
-+			return;
-+	} else {
-+		/* Set index of already polled CQE for unarm */
-+		cq->poll_credit = max_credit - (arm ? 0 : 1);
-+	}
-+
-+	idx += (cq->poll_credit - max_credit);
-+	idx %= (num_cqe << GDMA_CQE_OWNER_BITS);
-+
-+	mana_gd_wq_ring_doorbell_ext(mdev_to_gc(mdev), gdma_cq, idx, arm, 0);
-+}
-+
- int mana_ib_arm_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags flags)
+-static int mana_ib_post_send_ud(struct mana_ib_qp *qp, const struct ib_ud_wr *wr)
++static int mana_ib_post_send_ud_one(struct mana_ib_qp *qp, const struct ib_ud_wr *wr)
  {
- 	struct mana_ib_cq *cq = container_of(ibcq, struct mana_ib_cq, ibcq);
- 	struct gdma_queue *gdma_cq = cq->queue.kmem;
-+	unsigned long irq_flags;
+ 	struct mana_ib_dev *mdev = container_of(qp->ibqp.device, struct mana_ib_dev, ib_dev);
+ 	struct mana_ib_ah *ah = container_of(wr->ah, struct mana_ib_ah, ibah);
+@@ -84,11 +84,8 @@ static int mana_ib_post_send_ud(struct mana_ib_qp *qp, const struct ib_ud_wr *wr
+ 	struct shadow_wqe_header *shadow_wqe;
+ 	int err, i;
  
- 	if (!gdma_cq)
+-	if (!ndev) {
+-		ibdev_dbg(&mdev->ib_dev, "Invalid port %u in QP %u\n",
+-			  qp->port, qp->ibqp.qp_num);
++	if (!ndev)
  		return -EINVAL;
+-	}
  
--	mana_gd_ring_cq(gdma_cq, SET_ARM_BIT);
-+	spin_lock_irqsave(&cq->cq_lock, irq_flags);
-+	mana_ib_cq_doorbell(cq, SET_ARM_BIT);
-+	spin_unlock_irqrestore(&cq->cq_lock, irq_flags);
-+
+ 	if (wr->wr.opcode != IB_WR_SEND)
+ 		return -EINVAL;
+@@ -110,7 +107,7 @@ static int mana_ib_post_send_ud(struct mana_ib_qp *qp, const struct ib_ud_wr *wr
+ 
+ 	wqe_req.num_sge = wr->wr.num_sge + 1;
+ 	wqe_req.sgl = gdma_sgl;
+-	wqe_req.inline_oob_size = sizeof(struct rdma_send_oob);
++	wqe_req.inline_oob_size = INLINE_OOB_LARGE_SIZE;
+ 	wqe_req.inline_oob_data = &send_oob;
+ 	wqe_req.flags = GDMA_WR_OOB_IN_SGL;
+ 	wqe_req.client_data_unit = ib_mtu_enum_to_int(ib_mtu_int_to_enum(ndev->mtu));
+@@ -119,7 +116,7 @@ static int mana_ib_post_send_ud(struct mana_ib_qp *qp, const struct ib_ud_wr *wr
+ 	send_oob.fence = !!(wr->wr.send_flags & IB_SEND_FENCE);
+ 	send_oob.signaled = !!(wr->wr.send_flags & IB_SEND_SIGNALED);
+ 	send_oob.solicited = !!(wr->wr.send_flags & IB_SEND_SOLICITED);
+-	send_oob.psn = qp->ud_qp.sq_psn;
++	send_oob.psn = qp->sq_psn;
+ 	send_oob.ssn_or_rqpn = wr->remote_qpn;
+ 	send_oob.ud_send.remote_qkey =
+ 		qp->ibqp.qp_type == IB_QPT_GSI ? IB_QP1_QKEY : wr->remote_qkey;
+@@ -128,40 +125,51 @@ static int mana_ib_post_send_ud(struct mana_ib_qp *qp, const struct ib_ud_wr *wr
+ 	if (err)
+ 		return err;
+ 
+-	qp->ud_qp.sq_psn++;
++	qp->sq_psn++;
+ 	shadow_wqe = shadow_queue_producer_entry(&qp->shadow_sq);
+ 	memset(shadow_wqe, 0, sizeof(*shadow_wqe));
+-	shadow_wqe->send_opcode = IB_WC_SEND;
+ 	shadow_wqe->wr_id = wr->wr.wr_id;
+ 	shadow_wqe->wqe_size_in_bu = wqe_info.wqe_size_in_bu;
+ 	shadow_queue_advance_producer(&qp->shadow_sq);
+ 
+-	mana_gd_wq_ring_doorbell(mdev_to_gc(mdev), queue);
  	return 0;
  }
  
-@@ -343,6 +393,9 @@ int mana_ib_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc)
- 		comp_read = mana_gd_poll_cq(queue, &gdma_cqe, 1);
- 		if (comp_read < 1)
+-int mana_ib_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
+-		      const struct ib_send_wr **bad_wr)
++static int mana_ib_post_send_ud(struct mana_ib_qp *qp, const struct ib_send_wr *wr,
++				const struct ib_send_wr **bad_wr)
+ {
++	struct mana_ib_dev *mdev = container_of(qp->ibqp.device, struct mana_ib_dev, ib_dev);
++	struct gdma_queue *queue = qp->ud_qp.queues[MANA_UD_SEND_QUEUE].kmem;
++	bool ring_sq = false;
+ 	int err = 0;
+-	struct mana_ib_qp *qp = container_of(ibqp, struct mana_ib_qp, ibqp);
+ 
+ 	for (; wr; wr = wr->next) {
+-		switch (ibqp->qp_type) {
+-		case IB_QPT_UD:
+-		case IB_QPT_GSI:
+-			err = mana_ib_post_send_ud(qp, ud_wr(wr));
+-			if (unlikely(err)) {
+-				*bad_wr = wr;
+-				return err;
+-			}
++		err = mana_ib_post_send_ud_one(qp, ud_wr(wr));
++		if (unlikely(err)) {
++			*bad_wr = wr;
  			break;
-+		cq->poll_credit--;
-+		if (!cq->poll_credit)
-+			mana_ib_cq_doorbell(cq, 0);
- 		mana_handle_cqe(mdev, &gdma_cqe);
+-		default:
+-			ibdev_dbg(ibqp->device, "Posting send wr on qp type %u is not supported\n",
+-				  ibqp->qp_type);
+-			return -EINVAL;
+ 		}
++		ring_sq = true;
  	}
  
-diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
-index 619578f16..0ad757990 100644
---- a/drivers/infiniband/hw/mana/mana_ib.h
-+++ b/drivers/infiniband/hw/mana/mana_ib.h
-@@ -170,6 +170,7 @@ struct mana_ib_cq {
- 	struct list_head list_recv_qp;
- 	int cqe;
- 	u32 comp_vector;
-+	u32 poll_credit;
- 	mana_handle_t  cq_handle;
- };
- 
-diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-index 542491a6c..cb51fcf57 100644
---- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
-+++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-@@ -559,11 +559,13 @@ static int mana_gd_disable_queue(struct gdma_queue *queue)
- 
- static void mana_gd_ring_doorbell(struct gdma_context *gc, u32 db_index,
- 				  enum gdma_queue_type q_type, u32 qid,
--				  u32 tail_ptr, u8 num_req)
-+				  u32 tail_ptr, u8 num_req, u8 client_offset)
- {
- 	void __iomem *addr = gc->db_page_base + gc->db_page_size * db_index;
- 	union gdma_doorbell_entry e = {};
- 
-+	addr += client_offset;
++	if (ring_sq)
++		mana_gd_wq_ring_doorbell(mdev_to_gc(mdev), queue);
 +
- 	switch (q_type) {
- 	case GDMA_EQ:
- 		e.eq.id = qid;
-@@ -623,10 +625,18 @@ void mana_gd_wq_ring_doorbell(struct gdma_context *gc, struct gdma_queue *queue)
- 	 * wqe_cnt for Receive Queues. This value is not used in Send Queues.
- 	 */
- 	mana_gd_ring_doorbell(gc, queue->gdma_dev->doorbell, queue->type,
--			      queue->id, queue->head * GDMA_WQE_BU_SIZE, 0);
-+			      queue->id, queue->head * GDMA_WQE_BU_SIZE, 0, 0);
+ 	return err;
  }
- EXPORT_SYMBOL_NS(mana_gd_wq_ring_doorbell, "NET_MANA");
- 
-+void mana_gd_wq_ring_doorbell_ext(struct gdma_context *gc, struct gdma_queue *queue,
-+				  u32 tail_ptr, u8 wqe_cnt, u8 client_offset)
++
++int mana_ib_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
++		      const struct ib_send_wr **bad_wr)
 +{
-+	mana_gd_ring_doorbell(gc, queue->gdma_dev->doorbell, queue->type,
-+			      queue->id, tail_ptr, wqe_cnt, client_offset);
-+}
-+EXPORT_SYMBOL_NS(mana_gd_wq_ring_doorbell_ext, "NET_MANA");
++	struct mana_ib_qp *qp = container_of(ibqp, struct mana_ib_qp, ibqp);
 +
- void mana_gd_ring_cq(struct gdma_queue *cq, u8 arm_bit)
- {
- 	struct gdma_context *gc = cq->gdma_dev->gdma_context;
-@@ -636,7 +646,7 @@ void mana_gd_ring_cq(struct gdma_queue *cq, u8 arm_bit)
- 	u32 head = cq->head % (num_cqe << GDMA_CQE_OWNER_BITS);
- 
- 	mana_gd_ring_doorbell(gc, cq->gdma_dev->doorbell, cq->type, cq->id,
--			      head, arm_bit);
-+			      head, arm_bit, 0);
- }
- EXPORT_SYMBOL_NS(mana_gd_ring_cq, "NET_MANA");
- 
-@@ -653,7 +663,7 @@ void mana_gd_ring_dim(struct gdma_queue *cq, u32 mod_usec, bool mod_usec_vld,
- 		dim_val |= MANA_INTR_MODR_USEC_VLD;
- 
- 	mana_gd_ring_doorbell(gc, cq->gdma_dev->doorbell, GDMA_DIM, cq->id,
--			      dim_val, mod_comps_vld);
-+			      dim_val, mod_comps_vld, 0);
- }
- EXPORT_SYMBOL_NS(mana_gd_ring_dim, "NET_MANA");
- 
-@@ -1023,7 +1033,7 @@ static void mana_gd_process_eq_events(void *arg)
- 	head = eq->head % (num_eqe << GDMA_EQE_OWNER_BITS);
- 
- 	mana_gd_ring_doorbell(gc, eq->gdma_dev->doorbell, eq->type, eq->id,
--			      head, SET_ARM_BIT);
-+			      head, SET_ARM_BIT, 0);
- }
- 
- static int mana_gd_register_irq(struct gdma_queue *queue,
-diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
-index 8ccbe2d57..02632acd7 100644
---- a/include/net/mana/gdma.h
-+++ b/include/net/mana/gdma.h
-@@ -1068,6 +1068,8 @@ void mana_gd_free_res_map(struct gdma_resource *r);
- 
- void mana_gd_wq_ring_doorbell(struct gdma_context *gc,
- 			      struct gdma_queue *queue);
-+void mana_gd_wq_ring_doorbell_ext(struct gdma_context *gc, struct gdma_queue *queue,
-+				  u32 tail_ptr, u8 wqe_cnt, u8 client_offset);
- 
- int mana_gd_alloc_memory(struct gdma_context *gc, unsigned int length,
- 			 struct gdma_mem_info *gmi, bool allow_scatter);
++	switch (ibqp->qp_type) {
++	case IB_QPT_UD:
++	case IB_QPT_GSI:
++		return mana_ib_post_send_ud(qp, wr, bad_wr);
++	default:
++		/* Unsupported QP type */
++		*bad_wr = wr;
++		return -EINVAL;
++	}
++}
 -- 
 2.43.0
 
