@@ -1,41 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5AB5363C48;
-	Thu, 17 Sep 2026 09:39:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E84FF4B66FB;
+	Thu, 17 Sep 2026 09:39:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789637958; cv=none; b=NKBRKvPpya+WjefkNy6pPCwK7OTlgPDNpwQXcqmbFvyjSDsp0xb0plRmp6VfjXfjtktIfS/X3wK4zukNON5Qz3+FiEp0RnNYVOkL26ROiHucWaEeFFTQ+VfrR/eOTVZm7SVB3YuiQD+lKbqwVcR1ZoGJamEtfmm7sVUAB2njFU8=
+	t=1789637966; cv=none; b=BrpNRzg1g7pkJI4iWOGGFsAvyTkmBim9l/wamGki/Z6x3Uu6/uByshrjXEYyPtGi523097BLjBW6zSpNqmYIdu8Z8IXokohCsr6oXGRyeZl2CyJcLxpXA3mvkxawtFL0Ox47OFvs4AKfJlmY2EuKa8PZ+rwPedQCb5uRsFaKIBg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789637958; c=relaxed/simple;
-	bh=rdJIskJHloQ5zvSz/RyaaJADEoVfInq2oh0HSTprfpY=;
+	s=arc-20240116; t=1789637966; c=relaxed/simple;
+	bh=iWA0+Wwhf2Mg+fYVN/t/KtWxP6KRVbvaiKxO9oorpLo=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=U0uheeEDUSvkIDoo+PiE/LGLKQq6EDEfmBFiZq1CvK15gYcMSKA0kC7HRleSLJUR8+QFcEKq9lbWs8X/SHvGoz4cmY6ppJYUkT3utQSsPrDOhN3lPelKJv5oINvSbfm934Jbr7DXzJelrLImZCaxuV/wgKq9IL8x7rTn8++zLBI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eJKDpmil; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=s6Yo3GLOoAidPWAxo4eDzpRz1yitnuzPBKnRfvdiVpwxNS3yMHBZW/8twm+i5f4sQAQHaDSLIypYRlyB53FUer2xtbhYPUnqTiJxtXUruMZZq6egRhbnmdV1YHB+tjLqKBqclkqRU8eEOgiASEVp7HSLDsDFu3c9d3P2cmxHYAQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gTTJY5y9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eJKDpmil"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92E011F0089F;
-	Thu, 17 Sep 2026 09:38:45 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gTTJY5y9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F3C91F00899;
+	Thu, 17 Sep 2026 09:38:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789637926;
-	bh=by51LgKx1ualdSZn8ZpPTBIub+1IdXm2prJNjTtNY/8=;
+	s=k20260515; t=1789637929;
+	bh=4hbnbhgv368KnNhlupjo6lL9EC73yude5iGpkEmq9EA=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=eJKDpmilEqXDxPSuCAkm3aaMlpZlF/yn3/01oOemP8FanIMUtBZkRW3GY3XDXB9rw
-	 06hWc2mbPhAwIEF9yvIGiiy/e30ZxlTTMIGYgd4MsPf1+YnC5+yjawBHDRYOslLEqo
-	 elBegyLUdb69BRXaPNI4NF9o6eH4dhh21J1+apq+tgJuUp+Y+wT2ewgfQzr7jq+98A
-	 vOWymSNwzorVju+fasunBCPLgXR9k0wAw8lUnMhu//QZp8DBiCwKZVfRCiyRPAABv3
-	 D2ygPyNlkDfGwdS1U8aYQtyRFve3TmhflxOK663Tpmf7BspI+PmesjVfabYtCP0VGi
-	 +XLts9rrZcsmQ==
-Subject: Re: [PATCH net-next v3 08/13] net/rds: hold connection references in
- lookup, sockets and c_passive
+	b=gTTJY5y9LjvpwDX/G6P1qwu3I2TuflIMkFK7Sz4TaZrvJycksS1uGblifk3QZm87u
+	 5gg6tQMdi0keGMbV77o5b/WNliVhoSSC4SzbFQOgjnL/S5BnA3EsYAs4V/yYKeiGZ0
+	 GfRdun2dfdonOK465+4QUoA1Cp0ItgJ5pg8ZUpJMSc7LrK+go93DDps6/cMkTI7LpT
+	 IVDXpCzq+6AGUC4vifrshFhB5ZMD5grxp9iZx4DWypmbd8Yz1qq8ZuVEQFcn6HMlWP
+	 1+1affzaVI4jTpW/RsFv6ZRlJnbX96nvLyoVOB0rzSRmjHjmQ6xo4oua0mG0cOxCVI
+	 Up4QBL222Y83w==
+Subject: Re: [PATCH net-next v3 11/13] net/rds: pin the connection across
+ RDMA-CM event handling
 From: netdev-bot+sashiko@kernel.org
 To: achender@kernel.org
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
  edumazet@google.com, kuba@kernel.org, horms@kernel.org, nicoyip.dev@gmail.com
-Date: Thu, 17 Sep 2026 09:38:45 +0000
-Message-ID: <178963792518.22033.13204882874552116749@kernel.org>
-In-Reply-To: <20260914033719.138057-9-achender@kernel.org>
-References: <20260914033719.138057-9-achender@kernel.org>
+Date: Thu, 17 Sep 2026 09:38:48 +0000
+Message-ID: <178963792823.22033.13533789241810444484@kernel.org>
+In-Reply-To: <20260914033719.138057-12-achender@kernel.org>
+References: <20260914033719.138057-12-achender@kernel.org>
 X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -46,322 +46,180 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 4 potential
+Thank you for your contribution! Sashiko AI review found 1 potential
 issue(s) to consider:
 
-Critical: 0 · High: 1 · Medium: 1 · Low: 2
+Critical: 0 · High: 1 (1) · Medium: 0 · Low: 0
 
-- [High] rds_send_probe() (net/rds/send.c:1579-1586) links a probe/pong
-  message onto cp->cp_send_queue and takes a connection reference…
-- [Medium] The commit message claims the new rs_lock coverage in
-  rds_ioctl(SIOCRDSSETTOS) closes the window that "let a racing sendmsg…
-- [Low] The comment block documenting rds_conn_lookup()'s contract now
-  sits above the newly added rds_conn_passive_locked() helper, which has…
-- [Low] struct rds_sock in net/rds/rds.h explicitly enumerates what
-  rs_lock protects ("rs_lock protects all these adjacent members before…
+- [High] Self-deadlock: rds_ib_cm_connect_complete() destroys the
+  connection synchronously from inside the RDMA-CM event callback, while…
+
+Pre-existing issues:
+- [High] Uninitialized function-pointer-bearing struct pointer
+  dereference in rds_rdma_cm_event_handler_cmn()…
 
 --
 
-net/rds: hold connection references in lookup, sockets and c_passive
+net/rds: pin the connection across RDMA-CM event handling
 
-This patch makes rds_conn_lookup() and __rds_conn_create() return a
-connection with a reference held for the caller, gives the rs->rs_conn
-sendmsg cache and parent->c_passive references of their own, and moves the
-rs_conn/rs_tos serialization from the global rds_sock_lock to rs_lock.  It
-also RCU-annotates c_passive and closes a KCSAN-reported data race between
-concurrent rds_sendmsg() calls on the same socket.
+The patch takes a reference on the connection found in cm_id->context for
+the duration of rds_rdma_cm_event_handler_cmn(), ignoring the event when
+the connection is already on its way out, and adds an rds_destroy_pending()
+re-check under c_cm_lock in rds_ib_cm_handle_connect().  A new helper,
+rds_conn_get_unless_zero(), wraps kref_get_unless_zero() on c_refcount.
 
-Closes: https://syzkaller.appspot.com/bug?extid=879c1877016972360186
-
-A few questions below about the new rs_lock discipline, the misplaced
-comment block in connection.c, and the interaction between the new
-"sender keeps running against a quiesced conn" rule and rds_send_probe().
-
-> diff --git a/net/rds/af_rds.c b/net/rds/af_rds.c
-> index d5defe9172e3..1cc20b5cfd21 100644
-> --- a/net/rds/af_rds.c
-> +++ b/net/rds/af_rds.c
-
-[ ... ]
-
-> @@ -267,18 +276,23 @@ static int rds_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
->  		else
->  			return -ENOIOCTLCMD;
->  
-> -		spin_lock_bh(&rds_sock_lock);
-> +		/* rs_conn is serialized by rs_lock (see rds_sendmsg());
-> +		 * hold it across the "no connection yet" check and the
-> +		 * rs_tos store so a racing sendmsg cannot cache a conn
-> +		 * whose c_tos then disagrees with rs_tos.
-> +		 */
-> +		spin_lock_irqsave(&rs->rs_lock, flags);
->  		if (rs->rs_tos || rs->rs_conn) {
-> -			spin_unlock_bh(&rds_sock_lock);
-> +			spin_unlock_irqrestore(&rs->rs_lock, flags);
->  			return -EINVAL;
->  		}
->  		rs->rs_tos = tos;
-> -		spin_unlock_bh(&rds_sock_lock);
-> +		spin_unlock_irqrestore(&rs->rs_lock, flags);
->  		break;
-
-[Severity: Medium]
-
-Does this comment (and the matching claim in the commit message, "it used
-the unrelated global rds_sock_lock before, which also let a racing sendmsg
-cache a connection whose c_tos disagrees with the rs_tos being set") hold
-for a sendmsg that is already past its own rs_lock section?
-
-rds_sendmsg() drops rs_lock before it samples rs->rs_tos:
-
-net/rds/send.c:rds_sendmsg() {
-	spin_lock_irqsave(&rs->rs_lock, flags);
-	conn = rs->rs_conn;
-	...
-	} else {
-		conn = NULL;
-	}
-	spin_unlock_irqrestore(&rs->rs_lock, flags);
-
-	if (!conn) {
-		...
-		conn = rds_conn_create_outgoing(sock_net(sock->sk),
-						&rs->rs_bound_addr, &daddr,
-						rs->rs_transport, rs->rs_tos,
-	...
-}
-
-and the install re-takes rs_lock without re-checking conn->c_tos against
-rs->rs_tos:
-
-		spin_lock_irqsave(&rs->rs_lock, flags);
-		old = rs->rs_conn;
-		rs->rs_conn = conn;
-		spin_unlock_irqrestore(&rs->rs_lock, flags);
-
-So with thread A between the two rs_lock sections (conn == NULL) and
-thread B in SIOCRDSSETTOS, B sees rs_tos == 0 && rs_conn == NULL, succeeds
-and stores the new tos; A then creates or looks up a connection with the
-old tos and caches it.  Can that leave rs->rs_tos == X while
-rs->rs_conn->c_tos == 0, and send the in-flight message over a connection
-whose service level does not match the socket's configured ToS?
-
-Would snapshotting rs_tos inside the first rs_lock section, or validating
-conn->c_tos == rs->rs_tos when installing the cache, close this?
-
-> diff --git a/net/rds/connection.c b/net/rds/connection.c
-> index c3b3d756c52e..7ef6fb9d352b 100644
-> --- a/net/rds/connection.c
-> +++ b/net/rds/connection.c
-> @@ -81,7 +81,18 @@ static struct hlist_head *rds_conn_bucket(const struct in6_addr *laddr,
->  		var |= RDS_INFO_CONNECTION_FLAG_##suffix;	\
->  } while (0)
->  
-> -/* rcu read lock must be held or the connection spinlock */
-> +/* rcu read lock must be held or the connection spinlock.
-> + * On success a reference is taken on the returned connection; the
-> + * caller must drop it with rds_conn_put().
-> + */
-> +/* c_passive is written under rds_conn_lock and read under RCU */
-> +static struct rds_connection *
-> +rds_conn_passive_locked(struct rds_connection *conn)
-> +{
-> +	return rcu_dereference_protected(conn->c_passive,
-> +					 lockdep_is_held(&rds_conn_lock));
-> +}
-> +
->  static struct rds_connection *rds_conn_lookup(struct net *net,
-
-[Severity: Low]
-
-Was the new helper meant to be inserted above rds_conn_lookup()'s comment
-rather than below it?  As written, the "rcu read lock must be held or the
-connection spinlock ... a reference is taken on the returned connection"
-text now documents rds_conn_passive_locked(), which has neither property:
-it asserts rds_conn_lock is held (RCU alone is not enough) and returns the
-pointer without any reference.  __rds_conn_create() has to take the
-reference itself right after calling it:
-
-			passive = rds_conn_passive_locked(parent);
-			...
-				rds_conn_get(passive);
-
-Meanwhile rds_conn_lookup(), whose contract this patch actually changes,
-ends up with no comment describing that the caller now owns a reference.
-
-> @@ -98,6 +109,17 @@ static struct rds_connection *rds_conn_lookup(struct net *net,
->  		    conn->c_tos == tos &&
->  		    net == rds_conn_net(conn) &&
->  		    conn->c_dev_if == dev_if) {
-> +			/* Only ever hand out a live reference.
-> +			 * rds_conn_destroy() unhashes under
-> +			 * rds_conn_lock and waits a grace period
-> +			 * before dropping the initial reference, so
-> +			 * an entry this traversal reaches still holds
-> +			 * at least that one; the conditional get
-> +			 * documents the contract rather than
-> +			 * papering over a zero-refcount entry.
-> +			 */
-> +			if (!kref_get_unless_zero(&conn->c_refcount))
-> +				continue;
->  			ret = conn;
->  			break;
->  		}
-
-[ ... ]
-
-> diff --git a/net/rds/rds.h b/net/rds/rds.h
-> index 8a969444e698..4608615e09e9 100644
-> --- a/net/rds/rds.h
-> +++ b/net/rds/rds.h
-> @@ -161,7 +161,7 @@ struct rds_connection {
->  	 * cancellation from landing on a destroyed workqueue.
->  	 */
->  	bool			c_destroy_in_prog;
-> -	struct rds_connection	*c_passive;
-> +	struct rds_connection __rcu *c_passive;
->  	struct rds_transport	*c_trans;
-
-[Severity: Low]
-
-While touching this header, should the struct rds_sock declarations be
-updated too?  rs_conn is now both rs_lock-serialized and reference-owning,
-but its comment still only says:
-
-	/*
-	 * rds_sendmsg caches the conn it used the last time around.
-	 * This helps avoid costly lookups.
-	 */
-	struct rds_connection	*rs_conn;
-
-and rs_lock's own annotation reads:
-
-	/* rs_lock protects all these adjacent members before the newline */
-	spinlock_t		rs_lock;
-
-rs_conn sits before that block and rs_tos sits at the very end of the
-struct, so the header currently tells a reader that neither is covered by
-rs_lock, which is the opposite of the new rule in rds_ioctl() and
-rds_sendmsg().
-
-> diff --git a/net/rds/send.c b/net/rds/send.c
-> index 32c411d10e3e..1ae1f24c24e8 100644
-> --- a/net/rds/send.c
-> +++ b/net/rds/send.c
-
-[ ... ]
-
-> @@ -1340,11 +1341,29 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
->  	rm->m_daddr = daddr;
->  
->  	/* rds_conn_create has a spinlock that runs with IRQ off.
-> -	 * Caching the conn in the socket helps a lot. */
-> -	if (rs->rs_conn && ipv6_addr_equal(&rs->rs_conn->c_faddr, &daddr) &&
-> -	    rs->rs_tos == rs->rs_conn->c_tos) {
-> -		conn = rs->rs_conn;
-> +	 * Caching the conn in the socket helps a lot.
-> +	 *
-> +	 * The cached rs_conn holds a connection reference; take one of
-> +	 * our own for the duration of this call (dropped on both exit
-> +	 * paths), so that neither a concurrent sender replacing the
-> +	 * cache nor rds_conn_destroy() can free the connection under
-> +	 * us.  A cached connection whose destruction has begun is not
-> +	 * reused: dropping it here lets the next sendmsg look up or
-> +	 * create a live one instead of returning -EAGAIN forever.
-> +	 */
-> +	spin_lock_irqsave(&rs->rs_lock, flags);
-> +	conn = rs->rs_conn;
-> +	if (conn && ipv6_addr_equal(&conn->c_faddr, &daddr) &&
-> +	    rs->rs_tos == conn->c_tos && !rds_destroy_pending(conn)) {
-> +		rds_conn_get(conn);
->  	} else {
-> +		conn = NULL;
-> +	}
-> +	spin_unlock_irqrestore(&rs->rs_lock, flags);
+> diff --git a/net/rds/rdma_transport.c b/net/rds/rdma_transport.c
+> index b15cf316b23a2..584e9867810f4 100644
+> --- a/net/rds/rdma_transport.c
+> +++ b/net/rds/rdma_transport.c
+> @@ -63,6 +63,18 @@ static int rds_rdma_cm_event_handler_cmn(struct rdma_cm_id *cm_id,
+>  	if (cm_id->device->node_type == RDMA_NODE_IB_CA)
+>  		trans = &rds_ib_transport;
+                        ^^^^^
 
 [Severity: High]
 
-The commit message says the connection "may still be destroyed while a
-send is in flight ... but it is only quiesced; the free is held off by the
-sender's reference."  Given that, can a sender that is already holding this
-reference strand a probe message on a path that has already been purged?
+This isn't a bug introduced by this patch, but since the new hunk lands
+directly underneath it: is trans guaranteed to be initialized here?  In
+rds_rdma_cm_event_handler_cmn() the declaration is a plain
 
-rds_sendmsg() reaches the ping path before its own rds_destroy_pending()
-re-check:
+	struct rds_transport *trans;
 
-	if (conn->c_trans->t_mp_capable &&
-	    !rds_conn_path_up(&conn->c_path[0])) {
-		...
-		rds_send_ping(conn, 0);
-	}
+and the only assignment is the RDMA_NODE_IB_CA test above, with no else
+branch and no bail-out for other node types.  The CONNECT_REQUEST case then
+dereferences it unconditionally:
 
-and rds_send_probe() enqueues under cp_lock with no destroy test at all;
-only the work queueing afterwards is guarded:
+	case RDMA_CM_EVENT_CONNECT_REQUEST:
+		ret = trans->cm_handle_connect(cm_id, event, isv6);
 
-net/rds/send.c:rds_send_probe() {
-	spin_lock_irqsave(&cp->cp_lock, flags);
-	list_add_tail(&rm->m_conn_item, &cp->cp_send_queue);
-	set_bit(RDS_MSG_ON_CONN, &rm->m_flags);
-	rds_message_addref(rm);
-	rm->m_inc.i_conn = cp->cp_conn;
+On that path conn is NULL (the child cm_id inherits the listener's NULL
+context), so none of the "if (conn)" guards cover the use.
+
+Can a non-IB-CA device reach this handler?  RDS's own comment in
+rds_ib_laddr_check() says so:
+
+	/* rdma_bind_addr will only succeed for IB & iWARP devices */
 	...
-	spin_unlock_irqrestore(&cp->cp_lock, flags);
+	/* due to this, we will claim to support iWARP devices unless we
+	   check node_type. */
+
+and rds_ib_add_one() rejects anything that is not RDMA_NODE_IB_CA, while
+rds_rdma_listen_init() listens on INADDR_ANY, so the CM fans connect
+requests out over every registered device.  With an iWARP or usnic device
+present, would a remote connect request to RDS_PORT end up making an
+indirect call through an indeterminate stack value?  The kernel build
+disables -Wmaybe-uninitialized, so nothing flags it at compile time.
+
+Still present unchanged at the end of the series.
+
+>  
+> +	/* cm_id->context carries no reference of its own.  Pin the
+> +	 * connection for the duration of the handler: what the callbacks
+> +	 * below do may drop the last reference other than ours, and the
+> +	 * mutex released at out: lives in the connection's path array.
+> +	 * A connection already being freed gets no events handled.
+> +	 */
+> +	if (conn && !rds_conn_get_unless_zero(conn)) {
+> +		rdsdebug("conn %p id %p is being freed, ignoring event\n",
+> +			 conn, cm_id);
+> +		return 0;
+> +	}
+> +
+
+[Severity: High]
+
+The commit message says "a callback that drops the last reference other
+than the handler's implicit one leaves the final mutex_unlock() running on
+freed memory".  Which callback is that?
+
+The one callback that destroys the connection is the ESTABLISHED path, and
+on that path control does not seem to reach the new rds_conn_put() at all,
+because the destroy blocks on the mutex the handler is still holding:
+
+rds_rdma_cm_event_handler_cmn()
+  mutex_lock(&conn->c_cm_lock);	/* == conn->c_path[0].cp_cm_lock */
+  trans->cm_connect_complete(conn, event)
+    rds_ib_cm_connect_complete()
+      rds_conn_destroy(conn)
+        rds_conn_path_quiesce()
+          rds_conn_path_drop(cp, true)	/* always queues cp_down_w */
+          flush_work(&cp->cp_down_w)
+            rds_shutdown_worker() -> rds_conn_shutdown()
+              mutex_lock(&cp->cp_cm_lock);	/* held by the caller */
+
+Is this a circular wait?  The handler thread waits in flush_work() for
+cp_down_w, and the flushed worker waits for cp_cm_lock, which the handler
+thread holds.
+
+rds_conn_shutdown() does enter that block, since rds_conn_path_drop() has
+just moved the state to RDS_CONN_ERROR, so the DOWN -> DOWN transition
+fails:
+
+net/rds/connection.c:rds_conn_shutdown() {
+	if (!rds_conn_path_transition(cp, RDS_CONN_DOWN, RDS_CONN_DOWN)) {
+		/*
+		 * ... We don't hold the mutex for the entire
+		 * duration of the shutdown operation, else we may be
+		 * deadlocking with the CM handler. Instead, the CM event
+		 * handler is supposed to check for state DISCONNECTING
+		 */
+		mutex_lock(&cp->cp_cm_lock);
 	...
-	rcu_read_lock();
-	if (!rds_destroy_pending(cp->cp_conn))
-		queue_delayed_work(cp->cp_wq, &cp->cp_send_w, 1);
-	rcu_read_unlock();
 }
 
-rds_conn_path_quiesce() drains cp_send_queue exactly once, and
-rds_conn_destroy() runs that pass only once (c_destroy_in_prog guards it):
+The existing comment there states the assumption that the CM handler only
+checks DISCONNECTING and returns.  Does the synchronous rds_conn_destroy()
+from inside rds_ib_cm_connect_complete() break that assumption?
 
-net/rds/connection.c:rds_conn_path_quiesce() {
-	...
-	/* tear down queued messages */
-	list_for_each_entry_safe(rm, rtmp,
-				 &cp->cp_send_queue,
-				 m_conn_item) {
-		list_del_init(&rm->m_conn_item);
-		BUG_ON(!list_empty(&rm->m_sock_item));
-		rds_message_put(rm);
-	}
-	...
-}
+The trigger looks remote-controlled.  In rds_ib_cm_connect_complete():
 
-If the cp_lock section in rds_send_probe() runs after that drain, nothing
-reaps the message afterwards - rds_send_xmit() refuses destroy-pending
-conns and there is no second purge pass.  Later in the series the same
-enqueue also takes a connection reference released only from
-rds_message_put() ("put in rds_message_put()"), so at that point does the
-stranded probe keep c_refcount from reaching zero, leaving
-rds_conn_destroy_fini() unreached and rds_conn_wait_conns_freed() waiting
-forever at transport unload or netns teardown?
-
-The sibling enqueue rds_send_queue_rm() does get exactly this guard later
-in the series, with rds_conn_path_quiesce() splicing under cp_lock to pair
-with it:
-
-		spin_lock(&cp->cp_lock);
-		if (rds_destroy_pending(conn)) {
-			spin_unlock(&cp->cp_lock);
-			*queued = -EAGAIN;
-			goto unlock;
+	if (conn->c_version < RDS_PROTOCOL_VERSION) {
+		if (conn->c_version != RDS_PROTOCOL_COMPAT_VERSION) {
+			pr_notice("RDS/IB: Connection <%pI6c,%pI6c> version %u.%u no longer supported\n",
+			...
+			rds_conn_destroy(conn);
+			return;
 		}
+	}
 
-Should rds_send_probe() get the same test under cp_lock?  Note the probe
-enqueue is also reachable from the receive path, since a peer's probe ping
-drives rds_recv_incoming() -> rds_send_pong() -> rds_send_probe().
+A peer accepting with an older advertised version reaches it, and so does a
+peer accepting with absent or short private data: the connection is
+allocated with kmem_cache_zalloc() and only rds_ib_set_protocol() ever
+writes c_version, so c_version stays 0 and compares below
+RDS_PROTOCOL_VERSION.
 
-> +
-> +	if (!conn) {
-> +		struct rds_connection *old;
-> +
->  		conn = rds_conn_create_outgoing(sock_net(sock->sk),
->  						&rs->rs_bound_addr, &daddr,
->  						rs->rs_transport, rs->rs_tos,
+There is a second effect worth checking: the RDMA core holds
+id_priv->handler_mutex across the callback, so while the handler thread is
+parked in flush_work(), CM events for that cm_id stop and a later
+rdma_destroy_id() on it would block as well - and the shutdown worker's
+rds_ib_conn_path_shutdown() needs handler_mutex itself.
+
+The synchronous destroy from the callback is older than this patch, but
+since that is the very callback the new reference is meant to make safe,
+would deferring the destroy out of the CM callback be the change that
+actually covers it?  Pinning the connection does not help if the
+mutex_unlock() and rds_conn_put() at out: are never reached.
+
+Verified still present at the end of the series.
+
+>  	/* Prevent shutdown from tearing down the connection
+>  	 * while we're executing. */
+>  	if (conn) {
 
 [ ... ]
+
+> @@ -171,8 +183,10 @@ static int rds_rdma_cm_event_handler_cmn(struct rdma_cm_id *cm_id,
+>  	}
+>  
+>  out:
+> -	if (conn)
+> +	if (conn) {
+>  		mutex_unlock(&conn->c_cm_lock);
+> +		rds_conn_put(conn);
+> +	}
+>  
+>  	rdsdebug("id %p event %u (%s) handling ret %d\n", cm_id, event->event,
+>  		 rdma_event_msg(event->event), ret);
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260914033719.138057-1-achender%40kernel.org
