@@ -1,68 +1,68 @@
-Received: from MW6PR02CU001.outbound.protection.outlook.com (mail-westus2azon11012005.outbound.protection.outlook.com [52.101.48.5])
+Received: from DM5PR21CU001.outbound.protection.outlook.com (mail-centralusazon11011059.outbound.protection.outlook.com [52.101.62.59])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C19934418F2;
-	Thu, 17 Sep 2026 11:15:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.48.5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5955B28852E;
+	Thu, 17 Sep 2026 11:16:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.62.59
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789643765; cv=fail; b=cobj2leUD9UtOtAvtCir8BFANZ8JNRkxoKxQsHFQ6Q8krTJfltr71IWNbSd3aS71j4Ory1gM86o6AAzPQrQABKN8URRxMo9QqRNbi9cjXvOvebHexbBRd0eq4Y5iW2deXrZmVM7d/4WM+BVkLk/GARGoecvE9nIUfrj7ddB8QjI=
+	t=1789643767; cv=fail; b=AsP1SWMhQTz1vGVBKAlisdnY7i87IP4D/4pRTOpZ5iY19NcjqGjrCtSIP5J4uA2Ijc+jnyhq0g3m1BaIIdfRcIjgiRe5KEucJChabMo/sCIua/qeZXT60AL/Ug/NLcHNw0xNWMn2DFy60LM3Bbgn2Qert04TKojsYQVpuGuckhg=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789643765; c=relaxed/simple;
-	bh=vE8b0gflIteHMiOJYR9b99bhFmMhUO0c2AkEq7qB1yw=;
+	s=arc-20240116; t=1789643767; c=relaxed/simple;
+	bh=Yp7V1jvqXFmD3JMLCMnl22I21iPYkpY9YOVZTWW0KQc=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=qj0IZfsyABBdzi5lr+CKmD3jX6FTQ3B7j2tDRu1jD7fM5ZbSrFwyiXU1+YujZtuYEgGylz+W0bEIeKEFLfruaVYUZkM0uPuY3Fn6KLPgt4NXbgE7az6X5y/rp4eNv+MY5ELQQ1aueVgHUs6UA804BcCfQUmF3rPJOlfmF8GDsW8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=n7blwyJG; arc=fail smtp.client-ip=52.101.48.5
+	 MIME-Version:Content-Type; b=C6dJaIflAwuzxlTwO7j6gwNu66NcA5AS8+wOxctYXAVHuwyCm3GOc13IgQ4duZmzMQ2RlXIMHLAG9FGY1aZqtSNXQ8uuEcY2qWsGaCPG6su4wZbRb6lF6ii4RbwkS3CESwuKUGP0rEOK8ZZVgDRM7qb3Ma7YeTcQPTT7AEmlp1o=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=Wn2HNKsl; arc=fail smtp.client-ip=52.101.62.59
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="n7blwyJG"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="Wn2HNKsl"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=oJD+ZlsnUpePjQadivOLvgJIt7MWljLt2wLH+q6kdqOaj8BVE40x71nHZGYV69n5AypjER31VeSgfyWVgSw6CM/amFytSfgVNpkPOb0ZNjZywlNU43pnvLNBv/F/9ByTJxLaQdQQM4NlVb3ARpYYL3dkOTDICfSj2ZMTdQEWHTymY7Gj2V812pbrAKk+KVfdCsPGqPFcPPkftAnipkZjv5pwmbfShF8jwAlHZeZQHJY1FJqdRkqsqsr9a0+1nT2eENQ1JR4pOypUThPyBYXTF+uwOCWAQNshXJGQgawtN4L+GT8zqzSyGf4h5E0ZAmee7Wy1FqLtUgemWdbhse+XOw==
+ b=UVk3LCRr18Ycy14TtwSZ3rHgGnTtHaXTr5urnx6qxOnRuWNGhYG736L7mfcsH0kWTt1wHV01aR904LAWe1xrWHugyfdK/bDm2fWYjECoCVc6L+54UAdhw4XeFhHW0mEi+jJS5zfB0cVajH7YVnoIutdzNyu/uidhmSC1VSYydjVL5LJGK22dtAujRh16dWuD73gnslcWb3XKDKCHtrIO1oqGgFC7e0oOgF9Ooj8oXmxCwruBmmXuM5Bw4cEES2TPBFCbeF9iOcXTcp4tVdgjh3+ilyiskt2IGb/CjQuCZNcsqo1OVV0V5VPMcATAgKu6gNVqN0cpds3P3kvfkk4Z9w==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=v+TsQdTtFdNXoKksNuGIi+20zSAnlM8VgT7Z1KOy2kI=;
- b=FurwNd7zjRjgzBnEQaLE0wBY+tnw4QjhhES9ghe72VDUV8LI8ikQOcj7kDrWlvkGSJ2wOW8yWYxxN1C7rdqoXZW98aHuV5KRLkcyRWU5xdGUXQllV3TjHwjWuOc6zexE9Rg2DBJg0pslgGItFCvUcWql0PJgZmO65FFqMa6euyB4OTPKUSDVOUmpceynp10naafqb+l+XkWiBe/WdLShgIXwURlBNnDE2VQ1Mnklffk184Kck6BlDppCiyrO7wQ8zbHYCwRWfJlfYNyJvJbYgT27L3Ih9lVZ5JLHPDLoy+gHI3Qslajp2wWesGZ04IoFLX1qt7KoNbsmjC2UJD5DfQ==
+ bh=gtv2UwubdRQlP7YlgiJGi+wK9wJioW+I3WasBJ95PIM=;
+ b=dseNcHASUhnIxPe2ufKgrqXhho2jSYfBxJxHpn9YRTBrTxC6u9BAALIL8cVbK46XqlaBKyCLdalhQdZ80C102E1GbxLRwcZpTNg6bYWfYBy1YOZ87C248P3I5LuDGFts9fc/6mmR2FJhC7QBPE/l5fpMKFtosNRNPTdbKBCne0ScqXQaLK3J08Zqz/GMfHVzVkfRFLfYDEPaBaSKN8UnhX8dKohiL1o0w+5UuI5eAUju1B5QxqS9s9f10I+pFgQeRBoW3vl8zDehcoMt8/re00lufR5sC8knoZtkKu0rYO0zERuTZWmeA0MI8gPV0likDmBIg5KBL6cn9TBmuDt9rA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.233) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
+ 216.228.118.232) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=v+TsQdTtFdNXoKksNuGIi+20zSAnlM8VgT7Z1KOy2kI=;
- b=n7blwyJGjAfwzkn/1yI1JpheAlMjr9vKqxJe0eRcKgNYIkZoUmgQKQWJt/7UYTYOFCkosQzoBRxAPRgIjYkQr/3z4FBHULykM0KoGBxLnwUy7QDOrPx1TUL0dW0gNcarzcVg3a5ZScgatsW4PQufEFxyhhhsFSQ5lrgRR1PziQkn3TXn8rvIN3AxVr7FpaTTMoSbr6FrkZNt1ixjQWNhFI/swbNyxybnjxNpH3OYYTDA46EaHQLJEWIrrr+5OdKfhgnzGyh0HrVx8Rx0NcMtY0TIAdekwU3TAFhJX44vlLD7DwFC6xB+r6U+sNkAscXSpzqmAtD7DM1b4KocQsDzxA==
-Received: from CH0PR03CA0233.namprd03.prod.outlook.com (2603:10b6:610:e7::28)
- by MW4PR12MB6756.namprd12.prod.outlook.com (2603:10b6:303:1e9::7) with
+ bh=gtv2UwubdRQlP7YlgiJGi+wK9wJioW+I3WasBJ95PIM=;
+ b=Wn2HNKsl52PvwNjZ5UohzzvJ2YqimKfQk7cxrGFqHDqec4lQhlsHWMF/U3aYjOUndPUNNrnO9gj7bQvEjF5K256C/l6eWFQYZ6Rh/gdZk5x0eiVYa7GqMPCGesJOf2/kZeH4FU5qFtgv+fOEaMudbj9NKYJ0kwWzBHTMAWL/zrpuGfJ45WfxOqQ8Qs1NrP8cIT7CknZ40gb2ACYQDVoSyvDOukHlMwpz0fg8DW2IqgZBkceX9sGZoYZ2FvxE0fdpvH/jWvWf3+WQWH5wdwm7mtCNyoMbsxYFXqkkQ97hYznDyvKtSaKhr2vTvCWBkJZZwZAWH0uflldcoTFXnj7fzw==
+Received: from BN0PR03CA0058.namprd03.prod.outlook.com (2603:10b6:408:e7::33)
+ by SJ0PR12MB6855.namprd12.prod.outlook.com (2603:10b6:a03:47e::6) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.428.12; Thu, 17 Sep
- 2026 11:15:43 +0000
-Received: from CH3PEPF0000000A.namprd04.prod.outlook.com
- (2603:10b6:610:e7:cafe::90) by CH0PR03CA0233.outlook.office365.com
- (2603:10b6:610:e7::28) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.428.11 via Frontend Transport; Thu,
- 17 Sep 2026 11:15:42 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.406.12; Thu, 17 Sep
+ 2026 11:15:45 +0000
+Received: from BN3PEPF00022BC6.namprd05.prod.outlook.com
+ (2603:10b6:408:e7:cafe::4f) by BN0PR03CA0058.outlook.office365.com
+ (2603:10b6:408:e7::33) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.428.12 via Frontend Transport; Thu,
+ 17 Sep 2026 11:15:45 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.232)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.233) by
- CH3PEPF0000000A.mail.protection.outlook.com (10.167.244.37) with Microsoft
+ 216.228.118.232 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.118.232) by
+ BN3PEPF00022BC6.mail.protection.outlook.com (10.167.248.219) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.451.8 via Frontend Transport; Thu, 17 Sep 2026 11:15:42 +0000
-Received: from drhqmail203.nvidia.com (10.126.190.182) by mail.nvidia.com
- (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
+ 15.21.451.8 via Frontend Transport; Thu, 17 Sep 2026 11:15:45 +0000
+Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
+ (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Thu, 17 Sep
- 2026 04:15:32 -0700
+ 2026 04:15:27 -0700
 Received: from drhqmail202.nvidia.com (10.126.190.181) by
- drhqmail203.nvidia.com (10.126.190.182) with Microsoft SMTP Server
+ drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.49; Thu, 17 Sep 2026 04:15:31 -0700
+ 15.2.2562.49; Thu, 17 Sep 2026 04:15:27 -0700
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
  (10.126.190.181) with Microsoft SMTP Server id 15.2.2562.49 via Frontend
- Transport; Thu, 17 Sep 2026 04:15:27 -0700
+ Transport; Thu, 17 Sep 2026 04:15:23 -0700
 From: Tariq Toukan <tariqt@nvidia.com>
 To: Leon Romanovsky <leon@kernel.org>, <linux-rdma@vger.kernel.org>, "Mark
  Bloch" <mbloch@nvidia.com>, <netdev@vger.kernel.org>, Saeed Mahameed
@@ -73,9 +73,9 @@ CC: Andrew Lunn <andrew+netdev@lunn.ch>, Cosmin Ratiu <cratiu@nvidia.com>,
 	<gal@nvidia.com>, Jakub Kicinski <kuba@kernel.org>, Jason Gunthorpe
 	<jgg@ziepe.ca>, Leon Romanovsky <leonro@nvidia.com>, open list
 	<linux-kernel@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>
-Subject: [PATCH mlx5-next 07/10] RDMA/mlx5: Extract IB specific lock out of data direct
-Date: Thu, 17 Sep 2026 14:14:19 +0300
-Message-ID: <20260917111422.4054862-8-tariqt@nvidia.com>
+Subject: [PATCH mlx5-next 06/10] RDMA/mlx5: Add new registration stage for data direct users
+Date: Thu, 17 Sep 2026 14:14:18 +0300
+Message-ID: <20260917111422.4054862-7-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.44.0
 In-Reply-To: <20260917111422.4054862-1-tariqt@nvidia.com>
 References: <20260917111422.4054862-1-tariqt@nvidia.com>
@@ -90,147 +90,372 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH3PEPF0000000A:EE_|MW4PR12MB6756:EE_
-X-MS-Office365-Filtering-Correlation-Id: 2c3ce762-f429-4da3-e074-08df14ad0310
+X-MS-TrafficTypeDiagnostic: BN3PEPF00022BC6:EE_|SJ0PR12MB6855:EE_
+X-MS-Office365-Filtering-Correlation-Id: 440f2a55-882d-4753-2b56-08df14ad04ef
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|376014|7416014|36860700016|1800799024|82310400026|6133799003|10067099003|56012099006|11063799006|18002099003|22082099003;
+	BCL:0;ARA:13230040|376014|23010399003|36860700016|7416014|82310400026|1800799024|6133799003|10067099003|56012099006|11063799006|22082099003|18002099003;
 X-Microsoft-Antispam-Message-Info:
-	YpsVaCtlmMH+HfcLNsYaKAClM6pJCLfiDreb06pl1U5MuL4ASKhOGx6E/52g3yyQLw9TgUCrlaWmv5pwbCNyrqqtwOjXrDzj3lj9AU7JVDLEXcpAfmQFSkpxPcx0TIJfxvvkpc499M/x+1VCJRtYT8jqGDZ9sIOtDHfyYbLHc6BQvHoKWmwU7szFw7YPRKKaPHxhzam9KFxhnCMptEPmntbvIK8MTKKyBpNq2mRk453h33ahaQWtwyKARbyBTEOgj07yCcEjRCQbRLsTUHmWJCtLhwK7fABZgz9KtQRgY/Sbb5EKBAJTRMeoxrV4YSPM6Clms01nA8s74394UZF0ZM2hqGBR8SPmn42hbRshzbkWJ4NEaMpC4SmE28Gf369bxDJXI6/SbvXNH6VYCH39XHXMvC/pLExEHCA2kbLMXQYBR9CKfIfpv54LJ9ZHiFs0UsNOC9/vd1OeajfofplqKQbb2pKrKFWaiXY+xBUEbrN8kUk+z1fHelBvgj0FEoy5b3nf1Td0nxZP2VtxJ4GOnjq278fkO4SWZ882/I2odN/XsMSD4JT8QJ9Wq946MlB/yMZi4GtFer6+uC8qBSYT2+QsJ0Eru/GPvmUWqc60JI75ZAL+ZIeIRslfHkqEYhd+ll/wTZ13kKD0jgV1WCcv0was0ZpHuIny02G1ruzfz2pxUEoDMWfP8TuhvpNM1MkHKsGR6ncXWJqhTDKsrOnohA==
+	ZsU71vHriFS4rXLBUpvBSDpJ3sbmaTPcD4TYCmuuBGEh9xKDzdNUjabAAF+g1DpUds3liZT4Qs7N6VmNcDpj5IfuqBY5n79JgNUfJKHMa8IFfvRXlFGQbwOoJyI3cdoYwtzXtPrwbBOSv8gUHz0u7eHjY0q0v7ZoM0upWzpWgpPj2d2CAt+P1MELiGXH5dPvSwpudNKbF3QU/aRuYIDqhBIwo0RggR34VbuT6V/EwQ7RtJkKYrTqIQosKyCa99FjOSTpcEYEI1t2SnNCkE9a3Xa/7hvrh67Bade+TUgoN1KtdFqEaA7buMOndgw2ASJNf+BOFujU5rLbX7EaYiAE7NkxsD7i/2ig3HkjMiLOQXNSb8WGRypLzw8jPDqPDsL1qIdH7iAlp+hEoxNOOX2MgbcgfUhinI1KNN/bgsPDK6lr5stJ/VJrIPK+ERrBI1WdGdf/BD+Y7oXWqHHLcwMZf38jPxyxIAcsDKHeZevO5JNRKKhzVu1IE0T5BYs51EbWPqddv53V6gySOt+OEGcWY0dzGbesjk1EGsnbncvkdSfdJUeCGvIY3x+q4FRSELDS+8gT22Pq2yeFg3L87ZpBa2kjAvzIUVgANj35wdk6tlURyVup3kypYmUnPYZvwuoQLcP1w1Bkrru6RND8bk4kipGephBsxRPLUNr84lLEqI7kwL50M1f7pd1DMiIdRzOSYWYkDeW9YqwgSGm8MvkuaA==
 X-Forefront-Antispam-Report:
-	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(376014)(7416014)(36860700016)(1800799024)(82310400026)(6133799003)(10067099003)(56012099006)(11063799006)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(23010399003)(36860700016)(7416014)(82310400026)(1800799024)(6133799003)(10067099003)(56012099006)(11063799006)(22082099003)(18002099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	ItU5OBjy0YKcnB3pwNdSBCyZj7bIyyRo1Dp5pq6qDn4C0c1lhlU7gc5+qicBi2TQDjagkVKdk9FrT3mbmqdct/nwDL7QaJbw2aBeAW583wl5BrWMr3z3tM6nRvxXmgQMDoEdGtLzBiaYXW+znMmKdnjEEtSKV2GvTi2NqtbBpCIJqUDHd0o26caEudOHPOz9FXEiFk2O93ib4bjGjwKgGpucP37oM3nrLRV+4t6koSWTdwNwkUDx50o4r1YpUYurRB/8RkyLAnj8Hn9hqTz59GK6gLdRpdBR3xCBvzO/oXzLPJ9LhgLiEb808k26ymfTOse4+B8NnXcsGHlTDm5YCuY9E7uzbloM7eB9EDaj4p5PDxYVkhVDkydZlkdXSEwUkRv2+q0kygY8tNOUW+pf51gnIttRsICfrLD1ceGASpClEr0SaVgFIOCJSvfiDcZB
+	vMFVShXX6D3RT4wks6yCtwf9Z0/Hmewm+ezvmvqw1GO8jUt7yzU+nsEVmFd3+RCyP6SrlfYbR3swzQ18exJUnjFjzI/TO7Fye1/QFt8+QdMtlUkyj1iJir/q3xegYBzLqlj3F54SLz3KnzfjSD1vaQntSSNHtx4VKBd2GeFPtuQexSaQrLDeu5WAbizIDUa2EKMZnbQ5ifR9y9jldl/bFlnz+6c3jEp7LyMv54FPi6t68wlTJGi2k/w/wbSDLFHpfD7FXkgvPycLdRBMYHiMHzr0TIJnoc1YT207IHUfe48cBNnfjag3/nBbL9zl9y3GWKUwzdhYf+kj6qRUjrJJPgvrssgiNaclVRcKkN6xILtLveqcp6mRqpkFXYG/7lmvBrhARfw2lTSXkF2isfkNi4IJ3TbtBssYCxAcaItAbUlRgUTi/QlnZvIHM7Ortu57
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Sep 2026 11:15:42.1824
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Sep 2026 11:15:45.2828
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 2c3ce762-f429-4da3-e074-08df14ad0310
+X-MS-Exchange-CrossTenant-Network-Message-Id: 440f2a55-882d-4753-2b56-08df14ad04ef
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	CH3PEPF0000000A.namprd04.prod.outlook.com
+	BN3PEPF00022BC6.namprd05.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR12MB6756
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR12MB6855
 
 From: Dragos Tatulea <dtatulea@nvidia.com>
 
-The data_direct_lock from struct mlx5_ib_dev is an IB specific lock.
-It protects from unbind while mlx5_data_direct_dev is being accessed.
+For the upcoming move of data direct to mlx5_core driver,
+the API needs to be split into init and register stages.
+That's because only the core will do the init phase but
+both IB and netdev devices will need to register.
 
-So move data_direct_lock out of the generic bind/unbind functions
-and into the IB specific notifier callback.
+While data direct still lives in mlx5_ib, do all steps in
+mlx5_ib_data_direct_init().
 
-data_direct_dev can be set during bind/unbind with a simple WRITE_ONCE,
-the lock is no longer needed.
+While at it, make mlx5_data_direct_query_vuid() private
+as it is no longer needed.
 
-Each user of the data direct registration API has to do their own
-locking if necessary.
-
-During unbind, the data_direct_dev is set to NULL before calling the
-notifiers to avoid multiple users still accessing the data_direct_dev
-while unbind is in progress. This is to avoid another data
-direct specific lock which can lead to lock ordering issues.
-
-This patch has no functional changes.
+This patch has no functional changes. It is a preparation
+for moving data direct infrastructure to mlx5_core. For
+this reason the new functions are added to the new header.
 
 Signed-off-by: Dragos Tatulea <dtatulea@nvidia.com>
 Reviewed-by: Cosmin Ratiu <cratiu@nvidia.com>
 Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
 Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/data_direct.c | 8 ++------
- drivers/infiniband/hw/mlx5/main.c        | 2 ++
- drivers/infiniband/hw/mlx5/mlx5_ib.h     | 4 +++-
- drivers/infiniband/hw/mlx5/mr.c          | 2 +-
- drivers/infiniband/hw/mlx5/std_types.c   | 2 +-
- 5 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/infiniband/hw/mlx5/data_direct.c | 114 ++++++++++++++++++-----
+ drivers/infiniband/hw/mlx5/data_direct.h |   5 -
+ drivers/infiniband/hw/mlx5/main.c        |  41 ++++----
+ drivers/infiniband/hw/mlx5/mlx5_ib.h     |   3 -
+ include/linux/mlx5/data_direct.h         |  10 +-
+ 5 files changed, 118 insertions(+), 55 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/data_direct.c b/drivers/infiniband/hw/mlx5/data_direct.c
-index f871e3ce9f73..16afacdd3601 100644
+index cc3f741b4f81..f871e3ce9f73 100644
 --- a/drivers/infiniband/hw/mlx5/data_direct.c
 +++ b/drivers/infiniband/hw/mlx5/data_direct.c
-@@ -197,9 +197,7 @@ mlx5_data_direct_get_reg(struct mlx5_ib_dev *ibdev)
- static void mlx5_data_direct_bind(struct mlx5_ib_dev *ibdev,
- 				  struct mlx5_data_direct_dev *dev)
+@@ -24,7 +24,8 @@ struct mlx5_data_direct_registration {
+ 	struct blocking_notifier_head users;
+ };
+ 
+-int mlx5_data_direct_query_vuid(struct mlx5_core_dev *dev, char *out_vuid)
++static int mlx5_data_direct_query_vuid(struct mlx5_core_dev *dev,
++				       char *out_vuid)
  {
--	mutex_lock(&ibdev->data_direct_lock);
--	ibdev->data_direct_dev = dev;
--	mutex_unlock(&ibdev->data_direct_lock);
-+	WRITE_ONCE(ibdev->data_direct_dev, dev);
+ 	u8 out[MLX5_ST_SZ_BYTES(query_vuid_out) +
+ 	       MLX5_ST_SZ_BYTES(array1024_auto)] = {};
+@@ -182,25 +183,65 @@ void mlx5_data_direct_free_resources(struct mlx5_ib_dev *dev)
+ 	memset(&dev->ddr, 0, sizeof(dev->ddr));
  }
  
- static void
-@@ -207,11 +205,9 @@ mlx5_data_direct_do_unbind(struct mlx5_data_direct_registration *reg)
+-int mlx5_data_direct_ib_reg(struct mlx5_ib_dev *ibdev, char *vuid,
+-			    struct notifier_block *nb)
++static struct mlx5_data_direct_registration *
++mlx5_data_direct_get_reg(struct mlx5_ib_dev *ibdev)
++{
++	struct mlx5_data_direct_registration *reg;
++
++	list_for_each_entry(reg, &mlx5_data_direct_reg_list, list)
++		if (reg->ibdev == ibdev)
++			return reg;
++	return NULL;
++}
++
++static void mlx5_data_direct_bind(struct mlx5_ib_dev *ibdev,
++				  struct mlx5_data_direct_dev *dev)
++{
++	mutex_lock(&ibdev->data_direct_lock);
++	ibdev->data_direct_dev = dev;
++	mutex_unlock(&ibdev->data_direct_lock);
++}
++
++static void
++mlx5_data_direct_do_unbind(struct mlx5_data_direct_registration *reg)
++{
++	struct mlx5_ib_dev *ibdev = reg->ibdev;
++
++	mutex_lock(&ibdev->data_direct_lock);
++	blocking_notifier_call_chain(&reg->users, MLX5_DATA_DIRECT_UNBIND,
++				     NULL);
++	ibdev->data_direct_dev = NULL;
++	mutex_unlock(&ibdev->data_direct_lock);
++}
++
++int mlx5_data_direct_init(struct mlx5_ib_dev *ibdev)
  {
- 	struct mlx5_ib_dev *ibdev = reg->ibdev;
+ 	struct mlx5_data_direct_registration *reg;
+ 	struct mlx5_data_direct_dev *dev;
++	int err;
++
++	if (!mlx5_data_direct_supported(ibdev->mdev))
++		return 0;
  
--	mutex_lock(&ibdev->data_direct_lock);
-+	WRITE_ONCE(ibdev->data_direct_dev, NULL);
- 	blocking_notifier_call_chain(&reg->users, MLX5_DATA_DIRECT_UNBIND,
- 				     NULL);
--	ibdev->data_direct_dev = NULL;
--	mutex_unlock(&ibdev->data_direct_lock);
+ 	reg = kzalloc_obj(*reg);
+ 	if (!reg)
+ 		return -ENOMEM;
+ 
+ 	reg->ibdev = ibdev;
+-	strscpy(reg->vuid, vuid);
+ 	BLOCKING_INIT_NOTIFIER_HEAD(&reg->users);
+-	blocking_notifier_chain_register(&reg->users, nb);
++
++	err = mlx5_data_direct_query_vuid(ibdev->mdev, reg->vuid);
++	if (err) {
++		mlx5_ib_warn(ibdev, "Failed to query VUID, disabling data direct, err=%d\n",
++			     err);
++		kfree(reg);
++		return err;
++	}
+ 
+ 	mutex_lock(&mlx5_data_direct_mutex);
+ 	list_for_each_entry(dev, &mlx5_data_direct_dev_list, list) {
+-		if (strcmp(dev->vuid, vuid) == 0) {
+-			mlx5_ib_data_direct_bind(ibdev, dev);
++		if (strcmp(dev->vuid, reg->vuid) == 0) {
++			mlx5_data_direct_bind(ibdev, dev);
+ 			break;
+ 		}
+ 	}
+@@ -213,25 +254,56 @@ int mlx5_data_direct_ib_reg(struct mlx5_ib_dev *ibdev, char *vuid,
+ 	return 0;
  }
  
- int mlx5_data_direct_init(struct mlx5_ib_dev *ibdev)
+-void mlx5_data_direct_ib_unreg(struct mlx5_ib_dev *ibdev,
+-			       struct notifier_block *nb)
++void mlx5_data_direct_cleanup(struct mlx5_ib_dev *ibdev)
+ {
+ 	struct mlx5_data_direct_registration *reg;
+ 
++	if (!mlx5_data_direct_supported(ibdev->mdev))
++		return;
++
+ 	mutex_lock(&mlx5_data_direct_mutex);
+-	list_for_each_entry(reg, &mlx5_data_direct_reg_list, list) {
+-		if (reg->ibdev == ibdev) {
+-			blocking_notifier_chain_unregister(&reg->users, nb);
+-			list_del(&reg->list);
+-			kfree(reg);
+-			goto end;
+-		}
++	reg = mlx5_data_direct_get_reg(ibdev);
++	if (reg) {
++		list_del(&reg->list);
++		mlx5_data_direct_do_unbind(reg);
+ 	}
++	mutex_unlock(&mlx5_data_direct_mutex);
+ 
+-	WARN_ON(true);
+-end:
++	kfree(reg);
++}
++
++int mlx5_data_direct_register(struct mlx5_ib_dev *ibdev,
++			      struct notifier_block *nb)
++{
++	struct mlx5_data_direct_registration *reg;
++
++	if (!mlx5_data_direct_supported(ibdev->mdev))
++		return 0;
++
++	mutex_lock(&mlx5_data_direct_mutex);
++	reg = mlx5_data_direct_get_reg(ibdev);
++	if (reg)
++		blocking_notifier_chain_register(&reg->users, nb);
++	mutex_unlock(&mlx5_data_direct_mutex);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(mlx5_data_direct_register);
++
++void mlx5_data_direct_unregister(struct mlx5_ib_dev *ibdev,
++				 struct notifier_block *nb)
++{
++	struct mlx5_data_direct_registration *reg;
++
++	if (!mlx5_data_direct_supported(ibdev->mdev))
++		return;
++
++	mutex_lock(&mlx5_data_direct_mutex);
++	reg = mlx5_data_direct_get_reg(ibdev);
++	if (reg)
++		blocking_notifier_chain_unregister(&reg->users, nb);
+ 	mutex_unlock(&mlx5_data_direct_mutex);
+ }
++EXPORT_SYMBOL_GPL(mlx5_data_direct_unregister);
+ 
+ static void mlx5_data_direct_dev_reg(struct mlx5_data_direct_dev *dev)
+ {
+@@ -240,7 +312,7 @@ static void mlx5_data_direct_dev_reg(struct mlx5_data_direct_dev *dev)
+ 	mutex_lock(&mlx5_data_direct_mutex);
+ 	list_for_each_entry(reg, &mlx5_data_direct_reg_list, list) {
+ 		if (strcmp(dev->vuid, reg->vuid) == 0)
+-			mlx5_ib_data_direct_bind(reg->ibdev, dev);
++			mlx5_data_direct_bind(reg->ibdev, dev);
+ 	}
+ 
+ 	/* Add the data direct device to the global list, further IB devices may
+@@ -259,9 +331,7 @@ static void mlx5_data_direct_dev_unreg(struct mlx5_data_direct_dev *dev)
+ 	list_del(&dev->list);
+ 	list_for_each_entry(reg, &mlx5_data_direct_reg_list, list) {
+ 		if (strcmp(dev->vuid, reg->vuid) == 0)
+-			blocking_notifier_call_chain(&reg->users,
+-						     MLX5_DATA_DIRECT_UNBIND,
+-						     NULL);
++			mlx5_data_direct_do_unbind(reg);
+ 	}
+ 	mutex_unlock(&mlx5_data_direct_mutex);
+ }
+diff --git a/drivers/infiniband/hw/mlx5/data_direct.h b/drivers/infiniband/hw/mlx5/data_direct.h
+index 90e0565d7333..f207239461bf 100644
+--- a/drivers/infiniband/hw/mlx5/data_direct.h
++++ b/drivers/infiniband/hw/mlx5/data_direct.h
+@@ -33,11 +33,6 @@ struct mlx5_data_direct_resources {
+ int mlx5_data_direct_create_resources(struct mlx5_ib_dev *dev);
+ void mlx5_data_direct_free_resources(struct mlx5_ib_dev *dev);
+ 
+-int mlx5_data_direct_query_vuid(struct mlx5_core_dev *dev, char *out_vuid);
+-int mlx5_data_direct_ib_reg(struct mlx5_ib_dev *ibdev, char *vuid,
+-			    struct notifier_block *nb);
+-void mlx5_data_direct_ib_unreg(struct mlx5_ib_dev *ibdev,
+-			       struct notifier_block *nb);
+ int mlx5_data_direct_driver_register(void);
+ void mlx5_data_direct_driver_unregister(void);
+ 
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index d0141509870a..cefbcc816651 100644
+index 0bece3e55109..d0141509870a 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -3948,7 +3948,9 @@ static int mlx5_ib_data_direct_event(struct notifier_block *nb,
- 	if (action != MLX5_DATA_DIRECT_UNBIND)
- 		return NOTIFY_DONE;
+@@ -3945,33 +3945,41 @@ static int mlx5_ib_data_direct_event(struct notifier_block *nb,
+ 	struct mlx5_ib_dev *dev =
+ 		container_of(nb, struct mlx5_ib_dev, data_direct_nb);
  
-+	mutex_lock(&dev->data_direct_lock);
- 	mlx5_ib_revoke_data_direct_mrs(dev);
-+	mutex_unlock(&dev->data_direct_lock);
+-	if (action == MLX5_DATA_DIRECT_UNBIND)
+-		mlx5_ib_data_direct_unbind(dev);
++	if (action != MLX5_DATA_DIRECT_UNBIND)
++		return NOTIFY_DONE;
++
++	mlx5_ib_revoke_data_direct_mrs(dev);
  
  	return NOTIFY_OK;
  }
+ 
+ static int mlx5_ib_data_direct_init(struct mlx5_ib_dev *dev)
+ {
+-	char vuid[MLX5_ST_SZ_BYTES(array1024_auto) + 1] = {};
+ 	int ret;
+ 
+ 	if (!mlx5_data_direct_supported(dev->mdev))
+ 		return 0;
+ 
+-	ret = mlx5_data_direct_query_vuid(dev->mdev, vuid);
++	ret = mlx5_data_direct_init(dev);
+ 	if (ret)
+ 		return ret;
+ 
+ 	ret = mlx5_data_direct_create_resources(dev);
+ 	if (ret)
+-		return ret;
++		goto err_resources;
+ 
+ 	INIT_LIST_HEAD(&dev->data_direct_mr_list);
+ 	dev->data_direct_nb.notifier_call = mlx5_ib_data_direct_event;
+-	ret = mlx5_data_direct_ib_reg(dev, vuid, &dev->data_direct_nb);
++	ret = mlx5_data_direct_register(dev, &dev->data_direct_nb);
+ 	if (ret)
+-		mlx5_data_direct_free_resources(dev);
++		goto err_register;
++
++	return ret;
++
++err_register:
++	mlx5_data_direct_free_resources(dev);
++err_resources:
++	mlx5_data_direct_cleanup(dev);
+ 
+ 	return ret;
+ }
+@@ -3981,8 +3989,9 @@ static void mlx5_ib_data_direct_cleanup(struct mlx5_ib_dev *dev)
+ 	if (!mlx5_data_direct_supported(dev->mdev))
+ 		return;
+ 
+-	mlx5_data_direct_ib_unreg(dev, &dev->data_direct_nb);
++	mlx5_data_direct_unregister(dev, &dev->data_direct_nb);
+ 	mlx5_data_direct_free_resources(dev);
++	mlx5_data_direct_cleanup(dev);
+ }
+ 
+ static int mlx5_ib_init_multiport_master(struct mlx5_ib_dev *dev)
+@@ -5008,22 +5017,6 @@ static void mlx5_ib_stage_dev_notifier_cleanup(struct mlx5_ib_dev *dev)
+ 		cancel_work_sync(&devr->ports[port].pkey_change_work);
+ }
+ 
+-void mlx5_ib_data_direct_bind(struct mlx5_ib_dev *ibdev,
+-			      struct mlx5_data_direct_dev *dev)
+-{
+-	mutex_lock(&ibdev->data_direct_lock);
+-	ibdev->data_direct_dev = dev;
+-	mutex_unlock(&ibdev->data_direct_lock);
+-}
+-
+-void mlx5_ib_data_direct_unbind(struct mlx5_ib_dev *ibdev)
+-{
+-	mutex_lock(&ibdev->data_direct_lock);
+-	mlx5_ib_revoke_data_direct_mrs(ibdev);
+-	ibdev->data_direct_dev = NULL;
+-	mutex_unlock(&ibdev->data_direct_lock);
+-}
+-
+ void __mlx5_ib_remove(struct mlx5_ib_dev *dev,
+ 		      const struct mlx5_ib_profile *profile,
+ 		      int stage)
 diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index e56f3eee7ba1..8792e10340c5 100644
+index ff026985e293..e56f3eee7ba1 100644
 --- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
 +++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -1092,7 +1092,9 @@ struct mlx5_ib_dev {
- 	struct ib_device		ib_dev;
- 	struct mlx5_core_dev		*mdev;
- 	struct mlx5_data_direct_dev	*data_direct_dev;
--	/* protect accessing data_direct_dev */
-+	/* Protects data_direct_mr_list and serializes mr
-+	 * registration/deregistration with data direct device unbind.
-+	 */
- 	struct mutex			data_direct_lock;
- 	struct notifier_block		mdev_events;
- 	struct notifier_block		sys_error_events;
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index e6b74955d95d..1fc61a680f8a 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -997,7 +997,7 @@ reg_user_mr_dmabuf_by_data_direct(struct ib_pd *pd, u64 offset,
- 		return ERR_PTR(-EOPNOTSUPP);
+@@ -1396,9 +1396,6 @@ int mlx5_ib_destroy_rwq_ind_table(struct ib_rwq_ind_table *wq_ind_table);
+ struct ib_mr *mlx5_ib_reg_dm_mr(struct ib_pd *pd, struct ib_dm *dm,
+ 				struct ib_dm_mr_attr *attr,
+ 				struct uverbs_attr_bundle *attrs);
+-void mlx5_ib_data_direct_bind(struct mlx5_ib_dev *ibdev,
+-			      struct mlx5_data_direct_dev *dev);
+-void mlx5_ib_data_direct_unbind(struct mlx5_ib_dev *ibdev);
+ void mlx5_ib_revoke_data_direct_mrs(struct mlx5_ib_dev *dev);
  
- 	mutex_lock(&dev->data_direct_lock);
--	data_direct_dev = dev->data_direct_dev;
-+	data_direct_dev = READ_ONCE(dev->data_direct_dev);
- 	if (!data_direct_dev) {
- 		ret = -EINVAL;
- 		goto end;
-diff --git a/drivers/infiniband/hw/mlx5/std_types.c b/drivers/infiniband/hw/mlx5/std_types.c
-index 1ee31611b4b3..df949fa634c9 100644
---- a/drivers/infiniband/hw/mlx5/std_types.c
-+++ b/drivers/infiniband/hw/mlx5/std_types.c
-@@ -203,7 +203,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_GET_DATA_DIRECT_SYSFS_PATH)(
- 		return PTR_ERR(c);
- 	dev = to_mdev(c->ibucontext.device);
- 	mutex_lock(&dev->data_direct_lock);
--	data_direct_dev = dev->data_direct_dev;
-+	data_direct_dev = READ_ONCE(dev->data_direct_dev);
- 	if (!data_direct_dev) {
- 		ret = -ENODEV;
- 		goto end;
+ #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+diff --git a/include/linux/mlx5/data_direct.h b/include/linux/mlx5/data_direct.h
+index 4556e58c6d03..71f47547aebb 100644
+--- a/include/linux/mlx5/data_direct.h
++++ b/include/linux/mlx5/data_direct.h
+@@ -7,7 +7,15 @@
+ #define _MLX5_DATA_DIRECT_H
+ 
+ struct mlx5_core_dev;
++struct mlx5_ib_dev;
++struct notifier_block;
+ 
+-int mlx5_data_direct_query_vuid(struct mlx5_core_dev *dev, char *out_vuid);
++int mlx5_data_direct_init(struct mlx5_ib_dev *ibdev);
++void mlx5_data_direct_cleanup(struct mlx5_ib_dev *ibdev);
++
++int mlx5_data_direct_register(struct mlx5_ib_dev *ibdev,
++			      struct notifier_block *nb);
++void mlx5_data_direct_unregister(struct mlx5_ib_dev *ibdev,
++				 struct notifier_block *nb);
+ 
+ #endif
 -- 
 2.44.0
 
