@@ -1,31 +1,30 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96EA547CC87;
-	Thu, 17 Sep 2026 07:40:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0268147A88D;
+	Thu, 17 Sep 2026 07:41:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789630808; cv=none; b=EKY/MXFLQBhIFCFiAA5F4sOsaK/5mTezt3YSUBzag7/PLZ65KPm4ZNpQyuhKXAv4af/F3HtFHx2N15HoFtrAmKpZnTPH3sjK9h23tKtF6b4+/8+L9/TWEZxi1oRxiqANVr3E1/Sqidy6bK6qQloQCHXUifCqalv9egCe0YsFQ0A=
+	t=1789630871; cv=none; b=t3qhdjgCRneQO96BEMHjHzCL082/W7FoJFNcuVZRte4yKZCPcPlHTzd5FrC/pLBo2RiW3rFGU90KY87g0XcJqky7xE0lpDUhOOk+MFWSZ9xgVxJd98bieVPjk1JCFWtV0NLtA8YCoPgux+RhKj5LIHbWmLtdZ/d/R5VwZ/cm5Zs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789630808; c=relaxed/simple;
-	bh=3zSs0ABuFnFCFfFexD/oL+0zWqGUs8XSEhmy7LV8fL4=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=f92xNc+wdNg59+FBH3BQMMNHotmvGfsF9YZ32tQNQ9Shw5pOfy+j78Hexn0XW6HXeqgIvEIZHHSx3Z57MrWbHHPgwmYuwffVYwdsrpEoguRk75C/kqlTIc3+rMP5i/Aw19FH6FqYQWbVtsIcFfc3ypyqNgpcB/o5UYu2yqlx9JY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=h+iC8XJo; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789630871; c=relaxed/simple;
+	bh=l5+ksHVrfdyqxhledb8ghljWsiXAkyRtQ7zJYE6MNYY=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=qtNzZTWqBIkMjxVH2bPMt2p3btAHBZaGC3alJaszWrKpzBjnT38e2uHnnK992iUhQBa8PL00R49lMdDcb6Rjy9IsQhXbHvZTengs3g/dtloBvyyOnVmS8PbFhPIKRcFWv0TcfYF5MFkqi0of804M9vFArIZHo82A0SCA9K0o+Pg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CuZ/7q1d; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="h+iC8XJo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 264FB1F0089C;
-	Thu, 17 Sep 2026 07:40:05 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CuZ/7q1d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A6BF1F00893;
+	Thu, 17 Sep 2026 07:41:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789630805;
-	bh=oCxc3AFQocqHfZ8pwtUwBFuBK/JhlZMdid6+N0CEgmk=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=h+iC8XJo+FPtyqZbVIpw0HIqwNp0+7rhRu46TRHbYn0kgO1hPfbZ8qf3NgLoF1DiL
-	 A/SMpghbg1KREG0Wwkout6g8X72TQuXHU1d/OYealVFgzcCObSmNB3oR9ePCty8YC3
-	 6MdB3AEhdCZekCJHn1o1PE0YHq0H/sBHC3yTESOFClnlzghVfDe1uL9s9nzmOpnW2c
-	 AB6duzkkbuj9HTv6PGKlp2Sj7NDSQ+wdE2eNNyPgVbwKpwWbnq9STxPG9scm0qwDOo
-	 ByhxNo4vj9hrgvVa1pgBIA6vQJvJs5vuK4uDSMFtcfj2vxK5XRezWhYxjzibdoTCFF
-	 b2CUvkHo/MnFg==
+	s=k20260515; t=1789630869;
+	bh=hMTJp6lkhsWldonH2TVjtktXUT7se4eSz/mgRPX6dp0=;
+	h=From:To:Cc:Subject:Date;
+	b=CuZ/7q1d9G9Dpq8VwZARD/soOvx/rVBkAy5MDD5j7ZO3JrGITJHmoD3aTv5o1L544
+	 bpkCNa5E/aEWAJ/UdGaF5XYvAaFV9vF849tKUC9z03dYS0AaE2IoLPPdU7yvV/nQlz
+	 FKgALSSsT6qegnSSWMpD7QHJIfMMSOMBXPjzi1z+RClcLD3z0MqWFrsNNW4RuVUUl1
+	 kxyH2l/leY1zGGWkOgx5kjBoOXaVBFWENwJ5EyLVMA1cT6FHqfv2Q52RbeVUsmLnt+
+	 MENja5ExqYKYvJCu28YGcdA118wE2HNjv9ZEfMIh43m9yUOvHFtNLKQDV6+pz/nbZg
+	 2yzcrzIUHq6Qg==
 From: Allison Henderson <achender@kernel.org>
 To: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
@@ -33,14 +32,11 @@ To: netdev@vger.kernel.org,
 	edumazet@google.com,
 	kuba@kernel.org,
 	horms@kernel.org
-Cc: achender@kernel.org,
-	nicoyip.dev@gmail.com
-Subject: [PATCH net-next v4 11/12] net/rds: drop rds_conn_count in favor of t_conn_count
-Date: Thu, 17 Sep 2026 00:39:57 -0700
-Message-Id: <20260917073958.174056-12-achender@kernel.org>
+Cc: achender@kernel.org
+Subject: [PATCH net-next] net/rds: restrict the rdma_cm ids to IB devices
+Date: Thu, 17 Sep 2026 00:41:08 -0700
+Message-Id: <20260917074108.174262-1-achender@kernel.org>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20260917073958.174056-1-achender@kernel.org>
-References: <20260917073958.174056-1-achender@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -49,94 +45,112 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The previous patch gave each transport its own connection count in
-t_conn_count, incremented and decremented at exactly the points where
-the global rds_conn_count is.  That leaves rds_conn_count with a
-single remaining consumer: the seed of the per-path workqueue names
-in __rds_conn_create().
+RDS only has an IB transport, but it never tells the rdma_cm so.  The
+listener created in rds_rdma_listen_init() is therefore installed on
+every RDMA device in the system, including iWARP RNICs, and the id an
+outgoing connection resolves through in rds_ib_conn_path_connect()
+may be bound to whichever device the address resolution picks:
+rds_ib_laddr_check() only vouched for the local address being served
+by one of RDS's IB devices, while cma_acquire_dev_by_src_ip() walks
+every RDMA device for the same address, so a software iWARP device
+attached to the same netdev can win.  The event handler then runs
+the IB transport's callbacks against a device that is not one.
 
-Switch the name seed to t_conn_count, as UEK does, and remove
-rds_conn_count.  The numbering becomes per-transport instead of
-global, so connections of different transports can now receive the
-same seed; workqueue names carry no uniqueness requirement, and the
-seed was already reused as the count rose and fell.  Removing the
-counter also removes the rds_conn_lock round-trip that
-rds_conn_destroy_fini() took solely to decrement it.  (The free path
-still sleeps in destroy_workqueue(), so the last reference has to be
-dropped from process context as before; only that one lock goes.)
+The rdma_cm has an API for exactly this since commit a760e80e90f5
+("RDMA/core: introduce rdma_restrict_node_type()").  Restrict all
+three ids RDS creates - the listener, the per-connection id and the
+probe id in rds_ib_laddr_check_cm() - to RDMA_NODE_IB_CA before they
+are bound, so that the listener is only installed on IB devices, an
+outgoing connection can only bind one, and the address check's bind
+fails outright on anything else (its explicit node_type test now only
+guards against a device with no node type at all).
 
-Based on the Oracle UEK commit "net/rds: Each RDS transport
-should keep its own connection count".
+With that, the connect-request rejection for non-IB devices in the
+event handler becomes unreachable; it stays as the last line of
+defence and is what stable kernels without the new API rely on.
 
 Assisted-by: Claude-Code:claude-fable-5
 Signed-off-by: Allison Henderson <achender@kernel.org>
 ---
- net/rds/connection.c | 13 +++----------
- 1 file changed, 3 insertions(+), 10 deletions(-)
+ net/rds/ib.c             | 11 +++++------
+ net/rds/ib_cm.c          | 10 ++++++++++
+ net/rds/rdma_transport.c |  8 ++++++++
+ 3 files changed, 23 insertions(+), 6 deletions(-)
 
-diff --git a/net/rds/connection.c b/net/rds/connection.c
-index 5699f45e4c37..546961bb2e12 100644
---- a/net/rds/connection.c
-+++ b/net/rds/connection.c
-@@ -47,7 +47,6 @@
+diff --git a/net/rds/ib.c b/net/rds/ib.c
+index 786f39169bc1..6d367518aafb 100644
+--- a/net/rds/ib.c
++++ b/net/rds/ib.c
+@@ -414,13 +414,14 @@ static int rds_ib_laddr_check_cm(struct net *net, const struct in6_addr *addr,
+ 	bool isv4;
  
- /* converting this to RCU is a chore for another day.. */
- static DEFINE_SPINLOCK(rds_conn_lock);
--static unsigned long rds_conn_count;
- /* woken whenever a transport's t_conn_count drops to zero */
- static DECLARE_WAIT_QUEUE_HEAD(rds_conn_freed_waitq);
- static struct hlist_head rds_conn_hash[RDS_CONNECTION_HASH_ENTRIES];
-@@ -332,12 +331,13 @@ static struct rds_connection *__rds_conn_create(struct net *net,
+ 	isv4 = ipv6_addr_v4mapped(addr);
+-	/* Create a CMA ID and try to bind it. This catches both
+-	 * IB and iWARP capable NICs.
+-	 */
++	/* Create a CMA ID restricted to IB devices and try to bind it. */
+ 	cm_id = rdma_create_id(&init_net, rds_rdma_cm_event_handler,
+ 			       NULL, RDMA_PS_TCP, IB_QPT_RC);
+ 	if (IS_ERR(cm_id))
+ 		return PTR_ERR(cm_id);
++	ret = rdma_restrict_node_type(cm_id, RDMA_NODE_IB_CA);
++	if (ret)
++		goto out;
  
- 	init_waitqueue_head(&conn->c_hs_waitq);
- 	for (i = 0; i < npaths; i++) {
-+		int seq = atomic_read(&trans->t_conn_count);
+ 	if (isv4) {
+ 		memset(&sin, 0, sizeof(sin));
+@@ -473,10 +474,8 @@ static int rds_ib_laddr_check_cm(struct net *net, const struct in6_addr *addr,
+ #endif
+ 	}
+ 
+-	/* rdma_bind_addr will only succeed for IB & iWARP devices */
++	/* the restriction above means this only succeeds for IB devices */
+ 	ret = rdma_bind_addr(cm_id, sa);
+-	/* due to this, we will claim to support iWARP devices unless we
+-	   check node_type. */
+ 	if (ret || !cm_id->device ||
+ 	    cm_id->device->node_type != RDMA_NODE_IB_CA)
+ 		ret = -EADDRNOTAVAIL;
+diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
+index 4feb0edc360c..a859c252fd9a 100644
+--- a/net/rds/ib_cm.c
++++ b/net/rds/ib_cm.c
+@@ -999,6 +999,16 @@ int rds_ib_conn_path_connect(struct rds_conn_path *cp)
+ 		goto out;
+ 	}
+ 
++	/* rds_ib_laddr_check() only vouched for the local address being
++	 * on an IB device; the address resolution below picks the device
++	 * on its own, so restrict it to the same kind.
++	 */
++	ret = rdma_restrict_node_type(ic->i_cm_id, RDMA_NODE_IB_CA);
++	if (ret) {
++		rdsdebug("rdma_restrict_node_type() failed: %d\n", ret);
++		goto out;
++	}
 +
- 		__rds_conn_path_init(conn, &conn->c_path[i],
- 				     is_outgoing);
- 		conn->c_path[i].cp_index = i;
- 		conn->c_path[i].cp_wq =
--			alloc_ordered_workqueue("krds_cp_wq#%lu/%d", 0,
--						rds_conn_count, i);
-+			alloc_ordered_workqueue("krds_cp_wq#%d/%d", 0, seq, i);
- 		if (!conn->c_path[i].cp_wq)
- 			conn->c_path[i].cp_wq = rds_wq;
- 	}
-@@ -408,7 +408,6 @@ static struct rds_connection *__rds_conn_create(struct net *net,
- 			rds_conn_get(conn);	/* caller */
- 			rcu_assign_pointer(parent->c_passive, conn);
- 			rds_cong_add_conn(conn);
--			rds_conn_count++;
- 			atomic_inc(&conn->c_trans->t_conn_count);
- 		}
- 	} else {
-@@ -431,7 +430,6 @@ static struct rds_connection *__rds_conn_create(struct net *net,
- 			rds_conn_get(conn);
- 			hlist_add_head_rcu(&conn->c_hash_node, head);
- 			rds_cong_add_conn(conn);
--			rds_conn_count++;
- 			atomic_inc(&conn->c_trans->t_conn_count);
- 		}
- 	}
-@@ -669,7 +667,6 @@ static void rds_conn_destroy_fini(struct kref *kref)
- 						   c_refcount);
- 	int npaths = (conn->c_trans->t_mp_capable ? RDS_MPATH_WORKERS : 1);
- 	struct rds_transport *trans = conn->c_trans;
--	unsigned long flags;
- 	int i;
+ 	rdsdebug("created cm id %p for conn %p\n", ic->i_cm_id, conn);
  
- 	for (i = 0; i < npaths; i++)
-@@ -678,10 +675,6 @@ static void rds_conn_destroy_fini(struct kref *kref)
- 	kfree(conn->c_path);
- 	kmem_cache_free(rds_conn_slab, conn);
+ 	if (ipv6_addr_v4mapped(&conn->c_faddr)) {
+diff --git a/net/rds/rdma_transport.c b/net/rds/rdma_transport.c
+index b15cf316b23a..91ff1dde26af 100644
+--- a/net/rds/rdma_transport.c
++++ b/net/rds/rdma_transport.c
+@@ -210,6 +210,14 @@ static int rds_rdma_listen_init_common(rdma_cm_event_handler handler,
+ 		return ret;
+ 	}
  
--	spin_lock_irqsave(&rds_conn_lock, flags);
--	rds_conn_count--;
--	spin_unlock_irqrestore(&rds_conn_lock, flags);
--
- 	/* only after everything the transport module owns has been
- 	 * freed above may its unload proceed
- 	 */
++	/* Only the IB transport is left, so only listen on IB devices */
++	ret = rdma_restrict_node_type(cm_id, RDMA_NODE_IB_CA);
++	if (ret) {
++		pr_err("RDS/RDMA: failed to setup listener, rdma_restrict_node_type() returned %d\n",
++		       ret);
++		goto out;
++	}
++
+ 	/*
+ 	 * XXX I bet this binds the cm_id to a device.  If we want to support
+ 	 * fail-over we'll have to take this into consideration.
 -- 
 2.25.1
 
