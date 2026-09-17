@@ -1,41 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7F944B1269;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5AB5363C48;
 	Thu, 17 Sep 2026 09:39:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789637957; cv=none; b=qGF8RMT4rHyW4EiyEMawTvh7/7r2xWSmwhfxeCPRQoNlUE9PG+Z5qpQazTnAqx+qcw1kg0p9jtMpmSKAW6sqpYfVTWsvLhpHplmtCAmdEcA+ugomFGCvnituYXj9e1JafQibE02tZXZBrASNdo3TQbnezFLh4G8f8z+Z2s+FYOk=
+	t=1789637958; cv=none; b=NKBRKvPpya+WjefkNy6pPCwK7OTlgPDNpwQXcqmbFvyjSDsp0xb0plRmp6VfjXfjtktIfS/X3wK4zukNON5Qz3+FiEp0RnNYVOkL26ROiHucWaEeFFTQ+VfrR/eOTVZm7SVB3YuiQD+lKbqwVcR1ZoGJamEtfmm7sVUAB2njFU8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789637957; c=relaxed/simple;
-	bh=eZuvAwqe7p26CEUyxqSpzjRp2o7jPIbt375qqXaZB3Y=;
+	s=arc-20240116; t=1789637958; c=relaxed/simple;
+	bh=rdJIskJHloQ5zvSz/RyaaJADEoVfInq2oh0HSTprfpY=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=lhjXWLFEiaUSvKJuW7YOP5Q+2GnLt7CaGttnk1DOU2GroTrA/VhzqaWzFJBD7OFvT8n7VGPVlVlc1/PWphqBdtWZ1iARwkWdlCb2D8OtQvCoTzmMcaYZHGc0DxJeJYlO89rk3L0vqrRpHSs4CMsFQyTUBxKHyi0t1/9Fg5Y8yLA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QxZQmTD8; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=U0uheeEDUSvkIDoo+PiE/LGLKQq6EDEfmBFiZq1CvK15gYcMSKA0kC7HRleSLJUR8+QFcEKq9lbWs8X/SHvGoz4cmY6ppJYUkT3utQSsPrDOhN3lPelKJv5oINvSbfm934Jbr7DXzJelrLImZCaxuV/wgKq9IL8x7rTn8++zLBI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eJKDpmil; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QxZQmTD8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B22B1F0089D;
-	Thu, 17 Sep 2026 09:38:44 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eJKDpmil"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92E011F0089F;
+	Thu, 17 Sep 2026 09:38:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789637925;
-	bh=zdI7maQwNq11/vS0vabhGQw22emWnRVkysiaHeNXFZE=;
+	s=k20260515; t=1789637926;
+	bh=by51LgKx1ualdSZn8ZpPTBIub+1IdXm2prJNjTtNY/8=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=QxZQmTD8ycK0QDQUHE50GtsD25CYoW2xJdIM3alpNLTbHGus4hCJolFm50Bi6luB4
-	 1J37Ufo1GJDTq4C9hh4EtSMg4ACtQM7H6jx7SipZwRCqfmbhEGInpq+DjZqtPtgDFa
-	 mGKrsXm8wn3xd8TFi4PfUASvUtJPYzKve50KePB8t2VawLcgbusMNl1qIXpiA3u+hl
-	 NMmCLRT0tr8C2I2YMJzcGrt1VXORVcR5voDNg3Ys6nDaZySClTGyYROsLIHjRJCD47
-	 ONcVhI2JgYSz8npCPVdzsP4iSwBlHpWG+Uf8MDyQnu6wqlzLIkW/E7UkrIZf6WR6MT
-	 67TBoKVXLs5MQ==
-Subject: Re: [PATCH net-next v3 07/13] net/rds: unlink transport nodes before
- a possibly deferred connection free
+	b=eJKDpmilEqXDxPSuCAkm3aaMlpZlF/yn3/01oOemP8FanIMUtBZkRW3GY3XDXB9rw
+	 06hWc2mbPhAwIEF9yvIGiiy/e30ZxlTTMIGYgd4MsPf1+YnC5+yjawBHDRYOslLEqo
+	 elBegyLUdb69BRXaPNI4NF9o6eH4dhh21J1+apq+tgJuUp+Y+wT2ewgfQzr7jq+98A
+	 vOWymSNwzorVju+fasunBCPLgXR9k0wAw8lUnMhu//QZp8DBiCwKZVfRCiyRPAABv3
+	 D2ygPyNlkDfGwdS1U8aYQtyRFve3TmhflxOK663Tpmf7BspI+PmesjVfabYtCP0VGi
+	 +XLts9rrZcsmQ==
+Subject: Re: [PATCH net-next v3 08/13] net/rds: hold connection references in
+ lookup, sockets and c_passive
 From: netdev-bot+sashiko@kernel.org
 To: achender@kernel.org
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
  edumazet@google.com, kuba@kernel.org, horms@kernel.org, nicoyip.dev@gmail.com
-Date: Thu, 17 Sep 2026 09:38:44 +0000
-Message-ID: <178963792421.22033.14748308461338014508@kernel.org>
-In-Reply-To: <20260914033719.138057-8-achender@kernel.org>
-References: <20260914033719.138057-8-achender@kernel.org>
+Date: Thu, 17 Sep 2026 09:38:45 +0000
+Message-ID: <178963792518.22033.13204882874552116749@kernel.org>
+In-Reply-To: <20260914033719.138057-9-achender@kernel.org>
+References: <20260914033719.138057-9-achender@kernel.org>
 X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -49,224 +49,317 @@ MIME-Version: 1.0
 Thank you for your contribution! Sashiko AI review found 4 potential
 issue(s) to consider:
 
-Critical: 0 · High: 1 · Medium: 2 · Low: 1
+Critical: 0 · High: 1 · Medium: 1 · Low: 2
 
-- [High] The patch does not close the bug class its commit message claims
-  to close ("Unlink each node under the transport lock right before its…
-- [Medium] rds_ib_destroy_nodev_conns() (net/rds/ib_rdma.c:176-181) now
-  leaves ic->ib_node in the empty state (list_del_init) while the…
-- [Medium] rds_ib_destroy_nodev_conns() unlinks ic->ib_node while holding
-  only ib_nodev_conns_lock (net/rds/ib_rdma.c:177-179), but the lock…
-- [Low] Commit message overstates the change as a fix for a live
-  corruption.
+- [High] rds_send_probe() (net/rds/send.c:1579-1586) links a probe/pong
+  message onto cp->cp_send_queue and takes a connection reference…
+- [Medium] The commit message claims the new rs_lock coverage in
+  rds_ioctl(SIOCRDSSETTOS) closes the window that "let a racing sendmsg…
+- [Low] The comment block documenting rds_conn_lookup()'s contract now
+  sits above the newly added rds_conn_passive_locked() helper, which has…
+- [Low] struct rds_sock in net/rds/rds.h explicitly enumerates what
+  rs_lock protects ("rs_lock protects all these adjacent members before…
 
 --
 
-net/rds: unlink transport nodes before a possibly deferred connection free
+net/rds: hold connection references in lookup, sockets and c_passive
 
-The transport teardown helpers gather per-connection transport nodes onto a
-stack list and call rds_conn_destroy() for each one.  This patch moves the
-unlink of each transport node out of the transport conn_free() callbacks and
-into the teardown loops, so a conn_free() that runs after the helper has
-returned no longer touches the helper's stack list.  The conn_free()
-callbacks for IB and loopback now skip a node that is already empty.
+This patch makes rds_conn_lookup() and __rds_conn_create() return a
+connection with a reference held for the caller, gives the rs->rs_conn
+sendmsg cache and parent->c_passive references of their own, and moves the
+rs_conn/rs_tos serialization from the global rds_sock_lock to rs_lock.  It
+also RCU-annotates c_passive and closes a KCSAN-reported data race between
+concurrent rds_sendmsg() calls on the same socket.
 
-A few questions on the reference counting assumptions below.
+Closes: https://syzkaller.appspot.com/bug?extid=879c1877016972360186
+
+A few questions below about the new rs_lock discipline, the misplaced
+comment block in connection.c, and the interaction between the new
+"sender keeps running against a quiesced conn" rule and rds_send_probe().
+
+> diff --git a/net/rds/af_rds.c b/net/rds/af_rds.c
+> index d5defe9172e3..1cc20b5cfd21 100644
+> --- a/net/rds/af_rds.c
+> +++ b/net/rds/af_rds.c
+
+[ ... ]
+
+> @@ -267,18 +276,23 @@ static int rds_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
+>  		else
+>  			return -ENOIOCTLCMD;
+>  
+> -		spin_lock_bh(&rds_sock_lock);
+> +		/* rs_conn is serialized by rs_lock (see rds_sendmsg());
+> +		 * hold it across the "no connection yet" check and the
+> +		 * rs_tos store so a racing sendmsg cannot cache a conn
+> +		 * whose c_tos then disagrees with rs_tos.
+> +		 */
+> +		spin_lock_irqsave(&rs->rs_lock, flags);
+>  		if (rs->rs_tos || rs->rs_conn) {
+> -			spin_unlock_bh(&rds_sock_lock);
+> +			spin_unlock_irqrestore(&rs->rs_lock, flags);
+>  			return -EINVAL;
+>  		}
+>  		rs->rs_tos = tos;
+> -		spin_unlock_bh(&rds_sock_lock);
+> +		spin_unlock_irqrestore(&rs->rs_lock, flags);
+>  		break;
+
+[Severity: Medium]
+
+Does this comment (and the matching claim in the commit message, "it used
+the unrelated global rds_sock_lock before, which also let a racing sendmsg
+cache a connection whose c_tos disagrees with the rs_tos being set") hold
+for a sendmsg that is already past its own rs_lock section?
+
+rds_sendmsg() drops rs_lock before it samples rs->rs_tos:
+
+net/rds/send.c:rds_sendmsg() {
+	spin_lock_irqsave(&rs->rs_lock, flags);
+	conn = rs->rs_conn;
+	...
+	} else {
+		conn = NULL;
+	}
+	spin_unlock_irqrestore(&rs->rs_lock, flags);
+
+	if (!conn) {
+		...
+		conn = rds_conn_create_outgoing(sock_net(sock->sk),
+						&rs->rs_bound_addr, &daddr,
+						rs->rs_transport, rs->rs_tos,
+	...
+}
+
+and the install re-takes rs_lock without re-checking conn->c_tos against
+rs->rs_tos:
+
+		spin_lock_irqsave(&rs->rs_lock, flags);
+		old = rs->rs_conn;
+		rs->rs_conn = conn;
+		spin_unlock_irqrestore(&rs->rs_lock, flags);
+
+So with thread A between the two rs_lock sections (conn == NULL) and
+thread B in SIOCRDSSETTOS, B sees rs_tos == 0 && rs_conn == NULL, succeeds
+and stores the new tos; A then creates or looks up a connection with the
+old tos and caches it.  Can that leave rs->rs_tos == X while
+rs->rs_conn->c_tos == 0, and send the in-flight message over a connection
+whose service level does not match the socket's configured ToS?
+
+Would snapshotting rs_tos inside the first rs_lock section, or validating
+conn->c_tos == rs->rs_tos when installing the cache, close this?
+
+> diff --git a/net/rds/connection.c b/net/rds/connection.c
+> index c3b3d756c52e..7ef6fb9d352b 100644
+> --- a/net/rds/connection.c
+> +++ b/net/rds/connection.c
+> @@ -81,7 +81,18 @@ static struct hlist_head *rds_conn_bucket(const struct in6_addr *laddr,
+>  		var |= RDS_INFO_CONNECTION_FLAG_##suffix;	\
+>  } while (0)
+>  
+> -/* rcu read lock must be held or the connection spinlock */
+> +/* rcu read lock must be held or the connection spinlock.
+> + * On success a reference is taken on the returned connection; the
+> + * caller must drop it with rds_conn_put().
+> + */
+> +/* c_passive is written under rds_conn_lock and read under RCU */
+> +static struct rds_connection *
+> +rds_conn_passive_locked(struct rds_connection *conn)
+> +{
+> +	return rcu_dereference_protected(conn->c_passive,
+> +					 lockdep_is_held(&rds_conn_lock));
+> +}
+> +
+>  static struct rds_connection *rds_conn_lookup(struct net *net,
 
 [Severity: Low]
-The changelog describes an existing corruption:
 
-  "Once the free is governed by the connection's reference count, a holder
-   that outlives the teardown loop - a socket's cached rs_conn, an inc
-   parked on a receive queue - defers conn_free() until after the helper
-   has returned, and the list_del() then writes the neighbours' pointers
-   into a stack frame that no longer exists."
+Was the new helper meant to be inserted above rds_conn_lookup()'s comment
+rather than below it?  As written, the "rcu read lock must be held or the
+connection spinlock ... a reference is taken on the returned connection"
+text now documents rds_conn_passive_locked(), which has neither property:
+it asserts rds_conn_lock is held (RCU alone is not enough) and returns the
+pointer without any reference.  __rds_conn_create() has to take the
+reference itself right after calling it:
 
-Can either of those holders exist at this commit?  rds_conn_get() in
-net/rds/connection.c has no callers here - grep over net/rds only finds the
-definition, the EXPORT_SYMBOL and the declaration in rds.h.  With the kref
-count always at one, the rds_conn_put() at the end of rds_conn_destroy() is
-always the final put, so conn_free() still runs synchronously inside the
-teardown loop.
+			passive = rds_conn_passive_locked(parent);
+			...
+				rds_conn_get(passive);
 
-The rs_conn holder in net/rds/send.c and the inc references in
-net/rds/recv.c appear later in the series, in "net/rds: hold connection
-references in lookup, sockets and c_passive" and "net/rds: hold a
-connection reference from struct rds_incoming".
+Meanwhile rds_conn_lookup(), whose contract this patch actually changes,
+ends up with no comment describing that the caller now owns a reference.
 
-Would it be worth saying that this patch prepares the teardown helpers for
-the reference holders added by the following patches, so a reader does not
-go looking for the defect (or a Fixes: tag) in the tree as it stands?
+> @@ -98,6 +109,17 @@ static struct rds_connection *rds_conn_lookup(struct net *net,
+>  		    conn->c_tos == tos &&
+>  		    net == rds_conn_net(conn) &&
+>  		    conn->c_dev_if == dev_if) {
+> +			/* Only ever hand out a live reference.
+> +			 * rds_conn_destroy() unhashes under
+> +			 * rds_conn_lock and waits a grace period
+> +			 * before dropping the initial reference, so
+> +			 * an entry this traversal reaches still holds
+> +			 * at least that one; the conditional get
+> +			 * documents the contract rather than
+> +			 * papering over a zero-refcount entry.
+> +			 */
+> +			if (!kref_get_unless_zero(&conn->c_refcount))
+> +				continue;
+>  			ret = conn;
+>  			break;
+>  		}
 
-> diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
-> index 118e033229aa..26a32c1ec8f7 100644
-> --- a/net/rds/ib_cm.c
-> +++ b/net/rds/ib_cm.c
-> @@ -1287,7 +1287,9 @@ void rds_ib_conn_free(void *arg)
->  	lock_ptr = ic->rds_ibdev ? &ic->rds_ibdev->spinlock : &ib_nodev_conns_lock;
+[ ... ]
+
+> diff --git a/net/rds/rds.h b/net/rds/rds.h
+> index 8a969444e698..4608615e09e9 100644
+> --- a/net/rds/rds.h
+> +++ b/net/rds/rds.h
+> @@ -161,7 +161,7 @@ struct rds_connection {
+>  	 * cancellation from landing on a destroyed workqueue.
+>  	 */
+>  	bool			c_destroy_in_prog;
+> -	struct rds_connection	*c_passive;
+> +	struct rds_connection __rcu *c_passive;
+>  	struct rds_transport	*c_trans;
+
+[Severity: Low]
+
+While touching this header, should the struct rds_sock declarations be
+updated too?  rs_conn is now both rs_lock-serialized and reference-owning,
+but its comment still only says:
+
+	/*
+	 * rds_sendmsg caches the conn it used the last time around.
+	 * This helps avoid costly lookups.
+	 */
+	struct rds_connection	*rs_conn;
+
+and rs_lock's own annotation reads:
+
+	/* rs_lock protects all these adjacent members before the newline */
+	spinlock_t		rs_lock;
+
+rs_conn sits before that block and rs_tos sits at the very end of the
+struct, so the header currently tells a reader that neither is covered by
+rs_lock, which is the opposite of the new rule in rds_ioctl() and
+rds_sendmsg().
+
+> diff --git a/net/rds/send.c b/net/rds/send.c
+> index 32c411d10e3e..1ae1f24c24e8 100644
+> --- a/net/rds/send.c
+> +++ b/net/rds/send.c
+
+[ ... ]
+
+> @@ -1340,11 +1341,29 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
+>  	rm->m_daddr = daddr;
 >  
->  	spin_lock_irqsave(lock_ptr, flags);
-> -	list_del(&ic->ib_node);
-> +	/* already unlinked if a transport teardown gathered us first */
-> +	if (!list_empty(&ic->ib_node))
-> +		list_del(&ic->ib_node);
->  	spin_unlock_irqrestore(lock_ptr, flags);
-
-[Severity: Medium]
-Which lock serializes this new test-then-delete against the new
-list_del_init() in rds_ib_destroy_nodev_conns()?
-
-rds_ib_conn_free() picks the lock from ic->rds_ibdev:
-
-	lock_ptr = ic->rds_ibdev ? &ic->rds_ibdev->spinlock : &ib_nodev_conns_lock;
-
-but rds_ib_destroy_nodev_conns() always takes ib_nodev_conns_lock.  A node
-gathered on tmp_list can be migrated by rds_ib_add_conn() before the sweep
-reaches it:
-
-net/rds/ib_rdma.c:rds_ib_add_conn() {
-	spin_lock_irq(&ib_nodev_conns_lock);
-	...
-	list_del(&ic->ib_node);
-
-	spin_lock(&rds_ibdev->spinlock);
-	list_add_tail(&ic->ib_node, &rds_ibdev->conn_list);
-	spin_unlock(&rds_ibdev->spinlock);
-	spin_unlock_irq(&ib_nodev_conns_lock);
-
-	ic->rds_ibdev = rds_ibdev;
-}
-
-After that, ib_node lives on rds_ibdev->conn_list, protected by
-rds_ibdev->spinlock, which is also what rds_ib_dev_shutdown() holds while
-walking that list.  Would the sweep's list_del_init() then mutate a live
-device list under the wrong lock, and could the list_empty()/list_del()
-pair above and the sweep's list_del_init() run concurrently and unlink the
-same node twice?
-
-The reachable window looks narrow: rds_ib_destroy_nodev_conns() runs from
-rds_ib_exit() after rds_ib_unregister_client(), and once the per-device
-client data is cleared rds_ib_setup_qp()'s rds_ib_get_client_data() returns
-NULL and it returns -EOPNOTSUPP before rds_ib_add_conn().  A thread that
-already fetched rds_ibdev and is then preempted until after the splice
-would still get there, though - is there something that excludes it?
-
-> diff --git a/net/rds/ib_rdma.c b/net/rds/ib_rdma.c
-> index a9b27f06cbfc..91db43a0e7d7 100644
-> --- a/net/rds/ib_rdma.c
-> +++ b/net/rds/ib_rdma.c
-> @@ -168,8 +168,18 @@ void rds_ib_destroy_nodev_conns(void)
->  	list_splice_init(&ib_nodev_conns, &tmp_list);
->  	spin_unlock_irq(&ib_nodev_conns_lock);
->  
-> -	list_for_each_entry_safe(ic, _ic, &tmp_list, ib_node)
-> +	/* rds_conn_destroy() can return before the connection is freed,
-> +	 * and it is the free - rds_ib_conn_free() - that unlinks ib_node.
-> +	 * tmp_list lives on this stack frame, so unlink each node before
-> +	 * its destroy; the free then finds it empty and leaves it alone.
+>  	/* rds_conn_create has a spinlock that runs with IRQ off.
+> -	 * Caching the conn in the socket helps a lot. */
+> -	if (rs->rs_conn && ipv6_addr_equal(&rs->rs_conn->c_faddr, &daddr) &&
+> -	    rs->rs_tos == rs->rs_conn->c_tos) {
+> -		conn = rs->rs_conn;
+> +	 * Caching the conn in the socket helps a lot.
+> +	 *
+> +	 * The cached rs_conn holds a connection reference; take one of
+> +	 * our own for the duration of this call (dropped on both exit
+> +	 * paths), so that neither a concurrent sender replacing the
+> +	 * cache nor rds_conn_destroy() can free the connection under
+> +	 * us.  A cached connection whose destruction has begun is not
+> +	 * reused: dropping it here lets the next sendmsg look up or
+> +	 * create a live one instead of returning -EAGAIN forever.
 > +	 */
-> +	list_for_each_entry_safe(ic, _ic, &tmp_list, ib_node) {
-> +		spin_lock_irq(&ib_nodev_conns_lock);
-> +		list_del_init(&ic->ib_node);
-> +		spin_unlock_irq(&ib_nodev_conns_lock);
-> +
->  		rds_conn_destroy(ic->conn);
+> +	spin_lock_irqsave(&rs->rs_lock, flags);
+> +	conn = rs->rs_conn;
+> +	if (conn && ipv6_addr_equal(&conn->c_faddr, &daddr) &&
+> +	    rs->rs_tos == conn->c_tos && !rds_destroy_pending(conn)) {
+> +		rds_conn_get(conn);
+>  	} else {
+> +		conn = NULL;
 > +	}
->  }
+> +	spin_unlock_irqrestore(&rs->rs_lock, flags);
 
 [Severity: High]
-Does this actually leave nothing on the stack list for a later free to
-touch?  Only the entry about to be destroyed is detached here; every entry
-the loop has not visited yet is still linked on tmp_list with a non-empty
-ib_node, and no reference is taken on ic->conn.
 
-With the reference holders added later in the series, a connection whose
-initial reference was already dropped by rds_ib_cm_connect_complete() on a
-protocol version mismatch:
+The commit message says the connection "may still be destroyed while a
+send is in flight ... but it is only quiesced; the free is held off by the
+sender's reference."  Given that, can a sender that is already holding this
+reference strand a probe message on a path that has already been purged?
 
-net/rds/ib_cm.c:rds_ib_cm_connect_complete() {
+rds_sendmsg() reaches the ping path before its own rds_destroy_pending()
+re-check:
+
+	if (conn->c_trans->t_mp_capable &&
+	    !rds_conn_path_up(&conn->c_path[0])) {
+		...
+		rds_send_ping(conn, 0);
+	}
+
+and rds_send_probe() enqueues under cp_lock with no destroy test at all;
+only the work queueing afterwards is guarded:
+
+net/rds/send.c:rds_send_probe() {
+	spin_lock_irqsave(&cp->cp_lock, flags);
+	list_add_tail(&rm->m_conn_item, &cp->cp_send_queue);
+	set_bit(RDS_MSG_ON_CONN, &rm->m_flags);
+	rds_message_addref(rm);
+	rm->m_inc.i_conn = cp->cp_conn;
 	...
-		rds_conn_destroy(conn);
-		return;
+	spin_unlock_irqrestore(&cp->cp_lock, flags);
+	...
+	rcu_read_lock();
+	if (!rds_destroy_pending(cp->cp_conn))
+		queue_delayed_work(cp->cp_wq, &cp->cp_send_w, 1);
+	rcu_read_unlock();
 }
 
-stays alive and stays linked on ib_nodev_conns while a socket's rs_conn or
-an inc on a receive queue still owns a kref.  If that holder drops the last
-reference while this loop is running:
+rds_conn_path_quiesce() drains cp_send_queue exactly once, and
+rds_conn_destroy() runs that pass only once (c_destroy_in_prog guards it):
 
-rds_conn_destroy_fini()
-  rds_conn_path_free()
-    rds_ib_conn_free()
-      spin_lock_irqsave(lock_ptr, flags);
-      if (!list_empty(&ic->ib_node))
-              list_del(&ic->ib_node);	/* unlinks out of tmp_list */
-      ...
-      kfree(ic);
-
-the list_del() writes through the neighbours of an entry that lives on this
-stack list, and the ic is freed.  The loop's cached cursor _ic then points
-into freed slab memory, list_del_init() writes into it, and
-rds_conn_destroy() is called on a dangling conn.  For the entry currently
-being processed, the same free after spin_unlock_irq() makes the ic->conn
-read a use-after-free.
-
-The window is not small - it spans the synchronize_rcu(),
-cancel_delayed_work_sync() and flush_work() calls inside
-rds_conn_destroy() - and rds_conn_wait_conns_freed() re-runs this sweep
-precisely while deferred frees are outstanding:
-
-net/rds/connection.c:rds_conn_wait_conns_freed() {
-	while (!wait_event_timeout(rds_conn_freed_waitq,
-				   !atomic_read(&trans->t_conn_count),
-				   msecs_to_jiffies(RDS_CONN_FREE_POLL_MS))) {
-		if (resweep)
-			resweep();
+net/rds/connection.c:rds_conn_path_quiesce() {
 	...
-}
-
-Would taking a connection reference while gathering under the transport
-lock, and dropping it after rds_conn_destroy(), or detaching and marking all
-gathered nodes up front, close this?
-
-The TCP and loopback helpers use the same one-entry-at-a-time detach.  They
-look safe at the end of the series only because rds_conn_destroy() has no
-other caller for those transports, so every gathered conn still holds its
-initial reference for the whole walk - is that something the helpers should
-be relying on?
-
-[Severity: Medium]
-Does this break the invariant that a live rds_ib_connection is always linked
-on some list?  After list_del_init() the ic is still alive with an empty
-ib_node, but both users of that node still assert otherwise:
-
-net/rds/ib_rdma.c:rds_ib_add_conn() {
-	spin_lock_irq(&ib_nodev_conns_lock);
-	BUG_ON(list_empty(&ib_nodev_conns));
-	BUG_ON(list_empty(&ic->ib_node));
-	list_del(&ic->ib_node);
+	/* tear down queued messages */
+	list_for_each_entry_safe(rm, rtmp,
+				 &cp->cp_send_queue,
+				 m_conn_item) {
+		list_del_init(&rm->m_conn_item);
+		BUG_ON(!list_empty(&rm->m_sock_item));
+		rds_message_put(rm);
+	}
 	...
 }
 
-net/rds/ib_rdma.c:rds_ib_remove_conn() {
-	spin_lock_irq(&rds_ibdev->spinlock);
-	BUG_ON(list_empty(&ic->ib_node));
-	list_del(&ic->ib_node);
-	...
-}
+If the cp_lock section in rds_send_probe() runs after that drain, nothing
+reaps the message afterwards - rds_send_xmit() refuses destroy-pending
+conns and there is no second purge pass.  Later in the series the same
+enqueue also takes a connection reference released only from
+rds_message_put() ("put in rds_message_put()"), so at that point does the
+stranded probe keep c_refcount from reaching zero, leaving
+rds_conn_destroy_fini() unreached and rds_conn_wait_conns_freed() waiting
+forever at transport unload or netns teardown?
 
-If rds_ib_setup_qp() reaches rds_ib_add_conn() for a connection whose node
-the sweep has already emptied, does the first BUG_ON() fire?  And in the
-opposite order, if add_conn wins and relinks the node onto
-rds_ibdev->conn_list, the sweep empties it again and the
-rds_ib_conn_path_shutdown() -> rds_ib_remove_conn() that rds_conn_destroy()
-drives would hit the second BUG_ON().
+The sibling enqueue rds_send_queue_rm() does get exactly this guard later
+in the series, with rds_conn_path_quiesce() splicing under cp_lock to pair
+with it:
 
-Before this patch the node stayed linked on tmp_list, so
-list_empty(&ic->ib_node) was false in that window and only the weaker
-BUG_ON(list_empty(&ib_nodev_conns)) could trigger.  Since rds_ib_conn_free()
-is the only one of the three sites taught to tolerate an empty ib_node,
-would an explicit detached flag - as the TCP side uses with
-t_tcp_node_detached - keep the assertions and the linkage consistent?
+		spin_lock(&cp->cp_lock);
+		if (rds_destroy_pending(conn)) {
+			spin_unlock(&cp->cp_lock);
+			*queued = -EAGAIN;
+			goto unlock;
+		}
+
+Should rds_send_probe() get the same test under cp_lock?  Note the probe
+enqueue is also reachable from the receive path, since a peer's probe ping
+drives rds_recv_incoming() -> rds_send_pong() -> rds_send_probe().
+
+> +
+> +	if (!conn) {
+> +		struct rds_connection *old;
+> +
+>  		conn = rds_conn_create_outgoing(sock_net(sock->sk),
+>  						&rs->rs_bound_addr, &daddr,
+>  						rs->rs_transport, rs->rs_tos,
 
 [ ... ]
 
