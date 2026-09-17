@@ -1,55 +1,55 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49C8E4C9E1C
-	for <linux-rdma@vger.kernel.org>; Thu, 17 Sep 2026 12:14:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7C7E175A79
+	for <linux-rdma@vger.kernel.org>; Thu, 17 Sep 2026 12:16:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789647252; cv=none; b=b2vyvXGdNkkBelbMRQ9NU3H1jeTLYswYD2NdCHelfoU2QKYYJ3r+ORl5uv1E/VLi0mcwerSSIvJpZL2F1DLJrR5VYWqHy7DwS3dDD1h9i3KSg76KgFbM+AjcHRt8GsreIHu5qqEgBobgvQdrnmgcBagdSNr7Pf9HkBxYhEfEic0=
+	t=1789647422; cv=none; b=H3UX5qW/OCETgDFuuVj9eV/cTN3ufkHZ9UI6b1zFOaRYiWyUR0QF3vkNfrMlNTvzpT+6uPejnmjwMZYKPIfP2/Bf0DUvgWd4MAVYg2MLENcWcyGTBVKqnPoaQClkSNZaeT+8jGWfwJvbFc5vGAWPEtuSy1BAuFC/fxi2Ww5Nd38=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789647252; c=relaxed/simple;
-	bh=D1reSLJS2+Tf96dhZGbHZHdz3L+vdTTjNxqTH+4a/DM=;
+	s=arc-20240116; t=1789647422; c=relaxed/simple;
+	bh=xAIEhWU667Ik6DIXEqOj++rKhoStMFJ5ESb60cc5LQk=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=ZNeX3mLDtivaAKnQurNsZg3h6yeXC1Poj8btyGjq4/6ufgEAatWu911gXXmi9gEAvgoSdzU8TVAgoCk8KMOMvOSVdjPhxRoLidj6Srt64D8jbHSD9bj7zJg3OZzPLpvM1ODjR2GWlGRBv/3pOY7JAnFSU3+/41BxxVsCf5xc8Tc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=czBqlzJS; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=WXYRH7Fr21HXfbGGpuIiX79cKHdViA92tAY/aEfkcJFfCmdCvDz7OnPiouxgcD/rXXGjYZo9f1eJgU1+Q9yZDHMjo2jstMrzkrTz0fo3nXJL6xb0EhRDCvRaIG9jR/zgDaqcbAjzwTMnSZS8vE1aGLDjxymumx+2fJ4mUGzBml8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fqOTqXnp; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="czBqlzJS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 303EC1F000FF;
-	Thu, 17 Sep 2026 12:13:59 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fqOTqXnp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A1681F000FF;
+	Thu, 17 Sep 2026 12:16:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789647239;
-	bh=D1reSLJS2+Tf96dhZGbHZHdz3L+vdTTjNxqTH+4a/DM=;
+	s=k20260515; t=1789647411;
+	bh=xAIEhWU667Ik6DIXEqOj++rKhoStMFJ5ESb60cc5LQk=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=czBqlzJSSRJsHFgc3jwCp9wcjWPAKDW9fI1GRhgc9445Yf2hbVg2lRkASdUxqPfXJ
-	 IytSE8Fv3RGR4aae1yQT3PfccpKO70Xgymg5vsM3rzP4LYXl2D2AxzSvIebXSFaMW2
-	 53id+weIFHZg52f7FWRpOu7OGPh3t7iPCbKtJ5QhPFU5wPjGO+WdqrIUeTOxY1CXZr
-	 BwoOy8A3ZTe2p3Lohlbets3QfsNe2aWMgVk0tHwNo3mjoJUuIqDPptl1Ol9yNAP1mu
-	 9rhQujoUILxqYsvBw6eMKFz9kulWts3kCuM4Samai31Rs0um4Iut6SZk3fK8NXeeLn
-	 +rRYqp4bsxPAg==
+	b=fqOTqXnpFD/B4bHmCmNe6WUII6P5jKkUsIKaXr/w1egPGdEGdKvHRcph0ME1/TJbI
+	 jN2Cg3asDIkuk14KpOxVHW+WjwRF0jLm0KeQ1yF77pBVPqx77mlLa2gNDanWOd4+NN
+	 3+VhBVz+jPzaWVhjKWvvKR2zo3ZHMfDeOBqCdKbdbA30CDV/UZ1qF2u9NYRWE3tOoh
+	 iRFE5Z8m+z87ZJ3RHTnViCvxXAQiRsZ1Uvlw38a96Od9JT50naYPtLdfkFDoI9P7ce
+	 nzg1MR26g8F1S5/PPn/I5WPSIFklPIMoHofqF2jJH1Ce74pzvE6Q0ASwYbW5Wl/woq
+	 fS0CJl7CPBSYw==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH for-next v4 3/5] RDMA/erdma: Support non-contiguous
- kernel CQ buffers
+Subject: Re: [PATCH for-next v4 2/5] RDMA/erdma: Support non-contiguous
+ kernel QP buffers
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Cheng Xu" <chengyou@linux.alibaba.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260917120459.13286-4-chengyou@linux.alibaba.com>
+In-Reply-To: <20260917120459.13286-3-chengyou@linux.alibaba.com>
 References: <20260917120459.13286-1-chengyou@linux.alibaba.com>
- <20260917120459.13286-4-chengyou@linux.alibaba.com>
+ <20260917120459.13286-3-chengyou@linux.alibaba.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 17 Sep 2026 12:13:58 +0000
-Message-Id: <20260917121359.303EC1F000FF@smtp.kernel.org>
+Date: Thu, 17 Sep 2026 12:16:50 +0000
+Message-Id: <20260917121651.6A1681F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-> A single coherent allocation for a kernel CQ can fail when memory is
-> fragmented.
+> A single coherent allocation for kernel QP queues can fail for large
+> queues when memory is fragmented.
 >=20
-> Use page-sized coherent buffers and describe them with the existing MTT.
-> Keep the userspace CQ path and doorbell allocation unchanged.
+> Allocate page-sized coherent buffers and describe them with the existing
+> MTT. Keep the userspace QP path unchanged.
 >=20
 > Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
 
@@ -57,5 +57,5 @@ Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260917120459.1328=
-6-1-chengyou@linux.alibaba.com?part=3D3
+6-1-chengyou@linux.alibaba.com?part=3D2
 
