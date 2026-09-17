@@ -1,254 +1,344 @@
-Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013055.outbound.protection.outlook.com [40.93.201.55])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10FFF54707E;
-	Thu, 17 Sep 2026 18:12:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.201.55
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789668755; cv=fail; b=gu8173TKylZIZF4ddn+qXNZzpYYJTUDwy1xHDfbnx20c36zawt8mX5z6cQBuyERxqIzN7iIABzQWrVwfUj+eJhR+cUo+wAz08WaRh4M4k/20/rXpR9LD82yF3Uxn7BcNdJs1BvpFAHrHnCI6vlNgFdXzNmFQe21eHSL1jnZZCYY=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789668755; c=relaxed/simple;
-	bh=PRvlz8O77LAlSYmvTMnIJPRJK9SrptuSrnJ2PJRJTo4=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=mYkAppOOqf+qzLi+9yKhFAG17n8+SocLKVEFF20cob/f2hcm3GpBQbDo1vvK9tQb8QBrfRjWqC0e9t4qsMOAHpkzTkRo+ZdW6eLAhdFXz9Xh5L1fkl5/L9/Bw0FLemWIj2MJ9chs11F98aBInJxHS9V10oBccO9qLkT8M1Na+lA=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=HM90mBrI; arc=fail smtp.client-ip=40.93.201.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A07AE372EE4;
+	Thu, 17 Sep 2026 21:23:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789680216; cv=none; b=g2bgpnAi/Vv5ixUWGSG0TYXrtqSobRkAou/zvGOIOf77JoZPMxRxAySaehDpgk/7M+OCOq7xFFpXobOZBgrOyj+j6S/nL/P+IHI6rx022qm2r7mTTzuan0Dxmhc5hEES8awYujd0+hzxA1iKvn1N7lqt7AOSJqZ3C5wTATAAd8w=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789680216; c=relaxed/simple;
+	bh=A7lL4KAfhIJBbzpbVryrOoEGdPkviEAu9tdoSX0n4Ds=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=N40tQlDZP0IAp0gSzyUzDVp4y7zAOsnximH2X5/zqZunIP/f4p48s+2mp9LtyMP5xxoe5IOZOmRmsFVw6bjyda3UParxu5zf9KQ0MGPmGgWrFGy0saesl/w26ge+OU+eieRdAZoTEa76Y4tQXwqEvoEaAxacJqfxGhvXcJQzIJI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VUF866Xg; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="HM90mBrI"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=HnHrgsffpVEkYbi5MWgmlgcWVkwP/KtSanC00SLMzGjcdqPzs9MhXXsj3Qm2WSINT4KNoPDgDFd4kerrN8Gph4ciyxkGX/AEmASJ5Bwoo/hU3SVWmMTwxZtUf/ErzS03RCtoZaltjjlX+a3/lhkAEi7PXpeaM9bbPx+UVDu9TtvoxFW6jH2P8yGlpfobmdTHr4qU5k24fxAEsUKPT0+YzzhZlD9lfE3kJko53y5LjFwUtbCvZd+L9Fpw7D6N//rXv135YtBMqF+z9mSd2MZGMxXLU/SCSCz90VsX5SDKOWwiKrf5jgTqCF0QUl96IwEVZ9VFpEpRwzmi+ASyzUUrMg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=z+gktVwIRHfqEvzHQygtkfgvF600EDrKS62Me591WB8=;
- b=LExg+pLBmGOgffEEPXwjg02L3RGepM/5hPKKz3nd6jeub6eWI1CwTl/NW1qlChvFrpbI5VPbrkJ782WFYrHxolg2rxqzfYUKG+GYKWpaszMuPWx/qDVyN752LM3PgZlvDUrLBW3Z/xb4XgjKyFfRdp2MZcrrOUmJ4G9zZ0WtGdU+OTS+exJX5qIMm46Xwkj+1OTOQkVj8+lwENWK0Ni/7H1NtT+da6QvKmj2xk6QMBpfdFgz+UuiHA77ZY9ojo8Nbm77wtpi/cLVLeQQjvMbL8X8MQGX1a3RwrH26baRqvrXUAaMtQFeFkl8PjG7f9Pprz5+rOLJs96zShVw0GyDpg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.160) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=z+gktVwIRHfqEvzHQygtkfgvF600EDrKS62Me591WB8=;
- b=HM90mBrIhRfHt3qphMCtmYOXyajgUXoZXfHbUqdYiYllnmXKEwU0IRwWS96R+n8z9UtmiGW9//+pzIFr1JGiBrM9up+1LMXyUCeqYWkrN9U1DjxWk4ilK6STMQwePpdD7OxmNqwUmSMdf6qUnchu8yZGDxJaMxstQPcG64h9VbEqu/bMqDoMI7/bgYca8iwczSKaobq2Gu9lVZllXZ6hVp4u5yVbLRpclCX119W1i1pXL0zlW5jnXCU19Sb/H1FgjE+m6OgqB5VlgS8oMZ3t3JoR6yNMuy31GT7xrTicm13uG4Xo1bhrOJN5YWR/5mKHlC0OcQWMd9q49Lm0ZJK49w==
-Received: from MW3PR06CA0015.namprd06.prod.outlook.com (2603:10b6:303:2a::20)
- by SA1PR12MB7127.namprd12.prod.outlook.com (2603:10b6:806:29e::18) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.406.12; Thu, 17 Sep
- 2026 18:11:02 +0000
-Received: from MWH0EPF000C618E.namprd02.prod.outlook.com
- (2603:10b6:303:2a:cafe::4b) by MW3PR06CA0015.outlook.office365.com
- (2603:10b6:303:2a::20) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.428.12 via Frontend Transport; Thu,
- 17 Sep 2026 18:10:59 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.160) by
- MWH0EPF000C618E.mail.protection.outlook.com (10.167.249.100) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.451.8 via Frontend Transport; Thu, 17 Sep 2026 18:10:58 +0000
-Received: from rnnvmail202.nvidia.com (10.129.68.7) by mail.nvidia.com
- (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Thu, 17 Sep
- 2026 11:10:29 -0700
-Received: from rnnvmail204.nvidia.com (10.129.68.6) by rnnvmail202.nvidia.com
- (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Thu, 17 Sep
- 2026 11:10:28 -0700
-Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.6)
- with Microsoft SMTP Server id 15.2.2562.49 via Frontend Transport; Thu, 17
- Sep 2026 11:10:22 -0700
-From: Tariq Toukan <tariqt@nvidia.com>
-To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
-	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
-	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Sabrina Dubroca <sd@queasysnail.net>
-CC: Boris Pismenny <borisp@nvidia.com>, Carolina Jubran <cjubran@nvidia.com>,
-	Cosmin Ratiu <cratiu@nvidia.com>, Daniel Zahka <daniel.zahka@gmail.com>,
-	Dragos Tatulea <dtatulea@nvidia.com>, Emeel Hakim <ehakim@nvidia.com>, "Gal
- Pressman" <gal@nvidia.com>, Jianbo Liu <jianbol@nvidia.com>, Leon Romanovsky
-	<leon@kernel.org>, open list <linux-kernel@vger.kernel.org>,
-	<linux-rdma@vger.kernel.org>, Lior Nahmanson <liorna@nvidia.com>, Mark Bloch
-	<mbloch@nvidia.com>, Parav Pandit <parav@nvidia.com>, Raed Salem
-	<raeds@nvidia.com>, Rahul Rameshbabu <rrameshbabu@nvidia.com>, Roi Dayan
-	<roid@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>, Steffen Klassert
-	<steffen.klassert@secunet.com>, Tariq Toukan <tariqt@nvidia.com>
-Subject: [PATCH net 5/7] net/mlx5e: macsec: Delete remaining SecYs during cleanup
-Date: Thu, 17 Sep 2026 20:54:31 +0300
-Message-ID: <20260917175433.4090878-6-tariqt@nvidia.com>
-X-Mailer: git-send-email 2.44.0
-In-Reply-To: <20260917175433.4090878-1-tariqt@nvidia.com>
-References: <20260917175433.4090878-1-tariqt@nvidia.com>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VUF866Xg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5062D1F000FF;
+	Thu, 17 Sep 2026 21:23:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1789680214;
+	bh=NUNrBmtamoGTZdnjr2/yL2y2w6DcpJMvTMICnOHXcqc=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=VUF866Xg25rkEYuIAeRh8+Jby3Nsgi0QqQgf+tcoe0C7lFWZo2kW07wobdbQTXONa
+	 IrDTi0vtFdOje+nXofZ7qVIuq8UFrLKFeRBPgY0JvevdHLKjcg92+cAb0Z4/yQgheh
+	 XekOEPMPEkzPT/6xM5Mwlpf+y3YNL1+GloA5Mf1w=
+Date: Thu, 17 Sep 2026 14:23:29 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Cc: "Liam R. Howlett" <liam@infradead.org>, Vlastimil Babka
+ <vbabka@kernel.org>, Jann Horn <jannh@google.com>, Pedro Falcato
+ <pfalcato@suse.de>, David Hildenbrand <david@kernel.org>, Mike Rapoport
+ <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>, Michal Hocko
+ <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, Greg Kroah-Hartman
+ <gregkh@linuxfoundation.org>, Dennis Dalessandro
+ <dennis.dalessandro@cornelisnetworks.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+ Leon Romanovsky <leon@kernel.org>, Paul Moore <paul@paul-moore.com>,
+ Stephen Smalley <stephen.smalley.work@gmail.com>, Jaroslav Kysela
+ <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, Alexei Starovoitov
+ <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, Andrii Nakryiko
+ <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>, Kumar Kartikeya
+ Dwivedi <memxor@gmail.com>, Zi Yan <ziy@nvidia.com>, Baolin Wang
+ <baolin.wang@linux.alibaba.com>, Nico Pache <nico.pache@linux.dev>, Ryan
+ Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song
+ <baohua@kernel.org>, Lance Yang <lance.yang@linux.dev>, Usama Arif
+ <usama.arif@linux.dev>, Kiryl Shutsemau <kas@kernel.org>, Doug Gilbert
+ <dgilbert@interlog.com>, "James E.J. Bottomley"
+ <James.Bottomley@HansenPartnership.com>, "Martin K. Petersen"
+ <mkp@kernel.org>, Jaya Kumar <jayalk@intworks.biz>, Simona Vetter
+ <simona@ffwll.ch>, Helge Deller <deller@gmx.de>, Sebastian Reichel
+ <sre@kernel.org>, John Hubbard <jhubbard@nvidia.com>, Peter Xu
+ <peterx@redhat.com>, Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov
+ <oleg@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner
+ <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov
+ <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+ Arnaldo Carvalho de Melo <acme@kernel.org>, Namhyung Kim
+ <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Rik van Riel
+ <riel@surriel.com>, Harry Yoo <harry@kernel.org>, Juri Lelli
+ <juri.lelli@redhat.com>, Vincent Guittot <vincent.guittot@linaro.org>,
+ Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard
+ <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, David Airlie
+ <airlied@gmail.com>, Will Deacon <will@kernel.org>, "Aneesh Kumar K.V"
+ <aneesh.kumar@kernel.org>, Nick Piggin <npiggin@gmail.com>, Arnd Bergmann
+ <arnd@arndb.de>, Muchun Song <muchun.song@linux.dev>, Oscar Salvador
+ <osalvador@suse.de>, "Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan
+ Kara <jack@suse.cz>, Marc Zyngier <maz@kernel.org>, Oliver Upton
+ <oupton@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Madhavan
+ Srinivasan <maddy@linux.ibm.com>, Anup Patel <anup@brainfault.org>, Paul
+ Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou
+ <aou@eecs.berkeley.edu>, Christian Borntraeger <borntraeger@linux.ibm.com>,
+ Janosch Frank <frankja@linux.ibm.com>, Claudio Imbrenda
+ <imbrenda@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>,
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Heiko Carstens
+ <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, "David S. Miller"
+ <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, Alexander
+ Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>,
+ Matthew Brost <matthew.brost@intel.com>, Joshua Hahn
+ <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, Byungchul Park
+ <byungchul@sk.com>, Gregory Price <gourry@gourry.net>, Ying Huang
+ <ying.huang@linux.alibaba.com>, Alistair Popple <apopple@nvidia.com>, Chris
+ Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>, Kemeng Shi
+ <shikemeng@huaweicloud.com>, Nhat Pham <nphamcs@gmail.com>, Baoquan He
+ <baoquan.he@linux.dev>, Youngjun Park <youngjun.park@lge.com>, Johannes
+ Weiner <hannes@cmpxchg.org>, Qi Zheng <qi.zheng@linux.dev>, Shakeel Butt
+ <shakeel.butt@linux.dev>, Axel Rasmussen <axelrasmussen@google.com>,
+ Yuanchu Xie <yuanchu@google.com>, Wei Xu <weixugc@google.com>, Chengming
+ Zhou <chengming.zhou@linux.dev>, Michal Hocko <mhocko@kernel.org>, Miklos
+ Szeredi <miklos@szeredi.hu>, Xu Xin <xu.xin@linux.dev>, linux-mm@kvack.org,
+ linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+ linux-usb@vger.kernel.org, linux-rdma@vger.kernel.org,
+ selinux@vger.kernel.org, linux-sound@vger.kernel.org, bpf@vger.kernel.org,
+ linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, linux-trace-kernel@vger.kernel.org,
+ linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org,
+ kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org,
+ linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
+ fuse-devel@lists.linux.dev, Takashi Iwai <tiwai@suse.de>, Emil Tsalapatis
+ <emil@etsalapatis.com>
+Subject: Re: [PATCH v3 00/40] mm: make VMA flag semantics explicit,
+ eliminate VM_SPECIAL
+Message-Id: <20260917142329.369cd6539261d590600ce7ec@linux-foundation.org>
+In-Reply-To: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-0-4583d8a23bca@kernel.org>
+References: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-0-4583d8a23bca@kernel.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWH0EPF000C618E:EE_|SA1PR12MB7127:EE_
-X-MS-Office365-Filtering-Correlation-Id: 7048d741-d595-43fa-69e9-08df14e7068f
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|7416014|376014|82310400026|1800799024|36860700016|23010399003|6133799003|18002099003|22082099003|5023799004|10067099003|56012099006|11063799006;
-X-Microsoft-Antispam-Message-Info:
-	hpsJQa1BiuUSR4pa+sJ8AWHPkbarf1YeGQFT2T4a1AaQ3ZZXsVLvztYkRlrOyEsR64gGqo0ACPfvJkhPnPkNepQhBpRCEY7ma1YHFSNukc1gP2rEdShbnWtcADFY4pAwCxaYe6T7c0cyGHhA87W44LFBFqybuylOJ0kIyJqnDF0Lc4nkWyob24ojlGXbpIZbNJkeIPEiX4K+hJXwTaixIPKTF58JQtTTzFXSCU7spJgFrLjd71HkWU/sn+lKF9C7zOFSi/JngaL7I+XQaGGYjKGfPJYEqCKpI4gFOQmtdUUpz49l1WHec1PtDriu/EKHJH8V/FQzxEQXyvutb2E8WuAs5yjv9X2MNNhfLlNBDXcozFxzKBmkmrFmzLc1l3XZHUZ2rixNS5PV7Nux4Lj/q/I+W6QF5ircFvsF+LGUeLrK/KCgNC8/FR/h9IpnsX+36LZGHR6+lB8h5gdh8kONoh9yyuM9ReFwQNoWBNKurdwjt3KPTPI1FmslsJK4UubnbRgiOkFhVllpp4sVmjnpdpgh2mXiTlZQnVDhNw5ICKIYzzwWAZyRkylD9SHH/DFG9Yh+9yjfYQ/vTUt5sSTAZsNliY1OpwYK1P12hbLI0RpYcuJkIRB1/pIKas9x/3F5pdfuv4KDn/rK7UAFvriUcSrCXA7KeLanZdlagGQXX1BTslfF1LwVSA/IDJ7/hKHaPQgHThh8bQuPgRVisnR36g==
-X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(7416014)(376014)(82310400026)(1800799024)(36860700016)(23010399003)(6133799003)(18002099003)(22082099003)(5023799004)(10067099003)(56012099006)(11063799006);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	pQijS6vLcdKAjZO1DcVTw4oD7bOGe41BoqKzY9ctlIISke/e/tKhkTvkw6mDQg2Jmh4X4rjn2XhedoHS7tfsBAFtP3r9Q56YXQPVAOznKX/xS8OHaTZZN0SAZNZPtuDiqEbO+U9eSD9dmif85UDA2+30ZvixTkBg5YlE1ST/Tchk1Ry2q3KdBNbrdliE0V+U5I7cXt1SSjSyeOijI5MQWyQ5yeWFcizJQa/T+yTtKp4AP9isSuZStecmIPM+fXM4HjJEWPowlnzWGN84yK6Y97clcNqT2G52fuMEC5cAxp+Fi9h6YiSfv80YUG09bkVuAmAkaPZEN/qG7luzUCAwUcGcu2ZFSXHe5CggjyWsJ8MoJHz0JnRFpf5eT3LZxRn1pz4rrwpUz7C7ySUxoVoBIVYq/dgayE9rQ5l2oyoUgvcS9nrnl2tT+kDKZfBan8a5
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Sep 2026 18:10:58.8562
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 7048d741-d595-43fa-69e9-08df14e7068f
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	MWH0EPF000C618E.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR12MB7127
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-From: Cosmin Ratiu <cratiu@nvidia.com>
+On Thu, 17 Sep 2026 17:22:09 +0100 "Lorenzo Stoakes (ARM)" <ljs@kernel.org> wrote:
 
-Suspend invokes MACsec cleanup without unregistering the netdev, so
-offloaded SecYs may still exist. Cleanup frees their owning context
-without deleting them, leaking driver state, encryption keys, MACsec
-objects and steering resources.
+> The VM_SPECIAL / VMA_SPECIAL_FLAGS mask conflates several unrelated
+> properties:
+> 
+> * Is this kernel-owned, whether MMIO, kernel-allocated pages, or ordinary
+>   pages a driver maps itself?
+> * Can it be expanded or merged?
+> * Is this a 'weird' case like mlock where migration might race and we
+>   'have' to set invalid flags to notify?
+> * Is it another 'weird' case where we just want to stop GUP from touching
+>   it?
+> 
+> ...
+> 
+> This series brings some order to things by both limiting what drivers can
+> do with VMA flags and switching to using predicates that describe
+> behaviour, not arbitrary flags.
 
-This change deletes all remaining SecYs, which releases all HW objects
-and avoids leaks.
+Thanks, I've updated mm.git's mm-unstable branch to this version.
 
-But this only fixes resource teardown. On resume, the macsec driver may
-still potentially have a lot of state it considers offloaded, but the
-resumed device will have a clean slate. Fixing that is outside the scope
-of this patch.
+> v3:
+> * Fixed up bug in patch 1 as reported by Mike - have to delay setting
+>   map->vma_flags until after action prepare, though map->vm_file needs to
+>   be set before for correct reference count management.
+> * Updated 4/40 to add a symmetric vm_end check as well as vm_start in case
+>   of a dangerously insane driver, as per Sashiko.
+> * Updated 8/40 to check if a driver did something REALLY stupid like having
+>   a NULL discontig_kernel_page_ops ptr, as per Sashiko.
+> * Updated 15/40 to trivially synchronise userland test comments.
+> * Updated 17/40 to correctly duplicate code to the userland VMA tests as
+>   per Sashiko.
 
-Fixes: 3fd3fb6b6b88 ("net/mlx5e: Move MACsec initialization from profile init stage to profile enable stage")
-Signed-off-by: Cosmin Ratiu <cratiu@nvidia.com>
-Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
-Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
----
- .../mellanox/mlx5/core/en_accel/macsec.c      | 53 ++++++++++++-------
- 1 file changed, 35 insertions(+), 18 deletions(-)
+Here's how v3 altered mm.git:
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c
-index 20eec345b36c..84ce388d3846 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c
-@@ -1238,33 +1238,21 @@ static int mlx5e_macsec_upd_secy(struct macsec_context *ctx)
- 	return err;
+
+ mm/internal.h                   |    4 ++-
+ mm/memory.c                     |    2 -
+ mm/vma.c                        |   34 +++++++++++++++++-------------
+ mm/vma.h                        |    3 +-
+ tools/testing/vma/include/dup.h |   24 ++++++++++++++++-----
+ 5 files changed, 45 insertions(+), 22 deletions(-)
+
+--- a/mm/internal.h~b
++++ a/mm/internal.h
+@@ -244,6 +244,7 @@ static inline void vma_close(struct vm_a
+ static inline int mmap_file(struct file *file, struct vm_area_struct *vma)
+ {
+ 	const unsigned long prev_start = vma->vm_start;
++	const unsigned long prev_end = vma->vm_end;
+ 	const vma_flags_t prev_flags = vma->flags;
+ 	int err;
+ 
+@@ -263,9 +264,10 @@ static inline int mmap_file(struct file
+ 	if (unlikely(err))
+ 		return err;
+ 
+-	err = mmap_hook_validate(prev_start, &prev_flags, vma);
++	err = mmap_hook_validate(prev_start, prev_end, &prev_flags, vma);
+ 	if (unlikely(err)) {
+ 		vma->vm_start = prev_start;
++		vma->vm_end = prev_end;
+ 		vma_close(vma);
+ 	}
+ 
+--- a/mm/memory.c~b
++++ a/mm/memory.c
+@@ -2653,7 +2653,7 @@ int map_discontig_kernel_pages_prepare(s
+ 		action->map_kernel_discontig.ops;
+ 
+ 	/* At minimum need to be able to get pages. */
+-	if (WARN_ON_ONCE(!ops->get))
++	if (WARN_ON_ONCE(!ops || !ops->get))
+ 		return -EINVAL;
+ 
+ 	__map_kernel_pages_prepare(desc);
+--- a/mm/vma.c~b
++++ a/mm/vma.c
+@@ -2797,15 +2797,15 @@ static int mmap_validate_vma_flags(const
  }
  
--static int mlx5e_macsec_del_secy(struct macsec_context *ctx)
-+static void macsec_del_secy(struct mlx5e_macsec *macsec,
-+			    struct mlx5e_macsec_device *macsec_device)
+ /* Check to ensure a driver hasn't done something crazy. */
+-static int mmap_validate(unsigned long prev_start,
+-			 unsigned long curr_start,
++static int mmap_validate(unsigned long prev_start, unsigned long prev_end,
++			 unsigned long curr_start, unsigned long curr_end,
+ 			 const vma_flags_t *prev_flags,
+ 			 const vma_flags_t *curr_flags)
  {
--	struct mlx5e_priv *priv = macsec_netdev_priv(ctx->netdev);
--	struct mlx5e_macsec_device *macsec_device;
-+	struct net_device *netdev = (struct net_device *)macsec_device->netdev;
- 	struct mlx5e_macsec_rx_sc *rx_sc, *tmp;
- 	struct mlx5e_macsec_sa *tx_sa;
--	struct mlx5e_macsec *macsec;
- 	struct list_head *list;
--	int err = 0;
- 	int i;
+ 	bool was_maywrite, is_maywrite;
  
--	mutex_lock(&priv->macsec->lock);
--	macsec = priv->macsec;
--	macsec_device = mlx5e_macsec_get_macsec_device_context(macsec, ctx);
--	if (!macsec_device) {
--		netdev_err(ctx->netdev, "MACsec offload: Failed to find device context\n");
--		err = -EINVAL;
--
--		goto out;
--	}
--
- 	for (i = 0; i < MACSEC_NUM_AN; ++i) {
- 		tx_sa = macsec_device->tx_sa[i];
- 		if (!tx_sa)
- 			continue;
+-	/* Drivers cannot alter the address of the VMA. */
+-	if (WARN_ON_ONCE(prev_start != curr_start))
++	/* Drivers cannot alter the range of the VMA. */
++	if (WARN_ON_ONCE(prev_start != curr_start || prev_end != curr_end))
+ 		return -EINVAL;
  
--		mlx5e_macsec_cleanup_sa(macsec, tx_sa, true, ctx->secy->netdev, 0);
-+		mlx5e_macsec_cleanup_sa(macsec, tx_sa, true, netdev, 0);
- 		mlx5_destroy_encryption_key(macsec->mdev, tx_sa->enc_key_id);
- 		kfree(tx_sa);
- 		macsec_device->tx_sa[i] = NULL;
-@@ -1272,7 +1260,7 @@ static int mlx5e_macsec_del_secy(struct macsec_context *ctx)
+ 	was_maywrite = vma_flags_test(prev_flags, VMA_MAYWRITE_BIT);
+@@ -2843,7 +2843,8 @@ int mmap_prepare_validate(const struct v
+ 	    WARN_ON_ONCE(desc->action.type != MMAP_NOTHING))
+ 		return -EINVAL;
  
- 	list = &macsec_device->macsec_rx_sc_list_head;
- 	list_for_each_entry_safe(rx_sc, tmp, list, rx_sc_list_element)
--		macsec_del_rxsc_ctx(macsec, rx_sc, ctx->secy->netdev);
-+		macsec_del_rxsc_ctx(macsec, rx_sc, netdev);
+-	return mmap_validate(prev_desc->start, desc->start,
++	return mmap_validate(prev_desc->start, prev_desc->end,
++			     desc->start, desc->end,
+ 			     &prev_desc->vma_flags, &desc->vma_flags);
+ }
  
- 	kfree(macsec_device->dev_addr);
- 	macsec_device->dev_addr = NULL;
-@@ -1280,7 +1268,24 @@ static int mlx5e_macsec_del_secy(struct macsec_context *ctx)
- 	list_del_rcu(&macsec_device->macsec_device_list_element);
- 	--macsec->num_of_devices;
- 	kfree(macsec_device);
+@@ -2851,19 +2852,22 @@ int mmap_prepare_validate(const struct v
+  * mmap_hook_validate() - Ensure the driver hasn't violated invariants in
+  * its f_op->mmap hook.
+  * @prev_start: The start of the mapping prior to the mmap hook.
++ * @prev_end: The end of the mapping prior to the mmap hook.
+  * @prev_flags: The VMA flags set for the VMA prior to the mmap hook.
+  * @vma: The VMA after the hook has been applied.
+  *
+  * Returns: 0 on success, otherwise an error.
+  */
+-int mmap_hook_validate(unsigned long prev_start,
++int mmap_hook_validate(unsigned long prev_start, unsigned long prev_end,
+ 		       const vma_flags_t *prev_flags,
+ 		       const struct vm_area_struct *vma)
+ {
+ 	const unsigned long start = vma->vm_start;
++	const unsigned long end = vma->vm_end;
+ 	const vma_flags_t *flags = &vma->flags;
+ 
+-	return mmap_validate(prev_start, start, prev_flags, flags);
++	return mmap_validate(prev_start, prev_end, start, end, prev_flags,
++			     flags);
+ }
+ 
+ static int call_action_prepare(struct mmap_state *map,
+@@ -2900,15 +2904,9 @@ static int call_mmap_prepare(struct mmap
+ 	if (err)
+ 		return err;
+ 
+-	/* Update fields permitted to be changed. */
+-	map->pgoff = desc->pgoff;
++	/* Update first so file refcount tracked correctly. */
+ 	if (desc->vm_file != map->vm_file)
+ 		map->vm_file = desc->vm_file;
+-	map->vma_flags = desc->vma_flags;
+-	map->page_prot = desc->page_prot;
+-	/* User-defined fields. */
+-	map->vm_ops = desc->vm_ops;
+-	map->vm_private_data = desc->private_data;
+ 
+ 	/* It's invalid for mmap_prepare hooks to clear vm_ops. */
+ 	if (!desc->vm_ops)
+@@ -2923,6 +2921,14 @@ static int call_mmap_prepare(struct mmap
+ 	if (err)
+ 		return err;
+ 
++	/* Update fields permitted to be changed. */
++	map->pgoff = desc->pgoff;
++	map->vma_flags = desc->vma_flags;
++	map->page_prot = desc->page_prot;
++	/* User-defined fields. */
++	map->vm_ops = desc->vm_ops;
++	map->vm_private_data = desc->private_data;
++
+ 	/*
+ 	 * MAP_PRIVATE-/dev/zero mappings are an ancient way of getting
+ 	 * anonymous mappings. Rather than allowing these mappings to be odd
+--- a/mm/vma.h~b
++++ a/mm/vma.h
+@@ -786,7 +786,7 @@ void vm_area_free(struct vm_area_struct
+ int mmap_prepare_validate(const struct vm_area_desc *prev_desc,
+ 			  const struct vm_area_desc *desc);
+ 
+-int mmap_hook_validate(unsigned long prev_start,
++int mmap_hook_validate(unsigned long prev_start, unsigned long prev_end,
+ 		       const vma_flags_t *prev_flags,
+ 		       const struct vm_area_struct *vma);
+ 
+@@ -851,6 +851,7 @@ static inline int mmap_prepare_validate(
+ }
+ 
+ static inline int mmap_hook_validate(unsigned long prev_start,
++				     unsigned long prev_end,
+ 				     const vma_flags_t *prev_flags,
+ 				     const struct vm_area_struct *vma)
+ {
+--- a/tools/testing/vma/include/dup.h~b
++++ a/tools/testing/vma/include/dup.h
+@@ -1667,22 +1667,36 @@ static inline bool vma_is_kernel_owned(c
+ 	return vma_flags_is_kernel_owned(&vma->flags);
+ }
+ 
++static inline bool vma_flags_is_fixed_mapping(const vma_flags_t *flags)
++{
++	/*
++	 * VMA_PFNMAP_BIT should imply VMA_DONTEXPAND_BIT, but some callers set
++	 * only the former.
++	 */
++	return vma_flags_test_any(flags, VMA_PFNMAP_BIT, VMA_DONTEXPAND_BIT);
 +}
 +
-+static int mlx5e_macsec_del_secy(struct macsec_context *ctx)
++static inline bool vma_is_fixed_mapping(const struct vm_area_struct *vma)
 +{
-+	struct mlx5e_priv *priv = macsec_netdev_priv(ctx->netdev);
-+	struct mlx5e_macsec *macsec = priv->macsec;
-+	struct mlx5e_macsec_device *macsec_device;
-+	int err = 0;
- 
-+	mutex_lock(&macsec->lock);
-+	macsec_device = mlx5e_macsec_get_macsec_device_context(macsec, ctx);
-+	if (!macsec_device) {
-+		netdev_err(ctx->netdev, "MACsec offload: Failed to find device context\n");
-+		err = -EINVAL;
-+		goto out;
-+	}
++	return vma_flags_is_fixed_mapping(&vma->flags);
++}
 +
-+	macsec_del_secy(macsec, macsec_device);
- out:
- 	mutex_unlock(&macsec->lock);
- 
-@@ -1796,6 +1801,7 @@ int mlx5e_macsec_init(struct mlx5e_priv *priv)
- 
- void mlx5e_macsec_cleanup(struct mlx5e_priv *priv)
+ static inline bool vma_flags_can_merge(const vma_flags_t *flags)
  {
-+	struct mlx5e_macsec_device *macsec_device, *tmp;
- 	struct mlx5e_macsec *macsec = priv->macsec;
- 	struct mlx5_core_dev *mdev = priv->mdev;
+ 	/*
+-	 * VMA merging assumes that the properties of a VMA completely describe
+-	 * the properties of that VMA.
++	 * VMA merging assumes that a VMA's flags and fields completely describe
++	 * its state.
+ 	 *
+ 	 * However, kernel-owned mappings may have established state upon mapping
+ 	 * not embodied in any attribute of the VMA.
+ 	 *
+-	 * Additionally, PFN maps encode the source PFN of the range in
+-	 * vma->vm_pgoff, which may otherwise cause spurious merges.
++	 * Additionally, private (CoW) PFN maps encode the source PFN of the
++	 * range in vma->vm_pgoff, which may otherwise cause spurious merges.
+ 	 */
+ 	if (vma_flags_is_kernel_owned(flags))
+ 		return false;
+ 	/* VMA explicitly marked as being unmergeable. */
+-	if (vma_flags_test(flags, VMA_DONTEXPAND_BIT))
++	if (vma_flags_is_fixed_mapping(flags))
+ 		return false;
  
-@@ -1803,9 +1809,20 @@ void mlx5e_macsec_cleanup(struct mlx5e_priv *priv)
- 		return;
- 
- 	mlx5_notifier_unregister(mdev, &macsec->nb);
--	mlx5_macsec_fs_cleanup(mdev->macsec_fs);
- 	destroy_workqueue(macsec->wq);
-+
-+	mutex_lock(&macsec->lock);
-+	list_for_each_entry_safe(macsec_device, tmp,
-+				 &macsec->macsec_device_list_head,
-+				 macsec_device_list_element)
-+		macsec_del_secy(macsec, macsec_device);
-+	mutex_unlock(&macsec->lock);
-+
-+	xa_destroy(&macsec->sc_xarray);
-+	mlx5_macsec_fs_cleanup(mdev->macsec_fs);
-+	mdev->macsec_fs = NULL;
- 	mlx5e_macsec_aso_cleanup(&macsec->aso, mdev);
- 	mutex_destroy(&macsec->lock);
- 	kfree(macsec);
-+	priv->macsec = NULL;
- }
--- 
-2.44.0
+ 	return true;
+_
 
