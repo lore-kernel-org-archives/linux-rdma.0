@@ -1,230 +1,97 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBCFC3B2D39;
-	Thu, 17 Sep 2026 03:35:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from outbound.baidu.com (mx16.baidu.com [111.202.115.101])
+	by smtp.subspace.kernel.org (Postfix) with SMTP id CE4F83F4829
+	for <linux-rdma@vger.kernel.org>; Thu, 17 Sep 2026 05:20:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=111.202.115.101
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789616161; cv=none; b=lUabRK/i800PluFfqfN+0NsLYO3/zQaRZPSTQScnnnov3WKQ18CJURqaN8ngaDl+5FiueXyntHhbOrMfUaGbWv2AhTZey6M9/CbVmw+nPid581k+NQdANOTAFlha9wcYDOD9h6Y+RwmdqY/MntoPHusUbCxOzVqZzxa01DgBG3U=
+	t=1789622435; cv=none; b=i2mF6QZG0LCzc4MoNEs7nj6LwdHwIrDCAVds3Tmy+n6KWY8HDYjs+AcO29nCzPPII8ONLv3l/tBbVXsS4CXVcpBf5PtK4s3J95/3E2obPrK99+dZwcTmtiSaZOwmUJYiGID1eiKQ4Xv7GPQERVWtWEFdFL0ePXSwBwClJrsB5ug=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789616161; c=relaxed/simple;
-	bh=wprAZVkDK+qPEVVSsPywQ7rAPtxD03/r1omL1vnNC4I=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=cCjGpTEBbF4fUIGRnmwMUyVJkBHGUz7Q8AkgM0GzodajZ88XCB528MhMqqiWkdTX7H3rr1tX6nv51qrglqJ08RGQodfctL9GpFyA1cLBeBQUhiUM+KoWdPH87nh6OPz7deYLlqX7sT/oJXPwcgW6ZFr3UYNnqG9RQg1RW8ngVh4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CgBmKRNk; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789622435; c=relaxed/simple;
+	bh=beXvzjsecmzJjrlmyuvibryNZ2R//h/hqnTlmTvAxus=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=RlzFienbmldpKjh1tJ+V2Ol0T1hyjRaeuA8cXOIL67ruylZeWFa8jgZwm6ONm5F/e3uj6n4CU/Y1xywrua0yNlLA/2xM4hXa6Yn1J5Dsuil3u/hW7FFbRZvWq7rsnQsQt+ZlVhZ4yzZrcByz0ULjj4FC0P7GmJNmN3NQY/eoKJA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com; spf=pass smtp.mailfrom=baidu.com; dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b=CARtYZhd; arc=none smtp.client-ip=111.202.115.101
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baidu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CgBmKRNk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01E7C1F0089D;
-	Thu, 17 Sep 2026 03:35:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789616147;
-	bh=H82Dd2butTzBTiBls4+VVco7GLnPRxektm71oCDv4K0=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=CgBmKRNkZtocSbVMv4k6h5uKhCyL0ac1IUjHvCcKuUTCtm3U+9B7cusBj+hUKWqKY
-	 fLaeJsQG6v/GGv6gh/ajeOf8oM6UOMkmTQ++qR4jNugFvmqkuWFUy+SDip2ySKlszt
-	 ZnszVn0CCgXmY4rWXFQjpDRtUrkvvUjLsFZg55ov8as/jRz34uOOFGLVbVufWka0K5
-	 oNY+/9HXXdwBcxlc4fdzmXE9ymqp4DbU2LDp4AJxcJf4HVRqArqy3IK5O6quuvZ8S/
-	 sx3jFuiSGI/lFTZAzGsq+BW4ixO/TPUZm5kdGXDrk+QIrVFV5/AucayXLbq0TleV5G
-	 xi0p4+Gon5Upw==
-From: Sasha Levin <sashal@kernel.org>
-To: stable@vger.kernel.org
-Cc: Pavan Chebbi <pavan.chebbi@broadcom.com>,
-	Andy Gospodarek <gospo@broadcom.com>,
-	Leon Romanovsky <leonro@nvidia.com>,
-	linux-rdma@vger.kernel.org,
-	Jason Gunthorpe <jgg@nvidia.com>,
-	Sasha Levin <sashal@kernel.org>
-Subject: [PATCH 6.18.y 1/3] fwctl/bnxt_en: Move common definitions to include/linux/bnxt/
-Date: Wed, 16 Sep 2026 23:35:43 -0400
-Message-ID: <20260917033545.4044963-1-sashal@kernel.org>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <2026091648-flakily-icing-f492@gregkh>
-References: <2026091648-flakily-icing-f492@gregkh>
+	dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b="CARtYZhd"
+X-MD-Sfrom: lirongqing@baidu.com
+X-MD-SrcIP: 172.31.50.47
+From: lirongqing <lirongqing@baidu.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Li
+ RongQing <lirongqing@baidu.com>, Kees Cook <kees@kernel.org>,
+	<linux-rdma@vger.kernel.org>
+Subject: [PATCH] RDMA/multicast: Fix rb-tree corruption on MGID reassignment in join_handler
+Date: Thu, 17 Sep 2026 13:20:12 +0800
+Message-ID: <20260917052012.2181-1-lirongqing@baidu.com>
+X-Mailer: git-send-email 2.17.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: bjhj-exc10.internal.baidu.com (172.31.3.20) To
+ bjkjy-exc3.internal.baidu.com (172.31.50.47)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=baidu.com;
+	s=selector1; t=1789622420;
+	bh=srSW4T6ozUzSG6rf3eAL+AQxv0aWJm43EF+zJxtMuHY=;
+	h=From:To:Subject:Date:Message-ID:Content-Type;
+	b=CARtYZhda6uM6lp9lyJrbBVYX8AWN6xT34bR5+12bdSFPijwfDMtn29TgAb4A2/VK
+	 8M6jnlVhsECF4QuiYsonq09WM8G4Y5VhLw+I3pdclJwMzQ3m4mckV84VpPoIK8tSxX
+	 ScU6YKKVPcg8XV5/I0ptAcLf9UgZJ9DLcb+fSvQ6fN5/SsXXqImIyMKN7V2XmUggZC
+	 UxXN0qI0kSfJC3SwrA6DIx8oHZEcb4RyxyugMFP7Qrg9O2RgNfYthjGomEXai+8IpE
+	 k6cFeHow+JJcdveNjbvFyL5rvFu68mJMgUO5tvncpbdSMlP3QHYrrC4BCF/kFrt/Dw
+	 jeK+GPt76jTMg==
 
-From: Pavan Chebbi <pavan.chebbi@broadcom.com>
+From: Li RongQing <lirongqing@baidu.com>
 
-[ Upstream commit 7be18a1fa00eab5283b35c13e26c6b76fcaab9ce ]
+When the SA assigns a wildcard (mgid0) join a concrete MGID that already
+has a group in the port table, join_handler() erases the group from the
+tree and calls mcast_insert() with allow_duplicates=false.  mcast_insert()
+then finds the existing group and returns it without re-inserting, but
+join_handler() discards the return value, leaving the group erased yet
+still alive.
 
-We have common definitions that are now going to be used
-by more than one component outside of bnxt (bnxt_re and
-fwctl)
+When the orphaned group's refcount later drops to zero, release_group()
+calls rb_erase() on the node that is no longer in the tree, corrupting
+the rb-tree (a stale parent pointer causes a valid subtree link to be
+overwritten with NULL).
 
-Move bnxt_ulp.h to include/linux/bnxt/ as ulp.h.
+Clear the node with RB_CLEAR_NODE() after the erase in join_handler() so
+release_group() can detect via RB_EMPTY_NODE() that it is already out of
+the tree and skip the second erase.  A successful re-insert by
+mcast_insert() restores the in-tree state via rb_link_node().
 
-Link: https://patch.msgid.link/r/20260314151605.932749-2-pavan.chebbi@broadcom.com
-Reviewed-by: Andy Gospodarek <gospo@broadcom.com>
-Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
-Cc: linux-rdma@vger.kernel.org
-Signed-off-by: Pavan Chebbi <pavan.chebbi@broadcom.com>
-Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
-Stable-dep-of: 961e2a17c5e3 ("bnxt_en: Handle buffer allocation failure in bnxt_rx_ring_reset()")
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Li RongQing <lirongqing@baidu.com>
 ---
- drivers/infiniband/hw/bnxt_re/debugfs.c                         | 2 +-
- drivers/infiniband/hw/bnxt_re/main.c                            | 2 +-
- drivers/infiniband/hw/bnxt_re/qplib_fp.c                        | 2 +-
- drivers/infiniband/hw/bnxt_re/qplib_res.h                       | 2 +-
- drivers/net/ethernet/broadcom/bnxt/bnxt.c                       | 2 +-
- drivers/net/ethernet/broadcom/bnxt/bnxt_devlink.c               | 2 +-
- drivers/net/ethernet/broadcom/bnxt/bnxt_ethtool.c               | 2 +-
- drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c                 | 2 +-
- drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c                   | 2 +-
- .../broadcom/bnxt/bnxt_ulp.h => include/linux/bnxt/ulp.h        | 0
- 10 files changed, 9 insertions(+), 9 deletions(-)
- rename drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.h => include/linux/bnxt/ulp.h (100%)
+ drivers/infiniband/core/multicast.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/debugfs.c b/drivers/infiniband/hw/bnxt_re/debugfs.c
-index be5e9b5ca2f06..d72c1693c57f9 100644
---- a/drivers/infiniband/hw/bnxt_re/debugfs.c
-+++ b/drivers/infiniband/hw/bnxt_re/debugfs.c
-@@ -10,8 +10,8 @@
- #include <linux/pci.h>
- #include <linux/seq_file.h>
- #include <rdma/ib_addr.h>
-+#include <linux/bnxt/ulp.h>
+diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/core/multicast.c
+index bea7df3..f549fd9 100644
+--- a/drivers/infiniband/core/multicast.c
++++ b/drivers/infiniband/core/multicast.c
+@@ -189,7 +189,10 @@ static void release_group(struct mcast_group *group)
  
--#include "bnxt_ulp.h"
- #include "roce_hsi.h"
- #include "qplib_res.h"
- #include "qplib_sp.h"
-diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
-index 4ca2eee6fbc22..f33e006126fd2 100644
---- a/drivers/infiniband/hw/bnxt_re/main.c
-+++ b/drivers/infiniband/hw/bnxt_re/main.c
-@@ -55,8 +55,8 @@
- #include <rdma/ib_umem.h>
- #include <rdma/ib_addr.h>
- #include <linux/hashtable.h>
-+#include <linux/bnxt/ulp.h>
- 
--#include "bnxt_ulp.h"
- #include "roce_hsi.h"
- #include "qplib_res.h"
- #include "qplib_sp.h"
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-index ce90d3d834d4a..9e97d67de1beb 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-@@ -46,6 +46,7 @@
- #include <linux/delay.h>
- #include <linux/prefetch.h>
- #include <linux/if_ether.h>
-+#include <linux/bnxt/ulp.h>
- #include <rdma/ib_mad.h>
- 
- #include "roce_hsi.h"
-@@ -55,7 +56,6 @@
- #include "qplib_sp.h"
- #include "qplib_fp.h"
- #include <rdma/ib_addr.h>
--#include "bnxt_ulp.h"
- #include "bnxt_re.h"
- #include "ib_verbs.h"
- 
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.h b/drivers/infiniband/hw/bnxt_re/qplib_res.h
-index 2ea3b7f232a3f..ebe8893937f62 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_res.h
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_res.h
-@@ -39,7 +39,7 @@
- #ifndef __BNXT_QPLIB_RES_H__
- #define __BNXT_QPLIB_RES_H__
- 
--#include "bnxt_ulp.h"
-+#include <linux/bnxt/ulp.h>
- 
- extern const struct bnxt_qplib_gid bnxt_qplib_gid_zero;
- 
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.c b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-index e2bceec96932b..9176b90f571fe 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-@@ -59,10 +59,10 @@
- #include <net/netdev_rx_queue.h>
- #include <linux/pci-tph.h>
- #include <linux/bnxt/hsi.h>
-+#include <linux/bnxt/ulp.h>
- 
- #include "bnxt.h"
- #include "bnxt_hwrm.h"
--#include "bnxt_ulp.h"
- #include "bnxt_sriov.h"
- #include "bnxt_ethtool.h"
- #include "bnxt_dcb.h"
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_devlink.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_devlink.c
-index 67ca02d84c979..0147b3a9ad865 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt_devlink.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_devlink.c
-@@ -13,12 +13,12 @@
- #include <net/devlink.h>
- #include <net/netdev_lock.h>
- #include <linux/bnxt/hsi.h>
-+#include <linux/bnxt/ulp.h>
- #include "bnxt.h"
- #include "bnxt_hwrm.h"
- #include "bnxt_vfr.h"
- #include "bnxt_devlink.h"
- #include "bnxt_ethtool.h"
--#include "bnxt_ulp.h"
- #include "bnxt_ptp.h"
- #include "bnxt_coredump.h"
- #include "bnxt_nvm_defs.h"
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_ethtool.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_ethtool.c
-index a71025f51370d..8035c32802e87 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt_ethtool.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_ethtool.c
-@@ -27,9 +27,9 @@
- #include <net/netdev_queues.h>
- #include <net/netlink.h>
- #include <linux/bnxt/hsi.h>
-+#include <linux/bnxt/ulp.h>
- #include "bnxt.h"
- #include "bnxt_hwrm.h"
--#include "bnxt_ulp.h"
- #include "bnxt_xdp.h"
- #include "bnxt_ptp.h"
- #include "bnxt_ethtool.h"
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c
-index 80fed2c07b9e8..84c43f83193aa 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c
-@@ -17,9 +17,9 @@
- #include <linux/etherdevice.h>
- #include <net/dcbnl.h>
- #include <linux/bnxt/hsi.h>
-+#include <linux/bnxt/ulp.h>
- #include "bnxt.h"
- #include "bnxt_hwrm.h"
--#include "bnxt_ulp.h"
- #include "bnxt_sriov.h"
- #include "bnxt_vfr.h"
- #include "bnxt_ethtool.h"
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c
-index f8c2c72b382d8..56a35c65d1938 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c
-@@ -22,10 +22,10 @@
- #include <linux/auxiliary_bus.h>
- #include <net/netdev_lock.h>
- #include <linux/bnxt/hsi.h>
-+#include <linux/bnxt/ulp.h>
- 
- #include "bnxt.h"
- #include "bnxt_hwrm.h"
--#include "bnxt_ulp.h"
- 
- static DEFINE_IDA(bnxt_aux_dev_ids);
- 
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.h b/include/linux/bnxt/ulp.h
-similarity index 100%
-rename from drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.h
-rename to include/linux/bnxt/ulp.h
+ 	spin_lock_irqsave(&port->lock, flags);
+ 	if (atomic_dec_and_test(&group->refcount)) {
+-		rb_erase(&group->node, &port->table);
++
++		if (!RB_EMPTY_NODE(&group->node))
++			rb_erase(&group->node, &port->table);
++
+ 		spin_unlock_irqrestore(&port->lock, flags);
+ 		kfree(group);
+ 		deref_port(port);
+@@ -533,6 +536,8 @@ static void join_handler(int status, struct ib_sa_mcmember_rec *rec,
+ 		group->rec = *rec;
+ 		if (mgids_changed) {
+ 			rb_erase(&group->node, &group->port->table);
++
++			RB_CLEAR_NODE(&group->node);
+ 			is_mgid0 = !memcmp(&mgid0, &group->rec.mgid,
+ 					   sizeof(mgid0));
+ 			mcast_insert(group->port, group, is_mgid0);
 -- 
-2.53.0
+2.9.4
 
