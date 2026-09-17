@@ -1,127 +1,133 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv2-f12.google.com (mail-qv2-f12.google.com [74.125.230.140])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FF5D58B6B3;
-	Thu, 17 Sep 2026 14:17:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 541AC5921F7
+	for <linux-rdma@vger.kernel.org>; Thu, 17 Sep 2026 14:28:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.230.140
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789654631; cv=none; b=DpcNXu+FbJT++B8bIuNULnLHLGbWtAg3xsx5MuB4XgblW4Qr41MpbvR8FJ6Uwve+W5ZsEF3AHvF61Ow99gOSymIvgY0K+CY1rvFUu2JxgMA5HO+vos9CSJJK6cFOJoDddit2bDN8DMi9Bj1+PJ88ApHVPulMjgageHaAUWkGlNQ=
+	t=1789655293; cv=none; b=pdlC4VG5UXYjlVzI1dxQh8DuJvl56VGTSU6/hbIJt0x8tk4uB9aj/X86pum6EZslnG3+fE1DRlKbk95IgaEW8zPuQNW/2tx5H1vCqZo4XCq/Zn5JheMpEJGal1kz1z6/E505LXksGxE2EholnBJO52nfmk+4K7qztkVun3aXp3c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789654631; c=relaxed/simple;
-	bh=MDZHHIBC+OMEMEsQQONixUk9LTcLJLWtKNH7Kg/sPTo=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=oGzWQAVtE4aHgcND8YNfOMQmnG/4aP9MIUtIH14HwpkfAg5rTcXwtWonEe3VhHGmNzpqa3tUkGbajB8vagBRbEigbKrOJNAFaR5AcE5YihzMDJTrtwq2KUqGLd+41nQcfdlCCw7DDXo+GivNEFBoG7qptSeRdgcsypSZre6lmbo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=WvqxSK3z; arc=none smtp.client-ip=192.198.163.18
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1789655293; c=relaxed/simple;
+	bh=zD+yqYOk9BEwYrlkE41XIJFd2WjARDFI5ce4WJxm+Ls=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=XzWOjJcFqFqvLIlmyyXKo+j00pZZ3a9ywWna7CdEN3d0ACqARCaDhfcY2+ZFf7r82fs8YswjC39hfEPKmRZYHNT0bEJGVhln5KQYjIXodgkHxnpqeukwshzYdpUgKKsJbUSFLtEoAOgOtKY00aUZmeAJ5/laDIQVbeT1cHg4KEA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=jOZBXJLw; arc=none smtp.client-ip=74.125.230.140
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="WvqxSK3z"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1789654630; x=1821190630;
-  h=message-id:subject:from:to:cc:date:in-reply-to:
-   references:content-transfer-encoding:mime-version;
-  bh=MDZHHIBC+OMEMEsQQONixUk9LTcLJLWtKNH7Kg/sPTo=;
-  b=WvqxSK3zeePCZ/d3vhx7ZZ6cr5ZOCM2tnkd6UX7MJLXyzpZ9D+jwi4wA
-   fOpf0f2Hi6wyOHkcDdWKdqtfVFoVGbWL0YVsEyaT2tQTaB4EKbWlcJCji
-   fel7paBGVNJkPxivJmQynCbSytE0FaVv3d2xcdduHpn4U6t3OuQdewflK
-   OmXe4xPxmuTA986dx5JOeHroxCf+mu7/BDK8xHPwHwOCCZGGvUVdr7unX
-   fN+yDpfdWyGrzqMdNCZVaZShiYKMvm8yRrpa8tcaPMSidSF1/UQMepm8V
-   AgP0pgW/ujHQhiP84/+69BN3kKL8qV19ppXPjO/o9EV8NqFV8ljBkBYxE
-   w==;
-X-CSE-ConnectionGUID: XQ2Id/IlTISLArK6DH5z+Q==
-X-CSE-MsgGUID: 404NmL/mQuK3SrsaqNhmNg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11905"; a="89214233"
-X-IronPort-AV: E=Sophos;i="6.27,103,1787036400"; 
-   d="scan'208";a="89214233"
-Received: from fmviesa005.fm.intel.com ([10.60.135.145])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Sep 2026 07:17:04 -0700
-X-CSE-ConnectionGUID: /Qnwxs0ASJKRCbdsv2wkEA==
-X-CSE-MsgGUID: kKQtuzvqRtudznznbRbuAw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,103,1787036400"; 
-   d="scan'208";a="279045906"
-Received: from ettammin-mobl3.ger.corp.intel.com (HELO [10.245.245.63]) ([10.245.245.63])
-  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Sep 2026 07:16:59 -0700
-Message-ID: <7d8118ee06f29b73988108c0892022b3a2626f1d.camel@linux.intel.com>
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="jOZBXJLw"
+Received: by mail-qv2-f12.google.com with SMTP id 6a1803df08f44-90cdfbd148aso6853656d6.2
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Sep 2026 07:28:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1789655290; x=1790260090; darn=vger.kernel.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:from
+         :date:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=Jw1k2NAja1Um952Tl85LJupIp0nZbLj8NYpKbR9I6hU=;
+        b=jOZBXJLwf6JP3b19azmsQ5fLkQfodPWKCQ4sDgsm74opbQurokqxNrasGuNyOPVzvE
+         CTVWAdgBhof6iu0XiS8kaZ358Ree3L9tOC68tPaGgk6QmS7dj/CAh2cDH6Ri94YsKWYE
+         zFgjnox0YrTKuN8CziN0SVinO8YFZz6H8x2igaWxvbrgFrudFRNrFyWtefERJIZGn9WM
+         /YRBE5l7nBeTmhMKMbx56N0o1l466lNeHVloV8m2iSh8w9+kxpuV28bJDRjIUAx2mv9y
+         5MOsangOpHqTW06zyEsy1fwdV0ITN+uat3lRUftLj9jAXlHsH37VEcNIWu8qGi0F66Q2
+         koBw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1789655290; x=1790260090;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:from
+         :date:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=Jw1k2NAja1Um952Tl85LJupIp0nZbLj8NYpKbR9I6hU=;
+        b=Wxrv2ipUkBMaZnLzPXQJemS5uPSrK4L5f48RNDZP/qYGino8r8mPsWLSjZ/1PUzu4w
+         8mCxju/yTpIFamDgyiZNaa3r4TVQj/EZyUOE0B9N/mEHvLcEGqrTmvniVDZXLbiur/eg
+         zu4m3nyoN/nHe4icMV75L6hor2I/1aoFEQE1IEaeEfV3HiStLNFhzsrzqxtAk/REFZ5G
+         6GaQJJB5KuEVDLzZO+NtiURwQPt6P6tRCkqL0E5x+4LF+dZvOp+oZN77Re7OL77dWYQH
+         AzdSfOtABrDKqfldNbKNi3VoC/XwDfYALorCGXtVA29TJ3M6HaGtUTVxKrcczwmO9SGa
+         m8OA==
+X-Forwarded-Encrypted: i=1; AKwUvBwNriH+BEvU406Mo7H2hw8vlRqPREuY6/1HWwdjHEusoh/FsLOerd0zE6e3cNnhlHQGOadt34soyXop@vger.kernel.org
+X-Gm-Message-State: AFuF++mPrYfgjbFCwx/9zCTYpIvCUNX2Qw52Q8JRXjNBrh8XsJLh2HFn
+	xOw23XDvfsXykrC2S42TVT3qum5Lru0uJqO2RjTf7Wf0+zALF1ivfC5cks2Qrm7d+w4=
+X-Gm-Gg: AYBFou12fx+HbCsWOtq+enE7ZkCfLUU2OSRkvnkXPYykridgSerMkjQ4w9rO1BrB+G1
+	CfSzrB5/4r0SrNJp2Mj33bEiJ3tI8H4eQ5WMvq+EkSm57i7IJLpTlGNUVUhtozAvQxn4pFq52ZQ
+	H9QMyZrLmCxetuZGl1a58atRFMSsWSWfitb8oZ0LR2ONo5hqEL4Shqlyr6IQYS1UC/CDs+NRqlf
+	1TdP/EnY7oPYQUP4e4GmIIS8UjISmA9PzH6oaftUHnFZQDf4VuSQdqjjepUaMvOyf18WhPSlbYN
+	om0HwKxYk/iQdioTSDQ5nocDbOIBKd75x26dOQSje02nwsBiIs0HYZkDvrbpmLJ/+yFhWM1Rd64
+	+xlxvZz9hXYwDfhK8NItl2WbgoCa14FUcuu1LmlxxcYpMhtxQiqwqAp/X6r2Lw4+HtCKIKv1EMf
+	VOI0JIMoypgzyNBRXcm7C/mXvxfP0RAooUmNEvOUxKdHDRZzjWqZiZNQt98z/8UiExOPZLokDCp
+	XRuHD5kyslfAlEaHrMjKpQbH8wWSLX+/pDsFbmnnOxjFZfZZsZNhGi2
+X-Received: by 2002:a05:6214:1316:b0:912:517b:911 with SMTP id 6a1803df08f44-912517b0beamr9926716d6.48.1789655289706;
+        Thu, 17 Sep 2026 07:28:09 -0700 (PDT)
+Received: from ziepe.ca (hlfxns010zw-159-2-239-150.pppoe-dynamic.high-speed.ns.bellaliant.net. [159.2.239.150])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-9123be9ca82sm51192626d6.32.2026.09.17.07.28.09
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 17 Sep 2026 07:28:09 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.97)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1x7D5s-0000000CrE5-25RS;
+	Thu, 17 Sep 2026 11:28:08 -0300
+Date: Thu, 17 Sep 2026 11:28:08 -0300
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>
+Cc: Thomas =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
+	Leon Romanovsky <leon@kernel.org>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Logan Gunthorpe <logang@deltatee.com>,
+	Chaitanya Kulkarni <kch@nvidia.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
+	Ankit Agrawal <ankita@nvidia.com>, Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	"Joerg Roedel (AMD)" <joro@8bytes.org>,
+	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>, linux-pci@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+	iommu@lists.linux.dev, Tushar Dave <tdave@nvidia.com>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, linux-rdma@vger.kernel.org,
+	kvm@vger.kernel.org
 Subject: Re: [PATCH v6 18/18] RDMA/mlx5: Ask P2PDMA whether ATS takes a
  direct peer-to-peer route
-From: Thomas =?ISO-8859-1?Q?Hellstr=F6m?= <thomas.hellstrom@linux.intel.com>
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, 
- Logan Gunthorpe <logang@deltatee.com>, Chaitanya Kulkarni <kch@nvidia.com>,
- Greg Kroah-Hartman	 <gregkh@linuxfoundation.org>, Jens Axboe
- <axboe@kernel.dk>, Alex Williamson	 <alex@shazbot.org>, Ankit Agrawal
- <ankita@nvidia.com>, Jonathan Corbet	 <corbet@lwn.net>, Shuah Khan
- <skhan@linuxfoundation.org>, "Joerg Roedel (AMD)"	 <joro@8bytes.org>, Will
- Deacon <will@kernel.org>, Robin Murphy	 <robin.murphy@arm.com>, Randy
- Dunlap <rdunlap@infradead.org>, Sumit Semwal	 <sumit.semwal@linaro.org>,
- Christian =?ISO-8859-1?Q?K=F6nig?=	 <christian.koenig@amd.com>,
- linux-pci@vger.kernel.org, 	linux-kernel@vger.kernel.org,
- linux-doc@vger.kernel.org, iommu@lists.linux.dev,  Tushar Dave
- <tdave@nvidia.com>, linux-media@vger.kernel.org,
- dri-devel@lists.freedesktop.org, 	linaro-mm-sig@lists.linaro.org,
- linux-rdma@vger.kernel.org, kvm@vger.kernel.org
-Date: Thu, 17 Sep 2026 16:16:57 +0200
-In-Reply-To: <20260917140253.GG3196566@ziepe.ca>
+Message-ID: <20260917142808.GH3196566@ziepe.ca>
 References: <20260914-fix-p2p-acs-v4-0-v6-0-5ef07ec9ef06@nvidia.com>
-	 <20260914-fix-p2p-acs-v4-0-v6-18-5ef07ec9ef06@nvidia.com>
-	 <321890690ce83d1943b2f678bd9bee9b8c895b66.camel@linux.intel.com>
-	 <20260917140253.GG3196566@ziepe.ca>
-Organization: Intel Sweden AB, Registration Number: 556189-6027
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.58.3 (3.58.3-1.fc43) 
+ <20260914-fix-p2p-acs-v4-0-v6-18-5ef07ec9ef06@nvidia.com>
+ <321890690ce83d1943b2f678bd9bee9b8c895b66.camel@linux.intel.com>
+ <f3708893-4760-4157-83a3-313867a94e78@amd.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <f3708893-4760-4157-83a3-313867a94e78@amd.com>
 
-On Thu, 2026-09-17 at 11:02 -0300, Jason Gunthorpe wrote:
-> On Thu, Sep 17, 2026 at 03:56:12PM +0200, Thomas Hellstr=C3=B6m wrote:
->=20
-> > That is, a flag to tell the topology check that some transactions
-> > *will* take the host-bridge path due to IOVA being used, and that
-> > the
-> > computations including pci_p2pdma_distance() need to check whether
-> > that
-> > is possible (checking whitelist etc.) and return the corresponding
-> > THRU_HOST_BRIDGE mapping type. Translated transactions taking a
-> > short-
-> > cut using the bus-address would then be hidden from the driver.
->=20
-> I imagined it would work by the driver passing in what modes it
-> supports and Intel GPU would simply pass in ATS only.
->=20
-> Even something like mlx has variation, only some operations can opt
-> into ATS, many others are never-ATS.
->=20
-> Driver should not make statements like " *will* take the host-bridge
-> path" since it has no idea.
+On Thu, Sep 17, 2026 at 04:00:33PM +0200, Christian König wrote:
+> > However, at least for the Intel GPUs, ATS enablement is based on the
+> > PCIe-side enable bit.
+> 
+> Yeah, I can confirm as well that this is something really exotic.
 
-Yes, agreed, but anyway DMA-BUF would then, as part of the
-dynamic_attach negotiation have an interface that takes an ATS only
-flag and use it to determine whether P2P is possible at all, and use
-them at mapping time to set up the correct SG list (IOVA or BUS
-address).
+In most datacenter systems it is only the NIC that initiates the P2P
+transfers, so it should not be surprising that NIC HW has more
+optimizations for this. In real systems ATS carries such a perf cost
+that you do need to be selective about it. I would expect every
+serious NIC to have this capability or it will not be perf
+competitive.
 
-Similarly the dma_map_page() needs to know these flags for p2pdma pages
-so that it never sets up a BUS_ADDRESS to an ATS-enabled device that
-didn't explicitly ask for it?
+NIC and GPU are using ATS for completely different reasons.
 
-And this all (and in addition the previous discussion around pcie
-subsystems calls from within dma-buf, and data-types for mapping
-information) makes me think that abstracting fast dma-buf interconnects
-along with our previous discussions is a good thing. Then interconnect
-details and cross-subsystem dependencies can be hidden in the
-interconnect implementations, suitably placed in the tree.
+> Additional to that the setup that ACS seems to be disabled for some
+> bridges bit not all also sounds extremely uncommon.
 
+I'm not sure where you saw ACS disabled, you can look rdma-core now
+has a tool to help people get their RDMA NICs working in GPU systems:
 
-Thanks,
-Thomas
+https://github.com/linux-rdma/rdma-core/blob/master/kernel-boot/rdma_topo
 
+I would view most of that stuff as completely normal at this point,
+people have been doing versions of this by hand for almost 10 years
+now. Especially the asymmetric translated/untranslated routing.
 
->=20
-> Jason
+Jason
