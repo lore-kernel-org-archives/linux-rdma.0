@@ -1,75 +1,75 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A11A04A0923
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A36E44AA1E6
 	for <linux-rdma@vger.kernel.org>; Fri, 18 Sep 2026 07:40:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789717235; cv=none; b=q0OMgAQH8VrPSQ5G7UT7UuErx/bRTmn0c+DyqH5kcEtq5INGk3HOSxoiulMGvf8hoHfz/wTX2vnmK0fmzCJAP10vRvqMf4HRPmksGvmCJHRDLPaOL4QLSRH0LOcFCSi0zOCfUsE3UaFfz2V0swu3IeJ0xnUkI8oRCsr1MJU802A=
+	t=1789717237; cv=none; b=FjXmOP99t1BBU35CuNCSYM8RoODI/y6PpDwhXfC24wNPTbhkN0Zrycvc9/BicUl5nH/2CuCF23R7M63SiYOjZZB8tr9w4bRabsiqfHJ5zD4+xgC4Zkijmwyy7yMtAJhccCin0bUHK32Lr2PYjPaMU6Kg3YRU/P1eCag1C75VZ6I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789717235; c=relaxed/simple;
-	bh=YHlL5/tRbqHgHPR4E6YN7+H9QUQq60gMhkAxfRC15pc=;
+	s=arc-20240116; t=1789717237; c=relaxed/simple;
+	bh=nBGLJ50bAJDCE67OglBXcRdDlRs2zMBxoFyj96dHl8c=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=HvCzFMltdpgpDMR+DAn02YT+3w9pz5P7P9xW6ZKBOZq/4NxCPJYoAR7326f2JMacJ/+/IsbWgBUYOmYZO/FDzcI/wUYjHfyH6EJNHzlYYyyeQlVdYf1iVnJwkTUDEDsqVFLvQ845Xoi/91NoxaWkxlx/ikoO1wsgcxUzaEn1hUc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZicUfMZA; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=McQHkWLrh2sKmZm2xfV347ACcV7sTdOT7bMKkQIlcWb1cXrfez3CFb0Uz1cbL3NsA9x7VrMO9ey49M2KBvoZy1zODDzwoISsEb9xzcbH31qJlvRCe7NnmTiEUyIuBXgMLv2CUjTMAL093sBLdlD1L83f4LzRkBIvi0xT9quMpNA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SIfGGD97; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZicUfMZA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6058D1F008A2;
-	Fri, 18 Sep 2026 07:40:14 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SIfGGD97"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3D2A1F008A1;
+	Fri, 18 Sep 2026 07:40:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789717214;
-	bh=Hq9U9n/kIsskYqV2BcKYYf08/jpuQy93RX1SrgOla0o=;
+	s=k20260515; t=1789717213;
+	bh=uO1HquStU01TOmbtD8WDZ0pguFEVkjx9xkQ93Y+mXv8=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=ZicUfMZAikPsG8xE2XPTbTveAgLzftFyIM/mlJAEld/3+IIadndL7MhQp1dwdn3Ra
-	 fwwzBUE3kCaSLQsbx2SoXnFN4E5YiJBAARomr+DjG/GzDOAXXiuuNg06B7zb0eoQu8
-	 3CaDXXwb4Ql2AHHqLwFwj5eahJM0g8wK+yTEsaskfW0zLlfYaUhUSM4Z8Mfr/KeqMH
-	 PeqjjD6K+xnO5aZP03azaWSbO3WXMjw8l/LwmutdhcXUEFsW1BR20AzzDZwX9QCGKJ
-	 7BlroKb6IQgTTcOrr3U2bKR0FeY1GlgasZrsmM/T0vtDp+n52DljSAU7K51LwyJlrN
-	 xyju9gtFgBnwQ==
+	b=SIfGGD973O3yGSB/z+04k53dqk/cHb1uJaX+002AdcKiRigYIgoosd39tXbSCVcbQ
+	 +RNKvvNZSflb+a+Q6i4Y3PcxE1iQM8VrLRiKW0gInv/FqnrLQ/fOxs8T4+/tn4f13Y
+	 2IlF5ztfk8a4mERcK3TQEFGYGWTjM5g8TzNoVmbv7lJ7xwpA0bH1rEE62HJAO9aOBy
+	 NaKADWTL2LAYMG4MsJyMkyH8FZBbNcq0HKp7B4uZ8QKiiKvmerplszWMyZVFiqpx/0
+	 U3M3ug6JIajvhaKMd85gQEizKSGLI5Y8Fe9Pzq+a8e8FnAMHe5hDebZogyjzH+IJOq
+	 o5wV82qqwsFhQ==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next v4 12/12] net/rds: hold a connection reference
- from struct rds_incoming
+Subject: Re: [PATCH net-next v4 11/12] net/rds: drop rds_conn_count in favor
+ of t_conn_count
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Allison Henderson" <achender@kernel.org>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260917073958.174056-13-achender@kernel.org>
+In-Reply-To: <20260917073958.174056-12-achender@kernel.org>
 References: <20260917073958.174056-1-achender@kernel.org>
- <20260917073958.174056-13-achender@kernel.org>
+ <20260917073958.174056-12-achender@kernel.org>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 18 Sep 2026 07:40:14 +0000
-Message-Id: <20260918074014.6058D1F008A2@smtp.kernel.org>
+Date: Fri, 18 Sep 2026 07:40:13 +0000
+Message-Id: <20260918074013.B3D2A1F008A1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-> From: Sharath Srinivasan <sharath.srinivasan@oracle.com>
+> The previous patch gave each transport its own connection count in
+> t_conn_count, incremented and decremented at exactly the points where
+> the global rds_conn_count is.  That leaves rds_conn_count with a
+> single remaining consumer: the seed of the per-path workqueue names
+> in __rds_conn_create().
 >=20
-> struct rds_incoming->i_conn stores a pointer to the connection a message
-> it belongs to, for both received messages and messages the socket sends.
-> But without taking a reference, nothing keeps that connection alive.
-> Embedded as the messages m_inc, an inc routinely outlives the connection
-> it points at, by sitting in the socket's receive queue until the
-> application reads it, while the connection is destroyed by device removal,
-> netns teardown or module unload - and every dereference of i_conn after
-> that point touches freed memory.
+> Switch the name seed to t_conn_count, as UEK does, and remove
+> rds_conn_count.  The numbering becomes per-transport instead of
+> global, so connections of different transports can now receive the
+> same seed; workqueue names carry no uniqueness requirement, and the
+> seed was already reused as the count rose and fell.  Removing the
+> counter also removes the rds_conn_lock round-trip that
+> rds_conn_destroy_fini() took solely to decrement it.  (The free path
+> still sleeps in destroy_workqueue(), so the last reference has to be
+> dropped from process context as before; only that one lock goes.)
 >=20
-> Chengfeng Ye reported one way to reach it, where the socket info
-> callbacks walk a receive queue after rmmod freed the connections:
+> Based on the Oracle UEK commit "net/rds: Each RDS transport
+> should keep its own connection count".
 >=20
->   BUG: KASAN: slab-use-after-free in rds6_inc_info_copy+0x459/0x530 [rds]
-> [ ... ]
->  m_inc reference is dropped from a shared rds_message_free() helper
->  that both paths call; rds_recv_incoming() takes the new reference
->  before dropping the old; rewrite commit message]
-> Assisted-by: Claude-Code:claude-opus-5
+> Assisted-by: Claude-Code:claude-fable-5
 > Signed-off-by: Allison Henderson <achender@kernel.org>
 
 Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260917073958.1740=
-56-1-achender@kernel.org?part=3D12
+56-1-achender@kernel.org?part=3D11
 
