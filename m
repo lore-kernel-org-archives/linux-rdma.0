@@ -1,137 +1,79 @@
-Received: from mail-qk2-f43.google.com (mail-qk2-f43.google.com [74.125.230.235])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EEBF511239
-	for <linux-rdma@vger.kernel.org>; Fri, 18 Sep 2026 17:05:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.230.235
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A1744611C2
+	for <linux-rdma@vger.kernel.org>; Fri, 18 Sep 2026 18:12:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789751131; cv=none; b=NQQFtr/zz787StHVc6VTIET4cbC14XwT2Stn/zzFURyyHhxIbiqkX/J6JHyZc+eZEL6FtoEAM6KhB0sMMk915TWeVnxrKGxZznWrm9tBUlrP6vo7Fl2U2eoLXSMIoqJO1kiPbK7T7dEjR9Vgnd2rT1I9F8qeLuDsPWUGix4aBpk=
+	t=1789755156; cv=none; b=Gp5HVXhYKf8fmx/MkTWjt5Cxs87Zsx9suTWQ0TSRD4Wwo45NAXBVscgQDbLBKFd/dX7gXHkRU7hMMCtVOtFQ1Iw17xtXWeRZCbm8WxaMvCVAt0D0Os+bR5w0+P4LnuQSHCxfqrNVWmFbdXzuyYqQ724mFZ/hfG/bGh/3gDR/c+A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789751131; c=relaxed/simple;
-	bh=CJUtrnr9lbLTqP4H/g58GCIz+hH13m2n3S92AYR7A28=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=HFSkWnlwdTv5hMPexadgCfhuSVYxrI5RSAb+Slgg4Twx9VNYUjIq5tb+z1k0mVYnpj3lGQs65HHm++ZTvhXDlr79CcNPuzbD5IGEfDZSGfIfZt+yJT09RsSeHXDPXTHbdX4x6blbVIfQNkdQ70KUwb2mmqqWJxzw7Pf+lCJ0Aw4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=Zz16yMCv; arc=none smtp.client-ip=74.125.230.235
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
+	s=arc-20240116; t=1789755156; c=relaxed/simple;
+	bh=rG+Kmh9lKoWjawTEBZu8Po6I2SnzLIvcVkP7ypapJBo=;
+	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
+	 Message-Id; b=GzyzUZ0r5/FvOCQeBQT7nv61cOaXFqWeC+V5mhGsNHROds4nAPdSM0wdRREYBHSspiVmtXiVjDHg7L0zSTemer1w6aiW8Kvbs7VJyK2VtvhUGhMY6OHih1vp3NpJk2Cg1q9CzjVhFGi5qJJYFj+3SUv3k3Flvpzy3HApKW9PnZM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jZT5EWNW; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="Zz16yMCv"
-Received: by mail-qk2-f43.google.com with SMTP id af79cd13be357-939109fafd7so83345285a.2
-        for <linux-rdma@vger.kernel.org>; Fri, 18 Sep 2026 10:05:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1789751128; x=1790355928; darn=vger.kernel.org;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :content-type:mime-version:references:message-id:subject:cc:to:from
-         :date:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=zQcyEtFjPBr6Six+ddaDb/CoGlSZSKi7ev20pm6BxlM=;
-        b=Zz16yMCvY0iYXnp4qSVkoFqfYheoD9f4m4mpImDpG1lBK5zjAXrDhEED+ZfgtMmKKb
-         jys1jwEN8feW5ojbOVgRO7XgWW2iy67XVyUkEePMk5Xq6LEVrQtxqWBns2aRZejZ6kJU
-         HZ3uRkD5CDOL6CSN2PRfm2xk3H9ERs6jPpBH6GG1MSBQXYB+kTGNA7u/HWhSBwG7Z8Zc
-         1GA+sGz6DLtPsTxDCzbUGJ/rXGjWsZvqLvGOJl6akUaZJu/X9tM8vqjyN91+zujqQvdc
-         QgrytW/wV/mz66H73GTtDWEYG7ooveG8Pea/yxI0TY3AjvDlYVkLOtJPGvN28tqX534d
-         oQLA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789751128; x=1790355928;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :content-type:mime-version:references:message-id:subject:cc:to:from
-         :date:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=zQcyEtFjPBr6Six+ddaDb/CoGlSZSKi7ev20pm6BxlM=;
-        b=NAuFBhCdJnAaDNQqB+7QPgGZNeFHUDo+1wKMN152Q4hBGyErrhcSdX8tWSAXEZNaki
-         s6nctyuOInUEftWuiFJVQLxf758WDn4JRsV7KB8bXGPRySppiqcfEtEbsocrXyltUBm9
-         lhCVABxRL1hUC5Qklt9ibJRNX5I0slpljCQioO8sqKP55d1nHcnlugBM1I5K1g+0to+q
-         axIuVMtRD2LvKtVOnJzgEZyCk9EzPOO3a/dard6E3uYB1WWpdUR7yaAOUABkKaL0fyyI
-         WabHDFmL7sM/O/8tdZAQPMiAPoEw45r9gg589Ns5ietqdQqsUQacLTTjpWZGo+5OQg59
-         8nbg==
-X-Forwarded-Encrypted: i=1; AKwUvBzc5h6BTDrR3h29x/PeD4+HZmzzCceA0tBIPuRBmFW2HOYaMBAryYXK4K9PnjqyU5aHwVlD7eBUxCRc@vger.kernel.org
-X-Gm-Message-State: AFuF++mYSRkqqApkvE7QMFa1/GuN63yCrvtHpu3fh4yOKvb1rDmulSve
-	JkUGVERJ23mh6x+vyqwCZMihaCiVJIN9bO78Eliu9fc8eDT2r3zeVbKvTq6fYcDwEfw=
-X-Gm-Gg: AYBFou2Jhh+0+NXLvbpQSji5v9VO012TwW/3Mq4RItCD9sdZC5JU33FPhLOOIQ/Bue1
-	JaoXpqlpWuMRJ0gxWHWHljiVBHxn/CqqLTIvw0z7dwUT4LFLXo64pBtcR8cnxunMa1TFKZBzSyi
-	surDNwFXaRRkkGv+dKYFy/mzzcrdNCUbn/QGKxGJZqFr7seFZSoOIRA2v+ZQDcUPDTQMO8SlcCn
-	3P5ZCULdeL3hhykqQfnaXTQMZH2qEJvbnpXpJacHk0HpoGn6XVKKlklF9+8Gi5UxN/zZMQkX2q1
-	6qUxQDkWlthprdOGnr7RH6cf1cvjQ3lLxuipHU0VSU3zjv/+Calc29LOMlgrph6uqwP4skPsgIK
-	bTpRhUNSr+6XOGN1icrvVp1zxYHVTa9O0iZmDRkEklBYv6zk9PjKAO07ToQ4bZNKcle5DMJcuIy
-	7HyHEK/I8w9aA4/TRpGUPGZtEK6D2x4bsfiVDE3ThBdT3QHw8svuZqoxKODXN7x3GCmqM8EO/fE
-	j53560O8cW5jBNSq4lopUk0IFRsoNENirTl+UOVx4MTBxa9LeoTHtCF
-X-Received: by 2002:a05:620a:440d:b0:93a:83d:1d26 with SMTP id af79cd13be357-93bdc6c7741mr490404585a.32.1789751128040;
-        Fri, 18 Sep 2026 10:05:28 -0700 (PDT)
-Received: from ziepe.ca (hlfxns010zw-159-2-239-150.pppoe-dynamic.high-speed.ns.bellaliant.net. [159.2.239.150])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-93be0cc67e6sm187224885a.5.2026.09.18.10.05.25
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 18 Sep 2026 10:05:25 -0700 (PDT)
-Received: from jgg by wakko with local (Exim 4.97)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1x7c1c-00000001zVZ-3Nwz;
-	Fri, 18 Sep 2026 14:05:24 -0300
-Date: Fri, 18 Sep 2026 14:05:24 -0300
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Thomas =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>
-Cc: Leon Romanovsky <leon@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
-	Logan Gunthorpe <logang@deltatee.com>,
-	Chaitanya Kulkarni <kch@nvidia.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
-	Ankit Agrawal <ankita@nvidia.com>, Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	"Joerg Roedel (AMD)" <joro@8bytes.org>,
-	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>,
-	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org, iommu@lists.linux.dev,
-	Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-rdma@vger.kernel.org, kvm@vger.kernel.org
-Subject: Re: [PATCH v6 18/18] RDMA/mlx5: Ask P2PDMA whether ATS takes a
- direct peer-to-peer route
-Message-ID: <20260918170524.GH11599@ziepe.ca>
-References: <20260914-fix-p2p-acs-v4-0-v6-0-5ef07ec9ef06@nvidia.com>
- <20260914-fix-p2p-acs-v4-0-v6-18-5ef07ec9ef06@nvidia.com>
- <321890690ce83d1943b2f678bd9bee9b8c895b66.camel@linux.intel.com>
- <20260918121500.GV13683@unreal>
- <b517070d0b9236b03962fcba649faffcacda23eb.camel@linux.intel.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jZT5EWNW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E52971F000FF;
+	Fri, 18 Sep 2026 18:12:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1789755154;
+	bh=rG+Kmh9lKoWjawTEBZu8Po6I2SnzLIvcVkP7ypapJBo=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=jZT5EWNWK7uh+faoGrDX7PCgcFX34P1X1MWpEWYuFVB0L/R1I2iMRVkqL+Tr0Z3O6
+	 qyngizt9ijgXKVdTK6nIGblq3xGWGLhR8Sw93WD67mHU5y13cuGwJHIQxrBp8QE3CW
+	 EWRc0NKMpnaOqOl35ReoBQ3WJZ+rNT+UEYE40rIW9a9LPI6wg83+bSkUjsNXlJ0IBk
+	 MXxQaf5QTbndyLY5v2STMdiIWbxERj0hDoW553wJA3gkQ06KaBpiSgmnHctNzAn1bf
+	 UGc7/Gov6dhUHvNR4NXjYOEASc3qi2zRYxfv/aUCI7/N6BKlJCFcuVIDlEcX12CwtZ
+	 hrZNx1bqhmAGg==
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net 4/7] net/mlx5e: macsec: Track hardware object
+ ownership for SA teardown
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Tariq Toukan" <tariqt@nvidia.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20260917175433.4090878-5-tariqt@nvidia.com>
+References: <20260917175433.4090878-1-tariqt@nvidia.com>
+ <20260917175433.4090878-5-tariqt@nvidia.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Fri, 18 Sep 2026 18:12:33 +0000
+Message-Id: <20260918181233.E52971F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <b517070d0b9236b03962fcba649faffcacda23eb.camel@linux.intel.com>
 
-On Fri, Sep 18, 2026 at 03:42:28PM +0200, Thomas Hellström wrote:
-> 
-> 1) Xe attachment check if pci_p2pdma_distance() returns OK for the
-> path. Then Xe always sets up dma-addresses using dma_map_resource(). 
+> From: Cosmin Ratiu <cratiu@nvidia.com>
+>=20
+> A driver MACsec SA can exist without a hardware MACsec object. Adding
+> an inactive RX SA or a TX SA while the SecY is non-operational creates
+> the encryption key but skips MACsec object creation. RX SA deactivation
+> also destroys the hardware object while retaining the driver SA and
+> its object ID.
+>=20
+> TX SA deletion and the SA teardown performed by RX SC and SecY deletion
+> unconditionally destroy the hardware object. This can issue a destroy
+> command with an unallocated zero ID or an ID that has already been
+> destroyed and potentially reused. Failed RX SA activation can leave
+> the same stale-ID state after steering creation unwinds.
+>=20
+> Track hardware object creation separately from SA activity. Set the
+> ownership flag after successful creation, clear it on destruction and
+> creation unwind, and check it before destroying the object during SA
+> cleanup. This preserves destruction of objects retained by inactive
+> TX SAs while avoiding destruction of unowned objects.
+>=20
+> Fixes: 8ff0ac5be144 ("net/mlx5: Add MACsec offload Tx command support")
+> Fixes: aae3454e4d4c ("net/mlx5e: Add MACsec offload Rx command support")
+> Signed-off-by: Cosmin Ratiu <cratiu@nvidia.com>
+> Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
+> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 
-Open coding pci_p2pdma_distance() in drivers is a hack. Using
-dma_map_resource() like this was never "allowed".
+Sashiko has reviewed this patch and found no issues. It looks great!
 
-We've fixed things so these hacks are not needed, the drivers need to
-move over to things like dma_buf_phys_vec_to_sgt() and the hmm helpers
-to use the DMA API correctly.
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260917175433.4090=
+878-1-tariqt@nvidia.com?part=3D4
 
-> 1a) Let's say the importer (Xe) has ATS enabled, and the exporter is
-> supposed to map dma_addresses.
-> In between there is a switch that allows direct traffic.
-> Now with your patch series, How would the exporter know that Xe has ATS
-> enabled and therefore should return IOVA mappings rather than the BUS
-> addresses representing the shortcut.
-
-The thing that does the DMA map must be aware of what PCI TLPs the
-PCIe initiator will use to compute the proper P2P mapping mode.
-
-ATS always needs an IOVA but that still doesn't mean the P2P will
-work.
-
-> It seems to me that a pci-device settable flag "ATS always enabled"
-> should be enough to fix both issues?
-
-It should be be per-mapping to support the NIC workflow that isn't a
-global operation.
-
-Jason
