@@ -1,44 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E16AB4E3EF3
-	for <linux-rdma@vger.kernel.org>; Fri, 18 Sep 2026 11:16:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF9004E77FD
+	for <linux-rdma@vger.kernel.org>; Fri, 18 Sep 2026 11:16:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789730191; cv=none; b=t64g9/uD9sVKo4ZvQzVnVUe7BdN+o3T2jzB5AsjNMCzjK82GP/D/fd6DQvZdX6uum1vFOkaYJLxeU8kKGRc3jns+5pbKkypsTIyzz8INddz9GGhqRQ+ZTgRKUVYhAt+ZFPzm+hM572tyaOMj9jHIdYOZyPcNP/t5U4W7xkNvj/Q=
+	t=1789730192; cv=none; b=uHMFjd7lNstz1uIHJmxrOYO8dz7WlmG9kjZQOJUpZkKDX5l4/mFzewAKZuY2gReUZjJgeNKtdNB6nF3Nq8YXPeueV/I2fzgwjwHrv1KDOp+MV7nWJ1j8uZS/SU3tKLYfAgUlOfMcvGOAEdIHHj8aSpGF67UF+Oc+9kXYTewYBb8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789730191; c=relaxed/simple;
-	bh=IRV0DfhBlHN7K20K83VeGaQfkn/x8GOLUf61PkUD/Pk=;
+	s=arc-20240116; t=1789730192; c=relaxed/simple;
+	bh=/7Uh6l+sae24lh/Q/MdscB9eBibS5I7PeOiSnCaAbS4=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=Cd2M1OiJCnrKnfrGiKtTdzcf0RwI2n8G5VWIFvU9zGLj18QMBh7OkKpuWmNsLFng8gXvt5HZo5SxNqGdortP6tUxRRMj4+ZizxuDoq2B2/f5FKYZaY6NVVjFp6hcu85cA7IfsQYmtmL4QXylgU/ggyhlLLE3OPeYwDKZ+zwQ/6c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gU6atsY/; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=J+CbfxxXUV6QQRnLBQR8NcorENh5RjVyaCxs3fX7zOl+WxJ1fvcGBKIqGvbvkP4mmSZXbkaymc03u0Q4YfCZzd3xfVDO9Xq8X62rPqPhXXC0U0zneswohwz9S8+EiLuJ5HGEH2MjAN2LpqGodTKrMS/Y3JbMbX1W+nUj6PO1DsE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LXW+CuT7; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gU6atsY/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FE641F00899;
-	Fri, 18 Sep 2026 11:16:29 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LXW+CuT7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A2671F00898;
+	Fri, 18 Sep 2026 11:16:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789730189;
-	bh=IRV0DfhBlHN7K20K83VeGaQfkn/x8GOLUf61PkUD/Pk=;
+	s=k20260515; t=1789730190;
+	bh=/7Uh6l+sae24lh/Q/MdscB9eBibS5I7PeOiSnCaAbS4=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=gU6atsY/Lz7yhMxK+zA2FIyvs1EfaFFGxebL59QlTCbM6sVszKBkndsippNw90vjS
-	 zEVttum1WzcZs5CwygMr2wPqKtIKc+6m2FejT6jQcEnciT4h1E6J4EeS9dlu+ur5lc
-	 uJ6bmG8Eyk9DnqxbwvqMzFID31+oA9hLtwJd4BBXNVrRZ1+XAxk1//26u/6SrBi+Mt
-	 Kh1YTKnXFDRHMFgD9ii++w4x4E5n0deZMIuckhGQFR1Hzp6nfCIyQmKYIHQsGk/X8x
-	 eXvup6F+Kd83/SkvaTpdKWSQrVV+6YIaPbzIYRx4UjYDed+3DelQo1c3sG4z6rqzQx
-	 zC6DjR8JNBCKQ==
+	b=LXW+CuT7AmExnoqgMlIgxY2r4JMkba22IRJh75sAJeoygWnzOfQUpZO9U8FYAyh5a
+	 V440APOYrAxwGU62nbZPoIyOYQzM/6PIXxTQBSbUy7MDtjBQNqNIns45lm03kMIeQy
+	 sRsJN4OZbnEIA7fu3rpGh3zxcRxQEj8EWaYQP8qLob44L2PDvuFnqLTdrjv3VROuxN
+	 rEeom9Mx6QKnvI4/J0pF6BgwkkWSjLZfq+kBcPlfFWvhf2noGjAISFz42rniiAwPRo
+	 5qYwDrlpx8RFuVfXPx/mAdRBdrpmW8clf3U1GFfBTe7EfrTWCsAzEgiHZbBFKoG+EY
+	 FG+W2s8gHeuzQ==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH mlx5-next 03/10] RDMA/mlx5: Make the data direct VUID
- query self-contained
+Subject: Re: [PATCH mlx5-next 04/10] RDMA/mlx5: Give the data direct PCI
+ driver a proper name
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Tariq Toukan" <tariqt@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260917111422.4054862-4-tariqt@nvidia.com>
+In-Reply-To: <20260917111422.4054862-5-tariqt@nvidia.com>
 References: <20260917111422.4054862-1-tariqt@nvidia.com>
- <20260917111422.4054862-4-tariqt@nvidia.com>
+ <20260917111422.4054862-5-tariqt@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Date: Fri, 18 Sep 2026 11:16:29 +0000
-Message-Id: <20260918111629.9FE641F00899@smtp.kernel.org>
+Message-Id: <20260918111630.4A2671F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -47,19 +47,12 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 > From: Dragos Tatulea <dtatulea@nvidia.com>
 >=20
-> mlx5_cmd_query_vuid() in cmd.c is generic over the data_direct flag but
-> its only caller is the data direct init path, which always passes
-> data_direct=3Dtrue.
+> The data direct PCI driver uses KBUILD_MODNAME as its driver name,
+> which resolves to "mlx5_ib". This is misleading (the driver binds
+> the data direct PCIe function, not an IB device) and would silently
+> change to "mlx5_core" when the driver is relocated there.
 >=20
-> Move it into data_direct.c as mlx5_data_direct_query_vuid(), dropping
-> the always-true parameter and hardcoding data_direct=3D1. This groups the
-> query with the rest of the data direct code so that it travels together
-> when the data direct matching code is relocated to mlx5_core, and lets
-> it become static there once the query is folded into the core bind path.
->=20
-> This function will become private in a subsequent patch.
->=20
-> No functional change.
+> Name the driver explicitly "mlx5_dd".
 >=20
 > Signed-off-by: Dragos Tatulea <dtatulea@nvidia.com>
 > Reviewed-by: Cosmin Ratiu <cratiu@nvidia.com>
@@ -70,5 +63,5 @@ Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260917111422.4054=
-862-1-tariqt@nvidia.com?part=3D3
+862-1-tariqt@nvidia.com?part=3D4
 
