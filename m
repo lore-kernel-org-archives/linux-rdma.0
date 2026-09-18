@@ -1,166 +1,75 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9ACF63A4F30
-	for <linux-rdma@vger.kernel.org>; Fri, 18 Sep 2026 12:48:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8783481DD;
+	Fri, 18 Sep 2026 12:49:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789735686; cv=none; b=MIOqj3H1BI9yIe6rr8kCMmSYSgsGvLiRjzvAI1EtQ8YGkEXFrKLSL9PJvKIFJhT1z1XsEbp28zhbYvEH6EDqSxcsWShcoiyX3UpZR3NJjKJhCI+T8/nFUJKkLUorIDAWj1GRcKcbcBOEWIogJ0KcDe0Y8kysllB+Gl3ixyrScD4=
+	t=1789735794; cv=none; b=UpanJ8NIOF8PkzAFQzN1tSsm9LYBpErxEDufuv7h3cA2SDQVVPh23/GnilIcB52vBl5oj+z7zO7Nyt9EArGZIW/RQ6xMUD57flw6sFzXbTx8mZ20nspvKdDck+qcvxGgYrw5U3U31ltpBMW64/MKcGbYel1OL0bwnBNEZ/c2rMQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789735686; c=relaxed/simple;
-	bh=kpn3kjuks8ApCtHVMPgKSBwNy+Ai0q3aCEzlEipjnx4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=inDUMmqA37W2KbGxZD7iFQBzX6zdFT6EyeskflomrQNdMtk4pBPcleQCqHEDOTZ0GLz/ujti/5kj6RwAqquydK9v0B4cSUUHvOdktS2tP8jWVb3hrfUs7Lo+QYscjlzsAqN+iWoSMi9A7r1dK5V1iM2dDQWbctR4o3JM/cbBV78=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dohHI+o3; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789735794; c=relaxed/simple;
+	bh=gTh/tPlraQ66bgzHt3G1YiYQuo0eIsA+aNYbnoZvGNA=;
+	h=From:To:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=I2i51GF+XHS3Pe1/tjg5+Sk65YqOk9+noVJNBmFs9RyvzpInFia7FZg2pD2N+4uefA++AWpJKQagPfrrKPyQKa9ezdiFFWfJyImuGFO3cOCL7fir8YaflvtRlMbA9mpMBUWac0FWOKbgt2QEHCyywLF+qY+01EQgIoMVDJcMzbE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XjbQNAh8; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dohHI+o3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B47F21F000FF;
-	Fri, 18 Sep 2026 12:48:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XjbQNAh8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D672B1F000FF;
+	Fri, 18 Sep 2026 12:49:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789735683;
-	bh=vlLAm1z70pEy11fWlZhcDf/0HJM2opIQH7+stuoGsPk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=dohHI+o3glLz0k620VFfXPWVKWldBH2RkqkeovUqUnd6J9Xd5rYm+9MPN9TmBLc/E
-	 3plukvemqbaOqsl3X46WHeeOdy70nSzmLxSNmXNeN/1c4Dg9fgoXbAUbyE/fha5SkG
-	 knHfz5+vFv3gGDRPqIhWAu3fYcfEGLZNCnRSIZxHLgX898scsZQTaspy0h0wIFFlUS
-	 LIStEqXikBFYjpfIo4/3s8BtSRSpAiE2oD9bXUka6xLWtu4ZhUKNmT/pNXOurWiDq1
-	 T7yaXtsb0I+2yxZttH8UPl25XwtmE4hvrs+YYuYN1YzBFcw6mevxkKCYFJcb9Brk/5
-	 KB615oxmxcB/A==
-Date: Fri, 18 Sep 2026 15:47:59 +0300
+	s=k20260515; t=1789735793;
+	bh=p+Tkpytj57aBf2zcBucFW4+NKk4xDs7Uvser+s2irfs=;
+	h=From:To:In-Reply-To:References:Subject:Date;
+	b=XjbQNAh8VBZFXYxhviMRHwh/O0uwmBtkMkDldAUg+NRaTvMBW0qoCDD679U1Im66Z
+	 9KdGGCRk6+bKyrdupCyCufWjxMNJfedvpydsJ2rfWcAzghOomEusUCLpwxNOmUTuZ+
+	 p+g5J0lj72a4iUvktlpKqGZzvifkiDgsIyDNB0ST5Rsezvpr6PIftzWybhTz8yn6q+
+	 UNRSSPMhJhsIJ5dXoml5STEjt3P4SGGex7a9fFDW8HvpzaX4bAx8Qylu4NlKm8lyGH
+	 5WAjee8ueZfgXc5eVG/CBxppE83/f5s9ziXuTPY39N2dkPYJPxabZ/iwpE7Y13d6wU
+	 7JI+Q1HvQf4bQ==
 From: Leon Romanovsky <leon@kernel.org>
-To: Cheng Xu <chengyou@linux.alibaba.com>
-Cc: jgg@ziepe.ca, linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com
-Subject: Re: [PATCH for-next v2 1/4] RDMA/erdma: Support non-contiguous
- kernel QP buffers
-Message-ID: <20260918124759.GX13683@unreal>
-References: <20260827082523.36294-1-chengyou@linux.alibaba.com>
- <20260827082523.36294-2-chengyou@linux.alibaba.com>
- <20260903091033.GY24140@unreal>
- <07bb48b7-5a44-51d1-0b55-d9960f63aab2@linux.alibaba.com>
- <78e1d57a-7c12-482b-c274-2d9c7991ab1a@linux.alibaba.com>
- <20260910153351.GU13683@unreal>
- <f1d33bae-f016-5928-197f-817e1017a345@linux.alibaba.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>, Jiri Pirko <jiri@resnulli.us>, 
+ Yonatan Nachum <ynachum@amazon.com>, 
+ Kalesh AP <kalesh-anakkur.purayil@broadcom.com>, 
+ Michael Margolin <mrgolin@amazon.com>, Kees Cook <kees@kernel.org>, 
+ Parav Pandit <parav@nvidia.com>, Mark Zhang <markzhang@nvidia.com>, 
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ lirongqing <lirongqing@baidu.com>
+In-Reply-To: <20260916064435.2180-1-lirongqing@baidu.com>
+References: <20260916064435.2180-1-lirongqing@baidu.com>
+Subject: Re: [PATCH] RDMA/core: Fix swapped list_add_tail() arguments in
+ ib_add_sub_device()
+Message-Id: <178973579053.2688475.14483307453857409532.b4-ty@kernel.org>
+Date: Fri, 18 Sep 2026 08:49:50 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <f1d33bae-f016-5928-197f-817e1017a345@linux.alibaba.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev-18f8f
 
-On Fri, Sep 11, 2026 at 10:41:52AM +0800, Cheng Xu wrote:
-> 
-> 
-> On 9/10/26 11:33 PM, Leon Romanovsky wrote:
-> > On Wed, Sep 09, 2026 at 02:21:37PM +0800, Cheng Xu wrote:
-> >>
-> >>
-> >> On 9/3/26 8:38 PM, Cheng Xu wrote:
-> >>>
-> >>>
-> >>> On 9/3/26 5:10 PM, Leon Romanovsky wrote:
-> >>>> On Thu, Aug 27, 2026 at 04:25:20PM +0800, Cheng Xu wrote:
-> >>>>> A single coherent allocation for kernel QP queues can fail for large
-> >>>>> queues when memory is fragmented.
-> >>>>>
-> >>>>> Allocate page-sized coherent buffers and describe them with the existing
-> >>>>> MTT. Keep the userspace QP path unchanged.
-> >>>>>
-> >>>>> Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
-> >>>>> ---
-> >>>>>  drivers/infiniband/hw/erdma/erdma_cq.c    |   4 +-
-> >>>>>  drivers/infiniband/hw/erdma/erdma_qp.c    |  38 +++--
-> >>>>>  drivers/infiniband/hw/erdma/erdma_verbs.c | 195 +++++++++++++---------
-> >>>>>  drivers/infiniband/hw/erdma/erdma_verbs.h |  44 ++++-
-> >>>>>  4 files changed, 179 insertions(+), 102 deletions(-)
-> >>>>
-> >>>> <...>
-> >>>>
-> >>
-> >> <...>
-> >>
-> >>>>
-> >>>>> +struct erdma_buf_list {
-> >>>>> +	void *buf;
-> >>>>> +	dma_addr_t dma_addr;
-> >>>>> +};
-> >>>>
-> >>>> This struct is very similar to scatter-gather list, why don't you use it
-> >>>> directly?
-> >>>
-> >>> Good idea. I will use struct scatterlist in the next revision.
-> >>
-> >> Hi Leon,
-> >>
-> >> I switched to scatterlist in v3, but Sashiko pointed out an issue with
-> >> using sg_set_buf() and sg_virt() on dma_alloc_coherent() memory [1].
-> >>
-> >> To handle this correctly, the driver would still need to retain the
-> >> original CPU addresses returned by dma_alloc_coherent(). Using scatterlist
-> >> does not simplify this implementation: we still need separate storage for
-> >> the CPU addresses, and the only scatterlist field we actually need is the
-> >> DMA address. A small structure holding both addresses would therefore be
-> >> simpler.
-> > 
-> > Sashiko thinks that you are creating SG list to feed it to dma_map_sg()
-> > later which is not. You are using SG as simple database and you will get
-> > iterators for free.
-> > 
-> > cpu_address = sg_page()
-> > dma_address = sg_dma_address()
-> > 
-> 
-> Hi Leon,
-> 
-> Maybe I misunderstood something. My understanding of Sashiko's concern is
-> that the CPU address returned by dma_alloc_coherent() is not guaranteed to
-> be valid for virt_to_page(), as used by sg_set_buf(). Consequently, the
-> struct page later returned by sg_page() may be invalid.
-> 
-> Although this works on the x86 platforms we tested, it may not be portable
-> to architectures where coherent memory is remapped outside the linear
-> mapping. From this perspective, would a small structure that explicitly
-> stores the CPU and DMA addresses, similar to those used by HNS and mlx5, be
-> more appropriate than scatterlist here?
 
-Yes, let's use them directly, without SG. Sorry for the confusion in my
-previous comment.
+On Wed, 16 Sep 2026 14:44:35 +0800, lirongqing wrote:
+> ib_add_sub_device() links a new sub-device into its parent's sub-device
+> list with:
+> 
+> 	list_add_tail(&parent->subdev_list_head, &sub->subdev_list);
+> 
+> list_add_tail(new, head) expects the node to insert as the first
+> argument and the list head as the second, so the call above does the
+> opposite of what was intended: it treats the parent's list head as the
+> new node and the sub-device's node as the list head.
+> 
+> [...]
 
-Thanks
+Applied, thanks!
 
-> 
-> I collected some information related to this below [1][2][3].
-> 
-> [1] include/linux/scatterlist.h:
-> 
-> #ifdef CONFIG_DEBUG_SG
-> 	BUG_ON(!virt_addr_valid(buf));
-> #endif
-> sg_set_page(sg, virt_to_page(buf), buflen, offset_in_page(buf));
-> 
-> [2] kernel/dma/mapping.c:
-> 
-> /*
->  * The whole dma_get_sgtable() idea is fundamentally unsafe ...
->  * 1. Not all memory allocated via the coherent DMA APIs is backed by
->  *    a struct page
->  */
-> 
-> [3] drivers/infiniband/hw/mthca/mthca_memfree.c:
-> 
-> /* We use sg_set_buf for coherent allocs, which assumes low memory */
+[1/1] RDMA/core: Fix swapped list_add_tail() arguments in ib_add_sub_device()
+      https://git.kernel.org/rdma/rdma/c/fad7b0dcb0821c
 
-I wouldn't hold my breath about the validity of that comment. It was written
-a long time ago.
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
 
-> 
-> Thanks,
-> Cheng Xu
-> 
-> 
-> > Thanks
-> > 
-> 
