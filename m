@@ -1,64 +1,78 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CC282BEC34
-	for <linux-rdma@vger.kernel.org>; Fri, 18 Sep 2026 07:40:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B4C73DDDDA
+	for <linux-rdma@vger.kernel.org>; Fri, 18 Sep 2026 07:40:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789717237; cv=none; b=L4nCpghCrLBJu4SF2df9yZwe20SUXcmrJA877cE/Oya23CLHVx8yw3CvmpKnTM++AUR8sAxHoAOVcNkYG+mJzZHstUVhEAVHSz7ZOPeaV9SqgtfKRPl0l1Tgs9NjpRQdjvgNwZTQG0pQMGPtQfq8q3z8twVvymspG2ulYUsjXac=
+	t=1789717244; cv=none; b=Wdop9+144mPUshfVNqwmgfB/Q/Nwk32n8uKE3Ntsmt/qQtCIwWJKHUGujVo9fm73Jl/p0Qtq0mQwWm9GnGjXcVr4N8VIxvo/fxHzewHuoCs0qKEvcRdk2dSl7inXyIpLjVvgdx3XvxCA6Ee21multbKrtw8ZhxhZCGtzjI1c810=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789717237; c=relaxed/simple;
-	bh=yArcK4PspUeMjxCo1AE01+JGhM2B1qKz6qvHrOuxMRU=;
+	s=arc-20240116; t=1789717244; c=relaxed/simple;
+	bh=3aSchLrJFjEvybvZ5oLt7Um+eAtkp90nwiMmy2Y+oVg=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=drKBWQRQrCnSJIloV9KAH0LCX3phjJ+xxIHkq+iBXpvScFPnoD1n82/j4GUXaR3/r6PK2tWRU5E1oXa4JbLONmbwcxAtgLPiZopqyHbuCdNZO+XuH9wfGC23v770UvUyniJkFafB/YeR6bJTQ7AKPWWgSXD1Ie9g/psatN3O5gg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PAUUfCT3; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=ZsUUf02tT/RScB/jWK0YV252XnmM79pdmgW12IX7D1vBIdMS6uDj9odCprAyZbdeQpTEbdc4UtL8D5EW9boPgbAWOXZcAMs7iMo716Q8vIO12xjFq4/MzL9C9lk59KQKg89W5wUKOF8ws7aLuDbJw6O5tHazGQwjlETJesZyDYc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LiIDFXfN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PAUUfCT3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A49F51F0089E;
-	Fri, 18 Sep 2026 07:40:11 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LiIDFXfN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 525791F0089F;
+	Fri, 18 Sep 2026 07:40:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789717211;
-	bh=J0z+DkiYZhc924YGvhRybz+6n7wXX3FW45YohY3wWWs=;
+	s=k20260515; t=1789717212;
+	bh=fVP5a4I4DmvFIsHiAh8DtDnAM5ov3Gy9zwYI1QXr/ZE=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=PAUUfCT3BzMNBgxrzCw0h4MBLhjLZGOVt6naQXjCcS5CCPqjf2nNSR0qu6aiWOL1j
-	 MCFCGVpJqfhngfdTQWculIW+5qnLaYmXfF1HmhfyFAGAgnVr83BtePGKEWpvCj65nA
-	 dlLCQS99NkPq15yB3g/uqdw9BGGXeqw8X6D6kcTMqF5W7Ny4GOYisQeUAEUELV6Rcs
-	 ltgsynh38Rwou3bCXhPc0B6lv2+GsOcjh9WORKvGdqeDkoSC24ltqSldei/nVNy35s
-	 6njH4tmLXd9FLVtvXy2X9zbQIMuqoBX/jxdw8GgecrNB0pMWZP9DfKJ1t6jHrR5RPH
-	 opN5xVAvSyO+Q==
+	b=LiIDFXfNk3u47zykUFHowOQC6v9vsOmqESUixGb1Wv7cYVzwGFb28VZO33lauu63Y
+	 mk19XZi72xqT850eSUDrU8/IfOLiNYh/REA5wIbkXAzp2fKsicMTWecUMmc7La6/su
+	 y9mkByrJX2QuPtgjZVcys4XqFxZtQdkL6c4NqYZPW7PvowiGRRrJxvdEmE0vx3uEnb
+	 MabBC1CpXXOnPLTkqez02eqsZPDwRByPvpwmZM80GmF8GI1Lw/LDwFdYNRSITOjs4R
+	 Vpnj3UfR2Wf/W/bzMbKL2zRFTTnEyy8V6ZB7hcR1mlUWN2hafF2NKWYv1dwi/jQn3e
+	 0X2n/9lI8FEvA==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next v4 01/12] net/rds: ib: don't enable interrupts
- in rds_ib_conn_free()
+Subject: Re: [PATCH net-next v4 09/12] net/rds: refuse to queue on a
+ connection being destroyed
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Allison Henderson" <achender@kernel.org>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260917073958.174056-2-achender@kernel.org>
+In-Reply-To: <20260917073958.174056-10-achender@kernel.org>
 References: <20260917073958.174056-1-achender@kernel.org>
- <20260917073958.174056-2-achender@kernel.org>
+ <20260917073958.174056-10-achender@kernel.org>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Date: Fri, 18 Sep 2026 07:40:11 +0000
-Message-Id: <20260918074011.A49F51F0089E@smtp.kernel.org>
+Message-Id: <20260918074012.525791F0089F@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-> rds_ib_conn_free() unlinks the connection from its device or nodev
-> list under spin_lock_irq()/spin_unlock_irq().  It is not only called
-> from the rmmod path, though: __rds_conn_create() calls
-> trans->conn_free() to undo a lost creation race while it still holds
-> rds_conn_lock, taken with spin_lock_irqsave().  The unconditional
-> spin_unlock_irq() then re-enables interrupts with rds_conn_lock held
-> and leaves them enabled when the caller's spin_unlock_irqrestore()
-> runs, defeating the irqsave the caller relied on.
+> rds_conn_path_quiesce() tears down cp_send_queue by walking it with no
+> lock held.  That was tolerable while a connection could only be
+> destroyed with no sender in flight, but a sender now holds a
+> reference across rds_sendmsg(), and rds_conn_destroy() can quiesce
+> the connection underneath it.  rds_send_queue_rm() adds to
+> cp_send_queue under cp_lock, so the unlocked walk races the add and
+> can corrupt the list.  Worse, a message added after the purge sits on
+> the queue of a quiesced connection holding the connection reference
+> rds_send_queue_rm() took for it: the reference is only dropped when
+> the message is freed, the message is only freed when the queue is
+> torn down, and the queue is only torn down by the destroy that has
+> already run.  The connection would never be freed, and with it the
+> transport could never unload.
 >=20
-> Use the irqsave/irqrestore pair, as rds_tcp_conn_free() and
-> rds_loop_conn_free() already do.
+> Splice the queue away under cp_lock in the quiesce, and have
+> rds_send_queue_rm() test rds_destroy_pending() under that same lock
+> before it touches either queue.  rds_send_probe() adds to
+> cp_send_queue under cp_lock as well, for pings and pongs, and gets the
+> same test: a probe queued after the purge would pin the connection
+> just the same.  A sender that gets there first has
+> its message purged; one that gets there second is refused, and
+> rds_sendmsg() returns -EAGAIN for it, the same result the early
+> rds_destroy_pending() check in rds_sendmsg() already produces for a
+> connection whose destroy had begun before the send started.
+> rds_send_queue_rm()'s *queued becomes negative on refusal so that the
+> wait loop in rds_sendmsg() stops waiting for send room that will never
+> come.
 >=20
-> Fixes: 745cbccac3fe ("RDS: Rewrite connection cleanup, fixing oops on rmm=
-od")
 > Assisted-by: Claude-Code:claude-fable-5
 > Signed-off-by: Allison Henderson <achender@kernel.org>
 
@@ -66,5 +80,5 @@ Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260917073958.1740=
-56-1-achender@kernel.org?part=3D1
+56-1-achender@kernel.org?part=3D9
 
