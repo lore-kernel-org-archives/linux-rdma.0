@@ -1,71 +1,68 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 366D73D6472;
-	Fri, 18 Sep 2026 12:49:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20EE6481DD;
+	Fri, 18 Sep 2026 12:50:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789735801; cv=none; b=hTu41sq2WsKNu6zXIhig07Z2XaYvNruNqyfkcFxusxIln4AnLZQagFmGTwPl6KKayxwactdRojSwaE2fZAakxBkoc4pOsMvkpLRUvG0haEPOfDelrbkLFAkbvOUV7GBvsH/inhGLBbUwMXxnMQNgCiXftg5YeBKY4NvzS0u904s=
+	t=1789735832; cv=none; b=XYokt+txLlYrOYHq0zR6gqAfXPa+2uY7KrI0YW+ur3DG3yQ9OfOJcttuk0C1zIGiWTueYRtM9Sm1fvZwWy9ylRxZXimKV/gEfPxw6JEbY/tNwQgxHz/z3Mm+ig+GxivjTlXmVyY3Bso+sR1XjAsw9lZfogW8RH+DABUxAkbC68s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789735801; c=relaxed/simple;
-	bh=GoTot2TZcSAhCEUWndM+/AR1jPrbPVb2kXNlpfvX6kA=;
-	h=From:To:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=ltuNXMfx7CVryMpOz/91xECQgBRwtSHoK18myWiXpb9cmhc4mp8HL+dEbdl7K/gCJzkrl+s8gkgBlu4sQlHpVoRt6l9zSxgc3HfOnFvojk1bNF9MY/VbykrjQxYNHNfxAuO//82Yxs38MX1txWPtLiQUTqj5H1AymO49EW4hiqo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QSTYWqX7; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789735832; c=relaxed/simple;
+	bh=d4wbW/sNLpm6GDuPVHGXrH+UuCL7KDo9SWcCK8ULgjQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=V8aXEA5H25wOx4eVcXo7y4eRR8UPITPDKPbOBJnbPJGU+u00+pmJfbgjjU2ft2gkDDT8OarUndKEteArOsddaQ4gQrtZ3f5v5JLFA/Ql3qmvr0YPJ4q7IFyAOeVXYiYGwsiq+9FJGbGShTrFxHFHhUadn6yp/dRBhudVQYGtYXY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mCtjIEhk; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QSTYWqX7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 489941F00898;
-	Fri, 18 Sep 2026 12:49:59 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mCtjIEhk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA4321F000FF;
+	Fri, 18 Sep 2026 12:50:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789735799;
-	bh=Ii9m+UXBVmNhPah32omsVnb8pN6ZGzu2lz/jtDD74hc=;
-	h=From:To:In-Reply-To:References:Subject:Date;
-	b=QSTYWqX7TBtevoSqntempXwFCLRnPZ+oToE7d5GXgyohik4yY/nyhkXdlmDkUjo5D
-	 4YlLdAD0JM3ypdkeUnXup102wsO1zLgBG8GpgA0yDAIIdyecnFfeepxq20WxhKtqmw
-	 Sf62c1P4SZKTTcH5OEWyLlYTB5c7lL+P98l7LzW/+K+OV/1z5iX6bxbIOHbK6x5azI
-	 J5JQerquxQDZajSjMxIwgBy15aV2KFL0JSY3A8lIFpW7fXQ4yABEzQvJ4FLgZWtLP9
-	 NwGbKk4fydNSP0c8qWf4MSIrc2QbI/TXsDO+wSTkvSlT64Rhnp+PX1AmneYghjygcj
-	 BgaH840Amn+Sg==
+	s=k20260515; t=1789735830;
+	bh=4ZFIgBf3dFbr9mkY07ho6ySuIxAVZa2yD5JuJV/yFSM=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=mCtjIEhkI3tc42+aMwhuVcT66zISUnOher23d94JiYfpAKPgP8czeOK1N0/0XU27Y
+	 MgjtdMGUut2YXNIs/YcEbWvbGXmn/a2E7T5wue33lVdxvjzcaySn0rLOxCmkuiF5EK
+	 aA3UpkgZ5Wcic9hD1lTS5L1Rq7bm6EffI9RYmfX8l+5MIGmx3cKrOML6Dw2S+ZZHKu
+	 HQXMFEC0Q/msKaNaAFxCWKEkhCHUQZmN/WAcaXGjeVh1g8TfsA8wB8KDy+Tu82gK0H
+	 sa7CzXFirv+6gDFX6L9tjqOvXrYnk0mRYp658539NG98hf+wTv7qoeGzR1P10DQ1yr
+	 rEt07xlBSXLog==
+Date: Fri, 18 Sep 2026 15:50:25 +0300
 From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>, Yonatan Nachum <ynachum@amazon.com>, 
- Or Har-Toov <ohartoov@nvidia.com>, Michael Margolin <mrgolin@amazon.com>, 
- Yishai Hadas <yishaih@mellanox.com>, linux-rdma@vger.kernel.org, 
- linux-kernel@vger.kernel.org, lirongqing <lirongqing@baidu.com>
-In-Reply-To: <20260916085529.1838-1-lirongqing@baidu.com>
-References: <20260916085529.1838-1-lirongqing@baidu.com>
-Subject: Re: [PATCH] RDMA/uverbs: Drop restrack ref on ib_init_ucontext()
- failure in GET_CONTEXT
-Message-Id: <178973579706.2688475.18141530561928965200.b4-ty@kernel.org>
-Date: Fri, 18 Sep 2026 08:49:57 -0400
+To: norbert@doyensec.com
+Cc: Zhu Yanjun <zyjzyj2000@gmail.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+	Bob Pearson <rpearsonhpe@gmail.com>,
+	Daisuke Matsuda <dskmtsd@gmail.com>, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Zhu Yanjun <yanjun.zhu@linux.dev>,
+	stable@vger.kernel.org
+Subject: Re: [PATCH v2 0/2] RDMA/rxe: fix ADVISE_MR prefetch on non-ODP MRs
+Message-ID: <20260918125025.GY13683@unreal>
+References: <20260913-rxe-advise-mr-v2-v2-0-b806c789871c@doyensec.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-18f8f
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260913-rxe-advise-mr-v2-v2-0-b806c789871c@doyensec.com>
 
-
-On Wed, 16 Sep 2026 16:55:29 +0800, lirongqing wrote:
-> The UVERBS_METHOD_GET_CONTEXT handler allocates the ucontext via
-> ib_alloc_ucontext(), which calls rdma_restrack_new() (initialising the
-> kref to 1) and rdma_restrack_set_name(NULL), the latter attaching the
-> current task and taking a task_struct reference.  When ib_init_ucontext()
-> subsequently fails, the error path only does:
+On Sun, Sep 13, 2026 at 01:45:14PM +0200, Norbert Szetei via B4 Relay wrote:
+> ADVISE_MR prefetch on a plain MR runs to_ib_umem_odp() on a struct
+> ib_umem, giving a KASAN slab-out-of-bounds read in
+> ib_umem_odp_map_dma_and_lock() (splat in patch 2).
 > 
-> 	kfree(attrs->context);
-> 	attrs->context = NULL;
+> v1 checked is_odp_mr() after lookup_mr(). Leon asked for lookup_mr() to
+> do the check itself, off mr->access. That only holds once mr->access
+> cannot disagree with the umem, so patch 1 stops the two paths that
+> assign mr->access after registration from touching IB_ACCESS_ON_DEMAND,
+> and patch 2 passes the flag to lookup_mr() in both prefetch arms.
 > 
-> [...]
+> Patch 1 adds another failure return to rxe_rereg_user_mr(), so it
+> depends on ae36a5b609ae ("RDMA/rxe: validate access flags before
+> swapping the MR's PD"), which moved the validation above the
+> mr->ibmr.pd swap. The series is based on for-rc.
 
-Applied, thanks!
+Please rebase it on top of for-next.
 
-[1/1] RDMA/uverbs: Drop restrack ref on ib_init_ucontext() failure in GET_CONTEXT
-      https://git.kernel.org/rdma/rdma/c/9dcacdc41083cc
-
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
-
+Thanks
