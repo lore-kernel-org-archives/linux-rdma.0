@@ -1,170 +1,137 @@
-Received: from mail-ej1-f41.google.com (mail-ej1-f41.google.com [209.85.218.41])
+Received: from mail-qk2-f43.google.com (mail-qk2-f43.google.com [74.125.230.235])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F358949B47F
-	for <linux-rdma@vger.kernel.org>; Fri, 18 Sep 2026 14:59:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.41
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789743574; cv=pass; b=BWnLBz8+6tEJQMWEoC0Cd1vKfgDGa7XZTnW4Q981uNGrN/84U+A5rFDucSeAOBUor7ywfcSN9l1BJTV3Wv1nn+oIsEeRIxbr17igyVG03pe5/cEt2jy6Zbn9MrGw/TbFWepWKRsOU8zJBPl9sNRgFJBxlH5BKLHP1tAklyrpRmI=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789743574; c=relaxed/simple;
-	bh=9/KuOEAUccINW8RzQoPd+Ke7JmL5bSGUt4d83wOmGis=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=fKztR1wEkckzOAfdpM1Oe6PDjChXosy1OJpSMsnkDAihslX3cvz4vQUX+U6G12GL50zU0FNnIviY51kePXiaXCBg3R5+Lz4YMihs37t3KZmFj3oV7vPpA8qxCf0hwU2npp2Kb8WtyFbZnMct+VeFLnIWafjY1gsFl8/BcDWgGzI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=wUbT/9JM; arc=pass smtp.client-ip=209.85.218.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EEBF511239
+	for <linux-rdma@vger.kernel.org>; Fri, 18 Sep 2026 17:05:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.230.235
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789751131; cv=none; b=NQQFtr/zz787StHVc6VTIET4cbC14XwT2Stn/zzFURyyHhxIbiqkX/J6JHyZc+eZEL6FtoEAM6KhB0sMMk915TWeVnxrKGxZznWrm9tBUlrP6vo7Fl2U2eoLXSMIoqJO1kiPbK7T7dEjR9Vgnd2rT1I9F8qeLuDsPWUGix4aBpk=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789751131; c=relaxed/simple;
+	bh=CJUtrnr9lbLTqP4H/g58GCIz+hH13m2n3S92AYR7A28=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=HFSkWnlwdTv5hMPexadgCfhuSVYxrI5RSAb+Slgg4Twx9VNYUjIq5tb+z1k0mVYnpj3lGQs65HHm++ZTvhXDlr79CcNPuzbD5IGEfDZSGfIfZt+yJT09RsSeHXDPXTHbdX4x6blbVIfQNkdQ70KUwb2mmqqWJxzw7Pf+lCJ0Aw4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=Zz16yMCv; arc=none smtp.client-ip=74.125.230.235
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="wUbT/9JM"
-Received: by mail-ej1-f41.google.com with SMTP id a640c23a62f3a-c20ce3c118aso124368966b.0
-        for <linux-rdma@vger.kernel.org>; Fri, 18 Sep 2026 07:59:31 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1789743569; cv=none;
-        d=google.com; s=arc-20260327;
-        b=hmctWNXNbjECPq8Q6pr8VPgNAaZCWHEuIuPW/+7Ur8FTMMetjJoJ5uS1ZIDXN1m0uD
-         vO+zEqfDvB8qgwTU9r2GTY+l0yk0eMxQSg4y9k3Kdk3Wuui4+irNQNsFLyGar0KPyifO
-         ll6vLdVWMP9Uke70OtaRupFDT26biAXJFdjVj+82I+q8x/u6N5Sl1HsR/PPc1/tOLCTt
-         JwxLs51hpQtLSNDSpa3F1HN3ywVPR6raQ4JxKCWerXTQAEfC4jTUssxFVVbcnmUF0yUt
-         +S0z04xPbRyHjAmw6RnaSwy+w8vGD83lS6UENEZQARovVPdrnf7OqoMIlxjQ38PRymAw
-         pNvQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=YC0PefwLkxVBXTBsKzjOWy/17vdgqLJp4+m26mDaKG8=;
-        fh=wJPTFeDZCdDlPCJYgT8ZTG54UtmUHyuqkOEhHfCNrpU=;
-        b=eXZpGeQ1IuEKI/e0F6ltZCjIGKMAfZ/EJB1AiRdBuv66S34SUX1dUc9JCDdprs/KvS
-         Sx4t6GsYKyd0zU7g6bMi1Lwdc3iGWqIIEwjbgiHaQcfFNght1sjRdPyxd+aWcK7wNHnd
-         6TBq3c5U53M8xl/CLLNlWg3E4DEzh35lVoACvucFjvt7EazwigKff10zr6TFtYhuuSGS
-         0VlN3cpt/OLsxgPueC/q0CvQwkFWF4ap/xeVHKC/I9Rck+NYAWTXnm0J44u4zKav3W2M
-         aT804r1MswXsnvg8wOHm0y6Q41byXKDXVHrLtkbt2XHbzhUpoHblJHvi85Nwc5thUqnK
-         L0bg==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="Zz16yMCv"
+Received: by mail-qk2-f43.google.com with SMTP id af79cd13be357-939109fafd7so83345285a.2
+        for <linux-rdma@vger.kernel.org>; Fri, 18 Sep 2026 10:05:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1789743569; x=1790348369; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=YC0PefwLkxVBXTBsKzjOWy/17vdgqLJp4+m26mDaKG8=;
-        b=wUbT/9JM5hL1fagbQzV4/7jP1wqJbD2L9Azs+HO4vU4UJ57uHCGo2NYm6HyRdTYpbp
-         TCYXG3bh1O+OVrRV7zfa7UmszO5I/vaAZ58R7+mNyBKuSuCqme6mUxpI0DJ9Pfsd5oyL
-         0lBtlDiw9adzJbNUu12jp5faSKDi+OuHRYBDPagmBXJSHFlKrK84jmp6fuMWbPTbTG4f
-         JPTw3aceVGDVAyR7o9pRYHJoczSXq5uTFLx0RlBSbRclh74diybb51v0dT1AQfLsqk9i
-         ZImA4MxkE1pTVX8gb1xCR9iZmEm9qy2qK5sy7cf0M1wByoHjFxXJbiaIQp52+ViIIuT0
-         QZmw==
+        d=ziepe.ca; s=google; t=1789751128; x=1790355928; darn=vger.kernel.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:from
+         :date:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=zQcyEtFjPBr6Six+ddaDb/CoGlSZSKi7ev20pm6BxlM=;
+        b=Zz16yMCvY0iYXnp4qSVkoFqfYheoD9f4m4mpImDpG1lBK5zjAXrDhEED+ZfgtMmKKb
+         jys1jwEN8feW5ojbOVgRO7XgWW2iy67XVyUkEePMk5Xq6LEVrQtxqWBns2aRZejZ6kJU
+         HZ3uRkD5CDOL6CSN2PRfm2xk3H9ERs6jPpBH6GG1MSBQXYB+kTGNA7u/HWhSBwG7Z8Zc
+         1GA+sGz6DLtPsTxDCzbUGJ/rXGjWsZvqLvGOJl6akUaZJu/X9tM8vqjyN91+zujqQvdc
+         QgrytW/wV/mz66H73GTtDWEYG7ooveG8Pea/yxI0TY3AjvDlYVkLOtJPGvN28tqX534d
+         oQLA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789743569; x=1790348369;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=YC0PefwLkxVBXTBsKzjOWy/17vdgqLJp4+m26mDaKG8=;
-        b=T0o8+k3ZtK8IkEBonZ2AXLvvcXiuZZi7vjoSo5GnQFsgiUiLLNRHNRtdMasZY91klx
-         c84KwRONUiAv8q0VBgCvj0EQye4UQrzE23RgGX1zx1NRa1BEn+IErwEIJGoTYFllS3R0
-         8CBFk17KooeaPo3esXnvOELTbPp13UHlxot7ycpivxHtyCiqaKKyiPhUdUZ7SjLWJz8g
-         Pxb2Zs1f2yzLhSnUNEQjmqb5o8CYRTC5MGru4PFSM/bolfVGl/J1cbhhoEtpV9FGmQCN
-         i9+iTXW3oIF1+4WL2g/AuYqh/4xooMpHAaw4WMkAImPQAO2qvKJjwWPqTfxHl831/HNS
-         60PA==
-X-Forwarded-Encrypted: i=1; AKwUvByi9Puo4TvQVW8sCtDnHhLvF4Xbza5RV+AIc9nPLAOQqX43lNZkxaUJtSJEoDwooEgFntPL7l489VBi@vger.kernel.org
-X-Gm-Message-State: AFuF++mApRkUJuwHsPvyseIsH04+1zNVVADmXIWt3iGdJcdKMVHGylPU
-	/tSSwRUDAY+ZxVFytlxk3lmVdqnt8a+PkwAwtN2DwDmAiivZ8LIsmjH1KZoGdz+QLtu65HBX0Qy
-	JQbw2bB+FLmHgeEgMd4xl4xrhA7eVcPT4v+/lH97UnY+rgvV0GN4jYoymC2k=
-X-Gm-Gg: AYBFou2MDbr50YIS9pAZcVqvIlbd8gnmzaVvFqypDqqpR7VH6D7FgGymptavv/c2FJL
-	LqA9tV8HW9w8/jAb+JExuDEkwVS/KQN8ooNmfLCCYsUiK0hRuRKfrWNBGMjb/QCEt6rxv4ysD1T
-	HJ/uR6c2wITQWZXpHYNXDKPtjDAHoQ88zDLx487cn9EAde9i8sc4yRIjSNtdftXizo+ipitdnEi
-	dlBWf3h4R7mX1Sox7H9l7e2lbR79X3av2DTChqDdjBAdt/ktNpZmJFrAnVeqUAKJJtG8aq09r5S
-	XtLMPx9Jthn1EgcYqjdFwewXwchKAEEm8VB3El/kGX+1JTUwaPUfIcpb
-X-Received: by 2002:a17:906:ba88:b0:c25:f7dc:2da with SMTP id
- a640c23a62f3a-c29f5473df2mr602164866b.27.1789743568771; Fri, 18 Sep 2026
- 07:59:28 -0700 (PDT)
+        d=1e100.net; s=20260707; t=1789751128; x=1790355928;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:from
+         :date:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=zQcyEtFjPBr6Six+ddaDb/CoGlSZSKi7ev20pm6BxlM=;
+        b=NAuFBhCdJnAaDNQqB+7QPgGZNeFHUDo+1wKMN152Q4hBGyErrhcSdX8tWSAXEZNaki
+         s6nctyuOInUEftWuiFJVQLxf758WDn4JRsV7KB8bXGPRySppiqcfEtEbsocrXyltUBm9
+         lhCVABxRL1hUC5Qklt9ibJRNX5I0slpljCQioO8sqKP55d1nHcnlugBM1I5K1g+0to+q
+         axIuVMtRD2LvKtVOnJzgEZyCk9EzPOO3a/dard6E3uYB1WWpdUR7yaAOUABkKaL0fyyI
+         WabHDFmL7sM/O/8tdZAQPMiAPoEw45r9gg589Ns5ietqdQqsUQacLTTjpWZGo+5OQg59
+         8nbg==
+X-Forwarded-Encrypted: i=1; AKwUvBzc5h6BTDrR3h29x/PeD4+HZmzzCceA0tBIPuRBmFW2HOYaMBAryYXK4K9PnjqyU5aHwVlD7eBUxCRc@vger.kernel.org
+X-Gm-Message-State: AFuF++mYSRkqqApkvE7QMFa1/GuN63yCrvtHpu3fh4yOKvb1rDmulSve
+	JkUGVERJ23mh6x+vyqwCZMihaCiVJIN9bO78Eliu9fc8eDT2r3zeVbKvTq6fYcDwEfw=
+X-Gm-Gg: AYBFou2Jhh+0+NXLvbpQSji5v9VO012TwW/3Mq4RItCD9sdZC5JU33FPhLOOIQ/Bue1
+	JaoXpqlpWuMRJ0gxWHWHljiVBHxn/CqqLTIvw0z7dwUT4LFLXo64pBtcR8cnxunMa1TFKZBzSyi
+	surDNwFXaRRkkGv+dKYFy/mzzcrdNCUbn/QGKxGJZqFr7seFZSoOIRA2v+ZQDcUPDTQMO8SlcCn
+	3P5ZCULdeL3hhykqQfnaXTQMZH2qEJvbnpXpJacHk0HpoGn6XVKKlklF9+8Gi5UxN/zZMQkX2q1
+	6qUxQDkWlthprdOGnr7RH6cf1cvjQ3lLxuipHU0VSU3zjv/+Calc29LOMlgrph6uqwP4skPsgIK
+	bTpRhUNSr+6XOGN1icrvVp1zxYHVTa9O0iZmDRkEklBYv6zk9PjKAO07ToQ4bZNKcle5DMJcuIy
+	7HyHEK/I8w9aA4/TRpGUPGZtEK6D2x4bsfiVDE3ThBdT3QHw8svuZqoxKODXN7x3GCmqM8EO/fE
+	j53560O8cW5jBNSq4lopUk0IFRsoNENirTl+UOVx4MTBxa9LeoTHtCF
+X-Received: by 2002:a05:620a:440d:b0:93a:83d:1d26 with SMTP id af79cd13be357-93bdc6c7741mr490404585a.32.1789751128040;
+        Fri, 18 Sep 2026 10:05:28 -0700 (PDT)
+Received: from ziepe.ca (hlfxns010zw-159-2-239-150.pppoe-dynamic.high-speed.ns.bellaliant.net. [159.2.239.150])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-93be0cc67e6sm187224885a.5.2026.09.18.10.05.25
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 18 Sep 2026 10:05:25 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.97)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1x7c1c-00000001zVZ-3Nwz;
+	Fri, 18 Sep 2026 14:05:24 -0300
+Date: Fri, 18 Sep 2026 14:05:24 -0300
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Thomas =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>
+Cc: Leon Romanovsky <leon@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
+	Logan Gunthorpe <logang@deltatee.com>,
+	Chaitanya Kulkarni <kch@nvidia.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
+	Ankit Agrawal <ankita@nvidia.com>, Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	"Joerg Roedel (AMD)" <joro@8bytes.org>,
+	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>,
+	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org, iommu@lists.linux.dev,
+	Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	linux-rdma@vger.kernel.org, kvm@vger.kernel.org
+Subject: Re: [PATCH v6 18/18] RDMA/mlx5: Ask P2PDMA whether ATS takes a
+ direct peer-to-peer route
+Message-ID: <20260918170524.GH11599@ziepe.ca>
+References: <20260914-fix-p2p-acs-v4-0-v6-0-5ef07ec9ef06@nvidia.com>
+ <20260914-fix-p2p-acs-v4-0-v6-18-5ef07ec9ef06@nvidia.com>
+ <321890690ce83d1943b2f678bd9bee9b8c895b66.camel@linux.intel.com>
+ <20260918121500.GV13683@unreal>
+ <b517070d0b9236b03962fcba649faffcacda23eb.camel@linux.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <6-v6-8af36cf7b73f+e2-mlx5st_jgg@nvidia.com> <20260917235245.CAAE41F00898@smtp.kernel.org>
- <20260918115217.GA11142@nvidia.com>
-In-Reply-To: <20260918115217.GA11142@nvidia.com>
-From: David Matlack <dmatlack@google.com>
-Date: Fri, 18 Sep 2026 07:58:58 -0700
-X-Gm-Features: AcwNN1X4V2ednysXTROsIDMbW8yLdztMha6mDhRxWrhyVFhdILawxuBGR-T7aI0
-Message-ID: <CALzav=f4NTb4Csn2BoK5kk=MckFRvbVnOdO9yiCz8MLXdRMPOg@mail.gmail.com>
-Subject: Re: [PATCH v6 06/10] vfio: selftests: Allow drivers to specify
- required region size
-To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: sashiko-reviews@lists.linux.dev, kvm@vger.kernel.org, 
-	linux-rdma@vger.kernel.org, Sean Christopherson <seanjc@google.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <b517070d0b9236b03962fcba649faffcacda23eb.camel@linux.intel.com>
 
-On Fri, Sep 18, 2026 at 4:52=E2=80=AFAM Jason Gunthorpe <jgg@nvidia.com> wr=
-ote:
->
-> On Thu, Sep 17, 2026 at 11:52:45PM +0000, sashiko-bot@kernel.org wrote:
-> > Thank you for your contribution! Sashiko AI review found 1 potential is=
-sue(s) to consider:
-> > - [Medium] selftests: kvm/irq_test overwrites dynamic driver region siz=
-e
-> > --
-> >
-> > commit 97ad8ed7fec97be65848236fd1c8afab2ff66a54
-> > Author: Jason Gunthorpe <jgg@ziepe.ca>
-> >
-> > vfio: selftests: Allow drivers to specify required region size
-> >
-> > This commit adds a region_size field to struct vfio_pci_driver_ops to l=
-et
-> > drivers declare their required DMA-mapped region size. It updates the c=
-ore
-> > driver probe and the vfio_pci_driver_test to use this dynamically probe=
-d
-> > size instead of hardcoding 2MB.
-> >
-> > > diff --git a/tools/testing/selftests/vfio/vfio_pci_driver_test.c b/to=
-ols/testing/selftests/vfio/vfio_pci_driver_test.c
-> > > index 761bf117d624f..2bd949aafd731 100644
-> > > --- a/tools/testing/selftests/vfio/vfio_pci_driver_test.c
-> > > +++ b/tools/testing/selftests/vfio/vfio_pci_driver_test.c
-> > > @@ -87,7 +87,8 @@ FIXTURE_SETUP(vfio_pci_driver_test)
-> > >     driver =3D &self->device->driver;
-> > >
-> > >     region_setup(self->iommu, self->iova_allocator, &self->memcpy_reg=
-ion, SZ_1G);
-> > > -   region_setup(self->iommu, self->iova_allocator, &driver->region, =
-SZ_2M);
-> > > +   region_setup(self->iommu, self->iova_allocator, &driver->region,
-> > > +                driver->region.size);
-> >
-> > [Severity: Medium]
-> > Since this changes the vfio test to use the dynamic driver->region.size
-> > instead of SZ_2M, should tools/testing/selftests/kvm/irq_test.c be upda=
-ted
-> > as well?
-> >
-> > It looks like vfio_setup_msi() in kvm/irq_test.c still forcefully overw=
-rites
-> > the dynamically probed size back to 2MB:
-> >
-> > tools/testing/selftests/kvm/irq_test.c:vfio_setup_msi() {
-> >       ...
-> >       region =3D &device->driver.region;
-> >       region->size =3D SZ_2M;
-> >       region->iova =3D iova_allocator_alloc(allocator, region->size);
-> >       ...
-> > }
-> >
-> > Will this cause the KVM irq_test to fail with a VFIO_ASSERT_GE during d=
-river
-> > initialization via vfio_pci_driver_init() when tested with a driver tha=
-t
-> > requires a larger region, such as the mlx5 driver mentioned in the comm=
-it
-> > message?
->
-> I have no idea, Dave? Did kvm start using this stuff?
+On Fri, Sep 18, 2026 at 03:42:28PM +0200, Thomas Hellström wrote:
+> 
+> 1) Xe attachment check if pci_p2pdma_distance() returns OK for the
+> path. Then Xe always sets up dma-addresses using dma_map_resource(). 
 
-Yes, KVM started linking in the VFIO selftests library in 7.3 and
-irq_test.c is the first test using it.
+Open coding pci_p2pdma_distance() in drivers is a hack. Using
+dma_map_resource() like this was never "allowed".
 
-Looks like that is also causing the dma_rmb/wmb() redefinition
-compiler warning from the kernel-test-robot.
+We've fixed things so these hacks are not needed, the drivers need to
+move over to things like dma_buf_phys_vec_to_sgt() and the hmm helpers
+to use the DMA API correctly.
+
+> 1a) Let's say the importer (Xe) has ATS enabled, and the exporter is
+> supposed to map dma_addresses.
+> In between there is a switch that allows direct traffic.
+> Now with your patch series, How would the exporter know that Xe has ATS
+> enabled and therefore should return IOVA mappings rather than the BUS
+> addresses representing the shortcut.
+
+The thing that does the DMA map must be aware of what PCI TLPs the
+PCIe initiator will use to compute the proper P2P mapping mode.
+
+ATS always needs an IOVA but that still doesn't mean the P2P will
+work.
+
+> It seems to me that a pci-device settable flag "ATS always enabled"
+> should be enough to fix both issues?
+
+It should be be per-mapping to support the NIC workflow that isn't a
+global operation.
+
+Jason
