@@ -1,44 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 708AA4E73DC
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E16AB4E3EF3
 	for <linux-rdma@vger.kernel.org>; Fri, 18 Sep 2026 11:16:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789730190; cv=none; b=JyXwpeeKg2ealoYHSx3bQfRiKtrd1oWfY4njSDhKvZ/RK5wT4Ma1OHE/SNGpGbfwHbwXW7+b6ht8/HQwcCRFD/yzuMIRHAK91oZU7zqMXCNuMWqioxgiimIiK3sFLCxF30c00YsgrR/DnO9yqmVPEoSXL99Xj0rK0e76KONdEUE=
+	t=1789730191; cv=none; b=t64g9/uD9sVKo4ZvQzVnVUe7BdN+o3T2jzB5AsjNMCzjK82GP/D/fd6DQvZdX6uum1vFOkaYJLxeU8kKGRc3jns+5pbKkypsTIyzz8INddz9GGhqRQ+ZTgRKUVYhAt+ZFPzm+hM572tyaOMj9jHIdYOZyPcNP/t5U4W7xkNvj/Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789730190; c=relaxed/simple;
-	bh=IZ+bw4/0hRksG5r2cpf2kMbO/ZriiuDmDOfzhFHs5Do=;
+	s=arc-20240116; t=1789730191; c=relaxed/simple;
+	bh=IRV0DfhBlHN7K20K83VeGaQfkn/x8GOLUf61PkUD/Pk=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=Kd7fQVNXmlup2kfMpQIUaEYZ9HtbjjN+0nz+WzdTJOcPHilK1VbwGOFm88TyhJofnsqG10LI0wO8bCJiLTVcrlLdtllMSdn9JQ5FRHUaTdQQo0CRooTN00IFzTHMt3Of9UM1ug+SuQQtjm4SjqHJsxWE5IkjXd/eG/d+A/YDO+w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=U7nDRHMr; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=Cd2M1OiJCnrKnfrGiKtTdzcf0RwI2n8G5VWIFvU9zGLj18QMBh7OkKpuWmNsLFng8gXvt5HZo5SxNqGdortP6tUxRRMj4+ZizxuDoq2B2/f5FKYZaY6NVVjFp6hcu85cA7IfsQYmtmL4QXylgU/ggyhlLLE3OPeYwDKZ+zwQ/6c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gU6atsY/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="U7nDRHMr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA3851F00893;
-	Fri, 18 Sep 2026 11:16:28 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gU6atsY/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FE641F00899;
+	Fri, 18 Sep 2026 11:16:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1789730189;
-	bh=IZ+bw4/0hRksG5r2cpf2kMbO/ZriiuDmDOfzhFHs5Do=;
+	bh=IRV0DfhBlHN7K20K83VeGaQfkn/x8GOLUf61PkUD/Pk=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=U7nDRHMrkAf+Edo5KrzBV88/1OZ3U4v1dnnQ6lwermd9G56hUfAjRvyBtcmEV029P
-	 jCNJlhBsyXTT/fiSYUNMVFs1hUBL6SSu8f0csWiTcG4L2vn00im0CUm19//CCP2u6j
-	 ESTr1J8lW4BzgoLbmf9pNlUX1aW1yoMdKun9gGeorrwNnmWapbvjf6MO9wVqFUunfR
-	 qhqVCLoBV1W4pPEHjglM2/AdyNfEDgQH62ijpNbnTZnoz+HF0EHtl4tS3yeOyFAT4H
-	 2mYKOBAFxFSQZbpmCKsiZqJCkhBY/ZLWoCE7kPjv0GgjsJVAO7uIKv9u/p9WK1YykD
-	 jzgucoBP8LnNg==
+	b=gU6atsY/Lz7yhMxK+zA2FIyvs1EfaFFGxebL59QlTCbM6sVszKBkndsippNw90vjS
+	 zEVttum1WzcZs5CwygMr2wPqKtIKc+6m2FejT6jQcEnciT4h1E6J4EeS9dlu+ur5lc
+	 uJ6bmG8Eyk9DnqxbwvqMzFID31+oA9hLtwJd4BBXNVrRZ1+XAxk1//26u/6SrBi+Mt
+	 Kh1YTKnXFDRHMFgD9ii++w4x4E5n0deZMIuckhGQFR1Hzp6nfCIyQmKYIHQsGk/X8x
+	 eXvup6F+Kd83/SkvaTpdKWSQrVV+6YIaPbzIYRx4UjYDed+3DelQo1c3sG4z6rqzQx
+	 zC6DjR8JNBCKQ==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH mlx5-next 02/10] RDMA/mlx5: Add
- mlx5_data_direct_supported() helper
+Subject: Re: [PATCH mlx5-next 03/10] RDMA/mlx5: Make the data direct VUID
+ query self-contained
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Tariq Toukan" <tariqt@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260917111422.4054862-3-tariqt@nvidia.com>
+In-Reply-To: <20260917111422.4054862-4-tariqt@nvidia.com>
 References: <20260917111422.4054862-1-tariqt@nvidia.com>
- <20260917111422.4054862-3-tariqt@nvidia.com>
+ <20260917111422.4054862-4-tariqt@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 18 Sep 2026 11:16:28 +0000
-Message-Id: <20260918111628.EA3851F00893@smtp.kernel.org>
+Date: Fri, 18 Sep 2026 11:16:29 +0000
+Message-Id: <20260918111629.9FE641F00899@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -47,13 +47,17 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 > From: Dragos Tatulea <dtatulea@nvidia.com>
 >=20
-> The data direct capability FW checks are duplicated inline in
-> mlx5_ib_data_direct_init() and mlx5_ib_data_direct_cleanup().
+> mlx5_cmd_query_vuid() in cmd.c is generic over the data_direct flag but
+> its only caller is the data direct init path, which always passes
+> data_direct=3Dtrue.
 >=20
-> Wrap it in a mlx5_data_direct_supported() helper and use it in both
-> places, in preparation for moving the data direct matching code to
-> mlx5_core. For the same reason put it in driver.h instead of
-> data_direct.h.
+> Move it into data_direct.c as mlx5_data_direct_query_vuid(), dropping
+> the always-true parameter and hardcoding data_direct=3D1. This groups the
+> query with the rest of the data direct code so that it travels together
+> when the data direct matching code is relocated to mlx5_core, and lets
+> it become static there once the query is folded into the core bind path.
+>=20
+> This function will become private in a subsequent patch.
 >=20
 > No functional change.
 >=20
@@ -66,5 +70,5 @@ Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260917111422.4054=
-862-1-tariqt@nvidia.com?part=3D2
+862-1-tariqt@nvidia.com?part=3D3
 
