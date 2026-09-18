@@ -1,170 +1,284 @@
-Received: from DM5PR21CU001.outbound.protection.outlook.com (mail-centralusazon11011030.outbound.protection.outlook.com [52.101.62.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7CEA4E36C8
-	for <linux-rdma@vger.kernel.org>; Fri, 18 Sep 2026 11:52:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.62.30
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789732344; cv=fail; b=LiHE/8gZBLyxVJ3boAcRJiHVdERY59QlSEM+e+xzrGKg1JR1FoNLVF043Aj/saOc5My0+jrx7Tyw/8CB6y0v8WKSoALWeVL/4itDiw1quWNWJla5vekCtgz25kJjfnsX0ocT58QvQ2b3UKJvZdCySkA663POdWcJO7HqV0u7aLc=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789732344; c=relaxed/simple;
-	bh=zeg5iFxF2J4bFl0GACcGOgq3L05e8Okq5JKyTkqkU28=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=pnXqUsXVkePAmTHMLAmBotG00owGxZb8yE5aF8eiYaKUyy9KNndahpAsfC/YFTyhrIMr94gkTibBXJ4w6XVOWUCRSd0YkkTvZ4xeqbqFT0ck1u94eDBxEmnJH4c2F8xOwZ9Y3TxSYhfn7EvAbpH22X0rMTQlnGH7YKAR2AzWWj8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=gyZ0DBOz; arc=fail smtp.client-ip=52.101.62.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D9A53909A6;
+	Fri, 18 Sep 2026 12:15:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789733707; cv=none; b=dKoyRVtEk+Vk3ZkpV24WUKhP0rseuy4ERzdPBR2j8ovU1JOFyfqGjya1sTFMFJsf2ZExu5FU+zZIGM3SN8w3CF1n99uZQDIiCzW3d0uSe2XopNUthWFdBpA4+eH5vADsGioWgza7C9SVZE3mSnSG5dTXm0qHQiPZCoLCEmeb/74=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789733707; c=relaxed/simple;
+	bh=F1W0yb/pBICTbgkVH2INu9VOvJSl1gEVUZOoeEz7gY4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=UZsw9DTa7gxIeTMAJQHkWREB63vOgh2VHKytunNShSfdgipi2L3Pwm0ijKjbFGPUkCkRnGWKmGC/eko0iOhdxLS4psyDZV+13bLETbfkJu4TqHTEqeKogk0zW6Krd2kIuvTAgUPpM+G8J/11Q+fVFXk5PXflZohK2KbQOkRh//0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=l2Hvu22q; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="gyZ0DBOz"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=WXDaivNLaUawVGXmbrwn5TU7t4Xdghw3OCi6QTTI+VxxLD8e7g2aYnsZVcn1/865rDTWq3l/jKPgi3unSPpVIeZ8lfX5J4tcSHKQvteWwAeihS92+2l2/WVXbmiW3u9cjZCmL8SgleD2XhMAoDtiw5OLLmAjHkyMYM1DcCHgrvQOqswuyjYKUCaDq6fj+phzWeKjVhoEp2frdphdAWPr+BZahJbpxa5gRcH65qxuvRoaCPrI3A2DiOkMR5ZXuU/O5wsnBpaGil+sltEcUHjfm7jgtva2zoOFJtdcuQfIh+vyT72rIKrp8g6fPRlDbvN0YxdHNBxJYrS+BHAnwMRw7A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=EJSIR/zQLt9Nq13Y1WYv0j4W6EStOQQnb/Ojycs+5Uk=;
- b=jNdQICCxZAPqGvtCzEYTsMS/it0UsGHOJcya7IGbtt6j2fNMKyyNUdK+jRpM46TWsDywki0yIKY9UKL0TWoWmsBmHCCbZDQDl6AC3Fhj26PVf3eXuFShUoHCxn3O47WPDtajx7Enw6YlxPvLQ6qfY0ipERCTxXOxLerMBZrN53n+nmn0TyyWSid3e3HahtaSmOiVFb9mzeOEs6MwYwmueyvw/v0UFUBiex1Sp412A6iKDnYCit5KRlH4/LnyMlTKaS7mB8GA3GWbIIZ8tk0zz3fbflIWcQHowHF0A9Gc18LGgfWzUNkm7LfV1smwVzRy8uChNJ9utDyprAJyY8Mr2w==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=EJSIR/zQLt9Nq13Y1WYv0j4W6EStOQQnb/Ojycs+5Uk=;
- b=gyZ0DBOz/CNVvKepe5xKbWqVi5pIB3d63jtUIor7cCSo6VwE/Tzwa6Swqxnaa/1eHABtOHbMyDNbTqWfoDpgzfULY8HQp/Ncuuq3hPpBaikKnPLnOoYFRbc5U9jwufLDmRxQeFyflEMaSezL1sG+VhYm6S3zTFZmF4niId2TYCBO5t9J+LGAvxaclihwBdBRypQW56rclJidsyTwp8PqwGyDCFzRQXwHyTFuMAQMN85oWN7X8KYM0SXIavrdgROu/5WdSQXoXK2dhd+hnqPL9IOPtPZUbAPgUrHpECTtRD8dUZpXaB7Yg4Fv0BXvAPxi9FUpDxOmCC//8Isb/V4Eww==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from CHBPR12MB731189.namprd12.prod.outlook.com
- (2603:10b6:610:33d::12) by CH2PR12MB4101.namprd12.prod.outlook.com
- (2603:10b6:610:a8::22) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.428.13; Fri, 18 Sep
- 2026 11:52:20 +0000
-Received: from CHBPR12MB731189.namprd12.prod.outlook.com
- ([fe80::b0e5:123d:fe06:e10d]) by CHBPR12MB731189.namprd12.prod.outlook.com
- ([fe80::b0e5:123d:fe06:e10d%6]) with mapi id 15.21.0428.011; Fri, 18 Sep 2026
- 11:52:19 +0000
-Date: Fri, 18 Sep 2026 08:52:17 -0300
-From: Jason Gunthorpe <jgg@nvidia.com>
-To: sashiko-reviews@lists.linux.dev, David Matlack <dmatlack@google.com>
-Cc: kvm@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH v6 06/10] vfio: selftests: Allow drivers to specify
- required region size
-Message-ID: <20260918115217.GA11142@nvidia.com>
-References: <6-v6-8af36cf7b73f+e2-mlx5st_jgg@nvidia.com>
- <20260917235245.CAAE41F00898@smtp.kernel.org>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260917235245.CAAE41F00898@smtp.kernel.org>
-X-ClientProxiedBy: PH8P222CA0002.NAMP222.PROD.OUTLOOK.COM
- (2603:10b6:510:2d7::31) To CHBPR12MB731189.namprd12.prod.outlook.com
- (2603:10b6:610:33d::12)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="l2Hvu22q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EEB791F000FF;
+	Fri, 18 Sep 2026 12:15:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1789733705;
+	bh=+8ouL8MHD3D1pD50ird+0r+dFeJQjvvbk3v4ZZQqqXs=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=l2Hvu22qiDsRKF2dKtyIxq/BuSR7nfYOOeG3+byXlyAoETgK9LqUOuJf3cPOxvCk9
+	 ErhqPvZWMTU0HVQRHUlSoKCVv4TTd/UVGn9MIJc1m0h/cvb5JjTclY7E4W1i4QRSQ/
+	 x9Owc28rL0PF6cQprfFCFa5XAjmbt/JpP7/o3PY2oA2uoLtlTjhBJX4HT1qwc7bwrp
+	 GfkiEtJuhX0PazsalVk64Sr4JjlBI88Y/Upmbe8SPhLHlKOiZIbUJH+CqwwiJvZtAW
+	 JO4jA67c801lRH5V6gEpMjNdTEf1tcR54d2kKhjbRRN2ELDKWA0IuNx68rVtOqC2mw
+	 ooJwoi5T2fIhw==
+Date: Fri, 18 Sep 2026 15:15:00 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Thomas =?iso-8859-1?Q?Hellstr=F6m?= <thomas.hellstrom@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>,
+	Logan Gunthorpe <logang@deltatee.com>,
+	Chaitanya Kulkarni <kch@nvidia.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
+	Ankit Agrawal <ankita@nvidia.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	"Joerg Roedel (AMD)" <joro@8bytes.org>,
+	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org, iommu@lists.linux.dev,
+	Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	linux-rdma@vger.kernel.org, kvm@vger.kernel.org
+Subject: Re: [PATCH v6 18/18] RDMA/mlx5: Ask P2PDMA whether ATS takes a
+ direct peer-to-peer route
+Message-ID: <20260918121500.GV13683@unreal>
+References: <20260914-fix-p2p-acs-v4-0-v6-0-5ef07ec9ef06@nvidia.com>
+ <20260914-fix-p2p-acs-v4-0-v6-18-5ef07ec9ef06@nvidia.com>
+ <321890690ce83d1943b2f678bd9bee9b8c895b66.camel@linux.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CHBPR12MB731189:EE_|CH2PR12MB4101:EE_
-X-MS-Office365-Filtering-Correlation-Id: 74ccb495-1fc8-43d6-cd32-08df157b4b15
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|366016|1800799024|23010399003|10067099003|11063799006|6133799003|18002099003|22082099003|56012099006|4143699003;
-X-Microsoft-Antispam-Message-Info:
-	BIZZRkk3YhfQfyFLrPNOblfrCxkwdHtBNjQfYf+FbENQ22ETzeCA1diUGS9Wirn2SJjRfU2gmbhEVv4N0+bMXzMqtbCD2r961v26r2+la1L7xoMe0DKRwo16zoIypskmyc/bF20Sz8rJGxv6dsrYvkeiwAUY48FXodLHXM7/1h7CGBm1ORXBjddvKtqQu5r+cGdBZF3y+gI7DeAvWZne/2asTYKKga/+ZYHtAw+2CX+fLI+TjiwrQ+0c0HsQN2XmayaKq3GVoVqor+vgeqt1TEw/uTKza3bKcf0tHz7yrL6LP5/+7hq+fS1xp+wk/fIJhVN89kwZMXhRHXK3I6ewA5UNE4urg6onKs2mjS0Ehg4aXTrF5Axb+lV7yHsvmrQouXRQApR/M+01YH9Hxlf7eE6hkcyQjuJhB5G/qL0ghynAMEbLRWE5wPrqsWXZqGYrhyE+3dWo9d4TqB11Vko6WRefhoYRwwL9EbG0nf2YzcQJY3QDNU7IspT9QmRnJi+q1E26dPD887vbjqvPfTop8RQtPiR1iWrXKnNGLKXwWxB76EaNlg2r7qdw+YCrQCbztuAGB684AiWktt9s48e9bcgP/M55FooCCAP8QNIHHh32BFa8wVic2LuZSQRFNLjpxdOZNB/fX0u+TsrfHEOUMVN82tg4zCHzsJGbHb1LNAk=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CHBPR12MB731189.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(366016)(1800799024)(23010399003)(10067099003)(11063799006)(6133799003)(18002099003)(22082099003)(56012099006)(4143699003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?AbheKcJsrW4KH+2pN+6KyOFJtwcRBpTsejtP+WmuoyShxf6frz7fuPVxPQMZ?=
- =?us-ascii?Q?Dj0KjnXjkMvoNFPUcneLDY9jHX4Fj53d1Xk5b/BHSf2G9uyL93N7/CD4pwUt?=
- =?us-ascii?Q?KQJSq6WhSA5ozagpJCLPvsrgXPPTAEcXw2NwR3vL6AO/w5TYjMlABSeg6E57?=
- =?us-ascii?Q?9z7Zbg7CQCSkssG506bNaIcmogp9IgjAhJGOvAdd4pQTBl1xpOqyldtn1Gwh?=
- =?us-ascii?Q?jvVgVR+oO+zLVEczSww/JKbpcqfGYtr60pNLYUSgidhvoZar/NmTw3euEPBR?=
- =?us-ascii?Q?yLP8UfaaCfvZeMJuiYcwrzcDaIKysUayXcUIaGMJT4ue1hqZmeynfD4SuRTv?=
- =?us-ascii?Q?ODz+xsk4gMiC3rkMwZnrWJH3di0j8XBs8PjB9zNvknIFJGBkXjAUydLZtJJP?=
- =?us-ascii?Q?y7s9KivHx+3UxLnrbdUYfjuL2phVtZud8bWE1bah5gzttdKtc8BFwW7IoXB3?=
- =?us-ascii?Q?TjSx1Klh+BgsXDwwxnz19XuUU2TOsp0awU/p3tix0mmaq0Q/X/5tlxmH44//?=
- =?us-ascii?Q?CQjnup+hdg6cDMEK6ryrZ6K9wMCRiGDyW/VGhXt8BkK8/pcmQ/Y7mKNUcQJ8?=
- =?us-ascii?Q?+R1/FoCWtQmnCcsu4PWymQK1FFnsllGpG36xNkbzccbpCEBuzYD4ktsdcJlK?=
- =?us-ascii?Q?Iznxf807Tnh38R/mmOiU2SfJdNyv7VQtM16wAAFOXXzy2o0OC7TeqyGTYe3z?=
- =?us-ascii?Q?B5nsfBBVxVFlzOU91bnSaMJ+35pQD2fQmNqI+jRhOzooYd0Pamoe8MaB1lmk?=
- =?us-ascii?Q?QUMsiTdYwCCbDG5FQpWYySbF2mrHRzhlpE09F7IAAROtJFbEE0u46hTCIi5G?=
- =?us-ascii?Q?YyItr+isIOMgOYNo4Vv+OnUT4ceg2d8vWWjxO9CppxHa2SXm1RkM34xhePyH?=
- =?us-ascii?Q?OlE2p9Tcw1LQHsUds1rPoXft6eQjPs45gNdhJtmVVbGxfO6KZWdvwT+01Ffk?=
- =?us-ascii?Q?uvmRjIJOJhoTQEGSEpaDfozA/bAz7M+NwYs99sMdB+aDVgmbLPzRofQ/wCsy?=
- =?us-ascii?Q?A+nS6m2Eexl2j/xcaEqeKT0x4mBAnFpvmxvq7WdqkNlkvlj+P7fZEUnessEC?=
- =?us-ascii?Q?S7227qnMtyK95oh22YTLkRgxsAvz2oryGuUSLBJQUki7LqQpCZMcjOcatblM?=
- =?us-ascii?Q?7yURWx4kv7BSapu7QiCC6meEDgHjhxP69hOoFtZv7Ts0EBzGP5tKAY0FMFiL?=
- =?us-ascii?Q?z9p3pJHjO8Wr5f8ytnFH5+BRWrIv1jA2g6jNMUEjMUKJiEUAcl66cTTBE/2L?=
- =?us-ascii?Q?GDcLo2chavsjIJLBaG6GA871Xk24sxWy0X3++Vu/l+KERGgt8/Z0/t7P4Apy?=
- =?us-ascii?Q?8JUaqeFtKkFsdzLggfzXOkxwajgfaxhbqrg1LhNFJRAHpM8zxL2ZxBYgozEU?=
- =?us-ascii?Q?7WnNs8kJDUTYY9s/y9DOekgAIdDogWZcT2JFoGyWAo9F6VKLH5A0JmetGPw7?=
- =?us-ascii?Q?mdO0KOeAnwl15hcc4AheQnJCxqAnEAPOXJ7JITy5HZQtLQP2FC28Q+gfA5rt?=
- =?us-ascii?Q?veYBfk5yLUWH/tpprgguDkPFOQDQ6HILafNMd7TEWrSveekQ9MnTjkb6dKxr?=
- =?us-ascii?Q?/xj79bp+sSGC7WKBfs2EbPGG2HPFDkVRExlZRNlT9vFYTYEEznihiRz/DYBq?=
- =?us-ascii?Q?UmLeEpdS57r6OLYi+jbx/8S0t6xIYKx6hbBmhmbshHJ1imIzniz67ngbPats?=
- =?us-ascii?Q?1fA8M8sfPZB8iH1/rbNNS3uX6BKDftj/550ogVd5aTd/hUqu?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 74ccb495-1fc8-43d6-cd32-08df157b4b15
-X-MS-Exchange-CrossTenant-AuthSource: CHBPR12MB731189.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Sep 2026 11:52:19.5417
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: eDmBo9F4b4VaZKHr2326DJBWfohGOtf3rBtM+34ceNMO/wNKRizd4PVpKSksV3fT
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH2PR12MB4101
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <321890690ce83d1943b2f678bd9bee9b8c895b66.camel@linux.intel.com>
 
-On Thu, Sep 17, 2026 at 11:52:45PM +0000, sashiko-bot@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found 1 potential issue(s) to consider:
-> - [Medium] selftests: kvm/irq_test overwrites dynamic driver region size
-> --
+On Thu, Sep 17, 2026 at 03:56:12PM +0200, Thomas Hellström wrote:
+> Hi
 > 
-> commit 97ad8ed7fec97be65848236fd1c8afab2ff66a54
-> Author: Jason Gunthorpe <jgg@ziepe.ca>
+> On Mon, 2026-09-14 at 14:22 +0300, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro@nvidia.com>
+> > 
+> > mlx5_umem_needs_ats() enables ATS for any dma-buf whose caller asked
+> > for
+> > Relaxed Ordering, on the assumption that a switch in the path has CR,
+> > RR
+> > and DT all set. It also enables it for a buffer already mapped with
+> > the
+> > peer's bus addresses, which are not translatable at all.
+> > 
+> > P2PDMA has read the ACS controls, so ask it through
+> > dma_buf_p2pdma_map_type(): enable ATS only where the path is not
+> > routed
+> > directly as it stands, but would be for a Translated Request whose
+> > Completions carry Relaxed Ordering. Exporters that name no provider
+> > keep
+> > the old assumption, since their ACS settings remain hidden.
+> > 
+> > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+> > ---
+> >  drivers/infiniband/hw/mlx5/mlx5_ib.h | 36 ++------------------------
+> > ------
+> >  drivers/infiniband/hw/mlx5/mr.c      | 40
+> > ++++++++++++++++++++++++++++++++++++
+> >  2 files changed, 42 insertions(+), 34 deletions(-)
+> > 
+> > diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h
+> > b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+> > index e9ddf2e97a76..ab32742b2180 100644
+> > --- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
+> > +++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+> > @@ -1646,40 +1646,8 @@ static inline bool rt_supported(int ts_cap)
+> >  	       ts_cap ==
+> > MLX5_TIMESTAMP_FORMAT_CAP_FREE_RUNNING_AND_REAL_TIME;
+> >  }
+> >  
+> > -/*
+> > - * PCI Peer to Peer is a trainwreck. If no switch is present then
+> > things
+> > - * sometimes work, depending on the pci_distance_p2p logic for
+> > excluding broken
+> > - * root complexes. However if a switch is present in the path, then
+> > things get
+> > - * really ugly depending on how the switch is setup. This table
+> > assumes that the
+> > - * root complex is strict and is validating that all req/reps are
+> > matches
+> > - * perfectly - so any scenario where it sees only half the
+> > transaction is a
+> > - * failure.
+> > - *
+> > - * CR/RR/DT  ATS RO P2P
+> > - * 00X       X   X  OK
+> > - * 010       X   X  fails (request is routed to root but root never
+> > sees comp)
+> > - * 011       0   X  fails (request is routed to root but root never
+> > sees comp)
+> > - * 011       1   X  OK
+> > - * 10X       X   1  OK
+> > - * 101       X   0  fails (completion is routed to root but root
+> > didn't see req)
+> > - * 110       X   0  SLOW
+> > - * 111       0   0  SLOW
+> > - * 111       1   0  fails (completion is routed to root but root
+> > didn't see req)
+> > - * 111       1   1  OK
+> > - *
+> > - * Unfortunately we cannot reliably know if a switch is present or
+> > what the
+> > - * CR/RR/DT ACS settings are, as in a VM that is all hidden. Assume
+> > that
+> > - * CR/RR/DT is 111 if the ATS cap is enabled and follow the last
+> > three rows.
+> > - *
+> > - * For now assume if the umem is a dma_buf then it is P2P.
+> > - */
+> > -static inline bool mlx5_umem_needs_ats(struct mlx5_ib_dev *dev,
+> > -				       struct ib_umem *umem, int
+> > access_flags)
+> > -{
+> > -	if (!MLX5_CAP_GEN(dev->mdev, ats) || !umem->is_dmabuf)
+> > -		return false;
+> > -	return access_flags & IB_ACCESS_RELAXED_ORDERING;
+> > -}
+> > +bool mlx5_umem_needs_ats(struct mlx5_ib_dev *dev, struct ib_umem
+> > *umem,
+> > +			 int access_flags);
+> >  
+> >  int set_roce_addr(struct mlx5_ib_dev *dev, u32 port_num,
+> >  		  unsigned int index, const union ib_gid *gid,
+> > diff --git a/drivers/infiniband/hw/mlx5/mr.c
+> > b/drivers/infiniband/hw/mlx5/mr.c
+> > index 00e13028762a..286f372e5b0c 100644
+> > --- a/drivers/infiniband/hw/mlx5/mr.c
+> > +++ b/drivers/infiniband/hw/mlx5/mr.c
+> > @@ -38,6 +38,7 @@
+> >  #include <linux/export.h>
+> >  #include <linux/delay.h>
+> >  #include <linux/dma-buf.h>
+> > +#include <linux/dma-buf-mapping.h>
+> >  #include <linux/dma-resv.h>
+> >  #include <rdma/frmr_pools.h>
+> >  #include <rdma/ib_umem_odp.h>
+> > @@ -47,6 +48,45 @@
+> >  #include "data_direct.h"
+> >  #include "dmah.h"
+> >  
+> > +MODULE_IMPORT_NS("DMA_BUF");
+> > +
+> > +bool mlx5_umem_needs_ats(struct mlx5_ib_dev *dev, struct ib_umem
+> > *umem,
+> > +			 int access_flags)
+> > +{
+> > +	struct dma_buf_attachment *attach;
+> > +
+> > +	if (!MLX5_CAP_GEN(dev->mdev, ats) || !umem->is_dmabuf)
+> > +		return false;
+> > +
+> > +	/*
+> > +	 * The Completer decides whether its Completions carry
+> > Relaxed
+> > +	 * Ordering, and only a Request that asked for it can expect
+> > them to.
+> > +	 */
+> > +	if (!(access_flags & IB_ACCESS_RELAXED_ORDERING))
+> > +		return false;
+> > +
+> > +	attach = to_ib_umem_dmabuf(umem)->attach;
+> > +	switch (dma_buf_p2pdma_map_type(attach, 0)) {
+> > +	case PCI_P2PDMA_MAP_NONE:
+> > +		/* Nothing is known about the route, so fall back to
+> > the bet. */
+> > +		return true;
+> > +	case PCI_P2PDMA_MAP_BUS_ADDR:
+> > +		/*
+> > +		 * The path is routed directly already and is
+> > programmed with
+> > +		 * the peer's bus addresses. Those are not
+> > translatable, so
+> > +		 * ATS would be wrong as well as pointless.
+> > +		 */
+> > +		return false;
+> > +	default:
+> > +		break;
+> > +	}
+> > +
+> > +	return dma_buf_p2pdma_map_type(attach,
+> > +				       PCI_P2PDMA_TLP_TRANSLATED |
+> > +					      
+> > PCI_P2PDMA_TLP_RELAXED_CPL) ==
+> > +	       PCI_P2PDMA_MAP_BUS_ADDR;
+> > +}
+> > +
 > 
-> vfio: selftests: Allow drivers to specify required region size
+> It looks like this works well when the device can choose whether to
+> enable ATS per transaction. 
 > 
-> This commit adds a region_size field to struct vfio_pci_driver_ops to let
-> drivers declare their required DMA-mapped region size. It updates the core
-> driver probe and the vfio_pci_driver_test to use this dynamically probed
-> size instead of hardcoding 2MB.
+> However, at least for the Intel GPUs, ATS enablement is based on the
+> PCIe-side enable bit.
 > 
-> > diff --git a/tools/testing/selftests/vfio/vfio_pci_driver_test.c b/tools/testing/selftests/vfio/vfio_pci_driver_test.c
-> > index 761bf117d624f..2bd949aafd731 100644
-> > --- a/tools/testing/selftests/vfio/vfio_pci_driver_test.c
-> > +++ b/tools/testing/selftests/vfio/vfio_pci_driver_test.c
-> > @@ -87,7 +87,8 @@ FIXTURE_SETUP(vfio_pci_driver_test)
-> >  	driver = &self->device->driver;
-> >  
-> >  	region_setup(self->iommu, self->iova_allocator, &self->memcpy_region, SZ_1G);
-> > -	region_setup(self->iommu, self->iova_allocator, &driver->region, SZ_2M);
-> > +	region_setup(self->iommu, self->iova_allocator, &driver->region,
-> > +		     driver->region.size);
+> This means that if p2pdma tells the dma-mapping layer to give an Xe
+> device a bus address rather than an IOVA, things break, while
+> pci_p2pdma_distance says everything is OK.
 > 
-> [Severity: Medium]
-> Since this changes the vfio test to use the dynamic driver->region.size
-> instead of SZ_2M, should tools/testing/selftests/kvm/irq_test.c be updated
-> as well?
+> It looks like the infrastructure and solution added in this series is
+> targeted at fixing this on the device side by conditionally enabling
+> ATS. However I think we need to look also at having the computed
+> routing assume untranslated transactions using IOVA rather than bus
+> address.
 > 
-> It looks like vfio_setup_msi() in kvm/irq_test.c still forcefully overwrites
-> the dynamically probed size back to 2MB:
-> 
-> tools/testing/selftests/kvm/irq_test.c:vfio_setup_msi() {
-> 	...
-> 	region = &device->driver.region;
-> 	region->size = SZ_2M;
-> 	region->iova = iova_allocator_alloc(allocator, region->size);
-> 	...
-> }
-> 
-> Will this cause the KVM irq_test to fail with a VFIO_ASSERT_GE during driver
-> initialization via vfio_pci_driver_init() when tested with a driver that
-> requires a larger region, such as the mlx5 driver mentioned in the commit
-> message?
+> That is, a flag to tell the topology check that some transactions
+> *will* take the host-bridge path due to IOVA being used, and that the
+> computations including pci_p2pdma_distance() need to check whether that
+> is possible (checking whitelist etc.) and return the corresponding
+> THRU_HOST_BRIDGE mapping type. Translated transactions taking a short-
+> cut using the bus-address would then be hidden from the driver.
 
-I have no idea, Dave? Did kvm start using this stuff?
+The word *will* puzzles me. As I understand it, if your device has ATS
+enabled all the time, it should always get THRU_HOST_BRIDGE.
 
-Jason
+In the mlx5 case, we can enable or disable ATS on the fly, but what does a
+device with ATS enabled globally do for different mapping types? Do you
+simply not use dma_buf_p2pdma_map_type() at all and continue to operate
+as is?
+
+I asked some questions my AI tool about XE:
+------------------------------------------------------------------------------------------------
+Xe needs THRU_HOST_BRIDGE even with ATS completely disabled. xe_ttm_vram_mgr_alloc_sgt()
+maps VRAM with dma_map_resource() unconditionally (xe_ttm_vram_mgr.c:450) — an IOVA under
+an IOMMU, never a bus address, with no ATS involvement at all. ATS only adds the possibility
+that some of that traffic short-cuts invisibly. The actual requirement is “this caller cannot
+program bus addresses”, which is true of Xe regardless of the ATS Enable bit.
+-------------------------------------------------------------------------------------------------
+
+Could you please clarify what the expected behavior is here? My series
+does not change the existing behavior; it only reports the routing more
+clearly for each TLP class.
+
+Thanks
+
+> 
+> Whether that is best done as a parameter to these functions or perhaps
+> as a flag in the PCI device, I'm not sure.
+> 
+> Thanks,
+> Thomas
+> 
+> 
+> 
+> 
+> >  static int mkey_max_umr_order(struct mlx5_ib_dev *dev)
+> >  {
+> >  	if (MLX5_CAP_GEN(dev->mdev,
+> > umr_extended_translation_offset))
