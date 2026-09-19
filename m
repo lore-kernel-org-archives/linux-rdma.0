@@ -1,93 +1,162 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68A3A2B9B7;
-	Sat, 19 Sep 2026 04:39:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E88622D595B;
+	Sat, 19 Sep 2026 06:10:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789792757; cv=none; b=GflFr1aRHJ+PuwZdCIQgu6y7Xtkgs1LeRnwHE1FT0k+oXlMSIYeLCb4B5QsxNGwk23C/yer95WM7B7oVE7kHs3oSMC72bi0nw/Bb9mU0quHgTi15MqGmoeRhDKT1L3jKqXSVPLYDO9CtXP8DPeTW5DoN89rYCuXWMMmGad5spUM=
+	t=1789798245; cv=none; b=rBzeUut3JmfFMM2/BJVpr0toDeYtWYQzC5haUTiJKaJ8JMJaJDyvQEgMv+VgnLpZW2ya0DF4oj2GkZCyss0i/mFYLNu5spNF2+nHVV2oT6fEpd5oDWPo4w/pIPe2Mrvilt3HWkU6cLe9UCUq+HlGPqLo6mAbt9XXGNeZe36GBJs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789792757; c=relaxed/simple;
-	bh=OvzvCShvMMIyGA68THVgyk5YaLtsd0zcLW9UY7FgFCs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=DKdtaW9WXVPSoPwRhuXvM/MKrlTFC9OuctM/KLgitrayKadn2qIa2MlIXySxUnA1GI9n59TWKvOdtVdqwKxcmt1G6N472yDd9bx1ih6tb8U8kqc5hkWkI8/BcZ05f0xCb0Lsk1LWUK2noc5TKZ1L5/T610zCq3OF8eNv/+nnXIs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gdc0Xb46; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789798245; c=relaxed/simple;
+	bh=Ibgxl9ldEqgAy5mvKOIhkdqx+UUVk7PH+lwc3etHZCQ=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=O41uiw4g4ze9ylFN83NdPKLctuYuJ5FCt/SPyHJgI9gDQ+Jx83iwvg1MXPgv2TQ9NhVRVMWTU43CZr2BIZcFOKdOjjXvqk0SiH8b4gvNefOpcrPEYale6+2aVjJl1lIpkFJP+U2xavBXOcflI9KYyKTj1WZfS+2pyvJh+5XU7ug=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GahkGHlv; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gdc0Xb46"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 551AD1F000FF;
-	Sat, 19 Sep 2026 04:39:15 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GahkGHlv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14D641F000FF;
+	Sat, 19 Sep 2026 06:10:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789792756;
-	bh=Igi4RHLJYWAKmVb+cd2dtDK1WqzkkFZ7X+ZVpe9M7cs=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=gdc0Xb46lJVg8B0Ky3G0HTiETukThppICzF4vRLwyqtfTgn+OE2gznNkHPnuVAGJY
-	 K9Uxjjwig9JL6g81dNk6F8CBwe2qfsHjEcyYUpyHnEF0QU0XZx3mCcejc9ulWoA73t
-	 cUyf5iI7JwQ/Dne01j5S/F9qfVk6I9+TXhLkJI/IF5Ty9oDLe1rOCoL9oDKZFRr5Bz
-	 xMXVH3hljWKb0sw+4kVmogm2dnUqqwtWc5EPHrti3+K9eNozLx7YvvhQWh9a14/87S
-	 9whWSzdtS+08iIYTTQm7J1iG6vmO4t1WXjlcB5Tq/vlj8N3R1nj5PSQwgK5lPxgj89
-	 d/EgkVMuN0ntw==
-Date: Sat, 19 Sep 2026 07:39:11 +0300
-From: Leon Romanovsky <leon@kernel.org>
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>,
-	Chaitanya Kulkarni <kch@nvidia.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
-	Ankit Agrawal <ankita@nvidia.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	"Joerg Roedel (AMD)" <joro@8bytes.org>,
-	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
-	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org, iommu@lists.linux.dev,
-	Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
-	Matt Evans <matt@ozlabs.org>
-Subject: Re: [PATCH v6 01/18] PCI/P2PDMA: Document pdev->p2pdma lifetime rules
-Message-ID: <20260919043911.GA13683@unreal>
-References: <20260914-fix-p2p-acs-v4-0-v6-0-5ef07ec9ef06@nvidia.com>
- <20260914-fix-p2p-acs-v4-0-v6-1-5ef07ec9ef06@nvidia.com>
- <6e4f0c2f-eae8-4cd5-9c10-9b9a59941d2f@deltatee.com>
+	s=k20260515; t=1789798243;
+	bh=uy4L0wNfa7HGJN5jW6Qg9LORi285S6cAAvWPAYZiEJg=;
+	h=From:To:Cc:Subject:Date;
+	b=GahkGHlvfEPqJPZfPQ5UradMlr+CTe4z1f2aLCdzKdvjnCnjmQm/ve8j8i3Z+RBRY
+	 /j4SJ47WDIpTx93Z+F6Q9rWGiNMV0YjLOwMVKOk7zTfOWfS17ketMqrslO9Xhdrod8
+	 MYAH6o7goj1Uxxzw23QZMGirqbGOk0CVp7jcUXvK/WxmxbqxRehlqE+cSGLa2FGTN8
+	 UkMuKcTj5UlHlnujfLt7LVjQBfg6t8lDlUk98Bv54fc4M6FdT30clzuYWHM/uy0pql
+	 DELAFWezsY92bYtEwk8LdSIn0yX0Nj8U5SPQpUv9QgKeJk/aUeSTjp9pzXa4rys0gK
+	 hHdPzoI5X+rDQ==
+From: Allison Henderson <achender@kernel.org>
+To: netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	kuba@kernel.org,
+	horms@kernel.org
+Cc: achender@kernel.org
+Subject: [PATCH net-next v2] net/rds: restrict the rdma_cm ids to IB devices
+Date: Fri, 18 Sep 2026 23:10:42 -0700
+Message-Id: <20260919061042.250462-1-achender@kernel.org>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6e4f0c2f-eae8-4cd5-9c10-9b9a59941d2f@deltatee.com>
+Content-Transfer-Encoding: 8bit
 
-On Fri, Sep 18, 2026 at 12:25:01PM -0600, Logan Gunthorpe wrote:
-> 
-> 
-> On 2026-09-14 05:22, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro@nvidia.com>
-> > 
-> > pdev->p2pdma is normally accessed through provider-owned references, but
-> > pci_p2pmem_find_many() and the p2pmem sysfs attributes may race with driver
-> > unbind.
-> > 
-> > Document initialization, teardown, and how the release grace period
-> > protects both the P2PDMA state and its optional allocation pool.
-> > 
-> > Cc: Alex Williamson <alex@shazbot.org>
-> > Cc: Matt Evans <matt@ozlabs.org>
-> > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
-> Reads correct to me.
-> 
-> Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
+RDS only has an IB transport, but it never tells the rdma_cm so.  The
+listener created in rds_rdma_listen_init() is therefore installed on
+every RDMA device in the system, including iWARP RNICs, and the id an
+outgoing connection resolves through in rds_ib_conn_path_connect()
+may be bound to whichever device the address resolution picks:
+rds_ib_laddr_check() only vouched for the local address being served
+by one of RDS's IB devices, while cma_acquire_dev_by_src_ip() walks
+every RDMA device for the same address, so a software iWARP device
+attached to the same netdev can win.  The event handler then runs
+the IB transport's callbacks against a device that is not one.
 
-Thanks, Logan. Unfortunately, I'm inclined to drop this patch. AI review
-makes it nearly impossible to write the description without complaints.
+The rdma_cm has an API for exactly this since commit a760e80e90f5
+("RDMA/core: introduce rdma_restrict_node_type()").  Restrict all
+three ids RDS creates - the listener, the per-connection id and the
+probe id in rds_ib_laddr_check_cm() - to RDMA_NODE_IB_CA before they
+are bound, so that the listener is only installed on IB devices, an
+outgoing connection can only bind one, and the address check's bind
+fails outright on anything else (its explicit node_type test now only
+guards against a device with no node type at all).
 
-If I use my own words to describe the lifetime, the tools complain about
-almost every word or sentence. If I let the tools write it instead, the
-result is complete junk that merely describes basics already obvious from
-the code itself.
+With that, the connect-request rejection for non-IB devices in the
+event handler becomes unreachable; it stays as the last line of
+defence and is what stable kernels without the new API rely on.
 
-Thanks
+Assisted-by: Claude-Code:claude-fable-5
+Signed-off-by: Allison Henderson <achender@kernel.org>
+---
+v2: destroy the freshly created cm_id, and clear ic->i_cm_id, when
+    rdma_restrict_node_type() fails in rds_ib_conn_path_connect(), as
+    the rdma_resolve_addr() failure path below it does (review of v1).
+v1: https://lore.kernel.org/netdev/20260917074108.174262-1-achender@kernel.org/
+ net/rds/ib.c             | 11 +++++------
+ net/rds/ib_cm.c          | 12 ++++++++++++
+ net/rds/rdma_transport.c |  8 ++++++++
+ 3 files changed, 25 insertions(+), 6 deletions(-)
+
+diff --git a/net/rds/ib.c b/net/rds/ib.c
+index 786f39169bc1..6d367518aafb 100644
+--- a/net/rds/ib.c
++++ b/net/rds/ib.c
+@@ -414,13 +414,14 @@ static int rds_ib_laddr_check_cm(struct net *net, const struct in6_addr *addr,
+ 	bool isv4;
+ 
+ 	isv4 = ipv6_addr_v4mapped(addr);
+-	/* Create a CMA ID and try to bind it. This catches both
+-	 * IB and iWARP capable NICs.
+-	 */
++	/* Create a CMA ID restricted to IB devices and try to bind it. */
+ 	cm_id = rdma_create_id(&init_net, rds_rdma_cm_event_handler,
+ 			       NULL, RDMA_PS_TCP, IB_QPT_RC);
+ 	if (IS_ERR(cm_id))
+ 		return PTR_ERR(cm_id);
++	ret = rdma_restrict_node_type(cm_id, RDMA_NODE_IB_CA);
++	if (ret)
++		goto out;
+ 
+ 	if (isv4) {
+ 		memset(&sin, 0, sizeof(sin));
+@@ -473,10 +474,8 @@ static int rds_ib_laddr_check_cm(struct net *net, const struct in6_addr *addr,
+ #endif
+ 	}
+ 
+-	/* rdma_bind_addr will only succeed for IB & iWARP devices */
++	/* the restriction above means this only succeeds for IB devices */
+ 	ret = rdma_bind_addr(cm_id, sa);
+-	/* due to this, we will claim to support iWARP devices unless we
+-	   check node_type. */
+ 	if (ret || !cm_id->device ||
+ 	    cm_id->device->node_type != RDMA_NODE_IB_CA)
+ 		ret = -EADDRNOTAVAIL;
+diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
+index 4feb0edc360c..d64dad317ebe 100644
+--- a/net/rds/ib_cm.c
++++ b/net/rds/ib_cm.c
+@@ -999,6 +999,18 @@ int rds_ib_conn_path_connect(struct rds_conn_path *cp)
+ 		goto out;
+ 	}
+ 
++	/* rds_ib_laddr_check() only vouched for the local address being
++	 * on an IB device; the address resolution below picks the device
++	 * on its own, so restrict it to the same kind.
++	 */
++	ret = rdma_restrict_node_type(ic->i_cm_id, RDMA_NODE_IB_CA);
++	if (ret) {
++		rdsdebug("rdma_restrict_node_type() failed: %d\n", ret);
++		rdma_destroy_id(ic->i_cm_id);
++		ic->i_cm_id = NULL;
++		goto out;
++	}
++
+ 	rdsdebug("created cm id %p for conn %p\n", ic->i_cm_id, conn);
+ 
+ 	if (ipv6_addr_v4mapped(&conn->c_faddr)) {
+diff --git a/net/rds/rdma_transport.c b/net/rds/rdma_transport.c
+index b15cf316b23a..91ff1dde26af 100644
+--- a/net/rds/rdma_transport.c
++++ b/net/rds/rdma_transport.c
+@@ -210,6 +210,14 @@ static int rds_rdma_listen_init_common(rdma_cm_event_handler handler,
+ 		return ret;
+ 	}
+ 
++	/* Only the IB transport is left, so only listen on IB devices */
++	ret = rdma_restrict_node_type(cm_id, RDMA_NODE_IB_CA);
++	if (ret) {
++		pr_err("RDS/RDMA: failed to setup listener, rdma_restrict_node_type() returned %d\n",
++		       ret);
++		goto out;
++	}
++
+ 	/*
+ 	 * XXX I bet this binds the cm_id to a device.  If we want to support
+ 	 * fail-over we'll have to take this into consideration.
+-- 
+2.25.1
+
