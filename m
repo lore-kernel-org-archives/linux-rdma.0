@@ -1,89 +1,93 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D52AD379C46;
-	Sat, 19 Sep 2026 01:01:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68A3A2B9B7;
+	Sat, 19 Sep 2026 04:39:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789779691; cv=none; b=MhVkcD5ISGxlh+nQ25m325d13B1qpyYvqYzJX+sQRWVjlyu8ePhUuiPGUdPJJZb2FKXmyYTCbbJ0IZOrQ8L0HOqoTqpFRGheQizblZRBjS25gDe5G5qCoqhH/3zFcGWfqYtTRqjRIEjZeXXuqMKPed1Xt8ChcCLdy6TRXRYiiZI=
+	t=1789792757; cv=none; b=GflFr1aRHJ+PuwZdCIQgu6y7Xtkgs1LeRnwHE1FT0k+oXlMSIYeLCb4B5QsxNGwk23C/yer95WM7B7oVE7kHs3oSMC72bi0nw/Bb9mU0quHgTi15MqGmoeRhDKT1L3jKqXSVPLYDO9CtXP8DPeTW5DoN89rYCuXWMMmGad5spUM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789779691; c=relaxed/simple;
-	bh=tB58EVgfy0/5KYj84zuUO88RYwQ509SqkS1ppN0TSJ8=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=GQrEh5Owv3wxldcvYRRpL7l8c/0K4++WVkHePVR+UYXYacIJer1X99lLLJZkZk3Fz6kz0ziGEB2v3N3HbL88I1AO/LkbKZgVSBO2G6i2mOhUnzZzJYCg/ZPJW86lA57N2NhBdzpYc0iBaPDdphHH2ZuKCR5EYNzYYLk6yUZzgeU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=K3X1cgsn; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789792757; c=relaxed/simple;
+	bh=OvzvCShvMMIyGA68THVgyk5YaLtsd0zcLW9UY7FgFCs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=DKdtaW9WXVPSoPwRhuXvM/MKrlTFC9OuctM/KLgitrayKadn2qIa2MlIXySxUnA1GI9n59TWKvOdtVdqwKxcmt1G6N472yDd9bx1ih6tb8U8kqc5hkWkI8/BcZ05f0xCb0Lsk1LWUK2noc5TKZ1L5/T610zCq3OF8eNv/+nnXIs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gdc0Xb46; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="K3X1cgsn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA30A1F00898;
-	Sat, 19 Sep 2026 01:01:15 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gdc0Xb46"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 551AD1F000FF;
+	Sat, 19 Sep 2026 04:39:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789779676;
-	bh=qK7mrY3OuW5ru9HkHZRVxNwKLylrgUS+oQ1Mt6LVVg0=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=K3X1cgsnnf0eIdaMpZCsAvjsvMxjlyYA42fLQz9Dx71qi8MT9Vp7WiuEsA8M+nnPj
-	 IxPG8GN7eJxjzJ8GnFeJGUoyCSqW7Pa88MJSPrNxvIJj3NMGjCdSzGdCGAeoVls/vJ
-	 c2NEBlRHeZIzzOfbQSo4fcicCRCuBPzzfiWm6aROomWlTPnqm9lXTLiMm5/sRxjjjv
-	 qOTqDGGZakqwTnoUm97hyP5Pv+VwJq9fMvca2esYpbx+V8JWgy0kLCi6uasFxcX15O
-	 GBa8R0P5HzEiRS/tfCAVsAxwxDxWPkMVcDtEkuI33Td3GSnPzZzDuZQFNSk51W907t
-	 7QwmMTUPkqwsQ==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 198493811978;
-	Sat, 19 Sep 2026 01:00:10 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=k20260515; t=1789792756;
+	bh=Igi4RHLJYWAKmVb+cd2dtDK1WqzkkFZ7X+ZVpe9M7cs=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=gdc0Xb46lJVg8B0Ky3G0HTiETukThppICzF4vRLwyqtfTgn+OE2gznNkHPnuVAGJY
+	 K9Uxjjwig9JL6g81dNk6F8CBwe2qfsHjEcyYUpyHnEF0QU0XZx3mCcejc9ulWoA73t
+	 cUyf5iI7JwQ/Dne01j5S/F9qfVk6I9+TXhLkJI/IF5Ty9oDLe1rOCoL9oDKZFRr5Bz
+	 xMXVH3hljWKb0sw+4kVmogm2dnUqqwtWc5EPHrti3+K9eNozLx7YvvhQWh9a14/87S
+	 9whWSzdtS+08iIYTTQm7J1iG6vmO4t1WXjlcB5Tq/vlj8N3R1nj5PSQwgK5lPxgj89
+	 d/EgkVMuN0ntw==
+Date: Sat, 19 Sep 2026 07:39:11 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>,
+	Chaitanya Kulkarni <kch@nvidia.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
+	Ankit Agrawal <ankita@nvidia.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	"Joerg Roedel (AMD)" <joro@8bytes.org>,
+	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org, iommu@lists.linux.dev,
+	Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
+	Matt Evans <matt@ozlabs.org>
+Subject: Re: [PATCH v6 01/18] PCI/P2PDMA: Document pdev->p2pdma lifetime rules
+Message-ID: <20260919043911.GA13683@unreal>
+References: <20260914-fix-p2p-acs-v4-0-v6-0-5ef07ec9ef06@nvidia.com>
+ <20260914-fix-p2p-acs-v4-0-v6-1-5ef07ec9ef06@nvidia.com>
+ <6e4f0c2f-eae8-4cd5-9c10-9b9a59941d2f@deltatee.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next 0/6] net/mlx5: more HWS misc enhancements
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <178977960889.1214202.9969611467837827041.git-patchwork-notify@kernel.org>
-Date: Sat, 19 Sep 2026 01:00:08 +0000
-References: <20260915111912.3926585-1-tariqt@nvidia.com>
-In-Reply-To: <20260915111912.3926585-1-tariqt@nvidia.com>
-To: Tariq Toukan <tariqt@nvidia.com>
-Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
- kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com,
- erezsh@nvidia.com, gal@nvidia.com, leon@kernel.org,
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, mbloch@nvidia.com,
- saeedm@nvidia.com, kliteyn@nvidia.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6e4f0c2f-eae8-4cd5-9c10-9b9a59941d2f@deltatee.com>
 
-Hello:
-
-This series was applied to netdev/net-next.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
-
-On Tue, 15 Sep 2026 14:19:06 +0300 you wrote:
-> Hi,
+On Fri, Sep 18, 2026 at 12:25:01PM -0600, Logan Gunthorpe wrote:
 > 
-> This series by Yevgeny brings more misc improvements to the mlx5 HWS
-> driver.
 > 
-> Regards,
-> Tariq
+> On 2026-09-14 05:22, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro@nvidia.com>
+> > 
+> > pdev->p2pdma is normally accessed through provider-owned references, but
+> > pci_p2pmem_find_many() and the p2pmem sysfs attributes may race with driver
+> > unbind.
+> > 
+> > Document initialization, teardown, and how the release grace period
+> > protects both the P2PDMA state and its optional allocation pool.
+> > 
+> > Cc: Alex Williamson <alex@shazbot.org>
+> > Cc: Matt Evans <matt@ozlabs.org>
+> > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+> Reads correct to me.
 > 
-> [...]
+> Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
 
-Here is the summary with links:
-  - [net-next,1/6] net/mlx5: HWS, Return meaningful error code in hws_send_wqe_fw
-    https://git.kernel.org/netdev/net-next/c/0ca19b9fdcb0
-  - [net-next,2/6] net/mlx5: HWS, Fix error message in mlx5hws_cmd_generate_wqe
-    https://git.kernel.org/netdev/net-next/c/59da9e5163e9
-  - [net-next,3/6] net/mlx5: HWS, Replace kzalloc with kzalloc_obj
-    https://git.kernel.org/netdev/net-next/c/23aacde37804
-  - [net-next,4/6] net/mlx5: HWS, Add timeout mechanism to draining send queues
-    https://git.kernel.org/netdev/net-next/c/7bf7c4367db6
-  - [net-next,5/6] net/mlx5: HWS, Handle timeout draining the send queue for FW STEs
-    https://git.kernel.org/netdev/net-next/c/03d41926d03a
-  - [net-next,6/6] net/mlx5: HWS, Remove unneeded WRITE_ONCE in post send
-    https://git.kernel.org/netdev/net-next/c/889f1d8c0eb2
+Thanks, Logan. Unfortunately, I'm inclined to drop this patch. AI review
+makes it nearly impossible to write the description without complaints.
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+If I use my own words to describe the lifetime, the tools complain about
+almost every word or sentence. If I let the tools write it instead, the
+result is complete junk that merely describes basics already obvious from
+the code itself.
 
-
+Thanks
