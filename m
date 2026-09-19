@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76D9C37F74A;
-	Sat, 19 Sep 2026 06:11:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 648893AAF4E;
+	Sat, 19 Sep 2026 06:11:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789798316; cv=none; b=RfH75PHsvdT5qQDj5cwwMBnb/N2hzRn8Qo1QiVTPu94FosLkfzHpsZB58avkSRErlPadUqk6Xa8oV885qJhsvzHTSWZydpmbP7uPbCwB+Ey5Tvy/oz/fwHVl++LCznWsdWWlHOSl8F8NQJLW8yJpYz6i4C4fcyncZ1F1TSCRiEQ=
+	t=1789798317; cv=none; b=jaKHxa6ii6CZFUy9NiIFWDOlitlz/Pr2ddTsoU/C19qtt4aItgMoKLMdWF47jrMJkUXhONQBblz24BPSLYiKjheq3bwPfP6cGtzyEeNUNwzyhhIdo15H62SllUvEfgXuqTrnnXnMTZdy4LoWsKTkvYe+hLaG/dOr+b4UVPkBoJs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789798316; c=relaxed/simple;
-	bh=gj94KulXleEoOIjqVj+ZGxtd+PVtXKZR5Ah2kGc0bjY=;
+	s=arc-20240116; t=1789798317; c=relaxed/simple;
+	bh=KELhjF+Aurt+j0Volq8NsbFaAkFaJPeegQ4T68JqhBA=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=LIIVoEhweZ2I5m//jH5hGCorNVH/nv22Nk+Tkkw8nW2F0j90eM+D6MYOwJj7PWT12hvM/iYRTS7FuDBjkQfQAwZ43LJG9a4eQHqPoLZBDBaIZQTkdSxzphA72kF9l2sxBZrBgbkF+IiruK96lLdutb9PU8U1hbtzsJUIY2kq5V0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YPm3P7j3; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=KKhfz6Fsstr2pHqiD3eMB7IxREvgzcJ9ildkdvrnfW43zRTzid7xLNhrq21YWePkjQYJ4Q7aji2kBBUuVHXwXaGAKx1lPHgqmPVGhdEXefSUdVSFQSUV2MftSOQAPzypB1XvH4YGhYhxkkfFsqnD2sOmTZk5/VScLn1yIGweXJQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mcqlwrPu; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YPm3P7j3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BECBF1F0089D;
-	Sat, 19 Sep 2026 06:11:53 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mcqlwrPu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E46091F0089B;
+	Sat, 19 Sep 2026 06:11:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789798314;
-	bh=miTI67Xl/O99hsGWwDUtVmCRi2ra8zhKasrmOCRuGJI=;
+	s=k20260515; t=1789798315;
+	bh=elVRUV81ZpWpsFhIbYE6xnGLDzj7RT+az03JknII20k=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=YPm3P7j3WSnF5Iw5sdVpGc2KbR4aJ5Vp1edTbYeuD8t3UUj9zpyjdZ73a5iPEbKf+
-	 oanPN3EAqxvAIGHqufu3QX1uGvfSvgRS0hR+ELR0mKDnF6rH5yzJun/cRuVUIgey4B
-	 29EIhvBAY1DEaOTwHcI7e9A4yD5Fop7Bj/Iu+lHOjfE061KxqxzANg8DAMaXQ10PE3
-	 jnBfs3txAg6LqybSqJjvTyfufw61JfsFqc04o54ogBJVQacLbseISjXmjOWvuK+TJ6
-	 3dn3ogYWNllFouUkcGoMuSwKOYQj9V4U/m5DNFy7jAhX45nzVGhpugD9rWz+08UDcN
-	 M7pd0aVTYifeQ==
+	b=mcqlwrPuVHzSM+m5I7Ggw7uI9QzCj8lGHbs7vJHgxft+PzO0D3IQev5EKAZugcBbE
+	 EhkHg6Pjo0Bci7GOvZcaZQBqQGwgfeGaeSYPLfeCR0zeNP2mShSC2hb+7VwJAztCR3
+	 DOjFHFGHOHwVBd41ztdWcR/8cYDdsFcqXSaVrJoZrpdOFo1ocliZ7XCaxRDv16NjmD
+	 jpeVvtqI3PLJh46vXATDh978FpkL2Ip7diez6auUXyILptbCeCORLmtIDKWizOHxkB
+	 cCQ0Lg4ZIPqXJjHdEt/MWtDIbM6zhwIQLZS1D/v2HPohWEnvzFSfIvpEafciuHkLzh
+	 xI7vMgH2i+6/A==
 From: Allison Henderson <achender@kernel.org>
 To: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
@@ -35,9 +35,9 @@ To: netdev@vger.kernel.org,
 	horms@kernel.org
 Cc: achender@kernel.org,
 	nicoyip.dev@gmail.com
-Subject: [PATCH net-next v5 07/12] net/rds: unlink transport nodes before a possibly deferred connection free
-Date: Fri, 18 Sep 2026 23:11:44 -0700
-Message-Id: <20260919061149.250658-8-achender@kernel.org>
+Subject: [PATCH net-next v5 09/12] net/rds: refuse to queue on a connection being destroyed
+Date: Fri, 18 Sep 2026 23:11:46 -0700
+Message-Id: <20260919061149.250658-10-achender@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20260919061149.250658-1-achender@kernel.org>
 References: <20260919061149.250658-1-achender@kernel.org>
@@ -49,383 +49,142 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The transport teardown helpers - rds_tcp_destroy_conns(),
-rds_tcp_kill_sock(), rds_ib_destroy_nodev_conns(), rds_loop_exit() and
-rds_loop_kill_conns() - gather the per-connection transport nodes onto
-a list head on their own stack and call rds_conn_destroy() for each.
-The node is unlinked much later, by the transport's conn_free():
-rds_tcp_conn_free() and rds_loop_conn_free() list_del() it, and
-rds_ib_conn_free() does so unconditionally.
+rds_conn_path_quiesce() tears down cp_send_queue by walking it with no
+lock held.  That was tolerable while a connection could only be
+destroyed with no sender in flight, but a sender now holds a
+reference across rds_sendmsg(), and rds_conn_destroy() can quiesce
+the connection underneath it.  rds_send_queue_rm() adds to
+cp_send_queue under cp_lock, so the unlocked walk races the add and
+can corrupt the list.  Worse, a message added after the purge sits on
+the queue of a quiesced connection holding the connection reference
+rds_send_queue_rm() took for it: the reference is only dropped when
+the message is freed, the message is only freed when the queue is
+torn down, and the queue is only torn down by the destroy that has
+already run.  The connection would never be freed, and with it the
+transport could never unload.
 
-That is fine for as long as rds_conn_destroy() frees the connection
-before it returns, which is still the case at this point in the
-series: the initial reference is the only one.  The following patches
-hand out references that outlive the teardown loop - a socket's
-cached rs_conn, an inc parked on a receive queue - and with those, a
-conn_free() deferred until after the helper has returned would
-list_del() the node from a stack frame that no longer exists.  Make
-the helpers ready for that first.
-
-Unlink each node under the transport lock right before its
-rds_conn_destroy(), so that nothing is left on the stack list for a
-later free to touch.  TCP marks the node detached, as
-rds_tcp_kill_sock() already does for the secondary paths of a
-multipath connection; loopback uses list_del_init() and has its
-conn_free() skip a node that is already empty.
-
-IB needs an explicit flag, i_ib_node_detached, because its node has
-other movers: a connect worker moves it from the nodev list to a
-device's list in rds_ib_add_conn(), and a shutdown moves it back in
-rds_ib_remove_conn().  Either can run while the sweep holds the node
-on its stack list, and "the node is linked" cannot tell that list
-from the nodev list - an add_conn() that went by list emptiness would
-unlink the node from under the sweep's lockless walk.  So the sweep
-sets the flag when it gathers the node, under ib_nodev_conns_lock,
-and from then on add_conn(), remove_conn() and conn_free() leave the
-node alone; the node belongs to the sweep, and its walk needs no
-lock.  Those movers used to assert that the node is linked (and
-rds_ib_add_conn() that the nodev list is non-empty); a connect or
-shutdown worker can still be running for a connection the sweep has
-claimed, and such a connection is about to be destroyed anyway, so
-the assertions go.
-
-The walk itself must not lose the entries either.  A connection that
-was destroyed earlier - dropped for a protocol version mismatch, then
-found again at module unload - is kept alive only by whatever
-reference is still pending, and that can be dropped at any point
-during the walk, freeing the transport node the iterator is about to
-read.  So the gather takes a reference on each connection it moves
-onto the stack list, under the transport lock, and drops it after the
-destroy; a connection whose free is already running gets no reference
-and is left where it is, since that free unlinks the node itself once
-the lock is released.  The tmp_list gathering itself remains: it is
-what keeps rds_conn_destroy() from being called with the transport
-lock held.
+Splice the queue away under cp_lock in the quiesce, and have
+rds_send_queue_rm() test rds_destroy_pending() under that same lock
+before it touches either queue.  rds_send_probe() adds to
+cp_send_queue under cp_lock as well, for pings and pongs, and gets the
+same test: a probe queued after the purge would pin the connection
+just the same.  A sender that gets there first has
+its message purged; one that gets there second is refused, and
+rds_sendmsg() returns -EAGAIN for it, the same result the early
+rds_destroy_pending() check in rds_sendmsg() already produces for a
+connection whose destroy had begun before the send started.
+rds_send_queue_rm()'s *queued becomes negative on refusal so that the
+wait loop in rds_sendmsg() stops waiting for send room that will never
+come.
 
 Assisted-by: Claude-Code:claude-fable-5
 Signed-off-by: Allison Henderson <achender@kernel.org>
 ---
- net/rds/ib.h      |  4 +++
- net/rds/ib_cm.c   |  4 ++-
- net/rds/ib_rdma.c | 67 ++++++++++++++++++++++++++++++++++++-----------
- net/rds/loop.c    | 59 ++++++++++++++++++++++++++++++++---------
- net/rds/tcp.c     | 52 +++++++++++++++++++++++++++++++-----
- 5 files changed, 152 insertions(+), 34 deletions(-)
+ net/rds/connection.c | 16 ++++++++++++----
+ net/rds/send.c       | 28 +++++++++++++++++++++++++++-
+ 2 files changed, 39 insertions(+), 5 deletions(-)
 
-diff --git a/net/rds/ib.h b/net/rds/ib.h
-index 5ff346a1e8ba..cb410c3ae8d8 100644
---- a/net/rds/ib.h
-+++ b/net/rds/ib.h
-@@ -143,6 +143,10 @@ struct rds_ib_device;
- struct rds_ib_connection {
- 
- 	struct list_head	ib_node;
-+	/* set under ib_nodev_conns_lock once a transport teardown has
-+	 * claimed ib_node; from then on only the teardown touches it
-+	 */
-+	bool			i_ib_node_detached;
- 	struct rds_ib_device	*rds_ibdev;
- 	struct rds_connection	*conn;
- 
-diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
-index 118e033229aa..ccb7e2b93ff5 100644
---- a/net/rds/ib_cm.c
-+++ b/net/rds/ib_cm.c
-@@ -1287,7 +1287,9 @@ void rds_ib_conn_free(void *arg)
- 	lock_ptr = ic->rds_ibdev ? &ic->rds_ibdev->spinlock : &ib_nodev_conns_lock;
- 
- 	spin_lock_irqsave(lock_ptr, flags);
--	list_del(&ic->ib_node);
-+	/* a transport teardown that gathered us first owns the node */
-+	if (!ic->i_ib_node_detached)
-+		list_del(&ic->ib_node);
- 	spin_unlock_irqrestore(lock_ptr, flags);
- 
- 	rds_ib_recv_free_caches(ic);
-diff --git a/net/rds/ib_rdma.c b/net/rds/ib_rdma.c
-index a9b27f06cbfc..1548e5be0e55 100644
---- a/net/rds/ib_rdma.c
-+++ b/net/rds/ib_rdma.c
-@@ -123,15 +123,18 @@ void rds_ib_add_conn(struct rds_ib_device *rds_ibdev, struct rds_connection *con
+diff --git a/net/rds/connection.c b/net/rds/connection.c
+index 965d68e51a1c..5699f45e4c37 100644
+--- a/net/rds/connection.c
++++ b/net/rds/connection.c
+@@ -606,6 +606,8 @@ void rds_conn_shutdown(struct rds_conn_path *cp)
+ static void rds_conn_path_quiesce(struct rds_conn_path *cp)
  {
- 	struct rds_ib_connection *ic = conn->c_transport_data;
+ 	struct rds_message *rm, *rtmp;
++	unsigned long flags;
++	LIST_HEAD(purge);
  
--	/* conn was previously on the nodev_conns_list */
-+	/* conn was previously on the nodev_conns_list, unless a teardown
-+	 * sweep has claimed it ahead of destroying it: then it is on its
-+	 * way out, and its node belongs to the sweep.
+ 	if (!cp->cp_transport_data)
+ 		return;
+@@ -617,10 +619,16 @@ static void rds_conn_path_quiesce(struct rds_conn_path *cp)
+ 	rds_conn_path_drop(cp, true);
+ 	flush_work(&cp->cp_down_w);
+ 
+-	/* tear down queued messages */
+-	list_for_each_entry_safe(rm, rtmp,
+-				 &cp->cp_send_queue,
+-				 m_conn_item) {
++	/* Tear down queued messages.  Take the queue under cp_lock:
++	 * a sender that still holds a reference can be inside
++	 * rds_send_queue_rm() right now, and it tests
++	 * rds_destroy_pending() under the same lock, so after this
++	 * splice nothing is added behind our back.
 +	 */
- 	spin_lock_irq(&ib_nodev_conns_lock);
--	BUG_ON(list_empty(&ib_nodev_conns));
--	BUG_ON(list_empty(&ic->ib_node));
--	list_del(&ic->ib_node);
-+	if (!ic->i_ib_node_detached) {
-+		list_del(&ic->ib_node);
- 
--	spin_lock(&rds_ibdev->spinlock);
--	list_add_tail(&ic->ib_node, &rds_ibdev->conn_list);
--	spin_unlock(&rds_ibdev->spinlock);
-+		spin_lock(&rds_ibdev->spinlock);
-+		list_add_tail(&ic->ib_node, &rds_ibdev->conn_list);
-+		spin_unlock(&rds_ibdev->spinlock);
-+	}
- 	spin_unlock_irq(&ib_nodev_conns_lock);
- 
- 	ic->rds_ibdev = rds_ibdev;
-@@ -142,15 +145,22 @@ void rds_ib_remove_conn(struct rds_ib_device *rds_ibdev, struct rds_connection *
- {
- 	struct rds_ib_connection *ic = conn->c_transport_data;
- 
--	/* place conn on nodev_conns_list */
-+	bool detached;
-+
-+	/* place conn on nodev_conns_list - unless a teardown sweep has
-+	 * claimed it ahead of destroying it, in which case its node
-+	 * belongs to the sweep
-+	 */
- 	spin_lock(&ib_nodev_conns_lock);
- 
- 	spin_lock_irq(&rds_ibdev->spinlock);
--	BUG_ON(list_empty(&ic->ib_node));
--	list_del(&ic->ib_node);
-+	detached = ic->i_ib_node_detached;
-+	if (!detached)
-+		list_del(&ic->ib_node);
- 	spin_unlock_irq(&rds_ibdev->spinlock);
- 
--	list_add_tail(&ic->ib_node, &ib_nodev_conns);
-+	if (!detached)
-+		list_add_tail(&ic->ib_node, &ib_nodev_conns);
- 
- 	spin_unlock(&ib_nodev_conns_lock);
- 
-@@ -163,13 +173,40 @@ void rds_ib_destroy_nodev_conns(void)
- 	struct rds_ib_connection *ic, *_ic;
- 	LIST_HEAD(tmp_list);
- 
--	/* avoid calling conn_destroy with irqs off */
-+	struct rds_connection *conn;
-+
-+	/* Gather the connections and take a reference on each, so that
-+	 * none is freed under the walk below (a connection destroyed
-+	 * earlier, for a protocol version mismatch, can be on this list
-+	 * with only a socket's reference still pending).  One whose free
-+	 * is already running gets no reference: its free unlinks the
-+	 * node itself, under this lock, once we drop it.  Marking the
-+	 * node detached claims it for this sweep: rds_ib_add_conn(),
-+	 * rds_ib_remove_conn() and rds_ib_conn_free() leave a claimed
-+	 * node alone, so the walk over tmp_list below needs no lock.
-+	 * Avoid calling conn_destroy with irqs off.
-+	 */
- 	spin_lock_irq(&ib_nodev_conns_lock);
--	list_splice_init(&ib_nodev_conns, &tmp_list);
-+	list_for_each_entry_safe(ic, _ic, &ib_nodev_conns, ib_node) {
-+		if (rds_conn_get_unless_zero(ic->conn)) {
-+			ic->i_ib_node_detached = true;
-+			list_move_tail(&ic->ib_node, &tmp_list);
++	spin_lock_irqsave(&cp->cp_lock, flags);
++	list_splice_init(&cp->cp_send_queue, &purge);
++	spin_unlock_irqrestore(&cp->cp_lock, flags);
++	list_for_each_entry_safe(rm, rtmp, &purge, m_conn_item) {
+ 		list_del_init(&rm->m_conn_item);
+ 		BUG_ON(!list_empty(&rm->m_sock_item));
+ 		rds_message_put(rm);
+diff --git a/net/rds/send.c b/net/rds/send.c
+index 2d7839438abd..f7bc4c5446d6 100644
+--- a/net/rds/send.c
++++ b/net/rds/send.c
+@@ -928,6 +928,19 @@ static int rds_send_queue_rm(struct rds_sock *rs, struct rds_connection *conn,
+ 	 * and poll() now knows no more data can be sent.
+ 	 */
+ 	if (rs->rs_snd_bytes < rds_sk_sndbuf(rs)) {
++		/* rds_conn_path_quiesce() empties cp_send_queue under
++		 * cp_lock once the connection's destroy has begun.  Test
++		 * for that under the same lock, before touching either
++		 * queue: a message added after the purge would hold a
++		 * connection reference nothing ever drops.
++		 */
++		spin_lock(&cp->cp_lock);
++		if (rds_destroy_pending(conn)) {
++			spin_unlock(&cp->cp_lock);
++			*queued = -EAGAIN;
++			goto unlock;
 +		}
-+	}
- 	spin_unlock_irq(&ib_nodev_conns_lock);
++
+ 		rs->rs_snd_bytes += len;
  
--	list_for_each_entry_safe(ic, _ic, &tmp_list, ib_node)
--		rds_conn_destroy(ic->conn);
-+	/* rds_conn_destroy() can return before the connection is freed,
-+	 * and it is the free - rds_ib_conn_free() - that would unlink
-+	 * ib_node.  tmp_list lives on this stack frame, so take each node
-+	 * off it before its destroy; the free then leaves it alone.
+ 		/* let recv side know we are close to send space exhaustion.
+@@ -951,7 +964,6 @@ static int rds_send_queue_rm(struct rds_sock *rs, struct rds_connection *conn,
+ 		rm->m_inc.i_conn_path = cp;
+ 		rds_message_addref(rm);
+ 
+-		spin_lock(&cp->cp_lock);
+ 		rm->m_inc.i_hdr.h_sequence = cpu_to_be64(cp->cp_next_tx_seq++);
+ 		list_add_tail(&rm->m_conn_item, &cp->cp_send_queue);
+ 		set_bit(RDS_MSG_ON_CONN, &rm->m_flags);
+@@ -964,6 +976,7 @@ static int rds_send_queue_rm(struct rds_sock *rs, struct rds_connection *conn,
+ 		*queued = 1;
+ 	}
+ 
++unlock:
+ 	spin_unlock_irqrestore(&rs->rs_lock, flags);
+ out:
+ 	return *queued;
+@@ -1485,6 +1498,11 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
+ 			ret = -ETIMEDOUT;
+ 		goto out;
+ 	}
++	/* rds_send_queue_rm() refused: the connection is being destroyed */
++	if (queued < 0) {
++		ret = queued;
++		goto out;
++	}
+ 
+ 	/*
+ 	 * By now we've committed to the send.  We reuse rds_send_worker()
+@@ -1567,6 +1585,14 @@ rds_send_probe(struct rds_conn_path *cp, __be16 sport,
+ 		goto out;
+ 
+ 	spin_lock_irqsave(&cp->cp_lock, flags);
++	/* Same rule as rds_send_queue_rm(): once the destroy has purged
++	 * cp_send_queue under this lock, nothing may be added behind it.
 +	 */
-+	list_for_each_entry_safe(ic, _ic, &tmp_list, ib_node) {
-+		conn = ic->conn;
-+		list_del_init(&ic->ib_node);
-+
-+		rds_conn_destroy(conn);
-+		rds_conn_put(conn);
++	if (rds_destroy_pending(cp->cp_conn)) {
++		spin_unlock_irqrestore(&cp->cp_lock, flags);
++		ret = -EAGAIN;
++		goto out;
 +	}
- }
- 
- void rds_ib_get_mr_info(struct rds_ib_device *rds_ibdev, struct rds_info_rdma_connection *iinfo)
-diff --git a/net/rds/loop.c b/net/rds/loop.c
-index fd774f8080d0..71f760ccd458 100644
---- a/net/rds/loop.c
-+++ b/net/rds/loop.c
-@@ -156,6 +156,45 @@ static int rds_loop_conn_alloc(struct rds_connection *conn, gfp_t gfp)
- 	return 0;
- }
- 
-+/* Destroy the connections whose nodes were gathered on @tmp_list.
-+ *
-+ * rds_conn_destroy() can return before the connection is freed, and
-+ * it is the free - rds_loop_conn_free() - that unlinks loop_node.
-+ * @tmp_list lives on the caller's stack, so unlink each node before
-+ * its destroy; the free then finds it empty and leaves it alone.
-+ */
-+static void rds_loop_destroy_gathered_conns(struct list_head *tmp_list)
-+{
-+	struct rds_loop_connection *lc, *_lc;
-+	struct rds_connection *conn;
-+
-+	list_for_each_entry_safe(lc, _lc, tmp_list, loop_node) {
-+		conn = lc->conn;
-+		WARN_ON(conn->c_passive);
-+
-+		spin_lock_irq(&loop_conns_lock);
-+		list_del_init(&lc->loop_node);
-+		spin_unlock_irq(&loop_conns_lock);
-+
-+		rds_conn_destroy(conn);
-+		rds_conn_put(conn);
-+	}
-+}
-+
-+/* Gather @lc's connection for destruction: move the node to the
-+ * caller's @tmp_list and take a reference that keeps the connection,
-+ * and so the node, alive until rds_loop_destroy_gathered_conns() has
-+ * dealt with it.  Called with loop_conns_lock held.  A connection
-+ * whose free is already running gets no reference; its free unlinks
-+ * the node itself, under the same lock, once we drop it.
-+ */
-+static void rds_loop_gather_conn(struct rds_loop_connection *lc,
-+				 struct list_head *tmp_list)
-+{
-+	if (rds_conn_get_unless_zero(lc->conn))
-+		list_move_tail(&lc->loop_node, tmp_list);
-+}
-+
- static void rds_loop_conn_free(void *arg)
- {
- 	struct rds_loop_connection *lc = arg;
-@@ -163,7 +202,9 @@ static void rds_loop_conn_free(void *arg)
- 
- 	rdsdebug("lc %p\n", lc);
- 	spin_lock_irqsave(&loop_conns_lock, flags);
--	list_del(&lc->loop_node);
-+	/* already unlinked if a transport teardown gathered us first */
-+	if (!list_empty(&lc->loop_node))
-+		list_del(&lc->loop_node);
- 	spin_unlock_irqrestore(&loop_conns_lock, flags);
- 	kfree(lc);
- }
-@@ -187,14 +228,11 @@ void rds_loop_exit(void)
- 	synchronize_rcu();
- 	/* avoid calling conn_destroy with irqs off */
- 	spin_lock_irq(&loop_conns_lock);
--	list_splice(&loop_conns, &tmp_list);
--	INIT_LIST_HEAD(&loop_conns);
-+	list_for_each_entry_safe(lc, _lc, &loop_conns, loop_node)
-+		rds_loop_gather_conn(lc, &tmp_list);
- 	spin_unlock_irq(&loop_conns_lock);
- 
--	list_for_each_entry_safe(lc, _lc, &tmp_list, loop_node) {
--		WARN_ON(lc->conn->c_passive);
--		rds_conn_destroy(lc->conn);
--	}
-+	rds_loop_destroy_gathered_conns(&tmp_list);
- 
- 	rds_conn_wait_conns_freed(&rds_loop_transport, NULL);
- }
-@@ -210,14 +248,11 @@ static void rds_loop_kill_conns(struct net *net)
- 
- 		if (net != c_net)
- 			continue;
--		list_move_tail(&lc->loop_node, &tmp_list);
-+		rds_loop_gather_conn(lc, &tmp_list);
- 	}
- 	spin_unlock_irq(&loop_conns_lock);
- 
--	list_for_each_entry_safe(lc, _lc, &tmp_list, loop_node) {
--		WARN_ON(lc->conn->c_passive);
--		rds_conn_destroy(lc->conn);
--	}
-+	rds_loop_destroy_gathered_conns(&tmp_list);
- }
- 
- static void __net_exit rds_loop_exit_net(struct net *net)
-diff --git a/net/rds/tcp.c b/net/rds/tcp.c
-index 826e4629e4ee..552b32278e30 100644
---- a/net/rds/tcp.c
-+++ b/net/rds/tcp.c
-@@ -502,6 +502,48 @@ static bool rds_tcp_is_unloading(struct rds_connection *conn)
- 	return atomic_read(&rds_tcp_unloading) != 0;
- }
- 
-+/* Gather @tc's connection for destruction: move the node to the
-+ * caller's @tmp_list and take a reference that keeps the connection,
-+ * and so the node, alive until rds_tcp_destroy_gathered_conns() has
-+ * dealt with it.  Called with rds_tcp_conn_lock held.  A connection
-+ * whose free is already running gets no reference; its free unlinks
-+ * the node itself, under the same lock, once we drop it.
-+ */
-+static void rds_tcp_gather_conn(struct rds_tcp_connection *tc,
-+				struct list_head *tmp_list)
-+{
-+	if (rds_conn_get_unless_zero(tc->t_cpath->cp_conn))
-+		list_move_tail(&tc->t_tcp_node, tmp_list);
-+}
-+
-+/* Destroy the connections whose nodes were gathered on @tmp_list.
-+ *
-+ * rds_conn_destroy() can return before the connection is freed, and
-+ * it is the free - rds_tcp_conn_free() - that unlinks t_tcp_node.
-+ * Since @tmp_list lives on the caller's stack, unlink each node here
-+ * and mark it detached before its destroy, so that a free that runs
-+ * after the caller has returned does not write into a dead frame.
-+ * Every entry holds a reference taken by rds_tcp_gather_conn(), so
-+ * none can be freed under the walk; each is dropped after its destroy.
-+ */
-+static void rds_tcp_destroy_gathered_conns(struct list_head *tmp_list)
-+{
-+	struct rds_tcp_connection *tc, *_tc;
-+	struct rds_connection *conn;
-+
-+	list_for_each_entry_safe(tc, _tc, tmp_list, t_tcp_node) {
-+		conn = tc->t_cpath->cp_conn;
-+
-+		spin_lock_irq(&rds_tcp_conn_lock);
-+		list_del_init(&tc->t_tcp_node);
-+		tc->t_tcp_node_detached = true;
-+		spin_unlock_irq(&rds_tcp_conn_lock);
-+
-+		rds_conn_destroy(conn);
-+		rds_conn_put(conn);
-+	}
-+}
-+
- static void rds_tcp_destroy_conns(void)
- {
- 	struct rds_tcp_connection *tc, *_tc;
-@@ -511,12 +553,11 @@ static void rds_tcp_destroy_conns(void)
- 	spin_lock_irq(&rds_tcp_conn_lock);
- 	list_for_each_entry_safe(tc, _tc, &rds_tcp_conn_list, t_tcp_node) {
- 		if (!list_has_conn(&tmp_list, tc->t_cpath->cp_conn))
--			list_move_tail(&tc->t_tcp_node, &tmp_list);
-+			rds_tcp_gather_conn(tc, &tmp_list);
- 	}
- 	spin_unlock_irq(&rds_tcp_conn_lock);
- 
--	list_for_each_entry_safe(tc, _tc, &tmp_list, t_tcp_node)
--		rds_conn_destroy(tc->t_cpath->cp_conn);
-+	rds_tcp_destroy_gathered_conns(&tmp_list);
- }
- 
- static void rds_tcp_exit(void);
-@@ -691,15 +732,14 @@ static void rds_tcp_kill_sock(struct net *net)
- 		if (net != c_net)
- 			continue;
- 		if (!list_has_conn(&tmp_list, tc->t_cpath->cp_conn)) {
--			list_move_tail(&tc->t_tcp_node, &tmp_list);
-+			rds_tcp_gather_conn(tc, &tmp_list);
- 		} else {
- 			list_del(&tc->t_tcp_node);
- 			tc->t_tcp_node_detached = true;
- 		}
- 	}
- 	spin_unlock_irq(&rds_tcp_conn_lock);
--	list_for_each_entry_safe(tc, _tc, &tmp_list, t_tcp_node)
--		rds_conn_destroy(tc->t_cpath->cp_conn);
-+	rds_tcp_destroy_gathered_conns(&tmp_list);
- }
- 
- static void __net_exit rds_tcp_exit_net(struct net *net)
+ 	list_add_tail(&rm->m_conn_item, &cp->cp_send_queue);
+ 	set_bit(RDS_MSG_ON_CONN, &rm->m_flags);
+ 	rds_message_addref(rm);
 -- 
 2.25.1
 
