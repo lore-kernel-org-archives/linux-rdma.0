@@ -1,82 +1,64 @@
-Received: from outbound.baidu.com (mx13.baidu.com [220.181.3.100])
-	by smtp.subspace.kernel.org (Postfix) with SMTP id 5878B3F86FB
-	for <linux-rdma@vger.kernel.org>; Sat, 19 Sep 2026 10:08:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.181.3.100
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AE9645C713
+	for <linux-rdma@vger.kernel.org>; Sat, 19 Sep 2026 10:14:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789812510; cv=none; b=DDL0tx4954QI6A9lax052WcC7LzqSu2hQ4/ZpUKJgJitJ/rfJuScYb9bxb3LVCVTItONneb6UIbKpTrwnoC/PNfOnscmhF3WUBwD31Ws5LajuVZ5Byq15teCq9qRONbzKqhkFOjnpyWfcMsiArv3G3zIS5SKVLbbNzU87ZV2i2o=
+	t=1789812886; cv=none; b=X53WceThjKI2dp8tBEw9hvuIzIBiMfREM7CIVZT2hHc7dNe6suToPl8toRn4IqicBXPZw47390sx3fP/mPK266ycEoErxXcNEOH6GiiTCwpci6eOlZmbHvtQby2nafzlo8ffcNIuT5qHpkEiEppODY+KHGfJMGIieFLu+hdK+i4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789812510; c=relaxed/simple;
-	bh=fUiA5QMN4Z0xbRQ7UX/h/N794Ccbx82D1zdVIbvZxCg=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=j6VjkMpHkkskGTYJmARgzGlw+9BI37KNYIlkZa2PJ4UM9686wlfTtrrR8JUm8VqG9b4qTA1RB29cykXJNuxii9GF1Y0BQZWsjJhs4dAeyoJtqn6iojk7ysxwTVAU4DihVKTTCnvbzfMl3lOSj7M83SrPTbS50/TNcCRmYaKN4PE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com; spf=pass smtp.mailfrom=baidu.com; dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b=N4iKAVWG; arc=none smtp.client-ip=220.181.3.100
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baidu.com
+	s=arc-20240116; t=1789812886; c=relaxed/simple;
+	bh=2fSUY8eSm3lsIgGuNlW9iPWJAFxGDBTnBGHeSa1er4A=;
+	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
+	 Message-Id; b=LTUWsXa9B1H2gDYVxqSL5MnQtdE9+Qj8w6L4F4xpacbR1bIU+ly04SG1ABTozcQIR2RJApvvqM0TtZndV7cUkfKZY45AoaIXpu++k0ZMCOtv8E6CJrJiv2bkNgvdKqHXfdlUFPVwdD0ioimAtgt4b6A7+a8Ku9l1KqOfUBKFaqo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=S+fiNGxp; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b="N4iKAVWG"
-X-MD-Sfrom: lirongqing@baidu.com
-X-MD-SrcIP: 172.31.50.47
-From: lirongqing <lirongqing@baidu.com>
-To: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>,
-	<linux-rdma@vger.kernel.org>
-CC: Li RongQing <lirongqing@baidu.com>
-Subject: [PATCH] RDMA/mlx5: Check SIG_ERR CQE mkey lookup before dereferencing
-Date: Sat, 19 Sep 2026 18:08:06 +0800
-Message-ID: <20260919100806.2320-1-lirongqing@baidu.com>
-X-Mailer: git-send-email 2.17.1
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="S+fiNGxp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A607C1F000FF;
+	Sat, 19 Sep 2026 10:14:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1789812884;
+	bh=2fSUY8eSm3lsIgGuNlW9iPWJAFxGDBTnBGHeSa1er4A=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=S+fiNGxphQh8HLaEvh2tGtCdHQyPBY0et5oT5umTcSmf3V/2q7tXWRy/8gs5IPaai
+	 GgroeJEnIk/TNUUF+JIENVHFiZkK26sXwOuJxaCI9H98MsZ7x9mJSGsA1xK4j8NeYI
+	 Lj8PePzgLbpAdQg6Grku5KSPKqJuuG0F03ScxjNy10dK6d+/MYshrUx2ZvjheWTgiO
+	 xZCP5POJrLG5wU2adblNHjb4nXdEAVHocRqBJbgwCurg825d8pt9Dr/AyaYNl2BtGr
+	 Mom6K+p/GKh4X/8RFlSDuuWjv+ok3L9V07Gw74G+5p6ZjuWo5SswkRorn/Pjv8+9JH
+	 Vxmy+alUbPw8Q==
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH] RDMA/mlx5: Fix CQ resize destination index mask
+Reply-To: sashiko-reviews@lists.linux.dev
+To: lirongqing <lirongqing@baidu.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20260919100716.2221-1-lirongqing@baidu.com>
+References: <20260919100716.2221-1-lirongqing@baidu.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Sat, 19 Sep 2026 10:14:44 +0000
+Message-Id: <20260919101444.A607C1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain
-X-ClientProxiedBy: bjkjy-exc7.internal.baidu.com (172.31.50.51) To
- bjkjy-exc3.internal.baidu.com (172.31.50.47)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=baidu.com;
-	s=selector1; t=1789812494;
-	bh=r38Gbf9CsabjDZRIdhtVt2BpYH7eOkFjXmlKOlCCeG8=;
-	h=From:To:CC:Subject:Date:Message-ID:Content-Type;
-	b=N4iKAVWGML8w6/YhzpoHNeQdV5b2Ccj64vzV+LYGKHCFA8ZwIw74lTpWTXFUHq9dz
-	 TvCF/T9sc68JjQ2C/agVVYFOCM9KS9vRQw2XABpLgvnMv51XW5oTvT6/pAe6IpEZxZ
-	 pwAmMXip9GtwUzcbzn1HVo8q4xz6k//3oaHNtOjKQ2DrmBNeNwFhoWTAV1R+JStQ62
-	 NU9ZkwJ9Pe5VRP8kquCumopN40bNRMkt81rKKlQ1meJFfXFihpAE66O48Z4Knfzuti
-	 FwEfU2qEfcxaHSqEh4dYt4OL3pb4Hplgk65iA1Uod1LLt2RaxXHv0cn3yIqid7rQP3
-	 lTjW5Si9+KfPA==
 
-From: Li RongQing <lirongqing@baidu.com>
+> From: Li RongQing <lirongqing@baidu.com>
+>=20
+> In copy_resize_cqes, the destination CQE index is computed as
+> (i + 1) & cq->resize_buf->nent, but resize_buf->nent is the power-of-two
+> entry count, so the mask only yields 0 or nent -- and nent is one past the
+> last valid slot. The following memcpy then writes out of bounds.
+>=20
+> Use (nent - 1) as the wrap mask, consistent with get_sw_cqe which masks
+> against cq->ibcq.cqe (the nent - 1 value).
+>=20
+> Fixes: bde51583f49b ("IB/mlx5: Add support for resize CQ")
+> Signed-off-by: Li RongQing <lirongqing@baidu.com>
 
-In mlx5_poll_one, a MLX5_CQE_SIG_ERR completion looks up the signature
-context in dev->sig_mrs via xa_load() but dereferences the result without
-a NULL check. If the corresponding MR has been concurrently deregistered
-(which removes the xarray entry without holding the CQ lock), xa_load()
-returns NULL and the subsequent get_sig_err_item(sig_err_cqe, &sig->err_item)
-crashes in atomic context under xa_lock.
+Sashiko has reviewed this patch and found no issues. It looks great!
 
-Add a NULL check that drops the lock, logs a warning, and repolls.
-
-Signed-off-by: Li RongQing <lirongqing@baidu.com>
----
- drivers/infiniband/hw/mlx5/cq.c | 7 +++++++
- 1 file changed, 7 insertions(+)
-
-diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index 49b4bf1..b0b1177 100644
---- a/drivers/infiniband/hw/mlx5/cq.c
-+++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -563,6 +563,13 @@ static int mlx5_poll_one(struct mlx5_ib_cq *cq,
- 		xa_lock(&dev->sig_mrs);
- 		sig = xa_load(&dev->sig_mrs,
- 				mlx5_base_mkey(be32_to_cpu(sig_err_cqe->mkey)));
-+		if (!sig) {
-+			xa_unlock(&dev->sig_mrs);
-+			mlx5_ib_warn(dev, "CQN: 0x%x Got SIGERR on unknown mkey: 0x%x\n",
-+				     cq->mcq.cqn,
-+				     be32_to_cpu(sig_err_cqe->mkey));
-+			goto repoll;
-+		}
- 		get_sig_err_item(sig_err_cqe, &sig->err_item);
- 		sig->sig_err_exists = true;
- 		sig->sigerr_count++;
--- 
-2.9.4
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260919100716.2221=
+-1-lirongqing@baidu.com?part=3D1
 
