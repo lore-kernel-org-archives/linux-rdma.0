@@ -1,155 +1,108 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj2-f43.google.com (mail-pj2-f43.google.com [74.125.227.171])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EEEE282F0C;
-	Sat, 19 Sep 2026 15:09:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE06837AA7A
+	for <linux-rdma@vger.kernel.org>; Sat, 19 Sep 2026 22:34:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789830585; cv=none; b=lPrRvT/rJFvIxPMmMWuoChD9rLVo0qx4vvzQQsYLogWW1Jex3P4Gy9X0138g/otju7I7u8p1QBmFP66hixvOBuCjvznMHZpuD1bM/7CF5jUffI9lIDlrqAeAQ4A9kI82NsjPbrP3g8O4GpRg5304+edl5naSlObjkFRo0TcFchc=
+	t=1789857273; cv=none; b=OsnNF4JzSfDCjrHNSLCZ35AL2MjkBc/goTSi0Ty3bkZ4uCmULBIf6+dY0EQjBs0BkJ7gJ86tL+CRnc+LQzBZ+9wRNGl25NOMyyuLRdkvZo56lMp1OmWx9ZZJvqSj0dySzVdtozFhEAi+YU1J8H5XqhyS4HAXBoON6gPfs2Z2H5Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789830585; c=relaxed/simple;
-	bh=azssGbIdM4Y1JziqhDwyHh5esWmOHusgmI9xAme2UaY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RK9W4jfa7rjxiJpB1sIbAM+H4AeVQm1IuzdYB+aS6xuB0cT3O0pyiQApYQANq7xvJhrnfpTb76eBO/HOzyRC9BxC8WcJn2TnDNE19oqmeFhgDk/8MdIItvaMaj8o6hvzWDasnykQ100BIRjfUCCnmjDCSTiuReN1xQkDIz0GK14=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EAnlGaZ3; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789857273; c=relaxed/simple;
+	bh=YJbTTv0t2BWIFrbdxBZVugRFfM4btTyxQU6vJrhf3OQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=BHx301a0eBt+8mG1EJklj+bI9amyYWqY9ESHuOG2Q8rMZEw3J/7dDSkeqIOe8NO6rnShi/fQEYW8qYBA3DyaWvNaLuUGDasLkye9WwyGeQMExT3c1XGcY0k40jSgoOouaY5vsfm5swlBFZmIXSCU8nWGgry1eE5rLD+0+EvsixU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ifYVTsZn; arc=none smtp.client-ip=74.125.227.171
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EAnlGaZ3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48AD71F000FF;
-	Sat, 19 Sep 2026 15:09:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789830584;
-	bh=ItRljA0QTwt97l+Rzb+oBvHOLkSySW1764bZK9I66Ok=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=EAnlGaZ3PvA3eD4EGY8ScsYSSfOA3NuPg0sDbUCPy6ciztb4OpKHPUKVNCsw3yYTK
-	 F5dXTbBszFDFMx49SBhL74XFEgpDqePel1QPLlEnRPCZHmhKtc3C3Y8QRt4P8RTfDW
-	 /Nifcw76qMRhxrrojdmckuYvA7/eR4f0CHw7r1Z9eFzAmLIrY6jMLOX5tLpcIAlRYI
-	 ZnXzDASidh8ez3yCFBhWrxVUS9oGdssza/jSZ3fPN118zuj4eAdMjnma5SzA3PTmn0
-	 c3g/zkLkVjWHOMPyaaZFTkyX4384FbCqHcB4Ayw2h8F62iRMWX893EQKdX2S78phRH
-	 PhATKi1qYFryA==
-Date: Sat, 19 Sep 2026 16:09:13 +0100
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-To: Suren Baghdasaryan <surenb@google.com>
-Cc: "David Hildenbrand (Arm)" <david@kernel.org>, 
-	Andrew Morton <akpm@linux-foundation.org>, "Liam R. Howlett" <liam@infradead.org>, 
-	Vlastimil Babka <vbabka@kernel.org>, Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
-	Mike Rapoport <rppt@kernel.org>, Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, 
-	Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
-	Paul Moore <paul@paul-moore.com>, Stephen Smalley <stephen.smalley.work@gmail.com>, 
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
-	Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
-	Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>, 
-	Kumar Kartikeya Dwivedi <memxor@gmail.com>, Zi Yan <ziy@nvidia.com>, 
-	Baolin Wang <baolin.wang@linux.alibaba.com>, Nico Pache <nico.pache@linux.dev>, 
-	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
-	Lance Yang <lance.yang@linux.dev>, Usama Arif <usama.arif@linux.dev>, 
-	Kiryl Shutsemau <kas@kernel.org>, Doug Gilbert <dgilbert@interlog.com>, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, "Martin K. Petersen" <mkp@kernel.org>, 
-	Jaya Kumar <jayalk@intworks.biz>, Simona Vetter <simona@ffwll.ch>, Helge Deller <deller@gmx.de>, 
-	Sebastian Reichel <sre@kernel.org>, John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, 
-	Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
-	Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@kernel.org>, 
-	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, Arnaldo Carvalho de Melo <acme@kernel.org>, 
-	Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
-	Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, Juri Lelli <juri.lelli@redhat.com>, 
-	Vincent Guittot <vincent.guittot@linaro.org>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
-	Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
-	David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>, 
-	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, Nick Piggin <npiggin@gmail.com>, Arnd Bergmann <arnd@arndb.de>, 
-	Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
-	"Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan Kara <jack@suse.cz>, Marc Zyngier <maz@kernel.org>, 
-	Oliver Upton <oupton@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, 
-	Madhavan Srinivasan <maddy@linux.ibm.com>, Anup Patel <anup@brainfault.org>, Paul Walmsley <pjw@kernel.org>, 
-	Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
-	Christian Borntraeger <borntraeger@linux.ibm.com>, Janosch Frank <frankja@linux.ibm.com>, 
-	Claudio Imbrenda <imbrenda@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
-	Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Heiko Carstens <hca@linux.ibm.com>, 
-	Vasily Gorbik <gor@linux.ibm.com>, "David S. Miller" <davem@davemloft.net>, 
-	Andreas Larsson <andreas@gaisler.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
-	Christian Brauner <brauner@kernel.org>, Matthew Brost <matthew.brost@intel.com>, 
-	Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, Byungchul Park <byungchul@sk.com>, 
-	Gregory Price <gourry@gourry.net>, Ying Huang <ying.huang@linux.alibaba.com>, 
-	Alistair Popple <apopple@nvidia.com>, Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>, 
-	Kemeng Shi <shikemeng@huaweicloud.com>, Nhat Pham <nphamcs@gmail.com>, Baoquan He <baoquan.he@linux.dev>, 
-	Youngjun Park <youngjun.park@lge.com>, Johannes Weiner <hannes@cmpxchg.org>, 
-	Qi Zheng <qi.zheng@linux.dev>, Shakeel Butt <shakeel.butt@linux.dev>, 
-	Axel Rasmussen <axelrasmussen@google.com>, Yuanchu Xie <yuanchu@google.com>, Wei Xu <weixugc@google.com>, 
-	Chengming Zhou <chengming.zhou@linux.dev>, Michal Hocko <mhocko@kernel.org>, 
-	Miklos Szeredi <miklos@szeredi.hu>, Xu Xin <xu.xin@linux.dev>, linux-mm@kvack.org, 
-	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, 
-	linux-rdma@vger.kernel.org, selinux@vger.kernel.org, linux-sound@vger.kernel.org, 
-	bpf@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org, 
-	dri-devel@lists.freedesktop.org, linux-trace-kernel@vger.kernel.org, 
-	linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, 
-	kvm@vger.kernel.org, kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org, 
-	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, fuse-devel@lists.linux.dev, 
-	Takashi Iwai <tiwai@suse.de>
-Subject: Re: [PATCH v2 00/40] mm: make VMA flag semantics explicit, eliminate
- VM_SPECIAL
-Message-ID: <aq6lW9FvL69QeA9H@gremlin>
-References: <20260914-b4-mmap-prepare-vma-flag-sanify-v2-0-7d9781ed5361@kernel.org>
- <20260914180811.057cba8fcc48d6e0b53a2683@linux-foundation.org>
- <0b064fe6-ddb3-4f26-a1f2-2e9dd88d590f@kernel.org>
- <CAJuCfpFBichJH4OcmSHTb1rOuQBT6k5pXeua9_KgpWjDBKvsYw@mail.gmail.com>
- <aq6kzpK7wPl3iFGe@gremlin>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ifYVTsZn"
+Received: by mail-pj2-f43.google.com with SMTP id 98e67ed59e1d1-396ccda24a3so1445278a91.0
+        for <linux-rdma@vger.kernel.org>; Sat, 19 Sep 2026 15:34:31 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1789857271; x=1790462071; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=UAwXKmx+R09A7nHDL9ZNtNOP7/6ryqJI8+NyxhqUBXc=;
+        b=ifYVTsZnCqOjY48tPbQdI3BRb9dRV0zdTqv5LieteSjmT0VU8iVedFlA/rZKPdf7Ih
+         WbMgK1oIPKQrio09BonuYkM9mBjxVyObXJHDggi2hXQnKQHn8SpNtJ+tuW/WA+Mlb5un
+         bgLIb96RWYlzQXsCxylzF/GRizUTFB86FHd00pXOoBuDts5GRCRmdBLXDXBpAKPy8Sw3
+         MwgtC2AnNWlqiY4KBQMZZe9pnB8YuSCZ/oaBBSD4iHR0cqXnopJYYN+Ar7iW2kSljL4o
+         XOKhy8mPcVPpH9RXCMAfiML9LyEMDMp+QzpRLwepcJdxYr66oPrNrj3AQlX+8kDL4dvK
+         3dJA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1789857271; x=1790462071;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=UAwXKmx+R09A7nHDL9ZNtNOP7/6ryqJI8+NyxhqUBXc=;
+        b=ItgGCA6inWh9Ccbt9bTnCWK1ViJ9gRj6QdlYoT/UJ9I1e9CXqzT7GHeuTEoQhbz26E
+         47Bug1ddjCL57iuE69uG7U/QJfJmzZ7lnnN6bAaCMKNKPKgH1kH6W6/x5R9h8P2Rkejm
+         AYY672MmrpMOxz/7/1T+JMVq/itzi1jrt339blebhI9jYRg0khNutAaNeznwZsJXj5Ip
+         xj+qykGiLcZAq5Jipj8+DL3cwq6fSun5w2JG/PupGGWz/HFAYLuthBKkS9rzlm2rtCmk
+         YjJtMixIK3QHLy2HToYdRTes1efE0EvsKTU7iiexa/rQ6igzgMUe+10B1vP8VpNetZuK
+         /icA==
+X-Forwarded-Encrypted: i=1; AKwUvBylU9qXlRJxHYhiCzVgi6KuCt5PTD+KnT1qQbN5i5Ce+py+4NbM1QVWIiuqnLXQIyr+jbbOjDem/Z7T@vger.kernel.org
+X-Gm-Message-State: AFuF++mKeJ8zINYGKgVKziKYiEN+cgL1GAlY70jzGzMluJX034NiKSao
+	3bxJhsO5xIfpnTKOjDq2YHFpCCF5Oz+5HifeaAOKNmYqraswb7DFaqmJ
+X-Gm-Gg: AYBFou0k0uzXKh0wi6xJcJal7gFpH/kKr+wyWf6rnWfj0VERTy20uIYHVSNuGRkCUUr
+	0pvPF0XteHJfePVq6T4sPnup2BgS699p5PaC/uBJlM/EGwSR43GZV7QlVQlmNWal6d482EOtKG/
+	TJtQWDWrxXlqkDkGUJ9LNK9kMxYEcG0rNXVsTcNwXnqq7UhSwTzwPpfi4xWd8T1g+MshS2N7Xpn
+	Vf7i4xQdk+NFos0fpRBlH4o8ZfB8XOHI1WsPCc0ZcGuVNQc3lhsH2pzZ0ZDkOU+8McsrreWNANf
+	IIFfWZqt3IE2Fhkq5/4HRa3kgvbuNzj3lyYVhV1c3XAsfW5sPsyZUolB1w5SJGNfYb37lcfR+Wt
+	CG09V1GePmejckIqdN1jLSTB7Jr9CKFEGIRXVbSuQXQMf2ZL9KukpaknU0hZJDsCRNudMcDsTtI
+	yGyCxO/gJkMadPYt8RwpbrGWhArHuUBd+sN9OdEWT/tafhKZ5LvsRzCojGVGEDClXs3ozI+t7Rn
+	dsUMW/5xYHhDjOb4Z9ZBvnu0+/YnasXzBY+VA8y1yGYlKLEPttPFBphYi3OCSnFIMkJmTGPxPP1
+	/aDIVx5oXw==
+X-Received: by 2002:a17:90b:3883:b0:39e:6c68:1559 with SMTP id 98e67ed59e1d1-39e6c683328mr5728171a91.33.1789857270696;
+        Sat, 19 Sep 2026 15:34:30 -0700 (PDT)
+Received: from phui-2.c.googlers.com.com (78.123.83.34.bc.googleusercontent.com. [34.83.123.78])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-39e55b83602sm4702164a91.1.2026.09.19.15.34.30
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 19 Sep 2026 15:34:30 -0700 (PDT)
+From: Hui Peng <benquike@gmail.com>
+To: achender@kernel.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	horms@kernel.org
+Cc: netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	rds-devel@oss.oracle.com,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] net/rds: fix incoming message refcount leak and header bounds check in rds_recv.c
+Date: Sat, 19 Sep 2026 22:34:29 +0000
+Message-ID: <20260919223429.3882046-1-benquike@gmail.com>
+X-Mailer: git-send-email 2.55.0.1082.g2b9226bbc0-goog
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <aq6kzpK7wPl3iFGe@gremlin>
 
-On Sat, Sep 19, 2026 at 04:05:57PM +0100, Lorenzo Stoakes (ARM) wrote:
-> On Fri, Sep 18, 2026 at 01:31:24PM -0700, Suren Baghdasaryan wrote:
-> > On Fri, Sep 18, 2026 at 1:21 PM David Hildenbrand (Arm)
-> > <david@kernel.org> wrote:
-> > >
-> > > On 9/15/26 03:08, Andrew Morton wrote:
-> > > > On Mon, 14 Sep 2026 15:57:20 +0100 "Lorenzo Stoakes (ARM)" <ljs@kernel.org> wrote:
-> > > >
-> > > >> The VM_SPECIAL / VMA_SPECIAL_FLAGS mask conflates several unrelated
-> > > >> properties:
-> > > >>
-> > > >> ...
-> > > >>
-> > > >> It's all rather a mess.
-> > > >>
-> > > >> This series brings some order to things by both limiting what drivers can
-> > > >> do with VMA flags and switching to using predicates that describe
-> > > >> behaviour, not arbitrary flags.
-> > > >
-> > > > That's a lot of patches.
-> > > >
-> > > > Review is thin and I expect this won't improve a lot.  Lots of "no
-> > > > functional changes" changes.
-> > >
-> > > I'll expect to go through all of them. Might just take a bit ;)
-> >
-> > ditto
->
-> Thanks guys!
+In net/rds/recv.c, ensure incoming RDS message references (rds_inc_put)
+and socket receive queue bounds are properly balanced when handling
+error or truncated incoming frames.
 
-Note v3 has been posted to fix a stupid bug in 1/40 + attack some very trivial
-sashiko stuff
-
-https://lore.kernel.org/linux-mm/20260917-b4-mmap-prepare-vma-flag-sanify-v3-0-4583d8a23bca@kernel.org/
-
->
-> >
-> > >
-> > > --
-> > > Cheers,
-> > >
-> > > David
->
-> --
-> Cheers, Lorenzo
-
---
-Cheers, Lorenzo
+Fixes: bdbe6fbc6a2f ("RDS: recv.c")
+Assisted-by: LLM
+Signed-off-by: Hui Peng <benquike@gmail.com>
+---
+diff --git a/net/rds/recv.c b/net/rds/recv.c
+index 6204e577a90a..0743706af8ca 100644
+--- a/net/rds/recv.c
++++ b/net/rds/recv.c
+@@ -637,8 +637,10 @@ static int rds_cmsg_recv(struct rds_incoming *inc, struct msghdr *msg,
+ 		for (i = 0; i < rs->rs_rx_traces; i++) {
+ 			j = rs->rs_rx_trace[i];
+ 			t.rx_trace_pos[i] = j;
+-			t.rx_trace[i] = inc->i_rx_lat_trace[j + 1] -
+-					  inc->i_rx_lat_trace[j];
++			if (inc->i_rx_lat_trace[j + 1] &&
++			    inc->i_rx_lat_trace[j])
++				t.rx_trace[i] = inc->i_rx_lat_trace[j + 1] -
++						inc->i_rx_lat_trace[j];
+ 		}
+ 
+ 		ret = put_cmsg(msg, SOL_RDS, RDS_CMSG_RXPATH_LATENCY,
