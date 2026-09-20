@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE93C41A78A;
-	Sun, 20 Sep 2026 11:41:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34D0A3515F8;
+	Sun, 20 Sep 2026 11:41:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789904512; cv=none; b=n8XGQfDVUljF06vTPJ9KoZzOeSH0l+A28VYtCskHqLzObdC1tHw5x7IhJ5zrH3fqiqyXTylRV/GolRd2spoADsKJWQUIypFwizwBVHnfRTxLAgoH8wFr8jQCN/WBSdwL4Vb5oBp/Nvm+BBzds73qyVXC97/DBl54hhCQ+77wEzA=
+	t=1789904513; cv=none; b=Hbg6xPOIRkVoax6/BgYdcBBzu1eKPVkcgVvlgM7lGwGaKI9xyH3/ishkmVCBPxjddA1cIa+FwPS7K7+VWZC3l6xrD0rjGtNsZ4Mqq2QV12aFOSWGwmyV98hPk/5h5h62ZOkrDFIQNQLio+/kjwey0ToUiH3+3CuE2DpvYGYdBrs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789904512; c=relaxed/simple;
-	bh=QUzVSRZvTKg2E13vIgCE8+l+zgBTXZofkjJhl+ER15s=;
+	s=arc-20240116; t=1789904513; c=relaxed/simple;
+	bh=r82jL5WVcsE7kmahJOP1AjghFLzIXt1P4Mp9z2NJ+Vw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=s4H2FymZKdHHZ+s7N8JVG4uLP4f0WO9Eul0KC6koQyFxf+giKszbkqHWuOrkF2WJBvbmCTBJXbmQ2ZHEpK6prnHbW1++eihHJZCpao8pTbVtsbetK/BaKGkvLpF4/cejpSAyBFMJW6o/qQRRLNig8QPqpOpZFqFdeN4/986ZhhU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DskItDFS; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=A+qgeZeJKy7Yfago80e14rA7nWo954mzeELethrIOWfwTpsVAAcQ/87Q2sp1iMeR0ypbjvtrkl9UW9Y4F4NQ8Ba9osAXUNq7+Z0wsve/Se/jgau2wxSkr/pZ1PXLxAdR77NmvZ7z/NUzxQXgeJj+B82y5qdZ4yGiVhxQ/zDpROo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EQqBUWJF; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DskItDFS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6404F1F00893;
-	Sun, 20 Sep 2026 11:41:47 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EQqBUWJF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E26E1F000FF;
+	Sun, 20 Sep 2026 11:41:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789904508;
-	bh=6I7K2CcZKiNEkj3tMDTHshN0X+VnIpc+D+swyH4+62w=;
+	s=k20260515; t=1789904511;
+	bh=mB9EKqkzLzypkhdTWBPdUAfJNQuk4resftiaCbJ0Vhw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=DskItDFSncfH8LsSl3L4tDvd1Nh6r6SWlq0gJ262aq6EGYpdlhSs8odG3/BTkwCwk
-	 YWNF0/bwmVtImLIVUVDcCWUHRvZ0mfQQUSYrhxxEQY5GR9FxXAZg8f//RLhNyk077f
-	 9vE7STkQGnwx2kek1aTcC4XIpmTe/dOsz4Dtml8n+E8UZVEnAi587MUmAUuJbtEzQn
-	 xqj8g5nKEqpED7aew7tyUjaAiT23QsiRa6gpwOQCzJbQUYTxDxfTQmkMuoF0g0G1fq
-	 VmTvP+6M/MIk6Z3BkQONAy6lVWaM21P+9wMFtJXkJMsh+xDLfJtrOF2NQO47SNoL8x
-	 iu5iwAMLyX/UQ==
+	b=EQqBUWJF5+nKXmOJtT2JE4EiQKGekYJkgGty3zB523vGr8s8VfiEDwatYoLvMBKZf
+	 ZSnheTyWquCZ2QjOQ+f8svrrUYdcgMgM6F5+NKzJxrfFLGKcuvkWwISS9bDgk7PPNC
+	 NRHwchF1HjcPHs34r1OxuC1Jq9FQKjJqMFvVCv0cvzpeHgQAVvf2ckMFR90O/3uPEm
+	 xk0DHSGLTFjjuUk2oO62We9xkLNoj/BsE0eeqXxdbfGvkKJ01dtPOF9YzzaaDsDJsw
+	 ATFGcvPCDSVhnDzW3mFd4Ior9lZXbKvnGDt/KOaSy3xpOfdcN5sjOWvIjza2H3j2YM
+	 8GYhwArtYJK7A==
 From: Leon Romanovsky <leon@kernel.org>
 To: Bjorn Helgaas <bhelgaas@google.com>,
 	Logan Gunthorpe <logang@deltatee.com>,
@@ -54,9 +54,9 @@ Cc: linux-pci@vger.kernel.org,
 	linaro-mm-sig@lists.linaro.org,
 	linux-rdma@vger.kernel.org,
 	kvm@vger.kernel.org
-Subject: [PATCH v7 01/19] PCI/P2PDMA: Document the TLP attribute assumptions
-Date: Sun, 20 Sep 2026 14:41:13 +0300
-Message-ID: <20260920-fix-p2p-acs-v4-0-v7-1-ca0828ab697c@nvidia.com>
+Subject: [PATCH v7 03/19] PCI: Reject unreadable ACS controls in isolation checks
+Date: Sun, 20 Sep 2026 14:41:15 +0300
+Message-ID: <20260920-fix-p2p-acs-v4-0-v7-3-ca0828ab697c@nvidia.com>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20260920-fix-p2p-acs-v4-0-v7-0-ca0828ab697c@nvidia.com>
 References: <20260920-fix-p2p-acs-v4-0-v7-0-ca0828ab697c@nvidia.com>
@@ -72,39 +72,55 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-P2PDMA selects a mapping without receiving the Request's ordering or
-Address Type attributes. Its ACS handles only strictly ordered Requests
-carrying an Untranslated address.
+pci_acs_flags_enabled() and the Intel SPT PCH quirk use ACS registers
+without checking config-space read errors. A failed read may leave control
+state indeterminate yet allow the device to satisfy requested isolation
+controls.
 
-Document that the result is not defined for Relaxed Ordering or
-ATS-translated Requests because those TLP attributes can select different
-routes through the fabric.
+Return false when either ACS capability or control state cannot be read.
+An unknown state cannot prove isolation.
 
 Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
 Tested-by: Tushar Dave <tdave@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- Documentation/driver-api/pci/p2pdma.rst | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/pci/pci.c    | 3 ++-
+ drivers/pci/quirks.c | 6 ++++--
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/driver-api/pci/p2pdma.rst b/Documentation/driver-api/pci/p2pdma.rst
-index 63cff9e4d2c9..80f8fec9b0e9 100644
---- a/Documentation/driver-api/pci/p2pdma.rst
-+++ b/Documentation/driver-api/pci/p2pdma.rst
-@@ -15,6 +15,13 @@ then based on the ACS settings the transaction can route entirely within
- the PCIe hierarchy and never reach the root port. The kernel will evaluate
- the PCIe topology and always permit P2P in these well-defined cases.
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index b2879a6be5f8..f7d94ecf9157 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -3594,7 +3594,8 @@ static bool pci_acs_flags_enabled(struct pci_dev *pdev, u16 acs_flags)
+ 	 */
+ 	acs_flags &= (pdev->acs_capabilities | PCI_ACS_EC);
  
-+This evaluation assumes clients issue strictly ordered Requests carrying an
-+Untranslated address. Its result is not defined when clients use Relaxed
-+Ordering or issue ATS-translated Requests because those TLP attributes can
-+select different routes through the fabric. Unless ACS Translation Blocking
-+is enabled, a Port with ACS Direct Translated P2P enabled routes a
-+Translated Request directly to the peer regardless of the redirect controls.
-+
- However, if the P2P transaction reaches the host bridge then it might have to
- hairpin back out the same root port, be routed inside the CPU SOC to another
- PCIe root port, or routed internally to the SOC.
+-	pci_read_config_word(pdev, pos + PCI_ACS_CTRL, &ctrl);
++	if (pci_read_config_word(pdev, pos + PCI_ACS_CTRL, &ctrl))
++		return false;
+ 	return (ctrl & acs_flags) == acs_flags;
+ }
+ 
+diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+index de9bbccda21f..d5c3e6802840 100644
+--- a/drivers/pci/quirks.c
++++ b/drivers/pci/quirks.c
+@@ -4992,10 +4992,12 @@ static int pci_quirk_intel_spt_pch_acs(struct pci_dev *dev, u16 acs_flags)
+ 		return -ENOTTY;
+ 
+ 	/* see pci_acs_flags_enabled() */
+-	pci_read_config_dword(dev, pos + PCI_ACS_CAP, &cap);
++	if (pci_read_config_dword(dev, pos + PCI_ACS_CAP, &cap))
++		return 0;
+ 	acs_flags &= (cap | PCI_ACS_EC);
+ 
+-	pci_read_config_dword(dev, pos + INTEL_SPT_ACS_CTRL, &ctrl);
++	if (pci_read_config_dword(dev, pos + INTEL_SPT_ACS_CTRL, &ctrl))
++		return 0;
+ 
+ 	return pci_acs_ctrl_enabled(acs_flags, ctrl);
+ }
 
 -- 
 2.55.0
