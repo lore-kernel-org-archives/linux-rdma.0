@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1E26339394;
-	Sun, 20 Sep 2026 17:50:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C157471D1F;
+	Sun, 20 Sep 2026 17:50:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789926650; cv=none; b=b9eZKfY3gA3fCxZTKP4+6izDc/69Mr2YK6Nb2Dsr9SeY1x5rMPdQSqXtbKzNgpp8ELmXAhoZHX9tSRscMiIbKlVK5gIWKwNLrSC1ShaP/A2uqxUdbQMzicK3o5rm4qCp6X9URPuod+uNfGMMbtYeuxOF8oRYB24dzarjJ3m7kVw=
+	t=1789926652; cv=none; b=VY0Lx9I+MPVrJ4buJ+RE3DjLNCAi5MmgcsdqTa3ZCnRkDYdkpj1/HsckVI/Y4BpX2efVSSmID/o0z3iY7XyHrAL1CMg8T7ZhwZWl4qZSScNRE4XpVogMAnawjzr6U9gTdbReoxskuu8ZHot2VI7kqctKHE7Svh2uJeu7Re5b1I4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789926650; c=relaxed/simple;
-	bh=mj59ENKXR5KWA3PJzdz+69sO1iolJTr2B45za6877GU=;
+	s=arc-20240116; t=1789926652; c=relaxed/simple;
+	bh=4m1GXz6a1xOtAP/TVGNzaxyLhRp364jMk+9zi4fcjvo=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=pXSRk4zq0U0x5glI5uEqpkF5s0/L3vk0d+tlwa3M/omTXl7nQmt6Gs00kbec7Ha6PdexEevR54osNNzlLYGrx+ajHAf+275kW5Q2FaOJgGv9V1qSIqrwliH9YZWU20uyokGWtLW+OG0Ac9Gq7aH1CW5vF30yqnDsMptfMhJUfHs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UhogGrzW; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=Q49ud8cyMw4YdFaLNyywgzloNsCdicxNFKE67Q6kgRmERzpFsmfV8SZf8io0hd8c/8JzYH613GwSHH8OU3YlLtt/67PUBk2O9hDxC5TlmLJ5ZRcviw+3CyC4bTV2Y51zpQIklXZd7IVUvnOXHaMJpqKP52W42lqIY9ht30J0SGE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AQ8+Bkl9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UhogGrzW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B70051F000FF;
-	Sun, 20 Sep 2026 17:50:47 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AQ8+Bkl9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EE291F00898;
+	Sun, 20 Sep 2026 17:50:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789926649;
-	bh=9tmW/ucMwvEZiXV2cfgvcFzWlrbstD2E6UjaQ8h/DIk=;
+	s=k20260515; t=1789926651;
+	bh=+m0b3LGQSx/lLKOTPekaAGlv/MnmrW6aY+li3UbTmjQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=UhogGrzWxfTiTIDnLn9BRFI/e8jc53mXzu9/bCtgaHarF1BYCvovl3Bm2P1hapdK2
-	 Wx8vgizmfdcLYMOWJl/7nBot+SQvjWFiw7dk1tqKUR8nk8N2tIBQfWjfTmGkInCX7M
-	 srY5ujrU3zsYWBc7IaGdgjX8qyGKjHiy0SNSiTO/9h8gN/YxYoW7lgFX0q6P+l20yK
-	 X+skf1vpURr4vy2eKA//lHLOiGVX06U6GghdJqVoqZCQ7ju8SGXFLWcUJ9Qc/0wzmg
-	 0psmL3953uoEErnAu4H9aGiKG/ZupYgE8yoA8u8HwPflxMnPTVjySv9XXYi92L8h94
-	 0yoNoetu12qsQ==
+	b=AQ8+Bkl97sSUVkikZRBkzqYaIH+KSiTYzf5uywVpOTKhygoz3clvAnoT/iz+Rb9xU
+	 cfXAGmJTf4KMz401qZisHlZXKnyQ8LjF6wJY58iPLWFb/vj5Fbn4+1CODD7i7W8Luy
+	 ryiEm7uQA0K/KU++EdhuWUYTmiDxr1ndB2LB8c3YbKszFeDNhWxMyUMLwrkcA+RYAC
+	 24oFR8MTSFgmw8oQTtuHBrDKW6gUCN6kv4zjSuP0Alhd4hzFbf+PFAg8cRDCSqchF+
+	 Y0kW3Fe2N5w7rGoy0yHcNmR3xjtth9C4ntVM2mKj+2xjwqQ8YcIrhnlZrKIvQfT/lv
+	 whFhYgk5Sh+8A==
 From: Sasha Levin <sashal@kernel.org>
 To: stable@vger.kernel.org
 Cc: Sasha Levin <sashal@kernel.org>,
@@ -40,14 +40,13 @@ Cc: Sasha Levin <sashal@kernel.org>,
 	linux-rdma@vger.kernel.org,
 	linux-s390@vger.kernel.org,
 	netdev@vger.kernel.org,
-	"David S . Miller" <davem@davemloft.net>,
 	Junjie Cao <junjie.cao@intel.com>
-Subject: Re: [PATCH 5.15.y] net/smc: check v2_ext_offset/eid_cnt/ism_gid_cnt when receiving proposal msg
-Date: Sun, 20 Sep 2026 13:50:33 -0400
-Message-ID: <2026-09-20-daily-reply-0001-re-net-smc-clc-proposal-5-15@kernel.org>
+Subject: Re: [PATCH 5.10.y 0/2] net/smc: bound v2 extension offsets and counts in CLC proposal
+Date: Sun, 20 Sep 2026 13:50:34 -0400
+Message-ID: <2026-09-20-daily-reply-0002-re-net-smc-clc-proposal-5-10@kernel.org>
 X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260920051336.712097-1-junjie.cao@intel.com>
-References: <20260920051336.712097-1-junjie.cao@intel.com>
+In-Reply-To: <20260920051403.712116-1-junjie.cao@intel.com>
+References: <20260920051403.712116-1-junjie.cao@intel.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -56,10 +55,13 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-> 5.15.y backport of the CVE-2024-49568 fix, requested in the 6.1.y
-> thread:
+> 5.10.y also lacks 9ab332deb671 (CVE-2024-47408) from the same upstream
+> series; 5.15.y has it since v5.15.176. It goes first: the ism_gid_cnt
+> limit in patch 2 bounds the gidchid[] walk only once smcd_v2_ext
+> itself is inside the receive buffer.
 
-Queued for 5.15, thanks.
+Queued the series for 5.10, thanks. The 5.15 half went in alongside it,
+so the two trees are back in step.
 
 -- 
 Thanks,
