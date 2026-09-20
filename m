@@ -1,63 +1,69 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B8DF368D4B
-	for <linux-rdma@vger.kernel.org>; Sun, 20 Sep 2026 06:12:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F83F374E42
+	for <linux-rdma@vger.kernel.org>; Sun, 20 Sep 2026 06:12:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789884726; cv=none; b=s+59Z8YmbmubfTq4M8iqEHdjF7YusgygEcDp22K1VRufCCgloJTVq2GgEWZuIq06r+XIxEziq5uPYq5GwtoeNUlti9XjYkRqdsKhwfwNNcrlHk2qGxZGcrnGAepb/iIofCr82wYdtXxChCfsi40SkYAB54RCVw/ZpMVPLenGBhw=
+	t=1789884726; cv=none; b=MTHcSEInYb9Z1HV6ZnUCSvuMtsc4zuYtmwVm5GKPZRiyd/2je2X/PAoxUO+CrUkyNLqNHnk0k0wwSNELmfjgPAjJSmw9pZG81BO2Dd06pyq8DnkP14+gA26EAbesYCNgtEZtC2etakqPWmWMImcUfhDmYvSYCaNgds5uvTePf58=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1789884726; c=relaxed/simple;
-	bh=axJOu4jPoC8TfAkBkcFCZ2HuJ9bpZ16+stpcnMJUl3A=;
+	bh=pywVlpYbaY6kstskcA+FmZ1QOemFC9RBXn8wR+bwe3k=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=N1slekmHvn2Wed0d8VzLW/dTacfLelhV9OUvaEkp5ZlWVVF1Z8lcIVmFmerBud55UscYPilzDIzLth9thwLuvFCNKivZT+3CGXYq0doQZrExleaQt3QZMrvCXXV3pBw3yzroKrZRWOxKT2K6HWOuIVPK/eWA/wb2T1jyfLpGRQo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=elZHqUm+; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=ORObSXuu9tDPTYC8VcjeVRUGm0Uh8GNqzm8kP2km3KrJoQ8EKV/7Rj2B3g9CsnQdpwSefwCRyKg98J0lIdArAXg2CnqmZxZ+xKRwZn7eHwwtqxhhO02jI7H6WeKlY1WKt1LSJkzMMNGUsCMJ4kAIAtackE60LR6woLvlum+/064=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RYTWEeQy; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="elZHqUm+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5E221F00893;
-	Sun, 20 Sep 2026 06:12:04 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RYTWEeQy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C3071F00898;
+	Sun, 20 Sep 2026 06:12:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789884724;
-	bh=QtIU7OJXGifBcMW+jd5EZU+lmFaSKkCL81Mh3zHBiu4=;
+	s=k20260515; t=1789884725;
+	bh=VoN/Juw2R8mBBNfeKPBq4UR3jRN76h8JrouziDSNgIc=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=elZHqUm+/O6TNwWtY5u5Xg8plsAWFwCVMMhllxFVR6PUKl8ogLPgjRiQGHFXkqFIt
-	 OrNPe2WAY4rsyx+opSLgXGeLdGDwxcIikombqSItieLEU3+dNUKGc/+KO+BxDg4wd8
-	 C8ig5+W4e5oJ5xMAD0VIwFNsafszWIHKOLkyLdvj74IQ5CbsYze2AO6t958fH0F3np
-	 S39zIrKC8kKYklfgkom76FKX8zBNDVo2N0WllSUzcdQeVioTrsLexGu5GbWYQ0jBdU
-	 mXLMaok3RdqFly2/ztxPygvnCJYuvvLkzVuXIeXcqhRIjOgI+aznG8tI4UiV3MsaeW
-	 OH5MU2gnRFggQ==
+	b=RYTWEeQyn1Xko+iv+9iqNSMzAVQuh9ROtZeGoh4574iazKNGI16NYGyZneoemBGsr
+	 1Gmv0K7RO1RVNeyupvFGqiywbFj6CrLokNePYw2ciLAFYZGtOQtJPMinSGfXQgVee3
+	 GUlp0NFRMb91WsjW7DYNtImmPeaex84RCkg2Sp4eIbC5OhahZUriS0WadNpx/+nGcV
+	 0OucIq0JjltF1Aa3kU5h3zH8z/Ba4MbSfaogJCM4jbw8jEIU1OFSf3vI6PzYoeqEm4
+	 opFhMOeplNxlv9PjGEV+iGRLACjqau0nH1tR1igMftlskKZnlfmaWdlXIoPoBlkahe
+	 WsDDAsV5kpdqA==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next v5 02/12] net/rds: free every path's transport
- data on the passive create paths
+Subject: Re: [PATCH net-next v5 07/12] net/rds: unlink transport nodes
+ before a possibly deferred connection free
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Allison Henderson" <achender@kernel.org>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260919061149.250658-3-achender@kernel.org>
+In-Reply-To: <20260919061149.250658-8-achender@kernel.org>
 References: <20260919061149.250658-1-achender@kernel.org>
- <20260919061149.250658-3-achender@kernel.org>
+ <20260919061149.250658-8-achender@kernel.org>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Date: Sun, 20 Sep 2026 06:12:04 +0000
-Message-Id: <20260920061204.A5E221F00893@smtp.kernel.org>
+Message-Id: <20260920061205.3C3071F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-> trans->conn_alloc() may allocate transport data for every path of a
-> multipath connection - rds_tcp_conn_alloc() does - which is why the
-> lost-creation-race exit of __rds_conn_create() loops over all npaths
-> when it frees the connection it just built.  The passive-connection
-> exit right above it, taken when a loopback parent already has its
-> c_passive twin, frees only path 0 and leaks the transport data of
-> paths 1..npaths-1.  RDS/TCP loopback is exactly a multipath passive
-> connection, so this is reachable.
+> The transport teardown helpers - rds_tcp_destroy_conns(),
+> rds_tcp_kill_sock(), rds_ib_destroy_nodev_conns(), rds_loop_exit() and
+> rds_loop_kill_conns() - gather the per-connection transport nodes onto
+> a list head on their own stack and call rds_conn_destroy() for each.
+> The node is unlinked much later, by the transport's conn_free():
+> rds_tcp_conn_free() and rds_loop_conn_free() list_del() it, and
+> rds_ib_conn_free() does so unconditionally.
 >=20
-> Move the loop into a helper and use it on both exits.
+> That is fine for as long as rds_conn_destroy() frees the connection
+> before it returns, which is still the case at this point in the
+> series: the initial reference is the only one.  The following patches
+> hand out references that outlive the teardown loop - a socket's
+> cached rs_conn, an inc parked on a receive queue - and with those, a
+> conn_free() deferred until after the helper has returned would
+> list_del() the node from a stack frame that no longer exists.  Make
+> [ ... ]
+> what keeps rds_conn_destroy() from being called with the transport
+> lock held.
 >=20
-> Fixes: 1c5113cf796b ("RDS: Initialize all RDS_MPATH_WORKERS in __rds_conn=
-_create")
 > Assisted-by: Claude-Code:claude-fable-5
 > Signed-off-by: Allison Henderson <achender@kernel.org>
 
@@ -65,5 +71,5 @@ Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260919061149.2506=
-58-1-achender@kernel.org?part=3D2
+58-1-achender@kernel.org?part=3D7
 
