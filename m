@@ -1,112 +1,108 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32ED33F12C6
-	for <linux-rdma@vger.kernel.org>; Sun, 20 Sep 2026 09:21:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5E8541D114;
+	Sun, 20 Sep 2026 11:34:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789896117; cv=none; b=Bs+gk12igOGOKUkOuoIPkrD2KldrGPdBbf1ckpdHDxT+MoylGv8RKBGmuE7THUKUHPFS4ofhGk/3BHRAkUYrUtkuOp/Gy8YfG+XqMXYrgg4zJBjevBLljK9vynbp62i/SCtLxKnpB/EibZZCDm+2wmweJd6uG2HQvbeUzAv69dY=
+	t=1789904076; cv=none; b=Fty3JRM31sjZ8+qW4EsV7J09iUUCOD6DW/DiSvZaIROzKp1xFWfvMuFlvFX2U4ZnjPaL05+HAcnBsictrrNjfCcQ9AgiYSO5JqvQOkoJqz/uq1MbvuYb2706x10ukCIutyu4eZv+SCUKvlQgiXUTYDAEz+TOctZWhl4BtRZV4/A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789896117; c=relaxed/simple;
-	bh=w8dFdEkHd0B9ZZhQCAZ3A9pGtmtlzTSaUBnRpBUr1+0=;
-	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=p+0hQ47UX2JPGdI+G5WK4vB5DmZphrTwTwW9K4iFn/RftPCDBqmUr6nBuLJuX76fVdX8m4aB1nV589CRBZ/xphnFSF/2CXaxBgDpFSrEt04DSdMZU+LaU2JoebV67Q5TZiZcPwzahS/T2K6r7jlGvn6GZFWD76jEfc/Hn0WClQ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MscDkd8d; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789904076; c=relaxed/simple;
+	bh=AgKD8Uj0OpBdM8shwpSH1OHw7CNV/LdHw7aGJqG/6Gg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=iVEbiVRIdc4RDAmDviSNLOsiHNz8c7zKwUzmXIzZgYl2zt753TOR6CjhVAWd7kv3txgK2TareL0CHc/j4Fo+6pAqcP3K3yXKy6xsTJbQ+4FLrPvKm92I1ASIEbEK4TGM0lNor7RzuqHP/TnVq/4unAQy9jZX7duyVcAvDgDsa/4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VFMSaX2Q; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MscDkd8d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 946EF1F000FF;
-	Sun, 20 Sep 2026 09:21:55 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VFMSaX2Q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2F8B1F000FF;
+	Sun, 20 Sep 2026 11:34:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789896115;
-	bh=guGo7QDxxiw43H5liM9tUIUuuZy7UGBFZK8evsTszkE=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=MscDkd8d9aCIrcoYZ6Qkf7BxOTTEzi8K7pgtT6z1BHlxn7Nk+AlnxuSRq/WhdxoDZ
-	 Bl7EMQ4ZG1gRyMLGAqItVZawJUlmA5MOvaMpkZqdKl7dajc7ksL57+4Z/eBn0vETvu
-	 fAK2mUjHBD/DMEW0YyY/HITsMdgnO/iK1SJFr5N9FoRUI087tGnJ4I+lL9ch6f8R9Y
-	 Pk0tamX9ClDwAk6FIvO8PoR8jU3m6hqvJVau7KD3PG9gHKK8chelcPh/hPwxVIAj73
-	 COJ5Pjx6OdkvDOBpyZ0WpwdqsiVg8WASVCIRi7KTA0OrsScbvBqRRCe2kqcREJXS5t
-	 /F3Si9AU41iRQ==
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH] RDMA/mlx5: Wait for in-flight page faults on implicit
- MR null_mkey dereg
-Reply-To: sashiko-reviews@lists.linux.dev
-To: lirongqing <lirongqing@baidu.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260920090613.2186-1-lirongqing@baidu.com>
-References: <20260920090613.2186-1-lirongqing@baidu.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Sun, 20 Sep 2026 09:21:55 +0000
-Message-Id: <20260920092155.946EF1F000FF@smtp.kernel.org>
+	s=k20260515; t=1789904065;
+	bh=o19pe/ZOLyrZCZ3xyrwO1dORVM3jdvZ7EUMrrqzx/sc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=VFMSaX2QgFUMmyoiYEHSjLc/YfwGFUF3rSLLzSb2RiXDkOR7tmvx4AY/6QchwV3wu
+	 xeWUQxUhhztHSVXpmcqxd4iqduYww8bbeCtiHJfpMz1pfMiQUuaj2PbxBLbmtc2AVs
+	 RW4amWSOxw0/mXmmK9XiN4M56nT+PJrStacNKmoGeJhzwjU/TClMc1A93FPpvV1qj0
+	 4kvnM+JB1F/VN7YizD46bisQXK96UBmamDCtbu9NznIAdQIistrUXjdXzPIOeaoz44
+	 Loan/RBqqvKvQOhKbpql7J+qkl05ra9OO2t3kzyrMr2XjYrj2CZWkqgAm0EWLqgRjI
+	 3aMGDeyQ5tflA==
+Date: Sun, 20 Sep 2026 14:34:20 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>,
+	Chaitanya Kulkarni <kch@nvidia.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
+	Ankit Agrawal <ankita@nvidia.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	"Joerg Roedel (AMD)" <joro@8bytes.org>,
+	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org, iommu@lists.linux.dev,
+	Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	linux-rdma@vger.kernel.org, kvm@vger.kernel.org
+Subject: Re: [PATCH v6 03/18] PCI/P2PDMA: Derive routing from directional ACS
+ controls
+Message-ID: <20260920113420.GA563127@unreal>
+References: <20260914-fix-p2p-acs-v4-0-v6-0-5ef07ec9ef06@nvidia.com>
+ <20260914-fix-p2p-acs-v4-0-v6-3-5ef07ec9ef06@nvidia.com>
+ <19bee27e-17d7-4b67-b796-ca5bb44e8de7@deltatee.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <19bee27e-17d7-4b67-b796-ca5bb44e8de7@deltatee.com>
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
-- [Critical] rdma: kernel panic due to uninitialized waitqueue in mlx5_ib_f=
-ree_odp_mr
---
+On Fri, Sep 18, 2026 at 01:39:55PM -0600, Logan Gunthorpe wrote:
+> 
+> 
+> On 2026-09-14 05:22, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro@nvidia.com>
+> > 
+> > pci_bridge_has_acs_redir() treats Request and Completion Redirect as
+> > interchangeable. On asymmetric fabrics, a control for only the reverse TLP
+> > direction can unnecessarily force P2PDMA through the host bridge.
+> > 
+> > Evaluate Request Redirect for client Requests and Completion Redirect for
+> > provider read Completions. Continue treating enabled Egress Control
+> > conservatively as a Request redirect.
+> > 
+> > Fixes: 52916982af48 ("PCI/P2PDMA: Support peer-to-peer memory")
+> > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+> 
+> Core patch seems fine, minus one minor point below:
+> 
+> Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
+> 
+> > @@ -1132,10 +1173,10 @@ EXPORT_SYMBOL_GPL(pci_p2pmem_publish);
+> >  /**
+> >   * pci_p2pdma_map_type - Determine the mapping type for P2PDMA transfers
+> >   * @provider: P2PDMA provider structure
+> > - * @dev: Target device for the transfer
+> > + * @dev: Client device that initiates the transfer
+> >   *
+> >   * Determines how peer-to-peer DMA transfers should be mapped between
+> > - * the provider and the target device. The mapping type indicates whether
+> > + * the provider and the client device. The mapping type indicates whether
+> >   * the transfer can be done directly through PCI switches or must go
+> >   * through the host bridge.
+> >   */
+> > 
+> 
+> This hunk does not seem like it belongs in this patch.
 
-commit 86e92de47c6446ff41d57038760ffc2bf8a38827
-Author: Li RongQing <lirongqing@baidu.com>
+This is the first patch that distinguishes between client and provider
+and starts using that terminology instead of target/initiator. Therefore,
+the change belongs here.
 
-RDMA/mlx5: Wait for in-flight page faults on implicit MR null_mkey dereg
+Thanks
 
-An implicit ODP MR (imr) publishes two mkeys into dev->odp_mkeys: the
-main imr->mmkey and imr->null_mmkey (MLX5_MKEY_NULL). This commit ensures
-the handling of null_mmkey mirrors the main-mmkey handling by waiting
-for any in-flight fault to finish before destroying the mkey.
-
-> diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx=
-5/odp.c
-> index 8dcbb0e5ccd7c..286d61b582e4d 100644
-> --- a/drivers/infiniband/hw/mlx5/odp.c
-> +++ b/drivers/infiniband/hw/mlx5/odp.c
-> @@ -683,6 +683,8 @@ void mlx5_ib_free_odp_mr(struct mlx5_ib_mr *mr)
->  		xa_erase(&mr_to_mdev(mr)->odp_mkeys,
->  			 mlx5_base_mkey(mr->null_mmkey.key));
-> =20
-> +		mlx5r_deref_wait_odp_mkey(&mr->null_mmkey);
-
-[Severity: Critical]
-Will this crash with a NULL pointer dereference when wait queue operations =
-are
-performed on an uninitialized waitqueue head?
-
-When a userspace application creates an implicit ODP MR, it is allocated via
-mlx5_mr_cache_alloc() in drivers/infiniband/hw/mlx5/mr.c. This function zer=
-oes
-the structure and initializes the main mmkey waitqueue, but leaves the
-null_mmkey waitqueue zero-initialized:
-
-	init_waitqueue_head(&mr->mmkey.wait);
-	/* mr->null_mmkey.wait is left zero-initialized */
-
-When alloc_implicit_mr_null_mkey() sets up the null_mmkey in
-drivers/infiniband/hw/mlx5/odp.c, it also skips initializing the waitqueue:
-
-	imr->null_mmkey.type =3D MLX5_MKEY_NULL;
-	/* init_waitqueue_head(&imr->null_mmkey.wait) is missing */
-
-During destruction, __mlx5_ib_dereg_mr() calls mlx5_ib_free_odp_mr() which
-executes this new call to mlx5r_deref_wait_odp_mkey(). This performs wait q=
-ueue
-operations on the zero-initialized wait_queue_head. Since the list head is =
-not
-initialized, its next pointer is NULL, causing an immediate NULL pointer
-dereference.
-
-Unprivileged local users with RDMA access can trigger this reliably, causing
-a local denial of service crash.
-
-> +
->  		mlx5_core_destroy_mkey(mr_to_mdev(mr)->mdev,
->  				       mr->null_mmkey.key);
->  	}
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260920090613.2186=
--1-lirongqing@baidu.com?part=3D1
