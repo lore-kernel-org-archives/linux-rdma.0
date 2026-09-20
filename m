@@ -1,121 +1,176 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF61C42E401;
-	Sun, 20 Sep 2026 11:42:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6865143B6F3
+	for <linux-rdma@vger.kernel.org>; Sun, 20 Sep 2026 12:24:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789904577; cv=none; b=D25FMImkP2QeSMAMFIC2/RlO3LSXIKUrdydFQ/ULGc7hmy9gElzZ3TE5Pr56k8kVvcHipWBc2Hti70rhdHDbUbm+Z7xLjMowbhMKXAzYBU7VyLYr9qsnJ1cNVsGZ2fy4WUqaeMt1CmPn/UB0x7oZCWSzrtLa1MMDaf3Isbz1/Ac=
+	t=1789907072; cv=none; b=BWHpUaUS930H2UCTj7DEuw0n+IXVhQ+8kWZ+dTmJrmMW4RXGnHBCFqFRjkOYS0EbuC8x+ct8KxyX+tw0zRbmDaryJoFVIwSM5knEiVrP475IcA6eVo8pbh/yM5El28KNec1+iEQKbq6VLnZk6suAoHl4gfpCqIveJVyeQ8Y0s3A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789904577; c=relaxed/simple;
-	bh=riGlHG++DL8f0DnvaJ2KRuj/96+VOlrVeHQ7nm4g8CI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Lin2sbAfTYSzb8Y6/dtiEHE0RXTnvKNs7TtI2t4RpcWXaGADw9vQC/g2fCZF4K+OdwDlGjrMG21aAgyZPOSYN9g6g0qkEwJlsJlI7YyAgZv7yIdlmO3E++5MZ12CfmATEjYhNBj9Ac9tp4WQyiJ+nIslX9KZcxKmRNIrtJIyqEE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PoGh9Arc; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789907072; c=relaxed/simple;
+	bh=g2zNZTJPSMZ7ATgN4Epnv2BjRz5wDEK71Fw4mXtoj10=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Ze8oQrHKwaV3csqSvnm/jGnEg7tE0utrgINDmMXvkjm+6+/HNZfY3+TNNib3vxA9AM7jrQ7vg0XnXL+u7TUxyMMscojF2IZ2zAaCexC/kWMgbV++64EhLtHAIfMSS0bNDAUobh3Jp0VMTdrrI5SMtUtPmMgFXcGjs0mXUAYGSIk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eiQgoFUc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PoGh9Arc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57CB01F00893;
-	Sun, 20 Sep 2026 11:42:54 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eiQgoFUc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 739931F000FF;
+	Sun, 20 Sep 2026 12:24:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789904575;
-	bh=s9hM+k8hMa1R4u6jdfPzKiE4L3rfw69xZAFpd6/U+Zg=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=PoGh9ArcYHh6zXNr/LygdppEE41Db17kxr5t8DdpKSiAmGcvrNfiIokCmXawiSfgM
-	 Hku+cxQAisaRVymDGpXIo3meEk+bOR2g+Y8aLtNmYxus8IwnLKNDcdCfeOGfpUAhKb
-	 qg3DXxavmZka1Wpk5hk3AzrKJd30UoX4QkJZaYjeiG7YyoC73R736Zf+VPco5sxyqZ
-	 7yyzoTpNQaSFpcz9B8xtmt4zInIak96Jr+dPLsMf3PpVjYkdKBLbKPlS/ZSi2KdJmB
-	 QwQiMhcXSYtwK3//ZBexba+fRUsUAsieD8tve6cl17Yql9bVvOorZZC4N0wazzUl1c
-	 b1Nj4vFiXfdmQ==
+	s=k20260515; t=1789907055;
+	bh=GwGrC56QiD376jAnsn2yCVmj/BV+yjDKQHUztzkBdeg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=eiQgoFUclT0BWPo0Cepwe/aLqAX0PwfiQbuArfAveapDL0xh4z6tLfavS8pPwd8cx
+	 wMuruXPSvN7CoI6XneZMJVkcyRH3Ms/QfFd8tbcQR5NNhuQzyYfAMEXUYRScpIAjSK
+	 sNvCzFBUoL9YTLm+TmePaVxkBeDfM6PzKL4PcqjbdBRT2oF00UXjZPqwvPdfIY+MCN
+	 ByTvi10mGrqaGGZOAcPoyBbFmmzAScvjwchz3viEaWddCV+rRuFDk1uJLnwrpR6doD
+	 MXLqr/T7KxNfRRet3/AUxWNHEPJ0KGY7hqSbQuZLnXUI5YNtvFjhvntkdCHlGC0LrM
+	 WX1NMSqrsTk4Q==
+Date: Sun, 20 Sep 2026 15:24:11 +0300
 From: Leon Romanovsky <leon@kernel.org>
-To: Bjorn Helgaas <bhelgaas@google.com>,
-	Logan Gunthorpe <logang@deltatee.com>,
-	Chaitanya Kulkarni <kch@nvidia.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jens Axboe <axboe@kernel.dk>,
-	Alex Williamson <alex@shazbot.org>,
-	Leon Romanovsky <leon@kernel.org>,
-	Ankit Agrawal <ankita@nvidia.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	"Joerg Roedel (AMD)" <joro@8bytes.org>,
-	Will Deacon <will@kernel.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	=?utf-8?q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>
-Cc: linux-pci@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	iommu@lists.linux.dev,
-	Tushar Dave <tdave@nvidia.com>,
-	linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org,
-	linux-rdma@vger.kernel.org,
-	kvm@vger.kernel.org
-Subject: [PATCH v7 18/19] RDMA/uverbs: Hand out the P2PDMA provider behind a dma-buf
-Date: Sun, 20 Sep 2026 14:41:30 +0300
-Message-ID: <20260920-fix-p2p-acs-v4-0-v7-18-ca0828ab697c@nvidia.com>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260920-fix-p2p-acs-v4-0-v7-0-ca0828ab697c@nvidia.com>
-References: <20260920-fix-p2p-acs-v4-0-v7-0-ca0828ab697c@nvidia.com>
+To: Yishai Hadas <yishaih@nvidia.com>
+Cc: jgg@ziepe.ca, linux-rdma@vger.kernel.org, selvin.xavier@broadcom.com,
+	kalesh-anakkur.purayil@broadcom.com, chengyou@linux.alibaba.com,
+	kaishen@linux.alibaba.com, tangchengchang@huawei.com,
+	huangjunxian6@hisilicon.com, abhijit.gangurde@amd.com,
+	allen.hubbe@amd.com, longli@microsoft.com, kotaranov@microsoft.com,
+	mkalderon@marvell.com, bryan-bt.tan@broadcom.com,
+	vishnu.dasa@broadcom.com, maorg@nvidia.com
+Subject: Re: [PATCH V1 rdma-next 04/15] RDMA/umem: Reuse
+ ib_umem_get_cq_buf_or_va() for VA-only CQ pinning
+Message-ID: <20260920122411.GB563127@unreal>
+References: <20260915140933.40580-1-yishaih@nvidia.com>
+ <20260915140933.40580-5-yishaih@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Mailer: b4 0.15-dev-18f8f
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260915140933.40580-5-yishaih@nvidia.com>
 
-From: Leon Romanovsky <leonro@nvidia.com>
+On Tue, Sep 15, 2026 at 05:09:22PM +0300, Yishai Hadas wrote:
+> Several drivers pin their CQ ring buffer via ib_umem_get_va() rather
+> than the CQ-specific helper. Switch them to ib_umem_get_cq_buf_or_va()
+> so the subsequent DMA_FROM_DEVICE change covers all CQ paths at once.
+> 
+> For shared helpers used by both CQ and non-CQ callers (qedr, mana,
+> erdma, hns) a new is_cq parameter selects the appropriate pinning
+> function; non-CQ callers pass false.
+> 
+> vmw_pvrdma's CQ is excluded: it embeds a ring-state header that the
+> driver CPU-writes after polling, making it genuinely bidirectional.
+> 
+> This is a pure refactor with no functional change.
+> 
+> Signed-off-by: Yishai Hadas <yishaih@nvidia.com>
+> ---
+>  drivers/infiniband/hw/bnxt_re/ib_verbs.c      |  9 ++++----
+>  drivers/infiniband/hw/erdma/erdma_verbs.c     | 17 +++++++++-----
+>  drivers/infiniband/hw/hns/hns_roce_cq.c       |  2 +-
+>  drivers/infiniband/hw/hns/hns_roce_device.h   |  2 +-
+>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c    |  2 +-
+>  drivers/infiniband/hw/hns/hns_roce_mr.c       | 22 +++++++++++++-----
+>  drivers/infiniband/hw/hns/hns_roce_qp.c       |  2 +-
+>  drivers/infiniband/hw/hns/hns_roce_srq.c      |  4 ++--
+>  .../infiniband/hw/ionic/ionic_controlpath.c   |  5 ++--
+>  drivers/infiniband/hw/mana/cq.c               |  2 +-
+>  drivers/infiniband/hw/mana/main.c             |  9 ++++++--
+>  drivers/infiniband/hw/mana/mana_ib.h          |  2 +-
+>  drivers/infiniband/hw/mana/qp.c               |  9 ++++----
+>  drivers/infiniband/hw/mana/wq.c               |  3 ++-
+>  drivers/infiniband/hw/mlx4/cq.c               | 14 ++++++-----
+>  drivers/infiniband/hw/mlx5/cq.c               |  6 ++---
+>  drivers/infiniband/hw/qedr/verbs.c            | 23 +++++++++++++------
+>  17 files changed, 84 insertions(+), 49 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> index ef08d42f377e..7f9aa3620abb 100644
+> --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> @@ -3749,12 +3749,13 @@ int bnxt_re_resize_cq(struct ib_cq *ibcq, unsigned int cqe,
+>  	if (rc)
+>  		goto fail;
+>  
+> -	cq->resize_umem = ib_umem_get_va(&rdev->ibdev, req.cq_va,
+> -					 entries * sizeof(struct cq_base),
+> -					 IB_ACCESS_LOCAL_WRITE);
+> +	cq->resize_umem = ib_umem_get_cq_buf_or_va(&rdev->ibdev, NULL,
+> +						   req.cq_va,
+> +						   entries * sizeof(struct cq_base),
+> +						   IB_ACCESS_LOCAL_WRITE);
 
-An importer attached to a uverbs dma-buf cannot tell whether its
-peer-to-peer traffic would reach the exported memory directly, because the
-&struct p2pdma_provider describing it stays in ib_uverbs_dmabuf_file.
 
-Implement @p2pdma_provider so dma_buf_p2pdma_map_type() can reach it, and
-refuse once the buffer is revoked and the memory it described is gone.
+<...>
 
-Tested-by: Tushar Dave <tdave@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/core/uverbs_std_types_dmabuf.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+> index fca2553e47ad..3519b5044e8f 100644
+> --- a/drivers/infiniband/hw/erdma/erdma_verbs.c
+> +++ b/drivers/infiniband/hw/erdma/erdma_verbs.c
+> @@ -828,11 +828,16 @@ static void erdma_destroy_mtt(struct erdma_dev *dev, struct erdma_mtt *mtt)
+>  
+>  static int get_mtt_entries(struct erdma_dev *dev, struct erdma_mem *mem,
+>  			   u64 start, u64 len, int access, u64 virt,
+> -			   unsigned long req_page_size, bool force_continuous)
+> +			   unsigned long req_page_size, bool force_continuous,
+> +			   bool is_cq)
+>  {
+>  	int ret = 0;
+>  
+> -	mem->umem = ib_umem_get_va(&dev->ibdev, start, len, access);
+> +	if (is_cq)
+> +		mem->umem = ib_umem_get_cq_buf_or_va(&dev->ibdev, NULL, start,
+> +						     len, access);
+> +	else
+> +		mem->umem = ib_umem_get_va(&dev->ibdev, start, len, access);
 
-diff --git a/drivers/infiniband/core/uverbs_std_types_dmabuf.c b/drivers/infiniband/core/uverbs_std_types_dmabuf.c
-index 2411ebee69e2..5a6a1ee430a7 100644
---- a/drivers/infiniband/core/uverbs_std_types_dmabuf.c
-+++ b/drivers/infiniband/core/uverbs_std_types_dmabuf.c
-@@ -76,6 +76,17 @@ static void uverbs_dmabuf_release(struct dma_buf *dmabuf)
- 	uverbs_uobject_release(&priv->uobj);
- }
- 
-+static struct p2pdma_provider *
-+uverbs_dmabuf_provider(struct dma_buf *dmabuf)
-+{
-+	struct ib_uverbs_dmabuf_file *priv = dmabuf->priv;
-+
-+	if (priv->revoked)
-+		return NULL;
-+
-+	return priv->provider;
-+}
-+
- static const struct dma_buf_ops uverbs_dmabuf_ops = {
- 	.attach = uverbs_dmabuf_attach,
- 	.map_dma_buf = uverbs_dmabuf_map,
-@@ -83,6 +94,7 @@ static const struct dma_buf_ops uverbs_dmabuf_ops = {
- 	.pin = uverbs_dmabuf_pin,
- 	.unpin = uverbs_dmabuf_unpin,
- 	.release = uverbs_dmabuf_release,
-+	.p2pdma_provider = uverbs_dmabuf_provider,
- };
- 
- static int UVERBS_HANDLER(UVERBS_METHOD_DMABUF_ALLOC)(
+Sorry, but this patch doesn't look right to me.
 
--- 
-2.55.0
+In bnxt_re_resize_cq(), you chose to move away from the ib_umem_get_va()
+API, but here you still keep that API because most of its callers are not
+CQs. Why is it so important to specify the direction for CQs while QPs
+and MRs are left without it?
 
+Thanks
+
+>  	if (IS_ERR(mem->umem)) {
+>  		ret = PTR_ERR(mem->umem);
+>  		mem->umem = NULL;
+> @@ -951,7 +956,7 @@ static int init_user_qp(struct erdma_qp *qp, struct erdma_ucontext *uctx,
+>  
+>  	ret = get_mtt_entries(qp->dev, &qp->user_qp.sq_mem, va,
+>  			      qp->attrs.sq_size << SQEBB_SHIFT, 0, va,
+> -			      (SZ_1M - SZ_4K), true);
+> +			      (SZ_1M - SZ_4K), true, false);
+>  	if (ret)
+>  		return ret;
+>  
+> @@ -960,7 +965,7 @@ static int init_user_qp(struct erdma_qp *qp, struct erdma_ucontext *uctx,
+>  
+>  	ret = get_mtt_entries(qp->dev, &qp->user_qp.rq_mem, va + rq_offset,
+>  			      qp->attrs.rq_size << RQE_SHIFT, 0, va + rq_offset,
+> -			      (SZ_1M - SZ_4K), true);
+> +			      (SZ_1M - SZ_4K), true, false);
+>  	if (ret)
+>  		goto put_sq_mtt;
+>  
+> @@ -1250,7 +1255,7 @@ struct ib_mr *erdma_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 len,
+>  		return ERR_PTR(-ENOMEM);
+>  
+>  	ret = get_mtt_entries(dev, &mr->mem, start, len, access, virt,
+> -			      SZ_2G - SZ_4K, false);
+> +			      SZ_2G - SZ_4K, false, false);
+>  	if (ret)
+>  		goto err_out_free;
+>  
+> @@ -1931,7 +1936,7 @@ static int erdma_init_user_cq(struct erdma_ucontext *ctx, struct erdma_cq *cq,
+>  
+>  	ret = get_mtt_entries(dev, &cq->user_cq.qbuf_mem, ureq->qbuf_va,
+>  			      ureq->qbuf_len, IB_ACCESS_LOCAL_WRITE,
+> -			      ureq->qbuf_va, SZ_64M - SZ_4K, true);
+> +			      ureq->qbuf_va, SZ_64M - SZ_4K, true, true);
+>  	if (ret)
+>  		return ret;
+
+Thanks
