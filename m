@@ -1,41 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7EF4468C31;
-	Mon, 21 Sep 2026 09:15:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCE2D46D0B5;
+	Mon, 21 Sep 2026 09:15:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789982141; cv=none; b=poebDR9yUwT7qSLMk6IPHLWT2eSviT8Rup4eJPDPY8wuBDOY43elt/JHkOe9NNnYXvAnnHmleSEuIvjML6Haa65zvpZp2Zw0w4m7wsGy6RHpdPf33Kivt8rSZwj59j+fpQIlD3VRuApwNeFphBBnZKLVM5l7C5ixHFH+cnOzyP4=
+	t=1789982142; cv=none; b=G5zabw6KqMGRYBQDg77SHkiom56py+ecYUB9KCvlpMdgEaaMsceKMiI1T2T6CpZV6uQ1trlyKNOQTkPkJNrmEp2v39h3FejsRzvO6966xIJgZhA4b6y9Z999XWHMm9ohWhSjUMeQYM8Au5pI4fVO4qX1gYyWc48Nq5u4rndN/wM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789982141; c=relaxed/simple;
-	bh=gQTn3+/hDoKeAAGUhoWYoAPLyOX/cae2teUdtDKM02U=;
+	s=arc-20240116; t=1789982142; c=relaxed/simple;
+	bh=8oXtz6Tvwwnn7MByYKLY/739Y3rVt60yMpewDFJADmY=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=GLq6sJ3M6rk0snurjbv1fQiQ0wG9PBKKWjhXpPpwDQV4P6qEC3ekj36jHa5wT3W44JXbhomN+OnKHVvKs9pp2uLcdoWjfAEPNPIrbhopPxZvhVeVFNhn5oBhLFXa+bGewToxw1TDQ9+5EdQBfh7xc3W46ZMfYUpsv/ElAWDJd4A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OOJMQvQP; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=uKgC6mwoHP3ku+U0WgD4DcgTyrMoVk56cHBAtkwknJq1/hc9fhr/6Ytz/5GapK3mCtqlpTfhuIsJFaRde7fjGKnDklmj3ygkjkSaeri35Ms6bRiw1td91FLEpW8XfFp2cOHXDyHSV9kHxD1Ov7mXspOS9hGlZaAtE7I9jQqnUEE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mWGVu4Bu; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OOJMQvQP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BEF31F00898;
-	Mon, 21 Sep 2026 09:15:39 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mWGVu4Bu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C8451F000FF;
+	Mon, 21 Sep 2026 09:15:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789982139;
-	bh=GSDQz95Opo/jFrxsIJsOCvafIeuhRMbEo3ql0zEDMl8=;
+	s=k20260515; t=1789982140;
+	bh=hA1Lis9focpsdZM+VkwZ154VPVY9XxS9H3LoXgUpu7A=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=OOJMQvQPLgjZDbtW0Hi83RiL0yrljB1nSqGU2naDkV4qM3vQkr/FEqaAUHxinQCzG
-	 6pQGNZNk5gZ0WxdQr0jOtkpvLSHfePfCgp7B6p/4l3WiPeDf5vGklA58tzZ83OzHNz
-	 JP4TtIF4Op9VaUvg8r/tLaK6t1N7eARGVh83+2d+rQoH+Ax8+f6snpT4nzsrRa6rt6
-	 tX5Ofnw1iqSQ2ctHHDV7wW6PxmnsZYFEdfhxieWRqVmMIzsmaN4b9tCHaSTtsk/Ihy
-	 XhBA8Ju6r9EkkKaMdSPB0YFX5HvE9u8/GOVvuf+QvavrUtz330TVfVXxuQEudIFDL+
-	 lrSQvRyghCcZA==
-Subject: Re: [PATCH net-next v4 09/12] net/rds: refuse to queue on a
- connection being destroyed
+	b=mWGVu4BuP+MRCBnAOMY7q+W3a4OYCb2ZFtCfOjVWKgYA/uvVu3PaXFCZgua8fbxTT
+	 Dv6lNFaXwakQ+XIp9i37SqsgbjSxMXHmBAL1c3c3kX3A44aegMMyWcuyGb5kalxhWT
+	 qnML6IF5QDaQTA2gPwC2pFbTb5181n8ndpaFrZve+6vzBHyOyLPVzupfHGZUapD5Zo
+	 hT/FG4Ou2BXc6jkQ0bqpdEI/ctVFSWrxb8aJnV3u9o5Ox7HMH36MDT1OD6Rj7doyTh
+	 sNXckooMHQePLuavv5U7qeaiCL/m8TEFqxrZcEL+iwCkJGHVXm8U84t5B635KwZnjD
+	 TkdExCFJIblUQ==
+Subject: Re: [PATCH net-next v4 10/12] net/rds: pin the connection across
+ RDMA-CM event handling
 From: netdev-bot+sashiko@kernel.org
 To: achender@kernel.org
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
  edumazet@google.com, kuba@kernel.org, horms@kernel.org, nicoyip.dev@gmail.com
-Date: Mon, 21 Sep 2026 09:15:38 +0000
-Message-ID: <178998213871.2160803.8802073985683603650@kernel.org>
-In-Reply-To: <20260917073958.174056-10-achender@kernel.org>
-References: <20260917073958.174056-10-achender@kernel.org>
+Date: Mon, 21 Sep 2026 09:15:39 +0000
+Message-ID: <178998213978.2160803.12966181628951084236@kernel.org>
+In-Reply-To: <20260917073958.174056-11-achender@kernel.org>
+References: <20260917073958.174056-11-achender@kernel.org>
 X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -46,10 +46,10 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 5 potential
+Thank you for your contribution! Sashiko AI review found 2 potential
 issue(s) to consider.
 
-Critical: 0 · High: 3 · Medium: 0 · Low: 2
+Critical: 0 · High: 1 (1) · Medium: 0 · Low: 1
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -57,312 +57,211 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [High] rds_conn_path_quiesce() still asserts
-  BUG_ON(!list_empty(&rm->m_sock_item)) for every message it takes off…
-- [High] The quiesce purge unlinks m_conn_item and drops the connection-
-  queue message reference without clearing RDS_MSG_ON_CONN and without…
-- [High] The new rds_destroy_pending() refusal in rds_send_queue_rm() is
-  placed inside the `if (rs->rs_snd_bytes < rds_sk_sndbuf(rs))` branch,…
-- [Low] The comment "The code ordering is a little weird, but we're
-  trying to minimize the time we hold c_lock" in rds_send_queue_rm() now…
-- [Low] Series bisectability: this patch repairs a defect introduced
-  earlier in the same series (the preceding commit "net/rds: hold…
+- [High] The commit message's central premise is false for this tree: it
+  claims that rds_ib_cm_connect_complete()'s protocol-version-mismatch…
+- [Low] Stale forward-reference comment: net/rds/ib_cm.c:936-940 (out:
+  block of rds_ib_cm_handle_connect()) still says the conn "stays…
+
+Pre-existing issues:
+- [High] rds_rdma_cm_event_handler_cmn() declares `struct rds_transport
+  *trans;` with no initializer and assigns it only for InfiniBand…
 
 --
 
-net/rds: refuse to queue on a connection being destroyed
+net/rds: pin the connection across RDMA-CM event handling
 
-This makes rds_conn_path_quiesce() splice cp_send_queue away under cp_lock
-instead of walking it unlocked, and adds an rds_destroy_pending() test under
-that same lock to rds_send_queue_rm() and rds_send_probe() so nothing is
-queued after the purge.  rds_send_queue_rm() reports the refusal by setting
-*queued negative and rds_sendmsg() turns that into -EAGAIN.
+The RDMA-CM event handler takes a reference on the connection it picked
+up from cm_id->context for the duration of the callback dispatch, and
+ignores the event when the connection is already being freed.
+rds_ib_cm_handle_connect() additionally re-checks rds_destroy_pending()
+under c_cm_lock and rejects the incoming request in that case.
 
-A few questions about the new purge and the placement of the refusal test.
+Two questions on the code and one on a quoted paragraph of the commit
+message below.
 
-> diff --git a/net/rds/connection.c b/net/rds/connection.c
-> index 965d68e51a1c1..5699f45e4c377 100644
-> --- a/net/rds/connection.c
-> +++ b/net/rds/connection.c
-> @@ -606,6 +606,8 @@ void rds_conn_shutdown(struct rds_conn_path *cp)
->  static void rds_conn_path_quiesce(struct rds_conn_path *cp)
->  {
->  	struct rds_message *rm, *rtmp;
-> +	unsigned long flags;
-> +	LIST_HEAD(purge);
->  
->  	if (!cp->cp_transport_data)
->  		return;
-> @@ -617,10 +619,16 @@ static void rds_conn_path_quiesce(struct rds_conn_path *cp)
->  	rds_conn_path_drop(cp, true);
->  	flush_work(&cp->cp_down_w);
->  
-> -	/* tear down queued messages */
-> -	list_for_each_entry_safe(rm, rtmp,
-> -				 &cp->cp_send_queue,
-> -				 m_conn_item) {
-> +	/* Tear down queued messages.  Take the queue under cp_lock:
-> +	 * a sender that still holds a reference can be inside
-> +	 * rds_send_queue_rm() right now, and it tests
-> +	 * rds_destroy_pending() under the same lock, so after this
-> +	 * splice nothing is added behind our back.
-> +	 */
-> +	spin_lock_irqsave(&cp->cp_lock, flags);
-> +	list_splice_init(&cp->cp_send_queue, &purge);
-> +	spin_unlock_irqrestore(&cp->cp_lock, flags);
-> +	list_for_each_entry_safe(rm, rtmp, &purge, m_conn_item) {
->  		list_del_init(&rm->m_conn_item);
->  		BUG_ON(!list_empty(&rm->m_sock_item));
->  		rds_message_put(rm);
+> net/rds: pin the connection across RDMA-CM event handling
+>
+> rds_rdma_cm_event_handler_cmn() picks the connection up from
+> cm_id->context, which carries no reference, and holds c_cm_lock - a
+> mutex that lives in the connection's path array - across the transport
+> callbacks.  Before this series that was already a use-after-free
+> whenever a callback destroyed the connection, since rds_conn_destroy()
+> freed it synchronously and the handler's mutex_unlock() ran on freed
+> memory; the one such callback, rds_ib_cm_connect_complete() on a
+> protocol version below 3.1, has meanwhile been switched to
+> rds_conn_drop() by commit f97d8c7bab78 ("rds: ib: use rds_conn_drop()
+> on protocol version mismatch"), which also removed the deadlock that
+> destroy took on c_cm_lock.
 
 [Severity: High]
-The commit message says "A sender that gets there first has its message
-purged".  Can that message actually be purged, given the retained
-BUG_ON(!list_empty(&rm->m_sock_item))?
+Which tree does commit f97d8c7bab78 ("rds: ib: use rds_conn_drop() on
+protocol version mismatch") come from?  I cannot find it in the baseline
+or anywhere in this series, and rds_ib_cm_connect_complete() still calls
+rds_conn_destroy() on the version-mismatch path, both at this commit and
+at the end of the series:
 
-rds_send_queue_rm() links a sendmsg message onto both queues in the same
-locked region:
-
-net/rds/send.c:rds_send_queue_rm() {
+net/rds/ib_cm.c:rds_ib_cm_connect_complete() {
 	...
-	list_add_tail(&rm->m_sock_item, &rs->rs_send_queue);
-	set_bit(RDS_MSG_ON_SOCK, &rm->m_flags);
-	...
-	list_add_tail(&rm->m_conn_item, &cp->cp_send_queue);
-	set_bit(RDS_MSG_ON_CONN, &rm->m_flags);
-	...
-}
-
-So a message on cp_send_queue always has a non-empty m_sock_item, and the
-sender that "gets there first" hits BUG() rather than a clean purge.
-
-The window exists because the flag the new test reads is published under a
-different lock:
-
-net/rds/connection.c:rds_conn_destroy() {
-	spin_lock_irq(&rds_conn_lock);
-	if (conn->c_destroy_in_prog) {
-		spin_unlock_irq(&rds_conn_lock);
-		return;
+	if (conn->c_version < RDS_PROTOCOL_VERSION) {
+		if (conn->c_version != RDS_PROTOCOL_COMPAT_VERSION) {
+			pr_notice("RDS/IB: Connection <%pI6c,%pI6c> version %u.%u no longer supported\n",
+				  ...);
+			rds_conn_destroy(conn);
+			return;
+		}
 	}
-	WRITE_ONCE(conn->c_destroy_in_prog, true);
 	...
 }
 
-CPU0 (sendmsg)                        CPU1 (destroy)
-rds_send_queue_rm()
-  spin_lock(&cp->cp_lock)
-  rds_destroy_pending() == false
-  list_add_tail(m_sock_item, ...)
-  list_add_tail(m_conn_item, ...)
-  spin_unlock(&cp->cp_lock)
-                                      WRITE_ONCE(c_destroy_in_prog, true)
-                                      rds_conn_path_quiesce()
-                                        splice cp_send_queue
-                                        BUG_ON(!list_empty(m_sock_item))
+If that call site is still there, is the deadlock the paragraph says was
+removed still reachable?  The handler dispatches this callback with
+c_cm_lock held:
 
-Is there also a non-racy path into the same assertion?  rds_conn_shutdown()
-runs before the purge and rds_send_path_reset() puts retransmit messages
-back on cp_send_queue:
+rds_rdma_cm_event_handler_cmn()
+    mutex_lock(&conn->c_cm_lock);
+    case RDMA_CM_EVENT_ESTABLISHED:
+        trans->cm_connect_complete(conn, event);   /* rds_ib_cm_connect_complete() */
+            rds_conn_destroy(conn)
+                rds_conn_path_quiesce()
+                    rds_conn_path_drop(cp, true);  /* forces RDS_CONN_ERROR, queues cp_down_w */
+                    flush_work(&cp->cp_down_w);
+                        rds_shutdown_worker() -> rds_conn_shutdown()
+                            mutex_lock(&cp->cp_cm_lock);   /* held by the flushing thread */
 
-net/rds/send.c:rds_send_path_reset() {
-	...
-	list_splice_init(&cp->cp_retrans, &cp->cp_send_queue);
-	spin_unlock_irqrestore(&cp->cp_lock, flags);
-}
+Since c_cm_lock is c_path[0].cp_cm_lock, does the flush_work() in
+rds_conn_path_quiesce() wait for a shutdown worker that blocks on the
+mutex the same thread is holding?  rds_conn_shutdown() cannot take the
+RDS_CONN_DOWN -> RDS_CONN_DOWN shortcut here because
+rds_conn_path_drop(cp, true) has just set the state to RDS_CONN_ERROR.
 
-Those messages are still on their socket's send queue, so destroying a
-connection while a socket has unacked messages would reach the BUG_ON with
-no timing involved at all.
+The version bytes come from the peer's CM private data, so a remote
+endpoint advertising a version below 3.1 (and different from the compat
+version) selects this branch.  Would that hang the RDMA-CM event thread
+with c_cm_lock held, leave the connection unfreed, and make rds_ib
+unload block in rds_conn_wait_conns_freed()?
 
-[Severity: High]
-The purge unlinks m_conn_item and drops the conn-side reference, but leaves
-RDS_MSG_ON_CONN set and does not touch the socket side.  Can that let a
-concurrent remover work on the private purge list?
+If the referenced commit is a prerequisite that is not part of this
+posting, could the ordering be stated, or could the destroy-from-callback
+site be converted in this series?
 
-RDS_MSG_ON_CONN is the token other conn-side removers use:
-
-net/rds/send.c:rds_send_drop_to() {
-	...
-	spin_lock_irqsave(&cp->cp_lock, flags);
-	if (!test_and_clear_bit(RDS_MSG_ON_CONN, &rm->m_flags)) {
-		spin_unlock_irqrestore(&cp->cp_lock, flags);
-		continue;
-	}
-	list_del_init(&rm->m_conn_item);
-	spin_unlock_irqrestore(&cp->cp_lock, flags);
-	...
-	rds_message_put(rm);
-}
-
-rds_send_drop_to() is reachable from rds_release() and from
-setsockopt(RDS_CANCEL_SENT_TO).  If it runs while the quiesce is walking
-'purge' with cp_lock dropped, it unlinks an entry from that stack-local
-list; if it runs after the purge, test_and_clear_bit() still succeeds and
-rds_message_put() drops the conn-queue reference a second time.  Since
-rds_send_queue_rm() takes one reference per membership, does that underflow
-the rds_message refcount and free the message while rs_send_queue and the
-sender still point at it?  rds_send_probe() messages, which have an empty
-m_sock_item and survive the assertion above, look like the easiest case to
-hit.
-
-The established protocol clears the flag under the lock before releasing it:
-
-net/rds/send.c:rds_send_path_drop_acked() {
-	...
-	list_move(&rm->m_conn_item, &list);
-	clear_bit(RDS_MSG_ON_CONN, &rm->m_flags);
-	...
-	if (!list_empty(&list))
-		smp_mb__after_atomic();
-	spin_unlock_irqrestore(&cp->cp_lock, flags);
-}
-
-Should the splice clear RDS_MSG_ON_CONN for each message under cp_lock, and
-retire the socket side (m_sock_item, rs_snd_bytes) through
-rds_send_remove_from_sock()?  As written the purge never calls
-rds_send_sndbuf_remove(), so rs_snd_bytes stays charged for the purged
-messages.
-
-> diff --git a/net/rds/send.c b/net/rds/send.c
-> index 2d7839438abdc..f7bc4c5446d61 100644
-> --- a/net/rds/send.c
-> +++ b/net/rds/send.c
-> @@ -928,6 +928,19 @@ static int rds_send_queue_rm(struct rds_sock *rs, struct rds_connection *conn,
->  	 * and poll() now knows no more data can be sent.
+> diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
+> index 98f34b494237a..0199560488738 100644
+> --- a/net/rds/ib_cm.c
+> +++ b/net/rds/ib_cm.c
+> @@ -874,6 +874,13 @@ int rds_ib_cm_handle_connect(struct rdma_cm_id *cm_id,
+>  	 * see the comment above rds_queue_reconnect()
 >  	 */
->  	if (rs->rs_snd_bytes < rds_sk_sndbuf(rs)) {
-> +		/* rds_conn_path_quiesce() empties cp_send_queue under
-> +		 * cp_lock once the connection's destroy has begun.  Test
-> +		 * for that under the same lock, before touching either
-> +		 * queue: a message added after the purge would hold a
-> +		 * connection reference nothing ever drops.
-> +		 */
-> +		spin_lock(&cp->cp_lock);
-> +		if (rds_destroy_pending(conn)) {
-> +			spin_unlock(&cp->cp_lock);
-> +			*queued = -EAGAIN;
-> +			goto unlock;
-> +		}
-> +
->  		rs->rs_snd_bytes += len;
-
-[Severity: High]
-The refusal sits inside the "if (rs->rs_snd_bytes < rds_sk_sndbuf(rs))"
-branch.  When the send buffer is already full, does *queued ever go
-negative?
-
-For a full sndbuf rds_send_queue_rm() skips the whole branch and returns the
-unchanged *queued == 0, so rds_sendmsg() keeps sleeping:
-
-net/rds/send.c:rds_sendmsg() {
-	...
-	timeo = wait_event_interruptible_timeout(*sk_sleep(sk),
-				rds_send_queue_rm(rs, conn, cpath, rm, ...),
-				timeo);
-	if (timeo > 0 || timeo == MAX_SCHEDULE_TIMEOUT)
-		continue;
-	...
-}
-
-With the default SO_SNDTIMEO, timeo is MAX_SCHEDULE_TIMEOUT, so the loop
-re-sleeps and the new "if (queued < 0)" exit is never reached.
-
-Can the send room ever appear afterwards?  Credit is returned by
-rds_send_remove_from_sock() on ack processing, which cannot happen on a
-quiesced connection, or by rds_send_drop_to() on close/cancel, which the
-blocked task itself is holding the socket against.  The purge in
-rds_conn_path_quiesce() touches neither rs_snd_bytes nor sk_sleep(), so
-there is no wake-up either.
-
-The commit message states:
-
-  "rds_send_queue_rm()'s *queued becomes negative on refusal so that the
-  wait loop in rds_sendmsg() stops waiting for send room that will never
-  come."
-
-Is that true for the full-sndbuf case, which is the only case that reaches
-the wait loop?  And since rds_sendmsg() holds rds_conn_get(conn) for the
-whole call, does a sender parked this way keep t_conn_count non-zero and
-leave rds_conn_wait_conns_freed() looping on transport unload?  Would moving
-the rds_destroy_pending() test above the sndbuf-room check, and returning
-the credit plus a wake-up from the purge, address both?
-
-> @@ -951,7 +964,6 @@ static int rds_send_queue_rm(struct rds_sock *rs, struct rds_connection *conn,
->  		rm->m_inc.i_conn_path = cp;
->  		rds_message_addref(rm);
->  
-> -		spin_lock(&cp->cp_lock);
->  		rm->m_inc.i_hdr.h_sequence = cpu_to_be64(cp->cp_next_tx_seq++);
->  		list_add_tail(&rm->m_conn_item, &cp->cp_send_queue);
->  		set_bit(RDS_MSG_ON_CONN, &rm->m_flags);
+>  	mutex_lock(&conn->c_cm_lock);
+> +	/* A destroy that has already quiesced this conn leaves it in
+> +	 * RDS_CONN_DOWN with no cm_id, exactly what the transition
+> +	 * below would happily claim; nothing would tear the new cm_id
+> +	 * and QP down again before the conn is freed.  Reject instead.
+> +	 */
+> +	if (rds_destroy_pending(conn))
+> +		goto out;
+>  	if (!rds_conn_transition(conn, RDS_CONN_DOWN, RDS_CONN_CONNECTING)) {
+>  		if (rds_conn_state(conn) == RDS_CONN_UP) {
+>  			rdsdebug("incoming connect while connecting\n");
 
 [Severity: Low]
-This isn't a bug, but the comment a few lines above now describes something
-the function no longer does:
+This isn't a bug, but the out: block a bit further down in the same
+function still points at this change as future work:
 
-		/* The code ordering is a little weird, but we're
-		   trying to minimize the time we hold c_lock */
-		rds_message_populate_header(&rm->m_inc.i_hdr, sport, dport, 0);
+net/rds/ib_cm.c:rds_ib_cm_handle_connect() {
+	...
+out:
+	if (conn) {
+		mutex_unlock(&conn->c_cm_lock);
+		/* Drop the reference rds_conn_create() handed us.  The
+		 * conn stays reachable through cm_id->context without a
+		 * reference of its own for now; the CM event handler is
+		 * given one of its own by a following patch.
+		 */
+		rds_conn_put(conn);
+	}
+	...
+}
 
-cp_lock is now taken at the top of the branch, so it is held across the
-socket-queue insertion, sock_hold(), the header population, the
-rds_message_addref() and the sequence bump.  Could the comment be updated or
-dropped?
+This commit is that following patch, and it does not give cm_id->context
+a reference of its own - rds_rdma_cm_event_handler_cmn() takes a
+per-event reference and drops it at out:.  Could that comment be updated
+to describe the per-event pinning?  It is unchanged at the end of the
+series.
 
-> @@ -964,6 +976,7 @@ static int rds_send_queue_rm(struct rds_sock *rs, struct rds_connection *conn,
->  		*queued = 1;
->  	}
->  
-> +unlock:
->  	spin_unlock_irqrestore(&rs->rs_lock, flags);
->  out:
->  	return *queued;
-> @@ -1485,6 +1498,11 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
->  			ret = -ETIMEDOUT;
->  		goto out;
->  	}
-> +	/* rds_send_queue_rm() refused: the connection is being destroyed */
-> +	if (queued < 0) {
-> +		ret = queued;
-> +		goto out;
+> diff --git a/net/rds/rdma_transport.c b/net/rds/rdma_transport.c
+> index b15cf316b23a2..584e9867810f4 100644
+> --- a/net/rds/rdma_transport.c
+> +++ b/net/rds/rdma_transport.c
+> @@ -63,6 +63,18 @@ static int rds_rdma_cm_event_handler_cmn(struct rdma_cm_id *cm_id,
+>  	if (cm_id->device->node_type == RDMA_NODE_IB_CA)
+>  		trans = &rds_ib_transport;
+
+[Severity: High]
+This isn't a bug introduced by this patch - it reads the same way in the
+baseline - but while we are in rds_rdma_cm_event_handler_cmn(): can trans
+be used uninitialized here?  It is declared as
+
+	struct rds_transport *trans;
+
+with no initializer, assigned only for RDMA_NODE_IB_CA, and the
+CONNECT_REQUEST arm dereferences it unconditionally:
+
+	case RDMA_CM_EVENT_CONNECT_REQUEST:
+		ret = trans->cm_handle_connect(cm_id, event, isv6);
+
+The listener is created without a node-type restriction -
+rds_rdma_listen_init_common() calls
+
+	cm_id = rdma_create_id(&init_net, handler, NULL,
+			       RDMA_PS_TCP, IB_QPT_RC);
+
+and RDS never calls rdma_restrict_node_type(), so id_priv->
+restricted_node_type stays RDMA_NODE_UNSPECIFIED and cma_listen_on_dev()
+installs the listener on iWARP devices too.  An incoming iWARP request
+then goes:
+
+iw_conn_req_handler()          /* event.event = RDMA_CM_EVENT_CONNECT_REQUEST */
+    cma_listen_handler()
+        rds_rdma_cm_event_handler()
+            rds_rdma_cm_event_handler_cmn()
+
+with cm_id->device->node_type == RDMA_NODE_RNIC and cm_id->context NULL,
+so the assignment above is skipped, conn stays NULL (the new
+rds_conn_get_unless_zero() branch and the c_cm_lock block are both
+skipped), and the indirect call goes through an uninitialized stack
+value.  The other two arms happen to be guarded by conn.
+
+Would an explicit else that rejects non-IB node types, or initialising
+trans to NULL plus a check, be worth adding while this function is being
+touched?
+
+> +	/* cm_id->context carries no reference of its own.  Pin the
+> +	 * connection for the duration of the handler: what the callbacks
+> +	 * below do may drop the last reference other than ours, and the
+> +	 * mutex released at out: lives in the connection's path array.
+> +	 * A connection already being freed gets no events handled.
+> +	 */
+> +	if (conn && !rds_conn_get_unless_zero(conn)) {
+> +		rdsdebug("conn %p id %p is being freed, ignoring event\n",
+> +			 conn, cm_id);
+> +		return 0;
 > +	}
->  
->  	/*
->  	 * By now we've committed to the send.  We reuse rds_send_worker()
+> +
+>  	/* Prevent shutdown from tearing down the connection
+>  	 * while we're executing. */
+>  	if (conn) {
 
 [ ... ]
 
-> @@ -1567,6 +1585,14 @@ rds_send_probe(struct rds_conn_path *cp, __be16 sport,
->  		goto out;
+> @@ -171,8 +183,10 @@ static int rds_rdma_cm_event_handler_cmn(struct rdma_cm_id *cm_id,
+>  	}
 >  
->  	spin_lock_irqsave(&cp->cp_lock, flags);
-> +	/* Same rule as rds_send_queue_rm(): once the destroy has purged
-> +	 * cp_send_queue under this lock, nothing may be added behind it.
-> +	 */
-> +	if (rds_destroy_pending(cp->cp_conn)) {
-> +		spin_unlock_irqrestore(&cp->cp_lock, flags);
-> +		ret = -EAGAIN;
-> +		goto out;
+>  out:
+> -	if (conn)
+> +	if (conn) {
+>  		mutex_unlock(&conn->c_cm_lock);
+> +		rds_conn_put(conn);
 > +	}
->  	list_add_tail(&rm->m_conn_item, &cp->cp_send_queue);
->  	set_bit(RDS_MSG_ON_CONN, &rm->m_flags);
->  	rds_message_addref(rm);
-
-[Severity: Low]
-One question about the series ordering rather than this hunk.  The
-serialization added here is what makes the quiesce safe against senders that
-are allowed to be in flight by the earlier commits "net/rds: split
-connection destroy into quiesce and kref-governed free" and "net/rds: hold
-connection references in lookup, sockets and c_passive".
-
-At those intermediate commits the unlocked cp_send_queue walk in
-rds_conn_path_quiesce() already races the locked add in
-rds_send_queue_rm(), so a bisect or a partial backport lands on a tree with
-the list corruption and pinned-connection behaviour described here.
-
-Would folding this change into the prerequisite commit, or adding a Fixes:
-tag naming it, keep the series bisectable?
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260917073958.174056-1-achender%40kernel.org
