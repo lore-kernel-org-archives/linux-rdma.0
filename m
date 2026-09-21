@@ -1,46 +1,48 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C71644B3364;
-	Mon, 21 Sep 2026 17:34:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2973372618;
+	Mon, 21 Sep 2026 18:49:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790012059; cv=none; b=HmPxFHGxigqAhw+Tk/fgC77C3EF78JJKYqqjaMe894cBTKCCfqeLHJKYqLo1DuhuFaURmi1HmVxzg++yvvDIlyOMwWZGNp7pHRdc2fWOscaBKB8fSRCiCCuSDiA5AOLTjH3Xb6+2DYPxdZSc78CHHn/RXKpg35sX2m1Qn7UY7h4=
+	t=1790016545; cv=none; b=CMdNU/biXTDp//B4MjprsGqkOc5PShL2sZ243tALu4nLbbjRkt1z/BdNqyJKuEfsp5yaBP102BkOJYb79U9LZg9+tlTX4SHjuggVlhrbxcuxgqCgMaHUADijZbQ2SubuN7gzUGoa4Qu8rh0iFVj99MMK3t4BEv/yGhAfu95h6VM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790012059; c=relaxed/simple;
-	bh=NWPMLmKR5H+NciSlzSpaXKEQ9o8CFGTkrapK+qDVBsQ=;
+	s=arc-20240116; t=1790016545; c=relaxed/simple;
+	bh=bYoV4ac+ByHFszr44RZZsqVOqcCekHPJCFcuRTvwiTQ=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=ZGag79ZfFV75bbM04PZwD0eNdVI1clUEVa0PYwgrE/d1VOGvpZerPLYoghD8UAx536TZDKnhd9CTK6mJFecEnOZyjJcvFjvryVN2ylATqA4pdoCEl8zqSr0pwbYtd+T4Ql+f8F3fkk4pCG8aOeHoGBh9pnwRZLLvh55W+FVUjxQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ntfIleXt; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=Dsfw5iNNmDhAq97e06XtYehGG8iuHzChLyx/XQeCQoUsa0rxF7K+hNxlBqVD27fXmug8TydOz8p9Nn0hklTO2r5q0hNgnkNRkvcyLnWo1RCGmt4s0e/fSgpSNdwh/tX01neUxvL8kJ7PJB228VpvLp+Jj+lR9kd9ONgZKpiM5T4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dxYwtnIq; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ntfIleXt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D4CF1F000FF;
-	Mon, 21 Sep 2026 17:34:16 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dxYwtnIq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CE461F00898;
+	Mon, 21 Sep 2026 18:49:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790012057;
-	bh=alPDCc/SUV227jYN2Mo1xAda//QTLk70i3b6IwDM7UI=;
+	s=k20260515; t=1790016543;
+	bh=i0g5jY5uAgqSTPkkPjTSAM5Pp+ApHo0ckOc9B9VGkHM=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=ntfIleXtOngS9kgtd13aXHkN8riuMFwNMcUzajbCcBRQQBzBVoBr8ak1m1TfU92GE
-	 JI84svf3uFDwrccHoW+x64Ww2sS0QtdqhKvj91gutkuCzXF0exSukcQ5vInYuvLjpL
-	 PqqEDW5cX3eOn3T8ucVJx1OBRf0lJnMrk4oqUOOkZuD82IVo35bb8m7AR8LOvHuZF/
-	 s8Pkcvg2VNUxARnEhCpojVMdqOsKLjIjOR0E7/KE+VXw/t6Bakr0GKzvEf2mJKaQf4
-	 q4cb8gEn2UvgHB6qUTJXvV7QBgspz1ciY3EX+z/8AFZGYFDbMTXhrkAk/rctKHJp9Y
-	 vhn9X1eUgqahA==
-Subject: Re: [PATCH] net/smc: Fix socket use-after-free in smc_shutdown()
+	b=dxYwtnIq2SoTET15zvYXk8WWSO9u5SFPMoPJ0po7WESGzUHvbEhHoEXnifeAo8mgr
+	 8AIabNdILh4RgAG/SHFbDOnP6gCjPJL+BOSDhkw6G3pEVbJFhn/JbF1MqTHCmlt87o
+	 we1GbDFjX2ieib5YmZEiDNAmki+t8cYTWrayt+XLW3BiIEMgMUGYP0vLRr9LbAyDC0
+	 0Is5jgoWrLomAxSWXqRQTVgFXmY2Ed7F9W1aIAK2ilL1+GCJLHS8H9MqUtrbL9UKYw
+	 r/iq8rcTsnT/LZKmf61CpYFi4PIxSvTkMfEemmvC7sdUD1KjnKE+t9kNrzIZvRhEf6
+	 N91tM5n2Jbleg==
+Subject: Re: [PATCH net 1/7] net/mlx5e: ipsec: Block eswitch mode changes
+ during policy creation
 From: netdev-bot+sashiko@kernel.org
-To: vulab@iscas.ac.cn
-Cc: alibuda@linux.alibaba.com, davem@davemloft.net, dust.li@linux.alibaba.com,
- edumazet@google.com, guwen@linux.alibaba.com, horms@kernel.org,
- kgraul@linux.ibm.com, kuba@kernel.org, linux-kernel@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
- mjambigi@linux.ibm.com, netdev@vger.kernel.org, pabeni@redhat.com,
- sidraya@linux.ibm.com, tonylu@linux.alibaba.com, wenjia@linux.ibm.com,
- stable@vger.kernel.org
-Date: Mon, 21 Sep 2026 17:34:15 +0000
-Message-ID: <179001205598.2160803.12068131189751847433@kernel.org>
-In-Reply-To: <20260917163956.2162779-1-vulab@iscas.ac.cn>
-References: <20260917163956.2162779-1-vulab@iscas.ac.cn>
-X-sashiko-severity: High
+To: tariqt@nvidia.com
+Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
+ kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com,
+ sd@queasysnail.net, borisp@nvidia.com, cjubran@nvidia.com, cratiu@nvidia.com,
+ daniel.zahka@gmail.com, dtatulea@nvidia.com, ehakim@nvidia.com,
+ gal@nvidia.com, jianbol@nvidia.com, leon@kernel.org,
+ linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, liorna@nvidia.com,
+ mbloch@nvidia.com, parav@nvidia.com, raeds@nvidia.com, rrameshbabu@nvidia.com,
+ roid@nvidia.com, saeedm@nvidia.com, steffen.klassert@secunet.com
+Date: Mon, 21 Sep 2026 18:49:01 +0000
+Message-ID: <179001654155.2160803.10642575868860131608@kernel.org>
+In-Reply-To: <20260917175433.4090878-2-tariqt@nvidia.com>
+References: <20260917175433.4090878-2-tariqt@nvidia.com>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -53,7 +55,7 @@ MIME-Version: 1.0
 Thank you for your contribution! Sashiko AI review found 1 potential
 issue(s) to consider.
 
-Critical: 0 · High: 1 · Medium: 0 · Low: 0
+Critical: 0 · High: 0 · Medium: 1 · Low: 0 (1)
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -61,131 +63,222 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [High] net/smc/af_smc.c:smc_shutdown() — the commit claims to fix a
-  use-after-free where the passive-closing sock_put() frees sk before…
+- [Medium] `mlx5e_xfrm_add_policy()`
+  (drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c:1268-1274)…
+
+Pre-existing issues:
+- [Low] Incomplete-fix concern: at this commit `mlx5e_xfrm_add_state()`
+  (drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c:781-813)…
 
 --
 
-net/smc: Fix socket use-after-free in smc_shutdown()
+net/mlx5e: ipsec: Block eswitch mode changes during policy creation
 
-This moves the passive-closing sock_put() in the smc->use_fallback branch
-of smc_shutdown() past release_sock(), using a new passive_close flag, on
-the grounds that the put could otherwise free sk before release_sock()
-runs.  It carries a Fixes: tag and Cc: stable.
+This moves the eswitch mode block in mlx5e_xfrm_add_policy() to the top of
+the function, before priv->ipsec is checked and the policy is validated, and
+releases it once the flow table holds its own block or after unwinding.
+A check_users argument is added to mlx5_eswitch_block_mode() /
+mlx5_esw_try_lock() so the new temporary block does not reject policies while
+TC users are present.
 
-> diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
-> index e9f93b3ab435b..70d6da4c6267d 100644
-> --- a/net/smc/af_smc.c
-> +++ b/net/smc/af_smc.c
-> @@ -2946,6 +2946,7 @@ int smc_shutdown(struct socket *sock, int how)
->  {
->  	struct sock *sk = sock->sk;
->  	bool do_shutdown = true;
-> +	bool passive_close = false;
->  	struct smc_sock *smc;
->  	int rc = -EINVAL;
->  	int old_state;
-> @@ -2983,7 +2984,7 @@ int smc_shutdown(struct socket *sock, int how)
->  		if (sk->sk_shutdown == SHUTDOWN_MASK) {
->  			sk->sk_state = SMC_CLOSED;
->  			sk->sk_socket->state = SS_UNCONNECTED;
-> -			sock_put(sk);
-> +			passive_close = true;
->  		}
->  		goto out;
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
+> index db260e3d1412f..841ecdc2c4d9e 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
+> @@ -806,7 +806,7 @@ static int mlx5e_xfrm_add_state(struct net_device *dev,
+>  		goto err_xfrm;
 >  	}
+>  
+> -	err = mlx5_eswitch_block_mode(priv->mdev);
+> +	err = mlx5_eswitch_block_mode(priv->mdev, true);
+>  	if (err)
+>  		goto unblock_ipsec;
 
-[Severity: High]
-Can the use-after-free described in the changelog actually happen here?
+[Severity: Low]
+This isn't a bug introduced by this patch, but as of this commit
+mlx5e_xfrm_add_state() still has the ordering the changelog describes as
+unsafe: priv->ipsec is tested, cached into ipsec and sa_entry->ipsec, and
+dereferenced through mlx5e_ipsec_fs_tunnel_allowed(sa_entry) before the
+mode block above is taken.
 
-smc_shutdown() is only installed as proto_ops->shutdown (af_smc.c and
-smc_inet.c), so it is entered from __sys_shutdown() or
-kernel_sock_shutdown() while a struct socket/file reference is alive.  The
-socket's own reference on sk is dropped only in smc_release():
+	priv = netdev_priv(dev);
+	if (!priv->ipsec)
+		return -EOPNOTSUPP;
 
-net/smc/af_smc.c:smc_release() {
+	ipsec = priv->ipsec;
 	...
-	sock_orphan(sk);
-	sock->sk = NULL;
-	release_sock(sk);
+	err = mlx5_eswitch_block_mode(priv->mdev, true);
 
-	sock_put(sk); /* sock_hold above */
-	sock_put(sk); /* final sock_put */
+The immediately following patch in the series, "net/mlx5e: ipsec: Block
+eswitch mode changes before accessing priv->ipsec", moves the block to the
+top of mlx5e_xfrm_add_state() and adds the matching unblock_mode: unwind, so
+the ordering is consistent again at the end of the series. Would it be worth
+mentioning in this changelog that the SA path is handled in the next patch,
+so this intermediate state is not read as an oversight?
+
+> @@ -1266,18 +1266,28 @@ static int mlx5e_xfrm_add_policy(struct xfrm_policy *x,
+>  	int err;
+>  
+>  	priv = netdev_priv(netdev);
+> +	/* Block esw mode changes until the policy holds its own block. */
+> +	err = mlx5_eswitch_block_mode(priv->mdev, false);
+> +	if (err) {
+> +		NL_SET_ERR_MSG_MOD(extack, "Eswitch busy, can't add policy");
+> +		return err;
+> +	}
+> +
+
+[Severity: Medium]
+Can this make policy adds fail spuriously with -EINVAL?
+
+The new block is taken on every policy add, and mlx5_esw_try_lock() bails out
+before the check_users test:
+
+drivers/net/ethernet/mellanox/mlx5/core/eswitch.c:mlx5_esw_try_lock() {
+	if (down_write_trylock(&esw->mode_lock) == 0)
+		return -EINVAL;
+	...
 }
 
-and smc_release() cannot run while the shutdown syscall holds the fd.  With
-that reference plus the passive-closing reference, wouldn't sk_refcnt be at
-least 2 at the old sock_put(), making the release_sock()-on-freed-sk path
-unreachable?
+So passing check_users=false does not help when the mode_lock is simply held
+by someone else at that moment. A concrete reader is the TC path, which holds
+the read side across the whole flow creation:
 
-The commit message also states the reference may be gone because "the
-passive closing reference was already consumed by an abort of the active
-link group".  Can that state be reached in this branch?  This branch runs
-only for smc->use_fallback sockets, and the abort paths leave sk_state at
-SMC_CLOSED, SMC_PEERABORTWAIT or SMC_PROCESSABORT:
+drivers/net/ethernet/mellanox/mlx5/core/en_tc.c:mlx5e_configure_flower() {
+	if (!mlx5_esw_hold(priv->mdev))
+		return -EBUSY;
+	...
+	err = mlx5e_tc_add_flow(priv, f, flags, dev, &flow);
+	...
+	mlx5_esw_release(priv->mdev);
+}
 
-net/smc/smc_close.c:smc_close_active_abort() {
-	case SMC_ACTIVE:
-	case SMC_APPCLOSEWAIT1:
-	case SMC_APPCLOSEWAIT2:
-		sk->sk_state = SMC_PEERABORTWAIT;
+mlx5e_ipsec_block_tc_offload(), mlx5_eswitch_unblock_mode() and
+mlx5_devlink_switchdev_active_mode_change() take the write side with a
+blocking down_write().
+
+The errno is passed straight to userspace:
+
+net/xfrm/xfrm_device.c:xfrm_dev_policy_add() {
+	err = dev->xfrmdev_ops->xdo_dev_policy_add(xp, extack);
+	if (err) {
 		...
-		sk->sk_state = SMC_CLOSED;
-		sock_put(sk); /* (postponed) passive closing */
+		return err;
+	}
 }
 
-net/smc/smc_close.c:smc_close_passive_abort_received() {
-	case SMC_INIT:
-	case SMC_ACTIVE:
-	case SMC_APPCLOSEWAIT1:
-		sk->sk_state = SMC_PROCESSABORT;
-		sock_put(sk); /* passive closing */
+Before this change, a policy add that reused already-created tables never ran
+a trylock at all:
+
+drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c:rx_get() {
+	if (rx->ft.refcnt)
+		goto skip;
+
+	err = mlx5_eswitch_block_mode(mdev, true);
+	...
 }
 
-All three of those states are rejected earlier in smc_shutdown() with
--ENOTCONN:
+which is the same "TC rule on a VF representor" case the changelog wants to
+keep working. Would an ip xfrm policy add now fail immediately, with no wait
+and no retry, whenever it overlaps a tc filter add on a representor?
 
-	rc = -ENOTCONN;
-	if ((sk->sk_state != SMC_ACTIVE) &&
-	    (sk->sk_state != SMC_PEERCLOSEWAIT1) &&
-	    (sk->sk_state != SMC_PEERCLOSEWAIT2) &&
-	    (sk->sk_state != SMC_APPCLOSEWAIT1) &&
-	    (sk->sk_state != SMC_APPCLOSEWAIT2) &&
-	    (sk->sk_state != SMC_APPFINCLOSEWAIT))
-		goto out;
+Also, the extack text says "Eswitch busy" while the returned errno can be
+-EINVAL, which the kernel-doc updated by this patch defines as "lock is
+already held" rather than a busy/retriable condition. Should the transient
+trylock collision be reported as -EBUSY so userspace can tell it apart from a
+permanent validation rejection?
 
-so the fallback branch is never reached after such an abort.  Could a
-reachable path (ideally a KASAN splat) be added to the changelog?
-
-> @@ -3014,6 +3015,8 @@ int smc_shutdown(struct socket *sock, int how)
->  		sock->state = SS_DISCONNECTING;
->  out:
->  	release_sock(sk);
-> +	if (passive_close)
-> +		sock_put(sk); /* passive closing */
->  	return rc ? rc : rc1;
+>  	if (!priv->ipsec) {
+>  		NL_SET_ERR_MSG_MOD(extack, "Device doesn't support IPsec packet offload");
+> -		return -EOPNOTSUPP;
+> +		err = -EOPNOTSUPP;
+> +		goto unblock_mode;
+>  	}
+>  
+>  	err = mlx5e_xfrm_validate_policy(priv->mdev, x, extack);
+>  	if (err)
+> -		return err;
+> +		goto unblock_mode;
+>  
+>  	pol_entry = kzalloc_obj(*pol_entry);
+> -	if (!pol_entry)
+> -		return -ENOMEM;
+> +	if (!pol_entry) {
+> +		err = -ENOMEM;
+> +		goto unblock_mode;
+> +	}
+>  
+>  	pol_entry->x = x;
+>  	pol_entry->ipsec = priv->ipsec;
+> @@ -1293,6 +1303,7 @@ static int mlx5e_xfrm_add_policy(struct xfrm_policy *x,
+>  		goto err_fs;
+>  
+>  	x->xdo.offload_handle = (unsigned long)pol_entry;
+> +	mlx5_eswitch_unblock_mode(priv->mdev);
+>  	return 0;
+>  
+> err_fs:
+> @@ -1300,6 +1311,8 @@ static int mlx5e_xfrm_add_policy(struct xfrm_policy *x,
+> ipsec_busy:
+>  	kfree(pol_entry);
+>  	NL_SET_ERR_MSG_MOD(extack, "Device failed to offload this policy");
+> +unblock_mode:
+> +	mlx5_eswitch_unblock_mode(priv->mdev);
+>  	return err;
 >  }
 
-[Severity: High]
-If the premise in the changelog did hold, does this reordering remove the
-problem or just move it?
+[ ... ]
 
-passive_close is derived solely from sk_shutdown == SHUTDOWN_MASK, which
-says nothing about whether this call still owns the passive-closing
-reference.  The same unconditional decrement therefore still runs, just
-later.
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+> index fc197d1dc9dfe..0b48cc7a67343 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+> @@ -3005,21 +3005,22 @@ void mlx5_esw_put(struct mlx5_core_dev *mdev)
+>  /**
+>   * mlx5_esw_try_lock() - Take a write lock on esw mode lock.
+>   * @esw: eswitch device.
+> + * @check_users: reject the lock if eswitch users exist.
+>   *
+>   * Should be called by esw mode change routine.
+>   *
+>   * Return:
+> - * * 0       - esw mode if successfully locked and refcount is 0.
+> - * * -EBUSY  - refcount is not 0.
+> - * * -EINVAL - In the middle of switching mode or lock is already held.
+> + * * >= 0    - esw mode if successfully locked.
+> + * * -EBUSY  - mode change in progress or users exist with check_users set.
+> + * * -EINVAL - lock is already held.
+>   */
+> -int mlx5_esw_try_lock(struct mlx5_eswitch *esw)
+> +int mlx5_esw_try_lock(struct mlx5_eswitch *esw, bool check_users)
+>  {
+>  	if (down_write_trylock(&esw->mode_lock) == 0)
+>  		return -EINVAL;
+>  
+>  	if (esw->eswitch_operation_in_progress ||
+> -	    atomic64_read(&esw->user_count) > 0) {
+> +	    (check_users && atomic64_read(&esw->user_count) > 0)) {
+>  		up_write(&esw->mode_lock);
+>  		return -EBUSY;
+>  	}
 
-If it drops the last reference, sk is freed while sock->sk still points at
-it for an open fd, and the next fd operation touches freed memory:
+[ ... ]
 
-net/smc/af_smc.c:smc_release() {
-	struct sock *sk = sock->sk;
-	...
-	sock_hold(sk); /* sock_put below */
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> index eb74b62601682..996490e116253 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> @@ -4351,8 +4351,7 @@ int mlx5_eswitch_block_mode(struct mlx5_core_dev *dev)
+>  	if (!mlx5_esw_allowed(esw))
+>  		return 0;
+>  
+> -	/* Take TC into account */
+> -	err = mlx5_esw_try_lock(esw);
+> +	err = mlx5_esw_try_lock(esw, check_users);
+>  	if (err < 0)
+>  		return err;
 
-Wouldn't an ownership check (or bracketing the region with
-sock_hold()/sock_put() as smc_release() does) be needed instead of a
-reordering, if there really is a stray put to fix?
+[ ... ]
 
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260917163956.2162779-1-vulab%40iscas.ac.cn
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260917175433.4090878-1-tariqt%40nvidia.com
