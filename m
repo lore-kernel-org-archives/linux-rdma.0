@@ -1,38 +1,38 @@
 Received: from ale.deltatee.com (ale.deltatee.com [204.191.154.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2EFB3F1ABD;
-	Mon, 21 Sep 2026 20:05:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68C5040B0EC;
+	Mon, 21 Sep 2026 20:20:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=204.191.154.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790021157; cv=none; b=fH8rfzNLcZwH6rFE7Aoip9wxLWkQMo1ssH+eDyDfHCmiFcmoRs6WfRi8+/pnxd3HP+kHwIQ2phtUIiHKerFqFJIYi6n94Hkfmp2nOkRNKugZFjeU6P7cEFd5psK1nXOLQVefjt9IRgaohroHgLQTxxWZmKSWUz3co17fpFUX6fQ=
+	t=1790022010; cv=none; b=fAfsvBT+8O/mbj174NsYh4bSaJq77dotdcfmDFKNG5LIJDp5qzXy/19gDaL/oDEI4oRmUxRm+08mFPUjk6UnCZV7fNoVzLG714LWvTEORaDZdwbvv5FCKM8SpuWsZnq0hiAuVkn2nDKKoF0/sTNVYMj7v84Xm1qKmaRlUHAoHgQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790021157; c=relaxed/simple;
-	bh=pect6xtOnju9Z/P/c6mdBBxKTlsdyogbO75mykbCoQ8=;
+	s=arc-20240116; t=1790022010; c=relaxed/simple;
+	bh=ULL2sCfVDm6zc7ankviblB2XQp/aT+4WTaCaV0sJlaw=;
 	h=Message-ID:Date:MIME-Version:To:Cc:References:From:In-Reply-To:
-	 Content-Type:Subject; b=VMtOMM1pEhH3SqoHEmw9OTeFW6WEtK4Lc6MEdWFiPnF5XdByUf6D2C5GOm6w0E39gbNzlVhS85Rg4yFaczyXJs3tKxqc/zryDCrEQM8IrI5u5TTS9I+CV92120NW+iz3+EqkKjdRF6bScUF4RoRbAgCh4PGaN/07AtGE+loFb/Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com; spf=pass smtp.mailfrom=deltatee.com; dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b=MWuX8Icz; arc=none smtp.client-ip=204.191.154.188
+	 Content-Type:Subject; b=eDcUrMPElDptb2Al+8iigZIYmR828zM7+g1zRpu1qMbMAeRH3hI1zTEzDs8SxPN7YasJJ0X5NLmalb7TK5qc/a3GdsSF7CDL3OukDuiaSZqQ7lnErH4Zxioc+dYyTZLTk4RL5QKvuyoAODKmyd358L3k1Ggg1+w7pEf6QkiBLE8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com; spf=pass smtp.mailfrom=deltatee.com; dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b=hBugeAc7; arc=none smtp.client-ip=204.191.154.188
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=deltatee.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b="MWuX8Icz"
+	dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b="hBugeAc7"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=deltatee.com; s=20200525; h=Subject:In-Reply-To:From:References:Cc:To:
 	MIME-Version:Date:Message-ID:content-disposition;
-	bh=DK/qrJt0Ap9dv8WpV7Wvu69ob6X/ds9pDh5dhWphwkg=; b=MWuX8IczTBvONmG/xlPQD0jiXo
-	lwn0eAfVBfG4Na2wPqrsAR3Vig+h5m9Z+jcLcQ8g/pL4KjoVq75I8t5Uz9wcrvVbCETfAKKGJFv9s
-	UWHIAAlgndWq+Kha33Ydvo+UyD0YqOBSB0tOxiZKalaKgOVuoN++XYy0dRrT5feo/D7gPYIHgxtKO
-	WwCOBe+9hheeBow8IXtzwF+Ux+IaQ6rCIL6at0s6HDwoHvShO5X1n8EEhPct6hgaAZL43dTIxVE8C
-	2i74d+K7cxY0gdvmWRxWxbgCoJkpyQio+LAZy3MGsKNIa9N1SV3OKkMb/CHP0Mf4tOBU+BYOd9n13
-	yObNM5MA==;
+	bh=/kI6oW2E5j3Q5O4fdEa3eYERY9JobvSzq1pyfLPXvP8=; b=hBugeAc7MrRyOU4zBBCUqtS5XS
+	6+RXvhBejB2Fpn0eyZquoh0extXUkJ3cSiML7q4kcs+2HZShy/FLhx3xDR8ERnzuxkkOygY4Dyxp/
+	cxBNa2IKbP7A7czer0QQNdwZVLcrB8Qgjf4BUS1DyXjVpeDFvB9EaO6JLg1TRi3xb2RiKmH5JI+uC
+	EQsgw3q1T+FeczuwLQHEDxk6luELJbNOfCyzAOuDwobdL3t7hEyxq6eX141qiHY38qeDbDgUgWpHL
+	GZH9fnTofY1KboZF0j5B6HBoFPFWZMuwg2fmN+7+TaxYsyuurMOSpMH4wlQjZ2oNNOAv6NSrY9w6I
+	cStzuOnA==;
 Received: from guinness.priv.deltatee.com ([172.16.1.162])
 	by ale.deltatee.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
 	(Exim 4.98.2)
 	(envelope-from <logang@deltatee.com>)
-	id 1x8kGk-0000000F4Yk-1hRC;
-	Mon, 21 Sep 2026 14:05:43 -0600
-Message-ID: <0ab682be-9b58-48aa-88e9-d21edaac19d5@deltatee.com>
-Date: Mon, 21 Sep 2026 14:05:18 -0600
+	id 1x8kUe-0000000F4dP-3Hw8;
+	Mon, 21 Sep 2026 14:20:05 -0600
+Message-ID: <dada3ea0-61e7-479b-96c4-241eb3420542@deltatee.com>
+Date: Mon, 21 Sep 2026 14:20:02 -0600
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -56,18 +56,17 @@ Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
  dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
  linux-rdma@vger.kernel.org, kvm@vger.kernel.org
 References: <20260920-fix-p2p-acs-v4-0-v7-0-ca0828ab697c@nvidia.com>
- <20260920-fix-p2p-acs-v4-0-v7-2-ca0828ab697c@nvidia.com>
+ <20260920-fix-p2p-acs-v4-0-v7-7-ca0828ab697c@nvidia.com>
 Content-Language: en-CA
 From: Logan Gunthorpe <logang@deltatee.com>
-In-Reply-To: <20260920-fix-p2p-acs-v4-0-v7-2-ca0828ab697c@nvidia.com>
+In-Reply-To: <20260920-fix-p2p-acs-v4-0-v7-7-ca0828ab697c@nvidia.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 X-SA-Exim-Connect-IP: 172.16.1.162
 X-SA-Exim-Rcpt-To: leon@kernel.org, bhelgaas@google.com, kch@nvidia.com, gregkh@linuxfoundation.org, axboe@kernel.dk, alex@shazbot.org, ankita@nvidia.com, jgg@ziepe.ca, corbet@lwn.net, skhan@linuxfoundation.org, joro@8bytes.org, will@kernel.org, robin.murphy@arm.com, rdunlap@infradead.org, sumit.semwal@linaro.org, christian.koenig@amd.com, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, iommu@lists.linux.dev, tdave@nvidia.com, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org, linux-rdma@vger.kernel.org, kvm@vger.kernel.org
 X-SA-Exim-Mail-From: logang@deltatee.com
 X-Spam-Level: 
-Subject: Re: [PATCH v7 02/19] PCI/P2PDMA: Derive routing from directional ACS
- controls
+Subject: Re: [PATCH v7 07/19] PCI/P2PDMA: Answer routing per TLP class
 X-SA-Exim-Version: 4.2.1 (built Sun, 23 Feb 2025 07:57:16 +0000)
 X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
 
@@ -76,18 +75,20 @@ X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
 On 2026-09-20 05:41, Leon Romanovsky wrote:
 > From: Leon Romanovsky <leonro@nvidia.com>
 > 
-> pci_bridge_has_acs_redir() treats Request and Completion Redirect as
-> interchangeable. On asymmetric fabrics, a control for only the reverse TLP
-> direction can unnecessarily force P2PDMA through the host bridge.
+> calc_map_type_and_dist() returns one mapping type per provider and client,
+> valid only for strictly ordered Requests carrying an Untranslated address.
+> Clients that use Relaxed Ordering or ATS cannot ask what the fabric would
+> do with their traffic.
 > 
-> Evaluate Request Redirect for client Requests and Completion Redirect for
-> provider read Completions. Continue treating enabled Egress Control
-> conservatively as a Request redirect.
+> Add enum pci_p2pdma_tlp_flags to name a class and pci_p2pdma_map_type_tlp()
+> to ask about one. The topology walk and the ACS Control reads do not depend
+> on the class, so decide all of them from the one walk and cache them
+> together, four bits each. Every class still answers alike; the controls
+> that tell them apart come next.
 > 
-> Fixes: 52916982af48 ("PCI/P2PDMA: Support peer-to-peer memory")
 > Tested-by: Tushar Dave <tdave@nvidia.com>
 > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 
-Still looks good:
+Ok, this makes more sense to me after a fresh review:
 
 Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
