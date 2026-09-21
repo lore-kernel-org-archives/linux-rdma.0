@@ -1,29 +1,29 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 0571046A5FE;
-	Mon, 21 Sep 2026 09:54:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4513046AF10;
+	Mon, 21 Sep 2026 09:54:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789984482; cv=none; b=OIVo9qUMRXfqP92VeqO+C1ZpOahDDa45aXqa7EiGr+XR0Dwoa6UdLevmW50ji5MuF/OYOEt49HbSpJNCXCzTrvm5bTKIgmJQKydq4oe1Xtmd8QKd7PwyBq2z2ZoD5zkKLQjTQiRP3M268k+vntSDYMAg0n+AHPahDw8yiQsi2qI=
+	t=1789984482; cv=none; b=EPcFIxiMDwuN3IRhMwUqVGP7hNbZRggnPrgsmKuPu2owlO/7oT5S7s6hd86h4dWTuyI26c8FYncCUQPQ17maVfaxKILIR9gZSLZdQY6Jm/N4/FWeR0hu0TmHG6vdEIcXKItRgoGs7RyQO5YlsYEA0G7VAgVCiHKXEq863Nrd6mM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1789984482; c=relaxed/simple;
-	bh=jVFQhip/vlw8TJw/t9/1X4W3NVCUqLzpQWcjRqP1jqs=;
+	bh=/JdKAnKJSOA7apsoSpJ8DCJyHVXTr5+OLwiRfO1hMmM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ipMI04cr2+PGr6ysHL0DPVoTtVh4wZ9sPEUS4y0tO6s0uTfMWYbu23KFUm3MpzD4/j6iXKr50pofDCAv8rL1oc9VXIpsmgaVkg7tOzZMvviYMVE5ZG3Y4lATqxXv8bpdN8J8VhCusuaKqEbG6ThQMB1uYUA8Ncamrpoy6yAmpWo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=sRk4D34N; arc=none smtp.client-ip=13.77.154.182
+	 MIME-Version; b=jeiTtrqehdyMxAanajSs9NErVYjw9ToEHpMbbFxMz0xtE7hmI0S6CET+C5rEQgdvZ/MWVnQzaWF8mtkUETP1JLVO3QmGA0J7DSYAW56QbXGYwWfA7pXqqvBl72ShMFiB8lHP7gofF7znVgnCZrxEJmQzbFG9qB+YW0OxKirGYko=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=Kz+Yb3rb; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="sRk4D34N"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="Kz+Yb3rb"
 Received: by linux.microsoft.com (Postfix, from userid 1186)
-	id BD72520B7168; Mon, 21 Sep 2026 02:53:52 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com BD72520B7168
+	id D6BF020B716A; Mon, 21 Sep 2026 02:53:52 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com D6BF020B716A
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
 	s=default; t=1789984432;
-	bh=pRq1CODKPIP7+gzmFoT9WbJ4eZOBgp1PAQeF0Ypg6qc=;
+	bh=nn57R9DHwmtSrtNHgZ04QEG4fqJKYtK3tyfDWD2sFNQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=sRk4D34NveGB7PfHZuRmk2A5ITP934WcsR16ALUdVIKQcKt5YL4KT/1a4T2r9OlP1
-	 Gj3f9Ic+LRi+bMIIyiuh6ke2RAki/RqJoCXl3ob6L9BUowOK5VSsOn5cDBrDj3woWu
-	 bWaWFFgZSvUexqR1kVEQjb7HrYOv8FSnfROrS62Y=
+	b=Kz+Yb3rbgaGLxBiEAO4Z9ZVPD6e72sSZ4Ilpopiy1g2jIRh5WzQceT6+oABDSRWqT
+	 w5CzDOqWwavUocq1DRmrikU1cqLehmaPkTux2TYM8Z1vPRyYJD5U3ia1Mk7HHKDOPg
+	 fyDNkldMJ+AtMvIYYdocnjrrapoMVSl97IPQNj/I=
 From: Konstantin Taranov <kotaranov@linux.microsoft.com>
 To: kotaranov@microsoft.com,
 	snsanghvi@microsoft.com,
@@ -32,9 +32,9 @@ To: kotaranov@microsoft.com,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next v3 1/5] RDMA/mana_ib: Optimize shadow queue bookkeeping
-Date: Mon, 21 Sep 2026 02:53:48 -0700
-Message-ID: <20260921095352.3524691-2-kotaranov@linux.microsoft.com>
+Subject: [PATCH rdma-next v3 3/5] RDMA/mana_ib: Revise UD receive posting with GDMA_WR_IB_SGL
+Date: Mon, 21 Sep 2026 02:53:50 -0700
+Message-ID: <20260921095352.3524691-4-kotaranov@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.7
 In-Reply-To: <20260921095352.3524691-1-kotaranov@linux.microsoft.com>
 References: <20260921095352.3524691-1-kotaranov@linux.microsoft.com>
@@ -48,275 +48,211 @@ Content-Transfer-Encoding: 8bit
 
 From: Konstantin Taranov <kotaranov@microsoft.com>
 
-Use compact bitfields for the posted WQE size and send opcode. Flatten
-the UD receive shadow entry into the common shadow_wqe_header, retaining
-byte_len, src_qpn and the cached status until direct-CQE polling replaces
-their readers. Use this common entry for both send and receive queues,
-including allocation, posting, CQE handling and WC generation. Derive
-the receive WC opcode from the queue rather than storing it per WQE.
+Pass receive verbs SGEs directly to GDMA instead of copying them into
+a small stack array. Accept the receive SGE limit, supply a dummy SGE
+for zero-length requests, and ring once after each successful batch.
 
-Publish initialized entries and release consumed entries with matching
-release/acquire operations so posting and polling can run on different
-CPUs. Retain the legacy completion cursor until direct-CQE polling and
-software flush lists replace it.
+Introduce GDMA_WR_IB_SGL, its request union, and the wrap-aware verbs
+SGE writer together with their first consumer. These shared GDMA pieces
+must precede the later extended-WQE patch so this receive path does not
+depend on definitions or encoding support introduced after it.
+
+Address verbs SGEs by ring offset so both scattered-page boundaries and
+ring wrap preserve the local kernel baseline's non-contiguous buffers.
 
 Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
 ---
- drivers/infiniband/hw/mana/cq.c           | 35 ++++++++++++-----------
- drivers/infiniband/hw/mana/qp.c           |  4 +--
- drivers/infiniband/hw/mana/shadow_queue.h | 29 +++++++++----------
- drivers/infiniband/hw/mana/wr.c           | 15 +++++-----
- 4 files changed, 40 insertions(+), 43 deletions(-)
+ drivers/infiniband/hw/mana/wr.c               | 70 +++++++++++--------
+ .../net/ethernet/microsoft/mana/gdma_main.c   | 23 +++++-
+ include/net/mana/gdma.h                       |  7 +-
+ 3 files changed, 70 insertions(+), 30 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mana/cq.c b/drivers/infiniband/hw/mana/cq.c
-index 6f9ac8b4a..14a48409e 100644
---- a/drivers/infiniband/hw/mana/cq.c
-+++ b/drivers/infiniband/hw/mana/cq.c
-@@ -190,15 +190,15 @@ static inline void handle_ud_sq_cqe(struct mana_ib_qp *qp, struct gdma_comp *cqe
- {
- 	struct mana_rdma_cqe *rdma_cqe = (struct mana_rdma_cqe *)cqe->cqe_data;
- 	struct gdma_queue *wq = qp->ud_qp.queues[MANA_UD_SEND_QUEUE].kmem;
--	struct ud_sq_shadow_wqe *shadow_wqe;
-+	struct shadow_wqe_header *shadow_wqe;
- 
- 	shadow_wqe = shadow_queue_get_next_to_complete(&qp->shadow_sq);
- 	if (!shadow_wqe)
- 		return;
- 
--	shadow_wqe->header.error_code = rdma_cqe->ud_send.vendor_error;
-+	shadow_wqe->error_code = rdma_cqe->ud_send.vendor_error;
- 
--	wq->tail += shadow_wqe->header.posted_wqe_size;
-+	wq->tail += shadow_wqe->wqe_size_in_bu;
- 	shadow_queue_advance_next_to_complete(&qp->shadow_sq);
- }
- 
-@@ -206,7 +206,7 @@ static inline void handle_ud_rq_cqe(struct mana_ib_qp *qp, struct gdma_comp *cqe
- {
- 	struct mana_rdma_cqe *rdma_cqe = (struct mana_rdma_cqe *)cqe->cqe_data;
- 	struct gdma_queue *wq = qp->ud_qp.queues[MANA_UD_RECV_QUEUE].kmem;
--	struct ud_rq_shadow_wqe *shadow_wqe;
-+	struct shadow_wqe_header *shadow_wqe;
- 
- 	shadow_wqe = shadow_queue_get_next_to_complete(&qp->shadow_rq);
- 	if (!shadow_wqe)
-@@ -214,9 +214,9 @@ static inline void handle_ud_rq_cqe(struct mana_ib_qp *qp, struct gdma_comp *cqe
- 
- 	shadow_wqe->byte_len = rdma_cqe->ud_recv.msg_len;
- 	shadow_wqe->src_qpn = rdma_cqe->ud_recv.src_qpn;
--	shadow_wqe->header.error_code = IB_WC_SUCCESS;
-+	shadow_wqe->error_code = IB_WC_SUCCESS;
- 
--	wq->tail += shadow_wqe->header.posted_wqe_size;
-+	wq->tail += shadow_wqe->wqe_size_in_bu;
- 	shadow_queue_advance_next_to_complete(&qp->shadow_rq);
- }
- 
-@@ -238,21 +238,20 @@ static void mana_handle_cqe(struct mana_ib_dev *mdev, struct gdma_comp *cqe)
- }
- 
- static void fill_verbs_from_shadow_wqe(struct mana_ib_qp *qp, struct ib_wc *wc,
--				       const struct shadow_wqe_header *shadow_wqe)
-+				       const struct shadow_wqe_header *shadow_wqe,
-+				       enum ib_wc_opcode opcode)
- {
--	const struct ud_rq_shadow_wqe *ud_wqe = (const struct ud_rq_shadow_wqe *)shadow_wqe;
--
- 	wc->wr_id = shadow_wqe->wr_id;
- 	wc->status = shadow_wqe->error_code;
--	wc->opcode = shadow_wqe->opcode;
-+	wc->opcode = opcode;
- 	wc->vendor_err = shadow_wqe->error_code;
- 	wc->wc_flags = 0;
- 	wc->qp = &qp->ibqp;
- 	wc->pkey_index = 0;
- 
--	if (shadow_wqe->opcode == IB_WC_RECV) {
--		wc->byte_len = ud_wqe->byte_len;
--		wc->src_qp = ud_wqe->src_qpn;
-+	if (opcode == IB_WC_RECV) {
-+		wc->byte_len = shadow_wqe->byte_len;
-+		wc->src_qp = shadow_wqe->src_qpn;
- 		wc->wc_flags |= IB_WC_GRH;
- 	}
- }
-@@ -270,7 +269,8 @@ static int mana_process_completions(struct mana_ib_cq *cq, int nwc, struct ib_wc
- 			if (wc_index >= nwc)
- 				goto out;
- 
--			fill_verbs_from_shadow_wqe(qp, &wc[wc_index], shadow_wqe);
-+			fill_verbs_from_shadow_wqe(qp, &wc[wc_index], shadow_wqe,
-+						   shadow_wqe->send_opcode);
- 			shadow_queue_advance_consumer(&qp->shadow_sq);
- 			wc_index++;
- 		}
-@@ -283,7 +283,8 @@ static int mana_process_completions(struct mana_ib_cq *cq, int nwc, struct ib_wc
- 			if (wc_index >= nwc)
- 				goto out;
- 
--			fill_verbs_from_shadow_wqe(qp, &wc[wc_index], shadow_wqe);
-+			fill_verbs_from_shadow_wqe(qp, &wc[wc_index], shadow_wqe,
-+						   IB_WC_RECV);
- 			shadow_queue_advance_consumer(&qp->shadow_rq);
- 			wc_index++;
- 		}
-@@ -296,13 +297,13 @@ static int mana_process_completions(struct mana_ib_cq *cq, int nwc, struct ib_wc
- static void mana_drain_gsi_sq(struct mana_ib_qp *qp)
- {
- 	struct mana_ib_cq *cq = container_of(qp->ibqp.send_cq, struct mana_ib_cq, ibcq);
--	struct ud_sq_shadow_wqe *shadow_wqe;
-+	struct shadow_wqe_header *shadow_wqe;
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&cq->cq_lock, flags);
- 	while ((shadow_wqe = shadow_queue_get_next_to_complete(&qp->shadow_sq))
- 			!= NULL) {
--		shadow_wqe->header.error_code = IB_WC_GENERAL_ERR;
-+		shadow_wqe->error_code = IB_WC_GENERAL_ERR;
- 		shadow_queue_advance_next_to_complete(&qp->shadow_sq);
- 	}
- 	spin_unlock_irqrestore(&cq->cq_lock, flags);
-diff --git a/drivers/infiniband/hw/mana/qp.c b/drivers/infiniband/hw/mana/qp.c
-index fac43b3a5..79c9cc944 100644
---- a/drivers/infiniband/hw/mana/qp.c
-+++ b/drivers/infiniband/hw/mana/qp.c
-@@ -748,13 +748,13 @@ static int mana_ib_create_ud_qp(struct ib_qp *ibqp, struct ib_pd *ibpd,
- 	doorbell = mdev->gdma_dev->doorbell;
- 
- 	err = create_shadow_queue(&qp->shadow_rq, attr->cap.max_recv_wr,
--				  sizeof(struct ud_rq_shadow_wqe));
-+				  sizeof(struct shadow_wqe_header));
- 	if (err) {
- 		ibdev_err(&mdev->ib_dev, "Failed to create shadow rq err %d\n", err);
- 		goto destroy_queues;
- 	}
- 	err = create_shadow_queue(&qp->shadow_sq, attr->cap.max_send_wr,
--				  sizeof(struct ud_sq_shadow_wqe));
-+				  sizeof(struct shadow_wqe_header));
- 	if (err) {
- 		ibdev_err(&mdev->ib_dev, "Failed to create shadow sq err %d\n", err);
- 		goto destroy_shadow_queues;
-diff --git a/drivers/infiniband/hw/mana/shadow_queue.h b/drivers/infiniband/hw/mana/shadow_queue.h
-index a4b3818f9..a127edf7a 100644
---- a/drivers/infiniband/hw/mana/shadow_queue.h
-+++ b/drivers/infiniband/hw/mana/shadow_queue.h
-@@ -7,22 +7,14 @@
- #define _MANA_SHADOW_QUEUE_H_
- 
- struct shadow_wqe_header {
--	u16 opcode;
--	u16 error_code;
--	u32 posted_wqe_size;
- 	u64 wr_id;
--};
--
--struct ud_rq_shadow_wqe {
--	struct shadow_wqe_header header;
-+	u64 wqe_size_in_bu : 8;
-+	u64 send_opcode : 4;
-+	u64 error_code : 16;
- 	u32 byte_len;
- 	u32 src_qpn;
- };
- 
--struct ud_sq_shadow_wqe {
--	struct shadow_wqe_header header;
--};
--
- struct shadow_queue {
- 	/* Unmasked producer index, Incremented on wqe posting */
- 	u64 prod_idx;
-@@ -57,12 +49,14 @@ static inline void destroy_shadow_queue(struct shadow_queue *queue)
- 
- static inline bool shadow_queue_full(struct shadow_queue *queue)
- {
--	return (queue->prod_idx - queue->cons_idx) >= queue->length;
-+	/* Do not reuse an entry until the poller has finished reading it. */
-+	return (queue->prod_idx - smp_load_acquire(&queue->cons_idx)) >= queue->length;
- }
- 
- static inline bool shadow_queue_empty(struct shadow_queue *queue)
- {
--	return queue->prod_idx == queue->cons_idx;
-+	/* Pair with posting's release of the initialized shadow WQE. */
-+	return smp_load_acquire(&queue->prod_idx) == queue->cons_idx;
- }
- 
- static inline void *
-@@ -91,7 +85,8 @@ shadow_queue_get_next_to_consume(const struct shadow_queue *queue)
- static inline void *
- shadow_queue_get_next_to_complete(struct shadow_queue *queue)
- {
--	if (queue->next_to_complete_idx == queue->prod_idx)
-+	/* Observe initialized WQE fields published by the posting CPU. */
-+	if (queue->next_to_complete_idx == smp_load_acquire(&queue->prod_idx))
- 		return NULL;
- 
- 	return shadow_queue_get_element(queue, queue->next_to_complete_idx);
-@@ -99,12 +94,14 @@ shadow_queue_get_next_to_complete(struct shadow_queue *queue)
- 
- static inline void shadow_queue_advance_producer(struct shadow_queue *queue)
- {
--	queue->prod_idx++;
-+	/* Publish all WQE fields to CQ polling on another CPU. */
-+	smp_store_release(&queue->prod_idx, queue->prod_idx + 1);
- }
- 
- static inline void shadow_queue_advance_consumer(struct shadow_queue *queue)
- {
--	queue->cons_idx++;
-+	/* Finish WC generation and queue-tail updates before allowing reuse. */
-+	smp_store_release(&queue->cons_idx, queue->cons_idx + 1);
- }
- 
- static inline void shadow_queue_advance_next_to_complete(struct shadow_queue *queue)
 diff --git a/drivers/infiniband/hw/mana/wr.c b/drivers/infiniband/hw/mana/wr.c
-index 36a1d506f..8cd2980d4 100644
+index f25df2fad..eb671b45b 100644
 --- a/drivers/infiniband/hw/mana/wr.c
 +++ b/drivers/infiniband/hw/mana/wr.c
-@@ -14,7 +14,7 @@ static int mana_ib_post_recv_ud(struct mana_ib_qp *qp, const struct ib_recv_wr *
+@@ -7,29 +7,30 @@
+ 
+ #define MAX_WR_SGL_NUM (2)
+ 
+-static int mana_ib_post_recv_ud(struct mana_ib_qp *qp, const struct ib_recv_wr *wr)
++static int mana_ib_post_rq(struct mana_ib_qp *qp, const struct ib_recv_wr *wr)
+ {
+-	struct mana_ib_dev *mdev = container_of(qp->ibqp.device, struct mana_ib_dev, ib_dev);
+-	struct gdma_queue *queue = qp->ud_qp.queues[MANA_UD_RECV_QUEUE].kmem;
++	struct ib_sge mana_ib_dummy_sge = {.addr = 1, .length = 0, .lkey = 0};
++	struct mana_ib_queue *ib_rq = mana_qp_get_rq(qp);
  	struct gdma_posted_wqe_info wqe_info = {0};
- 	struct gdma_sge gdma_sgl[MAX_WR_SGL_NUM];
+-	struct gdma_sge gdma_sgl[MAX_WR_SGL_NUM];
++	struct gdma_queue *queue = ib_rq->kmem;
  	struct gdma_wqe_request wqe_req = {0};
--	struct ud_rq_shadow_wqe *shadow_wqe;
-+	struct shadow_wqe_header *shadow_wqe;
- 	int err, i;
+ 	struct shadow_wqe_header *shadow_wqe;
+-	int err, i;
++	int err;
  
  	if (shadow_queue_full(&qp->shadow_rq))
-@@ -37,9 +37,8 @@ static int mana_ib_post_recv_ud(struct mana_ib_qp *qp, const struct ib_recv_wr *
+ 		return -EINVAL;
  
- 	shadow_wqe = shadow_queue_producer_entry(&qp->shadow_rq);
- 	memset(shadow_wqe, 0, sizeof(*shadow_wqe));
--	shadow_wqe->header.opcode = IB_WC_RECV;
--	shadow_wqe->header.wr_id = wr->wr_id;
--	shadow_wqe->header.posted_wqe_size = wqe_info.wqe_size_in_bu;
-+	shadow_wqe->wr_id = wr->wr_id;
-+	shadow_wqe->wqe_size_in_bu = wqe_info.wqe_size_in_bu;
+-	if (wr->num_sge > MAX_WR_SGL_NUM)
++	if (wr->num_sge > MAX_RX_WQE_SGL_ENTRIES)
+ 		return -EINVAL;
+ 
+-	for (i = 0; i < wr->num_sge; ++i) {
+-		gdma_sgl[i].address = wr->sg_list[i].addr;
+-		gdma_sgl[i].mem_key = wr->sg_list[i].lkey;
+-		gdma_sgl[i].size = wr->sg_list[i].length;
+-	}
+ 	wqe_req.num_sge = wr->num_sge;
+-	wqe_req.sgl = gdma_sgl;
++	wqe_req.ib_sgl = wr->sg_list;
++	wqe_req.flags = GDMA_WR_IB_SGL;
++
++	if (wr->num_sge == 0) {
++		wqe_req.ib_sgl = &mana_ib_dummy_sge;
++		wqe_req.num_sge = 1;
++	}
+ 
+ 	err = mana_gd_post_work_request(queue, &wqe_req, &wqe_info);
+ 	if (err)
+@@ -41,36 +42,49 @@ static int mana_ib_post_recv_ud(struct mana_ib_qp *qp, const struct ib_recv_wr *
+ 	shadow_wqe->wqe_size_in_bu = wqe_info.wqe_size_in_bu;
  	shadow_queue_advance_producer(&qp->shadow_rq);
  
- 	mana_gd_wq_ring_doorbell(mdev_to_gc(mdev), queue);
-@@ -82,7 +81,7 @@ static int mana_ib_post_send_ud(struct mana_ib_qp *qp, const struct ib_ud_wr *wr
- 	struct gdma_posted_wqe_info wqe_info = {0};
- 	struct gdma_wqe_request wqe_req = {0};
- 	struct rdma_send_oob send_oob = {0};
--	struct ud_sq_shadow_wqe *shadow_wqe;
-+	struct shadow_wqe_header *shadow_wqe;
- 	int err, i;
+-	mana_gd_wq_ring_doorbell(mdev_to_gc(mdev), queue);
+ 	return 0;
+ }
  
- 	if (!ndev) {
-@@ -132,9 +131,9 @@ static int mana_ib_post_send_ud(struct mana_ib_qp *qp, const struct ib_ud_wr *wr
- 	qp->ud_qp.sq_psn++;
- 	shadow_wqe = shadow_queue_producer_entry(&qp->shadow_sq);
- 	memset(shadow_wqe, 0, sizeof(*shadow_wqe));
--	shadow_wqe->header.opcode = IB_WC_SEND;
--	shadow_wqe->header.wr_id = wr->wr.wr_id;
--	shadow_wqe->header.posted_wqe_size = wqe_info.wqe_size_in_bu;
-+	shadow_wqe->send_opcode = IB_WC_SEND;
-+	shadow_wqe->wr_id = wr->wr.wr_id;
-+	shadow_wqe->wqe_size_in_bu = wqe_info.wqe_size_in_bu;
- 	shadow_queue_advance_producer(&qp->shadow_sq);
+-int mana_ib_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
+-		      const struct ib_recv_wr **bad_wr)
++static int mana_ib_post_recv_ud(struct mana_ib_qp *qp, const struct ib_recv_wr *wr,
++				const struct ib_recv_wr **bad_wr)
+ {
+-	struct mana_ib_qp *qp = container_of(ibqp, struct mana_ib_qp, ibqp);
++	struct mana_ib_dev *mdev = container_of(qp->ibqp.device, struct mana_ib_dev, ib_dev);
++	struct mana_ib_queue *ib_rq = mana_qp_get_rq(qp);
++	struct gdma_queue *rq = ib_rq->kmem;
++	bool ring_rq = false;
+ 	int err = 0;
  
- 	mana_gd_wq_ring_doorbell(mdev_to_gc(mdev), queue);
+ 	for (; wr; wr = wr->next) {
+-		switch (ibqp->qp_type) {
+-		case IB_QPT_UD:
+-		case IB_QPT_GSI:
+-			err = mana_ib_post_recv_ud(qp, wr);
+-			if (unlikely(err)) {
+-				*bad_wr = wr;
+-				return err;
+-			}
++		err = mana_ib_post_rq(qp, wr);
++		if (unlikely(err)) {
++			*bad_wr = wr;
+ 			break;
+-		default:
+-			ibdev_dbg(ibqp->device, "Posting recv wr on qp type %u is not supported\n",
+-				  ibqp->qp_type);
+-			return -EINVAL;
+ 		}
++		ring_rq = true;
+ 	}
+ 
++	if (ring_rq)
++		mana_gd_wq_ring_doorbell(mdev_to_gc(mdev), rq);
++
+ 	return err;
+ }
+ 
++int mana_ib_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
++		      const struct ib_recv_wr **bad_wr)
++{
++	struct mana_ib_qp *qp = container_of(ibqp, struct mana_ib_qp, ibqp);
++
++	switch (ibqp->qp_type) {
++	case IB_QPT_UD:
++	case IB_QPT_GSI:
++		return mana_ib_post_recv_ud(qp, wr, bad_wr);
++	default:
++		/* Unsupported QP type */
++		*bad_wr = wr;
++		return -EINVAL;
++	}
++}
++
+ static int mana_ib_post_send_ud_one(struct mana_ib_qp *qp, const struct ib_ud_wr *wr)
+ {
+ 	struct mana_ib_dev *mdev = container_of(qp->ibqp.device, struct mana_ib_dev, ib_dev);
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+index f92b2d0bf..542491a6c 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
++++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+@@ -1738,6 +1738,24 @@ static void mana_gd_write_sgl(struct gdma_queue *wq, u32 sgl_offset,
+ 	memcpy(mana_gd_ring_ptr(wq, sgl_offset), address, sgl_size);
+ }
+ 
++static void mana_gd_write_ib_sgl(struct gdma_queue *wq, u32 sgl_offset,
++				 const struct gdma_wqe_request *wqe_req)
++{
++	const struct ib_sge *sge = wqe_req->ib_sgl;
++	struct gdma_sge *gdma_sgl;
++	u32 i;
++
++	for (i = 0; i < wqe_req->num_sge; ++i, ++sge) {
++		gdma_sgl = mana_gd_ring_ptr(wq, sgl_offset);
++		gdma_sgl->address = sge->addr;
++		gdma_sgl->size = sge->length;
++		gdma_sgl->mem_key = sge->lkey;
++		sgl_offset += sizeof(*gdma_sgl);
++		if (sgl_offset == wq->queue_size)
++			sgl_offset = 0;
++	}
++}
++
+ int mana_gd_post_work_request(struct gdma_queue *wq,
+ 			      const struct gdma_wqe_request *wqe_req,
+ 			      struct gdma_posted_wqe_info *wqe_info)
+@@ -1792,7 +1810,10 @@ int mana_gd_post_work_request(struct gdma_queue *wq,
+ 	if (sgl_offset >= wq->queue_size)
+ 		sgl_offset -= wq->queue_size;
+ 
+-	mana_gd_write_sgl(wq, sgl_offset, wqe_req);
++	if (wqe_req->flags & GDMA_WR_IB_SGL)
++		mana_gd_write_ib_sgl(wq, sgl_offset, wqe_req);
++	else
++		mana_gd_write_sgl(wq, sgl_offset, wqe_req);
+ 
+ 	wq->head += wqe_size / GDMA_WQE_BU_SIZE;
+ 
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index 06af65d50..8ccbe2d57 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -6,6 +6,7 @@
+ 
+ #include <linux/dma-mapping.h>
+ #include <linux/netdevice.h>
++#include <rdma/ib_verbs.h>
+ 
+ #include "shm_channel.h"
+ 
+@@ -54,6 +55,7 @@ enum gdma_work_request_flags {
+ 	GDMA_WR_NONE			= 0,
+ 	GDMA_WR_OOB_IN_SGL		= BIT(0),
+ 	GDMA_WR_PAD_BY_SGE0		= BIT(1),
++	GDMA_WR_IB_SGL			= BIT(2),
+ };
+ 
+ enum gdma_eqe_type {
+@@ -212,7 +214,10 @@ struct gdma_sge {
+ }; /* HW DATA */
+ 
+ struct gdma_wqe_request {
+-	struct gdma_sge *sgl;
++	union {
++		struct gdma_sge *sgl;
++		struct ib_sge *ib_sgl;
++	};
+ 	u32 num_sge;
+ 
+ 	u32 inline_oob_size;
 -- 
 2.43.0
 
