@@ -1,161 +1,257 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C671D46DFFA;
-	Mon, 21 Sep 2026 09:15:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 057BB46A61D;
+	Mon, 21 Sep 2026 09:54:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789982143; cv=none; b=Lr4zCfNSf/oI1xwy2PzgzHTB2iREJbdYtYktqOS1aOsW2ckpZ40IBGsWnDC3KjnDKLbs66jcE30byWG8VQYYEiSN0+UimwZL/5evXFLnYqoATE9QmQaZFBOZV5UEMI+gtdGmd1FRRy3i/hpZ9vnfR5NNWPPMGHxhtD9t6jE1hho=
+	t=1789984481; cv=none; b=UU1GgRWu6MFPMDORY2VAgbA+PL5CCivNpyPCjmSf860p+OEBWg7oP9awv6kLFR7kesqrU3TvMe3EboOLwZaBi85xnmtoL3Ty2ENUq/60fqSH+VEb4vqdSDLYV0wgyhNfBEmWNAOezRDAYAzQtvl/TSP5i1jlKIlKkGy24Ke15fc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789982143; c=relaxed/simple;
-	bh=xePakvel9sBaNuZT+EF7YqKll5FKyKDWsDQMVxL/VO8=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=e0sF+/PcMcdFEP4/194gzvi5VpRLZWtqH7QDMyay/lmLNKawa7gDd+kOGo3rPCBV/bPf4DXnzDMLSkwZPpbBmzJ+NMatFAwpwl9KVaIWXWPPMoKtRW30ezMKjkpQ181m29OY911bo9FwbmyPlKifhLarQg3l1lokqpEcYuXLMg0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aVcb9Y/C; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789984481; c=relaxed/simple;
+	bh=acjhOO/eOE/dYA+oM6qlFRbN6b7UfIAiur4l+q+ZRt8=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=r/Ak0HoV+MgcWZH4Cq+HnslcrY+DsrZa5SUgDkIzlqCLCE8CC2Cj6x11ELFe0Sda72gcNelDq328FgZFADX7QvLslcNUugQikwRzQpVuVsibWay7SWLDw61CRJlADUCkcvbHlOFZJ3XveEZKy3vFvpNYYeIN3tPx6n2djdFh9H0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=tJXFDuMH; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aVcb9Y/C"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47E7A1F00893;
-	Mon, 21 Sep 2026 09:15:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789982141;
-	bh=LlNlq2VrngCBqZG37gCfBwQV+B/RRl0zC5mhe80BXoo=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=aVcb9Y/C1XiLViPVTDnnf0BV1evOMyAw/6ezDQto013t7To9cRC2vHeXxB/SvQUyg
-	 9Tc0YLI9b1O+VT0oGhwHGgcOF1zod40DHTBvOdxGmMZ1ILNwxCZWcCQTJ6NLU6EBzP
-	 C5cnwB0+iN5blk09/bToGXk2cI+An7bTUJnwLUn4UBfQccqumD29IsbslPDqqHyzdk
-	 I6Xu/bp8wzd/5G8R8V94m90KQDCNVswvagYCncvTtRDRZ2gl6cHtPg1kL50rPGEaET
-	 563xqhh91iMg/TzduZ6KcznwXCBhT/fYpuNtq8yQMhuPPeLNUBnPWtwmmJyJvioyHd
-	 5qbkAIfMeojNg==
-Subject: Re: [PATCH net-next v4 12/12] net/rds: hold a connection reference
- from struct rds_incoming
-From: netdev-bot+sashiko@kernel.org
-To: achender@kernel.org
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
- edumazet@google.com, kuba@kernel.org, horms@kernel.org, nicoyip.dev@gmail.com
-Date: Mon, 21 Sep 2026 09:15:40 +0000
-Message-ID: <178998214084.2160803.755745892282571698@kernel.org>
-In-Reply-To: <20260917073958.174056-13-achender@kernel.org>
-References: <20260917073958.174056-13-achender@kernel.org>
-X-sashiko-severity: Medium
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="tJXFDuMH"
+Received: by linux.microsoft.com (Postfix, from userid 1186)
+	id CA0BB20B7169; Mon, 21 Sep 2026 02:53:52 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com CA0BB20B7169
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1789984432;
+	bh=EwkEq1/CvgvPZe9JlzQl/h2kfDtzU6mu9rYK53rEzGM=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=tJXFDuMHNHFTXAgM1YNIYY7hGqRMr63ByMY1mazmlIRL6cb3v+oKz9kB8qpZyvI26
+	 Vn0DNjYgIGN6GFLI8I5YL+UFnu9nohkzr263ZW8uU5Bmdxd/sOzCU3P9ZdSPUVrHTl
+	 XYmXvTpyRyAL6L9WIrm3pxJoAzn/QPk//ccAPmVU=
+From: Konstantin Taranov <kotaranov@linux.microsoft.com>
+To: kotaranov@microsoft.com,
+	snsanghvi@microsoft.com,
+	longli@microsoft.com,
+	jgg@ziepe.ca,
+	leon@kernel.org
+Cc: linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH rdma-next v3 2/5] RDMA/mana_ib: Revise UD send posting and WQE definitions
+Date: Mon, 21 Sep 2026 02:53:49 -0700
+Message-ID: <20260921095352.3524691-3-kotaranov@linux.microsoft.com>
+X-Mailer: git-send-email 2.43.7
+In-Reply-To: <20260921095352.3524691-1-kotaranov@linux.microsoft.com>
+References: <20260921095352.3524691-1-kotaranov@linux.microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found 2 potential
-issue(s) to consider.
+From: Konstantin Taranov <kotaranov@microsoft.com>
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 1
+Batch a linked list of UD or GSI send requests behind one doorbell,
+returning the first failed WR while publishing all successful entries.
+Move the send PSN into common QP state and describe the extended RDMA
+send and receive OOB layouts needed by subsequent RC support.
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+Keep UD's inline OOB explicitly at INLINE_OOB_LARGE_SIZE even though
+the shared software OOB structure now describes larger formats. UD
+therefore continues using the existing GDMA encoder; extended GDMA
+WQE encoding and RC feature gating remain in their later patches.
 
-- [Medium] The commit message's reachability claim — "reaching the use-
-  after-free requires freeing a connection out from under a live socket,…
-- [Low] The patch closes a reported, KASAN-confirmed use-after-free
-  (`rds6_inc_info_copy()` reading a freed `rds_connection` via…
+Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
+---
+ drivers/infiniband/hw/mana/mana_ib.h | 40 ++++++++++++++++++-
+ drivers/infiniband/hw/mana/wr.c      | 58 ++++++++++++++++------------
+ 2 files changed, 72 insertions(+), 26 deletions(-)
 
---
-
-net/rds: hold a connection reference from struct rds_incoming
-
-This makes every assignment of rds_incoming->i_conn take a connection
-reference, dropped from rds_inc_put() and from the new rds_message_free()
-helper, so a connection stays allocated while incs that arrived over it
-are still queued on socket receive queues.
-
-Closes: https://lore.kernel.org/netdev/20260720184955.3008978-1-nicoyip.dev@gmail.com/
-
-The two comments below are about the changelog only, so the diff hunks
-are snipped.
-
->     This is not a stable candidate: reaching the use-after-free requires
->     freeing a connection out from under a live socket, which needs
->     CAP_SYS_MODULE, netns teardown or physical device removal, and the fix
->     depends on the connection reference counting introduced earlier in this
->     series.
-
-[Severity: Medium]
-Is this list of prerequisites complete?  There looks to be a fourth way
-to free a live connection that needs none of the three, in
-rds_ib_cm_connect_complete():
-
-net/rds/ib_cm.c:rds_ib_cm_connect_complete() {
-	dp = event->param.conn.private_data;
-	...
-		major = dp->ricp_v4.dp_protocol_major;
-		minor = dp->ricp_v4.dp_protocol_minor;
-	...
-	if (major) {
-		rds_ib_set_protocol(conn, RDS_PROTOCOL(major, minor));
-	...
-	if (conn->c_version < RDS_PROTOCOL_VERSION) {
-		if (conn->c_version != RDS_PROTOCOL_COMPAT_VERSION) {
-			pr_notice("RDS/IB: Connection <%pI6c,%pI6c> version %u.%u no longer supported\n", ...);
-			rds_conn_destroy(conn);
-			return;
-		}
-	}
-}
-
-The version comes from the peer's CM private data, and this callback is
-reached from live event handling:
-
-rds_rdma_cm_event_handler_cmn() -> RDMA_CM_EVENT_ESTABLISHED
-  -> trans->cm_connect_complete()
-    -> rds_ib_cm_connect_complete()
-      -> rds_conn_destroy()
-
-Since the same struct rds_connection is reused across reconnects for a
-given laddr/faddr/tos tuple, can a reconnect on which the peer advertises
-an unsupported version destroy a connection that unread incs from the
-previous session still point at, without CAP_SYS_MODULE, netns teardown or
-device removal?
-
-If so, could the paragraph be reworded to cover that path, and the stable
-reasoning re-derived from it?  The dependency on the reference counting
-introduced earlier in the series is a separate argument.
-
-One related note: the sibling patch "net/rds: pin the connection across
-RDMA-CM event handling" states this call "has meanwhile been switched to
-rds_conn_drop() by commit f97d8c7bab78", but at this revision
-rds_ib_cm_connect_complete() still calls rds_conn_destroy(conn).  Which of
-the two is right?
-
->     Reported-by: Chengfeng Ye <nicoyip.dev@gmail.com>
->     Closes: https://lore.kernel.org/netdev/20260720184955.3008978-1-nicoyip.dev@gmail.com/
-
-[Severity: Low]
-Should this carry a Fixes: tag for the commit that introduced the bare
-i_conn assignment in rds_inc_init()?
-
-The changelog documents two user-visible crashes, the KASAN report in
-rds6_inc_info_copy() and the panic in rds_ib_inc_free(), and the second
-one is reachable on the pre-series code, where nothing keeps the
-connection alive for a queued inc:
-
-net/rds/ib_recv.c:rds_ib_inc_free() {
-	struct rds_ib_connection *ic = inc->i_conn->c_transport_data;
-	...
-	rds_ib_recv_cache_put(&ibinc->ii_cache_entry, &ic->i_cache_incs);
-}
-
-reached by rds_release() -> rds_clear_recv_queue() -> rds_inc_put().
-
-The other patches in this series that fix pre-existing defects do carry
-one (e266df6b -> Fixes: 745cbccac3fe, 23531807 -> Fixes: 1c5113cf796b,
-d4f3ede0 -> Fixes: ebeeb1ad9b8a, ef753cfe -> Fixes: cdc306a5c9cd3), so
-this one looks inconsistent with the rest.  Even if no backport is
-possible because the fix depends on the earlier reference counting, would
-naming the introducing commit, or stating which kernels are exposed, help
-downstream trees decide whether they are affected?
-
+diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
+index 4da110b30..619578f16 100644
+--- a/drivers/infiniband/hw/mana/mana_ib.h
++++ b/drivers/infiniband/hw/mana/mana_ib.h
+@@ -206,7 +206,6 @@ enum mana_ud_queue_type {
+ 
+ struct mana_ib_ud_qp {
+ 	struct mana_ib_queue queues[MANA_UD_QUEUE_TYPE_MAX];
+-	u32 sq_psn;
+ };
+ 
+ struct mana_ib_qp {
+@@ -222,6 +221,7 @@ struct mana_ib_qp {
+ 
+ 	/* The port on the IB device, starting with 1 */
+ 	u32 port;
++	u32 sq_psn;
+ 
+ 	struct list_head cq_send_list;
+ 	struct list_head cq_recv_list;
+@@ -525,7 +525,16 @@ struct mana_rnic_set_qp_state_resp {
+ 
+ enum WQE_OPCODE_TYPES {
+ 	WQE_TYPE_UD_SEND = 0,
++	WQE_TYPE_RC_SEND = 2,
++	WQE_TYPE_RC_SEND_IMM = 3,
++	WQE_TYPE_RC_SEND_INV = 4,
++	WQE_TYPE_WRITE = 5,
++	WQE_TYPE_WRITE_IMM = 6,
++	WQE_TYPE_READ = 7,
+ 	WQE_TYPE_UD_RECV = 8,
++	WQE_TYPE_RC_RECV = 9,
++	WQE_TYPE_REG_MR = 10,
++	WQE_TYPE_LOCAL_INV = 12,
+ }; /* HW DATA */
+ 
+ struct rdma_send_oob {
+@@ -544,7 +553,36 @@ struct rdma_send_oob {
+ 			u32 reserved1;
+ 			u32 reserved2;
+ 		} ud_send;
++		union {
++			u32 immediate;
++			u32 invalidate_key;
++		} rc_send;
++		struct {
++			u32 address_hi;
++			u32 address_low;
++			u32 rkey;
++			u32 dma_len;
++		} rdma;
++		struct {
++			u32 mkey;
++		} mm;
+ 	};
++	union {
++		u32 immediate_ext;
++		struct {
++			u16 rsn;
++			u16 reserved;
++		} read;
++	};
++	u32 fsn : 24;
++	u32 reserved2   : 8;
++}; /* HW DATA */
++
++struct rdma_recv_oob {
++	u32 psn_start   : 24;
++	u32 reserved1   : 8;
++	u32 msn         : 24;
++	u32 reserved2   : 8;
+ }; /* HW DATA */
+ 
+ struct mana_rdma_cqe {
+diff --git a/drivers/infiniband/hw/mana/wr.c b/drivers/infiniband/hw/mana/wr.c
+index 8cd2980d4..f25df2fad 100644
+--- a/drivers/infiniband/hw/mana/wr.c
++++ b/drivers/infiniband/hw/mana/wr.c
+@@ -71,7 +71,7 @@ int mana_ib_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
+ 	return err;
+ }
+ 
+-static int mana_ib_post_send_ud(struct mana_ib_qp *qp, const struct ib_ud_wr *wr)
++static int mana_ib_post_send_ud_one(struct mana_ib_qp *qp, const struct ib_ud_wr *wr)
+ {
+ 	struct mana_ib_dev *mdev = container_of(qp->ibqp.device, struct mana_ib_dev, ib_dev);
+ 	struct mana_ib_ah *ah = container_of(wr->ah, struct mana_ib_ah, ibah);
+@@ -84,11 +84,8 @@ static int mana_ib_post_send_ud(struct mana_ib_qp *qp, const struct ib_ud_wr *wr
+ 	struct shadow_wqe_header *shadow_wqe;
+ 	int err, i;
+ 
+-	if (!ndev) {
+-		ibdev_dbg(&mdev->ib_dev, "Invalid port %u in QP %u\n",
+-			  qp->port, qp->ibqp.qp_num);
++	if (!ndev)
+ 		return -EINVAL;
+-	}
+ 
+ 	if (wr->wr.opcode != IB_WR_SEND)
+ 		return -EINVAL;
+@@ -110,7 +107,7 @@ static int mana_ib_post_send_ud(struct mana_ib_qp *qp, const struct ib_ud_wr *wr
+ 
+ 	wqe_req.num_sge = wr->wr.num_sge + 1;
+ 	wqe_req.sgl = gdma_sgl;
+-	wqe_req.inline_oob_size = sizeof(struct rdma_send_oob);
++	wqe_req.inline_oob_size = INLINE_OOB_LARGE_SIZE;
+ 	wqe_req.inline_oob_data = &send_oob;
+ 	wqe_req.flags = GDMA_WR_OOB_IN_SGL;
+ 	wqe_req.client_data_unit = ib_mtu_enum_to_int(ib_mtu_int_to_enum(ndev->mtu));
+@@ -119,7 +116,7 @@ static int mana_ib_post_send_ud(struct mana_ib_qp *qp, const struct ib_ud_wr *wr
+ 	send_oob.fence = !!(wr->wr.send_flags & IB_SEND_FENCE);
+ 	send_oob.signaled = !!(wr->wr.send_flags & IB_SEND_SIGNALED);
+ 	send_oob.solicited = !!(wr->wr.send_flags & IB_SEND_SOLICITED);
+-	send_oob.psn = qp->ud_qp.sq_psn;
++	send_oob.psn = qp->sq_psn;
+ 	send_oob.ssn_or_rqpn = wr->remote_qpn;
+ 	send_oob.ud_send.remote_qkey =
+ 		qp->ibqp.qp_type == IB_QPT_GSI ? IB_QP1_QKEY : wr->remote_qkey;
+@@ -128,40 +125,51 @@ static int mana_ib_post_send_ud(struct mana_ib_qp *qp, const struct ib_ud_wr *wr
+ 	if (err)
+ 		return err;
+ 
+-	qp->ud_qp.sq_psn++;
++	qp->sq_psn++;
+ 	shadow_wqe = shadow_queue_producer_entry(&qp->shadow_sq);
+ 	memset(shadow_wqe, 0, sizeof(*shadow_wqe));
+-	shadow_wqe->send_opcode = IB_WC_SEND;
+ 	shadow_wqe->wr_id = wr->wr.wr_id;
+ 	shadow_wqe->wqe_size_in_bu = wqe_info.wqe_size_in_bu;
+ 	shadow_queue_advance_producer(&qp->shadow_sq);
+ 
+-	mana_gd_wq_ring_doorbell(mdev_to_gc(mdev), queue);
+ 	return 0;
+ }
+ 
+-int mana_ib_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
+-		      const struct ib_send_wr **bad_wr)
++static int mana_ib_post_send_ud(struct mana_ib_qp *qp, const struct ib_send_wr *wr,
++				const struct ib_send_wr **bad_wr)
+ {
++	struct mana_ib_dev *mdev = container_of(qp->ibqp.device, struct mana_ib_dev, ib_dev);
++	struct gdma_queue *queue = qp->ud_qp.queues[MANA_UD_SEND_QUEUE].kmem;
++	bool ring_sq = false;
+ 	int err = 0;
+-	struct mana_ib_qp *qp = container_of(ibqp, struct mana_ib_qp, ibqp);
+ 
+ 	for (; wr; wr = wr->next) {
+-		switch (ibqp->qp_type) {
+-		case IB_QPT_UD:
+-		case IB_QPT_GSI:
+-			err = mana_ib_post_send_ud(qp, ud_wr(wr));
+-			if (unlikely(err)) {
+-				*bad_wr = wr;
+-				return err;
+-			}
++		err = mana_ib_post_send_ud_one(qp, ud_wr(wr));
++		if (unlikely(err)) {
++			*bad_wr = wr;
+ 			break;
+-		default:
+-			ibdev_dbg(ibqp->device, "Posting send wr on qp type %u is not supported\n",
+-				  ibqp->qp_type);
+-			return -EINVAL;
+ 		}
++		ring_sq = true;
+ 	}
+ 
++	if (ring_sq)
++		mana_gd_wq_ring_doorbell(mdev_to_gc(mdev), queue);
++
+ 	return err;
+ }
++
++int mana_ib_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
++		      const struct ib_send_wr **bad_wr)
++{
++	struct mana_ib_qp *qp = container_of(ibqp, struct mana_ib_qp, ibqp);
++
++	switch (ibqp->qp_type) {
++	case IB_QPT_UD:
++	case IB_QPT_GSI:
++		return mana_ib_post_send_ud(qp, wr, bad_wr);
++	default:
++		/* Unsupported QP type */
++		*bad_wr = wr;
++		return -EINVAL;
++	}
++}
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260917073958.174056-1-achender%40kernel.org
+2.43.0
+
