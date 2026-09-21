@@ -1,278 +1,370 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18C5A439F77;
-	Mon, 21 Sep 2026 08:37:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77FFE4570FA;
+	Mon, 21 Sep 2026 08:50:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.165.32
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789979830; cv=none; b=YT8Q2tF4N/PXFFHml56t93isJszpoZr4s9YZa+dcPSfgLDuv4vY4MerbvXyRv1OV126sqHj4+EKlwJXQlastmhfARQ9INcZFxIEgtXcOIdGx4kcrJlFrBk6+kzVPpAo7ys6ZzEug7U9YSNYrvFhH9kF0VWZMPPu/DhxwkZvZgFs=
+	t=1789980627; cv=none; b=lEDehHMa0kZjJc3dm2iQ5XprJAraKFPwSFitbQJxy/3XLwFsEqj7AZabpbfeKf/s3EdiuAEf0+wwmzwlqM2GKCtKh2SfvnPUTVEmd/u0EAXIQ1YcCb4BiuaCvXkJxQDiIvMLKqeFAcRx9Z7Ob9rg17APRkJGudnx4tRwlOqwMIk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789979830; c=relaxed/simple;
-	bh=TcQzOZNfLDzV2zhe9f7FPc4PwujpqnLn4gLODXQtmqM=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=FfyHZa6B1Ta6v9WfN59wjJAmMyTpYEMI8tc2OOKKElveGR7WNCJBeVESAjHND6pgGa9x8Q9wwIrOZ5PtDKoTNv9B6eER+j+WsbVTeSlxyFGH9eIbUTVyEuD/GtKTFsAx2WyEX/v+7VykJ/ZOEFawe7jq3vP/kFupHMzRu49OPSA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JJCiDh6j; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789980627; c=relaxed/simple;
+	bh=1roAp1njcsMyiE7wSbk0IspcEIahhecqC9rN69VBbnM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=YKr5NpTfAb1oqBVyCzT1vUgyvdg9JBDibuZPM11EHNwMIl54T76SyHOlEYCSwFjloxWupAYKzcnS7W1A+DlUDMQko3BRZwuV8gf+zgxBibCjVe67xPwkHIEzU84MCN/tFz9QdzDAjWBe0s8ikSHBmujlLegESSGASOlgK96hn70=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=ZtouWXXp; arc=none smtp.client-ip=205.220.165.32
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JJCiDh6j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 466C21F00893;
-	Mon, 21 Sep 2026 08:37:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789979828;
-	bh=94Mdz/CeYX3Wx0TJZ6lj43M5svcwKZtbvYAsbOTl5f4=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=JJCiDh6jWanW+wI0AzT+tgnTSRo0AvwpEiaKO7P3yuaNsi6vkSAVa2V6IRItFfziC
-	 tK1wWmjnSCfgz3mWijDuHNfPxvkU06XaLY1++aUAXNszxCUmbNtlGleTH5qStVnwiz
-	 7/jkgcbz1DRQMtTRMUvn4kgv+CmRjqVx+9d7GDYrwgIlPBpkgGxQyodFbP5aIjurAo
-	 XWH1wPCYrc9OrPizARTzbzNdK6KVarVBpvAI+BhTS29VdddCZ/cg6iz2zIELNDCiOl
-	 +FpO49mKN65puvQ2OCtGnkzwPYjhbMzatQTa6ooLMkZPu6CZvOyoKqSm0+AfFAN0tS
-	 TNMfdhxfgdR1g==
-Subject: Re: [PATCH net-next] net/rds: restrict the rdma_cm ids to IB devices
-From: netdev-bot+sashiko@kernel.org
-To: achender@kernel.org
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
- edumazet@google.com, kuba@kernel.org, horms@kernel.org
-Date: Mon, 21 Sep 2026 08:37:07 +0000
-Message-ID: <178997982782.2160803.16084252052230368942@kernel.org>
-In-Reply-To: <20260917074108.174262-1-achender@kernel.org>
-References: <20260917074108.174262-1-achender@kernel.org>
-X-sashiko-severity: High
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="ZtouWXXp"
+Received: from pps.filterd (m0246629.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68L2v2bd721555;
+	Mon, 21 Sep 2026 08:50:13 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=cc
+	:content-transfer-encoding:date:from:message-id:mime-version
+	:subject:to; s=corp-2025-04-25; bh=xZnfuy0MLFoO7/PvZGdS5CEeE7/Hb
+	mCgxHT5yvfF75c=; b=ZtouWXXpl4QrrKgZqovn9dEzzJhqEkhLyWVTB+yJKcbh/
+	YkGiZOj7lwInpcJWgv4Qevr8MTF/mDqXcGxsXu9IJTnVHdy9na7p8XvPn3DGomXj
+	hRpHnPt5/2Xo+luTeC8xzD1ImXx2xUssnqHUg2OcStgedyHM1Mqt5Hdj/FFV8Lll
+	9ZP4TxUZRuB+JPCPgSglfeUsUgsDzPa/L5eTnWcAfflQ1oSlCruwb19RoztDFrY5
+	j1IV3/WI5PObM+ElOu5jw+Cxr74mESbHqC8XGkBxqt8ugKuGIE4ttsNlCr/YwpDE
+	eVH/sI5iRKpYV7xUN7hxbx0jZttT5c1k45AD/coXg==
+Received: from phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta01.appoci.oracle.com [138.1.114.2])
+	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 4gsk2d1vt0-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 21 Sep 2026 08:50:13 +0000 (GMT)
+Received: from pps.filterd (phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
+	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (8.18.1.7/8.18.1.7) with ESMTP id 68L8o0To034301;
+	Mon, 21 Sep 2026 08:50:12 GMT
+Received: from pps.reinject (localhost [127.0.0.1])
+	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTPS id 4gtegmn3r5-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 21 Sep 2026 08:50:12 +0000 (GMT)
+Received: from phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
+	by pps.reinject (8.18.1.12/8.18.1.12) with ESMTP id 68L8jOHG025134;
+	Mon, 21 Sep 2026 08:50:11 GMT
+Received: from pkannoju-dev-build.osdevelopmeniad.oraclevcn.com (pkannoju-dev-build.allregionaliads.osdevelopmeniad.oraclevcn.com [100.100.252.59])
+	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTP id 4gtegmn3px-1;
+	Mon, 21 Sep 2026 08:50:11 +0000 (GMT)
+From: Praveen Kumar Kannoju <praveen.kannoju@oracle.com>
+To: jgg@ziepe.ca, leon@kernel.org, saeedm@nvidia.com, tariqt@nvidia.com,
+        mbloch@nvidia.com, davem@davemloft.net, kuba@kernel.org,
+        pabeni@redhat.com, jiri@resnulli.us,
+        kalesh-anakkur.purayil@broadcom.com, ynachum@amazon.com,
+        kees@kernel.org, mrgolin@amazon.com, parav@nvidia.com,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org
+Cc: anand.a.khoje@oracle.com,
+        Praveen Kumar Kannoju <praveen.kannoju@oracle.com>
+Subject: [PATCH v2] RDMA/mlx5: Add poll-EQ callback for ULP recovery
+Date: Mon, 21 Sep 2026 08:50:06 +0000
+Message-ID: <20260921085006.1443240-1-praveen.kannoju@oracle.com>
+X-Mailer: git-send-email 2.43.7
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-09-21_03,2026-09-16_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0
+ lowpriorityscore=0 phishscore=0 malwarescore=0 mlxlogscore=999 bulkscore=0
+ spamscore=0 mlxscore=0 adultscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.19.0-2609040000 definitions=main-2609210126
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTIxMDEyNSBTYWx0ZWRfX84bzhXzx/qpL
+ t+uenacsH3JH1RspQzYQop4GqIcUyhV+7U2usoFGDKbD8qzCgeFnh7etaz/K70eGb8zEEvNh4pI
+ rNdWnN75Sa0kDmKTkIsTfLYot59QeK7dlmLAFh0iNTbD8t3Uxr60VGtgwYHoX2TlafDBM2j0Bkn
+ qdQ/VlCTrQpI2QEUnFWoBEzHShhnJolHEfjg+rAtdeOjZGzh0BJlWMD56tqOKtW1q0XcOfF1kK5
+ C4s+soWws+CAYwZCy84kwzjjveiBYBfA3GGKo+/hwf9k4wQSF4Cu+ZgI3H8iwu90jtywdyNuCnU
+ FgXJ6rsMcYjMyw77nsAZftaxg6VuR9Q++0RtUsX2ic4iOHGuj3yDYzNf2TCPwT0DHdN6talfeo7
+ BRyK/9zBFCMa3iEnaxaIq0YfasWfkY+5gDxGdWFYkBQgHuGj+WgKh3hsYPJqYCSRZjDqlrprAs5
+ JJK82zeVrRSQht5fGIg==
+X-Proofpoint-Spam-Info: AW1haW4tMjYwOTIxMDEyNSBTYWx0ZWRfX/OcE+KV/WWgb
+ i7yAY0ZTh/ZOwqL2gNOHPyqonlEIHFalDsS3WGU6YNjgKbpAOKPDXCBU2Ec4vW/gwhjbhAPwD1i
+ S6KdSKpntgcKQyHSLL3jutapnkQcdPA1lmfUTeSqcgt2StCJkU29
+X-Proofpoint-ORIG-GUID: Kp3y8Bf8CTv1sz5BIwO5VGdfT0XlI3Mm
+X-Authority-Analysis: v=2.4 cv=f+Ddl+yM c=1 sm=1 tr=0 ts=6ab0efc5 cx=c_pps
+ a=XiAAW1AwiKB2Y8Wsi+sD2Q==:117 a=XiAAW1AwiKB2Y8Wsi+sD2Q==:17
+ a=VdqzKS8jKosA:10 a=VkNPw1HP01LnGYTKEx00:22 a=jiCTI4zE5U7BLdzWsZGv:22
+ a=EIcjfB9IiI4px24ztqRk:22 a=VwQbUJbxAAAA:8 a=yPCof4ZbAAAA:8
+ a=GFc6DVPmfN4-scXs8msA:9
+X-Proofpoint-GUID: Kp3y8Bf8CTv1sz5BIwO5VGdfT0XlI3Mm
 
-Thank you for your contribution! Sashiko AI review found 3 potential
-issue(s) to consider.
+Some upper layer protocols, such as RDS, use mlx5 RDMA CQs whose
+completion EQs are not shared with mlx5e queues. If an EQ notification is
+missed for one of those CQs, the ULP can remain idle until another event
+arrives or a driver health recovery path polls the EQ.
 
-Critical: 0 · High: 1 · Medium: 0 · Low: 2
+mlx5e already has a recovery path that polls a completion EQ from the tx
+timeout handler through mlx5_eq_poll_irq_disabled(). That mechanism is
+internal to the mlx5 core and is not reachable from RDMA ULPs such as RDS
+when they need to recover a CQ-associated EQ.
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+Add an optional RDMA device operation, reap_eq, and an ib_reap_eq() helper
+so ULPs can ask the provider to poll the event queue associated with a CQ.
+Providers that do not implement the callback return -EOPNOTSUPP.
 
-- [High] The commit message's closing paragraph — "With that, the
-  connect-request rejection for non-IB devices in the event handler…
-- [Low] The patch fixes a real, remotely reachable defect (RDS installing
-  its rdma_cm listener on every RDMA device — including RDMA_NODE_RNIC…
-- [Low] rds: memory leak of rdma_cm_id in rds_ib_conn_path_connect error
-  path
+The recovery poll path is sleepable: mlx5 disables the IRQ synchronously
+and serializes recovery polling with a mutex. Document that ib_reap_eq()
+must be called from process context, assert the contract with
+might_sleep(), and reject interrupt-context or IRQ-disabled callers with
+-EWOULDBLOCK before invoking the provider callback.
 
---
+Validate the device and CQ passed to ib_reap_eq() before dereferencing the
+callback table or provider-private CQ storage. The mlx5 callback also
+checks that the CQ belongs to the supplied device and that the mlx5 device
+and completion EQ are present before polling.
 
-net/rds: restrict the rdma_cm ids to IB devices
+Implement the callback for mlx5 by mapping the ib_cq to the mlx5 CQ and
+polling the CQ's completion EQ through a new exported mlx5_eq_reap()
+helper. mlx5_eq_reap() logs the EQ state, invokes
+mlx5_eq_poll_irq_disabled(), and reports any recovered EQEs.
 
-This restricts the three rdma_cm ids RDS creates (the listener, the
-per-connection id, and the probe id in rds_ib_laddr_check_cm()) to
-RDMA_NODE_IB_CA via rdma_restrict_node_type(), so the listener is only
-installed on IB devices and address resolution can only pick one.
+Serialize mlx5_eq_poll_irq_disabled() with a per-EQ mutex. The recovery
+poll path disables the IRQ, runs the EQ handler, advances the EQ consumer
+index, and updates the CI doorbell. Multiple recovery callers polling the
+same EQ concurrently could race on that state and reap the same EQ in
+parallel.
 
-A couple of questions about the commit message and about what the handler
-actually does today.
+Use this only as a recovery path for missed EQ notifications. It is not a
+normal completion polling path.
 
-The message says:
+Signed-off-by: Praveen Kumar Kannoju <praveen.kannoju@oracle.com>
+---
+v1: https://lore.kernel.org/linux-rdma/20260919100609.732391F000FF@smtp.kernel.org/T/#t
 
-    With that, the connect-request rejection for non-IB devices in the
-    event handler becomes unreachable; it stays as the last line of
-    defence and is what stable kernels without the new API rely on.
+Changes in v2:
+- Document ib_reap_eq() as process-context-only because the mlx5 recovery
+  path may sleep while synchronously disabling the IRQ.
+- Reject interrupt-context or IRQ-disabled callers with -EWOULDBLOCK before
+  invoking the provider callback.
+- Add might_sleep() assertions in ib_reap_eq() and
+  mlx5_eq_poll_irq_disabled().
+- Validate device/CQ input and CQ ownership before provider-private
+  dereferences.
+- Serialize mlx5_eq_poll_irq_disabled() with a per-EQ mutex so concurrent
+  recovery callers cannot reap the same EQ in parallel.
 
-[Severity: High]
-Is there actually a rejection in the event handler?  Looking at
-rds_rdma_cm_event_handler_cmn() in net/rds/rdma_transport.c, trans is
-declared without an initializer and only ever assigned on the IB path:
+ drivers/infiniband/core/device.c              |  1 +
+ drivers/infiniband/hw/mlx5/main.c             | 18 ++++++++++
+ drivers/net/ethernet/mellanox/mlx5/core/eq.c  | 25 +++++++++++++-
+ .../net/ethernet/mellanox/mlx5/core/lib/eq.h  |  2 ++
+ include/linux/mlx5/eq.h                       |  2 ++
+ include/rdma/ib_verbs.h                       | 34 +++++++++++++++++++
+ 6 files changed, 81 insertions(+), 1 deletion(-)
 
-	struct rds_connection *conn = cm_id->context;
-	struct rds_transport *trans;
-	...
-	if (cm_id->device->node_type == RDMA_NODE_IB_CA)
-		trans = &rds_ib_transport;
-
-There is no else arm, and no error return.  The switch then dereferences
-trans unconditionally:
-
-	case RDMA_CM_EVENT_CONNECT_REQUEST:
-		ret = trans->cm_handle_connect(cm_id, event, isv6);
-
-with the same pattern for trans->cm_initiate_connect() under
-RDMA_CM_EVENT_ROUTE_RESOLVED and trans->cm_connect_complete() under
-RDMA_CM_EVENT_ESTABLISHED.
-
-So on a device whose node_type is not RDMA_NODE_IB_CA, does the handler
-reject anything, or does it make an indirect call through an uninitialized
-stack slot?  git blame points at dcdede0406d30e ("RDS: Drop stale iWARP
-RDMA transport"), which removed the
-
-	else
-		trans = &rds_iw_transport;
-
-arm without adding a bail-out.
-
-If that is right, then the sentence quoted above describes the opposite of
-what the code does, and the trees the message says are covered have no
-mitigation at all.  siw_device_create() in
-drivers/infiniband/sw/siw/siw_main.c sets
-
-	base_dev->node_type = RDMA_NODE_RNIC;
-
-and before this patch cma_listen_on_dev() installed the RDS listener on
-that device, so a remote peer connecting to the RDS port reaches the
-CONNECT_REQUEST case above.
-
-Would it make sense to also add the handler-side bail-out, something like
-
-	if (!trans)
-		return -EINVAL;
-
-so that the "last line of defence" the message refers to exists, and so
-there is something minimal to backport to trees without
-rdma_restrict_node_type()?  The cm_id->device->node_type load itself is
-also unguarded, while net/rds/ib.c still tests !cm_id->device.
-
-> diff --git a/net/rds/ib.c b/net/rds/ib.c
-> index 786f39169bc14..6d367518aafba 100644
-> --- a/net/rds/ib.c
-> +++ b/net/rds/ib.c
-> @@ -414,13 +414,14 @@ static int rds_ib_laddr_check_cm(struct net *net, const struct in6_addr *addr,
->  	bool isv4;
->  
->  	isv4 = ipv6_addr_v4mapped(addr);
-> -	/* Create a CMA ID and try to bind it. This catches both
-> -	 * IB and iWARP capable NICs.
-> -	 */
-> +	/* Create a CMA ID restricted to IB devices and try to bind it. */
->  	cm_id = rdma_create_id(&init_net, rds_rdma_cm_event_handler,
->  			       NULL, RDMA_PS_TCP, IB_QPT_RC);
->  	if (IS_ERR(cm_id))
->  		return PTR_ERR(cm_id);
-> +	ret = rdma_restrict_node_type(cm_id, RDMA_NODE_IB_CA);
-> +	if (ret)
-> +		goto out;
->  
->  	if (isv4) {
->  		memset(&sin, 0, sizeof(sin));
-
-[ ... ]
-
-> @@ -473,10 +474,8 @@ static int rds_ib_laddr_check_cm(struct net *net, const struct in6_addr *addr,
->  #endif
->  	}
->  
-> -	/* rdma_bind_addr will only succeed for IB & iWARP devices */
-> +	/* the restriction above means this only succeeds for IB devices */
->  	ret = rdma_bind_addr(cm_id, sa);
-> -	/* due to this, we will claim to support iWARP devices unless we
-> -	   check node_type. */
->  	if (ret || !cm_id->device ||
->  	    cm_id->device->node_type != RDMA_NODE_IB_CA)
->  		ret = -EADDRNOTAVAIL;
-
-[Severity: High]
-The message describes this test as follows:
-
-    the address check's bind fails outright on anything else (its
-    explicit node_type test now only guards against a device with no
-    node type at all)
-
-Is that accurate?  Once restricted_node_type is set on the id,
-cma_acquire_dev_by_src_ip() in drivers/infiniband/core/cma.c skips every
-candidate device by node type:
-
-		if (id_priv->restricted_node_type != RDMA_NODE_UNSPECIFIED &&
-		    id_priv->restricted_node_type != cma_dev->device->node_type)
-			continue;
-
-Since RDMA_NODE_UNSPECIFIED is also filtered there, the
-cm_id->device->node_type != RDMA_NODE_IB_CA half of the test in
-rds_ib_laddr_check_cm() looks dead rather than a guard for "no node type
-at all"; only the !cm_id->device half can still fire.  Could the
-parenthetical be reworded?
-
-> diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
-> index 4feb0edc360c8..a859c252fd9a7 100644
-> --- a/net/rds/ib_cm.c
-> +++ b/net/rds/ib_cm.c
-> @@ -999,6 +999,16 @@ int rds_ib_conn_path_connect(struct rds_conn_path *cp)
->  		goto out;
->  	}
->  
-> +	/* rds_ib_laddr_check() only vouched for the local address being
-> +	 * on an IB device; the address resolution below picks the device
-> +	 * on its own, so restrict it to the same kind.
-> +	 */
-> +	ret = rdma_restrict_node_type(ic->i_cm_id, RDMA_NODE_IB_CA);
-> +	if (ret) {
-> +		rdsdebug("rdma_restrict_node_type() failed: %d\n", ret);
-> +		goto out;
-> +	}
-> +
->  	rdsdebug("created cm id %p for conn %p\n", ic->i_cm_id, conn);
->  
->  	if (ipv6_addr_v4mapped(&conn->c_faddr)) {
-> diff --git a/net/rds/rdma_transport.c b/net/rds/rdma_transport.c
-> index b15cf316b23a2..91ff1dde26af0 100644
-> --- a/net/rds/rdma_transport.c
-> +++ b/net/rds/rdma_transport.c
-> @@ -210,6 +210,14 @@ static int rds_rdma_listen_init_common(rdma_cm_event_handler handler,
->  		return ret;
->  	}
->  
-> +	/* Only the IB transport is left, so only listen on IB devices */
-> +	ret = rdma_restrict_node_type(cm_id, RDMA_NODE_IB_CA);
-> +	if (ret) {
-> +		pr_err("RDS/RDMA: failed to setup listener, rdma_restrict_node_type() returned %d\n",
-> +		       ret);
-> +		goto out;
-> +	}
-> +
-
-[Severity: Low]
-This new error path jumps to out and returns ret with ic->i_cm_id
-still pointing at the id rdma_create_id() just handed back, and nothing
-between here and the return destroys it.  Compare the
-rdma_resolve_addr() failure a few lines further down, which does
-
-	rdma_destroy_id(ic->i_cm_id);
-	ic->i_cm_id = NULL;
-
-before falling into the same out label, and the other two sites this
-patch touches: in rds_ib_laddr_check_cm() the new goto out lands on a
-label that calls rdma_destroy_id(cm_id), and in
-rds_rdma_listen_init_common() cm_id is still non-NULL at out so it is
-destroyed there too.  So this is the one of the three new calls whose
-failure leaks the id, i.e. a struct rdma_id_private and its restrack
-entry.
-
-In practice it cannot be reached: rdma_restrict_node_type() only
-returns -EINVAL for a node type it does not recognise and -EALREADY if
-the id is not in RDMA_CM_IDLE, and a freshly created kernel id being
-restricted to RDMA_NODE_IB_CA is neither, so this is a structural
-defect rather than something a peer or a local user can trigger.
-
-Still, the surrounding code is careful about this, so which way did you
-intend it?  Is the connection teardown path (rds_ib_conn_shutdown(),
-which destroys ic->i_cm_id when it is set) meant to clean up after a
-failed rds_ib_conn_path_connect(), or should this arm mirror the
-resolve failure and do the rdma_destroy_id()/NULL itself?  If the
-former, the asymmetry with the rdma_resolve_addr() arm immediately
-below is confusing enough that it is worth saying so in a comment.
-
-[Severity: Low]
-Should this change carry a Fixes: tag, and a note for stable?  The defect
-being closed is remotely reachable (the listener was previously installed
-on RDMA_NODE_RNIC devices such as siw, and the handler then runs with
-trans unassigned), but there is no Fixes: line among the trailers.
-
-The three new calls here, in rds_ib_conn_path_connect() and in
-rds_ib_laddr_check_cm() all depend on a760e80e90f5 ("RDMA/core: introduce
-rdma_restrict_node_type()"), so an automated backport to a tree without
-that commit will not build.  Could the message state either that
-a760e80e90f5 is a prerequisite, or that stable should take a minimal
-handler-side fix instead?
-
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 7a3ed5ecac00..a0a6e4a9ed50 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -3016,6 +3016,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
+ 	SET_DEVICE_OP(dev_ops, rdma_netdev_get_params);
+ 	SET_DEVICE_OP(dev_ops, read_counters);
+ 	SET_DEVICE_OP(dev_ops, read_comp_cntr);
++	SET_DEVICE_OP(dev_ops, reap_eq);
+ 	SET_DEVICE_OP(dev_ops, reg_dm_mr);
+ 	SET_DEVICE_OP(dev_ops, reg_user_mr);
+ 	SET_DEVICE_OP(dev_ops, reg_user_mr_dmabuf);
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 373ee1f42d4a..ae8d32358e82 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -22,6 +22,7 @@
+ #include <rdma/ib_addr.h>
+ #include <rdma/ib_cache.h>
+ #include <linux/mlx5/port.h>
++#include <linux/mlx5/eq.h>
+ #include <linux/mlx5/vport.h>
+ #include <linux/mlx5/fs.h>
+ #include <linux/mlx5/eswitch.h>
+@@ -3654,6 +3655,22 @@ static void get_dev_fw_str(struct ib_device *ibdev, char *str)
+ 		 fw_rev_sub(dev->mdev));
+ }
+ 
++static int mlx5_ib_reap_eq(struct ib_device *ibdev, struct ib_cq *ibcq)
++{
++	struct mlx5_ib_dev *dev;
++	struct mlx5_ib_cq *cq;
++
++	if (!ibdev || !ibcq || ibcq->device != ibdev)
++		return -EINVAL;
++
++	dev = to_mdev(ibdev);
++	if (!dev->mdev)
++		return -ENODEV;
++
++	cq = to_mcq(ibcq);
++	return mlx5_eq_reap(dev->mdev, cq->mcq.eq);
++}
++
+ static int lag_event(struct notifier_block *nb, unsigned long event, void *data)
+ {
+ 	struct mlx5_ib_dev *dev = container_of(nb, struct mlx5_ib_dev,
+@@ -4642,6 +4659,7 @@ static const struct ib_device_ops mlx5_ib_dev_ops = {
+ 	.query_ucontext = mlx5_ib_query_ucontext,
+ 	.reg_user_mr = mlx5_ib_reg_user_mr,
+ 	.reg_user_mr_dmabuf = mlx5_ib_reg_user_mr_dmabuf,
++	.reap_eq = mlx5_ib_reap_eq,
+ 	.req_notify_cq = mlx5_ib_arm_cq,
+ 	.rereg_user_mr = mlx5_ib_rereg_user_mr,
+ 	.resize_user_cq = mlx5_ib_resize_cq,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+index d11ec263d53c..5a91cbf34125 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+@@ -148,21 +148,43 @@ static int mlx5_eq_comp_int(struct notifier_block *nb,
+ /* Some architectures don't latch interrupts when they are disabled, so using
+  * mlx5_eq_poll_irq_disabled could end up losing interrupts while trying to
+  * avoid losing them.  It is not recommended to use it, unless this is the last
+- * resort.
++ * resort. This function may sleep and must be called from process context.
+  */
+ u32 mlx5_eq_poll_irq_disabled(struct mlx5_eq_comp *eq)
+ {
+ 	u32 count_eqe;
+ 
++	might_sleep();
++	mutex_lock(&eq->poll_lock);
+ 	disable_irq(eq->core.irqn);
+ 	count_eqe = eq->core.cons_index;
+ 	mlx5_eq_comp_int(&eq->irq_nb, 0, NULL);
+ 	count_eqe = eq->core.cons_index - count_eqe;
+ 	enable_irq(eq->core.irqn);
++	mutex_unlock(&eq->poll_lock);
+ 
+ 	return count_eqe;
+ }
+ 
++int mlx5_eq_reap(struct mlx5_core_dev *dev, struct mlx5_eq_comp *eq)
++{
++	u32 eqe_count;
++
++	if (!dev || !eq)
++		return -EINVAL;
++
++	mlx5_core_dbg(dev, "EQ 0x%x: Cons = 0x%x, irqn = 0x%x\n",
++		      eq->core.eqn, eq->core.cons_index, eq->core.irqn);
++
++	eqe_count = mlx5_eq_poll_irq_disabled(eq);
++	if (eqe_count)
++		mlx5_core_warn(dev, "Recovered %d EQEs on EQ 0x%x\n",
++			       eqe_count, eq->core.eqn);
++
++	return 0;
++}
++EXPORT_SYMBOL(mlx5_eq_reap);
++
+ static void mlx5_eq_async_int_lock(struct mlx5_eq_async *eq, bool recovery,
+ 				   unsigned long *flags)
+ 	__acquires(&eq->lock)
+@@ -1012,6 +1034,7 @@ static int create_comp_eq(struct mlx5_core_dev *dev, u16 vecidx)
+ 	INIT_LIST_HEAD(&eq->tasklet_ctx.list);
+ 	INIT_LIST_HEAD(&eq->tasklet_ctx.process_list);
+ 	spin_lock_init(&eq->tasklet_ctx.lock);
++	mutex_init(&eq->poll_lock);
+ 	tasklet_setup(&eq->tasklet_ctx.task, mlx5_cq_tasklet_cb);
+ 
+ 	irq = xa_load(&table->comp_irqs, vecidx);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/eq.h b/drivers/net/ethernet/mellanox/mlx5/core/lib/eq.h
+index b1edc71ffc6d..ca019b3019aa 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lib/eq.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/eq.h
+@@ -6,6 +6,7 @@
+ #include <linux/mlx5/driver.h>
+ #include <linux/mlx5/eq.h>
+ #include <linux/mlx5/cq.h>
++#include <linux/mutex.h>
+ 
+ #define MLX5_EQE_SIZE       (sizeof(struct mlx5_eqe))
+ 
+@@ -46,6 +47,7 @@ struct mlx5_eq_comp {
+ 	struct notifier_block   irq_nb;
+ 	struct mlx5_eq_tasklet  tasklet_ctx;
+ 	struct list_head        list;
++	struct mutex            poll_lock; /* protect recovery polling */
+ };
+ 
+ static inline u32 eq_get_size(struct mlx5_eq *eq)
+diff --git a/include/linux/mlx5/eq.h b/include/linux/mlx5/eq.h
+index 3705a382276b..a053f9eb2614 100644
+--- a/include/linux/mlx5/eq.h
++++ b/include/linux/mlx5/eq.h
+@@ -9,6 +9,7 @@
+ #define MLX5_NUM_SPARE_EQE (0x80)
+ 
+ struct mlx5_eq;
++struct mlx5_eq_comp;
+ struct mlx5_irq;
+ struct mlx5_core_dev;
+ 
+@@ -29,6 +30,7 @@ void mlx5_eq_disable(struct mlx5_core_dev *dev, struct mlx5_eq *eq,
+ 
+ struct mlx5_eqe *mlx5_eq_get_eqe(struct mlx5_eq *eq, u32 cc);
+ void mlx5_eq_update_ci(struct mlx5_eq *eq, u32 cc, bool arm);
++int mlx5_eq_reap(struct mlx5_core_dev *dev, struct mlx5_eq_comp *eq);
+ 
+ /* The HCA will think the queue has overflowed if we
+  * don't tell it we've been processing events.  We
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index cb3b6163961b..c9a41c88839a 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -13,6 +13,7 @@
+ #define IB_VERBS_H
+ 
+ #include <linux/ethtool.h>
++#include <linux/kernel.h>
+ #include <linux/types.h>
+ #include <linux/device.h>
+ #include <linux/bvec.h>
+@@ -2542,6 +2543,7 @@ struct ib_device_ops {
+ 	int (*poll_cq)(struct ib_cq *cq, int num_entries, struct ib_wc *wc);
+ 	int (*peek_cq)(struct ib_cq *cq, int wc_cnt);
+ 	int (*req_notify_cq)(struct ib_cq *cq, enum ib_cq_notify_flags flags);
++	int (*reap_eq)(struct ib_device *device, struct ib_cq *cq);
+ 	int (*post_srq_recv)(struct ib_srq *srq,
+ 			     const struct ib_recv_wr *recv_wr,
+ 			     const struct ib_recv_wr **bad_recv_wr);
+@@ -4296,6 +4298,38 @@ static inline int ib_req_notify_cq(struct ib_cq *cq,
+ 	return cq->device->ops.req_notify_cq(cq, flags);
+ }
+ 
++/**
++ * ib_reap_eq - Poll the event queue associated with a CQ.
++ * @device: Device that owns the CQ.
++ * @cq: CQ whose associated event queue should be polled.
++ *
++ * Poll the device event queue associated with @cq to recover completions
++ * after a missed event queue notification. This is an optional provider
++ * callback.
++ *
++ * This helper may sleep and must be called from process context without
++ * spinlocks held or IRQs disabled.
++ *
++ * Return: 0 on success, %-EINVAL for invalid input, %-EWOULDBLOCK when
++ * called from interrupt context or with IRQs disabled, and %-EOPNOTSUPP
++ * when unsupported.
++ */
++static inline int ib_reap_eq(struct ib_device *device, struct ib_cq *cq)
++{
++	if (!device || !cq || cq->device != device)
++		return -EINVAL;
++
++	if (WARN_ON_ONCE(in_interrupt() || irqs_disabled()))
++		return -EWOULDBLOCK;
++
++	might_sleep();
++
++	if (!device->ops.reap_eq)
++		return -EOPNOTSUPP;
++
++	return device->ops.reap_eq(device, cq);
++}
++
+ struct ib_cq *ib_cq_pool_get(struct ib_device *dev, unsigned int nr_cqe,
+ 			     int comp_vector_hint,
+ 			     enum ib_poll_context poll_ctx);
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260917074108.174262-1-achender%40kernel.org
+2.43.7
+
