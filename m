@@ -1,42 +1,42 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 924ED29B228;
-	Mon, 21 Sep 2026 09:15:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D724C463B7C;
+	Mon, 21 Sep 2026 09:15:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789982136; cv=none; b=MkJWUTAjmeNZrfTGMRNlzNZ0A1hjwRgcBgAbV/kmL/jAKCHYfXvNymCV/XakaZh4aNGLpOV/rgkqvDIFpCzDJ+QoEtkH5f2cEvare/NLnkemSl0RimfX1mWmbxVfAz2ERnpgFWOyXLKFJvcVfiC+kQ/PUsPravv+5ocL2YGymOs=
+	t=1789982137; cv=none; b=Y28jCotqFSyzLv3OCqx0IYprIbO0HY6sGbb+mLOG2k/Sheejr8tRk8c4kBgCJBhjnKQEx6TyGZA8b/WchA+5m8yrD2zS2tackxOIhQxArSFwprCwamkOJtOsMt1HH/cpQlfAz6uybvYL5wO3FmngJjPpl6nUPjPVP4YeFq1evQc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789982136; c=relaxed/simple;
-	bh=ffe3EmiWoqs0wgj72JGzeRbA91yvVS0eAGY0++OaqVY=;
+	s=arc-20240116; t=1789982137; c=relaxed/simple;
+	bh=U/XfiB/2EmSEMiySH9gC3Qtzm+ehPz/21PyCh048dWY=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=BAR9l7IdEqu9n0vG1Fjs1NmRDoUIBrnU4tLiz0+S3N0P1GpmsAHBtoU10o1AVihfGJHFHhBEugHs6nTPZfxAo1q3QDsXQyd6yd70yYxKt45AFIfLG0RmSviTWqGE0rEFNrR4aq5CiQW+e7U8CUKaic3Tt+mD8mBMgBBxWShhO2o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oRNxLc4u; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=JQtrq0AMsE6Tw8vkHE3ErpUyaruUnX5W2ih+Mabuq4jxCb0mnspj+YgWHb17IeA0A3rXh7j4saaK4Nnf5b8yVxv4mtgUqeFIsGcoM34pzZ2YgX/oAPrL1fbf8Wnr67A5awT46xC6Y5P41FmR3Lx8VCty32ujH213fIqCR5jmoLA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ImjLAf/l; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oRNxLc4u"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C71361F000FF;
-	Mon, 21 Sep 2026 09:15:33 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ImjLAf/l"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF3691F00893;
+	Mon, 21 Sep 2026 09:15:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789982134;
-	bh=HYC1/+ShuQtT43BdR4gPqhb6cb0IUyWurIDPv4ajWEE=;
+	s=k20260515; t=1789982135;
+	bh=T6h0b7Y9D0NJ+Dy6jdsXv0KHFG+MxxZXj/31JmaMw78=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=oRNxLc4udi645IUPybeb799jQIuWX4fEnovafvWse5TUCdfwbir3x4yqJ7p19T8eq
-	 NACnJpj0gfyUNc5WaVouwC6MmGv57GMnVp5HEuaJOeHJCh+XnzPjAb4RAXjsazdlRo
-	 DNQHSl82ZGQQfZrR5322KSv8kEUHMrVTol5xaRlvI5hfXH0yip8BA44Hpw5AGJuq1p
-	 j/fOQ7SphUJwA4Z+lOWIZ203CozXGp8qXUzWnAgGOiAMmkSo7gxykJxTlulNFJDKqa
-	 t7I30I/+6wMK17ULRn35QXrHlcOQ1jUiyvR3nW3lBoKMj0gtjiZi44MNFRqFgX6me5
-	 SZ9z2oE2uNuoQ==
-Subject: Re: [PATCH net-next v4 04/12] net/rds: make rds_destroy_pending()
- cover single-connection destroy
+	b=ImjLAf/ldHxojeITxmsqCUQYxCrrYlnkixok+rg1T/kbjd9MnRZvhoSYA9SkiYKeL
+	 tRiCU+MVthlXO4cehMRxwUfyTtzSAXSQp2PTUB1qUuqGN786cEDOrEtxJOkpS2Lirz
+	 u6g8p42PUwNPhu5v0TMIdF3xfjr7rBlPpqpbkNe+7/Cq5HGunzLtFy+s+Kc1ODoAAi
+	 hE7wBQKy3mROUb5aXOfH1PE9XsBjbu1wRX6RT3geq3XSxexzy6+E9EuXv6gx199UxG
+	 xSjxW5iInv1l9NYzej+l0YF/kNZr+fj/JFRHV2oQPtSqsb+m8fI5dEQI2gqrM36DdU
+	 EWSp1medcRuyQ==
+Subject: Re: [PATCH net-next v4 05/12] net/rds: split connection destroy into
+ quiesce and kref-governed free
 From: netdev-bot+sashiko@kernel.org
 To: achender@kernel.org
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
  edumazet@google.com, kuba@kernel.org, horms@kernel.org, nicoyip.dev@gmail.com
-Date: Mon, 21 Sep 2026 09:15:33 +0000
-Message-ID: <178998213334.2160803.15450306445342965822@kernel.org>
-In-Reply-To: <20260917073958.174056-5-achender@kernel.org>
-References: <20260917073958.174056-5-achender@kernel.org>
-X-sashiko-severity: High
+Date: Mon, 21 Sep 2026 09:15:34 +0000
+Message-ID: <178998213442.2160803.13266512446171309846@kernel.org>
+In-Reply-To: <20260917073958.174056-6-achender@kernel.org>
+References: <20260917073958.174056-6-achender@kernel.org>
+X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -46,207 +46,306 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 2 potential
-issue(s) to consider.
+Thank you for your contribution! Sashiko AI review found more severe
+issue(s) in other patches of this series. This mail is only an FYI, in case
+you want to address the nit picks below when you respin.
 
-Critical: 0 · High: 1 · Medium: 0 · Low: 1 (1)
+Low priority / nit picks for your consideration:
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [High] Unconditional self-deadlock in the very per-connection destroy
-  path this patch is written for.
-- [Low] The two comments added by this patch state an invariant the tree
-  does not maintain.
+- [Low] The freeing half of teardown (destroy_workqueue() of the per-path
+  workqueues in rds_conn_path_free(), net/rds/connection.c:565-576, plus…
+- [Low] The destruction-protocol comments state that every site arming a
+  path work tests rds_destroy_pending() inside one rcu_read_lock()…
+- [Low] The new duplicate-call branch in rds_conn_destroy()
+  (net/rds/connection.c:646-651) returns as soon as c_destroy_in_prog is…
 
 Pre-existing issues:
-- [Low] Stale contract comment above rds_conn_destroy()
-  (net/rds/connection.c:564-570) still claims 'We can only ensure this…
+- [High] Unsupported-protocol-version handling deadlocks the RDS/IB
+  connection teardown: rds_rdma_cm_event_handler_cmn()…
 
 --
 
-net/rds: make rds_destroy_pending() cover single-connection destroy
+net/rds: split connection destroy into quiesce and kref-governed free
 
-This adds a per-connection conn->c_destroy_in_prog flag, set by
-rds_conn_destroy() before the unhash plus synchronize_rcu() sequence, and
-tests it from rds_destroy_pending() so that the work-requeueing sites stop
-arming path works on a connection that is being torn down.  The now unused
-RDS_DESTROY_PENDING cp_flags bit and its dead test in
-rds_ib_is_unloading() are removed.
+This patch adds a kref to struct rds_connection, keeps the synchronous
+quiesce work in rds_conn_destroy() and moves the actual frees (transport
+conn_free, path workqueues, c_path array, slab object) into
+rds_conn_destroy_fini(), which runs from the last rds_conn_put().
+rds_conn_get()/rds_conn_put() plus an inline rds_conn_get_unless_zero()
+are exported for the reference holders added in the following patches.
 
-A few questions on the new comments and on the per-connection destroy path
-this is aimed at.
+A few questions below.
 
 > diff --git a/net/rds/connection.c b/net/rds/connection.c
-> index a96569a3ee9ad..242ca0570a47e 100644
+> index 242ca0570a47e..a44aa4d2a5e8b 100644
 > --- a/net/rds/connection.c
 > +++ b/net/rds/connection.c
-> @@ -579,6 +579,14 @@ void rds_conn_destroy(struct rds_connection *conn)
 
-[Severity: Low]
+[ ... ]
 
-This isn't a bug introduced by this patch, but the contract comment
-immediately above rds_conn_destroy() still reads:
-
-  /*
-   * Stop and free a connection.
-   *
-   * This can only be used in very limited circumstances.  It assumes that once
-   * the conn has been shutdown that no one else is referencing the connection.
-   * We can only ensure this in the rmmod path in the current code.
-   */
-
-The flag added below, and its comment in net/rds/rds.h, describe protection
-for the non-rmmod case, and in-tree callers such as
-rds_ib_cm_connect_complete() (net/rds/ib_cm.c) destroy a single connection
-outside rmmod.  Later in this series "net/rds: split connection destroy into
-quiesce and kref-governed free" replaces that comment, so is it worth
-refreshing it here so the two do not disagree in between?
-
->  		 "%pI4\n", conn, &conn->c_laddr,
->  		 &conn->c_faddr);
+> @@ -520,10 +522,12 @@ void rds_conn_shutdown(struct rds_conn_path *cp)
+>  		conn->c_trans->conn_slots_available(conn, false);
+>  }
 >  
-> +	/* Make rds_destroy_pending() true for this conn.  Together with
-> +	 * the synchronize_rcu() below this stops the work-requeueing
-> +	 * sites (which all test rds_destroy_pending() under
-> +	 * rcu_read_lock()) from queueing new work on the path
-> +	 * workqueues once we start cancelling and destroying them.
-> +	 */
+> -/* destroy a single rds_conn_path. rds_conn_destroy() iterates over
+> - * all paths using rds_conn_path_destroy()
+> +/* quiesce a single rds_conn_path: shut it down and tear down any
+> + * queued messages.  rds_conn_destroy() iterates over all paths using
+> + * rds_conn_path_quiesce(); the transport state and the workqueue are
+> + * freed later, from rds_conn_path_free().
+>   */
+> -static void rds_conn_path_destroy(struct rds_conn_path *cp)
+> +static void rds_conn_path_quiesce(struct rds_conn_path *cp)
+>  {
+>  	struct rds_message *rm, *rtmp;
+>  
+
+[Severity: High]
+This isn't a bug introduced by this patch, but since the quiesce (and its
+flush_work()) stays synchronous inside rds_conn_destroy(), can this
+teardown still deadlock when a peer negotiates an unsupported protocol
+version?
+
+The RDMA-CM handler calls the transport callback with the connection
+management mutex held:
+
+net/rds/rdma_transport.c:rds_rdma_cm_event_handler_cmn() {
+	...
+	mutex_lock(&conn->c_cm_lock);
+	...
+	trans->cm_connect_complete(conn, event);
+}
+
+and for a version mismatch that callback destroys the connection:
+
+net/rds/ib_cm.c:rds_ib_cm_connect_complete() {
+	...
+	rds_conn_destroy(conn);
+}
+
+rds_conn_destroy() -> rds_conn_path_quiesce() then queues cp_down_w and
+waits for it:
+
+net/rds/connection.c:rds_conn_path_quiesce() {
+	...
+	rds_conn_path_drop(cp, true);
+	flush_work(&cp->cp_down_w);
+}
+
+while the worker it waits for needs the same mutex:
+
+net/rds/connection.c:rds_conn_shutdown() {
+	...
+	mutex_lock(&cp->cp_cm_lock);
+}
+
+For IB (single path) net/rds/rds_single_path.h aliases c_cm_lock to
+c_path[0].cp_cm_lock, so the CM handler and the shutdown worker are
+waiting on each other, and the version field comes from the peer's CM
+private data.
+
+Upstream commit f97d8c7bab78 ("rds: ib: use rds_conn_drop() on protocol
+version mismatch", Cc: stable) addresses exactly this by not calling
+rds_conn_destroy() there, but that change is not in this baseline -
+rds_ib_cm_connect_complete() still calls rds_conn_destroy() both here and
+at the tip of this series.  The later series patch "net/rds: pin the
+connection across RDMA-CM event handling" states that the call was already
+removed; is that accurate for this tree?
+
+At the tip of the series this also turns transport unload into an
+unbounded wait, since rds_conn_wait_conns_freed() in rds_ib_exit() polls
+for a t_conn_count that a never-freed connection cannot drop.
+
+> @@ -552,6 +556,16 @@ static void rds_conn_path_destroy(struct rds_conn_path *cp)
+>  	WARN_ON(delayed_work_pending(&cp->cp_recv_w));
+>  	WARN_ON(delayed_work_pending(&cp->cp_conn_w));
+>  	WARN_ON(work_pending(&cp->cp_down_w));
+> +}
+> +
+> +/* free a quiesced rds_conn_path's transport state and workqueue; runs
+> + * from rds_conn_destroy_fini() once the last connection reference is
+> + * dropped.
+> + */
+> +static void rds_conn_path_free(struct rds_conn_path *cp)
+> +{
+> +	if (!cp->cp_transport_data)
+> +		return;
+>  
+>  	if (cp->cp_wq != rds_wq) {
+>  		destroy_workqueue(cp->cp_wq);
+> @@ -561,16 +575,52 @@ static void rds_conn_path_destroy(struct rds_conn_path *cp)
+>  	cp->cp_conn->c_trans->conn_free(cp->cp_transport_data);
+>  }
+>  
+> +/* Free a connection.  This runs from rds_conn_put() when the last
+> + * reference is dropped, after rds_conn_destroy() has quiesced the
+> + * connection and dropped the initial reference.
+> + */
+> +static void rds_conn_destroy_fini(struct kref *kref)
+> +{
+> +	struct rds_connection *conn = container_of(kref, struct rds_connection,
+> +						   c_refcount);
+> +	int npaths = (conn->c_trans->t_mp_capable ? RDS_MPATH_WORKERS : 1);
+> +	unsigned long flags;
+> +	int i;
+> +
+> +	for (i = 0; i < npaths; i++)
+> +		rds_conn_path_free(&conn->c_path[i]);
+> +
+> +	kfree(conn->c_path);
+> +	kmem_cache_free(rds_conn_slab, conn);
+> +
+> +	spin_lock_irqsave(&rds_conn_lock, flags);
+> +	rds_conn_count--;
+> +	spin_unlock_irqrestore(&rds_conn_lock, flags);
+> +}
+> +
+> +void rds_conn_get(struct rds_connection *conn)
+> +{
+> +	kref_get(&conn->c_refcount);
+> +}
+> +EXPORT_SYMBOL_GPL(rds_conn_get);
+> +
+> +void rds_conn_put(struct rds_connection *conn)
+> +{
+> +	kref_put(&conn->c_refcount, rds_conn_destroy_fini);
+> +}
+> +EXPORT_SYMBOL_GPL(rds_conn_put);
+> +
 
 [Severity: Low]
+Would it be worth spelling out the calling-context contract that
+rds_conn_put() now carries?
 
-Is the parenthetical "which all test rds_destroy_pending() under
-rcu_read_lock()" accurate for the tree as it stands?  The same claim is made
-unconditionally in the new struct rds_connection comment:
+kref_put() runs the release in the caller's context, and
+rds_conn_destroy_fini() -> rds_conn_path_free() sleeps:
 
-  /* ... A site that arms
-   * a path work must test the predicate and queue the work inside
-   * one rcu_read_lock() section: ...
-   */
+	if (cp->cp_wq != rds_wq) {
+		destroy_workqueue(cp->cp_wq);
 
-Three arming sites do neither.  rds_send_worker() and rds_recv_worker() in
-net/rds/threads.c re-arm their own works with no predicate and no RCU
+destroy_workqueue() calls drain_workqueue(), mutex_lock(&wq->mutex) and
+kthread_stop(), and in this commit rds_conn_destroy_fini() also takes
+rds_conn_lock, so a last put issued under rds_conn_lock would recurse on
+it.  That rds_conn_lock use is removed later in the series by "net/rds:
+drop rds_conn_count in favor of t_conn_count", but the sleeping part
+remains.
+
+At this commit the only put site is the tail of rds_conn_destroy(), which
+is process context and holds no lock, so nothing is broken today.  Should
+rds_conn_put() carry a might_sleep() and a comment on the prototype, so
+the future holders added by the follow-up patches have the requirement
+stated in the header rather than only in commit messages?
+
+>  /*
+>   * Stop and free a connection.
+>   *
+
+[ ... ]
+
+> @@ -584,11 +634,23 @@ void rds_conn_destroy(struct rds_connection *conn)
+>  	 * sites (which all test rds_destroy_pending() under
+>  	 * rcu_read_lock()) from queueing new work on the path
+>  	 * workqueues once we start cancelling and destroying them.
+
+[Severity: Low]
+This isn't a bug, but is the "all test rds_destroy_pending() under
+rcu_read_lock()" wording too broad?
+
+The workers requeue themselves without the predicate and without an RCU
 section:
 
-	switch (ret) {
+net/rds/threads.c:rds_send_worker() {
+	...
 	case -EAGAIN:
 		rds_stats_inc(s_send_immediate_retry);
 		queue_delayed_work(cp->cp_wq, &cp->cp_send_w, 0);
-		break;
-	case -ENOMEM:
-		rds_stats_inc(s_send_delayed_retry);
-		queue_delayed_work(cp->cp_wq, &cp->cp_send_w, 2);
-		break;
-
-And rds_conn_path_drop() bypasses the predicate on purpose for destroy:
-
-net/rds/connection.c:rds_conn_path_drop() {
-	rcu_read_lock();
-	if (!destroy && rds_destroy_pending(cp->cp_conn)) {
-		rcu_read_unlock();
-		return;
-	}
-	queue_work(cp->cp_wq, &cp->cp_down_w);
-	rcu_read_unlock();
 }
 
-that being the call rds_conn_path_destroy() makes with destroy == true,
-after c_destroy_in_prog has already been set.  The commit message does note
-the worker self-requeues and the sync cancel that covers them, but the
-in-tree comments do not mention either exception.  Could the comments spell
-out that the workers and the destroy == true drop are covered by the sync
-cancel and by the destroy path driving its own final shutdown pass instead?
-
-> +	WRITE_ONCE(conn->c_destroy_in_prog, true);
-
-[Severity: High]
-
-Can the single-connection destroy this flag is written for actually
-complete?  The RDMA CM handler holds conn->c_cm_lock (which is
-conn->c_path[0].cp_cm_lock, see net/rds/rds_single_path.h) across the
-ESTABLISHED dispatch:
-
-net/rds/rdma_transport.c:rds_rdma_cm_event_handler_cmn() {
-	if (conn) {
-		mutex_lock(&conn->c_cm_lock);
+net/rds/threads.c:rds_recv_worker() {
 	...
-	case RDMA_CM_EVENT_ESTABLISHED:
-		if (conn)
-			trans->cm_connect_complete(conn, event);
-		break;
-	...
+	case -EAGAIN:
+		rds_stats_inc(s_recv_immediate_retry);
+		queue_delayed_work(cp->cp_wq, &cp->cp_recv_w, 0);
 }
 
-and the version-mismatch destroy runs from inside that dispatch:
+The same claim also appears on c_destroy_in_prog in net/rds/rds.h ("A
+site that arms a path work must test the predicate and queue the work
+inside one rcu_read_lock() section").  The self-requeues are safe because
+rds_conn_path_quiesce() cancels those works with
+cancel_delayed_work_sync(), which is what the earlier series patch
+"net/rds: guard every work-requeueing site with rds_destroy_pending()"
+explains, and the over-broad clause came from "net/rds: make
+rds_destroy_pending() cover single-connection destroy" rather than this
+patch.  Could both comments be qualified with something like "apart from
+the workers' own self-requeues"?
 
-net/rds/ib_cm.c:rds_ib_cm_connect_complete() {
-	if (conn->c_version < RDS_PROTOCOL_VERSION) {
-		if (conn->c_version != RDS_PROTOCOL_COMPAT_VERSION) {
-			pr_notice(...);
-			rds_conn_destroy(conn);
-			return;
-	...
-}
+> +	 *
+> +	 * Now that the transport state stays discoverable (e.g. on the
+> +	 * transports' connection lists) until the final rds_conn_put(),
+> +	 * a conn can be handed to rds_conn_destroy() more than once -
+> +	 * e.g. dropped for a protocol version mismatch and then found
+> +	 * again at module unload.  Only the first caller proceeds; the
+> +	 * unhash also happens under rds_conn_lock, so a looked-up conn
+> +	 * can never be quiesced twice.
+>  	 */
+> +	spin_lock_irq(&rds_conn_lock);
+> +	if (conn->c_destroy_in_prog) {
+> +		spin_unlock_irq(&rds_conn_lock);
+> +		return;
+> +	}
+>  	WRITE_ONCE(conn->c_destroy_in_prog, true);
 
-rds_conn_destroy() then reaches rds_conn_path_destroy(), which queues
-cp_down_w with the guard bypassed and waits for it while still holding
-cp_cm_lock:
+[Severity: Low]
+What does a second caller learn from this early return?  c_destroy_in_prog
+is set here, before synchronize_rcu() and before any path is quiesced, so
+on return the first caller may still be inside rds_conn_path_quiesce().
 
-net/rds/connection.c:rds_conn_path_destroy() {
-	rds_conn_path_drop(cp, true);	/* cp_state = RDS_CONN_ERROR, queue */
-	flush_work(&cp->cp_down_w);
-	...
-}
+Meanwhile the new comment in net/rds/rds.h promises unconditionally:
 
-The shutdown worker fails the DOWN to DOWN transition because the state is
-RDS_CONN_ERROR, and then takes the mutex the flusher owns:
+	/* rds_conn_destroy() quiesces the connection synchronously;
+	 * freeing it - the connection memory, the path workqueues and
+	 * the transport's per-connection state - is deferred until the
+	 * last reference is dropped via rds_conn_put().
+	 */
 
-net/rds/connection.c:rds_conn_shutdown() {
-	if (!rds_conn_path_transition(cp, RDS_CONN_DOWN, RDS_CONN_DOWN)) {
-		...
-		mutex_lock(&cp->cp_cm_lock);
-	...
-}
+The only real second destroyer today is rds_ib_cm_connect_complete()
+racing the rds_ib_exit() sweep; the TCP and loopback sweeps unlink each
+node under the transport lock first, and rds_ib_remove_one() only drops
+the path.  The next patch in the series adds rds_conn_wait_conns_freed()
+to rds_ib_exit(), which closes the window where the sweep returns while
+another thread is still quiescing, so this is only about the wording.
+Could the rds.h comment note that a duplicate rds_conn_destroy() call
+returns without waiting for the in-flight quiesce?
 
-IB is not t_mp_capable, so npaths is 1 and the path being destroyed is
-exactly the one whose cp_cm_lock is held.  ERROR to DISCONNECTING is only
-performed under cp_cm_lock, so no other pass can unblock the transition
-either.  Does this leave the CM event thread parked in flush_work() holding
-cp_cm_lock and the path worker parked in mutex_lock() behind it, with the
-peer-supplied CM private data (major 3, minor 0) as the trigger?
-
-If so, the motivating scenario in the commit message, "queue_delayed_work()
-on a cp_wq that destroy_workqueue() has already freed", would not be
-reachable from this caller, because the destroy hangs before
-destroy_workqueue() runs.
-
-There is a related use-after-free on the same path at the handler tail:
-
-net/rds/rdma_transport.c:rds_rdma_cm_event_handler_cmn() {
-out:
-	if (conn)
-		mutex_unlock(&conn->c_cm_lock);
-	...
-}
-
-which runs on memory already returned by kfree(conn->c_path) and
-kmem_cache_free(rds_conn_slab, conn) in rds_conn_destroy().  That part is
-addressed later in this series by "net/rds: pin the connection across
-RDMA-CM event handling", but the lock re-entry above appears to survive to
-the end of the series, where rds_conn_path_quiesce() still does
-rds_conn_path_drop(cp, true) plus flush_work(&cp->cp_down_w) and
-net/rds/ib_cm.c still calls rds_conn_destroy() from the CM callback.  Would
-deferring that destroy out of the CM callback be the better fix for this
-site?
-
->  	/* Ensure conn will not be scheduled for reconnect */
->  	spin_lock_irq(&rds_conn_lock);
->  	hlist_del_init_rcu(&conn->c_hash_node);
+> diff --git a/net/rds/rds.h b/net/rds/rds.h
+> index 50b08c28ab865..defda3ddefa32 100644
+> --- a/net/rds/rds.h
+> +++ b/net/rds/rds.h
+> @@ -137,6 +137,12 @@ struct rds_conn_path {
+>  /* One rds_connection per RDS address pair */
+>  struct rds_connection {
+>  	struct hlist_node	c_hash_node;
+> +	/* rds_conn_destroy() quiesces the connection synchronously;
+> +	 * freeing it - the connection memory, the path workqueues and
+> +	 * the transport's per-connection state - is deferred until the
+> +	 * last reference is dropped via rds_conn_put().
+> +	 */
+> +	struct kref		c_refcount;
 
 [ ... ]
+
+> @@ -826,6 +832,13 @@ struct rds_connection *rds_conn_create_outgoing(struct net *net,
+>  void rds_conn_shutdown(struct rds_conn_path *cpath);
+>  void rds_conn_destroy(struct rds_connection *conn);
+> +void rds_conn_get(struct rds_connection *conn);
+> +void rds_conn_put(struct rds_connection *conn);
+> +/* take a reference unless the connection is already being freed */
+> +static inline bool rds_conn_get_unless_zero(struct rds_connection *conn)
+> +{
+> +	return kref_get_unless_zero(&conn->c_refcount);
+> +}
+
+Thanks for looking at these.
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260917073958.174056-1-achender%40kernel.org
