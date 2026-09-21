@@ -1,42 +1,42 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B96F492E56;
-	Mon, 21 Sep 2026 15:08:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AA784BB28E;
+	Mon, 21 Sep 2026 15:16:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790003298; cv=none; b=O5Dqi47cTODAAbukh/3I2aEHtx6K8YCIqs0KyL7ly7GgMyUOG4IwoybdMPmsNt08VEIQE5CR01x6elCsXDGd17zuJWKEFdmKB8Uxix9+8difke/2CjUklqlcuB27UpfEghOa69dgSrh6spjRibIUmAm8xYiqKIB2k8UpXnGLEO8=
+	t=1790003818; cv=none; b=YZxIFjzEoJlLxiHP08LCSLL0Zn5HRPCER2O2QdRUlNZhGh2AB+v/5h5C0f4Qn9LtST+YY2vy3zzo9at0uNSpQr0v2wOS0w8cZHphT8xkEyj4prVHSs33A3NOTgNwWk67T6YrqJDSa2sd12OBwVMxVIc692fP968rOcdRf3nSQoI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790003298; c=relaxed/simple;
+	s=arc-20240116; t=1790003818; c=relaxed/simple;
 	bh=ExRnd56sNxf0P8oZOH42TmlYkmFyGfOmxo03+yrD9Fc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=hwoyMH2/Y7s0CTygU9qFsuSE7H2NmWR8kKPrurlSPdThQxvA1zCcBIVYS2VnIajUvC6GPuKTRjjn6LDQVC1gG/WR3/0+IMKRG+iBgdY/C4VWavJ7KLYCzHivMKeZLV49mHDL+zMzRGqSbBgRM4F97H8qOY3E43EJAQlnZ4ol6CE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KzZaIRa7; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=Kuh5LCbu7O5Omkv9cfumL/Nl77NM0llO6jnZpNQ0W2Aqzk8BYgrHDT4uiSs7ooqZvTsRnsHuGc4GRVf05P//iV04Q5gJd8LME9CZGBOHeMd/5H9hDNUrAFaBoPmxZkLclIHMVaV+/0tmVqdGnux5uLqmTzj9JWdJjSquanhGZAg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YFhFse7b; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KzZaIRa7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C3571F000FF;
-	Mon, 21 Sep 2026 15:08:15 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YFhFse7b"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97D011F0089A;
+	Mon, 21 Sep 2026 15:16:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790003296;
+	s=k20260515; t=1790003817;
 	bh=Ua26Wzk5+rXUBQI+pJktHm7l6PYOAq/1f9N3wosqQyQ=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=KzZaIRa7uQnetFLXPpuXjw2b8bqxkiBS5MsJdNU+NkYIVq5HDFTaiNUoJ4b5Qm1Hz
-	 gdZtBw5oucQVlSyt003sE3wn5B7PTjR/SS8E4mPWZD7l595NgZJToAQcTcvHc7nO3f
-	 mFfiGREi03zKGyGPsAUcrFRRnhuDFlwvWl9jSP8Wu6zweXU7IYQppoo8XCwX0ThMmF
-	 nkB0bzTqVkmx1ddDOlJBOEvCrsqdvGZmxeZ+4uKjZ88OpL7ZJ1LoqUylRN12KhpRE9
-	 tizW/SFVHe8sSJHsO5i6N9Pjoy3Ht5wdWvizqqR0ZsOATnBjOhvIw6Ao/idjKEn27M
-	 GqZjJRCa0B8dA==
-Date: Mon, 21 Sep 2026 17:08:13 +0200
+	b=YFhFse7biU1cgk6J6sgZJxUNoQvk0BXf8Y1UugqnRXKaSXFoPrtfDArlBSC84QVV5
+	 zpO6cDcOsBNVLaLuJm5uEv4ed4jdUTUv7cI+3jzX8YkVczrT05tVT59inWJmS6HHXY
+	 bsjUuasdYjwBWHAkB+/oTI/I66szKe88A0g8OsN+ziEYuIXxtK1i+gxVW5tlYRcF3Z
+	 EnTGTYQo3USAY7v0tYfa7c1hdV25cXfenD9auuHy8lPv38HklegatFj84wLptRt2y2
+	 LiVlNVxNz5MqQ0gyPBelanhpEL/D9uminGGB+1zKynUTNSJ/VGZcn79qWCEwe4eqkQ
+	 ld3zf0Alxya8w==
+Date: Mon, 21 Sep 2026 17:16:54 +0200
 From: krzk@kernel.org
 To: Wentao Liang <vulab@iscas.ac.cn>
-Cc: guwen@linux.alibaba.com, linux-s390@vger.kernel.org, 
-	dust.li@linux.alibaba.com, linux-rdma@vger.kernel.org, horms@kernel.org, 
-	mjambigi@linux.ibm.com, tonylu@linux.alibaba.com, wenjia@linux.ibm.com, 
-	linux-kernel@vger.kernel.org, pabeni@redhat.com, sidraya@linux.ibm.com, edumazet@google.com, 
-	alibuda@linux.alibaba.com, netdev@vger.kernel.org, davem@davemloft.net, 
-	stable@vger.kernel.org, kuba@kernel.org, kgraul@linux.ibm.com
+Cc: davem@davemloft.net, guwen@linux.alibaba.com, mjambigi@linux.ibm.com, 
+	sidraya@linux.ibm.com, kgraul@linux.ibm.com, tonylu@linux.alibaba.com, 
+	linux-s390@vger.kernel.org, dust.li@linux.alibaba.com, wenjia@linux.ibm.com, 
+	pabeni@redhat.com, linux-rdma@vger.kernel.org, edumazet@google.com, 
+	alibuda@linux.alibaba.com, kuba@kernel.org, horms@kernel.org, linux-kernel@vger.kernel.org, 
+	netdev@vger.kernel.org, stable@vger.kernel.org
 Subject: Re: [PATCH] net/smc: Fix socket use-after-free in smc_shutdown()
-Message-ID: <arFIW8g7v1g1SlyN@quoll>
+Message-ID: <arFKZNjudjaKJwzZ@quoll>
 References: <20260917163956.2162779-1-vulab@iscas.ac.cn>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
