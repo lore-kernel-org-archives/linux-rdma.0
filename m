@@ -1,74 +1,82 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from ale.deltatee.com (ale.deltatee.com [204.191.154.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A5EF4D17A0
-	for <linux-rdma@vger.kernel.org>; Mon, 21 Sep 2026 22:00:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E08851C064;
+	Mon, 21 Sep 2026 22:17:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=204.191.154.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790028028; cv=none; b=QRmZofYHD1kPU4XQKu0iI6UaobUEhuk0LSVKdi8shSdLrk3AgdSbnErlpq9EmXO97V5RZxCKgCUPTMHItO4sdd6nuWNTDBCGw48DiI7KkCFOhKUUowY4LMdBBrH1IU2fOjwz+UbKxIknpcOQXP1y8zhl1YE9GTeTeFldyHtVELs=
+	t=1790029026; cv=none; b=YNh5F4EWKCTzzVePJczWPE6pNd2Qj8tERMLwLmxXdnRmsP2ldMflt0gHNz8fg5ID6KuB85KAcyz5zGkZTDtW90SFM11L6LCkm7LTpA3D4psVxOlaLsj78FmGBWB/PPyX0vLHhu6gjGwBUXQ4lDGbxGkSEewUiw3Kyckg7Pjmpdo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790028028; c=relaxed/simple;
-	bh=oSEolsv5k1lDJHNqCVfhW58k54PYFKBhOJlziXd0XW8=;
-	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=QD2/jQVgfPPf5tMVvPaHMvqKb/ieq+HS4V7SY2vUYnrUFds/sixqpIr7+vsXxVCLUbYz4KTmOxG/j/HLt55irFcaQuAKXLPBUdtXf3QBJeNNvTnzsKigpHR2HCXjBqJ4YvbyrTFE3rYd/+7px/g8JBOB1KaTMcjpM5tCoB9hmf8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lD54f517; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790029026; c=relaxed/simple;
+	bh=qZS43diFWuKFB0VBv8plxFaiwRVC4Irdx/++kTMpBxo=;
+	h=Message-ID:Date:MIME-Version:To:Cc:References:From:In-Reply-To:
+	 Content-Type:Subject; b=FsOv1NSZ43CMWDrgC5ALxh7Hh4qQOVAr4XOx9eweLQGGd6sntfJN8YEISPzvGPSdBf2F66x/o+Mf9e76XGKX3eQ61y8SHPOrEvvGE50lEvhQBDbxcblXfhHf3NTWCmoa6xx7amGASMDGQHsegVASz76xD9Pm+BjhpKXRW3djOr4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com; spf=pass smtp.mailfrom=deltatee.com; dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b=gyPjGwgQ; arc=none smtp.client-ip=204.191.154.188
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=deltatee.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lD54f517"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94C151F000FF;
-	Mon, 21 Sep 2026 22:00:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790028026;
-	bh=eS5lHse8yaB2I0yYnINaEVbToZ1O9Rbb0i6M4GmetVg=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=lD54f517cUnYQdKFAb1HylK3i5edlntBCscgpfGsdbujfocKs3ao7mESzBvyFEguE
-	 8HIoqXqKTBBSzpMPUbZQiIFloDdY2NTJ4hR2w1WRI+Va7rKp8iqkX+PE2mVGjeXOTh
-	 3HjKtNDosmfLMedaHTfXfLZBFm7XlGlKZZMRd4Hs0/Q7Ss1Pq6zXuTlCb805Bu/JAw
-	 7WSXHeNo5+xU8WGZCYODZwbY3AEqXdq7zKLdOFcf7/DIpbMAmmqUbxiiqcFuO97wmc
-	 R4wmG4uAk/D3AW7vUMPAAl+C8MKQeN2XivgUqR9WbIeh/0mlWX5irXpDvxE0lvEqoo
-	 UbzrTMAqUzIgA==
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net] net/rds: include the scope id in the sendmsg
- connection cache check
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Allison Henderson" <achender@kernel.org>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260921215046.174745-1-achender@kernel.org>
-References: <20260921215046.174745-1-achender@kernel.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Mon, 21 Sep 2026 22:00:26 +0000
-Message-Id: <20260921220026.94C151F000FF@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b="gyPjGwgQ"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=deltatee.com; s=20200525; h=Subject:In-Reply-To:From:References:Cc:To:
+	MIME-Version:Date:Message-ID:content-disposition;
+	bh=qZS43diFWuKFB0VBv8plxFaiwRVC4Irdx/++kTMpBxo=; b=gyPjGwgQcjCiyKhPbAXmYXw3xl
+	+buvxHWSp3dQP9gg+OFi4M/6hYfsK9hkbTOt+ZvqPIGXQOdn5PU89otUyejBoLdwzF8gSa3NCjV98
+	lz9UjLBaq3YW2PjpxssUBJNyxcwoWW10iFN/pSwPlVTuHtKzvXVkxbhw5DGsy7/XnnHEQLU/NjxW2
+	LQX/gwFq0FxkNvESlQz0OyVDfnDGP5D0KSVxMysAdcUzk+IEM07qO4sFfRGEIWR6XNjL0vMGIpo0a
+	H+jfAaaHqUub5uXEZz+NZ/KTIo7bmibu/gMd53QCePldE1dSdT1wo37SkjCqDEmdx+nhjJePGNp8X
+	U0f8N5jA==;
+Received: from guinness.priv.deltatee.com ([172.16.1.162])
+	by ale.deltatee.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+	(Exim 4.98.2)
+	(envelope-from <logang@deltatee.com>)
+	id 1x8mJo-0000000F5pd-2GHB;
+	Mon, 21 Sep 2026 16:17:01 -0600
+Message-ID: <85bb90f0-5a02-4e35-9ed6-ad7e67c1c0d8@deltatee.com>
+Date: Mon, 21 Sep 2026 16:16:56 -0600
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+To: Leon Romanovsky <leon@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
+ Chaitanya Kulkarni <kch@nvidia.com>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jens Axboe
+ <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
+ Ankit Agrawal <ankita@nvidia.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+ Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>,
+ "Joerg Roedel (AMD)" <joro@8bytes.org>, Will Deacon <will@kernel.org>,
+ Robin Murphy <robin.murphy@arm.com>, Randy Dunlap <rdunlap@infradead.org>,
+ Sumit Semwal <sumit.semwal@linaro.org>,
+ =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-doc@vger.kernel.org, iommu@lists.linux.dev,
+ Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+ linux-rdma@vger.kernel.org, kvm@vger.kernel.org
+References: <20260920-fix-p2p-acs-v4-0-v7-0-ca0828ab697c@nvidia.com>
+ <20260920-fix-p2p-acs-v4-0-v7-15-ca0828ab697c@nvidia.com>
+Content-Language: en-CA
+From: Logan Gunthorpe <logang@deltatee.com>
+In-Reply-To: <20260920-fix-p2p-acs-v4-0-v7-15-ca0828ab697c@nvidia.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-SA-Exim-Connect-IP: 172.16.1.162
+X-SA-Exim-Rcpt-To: leon@kernel.org, bhelgaas@google.com, kch@nvidia.com, gregkh@linuxfoundation.org, axboe@kernel.dk, alex@shazbot.org, ankita@nvidia.com, jgg@ziepe.ca, corbet@lwn.net, skhan@linuxfoundation.org, joro@8bytes.org, will@kernel.org, robin.murphy@arm.com, rdunlap@infradead.org, sumit.semwal@linaro.org, christian.koenig@amd.com, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, iommu@lists.linux.dev, tdave@nvidia.com, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org, linux-rdma@vger.kernel.org, kvm@vger.kernel.org
+X-SA-Exim-Mail-From: logang@deltatee.com
+X-Spam-Level: 
+Subject: Re: [PATCH v7 15/19] PCI/P2PDMA: Document TLP-class routing
+X-SA-Exim-Version: 4.2.1 (built Sun, 23 Feb 2025 07:57:16 +0000)
+X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
 
-> rds_sendmsg() reuses the connection cached in rs->rs_conn when its
-> peer address and ToS match the request.  The interface index is part
-> of a connection's identity as well: rds_conn_create_outgoing() passes
-> the request's scope_id down as dev_if, and rds_conn_lookup() compares
-> c_dev_if, so sends to the same link-local address through two
-> interfaces are two different connections.  The cache-hit test never
-> looked at it.
->=20
-> A socket bound to a non-link-local address has rs_bound_scope_id 0,
-> and the scope check at the top of rds_sendmsg() accepts any non-zero
-> destination scope for such a socket.  So after a send to fe80::x%ifA,
-> a send to fe80::x%ifB hits the cached ifA connection and the datagram
-> leaves through ifA, to whichever peer answers to that address there.
->=20
-> Compare c_dev_if with the request's scope_id in the cache test, so
-> that such a send takes the lookup path and finds, or creates, the ifB
-> connection.
->=20
-> Fixes: 1e2b44e78eea ("rds: Enable RDS IPv6 support")
-> Assisted-by: Claude-Code:claude-fable-5
-> Signed-off-by: Allison Henderson <achender@kernel.org>
 
-Sashiko has reviewed this patch and found no issues. It looks great!
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260921215046.1747=
-45-1-achender@kernel.org?part=3D1
+On 2026-09-20 05:41, Leon Romanovsky wrote:
+> +A path is bus addressable only where both directions route directly, so with
+> +nothing enabled every class is.
 
+I don't understand the sentence.
+
+
+Logan
