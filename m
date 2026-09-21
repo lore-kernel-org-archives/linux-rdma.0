@@ -1,38 +1,38 @@
 Received: from ale.deltatee.com (ale.deltatee.com [204.191.154.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68C5040B0EC;
-	Mon, 21 Sep 2026 20:20:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CAC643C05E;
+	Mon, 21 Sep 2026 20:38:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=204.191.154.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790022010; cv=none; b=fAfsvBT+8O/mbj174NsYh4bSaJq77dotdcfmDFKNG5LIJDp5qzXy/19gDaL/oDEI4oRmUxRm+08mFPUjk6UnCZV7fNoVzLG714LWvTEORaDZdwbvv5FCKM8SpuWsZnq0hiAuVkn2nDKKoF0/sTNVYMj7v84Xm1qKmaRlUHAoHgQ=
+	t=1790023098; cv=none; b=MdhbMRAYOyPbg1WTDhVvGKt1rVk0TaOtPBODmS9nWGgpIB7TV8Q9+rC25Xb8Vbj+ohFYo/hJYHVOOVHPbma6+bVm4gnSiCjUrYcfAgYSPmX1VhyYP1oNKRNxose4YbIt79bsSdXYmjretTYfj5VpqMoOl9IogfghcNyAfLvPOnc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790022010; c=relaxed/simple;
-	bh=ULL2sCfVDm6zc7ankviblB2XQp/aT+4WTaCaV0sJlaw=;
+	s=arc-20240116; t=1790023098; c=relaxed/simple;
+	bh=eYmGtKrob21NWMfAQ95fckRcqt+uVQGfzglKt7C19oY=;
 	h=Message-ID:Date:MIME-Version:To:Cc:References:From:In-Reply-To:
-	 Content-Type:Subject; b=eDcUrMPElDptb2Al+8iigZIYmR828zM7+g1zRpu1qMbMAeRH3hI1zTEzDs8SxPN7YasJJ0X5NLmalb7TK5qc/a3GdsSF7CDL3OukDuiaSZqQ7lnErH4Zxioc+dYyTZLTk4RL5QKvuyoAODKmyd358L3k1Ggg1+w7pEf6QkiBLE8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com; spf=pass smtp.mailfrom=deltatee.com; dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b=hBugeAc7; arc=none smtp.client-ip=204.191.154.188
+	 Content-Type:Subject; b=pKg6Yuy3JSX4L0i9/qJpafn/LlVrsgI89UMvjm9Y1vbyWzizmSftZqNh94nwvaOoAG7MEajMEKnoeCNqfc1NkeRKQa8JHfJZV2R5fZ5ESjjoQ8jB/7AWzHXFPz4mO16gfOdVWA4UWiVasJg2RhTkLxd+Qf0neJ4GQ1nQPnEKL3g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com; spf=pass smtp.mailfrom=deltatee.com; dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b=LsKW3NzD; arc=none smtp.client-ip=204.191.154.188
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=deltatee.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b="hBugeAc7"
+	dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b="LsKW3NzD"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=deltatee.com; s=20200525; h=Subject:In-Reply-To:From:References:Cc:To:
 	MIME-Version:Date:Message-ID:content-disposition;
-	bh=/kI6oW2E5j3Q5O4fdEa3eYERY9JobvSzq1pyfLPXvP8=; b=hBugeAc7MrRyOU4zBBCUqtS5XS
-	6+RXvhBejB2Fpn0eyZquoh0extXUkJ3cSiML7q4kcs+2HZShy/FLhx3xDR8ERnzuxkkOygY4Dyxp/
-	cxBNa2IKbP7A7czer0QQNdwZVLcrB8Qgjf4BUS1DyXjVpeDFvB9EaO6JLg1TRi3xb2RiKmH5JI+uC
-	EQsgw3q1T+FeczuwLQHEDxk6luELJbNOfCyzAOuDwobdL3t7hEyxq6eX141qiHY38qeDbDgUgWpHL
-	GZH9fnTofY1KboZF0j5B6HBoFPFWZMuwg2fmN+7+TaxYsyuurMOSpMH4wlQjZ2oNNOAv6NSrY9w6I
-	cStzuOnA==;
+	bh=Sr1qhGABu2EZeNtmrODjYoKQgc9j8cv9j73nR1L57ck=; b=LsKW3NzDV8inZjUq6NrZSEC48G
+	3MkUOffQBf7rtALq+krqCwpV4UHCjoTxdPFsIP8DFtXqvVKwEioT1Cdn1lv1P9SzDVlrBFfG/XMZ9
+	Fs03BSlR0j2+oZ4iyoY2LAwViJLntqOIDaG99B+Erxl9MgSfArvsxm3puFumHsbCbSidz+laCrr9K
+	8DCBlV4VsoMt/nH4fzRJvjoz0nSwjx+ljCmCLmhG72sIgW+ojj6vQGUn/R2jITMzh4crlfd+5z1su
+	tkZIOwSo9KaAJ9LTeZSR6M/eAK9dh0+CHIrd73lTZSfUpRtEPAnWBq1cjcaQl3lo6AdZ4NFJhYILD
+	LsDqJvHQ==;
 Received: from guinness.priv.deltatee.com ([172.16.1.162])
 	by ale.deltatee.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
 	(Exim 4.98.2)
 	(envelope-from <logang@deltatee.com>)
-	id 1x8kUe-0000000F4dP-3Hw8;
-	Mon, 21 Sep 2026 14:20:05 -0600
-Message-ID: <dada3ea0-61e7-479b-96c4-241eb3420542@deltatee.com>
-Date: Mon, 21 Sep 2026 14:20:02 -0600
+	id 1x8kmC-0000000F4jb-3Od7;
+	Mon, 21 Sep 2026 14:38:13 -0600
+Message-ID: <81c888b7-5d43-42cb-87ea-273e169d8343@deltatee.com>
+Date: Mon, 21 Sep 2026 14:38:09 -0600
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -56,17 +56,18 @@ Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
  dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
  linux-rdma@vger.kernel.org, kvm@vger.kernel.org
 References: <20260920-fix-p2p-acs-v4-0-v7-0-ca0828ab697c@nvidia.com>
- <20260920-fix-p2p-acs-v4-0-v7-7-ca0828ab697c@nvidia.com>
+ <20260920-fix-p2p-acs-v4-0-v7-9-ca0828ab697c@nvidia.com>
 Content-Language: en-CA
 From: Logan Gunthorpe <logang@deltatee.com>
-In-Reply-To: <20260920-fix-p2p-acs-v4-0-v7-7-ca0828ab697c@nvidia.com>
+In-Reply-To: <20260920-fix-p2p-acs-v4-0-v7-9-ca0828ab697c@nvidia.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 X-SA-Exim-Connect-IP: 172.16.1.162
 X-SA-Exim-Rcpt-To: leon@kernel.org, bhelgaas@google.com, kch@nvidia.com, gregkh@linuxfoundation.org, axboe@kernel.dk, alex@shazbot.org, ankita@nvidia.com, jgg@ziepe.ca, corbet@lwn.net, skhan@linuxfoundation.org, joro@8bytes.org, will@kernel.org, robin.murphy@arm.com, rdunlap@infradead.org, sumit.semwal@linaro.org, christian.koenig@amd.com, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, iommu@lists.linux.dev, tdave@nvidia.com, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org, linux-rdma@vger.kernel.org, kvm@vger.kernel.org
 X-SA-Exim-Mail-From: logang@deltatee.com
 X-Spam-Level: 
-Subject: Re: [PATCH v7 07/19] PCI/P2PDMA: Answer routing per TLP class
+Subject: Re: [PATCH v7 09/19] PCI/P2PDMA: Reject Translated Requests blocked
+ by Translation Blocking
 X-SA-Exim-Version: 4.2.1 (built Sun, 23 Feb 2025 07:57:16 +0000)
 X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
 
@@ -75,20 +76,38 @@ X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
 On 2026-09-20 05:41, Leon Romanovsky wrote:
 > From: Leon Romanovsky <leonro@nvidia.com>
 > 
-> calc_map_type_and_dist() returns one mapping type per provider and client,
-> valid only for strictly ordered Requests carrying an Untranslated address.
-> Clients that use Relaxed Ordering or ATS cannot ask what the fabric would
-> do with their traffic.
+> A Downstream Port with ACS Translation Blocking enabled treats every
+> Upstream Memory Request whose Address Type is not Untranslated as an ACS
+> Violation, ahead of "any applicable ACS P2P control mechanisms" per PCIe
+> r7.0 sec 6.12.1.1. P2PDMA never looks at that bit, so it reports a
+> bus-addressable path where an ATS client's Requests would be rejected.
 > 
-> Add enum pci_p2pdma_tlp_flags to name a class and pci_p2pdma_map_type_tlp()
-> to ask about one. The topology walk and the ACS Control reads do not depend
-> on the class, so decide all of them from the one walk and cache them
-> together, four bits each. Every class still answers alike; the controls
-> that tell them apart come next.
+> Add PCI_ACS_P2PDMA_BLOCKED, and because blocking is not a routing control,
+> scan the path for it rather than the divergence port alone. A blocked
+> Request has no host bridge fallback, since the Address Type is rejected
+> wherever the Request is addressed.
+> 
+> The two routes do not pass the same ports, so scan them separately. A
+> direct route turns around at the divergence and only passes the ports
+> below it, while the host bridge route keeps climbing and passes that port
+> and everything above it as well.
 > 
 > Tested-by: Tushar Dave <tdave@nvidia.com>
 > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 
-Ok, this makes more sense to me after a fresh review:
+> +/*
+> + * Report whether any port between @client and @common rejects Translated
+> + * addresses. @common is NULL to walk every port up to the host bridge. A port
+> + * whose ACS Control cannot be read counts as blocking, which withdraws only
+> + * the Translated classes because an Untranslated Request is routed by the
+> + * redirect controls instead.
+> + */
+
+Some awkward wording, maybe:
+
+"If @common is NULL, every port up to the host bridge is walked."
+
+Besides that minor nit:
 
 Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
+
