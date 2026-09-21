@@ -1,42 +1,42 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAFDA37E300;
-	Mon, 21 Sep 2026 09:15:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 924ED29B228;
+	Mon, 21 Sep 2026 09:15:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789982135; cv=none; b=b8o7jGlrERHSWiC8EovRcoxHublkLbskV0EbeJ5r6HxpWSSztJJNaGTcRhRi2ERvyQS/2Q+fsrOXxGWmkSDId+sqgyXE6pgOmfyHeYuQUgIcRPWICQvI1jdo78fvHLZFuSE9UTTRwv+ozR2WLzA4yWeU+54I1L/fgOps+z6Ftok=
+	t=1789982136; cv=none; b=MkJWUTAjmeNZrfTGMRNlzNZ0A1hjwRgcBgAbV/kmL/jAKCHYfXvNymCV/XakaZh4aNGLpOV/rgkqvDIFpCzDJ+QoEtkH5f2cEvare/NLnkemSl0RimfX1mWmbxVfAz2ERnpgFWOyXLKFJvcVfiC+kQ/PUsPravv+5ocL2YGymOs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789982135; c=relaxed/simple;
-	bh=1RgA59KYYb6WBR6E+5rZPiOX7cSshd7O8gb34wA7eYg=;
+	s=arc-20240116; t=1789982136; c=relaxed/simple;
+	bh=ffe3EmiWoqs0wgj72JGzeRbA91yvVS0eAGY0++OaqVY=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=YS6UME9XqEAJY/Y7sXk/rp7Q1gXYZv3L/toMsSzaRUBDhHmHNbmjtKwEpoEUJ/Wg1CP1pgGoMI6sdxSVDyoJRCppPUWnyBRmgpNw28nO9HDhASPViGiFMCjAH5MB/iTHIF7izn1RzDbsbgvGQ9C5vz4CN+FNI/VaSHh6m6JfPEI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hyj04kc8; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=BAR9l7IdEqu9n0vG1Fjs1NmRDoUIBrnU4tLiz0+S3N0P1GpmsAHBtoU10o1AVihfGJHFHhBEugHs6nTPZfxAo1q3QDsXQyd6yd70yYxKt45AFIfLG0RmSviTWqGE0rEFNrR4aq5CiQW+e7U8CUKaic3Tt+mD8mBMgBBxWShhO2o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oRNxLc4u; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hyj04kc8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B66E71F00898;
-	Mon, 21 Sep 2026 09:15:32 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oRNxLc4u"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C71361F000FF;
+	Mon, 21 Sep 2026 09:15:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789982133;
-	bh=pnVV9YtlMx/E0vseiKq5absOTkqYiXyqubPJ0iqTlug=;
+	s=k20260515; t=1789982134;
+	bh=HYC1/+ShuQtT43BdR4gPqhb6cb0IUyWurIDPv4ajWEE=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=hyj04kc8Tpdp5gDrXn/Sv9hmR8R+aFGZXXd5hUkSBZ7JD6NMg1Ujhenj+0uUX2FzY
-	 cK+Fmph53DkwxJchjxu1cqU81JysUzK2a3+32I30mrMS0bj4GLm1QEFyyrEn2UnVKa
-	 BTAd8Y/mgyGmNKoPhgym5bIuC9d69XeQlUeH765tFBk5qvJf5HR2bUSgmqyB3DXI+K
-	 vPF+9TULJ2JpyymT8VogdsaG8+VOKLQ+hp/obeJaPep20ln9/AH2Qtmvi6IKkroFah
-	 /TKYfF58TZYS10VHdoBtF5Q0vhCt1EMXCwRec0CHbFGsYKLtN9shx7QvjxUPlfMuei
-	 7K4N2PSiPi8mA==
-Subject: Re: [PATCH net-next v4 02/12] net/rds: free every path's transport
- data on the passive create paths
+	b=oRNxLc4udi645IUPybeb799jQIuWX4fEnovafvWse5TUCdfwbir3x4yqJ7p19T8eq
+	 NACnJpj0gfyUNc5WaVouwC6MmGv57GMnVp5HEuaJOeHJCh+XnzPjAb4RAXjsazdlRo
+	 DNQHSl82ZGQQfZrR5322KSv8kEUHMrVTol5xaRlvI5hfXH0yip8BA44Hpw5AGJuq1p
+	 j/fOQ7SphUJwA4Z+lOWIZ203CozXGp8qXUzWnAgGOiAMmkSo7gxykJxTlulNFJDKqa
+	 t7I30I/+6wMK17ULRn35QXrHlcOQ1jUiyvR3nW3lBoKMj0gtjiZi44MNFRqFgX6me5
+	 SZ9z2oE2uNuoQ==
+Subject: Re: [PATCH net-next v4 04/12] net/rds: make rds_destroy_pending()
+ cover single-connection destroy
 From: netdev-bot+sashiko@kernel.org
 To: achender@kernel.org
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
  edumazet@google.com, kuba@kernel.org, horms@kernel.org, nicoyip.dev@gmail.com
-Date: Mon, 21 Sep 2026 09:15:32 +0000
-Message-ID: <178998213222.2160803.16683635844722571306@kernel.org>
-In-Reply-To: <20260917073958.174056-3-achender@kernel.org>
-References: <20260917073958.174056-3-achender@kernel.org>
-X-sashiko-severity: Medium
+Date: Mon, 21 Sep 2026 09:15:33 +0000
+Message-ID: <178998213334.2160803.15450306445342965822@kernel.org>
+In-Reply-To: <20260917073958.174056-5-achender@kernel.org>
+References: <20260917073958.174056-5-achender@kernel.org>
+X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -46,10 +46,10 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 1 potential
+Thank you for your contribution! Sashiko AI review found 2 potential
 issue(s) to consider.
 
-Critical: 0 · High: 0 (1) · Medium: 1 · Low: 0
+Critical: 0 · High: 1 · Medium: 0 · Low: 1 (1)
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -57,171 +57,194 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [Medium] Commit message misstates reachability of the leak it claims to
-  fix (and carries a Fixes: tag that will pull it into stable as a leak…
+- [High] Unconditional self-deadlock in the very per-connection destroy
+  path this patch is written for.
+- [Low] The two comments added by this patch state an invariant the tree
+  does not maintain.
 
 Pre-existing issues:
-- [High] Create/destroy npaths disagreement leaks per-path ordered
-  workqueues for loopback-substituted RDS/TCP connections.
+- [Low] Stale contract comment above rds_conn_destroy()
+  (net/rds/connection.c:564-570) still claims 'We can only ensure this…
 
 --
 
-net/rds: free every path's transport data on the passive create paths
+net/rds: make rds_destroy_pending() cover single-connection destroy
 
-This moves the per-path transport-data free loop of __rds_conn_create()
-into a new helper, rds_conn_free_transport_data(), and calls it from the
-passive-conn exit as well as from the lost-creation-race exit.  The
-changelog describes the passive exit as leaking transport data for paths
-1..npaths-1 of a multipath connection.
+This adds a per-connection conn->c_destroy_in_prog flag, set by
+rds_conn_destroy() before the unhash plus synchronize_rcu() sequence, and
+tests it from rds_destroy_pending() so that the work-requeueing sites stop
+arming path works on a connection that is being torn down.  The now unused
+RDS_DESTROY_PENDING cp_flags bit and its dead test in
+rds_ib_is_unloading() are removed.
+
+A few questions on the new comments and on the per-connection destroy path
+this is aimed at.
 
 > diff --git a/net/rds/connection.c b/net/rds/connection.c
-> index b6c4beb50eaf0..a96569a3ee9ad 100644
+> index a96569a3ee9ad..242ca0570a47e 100644
 > --- a/net/rds/connection.c
 > +++ b/net/rds/connection.c
-> @@ -161,6 +161,22 @@ static void __rds_conn_path_init(struct rds_connection *conn,
->  	cp->cp_flags = 0;
->  }
+> @@ -579,6 +579,14 @@ void rds_conn_destroy(struct rds_connection *conn)
+
+[Severity: Low]
+
+This isn't a bug introduced by this patch, but the contract comment
+immediately above rds_conn_destroy() still reads:
+
+  /*
+   * Stop and free a connection.
+   *
+   * This can only be used in very limited circumstances.  It assumes that once
+   * the conn has been shutdown that no one else is referencing the connection.
+   * We can only ensure this in the rmmod path in the current code.
+   */
+
+The flag added below, and its comment in net/rds/rds.h, describe protection
+for the non-rmmod case, and in-tree callers such as
+rds_ib_cm_connect_complete() (net/rds/ib_cm.c) destroy a single connection
+outside rmmod.  Later in this series "net/rds: split connection destroy into
+quiesce and kref-governed free" replaces that comment, so is it worth
+refreshing it here so the two do not disagree in between?
+
+>  		 "%pI4\n", conn, &conn->c_laddr,
+>  		 &conn->c_faddr);
 >  
-> +/* Undo trans->conn_alloc(): it may have allocated transport data for
-> + * every path of a multipath connection, not just for path 0.
-> + */
-> +static void rds_conn_free_transport_data(struct rds_connection *conn,
-> +					 int npaths)
-> +{
-> +	struct rds_conn_path *cp;
-> +	int i;
-> +
-> +	for (i = 0; i < npaths; i++) {
-> +		cp = &conn->c_path[i];
-> +		if (cp->cp_transport_data)
-> +			conn->c_trans->conn_free(cp->cp_transport_data);
-> +	}
-> +}
-> +
+> +	/* Make rds_destroy_pending() true for this conn.  Together with
+> +	 * the synchronize_rcu() below this stops the work-requeueing
+> +	 * sites (which all test rds_destroy_pending() under
+> +	 * rcu_read_lock()) from queueing new work on the path
+> +	 * workqueues once we start cancelling and destroying them.
+> +	 */
 
-[ ... ]
+[Severity: Low]
 
-> @@ -316,7 +332,7 @@ static struct rds_connection *__rds_conn_create(struct net *net,
->  	if (parent) {
->  		/* Creating passive conn */
->  		if (parent->c_passive) {
-> -			trans->conn_free(conn->c_path[0].cp_transport_data);
-> +			rds_conn_free_transport_data(conn, npaths);
->  			free_cp = conn->c_path;
->  			kmem_cache_free(rds_conn_slab, conn);
->  			conn = parent->c_passive;
+Is the parenthetical "which all test rds_destroy_pending() under
+rcu_read_lock()" accurate for the tree as it stands?  The same claim is made
+unconditionally in the new struct rds_connection comment:
 
-[Severity: Medium]
-Can this exit ever run with npaths > 1?
+  /* ... A site that arms
+   * a path work must test the predicate and queue the work inside
+   * one rcu_read_lock() section: ...
+   */
 
-The changelog says:
+Three arming sites do neither.  rds_send_worker() and rds_recv_worker() in
+net/rds/threads.c re-arm their own works with no predicate and no RCU
+section:
 
-    RDS/TCP loopback is exactly a multipath passive connection, so this
-    is reachable.
+	switch (ret) {
+	case -EAGAIN:
+		rds_stats_inc(s_send_immediate_retry);
+		queue_delayed_work(cp->cp_wq, &cp->cp_send_w, 0);
+		break;
+	case -ENOMEM:
+		rds_stats_inc(s_send_delayed_retry);
+		queue_delayed_work(cp->cp_wq, &cp->cp_send_w, 2);
+		break;
 
-npaths comes from the caller's transport at the top of
-__rds_conn_create():
+And rds_conn_path_drop() bypasses the predicate on purpose for destroy:
 
-	int npaths = (trans->t_mp_capable ? RDS_MPATH_WORKERS : 1);
+net/rds/connection.c:rds_conn_path_drop() {
+	rcu_read_lock();
+	if (!destroy && rds_destroy_pending(cp->cp_conn)) {
+		rcu_read_unlock();
+		return;
+	}
+	queue_work(cp->cp_wq, &cp->cp_down_w);
+	rcu_read_unlock();
+}
 
-and t_mp_capable is set only by rds_tcp_transport in net/rds/tcp.c.
+that being the call rds_conn_path_destroy() makes with destroy == true,
+after c_destroy_in_prog has already been set.  The commit message does note
+the worker self-requeues and the sync cancel that covers them, but the
+in-tree comments do not mention either exception.  Could the comments spell
+out that the workers and the destroy == true drop are covered by the sync
+cancel and by the destroy path driving its own final shutdown pass instead?
 
-parent is only set when the initial rds_conn_lookup() finds a conn
-matching:
-
-	if (conn &&
-	    conn->c_loopback &&
-	    conn->c_trans != &rds_loop_transport &&
-	    ipv6_addr_equal(laddr, faddr) &&
-	    !is_outgoing) {
-
-and rds_conn_lookup() also requires conn->c_trans == trans, so the found
-conn's transport is the caller's transport.
-
-c_loopback is set in only one place, and for TCP (t_prefer_loopback == 1)
-that same block either rewrites the transport or fails the request:
-
-		conn->c_loopback = 1;
-		if (trans->t_prefer_loopback) {
-			if (likely(is_outgoing)) {
-				trans = &rds_loop_transport;
-			} else {
-				...
-				conn = ERR_PTR(-EOPNOTSUPP);
-				goto out;
-			}
-		}
-
-Since conn->c_trans = trans is assigned afterwards, a hashed conn with
-c_loopback == 1 and c_trans == &rds_tcp_transport does not seem to exist,
-which is also why the in-tree comment on that lookup says "This is a
-looped back IB connection".  rds_tcp_accept_one() additionally rejects a
-local peer address with -EOPNOTSUPP before reaching rds_conn_create().
-
-If that is right, the only transport reaching this branch is IB, which
-has t_mp_capable == 0, so npaths == 1 and the previous single
-trans->conn_free(conn->c_path[0].cp_transport_data) already freed
-everything.  Would it be more accurate to describe this as an equivalent
-refactor / hardening change rather than a leak fix, and to drop the
-Fixes: 1c5113cf796b tag so it is not picked up for stable as a leak fix?
+> +	WRITE_ONCE(conn->c_destroy_in_prog, true);
 
 [Severity: High]
-This isn't a bug introduced by this patch, but while looking at how
-npaths is used on these rollback paths: does the create/destroy npaths
-disagreement leak the per-path ordered workqueues for loopback-substituted
-RDS/TCP connections?
 
-__rds_conn_create() computes npaths from the caller's transport (8 for
-TCP), then substitutes the loop transport for an outgoing connection to a
-local address:
+Can the single-connection destroy this flag is written for actually
+complete?  The RDMA CM handler holds conn->c_cm_lock (which is
+conn->c_path[0].cp_cm_lock, see net/rds/rds_single_path.h) across the
+ESTABLISHED dispatch:
 
-			trans = &rds_loop_transport;
+net/rds/rdma_transport.c:rds_rdma_cm_event_handler_cmn() {
+	if (conn) {
+		mutex_lock(&conn->c_cm_lock);
 	...
-	conn->c_trans = trans;
+	case RDMA_CM_EVENT_ESTABLISHED:
+		if (conn)
+			trans->cm_connect_complete(conn, event);
+		break;
+	...
+}
 
-npaths is not recomputed, so the init loop still allocates a workqueue for
-all 8 paths:
+and the version-mismatch destroy runs from inside that dispatch:
 
-	for (i = 0; i < npaths; i++) {
+net/rds/ib_cm.c:rds_ib_cm_connect_complete() {
+	if (conn->c_version < RDS_PROTOCOL_VERSION) {
+		if (conn->c_version != RDS_PROTOCOL_COMPAT_VERSION) {
+			pr_notice(...);
+			rds_conn_destroy(conn);
+			return;
+	...
+}
+
+rds_conn_destroy() then reaches rds_conn_path_destroy(), which queues
+cp_down_w with the guard bypassed and waits for it while still holding
+cp_cm_lock:
+
+net/rds/connection.c:rds_conn_path_destroy() {
+	rds_conn_path_drop(cp, true);	/* cp_state = RDS_CONN_ERROR, queue */
+	flush_work(&cp->cp_down_w);
+	...
+}
+
+The shutdown worker fails the DOWN to DOWN transition because the state is
+RDS_CONN_ERROR, and then takes the mutex the flusher owns:
+
+net/rds/connection.c:rds_conn_shutdown() {
+	if (!rds_conn_path_transition(cp, RDS_CONN_DOWN, RDS_CONN_DOWN)) {
 		...
-		conn->c_path[i].cp_wq =
-			alloc_ordered_workqueue("krds_cp_wq#%lu/%d", 0,
-						rds_conn_count, i);
+		mutex_lock(&cp->cp_cm_lock);
+	...
+}
 
-rds_loop_conn_alloc() only sets conn->c_transport_data, which
-rds_single_path.h maps to c_path[0].cp_transport_data, so paths 1..7 keep
-cp_transport_data == NULL.
+IB is not t_mp_capable, so npaths is 1 and the path being destroyed is
+exactly the one whose cp_cm_lock is held.  ERROR to DISCONNECTING is only
+performed under cp_cm_lock, so no other pass can unblock the transition
+either.  Does this leave the CM event thread parked in flush_work() holding
+cp_cm_lock and the path worker parked in mutex_lock() behind it, with the
+peer-supplied CM private data (major 3, minor 0) as the trigger?
 
-rds_conn_destroy() then recomputes npaths from conn->c_trans, which is now
-the loop transport:
+If so, the motivating scenario in the commit message, "queue_delayed_work()
+on a cp_wq that destroy_workqueue() has already freed", would not be
+reachable from this caller, because the destroy hangs before
+destroy_workqueue() runs.
 
-	int npaths = (conn->c_trans->t_mp_capable ? RDS_MPATH_WORKERS : 1);
+There is a related use-after-free on the same path at the handler tail:
 
-so only path 0 is torn down, and rds_conn_path_destroy() would skip the
-rest anyway:
+net/rds/rdma_transport.c:rds_rdma_cm_event_handler_cmn() {
+out:
+	if (conn)
+		mutex_unlock(&conn->c_cm_lock);
+	...
+}
 
-	if (!cp->cp_transport_data)
-		return;
+which runs on memory already returned by kfree(conn->c_path) and
+kmem_cache_free(rds_conn_slab, conn) in rds_conn_destroy().  That part is
+addressed later in this series by "net/rds: pin the connection across
+RDMA-CM event handling", but the lock re-entry above appears to survive to
+the end of the series, where rds_conn_path_quiesce() still does
+rds_conn_path_drop(cp, true) plus flush_work(&cp->cp_down_w) and
+net/rds/ib_cm.c still calls rds_conn_destroy() from the CM callback.  Would
+deferring that destroy out of the CM callback be the better fix for this
+site?
 
-before it reaches destroy_workqueue(cp->cp_wq).  kfree(conn->c_path) then
-drops the last pointers to the 7 remaining workqueues.
-
-The reachable sequence looks like: an AF_RDS socket using the TCP
-transport sends to a local address, rds_conn_create_outgoing() ->
-__rds_conn_create() builds the loop-substituted conn with 8 workqueues,
-and netns exit (rds_loop_exit_net -> rds_loop_kill_conns ->
-rds_conn_destroy) or module unload leaves 7 unbound ordered workqueues per
-such conn.  Distinct 127.0.0.0/8 destinations create more conns, so this
-repeats.
-
-The same shape appears at the end of the series in rds_conn_destroy_fini(),
-which derives npaths from conn->c_trans, while rds_conn_path_free() still
-early-returns on !cp_transport_data before destroy_workqueue().
-
-Would it make sense to store the allocated path count on the connection
-(or recompute npaths after the loop-transport substitution) so create and
-destroy always agree, and to destroy cp_wq independently of
-cp_transport_data?
+>  	/* Ensure conn will not be scheduled for reconnect */
+>  	spin_lock_irq(&rds_conn_lock);
+>  	hlist_del_init_rcu(&conn->c_hash_node);
 
 [ ... ]
 
