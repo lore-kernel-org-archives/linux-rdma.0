@@ -1,129 +1,191 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F30931624D5;
-	Mon, 21 Sep 2026 16:57:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C71644B3364;
+	Mon, 21 Sep 2026 17:34:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790009848; cv=none; b=ImNc2xwT9HRL/e29B/jXXDfCPBFN/6S3GSBf5GPCM115aD+bwAKuALZEbH61RK2scxtrhfKj2pJDvnQbjgs1k6Y1dsilDIe6k22tKK4wfdooHcfPtKYRoNWGjbHd5b+a5keUoDGxZkyi9Q7iRDzmOsDqt5MNwiiPIAw/sGZ3YSE=
+	t=1790012059; cv=none; b=HmPxFHGxigqAhw+Tk/fgC77C3EF78JJKYqqjaMe894cBTKCCfqeLHJKYqLo1DuhuFaURmi1HmVxzg++yvvDIlyOMwWZGNp7pHRdc2fWOscaBKB8fSRCiCCuSDiA5AOLTjH3Xb6+2DYPxdZSc78CHHn/RXKpg35sX2m1Qn7UY7h4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790009848; c=relaxed/simple;
-	bh=5nFCKZRfcuvn/YXGZADAf4Z8vVuASbwW+MW92OBSrV0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=hvG0QIRdumAItuVKeDQZLzSO0K1TKBUfKfT1pGhhSldOZ5V7MfFmNMcjGniEXEj6tbwxTqyFyW35HslgRcLalZRhZ+NOVcZVIWOMXqxRhKvYKfPeXS+KwDbUj4vXGCK+neFmyHtrXK8rORlsprTwk43Emuszr2aoCNSbOLtAFsI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nM7gV2Kk; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790012059; c=relaxed/simple;
+	bh=NWPMLmKR5H+NciSlzSpaXKEQ9o8CFGTkrapK+qDVBsQ=;
+	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=ZGag79ZfFV75bbM04PZwD0eNdVI1clUEVa0PYwgrE/d1VOGvpZerPLYoghD8UAx536TZDKnhd9CTK6mJFecEnOZyjJcvFjvryVN2ylATqA4pdoCEl8zqSr0pwbYtd+T4Ql+f8F3fkk4pCG8aOeHoGBh9pnwRZLLvh55W+FVUjxQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ntfIleXt; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nM7gV2Kk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DB7B1F000FF;
-	Mon, 21 Sep 2026 16:57:24 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ntfIleXt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D4CF1F000FF;
+	Mon, 21 Sep 2026 17:34:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790009846;
-	bh=904noNjHPafrnstEIgkJLCwelDb9DPxtN8XoE/tkNIQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=nM7gV2KkpVd0pB5qcjf+/dITkY5klukICr9KHFD5WIvdepw5sq4wP7wdZZ6zM+NTj
-	 z0Pi2oShQaUp0uZ4CPnFViPzPjj6AwveV46SQDNmloUfWy/IhbI1tG0i8iio+C8a1w
-	 stNT+Jn33V9dmsU7s4+eRMiiAlMuPUOZtvD12Yo3+9kFo6hASmx3qyhr9aCGHexcwY
-	 QtweaTbjMwPxvWuUPu0xlgKFExzgRgB5b7+O6csqM4hCZzgZApoooHJ1N+9+Z4zGvL
-	 JNFdNKYWYntCOGtoTvqMJf/draPy9ySj9nCKPG3zq3yvG1IFtTtlcOj0hJx4qaCpig
-	 gR+WNppE0yd8A==
-Date: Mon, 21 Sep 2026 17:57:22 +0100
-From: Simon Horman <horms@kernel.org>
-To: Dongliang Qin <cccccccccccc777777@gmail.com>
-Cc: netdev@vger.kernel.org, achender@kernel.org,
-	"David S . Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH net] rds: ib: Clear the sg list when mapping an MR fails
-Message-ID: <20260921165722.GY13925@horms.kernel.org>
-References: <20260920063449.1594203-1-cccccccccccc777777@gmail.com>
+	s=k20260515; t=1790012057;
+	bh=alPDCc/SUV227jYN2Mo1xAda//QTLk70i3b6IwDM7UI=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=ntfIleXtOngS9kgtd13aXHkN8riuMFwNMcUzajbCcBRQQBzBVoBr8ak1m1TfU92GE
+	 JI84svf3uFDwrccHoW+x64Ww2sS0QtdqhKvj91gutkuCzXF0exSukcQ5vInYuvLjpL
+	 PqqEDW5cX3eOn3T8ucVJx1OBRf0lJnMrk4oqUOOkZuD82IVo35bb8m7AR8LOvHuZF/
+	 s8Pkcvg2VNUxARnEhCpojVMdqOsKLjIjOR0E7/KE+VXw/t6Bakr0GKzvEf2mJKaQf4
+	 q4cb8gEn2UvgHB6qUTJXvV7QBgspz1ciY3EX+z/8AFZGYFDbMTXhrkAk/rctKHJp9Y
+	 vhn9X1eUgqahA==
+Subject: Re: [PATCH] net/smc: Fix socket use-after-free in smc_shutdown()
+From: netdev-bot+sashiko@kernel.org
+To: vulab@iscas.ac.cn
+Cc: alibuda@linux.alibaba.com, davem@davemloft.net, dust.li@linux.alibaba.com,
+ edumazet@google.com, guwen@linux.alibaba.com, horms@kernel.org,
+ kgraul@linux.ibm.com, kuba@kernel.org, linux-kernel@vger.kernel.org,
+ linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
+ mjambigi@linux.ibm.com, netdev@vger.kernel.org, pabeni@redhat.com,
+ sidraya@linux.ibm.com, tonylu@linux.alibaba.com, wenjia@linux.ibm.com,
+ stable@vger.kernel.org
+Date: Mon, 21 Sep 2026 17:34:15 +0000
+Message-ID: <179001205598.2160803.12068131189751847433@kernel.org>
+In-Reply-To: <20260917163956.2162779-1-vulab@iscas.ac.cn>
+References: <20260917163956.2162779-1-vulab@iscas.ac.cn>
+X-sashiko-severity: High
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260920063449.1594203-1-cccccccccccc777777@gmail.com>
 
-On Sun, Sep 20, 2026 at 02:34:49PM +0800, Dongliang Qin wrote:
-> rds_ib_map_frmr() stores the caller's scatterlist in the MR before DMA
-> mapping and registration can fail. On failure, __rds_rdma_map() unpins
-> the pages and frees the scatterlist, but rds_ib_free_frmr() can still
-> return the MR to the pool with the stale pointer set.
-> 
-> This leaves the pool with a dangling scatterlist and can lead to local
-> privilege escalation. KASAN detects the resulting use-after-free when the
-> MR is later torn down:
-> 
-> BUG: KASAN: slab-use-after-free in __rds_ib_teardown_mr
-> Read of size 8
-> 
-> Call Trace:
->  __rds_ib_teardown_mr
->  rds_ib_unreg_frmr
->  rds_ib_flush_mr_pool
->  rds_ib_flush_mrs
->  rds_free_mr
->  rds_setsockopt
-> 
-> Clear the scatterlist fields before returning an error so the caller
-> retains sole ownership of the scatterlist and its pinned pages. Route a
-> zero-length DMA mapping through the same cleanup path, and skip unmap
-> when no mapping was created.
-> 
-> Fixes: 1659185fb4d0 ("RDS: IB: Support Fastreg MR (FRMR) memory registration mode")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Dongliang Qin <cccccccccccc777777@gmail.com>
-> ---
->  net/rds/ib_frmr.c | 13 +++++++++----
->  1 file changed, 9 insertions(+), 4 deletions(-)
-> 
-> diff --git a/net/rds/ib_frmr.c b/net/rds/ib_frmr.c
-> index bd8611911..fea387952 100644
-> --- a/net/rds/ib_frmr.c
-> +++ b/net/rds/ib_frmr.c
-> @@ -213,7 +213,8 @@ static int rds_ib_map_frmr(struct rds_ib_device *rds_ibdev,
->  					 DMA_BIDIRECTIONAL);
->  	if (unlikely(!ibmr->sg_dma_len)) {
->  		pr_warn("RDS/IB: %s failed!\n", __func__);
-> -		return -EBUSY;
-> +		ret = -EBUSY;
-> +		goto out_unmap;
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue(s) to consider.
+
+Critical: 0 · High: 1 · Medium: 0 · Low: 0
+
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [High] net/smc/af_smc.c:smc_shutdown() — the commit claims to fix a
+  use-after-free where the passive-closing sock_put() frees sk before…
+
+--
+
+net/smc: Fix socket use-after-free in smc_shutdown()
+
+This moves the passive-closing sock_put() in the smc->use_fallback branch
+of smc_shutdown() past release_sock(), using a new passive_close flag, on
+the grounds that the put could otherwise free sk before release_sock()
+runs.  It carries a Fixes: tag and Cc: stable.
+
+> diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+> index e9f93b3ab435b..70d6da4c6267d 100644
+> --- a/net/smc/af_smc.c
+> +++ b/net/smc/af_smc.c
+> @@ -2946,6 +2946,7 @@ int smc_shutdown(struct socket *sock, int how)
+>  {
+>  	struct sock *sk = sock->sk;
+>  	bool do_shutdown = true;
+> +	bool passive_close = false;
+>  	struct smc_sock *smc;
+>  	int rc = -EINVAL;
+>  	int old_state;
+> @@ -2983,7 +2984,7 @@ int smc_shutdown(struct socket *sock, int how)
+>  		if (sk->sk_shutdown == SHUTDOWN_MASK) {
+>  			sk->sk_state = SMC_CLOSED;
+>  			sk->sk_socket->state = SS_UNCONNECTED;
+> -			sock_put(sk);
+> +			passive_close = true;
+>  		}
+>  		goto out;
 >  	}
 
-Hi Dongliang,
+[Severity: High]
+Can the use-after-free described in the changelog actually happen here?
 
-This approach leads to the complexity of a condition in the out_unmap
-label.  I wonder if a cleaner approach would be to, instead, only store the
-scatterlist in the MR once mapping has succeeded.
+smc_shutdown() is only installed as proto_ops->shutdown (af_smc.c and
+smc_inet.c), so it is entered from __sys_shutdown() or
+kernel_sock_shutdown() while a struct socket/file reference is alive.  The
+socket's own reference on sk is dropped only in smc_release():
 
-With such an approach I think that ibmr->sg and ibmr->sg_len would still
-need to be cleared in the error path. But neither the condition in the
-out_unmap label nor the hunk above would not be necessary. And I wonder
-if that would be a cleaner approach.
+net/smc/af_smc.c:smc_release() {
+	...
+	sock_orphan(sk);
+	sock->sk = NULL;
+	release_sock(sk);
 
->  
->  	frmr->sg_byte_len = 0;
-> @@ -261,9 +262,13 @@ static int rds_ib_map_frmr(struct rds_ib_device *rds_ibdev,
->  	return ret;
->  
->  out_unmap:
-> -	ib_dma_unmap_sg(rds_ibdev->dev, ibmr->sg, ibmr->sg_len,
-> -			DMA_BIDIRECTIONAL);
-> -	ibmr->sg_dma_len = 0;
-> +	if (ibmr->sg_dma_len) {
-> +		ib_dma_unmap_sg(rds_ibdev->dev, ibmr->sg, ibmr->sg_len,
-> +				DMA_BIDIRECTIONAL);
-> +		ibmr->sg_dma_len = 0;
-> +	}
-> +	ibmr->sg = NULL;
-> +	ibmr->sg_len = 0;
->  	return ret;
+	sock_put(sk); /* sock_hold above */
+	sock_put(sk); /* final sock_put */
+}
+
+and smc_release() cannot run while the shutdown syscall holds the fd.  With
+that reference plus the passive-closing reference, wouldn't sk_refcnt be at
+least 2 at the old sock_put(), making the release_sock()-on-freed-sk path
+unreachable?
+
+The commit message also states the reference may be gone because "the
+passive closing reference was already consumed by an abort of the active
+link group".  Can that state be reached in this branch?  This branch runs
+only for smc->use_fallback sockets, and the abort paths leave sk_state at
+SMC_CLOSED, SMC_PEERABORTWAIT or SMC_PROCESSABORT:
+
+net/smc/smc_close.c:smc_close_active_abort() {
+	case SMC_ACTIVE:
+	case SMC_APPCLOSEWAIT1:
+	case SMC_APPCLOSEWAIT2:
+		sk->sk_state = SMC_PEERABORTWAIT;
+		...
+		sk->sk_state = SMC_CLOSED;
+		sock_put(sk); /* (postponed) passive closing */
+}
+
+net/smc/smc_close.c:smc_close_passive_abort_received() {
+	case SMC_INIT:
+	case SMC_ACTIVE:
+	case SMC_APPCLOSEWAIT1:
+		sk->sk_state = SMC_PROCESSABORT;
+		sock_put(sk); /* passive closing */
+}
+
+All three of those states are rejected earlier in smc_shutdown() with
+-ENOTCONN:
+
+	rc = -ENOTCONN;
+	if ((sk->sk_state != SMC_ACTIVE) &&
+	    (sk->sk_state != SMC_PEERCLOSEWAIT1) &&
+	    (sk->sk_state != SMC_PEERCLOSEWAIT2) &&
+	    (sk->sk_state != SMC_APPCLOSEWAIT1) &&
+	    (sk->sk_state != SMC_APPCLOSEWAIT2) &&
+	    (sk->sk_state != SMC_APPFINCLOSEWAIT))
+		goto out;
+
+so the fallback branch is never reached after such an abort.  Could a
+reachable path (ideally a KASAN splat) be added to the changelog?
+
+> @@ -3014,6 +3015,8 @@ int smc_shutdown(struct socket *sock, int how)
+>  		sock->state = SS_DISCONNECTING;
+>  out:
+>  	release_sock(sk);
+> +	if (passive_close)
+> +		sock_put(sk); /* passive closing */
+>  	return rc ? rc : rc1;
 >  }
->  
-> -- 
-> 2.43.0
-> 
+
+[Severity: High]
+If the premise in the changelog did hold, does this reordering remove the
+problem or just move it?
+
+passive_close is derived solely from sk_shutdown == SHUTDOWN_MASK, which
+says nothing about whether this call still owns the passive-closing
+reference.  The same unconditional decrement therefore still runs, just
+later.
+
+If it drops the last reference, sk is freed while sock->sk still points at
+it for an open fd, and the next fd operation touches freed memory:
+
+net/smc/af_smc.c:smc_release() {
+	struct sock *sk = sock->sk;
+	...
+	sock_hold(sk); /* sock_put below */
+
+Wouldn't an ownership check (or bracketing the region with
+sock_hold()/sock_put() as smc_release() does) be needed instead of a
+reordering, if there really is a stray put to fix?
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260917163956.2162779-1-vulab%40iscas.ac.cn
