@@ -1,183 +1,211 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yx2-f13.google.com (mail-yx2-f13.google.com [74.125.224.141])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4A1C495AF3;
-	Mon, 21 Sep 2026 12:48:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97DEA49B5A8
+	for <linux-rdma@vger.kernel.org>; Mon, 21 Sep 2026 13:09:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.224.141
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789994937; cv=none; b=Ro3+os++gpuZTVWiKhwQ4aoZp4jW4qfs/KU8j07Nkla5X6kNrDW/Y0Hf5kWTe8kX5i9spRwyuJ7dghOxhIiwjrLn2c19/u3zk8KLqEyzE1hnfXgofmLCWT9/1RUFraTuFD4YIWLkGNBxHf2wkzq/NdUMPE86olamuQPD2eoEbio=
+	t=1789996143; cv=none; b=VMQrLdIjJqHlKOZZJ1nkBwz+Pm/sC9u1hxv0jts8FNxB0jlTUhjmSnfAa7Mc/dgq7eKr4sG9Ci1k3TwHIP1m+TEcfhFyPzKLjeAMgRtizrE1XMQAJrV3WcKzK6diA4eIGpFj99GdeL8GD6vUtnApc0ITpEzU8GZgHUoY+fseX/Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789994937; c=relaxed/simple;
-	bh=Lvz1+adIfTVALde6cIc9D2krFiJkrABbwz95Yp9nPFQ=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=FnDrstjamqQ1kKbSOZUqHxT6zVrmbsfJKxqCza3P4sgPqFj6Px7fP969B5YjLR9+UGYRYHfoZg4Q386sbCxVpae3Ck5UqGEx3ZjvXPgzxwjnGxqeMpIMLDzskg8T00kbCF0TFpIvivlyObW46n2C6ZuPdfomEhAw08YRQs6AjT8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UE6SO3WY; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789996143; c=relaxed/simple;
+	bh=7iRzAcHHARKyQ+ATaMDpW4DruCrP6jplXNxnuj7OqwM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=B0B+CiiYeI9FhT2T/rzfwZcTYfFsVOQfGUmRdKwmjk4XnX3MEBU0phuymfgbOvSD4dEYTbkfEiLKxODof94OAnqtxjfFW/yBG7zFK2kmDpM1ghH+YPZUxeF5yP187gALUDFo/cwYMBjDHqLsOxU2CBgOXWTCeORtm4ytACvmI58=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=OVbP23qH; arc=none smtp.client-ip=74.125.224.141
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UE6SO3WY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15BBE1F000FF;
-	Mon, 21 Sep 2026 12:48:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789994932;
-	bh=NFKSxMIgnM898Y7oTLkz3ataAvKd+EhOD1s4RO4tj3U=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=UE6SO3WY/k6pXgr3BejY0rHDo2ynd6BaUlT/AIlFdd8aM5xlG+04BJet4FBMpEqek
-	 691IzMIrJ/nI62ercdIsl436gXX0iawHxYoUNOSeNwSih0MzvVY4bT+DcEwhi0CK7d
-	 xJDnvQkwpPONuQIiiIieNvXQ4eJ1P8yzOvY+6dsPe1XCqPv8Zr4EeWsVkE9BW8XAdI
-	 nTau/53RsFNf51Of017LHrMAJA6VvxCvV9LBZoBrCgvbz0ASLW+z7g8NA7ZZpVEE7w
-	 CUbEdzSPxRJXNg05JbI0IyixBTS+7gHUCrhfd2Yp9gVq5OwJ89i1U2wZvKuwM007fU
-	 hnmOSsIuC7Xpg==
-Subject: Re: [PATCH] net/mlx5: Fix rev_entry reference leak in
- mlx5_tc_ct_shared_counter_get()
-From: netdev-bot+sashiko@kernel.org
-To: vulab@iscas.ac.cn
-Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
- kuba@kernel.org, leon@kernel.org, linux-kernel@vger.kernel.org,
- linux-rdma@vger.kernel.org, mbloch@nvidia.com, netdev@vger.kernel.org,
- ozsh@mellanox.com, pabeni@redhat.com, roid@nvidia.com, saeedm@nvidia.com,
- tariqt@nvidia.com, stable@vger.kernel.org
-Date: Mon, 21 Sep 2026 12:48:50 +0000
-Message-ID: <178999493051.2160803.6214466192510331412@kernel.org>
-In-Reply-To: <20260917113131.2149024-1-vulab@iscas.ac.cn>
-References: <20260917113131.2149024-1-vulab@iscas.ac.cn>
-X-sashiko-severity: Medium
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="OVbP23qH"
+Received: by mail-yx2-f13.google.com with SMTP id 956f58d0204a3-671563fb8beso2635975d50.3
+        for <linux-rdma@vger.kernel.org>; Mon, 21 Sep 2026 06:09:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1789996141; x=1790600941; darn=vger.kernel.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:from
+         :date:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=/I4CnabOFJ3V+cBV+khghf4ltJkhcHX6gZAKyxfIiuU=;
+        b=OVbP23qHxpA1f0E25xNKG0Utb4qY1pci7lNk1dz9kSCfiFs84khz7O89QkedKxGdF/
+         0BgGqFlTDcjyoq1EhB62Hs1JbrYZYD8S5vHBJOhauPNXuaX1nb3pv3wtsBQTIyaxKlHH
+         W5RPLjfQVDytPLMyAVNbHYDlUMwBER/D7KO1XAs4nvgPFc7AW8QN2S5fU7XQBgbrQklV
+         mea3UtzB/mAP5ERVg1OpKwyibQEtCEHIyAnlL9kblIObxvClWKjATxcupqTIfL8HDbgJ
+         DArpRHVstouE13CeyOaGnHw7CHAQLXfCxKjIZToSseuODn/RSEXWdw31uTLaznBIBhdH
+         ujIQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1789996141; x=1790600941;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:from
+         :date:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=/I4CnabOFJ3V+cBV+khghf4ltJkhcHX6gZAKyxfIiuU=;
+        b=zKajij4hRRN2dvZVweJWk7HOneh20Laz8YUPdVVrhtTz7EKtla1IjzKZbH09GQ3gMr
+         u2nnypGnv9FAdBcbdWbHHzsl4gr+P0FrE1Qg01XrFc1nkp9QdbKSSZ5Wa923H4hjv9uc
+         7pxZbhqBJ5p+yi6x6/kUdxbDDugP+YITtnCb76YKPYDIZdxeBb6xtTs1KJ+AnaU12srD
+         73RwCyeOYmHsBEd6zK0DbLkYG629LhXdrmnjR7o39oqrwp+9DZcjnoAMF2TkKJ3DGEya
+         x05EyDv4lxNx/5CaBs6B2FHaLwhxlsjUvkVKVnBNbW+zEWffkiVxVdqP5JoWCuDsqzjM
+         LHwA==
+X-Forwarded-Encrypted: i=1; AKwUvByEOo8wiORESiayxZF3iVgG+rSJb4ZRzCyeT5yy/+jgh6HLcWDxZl2MWV+Owdq0TjKw8gLXsM50OqMH@vger.kernel.org
+X-Gm-Message-State: AFuF++nYEene4zf6iqc0Gzvu6sZu6iU1gTVPIdIBjJoWShHl75OvN2CU
+	kRkWC5i6mrLD/1mmNCS0XDesuMM4tEcLxPVu3XhfddNvWt4gzT0Q8h2l40Yr61JTYUE=
+X-Gm-Gg: AYBFou1wvUMD388GMRqTWK1dIYuUNAMJwnGIJHIvlXhkZ2tos6rVEanm2UZe0u0Pf+7
+	3NGWoueVJ9QLQAEhxLDgF5ulOeYz9bEchzbC6OXp6BHDbdcM7LUes4H16KuQgun8fbCsQrfN6fg
+	KPEFKGxiD4TlODMPIlX+Q1wwW1Q0LmeYor0emeP0rQ2/7x+DlFSe8gO6zpBaIr+9typ1b/JfRXV
+	2RjRDGfyXDom3khB4I7aIITzZbC3UauZcJXh6mO0FIhO4mJEDc3udzdK07bZKAJRTv4ekEvVxSH
+	jUcm/ds+S9aKNe7qL67PR3FEIyLHeMTVdyMf6XKn32CSOqwW4vVuyyuZT1hZFFFmBs7oXThEYbN
+	0KWjlRJ60+D+S9R+2N3IamdPsAO6jJVxp5R3ohYMkGSAtAdj5IHOsmV8QFM5XjSN5v7iA21EcRq
+	ulgUr0MTJLDN3LKrPZxFponh2xKBxDTc6E6sRDeWH9Jtgk7PhUpnCwwwqluMEXlG6tPexTiyR2n
+	vhIq/H5HymvT+c2SRne6aHL9g4MVlj7ELOkdOOgAOtf4sYpDVcZp4Tp
+X-Received: by 2002:a05:690e:11ca:b0:672:a52c:db25 with SMTP id 956f58d0204a3-672a52ce30bmr1843524d50.109.1789996140490;
+        Mon, 21 Sep 2026 06:09:00 -0700 (PDT)
+Received: from ziepe.ca (hlfxns010zw-159-2-239-150.pppoe-dynamic.high-speed.ns.bellaliant.net. [159.2.239.150])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91260aa1db7sm67720106d6.44.2026.09.21.06.08.59
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 21 Sep 2026 06:08:59 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.97)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1x8dlS-00000006Jlj-41LR;
+	Mon, 21 Sep 2026 10:08:58 -0300
+Date: Mon, 21 Sep 2026 10:08:58 -0300
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>
+Cc: Thomas =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
+	Christoph Hellwig <hch@lst.de>, Leon Romanovsky <leon@kernel.org>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Logan Gunthorpe <logang@deltatee.com>,
+	Chaitanya Kulkarni <kch@nvidia.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
+	Ankit Agrawal <ankita@nvidia.com>, Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	"Joerg Roedel (AMD)" <joro@8bytes.org>,
+	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>, linux-pci@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+	iommu@lists.linux.dev, Tushar Dave <tdave@nvidia.com>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, linux-rdma@vger.kernel.org,
+	kvm@vger.kernel.org
+Subject: Re: [PATCH v6 18/18] RDMA/mlx5: Ask P2PDMA whether ATS takes a
+ direct peer-to-peer route
+Message-ID: <20260921130858.GO11599@ziepe.ca>
+References: <20260914-fix-p2p-acs-v4-0-v6-0-5ef07ec9ef06@nvidia.com>
+ <20260914-fix-p2p-acs-v4-0-v6-18-5ef07ec9ef06@nvidia.com>
+ <321890690ce83d1943b2f678bd9bee9b8c895b66.camel@linux.intel.com>
+ <20260918121500.GV13683@unreal>
+ <b517070d0b9236b03962fcba649faffcacda23eb.camel@linux.intel.com>
+ <20260918170524.GH11599@ziepe.ca>
+ <9656f2f9-2e39-4007-b065-3b763b53c6de@amd.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <9656f2f9-2e39-4007-b065-3b763b53c6de@amd.com>
 
-Thank you for your contribution! Sashiko AI review found 2 potential
-issue(s) to consider.
+On Mon, Sep 21, 2026 at 08:43:49AM +0200, Christian König wrote:
+> On 9/18/26 19:05, Jason Gunthorpe wrote:
+> > On Fri, Sep 18, 2026 at 03:42:28PM +0200, Thomas Hellström wrote:
+> >>
+> >> 1) Xe attachment check if pci_p2pdma_distance() returns OK for the
+> >> path. Then Xe always sets up dma-addresses using dma_map_resource(). 
+> > 
+> > Open coding pci_p2pdma_distance() in drivers is a hack. Using
+> > dma_map_resource() like this was never "allowed".
+> > 
+> > We've fixed things so these hacks are not needed, the drivers need to
+> > move over to things like dma_buf_phys_vec_to_sgt() and the hmm helpers
+> > to use the DMA API correctly.
+> 
+> That is a completely broken approach as well since it limits the
+> exported resources to addresses the CPU can reach.
 
-Critical: 0 · High: 0 · Medium: 2 · Low: 0
+Yes, of course it does. The DMA API only works on phy_addr_t. If you
+have a struct p2pdma_provider * then you have a phys_addr_t for it.
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+If the exporter knows it is working with a MMIO mapping on a PCI
+device it gets to acquire a p2pdma_provider and use the helper.
 
-- [Medium] The commit message misidentifies the condition that makes the
-  leak reachable.
-- [Medium] The Fixes: tag points at the wrong commit.
+None of this is suposed to solve your "resources the CPU cannot reach"
+problem, that has nothing to do with DMA API or P2P. It is not broken
+just because it doesn't solve every problem.
 
---
+> Christoph Hellwig is right that drivers should never use that stuff
+> directly, not even through that dma_buf_phys_vec_to_sgt() function.
 
-net/mlx5: Fix rev_entry reference leak in mlx5_tc_ct_shared_counter_get()
+Hellwig's point was that the subsystem needs a mapping helper that
+goes from the subsystem address representation to the HW
+representation and hides these details from the drivers.
 
-This adds a mlx5_tc_ct_entry_put() on the fall-through path of
-mlx5_tc_ct_shared_counter_get() so that the reverse entry reference taken by
-mlx5_tc_ct_entry_get() is dropped when the shared counter cannot be reused.
-The put itself looks correct; the questions below are about the described
-trigger condition and the Fixes tag.
+Look at what he built in nvme around biovec.
 
-> Fixes: 1edae2335adf ("net/mlx5e: CT: Use the same counter for both directions")
-> Cc: stable@vger.kernel.org
+The dma_buf_phys_vec_to_sgt() is the dmabuf version of the same idea,
+the subystem provides the mapping helper. We can try to do better, but
+better is not making the exporters touch the mapping algorithm.
 
-[Severity: Medium]
-Is this the right commit to blame?  What this patch balances is the entry
-reference taken by mlx5_tc_ct_entry_get() in
-mlx5_tc_ct_shared_counter_get(), and that reference-taking lookup plus the
-matching put on the success path came from a2173131526d ("net/mlx5e: CT:
-manage the lifetime of the ct entry object"), not from 1edae2335adf.
+Ultimately I want to see something in lib/ handle this with a
+non-scatterlist datastructure, but there is a huge gulf between where
+dmabuf is now and it being able to work with a non-scatterlist
+datastructure.
 
-git blame on the pre-patch file attributes this whole block to
-a2173131526d:
+Look, it is easy to complain you don't like how it looks, but this
+stuff is hard there are lots of competing concerns, if you have a
+better idea now is a good time to present it. Maybe if you look
+closely you will appreciate how much work has gone into even getting
+things this far.
 
-	spin_lock_bh(&ct_priv->ht_lock);
-	rev_entry = mlx5_tc_ct_entry_get(ct_priv, &rev_tuple);
+> >> It seems to me that a pci-device settable flag "ATS always enabled"
+> >> should be enough to fix both issues?
+> > 
+> > It should be be per-mapping to support the NIC workflow that isn't a
+> > global operation.
+> 
+> I just realized what you guys are doing and I'm not sure if the
+> Linux PCI subsystem should support such hacks at all.
 
-	if (IS_ERR(rev_entry)) {
-		spin_unlock_bh(&ct_priv->ht_lock);
-		goto create_counter;
-	}
+I don't know how to respond to that. It is spec complaint, it is
+shipping in enormous volumes, of course Linux needs to support the HW
+that exists.
 
-	if (rev_entry && refcount_inc_not_zero(&rev_entry->counter->refcount)) {
-		...
-		mlx5_tc_ct_entry_put(rev_entry);
-		return shared_counter;
-	}
+> Basically from the point of view of the TA the NIC has ATS enabled
+> all the time, but has a per request option to use translated
+> addresses directly without previously translating and caching them
+> using ATS, correct?
 
-1edae2335adf only contributed the tuple-reversal code above it; at that
-point the reverse tuple was looked up with a plain rhashtable_lookup_fast()
-and no entry reference was taken, so there was nothing to leak.
+Yep. Very few devices in the world can use ATS for every single
+operation. Many have this split operating model. Some even only use
+ATS for DMA flows that are faultable.
 
-With Cc: stable, does the current tag select the wrong backport range?
-Trees that contain 1edae2335adf but not a2173131526d (1edae2335adf landed
-in v5.9, a2173131526d in v5.12) would be picked, and there
-mlx5_tc_ct_shared_counter_get() holds no rev_entry reference at all, so the
-hunk cannot apply as written and a hand-resolved backport that added the put
-anyway would underflow the rev_entry refcount.
+Mostly the OS can't tell what the device is doing and doesn't
+care. The P2P routing is the main issue and we have hacked around it
+in our systems till now. Leon is trying to fix it. Thomas needs it
+fixed too for Xe. So what's the issue here?
 
-> When the reverse entry is found but its counter is already being
-> released, refcount_inc_not_zero() fails and the reference taken by
-> mlx5_tc_ct_entry_get() is never dropped before falling through to
-> create_counter.
+DMABUF needs to learn how to do interconnect specific behaviors. PCI
+is an interconnect, it has lots and lots of crazy rules. An
+importer/exporter that chooses to use PCI for their DMA should have a
+way to exchange PCI specific information.
 
-[Severity: Medium]
-Can the "counter is already being released" case actually happen for a
-non-NULL rev_entry?
+So should UALink and all the other zoo of options we have now. It
+cannot be completely generic and meet everyones needs.
 
-mlx5_tc_ct_entry_get() only returns a non-NULL, non-ERR entry after both the
-valid test and the entry refcount succeed:
+Can we focus on that instead of arguing if the PCI craziness should
+exist or not?
 
-	if (entry && mlx5_tc_ct_entry_valid(entry) &&
-	    refcount_inc_not_zero(&entry->refcnt)) {
-		return entry;
+> If yes than that is extremely questionable behavior, I'm not sure if
+> that is covered by the PCIe spec.
 
-So the returned rev_entry is VALID and holds a live reference, which means
-it cannot be inside mlx5_tc_ct_entry_del() - the only teardown site calling
-mlx5_tc_ct_counter_put().  The other mlx5_tc_ct_counter_put() call, in the
-err_orig path of mlx5_tc_ct_entry_add_rules(), runs before
-MLX5_CT_ENTRY_FLAG_VALID is set, so such an entry is never returned by the
-lookup either.  A shared counter owned by a live VALID entry therefore
-always has refcount >= 1.
+Spec doesn't say anything about when a device has to translated vs
+untranslated. The ATS flags only say translated is allowed to be used.
 
-Is the reachable trigger instead the private-counter case?
-mlx5_tc_ct_counter_create() kzallocs the counter and never calls
-refcount_set():
+> ATS is meant to be an optimization which moves the TLB from the root
+> complex (TA) into the devices at the cost of TLB invalidation
+> complexity. But what you do here is abusing that functionality as
+> far as I can see.
 
-	counter->is_shared = false;
-	counter->counter = mlx5_fc_create(ct_priv->dev, true);
+ATS is for alot more than that, and there is no abuse here.
 
-so private counters keep refcount == 0 permanently, and
-mlx5_tc_ct_entry_add_rules() picks between the two kinds at runtime:
-
-	if (nf_ct_acct_enabled(dev_net(ct_priv->netdev)))
-		entry->counter = mlx5_tc_ct_counter_create(ct_priv);
-	else
-		entry->counter = mlx5_tc_ct_shared_counter_get(ct_priv, entry);
-
-nf_ct_acct_enabled() reads net->ct.sysctl_acct, the writable per-netns
-net.netfilter.nf_conntrack_acct sysctl, so both counter kinds coexist after
-accounting is toggled from enabled to disabled.  A new entry then takes the
-shared path, finds a live reverse entry owning a private refcount == 0
-counter, refcount_inc_not_zero() fails, and the rev_entry reference is
-leaked.
-
-Could the changelog describe that path instead?  As written the fixed branch
-reads like dead code, which makes reachability hard to judge for stable, and
-it hides the companion cleanup question: should
-mlx5_tc_ct_counter_create() refcount_set() the private counter, or should
-the consumer test is_shared explicitly?
-
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c b/drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c
-> index 6c87a1c7db095..c1841ce74d9ac 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c
-> @@ -1082,6 +1082,9 @@ mlx5_tc_ct_shared_counter_get(struct mlx5_tc_ct_priv *ct_priv,
->  
->  	spin_unlock_bh(&ct_priv->ht_lock);
->  
-> +	if (rev_entry)
-> +		mlx5_tc_ct_entry_put(rev_entry);
-> +
->  create_counter:
->  
->  	shared_counter = mlx5_tc_ct_counter_create(ct_priv);
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260917113131.2149024-1-vulab%40iscas.ac.cn
+Jason
