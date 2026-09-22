@@ -1,82 +1,78 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF3ED376A0A
-	for <linux-rdma@vger.kernel.org>; Tue, 22 Sep 2026 01:58:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C6FE2264A3
+	for <linux-rdma@vger.kernel.org>; Tue, 22 Sep 2026 01:58:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790042281; cv=none; b=maGRoh+ERJcTDJ5IZlDEcIuQskECxBVGLDP9LbSmLhjtnXaQjiE3bK/62QhqgbHjJtP9rTfeZvERpYoj1bMqfKN2OOG2Y/K0BlKsa3trcSGMhhy11ZoUFz1Kst0dzGlpMq+a6hmWqWaLq4MpKqzTL9YeFOZZlIHvWQrfcKx73IQ=
+	t=1790042282; cv=none; b=gjbgs0LlvTxwJ09L5x+XwOTBXp+NUVoHneJnCoUuv1oGDgNTk7g5dtuAfjnlGAFHcRV65x06IqXhx0nFQkmD8uJZlXFcTab0oV7cmQTVP03pU2WKAgVhBar7nN4Zqo3Yk9PkgObTXx6PGPUjc1p3O7CBaf6MLwkG9RUVpVqgHK4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790042281; c=relaxed/simple;
-	bh=W2nn70UZ7BMnGj9irDcPXp4ZTP+PD17goR9Q7aTE/4Q=;
+	s=arc-20240116; t=1790042282; c=relaxed/simple;
+	bh=M1FkE5CCB7kCUNd9cSZoeR9MulEH9PT4X5r6O46rp6w=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=Q+Dgm5zXy5sFXs6K23k8diuNc6oyRy4mz0g5pzq9ufjeeH4YW0K4TbLBw6Bsh+K5oCOBtceBtpYJwTlDZXnFQE5/xnwYJ0SS/Ldl9kTPxtlhrg5MEa7uETAKGy9eBy4Gl0zzbSMNd33sK0t2MZU7iorlzBB0N87/Zl7XPJ7/0kE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OOrCvvTJ; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=dsJW9ojyeuqnLq4XfjnhtHVtl+1WpIXDWdmwAwtNr0vfHAM4hsOXOTFpk/guAWupAvzAOVomQJTAFPPpUj11YWUb86wrtZDvaZe9AK5cMTR6dSrdn8Lo0SGVo8giqKKffcBCu+RULWP+eMA19gm6/9GacN7eZSofxSWzY+AbnDA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QI3p2ywb; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OOrCvvTJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E39AB1F000FF;
-	Tue, 22 Sep 2026 01:57:59 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QI3p2ywb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC60B1F00893;
+	Tue, 22 Sep 2026 01:58:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790042280;
-	bh=W2nn70UZ7BMnGj9irDcPXp4ZTP+PD17goR9Q7aTE/4Q=;
+	s=k20260515; t=1790042281;
+	bh=M1FkE5CCB7kCUNd9cSZoeR9MulEH9PT4X5r6O46rp6w=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=OOrCvvTJztgTdbTL1ZP1IQW3M8wuEPcTB+oEJOxUoxB1iVRMjMM/k5pmt35Zju7lt
-	 se6x1mLliSB3YHEqUtPrCXVzEAGKLqFWjZo2jJw7f0poIzA11E+5DOd9QpXHPBctkm
-	 aXL7/EQ1jBaNOltXQY8TOlRzUVUeOuZeFleSqxkwIXpDglbmSm2z0w3JNs1VHpAgJW
-	 1rRVO5LLmcTKWp6hfGqW6USVhXSF0Hy89OyIfVF+PN910L61IF51zPyKT7/5Cc/IzO
-	 +lMNly8g/JZZd8OipuKrx+9/i+anV0+19Z6p4rAX9De1ybgSu/iFkOj57mi030X03f
-	 G0Hd/NFnhIJHg==
+	b=QI3p2ywbtvfOcfkNOHdpoLhJIsCWrBd5jH4Ug76ozbNfxfjS4QISh2URJvzLUKvew
+	 FC9WHmTCcSS3bRLAHtHpaxuKcXkx8IzyI7yVUnvWdYvcAdktFWbUWTcxQRr76ioGj3
+	 nW150Q1HcBkOarVEidMd/vDluAGJNlCiWG3TU+CcjrbfE2gzr2wI6bv8DknF29i3mJ
+	 8KsK/xJvK4DiISqSR9g0C9yFO/WygEV9EFWR8VzZ3v+t45QPfhjI9NkOdJXGY64cNJ
+	 vXuFFGUQdjftEyhJewTFCsQJlmhfTUDzsJa4efV/c6sUbutXcDWelyg42VgFF1CZbZ
+	 bKxzXDkWE26rA==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v1 5/5] svcrdma: release a receive context stranded by a
- partial Read post
+Subject: Re: [PATCH v1 3/5] svcrdma: fix a page leak in backchannel sends
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Chuck Lever" <cel@kernel.org>
-Cc: linux-rdma@vger.kernel.org, "Jeff Layton" <jlayton@kernel.org>, "Anna
- Schumaker" <anna@kernel.org>, "Chuck Lever" <cel@kernel.org>
-In-Reply-To: <20260922015128.240977-5-cel@kernel.org>
+Cc: "Anna Schumaker" <anna@kernel.org>, "Chuck Lever" <cel@kernel.org>, "Jeff
+ Layton" <jlayton@kernel.org>, linux-rdma@vger.kernel.org
+In-Reply-To: <20260922015128.240977-3-cel@kernel.org>
 References: <20260922015128.240977-1-cel@kernel.org>
- <20260922015128.240977-5-cel@kernel.org>
+ <20260922015128.240977-3-cel@kernel.org>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 22 Sep 2026 01:57:59 +0000
-Message-Id: <20260922015759.E39AB1F000FF@smtp.kernel.org>
+Date: Tue, 22 Sep 2026 01:58:00 +0000
+Message-Id: <20260922015800.CC60B1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-> When ib_post_send() rejects a WR mid-chain, svc_rdma_post_send_err()
-> returns zero and svc_rdma_post_chunk_ctxt() reports the Read chain
-> as posted. The only signaled WR in the chain is its tail, so a chain
-> cut before the tail posts nothing that completes.
-> svc_rdma_process_read_list() then reports the Read in progress, and
-> the receive context waits for svc_rdma_wc_read_done(), which never
-> runs. No list the transport destructor walks holds the context, so
-> it leaks past teardown along with its rw contexts and their DMA
-> mappings.
+> svc_rdma_bc_sendto() takes an extra reference on the page that
+> holds the backchannel Call message, so that the page is not
+> returned to the allocator while the Send that reads it is still
+> posted. Send completion once dropped that reference, back when the
+> page sat in the send context's page array. Commit 99722fe4d5a6
+> ("svcrdma: Persistently allocate and DMA-map Send buffers")
+> switched the backchannel to svc_rdma_map_reply_msg(), which
+> DMA-maps the buffer and records no pages. Send completion no
+> longer touches the page, but the get_page() stayed.
 >=20
-> The caller cannot release the context on the error, because the
-> posted Read WRs still write into pages it owns. Nor can the error
-> path drain the Send Queue. The drain's marker WR needs an SQ slot,
-> and a provider that has just rejected a WR cannot be trusted to
-> have one.
+> xprt_rdma_bc_free() drops the allocation reference and nothing
+> drops the extra one, so every backchannel Call sent over RPC/RDMA
+> leaks its send buffer page.
 >=20
-> Park the receive context on a per-transport list, as the Send path
-> does, and release it from svc_rdma_free() after the drain and before
-> the rw contexts are destroyed. svc_rdma_post_chunk_ctxt() posts only
-> Read chains, so pass it the receive context itself rather than the
-> embedded chunk context.
+> The extra reference is still needed. A Call at or above
+> RPCRDMA_PULLUP_THRESH is DMA-mapped in place. The RPC client frees
+> rq_buffer when the callback task times out or is killed, whether
+> or not the Send has completed. Record the page in the send
+> context's page array so that svc_rdma_send_ctxt_release() drops
+> the reference after Send completion.
 >=20
-> Reaching this path needs a provider to reject a WR after accepting
-> earlier ones in the same chain. That has not been observed.
->=20
-> Fixes: f13193f50b64 ("svcrdma: Introduce local rdma_rw API helpers")
+> Fixes: 99722fe4d5a6 ("svcrdma: Persistently allocate and DMA-map Send buf=
+fers")
 > Signed-off-by: Chuck Lever <cel@kernel.org>
 
 Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260922015128.2409=
-77-1-cel@kernel.org?part=3D5
+77-1-cel@kernel.org?part=3D3
 
