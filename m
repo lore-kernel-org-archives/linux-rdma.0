@@ -1,74 +1,89 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D68035237BA
-	for <linux-rdma@vger.kernel.org>; Tue, 22 Sep 2026 08:55:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B43CC456DF7;
+	Tue, 22 Sep 2026 09:27:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790067336; cv=none; b=DHqzMtYvWzswmGYi60Ph9YHf5Aj1whLa2bQW/ggZ8vUTqCAYttdmHyGxaD5kb06UxeN10gUD6/J8gZzOg6vUEzQVWk3r4iJPcT19/tpdA5BAUZRq/3ooBwYHg48tlgO0NGTXAVyEsxhmgrJRb2jIjj224BQWjxbkKjFI6/woq/U=
+	t=1790069280; cv=none; b=RU6mh1GuIEarH8VWsNG+9+hN+T2O8RuoHKcWrrszvS3aU5soH7IJz8hUTFlkD8h3cUY3EmdSC9rmvwo3M7sFnsX8QLiUbU+TBEO0l2KgjaKdbm133zZU6fH4fmQM2y+EbCqRUQEZF5VM7s7E3NeFISih4m4mGb0NyHxLgTjTjXA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790067336; c=relaxed/simple;
-	bh=oU18Z0ZKm7JSsXtsN4qClQv8AdqFJvr4qIsoDZ8vPF0=;
-	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=IuGRXfwbW0SYkEYu3yCU3HWMIs9z9ZYJHRRTIr5dk7oKk6wwzsYamHNcZoeFCuGBOnuR5fOtmW0TIPpTTyRn1N5Q4ncrgV+/8G24IpT+qPg3Xb3jWXD2Yc2nXdYroYX/ldTEvadRP0QgJUy4Op0uzx1t7tDuA4DQ46nM1f9dEI8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TZe/ZdYF; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790069280; c=relaxed/simple;
+	bh=gS3AFki51Z44v57VCMt1yUS9ZPFvANxOrRZ4wXkAYmI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=uhB7zD8x69ckrqfGITzcQqx5hDONamZXrUaWh0OuzXnHLEYmQlajYyI+F7yXJY8NPwWSkRXMMKg8b2kQHc2e4hyPzmcoX3RiA7zACba9CAGvGc6FOervze9fxJvkkJAFCmQfKYFxNGyFYSiw7Jz+0ROvLN+7dB3zfpbO/7gRs9Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=P93Y2JwM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TZe/ZdYF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 214271F0089A;
-	Tue, 22 Sep 2026 08:55:34 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="P93Y2JwM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 460301F000FF;
+	Tue, 22 Sep 2026 09:27:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790067334;
-	bh=2CH98OUlBaopYxx2xC0nvYY3iJvctfT0QRG0wTx0WAw=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=TZe/ZdYF9qPCyW9bDA3nR+5nrB9aweqjp96mYcDlnCz28Xa3gwyTw/yIreZNkENm5
-	 6qbusNL84IKsmjnyE40DX0UQkSJ3kKzKi11h6/3I3KQPamISXUlCouoh4df3csH4S1
-	 DmMXqiH8zc8YtSPOTSM/WzhahhTRKlHC2LfAPcdmHXcnjd3gnD5rsZeIjdS4hHqAKr
-	 mRTDAWMkhamIf9qF+XFpLQw0wgX28fdKRKcjZ0rk2mhi2jo/ykVWBmBIZLcHZA00as
-	 s2+5j7IqGclf8RJBZvzEzUjv3FCD9N2c1HVyYLqZVLo5/tm0d8GcPzXrUvkAQuIQYf
-	 RhgOpyRA+XNRg==
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next v3] net/rds: restrict the rdma_cm ids to IB
- devices
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Allison Henderson" <achender@kernel.org>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260922084837.390414-1-achender@kernel.org>
-References: <20260922084837.390414-1-achender@kernel.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Tue, 22 Sep 2026 08:55:33 +0000
-Message-Id: <20260922085534.214271F0089A@smtp.kernel.org>
+	s=k20260515; t=1790069279;
+	bh=koizuzCvTqcQymkCuZR6nRMdDkAOhPlxoac5NyN6ips=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=P93Y2JwMRUD+FjDX9JvlrJ4sdffhqSpMhQ3xyG2fMIU7w46V1TqTlurEZHFvSSmnp
+	 2eCbfQf/foqQ/lkHF+f7ldipUiwNNQN7Y6VjMqHQ9MMC12Ja10TNRz+PBB7dYo63HN
+	 1p45XqVVe6G71spiFanf/g1AOhtAq6jjqqf2EPcBv4PQIobYrP49/5M4kREllclt/X
+	 L5hwGCaBqXR9wDzE2cl68BHXQw4yQaN9tbvaZwd7fHT0B6gO8IZMywYJuK8wPdg+xf
+	 2ZFKuqemyBIUzzqWh1b1M3W+Dt4g4n1tpq/O+4GBRiuEtrGT7YOxV1miHkxHvRpX74
+	 sSTSkzvA+KpeQ==
+Date: Tue, 22 Sep 2026 12:27:54 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>,
+	Chaitanya Kulkarni <kch@nvidia.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
+	Ankit Agrawal <ankita@nvidia.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	"Joerg Roedel (AMD)" <joro@8bytes.org>,
+	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org, iommu@lists.linux.dev,
+	Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	linux-rdma@vger.kernel.org, kvm@vger.kernel.org
+Subject: Re: [PATCH v7 15/19] PCI/P2PDMA: Document TLP-class routing
+Message-ID: <20260922092754.GC563127@unreal>
+References: <20260920-fix-p2p-acs-v4-0-v7-0-ca0828ab697c@nvidia.com>
+ <20260920-fix-p2p-acs-v4-0-v7-15-ca0828ab697c@nvidia.com>
+ <85bb90f0-5a02-4e35-9ed6-ad7e67c1c0d8@deltatee.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <85bb90f0-5a02-4e35-9ed6-ad7e67c1c0d8@deltatee.com>
 
-> RDS only has an IB transport, but it never tells the rdma_cm so.  The
-> listener created in rds_rdma_listen_init() is therefore installed on
-> every RDMA device in the system, including iWARP RNICs, and the id an
-> outgoing connection resolves through in rds_ib_conn_path_connect()
-> may be bound to whichever device the address resolution picks:
-> rds_ib_laddr_check() only vouched for the local address being served
-> by one of RDS's IB devices, while cma_acquire_dev_by_src_ip() walks
-> every RDMA device for the same address, so a software iWARP device
-> attached to the same netdev can win.  The event handler then runs
-> the IB transport's callbacks against a device that is not one.
->=20
-> The rdma_cm has an API for exactly this since commit a760e80e90f5
-> ("RDMA/core: introduce rdma_restrict_node_type()").  Restrict all
-> three ids RDS creates - the listener, the per-connection id and the
-> probe id in rds_ib_laddr_check_cm() - to RDMA_NODE_IB_CA before they
-> [ ... ]
-> to take; this patch is hardening on top of it, not a fix in its own
-> right, hence no Fixes tag.
->=20
-> Assisted-by: Claude-Code:claude-fable-5
-> Signed-off-by: Allison Henderson <achender@kernel.org>
+On Mon, Sep 21, 2026 at 04:16:56PM -0600, Logan Gunthorpe wrote:
+> 
+> 
+> On 2026-09-20 05:41, Leon Romanovsky wrote:
+> > +A path is bus addressable only where both directions route directly, so with
+> > +nothing enabled every class is.
+> 
+> I don't understand the sentence.
 
-Sashiko has reviewed this patch and found no issues. It looks great!
+I tried to say that we need both Requests and Completions route
+directly.
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260922084837.3904=
-14-1-achender@kernel.org?part=3D1
+Claude suggested something like that:
+---------------------------------------------------------------------------
+Combining the two tables gives the mapping type: a class is bus addressable
+when its Request and its Completions both route directly, a blocked Request
+is not supported because Translation Blocking rejects the Address Type
+wherever the Request is addressed, and anything else goes through the host
+bridge. With no ACS control set anywhere, every class routes directly.
+---------------------------------------------------------------------------
 
+Thanks
+
+> 
+> 
+> Logan
