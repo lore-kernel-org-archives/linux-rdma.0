@@ -1,209 +1,278 @@
-Received: from CH5PR02CU005.outbound.protection.outlook.com (mail-northcentralusazon11012054.outbound.protection.outlook.com [40.107.200.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f198.google.com (mail-pl1-f198.google.com [209.85.214.198])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EF173C0A00;
-	Tue, 22 Sep 2026 18:37:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.200.54
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790102256; cv=fail; b=fdD7iSOu9+aj7AUpsfijzrANvvtXb/y+zkKiciCMY+DOunWhOmc7gYroFc027y79xb9f2eIz4P8/KQBBheQXJi7sbt+bRgySa0y8VhimuZ3fscZwFBWylWRKCHF8QICBcKFUC3pMy9IhrxNzzSEK6uTmlfPV7umeHDSYxVB3cFg=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790102256; c=relaxed/simple;
-	bh=3hssyeeJfnLMlZV/PW9X/t+eys+qZwdLpLMV+PsTh7g=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=i4zn4AUP6mpNSHiFww+L/4MjzWxcTo224SGx+M/DIMVmnWLKVGHvl4MyzlpewuB7LrF7dZUR292xOv0K3NN9wDQw/xCM7yJnUSYBOUv4ALDaVi9k4XCiYU/ffD1u7adNekdOf9ydCS8nx6dWKioW1AyP3BfD1/K1m4Sp3XY8Zuo=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=Jotu5Jvk; arc=fail smtp.client-ip=40.107.200.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76477419FBE
+	for <linux-rdma@vger.kernel.org>; Tue, 22 Sep 2026 20:52:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.198
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790110375; cv=none; b=iWh3tQEf9n7rRV590H4fdFKbUihXuNx/LF8WpFG797JOVQd6PN5HkVHfdoWbBrPAJT4x4kGsMOCFgIO26nGprr1+kCBWw+DRNNBZJqGLbs9BHY+hXXB2WIPEOVh8prA4AbfTMokPA2WJ88seCp8ytdApQPFgZ+5Q8K0K5leljNw=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790110375; c=relaxed/simple;
+	bh=NbjEBeyu2VLG3EhojRaSrC/sVKTJa1ExSwsAOz1USUQ=;
+	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=rOB3Ykxogol7yHA1k66VavXDPPc4gEcBHbRWfL8/15a9XP1MYmPjIlbybyhK8TNhNwPzq3a/WAXE+zNeOH1AY+caWR5IDGvfx/ngvbQ6OXl4EaJp0xDQ1DKHvFS4pzGyCErXlJtqwGmzpFrnU29a381+n/FllPQ0HZBwODqpAxY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--sunnytiwari.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=lA25J6lg; arc=none smtp.client-ip=209.85.214.198
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--sunnytiwari.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="Jotu5Jvk"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=qTPlFCI+Rl928AlIU2Fw219j7B2S7iX20E7AD1HZt3BOPF4C7sLFeyCeURzpzG4j0TCDVKWwDiggK30BW2UDmYo1lBvHnsmIRK/vXzz1tylhQfJv1ln3t8VjhECvO52jVxJx79XrKdObLry+xsFW/feSP/IOn4+q9vuj/sNQuKtfDy3GE0WXJ1Ax0Bet3hNFiFoekU7WBN8QhIRfcpgOed8FP8GyMEZZxE5QtxDScJOosTI4KJfilD5hsyBCRgJlnjUdSO+rnRIebOqcY4h2W22ShyW7xZeumEaJk8gbDyu3ADsXfBIzoYl8T38L/cjPpTagNwCm3CO91q79UiWpGw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=OXs7RcrVZ6aKZatAq/YOwWd7rdl64xqH68XAytsYO28=;
- b=eHyclkQkLUeOsjjfBp5Oq2NsQsPUJl7fvfwU2NDFaAXN6u0FgVLAqGK5IwOVkDaBOb2gRkc3JfUv1LJqCQd0adJV8q70Kk678Zk8rGREnrdAINzo/FXFjOjc9Nlw64e43E/EH9uEIZzfHv2PBdXZLcfdv/syf3qHxrh3aAfoLz8QgGg6siXSOcgWsFE6GlsK2EkhmFEHl4RExfrSBtaaXCT8us6bGucrSaRbq2D+AhnfQFHn4I3y19qxSo0JfEQIKP3BotBe54pBLPJmbNg+qAdtzYIqcEZ517Cx/q3fSGtMZkjbvwSHwa+7sS5iVRgh9ArU0U6ZnPQloSfg/7Bgog==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=OXs7RcrVZ6aKZatAq/YOwWd7rdl64xqH68XAytsYO28=;
- b=Jotu5JvkPRSd6HvG0rYJwZsEBOtXBLfGMJTYfHKZTc864ucKu0AGtznwcG6ujs4/ZS++/CASXy1q/7YXFXriA23VQbXIArU7dcYkKdY2SHRWE/19Quy5cyYrLko0VH/mTm92FIhnc9yI/ZpaaoppztQ+nFAUIcUogfyp45kVR0iLfcrQYrNCXrKaeHLjvu99dYnBsKlBxw0vj6yVRHPkvIKk4sdiqo7VcuUrD8EGO4qMLRORP5DhFgqLqcp8aIEKx5LoAcryhF4LEcezxF+INx2eJ5hnCTqsVbY9nAPj5iU+GcZwL+QtzNwLuo6vkkF352/lqZgI8IGKO0BqDhZl1A==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from SA0PR12MB4367.namprd12.prod.outlook.com (2603:10b6:806:94::13)
- by PH7PR12MB7209.namprd12.prod.outlook.com (2603:10b6:510:204::20) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.428.13; Tue, 22 Sep
- 2026 18:37:30 +0000
-Received: from SA0PR12MB4367.namprd12.prod.outlook.com
- ([fe80::2815:8a95:1a44:be1c]) by SA0PR12MB4367.namprd12.prod.outlook.com
- ([fe80::2815:8a95:1a44:be1c%6]) with mapi id 15.21.0451.012; Tue, 22 Sep 2026
- 18:37:27 +0000
-Message-ID: <188aa61d-ca17-4888-85f0-040f7857be88@nvidia.com>
-Date: Tue, 22 Sep 2026 21:37:23 +0300
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net] net/mlx5: Fix slab-out-of-bounds when handling team
- device events
-To: Anirudh Virdi <avirdi@redhat.com>, netdev@vger.kernel.org
-Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com,
- andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
- kuba@kernel.org, pabeni@redhat.com, shayd@nvidia.com, ohartoov@nvidia.com,
- maorg@nvidia.com, linux-rdma@vger.kernel.org
-References: <20260922135123.46205-1-avirdi@redhat.com>
-Content-Language: en-US
-From: Mark Bloch <mbloch@nvidia.com>
-In-Reply-To: <20260922135123.46205-1-avirdi@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: FR2P281CA0145.DEUP281.PROD.OUTLOOK.COM
- (2603:10a6:d10:98::17) To SA0PR12MB4367.namprd12.prod.outlook.com
- (2603:10b6:806:94::13)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="lA25J6lg"
+Received: by mail-pl1-f198.google.com with SMTP id d9443c01a7336-2cc73f47bdcso2793275ad.3
+        for <linux-rdma@vger.kernel.org>; Tue, 22 Sep 2026 13:52:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1790110360; x=1790715160; darn=vger.kernel.org;
+        h=content-type:cc:to:from:subject:message-id:mime-version:date:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=+kls6zOn4bhEu16C4wUuQeZkdxufVxysuFtvApSFdDQ=;
+        b=lA25J6lg8CmdsTdDZr26h2PjdxLq2i/Z4ERNmmh8KWwCVm0D+yDpEkoV5C8711NuH6
+         5DhtvlMGqlN9uhiTgFfhq7EFElrL/aX1yCosTInyXuvfIIRoAn4o3f4rpqt065rwJ8Ux
+         DSfCQe7q91nOc1GV0yyRtQclTMfKUhZ8LVJYkTBZ7qyugMZND3ESEqHEQeEHgykSDgg5
+         B5W4dz8StT+RGKPgBoX6zZv+GK3fIiVM0WNYB4ZIevSUvmfmgOqCcb3CiIELDKolaZ7C
+         8TdwnwV3vpqT4vXQ8Dz44alQOsVKHh7SEc8QK9EjoYfRmZPfbG7icPF8YnO4dXvQje/Z
+         dBqw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790110360; x=1790715160;
+        h=content-type:cc:to:from:subject:message-id:mime-version:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=+kls6zOn4bhEu16C4wUuQeZkdxufVxysuFtvApSFdDQ=;
+        b=yZNYa88TbCx6+0yZHTnCW5/wj6xHJGZH/C5LflHF+96DIjXI7rTV+1CYFwtoCTvIT+
+         EgOGa4YueD2ESqZOgIq+5EnRsdQuEZARxEt+IUTqDZ2KUPnAquWBS9sqsdhmNQJkvq9+
+         6J78q+sNY3EdoFkfZiSTJKOoN1ZR/+YOz6CMC/X51sVskiOvMeAVvKwaG4j5i8ZUoFK5
+         AKNrDSQChpxJE5y9rWa0qgMCTEfb7vcy6o7LjhZwLCrygE43cxHLRoYlcrn1hLgbFuox
+         3VQjb4PPM+gDbJp8mfsvelsKdoYWN6LQ0vSooH7YUcMGVKntkPOYqJZTk+Q8j0dnPOoc
+         4zoA==
+X-Forwarded-Encrypted: i=1; AKwUvBwkhZIY1W5mu/3PYPIFOXeOauCrYfKBlLeoRPWC0U6tysstAMdUOINo/djdspeo+7/qgOkxzxlMv87A@vger.kernel.org
+X-Gm-Message-State: AFuF++kfbc1fy8ia+I23ZUYvoMHF62dFou0kUiKH1jN9eNRrQvZb6PzZ
+	mWHbVnK0T7qOj9RgfFv6+5L5cqAR2x2joW5K1Cte0nptXPjYOwx4k+iU3Tad4dWl9H7dfApU1kj
+	nwok+Gud5t6B+rINgMw56CoVkrg==
+X-Received: from plrp17.prod.google.com ([2002:a17:902:b091:b0:2db:1a39:c145])
+ (user=sunnytiwari job=prod-delivery.src-stubby-dispatcher) by
+ 2002:a17:903:1a2d:b0:2dd:c053:82f1 with SMTP id d9443c01a7336-2df69dc4162mr4741375ad.40.1790110359533;
+ Tue, 22 Sep 2026 13:52:39 -0700 (PDT)
+Date: Tue, 22 Sep 2026 20:52:36 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA0PR12MB4367:EE_|PH7PR12MB7209:EE_
-X-MS-Office365-Filtering-Correlation-Id: 5d5601cc-f9bd-4a66-2209-08df18d88d4e
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|1800799024|376014|366016|10067099003|6133799003|11063799006|18002099003|22082099003|56012099006;
-X-Microsoft-Antispam-Message-Info:
-	ssNTra/28Vjtr9GnSm0aTNEYgTKlwmDe9bpJIHOotViJd867GkxXtZPq65pVyIJjmWz8WHOl0nlx1kdcUlI88Mxs1rnRm7nrILvsR5Durm1wBqzQDIhlE0015L8R5T1OvauUjdNg4vnOpK3tPIayE36PDyEEoxvD6LwIpFPj/idWAVPLhH/3GSEYEtMTNKHY4ZxwEp0BaYLckL0elh/O781fvK8kw+mk96OykDZM2sEoLmW3JDShFu6gUPnZc1RRla32NBdtFAYYm09/IpNonNjCCqK7qxuRURMZt9IqO5wqc2N42Xpd3nQQEvaCCTwwKeuzDDTeP/Gr08YPlr/Nw26ODrG8lByNSWNEJUM4wr2agCLebHVaRINTiM13vkn/wGHRnoC6v3L8jsn/nnrwtxqHodvjFlF464VsGaz+c1c7lfumc51xBjpjjlFppCoLcnEpdjnUpTNwBdme+hlFNNbYJgIhwOMKOmfPSc5yFRUgjcLB6StKb2ENYYP5/+jX2eF1EfPn4nz/4yO8joskLRd8ZX+JwpVdXLTEkHiTxp1FVhI7emzNSS+0IbDU0O+kyoqgcldgluw4CVcPHtYSE4WgcK5By1QUzINUP8cWlE3TVyY7Nh7cp8EgNXLcUUXmSd1+2PuXSfxRIB5Y/pD7mV0etaRI5aaRuceJKR/jz+c=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA0PR12MB4367.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(1800799024)(376014)(366016)(10067099003)(6133799003)(11063799006)(18002099003)(22082099003)(56012099006);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?aFlmREc1MWZZRmE0VkR3S2gzQUgzbTlrWkVoY0ZyN3VETkNvMjZsK2lrTWVD?=
- =?utf-8?B?SW1UTVpHalR5OHE0RVBMdnJHcGJTSjNUYm0rZXJ5Z1IyTXE3THY5L2NuemxY?=
- =?utf-8?B?ZkVKUmVPN1VzSk91cVVOcHkvd0ZxVXBVaTFrUHFHd3RDTldYZ1JzRi96T0xy?=
- =?utf-8?B?ZU5UQitYQmwzei9uZEk2NUliTlNxcGFCelhqdzkvMVVFL3FkUVd1Wjl4M0Jm?=
- =?utf-8?B?VHJ2WkQ1aldtYnhWNXNoM2sydTZUUmpoZlVaVno4NXlSNHF5TzlzcC95MnBR?=
- =?utf-8?B?V0RKZGFHWUZmZ2FzVXJsd29hWDBKOWFPUmVUYkM3ZGoweTc3MVdGR2J3ODda?=
- =?utf-8?B?Sy9IMVUrK3Ixb0piVi9RbFRJRDFuQ1NYUVZOYmpBbkluZEhxU1llbDBtQllR?=
- =?utf-8?B?THB6NDJScE13VWN0UmQwZ1UzT0I4NjhtQWVCazJZVVJpOUltOUFGL0pzVlJ0?=
- =?utf-8?B?TnFXZmlCT2xqMHZsN3Z6b29aVmZGaml4MU5jSHVMVkZLUDNuQy8wWERCR2RS?=
- =?utf-8?B?bmFLd2YxK1BlU3lwc0xQMGFUZkwvNTlmVmpiWXJPM0xPSVVEQUtoVElhYUpS?=
- =?utf-8?B?TnR5L0dvUTV2elFDWlI0VE96TnJiamtqak5WTzBrVTRaUXBLWHhTaEVCaWlW?=
- =?utf-8?B?UVBJYXExVjR0N3htcDNVSFpOWFRXRHgwM09YQmQrcEpPSHNiaENacUtGV1Vr?=
- =?utf-8?B?eXpDcHBtS0hjVm1LczNzNGNVL0dBckpVcmhNaVV2WXNhRitGcHdqWFFOaSt3?=
- =?utf-8?B?WWx0SjlaQXpkeWFvQW9MOWtTQWFka2JKRVFGbDJTTVh2bFJIRUpUZjRvbWZ0?=
- =?utf-8?B?WTdJWEd6NzI5b1g5L1F6SXNOQU1MYnFNYkZWdVNBSUs1N25icGVka3VvcDA0?=
- =?utf-8?B?UUpyT1ZJYXhvUTZkN2RHcGpOaUlIMHE2T2EzRGdVT1ROZS9RSXJ0WUtpWUZV?=
- =?utf-8?B?OWpvK2pGcXYrUytwRTByeUVOV1dCQ3ljeFA0OHhOZDVvRjZEZWxYVmRxMSty?=
- =?utf-8?B?b0ZSZGtsdUxidFRRbHlRVVZLajMxYzhXSWZVellKd0FPZllhUUFmaDJqN0tz?=
- =?utf-8?B?UkJmekR3VzlSMzdVVFJWZ3BNSUhKWVZIU2tweFhPeUtqUGpxaWlWZUZycU9I?=
- =?utf-8?B?cWVUdXBlaFlQMHhlcnhhWFNMbXJaR3o2K3RwS0Q5dnE4WTNsNERUcVFHMk1C?=
- =?utf-8?B?SVZrSTZrVDZaOVFOTUVJek9rYVFZSzVRcTBXenZqZkVqWTIwblZPMWc2K2VU?=
- =?utf-8?B?aDhWdFFrQ3hFWElHUmxQdU9IeGtSUVo2REhseWpFM3A5bHNpdlZWcnVWSjhT?=
- =?utf-8?B?eTlCNG9mQXJEUEw3bVJJL1QyN3EzMjR1cEdKYzA5cXcrWHVmRmtHSGU3SFBJ?=
- =?utf-8?B?NmdiNGZKaEd4bnp5R25GRVR4T3N6SjVPbVRuMTJiT3pra0pKYU9oZnNPZlBB?=
- =?utf-8?B?cDF0WkdDSkd2VFZiVXN6ZGoyNGJyTlV5SDhGNzdVSmQzc0YrWXc5L1NIZUVN?=
- =?utf-8?B?cmZkVEV1TzhNcC9BZUFxTVoybnpzZkF3Z1FOTngxaEhJNW0rTnV5bUZrYzVB?=
- =?utf-8?B?ZnorQVpsaGdPa1h4OWM1dDdpbjI0YVpxMW1HczNkYXJkUGZhcER4K0QrUng0?=
- =?utf-8?B?WG9OTjFhOU14Z1NvTEVPRmtNRDdkMENrZUVic3RMUS9UMlR2NStGc2Z0Q3do?=
- =?utf-8?B?TzVCWjBCUUxkZGc4Uis2U0I1aTlYMGpKZ3pzbTBoTW9pY3FTemJLV1RwOGtE?=
- =?utf-8?B?bzNlR0JvUkp6dXF1SnArSStEeCtYdThTaTMwazV2dzhSRTZjOU9tYzhRcURx?=
- =?utf-8?B?NFlYbnVRQmlzUlpwWU5IOXVIbHhkOWMvd2NhY3A5S1lXT3k0MWVYWnJhUHJV?=
- =?utf-8?B?MEcreDhMNU1iWjk0QWF4T3R3R2t6ZWVkVHdkbWREK1RMN1IwSXk2L2d5QXdz?=
- =?utf-8?B?dWN4Y2xQNk5rYnM2N0g2YVhnQXkvdGZMQkJab1c4VTc5cFZxSjJtKzloc2xD?=
- =?utf-8?B?dGJUdHM4MEt2aVZjNWV6OFNLRUp5TmloRlN3UW8vYVVpajRGVVN4R1J2czNB?=
- =?utf-8?B?YUVJQXlsUXF1eXVCMml1dk9RR2VKdktiM1dMbWhGTUhNZU1wNkJJVzhQZWFz?=
- =?utf-8?B?MWV4aVc2VHlPOUZnLy9nN2NxUlhzQUE0WEhVRWYvSGcxT01wSzFtRUpUZnNX?=
- =?utf-8?B?TTVoWDBOemdZWGZRb2hxc3VDSXcydFpWczFKMFdhV2U0eTh1cDJzTEpZQy9h?=
- =?utf-8?B?dVkrb0sxd1dOVndRdWlJRmlKMFVWL0s1aDN4cmQvd2lSRHBCUTNuUlNlTllB?=
- =?utf-8?B?SjhUZWtXN053UGpIYlNWWUVCSTl6YjV1Q1Bob3ZVRUJFZzBld3d6UT09?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 5d5601cc-f9bd-4a66-2209-08df18d88d4e
-X-MS-Exchange-CrossTenant-AuthSource: SA0PR12MB4367.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Sep 2026 18:37:27.3934
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: TE8+6KcsfUQu5co03ElJQRR/29WqdONLIr27TTfx+BeytsWlY2SRaN8UHEb6S5hKTdpB++nqUQaaOJRodPJnrQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB7209
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.55.0.1082.g2b9226bbc0-goog
+Message-ID: <6b07af04b3ba66a09009e1a0a7b98ec5ec85d3a0.1790109248.git.sunnytiwari@google.com>
+Subject: [PATCH net-next] net/rds: replace tasklets with workqueue
+From: Sunny Tiwari <sunnytiwari@google.com>
+To: Santosh Shilimkar <santosh.shilimkar@oracle.com>, Allison Henderson <achender@kernel.org>, 
+	netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: rds-devel@oss.oracle.com, "David S . Miller" <davem@davemloft.net>, 
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Eric Dumazet <edumazet@google.com>, 
+	Simon Horman <horms@kernel.org>, Sunny Tiwari <sunnytiwari@google.com>
+Content-Type: text/plain; charset="UTF-8"
 
+tasklet_struct is deprecated. Convert the send and receive completion
+handlers in net/rds/ib to work items on a dedicated high-priority
+workqueue.
 
+Allocate per-CPU bound rds_ib_wq with WQ_HIGHPRI | WQ_MEM_RECLAIM in
+rds_ib_init() and destroy it in rds_ib_exit(). Per-CPU binding preserves
+cache locality with the completion vector, matching original tasklet
+affinity without cross-core migration.
 
-On 22/09/2026 16:51, Anirudh Virdi wrote:
-> The mlx5_handle_changeupper_event() and mlx5_handle_changeinfodata_event()
-> functions assume the upper device is a bonding device and call bonding-
-> specific
-> APIs like bond_slave_get_rcu() and bond_is_slave_inactive().
-> 
-> When a device is enslaved to a team master instead of bonding, the code
-> attempts to access the team_port structure as if it were a bond slave
-> structure. Since team_port is smaller than slave, this causes KASAN to
-> detect an out-of-bounds memory access.
-> 
-> Fix this by checking explicitly for bonding devices using
-> netif_is_bond_master() instead of the generic netif_is_lag_master() which
-> includes both bonding and team devices. This ensures mlx5 only processes
-> bonding events, not team events, preventing the invalid memory access.
-> 
-> Tested with Mellanox ConnectX-5 on Linux 7.2.0-rc6:
-> - Bonding: PASS (no regressions)
-> - Team device: PASS (no KASAN errors)
-> 
-> Fixes: 54493a08e21f ("net/mlx5: Lag, record inactive state of bond device")
-> Signed-off-by: Anirudh Virdi <avirdi@redhat.com>
-> ---
->  drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
-> index 28d16fdc3f06..022a69cdebaf 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
-> @@ -1897,7 +1897,7 @@ static int mlx5_handle_changeupper_event(struct mlx5_lag *ldev,
->  	int changed = 0;
->  	int i, idx = -1;
->  
-> -	if (!netif_is_lag_master(upper))
-> +	if (!netif_is_bond_master(upper))
+Replace i_send_tasklet and i_recv_tasklet with struct work_struct. Order
+quiescence via atomic_set_release() and atomic_read_acquire() prior to
+cancel_work_sync() during connection shutdown.
 
-I think blocking teams might not be what we want to do, what about
+Assisted-by: Gemini
+Signed-off-by: Sunny Tiwari <sunnytiwari@google.com>
+---
+ net/rds/ib.c    | 22 +++++++++++++++++++++-
+ net/rds/ib.h    |  7 +++++--
+ net/rds/ib_cm.c | 39 +++++++++++++++++++++++----------------
+ 3 files changed, 49 insertions(+), 19 deletions(-)
 
-@@ -1923,9 +1923,11 @@ static int mlx5_handle_changeupper_event(struct mlx5_lag *ldev,
-                      }
-              }
-              if (i < MLX5_MAX_PORTS) {
--                     slave = bond_slave_get_rcu(ndev_tmp);
--                     if (slave)
--                             has_inactive |= bond_is_slave_inactive(slave);
-+                     if (netif_is_bond_master(upper)) {
-+                             slave = bond_slave_get_rcu(ndev_tmp);
-+                             if (slave)
-+                                     has_inactive |= bond_is_slave_inactive(slave);
-+                     }
-                      bond_status |= (1 << idx);
-              }
-
-I think this works better.
->  		return 0;
->  
->  	if (info->linking)
-> @@ -2004,7 +2004,7 @@ static int mlx5_handle_changeinfodata_event(struct mlx5_lag *ldev,
->  	bool has_inactive = 0;
->  	int idx;
->  
-> -	if (!netif_is_lag_master(ndev))
-> +	if (!netif_is_bond_master(ndev))
-
-I'm okay with this as mlx5 doesn't handle state for teams ports anyway.
-
-Mark
-
-
->  		return 0;
->  
->  	rcu_read_lock();
-
+diff --git a/net/rds/ib.c b/net/rds/ib.c
+index 786f39169..3e3551c6a 100644
+--- a/net/rds/ib.c
++++ b/net/rds/ib.c
+@@ -50,6 +50,7 @@ static unsigned int rds_ib_mr_1m_pool_size = RDS_MR_1M_POOL_SIZE;
+ static unsigned int rds_ib_mr_8k_pool_size = RDS_MR_8K_POOL_SIZE;
+ unsigned int rds_ib_retry_count = RDS_IB_DEFAULT_RETRY_COUNT;
+ static atomic_t rds_ib_unloading;
++struct workqueue_struct *rds_ib_wq;
+ 
+ module_param(rds_ib_mr_1m_pool_size, int, 0444);
+ MODULE_PARM_DESC(rds_ib_mr_1m_pool_size, " Max number of 1M mr per HCA");
+@@ -533,6 +534,8 @@ static bool rds_ib_is_unloading(struct rds_connection *conn)
+ 
+ void rds_ib_exit(void)
+ {
++	struct workqueue_struct *wq = rds_ib_wq;
++
+ 	rds_ib_set_unloading();
+ 	synchronize_rcu();
+ 	rds_info_deregister_func(RDS_INFO_IB_CONNECTIONS, rds_ib_ic_info);
+@@ -545,6 +548,10 @@ void rds_ib_exit(void)
+ 	rds_ib_recv_exit();
+ 	rds_trans_unregister(&rds_ib_transport);
+ 	rds_ib_mr_exit();
++
++	rds_ib_wq = NULL;
++	if (wq)
++		destroy_workqueue(wq);
+ }
+ 
+ static u8 rds_ib_get_tos_map(u8 tos)
+@@ -587,6 +594,7 @@ struct rds_transport rds_ib_transport = {
+ 
+ int rds_ib_init(void)
+ {
++	struct workqueue_struct *wq;
+ 	int ret;
+ 
+ 	INIT_LIST_HEAD(&rds_ib_devices);
+@@ -595,9 +603,16 @@ int rds_ib_init(void)
+ 	if (ret)
+ 		goto out;
+ 
++	rds_ib_wq = alloc_workqueue("rds_ib_wq",
++				    WQ_HIGHPRI | WQ_MEM_RECLAIM, 0);
++	if (!rds_ib_wq) {
++		ret = -ENOMEM;
++		goto out_mr_exit;
++	}
++
+ 	ret = ib_register_client(&rds_ib_client);
+ 	if (ret)
+-		goto out_mr_exit;
++		goto out_wq;
+ 
+ 	ret = rds_ib_sysctl_init();
+ 	if (ret)
+@@ -620,6 +635,11 @@ int rds_ib_init(void)
+ 	rds_ib_sysctl_exit();
+ out_ibreg:
+ 	rds_ib_unregister_client();
++out_wq:
++	wq = rds_ib_wq;
++	rds_ib_wq = NULL;
++	if (wq)
++		destroy_workqueue(wq);
+ out_mr_exit:
+ 	rds_ib_mr_exit();
+ out:
+diff --git a/net/rds/ib.h b/net/rds/ib.h
+index 5ff346a1e..5f617f66e 100644
+--- a/net/rds/ib.h
++++ b/net/rds/ib.h
+@@ -159,8 +159,8 @@ struct rds_ib_connection {
+ 	atomic_t		i_fastreg_inuse_count;
+ 
+ 	/* interrupt handling */
+-	struct tasklet_struct	i_send_tasklet;
+-	struct tasklet_struct	i_recv_tasklet;
++	struct work_struct	i_send_work;
++	struct work_struct	i_recv_work;
+ 
+ 	/* tx */
+ 	struct rds_ib_work_ring	i_send_ring;
+@@ -276,6 +276,7 @@ struct rds_ib_statistics {
+ 	uint64_t	s_ib_connect_raced;
+ 	uint64_t	s_ib_listen_closed_stale;
+ 	uint64_t	s_ib_evt_handler_call;
++	/* Retained as s_ib_tasklet_call for userspace rds-info -I ABI */
+ 	uint64_t	s_ib_tasklet_call;
+ 	uint64_t	s_ib_tx_cq_event;
+ 	uint64_t	s_ib_tx_ring_full;
+@@ -452,4 +453,6 @@ extern unsigned long rds_ib_sysctl_max_unsig_bytes;
+ extern unsigned long rds_ib_sysctl_max_recv_allocation;
+ extern unsigned int rds_ib_sysctl_flow_control;
+ 
++extern struct workqueue_struct *rds_ib_wq;
++
+ #endif
+diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
+index 6e3110a04..976a9d7e8 100644
+--- a/net/rds/ib_cm.c
++++ b/net/rds/ib_cm.c
+@@ -253,7 +253,10 @@ static void rds_ib_cq_comp_handler_recv(struct ib_cq *cq, void *context)
+ 
+ 	rds_ib_stats_inc(s_ib_evt_handler_call);
+ 
+-	tasklet_schedule(&ic->i_recv_tasklet);
++	if (unlikely(!rds_ib_wq || atomic_read_acquire(&ic->i_cq_quiesce)))
++		return;
++
++	queue_work(rds_ib_wq, &ic->i_recv_work);
+ }
+ 
+ static void poll_scq(struct rds_ib_connection *ic, struct ib_cq *cq,
+@@ -279,9 +282,10 @@ static void poll_scq(struct rds_ib_connection *ic, struct ib_cq *cq,
+ 	}
+ }
+ 
+-static void rds_ib_tasklet_fn_send(unsigned long data)
++static void rds_ib_send_worker(struct work_struct *work)
+ {
+-	struct rds_ib_connection *ic = (struct rds_ib_connection *)data;
++	struct rds_ib_connection *ic =
++		container_of(work, struct rds_ib_connection, i_send_work);
+ 	struct rds_connection *conn = ic->conn;
+ 
+ 	rds_ib_stats_inc(s_ib_tasklet_call);
+@@ -319,9 +323,10 @@ static void poll_rcq(struct rds_ib_connection *ic, struct ib_cq *cq,
+ 	}
+ }
+ 
+-static void rds_ib_tasklet_fn_recv(unsigned long data)
++static void rds_ib_recv_worker(struct work_struct *work)
+ {
+-	struct rds_ib_connection *ic = (struct rds_ib_connection *)data;
++	struct rds_ib_connection *ic =
++		container_of(work, struct rds_ib_connection, i_recv_work);
+ 	struct rds_connection *conn = ic->conn;
+ 	struct rds_ib_device *rds_ibdev = ic->rds_ibdev;
+ 	struct rds_ib_ack_state state;
+@@ -381,7 +386,10 @@ static void rds_ib_cq_comp_handler_send(struct ib_cq *cq, void *context)
+ 
+ 	rds_ib_stats_inc(s_ib_evt_handler_call);
+ 
+-	tasklet_schedule(&ic->i_send_tasklet);
++	if (unlikely(!rds_ib_wq || atomic_read_acquire(&ic->i_cq_quiesce)))
++		return;
++
++	queue_work(rds_ib_wq, &ic->i_send_work);
+ }
+ 
+ static inline int ibdev_get_unused_vector(struct rds_ib_device *rds_ibdev)
+@@ -1099,14 +1107,15 @@ void rds_ib_conn_path_shutdown(struct rds_conn_path *cp)
+ 		while (!wait_event_timeout(rds_ib_ring_empty_wait,
+ 					   rds_ib_conn_path_shutdown_check_wait(cp) == 0,
+ 					   msecs_to_jiffies(1000))) {
+-			tasklet_schedule(&ic->i_send_tasklet);
+-			tasklet_schedule(&ic->i_recv_tasklet);
++			if (rds_ib_wq) {
++				queue_work(rds_ib_wq, &ic->i_send_work);
++				queue_work(rds_ib_wq, &ic->i_recv_work);
++			}
+ 		}
+ 
+-		tasklet_kill(&ic->i_send_tasklet);
+-		tasklet_kill(&ic->i_recv_tasklet);
+-
+-		atomic_set(&ic->i_cq_quiesce, 1);
++		atomic_set_release(&ic->i_cq_quiesce, 1);
++		cancel_work_sync(&ic->i_send_work);
++		cancel_work_sync(&ic->i_recv_work);
+ 
+ 		/* first destroy the ib state that generates callbacks */
+ 		if (ic->i_cm_id->qp)
+@@ -1234,10 +1243,8 @@ int rds_ib_conn_alloc(struct rds_connection *conn, gfp_t gfp)
+ 	}
+ 
+ 	INIT_LIST_HEAD(&ic->ib_node);
+-	tasklet_init(&ic->i_send_tasklet, rds_ib_tasklet_fn_send,
+-		     (unsigned long)ic);
+-	tasklet_init(&ic->i_recv_tasklet, rds_ib_tasklet_fn_recv,
+-		     (unsigned long)ic);
++	INIT_WORK(&ic->i_send_work, rds_ib_send_worker);
++	INIT_WORK(&ic->i_recv_work, rds_ib_recv_worker);
+ 	mutex_init(&ic->i_recv_mutex);
+ #ifndef KERNEL_HAS_ATOMIC64
+ 	spin_lock_init(&ic->i_ack_lock);
