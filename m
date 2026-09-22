@@ -1,45 +1,43 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 351FC345CDD;
-	Tue, 22 Sep 2026 12:59:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FC1554B1CB;
+	Tue, 22 Sep 2026 13:13:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790081995; cv=none; b=WApiZbBisZqIzHM8FtGbBO721up1A+1SI+F32DxMnnZVPb+fAI0cJQVdNamUBkIhCHEPqkuji0xGDZ3C3MwHEd6fhzOYKTqZYECyYPuuLSThhAnxCShslGmPRRgyOiZW/ZFgTPq8NrjsoAeIAz5cHIax2NIJYANgifEouLIZBMA=
+	t=1790082835; cv=none; b=ZwHCuNAkReXq3VexfYmXpFHzxcD9sPC4yp4SxvtyV74Xs3Yq6EsSfM/bGFDuQvXD65xZ/7GXmDOm2gBC3Aga9XhjXKTCmtPxfLrXA8qAc2Hhh4BJaEQAo20k8MujDLGD0LV7M0bRfBZk+AXanXrFxWDfXEfMmYvYVtv9NBmq2J0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790081995; c=relaxed/simple;
-	bh=HBhTFGjcb/oq2NQxZq318uNBp75lqYk1Qme0VlTg6L8=;
-	h=From:To:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=SVqj4OWYtC7gb9+kPevdaX83EC6vYhqB1sK9nm7L4UixIM9N8ilcC16s78s136VuHqcp7N4cOD0OaMbbG2AiLnsMhxoabbE5Yp1hKbOkJQOYIXrVxeTJ0oKHsaYI301icsaUU4hJhNv/T9dv46R4ontLfMGTsQK81PCeB6fBFNU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=U30hXL8C; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790082835; c=relaxed/simple;
+	bh=eGeZAQPDXdolGYpsApnujjkkSWNew0KyXu9UdOni0Ec=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=GNX5m2DGkC5ulCTD0k19k4+VwkvwmCaoaOfG1oO9oqJJ87DZ0RGE0VYE1H418W3O2Lz1INVlROfWjnbj4+bf6fuo1pUN5kHvgz40qrZsUGUlvq5+cpe3Muy8D1qOyvSdIgGu1hrh+re+75qG/k5Gi9OdR2+lMDXI9QQRthF7gYM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CIgfkEkp; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="U30hXL8C"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 025531F0089D;
-	Tue, 22 Sep 2026 12:59:52 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CIgfkEkp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73C6E1F0089C;
+	Tue, 22 Sep 2026 13:13:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790081993;
-	bh=vMkzLCE06iwghtexRskJsv5/ACp1zOpiqHdLIwwDSMg=;
-	h=From:To:In-Reply-To:References:Subject:Date;
-	b=U30hXL8Cu6Q4gpdNG8GJs+50X1ZOqbQ0JGCFhsgRJm+IvHHGbRnUhEJBeMgeZabkW
-	 XU+YkNkMgBKKgQtuDJ/VyramCsuLmoWpoigDZZh/UioC/3t5ouy8fqpKs9Mk54wK3G
-	 D+DoP2Lwj2yQkinvqvTKXvetwcBv9G6dmJoKvlIYa2I1UP+t0ODqpfzZ9U7gwwznv9
-	 1OgJ505jTzTomciPV+jRpXkfkQmAgCb3xVIHLQORe604uGHE1Y7UCGh6p4jAQmYfH2
-	 r4fSp/I5dlq8DKoDsYFxwlWZ/H0YzlBuJVCDbJq3sY36k5cgz0kBcxLQzXbs192RKo
-	 sq1MZrNF36GRg==
+	s=k20260515; t=1790082834;
+	bh=lFpj+ISgjbQkMiUIYm/dxfsT2GFXZm5jRNEMsFvP8ls=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=CIgfkEkp4e6Q4pwHvOUvAYsO+M2TMBNFHX/wUk0U3/4z7MihqBoEuE6zqLEuSAYmr
+	 CBPbiAywyKxcCLQqEY+Oa03Q61zmMQ+y3Qwwgg3PdrCnJXgOq7N8fWUdk7RLSQv1D9
+	 ctp82eqH81bSc38dkv85d8cn3U5HhQg7kFscb1f7CtUc6KUYnyAB75dXfmiEWwNhrX
+	 LLaj1oTwHG/f0Ik6Y5JSqljcMNuG9rOfntZv59uDN4oiROsQ59QB9l7KkgR5R7+zEU
+	 5Ls6qoVNA9fmz8Bpsd43lv8bHUS5ufL7tNdTds+FPpwrigCrEdAKqX8+XtgU75FkLW
+	 sr7l2supVe8aQ==
 From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>, Paolo Abeni <pabeni@redhat.com>, 
- Willem de Bruijn <willemb@google.com>, 
- "Jason A . Donenfeld" <Jason@zx2c4.com>, 
- Nikolay Aleksandrov <razor@blackwall.org>, 
- Alice Mikityanska <alice.kernel@fastmail.im>, 
- Maor Gottlieb <maorg@mellanox.com>, linux-rdma@vger.kernel.org, 
- linux-kernel@vger.kernel.org, lirongqing <lirongqing@baidu.com>
-In-Reply-To: <20260916120926.1761-1-lirongqing@baidu.com>
-References: <20260916120926.1761-1-lirongqing@baidu.com>
-Subject: Re: [PATCH] RDMA/core: Fix partial copy of IPv6 flow_lbl in LAG
- hash skb
-Message-Id: <179008199053.3235896.15275843993198937658.b4-ty@kernel.org>
-Date: Tue, 22 Sep 2026 08:59:50 -0400
+To: Tatyana Nikolova <tatyana.e.nikolova@intel.com>, 
+ Jason Gunthorpe <jgg@ziepe.ca>, Shiraz Saleem <shiraz.saleem@intel.com>, 
+ Mustafa Ismail <mustafa.ismail@intel.com>, 
+ "Gustavo A. R. Silva" <gustavoars@kernel.org>, linux-rdma@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, Guangshuo Li <lgs201920130244@gmail.com>
+Cc: stable@vger.kernel.org
+In-Reply-To: <20260914122840.1709743-1-lgs201920130244@gmail.com>
+References: <20260914122840.1709743-1-lgs201920130244@gmail.com>
+Subject: Re: [PATCH] RDMA/irdma: avoid use-after-free in icrdma_remove
+Message-Id: <179008283122.3238103.2042812322939438468.b4-ty@kernel.org>
+Date: Tue, 22 Sep 2026 09:13:51 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -51,27 +49,21 @@ Content-Transfer-Encoding: 7bit
 X-Mailer: b4 0.15-dev-18f8f
 
 
-On Wed, 16 Sep 2026 20:09:26 +0800, lirongqing wrote:
-> rdma_build_skb() constructs a synthetic IPv6 header for LAG slave
-> selection and copies the flow label from the AH attribute:
+On Mon, 14 Sep 2026 20:28:40 +0800, Guangshuo Li wrote:
+> icrdma_remove() dereferences iwdev after calling
+> irdma_ib_unregister_device():
 > 
-> 	memcpy(&ip6h->flow_lbl, &ah_attr->grh.flow_label,
-> 	       sizeof(*ip6h->flow_lbl));
-> 
-> ipv6hdr.flow_lbl is __u8[3], so sizeof(*ip6h->flow_lbl) dereferences the
-> array to a single __u8 and yields 1.  The memcpy therefore copies only
-> the first byte of the flow label, leaving flow_lbl[1] and flow_lbl[2]
-> uninitialised in the skb buffer (alloc_skb() does not zero the data).
-> The resulting LAG hash is computed over one byte of real flow-label
-> data and two bytes of kmalloc residue, so IPv6 RoCEv2 traffic on a
-> bonded interface can be steered to the wrong slave.
+>   irdma_ib_unregister_device(iwdev)
+>     -> ib_unregister_device(&iwdev->ibdev)
+>       -> __ib_unregister_device()
+>         -> ib_dealloc_device()
 > 
 > [...]
 
 Applied, thanks!
 
-[1/1] RDMA/core: Fix partial copy of IPv6 flow_lbl in LAG hash skb
-      https://git.kernel.org/rdma/rdma/c/b63d21631f8365
+[1/1] RDMA/irdma: avoid use-after-free in icrdma_remove
+      https://git.kernel.org/rdma/rdma/c/8a8088b899e4cd
 
 Best regards,
 -- 
