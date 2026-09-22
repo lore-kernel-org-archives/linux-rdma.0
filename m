@@ -1,58 +1,65 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3D42407CD3;
-	Tue, 22 Sep 2026 22:38:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD043522697;
+	Tue, 22 Sep 2026 22:38:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790116700; cv=none; b=D9AtT9V0bXqVCJxLKTKyhHu/fbzhS39gCYJ0aS8c0E56oHTb1AQORy9eSi4hlXamTW6EuzI4M50Un5T2ykDTNpXDMvic0tYTpSBa/lJzFUduS0TkJ6CZ+oYa8Hp+ZYekWT6AlZkYOXZEh48Pz0YPlDFsnQ/QUVtpT7hBaCQn9Jg=
+	t=1790116704; cv=none; b=GQJruaztVGYC9o4sZsmTlNl3qInhIIJcynCNBteCH31hnAXKdb7vzh0kZoWUwWRsxJlAMAWAHZoe/NBO1Ug4V2qB9GGclv48kP/B8bPIRJE2WNhyMzwK0wUg5MHKmnnTz/Z1uakMuAhELao4glhD0NJTK57grp6haPlZ31ENgyE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790116700; c=relaxed/simple;
-	bh=mNOBViL11fLZRRQnKJOd83ScVSx8URi/zF95cq49jPw=;
+	s=arc-20240116; t=1790116704; c=relaxed/simple;
+	bh=6Nk4cq0pQisg3OtYrP23Jb5fNSWGEKlCLBizhkKVV0M=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=eCiNrvITQKFXtYDE6gJvz2mOy4J3X8+RFRC+dg8AtF6iNXhZS87A9jlwARe82DabzxmC38g58IdnHxnKwL4nvctOozG4W2lci16QLvDef/Mg6pEplXmzlCeZOr6Tpbz0ghBrC25uAwvJx3qly1skk1iTG8zLKt3RXNwxQq0riFY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iueBCeTc; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=L+IumxvkXdsulIGl2qJamdjQj4bEbXOr4ZyfRW9cQljURC0ndf2gHXTToDIPNTUEza9DYMuWORGKR6XErkbxJvJjdUhwoZ5TOC0bnGnYhfNjvE7wU10lJ0yNfV/9YLB4vu32Rbb6kyNVhG/UZVdoaWUjTPleTn/SU0QJCwB17Xo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Qt3VaeBX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iueBCeTc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C92EF1F0089A;
-	Tue, 22 Sep 2026 22:38:05 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Qt3VaeBX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E17A1F0089B;
+	Tue, 22 Sep 2026 22:38:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1790116686;
-	bh=/RCAM65lvODEghdSKeo8c/g2ZwyApXtTpSYodPGEK1E=;
+	bh=uB43QfLdOFiW21hWJ7hSO8UZQtQW3zWu59ELi4ozqlc=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=iueBCeTchq5+lbaZ1rCKQ2saHzLaYuB2X3BoCODPFX6TpWGNO7j65i+VesQm2uoYU
-	 XLHDcblU2j26FkazqbMOta8vXfr6vL2dWWMOgy7rMcty9CsWdtVj/DNnFQ73+p2QJU
-	 hglzYyteVxb/V7s4ltBZbQPKkk0Hzso24aDxlb78BXdpIQ0QWsSwap4I6OVRDFoo9T
-	 oziGJasza0JZX0Qxw8ZtIM4pgpyf9tU+JTPbkhnrOUCNcssMaOo9/pCYZON6K1SqVn
-	 yd9bOZx1lWL3CA3ADdLijObr/saiNzCpuiibEdNT6PJf/IC7oJVFjGQnC1DDkfQaJc
-	 3nj8vqcNj2zyQ==
+	b=Qt3VaeBXNyEnxFMf/TOzXBvpOX49E27JFVqtmsBRaDmSrGwbVb4dxgtPTe9InHBvn
+	 WLcuU7lvQRmIYZJj1eRUliTL4l9VYJnevC8NhwhG+aJZdFKaAxZNf4YiroMWZMM+ZA
+	 SFvG9gEElKb1+4u+Urr8o0P2NSETp4/qzHF4bI4jFkcPwYlC1nj7nW2HLhDBiJmCyl
+	 hF9jrRlMPNKfWAssS6iUMrM3dc5t51mu5C37cTvZwlEt997Oyp9fGAcoUQU+r7SNFQ
+	 s58It695MLiViWWFKAsfDUi9l7e3KgaX+spCT90K0+D9BHMJP8zC6qQKzsMxGh70tp
+	 k9+EEXP4/unOg==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v7 01/10] net/mlx5: Add IFC structures for CQE and WQE
+Subject: Re: [PATCH v7 02/10] net/mlx5: Move HW constant groups from
+ device.h/cq.h to mlx5_ifc.h
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Jason Gunthorpe" <jgg@nvidia.com>
-Cc: kvmarm@lists.linux.dev, "Oliver Upton" <oupton@kernel.org>, kvm@vger.kernel.org, linux-rdma@vger.kernel.org, "Marc
- Zyngier" <maz@kernel.org>
-In-Reply-To: <1-v7-c6d30e8ce1e4+3dfa6-mlx5st_jgg@nvidia.com>
-References: <1-v7-c6d30e8ce1e4+3dfa6-mlx5st_jgg@nvidia.com>
+Cc: "Oliver Upton" <oupton@kernel.org>, "Marc Zyngier" <maz@kernel.org>, kvmarm@lists.linux.dev, linux-rdma@vger.kernel.org, kvm@vger.kernel.org
+In-Reply-To: <2-v7-c6d30e8ce1e4+3dfa6-mlx5st_jgg@nvidia.com>
+References: <2-v7-c6d30e8ce1e4+3dfa6-mlx5st_jgg@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 22 Sep 2026 22:38:05 +0000
-Message-Id: <20260922223805.C92EF1F0089A@smtp.kernel.org>
+Date: Tue, 22 Sep 2026 22:38:06 +0000
+Message-Id: <20260922223806.8E17A1F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-> Building the WQE and CQE using the IFC system is easier than with a
-> C layout struct. Add definitions for their layout. Structs for:
+> Generally the IFC file should contain enums for the fields it
+> defines. Move the ones in device.h that are relevant to the VFIO
+> selftests over to the IFC file:
 >=20
->   - wqe_ctrl_seg_bits (16B): WQE control segment
->   - wqe_raddr_seg_bits (16B): RDMA remote address segment
->   - wqe_data_seg_bits (16B): data segment
->   - cqe64_bits (64B): 64-byte CQE with error syndrome union
+>   wqe_ctrl_seg_bits.opcode: all MLX5_OPCODE_* WQE opcodes
+>   wqe_ctrl_seg_bits.ce: new MLX5_WQE_CE_* completion/event modes
+>   cqe64_bits.opcode: all MLX5_CQE_* CQE opcode values
+>   eqe_bits.event_type: enum mlx5_event (all event types)
+>   cmd_out_bits.status: all MLX5_CMD_STAT_* status codes
+>   query_hca_cap_in_bits.op_mod: enum mlx5_cap_mode
 >=20
-> The VFIO mlx5 selftest will use these.
+> Tidy MLX5_PCI_CMD_XPORT which is an alias of
+> MLX5_CMD_QUEUE_ENTRY_TYPE_PCIE_CMD_IF_TRANSPORT.
+>=20
+> No functional change. All existing users of device.h and cq.h
+> continue to see these constants through the include chain.
 >=20
 > Assisted-by: Claude:claude-opus-4.6
 > Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
@@ -61,5 +68,5 @@ Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/0-v7-c6d30e8ce1e4+3=
-dfa6-mlx5st_jgg@nvidia.com?part=3D1
+dfa6-mlx5st_jgg@nvidia.com?part=3D2
 
