@@ -1,74 +1,101 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from ale.deltatee.com (ale.deltatee.com [204.191.154.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A09DF55292D
-	for <linux-rdma@vger.kernel.org>; Tue, 22 Sep 2026 15:33:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38DA854CF48;
+	Tue, 22 Sep 2026 15:44:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=204.191.154.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790091215; cv=none; b=KOOiZCXVuPRliZJvknAedRj0KuNnP7RcdMw2/R+K9yKGMoEZGNaxeQvXoiCxinWZNXdZqyDB1G/0kzw4tOLzDX30UmRhD/cc99DpPNNinUajaFc1RIgd79q4uyn4CXlJK/l7q8v7j+ngIUE1nK3fLtGLwT5XDKfzfuK93x1TQDQ=
+	t=1790091858; cv=none; b=gZPkHSnXz28vhF6f6w9i8Xbe2TGX/coz58evPNLUsrvnA+vpgeXYx9ycpwspCZjWBQcUkQ1rXBNMoaAgPXuV6tDZ0LnfImY7OWjYFDK9WBF+pH+NgdbtNbF7NbUZN7U0tqqKKTe5cDURkWbCvtAvnumFNSSeyLiDHd6yOeKxpuo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790091215; c=relaxed/simple;
-	bh=xnMhzSqTN3EeujSMdor5Gokg3pB95oTOiuG8SU8EsnM=;
-	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=uUOHAwYtr34mrhb06utujZLlQIY/t5j/DalBd4ff2MNy2FlgLsonsZHgjcAfg9QcGvmSWJ4Yvmv+40f9dhshMJVKk2GPfX7c5MfZvde1spZ2mPkLgjuw3ibdQ0d8vdGUXZ9MZPhs5+n4liopljyefhZ13TTv+mAxxo+lf0ku7mw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CdiVlmcW; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790091858; c=relaxed/simple;
+	bh=H2LQm10GMuQayO/rov7YPEEWZioZkR4PzepRTqfC9VI=;
+	h=Message-ID:Date:MIME-Version:To:Cc:References:From:In-Reply-To:
+	 Content-Type:Subject; b=uc/W8YWWrntShBk4/4VyZFGm5oddWGSl+CUNQX+fZJeCsbckD+vN1iFc/qR6d3rEaAmLJFncsZ1+qxsjVESHcp+DTC00V4+ZtNmhLaHqppdMIy30zyBtJ8tydq3DkQrqlZlmSEfpIUyqaf27pfSdQSVIqTMMAoQg4gL9NoYF2NA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com; spf=pass smtp.mailfrom=deltatee.com; dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b=GSm4x/DT; arc=none smtp.client-ip=204.191.154.188
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=deltatee.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CdiVlmcW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54F6D1F000FF;
-	Tue, 22 Sep 2026 15:33:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790091214;
-	bh=F8fiRXyvr9lSDvtmLQEGSCn7ASlw2++kA0ptNxuiKPc=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=CdiVlmcWI4bowvcYOCJ/wRPu6J0wARgfU5QkkhrWgo80lAf1vs0OhaJ2njPPWzO5s
-	 dOf0+k0FnAJO4K8uZGIpCaK1o82fWUqso/O7JqIvsuOSr5TJriZaWDrnUbqqRzGH7k
-	 Ko5lvmKjD6h55Cpxe4QItgg6cyHCu99SXHDwp4cEKMSKFi/Qzh8khloDsZUN9TH+ld
-	 NMyPGkBTX4cjlXvVrkK36jz7yxE6+bBbiqvyxe8XVDnJB2IEo0iz9HbOirk02xd0l6
-	 /WLCwQng5vxxv6f/fkKl8ZZYuqzD5RaljHlHkk4MINx1UCnEh+iRZ4260297Yg7JEh
-	 UKIzNS4srpb5Q==
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH] IB/mad: fix UAF and double-free in RMPP receive
- reassembly
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Dairui Zhang" <zhangdairui@gmail.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260922152342.1474845-1-zhangdairui@gmail.com>
-References: <20260922152342.1474845-1-zhangdairui@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Tue, 22 Sep 2026 15:33:33 +0000
-Message-Id: <20260922153334.54F6D1F000FF@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b="GSm4x/DT"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=deltatee.com; s=20200525; h=Subject:In-Reply-To:From:References:Cc:To:
+	MIME-Version:Date:Message-ID:content-disposition;
+	bh=CWnSk7EHPwZAKsC2qnExgWJIw09V8t9KapKe+fGyacY=; b=GSm4x/DTZBhqYrTlypLXxe4dWy
+	9y0sKMPb064RvrGUTmasLfAtfG82W1NGKWo/+xT03P6Oh8PevDkvjUF+Chntkj38pPm6H5lSpW00n
+	14O4Dpzm0kR1kCBBt6AmxVZk4MZUVOwj5r2wnDpgZW8eoYS9DAM7xK79NREGkU6auzxdUBhjGuiJU
+	ijdiVxaHh9h2MKQWZntFWWZPJw+ThxEHQC72rUwJ+Nmhz3sNlRxYQuIQDNpuRwFiwZMJQ5hWueLbT
+	h4CWHqhJq+VkZA3OU+lTvTGaBB/oZn2MtwfwF77vBEpGxIfjjB8HIJOzz6yj/Om+EkgOwRsWHoW3c
+	3sCFOc9A==;
+Received: from guinness.priv.deltatee.com ([172.16.1.162])
+	by ale.deltatee.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+	(Exim 4.98.2)
+	(envelope-from <logang@deltatee.com>)
+	id 1x92fD-0000000FjgX-1I9v;
+	Tue, 22 Sep 2026 09:44:12 -0600
+Message-ID: <be735e17-0948-4940-a6c9-862466f986b3@deltatee.com>
+Date: Tue, 22 Sep 2026 09:43:56 -0600
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Chaitanya Kulkarni <kch@nvidia.com>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jens Axboe
+ <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
+ Ankit Agrawal <ankita@nvidia.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+ Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>,
+ "Joerg Roedel (AMD)" <joro@8bytes.org>, Will Deacon <will@kernel.org>,
+ Robin Murphy <robin.murphy@arm.com>, Randy Dunlap <rdunlap@infradead.org>,
+ Sumit Semwal <sumit.semwal@linaro.org>,
+ =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+ linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-doc@vger.kernel.org, iommu@lists.linux.dev,
+ Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+ linux-rdma@vger.kernel.org, kvm@vger.kernel.org
+References: <20260920-fix-p2p-acs-v4-0-v7-0-ca0828ab697c@nvidia.com>
+ <20260920-fix-p2p-acs-v4-0-v7-15-ca0828ab697c@nvidia.com>
+ <85bb90f0-5a02-4e35-9ed6-ad7e67c1c0d8@deltatee.com>
+ <20260922092754.GC563127@unreal>
+Content-Language: en-CA
+From: Logan Gunthorpe <logang@deltatee.com>
+In-Reply-To: <20260922092754.GC563127@unreal>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-SA-Exim-Connect-IP: 172.16.1.162
+X-SA-Exim-Rcpt-To: leon@kernel.org, bhelgaas@google.com, kch@nvidia.com, gregkh@linuxfoundation.org, axboe@kernel.dk, alex@shazbot.org, ankita@nvidia.com, jgg@ziepe.ca, corbet@lwn.net, skhan@linuxfoundation.org, joro@8bytes.org, will@kernel.org, robin.murphy@arm.com, rdunlap@infradead.org, sumit.semwal@linaro.org, christian.koenig@amd.com, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, iommu@lists.linux.dev, tdave@nvidia.com, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org, linux-rdma@vger.kernel.org, kvm@vger.kernel.org
+X-SA-Exim-Mail-From: logang@deltatee.com
+X-Spam-Level: 
+Subject: Re: [PATCH v7 15/19] PCI/P2PDMA: Document TLP-class routing
+X-SA-Exim-Version: 4.2.1 (built Sun, 23 Feb 2025 07:57:16 +0000)
+X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
 
-> mad_rmpp_recv.state is protected by two locks that do not exclude
-> each other: recv_timeout_handler() (port workqueue) uses agent->lock,
-> continue_rmpp() (CQ softirq) uses rmpp_recv->lock. Nothing serializes
-> the check-then-set sequence on the state word:
->=20
->   T1 (CQ softirq)              T2 (port workqueue)
->   continue_rmpp()
->     lock(rmpp_recv->lock)
->     state =3D=3D ACTIVE  [passes]
->                                recv_timeout_handler()
->                                  lock(agent->lock)
->                                  state =3D TIMEOUT
->                                  list_del(&rmpp_recv->list)
->                                  unlock(agent->lock)
->                                  destroy_rmpp_recv()
-> [ ... ]
->=20
-> Fixes: fa619a77046b ("[PATCH] IB: Add RMPP implementation")
-> Cc: stable@vger.kernel.org
-> Assisted-by: LLM
-> Signed-off-by: Dairui Zhang <zhangdairui@gmail.com>
 
-Sashiko has reviewed this patch and found no issues. It looks great!
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260922152342.1474=
-845-1-zhangdairui@gmail.com?part=3D1
+On 2026-09-22 03:27, Leon Romanovsky wrote:
+> On Mon, Sep 21, 2026 at 04:16:56PM -0600, Logan Gunthorpe wrote:
+>>
+>>
+>> On 2026-09-20 05:41, Leon Romanovsky wrote:
+>>> +A path is bus addressable only where both directions route directly, so with
+>>> +nothing enabled every class is.
+>>
+>> I don't understand the sentence.
+> 
+> I tried to say that we need both Requests and Completions route
+> directly.
+> 
+> Claude suggested something like that:
+> ---------------------------------------------------------------------------
+> Combining the two tables gives the mapping type: a class is bus addressable
+> when its Request and its Completions both route directly, a blocked Request
+> is not supported because Translation Blocking rejects the Address Type
+> wherever the Request is addressed, and anything else goes through the host
+> bridge. With no ACS control set anywhere, every class routes directly.
+> ---------------------------------------------------------------------------
 
+That's much more understandable. Thanks.
+
+Logan
