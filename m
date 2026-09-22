@@ -1,31 +1,30 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28FC956B846;
-	Tue, 22 Sep 2026 16:43:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 278A9568FA5;
+	Tue, 22 Sep 2026 16:43:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790095402; cv=none; b=r5NftQqg5FY/2wRS6taKlX1CKly19iOnLQAVUV/gEAuCEfmXx9nM0U8g8m5j7JckI67mNTfnOXcwwQlXyljH1i2FCnrP4Ean++dPvvlVsbAlUIKnTPEpjcIknojlGQBDBKbuRnTM9Fu4q9cGsat4xnjnXGTM6WnXF3kgY0vtwxE=
+	t=1790095403; cv=none; b=Df4dWNwJXqiBf9eDV41d0txIk7DDBneeeDzOET6m3y3qfKH0jaiVw8BsEBwLbUcsgY5ksAMXAfFJNUZk777U7rMPSxAB2WEbafiV8NCWuuaMvRgfgs5+GxVQggtBnQykQpNm3ZDV70xxF8tXnBI5r2j56UIsuvDARHo7JEMFDJI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790095402; c=relaxed/simple;
-	bh=i6o2RmS4MEfClc9bq+Qy2TK/ZfwTrcI3n9NKONTtpl0=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=n6zBYjqZS+bbMgzl1Ln36sPa3lOSs7zkDH+XxIUq0d4TvmQLHpVeLycMK3WvpP/YqzaK+g4U0PRHKQ+ZHAU19MeY/fd1Me3/1EWqgqGjS6zVkSZjuqnYiLes4flQBDwOyjoEjiRPBf38R9tTxHV2MIM8GZ9tELsoAQQioaC6+Oo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Kbpy+YfE; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790095403; c=relaxed/simple;
+	bh=4P8ass864B8MgKnfH+MAXcXIFquQMklzd1iwBkh7iwM=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=pm0a0NbjllyQ58VKQv0tFZUuzUZUAD9Ty4MpRr35iw9cxCfDUT2jVnx8EdINtY3h5JlDz6atq/yKsO4Iqsxb5cWY/jKAikVNmqQIOgHvLDy6a8FHQzVizY1QPPiH+EDvEpAEZmCCM2/FPVE5ZpbKVWg6I6qnjrbw2c1Jpsz2H5o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=J8ZYpsBT; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Kbpy+YfE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94E8A1F00898;
-	Tue, 22 Sep 2026 16:43:20 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="J8ZYpsBT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B3991F000FF;
+	Tue, 22 Sep 2026 16:43:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790095400;
-	bh=8gHsjPFWmYqwBhW2iNLlFOhklX9I7Osu5rc4IZQpXyg=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=Kbpy+YfE51BVEkZQ2EVAv9PXFTy0tvK3I9avOCNKykzOBDCpYmCBC1Q5IxQa82zpb
-	 1kWg/K349d9+zR06vpsovgQUGWeaRxnYbFVRRW+/HVqCavFug320rbyQTm878DIk32
-	 nXoKlIJ1q2xLAlBcQZzN1KTi8RQIww6NNSCoEnkgRLlLj1Y1WGZgdSaG6YPKh3VZ/p
-	 z0fw8NxLyQ3PFjb80nMjMp13xwJkbt6qrUol/ka5NhsQcvatSlvy6yiAq+ndad5Ah0
-	 6Ac7CLyDQhGPtXEiVCAVn74zsqpVVqk9w3p35wHq6I+azLSF0daQonlcRx8tOuUJXn
-	 GDxEleG2fgVGg==
+	s=k20260515; t=1790095399;
+	bh=tcAKaPGJcCD689JuN6mclm7OQ37jjIKM+sKca0qmkUk=;
+	h=From:To:Cc:Subject:Date;
+	b=J8ZYpsBTycOLgXcl12qAcFavpk3l3e9EM9X+4pNLR2c3uiMCiQ4WzGT42FmAK0nO+
+	 xrbqaie7WsJXdIb2ThhkRAN523nB/a5JNbNym/dXTMETd5qdlJGFjoYgdbB9qRF6ny
+	 j7HNoRgXcC2FBaBZw3qI6muAAPwtg2oATLn0Orp7x5y4w8X2autcKAfW21DGgA9pnW
+	 mqWGnGKouR74Kiy2pMOdiiVVduSE7JV4+6VxVUBJH/ISExgCl6FEfOCCgnCul0RVIR
+	 O1pkd2zGXLflttQJGhFOE3xrftF7yTvQexq4snmgkI7oVdnclkHwaHOoqy59zpWyiZ
+	 fE9nQM/F4Ig6g==
 From: Allison Henderson <achender@kernel.org>
 To: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
@@ -34,12 +33,10 @@ To: netdev@vger.kernel.org,
 	kuba@kernel.org,
 	horms@kernel.org
 Cc: achender@kernel.org
-Subject: [PATCH net-next v6 03/12] net/rds: guard every work-requeueing site with rds_destroy_pending()
-Date: Tue, 22 Sep 2026 09:43:09 -0700
-Message-Id: <20260922164318.447049-4-achender@kernel.org>
+Subject: [PATCH net-next v6 00/12] net/rds: make connection lifetime reference-counted
+Date: Tue, 22 Sep 2026 09:43:06 -0700
+Message-Id: <20260922164318.447049-1-achender@kernel.org>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20260922164318.447049-1-achender@kernel.org>
-References: <20260922164318.447049-1-achender@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -48,153 +45,259 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-rds_conn_destroy() cancels the path works and then destroys the
-per-path workqueue.  The sites that can re-arm those works are
-supposed to test rds_destroy_pending() under rcu_read_lock() first,
-paired with the synchronize_rcu() in the destroy path, so that no new
-work can be queued once the cancellation has begun.
+Hi all,
 
-Five arming sites never got that guard:
+This is v6 of the connection-lifetime set (v1 at [1], v2 at [2],
+v3 at [3], v4 at [6], v5 at [7]), following
+"net/rds: own the fastpath locks across connection teardown", which is
+in net-next.  It is targeted at net-next: although the series fixes
+real use-after-frees (one syzbot report and one report from Chengfeng
+Ye below), it does so by reworking connection lifetime rather than
+patching the individual crash sites, and that rework is too invasive
+for net.
 
-  - rds_ib_send_cqe_handler() and rds_ib_send_add_credits() re-arm
-    cp_send_w when a send completion or a credit update clears
-    RDS_LL_SEND_FULL,
-  - rds_ib_recv_refill() re-arms cp_recv_w when the recv ring runs
-    low,
-  - rds_tcp_accept_one() kicks cp_recv_w on the freshly accepted
-    socket, and
-  - rds_sendmsg() arms cp_conn_w for a multipath connection whose
-    path 0 is not up yet.
+rds_conn_destroy() frees the connection, its paths and its workqueues
+on the spot, relying on the documented assumption that "no one else is
+referencing the connection".  That assumption stopped being true a
+long time ago: connections are destroyed on netns teardown and on a
+protocol-version mismatch as well as on rmmod, while pointers to them
+still live in socket rs_conn caches, congestion-map conn lists, CM
+callbacks and workers, and - for as long as an application leaves data
+unread - in every rds_incoming sitting on a receive queue.  No single
+Fixes: commit covers the rot, so the series carries Reported-by tags
+where there are concrete reports instead.
 
-The IB completion sites are reachable from soft-irq at any point
-before the QP is drained, so a completion landing in the window
-between the cancel and destroy_workqueue() in rds_conn_path_destroy()
-re-arms a work on a workqueue that is about to be destroyed: with
-delay 0 the work is queued directly on the freed workqueue, and with
-delay 1 the timer survives destroy_workqueue() unseen and fires
-afterwards, queueing from a timer_list that lives in the freed c_path
-array.
+  Patch 1 fixes rds_ib_conn_free() re-enabling interrupts under
+  a caller's irqsave lock.
 
-Wrap all five sites in the same rcu_read_lock() +
-rds_destroy_pending() pattern the other arming sites already use.
+  Patch 2 makes the passive-connection exits of __rds_conn_create()
+  undo conn_alloc() the same way the lost-race exit does, through one
+  helper (a refactor: the passive twin only exists for IB, so nothing
+  leaked there).  Both are first in the series because the
+  reference-counted teardown calls conn_free() from more places.
 
-The four self-requeues in rds_send_worker() and rds_recv_worker() are
-left alone on purpose: they run from inside the work item itself, and
-cancel_delayed_work_sync() disables the work for the duration of the
-cancel, so a requeue issued by the still-running callback is dropped
-and none can follow once the cancel has returned.
+  Patch 3 guards the five work-arming sites that never tested
+  rds_destroy_pending(): two IB completion paths, the IB recv refill,
+  the TCP accept kick and the multipath reconnect in sendmsg.
 
-With the predicate as it stands the guards cover the netns teardown and
-module unload cases; the following patch extends it to the destroy of a
-single connection.
+  Patch 4 gives the connection its own destroy-in-progress marker.
+  With f97d8c7bab78 in net-next there is no single-connection destroy
+  left for the old predicate to miss, but the later patches need the
+  precise answer: the IB unload re-sweep hands a connection to
+  rds_conn_destroy() more than once, and the passive-twin creation
+  must refuse a parent whose destroy has begun.
+  Based on UEK commits:
+     e2f5005adf63 net/rds: Add krefs to struct rds_connection
+     https://github.com/oracle/linux-uek/commit/e2f5005adf63
 
-Fixes: ebeeb1ad9b8a ("rds: tcp: use rds_destroy_pending() to synchronize netns/module teardown and rds connection/workq management")
-Assisted-by: Claude-Code:claude-fable-5
-Signed-off-by: Allison Henderson <achender@kernel.org>
----
- net/rds/ib_recv.c    |  6 +++++-
- net/rds/ib_send.c    | 18 ++++++++++++++----
- net/rds/send.c       | 11 ++++++++---
- net/rds/tcp_listen.c | 10 +++++++---
- 4 files changed, 34 insertions(+), 11 deletions(-)
+     6c53ef92f46e net/rds: Merge uses of conn->c_destroy_in_prog & RDS_DESTROY_PENDING
+     https://github.com/oracle/linux-uek/commit/6c53ef92f46e
 
-diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c
-index bd6cb3ffaa57..7d45808544a0 100644
---- a/net/rds/ib_recv.c
-+++ b/net/rds/ib_recv.c
-@@ -458,7 +458,11 @@ void rds_ib_recv_refill(struct rds_connection *conn, int prefill, gfp_t gfp)
- 	    (must_wake ||
- 	    (can_wait && rds_ib_ring_low(&ic->i_recv_ring)) ||
- 	    rds_ib_ring_empty(&ic->i_recv_ring))) {
--		queue_delayed_work(conn->c_path->cp_wq, &conn->c_recv_w, 1);
-+		rcu_read_lock();
-+		if (!rds_destroy_pending(conn))
-+			queue_delayed_work(conn->c_path->cp_wq,
-+					   &conn->c_recv_w, 1);
-+		rcu_read_unlock();
- 	}
- 	if (can_wait)
- 		cond_resched();
-diff --git a/net/rds/ib_send.c b/net/rds/ib_send.c
-index d6be95542119..bc411e96ad12 100644
---- a/net/rds/ib_send.c
-+++ b/net/rds/ib_send.c
-@@ -298,8 +298,13 @@ void rds_ib_send_cqe_handler(struct rds_ib_connection *ic, struct ib_wc *wc)
- 	rds_ib_sub_signaled(ic, nr_sig);
- 
- 	if (test_and_clear_bit(RDS_LL_SEND_FULL, &conn->c_flags) ||
--	    test_bit(0, &conn->c_map_queued))
--		queue_delayed_work(conn->c_path->cp_wq, &conn->c_send_w, 0);
-+	    test_bit(0, &conn->c_map_queued)) {
-+		rcu_read_lock();
-+		if (!rds_destroy_pending(conn))
-+			queue_delayed_work(conn->c_path->cp_wq,
-+					   &conn->c_send_w, 0);
-+		rcu_read_unlock();
-+	}
- 
- 	/* We expect errors as the qp is drained during shutdown */
- 	if (wc->status != IB_WC_SUCCESS && rds_conn_up(conn)) {
-@@ -420,8 +425,13 @@ void rds_ib_send_add_credits(struct rds_connection *conn, unsigned int credits)
- 			test_bit(RDS_LL_SEND_FULL, &conn->c_flags) ? ", ll_send_full" : "");
- 
- 	atomic_add(IB_SET_SEND_CREDITS(credits), &ic->i_credits);
--	if (test_and_clear_bit(RDS_LL_SEND_FULL, &conn->c_flags))
--		queue_delayed_work(conn->c_path->cp_wq, &conn->c_send_w, 0);
-+	if (test_and_clear_bit(RDS_LL_SEND_FULL, &conn->c_flags)) {
-+		rcu_read_lock();
-+		if (!rds_destroy_pending(conn))
-+			queue_delayed_work(conn->c_path->cp_wq,
-+					   &conn->c_send_w, 0);
-+		rcu_read_unlock();
-+	}
- 
- 	WARN_ON(IB_GET_SEND_CREDITS(credits) >= 16384);
- 
-diff --git a/net/rds/send.c b/net/rds/send.c
-index 1afa981e5c06..32c411d10e3e 100644
---- a/net/rds/send.c
-+++ b/net/rds/send.c
-@@ -1378,9 +1378,14 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
- 		 * outstanding.
- 		 */
- 		if (!test_and_set_bit(RDS_RECONNECT_PENDING,
--				      &conn->c_path[0].cp_flags))
--			queue_delayed_work(conn->c_path[0].cp_wq,
--					   &conn->c_path[0].cp_conn_w, 0);
-+				      &conn->c_path[0].cp_flags)) {
-+			rcu_read_lock();
-+			if (!rds_destroy_pending(conn))
-+				queue_delayed_work(conn->c_path[0].cp_wq,
-+						   &conn->c_path[0].cp_conn_w,
-+						   0);
-+			rcu_read_unlock();
-+		}
- 		rds_send_ping(conn, 0);
- 	}
- 
-diff --git a/net/rds/tcp_listen.c b/net/rds/tcp_listen.c
-index 13fa60c1985b..8a0c54aced5e 100644
---- a/net/rds/tcp_listen.c
-+++ b/net/rds/tcp_listen.c
-@@ -316,10 +316,14 @@ int rds_tcp_accept_one(struct rds_tcp_net *rtn)
- 	 */
- 	if (READ_ONCE(sk->sk_state) == TCP_CLOSE_WAIT ||
- 	    READ_ONCE(sk->sk_state) == TCP_LAST_ACK ||
--	    READ_ONCE(sk->sk_state) == TCP_CLOSE)
-+	    READ_ONCE(sk->sk_state) == TCP_CLOSE) {
- 		rds_conn_path_drop(cp, 0);
--	else
--		queue_delayed_work(cp->cp_wq, &cp->cp_recv_w, 0);
-+	} else {
-+		rcu_read_lock();
-+		if (!rds_destroy_pending(cp->cp_conn))
-+			queue_delayed_work(cp->cp_wq, &cp->cp_recv_w, 0);
-+		rcu_read_unlock();
-+	}
- 
- 	sock_put(sk);
- 
+  Patch 5 splits rds_conn_destroy() into a synchronous quiesce and a
+  kref-governed free.
+  Based on UEK commits:
+     2c8569e4c880 ("net/rds: Add krefs to struct rds_connection").
+     https://github.com/oracle/linux-uek/commit/2c8569e4c880
+
+  Patch 6 makes each transport's exit path wait for its connections to
+  actually be freed before the module goes away.  The wait is
+  unbounded and warns every ten seconds: a connection reference can be
+  held for an application-controlled time (unread data), so a timeout
+  would only move the use-after-free from freed memory to unloaded
+  module text.  rmmod blocking while data is queued and unread is the
+  historical RDS contract.  For IB the wait re-sweeps the nodev list,
+  since device connections migrate to it asynchronously.
+  Based on UEK commits:
+     ece4b4e39afa ("net/rds: wait_event_timeout until zero connections during rmmod")
+     https://github.com/oracle/linux-uek/commit/ece4b4e39afa
+
+     905ec90e6166 ("net/rds: Each RDS transport should keep its own connection count")
+     https://github.com/oracle/linux-uek/commit/905ec90e6166
+
+  Patch 7 unlinks each transport node before its destroy, so a
+  free deferred past the teardown loop cannot write into the loop's
+  stack-local list head.  IB marks a gathered node as claimed by the
+  sweep, since its connect and shutdown paths move the node too.
+
+  Patch 8 hands out real references everywhere a connection pointer
+  previously escaped bare, RCU-annotates parent->c_passive, refuses to
+  revive a passive connection whose destroy has begun, and serializes
+  the SIOCRDSSETTOS check with the rs_conn cache.
+  Based on UEK commits:
+     2c8569e4c880 ("net/rds: Add krefs to struct rds_connection")
+     https://github.com/oracle/linux-uek/commit/2c8569e4c880
+
+     0e9e3a72b7f7 ("net/rds: rds_sendmsg must use rs_conn only when not being destroyed").
+     https://github.com/oracle/linux-uek/commit/0e9e3a72b7f7
+
+  Patch 9 has the quiesce purge cp_send_queue under cp_lock, as every
+  adder to that queue holds it.  No sender can be in flight at any of
+  today's destroy triggers (netns teardown, module unload), so this is
+  hygiene rather than a race fix, and the v5 refusals in the senders
+  that guarded against that impossible state are gone.
+
+  Patch 10 pins the connection across the RDMA-CM event handler
+  and rejects a connect request for a connection whose destroy has
+  already quiesced it.
+
+  Patch 11 drops the now-unused global rds_conn_count.
+  Based on UEK commits:
+     905ec90e6166 ("net/rds: Each RDS transport should keep its own connection count").
+     https://github.com/oracle/linux-uek/commit/905ec90e6166
+
+  Patch 12 makes struct rds_incoming hold a reference on i_conn, the
+  fix for the KASAN use-after-free Chengfeng Ye reported [4].
+  Based on UEK commits:
+      99b9a3715419 ("net/rds: fix crash by expanding kref coverage to rds_incoming.i_conn").
+      https://github.com/oracle/linux-uek/commit/99b9a3715419
+
+Patches 5, 8, 6 and 12 are ports of the connection kref work Sharath
+Srinivasan did for Oracle UEK, adapted to the upstream code.
+
+The series has been validated with the RDS selftests over loopback-TCP
+and RXE-RDMA, plus churn tests that delete network namespaces and
+unload the modules under live rds-stress traffic.
+
+Changes since v5 [7]:
+ - Rebased; the version-mismatch destroy is now an rds_conn_drop() in
+   net-next (f97d8c7bab78), so patch 4's Fixes: tag is gone and its
+   changelog describes what still needs the per-connection flag, and
+   the CM-callback deadlock reports against earlier versions no longer
+   apply.
+ - Patch 2: described as the refactor it is (the passive twin is
+   IB-only, single path); Fixes: tag dropped.
+ - Patch 9: reduced to the cp_lock purge; the send-side refusals and
+   the negative *queued signalling are dropped, since no sender can be
+   in flight at a destroy trigger.
+ - Patch 6: wait comment describes the initial-sweep-plus-resweep
+   contract; changelog notes the guarantee is complete only once incs
+   hold references.
+ - Patch 8: c_destroy_in_prog read through rds_destroy_pending() in
+   __rds_conn_create(); the c_passive puts documented as possibly the
+   last; READ_ONCE() on the unlocked rs_tos sample; rs_conn comment
+   notes the rds_release() exception.
+ - Patch 10: stale forward-reference comment fixed.
+
+Changes since v4 [6]:
+ - Patch 7: the IB sweep marks each gathered node with a new
+   i_ib_node_detached flag instead of relying on list emptiness.  A
+   node parked on the sweep's stack list is not empty, so a concurrent
+   rds_ib_add_conn() would have unlinked it from under the sweep's
+   lockless walk; rds_ib_add_conn(), rds_ib_remove_conn() and
+   rds_ib_conn_free() now leave a claimed node alone.
+
+Changes since v3 [3]:
+ - Rebased; the version-mismatch destroy that patch 10 also had to
+   cope with is now an rds_conn_drop() in net (f97d8c7bab78), and
+   patch 10's changelog says what remains for it to cover.
+ - The uninitialised transport pointer in the CM event handler that
+   the second v2 review pass raised turned out to be the bug Aohan
+   Mei already posted a fix for (v2 at [5], stalled after review); it
+   is carried forward separately for net rather than added here.
+ - Patch 7: the teardown walks take a reference on each gathered
+   connection, so a connection destroyed earlier and freed by a
+   pending holder cannot vanish under the iterator, and the two IB
+   list movers tolerate a node the sweep already unlinked instead of
+   BUG_ON()ing; the nodev sweep gathers entry by entry, so the
+   resweep from the unload wait no longer relies on list_splice_init().
+ - Patch 8: SIOCRDSSETTOS check-then-act closed - the install in
+   rds_sendmsg() re-checks the socket's ToS under rs_lock; rs_conn
+   documented as a referenced, rs_lock-serialised cache; contract
+   comment restored to rds_conn_lookup().
+ - Patch 9: rds_send_probe() gets the same rds_destroy_pending()
+   test under cp_lock as rds_send_queue_rm() (a probe queued after the
+   purge pinned the connection for good).
+ - v3 patch 10 (rds_tcp_accept_one() destroy check) dropped: the check
+   was not serialised against the destroy, and the race it aimed at is
+   not reachable - every TCP destroy path stops the listener, flushing
+   the accept work, first.  A comment now records that ordering.
+ - Changelog and comment corrections from the second v2 review pass
+   (self-requeue exemption in patch 3, c_refcount comment in patch 5,
+   the uninterruptible wait and the transport-text wake in patch 6,
+   "lock-free" wording in patch 11, cross-netns comment in patch 12).
+
+Changes since v2 [2]:
+ - New patches 1 and 2: pre-existing rds_ib_conn_free() interrupt
+   state clobber and passive-path transport data leak, surfaced by
+   review of the teardown changes.
+ - Patch 6: rds_ib_destroy_nodev_conns() uses list_splice_init(), so
+   the resweep from the unload wait cannot splice a stale list head.
+ - Patch 8: SIOCRDSGETTOS reads rs_tos under rs_lock like SETTOS.
+ - New patch 9: rds_send_queue_rm() refuses a connection whose destroy
+   has begun, under cp_lock, and the quiesce purges cp_send_queue
+   under cp_lock (list corruption against an in-flight sender, and a
+   message that would pin the connection forever).
+ - New patch 10: rds_tcp_accept_one() does not install a socket on a
+   connection whose destroy has begun (socket left pointing at a freed
+   path).
+
+Changes since v1 [1]:
+ - New patch 1: guard the five work-arming sites that never tested
+   rds_destroy_pending(); patch 2's changelog and comments narrowed
+   to what it actually newly covers.
+ - Patch 4 moved ahead of the reference holders, so no bisect point
+   has references without the unload wait; wait made unbounded with a
+   periodic warning instead of a 10 s timeout; IB exit re-sweeps the
+   nodev list for connections that detach from their device late.
+ - New patch 5: transport nodes unlinked before destroy (stack list
+   head use-after-free from a deferred conn_free).
+ - Patch 6: c_passive RCU-annotated; a destroyed passive child is
+   refused by __rds_conn_create() and clears the parent's pointer
+   itself; SIOCRDSSETTOS uses rs_lock; lookup comment reworded;
+   explicit not-for-stable note.
+ - New patch 7: reference across the CM event handler, and a
+   destroy-pending re-check in rds_ib_cm_handle_connect().
+ - Patch 9: changelog states what a lingering inc keeps alive and
+   that it blocks module unload.
+ - Changelog corrections throughout (netns teardown paths named as the
+   non-rmmod destroyers, stale rds_conn_path_destroy() reference).
+
+[1] https://lore.kernel.org/netdev/20260904070248.160384-1-achender@kernel.org/
+[2] https://lore.kernel.org/netdev/20260912035027.27447-1-achender@kernel.org/
+[3] https://lore.kernel.org/netdev/20260914033719.138057-1-achender@kernel.org/
+[4] https://lore.kernel.org/netdev/20260720184955.3008978-1-nicoyip.dev@gmail.com/
+[5] https://lore.kernel.org/netdev/20260825021223.3483044-1-ljp1205831794@gmail.com/
+[6] https://lore.kernel.org/netdev/20260917073958.174056-1-achender@kernel.org/
+[7] https://lore.kernel.org/netdev/20260919061149.250658-1-achender@kernel.org/
+
+Allison
+
+
+Allison Henderson (8):
+  net/rds: ib: don't enable interrupts in rds_ib_conn_free()
+  net/rds: free every path's transport data on the passive create paths
+  net/rds: guard every work-requeueing site with rds_destroy_pending()
+  net/rds: make rds_destroy_pending() report a connection's own destroy
+  net/rds: unlink transport nodes before a possibly deferred connection
+    free
+  net/rds: take cp_lock to purge cp_send_queue in the quiesce
+  net/rds: pin the connection across RDMA-CM event handling
+  net/rds: drop rds_conn_count in favor of t_conn_count
+
+Sharath Srinivasan (4):
+  net/rds: split connection destroy into quiesce and kref-governed free
+  net/rds: wait for connections to be freed on transport unload
+  net/rds: hold connection references in lookup, sockets and c_passive
+  net/rds: hold a connection reference from struct rds_incoming
+
+ net/rds/af_rds.c         |  24 ++-
+ net/rds/connection.c     | 330 +++++++++++++++++++++++++++++++++------
+ net/rds/ib.c             |  22 ++-
+ net/rds/ib.h             |   4 +
+ net/rds/ib_cm.c          |  29 +++-
+ net/rds/ib_rdma.c        |  67 ++++++--
+ net/rds/ib_recv.c        |   6 +-
+ net/rds/ib_send.c        |  18 ++-
+ net/rds/loop.c           |  61 ++++++--
+ net/rds/message.c        |  16 +-
+ net/rds/rdma_transport.c |  16 +-
+ net/rds/rds.h            |  46 +++++-
+ net/rds/recv.c           |  26 ++-
+ net/rds/send.c           |  68 +++++++-
+ net/rds/tcp.c            |  53 ++++++-
+ net/rds/tcp_listen.c     |  21 ++-
+ 16 files changed, 690 insertions(+), 117 deletions(-)
+
 -- 
 2.25.1
 
