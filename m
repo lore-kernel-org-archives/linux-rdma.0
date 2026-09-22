@@ -1,68 +1,67 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DE3870830
-	for <linux-rdma@vger.kernel.org>; Tue, 22 Sep 2026 14:16:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D8A55349D6;
+	Tue, 22 Sep 2026 14:25:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790086586; cv=none; b=TX2A4+EwC2mBXS9cSvRD3eUgFPZv1E8XCqjhdUNGAisOxMzwBvSeGd9cAst36oyuK3UWuXMWviZj7hj2rpT9JroCIOqjQs+RcMWjy0GK1GBpS+wXaF/2hbhaZxRjnEq6O2NjVZUGFde6oPR7oGHtFSTAvciyFXWyRv4LrgrT1n4=
+	t=1790087125; cv=none; b=SniDEWyAiSwhoIYXrHqBlfhXUt293fdbldwtRDqvmPPpcCbqsAfDIc21XIhr/D47p8FeIfDEkx1YxHu42To77X84MoV+Iih7ApY5gu84jkn4asZk1gPnl6lPAb1Oa5m/weHDsMwGA60ezOC690GrJ0DD4ELZ73Y/ddFjsl/9exk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790086586; c=relaxed/simple;
-	bh=01JTGftDqVpBMyh0WHP3Qln1IocgUUOSmkTUL/AzvVU=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=AP5m9m0/FsT+XdGivUBa7PxeGaavBO2qbGFKHUP8sAaV+USZvqavhzKgsXD/2EsnnW+twjtDQmjU71eqzcqkDTktOCa+PRKlfgPPEyFOoiurMs2akZa/ODlpSGuBrhuHYJwdYuhK1qYH17RauEBsKHRlEx7Te1TJpjCwriBhPy0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jVVSZsB+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790087125; c=relaxed/simple;
+	bh=Q0zgcsP28r50ZWV8DIUCywvQs0EultufdwcPHW3ZY9k=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ElO+2mT3U7lwFMKePTATbVRXq8Lg7EIPQ/FRP7TQyof+SfFStf5Z/giHMGh0nH5E/JBHOaWYW6uYlNPpxVsdiabbPUTHOgCjNf/gv519+WtEM8z8l0sIfWW6E88Tl9cQFsf+jV9rC5zVP2BG3Bd18hm27u4Oq4uzbmCIq68bPwg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mrZBRkcm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jVVSZsB+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E5F01F000FF;
-	Tue, 22 Sep 2026 14:16:24 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mrZBRkcm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 287461F000FF;
+	Tue, 22 Sep 2026 14:25:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790086585;
-	bh=Uqf8evjW7f4rqV/R8nrgQ2sgkaGWwtM4IRsvQ8SuARk=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=jVVSZsB+AqeBX+gbs2l6zQ0I0ARzcYrj+0ooy7Rdwgq4UNHdnnAb8nEaIoSb8sniH
-	 sSG2mYwj0tFhF+J2JQwI5Y5TPvX0iqerYoe3NcovkWJy/Dehpy0QWtwue2Aup1+hp/
-	 iZpLaB0tI+kzhyzo0M74OisYs+jBNs9mwCAJXoVbonyUREbrRBR9JPwg4ZopUL5n+W
-	 nIs2bIIYCEfqmI+Xv8voTPV1LE7xinuPc69m9qJlzctu2HmILA0I+D++Om+4qZFTwH
-	 fN1Ww15NL0tKnAZDBBvm/WEh4OYwUwmKCaTodk87tDBIkxTbxij8OLXl6daUoQtgxV
-	 H7IaJaSN5NcLw==
+	s=k20260515; t=1790087123;
+	bh=uS4xEiJna1S46gYsb08Tyd0ici9ij8Tt9QUftH8z5m8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=mrZBRkcmxnZrDF7+XaSk4I6M+WNsmX8NPfPeto70GRiFwi09wF9CnSeyA6D61EcI9
+	 SZE+6L8cy4tYM//oW+IRNcd0dBCHmk26HQ5JQutBmugwm00CId5rEYcUDUhRQ43kby
+	 ANR3jW0dBHbOAgewtOfsRnhHZ+Rypfraqj3TiourFywW2YPGoxlGcLG3psp8Jf0kWP
+	 rzqEfwVozpjtp0hNvJTnQtMxfzSVZapjLwxijK/XYnfOCxDp+xvRjtyZy8nyDc6hH3
+	 2mLFLi1nHIssdUdRolSUAFsevGoB3cVrexsZDIzU26v7UcwPx2BdnqT0sWGkSP7pq/
+	 8PArltNMF9Q/w==
+Date: Tue, 22 Sep 2026 17:25:20 +0300
 From: Leon Romanovsky <leon@kernel.org>
-To: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, 
- Jeremy Bongio <jbongio@google.com>
-Cc: linux-rdma@vger.kernel.org, jmoroni@google.com
-In-Reply-To: <20260916173203.2555458-1-jbongio@google.com>
-References: <20260916173203.2555458-1-jbongio@google.com>
-Subject: Re: [PATCH] RDMA/irdma: Use kvzalloc for lvl2 leafmem allocation
-Message-Id: <179008658219.3247775.1377373576895888275.b4-ty@kernel.org>
-Date: Tue, 22 Sep 2026 10:16:22 -0400
+To: Wentao Liang <vulab@iscas.ac.cn>
+Cc: benve@cisco.com, dledford@redhat.com, jgg@ziepe.ca,
+	linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+	monis@mellanox.com, selvin.xavier@broadcom.com,
+	yuval.shaia@oracle.com, stable@vger.kernel.org
+Subject: Re: [PATCH 2/5] RDMA/core: Fix netdev use-after-free in
+ ib_get_eth_speed()
+Message-ID: <20260922142520.GK563127@unreal>
+References: <20260916183306.2092381-1-vulab@iscas.ac.cn>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-18f8f
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260916183306.2092381-1-vulab@iscas.ac.cn>
 
-
-On Wed, 16 Sep 2026 17:32:03 +0000, Jeremy Bongio wrote:
-> During VM live migration or when registering large memory regions
-> (e.g., guest memory >= 256 GB backed by 4 KiB pages), get_lvl2_pble()
-> calculates total leaves exceeding ~131,072. The memory required for
-> lvl2->leafmem.va exceeds 4 MiB (sizeof(*leaf) * total > 5.24 MiB).
+On Wed, Sep 16, 2026 at 06:33:06PM +0000, Wentao Liang wrote:
+> The device reference is dropped before netdev->name is read in the
+> warning emitted when __ethtool_get_link_ksettings() fails.  If that was
+> the last reference the name is read from a freed netdev.
 > 
-> Because kzalloc() requires physically contiguous pages, requests larger
-> than MAX_PAGE_ORDER (4 MiB on x86_64) fail and trigger a warning:
+> Move dev_put() below the last use of netdev.
 > 
-> [...]
+> Fixes: d41861942fc5 ("IB/core: Add generic function to extract IB speed from netdev")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
+> ---
+>  drivers/infiniband/core/verbs.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 
-Applied, thanks!
+We already accepted this patch
+https://patchwork.kernel.org/project/linux-rdma/patch/20260812081708.32468-1-krystianmkaniewski@gmail.com/
 
-[1/1] RDMA/irdma: Use kvzalloc for lvl2 leafmem allocation
-      https://git.kernel.org/rdma/rdma/c/9c40f13a63a4b8
-
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
-
+Thanks
