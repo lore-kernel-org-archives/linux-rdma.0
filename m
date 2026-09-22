@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 756F8522EEC;
-	Tue, 22 Sep 2026 08:54:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F8AC4F5E01;
+	Tue, 22 Sep 2026 08:54:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790067257; cv=none; b=t2cL3c4GbFtevMBdixEVmCVr7X5LqxrZTDuyZ7GdLHGQnZN9kvmSxD+zE4yH08VgP4GbBgld0dCgsiZ/b7HKTcami+pmWQNanAzbvbjg/HLQ0uGfdPWNTa9fuRtwfCTnBEwOXThnY4LULqVNlUatJVLrNN8CF2PB6yq/lKTPU1k=
+	t=1790067257; cv=none; b=KCDSs87PvDFTcEcIHczLD/790tXCChMUK1pL9qDL6G5e0URufuJEQNmKURFSrXCyuZ4QuQlaacOMbW61aCIW97EyXcfOPfxhuqnHE3gZa6qKq8XYgIn2+W8c4g3NMhLrs0A0ooX/+Q452J4PD1vKXFFgsmMWuM8+pi1W8scWESI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1790067257; c=relaxed/simple;
-	bh=NN4BbgmR8TxIYaUKJvQa3Ev23hhfwavPl6JYj9lcKF0=;
+	bh=LeeShWD7E29v+e3IIwQEA9ztOqM+5iu0CQ798UWO6qI=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=TZJr1FNWZV+K9IIkHpJV2+EgEdg6XstAlEVPneSTtD68ItqBWDiYz7WfC+NPTXcfeVCQrQCMn3jtv6UgDh5iBWHnZSl6FzM5NP8B2xJcPnpNHNFclOgJLf/6KlN2HKHsJp8O0ncdBRA61asUi93ImVmUQIkrHEym9Hef3ohfqkI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dOmOUsRJ; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=tL1JCiQiTjJ/XoKtvimGYsGaH4KkfsTh9C+/WwIphStGtUZyf68WObte1jCmAMJYI8m00PLGvoS44cXb51kp4CvD2v3Xd9IUxgNJdcmVGeS8bNcd55K9OX/kzxE76vwjvlUTUzb6CKiSkh19nyiTDVbfaHS5GBQmWZwXqLheioU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SExh/wrO; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dOmOUsRJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE30A1F0089E;
-	Tue, 22 Sep 2026 08:54:13 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SExh/wrO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98FD01F0089C;
+	Tue, 22 Sep 2026 08:54:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790067254;
-	bh=7rSB1B+WCc75Elsx90O48/2J3Y5E2C9JqsJL+yEt2A4=;
+	s=k20260515; t=1790067255;
+	bh=ArCdFBZoFQEVr/ao5LjS0wme3edroppjPNzUdOFgPI8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=dOmOUsRJVYOhD+yEFrVDT757uU+XqIgkskM1qJ3yH5K52MOWHmX7YhjT10+GPzo02
-	 lFznGfmP2W57tgnMyzapaFjZu3V1+Dxd9FjI/Z+gOnaYiXN7gGlRmRx15L86wMd+lF
-	 ojVgcMRkGiv6ichMoZ3z0AK7KdVdYFSZddKEB9XXa80BIH1SqBw4xox35dB5rIsF9q
-	 6j/0MRpCGkP09Kw4NsT8X1NNp1fbsGR8H9TeVKVShhnqGp9s22CDwT52OpseuMuNpP
-	 uQ92HNOdBXYU8GLzYWR1Xr9tkJtUx9KjbtQdNFfEDdD89V/BV7RlEvd3DyLlXTexOA
-	 M1cpKzB7mbOXQ==
+	b=SExh/wrOtxHScMXdwYZBpZjMNWaN6yBJ84w3Q/qqKo/4dfIFNf6gmhcBwgvJ6I83y
+	 GJYNhPKicosJZ0DRqsqW+pozubw3sku3wqVT406p4OOEwPZ5BpZ4YOX2qgskZkEs8I
+	 qnWCcbXn9MtRD60WvF+GpinZ+TwULwM0h7t163oE4u/yxPuwv1le1/uHCUMWXXyKO6
+	 9qqhdvDXwrNoXIp6+fgRCznZ6XUcJ0EMcyX4lGfwf050K8LSHQsPv0wrl6gXXvONHn
+	 9xLiIKffwk1JkbOTaJDLnD7NKjOwC7Ts7WIPnJno3dff6hRIsiiCktgq923Jx0snoE
+	 yxh0eNgtnSIJg==
 From: Allison Henderson <achender@kernel.org>
 To: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
@@ -34,9 +34,9 @@ To: netdev@vger.kernel.org,
 	kuba@kernel.org,
 	horms@kernel.org
 Cc: achender@kernel.org
-Subject: [PATCH net-next v6 05/12] net/rds: split connection destroy into quiesce and kref-governed free
-Date: Tue, 22 Sep 2026 01:54:03 -0700
-Message-Id: <20260922085410.391323-6-achender@kernel.org>
+Subject: [PATCH net-next v6 06/12] net/rds: wait for connections to be freed on transport unload
+Date: Tue, 22 Sep 2026 01:54:04 -0700
+Message-Id: <20260922085410.391323-7-achender@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20260922085410.391323-1-achender@kernel.org>
 References: <20260922085410.391323-1-achender@kernel.org>
@@ -50,261 +50,283 @@ Content-Transfer-Encoding: 8bit
 
 From: Sharath Srinivasan <sharath.srinivasan@oracle.com>
 
-rds_conn_destroy() tears down the transport state and immediately
-frees the connection, along with its paths and its workqueues.  This
-relies on the assumption (documented in the rds_conn_destroy()
-comments) that "no one else is referencing the connection", which "we
-can only ensure ... in the rmmod path".  However, the callers stopped
-honoring that long ago.  Today, connections are also destroyed on
-network namespace teardown (rds_tcp_kill_sock() and
-rds_loop_kill_conns()) and, one at a time, when a peer negotiates an
-unsupported protocol version (rds_ib_cm_connect_complete()).
+Since connection free became asynchronous, rds_conn_destroy() only
+quiesces the connection; the actual free - including the transport's
+conn_free, which lives in the transport module - runs when the last
+reference is dropped.  The transports' exit paths destroy all of
+their connections and then proceed to unload, so a free that is still
+pending (a racing lookup-style holder, or simply the destroyer's own
+put not yet run when destroy was invoked from another context earlier)
+would execute transport module code after that module's text is gone.
 
-This leaves loose ends since references to these destroyed
-connections still exist.  Sockets cache their connections in rs_conn,
-and congestion updates will walk the maps' m_conn_list.  The CM
-callbacks and workers may also still hold the pointer.
+Count each transport's live connections in t_conn_count (incremented
+when a connection is published in __rds_conn_create(), decremented as
+the last step of rds_conn_destroy_fini()) and make the transport exit
+paths - rds_ib_exit(), rds_tcp_exit() and rds_loop_exit() - wait for
+the count to drop to zero after destroying their connections.
 
-Prepare to close those holes by making the connection refcounted:
+A bound socket holds a module reference on its own transport
+(rds_trans_get_preferred()), but that does not bound the wait: once
+the following patches make incs hold a connection reference, an
+unread datagram pins its connection for as long as the application
+leaves it on the receive queue, and rds_find_bound() does not filter
+on transport, so that socket may well belong to a different transport
+than the connection and pin nothing that stops this unload.
+Proceeding after a timeout would turn a leak into a use-after-free in
+this module's text, so the wait is unbounded: it polls the count,
+warns every ten seconds naming the transport and the number of
+connections outstanding, and returns only when the count reaches
+zero.  rmmod therefore blocks while data is queued and unread, which
+is the historical RDS contract - teardown does not discard queued
+data.
+The wait is deliberately not interruptible: the exit function has
+already passed the point of no return, and a killed rmmod would leave
+the module half torn down and unloadable, which is worse than a
+blocked one.  The polling wakes every 100 ms, so the hung task detector
+does not fire.
 
-- kref_init() the connection in __rds_conn_create(); the initial
-  reference belongs to whoever is responsible for destroying the
-  connection.
-- rds_conn_destroy() still quiesces synchronously exactly as before
-  (workers cancelled, paths dropped and shut down, queued messages
-  purged, congestion list removal), but the frees - the transport's
-  conn_free, the path workqueues, the c_path array and the connection
-  slab object - move to rds_conn_destroy_fini(), which runs when the
-  last reference is dropped via rds_conn_put().
-- Export rds_conn_get()/rds_conn_put(), plus an inline
-  rds_conn_get_unless_zero() for holders that may find a connection
-  already on its way out, for the reference holders introduced in the
-  following patches.
+The wake at the end of rds_conn_destroy_fini() can run from a thread
+executing transport module text, but never as that thread's last use
+of it: a CM event handler's reference is always dropped before the
+rdma_destroy_id() in the connection's own shutdown returns, and
+rds_rdma_exit() stops the listener - waiting for any handler running
+on it - before rds_ib_exit() starts to wait.
 
-With no additional reference holders yet, this only sets up the
-refcounting framework and is functionally equivalent to the current
-code (the initial reference is the only one), so every free still
-completes inside rds_conn_destroy().  The next two patches make a
-deferred free safe - the transport unload wait and the unlinking of
-the transport nodes ahead of the destroy - and only then do the
-patches that follow take references at the places that today rely on
-bare pointers.
+At this point in the series the only reference holder is the
+destroyer itself, so the count reaches zero as soon as the sweep has
+run; the guarantee only becomes load-bearing once the following
+patches hand references to sockets and incs.
 
-Based on the Oracle UEK commit "net/rds: Add krefs to struct
-rds_connection".
+rds_ib_exit() has one more wrinkle.  rds_ib_dev_shutdown() only drops
+the connections still attached to a device, and each of them moves
+itself to ib_nodev_conns from its own shutdown work, asynchronously.
+A connection that has not migrated by the time
+rds_ib_destroy_nodev_conns() sweeps the list would never be
+destroyed, and would hold the count up for good.  So the wait takes a
+resweep callback, which rds_ib_exit() points at
+rds_ib_destroy_nodev_conns(): late arrivals get destroyed on the next
+poll instead of being waited on.
+
+In rds_ib_exit(), tearing down the last connection can also drop the
+final reference on a device, which defers rds_ib_dev_free() - again
+this module's text - to rds_wq.  Flush the workqueue once after the
+connections are gone; rds_ib_dev_free() queues nothing further on
+rds_wq, so a single pass drains it.
+
+Based on the Oracle UEK commits "net/rds: wait_event_timeout
+until zero connections during rmmod" and "net/rds:
+Each RDS transport should keep its own connection count".
 
 Signed-off-by: Sharath Srinivasan <sharath.srinivasan@oracle.com>
-[achender: substantial reimplementation for net-next: UEK's
- rds_conn_destroy_init()/_fini() split redone against upstream's
- rds_conn_destroy()/rds_conn_path_destroy() (no heartbeat/reap/trace
- infrastructure, no rds_net, single conn hash); destroy keeps its
- one-call external interface; holder coverage split out into follow-up
- patches; rewrite commit message]
+[achender: reimplementation for net-next: t_conn_count did not exist
+ upstream and is introduced here; single global waitqueue instead of
+ per-transport (the loop transport never goes through
+ rds_trans_register()); unbounded wait with a periodic warning in
+ place of UEK's wait_event_timeout() + WARN_ON(), plus the resweep for
+ IB's asynchronous device detach; also cover rds_loop_exit(); rewrite
+ commit message]
 Assisted-by: Claude-Code:claude-fable-5
 Signed-off-by: Allison Henderson <achender@kernel.org>
 ---
- net/rds/connection.c | 96 +++++++++++++++++++++++++++++++++++---------
- net/rds/rds.h        | 13 ++++++
- 2 files changed, 91 insertions(+), 18 deletions(-)
+ net/rds/connection.c | 52 ++++++++++++++++++++++++++++++++++++++++++++
+ net/rds/ib.c         | 17 +++++++++++++++
+ net/rds/ib_rdma.c    |  2 +-
+ net/rds/loop.c       |  2 ++
+ net/rds/rds.h        | 14 ++++++++++++
+ net/rds/tcp.c        |  1 +
+ 6 files changed, 87 insertions(+), 1 deletion(-)
 
 diff --git a/net/rds/connection.c b/net/rds/connection.c
-index 242ca0570a47..a44aa4d2a5e8 100644
+index a44aa4d2a5e8..35cee6c70d8b 100644
 --- a/net/rds/connection.c
 +++ b/net/rds/connection.c
-@@ -231,6 +231,7 @@ static struct rds_connection *__rds_conn_create(struct net *net,
- 		goto out;
+@@ -48,6 +48,8 @@
+ /* converting this to RCU is a chore for another day.. */
+ static DEFINE_SPINLOCK(rds_conn_lock);
+ static unsigned long rds_conn_count;
++/* woken whenever a transport's t_conn_count drops to zero */
++static DECLARE_WAIT_QUEUE_HEAD(rds_conn_freed_waitq);
+ static struct hlist_head rds_conn_hash[RDS_CONNECTION_HASH_ENTRIES];
+ static struct kmem_cache *rds_conn_slab;
+ 
+@@ -341,6 +343,7 @@ static struct rds_connection *__rds_conn_create(struct net *net,
+ 			parent->c_passive = conn;
+ 			rds_cong_add_conn(conn);
+ 			rds_conn_count++;
++			atomic_inc(&conn->c_trans->t_conn_count);
+ 		}
+ 	} else {
+ 		/* Creating normal conn */
+@@ -359,6 +362,7 @@ static struct rds_connection *__rds_conn_create(struct net *net,
+ 			hlist_add_head_rcu(&conn->c_hash_node, head);
+ 			rds_cong_add_conn(conn);
+ 			rds_conn_count++;
++			atomic_inc(&conn->c_trans->t_conn_count);
+ 		}
  	}
- 
-+	kref_init(&conn->c_refcount);
- 	INIT_HLIST_NODE(&conn->c_hash_node);
- 	conn->c_laddr = *laddr;
- 	conn->c_isv6 = !ipv6_addr_v4mapped(laddr);
-@@ -471,9 +472,10 @@ void rds_conn_shutdown(struct rds_conn_path *cp)
- 			 * Quiesce the reconnect timer before bailing
- 			 * out, though.  When a pending destroy did
- 			 * suppress the queue, no later pass runs, and
--			 * rds_conn_path_destroy() is about to flush
--			 * cp_down_w and free the path: it must not
--			 * find cp_conn_w still armed.  A successor
-+			 * rds_conn_path_quiesce() is about to flush
-+			 * cp_down_w, ahead of the path's deferred
-+			 * free: it must not find cp_conn_w still
-+			 * armed.  A successor
- 			 * pass, when there is one, re-arms the
- 			 * reconnect from its own tail.
- 			 */
-@@ -520,10 +522,12 @@ void rds_conn_shutdown(struct rds_conn_path *cp)
- 		conn->c_trans->conn_slots_available(conn, false);
- }
- 
--/* destroy a single rds_conn_path. rds_conn_destroy() iterates over
-- * all paths using rds_conn_path_destroy()
-+/* quiesce a single rds_conn_path: shut it down and tear down any
-+ * queued messages.  rds_conn_destroy() iterates over all paths using
-+ * rds_conn_path_quiesce(); the transport state and the workqueue are
-+ * freed later, from rds_conn_path_free().
-  */
--static void rds_conn_path_destroy(struct rds_conn_path *cp)
-+static void rds_conn_path_quiesce(struct rds_conn_path *cp)
- {
- 	struct rds_message *rm, *rtmp;
- 
-@@ -552,6 +556,16 @@ static void rds_conn_path_destroy(struct rds_conn_path *cp)
- 	WARN_ON(delayed_work_pending(&cp->cp_recv_w));
- 	WARN_ON(delayed_work_pending(&cp->cp_conn_w));
- 	WARN_ON(work_pending(&cp->cp_down_w));
-+}
-+
-+/* free a quiesced rds_conn_path's transport state and workqueue; runs
-+ * from rds_conn_destroy_fini() once the last connection reference is
-+ * dropped.
-+ */
-+static void rds_conn_path_free(struct rds_conn_path *cp)
-+{
-+	if (!cp->cp_transport_data)
-+		return;
- 
- 	if (cp->cp_wq != rds_wq) {
- 		destroy_workqueue(cp->cp_wq);
-@@ -561,16 +575,52 @@ static void rds_conn_path_destroy(struct rds_conn_path *cp)
- 	cp->cp_conn->c_trans->conn_free(cp->cp_transport_data);
- }
- 
-+/* Free a connection.  This runs from rds_conn_put() when the last
-+ * reference is dropped, after rds_conn_destroy() has quiesced the
-+ * connection and dropped the initial reference.
-+ */
-+static void rds_conn_destroy_fini(struct kref *kref)
-+{
-+	struct rds_connection *conn = container_of(kref, struct rds_connection,
-+						   c_refcount);
-+	int npaths = (conn->c_trans->t_mp_capable ? RDS_MPATH_WORKERS : 1);
-+	unsigned long flags;
-+	int i;
-+
-+	for (i = 0; i < npaths; i++)
-+		rds_conn_path_free(&conn->c_path[i]);
-+
-+	kfree(conn->c_path);
-+	kmem_cache_free(rds_conn_slab, conn);
-+
-+	spin_lock_irqsave(&rds_conn_lock, flags);
-+	rds_conn_count--;
-+	spin_unlock_irqrestore(&rds_conn_lock, flags);
-+}
-+
-+void rds_conn_get(struct rds_connection *conn)
-+{
-+	kref_get(&conn->c_refcount);
-+}
-+EXPORT_SYMBOL_GPL(rds_conn_get);
-+
-+void rds_conn_put(struct rds_connection *conn)
-+{
-+	kref_put(&conn->c_refcount, rds_conn_destroy_fini);
-+}
-+EXPORT_SYMBOL_GPL(rds_conn_put);
-+
- /*
-  * Stop and free a connection.
-  *
-- * This can only be used in very limited circumstances.  It assumes that once
-- * the conn has been shutdown that no one else is referencing the connection.
-- * We can only ensure this in the rmmod path in the current code.
-+ * Quiesces the connection synchronously (workers cancelled, transport
-+ * connections shut down, queued messages dropped) and drops the
-+ * initial reference.  The memory - including the transport's
-+ * per-connection state and the path workqueues - is freed once the
-+ * last rds_conn_put() runs, which may be after this returns.
-  */
- void rds_conn_destroy(struct rds_connection *conn)
- {
--	unsigned long flags;
- 	int i;
- 	struct rds_conn_path *cp;
+ 	spin_unlock_irqrestore(&rds_conn_lock, flags);
+@@ -584,6 +588,7 @@ static void rds_conn_destroy_fini(struct kref *kref)
+ 	struct rds_connection *conn = container_of(kref, struct rds_connection,
+ 						   c_refcount);
  	int npaths = (conn->c_trans->t_mp_capable ? RDS_MPATH_WORKERS : 1);
-@@ -584,11 +634,23 @@ void rds_conn_destroy(struct rds_connection *conn)
- 	 * sites (which all test rds_destroy_pending() under
- 	 * rcu_read_lock()) from queueing new work on the path
- 	 * workqueues once we start cancelling and destroying them.
-+	 *
-+	 * Now that the transport state stays discoverable (e.g. on the
-+	 * transports' connection lists) until the final rds_conn_put(),
-+	 * a conn can be handed to rds_conn_destroy() more than once -
-+	 * e.g. dropped for a protocol version mismatch and then found
-+	 * again at module unload.  Only the first caller proceeds; the
-+	 * unhash also happens under rds_conn_lock, so a looked-up conn
-+	 * can never be quiesced twice.
- 	 */
-+	spin_lock_irq(&rds_conn_lock);
-+	if (conn->c_destroy_in_prog) {
-+		spin_unlock_irq(&rds_conn_lock);
-+		return;
-+	}
- 	WRITE_ONCE(conn->c_destroy_in_prog, true);
++	struct rds_transport *trans = conn->c_trans;
+ 	unsigned long flags;
+ 	int i;
  
- 	/* Ensure conn will not be scheduled for reconnect */
--	spin_lock_irq(&rds_conn_lock);
- 	hlist_del_init_rcu(&conn->c_hash_node);
- 	spin_unlock_irq(&rds_conn_lock);
- 	synchronize_rcu();
-@@ -596,7 +658,7 @@ void rds_conn_destroy(struct rds_connection *conn)
- 	/* shut the connection down */
- 	for (i = 0; i < npaths; i++) {
- 		cp = &conn->c_path[i];
--		rds_conn_path_destroy(cp);
-+		rds_conn_path_quiesce(cp);
- 		BUG_ON(!list_empty(&cp->cp_retrans));
- 	}
- 
-@@ -607,12 +669,10 @@ void rds_conn_destroy(struct rds_connection *conn)
- 	 */
- 	rds_cong_remove_conn(conn);
- 
--	kfree(conn->c_path);
--	kmem_cache_free(rds_conn_slab, conn);
--
--	spin_lock_irqsave(&rds_conn_lock, flags);
--	rds_conn_count--;
--	spin_unlock_irqrestore(&rds_conn_lock, flags);
-+	/* drop the initial reference; the connection is freed from
-+	 * rds_conn_destroy_fini() once every holder has dropped theirs
+@@ -596,7 +601,54 @@ static void rds_conn_destroy_fini(struct kref *kref)
+ 	spin_lock_irqsave(&rds_conn_lock, flags);
+ 	rds_conn_count--;
+ 	spin_unlock_irqrestore(&rds_conn_lock, flags);
++
++	/* only after everything the transport module owns has been
++	 * freed above may its unload proceed
 +	 */
-+	rds_conn_put(conn);
++	if (!atomic_dec_return(&trans->t_conn_count))
++		wake_up_all(&rds_conn_freed_waitq);
++}
++
++/* Wait for all of @trans's connections to be freed; the free runs
++ * asynchronously once rds_conn_destroy() has quiesced a connection.
++ * Called on transport module unload after an initial sweep has
++ * destroyed the transport's connections; @resweep, when given, is
++ * called on every poll to destroy connections that were still
++ * detaching from a device when the sweep ran (IB).  A connection
++ * reference can be held for an application-controlled time - once
++ * incs hold one, an unread datagram pins the inc that carries it, and
++ * thus the connection - so the wait is unbounded: the frees that run
++ * after unload call into this module's text (conn_free, inc_free) and
++ * free into its slabs, so proceeding while any remain would be a
++ * use-after-free, not a leak.  Warn periodically so a stuck count is
++ * diagnosable, but never stop waiting.  This matches the historical
++ * RDS contract that teardown does not discard queued data.
++ */
++void rds_conn_wait_conns_freed(struct rds_transport *trans,
++			       void (*resweep)(void))
++{
++	unsigned long warn_interval =
++			msecs_to_jiffies(RDS_CONN_FREE_WARN_INTERVAL_MS);
++	unsigned long warn_at = jiffies + warn_interval;
++
++	while (!wait_event_timeout(rds_conn_freed_waitq,
++				   !atomic_read(&trans->t_conn_count),
++				   msecs_to_jiffies(RDS_CONN_FREE_POLL_MS))) {
++		/* A transport whose teardown is asynchronous (IB moves a
++		 * connection off its device from the shutdown work) gives
++		 * us a resweep to destroy what has arrived since.
++		 */
++		if (resweep)
++			resweep();
++		if (time_after_eq(jiffies, warn_at)) {
++			pr_warn("RDS/%s: still waiting for %d connection(s) to be freed before unload\n",
++				trans->t_name,
++				atomic_read(&trans->t_conn_count));
++			warn_at = jiffies + warn_interval;
++		}
++	}
  }
- EXPORT_SYMBOL_GPL(rds_conn_destroy);
++EXPORT_SYMBOL_GPL(rds_conn_wait_conns_freed);
  
+ void rds_conn_get(struct rds_connection *conn)
+ {
+diff --git a/net/rds/ib.c b/net/rds/ib.c
+index 9fe3b9951bd3..3fc2de9d19d5 100644
+--- a/net/rds/ib.c
++++ b/net/rds/ib.c
+@@ -537,7 +537,24 @@ void rds_ib_exit(void)
+ 	rds_info_deregister_func(RDS6_INFO_IB_CONNECTIONS, rds6_ib_ic_info);
+ #endif
+ 	rds_ib_unregister_client();
++
++	/* rds_ib_dev_shutdown() only dropped the connections still
++	 * attached to a device; each moves itself to ib_nodev_conns
++	 * from its shutdown work.  Destroy what is there now and keep
++	 * sweeping the list while the wait sees connections outstanding,
++	 * so a late arrival is destroyed rather than waited on forever.
++	 */
+ 	rds_ib_destroy_nodev_conns();
++	rds_conn_wait_conns_freed(&rds_ib_transport,
++				  rds_ib_destroy_nodev_conns);
++
++	/* Tearing down the last connection may have dropped the final
++	 * reference on a device, deferring rds_ib_dev_free() to rds_wq.
++	 * Drain it before the module goes away; it queues nothing
++	 * further on rds_wq.
++	 */
++	flush_workqueue(rds_wq);
++
+ 	rds_ib_sysctl_exit();
+ 	rds_ib_recv_exit();
+ 	rds_trans_unregister(&rds_ib_transport);
+diff --git a/net/rds/ib_rdma.c b/net/rds/ib_rdma.c
+index db7e92e7bd29..a9b27f06cbfc 100644
+--- a/net/rds/ib_rdma.c
++++ b/net/rds/ib_rdma.c
+@@ -165,7 +165,7 @@ void rds_ib_destroy_nodev_conns(void)
+ 
+ 	/* avoid calling conn_destroy with irqs off */
+ 	spin_lock_irq(&ib_nodev_conns_lock);
+-	list_splice(&ib_nodev_conns, &tmp_list);
++	list_splice_init(&ib_nodev_conns, &tmp_list);
+ 	spin_unlock_irq(&ib_nodev_conns_lock);
+ 
+ 	list_for_each_entry_safe(ic, _ic, &tmp_list, ib_node)
+diff --git a/net/rds/loop.c b/net/rds/loop.c
+index e6b0750bbeda..fd774f8080d0 100644
+--- a/net/rds/loop.c
++++ b/net/rds/loop.c
+@@ -195,6 +195,8 @@ void rds_loop_exit(void)
+ 		WARN_ON(lc->conn->c_passive);
+ 		rds_conn_destroy(lc->conn);
+ 	}
++
++	rds_conn_wait_conns_freed(&rds_loop_transport, NULL);
+ }
+ 
+ static void rds_loop_kill_conns(struct net *net)
 diff --git a/net/rds/rds.h b/net/rds/rds.h
-index 50b08c28ab86..defda3ddefa3 100644
+index defda3ddefa3..b3cc0804156e 100644
 --- a/net/rds/rds.h
 +++ b/net/rds/rds.h
-@@ -137,6 +137,12 @@ struct rds_conn_path {
- /* One rds_connection per RDS address pair */
- struct rds_connection {
- 	struct hlist_node	c_hash_node;
-+	/* rds_conn_destroy() quiesces the connection synchronously;
-+	 * freeing it - the connection memory, the path workqueues and
-+	 * the transport's per-connection state - is deferred until the
-+	 * last reference is dropped via rds_conn_put().
+@@ -557,6 +557,12 @@ struct rds_transport {
+ 	unsigned int		t_prefer_loopback:1,
+ 				t_mp_capable:1;
+ 	unsigned int		t_type;
++	/* Connections of this transport not yet freed; freeing runs
++	 * asynchronously once rds_conn_destroy() has quiesced a
++	 * connection, so transport module unload has to wait for this
++	 * to reach zero (rds_conn_wait_conns_freed()).
 +	 */
-+	struct kref		c_refcount;
- 	struct in6_addr		c_laddr;
- 	struct in6_addr		c_faddr;
- 	int			c_dev_if; /* ifindex used for this conn */
-@@ -826,6 +832,13 @@ struct rds_connection *rds_conn_create_outgoing(struct net *net,
- 						u8 tos, gfp_t gfp, int dev_if);
- void rds_conn_shutdown(struct rds_conn_path *cpath);
- void rds_conn_destroy(struct rds_connection *conn);
-+void rds_conn_get(struct rds_connection *conn);
-+void rds_conn_put(struct rds_connection *conn);
-+/* take a reference unless the connection is already being freed */
-+static inline bool rds_conn_get_unless_zero(struct rds_connection *conn)
-+{
-+	return kref_get_unless_zero(&conn->c_refcount);
-+}
++	atomic_t		t_conn_count;
+ 
+ 	int (*laddr_check)(struct net *net, const struct in6_addr *addr,
+ 			   __u32 scope_id);
+@@ -839,6 +845,14 @@ static inline bool rds_conn_get_unless_zero(struct rds_connection *conn)
+ {
+ 	return kref_get_unless_zero(&conn->c_refcount);
+ }
++
++/* transport unload waits for its connections to be freed, polling at
++ * the first interval and warning at the second
++ */
++#define RDS_CONN_FREE_POLL_MS		100
++#define RDS_CONN_FREE_WARN_INTERVAL_MS	10000
++void rds_conn_wait_conns_freed(struct rds_transport *trans,
++			       void (*resweep)(void));
  void rds_conn_drop(struct rds_connection *conn);
  void rds_conn_path_drop(struct rds_conn_path *cpath, bool destroy);
  void rds_conn_connect_if_down(struct rds_connection *conn);
+diff --git a/net/rds/tcp.c b/net/rds/tcp.c
+index 774a71f88d37..826e4629e4ee 100644
+--- a/net/rds/tcp.c
++++ b/net/rds/tcp.c
+@@ -805,6 +805,7 @@ static void rds_tcp_exit(void)
+ #endif
+ 	unregister_pernet_device(&rds_tcp_net_ops);
+ 	rds_tcp_destroy_conns();
++	rds_conn_wait_conns_freed(&rds_tcp_transport, NULL);
+ 	rds_trans_unregister(&rds_tcp_transport);
+ 	rds_tcp_recv_exit();
+ 	kmem_cache_destroy(rds_tcp_conn_slab);
 -- 
 2.25.1
 
