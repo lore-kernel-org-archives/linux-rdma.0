@@ -1,73 +1,102 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5933747F3C0;
-	Wed, 23 Sep 2026 13:05:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 766F052CCDF;
+	Wed, 23 Sep 2026 13:12:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790168722; cv=none; b=b01xqFWrFMdX6P9PxABGdKpDAIE/ZRg5KeqpDBzcS9fcukvFIx0TjI+etomY+G+OeNgqkKnqCJ3oi/Mf2MHSeCr1ZrVHpLr9tlx54+Qw5qtntWF33lqFHzWPY2sBXvz0fQoxOa/zUKDgnP+eFHHGBhy9452EYRtwS5HS6xOJRzQ=
+	t=1790169171; cv=none; b=GAupk7jTEH+8D8PogF8v3mYHKyFRyxHCo4HDypiIZdupJu/BGCP844Gr/2H5X8G6sQjVsL90XZ8Zt7ItcXgJGMmCCcPL9yMd597Jw678VbL2qQ77LaTiSrsa781fQ7Kev8KpHOHQP5wspj1u33aRd8sfzsAOsK/q1voyFFWJmQs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790168722; c=relaxed/simple;
-	bh=IfZ3++Ala8i9MKBME+qBpDS65W4FSS3sOo9VXM6+uFI=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=IiuRJLh/95LiXcHs/JIqBnphBpMRepXMVqDqV/KNOVHN8gQ90DSPOQ1ssKnNV4SKGP9mYDUaJsf1RRT3U10EP7GolxqDZw7WQ36koBkyZntB/koQucBnZtjIumb5RvPasQZIf/Q41cOr8rKbDY5ir/LTVjzJuRozUmxEGB9B3vU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=op76lwDY; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790169171; c=relaxed/simple;
+	bh=68FP7Ds3sWCOSZ/OBvW6Kad2SEYY/uzF39eWOmqWYfA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=YBuwhPYqBL8ftfMTrss/yV/hvzjSjWJ8sLYDsK4hF+/VSi93SP6lkYVqY64q79tw5epbJqf2VyQbEerVXaBvnI3aJXLLQJgEdq7vXueF/EuAg+K5VPMFbXf0pDHRY2H3fVzBWsNsxBnsrJpuZ1bxSNCxDjNVH/k8D5XedyQBdS4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=lUwyQYHx; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="op76lwDY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48F111F000FF;
-	Wed, 23 Sep 2026 13:05:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790168720;
-	bh=GzpNsFO2GDCBmu+yrHExxQQQEd/D4ol2Bp7U+w3FvRs=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=op76lwDYBbBb+1MWJ2n6ETkdVkC+aTLZ0DCKbPCLpo3AxZy8fDTKawZgAY6mLFRXr
-	 BpcOzjbdS8U1ZMYj1yTIzS/I7+Ln6WWYMN4O48aHLVDhuJW7IoNUTicephoyENO04q
-	 NkhkmLLxgc4vBgjRdZpqMhcgRIhDD6s6vEQkzZVm2HTO4XYxDvLEwxRxpiEygqMmZ7
-	 f+MsUUrOjLTxjeCnf+CjTTkHrA9YLAbBQtpXpcR29bqTR2usVPfcAdAwtOfurJnJPA
-	 rWjeW90oWzRYAqfvev99TWL5Si4z0LNwWInxXRxpzqIrC5aMwmAtwOAabBsjnwVp94
-	 QaKBcQ4zamuCg==
-From: Leon Romanovsky <leon@kernel.org>
-To: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, 
- Serhat Kumral <serhatkumral1@gmail.com>
-Cc: shiraz.saleem@intel.com, linux-rdma@vger.kernel.org, 
- linux-kernel@vger.kernel.org
-In-Reply-To: <20260918110428.36586-1-serhatkumral1@gmail.com>
-References: <20260918110428.36586-1-serhatkumral1@gmail.com>
-Subject: Re: [PATCH] RDMA/irdma: Free IRQ when CEQ vector mapping fails
-Message-Id: <179016871798.3414676.5264199046634538106.b4-ty@kernel.org>
-Date: Wed, 23 Sep 2026 09:05:17 -0400
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="lUwyQYHx"
+Received: by linux.microsoft.com (Postfix, from userid 1186)
+	id 314E620B7167; Wed, 23 Sep 2026 06:11:55 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 314E620B7167
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1790169115;
+	bh=zXxJq0ZSZ3A+Rdc/pkqtrbx7rBtEb5rdNB2Y5EbvlU0=;
+	h=From:To:Cc:Subject:Date:From;
+	b=lUwyQYHxzOD9oCNtWA0fAmhBdQO1EbVHh0JtjtQMV3zcgfdsneABqH0xeLWYXrnVA
+	 AcziSj6pM7fP6swFlZxwERBUE6LVUYKhGIgfScT8BnRPiR6RfH/5BqbFtNvUFrDlDb
+	 kOLOZzR7ciEsUzvK5J7DKeNW390neBGnLVdAQxt4=
+From: Konstantin Taranov <kotaranov@linux.microsoft.com>
+To: kotaranov@microsoft.com,
+	snsanghvi@microsoft.com,
+	longli@microsoft.com,
+	jgg@ziepe.ca,
+	leon@kernel.org
+Cc: linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH rdma-next v4 0/5] RDMA/mana_ib: Streamline kernel UD/GSI posting and completion handling
+Date: Wed, 23 Sep 2026 06:11:50 -0700
+Message-ID: <20260923131155.4055875-1-kotaranov@linux.microsoft.com>
+X-Mailer: git-send-email 2.43.7
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-18f8f
+Content-Transfer-Encoding: 8bit
+
+From: Konstantin Taranov <kotaranov@microsoft.com>
+
+This series updates the kernel UD/GSI work-request and completion paths in
+the MANA RDMA driver. This series is required for upcoming kernel RC QP support.
+
+The main idea is to fill in WCs directly from CQEs and do not use shadow Qs
+as proxy. The older code, a CQ had lists of QPs using it, which adds overhead
+on polling when CQs are shared. Instead, CQs now maintain only the list
+of QPs in error state.
+
+The series also revises posting WQEs to reuse it for RC QPs in the next series.
+We also add GDMA_WR_IB_SGL flag for posting to remove sge copying for RQs.
+The RC QPs will use it for SQs and RQs.
+
+Imporve CQ arming to avoid doorbell drops in hw. MANA hw requires occasional
+arming to update tail offest in hw.
+
+Changes in v4:
+- re-write all commit messages
+
+Changes in v3:
+- Patch 5: Track unsignaled send WRs in the shadow queue.
+- Patch 5: Validate the CQE target before retiring a shadow wqe.
+- Patch 5: Notify the send CQ after posting to an already-flushing QP,
+  outside the CQ lock, so GSI draining does not need another hardware CQE.
+- Patches 1-4 are unchanged.
+
+Changes in v2:
+- Patch 5: Hold the corresponding CQ lock while resetting each shadow
+  queue and removing the QP from the error list, serializing RESET with
+  hardware polling and software flushing.
+- Patch 5: Return the unmasked WQE start offset from GDMA posting to
+  discard mismatching CQEs without producing a WC.
+- Patches 1-4 are unchanged.
+
+Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
+
+Konstantin Taranov (5):
+  RDMA/mana_ib: Optimize shadow queue bookkeeping
+  RDMA/mana_ib: Revise UD send posting and WQE definitions
+  RDMA/mana_ib: Revise UD receive posting with GDMA_WR_IB_SGL
+  RDMA/mana_ib: Make kernel CQ arming robust
+  RDMA/mana_ib: Poll UD completions and flush software error QPs
+
+ drivers/infiniband/hw/mana/cq.c               | 344 +++++++++++++-----
+ drivers/infiniband/hw/mana/mana_ib.h          | 105 +++++-
+ drivers/infiniband/hw/mana/qp.c               |  84 +++--
+ drivers/infiniband/hw/mana/shadow_queue.h     |  61 ++--
+ drivers/infiniband/hw/mana/wr.c               | 158 ++++----
+ .../net/ethernet/microsoft/mana/gdma_main.c   |  49 ++-
+ include/net/mana/gdma.h                       |  11 +-
+ 7 files changed, 586 insertions(+), 226 deletions(-)
 
 
-On Fri, 18 Sep 2026 14:04:28 +0300, Serhat Kumral wrote:
-> irdma_cfg_ceq_vector() registers an IRQ handler before requesting the
-> CEQ-to-vector mapping through the virtual channel. If the mapping
-> fails, the function returns without releasing the IRQ resources.
-> The caller destroys the CEQ, leaving the IRQ handler registered
-> and potentially referencing freed memory.
-> 
-> Call irdma_destroy_irq() on mapping failure to release
-> the IRQ resources and drain the associated tasklet
-> before the caller destroys the CEQ. Use the same dev_id
-> passed to request_irq(), accounting for CEQ0 sharing
-> its interrupt vector with the AEQ.
-> 
-> [...]
-
-Applied, thanks!
-
-[1/1] RDMA/irdma: Free IRQ when CEQ vector mapping fails
-      https://git.kernel.org/rdma/rdma/c/df1d75774b1284
-
-Best regards,
+base-commit: 63367df6e7255067ad6a83abe0d2799dfa491876
 -- 
-Leon Romanovsky <leon@kernel.org>
-
+2.43.0
