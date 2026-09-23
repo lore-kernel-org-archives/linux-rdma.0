@@ -1,165 +1,225 @@
-Received: from mta1.migadu.com (out-230.mta1.migadu.com [95.215.58.230])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-00082601.pphosted.com (mx0a-00082601.pphosted.com [67.231.145.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A3215383F2
-	for <linux-rdma@vger.kernel.org>; Wed, 23 Sep 2026 18:39:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.230
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B12DC443C21;
+	Wed, 23 Sep 2026 19:06:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=67.231.145.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790188776; cv=none; b=ukFv8dDfyWV0D9yrFEZlaKg/pavjC8+4b1fLnpODEbD5PN621WRxzUth06oaijT4dxxut2AyPJmjaCptzlVZfpe3lTgRkAVhCUpbfSx3e+ElYiQmFbQDBNKEVt/M4Q072RG7YuydSaed70Mj4MwZCnh8Coc43tDxrVSOIHR5d50=
+	t=1790190387; cv=none; b=ICtoAtAF4qoSQLFb0C7PvwfsbcvigNaculbBi4uXo3XY4epsqDAdifAw9XtwfncGFeO/eQCivuPP+itv+ouWp+iJyQ/VqNduqvW24UTB4plRNJJQtq/VzONQ1JeGmOB7AMdmkcLkdjHcekdLJlXXv6r5Pwx+4X2Ie8RJbIWPcvA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790188776; c=relaxed/simple;
-	bh=xvVfhU/rhBzON30v3lLER/H5XSDtA/5WCZuabwZWrT8=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Bkzj5MAT909hJLKZNjcvXlkWnJ1bprfhjbIov6Wo/C3hFtNFS8i8KbgRla5g6K0WLFN6WSn53/iS+4wY49SaU47+2CvVewQEcEs30fsOh8XCe+P507SBEUD8ou8YSurSq8SJ/bS5ErjqPzTXg7FAg/q8fvtxMnxI7V7CW3YN85E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=NbHNLt2w; arc=none smtp.client-ip=95.215.58.230
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1790190387; c=relaxed/simple;
+	bh=D+sEsyJ8ay+08i/0UVkJ3/D1aucBN7E9uLKMfAxfu+k=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=tPvvm0UmTzbhWqzaWcGXZyBH0nh7ve/HfocAgmq1/wlh3EEp7+03gnfvlmR7gxksMiZq8sOTO8/gX3QeCnyLZuiqo6Gxn4qvpFx853E2UAtHJgcS4fx2HGKY55Bqh3QnLVi7TT3GpuiiuX5P4XkeoHOdUNI5w87WUeXf27w9GBA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com; spf=pass smtp.mailfrom=meta.com; dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b=S41j3WlW; arc=none smtp.client-ip=67.231.145.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="NbHNLt2w"
-X-Envelope-To: linux-rdma@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=xvVfhU/rhBzON30v3lLER/H5XSDtA/5WCZuabwZWrT8=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1790188768; v=1; x=1790793568;
- b=NbHNLt2w4rgF1oxC1LE0aT0NmaOaal6Q9Lfgw0h733K3uN4loKdnqHJIZL74lHUfSwVZgrrl
- noYk4XP5VONvDU0KsXPR6HgAsBFSAz5x1DFb3vcWIsODiD+/Z3DRG65xvqo72HBbfmlQnqv5ZJe
- WSXupxsOJTlemb6sncmlw0Xs=
-X-Envelope-To: linux-rdma@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id 3ea29e3c32de8e0c;
-	Wed, 23 Sep 2026 18:39:28 +0000
-X-Mizu-Trace-ID: 3ea29e3c32de8e0c
-X-Migadu-Flow: FLOW_OUT
-Message-ID: <6c0a220c-7d9f-4b31-88b9-6882b1b09231@linux.dev>
-Date: Wed, 23 Sep 2026 11:39:26 -0700
+	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b="S41j3WlW"
+Received: from pps.filterd (m0528009.ppops.net [127.0.0.1])
+	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68NGTarb2648625;
+	Wed, 23 Sep 2026 12:06:14 -0700
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
+	:content-transfer-encoding:content-type:date:from:message-id
+	:mime-version:subject:to; s=pps82601-s2048-2026-q3; bh=EAp7+VZt5
+	hzoapzFr43mE63hJoaoG/BMyrXDtQRpJVM=; b=S41j3WlWBVt0S4FBqdxlLsY1M
+	n8+nfcBFXIs3XDvqzsLqSlsLla2iHduGxXwyKlgtHzVw1K/9ZShm0bWhm71coU9D
+	hVlnDEB3ppmuBLM32ELIsfjJ9Ez9mYV182HrAZEnvoMLXXSoMQ10u79LZ9ha1EkB
+	OBOWvdPAtOFv3ESwbV8s7VXRibHDxfHO6MS+cKO+l+AYuddHtL6OrgRifVxzTViW
+	eIRDF1WedUHrbVR9emRhx0ykfNkrFYJw4gNab5zFboofQKavHoyshbOBtlvd9rnV
+	wCn5OCqHYaQQEbuLX8314LxrYdcQQOesoFkHR/wP3AcRUkWZnVxsvZUx3x+Ww==
+Received: from mail.thefacebook.com ([163.114.134.16])
+	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4guyr1ahke-2
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
+	Wed, 23 Sep 2026 12:06:13 -0700 (PDT)
+Received: from devgpu031.atn1.facebook.com (2620:10d:c085:108::150d) by
+ mail.thefacebook.com (2620:10d:c08b:78::2ac9) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.2.2562.49; Wed, 23 Sep 2026 19:06:12 +0000
+From: Danielle Costantino <dcostantino@meta.com>
+To: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
+        Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
+        Andrew Lunn
+	<andrew+netdev@lunn.ch>, <davem@davemloft.net>,
+        Eric Dumazet
+	<edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni
+	<pabeni@redhat.com>, Moshe Shemesh <moshe@nvidia.com>,
+        Eran Ben Elisha
+	<eranbe@nvidia.com>
+CC: <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>,
+        Danielle Costantino <dcostantino@meta.com>, <stable@vger.kernel.org>
+Subject: [PATCH net v2] net/mlx5: Don't return firmware-owned command mailboxes to the DMA pool
+Date: Wed, 23 Sep 2026 12:05:42 -0700
+Message-ID: <20260923190542.848049-1-dcostantino@meta.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v1] RDMA/rxe: unpublish the per-net tunnel socket before
-To: Binbin Deng <18983559317@163.com>, zyjzyj2000@gmail.com, jgg@ziepe.ca,
- leon@kernel.org, dsahern@kernel.org,
- "yanjun.zhu@linux.dev" <yanjun.zhu@linux.dev>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20260923051800.244740-1-18983559317@163.com>
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
-In-Reply-To: <20260923051800.244740-1-18983559317@163.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTIzMDA3NSBTYWx0ZWRfXw9yaGzm8Ccbm
+ R6LxzDcCbtzU1fY3D7h45T8UaNHI5+UTWccNhH1Ory7jjgFimiaUpmDnQx3by8VMDpQCcoudRbQ
+ mBhAz+kvRwHEdmhMS5SFvzTK0MfzH3dx/cC8FrCmgWNJ1G/78Qxz588D+AGS8oy5Xjl9ljxc7Q0
+ +nlqfCKBuuv5Q0m0yi4vRhmv8S3T/6PupIZHkJ/9eZpM0U0xpE6Zr3IqO1OFyrWVhobf+WfIdew
+ 337rky3PJnayeYjW8yGoT3hW5Mww/RZm22vKJzHfkL+bG3DWJTO/tmwQo9mZG4g1iSwCbN+NVFf
+ tN8M34Yw0D99t3vejFMMo27Sf3734fTuBH/ZZE/XlgqZotdEPuOVMa/7I2vgxGuJgkxvKvupaZ6
+ BJrgz6flzHxN3Dui7dqdmZPb9tyTPnutfikhSwJFOEzBQMZ8Csao2odOuL8O9j5MKXkYjqF0RyD
+ r72cmXndAKsxKh8ysfg==
+X-Authority-Analysis: v=2.4 cv=DNMacCNb c=1 sm=1 tr=0 ts=6ab42325 cx=c_pps
+ a=CB4LiSf2rd0gKozIdrpkBw==:117 a=CB4LiSf2rd0gKozIdrpkBw==:17
+ a=VdqzKS8jKosA:10 a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22
+ a=U_y8lYiYyhHBU5rMqhb2:22 a=VwQbUJbxAAAA:8 a=VabnemYjAAAA:8
+ a=M9fkILYBk67UyVTxOGIA:9 a=O8hF6Hzn-FEA:10 a=gKebqoRLp9LExxC7YDUY:22
+X-Proofpoint-Spam-Info: AW1haW4tMjYwOTIzMDA3NSBTYWx0ZWRfX/1L1C1F5L7ar
+ I22mRwCAHmYCXfibepoWq15J//kWzbyQ123MTt1qKgZ33N3j2iIDNGOS0XEDlA7+VRtVrTEyLYQ
+ PMh7P9bapsfpqMvcWBTl1ZDjNYRukuM=
+X-Proofpoint-ORIG-GUID: KasFjBz00eOuUJiCxqrxlZ_F746oJ4Ov
+X-Proofpoint-GUID: KasFjBz00eOuUJiCxqrxlZ_F746oJ4Ov
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-09-23_06,2026-09-21_02,2025-10-01_01
 
+On a command timeout mlx5_cmd_comp_handler(forced) keeps the entry and its
+queue slot, because firmware may still complete the command and write to
+ent->lay. cmd_exec() and the callback path free the mailboxes anyway,
+while ent->lay->{in_ptr,out_ptr} still point at them.
 
-在 2026/9/22 22:18, Binbin Deng 写道:
-> KASAN reports a slab-use-after-free in ip6_route_output_flags()
-> reached from rxe_find_route(), with the free in __sk_destruct() after
-> rxe_sock_put(), and a user with CAP_NET_ADMIN can remove the device with
-> "rdma link del rxe0" while RoCE v2 over IPv6 traffic keeps looking the
-> socket up.
->
-> BUG: KASAN: slab-use-after-free in ip6_route_output_flags+0x300/0x360
-> Read of size 4 at addr ffff888115ddd794 by task kworker/u32:6/309
-> Call Trace:
->   <TASK>
->   dump_stack_lvl+0x53/0x70
->   print_report+0xd0/0x630
->   ? __pfx__raw_spin_lock_irqsave+0x10/0x10
->   ? ip6_route_output_flags+0x300/0x360
->   kasan_report+0xce/0x100
->   ? ip6_route_output_flags+0x300/0x360
->   ip6_route_output_flags+0x300/0x360
->   ip6_dst_lookup_tail.constprop.0+0x76c/0xcc0
->   ? ct_nmi_exit+0xc3/0xf0
->   ip6_dst_lookup_flow+0xf5/0x1e0
->   ? __pfx_ip6_dst_lookup_flow+0x10/0x10
->   rxe_find_route+0x426/0xa30
->   ? __kasan_slab_alloc+0x6e/0x70
->   ? __pfx_rxe_find_route+0x10/0x10
->   ? kmem_cache_alloc_node_noprof+0x141/0x370
->   ? kmalloc_reserve+0x103/0x2b0
->   ? rxe_icrc_generate+0x229/0x330
->   ? __pfx___alloc_skb+0x10/0x10
->   rxe_prepare+0x9e8/0x18b0
->   ? rxe_init_packet+0x3c7/0x4f0
->   rxe_requester+0x1a0f/0x51f0
->   ? rxe_completer+0x1de9/0x38c0
->   ? __pfx_rxe_completer+0x10/0x10
->   ? __queue_work+0x43e/0x11f0
->   ? __pfx_rxe_requester+0x10/0x10
->   ? irqentry_exit+0xd2/0x640
->   ? _raw_spin_lock_irqsave+0x85/0xe0
->   ? __pfx__raw_spin_lock_irqsave+0x10/0x10
->   ? __pfx_rxe_sender+0x10/0x10
->   rxe_sender+0xe/0x30
->   do_work+0x144/0x470
->   process_one_work+0x633/0x1030
->   ? assign_work+0x11d/0x370
->   worker_thread+0x45b/0xd10
->   ? __pfx_worker_thread+0x10/0x10
->   kthread+0x2c6/0x3b0
->   ? recalc_sigpending+0x15c/0x1e0
->   ? __pfx_kthread+0x10/0x10
->   ret_from_fork+0x36e/0x5a0
->   ? __pfx_ret_from_fork+0x10/0x10
->   ? __switch_to+0x572/0xdd0
->   ? __pfx_kthread+0x10/0x10
->   ret_from_fork_asm+0x1a/0x30
->   </TASK>
->
-> Allocated by task 146020:
->   kasan_save_stack+0x33/0x60
->   kasan_save_track+0x14/0x30
->   __kasan_slab_alloc+0x6e/0x70
->   kmem_cache_alloc_noprof+0x130/0x360
->   sk_prot_alloc+0x56/0x210
->
-> Fix by clearing the per-net pointer before the last reference is dropped.
+dma_pool keeps its free list node in the first 16 bytes of the block,
+which for mlx5 is the start of the command payload, so a late firmware
+write corrupts the allocator:
 
-Thanks a lot. I also confronted this problem. I fixed this problem with 
-a lock.
+  Unable to handle kernel paging request at virtual address
+  0007c830040001a0
+  pc : dma_pool_alloc+0x48/0x430   lr : mlx5_alloc_cmd_msg+0x154/0x318
+  Call trace:
+   dma_pool_alloc+0x48/0x430 (P)
+   mlx5_alloc_cmd_msg+0x154/0x318
+   cmd_exec+0x24c/0xb28
+   mlx5_access_reg+0xe8/0x1c8
 
-It seems that this fix is better. If this fix is verified in your test 
-environment,
+Two crash dumps show the aliasing: 31 of 32 slots held an entry with
+ret == -ETIMEDOUT, 28 of 31 shared one ent->lay->out_ptr while every
+in_ptr was distinct, and pool->next_block held a non-kernel address.
 
-I am ok with this fix.
+Transfer mailbox ownership to the entry and release it on its final put,
+on both the synchronous and the callback path. For a real completion that
+put is normally the last one, so nothing moves in practice.
 
-Reviewed-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+An entry firmware never completes keeps its mailboxes for the lifetime of
+the device. dma_pool_destroy() then reports the pool busy and declines to
+free its pages, which is the memory safe outcome: the pages stay mapped,
+so a late write lands there rather than in memory handed back to the
+allocator.
 
-Thanks a lot.
+Fixes: 73dd3a4839c1 ("net/mlx5: Avoid using pending command interface slots")
+Cc: stable@vger.kernel.org
+Signed-off-by: Danielle Costantino <dcostantino@meta.com>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 32 +++++++++++++++----
+ include/linux/mlx5/driver.h                   |  1 +
+ 2 files changed, 26 insertions(+), 7 deletions(-)
 
-Zhu Yanjun
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+index 84583dc5eb1c0..4051f97b2ae12 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+@@ -185,6 +185,10 @@ static void cmd_free_index(struct mlx5_cmd *cmd, int idx)
+ 	set_bit(idx, &cmd->vars.bitmask);
+ }
+ 
++static void free_msg(struct mlx5_core_dev *dev, struct mlx5_cmd_msg *msg);
++static void mlx5_free_cmd_msg(struct mlx5_core_dev *dev,
++			      struct mlx5_cmd_msg *msg);
++
+ static void cmd_ent_get(struct mlx5_cmd_work_ent *ent)
+ {
+ 	refcount_inc(&ent->refcnt);
+@@ -193,8 +197,11 @@ static void cmd_ent_get(struct mlx5_cmd_work_ent *ent)
+ static void cmd_ent_put(struct mlx5_cmd_work_ent *ent)
+ {
+ 	struct mlx5_cmd *cmd = ent->cmd;
++	struct mlx5_core_dev *dev;
+ 	unsigned long flags;
+ 
++	dev = container_of(cmd, struct mlx5_core_dev, cmd);
++
+ 	spin_lock_irqsave(&cmd->alloc_lock, flags);
+ 	if (!refcount_dec_and_test(&ent->refcnt)) {
+ 		spin_unlock_irqrestore(&cmd->alloc_lock, flags);
+@@ -207,6 +214,11 @@ static void cmd_ent_put(struct mlx5_cmd_work_ent *ent)
+ 	}
+ 	spin_unlock_irqrestore(&cmd->alloc_lock, flags);
+ 
++	if (ent->own_msgs) {
++		mlx5_free_cmd_msg(dev, ent->out);
++		free_msg(dev, ent->in);
++	}
++
+ 	cmd_free_ent(ent);
+ }
+ 
+@@ -958,10 +970,6 @@ static void cb_timeout_handler(struct work_struct *work)
+ 	cmd_ent_put(ent); /* for the cmd_ent_get() took on schedule delayed work */
+ }
+ 
+-static void free_msg(struct mlx5_core_dev *dev, struct mlx5_cmd_msg *msg);
+-static void mlx5_free_cmd_msg(struct mlx5_core_dev *dev,
+-			      struct mlx5_cmd_msg *msg);
+-
+ static bool opcode_allowed(struct mlx5_cmd *cmd, u16 opcode)
+ {
+ 	if (cmd->allowed_opcode == CMD_ALLOWED_OPCODE_ALL)
+@@ -1313,7 +1321,12 @@ static int mlx5_cmd_invoke(struct mlx5_core_dev *dev, struct mlx5_cmd_msg *in,
+ 		return 0; /* mlx5_cmd_comp_handler() will put(ent) */
+ 
+ 	err = wait_func(dev, ent);
+-	if (err == -ETIMEDOUT || err == -ECANCELED || err == -EBUSY)
++	if (err == -ETIMEDOUT) {
++		/* firmware may still DMA into the mailboxes; keep them */
++		ent->own_msgs = true;
++		goto out_free;
++	}
++	if (err == -ECANCELED || err == -EBUSY)
+ 		goto out_free;
+ 
+ 	ds = ent->ts2 - ent->ts1;
+@@ -1816,8 +1829,10 @@ static void mlx5_cmd_comp_handler(struct mlx5_core_dev *dev, u64 vec, bool force
+ 								 ent->out,
+ 								 ent->uout_size);
+ 
+-				mlx5_free_cmd_msg(dev, ent->out);
+-				free_msg(dev, ent->in);
++				/* firmware may still DMA into the mailboxes;
++				 * keep them
++				 */
++				ent->own_msgs = true;
+ 
+ 				/* final consumer is done, release ent */
+ 				cmd_ent_put(ent);
+@@ -2012,6 +2027,9 @@ static int cmd_exec(struct mlx5_core_dev *dev, void *in, int in_size, void *out,
+ 	if (callback && !err)
+ 		return 0;
+ 
++	if (err == -ETIMEDOUT) /* the command entry owns the mailboxes now */
++		goto out_up;
++
+ 	if (err > 0) /* Failed in FW, command didn't execute */
+ 		err = deliv_status_to_err(err);
+ 
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 83d0a83bbfbca..9fcbc6070869f 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -855,6 +855,7 @@ struct mlx5_cmd_work_ent {
+ 	u64			ts2;
+ 	u16			op;
+ 	bool			polling;
++	bool			own_msgs;
+ 	/* Track the max comp handlers */
+ 	refcount_t              refcnt;
+ };
 
->
-> Fixes: f1327abd6abed ("RDMA/rxe: Support RDMA link creation and destruction per net namespace")
-> Signed-off-by: Binbin Deng <18983559317@163.com>
-> ---
->   drivers/infiniband/sw/rxe/rxe_net.c | 10 ++++++++--
->   1 file changed, 8 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-> index 53daaf4c1eb2..4153f03ed69a 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_net.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_net.c
-> @@ -638,9 +638,15 @@ static void rxe_sock_put(struct sock *sk,
->   	if (refcount_read(&sk->sk_refcnt) > SK_REF_FOR_TUNNEL) {
->   		__sock_put(sk);
->   	} else {
-> +		/*
-> +		 * Clear the per-net pointer before the last reference is
-> +		 * dropped.  rxe_ns_pernet_sk4/6() returns the pointer to readers
-> +		 * that dereference it outside the RCU read-side critical section,
-> +		 * so it must not stay visible once the socket has entered the
-> +		 * teardown path.
-> +		 */
-> +		set_sk(net, NULL);
->   		rxe_release_udp_tunnel(sk);
-> -		sk = NULL;
-> -		set_sk(net, sk);
->   	}
->   }
->   
-
--- 
-Best Regards,
-Yanjun.Zhu
-
+base-commit: 9c572a83037a7dcd653ba3a9cc468c16b857d0c9
