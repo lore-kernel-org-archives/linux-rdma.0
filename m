@@ -1,108 +1,67 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACE8C3B6C1E;
-	Wed, 23 Sep 2026 04:10:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F8A038F25C
+	for <linux-rdma@vger.kernel.org>; Wed, 23 Sep 2026 04:20:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790136601; cv=none; b=UhaPFKAbW1XUmx6gaQhP02EDIRjVsfewqb3ZZBLsYoVgY8/UT3NeQfhPo2ELBBVRA5nzSrrviWLuqEYkwHGITz5TgdgNDswKwKSyof0qvV3ozp+zCI8eNI9Zza1y/WO6+Sjq0dnfVbORNZSB2HS6DOuHUF1qKDMwejBj1UYw4IY=
+	t=1790137232; cv=none; b=uewlGPj7UTBD9F64mq4qZI2K0SmYNgqpYGgSoWwTsi4C8GgpgVCfYQQDURLHv2zvFzfyTyyNuKIHoNEEtDsZHK47/Uz30tqtgCnpAjszOuwm3qqZ3MwRPTpqqIQd1EDCE5TiRyNQ1bw1JMvChtH+D0xaV98IR+RsxJ7VWpNZYz8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790136601; c=relaxed/simple;
-	bh=j1aK9+Uy++IRwjgNlfd1wIlCOpwbsqKe6LxIzTq19dU=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=J3c+dYlYEBw4pbpZgedeYg3pVN+vp1IgJmaK+ENKWGsBay7FHCA+/lxXsbHG0EeGFGA1BLR0fpWXxULcw/F5OJOIKTSKKLKHF+tAfA6B7uK/WvMRhWKUKbAKceNwBQaULhnalDUwXAVb9ZoYf7emrjXoVYDAodYIdGItvyeyeeQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Q8ou6D1K; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1790137232; c=relaxed/simple;
+	bh=mtWqHuOgBdS8XivhOM4qW+PlzEE14AxYe0f8JhZJHVM=;
+	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
+	 Message-Id; b=oMC0W1NPO932OII7mDopxyj3CV55h6GsuuzBDxe/FdYgJAK8bqFMJH8ifLy2t0SQbBXrO9uU1POgOdO0t85HChRzKcH8NSDo8joHsFAxme7J1dxxJxYBLkMRUV2L4ezlAcCkDn6lodWDb4dd8X2N+zAaEywPWx7iJUxO5f6eyDA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WJBexxv0; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Q8ou6D1K"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 271A1C2BCB8;
-	Wed, 23 Sep 2026 04:10:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1790136601;
-	bh=j1aK9+Uy++IRwjgNlfd1wIlCOpwbsqKe6LxIzTq19dU=;
-	h=From:Date:Subject:To:Cc:Reply-To:From;
-	b=Q8ou6D1KhMU6A7J+u8/P6/mVOZKnYPEBdv7LhX3cFDtrZWJXs9yjFYtZwrYuYV3m5
-	 luNUCvFfpqhFjxguMlYmDqbtOIJx8OygqifmKDBqAhYVeuMQbd1zys7ABf1PVVnL+R
-	 uMN2ja3aUwJNQtgniSpDULHhkFQ4UYhk4yrdxA63/R+hu74JZRrmtgSPIABUReuD1c
-	 GJidBpbK+TVFnDZTr3JR9nBeoSXQyhsPWYLpej4+2LvxgF3pSCNfEyeDlHRoReA7T6
-	 oQf1ZON5xfJwPMuHgpuh8CSkWRyiL8shlhxg/BBnjWhuYB30EIofqFvuJNjIiRLruK
-	 9CP7i1jXJenDQ==
-Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0217EC98302;
-	Wed, 23 Sep 2026 04:10:00 +0000 (UTC)
-From: Quanye Yang via B4 Relay <devnull+quanyeyang.proton.me@kernel.org>
-Date: Tue, 22 Sep 2026 21:09:58 -0700
-Subject: [PATCH] RDMA/rtrs-clt: Reject invalid queue_depth from the peer
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WJBexxv0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BC811F000FF;
+	Wed, 23 Sep 2026 04:20:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790137231;
+	bh=QKy/Fsc0qZ5C8l17T3aGVXBje/VtcD6MrybDkvMHCJY=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=WJBexxv0G3eVpKl/me3WS8IMj9AJzM/eu9yvWLzybj8sRZaSy+dkvPjB/zZs64muX
+	 UK57RDCnryzJmRJwUGfLtvYDy6D5gs8+5P/3juaNAGnwBNcRr+N71/EMadzJP5SQAx
+	 PA/EkDyMuhBs1XzqupI/nMjQN6HzNdx3yae5bfuCUCO4SYnblJFr3WdCcDquWjSDBn
+	 9MopoSSza6aJbn4V9QVEgo5MKTN3l4DmKmlZ4pFCos1s83u5JhYA6bFSQyUWxTyfck
+	 x8sZiHEyU9dLNvjFEimRTRzqugvoZ9X+oy9bqdWpGTZuJlcPARW2quzmb4EqAW8uP0
+	 l0hSw1IAU99lQ==
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH] RDMA/rtrs-clt: Reject invalid queue_depth from the peer
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Quanye Yang" <quanyeyang@proton.me>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20260922-rtrs-fix-warning-rtrs-clt-rdma-cm-handler-v1-1-2076c0ee1455@proton.me>
+References: <20260922-rtrs-fix-warning-rtrs-clt-rdma-cm-handler-v1-1-2076c0ee1455@proton.me>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Wed, 23 Sep 2026 04:20:30 +0000
+Message-Id: <20260923042031.1BC811F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260922-rtrs-fix-warning-rtrs-clt-rdma-cm-handler-v1-1-2076c0ee1455@proton.me>
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yWN3Q6CMAxGX4X02iajKlFfxXAxtoo1ME07fxLCu
- zPk8nzJ+c4ExipscKkmUP6IyTMVqHcVhLtPPaPEwkCOGncmQs1qeJMffr0mSf02hCGjxtFjGLF
- ocWBFqhvHvD+eugND+XspF+/furYb27t7cMhrAOZ5AQ4XHHCNAAAA
-X-Change-ID: 20260922-rtrs-fix-warning-rtrs-clt-rdma-cm-handler-2160ee358b4e
-To: "Md. Haris Iqbal" <haris.iqbal@ionos.com>, 
- Jack Wang <jinpu.wang@ionos.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
- Leon Romanovsky <leon@kernel.org>, 
- Danil Kipnis <danil.kipnis@cloud.ionos.com>
-Cc: Jack Wang <jinpu.wang@cloud.ionos.com>, linux-rdma@vger.kernel.org, 
- linux-kernel@vger.kernel.org, Farhad Alemi <farhad.alemi@berkeley.edu>
-X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1790136599; l=1555;
- i=quanyeyang@proton.me; s=20260801; h=from:subject:message-id;
- bh=D5EbnVMniwVpv/h4+71Ucz1i6HnqTkhM/rK1ZxWuGb0=;
- b=9effqmgmW2GTIc9ttanljElvpmgL2uBAofiD0G+t96vNEPW/HX/9oacwNvbMiBQH//GA8macQ
- A03allaNXfNDivP+J5/D9RpRBmW/d+cg6x6QAHE/rTENoNYKNQfQuzb
-X-Developer-Key: i=quanyeyang@proton.me; a=ed25519;
- pk=9L9FrcvzMgxPaBRU6XV0EnqTgjDqVO596rQKSZ9qZoY=
-X-Endpoint-Received: by B4 Relay for quanyeyang@proton.me/20260801 with
- auth_id=963
-X-Original-From: Quanye Yang <quanyeyang@proton.me>
-Reply-To: quanyeyang@proton.me
 
-From: Quanye Yang <quanyeyang@proton.me>
+> From: Quanye Yang <quanyeyang@proton.me>
+>=20
+> queue_depth is taken from the server's CM private_data and later
+> used as a session invariant.  A peer can send 0, which the client
+> stores and then trips WARN_ON() in create_con_cq_qp() when the
+> next connection is set up.
+>=20
+> Reject a zero queue_depth on ESTABLISHED, same as a bad
+> magic or version, and fail the handshake with -ECONNRESET.
+>=20
+> Fixes: 6a98d71daea1 ("RDMA/rtrs: client: main functionality")
+> Reported-by: Farhad Alemi <farhad.alemi@berkeley.edu>
+> Link: https://lore.kernel.org/linux-rdma/CA+0ovCg_sG8gaZXXj9zmOrpxRt=3D8+=
+-x9wvycVNUKwWmMbr6-Yg@mail.gmail.com
+> Signed-off-by: Quanye Yang <quanyeyang@proton.me>
 
-queue_depth is taken from the server's CM private_data and later
-used as a session invariant.  A peer can send 0, which the client
-stores and then trips WARN_ON() in create_con_cq_qp() when the
-next connection is set up.
+Sashiko has reviewed this patch and found no issues. It looks great!
 
-Reject a zero queue_depth on ESTABLISHED, same as a bad
-magic or version, and fail the handshake with -ECONNRESET.
-
-Fixes: 6a98d71daea1 ("RDMA/rtrs: client: main functionality")
-Reported-by: Farhad Alemi <farhad.alemi@berkeley.edu>
-Link: https://lore.kernel.org/linux-rdma/CA+0ovCg_sG8gaZXXj9zmOrpxRt=8+-x9wvycVNUKwWmMbr6-Yg@mail.gmail.com
-Signed-off-by: Quanye Yang <quanyeyang@proton.me>
----
- drivers/infiniband/ulp/rtrs/rtrs-clt.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-index eac38b57b00d..7fbbb9a53607 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-@@ -1853,6 +1853,10 @@ static int rtrs_rdma_conn_established(struct rtrs_clt_con *con,
- 	}
- 	if (con->c.cid == 0) {
- 		queue_depth = le16_to_cpu(msg->queue_depth);
-+		if (!queue_depth) {
-+			rtrs_err(clt, "Invalid queue depth %u\n", queue_depth);
-+			return -ECONNRESET;
-+		}
- 
- 		if (clt_path->queue_depth > 0 && queue_depth != clt_path->queue_depth) {
- 			rtrs_err(clt, "Error: queue depth changed\n");
-
----
-base-commit: 93f51579e7df248780214094418f205253383cc5
-change-id: 20260922-rtrs-fix-warning-rtrs-clt-rdma-cm-handler-2160ee358b4e
-
-Best regards,
---  
-Quanye Yang <quanyeyang@proton.me>
-
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260922-rtrs-fix-w=
+arning-rtrs-clt-rdma-cm-handler-v1-1-2076c0ee1455@proton.me?part=3D1
 
