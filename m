@@ -1,67 +1,77 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from smtp-relay-services-1.canonical.com (smtp-relay-services-1.canonical.com [185.125.188.251])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F8A038F25C
-	for <linux-rdma@vger.kernel.org>; Wed, 23 Sep 2026 04:20:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D92D83DC4CC
+	for <linux-rdma@vger.kernel.org>; Wed, 23 Sep 2026 05:05:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.125.188.251
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790137232; cv=none; b=uewlGPj7UTBD9F64mq4qZI2K0SmYNgqpYGgSoWwTsi4C8GgpgVCfYQQDURLHv2zvFzfyTyyNuKIHoNEEtDsZHK47/Uz30tqtgCnpAjszOuwm3qqZ3MwRPTpqqIQd1EDCE5TiRyNQ1bw1JMvChtH+D0xaV98IR+RsxJ7VWpNZYz8=
+	t=1790139916; cv=none; b=Zoar3m0/p/7T+7KiTZo1HU74cvra/YqnkH7rDZGkwtuZaOcpMk/z3r6qFuay5R2jt/IVAnuh72QZTBBnl4lR5TxtSQcGAsQ6IPeMKs3glpxrUD/l+kEOxrbMwfVD7DUcm8J9k0dItsk94T/FICWrJZrkblun2A7/qHLvUpvfKSQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790137232; c=relaxed/simple;
-	bh=mtWqHuOgBdS8XivhOM4qW+PlzEE14AxYe0f8JhZJHVM=;
-	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=oMC0W1NPO932OII7mDopxyj3CV55h6GsuuzBDxe/FdYgJAK8bqFMJH8ifLy2t0SQbBXrO9uU1POgOdO0t85HChRzKcH8NSDo8joHsFAxme7J1dxxJxYBLkMRUV2L4ezlAcCkDn6lodWDb4dd8X2N+zAaEywPWx7iJUxO5f6eyDA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WJBexxv0; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790139916; c=relaxed/simple;
+	bh=m0e8Lzp+qzDLfSXwTEIjAkaaQvFzJ5GKeQINsG1kdy8=;
+	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date; b=YSsCmBVpsaml4L/7Hi1qAeb8a1PLiBlOq2UyCqVTvOFiwTnGvuEDfJlWBXR39Mwp9gwb+2gKqDOZwfmiIh9mqhTkIq828EeV31JExwgAm5KLRtsaF8XvdT4piLNwsgYHC+x06ZopwHNxnHtG30+KKtkTqw84cn3DsHi91zvHRto=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net; spf=pass smtp.mailfrom=launchpad.net; dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b=ITCwAWXI; arc=none smtp.client-ip=185.125.188.251
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=launchpad.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WJBexxv0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BC811F000FF;
-	Wed, 23 Sep 2026 04:20:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790137231;
-	bh=QKy/Fsc0qZ5C8l17T3aGVXBje/VtcD6MrybDkvMHCJY=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=WJBexxv0G3eVpKl/me3WS8IMj9AJzM/eu9yvWLzybj8sRZaSy+dkvPjB/zZs64muX
-	 UK57RDCnryzJmRJwUGfLtvYDy6D5gs8+5P/3juaNAGnwBNcRr+N71/EMadzJP5SQAx
-	 PA/EkDyMuhBs1XzqupI/nMjQN6HzNdx3yae5bfuCUCO4SYnblJFr3WdCcDquWjSDBn
-	 9MopoSSza6aJbn4V9QVEgo5MKTN3l4DmKmlZ4pFCos1s83u5JhYA6bFSQyUWxTyfck
-	 x8sZiHEyU9dLNvjFEimRTRzqugvoZ9X+oy9bqdWpGTZuJlcPARW2quzmb4EqAW8uP0
-	 l0hSw1IAU99lQ==
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH] RDMA/rtrs-clt: Reject invalid queue_depth from the peer
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Quanye Yang" <quanyeyang@proton.me>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260922-rtrs-fix-warning-rtrs-clt-rdma-cm-handler-v1-1-2076c0ee1455@proton.me>
-References: <20260922-rtrs-fix-warning-rtrs-clt-rdma-cm-handler-v1-1-2076c0ee1455@proton.me>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Wed, 23 Sep 2026 04:20:30 +0000
-Message-Id: <20260923042031.1BC811F000FF@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b="ITCwAWXI"
+Received: from juju-98d295-prod-launchpad-51.localdomain (unknown [10.131.215.15])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-relay-services-1.canonical.com (Postfix) with ESMTPSA id 114F53F032
+	for <linux-rdma@vger.kernel.org>; Wed, 23 Sep 2026 05:05:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=launchpad.net;
+	s=20210803; t=1790139906;
+	bh=m0e8Lzp+qzDLfSXwTEIjAkaaQvFzJ5GKeQINsG1kdy8=;
+	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date:
+	 Reply-To;
+	b=ITCwAWXIcpsPD5JM8v/ZQIPqvlYJm9rivhga0TsPmSetDk8abu4DyTb+5KgHB/nST
+	 ZXE3ChdPgazEP3tMqvquBB1Md0WKZX3RpzJ8EWRmuZ23kZK3EvvDY+XDSoGIc/ZsEY
+	 0pRVtnhQXEeId3oS81u2UiiewrP8SxMJ8EWpFPlKTzi+7251QKMDvQV8F3dFd3XysW
+	 a1mWW9cZIhPJ0TZpsbJDM0MJ/NOV+Qb8r3t9Mj8iPn4tDY5gxOiK4WCH3En7FlSjq6
+	 ucre1t9/RIzotuplWAzown+mALva2UvBQO//6ABpl3wbVEAqkEX89X62JyTyh9dbD7
+	 0+DZpMwWTF2wg==
+Received: from [10.131.215.15] (localhost [127.0.0.1])
+	by juju-98d295-prod-launchpad-51.localdomain (Postfix) with ESMTP id CC9EBBD8B1
+	for <linux-rdma@vger.kernel.org>; Wed, 23 Sep 2026 05:05:05 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+X-Launchpad-Message-Rationale: Requester @linux-rdma
+X-Launchpad-Message-For: linux-rdma
+X-Launchpad-Notification-Type: recipe-build-status
+X-Launchpad-Archive: ~linux-rdma/ubuntu/rdma-core-daily
+X-Launchpad-Build-State: MANUALDEPWAIT
+To: Linux RDMA <linux-rdma@vger.kernel.org>
+From: noreply@launchpad.net
+Subject: [recipe build #4093364] of ~linux-rdma rdma-core-daily in xenial: Dependency wait
+Message-Id: <179013990578.3101366.6950103545266143945.launchpad@juju-98d295-prod-launchpad-51>
+Date: Wed, 23 Sep 2026 05:05:05 -0000
+Reply-To: noreply@launchpad.net
+Sender: noreply@launchpad.net
+Errors-To: noreply@launchpad.net
+Precedence: bulk
+X-Generated-By: Launchpad (canonical.com); Revision="6c05f5b586acbfd5d3a5f5142777242f41e711b8"; Instance="launchpad-buildd-manager"
+X-Launchpad-Hash: 6c04d064057ba0777fff46c0c6e0df973f56c813
 
-> From: Quanye Yang <quanyeyang@proton.me>
->=20
-> queue_depth is taken from the server's CM private_data and later
-> used as a session invariant.  A peer can send 0, which the client
-> stores and then trips WARN_ON() in create_con_cq_qp() when the
-> next connection is set up.
->=20
-> Reject a zero queue_depth on ESTABLISHED, same as a bad
-> magic or version, and fail the handshake with -ECONNRESET.
->=20
-> Fixes: 6a98d71daea1 ("RDMA/rtrs: client: main functionality")
-> Reported-by: Farhad Alemi <farhad.alemi@berkeley.edu>
-> Link: https://lore.kernel.org/linux-rdma/CA+0ovCg_sG8gaZXXj9zmOrpxRt=3D8+=
--x9wvycVNUKwWmMbr6-Yg@mail.gmail.com
-> Signed-off-by: Quanye Yang <quanyeyang@proton.me>
-
-Sashiko has reviewed this patch and found no issues. It looks great!
+ * State: Dependency wait
+ * Recipe: linux-rdma/rdma-core-daily
+ * Archive: ~linux-rdma/ubuntu/rdma-core-daily
+ * Distroseries: xenial
+ * Duration: 5 minutes
+ * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-d=
+aily/+recipebuild/4093364/+files/buildlog.txt.gz
+ * Upload Log:=20
+ * Builder: https://launchpad.net/builders/lcy02-amd64-008
 
 --=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260922-rtrs-fix-w=
-arning-rtrs-clt-rdma-cm-handler-v1-1-2076c0ee1455@proton.me?part=3D1
+https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebu=
+ild/4093364
+Your team Linux RDMA is the requester of the build.
 
