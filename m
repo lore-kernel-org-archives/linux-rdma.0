@@ -1,285 +1,149 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF9A63DFC7F
-	for <linux-rdma@vger.kernel.org>; Wed, 23 Sep 2026 09:20:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6D6D3F410D
+	for <linux-rdma@vger.kernel.org>; Wed, 23 Sep 2026 09:59:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790155254; cv=none; b=up/MkNzHsgVLHS9DvVLUw/SYM7MyKREt9Hbm0G/m4ZaVbedid7EFORpQeGrLZlbYNZRY79yPJNHPbDAH5IDJaBKajEHBW8lowAlNV31DeNUy7xvbECgWtpu2oxhMQLdJ8tvU2PUkN6NKHuriL5vBFrCmXQ6dF32ZAeiN40Dhgfg=
+	t=1790157565; cv=none; b=lB9lfaRYLk73Hpx8CVZEM4CKZDwiC8mPtmeBaa7qN/NuiU7TpqyHGpuaHRH1arbFBSBb7cFIjOqQiVcdp0X8G5/qMwJsKHMAddr5Gj+NnyEete4huwOQb+OQWwApWznkfI2bP4bgg8WqUs93cfzj3Ln1dBZDrCYMhVbvQbo17Bg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790155254; c=relaxed/simple;
-	bh=bEJM4jtH7bX4M5zg4KtOCdw8v+EtpwgD+UiOXUoY5ro=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=Rgz2Ozfr/scpAvHEMYcvjKmTUjXUi77H7q4CwiRdS8Y/KsCwbE/gu4wKdmCPO7+tHzm7LCxnyu9W+R+8pal2Ra1r9fE9B5hlc8fwAqZAvExAcZ7ZAcO+sDobEa8YxmYdXoXwDaLfLlunnLXwwaQnifIYeXUk8Xd2eyXnFXFrOVM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=jTfRToHc; arc=none smtp.client-ip=192.198.163.19
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1790157565; c=relaxed/simple;
+	bh=N8ZiBD+OQ1Kz9de3m8Js8FVgtXQjPBcEkgoUNdFx/rU=;
+	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
+	 Message-Id; b=eDlAtica0TWDKoAeAKM2wgstDp77rij6Tqmuew0KJxI4WSIibYPFQCQYnn5tGS3sZwAWUqAPrgc90dimVuaFPdiQecZmVH+AUaWgPuRKwx1ZRPcjhEolzDlqCFYsDD3Z22hSzmP2oYJ9LrgDH0A3YBVyGQTQn3Rcd6fhqak6hmo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JO3QSHi4; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="jTfRToHc"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1790155253; x=1821691253;
-  h=date:from:to:cc:subject:message-id;
-  bh=bEJM4jtH7bX4M5zg4KtOCdw8v+EtpwgD+UiOXUoY5ro=;
-  b=jTfRToHcph2WMtAT1YgDekSTCe7kOzTuekwum3sZsE9EEMS9BUcHNYhq
-   TpjXaQykuMC2CvEa71RQKpM1QWpbCSlyaQsjqKn58P9OSV4LMHa8XNA84
-   sJFerjX6c9kspX/+ZpbBW0mXSsyJeIHPIG2ct9tgLeYjA78Vwe1qO0QBT
-   w3yDbCU7975e2sGUUBdca4E8mbW6iefmPO5Ewae9l4nign9IvMe1SycPl
-   pOcriurjRvdDEXZQ9dmtQlJPFeLGxboQgK23KOkGvP+lWeXW0bhxKVWAy
-   XrG34Dnauvtcis4K/o6d8zFn3WRn6ordY6jCamV1UX2gq+2TsNKtF4pK9
-   w==;
-X-CSE-ConnectionGUID: R5ot96oTR5q6nK5F0aeazg==
-X-CSE-MsgGUID: 42nOvv91SEGwP2phftKSvQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11913"; a="89748599"
-X-IronPort-AV: E=Sophos;i="6.27,118,1787036400"; 
-   d="scan'208";a="89748599"
-Received: from fmviesa013.fm.intel.com ([10.60.135.153])
-  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Sep 2026 02:20:52 -0700
-X-CSE-ConnectionGUID: tdlIIv5XS9CtN6nDfOw2Zw==
-X-CSE-MsgGUID: gVssKOgfQHmCco3o3uDVTw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,118,1787036400"; 
-   d="scan'208";a="4804504"
-Received: from lkp-server01.sh.intel.com (HELO 462990a40a85) ([10.239.97.150])
-  by fmviesa013.fm.intel.com with ESMTP; 23 Sep 2026 02:20:51 -0700
-Received: from kbuild by 462990a40a85 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1x9J9j-00000000Gr4-3c7p;
-	Wed, 23 Sep 2026 09:20:47 +0000
-Date: Wed, 23 Sep 2026 17:20:24 +0800
-From: kernel test robot <lkp@intel.com>
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>,
- Jason Gunthorpe <jgg+lists@ziepe.ca>, linux-rdma@vger.kernel.org
-Subject: [rdma:for-next] BUILD SUCCESS
- 9dcacdc41083cccff74292851bf9fde999e0731a
-Message-ID: <202609231721.Ti4lJqWw-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JO3QSHi4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EF5E1F000FF;
+	Wed, 23 Sep 2026 09:59:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790157563;
+	bh=QWVojqYi0begReD+8pgZup85hKQiop/IGJ66CYFOCuA=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=JO3QSHi4j3e9lVrumL3yr60LSEZ4DREexy/jglwUefqIh8H7KkuspXoLprEoDash1
+	 qJukFH/LYhwJ0P2er0PYYkGWkc2oaprBmcZclZy45NGbNEWkywH+qkQeBpLmH+s46c
+	 K7b3NAARP8saN9Tdq/NaycUPmA3zP/BuYB7EMDYMWSqBIOQjh6No3vVXg5OukprHh/
+	 qxzIOxnTXTBrJOVHYDpXh4a0tSKf3XBLdT5mxxqk9Ir4kyVCHrAxt1tZCdNqQRT7rj
+	 54cfdPj4c+6adUgxeyjS/CrOHWTs0ZlKP5LGpiaH9mZd5JOIHaBrp6ER+wCCs5BIPi
+	 bfmafhk5i+epQ==
+From: sashiko-bot@kernel.org
+Subject: Re: [for-next v2 2/5] RDMA/ionic: support firmware-assigned CQ IDs
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Abhijit Gangurde" <abhijit.gangurde@amd.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20260922095724.3683011-3-abhijit.gangurde@amd.com>
+References: <20260922095724.3683011-1-abhijit.gangurde@amd.com>
+ <20260922095724.3683011-3-abhijit.gangurde@amd.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Wed, 23 Sep 2026 09:59:23 +0000
+Message-Id: <20260923095923.6EF5E1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git for-next
-branch HEAD: 9dcacdc41083cccff74292851bf9fde999e0731a  RDMA/uverbs: Drop restrack ref on ib_init_ucontext() failure in GET_CONTEXT
-
-elapsed time: 5405m
-
-configs tested: 207
-configs skipped: 11
-
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-tested configs:
-alpha                              allnoconfig    gcc-16.1.0
-alpha                             allyesconfig    gcc-16.1.0
-alpha                                defconfig    gcc-16.1.0
-arc                               allmodconfig    clang-24
-arc                                allnoconfig    gcc-16.1.0
-arc                               allyesconfig    clang-24
-arc                                  defconfig    gcc-16.1.0
-arc                          haps_hs_defconfig    gcc-16.1.0
-arc                             hsdk_defconfig    gcc-16.1.0
-arc                   randconfig-1000-20260923    clang-24
-arc                   randconfig-1001-20260923    clang-24
-arc                  randconfig-r1306-20260923    gcc-8.5.0  sparse
-arm                                allnoconfig    gcc-16.1.0
-arm                               allyesconfig    clang-24
-arm                                  defconfig    gcc-16.1.0
-arm                         multi_v7_defconfig    clang-20
-arm                          nhk8815_defconfig    clang-24
-arm                   randconfig-1000-20260923    clang-24
-arm                   randconfig-1001-20260923    clang-24
-arm                   randconfig-1002-20260923    clang-24
-arm                   randconfig-1003-20260923    clang-24
-arm                          s5pv210_defconfig    gcc-16.1.0
-arm                         spear3xx_defconfig    clang-20
-arm64                             allmodconfig    clang-24
-arm64                              allnoconfig    gcc-16.1.0
-arm64                                defconfig    gcc-16.1.0
-arm64                 randconfig-1000-20260923    clang-24
-arm64                 randconfig-1001-20260923    clang-24
-arm64                 randconfig-1002-20260923    clang-24
-arm64                 randconfig-1003-20260923    clang-24
-arm64                randconfig-r1302-20260923    clang-20   sparse
-csky                              allmodconfig    gcc-16.1.0
-csky                               allnoconfig    gcc-16.1.0
-csky                                 defconfig    gcc-16.1.0
-csky                  randconfig-1000-20260923    clang-24
-csky                  randconfig-1001-20260923    clang-24
-csky                 randconfig-r1306-20260923    gcc-16.1.0 sparse
-hexagon                           allmodconfig    gcc-16.1.0
-hexagon                            allnoconfig    gcc-16.1.0
-hexagon                              defconfig    gcc-16.1.0
-hexagon               randconfig-1000-20260923    gcc-8.5.0
-hexagon               randconfig-1001-20260923    gcc-8.5.0
-hexagon              randconfig-r1303-20260923    clang-20   sparse
-i386                               allnoconfig    gcc-16.1.0
-i386        buildonly-randconfig-1000-20260923    gcc-14
-i386        buildonly-randconfig-1001-20260923    gcc-14
-i386        buildonly-randconfig-1002-20260923    gcc-14
-i386        buildonly-randconfig-1003-20260923    gcc-14
-i386        buildonly-randconfig-1004-20260923    gcc-14
-i386        buildonly-randconfig-1005-20260923    gcc-14
-i386                                 defconfig    gcc-16.1.0
-i386                  randconfig-1000-20260923    clang-22
-i386                  randconfig-1001-20260923    clang-22
-i386                  randconfig-1002-20260923    clang-22
-i386                  randconfig-1003-20260923    clang-22
-i386                  randconfig-1004-20260923    clang-22
-i386                  randconfig-1005-20260923    clang-22
-i386                  randconfig-1006-20260923    clang-22
-i386                  randconfig-1007-20260923    gcc-14
-i386                  randconfig-1008-20260923    gcc-14
-i386                  randconfig-1009-20260923    gcc-14
-i386                  randconfig-1010-20260923    gcc-14
-i386                  randconfig-1011-20260923    gcc-14
-i386                  randconfig-1012-20260923    gcc-14
-i386                  randconfig-1013-20260923    gcc-14
-i386                  randconfig-1300-20260923    gcc-12     sparse
-i386                  randconfig-1301-20260923    gcc-12     sparse
-i386                  randconfig-1302-20260923    gcc-12     sparse
-i386                 randconfig-r1304-20260923    clang-20   sparse
-loongarch                         allmodconfig    clang-24
-loongarch                          allnoconfig    gcc-16.1.0
-loongarch                            defconfig    clang-24
-loongarch             randconfig-1000-20260923    gcc-8.5.0
-loongarch             randconfig-1001-20260923    gcc-8.5.0
-loongarch            randconfig-r1308-20260923    gcc-8.5.0  sparse
-m68k                              allmodconfig    gcc-16.1.0
-m68k                               allnoconfig    gcc-16.1.0
-m68k                              allyesconfig    clang-24
-m68k                                 defconfig    clang-24
-m68k                        m5475evb_defconfig    clang-20
-m68k                 randconfig-r1307-20260923    gcc-8.5.0  sparse
-microblaze                        alldefconfig    clang-24
-microblaze                         allnoconfig    gcc-16.1.0
-microblaze                        allyesconfig    gcc-16.1.0
-microblaze                           defconfig    clang-24
-microblaze           randconfig-r1309-20260923    gcc-8.5.0  sparse
-mips                              allmodconfig    gcc-16.1.0
-mips                               allnoconfig    gcc-16.1.0
-mips                              allyesconfig    gcc-16.1.0
-mips                         bcm47xx_defconfig    clang-24
-mips                        bmips_be_defconfig    gcc-16.1.0
-mips                         qi_lb60_defconfig    clang-24
-mips                    sb1250_swarm_defconfig    clang-24
-nios2                             allmodconfig    clang-20
-nios2                              allnoconfig    clang-24
-nios2                                defconfig    clang-24
-nios2                 randconfig-1000-20260923    gcc-8.5.0
-nios2                 randconfig-1001-20260923    gcc-8.5.0
-openrisc                          allmodconfig    clang-20
-openrisc                           allnoconfig    clang-24
-openrisc                             defconfig    gcc-16.1.0
-openrisc             randconfig-r1305-20260923    clang-20   sparse
-openrisc             randconfig-r1307-20260923    gcc-16.1.0 sparse
-parisc                            alldefconfig    gcc-16.1.0
-parisc                            allmodconfig    gcc-16.1.0
-parisc                             allnoconfig    clang-24
-parisc                            allyesconfig    clang-17
-parisc                               defconfig    gcc-16.1.0
-parisc                randconfig-1000-20260923    clang-22
-parisc                randconfig-1001-20260923    clang-22
-parisc64                             defconfig    clang-24
-powerpc                           allmodconfig    gcc-16.1.0
-powerpc                            allnoconfig    clang-24
-powerpc                      mpc83xx_defconfig    clang-24
-powerpc                      rainier_defconfig    gcc-16.1.0
-powerpc               randconfig-1000-20260923    clang-22
-powerpc               randconfig-1001-20260923    clang-22
-powerpc                     socrates_defconfig    clang-24
-powerpc                   storcenter_defconfig    clang-20
-powerpc                      tqm8540_defconfig    gcc-16.1.0
-powerpc                       tqm8xx_defconfig    clang-20
-powerpc64             randconfig-1000-20260923    clang-22
-powerpc64             randconfig-1001-20260923    clang-22
-powerpc64            randconfig-r1308-20260923    gcc-16.1.0 sparse
-riscv                             allmodconfig    clang-24
-riscv                              allnoconfig    clang-24
-riscv                             allyesconfig    clang-24
-riscv                                defconfig    gcc-16.1.0
-riscv                 randconfig-1000-20260923    gcc-16.1.0
-riscv                 randconfig-1001-20260923    gcc-16.1.0
-riscv                randconfig-r1309-20260923    gcc-16.1.0 sparse
-s390                              allmodconfig    clang-17
-s390                               allnoconfig    clang-24
-s390                              allyesconfig    gcc-16.1.0
-s390                                 defconfig    gcc-16.1.0
-s390                  randconfig-1000-20260923    gcc-16.1.0
-s390                  randconfig-1001-20260923    gcc-16.1.0
-sh                                allmodconfig    gcc-16.1.0
-sh                                 allnoconfig    clang-24
-sh                                allyesconfig    clang-17
-sh                                   defconfig    gcc-14
-sh                          ecovec24_defconfig    clang-24
-sh                           r7785rp_defconfig    clang-20
-sh                    randconfig-1000-20260923    gcc-16.1.0
-sh                    randconfig-1001-20260923    gcc-16.1.0
-sh                            se7343_defconfig    clang-20
-sparc                             alldefconfig    clang-20
-sparc                              allnoconfig    clang-24
-sparc                                defconfig    gcc-16.1.0
-sparc                 randconfig-1000-20260923    clang-24
-sparc                 randconfig-1001-20260923    clang-24
-sparc64                           allmodconfig    clang-20
-sparc64                              defconfig    gcc-14
-sparc64               randconfig-1000-20260923    clang-24
-sparc64               randconfig-1001-20260923    clang-24
-sparc64              randconfig-r1301-20260923    clang-20   sparse
-um                                allmodconfig    clang-17
-um                                 allnoconfig    clang-24
-um                                allyesconfig    gcc-16.1.0
-um                                   defconfig    gcc-14
-um                              i386_defconfig    gcc-14
-um                    randconfig-1000-20260923    clang-24
-um                    randconfig-1001-20260923    clang-24
-um                            x86_64_defconfig    gcc-14
-x86_64                             allnoconfig    clang-24
-x86_64      buildonly-randconfig-1000-20260923    gcc-14
-x86_64      buildonly-randconfig-1001-20260923    gcc-14
-x86_64      buildonly-randconfig-1002-20260923    gcc-14
-x86_64      buildonly-randconfig-1003-20260923    gcc-14
-x86_64      buildonly-randconfig-1004-20260923    gcc-14
-x86_64      buildonly-randconfig-1005-20260923    gcc-14
-x86_64                               defconfig    gcc-14
-x86_64                                   kexec    clang-22
-x86_64                randconfig-1000-20260923    gcc-14
-x86_64                randconfig-1001-20260923    gcc-14
-x86_64                randconfig-1002-20260923    gcc-14
-x86_64                randconfig-1003-20260923    gcc-14
-x86_64                randconfig-1004-20260923    gcc-14
-x86_64                randconfig-1005-20260923    gcc-14
-x86_64                randconfig-1006-20260923    gcc-13
-x86_64                randconfig-1007-20260923    gcc-13
-x86_64                randconfig-1008-20260923    gcc-13
-x86_64                randconfig-1009-20260923    gcc-13
-x86_64                randconfig-1010-20260923    gcc-13
-x86_64                randconfig-1011-20260923    gcc-13
-x86_64                randconfig-1012-20260923    gcc-14
-x86_64                randconfig-1013-20260923    gcc-14
-x86_64                randconfig-1014-20260923    gcc-14
-x86_64                randconfig-1015-20260923    gcc-14
-x86_64                randconfig-1016-20260923    gcc-14
-x86_64                randconfig-1017-20260923    gcc-14
-x86_64                randconfig-1300-20260923    gcc-12     sparse
-x86_64                randconfig-1301-20260923    gcc-12     sparse
-x86_64                randconfig-1302-20260923    gcc-12     sparse
-x86_64               randconfig-r1300-20260923    clang-20   sparse
-x86_64                                rhel-9.4    clang-22
-x86_64                            rhel-9.4-bpf    gcc-14
-x86_64                           rhel-9.4-func    clang-22
-x86_64                     rhel-9.4-kselftests    clang-22
-x86_64                          rhel-9.4-kunit    gcc-14
-x86_64                            rhel-9.4-ltp    gcc-14
-x86_64                           rhel-9.4-rust    clang-22
-xtensa                             allnoconfig    clang-24
-xtensa                            allyesconfig    clang-20
-xtensa                randconfig-1000-20260923    clang-24
-xtensa                randconfig-1001-20260923    clang-24
-xtensa                     xip_kc705_defconfig    gcc-16.1.0
-
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+s) to consider:
+- [High] RDMA/ionic: raw loop index passed as udma_mask bitmask in CQ creat=
+ion
 --
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+
+commit fe0e581cbc460bad22a8b89a0b2fc1b93d3ab485
+Author: Abhijit Gangurde <abhijit.gangurde@amd.com>
+Subject: RDMA/ionic: support firmware-assigned CQ IDs
+
+When the LIF advertises qid allocation for CQ, this commit updates the driv=
+er
+to let the firmware return the completion queue ID instead of allocating it
+in the driver bitmap. The CQ creation and destruction are split into distin=
+ct
+phases to safely handle concurrent allocations.
+
+> diff --git a/drivers/infiniband/hw/ionic/ionic_admin.c b/drivers/infiniba=
+nd/hw/ionic/ionic_admin.c
+> index 37e24450d1298..bd31594b36908 100644
+> --- a/drivers/infiniband/hw/ionic/ionic_admin.c
+> +++ b/drivers/infiniband/hw/ionic/ionic_admin.c
+> @@ -533,12 +576,16 @@ static struct ionic_vcq *ionic_create_rdma_admincq(=
+struct ionic_ibdev *dev,
+>  	cq =3D &vcq->cq[0];
+> =20
+>  	rc =3D ionic_create_cq_common(vcq, &buf, &attr, NULL, NULL,
+> -				    NULL, NULL, 0);
+> +				    NULL, 0);
+>  	if (rc)
+>  		goto err_init;
+> =20
+> -	rc =3D ionic_rdma_queue_devcmd(dev, &cq->q, cq->cqid, cq->eqid,
+> -				     IONIC_CMD_RDMA_CREATE_CQ);
+> +	rc =3D ionic_rdma_cq_devcmd(vcq, &cq->q, &cq->cqid, cq->eqid,
+> +				  IONIC_CMD_RDMA_CREATE_CQ, 0);
+
+[Severity: High]
+Does ionic_create_rdma_admincq() pass an empty bitmask to the firmware here=
+?=20
+The udma_mask argument is 0, which evaluates to a bitmask with no bits set.=
+=20
+
+Earlier in this function, vcq->udma_mask is initialized to 1. If the firmwa=
+re=20
+expects a valid UDMA mask, this might fail or allocate unexpectedly.
+
+[ ... ]
+
+> diff --git a/drivers/infiniband/hw/ionic/ionic_controlpath.c b/drivers/in=
+finiband/hw/ionic/ionic_controlpath.c
+> index 37f71fb43811e..7a840ece8259d 100644
+> --- a/drivers/infiniband/hw/ionic/ionic_controlpath.c
+> +++ b/drivers/infiniband/hw/ionic/ionic_controlpath.c
+> @@ -1222,8 +1230,11 @@ int ionic_dealloc_mw(struct ib_mw *ibmw)
+>  static int ionic_create_cq_cmd(struct ionic_ibdev *dev,
+>  			       struct ionic_ctx *ctx,
+>  			       struct ionic_cq *cq,
+> -			       struct ionic_tbl_buf *buf)
+> +			       struct ionic_tbl_buf *buf,
+> +			       int udma_mask,
+> +			       int *out_udma_idx)
+>  {
+
+[ ... ]
+
+> @@ -1243,13 +1254,57 @@ static int ionic_create_cq_cmd(struct ionic_ibdev=
+ *dev,
+> +	wr.wqe.cmd.create_cq.udma_mask =3D udma_mask;
+
+[ ... ]
+
+> @@ -1308,16 +1363,21 @@ int ionic_create_cq(struct ib_cq *ibcq, const str=
+uct ib_cq_init_attr *attr,
+> =20
+>  		rc =3D ionic_create_cq_common(vcq, &buf, attr, ctx, udata,
+>  					    &req.cq[udma_idx],
+> -					    &resp.cqid[udma_idx],
+>  					    udma_idx);
+>  		if (rc)
+>  			goto err_init;
+> =20
+> -		rc =3D ionic_create_cq_cmd(dev, ctx, &vcq->cq[udma_idx], &buf);
+> +		rc =3D ionic_create_cq_cmd(dev, ctx, &vcq->cq[udma_idx], &buf,
+> +					 udma_idx, NULL);
+
+[Severity: High]
+Should ionic_create_cq() be passing BIT(udma_idx) or vcq->udma_mask instead
+of the raw loop index here?
+
+By passing udma_idx directly as the udma_mask parameter to=20
+ionic_create_cq_cmd(), if udma_idx is 0, a mask of 0 is passed. If udma_idx=
+=20
+is 1, a mask of 1 (which equals BIT(0)) is passed, which could cause the=20
+firmware to allocate the CQ on UDMA 0 instead of the intended UDMA 1.=20
+
+This could break DMA and completion tracking if the software CQ context is=
+=20
+mapped to the wrong hardware UDMA engine.
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260922095724.3683=
+011-1-abhijit.gangurde@amd.com?part=3D2
