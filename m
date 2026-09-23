@@ -1,70 +1,69 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39898446C19
-	for <linux-rdma@vger.kernel.org>; Wed, 23 Sep 2026 08:54:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 485B14519A5
+	for <linux-rdma@vger.kernel.org>; Wed, 23 Sep 2026 08:54:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790153670; cv=none; b=BnrO2kJ8n21DCbp2Q62vWyO0vZUBUet8xVALG4X9lJPi0QeWq1JkvFHbKjr6zmxKFHOi0IhaeWs+EbRGpxDBLfOTnX1o5ETmC+tNcCQCCQn7F0Ncr0Two6bDzTO2yM1zj73IKpreWHFbQbMZOlmd8dAjwYLULJt8TU7H4g04ShA=
+	t=1790153674; cv=none; b=fMHgBhs0y1xkcojc6tGKo0bNl71+P8cmnMFRStfHbjGcn4rkH6apAEKSRNwV7KyvcsZ99gUa8YTHqRRQibQjpFWBxv2+kYxno9xT8YHA8Sfv4GrRbMQkoAkGndWHw1KsTlZboZJwC1GHi7IZRfkPlraQJJkKgWhPE8mgLC/bRgs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790153670; c=relaxed/simple;
-	bh=4kTvXAuK/H2USjSRuXE5e+/bgf6AzarrPls8yNOBNxs=;
+	s=arc-20240116; t=1790153674; c=relaxed/simple;
+	bh=V4oPbzBrcKKqOvHEdd5IcgwookqPrrxhwEMHS1WntvI=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=qp2wxvFxiI2qqYP4qYwE3STejUmiZu7MVKZVOkwVAIUjA4Nk72ypbFTPyjT1g/F2f/5WQ3M+DZIp7kA8LFyvZM0KAOi8AmMHlD1O2jkI6I8Fvjyw9z+7lklcCdxaDLa2l5s6ahi8DoCMf8NCYZuXoQ8E+FInapKZCE8XkziPObc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nGxKv5/e; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=gGj0ggrP13Dew1C5RjX37j1mB36foSEXX3yVCxRIdt6OiFahiYkXYh1vxlpcjy8HY+kOCaopFMnuneNetIVgHso/JNMZtlYZM3JolEjzv8joLPZ7vg3NuPskHOzjR13AQZrMZRsufUVsbWWpoGkr2jqUpEmAKoS38a6iEuzq3X4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XRE59pTi; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nGxKv5/e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 246F61F008A3;
-	Wed, 23 Sep 2026 08:54:23 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XRE59pTi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74C211F00899;
+	Wed, 23 Sep 2026 08:54:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790153663;
-	bh=P6Acd7HWQi/1ktnxd5QRo4bllbGtZKBRPC9gk8NVp2E=;
+	s=k20260515; t=1790153664;
+	bh=HCQ0jNW7l3C4SSTOI//M+1izwKBRjHEIFCHCjP+7fFk=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=nGxKv5/e9t+d1F43Zt8MB7ETOYqWK71IIC9+YwBLPGTlCoO+OnpfFz/u4TiFpCacu
-	 YMNZOYb8+aI1y7F20Bl+ijYjCLKsz9qydcq21almn9aLVZBF/1JSByYrWqlgYG8TTd
-	 njlV8yu5++uI44j3kdjIW0qCI9j8Ck0yGEo87A69w3POtww8rty4Y8TYlaDz2Ot3ur
-	 kkaxTEKtJyaCbZeJFPdRsQxu0UZpWQrcyS1NO/0VEVs+gfFSMYXzju0y7agN+AEeG6
-	 hFqp4/+2snmjvFOlZww6g5W21NvOWHLRTVZvPH01tTBqWBI/6Bpf/8u0lQ8aIdS4Lc
-	 CPlGDlbLAAcLA==
+	b=XRE59pTiUJmwNyk+Cfj9jWMHnKEwgBTApwCwNDyyhw6kE4wT8M78HJwpvitJ7Kz+b
+	 1qqgePaNeA4RGWHOW5/ysNG5UaAUmOWdJbbTfBG4y2XcIh8L3WxqwSfV6ETUH4E4b6
+	 J4a9/S05Z7QOp139U6nsjPu/jUJ3luK5x25XWgwoy2Ppup9QR+1RlLv7dCepOpufwd
+	 z2xMgPN3opQzNY+qflxJPTAMuI+sIizcdyFFKXd8Q0FJocFTs8yRFx5Z2URjzHmUNj
+	 c+iy9sM2gm/b45hHbottvvpjbOrW47RZ+Gxx30QGNdF8YkUWFgQKEgOIIn5aez6/fh
+	 aK4PUtuqM0vvA==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next v6 03/12] net/rds: guard every work-requeueing
- site with rds_destroy_pending()
+Subject: Re: [PATCH net-next v6 05/12] net/rds: split connection destroy
+ into quiesce and kref-governed free
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Allison Henderson" <achender@kernel.org>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260922085410.391323-4-achender@kernel.org>
+In-Reply-To: <20260922085410.391323-6-achender@kernel.org>
 References: <20260922085410.391323-1-achender@kernel.org>
- <20260922085410.391323-4-achender@kernel.org>
+ <20260922085410.391323-6-achender@kernel.org>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 23 Sep 2026 08:54:22 +0000
-Message-Id: <20260923085423.246F61F008A3@smtp.kernel.org>
+Date: Wed, 23 Sep 2026 08:54:24 +0000
+Message-Id: <20260923085424.74C211F00899@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-> rds_conn_destroy() cancels the path works and then destroys the
-> per-path workqueue.  The sites that can re-arm those works are
-> supposed to test rds_destroy_pending() under rcu_read_lock() first,
-> paired with the synchronize_rcu() in the destroy path, so that no new
-> work can be queued once the cancellation has begun.
+> From: Sharath Srinivasan <sharath.srinivasan@oracle.com>
 >=20
-> Five arming sites never got that guard:
+> rds_conn_destroy() tears down the transport state and immediately
+> frees the connection, along with its paths and its workqueues.  This
+> relies on the assumption (documented in the rds_conn_destroy()
+> comments) that "no one else is referencing the connection", which "we
+> can only ensure ... in the rmmod path".  However, the callers stopped
+> honoring that long ago.  Today, connections are also destroyed on
+> network namespace teardown (rds_tcp_kill_sock() and
+> rds_loop_kill_conns()) and, one at a time, when a peer negotiates an
+> unsupported protocol version (rds_ib_cm_connect_complete()).
 >=20
->   - rds_ib_send_cqe_handler() and rds_ib_send_add_credits() re-arm
->     cp_send_w when a send completion or a credit update clears
->     RDS_LL_SEND_FULL,
->   - rds_ib_recv_refill() re-arms cp_recv_w when the recv ring runs
->     low,
->   - rds_tcp_accept_one() kicks cp_recv_w on the freshly accepted
->     socket, and
+> This leaves loose ends since references to these destroyed
+> connections still exist.  Sockets cache their connections in rs_conn,
+> and congestion updates will walk the maps' m_conn_list.  The CM
 > [ ... ]
-> single connection.
->=20
-> Fixes: ebeeb1ad9b8a ("rds: tcp: use rds_destroy_pending() to synchronize =
-netns/module teardown and rds connection/workq management")
+>  infrastructure, no rds_net, single conn hash); destroy keeps its
+>  one-call external interface; holder coverage split out into follow-up
+>  patches; rewrite commit message]
 > Assisted-by: Claude-Code:claude-fable-5
 > Signed-off-by: Allison Henderson <achender@kernel.org>
 
@@ -72,5 +71,5 @@ Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260922085410.3913=
-23-1-achender@kernel.org?part=3D3
+23-1-achender@kernel.org?part=3D5
 
