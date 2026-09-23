@@ -1,92 +1,130 @@
-Received: from mail-pj1-f70.google.com (mail-pj1-f70.google.com [209.85.216.70])
+Received: from mta0.migadu.com (out-76.mta0.migadu.com [91.218.175.76])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 309BA47A88B
-	for <linux-rdma@vger.kernel.org>; Wed, 23 Sep 2026 22:42:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.70
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F2BD427F91
+	for <linux-rdma@vger.kernel.org>; Wed, 23 Sep 2026 22:49:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.76
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790203374; cv=none; b=s/vGWtZ2YHDpA1+CadwiA2DLRWnGotn0jq4nK+fPWEwYZtBIkKA2U/b4bImYh/EPoA1UOkdPZs3zdi7ub928S5PLcrbcvryFBm2VNGS1BEyHFsyCTh9hFZYwA8TWAcFG+vGgWPOAWzPGu24qWj3PZVHm6yigni3UbjYW3CgHEcY=
+	t=1790203764; cv=none; b=IA1ReG15Idg9gPCMoNc43ZYGAbjKEPWaevQVtkrPkLoSfahSAHZzjmTwasnyqzAge/88n6FE+z3fU/quysA3xPBuCz1rXTHoDTCZKi8h4l4oYpnNWTXOzRsJHTgegGgcRlz4rYl87nqLHxrl4uE7ZV0xoNqmwncleMbplgqh0gc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790203374; c=relaxed/simple;
-	bh=XC0GtZzu0BD86oQ6ghzNMhSkH0mMeg+u7BsmzLp0cIw=;
-	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=FSqRlU4ksBBjBiotznDgo+OZRK7WXDC1U5n7xM5aRWR6FCAYKiqnOLA9OAXPc3Ddmmo0PcYGWK7goUsbmz2XN/ed2XTcnIKBg32Al5QmFtktOGBpzuk24JU/yLdpoRqiqi0qb+4xnInd0YImHR20vWAogHkvbILjun5cBKd6O4A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--seanjc.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=Efy9i6Tq; arc=none smtp.client-ip=209.85.216.70
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--seanjc.bounces.google.com
+	s=arc-20240116; t=1790203764; c=relaxed/simple;
+	bh=N6DEIJwXs89OYvuIP58cOGr26F4IcXTzYNn+vfOg1xc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=jIbKR/6yT1M1RsGoYlsXlPsmUkAzGYHHmjOOuQGfVdbgPBThUz6fBQ5YaTRdGVicWQBoavaRgP/b+7baMDf96b8ztMROuEwMt3JZjqZ1xj9F0b6jaq8Q9glIQOoDlePHlqn4I1fIrgV5A7cxB3lDn0s+W8IbF2upKJMvt/MC+bQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=C/lmrSDW; arc=none smtp.client-ip=91.218.175.76
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="Efy9i6Tq"
-Received: by mail-pj1-f70.google.com with SMTP id 98e67ed59e1d1-3965ba1ba3eso1128985a91.2
-        for <linux-rdma@vger.kernel.org>; Wed, 23 Sep 2026 15:42:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1790203372; x=1790808172; darn=vger.kernel.org;
-        h=content-type:cc:to:from:subject:message-id:references:mime-version
-         :in-reply-to:date:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=c4ROB5gmPay6sdQJPjpG61DXTR2zRREmvWIvdqy7Ui4=;
-        b=Efy9i6TqcDJ8YqaJzlDjuCyPwIaLyKS2O9ovCaahkcOfUfw6fBjKXjGsZJxgmIYvfL
-         +ry2BkIWgBmHvvLFso3ZATjr5Ub2nz4RniCbWEwvHx7gtSvqfz0RQqoaSLyHHKr+7cAg
-         fCPynqUX7Bb9fgSAVlw6iIJs08XGw2zX4LQGjdLwkYCaH1slKctwv43/dxQJ5fwr5qlK
-         3wguolRgh/3ajD/pELswggZC07wCJZ7S8jOUJ/klp/L0Z8QNORQ5nW1tC+43G/7752xM
-         VvPWetDskQ2Td3ZeLBr3OoSizfwykLv7LPxq3KRZhYRIyiLC+bPUnb5JoFg/+gxFbPSe
-         2rPg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790203372; x=1790808172;
-        h=content-type:cc:to:from:subject:message-id:references:mime-version
-         :in-reply-to:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=c4ROB5gmPay6sdQJPjpG61DXTR2zRREmvWIvdqy7Ui4=;
-        b=bxUT67JszWGFxNtQRrJik18XdKwvEWcLGbivlfV62qqyD0bdCLk4M9IQ0Ye94jMmx6
-         2vvd8IvMiHVgv3s+FkZHDEY87/C9fpb38e04dvub98cG4A8IcYCuvWrC0U4T10kc3oGt
-         VNXr3MUknU1f5yiUdxnYpdjQuPXb5sfH2d11Khuwt6KdpPgyh53uUDwNLpj9L0MBlr5A
-         QNp7L7sz+Nv2umUtFj1ut00QS+ot9e1W36cpJXaMDnM9zwXBiveFKNk/PLy7hP9y5/5F
-         H0S3/Hxjugs9WZuTgXI0kiIRER1cvZgA+aUlkV3YLJsSrVF2bSnjsr+ATBl1/xrgVa5u
-         dADA==
-X-Forwarded-Encrypted: i=1; AKwUvBws9B7qk/2v0/j4aAJNKBGcTE2pIf8A3UkAFvBN67Z72EOm6/IymNUuCjbdOocwcE4572RJLplZKcWu@vger.kernel.org
-X-Gm-Message-State: AFuF++lqlcMvwZt9AYb1fzqpfKGV/+xOztmtMBBwKWVHDXqRLLq/qxyn
-	FjiS6ujLPs5zegUzdP61muFW6MosLcbGLhhICBnvpr3UPBm1thaxh+3YrSFXTV7AmBLIbqeKqp5
-	cI1nTgA==
-X-Received: from pjbbh7.prod.google.com ([2002:a17:90b:487:b0:3a0:8315:fa7b])
- (user=seanjc job=prod-delivery.src-stubby-dispatcher) by 2002:a17:90b:3f87:b0:398:a486:81ec
- with SMTP id 98e67ed59e1d1-3a0985b8f01mr435176a91.11.1790203372353; Wed, 23
- Sep 2026 15:42:52 -0700 (PDT)
-Date: Wed, 23 Sep 2026 15:42:51 -0700
-In-Reply-To: <6-v7-c6d30e8ce1e4+3dfa6-mlx5st_jgg@nvidia.com>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="C/lmrSDW"
+X-Envelope-To: linux-rdma@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=N6DEIJwXs89OYvuIP58cOGr26F4IcXTzYNn+vfOg1xc=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1790203759; v=1; x=1790808559;
+ b=C/lmrSDWYZnosGT3v6xXmQ5eOc+DwhsAPKuqw2s3hmA4IDF4A9altCq74VkGf/t4FEyzWC5X
+ zGukvWBisfj9A8svbBW/vU0QLH2s9qsanucI7LTixNjKCrbaYLtmKZuhBe1y9Bz8YcXDseFDvmW
+ mfaYga+tycHG0YdgCK5hxPqI=
+X-Envelope-To: linux-rdma@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id ee3f85351b71f6f8;
+	Wed, 23 Sep 2026 22:49:09 +0000
+X-Mizu-Trace-ID: ee3f85351b71f6f8
+X-Migadu-Flow: FLOW_OUT
+Message-ID: <7aef51f0-b28f-4d8a-b938-aea8b3dcfd87@linux.dev>
+Date: Wed, 23 Sep 2026 15:49:03 -0700
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-References: <0-v7-c6d30e8ce1e4+3dfa6-mlx5st_jgg@nvidia.com> <6-v7-c6d30e8ce1e4+3dfa6-mlx5st_jgg@nvidia.com>
-Message-ID: <arRV6y-d1rkRV2Fa@google.com>
-Subject: Re: [PATCH v7 06/10] vfio: selftests: Allow drivers to specify
- required region size
-From: Sean Christopherson <seanjc@google.com>
-To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Alex Williamson <alex@shazbot.org>, David Matlack <dmatlack@google.com>, 
-	Fuad Tabba <fuad.tabba@linux.dev>, Joey Gouly <joey.gouly@arm.com>, kvm@vger.kernel.org, 
-	kvmarm@lists.linux.dev, Leon Romanovsky <leon@kernel.org>, 
-	linux-arm-kernel@lists.infradead.org, linux-kselftest@vger.kernel.org, 
-	linux-rdma@vger.kernel.org, Marc Zyngier <maz@kernel.org>, Mark Bloch <mbloch@nvidia.com>, 
-	netdev@vger.kernel.org, Oliver Upton <oupton@kernel.org>, 
-	Paolo Bonzini <pbonzini@redhat.com>, Saeed Mahameed <saeedm@nvidia.com>, 
-	Steffen Eiden <seiden@linux.ibm.com>, Shuah Khan <shuah@kernel.org>, 
-	Suzuki K Poulose <suzuki.poulose@arm.com>, Tariq Toukan <tariqt@nvidia.com>, 
-	Zenghui Yu <yuzenghui@huawei.com>, patches@lists.linux.dev
-Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 1/2] RDMA/rxe: Reject IB_ACCESS_ON_DEMAND changes after
+ MR creation
+To: norbert@doyensec.com, Zhu Yanjun <zyjzyj2000@gmail.com>,
+ Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
+ Bob Pearson <rpearsonhpe@gmail.com>, Daisuke Matsuda <dskmtsd@gmail.com>,
+ "yanjun.zhu@linux.dev" <yanjun.zhu@linux.dev>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+ stable@vger.kernel.org
+References: <20260923-rxe-advise-mr-v3-v3-0-95e1a4077e4d@doyensec.com>
+ <20260923-rxe-advise-mr-v3-v3-1-95e1a4077e4d@doyensec.com>
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
+In-Reply-To: <20260923-rxe-advise-mr-v3-v3-1-95e1a4077e4d@doyensec.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Mon, Sep 21, 2026, Jason Gunthorpe wrote:
-> Add a region_size field to struct vfio_pci_driver_ops so drivers can
-> declare how much DMA-mapped region they need. The mlx5 driver will need
-> ~18MB for firmware pages. Existing drivers pass in the sizeof their state
-> struct. Since drivers all use only their declared state we can use the
-> value directly and remove the SZ_2M hard coding.
+在 2026/9/23 7:40, Norbert Szetei via B4 Relay 写道:
+> From: Norbert Szetei <norbert@doyensec.com>
 > 
-> Assisted-by: Claude:claude-opus-4.6
-> Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+> Whether an MR is an ODP MR is decided once, at registration time:
+> rxe_reg_user_mr() picks rxe_odp_mr_init_user() over rxe_mr_init_user()
+> based on IB_ACCESS_ON_DEMAND, and only the former builds an ib_umem_odp
+> via ib_umem_odp_get(). The umem cannot change type afterwards, and
+> is_odp_mr() reads mr->umem->is_odp.
+> 
+> Two paths assign mr->access after that point and can leave it
+> describing an MR type the umem does not have:
+> 
+> rxe_rereg_user_mr() with IB_MR_REREG_ACCESS overwrites mr->access with
+> the caller's value, and IB_ACCESS_ON_DEMAND is part of
+> RXE_ACCESS_SUPPORTED_MR, so userspace can set the flag on a plain MR or
+> clear it on an ODP MR while the umem stays what it was.
+> 
+> rxe_reg_fast_mr() takes mr->access from the REG_MR work request
+> unmasked and moves the MR to RXE_MR_STATE_VALID, on an MR that
+> rxe_mr_init_fast() left with a NULL umem.
+> 
+> Reject IB_ACCESS_ON_DEMAND in both, so mr->access carries the flag only
+> for an MR that has an ODP umem and the flag can be used to identify one.
+> 
+> Fixes: 544c7f62cf32 ("RDMA/rxe: Implement rereg_user_mr")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Norbert Szetei <norbert@doyensec.com>
+
+I have already reviewed this commit. I am fine with this commit.
+So
+Reviewed-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+
+Zhu Yanjun
+
 > ---
+>   drivers/infiniband/sw/rxe/rxe_mr.c    | 6 ++++++
+>   drivers/infiniband/sw/rxe/rxe_verbs.c | 6 ++++++
+>   2 files changed, 12 insertions(+)
+> 
+> diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
+> index 875eceb55fdf..2afda5154dfb 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_mr.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_mr.c
+> @@ -795,6 +795,12 @@ int rxe_reg_fast_mr(struct rxe_qp *qp, struct rxe_send_wqe *wqe)
+>   		return -EINVAL;
+>   	}
+>   
+> +	/* an MR with no umem is never an ODP MR */
+> +	if (unlikely(access & IB_ACCESS_ON_DEMAND)) {
+> +		rxe_dbg_mr(mr, "access = 0x%x requests ODP\n", access);
+> +		return -EINVAL;
+> +	}
+> +
+>   	mr->access = access;
+>   	mr->lkey = key;
+>   	mr->rkey = key;
+> diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+> index 96c7716057fe..21855274f63a 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_verbs.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+> @@ -1331,6 +1331,12 @@ static struct ib_mr *rxe_rereg_user_mr(struct ib_mr *ibmr, int flags,
+>   	if (err)
+>   		return ERR_PTR(err);
+>   
+> +	if ((flags & IB_MR_REREG_ACCESS) &&
+> +	    ((access ^ mr->access) & IB_ACCESS_ON_DEMAND)) {
+> +		rxe_err_mr(mr, "cannot change IB_ACCESS_ON_DEMAND\n");
+> +		return ERR_PTR(-EOPNOTSUPP);
+> +	}
+> +
+>   	if (flags & IB_MR_REREG_PD) {
+>   		rxe_put(old_pd);
+>   		rxe_get(pd);
+> 
 
-The KVM test still runs, and in David I trust:
-
-Acked-by: Sean Christopherson <seanjc@google.com>
