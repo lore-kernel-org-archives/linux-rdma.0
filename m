@@ -1,96 +1,87 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj2-f13.google.com (mail-pj2-f13.google.com [74.125.227.141])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E18DC40B11A;
-	Wed, 23 Sep 2026 17:34:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78D135275A4
+	for <linux-rdma@vger.kernel.org>; Wed, 23 Sep 2026 18:26:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.141
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790184851; cv=none; b=OvrCg9QRtCNP5VVucGnbdPpUmUEak6jNzi6BClclV4USFZU+733FDCc4cZr1OwruFoGZoJyR/4Z6ULWVOUcBm43Qn3mNZMf6SKzXR17q2GFDrbUgCAhIfq4ITr3i0z2+HAJOOfG5I4/seJ+aCilOqmdJYlAITCKYgi/jbRrOFYQ=
+	t=1790187975; cv=none; b=IRBzvxXFGj4P1IHOtg1k/v2JTg2SwOdolQd4i8G7lfnNwTHb5DRAvwfUZEpLUC/8a+q+JzV1GtOmcV3+PWS5rCgQLHT/v8IJLI5cSjB2JjAzR186QLi76UXl7Mi8EXUGbth44gZhmoKNCS9exk+wAy84PBW+JWFbJbLk/G+H4hY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790184851; c=relaxed/simple;
-	bh=kPlu2H6XNVNAm+eyKaf+KNtcUOLDMiz/SdRoD9k3csw=;
+	s=arc-20240116; t=1790187975; c=relaxed/simple;
+	bh=LhiPso6phLQM0wA+k6tjmIhIVqDrjbY4C0VTVIyFW7k=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ELTwYuIr+aAzPO3Hku+6VyqsXqOKOKD1EIfW+ic5GBH106PoueFufjSLK4ocKA+S1f8ZgH6FPFCLquTAhVLU/XH4YblZio1C1JoFS0yTp1AiNSFzhR52X+8SEOO3HiK1ROETyoc50x9caOSqo9fF+F0TwV3srI3g+IAoCcmGPr0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oIPXhDnn; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=cSYiP3oJWYdz5GHXty8RUyhFcBY07KqNWzOAyLiFnSg3OUIWmNNMiu7bY+Voodsxf2ICbjpxtkKllSjs1FzVEv0iwf9ja/jtCZiBhI6hPyOzJJTrEQzENuilVyUhLyC5mZQnjI8M0J+1VL/CmNoxA/I6F0aaGdFV2BdH6tLAOok=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=cb3d6YzW; arc=none smtp.client-ip=74.125.227.141
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oIPXhDnn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7578A1F00898;
-	Wed, 23 Sep 2026 17:33:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790184849;
-	bh=kPlu2H6XNVNAm+eyKaf+KNtcUOLDMiz/SdRoD9k3csw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=oIPXhDnn6KrbHUdB8J3HtxFj0acE8ktVqJkOruOhJCvNG5tAAVxIsyoHMYMRieHKt
-	 Is5+S1MolM3HFRsMb1jGHJLJBKDKhutQW6ZfXT/uIcKRR1r6PUVXazNarmpYGmlPd0
-	 DrVxZDA5/RDFBx7/03GL1IZtxQpOt/AyuqUyDXzSfV+fX36mqbt0ecrQoeMZoKoF4P
-	 +Cw4hzzM0pyksIgfNEY/yt9LZw5XVPHz+WoNZuUa2xzYl1ssIwnutkaiQTvVstnnbO
-	 sloaQyC80Sym14M1BLGJIqAR7U69u/36OLTFb2LZOlo2vRK66xJr47KsIDUd4H3N/u
-	 MIh65qBa71P4g==
-Date: Wed, 23 Sep 2026 18:33:37 +0100
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-To: Andrew Morton <akpm@linux-foundation.org>, 
-	"Liam R. Howlett" <liam@infradead.org>, Vlastimil Babka <vbabka@kernel.org>, 
-	Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
-	David Hildenbrand <david@kernel.org>, Mike Rapoport <rppt@kernel.org>, 
-	Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, 
-	Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
-	Paul Moore <paul@paul-moore.com>, Stephen Smalley <stephen.smalley.work@gmail.com>, 
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
-	Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
-	Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>, 
-	Kumar Kartikeya Dwivedi <memxor@gmail.com>, Zi Yan <ziy@nvidia.com>, 
-	Baolin Wang <baolin.wang@linux.alibaba.com>, Nico Pache <nico.pache@linux.dev>, 
-	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
-	Lance Yang <lance.yang@linux.dev>, Usama Arif <usama.arif@linux.dev>, 
-	Kiryl Shutsemau <kas@kernel.org>, Doug Gilbert <dgilbert@interlog.com>, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, "Martin K. Petersen" <mkp@kernel.org>, 
-	Jaya Kumar <jayalk@intworks.biz>, Simona Vetter <simona@ffwll.ch>, Helge Deller <deller@gmx.de>, 
-	Sebastian Reichel <sre@kernel.org>, John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, 
-	Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
-	Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@kernel.org>, 
-	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, Arnaldo Carvalho de Melo <acme@kernel.org>, 
-	Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
-	Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, Juri Lelli <juri.lelli@redhat.com>, 
-	Vincent Guittot <vincent.guittot@linaro.org>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
-	Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
-	David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>, 
-	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, Nick Piggin <npiggin@gmail.com>, Arnd Bergmann <arnd@arndb.de>, 
-	Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
-	"Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan Kara <jack@suse.cz>, Marc Zyngier <maz@kernel.org>, 
-	Oliver Upton <oupton@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, 
-	Madhavan Srinivasan <maddy@linux.ibm.com>, Anup Patel <anup@brainfault.org>, Paul Walmsley <pjw@kernel.org>, 
-	Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
-	Christian Borntraeger <borntraeger@linux.ibm.com>, Janosch Frank <frankja@linux.ibm.com>, 
-	Claudio Imbrenda <imbrenda@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
-	Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Heiko Carstens <hca@linux.ibm.com>, 
-	Vasily Gorbik <gor@linux.ibm.com>, "David S. Miller" <davem@davemloft.net>, 
-	Andreas Larsson <andreas@gaisler.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
-	Christian Brauner <brauner@kernel.org>, Matthew Brost <matthew.brost@intel.com>, 
-	Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, Byungchul Park <byungchul@sk.com>, 
-	Gregory Price <gourry@gourry.net>, Ying Huang <ying.huang@linux.alibaba.com>, 
-	Alistair Popple <apopple@nvidia.com>, Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>, 
-	Kemeng Shi <shikemeng@huaweicloud.com>, Nhat Pham <nphamcs@gmail.com>, Baoquan He <baoquan.he@linux.dev>, 
-	Youngjun Park <youngjun.park@lge.com>, Johannes Weiner <hannes@cmpxchg.org>, 
-	Qi Zheng <qi.zheng@linux.dev>, Shakeel Butt <shakeel.butt@linux.dev>, 
-	Axel Rasmussen <axelrasmussen@google.com>, Yuanchu Xie <yuanchu@google.com>, Wei Xu <weixugc@google.com>, 
-	Chengming Zhou <chengming.zhou@linux.dev>, Michal Hocko <mhocko@kernel.org>, 
-	Miklos Szeredi <miklos@szeredi.hu>, Xu Xin <xu.xin@linux.dev>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, 
-	linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, linux-rdma@vger.kernel.org, 
-	selinux@vger.kernel.org, linux-sound@vger.kernel.org, bpf@vger.kernel.org, 
-	linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, 
-	linux-trace-kernel@vger.kernel.org, linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.linux.dev, 
-	linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org, kvm-riscv@lists.infradead.org, 
-	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, 
-	fuse-devel@lists.linux.dev
-Subject: Re: [PATCH v3 02/40] mm/vma: predicate setting mmap_prepare VMA
- fields on new vma alloc
-Message-ID: <arQNTibMdh6x_T04@gremlin>
-References: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-0-4583d8a23bca@kernel.org>
- <20260917-b4-mmap-prepare-vma-flag-sanify-v3-2-4583d8a23bca@kernel.org>
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="cb3d6YzW"
+Received: by mail-pj2-f13.google.com with SMTP id d9443c01a7336-2d747f0135fso8717945ad.0
+        for <linux-rdma@vger.kernel.org>; Wed, 23 Sep 2026 11:26:13 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1790187972; x=1790792772; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=LNon7FG4gNvQZ8cTIn7dGZggjcYoEo+V3D2k9W/8Sxo=;
+        b=cb3d6YzW6nrGuRRS6oSU6xIv3mfNSvAfD4J+NhlQOOwGhtfYHTTWnAIK8qaVqc1gkc
+         r0EMkPHPvvuRU99MGAgbwLazKtATFcwxTWwuJdRVO4+8BXBh8alzfX+EQfop05AIYzub
+         06zcGdrRIZeWntKW7Z/GsG8cDvxIw95aqKmtrB4GUybxBPseaSwjRFdzyNfnsxZG72WS
+         i5rhwkf9o7Wlgs9oHqgmGnk8IXv+DAZEyXpVj2V0OHPL8M1QD/gqAlmwtAmJhqAp/zhs
+         SElDmw4UvXWAAA0OKEDvJioloFPEYLJAT8X61OdhF18NghTfdBl6cuVTC59eTKPNsS4b
+         LLKg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790187972; x=1790792772;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=LNon7FG4gNvQZ8cTIn7dGZggjcYoEo+V3D2k9W/8Sxo=;
+        b=ecnIDi5iVw0B4Z6idHV1P7Vv2inBZVKOlvyu1bSNo+nmm3XRcvpUkr3SlI7zSG3FO1
+         m2cbz2lFKbPnl2vCG2I4PqBTDKUxdGXPsnv+nSo8cQ8Q/ghXf9juanlzZpa4KVwXFQF3
+         aeSJSHI8I7n3758jyv6zX2OBrIBq8AIYJsH9/ES0sX0w4Aoq/kk3n3dvQhVcrTGgPoM1
+         PMzjs9Sq9NuA/URq99WTiN5r7oFV14Y4WsNOoTnY1AuqluWBRR9q5YCF1krFhdrCGPEO
+         Yxtc1uiISkhcTeOXaaT5uGK3kEC6VjxVlAMGzXzJj0Z6vbCjxS/wu2lTi9n2PkFwHDMm
+         YStA==
+X-Forwarded-Encrypted: i=1; AKwUvBxyehafDYT7mOjxUNDffYrs2+n7+SSZ3CYeyjMWmgX0wTxMyzan5caBAr6LeiR53L+EjUlsr3fPKnhu@vger.kernel.org
+X-Gm-Message-State: AFuF++kna0JRsiJ+B6vSy8RNXOw0jExIkH5aYJa84X+/MiW/vg3J4Tpw
+	cndyx3zriUlX2AAMMDsogGYrmECiGiETZU9heqtzbuXSiBodYTa8Anj2FCLm+BGqzw==
+X-Gm-Gg: AYBFou2VEU8qgOKbbW1Ws6T6UB+z9c60FcJL6ty4gt8xf4Ajt3Mpl/0sXRux4JWvxfD
+	qNZ5Fri4af3gby/kyrIxifOj0xKSpipgmL5MmteXETi7JJJBU9CfSUkQQwGbRZJYID35iLwc+cb
+	4OQpBxdQ9Xj+gEUAhRj3s4cIJCd2uYpKyKFsmqU7Jp6gdJPUgPG2dKtdeF7IjvRqSbZikfJCFTN
+	qx9pyqSlp+Kw4a0Cz5LNCTro5TfhLfyD9foB9ZM238Qq32uGLeAUI/nFVfMmxjCydnGG7ESzCqb
+	rL394oO9+J+flzuZYXXpD679xy9HxU9/aAhwpUN37v2DTzP3UBXn7eVBGvHQ4vOUzYF8ZsNHAy9
+	VkP2yvGTFNAG5/vfDTrDNz9Mv5dXKtaA76LI6nTtKuUWhDJIcATigiauS01zbrAgri7Hb4WPBrn
+	iHcWHPSggegui+bD8An85c7tDGc53PdwSAWa+w/Xrhv1hitV5SYYPfLrQ9gBcDmicHMIh6x4rOQ
+	OmsO9JmfmW5w7BWDU1/YAiIO0oLbIa84SYxDNlVmSHK/uzie4w=
+X-Received: by 2002:a17:902:ef52:b0:2df:3b09:664 with SMTP id d9443c01a7336-2df69dcdbf3mr30657015ad.32.1790187971787;
+        Wed, 23 Sep 2026 11:26:11 -0700 (PDT)
+Received: from google.com (132.200.185.35.bc.googleusercontent.com. [35.185.200.132])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2df6a5eea15sm15475075ad.64.2026.09.23.11.26.10
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 23 Sep 2026 11:26:10 -0700 (PDT)
+Date: Wed, 23 Sep 2026 18:26:06 +0000
+From: David Matlack <dmatlack@google.com>
+To: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Alex Williamson <alex@shazbot.org>, Fuad Tabba <fuad.tabba@linux.dev>,
+	Joey Gouly <joey.gouly@arm.com>, kvm@vger.kernel.org,
+	kvmarm@lists.linux.dev, Leon Romanovsky <leon@kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kselftest@vger.kernel.org, linux-rdma@vger.kernel.org,
+	Marc Zyngier <maz@kernel.org>, Mark Bloch <mbloch@nvidia.com>,
+	netdev@vger.kernel.org, Oliver Upton <oupton@kernel.org>,
+	Paolo Bonzini <pbonzini@redhat.com>,
+	Saeed Mahameed <saeedm@nvidia.com>,
+	Sean Christopherson <seanjc@google.com>,
+	Steffen Eiden <seiden@linux.ibm.com>, Shuah Khan <shuah@kernel.org>,
+	Suzuki K Poulose <suzuki.poulose@arm.com>,
+	Tariq Toukan <tariqt@nvidia.com>, Zenghui Yu <yuzenghui@huawei.com>,
+	patches@lists.linux.dev
+Subject: Re: [PATCH v7 06/10] vfio: selftests: Allow drivers to specify
+ required region size
+Message-ID: <arQZvkNtgq-NlUkh@google.com>
+References: <0-v7-c6d30e8ce1e4+3dfa6-mlx5st_jgg@nvidia.com>
+ <6-v7-c6d30e8ce1e4+3dfa6-mlx5st_jgg@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -99,10 +90,16 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-2-4583d8a23bca@kernel.org>
+In-Reply-To: <6-v7-c6d30e8ce1e4+3dfa6-mlx5st_jgg@nvidia.com>
 
-Andrew - please drop this patch from the series, I will send a separate fix for
-this to go into an RC.
+On 2026-09-21 07:35 PM, Jason Gunthorpe wrote:
+> Add a region_size field to struct vfio_pci_driver_ops so drivers can
+> declare how much DMA-mapped region they need. The mlx5 driver will need
+> ~18MB for firmware pages. Existing drivers pass in the sizeof their state
+> struct. Since drivers all use only their declared state we can use the
+> value directly and remove the SZ_2M hard coding.
+> 
+> Assisted-by: Claude:claude-opus-4.6
+> Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 
---
-Cheers, Lorenzo
+Reviewed-by: David Matlack <dmatlack@google.com>
