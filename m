@@ -1,36 +1,40 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C8CB37206B;
-	Wed, 23 Sep 2026 10:52:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A380B3CB560
+	for <linux-rdma@vger.kernel.org>; Wed, 23 Sep 2026 10:53:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790160735; cv=none; b=DR2U3KQhfCmFwRMFI2NrPcHPvpkiCh4mipxx9DO/XfnaKZNRhSxrwTcM2pw7atx/H2qRxyQYahpeo5+rblnvDgome5RxRyAzSXHCjP2mpvlHW1s0uCyQPFBa+dKjMp/gS8vxz/AWBC3fnBfoTxCHAGEIQLQd9MJBjIng2Uca/54=
+	t=1790160812; cv=none; b=E56cj8z5nDHRISN+k+Wmhcse7mg+RwC8LrdKitozH4r9mbyeKdQFU7GDj80jCVAVyaIrE0ltP/PkZkqAIbCR86wMvPSDSaz55laaZ2wLVuoTenafw3M6EygxWsmiB/BvYBeXQnTzKSwTR8nYf3PiBrKNLt+k3ksubJVIY5mXV8Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790160735; c=relaxed/simple;
-	bh=LfpEGeo/6Nvm5ZiRbBqEYHeRf07sDNiDTMNj6qphyVc=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=qif4BLZpu5z30cTfBHm8trjwBbJZrOxZ00ulHnZzPJLZcbxIQjkiFNXIp1iieWKZJCjEQ+iSM6hJJYjPv24ZP14vMJ9dBnirArJfCU2jCph3qZXBwqQfsJ5jWhYv8N/ejSFdHBElKdraIeFPEfuQKfs3mW8GMHbxj6Auz5/C/sE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AEF1mZmG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1790160812; c=relaxed/simple;
+	bh=r+CzcAsNaV3i2ivYG29J2yOrkiOcY1U1urTaG7t1lnI=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=EbvtbFLwJVTaciJ01HX1yoHCMqQVP3Jf8xMc+Hpp8WZLMSKDTix2OtuNrDdy0UVjUJbjDvHJuOpTagCN4OM9aLI2r6OhmpXp9RxkbZNX0jVHjSEjn+g+51il7quh2sNx7Y0FUKM8yyjdmQkOteZLvHsgg9KGVmRX/ABEh7OxQWs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RmAcF+Dj; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AEF1mZmG"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 35EA4C2BCB8;
-	Wed, 23 Sep 2026 10:52:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1790160733;
-	bh=LfpEGeo/6Nvm5ZiRbBqEYHeRf07sDNiDTMNj6qphyVc=;
-	h=From:Date:Subject:To:Cc:Reply-To:From;
-	b=AEF1mZmGFIH+cZbZgOtrsbYBlNREenjem9XY7R/nU0Ewh1CwjlzIfcFm3gYjE3geR
-	 TDzuD0PYQB9KV7J1nGMa7K6VOR7OcUcQsFD0pTLJs1FsGvp3IslYCBgbR+81XJjM3N
-	 PRn65q08OC3KTUlGvFqC1O4o4Knn973WKT7Fxbnou3VJNWPXqfnKRgXK5Zx9cLdtik
-	 4jLJHPSSugjX1by5iouLR35a5yXNNvnDEl/pVWl1nMh31suTQfh1FleNqUlGnSHDvj
-	 RDUgLMwAQEonukPNkLODC4lrN8St5ERSDihmqnbDbzMo2ANNCHYZ9DnkiHC7tCVJRU
-	 n1XBY4Md3bsJA==
-Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08592C98307;
-	Wed, 23 Sep 2026 10:52:13 +0000 (UTC)
-From: Quanye Yang via B4 Relay <devnull+quanyeyang.proton.me@kernel.org>
-Date: Wed, 23 Sep 2026 03:52:11 -0700
-Subject: [PATCH] RDMA/rtrs-clt: Validate peer-supplied IO completion msg_id
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RmAcF+Dj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DE731F000FF;
+	Wed, 23 Sep 2026 10:53:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790160797;
+	bh=CbeddEj7muq5Xnh19DRiRXSGgukp5da9lkhsBiIGoK8=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=RmAcF+DjuU28ugZNfmGl7zp7PkxXKtBj4I993iMO18KXSl7JZRSb1TwrLO/j2wWSx
+	 wpkeUYSRZ3riEh5022uP2sV9FNb8FoNppnVYWs36x3KRsTbHQU4AQdlY+l9EI7Y8fE
+	 A16otpZINzkpaSpjx12mLTCsbCc7K3+kekL0Nk/8cNEulBK+t5StF2RkkZ0cqT61oN
+	 uhlI125EqZ0CnbDNI2C6dX4nc96Fi+gkIH1V/Q5mBz7enNm9A/5c8pjzag0lPiALuz
+	 nyyOWdgatvdMjNOz1DWmt9uLsaI/HWW6yHH0VMR33PqQ0NUH1xmluomVX9qPxw//6v
+	 YhVCuBuEPTwjw==
+From: Leon Romanovsky <leon@kernel.org>
+To: jgg@ziepe.ca, Cheng Xu <chengyou@linux.alibaba.com>
+Cc: linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com
+In-Reply-To: <20260917120459.13286-1-chengyou@linux.alibaba.com>
+References: <20260917120459.13286-1-chengyou@linux.alibaba.com>
+Subject: Re: [PATCH for-next v4 0/5] RDMA/erdma: Support non-contiguous
+ kernel queue buffers
+Message-Id: <179016079524.3401433.4560223049599563885.b4-ty@kernel.org>
+Date: Wed, 23 Sep 2026 06:53:15 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -39,113 +43,38 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260923-rtrs-warning-inrtrs-clt-rdma-done-v1-1-0827a9a77c0b@proton.me>
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yXNwQrCMAyA4VcZORvoWubQVxEPXRtnRDNJOhXG3
- t06j9/l/xcwUiaDY7OA0ouNJ6lodw2ka5SRkHM1eOf37uADalHDd1RhGZFlY7oX1PyImCchDLH
- 3uQ9d54YWauepdOHP9jid/7Z5uFEqvzCs6xcvlyFBhQAAAA==
-X-Change-ID: 20260923-rtrs-warning-inrtrs-clt-rdma-done-3a72d73550b1
-To: "Md. Haris Iqbal" <haris.iqbal@ionos.com>, 
- Jack Wang <jinpu.wang@ionos.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
- Leon Romanovsky <leon@kernel.org>, 
- Danil Kipnis <danil.kipnis@cloud.ionos.com>
-Cc: Jack Wang <jinpu.wang@cloud.ionos.com>, linux-rdma@vger.kernel.org, 
- linux-kernel@vger.kernel.org, Farhad Alemi <farhad.alemi@berkeley.edu>
-X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1790160731; l=3239;
- i=quanyeyang@proton.me; s=20260801; h=from:subject:message-id;
- bh=GDXHINJv2vDuvTX9EdmF1T8Ljuh5MUi1ez80LQxqrxY=;
- b=iSVJPsFdC0q9D4T0Sr5eEF7iq1+y6QVBvdXATXMYmK/mTcjNAtyIEBS4NuO6K4YLSu6oPMf/o
- 5H/+dAd/CyZD/UMA+ipyjDhb6QCaZpP2ovLgfQpfcYG68ItJ9GIPob5
-X-Developer-Key: i=quanyeyang@proton.me; a=ed25519;
- pk=9L9FrcvzMgxPaBRU6XV0EnqTgjDqVO596rQKSZ9qZoY=
-X-Endpoint-Received: by B4 Relay for quanyeyang@proton.me/20260801 with
- auth_id=963
-X-Original-From: Quanye Yang <quanyeyang@proton.me>
-Reply-To: quanyeyang@proton.me
+X-Mailer: b4 0.15-dev-18f8f
 
-From: Quanye Yang <quanyeyang@proton.me>
 
-process_io_rsp() indexes clt_path->reqs[] with the 19-bit msg_id
-taken from a WRITE_WITH_IMM immediate. That value is chosen by the
-peer. The only check was WARN_ON(msg_id >= queue_depth), which still
-lets a completion run after free_path_reqs() has set reqs to NULL,
-or against a slot whose FRWR is already gone. Either path
-dereferences req->mr and can GPF; KASAN reports a null-ptr-deref at
-offsetof(struct rtrs_clt_io_req, mr).
+On Thu, 17 Sep 2026 20:04:54 +0800, Cheng Xu wrote:
+> This small patchset introduces support for non-contiguous kernel queue
+> buffers. Kernel QP and CQ buffers currently use a single coherent DMA
+> allocation, which can fail for large queues when memory is fragmented.
+> To address this, we allocate page-sized coherent buffers and describe
+> them with the existing MTT.
+> 
+> - #1 unwinds kernel QP initialization failures explicitly.
+> - #2 adds support for non-contiguous kernel QP buffers.
+> - #3 adds support for non-contiguous kernel CQ buffers.
+> - #4 unifies userspace and kernel space queue buffer management.
+> - #5 moves kernel QP helpers after the shared memory helpers.
+> 
+> [...]
 
-Treat a missing reqs array, an out-of-range msg_id, or a req
-without an MR as a protocol error and recover the connection.
+Applied, thanks!
 
-Reported-by: Farhad Alemi <farhad.alemi@berkeley.edu>
-Link: https://lore.kernel.org/r/CA+0ovCiJZz6O8LzsS9Dq1-JE1OE1L_OTA6Mr-WratpUE6jczHw@mail.gmail.com
-Fixes: 6a98d71daea1 ("RDMA/rtrs: client: main functionality")
-Signed-off-by: Quanye Yang <quanyeyang@proton.me>
----
- drivers/infiniband/ulp/rtrs/rtrs-clt.c | 21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-index eac38b57b00d..f8d3c6f37e3e 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-@@ -489,18 +489,22 @@ static int rtrs_post_send_rdma(struct rtrs_clt_con *con,
- 					    imm, flags, wr, NULL);
- }
- 
--static void process_io_rsp(struct rtrs_clt_path *clt_path, u32 msg_id,
-+static bool process_io_rsp(struct rtrs_clt_path *clt_path, u32 msg_id,
- 			   s16 errno, bool w_inval)
- {
- 	struct rtrs_clt_io_req *req;
- 
--	if (WARN_ON(msg_id >= clt_path->queue_depth))
--		return;
-+	if (!clt_path->reqs || msg_id >= clt_path->queue_depth)
-+		return false;
- 
- 	req = &clt_path->reqs[msg_id];
-+	if (!req->mr)
-+		return false;
-+
- 	/* Drop need_inv if server responded with send with invalidation */
- 	req->mr->need_inval &= !w_inval;
- 	complete_rdma_req(req, errno, true, false);
-+	return true;
- }
- 
- static void rtrs_clt_recv_done(struct rtrs_clt_con *con, struct ib_wc *wc)
-@@ -562,7 +566,8 @@ static void rtrs_clt_rkey_rsp_done(struct rtrs_clt_con *con, struct ib_wc *wc)
- 		if (WARN_ON(buf_id != msg_id))
- 			goto out;
- 		clt_path->rbufs[buf_id].rkey = le32_to_cpu(msg->rkey);
--		process_io_rsp(clt_path, msg_id, err, w_inval);
-+		if (!process_io_rsp(clt_path, msg_id, err, w_inval))
-+			goto out;
- 	}
- 	ib_dma_sync_single_for_device(clt_path->s.dev->ib_dev, iu->dma_addr,
- 				      iu->size, DMA_FROM_DEVICE);
-@@ -634,7 +639,13 @@ static void rtrs_clt_rdma_done(struct ib_cq *cq, struct ib_wc *wc)
- 			w_inval = (imm_type == RTRS_IO_RSP_W_INV_IMM);
- 			rtrs_from_io_rsp_imm(imm_payload, &msg_id, &err);
- 
--			process_io_rsp(clt_path, msg_id, err, w_inval);
-+			if (!process_io_rsp(clt_path, msg_id, err, w_inval)) {
-+				rtrs_err(clt_path->clt,
-+					 "Invalid IO rsp: msg_id %u queue_depth %zu\n",
-+					 msg_id, clt_path->queue_depth);
-+				rtrs_rdma_error_recovery(con);
-+				return;
-+			}
- 		} else if (imm_type == RTRS_HB_MSG_IMM) {
- 			WARN_ON(con->c.cid);
- 			rtrs_send_hb_ack(&clt_path->s);
-
----
-base-commit: 93f51579e7df248780214094418f205253383cc5
-change-id: 20260923-rtrs-warning-inrtrs-clt-rdma-done-3a72d73550b1
+[1/5] RDMA/erdma: Unwind kernel QP initialization failures
+      https://git.kernel.org/rdma/rdma/c/9a413ed37d54b3
+[2/5] RDMA/erdma: Support non-contiguous kernel QP buffers
+      https://git.kernel.org/rdma/rdma/c/97ff4e6cd8d87e
+[3/5] RDMA/erdma: Support non-contiguous kernel CQ buffers
+      https://git.kernel.org/rdma/rdma/c/717ba25e0904bf
+[4/5] RDMA/erdma: Unify userspace and kernel queue buffer management
+      https://git.kernel.org/rdma/rdma/c/30cc2244165041
+[5/5] RDMA/erdma: Move kernel QP helpers after memory helpers
+      https://git.kernel.org/rdma/rdma/c/337b40e287b7e9
 
 Best regards,
---  
-Quanye Yang <quanyeyang@proton.me>
-
+-- 
+Leon Romanovsky <leon@kernel.org>
 
