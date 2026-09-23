@@ -1,122 +1,165 @@
-Received: from mail-pz2-f41.google.com (mail-pz2-f41.google.com [74.125.228.41])
+Received: from mta1.migadu.com (out-230.mta1.migadu.com [95.215.58.230])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 840224F30D5
-	for <linux-rdma@vger.kernel.org>; Wed, 23 Sep 2026 18:30:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A3215383F2
+	for <linux-rdma@vger.kernel.org>; Wed, 23 Sep 2026 18:39:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.230
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790188265; cv=none; b=Swhd+l47BV0A1CMDvwnbJ9q3Ejh9i941kM9XlZF9YdtuLfC9qSRKmuH0ijVl6wErMerkRZrjI1kT+xvBDee2oeorkJIiuiUFtAt1k9Se1JeO9H3tRZRZq/X8Bae7ZgvLuHPbDdSGaI74E4MR1vL7wHdBgAwbPKapvtTq8Gx1i24=
+	t=1790188776; cv=none; b=ukFv8dDfyWV0D9yrFEZlaKg/pavjC8+4b1fLnpODEbD5PN621WRxzUth06oaijT4dxxut2AyPJmjaCptzlVZfpe3lTgRkAVhCUpbfSx3e+ElYiQmFbQDBNKEVt/M4Q072RG7YuydSaed70Mj4MwZCnh8Coc43tDxrVSOIHR5d50=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790188265; c=relaxed/simple;
-	bh=lWag3oM9sYGpdHyGnDE7rA3iXeVqrktsZhX6pT4UGs4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=UN2wdjrzzg7dHKOUBYg/NA5R89amvtGFJhAqOwgxoS8bxxkmN2armtFhoJN0Pc+6bCNEp4QbEuCsEuvFQbWjuvA0qt5gNOLIiwuKtZRTPYEqa3SpXnGc9NwwoPy0ZYfcAeSMJR8JL4t9aR+oxEbVHQOwk6h1Pp4pjbTIA8W1Gf4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=OuXyJUlU; arc=none smtp.client-ip=74.125.228.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	s=arc-20240116; t=1790188776; c=relaxed/simple;
+	bh=xvVfhU/rhBzON30v3lLER/H5XSDtA/5WCZuabwZWrT8=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Bkzj5MAT909hJLKZNjcvXlkWnJ1bprfhjbIov6Wo/C3hFtNFS8i8KbgRla5g6K0WLFN6WSn53/iS+4wY49SaU47+2CvVewQEcEs30fsOh8XCe+P507SBEUD8ou8YSurSq8SJ/bS5ErjqPzTXg7FAg/q8fvtxMnxI7V7CW3YN85E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=NbHNLt2w; arc=none smtp.client-ip=95.215.58.230
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="OuXyJUlU"
-Received: by mail-pz2-f41.google.com with SMTP id d2e1a72fcca58-8623e5d435cso442305b3a.1
-        for <linux-rdma@vger.kernel.org>; Wed, 23 Sep 2026 11:30:56 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1790188253; x=1790793053; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=qQbES28pq+4+5SdsOxa0hPCoAfkWzPeIh6+fD64KIF8=;
-        b=OuXyJUlUPtMGFQ5DWG/IMX6NGxL8J4NG1NHjhdsM40etbe4/isGYi5Fo1Nswte/qWM
-         HRorY+v7u0m1lONdLNau7BOvww6tgrePu3hxCRY6oXcs5WaTIeisJn5qxHhyAa77XDwQ
-         9dpApYUHDqbqow9zea7CB2Ao90FaUmytc4qSLKyhz3FozJpJ956QNYpxnj5EB5LYX1AW
-         0w/YvHVuOYJ7P1Jx9jaZLBBbkSCVxpfiCw6pNGXfH7Q2PYwu7+FGgFUzHODiUvBqfs7I
-         QRiS2Hhn4uD/5vLnshlqK5lbByrWNTuRr+Ha1fyVezkThcXSI9wj3tQN98/t/R7//xP5
-         moYQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790188253; x=1790793053;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=qQbES28pq+4+5SdsOxa0hPCoAfkWzPeIh6+fD64KIF8=;
-        b=T+ijz9FzqWzyxVGf8N8/89JrF3hP7zhGdmEJ8jMCnLJQR/NS7IdHOoaZ8WZrvuLuHH
-         qFyWjvlaxn9zKVNiWEDnBEQickEQT3AbcQYSU0b30+AtrONwWYJjG7moRhTuoUWp57ED
-         58sWenuoxYLeq9nB794x35o6At/15+XN9JcPducWvucqBxaYd2P86o1Hd0Os0dd0RhfE
-         v//GHTWwgkLl4vA1egVGqz79EliH7enpgcWtItdHu0jdScz5qS7lZQu4BZl+g4cZT3QY
-         sDLEZoWZeySd6A3GPctc/Ny0028Y0UaeUdz7VD2CkSs/0zqaywM56g78iwmNYuRZQWCe
-         8cTQ==
-X-Forwarded-Encrypted: i=1; AKwUvBz7/NK9+Zoj3/tvw7wBmR53ZKV4Pr2dOMQOcSz3F7RhS3A4FlknOTFBjYRuSdDgVs1UTHFeZE7BRSes@vger.kernel.org
-X-Gm-Message-State: AFuF++mbBiBF83xv1WEdVWTxU6HmBBx9RvoNNhPvtI5eF7/RUXi0sPwY
-	ovmWOCOoUPBm8YXlp2DeGb9T0gd+QXdung1yB1LcFZp4MAfJxNpa3Ejs0co4/+KX+Wvf324Aism
-	yBFpDNiso
-X-Gm-Gg: AYBFou0CaABa7BowpY5AD4zuwVCEOxx7alOMyDSCefWf7PD10lxTkPcuMRhpNYl4Lzf
-	ENDDQcHyXm8ZMcRPBRqUCJjYLoUIEV2PWk0nriRpOmqEmMSHNJ7RW91BUJK9uTjM5+x3ZMh53dE
-	MDCeb2thcwuq6XSJoucbyXV8OPLDXPCtq7sVkmexL/lRQ50wWw/MTAbObKCX3RsFcYKlpKc5Zuh
-	V35w0MbfOtxgDK/+Hrfk6Jgc43k/BiUzf37rWx9J6HL5Swn9wItZmCdV7jjizLSni5V/GE88uX1
-	Sxlu3se4hb1FRRyl4vV/qg1wlNsf8UKQhuqZDqo2Xp0d4V16JXFkjlbFn91oJNydxxSnvUtlLND
-	ovUacbRaeL/aykhZywjY9uus74yLBg9wCxZPW+acRnNjUbwfPIlLAOdIs6f4Fv5CZWnN5/BHLJO
-	ykTqUugK65yU1XbPlBDtvZ+oXGW8agm+2iM3USoxGPQ9lxDQgncycFygrmg1VVsZh+2IZAljZE3
-	YHg1B+5vRQXzOxibym8oVyWsqYR2nLX9McMI8PBxFOa/VM+lso=
-X-Received: by 2002:a05:6a20:7290:b0:3db:131b:8d8 with SMTP id adf61e73a8af0-3de0e7300c0mr45910637.14.1790188251251;
-        Wed, 23 Sep 2026 11:30:51 -0700 (PDT)
-Received: from google.com (132.200.185.35.bc.googleusercontent.com. [35.185.200.132])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-87d1d5c12besm1736810b3a.29.2026.09.23.11.30.50
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 23 Sep 2026 11:30:50 -0700 (PDT)
-Date: Wed, 23 Sep 2026 18:30:46 +0000
-From: David Matlack <dmatlack@google.com>
-To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Alex Williamson <alex@shazbot.org>, Fuad Tabba <fuad.tabba@linux.dev>,
-	Joey Gouly <joey.gouly@arm.com>, kvm@vger.kernel.org,
-	kvmarm@lists.linux.dev, Leon Romanovsky <leon@kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	linux-kselftest@vger.kernel.org, linux-rdma@vger.kernel.org,
-	Marc Zyngier <maz@kernel.org>, Mark Bloch <mbloch@nvidia.com>,
-	netdev@vger.kernel.org, Oliver Upton <oupton@kernel.org>,
-	Paolo Bonzini <pbonzini@redhat.com>,
-	Saeed Mahameed <saeedm@nvidia.com>,
-	Sean Christopherson <seanjc@google.com>,
-	Steffen Eiden <seiden@linux.ibm.com>, Shuah Khan <shuah@kernel.org>,
-	Suzuki K Poulose <suzuki.poulose@arm.com>,
-	Tariq Toukan <tariqt@nvidia.com>, Zenghui Yu <yuzenghui@huawei.com>,
-	patches@lists.linux.dev
-Subject: Re: [PATCH v7 00/10] mlx5 support for VFIO self test
-Message-ID: <arQa1khEHzKOfkCK@google.com>
-References: <0-v7-c6d30e8ce1e4+3dfa6-mlx5st_jgg@nvidia.com>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="NbHNLt2w"
+X-Envelope-To: linux-rdma@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=xvVfhU/rhBzON30v3lLER/H5XSDtA/5WCZuabwZWrT8=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1790188768; v=1; x=1790793568;
+ b=NbHNLt2w4rgF1oxC1LE0aT0NmaOaal6Q9Lfgw0h733K3uN4loKdnqHJIZL74lHUfSwVZgrrl
+ noYk4XP5VONvDU0KsXPR6HgAsBFSAz5x1DFb3vcWIsODiD+/Z3DRG65xvqo72HBbfmlQnqv5ZJe
+ WSXupxsOJTlemb6sncmlw0Xs=
+X-Envelope-To: linux-rdma@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id 3ea29e3c32de8e0c;
+	Wed, 23 Sep 2026 18:39:28 +0000
+X-Mizu-Trace-ID: 3ea29e3c32de8e0c
+X-Migadu-Flow: FLOW_OUT
+Message-ID: <6c0a220c-7d9f-4b31-88b9-6882b1b09231@linux.dev>
+Date: Wed, 23 Sep 2026 11:39:26 -0700
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <0-v7-c6d30e8ce1e4+3dfa6-mlx5st_jgg@nvidia.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v1] RDMA/rxe: unpublish the per-net tunnel socket before
+To: Binbin Deng <18983559317@163.com>, zyjzyj2000@gmail.com, jgg@ziepe.ca,
+ leon@kernel.org, dsahern@kernel.org,
+ "yanjun.zhu@linux.dev" <yanjun.zhu@linux.dev>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20260923051800.244740-1-18983559317@163.com>
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
+In-Reply-To: <20260923051800.244740-1-18983559317@163.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On 2026-09-21 07:35 PM, Jason Gunthorpe wrote:
-> Add an mlx5 driver to VFIO self test. This is largely a remix of the
-> existing VFIO mlx5 driver in rdma-core. It uses an RDMA loopback QP
-> to issue RDMA WRITE operations which effectively perform memory
-> copies using DMA. Since mlx5 has a stable programming ABI this
-> should work on devices from CX5 to current HW. The device FW must
-> support the QP loopback configuration.
 
-> v7:
->  - Fix some compilation problems, kvm and the igb
+在 2026/9/22 22:18, Binbin Deng 写道:
+> KASAN reports a slab-use-after-free in ip6_route_output_flags()
+> reached from rxe_find_route(), with the free in __sk_destruct() after
+> rxe_sock_put(), and a user with CAP_NET_ADMIN can remove the device with
+> "rdma link del rxe0" while RoCE v2 over IPv6 traffic keeps looking the
+> socket up.
+>
+> BUG: KASAN: slab-use-after-free in ip6_route_output_flags+0x300/0x360
+> Read of size 4 at addr ffff888115ddd794 by task kworker/u32:6/309
+> Call Trace:
+>   <TASK>
+>   dump_stack_lvl+0x53/0x70
+>   print_report+0xd0/0x630
+>   ? __pfx__raw_spin_lock_irqsave+0x10/0x10
+>   ? ip6_route_output_flags+0x300/0x360
+>   kasan_report+0xce/0x100
+>   ? ip6_route_output_flags+0x300/0x360
+>   ip6_route_output_flags+0x300/0x360
+>   ip6_dst_lookup_tail.constprop.0+0x76c/0xcc0
+>   ? ct_nmi_exit+0xc3/0xf0
+>   ip6_dst_lookup_flow+0xf5/0x1e0
+>   ? __pfx_ip6_dst_lookup_flow+0x10/0x10
+>   rxe_find_route+0x426/0xa30
+>   ? __kasan_slab_alloc+0x6e/0x70
+>   ? __pfx_rxe_find_route+0x10/0x10
+>   ? kmem_cache_alloc_node_noprof+0x141/0x370
+>   ? kmalloc_reserve+0x103/0x2b0
+>   ? rxe_icrc_generate+0x229/0x330
+>   ? __pfx___alloc_skb+0x10/0x10
+>   rxe_prepare+0x9e8/0x18b0
+>   ? rxe_init_packet+0x3c7/0x4f0
+>   rxe_requester+0x1a0f/0x51f0
+>   ? rxe_completer+0x1de9/0x38c0
+>   ? __pfx_rxe_completer+0x10/0x10
+>   ? __queue_work+0x43e/0x11f0
+>   ? __pfx_rxe_requester+0x10/0x10
+>   ? irqentry_exit+0xd2/0x640
+>   ? _raw_spin_lock_irqsave+0x85/0xe0
+>   ? __pfx__raw_spin_lock_irqsave+0x10/0x10
+>   ? __pfx_rxe_sender+0x10/0x10
+>   rxe_sender+0xe/0x30
+>   do_work+0x144/0x470
+>   process_one_work+0x633/0x1030
+>   ? assign_work+0x11d/0x370
+>   worker_thread+0x45b/0xd10
+>   ? __pfx_worker_thread+0x10/0x10
+>   kthread+0x2c6/0x3b0
+>   ? recalc_sigpending+0x15c/0x1e0
+>   ? __pfx_kthread+0x10/0x10
+>   ret_from_fork+0x36e/0x5a0
+>   ? __pfx_ret_from_fork+0x10/0x10
+>   ? __switch_to+0x572/0xdd0
+>   ? __pfx_kthread+0x10/0x10
+>   ret_from_fork_asm+0x1a/0x30
+>   </TASK>
+>
+> Allocated by task 146020:
+>   kasan_save_stack+0x33/0x60
+>   kasan_save_track+0x14/0x30
+>   __kasan_slab_alloc+0x6e/0x70
+>   kmem_cache_alloc_noprof+0x130/0x360
+>   sk_prot_alloc+0x56/0x210
+>
+> Fix by clearing the per-net pointer before the last reference is dropped.
 
-> Jason Gunthorpe (10):
->   net/mlx5: Add IFC structures for CQE and WQE
->   net/mlx5: Move HW constant groups from device.h/cq.h to mlx5_ifc.h
->   net/mlx5: Extract MLX5_SET/GET macros into mlx5_ifc_macros.h
->   net/mlx5: Add ONCE and MMIO accessor variants to mlx5_ifc_macros.h
->   selftests: Add additional kernel functions to tools/include/
->   vfio: selftests: Allow drivers to specify required region size
->   vfio: selftests: Add dev_dbg
->   vfio: selftests: Add mlx5 driver - HW init and command interface
->   vfio: selftests: Add mlx5 driver - data path and memcpy ops
->   vfio: selftests: mlx5 driver - add send_msi support
+Thanks a lot. I also confronted this problem. I fixed this problem with 
+a lock.
 
->  .../selftests/kvm/include/arm64/processor.h   |    4 +-
->  tools/testing/selftests/kvm/irq_test.c        |    2 -
+It seems that this fix is better. If this fix is verified in your test 
+environment,
 
-Sean and Marc/Oliver, can you take a look at the changes Jason made to
-KVM selftests as part of this series before we merge this into the VFIO
-tree?
+I am ok with this fix.
+
+Reviewed-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+
+Thanks a lot.
+
+Zhu Yanjun
+
+>
+> Fixes: f1327abd6abed ("RDMA/rxe: Support RDMA link creation and destruction per net namespace")
+> Signed-off-by: Binbin Deng <18983559317@163.com>
+> ---
+>   drivers/infiniband/sw/rxe/rxe_net.c | 10 ++++++++--
+>   1 file changed, 8 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+> index 53daaf4c1eb2..4153f03ed69a 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_net.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_net.c
+> @@ -638,9 +638,15 @@ static void rxe_sock_put(struct sock *sk,
+>   	if (refcount_read(&sk->sk_refcnt) > SK_REF_FOR_TUNNEL) {
+>   		__sock_put(sk);
+>   	} else {
+> +		/*
+> +		 * Clear the per-net pointer before the last reference is
+> +		 * dropped.  rxe_ns_pernet_sk4/6() returns the pointer to readers
+> +		 * that dereference it outside the RCU read-side critical section,
+> +		 * so it must not stay visible once the socket has entered the
+> +		 * teardown path.
+> +		 */
+> +		set_sk(net, NULL);
+>   		rxe_release_udp_tunnel(sk);
+> -		sk = NULL;
+> -		set_sk(net, sk);
+>   	}
+>   }
+>   
+
+-- 
+Best Regards,
+Yanjun.Zhu
+
