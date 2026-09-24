@@ -1,76 +1,109 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AD9F35CB9C
-	for <linux-rdma@vger.kernel.org>; Thu, 24 Sep 2026 06:50:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from outbound.baidu.com (mx13.baidu.com [220.181.3.100])
+	by smtp.subspace.kernel.org (Postfix) with SMTP id 571BE359A70;
+	Thu, 24 Sep 2026 06:50:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.181.3.100
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790232634; cv=none; b=VfoJH85PKOqODxN1phwnaP2fmpl8rkKXqk6r9abPugRZGadtFNzCrO90QH+3dfnb6qHSRY4y3YA9zo72UTmC+BvrvaCLo2mnNVH04s5wRDYERpZ00KyqJiS1/PBYFXuk8KwObXj4AnIrdWTUt6Hx+x8fMBL2RZQI2LHRk/aQ/RE=
+	t=1790232635; cv=none; b=Q5zIWf99WaQLboqn7iNm9oquGH1stZKv6FyZbVhBwXOH2E+lmyrrkaGY6I+EIl0bDrhA23TEbQCAXUUbvZSe+fRcbQsRoPPPamxL+mc8/VNbFD30SnawwhONB1yRPy5+ujA7+CbtKAjtwN/DDxnC4kTL8ynpNdvt+hVYHj6SPwc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790232634; c=relaxed/simple;
-	bh=amQKjawHqz6GjtdpUqiZo6C9Qu9eWP6k7VMVNgmy7IA=;
-	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=MZ50bVPoW5CnHLMa+g9stbPrToLLOgH8IXPI0memL9bwuOdMymSJyKGPdpnCfUWOxezeLwcjBqnFedKR9O5WuogcelrFzi9dZXay/PLOpwz23rw43Gg06OxYgQtsmagpPhfPpF0CHfCbZs6EHzhbDmyfoTS/nyal/bZz2FsuUGk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XXsLmhrP; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790232635; c=relaxed/simple;
+	bh=fZsYSsVPn7oZCdO20+fq4e15qAV657+bgqozpMl22+E=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=KHMjJRvAPM7hen4UZB68JI+iPZ578R8+6SMy5v4dl8YHaquH47TI0+FmTNcwQGjgjeRazV6EYpFCrt4a2zObRK+cGtVZaqrg95oXns65hZjaWp8m+lpSdkCiKt4QQb19rkCnnnF0Nz8wIFjPr/aRLmTcaCUzyFyw86IwNbsocTg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com; spf=pass smtp.mailfrom=baidu.com; dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b=YvIHGmVo; arc=none smtp.client-ip=220.181.3.100
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baidu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XXsLmhrP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 909E91F00893;
-	Thu, 24 Sep 2026 06:50:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790232632;
-	bh=amQKjawHqz6GjtdpUqiZo6C9Qu9eWP6k7VMVNgmy7IA=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=XXsLmhrPLy0bld8L4RRKdsJZ7N4zTeJQayco8+FW4TmZ27ZR39EsPRZSpJk4ZMwDG
-	 j9tQb3D18yR5U4/+6j7cAgRqx5ZIaJqPpYziRb2T2jscdEFSB6beAyB1rkCE4yaZP+
-	 aOtm5N4fn+3LLqkT70lhBTyPlCaEZjIc6PrAjqnFN5AxAT+zLIyIA64Y0QqUPKEGJy
-	 91SENkc9hS1r49t2IQ8qaay3bjWSXrn/gzPPA+ZdAXsqbUWUlMmtlppDeEbVcUl3Vt
-	 SkguZqb4/6ZDmoAtmtPNPuFmv8hSo/3P8TlaWw9kIPUitnPQBqe7R2a1cmzPxvH/s8
-	 UTBz0sjNeCqBA==
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net v2] net/mlx5: Fix slab-out-of-bounds when handling
- team device events
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Anirudh Virdi" <avirdi@redhat.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260924064244.94045-1-avirdi@redhat.com>
-References: <20260924064244.94045-1-avirdi@redhat.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Thu, 24 Sep 2026 06:50:32 +0000
-Message-Id: <20260924065032.909E91F00893@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b="YvIHGmVo"
+X-MD-Sfrom: lirongqing@baidu.com
+X-MD-SrcIP: 172.31.50.47
+From: lirongqing <lirongqing@baidu.com>
+To: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Michael
+ Guralnik <michaelgur@nvidia.com>, <linux-rdma@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>
+CC: Li RongQing <lirongqing@baidu.com>
+Subject: [PATCH v2] RDMA/mlx5: Wait for in-flight page faults on implicit MR null_mkey dereg
+Date: Thu, 24 Sep 2026 14:50:17 +0800
+Message-ID: <20260924065017.2424-1-lirongqing@baidu.com>
+X-Mailer: git-send-email 2.17.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain
+X-ClientProxiedBy: bjkjy-exc5.internal.baidu.com (172.31.50.49) To
+ bjkjy-exc3.internal.baidu.com (172.31.50.47)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=baidu.com;
+	s=selector1; t=1790232625;
+	bh=XRITnGPI2MGQsAQZPBnT65DhCFWUCo8azF16hTjiJ8A=;
+	h=From:To:CC:Subject:Date:Message-ID:Content-Type;
+	b=YvIHGmVo2ojDL8bfVWpkP0Y3soi0xOW1+BWizpjfi+1+4AmtYoUq17fc4IsScjAQT
+	 RsMjHkYmSptdcn8M0fTL8WCi5YcJFp8MBFMwboHciqOHxPjRNhFYHDGWbrouZ1KKqJ
+	 GR+xhN/Q8PhJbF6gwNCZyipl8Kt2A5Pc95NX5FqlMX+XK+0zn7rR7+5LUVrVbzvydy
+	 9H6ETfQiYmDIdP73660YgRtXK/A0Cr6cUAJxWI6Zva8S8FMJeXMuUofUc6nEMN4itL
+	 xcrydGrcndG2W51ikBHRKB9H7TRKEnYVvUhSTnQMUIs72K2VgDs3k+7qNAHDSBaev1
+	 aVLnGb8xz/Zng==
 
-> The mlx5_handle_changeupper_event() and mlx5_handle_changeinfodata_event()
-> functions check for LAG masters (which includes both bonding and team
-> devices) but only call bonding-specific APIs. When processing team device
-> events, calling bond_slave_get_rcu() and bond_is_slave_inactive() on
-> team_port structures causes KASAN to detect an out-of-bounds memory access
-> since team_port is smaller than bond slave.
->=20
-> Fix this by wrapping the bond-specific API calls with a check for bonding
-> devices. This allows the function to still process LAG events for both
-> bonding and teams but only calls bond-specific functions when dealing with
-> actual bonding devices.
->=20
-> For mlx5_handle_changeinfodata_event(), keep the explicit bond check as
-> mlx5 doesn't handle state information for team ports anyway.
->=20
-> Tested with Mellanox ConnectX-5 on Linux 7.2.0-rc6:
-> - Bonding: PASS (no regressions)
-> - Team device: PASS (no KASAN errors)
->=20
-> Fixes: 54493a08e21f ("net/mlx5: Lag, record inactive state of bond device=
-")
-> Suggested-by: Mark Bloch <mbloch@nvidia.com>
-> Signed-off-by: Anirudh Virdi <avirdi@redhat.com>
+From: Li RongQing <lirongqing@baidu.com>
 
-Sashiko has reviewed this patch and found no issues. It looks great!
+An implicit ODP MR (imr) publishes two mkeys into dev->odp_mkeys: the
+main imr->mmkey and imr->null_mmkey (MLX5_MKEY_NULL). Both are stored via
+mlx5r_store_odp_mkey(), which initialises their usecount to 1, and
+find_odp_mkey() takes a reference on whichever mkey it finds for the
+duration of a page fault.
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260924064244.9404=
-5-1-avirdi@redhat.com?part=3D1
+__mlx5_ib_dereg_mr() erases and waits on the *main* mmkey usecount only.
+For the null_mmkey, mlx5_ib_free_odp_mr() merely xa_erase()s it from
+odp_mkeys and calls mlx5_core_destroy_mkey() -- it never waits for an
+in-flight memory-scheme page fault (MLX5_MKEY_NULL) that holds a
+reference on null_mmkey. After xa_erase(), find_odp_mkey() stops
+returning the null_mmkey, but a fault already past the lookup still
+holds a reference and dereferences the imr (via container_of and
+pagefault_mr) after __mlx5_ib_dereg_mr() proceeds to kfree(mr).
+
+Mirror the main-mmkey handling: after xa_erase() of null_mmkey, call
+mlx5r_deref_wait_odp_mkey() to drop the reference taken at store time
+and wait for any in-flight fault to finish before destroying the mkey
+and freeing the imr.
+
+mlx5r_deref_wait_odp_mkey() wakes and waits on null_mmkey.wait, so that
+waitqueue must be initialised. The main mmkey's waitqueue is initialised
+in mlx5_mr_cache_alloc(), but the null_mmkey is created through the raw
+mlx5_core_create_mkey() (not the mlx5_ib_create_mkey() wrapper that
+initialises the waitqueue) and nothing else sets it up, leaving it
+zero-initialised. Initialising it in alloc_implicit_mr_null_mkey() right
+after creation avoids a NULL pointer dereference in __wake_up_common()
+when the waitqueue head's ->head.next is NULL.
+
+Fixes: 6f2487bfafce ("RDMA/mlx5: Add implicit MR handling to ODP memory scheme")
+Signed-off-by: Li RongQing <lirongqing@baidu.com>
+---
+Diff with v1: add init_waitqueue_head(&imr->null_mmkey.wait);
+
+ drivers/infiniband/hw/mlx5/odp.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
+index b861861..766f545 100644
+--- a/drivers/infiniband/hw/mlx5/odp.c
++++ b/drivers/infiniband/hw/mlx5/odp.c
+@@ -595,6 +595,7 @@ static int alloc_implicit_mr_null_mkey(struct mlx5_ib_dev *dev,
+ 		goto free_in;
+ 
+ 	imr->null_mmkey.type = MLX5_MKEY_NULL;
++	init_waitqueue_head(&imr->null_mmkey.wait);
+ 
+ free_in:
+ 	kfree(in);
+@@ -683,6 +684,8 @@ void mlx5_ib_free_odp_mr(struct mlx5_ib_mr *mr)
+ 		xa_erase(&mr_to_mdev(mr)->odp_mkeys,
+ 			 mlx5_base_mkey(mr->null_mmkey.key));
+ 
++		mlx5r_deref_wait_odp_mkey(&mr->null_mmkey);
++
+ 		mlx5_core_destroy_mkey(mr_to_mdev(mr)->mdev,
+ 				       mr->null_mmkey.key);
+ 	}
+-- 
+2.9.4
 
