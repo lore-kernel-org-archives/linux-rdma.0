@@ -1,44 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D8E448E0FA
-	for <linux-rdma@vger.kernel.org>; Thu, 24 Sep 2026 10:41:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D138548A2B1
+	for <linux-rdma@vger.kernel.org>; Thu, 24 Sep 2026 10:41:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790246507; cv=none; b=KEXWVvQc42LqWyncNFDPn1IsyU6hB61UpBsekL1PFL9swMhim8/CLn7XdW+HALR7lDgP1TkKa8hi4KKCN9zwLm8PN1dK+GeV/TUZSWGD1D9eC9SykERQ9O80ZIvvMAkN3ucrcG0vgPHL6WOKlgYjuEo44A7lxBb0qJH7w4M1HfM=
+	t=1790246509; cv=none; b=Wfk0ZUwSx+V7Jw+j/Eg2czWjQU0ZtftUZAwGj6UKfSE8NcVaEvEIt/oSgJ3E2Cyggmv9Il8SWWEcq0J3jxihiGIOfOqG1GUvRhyVTU+QHa4506N2N3C3p0LypgADK7dEa4foaYeoVqf0q9legD1CrA3KsiBqworSH1JafpUscuI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790246507; c=relaxed/simple;
-	bh=eYgUCAZ3yye3djJwGcEM8KLRnF1QWQcoF18d2yshIuA=;
+	s=arc-20240116; t=1790246509; c=relaxed/simple;
+	bh=Mi1vIbFMrVldara7LDjqi09LptqVlMnvX+oH8hrPgc4=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=vBUvcNvUOGD+9WLcjBWhmYT3BXpvvazttr3u5/SnX0srXxIfVOBTWM2xeDO553rni+my+OpNRsR/KIZfbcHXvbRPus9KsvIRAcXlDcJXFb2ry0jseTUMnYMtABm5kjlyup+Gt/3qtJYUhwhMwrbbmI0pUYGTPxHQ7jNIKQrLFlc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=j35Ahbav; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=dEhkddbmciToVz+ukbPtd4M88r/GjaHZFN7GgoSEKcckrFgwcz8xj+vgP04VorSFnBr2BRvldRq/vo+WdL68dzydGLMqyIpfLcP7uUJ7ogum6gwli28esVfYz2EYszcPvGSnnxEFRYORu340peirlNzYqi40E/GG2qMm/tCf0g8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hX1usf0B; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="j35Ahbav"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E15101F0089E;
-	Thu, 24 Sep 2026 10:41:43 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hX1usf0B"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E5FE1F008A3;
+	Thu, 24 Sep 2026 10:41:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790246504;
-	bh=WkONLsNQMTE9t27v5dmwk9833GEQkb0Z5sptSz/jXHs=;
+	s=k20260515; t=1790246506;
+	bh=YJDqB7rPTcS3+8dxTPj6rHYDASNA0rbdJTMU/Ynb3+8=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=j35AhbavpDU8qS48V3pEzJureBAaRVQZucvwWUOl257BeuRgyjO+q1Aj7ThQ6ZlBX
-	 WL8QjN9o/CHb5PC6A5tQ2qhisgNqZmRPl11Tj1ttt3BUkMt6yUt91Dgd7M/pHSy5zn
-	 11PLJZu1h32pmT9ypoBD0x8eT/f6eaK535VC9PhTEeRzYMIN4htqddT95Co8RwIYEP
-	 cc8IUQV1vqjRxZCeiQX96hWwm4gV73Pp9Jgu52JPnh3n6KDUm7v2eVvPzODVzslQUN
-	 0VvqyJOwfYXsqemB0c2P+vO95bCyMJD/c6YJDLyRSiQctkVzvEH7QtV0jFgI2o2on9
-	 BOlDHB5NfwkCg==
+	b=hX1usf0B+t2lJ5Uv9NvIhqFTnxY7VHRqqPvc7UM5QoXYHiVX4XHwR7F9j7givl9pZ
+	 3cv4PXY9U40XIihFnieN/HDRRaFAtwRWURXkJ1XD+7CfWtqWYg3tF5sT+fIIZw66N2
+	 6fsfAyCDZ3w1oTnXD+m/Vlg41TqZR2W3aFq3ZaJkYQkb7fcRqqBkaSnedWvU9AP4yj
+	 5zRpMEkp2r80C80vqaJQ7vW7TdUZy8bysgtcvlvKMwQfevQr522asaHczVGVEaspjE
+	 Szm0sKfA8zghDE9J53XrRUV6XE1jmu85RSkS5ED3x7ZOA55r58qXKrcqUDpFBZD5xw
+	 5k3SWQeI+xQpg==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next 02/13] net/mlx5: E-switch, do not leave an
- unpaired devcom registered
+Subject: Re: [PATCH net-next 08/13] net/mlx5e: TC, track peer flows in a
+ vhca_id xarray
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Tariq Toukan" <tariqt@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260923103830.1183-3-tariqt@nvidia.com>
+In-Reply-To: <20260923103830.1183-9-tariqt@nvidia.com>
 References: <20260923103830.1183-1-tariqt@nvidia.com>
- <20260923103830.1183-3-tariqt@nvidia.com>
+ <20260923103830.1183-9-tariqt@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 24 Sep 2026 10:41:43 +0000
-Message-Id: <20260924104143.E15101F0089E@smtp.kernel.org>
+Date: Thu, 24 Sep 2026 10:41:45 +0000
+Message-Id: <20260924104146.1E5FE1F008A3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -47,99 +47,115 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 Thank you for your contribution! Sashiko AI review found 2 potential issue(=
 s) to consider:
-- [High] net/mlx5: UAF on unpaired devcom in sqs2vport_start
-- [High] net/mlx5: NULL pointer dereference in mlx5e_tc_query_route_vport
+- [High] net/mlx5e: NULL pointer dereference in TC flow error cleanup
+- [High] net/mlx5e: UAF of dup_peer_flows due to race with unpair
 --
 
-commit f795a21baba8fe76b75fbf1109d13ce32a85a0d0
+commit 92fc8821722bceca321f4825f3199f7c0d234a70
 Author: Shay Drory <shayd@nvidia.com>
-net/mlx5: E-switch, do not leave an unpaired devcom registered
 
-This commit ensures that an unpaired eswitch offloads devcom component is
-not left registered if the initial PAIR event fails. It calls
-mlx5_esw_offloads_devcom_cleanup() to release the devcom component when
-pairing is unsuccessful, avoiding incorrect state retention.
+net/mlx5e: TC, track peer flows in a vhca_id xarray
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b=
-/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-> index eb74b62601682..e7d92d9bde16d 100644
+The commit replaces a fixed-size esw->offloads.peer_flows[] array with an
+xarray keyed by vhca_id to lift the MLX5_MAX_PORTS cap. A dup_peer_flows
+list_head is created when eswitches pair over devcom and freed when they
+unpair.
+
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+> @@ -4634,8 +4635,11 @@ static int mlx5e_tc_add_fdb_peer_flow(struct flow_=
+cls_offload *f,
+>  	peer_flow->peer_orig =3D flow;
+>  	list_add_tail(&peer_flow->peer_flows, &flow->peer_flows);
+>  	flow_flag_set(flow, DUP);
+> +	dup_peer_flows =3D xa_load(&esw->offloads.peer_flows, peer_vhca_id);
+> +	if (!dup_peer_flows)
+> +		return -ENODEV;
+
+[Severity: High]
+Can this early return lead to a NULL pointer dereference during error
+unwinding?=20
+
+If xa_load() returns NULL, we return -ENODEV, leaving peer_flow->peer
+completely uninitialized.
+
+When the caller unwinds and calls mlx5e_tc_del_fdb_peer_flow(peer_flow),
+it executes list_del(&peer_flow->peer) which will access NULL->next and
+NULL->prev, causing a kernel panic.
+
+>  	mutex_lock(&esw->offloads.peer_mutex);
+> -	list_add_tail(&peer_flow->peer, &esw->offloads.peer_flows[i]);
+> +	list_add_tail(&peer_flow->peer, dup_peer_flows);
+>  	mutex_unlock(&esw->offloads.peer_mutex);
+> =20
+>  out:
+
+[ ... ]
+
+> @@ -5530,20 +5534,14 @@ int mlx5e_tc_num_filters(struct mlx5e_priv *priv,=
+ unsigned long flags)
+> =20
+>  void mlx5e_tc_clean_fdb_peer_flows(struct mlx5_eswitch *esw)
+>  {
+[ ... ]
+> +	xa_for_each(&esw->offloads.peer_flows, index, dup_peer_flows)
+>  		list_for_each_entry_safe(peer_flow, tmp_peer_flow,
+> -					 &esw->offloads.peer_flows[i], peer)
+> +					 dup_peer_flows, peer)
+>  			mlx5e_tc_del_fdb_peer_flow(peer_flow);
+
+[Severity: Low]
+This isn't a bug introduced by this patch, but does flushing the entire xar=
+ray
+here wipe flows for all active peers when only a single peer unpairs?
+
+When a devcom unpair event happens for a single peer, iterating over the
+entire esw->offloads.peer_flows xarray unconditionally drops TC flows
+duplicated to all active peers, rather than just the one disconnecting.
+This behavior existed prior to the patch, but the patch carries it forward
+without resolving the multi-peer limitation it claimed to lift.
+
+> -	}
+>  }
+
+[ ... ]
+
 > --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
 > +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-[ ... ]
-> @@ -3572,10 +3573,12 @@ void mlx5_esw_offloads_devcom_init(struct mlx5_es=
-witch *esw,
->  	if (!esw->devcom)
->  		return;
-> =20
-> -	mlx5_devcom_send_event(esw->devcom,
-> -			       ESW_OFFLOADS_DEVCOM_PAIR,
-> -			       ESW_OFFLOADS_DEVCOM_UNPAIR,
-> -			       esw);
-> +	err =3D mlx5_devcom_send_event(esw->devcom,
-> +				     ESW_OFFLOADS_DEVCOM_PAIR,
-> +				     ESW_OFFLOADS_DEVCOM_UNPAIR,
-> +				     esw);
-> +	if (err)
-> +		mlx5_esw_offloads_devcom_cleanup(esw);
+> @@ -3383,10 +3383,15 @@ static void mlx5_esw_offloads_rep_event_unpair(st=
+ruct mlx5_eswitch *esw,
+>  static void mlx5_esw_offloads_unpair(struct mlx5_eswitch *esw,
+>  				     struct mlx5_eswitch *peer_esw)
+>  {
+> +	struct list_head *dup_peer_flows;
+> +
+>  #if IS_ENABLED(CONFIG_MLX5_CLS_ACT)
+>  	mlx5e_tc_clean_fdb_peer_flows(esw);
+>  #endif
+>  	mlx5_esw_offloads_rep_event_unpair(esw, peer_esw);
+> +	dup_peer_flows =3D xa_erase(&esw->offloads.peer_flows,
+> +				  MLX5_CAP_GEN(peer_esw->dev, vhca_id));
+> +	kfree(dup_peer_flows);
 
 [Severity: High]
-Does this newly added cleanup path dynamically free the devcom component
-while concurrent operations on registered netdevs might be accessing it?
+Does this kfree() race with concurrent TC flow additions, leading to a
+use-after-free?
 
-In esw_offloads_enable(), mlx5_eswitch_enable_pf_vf_vports() registers
-representor netdevs, making them visible to userspace. If the pairing
-fails here, mlx5_esw_offloads_devcom_cleanup() immediately frees
-esw->devcom (without an RCU grace period).
+In mlx5e_tc_add_fdb_peer_flow(), dup_peer_flows is retrieved locklessly
+via xa_load(), and then usage is delayed behind acquiring peer_mutex:
 
-Because the representor netdevs are already registered, a concurrent
-ndo_open (often triggered automatically by udev) will execute
-mlx5e_sqs2vport_start(). This function accesses the devcom pointer
-locklessly:
-
-drivers/net/ethernet/mellanox/mlx5/core/en_rep.c:mlx5e_sqs2vport_start() {
+mlx5e_tc_add_fdb_peer_flow() {
+    dup_peer_flows =3D xa_load(&esw->offloads.peer_flows, peer_vhca_id);
     ...
-    if (mlx5_devcom_comp_is_ready(esw->devcom) &&
-        mlx5_devcom_for_each_peer_begin(esw->devcom))
-        devcom_locked =3D true;
-    ...
+    mutex_lock(&esw->offloads.peer_mutex);
+    list_add_tail(&peer_flow->peer, dup_peer_flows);
 }
 
-Could this race condition lead to accessing freed memory, triggering a UAF?
-
-[Severity: High]
-Can this also cause a NULL pointer dereference later on?
-
-If the initial PAIR event fails, mlx5_esw_offloads_devcom_cleanup() is
-called, setting esw->devcom =3D NULL. However, mlx5_esw_offloads_devcom_ini=
-t()
-returns void, so its caller esw_offloads_enable() ignores the failure and
-successfully enables offloads mode.
-
-When offloads are enabled, a user with CAP_NET_ADMIN can add a TC rule with
-an encapsulation forwarding destination, causing the driver to invoke
-mlx5e_tc_query_route_vport(), which blindly iterates over esw->devcom:
-
-drivers/net/ethernet/mellanox/mlx5/core/en_tc.c:mlx5e_tc_query_route_vport(=
-) {
-    ...
-    mlx5_devcom_for_each_peer_entry_rcu(esw->devcom, esw, pos) {
-    ...
-}
-
-Because esw->devcom is NULL, mlx5_devcom_get_next_peer_data_rcu()
-unconditionally dereferences devcom->comp:
-
-drivers/net/ethernet/mellanox/mlx5/core/lib/devcom.c:mlx5_devcom_get_next_p=
-eer_data_rcu() {
-    ...
-    struct mlx5_devcom_comp *comp =3D devcom->comp;
-    ...
-}
-
-Would this result in a deterministic crash?
-
->  }
+Meanwhile, this unpair path does not hold peer_mutex before removing the
+entry via xa_erase() and freeing it. If unpair runs concurrently with a
+filter addition, can the addition thread wake up and call list_add_tail()
+on the already freed dup_peer_flows list head?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260923103830.1183=
--1-tariqt@nvidia.com?part=3D2
+-1-tariqt@nvidia.com?part=3D8
