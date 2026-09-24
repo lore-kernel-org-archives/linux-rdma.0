@@ -1,295 +1,231 @@
-Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012012.outbound.protection.outlook.com [40.93.195.12])
+Received: from fout-a6-smtp.messagingengine.com (fout-a6-smtp.messagingengine.com [103.168.172.149])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49C7D486BB0
-	for <linux-rdma@vger.kernel.org>; Thu, 24 Sep 2026 12:10:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.195.12
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790251853; cv=fail; b=JFmKGsj+OA5u312MwhHJQ1nzuADS+00F5NYAJAHUyKKtSkUfvCyzVTqcY0tqwrWWuCXz83AC7MZN7bDymNf8Y/WrJS9jXKrEZxFtE9WLGfQ72WCGiPkH/c8mXkSxqvUO57nxj9hPff2wc+e9KJHt6yWhqFqRuh4P0Fyj5kCgqRk=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790251853; c=relaxed/simple;
-	bh=iXW26ZqoT2M8wgdu4nh6DfrMM8n30jQO1dgMoAsaDLY=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=fNHBk/5pP4E1TP5xsroyW7CiIv6YM7NLPMSgaEMFzeGthBknZ6Z/zRBiwzxruVBPlVBEMAo/sUl5jymhRAzuGgaHVmUBxlRS8LdoaIqoQJtvk0zneu5ddawElQz/Xir8h/NAwWjxnxbcihYKJpWRnOuokCfwXW2mLQvMP8ZMSOI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=DwHzfsXA; arc=fail smtp.client-ip=40.93.195.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96E14381E96;
+	Thu, 24 Sep 2026 12:56:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.149
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790254613; cv=none; b=GnX8DZeoa3LvCxlbOG2/nHQ/Iot7kq1lBxzCHPeuZzEsmPkSxeT75GnGkBYglueM6Fp3gLR6+LK17XKRpU1FfQr3PEwrLDXa3ynd/tUNsVo5GT7c3bg8HM2t/Ex8gdpujkcPSJdB0fJjY19HHVNMftnmgWeZlQxPeJmR/X6sF+I=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790254613; c=relaxed/simple;
+	bh=9KFP333nBL3cE3MWpAffOS+SZ2NE4xEC9rmyuPBFGBs=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=fDxoHGukgIgvBTNTbIwOV8GiSgYlI6DKA53Lg0rHLa37EVGsTwoQiEbD+gcj14Cv2md43tOBLSrhFCS1xiKnnRNqi1nvLrYEdNv+4kg1KxteCywHRvs/QrjxAG9A7T4vApt4VVze7Qap2odvuVRpIDlGbn/C+i6WcgtHv4n6uCQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shazbot.org; spf=pass smtp.mailfrom=shazbot.org; dkim=pass (2048-bit key) header.d=shazbot.org header.i=@shazbot.org header.b=SfDv2A2m; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=hPDQhnza; arc=none smtp.client-ip=103.168.172.149
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shazbot.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=shazbot.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="DwHzfsXA"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=vsViZI2wQIck5hTAayCr+2LQlEoqg9X6AtNjir0eKClur45VDutE82pPJqWUt77498LEuw4tQi+1pZ5NuWbq8HoOy8osu+NZT7Emit1S3ElPleX/iL/Rmi6t1nPE6daVEz/yR08VjNzOlkOM+POb+ZDPxNiefXp99MDrNV08xxS036M5vrUkTklYAaoSQaDrJBzTJtChmhCVu+Y4fa7nBI9VJS0EHybGYmLxgjx/LB3xO/Dx/82wQbBP66KkMs/J5D9g90VFLCXDtDsu7RA4NNnEk/Mwd4jL4XOTWJW5bwxp32GVmxxT+69+kMLdt1n31SteIJpCjD01Y4I7EzEveQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=TPG0WwGi2ozKAnwog72ML1GUDQJ2MN3WdDxcg7nAOKw=;
- b=WYyNYFPJU26pw2sA63oUI0S2bd1OZuSIFg2Lpe8pL9UHMiKgEC1Vx0jJ/sj3pKRr7PyKBSaszzjmmaLp1lNW+e4BCNiTPvSYy34sCCVlBnZH3uCXGBWzBe5BrcO/A4Pm3NzjltRYZbZnmefLufaNEI1hxrua9wyHbwAePqz+hSt/5s94tC3J6GxbCMUBSYa/XAHjXznVaCxNhuhgTOnAUwbYh/z2YiLCXJpIE0uXdSi0Hyunlj4LwUxsvjrtyz4rEH/oVvmKVVz1j8ot2AJr985SLkQY5JcMioBueaCyGb3szlUm1A82b2GgdzHtOvCtxyFXLz+N0frArC3W+hnGYQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=TPG0WwGi2ozKAnwog72ML1GUDQJ2MN3WdDxcg7nAOKw=;
- b=DwHzfsXA4FhfXTWwt3WbDjKEhw8oDArdZgM3G2j64oW84MYagSzGv2bZC1jibhvi+63yhaDETNuUaSbzwcEoai+vZapgEPa7J2Qx85ydgJEvBwi3fYHYZXhIHL5e3a8nUHgigyWRi65/dyeLlelRcL6wClNO8Zn7e+K+hckW5as=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from DS4PR12MB999102.namprd12.prod.outlook.com (2603:10b6:8:2fc::9)
- by PH8PR12MB6865.namprd12.prod.outlook.com (2603:10b6:510:1c8::15) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.451.18; Thu, 24 Sep
- 2026 12:10:41 +0000
-Received: from DS4PR12MB999102.namprd12.prod.outlook.com
- ([fe80::dd7a:c52c:c74c:2a25]) by DS4PR12MB999102.namprd12.prod.outlook.com
- ([fe80::dd7a:c52c:c74c:2a25%4]) with mapi id 15.21.0451.014; Thu, 24 Sep 2026
- 12:10:41 +0000
-Message-ID: <ea205038-ee47-a764-edc6-d03c6ee94513@amd.com>
-Date: Thu, 24 Sep 2026 17:40:36 +0530
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.2.0
-Subject: Re: [for-next v2 4/5] RDMA/ionic: add Shared receive queue (SRQ)
- support
-Content-Language: en-US
-To: sashiko-reviews@lists.linux.dev
-Cc: linux-rdma@vger.kernel.org
-References: <20260922095724.3683011-1-abhijit.gangurde@amd.com>
- <20260922095724.3683011-5-abhijit.gangurde@amd.com>
- <20260923095925.2121B1F000FF@smtp.kernel.org>
-From: Abhijit Gangurde <abhijit.gangurde@amd.com>
-In-Reply-To: <20260923095925.2121B1F000FF@smtp.kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: PN4P287CA0056.INDP287.PROD.OUTLOOK.COM
- (2603:1096:c01:270::14) To DS4PR12MB999102.namprd12.prod.outlook.com
- (2603:10b6:8:2fc::9)
+	dkim=pass (2048-bit key) header.d=shazbot.org header.i=@shazbot.org header.b="SfDv2A2m";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="hPDQhnza"
+Received: from phl-compute-11.internal (phl-compute-11.internal [10.202.2.51])
+	by mailfout.phl.internal (Postfix) with ESMTP id 8A2C1EC006C;
+	Thu, 24 Sep 2026 08:56:49 -0400 (EDT)
+Received: from phl-frontend-04 ([10.202.2.163])
+  by phl-compute-11.internal (MEProxy); Thu, 24 Sep 2026 08:56:49 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=shazbot.org; h=
+	cc:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to; s=fm3; t=1790254609;
+	 x=1790341009; bh=nh5lY07F/XdtpzZWisBcou4EdetqWlxWEhSWH7F4qoU=; b=
+	SfDv2A2mrCaoAZJYIg+Gdd5VA7VdxBZbvuu2ggT9DdEBxG9zdV7rTuHSEkdp2muC
+	RrKs1Ca7dVpiS45RImV8oYv+FoCsLmwQD3kkyb+4+C2iNKThGf9SWJoIu2b6PgYv
+	vZcIM/pQOrPURQUUMWcywq/mJv9M4Spdmnm5RAAc41f0uhx81mNomQAjmA2nDhxU
+	+8LlYteXhm/Pc5N2bEAm1UeTQ8PsFO2uox+rLk1WibktQi656HxEJ62wXfUGdKdk
+	WWgGVzAQbQxDrbUjTkHDEoJ3QDP8hcpdgbfVbUWumn5d2XbwRUz6GiB5EYFMuKPQ
+	brbE8PDidMo+hX1w+fZA/w==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=1790254609; x=
+	1790341009; bh=nh5lY07F/XdtpzZWisBcou4EdetqWlxWEhSWH7F4qoU=; b=h
+	PDQhnza67R40uz4KVjCagCuK/1ooUwva9Er/NXECJ0FHEjMoMBoke2aHuIF2ssXJ
+	QsG6/RCqtJNK/IZzLbY0mngXIEhP7YJdFnZEgu44m0ROGyqO4yEL8LA0oeg6hdiv
+	g+4BV8T2xgDx+1+sH6oOz7vY0K9damZ4tMI7KMy/1EJCGdwDy7HOLikaDy+JfnLX
+	6ceMFdyezhDzCrzOLqL6xFG+ahmA+HuwZgt1Quxl3FtMB7QbzKyIolhlTc3W51ft
+	1HO6VkDpAhH89/pvPW98PePu5IgoTQb8T4nDUYoG+ICHwCQxGQCVMj+gRn/fkw6q
+	oDCYZqON4IQ53LirsjKSQ==
+X-ME-Sender: <xms:EB61ag6hannoEnoGHm6M8Td2p4HPwBZaXj4x4b9wNZ05UmtIGoWlIg>
+    <xme:EB61ajnCXa8dcuv_zjPzBiXZBLBc6SilmBzOljFoB43fww6ABJ517VLYOPGLIdCA0
+    EfKyxUGve3geURx3lvzvz7lryK1DCOfJ2dyFr_G9eIdujkUFOKC8vA>
+X-ME-Received: <xmr:EB61ai6Z9V5eFqttc2Xvt_ymbI2pa28pxkVrhI-YoRi6duOZ1uWRfDQBgIn8MA>
+X-ME-Proxy-Cause: dmFkZTF32quzzh7iukCEspo2//2/EETePHBVgKSDjotfiMLGFMKMi36qp1G2l6m0603LrJ
+    etTQuK4n5psitazgA7NI8ZNAj7Boz3Iz2PTvtSHc4YlI+thZ+g9AxqEWr6smXP4eTxr12L
+    j4iqpnH1GtJD2uV9oEuEdNTFWS+cbDLo5wkX85Q/VxLJ3pJBv3fDm5p4L0ICSGL2DRf+46
+    Zml5juxNyzXgitBUARzy5Q+nGWTe5JIDB908ZQufVLIQOoOBXqBBTkAU9StkEDBWH3HPm1
+    ntYntvDmBSd8joOmDn8RlxUIhT6RE2mlz7OAGRk1ORprL1NHSpdJ4EtNFWlP7TEPEI2LL+
+    pYpBOVi8BAwOPzs8KcdsKkIryA6tKwcjIx9YbxHEmrYndho1FvpUUtTEwlPkk7X/dQD9Ri
+    ojMeInjDm3Qf5JrK4MBzkNA7Dt3NJ6cqbP3mXwlxY66VM1OQkoplQn+y8dqGjimJQChM0H
+    X/OWXCexHTyaKnsGcaXBBz4P6OIry6aIZOK+2kHFAjj6C2QgTN1cKSnEM8fuIS6PcDd0+W
+    qERUKkVymlRMm2x+LmGNo26NcGSU5Ypn9oOO6KRxrdQT6g4w9CrjoWNMiED9/ya8srtUMd
+    ZvrlCrWUre43Cm5+vQfUS0dE4wk7Jh2khI5DPdNo3cIJyUXSXDtSlgOb28sw
+X-ME-Proxy: <xmx:EB61ak-CCIp6-CYCczNih1SN9_54-HNNmAHQY0ICnnl0s8AO4EmszA>
+    <xmx:EB61aqjS8hEqWBBS_8_EGr-7wJVSDCuh5GhtYl6xKl0pHw9uD66TrA>
+    <xmx:EB61aq4gadEPI3rZSlrTz5wkDYHf32dqAFu2Lg2_LiD0KyoCtx3ypw>
+    <xmx:EB61avZEX_jEZucgTShjdxZtDWzWj6mznxYhBi5hg5Z0SqiIAAABXg>
+    <xmx:ER61aii1kJ3fAXJc8Rp40Kh9XAv9uxpj6Ga3ZpCPvgjzzFsOuVxOhPuQ>
+Feedback-ID: i03f14258:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
+ 24 Sep 2026 08:56:45 -0400 (EDT)
+Date: Thu, 24 Sep 2026 06:56:42 -0600
+From: Alex Williamson <alex@shazbot.org>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Jason Gunthorpe <jgg@nvidia.com>, David Matlack <dmatlack@google.com>,
+ Fuad Tabba <fuad.tabba@linux.dev>, Joey Gouly <joey.gouly@arm.com>,
+ kvm@vger.kernel.org, kvmarm@lists.linux.dev,
+ linux-arm-kernel@lists.infradead.org, linux-kselftest@vger.kernel.org,
+ linux-rdma@vger.kernel.org, Marc Zyngier <maz@kernel.org>, Mark Bloch
+ <mbloch@nvidia.com>, netdev@vger.kernel.org, Oliver Upton
+ <oupton@kernel.org>, Paolo Bonzini <pbonzini@redhat.com>, Saeed Mahameed
+ <saeedm@nvidia.com>, Sean Christopherson <seanjc@google.com>, Steffen Eiden
+ <seiden@linux.ibm.com>, Shuah Khan <shuah@kernel.org>, Suzuki K Poulose
+ <suzuki.poulose@arm.com>, Tariq Toukan <tariqt@nvidia.com>, Zenghui Yu
+ <yuzenghui@huawei.com>, patches@lists.linux.dev, alex@shazbot.org
+Subject: Re: [PATCH v7 00/10] mlx5 support for VFIO self test
+Message-ID: <20260924065642.125986a4@shazbot.org>
+In-Reply-To: <0-v7-c6d30e8ce1e4+3dfa6-mlx5st_jgg@nvidia.com>
+References: <0-v7-c6d30e8ce1e4+3dfa6-mlx5st_jgg@nvidia.com>
+X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS4PR12MB999102:EE_|PH8PR12MB6865:EE_
-X-MS-Office365-Filtering-Correlation-Id: 10c64123-54d9-4faa-bd27-08df1a34da01
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|1800799024|366016|376014|10067099003|56012099006|6133799003|18002099003|22082099003|11063799006|4143699003;
-X-Microsoft-Antispam-Message-Info:
-	anUxZpnvDqZ4ocPFJ+/kdamYdUFn6NtqM8cUoSPbpYGXt7GSyc5cMWcQbuHoX+aQL+nZaMvQ4hvalFLfule5xLiix00jfIlT8rezO5RwHKgEWqXaT8t/XCn1S/ZMTOaIfJKaT9t0+oOduDIkI0kTLoKrXycmx7/WCMs8xdoOHKULPaSnyAkvVWZNt/LCt1pnwdB2hmiFLxlp0SDJz6CxU+q4IjuOMTmUXdJoUSpPl0Epc5ZoO4drKm7DYM3Eca9UQH/mVifdxK6NWwZuu++xz0U55DQtmhVL7Z9A4nwBGsNGabbiOnV1NjvasDNyW4T3c+7alw4yJRO+aesbfibcWbEU9g6OKDKKv2SiWrHYgHgUFLLdUXQtqVwSEM0lK7M0ZmUzCjaLFd8LCNLORjy41Sf1W1kxSYEXnzAUA9MDKDHTjxq0v4KyRZHz7lFmW+81b2Nu8l4i9GpHiOA8vF/BhhbfP0gmb0JFyjQ4vOEs/gYQ0lW9sLsIJqPJQTcwKT5izG35o4UG1lY31cn48jRih15wskosJrY7i1rz/VAJ1G2toR4YZXsO8b5u6Tqcy2qLaB8dilticFym3N/2rfqxRYlIb0rbsDXCRsVN1nxeKM2D1SK6je20O4TQoqJTkPdP3Vro2AQ4e+Ywt0Wo9MmNUkCas8G6EodStuPKggHXNik=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PR12MB999102.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(1800799024)(366016)(376014)(10067099003)(56012099006)(6133799003)(18002099003)(22082099003)(11063799006)(4143699003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?UUtlSDY0ckd2T1cvQXJxRGx2anV0eHl3S1lWZDBadE9LVmpNNU4xRURwTXdM?=
- =?utf-8?B?eDhvb3BPb3FrV3M3eVdwY0syMTR0NVd3aThJU0tnUVRXOWVoUkc1bXdaVVl6?=
- =?utf-8?B?aTJ4MjRpaDM5L09tT1NnZlk2akRpdC9YVFpjUkg5K1dJWnRWby9QV0ZKU2Jz?=
- =?utf-8?B?QmlRMmpRMkR2N043TlI2SDMwM3htWEdXSjdOdVlQbTVLeFlIZ3BENDgxeWIw?=
- =?utf-8?B?cEh1di9EUUl5UkNlL0NNNFduTkJQWDJ3b1AxSjFhd1Njb0tSTWtyaktITVJa?=
- =?utf-8?B?TERRWnZMeUVOTWpRbURON0d6cHBFeVh3QVBnMVVvVDNJSFpJbjB2RXUxYzJs?=
- =?utf-8?B?ck5iOG1ONlR0WDFWb3N1REQvK014RUUvY3B5SGdENWdJdm1pa3lHS3BTR28y?=
- =?utf-8?B?UTM4Y3ArblBqZ2s3dTY1ci9PaStocXZpSTcyaXZ4V2ZaZ2xrTHk0ZDJBWXBH?=
- =?utf-8?B?dlNpaTJRMll5Zm1VbFBiQSs1cG9kaHhHUjNkekVZcFBDUmFBSEFna092MHBM?=
- =?utf-8?B?cUJYNmttQ09XYk9PZ0tjVXNSaW9NRWJzcmJjdUpYcldVRjl1VzJzTXBKYzV5?=
- =?utf-8?B?OGxFbnNnMGlRRk9EUm9QK3BPWUVHdlZGb1ZQanltak5sNkJKV2tMN1VtYnVV?=
- =?utf-8?B?QU0yWm95K3NLemRaR0NmaWpRdUljbjN6WDMrRkxZcUtSV0RZMjI1dktmRkNs?=
- =?utf-8?B?Mk9CL0t5eDJxOXY2VkI2cURLc1JSOS9remlLcGtpOE56d2ZLN3FibTdYUk4v?=
- =?utf-8?B?UW50ZDJpcW5mdnpNUFUrblhTQUJKemdMTUVuYS9QSkR3OXU5K2JFRElwdEZn?=
- =?utf-8?B?Mkd6UEl6Q2w3a3FYVTd2Y21Dc2JuYU9ESGtPajVQenBWY3VRTEI5M2pLU21y?=
- =?utf-8?B?aC82Mk5OUEFWUGsxVFBmQXZIa3RSc09vNG5HRXMxWFZrSDVVYk9Fc3ExeU5Q?=
- =?utf-8?B?NUdIQ0txSkUrb0tMR1E2QnpDNHd2c1R4bzJpMTN3NFNDaEdFK0IvWWxwNVRE?=
- =?utf-8?B?LzhPQWQ3WHFBQmJDR2h6eUx0YTQwVGU1ZytXK3h6RWNwRkxwVzl6aGZidE1p?=
- =?utf-8?B?VTNuSHpEU0Q2QVBybjhKak42NnNKOUNPVkh3Wlc0eEdRQ1MzOEdqTGVJSEhy?=
- =?utf-8?B?ZjhPTWxwZ0l5WHhRZFNoeG12MEFiOEErb0ZwWUlEcGZZUWZWVmFVRUxyTXg0?=
- =?utf-8?B?b0NneHpPOTg0dUFvU1JYdnpONG80SDhTL2R3ZzMzRHdyUkdacnlCUmp2bFRT?=
- =?utf-8?B?cGNac1FYVkhkbXc2YWt5cHY5T0RyU2dLYTIrUnR1eG9TS3hSdlBsNTc3Zk5Q?=
- =?utf-8?B?ZEUvTzNRckQyU1dJMTY1L29teXlyaldGd1FRaXhIZkhCd2d2ZUwvbkhmMTZs?=
- =?utf-8?B?eldGdlhOVGtMR0hjV3Jwb1pBV0tLcmo3bmpsL0QxRzE5cGM0b3paVTJzUGRF?=
- =?utf-8?B?cTQxZWpaZmU5bzJQdVNKQ1B6WXB0dGVqVExWQkhncEJNT3ZrVnFyeEluSzNl?=
- =?utf-8?B?UWwyYkVJWFVGSlF4Ymo3VjI3aEFIM0J4RnFGM09hem5sV3ZtbWRkOUROeVQ0?=
- =?utf-8?B?UGNpSzlYeVBKUnZRV0hmRWdCTmp0a0RuSHc4dHJPemtUOWcyREFISnBQa1RM?=
- =?utf-8?B?d2ZHOHlFdi9pdHNna2FPcW40ekI4azhQQWtZaTlOYjlqRUw1VTNVTjVLcmV1?=
- =?utf-8?B?M3dSZnVTNWtxZU1GN0d3ZjJ1Y2Q5bndsVUJLMHRZNXFqYzd0d3lDRkd6ZXBq?=
- =?utf-8?B?Z1ExNGZLQUROQ3F3RkhsZkVjT2RNYjdKY1pxR25qa1BlMFZiYmNhS01GLzhU?=
- =?utf-8?B?d0lJbFBFMERwM1QvMGJXMkxxZUI3WHFLUVB5SVhGMzBYZTZnczk2Q28veXBI?=
- =?utf-8?B?ZlgyYzFoOE5GQU9wcjU1QzJIVGlmeVI2N0NsdlRKWngvZEN2VUtOcU1RSjBJ?=
- =?utf-8?B?czFQR3NoZ1ZCVVgzd3prZkd0c1U5OEdMZGk2T0RNZXJicGsvN3pKUGR6NHVI?=
- =?utf-8?B?NHpkeXBXTlpIOVozVXI5S1VhdnJrTlQ0RDRCWWYyNDhLd09QdFdxZFAyZDVB?=
- =?utf-8?B?ODNHdzZvemhINysxUjhqT001bDBROXprR0IvOHFQR1drMUR5U1BVYXBndVcr?=
- =?utf-8?B?bTlkZHFVYVZSUTZ4WXN4ZmN0aXVpVWJhUE5oNURRM1VxV050a2RycmtiSHZr?=
- =?utf-8?B?c2REVUR3akd3UUhtZFF6ckY1NXBIek1IUkNKWm9FK3pkZUpuZ1ZIUVRKbzh5?=
- =?utf-8?B?TWYxSE9HV3J5cThSdGZEcGpZb25IYVZ2VzZzTEJITG0xYU5IK0pGamMzdUtS?=
- =?utf-8?B?a1F4SWtHaCtxRDhGMGVFaEg3Vkw1eC9HRGtVTlEzazJqUzlIREFmdz09?=
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 10c64123-54d9-4faa-bd27-08df1a34da01
-X-MS-Exchange-CrossTenant-AuthSource: DS4PR12MB999102.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Sep 2026 12:10:41.1140
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: f1G+hJmYtFgWjwQ1pu6EUfLPiW88muYxq2h2IVLy/CbbuM0As1yWKjqVYcTyiSmxnljE4P+kwRZeKeMaT1RNxw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH8PR12MB6865
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-On 9/23/26 15:29, sashiko-bot@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found 4 potential issue(s) to consider:
-> - [High] rdma/ionic: Invalid pointer dereference in ionic_create_qp when recv_cq is NULL
-> - [Medium] rdma/ionic: Missing assignment of negotiated max_sge in ionic_create_srq()
-> - [Medium] rdma/ionic: Missing ABI validation for reserved bytes in ionic_srq_req
-> - [Medium] rdma/ionic: Incorrect TEARDOWN flag in ionic_modify_srq_cmd masks hardware errors
-> --
->
-> commit d35f9d0b1f3bb4677ebdb531833d86b7ea9eaeb7
-> Author: Amit Kumar <a.k@amd.com>
->
-> RDMA/ionic: add Shared receive queue (SRQ) support
->
-> Implement device supported verb APIs for shared receive queue.
-> SRQ is supported for userspace only. ionic_create_srq() returns
-> -EOPNOTSUPP when there is no ucontext, so kernel ULPs cannot create an
-> SRQ.
->
->> diff --git a/drivers/infiniband/hw/ionic/ionic_controlpath.c b/drivers/infiniband/hw/ionic/ionic_controlpath.c
->> index 7f0e8b63ed76c..ec9e1188f556f 100644
->> --- a/drivers/infiniband/hw/ionic/ionic_controlpath.c
->> +++ b/drivers/infiniband/hw/ionic/ionic_controlpath.c
-> [ ... ]
->> @@ -2360,22 +2401,25 @@ int ionic_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attr,
-> [ ... ]
->> +	} else {
->> +		if (udata && (req.rq_cmb & IONIC_CMB_ENABLE))
->> +			qp->rq.cmb = req.rq_cmb;
->> +
->> +		/* for non-srq qps, rq qid is same as qpid */
->> +		qp->rq.qid = qp->qpid;
->> +		rc = ionic_rq_init(dev, ctx, &qp->rq, &req.rq, &rq_buf,
->> +				   attr->cap.max_recv_wr, attr->cap.max_recv_sge,
->> +				   req.rq_spec, udata);
->>   	}
->> +	if (rc)
->> +		goto err_rq;
->>   
->>   	rc = ionic_create_qp_cmd(dev, pd,
->>   				 to_ionic_vcq_cq(attr->send_cq, qp->udma_idx),
->>   				 to_ionic_vcq_cq(attr->recv_cq, qp->udma_idx),
->>   				 qp, &sq_buf, &rq_buf, attr, req.ionic_flags);
-> [Severity: High]
-> Since this patch adds SRQ support, it permits QPs to be created without a
-> receive CQ, meaning attr->recv_cq can be NULL.
->
-> However, to_ionic_vcq_cq() calculates an offset from its argument.
-> If attr->recv_cq is NULL, won't to_ionic_vcq_cq() return a non-NULL offset
-> pointer?
->
-> That invalid pointer is passed into ionic_create_qp_cmd() where it gets
-> unconditionally dereferenced to access recv_cq->cqid:
->
-> 	} else {
-> 		wr.wqe.cmd.create_qp.rq_tbl_index_srq_id = cpu_to_le32(qp->srq->rq.qid);
-> 		wr.wqe.cmd.create_qp.rq_cq_id = cpu_to_le32(recv_cq->cqid);
-> 	}
->
-> Would this cause a kernel panic upon dereference?
+Leon, can we get your ack on 1-4?  I'll publish an rc1-based branch for
+any conflict management.  Thanks,
 
-This is not reachable. ionic_create_qp() rejects qp_type > IB_QPT_UD, so 
-only GSI/RC/UC/UD reach the driver, and uverbs always supplies a recv_cq 
-for those types.
+Alex
 
->
-> [ ... ]
->> +static int ionic_modify_srq_cmd(struct ionic_ibdev *dev, u32 srqid,
->> +				u16 srq_limit)
->> +{
->> +	struct ionic_admin_wr wr = {
->> +		.work = COMPLETION_INITIALIZER_ONSTACK(wr.work),
->> +		.wqe = {
->> +			.op = IONIC_V1_ADMIN_MODIFY_SRQ,
->> +			.len = cpu_to_le16(IONIC_ADMIN_MODIFY_SRQ_IN_V1_LEN),
->> +			.cmd.modify_srq = {
->> +				.qid = cpu_to_le32(srqid),
->> +				.low_wqes_limit = cpu_to_le16(srq_limit),
->> +			},
->> +		}
->> +	};
->> +
->> +	if (dev->lif_cfg.admin_opcodes <= IONIC_V1_ADMIN_MODIFY_SRQ)
->> +		return -EOPNOTSUPP;
->> +
->> +	ionic_admin_post(dev, &wr);
->> +
->> +	return ionic_admin_wait(dev, &wr, IONIC_ADMIN_F_TEARDOWN);
-> [Severity: Medium]
-> Does using IONIC_ADMIN_F_TEARDOWN here mask hardware errors?
->
-> If the device is resetting, ionic_admin_wait() will return 0 instead of
-> -ENODEV. This would cause ionic_modify_srq() to incorrectly assume success
-> and update the software srq->srq_limit, permanently desynchronizing it from
-> the actual hardware limit.
-Ack
->
->> +}
->> +
->> +int ionic_create_srq(struct ib_srq *ibsrq, struct ib_srq_init_attr *attr,
->> +		     struct ib_udata *udata)
->> +{
-> [ ... ]
->> +	udma_mask = BIT(dev->lif_cfg.udma_count) - 1;
->> +	if (udata) {
->> +		rc = ib_copy_validate_udata_in(udata, req, rsvd);
->> +		if (rc)
->> +			return rc;
->> +
->> +		udma_mask &= req.udma_mask;
->> +	}
-> [Severity: Medium]
-> The ib_copy_validate_udata_in() macro checks that any userspace bytes beyond
-> the req struct are zeroed, but it doesn't validate the contents of the rsvd
-> array within the struct itself.
->
-> Is there a missing check to ensure req.rsvd is strictly zeroed? Without it,
-> buggy userspace applications could pass garbage in these reserved bytes,
-> preventing them from being safely repurposed for future ABI extensions.
-Ack
->
-> [ ... ]
->> +		if (srq->rq.cmb & IONIC_CMB_ENABLE) {
->> +			ionic_rq_mmap_cmb(dev, ctx, &srq->rq, &resp.rq_cmb_offset);
->> +			if (!srq->rq.mmap_cmb) {
->> +				rc = -ENOMEM;
->> +				goto err_srq_cmd;
->> +			}
->> +
->> +			resp.rq_cmb = srq->rq.cmb;
->> +		}
->> +
->> +		rc = ib_respond_udata(udata, resp);
->> +		if (rc)
->> +			goto err_srq_cmd;
->> +	}
->> +
->> +	ionic_pgtbl_unbuf(dev, &buf);
->> +
->> +	attr->attr.max_wr = srq->rq.q.mask;
->> +
->> +	return 0;
-> [Severity: Medium]
-> This updates the negotiated max_wr, but is it missing an assignment to
-> attr->attr.max_sge before returning? Without it, userspace wouldn't receive
-> the actual negotiated max_sge limits.
+On Mon, 21 Sep 2026 19:35:40 -0300
+Jason Gunthorpe <jgg@nvidia.com> wrote:
 
-Since driver does not modify it, ib_uverbs_create_srq() just echoes back 
-whatever userspace requested.
+> Add an mlx5 driver to VFIO self test. This is largely a remix of the
+> existing VFIO mlx5 driver in rdma-core. It uses an RDMA loopback QP
+> to issue RDMA WRITE operations which effectively perform memory
+> copies using DMA. Since mlx5 has a stable programming ABI this
+> should work on devices from CX5 to current HW. The device FW must
+> support the QP loopback configuration.
+> 
+> Also support send_msi by arming completion events of the RDMA WRITE
+> to trigger MSI delivery.
+> 
+> mlx5 device startup is very complex and most of this code is just
+> booting the device, with a smaller amount for operating the QP.
+> 
+> This entire series was coded by Claude Code in about 4 days. It
+> used about 4.5M output tokens, 30 individual sessions and 5600 lines
+> of AI-generated .md files. I spent an annoying amount of time
+> de-slopping and cleaning its work product to make it presentable.
+> However, previous VFIO drivers have taken on the order of 1-2
+> months to write, so getting one in a week is pretty remarkable.
+> 
+> For those interested, the flow I used was broadly a prompt sequence
+> sort of like:
+> 
+>  - Hey Claude, go look at the falcon series, VFIO self test, the
+>    mlx5 driver, rdma-core and some PDF documentation and make a
+>    plan to put mlx5 under the selftest.
+>  - Write an rdma-core application using the built-in VFIO provider
+>    that can do the required memcpy operations that vfio selftests
+>    wants.
+>    (This resulted in a 1k loc C file that compiled and ran the
+>     first time but had a few bugs related to device programming
+>     that the AI resolved.)
+>  - Replace the rdma-core components with open-coded versions to
+>    create a fully stand-alone program that does the DMA memcpy.
+>  - Review and audit the thing.
+>  [Pause and de-slop it]
+>  - Make it work on a PF too (this is surprisingly hard!).
+>  [Move to a kernel tree and copy all the .md files and .c program
+>   it made]
+>  - Hey Claude, look at all this stuff and make a broad plan to
+>    actually build a VFIO self test.
+>  - Here is my 1 sentence advice on what each patch should look
+>    like, make a detailed plan to make a patch for every one.
+>  [Pause and polish the patch plans]
+>  - Execute plan X then commit it [pause and de-slop each patch,
+>    repeat].
+>  [Review and final polish]
+> 
+> v7:
+>  - Fix some compilation problems, kvm and the igb
+> v6: https://patch.msgid.link/r/0-v6-8af36cf7b73f+e2-mlx5st_jgg@nvidia.com
+>  - Rebase on v7.3-rc3
+>  - Correct some minor sashiko remarks
+> v5: https://patch.msgid.link/r/0-v5-4cacb99249f6+1b4-mlx5st_jgg@nvidia.com
+>  - Rebase on v7.3-rc1
+>  - Adjust how region_size is computed to min it to getpagesize()
+> v4: https://patch.msgid.link/r/0-v4-021df3fb5a3f+98e-mlx5st_jgg@nvidia.com
+>  - Rebase on vfio next, update igb and falcon
+>  - Move rounding to iova_allocator_alloc()
+>  - Remove arm barrier changes
+> v3: https://patch.msgid.link/r/0-v3-76f117ad04f1+28a90-mlx5st_jgg@nvidia.com
+>  - Move max into vfio_pci_driver_probe()
+>  - Rebase on v7.2-rc3
+> v2: https://patch.msgid.link/r/0-v2-72e9640932fd+2c64-mlx5st_jgg@nvidia.com
+>  - Rebase on v7.1-rc3, drop falcon patches
+>  - dev_dbg checks the format string even in non debug builds
+>  - Sort includes
+>  - Adjust comments/commit messageas
+>  - Use linux/pci_ids.h
+>  - Compute the driver.max_memcpy_size the same as mlx5 kernel driver, it
+>    should be GBs now on most devices
+>  - Put region_size into all drivers instead of allowing 0
+> v1: https://patch.msgid.link/r/0-v1-dc5fa250ca1d+3213-mlx5st_jgg@nvidia.com
+> 
+> Jason Gunthorpe (10):
+>   net/mlx5: Add IFC structures for CQE and WQE
+>   net/mlx5: Move HW constant groups from device.h/cq.h to mlx5_ifc.h
+>   net/mlx5: Extract MLX5_SET/GET macros into mlx5_ifc_macros.h
+>   net/mlx5: Add ONCE and MMIO accessor variants to mlx5_ifc_macros.h
+>   selftests: Add additional kernel functions to tools/include/
+>   vfio: selftests: Allow drivers to specify required region size
+>   vfio: selftests: Add dev_dbg
+>   vfio: selftests: Add mlx5 driver - HW init and command interface
+>   vfio: selftests: Add mlx5 driver - data path and memcpy ops
+>   vfio: selftests: mlx5 driver - add send_msi support
+> 
+>  include/linux/mlx5/cq.h                       |   10 -
+>  include/linux/mlx5/device.h                   |  231 +-
+>  include/linux/mlx5/mlx5_ifc.h                 |  178 ++
+>  include/linux/mlx5/mlx5_ifc_macros.h          |  185 ++
+>  tools/arch/arm64/include/asm/barrier.h        |    4 +
+>  tools/arch/x86/include/asm/barrier.h          |    5 +
+>  tools/include/asm-generic/io.h                |   28 +
+>  tools/include/asm/barrier.h                   |    8 +
+>  tools/include/linux/stddef.h                  |   10 +
+>  .../selftests/kvm/include/arm64/processor.h   |    4 +-
+>  tools/testing/selftests/kvm/irq_test.c        |    2 -
+>  .../selftests/vfio/lib/drivers/dsa/dsa.c      |    1 +
+>  .../selftests/vfio/lib/drivers/igb/igb.c      |    1 +
+>  .../selftests/vfio/lib/drivers/ioat/ioat.c    |    1 +
+>  .../selftests/vfio/lib/drivers/mlx5/mlx5.c    | 1928 +++++++++++++++++
+>  .../selftests/vfio/lib/drivers/mlx5/mlx5_hw.h |  114 +
+>  .../vfio/lib/drivers/mlx5/mlx5_ifc.h          |    1 +
+>  .../vfio/lib/drivers/mlx5/mlx5_ifc_fpga.h     |    1 +
+>  .../vfio/lib/drivers/mlx5/mlx5_ifc_macros.h   |    1 +
+>  .../vfio/lib/drivers/nv_falcon/nv_falcon.c    |    1 +
+>  .../lib/include/libvfio/vfio_pci_device.h     |   11 +
+>  .../lib/include/libvfio/vfio_pci_driver.h     |    6 +
+>  .../selftests/vfio/lib/iova_allocator.c       |    7 +-
+>  tools/testing/selftests/vfio/lib/libvfio.mk   |    1 +
+>  .../selftests/vfio/lib/vfio_pci_driver.c      |    6 +
+>  .../selftests/vfio/vfio_pci_driver_test.c     |    3 +-
+>  26 files changed, 2502 insertions(+), 246 deletions(-)
+>  create mode 100644 include/linux/mlx5/mlx5_ifc_macros.h
+>  create mode 100644 tools/include/linux/stddef.h
+>  create mode 100644 tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5.c
+>  create mode 100644 tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_hw.h
+>  create mode 120000 tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_ifc.h
+>  create mode 120000 tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_ifc_fpga.h
+>  create mode 120000 tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_ifc_macros.h
+> 
+> 
+> base-commit: fd73f4a6659897191fa0d40695fe370925dd3780
 
-Thanks,
-Abhijit
-
->
->> +
->> +err_srq_cmd:
->> +	ionic_destroy_srq_cmd(dev, srq->rq.qid);
->> +err_cmd:
->> +	ionic_pgtbl_unbuf(dev, &buf);
->> +	ionic_rq_destroy(dev, ctx, &srq->rq);
->> +
->> +	return rc;
->> +}
