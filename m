@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB4355326A7;
-	Thu, 24 Sep 2026 17:46:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB8DF5328C5;
+	Thu, 24 Sep 2026 17:46:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790271962; cv=none; b=NwgQVtGcPMl2+8bzhwK/yuzPnOqiJpnldhsDQwFuW9KwxxKdqwl8vdDLwDMIDMqAo07kAz3nf5qmLN12r/NLptiWvAqdaa3TTy1x9OQHqsgZbSNimpQ+IiIx1GZsm3lUig/XwV5KakbCVYCJNfymhrgo3lLvH1kXflG9wr+yJns=
+	t=1790271963; cv=none; b=aEQAJ/i6tiY0DcMEpyZ35D7sqnGRzzS+GrDUefbUpVokgGN8AVl4aV6Xl3l052whziYDkRGlktkz4bMJovAjtsIH8cGCWTfPUZso5RnW488IrvRzD0giWotT1KOjcs0+9Va1QID1ryu3clFJVCGKXhGt7M6wqoAGNqD0xISA3VU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790271962; c=relaxed/simple;
-	bh=q4IoQWdwXI6JoYFwTQBrjLAVydvB6NqYZoY96ZUKrtc=;
+	s=arc-20240116; t=1790271963; c=relaxed/simple;
+	bh=ylc+FVx4V2EsrDTSl/HnZlOSqUvwnV3EXUZZRhvXePo=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=pgVMqw9XVHxxNZqItyT5tlWfsWOgw5YqGOnFv1OK4WC2u59I2ElcGCShxsM4KvaFQRoQ+v6qDgLECQc1v/DPU7qHt9wxmm6eFuKJOWNhs3VK1iV0eRJm4es1BWuITDyIHqRrK5PBbsBU+7y/Hf+sq1Idprh3/IWQ+DMmAva65FI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fNXWeyg6; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=IcyyaU+oZGlu9jA14qtiIiKryR7V2H36yeCM8w9hRHf/hSLRYjfopMl6MOuK+B3IhPhNIY9vg+QVpGSbiYnD8ROY+nHLWIqAhp8IFPC+VOmY+lA+EruY58qycORDXUKCHKjH/qsYzrEmVdKJJdVh7GForgE+NLnJHxJVkCVhubU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=J0208AMJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fNXWeyg6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6ACA31F000FF;
-	Thu, 24 Sep 2026 17:45:59 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="J0208AMJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBD171F00893;
+	Thu, 24 Sep 2026 17:46:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790271960;
-	bh=hhaHEG5fk5lli7bSnp0/dtz5H7RILhr4iO3JrrcCpg4=;
+	s=k20260515; t=1790271961;
+	bh=cqXb+cezkmL5LbSAnK9s+h9OzlihTLkVIWBDb2AwAS4=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=fNXWeyg6Msez2y8Z4qzgT9divqePk2ZEsRf6RmU8QLJAWe2+yF6NL+haRh/jja7ii
-	 bW/BBbzm1p2vaLY7dWcdfeF31U166k2Fjt4SS8hB12anRBsK5sS429uB/8Wwa65P7g
-	 OJfqcdRV8xV6KEhAF/o5KjyS5IsAqh0leWWNJiJ0AncD771VNhlLNYdydCfEHMB4H7
-	 VZ8pTruaXd12J6r9IK/Wmb2buwzuDbFVzmbe4afjj79AZg/P5yf9iexMzDIsz5Rl6H
-	 k59/++/CUUPOzqQwZaKdNVrTCeJ3K/mRrW13vDNYh3jbuA4Nbr8tY0ZCUZiA5Ii8Yn
-	 pY+EJTPRDU7dA==
-Subject: Re: [PATCH net-next 07/13] net/mlx5e: TC, anchor peer-flow reverse
- index on the duplicated flow
+	b=J0208AMJt26uMxQyGPRGZaE3ShgZiGwOotRymvzM4s6xGp031RLGwsc49kBCJweE/
+	 OGJOSnSuKd64BAWVRpjXXyrO80vl5w1sqhf8zV/LRF+b3JGyTJ/nAn70v4B0p6Nie8
+	 Yvh0IS0Sb/fDzlCWjRgpe1SUiwmajTXgRJsIlMddoDoeiBhRr4IaNFM5j93i4ABVzd
+	 gjuo60dNBFLF+feQkKxkSqJglJ3zdtk2aAl5z6BGeYNLBN8PjEkzSs7v/p/sH4jfma
+	 hwqGw5VOHp26Bt3dL/LC5YtzoVmdKd0hfyCvsjHrB8vu+wN8iQ/R0tl3rn2jivH9M9
+	 VQY5Res80Iwnw==
+Subject: Re: [PATCH net-next 08/13] net/mlx5e: TC, track peer flows in a
+ vhca_id xarray
 From: netdev-bot+sashiko@kernel.org
 To: tariqt@nvidia.com
 Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
@@ -35,11 +35,11 @@ Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
  agoldberger@nvidia.com, cratiu@nvidia.com, gal@nvidia.com, leon@kernel.org,
  linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, mbloch@nvidia.com,
  moshe@nvidia.com, ohartoov@nvidia.com, saeedm@nvidia.com, shayd@nvidia.com
-Date: Thu, 24 Sep 2026 17:45:58 +0000
-Message-ID: <179027195898.2160803.15871365996857154055@kernel.org>
-In-Reply-To: <20260923103830.1183-8-tariqt@nvidia.com>
-References: <20260923103830.1183-8-tariqt@nvidia.com>
-X-sashiko-severity: Medium
+Date: Thu, 24 Sep 2026 17:46:00 +0000
+Message-ID: <179027196054.2160803.7584454012670398994@kernel.org>
+In-Reply-To: <20260923103830.1183-9-tariqt@nvidia.com>
+References: <20260923103830.1183-9-tariqt@nvidia.com>
+X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -49,10 +49,10 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 1 potential
+Thank you for your contribution! Sashiko AI review found 2 potential
 issue(s) to consider.
 
-Critical: 0 · High: 0 · Medium: 1 (2) · Low: 0
+Critical: 0 · High: 1 · Medium: 0 · Low: 1
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -60,171 +60,129 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [Medium] This commit changes unpair-time cleanup in
-  mlx5e_tc_clean_fdb_peer_flows()…
-
-Pre-existing issues:
-- [Medium] mlx5e_tc_add_fdb_peer_flow()
-  (drivers/net/ethernet/mellanox/mlx5/core/en_tc.c) sets `int i =…
-- [Medium] In mlx5e_add_fdb_flow()
-  (drivers/net/ethernet/mellanox/mlx5/core/en_tc.c),…
+- [High] The patch adds an early return to mlx5e_tc_add_fdb_peer_flow()
+  (drivers/net/ethernet/mellanox/mlx5/core/en_tc.c).
+- [Low] The commit message says "No functional change", but the patch
+  changes runtime behaviour in mlx5e_tc_add_fdb_peer_flow() in two ways.
 
 --
 
-net/mlx5e: TC, anchor peer-flow reverse index on the duplicated flow
+net/mlx5e: TC, track peer flows in a vhca_id xarray
 
-This patch moves the eswitch peer-flow reverse index from the origin flow
-onto each duplicate. Each flow now has one peer list node and a peer_orig
-back-reference. These replace the origin's peer[] array, the peer_used
-bitmap and peer_index, while the per-peer list heads stay keyed by the LAG
-sequence number until the next patch.
+This commit replaces the fixed esw->offloads.peer_flows[MLX5_MAX_PORTS]
+array of list heads with an xarray keyed by the peer vhca_id. Each entry
+is a heap-allocated list head that is created at devcom pair time and
+freed at unpair time. mlx5e_tc_add_fdb_peer_flow() now looks the entry up
+with xa_load() and returns -ENODEV if it is missing.
+
+> This lifts the MLX5_MAX_PORTS cap: the number
+> of peers is bounded only by the number of distinct vhca_ids.
+
+[ ... ]
+
+> No functional change.
+
+[Severity: Low]
+This isn't a bug, but is "No functional change" accurate here?
+
+The same message says the patch lifts the MLX5_MAX_PORTS cap. The patch
+also adds a new -ENODEV failure path to mlx5e_tc_add_fdb_peer_flow() for a
+peer that has no peer_flows xarray entry (see the comment below). Before
+this patch, once __mlx5e_add_fdb_flow() succeeded, the duplicated flow was
+always linked.
+
+The old add path also used an unchecked index:
+
+	int i = mlx5_lag_get_dev_seq(peer_esw->dev);
+	...
+	list_add_tail(&peer_flow->peer, &esw->offloads.peer_flows[i]);
+
+mlx5_lag_get_dev_seq() can return -ENOENT, and only
+mlx5e_tc_clean_fdb_peer_flows() checked for i < 0. Removing that latent
+out-of-bounds access also changes behavior.
+
+Could the commit message describe these changes instead?
 
 > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-> index b290beb4369ad..fae4f8625da4d 100644
+> index fae4f8625da4d..c99e824b4c6dc 100644
 > --- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
 > +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
 
 [ ... ]
 
-> @@ -4639,12 +4631,11 @@ static int mlx5e_tc_add_fdb_peer_flow(struct flow_cls_offload *f,
->  		goto out;
->  	}
->  
-> -	peer_flow->peer_index = i;
-> +	peer_flow->peer_orig = flow;
+> @@ -4634,8 +4635,11 @@ static int mlx5e_tc_add_fdb_peer_flow(struct flow_cls_offload *f,
+>  	peer_flow->peer_orig = flow;
 >  	list_add_tail(&peer_flow->peer_flows, &flow->peer_flows);
 >  	flow_flag_set(flow, DUP);
+> +	dup_peer_flows = xa_load(&esw->offloads.peer_flows, peer_vhca_id);
+> +	if (!dup_peer_flows)
+> +		return -ENODEV;
+
+[Severity: High]
+What happens to peer_flow when xa_load() returns NULL here?
+
+By this point __mlx5e_add_fdb_flow() has already offloaded the duplicate
+rule to the peer FDB. peer_flow is on flow->peer_flows and DUP is set.
+
+peer_flow->peer has not been linked, and it was never initialized either.
+mlx5e_alloc_flow() allocates the flow with kzalloc_obj() and calls
+INIT_LIST_HEAD() on peer_flows, hairpin, l3_to_l2_reformat, attrs and
+encaps[], but not on peer. So peer.next and peer.prev are NULL.
+
+The caller then unwinds like this:
+
+mlx5e_add_fdb_flow()
+  mlx5e_tc_add_fdb_peer_flow() returns -ENODEV
+  goto peer_clean
+  mlx5e_tc_del_fdb_peers_flow(flow)
+    mlx5e_tc_del_fdb_peer_flow(peer_flow)
+      mutex_lock(&esw->offloads.peer_mutex);
+      list_del(&peer_flow->peer);
+
+Can this list_del() dereference NULL? If it does, the oops happens while
+peer_mutex and the devcom read semaphore are held. It also happens before
+mlx5e_tc_del_fdb_flow() and clean_flow remove the peer and original FTEs
+from hardware.
+
+Can a NULL xa_load() actually happen? mlx5_devcom_for_each_peer_entry()
+calls mlx5_devcom_get_next_peer_data(), which returns every registered
+comp_dev with non-NULL data. It does not check esw->paired. A peer can be
+registered without having a peer_flows entry in at least three ways:
+
+- devcom_alloc_comp_dev() adds the new member to comp_dev_list_head before
+  mlx5_esw_offloads_devcom_init() sends ESW_OFFLOADS_DEVCOM_PAIR in a
+  separate locked section. An eswitch that is already paired can add a
+  rule in between.
+
+- mlx5_esw_offloads_unpair() erases and frees the entry, but the member
+  stays on the list until mlx5_devcom_unregister_component(). comp->ready
+  also stays true while other pairs remain.
+
+- mlx5_esw_offloads_devcom_event() skips pairing when the metadata setting
+  differs:
+
+	case ESW_OFFLOADS_DEVCOM_PAIR:
+		if (mlx5_eswitch_vport_match_metadata_enabled(esw) !=
+		    mlx5_eswitch_vport_match_metadata_enabled(peer_esw))
+			break;
+
+  An admin can change that setting through the esw_port_metadata devlink
+  param. The peer then stays iterable with no xarray entry.
+
+Before this patch the target was a statically initialized peer_flows[]
+list head, so nothing could fail after the hardware write.
+
+Would it make sense to do the xa_load() before __mlx5e_add_fdb_flow(), or
+otherwise make sure peer_flow->peer is valid on this error path?
+
 >  	mutex_lock(&esw->offloads.peer_mutex);
-> -	list_add_tail(&flow->peer[i], &esw->offloads.peer_flows[i]);
-> -	set_bit(i, flow->peer_used);
-> +	list_add_tail(&peer_flow->peer, &esw->offloads.peer_flows[i]);
-
-[Severity: Medium]
-This isn't a bug introduced by this patch, but can i be negative here?
-
-i is set at the top of mlx5e_tc_add_fdb_peer_flow():
-
-	int i = mlx5_lag_get_dev_seq(peer_esw->dev);
-
-mlx5_lag_get_dev_seq() returns -ENOENT in three cases: there is no ldev,
-no master matches the filter, or the device is not in the filtered LAG
-set.
-
-Nothing checks the range of i before it indexes the fixed
-peer_flows[MLX5_MAX_PORTS] array in struct mlx5_esw_offload. With a
-negative value, list_add_tail() would write list pointers into the fields
-in front of that array.
-
-mlx5e_tc_clean_fdb_peer_flows() does handle a negative return:
-
-		i = mlx5_lag_get_dev_seq(peer_esw->dev);
-		if (i < 0)
-			continue;
-
-The old flow->peer[i] line used the same unchecked index. The code does
-not make it clear whether a devcom-paired peer can be outside the filtered
-LAG set when a flow is added.
-
-The next patch in the series, "net/mlx5e: TC, track peer flows in a
-vhca_id xarray", replaces this lookup with xa_load(&esw->offloads.peer_flows,
-peer_vhca_id), so the negative index goes away.
-
+> -	list_add_tail(&peer_flow->peer, &esw->offloads.peer_flows[i]);
+> +	list_add_tail(&peer_flow->peer, dup_peer_flows);
 >  	mutex_unlock(&esw->offloads.peer_mutex);
 >  
 >  out:
 
-[Severity: Medium]
-This is a pre-existing issue, but does the error path in the caller,
-mlx5e_add_fdb_flow(), leak the origin struct mlx5e_tc_flow?
-
-__mlx5e_add_fdb_flow() has already allocated the flow with refcnt 1. If
-mlx5_devcom_for_each_peer_begin() fails or mlx5e_tc_add_fdb_peer_flow()
-returns an error, the flow ends up here:
-
-drivers/net/ethernet/mellanox/mlx5/core/en_tc.c:mlx5e_add_fdb_flow() {
-    ...
-peer_clean:
-	mlx5e_tc_del_fdb_peers_flow(flow);
-	mlx5_devcom_for_each_peer_end(devcom);
-clean_flow:
-	mlx5e_tc_del_fdb_flow(priv, flow);
-	return err;
-}
-
-mlx5e_tc_del_fdb_flow() frees the attrs and rules but not the flow
-itself. Since *__flow is never set, mlx5e_configure_flower() does not own
-the flow either.
-
-For comparison, the err_free path in __mlx5e_add_fdb_flow() calls
-mlx5e_flow_put().
-
-This leak has existed since commit b1661efa4dbbd7 and is still there at
-the end of this series.
-
 [ ... ]
-
-> @@ -5539,21 +5530,19 @@ int mlx5e_tc_num_filters(struct mlx5e_priv *priv, unsigned long flags)
->  
->  void mlx5e_tc_clean_fdb_peer_flows(struct mlx5_eswitch *esw)
->  {
-
-[ ... ]
-
->  	mlx5_devcom_for_each_peer_entry(devcom, peer_esw, pos) {
->  		i = mlx5_lag_get_dev_seq(peer_esw->dev);
->  		if (i < 0)
->  			continue;
->  
-> -		list_for_each_entry_safe(flow, tmp, &esw->offloads.peer_flows[i], peer[i])
-> -			mlx5e_tc_del_fdb_peers_flow(flow);
-> +		list_for_each_entry_safe(peer_flow, tmp_peer_flow,
-> +					 &esw->offloads.peer_flows[i], peer)
-> +			mlx5e_tc_del_fdb_peer_flow(peer_flow);
-
-[Severity: Medium]
-The commit message says "No functional change". Doesn't this change what
-mlx5e_tc_clean_fdb_peer_flows() removes at unpair time?
-
-Before this patch, every entry on esw->offloads.peer_flows[i] was an
-origin flow. mlx5e_tc_del_fdb_peers_flow(flow) walked that origin's
-peer_used bitmap and removed its duplicates for every peer index. That
-included lists this loop never visited.
-
-After this patch, each entry is a single duplicate linked through
-peer_flow->peer, and mlx5e_tc_del_fdb_peer_flow(peer_flow) removes only
-that duplicate.
-
-The loop still picks the list from the peer's current
-mlx5_lag_get_dev_seq(). The duplicate, however, was filed under the seq
-returned when mlx5e_tc_add_fdb_peer_flow() ran.
-
-Suppose that index no longer matches any current peer seq when
-mlx5_esw_offloads_unpair() calls this function. The device may have been
-renumbered, or the lookup may now return -ENOENT. Would those duplicates
-be left behind? With three or more devices, the old per-origin sweep
-would still have removed them.
-
-A leftover duplicate would keep its FDB rules on the peer after pairing is
-gone, and it would stay linked on flow->peer_flows. A later deletion of
-the origin would then do:
-
-mlx5e_tc_del_flow()
-  mlx5e_tc_del_fdb_peers_flow()
-    mlx5e_tc_del_fdb_peer_flow()
-      mlx5e_tc_del_fdb_flow(peer_flow->priv, peer_flow)
-
-At that point the peer priv may already be unloaded.
-
-The code does not make it clear whether the LAG seq can change before the
-devcom unpair event, so this may not be reachable.
-
-The next patch in the series, "net/mlx5e: TC, track peer flows in a
-vhca_id xarray", keys the index by vhca_id and walks every entry with
-xa_for_each(). That fixes the problem, so it only affects this
-intermediate commit.
-
->  	}
->  }
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260923103830.1183-1-tariqt%40nvidia.com
