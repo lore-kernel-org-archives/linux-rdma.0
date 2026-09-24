@@ -1,231 +1,227 @@
-Received: from fout-a6-smtp.messagingengine.com (fout-a6-smtp.messagingengine.com [103.168.172.149])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96E14381E96;
-	Thu, 24 Sep 2026 12:56:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.149
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CC3A280331;
+	Thu, 24 Sep 2026 13:54:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790254613; cv=none; b=GnX8DZeoa3LvCxlbOG2/nHQ/Iot7kq1lBxzCHPeuZzEsmPkSxeT75GnGkBYglueM6Fp3gLR6+LK17XKRpU1FfQr3PEwrLDXa3ynd/tUNsVo5GT7c3bg8HM2t/Ex8gdpujkcPSJdB0fJjY19HHVNMftnmgWeZlQxPeJmR/X6sF+I=
+	t=1790258072; cv=none; b=M4RdkfiPTnmMjvDEoA+tH7Gjn3UEhRjtVhuKZUiK7g5H9UxT/0NjJEDby7BGjpq9MEzavwyT5heIyFBWJL0Hdz2TwW7SEsXGHQ13JVXA8tFdZsWOKXOBoVi7AdDcBPFlrS3kH7ZiMic4Bp9oF4tNPvuJ7+IiLa0lrzQT97H+7/M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790254613; c=relaxed/simple;
-	bh=9KFP333nBL3cE3MWpAffOS+SZ2NE4xEC9rmyuPBFGBs=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=fDxoHGukgIgvBTNTbIwOV8GiSgYlI6DKA53Lg0rHLa37EVGsTwoQiEbD+gcj14Cv2md43tOBLSrhFCS1xiKnnRNqi1nvLrYEdNv+4kg1KxteCywHRvs/QrjxAG9A7T4vApt4VVze7Qap2odvuVRpIDlGbn/C+i6WcgtHv4n6uCQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shazbot.org; spf=pass smtp.mailfrom=shazbot.org; dkim=pass (2048-bit key) header.d=shazbot.org header.i=@shazbot.org header.b=SfDv2A2m; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=hPDQhnza; arc=none smtp.client-ip=103.168.172.149
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=shazbot.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=shazbot.org
+	s=arc-20240116; t=1790258072; c=relaxed/simple;
+	bh=L+PpSiG84VaGXlSktp4v2Ha1dfreFC5SkjQ3fY0sM38=;
+	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=DHCjWOrmz920n4jFuAoeC0xtR3BVPTgq8h8+7hJnQ7rmLSPRfuzQvIpMw45KlywrD7lWm7ZCNd5mxlmgVWl4k17kRoqxYthhfbQSymdQp34CbXIKYKK+V7LhQNL1UzrqS9n6RJSvLtJI/nAVaFyP6dQC2gyDZkHw9mFkqgvEwLM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=niHnA08W; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=shazbot.org header.i=@shazbot.org header.b="SfDv2A2m";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="hPDQhnza"
-Received: from phl-compute-11.internal (phl-compute-11.internal [10.202.2.51])
-	by mailfout.phl.internal (Postfix) with ESMTP id 8A2C1EC006C;
-	Thu, 24 Sep 2026 08:56:49 -0400 (EDT)
-Received: from phl-frontend-04 ([10.202.2.163])
-  by phl-compute-11.internal (MEProxy); Thu, 24 Sep 2026 08:56:49 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=shazbot.org; h=
-	cc:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm3; t=1790254609;
-	 x=1790341009; bh=nh5lY07F/XdtpzZWisBcou4EdetqWlxWEhSWH7F4qoU=; b=
-	SfDv2A2mrCaoAZJYIg+Gdd5VA7VdxBZbvuu2ggT9DdEBxG9zdV7rTuHSEkdp2muC
-	RrKs1Ca7dVpiS45RImV8oYv+FoCsLmwQD3kkyb+4+C2iNKThGf9SWJoIu2b6PgYv
-	vZcIM/pQOrPURQUUMWcywq/mJv9M4Spdmnm5RAAc41f0uhx81mNomQAjmA2nDhxU
-	+8LlYteXhm/Pc5N2bEAm1UeTQ8PsFO2uox+rLk1WibktQi656HxEJ62wXfUGdKdk
-	WWgGVzAQbQxDrbUjTkHDEoJ3QDP8hcpdgbfVbUWumn5d2XbwRUz6GiB5EYFMuKPQ
-	brbE8PDidMo+hX1w+fZA/w==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=1790254609; x=
-	1790341009; bh=nh5lY07F/XdtpzZWisBcou4EdetqWlxWEhSWH7F4qoU=; b=h
-	PDQhnza67R40uz4KVjCagCuK/1ooUwva9Er/NXECJ0FHEjMoMBoke2aHuIF2ssXJ
-	QsG6/RCqtJNK/IZzLbY0mngXIEhP7YJdFnZEgu44m0ROGyqO4yEL8LA0oeg6hdiv
-	g+4BV8T2xgDx+1+sH6oOz7vY0K9damZ4tMI7KMy/1EJCGdwDy7HOLikaDy+JfnLX
-	6ceMFdyezhDzCrzOLqL6xFG+ahmA+HuwZgt1Quxl3FtMB7QbzKyIolhlTc3W51ft
-	1HO6VkDpAhH89/pvPW98PePu5IgoTQb8T4nDUYoG+ICHwCQxGQCVMj+gRn/fkw6q
-	oDCYZqON4IQ53LirsjKSQ==
-X-ME-Sender: <xms:EB61ag6hannoEnoGHm6M8Td2p4HPwBZaXj4x4b9wNZ05UmtIGoWlIg>
-    <xme:EB61ajnCXa8dcuv_zjPzBiXZBLBc6SilmBzOljFoB43fww6ABJ517VLYOPGLIdCA0
-    EfKyxUGve3geURx3lvzvz7lryK1DCOfJ2dyFr_G9eIdujkUFOKC8vA>
-X-ME-Received: <xmr:EB61ai6Z9V5eFqttc2Xvt_ymbI2pa28pxkVrhI-YoRi6duOZ1uWRfDQBgIn8MA>
-X-ME-Proxy-Cause: dmFkZTF32quzzh7iukCEspo2//2/EETePHBVgKSDjotfiMLGFMKMi36qp1G2l6m0603LrJ
-    etTQuK4n5psitazgA7NI8ZNAj7Boz3Iz2PTvtSHc4YlI+thZ+g9AxqEWr6smXP4eTxr12L
-    j4iqpnH1GtJD2uV9oEuEdNTFWS+cbDLo5wkX85Q/VxLJ3pJBv3fDm5p4L0ICSGL2DRf+46
-    Zml5juxNyzXgitBUARzy5Q+nGWTe5JIDB908ZQufVLIQOoOBXqBBTkAU9StkEDBWH3HPm1
-    ntYntvDmBSd8joOmDn8RlxUIhT6RE2mlz7OAGRk1ORprL1NHSpdJ4EtNFWlP7TEPEI2LL+
-    pYpBOVi8BAwOPzs8KcdsKkIryA6tKwcjIx9YbxHEmrYndho1FvpUUtTEwlPkk7X/dQD9Ri
-    ojMeInjDm3Qf5JrK4MBzkNA7Dt3NJ6cqbP3mXwlxY66VM1OQkoplQn+y8dqGjimJQChM0H
-    X/OWXCexHTyaKnsGcaXBBz4P6OIry6aIZOK+2kHFAjj6C2QgTN1cKSnEM8fuIS6PcDd0+W
-    qERUKkVymlRMm2x+LmGNo26NcGSU5Ypn9oOO6KRxrdQT6g4w9CrjoWNMiED9/ya8srtUMd
-    ZvrlCrWUre43Cm5+vQfUS0dE4wk7Jh2khI5DPdNo3cIJyUXSXDtSlgOb28sw
-X-ME-Proxy: <xmx:EB61ak-CCIp6-CYCczNih1SN9_54-HNNmAHQY0ICnnl0s8AO4EmszA>
-    <xmx:EB61aqjS8hEqWBBS_8_EGr-7wJVSDCuh5GhtYl6xKl0pHw9uD66TrA>
-    <xmx:EB61aq4gadEPI3rZSlrTz5wkDYHf32dqAFu2Lg2_LiD0KyoCtx3ypw>
-    <xmx:EB61avZEX_jEZucgTShjdxZtDWzWj6mznxYhBi5hg5Z0SqiIAAABXg>
-    <xmx:ER61aii1kJ3fAXJc8Rp40Kh9XAv9uxpj6Ga3ZpCPvgjzzFsOuVxOhPuQ>
-Feedback-ID: i03f14258:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
- 24 Sep 2026 08:56:45 -0400 (EDT)
-Date: Thu, 24 Sep 2026 06:56:42 -0600
-From: Alex Williamson <alex@shazbot.org>
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Jason Gunthorpe <jgg@nvidia.com>, David Matlack <dmatlack@google.com>,
- Fuad Tabba <fuad.tabba@linux.dev>, Joey Gouly <joey.gouly@arm.com>,
- kvm@vger.kernel.org, kvmarm@lists.linux.dev,
- linux-arm-kernel@lists.infradead.org, linux-kselftest@vger.kernel.org,
- linux-rdma@vger.kernel.org, Marc Zyngier <maz@kernel.org>, Mark Bloch
- <mbloch@nvidia.com>, netdev@vger.kernel.org, Oliver Upton
- <oupton@kernel.org>, Paolo Bonzini <pbonzini@redhat.com>, Saeed Mahameed
- <saeedm@nvidia.com>, Sean Christopherson <seanjc@google.com>, Steffen Eiden
- <seiden@linux.ibm.com>, Shuah Khan <shuah@kernel.org>, Suzuki K Poulose
- <suzuki.poulose@arm.com>, Tariq Toukan <tariqt@nvidia.com>, Zenghui Yu
- <yuzenghui@huawei.com>, patches@lists.linux.dev, alex@shazbot.org
-Subject: Re: [PATCH v7 00/10] mlx5 support for VFIO self test
-Message-ID: <20260924065642.125986a4@shazbot.org>
-In-Reply-To: <0-v7-c6d30e8ce1e4+3dfa6-mlx5st_jgg@nvidia.com>
-References: <0-v7-c6d30e8ce1e4+3dfa6-mlx5st_jgg@nvidia.com>
-X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="niHnA08W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 151BD1F000FF;
+	Thu, 24 Sep 2026 13:54:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790258070;
+	bh=SM0mirBFNqZyzhYwhqOqLEyAVViA4n4Gk8C6G8Jb/dM=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=niHnA08WwEkVe6sHPWH5k+sL96KCpVol1HieFXze+sNw9jV5DWckH+z+QY6K3ZMsZ
+	 igCkTACaccBXEu1pLtr/NuGWXaqIOZFB079Asdv5chF175fgBoF6pKB6wn92hH9dSA
+	 jJxjVo3yeB9Xm++ks74Xe8tWyTV3H1t555tObSf587JnjXr8cx1h+Q1JBr7TqSwMCR
+	 MNoCmXw5LxPzSBBys6VSGHw4tqiRRTDxR7R5cAnWklZ6NfJnZTgy12FwY+5N99isZP
+	 GZuI1s17ilWita+kY7MfPJUmhlHl6v5BnG/vfXdCoX21YcZd/tg2LtpR5NB4zLVpfW
+	 yPekO3HLncBqA==
+Subject: Re: [PATCH net] net/mlx5: Fix slab-out-of-bounds when handling team
+ device events
+From: netdev-bot+sashiko@kernel.org
+To: avirdi@redhat.com
+Cc: netdev@vger.kernel.org, saeedm@nvidia.com, leon@kernel.org,
+ tariqt@nvidia.com, mbloch@nvidia.com, andrew+netdev@lunn.ch,
+ davem@davemloft.net, edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+ shayd@nvidia.com, ohartoov@nvidia.com, maorg@nvidia.com,
+ linux-rdma@vger.kernel.org
+Date: Thu, 24 Sep 2026 13:54:29 +0000
+Message-ID: <179025806955.2160803.14946061126391357248@kernel.org>
+In-Reply-To: <20260922135123.46205-1-avirdi@redhat.com>
+References: <20260922135123.46205-1-avirdi@redhat.com>
+X-sashiko-severity: High
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
+Thank you for your contribution! Sashiko AI review found 2 potential
+issue(s) to consider.
 
-Leon, can we get your ack on 1-4?  I'll publish an rc1-based branch for
-any conflict management.  Thanks,
+Critical: 0 · High: 1 (1) · Medium: 0 · Low: 1
 
-Alex
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-On Mon, 21 Sep 2026 19:35:40 -0300
-Jason Gunthorpe <jgg@nvidia.com> wrote:
+- [High] Over-broad guard: replacing netif_is_lag_master() with
+  netif_is_bond_master() at the very top of…
+- [Low] Commit message inaccuracy: the message states that
+  mlx5_handle_changeinfodata_event() suffers the same team_port-…
 
-> Add an mlx5 driver to VFIO self test. This is largely a remix of the
-> existing VFIO mlx5 driver in rdma-core. It uses an RDMA loopback QP
-> to issue RDMA WRITE operations which effectively perform memory
-> copies using DMA. Since mlx5 has a stable programming ABI this
-> should work on devices from CX5 to current HW. The device FW must
-> support the QP loopback configuration.
-> 
-> Also support send_msi by arming completion events of the RDMA WRITE
-> to trigger MSI delivery.
-> 
-> mlx5 device startup is very complex and most of this code is just
-> booting the device, with a smaller amount for operating the QP.
-> 
-> This entire series was coded by Claude Code in about 4 days. It
-> used about 4.5M output tokens, 30 individual sessions and 5600 lines
-> of AI-generated .md files. I spent an annoying amount of time
-> de-slopping and cleaning its work product to make it presentable.
-> However, previous VFIO drivers have taken on the order of 1-2
-> months to write, so getting one in a week is pretty remarkable.
-> 
-> For those interested, the flow I used was broadly a prompt sequence
-> sort of like:
-> 
->  - Hey Claude, go look at the falcon series, VFIO self test, the
->    mlx5 driver, rdma-core and some PDF documentation and make a
->    plan to put mlx5 under the selftest.
->  - Write an rdma-core application using the built-in VFIO provider
->    that can do the required memcpy operations that vfio selftests
->    wants.
->    (This resulted in a 1k loc C file that compiled and ran the
->     first time but had a few bugs related to device programming
->     that the AI resolved.)
->  - Replace the rdma-core components with open-coded versions to
->    create a fully stand-alone program that does the DMA memcpy.
->  - Review and audit the thing.
->  [Pause and de-slop it]
->  - Make it work on a PF too (this is surprisingly hard!).
->  [Move to a kernel tree and copy all the .md files and .c program
->   it made]
->  - Hey Claude, look at all this stuff and make a broad plan to
->    actually build a VFIO self test.
->  - Here is my 1 sentence advice on what each patch should look
->    like, make a detailed plan to make a patch for every one.
->  [Pause and polish the patch plans]
->  - Execute plan X then commit it [pause and de-slop each patch,
->    repeat].
->  [Review and final polish]
-> 
-> v7:
->  - Fix some compilation problems, kvm and the igb
-> v6: https://patch.msgid.link/r/0-v6-8af36cf7b73f+e2-mlx5st_jgg@nvidia.com
->  - Rebase on v7.3-rc3
->  - Correct some minor sashiko remarks
-> v5: https://patch.msgid.link/r/0-v5-4cacb99249f6+1b4-mlx5st_jgg@nvidia.com
->  - Rebase on v7.3-rc1
->  - Adjust how region_size is computed to min it to getpagesize()
-> v4: https://patch.msgid.link/r/0-v4-021df3fb5a3f+98e-mlx5st_jgg@nvidia.com
->  - Rebase on vfio next, update igb and falcon
->  - Move rounding to iova_allocator_alloc()
->  - Remove arm barrier changes
-> v3: https://patch.msgid.link/r/0-v3-76f117ad04f1+28a90-mlx5st_jgg@nvidia.com
->  - Move max into vfio_pci_driver_probe()
->  - Rebase on v7.2-rc3
-> v2: https://patch.msgid.link/r/0-v2-72e9640932fd+2c64-mlx5st_jgg@nvidia.com
->  - Rebase on v7.1-rc3, drop falcon patches
->  - dev_dbg checks the format string even in non debug builds
->  - Sort includes
->  - Adjust comments/commit messageas
->  - Use linux/pci_ids.h
->  - Compute the driver.max_memcpy_size the same as mlx5 kernel driver, it
->    should be GBs now on most devices
->  - Put region_size into all drivers instead of allowing 0
-> v1: https://patch.msgid.link/r/0-v1-dc5fa250ca1d+3213-mlx5st_jgg@nvidia.com
-> 
-> Jason Gunthorpe (10):
->   net/mlx5: Add IFC structures for CQE and WQE
->   net/mlx5: Move HW constant groups from device.h/cq.h to mlx5_ifc.h
->   net/mlx5: Extract MLX5_SET/GET macros into mlx5_ifc_macros.h
->   net/mlx5: Add ONCE and MMIO accessor variants to mlx5_ifc_macros.h
->   selftests: Add additional kernel functions to tools/include/
->   vfio: selftests: Allow drivers to specify required region size
->   vfio: selftests: Add dev_dbg
->   vfio: selftests: Add mlx5 driver - HW init and command interface
->   vfio: selftests: Add mlx5 driver - data path and memcpy ops
->   vfio: selftests: mlx5 driver - add send_msi support
-> 
->  include/linux/mlx5/cq.h                       |   10 -
->  include/linux/mlx5/device.h                   |  231 +-
->  include/linux/mlx5/mlx5_ifc.h                 |  178 ++
->  include/linux/mlx5/mlx5_ifc_macros.h          |  185 ++
->  tools/arch/arm64/include/asm/barrier.h        |    4 +
->  tools/arch/x86/include/asm/barrier.h          |    5 +
->  tools/include/asm-generic/io.h                |   28 +
->  tools/include/asm/barrier.h                   |    8 +
->  tools/include/linux/stddef.h                  |   10 +
->  .../selftests/kvm/include/arm64/processor.h   |    4 +-
->  tools/testing/selftests/kvm/irq_test.c        |    2 -
->  .../selftests/vfio/lib/drivers/dsa/dsa.c      |    1 +
->  .../selftests/vfio/lib/drivers/igb/igb.c      |    1 +
->  .../selftests/vfio/lib/drivers/ioat/ioat.c    |    1 +
->  .../selftests/vfio/lib/drivers/mlx5/mlx5.c    | 1928 +++++++++++++++++
->  .../selftests/vfio/lib/drivers/mlx5/mlx5_hw.h |  114 +
->  .../vfio/lib/drivers/mlx5/mlx5_ifc.h          |    1 +
->  .../vfio/lib/drivers/mlx5/mlx5_ifc_fpga.h     |    1 +
->  .../vfio/lib/drivers/mlx5/mlx5_ifc_macros.h   |    1 +
->  .../vfio/lib/drivers/nv_falcon/nv_falcon.c    |    1 +
->  .../lib/include/libvfio/vfio_pci_device.h     |   11 +
->  .../lib/include/libvfio/vfio_pci_driver.h     |    6 +
->  .../selftests/vfio/lib/iova_allocator.c       |    7 +-
->  tools/testing/selftests/vfio/lib/libvfio.mk   |    1 +
->  .../selftests/vfio/lib/vfio_pci_driver.c      |    6 +
->  .../selftests/vfio/vfio_pci_driver_test.c     |    3 +-
->  26 files changed, 2502 insertions(+), 246 deletions(-)
->  create mode 100644 include/linux/mlx5/mlx5_ifc_macros.h
->  create mode 100644 tools/include/linux/stddef.h
->  create mode 100644 tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5.c
->  create mode 100644 tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_hw.h
->  create mode 120000 tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_ifc.h
->  create mode 120000 tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_ifc_fpga.h
->  create mode 120000 tools/testing/selftests/vfio/lib/drivers/mlx5/mlx5_ifc_macros.h
-> 
-> 
-> base-commit: fd73f4a6659897191fa0d40695fe370925dd3780
+Pre-existing issues:
+- [High] The identical bug class the patch claims to eliminate remains
+  reachable in the mlx5e TC mirred offload path: get_fdb_out_dev()…
 
+--
+
+net/mlx5: Fix slab-out-of-bounds when handling team device events
+
+This changes the two LAG notifier helpers in mlx5's lag.c to gate on
+netif_is_bond_master() instead of netif_is_lag_master(), so that a team
+master no longer reaches bond_slave_get_rcu()/bond_is_slave_inactive().
+The reported symptom is a KASAN out-of-bounds read when a team_port is
+interpreted as a struct slave.
+
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+> index dd14cdc378de0..2714d39ae7c24 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+> @@ -1922,7 +1922,7 @@ static int mlx5_handle_changeupper_event(struct mlx5_lag *ldev,
+>  	int changed = 0;
+>  	int i, idx = -1;
+>  
+> -	if (!netif_is_lag_master(upper))
+> +	if (!netif_is_bond_master(upper))
+>  		return 0;
+
+[Severity: High]
+Does this early return do more than avoid the bonding-only calls?  The
+only team-unsafe statements in mlx5_handle_changeupper_event() are further
+down in the for_each_netdev_in_bond_rcu() loop:
+
+	slave = bond_slave_get_rcu(ndev_tmp);
+	if (slave)
+		has_inactive |= bond_is_slave_inactive(slave);
+
+Returning 0 at the top of the function also skips the computation of
+tracker->tx_type, tracker->hash_type and tracker->is_bonded for any team
+master.
+
+Since mlx5_lag_netdev_event() only writes the tracker back and queues the
+work when a handler returns non-zero:
+
+	if (changed)
+		mlx5_lag_update_tracker_speed(&tracker, ndev);
+
+	ldev->tracker = tracker;
+
+	if (changed)
+		mlx5_queue_bond_work(ldev, 0);
+
+and mlx5_do_bond() gates activation on the tracker:
+
+	do_bond = tracker.is_bonded && mlx5_lag_check_prereq(ldev);
+
+can is_bonded ever become true again for mlx5 ports aggregated by a team
+master?  Team does advertise the TX types mlx5 accepts —
+team_upper_dev_link() sets lag_upper_info.tx_type = team->mode->lag_tx_type,
+with NETDEV_LAG_TX_TYPE_ACTIVEBACKUP in team_mode_activebackup and
+NETDEV_LAG_TX_TYPE_HASH in team_mode_loadbalance — which are exactly the
+two values the mode_supported test in this function allows.
+
+Would gating only the bond_slave_get_rcu()/bond_is_slave_inactive() block
+on netif_is_bond_master() remove the out-of-bounds read while keeping
+team-based LAG tracking?
+
+Related to this, does the driver's notifier state machine become
+asymmetric?  mlx5_handle_changelowerstate_event() still admits team ports:
+
+	if (!netif_is_lag_port(ndev))
+		return 0;
+
+and returns 1, so team NETDEV_CHANGELOWERSTATE events keep updating
+tracker->netdev_state[] and queueing bond work while is_bonded can never be
+set.  mlx5_lag_update_tracker_speed() also still resolves a team master as
+the bond device:
+
+	if (netif_is_lag_master(ndev))
+		bond_dev = ndev;
+
+and publishes its speed through mlx5_lag_query_bond_speed().
+
+One more question on the changelog: with a Fixes: tag aimed at stable,
+should the loss of hardware LAG offload for team-aggregated ports be
+mentioned, since there is no extack or dmesg indication when the handler
+bails out early?
+
+>  
+>  	if (info->linking)
+> @@ -2029,7 +2029,7 @@ static int mlx5_handle_changeinfodata_event(struct mlx5_lag *ldev,
+>  	bool has_inactive = 0;
+>  	int idx;
+>  
+> -	if (!netif_is_lag_master(ndev))
+> +	if (!netif_is_bond_master(ndev))
+>  		return 0;
+
+[Severity: Low]
+The commit message says:
+
+    The mlx5_handle_changeupper_event() and mlx5_handle_changeinfodata_event()
+    functions assume the upper device is a bonding device and call bonding-
+    specific
+    APIs like bond_slave_get_rcu() and bond_is_slave_inactive().
+
+Can mlx5_handle_changeinfodata_event() actually be entered with a team
+master?  NETDEV_CHANGEINFODATA has a single emitter in the tree, in
+bond_option_active_slave_set():
+
+	call_netdevice_notifiers(NETDEV_CHANGEINFODATA, bond->dev);
+
+drivers/net/team/ never emits it, so this hunk looks like hardening of an
+unreachable path rather than a second fix.  Could the changelog be narrowed
+to the mlx5_handle_changeupper_event() path, so stable backporters see the
+real scope?
+
+Also, the sentence above is wrapped mid-word ("bonding-\nspecific") in the
+changelog.
+
+>  
+>  	rcu_read_lock();
+
+[Severity: High]
+This isn't a bug introduced by this patch, but the same pattern is still
+present in the mlx5e TC mirred offload path, and it may be worth fixing in
+the same series.  get_fdb_out_dev() in
+drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/mirred.c still uses the
+generic check before a bonding-only accessor:
+
+	} else if (netif_is_lag_master(out_dev)) {
+		fdb_out_dev = bond_option_active_slave_get_rcu(netdev_priv(out_dev));
+
+For a team master, netdev_priv() is a struct team, and
+bond_option_active_slave_get_rcu() reads it as struct bonding:
+
+include/net/bonding.h:bond_option_active_slave_get_rcu() {
+	const struct slave *slave = rcu_dereference_rtnl(bond->curr_active_slave);
+
+	return bond_uses_primary(bond) && slave ? slave->dev : NULL;
+}
+
+bond_uses_primary() reads BOND_MODE(bond) out of unrelated bytes of the team
+private area, and bond->curr_active_slave aliases team->header_ops_cache
+(struct team starts with pcpu_stats, it has no leading dev member).  If the
+garbage mode value happens to be one of the primary modes, does this
+dereference header_ops_cache as struct slave * and return slave->dev as a
+bogus struct net_device *, which mlx5e_eswitch_rep() then dereferences?
+
+The reachable caller is parse_mirred():
+
+	out_dev = get_fdb_out_dev(uplink_dev, out_dev);
+	if (!out_dev)
+		return -ENODEV;
+
+reached from tc_act_parse_mirred() when
+netdev_port_same_parent_id(priv->netdev, out_dev) holds, which a team master
+over mlx5 representors satisfies.  Should this site use
+netif_is_bond_master() too, the way mpesw.c already does?
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260922135123.46205-1-avirdi%40redhat.com
