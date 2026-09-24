@@ -1,192 +1,193 @@
-Received: from mx0a-00082601.pphosted.com (mx0a-00082601.pphosted.com [67.231.145.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f199.google.com (mail-pl1-f199.google.com [209.85.214.199])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 191A039CCF6
-	for <linux-rdma@vger.kernel.org>; Thu, 24 Sep 2026 06:25:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=67.231.145.42
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790231111; cv=fail; b=tbwSP5uYDYa3PX690G/LzyIIC2qXw6iLan7etMpFB2dbTsgT8HYOCafjXqzyu2UMZwX7HPJop+iAYT7Q0yyprfWQWEv5i05gTA+hAivCQaUlGj7/QkUvnWB5cfZnu10RwdMzR8CSQS1gXKYGPFXzH0bryEymNqGrpT69S1L11I0=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790231111; c=relaxed/simple;
-	bh=dumiTwGbMEgraHXzScODaqcrl57xN/pkOOLYCcmVuK0=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=CdTJqd63ypd92AUMPqHg8UvjBOi8r0HDoTdvJYfGqSTtEYgOqRV6lG5A2cE2iKlIgoTbfDbVTBmlTip44RhkJ6zadyYi9+9aROGDCb6WP+5uvFkKoM4u0bRAQ2mn8Ohfa/CXdKZgd5nA18870FwY9drKiVDO3q78szrqGPfWWMM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com; spf=pass smtp.mailfrom=meta.com; dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b=kVpR4J2c; arc=fail smtp.client-ip=67.231.145.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC22D3DDDB0
+	for <linux-rdma@vger.kernel.org>; Thu, 24 Sep 2026 06:26:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.199
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790231176; cv=none; b=OAXMmIb+RVP0iiGyNbq5eBVnIC2WeYZoV/+jIILKLCaJL2UrHLAQ3FKxwD8tnPjzfx3Jhx7NfeJVsMqhbXHx7tlUw3clbFhopdKrUD00F2H0RLMS24atDUwVueIs0Hv9+nQEs0NbQDaVOWQ0EO1CvUlhEiY6Q5oVZoaHoIemz5I=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790231176; c=relaxed/simple;
+	bh=E08VtgF/rXHRCxE8eUUJsJea7kdObGQcooH9Heh0p+Y=;
+	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=MfQ75rIZFQEpriedQxZ4uce/yZ4VdAhbsFXXnpHsI+gmEGLUkbfqIA6eieNBSN7DCHtDHecjouJCPoBo6Hzxwq/6FKrHDyLGKDt2z6ZzRExzrf015vkhZN3Y6BVf0hm5KF8RlCWVvBpeJzgowacpxFtinYtdjmmA/RI5mq+zy1w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--sunnytiwari.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=EIuk2amP; arc=none smtp.client-ip=209.85.214.199
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--sunnytiwari.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b="kVpR4J2c"
-Received: from pps.filterd (m0528007.ppops.net [127.0.0.1])
-	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68O5feU14147457
-	for <linux-rdma@vger.kernel.org>; Wed, 23 Sep 2026 23:25:09 -0700
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=
-	pps82601-s2048-2026-q3; bh=dumiTwGbMEgraHXzScODaqcrl57xN/pkOOLYC
-	cmVuK0=; b=kVpR4J2cMlHzqIDDgIwDNRJKn8dds0XKZoAj3OuhpAobjcceNl0Bu
-	lbg5D+lbA8CbPmTwKFk7+P9ILanDRGAi05aIxnTFuZ43UVMM/4+qDIBkN6C9YRFG
-	IHueetZOt54ETnH+qsE4FIKotfPKQDH8rt4NVkm1+3IL6jolTyEOLLwJmpBn0uju
-	gZkmJJjhBdcR/w50XWF7pn04IJiaJvS+3p3s6euzs154NtYbjvGfGPrlSbJ7kNRv
-	rLyGbzA42lxnnIsp7gJ8tDUTh1gq3l85Sch1Tuo75/IOWkwLClaKgleRjE3hVug1
-	TUvXeAqjqctf8mUTc4IxwuMOWegiHDbEw==
-Received: from mail-oo1-f71.google.com (mail-oo1-f71.google.com [209.85.161.71])
-	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4gv04t705m-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-rdma@vger.kernel.org>; Wed, 23 Sep 2026 23:25:09 -0700 (PDT)
-Received: by mail-oo1-f71.google.com with SMTP id 006d021491bc7-6c2c5c1f843so839330eaf.1
-        for <linux-rdma@vger.kernel.org>; Wed, 23 Sep 2026 23:25:08 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1790231108; cv=none;
-        d=google.com; s=arc-20260327;
-        b=USdg+mZEtTZkTgmANeFKuiTDu7BHyn4/Bb8W9FWkz6wP4MGZHzkgnQJzfjpU1i6P2j
-         Pwyxz5UzY1+wEV6xSTUV5cU2X5h0//imwOhGnERynRIlH7x6bWdm7oC0P81bDzvCaSW5
-         5QK+xLa/ghMrk66QWuli/+LG3aSoBxnkQfXzmwxm5GOokwYN+9Yk+ihTg8T0PPsmIJcQ
-         UHhf0UJ9dlm76hVxuBjavxr9eYxFbhI0bA5BRTgFr+B4kx2yvQfpsUsXdkJkxGVIgHeN
-         7Y+jiSpSWaP7AWfZybocZAOKn9YNDs1L2Ri/FElJDrw21dRaES4yuXvRGrfQS71Sh4pw
-         YIKA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version;
-        bh=RHSnVwj4ta4xwY4ZaPurv5a8QLd5HiVRVFjxaoUelIo=;
-        fh=XU9d8CdHIf0OUSqRGfvI16lFNt6pKLNAD9h2id3B7dQ=;
-        b=A42PKIjUxmtsHfLptPVyDPJxDjZdKZ2BkG5Q9bc6BVnf8MJ/pGBjILnVf1D1XguD0N
-         Xbs7POoXAOZbRQEE55hpl7BUGwQhw1Z5Z9FPbYpN7EhUgRvXgME0YIHqrsSCSOdMrntt
-         mh13RMdlEraBgT0+GBontyI3XwVKAkJvti/MgbH4bzuYaoLFczfMuMILmzbT7nou/zQ3
-         UhQKJSoq33ffYONbhtftXUpxLO+02I8nITvU+L2yxiMtvPNInfj1msrkQW+dvTPfwF/C
-         yKTEhBDCRDaZO2Q4UYOEpW/BlCuFfss2oaQWFr8w1r7T4fHYg0SMwqa0WgBJ2rAr7aRx
-         D1sw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="EIuk2amP"
+Received: by mail-pl1-f199.google.com with SMTP id d9443c01a7336-2dc92350888so28612215ad.3
+        for <linux-rdma@vger.kernel.org>; Wed, 23 Sep 2026 23:26:14 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1790231174; x=1790835974; darn=vger.kernel.org;
+        h=content-type:cc:to:from:subject:message-id:mime-version:date:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=+dxwBYKQFsgxaYrVWyrsAEec4E6upKeICubRLFxRf3w=;
+        b=EIuk2amPAyZpvuUFJU1QC5IlNMthcFN6yb7yieT/kmsMl29JaRZ3i3LdusBm9uls9R
+         wCgSShZpC8JgLHRsaYUx6xSTuuIyF/vEehh0gEJ16xacxOcQLXbyygsE3Bj1yA1R/C06
+         mSGetFYrQdBjVil4GClCe1FHYcQz2c5X9l/cuVsFZKD7AH+7OySTVyFJrLhZV5+6BJ/0
+         lNvoFpYUcobBXkfIxB+Tm0XU63fKj5XNCyoAHLwraxfm3wEzdYgIciGcOTCRIN5xreV6
+         /V1k3p8qzCaGGS/t+lRnV8ylDxuIETJ6r0TAc/8GUUoKtN3BVB467y+lzy205OeOZ+Er
+         JbYg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790231108; x=1790835908;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
+        d=1e100.net; s=20260707; t=1790231174; x=1790835974;
+        h=content-type:cc:to:from:subject:message-id:mime-version:date
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=RHSnVwj4ta4xwY4ZaPurv5a8QLd5HiVRVFjxaoUelIo=;
-        b=gpwR+esvXF/+uzUHllepOcnxKWJ+Dwzx/sR71+4v8TuEc4UBhkfYCnGg+lKcwFJDFx
-         bzhgOqR2dXnHsx8mJzy5PTLFNTCcmvfZYcoiIgwQLWCN/DcneJ5eXCHLn6bUI/4MoD5d
-         3m6nti9n4avSBugB4xxJuNFpHGaemN4An+fIBl2K6Oy3DZ9RmEsnHUVd7jsp4OA9LF7y
-         ShlY1sR0BdwOhxi6WTwIGhz+2jeIP7CXqrmr22JTBnIsqBfb8l5EE33dZzL+coDn4oKY
-         n0zq8sUmjZ0z56txj/1zKv04t9lDwXU+AxHV/nwSvk4AukxaVItxUxUn32XU6xzskPSm
-         ggeQ==
-X-Forwarded-Encrypted: i=1; AKwUvBzeTcJLONZtDl/VSVayIoCkIOe6ShLrGuGRDNlVGJ+bhsehSxlHZvXbAG5ExzHH3f0JOTV8Xs0LGc1z@vger.kernel.org
-X-Gm-Message-State: AFuF++mAYGoR3YFhdp8sCywSZW1LmC6G6xPWT+hlBU6PaNX8lJ+EguMi
-	frVakezY5sRS9wHapfP3xEb2c29OrnyyxRMGscyfWOtJJCmWl9809OMqKLxdci3BvbB91dw6lKK
-	NpH++0jij77DSr8MfNI7Heu1h2CYdgd/iDZOd64luUsNPqVdy1lvqQtNSSiE5tRv1iZIREB4TwZ
-	BtbSz+ZZ1gc+tk1h+QeIYGvkOKG8rw6O5UaOzGrCXL8mZ0oDQ=
-X-Gm-Gg: AYBFou18DnR/sCFHU9WPdmJhdwCksDPxz3XoJVIvcEnFfZsUDp5eaQMWTdw1HMBWbVW
-	sntn67SLbM+0FOrlOwf9SavoEXOgnotarXojYzD/twO6cybLHt2gl6ZgmdK9IFFEIdiUjYSMjkN
-	yhuhPTOC97YksSFNh+ejq9nxTWTj9MuHf/6Z2cLeQsGzmpN0bTmWUPy0D0YhXmhhMgYKY6PioLs
-	TFAiRAP6R8uJ7SqEds=
-X-Received: by 2002:a05:6820:a07:b0:6bd:f79e:5022 with SMTP id 006d021491bc7-6d43f4b92f1mr1105079eaf.23.1790231108122;
-        Wed, 23 Sep 2026 23:25:08 -0700 (PDT)
-X-Received: by 2002:a05:6820:a07:b0:6bd:f79e:5022 with SMTP id
- 006d021491bc7-6d43f4b92f1mr1105058eaf.23.1790231107597; Wed, 23 Sep 2026
- 23:25:07 -0700 (PDT)
+        bh=+dxwBYKQFsgxaYrVWyrsAEec4E6upKeICubRLFxRf3w=;
+        b=YIIyzq/ZQxqih0J3MWQrJR+Y+AFzi2LpyrmONiaw2pkRrEywIiKJqIK/tlmr47Ed9D
+         haDozcaHzPI3A/jdrKJpJf1wnt+BJb0H1FuiJBTvmUKDoVq7kXsYUPOXla6QVY2nuUrD
+         KxklgLEQvIGsxXFaJ/p/qdGIeHe5Q297eNixUMmWm88Er5WAHGUOQ1bculugW7YZycDz
+         KlGT/uvLgyXmy+iT/eDj0203h6/JFu3cu27tVSEbDf021VmCN5Un8vCBuibsEsLlykHh
+         AyGtllYCkB4omKr1WEmCeUBj5+m1V38tkvAZNBccX6JVgCoRAlZJ8+DbZMUmH29nlTp/
+         wmSA==
+X-Forwarded-Encrypted: i=1; AKwUvBxHyu1DYj8zamX8pA5AQFRNgQG4PkvA7ydXon6hKS4Y1R39RIBRNbrW7hTycIC+oTe5bZXc4XNlSnhj@vger.kernel.org
+X-Gm-Message-State: AFuF++nU/Ne0n/yUiqgjFnoBcSO9z4NP04ekuv5CGcZZi0vjFXK+wwVs
+	Es2WAqFjuV2Mhw65p7FFFeFkfx1jld+cPRbLLOqmzWhpITZxthuMAC/6PMi34uUFPy4xaDR2nKz
+	QEFsVnM2y3AMpopRP0fSfxNjvyQ==
+X-Received: from pldu18.prod.google.com ([2002:a17:903:1092:b0:2df:8053:e258])
+ (user=sunnytiwari job=prod-delivery.src-stubby-dispatcher) by
+ 2002:a17:903:1246:b0:2dd:c100:a5dd with SMTP id d9443c01a7336-2df7dd6c414mr12253515ad.49.1790231173881;
+ Wed, 23 Sep 2026 23:26:13 -0700 (PDT)
+Date: Thu, 24 Sep 2026 06:26:11 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20260731211601.3033906-1-zhipingz@meta.com> <20260731211601.3033906-6-zhipingz@meta.com>
- <f4ff7ced-63b6-42e6-8e01-9f01d2e59843@huawei.com>
-In-Reply-To: <f4ff7ced-63b6-42e6-8e01-9f01d2e59843@huawei.com>
-From: Zhiping Zhang <zhipingz@meta.com>
-Date: Wed, 23 Sep 2026 23:24:56 -0700
-X-Gm-Features: AclHuK8ihUvHi9sCYY6U80mehJKIocBbXx4TYk849EeeC-OYipx5xqfc_idP75U
-Message-ID: <CAH3zFs24esHCGA=wPrkiH8oKQCv7SnOwcBbkMxrOEvOVtwstYg@mail.gmail.com>
-Subject: Re: [PATCH v13 5/5] RDMA/mlx5: get tph for p2p access when
- registering dma-buf mr
-To: fengchengwen <fengchengwen@huawei.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
-        Michael Guralnik <michaelgur@nvidia.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Christian Konig <christian.koenig@amd.com>,
-        Alex Williamson <alex@shazbot.org>,
-        Bjorn Helgaas <bhelgaas@google.com>, kvm@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org,
-        dri-devel@lists.freedesktop.org
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.56.0.rc1.310.g51773c2048-goog
+Message-ID: <20cbfc32678019daadd3c67fd75262b8264aa180.1790178801.git.sunnytiwari@google.com>
+Subject: [PATCH net-next v2] net/rds: replace tasklets with workqueue
+From: Sunny Tiwari <sunnytiwari@google.com>
+To: Santosh Shilimkar <santosh.shilimkar@oracle.com>, Allison Henderson <achender@kernel.org>, 
+	netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: rds-devel@oss.oracle.com, "David S . Miller" <davem@davemloft.net>, 
+	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+	Simon Horman <horms@kernel.org>, Sunny Tiwari <sunnytiwari@google.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-X-Authority-Analysis: v=2.4 cv=X//Hu2Te c=1 sm=1 tr=0 ts=6ab4c245 cx=c_pps
- a=V4L7fE8DliODT/OoDI2WOg==:117 a=IkcTkHD0fZMA:10 a=VdqzKS8jKosA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22 a=4h92JMTCafKA-fb_NiOh:22
- a=i0EeH86SAAAA:8 a=L1Z5B5hNzKdfmK81vbcA:9 a=QEXdDO2ut3YA:10
- a=WZGXeFmKUf7gPmL3hEjn:22
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTI0MDAyNyBTYWx0ZWRfX/XuLnFHkeas7
- /5Z4eyW8VsSPEMpUxSslxL/Dj2mRX8gfac11l2r5IQWDxTzg1B47YofOwHGYyWZS04ulhchexMG
- MKrKLqMRFRmYtxCCRnY44/GzsLMwaKl5AoRpZ8T+z8gxrDPWO4sVIb03INpi0XG4TZtW425s8vT
- 9aHR+2qN9XKpYMDRH5GiJP+c9XO5IZJEmrxC+L06lf1OpSOTYMUg3t9kJBvqxZ5M2mqCdHGtrs9
- y1K46pp1+pvDlrszVdo6LW4eBK1gt9IHDl1g5Fwh/1s06yVsEOp0pkV5pDM8cRK9cTxSpk/hvKu
- koUISavkiJj9hQ2teyTh/j19gwrbhwhUVcTtZSCbHKF4oLS1N/Q61XVO06kdvnZg2jGeVcB8aC9
- +PtT1mEp/qx7Ww/jPbseTq3VsukU6OPhNYuR6V6/sDMUnXZfdNt82ykNnqvHURYPyZlk69jpLxI
- dP8BS14BE6QC7woPo0g==
-X-Proofpoint-Spam-Info: AW1haW4tMjYwOTI0MDAyNyBTYWx0ZWRfX5qUyhGyJkyQ4
- eJ8nb5sG6vPgv++VuslR7ixqR9zQrmmtLxE9kpynnbyJRZ3R7PTz+jL5gLRchDCAE/0XlnozikW
- hH71/Xexq1W2LxDwQ1rJNUJR1lgudiM=
-X-Proofpoint-GUID: m2JXSZOS--vHVd6QCRQUESaMJF2qyd3H
-X-Proofpoint-ORIG-GUID: m2JXSZOS--vHVd6QCRQUESaMJF2qyd3H
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-09-24_02,2026-09-21_02,2025-10-01_01
 
-On Wed, Sep 23, 2026 at 6:13=E2=80=AFPM fengchengwen <fengchengwen@huawei.c=
-om> wrote:
->
-> >
-> Hi Zhiping,
->
-> On 8/1/2026 5:15 AM, Zhiping Zhang wrote:
-> > Peer-to-peer DMA between a mlx5 NIC and a foreign PCIe endpoint
-> > (typically a GPU or a vfio-pci passthrough device) traverses the host
-> > PCIe fabric. The endpoint exporting the dma-buf knows which PCIe TLP
-> > Processing Hint (TPH) Steering Tag yields the best placement for the
-> > traffic it will sink: per-endpoint hint selection lets the root complex
-> > or switch direct DMA to a specific cache slice / NUMA node, cutting
-> > cross-socket snoop traffic and DRAM pressure under sustained p2p
-> > workloads.
-> >
-> > Until now the mlx5 importer had no way to learn the exporter's chosen
-> > ST tag, so dma-buf MRs were registered without TPH and ran with the
-> > default (no-hint) routing. With dma_buf_get_pci_tph() in place this
-> > patch wires up mlx5_ib to query that metadata at MR registration time
-> > for p2p access and use it to program requester-side TPH on the outbound
-> > mkey. If the exporter has no metadata, fall back to the existing
-> > no-TPH path so behavior for non-TPH-aware exporters is unchanged.
->
->
-> While working on v21 of the VFIO PCIe TPH series, we got review
-> feedback that importers must add pci_p2pdma_distance() validation
-> before retrieving ST values from a dma-buf.
->
-> Your mlx5 patch follows the same importer pattern =E2=80=93 it consumes
-> dma-buf TPH metadata. I think this patch should also include the
-> same distance check.
->
-> Thanks,
-> Chengwen
->
+Convert the deprecated send and receive completion tasklets in
+net/rds/ib to BH work items queued on system_bh_wq.
 
-Hi Chengwen,
+In rds_ib_conn_path_shutdown(), replace tasklet_kill() with
+disable_work_sync(), and call enable_work() after destroying the CQs so
+the work items can be used again when the connection reconnects.
 
-I don't think this belongs in the importer. Every in-tree dma-buf
-caller of pci_p2pdma_distance() is the exporter, in its .attach,
-clearing attach->peer2peer -- amdgpu_dma_buf.c, xe_dma_buf.c,
-habanalabs memory.c. There is no importer-side caller.
+Assisted-by: Gemini
+Signed-off-by: Sunny Tiwari <sunnytiwari@google.com>
+---
+Changes in v2:
+- Use system_bh_wq instead of allocating a custom rds_ib_wq workqueue,
+  dropping the net/rds/ib.c changes.
+- Use from_work() and disable_work_sync() / enable_work() instead of
+  cancel_work_sync().
+- Link to v1: https://lore.kernel.org/linux-rdma/6b07af04b3ba66a09009e1a0a7b98ec5ec85d3a0.1790109248.git.sunnytiwari@google.com/
 
-mlx5 also can't be one: pci_p2pdma_distance() takes the exporter's
-struct pci_dev, and an importer only has a struct dma_buf. Reaching it
-would mean introducing PCI types into the dma-buf core, which is what
-Christian's ack on patch 3 rules out.
+ net/rds/ib.h    |  4 ++--
+ net/rds/ib_cm.c | 29 +++++++++++++++--------------
+ 2 files changed, 17 insertions(+), 16 deletions(-)
 
-The routing check is already enforced by the core before any p2p DMA
-can happen: vfio_pci_dma_buf_map() goes through
-dma_buf_phys_vec_to_sgt(), which switches on
-pci_p2pdma_map_type(provider, attach->dev) and fails -EINVAL on
-PCI_P2PDMA_MAP_NOT_SUPPORTED -- the same calc_map_type_and_dist()
-computation pci_p2pdma_distance() performs. An ST that mlx5 programmed
-into the mkey cannot reach the wire unless that mapping has succeeded.
+diff --git a/net/rds/ib.h b/net/rds/ib.h
+index 5ff346a1e..190122636 100644
+--- a/net/rds/ib.h
++++ b/net/rds/ib.h
+@@ -159,8 +159,8 @@ struct rds_ib_connection {
+ 	atomic_t		i_fastreg_inuse_count;
+ 
+ 	/* interrupt handling */
+-	struct tasklet_struct	i_send_tasklet;
+-	struct tasklet_struct	i_recv_tasklet;
++	struct work_struct	i_send_work;
++	struct work_struct	i_recv_work;
+ 
+ 	/* tx */
+ 	struct rds_ib_work_ring	i_send_ring;
+diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
+index 6e3110a04..3ebe13d00 100644
+--- a/net/rds/ib_cm.c
++++ b/net/rds/ib_cm.c
+@@ -253,7 +253,7 @@ static void rds_ib_cq_comp_handler_recv(struct ib_cq *cq, void *context)
+ 
+ 	rds_ib_stats_inc(s_ib_evt_handler_call);
+ 
+-	tasklet_schedule(&ic->i_recv_tasklet);
++	queue_work(system_bh_wq, &ic->i_recv_work);
+ }
+ 
+ static void poll_scq(struct rds_ib_connection *ic, struct ib_cq *cq,
+@@ -279,9 +279,9 @@ static void poll_scq(struct rds_ib_connection *ic, struct ib_cq *cq,
+ 	}
+ }
+ 
+-static void rds_ib_tasklet_fn_send(unsigned long data)
++static void rds_ib_send_worker(struct work_struct *work)
+ {
+-	struct rds_ib_connection *ic = (struct rds_ib_connection *)data;
++	struct rds_ib_connection *ic = from_work(ic, work, i_send_work);
+ 	struct rds_connection *conn = ic->conn;
+ 
+ 	rds_ib_stats_inc(s_ib_tasklet_call);
+@@ -319,9 +319,9 @@ static void poll_rcq(struct rds_ib_connection *ic, struct ib_cq *cq,
+ 	}
+ }
+ 
+-static void rds_ib_tasklet_fn_recv(unsigned long data)
++static void rds_ib_recv_worker(struct work_struct *work)
+ {
+-	struct rds_ib_connection *ic = (struct rds_ib_connection *)data;
++	struct rds_ib_connection *ic = from_work(ic, work, i_recv_work);
+ 	struct rds_connection *conn = ic->conn;
+ 	struct rds_ib_device *rds_ibdev = ic->rds_ibdev;
+ 	struct rds_ib_ack_state state;
+@@ -381,7 +381,7 @@ static void rds_ib_cq_comp_handler_send(struct ib_cq *cq, void *context)
+ 
+ 	rds_ib_stats_inc(s_ib_evt_handler_call);
+ 
+-	tasklet_schedule(&ic->i_send_tasklet);
++	queue_work(system_bh_wq, &ic->i_send_work);
+ }
+ 
+ static inline int ibdev_get_unused_vector(struct rds_ib_device *rds_ibdev)
+@@ -1099,12 +1099,12 @@ void rds_ib_conn_path_shutdown(struct rds_conn_path *cp)
+ 		while (!wait_event_timeout(rds_ib_ring_empty_wait,
+ 					   rds_ib_conn_path_shutdown_check_wait(cp) == 0,
+ 					   msecs_to_jiffies(1000))) {
+-			tasklet_schedule(&ic->i_send_tasklet);
+-			tasklet_schedule(&ic->i_recv_tasklet);
++			queue_work(system_bh_wq, &ic->i_send_work);
++			queue_work(system_bh_wq, &ic->i_recv_work);
+ 		}
+ 
+-		tasklet_kill(&ic->i_send_tasklet);
+-		tasklet_kill(&ic->i_recv_tasklet);
++		disable_work_sync(&ic->i_send_work);
++		disable_work_sync(&ic->i_recv_work);
+ 
+ 		atomic_set(&ic->i_cq_quiesce, 1);
+ 
+@@ -1123,6 +1123,9 @@ void rds_ib_conn_path_shutdown(struct rds_conn_path *cp)
+ 			ib_destroy_cq(ic->i_recv_cq);
+ 		}
+ 
++		enable_work(&ic->i_send_work);
++		enable_work(&ic->i_recv_work);
++
+ 		if (ic->rds_ibdev) {
+ 			/* then free the resources that ib callbacks use */
+ 			if (ic->i_send_hdrs) {
+@@ -1234,10 +1237,8 @@ int rds_ib_conn_alloc(struct rds_connection *conn, gfp_t gfp)
+ 	}
+ 
+ 	INIT_LIST_HEAD(&ic->ib_node);
+-	tasklet_init(&ic->i_send_tasklet, rds_ib_tasklet_fn_send,
+-		     (unsigned long)ic);
+-	tasklet_init(&ic->i_recv_tasklet, rds_ib_tasklet_fn_recv,
+-		     (unsigned long)ic);
++	INIT_WORK(&ic->i_send_work, rds_ib_send_worker);
++	INIT_WORK(&ic->i_recv_work, rds_ib_recv_worker);
+ 	mutex_init(&ic->i_recv_mutex);
+ #ifndef KERNEL_HAS_ATOMIC64
+ 	spin_lock_init(&ic->i_ack_lock);
+-- 
+2.55.0.1082.g2b9226bbc0-goog
 
-Thanks,
-Zhiping
