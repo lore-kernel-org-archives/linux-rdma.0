@@ -1,61 +1,83 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2A7EC51C04E;
-	Thu, 24 Sep 2026 17:31:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from mail-pz2-f42.google.com (mail-pz2-f42.google.com [74.125.228.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC81D5304CD
+	for <linux-rdma@vger.kernel.org>; Thu, 24 Sep 2026 17:35:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790271103; cv=none; b=gLIIasEBqMlt55BUeiwZrJAdPl6oueyZxoCX9UHJc4RHy03F0MNfNsEg51QuEpa9Yt/vkOrBdX+m3wN8TU2psXt28Hn5N4cA6pMGizhlTTA2D1c5n7S17heDrUAsec0GwMEzPN/7aXma3uQH/F/0pqHuVLel5GYt7XT+kzVe5v0=
+	t=1790271312; cv=none; b=QamVuj5Ez4Cs+569WMeCIXmHJr1usQyXLQJqiCa1gfD0qqxqVOAsHxzxxCfbsIEzJD02fKyMJ3zq7T0u/O2k8n7dwmX9oqVnUnSMnbtayx/fIhZQ0BfUjrnMLiFlJf+Q4b9DQ7WqAyLNhW/RBkK9LkmEYwb/fywvvraF9b3TXwA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790271103; c=relaxed/simple;
-	bh=HCJr9ywfnyuFa2f4PznihLPwS7Wv27iECo9BmFoKNEE=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=hDeTTEA0a/sIpx5OlQkOjXWtdLStWWPOw9yB2KxWc8vbuC+Os9HpVa2MMRVMbj2GfOa3N4bfkiP1YTw+2AcfnRT2HjYPeSh4MnRsowp7Pwj3oF8IOTwyXk07y1dH7OmC/CTd3YoSBqi+x8I5+/xfB/OPHRj6QogLKf9yrjpbLBs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=FUTC6UoZ; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	s=arc-20240116; t=1790271312; c=relaxed/simple;
+	bh=/0chTZvN7Ky+TA9HvI41ZWJ8tmuDbI07h2tw1R5aq3Q=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=JuBFxDJXiOWGja4xjEPsv5HAr/ulZnA9/TQFwuEcbhpdBvqYNm56aqnL2zlKuCFY6/7TlZnm/KwQHnsA20Bem2E4zuGu/f1894NxvtCaLuvIhKdtF0tCXYbbYljDwHEpMgvlQw4vtg5oWZ8Rte74o8rVrQ16llixHHrq3SVGxqg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=trailofbits.com; spf=pass smtp.mailfrom=trailofbits.com; dkim=pass (2048-bit key) header.d=trailofbits.com header.i=@trailofbits.com header.b=f0NyiEPQ; arc=none smtp.client-ip=74.125.228.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=trailofbits.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=trailofbits.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="FUTC6UoZ"
-Received: from CPC-mawas-YGKSX.localdomain (unknown [70.37.26.38])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 33EA820B7169;
-	Thu, 24 Sep 2026 10:30:51 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 33EA820B7169
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1790271051;
-	bh=jSoWeMh1TG73DB7ZmwJ7G7GJXYotzMz9IN4qQOOC0Xk=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=FUTC6UoZ86ZOjkW1neA0X4xnFBgx4oqpSPQcr1YIXgixHJ7nsVy2TRldt7IdwT/IF
-	 x59CRNFEO1cx//NEMkOYxSvfXKukAj+Fv0FU0nhDOMSjMschD8mPkqkS24SzKqcJ4J
-	 4DrUMu+dlsTihTddPIVUqHB1TNh8z4Yqgm3oyvrA=
-From: Manish Awasthi <mawasthi@linux.microsoft.com>
-To: kys@microsoft.com,
-	haiyangz@microsoft.com,
-	wei.liu@kernel.org,
-	decui@microsoft.com,
-	longli@microsoft.com,
-	andrew+netdev@lunn.ch,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	kotaranov@microsoft.com
-Cc: horms@kernel.org,
-	linux-hyperv@vger.kernel.org,
+	dkim=pass (2048-bit key) header.d=trailofbits.com header.i=@trailofbits.com header.b="f0NyiEPQ"
+Received: by mail-pz2-f42.google.com with SMTP id 41be03b00d2f7-cc1cea4c7a0so10961a12.1
+        for <linux-rdma@vger.kernel.org>; Thu, 24 Sep 2026 10:35:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=trailofbits.com; s=google; t=1790271309; x=1790876109; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=XmTxiFdIaWCCF0HjMXWXx42hXA6kt9BLAaeoJ6xE+TU=;
+        b=f0NyiEPQQwTtinupWvlQRcBUbJaLkJ6RMStEfGPzGwImkmU30Pp2fk0/e6FucXnB7p
+         7CmPTitA8K5bQqlP69h+JcfHcEf3cMm+nz2oWyXQoDIHc3lccSDZu6I33/pIhVq3q+fX
+         Md8wJ/432kEl4tTeNxWTLKXMM3D1troMSujbytquQHiVW2aXy7B4LuZg6oKTYZURGR4R
+         6wIO8unTyugSQ+5Nb20qCcD2eBVleeEFRWt2cCCsU2fBRmk7gW2nhmPjJFfnwBfEVVd4
+         NWfv3CohdDLeQc3oRj4TFKNyKAjj2Ns0/Um39jzdVCHdnPfvB3ZJxkzD1A0jLMNP42HI
+         CQ9g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790271309; x=1790876109;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=XmTxiFdIaWCCF0HjMXWXx42hXA6kt9BLAaeoJ6xE+TU=;
+        b=2FpkILoLwW0F6EhrWazyO21zf3jMd54rm8sQ4uhZeTRyhPPESdMUgJ5sVzYYQ8Q+aE
+         n2/NhJLVgIhVaogSgy6VCwe7OyESypt1Xh6ix1jgGQPA8rC3cF7z/lmphwodGpHu78jn
+         0nkMkBcyij9BUTxbfaJnGlDGmPhEcwdJqghVaOEemEWXhJdGYj+xpvo6kFTotevVUp31
+         xu3P5jRVVTYMxeXSDb5m/jnMwCmnTtW4XcrFPIFNlbBKE7E2C64Bt5oBYElRUd5ugpiP
+         Wa9pBIgHRF0LQsP/6z/3sEib2LUIhl4qNB0KdGw6tQuEKFJ8JbCNR7tV4QrjY6MFyHdA
+         UMgg==
+X-Forwarded-Encrypted: i=1; AKwUvBzd5DuwyiwLKLeSbD0+tsI4mZqZ2xFHkfgW3omjyGcY88v29GAQu5bUvw5VK8kVuazFpwHB6+QYW/VV@vger.kernel.org
+X-Gm-Message-State: AFuF++kD1yLC9xEJWxZRvwkexpJFENGIlLilBcG3apclNN1hswgKk6Ru
+	1e5HTH+82MwbtcKBqfXL0wulyD7q+ZdCNrdBg+YTzkU3K2R3OSNdBkM9h0lSKHxBmHw=
+X-Gm-Gg: AYBFou03yUSdAqW6gWxPSE2vdFSBIuHOB9MM1n7yQe0piKeY/3frKMxsnV+mxV8RvTw
+	M/TcnxwGaaxrSGUfFxtMUFPnZIQstwv17LntDv5e4o/6z+eqBtRO5fCzS5+51k5EZ47LOrCp3I2
+	YwXHlbM/Manq4E+U1LnK8z3qA6Yo9CLUv26vqOskOSJA8kRa6cmeNtlhg49gjFQtzZkaiyK34hC
+	42KOFNyZmRalij8RT2z/MG8o4cpp4k8ouI36ju+1AKo324jO/2daGI+QbmmrzdLEFzYB2eU7g9L
+	qyMI+DRKQTK4wXef1YJUpTrJUVohvhWCJz2j8K18ItVuYtXMrYL6zN81jb7laCIqFSQMRKagdF6
+	gVJ7uPJf2qFJCGW6Kpr4QUn3EcRFxt3/jFJcAJ0zuHYQKe5JUIAslHF03h03/0ysNql712/BjEH
+	7fzzT1eGy1mY7bfYRC/01dy2r1gRJ/0TA2b55EYmpk3Q/TcZN0HiYBk2hJrtiy2BWnJLoXVYVrM
+	rvBkNis/hGJoKT/eyP/mY5CYYsnrQesRTVM2rVdj82cM0FFvh4gvKxn2hszplyC/lJq2Ftn
+X-Received: by 2002:a17:90b:3c45:b0:3a0:2646:7495 with SMTP id 98e67ed59e1d1-3a09897046fmr3104409a91.53.1790271309276;
+        Thu, 24 Sep 2026 10:35:09 -0700 (PDT)
+Received: from localhost.localdomain ([2603:8001:5f01:8bab:f875:3165:4649:e818])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3a097390328sm6144943a91.16.2026.09.24.10.35.07
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Thu, 24 Sep 2026 10:35:08 -0700 (PDT)
+From: Artem Dinaburg <artem@trailofbits.com>
+To: stable@vger.kernel.org
+Cc: Artem Dinaburg <artem@trailofbits.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Sasha Levin <sashal@kernel.org>,
+	Saeed Mahameed <saeedm@nvidia.com>,
+	Leon Romanovsky <leon@kernel.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Roi Dayan <roid@nvidia.com>,
 	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
-	bpf@vger.kernel.org,
-	nipun.gupta@amd.com,
-	nikhil.agarwal@amd.com,
-	gargaditya@linux.microsoft.com,
-	ernis@linux.microsoft.com,
-	kees@kernel.org,
-	paulros@microsoft.com,
-	mawasthi@microsoft.com
-Subject: [PATCH net-next 4/4] net: mana: Add support for CDX device ID 0x00C2
-Date: Thu, 24 Sep 2026 17:30:54 +0000
-Message-ID: <20260924173054.589291-5-mawasthi@linux.microsoft.com>
-X-Mailer: git-send-email 2.54.0
-In-Reply-To: <20260924173054.589291-1-mawasthi@linux.microsoft.com>
-References: <20260924173054.589291-1-mawasthi@linux.microsoft.com>
+	linux-kernel@vger.kernel.org,
+	Jianbo Liu <jianbol@nvidia.com>,
+	Vlad Buslov <vladbu@nvidia.com>
+Subject: [PATCH 6.1.y] net/mlx5e: TC, Fix internal port memory leak
+Date: Thu, 24 Sep 2026 13:35:04 -0400
+Message-ID: <20260924173505.87763-1-artem@trailofbits.com>
+X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -64,457 +86,110 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add the CDX transport as mana_cdx.ko for device ID 0x00C2, using the shared
-gdma_core.ko. Allocate interrupts at probe, limit queues to available
-vectors, use 32-bit DMA, and keep CDX auxiliary devices separate from PCI.
+From: Jianbo Liu <jianbol@nvidia.com>
 
-Signed-off-by: Manish Awasthi <mawasthi@linux.microsoft.com>
+[ Upstream commit ac5da544a3c2047cbfd715acd9cec8380d7fe5c6 ]
+
+The flow rule can be splited, and the extra post_act rules are added
+to post_act table. It's possible to trigger memleak when the rule
+forwards packets from internal port and over tunnel, in the case that,
+for example, CT 'new' state offload is allowed. As int_port object is
+assigned to the flow attribute of post_act rule, and its refcnt is
+incremented by mlx5e_tc_int_port_get(), but mlx5e_tc_int_port_put() is
+not called, the refcnt is never decremented, then int_port is never
+freed.
+
+The kmemleak reports the following error:
+unreferenced object 0xffff888128204b80 (size 64):
+  comm "handler20", pid 50121, jiffies 4296973009 (age 642.932s)
+  hex dump (first 32 bytes):
+    01 00 00 00 19 00 00 00 03 f0 00 00 04 00 00 00  ................
+    98 77 67 41 81 88 ff ff 98 77 67 41 81 88 ff ff  .wgA.....wgA....
+  backtrace:
+    [<00000000e992680d>] kmalloc_trace+0x27/0x120
+    [<000000009e945a98>] mlx5e_tc_int_port_get+0x3f3/0xe20 [mlx5_core]
+    [<0000000035a537f0>] mlx5e_tc_add_fdb_flow+0x473/0xcf0 [mlx5_core]
+    [<0000000070c2cec6>] __mlx5e_add_fdb_flow+0x7cf/0xe90 [mlx5_core]
+    [<000000005cc84048>] mlx5e_configure_flower+0xd40/0x4c40 [mlx5_core]
+    [<000000004f8a2031>] mlx5e_rep_indr_offload.isra.0+0x10e/0x1c0 [mlx5_core]
+    [<000000007df797dc>] mlx5e_rep_indr_setup_tc_cb+0x90/0x130 [mlx5_core]
+    [<0000000016c15cc3>] tc_setup_cb_add+0x1cf/0x410
+    [<00000000a63305b4>] fl_hw_replace_filter+0x38f/0x670 [cls_flower]
+    [<000000008bc9e77c>] fl_change+0x1fd5/0x4430 [cls_flower]
+    [<00000000e7f766e4>] tc_new_tfilter+0x867/0x2010
+    [<00000000e101c0ef>] rtnetlink_rcv_msg+0x6fc/0x9f0
+    [<00000000e1111d44>] netlink_rcv_skb+0x12c/0x360
+    [<0000000082dd6c8b>] netlink_unicast+0x438/0x710
+    [<00000000fc568f70>] netlink_sendmsg+0x794/0xc50
+    [<0000000016e92590>] sock_sendmsg+0xc5/0x190
+
+So fix this by moving int_port cleanup code to the flow attribute
+free helper, which is used by all the attribute free cases.
+
+Fixes: 8300f225268b ("net/mlx5e: Create new flow attr for multi table actions")
+Signed-off-by: Jianbo Liu <jianbol@nvidia.com>
+Reviewed-by: Vlad Buslov <vladbu@nvidia.com>
+Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
+
+[ Backport to 6.1.y: this tree already releases the primary flow-attribute
+  references in mlx5e_tc_del_fdb_flow() and lacks
+  mlx5_free_flow_attr_actions(); release only cloned post-action attribute
+  references from the corresponding free_flow_post_acts() cleanup. ]
+Assisted-by: LLM
+Signed-off-by: Artem Dinaburg <artem@trailofbits.com>
 ---
- drivers/net/ethernet/microsoft/Kconfig        |  14 +
- drivers/net/ethernet/microsoft/mana/Makefile  |   3 +
- .../net/ethernet/microsoft/mana/gdma_cdx.c    | 340 ++++++++++++++++++
- .../net/ethernet/microsoft/mana/gdma_pci.c    |   1 +
- drivers/net/ethernet/microsoft/mana/mana_en.c |   5 +-
- include/net/mana/gdma.h                       |   4 +
- 6 files changed, 365 insertions(+), 2 deletions(-)
- create mode 100644 drivers/net/ethernet/microsoft/mana/gdma_cdx.c
+Hi Greg, Sasha, and mlx5e maintainers,
 
-diff --git a/drivers/net/ethernet/microsoft/Kconfig b/drivers/net/ethernet/microsoft/Kconfig
-index ee5bc1c1bf59..7e4b77f7f29c 100644
---- a/drivers/net/ethernet/microsoft/Kconfig
-+++ b/drivers/net/ethernet/microsoft/Kconfig
-@@ -35,4 +35,18 @@ config MICROSOFT_MANA
- 	  To compile this driver as a module, choose M here.
- 	  The module will be called mana.
+I am continuing CVE backports still missing from 6.1.y.
+This fix is inherited by v6.6 and every later mainline release, but 6.1.y
+still has the affected code. The target-specific adjustment is described
+in the bracketed note above.
+
+Could you please queue it for 6.1.y?
+
+Thanks,
+Artem Dinaburg
+
+CVE: CVE-2023-53999
+
+Build: This patch was included in an x86_64 allmodconfig and
+CONFIG_WERROR=y build.
+It produced vmlinux and modules with no new warnings or errors.
+
+AI assistance: An LLM helped find, adapt, and validate this
+backport; I reviewed the patch and test output.
+
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+index 05888942ef276a..d2f226a09a0c7 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+@@ -3692,6 +3692,7 @@ free_flow_post_acts(struct mlx5e_tc_flow *flow)
+ {
+ 	struct mlx5_core_dev *counter_dev = get_flow_counter_dev(flow);
+ 	struct mlx5e_post_act *post_act = get_post_action(flow->priv);
++	struct mlx5_esw_flow_attr *esw_attr;
+ 	struct mlx5_flow_attr *attr, *tmp;
+ 	bool vf_tun;
  
-+config MICROSOFT_MANA_CDX
-+	tristate "Microsoft Azure Network Adapter (MANA) support for the CDX bus"
-+	depends on CDX_BUS
-+	depends on GENERIC_MSI_IRQ
-+	depends on 64BIT && !CPU_BIG_ENDIAN
-+	select MICROSOFT_GDMA_CORE
-+	help
-+	  This driver supports the Microsoft Azure Network Adapter (MANA) on
-+	  systems where it is integrated into the SoC and presented on the CDX
-+	  bus rather than discovered over PCI.
-+
-+	  To compile this driver as a module, choose M here.
-+	  The module will be called mana_cdx.
-+
- endif #NET_VENDOR_MICROSOFT
-diff --git a/drivers/net/ethernet/microsoft/mana/Makefile b/drivers/net/ethernet/microsoft/mana/Makefile
-index 72c03fb6e441..64926015f734 100644
---- a/drivers/net/ethernet/microsoft/mana/Makefile
-+++ b/drivers/net/ethernet/microsoft/mana/Makefile
-@@ -8,3 +8,6 @@ gdma_core-y := gdma_main.o shm_channel.o hw_channel.o mana_en.o mana_ethtool.o \
+@@ -3713,6 +3714,16 @@ free_flow_post_acts(struct mlx5e_tc_flow *flow)
+ 				mlx5_modify_header_dealloc(flow->priv->mdev, attr->modify_hdr);
+ 		}
  
- obj-$(CONFIG_MICROSOFT_MANA) += mana.o
- mana-y := gdma_pci.o
-+
-+obj-$(CONFIG_MICROSOFT_MANA_CDX) += mana_cdx.o
-+mana_cdx-y := gdma_cdx.o
-diff --git a/drivers/net/ethernet/microsoft/mana/gdma_cdx.c b/drivers/net/ethernet/microsoft/mana/gdma_cdx.c
-new file mode 100644
-index 000000000000..0d01e3d2f0d9
---- /dev/null
-+++ b/drivers/net/ethernet/microsoft/mana/gdma_cdx.c
-@@ -0,0 +1,340 @@
-+// SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
-+/* Copyright (c) 2025, Microsoft Corporation. */
-+#include <linux/module.h>
-+#include <linux/bitmap.h>
-+#include <linux/cdx/cdx_bus.h>
-+#include <linux/msi.h>
-+#include <linux/xarray.h>
-+
-+#include <net/mana/mana.h>
-+
-+#define MANA_CDX_GDMA_REGS_SIZE	(GDMA_REG_SHM_OFFSET + sizeof(u64))
-+
-+static int mana_cdx_msix_virq(struct gdma_context *gc, int msi)
-+{
-+	unsigned int virq = msi_get_virq(gc->dev, msi);
-+
-+	/* CDX allocates its whole vector pool in mana_cdx_setup_hwc_irqs(),
-+	 * so a vector with no Linux IRQ was never part of that pool.
-+	 */
-+	return virq ? virq : -EINVAL;
-+}
-+
-+static int mana_cdx_dev_reset(struct gdma_context *gc)
-+{
-+	return cdx_dev_reset(gc->dev);
-+}
-+
-+static int mana_cdx_setup_hwc_irqs(struct gdma_context *gc)
-+{
-+	struct cdx_device *cdx_dev = to_cdx_device(gc->dev);
-+	struct gdma_irq_context *gic;
-+	unsigned int max_irqs;
-+	int nvec;
-+	int err, i = 0, j;
-+
-+	max_irqs = cdx_dev->num_msi;
-+
-+	/* Need 1 IRQ for HWC and at least 1 for the data path queues */
-+	if (max_irqs < 2) {
-+		dev_err(&cdx_dev->dev, "Not enough MSI vectors: %u\n",
-+			max_irqs);
-+		return -ENOSPC;
-+	}
-+
-+	/* Constrain the device to 32-bit DMA addresses, for both the MSI
-+	 * doorbells and the data path buffers, and never widen it afterwards.
-+	 *
-+	 * The MSI doorbell address has to land within the low 4GB. The data
-+	 * path carries a second constraint: the device does not perform
-+	 * writes to the final page of the 48-bit IOVA window, and
-+	 * iommu_dma_alloc_iova() allocates downwards from the top of that
-+	 * window, so the first queue created lands on the unusable page and
-+	 * its event queue stalls permanently. PCI devices are shielded from
-+	 * this by the low-4GB first attempt in iommu_dma_alloc_iova(), but
-+	 * that attempt is gated on dev_is_pci() and CDX devices do not
-+	 * qualify.
-+	 */
-+	err = dma_set_mask_and_coherent(gc->dev, DMA_BIT_MASK(32));
-+	if (err) {
-+		dev_err(&cdx_dev->dev, "Failed to set 32-bit DMA mask\n");
-+		return err;
-+	}
-+
-+	/* The PCI path also calls dma_set_max_seg_size(), but that is
-+	 * deliberately omitted here: the CDX core does not attach a
-+	 * dma_parms to the device, so the helper would only WARN, and MANA
-+	 * never builds scatter-gather lists, so the limit is never read.
-+	 */
-+
-+	err = cdx_enable_msi(cdx_dev);
-+	if (err) {
-+		dev_err(&cdx_dev->dev, "Failed to enable MSI\n");
-+		return err;
-+	}
-+
-+	err = msi_domain_alloc_irqs(gc->dev, MSI_DEFAULT_DOMAIN, max_irqs);
-+	if (err) {
-+		dev_err(&cdx_dev->dev, "Failed to alloc MSI IRQs\n");
-+		cdx_disable_msi(cdx_dev);
-+		return err;
-+	}
-+
-+	nvec = max_irqs;
-+
-+	xa_init(&gc->irq_contexts);
-+
-+	/* No IRQ affinity hint is applied here. The PCI transport spreads its
-+	 * vectors over the NUMA node local to the device; the CDX platforms
-+	 * this driver targets are single-node, so there is nothing to spread
-+	 * over. Affinity management can be added when a multi-node CDX host
-+	 * exists to validate it against.
-+	 */
-+	for (i = 0; i < nvec; i++) {
-+		int msi = i;
-+
-+		gic = mana_gd_get_gic(gc, false, &msi);
-+		if (IS_ERR(gic)) {
-+			err = PTR_ERR(gic);
-+			goto free_irq;
++		if (mlx5e_is_eswitch_flow(flow)) {
++			esw_attr = attr->esw_attr;
++			if (esw_attr->int_port)
++				mlx5e_tc_int_port_put(mlx5e_get_int_port_priv(flow->priv),
++						      esw_attr->int_port);
++			if (esw_attr->dest_int_port)
++				mlx5e_tc_int_port_put(mlx5e_get_int_port_priv(flow->priv),
++						      esw_attr->dest_int_port);
 +		}
-+	}
 +
-+	gc->max_num_msix = nvec;
-+	gc->num_msix_usable = nvec;
-+
-+	/* CDX sizes its MSI pool at probe time and cannot grow it later, so
-+	 * never share vectors: vector 0 is reserved for the HWC and each of
-+	 * the remaining nvec - 1 vectors backs exactly one EQ. That bounds
-+	 * the queue count at nvec - 1 and guarantees the HWC vector is never
-+	 * handed out to a data queue.
-+	 */
-+	gc->msi_sharing = false;
-+
-+	gc->msi_bitmap = bitmap_zalloc(nvec, GFP_KERNEL);
-+	if (!gc->msi_bitmap) {
-+		err = -ENOMEM;
-+		goto free_irq;
-+	}
-+
-+	/* Reserve the HWC vector */
-+	set_bit(0, gc->msi_bitmap);
-+
-+	return 0;
-+
-+free_irq:
-+	for (j = i - 1; j >= 0; j--)
-+		mana_gd_put_gic(gc, false, j);
-+
-+	xa_destroy(&gc->irq_contexts);
-+	msi_domain_free_irqs_all(gc->dev, MSI_DEFAULT_DOMAIN);
-+	cdx_disable_msi(cdx_dev);
-+	return err;
-+}
-+
-+static void mana_cdx_remove_irqs(struct gdma_context *gc)
-+{
-+	struct cdx_device *cdx_dev = to_cdx_device(gc->dev);
-+	int i;
-+
-+	if (gc->max_num_msix < 1)
-+		return;
-+
-+	for (i = 0; i < gc->max_num_msix; i++) {
-+		if (!xa_load(&gc->irq_contexts, i))
-+			continue;
-+
-+		mana_gd_put_gic(gc, false, i);
-+	}
-+
-+	WARN_ON(!xa_empty(&gc->irq_contexts));
-+
-+	xa_destroy(&gc->irq_contexts);
-+	msi_domain_free_irqs_all(gc->dev, MSI_DEFAULT_DOMAIN);
-+	cdx_disable_msi(cdx_dev);
-+
-+	bitmap_free(gc->msi_bitmap);
-+	gc->msi_bitmap = NULL;
-+	gc->max_num_msix = 0;
-+	gc->num_msix_usable = 0;
-+}
-+
-+static int mana_cdx_setup_remaining_irqs(struct gdma_context *gc)
-+{
-+	unsigned int max_queues_vport;
-+
-+	/* mana_gd_query_max_resources() may turn MSI sharing back on and round
-+	 * the per-vPort queue count up to MANA_DEF_NUM_QUEUES. CDX sizes its
-+	 * vector pool at probe time and cannot grow it later, and the HWC
-+	 * vector must stay private, so give every vPort a private slice of the
-+	 * remaining vectors instead. gc->max_num_queues is already capped at
-+	 * num_msix_usable - 1 by the core.
-+	 */
-+	gc->msi_sharing = false;
-+	max_queues_vport = (gc->num_msix_usable - 1) / gc->num_ports;
-+	if (!max_queues_vport) {
-+		dev_err(gc->dev, "%u MSI vectors cannot serve %u vPorts\n",
-+			gc->num_msix_usable, gc->num_ports);
-+		return -ENOSPC;
-+	}
-+
-+	gc->max_num_queues_vport = min(gc->max_num_queues, max_queues_vport);
-+
-+	dev_dbg(gc->dev, "%u MSI vectors, %u vPorts, %u queues, no MSI sharing\n",
-+		gc->num_msix_usable, gc->num_ports, gc->max_num_queues_vport);
-+
-+	return 0;
-+}
-+
-+static const struct gdma_bus_ops mana_cdx_bus_ops = {
-+	.bus_name		= "cdx",
-+	.adev_prefix		= "mana_cdx",
-+	.msix_virq		= mana_cdx_msix_virq,
-+	.setup_hwc_irqs		= mana_cdx_setup_hwc_irqs,
-+	.setup_remaining_irqs	= mana_cdx_setup_remaining_irqs,
-+	.remove_irqs		= mana_cdx_remove_irqs,
-+	.dev_reset		= mana_cdx_dev_reset,
-+};
-+
-+static int mana_cdx_gd_probe(struct cdx_device *cdx_dev)
-+{
-+	struct gdma_context *gc;
-+	void __iomem *bar0_va;
-+	int err;
-+
-+	/* Each port has 2 CQs, each CQ has at most 1 EQE at a time */
-+	BUILD_BUG_ON(2 * MAX_PORTS_IN_MANA_DEV * GDMA_EQE_SIZE > EQ_SIZE);
-+
-+	err = cdx_dev_reset(&cdx_dev->dev);
-+	if (err)
-+		return err;
-+
-+	err = cdx_set_master(cdx_dev);
-+	if (err)
-+		return err;
-+
-+	gc = vzalloc(sizeof(*gc));
-+	if (!gc) {
-+		err = -ENOMEM;
-+		goto clear_master;
-+	}
-+
-+	mutex_init(&gc->eq_test_event_mutex);
-+	mutex_init(&gc->gic_mutex);
-+	dev_set_drvdata(&cdx_dev->dev, gc);
-+	gc->bar0_pa = cdx_resource_start(cdx_dev, 0);
-+	gc->bar0_size = cdx_resource_len(cdx_dev, 0);
-+	if (gc->bar0_size < MANA_CDX_GDMA_REGS_SIZE) {
-+		dev_err(&cdx_dev->dev, "BAR0 size %#llx is too small\n",
-+			(u64)gc->bar0_size);
-+		err = -EINVAL;
-+		goto free_gc;
-+	}
-+
-+	bar0_va = ioremap(gc->bar0_pa, gc->bar0_size);
-+	if (!bar0_va) {
-+		err = -ENOMEM;
-+		goto free_gc;
-+	}
-+
-+	gc->numa_node = dev_to_node(&cdx_dev->dev);
-+	gc->bar0_va = bar0_va;
-+	gc->dev = &cdx_dev->dev;
-+	gc->bus_ops = &mana_cdx_bus_ops;
-+
-+	/* gc->is_pf is intentionally left clear: this device uses the VF
-+	 * register layout, and the vPort and MAC filter registration that
-+	 * is_pf selects is not required on this bus.
-+	 */
-+
-+	err = mana_gd_setup(gc);
-+	if (err)
-+		goto unmap_bar;
-+
-+	err = mana_probe(&gc->mana, false);
-+	if (err)
-+		goto cleanup_gd;
-+
-+	err = mana_rdma_probe(&gc->mana_ib);
-+	if (err)
-+		goto remove_mana;
-+
-+	/* If a hardware reset event arrived over HWC during probe, roll back:
-+	 * the device state the rest of probe observed is no longer valid.
-+	 */
-+	if (test_and_set_bit(GC_PROBE_SUCCEEDED, &gc->flags)) {
-+		err = -EPROTO;
-+		goto remove_rdma;
-+	}
-+
-+	return 0;
-+
-+remove_rdma:
-+	mana_rdma_remove(&gc->mana_ib);
-+remove_mana:
-+	mana_remove(&gc->mana, false);
-+cleanup_gd:
-+	mana_gd_cleanup(gc);
-+unmap_bar:
-+	iounmap(bar0_va);
-+free_gc:
-+	dev_set_drvdata(&cdx_dev->dev, NULL);
-+	vfree(gc);
-+clear_master:
-+	cdx_clear_master(cdx_dev);
-+	return err;
-+}
-+
-+static int mana_cdx_gd_remove(struct cdx_device *cdx_dev)
-+{
-+	struct gdma_context *gc = dev_get_drvdata(&cdx_dev->dev);
-+
-+	mana_rdma_remove(&gc->mana_ib);
-+	mana_remove(&gc->mana, false);
-+
-+	mana_gd_cleanup(gc);
-+	cdx_clear_master(cdx_dev);
-+
-+	iounmap(gc->bar0_va);
-+
-+	dev_set_drvdata(&cdx_dev->dev, NULL);
-+	vfree(gc);
-+	return 0;
-+}
-+
-+/* Quiesce the device for kexec. This is also called upon reboot/shutdown. */
-+static void mana_cdx_gd_shutdown(struct cdx_device *cdx_dev)
-+{
-+	struct gdma_context *gc = dev_get_drvdata(&cdx_dev->dev);
-+
-+	mana_rdma_remove(&gc->mana_ib);
-+	mana_remove(&gc->mana, true);
-+
-+	mana_gd_cleanup(gc);
-+	cdx_clear_master(cdx_dev);
-+}
-+
-+#define CDX_VENDOR_ID_MICROSOFT 0x1414
-+static const struct cdx_device_id mana_cdx_table[] = {
-+	{ CDX_DEVICE(CDX_VENDOR_ID_MICROSOFT, MANA_CDX_DEVICE_ID) },
-+	{}
-+};
-+
-+MODULE_DEVICE_TABLE(cdx, mana_cdx_table);
-+
-+static struct cdx_driver gdma_cdx_driver = {
-+	.match_id_table	= mana_cdx_table,
-+	.probe		= mana_cdx_gd_probe,
-+	.remove		= mana_cdx_gd_remove,
-+	.shutdown	= mana_cdx_gd_shutdown,
-+	.driver	= {
-+		.name	= "mana_cdx",
-+	},
-+};
-+
-+module_driver(gdma_cdx_driver, cdx_driver_register, cdx_driver_unregister);
-+
-+MODULE_LICENSE("Dual BSD/GPL");
-+MODULE_DESCRIPTION("Microsoft Azure Network Adapter driver for the CDX bus");
-+MODULE_IMPORT_NS("CDX_BUS");
-+MODULE_IMPORT_NS("NET_MANA");
-diff --git a/drivers/net/ethernet/microsoft/mana/gdma_pci.c b/drivers/net/ethernet/microsoft/mana/gdma_pci.c
-index 92a1e66e18b7..ed8925296c8a 100644
---- a/drivers/net/ethernet/microsoft/mana/gdma_pci.c
-+++ b/drivers/net/ethernet/microsoft/mana/gdma_pci.c
-@@ -619,6 +619,7 @@ static void mana_pci_remove_irqs(struct gdma_context *gc)
- 
- static const struct gdma_bus_ops mana_pci_bus_ops = {
- 	.bus_name		= "pci",
-+	.adev_prefix		= "mana",
- 	.msix_can_alloc_dyn	= mana_pci_msix_can_alloc_dyn,
- 	.msix_virq		= mana_pci_msix_virq,
- 	.msix_alloc_at		= mana_pci_msix_alloc_at,
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index 16a9d192c099..2ba48a1c4b15 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -3957,8 +3957,9 @@ static int add_adev(struct gdma_dev *gd, const char *name)
- 
- 	/* madev is owned by the auxiliary device */
- 	madev = NULL;
--	/* Keep the established mana.{eth,rdma} auxiliary match names. */
--	ret = __auxiliary_device_add(adev, "mana");
-+	/* Keep match names independent of the common module's name. */
-+	ret = __auxiliary_device_add(adev,
-+				     gd->gdma_context->bus_ops->adev_prefix);
- 	if (ret)
- 		goto add_fail;
- 
-diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
-index cdec5558304f..c610fc1067e0 100644
---- a/include/net/mana/gdma.h
-+++ b/include/net/mana/gdma.h
-@@ -432,6 +432,7 @@ struct gdma_context;
-  * instance in gdma_context.bus_ops at probe time.
-  *
-  * @bus_name: Bus token used to build the per-vector IRQ names.
-+ * @adev_prefix: Prefix used for auxiliary-device match names.
-  * @msix_can_alloc_dyn: True if the bus can allocate MSI-X vectors after
-  *	probe time. Buses that size their vector pool at probe and cannot
-  *	grow it later leave this NULL.
-@@ -459,6 +460,7 @@ struct gdma_context;
-  */
- struct gdma_bus_ops {
- 	const char *bus_name;
-+	const char *adev_prefix;
- 	bool (*msix_can_alloc_dyn)(struct gdma_context *gc);
- 	int (*msix_virq)(struct gdma_context *gc, int msi);
- 	int (*msix_alloc_at)(struct gdma_context *gc, int *msi);
-@@ -684,6 +686,8 @@ struct gdma_eqe {
- #define MANA_PF2_DEVICE_ID 0x00C1
- #define MANA_VF_DEVICE_ID 0x00BA
- 
-+#define MANA_CDX_DEVICE_ID 0x00C2
-+
- struct gdma_posted_wqe_info {
- 	u32 wqe_size_in_bu;
- };
+ 		list_del(&attr->list);
+ 		kvfree(attr->parse_attr);
+ 		kfree(attr);
 -- 
-2.54.0
+2.39.5
