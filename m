@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B25615221D2;
-	Thu, 24 Sep 2026 17:45:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AE1552B1F7;
+	Thu, 24 Sep 2026 17:45:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790271954; cv=none; b=HnxNyt+gvmYFbC4FN+Gsjh0k0UD1vTUo+f5tifLSvmEIQ9XDkLGDa+DRM5P8FukEl/xrnK6a2FtAp55SqLW66goRDswCfglciFswosVYn/VxaQ8v9B2l91wrtlZ4EKahA1A4S9ihkm0O/1hSBjG+2eSjRPLKjLEU7CauMSyVOuI=
+	t=1790271955; cv=none; b=XVfuDYcz/DIE5iiCcWHl0suMG8ZxLHIulnWfY2O4husRSkevyds4aSbL0lawrg4P2ODeAFYdlq4vwlCcGxiktMz+TPLISJRHhT6lVml+gjcNVIOS8EKI4abPSaMxm6zge2V9iWcQ0IbCGZkKcydlYWxRDLtiAum8w77SXsYZOuo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790271954; c=relaxed/simple;
-	bh=uW/mCIBA2+qaK4cc07xZOG0ZwLInbDHOIOaha2pyBic=;
+	s=arc-20240116; t=1790271955; c=relaxed/simple;
+	bh=TLR8QLlEDbJmTPIv6xvYinA4ZW387SlN0r78YzB5fGE=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=LjUDQMDFLSQBACsPDDAOXpqJDTuyyGu3H+hxhLMS80kSLqcytBSrb5f+aQTDv5T8RRqMIAHc8ooXgYnjG4xm7oiievNcqsEi75dHz+JUrP2OaqL1UkrmQKmH2yb6zJbk6/ivXwsN4SSgn+4qj2IDipkSul5jDe/TS8f9bw9bOu8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HK7Y4mRB; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=Xxx63gLioVg156ll1fiC1LuaZsAksJKRzNTlYj0jM1KrQ5FQuxt51FiTRrHb0g1eNlbMqUQfoJfJ3FW9hYAEDG3K/MWVs3Gm8mCSX7dChKbCwmF4/qsqBHj+HVoKx1n8bwHcv5yljmgAKNxIvuA9IKy/SUazrJSiHHOuuR6wU1c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=h50wIbDI; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HK7Y4mRB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92E2C1F000FF;
-	Thu, 24 Sep 2026 17:45:51 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="h50wIbDI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CE341F00893;
+	Thu, 24 Sep 2026 17:45:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790271952;
-	bh=dhPG1dQdE8w4Jf44nehVnN5swpSvLRrMZuxbukNxmOA=;
+	s=k20260515; t=1790271954;
+	bh=A5JSihLL3AexJrOk2t7nhyGjuXU1Pu2+NWptWbs28N8=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=HK7Y4mRBKWEYU4mT0oSFlgdJiWia8fBwHSKBh/J6qrH/VPB6wzVpxn4YxT+6dnp6I
-	 wupLlZIHjHlx4VRV3pQNLDNtz21dGle91BVO6HbxNl1bXbdDcB3rjTaM92xjAz2pz5
-	 KX/1QEy2NuOkaXAZ01TnJslSZg3YKCV+anOuboRCW/zMaq8u3lIvsbaWdT8P+eyPPW
-	 nCjuQ3OsmUrbhMfa8+XMV8qakDzcBpSuPalHsNd8bavmI3Hx5QN8KBQJCepWTXM+I+
-	 x03sJ/IyoPvHakso2AU0x0ELZwPH3vN83RFdSTwGx14VPQc+UtqxviKT34nHzXR1OL
-	 dx0afhA8Wh/Tg==
-Subject: Re: [PATCH net-next 01/13] net/mlx5e: Assign a random MAC to any
- netdev with a zero MAC address
+	b=h50wIbDIyMi5XaCl0gwlT84Z079HBjvwBhvH1GALncDnnkYH9kKrt7VWak3+m0v8z
+	 PQQTPQq7tYVxMVAp+GG0Hq6//G6Sf1gZqthfy1kq24e2w2SS+BnhKSeQ8JlhOCcKCj
+	 kgRXyJ2KcOft2XURbcd52ko7675z6wOu/145y44KFYkSH8E4lAzOBMxcwDSpVDRRF8
+	 CUqFkPrxyE3RFnVlnePgn3DQ65/QhtEG0qAx2B7D2FNB5RK4zVpk3dIAl0fu+5uPgV
+	 mDTYZOLGhOuQC5T23pK0G+nYVkbjGdtaYuCuWgOfUi+6DtFVopi2s6cCk+a804nRw6
+	 NKrmtDrrehM4w==
+Subject: Re: [PATCH net-next 02/13] net/mlx5: E-switch, do not leave an
+ unpaired devcom registered
 From: netdev-bot+sashiko@kernel.org
 To: tariqt@nvidia.com
 Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
@@ -35,11 +35,11 @@ Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
  agoldberger@nvidia.com, cratiu@nvidia.com, gal@nvidia.com, leon@kernel.org,
  linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, mbloch@nvidia.com,
  moshe@nvidia.com, ohartoov@nvidia.com, saeedm@nvidia.com, shayd@nvidia.com
-Date: Thu, 24 Sep 2026 17:45:51 +0000
-Message-ID: <179027195115.2160803.12005137371690023734@kernel.org>
-In-Reply-To: <20260923103830.1183-2-tariqt@nvidia.com>
-References: <20260923103830.1183-2-tariqt@nvidia.com>
-X-sashiko-severity: Low
+Date: Thu, 24 Sep 2026 17:45:52 +0000
+Message-ID: <179027195273.2160803.652686618277857534@kernel.org>
+In-Reply-To: <20260923103830.1183-3-tariqt@nvidia.com>
+References: <20260923103830.1183-3-tariqt@nvidia.com>
+X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -49,127 +49,190 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+Thank you for your contribution! Sashiko AI review found 3 potential
+issue(s) to consider.
 
-Low priority / nit picks for your consideration:
+Critical: 0 · High: 1 · Medium: 2 · Low: 0
 
-- [Low] The commit message for "net/mlx5e: Assign a random MAC to any
-  netdev with a zero MAC address" describes a bug ('A vport group…
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-Pre-existing issues:
-- [Medium] In mlx5e_set_netdev_dev_addr()
-  (drivers/net/ethernet/mellanox/mlx5/core/en_main.c), the local `u8…
+- [High] After a failed initial PAIR, the new branch in
+  mlx5_esw_offloads_devcom_init() leaves esw->devcom == NULL, yet…
+- [Medium] When the initial PAIR fails, mlx5_esw_offloads_devcom_init()
+  now calls mlx5_esw_offloads_devcom_cleanup(), which unregisters the…
+- [Medium] The new cleanup call runs at the end of esw_offloads_enable().
 
 --
 
-net/mlx5e: Assign a random MAC to any netdev with a zero MAC address
+net/mlx5: E-switch, do not leave an unpaired devcom registered
 
-This commit removes the vport_group_manager exception from
-mlx5e_set_netdev_dev_addr(). As a result, any mlx5e netdev whose queried
-MAC is all zeros gets a random MAC instead of keeping the zero address.
+This commit checks the return value of the initial ESW_OFFLOADS_DEVCOM_PAIR
+event in mlx5_esw_offloads_devcom_init(). If pairing fails, it calls
+mlx5_esw_offloads_devcom_cleanup(), which unregisters the devcom component
+instead of leaving it registered until eswitch teardown.
 
-> mlx5e_set_netdev_dev_addr() falls back to a random MAC only when the
-> queried address is all-zeros AND the device is not a vport group
-> manager.  A vport group manager that comes up with a zero MAC is
-> therefore left with an invalid all-zero address.
->
-> The vport_group_manager exception is unnecessary: a zero MAC is always
-> invalid, regardless of device type. Drop the condition and assign a
-> random MAC whenever the queried address is zero, so every netdev comes
-> up with a valid address.
-
-[Severity: Low]
-The message treats the old behaviour as a bug. However, it has no Fixes:
-tag and doesn't say which configuration triggers it.
-
-The check being removed was added on purpose in commit 108805fc196e
-("net/mlx5e: Assign random MAC address if needed"). That commit only
-covers SR-IOV VFs loaded without an admin-assigned MAC. It used
-vport_group_manager (PF/ECPF, which is expected to have a burned-in MAC)
-as a stand-in for "not a VF". The new message calls the exception
-"unnecessary" but doesn't explain why it was there.
-
-Another commit in the series, "net/mlx5: E-switch, correct stale VF/PF
-wording in esw-allowed comments", suggests the real motivation is new FW
-that lets a VF act as a nested e-switch manager. If so, this is a new
-case rather than a regression.
-
-Could the message do one of these?
-
-  - If a zero-MAC group manager can happen with existing FW, add:
-
-      Fixes: 108805fc196e ("net/mlx5e: Assign random MAC address if needed")
-
-  - Otherwise, say that this is preparation for VF e-switch managers.
-
-The message also leaves out the visible effect on affected devices.
-addr_assign_type changes from NET_ADDR_PERM to NET_ADDR_RANDOM, and the
-MAC changes on every driver load. Other users of mlx5_query_mac_address()
-still see the firmware's zero address, for example the getpermhwaddr path
-in en_dcbnl.c and the default GID in rdma.c.
-
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-> index fc110a7d16e8d..b0765f07cc3a7 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-> @@ -5430,8 +5430,7 @@ static void mlx5e_set_netdev_dev_addr(struct net_device *netdev)
->  	u8 addr[ETH_ALEN];
->  
->  	mlx5_query_mac_address(priv->mdev, addr);
-> -	if (is_zero_ether_addr(addr) &&
-> -	    !MLX5_CAP_GEN(priv->mdev, vport_group_manager)) {
-> +	if (is_zero_ether_addr(addr)) {
-
-[Severity: Medium]
-This is a pre-existing issue and was not introduced by this patch.
-Since the patch rewrites this condition, though: what does addr hold if
-mlx5_query_mac_address() fails?
-
-addr has no initializer, and the return value of the query is ignored.
-The path is:
-
-  _mlx5e_probe()->mlx5e_build_nic_netdev()->mlx5e_set_netdev_dev_addr()
-    ->mlx5_query_mac_address()->mlx5_query_nic_vport_mac_address()
-
-mlx5_query_nic_vport_mac_address() in vport.c writes the caller's buffer
-only when the command succeeds:
-
-	err = mlx5_cmd_exec_inout(mdev, query_nic_vport_context, in, out);
-	if (!err)
-		ether_addr_copy(addr, &out_addr[2]);
-
-	return err;
-
-The query can fail with a bad FW status. It can also fail with -ENOLINK
-during FW internal error, because mlx5_internal_err_ret_value() includes
-MLX5_CMD_OP_QUERY_NIC_VPORT_CONTEXT in the opcodes it handles that way.
-
-In that case is_zero_ether_addr() reads whatever was left on the stack.
-Unless those bytes are all zero, the random fallback is skipped and
-eth_hw_addr_set(netdev, addr) installs them as the MAC.
-
-Can this give the netdev an invalid address, for example one with the
-multicast bit set? Can it also expose 6 bytes of kernel stack through
-RTM_GETLINK, the sysfs address file or SIOCGIFHWADDR?
-
-With CONFIG_INIT_STACK_ALL_ZERO the buffer starts zeroed, so after this
-patch the failure case gets a random MAC. With INIT_STACK_NONE, the
-leftover bytes are installed instead.
-
-The unchecked return value and the uninitialized buffer go back to
-537e4d2e6fe3c5 and earlier code. No later patch in the series appears to
-touch this function.
-
-To reach the goal that "every netdev comes up with a valid address",
-would it help to zero-initialize addr, check the return value, and use
-something like this?
-
-	if (err || !is_valid_ether_addr(addr))
-		eth_hw_addr_random(netdev);
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> index eb74b62601682..e7d92d9bde16d 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
 
 [ ... ]
+
+> @@ -3572,10 +3573,12 @@ void mlx5_esw_offloads_devcom_init(struct mlx5_eswitch *esw,
+>  	if (!esw->devcom)
+>  		return;
+>  
+> -	mlx5_devcom_send_event(esw->devcom,
+> -			       ESW_OFFLOADS_DEVCOM_PAIR,
+> -			       ESW_OFFLOADS_DEVCOM_UNPAIR,
+> -			       esw);
+> +	err = mlx5_devcom_send_event(esw->devcom,
+> +				     ESW_OFFLOADS_DEVCOM_PAIR,
+> +				     ESW_OFFLOADS_DEVCOM_UNPAIR,
+> +				     esw);
+> +	if (err)
+> +		mlx5_esw_offloads_devcom_cleanup(esw);
+
+[Severity: Medium]
+Does this mean the eswitch can never pair with a peer later?
+
+Only mlx5_esw_offloads_devcom_init() sends ESW_OFFLOADS_DEVCOM_PAIR.
+mlx5_devcom_locked_send_event() delivers it only to comp_devs that are
+still on comp->comp_dev_list_head:
+
+mlx5_devcom_locked_send_event() {
+    ...
+	list_for_each_entry(pos, &comp->comp_dev_list_head, list) {
+		data = rcu_dereference_protected(pos->data, lockdep_is_held(&comp->sem));
+		if (pos != devcom && data) {
+			err = comp->handler(event, data, event_data);
+    ...
+}
+
+Before this patch, a failed initial PAIR was rolled back, but the eswitch
+stayed on the list. A peer could later re-register, for example after its
+own esw_offloads_disable()/esw_offloads_enable() cycle on a mode change or
+reload. A new peer could also appear. Either one would call
+mlx5_esw_offloads_devcom_event(PAIR) for this eswitch, and pairing could
+succeed at that point.
+
+Now the component is unregistered and esw->devcom is NULL. The only way to
+recover is to re-enable offloads on this eswitch itself.
+esw_offloads_enable() ignores the outcome, since devcom_init returns void,
+and still returns 0. Nothing is reported or retried.
+
+This seems to have these effects:
+
+  - mlx5_eswitch_is_peer() stays false for this eswitch.
+  - mlx5_sd_all_paired() cannot pass for socket-direct groups.
+  - mlx5_lag_shared_fdb_supported_filter() keeps rejecting shared FDB,
+    because mlx5_esw_offloads_devcom_is_ready() is false with a NULL
+    devcom.
+
+The commit message says:
+
+    a registered component that reflects no actual pairing is incorrect
+    state to keep around.
+
+Is that accurate? Registered but unpaired is already the normal state in
+two cases:
+
+  - The first registrant: there are no peers, so send_event returns 0.
+  - The metadata mismatch path in mlx5_esw_offloads_devcom_event(): it
+    breaks out and returns 0.
+
+Could the commit message mention that later peers can no longer retry the
+pairing?
+
+[Severity: High]
+Can this lead to a NULL pointer dereference in
+mlx5e_tc_query_route_vport()?
+
+After this branch runs, esw->devcom is NULL but esw_offloads_enable() still
+succeeds. In en_tc.c:
+
+mlx5e_tc_query_route_vport() {
+    ...
+	if (!mlx5_lag_is_active(out_priv->mdev))
+		return err;
+
+	rcu_read_lock();
+	err = -ENODEV;
+	mlx5_devcom_for_each_peer_entry_rcu(esw->devcom, esw, pos) {
+    ...
+}
+
+The iterator dereferences devcom without a NULL check:
+
+mlx5_devcom_get_next_peer_data_rcu() {
+	struct mlx5_devcom_comp *comp = devcom->comp;
+    ...
+}
+
+LAG can be active without devcom pairing:
+
+  - mlx5_lag_check_prereq() does not look at devcom.
+  - mlx5_do_bond() falls back to non-shared-FDB MLX5_LAG_MODE_SRIOV when
+    mlx5_lag_shared_fdb_supported() is false. That is the case when devcom
+    is not ready.
+
+The callers are mlx5e_set_vf_tunnel(), mlx5e_update_vf_tunnel() and
+mlx5e_tc_tun_route_lookup(). They only check mlx5e_tc_is_vf_tunnel(),
+which does not look at pairing state.
+
+A possible sequence:
+
+  1. The initial PAIR fails.
+  2. The bond forms in non-shared-FDB SRIOV LAG.
+  3. A TC tunnel encap or decap rule is added whose route device is a
+     same-HW VF/SF that is not a vport of out_dev's eswitch.
+
+Before this patch, esw->devcom was non-NULL in this scenario, with
+comp->ready false. The iterator returned NULL and the function returned
+-ENODEV.
+
+[Severity: Medium]
+Could this race with a representor open and cause a use-after-free of the
+comp_dev?
+
+This cleanup now runs at the end of esw_offloads_enable(). By then the
+uplink rep and the PF/VF representor netdevs are already registered, via
+mlx5_esw_offloads_rep_load() and mlx5_eswitch_enable_pf_vf_vports().
+Userspace can open them while devcom_init is still running.
+
+mlx5_esw_offloads_devcom_cleanup() calls
+mlx5_devcom_unregister_component(). That does list_del under comp->sem,
+then kfree() of the comp_dev. After that, esw->devcom = NULL is a plain
+store, with no RCU grace period.
+
+On the open side, the chain is:
+
+mlx5e_rep_open() -> mlx5e_open_locked() -> mlx5e_rep_activate_channels()
+    -> mlx5e_add_sqs_fwd_rules() -> mlx5e_sqs2vport_start()
+
+mlx5e_sqs2vport_start() reads esw->devcom holding only rtnl and
+priv->state_lock:
+
+mlx5e_sqs2vport_start() {
+    ...
+	if (mlx5_devcom_comp_is_ready(esw->devcom) &&
+	    mlx5_devcom_for_each_peer_begin(esw->devcom))
+		devcom_locked = true;
+    ...
+}
+
+Suppose the opener loads esw->devcom and is preempted before it takes
+down_read() on comp->sem. The other CPU can then finish the UNPAIR, the
+list_del and the kfree(). When the opener resumes, it reads ->comp from
+the freed comp_dev.
+
+esw_offloads_disable() already has the same lockless reader versus kfree
+pattern at teardown. This patch adds a new trigger during enable, right
+after the reps have been registered.
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260923103830.1183-1-tariqt%40nvidia.com
