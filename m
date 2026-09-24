@@ -1,161 +1,466 @@
-Received: from BN8PR05CU002.outbound.protection.outlook.com (mail-eastus2azon11011008.outbound.protection.outlook.com [52.101.57.8])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04D7F4AA586
-	for <linux-rdma@vger.kernel.org>; Thu, 24 Sep 2026 18:22:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.57.8
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790274141; cv=fail; b=NARV08aYrILuJ5/RltZv6Hp/8oD+DQEr7t37RC1cPOHvbBf51EAMKJdbagguFxDix1m2FieoSANas2j5XFKsL7cOLZ/EJsyL6SruB+hiYj2mmAwl9H/uOZuWbwcZu14Sb0nK3pLavaYbBFF3NBnDZNNJV6KxRu68nI/ll1qbg1Q=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790274141; c=relaxed/simple;
-	bh=5QO4Rw29TuJV0qJFByoJkGr/+1soFPmECR4vxD7Tvec=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=TQrfLD74YGew9fepUV7oNzWYG1BgO1jmOkA6x5cnDVdm+5jUXqQLlj0/nGKd2LjZwBeDbMarL5Ynp3fxh9iOItoAKv83iTfsUUa9CsnULs4V1jbZZSjU31v/T3Bb/rb9gvXBcktpRjCPDRlXdsgXyW8v4TXvHON7tHocbqNEFvw=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=GqK4IGZp; arc=fail smtp.client-ip=52.101.57.8
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 310554BA9E7;
+	Thu, 24 Sep 2026 19:01:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790276528; cv=none; b=rZJOkWt6c2mWEVNY3yatoGH/qWWphaMy+CusF+k9MmxJFlpBMis3mH49mxn+wYghqkkE5BMclK0Oov4EQB/yqVFfhuVDKlwIIgsUv4bpXn18/HGdpdpVSh/xLnqC8yI3Cc9sTrGLPc6u9cYGqs5Dk9lwNeUy2dADnvLsnddj4VA=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790276528; c=relaxed/simple;
+	bh=iwlf8sID3tCr+06uUwq9igfzj0ELQpzLTZxP24BKhLE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Ho5+uBUTY7D2pWbol6TM7uaSxJhuRZ9CjfAgOa020gRGjYpabOPPkLAhfZK0j92F/NaSeDZ3ab1TywNegmP9oK/TfoERITFl/rt3t6uah9aZU9FM2DNLOeqF2XnVgOT4IurHRKB2mhSWvGswrtfcWciVG+Ggj0xmljupMJjEMlo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=pass smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=FYgk52Th; arc=none smtp.client-ip=198.137.202.133
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="GqK4IGZp"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=fzJxfjPQN98jwrfWBX+U+Ze/qPB01Zyz1NWa1+4lqmpvmazMvFVIUS3aZgm6M+bQDxymkyCCPPq6sLzn3W+GML/NQo8YR+S+1KZwzWXVRZHtTs/HvFpsL1JmsgLPPOa6Gx/IDLCq1Bzr/6HSivEmmX1TP3Badz506zQkkXpDv19iejLNTvFe6zDnBzrY1fdWNHNC1zN/yHy04q5eTcY3IUppc1pnm4mI9SRqX1I8gWdaBsMiag1uefzZbF0xELHTaI3Y8yVOszOUfIvPPCuS3p9DOOsEIZErrtqgWgGIDFJdvmfMLw45bgcW3v0o8bl3inrJSwA4sq0Qjs978pbwlg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=EfOxSgSp7UKxpkFAD56AxV/OZVyOV4ex1T8HiNVDUEM=;
- b=Bs4kvvp931XT73lKUJZCU2RQIUZ8ztAO0yq4TTb63qsqZs356CdHmTvfjtpOyNi3y0+2hnMV76/CTAmF9EarYknPm7zlDtWiytrQBGTjK/EX3g/Hgf7ie8RZ/OPp12YFaI4nhRnMm79URCZN0q4r/Utm7fjfvTJ8zWygClt6ybJ9P3iWLlevp8Xo03GWNBeGCwsQyLBSdtDTUY2yTvgNBy5kj66M+DyVdIgz/DCOqkI4wVuOpMdT8dbz0wnOpGLL9yhogr0HCm9U5Dc8wo8FutcGdTFwknJjtHXc6yv37NJFgSohvyZ6o60cgmwBtfSMeYQAkp/xxGDtUii4A0rOlw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=EfOxSgSp7UKxpkFAD56AxV/OZVyOV4ex1T8HiNVDUEM=;
- b=GqK4IGZpbFMVEkHTQs/8azFmnwCOWUBpF1lNoqdUqNdEdaoGjabcoHp15CQymPwfc+wdbBPq9Hex1bNE4+7rjpxi//gcueZsFJsdnrlJS7/DX0wqhiphlKBHplLMusVOz4uLCo4FGojDRvbNVzm6DlwWVMlqY60WCk5Khd+l3kangqCokbdMHEmWcYchtaWD15dGuCkT/VzI9xVvvYu2oV/XUkoPoHxMBudmLLAlR739r+2lDXFEkC2nzQLyAQrBfsx3nT20XsT3jr/t3gXHofm2+nm0xuSidSRnGRtnundR6s///pNmwDfc6qWvX2c1wd6Iht2zHFXtWOwuyqgDSA==
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from CHBPR12MB731189.namprd12.prod.outlook.com
- (2603:10b6:610:33d::12) by PH7PR12MB6539.namprd12.prod.outlook.com
- (2603:10b6:510:1f0::14) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.451.14; Thu, 24 Sep
- 2026 18:22:03 +0000
-Received: from CHBPR12MB731189.namprd12.prod.outlook.com
- ([fe80::b0e5:123d:fe06:e10d]) by CHBPR12MB731189.namprd12.prod.outlook.com
- ([fe80::b0e5:123d:fe06:e10d%6]) with mapi id 15.21.0451.014; Thu, 24 Sep 2026
- 18:22:03 +0000
-Date: Thu, 24 Sep 2026 15:22:01 -0300
-From: Jason Gunthorpe <jgg@nvidia.com>
-To: Michael Margolin <mrgolin@amazon.com>
-Cc: Yonatan Nachum <ynachum@amazon.com>, leon@kernel.org,
-	linux-rdma@vger.kernel.org, sleybo@amazon.com, matua@amazon.com,
-	gal.pressman@linux.dev, Yehuda Yitschak <yehuday@amazon.com>
-Subject: Re: [PATCH for-next] RDMA/efa: Expose device P2P DMA support via
- device query
-Message-ID: <20260924182201.GB9354@nvidia.com>
-References: <20260503150246.2349679-1-ynachum@amazon.com>
- <afhL9DLUVhnVyzZu@nvidia.com>
- <20260505081514.GA19297@dev-dsk-ynachum-1b-aa121316.eu-west-1.amazon.com>
- <afoPWiiEwk5igB/N@nvidia.com>
- <20260923163830.GA6954@dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com>
- <20260923171741.GH2545495@nvidia.com>
- <20260924152913.GB24800@dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260924152913.GB24800@dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com>
-X-ClientProxiedBy: SJ0PR05CA0024.namprd05.prod.outlook.com
- (2603:10b6:a03:33b::29) To CHBPR12MB731189.namprd12.prod.outlook.com
- (2603:10b6:610:33d::12)
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="FYgk52Th"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=HT2Ml+ISXk6pok3vxI33pkVK1ocoHgpWDhXVV3G6I18=; b=FYgk52ThT0GturbYOGgjvSTSti
+	M0t3v/yJ6VIFbHUYgOy3BxQgCziLaMIO1d2qljIzScYy6qwT/J0alwe3yE45e6JGQ0GqsiVXaGd5E
+	EJOpSwHVqfDPZl5330GYNPlZXkeiLP5rt59tkwR3q44C6A97ueXeu7yr2nwIlAq03kJWl2IpE/5oe
+	yVCLTroFRAbVBE8QSeRjX0rV0Ukn8qfegfvcYpm8PanyE502VPwfyEoZYmxSd0pOk66Tj0zys4uPO
+	dA9UiU6Z7VmxzOB8+sVk0yPzZDHFwBY12KURqeD+cSUIgRqzRq1zHJyaxPLMqsJ2KIc7Os75rY7Me
+	bOW9/yrg==;
+Received: from [38.23.173.23] (helo=localhost)
+	by bombadil.infradead.org with esmtpsa (Exim 4.99.1 #2 (Red Hat Linux))
+	id 1x9ogl-0000000BzNV-1nWv;
+	Thu, 24 Sep 2026 19:00:59 +0000
+Date: Thu, 24 Sep 2026 15:00:44 -0400
+From: "Liam R. Howlett" <liam@infradead.org>
+To: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, 
+	Vlastimil Babka <vbabka@kernel.org>, Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
+	David Hildenbrand <david@kernel.org>, Mike Rapoport <rppt@kernel.org>, 
+	Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, 
+	Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
+	Paul Moore <paul@paul-moore.com>, Stephen Smalley <stephen.smalley.work@gmail.com>, 
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
+	Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
+	Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>, 
+	Kumar Kartikeya Dwivedi <memxor@gmail.com>, Zi Yan <ziy@nvidia.com>, 
+	Baolin Wang <baolin.wang@linux.alibaba.com>, Nico Pache <nico.pache@linux.dev>, 
+	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
+	Lance Yang <lance.yang@linux.dev>, Usama Arif <usama.arif@linux.dev>, 
+	Kiryl Shutsemau <kas@kernel.org>, Doug Gilbert <dgilbert@interlog.com>, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, "Martin K. Petersen" <mkp@kernel.org>, 
+	Jaya Kumar <jayalk@intworks.biz>, Simona Vetter <simona@ffwll.ch>, Helge Deller <deller@gmx.de>, 
+	Sebastian Reichel <sre@kernel.org>, John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, 
+	Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
+	Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@kernel.org>, 
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, Arnaldo Carvalho de Melo <acme@kernel.org>, 
+	Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
+	Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, Juri Lelli <juri.lelli@redhat.com>, 
+	Vincent Guittot <vincent.guittot@linaro.org>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
+	Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
+	David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>, 
+	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, Nick Piggin <npiggin@gmail.com>, Arnd Bergmann <arnd@arndb.de>, 
+	Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
+	"Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan Kara <jack@suse.cz>, Marc Zyngier <maz@kernel.org>, 
+	Oliver Upton <oupton@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, 
+	Madhavan Srinivasan <maddy@linux.ibm.com>, Anup Patel <anup@brainfault.org>, Paul Walmsley <pjw@kernel.org>, 
+	Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
+	Christian Borntraeger <borntraeger@linux.ibm.com>, Janosch Frank <frankja@linux.ibm.com>, 
+	Claudio Imbrenda <imbrenda@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
+	Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Heiko Carstens <hca@linux.ibm.com>, 
+	Vasily Gorbik <gor@linux.ibm.com>, "David S. Miller" <davem@davemloft.net>, 
+	Andreas Larsson <andreas@gaisler.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Christian Brauner <brauner@kernel.org>, Matthew Brost <matthew.brost@intel.com>, 
+	Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, Byungchul Park <byungchul@sk.com>, 
+	Gregory Price <gourry@gourry.net>, Ying Huang <ying.huang@linux.alibaba.com>, 
+	Alistair Popple <apopple@nvidia.com>, Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>, 
+	Kemeng Shi <shikemeng@huaweicloud.com>, Nhat Pham <nphamcs@gmail.com>, Baoquan He <baoquan.he@linux.dev>, 
+	Youngjun Park <youngjun.park@lge.com>, Johannes Weiner <hannes@cmpxchg.org>, 
+	Qi Zheng <qi.zheng@linux.dev>, Shakeel Butt <shakeel.butt@linux.dev>, 
+	Axel Rasmussen <axelrasmussen@google.com>, Yuanchu Xie <yuanchu@google.com>, Wei Xu <weixugc@google.com>, 
+	Chengming Zhou <chengming.zhou@linux.dev>, Michal Hocko <mhocko@kernel.org>, 
+	Miklos Szeredi <miklos@szeredi.hu>, Xu Xin <xu.xin@linux.dev>, linux-mm@kvack.org, 
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, 
+	linux-rdma@vger.kernel.org, selinux@vger.kernel.org, linux-sound@vger.kernel.org, 
+	bpf@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org, 
+	dri-devel@lists.freedesktop.org, linux-trace-kernel@vger.kernel.org, 
+	linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, 
+	kvm@vger.kernel.org, kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org, 
+	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, fuse-devel@lists.linux.dev
+Subject: Re: [PATCH v3 01/40] mm/vma: fix mmap_prepare file handling, remove
+ file_doesnt_need_get
+Message-ID: <qpkcjtl5jbip46zxcpyogsk4phmhetfvrvgftxhsxlbxjhucnn@h3a64dfoxcmj>
+References: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-0-4583d8a23bca@kernel.org>
+ <20260917-b4-mmap-prepare-vma-flag-sanify-v3-1-4583d8a23bca@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CHBPR12MB731189:EE_|PH7PR12MB6539:EE_
-X-MS-Office365-Filtering-Correlation-Id: ffc6f87b-cd3e-4710-d9b8-08df1a68bb70
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|23010399003|366016|376014|10067099003|56012099006|6133799003|18002099003|22082099003|4143699003|11063799006;
-X-Microsoft-Antispam-Message-Info:
-	miPTeNQRA9QxZmmJoiTsfswMzNnIpKu/DDblLNjh+MvRpUtEl1RrSZ4gCKDR68EE58YYnL5npweQ/obxK9x0K+dwxq1jXGlwz9+arjRlAfMBrHQ3b9/xGaJCc2FdYwtAlTRWZUcBiQMw5ndrcxvh1+Fe0rHx+8PJdOo2NQk+L5lnmBEWoMCXTIBnwSjMmdSZ95kt/9tnjnherF9zInWSiheCzPxqzx9UIgd7taGeVasRwQ+f2K6ATPN8R5alHW0bWI9AY1b7jvgSLoDg7bINynlO022h6G6R6ne0kXQduAI9ZSa3ieusBq5HdOAOHoyegt+C+2JYWhUC6hJy1b8NKMUA/XynOOqUqH4Dty+MrnRkhgbhAzt3q9CE+Pm18/Lgl/EpeuRIqdtYbOc8RJ6e+fbdN69D6jiXvPpOx99AIWpQTE2IH+fgv+VLX+xBDzIwdMn/SuXAeo/Zou02aGM0hqNAEbQnO+7GOUEBGJCPWzJkDZp3KtFss3peJG/nE+lcwSBamJXySBdSZP+Rge9+jDsrWDtaDYTICvUqFNSu0wm/Q3YDmc4+T8Rq8LNmfkb/7kl+9mhDcqkLLdyQHmUqoG3ZelvS6y+13TnzbIO3P2xYobVP+l4574NNgqTe8qGExyn+takYdH1K/+llF6YYvcdO+9xp3/naHTwQ7HJGcXY=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CHBPR12MB731189.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(23010399003)(366016)(376014)(10067099003)(56012099006)(6133799003)(18002099003)(22082099003)(4143699003)(11063799006);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?YtaFShlThlIdfYBeEfcOpdJfC2K3AGY6wxoAdyapKo2mXumykLWkqZprWWwx?=
- =?us-ascii?Q?FQYTG4PmpukLLWondwkY6hIEDQmAZGssIavAPpEJSvBJkz7CBs79n7vb3+Uu?=
- =?us-ascii?Q?S9Zgi5kBZ3zzuZUlTqXfyLEgwVQGfyChx7e8FbdxfsvanZ5c3LIQwlT36QFA?=
- =?us-ascii?Q?ocD+mRWN0uXp3Y9geTIIJVomVX+IVXcatlrevuEA2vkV0SKC4TH85YCJrodo?=
- =?us-ascii?Q?PK7BtZxxgdQg9L+rSbDJQ8Y+PPd3nkHHiOulPwRGMRep4cBg2r4jx+DXQHaP?=
- =?us-ascii?Q?5CRQ0xn2+KnItttdXHOKok2Fb7KEgI0nn3A+kIVorFUSLtnQzrMHPOX0jNXu?=
- =?us-ascii?Q?uk02MUFC14HmRAsUZalvH8uZMKYNw4bKgKVuuqVU/U4sgZ1ZIYdyNEBV3FM5?=
- =?us-ascii?Q?0sYkinjx1icc0p4+xJCvbR9eVfOnYThmUyQAdDaVn/kA/3Z2+7lCqU3jwQNf?=
- =?us-ascii?Q?xyJrH5ufZOejYhaflm+VQzMI71c1VxdkO1uZkMyg/QBlcS61t8TfRtKt3x8O?=
- =?us-ascii?Q?a6G3oNl0zLop/Ny0mJP/dWdLMr+C6SNF1InOqAP3jRlEPg2XtX8IY2Cpn8yL?=
- =?us-ascii?Q?epDcdaUqDCGK9m5CfQkC8fmUiGRo2xTFv8V3GXlAy3l/WhJdW5iF2g62e35i?=
- =?us-ascii?Q?S7GOpfhkYd2oGtbdaN9wjPl09AEzCwO1uasBpAuTRsaIIXJJUdWZFm0qP8TQ?=
- =?us-ascii?Q?8qEePjojVjetwgBmRdTKmNLAt0HGIHSqha9TgW/5HEPAu3sYfA9bh3lvhS9S?=
- =?us-ascii?Q?zThaGdcZUf6Z33pWMkYXKYw0BmPHCKNKpMCDuVWIySDTL0pjwcG5oJrk2bbt?=
- =?us-ascii?Q?KN9814vhIciq2+wHa2EJPXnNWEUydCfNfgYOc8XNv/EHqi/2k1nEfNkwgvsW?=
- =?us-ascii?Q?AKOY2Q+Fyx0jVE6Uk9Qt/cu7AduUR6TDMG1NHgsO6y7M5+lG9jg4oqMpPOsh?=
- =?us-ascii?Q?wFn0RtqO4dpQOug/sZcidUub7GZuz9x94mK42PRCd+BPdjcx9xxzRnueCwTK?=
- =?us-ascii?Q?dcyftAO9N+FcxpXgodmwkwN+6Utriso3SpHL0S/LLwk9vo4JUzz3yFm6Bh49?=
- =?us-ascii?Q?54FlUuMLaghmrE51GDjg5oQ/T4ewD+Umtmss6JiCb/3LnUY04QGUdgf+Fe7B?=
- =?us-ascii?Q?cN8Pyf4uUAsk9d8YyYISvbeIHD9kVPZOc8XAKvtYaCAZduvmcK71poOzgAoc?=
- =?us-ascii?Q?LxL1nHUK6ut56MxvwRlrL/YNpr8tYx7NzNwExHdwjDg+7wqLZCbN9AYHItYX?=
- =?us-ascii?Q?bI+Pq2tZI4VIohItqihRPNLuK0nkds96PZJo6xTmkzN5koHkOuWwbSB1P8NG?=
- =?us-ascii?Q?fwtXm/yHTQ2KC92ehXE0OPmf8gM2PpV6tCVbOWJwwQZ8H/wymGoZoE49cy94?=
- =?us-ascii?Q?yAE2aAISvnNCxKytqTk/z3AbE2890DxX/6tICN3Yl5t/fItUoFkcTo/dEHFi?=
- =?us-ascii?Q?8nYoI6cfT98flZwiDSpXC2jxSX4eqv8dECyEDDcdEhJPVqLLs5BM2CcklUY6?=
- =?us-ascii?Q?15GYWdDy6EydIQmyMU0YgoZTH3o5Et4xP/Jbx3Di+Z9MzkU0uwpmvroG4s/5?=
- =?us-ascii?Q?t2KgrZHurUBI/AY35cpIuJtrz6yEx8kUwVSCIsluX9gKgq7hSyiSXlN0fm1a?=
- =?us-ascii?Q?MG+v6GxWRQ+W8ydx6FMTjzRD3nXXFLi49k2sHsJ1Adi89dxvxgJ7mp5GmaA9?=
- =?us-ascii?Q?waT+qC1l2rXF44jlGyHFNXHh+OlVUnTZvHWBHKM4J5Nlg6RD?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: ffc6f87b-cd3e-4710-d9b8-08df1a68bb70
-X-MS-Exchange-CrossTenant-AuthSource: CHBPR12MB731189.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Sep 2026 18:22:03.4582
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: Sbl0bqFCiYoCX9Lj3tPCJgER6/2F8PGhtrjwgVJt93bb57FhBj/ETkMrcehotdjX
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB6539
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-1-4583d8a23bca@kernel.org>
 
-On Thu, Sep 24, 2026 at 03:29:13PM +0000, Michael Margolin wrote:
-
-> > > 2. Expose EFA_DEV_CAP(dev, PCIE_PEER_ACCESS_ENABLED)
-> > >    directly to userspace. As you already stated, this is a
-> > >    bit awkward as a device isn't expected to be aware of
-> > >    system topology, but since EFA lives in the cloud it is
-> > >    partially aware of the platform configuration and in
-> > >    particular the ability to access peer devices over PCIe.
-> > 
-> > If you already know your VMs are always safe what is even the issue?
-> > What are you probing for?
-> > 
-> > Lets please not hack around bad userspace with even worse kernel uAPI.
+On 26/09/17 05:22PM, Lorenzo Stoakes (ARM) wrote:
+> The map->file_doesnt_need_get flag is confusing and the existing
+> implementation has holes.
 > 
-> The EFA device already knows this attribute. The problem is that this
-> information is not exposed to userspace today.
+> Drivers are permitted to change the owning file of a mapping. If they do
+> so, they are required to take a reference on that file.
 > 
-> So if I go back to our original proposal - exposing the
-> EFA_DEV_CAP(dev, P2P_DMA) bit through query device - this is a firmware
-> attribute that says "this device does not block PCIe peer access on its
-> end." It's not a topology claim, it's a device property, similar to how
-> we already expose RDMA read/write support.
+> The mmap() operation which ultimately invokes __mmap_region() is guaranteed
+> to drop the refcount for the original file the mapping was made under, but
+> this is not true for the replaced file.
+> 
+> This has been addressed so far by tracking map->file_doesnt_need_get, which
+> is rather poorly named and unfortunately fails to correctly track whether
+> or not an additional put were needed in a number of cases.
+> 
+> Make life easier by removing this flag, and instead drop the reference for
+> both mmap_prepare and the deprecated mmap callback in a new function
+> put_map().
+> 
+> Track whether this needs to be done by aligning mmap_state with
+> vm_area_desc and store the original file in the map->file field, keeping
+> the updated file in map->vm_file.
+> 
+> In order to have the same behaviour for both types of hooks, only drop the
+> reference __mmap_new_file_vma() itself took in its error path, deferring
+> the replaced file's reference to put_map().
+> 
+> To make this work correctly, map->vm_file has to be updated before any
+> error handling, so update __mmap_new_file_vma() and call_mmap_prepare() to
+> set this field first.
+> 
+> Also when mmap_prepare() changes the file and is then merged, the reference
+> count also must be decremented, so update the logic to call put_map() in
+> this case too.
+> 
+> Also update __compat_vma_mmap() to manually perform this step for stacked
+> file systems using the compatibility layer, and update
+> compat_set_vma_from_desc() to replace vma_set_file() with a correct
+> refcount/file update.
+> 
+> No in-tree driver is impacted by the incorrect implementation of this
+> currently (no driver that does this is mergeable for one), so this does not
+> need to be a fix.
+> 
+> Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+> ---
+>  mm/internal.h |  1 +
+>  mm/util.c     |  5 +++-
+>  mm/vma.c      | 83 +++++++++++++++++++++++++++++++++++------------------------
+>  mm/vma.h      |  6 +++--
+>  4 files changed, 59 insertions(+), 36 deletions(-)
+> 
+> diff --git a/mm/internal.h b/mm/internal.h
+> index 0dca33db068f..fe576d468af4 100644
+> --- a/mm/internal.h
+> +++ b/mm/internal.h
+> @@ -7,6 +7,7 @@
+>  #ifndef __MM_INTERNAL_H
+>  #define __MM_INTERNAL_H
+>  
+> +#include <linux/file.h>
+>  #include <linux/fs.h>
+>  #include <linux/khugepaged.h>
+>  #include <linux/mm.h>
+> diff --git a/mm/util.c b/mm/util.c
+> index bf0513d1d3d0..016932780925 100644
+> --- a/mm/util.c
+> +++ b/mm/util.c
+> @@ -1228,8 +1228,11 @@ int __compat_vma_mmap(struct vm_area_desc *desc,
+>  
+>  	/* Perform any preparatory tasks for mmap action. */
+>  	err = mmap_action_prepare(desc);
+> -	if (err)
+> +	if (err) {
+> +		if (desc->vm_file != vma->vm_file)
+> +			fput(desc->vm_file);
+>  		return err;
+> +	}
+>  	/* Update the VMA from the descriptor. */
+>  	compat_set_vma_from_desc(vma, desc);
+>  	/* Complete any specified mmap actions. */
+> diff --git a/mm/vma.c b/mm/vma.c
+> index 55917d097933..fa784f069da4 100644
+> --- a/mm/vma.c
+> +++ b/mm/vma.c
+> @@ -24,7 +24,8 @@ struct mmap_state {
+>  		vm_flags_t vm_flags;
+>  		vma_flags_t vma_flags;
+>  	};
+> -	struct file *file;
+> +	struct file *file;	/* mmap()-specified file. */
 
-And how does that help you if you actually need reachability? You
-haven't said directly what you are even trying to achieve (though I
-have a pretty good guess).
+I guess renaming file to mmaped_file would be a lot more changes.
 
-If all your VMs can do P2P then what is the issue? If you need
-pairwise reachability then you have to use dmabuf.
+> +	struct file *vm_file;	/* May be updated by mmap_prepare. */
+>  	pgprot_t page_prot;
+>  
+>  	/* User-defined fields, perhaps updated by .mmap_prepare(). */
+> @@ -43,8 +44,6 @@ struct mmap_state {
+>  
+>  	/* Determine if we can check KSM flags early in mmap() logic. */
+>  	bool check_ksm_early :1;
+> -	/* If .mmap_prepare changed the file, we don't need to pin. */
+> -	bool file_doesnt_need_get :1;
+>  };
+>  
+>  #define MMAP_STATE(name, mm_, vmi_, addr_, len_, pgoff_, anon_pgoff_, vma_flags_, file_) \
+> @@ -58,6 +57,7 @@ struct mmap_state {
+>  		.pglen = PHYS_PFN(len_),				\
+>  		.vma_flags = vma_flags_,				\
+>  		.file = file_,						\
+> +		.vm_file = file_,					\
+>  		.page_prot = vma_flags_to_page_prot(vma_flags_),	\
+>  	}
+>  
+> @@ -70,7 +70,7 @@ struct mmap_state {
+>  		.vma_flags = (map_)->vma_flags,				\
+>  		.pgoff = (map_)->pgoff,					\
+>  		.anon_pgoff = (map_)->anon_pgoff,			\
+> -		.file = (map_)->file,					\
+> +		.file = (map_)->vm_file,				\
+>  		.prev = (map_)->prev,					\
+>  		.middle = vma_,						\
+>  		.next = (vma_) ? NULL : (map_)->next,			\
+> @@ -2447,7 +2447,7 @@ void mm_drop_all_locks(struct mm_struct *mm)
+>   */
+>  static bool accountable_mapping(struct mmap_state *map)
+>  {
+> -	const struct file *file = map->file;
+> +	const struct file *file = map->vm_file;
+>  
+>  	/*
+>  	 * hugetlb has its own accounting separate from the core VM
+> @@ -2496,7 +2496,7 @@ static void vms_abort_munmap_vmas(struct vma_munmap_struct *vms,
+>  
+>  static void update_ksm_flags(struct mmap_state *map)
+>  {
+> -	map->vma_flags = ksm_vma_flags(map->mm, map->file, map->vma_flags);
+> +	map->vma_flags = ksm_vma_flags(map->mm, map->vm_file, map->vma_flags);
+>  }
+>  
+>  static void set_desc_from_map(struct vm_area_desc *desc,
+> @@ -2506,7 +2506,7 @@ static void set_desc_from_map(struct vm_area_desc *desc,
+>  	desc->end = map->end;
+>  
+>  	desc->pgoff = map->pgoff;
+> -	desc->vm_file = map->file;
+> +	desc->vm_file = map->vm_file;
+>  	desc->vma_flags = map->vma_flags;
+>  	desc->page_prot = map->page_prot;
+>  }
+> @@ -2586,6 +2586,10 @@ static int __mmap_setup(struct mmap_state *map, struct vm_area_desc *desc,
+>  	return 0;
+>  }
+>  
+> +static bool map_same_file(struct mmap_state *map)
+> +{
+> +	return map->vm_file == map->file;
+> +}
+>  
+>  static int __mmap_new_file_vma(struct mmap_state *map,
+>  			       struct vm_area_struct *vma)
+> @@ -2593,20 +2597,23 @@ static int __mmap_new_file_vma(struct mmap_state *map,
+>  	struct vma_iterator *vmi = map->vmi;
+>  	int error;
+>  
+> -	vma->vm_file = map->file;
+> -	if (!map->file_doesnt_need_get)
+> -		get_file(map->file);
+> +	vma->vm_file = map->vm_file;
+> +	if (map_same_file(map))
+> +		get_file(map->vm_file);
+>  
+> -	if (!map->file->f_op->mmap)
+> +	if (!map->vm_file->f_op->mmap)
+>  		return 0;
+>  
+>  	error = mmap_file(vma->vm_file, vma);
+> +	map->vm_file = vma->vm_file;
+> +
 
-Precompute it and use a topology file like everyone else?
+You set vma->vm_file to map->vm_file unconditionally above, is this
+necessary?
 
-Inject a topology file into your VMs, like some others?
+>  	if (error) {
+>  		UNMAP_STATE(unmap, vmi, vma, vma->vm_start, vma->vm_end,
+>  			    map->prev, map->next);
+> -		fput(vma->vm_file);
+> -		vma->vm_file = NULL;
+> +		if (map_same_file(map))
+> +			fput(map->vm_file);
+>  
+> +		vma->vm_file = NULL;
+>  		vma_iter_set(vmi, vma->vm_end);
+>  		/* Undo any partial mapping done by a device driver. */
+>  		unmap_region(&unmap);
+> @@ -2623,7 +2630,6 @@ static int __mmap_new_file_vma(struct mmap_state *map,
+>  			!vma_flags_test(&map->vma_flags, VMA_MAYWRITE_BIT) &&
+>  			vma_test(vma, VMA_MAYWRITE_BIT));
+>  
+> -	map->file = vma->vm_file;
+>  	map->vma_flags = vma->flags;
+>  
+>  	return 0;
+> @@ -2631,7 +2637,7 @@ static int __mmap_new_file_vma(struct mmap_state *map,
+>  
+>  static void map_set_anon(struct mmap_state *map)
+>  {
+> -	map->file = NULL;
+> +	map->vm_file = NULL;
+>  	map->vm_ops = NULL;
+>  	map->pgoff = map->addr >> PAGE_SHIFT;
+>  }
+> @@ -2643,7 +2649,7 @@ static bool map_is_private(const struct mmap_state *map)
+>  
+>  static bool map_is_anon(const struct mmap_state *map)
+>  {
+> -	return map_is_private(map) && !map->file;
+> +	return map_is_private(map) && !map->vm_file;
+>  }
+>  
+>  /*
+> @@ -2688,7 +2694,7 @@ static int __mmap_new_vma(struct mmap_state *map, struct vm_area_struct **vmap,
+>  	}
+>  
+>  	/* Invoke callbacks. */
+> -	if (map->file)
+> +	if (map->vm_file)
+>  		error = __mmap_new_file_vma(map, vma);
+>  	else if (!is_anon)
+>  		error = shmem_zero_setup(vma);
+> @@ -2797,11 +2803,15 @@ static int call_mmap_prepare(struct mmap_state *map,
+>  	int err;
+>  
+>  	/* Invoke the hook. */
+> -	err = vfs_mmap_prepare(map->file, desc);
+> +	err = vfs_mmap_prepare(map->vm_file, desc);
+>  	if (err)
+>  		return err;
+>  
+> -	/* It's invalid for mmap_preprare hooks to clear vm_ops. */
+> +	/* Update first so file refcount tracked correctly. */
+> +	if (desc->vm_file != map->vm_file)
+> +		map->vm_file = desc->vm_file;
+> +
+> +	/* It's invalid for mmap_prepare hooks to clear vm_ops. */
 
-Jason
+The less rare of prepare ;)
+
+>  	if (!desc->vm_ops)
+>  		return -EINVAL;
+>  
+> @@ -2811,10 +2821,6 @@ static int call_mmap_prepare(struct mmap_state *map,
+>  
+>  	/* Update fields permitted to be changed. */
+>  	map->pgoff = desc->pgoff;
+> -	if (desc->vm_file != map->file) {
+> -		map->file_doesnt_need_get = true;
+> -		map->file = desc->vm_file;
+> -	}
+>  	map->vma_flags = desc->vma_flags;
+>  	map->page_prot = desc->page_prot;
+>  	/* User-defined fields. */
+> @@ -2826,7 +2832,7 @@ static int call_mmap_prepare(struct mmap_state *map,
+>  	 * anonymous mappings. Rather than allowing these mappings to be odd
+>  	 * outliers, simply make them truly anonymous.
+>  	 */
+> -	if (map_is_private(map) && file_is_dev_zero(map->file))
+> +	if (map_is_private(map) && file_is_dev_zero(map->vm_file))
+>  		map_set_anon(map);
+>  
+>  	return 0;
+> @@ -2845,7 +2851,7 @@ static void set_vma_user_defined_fields(struct vm_area_struct *vma,
+>   */
+>  static bool can_set_ksm_flags_early(struct mmap_state *map)
+>  {
+> -	struct file *file = map->file;
+> +	struct file *file = map->vm_file;
+>  
+>  	/* Anonymous mappings have no driver which can change them. */
+>  	if (!file)
+> @@ -2868,6 +2874,20 @@ static bool can_set_ksm_flags_early(struct mmap_state *map)
+>  	return false;
+>  }
+>  
+> +static void put_map(struct mmap_state *map)
+
+
+I like the put_map_file() instead, like Suren suggested.. but maybe
+put_map_vm_file(), especially since it could be read as put to the file
+pointer instead of vm_file.
+
+
+> +{
+> +	/*
+> +	 * An error occurred or the VMA was merged.
+> +	 *
+> +	 * If the file was changed by the driver (which is required to increment
+> +	 * the replacement file's reference count), drop its reference count.
+> +	 *
+> +	 * On error, the caller always drops the original file regardless.
+> +	 */
+> +	if (map->vm_file && !map_same_file(map))
+> +		fput(map->vm_file);
+> +}
+> +
+>  static unsigned long __mmap_region(struct file *file, unsigned long addr,
+>  		unsigned long len, vma_flags_t vma_flags,
+>  		unsigned long pgoff, struct list_head *uf)
+> @@ -2922,7 +2942,10 @@ static unsigned long __mmap_region(struct file *file, unsigned long addr,
+>  
+>  	__mmap_complete(&map, vma);
+>  
+> -	if (have_mmap_prepare && allocated_new) {
+> +	if (!allocated_new) {
+> +		/* Merged, so need to drop refcount. */
+> +		put_map(&map);
+> +	} else if (have_mmap_prepare) {
+>  		error = mmap_action_complete(vma, &desc.action,
+>  					     /*is_compat=*/false);
+>  		if (error)
+> @@ -2936,13 +2959,7 @@ static unsigned long __mmap_region(struct file *file, unsigned long addr,
+>  	if (map.charged)
+>  		vm_unacct_memory(map.charged);
+>  abort_munmap:
+> -	/*
+> -	 * This indicates that .mmap_prepare has set a new file, differing from
+> -	 * desc->vm_file. But since we're aborting the operation, only the
+> -	 * original file will be cleaned up. Ensure we clean up both.
+> -	 */
+> -	if (map.file_doesnt_need_get)
+> -		fput(map.file);
+> +	put_map(&map);
+>  	vms_abort_munmap_vmas(&map.vms, &map.mas_detach);
+>  	return error;
+>  }
+> diff --git a/mm/vma.h b/mm/vma.h
+> index e97bd2dfa786..f15faa83f3d6 100644
+> --- a/mm/vma.h
+> +++ b/mm/vma.h
+> @@ -394,8 +394,10 @@ static inline void compat_set_vma_from_desc(struct vm_area_struct *vma,
+>  
+>  	/* Mutable fields. Populated with initial state. */
+>  	vma_set_pgoff(vma, desc->pgoff);
+> -	if (desc->vm_file != vma->vm_file)
+> -		vma_set_file(vma, desc->vm_file);
+> +	if (desc->vm_file != vma->vm_file) {
+> +		fput(vma->vm_file);
+> +		vma->vm_file = desc->vm_file;
+
+This isn't going to be racy somehow, right?
+
+> +	}
+>  	vma->flags = desc->vma_flags;
+>  	vma->vm_page_prot = desc->page_prot;
+>  
+> 
+> -- 
+> 2.55.0
+> 
