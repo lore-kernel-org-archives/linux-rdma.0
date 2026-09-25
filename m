@@ -1,397 +1,212 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f176.google.com (mail-qt1-f176.google.com [209.85.160.176])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49DF630146C
-	for <linux-rdma@vger.kernel.org>; Fri, 25 Sep 2026 06:46:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C60D344C51B
+	for <linux-rdma@vger.kernel.org>; Fri, 25 Sep 2026 07:29:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.176
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790318768; cv=pass; b=fRhmtcD37bs0iUZMyF7lcCi+HYZRqg+p10G7MIurI17eR7+FKaSKAyclg/rjjYBuhfMO5xH376Sl4+zCcVfLazYXUdAtiaPRvrerYM0fp6sA0IRkX1g9uudVq/t19yHZhP/iUamB+jzAZk2wtBtu4SEZEt/KxR9iTbsuoygaqKA=
+	t=1790321345; cv=pass; b=gSHu6un6b6xrEQ9J2rwhIuxGmDrB1ES/AySNIOjx/fOcTPXMqjpJh+JgnlgUhISe1OvyNeYTaZdkY8XKNW7lPHgiKA5YS4DCGMNGKTORmYBSrPaQVPDYlc0O1CmOtSkLtHKPu1o42XW0f5nN59XDRFhFkJe8DwVDp162afQKbBM=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790318768; c=relaxed/simple;
-	bh=FEst1Fihh4zLZdsP7t7AJnUhd+Lgtr3Hn8aaYvJzXAY=;
+	s=arc-20240116; t=1790321345; c=relaxed/simple;
+	bh=jVgzSGCm8ywlcuZ7qh3DmkhvaTUxolTqjmx7km46hGw=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=db+AdhNS2AXiT2Ym4mrLEXMYrEcH3ZSwlGz4bNJAI8xCRr7p+oFyatWxauIU0z4cFNlw657Gumh9TZASXF3/+t3fSH2MvD9qoikr3fkb4+QQb6T6Ze9cWlqB5C6mjQIhDQKPP5zYPsHPIH96dOHgB4ZtHae7a7NKVHIR4AX0ftU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Gfa1NH8C; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=AFk9gD3s; arc=pass smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	 To:Cc:Content-Type; b=njw8NEhl4LzLTYJpdo9DP2F+/PlbpggkySJQxoTTsG3ySzKrX9J2nOHLG+WvTy+Nbr6Ms8X0h+vMz1gUJsE5Z29uU4QCC3BNDXpCMFfgld7iA3n3SMIxsWjucB/eyw/sQzZQBfa9DVc8jRkJ7SnnQNszBdH/VNpM2yJP38Vwd/w=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=jD9s5J6B; arc=pass smtp.client-ip=209.85.160.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Gfa1NH8C";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="AFk9gD3s"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1790318765;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=+LmCbqDZvjwS/KxFRtn0hfL/FdPZYfZBnFRt+2hBYWE=;
-	b=Gfa1NH8CIRqM6SEw+tfbDaNWhLUHKKbkAf4jBMPau3H8bWjFtHoYbFZh7DCAr+GzTJaJww
-	vgWMuObrbuwo3uq6ByHKSWumYYpY3JFZB1XIFGtwdn1SUepfQdGul5JRIzwQ+fMpNDrc6d
-	W+/4xQqjpclhz8bH0vHT0qPCyHm/QGM=
-Received: from mail-pg1-f198.google.com (mail-pg1-f198.google.com
- [209.85.215.198]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-441-qIugkl0qOoiHAiSfqWzKHA-1; Fri, 25 Sep 2026 02:46:02 -0400
-X-MC-Unique: qIugkl0qOoiHAiSfqWzKHA-1
-X-Mimecast-MFC-AGG-ID: qIugkl0qOoiHAiSfqWzKHA_1790318762
-Received: by mail-pg1-f198.google.com with SMTP id 41be03b00d2f7-cc1b8088202so415818a12.3
-        for <linux-rdma@vger.kernel.org>; Thu, 24 Sep 2026 23:46:02 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1790318762; cv=none;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="jD9s5J6B"
+Received: by mail-qt1-f176.google.com with SMTP id d75a77b69052e-532e9ad9a1eso202351cf.0
+        for <linux-rdma@vger.kernel.org>; Fri, 25 Sep 2026 00:29:02 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1790321342; cv=none;
         d=google.com; s=arc-20260327;
-        b=qt/ulnAbZAjQpYmxAnnvpPywYIL7KwS0Ug3+81FwdM8AW3n3ZFWqCzCnztVr9z4QtE
-         7KEuyWh3/p2Dr7FThZh2FKzaw8sDGSk+7DKxGwtxjfq9SicZrvBgHAVNu32k3hd5eiwp
-         8bdsL1El3EIDky6vWbF2pR5YjajKD0TZQGqohbZr0jKtUKDzRbQ3xzzy+5jFvH7EplOz
-         Utao4nwPRvY7vrPghR0Xas+2Y5DR4G4yV9IfncXk+7JaVJLLz2K4dbZFgul7NSwNbgfx
-         oGGM1RWsGaFIeQ7qgYA01t8MmqsLLfDhTjXBVBBWXRNounwjYLW77RgmWl6mDP7vYgM/
-         jXrQ==
+        b=oBOqLD0mCBNx9SeFOQnh2WHxH9a9VcZ1e5OuhcZFlo4YIC8fyQWfz/kDb3PeNdEltU
+         6vctD7GcWSByt9HJjLFRng9IHib/8tVw3BhcuhNzeyLlaXDlv7t4E+cc0V79xHYbNSis
+         HX3zotXK9f2HOrGOVK0qppYfNvEHJM1AIszFTuckSf1PH4pR8AtgCus8AO+X1xIDv7E+
+         sQVghB432F9S27EVxGTgqc0PHWByV1hLIQrA2tiHuSTZZb8DpgtqodlQeHRWSvkq1azX
+         HWZMnczbFa8o2iKhUsSlivkRV/yv7epci8VrZVapCvIPSUEQyICyfA/Lj/SbyZdmW9Kc
+         6Osg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=+LmCbqDZvjwS/KxFRtn0hfL/FdPZYfZBnFRt+2hBYWE=;
-        fh=wC9jrnEadDaBw8UUA/HaPFoi2HIG6Y6lMcx2EfnQ8+k=;
-        b=DiVSgQkijCyR8TUMNYimUv8tDY+t5oAIjwMfkDofNrYXF9BxzZ+bQDODqOd3DrfCwI
-         mwk/MoDYZh48cgVRsXUjTlsUuxJk4b1X6x9dXycS9vHbe6bd+aFDXE1dkv0/iPuEyzE9
-         ifax2ln9slVIx7/iK0JVEQtt/0ndc7PW7HUGhNJdIBtyZf1M0t09ABifvot2j1z8BM0Q
-         mdqypLp66JBLmAYwHeL7altBbM5G7FIX0hWqLIo/uQwp53VF2qThCtC3h0ICkwbeo8KG
-         rTsaXEz/GhqJua6ogUJGQsGx7qrwcGXpDBgRILTSHZ57n/mhXaCpYtjzqbz+bIYSlEDd
-         5UTA==;
+        bh=QKlx39bvD+La1fyAAMePfYRq9L+0k8EzNqVplWKbJoQ=;
+        fh=/imlI0CFDQmnKrepac/rSiDNQcQY/0FnhVzgfu8r9Mw=;
+        b=fP/2HGcp/owbPi8X3rYbWSPJZ2Hzj9ehw6UyB/+lwKw3EocTxcrKajb5x53Ez5d9R/
+         1DKeFRrLjisXU8pJlklrMH3DpyhESfVJP+KANtHyrDrpp2NkPPQH9zRIxcJDJCLn9S0t
+         LKkIzEWBY6IV00wINON1AP0hrNozskgUqEF+eYHxwOcViluBcStK7j6wGVrqfdfVgUDf
+         P37wqGlBw2iiDDwSjls2ysPqF2SICZTqjS2vchvEmfjkwfEuZc94s505c7zWJ3eJHGhK
+         JTQEvTn6nbxczgyXBJvhkNZbGtNwbPDXyePtIDPMt2iHukotGrqEy4uwvVKd1uLig7fL
+         QDjw==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1790318762; x=1790923562; darn=vger.kernel.org;
+        d=google.com; s=20251104; t=1790321342; x=1790926142; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=+LmCbqDZvjwS/KxFRtn0hfL/FdPZYfZBnFRt+2hBYWE=;
-        b=AFk9gD3s8CqGlk4LP6ZzeNKOgNLUqyOxwpfDT7Z2XFHJv+TsvuLuMKSvjef0CNe1YX
-         1AdXuggKgaZHjXrkC+bVB1/NLtjUHZR5PuENoDXWa79B0BezWX61b435zom3Ty10uhK8
-         v+Bdriyvoq6i4T/nkst1P9EVPpx9Af4MQjXOiswZptisLmnZTVYDTcCFrXXrCz9HRWOZ
-         mxGXqwOfP/GuO1P33lrwgy83TTVrX9wlplhzWcK9R2h+MutlZxJO/xpytaH0JpPkodsF
-         mEklXwcK5xOzIuBGKlGKP76faXahVEoW/B9RSmWTm7NevfzoGKe5YH4fftjz0ea0uXgN
-         4tRg==
+        bh=QKlx39bvD+La1fyAAMePfYRq9L+0k8EzNqVplWKbJoQ=;
+        b=jD9s5J6BxLUpOD+WnjyHgcQqvyMWXtKd8JOlF8Wqc7YrVArqK3BEC29170xB4S3ZdA
+         5mH36URtK99mdnb7qjMWW9ASPxDIu+iiFZ/CSdaBcqKTlKoO3RdcRNxAlFCiBxkpg5Ll
+         5OP3lufYb5Wc/bmKdPC5bRSrxQOTz1XzF8KLKdMBm2Z/FaYNVuWkDpCr2iTsgdUlppYA
+         xVLDCzZTCpgtBnyn0TGzsYxarAsXKPeNbHClPsDS4ZHo9aNc6Fsst8fQmbYj3RKRrAzx
+         ShvTucutNkiNSDR7HvOmG84bvKdJ3EPHoOkbIRJqumaMQ+a6VVzAfM3mRCoFc0IJ3Aro
+         BzMQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790318762; x=1790923562;
+        d=1e100.net; s=20260707; t=1790321342; x=1790926142;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=+LmCbqDZvjwS/KxFRtn0hfL/FdPZYfZBnFRt+2hBYWE=;
-        b=Brp5C0nN+L2fMXXAG0E0MxcqmUaKLz+xSnyiT47KBoCgaOPAIqI/V9U1shjtNIlc6b
-         hqSbrLWFG2Fc2clGVH1gtSOY7OBs6LI8V15yq6EHhCCt358UE5G2MZQX8pLAIl96ORAs
-         /tTHvXFYhGuOINYozwDFhZ+jRJCvcRFrQn+cDIFGicxSvSJvGyEmL0FbW2RImJps51Qf
-         8xpCgptsddQ5Nf1hYxpDTW2C3tKvOO8/WMYBw4yGmcXJ9+F6EfbXoqyr8c0ycJ6YiV8W
-         cWvH1LzHjt9YMvXaNkXNAojwJqHK0wVVlImmy60CmzijSND9GDAoQK87rKUO9Vribt6x
-         /1XQ==
-X-Forwarded-Encrypted: i=1; AKwUvBx0iRo81O1/yZEb86O5saQN47tlh/IIotLsezXDkAQF6NR+DcOLUmcxmWZsgbVSe26OpijBKeWpp0tM@vger.kernel.org
-X-Gm-Message-State: AFuF++mwcdcBL5bJUWDen13Mxmlrv7vi46Z+juFjXgbwthgdnPl7fsMe
-	33SuH/CUzvjPdi5xU3VoYPuo1cMtX6NvqmlMLK360oVxuD522zupAbcKkqyGEb6fzAehAGqv/WB
-	UtyVmcbCtsR5r7xKTifI4DqIjuHgsdl5PbZYwtKZwIQE/+kM5kgQXcYSn6BvOlIR2f8cLv6t306
-	8mlDHeSeZPAKgcFY2OZPWMA4Gz6quBl+9VenJinA==
-X-Gm-Gg: AYBFou2kzCschoacNLyjzMP+sA+Bgklc+iG5KKg1nAfeIxluzSZ6LaPIitBMswV5IVF
-	ZH7V3RD5t3e7yuLJAiXTLxGxJtvJN6Kl5vpedFwblHvxYajeu0NRxwThMytAdZusNhfmkGbnfY7
-	o+6UIebCe27NBxEA0O2X99LxUPVvspU9kMPSSyzF9PZdExb4oUMlXh0fhAN7HJiMuZid+cGLfBm
-	8Z2HpfJ7AxtqL/u
-X-Received: by 2002:a05:6a20:2d21:b0:3dd:a196:30a6 with SMTP id adf61e73a8af0-3de0e9b22f2mr4534997637.86.1790318761690;
-        Thu, 24 Sep 2026 23:46:01 -0700 (PDT)
-X-Received: by 2002:a05:6a20:2d21:b0:3dd:a196:30a6 with SMTP id
- adf61e73a8af0-3de0e9b22f2mr4534959637.86.1790318760818; Thu, 24 Sep 2026
- 23:46:00 -0700 (PDT)
+        bh=QKlx39bvD+La1fyAAMePfYRq9L+0k8EzNqVplWKbJoQ=;
+        b=H5X3lx+T/nwfITRya2i97UPN58WYZc8NSG9jigr4xqK5iFa27Ul4aH0/BkA2qtNAL8
+         1Y4y6Tj4VMSuEb82UmjqBWrB/BXZqHzVP5Y7oUbHc1F+JBotCnBH7KJCzuj/+LPiQsoB
+         29Xvd0QtX4xLCa0uDrBsNAQVMWwjubCoZ96pcpeR4IRWLgzNk4w88knlQNGalEehX/E0
+         PKKh2ireiIJASOHbBqHmWhRrJ+o5Hp4fy1f2oTPsKZBtL1ENWNsXMBUs4O2YrEKA/AiL
+         z/pQDiXYsrBz4xGAiIgxdaq9OtnVWW94T9XuZPVVApsmIUhRhgHMk8Qv9gy1tSkrl26d
+         oGLw==
+X-Forwarded-Encrypted: i=1; AKwUvBwv/HynlusZ2k9Thj6C0KPSG46fy7t2XQwNMuVp3iLc+A2+L1Vfkc2UkuIkO38A0BSTGFHbJ2JJ6OBU@vger.kernel.org
+X-Gm-Message-State: AFuF++mJ0NDT5D+1nsce3+IoOnutvQxg8SAKfP3QdCxKuKXfXf18KNiT
+	BohoHd0qOpXA+qTkdgBTdCpXtbkgty3TUdn38f7ijGMEJ3uHKXwPwW78Ij/ce3zTYJNyxgmXPZU
+	9KhwlYHOR4ShG/cXSYPU1k64uIP0jjwcDPJ5MILnM
+X-Gm-Gg: AYBFou3skLkEmb00nRpxPazw0uOeDAHoL9xQ7KOlBKugHstD+dWjaOgycs6h2lItOpi
+	5Rfhd0oeuZYChNdUrDJEKve5vcaLFewHC8igUddLktyUh+1XA8WQecfdtP3SY7vUVsr7/SnZkVz
+	96d5HUy79SpJosWgnwrlwzmP7iRXav6aCz5bdx8yiOS8EN8kTJIiV6LUSbPPlCUcc7M4vIYSGZL
+	3zhPkxMvXZtJMfjKr8AsJgrZaqlfTB9qoI/mdbdFXAJMdKgitfi09t81iUW7mxZlLvGSVw4PBNj
+	Gmcdhq3kwFHoWhImN8IRD9qnlBh28ZNdIs0iUZNz8S/1SVcISgAGIg==
+X-Received: by 2002:a05:622a:4c15:b0:531:d8:e437 with SMTP id
+ d75a77b69052e-5330e1083a8mr8850471cf.7.1790321341004; Fri, 25 Sep 2026
+ 00:29:01 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260922135123.46205-1-avirdi@redhat.com> <179025806955.2160803.14946061126391357248@kernel.org>
- <CAJHXLyHH-RG_y04yT-SV+r3+_scac15iKrMtVfNG9Ti3wQFmrw@mail.gmail.com>
-In-Reply-To: <CAJHXLyHH-RG_y04yT-SV+r3+_scac15iKrMtVfNG9Ti3wQFmrw@mail.gmail.com>
-From: Anirudh Virdi <avirdi@redhat.com>
-Date: Fri, 25 Sep 2026 12:15:48 +0530
-X-Gm-Features: AclHuK8sXxjzZGnFiyrwFUNGm5czlW8cbMfwRi3V4i4mMNUe7qHDXLQs9PnHxA8
-Message-ID: <CAJHXLyGhZFtaX_AzfqNJW3f4_EVM=W6834uB5srYycvfgGHgnQ@mail.gmail.com>
-Subject: Re: [PATCH net] net/mlx5: Fix slab-out-of-bounds when handling team
- device events
-To: netdev-bot+sashiko@kernel.org
-Cc: netdev@vger.kernel.org, saeedm@nvidia.com, leon@kernel.org, 
-	tariqt@nvidia.com, mbloch@nvidia.com, andrew+netdev@lunn.ch, 
-	davem@davemloft.net, edumazet@google.com, kuba@kernel.org, pabeni@redhat.com, 
-	shayd@nvidia.com, ohartoov@nvidia.com, maorg@nvidia.com, 
-	linux-rdma@vger.kernel.org
+References: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-0-4583d8a23bca@kernel.org>
+ <20260917-b4-mmap-prepare-vma-flag-sanify-v3-5-4583d8a23bca@kernel.org>
+In-Reply-To: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-5-4583d8a23bca@kernel.org>
+From: Suren Baghdasaryan <surenb@google.com>
+Date: Fri, 25 Sep 2026 00:28:49 -0700
+X-Gm-Features: AclHuK8wpU_boMBtoQ2BxSfl48UrjTg974xy2tCF5bv_vM_I_Kq5OyVf7aIl6LM
+Message-ID: <CAJuCfpF2U9rgHmhaDoXX1hxsuuS=s-oWK9Nk19TDQ6CLpjhFVA@mail.gmail.com>
+Subject: Re: [PATCH v3 05/40] mm/vma: ensure mmap_prepare doesn't set actions
+ on a mergeable vma
+To: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, "Liam R. Howlett" <liam@infradead.org>, 
+	Vlastimil Babka <vbabka@kernel.org>, Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
+	David Hildenbrand <david@kernel.org>, Mike Rapoport <rppt@kernel.org>, Michal Hocko <mhocko@suse.com>, 
+	Jonathan Corbet <corbet@lwn.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
+	Leon Romanovsky <leon@kernel.org>, Paul Moore <paul@paul-moore.com>, 
+	Stephen Smalley <stephen.smalley.work@gmail.com>, Jaroslav Kysela <perex@perex.cz>, 
+	Takashi Iwai <tiwai@suse.com>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
+	Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>, 
+	Kumar Kartikeya Dwivedi <memxor@gmail.com>, Zi Yan <ziy@nvidia.com>, 
+	Baolin Wang <baolin.wang@linux.alibaba.com>, Nico Pache <nico.pache@linux.dev>, 
+	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
+	Lance Yang <lance.yang@linux.dev>, Usama Arif <usama.arif@linux.dev>, 
+	Kiryl Shutsemau <kas@kernel.org>, Doug Gilbert <dgilbert@interlog.com>, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, 
+	"Martin K. Petersen" <mkp@kernel.org>, Jaya Kumar <jayalk@intworks.biz>, Simona Vetter <simona@ffwll.ch>, 
+	Helge Deller <deller@gmx.de>, Sebastian Reichel <sre@kernel.org>, John Hubbard <jhubbard@nvidia.com>, 
+	Peter Xu <peterx@redhat.com>, Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
+	Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, 
+	Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
+	Arnaldo Carvalho de Melo <acme@kernel.org>, Namhyung Kim <namhyung@kernel.org>, 
+	Mark Rutland <mark.rutland@arm.com>, Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, 
+	Juri Lelli <juri.lelli@redhat.com>, Vincent Guittot <vincent.guittot@linaro.org>, 
+	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>, 
+	Thomas Zimmermann <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>, 
+	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, Nick Piggin <npiggin@gmail.com>, 
+	Arnd Bergmann <arnd@arndb.de>, Muchun Song <muchun.song@linux.dev>, 
+	Oscar Salvador <osalvador@suse.de>, "Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Marc Zyngier <maz@kernel.org>, Oliver Upton <oupton@kernel.org>, 
+	Catalin Marinas <catalin.marinas@arm.com>, Madhavan Srinivasan <maddy@linux.ibm.com>, 
+	Anup Patel <anup@brainfault.org>, Paul Walmsley <pjw@kernel.org>, 
+	Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
+	Christian Borntraeger <borntraeger@linux.ibm.com>, Janosch Frank <frankja@linux.ibm.com>, 
+	Claudio Imbrenda <imbrenda@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
+	Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Heiko Carstens <hca@linux.ibm.com>, 
+	Vasily Gorbik <gor@linux.ibm.com>, "David S. Miller" <davem@davemloft.net>, 
+	Andreas Larsson <andreas@gaisler.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Christian Brauner <brauner@kernel.org>, Matthew Brost <matthew.brost@intel.com>, 
+	Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, 
+	Byungchul Park <byungchul@sk.com>, Gregory Price <gourry@gourry.net>, 
+	Ying Huang <ying.huang@linux.alibaba.com>, Alistair Popple <apopple@nvidia.com>, 
+	Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>, 
+	Kemeng Shi <shikemeng@huaweicloud.com>, Nhat Pham <nphamcs@gmail.com>, 
+	Baoquan He <baoquan.he@linux.dev>, Youngjun Park <youngjun.park@lge.com>, 
+	Johannes Weiner <hannes@cmpxchg.org>, Qi Zheng <qi.zheng@linux.dev>, 
+	Shakeel Butt <shakeel.butt@linux.dev>, Axel Rasmussen <axelrasmussen@google.com>, 
+	Yuanchu Xie <yuanchu@google.com>, Wei Xu <weixugc@google.com>, 
+	Chengming Zhou <chengming.zhou@linux.dev>, Michal Hocko <mhocko@kernel.org>, 
+	Miklos Szeredi <miklos@szeredi.hu>, Xu Xin <xu.xin@linux.dev>, linux-mm@kvack.org, 
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, 
+	linux-usb@vger.kernel.org, linux-rdma@vger.kernel.org, 
+	selinux@vger.kernel.org, linux-sound@vger.kernel.org, bpf@vger.kernel.org, 
+	linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org, 
+	dri-devel@lists.freedesktop.org, linux-trace-kernel@vger.kernel.org, 
+	linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org, 
+	kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org, 
+	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, 
+	fuse-devel@lists.linux.dev
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Thank you for the detailed analysis, Sashiko!
+On Thu, Sep 17, 2026 at 9:25=E2=80=AFAM Lorenzo Stoakes (ARM) <ljs@kernel.o=
+rg> wrote:
+>
+> When a user requests an mmap_action be performed in mmap_prepare, this
+> involves populating the VMA range with data.
+>
+> However, if the VMA is mergeable, it might then mistakenly be merged with
+> another VMA without having populated the range.
+>
+> Every mmap action currently available sets VMA flags such that the VMA
+> cannot be merged.
+>
+> However, to ensure that no future mmap action falls foul of this, assert
+> that this is the case upon mmap_prepare validation.
+>
+> Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 
-The concerns you've raised have been addressed in v2 of this patch:
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 
-1. Over-broad guard: v2 now keeps netif_is_lag_master() at the top of
-   mlx5_handle_changeupper_event() and only wraps the bond-specific API cal=
-ls
-   (bond_slave_get_rcu/bond_is_slave_inactive) with netif_is_bond_master().
-   This allows team LAG tracking to continue working while preventing the
-   out-of-bounds read.
+> ---
+>  mm/vma.c | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+>
+> diff --git a/mm/vma.c b/mm/vma.c
+> index d6ed10cefc8f..62f2ce1ad5a1 100644
+> --- a/mm/vma.c
+> +++ b/mm/vma.c
+> @@ -2809,6 +2809,15 @@ static int mmap_validate(unsigned long prev_start,=
+ unsigned long prev_end,
+>  int mmap_prepare_validate(const struct vm_area_desc *prev_desc,
+>                           const struct vm_area_desc *desc)
+>  {
+> +       /*
+> +        * It is not valid to execute mmap actions for VMAs which can be =
+merged,
+> +        * as any such merge would leave portions of the mapping incorrec=
+tly
+> +        * unmapped.
+> +        */
+> +       if (vma_flags_can_merge(&desc->vma_flags) &&
+> +           WARN_ON_ONCE(desc->action.type !=3D MMAP_NOTHING))
 
-2. Commit message inaccuracy: v2 correctly narrows the scope to only
-   mlx5_handle_changeupper_event(), acknowledging that
-   mlx5_handle_changeinfodata_event() is only reached from bonding code pat=
-hs.
+Any reason you chose this "if (A && WARN_ON_ONCE(B))" pattern instead
+of a simpler "if (WARN_ON_ONCE(A && B))"? Unless there are races
+between A and B updates, I think these would be equivalent, right?
 
-3. TC mirred issue: Noted as pre-existing. This can be addressed in a
-   separate patch series after this fix merges.
-
-v2 is available at:
-https://lore.kernel.org/netdev/20260924064244.94045-1-avirdi@redhat.com/
-
-Feedback appreciated!
-
-
-On Fri, Sep 25, 2026 at 12:12=E2=80=AFPM Anirudh Virdi <avirdi@redhat.com> =
-wrote:
->
-> Thank you for the detailed analysis, Sashiko!
->
-> The concerns you've raised have been addressed in v2 of this patch:
->
-> 1. Over-broad guard: v2 now keeps netif_is_lag_master() at the top of
->    mlx5_handle_changeupper_event() and only wraps the bond-specific API c=
-alls
->    (bond_slave_get_rcu/bond_is_slave_inactive) with netif_is_bond_master(=
-).
->    This allows team LAG tracking to continue working while preventing the
->    out-of-bounds read.
->
-> 2. Commit message inaccuracy: v2 correctly narrows the scope to only
->    mlx5_handle_changeupper_event(), acknowledging that
->    mlx5_handle_changeinfodata_event() is only reached from bonding code p=
-aths.
->
-> 3. TC mirred issue: Noted as pre-existing. This can be addressed in a
->    separate patch series after this fix merges.
->
-> v2 is available at:
-> https://lore.kernel.org/netdev/20260924064244.94045-1-avirdi@redhat.com/
->
-> Feedback appreciated!
->
->
-> On Thu, Sep 24, 2026 at 7:30=E2=80=AFPM <netdev-bot+sashiko@kernel.org> w=
-rote:
->>
->> Thank you for your contribution! Sashiko AI review found 2 potential
->> issue(s) to consider.
->>
->> Critical: 0 =C2=B7 High: 1 (1) =C2=B7 Medium: 0 =C2=B7 Low: 1
->>
->> If you believe none of the issues are legitimate, please reply to each
->> issue of Medium severity or higher and explain why the AI is wrong.
->> If any of them are legitimate and you plan to respin, please let patchwo=
-rk
->> know by including "pw-bot: cr" as a separate line at the end of your rep=
-ly
->> (one such reply per series is enough).
->>
->> - [High] Over-broad guard: replacing netif_is_lag_master() with
->>   netif_is_bond_master() at the very top of=E2=80=A6
->> - [Low] Commit message inaccuracy: the message states that
->>   mlx5_handle_changeinfodata_event() suffers the same team_port-=E2=80=
-=A6
->>
->> Pre-existing issues:
->> - [High] The identical bug class the patch claims to eliminate remains
->>   reachable in the mlx5e TC mirred offload path: get_fdb_out_dev()=E2=80=
-=A6
->>
->> --
->>
->> net/mlx5: Fix slab-out-of-bounds when handling team device events
->>
->> This changes the two LAG notifier helpers in mlx5's lag.c to gate on
->> netif_is_bond_master() instead of netif_is_lag_master(), so that a team
->> master no longer reaches bond_slave_get_rcu()/bond_is_slave_inactive().
->> The reported symptom is a KASAN out-of-bounds read when a team_port is
->> interpreted as a struct slave.
->>
->> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c b/drive=
-rs/net/ethernet/mellanox/mlx5/core/lag/lag.c
->> > index dd14cdc378de0..2714d39ae7c24 100644
->> > --- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
->> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
->> > @@ -1922,7 +1922,7 @@ static int mlx5_handle_changeupper_event(struct =
-mlx5_lag *ldev,
->> >       int changed =3D 0;
->> >       int i, idx =3D -1;
->> >
->> > -     if (!netif_is_lag_master(upper))
->> > +     if (!netif_is_bond_master(upper))
->> >               return 0;
->>
->> [Severity: High]
->> Does this early return do more than avoid the bonding-only calls?  The
->> only team-unsafe statements in mlx5_handle_changeupper_event() are furth=
-er
->> down in the for_each_netdev_in_bond_rcu() loop:
->>
->>         slave =3D bond_slave_get_rcu(ndev_tmp);
->>         if (slave)
->>                 has_inactive |=3D bond_is_slave_inactive(slave);
->>
->> Returning 0 at the top of the function also skips the computation of
->> tracker->tx_type, tracker->hash_type and tracker->is_bonded for any team
->> master.
->>
->> Since mlx5_lag_netdev_event() only writes the tracker back and queues th=
-e
->> work when a handler returns non-zero:
->>
->>         if (changed)
->>                 mlx5_lag_update_tracker_speed(&tracker, ndev);
->>
->>         ldev->tracker =3D tracker;
->>
->>         if (changed)
->>                 mlx5_queue_bond_work(ldev, 0);
->>
->> and mlx5_do_bond() gates activation on the tracker:
->>
->>         do_bond =3D tracker.is_bonded && mlx5_lag_check_prereq(ldev);
->>
->> can is_bonded ever become true again for mlx5 ports aggregated by a team
->> master?  Team does advertise the TX types mlx5 accepts =E2=80=94
->> team_upper_dev_link() sets lag_upper_info.tx_type =3D team->mode->lag_tx=
-_type,
->> with NETDEV_LAG_TX_TYPE_ACTIVEBACKUP in team_mode_activebackup and
->> NETDEV_LAG_TX_TYPE_HASH in team_mode_loadbalance =E2=80=94 which are exa=
-ctly the
->> two values the mode_supported test in this function allows.
->>
->> Would gating only the bond_slave_get_rcu()/bond_is_slave_inactive() bloc=
-k
->> on netif_is_bond_master() remove the out-of-bounds read while keeping
->> team-based LAG tracking?
->>
->> Related to this, does the driver's notifier state machine become
->> asymmetric?  mlx5_handle_changelowerstate_event() still admits team port=
-s:
->>
->>         if (!netif_is_lag_port(ndev))
->>                 return 0;
->>
->> and returns 1, so team NETDEV_CHANGELOWERSTATE events keep updating
->> tracker->netdev_state[] and queueing bond work while is_bonded can never=
- be
->> set.  mlx5_lag_update_tracker_speed() also still resolves a team master =
-as
->> the bond device:
->>
->>         if (netif_is_lag_master(ndev))
->>                 bond_dev =3D ndev;
->>
->> and publishes its speed through mlx5_lag_query_bond_speed().
->>
->> One more question on the changelog: with a Fixes: tag aimed at stable,
->> should the loss of hardware LAG offload for team-aggregated ports be
->> mentioned, since there is no extack or dmesg indication when the handler
->> bails out early?
->>
->> >
->> >       if (info->linking)
->> > @@ -2029,7 +2029,7 @@ static int mlx5_handle_changeinfodata_event(stru=
-ct mlx5_lag *ldev,
->> >       bool has_inactive =3D 0;
->> >       int idx;
->> >
->> > -     if (!netif_is_lag_master(ndev))
->> > +     if (!netif_is_bond_master(ndev))
->> >               return 0;
->>
->> [Severity: Low]
->> The commit message says:
->>
->>     The mlx5_handle_changeupper_event() and mlx5_handle_changeinfodata_e=
-vent()
->>     functions assume the upper device is a bonding device and call bondi=
-ng-
->>     specific
->>     APIs like bond_slave_get_rcu() and bond_is_slave_inactive().
->>
->> Can mlx5_handle_changeinfodata_event() actually be entered with a team
->> master?  NETDEV_CHANGEINFODATA has a single emitter in the tree, in
->> bond_option_active_slave_set():
->>
->>         call_netdevice_notifiers(NETDEV_CHANGEINFODATA, bond->dev);
->>
->> drivers/net/team/ never emits it, so this hunk looks like hardening of a=
-n
->> unreachable path rather than a second fix.  Could the changelog be narro=
-wed
->> to the mlx5_handle_changeupper_event() path, so stable backporters see t=
-he
->> real scope?
->>
->> Also, the sentence above is wrapped mid-word ("bonding-\nspecific") in t=
-he
->> changelog.
->>
->> >
->> >       rcu_read_lock();
->>
->> [Severity: High]
->> This isn't a bug introduced by this patch, but the same pattern is still
->> present in the mlx5e TC mirred offload path, and it may be worth fixing =
-in
->> the same series.  get_fdb_out_dev() in
->> drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/mirred.c still uses th=
-e
->> generic check before a bonding-only accessor:
->>
->>         } else if (netif_is_lag_master(out_dev)) {
->>                 fdb_out_dev =3D bond_option_active_slave_get_rcu(netdev_=
-priv(out_dev));
->>
->> For a team master, netdev_priv() is a struct team, and
->> bond_option_active_slave_get_rcu() reads it as struct bonding:
->>
->> include/net/bonding.h:bond_option_active_slave_get_rcu() {
->>         const struct slave *slave =3D rcu_dereference_rtnl(bond->curr_ac=
-tive_slave);
->>
->>         return bond_uses_primary(bond) && slave ? slave->dev : NULL;
->> }
->>
->> bond_uses_primary() reads BOND_MODE(bond) out of unrelated bytes of the =
-team
->> private area, and bond->curr_active_slave aliases team->header_ops_cache
->> (struct team starts with pcpu_stats, it has no leading dev member).  If =
-the
->> garbage mode value happens to be one of the primary modes, does this
->> dereference header_ops_cache as struct slave * and return slave->dev as =
-a
->> bogus struct net_device *, which mlx5e_eswitch_rep() then dereferences?
->>
->> The reachable caller is parse_mirred():
->>
->>         out_dev =3D get_fdb_out_dev(uplink_dev, out_dev);
->>         if (!out_dev)
->>                 return -ENODEV;
->>
->> reached from tc_act_parse_mirred() when
->> netdev_port_same_parent_id(priv->netdev, out_dev) holds, which a team ma=
-ster
->> over mlx5 representors satisfies.  Should this site use
->> netif_is_bond_master() too, the way mpesw.c already does?
->>
->> --
->> Sashiko AI review =C2=B7 https://netdev-ai.bots.linux.dev/sashiko/#/patc=
-hset/20260922135123.46205-1-avirdi%40redhat.com
->>
->
+> +               return -EINVAL;
+> +
+>         return mmap_validate(prev_desc->start, prev_desc->end,
+>                              desc->start, desc->end,
+>                              &prev_desc->vma_flags, &desc->vma_flags);
 >
 > --
+> 2.55.0
 >
-> Anirudh Virdi
-
-
-
---=20
-
-Anirudh Virdi
-
