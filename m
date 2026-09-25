@@ -1,110 +1,193 @@
-Received: from mail-dy2-f12.google.com (mail-dy2-f12.google.com [74.125.229.12])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F25A282F1F
-	for <linux-rdma@vger.kernel.org>; Thu, 24 Sep 2026 23:31:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.229.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0EA5149C7B;
+	Fri, 25 Sep 2026 00:53:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790292662; cv=none; b=SLuu0PBD4fhnrThQKoem1/yKSltiDTaqbFiIXairlRWlLGp2lBmg5Oi+wXBWBFjH1W6L5zWPU4JJeB6Eaprp1c9Z1kJG8c0bfpYG5Ffv45AoCPvvlOwDzg2S/SafIMi3c/kTY2pAjGxGh/TipJVkX4pkcuvGpLw/aaDNVwXUtUA=
+	t=1790297599; cv=none; b=lh1v2C68U+pts247Zdffd1lJ6GnwyKrsFCE5yL8PusaAtKHxQMCmnUTNDWAyFA52TCTIvNPA7cMU5XDnOnXAxDfApj96/a3OEn998deWpQYPPuzwsHN5M/7K2Ll1hBBSMYMjbXVowSU69d99OjMKW3QW1U3YQ1KmN1v/kxMu2zE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790292662; c=relaxed/simple;
-	bh=dew4FFqJYn+znPMh3WMUshAIF8jLNx5KHzgyCUnY03w=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ZsOVhuPHsqhwDGJ7Xn6WFz9+runzE4wUF8f1lfEMn7+wndWI9Bm3BM4r2XXGvLxjYd9lSxjtv83DTG3DxDUrymCGL3AhUWMhKUBR/BRz7rnYzicMgu7fmXp96+jath9Kb48aoj5Elqy7Wmz8S2K1cMRZYr+CDsnkm/LtpWSwBUA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=fvIfgPkR; arc=none smtp.client-ip=74.125.229.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
+	s=arc-20240116; t=1790297599; c=relaxed/simple;
+	bh=1w46t6igXMPVyyUPCnr+id+bi+B+LpLrqQkPVuUl/GQ=;
+	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=jezUpJww8vV4wnjVJdtxp/z7S2sXelZxstC0h/ehkPhMkaNdEFenCtAdYaxqN1TJGELKl3CaXjB6CXyCiA2m1XmpqqgTqbv6TyUNVoYfEy5DohDCU1a1UMdaUZkLRBN3O31+iz3Zs8abx2qAe6GWOUiijunW5QVmfC/Uu32GqQI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WrIXzM+N; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="fvIfgPkR"
-Received: by mail-dy2-f12.google.com with SMTP id 5a478bee46e88-328664c1479so171814eec.3
-        for <linux-rdma@vger.kernel.org>; Thu, 24 Sep 2026 16:31:01 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1790292660; x=1790897460; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=dew4FFqJYn+znPMh3WMUshAIF8jLNx5KHzgyCUnY03w=;
-        b=fvIfgPkRO9TZz3LXFT+SEG5WJaB23RfGbZHN0IYFQeijvZXin6vGZ6uFEXLej9BcNm
-         W8yYhyDPhbi94lGBUsvmzO4F6yFCn7qjyQDUnhBFk0O8mbzRgz7/kytEMyuD8oHovEZ3
-         rf32UZ3mJ88EXbnUVdxKz3ax7lscVCr+URuyXyj8HbQMvOUpfwKxRRbwPit7w6CcjRvH
-         5Ky9u+SYae3ydpD5RkvXZi9k4sbpkszPyny09uDFhA7qcUZC9dS53dtIWnYM1rFn1LSd
-         FAZrBlwHQMa3yUtlzZlmPi/lHSmoCBHfuxwnGNO+/FGW2t6c/Tcd7kyZ++XP8PISTCzo
-         s8rg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790292660; x=1790897460;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=dew4FFqJYn+znPMh3WMUshAIF8jLNx5KHzgyCUnY03w=;
-        b=q+jhKCtY3Rg+hbDcPdMVtEzUI6DoiE2PRNCEQvAEueNwYxuQuklHIgHF0PfY5eGqbW
-         +DnQ0s+6yM5LubLxrarr82ZTEN0FzgJeLv9dVeIJyifRYWM4MaBG/VWmdG7b2L94kt1T
-         t3U8QsNZ/t5dtLqTiSCRu1q5pQ2703B4k8LhPAyWwrEns/+diZsprCQIPaV0dCYDWndn
-         C2DAWQG1vgZpqtZAGf83PYOlFLDXf9JMMmd+nP9Jgw9+RuXekNvT3K9KXp1Li7i3c5yu
-         9aWKsMfAz7QfD8E6zqshpsAjfjR5ePK9/16CCbHCla2aH93Smzzx6EW7LVQzAkg1XdjP
-         EIyg==
-X-Forwarded-Encrypted: i=1; AKwUvBy3UH3m98I2I8+lp+YHdDLAGtImIPnwlw+KoNJ2IcoEv72O15Zy2DVGrTsb2dhWDUqT427ri0heh1Cu@vger.kernel.org
-X-Gm-Message-State: AFuF++kOABF54oKCe9oqpeXeJkgdzIvMPjNll6xDy7smLkiHcztMoqGY
-	zrx9pyU5i8Kr3dy0jH/k4jl9wohA986VG8yF2kAqAF4FveOrJBHHPeRTdS+TMIZFDuM=
-X-Gm-Gg: AYBFou02W/7F/78AuNctBwfBBPa3zoR6MG4bdzbal1VihHC2qjLiwuBe9WuspWjCABq
-	J9c027t6pLtCHr7Y2jjB2lqvZmr8QhRApiP4dZ8Dc3gmSmk/AvxGjg90QPFrdX+6xiobPCkAH5/
-	phpFLzFQ4XQER/AR+nPwXkrTkpFQVcXb4KpN34YpCCOeZ7+/YpjzsnOIteANoCAVJEmhThtKwbY
-	F1sY4Z1NvIKM7+9KHwqNvyXTHxloEdAK4sz9furhg29NnQFKnCG33iMhpxgXwhz7/62jVKU1/Qu
-	p/GlRcSV/dZvQ4MiVSn4kppdcTpAFY5IPQiCbx+R5Xc3sEwFtLExZ2mRwki/jwc01LIB3TkxBN/
-	nTFvXxQd7SdaayLegeRzuE9Lsqf9q94gr54PAV1Ijqt7A92eK9gxQ62Ltj8Xpo2ImQuqVLywneN
-	7n5uax5Ulz6cQgFcXw6ARTRKhfZmwX/J/Z9YZHoz+LcCWd
-X-Received: by 2002:a05:7301:2811:b0:33e:53e7:1103 with SMTP id 5a478bee46e88-3400439a971mr3000301eec.13.1790292660260;
-        Thu, 24 Sep 2026 16:31:00 -0700 (PDT)
-Received: from ziepe.ca ([130.41.10.202])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-34144757f31sm2224790eec.14.2026.09.24.16.30.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 24 Sep 2026 16:30:59 -0700 (PDT)
-Received: from jgg by wakko with local (Exim 4.97)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1x9su2-00000000gds-1vZq;
-	Thu, 24 Sep 2026 20:30:58 -0300
-Date: Thu, 24 Sep 2026 20:30:58 -0300
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Zhiping Zhang <zhipingz@meta.com>
-Cc: fengchengwen <fengchengwen@huawei.com>,
-	Leon Romanovsky <leon@kernel.org>,
-	Michael Guralnik <michaelgur@nvidia.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Christian Konig <christian.koenig@amd.com>,
-	Alex Williamson <alex@shazbot.org>,
-	Bjorn Helgaas <bhelgaas@google.com>, kvm@vger.kernel.org,
-	linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org,
-	dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH v13 5/5] RDMA/mlx5: get tph for p2p access when
- registering dma-buf mr
-Message-ID: <20260924233058.GA163130@ziepe.ca>
-References: <20260731211601.3033906-1-zhipingz@meta.com>
- <20260731211601.3033906-6-zhipingz@meta.com>
- <f4ff7ced-63b6-42e6-8e01-9f01d2e59843@huawei.com>
- <CAH3zFs24esHCGA=wPrkiH8oKQCv7SnOwcBbkMxrOEvOVtwstYg@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WrIXzM+N"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F38AD1F000FF;
+	Fri, 25 Sep 2026 00:53:16 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790297597;
+	bh=VyKhlM2rIvrgAMtSAJ/fnMFJQPZU0/xST4sWoySXSZY=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=WrIXzM+NoJ98ceXhTIX+KhyO4EXq8zBJ5cvaIkE6wAYAZVPRva7s5vZL+JDFkvtRR
+	 ccXnfdMLeDMFOA/v+XAYNRraAtUXpm3Zq4+xJDaJ8tlpPIuJFLwqc39K6imSSgHcqd
+	 xB14R1aYd3aThPYitbDUxKMEi8Ik+19dx+Lf7RivZSKoPqYFZvkZK0kQZp1DZgWuEY
+	 KGR4u1Gl58Ur1PcORl2EXYqlaO33DYApCsqKVRzfNeYv+OFUalM/uFukscQRNMz575
+	 bva06zx7iBO1MAXX+tQCFX1kXxkz1gSNkFCGF7ZIdXmSPfxFHBIR35MGQvajb2KCUh
+	 XtYYlgp3glPEw==
+Subject: Re: [PATCH net] net/rds: include the scope id in the sendmsg
+ connection cache check
+From: netdev-bot+sashiko@kernel.org
+To: achender@kernel.org
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
+ edumazet@google.com, kuba@kernel.org, horms@kernel.org
+Date: Fri, 25 Sep 2026 00:53:16 +0000
+Message-ID: <179029759642.2160803.15910900914007089694@kernel.org>
+In-Reply-To: <20260921215046.174745-1-achender@kernel.org>
+References: <20260921215046.174745-1-achender@kernel.org>
+X-sashiko-severity: Medium
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAH3zFs24esHCGA=wPrkiH8oKQCv7SnOwcBbkMxrOEvOVtwstYg@mail.gmail.com>
 
-On Wed, Sep 23, 2026 at 11:24:56PM -0700, Zhiping Zhang wrote:
-> I don't think this belongs in the importer. Every in-tree dma-buf
-> caller of pci_p2pdma_distance() is the exporter, in its .attach,
-> clearing attach->peer2peer -- amdgpu_dma_buf.c, xe_dma_buf.c,
-> habanalabs memory.c. There is no importer-side caller.
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue(s) to consider.
 
-Right, and they shouldn't be doing that, but it still has to be
-checked that the st is going directly to the peer device not the host
-bridge. Not using the distance, but by the PCI_P2PDMA_MAP_BUS_ADDR
-indication.
+Critical: 0 · High: 0 · Medium: 1 (1) · Low: 0
 
-I fear you will need some of Leon's series to make that happen.
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-So probably the proposed change to dmabuf ops is far too simple.
+- [Medium] New regression for connected (destination-less) sends: the
+  added `rs->rs_conn->c_dev_if == scope_id` test in rds_sendmsg()…
 
-Jason
+Pre-existing issues:
+- [Medium] rds_sendmsg() validates the cached connection with plain,
+  unsynchronized loads of rs->rs_conn (`rs->rs_conn &&`, `->c_faddr`,…
+
+--
+
+net/rds: include the scope id in the sendmsg connection cache check
+
+The patch adds the interface index to the cached-connection test in
+rds_sendmsg(), so that a send to a link-local peer through a different
+interface no longer reuses the connection created for the first
+interface.  Two questions below about the destination-less send case and
+about the locking around the cache test.
+
+> diff --git a/net/rds/send.c b/net/rds/send.c
+> index 1afa981e5c06d..38b9cc9e0d20b 100644
+> --- a/net/rds/send.c
+> +++ b/net/rds/send.c
+> @@ -1342,7 +1342,8 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
+>  	/* rds_conn_create has a spinlock that runs with IRQ off.
+>  	 * Caching the conn in the socket helps a lot. */
+>  	if (rs->rs_conn && ipv6_addr_equal(&rs->rs_conn->c_faddr, &daddr) &&
+> -	    rs->rs_tos == rs->rs_conn->c_tos) {
+> +	    rs->rs_tos == rs->rs_conn->c_tos &&
+> +	    rs->rs_conn->c_dev_if == scope_id) {
+
+[Severity: Medium]
+Should the new comparison treat scope_id == 0 as "unspecified" rather
+than as a mismatch?
+
+For a send with msg_namelen == 0, rds_sendmsg() takes the scope from the
+bound scope id:
+
+net/rds/send.c:rds_sendmsg() {
+	} else {
+		/* We only care about consistency with ->connect() */
+		lock_sock(sk);
+		daddr = rs->rs_conn_addr;
+		dport = rs->rs_conn_port;
+		scope_id = rs->rs_bound_scope_id;
+		release_sock(sk);
+	}
+
+and the namelen != 0 repair branch that would fill in a zero scope from
+rs_bound_scope_id is skipped in that case.
+
+rs_bound_scope_id can be 0 while rs_conn_addr is a link-local peer.
+rds_connect() records the peer scope there for an unbound socket:
+
+net/rds/af_rds.c:rds_connect() {
+		if (addr_type & IPV6_ADDR_LINKLOCAL) {
+			...
+			rs->rs_bound_scope_id = sin6->sin6_scope_id;
+		}
+		rs->rs_conn_addr = sin6->sin6_addr;
+
+and a later bind() to a non-link-local address overwrites it
+unconditionally:
+
+net/rds/bind.c:rds_add_bound() {
+			*port = rs->rs_bound_port;
+			rs->rs_bound_scope_id = scope_id;	/* 0 here */
+
+With the sequence connect(fe80::x%ifA) -> bind(global address) ->
+sendto(fe80::x%ifA) -> send() with no destination, the last send now
+computes scope_id == 0, misses the cached ifA connection, and goes down
+the else branch:
+
+>  		conn = rs->rs_conn;
+>  	} else {
+>  		conn = rds_conn_create_outgoing(sock_net(sock->sk),
+> 						&rs->rs_bound_addr, &daddr,
+> 						rs->rs_transport, rs->rs_tos,
+> 						sock->sk->sk_allocation,
+> 						scope_id);
+
+Since rds_conn_lookup() compares c_dev_if, this creates a new connection
+with c_dev_if == 0 for a link-local destination.  Can that connection
+ever come up?  rds_tcp_conn_path_connect() passes it on as the scope:
+
+net/rds/tcp_connect.c:rds_tcp_conn_path_connect() {
+		sin6.sin6_scope_id = conn->c_dev_if;
+
+and tcp_v6_connect() rejects a link-local destination with no scope and
+no sk_bound_dev_if:
+
+net/ipv6/tcp_ipv6.c:tcp_v6_connect() {
+		/* Connect to link-local address requires an interface */
+		if (!sk->sk_bound_dev_if)
+			return -EINVAL;
+
+So the message looks like it gets queued on a connection that can never
+be established, where before the patch it went out over ifA, and
+rs->rs_conn is left pointing at the new connection.  Would skipping the
+comparison when scope_id == 0, or keeping the connected peer's scope
+separately from rs_bound_scope_id, avoid this?
+
+[Severity: Medium]
+This isn't a bug introduced by this patch, but the cache test reads
+rs->rs_conn several times without any synchronization, and the new
+c_dev_if comparison is one more such read.
+
+The validation loads and the load used for the assignment are separate:
+
+net/rds/send.c:rds_sendmsg() {
+	if (rs->rs_conn && ipv6_addr_equal(&rs->rs_conn->c_faddr, &daddr) &&
+	    rs->rs_tos == rs->rs_conn->c_tos &&
+	    rs->rs_conn->c_dev_if == scope_id) {
+		conn = rs->rs_conn;
+
+The socket lock covering the earlier scope-id checks has already been
+dropped by the release_sock(sk) before rds_rdma_bytes(), and
+rds_sock_lock, which the RDS_TOS ioctl path takes when it inspects
+rs->rs_conn, is not held here either.  The publishing store in the else
+branch is equally unsynchronized:
+
+		rs->rs_conn = conn;
+
+For two concurrent sendmsg() calls on the same AF_RDS socket (threads or
+a shared fd), can one thread validate the connection for fe80::x%ifA and
+then reload rs->rs_conn and pick up the fe80::x%ifB connection the other
+thread just stored, so that rm->m_conn_path ends up on the unvalidated
+connection?  That would be the same misrouting the changelog describes.
+
+Would it be worth folding in a single snapshot of the pointer, for
+example conn = READ_ONCE(rs->rs_conn); if (conn && ...), with a matching
+WRITE_ONCE() on the store, or holding the socket lock across the cache
+test?
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260921215046.174745-1-achender%40kernel.org
