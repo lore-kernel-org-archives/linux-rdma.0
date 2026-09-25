@@ -1,266 +1,120 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 754544BD7A8;
-	Fri, 25 Sep 2026 17:33:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B52FC4AE116
+	for <linux-rdma@vger.kernel.org>; Fri, 25 Sep 2026 17:35:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790357622; cv=none; b=brZ6PZ8rpZlzw4ViyvrfAU/TSQkD4Qp/P3UlOrd3U/vi8aA7a8VHrs4B1by6NRi/3TUl4QlwUA1KVjA46yWcb5NjRDx3ty1XYHst62bowLVlZoG48a6+68dEl5B83kjZmo/7vmROzLr5AH26Efev9h8L4OM+IQ0onwOi4rla0xI=
+	t=1790357714; cv=none; b=esF/CpRw/Jg/W4+3SkLnZYm1p8AWDQwAW9wwlA9yxjkqvC7QGxqJRoZgMjuDdGWUbDihSM340Reoe+rv/rI6mPNex6CXuja+rtNpni7YVLtU7sk9KezKfPUuQY5bvgaSUjSCBTMZdCmnL1t84Tg09LXBL4izeGP6/JrCzRfb46o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790357622; c=relaxed/simple;
-	bh=Gncmm5287QhDxao4XYCbGT8hjxtjljnwgOoK5SWxcVw=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=KoHQEcBGvR01IgZgYeTJzfxy+DrcNEWHIUf+YaUipRxN2MgQE9o4P0ydDEd7gHf3OukrX8FjOAyn8b1dtbOk+aIM2u0O8KUMmegEjz9HPvw3GhipQlh+kktDS1pJSb8mvlqu7B5rDhKbVuD9rlCHNCnR4nAkrf0Z2+nDJHUvOe8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PF8aE1Jv; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790357714; c=relaxed/simple;
+	bh=zyIf44cnv7UpbY3MHOaJ8XxYB3lSjxx/KdoPsEcd7sc=;
+	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
+	 Message-Id; b=NJDqSD5ACS0yBgcZE0lxwPnW1ISGiNZ4E8osOfnCk9dBnHGevKD3ClBkTiFVT5GZd3aaR56C++UdPe6I49JRXv3upxi82ZuA37RKXOuzdK1/tOXVyNiiGqm/Tjwsk601Q4UpCgbAfmsZGd/XNuaQC3CPKb27M8spZWnj12YAwXE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DM7/i7nj; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PF8aE1Jv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFD421F000FF;
-	Fri, 25 Sep 2026 17:33:39 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DM7/i7nj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 273EF1F000FF;
+	Fri, 25 Sep 2026 17:35:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790357621;
-	bh=ATlqTceFZq8MVlK1+CrP+fdKvFkP2XkMP/lX1zFmoo0=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=PF8aE1JvAXM1HmZJ4DqiplCDlT3SOqY2D4doJ+PdmkdtezB26+8H2toF/e42mobkW
-	 AaIw2QlpmGAwZfTHBVEVjYVaDim3aTAmNwcTB/eUSTJ13rWuPnfWRNJG60fI6Vza6v
-	 XiEXoJiQ/uMG5qZ83eTeC1foVsX6HJH63IN25LMez/XNUGSD9nm4cLQLqGbIC2ecu1
-	 wF8T4dwx0E0ODnkYNhAzZ12fUlOYkx7R8vjaa81gHnulsMBsm9txA5lmWzpbsaYnG/
-	 3Rk3bHgYggCwcAG3PcWIyUdczEsA04S/zNF2y2arLVcmwaKJSxBRJyVENioClDveaW
-	 F17Ix8BUJE20w==
-Subject:
- Re: [PATCH net-next 4/4] net: mana: Add support for CDX device ID 0x00C2
-From: netdev-bot+sashiko@kernel.org
-To: mawasthi@linux.microsoft.com
-Cc: kys@microsoft.com, haiyangz@microsoft.com, wei.liu@kernel.org,
- decui@microsoft.com, longli@microsoft.com, andrew+netdev@lunn.ch,
- davem@davemloft.net, edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
- kotaranov@microsoft.com, horms@kernel.org, linux-hyperv@vger.kernel.org,
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-rdma@vger.kernel.org, bpf@vger.kernel.org, nipun.gupta@amd.com,
- nikhil.agarwal@amd.com, gargaditya@linux.microsoft.com,
- ernis@linux.microsoft.com, kees@kernel.org, paulros@microsoft.com,
- mawasthi@microsoft.com
-Date: Fri, 25 Sep 2026 17:33:39 +0000
-Message-ID: <179035761944.2160803.12943182451050438147@kernel.org>
-In-Reply-To: <20260924173054.589291-5-mawasthi@linux.microsoft.com>
-References: <20260924173054.589291-5-mawasthi@linux.microsoft.com>
-X-sashiko-severity: Medium
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	s=k20260515; t=1790357713;
+	bh=bjBTF0lvVqHdxyiE2BpF/7/U/ImgzEOVrVSvVMpthPI=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=DM7/i7nj0K2aWAXLi0PJTzTWgNnDQ6EBM8lLxpqGa1HPF1mohdTRlF4Nenc9dSYmL
+	 TndBehgBSmgT7Qc55LDUPYPeG89SqWXF4jqPCnhMaBh+w+72yKohhwWVtB0/ww9lZR
+	 /JjM6bEt1aafDd7qAT80XnxjMA2ZXeLOLPoOVpO2jvoRjScYAPubZKklBz2MTrNFhS
+	 GZS2IY2oaf4L9vtDxCMAHvS2II88+iqmSuFy7UorKEMa0jHe78qshvmvv3NxbWZxDe
+	 M4SWSY8/+LWtlLkPMpXAyvdVvm6syBDRTcNZQMmPIcuHgBJrWagz5yRUDNujMdlGIq
+	 zL0yRAUPUxZbQ==
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH 6.1.y] net/mlx5e: TC, Fix internal port memory leak
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Artem Dinaburg" <artem@trailofbits.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20260924173505.87763-1-artem@trailofbits.com>
+References: <20260924173505.87763-1-artem@trailofbits.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Fri, 25 Sep 2026 17:35:12 +0000
+Message-Id: <20260925173513.273EF1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 3 potential
-issue(s) to consider.
-
-Critical: 0 · High: 0 (1) · Medium: 1 · Low: 2
-
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [Medium] The CDX transport installs `.dev_reset = mana_cdx_dev_reset`
-  (-> `cdx_dev_reset()`) but has no way to recover afterwards.
-- [Low] `mana_cdx_setup_hwc_irqs()` skips IRQ affinity hints.
-- [Low] The comment in `mana_gd_query_max_resources()` (gdma_main.c)
-  says: "Only reset on platforms that support dynamic MSI-X allocation;…
-
-Pre-existing issues:
-- [High] This problem wasn't introduced by this patch, but the shared HWC
-  bootstrap path that the new CDX transport now reaches trusts a device-…
-
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+s) to consider:
+- [High] mlx5e: double free of int_port in flow post actions backport
 --
 
-net: mana: Add support for CDX device ID 0x00C2
+commit 31e3e836a049949a2f6ef2d83fb49017f4be37e3
+Author: Jianbo Liu <jianbol@nvidia.com>
 
-This adds a CDX bus transport for MANA, built as mana_cdx.ko on top of
-the shared gdma_core.ko, for device ID 0x00C2. It allocates the whole MSI
-pool at probe time, limits the queue count to the available vectors,
-restricts DMA to 32 bits, and adds a per-bus auxiliary device name prefix
-so the CDX auxiliary devices stay separate from the PCI ones.
+net/mlx5e: TC, Fix internal port memory leak
 
-> diff --git a/drivers/net/ethernet/microsoft/mana/gdma_cdx.c b/drivers/net/ethernet/microsoft/mana/gdma_cdx.c
-> new file mode 100644
-> index 0000000000000..0d01e3d2f0d96
-> --- /dev/null
-> +++ b/drivers/net/ethernet/microsoft/mana/gdma_cdx.c
-> @@ -0,0 +1,340 @@
+This commit attempts to fix a memory leak of the internal port object when
+flow rules forward packets from an internal port over a tunnel. It moves the
+cleanup into free_flow_post_acts() to release references on cloned
+post-action attributes.
 
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/ne=
+t/ethernet/mellanox/mlx5/core/en_tc.c
+> index 05888942ef276..d2f226a09a0c7 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
 [ ... ]
-
-> +static int mana_cdx_dev_reset(struct gdma_context *gc)
-> +{
-> +	return cdx_dev_reset(gc->dev);
-> +}
-
-[Severity: Medium]
-Can this reset leave the whole function unusable, with no recovery short
-of a manual rebind?
-
-mana_dealloc_queues() calls it when a TX queue still has pending_sends
-after the drain timeout:
-
-mana_tx_timeout()
-  -> queue_reset_work
-    -> mana_per_port_queue_reset_work_handler()
-      -> mana_dealloc_queues()
-        -> mana_gd_dev_reset()
-          -> mana_cdx_dev_reset()
-            -> cdx_dev_reset()
-
-The detach paths can reach mana_dealloc_queues() too.
-
-drivers/cdx/controller/mc_cdx_pcol.h documents MC_CMD_CDX_DEVICE_RESET
-like this:
-
- * After this call completes, device DMA and interrupts are quiesced, devices
- * logic is reset in a hardware-specific way and DMA bus mastering is disabled.
-
-That resets the HWC, all EQs, the other vPorts and RDMA, but the driver
-keeps treating all of them as live. There is no re-init path on CDX:
-
-- Bus mastering is only turned on by cdx_set_master() in
-  mana_cdx_gd_probe().
-- MSI is only enabled in mana_cdx_setup_hwc_irqs().
-- gdma_cdx_driver has no reset_prepare or reset_done callbacks.
-- mana_cdx_bus_ops has no schedule_serv_work.
-
-So would the HWC requests that follow (mana_disable_vport_rx(), vPort
-object teardown, re-attach) all time out? And when
-mana_gf_stats_work_handler() detects the HWC timeout, would its servicing
-request just be rejected with -EOPNOTSUPP?
-
-On PCI, the same reset through pcie_flr() is backed by HWC-timeout
-recovery through mana_pci_schedule_serv_work().
-
-CDX also still advertises stall-SQ recovery to firmware through the
-common GDMA_DRV_CAP_FLAGS1:
-
-	 GDMA_DRV_CAP_FLAG_1_HANDLE_STALL_SQ_RECOVERY | \
-
-Without a dev_reset op, mana_gd_dev_reset() would return -EOPNOTSUPP, and
-a stall in one queue would not reset the whole function.
-
-There is a second trigger. reset_store() in drivers/cdx/cdx.c calls
-cdx_dev_reset() on a bound device, and
-Documentation/ABI/testing/sysfs-bus-cdx says the driver gets notified.
-With no reset_prepare/reset_done here, wouldn't a sysfs reset leave the
-device in the same state?
-
-[ ... ]
-
-> +	xa_init(&gc->irq_contexts);
-> +
-> +	/* No IRQ affinity hint is applied here. The PCI transport spreads its
-> +	 * vectors over the NUMA node local to the device; the CDX platforms
-> +	 * this driver targets are single-node, so there is nothing to spread
-> +	 * over. Affinity management can be added when a multi-node CDX host
-> +	 * exists to validate it against.
-> +	 */
-
-[Severity: Low]
-Is the reason given in this comment accurate? The PCI transport does more
-than spread over the local node. mana_irq_setup_numa_aware() skips SMT
-siblings and puts each vector on a different physical core:
-
-	cpumask_andnot(cpus, cpus, topology_sibling_cpumask(cpu));
-	...
-	irq_set_affinity_and_hint(*irqs++, topology_sibling_cpumask(cpu));
-
-mana_irq_setup_linear() also pins vector i to CPU i.
-
-A single-node multi-core SoC still has cores to spread over. On CDX, the
-EQ interrupts keep the default affinity and get no per-queue CPU
-placement.
-
-Could the comment, and the commit message, describe this difference from
-PCI accurately?
-
-[ ... ]
-
-> +static int mana_cdx_setup_remaining_irqs(struct gdma_context *gc)
-> +{
-> +	unsigned int max_queues_vport;
-> +
-> +	/* mana_gd_query_max_resources() may turn MSI sharing back on and round
-> +	 * the per-vPort queue count up to MANA_DEF_NUM_QUEUES. CDX sizes its
-> +	 * vector pool at probe time and cannot grow it later, and the HWC
-> +	 * vector must stay private, so give every vPort a private slice of the
-> +	 * remaining vectors instead. gc->max_num_queues is already capped at
-> +	 * num_msix_usable - 1 by the core.
-> +	 */
-> +	gc->msi_sharing = false;
-> +	max_queues_vport = (gc->num_msix_usable - 1) / gc->num_ports;
-
-[ ... ]
-
-> +	gc->max_num_queues_vport = min(gc->max_num_queues, max_queues_vport);
-
-[Severity: Low]
-This isn't a bug, but after this patch the comment in
-mana_gd_query_max_resources() in gdma_main.c is no longer accurate:
-
-	 * not before. Only reset on platforms that support dynamic
-	 * MSI-X allocation; on non-dyn platforms msi_sharing is
-	 * unconditionally true (set in mana_gd_setup_hwc_irqs).
-
-CDX leaves msix_can_alloc_dyn NULL, so it is a non-dyn bus. Even so,
-mana_cdx_setup_hwc_irqs() sets msi_sharing to false. The core may set it
-back to true, and then mana_cdx_setup_remaining_irqs() forces it to false
-again and overwrites max_num_queues_vport.
-
-Should the core comment be updated? It may also help to document in the
-core that a transport is expected to override msi_sharing and
-max_num_queues_vport in setup_remaining_irqs.
-
-[ ... ]
-
-> +	/* gc->is_pf is intentionally left clear: this device uses the VF
-> +	 * register layout, and the vPort and MAC filter registration that
-> +	 * is_pf selects is not required on this bus.
-> +	 */
-> +
-> +	err = mana_gd_setup(gc);
-> +	if (err)
-> +		goto unmap_bar;
-
+> @@ -3713,6 +3714,16 @@ free_flow_post_acts(struct mlx5e_tc_flow *flow)
+>  				mlx5_modify_header_dealloc(flow->priv->mdev, attr->modify_hdr);
+>  		}
+> =20
+> +		if (mlx5e_is_eswitch_flow(flow)) {
+> +			esw_attr =3D attr->esw_attr;
+> +			if (esw_attr->int_port)
+> +				mlx5e_tc_int_port_put(mlx5e_get_int_port_priv(flow->priv),
+> +						      esw_attr->int_port);
+> +			if (esw_attr->dest_int_port)
+> +				mlx5e_tc_int_port_put(mlx5e_get_int_port_priv(flow->priv),
+> +						      esw_attr->dest_int_port);
+                                                      ^^^^^^^^^^^^^^^^^^^^^=
+^^
 [Severity: High]
-This issue was not introduced by this patch, but the shared HWC bootstrap
-path that CDX now enters here uses a doorbell index supplied by the device
-without checking its bounds.
+Can this cause a double free of the mlx5e_tc_int_port object?
 
-mana_hwc_init_event_handler() in hw_channel.c stores the 16-bit doorbell
-directly from the EQE:
+When parsing a multi-table action, mlx5e_clone_flow_attr_for_post_act()
+performs a shallow copy of the primary attribute:
 
-	case GDMA_EQE_HWC_INIT_EQ_ID_DB:
-		eq_db.as_uint32 = event->details[0];
-		hwc->cq->gdma_eq->id = eq_db.eq_id;
-		gd->doorbell = eq_db.doorbell;
+mlx5e_clone_flow_attr_for_post_act() {
+	...
+	memcpy(attr2, attr, attr_sz);
+	...
+}
 
-mana_hwc_establish_channel() checks cq->id against max_num_cqs, but it
-never checks the doorbell. mana_gd_ring_doorbell() then computes the MMIO
-address:
+This duplicates the dest_int_port and int_port pointers into the cloned
+attribute without acquiring new references for them.
 
-	void __iomem *addr = gc->db_page_base + gc->db_page_size * db_index;
+During flow deletion, mlx5e_tc_del_fdb_flow() already correctly puts the
+primary attribute's dest_int_port, dropping the refcount and freeing the
+internal port object:
 
-db_page_size is at least 4KB and the doorbell can be as large as 0xFFFF.
-Could the next mana_gd_ring_eq() or mana_gd_ring_cq() then write far past
-the ioremapped BAR0, into unmapped vmalloc space or another mapping?
+mlx5e_tc_del_fdb_flow() {
+	...
+	if (esw_attr->dest_int_port)
+		mlx5e_tc_int_port_put(mlx5e_get_int_port_priv(priv),
+				      esw_attr->dest_int_port);
+	...
+}
 
-mana_gd_register_device() already has this check for the regular
-doorbell:
+Since the cloned attributes never took their own references, won't putting
+the pointers again here in free_flow_post_acts() result in a use-after-free
+and double free of the already-freed mlx5e_tc_int_port object?
 
-	if (gc->db_page_off + gc->db_page_size * ((u64)resp.db_id + 1) > gc->bar0_size) {
+> +		}
+> +
+>  		list_del(&attr->list);
+>  		kvfree(attr->parse_attr);
+>  		kfree(attr);
 
-Should the HWC path apply the same check? This affects the PCI transport
-as well.
-
-[ ... ]
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260924173054.589291-1-mawasthi%40linux.microsoft.com
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260924173505.8776=
+3-1-artem@trailofbits.com?part=3D1
