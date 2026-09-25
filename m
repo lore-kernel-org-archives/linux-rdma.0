@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A866D4AFE14;
-	Fri, 25 Sep 2026 17:33:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 754544BD7A8;
+	Fri, 25 Sep 2026 17:33:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790357621; cv=none; b=Elhn5gGVM4P8qWf3gKeS/xiLD6M0bTh2HOO4kPN9WWcSv6r+8QTXCPamS6kXzQnALlBMhvszTI3eNGOAOfZwxZmB7S8UiUrrby2lXVOLoziAHYZLcS5sWEPn79eKOTBEUvgE0FO1+rUbkFPZJNcvJXmwn4e0o0zhXy4QfxB8TGg=
+	t=1790357622; cv=none; b=brZ6PZ8rpZlzw4ViyvrfAU/TSQkD4Qp/P3UlOrd3U/vi8aA7a8VHrs4B1by6NRi/3TUl4QlwUA1KVjA46yWcb5NjRDx3ty1XYHst62bowLVlZoG48a6+68dEl5B83kjZmo/7vmROzLr5AH26Efev9h8L4OM+IQ0onwOi4rla0xI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790357621; c=relaxed/simple;
-	bh=Gs5ku4OXG29At0bM6JrLfDc557h9eEiAl/ZTxqziH2A=;
+	s=arc-20240116; t=1790357622; c=relaxed/simple;
+	bh=Gncmm5287QhDxao4XYCbGT8hjxtjljnwgOoK5SWxcVw=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=h2mVoBpAZeBm8C4cMtZtxabkDbFot0K3KuuSL5hbZPFvZo0fJlzUUZYkAiCfQw+Q4paOgvtSKVLJ8NpLTLoacQVHXzAGZKq1GDoRQmtr2VmMt7ZwQYmAl0fHVGNuVnYJ3kd4weVXVbdNQ4likl5U3UzU4i9wE2Zc/DvJi7GzVdc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aRe17dhv; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=KoHQEcBGvR01IgZgYeTJzfxy+DrcNEWHIUf+YaUipRxN2MgQE9o4P0ydDEd7gHf3OukrX8FjOAyn8b1dtbOk+aIM2u0O8KUMmegEjz9HPvw3GhipQlh+kktDS1pJSb8mvlqu7B5rDhKbVuD9rlCHNCnR4nAkrf0Z2+nDJHUvOe8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PF8aE1Jv; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aRe17dhv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F7E41F00893;
-	Fri, 25 Sep 2026 17:33:38 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PF8aE1Jv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFD421F000FF;
+	Fri, 25 Sep 2026 17:33:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790357619;
-	bh=06iDAVHU/eCeO/pYVB8XzXYJZwn6jZB7Utaw4mvxmms=;
+	s=k20260515; t=1790357621;
+	bh=ATlqTceFZq8MVlK1+CrP+fdKvFkP2XkMP/lX1zFmoo0=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=aRe17dhv4JQ5KfTRGu2NRqgxFNP/mAJp7bjD6POKhPtiR+XF8/1W2R+YJxOrfZbNk
-	 WJW6JDLm+gTE8imCiZzphm+THN2V8EYPdLAXeeP3cPwjNcsH60a7HbgIj2wJNy+L/b
-	 V0SZBGBeYW7qyM25mlBzaWn5lnsz1WKkWkgMaPd35CQAqwk9xjJsaAOTSEOWYXDIMs
-	 G89mvkbmlaRSghS2qHrAOhZpWLxrpqBcCAmui6XJk9wSB0443okE47AvE6zqTl5qvr
-	 rzYmkQTWpK80aEd+4REFGoh+fvZTbXKpQybarSVxkEnQ+CZitw0Sxqu+ys0hVLrhic
-	 usbaPuJiaYObg==
+	b=PF8aE1JvAXM1HmZJ4DqiplCDlT3SOqY2D4doJ+PdmkdtezB26+8H2toF/e42mobkW
+	 AaIw2QlpmGAwZfTHBVEVjYVaDim3aTAmNwcTB/eUSTJ13rWuPnfWRNJG60fI6Vza6v
+	 XiEXoJiQ/uMG5qZ83eTeC1foVsX6HJH63IN25LMez/XNUGSD9nm4cLQLqGbIC2ecu1
+	 wF8T4dwx0E0ODnkYNhAzZ12fUlOYkx7R8vjaa81gHnulsMBsm9txA5lmWzpbsaYnG/
+	 3Rk3bHgYggCwcAG3PcWIyUdczEsA04S/zNF2y2arLVcmwaKJSxBRJyVENioClDveaW
+	 F17Ix8BUJE20w==
 Subject:
- Re: [PATCH net-next 2/4] net: mana: Move PCI transport code into gdma_pci.c
+ Re: [PATCH net-next 4/4] net: mana: Add support for CDX device ID 0x00C2
 From: netdev-bot+sashiko@kernel.org
 To: mawasthi@linux.microsoft.com
 Cc: kys@microsoft.com, haiyangz@microsoft.com, wei.liu@kernel.org,
@@ -39,11 +39,11 @@ Cc: kys@microsoft.com, haiyangz@microsoft.com, wei.liu@kernel.org,
  nikhil.agarwal@amd.com, gargaditya@linux.microsoft.com,
  ernis@linux.microsoft.com, kees@kernel.org, paulros@microsoft.com,
  mawasthi@microsoft.com
-Date: Fri, 25 Sep 2026 17:33:37 +0000
-Message-ID: <179035761764.2160803.7364659426133894116@kernel.org>
-In-Reply-To: <20260924173054.589291-3-mawasthi@linux.microsoft.com>
-References: <20260924173054.589291-3-mawasthi@linux.microsoft.com>
-X-sashiko-severity: Low
+Date: Fri, 25 Sep 2026 17:33:39 +0000
+Message-ID: <179035761944.2160803.12943182451050438147@kernel.org>
+In-Reply-To: <20260924173054.589291-5-mawasthi@linux.microsoft.com>
+References: <20260924173054.589291-5-mawasthi@linux.microsoft.com>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -53,353 +53,214 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+Thank you for your contribution! Sashiko AI review found 3 potential
+issue(s) to consider.
 
-Low priority / nit picks for your consideration:
+Critical: 0 · High: 0 (1) · Medium: 1 · Low: 2
 
-- [Low] The include lists no longer match what each file uses.
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [Medium] The CDX transport installs `.dev_reset = mana_cdx_dev_reset`
+  (-> `cdx_dev_reset()`) but has no way to recover afterwards.
+- [Low] `mana_cdx_setup_hwc_irqs()` skips IRQ affinity hints.
+- [Low] The comment in `mana_gd_query_max_resources()` (gdma_main.c)
+  says: "Only reset on platforms that support dynamic MSI-X allocation;…
 
 Pre-existing issues:
-- [High] This problem wasn't introduced by this patch, but it is moved
-  verbatim into gdma_pci.c and is still present at the end of the series.
-- [High] This problem wasn't introduced by this patch, but it is moved
-  verbatim and still present at the end of the series.
-- [Medium] This problem wasn't introduced by this patch, but it is
-  carried over verbatim.
-- [Medium] This problem wasn't introduced by this patch, but it is
-  carried over verbatim.
-- [Low] This problem wasn't introduced by this patch, but it is carried
-  over verbatim.
+- [High] This problem wasn't introduced by this patch, but the shared HWC
+  bootstrap path that the new CDX transport now reaches trusts a device-…
 
 --
 
-net: mana: Move PCI transport code into gdma_pci.c
+net: mana: Add support for CDX device ID 0x00C2
 
-This commit moves the PCI transport code, the MSI-X setup, the recovery
-work and the pci_driver callbacks out of gdma_main.c and into a new file,
-gdma_pci.c. mana_pci_driver_register() and mana_pci_driver_unregister()
-are now exported through gdma.h, and the Makefile builds gdma_pci.o.
+This adds a CDX bus transport for MANA, built as mana_cdx.ko on top of
+the shared gdma_core.ko, for device ID 0x00C2. It allocates the whole MSI
+pool at probe time, limits the queue count to the available vectors,
+restricts DMA to 32 bits, and adds a per-bus auxiliary device name prefix
+so the CDX auxiliary devices stay separate from the PCI ones.
 
-> diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-> index b076760b2dc50..531170e58a62d 100644
-> --- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
-> +++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-> @@ -2,10 +2,7 @@
->  /* Copyright (c) 2021, Microsoft Corporation. */
->  
->  #include <linux/bitfield.h>
-> -#include <linux/cpumask.h>
->  #include <linux/debugfs.h>
-> -#include <linux/delay.h>
-> -#include <linux/list.h>
->  #include <linux/module.h>
->  #include <linux/sizes.h>
->  #include <linux/utsname.h>
-> @@ -13,11 +10,7 @@
->  #include <linux/msi.h>
->  #include <linux/irqdomain.h>
->  #include <linux/export.h>
-> -#include <linux/pci.h>
-> -#include <linux/slab.h>
-> -#include <linux/topology.h>
->  #include <linux/uaccess.h>
-> -#include <linux/xarray.h>
-
-[Severity: Low]
-The code that stays in gdma_main.c still uses APIs from several of the
-headers removed here:
-
-  - xa_load()/xa_store()/xa_erase()/xa_err(), for example in
-    mana_gd_get_gic() and mana_gd_put_gic()
-  - kzalloc()/kzalloc_obj()/kfree()
-  - list_add_rcu()/list_del_rcu()
-  - num_online_cpus()
-
-Does gdma_main.c now build only because <net/mana/gdma.h> pulls in
-list.h, slab.h, xarray.h and cpumask.h indirectly, through netdevice.h
-and dma-mapping.h?
-
-It also looks like the includes are unbalanced the other way.
-<linux/msi.h> and <linux/irqdomain.h> are still included here, but no
-msi or irq_domain users are left after the MSI-X code moved out. The new
-gdma_pci.c includes <linux/debugfs.h> but does not use any debugfs API.
-
-The commit message doesn't mention the include changes. Could gdma_main.c
-keep direct includes for what it still uses, and could the unused
-includes be dropped?
-
-[ ... ]
-
-> diff --git a/drivers/net/ethernet/microsoft/mana/gdma_pci.c b/drivers/net/ethernet/microsoft/mana/gdma_pci.c
+> diff --git a/drivers/net/ethernet/microsoft/mana/gdma_cdx.c b/drivers/net/ethernet/microsoft/mana/gdma_cdx.c
 > new file mode 100644
-> index 0000000000000..4f6a77f55e5a7
+> index 0000000000000..0d01e3d2f0d96
 > --- /dev/null
-> +++ b/drivers/net/ethernet/microsoft/mana/gdma_pci.c
-> @@ -0,0 +1,909 @@
+> +++ b/drivers/net/ethernet/microsoft/mana/gdma_cdx.c
+> @@ -0,0 +1,340 @@
 
 [ ... ]
 
-> +static void mana_serv_reset(struct pci_dev *pdev)
+> +static int mana_cdx_dev_reset(struct gdma_context *gc)
 > +{
-> +	struct gdma_context *gc = pci_get_drvdata(pdev);
-> +	struct hw_channel_context *hwc;
-> +	int ret;
-
-[ ... ]
-
-> +	dev_info(&pdev->dev, "MANA reset cycle start\n");
-> +
-> +	mana_gd_suspend(pdev, PMSG_SUSPEND);
-> +
-> +	msleep(MANA_SERVICE_PERIOD * 1000);
-> +
-> +	ret = mana_gd_resume(pdev);
-
-[ ... ]
-
-> +out:
-> +	clear_bit(GC_IN_SERVICE, &gc->flags);
+> +	return cdx_dev_reset(gc->dev);
 > +}
-
-[Severity: High]
-This isn't a bug introduced by this patch, since the code moves over
-unchanged, but what keeps gc alive across this 10 second window?
-
-mana_pci_schedule_serv_work() queues mana_serv_func() on the system
-workqueue. It holds only a pci_dev reference and a module reference.
-mana_serv_reset() holds neither device_lock(&pdev->dev) nor
-pci_lock_rescan_remove() across the suspend/msleep/resume sequence.
-mana_gd_remove() never cancels or flushes this work, and it ignores
-GC_IN_SERVICE.
-
-If a sysfs unbind or a Hyper-V vPCI eject overlaps the sleep:
-
-CPU0 (mana_serv_func)               CPU1 (unbind / eject)
-mana_serv_reset()
-  mana_gd_suspend()
-  msleep()
-                                    mana_gd_remove()
-                                      mana_gd_cleanup(gc)  /* again */
-                                      vfree(gc)
-                                    driver core clears drvdata
-  mana_gd_resume(pdev)
-    mana_gd_setup(gc)  /* NULL or freed */
-  clear_bit(GC_IN_SERVICE, &gc->flags)
-
-Could this cause a NULL dereference in mana_gd_setup(), or a write to
-vfree'd memory from clear_bit()?
-
-HWC reset and FPGA events in mana_gd_process_eqe() can schedule this
-work, and so can HWC timeouts in mana_gf_stats_work_handler().
-
-> +static void mana_do_service(enum gdma_eqe_type type, struct pci_dev *pdev)
-> +{
-
-[ ... ]
-
-> +static void mana_recovery_delayed_func(struct work_struct *w)
-> +{
-> +	struct mana_dev_recovery_work *work;
-> +	struct mana_dev_recovery *dev;
-> +	unsigned long flags;
-> +
-> +	work = container_of(w, struct mana_dev_recovery_work, work.work);
-> +
-> +	spin_lock_irqsave(&work->lock, flags);
-> +
-> +	while (!list_empty(&work->dev_list)) {
-> +		dev = list_first_entry(&work->dev_list,
-> +				       struct mana_dev_recovery, list);
-> +		list_del(&dev->list);
-> +		spin_unlock_irqrestore(&work->lock, flags);
-> +
-> +		mana_do_service(dev->type, dev->pdev);
 
 [Severity: Medium]
-This is a pre-existing issue, but can this loop keep running without
-ever returning while the device keeps failing probe?
+Can this reset leave the whole function unusable, with no recovery short
+of a manual rebind?
 
-For an entry queued by a failed probe, drvdata is NULL, so the call
-chain is:
+mana_dealloc_queues() calls it when a TX queue still has pending_sends
+after the drain timeout:
 
-mana_recovery_delayed_func()
-  mana_do_service()
-    mana_serv_reset()          /* gc == NULL */
-      mana_serv_rescan()
-        pci_stop_and_remove_bus_device()
-        pci_rescan_bus()
-          mana_gd_probe()      /* synchronous, fails again */
-            list_add_tail(&dev->list, &mana_dev_recovery_work.dev_list);
-            schedule_delayed_work(...);
+mana_tx_timeout()
+  -> queue_reset_work
+    -> mana_per_port_queue_reset_work_handler()
+      -> mana_dealloc_queues()
+        -> mana_gd_dev_reset()
+          -> mana_cdx_dev_reset()
+            -> cdx_dev_reset()
 
-mana_driver sets no async probe_type, so the re-probe happens inside
-this work item.
+The detach paths can reach mana_dealloc_queues() too.
 
-Because the while loop re-checks the live dev_list, it picks up the new
-entry right away and skips the MANA_SERVICE_PERIOD back-off. If the
-hardware stays unresponsive, would disable_delayed_work_sync() in
-mana_pci_driver_unregister() then wait on this work indefinitely?
+drivers/cdx/controller/mc_cdx_pcol.h documents MC_CMD_CDX_DEVICE_RESET
+like this:
 
-> +		pci_dev_put(dev->pdev);
-> +		kfree(dev);
-> +
-> +		spin_lock_irqsave(&work->lock, flags);
-> +	}
-> +
-> +	spin_unlock_irqrestore(&work->lock, flags);
-> +}
+ * After this call completes, device DMA and interrupts are quiesced, devices
+ * logic is reset in a hardware-specific way and DMA bus mastering is disabled.
+
+That resets the HWC, all EQs, the other vPorts and RDMA, but the driver
+keeps treating all of them as live. There is no re-init path on CDX:
+
+- Bus mastering is only turned on by cdx_set_master() in
+  mana_cdx_gd_probe().
+- MSI is only enabled in mana_cdx_setup_hwc_irqs().
+- gdma_cdx_driver has no reset_prepare or reset_done callbacks.
+- mana_cdx_bus_ops has no schedule_serv_work.
+
+So would the HWC requests that follow (mana_disable_vport_rx(), vPort
+object teardown, re-attach) all time out? And when
+mana_gf_stats_work_handler() detects the HWC timeout, would its servicing
+request just be rejected with -EOPNOTSUPP?
+
+On PCI, the same reset through pcie_flr() is backed by HWC-timeout
+recovery through mana_pci_schedule_serv_work().
+
+CDX also still advertises stall-SQ recovery to firmware through the
+common GDMA_DRV_CAP_FLAGS1:
+
+	 GDMA_DRV_CAP_FLAG_1_HANDLE_STALL_SQ_RECOVERY | \
+
+Without a dev_reset op, mana_gd_dev_reset() would return -EOPNOTSUPP, and
+a stall in one queue would not reset the whole function.
+
+There is a second trigger. reset_store() in drivers/cdx/cdx.c calls
+cdx_dev_reset() on a bound device, and
+Documentation/ABI/testing/sysfs-bus-cdx says the driver gets notified.
+With no reset_prepare/reset_done here, wouldn't a sysfs reset leave the
+device in the same state?
 
 [ ... ]
 
-> +static int mana_irq_setup_numa_aware(unsigned int *irqs, unsigned int len,
-> +				     int node, bool skip_first_cpu)
-> +{
-> +	const struct cpumask *next, *prev = cpu_none_mask;
-> +	cpumask_var_t cpus __free(free_cpumask_var);
-> +	int cpu, weight;
+> +	xa_init(&gc->irq_contexts);
 > +
-> +	if (!alloc_cpumask_var(&cpus, GFP_KERNEL))
-> +		return -ENOMEM;
-> +
-> +	rcu_read_lock();
-> +	for_each_numa_hop_mask(next, node) {
-> +		weight = cpumask_weight_andnot(next, prev);
-> +		while (weight > 0) {
-> +			cpumask_andnot(cpus, next, prev);
-> +			for_each_cpu(cpu, cpus) {
-> +				cpumask_andnot(cpus, cpus, topology_sibling_cpumask(cpu));
-> +				--weight;
+> +	/* No IRQ affinity hint is applied here. The PCI transport spreads its
+> +	 * vectors over the NUMA node local to the device; the CDX platforms
+> +	 * this driver targets are single-node, so there is nothing to spread
+> +	 * over. Affinity management can be added when a multi-node CDX host
+> +	 * exists to validate it against.
+> +	 */
 
 [Severity: Low]
-This is a pre-existing issue, but only the outer while loop checks
-weight > 0. The inner for_each_cpu() loop can keep assigning IRQs after
-the hop's budget is used up.
+Is the reason given in this comment accurate? The PCI transport does more
+than spread over the local node. mana_irq_setup_numa_aware() skips SMT
+siblings and puts each vector on a different physical core:
 
-Take five online CPUs. The local node has sibling groups {0,1} and {2},
-after an SMT sibling went offline, and the remote node has {4,5}. On the
-dynamic path, num_msix_usable=5 and skip_first_cpu=true:
+	cpumask_andnot(cpus, cpus, topology_sibling_cpumask(cpu));
+	...
+	irq_set_affinity_and_hint(*irqs++, topology_sibling_cpumask(cpu));
 
-  local hop, weight = 3
-    pass 1: skip {0,1}, assign {2}      weight = 1
-    pass 2: assign {0,1}                weight = 0
-            assign {2}                  weight = -1
-  remote hop, weight = 2
-            assign {4,5}
+mana_irq_setup_linear() also pins vector i to CPU i.
 
-That puts 4 vectors, including the HWC one, on the 3 local CPUs and only
-1 on the 2 remote CPUs. Should the inner loop also stop once weight
-reaches zero?
+A single-node multi-core SoC still has cores to spread over. On CDX, the
+EQ interrupts keep the default affinity and get no per-queue CPU
+placement.
+
+Could the comment, and the commit message, describe this difference from
+PCI accurately?
 
 [ ... ]
 
-> +static int mana_gd_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+> +static int mana_cdx_setup_remaining_irqs(struct gdma_context *gc)
 > +{
+> +	unsigned int max_queues_vport;
+> +
+> +	/* mana_gd_query_max_resources() may turn MSI sharing back on and round
+> +	 * the per-vPort queue count up to MANA_DEF_NUM_QUEUES. CDX sizes its
+> +	 * vector pool at probe time and cannot grow it later, and the HWC
+> +	 * vector must stay private, so give every vPort a private slice of the
+> +	 * remaining vectors instead. gc->max_num_queues is already capped at
+> +	 * num_msix_usable - 1 by the core.
+> +	 */
+> +	gc->msi_sharing = false;
+> +	max_queues_vport = (gc->num_msix_usable - 1) / gc->num_ports;
 
 [ ... ]
 
-> +	err = mana_rdma_probe(&gc->mana_ib);
-> +	if (err)
-> +		goto cleanup_mana;
-> +
-> +	/*
-> +	 * If a hardware reset event has occurred over HWC during probe,
-> +	 * rollback and perform hardware reset procedure.
+> +	gc->max_num_queues_vport = min(gc->max_num_queues, max_queues_vport);
+
+[Severity: Low]
+This isn't a bug, but after this patch the comment in
+mana_gd_query_max_resources() in gdma_main.c is no longer accurate:
+
+	 * not before. Only reset on platforms that support dynamic
+	 * MSI-X allocation; on non-dyn platforms msi_sharing is
+	 * unconditionally true (set in mana_gd_setup_hwc_irqs).
+
+CDX leaves msix_can_alloc_dyn NULL, so it is a non-dyn bus. Even so,
+mana_cdx_setup_hwc_irqs() sets msi_sharing to false. The core may set it
+back to true, and then mana_cdx_setup_remaining_irqs() forces it to false
+again and overwrites max_num_queues_vport.
+
+Should the core comment be updated? It may also help to document in the
+core that a transport is expected to override msi_sharing and
+max_num_queues_vport in setup_remaining_irqs.
+
+[ ... ]
+
+> +	/* gc->is_pf is intentionally left clear: this device uses the VF
+> +	 * register layout, and the vPort and MAC filter registration that
+> +	 * is_pf selects is not required on this bus.
 > +	 */
-> +	if (test_and_set_bit(GC_PROBE_SUCCEEDED, &gc->flags)) {
-> +		err = -EPROTO;
-> +		goto cleanup_mana_rdma;
-> +	}
 > +
-> +	return 0;
-> +
-> +cleanup_mana_rdma:
-> +	mana_rdma_remove(&gc->mana_ib);
-> +cleanup_mana:
-> +	mana_remove(&gc->mana, false);
-> +cleanup_gd:
-> +	mana_gd_cleanup(gc);
-> +unmap_bar:
-> +	xa_destroy(&gc->irq_contexts);
-> +	pci_iounmap(pdev, bar0_va);
-> +free_gc:
-> +	pci_set_drvdata(pdev, NULL);
-> +	vfree(gc);
+> +	err = mana_gd_setup(gc);
+> +	if (err)
+> +		goto unmap_bar;
 
 [Severity: High]
-This is a pre-existing issue, but can service work start while this probe
-is still running?
+This issue was not introduced by this patch, but the shared HWC bootstrap
+path that CDX now enters here uses a doorbell index supplied by the device
+without checking its bounds.
 
-In mana_gd_process_eqe(), the first GDMA_EQE_HWC_FPGA_RECONFIG or
-GDMA_EQE_HWC_RESET_REQUEST event during probe sets GC_PROBE_SUCCEEDED.
-A second event then finds the bit already set and queues service work:
+mana_hwc_init_event_handler() in hw_channel.c stores the 16-bit doorbell
+directly from the EQE:
 
-mana_gd_process_eqe() {
-    ...
-	if (!test_and_set_bit(GC_PROBE_SUCCEEDED, &gc->flags)) {
-		...
-		break;
-	}
-	mana_schedule_serv_work(gc, type);
-    ...
-}
+	case GDMA_EQE_HWC_INIT_EQ_ID_DB:
+		eq_db.as_uint32 = event->details[0];
+		hwc->cq->gdma_eq->id = eq_db.eq_id;
+		gd->doorbell = eq_db.doorbell;
 
-GC_IN_SERVICE is still clear at that point, so mana_serv_func() gets
-queued.
+mana_hwc_establish_channel() checks cq->id against max_num_cqs, but it
+never checks the doorbell. mana_gd_ring_doorbell() then computes the MMIO
+address:
 
-A single HWC fault is enough on another path. mana_probe() schedules
-gf_stats_work, and mana_gf_stats_work_handler() calls
-mana_schedule_serv_work(gc, GDMA_EQE_HWC_RESET_REQUEST) on -ETIMEDOUT.
-mana_rdma_probe() may still be running when that happens.
+	void __iomem *addr = gc->db_page_base + gc->db_page_size * db_index;
 
-The worker's mana_serv_reset() finds gc through pci_get_drvdata(), which
-probe sets early. It then runs mana_gd_suspend() while probe is still
-initialising. If probe instead fails with -EPROTO here, or with
--ETIMEDOUT, the labels above run mana_gd_cleanup() and vfree(gc). The
-worker is still using gc at that point and finishes with
-clear_bit(GC_IN_SERVICE, &gc->flags).
+db_page_size is at least 4KB and the doorbell can be as large as 0xFFFF.
+Could the next mana_gd_ring_eq() or mana_gd_ring_cq() then write far past
+the ioremapped BAR0, into unmapped vmalloc space or another mapping?
 
-Is anything supposed to synchronize this error path with a service work
-item that has already been queued?
+mana_gd_register_device() already has this check for the regular
+doorbell:
+
+	if (gc->db_page_off + gc->db_page_size * ((u64)resp.db_id + 1) > gc->bar0_size) {
+
+Should the HWC path apply the same check? This affects the PCI transport
+as well.
 
 [ ... ]
-
-> +void mana_pci_driver_unregister(void)
-> +{
-> +	struct mana_dev_recovery *dev;
-> +	unsigned long flags;
-> +
-> +	disable_delayed_work_sync(&mana_dev_recovery_work.work);
-> +
-> +	spin_lock_irqsave(&mana_dev_recovery_work.lock, flags);
-> +	while (!list_empty(&mana_dev_recovery_work.dev_list)) {
-> +		dev = list_first_entry(&mana_dev_recovery_work.dev_list,
-> +				       struct mana_dev_recovery, list);
-> +		list_del(&dev->list);
-> +		pci_dev_put(dev->pdev);
-> +		kfree(dev);
-> +	}
-> +	spin_unlock_irqrestore(&mana_dev_recovery_work.lock, flags);
-> +
-> +	pci_unregister_driver(&mana_driver);
-> +}
-
-[Severity: Medium]
-This is a pre-existing issue, but can a recovery entry leak here?
-
-The delayed work is disabled and dev_list is drained before
-pci_unregister_driver() is called. The driver is still registered in
-between, so a probe can still run from a sysfs bind or an external
-rescan or hotplug.
-
-If that probe fails with -ETIMEDOUT or -EPROTO, mana_gd_probe() allocates
-a mana_dev_recovery entry, takes pci_dev_get(pdev) and adds the entry to
-dev_list. Its schedule_delayed_work() call is a no-op on the disabled
-work, and nothing drains the list again.
-
-Would that leak both the mana_dev_recovery allocation and the pci_dev
-reference?
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260924173054.589291-1-mawasthi%40linux.microsoft.com
