@@ -1,383 +1,397 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFB4B39769B;
-	Fri, 25 Sep 2026 06:38:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790318334; cv=none; b=hbVj6FDLPNbVUMiFBg3KyB1t1fGTnwlK1lgdMUVVssJFljtXI3MCqGIwLRcWasEMimThTjBk1+ZZ0gPT8NJqZ0PAFIFR3JRkzf/kqubNbzyvGuzcpkgLbR3rI4x9w3dngn+V5hQXKvb9o+Pddy0Tfd57RvaYBNvfndvDQ8iqEfA=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790318334; c=relaxed/simple;
-	bh=Kx2FTHjANCexFxlTXWpOw90MEvQnQPMZnsbgGPFT3oQ=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=S32E4i/gKHaE517gQFNrH6JTfDwhhWIVpT1ea7ag8Fq9tdy5gn1CAYB+X6ZXBPBLhp8rO7EkayukcTB9EVUj3wU94ZrGVNqxqFI4ZYw+12+dV2xlwo0HwU6a4tfB6xtOLP8PhOyyz3AgvnePLscQHJ1tTt5HjLp7oRWztx6+mOM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=l3so31Cg; arc=none smtp.client-ip=148.163.156.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49DF630146C
+	for <linux-rdma@vger.kernel.org>; Fri, 25 Sep 2026 06:46:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=170.10.129.124
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790318768; cv=pass; b=fRhmtcD37bs0iUZMyF7lcCi+HYZRqg+p10G7MIurI17eR7+FKaSKAyclg/rjjYBuhfMO5xH376Sl4+zCcVfLazYXUdAtiaPRvrerYM0fp6sA0IRkX1g9uudVq/t19yHZhP/iUamB+jzAZk2wtBtu4SEZEt/KxR9iTbsuoygaqKA=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790318768; c=relaxed/simple;
+	bh=FEst1Fihh4zLZdsP7t7AJnUhd+Lgtr3Hn8aaYvJzXAY=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=db+AdhNS2AXiT2Ym4mrLEXMYrEcH3ZSwlGz4bNJAI8xCRr7p+oFyatWxauIU0z4cFNlw657Gumh9TZASXF3/+t3fSH2MvD9qoikr3fkb4+QQb6T6Ze9cWlqB5C6mjQIhDQKPP5zYPsHPIH96dOHgB4ZtHae7a7NKVHIR4AX0ftU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Gfa1NH8C; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=AFk9gD3s; arc=pass smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="l3so31Cg"
-Received: from pps.filterd (m0360083.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68P4aDEH074518;
-	Fri, 25 Sep 2026 06:38:45 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pp1; bh=Uagz98
-	eh/mahAwwBREcI7xRyVPw/6sqouZ8XEfabap4=; b=l3so31CgupnOGkaFVuIX19
-	lg7jM3uNj5xvhgsUwKbJoHIEYhzTuMBtAI65LtIKRBi3T8B3D+b1SNw+k/Vk4CbQ
-	t/3VosYW9wCZXut/WoZZNyadNIJIDIWnOEE9EszTYV842KDR5dzp7rEobFyoVuL/
-	EIKS/mayPmY6T0yQ53bfdhsHVjqTtBcd+k1kX6spp2SkOnDYJdovPVcK4aAReEd8
-	iUcHxyIq9F0i8sJ8m2GtD0xnhMbTmkQC+TGkvKk9DTKRb2SQ2cYcu6J6gjTPKfuE
-	/GswpCTj267grnQzF7Z+IuIHWD1YK/0WdqhimaO3kgYFGRvIayzJI1EzxB+bM9HA
-	==
-Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4gskg2wp3m-1
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Fri, 25 Sep 2026 06:38:44 +0000 (GMT)
-Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma22.wdc07v.mail.ibm.com (8.18.1.11/8.18.1.11) with ESMTP id 68P4laUd3244947;
-	Fri, 25 Sep 2026 06:38:43 GMT
-Received: from smtprelay06.dal12v.mail.ibm.com ([172.16.1.8])
-	by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4gvbu918yh-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 25 Sep 2026 06:38:43 +0000 (GMT)
-Received: from smtpav04.wdc07v.mail.ibm.com (smtpav04.wdc07v.mail.ibm.com [10.39.53.231])
-	by smtprelay06.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 68P6cgxI32703164
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 25 Sep 2026 06:38:42 GMT
-Received: from smtpav04.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 391EF5805E;
-	Fri, 25 Sep 2026 06:38:42 +0000 (GMT)
-Received: from smtpav04.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 6A72658045;
-	Fri, 25 Sep 2026 06:38:35 +0000 (GMT)
-Received: from [9.39.21.9] (unknown [9.39.21.9])
-	by smtpav04.wdc07v.mail.ibm.com (Postfix) with ESMTP;
-	Fri, 25 Sep 2026 06:38:35 +0000 (GMT)
-Message-ID: <f3318ef1-02d9-4eda-80b9-d371bbbe1bf2@linux.ibm.com>
-Date: Fri, 25 Sep 2026 12:08:33 +0530
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Gfa1NH8C";
+	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="AFk9gD3s"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1790318765;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=+LmCbqDZvjwS/KxFRtn0hfL/FdPZYfZBnFRt+2hBYWE=;
+	b=Gfa1NH8CIRqM6SEw+tfbDaNWhLUHKKbkAf4jBMPau3H8bWjFtHoYbFZh7DCAr+GzTJaJww
+	vgWMuObrbuwo3uq6ByHKSWumYYpY3JFZB1XIFGtwdn1SUepfQdGul5JRIzwQ+fMpNDrc6d
+	W+/4xQqjpclhz8bH0vHT0qPCyHm/QGM=
+Received: from mail-pg1-f198.google.com (mail-pg1-f198.google.com
+ [209.85.215.198]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-441-qIugkl0qOoiHAiSfqWzKHA-1; Fri, 25 Sep 2026 02:46:02 -0400
+X-MC-Unique: qIugkl0qOoiHAiSfqWzKHA-1
+X-Mimecast-MFC-AGG-ID: qIugkl0qOoiHAiSfqWzKHA_1790318762
+Received: by mail-pg1-f198.google.com with SMTP id 41be03b00d2f7-cc1b8088202so415818a12.3
+        for <linux-rdma@vger.kernel.org>; Thu, 24 Sep 2026 23:46:02 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1790318762; cv=none;
+        d=google.com; s=arc-20260327;
+        b=qt/ulnAbZAjQpYmxAnnvpPywYIL7KwS0Ug3+81FwdM8AW3n3ZFWqCzCnztVr9z4QtE
+         7KEuyWh3/p2Dr7FThZh2FKzaw8sDGSk+7DKxGwtxjfq9SicZrvBgHAVNu32k3hd5eiwp
+         8bdsL1El3EIDky6vWbF2pR5YjajKD0TZQGqohbZr0jKtUKDzRbQ3xzzy+5jFvH7EplOz
+         Utao4nwPRvY7vrPghR0Xas+2Y5DR4G4yV9IfncXk+7JaVJLLz2K4dbZFgul7NSwNbgfx
+         oGGM1RWsGaFIeQ7qgYA01t8MmqsLLfDhTjXBVBBWXRNounwjYLW77RgmWl6mDP7vYgM/
+         jXrQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=+LmCbqDZvjwS/KxFRtn0hfL/FdPZYfZBnFRt+2hBYWE=;
+        fh=wC9jrnEadDaBw8UUA/HaPFoi2HIG6Y6lMcx2EfnQ8+k=;
+        b=DiVSgQkijCyR8TUMNYimUv8tDY+t5oAIjwMfkDofNrYXF9BxzZ+bQDODqOd3DrfCwI
+         mwk/MoDYZh48cgVRsXUjTlsUuxJk4b1X6x9dXycS9vHbe6bd+aFDXE1dkv0/iPuEyzE9
+         ifax2ln9slVIx7/iK0JVEQtt/0ndc7PW7HUGhNJdIBtyZf1M0t09ABifvot2j1z8BM0Q
+         mdqypLp66JBLmAYwHeL7altBbM5G7FIX0hWqLIo/uQwp53VF2qThCtC3h0ICkwbeo8KG
+         rTsaXEz/GhqJua6ogUJGQsGx7qrwcGXpDBgRILTSHZ57n/mhXaCpYtjzqbz+bIYSlEDd
+         5UTA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=redhat.com; s=google; t=1790318762; x=1790923562; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=+LmCbqDZvjwS/KxFRtn0hfL/FdPZYfZBnFRt+2hBYWE=;
+        b=AFk9gD3s8CqGlk4LP6ZzeNKOgNLUqyOxwpfDT7Z2XFHJv+TsvuLuMKSvjef0CNe1YX
+         1AdXuggKgaZHjXrkC+bVB1/NLtjUHZR5PuENoDXWa79B0BezWX61b435zom3Ty10uhK8
+         v+Bdriyvoq6i4T/nkst1P9EVPpx9Af4MQjXOiswZptisLmnZTVYDTcCFrXXrCz9HRWOZ
+         mxGXqwOfP/GuO1P33lrwgy83TTVrX9wlplhzWcK9R2h+MutlZxJO/xpytaH0JpPkodsF
+         mEklXwcK5xOzIuBGKlGKP76faXahVEoW/B9RSmWTm7NevfzoGKe5YH4fftjz0ea0uXgN
+         4tRg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790318762; x=1790923562;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=+LmCbqDZvjwS/KxFRtn0hfL/FdPZYfZBnFRt+2hBYWE=;
+        b=Brp5C0nN+L2fMXXAG0E0MxcqmUaKLz+xSnyiT47KBoCgaOPAIqI/V9U1shjtNIlc6b
+         hqSbrLWFG2Fc2clGVH1gtSOY7OBs6LI8V15yq6EHhCCt358UE5G2MZQX8pLAIl96ORAs
+         /tTHvXFYhGuOINYozwDFhZ+jRJCvcRFrQn+cDIFGicxSvSJvGyEmL0FbW2RImJps51Qf
+         8xpCgptsddQ5Nf1hYxpDTW2C3tKvOO8/WMYBw4yGmcXJ9+F6EfbXoqyr8c0ycJ6YiV8W
+         cWvH1LzHjt9YMvXaNkXNAojwJqHK0wVVlImmy60CmzijSND9GDAoQK87rKUO9Vribt6x
+         /1XQ==
+X-Forwarded-Encrypted: i=1; AKwUvBx0iRo81O1/yZEb86O5saQN47tlh/IIotLsezXDkAQF6NR+DcOLUmcxmWZsgbVSe26OpijBKeWpp0tM@vger.kernel.org
+X-Gm-Message-State: AFuF++mwcdcBL5bJUWDen13Mxmlrv7vi46Z+juFjXgbwthgdnPl7fsMe
+	33SuH/CUzvjPdi5xU3VoYPuo1cMtX6NvqmlMLK360oVxuD522zupAbcKkqyGEb6fzAehAGqv/WB
+	UtyVmcbCtsR5r7xKTifI4DqIjuHgsdl5PbZYwtKZwIQE/+kM5kgQXcYSn6BvOlIR2f8cLv6t306
+	8mlDHeSeZPAKgcFY2OZPWMA4Gz6quBl+9VenJinA==
+X-Gm-Gg: AYBFou2kzCschoacNLyjzMP+sA+Bgklc+iG5KKg1nAfeIxluzSZ6LaPIitBMswV5IVF
+	ZH7V3RD5t3e7yuLJAiXTLxGxJtvJN6Kl5vpedFwblHvxYajeu0NRxwThMytAdZusNhfmkGbnfY7
+	o+6UIebCe27NBxEA0O2X99LxUPVvspU9kMPSSyzF9PZdExb4oUMlXh0fhAN7HJiMuZid+cGLfBm
+	8Z2HpfJ7AxtqL/u
+X-Received: by 2002:a05:6a20:2d21:b0:3dd:a196:30a6 with SMTP id adf61e73a8af0-3de0e9b22f2mr4534997637.86.1790318761690;
+        Thu, 24 Sep 2026 23:46:01 -0700 (PDT)
+X-Received: by 2002:a05:6a20:2d21:b0:3dd:a196:30a6 with SMTP id
+ adf61e73a8af0-3de0e9b22f2mr4534959637.86.1790318760818; Thu, 24 Sep 2026
+ 23:46:00 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net v5] net/smc: fix lgr/lnk lifetime vs diag reader race
+References: <20260922135123.46205-1-avirdi@redhat.com> <179025806955.2160803.14946061126391357248@kernel.org>
+ <CAJHXLyHH-RG_y04yT-SV+r3+_scac15iKrMtVfNG9Ti3wQFmrw@mail.gmail.com>
+In-Reply-To: <CAJHXLyHH-RG_y04yT-SV+r3+_scac15iKrMtVfNG9Ti3wQFmrw@mail.gmail.com>
+From: Anirudh Virdi <avirdi@redhat.com>
+Date: Fri, 25 Sep 2026 12:15:48 +0530
+X-Gm-Features: AclHuK8sXxjzZGnFiyrwFUNGm5czlW8cbMfwRi3V4i4mMNUe7qHDXLQs9PnHxA8
+Message-ID: <CAJHXLyGhZFtaX_AzfqNJW3f4_EVM=W6834uB5srYycvfgGHgnQ@mail.gmail.com>
+Subject: Re: [PATCH net] net/mlx5: Fix slab-out-of-bounds when handling team
+ device events
 To: netdev-bot+sashiko@kernel.org
-Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
-        kuba@kernel.org, pabeni@redhat.com, alibuda@linux.alibaba.com,
-        dust.li@linux.alibaba.com, sidraya@linux.ibm.com,
-        hidayath@linux.ibm.com, pasic@linux.ibm.com, horms@kernel.org,
-        tonylu@linux.alibaba.com, guwen@linux.alibaba.com,
-        stable@vger.kernel.org, netdev@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
-References: <20260923061716.1970059-1-mjambigi@linux.ibm.com>
- <179028482174.2160803.16069872683642574185@kernel.org>
-Content-Language: en-US
-From: Mahanta Jambigi <mjambigi@linux.ibm.com>
-In-Reply-To: <179028482174.2160803.16069872683642574185@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-Reinject: loops=2 maxloops=12
-X-Proofpoint-ORIG-GUID: aNUD6pwb3Kd1ntFYZ5tTRpsRhf3JyGPo
-X-Authority-Analysis: v=2.4 cv=I43w19gg c=1 sm=1 tr=0 ts=6ab616f5 cx=c_pps
- a=5BHTudwdYE3Te8bg5FgnPg==:117 a=5BHTudwdYE3Te8bg5FgnPg==:17
- a=IkcTkHD0fZMA:10 a=VdqzKS8jKosA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=RnoormkPH1_aCDwRdu11:22 a=iQ6ETzBq9ecOQQE5vZCe:22 a=VwQbUJbxAAAA:8
- a=-Cb9ymFxY4KYdMEwedoA:9 a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTI1MDAyNiBTYWx0ZWRfX+BrI78t1bbj3
- lzuWV3jPV9KXZfov1RS7oATp5zpbTbNNgiR7vnR/GF3ss5mQLxvBQWbB+pkncemiuvhny8mHqXs
- QiNL7nM5DpBcmvkVyPJz8Wt5kqNgIfdMqbPnNe2GYQ5/GlZ9CCjs9G+B8j6kohevPxMhA8cXuwR
- gHV3BV//lUDEv7TvEY1Qduo3RM8Et1f0w3/dx9Z1PLuZHcKGt/IbV1qXATbBj+YmcZuD2fBRtCk
- 0nnmGZBj79pdbCMG3iNW4BcSsrhbqQ5RTGGCOINE2LslbxLGhR8KGidj1MeK5LFonZQfY/UyDnb
- puFS52qiIem2ZFVcMVr44ESWiEN1vQqnurrmct1PA5ve0GvggSe+tifAriiZ5iZIi5Jm/i4+yyd
- jL9ag/d4a8K4tblhLBaG5/bTm3oSwh9P3XYXMyc0bIqErFh+b++yE9Y2pKTT6BuTz8h1jx9n5bn
- 2d4cZM7rEKNjnSBUDXA==
-X-Proofpoint-Spam-Info: AW1haW4tMjYwOTI1MDAyNiBTYWx0ZWRfX7sbW0WMvO3aM
- sGF9bIgJ9jcvuTU4IqwKDnGrsR8BBboUSS9xY9Z91OJ1eDIlxALajtaSqYi3eSkPzA+8BEsPLnS
- A45v1cfMpk5RnkMnwNDCiXugZBxUpRM=
-X-Proofpoint-GUID: mObDE-BHI6C7tLj1JEeILXMIMqHKl3Hg
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-09-25_02,2026-09-21_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- spamscore=0 clxscore=1015 adultscore=0 suspectscore=0 impostorscore=0
- lowpriorityscore=0 bulkscore=0 phishscore=0 priorityscore=1501 malwarescore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2609040000 definitions=main-2609250026
+Cc: netdev@vger.kernel.org, saeedm@nvidia.com, leon@kernel.org, 
+	tariqt@nvidia.com, mbloch@nvidia.com, andrew+netdev@lunn.ch, 
+	davem@davemloft.net, edumazet@google.com, kuba@kernel.org, pabeni@redhat.com, 
+	shayd@nvidia.com, ohartoov@nvidia.com, maorg@nvidia.com, 
+	linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Thank you for the detailed analysis, Sashiko!
+
+The concerns you've raised have been addressed in v2 of this patch:
+
+1. Over-broad guard: v2 now keeps netif_is_lag_master() at the top of
+   mlx5_handle_changeupper_event() and only wraps the bond-specific API cal=
+ls
+   (bond_slave_get_rcu/bond_is_slave_inactive) with netif_is_bond_master().
+   This allows team LAG tracking to continue working while preventing the
+   out-of-bounds read.
+
+2. Commit message inaccuracy: v2 correctly narrows the scope to only
+   mlx5_handle_changeupper_event(), acknowledging that
+   mlx5_handle_changeinfodata_event() is only reached from bonding code pat=
+hs.
+
+3. TC mirred issue: Noted as pre-existing. This can be addressed in a
+   separate patch series after this fix merges.
+
+v2 is available at:
+https://lore.kernel.org/netdev/20260924064244.94045-1-avirdi@redhat.com/
+
+Feedback appreciated!
 
 
-
-On 25/09/26 2:50 am, netdev-bot+sashiko@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found 3 potential
-> issue(s) to consider.
-> 
-> Critical: 0 · High: 2 (1) · Medium: 1 · Low: 0
-> 
-> If you believe none of the issues are legitimate, please reply to each
-> issue of Medium severity or higher and explain why the AI is wrong.
-> If any of them are legitimate and you plan to respin, please let patchwork
-> know by including "pw-bot: cr" as a separate line at the end of your reply
-> (one such reply per series is enough).
-> 
-> - [High] __smc_diag_dump() (net/smc/smc_diag.c:91-96) still reads
->   `smc->conn.lgr->is_smcd` to work out r->diag_mode.
-> - [High] In the SMC_DIAG_LGRINFO block, __smc_diag_dump() does `struct
->   smc_link *link = smc->conn.lnk;` and then dereferences…
-> - [Medium] The commit message says the socket is unhashed "before
->   smc_conn_free() is called at the two terminal teardown sites".
-> 
-> Pre-existing issues:
-> - [High] This problem wasn't introduced by this patch, but the patch
->   leaves it open while adding an unhash that runs too late on the same…
-> 
+On Fri, Sep 25, 2026 at 12:12=E2=80=AFPM Anirudh Virdi <avirdi@redhat.com> =
+wrote:
+>
+> Thank you for the detailed analysis, Sashiko!
+>
+> The concerns you've raised have been addressed in v2 of this patch:
+>
+> 1. Over-broad guard: v2 now keeps netif_is_lag_master() at the top of
+>    mlx5_handle_changeupper_event() and only wraps the bond-specific API c=
+alls
+>    (bond_slave_get_rcu/bond_is_slave_inactive) with netif_is_bond_master(=
+).
+>    This allows team LAG tracking to continue working while preventing the
+>    out-of-bounds read.
+>
+> 2. Commit message inaccuracy: v2 correctly narrows the scope to only
+>    mlx5_handle_changeupper_event(), acknowledging that
+>    mlx5_handle_changeinfodata_event() is only reached from bonding code p=
+aths.
+>
+> 3. TC mirred issue: Noted as pre-existing. This can be addressed in a
+>    separate patch series after this fix merges.
+>
+> v2 is available at:
+> https://lore.kernel.org/netdev/20260924064244.94045-1-avirdi@redhat.com/
+>
+> Feedback appreciated!
+>
+>
+> On Thu, Sep 24, 2026 at 7:30=E2=80=AFPM <netdev-bot+sashiko@kernel.org> w=
+rote:
+>>
+>> Thank you for your contribution! Sashiko AI review found 2 potential
+>> issue(s) to consider.
+>>
+>> Critical: 0 =C2=B7 High: 1 (1) =C2=B7 Medium: 0 =C2=B7 Low: 1
+>>
+>> If you believe none of the issues are legitimate, please reply to each
+>> issue of Medium severity or higher and explain why the AI is wrong.
+>> If any of them are legitimate and you plan to respin, please let patchwo=
+rk
+>> know by including "pw-bot: cr" as a separate line at the end of your rep=
+ly
+>> (one such reply per series is enough).
+>>
+>> - [High] Over-broad guard: replacing netif_is_lag_master() with
+>>   netif_is_bond_master() at the very top of=E2=80=A6
+>> - [Low] Commit message inaccuracy: the message states that
+>>   mlx5_handle_changeinfodata_event() suffers the same team_port-=E2=80=
+=A6
+>>
+>> Pre-existing issues:
+>> - [High] The identical bug class the patch claims to eliminate remains
+>>   reachable in the mlx5e TC mirred offload path: get_fdb_out_dev()=E2=80=
+=A6
+>>
+>> --
+>>
+>> net/mlx5: Fix slab-out-of-bounds when handling team device events
+>>
+>> This changes the two LAG notifier helpers in mlx5's lag.c to gate on
+>> netif_is_bond_master() instead of netif_is_lag_master(), so that a team
+>> master no longer reaches bond_slave_get_rcu()/bond_is_slave_inactive().
+>> The reported symptom is a KASAN out-of-bounds read when a team_port is
+>> interpreted as a struct slave.
+>>
+>> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c b/drive=
+rs/net/ethernet/mellanox/mlx5/core/lag/lag.c
+>> > index dd14cdc378de0..2714d39ae7c24 100644
+>> > --- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+>> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+>> > @@ -1922,7 +1922,7 @@ static int mlx5_handle_changeupper_event(struct =
+mlx5_lag *ldev,
+>> >       int changed =3D 0;
+>> >       int i, idx =3D -1;
+>> >
+>> > -     if (!netif_is_lag_master(upper))
+>> > +     if (!netif_is_bond_master(upper))
+>> >               return 0;
+>>
+>> [Severity: High]
+>> Does this early return do more than avoid the bonding-only calls?  The
+>> only team-unsafe statements in mlx5_handle_changeupper_event() are furth=
+er
+>> down in the for_each_netdev_in_bond_rcu() loop:
+>>
+>>         slave =3D bond_slave_get_rcu(ndev_tmp);
+>>         if (slave)
+>>                 has_inactive |=3D bond_is_slave_inactive(slave);
+>>
+>> Returning 0 at the top of the function also skips the computation of
+>> tracker->tx_type, tracker->hash_type and tracker->is_bonded for any team
+>> master.
+>>
+>> Since mlx5_lag_netdev_event() only writes the tracker back and queues th=
+e
+>> work when a handler returns non-zero:
+>>
+>>         if (changed)
+>>                 mlx5_lag_update_tracker_speed(&tracker, ndev);
+>>
+>>         ldev->tracker =3D tracker;
+>>
+>>         if (changed)
+>>                 mlx5_queue_bond_work(ldev, 0);
+>>
+>> and mlx5_do_bond() gates activation on the tracker:
+>>
+>>         do_bond =3D tracker.is_bonded && mlx5_lag_check_prereq(ldev);
+>>
+>> can is_bonded ever become true again for mlx5 ports aggregated by a team
+>> master?  Team does advertise the TX types mlx5 accepts =E2=80=94
+>> team_upper_dev_link() sets lag_upper_info.tx_type =3D team->mode->lag_tx=
+_type,
+>> with NETDEV_LAG_TX_TYPE_ACTIVEBACKUP in team_mode_activebackup and
+>> NETDEV_LAG_TX_TYPE_HASH in team_mode_loadbalance =E2=80=94 which are exa=
+ctly the
+>> two values the mode_supported test in this function allows.
+>>
+>> Would gating only the bond_slave_get_rcu()/bond_is_slave_inactive() bloc=
+k
+>> on netif_is_bond_master() remove the out-of-bounds read while keeping
+>> team-based LAG tracking?
+>>
+>> Related to this, does the driver's notifier state machine become
+>> asymmetric?  mlx5_handle_changelowerstate_event() still admits team port=
+s:
+>>
+>>         if (!netif_is_lag_port(ndev))
+>>                 return 0;
+>>
+>> and returns 1, so team NETDEV_CHANGELOWERSTATE events keep updating
+>> tracker->netdev_state[] and queueing bond work while is_bonded can never=
+ be
+>> set.  mlx5_lag_update_tracker_speed() also still resolves a team master =
+as
+>> the bond device:
+>>
+>>         if (netif_is_lag_master(ndev))
+>>                 bond_dev =3D ndev;
+>>
+>> and publishes its speed through mlx5_lag_query_bond_speed().
+>>
+>> One more question on the changelog: with a Fixes: tag aimed at stable,
+>> should the loss of hardware LAG offload for team-aggregated ports be
+>> mentioned, since there is no extack or dmesg indication when the handler
+>> bails out early?
+>>
+>> >
+>> >       if (info->linking)
+>> > @@ -2029,7 +2029,7 @@ static int mlx5_handle_changeinfodata_event(stru=
+ct mlx5_lag *ldev,
+>> >       bool has_inactive =3D 0;
+>> >       int idx;
+>> >
+>> > -     if (!netif_is_lag_master(ndev))
+>> > +     if (!netif_is_bond_master(ndev))
+>> >               return 0;
+>>
+>> [Severity: Low]
+>> The commit message says:
+>>
+>>     The mlx5_handle_changeupper_event() and mlx5_handle_changeinfodata_e=
+vent()
+>>     functions assume the upper device is a bonding device and call bondi=
+ng-
+>>     specific
+>>     APIs like bond_slave_get_rcu() and bond_is_slave_inactive().
+>>
+>> Can mlx5_handle_changeinfodata_event() actually be entered with a team
+>> master?  NETDEV_CHANGEINFODATA has a single emitter in the tree, in
+>> bond_option_active_slave_set():
+>>
+>>         call_netdevice_notifiers(NETDEV_CHANGEINFODATA, bond->dev);
+>>
+>> drivers/net/team/ never emits it, so this hunk looks like hardening of a=
+n
+>> unreachable path rather than a second fix.  Could the changelog be narro=
+wed
+>> to the mlx5_handle_changeupper_event() path, so stable backporters see t=
+he
+>> real scope?
+>>
+>> Also, the sentence above is wrapped mid-word ("bonding-\nspecific") in t=
+he
+>> changelog.
+>>
+>> >
+>> >       rcu_read_lock();
+>>
+>> [Severity: High]
+>> This isn't a bug introduced by this patch, but the same pattern is still
+>> present in the mlx5e TC mirred offload path, and it may be worth fixing =
+in
+>> the same series.  get_fdb_out_dev() in
+>> drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/mirred.c still uses th=
+e
+>> generic check before a bonding-only accessor:
+>>
+>>         } else if (netif_is_lag_master(out_dev)) {
+>>                 fdb_out_dev =3D bond_option_active_slave_get_rcu(netdev_=
+priv(out_dev));
+>>
+>> For a team master, netdev_priv() is a struct team, and
+>> bond_option_active_slave_get_rcu() reads it as struct bonding:
+>>
+>> include/net/bonding.h:bond_option_active_slave_get_rcu() {
+>>         const struct slave *slave =3D rcu_dereference_rtnl(bond->curr_ac=
+tive_slave);
+>>
+>>         return bond_uses_primary(bond) && slave ? slave->dev : NULL;
+>> }
+>>
+>> bond_uses_primary() reads BOND_MODE(bond) out of unrelated bytes of the =
+team
+>> private area, and bond->curr_active_slave aliases team->header_ops_cache
+>> (struct team starts with pcpu_stats, it has no leading dev member).  If =
+the
+>> garbage mode value happens to be one of the primary modes, does this
+>> dereference header_ops_cache as struct slave * and return slave->dev as =
+a
+>> bogus struct net_device *, which mlx5e_eswitch_rep() then dereferences?
+>>
+>> The reachable caller is parse_mirred():
+>>
+>>         out_dev =3D get_fdb_out_dev(uplink_dev, out_dev);
+>>         if (!out_dev)
+>>                 return -ENODEV;
+>>
+>> reached from tc_act_parse_mirred() when
+>> netdev_port_same_parent_id(priv->netdev, out_dev) holds, which a team ma=
+ster
+>> over mlx5 representors satisfies.  Should this site use
+>> netif_is_bond_master() too, the way mpesw.c already does?
+>>
+>> --
+>> Sashiko AI review =C2=B7 https://netdev-ai.bots.linux.dev/sashiko/#/patc=
+hset/20260922135123.46205-1-avirdi%40redhat.com
+>>
+>
+>
 > --
-> 
-> net/smc: fix lgr/lnk lifetime vs diag reader race
-> 
-> This patch unhashes SMC sockets in smc_close_active_abort() and
-> smc_close_passive_work() before smc_conn_free() drops the lgr/lnk
-> references. It also makes __smc_diag_dump() skip the conn/lgr/lnk
-> attribute blocks when the socket is in SMC_INIT or SMC_CLOSED state. The
-> goal is to keep the diag reader from dereferencing a freed link group or
-> link.
-> 
->> diff --git a/net/smc/smc_close.c b/net/smc/smc_close.c
->> index bb0313ef5f7c1..3940098c651d9 100644
->> --- a/net/smc/smc_close.c
->> +++ b/net/smc/smc_close.c
->> @@ -130,6 +130,11 @@ void smc_close_active_abort(struct smc_sock *smc)
->>  	struct sock *sk = &smc->sk;
->>  	bool release_clcsock = false;
->>  
->> +	/*
->> +	 * Unhash before any branch calls smc_conn_free() and drops lgr/lnk refs;
->> +	 * the diag reader must not see a hashed socket with freed lgr/lnk.
->> +	 */
->> +	sk->sk_prot->unhash(sk);
-> 
-> [Severity: Medium]
-> The commit message says the socket is unhashed "before smc_conn_free() is
-> called at the two terminal teardown sites". This unhash, though, runs
-> unconditionally for every state. Is that intended?
-> 
-> The SMC_ACTIVE, SMC_APPCLOSEWAIT1 and SMC_APPCLOSEWAIT2 branches never call
-> smc_conn_free(). They only set SMC_CLOSED and call sock_put(). SMC_INIT,
-> SMC_PEERABORTWAIT and SMC_CLOSED don't call it either. Neither does the early
-> break taken when smc_close_cancel_work() changes the state.
-> 
-> On link group termination, smc_conn_kill() calls smc_close_active_abort()
-> for every connection:
-> 
-> net/smc/smc_core.c:smc_conn_kill() {
->     ...
->     smc_lgr_unregister_conn(conn);
->     smc_close_active_abort(smc);
-> }
-> 
-> Doesn't this make killed SMC_ACTIVE sockets vanish from smc_diag/smcss
-> right away instead of at close? The application still has them open, and
-> their lgr/lnk references are still held.
-> 
-> These sockets reach smc_conn_free() later in __smc_release(), which already
-> unhashes first. smc_release() is also a third caller of
-> smc_close_active_abort(), and the commit message doesn't mention it.
-> 
-> Would it be narrower to unhash only right before the two smc_conn_free()
-> calls in the SMC_PEERCLOSEWAIT1/2/SMC_PEERFINCLOSEWAIT and
-> SMC_PROCESSABORT/SMC_APPFINCLOSEWAIT branches?
+>
+> Anirudh Virdi
 
-You are right. The unconditional unhash at the top of
-smc_close_active_abort() was placed there because v5 traced the
-smc_conn_kill() → smc_close_active_abort() → smc_conn_free() chain and
-stopped at smc_close_active_abort() as the insertion point. This was too
-broad — it also fires for the SMC_ACTIVE/APPCLOSEWAIT branches which
-never call smc_conn_free(), and for the smc_release() call site where
-the socket is a live connection the application still has open.
 
-Fix in v6: remove the unconditional unhash from the top of
-smc_close_active_abort() and place it scoped, immediately before each of
-the two smc_conn_free() calls — in the PEERCLOSEWAIT1/2/PEERFINCLOSEWAIT
-branch and the PROCESSABORT/APPFINCLOSEWAIT branch.
 
-> 
-> [Severity: High]
-> This is a pre-existing issue, not one introduced by this patch. Still, on
-> the smc_conn_kill() path this new unhash runs too late to protect against
-> it.
-> 
-> On SMC-D with dmb_nocopy (for example loopback-ism), smc_conn_kill() frees
-> the sndbuf descriptor before it unregisters the conn and before it calls
-> smc_close_active_abort():
-> 
-> net/smc/smc_core.c:smc_conn_kill() {
->     ...
->     if (smc_ism_support_dmb_nocopy(conn->lgr->smcd))
->         smcd_buf_detach(conn);
->     ...
->     smc_lgr_unregister_conn(conn);
->     smc_close_active_abort(smc);
-> }
-> 
-> smcd_buf_detach() does this:
-> 
->     buf_desc = conn->sndbuf_desc;
->     conn->sndbuf_desc = NULL;
->     kfree(buf_desc);
-> 
-> During that window the socket is still hashed and still in SMC_ACTIVE, so
-> it passes the new diag guard. alert_token_local is also still set. That
-> means __smc_diag_dump() enters the SMC_DIAG_CONNINFO block and evaluates:
-> 
->     .sndbuf_size = conn->sndbuf_desc ?
->         conn->sndbuf_desc->len : 0,
-> 
-> These are plain loads, and only the hash read_lock is held. Could this
-> dereference NULL, or read ->len from an smc_buf_desc that has been kfree'd?
-> The lock_sock() in __smc_lgr_terminate() does not exclude the diag reader.
-> 
-> Would unhashing at the start of smc_conn_kill(), before smcd_buf_detach(),
-> close this as well?
+--=20
 
-You are right. In smc_conn_kill(), smcd_buf_detach() NULLs and frees
-conn->sndbuf_desc before smc_close_active_abort() is called, but the
-socket is still hashed during that window. The v5 unhash inside
-smc_close_active_abort() is too late.
+Anirudh Virdi
 
-Fix in v6: move the unhash to the top of smc_conn_kill(), before
-smcd_buf_detach(). Both call sites (__smc_lgr_terminate() and
-smc_conn_abort_work()) hold lock_sock and have no expectation that the
-socket remains hashed after smc_conn_kill() returns. smc_unhash_sk() is
-idempotent so the subsequent unhash attempts further down become safe
-no-ops.
-
-> 
->>  	if (sk->sk_state != SMC_INIT && smc->clcsock && smc->clcsock->sk) {
->>  		sk->sk_err = ECONNABORTED;
->>  		if (smc->clcsock && smc->clcsock->sk)
-> 
-> [ ... ]
-> 
->> diff --git a/net/smc/smc_diag.c b/net/smc/smc_diag.c
->> index bf0beaa23bdb6..fe32091e37dab 100644
->> --- a/net/smc/smc_diag.c
->> +++ b/net/smc/smc_diag.c
->> @@ -103,6 +103,9 @@ static int __smc_diag_dump(struct sock *sk, struct sk_buff *skb,
->>  	if (nla_put(skb, SMC_DIAG_FALLBACK, sizeof(fallback), &fallback) < 0)
->>  		goto errout;
->>  
->> +	if (sk->sk_state == SMC_INIT || sk->sk_state == SMC_CLOSED)
->> +		goto out;
->> +
-> 
-> [Severity: High]
-> Does this guard cover the lgr dereference earlier in __smc_diag_dump() that
-> sets r->diag_mode?
-> 
-> net/smc/smc_diag.c:__smc_diag_dump() {
->     ...
->     if (smc->use_fallback)
->         r->diag_mode = SMC_DIAG_MODE_FALLBACK_TCP;
->     else if (smc_conn_lgr_valid(&smc->conn) && smc->conn.lgr->is_smcd)
->         r->diag_mode = SMC_DIAG_MODE_SMCD;
->     ...
-> }
-> 
-> That load happens before the new SMC_INIT/SMC_CLOSED check, and only the
-> smc hash read_lock is held.
-> 
-> The commit message says this guard handles the smc_conn_abort() SMC_INIT
-> case. Take a handshake failure such as smc_listen_decline() ->
-> smc_conn_abort(new_smc, local_first). The socket is still hashed in
-> SMC_INIT and use_fallback has not been set yet:
-> 
-> net/smc/af_smc.c:smc_conn_abort() {
->     ...
->     smc_conn_free(conn);
->     if (local_first && lgr_valid)
->         smc_lgr_cleanup_early(lgr);
-> }
-> 
-> The following chain then frees the lgr synchronously:
-> 
-> smc_lgr_cleanup_early()
->   __smc_lgr_terminate()
->     smc_lgr_free()
->       smc_lgr_put()
->         __smc_lgr_free()
->           kfree(lgr)
-> 
-> Nothing on this path takes the hash write_lock, and conn->lgr is never
-> cleared. smc_conn_lgr_valid() is only plain loads of conn->lgr and
-> conn->alert_token_local.
-> 
-> Can a diag reader pass smc_conn_lgr_valid() just before the conn is
-> unregistered, and then read lgr->is_smcd after the kfree()?
-> 
-> smc_diag_handler_dump() has no capability check, and a remote peer can
-> cause the handshake failure. Would checking the state (or use_fallback)
-> before any conn.lgr access close this?
-
-You are right. The conn->lgr->is_smcd load in the r->diag_mode
-assignment happens before the SMC_INIT guard, leaving a window where a
-concurrent smc_lgr_cleanup_early() → kfree(lgr) on another CPU can race
-with the reader. This is remotely triggerable since
-smc_diag_handler_dump() has no capability check and a remote peer can
-cause the handshake failure that leads to smc_conn_abort().
-
-Fix in v6: inline an sk->sk_state != SMC_INIT check directly into the
-else if condition, so conn->lgr->is_smcd is never loaded for SMC_INIT
-sockets. The SMC_CLOSED check is not needed at that line — on every path
-that sets SMC_CLOSED, either the socket is unhashed before
-smc_conn_free() runs (__smc_release(), passive work), or conn->lgr is
-still live and the dereference is safe.
-
-> 
->>  	if ((req->diag_ext & (1 << (SMC_DIAG_CONNINFO - 1))) &&
->>  	    smc->conn.alert_token_local) {
->>  		struct smc_connection *conn = &smc->conn;
-> 
-> [Severity: High]
-> Sockets in SMC_ACTIVE and the closing states still get past this guard. Is
-> the SMC_DIAG_LGRINFO block further down still exposed to a concurrent link
-> switch?
-> 
-> net/smc/smc_diag.c:__smc_diag_dump() {
->     ...
->     struct smc_link *link = smc->conn.lnk;
->     ...
->     memcpy(linfo.lnk[0].ibname, link->smcibdev->ibdev->name,
->            sizeof(link->smcibdev->ibdev->name));
->     ...
-> }
-> 
-> Only the hash read_lock is held here. During SMC-R link failover,
-> smcr_link_down() -> smc_switch_conns() -> smc_switch_link_and_count()
-> replaces conn->lnk under conn->send_lock and drops the conn's reference on
-> the old link:
-> 
-> net/smc/smc_core.c:smc_switch_link_and_count() {
->     ...
->     smcr_link_put(conn->lnk);
->     conn->lnk = to_lnk;
->     ...
-> }
-> 
-> When smcr_link_clear() drops the last reference, __smcr_link_clear() calls
-> put_device() on the ibdev and then memset(lnk, 0). The lgr stays on its
-
-After tracing the refcount accounting I believe this race is not
-reachable. The smcr_link_put() in smc_switch_link_and_count() only drops
-the per-connection hold taken by smc_conn_create(). The link's base ref
-(initialised to 1 in smcr_link_init()) is only released by
-smcr_link_clear(), which is called exclusively from the lgr termination
-path. Hence __smcr_link_clear() is not called in this path.
-
-By that point the lgr has already been removed from the global list, so
-the diag reader's !list_empty(&smc->conn.lgr->list) check already gates
-it out of the lgrinfo block.
-
-Will post v6 shortly.
-
-pw-bot: cr
