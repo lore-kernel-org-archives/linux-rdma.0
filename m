@@ -1,176 +1,158 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from BN8PR05CU002.outbound.protection.outlook.com (mail-eastus2azon11011050.outbound.protection.outlook.com [52.101.57.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A2E348125E;
-	Fri, 25 Sep 2026 09:35:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790328934; cv=none; b=Uu1YR+BFm8ZOD/A6dgFneKISB6G5iib+gTI72T6s4WVuzmHAxYfGh74owrh+JZzQFjaEotjMxk+5gqpfPQUbjb/evfOcxZZ6ulH03H/Xd1ODhcIUAv51FZdVC/p6mutHxDSrA2BypgpmCrYPVC4tWdy+SagbAvzoeVxcvyxzVFQ=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790328934; c=relaxed/simple;
-	bh=k6uDKPPe1ermrsLZjx3IZyd4bJERPiX+St53e6BiYx4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=P+Ca7dfSss73i2hXsns0CBNdu5jtxvgnxq+tVrY+JIHu7txq5mvy2zPBB02Fr/7XTzNpRwF7cp4/kUJuKanjlWzNs+ebjNCtt+E/NanKU0toYa+IHq8VrgnfjMX0tCC3GqDRtG/KN35xg91fNsIqPphQiWs0MHu4O2cC2VwnvlE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bzZxhyhs; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF0EE34FF79;
+	Fri, 25 Sep 2026 09:37:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.57.50
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790329025; cv=fail; b=GzDgdAW8rs2Y2Qu5AjwTFN+DP4d2KrwHfYZe8kNM6q1ux9uU2JXEetwmh5r5vhBLPYMD5d/R02C6DQzYxGXZbnaBHGCqZoX4EI/XluJNSnEatixQCTMSWrIeeQGj5SWOMgj/m5qdFEZt6thppUvMLsj0KFwEyEwIZyhFkZyM35g=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790329025; c=relaxed/simple;
+	bh=1+pbNr4q0pAracGBN5HrgG+ZJg16T+BtCIn3PmehLas=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=TjYJaUMhVsSkzhBZMnuXRqPkL8A2FkxhF6lypPWxn3iE19gL0yAFqaq4S2NUG6q+6d81/aJIIXkSzyi06LxOeuEXD+GDS/EXJGoN6fi521hZANfWulpqHfoWVyOzEUMx9KUK8iGfgSvyZafdJTfsOCi3BsJTpVcaIFZI/N5t2Ok=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=Sk8lWO0N; arc=fail smtp.client-ip=52.101.57.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bzZxhyhs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DC6D1F000FF;
-	Fri, 25 Sep 2026 09:35:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790328932;
-	bh=uLG5lXHaGba/dPImy7unpJ5IThclo3TEAxLWPTrsKfU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=bzZxhyhsPfPrL97TbhC325gHjRpuHNOnRAtDnIf7+He5gMfkm4PSOaeLWWHbi8c+l
-	 6gLN53Uwdjt1XIK0OfcSHtcQmumMJlRTA69LriLBQLJ0wlctJVs9Bq/WbFIYgezX2S
-	 o7HKidp4dQ3owP9NtNKbVP6jhZCshUTUiQ66DK4nhMPv/dIHOX+rBfreTpiYW/Trbr
-	 lwzJ176A2TJiIAwDANzHglZssZ2IwPz45AtPMn/Payp0HQBUyL8MtoMoRwY1oA7vIH
-	 So1mhkj16h3+GX9qr62k4qaQbTa37MdNPZHhAdlXJfG4rCoV0gvFtIiYsigAgrqycF
-	 Yh3V65CGNEVUA==
-Date: Fri, 25 Sep 2026 10:35:02 +0100
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-To: Zi Yan <ziy@nvidia.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, 
-	"Liam R. Howlett" <liam@infradead.org>, Vlastimil Babka <vbabka@kernel.org>, 
-	Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
-	David Hildenbrand <david@kernel.org>, Mike Rapoport <rppt@kernel.org>, 
-	Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, 
-	Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
-	Paul Moore <paul@paul-moore.com>, Stephen Smalley <stephen.smalley.work@gmail.com>, 
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
-	Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
-	Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>, 
-	Kumar Kartikeya Dwivedi <memxor@gmail.com>, Baolin Wang <baolin.wang@linux.alibaba.com>, 
-	Nico Pache <nico.pache@linux.dev>, Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, 
-	Barry Song <baohua@kernel.org>, Lance Yang <lance.yang@linux.dev>, 
-	Usama Arif <usama.arif@linux.dev>, Kiryl Shutsemau <kas@kernel.org>, 
-	Doug Gilbert <dgilbert@interlog.com>, "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, 
-	"Martin K. Petersen" <mkp@kernel.org>, Jaya Kumar <jayalk@intworks.biz>, 
-	Simona Vetter <simona@ffwll.ch>, Helge Deller <deller@gmx.de>, Sebastian Reichel <sre@kernel.org>, 
-	John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, 
-	Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
-	Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@kernel.org>, 
-	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, Arnaldo Carvalho de Melo <acme@kernel.org>, 
-	Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
-	Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, Juri Lelli <juri.lelli@redhat.com>, 
-	Vincent Guittot <vincent.guittot@linaro.org>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
-	Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
-	David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>, 
-	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, Nick Piggin <npiggin@gmail.com>, Arnd Bergmann <arnd@arndb.de>, 
-	Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
-	"Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan Kara <jack@suse.cz>, Marc Zyngier <maz@kernel.org>, 
-	Oliver Upton <oupton@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, 
-	Madhavan Srinivasan <maddy@linux.ibm.com>, Anup Patel <anup@brainfault.org>, Paul Walmsley <pjw@kernel.org>, 
-	Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
-	Christian Borntraeger <borntraeger@linux.ibm.com>, Janosch Frank <frankja@linux.ibm.com>, 
-	Claudio Imbrenda <imbrenda@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
-	Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Heiko Carstens <hca@linux.ibm.com>, 
-	Vasily Gorbik <gor@linux.ibm.com>, "David S. Miller" <davem@davemloft.net>, 
-	Andreas Larsson <andreas@gaisler.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
-	Christian Brauner <brauner@kernel.org>, Matthew Brost <matthew.brost@intel.com>, 
-	Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, Byungchul Park <byungchul@sk.com>, 
-	Gregory Price <gourry@gourry.net>, Ying Huang <ying.huang@linux.alibaba.com>, 
-	Alistair Popple <apopple@nvidia.com>, Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>, 
-	Kemeng Shi <shikemeng@huaweicloud.com>, Nhat Pham <nphamcs@gmail.com>, Baoquan He <baoquan.he@linux.dev>, 
-	Youngjun Park <youngjun.park@lge.com>, Johannes Weiner <hannes@cmpxchg.org>, 
-	Qi Zheng <qi.zheng@linux.dev>, Shakeel Butt <shakeel.butt@linux.dev>, 
-	Axel Rasmussen <axelrasmussen@google.com>, Yuanchu Xie <yuanchu@google.com>, Wei Xu <weixugc@google.com>, 
-	Chengming Zhou <chengming.zhou@linux.dev>, Michal Hocko <mhocko@kernel.org>, 
-	Miklos Szeredi <miklos@szeredi.hu>, Xu Xin <xu.xin@linux.dev>, linux-mm@kvack.org, 
-	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, 
-	linux-rdma@vger.kernel.org, selinux@vger.kernel.org, linux-sound@vger.kernel.org, 
-	bpf@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org, 
-	dri-devel@lists.freedesktop.org, linux-trace-kernel@vger.kernel.org, 
-	linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, 
-	kvm@vger.kernel.org, kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org, 
-	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, fuse-devel@lists.linux.dev
-Subject: Re: [PATCH v3 24/40] mm/mlock: eliminate weird VMA_IO_BIT abuse and
- simplify
-Message-ID: <arZAC3fyGMDnxiFX@gremlin>
-References: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-0-4583d8a23bca@kernel.org>
- <20260917-b4-mmap-prepare-vma-flag-sanify-v3-24-4583d8a23bca@kernel.org>
- <93672B94-BB0C-4713-8F8A-3619D81DB7BB@nvidia.com>
- <arT3K71l86fUVldk@gremlin>
- <CBD619D6-8717-4C81-B5EA-D1D0771BDA3A@nvidia.com>
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="Sk8lWO0N"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=kgThwECAiNS2DPqm/wMLoCoifUNlaCCvfair0LPA+ON6F1LnSNKcqvScuEy5j0bOS0qxLTTpSca5fja1dh4D11PySzWpEjzNyZDwFfPCwYAqNbixLLYKzN/tbeK8TcRbJQc5luWNZgxnoAHqGB1MLdl6BOMigTdevDsmYDSpczJqavG6urFYavHCwiHYR3p0ea9tIdyvM7IZOo87Wgd1z1dp5e5mWF0SwFJMmUHG+2WqDVGoBiHapRtTXjSrKTxbQxoy3VWyYV56Pv5Z+fdXx/7s01oYYmsZtquoCfqHlOhfslJcs/cdiznOuLTjry/Ew/+stEpiTFtiLC+fAmHsnw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=b5ocx78QHcOYUmuKdhr5eiY6gcsu22GoGkUtcYWEZho=;
+ b=M84S7nmy/1ReAwejhZ4XdLWl9SyrgF7sA8Vaf2q2Au2pe5Svodw3UxbgCieVAu8Jqz/8RSXDFn/BUo5QfOJMvT75Y/d7Os947omj0Lv3NrWX/fn1c5+fghHeo1iLi+7FwW5M79bqy4TMESyZaGGquFYqcQdeGW6cmCZfSS+ienwiiEP4qzLW6yWWmiwVkhdmcnIXnunxE/DmbK6kj270ezu6m942sPNxX72tH1at/Uwd0MHFPqN1Spw3GG1hHMgPRt9/A5PabWhGlA1XtGYJ6BAuIVIlXX4FgJBt6Erbxfb64KPqf7tYoI8ySWqwK4w9YazcWHsvD/19zdVSnx/a0Q==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=ziepe.ca smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=b5ocx78QHcOYUmuKdhr5eiY6gcsu22GoGkUtcYWEZho=;
+ b=Sk8lWO0Nm/Xk0M9rvW4481faAPdma4JSernxHxdGtZK8DlWjYjHD7jGUZx3a/Xzp1THuSO/VZgvjKz8iKIh2lP+0nOjSwEn/bYqIwOReEKexDhw92k7MTc3SQfmLEK+hTftd1cluBMGUoj1GTAOerppcvAdqt17I3QggOUReYDs=
+Received: from BY1P220CA0007.NAMP220.PROD.OUTLOOK.COM (2603:10b6:a03:59d::13)
+ by PHXPR12MB999256.namprd12.prod.outlook.com (2603:10b6:510:3ca::15) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.451.18; Fri, 25 Sep
+ 2026 09:37:00 +0000
+Received: from SJ1PEPF000023D9.namprd21.prod.outlook.com
+ (2603:10b6:a03:59d:cafe::6f) by BY1P220CA0007.outlook.office365.com
+ (2603:10b6:a03:59d::13) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.451.17 via Frontend Transport; Fri,
+ 25 Sep 2026 09:37:00 +0000
+X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
+ is 165.204.84.17) smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
+Received: from satlexmb07.amd.com (165.204.84.17) by
+ SJ1PEPF000023D9.mail.protection.outlook.com (10.167.244.74) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.472.5 via Frontend Transport; Fri, 25 Sep 2026 09:37:00 +0000
+Received: from Satlexmb09.amd.com (10.181.42.218) by satlexmb07.amd.com
+ (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Fri, 25 Sep
+ 2026 04:36:59 -0500
+Received: from satlexmb07.amd.com (10.181.42.216) by satlexmb09.amd.com
+ (10.181.42.218) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Fri, 25 Sep
+ 2026 04:36:59 -0500
+Received: from xhdipdslab46.xilinx.com (10.180.168.240) by satlexmb07.amd.com
+ (10.181.42.216) with Microsoft SMTP Server id 15.2.2562.49 via Frontend
+ Transport; Fri, 25 Sep 2026 04:36:57 -0500
+From: Abhijit Gangurde <abhijit.gangurde@amd.com>
+To: <jgg@ziepe.ca>, <leon@kernel.org>
+CC: <allen.hubbe@amd.com>, <nikhil.agarwal@amd.com>,
+	<linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>, "Abhijit
+ Gangurde" <abhijit.gangurde@amd.com>
+Subject: [PATCH 1/2] RDMA/ionic: Fix XArray initialization to use XArray flags
+Date: Fri, 25 Sep 2026 15:06:37 +0530
+Message-ID: <20260925093638.3032149-1-abhijit.gangurde@amd.com>
+X-Mailer: git-send-email 2.44.4
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CBD619D6-8717-4C81-B5EA-D1D0771BDA3A@nvidia.com>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SJ1PEPF000023D9:EE_|PHXPR12MB999256:EE_
+X-MS-Office365-Filtering-Correlation-Id: dd2371b1-dcf8-4a4c-22fc-08df1ae88c79
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|376014|82310400026|23010399003|36860700016|18002099003|10067099003|11063799006|56012099006;
+X-Microsoft-Antispam-Message-Info:
+	dmlE+BLOjQw2mT3tBf12qkyUBlHdwDlpVq4URQhf3tmHSiPO/4WtjFs7lMoVdDsjvmngNpk6ghMV/xt8XBTxnqf9SJgQHW2l/YgY4eTVCNXnXXn2cTy548E8kBgJ/AE0gMwJqAK8qjnMc+TtON0mjsm9rzqhWDp6wY9AAwyrOpJS9wQqjGxfIRG3NDmnc1HWe1i5jp0NtDGckUtnkaz/lxznq59f2War+45brThMQ86/zePLIKFjCwcl4YitIEaLTKe+RESEIGUGMLpT4urBFSnctHDhh78oUpKx0yRrdDsj2+YX2GNfjsViZOZ8Y4bzIxWmBlGyo19rViu+QLH3FLwLoZpeJw3jT766/VGqHGUKOiFJsmIQ09DlXWIYbCpfAhoGLoYxO4LohmCm5K5EutIspoT3047BkdJJA6pTblD/spg3Z9BSZgDBDz0fYz9gWarsODSqtB0F9Y4t68Lw/K8euXhysMYAGciFfukhH/CTZLdVEme3fEi8Z+lb5Ra88FGJhNiMJY247N9/iHC4whXmq8cM3BJUnUv31F6f32amZse7DnaI/fydmK2DSrDTnq+s8alji6nqEbyKJfF6bTZuwyn8UtF+ViYv6BmZ3cVynsndkI7hBmhrHQZTyDfJoq7fzC8+UXQ1p0wEjoywLYf56GPZGYerA7D7gT/Tq5qSN968LUxbuQSpOLII2T0lUokFHpI1jOFzGoLV3mXa5A==
+X-Forefront-Antispam-Report:
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(376014)(82310400026)(23010399003)(36860700016)(18002099003)(10067099003)(11063799006)(56012099006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	OgjYpApXTGQD175+UvwGEgm2vZGpMrvVPoGx6um/Ynf55xRH4eRK/sEd9WD00Z7Yaj4W4WdC8jiDORY3uKm1rIcZWT6gXJl38rT84hhRCFHjmTakjVLHKF1heXpXnhgBxhsWQspN5zLGGpHHrAIiymNc5Rh9qN7QWnIH/3cOVNGgaIQO77ROwJ9kOLmpCcpeqcrbgpEC13Na3TcLIZExRDsz8bbAKf0mnlyS8TtTC53eyTzKNVHyO64k4RlGh72HhbH2stxjvtVyo1XFuqIKCbQ5rJRralr0y6dcM4NXgi7QfMzVcVb2rE5F6dc85mhprkJGhN1N1ICgKrv6+KYkiGN5JFEihhfL0+d2TeNjExBUEmnwC/x6PTHclDEUxzv2jSnarqJFbn6c81CVmATvw4O541Wt3H3MKrWu4dHP+l9O7wBPXgf6Djsb+98bIKHC
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Sep 2026 09:37:00.0367
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: dd2371b1-dcf8-4a4c-22fc-08df1ae88c79
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	SJ1PEPF000023D9.namprd21.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PHXPR12MB999256
 
-On Thu, Sep 24, 2026 at 11:50:14AM -0400, Zi Yan wrote:
-> On 24 Sep 2026, at 6:21, Lorenzo Stoakes (ARM) wrote:
+xa_init_flags() takes XArray flags (XA_FLAGS_*), not gfp flags, even
+though the parameter is typed gfp_t. Passing GFP_ATOMIC leaves both
+lock-type bits clear, so xa_lock_type() resolves to XA_LOCK_NORMAL for
+qp_tbl and cq_tbl.
 
-> >>> diff --git a/mm/folio.c b/mm/folio.c
-> >>> index 47a437e0f7fd..35e242b48870 100644
-> >>> --- a/mm/folio.c
-> >>> +++ b/mm/folio.c
-> >>> @@ -505,7 +505,7 @@ void folio_add_lru_vma(struct folio *folio, struct vm_area_struct *vma)
-> >>>  {
-> >>>  	VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
-> >>>
-> >>> -	if (unlikely((vma->vm_flags & (VM_LOCKED | VM_SPECIAL)) == VM_LOCKED))
-> >>> +	if (vma_test(vma, VMA_LOCKED_BIT))
-> >>
-> >> I think it is worth documenting VMA_LOCKONFAULT_BIT alone means mlock in
-> >> progress, like you did in munlock_vma_folio(). Just to keep the protocol
-> >> explicit for all the readers.
-> >
-> > Well I'm not sure it's necessary here honestly, because this never checked
-> > VMA_LOCKED_MASK anyway, and VMA_LOCKONFAULT_BIT never made a difference.
-> >
-> > So the meaning of VMA_LOCKED_BIT here is strictly 'is it locked' and it's
-> > correctly handled.
-> >
-> > And I fear that it becomes whack-a-mole - the neat thing about this change is
-> > that you no longer have to special case the stupid VM_SPECIAL thing, and can in
-> > fact do the 'normal' thing of _just checking_ VMA_LOCKED_BIT :)
-> >
-> > So I think it's better not to.
->
-> Your reasoning makes sense to me.
+Both tables are used with the IRQ-safe accessors: xa_store_irq() with
+GFP_KERNEL from process context, and xa_lock_irqsave() from the event
+queue path. When a store needs to grow the tree, __xas_nomem() drops
+the lock using the recorded lock type before allocating:
 
-Thanks :)
+	if (gfpflags_allow_blocking(gfp)) {
+		xas_unlock_type(xas, lock_type);
+		xas->xa_alloc = kmem_cache_alloc_lru(...);
+		xas_lock_type(xas, lock_type);
+	}
 
-> >> Why I am commenting in the middle of the series? Because I am taking
-> >> a quiz given by LLM based on this series to get myself enough background
-> >> knowledge to review this series. This mlock part came up at part E
-> >> and I only have part F left before I can do the full review. :)
-> >
-> > Thanks! :) I really appreciate you taking the time to look at this! Sorry it's
-> > so large.
->
-> Sure. It is great learning material for me. Thank you for the patches.
+With XA_LOCK_NORMAL that is a plain spin_unlock(), so the sleeping
+GFP_KERNEL allocation runs with interrupts still disabled by
+xa_store_irq(), and lockdep annotates the lock with the wrong class.
 
-No worries, and sorry for the size of this change...! :)
+GFP_ATOMIC also happens to set __GFP_HIGH (0x20), which collides with
+XA_FLAGS_ACCOUNT (32U) and silently enables memcg accounting of the
+XArray nodes.
 
->
-> >
-> > I held this series back from last cycle to help with review load, then spent
-> > some time fixing various AI-discovered things, and all the patches are necessary
-> > (well for the most part) to get where the series needs to go.
-> >
-> > I think the change is worth it though!
->
-> Of course, great to see hacky code being removed by this series.
->
-> For this patch, feel free to add
->
-> Reviewed-by: Zi Yan <ziy@nvidia.com>
+Use XA_FLAGS_LOCK_IRQ so the lock type matches how the tables are
+actually accessed.
 
-Thanks :)
+Fixes: e8521822c733 ("RDMA/ionic: Register device ops for control path")
+Signed-off-by: Abhijit Gangurde <abhijit.gangurde@amd.com>
+---
+ drivers/infiniband/hw/ionic/ionic_ibdev.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
->
->
->
-> Best Regards,
-> Yan, Zi
+diff --git a/drivers/infiniband/hw/ionic/ionic_ibdev.c b/drivers/infiniband/hw/ionic/ionic_ibdev.c
+index cba7809ec3d9..fa79732c2f7d 100644
+--- a/drivers/infiniband/hw/ionic/ionic_ibdev.c
++++ b/drivers/infiniband/hw/ionic/ionic_ibdev.c
+@@ -320,8 +320,8 @@ static struct ionic_ibdev *ionic_create_ibdev(struct ionic_aux_dev *ionic_adev)
+ 
+ 	ionic_fill_lif_cfg(ionic_adev->lif, &dev->lif_cfg);
+ 
+-	xa_init_flags(&dev->qp_tbl, GFP_ATOMIC);
+-	xa_init_flags(&dev->cq_tbl, GFP_ATOMIC);
++	xa_init_flags(&dev->qp_tbl, XA_FLAGS_LOCK_IRQ);
++	xa_init_flags(&dev->cq_tbl, XA_FLAGS_LOCK_IRQ);
+ 
+ 	ionic_init_resids(dev);
+ 
+-- 
+2.43.0
 
---
-Cheers, Lorenzo
