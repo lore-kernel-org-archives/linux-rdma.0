@@ -1,212 +1,208 @@
-Received: from mail-qt1-f176.google.com (mail-qt1-f176.google.com [209.85.160.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from BN1PR04CU002.outbound.protection.outlook.com (mail-eastus2azon11010063.outbound.protection.outlook.com [52.101.56.63])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C60D344C51B
-	for <linux-rdma@vger.kernel.org>; Fri, 25 Sep 2026 07:29:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B97C4052B3;
+	Fri, 25 Sep 2026 07:33:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.56.63
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790321345; cv=pass; b=gSHu6un6b6xrEQ9J2rwhIuxGmDrB1ES/AySNIOjx/fOcTPXMqjpJh+JgnlgUhISe1OvyNeYTaZdkY8XKNW7lPHgiKA5YS4DCGMNGKTORmYBSrPaQVPDYlc0O1CmOtSkLtHKPu1o42XW0f5nN59XDRFhFkJe8DwVDp162afQKbBM=
+	t=1790321633; cv=fail; b=dMqmnlXZwqG/TpffsGpNbdyX0oFgvkQ4QasoRrBqORfvHyic93KO4dEYIoVegTE0GlyE8mHJE1KVveFKtOc9q1PF3gtiIullwSCljRWqGuss5YYhvrdaBTE8SeMk/oT15DNI6fgULldYz21vgGF/5PG/iupMxv2a8Z2nXxLeBOU=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790321345; c=relaxed/simple;
-	bh=jVgzSGCm8ywlcuZ7qh3DmkhvaTUxolTqjmx7km46hGw=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=njw8NEhl4LzLTYJpdo9DP2F+/PlbpggkySJQxoTTsG3ySzKrX9J2nOHLG+WvTy+Nbr6Ms8X0h+vMz1gUJsE5Z29uU4QCC3BNDXpCMFfgld7iA3n3SMIxsWjucB/eyw/sQzZQBfa9DVc8jRkJ7SnnQNszBdH/VNpM2yJP38Vwd/w=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=jD9s5J6B; arc=pass smtp.client-ip=209.85.160.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	s=arc-20240116; t=1790321633; c=relaxed/simple;
+	bh=U1RiXBWJU6rot4AxYsYRwtLDRIAMLm94D5bOupfilS0=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=eHQkSOs8d7wM38G+Vb6E3wNwSs2xzoPVZTzA2b6Ai8dD+nBTkIz9wSmWy2USOeKk9nS+Or/BzHfuqiwQsSxFTjDV+8/aTWMHvcJyTioGGqi4mOqPa+XXOyLRvFX7cCSDzqukrSz/HghwgMmN1rqwXeNL2iIRZ/LPY2x67gTSx5w=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=OKUSNnRp; arc=fail smtp.client-ip=52.101.56.63
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="jD9s5J6B"
-Received: by mail-qt1-f176.google.com with SMTP id d75a77b69052e-532e9ad9a1eso202351cf.0
-        for <linux-rdma@vger.kernel.org>; Fri, 25 Sep 2026 00:29:02 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1790321342; cv=none;
-        d=google.com; s=arc-20260327;
-        b=oBOqLD0mCBNx9SeFOQnh2WHxH9a9VcZ1e5OuhcZFlo4YIC8fyQWfz/kDb3PeNdEltU
-         6vctD7GcWSByt9HJjLFRng9IHib/8tVw3BhcuhNzeyLlaXDlv7t4E+cc0V79xHYbNSis
-         HX3zotXK9f2HOrGOVK0qppYfNvEHJM1AIszFTuckSf1PH4pR8AtgCus8AO+X1xIDv7E+
-         sQVghB432F9S27EVxGTgqc0PHWByV1hLIQrA2tiHuSTZZb8DpgtqodlQeHRWSvkq1azX
-         HWZMnczbFa8o2iKhUsSlivkRV/yv7epci8VrZVapCvIPSUEQyICyfA/Lj/SbyZdmW9Kc
-         6Osg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=QKlx39bvD+La1fyAAMePfYRq9L+0k8EzNqVplWKbJoQ=;
-        fh=/imlI0CFDQmnKrepac/rSiDNQcQY/0FnhVzgfu8r9Mw=;
-        b=fP/2HGcp/owbPi8X3rYbWSPJZ2Hzj9ehw6UyB/+lwKw3EocTxcrKajb5x53Ez5d9R/
-         1DKeFRrLjisXU8pJlklrMH3DpyhESfVJP+KANtHyrDrpp2NkPPQH9zRIxcJDJCLn9S0t
-         LKkIzEWBY6IV00wINON1AP0hrNozskgUqEF+eYHxwOcViluBcStK7j6wGVrqfdfVgUDf
-         P37wqGlBw2iiDDwSjls2ysPqF2SICZTqjS2vchvEmfjkwfEuZc94s505c7zWJ3eJHGhK
-         JTQEvTn6nbxczgyXBJvhkNZbGtNwbPDXyePtIDPMt2iHukotGrqEy4uwvVKd1uLig7fL
-         QDjw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1790321342; x=1790926142; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=QKlx39bvD+La1fyAAMePfYRq9L+0k8EzNqVplWKbJoQ=;
-        b=jD9s5J6BxLUpOD+WnjyHgcQqvyMWXtKd8JOlF8Wqc7YrVArqK3BEC29170xB4S3ZdA
-         5mH36URtK99mdnb7qjMWW9ASPxDIu+iiFZ/CSdaBcqKTlKoO3RdcRNxAlFCiBxkpg5Ll
-         5OP3lufYb5Wc/bmKdPC5bRSrxQOTz1XzF8KLKdMBm2Z/FaYNVuWkDpCr2iTsgdUlppYA
-         xVLDCzZTCpgtBnyn0TGzsYxarAsXKPeNbHClPsDS4ZHo9aNc6Fsst8fQmbYj3RKRrAzx
-         ShvTucutNkiNSDR7HvOmG84bvKdJ3EPHoOkbIRJqumaMQ+a6VVzAfM3mRCoFc0IJ3Aro
-         BzMQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790321342; x=1790926142;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=QKlx39bvD+La1fyAAMePfYRq9L+0k8EzNqVplWKbJoQ=;
-        b=H5X3lx+T/nwfITRya2i97UPN58WYZc8NSG9jigr4xqK5iFa27Ul4aH0/BkA2qtNAL8
-         1Y4y6Tj4VMSuEb82UmjqBWrB/BXZqHzVP5Y7oUbHc1F+JBotCnBH7KJCzuj/+LPiQsoB
-         29Xvd0QtX4xLCa0uDrBsNAQVMWwjubCoZ96pcpeR4IRWLgzNk4w88knlQNGalEehX/E0
-         PKKh2ireiIJASOHbBqHmWhRrJ+o5Hp4fy1f2oTPsKZBtL1ENWNsXMBUs4O2YrEKA/AiL
-         z/pQDiXYsrBz4xGAiIgxdaq9OtnVWW94T9XuZPVVApsmIUhRhgHMk8Qv9gy1tSkrl26d
-         oGLw==
-X-Forwarded-Encrypted: i=1; AKwUvBwv/HynlusZ2k9Thj6C0KPSG46fy7t2XQwNMuVp3iLc+A2+L1Vfkc2UkuIkO38A0BSTGFHbJ2JJ6OBU@vger.kernel.org
-X-Gm-Message-State: AFuF++mJ0NDT5D+1nsce3+IoOnutvQxg8SAKfP3QdCxKuKXfXf18KNiT
-	BohoHd0qOpXA+qTkdgBTdCpXtbkgty3TUdn38f7ijGMEJ3uHKXwPwW78Ij/ce3zTYJNyxgmXPZU
-	9KhwlYHOR4ShG/cXSYPU1k64uIP0jjwcDPJ5MILnM
-X-Gm-Gg: AYBFou3skLkEmb00nRpxPazw0uOeDAHoL9xQ7KOlBKugHstD+dWjaOgycs6h2lItOpi
-	5Rfhd0oeuZYChNdUrDJEKve5vcaLFewHC8igUddLktyUh+1XA8WQecfdtP3SY7vUVsr7/SnZkVz
-	96d5HUy79SpJosWgnwrlwzmP7iRXav6aCz5bdx8yiOS8EN8kTJIiV6LUSbPPlCUcc7M4vIYSGZL
-	3zhPkxMvXZtJMfjKr8AsJgrZaqlfTB9qoI/mdbdFXAJMdKgitfi09t81iUW7mxZlLvGSVw4PBNj
-	Gmcdhq3kwFHoWhImN8IRD9qnlBh28ZNdIs0iUZNz8S/1SVcISgAGIg==
-X-Received: by 2002:a05:622a:4c15:b0:531:d8:e437 with SMTP id
- d75a77b69052e-5330e1083a8mr8850471cf.7.1790321341004; Fri, 25 Sep 2026
- 00:29:01 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="OKUSNnRp"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=qnDPO0UtG6KiQ1VXzY2BqcEOP3K83Xy1kJeRHgS2+dGg5kFGMvwKLpGMcvNHCztzWnwdJf7zu8TXzglTU4vtO0JQXwMUgDQcWU9Ze7v1HZ9AqxWM2X34gSSxUl5PuGsIRKCZZ1bNjrKrLt5a1Q3Yk/O37EdnNmefJw37aDwa+EkwLRbpVa73Q5NisJcZIAsdSqFiRKxQf8PzKuGnHuZgDAzlMRDltCD92sCNGfpDdFdmdb2UzRSIVCaH9Ltlq1ONNLta5XAZRLyd7L/W7v5GKGd1i4ff51KvImZO4WQd7iMLLisFViCF497mgEeqTnxDOyptaW3Rhp+DJnPQvsS7BA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=X6ZnOSCY82e9/HdCeA3Idq9xX+qIdx5bpVXcJ/Meh44=;
+ b=ilIcK2dizloC4UuULWuZZSgGOW89Oqzb+7g2v1Fbpucm7qBwCDv/MP6NvWwlZWuvbTdTuVIcoiyd7BwunwxRA9StJOwXoSwnuRGQ201eYpjYQE7MwgacM84Yh0Q6atJ6/Iw3lBnFb86oESLhlCLJqDgBR/Xc6oHDJ1Bbuk4MQfrD99nmnJbq25iUoowH7/pqtrYHq4ta04ruFFSDvR/X4mf/RjI/Isuzo87N/0UgDSZ2IC/e3pEft7SukGpIPeCH12j8qwPz5RLKdq1KoA8V9MB1lgB3O2xYUQ8Nik5cFArev4CbncZc5+Xs6vCV9lCDMMXcar9VocDN28YYG9U3zA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=X6ZnOSCY82e9/HdCeA3Idq9xX+qIdx5bpVXcJ/Meh44=;
+ b=OKUSNnRpx+htpMbQkR9bgocbFnU6W/bJCVXfP47KTWFIaFxUm7HjIbyzTEt5FcdfvNT7vh6wYlXStydjX0bZHMpRxzKsZJ+C/wPONRRNPANcgMgCFo5wDbGzKKVC3KK52nS+QCpIqS2tndMwx8sdC2xvibi0LinPao0bXutjhBDHQYRld/uHY9NwF474dKKk0nuu/OvMUCQZh4EowCh5RfUKuUgFsgLl9EVjKW8MU2BoFXtVixpFrBEmVlezt6ly88jFPAuasEgS6gTKwMoW2xXQOSyRp7MdaB1j4KImZ7noia4hQ6cgxm7ZQignvf1jKSjsJGZ8GHXoadpTjQ5poQ==
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from SA0PR12MB4367.namprd12.prod.outlook.com (2603:10b6:806:94::13)
+ by CH2PR12MB4263.namprd12.prod.outlook.com (2603:10b6:610:a6::8) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.451.18; Fri, 25 Sep
+ 2026 07:33:44 +0000
+Received: from SA0PR12MB4367.namprd12.prod.outlook.com
+ ([fe80::2815:8a95:1a44:be1c]) by SA0PR12MB4367.namprd12.prod.outlook.com
+ ([fe80::2815:8a95:1a44:be1c%6]) with mapi id 15.21.0451.014; Fri, 25 Sep 2026
+ 07:33:44 +0000
+Message-ID: <40b93490-8d9d-4efd-bd4d-0c3a3eeaa869@nvidia.com>
+Date: Fri, 25 Sep 2026 10:33:38 +0300
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net v2] net/mlx5: Fix slab-out-of-bounds when handling
+ team device events
+To: Anirudh Virdi <avirdi@redhat.com>, netdev@vger.kernel.org
+Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com,
+ andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
+ kuba@kernel.org, pabeni@redhat.com, shayd@nvidia.com, ohartoov@nvidia.com,
+ maorg@nvidia.com, linux-rdma@vger.kernel.org
+References: <20260924064244.94045-1-avirdi@redhat.com>
+Content-Language: en-US
+From: Mark Bloch <mbloch@nvidia.com>
+In-Reply-To: <20260924064244.94045-1-avirdi@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: FR4P281CA0329.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:d10:eb::12) To SA0PR12MB4367.namprd12.prod.outlook.com
+ (2603:10b6:806:94::13)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-0-4583d8a23bca@kernel.org>
- <20260917-b4-mmap-prepare-vma-flag-sanify-v3-5-4583d8a23bca@kernel.org>
-In-Reply-To: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-5-4583d8a23bca@kernel.org>
-From: Suren Baghdasaryan <surenb@google.com>
-Date: Fri, 25 Sep 2026 00:28:49 -0700
-X-Gm-Features: AclHuK8wpU_boMBtoQ2BxSfl48UrjTg974xy2tCF5bv_vM_I_Kq5OyVf7aIl6LM
-Message-ID: <CAJuCfpF2U9rgHmhaDoXX1hxsuuS=s-oWK9Nk19TDQ6CLpjhFVA@mail.gmail.com>
-Subject: Re: [PATCH v3 05/40] mm/vma: ensure mmap_prepare doesn't set actions
- on a mergeable vma
-To: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, "Liam R. Howlett" <liam@infradead.org>, 
-	Vlastimil Babka <vbabka@kernel.org>, Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
-	David Hildenbrand <david@kernel.org>, Mike Rapoport <rppt@kernel.org>, Michal Hocko <mhocko@suse.com>, 
-	Jonathan Corbet <corbet@lwn.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
-	Leon Romanovsky <leon@kernel.org>, Paul Moore <paul@paul-moore.com>, 
-	Stephen Smalley <stephen.smalley.work@gmail.com>, Jaroslav Kysela <perex@perex.cz>, 
-	Takashi Iwai <tiwai@suse.com>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
-	Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>, 
-	Kumar Kartikeya Dwivedi <memxor@gmail.com>, Zi Yan <ziy@nvidia.com>, 
-	Baolin Wang <baolin.wang@linux.alibaba.com>, Nico Pache <nico.pache@linux.dev>, 
-	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
-	Lance Yang <lance.yang@linux.dev>, Usama Arif <usama.arif@linux.dev>, 
-	Kiryl Shutsemau <kas@kernel.org>, Doug Gilbert <dgilbert@interlog.com>, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, 
-	"Martin K. Petersen" <mkp@kernel.org>, Jaya Kumar <jayalk@intworks.biz>, Simona Vetter <simona@ffwll.ch>, 
-	Helge Deller <deller@gmx.de>, Sebastian Reichel <sre@kernel.org>, John Hubbard <jhubbard@nvidia.com>, 
-	Peter Xu <peterx@redhat.com>, Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
-	Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, 
-	Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
-	Arnaldo Carvalho de Melo <acme@kernel.org>, Namhyung Kim <namhyung@kernel.org>, 
-	Mark Rutland <mark.rutland@arm.com>, Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, 
-	Juri Lelli <juri.lelli@redhat.com>, Vincent Guittot <vincent.guittot@linaro.org>, 
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>, 
-	Thomas Zimmermann <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>, 
-	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, Nick Piggin <npiggin@gmail.com>, 
-	Arnd Bergmann <arnd@arndb.de>, Muchun Song <muchun.song@linux.dev>, 
-	Oscar Salvador <osalvador@suse.de>, "Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Marc Zyngier <maz@kernel.org>, Oliver Upton <oupton@kernel.org>, 
-	Catalin Marinas <catalin.marinas@arm.com>, Madhavan Srinivasan <maddy@linux.ibm.com>, 
-	Anup Patel <anup@brainfault.org>, Paul Walmsley <pjw@kernel.org>, 
-	Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
-	Christian Borntraeger <borntraeger@linux.ibm.com>, Janosch Frank <frankja@linux.ibm.com>, 
-	Claudio Imbrenda <imbrenda@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
-	Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Heiko Carstens <hca@linux.ibm.com>, 
-	Vasily Gorbik <gor@linux.ibm.com>, "David S. Miller" <davem@davemloft.net>, 
-	Andreas Larsson <andreas@gaisler.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
-	Christian Brauner <brauner@kernel.org>, Matthew Brost <matthew.brost@intel.com>, 
-	Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, 
-	Byungchul Park <byungchul@sk.com>, Gregory Price <gourry@gourry.net>, 
-	Ying Huang <ying.huang@linux.alibaba.com>, Alistair Popple <apopple@nvidia.com>, 
-	Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>, 
-	Kemeng Shi <shikemeng@huaweicloud.com>, Nhat Pham <nphamcs@gmail.com>, 
-	Baoquan He <baoquan.he@linux.dev>, Youngjun Park <youngjun.park@lge.com>, 
-	Johannes Weiner <hannes@cmpxchg.org>, Qi Zheng <qi.zheng@linux.dev>, 
-	Shakeel Butt <shakeel.butt@linux.dev>, Axel Rasmussen <axelrasmussen@google.com>, 
-	Yuanchu Xie <yuanchu@google.com>, Wei Xu <weixugc@google.com>, 
-	Chengming Zhou <chengming.zhou@linux.dev>, Michal Hocko <mhocko@kernel.org>, 
-	Miklos Szeredi <miklos@szeredi.hu>, Xu Xin <xu.xin@linux.dev>, linux-mm@kvack.org, 
-	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, 
-	linux-usb@vger.kernel.org, linux-rdma@vger.kernel.org, 
-	selinux@vger.kernel.org, linux-sound@vger.kernel.org, bpf@vger.kernel.org, 
-	linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org, 
-	dri-devel@lists.freedesktop.org, linux-trace-kernel@vger.kernel.org, 
-	linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org, 
-	kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org, 
-	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, 
-	fuse-devel@lists.linux.dev
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SA0PR12MB4367:EE_|CH2PR12MB4263:EE_
+X-MS-Office365-Filtering-Correlation-Id: 79bf46aa-d9f7-4230-732a-08df1ad7540c
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|366016|23010399003|376014|10067099003|11063799006|56012099006|22082099003|18002099003|6133799003;
+X-Microsoft-Antispam-Message-Info:
+	zKiVJSzY0YQUefgEuLxJO5eh80587rmdGlMOSyr8VIO/1/2dUw+cBDN4TlWolQ7gT0k6IYN17uAegEcFFrgIrrlVcbMUasElDwlLlxSXsyt+/NvCDNcMocHBducKzg5L8RyPa20sb7PTqb30Yz7ctK8NxOZiJVoR7BDqC4LINCqCDzTiOP3fOXOW9wmaaW3lpJ7O1SrFGdKC/R14riXJ4sEOlNDAsam7mKBWnwomVW1p2mDugSNhdMQyffceLJzg3w0tRtCa97934RuavgP3Bl5b9/ysiiDM9lKLAUZjq7wLkYgjJTJYksHXwKbCO+8UT+DgPgf586key9M4iHAKsPWzB5jjgnbc+cWOa/VYQ49XooA0mlBiiIIHvbWJ1dwdMYxPzzIoX1PwEsSYlioI2LbXa3Y2XQbxhUtAqbuNnhXxDun22KDPRCoFErLio4xyoqo1HN1OIU3X16SLRzjt4UmQadK+IOVkqdrkBPjyJollHZoyFKvGVsYawvwbY9Aee6QZGN+bEeXMgGl5q4HUrZrI4ftZwMuek3Q8+/BLAKLwpokwk4xAZE5vPVqiTl0dZPb5IZBsVGdThJDNFHAXhAUWsGMQ74LQDllCV1FadLUrutOQlnOwdR8UXMyJ8v3x/e287Qutv6vSYiUPPLVALf7+P37f8JshCW7RjIoXTg0=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA0PR12MB4367.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(23010399003)(376014)(10067099003)(11063799006)(56012099006)(22082099003)(18002099003)(6133799003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?RkxKaGs2aHBGMDBibEtKTmJtWFo2UDNXMHpKQUcxNCtxcHRBQnN4NUtUMFlB?=
+ =?utf-8?B?SXpCTU4rMmp1WHJSR1grT0VUZVVjNWNuTnNJMjZWM0FrVmtjNGV1VU1BUEkw?=
+ =?utf-8?B?ZjZnVUd4dHRHVzJoNnNjVFF1RXg2ekdTYytEVWVOWWlwNXZXSFVFNkVZQi94?=
+ =?utf-8?B?MC9LcjMySzNMTHNXSHVXdzJLdXFwRllPeE5MQmx4dlR0L2d0N3djTTM2Tksy?=
+ =?utf-8?B?NmlWL0JUK0w0RjJwbnVLcTdJYnphSkJnQ0JKd3RhUFBER1dGNENQYWdMK2V2?=
+ =?utf-8?B?UGxEUlQvZ2VHd1dnZzhxRU03eTdLcHlCb2ZDb0MzUVRydk4xRHo5eWlxZHR3?=
+ =?utf-8?B?RC9VbWJ4UHNvMGNIZUpWelRUVWJQbC90MCtRbVhRR2JmL3hyRm5YRUtuZlg0?=
+ =?utf-8?B?L3ZiMDl4b2JTRzRISkNSYlozZXpMcjZTbFZaSFhMWEw3T2lydHRUR1RaUENZ?=
+ =?utf-8?B?WnQvSnM2UGFrLzVIZnZZUWl0akdBeXgwdk10WWQ4Z3BCRnZiRUNYMmN2QmtY?=
+ =?utf-8?B?dlpBMFRKQW5LRzlXbEU5Z2VjcDhqRVl3NFR6aEtNM3AzaC8zSFZJSUJPL2t3?=
+ =?utf-8?B?TVVVanJzd0g2Qmw2YVpaVnpLalRFZUtTN05tUUJEczZ3cGZYQUVvUmpCa3NY?=
+ =?utf-8?B?Znh0RDBRVi9mcEdxSEQ5QVphZXRkNDFjNkhGUEMrdzNxRWowT1B4MFBLSjdP?=
+ =?utf-8?B?T1Ixa2tCOTF3OE1RZ3FuRGlmVW9naitYQ2ptYkRyNjYzSzAwTDdvV2tJUXZC?=
+ =?utf-8?B?V2NmKy9KUHBMYmRldEgyWFFORkVnK0s1VTUxSWF2VFJhcTBIeC9QM1ZyTktk?=
+ =?utf-8?B?Yys3a2FtOFRSTk5yT1RQMFF5Y2JPTExySjZXQUJVaFZqWTF6OWdiWnh5cWkr?=
+ =?utf-8?B?NFphZE01SVZqQU9jMG5LTXhxMTRUNGlwbFVPTDVIWWt6NkdpNXhMbDAyTStG?=
+ =?utf-8?B?UTZWTnA5dWY3MHFBdmRtSlpteVZEWlJ1WU8rT25nRmNDVkxtdlpmZ2tBWlZV?=
+ =?utf-8?B?L0ExSTRWTTdkR0ZXNUlFTXdKTWt2czZTbnEwdERwNGhlQnREMkIvM3c5RFpG?=
+ =?utf-8?B?OEZKUzBhUXNKZDNMMm4wUzNsSmZucnVsc2gvVUdpR1hTWWZXckgxOFBmMkQx?=
+ =?utf-8?B?akh2SHA5ZnM2clBhb2g3a1M0VlFoQWY1blBlY0NFdnkvRlMwTHhoK0gvVVNv?=
+ =?utf-8?B?Y3lrNVJtWkZpOHFoR2Y4aUdncjZsYXpzU3Q5L3pkaWhmVkdBb2Q0c2ovK1p6?=
+ =?utf-8?B?Vm9PaE9MZXNkcGk1UStaNG5LNDQxR3pkcFhFL0lERWIvTkZBQ0NUK29vVks4?=
+ =?utf-8?B?ZjAvRjN6eGtpdXdJOTdndHBSZ08wZVlVZDBFQ2RpU21mcXN0TWZ3a0xKQ2s0?=
+ =?utf-8?B?K2Uxbk4zTFlqMHFmV2UyZ210K1BYZmtVTjdMMzNrdnlqZjRFaVlWeW9LRHBW?=
+ =?utf-8?B?cmVGUW1kWCtRV0JaMTF3QnJ1MFRYSFRFTVNTUW1kbG1mUXpOVFUrM2tNZGlz?=
+ =?utf-8?B?dUFROUthN0ZuR1hNNGd3NTUwQkNiL1lNZi9ET3A2dUNJek1MdWxiNGx2b1ZF?=
+ =?utf-8?B?M3A3emdIRUVTemJKQnRtY2VaSnR3TWhHYlJURDZ6R3FmVFRieXpFR0tmZW53?=
+ =?utf-8?B?V0xYYi96c0NBeXV0RHljb2ZOK2RiVjBmYjkvWmg2UnAzbmh3c3ozcTFTdWY4?=
+ =?utf-8?B?VW9scnY5SCszL0VZRFljV2ZEdEVCVUlxNGtrMXQ2anJGZXdmdWwrdTJYOVBC?=
+ =?utf-8?B?dWpXQkJSMjJiUWFYWkV0aGR0ZzdJT3NsdDNsRGFoUnNkSkJqMzEyTVp1K1I0?=
+ =?utf-8?B?QWJpVitaeW5rSUFnNWZpK3NZUVFEQk0zSjU1bGVYMnFxcDVFckdDSSt2WWcv?=
+ =?utf-8?B?eUlJQ0ljQjlGYzZNNTNKUUJNUjlEMXEzK3ozZ0NLQ3UrRGY0d3VNaW9JR2Rz?=
+ =?utf-8?B?b3JtNng1bkRvNnBNQ0RjbnVUM0dhTTR0RjZRVUVyWFhXaEUwZWkvT3k4VDM2?=
+ =?utf-8?B?MEwvTmVvek5Hd3QxZlN1VDRlbzBIY0o5WUs4V3RPMWZqSVpMRkpnRnV4ck9w?=
+ =?utf-8?B?eUZoYm52UkxFSS9tVzlVZGh0U3dQZzhsNGF3WE8yZHBVRERzcDhjdmlLeU5j?=
+ =?utf-8?B?ZkV2THVqSDJXRlFhZVNDVExzdnJ6V2FXV2pJVDAvUGhwNjRiVUtpbHRHQUI1?=
+ =?utf-8?B?RjRGTmpETGxiK1ZaY1lpdG5IY3JtWlk2VTNrZmJSR2UyUVFRZWNEeVJzRkpy?=
+ =?utf-8?B?NnN6WEJLK2QrczZzd252L09XM1ArQW9sWlB5cURYWWs2eUYwQU5CS2gxNTBq?=
+ =?utf-8?B?Rkt4M3dtQ3E1VHlGdnc5anJOamVXKy81VlBaeHVIQUk2b3hnVlU3QT09?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 79bf46aa-d9f7-4230-732a-08df1ad7540c
+X-MS-Exchange-CrossTenant-AuthSource: SA0PR12MB4367.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Sep 2026 07:33:44.3388
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: urp+hCyY2zf88tZIBhTDWfW5Khh2YW2g/COvZYzf34V/YSZ1Fr41PrGkBDd4E+6ftVwqoh+1tVUvaBRQ5PbXqQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH2PR12MB4263
 
-On Thu, Sep 17, 2026 at 9:25=E2=80=AFAM Lorenzo Stoakes (ARM) <ljs@kernel.o=
-rg> wrote:
->
-> When a user requests an mmap_action be performed in mmap_prepare, this
-> involves populating the VMA range with data.
->
-> However, if the VMA is mergeable, it might then mistakenly be merged with
-> another VMA without having populated the range.
->
-> Every mmap action currently available sets VMA flags such that the VMA
-> cannot be merged.
->
-> However, to ensure that no future mmap action falls foul of this, assert
-> that this is the case upon mmap_prepare validation.
->
-> Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+
+On 24/09/2026 9:42, Anirudh Virdi wrote:
+> The mlx5_handle_changeupper_event() and mlx5_handle_changeinfodata_event()
+> functions check for LAG masters (which includes both bonding and team
+> devices) but only call bonding-specific APIs. When processing team device
+> events, calling bond_slave_get_rcu() and bond_is_slave_inactive() on
+> team_port structures causes KASAN to detect an out-of-bounds memory access
+> since team_port is smaller than bond slave.
+> 
+> Fix this by wrapping the bond-specific API calls with a check for bonding
+> devices. This allows the function to still process LAG events for both
+> bonding and teams but only calls bond-specific functions when dealing with
+> actual bonding devices.
+> 
+> For mlx5_handle_changeinfodata_event(), keep the explicit bond check as
+> mlx5 doesn't handle state information for team ports anyway.
+> 
+> Tested with Mellanox ConnectX-5 on Linux 7.2.0-rc6:
+> - Bonding: PASS (no regressions)
+> - Team device: PASS (no KASAN errors)
+> 
+> Fixes: 54493a08e21f ("net/mlx5: Lag, record inactive state of bond device")
+> Suggested-by: Mark Bloch <mbloch@nvidia.com>
+> Signed-off-by: Anirudh Virdi <avirdi@redhat.com>
+
+Thanks for the patch,
+
+Reviewed-by: Mark Bloch <mbloch@nvidia.com>
+
+Mark
 
 > ---
->  mm/vma.c | 9 +++++++++
->  1 file changed, 9 insertions(+)
->
-> diff --git a/mm/vma.c b/mm/vma.c
-> index d6ed10cefc8f..62f2ce1ad5a1 100644
-> --- a/mm/vma.c
-> +++ b/mm/vma.c
-> @@ -2809,6 +2809,15 @@ static int mmap_validate(unsigned long prev_start,=
- unsigned long prev_end,
->  int mmap_prepare_validate(const struct vm_area_desc *prev_desc,
->                           const struct vm_area_desc *desc)
->  {
-> +       /*
-> +        * It is not valid to execute mmap actions for VMAs which can be =
-merged,
-> +        * as any such merge would leave portions of the mapping incorrec=
-tly
-> +        * unmapped.
-> +        */
-> +       if (vma_flags_can_merge(&desc->vma_flags) &&
-> +           WARN_ON_ONCE(desc->action.type !=3D MMAP_NOTHING))
+> Changes in v2:
+> - Changed mlx5_handle_changeupper_event() to keep netif_is_lag_master() check
+>   instead of using netif_is_bond_master() at the start
+> - Wrapped bond-specific API calls (bond_slave_get_rcu, bond_is_slave_inactive)
+>   with an explicit netif_is_bond_master() check inside the loop
+> - This allows both bonding and team events to be processed, but only calls
+>   bond-specific functions for actual bonding devices
+> - Suggested-by: Mark Bloch <mbloch@nvidia.com>
+> - Tested on hardware to confirm both bonding and team devices work without KASAN errors
+> 
+>  drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c | 10 ++++++----
+>  1 file changed, 6 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+> index 28d16fdc3f06..1c4107d9a408 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+> @@ -1918,9 +1918,11 @@ static int mlx5_handle_changeupper_event(struct mlx5_lag *ldev,
+>  			}
+>  		}
+>  		if (i < MLX5_MAX_PORTS) {
+> -			slave = bond_slave_get_rcu(ndev_tmp);
+> -			if (slave)
+> -				has_inactive |= bond_is_slave_inactive(slave);
+> +			if (netif_is_bond_master(upper)) {
+> +				slave = bond_slave_get_rcu(ndev_tmp);
+> +				if (slave)
+> +					has_inactive |= bond_is_slave_inactive(slave);
+> +			}
+>  			bond_status |= (1 << idx);
+>  		}
+>  
+> @@ -2004,7 +2006,7 @@ static int mlx5_handle_changeinfodata_event(struct mlx5_lag *ldev,
+>  	bool has_inactive = 0;
+>  	int idx;
+>  
+> -	if (!netif_is_lag_master(ndev))
+> +	if (!netif_is_bond_master(ndev))
+>  		return 0;
+>  
+>  	rcu_read_lock();
 
-Any reason you chose this "if (A && WARN_ON_ONCE(B))" pattern instead
-of a simpler "if (WARN_ON_ONCE(A && B))"? Unless there are races
-between A and B updates, I think these would be equivalent, right?
-
-> +               return -EINVAL;
-> +
->         return mmap_validate(prev_desc->start, prev_desc->end,
->                              desc->start, desc->end,
->                              &prev_desc->vma_flags, &desc->vma_flags);
->
-> --
-> 2.55.0
->
