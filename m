@@ -1,61 +1,61 @@
 Received: from mail-dy2-f43.google.com (mail-dy2-f43.google.com [74.125.229.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E864F397339
-	for <linux-rdma@vger.kernel.org>; Sun, 27 Sep 2026 07:32:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B6C63C3C17
+	for <linux-rdma@vger.kernel.org>; Sun, 27 Sep 2026 07:45:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.229.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790494337; cv=none; b=s5t86QN7uoGjmQTSnDg/i4GYAQIeDiGZ//sjz6COfNIyTmixa+xmHNEGbCWi8cTtAWbG3YnYV2pB7vxdEYur7jcyU7F1qNBdL+JSnnzO6CXA3HZg0DJQQxVufiG4Ge3M+6sbgJ0qwjgxtBYewqAlUC4wOGLzCbL1Hdtd751R8hs=
+	t=1790495133; cv=none; b=HosNmwXRmpgOJYZ1CB40/Klw9SGpoRJtX52jUuPlujisNH1m8XtuD4ajWTWr3IPw5nGSrQ5baOPaO4XMc99T/mRaoRwVi0wiwq6P0BvdAE92c12z2fnqdbjqJalsdLjTkIePIdtJfB0+h/2MnMKyGBOlNS4MHbNOGQ0uhcx+c8M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790494337; c=relaxed/simple;
-	bh=nY8qGs46zgeEK17RWUhh5D/oORqRp0Zwjy2eAU1BJVY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=nOVrNM1/toRfQngHiuQGrV3fupEVNoUjR9B9aXkK04mZ7rWMDKr7dqNWfoQya30wU/xIc+3xgzeIiMwE6fIo26VOF4Z/AAg3Ge5I5pKl18jRIlaP/d48BlMQbFF6V+xjionOYsJEk2TVXyL9xTqdGffg9PbRVUKSQtY2mQWEXo8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AHv66hE+; arc=none smtp.client-ip=74.125.229.43
+	s=arc-20240116; t=1790495133; c=relaxed/simple;
+	bh=175TMyjXYbKvQv+2xfNx1pjOaF88OH/j/aBTVdwcliw=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=bCj2AXIvSGKq4ZcVEhLvY1DkNBcDbU8MCmjNnqcL1JkGBDmMQ0s3OWqMNs46/MVNROkYaBqIx6+XSaVW9AlYbPDpUCo9NE4Pu3El+S30VR8W9I4LBp+Yq+TiFBmUQyEZF+Ddgrp1HqjOX1AdY4xxfE1m+GuOd4QYP+TUjyktXRk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KJjKi2hc; arc=none smtp.client-ip=74.125.229.43
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AHv66hE+"
-Received: by mail-dy2-f43.google.com with SMTP id 5a478bee46e88-340f45daf45so204629eec.3
-        for <linux-rdma@vger.kernel.org>; Sun, 27 Sep 2026 00:32:13 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KJjKi2hc"
+Received: by mail-dy2-f43.google.com with SMTP id 5a478bee46e88-340d23b6a9eso141412eec.2
+        for <linux-rdma@vger.kernel.org>; Sun, 27 Sep 2026 00:45:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790494332; x=1791099132; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1790495130; x=1791099930; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=gCHlGAQUPQqUwMiZODOWYGN6xif3TdPxiD76nVrz+oA=;
-        b=AHv66hE+453a1o7CCAhJdKZZzPPjIciAqAg0DNN9j5vvISW63i8NiBAdyleUetCeF0
-         EWN0bO5YGoTsQlT+cWBlPqy1J4qcxIL9ClgcpRRL6k/uowZ72xM/Q7MYg90ZYbX74A2t
-         pJWKQ6/+1ZKnbQMQNzRpnprnEfzGvN4F3hLNQHUJW0+l5/Ua/PbDDy1JqPdOx/A6t7V9
-         xYeb5wKsNzcrGjdTShWBNirv0AMsR8oqjKpKa6xyG7rvg+GyEB/VWKru4nIJK53QP4yG
-         fkRE1JUSqpcyUXgNNL0JMAKBlqm9qirduMLe/x5i7NszncNakSLS6ucuejuz474lZliu
-         As4w==
+        bh=+hTRes37Q2KgbwIZUkJQo8Y6gN/vVSdb39+kLswqOgc=;
+        b=KJjKi2hcUjp+HPt/aMlZyADyc5W8ychzP9wLrTPZDUXJyAaIi0dHqMc2rMoK5Ohj3f
+         bH2/SeIx93AwLowcMlf2v5a5Md54DclHHHgI0uNI64snrgjoTFSkDsFak9Gk26+Jm///
+         cKWj5FTuXSEsu1+CjksL4+7R/UwP5Vi5S0ZHVyWg0pnNZEkFpeg2hO/qghcTOS2wy5ZZ
+         AEPqN9aCwsRmPwl3azusCSu7+wI7PW6NOiuiq8JFXEwQr/kWX5jq01Xbd9WSb8V37Zwx
+         0r6L95cSHKhGRwIs87gaZ+FuQ8GvfqobKV9uoBHvbHpuipIzzZfh7OsnVdp06Nck0SB5
+         stnA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790494332; x=1791099132;
+        d=1e100.net; s=20260707; t=1790495130; x=1791099930;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=gCHlGAQUPQqUwMiZODOWYGN6xif3TdPxiD76nVrz+oA=;
-        b=XqheAicSvMU1CXhf4E6vUsngYQVRrxqWh6dbgAMmAA4r6/VjoKJ0/HWXiY8Hqe2Oe7
-         buO4jvAMpUGq+Pec5KrCLcQgjbdy/hGtZOe5KOR8qGfqiVYY0q9EkzSJw6j+8Lns3Vzh
-         6DzS5M2QINNuvKoJExyR0BsBZAAlEI+tVoE/tex36rYcPfXYbIibnnoOvNsK0wNPW7oh
-         ADcBrhJXX3Xa1BQStXx6ZtId4o8xRrIIsuh/sY2a7kaHIf1lrmD+6H1GVo2KNHYd8qSh
-         zUSGnj10i337yn4lul9IZv4+GI8fH5bnOAXF2fgMyEI9vcdlTHQeWCepJtGJFs7feEJE
-         HqBg==
-X-Gm-Message-State: AFq9FYJJFpevNpFIkjBrxWWy9V0H65NXSqh8dPBmMlMooklHvXSlSijh
-	+3eZwt9oLyFSGNhJhoxtVnvKvtmsw0hnyS7WdPTdtM2uDlWqJIF3g5PN
-X-Gm-Gg: AYBFou0OwAU0D5hYYfCNQmmvI+v6qK4P6orxWXt5p7xWqTjYth8iHAvXYFm+wtHs12A
-	IwjIkHO+tc96FgF8a/Yomq8YKzfpJzGsX6HxTpeq2qGX7hWLcxvxqOAAPxKQc0W46dpqX5Mm16z
-	mcBHbABQtMS52FEPULvcI/xiIeKS1qb1vZf4f202+RBBxZ6x6fdYW8MdFEH1K0FqbtiGseFyy0N
-	eO6lzrGHOSkOs3Jvk/sTVRmTeJ6ht7qsCEh4ET2G47XK7HPHkrbFxX+Bhu+9j7gjdQtgzXzLBYa
-	ESpnEAZ0zpCvMCwyGTc0iNbNsfAlzO8DZzI5bg1wH5avSlvfCIdHbajDjsWD9hlM0IGqlPf+QdS
-	VcnUqKxdXLhT0/ZziV3eAd8xgtcgKa9vYMTfmL6E+8cCVuSVwD9Yr2kVhPbUcOqPY+d3RjEUY7/
-	EhMKkqSJf+vTK6yIiOzIfGumqSasFiYm1a/Qs758yYfp+CG7mXrzysdqX9NlpRzXM9MXXsJLY2r
-	xa3dkgI4CdfcAf3ojQMgce5642NfLK7rqoFJhPfLtwLfIxkAzaQ27woMTebHuAtPtsnQA==
-X-Received: by 2002:a05:7301:b0e:b0:33f:3750:4e22 with SMTP id 5a478bee46e88-3426cce6521mr7959749eec.0.1790494331059;
-        Sun, 27 Sep 2026 00:32:11 -0700 (PDT)
+        bh=+hTRes37Q2KgbwIZUkJQo8Y6gN/vVSdb39+kLswqOgc=;
+        b=Ljp2ZjEQqZlEddT9uqVJVOcv2wpwdX0uJg9brRY60RjSzYnzPjn5aWmLZTAJeKcQ/Y
+         X2O2oyR81fHaoFSgME6AaVk4euk/KfoNxhFkFbdeYYXqVJIturdQlvL52SkjzvOCAthd
+         qLRk+dUG1GQbY+beEUl91cjx+/wkogc2VhByhhXiHNmBs/JNoIVX9PQsD4X7J++XTLJi
+         fSeAV6ZBxCZvXRbgsyRF9ZHp8FmLfQGz12zXyhSRJ7RSVl5mse3cQegnycjKtMnVcxte
+         /OdlFmUJJNB6IfTEpKL9bLKLgxGnN+6BWnqNNc4EYmOa4Ll2wb42o8N0S2BIqdLx3hOx
+         euXg==
+X-Gm-Message-State: AFq9FYL+AE26rVbXdwmVCUPB30MKrw8BsB5GNyAId0zapYeutgvz0h5w
+	zRyFqO6GhhWoz5K+GHOPC0WlEOyqQFAo8ANfVHiyBJHxAcyjYNOCxsar
+X-Gm-Gg: AYBFou1FYSex2Mv0U/DBrBj9ckrnYGvGbT7zPlJDEtPQfNbyqSU4gMni76/oJ1mG06P
+	/MuzDGM+9t6IDf40dH9mb5kjiB7aAg893mZOeAiBo5MzoOtURMQSF3Wygic9+AES6eMEgn7zdR/
+	ZSRKwc/wdlcZrQdfSHcCYqceAjSxjvWg0/ZKaqhrQpGqJJ9gIW1ZwLjLioxLVGf25wL2Eq4wNul
+	bN9BuPg5qCqAVGnkMai3dsqcvergntRMnAJdTsaZhM+bFO4gaeB3WUBYok9FOfOQkXkLdnXaQAF
+	Hgj8c4SpmEl2dyiXik0WZyj9IQ3QnSA7pjJZ/b2m9ggPWOLqOqfJWI5d7OPpj6fpUlIQhX/VfWL
+	Iuu2PJAS8HJwZEsyNuvGmEkWsNmKeyo//ReR6suGiG8jUxOQMWKhs6+hrGay6BEPDzQgVRcOame
+	kOBuV6tBeglmxd/mwr4uX9TH34YN/mv8yiR2Jjup/wTT8Dc8BkD8c+L518d6fc/ivze/Ft5EehV
+	PV2hUNBgehvllhZumJxQyqoqt4lCKQm9LaDUinZWq6vUGck51qRWxSSbspUxKEPg3s/oA==
+X-Received: by 2002:a05:693c:2589:b0:340:f698:fd56 with SMTP id 5a478bee46e88-34273249209mr8814184eec.2.1790495129005;
+        Sun, 27 Sep 2026 00:45:29 -0700 (PDT)
 Received: from localhost.localdomain (95.169.12.199.16clouds.com. [95.169.12.199])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3433628f5basm10705821eec.18.2026.09.27.00.32.06
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-34145727589sm19752996eec.23.2026.09.27.00.45.24
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 27 Sep 2026 00:32:10 -0700 (PDT)
+        Sun, 27 Sep 2026 00:45:28 -0700 (PDT)
 From: Chengfeng Ye <nicoyip.dev@gmail.com>
 To: "D. Wythe" <alibuda@linux.alibaba.com>,
 	Dust Li <dust.li@linux.alibaba.com>,
@@ -68,16 +68,17 @@ To: "D. Wythe" <alibuda@linux.alibaba.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	Paolo Abeni <pabeni@redhat.com>,
 	Simon Horman <horms@kernel.org>,
-	Wenjia Zhang <wenjia@linux.ibm.com>
+	Karsten Graul <kgraul@linux.ibm.com>,
+	Ursula Braun <ubraun@linux.ibm.com>
 Cc: linux-rdma@vger.kernel.org,
 	linux-s390@vger.kernel.org,
 	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Chengfeng Ye <nicoyip.dev@gmail.com>,
 	stable@vger.kernel.org
-Subject: [PATCH net] net/smc: serialize sndbuf descriptor release with diagnostic dumps
-Date: Sun, 27 Sep 2026 15:32:03 +0800
-Message-ID: <20260927073203.3694279-1-nicoyip.dev@gmail.com>
+Subject: [PATCH net] net/smc: serialize link group free work scheduling
+Date: Sun, 27 Sep 2026 15:45:20 +0800
+Message-ID: <20260927074520.3694663-1-nicoyip.dev@gmail.com>
 X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -87,70 +88,71 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-An SMC-D connection can remain in the socket hash while smc_conn_kill()
-tears it down. For devices supporting DMB nocopy, smcd_buf_detach() frees
-the send buffer descriptor without taking the hash lock held by the
-diagnostic reader.
+smc_lgr_schedule_free_work() checks lgr->freeing without the link group
+list lock held by the teardown paths. A concurrent smc_lgr_free_work()
+can set freeing and cancel the delayed work between that check and
+mod_delayed_work(), leaving a timer pending on a freed link group:
 
-__smc_diag_dump() can load a non-NULL conn->sndbuf_desc, then a concurrent
-smc_conn_kill() can clear the pointer and free the descriptor before the
-dump reads its len field. The socket lock held by the teardown path does
-not exclude the dump, and clearing the pointer before freeing it does
-not protect a reader that has already loaded it.
+  CPU 0 (smc_conn_free)            CPU 1 (smc_lgr_free_work)
+  observe lgr->freeing == 0
+                                  set lgr->freeing under lgr_lock
+                                  cancel_delayed_work()
+                                  smc_lgr_free(): drop lgr reference
+  mod_delayed_work()
+  smc_lgr_put(): drop last reference and free lgr
 
+When the timer expires, the timer core accesses the freed memory.
 KASAN reported:
 
-  BUG: KASAN: slab-use-after-free in __smc_diag_dump.constprop.0+0x2477/0x2b10
+  BUG: KASAN: use-after-free in __run_timers+0x86d/0x8d0
+  Write of size 8 at addr ffff8881186902a8 by task swapper/2/0
   Call Trace:
-   __smc_diag_dump.constprop.0+0x2477/0x2b10
-   smc_diag_dump_proto+0x266/0x390
-   smc_diag_dump+0x20/0x70
-   netlink_dump+0x489/0x1140
-  Allocated by task 70:
-   smcd_buf_attach+0x11b/0x310
-   smc_listen_work+0x2a62/0x4cf0
-  Freed by task 98:
-   kfree+0x131/0x3c0
-   smcd_buf_detach+0x120/0x280
-   smc_conn_kill+0x487/0x720
-   __smc_lgr_terminate.part.0+0x231/0x430
-   smc_smcd_terminate_all+0x2cf/0x610
+   <IRQ>
+   __run_timers+0x86d/0x8d0
+   timer_expire_remote+0xd3/0x120
+   tmigr_handle_remote_up+0x4f4/0xab0
+   __walk_groups_from+0x40/0x150
+   tmigr_handle_remote+0x229/0x2c0
+   run_timer_softirq+0x1f5/0x250
+   handle_softirqs+0x18d/0x5b0
+   </IRQ>
 
-Take the hash write lock when removing the descriptor from the
-connection. This waits for dumps holding the old pointer and prevents
-new dumps from seeing it. Free the descriptor after dropping the lock.
+Hold the existing link group list lock across the freeing check and
+mod_delayed_work(). Rearming then either precedes the freeing transition
+and is caught by the subsequent cancellation, or sees freeing set and
+is skipped. smc_conn_free() retains its link group reference until after
+scheduling, keeping the group alive while acquiring the lock.
 
-Fixes: ae2be35cbed2 ("net/smc: {at|de}tach sndbuf to peer DMB if supported")
+Fixes: 8e316b9e7260 ("net/smc: improve link group freeing")
 Cc: stable@vger.kernel.org
 Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
 ---
- net/smc/smc_core.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ net/smc/smc_core.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
 diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-index 9974149659c2..f32fc1bd5bc8 100644
+index 9974149659c2..8feb486ada56 100644
 --- a/net/smc/smc_core.c
 +++ b/net/smc/smc_core.c
-@@ -1207,6 +1207,8 @@ static void smcr_buf_unuse(struct smc_buf_desc *buf_desc, bool is_rmb,
+@@ -80,6 +80,10 @@ static void smc_ibdev_cnt_dec(struct smc_link *lnk)
  
- static void smcd_buf_detach(struct smc_connection *conn)
+ static void smc_lgr_schedule_free_work(struct smc_link_group *lgr)
  {
-+	struct smc_sock *smc = container_of(conn, struct smc_sock, conn);
-+	struct smc_hashinfo *h = smc->sk.sk_prot->h.smc_hash;
- 	struct smcd_dev *smcd = conn->lgr->smcd;
- 	u64 peer_token = conn->peer_token;
- 	struct smc_buf_desc *buf_desc;
-@@ -1216,8 +1218,10 @@ static void smcd_buf_detach(struct smc_connection *conn)
- 
- 	smc_ism_detach_dmb(smcd, peer_token);
- 
-+	write_lock_bh(&h->lock);
- 	buf_desc = conn->sndbuf_desc;
- 	conn->sndbuf_desc = NULL;
-+	write_unlock_bh(&h->lock);
- 	kfree(buf_desc);
++	spinlock_t *lgr_lock; /* protects lgr->freeing */
++
++	smc_lgr_list_head(lgr, &lgr_lock);
++	spin_lock_bh(lgr_lock);
+ 	/* client link group creation always follows the server link group
+ 	 * creation. For client use a somewhat higher removal delay time,
+ 	 * otherwise there is a risk of out-of-sync link groups.
+@@ -90,6 +94,7 @@ static void smc_lgr_schedule_free_work(struct smc_link_group *lgr)
+ 						SMC_LGR_FREE_DELAY_CLNT :
+ 						SMC_LGR_FREE_DELAY_SERV);
+ 	}
++	spin_unlock_bh(lgr_lock);
  }
  
+ /* Register connection's alert token in our lookup structure.
 -- 
 2.43.0
 
