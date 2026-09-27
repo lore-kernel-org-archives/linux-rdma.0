@@ -1,61 +1,62 @@
-Received: from mail-dy2-f43.google.com (mail-dy2-f43.google.com [74.125.229.43])
+Received: from mail-dy2-f42.google.com (mail-dy2-f42.google.com [74.125.229.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B6C63C3C17
-	for <linux-rdma@vger.kernel.org>; Sun, 27 Sep 2026 07:45:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.229.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE2B23C3BE0
+	for <linux-rdma@vger.kernel.org>; Sun, 27 Sep 2026 07:45:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.229.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790495133; cv=none; b=HosNmwXRmpgOJYZ1CB40/Klw9SGpoRJtX52jUuPlujisNH1m8XtuD4ajWTWr3IPw5nGSrQ5baOPaO4XMc99T/mRaoRwVi0wiwq6P0BvdAE92c12z2fnqdbjqJalsdLjTkIePIdtJfB0+h/2MnMKyGBOlNS4MHbNOGQ0uhcx+c8M=
+	t=1790495158; cv=none; b=C6kdqcsMIUDkPi/ecNae4+XJIRe0MDwQ6dMrhb59aMSkYNZGtENCVFBEyTB+tpqJBcjitdfouAvVPVkoYuTca+vj+W68I13lPqDAe8k6e5Yhy0O1HZzlkjIwmdayfdJzSkehnjUypYxV4Ax/TlhBhhd8KpIzKcTUZFgB8jq4MiQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790495133; c=relaxed/simple;
-	bh=175TMyjXYbKvQv+2xfNx1pjOaF88OH/j/aBTVdwcliw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=bCj2AXIvSGKq4ZcVEhLvY1DkNBcDbU8MCmjNnqcL1JkGBDmMQ0s3OWqMNs46/MVNROkYaBqIx6+XSaVW9AlYbPDpUCo9NE4Pu3El+S30VR8W9I4LBp+Yq+TiFBmUQyEZF+Ddgrp1HqjOX1AdY4xxfE1m+GuOd4QYP+TUjyktXRk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KJjKi2hc; arc=none smtp.client-ip=74.125.229.43
+	s=arc-20240116; t=1790495158; c=relaxed/simple;
+	bh=mOrp6IPpJz5ZZROAj3Iql3ESnh8Md7fCHDF3PGCEI0g=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=kuY/4tUrC6JaJfcPaoP+WJQHCHhX8x8iVrgFx28KYym2BBhHJAMw7jl0guaA6X/OYyWyRSgrqgolQH38SK3hYwEhsZGyFMP9pyWZNejMA7men5B3Lo+2AiF7UFgbDy9WGVcnh4GOylJpHfcDsue0ZTXzZbLIDC3AMx7uijgyEJQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=UvsUWUf3; arc=none smtp.client-ip=74.125.229.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KJjKi2hc"
-Received: by mail-dy2-f43.google.com with SMTP id 5a478bee46e88-340d23b6a9eso141412eec.2
-        for <linux-rdma@vger.kernel.org>; Sun, 27 Sep 2026 00:45:30 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UvsUWUf3"
+Received: by mail-dy2-f42.google.com with SMTP id 5a478bee46e88-3427977d677so146358eec.0
+        for <linux-rdma@vger.kernel.org>; Sun, 27 Sep 2026 00:45:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790495130; x=1791099930; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1790495156; x=1791099956; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=+hTRes37Q2KgbwIZUkJQo8Y6gN/vVSdb39+kLswqOgc=;
-        b=KJjKi2hcUjp+HPt/aMlZyADyc5W8ychzP9wLrTPZDUXJyAaIi0dHqMc2rMoK5Ohj3f
-         bH2/SeIx93AwLowcMlf2v5a5Md54DclHHHgI0uNI64snrgjoTFSkDsFak9Gk26+Jm///
-         cKWj5FTuXSEsu1+CjksL4+7R/UwP5Vi5S0ZHVyWg0pnNZEkFpeg2hO/qghcTOS2wy5ZZ
-         AEPqN9aCwsRmPwl3azusCSu7+wI7PW6NOiuiq8JFXEwQr/kWX5jq01Xbd9WSb8V37Zwx
-         0r6L95cSHKhGRwIs87gaZ+FuQ8GvfqobKV9uoBHvbHpuipIzzZfh7OsnVdp06Nck0SB5
-         stnA==
+        bh=cJAzxgjLnHgIeW9gGXT3PZ4JfVayI07h54Pz46uXNhQ=;
+        b=UvsUWUf3QgFZJwyjitEFjDrj7eYKSSQwOZylhYSBUqQjtUP7cCpYVS9YTrZVbo7mOg
+         NEZ4V0rzFDp00DTlCvrXiBrGfrD4/fuvvDdlQjXJCTm2h+KamP66ZATQrcHXZq8kOBsq
+         sT7S1UYy/89ayO2XBo5oCqeOW2UY0CJtE6N1UxPL62edQ7nZscnec3JZZYMAbOrnOI0J
+         S7ASbVu4LaKI7myqOTC92uxCIpacqosigmz3ggtLMOBdLnEbRPj7vixfNdnjSYCiCxig
+         rl8qSDdDhWE6pSPhSxv+DFViRQwxN4TS3QVykPyCvmURhOICmMVQvY7W+pBz8FUPMInd
+         WwLw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790495130; x=1791099930;
+        d=1e100.net; s=20260707; t=1790495156; x=1791099956;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=+hTRes37Q2KgbwIZUkJQo8Y6gN/vVSdb39+kLswqOgc=;
-        b=Ljp2ZjEQqZlEddT9uqVJVOcv2wpwdX0uJg9brRY60RjSzYnzPjn5aWmLZTAJeKcQ/Y
-         X2O2oyR81fHaoFSgME6AaVk4euk/KfoNxhFkFbdeYYXqVJIturdQlvL52SkjzvOCAthd
-         qLRk+dUG1GQbY+beEUl91cjx+/wkogc2VhByhhXiHNmBs/JNoIVX9PQsD4X7J++XTLJi
-         fSeAV6ZBxCZvXRbgsyRF9ZHp8FmLfQGz12zXyhSRJ7RSVl5mse3cQegnycjKtMnVcxte
-         /OdlFmUJJNB6IfTEpKL9bLKLgxGnN+6BWnqNNc4EYmOa4Ll2wb42o8N0S2BIqdLx3hOx
-         euXg==
-X-Gm-Message-State: AFq9FYL+AE26rVbXdwmVCUPB30MKrw8BsB5GNyAId0zapYeutgvz0h5w
-	zRyFqO6GhhWoz5K+GHOPC0WlEOyqQFAo8ANfVHiyBJHxAcyjYNOCxsar
-X-Gm-Gg: AYBFou1FYSex2Mv0U/DBrBj9ckrnYGvGbT7zPlJDEtPQfNbyqSU4gMni76/oJ1mG06P
-	/MuzDGM+9t6IDf40dH9mb5kjiB7aAg893mZOeAiBo5MzoOtURMQSF3Wygic9+AES6eMEgn7zdR/
-	ZSRKwc/wdlcZrQdfSHcCYqceAjSxjvWg0/ZKaqhrQpGqJJ9gIW1ZwLjLioxLVGf25wL2Eq4wNul
-	bN9BuPg5qCqAVGnkMai3dsqcvergntRMnAJdTsaZhM+bFO4gaeB3WUBYok9FOfOQkXkLdnXaQAF
-	Hgj8c4SpmEl2dyiXik0WZyj9IQ3QnSA7pjJZ/b2m9ggPWOLqOqfJWI5d7OPpj6fpUlIQhX/VfWL
-	Iuu2PJAS8HJwZEsyNuvGmEkWsNmKeyo//ReR6suGiG8jUxOQMWKhs6+hrGay6BEPDzQgVRcOame
-	kOBuV6tBeglmxd/mwr4uX9TH34YN/mv8yiR2Jjup/wTT8Dc8BkD8c+L518d6fc/ivze/Ft5EehV
-	PV2hUNBgehvllhZumJxQyqoqt4lCKQm9LaDUinZWq6vUGck51qRWxSSbspUxKEPg3s/oA==
-X-Received: by 2002:a05:693c:2589:b0:340:f698:fd56 with SMTP id 5a478bee46e88-34273249209mr8814184eec.2.1790495129005;
-        Sun, 27 Sep 2026 00:45:29 -0700 (PDT)
+        bh=cJAzxgjLnHgIeW9gGXT3PZ4JfVayI07h54Pz46uXNhQ=;
+        b=IAyB566KpP3wcojJa6BHgPk646FCqIxHjZFW7P4CXYq2PlIZW/9ypCWHMaCc+/mCsj
+         HDFtXT/UVGG2cD7DrQK9s1JpIIu0BphTPWiWS4gtUwm31pGWgXilzOgB8hPomA02+LKR
+         oPKTVuX0xeoq5HMkmDAv4wG48BOOv42BLEdgDUJ+IOdHKF3wDtCJoMottbok5c5y2J5P
+         75jC9zhC36EJHmetfdUrL8RuEcsnmorX6PkmkxHQ6pAppumNR6JaNTBCNVILp9Ynmeuo
+         HDP+OV9MGP9X/ztbTukAswPg2Onjk8EhdNctf+Z4fLetKOQnsEZ4c2oyHiKT52qbovpo
+         4qHA==
+X-Gm-Message-State: AFq9FYJ6lSgAYMGeMNsUwBZIhXSYzw9fJL5o1bghH/NRZY6BdnBrqZAB
+	YTAALk4cQi7XAfliS0Pefw9Tcx+g5JfMw7QLdImp5XlJ1fz/O9HwaHZD
+X-Gm-Gg: AYBFou32xFbbOwqjL3L7TPOeys43gqfrRdvzJHuNyx2dZD7gYLh/Bx8BGkIC3tY2wCO
+	6Fk15HssA1UCYvQHYCH/MLcjVrghDupXNE72cIlXvOSrbhLfUa2RU/9xIuMFtAs0dEUketT+5It
+	zmaJKvM97fVIUOAmXIXSaMMQIcvbri/Ts9sEhSB6US2XSFo0bCL7zaODbiebr6u5l4s9Q6t6uZW
+	0AnWCYZsY6c8pH1HNeRFWdi065neYEfLFGf+U30GKMGAi1aLK13AJKdVl5r11Cwj6Bi6MXdJErS
+	t58s355v2eT41eRYrmXTxf4vfZ04P7nkk5gV2AGWFJR/v6ji5QRrbctTJr37YOBfCig8upzapyU
+	JC2h46FzgVDa24cqpkvIZP+Ml3rJeB5x6bqAO1aNcs+ybE5aofP+kq3+heG9vFiHa0PbWl3+dkl
+	1Lm8DUIq4gp46Xf5edwiC77Jfd+wCSYueDwE8FOesTa6ubK8U+HwV1JU4fBMxlttjzatJVlr74V
+	hitnbjsNfXzGCmmvagmyW9sEnmEgXBpBPRxEx2yNKYgLFkE6pHVcbsaqMDGTajvWQtIrnkE90va
+	lFIe
+X-Received: by 2002:a05:7301:540e:b0:33c:1bd2:1db6 with SMTP id 5a478bee46e88-3426d0df371mr8389965eec.0.1790495155628;
+        Sun, 27 Sep 2026 00:45:55 -0700 (PDT)
 Received: from localhost.localdomain (95.169.12.199.16clouds.com. [95.169.12.199])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-34145727589sm19752996eec.23.2026.09.27.00.45.24
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-34571658054sm1941791eec.8.2026.09.27.00.45.50
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 27 Sep 2026 00:45:28 -0700 (PDT)
+        Sun, 27 Sep 2026 00:45:54 -0700 (PDT)
 From: Chengfeng Ye <nicoyip.dev@gmail.com>
 To: "D. Wythe" <alibuda@linux.alibaba.com>,
 	Dust Li <dust.li@linux.alibaba.com>,
@@ -76,9 +77,9 @@ Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Chengfeng Ye <nicoyip.dev@gmail.com>,
 	stable@vger.kernel.org
-Subject: [PATCH net] net/smc: serialize link group free work scheduling
-Date: Sun, 27 Sep 2026 15:45:20 +0800
-Message-ID: <20260927074520.3694663-1-nicoyip.dev@gmail.com>
+Subject: [PATCH net] net/smc: Serialize link activation with teardown
+Date: Sun, 27 Sep 2026 15:45:47 +0800
+Message-ID: <20260927074547.3694742-1-nicoyip.dev@gmail.com>
 X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -88,71 +89,84 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-smc_lgr_schedule_free_work() checks lgr->freeing without the link group
-list lock held by the teardown paths. A concurrent smc_lgr_free_work()
-can set freeing and cancel the delayed work between that check and
-mod_delayed_work(), leaving a timer pending on a freed link group:
+smc_llc_link_active() marks a link active before scheduling its testlink
+work. The first-link confirmation paths call it without llc_conf_mutex,
+allowing link-down processing to clear the link between these operations:
 
-  CPU 0 (smc_conn_free)            CPU 1 (smc_lgr_free_work)
-  observe lgr->freeing == 0
-                                  set lgr->freeing under lgr_lock
-                                  cancel_delayed_work()
-                                  smc_lgr_free(): drop lgr reference
-  mod_delayed_work()
-  smc_lgr_put(): drop last reference and free lgr
+  Connection setup                    Link-down worker
+  smc_llc_link_active()
+    link->state = SMC_LNK_ACTIVE
+                                      smcr_link_clear()
+                                        link->clearing = 1
+                                        smc_llc_link_clear()
+                                          cancel_delayed_work_sync()
+    schedule_delayed_work()
 
-When the timer expires, the timer core accesses the freed memory.
-KASAN reported:
+The connection reference keeps the link alive during activation, but the
+newly queued work outlives that reference. Later cleanup skips clearing
+an already-clearing link, leaving its timer armed when the link group is
+freed. KASAN reported:
 
-  BUG: KASAN: use-after-free in __run_timers+0x86d/0x8d0
-  Write of size 8 at addr ffff8881186902a8 by task swapper/2/0
+  BUG: KASAN: use-after-free in __run_timers+0x723/0x8d0
+  Write of size 8 at addr ffff88810f108810 by task swapper/1/0
   Call Trace:
-   <IRQ>
-   __run_timers+0x86d/0x8d0
+   __run_timers+0x723/0x8d0
    timer_expire_remote+0xd3/0x120
    tmigr_handle_remote_up+0x4f4/0xab0
    __walk_groups_from+0x40/0x150
    tmigr_handle_remote+0x229/0x2c0
    run_timer_softirq+0x1f5/0x250
-   handle_softirqs+0x18d/0x5b0
-   </IRQ>
 
-Hold the existing link group list lock across the freeing check and
-mod_delayed_work(). Rearming then either precedes the freeing transition
-and is caught by the subsequent cancellation, or sees freeing set and
-is skipped. smc_conn_free() retains its link group reference until after
-scheduling, keeping the group alive while acquiring the lock.
+Hold llc_conf_mutex around first-link activation on both sides so that
+link-down processing cannot cancel the work before it is queued. Also
+protect the client's initial optional add-link processing, which can
+activate a second link without the lock. The other add-link paths already
+hold llc_conf_mutex. This serializes every activation with link teardown
+without changing the handshake sequence or error handling.
 
-Fixes: 8e316b9e7260 ("net/smc: improve link group freeing")
+Fixes: 877ae5be421d ("net/smc: periodic testlink support")
 Cc: stable@vger.kernel.org
 Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
 ---
- net/smc/smc_core.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ net/smc/af_smc.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-index 9974149659c2..8feb486ada56 100644
---- a/net/smc/smc_core.c
-+++ b/net/smc/smc_core.c
-@@ -80,6 +80,10 @@ static void smc_ibdev_cnt_dec(struct smc_link *lnk)
+diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+index e9f93b3ab435..221643624ace 100644
+--- a/net/smc/af_smc.c
++++ b/net/smc/af_smc.c
+@@ -665,8 +665,10 @@ static int smcr_clnt_conf_first_link(struct smc_sock *smc)
+ 	if (rc < 0)
+ 		return SMC_CLC_DECL_TIMEOUT_CL;
  
- static void smc_lgr_schedule_free_work(struct smc_link_group *lgr)
- {
-+	spinlock_t *lgr_lock; /* protects lgr->freeing */
-+
-+	smc_lgr_list_head(lgr, &lgr_lock);
-+	spin_lock_bh(lgr_lock);
- 	/* client link group creation always follows the server link group
- 	 * creation. For client use a somewhat higher removal delay time,
- 	 * otherwise there is a risk of out-of-sync link groups.
-@@ -90,6 +94,7 @@ static void smc_lgr_schedule_free_work(struct smc_link_group *lgr)
- 						SMC_LGR_FREE_DELAY_CLNT :
- 						SMC_LGR_FREE_DELAY_SERV);
++	down_write(&link->lgr->llc_conf_mutex);
+ 	smc_llc_link_active(link);
+ 	smcr_lgr_set_type(link->lgr, SMC_LGR_SINGLE);
++	up_write(&link->lgr->llc_conf_mutex);
+ 
+ 	if (link->lgr->max_links > 1) {
+ 		/* optional 2nd link, receive ADD LINK request from server */
+@@ -682,7 +684,9 @@ static int smcr_clnt_conf_first_link(struct smc_sock *smc)
+ 			return rc;
+ 		}
+ 		smc_llc_flow_qentry_clr(&link->lgr->llc_flow_lcl);
++		down_write(&link->lgr->llc_conf_mutex);
+ 		smc_llc_cli_add_link(link, qentry);
++		up_write(&link->lgr->llc_conf_mutex);
  	}
-+	spin_unlock_bh(lgr_lock);
+ 	return 0;
  }
+@@ -1909,8 +1913,10 @@ static int smcr_serv_conf_first_link(struct smc_sock *smc)
+ 	/* confirm_rkey is implicit on 1st contact */
+ 	smc->conn.rmb_desc->is_conf_rkey = true;
  
- /* Register connection's alert token in our lookup structure.
++	down_write(&link->lgr->llc_conf_mutex);
+ 	smc_llc_link_active(link);
+ 	smcr_lgr_set_type(link->lgr, SMC_LGR_SINGLE);
++	up_write(&link->lgr->llc_conf_mutex);
+ 
+ 	if (link->lgr->max_links > 1) {
+ 		down_write(&link->lgr->llc_conf_mutex);
 -- 
 2.43.0
 
