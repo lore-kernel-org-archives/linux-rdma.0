@@ -1,218 +1,156 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-dy2-f43.google.com (mail-dy2-f43.google.com [74.125.229.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C4892798EA;
-	Sun, 27 Sep 2026 06:52:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E864F397339
+	for <linux-rdma@vger.kernel.org>; Sun, 27 Sep 2026 07:32:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.229.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790491963; cv=none; b=tu3xlGj3uRo2fOCHCV8tk40VR7ABC4EzRWZOd0Cms/anmvr8DpoK0TCd8KVwW2IyTRIRQeeUD/YzOdnENaj+yfWGfsJ91IwgREKxz4t4h4SnAS6KA19pfOx6Qj4F5wABsR5q6KKxELUKhpYn6r3v3mHCViCvAHPQuXHymgShtio=
+	t=1790494337; cv=none; b=s5t86QN7uoGjmQTSnDg/i4GYAQIeDiGZ//sjz6COfNIyTmixa+xmHNEGbCWi8cTtAWbG3YnYV2pB7vxdEYur7jcyU7F1qNBdL+JSnnzO6CXA3HZg0DJQQxVufiG4Ge3M+6sbgJ0qwjgxtBYewqAlUC4wOGLzCbL1Hdtd751R8hs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790491963; c=relaxed/simple;
-	bh=8b+ba7cP0mKb9nydYGMwbkm+rjWPgC1gVlUN/XKf7aE=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=RjIoC6319j/BIQ4iycsOuCF/uhlOzw+AlfPAdEE4URDmd8ofrXrlqMrHW/3uJUBmNXUKT0vcqRAwXYtS1IjeN4YzPcF/Ju6GeP3VC0+1GUZN6O8BXpB/GNy1kEHcc17zvfD3HlrctCdmeye+SxhjkmmWVboFDsWCZ7m9BfzoZRM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oW2+6gSt; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790494337; c=relaxed/simple;
+	bh=nY8qGs46zgeEK17RWUhh5D/oORqRp0Zwjy2eAU1BJVY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=nOVrNM1/toRfQngHiuQGrV3fupEVNoUjR9B9aXkK04mZ7rWMDKr7dqNWfoQya30wU/xIc+3xgzeIiMwE6fIo26VOF4Z/AAg3Ge5I5pKl18jRIlaP/d48BlMQbFF6V+xjionOYsJEk2TVXyL9xTqdGffg9PbRVUKSQtY2mQWEXo8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AHv66hE+; arc=none smtp.client-ip=74.125.229.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oW2+6gSt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8864A1F000FF;
-	Sun, 27 Sep 2026 06:52:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790491961;
-	bh=9BFjujG7UrM/VNu8U0Xhn89xpgrvzW5+cWnolvEyVHs=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=oW2+6gStzL8UT6doSDJA+NF8/a4LlpNE3b0vq3hWx+O9TfHkDbk11l6BLTzoGoIAn
-	 Vgh3quCFMyabe1WY7Oj7NF8OYRMaJhQ5vbp4tUTP0t50TR9gHz+8AUW+TcFD9jXwlK
-	 +wihCbXX5sJrhNXNWqDP3PNJlXErx4OQxtF3hOoISogYQl4tML96/TecQjh+WAZlex
-	 gltv9TNrGNEkMqKqN/aJfRcP2Me0RXx8EjzzhCW6Kb813XrUwJeGnIFxs6hAGCfQtd
-	 7Le5r8hABIdfFkVVzpHQ1x4rwDC8efY36qhaBa7z8Pgzd2KE64k6LxX6CUoxMKb8yi
-	 UPjIKBDv2kWJQ==
-Message-ID: <12c79c59ff1e55fd82ce2af0b8fd1c8feff66767.camel@kernel.org>
-Subject: Re: [PATCH net] net/rds: include the scope id in the sendmsg
- connection cache check
-From: Allison Henderson <achender@kernel.org>
-To: netdev-bot+sashiko@kernel.org
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com, 
-	edumazet@google.com, kuba@kernel.org, horms@kernel.org
-Date: Sat, 26 Sep 2026 23:52:40 -0700
-In-Reply-To: <179029759642.2160803.15910900914007089694@kernel.org>
-References: <20260921215046.174745-1-achender@kernel.org>
-	 <179029759642.2160803.15910900914007089694@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.52.3-0ubuntu1.1 
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AHv66hE+"
+Received: by mail-dy2-f43.google.com with SMTP id 5a478bee46e88-340f45daf45so204629eec.3
+        for <linux-rdma@vger.kernel.org>; Sun, 27 Sep 2026 00:32:13 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1790494332; x=1791099132; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=gCHlGAQUPQqUwMiZODOWYGN6xif3TdPxiD76nVrz+oA=;
+        b=AHv66hE+453a1o7CCAhJdKZZzPPjIciAqAg0DNN9j5vvISW63i8NiBAdyleUetCeF0
+         EWN0bO5YGoTsQlT+cWBlPqy1J4qcxIL9ClgcpRRL6k/uowZ72xM/Q7MYg90ZYbX74A2t
+         pJWKQ6/+1ZKnbQMQNzRpnprnEfzGvN4F3hLNQHUJW0+l5/Ua/PbDDy1JqPdOx/A6t7V9
+         xYeb5wKsNzcrGjdTShWBNirv0AMsR8oqjKpKa6xyG7rvg+GyEB/VWKru4nIJK53QP4yG
+         fkRE1JUSqpcyUXgNNL0JMAKBlqm9qirduMLe/x5i7NszncNakSLS6ucuejuz474lZliu
+         As4w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790494332; x=1791099132;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=gCHlGAQUPQqUwMiZODOWYGN6xif3TdPxiD76nVrz+oA=;
+        b=XqheAicSvMU1CXhf4E6vUsngYQVRrxqWh6dbgAMmAA4r6/VjoKJ0/HWXiY8Hqe2Oe7
+         buO4jvAMpUGq+Pec5KrCLcQgjbdy/hGtZOe5KOR8qGfqiVYY0q9EkzSJw6j+8Lns3Vzh
+         6DzS5M2QINNuvKoJExyR0BsBZAAlEI+tVoE/tex36rYcPfXYbIibnnoOvNsK0wNPW7oh
+         ADcBrhJXX3Xa1BQStXx6ZtId4o8xRrIIsuh/sY2a7kaHIf1lrmD+6H1GVo2KNHYd8qSh
+         zUSGnj10i337yn4lul9IZv4+GI8fH5bnOAXF2fgMyEI9vcdlTHQeWCepJtGJFs7feEJE
+         HqBg==
+X-Gm-Message-State: AFq9FYJJFpevNpFIkjBrxWWy9V0H65NXSqh8dPBmMlMooklHvXSlSijh
+	+3eZwt9oLyFSGNhJhoxtVnvKvtmsw0hnyS7WdPTdtM2uDlWqJIF3g5PN
+X-Gm-Gg: AYBFou0OwAU0D5hYYfCNQmmvI+v6qK4P6orxWXt5p7xWqTjYth8iHAvXYFm+wtHs12A
+	IwjIkHO+tc96FgF8a/Yomq8YKzfpJzGsX6HxTpeq2qGX7hWLcxvxqOAAPxKQc0W46dpqX5Mm16z
+	mcBHbABQtMS52FEPULvcI/xiIeKS1qb1vZf4f202+RBBxZ6x6fdYW8MdFEH1K0FqbtiGseFyy0N
+	eO6lzrGHOSkOs3Jvk/sTVRmTeJ6ht7qsCEh4ET2G47XK7HPHkrbFxX+Bhu+9j7gjdQtgzXzLBYa
+	ESpnEAZ0zpCvMCwyGTc0iNbNsfAlzO8DZzI5bg1wH5avSlvfCIdHbajDjsWD9hlM0IGqlPf+QdS
+	VcnUqKxdXLhT0/ZziV3eAd8xgtcgKa9vYMTfmL6E+8cCVuSVwD9Yr2kVhPbUcOqPY+d3RjEUY7/
+	EhMKkqSJf+vTK6yIiOzIfGumqSasFiYm1a/Qs758yYfp+CG7mXrzysdqX9NlpRzXM9MXXsJLY2r
+	xa3dkgI4CdfcAf3ojQMgce5642NfLK7rqoFJhPfLtwLfIxkAzaQ27woMTebHuAtPtsnQA==
+X-Received: by 2002:a05:7301:b0e:b0:33f:3750:4e22 with SMTP id 5a478bee46e88-3426cce6521mr7959749eec.0.1790494331059;
+        Sun, 27 Sep 2026 00:32:11 -0700 (PDT)
+Received: from localhost.localdomain (95.169.12.199.16clouds.com. [95.169.12.199])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3433628f5basm10705821eec.18.2026.09.27.00.32.06
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 27 Sep 2026 00:32:10 -0700 (PDT)
+From: Chengfeng Ye <nicoyip.dev@gmail.com>
+To: "D. Wythe" <alibuda@linux.alibaba.com>,
+	Dust Li <dust.li@linux.alibaba.com>,
+	Sidraya Jayagond <sidraya@linux.ibm.com>,
+	Mahanta Jambigi <mjambigi@linux.ibm.com>,
+	Tony Lu <tonylu@linux.alibaba.com>,
+	Wen Gu <guwen@linux.alibaba.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Wenjia Zhang <wenjia@linux.ibm.com>
+Cc: linux-rdma@vger.kernel.org,
+	linux-s390@vger.kernel.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Chengfeng Ye <nicoyip.dev@gmail.com>,
+	stable@vger.kernel.org
+Subject: [PATCH net] net/smc: serialize sndbuf descriptor release with diagnostic dumps
+Date: Sun, 27 Sep 2026 15:32:03 +0800
+Message-ID: <20260927073203.3694279-1-nicoyip.dev@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-On Fri, 2026-09-25 at 00:53 +0000, netdev-bot+sashiko@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found 1 potential
-> issue(s) to consider.
->=20
-> Critical: 0 =C2=B7 High: 0 =C2=B7 Medium: 1 (1) =C2=B7 Low: 0
->=20
-> If you believe none of the issues are legitimate, please reply to each
-> issue of Medium severity or higher and explain why the AI is wrong.
-> If any of them are legitimate and you plan to respin, please let patchwor=
-k
-> know by including "pw-bot: cr" as a separate line at the end of your repl=
-y
-> (one such reply per series is enough).
->=20
-> - [Medium] New regression for connected (destination-less) sends: the
->   added `rs->rs_conn->c_dev_if =3D=3D scope_id` test in rds_sendmsg()=E2=
-=80=A6
->=20
-> Pre-existing issues:
-> - [Medium] rds_sendmsg() validates the cached connection with plain,
->   unsynchronized loads of rs->rs_conn (`rs->rs_conn &&`, `->c_faddr`,=E2=
-=80=A6
->=20
-> --
->=20
-> net/rds: include the scope id in the sendmsg connection cache check
->=20
-> The patch adds the interface index to the cached-connection test in
-> rds_sendmsg(), so that a send to a link-local peer through a different
-> interface no longer reuses the connection created for the first
-> interface.  Two questions below about the destination-less send case and
-> about the locking around the cache test.
->=20
-> > diff --git a/net/rds/send.c b/net/rds/send.c
-> > index 1afa981e5c06d..38b9cc9e0d20b 100644
-> > --- a/net/rds/send.c
-> > +++ b/net/rds/send.c
-> > @@ -1342,7 +1342,8 @@ int rds_sendmsg(struct socket *sock, struct msghd=
-r *msg, size_t payload_len)
-> >  	/* rds_conn_create has a spinlock that runs with IRQ off.
-> >  	 * Caching the conn in the socket helps a lot. */
-> >  	if (rs->rs_conn && ipv6_addr_equal(&rs->rs_conn->c_faddr, &daddr) &&
-> > -	    rs->rs_tos =3D=3D rs->rs_conn->c_tos) {
-> > +	    rs->rs_tos =3D=3D rs->rs_conn->c_tos &&
-> > +	    rs->rs_conn->c_dev_if =3D=3D scope_id) {
->=20
-> [Severity: Medium]
-> Should the new comparison treat scope_id =3D=3D 0 as "unspecified" rather
-> than as a mismatch?
-Yes, the analysis is right, I've sent a V2 that keeps the cached connection=
- when
-the request names no interface and only checks c_dev_if when it does.
->=20
-> For a send with msg_namelen =3D=3D 0, rds_sendmsg() takes the scope from =
-the
-> bound scope id:
->=20
-> net/rds/send.c:rds_sendmsg() {
-> 	} else {
-> 		/* We only care about consistency with ->connect() */
-> 		lock_sock(sk);
-> 		daddr =3D rs->rs_conn_addr;
-> 		dport =3D rs->rs_conn_port;
-> 		scope_id =3D rs->rs_bound_scope_id;
-> 		release_sock(sk);
-> 	}
->=20
-> and the namelen !=3D 0 repair branch that would fill in a zero scope from
-> rs_bound_scope_id is skipped in that case.
->=20
-> rs_bound_scope_id can be 0 while rs_conn_addr is a link-local peer.
-> rds_connect() records the peer scope there for an unbound socket:
->=20
-> net/rds/af_rds.c:rds_connect() {
-> 		if (addr_type & IPV6_ADDR_LINKLOCAL) {
-> 			...
-> 			rs->rs_bound_scope_id =3D sin6->sin6_scope_id;
-> 		}
-> 		rs->rs_conn_addr =3D sin6->sin6_addr;
->=20
-> and a later bind() to a non-link-local address overwrites it
-> unconditionally:
->=20
-> net/rds/bind.c:rds_add_bound() {
-> 			*port =3D rs->rs_bound_port;
-> 			rs->rs_bound_scope_id =3D scope_id;	/* 0 here */
->=20
-> With the sequence connect(fe80::x%ifA) -> bind(global address) ->
-> sendto(fe80::x%ifA) -> send() with no destination, the last send now
-> computes scope_id =3D=3D 0, misses the cached ifA connection, and goes do=
-wn
-> the else branch:
->=20
-> >  		conn =3D rs->rs_conn;
-> >  	} else {
-> >  		conn =3D rds_conn_create_outgoing(sock_net(sock->sk),
-> > 						&rs->rs_bound_addr, &daddr,
-> > 						rs->rs_transport, rs->rs_tos,
-> > 						sock->sk->sk_allocation,
-> > 						scope_id);
->=20
-> Since rds_conn_lookup() compares c_dev_if, this creates a new connection
-> with c_dev_if =3D=3D 0 for a link-local destination.  Can that connection
-> ever come up?  rds_tcp_conn_path_connect() passes it on as the scope:
->=20
-> net/rds/tcp_connect.c:rds_tcp_conn_path_connect() {
-> 		sin6.sin6_scope_id =3D conn->c_dev_if;
->=20
-> and tcp_v6_connect() rejects a link-local destination with no scope and
-> no sk_bound_dev_if:
->=20
-> net/ipv6/tcp_ipv6.c:tcp_v6_connect() {
-> 		/* Connect to link-local address requires an interface */
-> 		if (!sk->sk_bound_dev_if)
-> 			return -EINVAL;
->=20
-> So the message looks like it gets queued on a connection that can never
-> be established, where before the patch it went out over ifA, and
-> rs->rs_conn is left pointing at the new connection.  Would skipping the
-> comparison when scope_id =3D=3D 0, or keeping the connected peer's scope
-> separately from rs_bound_scope_id, avoid this?
->=20
-> [Severity: Medium]
-> This isn't a bug introduced by this patch, but the cache test reads
-> rs->rs_conn several times without any synchronization, and the new
-> c_dev_if comparison is one more such read.
+An SMC-D connection can remain in the socket hash while smc_conn_kill()
+tears it down. For devices supporting DMB nocopy, smcd_buf_detach() frees
+the send buffer descriptor without taking the hash lock held by the
+diagnostic reader.
 
-Yes, but I'm handling that in the larger connection lifetime series=20
-("net/rds: make connection lifetime reference-counted").  It=C2=A0moves
-rs_conn cache under rs_lock and gives the cache a real reference.  If=20
-we did the READ_ONCE() here would still leave the pointer unreferenced
-across the test, so I'd rather not let this patch feature creep into
-something the ref counting series is already handling.
+__smc_diag_dump() can load a non-NULL conn->sndbuf_desc, then a concurrent
+smc_conn_kill() can clear the pointer and free the descriptor before the
+dump reads its len field. The socket lock held by the teardown path does
+not exclude the dump, and clearing the pointer before freeing it does
+not protect a reader that has already loaded it.
 
-Thanks!
-Allison
+KASAN reported:
 
-pw-bot: cr
->=20
-> The validation loads and thpw-bot: crpw-bot: cr
-> e load used for the assignment are separate:
->=20
-> net/rds/send.c:rds_sendmsg() {
-> 	if (rs->rs_conn && ipv6_addr_equal(&rs->rs_conn->c_faddr, &daddr) &&
-> 	    rs->rs_tos =3D=3D rs->rs_conn->c_tos &&
-> 	    rs->rs_conn->c_dev_if =3D=3D scope_id) {
-> 		conn =3D rs->rs_conn;
->=20
-> The socket lock covering the earlier scope-id checks has already been
-> dropped by the release_sock(sk) before rds_rdma_bytes(), and
-> rds_sock_lock, which the RDS_TOS ioctl path takes when it inspects
-> rs->rs_conn, is not held here either.  The publishing store in the else
-> branch is equally unsynchronized:
->=20
-> 		rs->rs_conn =3D conn;
->=20
-> For two concurrent sendmsg() calls on the same AF_RDS socket (threads or
-> a shared fd), can one thread validate the connection for fe80::x%ifA and
-> then reload rs->rs_conn and pick up the fe80::x%ifB connection the other
-> thread just stored, so that rm->m_conn_path ends up on the unvalidated
-> connection?  That would be the same misrouting the changelog describes.
->=20
-> Would it be worth folding in a single snapshot of the pointer, for
-> example conn =3D READ_ONCE(rs->rs_conn); if (conn && ...), with a matchin=
-g
-> WRITE_ONCE() on the store, or holding the socket lock across the cache
-> test?
->=20
+  BUG: KASAN: slab-use-after-free in __smc_diag_dump.constprop.0+0x2477/0x2b10
+  Call Trace:
+   __smc_diag_dump.constprop.0+0x2477/0x2b10
+   smc_diag_dump_proto+0x266/0x390
+   smc_diag_dump+0x20/0x70
+   netlink_dump+0x489/0x1140
+  Allocated by task 70:
+   smcd_buf_attach+0x11b/0x310
+   smc_listen_work+0x2a62/0x4cf0
+  Freed by task 98:
+   kfree+0x131/0x3c0
+   smcd_buf_detach+0x120/0x280
+   smc_conn_kill+0x487/0x720
+   __smc_lgr_terminate.part.0+0x231/0x430
+   smc_smcd_terminate_all+0x2cf/0x610
+
+Take the hash write lock when removing the descriptor from the
+connection. This waits for dumps holding the old pointer and prevents
+new dumps from seeing it. Free the descriptor after dropping the lock.
+
+Fixes: ae2be35cbed2 ("net/smc: {at|de}tach sndbuf to peer DMB if supported")
+Cc: stable@vger.kernel.org
+Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
+---
+ net/smc/smc_core.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index 9974149659c2..f32fc1bd5bc8 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -1207,6 +1207,8 @@ static void smcr_buf_unuse(struct smc_buf_desc *buf_desc, bool is_rmb,
+ 
+ static void smcd_buf_detach(struct smc_connection *conn)
+ {
++	struct smc_sock *smc = container_of(conn, struct smc_sock, conn);
++	struct smc_hashinfo *h = smc->sk.sk_prot->h.smc_hash;
+ 	struct smcd_dev *smcd = conn->lgr->smcd;
+ 	u64 peer_token = conn->peer_token;
+ 	struct smc_buf_desc *buf_desc;
+@@ -1216,8 +1218,10 @@ static void smcd_buf_detach(struct smc_connection *conn)
+ 
+ 	smc_ism_detach_dmb(smcd, peer_token);
+ 
++	write_lock_bh(&h->lock);
+ 	buf_desc = conn->sndbuf_desc;
+ 	conn->sndbuf_desc = NULL;
++	write_unlock_bh(&h->lock);
+ 	kfree(buf_desc);
+ }
+ 
+-- 
+2.43.0
 
