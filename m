@@ -1,183 +1,108 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr2-f8.google.com (mail-wr2-f8.google.com [74.125.225.72])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62E862459E1;
-	Sun, 27 Sep 2026 11:11:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 387822E2663
+	for <linux-rdma@vger.kernel.org>; Sun, 27 Sep 2026 11:56:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.72
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790507505; cv=none; b=BhLJXzTO0ozWv/Z2tyxeSINDvh3coK7hMnSb2x/yclqxwGYdwUt0rCeUlBWMrSasOLCvG18L73pFD2hqXHLU65xOUfZxZpnzkpT6S5+jS21I8pg9BK39gHNyj4zd/PNfixQGhv8mkWEJAWpRcIrpbWuepDi0dn9FpNtrGzGWDis=
+	t=1790510200; cv=none; b=uaoKTInT3hpbjhGRklvitDB8hsDq5+1ccf2JkdHd8CE/neind0fjPjBdnSd27ZSGmJahMRttbBktyiIqqrCQSJhcmlyYE5YYsvOVxPhnAalVYUZZ0SrBQxj3QOP9KZMGqCbZlgMBcxQboz7ZpjoBSaQn2ieNhPW4afcEu1tKkYY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790507505; c=relaxed/simple;
-	bh=nQ6KijoxB+VRy5dNXU2K2Yf09c0i36bK8tk73E37hV8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fq07rPRT9NaNGXwlueGYwyyRmDUEIF7nWOh6SmY58XZ/AalxTgJ3bk10UmsOGxMhnhtkg70HAC4RYdpg517RzM1nshz0QLiD3QsnryTKbv39cUPOtvZ7OUlHQJ1o6kPl0TC77FOZihJ/+O58ToaZZmaCCZwcO1gIVcYiQt+GXaU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AVkQ2iWN; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790510200; c=relaxed/simple;
+	bh=l6K/sFQv3ASRbSDCtexMzkpOqNFTR/2cH63ptPimFf4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=bUjPZ+6WkbwZ+PLwIzkv5ybE6jjU+uTVpfuGwmETISWgqkDYdpesJoSKHWHmiar09G4wy9kQ0cy6HvjE9l3PhmgrolVCQC0POoP+0TGVwTvsFdpO2ZrP5kcgrsQbzl932f3ejwWB+o0xgyuMqmPtxUkbubJwkEU7IyUvQecLEWA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=gMPwLFFK; arc=none smtp.client-ip=74.125.225.72
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AVkQ2iWN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF9DC1F000FF;
-	Sun, 27 Sep 2026 11:11:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790507504;
-	bh=1gZ+0N74Wxd7dkOuC3ZgWhxcb8DrfAS61CfsdLted4E=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=AVkQ2iWNJz0EpkFbDoQUqae5qAOuCLmewQManXPqsk6fyKKBSDI+FM1osAASZeZr3
-	 kUn1eM4MeTlSfm1JnwWn6vit3ac9Gb3ifqCeKCpRVFJfTXI8eLMiJKuqY7lZ2aegDS
-	 kwFSp7i0T2nAfQWpwhQ6jNjvZMMP5wQ+c/PB4OgEj0AQAYfKbqtEn8gSf37pib3XeE
-	 SGUzI4FpUg+RlHAAFJaq63gaoNUDo0GLKDYHeYMkIKpwKOWKltMLb0L+vp0OCO6XRk
-	 gvkOq7KfknGHxM1fpBN2ztC3UI7ea/14aVEB4Q0W7NHuDlOPo0b/SNuUvI1jeUeovv
-	 pJhwIUy5YmeLA==
-Date: Sun, 27 Sep 2026 12:11:40 +0100
-From: Simon Horman <horms@kernel.org>
-To: netdev-bot+sashiko@kernel.org
-Cc: achender@kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-	pabeni@redhat.com, edumazet@google.com, kuba@kernel.org
-Subject: Re: [PATCH net-next v3] net/rds: restrict the rdma_cm ids to IB
- devices
-Message-ID: <20260927111140.GG13925@horms.kernel.org>
-References: <20260922084837.390414-1-achender@kernel.org>
- <179033694505.2160803.10055619633105856141@kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gMPwLFFK"
+Received: by mail-wr2-f8.google.com with SMTP id ffacd0b85a97d-485ac0c75b9so988760f8f.0
+        for <linux-rdma@vger.kernel.org>; Sun, 27 Sep 2026 04:56:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1790510196; x=1791114996; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=msADhsoRTGj1IyLzsyfhlBSSlDWgsH8eeKkmP39j+1U=;
+        b=gMPwLFFKSRIzpRhyLea1d22A5fof9BcM1j2MHW55Wm17/qvxSHat/jXmuYvWNwluHa
+         QChFb5tq1L8OCfymfu+1KyyffrQlY/WMiPEWhg4fd7hLgaEBoFIfdDNPoUaPBAkB9RCd
+         RwuHoFLEiv2e11M18nmYxBfhs++ZMTwi3KQvPBVovIX48JZUgD+MDL7tuCdwCOJBeU1L
+         S34cMhIRwnjFY11KXz7gawn3YwrmI43FuNchTe29BeCtjZskCw/EpG/MtaZRrDbTuJ6F
+         5xTTteFxtHBI4rcjoxN1G2v/MDxIw4aO47OQ6P8qfSzspHReDjg1Kxb+FJS1ZQec1erY
+         Te5g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790510196; x=1791114996;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=msADhsoRTGj1IyLzsyfhlBSSlDWgsH8eeKkmP39j+1U=;
+        b=qSTaZNLzgJrlR4Lf27Y0MzxUsKgPk1rpz2v1qjfUl8Sn6OBuDvxWM8B7TM2tXlWZzH
+         xLKOwQVxO84OqtoTMLqIWb/zWLSNH6mVSOSeOpmSZER5HYIdS3bqA4xjzHMIe0oX/0xi
+         SDURkkAJoDM3p/dbut34SlsN8wmR85BXVVBCKyVfyjOHdLaiSumDj26W56Csw32GF7nZ
+         mI2MclNIE35QwUMZSesnCYetj1e+k0VRdG5Ew5EsUMRE2aXIlwUeoc8r0NpiSFD7NDoV
+         YicDe9Ahj+a7HIsZmJ6WsIQ9JeD+Vt8LzU7HqEaiYdd7XyAKWUAfQpde9RZX3Ig0zYiN
+         cK2A==
+X-Gm-Message-State: AFq9FYLMa8bQaock3JG1yBSfEhDAPZMtM5A9qFloseCQ5GTtVloSs5pd
+	rkupUcL8ny9xT/uq1spscrLhL2tqsp2zOot6IXoAbMr4N/bC0I1rcmj4
+X-Gm-Gg: AYBFou2O4+lT+6c2gyAsiQAjhbjqqSWQOwsSecJcDEhYlW29BRiMB0JXxXugynETn5g
+	YnpxcfyZ0Kph5d0MZR92g5ikp3gy8+j2vtcpmkRCwWvzsDzoIrcyFwBm8kWwpfmmHLHYuSUP8W7
+	RL6mk/L/OV3pIAd4G9pfD0HOT/0BPjZ0Bo0vRt1LXw7DM1PWY8Fd6kg6kW3hMhuJQz+1prFzgc8
+	Ghx/+v7LUjMfvopGlnvSMKBumoGTmoPAoFEyHD3cQ9gdvBTgvddaAJ7mEgay71x2N050Tfw78p8
+	9a6NasKPR/u4eqmcHluHxczImn3V7WOXRN/cBqIqstXS+aPceKnHN3UmUbf0zRL9pyxde+zPBXI
+	Ho0a+4IBDk70IUcVSfWzgiDqnHK5Frn4lMVF8DrHj0pxqCjkO0paO5wP7oeFJ7MpBVfil2n9N1t
+	RW4H1QrTbg7zfflY6ewIo7bfD2vaJd+u0dlieIR/AGAP7eZdugoevp3wvL4mWcDcnCuYwTzYxf6
+	JPzu0mMhN6ij2aCiNEcyaitfA==
+X-Received: by 2002:a05:6000:4684:b0:488:764c:7a17 with SMTP id ffacd0b85a97d-488764c80c7mr11867759f8f.1.1790510196208;
+        Sun, 27 Sep 2026 04:56:36 -0700 (PDT)
+Received: from serhat-ubuntu.home ([212.253.192.148])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4887a64ed6esm21926084f8f.29.2026.09.27.04.56.33
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 27 Sep 2026 04:56:35 -0700 (PDT)
+From: Serhat Kumral <serhatkumral1@gmail.com>
+To: Bernard Metzler <bernard.metzler@linux.dev>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>
+Cc: linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Serhat Kumral <serhatkumral1@gmail.com>
+Subject: [PATCH] RDMA/siw: Fix length of first chunk in siw_try_1seg()
+Date: Sun, 27 Sep 2026 14:53:51 +0300
+Message-ID: <20260927115351.12245-1-serhatkumral1@gmail.com>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <179033694505.2160803.10055619633105856141@kernel.org>
 
-On Fri, Sep 25, 2026 at 11:49:05AM +0000, netdev-bot+sashiko@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found 1 potential
-> issue(s) to consider.
-> 
-> Critical: 0 · High: 0 · Medium: 1 · Low: 0 (1)
-> 
-> If you believe none of the issues are legitimate, please reply to each
-> issue of Medium severity or higher and explain why the AI is wrong.
-> If any of them are legitimate and you plan to respin, please let patchwork
-> know by including "pw-bot: cr" as a separate line at the end of your reply
-> (one such reply per series is enough).
-> 
-> - [Medium] Commit-message misclassification: the changelog declares this
->   change "hardening on top of it, not a fix in its own right, hence no…
-> 
-> Pre-existing issues:
-> - [Low] rds_rdma_listen_init_common() (net/rds/rdma_transport.c) logs the
->   listening port as the compile-time constant RDS_PORT (18634) at line…
-> 
-> --
-> 
-> net/rds: restrict the rdma_cm ids to IB devices
-> 
-> This restricts the three rdma_cm ids RDS creates - the listener, the
-> per-connection id in rds_ib_conn_path_connect() and the probe id in
-> rds_ib_laddr_check_cm() - to RDMA_NODE_IB_CA with
-> rdma_restrict_node_type() before they are bound.  The explicit node_type
-> test in rds_ib_laddr_check_cm() is dropped as redundant.
-> 
-> >From the changelog:
-> 
-> > With that, no rdma_cm event reaches RDS's handler from a device it
-> > has no transport for.  The handler itself still assumes IB: it assigns
-> > its transport pointer only for RDMA_NODE_IB_CA and dereferences it
-> > regardless, which is the crash that first surfaced this.  The fix for
-> > that is a separate net patch, Aohan Mei's "net: rds: fix uninitialized
-> > trans dereference in CM event handler", and is what stable kernels
-> > without rdma_restrict_node_type() - which arrived in commit
-> > a760e80e90f5 ("RDMA/core: introduce rdma_restrict_node_type()") - have
-> > to take; this patch is hardening on top of it, not a fix in its own
-> > right, hence no Fixes tag.
-> 
-> [Severity: Medium]
-> Is the "not a fix in its own right, hence no Fixes tag" classification
-> accurate for the tree this applies to?
-> 
-> The referenced companion patch ("net: rds: fix uninitialized trans
-> dereference in CM event handler") is not present here.  In
-> rds_rdma_cm_event_handler_cmn() the transport pointer is still
-> uninitialized on entry:
+When a short-single SGE payload crosses a page boundary, siw_try_1seg()
+computes the length of the first chunk as the amount that spills into
+the second page instead of the amount left in the first page
 
-I find this to be a specious argument.
-Of course a kernel without a fix applied is not fixed.
+	part = bytes - (PAGE_SIZE - off);
 
-I believe the appropriate question, regarding fixing the Kernel, is if the
-cited fixed actually fixes the problem.  That question is not addressed
-here.  And indeed it's not a question to be answered here as it's a question
-to be answered in the context of reviewing the cited fix.
+Use the remaining length of the first page as the first chunk.
 
-> 
-> net/rds/rdma_transport.c:rds_rdma_cm_event_handler_cmn() {
-> 	struct rds_connection *conn = cm_id->context;
-> 	struct rds_transport *trans;
-> 	...
-> 	if (cm_id->device->node_type == RDMA_NODE_IB_CA)
-> 		trans = &rds_ib_transport;
-> 	...
-> 	case RDMA_CM_EVENT_CONNECT_REQUEST:
-> 		ret = trans->cm_handle_connect(cm_id, event, isv6);
-> 	...
-> 	case RDMA_CM_EVENT_ESTABLISHED:
-> 		if (conn)
-> 			trans->cm_connect_complete(conn, event);
-> }
-> 
-> So for any event arriving from a device whose node_type is not
-> RDMA_NODE_IB_CA, trans is dereferenced as stack garbage, and the
-> CONNECT_REQUEST case is reachable from an inbound connection on the RDS
-> port.
-> 
-> Before this patch cma_listen_on_dev() installed the RDS listener on every
-> RDMA device, and cma_acquire_dev_by_src_ip() could pick a software iWARP
-> device for the same netdev, which is what made that path reachable.  With
-> the listener restriction added below, cma_listen_on_dev() honours
-> restricted_node_type and no longer installs the listener on such a device.
-> 
-> That makes this patch the change that removes the remotely reachable route
-> to that indirect call in this tree.  Should it then carry a Fixes tag and
-> state the ordering dependency on the companion handler patch, rather than
-> being described as hardening only?
-> 
-> > diff --git a/net/rds/rdma_transport.c b/net/rds/rdma_transport.c
-> > index b15cf316b23a2..91ff1dde26af0 100644
-> > --- a/net/rds/rdma_transport.c
-> > +++ b/net/rds/rdma_transport.c
-> > @@ -210,6 +210,14 @@ static int rds_rdma_listen_init_common(rdma_cm_event_handler handler,
-> >  		return ret;
-> >  	}
-> >  
-> > +	/* Only the IB transport is left, so only listen on IB devices */
-> > +	ret = rdma_restrict_node_type(cm_id, RDMA_NODE_IB_CA);
-> > +	if (ret) {
-> > +		pr_err("RDS/RDMA: failed to setup listener, rdma_restrict_node_type() returned %d\n",
-> > +		       ret);
-> > +		goto out;
-> > +	}
-> > +
-> >  	/*
-> >  	 * XXX I bet this binds the cm_id to a device.  If we want to support
-> >  	 * fail-over we'll have to take this into consideration.
-> 
-> [Severity: Low]
-> This isn't a bug introduced by this patch, but since the patch touches
-> rds_rdma_listen_init_common() anyway: the debug line further down in the
-> same function hard-codes the port,
-> 
-> 	rdsdebug("cm %p listening on port %u\n", cm_id, RDS_PORT);
-> 
-> while the helper has two callers with different ports.
-> rds_rdma_listen_init() binds the IPv4 listener with
-> sin.sin_port = htons(RDS_PORT) and the IPv6 listener with
-> sin6.sin6_port = htons(RDS_CM_PORT), as the comment above it describes.
-> 
-> For the IPv6 listener the message therefore prints 18634 rather than the
-> 16385 that was bound.  Would it make sense to print the port from the sa
-> argument that was just bound instead?
+Fixes: b9be6f18cf9e ("rdma/siw: transmit path")
+Assisted-by: LLM
+Signed-off-by: Serhat Kumral <serhatkumral1@gmail.com>
+---
+ drivers/infiniband/sw/siw/siw_qp_tx.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-If this is a problem it is separate to this patch,
-and should be addressed separately.
-
-In all, this patch looks good to me.
-
-Reviewed-by: Simon Horman <horms@kernel.org>
+diff --git a/drivers/infiniband/sw/siw/siw_qp_tx.c b/drivers/infiniband/sw/siw/siw_qp_tx.c
+index f7dd32c6e5ba..54c9d97015e8 100644
+--- a/drivers/infiniband/sw/siw/siw_qp_tx.c
++++ b/drivers/infiniband/sw/siw/siw_qp_tx.c
+@@ -85,7 +85,7 @@ static int siw_try_1seg(struct siw_iwarp_tx *c_tx, void *paddr)
+ 			if (likely(PAGE_SIZE - off >= bytes)) {
+ 				memcpy(paddr, buffer + off, bytes);
+ 			} else {
+-				unsigned long part = bytes - (PAGE_SIZE - off);
++				unsigned long part = PAGE_SIZE - off;
+ 
+ 				memcpy(paddr, buffer + off, part);
+ 				kunmap_local(buffer);
+-- 
+2.53.0
 
