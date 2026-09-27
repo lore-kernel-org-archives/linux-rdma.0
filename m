@@ -1,42 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 022B31C2AA;
-	Sun, 27 Sep 2026 08:53:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62E862459E1;
+	Sun, 27 Sep 2026 11:11:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790499190; cv=none; b=GtTw33XP0nJXLXq0hch7tIm9Qw0bgzgnqnm2KnmKa9H6ezmPkp5LBcezgKCjIM95FAZbCyASO7uVdXD//5lqvnNdjVPVOqVRh0F/t2zWPMGeNiT+6c/0tweVJ8dk8rLUKlYnfI23QS1bAaENclJZJl9daLJ70aHTbrSxWR+clI0=
+	t=1790507505; cv=none; b=BhLJXzTO0ozWv/Z2tyxeSINDvh3coK7hMnSb2x/yclqxwGYdwUt0rCeUlBWMrSasOLCvG18L73pFD2hqXHLU65xOUfZxZpnzkpT6S5+jS21I8pg9BK39gHNyj4zd/PNfixQGhv8mkWEJAWpRcIrpbWuepDi0dn9FpNtrGzGWDis=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790499190; c=relaxed/simple;
-	bh=RE5KvbNOR9F0lWLBYDA0FTuNjPviqAarJIiKS/ogrWU=;
+	s=arc-20240116; t=1790507505; c=relaxed/simple;
+	bh=nQ6KijoxB+VRy5dNXU2K2Yf09c0i36bK8tk73E37hV8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=vB8qDyOSMfoLotH6XU+/uNNa+8J3gkvNdBLATJGlvEqAFhdE+wZExn9aI5bBT09TKNnBWJgbNkpyh4W4KqaSfkVRJ0bTo2pVmMoNcQs2RWf1LwDOQA8GHsFk6aAiZo1vqKVhTRRo5ZAOwyu0LJn9DEoApNKdjw4NGgTxxddpPI8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=h/sdtxTh; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=fq07rPRT9NaNGXwlueGYwyyRmDUEIF7nWOh6SmY58XZ/AalxTgJ3bk10UmsOGxMhnhtkg70HAC4RYdpg517RzM1nshz0QLiD3QsnryTKbv39cUPOtvZ7OUlHQJ1o6kPl0TC77FOZihJ/+O58ToaZZmaCCZwcO1gIVcYiQt+GXaU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AVkQ2iWN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="h/sdtxTh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD0DD1F000FF;
-	Sun, 27 Sep 2026 08:53:06 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AVkQ2iWN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF9DC1F000FF;
+	Sun, 27 Sep 2026 11:11:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790499188;
-	bh=7DC87U949zK80OM5Df9MdhIZs83b7YvzK4d7Tw6CCSk=;
+	s=k20260515; t=1790507504;
+	bh=1gZ+0N74Wxd7dkOuC3ZgWhxcb8DrfAS61CfsdLted4E=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=h/sdtxTh8F2j6QM5LHTfmplsdInxTA/lOzRky8R36ylNbdq1mOOa2IPGlvTfrsxmw
-	 RDZOFE0izjskJ+Y31hoBlkJnKku/jilhvTZe/RXZP2Pmh9X8V3fLcXUQF9xbdSvNXk
-	 +dpzidlLEMKqk3vyegpQMQfs8a+9Scp6I52v9h9/3lKiqKTBnCCnktsDcRA5C6jwjo
-	 bhZ97943qPyrMX2fZeSEAenH6AHwGsUP1X0FwJu3DXT7gRa6bLZiYVxj2arnC4YeLm
-	 UC5RBthhItidF4xbGddXxLXVyXqEWNg2u0oI30ZJKsjMNjQVqOAIjfJA8UR6s48zBt
-	 sAIV03KUOKP7g==
-Date: Sun, 27 Sep 2026 09:53:04 +0100
+	b=AVkQ2iWNJz0EpkFbDoQUqae5qAOuCLmewQManXPqsk6fyKKBSDI+FM1osAASZeZr3
+	 kUn1eM4MeTlSfm1JnwWn6vit3ac9Gb3ifqCeKCpRVFJfTXI8eLMiJKuqY7lZ2aegDS
+	 kwFSp7i0T2nAfQWpwhQ6jNjvZMMP5wQ+c/PB4OgEj0AQAYfKbqtEn8gSf37pib3XeE
+	 SGUzI4FpUg+RlHAAFJaq63gaoNUDo0GLKDYHeYMkIKpwKOWKltMLb0L+vp0OCO6XRk
+	 gvkOq7KfknGHxM1fpBN2ztC3UI7ea/14aVEB4Q0W7NHuDlOPo0b/SNuUvI1jeUeovv
+	 pJhwIUy5YmeLA==
+Date: Sun, 27 Sep 2026 12:11:40 +0100
 From: Simon Horman <horms@kernel.org>
 To: netdev-bot+sashiko@kernel.org
-Cc: ginger.jzllee@gmail.com, saeedm@nvidia.com, leon@kernel.org,
-	tariqt@nvidia.com, mbloch@nvidia.com, netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kuba@kernel.org
-Subject: Re: [PATCH net] net/mlx5: HV VHCA: Fix the agent registration race
-Message-ID: <20260927085304.GD13925@horms.kernel.org>
-References: <20260922074246.20411-1-ginger.jzllee@gmail.com>
- <179032217859.2160803.16820194707566685207@kernel.org>
+Cc: achender@kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+	pabeni@redhat.com, edumazet@google.com, kuba@kernel.org
+Subject: Re: [PATCH net-next v3] net/rds: restrict the rdma_cm ids to IB
+ devices
+Message-ID: <20260927111140.GG13925@horms.kernel.org>
+References: <20260922084837.390414-1-achender@kernel.org>
+ <179033694505.2160803.10055619633105856141@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -46,184 +45,139 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <179032217859.2160803.16820194707566685207@kernel.org>
+In-Reply-To: <179033694505.2160803.10055619633105856141@kernel.org>
 
-On Fri, Sep 25, 2026 at 07:42:58AM +0000, netdev-bot+sashiko@kernel.org wrote:
+On Fri, Sep 25, 2026 at 11:49:05AM +0000, netdev-bot+sashiko@kernel.org wrote:
 > Thank you for your contribution! Sashiko AI review found 1 potential
 > issue(s) to consider.
 > 
-> Critical: 0 · High: 0 · Medium: 1 · Low: 0
+> Critical: 0 · High: 0 · Medium: 1 · Low: 0 (1)
 > 
 > If you believe none of the issues are legitimate, please reply to each
 > issue of Medium severity or higher and explain why the AI is wrong.
 > If any of them are legitimate and you plan to respin, please let patchwork
 > know by including "pw-bot: cr" as a separate line at the end of your reply
 > (one such reply per series is enough).
-
-With a view to move things along, I took a look a this.
-
-> - [Medium] The patch's second hunk does not achieve its stated purpose
->   and leaves the lock coverage of…
+> 
+> - [Medium] Commit-message misclassification: the changelog declares this
+>   change "hardening on top of it, not a fix in its own right, hence no…
+> 
+> Pre-existing issues:
+> - [Low] rds_rdma_listen_init_common() (net/rds/rdma_transport.c) logs the
+>   listening port as the compile-time constant RDS_PORT (18634) at line…
 > 
 > --
 > 
-> net/mlx5: HV VHCA: Fix the agent registration race
+> net/rds: restrict the rdma_cm ids to IB devices
 > 
-> This keeps agents_lock held across the duplicate-type check, the agent
-> allocation and the publish into hv_vhca->agents[] in
-> mlx5_hv_vhca_agent_create(), so two concurrent create calls for the same
-> type can no longer both pass the check.  It also wraps the read of
-> hv_vhca->agents[MLX5_HV_VHCA_AGENT_CONTROL] in mlx5_hv_vhca_cleanup()
-> with agents_lock.
+> This restricts the three rdma_cm ids RDS creates - the listener, the
+> per-connection id in rds_ib_conn_path_connect() and the probe id in
+> rds_ib_laddr_check_cm() - to RDMA_NODE_IB_CA with
+> rdma_restrict_node_type() before they are bound.  The explicit node_type
+> test in rds_ib_laddr_check_cm() is dropped as redundant.
 > 
-> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/hv_vhca.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/hv_vhca.c
-> > index 4c4cf6da519fa..eac8afdfc67a3 100644
-> > --- a/drivers/net/ethernet/mellanox/mlx5/core/lib/hv_vhca.c
-> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/hv_vhca.c
-> > @@ -228,7 +228,10 @@ void mlx5_hv_vhca_cleanup(struct mlx5_hv_vhca *hv_vhca)
-> >  	if (!hv_vhca)
-> >  		return;
-> >  
-> > +	mutex_lock(&hv_vhca->agents_lock);
-> >  	agent = hv_vhca->agents[MLX5_HV_VHCA_AGENT_CONTROL];
-> > +	mutex_unlock(&hv_vhca->agents_lock);
-> > +
-> >  	if (agent)
-> >  		mlx5_hv_vhca_control_agent_destroy(agent);
+> >From the changelog:
+> 
+> > With that, no rdma_cm event reaches RDS's handler from a device it
+> > has no transport for.  The handler itself still assumes IB: it assigns
+> > its transport pointer only for RDMA_NODE_IB_CA and dereferences it
+> > regardless, which is the crash that first surfaced this.  The fix for
+> > that is a separate net patch, Aohan Mei's "net: rds: fix uninitialized
+> > trans dereference in CM event handler", and is what stable kernels
+> > without rdma_restrict_node_type() - which arrived in commit
+> > a760e80e90f5 ("RDMA/core: introduce rdma_restrict_node_type()") - have
+> > to take; this patch is hardening on top of it, not a fix in its own
+> > right, hence no Fixes tag.
 > 
 > [Severity: Medium]
-> What does this new critical section in mlx5_hv_vhca_cleanup() actually
-> protect?  The lock is dropped immediately after the load, and the pointer
-> is consumed afterwards:
+> Is the "not a fix in its own right, hence no Fixes tag" classification
+> accurate for the tree this applies to?
 > 
-> 	mutex_lock(&hv_vhca->agents_lock);
-> 	agent = hv_vhca->agents[MLX5_HV_VHCA_AGENT_CONTROL];
-> 	mutex_unlock(&hv_vhca->agents_lock);
-> 
-> 	if (agent)
-> 		mlx5_hv_vhca_control_agent_destroy(agent);
-> 
-> So the only guarantee gained over the previous code is a non-torn load of
-> an aligned pointer, which a plain load already provides.  Nothing is
-> serialized against the destroy itself.  Extending the lock over the call
-> is not an option either, since mlx5_hv_vhca_agent_destroy() takes
-> agents_lock itself and that would self-deadlock.
-> 
-> The changelog says:
-> 
->     While at it, read hv_vhca->agents[MLX5_HV_VHCA_AGENT_CONTROL] under
->     the lock in mlx5_hv_vhca_cleanup() as well, since that slot is
->     written under the lock.
-> 
-> Is that accurate?  mlx5_hv_vhca_init() still stores to the same slot with
-> no lock held:
-> 
-> 	agent = mlx5_hv_vhca_control_agent_create(hv_vhca);
-> 	if (IS_ERR_OR_NULL(agent)) {
-> 		mlx5_hv_unregister_invalidate(hv_vhca->dev);
-> 		return;
-> 	}
-> 
-> 	hv_vhca->agents[MLX5_HV_VHCA_AGENT_CONTROL] = agent;
-> 
-> That store is now fully redundant with the locked publish that
-> mlx5_hv_vhca_agent_create() already performs:
-> 
-> 	hv_vhca->agents[type] = agent;
-> 	mutex_unlock(&hv_vhca->agents_lock);
-> 
-> and it contradicts the field's own contract:
-> 
-> 	struct mutex                agents_lock; /* Protect agents array */
-> 
-> Can it also race with the locked reader?  mlx5_hv_register_invalidate()
-> has already run by that point, and mlx5_hv_vhca_agent_create() queues
-> work before returning to init:
-> 
-> mlx5_hv_vhca_agent_create()
->   mlx5_hv_vhca_agents_update()
->     mlx5_hv_vhca_invalidate()
->       queue_work(hv_vhca->work_queue, &work->invalidate_work);
-> 
-> while the worker reads the array under the mutex:
-> 
-> 	mutex_lock(&hv_vhca->agents_lock);
-> 	for (i = 0; i < MLX5_HV_VHCA_AGENT_MAX; i++) {
-> 		struct mlx5_hv_vhca_agent *agent = hv_vhca->agents[i];
-> 
-> Since the value stored by init() is identical to the one already
-> published under the lock, the practical effect today looks like a benign
-> data race that KCSAN would flag rather than a functional failure.  Would
-> it be cleaner to drop the unlocked assignment in mlx5_hv_vhca_init()
-> instead, so agents[] has exactly one locked writer per slot, drop the
-> no-op lock/unlock in mlx5_hv_vhca_cleanup(), and adjust the changelog
-> wording accordingly?
+> The referenced companion patch ("net: rds: fix uninitialized trans
+> dereference in CM event handler") is not present here.  In
+> rds_rdma_cm_event_handler_cmn() the transport pointer is still
+> uninitialized on entry:
 
-This analysis appears to be correct to me.
-For this issue I believe you can just drop the assignment
-in mlx5_hv_vhca_init().
+I find this to be a specious argument.
+Of course a kernel without a fix applied is not fixed.
 
-But I believe there is another issue in your patch, which is
-that it extends the mutex critical section in mlx5_hv_vhca_agent_create()
-to cover kzalloc_obj, which may sleep.
+I believe the appropriate question, regarding fixing the Kernel, is if the
+cited fixed actually fixes the problem.  That question is not addressed
+here.  And indeed it's not a question to be answered here as it's a question
+to be answered in the context of reviewing the cited fix.
 
-I think the correct approach here is to:
-1. Speculatively create the agent object outside the critical section
-2. Try to install the agent inside the critical section
-3. Free the agent, if that fails, outside the critical section
+> 
+> net/rds/rdma_transport.c:rds_rdma_cm_event_handler_cmn() {
+> 	struct rds_connection *conn = cm_id->context;
+> 	struct rds_transport *trans;
+> 	...
+> 	if (cm_id->device->node_type == RDMA_NODE_IB_CA)
+> 		trans = &rds_ib_transport;
+> 	...
+> 	case RDMA_CM_EVENT_CONNECT_REQUEST:
+> 		ret = trans->cm_handle_connect(cm_id, event, isv6);
+> 	...
+> 	case RDMA_CM_EVENT_ESTABLISHED:
+> 		if (conn)
+> 			trans->cm_connect_complete(conn, event);
+> }
+> 
+> So for any event arriving from a device whose node_type is not
+> RDMA_NODE_IB_CA, trans is dereferenced as stack garbage, and the
+> CONNECT_REQUEST case is reachable from an inbound connection on the RDS
+> port.
+> 
+> Before this patch cma_listen_on_dev() installed the RDS listener on every
+> RDMA device, and cma_acquire_dev_by_src_ip() could pick a software iWARP
+> device for the same netdev, which is what made that path reachable.  With
+> the listener restriction added below, cma_listen_on_dev() honours
+> restricted_node_type and no longer installs the listener on such a device.
+> 
+> That makes this patch the change that removes the remotely reachable route
+> to that indirect call in this tree.  Should it then carry a Fixes tag and
+> state the ordering dependency on the companion handler patch, rather than
+> being described as hardening only?
+> 
+> > diff --git a/net/rds/rdma_transport.c b/net/rds/rdma_transport.c
+> > index b15cf316b23a2..91ff1dde26af0 100644
+> > --- a/net/rds/rdma_transport.c
+> > +++ b/net/rds/rdma_transport.c
+> > @@ -210,6 +210,14 @@ static int rds_rdma_listen_init_common(rdma_cm_event_handler handler,
+> >  		return ret;
+> >  	}
+> >  
+> > +	/* Only the IB transport is left, so only listen on IB devices */
+> > +	ret = rdma_restrict_node_type(cm_id, RDMA_NODE_IB_CA);
+> > +	if (ret) {
+> > +		pr_err("RDS/RDMA: failed to setup listener, rdma_restrict_node_type() returned %d\n",
+> > +		       ret);
+> > +		goto out;
+> > +	}
+> > +
+> >  	/*
+> >  	 * XXX I bet this binds the cm_id to a device.  If we want to support
+> >  	 * fail-over we'll have to take this into consideration.
+> 
+> [Severity: Low]
+> This isn't a bug introduced by this patch, but since the patch touches
+> rds_rdma_listen_init_common() anyway: the debug line further down in the
+> same function hard-codes the port,
+> 
+> 	rdsdebug("cm %p listening on port %u\n", cm_id, RDS_PORT);
+> 
+> while the helper has two callers with different ports.
+> rds_rdma_listen_init() binds the IPv4 listener with
+> sin.sin_port = htons(RDS_PORT) and the IPv6 listener with
+> sin6.sin6_port = htons(RDS_CM_PORT), as the comment above it describes.
+> 
+> For the IPv6 listener the message therefore prints 18634 rather than the
+> 16385 that was bound.  Would it make sense to print the port from the sa
+> argument that was just bound instead?
 
-IOW, move the type check and assignment to the same critical section,
-after allocating agent.
+If this is a problem it is separate to this patch,
+and should be addressed separately.
 
-I came up with this (compile tested only!)
+In all, this patch looks good to me.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/hv_vhca.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/hv_vhca.c
-index 4c4cf6da519f..e07c2bdcc12a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lib/hv_vhca.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/hv_vhca.c
-@@ -216,8 +216,6 @@ void mlx5_hv_vhca_init(struct mlx5_hv_vhca *hv_vhca)
- 		mlx5_hv_unregister_invalidate(hv_vhca->dev);
- 		return;
- 	}
--
--	hv_vhca->agents[MLX5_HV_VHCA_AGENT_CONTROL] = agent;
- }
- 
- void mlx5_hv_vhca_cleanup(struct mlx5_hv_vhca *hv_vhca)
-@@ -265,13 +263,6 @@ mlx5_hv_vhca_agent_create(struct mlx5_hv_vhca *hv_vhca,
- 	if (type >= MLX5_HV_VHCA_AGENT_MAX)
- 		return ERR_PTR(-EINVAL);
- 
--	mutex_lock(&hv_vhca->agents_lock);
--	if (hv_vhca->agents[type]) {
--		mutex_unlock(&hv_vhca->agents_lock);
--		return ERR_PTR(-EINVAL);
--	}
--	mutex_unlock(&hv_vhca->agents_lock);
--
- 	agent = kzalloc_obj(*agent);
- 	if (!agent)
- 		return ERR_PTR(-ENOMEM);
-@@ -287,12 +278,19 @@ mlx5_hv_vhca_agent_create(struct mlx5_hv_vhca *hv_vhca,
- 		WRITE_ONCE(*ctx_update, agent);
- 
- 	mutex_lock(&hv_vhca->agents_lock);
-+	if (hv_vhca->agents[type])
-+		goto err_unlock_and_free;
- 	hv_vhca->agents[type] = agent;
- 	mutex_unlock(&hv_vhca->agents_lock);
- 
- 	mlx5_hv_vhca_agents_update(hv_vhca);
- 
- 	return agent;
-+
-+err_unlock_and_free:
-+	mutex_unlock(&hv_vhca->agents_lock);
-+	kfree(agent);
-+	return ERR_PTR(-EINVAL);
- }
- 
- void mlx5_hv_vhca_agent_destroy(struct mlx5_hv_vhca_agent *agent)
+Reviewed-by: Simon Horman <horms@kernel.org>
 
--- 
-pw-bot: changes-requested
