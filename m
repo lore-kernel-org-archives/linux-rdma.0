@@ -1,31 +1,30 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E855E3BB66B;
-	Sun, 27 Sep 2026 06:14:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6A312E737B;
+	Sun, 27 Sep 2026 06:23:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790489698; cv=none; b=E/SNycdsnBButhpY/kbpvCQPMPN36tAxm95ntUXilT9HeAz13B3K62/9+3ywaYtWrcab92ER4F1D9LfZ02FvCq9tM1iaUPNKcRA+XpMFB1EllZAcZX1hh8WnW/PGuzwSc7QtIYj2MHlGNCnXbCssgqbwNnM8DTJxbcxNB0mBGbo=
+	t=1790490195; cv=none; b=QRcCGYO33u9rwAVAhgpIBcFcRf6sKaPRxNrCrCOaXSVR5QDp63IQOnQgEdQ0y9TflzaSLWVEppkmuVXROWuZVsq2eAvedAkzMotTrNNHw0tfLFMuKLNIWLy4qPtwNqJhh5wM1xhgAwgxO56qpD1GHtNl80H8FMJ/QOVcWh0tCek=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790489698; c=relaxed/simple;
-	bh=XBoEdN0eL1d16XdNGHd3xPUqVnQ/anf9hrpSYwCfzkk=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=DxGQceAMVQfCKtbWcoOj6JEQO9Y/udOfsmxW35NomdhBYIlvuSILpXEtvyq/2Xiqb8jrqRKTCHyc0oqhhUcwzMcFl/pH/Qr0g6nEKwn873LPcqeef/uvvBkO7TX8RH+i+N0sespK6dgywjFu/XTlI+6+MSjbLCxOYmqnISWsPDg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NVmMW9x5; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790490195; c=relaxed/simple;
+	bh=k9yAOa6xb+L8NSUCwDvYCxygqfkz8HAvXRoshnEutco=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=NrSXBriRrRDh1g6GPouh02xxLcNwhnl2+yQCBuUKT4/Dav1bq6955ojkPNjy8d+3dunAQGkWNQkTAxM969ZFJcUab+AX7OEsG3KpMsTonYOeB4cl2DpvFJ8+HPRbAEljDTbzT/2YlJ3eP3Gij05mZdlV1ZCx721yRc0CpLjdnb0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ao3P01ot; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NVmMW9x5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 701D41F0089D;
-	Sun, 27 Sep 2026 06:14:54 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ao3P01ot"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03FA91F000FF;
+	Sun, 27 Sep 2026 06:23:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790489694;
-	bh=gI+cbn1qpMtC0I0I8o+VPy6XzUrjTwu5fcWbmcbmKjE=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=NVmMW9x5mBTftwJZ0o+e91Xp8j6yccGZLlhT2RYPNYqRkhlDY5dU6nSWQFO1WsPx/
-	 Cl9gtZly0YShx09z0a4icup0uIYC8QiZyd27hJwvieBHt59WbFgOrnXDZFmKfrITp3
-	 SV1tK6AvDpMRRU5rBBI9WV6tOkHfR/w61j+GKQwszNs0M9POwz+iM+TpjVgAQ7fGeb
-	 r1FurAZiu8FHsESpmm7xU8P9dPJMeFH+fqjJSfuOvyz4tbX0lzxj6DeWI55iqEumPN
-	 z6ekE8Kc2YITMAu1AjSHHP6Urq64j0Mg+7/AvnMC0hod1MF9nLIszJ4vUGu91qVA/s
-	 Yyk9qEKA98S6w==
+	s=k20260515; t=1790490193;
+	bh=getjAz67ligAbrpiUX7MiUy1Xq8e93Z5z/02Atu6OBI=;
+	h=From:To:Cc:Subject:Date;
+	b=ao3P01ot0qs2Tmj6+2g8Tu/45Ir3S2ipPuHTrjnu1Xw3kA2mNdzMiDtqa57AZ2y2H
+	 ylHJjqkFyauU3A9UiE96q1/cvbjoL1j1BrtRQl6hgfRp2mF2AHTFkQy/PqeC4+1ENB
+	 tCgpNnJWI0ZW0mISuiOK51LVLYpP3y6juwQbA9Q/8Zj70ULoISxwqdnXM1weTzWXqY
+	 1mnu8VWJeunoijIEm5P+4OhH6C/RnDW/YrkA82YYhd1q6wD4z+JsLJv7YB1oZThVaI
+	 QnkuDfCeskqhqOcHAoSjPuFlvtLF3LKe/o3fQM+3HiW3DkSGJ3EIDp43vZ+uXKHg8F
+	 mY+LvkScZA6mQ==
 From: Allison Henderson <achender@kernel.org>
 To: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
@@ -34,12 +33,10 @@ To: netdev@vger.kernel.org,
 	kuba@kernel.org,
 	horms@kernel.org
 Cc: achender@kernel.org
-Subject: [PATCH net-next v7 10/12] net/rds: hold connection references in lookup, sockets and c_passive
-Date: Sat, 26 Sep 2026 23:14:46 -0700
-Message-Id: <20260927061448.167862-11-achender@kernel.org>
+Subject: [PATCH net v2] net/rds: include the scope id in the sendmsg connection cache check
+Date: Sat, 26 Sep 2026 23:23:12 -0700
+Message-Id: <20260927062312.169097-1-achender@kernel.org>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20260927061448.167862-1-achender@kernel.org>
-References: <20260927061448.167862-1-achender@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -48,610 +45,54 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Sharath Srinivasan <sharath.srinivasan@oracle.com>
+rds_sendmsg() reuses the connection cached in rs->rs_conn when its
+peer address and ToS match the request.  The interface index is part
+of a connection's identity as well: rds_conn_create_outgoing() passes
+the request's scope_id down as dev_if, and rds_conn_lookup() compares
+c_dev_if, so sends to the same link-local address through two
+interfaces are two different connections.  The cache-hit test never
+looked at it.
 
-Hand out real references everywhere a struct rds_connection pointer
-previously escaped bare:
+A socket bound to a non-link-local address has rs_bound_scope_id 0,
+and the scope check at the top of rds_sendmsg() accepts any non-zero
+destination scope for such a socket.  So after a send to fe80::x%ifA,
+a send to fe80::x%ifB hits the cached ifA connection and the datagram
+leaves through ifA, to whichever peer answers to that address there.
 
-- rds_conn_lookup() takes a reference on the connection it returns
-  (kref_get_unless_zero(), so that it only ever hands out a live
-  reference), and
-  __rds_conn_create() returns the connection with a reference held
-  for the caller on every path: lookup hit, fresh creation, lost
-  creation race, and the passive-loopback lookup, which now also
-  holds the parent while it dereferences parent->c_passive.
+Compare c_dev_if with the request's scope_id in the cache test, so
+that such a send takes the lookup path and finds, or creates, the ifB
+connection.
 
-- The rs->rs_conn sendmsg cache owns a reference, which is dropped
-  when the cache is replaced or the socket is released.
-  rds_sendmsg() itself holds a reference for the duration of the
-  call, during which reads and updates of rs_conn are serialized by
-  rs_lock.  So neither a concurrent rds_conn_destroy() nor another
-  sender replacing the cache can free the connection under a sender.
-  No destroy trigger in this tree - netns teardown, module unload -
-  can run while a socket is still sending, since a socket holds its
-  netns and pins its transport module; what the reference buys today
-  is the data race fix below and a cache that no longer sticks to a
-  quiesced connection, and it is the discipline the later patches
-  rely on.  A
-  cached connection whose destruction has begun is no longer reused.
-  Instead, sendmsg drops it and looks up or creates a live one, so a
-  socket cannot get stuck returning -EAGAIN forever against a
-  quiesced connection; the cache's own reference on it is dropped
-  right there, so a socket that never sends again does not pin a
-  quiesced connection until it is closed.  Both ToS ioctls use the
-  same lock now (they
-  used the unrelated global rds_sock_lock before), and since the
-  create in rds_sendmsg() samples rs_tos without the lock, the install
-  re-checks under it that the new connection's ToS still matches the
-  socket's and returns -EAGAIN if a SIOCRDSSETTOS slipped in between,
-  rather than sending on, and caching, a connection with the old ToS.
+A request without a scope keeps matching the cached connection.  A
+send with a destination always carries one for a link-local peer, but
+a send without a destination takes rs_bound_scope_id, and a bind() to
+a non-link-local address after connect() to a link-local peer resets
+that to 0.  Such a send never named an interface, so the connection
+the socket last used is the one it means; making it miss the cache
+would send it to look up a connection with no interface, which cannot
+be established.
 
-- parent->c_passive owns a reference, dropped when the parent is
-  destroyed.  The pointer is read under rcu_read_lock() and written
-  under rds_conn_lock, so it is RCU-annotated and accessed through
-  rcu_dereference()/rcu_assign_pointer().  A passive connection whose
-  own destroy has begun is neither handed out nor left dangling in
-  the parent: __rds_conn_create() refuses it, and the child's destroy
-  clears the parent's pointer and drops that reference itself, so a
-  quiesced passive conn cannot be revived by a later connect request.
-
-Serializing the rs_conn cache under rs_lock also resolves a
-syzbot-reported KCSAN data race between concurrent rds_sendmsg()
-calls on the same socket, each installing the connection it created
-into rs->rs_conn with a plain store:
-
-  BUG: KCSAN: data-race in rds_sendmsg / rds_sendmsg
-
-  write to 0xffff888101dec818 of 8 bytes by task 30904 on cpu 0:
-   rds_sendmsg+0xc1f/0x1580 net/rds/send.c:1332
-
-  write to 0xffff888101dec818 of 8 bytes by task 30905 on cpu 1:
-   rds_sendmsg+0xc1f/0x1580 net/rds/send.c:1332
-
-  value changed: 0x0000000000000000 -> 0xffff88811b61faf0
-
-cm_id->context still carries no reference of its own after this
-patch; the following patch pins the connection for the duration of
-the CM event handler.
-
-rds_tcp_accept_one() needs no destroy check of its own even though it
-now gets a referenced connection back from rds_conn_create(): TCP
-connections are only destroyed on netns teardown and module unload,
-and both go through rds_tcp_kill_sock(), which clears the listen
-socket the accept tests first and then flushes the accept work in
-rds_tcp_listen_stop(), before destroying anything.
-
-This is not a stable candidate on its own: it depends on the
-connection reference counting introduced by the preceding patches,
-and the data race it closes has no consequence beyond the report
-while no destroy can run under a live socket, which is the case in
-this tree.
-
-Based on the Oracle UEK commits "net/rds: Add krefs to
-struct rds_connection" and "net/rds: rds_sendmsg must
-use rs_conn only when not being destroyed".
-
-Reported-by: syzbot+879c1877016972360186@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=879c1877016972360186
-Signed-off-by: Sharath Srinivasan <sharath.srinivasan@oracle.com>
-[achender: substantial reimplementation for net-next: upstream has no
- conn reaper, per-conn workers hold no references (destroy cancels
- them synchronously before the final put), and the sendmsg cache is
- serialized with rs_lock instead of UEK's socket flag; rewrite commit
- message]
+Fixes: 1e2b44e78eea ("rds: Enable RDS IPv6 support")
 Assisted-by: Claude-Code:claude-fable-5
 Signed-off-by: Allison Henderson <achender@kernel.org>
 ---
- net/rds/af_rds.c     |  24 ++++++--
- net/rds/connection.c | 127 +++++++++++++++++++++++++++++++++++++++++--
- net/rds/ib_cm.c      |   9 ++-
- net/rds/loop.c       |   2 +-
- net/rds/rds.h        |  16 ++++--
- net/rds/send.c       |  65 ++++++++++++++++++++--
- net/rds/tcp_listen.c |  12 +++-
- 7 files changed, 232 insertions(+), 23 deletions(-)
+ net/rds/send.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/net/rds/af_rds.c b/net/rds/af_rds.c
-index d5defe9172e3..1cc20b5cfd21 100644
---- a/net/rds/af_rds.c
-+++ b/net/rds/af_rds.c
-@@ -80,6 +80,14 @@ static int rds_release(struct socket *sock)
- 	rds_notify_queue_get(rs, NULL);
- 	rds_notify_msg_zcopy_purge(&rs->rs_zcookie_queue);
- 
-+	/* drop the cached connection reference; no sendmsg can race
-+	 * with us here, the socket is going away
-+	 */
-+	if (rs->rs_conn) {
-+		rds_conn_put(rs->rs_conn);
-+		rs->rs_conn = NULL;
-+	}
-+
- 	spin_lock_bh(&rds_sock_lock);
- 	list_del_init(&rs->rs_item);
- 	spin_unlock_bh(&rds_sock_lock);
-@@ -255,6 +263,7 @@ static int rds_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
- {
- 	struct rds_sock *rs = rds_sk_to_rs(sock->sk);
- 	rds_tos_t utos, tos = 0;
-+	unsigned long flags;
- 
- 	switch (cmd) {
- 	case SIOCRDSSETTOS:
-@@ -267,18 +276,23 @@ static int rds_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
- 		else
- 			return -ENOIOCTLCMD;
- 
--		spin_lock_bh(&rds_sock_lock);
-+		/* rs_conn is serialized by rs_lock (see rds_sendmsg());
-+		 * hold it across the "no connection yet" check and the
-+		 * rs_tos store so a racing sendmsg cannot cache a conn
-+		 * whose c_tos then disagrees with rs_tos.
-+		 */
-+		spin_lock_irqsave(&rs->rs_lock, flags);
- 		if (rs->rs_tos || rs->rs_conn) {
--			spin_unlock_bh(&rds_sock_lock);
-+			spin_unlock_irqrestore(&rs->rs_lock, flags);
- 			return -EINVAL;
- 		}
- 		rs->rs_tos = tos;
--		spin_unlock_bh(&rds_sock_lock);
-+		spin_unlock_irqrestore(&rs->rs_lock, flags);
- 		break;
- 	case SIOCRDSGETTOS:
--		spin_lock_bh(&rds_sock_lock);
-+		spin_lock_irqsave(&rs->rs_lock, flags);
- 		tos = rs->rs_tos;
--		spin_unlock_bh(&rds_sock_lock);
-+		spin_unlock_irqrestore(&rs->rs_lock, flags);
- 		if (put_user(tos, (rds_tos_t __user *)arg))
- 			return -EFAULT;
- 		break;
-diff --git a/net/rds/connection.c b/net/rds/connection.c
-index 1d7932cac035..960fc5732c6e 100644
---- a/net/rds/connection.c
-+++ b/net/rds/connection.c
-@@ -81,7 +81,10 @@ static struct hlist_head *rds_conn_bucket(const struct in6_addr *laddr,
- 		var |= RDS_INFO_CONNECTION_FLAG_##suffix;	\
- } while (0)
- 
--/* rcu read lock must be held or the connection spinlock */
-+/* rcu read lock must be held or the connection spinlock.
-+ * On success a reference is taken on the returned connection; the
-+ * caller must drop it with rds_conn_put().
-+ */
- static struct rds_connection *rds_conn_lookup(struct net *net,
- 					      struct hlist_head *head,
- 					      const struct in6_addr *laddr,
-@@ -98,6 +101,17 @@ static struct rds_connection *rds_conn_lookup(struct net *net,
- 		    conn->c_tos == tos &&
- 		    net == rds_conn_net(conn) &&
- 		    conn->c_dev_if == dev_if) {
-+			/* Only ever hand out a live reference.
-+			 * rds_conn_destroy() unhashes under
-+			 * rds_conn_lock and waits a grace period
-+			 * before dropping the initial reference, so
-+			 * an entry this traversal reaches still holds
-+			 * at least that one; the conditional get
-+			 * documents the contract rather than
-+			 * papering over a zero-refcount entry.
-+			 */
-+			if (!kref_get_unless_zero(&conn->c_refcount))
-+				continue;
- 			ret = conn;
- 			break;
- 		}
-@@ -163,6 +177,14 @@ static void __rds_conn_path_init(struct rds_connection *conn,
- 	cp->cp_flags = 0;
- }
- 
-+/* c_passive is written under rds_conn_lock and read under RCU */
-+static struct rds_connection *
-+rds_conn_passive_locked(struct rds_connection *conn)
-+{
-+	return rcu_dereference_protected(conn->c_passive,
-+					 lockdep_is_held(&rds_conn_lock));
-+}
-+
- /* Undo trans->conn_alloc(): it may have allocated transport data for
-  * every path of a multipath connection, not just for path 0.
-  */
-@@ -215,7 +237,20 @@ static struct rds_connection *__rds_conn_create(struct net *net,
- 		 * We need a second connection object into which we
- 		 * can stick the other QP. */
- 		parent = conn;
--		conn = parent->c_passive;
-+		/* The c_passive pointer holds a reference which is only
-+		 * dropped one synchronize_rcu() after the pointer is
-+		 * cleared, so within this RCU section a fetched pointer
-+		 * is always safe to take a reference on.  A passive conn
-+		 * whose own destroy has begun is not handed out, though:
-+		 * it is quiesced and about to clear the parent's pointer
-+		 * itself, and reusing it would re-arm a connection that
-+		 * nothing will tear down again.
-+		 */
-+		conn = rcu_dereference(parent->c_passive);
-+		if (conn && rds_destroy_pending(conn))
-+			conn = NULL;
-+		if (conn)
-+			rds_conn_get(conn);
- 	}
- 	rcu_read_unlock();
- 	if (conn)
-@@ -340,13 +375,44 @@ static struct rds_connection *__rds_conn_create(struct net *net,
- 	spin_lock_irqsave(&rds_conn_lock, flags);
- 	if (parent) {
- 		/* Creating passive conn */
--		if (parent->c_passive) {
-+		if (rds_destroy_pending(parent)) {
-+			/* The parent's destroy has begun (it sets the
-+			 * flag and snatches c_passive under this
-+			 * lock); do not install a new passive conn
-+			 * that nothing would ever destroy.
-+			 */
-+			rds_conn_free_transport_data(conn, npaths);
-+			free_cp = conn->c_path;
-+			kmem_cache_free(rds_conn_slab, conn);
-+			conn = ERR_PTR(-ENETDOWN);
-+		} else if (rcu_access_pointer(parent->c_passive)) {
-+			struct rds_connection *passive;
-+
-+			passive = rds_conn_passive_locked(parent);
- 			rds_conn_free_transport_data(conn, npaths);
- 			free_cp = conn->c_path;
- 			kmem_cache_free(rds_conn_slab, conn);
--			conn = parent->c_passive;
-+			if (rds_destroy_pending(passive)) {
-+				/* Its destroy will clear the parent's
-+				 * pointer under this lock shortly; until
-+				 * then there is no usable passive conn.
-+				 */
-+				conn = ERR_PTR(-ENETDOWN);
-+			} else {
-+				rds_conn_get(passive);
-+				conn = passive;
-+			}
- 		} else {
--			parent->c_passive = conn;
-+			/* The initial reference belongs to whoever
-+			 * destroys the conn (the transport's conn
-+			 * lists, as for any other conn).  Take one
-+			 * for the c_passive pointer - dropped when
-+			 * the parent is destroyed - and one for our
-+			 * caller.
-+			 */
-+			rds_conn_get(conn);	/* c_passive */
-+			rds_conn_get(conn);	/* caller */
-+			rcu_assign_pointer(parent->c_passive, conn);
- 			rds_cong_add_conn(conn);
- 			rds_conn_count++;
- 			atomic_inc(&conn->c_trans->t_conn_count);
-@@ -365,6 +431,10 @@ static struct rds_connection *__rds_conn_create(struct net *net,
- 		} else {
- 			conn->c_my_gen_num = rds_gen_num;
- 			conn->c_peer_gen_num = 0;
-+			/* the initial reference belongs to whoever
-+			 * destroys the conn; take one for our caller
-+			 */
-+			rds_conn_get(conn);
- 			hlist_add_head_rcu(&conn->c_hash_node, head);
- 			rds_cong_add_conn(conn);
- 			rds_conn_count++;
-@@ -375,6 +445,8 @@ static struct rds_connection *__rds_conn_create(struct net *net,
- 	rcu_read_unlock();
- 
- out:
-+	if (parent)
-+		rds_conn_put(parent);
- 	if (free_cp) {
- 		for (i = 0; i < npaths; i++)
- 			if (free_cp[i].cp_wq != rds_wq)
-@@ -697,6 +769,9 @@ EXPORT_SYMBOL_GPL(rds_conn_put);
- void rds_conn_destroy(struct rds_connection *conn)
- {
- 	int i;
-+	struct rds_connection *passive, *parent;
-+	struct hlist_head *head;
-+	bool was_passive = false;
- 	struct rds_conn_path *cp;
- 	int npaths = (conn->c_trans->t_mp_capable ? RDS_MPATH_WORKERS : 1);
- 
-@@ -730,7 +805,38 @@ void rds_conn_destroy(struct rds_connection *conn)
- 
- 	/* Ensure conn will not be scheduled for reconnect */
- 	hlist_del_init_rcu(&conn->c_hash_node);
-+
-+	/* Snatch c_passive while holding the lock:
-+	 * __rds_conn_create() dereferences it under rcu_read_lock()
-+	 * (and refuses to install a new one once c_destroy_in_prog is
-+	 * set, which it checks under this lock).  After the
-+	 * synchronize_rcu() below no one can pick the pointer up any
-+	 * more and its reference can be dropped.
-+	 */
-+	passive = rds_conn_passive_locked(conn);
-+	RCU_INIT_POINTER(conn->c_passive, NULL);
-+
-+	/* If we are a parent's passive twin, invalidate its pointer to
-+	 * us as well, so that __rds_conn_create() cannot hand out a
-+	 * connection whose teardown has begun.  The parent is the
-+	 * hashed connection for our key (a passive conn is never
-+	 * hashed, and we unhashed ourselves above); it holds its
-+	 * initial reference for as long as it is hashed, so the lookup
-+	 * reference dropped below cannot be its last.
-+	 */
-+	head = rds_conn_bucket(&conn->c_laddr, &conn->c_faddr);
-+	rcu_read_lock();
-+	parent = rds_conn_lookup(rds_conn_net(conn), head, &conn->c_laddr,
-+				 &conn->c_faddr, conn->c_trans, conn->c_tos,
-+				 conn->c_dev_if);
-+	rcu_read_unlock();
-+	if (parent && rds_conn_passive_locked(parent) == conn) {
-+		RCU_INIT_POINTER(parent->c_passive, NULL);
-+		was_passive = true;
-+	}
- 	spin_unlock_irq(&rds_conn_lock);
-+	if (parent)
-+		rds_conn_put(parent);
- 	synchronize_rcu();
- 
- 	/* shut the connection down */
-@@ -747,6 +853,17 @@ void rds_conn_destroy(struct rds_connection *conn)
- 	 */
- 	rds_cong_remove_conn(conn);
- 
-+	/* Drop the reference our c_passive pointer held, if any, and
-+	 * the one a parent's c_passive pointer held on us.  Either may
-+	 * be the last one - the twin's own destroy may already have run
-+	 * - so these must stay here, in sleepable context with no lock
-+	 * held, where the free that follows the last put is allowed.
-+	 */
-+	if (passive)
-+		rds_conn_put(passive);
-+	if (was_passive)
-+		rds_conn_put(conn);
-+
- 	/* drop the initial reference; the connection is freed from
- 	 * rds_conn_destroy_fini() once every holder has dropped theirs
- 	 */
-diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
-index 3123fd101f4b..ee018dd230e9 100644
---- a/net/rds/ib_cm.c
-+++ b/net/rds/ib_cm.c
-@@ -924,8 +924,15 @@ int rds_ib_cm_handle_connect(struct rdma_cm_id *cm_id,
- 		rds_ib_conn_error(conn, "rdma_accept failed\n");
- 
- out:
--	if (conn)
-+	if (conn) {
- 		mutex_unlock(&conn->c_cm_lock);
-+		/* Drop the reference rds_conn_create() handed us.  The
-+		 * conn stays reachable through cm_id->context without a
-+		 * reference of its own for now; the CM event handler is
-+		 * given one of its own by a following patch.
-+		 */
-+		rds_conn_put(conn);
-+	}
- 	if (err)
- 		rdma_reject(cm_id, &err, sizeof(int),
- 			    IB_CM_REJ_CONSUMER_DEFINED);
-diff --git a/net/rds/loop.c b/net/rds/loop.c
-index 71f760ccd458..5bac858df87e 100644
---- a/net/rds/loop.c
-+++ b/net/rds/loop.c
-@@ -170,7 +170,7 @@ static void rds_loop_destroy_gathered_conns(struct list_head *tmp_list)
- 
- 	list_for_each_entry_safe(lc, _lc, tmp_list, loop_node) {
- 		conn = lc->conn;
--		WARN_ON(conn->c_passive);
-+		WARN_ON(rcu_access_pointer(conn->c_passive));
- 
- 		spin_lock_irq(&loop_conns_lock);
- 		list_del_init(&lc->loop_node);
-diff --git a/net/rds/rds.h b/net/rds/rds.h
-index 84c5f7650817..04e5852697b2 100644
---- a/net/rds/rds.h
-+++ b/net/rds/rds.h
-@@ -156,7 +156,10 @@ struct rds_connection {
- 	/* Set once, by rds_conn_destroy() under rds_conn_lock - a
- 	 * test-and-set, so a second destroy of the same connection
- 	 * returns at once - before it cancels the path works.  Read
--	 * through rds_destroy_pending().  A site that arms
-+	 * through rds_destroy_pending(), which also reports netns
-+	 * teardown and module unload; the c_passive handling reads the
-+	 * flag directly, since only this connection's own destroy
-+	 * matters there.  A site that arms
- 	 * a path work must test the predicate and queue the work inside
- 	 * one rcu_read_lock() section: the synchronize_rcu() that
- 	 * follows the store is what keeps a queue issued after the
-@@ -167,7 +170,7 @@ struct rds_connection {
- 	 * removal) issues and then flushes.
- 	 */
- 	bool			c_destroy_in_prog;
--	struct rds_connection	*c_passive;
-+	struct rds_connection __rcu *c_passive;
- 	struct rds_transport	*c_trans;
- 
- 	struct rds_cong_map	*c_lcong;
-@@ -675,7 +678,10 @@ struct rds_sock {
- 
- 	/*
- 	 * rds_sendmsg caches the conn it used the last time around.
--	 * This helps avoid costly lookups.
-+	 * This helps avoid costly lookups.  The cache owns a connection
-+	 * reference, dropped when it is replaced or the socket is
-+	 * released, and is read and written under rs_lock - except by
-+	 * rds_release(), which runs once no one else can reach the socket.
- 	 */
- 	struct rds_connection	*rs_conn;
- 
-@@ -684,7 +690,9 @@ struct rds_sock {
- 	/* seen congestion (ENOBUFS) when sending? */
- 	int			rs_seen_congestion;
- 
--	/* rs_lock protects all these adjacent members before the newline */
-+	/* rs_lock protects all these adjacent members before the newline,
-+	 * as well as rs_conn and rs_tos above
-+	 */
- 	spinlock_t		rs_lock;
- 	struct list_head	rs_send_queue;
- 	u32			rs_snd_bytes;
 diff --git a/net/rds/send.c b/net/rds/send.c
-index 7235974343dd..bedcd8b836f6 100644
+index 1afa981e5c06..393898a079c1 100644
 --- a/net/rds/send.c
 +++ b/net/rds/send.c
-@@ -1162,13 +1162,14 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
- 	DECLARE_SOCKADDR(struct sockaddr_in *, usin, msg->msg_name);
- 	__be16 dport;
- 	struct rds_message *rm = NULL;
--	struct rds_connection *conn;
-+	struct rds_connection *conn = NULL;
- 	int ret = 0;
- 	int queued = 0, allocated_mr = 0;
- 	int nonblock = msg->msg_flags & MSG_DONTWAIT;
- 	long timeo = sock_sndtimeo(sk, nonblock);
- 	struct rds_conn_path *cpath;
- 	struct in6_addr daddr;
-+	unsigned long flags;
- 	__u32 scope_id = 0;
- 	size_t rdma_payload_len = 0;
- 	bool zcopy = ((msg->msg_flags & MSG_ZEROCOPY) &&
-@@ -1343,21 +1344,68 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
- 	rm->m_daddr = daddr;
- 
+@@ -1342,7 +1342,8 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
  	/* rds_conn_create has a spinlock that runs with IRQ off.
--	 * Caching the conn in the socket helps a lot. */
--	if (rs->rs_conn && ipv6_addr_equal(&rs->rs_conn->c_faddr, &daddr) &&
+ 	 * Caching the conn in the socket helps a lot. */
+ 	if (rs->rs_conn && ipv6_addr_equal(&rs->rs_conn->c_faddr, &daddr) &&
 -	    rs->rs_tos == rs->rs_conn->c_tos) {
--		conn = rs->rs_conn;
-+	 * Caching the conn in the socket helps a lot.
-+	 *
-+	 * The cached rs_conn holds a connection reference; take one of
-+	 * our own for the duration of this call (dropped on both exit
-+	 * paths), so that neither a concurrent sender replacing the
-+	 * cache nor rds_conn_destroy() can free the connection under
-+	 * us.  A cached connection whose destruction has begun is not
-+	 * reused: dropping it here lets the next sendmsg look up or
-+	 * create a live one instead of returning -EAGAIN forever.
-+	 */
-+	spin_lock_irqsave(&rs->rs_lock, flags);
-+	conn = rs->rs_conn;
-+	if (conn && rds_destroy_pending(conn)) {
-+		/* drop the cache's reference right here, or the socket
-+		 * would pin the quiesced connection until it is closed
-+		 */
-+		rs->rs_conn = NULL;
-+		spin_unlock_irqrestore(&rs->rs_lock, flags);
-+		rds_conn_put(conn);
-+		conn = NULL;
++	    rs->rs_tos == rs->rs_conn->c_tos &&
++	    (!scope_id || rs->rs_conn->c_dev_if == scope_id)) {
+ 		conn = rs->rs_conn;
  	} else {
-+		if (conn && ipv6_addr_equal(&conn->c_faddr, &daddr) &&
-+		    rs->rs_tos == conn->c_tos)
-+			rds_conn_get(conn);
-+		else
-+			conn = NULL;
-+		spin_unlock_irqrestore(&rs->rs_lock, flags);
-+	}
-+
-+	if (!conn) {
-+		struct rds_connection *old;
-+
  		conn = rds_conn_create_outgoing(sock_net(sock->sk),
- 						&rs->rs_bound_addr, &daddr,
--						rs->rs_transport, rs->rs_tos,
-+						rs->rs_transport,
-+						READ_ONCE(rs->rs_tos),
- 						sock->sk->sk_allocation,
- 						scope_id);
- 		if (IS_ERR(conn)) {
- 			ret = PTR_ERR(conn);
-+			conn = NULL;
-+			goto out;
-+		}
-+		/* rs_tos was sampled without rs_lock for the create above,
-+		 * and SIOCRDSSETTOS only refuses a change once rs_conn is
-+		 * set, so it can have changed underneath us.  Do not
-+		 * install - or send on - a connection whose ToS no longer
-+		 * matches the socket's; the retry uses the new one.
-+		 */
-+		spin_lock_irqsave(&rs->rs_lock, flags);
-+		if (conn->c_tos != rs->rs_tos) {
-+			spin_unlock_irqrestore(&rs->rs_lock, flags);
-+			ret = -EAGAIN;
- 			goto out;
- 		}
-+		/* hand the cache its own reference */
-+		rds_conn_get(conn);
-+		old = rs->rs_conn;
- 		rs->rs_conn = conn;
-+		spin_unlock_irqrestore(&rs->rs_lock, flags);
-+		if (old)
-+			rds_conn_put(old);
- 	}
- 
- 	if (conn->c_trans->t_mp_capable) {
-@@ -1477,6 +1525,8 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
- 		kfree(vct.vec[ind].iov);
- 	kfree(vct.vec);
- 
-+	rds_conn_put(conn);
-+
- 	return payload_len;
- 
- out:
-@@ -1484,6 +1534,9 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
- 		kfree(vct.vec[ind].iov);
- 	kfree(vct.vec);
- 
-+	if (conn)
-+		rds_conn_put(conn);
-+
- 	/* If the user included a RDMA_MAP cmsg, we allocated a MR on the fly.
- 	 * If the sendmsg goes through, we keep the MR. If it fails with EAGAIN
- 	 * or in any other way, we need to destroy the MR again */
-diff --git a/net/rds/tcp_listen.c b/net/rds/tcp_listen.c
-index 8a0c54aced5e..bb4f01c07169 100644
---- a/net/rds/tcp_listen.c
-+++ b/net/rds/tcp_listen.c
-@@ -153,7 +153,7 @@ int rds_tcp_accept_one(struct rds_tcp_net *rtn)
- {
- 	struct socket *listen_sock = rtn->rds_tcp_listen_sock;
- 	struct socket *new_sock = NULL;
--	struct rds_connection *conn;
-+	struct rds_connection *conn = NULL;
- 	int ret;
- 	struct inet_sock *inet;
- 	struct rds_tcp_connection *rs_tcp = NULL;
-@@ -229,6 +229,7 @@ int rds_tcp_accept_one(struct rds_tcp_net *rtn)
- 
- 	if (IS_ERR(conn)) {
- 		ret = PTR_ERR(conn);
-+		conn = NULL;
- 		goto out;
- 	}
- 	/* An incoming SYN request came in, and TCP just accepted it.
-@@ -277,6 +278,13 @@ int rds_tcp_accept_one(struct rds_tcp_net *rtn)
- 	cp = rs_tcp->t_cpath;
- 	conn_state = rds_conn_path_state(cp);
- 	WARN_ON(conn_state == RDS_CONN_UP);
-+	/* A connection whose destroy has begun cannot be found here:
-+	 * TCP connections are only destroyed on netns teardown and on
-+	 * module unload, and both go through rds_tcp_kill_sock() - which
-+	 * clears the listen socket that the top of this function tests
-+	 * and then flushes this work in rds_tcp_listen_stop() - before
-+	 * any connection is destroyed.
-+	 */
- 	if (conn_state != RDS_CONN_CONNECTING && conn_state != RDS_CONN_ERROR) {
- 		rds_conn_path_drop(cp, 0);
- 		goto rst_nsk;
-@@ -347,6 +355,8 @@ int rds_tcp_accept_one(struct rds_tcp_net *rtn)
- 		mutex_unlock(&rs_tcp->t_conn_path_lock);
- 	if (new_sock)
- 		sock_release(new_sock);
-+	if (conn)
-+		rds_conn_put(conn);
- 
- 	mutex_unlock(&rtn->rds_tcp_accept_lock);
- 
 -- 
 2.25.1
 
