@@ -1,192 +1,78 @@
-Received: from mail-dl2-f43.google.com (mail-dl2-f43.google.com [74.125.229.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 368B12DECA1
-	for <linux-rdma@vger.kernel.org>; Sun, 27 Sep 2026 07:46:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.229.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2094935893;
+	Sun, 27 Sep 2026 07:47:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790495171; cv=none; b=W2ebU8flcyo0yuBVj1GGcrDck8Lxjm8UZptPFtTREKRRMqpX9oFhXG+fIR990BarBBbHzGCMZZsp2A/v3vyDz3nYUIpMQFLtDPlX7X5w8PxrlMZNLoHvvb9rbK8Z8o/EpwpEBllMWA6OWEmcq40zsnEp4RBXafq9rnbxdpmU07I=
+	t=1790495244; cv=none; b=ULsW5KQN7KPML37MM17Cyw0Xl4pU7bQumQx+k/H/ki82DHO8PRs43q5pmEbOOZJQjzKE/NrCDzaLIF2xnS93Oruiynk6138465eFJI0FyM3hMdZ53u5/dP52vvsRXxhz765naunRbXfDiEAAsiyfO9EbJbo/P6CksUJemFDxWPw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790495171; c=relaxed/simple;
-	bh=RGhJnf5GbbdO545DxKKBzB6+35VcnLhNLOUQSqAUEl8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=uxcmhD+uybsxgVBkZtD6SSJH/a6/QDe29ptTgA8dcersIaFooEmcYy2yLITh1sKzTCsjes1dpz1Pa0Bm7TM0kOv2zsl/hVn4PL729ku9+aINR39ztC28umKz0tiaynCEi8tMhLXxJJiWOTfMMvA6l85xpySeYsDCIloADa7k4Fc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=h2FK8QLV; arc=none smtp.client-ip=74.125.229.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1790495244; c=relaxed/simple;
+	bh=jiHy0DQaFFcSNcg3tIbg7YFjl+KTNd2RjQ31ordNyN8=;
+	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
+	 Message-Id; b=FuFo82BZRYhLpaSfQx02ORjh4R3Sq/sCpj69K5Ktthm4Yg/WXB6avIb56a8UzGiDOqGIlzbzMUWzs1alF9wc6mEQwuMTSfoFtfoDOXXwxNYpJ9Z8+5hHdR+vcf8ObP2WYYUPr7z6XUFhJIR5zcx1jG71EbjN9ZL+hPfMis6adco=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CHZVhh2O; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="h2FK8QLV"
-Received: by mail-dl2-f43.google.com with SMTP id a92af1059eb24-144fa6e60bcso79178c88.0
-        for <linux-rdma@vger.kernel.org>; Sun, 27 Sep 2026 00:46:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790495169; x=1791099969; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=XIpYdnljm+rKdqL8zP6PbZGg5j820vV/IvXVHPJ2WOA=;
-        b=h2FK8QLVwACU5o/ZNPTaVM4zpfnJPHq0ujCxHqI9ZIeLYN6T7vHzQXYHbOcrX1AYP0
-         fSszXplsQOGFg2rt9dpRt86mZmTibxeiPqsr611VfOmsifCbFsaV7YrPWhNgr9Im6fON
-         bfyKEIYzzBEwuVDxvFJnENRBgC+H+2tWpW4xYlazWb+SzqLjxA4kpbdmJHSeBfZNxMYn
-         oTakB3p8OnZWTAAAAHqgJSQyqglk19R8wT+91sUckFJYOXqeJveZ6RUgmgdbT2sDLjhl
-         1fa5P5qvmwr5jCt+qulAHSEmYifbuOywhlW46fl9ZbeGV7q5xcZGT/0qQ4W8lnC7NTRr
-         jVog==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790495169; x=1791099969;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=XIpYdnljm+rKdqL8zP6PbZGg5j820vV/IvXVHPJ2WOA=;
-        b=vp5+s/mfE8qFuzAyruzs/D/5mdxPkqLo6pem6y0btvtK2B6vD3hzzRSun8qAepMaNk
-         +9tuvS2MgEGvVwmNwNfHnIFbGatbSRNP8suW9AdIgNrCGm8dlt804YJaB8IjVSOh0Ag2
-         X6Yppvlh1MxMfVbi99dDnV0ouYAmg7BWYDJEPNYg11mCiOXbnzTDL7O2pSkmixWvzlV0
-         optcOBTkaJYplJzkHWBIM+HcMg54Zwvo2IpDcxBFllxVi77oXVHHxJKV2b9JIoeYoLUz
-         NUclq6rcSzS7GIMxMll/F1LMsVokhyh6/yjfI3DtsxhhQ54MQMBahn8Pr/1Y93zmgojj
-         D5Kw==
-X-Gm-Message-State: AFuF++kv+KGpdpTyyGODB0oKWzQx00udKKqlbLqv1fxRzT4XhJIsUQK/
-	AZgcUWGhU1D1I398FeSayNO5czQQ5JtpLyDvzRVUsxRahxUbvC28aK/C
-X-Gm-Gg: AYBFou0o3F7RYgNyCV36z1FCc0kVbZYtClDFVKoihO1o2IWOhkyI9wlh0gYjDUXqRGG
-	d+KH9bFyXHBWQNwBksh5RLrx7Tg97NZ5ZZ21qmsku6z8XUFdw5lVT2+g481r9GcoQe2KXKZP3Oy
-	NjrnmLPLRsofRvLMLrzTyJ+dJY3gcynGEuao2697121K/UQZWgZJKf+Bg3alg6dh66TQ+baZ2NE
-	lHTC12jDqRVCRdoG9Iuqt4IgQ2TwATguxubYGXh4bZPxHnl5O3ByUAxjiOG5c0sBlGWPImeTToS
-	OA6DHynHvmuDGln0LrBoT/zaoWDzAWvlMPMTSFJibCyQTZPFGELYX2ISAtVeAPyDDJ32jReT/jG
-	yGFauWZ3cr5VQL2NjPAGCxWfoDzHGzHSMBN70oP/EmfTSzg5fQT4pBjor0VFQ52Fn5I0yDOEfjh
-	QPHDwsScUBv66a+t34hXPuagumDtQ5YZMQb8C4WZNV8BLvaPHFEFsyUyRvdjtD59yBYjwZ42xGL
-	rA1rhGxqbjuK5jU/5q6mG/BrbnqEm/P3kcm1xaj2KduEkXFqT+kLxY4GxE7ZKe6BuiblE8=
-X-Received: by 2002:a05:7022:1504:b0:143:858d:fb0e with SMTP id a92af1059eb24-146caf2aafcmr10000211c88.0.1790495169220;
-        Sun, 27 Sep 2026 00:46:09 -0700 (PDT)
-Received: from localhost.localdomain (95.169.12.199.16clouds.com. [95.169.12.199])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-145adcc5b00sm17025244c88.15.2026.09.27.00.46.04
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 27 Sep 2026 00:46:08 -0700 (PDT)
-From: Chengfeng Ye <nicoyip.dev@gmail.com>
-To: "D. Wythe" <alibuda@linux.alibaba.com>,
-	Dust Li <dust.li@linux.alibaba.com>,
-	Sidraya Jayagond <sidraya@linux.ibm.com>,
-	Mahanta Jambigi <mjambigi@linux.ibm.com>,
-	Tony Lu <tonylu@linux.alibaba.com>,
-	Wen Gu <guwen@linux.alibaba.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Karsten Graul <kgraul@linux.ibm.com>,
-	Ursula Braun <ubraun@linux.ibm.com>
-Cc: linux-rdma@vger.kernel.org,
-	linux-s390@vger.kernel.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Chengfeng Ye <nicoyip.dev@gmail.com>,
-	stable@vger.kernel.org
-Subject: [PATCH net] net/smc: Serialize CLC preparation with link teardown
-Date: Sun, 27 Sep 2026 15:46:00 +0800
-Message-ID: <20260927074600.3694802-1-nicoyip.dev@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CHZVhh2O"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 444E01F000FF;
+	Sun, 27 Sep 2026 07:47:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790495242;
+	bh=gXlXbLaEs7OTyKLRpiBz/n10Qv78R1KUq9PqHFwra0w=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=CHZVhh2OEx7+97fUwpwJfOqQNvEP+wDo//1mvbJzuSsWepmJXvD3lqiWTbXl+pasB
+	 aA7GV1fmPWdRjTzo5wg4ddfBPKEfZuEApxY8uoEf1WSQ08vRAoXGZrEovouoZxxSat
+	 kViHKDZ+LYx8P7Th4cgez4zsg7QY775AAxuVpVSi76PIw1Dbyug+5VYzdLMki5wVIA
+	 AhAZRhL4zJ47GUFOhMuwunJDGTPwcXZN2f0s8jHIPSEcHl9jtpuI3g8rCtZVF8q71G
+	 E3CB6KeOgK9wQP0G1rkdsjGqT3Gt/u14xn+TIEZ46/lvFxlariaXYlJ/P2HIC/mNnT
+	 y+jJlOIhEyo2A==
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net] net/smc: serialize sndbuf descriptor release with
+ diagnostic dumps
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Chengfeng Ye" <nicoyip.dev@gmail.com>
+Cc: "Vasily Gorbik" <gor@linux.ibm.com>, linux-s390@vger.kernel.org, "Christian
+ Borntraeger" <borntraeger@linux.ibm.com>, "Alexander Gordeev" <agordeev@linux.ibm.com>, linux-rdma@vger.kernel.org, "Heiko
+ Carstens" <hca@linux.ibm.com>
+In-Reply-To: <20260927073203.3694279-1-nicoyip.dev@gmail.com>
+References: <20260927073203.3694279-1-nicoyip.dev@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Sun, 27 Sep 2026 07:47:21 +0000
+Message-Id: <20260927074722.444E01F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-smcr_clc_prep_confirm_accept() reads the RMB memory region and scatterlist
-without holding llc_conf_mutex. The connection's link reference keeps the
-link object alive, but does not prevent smcr_link_clear() from unmapping
-its buffers and destroying its RDMA resources.
+> An SMC-D connection can remain in the socket hash while smc_conn_kill()
+> tears it down. For devices supporting DMB nocopy, smcd_buf_detach() frees
+> the send buffer descriptor without taking the hash lock held by the
+> diagnostic reader.
+>=20
+> __smc_diag_dump() can load a non-NULL conn->sndbuf_desc, then a concurrent
+> smc_conn_kill() can clear the pointer and free the descriptor before the
+> dump reads its len field. The socket lock held by the teardown path does
+> not exclude the dump, and clearing the pointer before freeing it does
+> not protect a reader that has already loaded it.
+>=20
+> KASAN reported:
+>=20
+>   BUG: KASAN: slab-use-after-free in __smc_diag_dump.constprop.0+0x2477/0=
+x2b10
+>   Call Trace:
+> [ ... ]
+> new dumps from seeing it. Free the descriptor after dropping the lock.
+>=20
+> Fixes: ae2be35cbed2 ("net/smc: {at|de}tach sndbuf to peer DMB if supporte=
+d")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
 
-The CLC handshake can load the scatterlist pointer, then an LLC delete-link
-worker can acquire llc_conf_mutex for writing and free the scatterlist in
-smcr_buf_unmap_link(). When the handshake resumes, sg_dma_address() reads
-freed memory. The memory-region rkey read has the same lifetime problem.
+Sashiko has reviewed this patch and found no issues. It looks great!
 
-KASAN reported:
-
-  BUG: KASAN: slab-use-after-free in smc_clc_send_confirm_accept
-  Read of size 8 at addr ffff88810efcdfd0 by task poc/94
-  Call Trace:
-   smc_clc_send_confirm_accept
-   smc_clc_send_confirm
-   __smc_connect
-   smc_connect
-   __sys_connect
-  Allocated by task 94:
-   __sg_alloc_table
-   sg_alloc_table
-   smcr_buf_map_link
-   __smc_buf_create
-   smc_buf_create
-   __smc_connect
-  Freed by task 11:
-   kfree
-   sg_free_table
-   smcr_buf_unmap_link
-   smcr_link_clear
-   smc_llc_delete_link_work
-
-Hold llc_conf_mutex for reading while preparing the SMC-R message,
-including the QP accesses. Reject unusable or cleared links under the
-lock so that teardown completing before preparation is also handled.
-Keep activating links valid for first contact and release the lock
-before sending over TCP.
-
-Preserve the preparation error in both CLC send wrappers when the TCP
-socket has no error recorded. Otherwise the new -ENOLINK return is
-converted to success. Existing TCP errors and short-write handling
-retain priority.
-
-Fixes: 541afa10c126 ("net/smc: add smcr_port_err() and smcr_link_down() processing")
-Cc: stable@vger.kernel.org
-Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
----
- net/smc/smc_clc.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
-
-diff --git a/net/smc/smc_clc.c b/net/smc/smc_clc.c
-index 014d527d5462..6b9e64a5b9d0 100644
---- a/net/smc/smc_clc.c
-+++ b/net/smc/smc_clc.c
-@@ -1169,14 +1169,21 @@ static int smc_clc_send_confirm_accept(struct smc_sock *smc,
- 	clc->hdr.version = version;	/* SMC version */
- 	if (first_contact)
- 		clc->hdr.typev2 |= SMC_FIRST_CONTACT_MASK;
--	if (conn->lgr->is_smcd)
-+	if (conn->lgr->is_smcd) {
- 		smcd_clc_prep_confirm_accept(conn, clc, first_contact,
- 					     version, eid, ini, &fce_len,
- 					     &fce_v2x, &trl);
--	else
-+	} else {
-+		down_read(&conn->lgr->llc_conf_mutex);
-+		if (!smc_link_usable(conn->lnk) || conn->lnk->clearing) {
-+			up_read(&conn->lgr->llc_conf_mutex);
-+			return -ENOLINK;
-+		}
- 		smcr_clc_prep_confirm_accept(conn, clc, first_contact,
- 					     version, eid, ini, &fce_len,
- 					     &fce_v2x, &gle, &trl);
-+		up_read(&conn->lgr->llc_conf_mutex);
-+	}
- 	memset(&msg, 0, sizeof(msg));
- 	i = 0;
- 	vec[i].iov_base = clc;
-@@ -1227,7 +1234,7 @@ int smc_clc_send_confirm(struct smc_sock *smc, bool clnt_first_contact,
- 			reason_code = -ENETUNREACH;
- 			smc->sk.sk_err = -reason_code;
- 		} else {
--			smc->sk.sk_err = smc->clcsock->sk->sk_err;
-+			smc->sk.sk_err = smc->clcsock->sk->sk_err ?: -len;
- 			reason_code = -smc->sk.sk_err;
- 		}
- 	}
-@@ -1246,7 +1253,8 @@ int smc_clc_send_accept(struct smc_sock *new_smc, bool srv_first_contact,
- 	len = smc_clc_send_confirm_accept(new_smc, &aclc, srv_first_contact,
- 					  version, negotiated_eid, ini);
- 	if (len < ntohs(aclc.hdr.length))
--		len = len >= 0 ? -EPROTO : -new_smc->clcsock->sk->sk_err;
-+		len = len >= 0 ? -EPROTO :
-+			-(new_smc->clcsock->sk->sk_err ?: -len);
- 
- 	return len > 0 ? 0 : len;
- }
--- 
-2.43.0
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260927073203.3694=
+279-1-nicoyip.dev@gmail.com?part=3D1
 
