@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 986024AE131;
-	Mon, 28 Sep 2026 11:20:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA3C94A7C92;
+	Mon, 28 Sep 2026 11:20:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790594447; cv=none; b=FCu5DwYRM26xL3KcSvYLl5DiinuVNVaZTc05QXXUhU+eM0IebiNIEOTdGlqFP/QKu1xGNqnYBVwRHdPsfUisrB7SQfPq4kHltegE8gMzc/SXmz40jxRPgyyOGZIQ2u3XaHs8Rmlnw/WHp+R/poFfiVrPStT633f0ufqa1+p7N/M=
+	t=1790594452; cv=none; b=Rz2p4iYAV4oZz5FvlJINUDXv+Rou9y89vqHJwIoEjMzvDC8I2AuugIBw6UhM54hyc9IjhIgyOIY8LuXNRR+tXdenetoAu8mMN7vNnf3OwyBytYbPdNIf9WtiK/wAt6ddxMlfpsY7bruijz0Y9nS8y5YcVIpl8vnmF32YUYA+Wd4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790594447; c=relaxed/simple;
-	bh=hSst6qWliwQhuFmjuRAmeH6CDSXIKUX4iZOlyu/PnoY=;
+	s=arc-20240116; t=1790594452; c=relaxed/simple;
+	bh=ADsA7DbIWmGsVS4Br4V2ErJ1SCm50apwCi1ClmkjQFg=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=VcGmNmocLZGROwArhkqd7y+nsRj9iGJV35bBip3O0M+g+X6yfv3UIviLTgp/n9zuzPo2VCmgbQBjJwQZExZsXut5BCGeFs8PiCutwiV7Q0Xak1i/SoM8cYN4YJTo0OgM1e1I0kJL0Kt21HMM8gSROpKCn6SppZmTgFwHOcXc+AE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DxJegHlR; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=Oi7MqlBxx34EXcExPWw0/Tz++srNdg0806pGYSeyHLzDSYj7E/NUv01znojPYyyiCHYlUwU0S+C4GQp56PbRP3r6+azETBRyTaVHiCeqzl68iIUw1eYRuURHeoedjVbl4LF4itMD2D/mzrwQGRr/7DBtAbx2r925JvmgtJYgUzU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HnBsHf91; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DxJegHlR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1AF31F000FF;
-	Mon, 28 Sep 2026 11:20:45 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HnBsHf91"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0565B1F00893;
+	Mon, 28 Sep 2026 11:20:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790594446;
-	bh=TgQxhDeMgGS4hAKE9KuPylRAS2weZCdiODgFDrMrTuE=;
+	s=k20260515; t=1790594449;
+	bh=rNJnFz5otNEyms2hJ74+ipAqrvtIGcYlpdIUlMpL6vI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=DxJegHlRN63sM+oQTgIkwbd2QqX7LhGYAdUdQQQII6o9vDQATMNxTI4oT1ZUbF2UP
-	 kxQTjwhz2nKku3TDjnvKBsn4rBpUml3oxrg9S1ix5tzHYYe+FezavS0FxDPo90BgMU
-	 Bx5kwjFz+i3wuroG9Np3h86Esot4ocyziHNzZLGaGiPT9GUWULtbubWOaRBPsUBtFb
-	 oi5PO8HADzjQdjt1+yfmQSjK6djkUcKfpanQSalF8lUh0e4FlxhvZ/MDpPC2g0VxPu
-	 g6ZpeMbPPnvWxxFwkPd0r3hV2JRrYSTzDpNpDSyEjpJ+VyOrCxH2X9tD5eCSJuyNHc
-	 F4CMyZOEG2ibg==
+	b=HnBsHf9152s1jxNlk7JVn3m+4dA0IEpp+ePz9/Oe6wu39RIQAch4OI72TA43y8UY2
+	 +xReyPM4msNJRyq0OzeanpBLXt8jvX0DnK8yA+WjfU3JM+lFbF/In8lgosXLlk9rye
+	 7X6+NitvXG38+sJRlhrf6tQtyVvotmKG9x6FRKiSicQPsOS1g65Y9D2wv4G0eDkYpK
+	 o2i+aRkJPHuS+OIORz47kPLkg9Vpu3MOw4zNviZS9M8hQk2I0pgNVZMjU5IxqZ8OER
+	 s2xw4o8FTsQqQG6spUw8temI4YAgxjWLjO2iuNrLqWLftHwCSdTwSgbaYOOMua3GaI
+	 YsnGm9I2x9JDw==
 From: Leon Romanovsky <leon@kernel.org>
 To: Bjorn Helgaas <bhelgaas@google.com>,
 	Logan Gunthorpe <logang@deltatee.com>,
@@ -55,9 +55,9 @@ Cc: linux-pci@vger.kernel.org,
 	Shuah Khan <skhan@linuxfoundation.org>,
 	Randy Dunlap <rdunlap@infradead.org>,
 	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: [PATCH v8 19/23] RDMA/mlx5: Ask P2PDMA whether ATS takes a direct peer-to-peer route
-Date: Mon, 28 Sep 2026 14:19:23 +0300
-Message-ID: <20260928-fix-p2p-acs-v4-0-v8-19-404453b9c435@nvidia.com>
+Subject: [PATCH v8 20/23] PCI/P2PDMA: Let a client declare that it selects ATS per mapping
+Date: Mon, 28 Sep 2026 14:19:24 +0300
+Message-ID: <20260928-fix-p2p-acs-v4-0-v8-20-404453b9c435@nvidia.com>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20260928-fix-p2p-acs-v4-0-v8-0-404453b9c435@nvidia.com>
 References: <20260928-fix-p2p-acs-v4-0-v8-0-404453b9c435@nvidia.com>
@@ -73,136 +73,89 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-mlx5_umem_needs_ats() enables ATS for any dma-buf whose caller asked for
-Relaxed Ordering, on the assumption that a switch in the path has CR, RR
-and DT all set. It also enables it for a buffer already mapped with the
-peer's bus addresses, which are not translatable at all.
+The PCIe ATS Enable bit covers the whole device, so P2PDMA cannot tell
+from it whether a client will translate a given address. Most devices
+translate any address once ATS is enabled, but some choose ATS per DMA
+mapping and can still use bus addresses for the rest.
 
-P2PDMA has read the ACS controls, so ask it through
-dma_buf_p2pdma_map_type(): enable ATS only where the path is not routed
-directly as it stands, but would be for a Translated Request whose
-Completions carry Relaxed Ordering. Exporters that name no provider keep
-the old assumption, since their ACS settings remain hidden.
+Add pcim_p2pdma_set_ats_per_mapping() so the driver of such a device can
+declare that before P2PDMA starts treating clients with ATS enabled as
+translating everything. Keep it in the device's P2PDMA state, which
+already ends with the driver binding.
 
-Tested-by: Tushar Dave <tdave@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 36 ++-------------------------
- drivers/infiniband/hw/mlx5/mr.c      | 47 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 49 insertions(+), 34 deletions(-)
+ drivers/pci/p2pdma.c       | 27 +++++++++++++++++++++++++++
+ include/linux/pci-p2pdma.h |  4 ++++
+ 2 files changed, 31 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index e9ddf2e97a76..ab32742b2180 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -1646,40 +1646,8 @@ static inline bool rt_supported(int ts_cap)
- 	       ts_cap == MLX5_TIMESTAMP_FORMAT_CAP_FREE_RUNNING_AND_REAL_TIME;
+diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
+index 1f4bf0125a5c..ae676509f9f3 100644
+--- a/drivers/pci/p2pdma.c
++++ b/drivers/pci/p2pdma.c
+@@ -26,6 +26,7 @@
+ struct pci_p2pdma {
+ 	struct gen_pool *pool;
+ 	bool p2pmem_published;
++	bool ats_per_mapping;
+ 	struct xarray map_types;
+ 	struct p2pdma_provider mem[PCI_STD_NUM_BARS];
+ };
+@@ -1568,6 +1569,32 @@ void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
  }
+ EXPORT_SYMBOL_GPL(pci_p2pmem_publish);
  
--/*
-- * PCI Peer to Peer is a trainwreck. If no switch is present then things
-- * sometimes work, depending on the pci_distance_p2p logic for excluding broken
-- * root complexes. However if a switch is present in the path, then things get
-- * really ugly depending on how the switch is setup. This table assumes that the
-- * root complex is strict and is validating that all req/reps are matches
-- * perfectly - so any scenario where it sees only half the transaction is a
-- * failure.
-- *
-- * CR/RR/DT  ATS RO P2P
-- * 00X       X   X  OK
-- * 010       X   X  fails (request is routed to root but root never sees comp)
-- * 011       0   X  fails (request is routed to root but root never sees comp)
-- * 011       1   X  OK
-- * 10X       X   1  OK
-- * 101       X   0  fails (completion is routed to root but root didn't see req)
-- * 110       X   0  SLOW
-- * 111       0   0  SLOW
-- * 111       1   0  fails (completion is routed to root but root didn't see req)
-- * 111       1   1  OK
-- *
-- * Unfortunately we cannot reliably know if a switch is present or what the
-- * CR/RR/DT ACS settings are, as in a VM that is all hidden. Assume that
-- * CR/RR/DT is 111 if the ATS cap is enabled and follow the last three rows.
-- *
-- * For now assume if the umem is a dma_buf then it is P2P.
-- */
--static inline bool mlx5_umem_needs_ats(struct mlx5_ib_dev *dev,
--				       struct ib_umem *umem, int access_flags)
--{
--	if (!MLX5_CAP_GEN(dev->mdev, ats) || !umem->is_dmabuf)
--		return false;
--	return access_flags & IB_ACCESS_RELAXED_ORDERING;
--}
-+bool mlx5_umem_needs_ats(struct mlx5_ib_dev *dev, struct ib_umem *umem,
-+			 int access_flags);
- 
- int set_roce_addr(struct mlx5_ib_dev *dev, u32 port_num,
- 		  unsigned int index, const union ib_gid *gid,
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 00e13028762a..ee8982125c8c 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -38,6 +38,7 @@
- #include <linux/export.h>
- #include <linux/delay.h>
- #include <linux/dma-buf.h>
-+#include <linux/dma-buf-mapping.h>
- #include <linux/dma-resv.h>
- #include <rdma/frmr_pools.h>
- #include <rdma/ib_umem_odp.h>
-@@ -47,6 +48,52 @@
- #include "data_direct.h"
- #include "dmah.h"
- 
-+MODULE_IMPORT_NS("DMA_BUF");
-+
-+bool mlx5_umem_needs_ats(struct mlx5_ib_dev *dev, struct ib_umem *umem,
-+			 int access_flags)
++/**
++ * pcim_p2pdma_set_ats_per_mapping - Declare per-mapping ATS for a client
++ * @pdev: PCI device that initiates peer-to-peer DMA
++ *
++ * Declare that @pdev issues Translated Requests only for the DMA mappings its
++ * driver sets up to use ATS, rather than for any address once ATS is enabled.
++ * P2PDMA then takes the Address Type of this client's Requests from the TLP
++ * flags its callers pass.
++ */
++void pcim_p2pdma_set_ats_per_mapping(struct pci_dev *pdev)
 +{
-+	struct dma_buf_attachment *attach;
-+	bool ats;
++	struct pci_p2pdma *p2p;
 +
-+	if (!MLX5_CAP_GEN(dev->mdev, ats) || !umem->is_dmabuf)
-+		return false;
-+
-+	/*
-+	 * The Completer decides whether its Completions carry Relaxed
-+	 * Ordering, and only a Request that asked for it can expect them to.
-+	 */
-+	if (!(access_flags & IB_ACCESS_RELAXED_ORDERING))
-+		return false;
-+
-+	attach = to_ib_umem_dmabuf(umem)->attach;
-+
-+	dma_resv_lock(attach->dmabuf->resv, NULL);
-+	switch (dma_buf_p2pdma_map_type(attach, 0)) {
-+	case PCI_P2PDMA_MAP_NONE:
-+		/* Nothing is known about the route, so fall back to the bet. */
-+		ats = true;
-+		break;
-+	case PCI_P2PDMA_MAP_BUS_ADDR:
++	p2p = rcu_dereference_protected(pdev->p2pdma, 1);
++	if (!p2p)
 +		/*
-+		 * The path is routed directly already and is programmed with
-+		 * the peer's bus addresses. Those are not translatable, so
-+		 * ATS would be wrong as well as pointless.
++		 * ats_per_mapping is a performance optimization,
++		 * if pcim_p2pdma_init() didn't set pdev->p2pdma pointer
++		 * for some reason, let's simply use ATS global settings.
 +		 */
-+		ats = false;
-+		break;
-+	default:
-+		ats = dma_buf_p2pdma_map_type(attach,
-+					      PCI_P2PDMA_TLP_TRANSLATED |
-+						      PCI_P2PDMA_TLP_RELAXED_CPL) ==
-+		      PCI_P2PDMA_MAP_BUS_ADDR;
-+		break;
-+	}
-+	dma_resv_unlock(attach->dmabuf->resv);
++		return;
 +
-+	return ats;
++	p2p->ats_per_mapping = true;
 +}
++EXPORT_SYMBOL_GPL(pcim_p2pdma_set_ats_per_mapping);
 +
- static int mkey_max_umr_order(struct mlx5_ib_dev *dev)
+ /**
+  * pci_p2pdma_map_type_tlp - Determine the mapping type for P2PDMA transfers
+  * @provider: P2PDMA provider structure
+diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
+index 36045b1b730c..543a09426a11 100644
+--- a/include/linux/pci-p2pdma.h
++++ b/include/linux/pci-p2pdma.h
+@@ -109,6 +109,7 @@ struct scatterlist *pci_p2pmem_alloc_sgl(struct pci_dev *pdev,
+ 					 unsigned int *nents, u32 length);
+ void pci_p2pmem_free_sgl(struct pci_dev *pdev, struct scatterlist *sgl);
+ void pci_p2pmem_publish(struct pci_dev *pdev, bool publish);
++void pcim_p2pdma_set_ats_per_mapping(struct pci_dev *pdev);
+ int pci_p2pdma_enable_store(const char *page, struct pci_dev **p2p_dev,
+ 			    bool *use_p2pdma);
+ ssize_t pci_p2pdma_enable_show(char *page, struct pci_dev *p2p_dev,
+@@ -166,6 +167,9 @@ static inline void pci_p2pmem_free_sgl(struct pci_dev *pdev,
+ static inline void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
  {
- 	if (MLX5_CAP_GEN(dev->mdev, umr_extended_translation_offset))
+ }
++static inline void pcim_p2pdma_set_ats_per_mapping(struct pci_dev *pdev)
++{
++}
+ static inline int pci_p2pdma_enable_store(const char *page,
+ 		struct pci_dev **p2p_dev, bool *use_p2pdma)
+ {
 
 -- 
 2.55.0
