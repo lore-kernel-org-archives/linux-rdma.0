@@ -1,148 +1,290 @@
-Received: from BN8PR05CU002.outbound.protection.outlook.com (mail-eastus2azon11011046.outbound.protection.outlook.com [52.101.57.46])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 804B136D9E7;
-	Mon, 28 Sep 2026 18:27:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.57.46
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790620077; cv=fail; b=e44QPyBlqW3cGJIE2nd4w+qMaIGraGe0UtfIA62L/rdyzcP3cZ8F2hF1WhMyp94APgt+mprewlEUTDdNVjfus/O8Cv1j0YOkZyFrKqoD48L2PSvYS2+jOVnvYRgo+3W34OMKmHRmm4dvKbud2AEDOt7Yt6J2yAN2Reo/cSPbqV0=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790620077; c=relaxed/simple;
-	bh=Cz5FDb+fzI5BXsZNFTbhgdRaKn9mAayBVN7lbcNWk80=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=nX7kKzR/DPlT/Fp8dsVB7C+x9MDKRAvL1YHxa76NDC+3ZknMdzmPRAsgZOwpOeJSQxQtHls+CXnANP9yG6NHPZwMEpb9L+sRFFUiaLGKwAguWELSvJXQ632GNQ1lfA83u7E/iy9KJ8evsLiAxLCRc/Bm8rG8csm3vi747NEz/tw=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=AFAeTFWB; arc=fail smtp.client-ip=52.101.57.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8560384228;
+	Mon, 28 Sep 2026 18:29:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790620153; cv=none; b=IrkroB0cRnkjhASjDNmjCA18aU1PWpgJN8ph9PfhL+Ow3RX2izoteJC37fiSuuRUAqhPUSOytFOc/Uu8+VjCy4yOwEbPkGVHB8Efiptc5M5Z33DPCq1q2DtkbD/Lqx4v0nsnxVPQ0f8+hpxwxj2FJe5VWW4Ivuu49QVJYVlB7to=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790620153; c=relaxed/simple;
+	bh=Osjfa/eweIpMNI1E+ykYc18hu2QCnuRqD2YPf2Mlhq4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=KgFVoX8Abr0mzbQ8JLnr/xop7nBdGrzoX2BlpfkWwMu/RxAFH7xeYCnJ8iDyFC5dbP6utbNFQOgzoL6EQUXAmqJLeifyVOQxzyuypaRyBzqZIoLAyJKj3Ui5Gybte673QkBjz+62STvhqyTNdTWcB3VKdsJ3JkyAhN3G3V+FvsU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YftC3OyU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="AFAeTFWB"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=LNw98uG25vjgtZDMfDR5e7dvTXkBuhhq55L5+q8V3A38BboH9tvIA579YIY+B3gtMIRzPEFWDWSRG5r2XeoNHdN/uOatkT0azPxOR/JMsy+/7VbACAOYt61iHKrJIvsc/eP0MoXMOPVvBPvfckg6AGEMOC6mqD4zzbFeCOr7JUWGYCi2iI27D0lVhlNafAr7bmAXKAtOFU1Aais+JaeFL+24dQUtnWRlFLDygRNQkFtKCHMEsUO4Km3M2yqofQztO/epGy0bD/9jotchbheWYamgr8Y0AyPy30ofjtvL3zEV55NWHnLMv5i/2zFlEynUW7qmP3MMxKyQoTBs+4VBzw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=IBY4Aa9SUg1peakQUgbYzif4wUNENze6bpiX95QSwr8=;
- b=oA7c6wgdlM3Ol7F17LOjc6Qi3SEeX55mVtQ9R3VU/HDlT0zmPG+oCRQXaDBluVA2g0XqDVQyZJO57NER8veqKaLw04ZQP26Kj9GBqL9V5yRu9J+ZpLHnzkcvkm+AS4pmnNLz0Jp8JvHO0cp/LvtJCG+PLocwTFl1aii+BdhVn967PqL0Lr8Xy4qU8dKRdd8+VNFFigtgrxIQpH2u5Lxvv+vQ2/07AYJaKI0Eb6gAUchDaHPJ9yywvt9irxidEsRemfKYe/DYjcXizG17sTurOVLuJaVimE9zER6pKcCxhzjznlGTDuYnWwEGOdSfOXxqIsQHjLcV4/JvsvglqLDx7g==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=IBY4Aa9SUg1peakQUgbYzif4wUNENze6bpiX95QSwr8=;
- b=AFAeTFWBf522Tf1VocVcY6yFhRrnxPFYS8cBJbXEHfcsSucTrQ9q9jMd6RblW5g2Aasv++URVUqt1GVUaN3iAUWRDXnNg8st/r3frn17MW0Hy6FRuHDPPP6rkrCLAYxi6m/8nqybsv507s6CdvMjIJUZzcOuzFytADSScQeMW9YlXyrx3lRXsupQ/mFmc73xNQer15Wtso8nlym/mEEUHfvQcL5HlvKNDxYax3KeHvVjRW9R3TURiI+DZ257sOa+D4miP4PVjUJo6aUaFhaBbmY3njIiveS5sgWDhHPxfVhHsSKAhnZxMku5WwyLPghQNQ1PmDPf74ElptfT+z3WMw==
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from CHBPR12MB731189.namprd12.prod.outlook.com
- (2603:10b6:610:33d::12) by PH7PR12MB6696.namprd12.prod.outlook.com
- (2603:10b6:510:1b3::10) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.451.23; Mon, 28 Sep
- 2026 18:27:45 +0000
-Received: from CHBPR12MB731189.namprd12.prod.outlook.com
- ([fe80::b0e5:123d:fe06:e10d]) by CHBPR12MB731189.namprd12.prod.outlook.com
- ([fe80::b0e5:123d:fe06:e10d%6]) with mapi id 15.21.0451.022; Mon, 28 Sep 2026
- 18:27:45 +0000
-Date: Mon, 28 Sep 2026 15:27:43 -0300
-From: Jason Gunthorpe <jgg@nvidia.com>
-To: Quanye Yang <quanyeyang@proton.me>
-Cc: "Md. Haris Iqbal" <haris.iqbal@ionos.com>,
-	Jack Wang <jinpu.wang@ionos.com>, Leon Romanovsky <leon@kernel.org>,
-	Danil Kipnis <danil.kipnis@cloud.ionos.com>,
-	Jack Wang <jinpu.wang@cloud.ionos.com>, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Farhad Alemi <farhad.alemi@berkeley.edu>
-Subject: Re: [PATCH] RDMA/rtrs-clt: Don't WARN on unexpected info-response
- opcode
-Message-ID: <20260928182743.GB1783910@nvidia.com>
-References: <20260921-rtrs-fix-rtrs-clt-info-rsp-done-v1-1-c64281ed97c0@proton.me>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260921-rtrs-fix-rtrs-clt-info-rsp-done-v1-1-c64281ed97c0@proton.me>
-X-ClientProxiedBy: SJ0PR03CA0080.namprd03.prod.outlook.com
- (2603:10b6:a03:331::25) To CHBPR12MB731189.namprd12.prod.outlook.com
- (2603:10b6:610:33d::12)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YftC3OyU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB6C91F000FF;
+	Mon, 28 Sep 2026 18:29:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790620151;
+	bh=kj1BuamINwdjjjhJwRV+FCBk2q11iQ2TZh9fdzQcwn0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=YftC3OyUQStIa4UdGN1BE9aUd2r6Lo1h5DCsCki0FW9+Dd/XSmPmpsxQGHoSqCbwX
+	 mZjlyC2wK+Z6XaMJlP/Fuj28Lu3+B3Zss11DVOscCoQufqQMN0fLxr9sp04JlO5Ncb
+	 tVCOFWS9SS+ChrRJp3Ln8PnnscJnipahGb0j0PXKZLsrl3wqbKUMNmLYpAmqk4kIJY
+	 K/Jsx1GaAHCse9VaWu7MGqm/3b12CbcNjcVvcs06OIM+bPABw/vJ5FFFhM5hedT2lZ
+	 D3rlogLp5Tkw8CsicqKAQFHqiocUPexsIAj/R7hDOiwN6AtnlPKbK2082Fnf8+EMYh
+	 YBCPv6cHztHbw==
+Date: Mon, 28 Sep 2026 21:29:06 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Praveen Kumar Kannoju <praveen.kannoju@oracle.com>
+Cc: jgg@ziepe.ca, saeedm@nvidia.com, tariqt@nvidia.com, mbloch@nvidia.com,
+	andrew+netdev@lunn.c, davem@davemloft.net, kuba@kernel.org,
+	pabeni@redhat.com, jiri@resnulli.us,
+	kalesh-anakkur.purayil@broadcom.com, ynachum@amazon.com,
+	kees@kernel.org, mrgolin@amazon.com, parav@nvidia.com,
+	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, anand.a.khoje@oracle.com
+Subject: Re: [PATCH] RDMA/mlx5: Add poll-EQ callback for ULP recovery
+Message-ID: <20260928182906.GX563127@unreal>
+References: <20260918100537.1214162-1-praveen.kannoju@oracle.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CHBPR12MB731189:EE_|PH7PR12MB6696:EE_
-X-MS-Office365-Filtering-Correlation-Id: c16c2654-4580-45ff-78a7-08df1d8e30a2
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|366016|23010399003|376014|10067099003|56012099006|11063799006|18002099003|22082099003;
-X-Microsoft-Antispam-Message-Info:
-	m0AnBsNsVJOFE2L9BgcRovCNcHuMGDD+P157uhXm5AVQzoy3hD4rtmtELIj9zTddKildIWoJSNTKtymaGtdueQA3pEWrxH5YNIcSWMASQS3TBk3tF3oxVjcMpQ81ovc771mTxcyJGALG9ieO0DCmxwe/yKVUdDLKCae5SdbFP2tx9kUC6xMRlzGXI07sMPkullb3xexCJJyO9umvLuZrisFG44ZRY+PF7ot5kKFdCQaSCkbdz5OY6X70YJyLZB0uG/xGHacptShRPc9DYTccdG3iatKRRcoK3p/ourTXb+Ybitg0EL0nJ3YqwttheuohVcUqpA+VMId8YdhIrHBY/Or8SJ6p4hugYjhGj5IUQBnzWg9oHpIUtralmP2eHJ+ieNmgKOC8aQtoPTWEyYfIgbphh92YWknnr3IklWxM+dSlrU7JitQ8+NgKMYU0PaXhqROmKyQKeUooSMvM8D5hEDbOLeojRlwlQ+VSdP7n+Sk7gn8oJghqc12XS7z3oFDePvdMPW8p1Ez4fKOEJ+uPFYu8H3mYLpi/lEUsDWwEUpdOrQ47v6HQlww/DziaNhhefdjr6o/RngxBmnlZYlemiy+h8M66EGQE7MIEufZBTluXP4L9MirsscD6nYdHLj6mXFBqyK2FSJhHLDIq50eKJdWg4bLQn6k9HJDYGkVFO7Y=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CHBPR12MB731189.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(23010399003)(376014)(10067099003)(56012099006)(11063799006)(18002099003)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?vD2KMpXhZkAVYREhDKCA8n1F4Ah+xCHX6Hp9OYZYP0RLJSh3Bcw/5OCWBEBZ?=
- =?us-ascii?Q?xJKPHKpvVC+HxWCmjVgerYOMEO6VZAVCX2Gx6ot4NcnXY/H4uCyyjoSUzAgJ?=
- =?us-ascii?Q?/fmP7Ai6U2lD6aEozW59tBd2tt4sb89pVFaOEQcsO5xTioYECLrkPI4bW16H?=
- =?us-ascii?Q?uGlvgwZt0YI8Kp7bktGXLd4Lum0DrgoROGYZ8CFlbJ9lOZNFGgbF59zsgAD6?=
- =?us-ascii?Q?fzBl5BId70F4PidaMgOLifxQdK41v+U8p94615XHUc47f9nug+v7wVO3KvUm?=
- =?us-ascii?Q?6B7I0aSEW2iTxMkgr0zZlPml7AS+wtC+l+kCTAc+IG2g+SMk1c9VM7yjKD/B?=
- =?us-ascii?Q?lfi/mWZ9MOX5+RDFVlC1vnAVzrTKB6FboAZh/a7OyU5XyLta3+I7DGRpdASo?=
- =?us-ascii?Q?roSGaDvCZC2m7/I64U6oOxV0uEHWdE29H0PQk5CUwULTrawrLTH5OZoi+4ER?=
- =?us-ascii?Q?W+217rhiQFLA3zE4zY7CdFEVsYXw9dy0uWqy/2d2E1LfWDRak4g6d7YhJCay?=
- =?us-ascii?Q?Zco/2D62tTefodikn3W9ogyDdHwvVoZiX6Tfm0ZLeop70xGy+4SkSCL6bvVf?=
- =?us-ascii?Q?8rG7fBBt2LjmiRQhmeQx1ySRLTKqLZ4R3DRD7dOu/qzBpMqI4tbRgLs/DOkD?=
- =?us-ascii?Q?l6kMFt5ggK63w/QFfUUV1SuyJ7tgXNxSnU3OgHa0p0UddwHRty/rQJGdtG0U?=
- =?us-ascii?Q?Oz0Mi7kW32gbUxouOQfqxuFLh2H3Z2L6oksUdw/Q0UwoN/9DbArTQpo2CmjQ?=
- =?us-ascii?Q?d72HzyZ6Teq40yKbB5fA8/c/TPNCPdzpBeARxDj3fVLA+gNSM75+QW0QBU6i?=
- =?us-ascii?Q?gAJQEUcgXDz6RJAQ+5LNBNa86hXlvo3RZGdJknsdwXhO3MEgZJok3aY2rUNT?=
- =?us-ascii?Q?yh/C5CFxiWoDB1Kz7NyomCXHeS3JFGSWAvhscG7V4BjfcU6xDE9DlcicauTX?=
- =?us-ascii?Q?xfVpeLBteUEGSP1sYF5+dHdtURX9KCrRDBWNvwzJYnM6DxOXkm3gRGJgXNnf?=
- =?us-ascii?Q?wqya7AoOs7ZwvSWPOsoNEAumx5Ly71bXGmsPR3L6d8tCt57OmziJiz7+7Xaf?=
- =?us-ascii?Q?KWhS30qF6s8RwReSw9bacEQxBhiUxBWo9xPdKTMCtCSydZDsYAu+Ea/LHi/2?=
- =?us-ascii?Q?2nGxpDsSlIc2EQuOGc9A5q2Xj2tIscsgEcHMbSwumMcS2+PzjiUhs47vNzKi?=
- =?us-ascii?Q?lrA3Pdx9RuvaULr8hkweUlUB2d4x+iIO4UBkv2Q302gmKH4i6XjS5WdYsJE2?=
- =?us-ascii?Q?wKFn46PqA0WrRfVLH2oD9yGYTCDgZr77Z5Moa4qBdRFfDY46Kjb41lrgOWdf?=
- =?us-ascii?Q?DQp8QePNckQP2tz2tNZfQcI/nBnIo3/hCyorwa8fgThOTg5l8tm+9mhMX9ae?=
- =?us-ascii?Q?l8JEQX4NBzWkNoTcdXks+UqyraOY/6oEYtBKGOrdRVx7xutHNBMQSKXfuDL5?=
- =?us-ascii?Q?X/WbJ3jTQUZA9m7OA/lLnTZ3IFktAdd5LRa/s8KYJgGZbz9vTwI5PY2MY81b?=
- =?us-ascii?Q?VNCslA+51UwCXjkDV7CjBu4p5Mn0IyFwWYTS2tbtaCSRgQ5GNGdW1NwGTn/Y?=
- =?us-ascii?Q?tMk2eckRD1B2nZYE6LJevVAhYMUdNpjOuHSEyBnrKorJpZBV0iB/TlWey0KI?=
- =?us-ascii?Q?0fdAb/5T+O2BvyF00tF9y12Xx6KunDAVTu9IF9Ug0k3xAh80RWzACuPtu2s4?=
- =?us-ascii?Q?7XunCu/3AnXX2TFCLw5KpuuqNRfR+xF2Kl62g3B4EoawjzVz?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: c16c2654-4580-45ff-78a7-08df1d8e30a2
-X-MS-Exchange-CrossTenant-AuthSource: CHBPR12MB731189.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Sep 2026 18:27:44.9756
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: /herm5a6W6Wah5qhxJ379+fd2uGLh3Vgw5QSIYFwHGGH9I09NzEdkRrT4+VOv+h6
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB6696
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260918100537.1214162-1-praveen.kannoju@oracle.com>
 
-On Mon, Sep 21, 2026 at 09:25:25PM -0700, Quanye Yang wrote:
-> From: Quanye Yang <quanyeyang@proton.me>
+On Fri, Sep 18, 2026 at 10:05:37AM +0000, Praveen Kumar Kannoju wrote:
+> Some upper layer protocols, such as RDS, use mlx5 RDMA CQs whose
+> completion EQs are not shared with mlx5e queues. If an EQ notification is
+> missed for one of those CQs, the ULP can remain idle until another event
+> arrives or a driver health recovery path polls the EQ.
 > 
-> The info-response receive is posted for a SEND.  The completion
-> opcode comes from the peer, so RDMA WRITE with Immediate is a
-> legal WC on that WQE even though it violates the RTRS handshake.
+> mlx5e already has a recovery path that polls a completion EQ from the tx
+> timeout handler through mlx5_eq_poll_irq_disabled(). That mechanism is
+> internal to the mlx5 core and is not reachable from RDMA ULPs such as RDS
+> when they need to recover a CQ-associated EQ.
 > 
-> WARN_ON(wc->opcode != IB_WC_RECV) treats that peer-controlled
-> field as an internal invariant and panics with panic_on_warn.
-> Treat a non-SEND completion as a handshake failure: log it and
-> keep the existing CONNECTING_ERR cleanup.
+> Add an optional RDMA device operation, reap_eq, and an ib_reap_eq() helper
+> so ULPs can ask the provider to poll the event queue associated with a CQ.
+> Providers that do not implement the callback return -EOPNOTSUPP.
+
+I don't think this is viable. It also seems wrong for an upper-layer protocol
+(ULP) to add code to work around a bug in a kernel driver.
+
+Thanks
+
 > 
-> Fixes: 6a98d71daea1 ("RDMA/rtrs: client: main functionality")
-> Reported-by: Farhad Alemi <farhad.alemi@berkeley.edu>
-> Link: https://lore.kernel.org/linux-rdma/CA+0ovCge-K+hcGHXZ4R3Ww5+cg159uxHBeVbKeUSLBRSMT8OWA@mail.gmail.com
-> Signed-off-by: Quanye Yang <quanyeyang@proton.me>
-> Reviewed-by: Jack Wang <jinpu.wang@cloud.ionos.com>
+> Validate the device and CQ passed to ib_reap_eq() before dereferencing the
+> callback table or provider-private CQ storage. The mlx5 callback also
+> checks that the CQ belongs to the supplied device and that the mlx5 device
+> and completion EQ are present before polling.
+> 
+> Implement the callback for mlx5 by mapping the ib_cq to the mlx5 CQ and
+> polling the CQ's completion EQ through a new exported mlx5_eq_reap()
+> helper. mlx5_eq_reap() logs the EQ state, invokes
+> mlx5_eq_poll_irq_disabled(), and reports any recovered EQEs.
+> 
+> Serialize mlx5_eq_poll_irq_disabled() with a per-EQ mutex. The recovery
+> poll path disables the IRQ, runs the EQ handler, advances the EQ consumer
+> index, and updates the CI doorbell. Multiple recovery callers polling the
+> same EQ concurrently could race on that state and reap the same EQ in
+> parallel.
+> 
+> Use this only as a recovery path for missed EQ notifications. It is not a
+> normal completion polling path.
+> 
+> Signed-off-by: Praveen Kumar Kannoju <praveen.kannoju@oracle.com>
 > ---
->  drivers/infiniband/ulp/rtrs/rtrs-clt.c | 7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
-
-Applied to for-next
-
-Thanks,
-Jason
+>  drivers/infiniband/core/device.c              |  1 +
+>  drivers/infiniband/hw/mlx5/main.c             | 18 ++++++++++++++
+>  drivers/net/ethernet/mellanox/mlx5/core/eq.c  | 22 +++++++++++++++++
+>  .../net/ethernet/mellanox/mlx5/core/lib/eq.h  |  2 ++
+>  include/linux/mlx5/eq.h                       |  2 ++
+>  include/rdma/ib_verbs.h                       | 24 +++++++++++++++++++
+>  6 files changed, 69 insertions(+)
+> 
+> diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+> index 7a3ed5ecac00..a0a6e4a9ed50 100644
+> --- a/drivers/infiniband/core/device.c
+> +++ b/drivers/infiniband/core/device.c
+> @@ -3016,6 +3016,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
+>  	SET_DEVICE_OP(dev_ops, rdma_netdev_get_params);
+>  	SET_DEVICE_OP(dev_ops, read_counters);
+>  	SET_DEVICE_OP(dev_ops, read_comp_cntr);
+> +	SET_DEVICE_OP(dev_ops, reap_eq);
+>  	SET_DEVICE_OP(dev_ops, reg_dm_mr);
+>  	SET_DEVICE_OP(dev_ops, reg_user_mr);
+>  	SET_DEVICE_OP(dev_ops, reg_user_mr_dmabuf);
+> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+> index 373ee1f42d4a..ae8d32358e82 100644
+> --- a/drivers/infiniband/hw/mlx5/main.c
+> +++ b/drivers/infiniband/hw/mlx5/main.c
+> @@ -22,6 +22,7 @@
+>  #include <rdma/ib_addr.h>
+>  #include <rdma/ib_cache.h>
+>  #include <linux/mlx5/port.h>
+> +#include <linux/mlx5/eq.h>
+>  #include <linux/mlx5/vport.h>
+>  #include <linux/mlx5/fs.h>
+>  #include <linux/mlx5/eswitch.h>
+> @@ -3654,6 +3655,22 @@ static void get_dev_fw_str(struct ib_device *ibdev, char *str)
+>  		 fw_rev_sub(dev->mdev));
+>  }
+>  
+> +static int mlx5_ib_reap_eq(struct ib_device *ibdev, struct ib_cq *ibcq)
+> +{
+> +	struct mlx5_ib_dev *dev;
+> +	struct mlx5_ib_cq *cq;
+> +
+> +	if (!ibdev || !ibcq || ibcq->device != ibdev)
+> +		return -EINVAL;
+> +
+> +	dev = to_mdev(ibdev);
+> +	if (!dev->mdev)
+> +		return -ENODEV;
+> +
+> +	cq = to_mcq(ibcq);
+> +	return mlx5_eq_reap(dev->mdev, cq->mcq.eq);
+> +}
+> +
+>  static int lag_event(struct notifier_block *nb, unsigned long event, void *data)
+>  {
+>  	struct mlx5_ib_dev *dev = container_of(nb, struct mlx5_ib_dev,
+> @@ -4642,6 +4659,7 @@ static const struct ib_device_ops mlx5_ib_dev_ops = {
+>  	.query_ucontext = mlx5_ib_query_ucontext,
+>  	.reg_user_mr = mlx5_ib_reg_user_mr,
+>  	.reg_user_mr_dmabuf = mlx5_ib_reg_user_mr_dmabuf,
+> +	.reap_eq = mlx5_ib_reap_eq,
+>  	.req_notify_cq = mlx5_ib_arm_cq,
+>  	.rereg_user_mr = mlx5_ib_rereg_user_mr,
+>  	.resize_user_cq = mlx5_ib_resize_cq,
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+> index d11ec263d53c..b5f292c1e9a7 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+> @@ -154,15 +154,36 @@ u32 mlx5_eq_poll_irq_disabled(struct mlx5_eq_comp *eq)
+>  {
+>  	u32 count_eqe;
+>  
+> +	mutex_lock(&eq->poll_lock);
+>  	disable_irq(eq->core.irqn);
+>  	count_eqe = eq->core.cons_index;
+>  	mlx5_eq_comp_int(&eq->irq_nb, 0, NULL);
+>  	count_eqe = eq->core.cons_index - count_eqe;
+>  	enable_irq(eq->core.irqn);
+> +	mutex_unlock(&eq->poll_lock);
+>  
+>  	return count_eqe;
+>  }
+>  
+> +int mlx5_eq_reap(struct mlx5_core_dev *dev, struct mlx5_eq_comp *eq)
+> +{
+> +	u32 eqe_count;
+> +
+> +	if (!dev || !eq)
+> +		return -EINVAL;
+> +
+> +	mlx5_core_dbg(dev, "EQ 0x%x: Cons = 0x%x, irqn = 0x%x\n",
+> +		      eq->core.eqn, eq->core.cons_index, eq->core.irqn);
+> +
+> +	eqe_count = mlx5_eq_poll_irq_disabled(eq);
+> +	if (eqe_count)
+> +		mlx5_core_warn(dev, "Recovered %d EQEs on EQ 0x%x\n",
+> +			       eqe_count, eq->core.eqn);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(mlx5_eq_reap);
+> +
+>  static void mlx5_eq_async_int_lock(struct mlx5_eq_async *eq, bool recovery,
+>  				   unsigned long *flags)
+>  	__acquires(&eq->lock)
+> @@ -1012,6 +1033,7 @@ static int create_comp_eq(struct mlx5_core_dev *dev, u16 vecidx)
+>  	INIT_LIST_HEAD(&eq->tasklet_ctx.list);
+>  	INIT_LIST_HEAD(&eq->tasklet_ctx.process_list);
+>  	spin_lock_init(&eq->tasklet_ctx.lock);
+> +	mutex_init(&eq->poll_lock);
+>  	tasklet_setup(&eq->tasklet_ctx.task, mlx5_cq_tasklet_cb);
+>  
+>  	irq = xa_load(&table->comp_irqs, vecidx);
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/eq.h b/drivers/net/ethernet/mellanox/mlx5/core/lib/eq.h
+> index b1edc71ffc6d..ca019b3019aa 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/lib/eq.h
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/eq.h
+> @@ -6,6 +6,7 @@
+>  #include <linux/mlx5/driver.h>
+>  #include <linux/mlx5/eq.h>
+>  #include <linux/mlx5/cq.h>
+> +#include <linux/mutex.h>
+>  
+>  #define MLX5_EQE_SIZE       (sizeof(struct mlx5_eqe))
+>  
+> @@ -46,6 +47,7 @@ struct mlx5_eq_comp {
+>  	struct notifier_block   irq_nb;
+>  	struct mlx5_eq_tasklet  tasklet_ctx;
+>  	struct list_head        list;
+> +	struct mutex            poll_lock; /* protect recovery polling */
+>  };
+>  
+>  static inline u32 eq_get_size(struct mlx5_eq *eq)
+> diff --git a/include/linux/mlx5/eq.h b/include/linux/mlx5/eq.h
+> index 3705a382276b..a053f9eb2614 100644
+> --- a/include/linux/mlx5/eq.h
+> +++ b/include/linux/mlx5/eq.h
+> @@ -9,6 +9,7 @@
+>  #define MLX5_NUM_SPARE_EQE (0x80)
+>  
+>  struct mlx5_eq;
+> +struct mlx5_eq_comp;
+>  struct mlx5_irq;
+>  struct mlx5_core_dev;
+>  
+> @@ -29,6 +30,7 @@ void mlx5_eq_disable(struct mlx5_core_dev *dev, struct mlx5_eq *eq,
+>  
+>  struct mlx5_eqe *mlx5_eq_get_eqe(struct mlx5_eq *eq, u32 cc);
+>  void mlx5_eq_update_ci(struct mlx5_eq *eq, u32 cc, bool arm);
+> +int mlx5_eq_reap(struct mlx5_core_dev *dev, struct mlx5_eq_comp *eq);
+>  
+>  /* The HCA will think the queue has overflowed if we
+>   * don't tell it we've been processing events.  We
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index cb3b6163961b..aa08c7a5ea22 100644
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -2542,6 +2542,7 @@ struct ib_device_ops {
+>  	int (*poll_cq)(struct ib_cq *cq, int num_entries, struct ib_wc *wc);
+>  	int (*peek_cq)(struct ib_cq *cq, int wc_cnt);
+>  	int (*req_notify_cq)(struct ib_cq *cq, enum ib_cq_notify_flags flags);
+> +	int (*reap_eq)(struct ib_device *device, struct ib_cq *cq);
+>  	int (*post_srq_recv)(struct ib_srq *srq,
+>  			     const struct ib_recv_wr *recv_wr,
+>  			     const struct ib_recv_wr **bad_recv_wr);
+> @@ -4296,6 +4297,29 @@ static inline int ib_req_notify_cq(struct ib_cq *cq,
+>  	return cq->device->ops.req_notify_cq(cq, flags);
+>  }
+>  
+> +/**
+> + * ib_reap_eq - Poll the event queue associated with a CQ.
+> + * @device: Device that owns the CQ.
+> + * @cq: CQ whose associated event queue should be polled.
+> + *
+> + * Poll the device event queue associated with @cq to recover completions
+> + * after a missed event queue notification. This is an optional provider
+> + * callback.
+> + *
+> + * Return: 0 on success, %-EINVAL for invalid input, and %-EOPNOTSUPP when
+> + * unsupported.
+> + */
+> +static inline int ib_reap_eq(struct ib_device *device, struct ib_cq *cq)
+> +{
+> +	if (!device || !cq || cq->device != device)
+> +		return -EINVAL;
+> +
+> +	if (!device->ops.reap_eq)
+> +		return -EOPNOTSUPP;
+> +
+> +	return device->ops.reap_eq(device, cq);
+> +}
+> +
+>  struct ib_cq *ib_cq_pool_get(struct ib_device *dev, unsigned int nr_cqe,
+>  			     int comp_vector_hint,
+>  			     enum ib_poll_context poll_ctx);
+> -- 
+> 2.43.7
+> 
