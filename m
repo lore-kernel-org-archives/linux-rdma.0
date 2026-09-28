@@ -1,124 +1,109 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mta0.migadu.com (out-220.mta0.migadu.com [91.218.175.220])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F0184AB1B7;
-	Mon, 28 Sep 2026 11:39:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4151730566F
+	for <linux-rdma@vger.kernel.org>; Mon, 28 Sep 2026 12:16:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.220
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790595585; cv=none; b=tRaiONMX20VQk9jcJj6K2Cj+/uNjcZU4BXPdt5vHuYHF5g063UhP3Y3/zC3xZWz7Eu/YLR+h0SXrCm8kbSjnfBxADaSOV7h6W6L0N+9ktdKpZ4ylnIWVWYV4opFDBkK9fqh8T8L2Ba/KjcraCdnwZkknnVKYTVWa/FCjeKAhCCc=
+	t=1790597781; cv=none; b=L21kU3QhTQlpzA+QdbsjVm2XUGD3yXfqFxq8JcwjS8NMtHV8pr7cVpTpjzg8V8leTGux/gDzl6oOpCpbU08vVhevmul12Rk4UUUcbfMy/X/PecIcSflDB4Eaccx/6Y+lv3jNpbLTrNQqTxlSWkcvAsBKG1kB1IpeTTAz+gFCt8k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790595585; c=relaxed/simple;
-	bh=7ZF0BRjIJqX/KOidmX/OHiatMSen2enP8yQ9UUTUHbs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=TXjZYsk/AHofm4ADeGC6+UWuyPCvF03X2xXf6Iqn3XtbIIfZNZDwJFStpBwmoVa48T5AvKad4fQmlIiwwQk6eMM5YWObcEPep5pvKWp6g8umb6K+k3yeH7jraB6PhaaZZ4mRjFpBtNpiZj7nMr9wJaIPxoGYcNcvQ7P5aaUbubU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hv2bvoAw; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790597781; c=relaxed/simple;
+	bh=SBXZxQa4kJjRlY2WnPdMcAzS3W7SnPaDjqV3vwwL7D4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=JgQZfKKSeKj3E3UP8cc4H1h7FHugNBhsERfzixHIgQsNVp3g8MQq2KBKi+ci4HusEhizSapIguXYcG06sxLtDmoE5TaBNP7xDnE+dUAKUT+33DNRbpSoarBsFI+ni9saI5mJ3DPSZsx+iG+nDQeJB2123h87hV0wk77zKU12m6s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=rOciz2Z1; arc=none smtp.client-ip=91.218.175.220
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hv2bvoAw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 106881F00898;
-	Mon, 28 Sep 2026 11:39:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790595583;
-	bh=tuxpGOBlXPQdQzzdNYHCp3UbEPW4mCQ2s4Nd1YplerY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=hv2bvoAwpPdBq7HSkr12h515+KozETs72ljAzreAcwskWTuj0/7BcON1cpAr6r5R2
-	 l94tBWYuvrUeOn2ga6t4SgJodnFpL9UTFHsYrv1xNCnzt/g3UcK72YvAkbmZZGgaKW
-	 BAYMAvyauaPO8JGMnKP+oXEnobmTD/OCvwKvrPKKBZ9KdDgEggmv8Ek9Rg7HVXK4ZO
-	 OmdhmNy07k1pFdB8N3/S5cZnjQCutaHmawHqkMbt2hRcG2NJa/u3jvD6mRlmikVEui
-	 mJJV5J/YhFUdHXAmoAE/lS46ek59jbIZ1/mUOxCt7GMwkBDEK78jIbov3E8kOFCAv/
-	 pNN+meeiILBOQ==
-Date: Mon, 28 Sep 2026 14:39:40 +0300
-From: Leon Romanovsky <leon@kernel.org>
-To: sashiko-reviews@lists.linux.dev
-Cc: Tariq Toukan <tariqt@nvidia.com>, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH mlx5-next 07/10] RDMA/mlx5: Extract IB specific lock out
- of data direct
-Message-ID: <20260928113940.GV563127@unreal>
-References: <20260917111422.4054862-1-tariqt@nvidia.com>
- <20260917111422.4054862-8-tariqt@nvidia.com>
- <20260918111632.4415C1F000FF@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="rOciz2Z1"
+X-Envelope-To: linux-rdma@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=SBXZxQa4kJjRlY2WnPdMcAzS3W7SnPaDjqV3vwwL7D4=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1790597777; v=1; x=1791202577;
+ b=rOciz2Z1sXS7Z09WXa/wUaLyGb2DtPVrs7yY6AqTX9Rg31NJ4k28KRw5oPfKkAOBYgfjBMAd
+ /Z9u6AtLgJ3aMSc3Th5EU9pRXBuS6D3COfROeElLDHbQI75i6lMrALjADqfKy3ktJgGDenuG0pN
+ 2KX+FLY8SmlE7b5xslbvNV0Y=
+X-Envelope-To: linux-rdma@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id 15cbac2d8a85bc92;
+	Mon, 28 Sep 2026 12:16:17 +0000
+X-Mizu-Trace-ID: 15cbac2d8a85bc92
+X-Migadu-Flow: FLOW_OUT
+Message-ID: <dc059bbf-4897-4800-8468-961e6da95964@linux.dev>
+Date: Mon, 28 Sep 2026 14:16:08 +0200
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260918111632.4415C1F000FF@smtp.kernel.org>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 6/7] RDMA/siw: Fix new_cep use-after-free in
+ siw_accept_newconn()
+To: Leon Romanovsky <leon@kernel.org>, Wentao Liang <vulab@iscas.ac.cn>
+Cc: jgg@ziepe.ca, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+ stable@vger.kernel.org
+References: <20260916184109.2092928-1-vulab@iscas.ac.cn>
+ <20260923080801.GL563127@unreal>
+From: Bernard Metzler <bernard.metzler@linux.dev>
+In-Reply-To: <20260923080801.GL563127@unreal>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Fri, Sep 18, 2026 at 11:16:31AM +0000, sashiko-bot@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found 1 potential issue(s) to consider:
-> - [High] core: missing smp_store_release() in lockless pointer publication
-> --
+On 23.09.2026 10:08, Leon Romanovsky wrote:
+> On Wed, Sep 16, 2026 at 06:41:09PM +0000, Wentao Liang wrote:
+>> On the error path the listening endpoint reference of new_cep is
+>> dropped before the accepted socket is disassociated.  When only the
+>> socket's reference remains, siw_socket_disassoc() drops that last
+>> reference and frees the endpoint, leaving the subsequent
+>> 'new_cep->sock = NULL' writing into freed memory.
+>>
+>> Tear the accepted socket down first and put the endpoint last.
+>>
+>> Fixes: 6c52fdc244b5 ("rdma/siw: connection management")
+>> Cc: stable@vger.kernel.org
+>> Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
+>> ---
+>>   drivers/infiniband/sw/siw/siw_cm.c | 10 ++++++----
+>>   1 file changed, 6 insertions(+), 4 deletions(-)
 > 
-> commit 70f41e46e61426ca24948348bb11ea96b2dc863f
-> Author: Dragos Tatulea <dtatulea@nvidia.com>
+> I think this patch is supposed to fix it:
+> https://patch.msgid.link/r/20260604160808.30948-1-bernard.metzler@linux.dev
 > 
-> RDMA/mlx5: Extract IB specific lock out of data direct
-> 
-> The data_direct_lock from struct mlx5_ib_dev is an IB specific lock.
-> It protects from unbind while mlx5_data_direct_dev is being accessed.
-> So move data_direct_lock out of the generic bind/unbind functions
-> and into the IB specific notifier callback.
-> 
-> > diff --git a/drivers/infiniband/hw/mlx5/data_direct.c b/drivers/infiniband/hw/mlx5/data_direct.c
-> > index f871e3ce9f73d..16afacdd36018 100644
-> > --- a/drivers/infiniband/hw/mlx5/data_direct.c
-> > +++ b/drivers/infiniband/hw/mlx5/data_direct.c
-> > @@ -197,9 +197,7 @@ mlx5_data_direct_get_reg(struct mlx5_ib_dev *ibdev)
-> >  static void mlx5_data_direct_bind(struct mlx5_ib_dev *ibdev,
-> >  				  struct mlx5_data_direct_dev *dev)
-> >  {
-> > -	mutex_lock(&ibdev->data_direct_lock);
-> > -	ibdev->data_direct_dev = dev;
-> > -	mutex_unlock(&ibdev->data_direct_lock);
-> > +	WRITE_ONCE(ibdev->data_direct_dev, dev);
-> 
-> [Severity: High]
-> Is a release barrier needed here?
-> 
-> By removing the shared lock, this becomes a lockless publication.
-> mutex_lock() only provides ACQUIRE semantics, so the writer lacks a RELEASE
-> barrier like smp_store_release().
-> 
-> Could weakly-ordered CPUs reorder the initialization of dev to become
-> visible after the pointer publication?  This might allow a concurrent
-> lockless reader to observe the newly assigned pointer but read uninitialized
-> structure fields (e.g., dev->pdev being NULL), leading to a kernel panic
-> when dereferenced.
-> 
-> [ ... ]
-> > diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-> > index e6b74955d95dc..1fc61a680f8af 100644
-> > --- a/drivers/infiniband/hw/mlx5/mr.c
-> > +++ b/drivers/infiniband/hw/mlx5/mr.c
-> > @@ -997,7 +997,7 @@ reg_user_mr_dmabuf_by_data_direct(struct ib_pd *pd, u64 offset,
-> >  		return ERR_PTR(-EOPNOTSUPP);
-> >  
-> >  	mutex_lock(&dev->data_direct_lock);
-> > -	data_direct_dev = dev->data_direct_dev;
-> > +	data_direct_dev = READ_ONCE(dev->data_direct_dev);
-> 
-> [Severity: High]
-> Is an acquire barrier like smp_load_acquire() needed here instead of
-> READ_ONCE()?
-> 
-> Since the reader in reg_user_mr_dmabuf_by_data_direct() takes a different
-> lock (dev->data_direct_lock) than the writer (which takes
-> mlx5_data_direct_mutex), it loads the pointer locklessly with respect to the
-> writer.
-> 
-> Could an unprivileged userspace issuing an RDMA memory registration
-> concurrently with a data direct device hotplug or bind observe uninitialized
-> memory fields because of this missing barrier?
+> Thanks
 
-At least for bind, no. The ibdev device shouldn't be operable at that
-stage yet.
+I agree with Leon.
 
-Thanks
+Thanks,
+Bernard.>
+> 
+>>
+>> diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/siw/siw_cm.c
+>> index f7ac81c0f267..1b93963cb191 100644
+>> --- a/drivers/infiniband/sw/siw/siw_cm.c
+>> +++ b/drivers/infiniband/sw/siw/siw_cm.c
+>> @@ -1044,14 +1044,16 @@ static void siw_accept_newconn(struct siw_cep *cep)
+>>   	return;
+>>   
+>>   error:
+>> -	if (new_cep)
+>> -		siw_cep_put(new_cep);
+>> -
+>>   	if (new_s) {
+>>   		siw_socket_disassoc(new_s);
+>>   		sock_release(new_s);
+>> -		new_cep->sock = NULL;
+>> +		if (new_cep)
+>> +			new_cep->sock = NULL;
+>>   	}
+>> +
+>> +	if (new_cep)
+>> +		siw_cep_put(new_cep);
+>> +
+>>   	siw_dbg_cep(cep, "error %d\n", rv);
+>>   }
+>>   
+>> -- 
+>> 2.34.1
+>>
 
-> 
-> -- 
-> Sashiko AI review · https://sashiko.dev/#/patchset/20260917111422.4054862-1-tariqt@nvidia.com?part=7
-> 
