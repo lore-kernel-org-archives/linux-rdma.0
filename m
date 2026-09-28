@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 182B54AE107;
-	Mon, 28 Sep 2026 11:20:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCDAC4AEBED;
+	Mon, 28 Sep 2026 11:20:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790594441; cv=none; b=EDyV4W6hS1ibcwu+RJRW9MUZeAKTCTSBrbLLnmJO6HBCvhfms/jz9CEWK3lVxank/24YDvhAL03tWp3UafA4aq5wGNqPWJeB8631rXyyqPDhp7k0Doa18WwN2iloXIPqaGPsOwFWtIEQrQTptUrOx9kt1Y7RYM4OyZp/eKaW6kE=
+	t=1790594445; cv=none; b=ZnCiEKMf7pMRiiwQKmrk/9jIHAiHlA/woQOgvweOQpmotDofhQXFvxjnbiDaqHn2WBOpXvvcicJEtplj0rNGGqUVzRZz6nrUjCTWStphS4G2PJsYScVUPyd2rcpuQpXZdm9CwyJ7s1ikcmROTHDHLZKuUQOva4gRDEDpYjSK2wo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790594441; c=relaxed/simple;
-	bh=Soqbec9vVVKuXYZxvaud05V1gsviiQEyuDFMVwYcy0M=;
+	s=arc-20240116; t=1790594445; c=relaxed/simple;
+	bh=riGlHG++DL8f0DnvaJ2KRuj/96+VOlrVeHQ7nm4g8CI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=pQbNi3q2TFcqrEDSpP6rKX4YolzQgrIytZieAubPFnXsUL9vkLcWVZZTk1CCnx+s2IjDN1z8bF/XRojHuYjsYU+XukVV4iFXqN2Jzg51g8TU20lKNJfXrvi+p+PKsJx+8LnyenIoI4++Fj6FxrXNd+vshm4/ujtS0sdz9Yii7Bw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aI/H2HqZ; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=N2Smcq9dZHPEQYAB1fueoGTv4CWVUODEFqUVvjEn09N0ACjFidwydm2phtWz/NuCzT8/kSyAT8EF47GmZam2/NSfwjgnI8zvbT1kzuCfzk82C6OmGCRl1wwWCaN0FDI/DHdT332EXxGF+Vbjwt3d/pVt782/uia8dI4PJhfMcuY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Jb1HoBXF; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aI/H2HqZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BEC41F00899;
-	Mon, 28 Sep 2026 11:20:39 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Jb1HoBXF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDD391F00893;
+	Mon, 28 Sep 2026 11:20:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790594440;
-	bh=/mrSoLPBT5WDIMN7g2Yzlv7di4OqO/Z3hH8lrqqJWsY=;
+	s=k20260515; t=1790594443;
+	bh=s9hM+k8hMa1R4u6jdfPzKiE4L3rfw69xZAFpd6/U+Zg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=aI/H2HqZ4TOtyzW+rDdhwY5BP1tnqnxNGs2CQRKrhRz8Br0vzXbY23xa2aR7Zal0O
-	 InUAS15rnPFE9ce6ZEf35cgUp14Fxt+T55j/gkhHTt3j3QTxOihfmy/2arg8C80rdp
-	 enyiWNiVAoHpSs6ld5G+XqI2AA7LMmwv8RWUreFi6HK3aWbMlfgKdYXCgXKnwOPvhk
-	 qpGWXk6zPsdQ/TIFFmk2myaTQ1RE+g7IP9pfWQ6dNQU7uvA4R8JVUNxxRTJuyPetCw
-	 KsJkDMd0n//ajNwDAnGqdYzf05Uez5Gi5GVPUw7ogm8hCPNSud3e67MAPgHdU2E+BV
-	 Q/t0tO6rEY6ew==
+	b=Jb1HoBXFJMB3IDbe4GhY8nB1F9W1moE7kNm4uW2GfyIqc1wE/ZP9i06nmcYMHHGI4
+	 u/5vcWWU1fNfGjj28ZdnylJu+sW01UJPi8sVxdSMUPTzbFAX/UkhnGvSBytmAd42eR
+	 ZDXiZHSY9B4LtILRVn6DGYrjOU/4IbMCxv+ML7cqwG7Fc4gPGUnAsXBWfIpLkdbTa8
+	 dgb6s50YZCpxnma5IgrgdxuITz8c8ecCzZbGbsODwqR+gMb99ykg8COeeZU+Z9lJco
+	 JTC2RXnikcG9TqNjxyvFaWFwyaaf3K6i22rwwZrmUoMNI1Bg82EWUk9FYpqJD8R2y6
+	 ZEkg3PQmxaiqA==
 From: Leon Romanovsky <leon@kernel.org>
 To: Bjorn Helgaas <bhelgaas@google.com>,
 	Logan Gunthorpe <logang@deltatee.com>,
@@ -55,9 +55,9 @@ Cc: linux-pci@vger.kernel.org,
 	Shuah Khan <skhan@linuxfoundation.org>,
 	Randy Dunlap <rdunlap@infradead.org>,
 	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: [PATCH v8 16/23] dma-buf: Let importers ask how peer-to-peer traffic is routed
-Date: Mon, 28 Sep 2026 14:19:20 +0300
-Message-ID: <20260928-fix-p2p-acs-v4-0-v8-16-404453b9c435@nvidia.com>
+Subject: [PATCH v8 18/23] RDMA/uverbs: Hand out the P2PDMA provider behind a dma-buf
+Date: Mon, 28 Sep 2026 14:19:22 +0300
+Message-ID: <20260928-fix-p2p-acs-v4-0-v8-18-404453b9c435@nvidia.com>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20260928-fix-p2p-acs-v4-0-v8-0-404453b9c435@nvidia.com>
 References: <20260928-fix-p2p-acs-v4-0-v8-0-404453b9c435@nvidia.com>
@@ -73,118 +73,49 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Exporters keep the &struct p2pdma_provider backing a buffer in their own
-private data. An importer cannot reach it, so it has no way to learn how
-its own peer-to-peer traffic would be routed before it programs its
-hardware.
+An importer attached to a uverbs dma-buf cannot tell whether its
+peer-to-peer traffic would reach the exported memory directly, because the
+&struct p2pdma_provider describing it stays in ib_uverbs_dmabuf_file.
 
-Add an optional @p2pdma_provider callback for an exporter to hand that
-provider out, and dma_buf_p2pdma_map_type() for an importer to ask by TLP
-class. Exporters keep the provider where it already lives, so this adds an
-operation rather than changing any existing signature or structure.
+Implement @p2pdma_provider so dma_buf_p2pdma_map_type() can reach it, and
+refuse once the buffer is revoked and the memory it described is gone.
 
 Tested-by: Tushar Dave <tdave@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/dma-buf/dma-buf-mapping.c | 39 +++++++++++++++++++++++++++++++++++++++
- include/linux/dma-buf-mapping.h   |  3 +++
- include/linux/dma-buf.h           | 19 +++++++++++++++++++
- 3 files changed, 61 insertions(+)
+ drivers/infiniband/core/uverbs_std_types_dmabuf.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/dma-buf/dma-buf-mapping.c b/drivers/dma-buf/dma-buf-mapping.c
-index 794acff2546a..41702045f803 100644
---- a/drivers/dma-buf/dma-buf-mapping.c
-+++ b/drivers/dma-buf/dma-buf-mapping.c
-@@ -6,6 +6,45 @@
- #include <linux/dma-buf-mapping.h>
- #include <linux/dma-resv.h>
+diff --git a/drivers/infiniband/core/uverbs_std_types_dmabuf.c b/drivers/infiniband/core/uverbs_std_types_dmabuf.c
+index 2411ebee69e2..5a6a1ee430a7 100644
+--- a/drivers/infiniband/core/uverbs_std_types_dmabuf.c
++++ b/drivers/infiniband/core/uverbs_std_types_dmabuf.c
+@@ -76,6 +76,17 @@ static void uverbs_dmabuf_release(struct dma_buf *dmabuf)
+ 	uverbs_uobject_release(&priv->uobj);
+ }
  
-+/**
-+ * dma_buf_p2pdma_map_type - How peer-to-peer traffic to a buffer is routed
-+ * @attach:	attachment of the importer that will issue the traffic
-+ * @tlp_flags:	&enum pci_p2pdma_tlp_flags describing the TLPs it will issue
-+ *
-+ * Reports how the PCIe fabric routes @tlp_flags traffic between the buffer
-+ * behind @attach and the importer attached to it, so that an importer can
-+ * choose the TLP attributes that earn it a direct route before it programs
-+ * its hardware.
-+ *
-+ * The caller must hold the reservation lock. The provider is owned by the
-+ * exporter's driver binding, and exporters revoke under that lock before
-+ * letting an unbind proceed, so dropping it any earlier would leave this
-+ * racing a teardown that frees the provider.
-+ *
-+ * Return: the mapping type for @tlp_flags traffic, or PCI_P2PDMA_MAP_NONE
-+ * when the exporter names no &struct p2pdma_provider and nothing is known
-+ * about the route.
-+ */
-+enum pci_p2pdma_map_type
-+dma_buf_p2pdma_map_type(struct dma_buf_attachment *attach,
-+			unsigned int tlp_flags)
++static struct p2pdma_provider *
++uverbs_dmabuf_provider(struct dma_buf *dmabuf)
 +{
-+	struct dma_buf *dmabuf = attach->dmabuf;
-+	struct p2pdma_provider *provider;
++	struct ib_uverbs_dmabuf_file *priv = dmabuf->priv;
 +
-+	dma_resv_assert_held(dmabuf->resv);
++	if (priv->revoked)
++		return NULL;
 +
-+	if (!dmabuf->ops->p2pdma_provider)
-+		return PCI_P2PDMA_MAP_NONE;
-+
-+	provider = dmabuf->ops->p2pdma_provider(dmabuf);
-+	if (!provider)
-+		return PCI_P2PDMA_MAP_NONE;
-+
-+	return pci_p2pdma_map_type_tlp(provider, attach->dev, tlp_flags);
++	return priv->provider;
 +}
-+EXPORT_SYMBOL_NS_GPL(dma_buf_p2pdma_map_type, "DMA_BUF");
 +
- static struct scatterlist *fill_sg_entry(struct scatterlist *sgl, size_t length,
- 					 dma_addr_t addr)
- {
-diff --git a/include/linux/dma-buf-mapping.h b/include/linux/dma-buf-mapping.h
-index 09bde3f748e4..37b3da10b17a 100644
---- a/include/linux/dma-buf-mapping.h
-+++ b/include/linux/dma-buf-mapping.h
-@@ -7,6 +7,9 @@
- #define __DMA_BUF_MAPPING_H__
- #include <linux/dma-buf.h>
+ static const struct dma_buf_ops uverbs_dmabuf_ops = {
+ 	.attach = uverbs_dmabuf_attach,
+ 	.map_dma_buf = uverbs_dmabuf_map,
+@@ -83,6 +94,7 @@ static const struct dma_buf_ops uverbs_dmabuf_ops = {
+ 	.pin = uverbs_dmabuf_pin,
+ 	.unpin = uverbs_dmabuf_unpin,
+ 	.release = uverbs_dmabuf_release,
++	.p2pdma_provider = uverbs_dmabuf_provider,
+ };
  
-+enum pci_p2pdma_map_type
-+dma_buf_p2pdma_map_type(struct dma_buf_attachment *attach,
-+			unsigned int tlp_flags);
- struct sg_table *dma_buf_phys_vec_to_sgt(struct dma_buf_attachment *attach,
- 					 struct p2pdma_provider *provider,
- 					 struct phys_vec *phys_vec,
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index d1203da56fc5..d56a48d41215 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -186,6 +186,25 @@ struct dma_buf_ops {
- 	 * if the call would block.
- 	 */
- 
-+	/**
-+	 * @p2pdma_provider:
-+	 *
-+	 * Returns the &struct p2pdma_provider backing this buffer, so that an
-+	 * importer can ask how its peer-to-peer traffic would be routed before
-+	 * it programs its hardware. Importers reach this through
-+	 * dma_buf_p2pdma_map_type() rather than calling it directly.
-+	 *
-+	 * Exporters of MMIO memory that is reachable peer-to-peer should
-+	 * implement this. Called with the &dma_buf.resv reservation lock held,
-+	 * which is what lets an exporter refuse once it has revoked the buffer
-+	 * and started tearing the provider down. This callback is optional.
-+	 *
-+	 * Returns:
-+	 *
-+	 * The provider backing the buffer.
-+	 */
-+	struct p2pdma_provider *(*p2pdma_provider)(struct dma_buf *dmabuf);
-+
- 	/**
- 	 * @release:
- 	 *
+ static int UVERBS_HANDLER(UVERBS_METHOD_DMABUF_ALLOC)(
 
 -- 
 2.55.0
