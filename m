@@ -1,109 +1,103 @@
-Received: from mta0.migadu.com (out-220.mta0.migadu.com [91.218.175.220])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4151730566F
-	for <linux-rdma@vger.kernel.org>; Mon, 28 Sep 2026 12:16:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.220
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 775852F0C74
+	for <linux-rdma@vger.kernel.org>; Mon, 28 Sep 2026 12:17:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790597781; cv=none; b=L21kU3QhTQlpzA+QdbsjVm2XUGD3yXfqFxq8JcwjS8NMtHV8pr7cVpTpjzg8V8leTGux/gDzl6oOpCpbU08vVhevmul12Rk4UUUcbfMy/X/PecIcSflDB4Eaccx/6Y+lv3jNpbLTrNQqTxlSWkcvAsBKG1kB1IpeTTAz+gFCt8k=
+	t=1790597841; cv=none; b=F9GGZd9Q4W62r+tzvNYUMU9yy1gLUnVQ8cqS3nJg7Lfq0sNBSiOp0OLCrz/RIKcP+oGvVk8OMiwAvqV4gqtlireKIPt+qkxp/nC8Etg9DMDsBQgDDpkGqcNUvbScWS/x/q404nrjNdpkQxs48j7ccIyL36nVKN5zIwxFZgFUkSg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790597781; c=relaxed/simple;
-	bh=SBXZxQa4kJjRlY2WnPdMcAzS3W7SnPaDjqV3vwwL7D4=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=JgQZfKKSeKj3E3UP8cc4H1h7FHugNBhsERfzixHIgQsNVp3g8MQq2KBKi+ci4HusEhizSapIguXYcG06sxLtDmoE5TaBNP7xDnE+dUAKUT+33DNRbpSoarBsFI+ni9saI5mJ3DPSZsx+iG+nDQeJB2123h87hV0wk77zKU12m6s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=rOciz2Z1; arc=none smtp.client-ip=91.218.175.220
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1790597841; c=relaxed/simple;
+	bh=bQPLkuX9oNYwtjJOO5IQ+BEGQDPuBscea5g57HN4ZLQ=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=c50CarDv4IE9T1dZnd644pYykkUknyLZFvf7aSOhmngcspIwcfPzpd+OVkOVYyWhf0K8se24dr64UQJBz0ZFWLWjBax80BLnLG8ehP44jM31UC8N+WMFGd6pZS8TQn61aSNf7F1S7qxh3zQUsjorVjieh6RJM1DTYo2MjI4wT+A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=M7QdsQGF; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="rOciz2Z1"
-X-Envelope-To: linux-rdma@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=SBXZxQa4kJjRlY2WnPdMcAzS3W7SnPaDjqV3vwwL7D4=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1790597777; v=1; x=1791202577;
- b=rOciz2Z1sXS7Z09WXa/wUaLyGb2DtPVrs7yY6AqTX9Rg31NJ4k28KRw5oPfKkAOBYgfjBMAd
- /Z9u6AtLgJ3aMSc3Th5EU9pRXBuS6D3COfROeElLDHbQI75i6lMrALjADqfKy3ktJgGDenuG0pN
- 2KX+FLY8SmlE7b5xslbvNV0Y=
-X-Envelope-To: linux-rdma@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id 15cbac2d8a85bc92;
-	Mon, 28 Sep 2026 12:16:17 +0000
-X-Mizu-Trace-ID: 15cbac2d8a85bc92
-X-Migadu-Flow: FLOW_OUT
-Message-ID: <dc059bbf-4897-4800-8468-961e6da95964@linux.dev>
-Date: Mon, 28 Sep 2026 14:16:08 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="M7QdsQGF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B4351F000FF;
+	Mon, 28 Sep 2026 12:17:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790597840;
+	bh=nirCKRATW6pckb2rxDd641IepW2QQItdXnj21AZWrsE=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=M7QdsQGFsa3OMnt+zgNc5xdcdif1cf+/4piRmx6mmpXSOn50HDYGeslqHbEikprkf
+	 kxP/dk+eeejNVYA4a98P1Zy2jNv0jQ0Y3Beop6jyAYomiYbwycrmddssdIxWVWsBmq
+	 XroFKKu+ihjfQbUnJG5z0qvwPXNd+KGiipZXVOPev/myRWe0xGbRFQu0SxS1b/uDeR
+	 vXY0XV8aA8deyP6lUT4hZCpDA022zN9tZb3wpYmrwiYdGxiJmjRPgMS+jITS3NYP9G
+	 EYq+poFI8eDqroogrUQRfDzgP4P/BtlaxZRdlWyx17myyDJHYjb9Jj8x1fSRE73dBn
+	 TuV3JI5S5IRUQ==
+From: Leon Romanovsky <leon@kernel.org>
+To: jgg@ziepe.ca, Yishai Hadas <yishaih@nvidia.com>
+Cc: linux-rdma@vger.kernel.org, selvin.xavier@broadcom.com, 
+ kalesh-anakkur.purayil@broadcom.com, chengyou@linux.alibaba.com, 
+ kaishen@linux.alibaba.com, tangchengchang@huawei.com, 
+ huangjunxian6@hisilicon.com, abhijit.gangurde@amd.com, allen.hubbe@amd.com, 
+ longli@microsoft.com, kotaranov@microsoft.com, mkalderon@marvell.com, 
+ bryan-bt.tan@broadcom.com, vishnu.dasa@broadcom.com, maorg@nvidia.com
+In-Reply-To: <20260915140933.40580-1-yishaih@nvidia.com>
+References: <20260915140933.40580-1-yishaih@nvidia.com>
+Subject: Re: [PATCH V1 rdma-next 00/15] DMA direction and mlx5 driver
+ correctness fixes
+Message-Id: <179059783727.3916571.17336446430052997316.b4-ty@kernel.org>
+Date: Mon, 28 Sep 2026 08:17:17 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 6/7] RDMA/siw: Fix new_cep use-after-free in
- siw_accept_newconn()
-To: Leon Romanovsky <leon@kernel.org>, Wentao Liang <vulab@iscas.ac.cn>
-Cc: jgg@ziepe.ca, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
- stable@vger.kernel.org
-References: <20260916184109.2092928-1-vulab@iscas.ac.cn>
- <20260923080801.GL563127@unreal>
-From: Bernard Metzler <bernard.metzler@linux.dev>
-In-Reply-To: <20260923080801.GL563127@unreal>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev-18f8f
 
-On 23.09.2026 10:08, Leon Romanovsky wrote:
-> On Wed, Sep 16, 2026 at 06:41:09PM +0000, Wentao Liang wrote:
->> On the error path the listening endpoint reference of new_cep is
->> dropped before the accepted socket is disassociated.  When only the
->> socket's reference remains, siw_socket_disassoc() drops that last
->> reference and frees the endpoint, leaving the subsequent
->> 'new_cep->sock = NULL' writing into freed memory.
->>
->> Tear the accepted socket down first and put the endpoint last.
->>
->> Fixes: 6c52fdc244b5 ("rdma/siw: connection management")
->> Cc: stable@vger.kernel.org
->> Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
->> ---
->>   drivers/infiniband/sw/siw/siw_cm.c | 10 ++++++----
->>   1 file changed, 6 insertions(+), 4 deletions(-)
-> 
-> I think this patch is supposed to fix it:
-> https://patch.msgid.link/r/20260604160808.30948-1-bernard.metzler@linux.dev
-> 
-> Thanks
 
-I agree with Leon.
-
-Thanks,
-Bernard.>
+On Tue, 15 Sep 2026 17:09:18 +0300, Yishai Hadas wrote:
+> This series contains two independent groups of fixes for the RDMA
+> subsystem.
 > 
->>
->> diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/siw/siw_cm.c
->> index f7ac81c0f267..1b93963cb191 100644
->> --- a/drivers/infiniband/sw/siw/siw_cm.c
->> +++ b/drivers/infiniband/sw/siw/siw_cm.c
->> @@ -1044,14 +1044,16 @@ static void siw_accept_newconn(struct siw_cep *cep)
->>   	return;
->>   
->>   error:
->> -	if (new_cep)
->> -		siw_cep_put(new_cep);
->> -
->>   	if (new_s) {
->>   		siw_socket_disassoc(new_s);
->>   		sock_release(new_s);
->> -		new_cep->sock = NULL;
->> +		if (new_cep)
->> +			new_cep->sock = NULL;
->>   	}
->> +
->> +	if (new_cep)
->> +		siw_cep_put(new_cep);
->> +
->>   	siw_dbg_cep(cep, "error %d\n", rv);
->>   }
->>   
->> -- 
->> 2.34.1
->>
+> Group 1: DMA direction correctness (patches 1-7).
+> 
+> RDMA drivers have historically mapped all pinned user buffers
+> DMA_BIDIRECTIONAL regardless of how the device actually accesses them.
+> This group tightens the DMA mapping direction to match the real access
+> pattern for each buffer type:
+> 
+> [...]
+
+Applied, thanks!
+
+[01/15] RDMA/erdma: Pin CQ buffer writable to match device DMA write access
+        https://git.kernel.org/rdma/rdma/c/ba3472ed6718bf
+[02/15] RDMA/hns: Pin CQ buffer writable to match device DMA write access
+        https://git.kernel.org/rdma/rdma/c/ce29f6e741844a
+[03/15] RDMA/vmw_pvrdma: Pin QP and SRQ rings writable to match device DMA write access
+        https://git.kernel.org/rdma/rdma/c/89abac4b60b708
+[04/15] RDMA/umem: Reuse ib_umem_get_cq_buf_or_va() for VA-only CQ pinning
+        https://git.kernel.org/rdma/rdma/c/b577999f6f8dbf
+[05/15] RDMA/umem: Support an explicit DMA direction other than DMA_BIDIRECTIONAL
+        https://git.kernel.org/rdma/rdma/c/2445d74c465ac0
+[06/15] RDMA/umem: Map CQ buffers DMA_FROM_DEVICE
+        https://git.kernel.org/rdma/rdma/c/50b96c3e3feb61
+[07/15] RDMA/umem: Derive DMA direction from IB access flags
+        https://git.kernel.org/rdma/rdma/c/dfc5334af5667e
+[08/15] RDMA/mlx5: Fix mlx5_ib_dev_res_init() failure when XRC cap is absent
+        https://git.kernel.org/rdma/rdma/c/4354ab7a85d1dd
+[09/15] RDMA/mlx5: Put resource reference in mlx5_ib_wq_event()
+        (no commit info)
+[10/15] RDMA/mlx5: Set WQ event handler before firmware RQ insertion
+        https://git.kernel.org/rdma/rdma/c/28c559d1e25de4
+[11/15] RDMA/mlx5: Set SRQ event handler before xarray insertion
+        https://git.kernel.org/rdma/rdma/c/d2aa15620e98dc
+[12/15] RDMA/mlx5: Set RQ event handler for raw-packet QP
+        https://git.kernel.org/rdma/rdma/c/a4fa6497002c80
+[13/15] RDMA/mlx5: Set QP event handler before firmware QPC insertion
+        https://git.kernel.org/rdma/rdma/c/05a078c97eb0bb
+[14/15] RDMA/mlx5: Initialize QP/RQ/SQ resource refcount before publishing it
+        https://git.kernel.org/rdma/rdma/c/829a0e65deff3f
+[15/15] RDMA/mlx5: Fix signed integer overflow in EQE qp_srq type shift
+        https://git.kernel.org/rdma/rdma/c/86959c7d009f60
+
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
 
