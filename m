@@ -1,68 +1,68 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D69E1443307
-	for <linux-rdma@vger.kernel.org>; Mon, 28 Sep 2026 06:15:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F6D2296BB5
+	for <linux-rdma@vger.kernel.org>; Mon, 28 Sep 2026 06:15:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790576125; cv=none; b=fos681bC06JixNY6c97OrTnrM6EyJ0HaUPUizQfrNzjCFWBLtHGYvgpAlgnYH+LCZMyL5oaQ4EkryNjCud07mxnWGTbaABosX55cOham99VFPp0WyaKn+P7R1t7SZ2LdL8KjQ17wlQgW8d8LRHq+WEBvO3dcJz85gPernkZ//+c=
+	t=1790576129; cv=none; b=lBhREDcwVTHNYqMeiu9HaodJlGO3rGJcuamyfCcGub5v5BZfp4S5n0J+NCiuh2sj4Fvwfs3jdfArFqUz3eLdSs3TIF1s9zxQAl5Mg9hSXbBg/hLhExSLkBkbS9zOneSUWPby9W6EsMvfCRRg1LMFY7a5uPCKH65nvHwiBYOFoWg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790576125; c=relaxed/simple;
-	bh=tP7bCw7btx6yLodQJ+ci14Tb4BQnejSjy5tCG8CJM6c=;
+	s=arc-20240116; t=1790576129; c=relaxed/simple;
+	bh=UGtKA3TnPIs0XRo1x+2mc1V4xV/T+zHS1VSjRXjra4I=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=kkXDpvNRiwQx7EUvuXJW3n/NUJOAnodXzoLfBM127nk3TI+Rr/V6U5g5yv7vUY9/NdsHY/7Jz6LFugKIgDVLhxktFla0StiEu9EbxUJrnXmJ2DE6CTJ5YxKMt9ElQ8PiR7GxLbYl6KRnxVfXfIbFdg7F60OW6XDDFyjkjHdkYu4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kE5J6Ejj; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=GSx+1H307hauehhLKjZoMS1p1l2N6grLzQP9WDN3paoDT8P8BhZtg3D7YLJ5ggCZ0pAIl+37XGJjsaV7mlKzigw8zbTQooNX1a7MoLdxG02GCVG76xgvNhsOOE/5Mx3MeVmTQUBSrzXXBrFNAKUVedjLNsLCZgymZEN6vXYV+bs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eRVO7ADe; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kE5J6Ejj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8C641F0089D;
-	Mon, 28 Sep 2026 06:15:04 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eRVO7ADe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 867E51F008A2;
+	Mon, 28 Sep 2026 06:15:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790576105;
-	bh=4b/HHpIDDnqyUAJIAIH4PX4l/680jkfTQDoDoR+3oD0=;
+	s=k20260515; t=1790576107;
+	bh=bXeXLs7Ek4Tlsd8J8bS5UCBYMn6+Khjvi9KMHRSZnpI=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=kE5J6Ejj2KzSyyDMrwhZkH3RPk+UMvxF91lLk3h/kT0EVM7mfHd3AxwsQXb2508nN
-	 wsL3AWUI30L9Wk6FVk4lY4fb0W7S4TFzYE0iMFAkrHaNoeRckAbd3YckxlTSMQyGYt
-	 VsDC2++DBBVbafskLleB6RO7I571lEVlogCWfhnYltjYckI87DieVlqh+dQ1YxTEQv
-	 z0oUQwqMyVAylbqZFUR5v9e44brXdGZaNNRSWI5MIGyyx43PJTZT3z72ReNdC7lQEs
-	 hFR5oqy/m5kb0Af0bCXu/Q/4yB49UCyk8U3PLV3cUZFrQvJyJkZn118yCpeLSU6XPo
-	 K2CKV0JR/9tUw==
+	b=eRVO7ADe3Ndq8DWpsJbKkT5NkyWrO3P1F/p/cKY162ZKYGgyiiHSWl6tdOuYmJ/LX
+	 o9hiXI8DBBdtzcD9KkLFodNpp+fr/xdVfXM6b1mZzig2Fh/6hWDZaYRvnDVAdCF2sx
+	 dhjsijHALBX9BYFrhmjK/emNpn6p2c8A5pKMDAMOYhEnLmHPTe/o5ApyQRjvnc+u9L
+	 Ho8geoH1LmUgr3OMyeBH2a0TVH+n7Wbkxv6Q6iuyZGNygaZOL5kP3gaFltmRypjuxQ
+	 DFzCz8scpP/UG84+GWbCHe7F66q5RKLPKYVYcvh+tVqWglmVvBoIqYOauX34zGwjpG
+	 N3SX9ywEhiL+Q==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next v7 11/12] net/rds: pin the connection across
- RDMA-CM event handling
+Subject: Re: [PATCH net-next v7 12/12] net/rds: drop rds_conn_count in favor
+ of t_conn_count
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Allison Henderson" <achender@kernel.org>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260927061448.167862-12-achender@kernel.org>
+In-Reply-To: <20260927061448.167862-13-achender@kernel.org>
 References: <20260927061448.167862-1-achender@kernel.org>
- <20260927061448.167862-12-achender@kernel.org>
+ <20260927061448.167862-13-achender@kernel.org>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Mon, 28 Sep 2026 06:15:04 +0000
-Message-Id: <20260928061504.D8C641F0089D@smtp.kernel.org>
+Date: Mon, 28 Sep 2026 06:15:07 +0000
+Message-Id: <20260928061507.867E51F008A2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-> rds_rdma_cm_event_handler_cmn() picks the connection up from
-> cm_id->context, which carries no reference, and holds c_cm_lock - a
-> mutex that lives in the connection's path array - across the transport
-> callbacks.  Before this series that was already a use-after-free
-> whenever a callback destroyed the connection, since rds_conn_destroy()
-> freed it synchronously and the handler's mutex_unlock() ran on freed
-> memory; the one such callback, rds_ib_cm_connect_complete() on a
-> protocol version below 3.1, has meanwhile been switched to
-> rds_conn_drop() by commit f97d8c7bab78 ("rds: ib: use rds_conn_drop()
-> on protocol version mismatch"), which also removed the deadlock that
-> destroy took on c_cm_lock.
+> The previous patch gave each transport its own connection count in
+> t_conn_count, incremented and decremented at exactly the points where
+> the global rds_conn_count is.  That leaves rds_conn_count with a
+> single remaining consumer: the seed of the per-path workqueue names
+> in __rds_conn_create().
 >=20
-> Now that a connection is freed by its last reference, none of the
-> callbacks the handler dispatches drops a reference on the connection
-> it was handed: the version-mismatch path only drops the connection,
-> [ ... ]
-> away, and nothing would tear them down again.  Re-check
-> rds_destroy_pending() under c_cm_lock and reject the request instead.
+> Switch the name seed to t_conn_count, as UEK does, and remove
+> rds_conn_count.  The numbering becomes per-transport instead of
+> global, so connections of different transports can now receive the
+> same seed; workqueue names carry no uniqueness requirement, and the
+> seed was already reused as the count rose and fell.  Removing the
+> counter also removes the rds_conn_lock round-trip that
+> rds_conn_destroy_fini() took solely to decrement it.  (The free path
+> still sleeps in destroy_workqueue(), so the last reference has to be
+> dropped from process context as before; only that one lock goes.)
+>=20
+> Based on the Oracle UEK commit "net/rds: Each RDS transport
+> should keep its own connection count".
 >=20
 > Assisted-by: Claude-Code:claude-fable-5
 > Signed-off-by: Allison Henderson <achender@kernel.org>
@@ -71,5 +71,5 @@ Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260927061448.1678=
-62-1-achender@kernel.org?part=3D11
+62-1-achender@kernel.org?part=3D12
 
