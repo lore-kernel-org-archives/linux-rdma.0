@@ -1,123 +1,186 @@
-Received: from mail-ed2-f35.google.com (mail-ed2-f35.google.com [74.125.228.99])
+Received: from mail-yx2-f41.google.com (mail-yx2-f41.google.com [74.125.224.169])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96BD138F624
-	for <linux-rdma@vger.kernel.org>; Mon, 28 Sep 2026 06:16:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.228.99
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790576193; cv=pass; b=ACxJV8mRtCfHzFQbPLZL/7a3j+RJATtJWH9cV63/jfFCHEbifYb5rgXgq0IsjUOHI74LZ/vrptNV2fjh65utI7RF4UCS8aFSatQ30MSB7sbnuhLKMIuhIS15cAMuTGaCMs4g2DkLU9YJRw5UTrzEdcMmIUFndqRUAT0TxJopgZQ=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790576193; c=relaxed/simple;
-	bh=UjLMTkNUsMTAhppS3VjvlrSLbd3vV2p7wtKDBinOEwQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=H0uJbF8WeLxvztln8lN1uHLqckfVtAOsMaXGesLKv1OksnNoGZiyImei8JQhQ9BxyAdr57XPsG0j+sq4BMkQVZel8p7gXVZfyfELaT/K+hDrJqGcuTqCDdy9EyWt2PDB43wf5ItFF99xdC0ffSg8wDwXlSdJGUF+dCR2pmBPYnU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KXDR2pEM; arc=pass smtp.client-ip=74.125.228.99
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4486735C6B2
+	for <linux-rdma@vger.kernel.org>; Mon, 28 Sep 2026 06:24:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.224.169
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790576657; cv=none; b=LaUKMj7tFYF/6Q9HbJefqbDjBttzjzLJMBe0+I2gvwB5IPBcWqdbTk8yORQQ4GM13PNFm0armeg6Rpr7JJCRgSa2qaYP5zVWjfaK5R6UT52u+36btSYBOW48W9hbyUwsfC9Zvqd1eZm/69L5rJJnE8uKokGRoAs4meb2N1Vwwdc=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790576657; c=relaxed/simple;
+	bh=Fuhci/NNQLVUzWkpUJ9YcTdRVY+06L73ZSAsWbc+3VE=;
+	h=Message-ID:Date:From:To:Cc:Subject:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=dXIeGElpjlM/SvIAOO1NyCv01Y4WFwDvFIbfKpt02UnuFS9FXWo2jZEeH0duCzMhjOjzcTdvrc/NJB4r7iw4yJQSH4NV3KZqiKrp4a7xLtDxvxh0WVzoaThdndQkaxw7gYkJn+MY/aZTWR4p9oys64hXHCl5XA4F6/xH1IL1J74=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=lwhbLYPl; arc=none smtp.client-ip=74.125.224.169
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KXDR2pEM"
-Received: by mail-ed2-f35.google.com with SMTP id 4fb4d7f45d1cf-6a9a26ce219so419857a12.3
-        for <linux-rdma@vger.kernel.org>; Sun, 27 Sep 2026 23:16:31 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1790576190; cv=none;
-        d=google.com; s=arc-20260327;
-        b=P9vvV8Mpi1g+Ks+m8YsaIOSaaze2xTmknqd+GB+elOU++I5nfvqJsrbPKvCgY+W3lI
-         AINvDGkiojh3n15tYJsux15rlqNkNX8gj0bQW/CsY/VDSt435ZiSaVTxE4KNUtnlBs21
-         B4A3FEv6SIsZ9THbGbGSgKmQBfRSOO4lwswJnSnyP8XY3rH5N5E/XBz9vcwck/qYkUR7
-         /Yyq4mV+InOZrvrc4JFZlmKQZDeK8DVJuFFWNoNZI2+qQIc2V0WCBnaxQiqccxIKxbdS
-         yRdKOyKDzixJqi7ktVIfL2DMCLY2erbHCqz6n/hrMyy4EbO2Yl2cI2SP0L5Cm6UXEzk6
-         /mTw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=UjLMTkNUsMTAhppS3VjvlrSLbd3vV2p7wtKDBinOEwQ=;
-        fh=HaIhJ48nWL3YTBhn/mHlMssOJAjlPoRXkaJra8lX0Ms=;
-        b=Lmyd7B3Ujyni0MAPFq7ukbuKT/NIYV5d2pl1UCGLewrLVpgOF6ewNQDZmFK/OmyEZ1
-         IyPhF+6VvhfUL2pcln7xgQaEp7OssF5s3gvqEb4KbxT06EUIo03Cg0cG6Wm56gSBF/It
-         0W+1CrDgdnYMQonqYFfiILVpRxl5XfSP59zfracmsiwqpNe7JzcVEn+IWjCMCd0aBpdZ
-         hG2Ey/bjoFA74Kf5N3BhxOUQDbDnlc1HXxkKXFaYUSJpQTNCn3VO0ts9J/mXALwI+o+H
-         v5aSmG79CRKxU5KGj9fPLK0dBQXST0BRFxHZgsH+i16vx0g/m61+QQKw89FMzWnkWSxp
-         ovDQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lwhbLYPl"
+Received: by mail-yx2-f41.google.com with SMTP id 956f58d0204a3-6740dd8b4b0so2167451d50.2
+        for <linux-rdma@vger.kernel.org>; Sun, 27 Sep 2026 23:24:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790576190; x=1791180990; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+        d=gmail.com; s=20251104; t=1790576653; x=1791181453; darn=vger.kernel.org;
+        h=mime-version:content-transfer-encoding:content-type:references
+         :in-reply-to:subject:cc:to:from:date:message-id:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=UjLMTkNUsMTAhppS3VjvlrSLbd3vV2p7wtKDBinOEwQ=;
-        b=KXDR2pEM1JTLSxBj3wu9/o164MNmf454aZ44Thf2vTM156Ks03aMOJq5qhUWpydv7w
-         36dX8Lb++kFHLk7kqmqu4aABQ/f4OruhsYjcBE8lrUwl8ksmWOruS+UZtlJzfC/seFZr
-         HavIZXgr0de1ONBuIegYb4ZJM0v0ZtJMGZscsKr/vfVkd41aD/PVymcPgi/6iGTud0Fq
-         DLNJpmxvWn50jAkXnKdPy+zJw6rcz5Xy//6P/Js/ftYPFJl2M2R9Rpd+HW9RCE/Tc0xB
-         g+qNzwzqph/No56lN78rZ05898pllNfOGRguS5ZYQLXjj5+/cFR16gM1lQ+An4Lxfc7f
-         b2+Q==
+        bh=NgBUoAGMce0wDtJT/5tr5PejNWm/4KbKs95+kgenKk4=;
+        b=lwhbLYPl64zWjoPjXWDqJSw4cdTJLhD/Nr/crQNjqiUD6XiCKfFeTIPvEXhCdZ0mre
+         mFBx0rU9DBt9ioC07p3a9hsTI4CbrD1o+oAXQiTL2WspaDVX27vTfnFdTdRCtaT+hA+u
+         4lk9nCkNZPgrCwFoZOAdsOLXea/Cb+gAyZyc9lyLJHQTS2AVEMwrIEwFvyIVY0flVUeR
+         teo7bwE/oHbL/oENB1lSYFqVTHn9xRoNpUUVwemul0zUkBOyjr8Q/z7XixeaGOaGvXGe
+         RY40FAhjeVnE6U2urvMol5gubOXBNwfLCGnIdB3AZfzM8qrol1haTXmuJplIAOW0CpGD
+         w7Mw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790576190; x=1791180990;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
+        d=1e100.net; s=20260707; t=1790576653; x=1791181453;
+        h=mime-version:content-transfer-encoding:content-type:references
+         :in-reply-to:subject:cc:to:from:date:message-id:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=UjLMTkNUsMTAhppS3VjvlrSLbd3vV2p7wtKDBinOEwQ=;
-        b=RJr0gNWScyBtbeaeI1eLzXPvf3+2f17M4oExE2nc1YzRBh+Blj4Ik2+khXv7aZc8vP
-         pgNfk7ZHEGxIZCJwBzcFdDuOGfs+1jL7W25DpxaXTLgYAeuzXpSx4EQ59lUU4m2P4VvW
-         9VoL6ECIrdM2AkTyk50VP6icnvo9+BiEm8YnmQ94P3tIId5SWBPDFLLgaWqBVe9/K1oe
-         IfZNkXNKkEQYQa09FJ3ggWF0mmy8AaUscewcUCowaW8A4LbYKqBW319q78RG91VheKhU
-         3P6t+fsuXThmAFTwmfi7xE+7NHsBax3zIqXJ1vXroJx4qoBNEkMWQlXOgEpYKOHIclnr
-         Pj3A==
-X-Forwarded-Encrypted: i=1; AKwUvBzmVTggreIOXrnnWYg+cGO/9BhSFSXiuac1PFoJ1o1cmIx8YpRvll1/ANdPrgSWNUo+50V+w0dJ7Obz@vger.kernel.org
-X-Gm-Message-State: AFq9FYLTp7EYIS8lkgRToEI8Z9WL6W8vxhbeuG3lh/wfWu1X0VFbfWeW
-	REtoYyoXbenLspQ4ZRtBe3SmBqJxj8EGcUFi4Y2pNEfsbAYj5z3249EgzYVXP9r31Wumi5V+KCb
-	4egZyoPm9SdKUr9mFnQq84nDOMVrCuJw=
-X-Gm-Gg: AYBFou3SdiGfEte8PtrnDZEbJA5ACTfAEbf8B8ttpbTygilXcwivVIx10oPCaf6GaO6
-	ZI5YY//4HFzQwBMhWG4wQs4OpglzTpYqftyrnlty9Swl294F2TILXjkj2n+fuY5CeyS88E5AX91
-	+DGRgJ5vR2EmaWg7wMP7+B5086AJ3Sr1jeuFgsj3YL780AhPTsFavh4r2j4MqAQZekPDZDbQz4B
-	BT8h44YJmiqJoqvff2KJ8l7lZlsYun0vJgJYDOfmikP5UG4G8505J00cSWb0nag3ySQVF4jf51F
-	GomWkcuWe6KQnM9T4sq7JFg2jtqqHnbVuQm+0Q4XdPxi3sjt2kt/YHufKX38bjh3g87q71Km6Zf
-	4zASHivm4Xj4=
-X-Received: by 2002:a05:6402:400b:b0:6aa:91c2:63b0 with SMTP id
- 4fb4d7f45d1cf-6aae1fb697dmr8189174a12.2.1790576189556; Sun, 27 Sep 2026
- 23:16:29 -0700 (PDT)
+        bh=NgBUoAGMce0wDtJT/5tr5PejNWm/4KbKs95+kgenKk4=;
+        b=xCjiUlx8QkS0yggkkNy8YREV1VWdMwrTpfkxg81tjv7td3LQ0k+knY3yxMSTuGAqY9
+         NjxAG0zM+ayW1lQ2o+bduHrCY+kU7+1jHBy2aLLv2lFVBNVMDN8lFZPyGOQSfCyrBMZK
+         9kEm1suQ/dFiPA1qAU0gIhldwt3OxohYBRUOqtHnLT6c8cXn8NpcDkOnQGOnMsyS9J/f
+         5kOYiWE+b2VeSstQmvuhNtKfanbHomGTMZDq3HYGdcsJOfZ8HoSeXS1/Ogpolf7riOiC
+         IczEQwXLGPGVM6zhr1a4nQYDwKCgGbnFUw87pMz5PE/SZynfbVPinYpYx05WyGf2Ht4t
+         0WBA==
+X-Forwarded-Encrypted: i=1; AKwUvBzCjvvd0wBFnk5QGi/Yv71XBhcRbwyoAhIZdgnnVLralUJzsZMBsPkjCiJktvAf2rSVLtUziE3HV3Tc@vger.kernel.org
+X-Gm-Message-State: AFq9FYLQSXocmsyy2nPhlmsLqejnJpE9vCrCu/g6aQ8g6eRXB4hYLLcH
+	zWoYrhwKhC7Hc4EQRRZgqo9guf1Af7+WYZAlYkdjzWD0WTaTlxiq+IuZ
+X-Gm-Gg: AYBFou3V0jLSXJC6RbtPxc1xGoRRoqIxwwHDS2Gx4OjJeIZka2YbrzMKD6sWHWcRSKc
+	5LXZFsTO+T/f7kSNF6POOrUT6n38dOmylrXT/JGnRo4x7qjDDjuQudbMi6tVAgUp93sYBQobDWG
+	v1TacN1kg1ZflM+FIkY9dynM9G/qmCBaOKTIs56GqnX3gxkVnKCAHNu1j7DzdnEE59vYiurkrB9
+	MxhoTSBfKYJ1FgbV8zT07ZZSpamAY5jC2DEBlAhLb/SEFgBt/gD+LZxHffpCSTfbSbsWLM3hhlc
+	DlJ4VSG/f9EgVH0S6PFOnV6Ikt2iYKEGTOnQNV8Xy4QhsiQqTs402zUwEwOO924AKR36wGfLgFR
+	RCLGHywQSILxmFqfBtfONP1yoAGnz+Dy/27HwppOg+A6m12Xp387YvIW/f8TCyQafC8peTI2lhf
+	ubXo4/cXtlA9VtpWLc29oU0mmpFq06+AwoeHzrZ4dpGDc8mzVuToB025oe2XKHMCb+6taw22l77
+	oQbnY4emayfft5OnBGq1iURNqnWNc1tgfb0kdJqkwmwxZgL81qG+TJZlGYK6ZzLnqZXmLTxOxla
+	yvkTu6Z9aVfJZtJH1ACINyFOh05UMLEBt1jFlTr7eY8B6rALR/eZAc/23rEFmeov2g3Y+738r40
+	E45BwLDZt4xkbnHBaUX+6d/yfxKW+uIBx5vu/VzFPTNkN39ZxGT6cl9X1q9g+bONQU4Oqi9CSE1
+	g0fc2fW3AI+dj+1OPAThE8btUIZMUgHpGh7cAU
+X-Received: by 2002:a05:690e:803:20b0:675:47ba:21b3 with SMTP id 956f58d0204a3-67547ba2609mr574124d50.103.1790576653226;
+        Sun, 27 Sep 2026 23:24:13 -0700 (PDT)
+Received: from [10.0.0.19] (c-73-137-217-102.hsd1.ga.comcast.net. [73.137.217.102])
+        by smtp.gmail.com with ESMTPSA id 00721157ae682-8a86108f052sm39434077b3.49.2026.09.27.23.24.11
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 27 Sep 2026 23:24:12 -0700 (PDT)
+Message-ID: <6aba080c.b933486d.297b72.5042@mx.google.com>
+Date: Sun, 27 Sep 2026 23:24:12 -0700 (PDT)
+From: Atharva Vartak <atharva.a.vartak@gmail.com>
+To: security@kernel.org
+Cc: alibuda@linux.alibaba.com, dust.li@linux.alibaba.com,
+ mjambigi@linux.ibm.com, sidraya@linux.ibm.com, w@1wt.eu,
+ tonylu@linux.alibaba.com, guwen@linux.alibaba.com, linux-rdma@vger.kernel.org,
+ linux-s390@vger.kernel.org, netdev@vger.kernel.org
+Subject: [PATCH] net/smc: hold a reference on net_device returned by
+ pnet_find_base_ndev()
+In-Reply-To: <arn3qTu_SeM8Yrjj@1wt.eu>
+References: <arn3qTu_SeM8Yrjj@1wt.eu>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260927073203.3694279-1-nicoyip.dev@gmail.com> <7960d73e-e316-4853-8398-144742e866d3@linux.ibm.com>
-In-Reply-To: <7960d73e-e316-4853-8398-144742e866d3@linux.ibm.com>
-From: Chengfeng Ye <nicoyip.dev@gmail.com>
-Date: Mon, 28 Sep 2026 14:16:18 +0800
-X-Gm-Features: AclHuK96mTZ2XsqOn0lcw6M7Xfg64Z655RWGZWQn7KbinRvEPkfuuOyZHISF2wk
-Message-ID: <CAAo+4rU=hCYRfhQLf4DS-_5xsYqfVfQ0YYEgBj1OLdbbMPccrA@mail.gmail.com>
-Subject: Re: [PATCH net] net/smc: serialize sndbuf descriptor release with
- diagnostic dumps
-To: Mahanta Jambigi <mjambigi@linux.ibm.com>
-Cc: "D. Wythe" <alibuda@linux.alibaba.com>, Dust Li <dust.li@linux.alibaba.com>, 
-	Sidraya Jayagond <sidraya@linux.ibm.com>, Tony Lu <tonylu@linux.alibaba.com>, 
-	Wen Gu <guwen@linux.alibaba.com>, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	Simon Horman <horms@kernel.org>, Wenjia Zhang <wenjia@linux.ibm.com>, linux-rdma@vger.kernel.org, 
-	linux-s390@vger.kernel.org, netdev@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Sep 28, 2026 at 1:57=E2=80=AFPM Mahanta Jambigi <mjambigi@linux.ibm=
-.com> wrote:
->
-> Agreed. This is addressed in v6[1] by unhashing the socket at the top of
-> smc_conn_kill(), before smcd_buf_detach() runs, so no hashed socket can
-> have its sndbuf_desc freed under a concurrent diag reader.
->
-> [1]
-> https://lore.kernel.org/netdev/20260926065023.1629497-1-mjambigi@linux.ib=
-m.com/
->
+pnet_find_base_ndev() resolves the base net_device for stacked devices
+under RTNL, then drops the lock and returns the raw pointer without
+taking a reference.  All three callers dereference the pointer after
+RTNL has been released, creating a use-after-free window if the device
+is concurrently unregistered.
 
-Hi Mahanta,
+Take dev_hold() before dropping RTNL and add the matching dev_put() in
+every return path of the three callers:
 
-Thanks for pointing this out, I didn't notice there was a patch
-working on the same problem. Please drop my patch in favour of yours.
+  - smc_pnet_add_eth()
+  - smc_pnet_find_roce_by_pnetid()
+  - smc_pnet_find_ism_by_pnetid()
 
-Best Regards,
-Chengfeng
+Fixes: 0afff91c6f5e ("net/smc: add pnetid support")
+Fixes: 1619f770589a ("net/smc: add pnetid support for SMC-D and ISM")
+Cc: "D. Wythe" <alibuda@linux.alibaba.com>
+Cc: Dust Li <dust.li@linux.alibaba.com>
+Cc: Sidraya Jayagond <sidraya@linux.ibm.com>
+Cc: Mahanta Jambigi <mjambigi@linux.ibm.com>
+Cc: Tony Lu <tonylu@linux.alibaba.com>
+Cc: Wen Gu <guwen@linux.alibaba.com>
+Cc: Willy Tarreau <w@1wt.eu>
+Cc: linux-rdma@vger.kernel.org
+Cc: linux-s390@vger.kernel.org
+Cc: netdev@vger.kernel.org
+Signed-off-by: Atharva Vartak <atharva.a.vartak@gmail.com>
+---
+Apologies for not Cc'ing the maintainers on the initial report, will
+follow the process properly going forward.
+
+Based on v7.3-rc5. Passes checkpatch and compiles cleanly.
+
+ net/smc/smc_pnet.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/net/smc/smc_pnet.c b/net/smc/smc_pnet.c
+index ff9c9c35c..d6e2f4454 100644
+--- a/net/smc/smc_pnet.c
++++ b/net/smc/smc_pnet.c
+@@ -367,8 +367,11 @@ static int smc_pnet_add_eth(struct smc_pnettable *pnetta=
+ble, struct net *net,
+ 	if (ndev) {
+ 		base_ndev =3D pnet_find_base_ndev(ndev);
+ 		if (!smc_pnetid_by_dev_port(base_ndev->dev.parent,
+-					    base_ndev->dev_port, ndev_pnetid))
++					    base_ndev->dev_port, ndev_pnetid)) {
++			dev_put(base_ndev);
+ 			goto out_put;
++		}
++		dev_put(base_ndev);
+ 	}
+=20
+ 	/* add a new netdev entry to the pnet table if there isn't one */
+@@ -949,6 +952,8 @@ static struct net_device *pnet_find_base_ndev(struct net_=
+device *ndev)
+ {
+ 	rtnl_lock();
+ 	ndev =3D __pnet_find_base_ndev(ndev);
++	/* keep ndev alive after dropping RTNL, callers must dev_put() */
++	dev_hold(ndev);
+ 	rtnl_unlock();
+ 	return ndev;
+ }
+@@ -1094,8 +1099,10 @@ static void smc_pnet_find_roce_by_pnetid(struct net_de=
+vice *ndev,
+ 	    smc_pnet_find_ndev_pnetid_by_table(base_ndev, ndev_pnetid) &&
+ 	    smc_pnet_find_ndev_pnetid_by_table(ndev, ndev_pnetid)) {
+ 		smc_pnet_find_rdma_dev(base_ndev, ini);
++		dev_put(base_ndev);
+ 		return; /* pnetid could not be determined */
+ 	}
++	dev_put(base_ndev);
+ 	_smc_pnet_find_roce_by_pnetid(ndev_pnetid, ini, NULL, net);
+ }
+=20
+@@ -1108,8 +1115,10 @@ static void smc_pnet_find_ism_by_pnetid(struct net_dev=
+ice *ndev,
+ 	ndev =3D pnet_find_base_ndev(ndev);
+ 	if (smc_pnetid_by_dev_port(ndev->dev.parent, ndev->dev_port,
+ 				   ndev_pnetid) &&
+-	    smc_pnet_find_ndev_pnetid_by_table(ndev, ndev_pnetid))
++	    smc_pnet_find_ndev_pnetid_by_table(ndev, ndev_pnetid)) {
++		dev_put(ndev);
+ 		return; /* pnetid could not be determined */
++	}
+=20
+ 	mutex_lock(&smcd_dev_list.mutex);
+ 	list_for_each_entry(ismdev, &smcd_dev_list.list, list) {
+@@ -1123,6 +1132,7 @@ static void smc_pnet_find_ism_by_pnetid(struct net_devi=
+ce *ndev,
+ 		}
+ 	}
+ 	mutex_unlock(&smcd_dev_list.mutex);
++	dev_put(ndev);
+ }
+=20
+ /* PNET table analysis for a given sock:
+--=20
+2.54.0
+
