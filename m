@@ -1,90 +1,67 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 147E13845DC
-	for <linux-rdma@vger.kernel.org>; Mon, 28 Sep 2026 18:38:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42E453546E2
+	for <linux-rdma@vger.kernel.org>; Mon, 28 Sep 2026 18:40:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790620713; cv=none; b=M8V7Bnk3r+IeRBHC4lfkXWjcGO5EcHdnoYGiTMEp2OXvKhbymPwswfXpty9fhYegqEybJI22FpWvi+75uZJA5VygiRgdzCV+RKoyhSm22UHr/yuH6gnah/v05PnmitbVh2QQBLHibbNX+sKyoKbvH7jfISkKgvOYIdQVbc8QxnM=
+	t=1790620843; cv=none; b=s+rYUl2RolX8lN6CNub2q/Jq1T/Dr00aSB9OypRoLrml4Mvt3qhty29LYJ0hi/zS99j37kZUxciBjNbRe5PU9pYUMGk0m6P3W1Pr3jQPmJkFL6SdqcFcVnvpB/0GNbQsOhs/vdvGZ5VgtdqBsOxfCm9nveVLmE0QExLDr2duIbg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790620713; c=relaxed/simple;
-	bh=ltTYEL+AETAVvTXj5Zh1MfMXCYibrj8HPADX3beTh1c=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Rv5NeWGPyVfYSvaACII0hO5HAofrJX92o+9BSPGUpbVE5DIjWbk2fkwUyMDIdsTo/HkbxzmkZqWCmf3Cju9ooGLnr54qWYW667ZE91rUXzeLjWwRGTvyW04PbPv175dXFyYvp2L67/qmNpBlPannsV3MFodcXbDIwrRY2PiRJIY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OQSUxKO5; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790620843; c=relaxed/simple;
+	bh=N7xxpLCDtvkY5KrTLNkVCZEgbhxqnazj4mfPy8Cklns=;
+	h=From:To:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=dRMbjBjJL8j2d/MyGLe+UBpblFv9yKlUxX4AnUEIPCO7h16U9LiQcn5SH/oszwS4n1gvPAVSlcyg9W3GY7s1/lsvDmqMjKTCDye4EFt0xvsCRE9E1Ro5P/G/oC/bZJ5QUpsuhCPQLoMQSSNu75dKFav142JgE5hK8wOB3yc3qGQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Wlez07gu; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OQSUxKO5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A46BE1F000FF;
-	Mon, 28 Sep 2026 18:38:28 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Wlez07gu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 475E51F000FF;
+	Mon, 28 Sep 2026 18:40:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790620709;
-	bh=8nazsUQqgJBJGsBRmdTRMAlYzie7gJxW4KvRvFIf2IQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=OQSUxKO5i7w+kkax8J8FddFw6bUvBEDYXKsJJ4H/6hGPIgMLzof7LGpRdQVmZ2brM
-	 WPWbUoO6I0Jrm2/pc5hkDpxO2wL750p9N9/uzu+rlehWE7w5/ozdwBrjUxY4sf3QWW
-	 Eaz6xrBiehzLN5k+wmRskRwCfVS7KzmHa/Z72YWeEIZ1f/a9tbpBp80pjEsbMcNi/T
-	 Bao/83kthPbOTIl4qi8mh1rFAtfiNg6v4jlNucsTILapqUD6USCR6rikUhY4A/LNtX
-	 ulIqbVkJBZUP6xXv3pZqYz4u1N8m/U5cn7hx8HmxGys9lS6ToiSb8BdscPZVq+14Be
-	 /In1hSL9ZX5fQ==
-Date: Mon, 28 Sep 2026 21:38:25 +0300
+	s=k20260515; t=1790620841;
+	bh=CumnertMJq7l7M2gfIqmVf5W37IwJ9+GEJ6yVI1/u1I=;
+	h=From:To:In-Reply-To:References:Subject:Date;
+	b=Wlez07guOOvke4tqqslZ/CwdwAnQeC3y5/5ebx/6JljLHqvHTlVYX4pnXGvgTPiVQ
+	 Tblr6OSLeMoAenZEGKw6/nEtDTU/uMCoH9xp8x2bMX8Y1it8US04kGFfb9NQ1werBA
+	 CwI1aGVnlEVy2qKbhuX5wrw8H4Q2Muzu7MuTAv6rB/7kO4MPWnmGT56/SLiM+pqPgG
+	 Pz/hPvu1qQCJRrXiZctWv42AjE+N+/GzCov/h7i3aT9rWxUBmqWR2TiumOWa0lhfQo
+	 pb2vV0BD0umU1/mGgh8G8GSy30tVmKZ8ptLqcsyqPEpyrQIdc8dktsM/fSmGzKVppH
+	 1u6LPhikHq8IA==
 From: Leon Romanovsky <leon@kernel.org>
-To: lirongqing <lirongqing@baidu.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH] RDMA/mlx5: Check SIG_ERR CQE mkey lookup before
- dereferencing
-Message-ID: <20260928183825.GZ563127@unreal>
-References: <20260919100806.2320-1-lirongqing@baidu.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, 
+ lirongqing <lirongqing@baidu.com>
+In-Reply-To: <20260919100848.2442-1-lirongqing@baidu.com>
+References: <20260919100848.2442-1-lirongqing@baidu.com>
+Subject: Re: [PATCH] RDMA/mlx5: Restore mr->pi_mr after temporary
+ stack-local assignment
+Message-Id: <179062083904.3937767.17612040683390790738.b4-ty@kernel.org>
+Date: Mon, 28 Sep 2026 14:40:39 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260919100806.2320-1-lirongqing@baidu.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev-18f8f
 
-On Sat, Sep 19, 2026 at 06:08:06PM +0800, lirongqing wrote:
-> From: Li RongQing <lirongqing@baidu.com>
-> 
-> In mlx5_poll_one, a MLX5_CQE_SIG_ERR completion looks up the signature
-> context in dev->sig_mrs via xa_load() but dereferences the result without
-> a NULL check. If the corresponding MR has been concurrently deregistered
 
-Is this real scenario? Integrity MRs are in-kernel MRs, they shouldn't
-be concurrently deregistered.
+On Sat, 19 Sep 2026 18:08:48 +0800, lirongqing wrote:
+> In handle_reg_mr_integrity, when mr->pi_mr is NULL (physical-address
+> optimization path), the code points mr->pi_mr at a stack-local pa_pi_mr
+> so set_pi_umr_wr can read it during this call. The pointer is never
+> restored, so after the function returns mr->pi_mr dangles at a freed stack
+> frame. A second IB_WR_REG_MR_INTEGRITY posted on the same MR without
+> remapping reads the stale pointer and dereferences it.
+> 
+> [...]
 
-Thanks
+Applied, thanks!
 
-> (which removes the xarray entry without holding the CQ lock), xa_load()
-> returns NULL and the subsequent get_sig_err_item(sig_err_cqe, &sig->err_item)
-> crashes in atomic context under xa_lock.
-> 
-> Add a NULL check that drops the lock, logs a warning, and repolls.
-> 
-> Signed-off-by: Li RongQing <lirongqing@baidu.com>
-> ---
->  drivers/infiniband/hw/mlx5/cq.c | 7 +++++++
->  1 file changed, 7 insertions(+)
-> 
-> diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-> index 49b4bf1..b0b1177 100644
-> --- a/drivers/infiniband/hw/mlx5/cq.c
-> +++ b/drivers/infiniband/hw/mlx5/cq.c
-> @@ -563,6 +563,13 @@ static int mlx5_poll_one(struct mlx5_ib_cq *cq,
->  		xa_lock(&dev->sig_mrs);
->  		sig = xa_load(&dev->sig_mrs,
->  				mlx5_base_mkey(be32_to_cpu(sig_err_cqe->mkey)));
-> +		if (!sig) {
-> +			xa_unlock(&dev->sig_mrs);
-> +			mlx5_ib_warn(dev, "CQN: 0x%x Got SIGERR on unknown mkey: 0x%x\n",
-> +				     cq->mcq.cqn,
-> +				     be32_to_cpu(sig_err_cqe->mkey));
-> +			goto repoll;
-> +		}
->  		get_sig_err_item(sig_err_cqe, &sig->err_item);
->  		sig->sig_err_exists = true;
->  		sig->sigerr_count++;
-> -- 
-> 2.9.4
-> 
+[1/1] RDMA/mlx5: Restore mr->pi_mr after temporary stack-local assignment
+      https://git.kernel.org/rdma/rdma/c/9728effe43d8fc
+
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
+
