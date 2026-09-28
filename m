@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C44B4B1D0A;
-	Mon, 28 Sep 2026 11:20:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 879584A8434;
+	Mon, 28 Sep 2026 11:21:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790594458; cv=none; b=qIYQefu5REXHGvPfDvOGAOUrD288FVoObiwadlJT/Fa/CcO7cgfLHqNye8dMnDkXoMd4BjZYZkA6jEPQ0uUNcoYwnazLdeG9S/GtTOdSpC0GyLPSedkBlPqIIB5N+J/vTCXUJquKgHmNXn3mnR+TPF90L8p8BwUikZxeVFWAn8I=
+	t=1790594462; cv=none; b=te0naM0JNLn1KAvlOnowylixMcdn9W8Vk1/pTW2Ljg6tzrf+fMRR7ljiMhx6WALRJO1X1ghxZk84goSIeA1cdQ7WoNbAAkl6hVx8BjetVshIYMqOI2wDcW6hgi1WB6m942Hkk9b6yoISDOhT2uzgDbni2wC/RgEs2vY/SiGCNdY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790594458; c=relaxed/simple;
-	bh=94/6lDrR08Gl1Jyc1Ge2RiRrh6W2hLjkzbv9UupqQEw=;
+	s=arc-20240116; t=1790594462; c=relaxed/simple;
+	bh=sbHAOSXqPE7nkTCa2rmglspsCR9ZAu7s06Sk/s+bKyE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=DSHimC5DNCrN/8fgne8MOW5ibFcZQNWlSutrwCjChxTYxOpduwX/mKDPTU3W2gjRWmVS1aMj75oDTPgtkgoXrT6O/JYdU0wVe0tlFZGu0si9yBaVHfZaxQHuRn1eoT1oBBeBXTv4qUjmN6BMK8g/h08FqRPvsKvWrYj/e3Pxh1Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=D1dfTC29; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=BJdyf9tRY9w9W0kMqBWAAKEYAKdzsLYrWDpC0E1Tdcrj6jdRr0hadmUmY7mnjDAqdKhhdFyLjjpOboX/lsGBw9q46QnGAuiPrNKk3TYdhUZw3f3k/2S32Lto0+PCX5ruS26sHuOaKIftjUe87q5sQFLH+OCAKqnQtLX1XZW7iPk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=K7Xb23H6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="D1dfTC29"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E98F1F000FF;
-	Mon, 28 Sep 2026 11:20:55 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="K7Xb23H6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58C2A1F00898;
+	Mon, 28 Sep 2026 11:20:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790594456;
-	bh=7soDfBPqqfvr89StAnu/erguwTkeZ0vwie+s/Fk8P/0=;
+	s=k20260515; t=1790594460;
+	bh=G+7zzk1QeqfbmrDoFaH0jUoE+bQ8bUvHYbFG+Pfkp/g=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=D1dfTC29lL94Lvjs9Ec6yquEXWZxoA4SP0OVHHGvlQFh8SnzhpaJQINjWFGNyNU3/
-	 P3+LTe6FItKm4o2otU/VGTYoDIw6ZtHG0Nj7IYfQrdqIT5sazLor6o8Op7zL0lcnPa
-	 K7ReNXDhtJBd1Cz7pnEhzYznFCAY8oHRRdtEFFc3tgcdwmYLg0EQV2pm8G0S2EMIwz
-	 Dmsm27Yqy1il8mpNd0L/6YaUc/SbGBfeV+pJ4CRcPXdiMiz1cTi++8oG1fh9/NkVJ6
-	 p5oK8t9TVYvNuKt0WnGYcAxO0zDNmkYqER3xmS6CEjE3E806PEj9KQQRhCOUUBPk9L
-	 1ThZlE92cES9g==
+	b=K7Xb23H6wwn31Qa3P+idh9mljDrEj25l/BG8A+uWktLdA2/2L5QcP7iGe3ssIz+Om
+	 gXuuARTdP+mS17BG+rN480b4e5xVx+4pLc/il6o2bVo4F2RTLAea4WtxcQK8YpS/bx
+	 bfiZQE3Y6xsi0NVS7Ew97IC9KjhH23hTWM+yqKt8COw9GfH49gUa+kZaJm1/5a3wdQ
+	 /ld+msh48sbmEewt8RD7a6VO/c63lDBaaldV457w2wt7UTmRkbAO7ENMpOMLixL7jb
+	 0a7GzyXquwkmfAv9aTFaNQzgW3Fo0eCprTM4HL8z37t/aBdyWElvigfJUGs3WrWCQN
+	 vSEWm5/K7O9HQ==
 From: Leon Romanovsky <leon@kernel.org>
 To: Bjorn Helgaas <bhelgaas@google.com>,
 	Logan Gunthorpe <logang@deltatee.com>,
@@ -55,9 +55,9 @@ Cc: linux-pci@vger.kernel.org,
 	Shuah Khan <skhan@linuxfoundation.org>,
 	Randy Dunlap <rdunlap@infradead.org>,
 	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: [PATCH v8 22/23] PCI/P2PDMA: Evaluate the ATS path for clients with ATS enabled
-Date: Mon, 28 Sep 2026 14:19:26 +0300
-Message-ID: <20260928-fix-p2p-acs-v4-0-v8-22-404453b9c435@nvidia.com>
+Subject: [PATCH v8 23/23] PCI/P2PDMA: Test the routing of clients with ATS enabled
+Date: Mon, 28 Sep 2026 14:19:27 +0300
+Message-ID: <20260928-fix-p2p-acs-v4-0-v8-23-404453b9c435@nvidia.com>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20260928-fix-p2p-acs-v4-0-v8-0-404453b9c435@nvidia.com>
 References: <20260928-fix-p2p-acs-v4-0-v8-0-404453b9c435@nvidia.com>
@@ -73,155 +73,218 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-P2PDMA assumes every client issues Untranslated Requests. A device with
-ATS enabled may translate any address it is handed, including a bus
-address, and Translation Blocking can reject its Translated Requests on
-a route the Untranslated answer called usable.
+A client that enables ATS for the whole device must never be handed a
+bus address, and Translation Blocking must reject its peer-to-peer
+traffic even when the caller asks for the default class. That has to
+hold for answers taken from the cache as well.
 
-Unless the client declared per-mapping ATS, take the Address Type from
-its ATS Enable bit. Never hand such a client bus addresses: only an IOVA
-survives translation, and whatever it issues untranslated goes through
-the host bridge, whose route must therefore be usable. Apply this after
-the cache, which keeps holding answers that depend only on the topology.
+Cover those on the fabricated fabric, together with a client that
+declared per-mapping ATS keeping the per-class answers and a client
+without ATS answering for the Untranslated Requests it will issue.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- Documentation/driver-api/pci/p2pdma.rst |  8 ++++++
- drivers/pci/p2pdma.c                    | 50 +++++++++++++++++++++++++++++++--
- include/linux/pci-p2pdma.h              |  3 +-
- 3 files changed, 58 insertions(+), 3 deletions(-)
+ drivers/pci/p2pdma.c       |   8 +--
+ drivers/pci/pci.h          |   5 ++
+ drivers/pci/pci_acs_test.c | 123 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 133 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/driver-api/pci/p2pdma.rst b/Documentation/driver-api/pci/p2pdma.rst
-index 7a7f29f455b0..bf9f96c07b58 100644
---- a/Documentation/driver-api/pci/p2pdma.rst
-+++ b/Documentation/driver-api/pci/p2pdma.rst
-@@ -40,6 +40,14 @@ A client therefore describes its traffic with ``enum pci_p2pdma_tlp_flags``
- and asks ``pci_p2pdma_map_type_tlp()``. ``pci_p2pdma_map_type()`` answers for
- the default: strictly ordered Requests carrying an Untranslated address.
- 
-+The PCIe ATS Enable bit covers the whole device, and most devices translate
-+any address they are handed once it is set. Unless a driver has declared with
-+``pcim_p2pdma_set_ats_per_mapping()`` that its device chooses ATS per mapping,
-+that bit rather than the flags decides the Address Type, and a client with ATS
-+enabled is never handed a bus address, which it would translate as though it
-+were an IOVA. Its Translated Requests may still route directly, but anything
-+it issues untranslated reaches the host bridge, so that route has to work too.
-+
- The two directions are decided independently. Translation Blocking (TB),
- Direct Translated P2P (DT), Request Redirect (RR) and Egress Control (EC) on
- the client-side port decide the Request:
 diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index ae676509f9f3..ca79af2e64c7 100644
+index ca79af2e64c7..dfef69638782 100644
 --- a/drivers/pci/p2pdma.c
 +++ b/drivers/pci/p2pdma.c
-@@ -1595,6 +1595,41 @@ void pcim_p2pdma_set_ats_per_mapping(struct pci_dev *pdev)
+@@ -1595,14 +1595,15 @@ void pcim_p2pdma_set_ats_per_mapping(struct pci_dev *pdev)
  }
  EXPORT_SYMBOL_GPL(pcim_p2pdma_set_ats_per_mapping);
  
-+static unsigned int pci_p2pdma_client_tlp_flags(struct pci_dev *client,
-+						unsigned int tlp_flags)
+-static unsigned int pci_p2pdma_client_tlp_flags(struct pci_dev *client,
+-						unsigned int tlp_flags)
++VISIBLE_IF_KUNIT unsigned int
++pci_p2pdma_client_tlp_flags(struct pci_dev *client, unsigned int tlp_flags)
+ {
+ 	if (client->ats_enabled)
+ 		return tlp_flags | PCI_P2PDMA_TLP_TRANSLATED;
+ 
+ 	return tlp_flags & ~PCI_P2PDMA_TLP_TRANSLATED;
+ }
++EXPORT_SYMBOL_IF_KUNIT(pci_p2pdma_client_tlp_flags);
+ 
+ /*
+  * A client that translates every address it is handed cannot be handed a bus
+@@ -1611,7 +1612,7 @@ static unsigned int pci_p2pdma_client_tlp_flags(struct pci_dev *client,
+  * translation carries the IOVA to the host bridge, so that route has to work
+  * as well.
+  */
+-static enum pci_p2pdma_map_type
++VISIBLE_IF_KUNIT enum pci_p2pdma_map_type
+ pci_p2pdma_client_map_type(struct pci_dev *provider, struct pci_dev *client,
+ 			   bool per_mapping, enum pci_p2pdma_map_type type)
+ {
+@@ -1629,6 +1630,7 @@ pci_p2pdma_client_map_type(struct pci_dev *provider, struct pci_dev *client,
+ 
+ 	return PCI_P2PDMA_MAP_NOT_SUPPORTED;
+ }
++EXPORT_SYMBOL_IF_KUNIT(pci_p2pdma_client_map_type);
+ 
+ /**
+  * pci_p2pdma_map_type_tlp - Determine the mapping type for P2PDMA transfers
+diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
+index 5bc703ff0c86..c705603b2145 100644
+--- a/drivers/pci/pci.h
++++ b/drivers/pci/pci.h
+@@ -1117,6 +1117,11 @@ enum pci_p2pdma_map_type calc_map_type_and_dist(struct pci_dev *provider,
+ 						int *dist,
+ 						unsigned int tlp_flags,
+ 						bool verbose);
++unsigned int pci_p2pdma_client_tlp_flags(struct pci_dev *client,
++					 unsigned int tlp_flags);
++enum pci_p2pdma_map_type
++pci_p2pdma_client_map_type(struct pci_dev *provider, struct pci_dev *client,
++			   bool per_mapping, enum pci_p2pdma_map_type type);
+ #endif
+ 
+ #ifdef CONFIG_PCI_QUIRKS
+diff --git a/drivers/pci/pci_acs_test.c b/drivers/pci/pci_acs_test.c
+index 6a2cd38d968f..a9a3b80ea0ac 100644
+--- a/drivers/pci/pci_acs_test.c
++++ b/drivers/pci/pci_acs_test.c
+@@ -698,6 +698,125 @@ static void acs_walk_unreadable_control_test(struct kunit *test)
+ 			PCI_P2PDMA_MAP_NOT_SUPPORTED);
+ }
+ 
++/*
++ * Route the way pci_p2pdma_map_type_tlp() does once it has a client: the
++ * client decides which flags apply, and the answer is then checked against
++ * what the client can be handed.
++ */
++static enum pci_p2pdma_map_type acs_client_map(struct acs_fabric *f,
++					       bool per_mapping,
++					       unsigned int tlp_flags)
 +{
-+	if (client->ats_enabled)
-+		return tlp_flags | PCI_P2PDMA_TLP_TRANSLATED;
++	enum pci_p2pdma_map_type type;
++	int dist;
 +
-+	return tlp_flags & ~PCI_P2PDMA_TLP_TRANSLATED;
++	if (!per_mapping)
++		tlp_flags = pci_p2pdma_client_tlp_flags(f->client, tlp_flags);
++	type = calc_map_type_and_dist(f->provider, f->client, &dist, tlp_flags,
++				      false);
++	return pci_p2pdma_client_map_type(f->provider, f->client, per_mapping,
++					  type);
 +}
 +
 +/*
-+ * A client that translates every address it is handed cannot be handed a bus
-+ * address, which it would translate as though it were an IOVA. Its Translated
-+ * Requests may still route directly, but a Request it issues without a
-+ * translation carries the IOVA to the host bridge, so that route has to work
-+ * as well.
++ * A client with ATS enabled for the whole device translates whatever it is
++ * handed, so it never gets bus addresses even on a direct route, and
++ * Translation Blocking rejects it even when its caller asks for the default
++ * class.
 + */
-+static enum pci_p2pdma_map_type
-+pci_p2pdma_client_map_type(struct pci_dev *provider, struct pci_dev *client,
-+			   bool per_mapping, enum pci_p2pdma_map_type type)
++static void acs_client_ats_test(struct kunit *test)
 +{
-+	if (per_mapping || !client->ats_enabled ||
-+	    type != PCI_P2PDMA_MAP_BUS_ADDR)
-+		return type;
++	struct acs_fabric f = {};
 +
-+	pci_dbg(client,
-+		"P2PDMA ACS: provider=%s bus address withheld; ATS is enabled for the whole client\n",
-+		 pci_name(provider));
++	acs_build_fabric(test, &f);
++	f.client->ats_enabled = 1;
 +
-+	if (cpu_supports_p2pdma() ||
-+	    host_bridge_whitelist(provider, client, false))
-+		return PCI_P2PDMA_MAP_THRU_HOST_BRIDGE;
++	KUNIT_EXPECT_EQ(test, acs_client_map(&f, false, 0),
++			PCI_P2PDMA_MAP_THRU_HOST_BRIDGE);
 +
-+	return PCI_P2PDMA_MAP_NOT_SUPPORTED;
++	f.client_leaf->acs_cap = 0x100;
++	f.client_leaf->acs_capabilities = PCI_ACS_TB;
++	f.client_leaf_cfg.ctrl = PCI_ACS_TB;
++
++	KUNIT_EXPECT_EQ(test, acs_client_map(&f, false, 0),
++			PCI_P2PDMA_MAP_NOT_SUPPORTED);
 +}
 +
- /**
-  * pci_p2pdma_map_type_tlp - Determine the mapping type for P2PDMA transfers
-  * @provider: P2PDMA provider structure
-@@ -1609,6 +1644,11 @@ EXPORT_SYMBOL_GPL(pcim_p2pdma_set_ats_per_mapping);
-  * ACS routes a peer-to-peer transaction by the attributes its TLPs carry, so
-  * the answer depends on @tlp_flags. A caller that passes flags its traffic
-  * does not match gets a mapping the fabric will not deliver.
-+ *
-+ * Only a client whose driver called pcim_p2pdma_set_ats_per_mapping() takes
-+ * the Address Type from @tlp_flags. For any other client its ATS Enable bit
-+ * decides, and a client that translates every address it is handed never gets
-+ * %PCI_P2PDMA_MAP_BUS_ADDR.
-  */
- enum pci_p2pdma_map_type
- pci_p2pdma_map_type_tlp(struct p2pdma_provider *provider, struct device *dev,
-@@ -1620,6 +1660,7 @@ pci_p2pdma_map_type_tlp(struct p2pdma_provider *provider, struct device *dev,
- 	struct pci_p2pdma *p2pdma;
- 	struct pci_dev *client;
- 	bool provider_state;
-+	bool per_mapping;
- 	int dist;
++/*
++ * The cache holds what the topology allows, filled when the client first
++ * asked. A client whose ATS was enabled after that must still be kept off the
++ * bus addresses the cache recorded.
++ */
++static void acs_client_ats_cached_test(struct kunit *test)
++{
++	enum pci_p2pdma_map_type type[PCI_P2PDMA_TLP_CLASSES], hit;
++	struct acs_fabric f = {};
++	unsigned long cached;
++	unsigned int flags;
++	int dist;
++
++	acs_build_fabric(test, &f);
++	for (flags = 0; flags < PCI_P2PDMA_TLP_CLASSES; flags++)
++		type[flags] = calc_map_type_and_dist(f.provider, f.client,
++						     &dist, flags, false);
++	cached = pci_p2pdma_map_types_pack(type);
++
++	f.client->ats_enabled = 1;
++	flags = pci_p2pdma_client_tlp_flags(f.client, 0);
++	hit = pci_p2pdma_map_types_unpack(cached, flags);
++
++	KUNIT_EXPECT_EQ(test,
++			pci_p2pdma_client_map_type(f.provider, f.client, false,
++						   hit),
++			PCI_P2PDMA_MAP_THRU_HOST_BRIDGE);
++}
++
++/*
++ * A client that declared per-mapping ATS picks the Address Type per mapping,
++ * so it keeps the per-class answers even with ATS enabled.
++ */
++static void acs_client_ats_per_mapping_test(struct kunit *test)
++{
++	struct acs_fabric f = {};
++
++	acs_build_fabric(test, &f);
++	f.client->ats_enabled = 1;
++
++	KUNIT_EXPECT_EQ(test, acs_client_map(&f, true, 0),
++			PCI_P2PDMA_MAP_BUS_ADDR);
++	KUNIT_EXPECT_EQ(test,
++			acs_client_map(&f, true, PCI_P2PDMA_TLP_TRANSLATED),
++			PCI_P2PDMA_MAP_BUS_ADDR);
++
++	f.client_leaf->acs_cap = 0x100;
++	f.client_leaf->acs_capabilities = PCI_ACS_TB;
++	f.client_leaf_cfg.ctrl = PCI_ACS_TB;
++
++	KUNIT_EXPECT_EQ(test, acs_client_map(&f, true, 0),
++			PCI_P2PDMA_MAP_BUS_ADDR);
++	KUNIT_EXPECT_EQ(test,
++			acs_client_map(&f, true, PCI_P2PDMA_TLP_TRANSLATED),
++			PCI_P2PDMA_MAP_NOT_SUPPORTED);
++}
++
++/*
++ * A client with ATS disabled cannot issue Translated Requests, so a caller
++ * asking about them gets the answer for the Untranslated ones it will issue.
++ */
++static void acs_client_no_ats_test(struct kunit *test)
++{
++	struct acs_fabric f = {};
++
++	acs_build_fabric(test, &f);
++	f.dn1->acs_cap = 0x100;
++	f.dn1->acs_capabilities = PCI_ACS_RR | PCI_ACS_DT;
++	f.dn1_cfg.ctrl = PCI_ACS_RR | PCI_ACS_DT;
++
++	KUNIT_EXPECT_EQ(test,
++			acs_client_map(&f, false, PCI_P2PDMA_TLP_TRANSLATED),
++			PCI_P2PDMA_MAP_THRU_HOST_BRIDGE);
++}
++
+ static struct kunit_case pci_acs_test_cases[] = {
+ 	KUNIT_CASE_PARAM(pci_acs_p2pdma_request_test,
+ 			 acs_request_gen_params),
+@@ -723,6 +842,10 @@ static struct kunit_case pci_acs_test_cases[] = {
+ 	KUNIT_CASE(acs_walk_tb_above_divergence_test),
+ 	KUNIT_CASE(acs_walk_unreadable_control_test),
+ 	KUNIT_CASE(acs_map_types_pack_test),
++	KUNIT_CASE(acs_client_ats_test),
++	KUNIT_CASE(acs_client_ats_cached_test),
++	KUNIT_CASE(acs_client_ats_per_mapping_test),
++	KUNIT_CASE(acs_client_no_ats_test),
+ 	{}
+ };
  
- 	if (!pdev->p2pdma) {
-@@ -1639,6 +1680,9 @@ pci_p2pdma_map_type_tlp(struct p2pdma_provider *provider, struct device *dev,
- 	cache_index = map_types_idx(client);
- 
- 	rcu_read_lock();
-+	/* The declaration belongs to the client, the cache to the provider. */
-+	p2pdma = rcu_dereference(client->p2pdma);
-+	per_mapping = p2pdma && p2pdma->ats_per_mapping;
- 	p2pdma = rcu_dereference(pdev->p2pdma);
- 
- 	if (p2pdma)
-@@ -1646,6 +1690,8 @@ pci_p2pdma_map_type_tlp(struct p2pdma_provider *provider, struct device *dev,
- 					     cache_index));
- 	provider_state = !!p2pdma;
- 	rcu_read_unlock();
-+	if (!per_mapping)
-+		tlp_flags = pci_p2pdma_client_tlp_flags(client, tlp_flags);
- 	type = pci_p2pdma_map_types_unpack(cached, tlp_flags);
- 	pci_dbg(client,
- 		 "P2PDMA ACS: map lookup provider=%s index=%#lx tlp-flags=%#x cached=%s(%d) provider-state=%u\n",
-@@ -1653,10 +1699,10 @@ pci_p2pdma_map_type_tlp(struct p2pdma_provider *provider, struct device *dev,
- 		 pci_p2pdma_map_type_name(type), type, provider_state);
- 
- 	if (type == PCI_P2PDMA_MAP_UNKNOWN)
--		return calc_map_type_and_dist(pdev, client, &dist, tlp_flags,
-+		type = calc_map_type_and_dist(pdev, client, &dist, tlp_flags,
- 					      true);
- 
--	return type;
-+	return pci_p2pdma_client_map_type(pdev, client, per_mapping, type);
- }
- 
- void __pci_p2pdma_update_state(struct pci_p2pdma_map_state *state,
-diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
-index 543a09426a11..8d96659df9df 100644
---- a/include/linux/pci-p2pdma.h
-+++ b/include/linux/pci-p2pdma.h
-@@ -207,7 +207,8 @@ static inline struct pci_dev *pci_p2pmem_find(struct device *client)
-  * @dev: Client device that initiates the transfer
-  *
-  * Same as pci_p2pdma_map_type_tlp() for a client issuing strictly ordered
-- * Requests that carry an Untranslated address.
-+ * Requests. Their Address Type is Untranslated unless the client enables ATS
-+ * for the whole device.
-  */
- static inline enum pci_p2pdma_map_type
- pci_p2pdma_map_type(struct p2pdma_provider *provider, struct device *dev)
 
 -- 
 2.55.0
