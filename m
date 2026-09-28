@@ -1,72 +1,81 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 557B341A55D;
-	Mon, 28 Sep 2026 06:31:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E24443B71A1;
+	Mon, 28 Sep 2026 06:37:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790577071; cv=none; b=jJwe7+oGqo/5SMqS4jAmeublCC+UdoBj2KvyiU9ZxYWvRtCUhfLQDYMiqXJWiMpT6SGTMy/DKN/gwM4JsVhBglfSTeOM0zbeZZKC5+vE/4YfXIgFLkAqnouvbvRdbmsUdv6zaK8V43JAUaq3ts26SewVPk14fifQH50PxpN3yS0=
+	t=1790577464; cv=none; b=hW+DSoj89tTuyZwYraGbUbFlzXuujyi28cCC/DYTMmsQ9NKpgZ4h8Fys/V1gC992d0N8eTAoyJrfDhIkGdmvSMoDdHtyJnfTp6l5lciNVFHIFGVA+BUJ6RowFUuIsklZeq5U+UscEHT0DHS5dcYJSBpjBM2hnyyXy1xPym+wnhQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790577071; c=relaxed/simple;
-	bh=gp7PRv3WjAiMJrp0DvXpRvTv3mwC8R3NiezXzUE7FxE=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=dWVlM+eVlf0LAQrMMWOOFySZWPdmR0WaoD5YSehlVbfOnLgk7JbrEICd3/jCVK834jMWJjKujL0OKvsxsqJ7u1ucC9Kv69FjQwvmPTIe/P2cQAuTWlnZkbDlHLm2ePorv+AlvBnrti7t0FOBDovEnefHimwMmF21wtJK6WQGSZM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UTijFqXl; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790577464; c=relaxed/simple;
+	bh=QOD8mxL7DyzRF5uiE6/b+pA7F8DuntngZZY3ZhgQsQc=;
+	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
+	 Message-Id; b=W16YTFrO5wcb9TRd8Qm54aGw5jaNtriJ9VWhFeIVp7APaWSRV0Kfgt4B1Xs88HFVG6Pn9Kb2sUfMd0a88RLfeI0P1KzrUdZ2FpzsOcubttnEMYeU/RuO2+y7r2zkbZY/ZaUu3s8vjS8vynNzSaKQ03GLbBh8jTRD3Xzwa49I46o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=N8cKlex6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UTijFqXl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DA1C1F000FF;
-	Mon, 28 Sep 2026 06:31:09 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="N8cKlex6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CAED1F000FF;
+	Mon, 28 Sep 2026 06:37:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790577070;
-	bh=Z9zRtXHe/J1k/4/9wAeq1n+PwAt+ioXmV3zyjSNrjDw=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=UTijFqXlSDe8o9kQm2Rc90CqL01hG5JnvFMdGOiHv0vMm2HqtboyWcdReZYYMOpVc
-	 Sz8Ma8XmAXPFaWDok0Um8brRjOXvp6uTwXUoC3Sd8HhjSZlqtvJGaIOGlXg3UICa6c
-	 LI3M/Kje8DIuQ32VC1SbqnFieXe4WjzXW+t1Gd/ppILN7VAGmtC8GEMgvcz2Ol+HW8
-	 SnA1lq9RWtJcEBroVsZcPIdgQWd81JYcDV3nQPe3d5XYlA42M/e/vwuhwPeiW8/6ed
-	 Oqm4X6iKdXlOZHluEREVZSTgepWtfPMCyhRG4MwUnmSOAoNrFqWJWLrHZttHQQ0ur9
-	 GDXRMU2w0gzWw==
-From: netdev-bot+sinfo@kernel.org
-To: Atharva Vartak <atharva.a.vartak@gmail.com>
-Cc: security@kernel.org, alibuda@linux.alibaba.com, dust.li@linux.alibaba.com,
- mjambigi@linux.ibm.com, sidraya@linux.ibm.com, w@1wt.eu,
- tonylu@linux.alibaba.com, guwen@linux.alibaba.com, linux-rdma@vger.kernel.org,
- linux-s390@vger.kernel.org, netdev@vger.kernel.org
+	s=k20260515; t=1790577462;
+	bh=TwLqhAdic8fJ12E+xK0RgeZoGc+FonzD5KkNglfWuH8=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=N8cKlex6TYI6YZCkwLmqwVEiLtaaUnAmy9wrTjmWwzqvCb2GKZUh1QRWqX3rd6A+j
+	 6z7XFAIwZSx260XPhXvC6YSEnC15OlaZIp017orsSWtPSgREL8Vv6ThH88mJ2zXXXU
+	 FyFJDQbtoPTOuTVuO6bmopBiRWUQEAyuiwC5TYwiOgcIPPhN6Wt3GVlBfDugoqAsBE
+	 K1BppnBYiMZID1OukdD7C63JiNPwCVQadoELhV1vPrKqGwH+mabwWfApZwAxs08YcN
+	 IGnnUJQSeV98zKfHBE0S0wXA5Po1+ftoeWC9HYeR6kqks2xrcpZ5yAiY0SfpUE6ELD
+	 llQDer8kKEezA==
+From: sashiko-bot@kernel.org
 Subject: Re: [PATCH] net/smc: hold a reference on net_device returned by
  pnet_find_base_ndev()
-Date: Mon, 28 Sep 2026 06:31:08 +0000
-Message-ID: <179057706891.31693.13379632576088097849@kernel.org>
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Atharva Vartak" <atharva.a.vartak@gmail.com>
+Cc: "Heiko Carstens" <hca@linux.ibm.com>, "Vasily Gorbik" <gor@linux.ibm.com>, linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, "Alexander
+ Gordeev" <agordeev@linux.ibm.com>, "Christian Borntraeger" <borntraeger@linux.ibm.com>
 In-Reply-To: <6aba080c.b933486d.297b72.5042@mx.google.com>
-References: 
- <arn3qTu_SeM8Yrjj@1wt.eu> <6aba080c.b933486d.297b72.5042@mx.google.com>
-Auto-Submitted: auto-generated
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+References: <arn3qTu_SeM8Yrjj@1wt.eu>
+ <6aba080c.b933486d.297b72.5042@mx.google.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Mon, 28 Sep 2026 06:37:41 +0000
+Message-Id: <20260928063742.6CAED1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
 
-Hi!
+> pnet_find_base_ndev() resolves the base net_device for stacked devices
+> under RTNL, then drops the lock and returns the raw pointer without
+> taking a reference.  All three callers dereference the pointer after
+> RTNL has been released, creating a use-after-free window if the device
+> is concurrently unregistered.
+>=20
+> Take dev_hold() before dropping RTNL and add the matching dev_put() in
+> every return path of the three callers:
+>=20
+>   - smc_pnet_add_eth()
+>   - smc_pnet_find_roce_by_pnetid()
+>   - smc_pnet_find_ism_by_pnetid()
+>=20
+> Fixes: 0afff91c6f5e ("net/smc: add pnetid support")
+> Fixes: 1619f770589a ("net/smc: add pnetid support for SMC-D and ISM")
+> Cc: "D. Wythe" <alibuda@linux.alibaba.com>
+> Cc: Dust Li <dust.li@linux.alibaba.com>
+> Cc: Sidraya Jayagond <sidraya@linux.ibm.com>
+> Cc: Mahanta Jambigi <mjambigi@linux.ibm.com>
+> Cc: Tony Lu <tonylu@linux.alibaba.com>
+> Cc: Wen Gu <guwen@linux.alibaba.com>
+> Cc: Willy Tarreau <w@1wt.eu>
+> Cc: linux-rdma@vger.kernel.org
+> Cc: linux-s390@vger.kernel.org
+> Cc: netdev@vger.kernel.org
+> Signed-off-by: Atharva Vartak <atharva.a.vartak@gmail.com>
 
-This is an automated message. This series looks like a fix, but its
-commit messages seem to be missing some information:
+Sashiko has reviewed this patch and found no issues. It looks great!
 
- - How the issue was discovered, e.g. hit in production, hit during
-   development, syzbot report, manual code inspection, LLM or static
-   analysis tool scan.
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/6aba080c.b933486d.2=
+97b72.5042@mx.google.com?part=3D1
 
- - Whether the issue was actually triggered, or is only theoretical
-   (e.g. found by code inspection). If it was triggered please include
-   the symptoms, like the stack trace or error messages.
-
-Please do not repost the series just to address the above. Instead,
-reply to this email with the missing information, so that reviewers
-can take it into account. If the series needs another revision for
-other reasons, please include the information in the commit messages
-then.
-
-The evaluation is done by an LLM so it may be wrong, if you think
-that is the case please reply and explain.
