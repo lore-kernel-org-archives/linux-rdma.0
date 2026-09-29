@@ -1,236 +1,255 @@
-Received: from mail-lr2-f35.google.com (mail-lr2-f35.google.com [74.125.230.99])
+Received: from mail-lf2-f13.google.com (mail-lf2-f13.google.com [74.125.229.205])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77B8C3839A8
-	for <linux-rdma@vger.kernel.org>; Tue, 29 Sep 2026 07:16:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.230.99
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 878AC3A16B9
+	for <linux-rdma@vger.kernel.org>; Tue, 29 Sep 2026 07:20:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.229.205
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790666197; cv=pass; b=HUNJ2dSdUi7fS30Qewh4S1iNB9g69sTAg7Y4mWtLVla+SCl8wtlr4FLmqyZQ90miunA8/oevS1iHf6VVVPzArN61rY5DDmH2surhJ6UN7sHnsIbVzFQPq61QstGXMmIBQipxAOHJ9xZ3GxZnAJO6r/KbqAFJ2k4rrJU9nJiJXAg=
+	t=1790666424; cv=pass; b=aEWjQ0Ij8L32G70AcchxSFsLKXST7ULlv+q292Onc2sXDg+Tfk5dyfabx0zsRgkAzrj9Y+f04YhoenCwWAJgxqbhrCt01rlhPFaAJ54qBL0XwnlKPMra1Wi75Zp5Zb+hX6/RK64uEDKxZR7UuMWBPv0S2xWiHtyWbz5yeG8Rnb0=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790666197; c=relaxed/simple;
-	bh=3FsesW7qrrCUuDxnT67q/DYl7INNeb4HegPSlzYOH6s=;
+	s=arc-20240116; t=1790666424; c=relaxed/simple;
+	bh=5Kmevjg1xHSqM26VaebvRIGdDvKt8BWdBNElEBc4SL0=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=PORVLA3S5utPd3j9oCOjh25anbzE824gXVrUkTvobp41je71TL7Vk1+/Z9Ir9IwWoWcFz8w0Gr0thDQtVIbtzSfiDQ0jcXsOCYGH+jb5X3G0WY8Hmo097iZBoCU3JP2fUyxqZINjuLZw+2C7aWpG1myopuoYYbFwc1w2EPGfHI8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cloud.ionos.com; spf=pass smtp.mailfrom=ionos.com; dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b=C9y2i9r1; arc=pass smtp.client-ip=74.125.230.99
+	 To:Cc:Content-Type; b=mbQe+GI8ClxtDAXq20eaqFpCsA6/JbxpWaXRnthUkOpS50/3vicyWcpXUT2m598AOc4940Ey1uRrpuaLUwRkiokuja0bF6Pjl6843O2HN9T5RKD5c9NxTj+MPoJqvq4IjCSKEM+qhtwwHLl+xOKHE95yk4pNEmxqV3PR1S5JOZQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cloud.ionos.com; spf=pass smtp.mailfrom=ionos.com; dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b=a1rziFcT; arc=pass smtp.client-ip=74.125.229.205
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cloud.ionos.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ionos.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="C9y2i9r1"
-Received: by mail-lr2-f35.google.com with SMTP id 38308e7fff4ca-3a64b412731so3907611fa.3
-        for <linux-rdma@vger.kernel.org>; Tue, 29 Sep 2026 00:16:35 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1790666193; cv=none;
+	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="a1rziFcT"
+Received: by mail-lf2-f13.google.com with SMTP id 2adb3069b0e04-5ba3314d872so11470e87.1
+        for <linux-rdma@vger.kernel.org>; Tue, 29 Sep 2026 00:20:22 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1790666420; cv=none;
         d=google.com; s=arc-20260327;
-        b=Plb2hqIOc9qflBpdUIcLuhiWfwLbi3OUC1yCu++Oco1iZbtAhcF/lr3oq1FwtT0aph
-         eojjVj1OJ0ZChGjLhvAsi7CoiTVDEJaNkMWv6TPWTqKLxYf0tV3Kf29f/PyzjBt9BSfS
-         T2E8sVgzzF1DWEjTi2mzhJ1erB4c0tZ6wzzwX/V9PzeVvVZ+uULF1pq8IMLf0GyOKIat
-         5C825+nqhp/jq3QJdCKASUcFXpvIZuzr7eOKDaIvcp9RAvNx8u4EEsjPtXBoBQOGoBRd
-         zOnnUCZMi8FJnwN2qoY7eTFcMuWgvLdz1vWbZbKCEx7yODbZXi6KGz9BqNRfhRld6QSl
-         JfSg==
+        b=D1BlmMCoyrSHo2GChoxCJ9pqfEFMuXvmlKLeBkDiwTKwULyYyKC2q8jMkhPNIoXt4w
+         Xs95K9nfV6xFCpu5hYP4nfyOWxlbhp+c/3OUUEV83O2XMKvBhdXLir5fROJad9j12MaZ
+         juZB236Sf9Aq//GPJV/w/+wlc+h4Fvck9LxqCALUFBAvUoC62tDiNYoZ124ZqkD5A8sq
+         yptoPXCZYlU62zwhwtKeRP5vyhQKYWjNsXQ1rgA77rzIqLuaFGzxJO0zImhDIWL3jPNk
+         4IbhhcJsIP6qiIi3mZJIXbmKCUxujCAsSeDIcb96EwPkP6JLWI5tA8d6OPImK655NBxq
+         hkfw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=WhgHZwKUgXgdevQt+gPZYqRRgdry8oanfBmQ6gGzpUM=;
-        fh=NysSMQa1a9lGzAA4ZRdLZ5JUL+HljrNhF0ZRdWDk1ic=;
-        b=PiDvlMeYIWLS8lfbQsA+X0Oh2DY62H3b0mHuGcZl0LMHcLQdfTTIcxVgFgy24Pu62V
-         /SpiAxVb+KDWHY+pZZG1t1V8QoLRtdAtMD+rQ4fOKt1UC8msQShPvEmAcp9939Ry3KRd
-         j0Q03O4Gw0tqioRRZQ6LYuUMhcE0HxIc9JwSldK86cCqq2odBh1q3oACmQKdX3qUVI1S
-         51npzhvwZ3E6YYZ5e6ivtLq7xzFeEYu8Htn0fZHjR39KZhgyONQM6QBYXJzLWPENH17O
-         wLqnwmyZuF4WYeM6IFFjgwQULByGqgBjwvstGfnOmULiQYjOFtzag0OC1jyO2OpDNU5l
-         zgdQ==;
+        bh=CIw1gdYiA+FYIXVK1bVEPzibrcfEB6rGYXJsvhUxjlE=;
+        fh=zCLETIq37Ogf91OO4bUUwICS/DfXUG1UDEeIAlLfFgQ=;
+        b=psj8S6RZRk7OxKaZGMYhH0RNwZFsF8i43/Fkh8cjx/MYacxa3W6pN8e3kyeM/C9TIP
+         dfUsmHAMgHXRQYR2cKm4GJ6bbbk6NP6uzOCTRgLa2T1iLQ1plK/Dm43Helghty2Qltdo
+         eHkyA/teAzHlDkWJd8Hhc3ZKZ7zadb8JUVHpfnIuWiL+k9NKaZxSUtbX5gqiCFZKI8hg
+         ZCswDF+/wjqRIuIPgkjEwvsmm9kx3FdnOPzc2kX+gknw25bxytCCy8N+w27Vq8PSSTJp
+         F2Q0hMUcFXFTXmO43MXdZ+g1bd3VOyKVm7TYayVdtkovjRS+KfuHZ/VmIPLpZrzh6c6E
+         hnHw==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloud.ionos.com; s=google; t=1790666193; x=1791270993; darn=vger.kernel.org;
+        d=cloud.ionos.com; s=google; t=1790666420; x=1791271220; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=WhgHZwKUgXgdevQt+gPZYqRRgdry8oanfBmQ6gGzpUM=;
-        b=C9y2i9r1j+abclBoOnqaI9fatGircUXum24g0sKw3NK7bURGU2AcCfFg11X4S1oimq
-         vE0ApKXR3htEidqDiW7H1dhaOW//Gymqz8yY65NLD/JbZGqbFrTjlKEy9qbNxZDkA388
-         9jSreRK9rWJIsYKGFi6s9WWsTNnCq7l6++7Hk0ob7pfA6Ml+wmKwVzmU6HVcKdUISsvQ
-         SVRcK3hn2aynHjxca4g5C3p5a454Kuq99xjbM3kXYQoiyYbkqd22gEr1i/3ntFv3DSB+
-         OhaSIB774ke6O0Imb8m2BXOj1cPHGbj7ms0kDKV0OpJEFStSZyKkDY5YjjXPmG1YLFPq
-         Gbdw==
+        bh=CIw1gdYiA+FYIXVK1bVEPzibrcfEB6rGYXJsvhUxjlE=;
+        b=a1rziFcTGo5A4OM/Gtzcewzkn5FV2Qb0bx7x3+is5+lYnrXDhZWgDSqv7zdPE8fdeu
+         Hmv5i4iv8w9fMAbpDBkHb6BCJfFynfveRhbgM+AjBCJxwTivYAmyMPI+BN3r3BH3SFtG
+         QflEUtuClb0MxCvHwsjxPxp9qxtfvirdrrsbB6vlUfP0c7y2SFuLtxe2rakbCTcKDa/I
+         jdmQdv8BQ0cYsPN9TxmKp+CFnf46OJIMt9VqBZ3N86sUqHikCSXRp4HTXmnStdzHYOkO
+         A3iefR0EZAdogfEgO7sYta0ZXKTFA6AqkxYwzmTT9qydjbrdO71TC+Im67apn+/BQWeL
+         FmKQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790666193; x=1791270993;
+        d=1e100.net; s=20260707; t=1790666420; x=1791271220;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=WhgHZwKUgXgdevQt+gPZYqRRgdry8oanfBmQ6gGzpUM=;
-        b=QWyj8RSl2IBjYVzQs/ixB7ryfTdUtKmUv8s8likQZycdmkcCANhnBYtmlfJqD5rJDX
-         3v8VtBaFT1jnLJKBquwkY1VibmTml2vEXrFF/hsPwn7MLtbcg/npnmox4QKvZjLaEUBn
-         jaddLDHVRYB9hlkC6+BbXid4t6S08C+e9PNye/4ngWhZigNluXIdLN09pM7idUMsOn0+
-         D5SpYvXzcnbkD3CNzPzBk1ZkjT1ye12U4L/5WqdAqdejZ4E7lw0l13t6iRkhSzStFB2Y
-         oWotbj/Oz2G5HxEy8M72hFnWOeBXsyJr5Moma9HUXroR9ANh+v8VGqaZ+G+1nnu62xJj
-         NhjQ==
-X-Forwarded-Encrypted: i=1; AKwUvBw2t+ep/Qv3uW6F/mHMx1v60i/BN+F4Xmrs8JI0MgjnlvYr4nRUFVlToWTHhGZu2doBiOl9ac432CVL@vger.kernel.org
-X-Gm-Message-State: AFq9FYKw8TcinMURHQyqhoBxmWKv11+6hgxYgrjQ8MH7z6cEHK4EzuHb
-	dnCsJXAG9r6l/0fLmhNTt1ifg+fMJwhmOiy0y7XfKHNkMFsxqMPjomJH9sxZYi+BbnPBRiG/ZIE
-	ZWGpdQqdjr4z7UX/cSxUkA+MutCz7ouwxlEJaTuro9Q==
-X-Gm-Gg: AYBFou3kuhZ9Hk3MIuhGP3NUNPwqdYjWFDDP+GWTZVqjAgZc0mLD83JaFEYFP8vHR0k
-	H+bVU6crrPw6QFWMkeOHyEgdFQZr9r3RJBZ7BH3hmObWkOzgM0BAle3DenJZdDxaSHZMGAUwi3a
-	ZmrdcbPkGSaWU1Y3/+vodmQ+OuGV/xtp70wpSTGTpIzXY1qXqVyfgT5KjFlomGso3E5BlNv59tL
-	qm2S4jksQDUJF4DE1lFFLSeXkQYOzu8EVtIGcSZufTI2rgeQenXgLXIRYnBdnm2iy4HKMTE1j6g
-	X1o90Pf7QobjT9VLN0o35imBffTFeue+A38QNRxOmrLL2xN/AJDhU7+z2lEN1bxG+R8=
-X-Received: by 2002:a05:6512:1396:b0:5b8:ea1f:120f with SMTP id
- 2adb3069b0e04-5b8ea1f12b5mr4002276e87.6.1790666193242; Tue, 29 Sep 2026
- 00:16:33 -0700 (PDT)
+        bh=CIw1gdYiA+FYIXVK1bVEPzibrcfEB6rGYXJsvhUxjlE=;
+        b=02c/EuL2bLhPll6ZNdDc6JoR1LKtnR8K3ctEKdX3C8cbkzx5aHNFRg3aoVmzZ+iC0w
+         7Uxh49qj37Ryx/LIwoQLwGum45hj99G6Z7i8r/bs4RTm80EjZJrOfPV27Uofitw8Ye0m
+         bHde78rmB6TL2QISUssyNXkl+TW+XQZ8IB+spiODbY9+6KwRLB+qCbPwzdBGWsaNm7Y5
+         Ek6aXh7SBJJ9LT0cC0SejYYbi0xLmF/eqIqp6l2sDSPXTg8Kf+Z3Qf0+zbSvc+w7KXds
+         PnhiGnQmtZqSbNI5GiWIwYcb4I0pzs3HNT8ArgKiKs70q9Vd7PTuNUvdMC3BAM1CB02i
+         /Yqg==
+X-Forwarded-Encrypted: i=1; AKwUvByphG5vV5fWiu89g0vp5vm6qbEKQU40MauR9bejAi1AyxYUWW9gKz9pzJrRPraHyoq6mTfqGPiOGxRz@vger.kernel.org
+X-Gm-Message-State: AFq9FYLt6m/dqZNuLq3+LjdF8rSPEO8qQBpjOov5MZj4ucOFiykGeoz8
+	s7MGdYZbF38xS8c82ydwQ13PxcbTmhUvcsIddUftzsR0uXjq6NvmKA0ruGPYlJl0QxeVhXGS5sf
+	F9D9IhcNCPxyTr5fk3+uRVTm8GL6ZzueMUCcLRDtQ3Q==
+X-Gm-Gg: AYBFou1fl6j9fY2npkN+UE0oQZ/s6faHYMkGnM/5cacBRgS+zHckbn4S8KyYPVrBaVd
+	4LTuql9MeHT4p/CbaAvXTs/+/M+E+aKSw79j/OojpemZrGeXsz3PKdH6XfaZV/be6lsD8sWmGde
+	nq0SggPvon3uw8QxR8/ysDSIjdk+nq2YpB1+pTRFP9eKkn2bREfOKMOnxI0eiSol/F8yPrIJYpn
+	j+xeJLyRz9t1KcTShQHUkgB0rAumo95CbrdHnt7fSfW1Mq/jukEAuazv3oOpQ6nNyMCVtDggYas
+	MKRYpMwm6wUq5m8Er6CFWrKjSwZUT6myKLkOO318nEWeTFCTgPTUs1Po22fNMHdwwQ==
+X-Received: by 2002:a05:651c:1614:b0:3a6:6e61:287c with SMTP id
+ 38308e7fff4ca-3a66e614517mr15313291fa.0.1790666420392; Tue, 29 Sep 2026
+ 00:20:20 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260929054222.1576877-1-yhlee@isslab.korea.ac.kr>
-In-Reply-To: <20260929054222.1576877-1-yhlee@isslab.korea.ac.kr>
+References: <20260921-rtrs-fix-ib-drain-rq-v1-1-11b1637958ba@proton.me> <20260928191837.GC563127@unreal>
+In-Reply-To: <20260928191837.GC563127@unreal>
 From: Jinpu Wang <jinpu.wang@cloud.ionos.com>
-Date: Tue, 29 Sep 2026 09:16:20 +0200
-X-Gm-Features: AclHuK96qQhAQnCyE5jgVePYa6Ry3VCKnc88oqxBv8jb7K_-AxFU1N1PqJnE6f8
-Message-ID: <CAMGffEn6Ou6QhViG+M26iqyVP5vgv3VNPRGO14ydxjeAtc7mQw@mail.gmail.com>
-Subject: Re: [PATCH] RDMA/rtrs-clt: Reject a zero queue_depth in the
- connection response
-To: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
-Cc: haris.iqbal@ionos.com, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
-	Farhad Alemi <farhad.alemi@berkeley.edu>, linux-rdma@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Date: Tue, 29 Sep 2026 09:20:08 +0200
+X-Gm-Features: AclHuK_95NVsJfv32vEcMprk6jZy6lNO3ONZKwWTNHqKlrxUEbgD70ZLFDv-TcI
+Message-ID: <CAMGffEn2HGaj_20v0eQCTvk_akKM1RL-WQbUSXx0VND47PEhJw@mail.gmail.com>
+Subject: Re: [PATCH] RDMA/rtrs-clt: Fix recv repost to satisfy ib_drain_rq
+To: Leon Romanovsky <leon@kernel.org>
+Cc: quanyeyang@proton.me, "Md. Haris Iqbal" <haris.iqbal@ionos.com>, 
+	Jason Gunthorpe <jgg@ziepe.ca>, Danil Kipnis <danil.kipnis@cloud.ionos.com>, linux-rdma@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, Farhad Alemi <farhad.alemi@berkeley.edu>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Hi Yehyeong,
+On Mon, Sep 28, 2026 at 9:18=E2=80=AFPM Leon Romanovsky <leon@kernel.org> w=
+rote:
+>
+> On Mon, Sep 21, 2026 at 07:04:47AM -0700, Quanye Yang via B4 Relay wrote:
+> > From: Quanye Yang <quanyeyang@proton.me>
+> >
+> > On disconnect the client error recovery path calls ib_drain_qp(), which
+> > requires one free RQ slot and that no recv WQEs are posted while the
+> > queue is being drained.
+> >
+> > The legacy recv completion path deferred reposting invalidate receives
+> > and instead posted two empty recv WQEs when handling RDMA-with-IMM
+> > responses marked with invalidation.  If an invalidate receive never
+> > arrived, each such response increased RQ occupancy by one until
+> > ib_post_recv() started returning -ENOMEM and __ib_drain_rq() failed wit=
+h:
+> >
+> >   failed to drain recv queue: -12
+> >
+> > Repost one empty recv WQE for every receive completion, including legac=
+y
+> > SEND_WITH_INV invalidates, and only while the path is still connected
+> > so CQ polling cannot race with ib_drain_qp().  Size IO connection RQs t=
+o
+> > 2 * queue_depth + 1 to match the posted recv count and leave the drain
+> > slot.
+>
+> Could you clarify what =E2=80=9Clegacy=E2=80=9D means in this commit mess=
+age?
+> Haris, Jack, does this patch look good to you?
+>
+I will check in the coming days. A bit unsure about the removal of
+rtrs_post_recv_empty_x2,
+want to check into history if there is any side effect.
+> Thanks
 
-Thx for your patch, there is a fix reviewed already:
-https://lore.kernel.org/linux-rdma/CAMGffEkQ8tZZcrLp2Sc7UyZoqAyBoYMdkPhGvHX=
-7RGqrwSmJzg@mail.gmail.com/
-
-On Tue, Sep 29, 2026 at 7:43=E2=80=AFAM Yehyeong Lee <yhlee@isslab.korea.ac=
-.kr> wrote:
+Thanks.
 >
-> rtrs_rdma_conn_established() stores the queue_depth the server advertises
-> in its cid 0 connection response without checking that it is usable.  The
-> only bound it ever had was an upper one, dropped in commit 0e8558476faf
-> ("RDMA/rtrs: Avoid Wtautological-constant-out-of-range-compare") because
-> it cannot fail for a u16; a lower bound was never there.  A server that
-> reports zero therefore leaves clt_path->queue_depth at 0, and setting up
-> the first I/O connection trips
->
->         if (WARN_ON(!clt_path->queue_depth))
->
-> in create_con_cq_qp().  The connect is aborted, but the peer has already
-> tainted the kernel, and on a kernel built with panic_on_warn it panics
-> outright -- all from one field in the response to a connect.
->
-> The rbufs array is sized from the same value one statement earlier, so it
-> is also allocated with zero elements, which kzalloc_objs() returns as
-> ZERO_SIZE_PTR.  Nothing dereferences it: the WARN aborts the connect
-> before any buffer is registered and the path is then freed, and a path
-> that already carries a nonzero depth is caught on reconnect by the
-> existing "queue depth changed" test.  The WARN is the whole of the damage=
-.
->
-> The in-tree server never sends zero -- check_module_params() rejects
-> sess_queue_depth < 1 -- so this needs a hostile or broken server, but the
-> client should not rely on the peer for that.  Reject it before rbufs is
-> sized from it and before it is stored, but after the existing "queue dept=
-h
-> changed" test, so that a server which drops a nonzero depth to zero acros=
-s
-> a reconnect still takes that path and still disables auto-reconnect.
->
-> Reproduced with rnbd-client over soft-RoCE against an rtrs-server patched
-> to advertise queue_depth =3D 0:
->
->   WARNING: drivers/infiniband/ulp/rtrs/rtrs-clt.c:1688 at
->     rtrs_clt_rdma_cm_handler+0x1b27/0x29f0, CPU#0: kworker/u8:5/56
->   Modules linked in:
->   CPU: 0 UID: 0 PID: 56 Comm: kworker/u8:5 Not tainted
->     7.3.0-rc5-nvmerdma-atk-g72d3fcf802c4-dirty #23 PREEMPT(lazy)
->   Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix,
->     1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
->   Workqueue: ib_addr process_one_req
->   RIP: 0010:rtrs_clt_rdma_cm_handler+0x1b27/0x29f0
->   Call Trace:
->    <TASK>
->    ? arch_stack_walk+0x94/0xf0
->    ? __pfx_rtrs_clt_rdma_cm_handler+0x10/0x10
->    ? ret_from_fork_asm+0x1a/0x30
->    ? process_one_work+0x6b4/0x10e0
->    ? stack_trace_save+0x8e/0xc0
->    ? __pfx_stack_trace_save+0x10/0x10
->    ? __kasan_slab_free+0x43/0x70
->    ? stack_depot_save_flags+0x29/0x7e0
->    ? worker_thread+0x45b/0xd10
->    ? kthread+0x2c8/0x3b0
->    ? ret_from_fork+0x36e/0x5a0
->    ? _raw_spin_lock_irqsave+0x86/0xe0
->    cma_cm_event_handler+0x3e/0x240
->    addr_handler+0x1e0/0x300
->    ? __pfx_addr_handler+0x10/0x10
->    ? pick_task_fair+0x46f/0x1a60
->    process_one_req+0x10d/0x510
->    ? finish_task_switch.isra.0+0x1d9/0xa70
->    ? __pfx_process_one_req+0x10/0x10
->    process_one_work+0x6b4/0x10e0
->    ? __pfx___schedule+0x10/0x10
->    ? __pfx_process_one_work+0x10/0x10
->    ? _raw_spin_lock_irq+0x81/0xe0
->    ? __pfx_process_one_req+0x10/0x10
->    ? assign_work+0x11d/0x370
->    worker_thread+0x45b/0xd10
->    ? __pfx_worker_thread+0x10/0x10
->    ? __pfx_worker_thread+0x10/0x10
->    kthread+0x2c8/0x3b0
->    ? recalc_sigpending+0x15c/0x1e0
->    ? __pfx_kthread+0x10/0x10
->    ret_from_fork+0x36e/0x5a0
->    ? __pfx_ret_from_fork+0x10/0x10
->    ? __switch_to+0x572/0xdd0
->    ? __pfx_kthread+0x10/0x10
->    ret_from_fork_asm+0x1a/0x30
->    </TASK>
->   ---[ end trace 0000000000000000 ]---
->
->   rtrs_client L2644: <s1>: init_conns() failed: err=3D-EINVAL
->     path=3D<invalid address family>@ip:10.0.0.1 [rxe0:1]
->
-> With the check in place the same server is refused without a splat, and a=
-n
-> honest server is unaffected:
->
->   rtrs_client L1870: <s1>: Invalid RTRS message: queue_depth is 0
->   rtrs_client L2649: <s1>: init_conns() failed: err=3D-ECONNRESET
->     path=3D<invalid address family>@ip:10.0.0.1 [:0]
->
-> Fixes: 6a98d71daea1 ("RDMA/rtrs: client: main functionality")
-> Reported-by: Farhad Alemi <farhad.alemi@berkeley.edu>
-> Closes: https://lore.kernel.org/linux-rdma/CA+0ovCg_sG8gaZXXj9zmOrpxRt=3D=
-8+-x9wvycVNUKwWmMbr6-Yg@mail.gmail.com/
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
-> ---
->  drivers/infiniband/ulp/rtrs/rtrs-clt.c | 5 +++++
->  1 file changed, 5 insertions(+)
->
-> diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/=
-ulp/rtrs/rtrs-clt.c
-> index eac38b57b00d7..5c2c65c15a65a 100644
-> --- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> @@ -1866,6 +1866,11 @@ static int rtrs_rdma_conn_established(struct rtrs_=
-clt_con *con,
->                         return -ECONNRESET;
->                 }
->
-> +               if (!queue_depth) {
-> +                       rtrs_err(clt, "Invalid RTRS message: queue_depth =
-is 0\n");
-> +                       return -ECONNRESET;
-> +               }
-> +
->                 if (!clt_path->rbufs) {
->                         clt_path->rbufs =3D kzalloc_objs(*clt_path->rbufs=
-,
->                                                        queue_depth);
-> --
-> 2.43.0
->
+> >
+> > Tested with a synthetic RTRS client flooding unpaired
+> > RTRS_IO_RSP_W_INV_IMM messages; error recovery no longer triggers
+> > __ib_drain_rq() warnings.
+> >
+> > Fixes: 6a98d71daea1 ("RDMA/rtrs: client: main functionality")
+> > Signed-off-by: Quanye Yang <quanyeyang@proton.me>
+> > Tested-by: Quanye Yang <quanyeyang@proton.me>
+> > Reported-by: Farhad Alemi <farhad.alemi@berkeley.edu>
+> > Link: https://lore.kernel.org/linux-rdma/CA+0ovCihE2_pxLimjmmR8NMz4g-ie=
+8dvvq1jmAj-Om33y3Vzfg@mail.gmail.com
+> > ---
+> >  drivers/infiniband/ulp/rtrs/rtrs-clt.c | 45 ++++++++++++--------------=
+--------
+> >  1 file changed, 15 insertions(+), 30 deletions(-)
+> >
+> > diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniban=
+d/ulp/rtrs/rtrs-clt.c
+> > index eac38b57b00d..ee6d5c3de16c 100644
+> > --- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+> > +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+> > @@ -577,25 +577,21 @@ static struct ib_cqe io_comp_cqe =3D {
+> >       .done =3D rtrs_clt_rdma_done
+> >  };
+> >
+> > -/*
+> > - * Post x2 empty WRs: first is for this RDMA with IMM,
+> > - * second is for RECV with INV, which happened earlier.
+> > - */
+> > -static int rtrs_post_recv_empty_x2(struct rtrs_con *con, struct ib_cqe=
+ *cqe)
+> > +static int rtrs_clt_repost_recv(struct rtrs_clt_con *con)
+> >  {
+> > -     struct ib_recv_wr wr_arr[2], *wr;
+> > -     int i;
+> > +     struct rtrs_clt_path *clt_path =3D to_clt_path(con->c.path);
+> > +     int err;
+> >
+> > -     memset(wr_arr, 0, sizeof(wr_arr));
+> > -     for (i =3D 0; i < ARRAY_SIZE(wr_arr); i++) {
+> > -             wr =3D &wr_arr[i];
+> > -             wr->wr_cqe  =3D cqe;
+> > -             if (i)
+> > -                     /* Chain backwards */
+> > -                     wr->next =3D &wr_arr[i - 1];
+> > -     }
+> > +     if (READ_ONCE(clt_path->state) !=3D RTRS_CLT_CONNECTED)
+> > +             return 0;
+> >
+> > -     return ib_post_recv(con->qp, wr, NULL);
+> > +     err =3D rtrs_post_recv_empty(&con->c, &io_comp_cqe);
+> > +     if (err) {
+> > +             rtrs_err(con->c.path, "rtrs_post_recv_empty(): %pe\n",
+> > +                      ERR_PTR(err));
+> > +             rtrs_rdma_error_recovery(con);
+> > +     }
+> > +     return err;
+> >  }
+> >
+> >  static void rtrs_clt_rdma_done(struct ib_cq *cq, struct ib_wc *wc)
+> > @@ -650,19 +646,7 @@ static void rtrs_clt_rdma_done(struct ib_cq *cq, s=
+truct ib_wc *wc)
+> >                       rtrs_wrn(con->c.path, "Unknown IMM type %u\n",
+> >                                 imm_type);
+> >               }
+> > -             if (w_inval)
+> > -                     /*
+> > -                      * Post x2 empty WRs: first is for this RDMA with=
+ IMM,
+> > -                      * second is for RECV with INV, which happened ea=
+rlier.
+> > -                      */
+> > -                     err =3D rtrs_post_recv_empty_x2(&con->c, &io_comp=
+_cqe);
+> > -             else
+> > -                     err =3D rtrs_post_recv_empty(&con->c, &io_comp_cq=
+e);
+> > -             if (err) {
+> > -                     rtrs_err(con->c.path, "rtrs_post_recv_empty(): %p=
+e\n",
+> > -                              ERR_PTR(err));
+> > -                     rtrs_rdma_error_recovery(con);
+> > -             }
+> > +             rtrs_clt_repost_recv(con);
+> >               break;
+> >       case IB_WC_RECV:
+> >               /*
+> > @@ -678,6 +662,7 @@ static void rtrs_clt_rdma_done(struct ib_cq *cq, st=
+ruct ib_wc *wc)
+> >
+> >                       return  rtrs_clt_rkey_rsp_done(con, wc);
+> >               }
+> > +             rtrs_clt_repost_recv(con);
+> >               break;
+> >       case IB_WC_RDMA_WRITE:
+> >               /*
+> > @@ -1693,7 +1678,7 @@ static int create_con_cq_qp(struct rtrs_clt_con *=
+con)
+> >               clt_path->s.dev_ref++;
+> >               /* QD * (REQ + RSP + FR REGS or INVS) + drain */
+> >               max_send_wr =3D min(wr_limit, clt_path->queue_depth * 4 +=
+ 1);
+> > -             max_recv_wr =3D min(wr_limit, clt_path->queue_depth * 3 +=
+ 1);
+> > +             max_recv_wr =3D min(wr_limit, clt_path->queue_depth * 2 +=
+ 1);
+> >               max_send_sge =3D 2;
+> >       }
+> >       atomic_set(&con->c.sq_wr_avail, max_send_wr);
+> >
+> > ---
+> > base-commit: 93f51579e7df248780214094418f205253383cc5
+> > change-id: 20260921-rtrs-fix-ib-drain-rq-61dc85d0d759
+> >
+> > Best regards,
+> > --
+> > Quanye Yang <quanyeyang@proton.me>
+> >
+> >
