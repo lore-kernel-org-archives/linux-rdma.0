@@ -1,40 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A1C43D79EF;
-	Tue, 29 Sep 2026 18:22:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33934337107;
+	Tue, 29 Sep 2026 18:24:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790706155; cv=none; b=DQmARyeu3nfKJarhh5qAGDSwQXCkmsmXM2nVPxtwtwPKNCaI8vAbxCJfyo6SwDNTM+62sI7Xez4dcFyIZ3siMhtyEmFycs7Tuw7ZqhyD9U1HnZcYAAAvF/BQCdvX+k6mStRTq/sqy73UuofSGd/2kTRv5AmRypq1X/C2JVDLiIA=
+	t=1790706256; cv=none; b=jSMtSGCC8D3EqX3qHe+BKBG/0HeAJrVaFOR4487jyPds6gOR9O0MD6ywS/VESX19i8NmD8GBR0UgeaSuCweiTsE0478ip86qR5czZS/BQbVrVW+0uKzNQuvO6o9EkxMt2KfI+0m6f5gytHs4b8216QzDdYanlfoQ6YvklbnLAh0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790706155; c=relaxed/simple;
-	bh=+MX2a7fH8twwYB3OWUVLyf1B2H7pEipYbfgJ3PIDve8=;
+	s=arc-20240116; t=1790706256; c=relaxed/simple;
+	bh=bCKAXOI8bf25NreAlLh/UkZt5umg9EKeaK+9E+SMpaE=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=mfSTs+Xh0YbSrGqBtsqnsnlOR0ThqalKK4dM1FNl4j3duYi5Qk8K++QKt26SKxuMK0Ubl1y+ACEbVlCQCadCqUiaKgAYzAlR4lU91Lzi/XB0E/x5aPUGLnmPPWoifHOJwfXCA/yb9bDHSUtrCGcrkrrDkQ9860Hx7/o9WkDIE6U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oC7md4Re; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=ZB65kiydYHxwoL/ul03r4v9lzk+4vUIFXNR7z4Itq7XnOFiTDTnG3kh+BNjetRbwWU/+9/SCnJzjmfpDaW6xrZVzIwMFHXdJuP4iTBQj01qMQQg6IUE0UNYIe6i64n9tJDhT3+l++Jt6w78AvO6gFi6ukTw5Pi99NPAYVieCbEY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=adNsMilw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oC7md4Re"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 564FD1F000FF;
-	Tue, 29 Sep 2026 18:22:33 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="adNsMilw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D81F1F000FF;
+	Tue, 29 Sep 2026 18:24:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790706153;
-	bh=oXtCVwnbwCQRkCSsXzRTmBC9jkrm9EOvEagF+DsRd6I=;
+	s=k20260515; t=1790706254;
+	bh=v/jUEFA+22kywh0WuP2V7ovZVrZnpeFIRLKmHTOQZd0=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=oC7md4ReDf7i2kxy2RjbZFgISJ9tNJKvnKUo95OWq6KWR2hPQFHkD1ODO/l2/U0td
-	 G0R/0Fbv1cTodjBOKFyuvdFzyQ70aISAZJQX1ZTtFR14IWdVfUwrxxzV4WyqEE58PY
-	 OOQRCNh/Hcz8/2ZONQq3BoGbZQpf/WS6E7BPBLeIHoS2KlwdEME3YcdgSQFC4gB3dK
-	 jVYNPDP/GnOTfRYN+81VComk4uShLFZY3VTvDdvjF+jLTE9TWBMj5zkRVB616PKDnE
-	 Kc/pACmJZj9AJWjEiC/i+Kc2HyXnLGhOxJpxsmGsXX3Ck1m235ziipJWgM7Qwro3FT
-	 tKiIRZkbSgntA==
+	b=adNsMilwIobQswqqhzV5YjO/B8q9uWcKkW4J8HWS/aYrK0G9g3ScPivEREzn07Wmz
+	 sMarWhJATGf3gGteVgUo1oEpe2l3y9mCZimdOOYci850VgdoUEKjDVBersmgAX73MR
+	 fkgTDWHbLDUu5Cl1/knecGKdis/rsHE98G5xc6c/F/VFcPe44qNUOjEGf1X50gcAWA
+	 RcdXAezzB2F0d9XtwQ46qdVhfaq84iSmVay7y9wD2FoS5zLRWPEMjjC43WDzBSMMnD
+	 BtGSspujIEEEJ60fIDKc4uQpkV4AYTcV8+pAuxwkYKZGm/K9/kmlQkijCDo1SO4grQ
+	 UuHfizaxFXCuQ==
 From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>, Yili Zhang <zhangyili01@baidu.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-In-Reply-To: <20260923131239.6521-1-zhangyili01@baidu.com>
-References: <20260923131239.6521-1-zhangyili01@baidu.com>
-Subject: Re: [PATCH v3] RDMA/nldev: Fix NULL deref in dumps of objects
- abandoned by DRIVER_FAILURE
-Message-Id: <179070615109.3969314.1905636503207032165.b4-ty@kernel.org>
-Date: Tue, 29 Sep 2026 14:22:31 -0400
+To: "Md. Haris Iqbal" <haris.iqbal@ionos.com>, 
+ Jack Wang <jinpu.wang@ionos.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
+ Danil Kipnis <danil.kipnis@cloud.ionos.com>, 
+ Quanye Yang <quanyeyang@proton.me>
+Cc: Jack Wang <jinpu.wang@cloud.ionos.com>, linux-rdma@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, Farhad Alemi <farhad.alemi@berkeley.edu>
+In-Reply-To: <20260922-rtrs-fix-warning-rtrs-clt-rdma-cm-handler-v1-1-2076c0ee1455@proton.me>
+References: <20260922-rtrs-fix-warning-rtrs-clt-rdma-cm-handler-v1-1-2076c0ee1455@proton.me>
+Subject: Re: [PATCH] RDMA/rtrs-clt: Reject invalid queue_depth from the
+ peer
+Message-Id: <179070625191.3970688.14171007336657402873.b4-ty@kernel.org>
+Date: Tue, 29 Sep 2026 14:24:11 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -46,22 +50,21 @@ Content-Transfer-Encoding: 7bit
 X-Mailer: b4 0.15-dev-18f8f
 
 
-On Wed, 23 Sep 2026 21:12:39 +0800, Yili Zhang wrote:
-> fill_res_cq_entry() dereferences
-> cq->uobject->uevent.uobject.context->res.id unconditionally for user
-> resources.
+On Tue, 22 Sep 2026 21:09:58 -0700, Quanye Yang wrote:
+> queue_depth is taken from the server's CM private_data and later
+> used as a session invariant.  A peer can send 0, which the client
+> stores and then trips WARN_ON() in create_con_cq_qp() when the
+> next connection is set up.
 > 
-> This is normally safe by ordering: destroy_hw() removes the resource
-> from the restrack before uverbs_destroy_uobject() clears ->context,
-> and the XA_ZERO_ENTRY marker set by rdma_restrack_begin_del() hides
-> the entry from concurrent netlink dumps.
+> Reject a zero queue_depth on ESTABLISHED, same as a bad
+> magic or version, and fail the handshake with -ECONNRESET.
 > 
 > [...]
 
 Applied, thanks!
 
-[1/1] RDMA/nldev: Fix NULL deref in dumps of objects abandoned by DRIVER_FAILURE
-      https://git.kernel.org/rdma/rdma/c/9f4c322be27bf6
+[1/1] RDMA/rtrs-clt: Reject invalid queue_depth from the peer
+      https://git.kernel.org/rdma/rdma/c/724cd362162ca7
 
 Best regards,
 -- 
