@@ -1,140 +1,220 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 608CC3D953E;
-	Tue, 29 Sep 2026 23:45:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCCCA2AEF5;
+	Wed, 30 Sep 2026 00:06:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790725515; cv=none; b=gpJ42LvNm0uAWEdqQZ/hR8H/jaO9ujFklSQBdJDHzRW+8kjxruJcd9GY9ieckKFaetN3TbSP9BfinhH0rLiAMegq9TJnFJxniA+IqkXH8Zr4hfl4Vj2BOpTJa4uaRd/eC5jbBAnld3UlZq8CObhJYSnJ3mBz4wCQmVnZyIJF1XQ=
+	t=1790726820; cv=none; b=HoFMwirn3FDkXY7KzGzRtjJ2WdEE0SvExVylkojMVwO/AG0bDm6fyCozGgcNajudB41cW7KStsrPOzYnMl7nXgKy0M2rjv0H70F4G56DC5gThYoL9kWEuqBReUcAMYoQEXiK4QVIgKupFXPsxY0bFCf+0C9ioUbryZ8wIIMVLmU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790725515; c=relaxed/simple;
-	bh=qaD+oUK2DtSCtyltd/DU1cGOaw33iQMQ/3aJCRprPkQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=HUH+vUTkCHI3A3zK1va7Uh9M1jbrp2tFY/fzBROAad84lsNbtLMsMymZswTTvSDYTclFScsE3ZPtnu3feEE8Ggw1t8paZFzims5Ab1uAO3emkqlwP//3rjEcQLDOi616Lemnop0ZQyWfDx2SJB1yDUKyr5rHqqzRWumdaPvBW/E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=NgkLEWKL; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	s=arc-20240116; t=1790726820; c=relaxed/simple;
+	bh=mPTPIKAUNjmfguNjYpT/EavXKWLKkJoW8vykJFb4ZrE=;
+	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=M1cTJG2jsE8RCWmKuBLjwCz2vk0PMpfHv8AxjHAURK8vRPL9stJbNWOAvLVPJVxkPpZWjh5kKzsGQotM9POKL7cEB5GFQmg7LqtU8M2AqCnv00mBc5zSVwWL6F1AwMkOBxHakhaOw+CzjACwss5IjIJgQVStnuSnLBofcJV8mnY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gAmquCZ9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="NgkLEWKL"
-Received: from CPC-mawas-YGKSX.localdomain (unknown [70.37.26.35])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 7D43D20B7166;
-	Tue, 29 Sep 2026 16:44:21 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 7D43D20B7166
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1790725461;
-	bh=FuVEsT1W2BzsrFSye+6V6QlSXmi+gbYDtaB0fNAucQI=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=NgkLEWKLuqLGYVaKVKJ7I8Bkj6eL0gl4Q1U2MjjsFwhgNlaIbUv5JK5OMIT+x8Pl6
-	 lGKr2yfpcP/5Tzdd2O1NR1GihuZyOqzj4aveKxpODnlW88Cb2G54QVnaNrva5m1TJN
-	 amefGb0muT+7m1V/zMTU0UvxD8IJY9vtXfPwmP0o=
-From: Manish Awasthi <mawasthi@linux.microsoft.com>
-To: horms@kernel.org
-Cc: netdev-bot+sashiko@kernel.org,
-	kys@microsoft.com,
-	haiyangz@microsoft.com,
-	wei.liu@kernel.org,
-	decui@microsoft.com,
-	longli@microsoft.com,
-	andrew+netdev@lunn.ch,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	kotaranov@microsoft.com,
-	linux-hyperv@vger.kernel.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	bpf@vger.kernel.org,
-	nipun.gupta@amd.com,
-	nikhil.agarwal@amd.com,
-	gargaditya@linux.microsoft.com,
-	ernis@linux.microsoft.com,
-	kees@kernel.org,
-	paulros@microsoft.com,
-	mawasthi@microsoft.com,
-	Manish Awasthi <mawasthi@linux.microsoft.com>
-Subject: Re: [PATCH net-next 4/4] net: mana: Add support for CDX device ID 0x00C2
-Date: Tue, 29 Sep 2026 23:45:08 +0000
-Message-ID: <20260929234508.10647-1-mawasthi@linux.microsoft.com>
-X-Mailer: git-send-email 2.54.0
-In-Reply-To: <20260929135738.GT13925@horms.kernel.org>
-References: <20260924173054.589291-5-mawasthi@linux.microsoft.com> <179035761944.2160803.12943182451050438147@kernel.org> <20260928202555.617331-1-mawasthi@linux.microsoft.com> <20260929135738.GT13925@horms.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gAmquCZ9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 714C31F000FF;
+	Wed, 30 Sep 2026 00:06:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790726818;
+	bh=xXVQ9W7M/mZGqFATe6fQKCdJL/j0F5r4P8laP4JUb4M=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=gAmquCZ94fV+KT6LSBOcB7E6THqPXKBtjapsF4kwQBEQTSvpU6vqKQODg6ns22w3X
+	 4SVmfb43jSSwAagke5mcGNJLhY+MID9zJN1O2EpfuVtVbp1r8S05AH9jon+te/HvWk
+	 CExEH2skWyjj/8K16h6YNuK/SFz6Qwp8SHjcKczL+6r8lttJa/YeBp/rwz8KQMfUIH
+	 oOskGXIrlIYBoWaR5ja2nGbwAnrYZAm/6oGK+WAyhYPrjICecoe9WDdfNAZ6kBpPiS
+	 BXgVYDObGov+WVDak8ljbKi7oyDB6nQ7rRDhS7cZg67w69H/h6NnLUockVsZMMJkJW
+	 8dk3814MZw8mw==
+Subject: Re: [PATCH net] net/smc: protect clcsock lifetime in smc_getname
+From: netdev-bot+sashiko@kernel.org
+To: nicoyip.dev@gmail.com
+Cc: alibuda@linux.alibaba.com, dust.li@linux.alibaba.com,
+ sidraya@linux.ibm.com, mjambigi@linux.ibm.com, tonylu@linux.alibaba.com,
+ guwen@linux.alibaba.com, davem@davemloft.net, edumazet@google.com,
+ kuba@kernel.org, pabeni@redhat.com, horms@kernel.org, ubraun@linux.ibm.com,
+ linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
+ netdev@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Date: Wed, 30 Sep 2026 00:06:57 +0000
+Message-ID: <179072681701.434549.13763000893839581310@kernel.org>
+In-Reply-To: <20260926180404.2721010-1-nicoyip.dev@gmail.com>
+References: <20260926180404.2721010-1-nicoyip.dev@gmail.com>
+X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-> On Mon, Sep 28, 2026 at 08:25:55PM +0000, Manish Awasthi wrote:
-> > thanks for review. Comments inline.
-> > 
-> > > Thank you for your contribution! Sashiko AI review found 3 potential
-> > > issue(s) to consider.
-> > > 
-> > > Critical: 0 · High: 0 (1) · Medium: 1 · Low: 2
-> > > 
-> > > If you believe none of the issues are legitimate, please reply to each
-> > > issue of Medium severity or higher and explain why the AI is wrong.
-> > > If any of them are legitimate and you plan to respin, please let patchwork
-> > > know by including "pw-bot: cr" as a separate line at the end of your reply
-> > > (one such reply per series is enough).
-> > > 
-> > > - [Medium] The CDX transport installs `.dev_reset = mana_cdx_dev_reset`
-> > >   (-> `cdx_dev_reset()`) but has no way to recover afterwards.
-> > > - [Low] `mana_cdx_setup_hwc_irqs()` skips IRQ affinity hints.
-> > > - [Low] The comment in `mana_gd_query_max_resources()` (gdma_main.c)
-> > >   says: "Only reset on platforms that support dynamic MSI-X allocation;…
-> > > 
-> > > Pre-existing issues:
-> > > - [High] This problem wasn't introduced by this patch, but the shared HWC
-> > >   bootstrap path that the new CDX transport now reaches trusts a device-…
-> > > 
-> > > --
-> > > 
-> > > net: mana: Add support for CDX device ID 0x00C2
-> > > 
-> > > This adds a CDX bus transport for MANA, built as mana_cdx.ko on top of
-> > > the shared gdma_core.ko, for device ID 0x00C2. It allocates the whole MSI
-> > > pool at probe time, limits the queue count to the available vectors,
-> > > restricts DMA to 32 bits, and adds a per-bus auxiliary device name prefix
-> > > so the CDX auxiliary devices stay separate from the PCI ones.
-> > > 
-> > > > diff --git a/drivers/net/ethernet/microsoft/mana/gdma_cdx.c b/drivers/net/ethernet/microsoft/mana/gdma_cdx.c
-> > > > new file mode 100644
-> > > > index 0000000000000..0d01e3d2f0d96
-> > > > --- /dev/null
-> > > > +++ b/drivers/net/ethernet/microsoft/mana/gdma_cdx.c
-> > > > @@ -0,0 +1,340 @@
-> > > 
-> > > [ ... ]
-> > > 
-> > > > +static int mana_cdx_dev_reset(struct gdma_context *gc)
-> > > > +{
-> > > > +	return cdx_dev_reset(gc->dev);
-> > > > +}
-> > > 
-> > > [Severity: Medium]
-> > > Can this reset leave the whole function unusable, with no recovery short
-> > > of a manual rebind?
-> > > 
-> > > mana_dealloc_queues() calls it when a TX queue still has pending_sends
-> > > after the drain timeout:
-> > > 
-> > > mana_tx_timeout()
-> > >   -> queue_reset_work
-> > >     -> mana_per_port_queue_reset_work_handler()
-> > >       -> mana_dealloc_queues()
-> > >         -> mana_gd_dev_reset()
-> > >           -> mana_cdx_dev_reset()
-> > >             -> cdx_dev_reset()
-> > > 
-> > This version of the driver doesn't support recovery after mana_cdx_dev_reset.
-> 
-> I don't think it needs to delay progress of this patchset.
-> But I am curious to know if there are plans to add such support.
-> 
-    It is possible to have similar recovery support as the pci in this path
-    after cdx_dev_reset() and we do have plans to add it in future.
-> ...
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue(s) to consider.
+
+Critical: 0 · High: 1 (2) · Medium: 0 · Low: 0
+
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [High] The patch fixes smc_getname(), and its commit message says
+  socket option handlers already guard clcsock.
+
+Pre-existing issues:
+- [High] This problem wasn't introduced by this patch, but
+  smc_diag_msg_common_fill() (net/smc/smc_diag.c:42-55) has the same…
+- [High] This problem wasn't introduced by this patch, but smc_shutdown()
+  (net/smc/af_smc.c:3011-3012) runs `if (do_shutdown && smc->clcsock)…
+
+--
+
+net/smc: protect clcsock lifetime in smc_getname
+
+This commit takes clcsock_release_lock in smc_getname() around the
+smc->clcsock NULL check and the getname() callback. If link-group
+termination has already released the CLC socket through
+smc_close_active_abort(), it returns -EBADF.
+
+> diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+> index e9f93b3ab435b..8b3ee70f8433f 100644
+> --- a/net/smc/af_smc.c
+> +++ b/net/smc/af_smc.c
+
+[ ... ]
+
+> @@ -2791,7 +2792,11 @@ int smc_getname(struct socket *sock, struct sockaddr *addr,
+>  
+>  	smc = smc_sk(sock->sk);
+>  
+> -	return smc->clcsock->ops->getname(smc->clcsock, addr, peer);
+> +	mutex_lock(&smc->clcsock_release_lock);
+> +	if (smc->clcsock)
+> +		rc = smc->clcsock->ops->getname(smc->clcsock, addr, peer);
+> +	mutex_unlock(&smc->clcsock_release_lock);
+> +	return rc;
+>  }
+
+[Severity: High]
+The commit message says:
+
+    Hold clcsock_release_lock across the pointer check and the getname()
+    callback, as the socket option handlers already do.
+
+Does this hold for every socket option path? SMC does not set
+SOCK_CUSTOM_SOCKOPT. So setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, ...) on
+an AF_SMC socket never reaches smc_setsockopt():
+
+do_sock_setsockopt()
+  sock_setsockopt()
+    sk_setsockopt()
+      sk->sk_prot->keepalive(sk, valbool)
+        smc_set_keepalive()
+
+smc_set_keepalive() in net/smc/af_smc.c uses clcsock without a NULL check
+and without clcsock_release_lock:
+
+static void smc_set_keepalive(struct sock *sk, int val)
+{
+	struct smc_sock *smc = smc_sk(sk);
+
+	smc->clcsock->sk->sk_prot->keepalive(smc->clcsock->sk, val);
+}
+
+Take the sequence from the commit message: shutdown(SHUT_WR), then
+link-group termination. smc_close_active_abort() calls
+smc_clcsock_release(). That sets smc->clcsock to NULL and calls
+sock_release() while the SMC file is still open.
+
+Would a later setsockopt(SO_KEEPALIVE) then hit a NULL pointer dereference
+in smc_set_keepalive()? And if it runs while smc_clcsock_release() is in
+progress, could it become a use-after-free of the CLC socket?
+
+This is a pre-existing issue and was not introduced by this patch.
+smc_diag_msg_common_fill() in net/smc/smc_diag.c reads clcsock without
+a lock, the same pattern this patch removes from smc_getname():
+
+	if (!smc->clcsock)
+		return;
+	r->id.idiag_sport = htons(smc->clcsock->sk->sk_num);
+	r->id.idiag_dport = smc->clcsock->sk->sk_dport;
+	r->id.idiag_if = smc->clcsock->sk->sk_bound_dev_if;
+	...
+
+[Severity: High]
+The dump path is
+smc_diag_dump_proto()->__smc_diag_dump()->smc_diag_msg_common_fill(). It
+holds only read_lock(&prot->h.smc_hash->lock).
+
+The comment in smc_inet_destroy_sock() says the diag dumps stay safe only
+if the socket is unhashed before smc_clcsock_release(). __smc_release()
+does this. smc_close_active_abort() does not: it releases clcsock while
+the SMC socket is still hashed. It holds only clcsock_release_lock, which
+the diag reader never takes.
+
+Each store to r->id can force a reload of smc->clcsock. Can a dump pass
+the NULL check and then reload smc->clcsock as NULL? Could it also load
+clcsock->sk after __sock_release() has set it to NULL? The AF_SMC diag
+dump needs no privileges, so the result would be a NULL dereference
+inside the read_lock section.
+
+A mutex can't be taken under the rwlock. Would one of these work here?
+
+  - A single READ_ONCE() snapshot of clcsock and clcsock->sk, with NULL
+    checks, relying on the RCU-deferred socket free.
+  - Unhashing the socket before the release on the abort path.
+
+[Severity: High]
+This is also a pre-existing issue and was not introduced by this patch.
+smc_shutdown() in net/smc/af_smc.c uses clcsock while holding only
+lock_sock(sk):
+
+	if (do_shutdown && smc->clcsock)
+		rc1 = kernel_sock_shutdown(smc->clcsock, how);
+
+smc_close_active_abort() drops lock_sock before it releases clcsock:
+
+	if (release_clcsock) {
+		release_sock(sk);
+		smc_clcsock_release(smc);
+		lock_sock(sk);
+	}
+
+This means lock_sock(sk) alone does not keep clcsock alive. One possible
+interleaving:
+
+Thread A: shutdown(SHUT_WR) while in SMC_ACTIVE
+  smc_close_shutdown_write()
+    release_sock(sk);
+    cancel_delayed_work_sync(&conn->tx_work);
+
+Thread B: shutdown(SHUT_RDWR) or shutdown(SHUT_WR) on the same fd
+  socket moves to SMC_PEERCLOSEWAIT1
+
+Termination worker:
+  __smc_lgr_terminate()->smc_conn_kill()->smc_close_active_abort()
+    sk_state = SMC_CLOSED, release_clcsock = true
+    release_sock(sk);
+
+Thread A:
+    lock_sock(sk);
+    state != SMC_ACTIVE, goto again, no case matches, returns
+  smc_shutdown()
+    smc->clcsock is still non-NULL
+    kernel_sock_shutdown(smc->clcsock, how);
+
+Termination worker, concurrently:
+    smc_clcsock_release(smc)
+      __sock_release()
+        sock->sk = NULL;
+        sock->ops = NULL;
+        iput(SOCK_INODE(sock));
+
+Could this be a NULL dereference or a use-after-free of the CLC socket?
+Thread A can sleep in lock_sock() inside inet_shutdown(), outside any RCU
+read-side section.
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260926180404.2721010-1-nicoyip.dev%40gmail.com
