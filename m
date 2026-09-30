@@ -1,137 +1,262 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from BN1PR04CU002.outbound.protection.outlook.com (mail-eastus2azon11010042.outbound.protection.outlook.com [52.101.56.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A3B13C9893;
-	Wed, 30 Sep 2026 08:33:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790757205; cv=none; b=EpsLDrOkjJ+Xl/uIOwKOXe9pE4+Fo15jP9w7Vkyex+Z8O+VG8fSPD9tRESDxHIhlUm85kXB5dJD4ykZqUzLUaAwQx/ySR4gPO5ei/dJgpioVrzDiickbF0GM9fvp4+OJo+ye0mbGetdNXQqwOSj4PhE4ahAumt6sQNfrUFOKStc=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790757205; c=relaxed/simple;
-	bh=2P+24IJ4tpNgAKjcn6f2qL3ldLRiosZOezOINslhyLI=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=bh1wvZroZd8Bz0q/bhmILR8otVfufIETyoangEh8Tq0NsQ6dUvlVQBDvmsFSmFNMsMvkUUH1ibze76B3r5Z9tbdI37sXmHbV6AdyCiK7fOF8LUPr0j7uFGbBaP6B33+XTv8LCJVY/jd7i+/Nrh0+CaIGdHQ4oscTluwfYAX+YWQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=k1jzxXn3; arc=none smtp.client-ip=148.163.156.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E06E3F9A13;
+	Wed, 30 Sep 2026 08:35:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.56.42
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790757325; cv=fail; b=a9/yBPe4o505DVwOPuZ21Cu4t0NOikc+AcV/yFg6Yj/lz2LoPlShTr4E9Nat/3INDbHiM4zUEfGtqEFOS2ZdF3XjHSMSI4Y2c+3RmHfrOow8XemStVp/JRAFPJE/Ek5Xn+VjHWKmoKX6C2K71ODClwsSOLBFNqjrDvdakcLDFqY=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790757325; c=relaxed/simple;
+	bh=tFDAfiLj6ZvUJ6EBTMoFgDtstpJX44EfQDFfN3aF/Ko=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=tgDUgPufxaAsikrGrjDtL8pxoacmF5usaYQ280lnBpc/O34S+xO6FvTqtPxNbGog7YKl5VEHEtjvO7WbQvDQFbbyYdtZAvRkv013GMI3i+hTbUM/WKINjDbFWnwxvOYKQX4j3DqCkxkQvQHLg965lOvwpOhcMKTO0Pb4mZ9nGpc=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=ngRyevEm; arc=fail smtp.client-ip=52.101.56.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="k1jzxXn3"
-Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68U7bIUN2374473;
-	Wed, 30 Sep 2026 08:32:51 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pp1; bh=HVozmJ
-	Ce5CuqcxQLM5wK3UMtL4EPP6p8ko4dfAm9314=; b=k1jzxXn33j2hLp5pKSFzI9
-	WnHSml7tpLFG+qQwD0tNbXAYO9CtDnFHqqRn6SNBvlL4aBY9TcPIoGRNYBOAFsjM
-	hAE460gotG9FcH1bDA8nxkqo9121SmZ/DiaCBTN0pILrL1DOZvikPv4dDTujIb00
-	QGbiUwe8uYu8WkWD/tg1RQXW0gpwncHaoktrqw3U58k1mDcmDdPRm5Bam9deTYj9
-	HAWZ/m9W8QxR0MavAV1NKhGlnL0/HLVl1+Oed/LkcVXqaGRGwqsGmVngayqp0E7Q
-	3XYgy0vl/CMYcWHiJUZ+EZDsQSiWlgp/JfXEDUMCV9MzjhAOkbg+1i8VkpLG20jQ
-	==
-Received: from ppma21.wdc07v.mail.ibm.com (5b.69.3da9.ip4.static.sl-reverse.com [169.61.105.91])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4gx5s5bsh5-1
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Wed, 30 Sep 2026 08:32:50 +0000 (GMT)
-Received: from pps.filterd (ppma21.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma21.wdc07v.mail.ibm.com (8.18.1.11/8.18.1.11) with ESMTP id 68U7lSkZ3082971;
-	Wed, 30 Sep 2026 08:32:49 GMT
-Received: from smtprelay02.wdc07v.mail.ibm.com ([172.16.1.69])
-	by ppma21.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4h0hfpawvn-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 30 Sep 2026 08:32:49 +0000 (GMT)
-Received: from smtpav01.wdc07v.mail.ibm.com (smtpav01.wdc07v.mail.ibm.com [10.39.53.228])
-	by smtprelay02.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 68U8WmLa25297564
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 30 Sep 2026 08:32:48 GMT
-Received: from smtpav01.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 0216B58059;
-	Wed, 30 Sep 2026 08:32:48 +0000 (GMT)
-Received: from smtpav01.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id E98285806A;
-	Wed, 30 Sep 2026 08:32:41 +0000 (GMT)
-Received: from [9.123.5.239] (unknown [9.123.5.239])
-	by smtpav01.wdc07v.mail.ibm.com (Postfix) with ESMTP;
-	Wed, 30 Sep 2026 08:32:41 +0000 (GMT)
-Message-ID: <50193f2c-1a18-49e0-bafe-bb0916b14b72@linux.ibm.com>
-Date: Wed, 30 Sep 2026 14:02:40 +0530
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="ngRyevEm"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=l72/qqpBAf2Nv4bgHa7Xu0coNedKBzvWntb/Qt1n85lTMnsO4E3Z3W9gCGkBNaH5mg+Et8MJOcUVY98lkCNJ5RCdUNBVvKv476AJxI7MiDXRSKSwBb//hdd0BSrUI/ubUO+GRy7hMqnsENVJRLj9kKn6mXh0Y1dP+k6VvestNSmN1jFEGuEs2a8mtDtnTGXDY5jJH8ls7OqODDeROOBlG2BisHTm8sX1c9aetQaBD1Z4yO57vlYsMRLef71/g7xWN6qug7S1srS5ydD6q96T5RJbYml0vOX8Hb/wzkD2qUJRSqMVvInypYK6lZ4T/tzyExOsfapIFSFdAlvnS+dR7Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Yok2iiMapsZLVqqdOeheofsvqokA/lRENlccVX8xceM=;
+ b=LNjL6PTSKuK3EK0ai4rWX24v+lkL5YF1s0YkFg1aAeQrOwxn4tXv2HukK1IlZpxQsJWuS2igot5gpCoy02laRdER9ECr3Li4zdD7lY3qYT0bPXFeToNbbLKIWGBW5Et6DTM4S1ftrcF+Gc7mer1kMMW5NHHgCPQOZO/iSLL5xQKLsDsEir6m0SLq3PUBEA9NJHK74pPK7o7rCYw7GmCxsK2sgCke3JtAKk2F6KQXONh3W7NYJh3dZwDrJYvqY7FywkqOiHrbyxj3ZrxhsY53J52ixYsAL4I8xvj8yJliJcyHDRaUAxuPy34hDZoTkA344RZ6qQmdYMY5k2syqrZY0w==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Yok2iiMapsZLVqqdOeheofsvqokA/lRENlccVX8xceM=;
+ b=ngRyevEmpXvq/NfwqNenAPhYJvA9VhMQ6m6r3wJECvWFhL6g3JodBbm+QbF112bmDu7sHU0vzSlXSJeiGfNrqOViyZaxYjOwP97O1W4cZHo1+hMxHdwGdB1B+kTlaAe0pD02x0NyqVXZ15E+oTn26bEsP4g3v4pYZojktoROaCM=
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from PH7PR12MB5685.namprd12.prod.outlook.com (2603:10b6:510:13c::22)
+ by DM6PR12MB4154.namprd12.prod.outlook.com (2603:10b6:5:21d::21) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.472.15; Wed, 30 Sep
+ 2026 08:35:11 +0000
+Received: from PH7PR12MB5685.namprd12.prod.outlook.com
+ ([fe80::ce69:cfae:774d:a65c]) by PH7PR12MB5685.namprd12.prod.outlook.com
+ ([fe80::ce69:cfae:774d:a65c%3]) with mapi id 15.21.0451.022; Wed, 30 Sep 2026
+ 08:35:05 +0000
+Message-ID: <4549640c-f4a5-4dac-9be3-2e5aa127555c@amd.com>
+Date: Wed, 30 Sep 2026 10:34:56 +0200
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v8 16/23] dma-buf: Let importers ask how peer-to-peer
+ traffic is routed
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Logan Gunthorpe
+ <logang@deltatee.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+ "Joerg Roedel (AMD)" <joro@8bytes.org>, Will Deacon <will@kernel.org>,
+ Robin Murphy <robin.murphy@arm.com>,
+ =?UTF-8?Q?Thomas_Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
+ linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-doc@vger.kernel.org, iommu@lists.linux.dev,
+ Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+ linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
+ Chaitanya Kulkarni <kch@nvidia.com>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jens Axboe
+ <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
+ Ankit Agrawal <ankita@nvidia.com>, Jonathan Corbet <corbet@lwn.net>,
+ Shuah Khan <skhan@linuxfoundation.org>, Randy Dunlap
+ <rdunlap@infradead.org>, Sumit Semwal <sumit.semwal@linaro.org>
+References: <20260928-fix-p2p-acs-v4-0-v8-0-404453b9c435@nvidia.com>
+ <20260928-fix-p2p-acs-v4-0-v8-16-404453b9c435@nvidia.com>
+ <607e8903-a979-4d78-bf08-447321c03119@amd.com>
+ <20260929132305.GJ563127@unreal>
+ <720dbac3-24f6-4c91-899e-e205865c1fd1@amd.com>
+ <20260929175737.GK563127@unreal>
+ <eeef5951-825e-459f-b474-bf8c59588446@amd.com>
+ <20260930081832.GA3401365@unreal>
+Content-Language: en-US
+From: =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>
+In-Reply-To: <20260930081832.GA3401365@unreal>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: BL1PR13CA0420.namprd13.prod.outlook.com
+ (2603:10b6:208:2c2::35) To PH7PR12MB5685.namprd12.prod.outlook.com
+ (2603:10b6:510:13c::22)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net v7] net/smc: fix lgr/lnk lifetime vs diag reader race
-To: netdev-bot+sinfo@kernel.org
-Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
-        kuba@kernel.org, pabeni@redhat.com, alibuda@linux.alibaba.com,
-        dust.li@linux.alibaba.com, sidraya@linux.ibm.com,
-        hidayath@linux.ibm.com, pasic@linux.ibm.com, horms@kernel.org,
-        tonylu@linux.alibaba.com, guwen@linux.alibaba.com,
-        stable@vger.kernel.org, netdev@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
-References: <20260930073029.1201202-1-mjambigi@linux.ibm.com>
- <179075363052.31693.7276499571222525560@kernel.org>
-Content-Language: en-US
-From: Mahanta Jambigi <mjambigi@linux.ibm.com>
-In-Reply-To: <179075363052.31693.7276499571222525560@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-Reinject: loops=2 maxloops=12
-X-Proofpoint-Spam-Info: AW1haW4tMjYwOTMwMDAzMiBTYWx0ZWRfXzqRJ1c/eD2Aw
- ONpwLwYv2YIZ8qEM6Otdc5kvACXXJa+SklTMgvfSaMF09v2AElHQ0zbFK2KKm7/bk1Fp/CN58XQ
- 0Qpz5i9cvXBrAZWVd8eOQJ3iyJ9X23s=
-X-Authority-Analysis: v=2.4 cv=HJ5WhYtv c=1 sm=1 tr=0 ts=6abcc932 cx=c_pps
- a=GFwsV6G8L6GxiO2Y/PsHdQ==:117 a=GFwsV6G8L6GxiO2Y/PsHdQ==:17
- a=IkcTkHD0fZMA:10 a=VdqzKS8jKosA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=RnoormkPH1_aCDwRdu11:22 a=U7nrCbtTmkRpXpFmAIza:22 a=VwQbUJbxAAAA:8
- a=8WImSUdLa4LpenjYlHkA:9 a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
-X-Proofpoint-GUID: kmSBDthRuDHvReWlkysbDKFOb5_HZgDI
-X-Proofpoint-ORIG-GUID: LzYPD1s3SJgg_i5tA7UbtwAY078vbwH4
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTMwMDAzMiBTYWx0ZWRfX3Ed8xY6fScHp
- A1JSgOcPp5Utu9KmkW9pN//i0icZvWixeltkmqAN/tp1lGyH4guHj1tTGC3fSKt+KfQbE9ilew3
- 2RZ/+1LZ9Z7xU2VCT4cJx6JKsznhfR8iGzka/T5YHa/Z39bz7f4IRt/ABXY0YAEd9e/zx8hOcMl
- Dek3AQWNaXDiXXTwNYwnn1aE7XumIfu6mJl+ivFvUmWfL7ZwXEB6WSjeX56RKPgQWS4ERmKiWUT
- KGXQ/8/VCl9FfSMjPezYbl+36LSpdgy0aWXToFHxASXmbAG3Wbczzo/qEslkPtdWrsD4JZ3q3D4
- xg/jP7AKvAUunnPydweQI0rP+gbsS/s1Ns9K5Fk8mPHuGo5Cv0YH0QasO2zKGQOSp7Mh7qy/f/C
- 88uWQodB+QKRVIuYkKIXaNb17kz/DKO9TeUqbAK45F5UkEw+zSEgB/akbgKeTr8URIlkGJRq0k4
- mJ0Jv281EMxbxpvPreA==
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-09-30_01,2026-09-21_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- malwarescore=0 suspectscore=0 bulkscore=0 clxscore=1011 lowpriorityscore=0
- spamscore=0 impostorscore=0 phishscore=0 priorityscore=1501 adultscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2609040000 definitions=main-2609300032
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH7PR12MB5685:EE_|DM6PR12MB4154:EE_
+X-MS-Office365-Filtering-Correlation-Id: 0a48fb07-a420-4818-b503-08df1ecdb9de
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|23010399003|7416014|366016|1800799024|376014|4143699003|10067099003|56012099006|6133799003|11063799006|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	wv1NI5qv0hDFXcq9bKAJUOQSrMmtWA72aJPad5QFeTMDOYaSwrWeTysa8qGVZvEIyUYid3YNp1pCysGGnE3mymDPQQo409mln8uyBQ3WiK1b+f4igKpRPVMss+qKZBcAqErmOF3VxNhhpBZykUVvkc/V94hmDurY0rKF7Kzb4ObS8eDa0Mm6Z+czZvun9gnLLTSmq8m7czewZsS0TPw9+G2LwvLKqUlLe924H9XOB1ha3kJecEKGe4trRfP63Mie7/060dJxW99JmtybcRNcJ9qqsJjJgX5AI/gAgo+Vv6fzCjcKRLVzc882ZENHz8CV7zRYYi2u5/jFwFxRUEiN/gvmWP9YzbH99N0NCipyL2WhBQ00y/XkjfIMxImasZRZI2/0imivpl0mVe/41xzzJ3bKBMes4D3Wl247AXuIUNdEFCjhk9+K+jiiX3RLMuumxPEizrQMDDJQ3MOi7S2TUwKyu0qgGnLU0plt8kw4/xIAbnMux82neCTs6bU4uHO4HcIBXyjV6qRQzXWIrsycUrpQwUPJMEDatLA70KSeGVN1oKFdHipMJvbT9SWZGUFMgN6zOHmY1lns3AQZhBDmLXO6XNT6GVbz1KiGkjEaVeOMCTh8wUMSg+CVRMaZdCmp
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR12MB5685.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(7416014)(366016)(1800799024)(376014)(4143699003)(10067099003)(56012099006)(6133799003)(11063799006)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?QVd5S0hhcjNYR1JSbjRmQis3TytmRDk2dS9OZHFoamZBTk8xZWFPQXVtOWtr?=
+ =?utf-8?B?bDd1NXRVdU4xSzJXd3hNTDRQc0w5enpOZFBqSkhNQUFvcm1DNTkzOHBrbUhF?=
+ =?utf-8?B?YnlUdGxmMzdoZzlyQU9lQm1GK3lsV2owa3czV2JFdGtSU2xtTms0SmlLSWhR?=
+ =?utf-8?B?RiszYk1iYldhZzU5R0RGTXVuZGJwdTdLU1QwMnc1ZE14NVlWcHRsRzBVc1F2?=
+ =?utf-8?B?S3VBQUtVVEtaTXFSYWo2RDVtYTdRU2kzZTVtbGtPS0ZPTXpPaWtnWFRnTlBW?=
+ =?utf-8?B?SDBDT282akM3eklWQXJqUGpnM0FXUzczcnh4U0RjTXBYOW1zRTViZ0dGOU9I?=
+ =?utf-8?B?TGVIWjNRNEJIVno0c0d4V2dEUDlPUnUxSkUrL2hMb3ZtdVJBaGFlUi8wbGFJ?=
+ =?utf-8?B?Vzg3Y3ZVMTNBMUJHdWhybUtVanNoTEZRRWg1NlBBQTZqV1hINnJZbCtKQU5U?=
+ =?utf-8?B?b1VrbWNaT0VxanZaVTA3N0lQUVpOY25sN05NWThJVnNJUStXeWtFQVdQTkZK?=
+ =?utf-8?B?VVliSjNGbEhFQnJZYmF6UnUvMzZjQU1WN3ExVkpQV3J5MmRCb2d3bUxTN0pC?=
+ =?utf-8?B?SkFOSCtONFI1VGY0ZFhUZm5RSWlBbDVNZG12QTVsdEhCNkJhV04xTUxOZDFM?=
+ =?utf-8?B?UWJKNG1YMzRRNkt2a1RqeVRKbGpuNnpzRmNwZFpYUk1pVm54dFJTZk5PUmVP?=
+ =?utf-8?B?Rzg0T25pM2lBb2sxV3NtQ0JlaWhXMCsrRDFGaGxlNjlDekEvbit5WU5ybXB4?=
+ =?utf-8?B?dS9RUy9UeFM3Z0ZEeDFDQ2p6QkJVZTVFdjFYMnFrbXZBc1lqSWpjd3dSKzdS?=
+ =?utf-8?B?V2hmbGRUUmk4U3ZvU2FvRE9rWVZ5RTR5aCtaWEMwRE9rMG1BWERncW40OU5R?=
+ =?utf-8?B?V1ptcnhEVlY2WUk3N0VoMHV1SDlrN1dYODllM3dLUllxKzBvdG1MQU0rak1H?=
+ =?utf-8?B?ZmJoRUQwTER4SEFpLzBnNzVBYjNMOXlvQkR6UmhIY3NLMWhGRVdXbnhuL09D?=
+ =?utf-8?B?YmtNTnRLY2JDU01oNzBaRlBTbjd1T0pHQS84T3JUTERFaXE4d1U4bUsvaXRl?=
+ =?utf-8?B?a2UzSThseDViSmNGSTlrK1JwdzJVeGF3UUMvVE5zOGNCd3ZLZUR5MlROVEkz?=
+ =?utf-8?B?OVVKQndrdVZXQWpvVGcyMy83YTUybGRPNS83elZBVGE5ZTBxQ0gzNjBUYVBM?=
+ =?utf-8?B?c1hlWHpBa0lKV2F1QS9RWTRKMGxHL2lHZXhqR1c1aFFVVlhrNmp2NE4ycm5Y?=
+ =?utf-8?B?WnQ2Q1FwN2UzZzBPem1xb29tWFY0VzVzWGo2UE5IaDRKVXdsSWRheVAvRjEv?=
+ =?utf-8?B?ZnJvZ3V4bFJMaUNpM2MzR3NWUHRITWNPWllwVEgzU3l6THVNSlBQY3g1c1RC?=
+ =?utf-8?B?RVZ0eUovWnJUSXF0S3NkWWlUQ2wwUm12ellGbmpCVWYxUnc1K3VYT2pDTXpl?=
+ =?utf-8?B?OEd0VmdBMnZ1TUlvUG1NQUFPL1BMY2RaQ3dkcm5uaElXb1RyWWxHVUxXdm51?=
+ =?utf-8?B?bFJ0QjZ2akI5SGM2Vnh0RXZMR0lLVmdRN09aKzArcU0zNjZiYmVjVE9Jc3FZ?=
+ =?utf-8?B?WC9yT0FDdVd0blcvVXBhTXYrcTY1RUUyUkI1QnFsaG9TTnN6U2tKMHNYZ0g0?=
+ =?utf-8?B?ZXY0eHpRazNlQ3FDb013T3RESndPM1BPYWd5U1g0R0ZYOXZsWG03cDd1TTQr?=
+ =?utf-8?B?bHg5UklzUmhOMTIvMjF0d0wrZnV3WEs0SXEycThoeHR1S01PVkNmekhVNU51?=
+ =?utf-8?B?Rzk4Ny9RSTE3YnByYjlJSXNIcG50MUJTNUZCRnh2cGp2VjdtQks4cXMxZGJv?=
+ =?utf-8?B?L1VablFuUTRZRU5LcmJkUUd1Rk1IRmVBK3lFM2x1Q283M0FVVWM4N1gzRkVr?=
+ =?utf-8?B?SjFtLzVaaHRsQmlpRHlrNFBLOXZHMERJdUlHNlljeG9DMzh3dHNPQ1ZRaXJt?=
+ =?utf-8?B?VDRpR3BvWlBNb3dlckgyM3hKbGlwei9JdVZ0RWVTRlI3SEEwTTNoc3NGdjIx?=
+ =?utf-8?B?TTRqa3c3ZGIyTkNuSnIrdDFLYWJWOE1kMlB0SE1SaHk5VTNXQjRKbUJ1aHhT?=
+ =?utf-8?B?SnJCSFdsanV4NWFZWmNFSUdLbzNQSHBwektFdFhEV1VmbzQzcVdTYlAwR0xC?=
+ =?utf-8?B?MWxVRVZYUDlxWDdXQUxjV09FWkxiWnM2QTU1OHZ1MmVqOXRhSHZwRW1WcGhj?=
+ =?utf-8?B?allNMVhvM0xpQVp3YTA2UE1HZWl4SVNjZ0pnU1ZKY05yVEV5ZjZTdUNDaFI0?=
+ =?utf-8?B?Q0F0dnVhVEFjemlsSFpUc0JLU2ZWeEVaWVNuTzdRZldqSDZwTkljcTFEMXFz?=
+ =?utf-8?Q?K/GDx71/VLJA8G+MBZ?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 0a48fb07-a420-4818-b503-08df1ecdb9de
+X-MS-Exchange-CrossTenant-AuthSource: PH7PR12MB5685.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Sep 2026 08:35:04.7312
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: N/eu4A24mF/etHqDjdR5G/WkTRxZP/iKz2TRGtq5GM/xfT+KiFEeIRHAIOS0uBQp
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4154
 
-
-
-On 30/09/26 1:03 pm, netdev-bot+sinfo@kernel.org wrote:
-> Hi!
+On 9/30/26 10:18, Leon Romanovsky wrote:
+> On Wed, Sep 30, 2026 at 09:00:57AM +0200, Christian König wrote:
+>> On 9/29/26 19:57, Leon Romanovsky wrote:
+>>> On Tue, Sep 29, 2026 at 03:39:42PM +0200, Christian König wrote:
+>>>> On 9/29/26 15:23, Leon Romanovsky wrote:
+>>>>> On Tue, Sep 29, 2026 at 11:34:05AM +0200, Christian König wrote:
+>>>>>> On 9/28/26 13:19, Leon Romanovsky wrote:
+>>>> ...>>
+>>>>>>> +	return pci_p2pdma_map_type_tlp(provider, attach->dev, tlp_flags);
+>>>>>>
+>>>>>> This function call here *must* be in the exporter and not the DMA-buf framework.
+>>>>>>
+>>>>>> So clear NAK to putting that here.
+>>>>>
+>>>>> "Look, it is easy to complain you don't like how it looks, but this
+>>>>> stuff is hard there are lots of competing concerns, if you have a
+>>>>> better idea now is a good time to present it."
+>>>>> https://lore.kernel.org/all/20260921130858.GO11599@ziepe.ca/#t
+>>>>>
+>>>>> Do you have a viable solution?
+>>>>
+>>>> Ok, that sounds like you haven't understood why I'm rejecting this.
+>>>>
+>>>> By moving the calls to pci_p2pdma functions into DMA-buf you bypass the NAK to expose those functions to drivers from the DMA maintainers.
+>>>
+>>> No, you have misunderstood Hellwig's position. His request was to ensure that only
+>>> subsystems deal with P2P internals. He was perfectly fine with bringing P2P
+>>> complexity into dma-buf, since it is the agreed-upon mechanism for sharing DMA
+>>> regions between devices.
+>>
+>> Thanks for clearing that up, I indeed didn't realized that.
+>>
+>> But that is pretty much against my standpoint that I don't want any P2P complexity in DMA-buf.
+>>
+>>>
+>>> So this is not a NAK bypass; it is a correct implementation of his request.
+>>> He handled P2P-related complexity in the block layer.
+>>>
+>>> Let's add Christoph to the thread so he can correct me if I'm wrong.
+>>>
+>>>>
+>>>> I unfortunately didn't understood that when the dma-buf-mapping.c code was added and just assumed that you just needed a place to put some common code.
+>>>
+>>> That is not correct. Devices A and B share a DMA region via the dma-buf
+>>> mechanism. Where do you expect the code common to dma-buf to be placed?
+>>
+>> In the DMA layer!
+>>
+>>>>
+>>>> So as long as that NAK from the DMA maintainers to expose the pci_p2p functions to drivers stand I will push hard to get that stuff removed again from DMA-buf as well.
+>>>
+>>> Are you seriously suggesting that every dma-buf driver in the world should
+>>> have to reimplement this mess?
+>>
+>> Well I completely agree that this should probably not be replicated into each exporter, but that is the job of the DMA layer and not DMA-buf.
+>>
+>> The purpose of DMA-buf is to exchange DMA addresses between an exporter and one or more importers and handle things like lifetime and synchronization of accesses. 
+>>
+>> What the framework should do is to transport the capabilities of the importer to the exporter, e.g. what physical connections we have etc..
+>>
+>> What the framework can also do is to have additional information from the exporter to the importer regarding addresses and mappings, for example if they are bus, IOVA or some special internal DMA addresses or how to stitch together your PCIe TLP or whatever.
 > 
-> This is an automated message. This series looks like a fix, but its
-> commit messages seem to be missing some information:
-> 
->  - How the issue was discovered, e.g. hit in production, hit during
->    development, syzbot report, manual code inspection, LLM or static
->    analysis tool scan.
+> At a minimum, exporters need to pass `p2pdma_provider`.
 
-The issue was found by manual code inspection while reviewing the diag
-dump path in net/smc/smc_diag.c.
+No, exactly that is a no-go. The neither the framework nor the importer should see the p2pdma_provider.
+
+Only fully translated addresses where the DMA access should happen.
 
 > 
->  - Whether the issue was actually triggered, or is only theoretical
->    (e.g. found by code inspection). If it was triggered please include
->    the symptoms, like the stack trace or error messages.
+> If I keep the “dma-buf: Let exporters hand out the P2PDMA provider behind a
+> buffer” patch, I can move the P2P TLP types back into `p2pdma.c` and export
+> only the function that indicates whether ATS is required.
+> 
+> Is it ok?
 
-The races are theoretical — none of the three windows were triggered in
-practice. The smc_conn_kill() / smcd_buf_detach() race requires an
-active smcss poll to coincide with an SMC-D lgr termination on the
-dmb_nocopy path; the smc_close_active_abort() and
-smc_close_passive_work() races require a concurrent diag dump during the
-narrow teardown window between sk_state = SMC_CLOSED and
-smc_conn_free(). No stack trace or error message is available since the
-bugs were not hit in a running system.
+What you can do is to forward declare enum pci_p2pdma_map_type and than pass that 1 to 1 from the exporter to the importer.
+
+Regards,
+Christian.
+
+> 
+> Thanks
+> 
+> 
+>>
+>> As long as both the exporter and importer agree on what those values mean I have no problem at all with that.
+>>
+>> But how those DMA addresses come to be should *absolutely not* be part of DMA-buf! The complexity of that is seriously not something we should have here.
+>>
+>> Regards,
+>> Christian.
+>>
+>>>
+>>> Thanks
+>>>
+>>>>
+>>>> What you try to do here is seriously not ok and I will push back hard on that in the future.
+>>>>
+>>>> Regards,
+>>>> Christian.
+>>>>
+>>>>>
+>>>>> Thanks
+>>>>>
+>>>>>>
+>>>>>> Regards,
+>>>>>> Christian.
+>>>>
+>>>>
+>>
+
