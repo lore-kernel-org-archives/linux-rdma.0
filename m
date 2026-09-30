@@ -1,194 +1,150 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012046.outbound.protection.outlook.com [40.93.195.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FCB24CDA2E;
-	Wed, 30 Sep 2026 11:44:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790768643; cv=none; b=p912FObWLL8yNgEbzc2N3wm6AwBHuBwBNoaJJzhc1xZ+R7GLgDxL9+yaaVAxDYNFBB7jAXn/Bpza2WunGK+wNazUVYkX9+RUoCtGnKNUGENdc5i9DkrlH2RhJbam+6VjXH31ppH0dwUqp4zlj9HUvfFgEYHze9+I1hGAgZXJSiU=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790768643; c=relaxed/simple;
-	bh=XbWhsaYYwwptgi4uHGm8FURUn9UCJ8ZEfu4EpI6zryg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=j3Tg46Q2CVOxgKzYjUoRcN88bfTCKgRHBcLq1AVYC8DqiN+2eh5RUaveM+PoFWq3jsIlSBW/ruCC9ixndeutN8SScXvuThNq2WBQayPA7hDwPNLJVvj2fkjBkNLqs6chj+LlXOKzEHCOCTFr3dMY5Zr1w2iBWtSw3aXz0S/+5Mk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VSWXjJHV; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 051264CA787;
+	Wed, 30 Sep 2026 11:44:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.195.46
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790768649; cv=fail; b=Ilq4Z37S07C7Yw5xWyNC/rzOgZ86mjCt8thfTPhZCzvOdKWeIw5ocQ9Vit7EHH5p6nqguckzxPseDSaPb18o4hEW3yKeTM4ilGXW9xCJhqSGEJtwf7e0rbHa6EDiUTq4ePCLoMQXsnrbje6gw5Hai/RDLdO6cE/D6yV9ZNLBu3w=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790768649; c=relaxed/simple;
+	bh=EEfXapcjoEg/waZ57/1bxfdXLKLB/AzmsOZCLiYllGQ=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=Nfv1GyKuJrdb//OceYhJyq+ntWYnyqvutv1NabiL+YVd6xxrHsQXpvJxdG1REJMFk6HPYzTgwOw3RqsYAJz01CWjKW/zp12kTAQTW3419GxQ7vvNS3KhJXBEQg6Kr8gghlp8olLPmxSIi/7ZrHkmyk8mQzgfoJrGYSUYXLMFEGA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=JTcskAvq; arc=fail smtp.client-ip=40.93.195.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VSWXjJHV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E935B1F00893;
-	Wed, 30 Sep 2026 11:44:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790768641;
-	bh=045Gg/9FNTZlrsi+oP8Nxf9edT3+jF24v5WNbYcZjwE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=VSWXjJHVAsJ34fjRpCgdAAm2s+N2fiEQSsaLA83OWsLq4eONyJuVTUfPjdna+84/m
-	 q1/1x2A3M5+juV1717SRNgmygTNIXSdte54KjqlagnfyYM5nvdvN6tmbfog6D74Gii
-	 rtHNCGwAyKdmRpQAOB85aZYiTw8Zv4AvgiTBZj6t3Y3cLYzgx/Cbu8SdkN2WrV56d4
-	 jjoxNRA8oUhe//pwutrYVjDKzCQE6/dOiGbSntP9Yt7b9G6O3cspwsYwROmB1m7da3
-	 DTtTpp37fbHkG2hQ4G38CDwinoxY1+ALw5+CQhP61M6Kpz8Nuf7XXpD5Ucku+DcCIg
-	 rEraZmriCvq5g==
-Date: Wed, 30 Sep 2026 14:43:56 +0300
-From: Leon Romanovsky <leon@kernel.org>
-To: Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>,
-	Logan Gunthorpe <logang@deltatee.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	"Joerg Roedel (AMD)" <joro@8bytes.org>,
-	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
-	Thomas =?iso-8859-1?Q?Hellstr=F6m?= <thomas.hellstrom@linux.intel.com>,
-	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org, iommu@lists.linux.dev,
-	Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
-	Chaitanya Kulkarni <kch@nvidia.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
-	Ankit Agrawal <ankita@nvidia.com>, Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: Re: [PATCH v8 16/23] dma-buf: Let importers ask how peer-to-peer
- traffic is routed
-Message-ID: <20260930114356.GC3401365@unreal>
-References: <20260928-fix-p2p-acs-v4-0-v8-0-404453b9c435@nvidia.com>
- <20260928-fix-p2p-acs-v4-0-v8-16-404453b9c435@nvidia.com>
- <607e8903-a979-4d78-bf08-447321c03119@amd.com>
- <20260929132305.GJ563127@unreal>
- <720dbac3-24f6-4c91-899e-e205865c1fd1@amd.com>
- <20260929175737.GK563127@unreal>
- <eeef5951-825e-459f-b474-bf8c59588446@amd.com>
- <20260930081832.GA3401365@unreal>
- <4549640c-f4a5-4dac-9be3-2e5aa127555c@amd.com>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="JTcskAvq"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=uA8OIjhDtG0rwitFdm0ff8IiYsErHfVYHLQAl5KHPYgB23+Cx3STlWXvKdlobT1dKM22FIUS3UeGK5pKCkTCwF5qWmuM+dheFZaR8QOXkITPclBct3bIuxYW9uj80GwMqDp9C3HMNMENSTo6dvA8FdoiZderbO6WuVinM0jXH4d/t2+cVKNBpstaJHlQuCgNp7N6cdnCR5sKye2Q3Y5ubLbZJQ3Lw2uvZkh4bR8vrW0HMpZMf7Xq8OXX/J63x+05DoE1Zt6DQs1tZOlPMea+TxQ17tdRH83CYIX+ifKO6Pt2Yw7+MkBFyfJTTS3QDOR0UcqQ7YVYjb3Qdz04D3fZ0g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=8IaVvTPKfRB4VYQpZ1RkbLGbBve8/2tupY1pW0JbfnM=;
+ b=L3XCJRlSaciQyMZIcpcykr0/GlXzUNBn9URiGDki0sHP5c1ootOhcQH5EJxx41pKltNrZK3+1vUySJSG8foBZyVa5I9/sM+T+C3/qLI0Q8fP685LMm+v/mfqwNkNjySuE9GQjvjpqNscp/wnt/gTm6naPpfj2otXzFa5l4G+DvsbqOLrqtM++nOvmcqGA0mSwZoXILYEe6Kwv+HScH6Zf49ae8KUkOjtnxX5095ZbFS2mXGGCKgVpZnA/bLgNqiLKZm4NAx619OSAsYZ48+YbWDuwD8HxD4G/7gtSVqBzU9XZuiAswepHDK0OrCiOLQDg+Tiiazn4f/REpX8jf44rA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=8IaVvTPKfRB4VYQpZ1RkbLGbBve8/2tupY1pW0JbfnM=;
+ b=JTcskAvq1GE/5+m3rXxJRz5cVI/ps7NOUblKLpEIEp1w73Uy6s7jMBt+e3Owys6WrtWM9IhsQxNgHE4ZfM0YH475NSvf5GdtJ+eom9AVG1VgCThIVfZpxNp2TFIM+4PmT9Ncl+n09BSa43CUfjDOvO8WJ1WK1UO8YrWHRULLfR9jAZ/5eynQT9udJNBO86l4+sQEJeKLu1uSycQNwieoKzrWpK+/MajLFH1ujtln3e6N21MUuNOuzr8mj+SAXJi0j/srX4GB2sUm5Rm7xzP7hDXd24WLzh4Ee3iexb2SGLkTo70qt4dqYoBTOCpygmCPc5TeGauyc4N2vrMOQw3/Bw==
+Received: from BN0PR08CA0024.namprd08.prod.outlook.com (2603:10b6:408:142::14)
+ by DM6PR12MB4154.namprd12.prod.outlook.com (2603:10b6:5:21d::21) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.472.15; Wed, 30 Sep
+ 2026 11:44:01 +0000
+Received: from BL6PEPF00020E62.namprd04.prod.outlook.com
+ (2603:10b6:408:142:cafe::3b) by BN0PR08CA0024.outlook.office365.com
+ (2603:10b6:408:142::14) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.472.15 via Frontend Transport; Wed,
+ 30 Sep 2026 11:44:01 +0000
+X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
+ is 216.228.117.161) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ BL6PEPF00020E62.mail.protection.outlook.com (10.167.249.23) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.472.14 via Frontend Transport; Wed, 30 Sep 2026 11:44:01 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Wed, 30 Sep
+ 2026 04:43:44 -0700
+Received: from rnnvmail204.nvidia.com (10.129.68.6) by rnnvmail201.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Wed, 30 Sep
+ 2026 04:43:43 -0700
+Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.6)
+ with Microsoft SMTP Server id 15.2.2562.49 via Frontend Transport; Wed, 30
+ Sep 2026 04:43:39 -0700
+From: Tariq Toukan <tariqt@nvidia.com>
+To: Leon Romanovsky <leon@kernel.org>, <linux-rdma@vger.kernel.org>, "Mark
+ Bloch" <mbloch@nvidia.com>, <netdev@vger.kernel.org>, Saeed Mahameed
+	<saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>
+CC: Andrew Lunn <andrew+netdev@lunn.ch>, Cosmin Ratiu <cratiu@nvidia.com>,
+	"David S. Miller" <davem@davemloft.net>, Dragos Tatulea
+	<dtatulea@nvidia.com>, Eric Dumazet <edumazet@google.com>, Gal Pressman
+	<gal@nvidia.com>, Jakub Kicinski <kuba@kernel.org>, Jason Gunthorpe
+	<jgg@ziepe.ca>, Leon Romanovsky <leonro@nvidia.com>, open list
+	<linux-kernel@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>
+Subject: [PATCH mlx5-next V2 04/10] RDMA/mlx5: Give the data direct PCI driver a proper name
+Date: Wed, 30 Sep 2026 14:42:21 +0300
+Message-ID: <20260930114227.139274-5-tariqt@nvidia.com>
+X-Mailer: git-send-email 2.44.0
+In-Reply-To: <20260930114227.139274-1-tariqt@nvidia.com>
+References: <20260930114227.139274-1-tariqt@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <4549640c-f4a5-4dac-9be3-2e5aa127555c@amd.com>
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BL6PEPF00020E62:EE_|DM6PR12MB4154:EE_
+X-MS-Office365-Filtering-Correlation-Id: 13601914-6406-4474-89d4-08df1ee81f50
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|23010399003|36860700016|1800799024|82310400026|376014|7416014|10067099003|56012099006|11063799006|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	NttCZBKu5Olb5qk8g4H8Y8TqYmhMWQBn014mm0lxO5QvTKw69H/QLmr6SbXUVBUpnDmxPKrmGn+upKN4P3sFjhsmy1Sd4nescm8hteSt3WG7EJjIpavo53KdaGkxTpoufwCUPlDHb3tLA+gpx3jwBW0hi//oA6Gy51LKrpy5+1A2vABbPRIGNKbP0TolGvH3bMOlVYsYhk7ZZX01jLFqvsKr0UCUAyc3R1Tmampv3zRiFxeO9bkOyEUQwRhuFXEHz32fHfZD+Hj3aMjJuDle579Ske/Sb33F55jCCzLoLzsDZAm1TLpe1T1kNIBSQitxGZS19hqtqXnrUkTBaU7CuEJWFcRSMi+U274VGBKJbmjgS4qOZDXBbofHNlUO4xeJUcpXqWTd8BkJtvQSrK6DUth5F7DuUZ3MDqQ6+wCR4yvkp55h+saW+x89uFExhAXDeXbvmGAgKjMsp0wndmd1U22lZe62eNr/f1sDlp00ZX1xQF76iNTqvkDI+49AlQM7I932b76ofleUq72XOSI6VQJCI2o3IMAjQCOxveZoCibKt9OCLcT420LMxo7wz2whC281DS6nvYRn+4yt9iM3Gsj02dZlYO4m65Ky0ytX/GkQb7Q3Yjyo8QzLyt6oDLYE7Cm1aDsCB07uLym4/zoTbY3Kfihl61HVA/1Q+CNUNB4RrVO5Rw7709WTGV3I4pyI+tS4J8roLDBYo1SKUlPzDg==
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(36860700016)(1800799024)(82310400026)(376014)(7416014)(10067099003)(56012099006)(11063799006)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	7jX1MQRYo+FbNGks1wnD4rPEgLuwlUXDpE5z4QUfCV98yM+e6rQsZu65ZRgb9/nXKgzbrPP+32Tyybb+MDfoRdZgwk4m7QynDjoU1LnFZvG2zzvZXHyVNsEuYeLsRIRj6SzxL4ebZ/FVgwvE2WGeAXHRLfEnUnq/anVwvSQPPoOY+TD1b4ylNk4EC71YKpVuQ2fKx76T3DwprCD3Gu8cwEBX+NxF7bpa2+hM7giF7XE/2+QUmhYL2y3BlkGDsmGrYz2pcN1ZiEAFJjTQ1NDxzHfApu5vXvBB6b08u/bH/y2Ud4nOc1Z949ddjPHGrqGg9pd518rOWdzGkPrXt/71kVo8KpS3EVk4/myJYUzrsH3QyujuHzElV10893vqOW+javuH1HeXW8vEmDEJ/L0eJj9io/mGNPTKdQD8Zbj3egijwv70bxNLCTHek4jTZ4Y2
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Sep 2026 11:44:01.4792
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 13601914-6406-4474-89d4-08df1ee81f50
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BL6PEPF00020E62.namprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4154
 
-On Wed, Sep 30, 2026 at 10:34:56AM +0200, Christian König wrote:
-> On 9/30/26 10:18, Leon Romanovsky wrote:
-> > On Wed, Sep 30, 2026 at 09:00:57AM +0200, Christian König wrote:
-> >> On 9/29/26 19:57, Leon Romanovsky wrote:
-> >>> On Tue, Sep 29, 2026 at 03:39:42PM +0200, Christian König wrote:
-> >>>> On 9/29/26 15:23, Leon Romanovsky wrote:
-> >>>>> On Tue, Sep 29, 2026 at 11:34:05AM +0200, Christian König wrote:
-> >>>>>> On 9/28/26 13:19, Leon Romanovsky wrote:
-> >>>> ...>>
-> >>>>>>> +	return pci_p2pdma_map_type_tlp(provider, attach->dev, tlp_flags);
-> >>>>>>
-> >>>>>> This function call here *must* be in the exporter and not the DMA-buf framework.
-> >>>>>>
-> >>>>>> So clear NAK to putting that here.
-> >>>>>
-> >>>>> "Look, it is easy to complain you don't like how it looks, but this
-> >>>>> stuff is hard there are lots of competing concerns, if you have a
-> >>>>> better idea now is a good time to present it."
-> >>>>> https://lore.kernel.org/all/20260921130858.GO11599@ziepe.ca/#t
-> >>>>>
-> >>>>> Do you have a viable solution?
-> >>>>
-> >>>> Ok, that sounds like you haven't understood why I'm rejecting this.
-> >>>>
-> >>>> By moving the calls to pci_p2pdma functions into DMA-buf you bypass the NAK to expose those functions to drivers from the DMA maintainers.
-> >>>
-> >>> No, you have misunderstood Hellwig's position. His request was to ensure that only
-> >>> subsystems deal with P2P internals. He was perfectly fine with bringing P2P
-> >>> complexity into dma-buf, since it is the agreed-upon mechanism for sharing DMA
-> >>> regions between devices.
-> >>
-> >> Thanks for clearing that up, I indeed didn't realized that.
-> >>
-> >> But that is pretty much against my standpoint that I don't want any P2P complexity in DMA-buf.
-> >>
-> >>>
-> >>> So this is not a NAK bypass; it is a correct implementation of his request.
-> >>> He handled P2P-related complexity in the block layer.
-> >>>
-> >>> Let's add Christoph to the thread so he can correct me if I'm wrong.
-> >>>
-> >>>>
-> >>>> I unfortunately didn't understood that when the dma-buf-mapping.c code was added and just assumed that you just needed a place to put some common code.
-> >>>
-> >>> That is not correct. Devices A and B share a DMA region via the dma-buf
-> >>> mechanism. Where do you expect the code common to dma-buf to be placed?
-> >>
-> >> In the DMA layer!
-> >>
-> >>>>
-> >>>> So as long as that NAK from the DMA maintainers to expose the pci_p2p functions to drivers stand I will push hard to get that stuff removed again from DMA-buf as well.
-> >>>
-> >>> Are you seriously suggesting that every dma-buf driver in the world should
-> >>> have to reimplement this mess?
-> >>
-> >> Well I completely agree that this should probably not be replicated into each exporter, but that is the job of the DMA layer and not DMA-buf.
-> >>
-> >> The purpose of DMA-buf is to exchange DMA addresses between an exporter and one or more importers and handle things like lifetime and synchronization of accesses. 
-> >>
-> >> What the framework should do is to transport the capabilities of the importer to the exporter, e.g. what physical connections we have etc..
-> >>
-> >> What the framework can also do is to have additional information from the exporter to the importer regarding addresses and mappings, for example if they are bus, IOVA or some special internal DMA addresses or how to stitch together your PCIe TLP or whatever.
-> > 
-> > At a minimum, exporters need to pass `p2pdma_provider`.
-> 
-> No, exactly that is a no-go. The neither the framework nor the importer should see the p2pdma_provider.
-> 
-> Only fully translated addresses where the DMA access should happen.
-> 
-> > 
-> > If I keep the “dma-buf: Let exporters hand out the P2PDMA provider behind a
-> > buffer” patch, I can move the P2P TLP types back into `p2pdma.c` and export
-> > only the function that indicates whether ATS is required.
-> > 
-> > Is it ok?
-> 
-> What you can do is to forward declare enum pci_p2pdma_map_type and than pass that 1 to 1 from the exporter to the importer.
+From: Dragos Tatulea <dtatulea@nvidia.com>
 
-Unfortunately, neither suggestion applies to RDMA NICs. They need to know,
-before mapping addresses, whether to create the memory region with ATS
-enabled.
+The data direct PCI driver uses KBUILD_MODNAME as its driver name,
+which resolves to "mlx5_ib". This is misleading (the driver binds
+the data direct PCIe function, not an IB device) and would silently
+change to "mlx5_core" when the driver is relocated there.
 
-The importer needs a way to obtain device information from the exporter so
-that it can configure itself correctly.
+Name the driver explicitly "mlx5_dd".
 
-Thanks
+Signed-off-by: Dragos Tatulea <dtatulea@nvidia.com>
+Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
+Reviewed-by: Cosmin Ratiu <cratiu@nvidia.com>
+Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+---
+ drivers/infiniband/hw/mlx5/data_direct.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> 
-> Regards,
-> Christian.
-> 
-> > 
-> > Thanks
-> > 
-> > 
-> >>
-> >> As long as both the exporter and importer agree on what those values mean I have no problem at all with that.
-> >>
-> >> But how those DMA addresses come to be should *absolutely not* be part of DMA-buf! The complexity of that is seriously not something we should have here.
-> >>
-> >> Regards,
-> >> Christian.
-> >>
-> >>>
-> >>> Thanks
-> >>>
-> >>>>
-> >>>> What you try to do here is seriously not ok and I will push back hard on that in the future.
-> >>>>
-> >>>> Regards,
-> >>>> Christian.
-> >>>>
-> >>>>>
-> >>>>> Thanks
-> >>>>>
-> >>>>>>
-> >>>>>> Regards,
-> >>>>>> Christian.
-> >>>>
-> >>>>
-> >>
-> 
+diff --git a/drivers/infiniband/hw/mlx5/data_direct.c b/drivers/infiniband/hw/mlx5/data_direct.c
+index 8d006b611c63..a80778f2b9b2 100644
+--- a/drivers/infiniband/hw/mlx5/data_direct.c
++++ b/drivers/infiniband/hw/mlx5/data_direct.c
+@@ -240,7 +240,7 @@ static void mlx5_data_direct_remove(struct pci_dev *pdev)
+ }
+ 
+ static struct pci_driver mlx5_data_direct_driver = {
+-	.name = KBUILD_MODNAME,
++	.name = "mlx5_dd",
+ 	.id_table = mlx5_data_direct_pci_table,
+ 	.probe = mlx5_data_direct_probe,
+ 	.remove = mlx5_data_direct_remove,
+-- 
+2.44.0
+
