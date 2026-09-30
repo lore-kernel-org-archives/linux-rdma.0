@@ -1,44 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C90713B19C6
-	for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 12:25:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 945F54749C9
+	for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 12:25:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790771151; cv=none; b=EmJqnZ5qbuJExrZqnqiZz9DFiJIRMpZyGtbD2Y6B8dNr1KsDqo82ZcXPzDQzBTALB5keDfIrUqTeeSLT6bf1dq6oGDnzFCs6l4oGYybhekU4hHp1EbLAbrInyFAgs1SSY8/T6QmeOmI85y9iMfc0iCQt+knkn62Qoneo9jLhOnA=
+	t=1790771152; cv=none; b=anfFm241TA8KgnJYm+yhmGGcfQwBNqmdIHJX+HxLEq2W+jNadOSlubSs+MnBpBtKXExXKAbVkuBlEtEYBzP8pjpdnDEhAT9Z9O4sj1PAywhw6+GZ0Q/bWD4xzBRDC542ejkzBB1wpdqRQimNI14iEqHjCEFm1Kb+yC6nwnnQH8k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790771151; c=relaxed/simple;
-	bh=6t+1fju1QcCn/QzBCtxih2PXY8NhAnL5DdIut+qiYKM=;
+	s=arc-20240116; t=1790771152; c=relaxed/simple;
+	bh=iOLR8/I2YGjnFUY2tvknBbiehfqpPJ29cnycTcH7WDs=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=E7IdyIdI5BZD9lEa42MbebSPiNfwGJVUHrXdNkHhZG28aRMkcWQRxbw31pZKS3MuMA3DRHI5bm7jysoHNgmZQxcS+L1oPiP31+2pQnCHTxNX5oWFZskbiBFeR734C+f/S9q5UwL/KCXuRyb9yE869evzJ2s4uzUm5jx3+DnuMCY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VgcPDxvf; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=gxW3onRHQPwTijiZLHiiCdE3mVGiA74ipVJXWwkzy2gn2HfwttH/PP0HFdCxgS7TBFESqHd2JLMbqPpXFCbEoNOko37jfzqPHlf0hVgfJ08uM5TfZztyz4bJLX1ntvYm7bacjnS//Hvezgs4yhVlvpOCxHPSZfcu8j12OTEh/Mw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=InONWIuP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VgcPDxvf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 738671F000FF;
-	Wed, 30 Sep 2026 12:25:50 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="InONWIuP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EA3D1F00893;
+	Wed, 30 Sep 2026 12:25:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790771150;
-	bh=6t+1fju1QcCn/QzBCtxih2PXY8NhAnL5DdIut+qiYKM=;
+	s=k20260515; t=1790771151;
+	bh=iOLR8/I2YGjnFUY2tvknBbiehfqpPJ29cnycTcH7WDs=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=VgcPDxvfNFlaUKVRnF2ClmqIQQBmONK7STNZz6SQqfAcHpF0Bwry5ATd/25U2K3Ia
-	 +C+sPC0LlYU7X0YGqbJB3jK9MvIfStArSf7n7NZWPFcd1qvAP1SwbVul3q1SnY/qpf
-	 vcoXW8dTlO1NDobGlbhBSJ1isTerkKRKfhW2byY5puY4srsPoo2/lFqZkhFPoAMjlB
-	 TQ/u1j6FVpi+jTfmsWoYs7lMuCS+/fVU1srTvzAU7w5VIPKbtfoQkVwVTtphX1KxL2
-	 1x3veMnQPBX2Eo1E/hM2j1i8HEnCcjygGeuj7Z002XlrugdQxFLcz4rEPRwTOF6dXx
-	 XmlK+0Q70ZMbw==
+	b=InONWIuP/ZPFdcEqiiN5QCK/NY/OhZw24dylTe9Vp8RvfrKAU2bFX6DGVcTBisbGA
+	 wVnAzAniaUap7DjV24MdjCfFFOzbEEKzTV7gE4+b9zDDw24zHYu8GWgv35RTYpgLUe
+	 ATUXMa621HUNDF9xUoi4tRT0KUoK+H5mBE4SnyIp9XAoSmhUQkngzTeXvGNzqWOhOz
+	 tZ7jV7qmTWYC86L7uEOKqRryyIip1D2sdP4Q3LvEy0D42jIT7G6ENXjE2/kD/Hr47F
+	 xEiZ56VCvYF+nSLQr4sNW/KN5LCwh/fXl9VoTFjPfJfMQwE4Mpj12u2o7dQXZ1/6+j
+	 POjyxairXTf7A==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net V2 1/4] net/mlx5e: ipsec: Block eswitch mode changes
- during policy creation
+Subject: Re: [PATCH net V2 3/4] net/mlx5e: Serialize TC and IPsec offload
+ exclusion counters
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Tariq Toukan" <tariqt@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260930121119.141953-2-tariqt@nvidia.com>
+In-Reply-To: <20260930121119.141953-4-tariqt@nvidia.com>
 References: <20260930121119.141953-1-tariqt@nvidia.com>
- <20260930121119.141953-2-tariqt@nvidia.com>
+ <20260930121119.141953-4-tariqt@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 30 Sep 2026 12:25:49 +0000
-Message-Id: <20260930122550.738671F000FF@smtp.kernel.org>
+Date: Wed, 30 Sep 2026 12:25:50 +0000
+Message-Id: <20260930122551.1EA3D1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -47,22 +47,25 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 > From: Cosmin Ratiu <cratiu@nvidia.com>
 >=20
-> Eswitch mode changes can tear down the IPsec context while policy
-> creation is accessing it. The mode-blocking reference acquired when
-> creating a flow table comes too late: the table lookup already accesses
-> the IPsec context before taking that reference.
+> The counters enforcing TC and IPsec packet offload mutual exclusion are
+> not consistently serialized. The IPsec add path conditionally takes the
+> eswitch write lock, but neither release path takes it. The TC add path
+> only holds the eswitch read lock, and devices without an eswitch cannot
+> rely on that lock at all.
 >=20
-> Block mode changes before checking the IPsec context and validating the
-> policy. Release the temporary reference after successful setup, when the
-> flow table holds its own reference, or after unwinding on failure.
+> Concurrent read-modify-write operations on the same counter can lose an
+> update. A stale nonzero count can keep rejecting offload requests after
+> the last user has gone, while an undercount can allow conflicting
+> offloads to coexist.
 >=20
-> Unfortunately, simply using mlx5_eswitch_block_mode() for this would
-> introduce a regression where:
-> 1. An offloaded inbound IPsec policy is added on the uplink.
-> 2. A TC flower rule is added on a VF representor.
-> [ ... ]
+> Move the counters into mdev->offload_block and protect all checks,
+> increments and decrements with a dedicated mutex. Keep the
+> opposing-counter check and reservation in the same critical section,
+> independent of eswitch availability. Initialize the lock for the core
+> device lifetime and add warnings for unbalanced releases.
 >=20
-> Fixes: a5b8ca9471d3 ("net/mlx5e: Add XFRM policy offload logic")
+> Fixes: c8e350e62fc5 ("net/mlx5e: Make TC and IPsec offloads mutually excl=
+usive on a netdev")
 > Signed-off-by: Cosmin Ratiu <cratiu@nvidia.com>
 > Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
 > Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
@@ -71,5 +74,5 @@ Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260930121119.1419=
-53-1-tariqt@nvidia.com?part=3D1
+53-1-tariqt@nvidia.com?part=3D3
 
