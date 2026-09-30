@@ -1,129 +1,122 @@
-Received: from mail-pj2-f40.google.com (mail-pj2-f40.google.com [74.125.227.168])
+Received: from mta0.migadu.com (out-173.mta0.migadu.com [91.218.175.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EC74509F06
-	for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 18:01:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.168
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3933F51A73A
+	for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 18:01:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790791306; cv=none; b=hRZ0mcltM1+0HBKTTGpS5W6suJy+k9hy03OP7GdL4eOquhUfHR7v1LWHfsrc2gaw1uhxa2PP8U8fZBmXxQmOUvx+0Zr0m6675qy9Jxtxq6kxkdTl8+lT9nC2Swoyy9L/9GOeM6o0Rv7aqJKwzn0LlAAP0O6MLvJvKaIFizAcFjI=
+	t=1790791310; cv=none; b=fm/KtqlbmPKFTofOcRcQ/H6lno1MH9lRjlwhhpd/XxhD5ff5/32ASzi4FvXfeXSCU3FuDbvnPCJ23ebScGfynXSahn25LhcmjECQ/Gm7zwO7CjRQx/OgEjjD3eu4jna9WGA3er+jvsQZFfLVol3z/Jm+RPACv93xOSaqxpzPeew=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790791306; c=relaxed/simple;
-	bh=C5hXqTxIv9SK8JGBiStM6GmrbVwOZhkqRFUv5QslzL8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=KtiKOZbQQUb66P9q9urTNPrYTdwNlrDkTLOkrUae7OGuwfdHk9+RDjcP16rFm3PmAqUwLRtk+uSR/sUEXQ2cpzGgb1uuDc7AKE+WI+g/XCe5kmD4/gQS66Y4A1AHi//NAv5a2SDI1wS1vQFfVhS80yj1gknGy9ZE2oipFeQYQJw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BrCXUBna; arc=none smtp.client-ip=74.125.227.168
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1790791310; c=relaxed/simple;
+	bh=LaDuJJ4IQZF7oRJyVtptW7GREYxvgyVocI0N3tPZEZc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=m+f4tUxpTwbgB5rh4dKQ9hY7/EWkWpOB7+wsfGMIsCy9fTD6qc3sfOdW7t2kgMA7RrUjuoqTxf7LnOk5LBZYgArkW1bj+Bnq2GVuBs5VIUwCxteZeZkSKCFbwQdSxVbbURDgnWTMJUlxW9RSJTIuhKvM183cjAt3fSaLJtK4r7M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=r7Y6G6VW; arc=none smtp.client-ip=91.218.175.173
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BrCXUBna"
-Received: by mail-pj2-f40.google.com with SMTP id 98e67ed59e1d1-3a0d2c37b0bso2256360a91.0
-        for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 11:01:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790791304; x=1791396104; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=krpNbmurRY3a2L4t3fOgccR8SuP9hcZirWdc5FPfbqc=;
-        b=BrCXUBnaneQneDYZ/X8NIGWZowKPMJ4MxqGFSbV/gQrWpyTtOZsFSZuCC+5hDTunMG
-         l++Cxn4lwJcU0sY3Jt0KXuiTrsHDkWc910t01FvzqVazVnrgUCC2BQUo5Ha1QzyXatTV
-         RAlttryip4+rZdBi4oCUp2pwy1rPqjvYYuVo1+Eukm7XmYnajQwlEtEI6Qh1vlGf/cDz
-         19uuXJC+BScooOVy9o8hDFqxjjA6CRI8T2hE47/7pjmmvVRLq8JH/0eGn9soNSS9BjVA
-         sW05c+TiYMnz3kS/Vfno3w2fYpoM8IsZnbkWtMbdNZQXRA5YND0TGkJ4BBFP3HjyqvZK
-         o7QQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790791304; x=1791396104;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=krpNbmurRY3a2L4t3fOgccR8SuP9hcZirWdc5FPfbqc=;
-        b=RVtLmn2D8X/8ZuDpywEyN+pyQfJlV7QmaZlRFezFb0egrrZUYL0J/lxRFbjqGQ2aYm
-         sETLAL92YpRDckWeZbRv/KTQguJN4kJ2GUIPvkU0yejFGURt1fbK37Q4P0klx3ZyqW11
-         iOl9Wq7QNfHB2zLPmGwRH79la19Rfobr8tVnnGewHxj4NH41UzWsMujRPgnXVjLCY6h/
-         5qyQWsloAXrJV3bBHLJQtz1ZYrDs4bEfW4lOF4nfiV+cpadEJrfeuSZKyUHBuOR4j9bz
-         GAqRxegP76jKLRnBJzPMUWgcNhEnhic+iXxKjX7+ok8Ey1jlK0AwhfCEAQwFCujmgnFT
-         5Asg==
-X-Gm-Message-State: AFq9FYKzm9fBnpt0Oti7lEwwQ5lXAqtHISf58t305YzDKEst3ET3hQO1
-	wqi8o+pVe1rFlmnntetdslqN6ZXiADWF0CVJ2FR8WBN6aCoVwg5i8CQPkTIHmQ==
-X-Gm-Gg: AYBFou0/c9lidX1Eoxp4eOat/tmY/hJc0/l17J8FCIRKfpEcO6kxqAt4w1kHZjCwzrC
-	2iqdVlBy1UWwgWuw4sBSeMQxaI6K97ZiyPpqzMLL+ZFXzfUnlFWTiGEkzdigEAZGNbFwkNWxsec
-	SUMw2kyMJznSOS3Dx7szdBX5/kmozxvJSlGewd6Rcz10ZqXWGISRr/iJyADCAWy/pOUHT7Z1a6e
-	i3l6bNCTzWhrXDFyiHDNFuSZQHS/jkXcU5aGhdpczLHmGJSyHsuqmVeAdGhNVJxjFqp8i8Ue1Jc
-	nufoo9r2+E839mP6+BIk61WMNbONMVB75FDQT+fGzBFgabnmtIY5iefBYpPqj93n4j6HJVpVo11
-	p+TaNkFkKf4WmrpCi1UKuLMz/uTJh/DxBxmrwhsMF3aXs/yyvXAyb56jFV4LWxqTm/ZOcVkuZ5B
-	3+0HyhqEqCtoEKHZBRSTo1QVaAY3K4fWguAB5SgwcXlFKnqGCVAMa9ULC8p4Z6gFy6bh+FhrvB3
-	0DbRc3qwQ==
-X-Received: by 2002:a17:90b:584d:b0:3a0:ace4:d2a9 with SMTP id 98e67ed59e1d1-3a4f7309dbcmr12886a91.64.1790791304007;
-        Wed, 30 Sep 2026 11:01:44 -0700 (PDT)
-Received: from localhost.localdomain ([112.171.72.75])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3a4f43a12c9sm501893a91.2.2026.09.30.11.01.42
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 30 Sep 2026 11:01:43 -0700 (PDT)
-From: Youngsung Ahn <ays511.kr@gmail.com>
-To: zyjzyj2000@gmail.com
-Cc: linux-rdma@vger.kernel.org,
-	security@kernel.org
-Subject: [PATCH] RDMA/rxe: validate cur_sge on the receive path before indexing dma->sge[]
-Date: Thu,  1 Oct 2026 03:01:19 +0900
-Message-ID: <20260930180119.2497360-1-ays511.kr@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="r7Y6G6VW"
+X-Envelope-To: linux-rdma@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=LaDuJJ4IQZF7oRJyVtptW7GREYxvgyVocI0N3tPZEZc=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1790791304; v=1; x=1791396104;
+ b=r7Y6G6VW0bFOjLPmTB22LyBZdlCqTkt/ueQhx5fFW/kZ9TDW9kdHTx79yPHuHOYY9w3O7RB3
+ Svn5ZnqBzhUDOQWyosmKS5AEM2yUe/6jAHaMTAYUpZ4/t5qy+eb8+lWoA+Bena3arK5699GK/Gt
+ Hmk3xh+QMNWAi0Z70XTYAeV8=
+X-Envelope-To: linux-rdma@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id 8be2cb23cbeaf301;
+	Wed, 30 Sep 2026 18:01:44 +0000
+X-Mizu-Trace-ID: 8be2cb23cbeaf301
+X-Migadu-Flow: FLOW_OUT
+Message-ID: <c4dcae63-b19a-41a7-9236-0dd9b7f95156@linux.dev>
+Date: Wed, 30 Sep 2026 11:01:41 -0700
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: RDMA/rxe: use-after-free of rxe_qp when destroy_qp proceeds with
+ a bound type-2 MW still holding a QP reference
+To: AYS <ays511.kr@gmail.com>, zyjzyj2000@gmail.com
+Cc: linux-rdma@vger.kernel.org, security@kernel.org
+References: <CAPAqSgZhfWXwrYh=OT8xta+mY00Fc-xhkc5HdP=qVvxUABnWnA@mail.gmail.com>
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
+In-Reply-To: <CAPAqSgZhfWXwrYh=OT8xta+mY00Fc-xhkc5HdP=qVvxUABnWnA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
-A user QP's receive queue is an mmap'd ring: the user provider
-writes the WQEs and post_recv does not touch them, so every field of
-struct rxe_recv_wqe is attacker controlled. When the responder takes
-a WQE it validates only dma.num_sge (rxe_get_recv_wqe() /
-get_srq_wqe()); dma.cur_sge, dma.sge_offset and dma.resid are copied
-into qp->resp.srq_wqe unchecked.
 
-copy_data() then uses cur_sge as an index immediately --
-	struct rxe_sge *sge = &dma->sge[dma->cur_sge];
--- and dereferences it (sge->length) before the in-loop
-"dma->cur_sge >= dma->num_sge" test, which only runs after the first
-sge++. cur_sge is a u32, so this reads far out of bounds of the
-RXE_MAX_SGE-entry dma->sge[] embedded in the kmalloc-2k struct
-rxe_qp: an information leak (the out-of-bounds sge->length is
-recoverable through the work-completion status) and a DoS. The send
-queue already got this check in
-commit 126c757e4cd4 ("RDMA/rxe: Validate num_sge/cur_sge before indexing wqe->dma.sge[]");
-the receive path did not.
+在 2026/9/30 9:49, AYS 写道:
+> Summary
+>    Component : drivers/infiniband/sw/rxe (Soft-RoCE)
+>    File/func : rxe_mw.c rxe_do_bind_mw() (takes the ref) and rxe_mw_cleanup()
+>                (uses it); rxe_qp.c rxe_qp_chk_destroy() (missing guard);
+>                rxe_pool.c __rxe_cleanup() (timeout path)
+>    Affected  : present in 7.3-rc4 (93f51579e7df). No commit touched
+>                drivers/infiniband/sw/rxe/ between 93f51579e7df and current
+>                master 551c722f4080 (2026-09-29) or rdma for-next, so
+> both are affected.
+>                (Distinct from ae36a5b6, which fixed a PD UAF on the rereg_mr
+>                path; this is a QP UAF on the destroy_qp path.)
+>    Config    : CONFIG_RDMA_RXE, CONFIG_INFINIBAND_USER_ACCESS
+>    Trigger   : local process able to open the rxe uverbs char device. One-time
+>                root setup; the trigger itself ran as uid 1000. IB_WR_BIND_MW is
+>                a local op, so no network/peer is needed.
+>    Primitive : use-after-free WRITE on a freed struct rxe_qp (kmalloc-2k): a 4B
+>                refcount_dec_and_test at offset 368, plus complete()/list work
+>                when it reaches zero.
+>    Found via : manual review. A reproducer exists and can be provided
+>                privately on request.
+>
+> Details
+>
+> A type-2 MW bind takes a reference on the QP:
+>
+> /* rxe_mw.c rxe_do_bind_mw() */
+> if (mw->ibmw.type == IB_MW_TYPE_2) {
+> rxe_get(qp);
+> mw->qp = qp;
+> }
+>
+> That reference is dropped only on IB_WR_LOCAL_INV (rxe_do_invalidate_mw()) or
+> when the MW itself is destroyed (rxe_mw_cleanup()). But destroy_qp does not
+> account for it: rxe_qp_chk_destroy() only refuses when qp->mcg_num != 0; it
+> does not check for bound type-2 MWs. So a QP with a live MW reference can be
+> torn down. __rxe_cleanup() then hits its -ETIMEDOUT path (the refcount has not
+> reached zero) and proceeds to free the QP anyway. Later, when the MW is
+> invalidated or deallocated, rxe_mw_cleanup() does rxe_put(mw->qp) on the freed
+> rxe_qp -- a refcount_dec_and_test write into freed memory, followed by
+> complete()/list manipulation if it hits zero.
+>
+> Reproduced on a KASAN x86-64 build of 7.3-rc4 as uid 1000: KASAN
+> slab-use-after-free write via rxe_mw_cleanup -> __rxe_put on the freed
+> struct rxe_qp. Deterministic (not a race): bind a type-2 MW to an RTS QP,
+> destroy the QP, then deallocate the MW.
+>
+> Suggested fix
+>
+> Make rxe_qp_chk_destroy() refuse (or defer) destruction while the QP still has
+> bound type-2 MWs, analogous to the existing qp->mcg_num guard -- e.g. track a
+> bound-MW count on the QP and fail destroy_qp with -EBUSY, or drop the MW's QP
+> reference before the QP is freed.
+>
+> I have not built/tested a patch; the Fixes: commit should be identified when
+> preparing one (introduced with type-2 MW support). A checkpatch-clean patch
+> can follow on request.
 
-Reject an out-of-range cur_sge in copy_data() before the first sge
-dereference. This also covers the send retry path and is harmless to
-the kernel ULP path, which always sets cur_sge = 0.
+I can not see the code snippet. Please resend this commit following the 
+kernel style in document/process.
 
-Fixes: 8700e3e7c485 ("Soft RoCE driver")
-Signed-off-by: Youngsung Ahn <ays511.kr@gmail.com>
----
-Notes (not part of the commit):
-Reproduced on a KASAN x86-64 build of 7.3-rc4 as uid 1000 (uverbs0 is 0666
-after a one-time "rdma link add"), cross-checked via the CQE-status bit
-oracle. Present unchanged in mainline 551c722f4080 (2026-09-29) and rdma
-for-next. Compile-tested (KASAN+RDMA_RXE), not runtime-tested. Found through
-manual review; per security-bugs.rst this is public and a reproducer can be
-shared on request.
+Thanks a lot.
 
- drivers/infiniband/sw/rxe/rxe_mr.c | 5 +++++
- 1 file changed, 5 insertions(+)
+Yanjun Zhu
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
-index 71d9ea477289..b9aff32fffad 100644
---- a/drivers/infiniband/sw/rxe/rxe_mr.c
-+++ b/drivers/infiniband/sw/rxe/rxe_mr.c
-@@ -437,6 +437,11 @@ int copy_data(
- 		goto err2;
- 	}
+> Signed-off-by: Youngsung Ahn <ays511.kr@gmail.com>
 
-+	if (unlikely(dma->cur_sge >= dma->num_sge)) {
-+		err = -EINVAL;
-+		goto err2;
-+	}
-+
- 	if (sge->length && (offset < sge->length)) {
- 		mr = lookup_mr(pd, access, sge->lkey, RXE_LOOKUP_LOCAL);
- 		if (!mr) {
---
-2.43.0
+-- 
+Best Regards,
+Yanjun.Zhu
+
