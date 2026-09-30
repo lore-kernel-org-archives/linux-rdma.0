@@ -1,68 +1,68 @@
-Received: from mail-pz2-f38.google.com (mail-pz2-f38.google.com [74.125.228.38])
+Received: from mail-pz2-f37.google.com (mail-pz2-f37.google.com [74.125.228.37])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC66C517BAF
-	for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 18:21:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.38
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D36C6502D5A
+	for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 18:22:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.37
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790792503; cv=none; b=qjnvNbnYzFmhdVYpVFEu3kzb6mpyCERzI5K26IBkjofB8p9lZvO/qRHeeQkvuXge+CO+oKEObAYmgIpYqUkWwOVrUZ0SR95GovOWHasg73T3DXQRSM4aLUZMt7B3eSN+skh/DjIwjWAD9sy0T3dO/LngqbNDV3bXdcpOuU33emo=
+	t=1790792543; cv=none; b=ARih9hMEJqU5unQqziRY4IjbMbyCznDmEPZADXmd6KwQjEOJntLHJm4YX4iTx3UDhh0BFBvdHWMCh0lVvuOAbm6kfkj7A1RrVn7RBJMrwVABsze2NDblCCjtmzvf8eOC/Q9cGZSgOFOyonkPZX5ZAKAzDrcxgHRgW4orVvkhXpQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790792503; c=relaxed/simple;
-	bh=5zQtacQbOiksM4CGUd4tB6BTdzzpQhy/dXDsAKvy5JE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=HnpGp0r2eQvYSKxz+/6Le+4rM2Be+tehSQRPeRRCbhf6ARJt9wr0O1jL7V4VBqyKz+YJSuxHDZ5CxnmwihssZMzZFjVp+X/6FsdtWtjC1G7v3CmDDX+FLHWsasSLb+U13IKFafKHzu73sHcT4eIK6fY4jsCuXIyAWAIL0drmlZM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TgxMRljF; arc=none smtp.client-ip=74.125.228.38
+	s=arc-20240116; t=1790792543; c=relaxed/simple;
+	bh=ut3nHIqBlKs1IAZr5S8LtmDedrCb8RgLEJKEm8OOk5w=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=HmnxGq6hjkA6Vl5R8uuTrDyhudhAaSrByb2zj/FCuQEV/lzYaYKnW8N9vC0Q9497VQoiBWWFMeHLqn+dLgatAwsrjhsyeoelg+S2/SXpGNd+8zqj1Dv43V1NXV9QMGJ2Hw5TVms+R0Qdiqybueop1Kwrloj7WaehdAXVKkooaFs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Ac4i0cIN; arc=none smtp.client-ip=74.125.228.37
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TgxMRljF"
-Received: by mail-pz2-f38.google.com with SMTP id 41be03b00d2f7-cc7a15ba46fso1736615a12.2
-        for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 11:21:41 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Ac4i0cIN"
+Received: by mail-pz2-f37.google.com with SMTP id d2e1a72fcca58-887ba76d5afso344255b3a.2
+        for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 11:22:21 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790792501; x=1791397301; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1790792541; x=1791397341; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=hHa7/Q/9hFlruvaLMggKwDfk7K0CDlBA1+Zf5zo6bgo=;
-        b=TgxMRljFH/SM+fI1gjmkwUyAbOO2WcruyEph/roOmH+tQVqo1i8MJmJvGoDMhHuGPf
-         lQAXGKczIzyTlAJoOFl9jn433eZ8pwmSBhsBrem1Le/7ixBG0tpiX/sTYz+zTJXMWmil
-         SNuD1/ulM7TabA81/OCvGOHXThC0NXo+Do369a45IoKnjYVzILCC/rqvhHRB+ooEl/A+
-         XE1M5iUceNPAMc/o2rwHAnJE4aj7k6WjVF6eV+7SUY25lv2Lf7WlSKZX4xGwAXRGBdAe
-         anJfZ4b045yFvRfdqU3h1s4LUFmewzx+C53AuvhipsoKarHFmvx5hZIjs9qwXTqsjfxz
-         sN8g==
+        bh=QhTtoP8r7vND87YUZYcyNOk3w86T2QGWKplD2Y24uZA=;
+        b=Ac4i0cINfstATlqdul1zvOSiXshg9+IS1IGlunJE/6bchAvugAvk/Km5CbdUX4Kf79
+         lv0SIAZb1UKGxWuq/pJFuCjJ2qfkfne1y8i1mnGHcyk9BkQ5BRFV/aLmAtASbQH/QGRm
+         kT66Ibft06EDouuH+2eMqbC/T8X7yB6yQRmcIOOa/1KZR6XcQ06GoqiKDdOnS1isl5EP
+         wPD2QBYDU1sP+7OfqZIXwNwaSP0KLGxNX3yBoGGA2CYvlCeVwZpWv/VJuqCwIEt5YPRg
+         PSpBZHjg7gc1CvvzB9pScLi2eiJnYqhSzxroIa+l3bacEBT+a36wwRT7V2xmyihA/Xj1
+         gcXg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790792501; x=1791397301;
+        d=1e100.net; s=20260707; t=1790792541; x=1791397341;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=hHa7/Q/9hFlruvaLMggKwDfk7K0CDlBA1+Zf5zo6bgo=;
-        b=2GiE5YIQVsP3L43LFB4N9BIS5Sz0usYRxMWj6tSC9Gf5+0mgfKEywHTEDiiVemGq19
-         2fFYmlgLUNQOHqMzvqZ8uGL/YkAciiUyWhLMNMH+ee9E2ERQu4FhsLLHSTcFHG62mUO9
-         yWX5yFZSEfh5mEcXVgMImlQvd910a7/zP3Y+xxb5c6s3Bcl6/B7kuaqaC5GhNCeliRmo
-         j4NIwzbHaeqRKa7wFl7bVQuypknWdfPMNgPNPUP4jsO5Z87hXG6MIp3kKf+1iqu5Z1z+
-         9IyonBoLjjTb9JuRMLg3oU25AC4OMgnZGzYdWbKK5lVUevATRYILOZEX/X0TEaarHmlr
-         mQhg==
-X-Gm-Message-State: AFuF++k1gV89MFI+XC/3pvKl2jtThrNbrdEpH3cGxIEHaQq5+IUqsGMO
-	6pDz6oP/shL0DCSVcbepvLX/26d9UPsq27zBnV6032OcRuHJfLu0LmuM
-X-Gm-Gg: AYBFou1oNrMC7ZpehDlxrx/oaTKNMxFnfLd0AKStfaEHi35DeO6xALEfaBjhQVFIQUw
-	5vFTAZaNyB3wOyGhIxCXBn7+bugmWQhLrw84zq3LUv6SidSAHx0ltGV8L9lXvWGU995nMlS/mdF
-	1U9vS3vzEAF4ljKYtK/FjszMJ0Fv9QRsmF7LZT84DJDxkcGKXQkakOeRwavzy8hRrNJsXetpQG1
-	g3Dt8z3/5DdkiOoZUb0DX0RXY9JNjkrl3WlYUOwab1CRc1zhJzcAExUmB+EVbv49z7wq5jF5h9l
-	osn9+ekUs4zyIeXQmiY1b2t3eIXB+3cTaNyWF/2vHc8j0MQCGA8SltjwCTvbeYp2EjV9vmdsxDJ
-	5hHgxcvZ621x+I8wa4tnSTGeJoMCPsPdc+3gMW2Ozqll36BLTQIdsRNKCsEGvUHiI0Ya7AVwlde
-	GWyFWQgnURwlZhLkn7MkEbl5da5JDuFTb5c0ZKOql0deBbROJ03JodNfx4ygr/8pEBcsRIGotUY
-	Swk2OIitg==
-X-Received: by 2002:a05:6a21:6e96:b0:3de:7dd6:ff9d with SMTP id adf61e73a8af0-3de9e7b3784mr2257718637.43.1790792501147;
-        Wed, 30 Sep 2026 11:21:41 -0700 (PDT)
+        bh=QhTtoP8r7vND87YUZYcyNOk3w86T2QGWKplD2Y24uZA=;
+        b=bVmOn9v/875swH5NKOEzs//SVdwPnN1gNUImRmhBLQkGcn87o3yAjNmh4pdmxqiwD9
+         vIB4LNiBqRbSmeJvdMGvAPKLPxXxmpqn4JpdcRtrjUCUIV0xZsQBBlb6woy8NSCtfi8f
+         2h/6sVMI0682V1QVEBMHlv0/tpLhxTqKh66gJ/AbDYU2ya2B0XaGXcHsO/dkyNgez4sn
+         DM7At0l0B6yeXtkzmVSWfrc4ea9btzzH+ZwmfVqKqtDituFORMZ3FHnv4588PXb84pMy
+         VPB2DElw9qGOxIB+dJ3Pql+1Ezx3/19dgImjhLS8ufDg61iMkYiFNmFVR3s3d9vtI8BX
+         F0MA==
+X-Gm-Message-State: AFuF++mrAXzY7ExBAHqU41JTgNu4PTvPIRrSNRh/22zVHV03D+L2LCoz
+	EnAAfIouQGEYk0RSQjnrTe/2b0s2q27IaLcGCiXdeGNPKI5CbSfELJTe
+X-Gm-Gg: AYBFou1O6iCgQTGfKxxohxRl8cgNQmnoKB2GYCTr3mr0189uEawe/H5GBnXAK2qKWrA
+	Gf02O+N0eZBYQ2bATIR4MhhDNJjiE96plcfdGIvbZ5komc2WUF2mxEEf/Lo5WVjGxcZJIpNsNuZ
+	Ar6jBQnSRlcznyNKYr9gqo1/9Z88R/+BkesQq5ez77yDE1YZ2W5lSm3Ums1+T/G9FheCPKTbc59
+	62fnejTaEZRFRQj4aC9vEUKC/bC/csPtFZU+N7aCGGb39jSv+dP62ga7y3JjSTcNq/xe4KB23aZ
+	nQ/sMFH0LTHMM1/cnxeVsCMpZbH24u6/wWaYtSEzJwBr06apHjrZImZ4+viIhT1cNzTPr4M5sng
+	kro2VoQSqhe+QUzkeRhUVDnr434gWJbIx5cejy57tsdkdgE4nmgdhtuqckPPh+knF7h9+BJP+31
+	2dotCcxnrn1BsFHNB7ShOt7xQtncofL9x4n+i5/1IhStKVfr/rZomMG8oFaZ+knckwi2K5RntlV
+	9wsRQYtdw==
+X-Received: by 2002:a05:6a21:7a86:b0:3dd:a196:906e with SMTP id adf61e73a8af0-3de9e814080mr2110792637.56.1790792541188;
+        Wed, 30 Sep 2026 11:22:21 -0700 (PDT)
 Received: from localhost.localdomain ([112.171.72.75])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-88818fe3eedsm36659b3a.32.2026.09.30.11.21.39
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-888158991a0sm49869b3a.2.2026.09.30.11.22.19
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 30 Sep 2026 11:21:40 -0700 (PDT)
+        Wed, 30 Sep 2026 11:22:20 -0700 (PDT)
 From: Youngsung Ahn <ays511.kr@gmail.com>
 To: zyjzyj2000@gmail.com
 Cc: linux-rdma@vger.kernel.org,
 	security@kernel.org
-Subject: [PATCH] RDMA/rxe: reject IB_WR_REG_MR from user QPs in rxe_reg_fast_mr()
-Date: Thu,  1 Oct 2026 03:21:26 +0900
-Message-ID: <20260930182126.2510559-1-ays511.kr@gmail.com>
+Subject: [PATCH] RDMA/rxe: validate inline sge_offset in finish_packet() before indexing inline_data[]
+Date: Thu,  1 Oct 2026 03:22:16 +0900
+Message-ID: <20260930182216.2510953-1-ays511.kr@gmail.com>
 X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -72,58 +72,58 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-IB_WR_REG_MR is documented as kernel-only ("can not be issued by
-userspace"), but nothing enforces it.
-rxe_wr_opcode_info[IB_WR_REG_MR] sets WR_LOCAL_OP_MASK for IB_QPT_RC,
-a QP type userspace can create, so a user QP that writes
-opcode = IB_WR_REG_MR into its mmap'd SQ ring reaches
-rxe_do_local_ops() -> rxe_reg_fast_mr(). That function then trusts
-the ring-supplied fields:
+For a user QP, rxe_post_send() takes the qp->is_user branch and
+never runs init_send_wqe(), so
+dma.length/resid/num_sge/cur_sge/sge_offset all come straight from
+the mmap'd SQ ring. In the inline send path finish_packet() uses
+sge_offset directly as an index:
 
-	struct rxe_mr *mr = to_rmr(wqe->wr.wr.reg.mr);
-	...
-	if (unlikely(mr->state != RXE_MR_STATE_FREE))    /* deref */
-	...
-	mr->access = access;                             /* write */
+	u8 *tmp = &wqe->dma.inline_data[wqe->dma.sge_offset];
+	memcpy(payload_addr(pkt), tmp, payload);
 
-For a user QP wqe->wr.wr.reg.mr is a fully attacker-chosen pointer,
-so this is an arbitrary-kernel-address dereference (arbitrary read
-confirmed, oops). No existing check distinguishes a user QP on this
-path.
+inline_data is a flex array whose capacity is qp->sq.max_inline, but
+sge_offset is a u32 from user space, so the source pointer is
+displaced arbitrarily past the WQE and the memcpy reads out of
+bounds.
+commit 126c757e4cd4 ("RDMA/rxe: Validate num_sge/cur_sge before indexing wqe->dma.sge[]")
+added num_sge/cur_sge checks on the send path but not sge_offset, the
+third attacker-controlled index in the same struct.
 
-Reject IB_WR_REG_MR for user QPs before dereferencing the supplied
-pointer.
+Bound sge_offset (and the payload that follows it) by
+qp->sq.max_inline before the copy.
 
 Fixes: 8700e3e7c485 ("Soft RoCE driver")
 Signed-off-by: Youngsung Ahn <ays511.kr@gmail.com>
 ---
 Notes (not part of the commit):
-Reproduced on 7.3-rc4 as uid 1000 (arbitrary-address read dereference / oops).
-Present unchanged in mainline 551c722f4080 (2026-09-29) and rdma for-next;
-note that commit 2dac7006b9fb ("RDMA/rxe: Reject IB_ACCESS_ON_DEMAND changes
-after MR creation") recently touched this function for the ACCESS_ON_DEMAND
-flag but left the pointer dereference in place. Compile-tested (KASAN+RDMA_RXE),
+Reproduced on 7.3-rc4 as uid 1000: "BUG: unable to handle page fault ...
+memcpy+0xc/0x30" from rxe_requester, 4/4. Present unchanged in mainline
+551c722f4080 (2026-09-29) and rdma for-next. Compile-tested (KASAN+RDMA_RXE),
 not runtime-tested. Found through manual review; per security-bugs.rst this is
-public and a reproducer can be shared on request. The Fixes: tag should be
-refined to the commit that added rxe_reg_fast_mr() when preparing for merge.
+public and a reproducer can be shared on request.
 
- drivers/infiniband/sw/rxe/rxe_mr.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/infiniband/sw/rxe/rxe_req.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
-index 71d9ea477289..3a914c243829 100644
---- a/drivers/infiniband/sw/rxe/rxe_mr.c
-+++ b/drivers/infiniband/sw/rxe/rxe_mr.c
-@@ -777,6 +777,10 @@ int rxe_reg_fast_mr(struct rxe_qp *qp, struct rxe_send_wqe *wqe)
- 	u32 key = wqe->wr.wr.reg.key;
- 	u32 access = wqe->wr.wr.reg.access;
+diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+index 24f5c044363f..06e24d818075 100644
+--- a/drivers/infiniband/sw/rxe/rxe_req.c
++++ b/drivers/infiniband/sw/rxe/rxe_req.c
+@@ -510,7 +510,14 @@ static int finish_packet(struct rxe_qp *qp, struct rxe_av *av,
 
-+	/* IB_WR_REG_MR is a kernel-only op; a user QP must not reach here. */
-+	if (qp->is_user)
-+		return -EOPNOTSUPP;
+ 	if (pkt->mask & RXE_WRITE_OR_SEND_MASK) {
+ 		if (wqe->wr.send_flags & IB_SEND_INLINE) {
+-			u8 *tmp = &wqe->dma.inline_data[wqe->dma.sge_offset];
++			u8 *tmp;
 +
- 	/* user can only register MR in free state */
- 	if (unlikely(mr->state != RXE_MR_STATE_FREE)) {
- 		rxe_dbg_mr(mr, "mr->lkey = 0x%x not free\n", mr->lkey);
++			if (unlikely(wqe->dma.sge_offset > (u32)qp->sq.max_inline ||
++				     payload > (u32)qp->sq.max_inline -
++					       wqe->dma.sge_offset))
++				return -EINVAL;
++
++			tmp = &wqe->dma.inline_data[wqe->dma.sge_offset];
+
+ 			memcpy(payload_addr(pkt), tmp, payload);
+
 --
 2.43.0
