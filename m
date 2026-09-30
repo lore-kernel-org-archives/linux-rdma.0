@@ -1,68 +1,68 @@
-Received: from DM1PR04CU001.outbound.protection.outlook.com (mail-centralusazon11010024.outbound.protection.outlook.com [52.101.61.24])
+Received: from DM5PR21CU001.outbound.protection.outlook.com (mail-centralusazon11011064.outbound.protection.outlook.com [52.101.62.64])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B89784CDDE6;
-	Wed, 30 Sep 2026 11:44:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.61.24
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 528A34C900C;
+	Wed, 30 Sep 2026 11:44:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.62.64
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790768675; cv=fail; b=j+IfkLcOpT7wkZYn0NmVA83/73+Q5fzlvIVu1x4XZLBJvQtqg9GsHsYsQojFdcUVyOrbhXqDUMkUYnfFslE+k0z3lCKLs6V3ug9N9fIt2+Wc3ZLNUYk8HT7MpVWiGdEYfiutlFYIorVvNhljmtqrTn4oP5X17HrYkMH0YqG5I/Q=
+	t=1790768679; cv=fail; b=Pw/ZJA4+hBCq0Wgb3He14EJc7/83Lw/u5VWB3j+6SU4OD0lwkdOBIN4oMhE3qgJt1HThAoTNyHLkqXXjRNGAblVlZBS2Fh65uYbvqf9jI6nSXnXdmuG88s9hfRma6W6p4E/m0Tcms0x5pL9sAcPPvWwf8+qbT2gupwPtj13ty/E=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790768675; c=relaxed/simple;
-	bh=yt755kuL8FcjqShJ6s3SOM9FRjJpyDgboPapq7AIsQI=;
+	s=arc-20240116; t=1790768679; c=relaxed/simple;
+	bh=9RMgfcyDynZ8D4t1hmGUIVJEe8Zq3PDmArYJY+y6qSI=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=nUsLTVFBHDaVZNklOsA57QlMEqryPl3JlieTPMczjmDLsWUnwhIysOt0nj18moWCZyImQlzY6iH7CU0n3vSVh58NTo8f03LlRcYffY6F5AOpPpb+oxTCTtR4kXvRjOTEOV3/4z6NI/trgIJHgOwmXfwx/X7h2L0919ayeqfki2U=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=dj2D1y/r; arc=fail smtp.client-ip=52.101.61.24
+	 MIME-Version:Content-Type; b=TV5th+yiqQkb+yosNt7H1tHkAqzw8nBjpm1WlvPDaVc2M//9ZzM1iyUrlIIdxcFbiNnp7k1dIzE2rrClKj4ePG9hdm0JA7IImjTwLNlQhHIriLrpnFzC7SV7M42QrKHQmQosFHRWBY3NcTzgParSDvyVB8O/bXqlYu3vTLfFrmo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=PHRujCyu; arc=fail smtp.client-ip=52.101.62.64
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="dj2D1y/r"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="PHRujCyu"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=sRig6NpNgv0/zNDvsoNh0Yy18BiFnYRiua8BEzSMN6lfNCJEWsU4sW2h7/z3eGeJt++zWjs1NH+vUJ62K4miPmoyst1IJ5tWEGDSNiU+iUEEksGS8rLbdaDXxO18PUVGuAgLo94096kW5POrDAJcGACfuuvDbiDobFEf0+8A7jZpWtwsRJqw0A4kIEyuKb6T6/9YQuOTmLfvzCPWjqi99aTru5clLKQ7PQUSgxL1tCWtig4w9Yr+I4KSJRFqU/ks6vjtdTPX+I2jYHpXE9RBmECxQbvGsDNEc/6vH/MNRNolpXfbo1x31AjcsP6xtlw9ZEaTU5SRtjwrhmQPZZcCpQ==
+ b=jxo9hYzu518c1ijkfNPBszheEftaVVyJnzrqHccLiMikguFm64Q0tKsLt7/vobDOryYdcqERuOEiM/4/RmOk+WZvrOqyB5XKBqEod5Mu6Lzy/mq+YS82ZDzdSSW9mwpWCOWS8XnUsWcX4OZtwALvCGKhzepOo8pFG33vSCnyFGda/vWbO+OpaSxzV96kXg9l7tfTdkmpuVq8qb8tRsgooY+RbKzx4N1D2w4OfgWsedhV8zsGvEHiNI0tb/NX22s41NzayHNBiOOro3cfS4O91Ud7vaSWxRGGGd9WWTONZEWfDSXYXPBAt5hggAMqSjARKOdIDphUcQlLhxxI6LQUNA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=kzNQOwtkkxQ1LVr1fx12U0+ureprU7rs37hSA+arXHQ=;
- b=igUg00bSpJRF1IJwXJ8cVVPuFGUWn8A+A9fRdI7qG0nzvdUpGaDfLUGhqsDgO1OBeuRFf1v9FJYVkXgXuO1l6YdFPk7G2wpM+8SaeGX990DcJRy2jQG2dxyty7IMivX2s1+rWk2oZUgj1ORoqmoG/k10E69impzO1Axi1tobCkMk/Ro8ZqFlL2GY8lV7Yn94ziOPaSS5k5KeTrOBE0zoSO2mbNahoaOxzKlwNolFOhuzeK/UDy5Rfniglnl/g7yjRI10dPd9LKbmVwI87WQMQ0LMRmN/i0ERF2eTNFfOr0A/Jz8+N8bnoxMMbiuFBJVOtgsk7S6NTIktwIiJMsbUfw==
+ bh=Sj1tBwBLpd7EXHh2/Dr5BGbzkJYhIsCo3MnaicyEOiM=;
+ b=V1D6c9E6hGYzPqO6kN5rqWRX7w700ByL8kuMEuXmCTKXm3+us0PLjrUKhRkXN/RlYn9MQDiY7hHgx+yo3QMNS/oH0r9lL7v8oq8/dgbYMWvzRdcCHQV2P4NzDUwVcXad8liP+AB1o6Tqj6M0S+3HlhueW0x5P3MWaJC84dRw31KYFJD43mNGo3n8WONrsDyx5F2L5RwDdYQbxc3SBeRAGMKD70I8yQSxXRH8uxmPoJg27PVDCRcaeUBOLWa2I5Zt/d+yvsBQit2igkPaSod7peM8DqdMSS8ieWlhjNMx56fnYHTThQHg81P2EGVJu6QPhmozEJm2MKqNB/Ts43Vb3g==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.160) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
+ 216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=kzNQOwtkkxQ1LVr1fx12U0+ureprU7rs37hSA+arXHQ=;
- b=dj2D1y/rkB33SMsUOiFiKYhsa7NTeNnKb+X5OtvqG8Ck+NSWDZHOx1whxFT4HrNh+yh0Bjq48l3iQ4n0KPMGB3AR4mZxvTacNnO1Ce6/UkZQDio2a4/nG5Gb+wwFLbkznku4hKooHdgwdyjhlzO5yO4ZtPYM2RptZ1q5N29nMexf//f1S4RekU2revxI4zcWhGmlfwrKhDvXINOAKux+S5KFfVIrAokcdy7wXKt6ptR0NmkczoCiI0aasvKNNEMKpUMwpH4HFLQ9bJJXcyOIv4jumslt0qUEI/oPnkSAki5xeEdWHMjpq8vm58Ltb9WlHj75bScpquBkDiS8fQPE7A==
-Received: from CH2PR17CA0022.namprd17.prod.outlook.com (2603:10b6:610:53::32)
- by MW3PR12MB4492.namprd12.prod.outlook.com (2603:10b6:303:57::10) with
+ bh=Sj1tBwBLpd7EXHh2/Dr5BGbzkJYhIsCo3MnaicyEOiM=;
+ b=PHRujCyuTxJW9SWLsBc+W7Vw2hpWDyWMHg+j5ygGNkuuG3Aup0h1shyzZ0nlI44EOfQ7agToWTRrTCcM22CbQnbGJ/tSbC+SQyVnydQkjv1gIr9RouHTgDvd8JVKRMPzSPdhBmMwYrPG6obxdB7Zwd2lsoguO/gcq9HEw2w1f6uYB5AJdfR6jcFYTVk0JGQkGKIh7uFboVmUD54Slk0rePNhbH7WZKSROa+5M0A1H+cRdlzW2cEHpotBazFntTlr4XiSIGYGK8X/89Hl5OJwMXaLpLEycL6R2wR4YFzJ5KPwNY4FcYW2gaW4U0s5s437kQDnOreTU7OwQDjsJuajrQ==
+Received: from BN0PR08CA0017.namprd08.prod.outlook.com (2603:10b6:408:142::24)
+ by DM6PR12MB4452.namprd12.prod.outlook.com (2603:10b6:5:2a4::17) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.472.15; Wed, 30 Sep
- 2026 11:44:21 +0000
-Received: from CH1PEPF0000AD7C.namprd04.prod.outlook.com
- (2603:10b6:610:53:cafe::5c) by CH2PR17CA0022.outlook.office365.com
- (2603:10b6:610:53::32) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.451.23; Wed, 30 Sep
+ 2026 11:44:04 +0000
+Received: from BL6PEPF00020E61.namprd04.prod.outlook.com
+ (2603:10b6:408:142:cafe::74) by BN0PR08CA0017.outlook.office365.com
+ (2603:10b6:408:142::24) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.21.472.14 via Frontend Transport; Wed,
- 30 Sep 2026 11:44:21 +0000
+ 30 Sep 2026 11:44:04 +0000
 X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
- is 216.228.117.160) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ is 216.228.117.161) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.160) by
- CH1PEPF0000AD7C.mail.protection.outlook.com (10.167.244.84) with Microsoft
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ BL6PEPF00020E61.mail.protection.outlook.com (10.167.249.22) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.472.14 via Frontend Transport; Wed, 30 Sep 2026 11:44:21 +0000
-Received: from rnnvmail202.nvidia.com (10.129.68.7) by mail.nvidia.com
- (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
+ 15.21.472.14 via Frontend Transport; Wed, 30 Sep 2026 11:44:04 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Wed, 30 Sep
- 2026 04:44:07 -0700
-Received: from rnnvmail204.nvidia.com (10.129.68.6) by rnnvmail202.nvidia.com
- (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
+ 2026 04:43:48 -0700
+Received: from rnnvmail204.nvidia.com (10.129.68.6) by rnnvmail201.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Wed, 30 Sep
- 2026 04:44:07 -0700
+ 2026 04:43:48 -0700
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.6)
  with Microsoft SMTP Server id 15.2.2562.49 via Frontend Transport; Wed, 30
- Sep 2026 04:44:03 -0700
+ Sep 2026 04:43:44 -0700
 From: Tariq Toukan <tariqt@nvidia.com>
 To: Leon Romanovsky <leon@kernel.org>, <linux-rdma@vger.kernel.org>, "Mark
  Bloch" <mbloch@nvidia.com>, <netdev@vger.kernel.org>, Saeed Mahameed
@@ -73,9 +73,9 @@ CC: Andrew Lunn <andrew+netdev@lunn.ch>, Cosmin Ratiu <cratiu@nvidia.com>,
 	<gal@nvidia.com>, Jakub Kicinski <kuba@kernel.org>, Jason Gunthorpe
 	<jgg@ziepe.ca>, Leon Romanovsky <leonro@nvidia.com>, open list
 	<linux-kernel@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>
-Subject: [PATCH mlx5-next V2 09/10] RDMA/mlx5: Pull data_direct resource creation in init phase
-Date: Wed, 30 Sep 2026 14:42:26 +0300
-Message-ID: <20260930114227.139274-10-tariqt@nvidia.com>
+Subject: [PATCH mlx5-next V2 05/10] RDMA/mlx5: Move and rename data direct resource functions
+Date: Wed, 30 Sep 2026 14:42:22 +0300
+Message-ID: <20260930114227.139274-6-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.44.0
 In-Reply-To: <20260930114227.139274-1-tariqt@nvidia.com>
 References: <20260930114227.139274-1-tariqt@nvidia.com>
@@ -90,160 +90,312 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH1PEPF0000AD7C:EE_|MW3PR12MB4492:EE_
-X-MS-Office365-Filtering-Correlation-Id: eb372382-f9b0-4fc2-f780-08df1ee82b21
+X-MS-TrafficTypeDiagnostic: BL6PEPF00020E61:EE_|DM6PR12MB4452:EE_
+X-MS-Office365-Filtering-Correlation-Id: 152d863d-b92e-477a-71d5-08df1ee820f4
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|82310400026|36860700016|1800799024|7416014|376014|6133799003|10067099003|56012099006|11063799006|18002099003|22082099003;
+	BCL:0;ARA:13230040|36860700016|82310400026|1800799024|23010399003|376014|7416014|10067099003|11063799006|56012099006|6133799003|18002099003|22082099003;
 X-Microsoft-Antispam-Message-Info:
-	WIW4MMNKpGGe93GztiRjrE2wXn0Fy1zp39jLwK1FBaMEUizw++e+aKKnWAeiveZovG/SPoP8zFNEhF+iZKXnMcUI1ErJ6Ss3W2qLwJ3CYVJrqNgE+NcCLBDaXHFN4Em1j+Gnf1UbjsGD7Rd5ViefT33bOyL+UpGTuAdc6HSo4EKzPzrCBRmd1yIcOtzLVYT7SyrW9Hi3QKxf7T168mkl7UMPnF6F4F7H0th8LNIDBv0otpKuU/3Oj+tESmhHcCWTBq/eKr02wp0ACGukUFGOFH+aQd5Gczfw/S2pVForbEp8sZ2RCNiPI2k5FRTbHeE7WWMSCPzVK7GZkkPdx92HVbItu/fI8XeZ1OmLRjGb36xFlRZDpVfY3s5O5E9PREiqFl12WoJBrQYLpAfb9fZ2g/hP1Voz0tbQkOyHH0yvEhrcNvCBVXr7tWZwIuG14f3nzGMmUtMt+j38seaNokcj5g93ecaXzjypUgygixit33+q5/CrO2AX7kYET6wHXZSUYbGRLMz2zkK5gJ484PPxt3oIiq+59GdCUkdWf1csnV3mYX58p+hXp+cGjKRLG+T+guYW4LpsCUelkQz4nv6igcfBzDHogA538cA//O9Du8FZzsxH2KjWCzHnOhy0IQ65Jn1r6l/4I885oAr5BTvadNEbvDeyL8K6baQA9CxYtDG6CZFCPMvOq2Nt+/z8Ow4wMN+LTrI8pSrdTKAYY0Dc9w==
+	oOY5ANzL/MasRT+0Mxt726AYnvgI36+oYJYkEIajaNmeE5ZLRLZp9P8+dFkgouM4i4j/7n3iM3cu9fPi0UT3zLxW26BXgwvl9xplhfO+Ipp4MleduNJkaErHh6ClmZHZfQGmcTCZiIzPBCfXigSqCqqYRqrdLXd0dYbUhLfvobI2Djp4nXhwGuYUQ9Z7Z6Rf4lxOS6FGfjtBsqxgMuxHhewbmambw4UyLdYs1AdmawNiezH7MkLgv+3Ln0Ujy0yk6BkIA6vtvL3ekZERvJbNcz1Fn5LfhQsxIMBsq9XaREw7mOJWZaS9vHIUoM7xreiNp5WN+P7AnJQZD76FsA8cZ+4yrKQm4TBmLvJvF+jWS+Lcz5khEIdvuq6OXmbXc7vFj/yBaae2KIDABLOG72k93ccoDrA6LAlxhK5aiqX0fFy82eZ9DVbSsM1g12BpSuRifgLtWXHYIqM97L4u3lPYsVqVKWmrGwuWrT163COCh/3ggBXOwY+563GYlV4As/BabmwqTXfrIhO8GgUK0+sjgzeK7a67eM/2X+48MCfRqt+PgNgH3vEFr8rTmOg1wQxNc8cL7hNBC/h9povr1+CcDieC2nX/z42jaMNjBABxkDigLWhqxm2fUaAORJUz/2F3Mi/7oJ0xpqA5RvDe2ZF6Ya9kF5LxUzuaWTAwlu6BwUKn6Bd0BLyu6nP3cL7T2OLVN+859A50s+GYCzHP6XhcwA==
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(82310400026)(36860700016)(1800799024)(7416014)(376014)(6133799003)(10067099003)(56012099006)(11063799006)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(82310400026)(1800799024)(23010399003)(376014)(7416014)(10067099003)(11063799006)(56012099006)(6133799003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	rPpoKbJ8yG6EtDnZTQdY2h85eoQW6hMJEDGx76aZS3j2BB+szObCdrM41Oe9KSIm5HBPmmtIt5N1CANmoHFWx2/fJ6f9BDuTXVpmDEySfX0NTDyOe4hW5g+BPYARkTfyEVT+KknO2aC3kpacUUTrG6dkDADP1LWcujET9tGhTsaKmPB/141kso/Hvlk18Y5yLKoFwPOJNecaptga0nfwP6JTsZ8EZMe3bWFQR7steqjw0qOXFk4+iggUl165ffOrMwlju2Boax2zZg0yayW78oV+H6QHATJjQUYWNycoLSZPMlI+gG7WXECZcQ0GcqCaesps1dumPSOD2BuI488STvoKGAH/1jvoeumTjWbwnLl1Y2OkHIFzQ8QFFsSvob6sY0OkiJclI5aAYS3OmbCT8w4oQC24VpNhwsZKTZe8FGvqKVIxiH/pcKOzzivlq2aE
+	W2Fzgxy9qykh4fzEm3oQMtwKXrdDQSYRn7mDCKiZIa305RO9XaawbHpwzgE2C1G+Ds5LPPO/W10bZVn/dKtJkDIczfhI2zOaN2wo+4KPvZRaa2V/8aoXVYhBP6Tmo1F78GKh55QSzXHjsHbaalQRNaZIxDXA4W+bWgYfVXpV9ZGSbrcQXNIJGVNeerpC1x5yGCqVm4WpDyeUrE0A977cQNVaoy9HP1i9aoqJHiECkBzqTVNJfCvEV/GyAw/N5zjWJDcfmrRYueapWTWNmineWNf0ZFDJ9UdbfjRd30MUwVPNRya6YOPtKO5GoOAAlZaG3iZSCE/m10CpIh4bcyk8l60V1a3yDVqyTg1Ag2ZGm1j4OKAC8F13ZOPtvL+QGGCGr+KQYHRXZx4XJNAXuoNZqjcmAoX2Sy+uaJqd+nlyjJFzjY2XCCugJg248S672Lal
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Sep 2026 11:44:21.3514
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Sep 2026 11:44:04.2110
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: eb372382-f9b0-4fc2-f780-08df1ee82b21
+X-MS-Exchange-CrossTenant-Network-Message-Id: 152d863d-b92e-477a-71d5-08df1ee820f4
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	CH1PEPF0000AD7C.namprd04.prod.outlook.com
+	BL6PEPF00020E61.namprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW3PR12MB4492
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4452
 
 From: Dragos Tatulea <dtatulea@nvidia.com>
 
-Since data_direct resource creation happens directly after init,
-there's no need to separate them.
+Move the data direct resource creation/deletion and resource
+struct to be self contained in the data direct file. Rename
+the functions to be consistent with the rest.
 
-This patch moves data direct resource creation in the init phase,
-thus simplifying the data direct API. The cleanup path gets the same
-treatment.
+While at it clear the fields on resource deletion.
 
-This keeps the existing IB device lifetime and prepares for moving the
-combined initialization and cleanup to mlx5_core load and unload.
-
-The patch has no functional changes.
+This is preparation for moving the data direct code to the
+mlx5_core driver. The code has no functional changes.
+Keep the resource struct and function declarations in the IB-local
+data_direct.h header.
 
 Signed-off-by: Dragos Tatulea <dtatulea@nvidia.com>
+Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
+Reviewed-by: Cosmin Ratiu <cratiu@nvidia.com>
 Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/data_direct.c | 16 ++++++++++++----
- drivers/infiniband/hw/mlx5/data_direct.h |  3 ---
- drivers/infiniband/hw/mlx5/main.c        |  7 -------
- 3 files changed, 12 insertions(+), 14 deletions(-)
+ drivers/infiniband/hw/mlx5/data_direct.c | 80 ++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/data_direct.h | 10 +++
+ drivers/infiniband/hw/mlx5/main.c        | 87 +-----------------------
+ drivers/infiniband/hw/mlx5/mlx5_ib.h     |  8 +--
+ 4 files changed, 94 insertions(+), 91 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/data_direct.c b/drivers/infiniband/hw/mlx5/data_direct.c
-index f58a144d95e3..3878c4aebb2c 100644
+index a80778f2b9b2..cc3f741b4f81 100644
 --- a/drivers/infiniband/hw/mlx5/data_direct.c
 +++ b/drivers/infiniband/hw/mlx5/data_direct.c
-@@ -103,7 +103,7 @@ static int mlx5_data_direct_set_dma_caps(struct pci_dev *pdev)
+@@ -102,6 +102,86 @@ static int mlx5_data_direct_set_dma_caps(struct pci_dev *pdev)
  	return 0;
  }
  
--int mlx5_data_direct_create_resources(struct mlx5_ib_dev *dev)
-+static int mlx5_data_direct_create_resources(struct mlx5_ib_dev *dev)
- {
- 	int inlen = MLX5_ST_SZ_BYTES(create_mkey_in);
- 	struct mlx5_core_dev *mdev = dev->mdev;
-@@ -172,15 +172,13 @@ int mlx5_data_direct_create_resources(struct mlx5_ib_dev *dev)
- 	return err;
- }
- 
--void mlx5_data_direct_free_resources(struct mlx5_ib_dev *dev)
-+static void mlx5_data_direct_free_resources(struct mlx5_ib_dev *dev)
- {
- 	if (dev->data_direct->mkey_ro_valid)
- 		mlx5_core_destroy_mkey(dev->mdev, dev->data_direct->mkey_ro);
- 
- 	mlx5_core_destroy_mkey(dev->mdev, dev->data_direct->mkey);
- 	mlx5_core_dealloc_pd(dev->mdev, dev->data_direct->pdn);
--
--	memset(dev->data_direct, 0, sizeof(*dev->data_direct));
- }
- 
- static void mlx5_data_direct_bind(struct mlx5_data_direct_registration *reg,
-@@ -222,6 +220,10 @@ int mlx5_data_direct_init(struct mlx5_ib_dev *ibdev)
- 
- 	ibdev->data_direct = &reg->dd;
- 
-+	err = mlx5_data_direct_create_resources(ibdev);
++int mlx5_data_direct_create_resources(struct mlx5_ib_dev *dev)
++{
++	int inlen = MLX5_ST_SZ_BYTES(create_mkey_in);
++	struct mlx5_core_dev *mdev = dev->mdev;
++	bool ro_supp = false;
++	void *mkc;
++	u32 mkey;
++	u32 pdn;
++	u32 *in;
++	int err;
++
++	err = mlx5_core_alloc_pd(mdev, &pdn);
 +	if (err)
-+		goto err_resources;
++		return err;
 +
- 	mutex_lock(&mlx5_data_direct_mutex);
- 	list_for_each_entry(dev, &mlx5_data_direct_dev_list, list) {
- 		if (strcmp(dev->vuid, reg->vuid) == 0) {
-@@ -236,6 +238,11 @@ int mlx5_data_direct_init(struct mlx5_ib_dev *ibdev)
- 	list_add_tail(&reg->list, &mlx5_data_direct_reg_list);
- 	mutex_unlock(&mlx5_data_direct_mutex);
- 	return 0;
++	in = kvzalloc(inlen, GFP_KERNEL);
++	if (!in) {
++		err = -ENOMEM;
++		goto err;
++	}
 +
-+err_resources:
-+	ibdev->data_direct = NULL;
-+	kfree(reg);
++	MLX5_SET(create_mkey_in, in, data_direct, 1);
++	mkc = MLX5_ADDR_OF(create_mkey_in, in, memory_key_mkey_entry);
++	MLX5_SET(mkc, mkc, access_mode_1_0, MLX5_MKC_ACCESS_MODE_PA);
++	MLX5_SET(mkc, mkc, lw, 1);
++	MLX5_SET(mkc, mkc, lr, 1);
++	MLX5_SET(mkc, mkc, rw, 1);
++	MLX5_SET(mkc, mkc, rr, 1);
++	MLX5_SET(mkc, mkc, a, 1);
++	MLX5_SET(mkc, mkc, pd, pdn);
++	MLX5_SET(mkc, mkc, length64, 1);
++	MLX5_SET(mkc, mkc, qpn, 0xffffff);
++	err = mlx5_core_create_mkey(mdev, &mkey, in, inlen);
++	if (err)
++		goto err_mkey;
++
++	dev->ddr.mkey = mkey;
++	dev->ddr.pdn = pdn;
++
++	/* create another mkey with RO support */
++	if (MLX5_CAP_GEN(dev->mdev, relaxed_ordering_write)) {
++		MLX5_SET(mkc, mkc, relaxed_ordering_write, 1);
++		ro_supp = true;
++	}
++
++	if (MLX5_CAP_GEN(dev->mdev, relaxed_ordering_read)) {
++		MLX5_SET(mkc, mkc, relaxed_ordering_read, 1);
++		ro_supp = true;
++	}
++
++	if (ro_supp) {
++		err = mlx5_core_create_mkey(mdev, &mkey, in, inlen);
++		/* RO is defined as best effort */
++		if (!err) {
++			dev->ddr.mkey_ro = mkey;
++			dev->ddr.mkey_ro_valid = true;
++		}
++	}
++
++	kvfree(in);
++	return 0;
++
++err_mkey:
++	kvfree(in);
++err:
++	mlx5_core_dealloc_pd(mdev, pdn);
 +	return err;
- }
- 
- void mlx5_data_direct_cleanup(struct mlx5_ib_dev *ibdev)
-@@ -252,6 +259,7 @@ void mlx5_data_direct_cleanup(struct mlx5_ib_dev *ibdev)
- 	mlx5_data_direct_do_unbind(reg);
- 	mutex_unlock(&mlx5_data_direct_mutex);
- 
-+	mlx5_data_direct_free_resources(ibdev);
- 	ibdev->data_direct = NULL;
- 	kfree(reg);
- }
++}
++
++void mlx5_data_direct_free_resources(struct mlx5_ib_dev *dev)
++{
++	if (dev->ddr.mkey_ro_valid)
++		mlx5_core_destroy_mkey(dev->mdev, dev->ddr.mkey_ro);
++
++	mlx5_core_destroy_mkey(dev->mdev, dev->ddr.mkey);
++	mlx5_core_dealloc_pd(dev->mdev, dev->ddr.pdn);
++
++	memset(&dev->ddr, 0, sizeof(dev->ddr));
++}
++
+ int mlx5_data_direct_ib_reg(struct mlx5_ib_dev *ibdev, char *vuid,
+ 			    struct notifier_block *nb)
+ {
 diff --git a/drivers/infiniband/hw/mlx5/data_direct.h b/drivers/infiniband/hw/mlx5/data_direct.h
-index de2730f00852..49cdd407018a 100644
+index fa3a145c06c6..90e0565d7333 100644
 --- a/drivers/infiniband/hw/mlx5/data_direct.h
 +++ b/drivers/infiniband/hw/mlx5/data_direct.h
-@@ -23,9 +23,6 @@ struct mlx5_data_direct_dev {
+@@ -23,6 +23,16 @@ struct mlx5_data_direct_dev {
  	struct list_head list;
  };
  
--int mlx5_data_direct_create_resources(struct mlx5_ib_dev *dev);
--void mlx5_data_direct_free_resources(struct mlx5_ib_dev *dev);
--
- int mlx5_data_direct_driver_register(void);
- void mlx5_data_direct_driver_unregister(void);
- 
++struct mlx5_data_direct_resources {
++	u32 pdn;
++	u32 mkey;
++	u32 mkey_ro;
++	u8 mkey_ro_valid :1;
++};
++
++int mlx5_data_direct_create_resources(struct mlx5_ib_dev *dev);
++void mlx5_data_direct_free_resources(struct mlx5_ib_dev *dev);
++
+ int mlx5_data_direct_query_vuid(struct mlx5_core_dev *dev, char *out_vuid);
+ int mlx5_data_direct_ib_reg(struct mlx5_ib_dev *ibdev, char *vuid,
+ 			    struct notifier_block *nb);
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index cefbcc816651..941928a782bd 100644
+index 8d6914de1442..0bece3e55109 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -3966,10 +3966,6 @@ static int mlx5_ib_data_direct_init(struct mlx5_ib_dev *dev)
+@@ -3474,87 +3474,6 @@ static void mlx5_ib_dev_res_cleanup(struct mlx5_ib_dev *dev)
+ 	mutex_destroy(&devr->srq_lock);
+ }
+ 
+-static int
+-mlx5_ib_create_data_direct_resources(struct mlx5_ib_dev *dev)
+-{
+-	int inlen = MLX5_ST_SZ_BYTES(create_mkey_in);
+-	struct mlx5_core_dev *mdev = dev->mdev;
+-	bool ro_supp = false;
+-	void *mkc;
+-	u32 mkey;
+-	u32 pdn;
+-	u32 *in;
+-	int err;
+-
+-	err = mlx5_core_alloc_pd(mdev, &pdn);
+-	if (err)
+-		return err;
+-
+-	in = kvzalloc(inlen, GFP_KERNEL);
+-	if (!in) {
+-		err = -ENOMEM;
+-		goto err;
+-	}
+-
+-	MLX5_SET(create_mkey_in, in, data_direct, 1);
+-	mkc = MLX5_ADDR_OF(create_mkey_in, in, memory_key_mkey_entry);
+-	MLX5_SET(mkc, mkc, access_mode_1_0, MLX5_MKC_ACCESS_MODE_PA);
+-	MLX5_SET(mkc, mkc, lw, 1);
+-	MLX5_SET(mkc, mkc, lr, 1);
+-	MLX5_SET(mkc, mkc, rw, 1);
+-	MLX5_SET(mkc, mkc, rr, 1);
+-	MLX5_SET(mkc, mkc, a, 1);
+-	MLX5_SET(mkc, mkc, pd, pdn);
+-	MLX5_SET(mkc, mkc, length64, 1);
+-	MLX5_SET(mkc, mkc, qpn, 0xffffff);
+-	err = mlx5_core_create_mkey(mdev, &mkey, in, inlen);
+-	if (err)
+-		goto err_mkey;
+-
+-	dev->ddr.mkey = mkey;
+-	dev->ddr.pdn = pdn;
+-
+-	/* create another mkey with RO support */
+-	if (MLX5_CAP_GEN(dev->mdev, relaxed_ordering_write)) {
+-		MLX5_SET(mkc, mkc, relaxed_ordering_write, 1);
+-		ro_supp = true;
+-	}
+-
+-	if (MLX5_CAP_GEN(dev->mdev, relaxed_ordering_read)) {
+-		MLX5_SET(mkc, mkc, relaxed_ordering_read, 1);
+-		ro_supp = true;
+-	}
+-
+-	if (ro_supp) {
+-		err = mlx5_core_create_mkey(mdev, &mkey, in, inlen);
+-		/* RO is defined as best effort */
+-		if (!err) {
+-			dev->ddr.mkey_ro = mkey;
+-			dev->ddr.mkey_ro_valid = true;
+-		}
+-	}
+-
+-	kvfree(in);
+-	return 0;
+-
+-err_mkey:
+-	kvfree(in);
+-err:
+-	mlx5_core_dealloc_pd(mdev, pdn);
+-	return err;
+-}
+-
+-static void
+-mlx5_ib_free_data_direct_resources(struct mlx5_ib_dev *dev)
+-{
+-
+-	if (dev->ddr.mkey_ro_valid)
+-		mlx5_core_destroy_mkey(dev->mdev, dev->ddr.mkey_ro);
+-
+-	mlx5_core_destroy_mkey(dev->mdev, dev->ddr.mkey);
+-	mlx5_core_dealloc_pd(dev->mdev, dev->ddr.pdn);
+-}
+-
+ static u32 get_core_cap_flags(struct ib_device *ibdev,
+ 			      struct mlx5_hca_vport_context *rep)
+ {
+@@ -4044,7 +3963,7 @@ static int mlx5_ib_data_direct_init(struct mlx5_ib_dev *dev)
  	if (ret)
  		return ret;
  
--	ret = mlx5_data_direct_create_resources(dev);
--	if (ret)
--		goto err_resources;
--
- 	INIT_LIST_HEAD(&dev->data_direct_mr_list);
+-	ret = mlx5_ib_create_data_direct_resources(dev);
++	ret = mlx5_data_direct_create_resources(dev);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -4052,7 +3971,7 @@ static int mlx5_ib_data_direct_init(struct mlx5_ib_dev *dev)
  	dev->data_direct_nb.notifier_call = mlx5_ib_data_direct_event;
- 	ret = mlx5_data_direct_register(dev, &dev->data_direct_nb);
-@@ -3979,8 +3975,6 @@ static int mlx5_ib_data_direct_init(struct mlx5_ib_dev *dev)
- 	return ret;
- 
- err_register:
--	mlx5_data_direct_free_resources(dev);
--err_resources:
- 	mlx5_data_direct_cleanup(dev);
+ 	ret = mlx5_data_direct_ib_reg(dev, vuid, &dev->data_direct_nb);
+ 	if (ret)
+-		mlx5_ib_free_data_direct_resources(dev);
++		mlx5_data_direct_free_resources(dev);
  
  	return ret;
-@@ -3992,7 +3986,6 @@ static void mlx5_ib_data_direct_cleanup(struct mlx5_ib_dev *dev)
+ }
+@@ -4063,7 +3982,7 @@ static void mlx5_ib_data_direct_cleanup(struct mlx5_ib_dev *dev)
  		return;
  
- 	mlx5_data_direct_unregister(dev, &dev->data_direct_nb);
--	mlx5_data_direct_free_resources(dev);
- 	mlx5_data_direct_cleanup(dev);
+ 	mlx5_data_direct_ib_unreg(dev, &dev->data_direct_nb);
+-	mlx5_ib_free_data_direct_resources(dev);
++	mlx5_data_direct_free_resources(dev);
  }
  
+ static int mlx5_ib_init_multiport_master(struct mlx5_ib_dev *dev)
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 97d2aa79e95d..ff026985e293 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -24,6 +24,7 @@
+ #include <rdma/mlx5_user_ioctl_cmds.h>
+ #include <rdma/mlx5_user_ioctl_verbs.h>
+ 
++#include "data_direct.h"
+ #include "srq.h"
+ #include "qp.h"
+ #include "macsec.h"
+@@ -781,13 +782,6 @@ struct mlx5_ib_port_resources {
+ 	struct work_struct pkey_change_work;
+ };
+ 
+-struct mlx5_data_direct_resources {
+-	u32 pdn;
+-	u32 mkey;
+-	u32 mkey_ro;
+-	u8 mkey_ro_valid :1;
+-};
+-
+ struct mlx5_ib_resources {
+ 	struct ib_cq	*c0;
+ 	struct mutex cq_lock;
 -- 
 2.44.0
 
