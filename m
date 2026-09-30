@@ -1,67 +1,136 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf2-f12.google.com (mail-lf2-f12.google.com [74.125.229.204])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 608054DAF99
-	for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 14:01:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790776918; cv=none; b=VO8/mK2yJ2FzwCcrdbDr3YMleTfjvyxY+2pCtfWmQ1eWa7T9jvnI1LfKLp1XHWJUuOf4jVSOWqWmBCkmynvb2/Jtc7BqNUgOCgmX4xBiqFRdOkfgCPkWFXLMv2Fowh66JePEP/tGJ576t7/GU4iXlxTdXiRAoAWZYi4QoazldUw=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790776918; c=relaxed/simple;
-	bh=FIW2P1TrBNbQa1i96SyDvBXEQ/EYAegILVGs+KDEbkU=;
-	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=kMb75AsL5PS8htGRvOuto1yTsIVfNBSmqiwNIjBCfFsRlozOfZk8zNiXFRDZJec7V9X57/k3w0Mf+KyZg/TmZFBHtgVpKhIyGReUEO+5+GY0rnlBi5u5hrSrMEhgCiKhVWVUP7yNWDMVUxumF9Jm6Uf/PotC7mejOpUyQkH2Ij0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TthFVIb2; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D78A511E96
+	for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 14:31:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.229.204
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790778699; cv=pass; b=HfPnxOfyd4jO2RFLLmULYTbs7BjRpYlsxPg3xf/QQw7FF4PsgWfMPcJHzb/vdhInii6YnJUeG02s9iWcvQnkXunPzn8i2p9vNjdGtcXgKzBY8ngwuSOIPaOWPfA47HuuAuU/GpyZMhX0VK5ixCw7RHhDLLLuuGzM8T7AZ/Xqdqo=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790778699; c=relaxed/simple;
+	bh=fP3a1b7ry28/YEDUURVuTU1hy1MHNjgbZ8hcZPw/a5s=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=czeflRoaq7jvJiKX7SWCdH7Pwac4XmCW6wsZAD70VUtO1OQOJqmPJe+6bCw6B27ILFxI7P+52Ib/wqwuE0soXP+XtAqyt4oatdvSJ7yMxuUoEbb6qqxcqXRxK2nRbpoAdAR7NMhBlmWhA7nFZp8tEdAE5ge3qHwV/lj3GSK/1yI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=gy9HWWD1; arc=pass smtp.client-ip=74.125.229.204
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TthFVIb2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E0DF1F008A0;
-	Wed, 30 Sep 2026 14:01:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790776904;
-	bh=T+hO2EKfDevPHT8mbCYOgLhMFaU+i7q121/BgDyp52k=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=TthFVIb2BBmOD+B1RRWEm1UdFaoV9b5TTm2mNkuolpUtsCsiObrKmXnRN8KsQayxb
-	 PjGDNW3wygvXA9/igEykFIPCythTzKJuZ005ATzt2HeWvT9d+THnzVoa629ULuyXpN
-	 faxsBDOSG2SVppeGbOZBE6boBDzk5O11l3S8TMb9NOxW0HGQgHGc8tSXUYsOIeIteG
-	 ATt3Da0Q9EuN4wJ+oPHGabCbiXppiTApggwe4fDOupfoywovBxqvdhO1NZNfovRj1M
-	 IburVX/6PuQP76bbgnEWc8TiXWmQWJOaX7j0sw+qOkAKjokYGfsSzu+vsGx9nxUqjb
-	 tnA29FQAnfbxQ==
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH] selftests/rdma: Skip rxe_sent_rcvd_bytes when rdma_rxe
- is missing
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Bjoern Doebel" <doebel@amazon.de>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260930135530.881281-1-doebel@amazon.de>
-References: <20260930135530.881281-1-doebel@amazon.de>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Wed, 30 Sep 2026 14:01:43 +0000
-Message-Id: <20260930140144.2E0DF1F008A0@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gy9HWWD1"
+Received: by mail-lf2-f12.google.com with SMTP id 2adb3069b0e04-5ba3ce4795aso1164410e87.3
+        for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 07:31:25 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1790778680; cv=none;
+        d=google.com; s=arc-20260327;
+        b=BHJhO8L6pdQdihTqi7Wmm10FGLrwLGykdu8IOxKR0G1ARExOXojkO2Bx0Rt0Z7rBmI
+         Zogl3pzJAj1sHfKO5fDMAwwb0WN54lw3X/KmqgwMj8EyaMtXi+mrssaH8DAb9fvxbbfv
+         rAy0uU4ARSYRLIUw2nkdmFkGA4kzv6VJVcfrqKb01x+quIvBO2NEf2p+mP3Gibd3VOcn
+         mTMr0F2maTqDhnbgCW+cE0A99dXZ4tFYqSOHoLQwh+Eqv5BMr+xVvCcNadtzEd/bUXh+
+         9lqPwz/S6StEgoxjn/7FkHshDhx3xIA9GmtO4iE7sbVVRVHtUCC2i7lcD6n/0EWo5XIQ
+         8HZA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
+        bh=qhsmnUGKqO+ajt7yu4pkJe883hej8X82SaCmNbsfnqM=;
+        fh=jOQ2dI0DLE+gA+fZGEGejm8TuKLDaC8w0DggHq4U5ds=;
+        b=Z9vXOPbvRtL6jqWpq/F9RtsQX0I9xbx47wFGG2r4S0WJpWKGNm+bZ1Ubu8pKgbrdFP
+         g63CzX9FPUaDrc8bbN32ZPQ5D1eL/LbmDOBzB8nxZurIzrksUII6d9lIi9fjAGc0ZMur
+         eMJyDTvzXi97O0laiYFYrX+8oTV3SFXu7NKofP+B1Hpde9IrrQ6M8AH6LTNz7cEPdQVd
+         Ffd3wf23hdb+c/QzmA7oMjNH5N4Z/rhTLYaqlRA8A6wzJqezspPWMdlOMKqj2UtGpVMK
+         OTeShB6IFBsdduL41yyn4+ATapEe75FNMdrZQDb5on16TeNSLu8srZ14wJK2PpV2mZdz
+         T7Fw==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1790778680; x=1791383480; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:mime-version:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=qhsmnUGKqO+ajt7yu4pkJe883hej8X82SaCmNbsfnqM=;
+        b=gy9HWWD1iy+ryXwG0mqhSRv54cPV58vYBYas0vZex0PXsb8uR5c/Po3b/o6IVukJ4/
+         7hthr40zGQOWMmhj4KrgWpHnKYzVnGBNqw8R8UJeUj2u9qc/WJhcYT7BzHznZAaklREZ
+         OrgeiK3rxDsPhDebMLNFz5EUf/Ue0cCUQNKkAMa6QNTzucQj9IaWUg6RT2ajrWvL2fSd
+         Y9cYq3sPCHNuZ0E1vTohNaljIb4IlXW33FWuz2k2eFLlhQFr+wYgm81+ewA/5KnJaNv7
+         ljOzCDB02Al67wKSXLRe9geTDMBttfNKexI6QqpbZIyMaJMMtaASTyi4uRQYP9KkmDXj
+         ZiAw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790778680; x=1791383480;
+        h=content-type:cc:to:subject:message-id:date:from:mime-version
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=qhsmnUGKqO+ajt7yu4pkJe883hej8X82SaCmNbsfnqM=;
+        b=O3dnYOOymnqQzsc4e5N/axhE+fnNGxIoElIuYk8wP+yy2fGpx1YXIC0ou7JhSDQHwb
+         WOGsePwEPtHXc2ZThC/NUWGBhQHC+eBNMZhewK7au/7+3/xC/WtD6lP4SWnX2U930Nbs
+         OErBYGb6727Uy4a8w6uiudiLFZCc5q0fyFQPevYSlIzJg2xFhwS38rhwwtBmdLCC6Q77
+         eKHvhTVZZerHhtIu5/NeFmv+N2pY78az7mUrnR9FVw1DOKWpQr4rtvT8NsCWwXf1Hnco
+         4sGXk75QHyjgDbLdY8e+e/DL7xDJXHGvKyFXirnbxDqmk904oL4TvQoCisRZGnYLpLAT
+         TKCA==
+X-Gm-Message-State: AFq9FYLG9/C9TtkSGXB3N7qRGbNZ8+WkCcZ+q7vleMYz9jYAivwRCpqc
+	I6nHHonPU9csILdGNeUlUs61wN4LhsCRxKqH2urQUk0nymIv/u8hAxTiPqKTkY6DqZ7t5IQ4gVA
+	5x0TlOLAUPE1PYig9jZRC9i1UbPsRTMa7lBdr
+X-Gm-Gg: AYBFou3w74Bxrxcz3UrzXUPJeBGMQQoFcgXh+8PtezdgupVBgRREPuvotCqDlBjVtZ7
+	X2nhhLjEuDwWjquvZHMPtGXMp9UpXFJkRV36e+r3vmusXS7zXBtiEvCP36ItHK1yUqTiGJLj7Hb
+	Cb9K/GY392BMucLLK+CyDvTgCmWpwpVPeOKJM5GKLeuutl1po2QzE3bGBKhMXeamfdMpW99HxpI
+	uRI1Y5roi064YWIbUaVEpkJvuh3t7VVuBwo9NSJ2Q5ZNJP06ncDhoR8BDtPh0D/8mH/bIOIcG4T
+	IkogCcGIiW3r8Pqfp0MUudTjPf8kvJkcITOLELpHAbxUjNDxiPGBk1wZ
+X-Received: by 2002:ac2:456f:0:b0:5ba:3ec6:bba1 with SMTP id
+ 2adb3069b0e04-5ba405ebcefmr469918e87.54.1790778680221; Wed, 30 Sep 2026
+ 07:31:20 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+From: AYS <ays511.kr@gmail.com>
+Date: Wed, 30 Sep 2026 23:31:08 +0900
+X-Gm-Features: AclHuK_3ajSHDpJN92nRnBLUwYGfUeq1QCQtBLkWR6yQCxRP1TJ5ku3tgkceTtg
+Message-ID: <CAPAqSgY_3HQwokvRpErRfZvT32CJODXSsd0=TE985exOkZ2WHA@mail.gmail.com>
+Subject: [PATCH] RDMA/rxe: bound the WQE opcode before indexing rxe_wr_opcode_info[]
+To: zyjzyj2000@gmail.com
+Cc: linux-rdma@vger.kernel.org, security@kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-> On a kernel built without CONFIG_RDMA_RXE the test exits 1 instead of
-> skipping:
->=20
->   # modprobe: FATAL: Module rdma_rxe not found in directory ...
->   not ok 467 selftests: rdma: rxe_sent_rcvd_bytes.sh # exit=3D1
->=20
-> Every other test in this directory probes with modinfo and exits
-> $KSFT_SKIP. Apply the same guard, identical to the one in the otherwise
-> near-identical rxe_socket_with_netns.sh.
->=20
-> Fixes: c67bd973695c3 ("selftest/rxe: Add selftests for perf")
-> Assisted-by: kiro:claude-opus-5
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Bjoern Doebel <doebel@amazon.de>
+wr_opcode_mask() indexes the global rxe_wr_opcode_info[] array with a
+caller-supplied opcode and no bounds check. For a user QP the WQE comes from
+an mmap'd SQ ring, so wqe->wr.opcode is an attacker-controlled __u32 read back
+by the requester (req_next_wqe() -> rxe_requester()); rxe_post_send() takes
+the qp->is_user branch and never runs validate_send_wr(), whose only opcode
+check is itself !wr_opcode_mask() (it indexes before it checks).
+rxe_wr_opcode_info[] has entries only up to IB_WR_REG_MR, so an out-of-range
+opcode reads out of bounds and the result is used as a mask and dereferenced;
+observed as a KASAN global-out-of-bounds "Read of size 4" and a wild-pointer
+oops.
 
-Sashiko has reviewed this patch and found no issues. It looks great!
+Return a zero mask for an out-of-range opcode, matching how validate_send_wr()
+already treats a zero mask (an invalid WR), so no path indexes the array out
+of bounds.
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260930135530.8812=
-81-1-doebel@amazon.de?part=3D1
+Fixes: 8700e3e7c485 ("Soft RoCE driver")
+Signed-off-by: Youngsung Ahn <ays511.kr@gmail.com>
+---
+Notes (not part of the commit):
+Reproduced on a KASAN x86-64 build of 7.3-rc4 as uid 1000. Present unchanged
+in mainline 551c722f4080 (2026-09-29) and rdma for-next. Compile-tested
+(KASAN+RDMA_RXE), not runtime-tested. Found through manual review; per
+security-bugs.rst this is public and a reproducer can be shared on request.
+IB_WR_REG_MR is the highest index the array initializes; an
+ARRAY_SIZE(rxe_wr_opcode_info) bound would be equivalent but the array is
+extern to this header.
 
+ drivers/infiniband/sw/rxe/rxe_loc.h | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h
+b/drivers/infiniband/sw/rxe/rxe_loc.h
+index 64d636bf80fd..dcc0788db90a 100644
+--- a/drivers/infiniband/sw/rxe/rxe_loc.h
++++ b/drivers/infiniband/sw/rxe/rxe_loc.h
+@@ -184,6 +184,9 @@ void rxe_comp_queue_pkt(struct rxe_qp *qp, struct
+sk_buff *skb);
+
+ static inline unsigned int wr_opcode_mask(int opcode, struct rxe_qp *qp)
+ {
++ if (unlikely(opcode < 0 || opcode > IB_WR_REG_MR))
++ return 0;
++
+  return rxe_wr_opcode_info[opcode].mask[qp->ibqp.qp_type];
+ }
+
+--
+2.43.0
