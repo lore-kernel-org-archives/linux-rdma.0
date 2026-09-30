@@ -1,44 +1,45 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCCCA2AEF5;
-	Wed, 30 Sep 2026 00:06:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08D1926A1AC;
+	Wed, 30 Sep 2026 00:32:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790726820; cv=none; b=HoFMwirn3FDkXY7KzGzRtjJ2WdEE0SvExVylkojMVwO/AG0bDm6fyCozGgcNajudB41cW7KStsrPOzYnMl7nXgKy0M2rjv0H70F4G56DC5gThYoL9kWEuqBReUcAMYoQEXiK4QVIgKupFXPsxY0bFCf+0C9ioUbryZ8wIIMVLmU=
+	t=1790728354; cv=none; b=Hp5t6hESYx4Q5mO+i8vT8nvhsuJuSPOwdCk74e93AiSJNImZYiM4Ax/CROxQzqNYQy6QtIhX2Wt243tWntrb10l68ZjtW/Bq6zjoHgeIPyom9xlpF9j3zg8IZIEeHwus08Tu/qQNzYW7yW21lzDtT02soFb/5nWlVfHBtZJ5pDk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790726820; c=relaxed/simple;
-	bh=mPTPIKAUNjmfguNjYpT/EavXKWLKkJoW8vykJFb4ZrE=;
+	s=arc-20240116; t=1790728354; c=relaxed/simple;
+	bh=M8fxDA1DIp7+jAxZIbYPI+tGNnk5OZUmkIF58FCryhY=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=M1cTJG2jsE8RCWmKuBLjwCz2vk0PMpfHv8AxjHAURK8vRPL9stJbNWOAvLVPJVxkPpZWjh5kKzsGQotM9POKL7cEB5GFQmg7LqtU8M2AqCnv00mBc5zSVwWL6F1AwMkOBxHakhaOw+CzjACwss5IjIJgQVStnuSnLBofcJV8mnY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gAmquCZ9; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=d7RSFfPMYmdgwc43dfdUII7P44WuQp2garVi8CMJu37LvmWBNuBLo4gET20OlUf7LDSN7fLNrxgebEC402kziJSh7aSVSdY7UJmCS7CfQ1PVR5OL8wjf5EUpSW7DFSl+ncR6Qv3jbzKvILkZpZtmWxBdOC7QKiQQZz2mUeHWsZY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VbFRKRcV; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gAmquCZ9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 714C31F000FF;
-	Wed, 30 Sep 2026 00:06:57 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VbFRKRcV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95F721F000FF;
+	Wed, 30 Sep 2026 00:32:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790726818;
-	bh=xXVQ9W7M/mZGqFATe6fQKCdJL/j0F5r4P8laP4JUb4M=;
+	s=k20260515; t=1790728352;
+	bh=tkoYgtYrlo5lToTcdwBHyFbcIRv/NUc0CmuJYcReG5c=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=gAmquCZ94fV+KT6LSBOcB7E6THqPXKBtjapsF4kwQBEQTSvpU6vqKQODg6ns22w3X
-	 4SVmfb43jSSwAagke5mcGNJLhY+MID9zJN1O2EpfuVtVbp1r8S05AH9jon+te/HvWk
-	 CExEH2skWyjj/8K16h6YNuK/SFz6Qwp8SHjcKczL+6r8lttJa/YeBp/rwz8KQMfUIH
-	 oOskGXIrlIYBoWaR5ja2nGbwAnrYZAm/6oGK+WAyhYPrjICecoe9WDdfNAZ6kBpPiS
-	 BXgVYDObGov+WVDak8ljbKi7oyDB6nQ7rRDhS7cZg67w69H/h6NnLUockVsZMMJkJW
-	 8dk3814MZw8mw==
-Subject: Re: [PATCH net] net/smc: protect clcsock lifetime in smc_getname
+	b=VbFRKRcVmbjEQ76/uBF/GmVw6/qVxruO5oaHmQUG5dnxR52jgRbM4eoLPqhs3TuY6
+	 l/7j2L0uxWb30Jp2UsipUZky6LXLrblRPoO4XaMYgAOB7Ps6TfdSxMLJwjMzm86pJt
+	 yXkYjcvmSmKfGhtXfeaVLmcjMnjHy+WWQM4p09cK83zOgkbdlJzkm6tcHxHWe9oeTN
+	 aoKKcKEuZHxN28DcwE3KAg9ryzedUO2+YOGTetc5Jpm5r/YCYHl8tXYDNQtJ2Av+Rt
+	 RhCLZFrK/YlpbP4SwM0P8r5p7CgxPf1e7cqam4Eowiwy65+vimPd81ex0Z67LYcZwP
+	 H0meO36f2k9hw==
+Subject: Re: [PATCH net] net/smc: serialize sndbuf descriptor release with
+ diagnostic dumps
 From: netdev-bot+sashiko@kernel.org
 To: nicoyip.dev@gmail.com
 Cc: alibuda@linux.alibaba.com, dust.li@linux.alibaba.com,
  sidraya@linux.ibm.com, mjambigi@linux.ibm.com, tonylu@linux.alibaba.com,
  guwen@linux.alibaba.com, davem@davemloft.net, edumazet@google.com,
- kuba@kernel.org, pabeni@redhat.com, horms@kernel.org, ubraun@linux.ibm.com,
+ kuba@kernel.org, pabeni@redhat.com, horms@kernel.org, wenjia@linux.ibm.com,
  linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
  netdev@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Date: Wed, 30 Sep 2026 00:06:57 +0000
-Message-ID: <179072681701.434549.13763000893839581310@kernel.org>
-In-Reply-To: <20260926180404.2721010-1-nicoyip.dev@gmail.com>
-References: <20260926180404.2721010-1-nicoyip.dev@gmail.com>
+Date: Wed, 30 Sep 2026 00:32:31 +0000
+Message-ID: <179072835104.434549.14430285577911070387@kernel.org>
+In-Reply-To: <20260927073203.3694279-1-nicoyip.dev@gmail.com>
+References: <20260927073203.3694279-1-nicoyip.dev@gmail.com>
 X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -49,10 +50,10 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 1 potential
+Thank you for your contribution! Sashiko AI review found 2 potential
 issue(s) to consider.
 
-Critical: 0 · High: 1 (2) · Medium: 0 · Low: 0
+Critical: 0 · High: 2 (1) · Medium: 0 · Low: 0
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -60,161 +61,166 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [High] The patch fixes smc_getname(), and its commit message says
-  socket option handlers already guard clcsock.
+- [High] The fix is incomplete: smc_buf_create() still frees
+  conn->sndbuf_desc without serializing against __smc_diag_dump().
+- [High] The SMC-R release path smc_conn_free() -> smc_buf_unuse() ->
+  smcr_buf_unuse() also frees descriptors that the diag reader can still…
 
 Pre-existing issues:
-- [High] This problem wasn't introduced by this patch, but
-  smc_diag_msg_common_fill() (net/smc/smc_diag.c:42-55) has the same…
-- [High] This problem wasn't introduced by this patch, but smc_shutdown()
-  (net/smc/af_smc.c:3011-3012) runs `if (do_shutdown && smc->clcsock)…
+- [High] __smc_diag_dump() checks its guards without any lock:
+  smc->conn.alert_token_local (smc_diag.c:107-108) and…
 
 --
 
-net/smc: protect clcsock lifetime in smc_getname
+net/smc: serialize sndbuf descriptor release with diagnostic dumps
 
-This commit takes clcsock_release_lock in smc_getname() around the
-smc->clcsock NULL check and the getname() callback. If link-group
-termination has already released the CLC socket through
-smc_close_active_abort(), it returns -EBADF.
+This patch takes the SMC hash write lock in smcd_buf_detach() while it
+clears conn->sndbuf_desc. The goal is to stop __smc_diag_dump(), which
+reads the descriptor under read_lock(&h->lock), from seeing a freed
+descriptor. The descriptor is freed once the lock has been dropped.
 
-> diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
-> index e9f93b3ab435b..8b3ee70f8433f 100644
-> --- a/net/smc/af_smc.c
-> +++ b/net/smc/af_smc.c
-
-[ ... ]
-
-> @@ -2791,7 +2792,11 @@ int smc_getname(struct socket *sock, struct sockaddr *addr,
+> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+> index 9974149659c2f..f32fc1bd5bc85 100644
+> --- a/net/smc/smc_core.c
+> +++ b/net/smc/smc_core.c
+> @@ -1207,6 +1207,8 @@ static void smcr_buf_unuse(struct smc_buf_desc *buf_desc, bool is_rmb,
 >  
->  	smc = smc_sk(sock->sk);
+>  static void smcd_buf_detach(struct smc_connection *conn)
+>  {
+> +	struct smc_sock *smc = container_of(conn, struct smc_sock, conn);
+> +	struct smc_hashinfo *h = smc->sk.sk_prot->h.smc_hash;
+>  	struct smcd_dev *smcd = conn->lgr->smcd;
+>  	u64 peer_token = conn->peer_token;
+>  	struct smc_buf_desc *buf_desc;
+> @@ -1216,8 +1218,10 @@ static void smcd_buf_detach(struct smc_connection *conn)
 >  
-> -	return smc->clcsock->ops->getname(smc->clcsock, addr, peer);
-> +	mutex_lock(&smc->clcsock_release_lock);
-> +	if (smc->clcsock)
-> +		rc = smc->clcsock->ops->getname(smc->clcsock, addr, peer);
-> +	mutex_unlock(&smc->clcsock_release_lock);
-> +	return rc;
+>  	smc_ism_detach_dmb(smcd, peer_token);
+>  
+> +	write_lock_bh(&h->lock);
+>  	buf_desc = conn->sndbuf_desc;
+>  	conn->sndbuf_desc = NULL;
+> +	write_unlock_bh(&h->lock);
+>  	kfree(buf_desc);
 >  }
 
 [Severity: High]
-The commit message says:
+The subject says sndbuf descriptor release is now serialized with diag
+dumps. Is smcd_buf_detach() the only place that frees conn->sndbuf_desc
+while the socket is visible to __smc_diag_dump()?
 
-    Hold clcsock_release_lock across the pointer check and the getname()
-    callback, as the socket option handlers already do.
+smc_buf_create() has an error path for when the RMB fails after the
+sndbuf was already created:
 
-Does this hold for every socket option path? SMC does not set
-SOCK_CUSTOM_SOCKOPT. So setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, ...) on
-an AF_SMC socket never reaches smc_setsockopt():
-
-do_sock_setsockopt()
-  sock_setsockopt()
-    sk_setsockopt()
-      sk->sk_prot->keepalive(sk, valbool)
-        smc_set_keepalive()
-
-smc_set_keepalive() in net/smc/af_smc.c uses clcsock without a NULL check
-and without clcsock_release_lock:
-
-static void smc_set_keepalive(struct sock *sk, int val)
-{
-	struct smc_sock *smc = smc_sk(sk);
-
-	smc->clcsock->sk->sk_prot->keepalive(smc->clcsock->sk, val);
+net/smc/smc_core.c:smc_buf_create() {
+    ...
+	rc = __smc_buf_create(smc, is_smcd, true);
+	if (rc && smc->conn.sndbuf_desc) {
+		down_write(&smc->conn.lgr->sndbufs_lock);
+		smc_lgr_buf_list_del(smc->conn.lgr, false,
+				     smc->conn.sndbuf_desc);
+		up_write(&smc->conn.lgr->sndbufs_lock);
+		smc_buf_free(smc->conn.lgr, false, smc->conn.sndbuf_desc);
+		smc->conn.sndbuf_desc = NULL;
+	}
+    ...
 }
 
-Take the sequence from the commit message: shutdown(SHUT_WR), then
-link-group termination. smc_close_active_abort() calls
-smc_clcsock_release(). That sets smc->clcsock to NULL and calls
-sock_release() while the SMC file is still open.
+smc_buf_free() goes to smcr_buf_free() or smcd_buf_free() and kfree()s
+the descriptor. The pointer is only cleared after that, and h->lock is
+never taken.
 
-Would a later setsockopt(SO_KEEPALIVE) then hit a NULL pointer dereference
-in smc_set_keepalive()? And if it runs while smc_clcsock_release() is in
-progress, could it become a use-after-free of the CLC socket?
+At this point smc_sk_init() has already hashed the socket via
+sk->sk_prot->hash(sk). smc_conn_create()->smc_lgr_register_conn() has
+also set conn->alert_token_local. A dump that holds only
+read_lock(&h->lock) can pass the alert_token_local check and then
+evaluate this on the freed descriptor:
 
-This is a pre-existing issue and was not introduced by this patch.
-smc_diag_msg_common_fill() in net/smc/smc_diag.c reads clcsock without
-a lock, the same pattern this patch removes from smc_getname():
+net/smc/smc_diag.c:__smc_diag_dump() {
+    ...
+			.sndbuf_size = conn->sndbuf_desc ?
+				conn->sndbuf_desc->len : 0,
+    ...
+}
 
-	if (!smc->clcsock)
-		return;
-	r->id.idiag_sport = htons(smc->clcsock->sk->sk_num);
-	r->id.idiag_dport = smc->clcsock->sk->sk_dport;
-	r->id.idiag_if = smc->clcsock->sk->sk_bound_dev_if;
-	...
-
-[Severity: High]
-The dump path is
-smc_diag_dump_proto()->__smc_diag_dump()->smc_diag_msg_common_fill(). It
-holds only read_lock(&prot->h.smc_hash->lock).
-
-The comment in smc_inet_destroy_sock() says the diag dumps stay safe only
-if the socket is unhashed before smc_clcsock_release(). __smc_release()
-does this. smc_close_active_abort() does not: it releases clcsock while
-the SMC socket is still hashed. It holds only clcsock_release_lock, which
-the diag reader never takes.
-
-Each store to r->id can force a reload of smc->clcsock. Can a dump pass
-the NULL check and then reload smc->clcsock as NULL? Could it also load
-clcsock->sk after __sock_release() has set it to NULL? The AF_SMC diag
-dump needs no privileges, so the result would be a NULL dereference
-inside the read_lock section.
-
-A mutex can't be taken under the rwlock. Would one of these work here?
-
-  - A single READ_ONCE() snapshot of clcsock and clcsock->sk, with NULL
-    checks, relying on the RCU-deferred socket free.
-  - Unhashing the socket before the release on the abort path.
+Could this cause the same slab-use-after-free the commit message
+describes? It would affect SMC-R, and SMC-D devices without DMB nocopy.
+Four callers can reach it when RMB allocation fails (-ENOMEM, or DMB
+exhaustion on SMC-D): smc_connect_rdma(), smc_connect_ism(),
+smc_listen_rdma_init() and smc_listen_ism_init(). The value is copied
+to userspace as cinfo.sndbuf_size, and the SOCK_DIAG dump has no
+capability check.
 
 [Severity: High]
-This is also a pre-existing issue and was not introduced by this patch.
-smc_shutdown() in net/smc/af_smc.c uses clcsock while holding only
-lock_sock(sk):
+Is there a similar unserialized release on SMC-R through
+smc_conn_free()->smc_buf_unuse()->smcr_buf_unuse()?
 
-	if (do_shutdown && smc->clcsock)
-		rc1 = kernel_sock_shutdown(smc->clcsock, how);
+net/smc/smc_core.c:smcr_buf_unuse() {
+    ...
+	if (buf_desc->is_reg_err) {
+		/* buf registration failed, reuse not possible */
+		...
+		smc_buf_free(lgr, is_rmb, buf_desc);
+    ...
+}
 
-smc_close_active_abort() drops lock_sock before it releases clcsock:
+This kfree()s the descriptor, but conn->sndbuf_desc (for a vzalloc'ed
+sndbuf) or conn->rmb_desc still points at it.
 
-	if (release_clcsock) {
-		release_sock(sk);
-		smc_clcsock_release(smc);
-		lock_sock(sk);
+In smc_conn_free() this happens before smc_lgr_unregister_conn(), and
+alert_token_local is only cleared inside the unregister:
+
+	if (!list_empty(&lgr->list)) {
+		smc_buf_unuse(conn, lgr); /* allow buffer reuse */
+		smc_lgr_unregister_conn(conn);
 	}
 
-This means lock_sock(sk) alone does not keep clcsock alive. One possible
-interleaving:
+smcr_link_reg_buf() sets is_reg_err when smc_wr_reg_send() fails.
+smc_connect_rdma() then jumps to connect_abort, which calls
+smc_conn_abort()->smc_conn_free() on a socket that is hashed and still
+has its token set. The listen side follows the same pattern.
 
-Thread A: shutdown(SHUT_WR) while in SMC_ACTIVE
-  smc_close_shutdown_write()
-    release_sock(sk);
-    cancel_delayed_work_sync(&conn->tx_work);
+Would a dump that runs between smc_buf_unuse() and
+smc_lgr_unregister_conn() read sndbuf_desc->len or rmb_desc->len from
+freed memory? Should this release site also be serialized with h->lock?
 
-Thread B: shutdown(SHUT_RDWR) or shutdown(SHUT_WR) on the same fd
-  socket moves to SMC_PEERCLOSEWAIT1
+[Severity: High]
+This is a pre-existing issue, not one introduced by this patch. The new
+h->lock section ends before the rest of the teardown in smc_conn_kill():
 
-Termination worker:
-  __smc_lgr_terminate()->smc_conn_kill()->smc_close_active_abort()
-    sk_state = SMC_CLOSED, release_clcsock = true
-    release_sock(sk);
+net/smc/smc_core.c:smc_conn_kill() {
+    ...
+	smc_lgr_unregister_conn(conn);
+	smc_close_active_abort(smc);
+}
 
-Thread A:
-    lock_sock(sk);
-    state != SMC_ACTIVE, goto again, no case matches, returns
-  smc_shutdown()
-    smc->clcsock is still non-NULL
-    kernel_sock_shutdown(smc->clcsock, how);
+__smc_diag_dump() checks smc->conn.alert_token_local, smc_conn_lgr_valid()
+and list_empty(&lgr->list), and nothing on the teardown side excludes
+those checks. After them it dereferences conn->sndbuf_desc->len,
+conn->rmb_desc->len, conn->rmb_desc->token and
+conn->lgr->smcd->dibs->gid.
 
-Termination worker, concurrently:
-    smc_clcsock_release(smc)
-      __sock_release()
-        sock->sk = NULL;
-        sock->ops = NULL;
-        iput(SOCK_INODE(sock));
+The socket can still be hashed in PEERCLOSEWAIT1/2, PEERFINCLOSEWAIT,
+PROCESSABORT or APPFINCLOSEWAIT, for example after shutdown(). In that
+case smc_close_active_abort() calls smc_conn_free()->smc_lgr_put(), and
+the link group can then be freed through __smc_lgr_free():
 
-Could this be a NULL dereference or a use-after-free of the CLC socket?
-Thread A can sleep in lock_sock() inside inet_shutdown(), outside any RCU
-read-side section.
+	smc_lgr_free_bufs(lgr);
+	...
+	kfree(lgr);
+
+conn->sndbuf_desc, conn->rmb_desc and conn->lgr are not cleared on this
+path.
+
+Suppose a dump passes the checks before smc_lgr_unregister_conn() and is
+then delayed before the dereferences. read_lock() is preemptible on
+PREEMPT_RT, and IRQ or vCPU preemption can also cause this. Can the dump
+then read freed descriptors, or load smcd from a freed lgr and
+dereference smcd->dibs?
+
+This also affects the commit's own smc_smcd_terminate_all() scenario.
+The sndbuf_desc->len read is still exposed on SMC-D devices without
+nocopy, and the rmb_desc->len read on the next line is still exposed on
+nocopy devices.
 
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260926180404.2721010-1-nicoyip.dev%40gmail.com
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260927073203.3694279-1-nicoyip.dev%40gmail.com
