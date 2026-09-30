@@ -1,171 +1,187 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from CH1PR05CU001.outbound.protection.outlook.com (mail-northcentralusazon11010041.outbound.protection.outlook.com [52.101.193.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C06C30C147;
-	Wed, 30 Sep 2026 09:32:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790760761; cv=none; b=Kf9Zr2uNjv45FwLGm/pDi1s5K2fOqWiFNkJULWX0rtrHJR2A2ylYuyTTb6Y6CNrBQsxkHIzSVOLDvh1Wl1jHIMaDPkjhtJGP530xZog4U5RaDZ5MftPSguEzABYKK+nl4CKzV3ZyZm2VikY0kM9frmh5EZYnmgWPqK9zzcQien8=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790760761; c=relaxed/simple;
-	bh=TlzHEJQt+34xYjujqXxuq3JcjM0wYp8ZviYUagsVkog=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=garWEN3pTPZ7+NgDU1WHoJtjfajbeOywY3CMAhthbp1Wn6S/ZR7JDL1COPGG16xzzNMad5wxSVwPmmJwNRV0wutckgUP6s9N+LHPXG14nlYHw3+dWd5gAqMX8XpHnmCS89rzNhvWXYrh3iR4CfWqOLZv34HFKanSM5TiA59WRWk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=A/WFPBAH; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA1174BEE27;
+	Wed, 30 Sep 2026 11:43:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.193.41
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790768630; cv=fail; b=QQ0kLbavqtZgTIfVzWNuTRxh0MY/UNQRr4HjllV0tIPtdn9ux1BPK7n/ajufE9oH72Sb+6tclRtz4EDn+3u5qaHEemRbGzMA/lJZXsv5rYA/HWZJo/dvZHynvfbdX2pHSAIJpFrr8H05TFcsyT3rGRG9brm7t2OW5jEbbK5B+Ec=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790768630; c=relaxed/simple;
+	bh=r9Wm60sc9tMnd22VSZ6B+pnrNURjmPa6IniaxgPNdJk=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=koimDnx6q5Vi0BsLp+nfy0ggNES+7XtuC8EzAE9Js4b6/u98K6k7M2Aw5XqDz6Yo28v/9NlT9tnMQhgFUo6V9cbSHg9nuGv0a4FowxBw6dvreglxOsQpDDTCfZSqc8kntTGGsZ7Ogw36/uIwe4+Nw1yPIFrUuK4YUkYGnUYck9Y=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=WivASdpP; arc=fail smtp.client-ip=52.101.193.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="A/WFPBAH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD21A1F000FF;
-	Wed, 30 Sep 2026 09:32:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790760760;
-	bh=GUhUebTYwdNTDsFDAgKX2XUga1p/xniYtUmuBOcAkD0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=A/WFPBAH7Qma+9hcX287RuSKWlORpntiWFjFLaPigU8Y75ISxg3KEjLTfteawEyBe
-	 2g/cYh4OEqr71nkWwJpVQnorMprUQRkz1eix+QLOCr/CPst8lLD0ChCfFd8YGM4jfy
-	 Fksx04sLagSxxR88vp09QnJZCikrL8s15UEcYtyj8cHuNrsfav7blbRqRE5dyxX7SB
-	 IKNdTpYGGoAU9JjY6jjqMsEYQfRaLoK1HI3j102H2WUj2d2AjX7kJd1tm0yEuZtXim
-	 rxv3PmM3a58m4CHKDbt2tmNwqyH0M2+G0zuIAT/AqLpxmsAoL5566Xt1IaKFXihiLq
-	 k8Bhh/EDc3Mrg==
-Date: Wed, 30 Sep 2026 10:32:09 +0100
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-To: Zi Yan <ziy@nvidia.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, 
-	"Liam R. Howlett" <liam@infradead.org>, Vlastimil Babka <vbabka@kernel.org>, 
-	Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
-	David Hildenbrand <david@kernel.org>, Mike Rapoport <rppt@kernel.org>, 
-	Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, 
-	Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
-	Paul Moore <paul@paul-moore.com>, Stephen Smalley <stephen.smalley.work@gmail.com>, 
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
-	Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
-	Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>, 
-	Kumar Kartikeya Dwivedi <memxor@gmail.com>, Baolin Wang <baolin.wang@linux.alibaba.com>, 
-	Nico Pache <nico.pache@linux.dev>, Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, 
-	Barry Song <baohua@kernel.org>, Lance Yang <lance.yang@linux.dev>, 
-	Usama Arif <usama.arif@linux.dev>, Kiryl Shutsemau <kas@kernel.org>, 
-	Doug Gilbert <dgilbert@interlog.com>, "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, 
-	"Martin K. Petersen" <mkp@kernel.org>, Jaya Kumar <jayalk@intworks.biz>, 
-	Simona Vetter <simona@ffwll.ch>, Helge Deller <deller@gmx.de>, Sebastian Reichel <sre@kernel.org>, 
-	John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, 
-	Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
-	Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@kernel.org>, 
-	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, Arnaldo Carvalho de Melo <acme@kernel.org>, 
-	Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
-	Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, Juri Lelli <juri.lelli@redhat.com>, 
-	Vincent Guittot <vincent.guittot@linaro.org>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
-	Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
-	David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>, 
-	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, Nick Piggin <npiggin@gmail.com>, Arnd Bergmann <arnd@arndb.de>, 
-	Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
-	"Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan Kara <jack@suse.cz>, Marc Zyngier <maz@kernel.org>, 
-	Oliver Upton <oupton@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, 
-	Madhavan Srinivasan <maddy@linux.ibm.com>, Anup Patel <anup@brainfault.org>, Paul Walmsley <pjw@kernel.org>, 
-	Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
-	Christian Borntraeger <borntraeger@linux.ibm.com>, Janosch Frank <frankja@linux.ibm.com>, 
-	Claudio Imbrenda <imbrenda@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
-	Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Heiko Carstens <hca@linux.ibm.com>, 
-	Vasily Gorbik <gor@linux.ibm.com>, "David S. Miller" <davem@davemloft.net>, 
-	Andreas Larsson <andreas@gaisler.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
-	Christian Brauner <brauner@kernel.org>, Matthew Brost <matthew.brost@intel.com>, 
-	Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, Byungchul Park <byungchul@sk.com>, 
-	Gregory Price <gourry@gourry.net>, Ying Huang <ying.huang@linux.alibaba.com>, 
-	Alistair Popple <apopple@nvidia.com>, Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>, 
-	Kemeng Shi <shikemeng@huaweicloud.com>, Nhat Pham <nphamcs@gmail.com>, Baoquan He <baoquan.he@linux.dev>, 
-	Youngjun Park <youngjun.park@lge.com>, Johannes Weiner <hannes@cmpxchg.org>, 
-	Qi Zheng <qi.zheng@linux.dev>, Shakeel Butt <shakeel.butt@linux.dev>, 
-	Axel Rasmussen <axelrasmussen@google.com>, Yuanchu Xie <yuanchu@google.com>, Wei Xu <weixugc@google.com>, 
-	Chengming Zhou <chengming.zhou@linux.dev>, Michal Hocko <mhocko@kernel.org>, 
-	Miklos Szeredi <miklos@szeredi.hu>, Xu Xin <xu.xin@linux.dev>, linux-mm@kvack.org, 
-	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, 
-	linux-rdma@vger.kernel.org, selinux@vger.kernel.org, linux-sound@vger.kernel.org, 
-	bpf@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org, 
-	dri-devel@lists.freedesktop.org, linux-trace-kernel@vger.kernel.org, 
-	linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, 
-	kvm@vger.kernel.org, kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org, 
-	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, fuse-devel@lists.linux.dev
-Subject: Re: [PATCH v3 34/40] mm: eliminate VMA_SPECIAL_FLAGS usage when
- hugetlb explicitly tested
-Message-ID: <arzXDWOaouPMGtxL@gremlin>
-References: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-0-4583d8a23bca@kernel.org>
- <20260917-b4-mmap-prepare-vma-flag-sanify-v3-34-4583d8a23bca@kernel.org>
- <DLSAZ4ZQY8Q3.3OKOCCOQAFVCC@nvidia.com>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="WivASdpP"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=oEpCJQ2CxBflNyKdF87xDJcnVzFr73TP0Lw7i7RqcokkbkvSwRRxo/gg2R25mtngl84yOhzYiy/MUNtM8CWaoZQRxI7spiRacYKn2b0JFLiARyo7Zjnaksidrx04nBhYoA8tEKT3KUCobl5NaTIkcIRIXl7Iobby3nqjoCOGGAEyLinBr6Q54mi6WfUP72SDWAaK45DJQCXzq+YDzIAFjjtrmZHiYBfU3eE6nlS66jL0+hznUge3L9wJATYDmMyig0ShmbJ0C2cwZNIffmrKvmPSzpk6suzoixcFlW234FQtOjU19Vtn2wYtgvYnJFkXGosh04RKmg6AxAFiSwJB8g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=yn7FqyQybb6HdN/63D7v7WVMTTJktwooWDRcTLI3kIQ=;
+ b=awTyDgobKSO3UCj7Ey3NenzPMjsP/XdO+mcfKNP322+7k30yS4TV9SYA5WpkfQU69cuI1lXlx6qLU4FOEnOc6qZgWL2PdyCpelJshUNmR7slOOo0pZi8LY4bc+/QJ9yOpMGEL5duxQFUxASJVQnb5yeMkMJEeE0TYpokHMKrZTuBWEuogB/2gQfBWOL1v8+8ojqMZczJS0/XN84Vy594SAM9wAtO9nXMv7SQZTemgT+FFMfqrGWhJho3Sv/RV4qvG7omrMTJLSjmH1n32wS6FZdxFqLL6h+G4WpbYqFBi5VV41sWN8z36ogfWqxAXbXOnfx346MmjRhdSCX62TV/Fg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=yn7FqyQybb6HdN/63D7v7WVMTTJktwooWDRcTLI3kIQ=;
+ b=WivASdpPUFNN7Y18u8i5DAOEQLs7uuh97u90d+602wYHABN4aMVcZv71D0TmWdA6kudMapXiej1Im82U1w67ObnYDIZKkWXqGjMNn9lK5oGHETJ3XWn/sxmfQdqL3b6Lr2LNMh8Q/9LSloyYf2TUbJQyVLoAnMQnV2D3aZy/v0t29PCg0FYpaiH2niteAusLmHcHd+cvlrwD3JI1kYDbGZ7tXQjKVoi4PXmz59WxtxiH8J/vBU3UPhilw8fbl02G3w8zTtixvLFie4wrUt8HsV0Afm9TnIRdcXx8vfIYvIKpibIg/q2QJg+yjbDW+WevRIT6fyxMxIWBQZg9OIiwjw==
+Received: from BN9PR03CA0380.namprd03.prod.outlook.com (2603:10b6:408:f7::25)
+ by SJ5PPF6375781D1.namprd12.prod.outlook.com (2603:10b6:a0f:fc02::995) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.472.15; Wed, 30 Sep
+ 2026 11:43:41 +0000
+Received: from BL6PEPF00020E64.namprd04.prod.outlook.com
+ (2603:10b6:408:f7:cafe::4c) by BN9PR03CA0380.outlook.office365.com
+ (2603:10b6:408:f7::25) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.472.14 via Frontend Transport; Wed,
+ 30 Sep 2026 11:43:41 +0000
+X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
+ is 216.228.117.161) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ BL6PEPF00020E64.mail.protection.outlook.com (10.167.249.25) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.472.14 via Frontend Transport; Wed, 30 Sep 2026 11:43:41 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Wed, 30 Sep
+ 2026 04:43:25 -0700
+Received: from rnnvmail204.nvidia.com (10.129.68.6) by rnnvmail201.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Wed, 30 Sep
+ 2026 04:43:24 -0700
+Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.6)
+ with Microsoft SMTP Server id 15.2.2562.49 via Frontend Transport; Wed, 30
+ Sep 2026 04:43:20 -0700
+From: Tariq Toukan <tariqt@nvidia.com>
+To: Leon Romanovsky <leon@kernel.org>, <linux-rdma@vger.kernel.org>, "Mark
+ Bloch" <mbloch@nvidia.com>, <netdev@vger.kernel.org>, Saeed Mahameed
+	<saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>
+CC: Andrew Lunn <andrew+netdev@lunn.ch>, Cosmin Ratiu <cratiu@nvidia.com>,
+	"David S. Miller" <davem@davemloft.net>, Dragos Tatulea
+	<dtatulea@nvidia.com>, Eric Dumazet <edumazet@google.com>, Gal Pressman
+	<gal@nvidia.com>, Jakub Kicinski <kuba@kernel.org>, Jason Gunthorpe
+	<jgg@ziepe.ca>, Leon Romanovsky <leonro@nvidia.com>, open list
+	<linux-kernel@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>
+Subject: [PATCH mlx5-next V2 00/10] mlx5: Move data direct infrastructure to mlx5_core
+Date: Wed, 30 Sep 2026 14:42:17 +0300
+Message-ID: <20260930114227.139274-1-tariqt@nvidia.com>
+X-Mailer: git-send-email 2.44.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <DLSAZ4ZQY8Q3.3OKOCCOQAFVCC@nvidia.com>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BL6PEPF00020E64:EE_|SJ5PPF6375781D1:EE_
+X-MS-Office365-Filtering-Correlation-Id: a49479f3-98d6-43a0-1e59-08df1ee8132c
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|7416014|376014|1800799024|23010399003|36860700016|82310400026|11063799006|10067099003|56012099006|6133799003|18002099003|13003099007;
+X-Microsoft-Antispam-Message-Info:
+	6Tj9AEk6oK9oe18ZP5wpzAi/rQa/V5dp96UmzirjVXJZitq5a6zwIEwscFErcRENhKvqrK0O6cgUn6eb5VXRbUd5e1MaNKYOni67MzPxYFASJzlwJsX8hI5tnriQaUElWcd9fBSuVdkdDBtGFQ/a5O3RNRMzADxUAgrOiGLva+6FyoDYSVa/5cIzOsf/ZFWhazYk5msnL6KTZkKre5f2hqMUk4T/BpW+tyUFmiIUW1yWUCKjYhScSpnvQfRikRdcuJAyVtK31YOaF/6KDF0PYQf+CHGOe3PKZtdcqHjOtxKpOnPnmqmkOyf4pqR6COUE8y4eo6snkSu86hjING520KW6utztvygd2obcTzEtkyegm/JvQRTLvvRpqYQdKGm34dcvVCyecSA1hNwgQtCAZh2v4UIJ9FiHVGVaDNCPaAsieFy2C2YWiPD1Etto58MwssuFdC8g7eMRGmxvm6qLNnNWwE4pp+FmA1Zi/3lH9nqAYkfBGyIvAog8bzLFEOPP9LgYR9rYQwTqxl2wXg9ey1CtsbmZ0QGmSxeqJgbpUHbgcOzU0XOvhstIlUuRhvBU7AmHTe6gxqbERFx9Wc9fXjYdFEzjUvGl+Wam8VdwJHHLNxRHW8OQR2FqtzvAiu1TGk26S8Dl9AiLpJlDH2vR/XDQ2oq8MU60JnXDe5fyDLHTyUZb8T86x1wIogsOAxjR3edJ1sw5Xjke5yGjPYttTw==
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(7416014)(376014)(1800799024)(23010399003)(36860700016)(82310400026)(11063799006)(10067099003)(56012099006)(6133799003)(18002099003)(13003099007);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	ixqzQ8PQvqQiceK7t0hEDeI7Y++xL/Wsf//eZ1YDl+9Ys7r4BEP8gvBCj/fePu/wLk48YLnnd/CuZPogG3rYeC/VEttwWH5Q/+W1gyWcuA0mKZUW+0j3+HsTRVrue1qfj2iyhFMB3JyqwqWosDEDqlzOl1Q8ZQCS/WflHL7y7kw4A4Db8v7BmcHK4Hlnq86RIgTw2QNVzHtMXwKR63GBXu9dq9Furg6ryn/tQWa5zuf/XMd47gJWWVPQbQkkFTvwcxIfNGzBsrWwmxd1I1Q57kYlUNsxbg/0QXp4q01b4oEopDDGOn4whN+h8AlOzOJL2bUyEgTE4pwLizJYKJCvbc4vED37+HBiWjiOjOuvlN2iiCMJJvChxyThzxvmu004e6bLK2at5HT0qnVuMn8n7eWmrR/EyiyD3gt2ls7WyVRL8Lcmk9gbPplpOHzh2wD+
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Sep 2026 11:43:41.1034
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: a49479f3-98d6-43a0-1e59-08df1ee8132c
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BL6PEPF00020E64.namprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ5PPF6375781D1
 
-On Tue, Sep 29, 2026 at 10:42:00PM -0400, Zi Yan wrote:
-> On Thu Sep 17, 2026 at 12:22 PM EDT, Lorenzo Stoakes (ARM) wrote:
-> > It is now an invariant that VMA_IO_BIT is not set except by kernel-owned
-> > mappings, so each existing VMA_SPECIAL_FLAGS test need only test for
-> > VMA_DONTEXPAND_BIT, VMA_PFNMAP_BIT and VMA_MIXEDMAP_BIT.
-> >
-> > This is precisely a test for a kernel-owned or fixed mapping.
-> >
-> > Update a number of callsites which already explicitly handle hugetlb
-> > mappings.
-> >
-> > vma_supports_mlock() and ksm_compatible() also explicitly bail on droppable
-> > mappings - detecting kernel-owned, fixed or droppable mappings is handled
-> > by vma_is_persistent(), so in these cases use this predicate.
-> >
-> > should_skip_vma() tests for locked, kernel-owned or fixed memory (having
-> > already excluded hugetlb mappings) so simply test for those there.
-> >
-> > No functional change intended.
-> >
-> > Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-> > ---
-> >  mm/internal.h | 4 +---
-> >  mm/ksm.c      | 4 +---
-> >  mm/vmscan.c   | 3 ++-
-> >  3 files changed, 4 insertions(+), 7 deletions(-)
-> >
->
-> <snip>
->
-> > diff --git a/mm/vmscan.c b/mm/vmscan.c
-> > index 12ed3388ee41..09ff20c3df5b 100644
-> > --- a/mm/vmscan.c
-> > +++ b/mm/vmscan.c
-> > @@ -3477,7 +3477,8 @@ static int should_skip_vma(unsigned long start, unsigned long end, struct mm_wal
-> >  	if (!vma_has_recency(vma))
-> >  		return true;
-> >
-> > -	if (vma->vm_flags & (VM_LOCKED | VM_SPECIAL))
-> > +	if (vma_test(vma, VMA_LOCKED_BIT) || vma_is_kernel_owned(vma) ||
->
-> At this point, mmap_lock is held, there is no mlock WIP, so
-> VMA_LOCKED_BIT is enough.
+Hi,
 
-Yes indeed :)
+Data direct support currently lives in mlx5_ib, which owns the data
+direct PCI driver, device matching and resource management. To prepare
+for data direct support in netdev, move this infrastructure to mlx5_core
+and provide a common interface for its consumers.
 
->
-> > +	    vma_is_fixed_mapping(vma))
-> >  		return true;
-> >
-> >  	if (vma == get_gate_vma(vma->vm_mm))
->
-> LGTM.
->
-> Reviewed-by: Zi Yan <ziy@nvidia.com>
+The series first replaces the direct IB unbind callback with a blocking
+notifier chain, allowing multiple consumers to receive unbind events.
+It then separates consumer registration from initialization,
+consolidates the per-device state and resources, and keeps IB-specific
+locking and MR teardown in mlx5_ib.
 
-Thanks!
+With these preparations in place, the final patch moves the shared
+implementation and PCI driver to mlx5_core. Data direct initialization
+and resource creation run during core load, before consumers attach;
+cleanup runs during core unload, after consumers detach.
 
->
->
-> --
-> Best Regards,
-> Yan, Zi
->
+The data direct PCI driver is also explicitly named "mlx5_dd", replacing
+the previous "mlx5_ib" name derived from KBUILD_MODNAME.
 
---
-Cheers, Lorenzo
+This series by Dragos prepares the shared infrastructure for netdev
+support.  The netdev consumer will follow in a separate series.
+
+Regards,
+Tariq
+
+V2:
+- Changed error message on VUID query failure (Leon)
+
+V1:
+https://lore.kernel.org/all/20260917111422.4054862-1-tariqt@nvidia.com/
+
+Dragos Tatulea (10):
+  RDMA/mlx5: Notify data direct users via a notifier chain on unbind
+  RDMA/mlx5: Add mlx5_data_direct_supported() helper
+  RDMA/mlx5: Make the data direct VUID query self-contained
+  RDMA/mlx5: Give the data direct PCI driver a proper name
+  RDMA/mlx5: Move and rename data direct resource functions
+  RDMA/mlx5: Add new registration stage for data direct users
+  RDMA/mlx5: Extract IB specific lock out of data direct
+  RDMA/mlx5: Consolidate data direct state into one object
+  RDMA/mlx5: Pull data_direct resource creation in init phase
+  mlx5: Move data direct implementation to mlx5_core
+
+ drivers/infiniband/hw/mlx5/Makefile           |   1 -
+ drivers/infiniband/hw/mlx5/cmd.c              |  21 -
+ drivers/infiniband/hw/mlx5/cmd.h              |   2 -
+ drivers/infiniband/hw/mlx5/data_direct.c      | 227 ----------
+ drivers/infiniband/hw/mlx5/data_direct.h      |  23 -
+ drivers/infiniband/hw/mlx5/main.c             | 144 +------
+ drivers/infiniband/hw/mlx5/mlx5_ib.h          |  18 +-
+ drivers/infiniband/hw/mlx5/mr.c               |   7 +-
+ drivers/infiniband/hw/mlx5/odp.c              |   2 +-
+ drivers/infiniband/hw/mlx5/std_types.c        |   3 +-
+ drivers/infiniband/hw/mlx5/umr.c              |  11 +-
+ .../net/ethernet/mellanox/mlx5/core/Makefile  |   2 +-
+ .../ethernet/mellanox/mlx5/core/data_direct.c | 400 ++++++++++++++++++
+ .../net/ethernet/mellanox/mlx5/core/main.c    |  15 +
+ .../ethernet/mellanox/mlx5/core/mlx5_core.h   |   5 +
+ include/linux/mlx5/data_direct.h              |  47 ++
+ include/linux/mlx5/driver.h                   |   8 +
+ 17 files changed, 515 insertions(+), 421 deletions(-)
+ delete mode 100644 drivers/infiniband/hw/mlx5/data_direct.c
+ delete mode 100644 drivers/infiniband/hw/mlx5/data_direct.h
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/data_direct.c
+ create mode 100644 include/linux/mlx5/data_direct.h
+
+
+base-commit: 36b1d3299d0b6aa51485cc9a79b8d94948d5f3d4
+-- 
+2.44.0
+
