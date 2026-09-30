@@ -1,78 +1,84 @@
-Received: from mta1.formilux.org (mta1.formilux.org [51.159.59.229])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oa1-f70.google.com (mail-oa1-f70.google.com [209.85.160.70])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 890273DD849
-	for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 19:25:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=51.159.59.229
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C529250B43C
+	for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 20:33:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.70
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790796309; cv=none; b=P2+7PkWzXv7O0awDhdkG57XWzhOqGaaJz3s90AKuTsbVwAZkUyIsOkInRWrN6ToBTPC0cd/Yu3WA4y0CcJMVNquCI/TthJxw5lnWwv+bQ/NT8yF5B4wSnmwwokwX3g5KrBveX2JdvsOrS0Ne9QBUxSCTF8ba3TRsrpY7VLS9op4=
+	t=1790800406; cv=none; b=l4/kwzopVTwP+z8CYaJYPd1ThJTk4v8vgcb4syikMRGi0rVKh+EDNwVHqIO2WOYO7OmQBlFzBuB9jOrqb84LsxRDYmNUu5MxyheJ+YEa2tdB9iLTDRPhKWCxgaYGXoaY3lwwNf7S+JCi4VpGQrDZyxwFLl6ZJ7TdiRX8URSBx3I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790796309; c=relaxed/simple;
-	bh=jK1Vsd1sJzUwGcQH1eEP6IfjlnsV4iMCDWvqxiuNOAI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=JSusF9dipa0mXuJ9SD2g1itv8ItkZTdccA/TX34rJH1HPK1lix38HMEXeJfP85igNy/JROXWfrlyMOE3zW9/lzHne1WMjpSbQvl/8YPytLMFUtIaZLNKSrpAygt+UH/bTK0vExSdFlnNpalIJX3367EQo1iRrVg8Q+nMgyoVzps=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=1wt.eu; spf=pass smtp.mailfrom=1wt.eu; dkim=pass (1024-bit key) header.d=1wt.eu header.i=@1wt.eu header.b=T+QUtEiq; arc=none smtp.client-ip=51.159.59.229
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=1wt.eu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=1wt.eu
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=1wt.eu header.i=@1wt.eu header.b="T+QUtEiq"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=1wt.eu; s=mail;
-	t=1790796305; bh=iS2Ynmp1e0rgbM5TYbuQrEGBzWlSnZaHZCZ4DWaM9Ho=;
-	h=From:Message-ID:From;
-	b=T+QUtEiqDCxsEyp7NtaMBaP6bNBKJWyt8EUeqmf8NXEDixsCDcwlMtUUn7t8CXoxO
-	 sJcfvvf02265Ba4ck9SXQhvI8LRVVq21fP1NWXyhqUF217FnHhwLKWkLCxOWvJQm9l
-	 UQnObS4RFRl2VTo5Alp0RWmVrog3qfxisx+qfROQ=
-Received: from 1wt.eu (ded1.1wt.eu [163.172.96.212])
-	by mta1.formilux.org (Postfix) with ESMTP id 423A2C08D3;
-	Wed, 30 Sep 2026 21:25:05 +0200 (CEST)
-Date: Wed, 30 Sep 2026 21:25:04 +0200
-From: Willy Tarreau <w@1wt.eu>
-To: Youngsung Ahn <ays511.kr@gmail.com>
-Cc: Zhu Yanjun <yanjun.zhu@linux.dev>, zyjzyj2000@gmail.com,
-        linux-rdma@vger.kernel.org, security@kernel.org
-Subject: Re: [PATCH] RDMA/rxe: bound the ODP page index against the umem in
- rxe_check_pagefault()
-Message-ID: <ar1iENLJynuJuU27@1wt.eu>
-References: <20260930175145.2491352-1-ays511.kr@gmail.com>
+	s=arc-20240116; t=1790800406; c=relaxed/simple;
+	bh=ShtpGSnssUtPFa1A59zq2oxySVnLViwCSsdBv1MB6bI=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=dXVrWIgfA0jPFX2BfHRlmlr3p18AdUtXPWCbj8FLc8ilbyOr2Jr/FDyEhX0AeLvSJb4UwIMVCUF07zd5H7Fo/mHS89k2F99pf8Nc99cCrJVYGlgj5Cfjc3fMTWv7av5e5Bnv/j+ezZjKUodWEaKZJUUwezq+o00eGPMzWBhwv5U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.160.70
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-oa1-f70.google.com with SMTP id 586e51a60fabf-46f9dbad956so3498339fac.2
+        for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 13:33:24 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790800403; x=1791405203;
+        h=content-type:to:from:subject:message-id:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=ceKxefmO7XdD8G77lQxlHHn2MlQF3BRQc7ADMUzWAlk=;
+        b=ewAx39ZebL6HSlIeE7bo76Y33MPLSudLt3yeBI9LLEFIx5szO83k6++32UFw9uwhrl
+         AyYPq7DQ+V5gEohR2g7TmU/+M1H5mnVOy0GIgINcT776tGHyfxWekCCJoH+W6Nx8OD7F
+         RzmIVnNySsb04xSHaCIaj3e5CqIgSQSMgNpTTHyJ2jLWrysmscRf1CyDhtBwkbHTiiHA
+         QUHB7FM77zISEZjgPJcK3Go6ZDRrwJWhZm7w6NNQuljaW58WtJ96cA8MS2fcFmXut0Zl
+         UbV1mP4CM7yPXaLuwvnfJSDgCiz+4sIDGLxfv/7VJ9mMQfJH0xMDR96qPaMEkFPEPB0Z
+         LCEA==
+X-Forwarded-Encrypted: i=1; AKwUvBwX4CUJ63qkE0zCmkI29Wsu9a4o/pIkPNbSYpB9ElXYMMMk2pVaHl13dRh6uerUl6c/XqQRibHB+Yub@vger.kernel.org
+X-Gm-Message-State: AFuF++kTa/NTlw3xiMTaBq2J6Th5wFFGx36Gn9S178TYq0AFtatlfmcr
+	UqISByEe+MMGmLsSxN+qXz3aJSVwjPXhnI1PE1Pl1ZYIXT3HDxusm9sm8t1fJoxQBfUJxHTv0TC
+	QtHQq0KtxDUllE/wJGSzn/G/Xh7E24xzHjW6Qx+c5E7vLZQumEx75UAfYbMs=
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260930175145.2491352-1-ays511.kr@gmail.com>
+X-Received: by 2002:a05:6808:4f23:b0:4e9:3412:14a5 with SMTP id
+ 5614622812f47-4f1b5dd5380mr3299686b6e.28.1790800403682; Wed, 30 Sep 2026
+ 13:33:23 -0700 (PDT)
+Date: Wed, 30 Sep 2026 13:33:23 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6abd7213.b50370da.302ea9.0000.GAE@google.com>
+Subject: [syzbot] Monthly rdma report (Sep 2026)
+From: syzbot <syzbot+list4e6bf10a0e65e0d2dcf0@syzkaller.appspotmail.com>
+To: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-Hello,
+Hello rdma maintainers/developers,
 
-On Thu, Oct 01, 2026 at 02:51:45AM +0900, Youngsung Ahn wrote:
-> An ODP MR's page array map.pfn_list[] is sized from the umem's
-> start, but rxe_check_pagefault() indexes it with an iova taken
-> relative to that start, while the access was range-checked against
-> the MR's iova (ibmr.iova). reg_mr only requires start and hca_va to
-> share a page offset, so a user can register with hca_va =
-> start + N*PAGE, and the index skew (hca_va - start) >> PAGE_SHIFT
-> then lands out of bounds of pfn_list[], which is read with no bound
-> check. An unprivileged local user reaches this with a single RDMA
-> operation on a self-connected rxe QP: observed as a KASAN
-> slab-out-of-bounds read and, when the out-of-bounds qword looks like
-> a writable HMM pfn, a write into an attacker-influenced page.
-> 
-> Reject an index that leaves the umem and force the fault path, which
-> fails the out-of-range access via the umem range check in
-> ib_umem_odp_map_dma_and_lock(). The downstream pfn_list[] users
-> (__rxe_odp_mr_copy() and the atomic helpers) run only after a
-> successful map, so this check protects them as well.
-> 
-> Fixes: 2fae67ab63db ("RDMA/rxe: Add support for Send/Recv/Write/Read with ODP")
-> Signed-off-by: Youngsung Ahn <ays511.kr@gmail.com>
+This is a 31-day syzbot report for the rdma subsystem.
+All related reports/information can be found at:
+https://syzkaller.appspot.com/upstream/s/rdma
 
-Are you sure you're not missing an Assisted-by: tag here ?
+During the period, 0 new issues were detected and 2 were fixed.
+In total, 3 issues are still open and 76 have already been fixed.
+There is also 1 low-priority issue.
 
-I didn't notice that you sent this to a public list, that's fine but in
-this case there's no need to Cc security@k.o since the essential role of
-the team is to help route the message to its destination :-)
+Some of the still happening issues:
 
-thanks,
-Willy
+Ref Crashes Repro Title
+<1> 1380    Yes   WARNING in rxe_pool_cleanup
+                  https://syzkaller.appspot.com/bug?extid=221e213bf17f17e0d6cd
+<2> 225     No    INFO: task hung in rdma_dev_exit_net (6)
+                  https://syzkaller.appspot.com/bug?extid=3658758f38a2f0f062e7
+<3> 186     Yes   INFO: task hung in add_one_compat_dev (3)
+                  https://syzkaller.appspot.com/bug?extid=6dee15fdb0606ef7b6ba
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+To disable reminders for individual bugs, reply with the following command:
+#syz set <Ref> no-reminders
+
+To change bug's subsystems, reply with:
+#syz set <Ref> subsystems: new-subsystem
+
+You may send multiple commands in a single email message.
