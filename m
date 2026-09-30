@@ -1,100 +1,184 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4C6A3A874C;
-	Wed, 30 Sep 2026 07:46:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8883A3E316D;
+	Wed, 30 Sep 2026 07:51:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790754411; cv=none; b=rkz4pkvfs3VkVtTy2DjhfsebcPkByvk+Qw2XVQukatCrSuddEuRw8YyJVX+mogFrGjnqgpIRRUoEPYRDinuo0sQ9n2qL47GMwg5Xb1/Slvfk5oaTbSlWU2pK5ppkwoLB/M/OfDvxK+638lECWxrJBUph0b0hNB/8MRlvF3OIPDQ=
+	t=1790754708; cv=none; b=X2dJHMyH7b8IojfoX2Y7/3BjjSVNv0MeT+ivffJZbPsTpWFsspT36yLOI6KPSqDcNLGB9Su7DIDcTKAUI39hrvjmvuZ0yo6s+xSWd4m6Xra9gl/7q8Puf56MheFU1BiKm+jHkB5Cq9H3B750AzBwDZN4erL9iNJryqfPRq2Ft60=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790754411; c=relaxed/simple;
-	bh=ELkK23LN+zu2hGb2dMJ4KsbNkjaGX7pdkVOpw2NwU5E=;
-	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=CW+qY256MSABwvu7Zf+1D4HKn8kNB5N9xQets/H8gMBrRna/JcjDZRJucetiazOYwDqPH03znMPEbyUfUpOUgkc78vbW42us/Pq/S2cWbuh3idbYSirr5l8SXv5Rdb+dMcL2iEHS0/u+WP/SOH1xjnBMP6cX0gOzyRH1oHHYoWw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UyQaeCFm; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790754708; c=relaxed/simple;
+	bh=xCZXkHu9K/1TIpAa+19Kg/+R/6wtqeYmBQQpgX2o8CM=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=Kx8W7FjB0Yz3uwwqffQ51npYhB+iU7E9yHP6PNbN2mQba3MihTRbNqp1OQG25XbjL6FsM1iwZT0YMsYeKIVe199GsJGIR4BtMtQrcfMb9NQzAADk5YWDKeiSY0E+BE6zoVHUc1UXaqdUTBw6smc8BAL1mVkie12Et6ArkMfo1C0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MDTGfjnz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UyQaeCFm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3DFB1F0089C;
-	Wed, 30 Sep 2026 07:46:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790754410;
-	bh=ELkK23LN+zu2hGb2dMJ4KsbNkjaGX7pdkVOpw2NwU5E=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=UyQaeCFmngjZOFEWGw25Hp5ZVNZw16+Wqo4ihsUyTD3YgmIu2LgyKx6iTcVzQ5WsT
-	 gx2T0KPgFBJo96VNnjoVtWWGfOw28afnSFdtKiVYMdVqSvNdWwzrWkas6RD++v//f3
-	 ZoMgoUhosDjlkHPh8tvuJtNuYbIUjqen7C8gThZY6pzZFWPdCruo9tcchcdPYFkrME
-	 QWKAn8ObrB2G9e+LhpOi53+3ZJUcjyaNGsP6OY6yLLYYgugnxfcXDSw+U5lXT2idXe
-	 b6WlnfilaZUInVCN5n80drgMRQn8E2QoCnYOtTesOzYK7JxWrokRjimuTxaCviNEcL
-	 8vRK3CNqKyfiQ==
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net v7] net/smc: fix lgr/lnk lifetime vs diag reader
- race
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Mahanta Jambigi" <mjambigi@linux.ibm.com>
-Cc: "Christian Borntraeger" <borntraeger@linux.ibm.com>, "Heiko Carstens" <hca@linux.ibm.com>, linux-s390@vger.kernel.org, "Vasily
- Gorbik" <gor@linux.ibm.com>, "Alexander Gordeev" <agordeev@linux.ibm.com>, linux-rdma@vger.kernel.org
-In-Reply-To: <20260930073029.1201202-1-mjambigi@linux.ibm.com>
-References: <20260930073029.1201202-1-mjambigi@linux.ibm.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Wed, 30 Sep 2026 07:46:49 +0000
-Message-Id: <20260930074649.D3DFB1F0089C@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MDTGfjnz"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id E8164C2BCF4;
+	Wed, 30 Sep 2026 07:51:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1790754708;
+	bh=xCZXkHu9K/1TIpAa+19Kg/+R/6wtqeYmBQQpgX2o8CM=;
+	h=From:Date:Subject:To:Cc:Reply-To:From;
+	b=MDTGfjnzw5p5e0dBha5/WW1eWErFIeid2PaGyGKvxOh78u1tTd4tfBzOv2zYeuXJW
+	 Y0/LGleiVVXds/jE9Zhu95wkaVAc7+RXWUnf5Gg5FV5uvKuOOex/b5riWyLnP/afWR
+	 oluw0q5lFGHt6q79jvGoMFwSJop+6/W7jECsCRAcVvYSKgf3ivgMvBcebK49E/O7Or
+	 q2ZsW/EXazu33DJzwBglxF8mY2p5pp2wKFkd2RrkQXydXyjFy5Q6IUh4bQKf0ligY9
+	 RUer+NsFGn9PFE86wpMhLQ7UH6zXWInC7JjULeZKZo5FoHh+qP6m7smp4zJjrxQZih
+	 TuooJQ6rkHU4w==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5F5CCA5FC1;
+	Wed, 30 Sep 2026 07:51:47 +0000 (UTC)
+From: =?utf-8?q?Nguy=E1=BB=85n_V=C4=83n_Cao_Nguy=C3=AAn_via_B4_Relay?= <devnull+nguyennvc.greennode.ai@kernel.org>
+Date: Wed, 30 Sep 2026 14:51:42 +0700
+Subject: [PATCH rdma-rc] RDMA/irdma: Do not move a fresh RoCE QP to ERROR
+ on RESET
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Message-Id: <20260930-irdma-reset-fresh-qp-v1-1-065327274e2b@greennode.ai>
+X-B4-Tracking: v=1; b=H4sIAI2/vGoC/yWMuwqAMAwAf0UyG4gtFfRXxKG0UTP4SkUE8d8tO
+ h033N2QWIUTtMUNyqckWZcsVVlAmPwyMkrMDoZMTY0lFI2zR+XEBw4ZE+4bBm+DI0fRGwc53ZQ
+ Hub5tB38QoH+eFwU3w5FvAAAA
+To: Tatyana Nikolova <tatyana.e.nikolova@intel.com>, 
+ Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
+ Mustafa Ismail <mustafa.ismail@intel.com>, 
+ Shiraz Saleem <shiraz.saleem@intel.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ =?utf-8?q?Nguy=E1=BB=85n_V=C4=83n_Cao_Nguy=C3=AAn?= <nguyennvc@greennode.ai>
+X-Mailer: b4 0.13.0
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1790754706; l=5208;
+ i=nguyennvc@greennode.ai; s=20260930; h=from:subject:message-id;
+ bh=pUE5++VACMAhAd/B/N8p6SNGcTyho6T0u18DfMJ9e8c=;
+ b=MLszr+tiHZjO7nMpJnFB1NebNcFIp/nLvyNLgLgHasmznmeBmZOyoUUErj3z/tgw2DBpqtBnC
+ AZXmGr882NbDCkNIk14NLs2AOBREwEOIWEpp0LEWLWYTxHZYeoo/IcP
+X-Developer-Key: i=nguyennvc@greennode.ai; a=ed25519;
+ pk=hD0bkhMDmCDDJQqc7LPqtK8Z3nB2eAmgkZt+R9cGcDY=
+X-Endpoint-Received: by B4 Relay for nguyennvc@greennode.ai/20260930 with
+ auth_id=1084
+X-Original-From: =?utf-8?q?Nguy=E1=BB=85n_V=C4=83n_Cao_Nguy=C3=AAn?= <nguyennvc@greennode.ai>
+Reply-To: nguyennvc@greennode.ai
 
-> The diag dump walks the socket hash table under a read_lock and dereferen=
-ces
-> conn->lgr and conn->lnk. Three paths expose a window where a hashed socke=
-t has
-> freed or partially freed conn/lgr/lnk state.
->=20
-> First, smc_conn_abort() calls smc_conn_free() during early handshake abor=
-ts
-> while the socket is still hashed in SMC_INIT. On the smc_lgr_cleanup_earl=
-y()
-> path this frees the lgr synchronously without holding the hash write_lock=
-. A
-> concurrent diag reader can therefore load a non-NULL conn->lgr and derefe=
-rence
-> lgr->is_smcd after the kfree. Guard the conn->lgr->is_smcd load in
-> __smc_diag_dump() by skipping it when the socket is in SMC_INIT state. Th=
-e same
-> guard also skips the CONNINFO/LGRINFO/DMBINFO blocks for SMC_CLOSED socke=
-ts,
-> which may briefly remain hashed after smc_conn_free() when the fd is stil=
-l open;
-> smcss already suppresses those attributes for closed sockets, so there is=
- no
-> observability regression.
->=20
-> Second, in smc_conn_kill() on SMC-D with dmb_nocopy, smcd_buf_detach() NU=
-LLs and
-> frees conn->sndbuf_desc before the socket is unhashed. A concurrent diag =
-reader
-> entering the CONNINFO block can dereference the freed descriptor. Unhash =
-the
-> socket at the top of smc_conn_kill(), before smcd_buf_detach().
->=20
-> Third, in the terminal teardown branches of smc_close_active_abort()
-> (PEERCLOSEWAIT and PROCESSABORT groups) and in smc_close_passive_work(),
-> smc_conn_free() drops lgr and lnk references while the socket is still ha=
-shed.
-> Unhash immediately before each smc_conn_free() call at those two sites.
->=20
-> Fixes: f16a7dd5cf27 ("smc: netlink interface for SMC sockets")
-> Fixes: 9dbe086c69b8 ("net/smc: fix invalid link access in dumping SMC-R c=
-onnections")
-> Fixes: ae2be35cbed2 ("net/smc: {at|de}tach sndbuf to peer DMB if supporte=
-d")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Mahanta Jambigi <mjambigi@linux.ibm.com>
+From: Nguyễn Văn Cao Nguyên <nguyennvc@greennode.ai>
 
-Sashiko has reviewed this patch and found no issues. It looks great!
+irdma_modify_qp_roce() handles IB_QPS_RESET like IB_QPS_ERR and moves
+the QP to ERROR. On a QP that was never moved to INIT, this makes the
+following RESET->INIT fail with -EINVAL, while ibv_query_qp() still
+reports RESET.
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260930073029.1201=
-202-1-mjambigi@linux.ibm.com?part=3D1
+RESET->RESET is a valid transition. The Mooncake transfer engine
+resets every new QP before INIT, so it cannot connect over an E810,
+while mlx5 accepts the same sequence:
+
+  ibv_create_qp(RC)        -> RESET
+  ibv_modify_qp(RESET)     -> 0
+  ibv_modify_qp(INIT, ...) -> -EINVAL
+
+Skip the hardware modify when the QP has not been moved to INIT yet
+(iwarp_state is IRDMA_QP_STATE_INVALID), as there is nothing to flush.
+RESET after INIT still goes to ERROR.
+
+Fixes: b48c24c2d710 ("RDMA/irdma: Implement device supported verb APIs")
+Assisted-by: LLM
+Signed-off-by: Nguyễn Văn Cao Nguyên <nguyennvc@greennode.ai>
+---
+Tested on an E810 (firmware 1.74, RoCEv2), backported to Ubuntu
+6.8.0-142 as a module. RESET (once or twice) on a fresh QP, then
+INIT->RTR->RTS and an RDMA WRITE+READ: stock fails INIT with EINVAL,
+patched round-trips the data, over loopback and to a second host.
+RESET after INIT, RTS or ERR fails INIT with EINVAL on both drivers,
+unchanged. No irdma messages in dmesg. A ConnectX-6 Dx (mlx5) passes
+unpatched. Builds with W=1 on for-rc (7.3-rc5). Not tested on a for-rc
+kernel.
+
+Not changed: the iWARP path, and RESET after INIT, so INIT->RESET->INIT
+and ERROR->RESET->INIT still fail. A QP in INIT may already have
+receive WQEs posted, and irdma does not clear its queues on RESET, so
+skipping ERROR there is not safe. A real reset would need the hardware
+QP to be rebuilt. Is that worth a follow-up?
+
+Reproducer (userspace, libibverbs):
+
+  // gcc -o reset_then_init reset_then_init.c -libverbs && ./reset_then_init <rdma device>
+  #include <stdio.h>
+  #include <string.h>
+  #include <infiniband/verbs.h>
+
+  static const char *st(int s) {
+      static const char *n[] = {"RESET", "INIT", "RTR", "RTS", "SQD", "SQE", "ERR"};
+      return s >= 0 && s < 7 ? n[s] : "?";
+  }
+
+  static int state(struct ibv_qp *qp) {
+      struct ibv_qp_attr a; struct ibv_qp_init_attr i;
+      return ibv_query_qp(qp, &a, IBV_QP_STATE, &i) ? -1 : (int)a.qp_state;
+  }
+
+  int main(int argc, char **argv) {
+      if (argc != 2) { fprintf(stderr, "usage: %s <rdma device>\n", argv[0]); return 2; }
+      int n; struct ibv_device **l = ibv_get_device_list(&n), *d = NULL;
+      for (int i = 0; i < n; i++) if (!strcmp(ibv_get_device_name(l[i]), argv[1])) d = l[i];
+      if (!d) { fprintf(stderr, "%s: no such device\n", argv[1]); return 2; }
+
+      struct ibv_context *c = ibv_open_device(d);
+      struct ibv_pd *pd = c ? ibv_alloc_pd(c) : NULL;
+      struct ibv_cq *cq = pd ? ibv_create_cq(c, 16, NULL, NULL, 0) : NULL;
+      struct ibv_qp_init_attr qa = { .send_cq = cq, .recv_cq = cq, .qp_type = IBV_QPT_RC,
+                                     .cap = { .max_send_wr = 16, .max_recv_wr = 16, .max_send_sge = 1, .max_recv_sge = 1 } };
+      struct ibv_qp *qp = cq ? ibv_create_qp(pd, &qa) : NULL;
+      if (!qp) { perror("setup"); return 2; }
+      printf("%s (%s): created QP %u, state %s\n", argv[1], d->name, qp->qp_num, st(state(qp)));
+
+      struct ibv_qp_attr r = { .qp_state = IBV_QPS_RESET };
+      int rc = ibv_modify_qp(qp, &r, IBV_QP_STATE);
+      printf("modify -> RESET: rc=%d (%s), state now %s\n", rc, rc ? strerror(rc) : "ok", st(state(qp)));
+
+      struct ibv_qp_attr a = { .qp_state = IBV_QPS_INIT, .port_num = 1, .pkey_index = 0,
+                               .qp_access_flags = IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ | IBV_ACCESS_REMOTE_WRITE };
+      rc = ibv_modify_qp(qp, &a, IBV_QP_STATE | IBV_QP_PKEY_INDEX | IBV_QP_PORT | IBV_QP_ACCESS_FLAGS);
+      printf("modify -> INIT:  rc=%d (%s), state now %s\n", rc, rc ? strerror(rc) : "ok", st(state(qp)));
+
+ibv_destroy_qp(qp); ibv_destroy_cq(cq); ibv_dealloc_pd(pd); ibv_close_device(c); ibv_free_device_list(l);
+      return rc ? 1 : 0;
+  }
+---
+ drivers/infiniband/hw/irdma/verbs.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
+index 5d71300da0ff..646fddd022b1 100644
+--- a/drivers/infiniband/hw/irdma/verbs.c
++++ b/drivers/infiniband/hw/irdma/verbs.c
+@@ -1576,9 +1576,17 @@ int irdma_modify_qp_roce(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 			issue_modify_qp = 1;
+ 			iwqp->suspend_pending = true;
+ 			break;
++		case IB_QPS_RESET:
++			/*
++			 * A QP that was never moved to INIT has nothing to
++			 * flush, so skip the hardware modify. Moving it to
++			 * ERROR would make the following INIT fail.
++			 */
++			if (iwqp->iwarp_state == IRDMA_QP_STATE_INVALID)
++				break;
++			fallthrough;
+ 		case IB_QPS_SQE:
+ 		case IB_QPS_ERR:
+-		case IB_QPS_RESET:
+ 			if (iwqp->iwarp_state == IRDMA_QP_STATE_ERROR) {
+ 				iwqp->ibqp_state = attr->qp_state;
+ 				spin_unlock_irqrestore(&iwqp->lock, flags);
+
+---
+base-commit: 72d3fcf802c45d00b300f25b848a93c3a2bd7c7e
+change-id: 20260930-irdma-reset-fresh-qp-ca3c5050da25
+
+Best regards,
+-- 
+Nguyễn Văn Cao Nguyên <nguyennvc@greennode.ai>
+
 
