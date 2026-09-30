@@ -1,42 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF0733B9D8D;
-	Wed, 30 Sep 2026 12:00:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA1C24CDDC6;
+	Wed, 30 Sep 2026 12:02:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790769644; cv=none; b=KQdQOjymqat1/Uv3GNKFku5M1WUOnufv+yPR6MX7smQ9QRnkekyt/QvQ0a0Kcj73Tpm3yIsMAIzEARZCSR/Ubd1RBizlalCitFfBIzqSTCRBMZktyh24qH0tsVVDiX9fL2BZTwiap6/JpYwcIiBqf6Ti/GTBryLeLBzBPlZfnTE=
+	t=1790769722; cv=none; b=pZnYuNjYr061F+Mjhixo5k3kgk1Qb7Z1kI6sX2QibQ4J7TT/OAa33UAbBcZjKMzm/er75hRLo5/EmT4vUT+0pkcfWzdIXjgBOtpIfdzchRr6hwF8aF/2AREeQcQ6Zr2k4kb6e8E4HpmEL9uZ0N6X1j80uetyzyj1V1fqzK35tZo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790769644; c=relaxed/simple;
-	bh=wszQkN1GJqDwPiLZzvHAvrJVpaCUtN+auewvBQyY7Ic=;
+	s=arc-20240116; t=1790769722; c=relaxed/simple;
+	bh=nF+t7BLz+zzxEB7N9ungKCfZcqviKWw+ZrER2NamY0A=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=m4Dtu3e30DvcurjyEaxmIEh7ko1+pNXHONyM3vuxOpQqGFRQHTdTOCTzrq14p5HBfj20GMrzMFqJcO42+Z1jcpgcA0+j+LxyLJ7SjSWYIhbUN4sLyP8Xvsnrb7FaGI7tH9g5+Hw4p17xs1mDbWDCpUfMhEuSdWzP1AQ1v8Fdmgo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=c6+SBTTI; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=Nrrrf+2Dic/7D8WRUTgqF4cSwF228Cm6iyb1lG29Ha2Now5+Lb0Rx6sX3eGSdni/mPZTGEVCgZfJYt/gDR7BurqbTYlxaw4ggmB0RJKwEfY8tTNXHOXWAI4aqZIaPIuUXxP2HmWMCoSC8HikqUNj1PFax1JmVx1klC1ysPuZTyA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Sb2cO92i; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="c6+SBTTI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDE6A1F000FF;
-	Wed, 30 Sep 2026 12:00:42 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Sb2cO92i"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87B251F000FF;
+	Wed, 30 Sep 2026 12:01:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790769643;
-	bh=rCXPgRht0qSLZf0OgWnuc60RKYdtwcJbAZyGAof2KhM=;
+	s=k20260515; t=1790769720;
+	bh=3LNqUVYBKtBXN2PwwcWnzFFxB+aCMYTNCKruTEwKVIY=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=c6+SBTTIXMk9pXdKjNAO6FBvlPYZV98G7Y0mBQYyNovlBDrz6nPAYuhCV08Oi02nk
-	 Y3Ndixhyvw866RSJz+OpkPx+5r7FvGEYymNIk4qA5OHZoqYCGZswN3ir62+nWgqeZo
-	 2bVP5hOx4CCIe2xjuC2wYa7PF5Nwu3MIwQEKbOcaERFlNfaAMGn8IVfFYK/jdXcUuq
-	 8cqsBVSvDWLbsprilRiMbGKi4KVRZhJkKuvpwRHdinWw4f4bnaFySVsJ5FbiwRPEKr
-	 3NDFKuzvh5hqbef7Lkp1OI3diLiTXi4o2yW13rWbJD4XIEo0NRafODG7BCoUav8MK7
-	 CqOiOLVsmaSfA==
+	b=Sb2cO92ifyDNNrclYiEz9s8DjimDOsFGrR0/sgOUQzHOjOnExMjk7zBvYOT/7TmBw
+	 bODEeVrqNmSU1e2eaLfv858eeR/W9NeCAWsCpmittLr3oUbaN9VUK14LrgUBsFO0mi
+	 aFVVEFyDSud7RX43+diPsI7RQZVWOh7rnNrG7WvMaPNGco3P4SkTpMEAoNnbQTkhXq
+	 /obrEEB/uzcmZ2EOEWlVZ6JCiwMJsFO7LgisStmyC+flexDHElxZbsPOvn8geKQiTs
+	 /skv8hc2J/6Pt3oxtaPJIn+utFxZ+yb4OPOuNzePuxBk8HeDGau8SXcdoI5pF28QpY
+	 IZyCqTdRcBomA==
 From: Leon Romanovsky <leon@kernel.org>
 To: dennis.dalessandro@cornelisnetworks.com, Jason Gunthorpe <jgg@ziepe.ca>, 
  Hongyan Xu <getshell@seu.edu.cn>
 Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
  jianhao.xu@seu.edu.cn, Leon Romanovsky <leon@kernel.org>
-In-Reply-To: <20260928134151.1213-1-getshell@seu.edu.cn>
-References: <20260928134151.1213-1-getshell@seu.edu.cn>
-Subject: Re: [PATCH] RDMA/hfi1: shut down the trap timer before
- unregistering
-Message-Id: <179076964043.226697.10963286150621176370.b4-ty@kernel.org>
-Date: Wed, 30 Sep 2026 08:00:40 -0400
+In-Reply-To: <20260928134148.977-1-getshell@seu.edu.cn>
+References: <20260928134148.977-1-getshell@seu.edu.cn>
+Subject: Re: [PATCH] RDMA/hfi1: quiesce SDMA asynchronous cleanup on exit
+Message-Id: <179076971729.227216.9009372867608054774.b4-ty@kernel.org>
+Date: Wed, 30 Sep 2026 08:01:57 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -48,20 +47,22 @@ Content-Transfer-Encoding: 7bit
 X-Mailer: b4 0.15-dev-18f8f
 
 
-On Mon, 28 Sep 2026 21:41:51 +0800, Hongyan Xu wrote:
-> MAD processing arms a trap timer embedded in each hfi1_ibport. Device
-> unregistration does not stop the timer, so its callback can run after
-> the port and its containing hfi1_devdata have been released.
+On Mon, 28 Sep 2026 21:41:48 +0800, Hongyan Xu wrote:
+> The SDMA state reference and completion cover the software cleanup
+> tasklet, but not the hardware cleanup tasklet, err_halt_worker, or
+> flush_worker. Queued instances can therefore access an SDMA engine after
+> per_sdma is released.
 > 
-> Shut down every port timer before unregistering the IB device. The
-> shutdown form also prevents a concurrent path from rearming the timer.
+> After the state machine has stopped, cancel err_halt_worker first
+> because it can publish the hardware cleanup tasklet. Then kill that
+> tasklet and drain the remaining flush work.
 > 
 > [...]
 
 Applied, thanks!
 
-[1/1] RDMA/hfi1: shut down the trap timer before unregistering
-      https://git.kernel.org/rdma/rdma/c/23baaac7287bd6
+[1/1] RDMA/hfi1: quiesce SDMA asynchronous cleanup on exit
+      https://git.kernel.org/rdma/rdma/c/a57bf5ee252f5d
 
 Best regards,
 -- 
