@@ -1,262 +1,165 @@
-Received: from BN1PR04CU002.outbound.protection.outlook.com (mail-eastus2azon11010042.outbound.protection.outlook.com [52.101.56.42])
+Received: from SJ2PR03CU001.outbound.protection.outlook.com (mail-westusazon11012070.outbound.protection.outlook.com [52.101.43.70])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E06E3F9A13;
-	Wed, 30 Sep 2026 08:35:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.56.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53E7C477988;
+	Wed, 30 Sep 2026 09:21:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.43.70
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790757325; cv=fail; b=a9/yBPe4o505DVwOPuZ21Cu4t0NOikc+AcV/yFg6Yj/lz2LoPlShTr4E9Nat/3INDbHiM4zUEfGtqEFOS2ZdF3XjHSMSI4Y2c+3RmHfrOow8XemStVp/JRAFPJE/Ek5Xn+VjHWKmoKX6C2K71ODClwsSOLBFNqjrDvdakcLDFqY=
+	t=1790760111; cv=fail; b=lAfRcNWz9qsMv5+Qhj+cTeJuJtbGpoYH0X6maoesMPLHtWA1GQRqbG50X1kc38oUp6j4By1VdY9wh50sFZxc5Cij7Sqb1Aq+XDf9dc07sxKXGDe6AZeeL8OPPI3oaJa67is5EcNA3xVgtA9lglD9/g5SfLzqWYsG0qR8KFFnwHo=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790757325; c=relaxed/simple;
-	bh=tFDAfiLj6ZvUJ6EBTMoFgDtstpJX44EfQDFfN3aF/Ko=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=tgDUgPufxaAsikrGrjDtL8pxoacmF5usaYQ280lnBpc/O34S+xO6FvTqtPxNbGog7YKl5VEHEtjvO7WbQvDQFbbyYdtZAvRkv013GMI3i+hTbUM/WKINjDbFWnwxvOYKQX4j3DqCkxkQvQHLg965lOvwpOhcMKTO0Pb4mZ9nGpc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=ngRyevEm; arc=fail smtp.client-ip=52.101.56.42
+	s=arc-20240116; t=1790760111; c=relaxed/simple;
+	bh=2JNdX7asrGTEXicAqs1bLbGHUAjMQsgJFYWuJT+ZKYk=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=rGF6hwbt8FQZyh8EzhxiG5snmf+zCN6deSriO2nvAqHQKfV1AqDCRTTuQODsew6AKM+l0DkTpItCEheGYBICGPcd4pnHNcCqCtaWIXNFAv0ScBWbeUaHYSLTu2kYFzWeZWMghIKSets/2pvt2CQg4wRU+EFLns2rv4QmEn1eSY8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=WxMgnd2I; arc=fail smtp.client-ip=52.101.43.70
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="ngRyevEm"
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="WxMgnd2I"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=l72/qqpBAf2Nv4bgHa7Xu0coNedKBzvWntb/Qt1n85lTMnsO4E3Z3W9gCGkBNaH5mg+Et8MJOcUVY98lkCNJ5RCdUNBVvKv476AJxI7MiDXRSKSwBb//hdd0BSrUI/ubUO+GRy7hMqnsENVJRLj9kKn6mXh0Y1dP+k6VvestNSmN1jFEGuEs2a8mtDtnTGXDY5jJH8ls7OqODDeROOBlG2BisHTm8sX1c9aetQaBD1Z4yO57vlYsMRLef71/g7xWN6qug7S1srS5ydD6q96T5RJbYml0vOX8Hb/wzkD2qUJRSqMVvInypYK6lZ4T/tzyExOsfapIFSFdAlvnS+dR7Q==
+ b=VJSUkw8HZJzCmrOPVYH2IJ2dWA0HsFE1IqeJf7EpTySCojIVMmLwG4jH5JouzFEPez9cLs2lhxGwk0lL+kAVDCq/ixVKOnNkUhIqZo6so6YEhjkrRO3ywM3EHKlZo7EjW1Id5aU+NVcg5W3gd6ZEUC8K6HsKWT26AyJkQzB89WqHEmJWIU2l+cry1db6nBZGFRW5idoAIU4mVtFK5Dlercj1skahIZbqEG8w7Ig2pQA9R64+jo7MKTUEi/wWtoDI9tq2pwRGRIgYkSxJYq5MWqWm0CoWuPc7x6bbQTaaC12XsOhXjtlYR1jYWOOftv6rHEFp7dS9E62b6dRYPNTb4A==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Yok2iiMapsZLVqqdOeheofsvqokA/lRENlccVX8xceM=;
- b=LNjL6PTSKuK3EK0ai4rWX24v+lkL5YF1s0YkFg1aAeQrOwxn4tXv2HukK1IlZpxQsJWuS2igot5gpCoy02laRdER9ECr3Li4zdD7lY3qYT0bPXFeToNbbLKIWGBW5Et6DTM4S1ftrcF+Gc7mer1kMMW5NHHgCPQOZO/iSLL5xQKLsDsEir6m0SLq3PUBEA9NJHK74pPK7o7rCYw7GmCxsK2sgCke3JtAKk2F6KQXONh3W7NYJh3dZwDrJYvqY7FywkqOiHrbyxj3ZrxhsY53J52ixYsAL4I8xvj8yJliJcyHDRaUAxuPy34hDZoTkA344RZ6qQmdYMY5k2syqrZY0w==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
+ bh=HdimKOTgsQeTs2FScOujAGH0ON0CtCiReecuqZx3StY=;
+ b=heI2FOTODtJZxiN72BxAWXMiRoxgLjpj5LdloUmE67cyQPJSoMAGnRkQ0nfxQ/nF0IHhzscSczcJQdljNreSqJ7cB26tPK29vV2cVG4eBJ3oMsFInGUOMmF5b56eBqQtllkT7M5qI0TEKxAoUozTTE7P/HR1/AuRBkDkIbkcWMA0NA0GrtUXTfxpPFL9CWtkTvEW6E8TqCZjNhKqKXG8DGHhyBBYHBL2fZ8CGhpmE5VmRID1QUQ8VmqAFNbxPhVWLqsKr2dYJRqParNIpew6SvUJQavOGlnJVAb/yg0kvNnGv5mFBFGTI0sBSWWuUgd8MllUNIp+pbg1sPkT1a2eLA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=ziepe.ca smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Yok2iiMapsZLVqqdOeheofsvqokA/lRENlccVX8xceM=;
- b=ngRyevEmpXvq/NfwqNenAPhYJvA9VhMQ6m6r3wJECvWFhL6g3JodBbm+QbF112bmDu7sHU0vzSlXSJeiGfNrqOViyZaxYjOwP97O1W4cZHo1+hMxHdwGdB1B+kTlaAe0pD02x0NyqVXZ15E+oTn26bEsP4g3v4pYZojktoROaCM=
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from PH7PR12MB5685.namprd12.prod.outlook.com (2603:10b6:510:13c::22)
- by DM6PR12MB4154.namprd12.prod.outlook.com (2603:10b6:5:21d::21) with
+ bh=HdimKOTgsQeTs2FScOujAGH0ON0CtCiReecuqZx3StY=;
+ b=WxMgnd2IRY2ZLH06Y0qqO+urdjzdA57aahMpVzDiA0Yv7pnWWkWKsP9Pc0efWhv/4EhaO+UPGRt9D/Xe2EM10mxZexYL5Tbu2uAXAiR0r6kvfSSIh3NxL8Z8JCJqrQyB2XXecUneXn7IKXowjmdEKr0pl5Wg060lvXtUX+4QSfU=
+Received: from SJ0P220CA0016.NAMP220.PROD.OUTLOOK.COM (2603:10b6:a03:41b::23)
+ by SJ0PR12MB6992.namprd12.prod.outlook.com (2603:10b6:a03:483::11) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.472.15; Wed, 30 Sep
- 2026 08:35:11 +0000
-Received: from PH7PR12MB5685.namprd12.prod.outlook.com
- ([fe80::ce69:cfae:774d:a65c]) by PH7PR12MB5685.namprd12.prod.outlook.com
- ([fe80::ce69:cfae:774d:a65c%3]) with mapi id 15.21.0451.022; Wed, 30 Sep 2026
- 08:35:05 +0000
-Message-ID: <4549640c-f4a5-4dac-9be3-2e5aa127555c@amd.com>
-Date: Wed, 30 Sep 2026 10:34:56 +0200
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v8 16/23] dma-buf: Let importers ask how peer-to-peer
- traffic is routed
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Logan Gunthorpe
- <logang@deltatee.com>, Jason Gunthorpe <jgg@ziepe.ca>,
- "Joerg Roedel (AMD)" <joro@8bytes.org>, Will Deacon <will@kernel.org>,
- Robin Murphy <robin.murphy@arm.com>,
- =?UTF-8?Q?Thomas_Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
- linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-doc@vger.kernel.org, iommu@lists.linux.dev,
- Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
- dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
- linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
- Chaitanya Kulkarni <kch@nvidia.com>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jens Axboe
- <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
- Ankit Agrawal <ankita@nvidia.com>, Jonathan Corbet <corbet@lwn.net>,
- Shuah Khan <skhan@linuxfoundation.org>, Randy Dunlap
- <rdunlap@infradead.org>, Sumit Semwal <sumit.semwal@linaro.org>
-References: <20260928-fix-p2p-acs-v4-0-v8-0-404453b9c435@nvidia.com>
- <20260928-fix-p2p-acs-v4-0-v8-16-404453b9c435@nvidia.com>
- <607e8903-a979-4d78-bf08-447321c03119@amd.com>
- <20260929132305.GJ563127@unreal>
- <720dbac3-24f6-4c91-899e-e205865c1fd1@amd.com>
- <20260929175737.GK563127@unreal>
- <eeef5951-825e-459f-b474-bf8c59588446@amd.com>
- <20260930081832.GA3401365@unreal>
-Content-Language: en-US
-From: =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>
-In-Reply-To: <20260930081832.GA3401365@unreal>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: BL1PR13CA0420.namprd13.prod.outlook.com
- (2603:10b6:208:2c2::35) To PH7PR12MB5685.namprd12.prod.outlook.com
- (2603:10b6:510:13c::22)
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.451.23; Wed, 30 Sep
+ 2026 09:21:44 +0000
+Received: from MWH0EPF000C6191.namprd02.prod.outlook.com
+ (2603:10b6:a03:41b:cafe::28) by SJ0P220CA0016.outlook.office365.com
+ (2603:10b6:a03:41b::23) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.472.15 via Frontend Transport; Wed,
+ 30 Sep 2026 09:21:44 +0000
+X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
+ is 165.204.84.17) smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
+Received: from satlexmb07.amd.com (165.204.84.17) by
+ MWH0EPF000C6191.mail.protection.outlook.com (10.167.249.106) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.472.14 via Frontend Transport; Wed, 30 Sep 2026 09:21:44 +0000
+Received: from satlexmb07.amd.com (10.181.42.216) by satlexmb07.amd.com
+ (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Wed, 30 Sep
+ 2026 04:21:30 -0500
+Received: from xhdipdslab46.xilinx.com (10.180.168.240) by satlexmb07.amd.com
+ (10.181.42.216) with Microsoft SMTP Server id 15.2.2562.49 via Frontend
+ Transport; Wed, 30 Sep 2026 04:21:27 -0500
+From: Abhijit Gangurde <abhijit.gangurde@amd.com>
+To: <jgg@ziepe.ca>, <leon@kernel.org>, <brett.creeley@amd.com>,
+	<andrew+netdev@lunn.ch>, <davem@davemloft.net>, <edumazet@google.com>,
+	<kuba@kernel.org>, <pabeni@redhat.com>
+CC: <allen.hubbe@amd.com>, <a.k@amd.com>, <nikhil.agarwal@amd.com>,
+	<linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, Abhijit Gangurde <abhijit.gangurde@amd.com>
+Subject: [for-next v4 0/5] RDMA/ionic: add SRQ support and firmware assigned CQ and SRQ IDs 
+Date: Wed, 30 Sep 2026 14:51:06 +0530
+Message-ID: <20260930092111.3176738-1-abhijit.gangurde@amd.com>
+X-Mailer: git-send-email 2.44.4
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH7PR12MB5685:EE_|DM6PR12MB4154:EE_
-X-MS-Office365-Filtering-Correlation-Id: 0a48fb07-a420-4818-b503-08df1ecdb9de
+X-MS-TrafficTypeDiagnostic: MWH0EPF000C6191:EE_|SJ0PR12MB6992:EE_
+X-MS-Office365-Filtering-Correlation-Id: d20599f1-360f-42f7-49f7-08df1ed43eb6
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|7416014|366016|1800799024|376014|4143699003|10067099003|56012099006|6133799003|11063799006|18002099003|22082099003;
+	BCL:0;ARA:13230040|36860700016|82310400026|7416014|376014|23010399003|1800799024|10067099003|56012099006|11063799006|18002099003|13003099007;
 X-Microsoft-Antispam-Message-Info:
-	wv1NI5qv0hDFXcq9bKAJUOQSrMmtWA72aJPad5QFeTMDOYaSwrWeTysa8qGVZvEIyUYid3YNp1pCysGGnE3mymDPQQo409mln8uyBQ3WiK1b+f4igKpRPVMss+qKZBcAqErmOF3VxNhhpBZykUVvkc/V94hmDurY0rKF7Kzb4ObS8eDa0Mm6Z+czZvun9gnLLTSmq8m7czewZsS0TPw9+G2LwvLKqUlLe924H9XOB1ha3kJecEKGe4trRfP63Mie7/060dJxW99JmtybcRNcJ9qqsJjJgX5AI/gAgo+Vv6fzCjcKRLVzc882ZENHz8CV7zRYYi2u5/jFwFxRUEiN/gvmWP9YzbH99N0NCipyL2WhBQ00y/XkjfIMxImasZRZI2/0imivpl0mVe/41xzzJ3bKBMes4D3Wl247AXuIUNdEFCjhk9+K+jiiX3RLMuumxPEizrQMDDJQ3MOi7S2TUwKyu0qgGnLU0plt8kw4/xIAbnMux82neCTs6bU4uHO4HcIBXyjV6qRQzXWIrsycUrpQwUPJMEDatLA70KSeGVN1oKFdHipMJvbT9SWZGUFMgN6zOHmY1lns3AQZhBDmLXO6XNT6GVbz1KiGkjEaVeOMCTh8wUMSg+CVRMaZdCmp
+	F7mZSt0Jzmgi+Dyrygjq19rc5UhtEKfmfXcY0y979HwMJH0AxylWH9oqgi8cCYoyAYvGzAIyCqgO8FIkR9zcSmzma+V9fihCJkfLJ8GOsXuT3wHyKipJ/UqMgwkLIhwccq8YvpmfIJAbQEJupRpDWV/5mJvPfjXPR67hFkuzILKuHSpgk+31UBE732FNePuAd6HKcSn/HuUOLIDCYxLMzBjZ+2xycBBhYPo8YYfGkI6dBg310E7jUITyLKZu0hTUX3oummLXGol/tleeFbi9+ygcEK0OdTpNpt4CVnk241eRsjT11Jn3vSMkc31q1OW4qClGaPZEuIDrJznfG2GvERzzNU9/StM0k+Rp2F2kd6irP2Ty2Jztxd9q98cjEGSPVq8pry4Ou7j78OjKCNP5UHvGIg1HlpZ5NYPiRIFF2MbxOjhaoK1WNMkwdyz0tkesj2cFJE1s+2m4lPH1yLTa93SdhsexGvNP7Wn6F+IFFFmb5WIaXBqT4jYLEMN+BD85qLZHOJMEEt8fXl3SY9WW5luhfzcGqtoPBrGWVtNtpB790UNj6hE4/hsXL2viYq3N+LQtodOqVeGL4LcCbkAoq37pks6rGH/lrsgpcDVlHEq10rO+fj+KL9EjDUXI2mamdQYQMPqvAt6sxL5utN5ww+8HQFgH95i7dqJQITYJFkGohdsbnEbmmGDlzFCa4LJ+j0i62j/Y7b8brZq5fVLxtQ==
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR12MB5685.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(7416014)(366016)(1800799024)(376014)(4143699003)(10067099003)(56012099006)(6133799003)(11063799006)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(36860700016)(82310400026)(7416014)(376014)(23010399003)(1800799024)(10067099003)(56012099006)(11063799006)(18002099003)(13003099007);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?QVd5S0hhcjNYR1JSbjRmQis3TytmRDk2dS9OZHFoamZBTk8xZWFPQXVtOWtr?=
- =?utf-8?B?bDd1NXRVdU4xSzJXd3hNTDRQc0w5enpOZFBqSkhNQUFvcm1DNTkzOHBrbUhF?=
- =?utf-8?B?YnlUdGxmMzdoZzlyQU9lQm1GK3lsV2owa3czV2JFdGtSU2xtTms0SmlLSWhR?=
- =?utf-8?B?RiszYk1iYldhZzU5R0RGTXVuZGJwdTdLU1QwMnc1ZE14NVlWcHRsRzBVc1F2?=
- =?utf-8?B?S3VBQUtVVEtaTXFSYWo2RDVtYTdRU2kzZTVtbGtPS0ZPTXpPaWtnWFRnTlBW?=
- =?utf-8?B?SDBDT282akM3eklWQXJqUGpnM0FXUzczcnh4U0RjTXBYOW1zRTViZ0dGOU9I?=
- =?utf-8?B?TGVIWjNRNEJIVno0c0d4V2dEUDlPUnUxSkUrL2hMb3ZtdVJBaGFlUi8wbGFJ?=
- =?utf-8?B?Vzg3Y3ZVMTNBMUJHdWhybUtVanNoTEZRRWg1NlBBQTZqV1hINnJZbCtKQU5U?=
- =?utf-8?B?b1VrbWNaT0VxanZaVTA3N0lQUVpOY25sN05NWThJVnNJUStXeWtFQVdQTkZK?=
- =?utf-8?B?VVliSjNGbEhFQnJZYmF6UnUvMzZjQU1WN3ExVkpQV3J5MmRCb2d3bUxTN0pC?=
- =?utf-8?B?SkFOSCtONFI1VGY0ZFhUZm5RSWlBbDVNZG12QTVsdEhCNkJhV04xTUxOZDFM?=
- =?utf-8?B?UWJKNG1YMzRRNkt2a1RqeVRKbGpuNnpzRmNwZFpYUk1pVm54dFJTZk5PUmVP?=
- =?utf-8?B?Rzg0T25pM2lBb2sxV3NtQ0JlaWhXMCsrRDFGaGxlNjlDekEvbit5WU5ybXB4?=
- =?utf-8?B?dS9RUy9UeFM3Z0ZEeDFDQ2p6QkJVZTVFdjFYMnFrbXZBc1lqSWpjd3dSKzdS?=
- =?utf-8?B?V2hmbGRUUmk4U3ZvU2FvRE9rWVZ5RTR5aCtaWEMwRE9rMG1BWERncW40OU5R?=
- =?utf-8?B?V1ptcnhEVlY2WUk3N0VoMHV1SDlrN1dYODllM3dLUllxKzBvdG1MQU0rak1H?=
- =?utf-8?B?ZmJoRUQwTER4SEFpLzBnNzVBYjNMOXlvQkR6UmhIY3NLMWhGRVdXbnhuL09D?=
- =?utf-8?B?YmtNTnRLY2JDU01oNzBaRlBTbjd1T0pHQS84T3JUTERFaXE4d1U4bUsvaXRl?=
- =?utf-8?B?a2UzSThseDViSmNGSTlrK1JwdzJVeGF3UUMvVE5zOGNCd3ZLZUR5MlROVEkz?=
- =?utf-8?B?OVVKQndrdVZXQWpvVGcyMy83YTUybGRPNS83elZBVGE5ZTBxQ0gzNjBUYVBM?=
- =?utf-8?B?c1hlWHpBa0lKV2F1QS9RWTRKMGxHL2lHZXhqR1c1aFFVVlhrNmp2NE4ycm5Y?=
- =?utf-8?B?WnQ2Q1FwN2UzZzBPem1xb29tWFY0VzVzWGo2UE5IaDRKVXdsSWRheVAvRjEv?=
- =?utf-8?B?ZnJvZ3V4bFJMaUNpM2MzR3NWUHRITWNPWllwVEgzU3l6THVNSlBQY3g1c1RC?=
- =?utf-8?B?RVZ0eUovWnJUSXF0S3NkWWlUQ2wwUm12ellGbmpCVWYxUnc1K3VYT2pDTXpl?=
- =?utf-8?B?OEd0VmdBMnZ1TUlvUG1NQUFPL1BMY2RaQ3dkcm5uaElXb1RyWWxHVUxXdm51?=
- =?utf-8?B?bFJ0QjZ2akI5SGM2Vnh0RXZMR0lLVmdRN09aKzArcU0zNjZiYmVjVE9Jc3FZ?=
- =?utf-8?B?WC9yT0FDdVd0blcvVXBhTXYrcTY1RUUyUkI1QnFsaG9TTnN6U2tKMHNYZ0g0?=
- =?utf-8?B?ZXY0eHpRazNlQ3FDb013T3RESndPM1BPYWd5U1g0R0ZYOXZsWG03cDd1TTQr?=
- =?utf-8?B?bHg5UklzUmhOMTIvMjF0d0wrZnV3WEs0SXEycThoeHR1S01PVkNmekhVNU51?=
- =?utf-8?B?Rzk4Ny9RSTE3YnByYjlJSXNIcG50MUJTNUZCRnh2cGp2VjdtQks4cXMxZGJv?=
- =?utf-8?B?L1VablFuUTRZRU5LcmJkUUd1Rk1IRmVBK3lFM2x1Q283M0FVVWM4N1gzRkVr?=
- =?utf-8?B?SjFtLzVaaHRsQmlpRHlrNFBLOXZHMERJdUlHNlljeG9DMzh3dHNPQ1ZRaXJt?=
- =?utf-8?B?VDRpR3BvWlBNb3dlckgyM3hKbGlwei9JdVZ0RWVTRlI3SEEwTTNoc3NGdjIx?=
- =?utf-8?B?TTRqa3c3ZGIyTkNuSnIrdDFLYWJWOE1kMlB0SE1SaHk5VTNXQjRKbUJ1aHhT?=
- =?utf-8?B?SnJCSFdsanV4NWFZWmNFSUdLbzNQSHBwektFdFhEV1VmbzQzcVdTYlAwR0xC?=
- =?utf-8?B?MWxVRVZYUDlxWDdXQUxjV09FWkxiWnM2QTU1OHZ1MmVqOXRhSHZwRW1WcGhj?=
- =?utf-8?B?allNMVhvM0xpQVp3YTA2UE1HZWl4SVNjZ0pnU1ZKY05yVEV5ZjZTdUNDaFI0?=
- =?utf-8?B?Q0F0dnVhVEFjemlsSFpUc0JLU2ZWeEVaWVNuTzdRZldqSDZwTkljcTFEMXFz?=
- =?utf-8?Q?K/GDx71/VLJA8G+MBZ?=
+	bmnIlWVKPLDH18WgmCylRPBA6Afr4MI3fSPeHVErfqtx6cGmzEaVHMerW2ZxeSH1ztBIpb78s2nIN8SewBORAXx/Gm0cFm7PefA0VHbakIkN6XcPxmWUUm+tXDyEBGTgFiNLU1V8b2aY09bmdJ65L5MhnJT8bjb+izZj7IMS5Vz4FqGpL1ynKdh3oFhneOQuWVZ86c8PCoQsGFFq3yNVvWobaXGf6J2l/bxAZtSdGUuncRSYzyvlqtGZyI+VuncQ8h4XGjD/casgchS1lgD7zecBe26erPWQzNAJdVRNbq8yna32iEFJubo7iRuMoeZCxLWoPQPEpmh4ehnp9dxxU2mFu6WeitiK4ZYu1W4JC2cGohnJHnz65Gl9S9S2p0Y3/Q3rdF5gDPycDJZ4SVz1WuyujXI+q4lmjgAF8ubauDdb0uEQSmE2JjIHO1lQ4Md3
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 0a48fb07-a420-4818-b503-08df1ecdb9de
-X-MS-Exchange-CrossTenant-AuthSource: PH7PR12MB5685.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Sep 2026 08:35:04.7312
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Sep 2026 09:21:44.2537
  (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Network-Message-Id: d20599f1-360f-42f7-49f7-08df1ed43eb6
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: N/eu4A24mF/etHqDjdR5G/WkTRxZP/iKz2TRGtq5GM/xfT+KiFEeIRHAIOS0uBQp
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4154
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	MWH0EPF000C6191.namprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR12MB6992
 
-On 9/30/26 10:18, Leon Romanovsky wrote:
-> On Wed, Sep 30, 2026 at 09:00:57AM +0200, Christian König wrote:
->> On 9/29/26 19:57, Leon Romanovsky wrote:
->>> On Tue, Sep 29, 2026 at 03:39:42PM +0200, Christian König wrote:
->>>> On 9/29/26 15:23, Leon Romanovsky wrote:
->>>>> On Tue, Sep 29, 2026 at 11:34:05AM +0200, Christian König wrote:
->>>>>> On 9/28/26 13:19, Leon Romanovsky wrote:
->>>> ...>>
->>>>>>> +	return pci_p2pdma_map_type_tlp(provider, attach->dev, tlp_flags);
->>>>>>
->>>>>> This function call here *must* be in the exporter and not the DMA-buf framework.
->>>>>>
->>>>>> So clear NAK to putting that here.
->>>>>
->>>>> "Look, it is easy to complain you don't like how it looks, but this
->>>>> stuff is hard there are lots of competing concerns, if you have a
->>>>> better idea now is a good time to present it."
->>>>> https://lore.kernel.org/all/20260921130858.GO11599@ziepe.ca/#t
->>>>>
->>>>> Do you have a viable solution?
->>>>
->>>> Ok, that sounds like you haven't understood why I'm rejecting this.
->>>>
->>>> By moving the calls to pci_p2pdma functions into DMA-buf you bypass the NAK to expose those functions to drivers from the DMA maintainers.
->>>
->>> No, you have misunderstood Hellwig's position. His request was to ensure that only
->>> subsystems deal with P2P internals. He was perfectly fine with bringing P2P
->>> complexity into dma-buf, since it is the agreed-upon mechanism for sharing DMA
->>> regions between devices.
->>
->> Thanks for clearing that up, I indeed didn't realized that.
->>
->> But that is pretty much against my standpoint that I don't want any P2P complexity in DMA-buf.
->>
->>>
->>> So this is not a NAK bypass; it is a correct implementation of his request.
->>> He handled P2P-related complexity in the block layer.
->>>
->>> Let's add Christoph to the thread so he can correct me if I'm wrong.
->>>
->>>>
->>>> I unfortunately didn't understood that when the dma-buf-mapping.c code was added and just assumed that you just needed a place to put some common code.
->>>
->>> That is not correct. Devices A and B share a DMA region via the dma-buf
->>> mechanism. Where do you expect the code common to dma-buf to be placed?
->>
->> In the DMA layer!
->>
->>>>
->>>> So as long as that NAK from the DMA maintainers to expose the pci_p2p functions to drivers stand I will push hard to get that stuff removed again from DMA-buf as well.
->>>
->>> Are you seriously suggesting that every dma-buf driver in the world should
->>> have to reimplement this mess?
->>
->> Well I completely agree that this should probably not be replicated into each exporter, but that is the job of the DMA layer and not DMA-buf.
->>
->> The purpose of DMA-buf is to exchange DMA addresses between an exporter and one or more importers and handle things like lifetime and synchronization of accesses. 
->>
->> What the framework should do is to transport the capabilities of the importer to the exporter, e.g. what physical connections we have etc..
->>
->> What the framework can also do is to have additional information from the exporter to the importer regarding addresses and mappings, for example if they are bus, IOVA or some special internal DMA addresses or how to stitch together your PCIe TLP or whatever.
-> 
-> At a minimum, exporters need to pass `p2pdma_provider`.
+This series adds ionic Shared Receive Queue support and lets firmware assign
+CQ/SRQ IDs when the LIF advertises qid-allocation capability.
 
-No, exactly that is a no-go. The neither the framework nor the importer should see the p2pdma_provider.
+Patch 1: extends the RDMA LIF identity with SRQ qtype and alloc_qid_cap.
+Patch 2: uses that for firmware-assigned CQ IDs and splits CQ create/destroy
+so cq_tbl is updated only after the ID is known, and removed before the ID
+is returned to firmware.
+Patches 3: Refactor RQ state into ionic_rq so QP RQ and SRQ share init/destroy.
+Patches 4-5: add SRQ verbs and EQ events. Userspace ABI field srqid is new
+with this series;
 
-Only fully translated addresses where the DMA access should happen.
+rdma-core PR: https://github.com/linux-rdma/rdma-core/pull/1799
+common changes pull request:
+The following changes since commit 93f51579e7df248780214094418f205253383cc5:
 
-> 
-> If I keep the “dma-buf: Let exporters hand out the P2PDMA provider behind a
-> buffer” patch, I can move the P2P TLP types back into `p2pdma.c` and export
-> only the function that indicates whether ATS is required.
-> 
-> Is it ok?
+  Linux 7.3-rc4 (2026-09-20 13:48:15 -0700)
 
-What you can do is to forward declare enum pci_p2pdma_map_type and than pass that 1 to 1 from the exporter to the importer.
+are available in the Git repository at:
 
-Regards,
-Christian.
+  https://github.com/abhijitG-xlnx/linux.git ionic-shared
 
-> 
-> Thanks
-> 
-> 
->>
->> As long as both the exporter and importer agree on what those values mean I have no problem at all with that.
->>
->> But how those DMA addresses come to be should *absolutely not* be part of DMA-buf! The complexity of that is seriously not something we should have here.
->>
->> Regards,
->> Christian.
->>
->>>
->>> Thanks
->>>
->>>>
->>>> What you try to do here is seriously not ok and I will push back hard on that in the future.
->>>>
->>>> Regards,
->>>> Christian.
->>>>
->>>>>
->>>>> Thanks
->>>>>
->>>>>>
->>>>>> Regards,
->>>>>> Christian.
->>>>
->>>>
->>
+for you to fetch changes up to c73a5f20bc786df0be484af29aa5956e909dc862:
+
+  net: ionic: Fetch qid allocation and SRQ capability from firmware (2026-09-25 11:48:12 +0530)
+
+v4:
+  - Rebased on for-next
+  - https://lore.kernel.org/linux-rdma/20260925082802.2675902-1-abhijit.gangurde@amd.com/T/
+v3:
+  - Addressed more sashiko review comments
+  - https://lore.kernel.org/linux-rdma/20260922095724.3683011-1-abhijit.gangurde@amd.com/T/
+v2:
+  - Addressed sashiko review comments
+  - https://lore.kernel.org/linux-rdma/20260908090802.152142-1-abhijit.gangurde@amd.com/T/
+
+Abhijit Gangurde (2):
+  net: ionic: Fetch qid allocation and SRQ capability from firmware
+  RDMA/ionic: support firmware-assigned CQ IDs
+
+Amit Kumar (3):
+  RDMA/ionic: segregate rq related fields from ionic_qp into a new
+    ionic_rq struct
+  RDMA/ionic: add Shared receive queue (SRQ) support
+  RDMA/ionic: implement SRQ event handling support
+
+ drivers/infiniband/hw/ionic/ionic_admin.c     | 117 ++-
+ .../infiniband/hw/ionic/ionic_controlpath.c   | 781 +++++++++++++-----
+ drivers/infiniband/hw/ionic/ionic_datapath.c  |  98 +--
+ drivers/infiniband/hw/ionic/ionic_fw.h        |  74 +-
+ drivers/infiniband/hw/ionic/ionic_ibdev.c     |  20 +
+ drivers/infiniband/hw/ionic/ionic_ibdev.h     |  85 +-
+ drivers/infiniband/hw/ionic/ionic_lif_cfg.c   |   2 +
+ drivers/infiniband/hw/ionic/ionic_lif_cfg.h   |   2 +
+ .../net/ethernet/pensando/ionic/ionic_if.h    |  31 +-
+ include/uapi/rdma/ionic-abi.h                 |   2 +-
+ 10 files changed, 923 insertions(+), 289 deletions(-)
+
+-- 
+2.43.0
 
