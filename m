@@ -1,148 +1,259 @@
-Received: from mail-lf2-f13.google.com (mail-lf2-f13.google.com [74.125.229.205])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from BL0PR03CU003.outbound.protection.outlook.com (mail-eastusazon11012019.outbound.protection.outlook.com [52.101.53.19])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EB60368D79
-	for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 14:59:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.229.205
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A00D94E50B5;
+	Wed, 30 Sep 2026 15:03:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.53.19
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790780379; cv=pass; b=mONUPr9C2eO4EBV8CgjCPKxeuFz2LyGcjwbNErzbtv1lALYnnofqlWE9nuzOjEOVFc88FRyq2F12haXUPy5cLeV03VkefSAm9s7StFcM1Zn+HVgKnn5zryk6fjmpKcfNz78iTC8XLa1co4d0SDOunB43pMIIKC13cAE7Ex0P4ZY=
+	t=1790780636; cv=fail; b=DIM4IvfOmFIXYdOmzG3/JrCcQTXRarl0QZynHUO/PJvnAoRvETViQPCyMsQjndryqUGJsleeVqrrLOQNsxP6Pft/fjSqnSoOJvRrBcb56n/aKj/dXY7GdiwlB8GdxzqSH/U/J//h+NdIh7k5cIQYm3s1t2jKZWKRmbwolafr488=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790780379; c=relaxed/simple;
-	bh=5giBaVl5BSchDPtW83YIhtL7rssEOn/F7Q9Xl1RK+iM=;
-	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=BsYiuxQJIJAvXskD1riFhFwbaD/sQAmVHx3ZPcgIo4N1IasMB245IMwuMmF0EqVTZvcbuKp92GGMrWpUT+4LRrusGBdDjCHrJPcxa9/TZhPvyUxLJ+73nnctqIwaqpQ/7j65NpzOBSMwj1ATlWu9JUeONMWer7RC7suOq8+Hc8s=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=RS0e3rQp; arc=pass smtp.client-ip=74.125.229.205
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1790780636; c=relaxed/simple;
+	bh=30YXpFHnj59MX0sBI+Quk6AJ+E1W8i3fAIJC/YSlSDY=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=lTfaxm6D/GTNE0G9cNl2CjbygaiVHuMmByXS3X1Pq9sAwy8PltNALbjWFlUwqBA1Af9/R/8ZxV946rYs6paJ07bLBFNeifsmjZLdk4C5FpzfVZHa+tLVz/WmR1Pzq/+Te8lAIzAV9wByJXbqAF/hSj16HxxWHDZRdjDKm9sSsPk=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=erUXk/cz; arc=fail smtp.client-ip=52.101.53.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RS0e3rQp"
-Received: by mail-lf2-f13.google.com with SMTP id 2adb3069b0e04-5ba330a7e46so1636401e87.0
-        for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 07:59:31 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1790780367; cv=none;
-        d=google.com; s=arc-20260327;
-        b=H/E1Lp6ek8QoOeMfLSW72EblCmQNc7FHQpKeJvf18b5W0DDRlHFxSlBANfxSgxEiPh
-         ysaolk5xOCsvyDdD2Omi7euypDoFiS1rhmZwj5evYhRi/xVKF6usGfbxMzIxd4oToIJ3
-         qfeBwU17tIhWCXo2OBHkNP6B22mt919RGdpBixfkXd/EzACoLPoBZr11jlV58UaXlG2W
-         3HiUkO24DUEaW1W2K6ZRORIQydIcEYhjj0ntre6hPd9LzIJZ4qOaBRqZxLFlWoguuqDO
-         FGYnfHmSayXYlf95uKJWc7BDBMIHDrs/T1MefX7NVYSMjnWAnKRBJKI/ahD+d9YIeB9n
-         9FGA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
-        bh=iiDt0g5/VIiAkRdXaI6xqNpm0iErNwKvhkLEROP3Mz0=;
-        fh=jOQ2dI0DLE+gA+fZGEGejm8TuKLDaC8w0DggHq4U5ds=;
-        b=oBlOWJhcmz6SMwRWCEjql9rUk15/B+O7h4JdrTEelR1F20cBAL3Ssj5E6YRlRNWDhi
-         xsba13ROEAe7AUbhoKaNFM1bSYTfceCIgpq+AwUmZwjjHpidROhfY7i+Oj9YVV/kHEM2
-         Wehd4+Z/NWhZ4COwfSnxGXXgMWmAyKMgCK3sLS4KyOf3s0lK9LANPH2wJyUWnn8qJLoa
-         BTynxqbIYeU923x+r+yGP0xb05Bx5hBYBWZnlLSs8XrCVI8lwMuhGVT1trfKBttCvvHr
-         HGaHpXtuEeuM0oA0zNvYBjikthh6/qzG7uXhVQcZVJ6Z8d0kl/UEyMwJ3laGgzrFJhE+
-         /gUQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790780367; x=1791385167; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:mime-version:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=iiDt0g5/VIiAkRdXaI6xqNpm0iErNwKvhkLEROP3Mz0=;
-        b=RS0e3rQp70gUk6W5NLlCW6gqL1i8/5SIM/Jk+03hj50cfalkUpQ9/rZWjTMcL1JfRy
-         S+Xf+IsXVKJcpwhxxeLAI0JNiATaomG5ZrpiZZ3km4aa55hMAfH0uYQF9LrmH5AVHrrN
-         u7X6WBsTauXiTHVitTXZLsbtTOUViMx8e8qtYvmejXxij7n275v22dFhDgnPB8AxTy6T
-         qpv1woUBUg8BFkmHL7TOnTKSUJHtU7OZyp7KoKt1enkI8t7qB9sP/VPffkzOGtgoaiYS
-         phthYsp8ljoJEIhRioOIhcKJFkWpOQTM3E8JxUuTRiVfiTCSNfHCZW1vUiCfI5/EF7Sm
-         +wNw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790780367; x=1791385167;
-        h=content-type:cc:to:subject:message-id:date:from:mime-version
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=iiDt0g5/VIiAkRdXaI6xqNpm0iErNwKvhkLEROP3Mz0=;
-        b=oxvxrDwrW95+8blL4Jv0WAlHyz2CSIXyvVur7+Wwc4pQqiqKLpObt2dScMJTMaRqHe
-         rnajM/AqbqBPU7KWk1NIAVmL2PH1OlQh198t+rNmCuR0UzF+RP9RrnWYT1qt1ix/agg+
-         +tSiWpSI0tCDVEoC/7gbAp6yCaweRIRDN1/pz2iOazgF5OHNpJFFCRwTfnC6zQ817bJX
-         fzi9w5MtAsHZQW+g7FgIe/MY9EmhCW3DNcS2yg8tHkLiaJPoh6+RI32tMRFHAtBT24Gb
-         2cDvmcuJ5mRDvWOIvZ/JWQVuNufgryuNI2M6aQAgAAaQTlOqeH87nVgez350c6pZqBH0
-         c1WQ==
-X-Gm-Message-State: AFq9FYLTGlkHmLrNHWirwQXr1Pr7mKogEVjwt0xRsY0xvDJ3fijJPiw/
-	060XOAgHkgc6vyB8J0+ohOscEdIUHuk3o+cFh0E5XzuB2fkpyw3wzKaR9s/Z9F1Gde/KgsRIObd
-	2nfRmClmSj4mFw1c/dXLRvG0a5vOBa2iuDVJY
-X-Gm-Gg: AYBFou3HWrXqClOb/4x+WULFE2y30chQ/HcaU9LBlNmTFWEGhBvjahpJ85RsXN4EkZE
-	p6fLOkm40ZW71lzKbKlue2WrMaMoRYMArX5FwVZh8vOm6cOc21jwl7RzmYjCSBH5l6p0aByWEAl
-	brzKMpxvqV6aHDZ1v+ozfUZW72RQl4ueRhKpNtP+qBVC5vuReOJ9FPBrlOC5PBHUxOfcMDzJwHl
-	zJx5cLL5m0zjz3EHmCJ0DO9QySEJs571fI5L8hWdhdkM1b5UtsoxTIXYJXkiMdO/4t5R4ekCYtt
-	WFgucwEtpJ0WlMy6AmOyN5Y4tam5cCmwGV/LQ+AbwdXVic73eRJz+Q+E
-X-Received: by 2002:a05:6512:6287:b0:5b8:ed29:c716 with SMTP id
- 2adb3069b0e04-5ba4061049fmr679924e87.54.1790780367100; Wed, 30 Sep 2026
- 07:59:27 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="erUXk/cz"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=UNr2F4hvVELtdt4l3yb9UWXxwLKzErBKqnDysvlpDygh3gHO6fbGSfj8pQNgufz5H2tZl116GK2WVT+211POC6psQeki/sZH8nJue7laMVcO3dHq3rMsqYFm+gs0BadfQN6cC5WNA+OD/mTjYcHqBJV6ZXwGrhF/isZI/m1zLbhG3Ic8C/A9InjE0N6+hwi0EHp818ExoGFMi0tcge4X9wmrY6h/zYx/U5nsSdIUqD+V1eJISW5cTUqZfVP+4U5eXtqhyt/IIzFEfYZHr/eVLtKNbrN2oFVa3U6Ygx3it8K0b3SH2PqpX/kB26VlTP1XsEM56isISB70+/oMzA5e7w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=+JGRjOuqYfm4gb+GLMSqBwtsApOklEQyA2jSI1XAsBs=;
+ b=Yg15MzWarFhyrpxI2L5AeJam8y+/JK5zAFiGHLXl/Rc/ZY+Jk1UQL7wcuQLe9I2eHHgNy3gwJreRZIDIPYngthvT6SlYZ6Oimsyh6cpF0TAzDgoIOnjmOJoBvaihAzoB1CaEkHOY4RgGDhlJTGEXd0y8/J+J70Jg3GBLvysSaNA2zFI1uRJ9tH32NzLk124R8Ob4h3bgA6jizYoTG8xqTCYTu3pbFV4RrmwPZZZ80BSxcXnEf+bOaWStAsxIQcJ2AjmE0nyYNNEqJT+coLK+42pmrE8HI7TRLzLtV6BNQW67m1HkHpPv1T+qdsHvnJ4XanrLVBbtLIeIlBGDFuXzHg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=+JGRjOuqYfm4gb+GLMSqBwtsApOklEQyA2jSI1XAsBs=;
+ b=erUXk/czrmmw398Vvfm+7dLnBfTVXeGQLqLU2h13c/N3FX5FRrSVTustP3edtDNR+PcFeMqmzGm7Zq4rFUsqTa/pi3qnkFlCN0pN+yq1jB5BrcJnFbIL89wl9Lsi10oVXToBGgDhiyVaK4ePEkK1SFhYCLHX0Bp+qlnmwlsciBE=
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from PH7PR12MB5685.namprd12.prod.outlook.com (2603:10b6:510:13c::22)
+ by CH2PR12MB9457.namprd12.prod.outlook.com (2603:10b6:610:27c::7) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.451.24; Wed, 30 Sep
+ 2026 15:03:31 +0000
+Received: from PH7PR12MB5685.namprd12.prod.outlook.com
+ ([fe80::ce69:cfae:774d:a65c]) by PH7PR12MB5685.namprd12.prod.outlook.com
+ ([fe80::ce69:cfae:774d:a65c%3]) with mapi id 15.21.0451.022; Wed, 30 Sep 2026
+ 15:03:31 +0000
+Message-ID: <31fdf414-1345-4db2-9fb7-08265a7bb6d6@amd.com>
+Date: Wed, 30 Sep 2026 17:03:24 +0200
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v8 16/23] dma-buf: Let importers ask how peer-to-peer
+ traffic is routed
+To: =?UTF-8?Q?Thomas_Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
+ Leon Romanovsky <leon@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Logan Gunthorpe
+ <logang@deltatee.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+ "Joerg Roedel (AMD)" <joro@8bytes.org>, Will Deacon <will@kernel.org>,
+ Robin Murphy <robin.murphy@arm.com>, linux-pci@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+ iommu@lists.linux.dev, Tushar Dave <tdave@nvidia.com>,
+ linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+ linaro-mm-sig@lists.linaro.org, linux-rdma@vger.kernel.org,
+ kvm@vger.kernel.org, Chaitanya Kulkarni <kch@nvidia.com>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jens Axboe
+ <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
+ Ankit Agrawal <ankita@nvidia.com>, Jonathan Corbet <corbet@lwn.net>,
+ Shuah Khan <skhan@linuxfoundation.org>, Randy Dunlap
+ <rdunlap@infradead.org>, Sumit Semwal <sumit.semwal@linaro.org>
+References: <20260928-fix-p2p-acs-v4-0-v8-16-404453b9c435@nvidia.com>
+ <607e8903-a979-4d78-bf08-447321c03119@amd.com>
+ <20260929132305.GJ563127@unreal>
+ <720dbac3-24f6-4c91-899e-e205865c1fd1@amd.com>
+ <20260929175737.GK563127@unreal>
+ <eeef5951-825e-459f-b474-bf8c59588446@amd.com>
+ <20260930081832.GA3401365@unreal>
+ <4549640c-f4a5-4dac-9be3-2e5aa127555c@amd.com>
+ <20260930114356.GC3401365@unreal>
+ <fbdc710d-7be1-4021-83c2-548c798d9d14@amd.com>
+ <20260930143237.GI3401365@unreal>
+ <b2e766389e57a55da959369c5ad4b9e39e425659.camel@linux.intel.com>
+Content-Language: en-US
+From: =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>
+In-Reply-To: <b2e766389e57a55da959369c5ad4b9e39e425659.camel@linux.intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: FR5P281CA0022.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:d10:f1::8) To PH7PR12MB5685.namprd12.prod.outlook.com
+ (2603:10b6:510:13c::22)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: AYS <ays511.kr@gmail.com>
-Date: Wed, 30 Sep 2026 23:59:14 +0900
-X-Gm-Features: AclHuK-9UoCck5vpFbXdea-3jpHXaeE-9_wfy_e7KTiyA4ff_4E3n1VqbxGQ5a8
-Message-ID: <CAPAqSgapoUjjkBDOLQutFXMoAcEMH4yT9Q0wRpKLMt4QVhOizQ@mail.gmail.com>
-Subject: RDMA/rxe: use-after-free / double-free of rd_atomic resources via
- unserialized modify_qp
-To: zyjzyj2000@gmail.com
-Cc: linux-rdma@vger.kernel.org, security@kernel.org
-Content-Type: text/plain; charset="UTF-8"
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH7PR12MB5685:EE_|CH2PR12MB9457:EE_
+X-MS-Office365-Filtering-Correlation-Id: aa5f3c06-9614-4b6e-c419-08df1f03fdc3
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|7416014|376014|366016|23010399003|1800799024|6133799003|10067099003|11063799006|4143699003|56012099006|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	FpNND/XMs6D8Q3O0+ukZoUzLOkUBcdoYL8MbYnOFzBevW68KY4Qq5snEzo9yku1j/P7QEmG8EYqxZWoYUjIJQS0wrEN5mNMvziymB8/ZYv82H1eQPdMP02pjkAz05gjDXvcKoxrzVEMrLzb9iw3jR8nDEDm09OXGKe41MBzsw3xsumscerE+N9gdEQn2bmXk7ydyDOcpS8oGl91u0xmHzTydS+ynlp73Y0mXJcuY5dzOAQR1Xto/llQwO2Y2/Y9DzKR1mNl5xOypLv+sN42V9rffhodnAIN4Ugy9BushUmtbJPHp7as4fcNV3DssDMM4hgsQX/x69Ut6TL+jY3k29jFfZJoV3mVEekU7nxENsM/iDwt/+2VC6BAarpPnCng7Lote3ZdFjU6xM2LngEi/AfhrN96ruFe7BjcwWW3aRdnzeYqXzMrSAdv9k1+vvLCBo7C2+hlW/W24EW31LjPmRfN0mvYM5+0MN9iiUZ5Sx183B21nZ3UJnDQm+hlCVoCSPiHGilMNT02NeG57/ETG7BF8+suATstpTQeKNoYURc1VZs1zs+HsrHt1/P4KtSAZuW4FlVZWDieuYhatrfzyq09Oy72dXErDkNS0X7wqNUwTZyKjGqg3lPZJXMzF76YTz9C6ERLmXjWcMF3xeV6LNSe9trmB0A06cYpB+HTv204=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR12MB5685.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(366016)(23010399003)(1800799024)(6133799003)(10067099003)(11063799006)(4143699003)(56012099006)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?dW10Y0hubkYrci9ua08vcnkzSmQyaGl6VkhlR1poOGdrRnN5L0RNRnJaSndl?=
+ =?utf-8?B?cXdvR29OcmhudnR1a2lxRldZbGo5Rm50c1ZnT0pvOUt1NzlRQ1d2S0ZvZDUw?=
+ =?utf-8?B?cDI0bUgxOElaOFJxUTdrQWVUaldHbHkzUnBzblkzdjVscUdrUkZPZEZoa1No?=
+ =?utf-8?B?QjhQcDdxZW1yWElDTkkxNFNpTE10TkRqbnJ6TlBrR2F5TUxMS1ZDa08waitl?=
+ =?utf-8?B?Q0FDUVFXRUoySjhBVUtWcmo4L0t4aVREeVlJY0gzN1M4Nkd3dDkydXYzalFj?=
+ =?utf-8?B?bzd3aDRqaTVSdkFxejBLZDNod2pQY2RxK3FZL1JGNVJYaE5FY25EbmkxOW4r?=
+ =?utf-8?B?THVhOFVmQnJXOXUxVDlzWExaVlorbzhvV2FzdFZKT3NMdUJqV3dCUTJkanZo?=
+ =?utf-8?B?MjlWUHdsdUNvYUVYZUpHaGtFeGFxNUpicHdoQjVmWWM0azZIQ2hVSndVaDQy?=
+ =?utf-8?B?c3psSHEwcVhxajZLeWRKampIQkJNTEpiUnQrSE5ucVYxeFFHVk5uenFuNFda?=
+ =?utf-8?B?amRLUGpmMVJBT0REMDJWeTBMbnZud29kUFJKNGk5ZFBDaE9hN2xMM3NIKzBR?=
+ =?utf-8?B?OC9QR21NU3RsN3RuSXJKemlHeVVZSUF6cDBBcmh2RW9jVlhDY0czSXlyeFE5?=
+ =?utf-8?B?NlJncm1rWDBud0FrUCs4cjNDVUEyaXRQYUxnM1lnbVQ2UnB0bTRZQkp6Tit6?=
+ =?utf-8?B?MHo5NmFFZjFkSGpickRrSURsS3VjdEs0eGJzSVZ5bXBlWDdQRzZLRFZsQ3pr?=
+ =?utf-8?B?VkpPcDR6UlBkd2ZBNjIvUHdxVjZvSWZhdS80K255RVRkWWdSQktMbkI0UUo4?=
+ =?utf-8?B?Y2pEQTd1dlVwSWdWNHhRSEZyVGd5a2NUNHJFd2JUL3JTeW9Sdmo3dy94dmRs?=
+ =?utf-8?B?ekdDRzR3dkxJVklaMFY4bCtSTlQxZmxpTitmMSs1NWllNUhsY0tIL1lmZzY5?=
+ =?utf-8?B?cHQrVDc1dHVsUVJHd2c0VWtxZW8yL2QzQVAxYzNObkZMTFRQeGw3cFk3RXB4?=
+ =?utf-8?B?S2tKWlFrTnVVUStCN005Yk5Nditub0tJaE1TYXkzallOdStsUmZsbUNKdVpV?=
+ =?utf-8?B?UHZhODhxWUoxUC93UC9DUVg5dFZjaWIxYzlLdy84aGtvRk9sUmhjU0ZlY0ho?=
+ =?utf-8?B?SENxMERpZ25VSjYwazlXWDQ5TExaNmk2NjhEMERwclg4V1ROTUsrWU5LNWhv?=
+ =?utf-8?B?b1NyejBjTUYyeDhtTzNkS3VEaTArQkxwRjRsejhod254dDJheE4zMFZqVHFm?=
+ =?utf-8?B?RVhXZjVCMjVSL2JPWVJNZVBVNkk1ZHVtcHltTk9LbmUxbVlqbWJNN3BxdTdo?=
+ =?utf-8?B?aFJXZ3A4cjdtNTNmUGFDZHpIdFN5Z3h2N1JiaG9sSG5pNnFiU21iMmE2c1Fv?=
+ =?utf-8?B?UnV5eDVFTkpUdmJ1OVAxaHd0cndTTGFaQXpIdW1sNUdZTzJaY3F0V2c3RGEx?=
+ =?utf-8?B?bnQrVUlEZTdlVUxKbitPenBzNzZXZUhSTlZ1RkVEaGF6Y0ppY250UERoR0p2?=
+ =?utf-8?B?Ky85Q2lyTVBvS0V4V3U3NldKbm8yVjBIWTR3amdITHY4Mi8wNUdvWGo1bElC?=
+ =?utf-8?B?LzFRNkVMZmtFc0p3eSs2dDJNcGxlN3FoNkhZM0lXamk3ck13RFdsRlY2YXd4?=
+ =?utf-8?B?MklnUS9kcmM3MWU1RmUreU9BeWFUVlpHV2tOcXgxRTN0UExpT0hvV3ZUVmxZ?=
+ =?utf-8?B?c2I4WkNVQzU1RkhQR2x3WU9yajVFaDdlbWFHcWUrclBZVW82eW96dUt3aTFR?=
+ =?utf-8?B?UC9IV21zYVF6d213TlJ1cmlIYXRpWlRWR2pMNkZLbTJHZzM0dXNabTMzNi9v?=
+ =?utf-8?B?dkVqZWE4bW1xWWwrdVdVRDFHcTQvSU1IUzY1SnYvU08yMFY2aDdUQW9uMWJE?=
+ =?utf-8?B?bnNMZFNObE8vVDhlejJtVm9kdVdTK3FhcHdkUktYTGxFNjlIOGJBY2RjRmw3?=
+ =?utf-8?B?WUJIenA3UXY5N2tkOU9VcWM3cDNFSzZzamIzTm45WnRWVzdEUWxGbTFhZlA1?=
+ =?utf-8?B?Vi9IVi93djNTTmVHc2pGUWhpYTlGa1lxOVZOSTArdDRvQ01FQWUvT0NaSG44?=
+ =?utf-8?B?MFVsNXdxaFliS2h4RlRwTHJZUldSdlRJN012RHlSMStJL0RuNERURUc0Z2Q4?=
+ =?utf-8?B?bGFGemJuMmRYNUFlanBSWWV2dnhXRGpBaGh6Z3ZSV0pMZGJZV2p6cDhteHFC?=
+ =?utf-8?B?US9QSCszbFpqempGUVJtRVlaVDZHVitqc2QvYjlHQXcrU2dEMHlnbzErdjFp?=
+ =?utf-8?B?RjQ0MnNHSi9vazIzQkZQaDI3VlFQOTVpaUdHWFZoNGprb2ZvbXVjTEZ2dGRV?=
+ =?utf-8?Q?sV0Jlu9oMcxfTr8gQ/?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: aa5f3c06-9614-4b6e-c419-08df1f03fdc3
+X-MS-Exchange-CrossTenant-AuthSource: PH7PR12MB5685.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Sep 2026 15:03:31.4750
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: watFlT0cA5KKclqD9Jkahtwq9XhWwv2KWSDNXL/RgYl/Ok3jl3Gj3m+giT7IGiJb
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH2PR12MB9457
 
-Summary
-  Component : drivers/infiniband/sw/rxe (Soft-RoCE)
-  File/func : drivers/infiniband/sw/rxe/rxe_qp.c rxe_qp_from_attr(),
-              IB_QP_MAX_DEST_RD_ATOMIC block (free_rd_atomic_resources() /
-              alloc_rd_atomic_resources())
-  Affected  : present in 7.3-rc4 (93f51579e7df). No commit touched
-              drivers/infiniband/sw/rxe/ between 93f51579e7df and current
-              master 551c722f4080 (2026-09-29) or rdma for-next, so
-both are affected.
-  Config    : CONFIG_RDMA_RXE, CONFIG_INFINIBAND_USER_ACCESS
-  Trigger   : local process able to open the rxe uverbs char device. One-time
-              root setup; the trigger itself ran as uid 1000. MODIFY_QP is in
-              the core default uverbs_cmd_mask. No USER_NS/hardware.
-  Primitive : use-after-free WRITE and double kfree() of qp->resp.resources
-              (kzalloc'd array), from two concurrent MODIFY_QP on one QP.
-  Found via : manual review. A reproducer exists and can be provided
-              privately on request.
+On 9/30/26 16:57, Thomas Hellström wrote:
+> On Wed, 2026-09-30 at 17:32 +0300, Leon Romanovsky wrote:
+>> On Wed, Sep 30, 2026 at 01:52:39PM +0200, Christian König wrote:
+>>> On 9/30/26 13:43, Leon Romanovsky wrote:
+>>>> On Wed, Sep 30, 2026 at 10:34:56AM +0200, Christian König wrote:
+>>>>> On 9/30/26 10:18, Leon Romanovsky wrote:
+>>> ...
+>>>>>>
+>>>>>> At a minimum, exporters need to pass `p2pdma_provider`.
+>>>>>
+>>>>> No, exactly that is a no-go. The neither the framework nor the
+>>>>> importer should see the p2pdma_provider.
+>>>>>
+>>>>> Only fully translated addresses where the DMA access should
+>>>>> happen.
+>>>>>
+>>>>>>
+>>>>>> If I keep the “dma-buf: Let exporters hand out the P2PDMA
+>>>>>> provider behind a
+>>>>>> buffer” patch, I can move the P2P TLP types back into
+>>>>>> `p2pdma.c` and export
+>>>>>> only the function that indicates whether ATS is required.
+>>>>>>
+>>>>>> Is it ok?
+>>>>>
+>>>>> What you can do is to forward declare enum pci_p2pdma_map_type
+>>>>> and than pass that 1 to 1 from the exporter to the importer.
+>>>>
+>>>> Unfortunately, neither suggestion applies to RDMA NICs. They need
+>>>> to know,
+>>>> before mapping addresses, whether to create the memory region
+>>>> with ATS
+>>>> enabled.
+>>>
+>>> The design principle here is that the final location and access
+>>> path of the data isn't determined when the buffer is created.
+>>>
+>>> The importer first need to attach before it can query such
+>>> information from the exporter.
+>>
+>> In attach yes, this is why importer digs in dma_buf ops to get
+>> p2pdma_provide, however it is before addresses are known.
+>>
+>>>> The importer needs a way to obtain device information from the
+>>>> exporter so
+>>>> that it can configure itself correctly.
+>>>
+>>> That won't work with DMA-buf then, the exporter is completely
+>>> opaque to the importer and that is for really good reasons.
+>>>
+>>> Why in the world does the importer needs to know the information
+>>> from the exporter before the mapping is created?
+>>>
+>>> It is the exporter who decides how data is accessed by the importer
+>>> and not the other way around.
+>>
+>> There are several reasons:
+>>
+>> 1. This is how DMA-BUF MRs are built in RDMA. In mlx5, they rely on
+>> the ODP
+>>    mechanism, which requires an MKEY to be created first. See commit
+>>    90da7dc8206a (“RDMA/mlx5: Support dma-buf based userspace memory
+>> region”).
+>> 2. P2P routing is a property of devices, not memory. It is known and
+>> remains
+>>    stable.
+>> 3. See the VFIO TPH ST discussion, where the requirement to obtain
+>> the
+>>    exporter’s P2P information in the importer was raised again.
+>>
+>> Thanks
+> 
+> 
+> Returning again to Jason's series. Let's say we'd add just the mapping
+> type infrastructure, converted users of pcie_p2pdma only to use that
+> and then we'd have access to per-mapping-type data. This could actually
+> be done as a prereq for this series and merged separately. It's a
+> couple of patches only.
+> 
+> Jason's match() and finish() callbacks could compute the interesting
+> routes at attach time,  perhaps even condesed to whether IOVA is used
+> and whether ATS translated packages have a direct route (which is what
+> mlx5 care about AFAICT). This information is kept outside core dma-buf
+> and would be specific to the pcie_p2p mapping type (interconnect) only
+> rather than having functions and callbacks bloating the core dma-buf
+> structures.
 
-Details
+We need to move that to the mapping time because that is when the final location is committed, but apart from that the approach sounds sane to me.
 
-Neither rxe_modify_qp() nor the core _ib_modify_qp() takes a per-QP lock, and
-the uobject is shared LOOKUP_READ, so two MODIFY_QP calls on the same QP enter
-this block concurrently:
+Otherwise the information can change any time there is a new importer attached.
 
-/* rxe_qp.c, IB_QP_MAX_DEST_RD_ATOMIC */
-rxe_disable_task(&qp->recv_task);
-free_rd_atomic_resources(qp);            /* kfree + res->type = 0 writes */
-qp->attr.max_dest_rd_atomic = max_dest_rd_atomic;
-err = alloc_rd_atomic_resources(qp, max_dest_rd_atomic);  /* GFP_KERNEL */
-...
-rxe_enable_task(&qp->recv_task);
+DMA-buf is basically just the frontend for passing mapping information between the exporter and the importer here.
 
-The comment states it only quiesces the responder task; the prior fixes
-6f7014237405 and de329533792a closed modify_qp-vs-responder, but
-modify_qp-vs-modify_qp is still unserialized. Thread A frees/reallocs while
-thread B, already past its own free, writes res->type = 0 into the freed array
-(UAF write) or frees it again (double free). The window is wide -- the
-kzalloc(GFP_KERNEL) and rxe_disable/enable_task can sleep inside it.
+Regards,
+Christian.
+> Then exactly where the cross-subsystem match() and finish()
+> implementations should live I figure remain up for discussion and
+> guidance by Christoph?
+> 
+> Thanks,
+> Thomas
+> 
+> 
+> 
 
-rxe_qp_chk_attr() bounds only max_rd_atomic, not max_dest_rd_atomic (which is
-u8, so the effective allocation ceiling is 56*128 bytes).
-
-Reproduced on a KASAN x86-64 build of 7.3-rc4 as uid 1000: KASAN
-slab-use-after-free write / invalid-free in the rxe_qp_from_attr path, on 33 of
-33 boots. This matches the "slab-use-after-free Write in rxe_qp_from_attr" and
-"invalid-free in rxe_qp_from_attr" crashes that a syzkaller run on this driver
-also produced.
-
-Suggested fix
-
-Serialize modify_qp against itself on the QP -- e.g. take qp->state_lock (or a
-dedicated mutex) around the rd_atomic free/realloc, matching how the responder
-is already quiesced -- so two IB_QP_MAX_DEST_RD_ATOMIC updates cannot overlap.
-
-I have not built/tested a patch; the Fixes: commit should be identified when
-preparing one (the race predates 6f7014237405). A checkpatch-clean patch can
-follow on request.
-
-Signed-off-by: Youngsung Ahn <ays511.kr@gmail.com>
