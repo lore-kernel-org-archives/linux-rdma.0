@@ -1,147 +1,122 @@
-Received: from mail-lr2-f35.google.com (mail-lr2-f35.google.com [74.125.230.99])
+Received: from mail-dl2-f42.google.com (mail-dl2-f42.google.com [74.125.229.170])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E042D4ED196
-	for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 16:50:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.230.99
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790787014; cv=pass; b=MJqYry57UFs1HdycZsO1QC/V5p1nvhfvgpClQ+GeljwxUTqauax9y9rdbmpyQ5kBjQXu+YgnqfP5ktirRf7voTmcQnLlFxYA8+AchEc43PHQX5tdXz/skU1vTdoKAKVB6/kl6SI3leNMkquwizPDcZd1yhoYAbKFEfEkvIke9IA=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790787014; c=relaxed/simple;
-	bh=V0JyZtej3gPkeB4DiSnP1ukn319plI+NLzAJJp00MOk=;
-	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=No2Ce1Q2elq/Q7g8lgITB6JcDJE+qG+bbIknbC3Tx5KJ8oleuinc53puXoLKvON1/sRJYFyteGTd2qLD+rrkRKwdcdPDKr54FNI5yKFjODMaRYC1edlvGsDSdlUU6iFCtmeN5Qo2DXof2lvUqNFQhGZBFYpqAR184NlJUDU3tf4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=nuHLJ3+l; arc=pass smtp.client-ip=74.125.230.99
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 357CB5172D2
+	for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 16:52:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.229.170
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790787160; cv=none; b=HF3x2p51bYSTioFbpEGKZmVdWvfBV+JJP5+yyXI8AM3EWR35ZF5ahHIl735PQmyjmZ17YnciMzWiIEz3wvxNqwIqsca4yAQN1o4bmKaQh3pbdqjKfJDZPN+XFk+ZSTJ0XPxAjHGjx78H4w4HNahj6IbKoVMnuImx5sAw0XLAgss=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790787160; c=relaxed/simple;
+	bh=USoosmtGDycX1a/Va/WTZ2HKM0YP5/LMRYBi/jK/1WU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ZmnO4homNwTmTqyNTEBvvaA5JaOFsvhZOLLog3dJqVPYjcI68uJtaDuCvPDeFeKerbtmvkF6SsiBhhVyb1dArpaqvDJungZislr5jEr4iSRLyUr8v3gfclde1P7v0ijV3LV6kbbwemtfG0aiZcmsEFoexVECZWqrC/16hB/ufWo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=OhOI/Tgd; arc=none smtp.client-ip=74.125.229.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nuHLJ3+l"
-Received: by mail-lr2-f35.google.com with SMTP id 38308e7fff4ca-3a779b23f05so6795671fa.1
-        for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 09:50:12 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1790787011; cv=none;
-        d=google.com; s=arc-20260327;
-        b=A1mdcv+eeKyk7/1zDBgk756gIii0lJvm4x0fKR7ql2CorWuXJAZIdcC8Jb74wnG0J7
-         7NG7YF3AX2BXFd6ORCTL2zEmobAv38DTxSQHniOzTlEVB+qNcfLgO0B5IeWZudbrc79D
-         Z/Jl7+0bPgTyuHzInCnrCqJB0J0/e9qf6xk+i2xhkBTDGpRm9ccnkHH1J/czFrmNJ/zM
-         mWvglr230aNdZ2yz+jGaltWR9RiQhZb1Ywj7PSVvfSzXhN1LXDuCxYGMuAUxkmEktACt
-         nGJxodZ1bfA+/trAmm9AFqzZH+OKX/JxJ5hdTD8oO1UBryvzQ+fHjM4r42JSM/cLLC5C
-         upGw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
-        bh=0TE/EcEsZk4GPVnGo5rtnt9tNvICv6JXuCxkvZBx4OI=;
-        fh=jOQ2dI0DLE+gA+fZGEGejm8TuKLDaC8w0DggHq4U5ds=;
-        b=lCUSR+ZAjF+ZXQM39Z84Imf3mk+otM0vpTe75u2DPo92/6w9kbmm3/FpcXP9ezk4Ea
-         IXY7QCLtrfv5xoDEzz2NeLuAYnpeg7OCtsoWBZGxlrGVyu+uKG4/+3rhbVBSfpLPVVRw
-         gTVwqLfE/0aHdfZhak69I8lXehFdYiDL1O+ZdKdK17LMy022dPX8qLbfEB9+cCP45Q+i
-         HRrqHyOlMYirf53iBiHSmm8EcdfD7TjigJkgiLU0J8irSMykwHuLPfgC07834EnjqJhG
-         hJL8qATjDkjYpJGJ8iUZivqM6Ka6fLyKc2l2BPrgJngz6sqaShlCioFaOA6PHC0P4QJ9
-         SVMw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="OhOI/Tgd"
+Received: by mail-dl2-f42.google.com with SMTP id a92af1059eb24-144efd1ea76so3385680c88.1
+        for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 09:52:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790787011; x=1791391811; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:mime-version:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=0TE/EcEsZk4GPVnGo5rtnt9tNvICv6JXuCxkvZBx4OI=;
-        b=nuHLJ3+lV4c89sqxKqHNH8fBTkgfjWh49MYRIp3kVeBCkgt5a2OPL6Nqejg41d+j07
-         /7tj0HSyZTqa7SOkJEtSoXHnGdf/HNYXB/LU6M4i79xiGXUR0L0SBIfGQsNW5U2XNLxD
-         ged2z+ImGwyppI78JUQxyh6SxFfzdGPb0/Q9YbDiOzxXB7qs7Pl9wTGKD0mX5EfjDZey
-         q4ntq2p35IMwK6ZLDjeVUyXhcKQ+1hD8fVeu+wGksYUhkVa9Y/6xvKxraLrRXG4yQEKu
-         BYjh19TC+fXpDH3K6+Y8Bfnutxub1uxLUm8m5WHIf+ITHQJLWLiee87GPOL4/ByZETNM
-         UuBg==
+        d=ziepe.ca; s=google; t=1790787158; x=1791391958; darn=vger.kernel.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:from
+         :date:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=USoosmtGDycX1a/Va/WTZ2HKM0YP5/LMRYBi/jK/1WU=;
+        b=OhOI/TgdclwGcCILD+ANQGEgwuLJ1ZFSSM6jZ0eyyZ5+emPldVS5zYq/zAUpJhDnrG
+         yK0jdBXbcETvevcDmN1A4j946Qj4hSNu0rKZCPee7rIB7Dqmcb1xcIedR/Bmt5K58SxD
+         cAI3QtH0pMAXwQJYvhU8d0wGmHg9MdTQg5xMwKqWLaulux13gkarK7uX7e/BVSlO0NJ0
+         L8y2Xh0n9cuFXrampV3zVqU70hZ2hbkcWrmJOsSLWkDdDLly1pNPqk/rE5dK6UpPfnjF
+         PKz+PLpK+1hm3LyrH2xo9sMnWM9KVbPso6lmlhuBWaIZmwq4yxmEqHqznGVGaqHEvJIi
+         KLyA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790787011; x=1791391811;
-        h=content-type:cc:to:subject:message-id:date:from:mime-version
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+        d=1e100.net; s=20260707; t=1790787158; x=1791391958;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:from
+         :date:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to:content-type;
-        bh=0TE/EcEsZk4GPVnGo5rtnt9tNvICv6JXuCxkvZBx4OI=;
-        b=Bksdd0C5LXYdYxUbQU8+Hd7CVLxgqWgSb05FcgJjqDR5kl5wW5YGmcFceOWzYXg9DW
-         jYH0Blyr7O3HYn5J4ssrSTjvNyGvGmfpMc2fp0/PnK4iMwOmMQlidCwhnQ7Rf9rVXAXH
-         yhiHnixtc1duE4P+YNIS5fhqfYXt2+TgAO0ViPURd5oICHljiT7uRv5SnPQrfGR7AESA
-         LWt5YtL3VaslRRc25aa9plpk5bLsQtM9R8MNkXLzgLA5j5fd+vM13F+H7uMKbVGl1xSA
-         I0HVxYmi5zvzjB88HdBt5FFZv1wZZD+zpaqnlljUie/qk/6cH9hmSQSSru2wShbVhGmD
-         EiIg==
-X-Gm-Message-State: AFq9FYIo2i5Gssp+zZdeDUtxexTHJJn/c5EpHZ/8qEWwSZ0YxIqIVtsN
-	46xcNE64x/czl4vea6z7w1bk4Td/YJ2/K9OH+Ge0PBREzZAFwmxRCJIspd/syVhHCmEHhq+O4U1
-	GFJGrG7a6g2SRj4RubHJjhLoIwXQI1/OsU78d
-X-Gm-Gg: AYBFou3x10pKsnzY4Uqi0VqydHVjiNXpwAzOYAdiqNwoRO/xnpJpNs1xDGHi67fjRc0
-	5IlkR41HTwY1tNj9b6RxZ3qBk4OUtwmOXNMNCtf0lZ35vLIKCwmlcE9xaKju8Pq0LbArvgSiHo0
-	IQRLrzyFrkhqreZnBYFfJezxfd+ApkuylyLWnwGxkc2/o9O7cCyMfLucNk15d04ApvB5B4jGspR
-	dLr2UpaXqZrozj95zwqueEFasi51cGZGQvQDMiVT2GtE3MIgK7+Zeb2zW48V24Qf9peL/5fF9cq
-	t26/mv2sk7k4QB17sO6ztFBg33c4anZ/z/cCsKXb0/PT4zVBQ0r7OEDE
-X-Received: by 2002:a05:651c:a101:10b0:3a6:6f81:1017 with SMTP id
- 38308e7fff4ca-3a7791cd4f6mr5423031fa.17.1790787010523; Wed, 30 Sep 2026
- 09:50:10 -0700 (PDT)
+        bh=USoosmtGDycX1a/Va/WTZ2HKM0YP5/LMRYBi/jK/1WU=;
+        b=FoYuGBAknnP8xvhj6EfoIioka5D67/J3GaEPrbnhYbQmcBlnhOjXV6RRfMyj1rSlp5
+         ANdNf3snmMFikzbwrd5G28uxbOXicxAvFuMONaXtAuAcek7mCENLVSF+Js+66Zc/+6Vb
+         eeyg3nhv/wKmsASal6n0vdmraYiWCb698I7WFnXTydTYE/Gmk448y9VlXwltE9I0ojOa
+         N/rXNZCPOkx+UV/AeE5T/VabC9Ru6kbnO3Se7vzBwIFqItjGfVUUTa/ytNwypPmjsqZS
+         TaovGGEgP4GjnGEuBq86FIfbCsYibGv1ue6nyGLIaBK8v/iYgIWN+G0MHxByVzXOWRD3
+         B2mA==
+X-Forwarded-Encrypted: i=1; AKwUvBzjUvGjfwdmZYvbeijgRcdmMlDcWWvrFX7nDH7Phmt4+CyRIFqe+XFEZ7aIdbOWqSYUs93nH5hWls98@vger.kernel.org
+X-Gm-Message-State: AFuF++kqH/9R1glk2lqAzvLK932+2cFX8RrR17OlWG/pOoemqRiTGIAM
+	LdnbmTl34LuVMPS0fWOMHlkWNVLKa+5tvI7fPh6MY0mxfk/wd6ad3vUSoD3GzcNCli8=
+X-Gm-Gg: AYBFou1TiiSSr4dRNtW5ntw5Z7U4Jigy0VodFuVrwSKm/60Z9DmEdZoL1K0G10r1gO8
+	GPYzSinC3TBWhrUaYeX5NSAOd50hIvpdILX0hcvIm0fZyMSzIRHJ4wIDkWHw0yZX2YNK2mmPyXs
+	4w0LUlsrmRWQdXQ/Ebo5zJSek+wjVWy4Vrr/3+dyBH7MsMxuTZevkX30Z+v8H73d2nvt10SmoVl
+	Lcy/Od7t1B+DfqWPi3o3L6gqFFYfhhXVAOkAqjHR9v9O392k0A7o4UUocBauKQfwV3Oan3qIsG5
+	6S4A2Wyn4eiHAXMy1CPMYlwGI44+OU/fLO115wQa9Stud0i4F0t+LgeXX5tMykDYuUhVoJtv98l
+	GzRYQg5YVkvIITUw+UqxmjMd2UdsEMMwcd041qgJBHWJ6dkpJlHRGX4n7oFZxfb8hkcfl/m+bn+
+	8WnxFVnX2ST8PWNbZpk/aQA8KlR+NHvCkfDdzmSyh+4Oz/pQ==
+X-Received: by 2002:a05:7022:4595:b0:143:297c:276c with SMTP id a92af1059eb24-14d330b1ca2mr3017652c88.33.1790787158196;
+        Wed, 30 Sep 2026 09:52:38 -0700 (PDT)
+Received: from ziepe.ca ([130.41.10.202])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-14d313b9c38sm4523537c88.1.2026.09.30.09.52.37
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 30 Sep 2026 09:52:37 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.97)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1xBxXo-0000000C7JB-1eI9;
+	Wed, 30 Sep 2026 13:52:36 -0300
+Date: Wed, 30 Sep 2026 13:52:36 -0300
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Thomas =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>
+Cc: Leon Romanovsky <leon@kernel.org>,
+	Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Logan Gunthorpe <logang@deltatee.com>,
+	"Joerg Roedel (AMD)" <joro@8bytes.org>,
+	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
+	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org, iommu@lists.linux.dev,
+	Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
+	Chaitanya Kulkarni <kch@nvidia.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
+	Ankit Agrawal <ankita@nvidia.com>, Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>
+Subject: Re: [PATCH v8 16/23] dma-buf: Let importers ask how peer-to-peer
+ traffic is routed
+Message-ID: <20260930165236.GS163130@ziepe.ca>
+References: <20260929132305.GJ563127@unreal>
+ <720dbac3-24f6-4c91-899e-e205865c1fd1@amd.com>
+ <20260929175737.GK563127@unreal>
+ <eeef5951-825e-459f-b474-bf8c59588446@amd.com>
+ <20260930081832.GA3401365@unreal>
+ <4549640c-f4a5-4dac-9be3-2e5aa127555c@amd.com>
+ <20260930114356.GC3401365@unreal>
+ <fbdc710d-7be1-4021-83c2-548c798d9d14@amd.com>
+ <20260930143237.GI3401365@unreal>
+ <b2e766389e57a55da959369c5ad4b9e39e425659.camel@linux.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: AYS <ays511.kr@gmail.com>
-Date: Thu, 1 Oct 2026 01:49:52 +0900
-X-Gm-Features: AclHuK_VXh0irqC1mA759iG15h7GY_YAAZcT30DXjii943ZTqUBNoCTN-Qyx_qA
-Message-ID: <CAPAqSgZhfWXwrYh=OT8xta+mY00Fc-xhkc5HdP=qVvxUABnWnA@mail.gmail.com>
-Subject: RDMA/rxe: use-after-free of rxe_qp when destroy_qp proceeds with a
- bound type-2 MW still holding a QP reference
-To: zyjzyj2000@gmail.com
-Cc: linux-rdma@vger.kernel.org, security@kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <b2e766389e57a55da959369c5ad4b9e39e425659.camel@linux.intel.com>
 
-Summary
-  Component : drivers/infiniband/sw/rxe (Soft-RoCE)
-  File/func : rxe_mw.c rxe_do_bind_mw() (takes the ref) and rxe_mw_cleanup()
-              (uses it); rxe_qp.c rxe_qp_chk_destroy() (missing guard);
-              rxe_pool.c __rxe_cleanup() (timeout path)
-  Affected  : present in 7.3-rc4 (93f51579e7df). No commit touched
-              drivers/infiniband/sw/rxe/ between 93f51579e7df and current
-              master 551c722f4080 (2026-09-29) or rdma for-next, so
-both are affected.
-              (Distinct from ae36a5b6, which fixed a PD UAF on the rereg_mr
-              path; this is a QP UAF on the destroy_qp path.)
-  Config    : CONFIG_RDMA_RXE, CONFIG_INFINIBAND_USER_ACCESS
-  Trigger   : local process able to open the rxe uverbs char device. One-time
-              root setup; the trigger itself ran as uid 1000. IB_WR_BIND_MW is
-              a local op, so no network/peer is needed.
-  Primitive : use-after-free WRITE on a freed struct rxe_qp (kmalloc-2k): a 4B
-              refcount_dec_and_test at offset 368, plus complete()/list work
-              when it reaches zero.
-  Found via : manual review. A reproducer exists and can be provided
-              privately on request.
+On Wed, Sep 30, 2026 at 04:57:04PM +0200, Thomas Hellström wrote:
 
-Details
+> Returning again to Jason's series. Let's say we'd add just the mapping
+> type infrastructure, converted users of pcie_p2pdma only to use that
+> and then we'd have access to per-mapping-type data. This could actually
+> be done as a prereq for this series and merged separately. It's a
+> couple of patches only.
 
-A type-2 MW bind takes a reference on the QP:
+I'm happy to say I found someone here to pick it up again, so we
+should see something on it after LPC!
 
-/* rxe_mw.c rxe_do_bind_mw() */
-if (mw->ibmw.type == IB_MW_TYPE_2) {
-rxe_get(qp);
-mw->qp = qp;
-}
-
-That reference is dropped only on IB_WR_LOCAL_INV (rxe_do_invalidate_mw()) or
-when the MW itself is destroyed (rxe_mw_cleanup()). But destroy_qp does not
-account for it: rxe_qp_chk_destroy() only refuses when qp->mcg_num != 0; it
-does not check for bound type-2 MWs. So a QP with a live MW reference can be
-torn down. __rxe_cleanup() then hits its -ETIMEDOUT path (the refcount has not
-reached zero) and proceeds to free the QP anyway. Later, when the MW is
-invalidated or deallocated, rxe_mw_cleanup() does rxe_put(mw->qp) on the freed
-rxe_qp -- a refcount_dec_and_test write into freed memory, followed by
-complete()/list manipulation if it hits zero.
-
-Reproduced on a KASAN x86-64 build of 7.3-rc4 as uid 1000: KASAN
-slab-use-after-free write via rxe_mw_cleanup -> __rxe_put on the freed
-struct rxe_qp. Deterministic (not a race): bind a type-2 MW to an RTS QP,
-destroy the QP, then deallocate the MW.
-
-Suggested fix
-
-Make rxe_qp_chk_destroy() refuse (or defer) destruction while the QP still has
-bound type-2 MWs, analogous to the existing qp->mcg_num guard -- e.g. track a
-bound-MW count on the QP and fail destroy_qp with -EBUSY, or drop the MW's QP
-reference before the QP is freed.
-
-I have not built/tested a patch; the Fixes: commit should be identified when
-preparing one (introduced with type-2 MW support). A checkpatch-clean patch
-can follow on request.
-
-Signed-off-by: Youngsung Ahn <ays511.kr@gmail.com>
+Jason
