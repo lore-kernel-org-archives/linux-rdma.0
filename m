@@ -1,104 +1,122 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mta1.formilux.org (mta1.formilux.org [51.159.59.229])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECAC8521231
-	for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 18:41:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 660A73CB56A
+	for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 19:17:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=51.159.59.229
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790793665; cv=none; b=HMfVSv866vpnRblYsDAJZ7VRjyNXVwFGfd1vFx/s8an3WJy8B7WmD7qpr2oibEbbrC1dzkfOSL2Wfwc7XYtWt238ADx4/KQlbZN2iJFmF9+fSKUH9vxoEHtK40UQeAgak7kU8h77IIhhztfCuRxa/vbX4qvDyfgMJiipnri7KBQ=
+	t=1790795873; cv=none; b=R+l9ZcSrMLpGjIh9IKhMdiTWUHS8T+QLDP1RzTSmCLH+2Bvv9BC6f2Y0hSAbRK92SvyyUhQxP9zNsqph53gju2QZOE7MMdDtEbRlbhCQ3IY4zG+tqgtSINQoL7HyZANAza1LYTyYUlESk1IItX28efUrpPz5+tKCNz1XXd3gEUU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790793665; c=relaxed/simple;
-	bh=9uAtlzPEbAzdtVfXSvAVUovZehu9ukHy7IIZho38wcY=;
-	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=M4GfX09OxS4cY+rbE8XLVyvvrJJGl6xFCNN5ucsub8kPGUuqvN4nRcn6wfA0pu4B2FyttrHrivzlRt/ntyOe4jP/L688I1mEp+pdf6n7Ut4LHByWxweiQVKBz3TBBmjrmpOEgzVdQIihWGSSaFBQx/Yk0QamlSvkZu1t3dtFAnU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hzM/Ex+0; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790795873; c=relaxed/simple;
+	bh=FMuQ0g7/AttK6Ca6UA+tIjQy3zRntSydOUNgbeRhcHs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ghBFwINNdbPXBpTDNDDOEHYOodVFsySWkqdydo7VpE3EoSOTFmTIL9lV7yKxDtDrCA0N1pFezC1TWCR8D3Q20PITUWPaLh+NzJPnFUBrpTJa/kB2/JutBE0IJI6P4UNytS3OO0kK8/X+EN3bsaDaOISB1Fddvt5lohOqIAMuy58=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=1wt.eu; spf=pass smtp.mailfrom=1wt.eu; dkim=pass (1024-bit key) header.d=1wt.eu header.i=@1wt.eu header.b=Ad26QGeu; arc=none smtp.client-ip=51.159.59.229
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=1wt.eu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=1wt.eu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hzM/Ex+0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32EF51F00898;
-	Wed, 30 Sep 2026 18:41:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790793663;
-	bh=d8B2wfqzO+sspj5+3+48IIH409UvgHDaft+vta15P9M=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=hzM/Ex+0uhwEz9WcXlXXfPiUJ/feGWMnst1lkn8Mx6zYH9QrYqtwQmEe4I1W43zRr
-	 DmkmF2l14zFWTIpF5Ypb6BzB34xtkcumruJ+wjERtqHg9IkBqQt0WYzV4j8WG1TCsl
-	 T49ge4RGb9H4WvX1MkhgeOPREg+7ZyKDioPVZaoB4M0T3h9h5EkLjiQB/pTRXyiEyS
-	 mtYw8k8392v/MZO08EAJ+j9auPPnFNotRRhPW9mtCPE+GfqyGQyIe324Huz+iRk7Mr
-	 GHzX4l9LWu0VwjiPPx3EBU6f5n92B1ha4Qs9Sk2nKuz1DtrYCbkprcBBTxjgZxLsDE
-	 jtVMFLftEOM4w==
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH] RDMA/rxe: validate inline sge_offset in finish_packet()
- before indexing inline_data[]
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Youngsung Ahn" <ays511.kr@gmail.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260930182216.2510953-1-ays511.kr@gmail.com>
-References: <20260930182216.2510953-1-ays511.kr@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Wed, 30 Sep 2026 18:41:02 +0000
-Message-Id: <20260930184103.32EF51F00898@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=1wt.eu header.i=@1wt.eu header.b="Ad26QGeu"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=1wt.eu; s=mail;
+	t=1790795862; bh=n9Pnc66qJpVgqe2kAd9Hwcaw3TKDga97O08OqQ13P0w=;
+	h=From:Message-ID:From;
+	b=Ad26QGeu8i/62dlEhMO3UE7+h2V06SWbHKha6Jfe8Z+QLZ5OwvH00uHg97y+1aKuZ
+	 /ESZM72pcihIbC2iA036mVjA5DOm5Ybs1M3iFcjowM3uuQBp4Q7vs7dhv7I44TyxJU
+	 u8gbnogGpGtLQ5reOauuh1dKtMAaw/P3qAw/CH64=
+Received: from 1wt.eu (ded1.1wt.eu [163.172.96.212])
+	by mta1.formilux.org (Postfix) with ESMTP id 07001C08D3;
+	Wed, 30 Sep 2026 21:17:42 +0200 (CEST)
+Date: Wed, 30 Sep 2026 21:17:41 +0200
+From: Willy Tarreau <w@1wt.eu>
+To: Zhu Yanjun <yanjun.zhu@linux.dev>
+Cc: AYS <ays511.kr@gmail.com>, zyjzyj2000@gmail.com,
+        linux-rdma@vger.kernel.org, security@kernel.org
+Subject: Re: Subject: [PATCH] RDMA/rxe: bound the ODP page index against the
+ umem in rxe_check_pagefault()
+Message-ID: <ar1gVXr1ZXb52_uI@1wt.eu>
+References: <CAPAqSgazQv2g+2CqefTrAnL-FLeN3w2g2JbPA-V5XfjSzrGxRw@mail.gmail.com>
+ <81f485db-bd4a-4508-8e1a-0c97ffd418a6@linux.dev>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <81f485db-bd4a-4508-8e1a-0c97ffd418a6@linux.dev>
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
-- [High] rdma/rxe: TOCTOU bypass of sge_offset bounds check in finish_packe=
-t()
---
+On Wed, Sep 30, 2026 at 09:52:30AM -0700, Zhu Yanjun wrote:
+> 
+> ? 2026/9/30 7:01, AYS ??:
+> > An ODP MR's page array map.pfn_list[] is sized from the umem's start, but
+> > rxe_check_pagefault() indexes it with an iova taken relative to that start
+> > while the access was range-checked against the MR's iova (ibmr.iova).
+> > reg_mr
+> > only requires start and hca_va to share a page offset, so a user can
+> > register
+> > with hca_va = start + N*PAGE, and the index skew (hca_va - start) >>
+> > PAGE_SHIFT then lands out of bounds of pfn_list[], which is read with no
+> > bound
+> > check. An unprivileged local user reaches this with a single RDMA
+> > operation on
+> > a self-connected rxe QP: observed as a KASAN slab-out-of-bounds read
+> > and, when
+> > the out-of-bounds qword looks like a writable HMM pfn, a write into an
+> > attacker-influenced page.
+> > 
+> > Reject an index that leaves the umem and force the fault path, which
+> > fails the
+> > out-of-range access via the umem range check in
+> > ib_umem_odp_map_dma_and_lock(). The downstream pfn_list[] users
+> > (__rxe_odp_mr_copy() and the atomic helpers) run only after a successful
+> > map,
+> > so this check protects them as well.
+> > 
+> > Fixes: 2fae67ab63db ("RDMA/rxe: Add support for Send/Recv/Write/Read
+> > with ODP")
+> > Signed-off-by: Youngsung Ahn <ays511.kr@gmail.com>
+> > ---
+> > Notes (not part of the commit):
+> > Reproduced on a KASAN x86-64 build of 7.3-rc4 as uid 1000; the data-only
+> > write
+> > primitive was used to reach uid 0 on a fully hardened build.
+> > drivers/infiniband/sw/rxe/ is unchanged between 7.3-rc4 (93f51579e7df) and
+> > mainline 551c722f4080 (2026-09-29) and rdma for-next, so both are
+> > affected.
+> > Compile-tested (KASAN+RDMA_RXE), not runtime-tested. Found through
+> > AI-assisted
+> > review; per Documentation/process/security-bugs.rst this is public and a
+> > reproducer can be shared on request. A maintainer may prefer to also index
+> > relative to ibmr.iova (as the non-ODP rxe_mr_iova_to_index() does) so
+> > legitimately skewed MRs keep working; this patch takes the minimal, safe
+> > route.
+> > 
+> >  drivers/infiniband/sw/rxe/rxe_odp.c | 5 +++++
+> >  1 file changed, 5 insertions(+)
+> > 
+> > diff --git a/drivers/infiniband/sw/rxe/rxe_odp.c
+> > b/drivers/infiniband/sw/rxe/rxe_odp.c
+> > index ab21b620e94c..07a30c60fc62 100644
+> > --- a/drivers/infiniband/sw/rxe/rxe_odp.c
+> > +++ b/drivers/infiniband/sw/rxe/rxe_odp.c
+> > @@ -136,6 +136,11 @@ static inline bool rxe_check_pagefault(struct
+> > ib_umem_odp *umem_odp, u64 iova,
+> >   while (addr < iova + length) {
+> >   idx = (addr - ib_umem_start(umem_odp)) >> umem_odp->page_shift;
+> > 
+> > + if (idx >= ib_umem_odp_num_pages(umem_odp)) {
+> > + need_fault = true;
+> > + break;
+> > + }
+> 
+> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/process/coding-style.rst?h=v7.3-rc5
+> 
+> Please follow coding-style.rst to rewrite the above code snippet, then
+> resend this commit.
 
-commit cb139c29341b6f7fcb85c3b737c416392d13b68f
-Author: Youngsung Ahn <ays511.kr@gmail.com>
-Subject: RDMA/rxe: validate inline sge_offset in finish_packet() before ind=
-exing inline_data[]
+I think it's not a coding style issue but an email encoding issue. Please
+refer to Documentation/process/email-clients.rst to figure how to fix the
+mailer's setup.
 
-This commit aims to fix an out-of-bounds read by bounding sge_offset against
-qp->sq.max_inline before copying inline data from the mmap'd send queue.
-
-> diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/=
-rxe/rxe_req.c
-> index 53f7c1e7fe55b..887bceed6b5d1 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_req.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_req.c
-> @@ -510,7 +510,14 @@ static int finish_packet(struct rxe_qp *qp, struct r=
-xe_av *av,
-> =20
->  	if (pkt->mask & RXE_WRITE_OR_SEND_MASK) {
->  		if (wqe->wr.send_flags & IB_SEND_INLINE) {
-> -			u8 *tmp =3D &wqe->dma.inline_data[wqe->dma.sge_offset];
-> +			u8 *tmp;
-> +
-> +			if (unlikely(wqe->dma.sge_offset > (u32)qp->sq.max_inline ||
-> +				     payload > (u32)qp->sq.max_inline -
-> +					       wqe->dma.sge_offset))
-> +				return -EINVAL;
-
-[Severity: High]
-Since the send queue is mapped into user space, can a concurrent modificati=
-on
-to wqe->dma.sge_offset bypass this check?
-
-It looks like the value is read multiple times directly from shared memory.
-Could an attacker swap a valid offset with an invalid one immediately after
-the bounds check succeeds?
-
-> +
-> +			tmp =3D &wqe->dma.inline_data[wqe->dma.sge_offset];
-
-[Severity: High]
-Does this setup an out-of-bounds pointer for the subsequent memcpy if
-wqe->dma.sge_offset is modified after the validation above?
-
-Would caching wqe->dma.sge_offset in a local variable via READ_ONCE()
-prevent this race?
-
-> =20
->  			memcpy(payload_addr(pkt), tmp, payload);
->
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260930182216.2510=
-953-1-ays511.kr@gmail.com?part=3D1
+Willy
