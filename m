@@ -1,199 +1,143 @@
-Received: from mail-yw1-f226.google.com (mail-yw1-f226.google.com [209.85.128.226])
+Received: from mail-pj1-f97.google.com (mail-pj1-f97.google.com [209.85.216.97])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC4432E3FE
-	for <linux-rdma@vger.kernel.org>; Thu,  1 Oct 2026 05:21:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.226
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB87234F46D
+	for <linux-rdma@vger.kernel.org>; Thu,  1 Oct 2026 05:21:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.97
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790832071; cv=none; b=JMhXrtWwzt+/P0q7mYTcRPYpVDI/MSvyIC1/XPd2IENTDAOD6SY2q95FsTeqPpfH4ClA7EiqGiJpX/6Ev0o3mq770g3n2ot02XKMJ5fCBK3R5mwybIdcBc4/ygRI7tDINGqJjoelFJdL09o4izBDHKPJrDUVz2/OEngE7ZM7YnE=
+	t=1790832118; cv=none; b=LTh6QkHeK94tNl1r1IOkhkFr5KRINF1Kacn8D45Tft45MLOK86Fs5aTv190uZs4PRY3GFSZqcfJ5sT9NX46xkHRyEk/jz8Jn2/XsfG/5qxWMdu1SDKJDhnF12P88hAzktt/9lPhtbAfruRTTSV88hiEhY3peYP/wucmsiwtvmO0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790832071; c=relaxed/simple;
-	bh=HlhRNA2mBEgZu6G16+pBKT875p9Hh3KvacfDrFYlXOU=;
+	s=arc-20240116; t=1790832118; c=relaxed/simple;
+	bh=pojgUQbTE28QdHMemP2K1mxz9AQ+GwbhMfKOL/hkwPk=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=K843vlNzdjGdbCJhK6GzgBadpThVVraDjU0Sn9ofVyl0OKH7N28oZ0dWrmnaXgBI3HhgJUlxGdTFQGjrkr0v8MYg2rEnmuWK4h1/bqawyjmcIhD2iijHi9PJhnR6K7RkNmaHC2iw7czKrRWFaxFiwHwzOiuEn6YKQWDB8mPZVP8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=AZdmbYl5; arc=none smtp.client-ip=209.85.128.226
+	 To:Cc:Content-Type; b=QILvDTYdmeVThjnh5OGMQPQO4DLp0M6KUWcNbbQAYNx/WPheO2KQZjkDcX3QCgMVeClzur4ddAuggAiX4EG9UGbMn9kwfZrD6MU1i8vuKfJwN2N0rEt91j4btkt7LX5iDZZcIFivEuOTxjNSgNqS628c56xQemK4gVzk13zugy4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=UpWMBo0B; arc=none smtp.client-ip=209.85.216.97
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="AZdmbYl5"
-Received: by mail-yw1-f226.google.com with SMTP id 00721157ae682-87005a0e052so12357917b3.2
-        for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 22:21:09 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="UpWMBo0B"
+Received: by mail-pj1-f97.google.com with SMTP id 98e67ed59e1d1-3856d6fbcb3so2110412a91.2
+        for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 22:21:56 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790832069; x=1791436869;
+        d=1e100.net; s=20260707; t=1790832116; x=1791436916;
         h=content-type:cc:to:subject:message-id:date:from:in-reply-to
          :references:mime-version:dkim-signature:x-gm-gg:x-gm-message-state
          :from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=q3kRk2em79L6Bsx2VvpYMbEO6nuq2QO6frnqV/IRh7c=;
-        b=iu5ysSdtLkt1vtEb+KDogHlwtGli1BzrKKS1XDPN4m61BvExUxBwmRks2Cgya86+Ey
-         MOfj8gM21V4O+/YJwk0IWEprZ08fBYtX4U9H7vlE/nOYSUpPuj9cwMQ05yfFVVVN6CsD
-         vSAEUTw9fx7etYrYAUGSs9Oasl0S+S5MpQa7SoJFelMlovIAX8VfXviwzbAfWY1hk8yi
-         Wjt1iq4w0WbOc2k8S/PjKjTTj76D5E0PrBzwyd5Mey3DS9kKSLtL8lMoXBcCGy3e1/BM
-         epy6em0klZ7LowTNocAgXGjiqhLuI2JSUB5aqT7vCK+RlEabxpi/x3fYm60pog/x0vVu
-         rscQ==
-X-Forwarded-Encrypted: i=1; AKwUvBy6lQroXba4GOJ2BlF5P/OXQtGCQ7Mx0b02RzF0nclbFDDi9817BOeZW12553nVVHjKTdCeLRUVf/Gw@vger.kernel.org
-X-Gm-Message-State: AFuF++lme4aIbCdUj99MTuvHkB4v959teMwsl0QGo8iC3IppHiqI1qlt
-	Ay/uadr0L7clMQzLsmp9UT1MC1PnWnQuvKKrKAyxxndVPAnHUfsWGQxMKuAG7RLksq/MoEFzEwq
-	4Q1x/BNWPSI5yfCMlrczX7lGwWnQikH8lkESPLLef+lFoUDWzkJdD6qN44/uJ6E+c6orTUVE4rv
-	UWNfc05GBbpWrRjb+ihIjlyV1tlLXFYDFlUagkD9xV3lDumScoUyC0cYvwQELzAlrhEIYfsTtnl
-	dF/sORyBEWG0mfEYA==
-X-Gm-Gg: AYBFou3+XOo9xiAijmgoyuu+BGJiXaNRhWEKEcLN7SS0FFV/1EDLmBALxf9QL7e8011
-	0dbsr/q0liPe1Ocy3vvq6UjsoAVlgUt6aGET8olh0cjLDprCAfnNiCZA2Hoo0vx1hBSlkWow7nm
-	gCI+1CQ6HpRhTfj2EC6oSjQUpTIy3w88PhLAbzdiL83xJQJZunx07F0VJoL6foRc6W0UKHoqQap
-	Gpzd66wa4lD4079pH3JpGfVr/YtUQyqRVnAC5E30hZBA6SGJx4PH2k1myIOH6XBeGsJ5WzMIXiw
-	aI0+qDrEyIf1X4zUD4W8H13rhKbqlk/FRQnCVmhcf3pxKP9H6aziyPSqo9Ge+QEuc6s45QhB7g+
-	m4Y90UrSVeDsZY2xPv6asHRfWbQpH9LG7RqM6OESxZ5pdfN0S7iH3A1o9Yob5TRX89N2fWHKBl1
-	CqiBFL3kmGzqcuR9jDd2WQvhCJu9ItHk6DWEO5hR4=
-X-Received: by 2002:a05:690e:438e:b0:672:f291:3bb3 with SMTP id 956f58d0204a3-6768341f131mr1044425d50.30.1790832068590;
-        Wed, 30 Sep 2026 22:21:08 -0700 (PDT)
-Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-125.dlp.protect.broadcom.com. [144.49.247.125])
-        by smtp-relay.gmail.com with ESMTPS id 956f58d0204a3-6769905a120sm80939d50.35.2026.09.30.22.21.08
+        bh=DJBy4dZZAuwwDWzCEmpbRhY1bIoQpJrlA1wYBnPudso=;
+        b=EHww42pnhpo1c3uto6HmLEufEzMirQSqiXuYliG+0xeCm7wpElAG7U8bMBylIIE/Ta
+         cYCHGMulpoOdtYXOUFuJEXCinEzB9eDHzNqHRz5ru+om3QRhpapBilAu7r+sSm6K40fz
+         oQqjG4AvEWMypH8Y3sf7yO+NakbAgobPB43OQlDCLg6zhbVzj7dmkJvbZKHEPsb9Zq2d
+         8unRiNuERaDphoTg4sZQ+Dj1jYlk+clKu0Q6wPVogEGouhjuarAKhobGhRCoijAgfsH8
+         kBfObhs1Ihd7E7LuhumquY21jw78aBZNCzl+N0ZfhFg+TJCvwKdKX5H7H/uIQ6B29Dev
+         uEAw==
+X-Forwarded-Encrypted: i=1; AKwUvByTp6jgacxvzpSEYsDVkYfmQ+RVzbeNCimE2sA1v5qZac1Zc02PjDdvyjDnstFtMKqU+Rcx7fsMvUg+@vger.kernel.org
+X-Gm-Message-State: AFq9FYI30j7FxyODkh69ADRrBf0SRy0Gx5GqvhffHgVeDURw8mr9BfS0
+	hiYdfpItKl2H6Uf1ZBGDDGyy469kAHGfF9bKBN8BM3jCR7uL8Mho0hIQ/jpM1SFsve6ty5v2r2b
+	aRoIyJZA2TP/2lKesv4kV4Sl2Cs9tgvnFgkQAsFdIlkcY2b++v0v1xSxjmHbHZh+nTQKLWzsp4U
+	jr7f5o8wynWfe1kqWABvH7JYZWLOvly2npApbGRRZErLB4JXrJHjt07DLkEACEewTIy62+DmfL9
+	GavCO/7Fzizeis9UQ==
+X-Gm-Gg: AYBFou1BychDKgZCELR7QE6selh4XPj8QYrNMBNUyXusXUftJKmFU6MhbyPi8gSnz2n
+	D61FUppOgXOj5XlCUHVwTenIlJU2mFEqxiIxsvnxP53Ty3zsB65mmVaVvY44xJyw1PIQUkILtCl
+	2Sk7YJS6T13BdaeJnzMPtTK9qEH/j7LoXSF1o5uFrS/jvDVSdLuRwyEhj0oY59xl+qDdcL9vqGx
+	FQ1tg/VkoCoj+JZiGPLpwjbRSqYUnRCwNPwO4UUfXcZVnRcyp6rwCHhE8yRlAClWjJGq61KJpBo
+	8ivpwCTYWxbyvrANe498OTENU4z148KHhCzrVwXfy/SMAA8Xw8ariXoyxeHuOi7e22ZGFSD2qBz
+	qpsw3J/4r0VJod5uSb7HpJ/PDTOtM/6NLwIgK/5D9zYF9E6+dbzdmoEwRW4p/c6V9Ijcbo8uxZJ
+	qKa1XM8Ik3Q1bye/Q+kHzUudSm7F/OUG/CyGi7eLM=
+X-Received: by 2002:a17:90b:2f4c:b0:3a4:c673:763d with SMTP id 98e67ed59e1d1-3a4d1788696mr3078286a91.43.1790832115965;
+        Wed, 30 Sep 2026 22:21:55 -0700 (PDT)
+Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-120.dlp.protect.broadcom.com. [144.49.247.120])
+        by smtp-relay.gmail.com with ESMTPS id 98e67ed59e1d1-3a4f43c5865sm920191a91.2.2026.09.30.22.21.55
         for <linux-rdma@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 30 Sep 2026 22:21:08 -0700 (PDT)
+        Wed, 30 Sep 2026 22:21:55 -0700 (PDT)
 X-Relaying-Domain: broadcom.com
 X-CFilter-Loop: Reflected
-Received: by mail-oa1-f69.google.com with SMTP id 586e51a60fabf-45ecb9dd589so4627861fac.0
-        for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 22:21:08 -0700 (PDT)
+Received: by mail-ot1-f69.google.com with SMTP id 46e09a7af769-81fa41e424fso2401631a34.0
+        for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 22:21:55 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1790832068; x=1791436868; darn=vger.kernel.org;
+        d=broadcom.com; s=google; t=1790832114; x=1791436914; darn=vger.kernel.org;
         h=content-type:cc:to:subject:message-id:date:from:in-reply-to
          :references:mime-version:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=q3kRk2em79L6Bsx2VvpYMbEO6nuq2QO6frnqV/IRh7c=;
-        b=AZdmbYl5HYiVQMYKVp+IRNJAabXM1DzIXxNUUhg6+oqf9RVp6xjO5ZDlzwqNv8Aw+h
-         gPvbHTZ4JZ2d95ECWillR3+qKXtOK23E4FtRcEc3jHaVto0JyRwOOWmKYwzTKGTk8IHx
-         YNOgPp1ONpIvelX0edgQ3g5mOJ5sOgW6+2jfg=
-X-Forwarded-Encrypted: i=1; AKwUvByUcY+ahfVjt0fjx9kThxvvn958Vcwqv4M6d1Bage3kzaX1UbmXrrZWPPsFdJYvAv/Z+9GZn8H1ROBv@vger.kernel.org
-X-Received: by 2002:a05:6820:4b03:b0:6d9:1ea8:72fc with SMTP id 006d021491bc7-6dcf4b66844mr3456425eaf.20.1790832067698;
-        Wed, 30 Sep 2026 22:21:07 -0700 (PDT)
-X-Received: by 2002:a05:6820:4b03:b0:6d9:1ea8:72fc with SMTP id
- 006d021491bc7-6dcf4b66844mr3456414eaf.20.1790832067227; Wed, 30 Sep 2026
- 22:21:07 -0700 (PDT)
+        bh=DJBy4dZZAuwwDWzCEmpbRhY1bIoQpJrlA1wYBnPudso=;
+        b=UpWMBo0BbrC6T1emMBHYu5q18SsoJMkSEeIanEQUXzmv1X2vtOf+MdwrkOae5pRljM
+         9PnPmnKQntYjNY/lu+8ZgSElXcquHvnY4uKnHwmHdchapyTknvIkoHTivHtGCbpEgBY8
+         5iQtRgO/v5mg78tNR1kjnvfDWdk2+T4avxV4o=
+X-Forwarded-Encrypted: i=1; AKwUvBykSItlf9tJ0mnVpJvomwrtASGetNE1WqTd3mCY794s89mH9QfudJCBWaplY+/vhYWmBeUCqEfy6cG9@vger.kernel.org
+X-Received: by 2002:a05:6820:201a:b0:6d8:5491:3752 with SMTP id 006d021491bc7-6dcf4e644e3mr4685743eaf.46.1790832114548;
+        Wed, 30 Sep 2026 22:21:54 -0700 (PDT)
+X-Received: by 2002:a05:6820:201a:b0:6d8:5491:3752 with SMTP id
+ 006d021491bc7-6dcf4e644e3mr4685728eaf.46.1790832114102; Wed, 30 Sep 2026
+ 22:21:54 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260807005138.771669-1-selvin.xavier@broadcom.com>
- <20260807005138.771669-3-selvin.xavier@broadcom.com> <179060533568.122959.5263400857499789390.b4-review@b4>
-In-Reply-To: <179060533568.122959.5263400857499789390.b4-review@b4>
+References: <20260922061230.7909-1-selvin.xavier@broadcom.com> <20260929083651.GI563127@unreal>
+In-Reply-To: <20260929083651.GI563127@unreal>
 From: Selvin Xavier <selvin.xavier@broadcom.com>
-Date: Thu, 1 Oct 2026 10:50:54 +0530
-X-Gm-Features: AclHuK8iHRyU5329GjMLZTNaE52HvfMrZ-ztBih27WR_0ytMgGtrxra_rNi_yQQ
-Message-ID: <CA+sbYW3tiSTxFsL-bm14X-g2tiKJUojqbohgEwmua8wWfoQizw@mail.gmail.com>
-Subject: Re: [PATCH for-next 2/4] RDMA/bnxt_re: Prepare infrastructure for
- larger pages for Queue memory
-To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: leon@kernel.org, jgg@ziepe.ca, linux-rdma@vger.kernel.org, 
-	andrew.gospodarek@broadcom.com, kalesh-anakkur.purayil@broadcom.com, 
-	saravanan.vajravel@broadcom.com
+Date: Thu, 1 Oct 2026 10:51:42 +0530
+X-Gm-Features: AclHuK98sR16anKRdQgRaoKH69EUdf3D_8pCNnOZvXSAc05DB-8DgpdiwtfjzLc
+Message-ID: <CA+sbYW1aMLV20zMQHUnZ2P8H6DS+-T6Fd4TxXsVUP_YV5YvQxA@mail.gmail.com>
+Subject: Re: [PATCH for-rc v3 0/8] RDMA/bnxt_re: Fix input validation and
+To: Leon Romanovsky <leon@kernel.org>
+Cc: jgg@ziepe.ca, linux-rdma@vger.kernel.org, andrew.gospodarek@broadcom.com, 
+	kalesh-anakkur.purayil@broadcom.com
 X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-	boundary="00000000000044a521065cc09573"
+	boundary="0000000000000e8d09065cc098df"
 
---00000000000044a521065cc09573
+--0000000000000e8d09065cc098df
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Sep 28, 2026 at 7:52=E2=80=AFPM Jason Gunthorpe <jgg@nvidia.com> wr=
-ote:
+On Tue, Sep 29, 2026 at 2:06=E2=80=AFPM Leon Romanovsky <leon@kernel.org> w=
+rote:
 >
-> > [ ... 39 lines skipped ... ]
-> >  static int bnxt_re_setup_sginfo(struct bnxt_re_dev *rdev,
-> >                               struct ib_umem *umem,
-> >                               struct bnxt_qplib_sg_info *sginfo)
-> >  {
-> > +     struct bnxt_qplib_dev_attr *dev_attr =3D rdev->dev_attr;
-> >       unsigned long page_size;
-> > +     int page_shift;
+> On Mon, Sep 21, 2026 at 11:12:22PM -0700, Selvin Xavier wrote:
+> > This series fixes some of the bugs found while auditing bnxt_re's
+> > handling of user-supplied values and some generic bug fixes
 > >
-> >       if (!umem)
-> >               return -EINVAL;
+> > Please review and apply the series.
 > >
-> > -     page_size =3D ib_umem_find_best_pgsz(umem, SZ_4K, 0);
-> > -     if (!page_size || page_size !=3D SZ_4K)
-> > -             return -EINVAL;
-> > +     if (bnxt_re_pbl_size_supported(dev_attr->dev_cap_ext_flags_1)) {
-> > +             page_shift =3D bnxt_re_get_page_shift(umem, umem->address=
-, dev_attr->page_size_cap);
-> > +             if (page_shift < 0)
-> > +                     return page_shift;
-> > +     } else {
-> > +             page_shift =3D __builtin_ctz(SZ_4K);
-> > +     }
+> > Thanks,
+> > Selvin Xavier
+> >
+> >  v2 -> v3:
+> >   - Drop the VM_MAYEXEC clearing patch from this series. Will work on a
+> >     core level series which implements this in other drivers also
+> >   - Dropped rdev lifetime race patch from v2 series as it is reporting
+> >     few more review comments to be handled
+> >   - New fix to serialize dcb_wq against async notifier
+> >   - Removed is_in_used flags related patch to be posted as a separate r=
+cfw
+> >     series
+> >  v1 -> v2:
+> >    - Handle review comment about clearing VM_MAYEXEC vma flag
+> >
+> > Selvin Xavier (8):
+> >   RDMA/bnxt_re: Fix integer overflow in send payload size computation
+> >   RDMA/bnxt_re: Detect wrong sge_len passed for inline
+> >   RDMA/bnxt_re: Validate SRQ max_sge at create time
+> >   RDMA/bnxt_re: Initialize wqe.flags in bnxt_re_post_srq_recv()
+> >   RDMA/bnxt_re: Serialize dcb_wq access against async notifier
+> >   RDMA/bnxt_re: Fix the PD and DPI table size
+> >   RDMA/bnxt_re: Use bnxt_ext_stats_supported for counter count selectio=
+n
 >
-> This ib_umem_find_best_pgsz() should not be skipped, organize things
-> so you have two size caps, mr_size_cap and pbl_size_cap and use them
-> appropriately in all the right contexts.
+> I have applied all the patches above.
+>
+> >   RDMA/bnxt_re: Validate num_sge in bnxt_re_post_srq_recv()
+>
+> This needs some more work. It can be improved commit message, or code to
+> make sashiko happy.
+>
+> Thanks
+Sure. will repost it.
 
->
-> >
-> > +     page_size =3D BIT(page_shift);
->
-> So the helper does ffs and then it is shifted back?
-
-bnxt_re_get_page_shift actually calls ib_umem_find_best_pgsz. But you
-are right, we can optimize the helper to avoid the shifting back. WIll
-rework.
->
-> >       sginfo->umem =3D umem;
-> >       sginfo->npages =3D ib_umem_num_dma_blocks(umem, page_size);
-> >       sginfo->pgsize =3D page_size;
-> > -     sginfo->pgshft =3D __builtin_ctz(page_size);
-> > +     sginfo->pgshft =3D page_shift;
->
-> Put the ffs here..
-Ok sure.
->
-> > [ ... 9 lines skipped ... ]
-> > +     /*
-> > +      * The FWO field passed in the CREATE_QP command is expressed in =
-4K
-> > +      * units, so the offset must be a multiple of 4K.
-> > +      */
-> > +     if (qplib_qp->sq.sg_info.fwo_offset & (SZ_4K - 1)) {
-> > +             rc =3D -EINVAL;
-> > +             goto fail;
-> > +     }
->
-> Failure does not seem right? If there are restrictions on what offset
-> can be accepted then you need to feed that into
-> ib_umem_find_best_pgsz() so it selects a page size that works with
-> HW. Presumably if 4k is selected everything works, right?
-Yes. 4K should work for QPs.
->
-> I forget all the options, but mlx5 had similar restrictions so I think
-> helpers should exist or almost exist..
->
-> > [ ... 46 lines skipped ... ]
-> > @@ -220,6 +239,8 @@ int bnxt_qplib_alloc_init_hwq(struct bnxt_qplib_hwq=
- *hwq,
-> >               if (rc)
-> >                       goto fail;
-> >               hwq->level =3D PBL_LVL_0;
-> > +             if (hwq_attr->type =3D=3D HWQ_TYPE_QUEUE)
-> > +                     bnxt_qplib_adjust_lvl0_fwo(hwq, hwq_attr);
-> >               goto done;
-> >       }
-> >
->  [Severity: High]
->  For PBL Level 0, the first-word offset (fwo_offset) is absorbed into the=
- base
->  address here. But if the queue requires PBL Level 1 or 2 (multi-page que=
-ues),
->  the offset isn't adjusted in the PBL entries.
->
-> Are you checking sashiko?
-Yes. I am looking into sashiko. This message looks like a false
-possitive.  The adjustment is required only for Level 0.
-I will post a v2 after fixing some of the issues reported by sashiko
-on my first patch series.
->
-> --
-> Jason
-
---00000000000044a521065cc09573
+--0000000000000e8d09065cc098df
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -287,13 +231,13 @@ B3fwJWxl7miwNFjWuu9M6Z+rcjm3JF5srcAu2fp/VzQD4AE5Kq7ywukMvlU4Y3X2t+D2eU1DH8pk
 c8mM1CtQWfWUboaoLABVmYmYfihDvTURkzGCAlcwggJTAgEBMGIwUjELMAkGA1UEBhMCQkUxGTAX
 BgNVBAoTEEdsb2JhbFNpZ24gbnYtc2ExKDAmBgNVBAMTH0dsb2JhbFNpZ24gR0NDIFI2IFNNSU1F
 IENBIDIwMjMCDDy76dRYp65lyF2c4zANBglghkgBZQMEAgEFAKCBxzAvBgkqhkiG9w0BCQQxIgQg
-2a1D9vQI4W0CL5A+3JEatA4QFrjPfcCehC9WRTxI12cwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEH
-ATAcBgkqhkiG9w0BCQUxDxcNMjYxMDAxMDUyMTA4WjBcBgkqhkiG9w0BCQ8xTzBNMAsGCWCGSAFl
+n0tGl/jOwfbNtE3xrXfaYwMUqq46KAT8Lqgd0pgN5hMwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEH
+ATAcBgkqhkiG9w0BCQUxDxcNMjYxMDAxMDUyMTU0WjBcBgkqhkiG9w0BCQ8xTzBNMAsGCWCGSAFl
 AwQBKjALBglghkgBZQMEARYwCwYJYIZIAWUDBAECMAoGCCqGSIb3DQMHMAsGCSqGSIb3DQEBBzAL
-BglghkgBZQMEAgEwDQYJKoZIhvcNAQEBBQAEggEAWP7q6f2gMim6i9MA/fvtRvyMRTxnA92BL3u8
-q08HbwW7qAfx/ndOAYKi/g+F9imvOcIXXmpklLSowe3RFrjITc9SCaSBJBl2tI1NuWm/QOs+7lmF
-ISkb8yYFtQvySwhjVMSdRTMsKnUSD/fe9gtqwuEpC+YgflPpD7Dv2N3dSegGaSknrrehTPDcQ+3a
-vnIYtF22KRD1AweFFHRwKo/NmA2rLTSYi+4p+QcX8VLX7Yfbtczcx4HhNQ9yUzWSITp6+gnEi1nK
-3gMrsBrf6/uICEPrlcGySqTCC9+1V62EI6VA6vzMufG8RdQYWWMBmTyf2T1Wv0Nosn4FQfHonB4v
-Rw==
---00000000000044a521065cc09573--
+BglghkgBZQMEAgEwDQYJKoZIhvcNAQEBBQAEggEAlVanP1pRxpgmWC/YuyadjKkpudLObu8mxF1M
+B0BOccVs/BAdZ2/DCzX0qYqrBSjjVlHDJH5sK6N2j9jUtSoowDbU+TfvzQH/RuzgTx9jrBLTuAaM
+mqKRtYmrz+beShhMyVKOHWt91vhJDtY2iQN9zt6q36YznAZP42hq9ldq7FThOBgusVqexI28KWh9
+2xCtSLqtev5Jqyn5g6aGJS1TnF0zXPYnZ7JmWf1MEckbdgrnh4Bzw1ORFwDWNUJ2ko2ayv8gfiDS
+He9s/IH2tNCZ6MOU9+WXL8YJskZBrh7USbAnYbMVc+Rn4Ek3cBrycyy5g01S9SXPnBcq6rAxtY+O
+Wg==
+--0000000000000e8d09065cc098df--
