@@ -1,110 +1,137 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B92423793DF
-	for <linux-rdma@vger.kernel.org>; Thu,  1 Oct 2026 15:42:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0866A3BF695
+	for <linux-rdma@vger.kernel.org>; Thu,  1 Oct 2026 15:53:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790869359; cv=none; b=ueCdwzyiIgmrH9wucRn7nF2dM2AtYltrF1B4O8ky+oBIluMfg+9UrpXpZ+ccig3AenNka3q+7q2K2i0ETomPJRaJ0wMfsmIvHEm/DolPyQMgykeWXQ94DberhgNTThl8hjGBHZdqrlYuuMso9rV4YbgS99sQyV6cfroYn+WC26g=
+	t=1790870021; cv=none; b=i2bD2ey/PRqSFvft7kjsYjScB10IYsCRbUc43D6peZAVtskYu3VlJ5HTWkQMHdf5HEub2bnqaztYpa2NGSjoajWTvGgXQOg/KAUGbMcqSBlI5aWEK8CfSsUhylwdIAVUqCUJ7dwddppK7jIwJleVPeNHe6Yal+avZzwp1A/R4u4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790869359; c=relaxed/simple;
-	bh=z1yMaWwb+oPbBbegVnbSgAW8T5oZEil9QFC8qaPIShQ=;
-	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=pOf2c/z+GfmlCIU6CeEGS0Cej0sZ+ciW3eShK8lryw5DWuW1J6ImpHCp4+O9bF57QprlGjjjTtRR0RGdkZ4VaZ8O9yK+8a6oFLAQIqnyVYRaAZBPyaqYL4Mux33+rGdICLCcjNEBnFT8DhxT45WtmiCI7OFVzhdkkFO++r/1gDo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Hz+z90m6; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790870021; c=relaxed/simple;
+	bh=1/jwMqXK8cKcdJddhXQS3/mA1Z+NGHMB5uhMVaxng9o=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=A///SqSxEfpanrDALLueZPxgaNsPkUQq8xEk2468ebF9QeMZd0ke7tirTd4kaHchDgHzi/YE0dond5fgDUfVO1XQfmCts+heRJHXNKHBqXcGALOCEPfixKu2qIFQgG1Oysvjb+oLrPKl7flNQLXPpcAozSEobpJpG0b6z03DwXs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FHI6J8He; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Hz+z90m6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 254481F00899;
-	Thu,  1 Oct 2026 15:42:37 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FHI6J8He"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96C631F000FF;
+	Thu,  1 Oct 2026 15:53:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790869357;
-	bh=zY7hiSWpNWQ1NZ7dT4kZVCOsmEBmz09FezGfik0F4EQ=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=Hz+z90m6T4AFvhTLjAWEJzkHzl1yvHRl0d+n+2tWoeNCGvPl5NZc1uF8x5nNlsKNK
-	 vgTjpzNR7yicaNinm81MfiI3jf5JgNCOVfEUjsEpTNfhJ820WmbKCtAlmH3pIigq9H
-	 IuqUJg7G+Dui8XX7OQL0tbtsRtnZZayMlRchqdhU46AneL5l/8knCJ5CF02HYlbK5V
-	 p3nsFlwZjpKvWdpkkix0hJMJNrgDHH0qWcrlkkEGc+JV+5HTwPMuF0COcgsaB7P5OF
-	 g9ScjqinMzIbxNtfEOQKlzaY8wwOQbzTXj7Auhf8H7NakNgwMnUMKLWq7ngihk+pos
-	 utezY3OzmO4lQ==
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v2] RDMA/rxe: validate cur_sge on the receive path
- before indexing dma->sge[]
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Youngsung Ahn" <ays511.kr@gmail.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261001152345.3259024-1-ays511.kr@gmail.com>
-References: <20260930180119.2497360-1-ays511.kr@gmail.com>
- <20261001152345.3259024-1-ays511.kr@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Thu, 01 Oct 2026 15:42:36 +0000
-Message-Id: <20261001154237.254481F00899@smtp.kernel.org>
+	s=k20260515; t=1790870018;
+	bh=+EmLvUEKOEByTo+Prg6YLkZ4Ht1/Wt56IsYphdtVG48=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=FHI6J8HeWQnZNHBNcIqQTwT1QDRpMaXGC2gTMuiefed/A6nlot2b2ueclnrkxdNNs
+	 lFo1YN3eh1H47WQo7NvVof9Nun8jv4R/rv9As0PK+kHKYOSVh+ZisWgbVRc5i2YJ/v
+	 3bkKT2Dmi69m/etlBACkZCjRwHeWnEqqmjc4OlsgcfP3W50xh5RqKcioWC+EYfvG/X
+	 jYMG2fr8KKXo8bn/glE9iLLkoj1FE5+b9OVoVxXmxDSEjQ7XURaI2OPJxbsS5Lo6He
+	 Ogunxp87OstViCG/4fe06hYjXE5UwRXgFJ41mdsSwe2Q2CeHzi9zC5UR9FNxEhhkl3
+	 yy1/vtNngn6jg==
+Date: Thu, 1 Oct 2026 18:53:33 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Michael Margolin <mrgolin@amazon.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>, Yonatan Nachum <ynachum@amazon.com>,
+	linux-rdma@vger.kernel.org, sleybo@amazon.com, matua@amazon.com,
+	gal.pressman@linux.dev, Yehuda Yitschak <yehuday@amazon.com>
+Subject: Re: [PATCH for-next] RDMA/efa: Expose device P2P DMA support via
+ device query
+Message-ID: <20261001155333.GP3401365@unreal>
+References: <afhL9DLUVhnVyzZu@nvidia.com>
+ <20260505081514.GA19297@dev-dsk-ynachum-1b-aa121316.eu-west-1.amazon.com>
+ <afoPWiiEwk5igB/N@nvidia.com>
+ <20260923163830.GA6954@dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com>
+ <20260923171741.GH2545495@nvidia.com>
+ <20260924152913.GB24800@dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com>
+ <20260924182201.GB9354@nvidia.com>
+ <20260924193026.GA13498@dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com>
+ <20260925125512.GM9354@nvidia.com>
+ <20260930132613.GA24387@dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260930132613.GA24387@dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com>
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
-- [High] RDMA/rxe: double-fetch TOCTOU vulnerability in copy_data() bounds =
-check
---
+On Wed, Sep 30, 2026 at 01:26:13PM +0000, Michael Margolin wrote:
+> On Fri, Sep 25, 2026 at 09:55:12AM -0300, Jason Gunthorpe wrote:
+> > On Thu, Sep 24, 2026 at 07:30:26PM +0000, Michael Margolin wrote:
+> > > On Thu, Sep 24, 2026 at 03:22:01PM -0300, Jason Gunthorpe wrote:
+> > > > On Thu, Sep 24, 2026 at 03:29:13PM +0000, Michael Margolin wrote:
+> > > > 
+> > > > > > > 2. Expose EFA_DEV_CAP(dev, PCIE_PEER_ACCESS_ENABLED)
+> > > > > > >    directly to userspace. As you already stated, this is a
+> > > > > > >    bit awkward as a device isn't expected to be aware of
+> > > > > > >    system topology, but since EFA lives in the cloud it is
+> > > > > > >    partially aware of the platform configuration and in
+> > > > > > >    particular the ability to access peer devices over PCIe.
+> > > > > > 
+> > > > > > If you already know your VMs are always safe what is even the issue?
+> > > > > > What are you probing for?
+> > > > > > 
+> > > > > > Lets please not hack around bad userspace with even worse kernel uAPI.
+> > > > > 
+> > > > > The EFA device already knows this attribute. The problem is that this
+> > > > > information is not exposed to userspace today.
+> > > > > 
+> > > > > So if I go back to our original proposal - exposing the
+> > > > > EFA_DEV_CAP(dev, P2P_DMA) bit through query device - this is a firmware
+> > > > > attribute that says "this device does not block PCIe peer access on its
+> > > > > end." It's not a topology claim, it's a device property, similar to how
+> > > > > we already expose RDMA read/write support.
+> > > > 
+> > > > And how does that help you if you actually need reachability? You
+> > > > haven't said directly what you are even trying to achieve (though I
+> > > > have a pretty good guess).
+> > > 
+> > > On some platforms P2P is blocked at the device level despite the fact
+> > > that the peer GPU is reachable over PCIe.
+> > 
+> > This idea just doesn't exist in Linux.. It is completely inappropriate
+> > for a PCI device to declare it knows something about the
+> > topology. That's not how PCI works, it is the wrong place for your VM
+> > to signal information about the PCI routing through the EFA driver.
+> > 
+> > That needs to come up to the P2P subsystem.
+> > 
+> > > This mainly happens in multi-instance setups where there is a need
+> > > to manage PCIe bandwidth or prevent noisy neighbor effects. Today we
+> > > check this attribute on the device during MR registration, so
+> > > libfabric's EFA provider allocates GPU memory and attempts to
+> > > register an MR to get this information.  This process is costly,
+> > > thus we are trying to replace it with a simple capability check.
+> > 
+> > Which is the right thing to do, again if it is slow go talk to the
+> > people who are making it slow..
+> > 
+> > > > Precompute it and use a topology file like everyone else?
+> > > 
+> > > This is an option but it seems like a big overkill for the simple
+> > > check that we need.
+> > 
+> > Maybe there is some other place you can inject into the VM a 'this vm
+> > does not support p2p' flag that userspace can see?
+> > 
+> > Leon has been working on some ACPI enhancements for this, perhaps that
+> > new table could be distilled down to a single sysfs under an acpi
+> > directory?
+> 
+> Looked at Leon's patches and it does seem like the right place to expose
+> such peer relations. Although it wouldn't help with our immediate need,
+> maybe we can add a sysfs interface on top of Leon's patches to expose
+> the gathered accessiblity (and maybe also performance) information.
+> 
+> Leon, what is your opinion on this?
 
-commit 2fd3d60fe5490f46cfcd1b0614c53c62687fc767
-Author: Youngsung Ahn <ays511.kr@gmail.com>
+ACPI tables are available here /sys/firmware/acpi/tables/, this will
+include our new p2p HMAT extension.
 
-RDMA/rxe: validate cur_sge on the receive path before indexing dma->sge[]
+Thanks
 
-This commit adds bounds validation for cur_sge in copy_data() on the receive
-path before the scatter/gather array is accessed. It intends to reject an
-out-of-range cur_sge to prevent denial of service or information leaks.
-
-> diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/r=
-xe/rxe_mr.c
-> index 2afda5154dfb9..0c510bb7ae2a7 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_mr.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_mr.c
-> @@ -436,6 +436,11 @@ int copy_data(
->  		goto err2;
->  	}
-> =20
-> +	if (unlikely(dma->cur_sge >=3D dma->num_sge)) {
-
-[Severity: High]
-Since dma can point directly into an attacker-controlled mmap'd ring buffer,
-could this introduce a double-fetch vulnerability?
-
-For example, on the send path, a WQE is retrieved without a kernel copy and
-passed along:
-
-rxe_requester()
-   finish_packet()
-       copy_data(..., &wqe->dma, ...)
-
-Earlier in copy_data(), sge is initialized by fetching dma->cur_sge:
-
-	struct rxe_sge *sge =3D &dma->sge[dma->cur_sge];
-
-Because the check added here lacks READ_ONCE(), the compiler could fetch
-dma->cur_sge twice from shared memory.
-
-A malicious thread might race to provide an out-of-bounds value for the fir=
-st
-fetch, followed by a valid value for this second fetch. This would bypass t=
-he
-check and result in an out-of-bounds dereference when sge->length is evalua=
-ted
-shortly after.
-
-Would caching dma->cur_sge locally with READ_ONCE() prevent this?
-
-> +		err =3D -EINVAL;
-> +		goto err2;
-> +	}
-> +
->  	if (sge->length && (offset < sge->length)) {
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261001152345.3259=
-024-1-ays511.kr@gmail.com?part=3D1
+> 
+> Michael
+> 
+> > 
+> > Jason
