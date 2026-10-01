@@ -1,44 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F38D94A0156;
-	Thu,  1 Oct 2026 12:01:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21DC34B8260;
+	Thu,  1 Oct 2026 12:01:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790856078; cv=none; b=l1P+Zuw9naix4+q4JPfcT2ZT0WezxHLUWxk9nCNgPVScFy2F4jZa8sag68QowfUkzxznYOSz3CQXJGD3ZhC1CfwGs0adqOEP6EhbjCgQwu/FT9jknhcH4UA49pZhCOeQhBqaz5FPCDOgCsvRVVJLfzfWJDx/voEnn7kz8+zriuQ=
+	t=1790856116; cv=none; b=Dd4oAYSNRb7n1PlC8zQlFU/O9VjR3lq2s3RHFeYHtzkw0hOkE9KifacugRfU30Nw7cuiflFH837wErT7IC5L18eZq5XT/coYmLnelvWtoM7R5sMqcAJJSnLmv9Cq+Yd9bpEWPM5AGZfoa3m3mDGEcQe8+tMaIw0U9Clqa93OfjY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790856078; c=relaxed/simple;
-	bh=C4J0R9HBIZKYjc5evTkydqc/3Ah1h/+1eQj/E3deQyU=;
+	s=arc-20240116; t=1790856116; c=relaxed/simple;
+	bh=CQSTihuvb/SazjypSDkBT7pkKSV2l50EwDS1UfOSrTc=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=Qif1YwqkEANklX/hcbm00wZlaeFVltVzI9kku1e5vJ0rl2XCbfaqW7Fyvf+yB9Gu8wLmhEWnqi8Ft8PoXVeRDhJ2TOHjrTVw96EpDwDSLLTO1TlWPdsxD5/LfySDzs12yKfxgnnOfeD264eUWJFDbQOzjGciJAqfo/TCkLSCXjA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BSyIQHM1; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=WXE504AmjsmOhwEh8Po9ybTIHm3uhqRXR+lh6wPL5nY4kPpgvzAGsm/vLfZ0uBCydD8RbRDUQ56t21KdC3efDMfcmhDQ9IwY8fkO1pC9b3ajpdpGnbwaPZuU/wHSYOvftOZ7jIDyDyOIvGlS4idz6xPyf7GnR5bgfhUS/oxHi3I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iPeILIQY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BSyIQHM1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7738B1F00899;
-	Thu,  1 Oct 2026 12:01:13 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iPeILIQY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C8571F000FF;
+	Thu,  1 Oct 2026 12:01:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790856073;
-	bh=C4J0R9HBIZKYjc5evTkydqc/3Ah1h/+1eQj/E3deQyU=;
+	s=k20260515; t=1790856114;
+	bh=CQSTihuvb/SazjypSDkBT7pkKSV2l50EwDS1UfOSrTc=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=BSyIQHM1LvBRo3wXtUsF56Yhx1m0Qt/C2Qynf2u0ivFBLoRjNAXYzPKqkO9LRMjLd
-	 rjEnjY6UsU4zACGv6z2G3v2ttF/fjsxM8aKcArTgoRrQFBHu8hiyvD1YvaH2Y81Vli
-	 Rw8yQJNgmQpyjBH8AehpKWs0zW6Izgcy9LwvcPpg3CrvgLORMa9tOYsekDi+cAMsDH
-	 Fg4UTkOKc8P7eBd/k4WvbGzuYlesUCpmI9uYkn0/JtqcHPLmznhecOqjgQMRhiW8By
-	 L0WEcdfIph+03Ks5ojsekOpIs+K/p8mRzwnWv7WHEcEHYk4FMbpWnfAPZgXeRhRJN6
-	 5JLIQfjNyqJGw==
+	b=iPeILIQY1rAYJYQuur7i29DQtkJesf77WMxcHo97Qf+yZ0M1gjZLAcMt39pYJrgz2
+	 2pbjcD8uwgGmbkPKULoT+2KAdLa19bK1EfCGhc49NqL+T4s8WLSXbeoycd6C50MMUJ
+	 ih0HrWrobMq4T5DXiRX7nOOCs1n5DT1pMp4ojo7iA2z6irhkI1K81fKJaTuTqK3Mu4
+	 btcxhoo6d3VAUcdNk3efSEMGfNCaZLcudqUe4Xo5ic9e+Jc4te5Q8PG/3z6WXFLs3f
+	 u8HHCf6RcmBqsy1xcmWr7qVYD3wZQ0FH3Ge/J065VeezpLTbwCkRj5lox6yGDN8h5R
+	 TWr8DWrIe5Idw==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v9 06/18] PCI/P2PDMA: Collect the path's ACS controls
- before deciding
+Subject: Re: [PATCH v9 12/18] PCI/P2PDMA: Add KUnit tests for the ACS
+ routing decisions
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Leon Romanovsky" <leon@kernel.org>
-Cc: kvm@vger.kernel.org, linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-pci@vger.kernel.org, media-ci@linuxtv.org
-In-Reply-To: <20261001-fix-p2p-acs-v4-0-v9-6-1a8e0f50ddd9@nvidia.com>
+Cc: linux-pci@vger.kernel.org, dri-devel@lists.freedesktop.org, kvm@vger.kernel.org, linux-rdma@vger.kernel.org, media-ci@linuxtv.org
+In-Reply-To: <20261001-fix-p2p-acs-v4-0-v9-12-1a8e0f50ddd9@nvidia.com>
 References: <20261001-fix-p2p-acs-v4-0-v9-0-1a8e0f50ddd9@nvidia.com>
- <20261001-fix-p2p-acs-v4-0-v9-6-1a8e0f50ddd9@nvidia.com>
+ <20261001-fix-p2p-acs-v4-0-v9-12-1a8e0f50ddd9@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 01 Oct 2026 12:01:13 +0000
-Message-Id: <20261001120113.7738B1F00899@smtp.kernel.org>
+Date: Thu, 01 Oct 2026 12:01:53 +0000
+Message-Id: <20261001120154.5C8571F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -47,18 +47,19 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 > From: Leon Romanovsky <leonro@nvidia.com>
 >=20
-> calc_map_type_and_dist() reads each divergence port's ACS Control register
-> and folds the result into running counters as it goes. Any routing proper=
-ty
-> that depends on the kind of TLP being routed would have to be threaded
-> through that code, so there is nowhere to put one without reading the
-> registers again for each kind.
+> pci_acs_p2pdma_request() and pci_acs_p2pdma_completion() turn an ACS
+> Control register and a TLP class into a routing decision. Which bits apply
+> to which direction and which class is easy to get wrong, and hardware that
+> exposes a given combination may not be at hand.
 >=20
-> Collect the two ports' ACS Control values into struct pci_p2pdma_acs_path
-> first, then decide from it. pci_p2pdma_route() applies the same rule as
-> before: a path routes directly only when both directions do.
+> Drive both from a table of register values and classes, covering the
+> redirect controls per direction and Translation Blocking, Direct Translat=
+ed
+> P2P and Relaxed Ordering. Direct Translated P2P gets a case with and
+> without a redirect to override, since it changes nothing without one.
+> Exposing the two helpers moves their state enum and the TLP flags into
+> pci.h.
 >=20
-> Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
 > Tested-by: Tushar Dave <tdave@nvidia.com>
 > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 
@@ -66,5 +67,5 @@ Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261001-fix-p2p-ac=
-s-v4-0-v9-0-1a8e0f50ddd9@nvidia.com?part=3D6
+s-v4-0-v9-0-1a8e0f50ddd9@nvidia.com?part=3D12
 
