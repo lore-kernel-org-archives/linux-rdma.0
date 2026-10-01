@@ -1,104 +1,203 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C52CB5221DE;
-	Thu,  1 Oct 2026 15:25:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EA3C1D5CC9;
+	Thu,  1 Oct 2026 15:26:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790868350; cv=none; b=Oibz3qGJArOHq1r15Nhotn1vwl3alSVXzThPy2kLI71HbzokaWDNyHAYG7GUNayQsiUdUzeQLSAEmo5Yva+1tDbQnXfgYlsU/X6mI4hdSiqhF8o4WwWa6R2PipawBk3JwZ0X78YiEICqqjUhw1ZIzuCQmGfUv8afxCMbLrdmjDc=
+	t=1790868363; cv=none; b=B0JjiEJH/T+5YM0epT+c+oGpcnSE5/htrTpkdXy4BZtI5Tflkhmti6sKx7m7HE1ufTbfS1W/fYgEb8TyCYaayhZiz6DoU4DM8eCNjDh1XkpuI28vZaBvsoEseolgtWALGC1J2p44DoqBbws4OkNjkWafzC8WSX+Fzx4HOf+lk0U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790868350; c=relaxed/simple;
-	bh=irm07kEIUGQZOdzhH8gb8bR7eiCymrfDweaU6xPLNxE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=OLhH7sheJEP3fl3OIKNL8/Bg+qCd01hvsXdibKQYC7/3ByAShUN8sbRFcAWK8KkLQ+mgw7+gwvqWhUEw9vA5KedZk61Ogn+2/w25kkXaC4seiCUCAmPQQk3yFILM2fCgl054gSI2KiLlIhTnpMicJkKeiMGEZjuqwM4CFJhYRds=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dyHDOE4I; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790868363; c=relaxed/simple;
+	bh=mE850PlUbkRqU2+QtQbZfcJulExdVzFCprBguF1FovY=;
+	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=JAFwpZo2U84PP3z9/IZ9fQkabu66FQ8PsxqU5eBmdPSNvFtY7VLB7SD+UHzzoxyOV67dHGKJ4bDJyNaN/mdUGAuMjwvVqEvir2g85CaSbVr4A9GrsCh0RSrhLJFii2UPX5hb6VvYz1PO2l9oB9UhmTHkBPGr8kCrnOuXXHeO93g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ad2lsTWI; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dyHDOE4I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE8671F000FF;
-	Thu,  1 Oct 2026 15:25:47 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ad2lsTWI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AC281F000FF;
+	Thu,  1 Oct 2026 15:26:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790868348;
-	bh=z6knL9/Ihm/lfv/+/37jqT3/Z2pVr/gurUnfXwQuf5U=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=dyHDOE4IVsd3PWyuV8L9id5hH4j0gzhPnrXHC+3XsImxQA1v+FHwBpHJnUT9j122t
-	 1JiwKfHhSyefRhdjoVfh+U2HSN1FmgBXPPzsMAJYC0vabYiUYknVlLRAVYvIUB+QBW
-	 KppsUGDGUulAu2H5meuWUKgi0RhpJRJMOPC/jCvnLULqjuMDnxuvlzUaE+WZ0IMisZ
-	 Sd5iNHCSVjgamTQoIQJvpt+cmicjIBzWEkC4kaQb50WBOcXH9rhCiWncsv4t5zYJuj
-	 MyF1UBG6cdcBWpClYjy6yxya1NSDaToT8GKYmQF7tsdtpw5YITfO/tF+tlHAICT5G0
-	 k4v3j7LCgqZgA==
-Date: Thu, 1 Oct 2026 18:25:44 +0300
-From: Leon Romanovsky <leon@kernel.org>
-To: sashiko-reviews@lists.linux.dev, Bjorn Helgaas <bhelgaas@google.com>
-Cc: dri-devel@lists.freedesktop.org, media-ci@linuxtv.org,
-	linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org,
-	kvm@vger.kernel.org
-Subject: Re: [PATCH v9 05/18] PCI/P2PDMA: Document directional ACS routing
-Message-ID: <20261001152544.GO3401365@unreal>
-References: <20261001-fix-p2p-acs-v4-0-v9-0-1a8e0f50ddd9@nvidia.com>
- <20261001-fix-p2p-acs-v4-0-v9-5-1a8e0f50ddd9@nvidia.com>
- <20261001115932.75F881F000FF@smtp.kernel.org>
+	s=k20260515; t=1790868361;
+	bh=4WPGTgmCeScvSlB2C/WkVqK6AUTVDR0VNkdPQbgxSSM=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=ad2lsTWIkdRnkwIVXQ5CIavUc09w4Q1IzJp9l6QBgy0Oajf5tiOvzR2mrWAH5c6Zy
+	 WMfAoac0CQ1wo2xiuUoMtKzlyZX5atlY5U9+gJbTRkjkHS9fAd5M/S8EN8jfX6Tg33
+	 W7Qf1XBwJOBAgG1splWezpb18wyBlRSX1j/4fbeX5QjqGtXF/oj9bnH5jcE6ZqM8gk
+	 hqlhhtNetY4pciYQyD3+dK0YswmgO15Y6M4UETfDE2sKkBKeUHF+BDAmjKdCpVSYmp
+	 /BZnceFttnZvck6mgcXPKItrYyINoX9ehpaTc1MwkO2e83lXVBD7eCU2kCMnt8rCcP
+	 t9ozzqDJx+HEQ==
+Subject: Re: [PATCH net v2] net/rds: include the scope id in the sendmsg
+ connection cache check
+From: netdev-bot+sashiko@kernel.org
+To: achender@kernel.org
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
+ edumazet@google.com, kuba@kernel.org, horms@kernel.org
+Date: Thu, 01 Oct 2026 15:26:00 +0000
+Message-ID: <179086836088.434549.278915211038591601@kernel.org>
+In-Reply-To: <20260927062312.169097-1-achender@kernel.org>
+References: <20260927062312.169097-1-achender@kernel.org>
+X-sashiko-severity: High
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20261001115932.75F881F000FF@smtp.kernel.org>
 
-On Thu, Oct 01, 2026 at 11:59:32AM +0000, sashiko-bot@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found 1 potential issue(s) to consider:
-> - [Low] doc: repeated sentence in disable_acs_redir description
-> --
-> 
-> commit 83321a8abe2362759f10e2c9273854fa000319e6
-> Author: Leon Romanovsky <leon@kernel.org>
-> 
-> PCI/P2PDMA: Document directional ACS routing
-> 
-> P2PDMA documentation describes ACS controls as path-wide, although Request
-> and Completion controls apply to different transaction directions. This
-> commit documents the fixed client and provider roles, the divergence port
-> checked, and clarifies which controls disable_acs_redir changes.
-> 
-> > diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-> > index 68647ff4bdd24..bc83e07dd5fce 100644
-> > --- a/Documentation/admin-guide/kernel-parameters.txt
-> > +++ b/Documentation/admin-guide/kernel-parameters.txt
-> > @@ -5291,12 +5291,15 @@ Kernel parameters
-> >  		disable_acs_redir=<pci_dev>[; ...]
-> >  				Specify one or more PCI devices (in the format
-> >  				specified above) separated by semicolons.
-> > -				Each device specified will have the PCI ACS
-> > -				redirect capabilities forced off which will
-> > -				allow P2P traffic between devices through
-> > -				bridges without forcing it upstream. Note:
-> > -				this removes isolation between devices and
-> > -				may put more devices in an IOMMU group.
-> > +				Each device specified will have the PCI ACS P2P
-> > +				Request Redirect, Completion Redirect, and Egress
-> > +				Control features forced off. This may allow P2P
-> > +				traffic through bridges that would otherwise be
-> > +				redirected upstream. This may allow P2P traffic
-> > +				through bridges that would otherwise be redirected
-> 
-> [Severity: Low]
-> This isn't a bug, but there is a repeated sentence ("This may allow P2P 
-> traffic through bridges that would otherwise be redirected upstream.") in 
-> this block.
+Thank you for your contribution! Sashiko AI review found 2 potential
+issue(s) to consider.
 
-Right, copy/paste error.
+Critical: 0 · High: 1 · Medium: 1 (1) · Low: 0
 
-Bjorn, should I resend?
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-Thanks
+- [High] The `!scope_id ||` wildcard added to the rs_conn cache test in
+  rds_sendmsg() (net/rds/send.c:1344-1347) leaves the bug this patch…
+- [Medium] The new `c_dev_if == scope_id` comparison in rds_sendmsg()
+  (net/rds/send.c:1346) also applies to non-link-local destinations,…
 
-> 
-> > +				upstream and thus this removes isolation between
-> > +				devices and may cause affected devices to share
-> > +				an IOMMU group.
-> 
-> -- 
-> Sashiko AI review � https://sashiko.dev/#/patchset/20261001-fix-p2p-acs-v4-0-v9-0-1a8e0f50ddd9@nvidia.com?part=5
+Pre-existing issues:
+- [Medium] rds_sendmsg() reads rs->rs_conn several times in the cache
+  test (send.c:1344-1347: NULL check, c_faddr, c_tos, the new c_dev_if…
+
+--
+
+net/rds: include the scope id in the sendmsg connection cache check
+
+This commit adds a c_dev_if comparison to the rs->rs_conn cache-hit test
+in rds_sendmsg(). A send to a link-local address through a different
+interface then no longer reuses the cached connection. A request with a
+zero scope_id still matches the cached connection whatever its c_dev_if.
+
+> diff --git a/net/rds/send.c b/net/rds/send.c
+> index 1afa981e5c06d..393898a079c1d 100644
+> --- a/net/rds/send.c
+> +++ b/net/rds/send.c
+> @@ -1342,7 +1342,8 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
+>  	/* rds_conn_create has a spinlock that runs with IRQ off.
+>  	 * Caching the conn in the socket helps a lot. */
+>  	if (rs->rs_conn && ipv6_addr_equal(&rs->rs_conn->c_faddr, &daddr) &&
+> -	    rs->rs_tos == rs->rs_conn->c_tos) {
+> +	    rs->rs_tos == rs->rs_conn->c_tos &&
+> +	    (!scope_id || rs->rs_conn->c_dev_if == scope_id)) {
+
+[Severity: High]
+Can the !scope_id short-circuit still send a connected socket's traffic
+out the wrong interface?
+
+The commit message says:
+
+  Such a send never named an interface, so the connection
+  the socket last used is the one it means
+
+However, connect() did name one. rds_connect() stores the peer's scope in
+the bound scope field:
+
+net/rds/af_rds.c:rds_connect() {
+    ...
+			rs->rs_bound_scope_id = sin6->sin6_scope_id;
+    ...
+}
+
+rs_bound_scope_id is a macro for rs_bound_sin6.sin6_scope_id. So a later
+bind() to a global address overwrites it with 0 in rds_add_bound():
+
+net/rds/bind.c:rds_add_bound() {
+    ...
+			rs->rs_bound_scope_id = scope_id;
+    ...
+}
+
+Consider this sequence on an unbound socket:
+
+  connect(fe80::x%ifB)     rs_bound_scope_id = ifB
+  bind(global L)           allowed because the new scope_id is 0,
+                           rs_bound_scope_id = 0
+  sendto(fe80::x%ifA)      allowed because rs_bound_scope_id is 0,
+                           rs_conn = conn(L, fe80::x, dev_if ifA)
+  send() with no address   daddr = rs_conn_addr = fe80::x,
+                           scope_id = rs_bound_scope_id = 0
+
+The last send() passes the new test through !scope_id and reuses the ifA
+connection. rds_tcp_conn_path_connect() and the IB CM code in ib_cm.c
+use c_dev_if as the peer's sin6_scope_id.
+
+Wouldn't the datagram the application addressed to fe80::x%ifB via
+connect() then go out on ifA, to whichever host answers to fe80::x on
+that link? That looks like the misdelivery the commit message describes.
+
+One option is to store the connected peer's scope separately from the
+bound scope and use it on the no-destination path. Would that close this
+case? It would also avoid the dev_if 0 lookup, so the !scope_id wildcard
+would no longer be needed.
+
+[Severity: Medium]
+Does the c_dev_if comparison also change behavior for global
+destinations, where the user never supplied scope_id?
+
+For a non-link-local daddr, scope_id is inherited from rs_bound_scope_id
+earlier in rds_sendmsg():
+
+		if (scope_id != rs->rs_bound_scope_id) {
+			if (!scope_id) {
+				scope_id = rs->rs_bound_scope_id;
+
+Consider this sequence:
+
+  bind(global L)           rs_bound_scope_id = 0
+  sendto(global G)         rs_conn = conn(L, G, dev_if 0)
+  connect(fe80::x%ifB)     allowed because the bound scope is 0,
+                           rs_bound_scope_id = ifB
+  sendto(global G)         scope_id 0 is replaced with ifB
+
+Before this patch, the last sendto() hit the cached conn(L, G, 0). With
+the patch it misses, and rds_conn_create_outgoing(..., ifB) creates a
+second conn(L, G, dev_if ifB), because rds_conn_lookup() requires an
+exact c_dev_if match.
+
+dev_if has no meaning for a global address, so the result is a second
+transport connection to the same peer.
+
+Could messages already queued on the dev_if 0 connection be reordered
+with later ones on the new connection?
+
+On the peer's passive side, rds_tcp_accept_one() uses sk_bound_dev_if,
+which is normally 0. Both incoming TCP connections would therefore map to
+the same conn there.
+
+The commit message says "A request without a scope keeps matching the
+cached connection" but does not mention this case. Would limiting the
+c_dev_if comparison to a link-local daddr avoid it?
+
+>  		conn = rs->rs_conn;
+
+[Severity: Medium]
+This isn't a bug introduced by this patch, but rs->rs_conn is loaded
+several times in this test: the NULL check, c_faddr, c_tos, now c_dev_if,
+and then conn = rs->rs_conn. No socket lock is held here and there is no
+READ_ONCE() snapshot, because lock_sock() was released earlier.
+
+A concurrent rds_sendmsg() on the same socket can store a new pointer in
+the else branch, also without a lock:
+
+		rs->rs_conn = conn;
+
+If the compiler reloads rs->rs_conn between the checks and the
+assignment, could the message be queued on a connection that was never
+checked against daddr, tos or scope?
+
+This seems unlikely with current compilers. Taking a single READ_ONCE()
+snapshot into a local, with WRITE_ONCE() on the store, would avoid it.
+The patch adds one more load to this sequence.
+
+>  	} else {
+>  		conn = rds_conn_create_outgoing(sock_net(sock->sk),
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260927062312.169097-1-achender%40kernel.org
