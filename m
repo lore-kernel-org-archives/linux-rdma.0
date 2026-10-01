@@ -1,42 +1,42 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A59934752E;
-	Thu,  1 Oct 2026 06:16:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AA5B43498B;
+	Thu,  1 Oct 2026 06:16:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790835369; cv=none; b=Q7WyPUDIsUXUHpvs+MCwZGqc7GOeaKWysA8QZIyA94UFtrMU54lgDC0TQpA+f9bNYgJydK/dssTtBW5cMHkGXRfwhRQjv8U8cnYsEpzNF1tqiSOqvEi1mUrEo2TF5mTGNsXsQBsUD51d0AjBlzxZdEc7mTYO8oT7fCT7zLhPeC8=
+	t=1790835370; cv=none; b=TSCQ12ZEUBeCyzb4aVlZvQcKl86MEGNQZL2YvWBoR5K6Co06ahtr0LPRdQu/KaGBiEDF0GKgvbCvHyv55aWKyqZ5mH/dv3n+5rpDF02TJwi8cLXeqjFoZs+BHk088UmCqKRUhhqKVFvAnb8Xe5TOk0scp69g/us2FLrg8ovGdyk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790835369; c=relaxed/simple;
-	bh=u65kaEztNW7qf+Yx7osoUH0fSCqTv87bnZW/gl65oiw=;
+	s=arc-20240116; t=1790835370; c=relaxed/simple;
+	bh=d11/yzb5+nWIAhAZGhtsyLLLK/pT5H9DN1cGybQvbqY=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=YfeFABOePcAWx6ZCKoZCU91v/tBuxIlSv2Nb9uHVm8YoZubkivB0Z9zSW512o8WsWyYVNFJUTxdQoEN36CQyr9BsvdSCL0Mi4F20q+u03WSdQsH032fY6LVGzmFcyB4TCP8SgiyxlWd6sJ8G1AlnhwBPeZWsPQPB+qxgRu/7V4I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ecoktKzv; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=fXvblKIjtf24PZmuLNb4OhwTgIUPAqQ1d7vja1WoPVOJ2gFuNBAUyuMSz0Rm75VygYxWWSxl4zd8vTovYhdHarLX6KmM5wsaERKwLr/Nq2zE2NzM/pBtDFzw0OF8jCDG8L1NXhSuRAC2qXAnWro0KlUCuxaiOAdx1AFPpZaJ6Tg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=D0+R7Zry; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ecoktKzv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3B111F000FF;
-	Thu,  1 Oct 2026 06:16:07 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="D0+R7Zry"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C5D71F00898;
+	Thu,  1 Oct 2026 06:16:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790835368;
-	bh=ug/Hf8nuv1NDSPNn3qMuPgw1C2cXCMo8z5w7KK59mhc=;
+	s=k20260515; t=1790835369;
+	bh=sjLF9c9PN6TiPRkZSXkpbopzdtUTiQygApbBXdYkLAA=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=ecoktKzvnMQJpGEPsv/noG4FWirG3v7qa6TtVD16Ak/Xm0nkfywOfakAQ5shzZwuC
-	 4wvpSIm9eoOt94hVmcms1lSCJ2SwW6Ln5muVMkoPwmvvgvqvlXbkSfAZnrU208XkJ/
-	 AlPvpUqaPCd/Zh+T/JjC+kQ0w1ELUybtVdJKhzwpi4NRAKbiU9qHgEIYT29TdasyJ4
-	 pt0O6Usi0oOHPAh4Gb9OhSPQev4ywbcD3Ee0oN6uZWhCs9i+orDpO0IgoLFRZ9JRGz
-	 3+ULpqY2ic4YBcF8b/6FVL34NYLrhKSt+bh9+zS+a4mIgDzf0JI0C8N6vzt9ThRxeO
-	 3a0HafuTDfKjA==
-Subject: Re: [PATCH net-next v7 03/12] net/rds: guard every work-requeueing
- site with rds_destroy_pending()
+	b=D0+R7ZrypeIIQ23OQWOrI8UGwmDLW19yJ4yknLhLO7ljhwe47alSsCn4WxV4kWy5v
+	 TEdaBqbfNLJwMIuHGuoLckAsFFZLPxr38OaioPL0qRJX5MRYvy8g75VELUZ+hkSMfP
+	 msm2QN3Pxw53mKGaEQE8rRsynoQDW0ZyE2fLZFP8LysllLav0qjjFNfwA51fxFsBrv
+	 dwGBdYGDcVpPzk8TXyRXT4zR/hveENM8DiKeu0pnrpbxXcSpEbn+NQSscyk8SeGO0g
+	 GKSjbkEwZwnZAZFzG9eagv6NiNVLQUIfRWpXCZ0BiA1E4K1ynYPv1TcJiznCaB5Ry5
+	 uIOKoe0HJ35bA==
+Subject: Re: [PATCH net-next v7 04/12] net/rds: make rds_destroy_pending()
+ report a connection's own destroy
 From: netdev-bot+sashiko@kernel.org
 To: achender@kernel.org
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
  edumazet@google.com, kuba@kernel.org, horms@kernel.org
-Date: Thu, 01 Oct 2026 06:16:07 +0000
-Message-ID: <179083536716.434549.1711044668946975049@kernel.org>
-In-Reply-To: <20260927061448.167862-4-achender@kernel.org>
-References: <20260927061448.167862-4-achender@kernel.org>
-X-sashiko-severity: Low
+Date: Thu, 01 Oct 2026 06:16:08 +0000
+Message-ID: <179083536822.434549.15537094652989538353@kernel.org>
+In-Reply-To: <20260927061448.167862-5-achender@kernel.org>
+References: <20260927061448.167862-5-achender@kernel.org>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -46,112 +46,165 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+Thank you for your contribution! Sashiko AI review found 2 potential
+issue(s) to consider.
 
-Low priority / nit picks for your consideration:
+Critical: 0 · High: 0 · Medium: 1 · Low: 1
 
-- [Low] The commit message says this patch fixes a live race, and it
-  carries a Fixes: tag, but none of the five newly guarded sites can…
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [Medium] The commit message's only concrete justification for the
+  `Fixes: c809195f5523` tag cannot happen.
+- [Low] The new comment on struct rds_connection::c_destroy_in_prog
+  (net/rds/rds.h) says the destroy == true rds_conn_path_drop() is…
 
 --
 
-net/rds: guard every work-requeueing site with rds_destroy_pending()
+net/rds: make rds_destroy_pending() report a connection's own destroy
 
-This patch wraps five work-arming sites in the rcu_read_lock() plus
-rds_destroy_pending() pattern that the other arming sites already use.
-The sites are the IB send completion and credit paths, rds_ib_recv_refill(),
-rds_tcp_accept_one() and rds_sendmsg(). The goal is to stop new work
-being queued on a path workqueue once rds_conn_destroy() has started
-cancelling it.
+This patch adds a c_destroy_in_prog flag to struct rds_connection.
+rds_conn_destroy() sets it before the unhash and synchronize_rcu()
+sequence, and rds_destroy_pending() now tests it first. The patch also
+removes the unused RDS_DESTROY_PENDING cp_flags bit and its dead test in
+rds_ib_is_unloading().
 
-> The IB completion sites are reachable from soft-irq at any point
-> before the QP is drained, so a completion landing in the window
-> between the cancel and destroy_workqueue() in rds_conn_path_destroy()
-> re-arms a work on a workqueue that is about to be destroyed: with
-> delay 0 the work is queued directly on the freed workqueue, and with
-> delay 1 the timer survives destroy_workqueue() unseen and fires
-> afterwards, queueing from a timer_list that lives in the freed c_path
-> array.
+> One caller escapes both terms.  When the core rds module unloads,
+> rds_conn_exit() runs rds_loop_net_exit() first, and unregistering the
+> pernet operations invokes rds_loop_exit_net() -> rds_loop_kill_conns()
+> -> rds_conn_destroy() for the loopback connections of every network
+> namespace that is still alive: check_net() is true for all of them,
+> and the loop transport's unloading flag is only set afterwards, by
+> rds_loop_exit().  For the duration of those destroys the predicate is
+> false, so a concurrent rds_cong_queue_updates() can still find the
+> connection on the congestion map's m_conn_list (the conn is only
+> removed from it after the paths are torn down) and call
+> queue_delayed_work() on a cp_wq that destroy_workqueue() has already
+> freed, and the other requeueing sites can likewise re-arm works that
+> live in the about-to-be-freed connection.
 
 [ ... ]
 
-> With the predicate as it stands the guards cover the netns teardown and
-> module unload cases; the following patch extends it to the destroy of a
-> single connection.
->
-> Fixes: ebeeb1ad9b8a ("rds: tcp: use rds_destroy_pending() to synchronize netns/module teardown and rds connection/workq management")
+> Fixes: c809195f5523 ("rds: clean up loopback rds_connections on netns deletion")
 
-[Severity: Low]
-At this commit, can any of the five newly guarded sites actually fire
-while rds_conn_destroy() is running?
+[Severity: Medium]
+Can this race with rds_cong_queue_updates() actually happen during
+rds_exit()?
 
-Here rds_destroy_pending() is still only:
+rds_cong_queue_updates() has only two callers, rds_recv_rcvbuf_delta() and
+rds_cong_remove_socket(). Both of them run on behalf of a live rds_sock:
 
-net/rds/rds.h:rds_destroy_pending() {
-	return !check_net(rds_conn_net(conn)) ||
-	       (conn->c_trans->t_unloading && conn->c_trans->t_unloading(conn));
+  rds_recv_incoming() (after rds_find_bound()), rds_still_queued(),
+  rds_clear_recv_queue() -> rds_recv_rcvbuf_delta()
+
+  rds_release(), rds_cong_monitor() -> rds_cong_remove_socket()
+
+Every rds_sock pins the rds module. rds_proto has:
+
+net/rds/af_rds.c:rds_proto {
+	.owner	  = THIS_MODULE,
 }
 
-The teardown paths that reach rds_conn_destroy() seem to keep these
-sites out of the window between the cancel and destroy_workqueue() in
+and the socket allocation does:
+
+net/core/sock.c:sk_prot_alloc() {
+    ...
+	if (!try_module_get(prot->owner))
+    ...
+}
+
+That reference is only dropped in sk_prot_free(). Also, rds_tcp and
+rds_rdma import rds symbols, so they have to be unloaded before rds.
+
+So when rds_exit() -> rds_conn_exit() runs, no RDS sockets should be
+left, and only loopback connections remain.
+
+The paragraph also says "the other requeueing sites can likewise re-arm
+works", but doesn't name any. There may be a narrower path, for example a
+cp_conn_w still in flight from a sendmsg just before the last close:
+
+  rds_connect_worker()
+    rds_loop_conn_path_connect()
+      rds_connect_path_complete()
+
+This re-queues cp_send_w and cp_recv_w after rds_conn_path_destroy() has
+already cancelled them.
+
+Could the commit message cite a trigger that can actually happen, such as
+this one, as the reason for the Fixes tag? Or could it describe the patch
+as hardening and a prerequisite for the following patches? Stable
+backporters will rely on the reason given here.
+
+> diff --git a/net/rds/rds.h b/net/rds/rds.h
+> index 2db49573dacd5..d595fb78c61f4 100644
+> --- a/net/rds/rds.h
+> +++ b/net/rds/rds.h
+
+[ ... ]
+
+> @@ -148,6 +147,18 @@ struct rds_connection {
+>  				c_pad_to_32:29;
+>  	int			c_npaths;
+>  	bool			c_with_sport_idx;
+> +	/* Set once, by rds_conn_destroy(), before it cancels the path
+> +	 * works; read through rds_destroy_pending().  A site that arms
+> +	 * a path work must test the predicate and queue the work inside
+> +	 * one rcu_read_lock() section: the synchronize_rcu() that
+> +	 * follows the store is what keeps a queue issued after the
+> +	 * cancellation from landing on a destroyed workqueue.  Two kinds
+> +	 * of site are exempt: the workers' own self-requeues, which the
+> +	 * sync cancel in the destroy path rejects, and the destroy == true
+> +	 * rds_conn_path_drop(), which the destroy itself (and IB device
+> +	 * removal) issues and then flushes.
+> +	 */
+> +	bool			c_destroy_in_prog;
+
+[Severity: Low]
+Is the IB device removal part of this comment accurate?
+
+rds_ib_remove_one() calls rds_ib_dev_shutdown(), which does this for each
+connection on rds_ibdev->conn_list:
+
+net/rds/ib.c:rds_ib_dev_shutdown() {
+    ...
+	rds_conn_path_drop(&ic->conn->c_path[0], true);
+    ...
+}
+
+With destroy == true, rds_conn_path_drop() skips the predicate and always
+queues:
+
+net/rds/connection.c:rds_conn_path_drop() {
+    ...
+	if (!destroy && rds_destroy_pending(cp->cp_conn)) {
+	...
+	}
+	queue_work(cp->cp_wq, &cp->cp_down_w);
+}
+
+Neither rds_ib_dev_shutdown() nor rds_ib_remove_one() flushes cp_down_w
+afterwards. The only flush_work(&cp->cp_down_w) is in
 rds_conn_path_destroy().
 
-For IB, rds_conn_destroy() is only called from
-rds_ib_exit()->rds_ib_destroy_nodev_conns(), and that function only takes
-connections from ib_nodev_conns:
+Two other places have the same gap:
 
-- rds_ib_setup_qp() takes the connection off that list with
-  rds_ib_add_conn() before it calls rdma_create_qp().
-- rds_ib_conn_path_shutdown() puts it back with rds_ib_remove_conn()
-  only after disable_work_sync() on i_send_work/i_recv_work and after
-  rdma_destroy_qp().
+- The new comment above the WRITE_ONCE() in rds_conn_destroy() says the
+  requeueing sites "all test rds_destroy_pending() under rcu_read_lock()".
+- The commit message says the destroy itself "and IB device removal,
+  issue and then flush".
 
-So wouldn't every IB connection that reaches rds_conn_destroy() have no
-QP or CQ? That would leave rds_ib_send_cqe_handler(),
-rds_ib_send_add_credits() and rds_ib_recv_refill() with nothing to
-deliver.
+The code looks safe today, but that comes from ordering. IB connections
+are only destroyed by rds_ib_destroy_nodev_conns() from rds_ib_exit().
+That runs after rds_ib_unregister_client() has finished every remove_one
+callback. Any cp_down_w queued earlier is then flushed by
+rds_conn_path_destroy().
 
-For the TCP accept path, rds_tcp_kill_sock() clears
-rtn->rds_tcp_listen_sock and flushes rds_tcp_accept_w in
-rds_tcp_listen_stop() before it destroys any connection. After that,
-rds_tcp_accept_one() returns early:
-
-	if (!listen_sock) /* module unload or netns delete in progress */
-		return -ENETUNREACH;
-
-rds_tcp_exit() also calls unregister_pernet_device() before
-rds_tcp_destroy_conns().
-
-For rds_sendmsg(), the sending socket holds a reference on its netns.
-rs_transport is also pinned with try_module_get() in
-rds_trans_get_preferred(). So the new guard there looks like it always
-evaluates to false.
-
-The guards seem to take effect only with the follow-up patch, "net/rds:
-make rds_destroy_pending() report a connection's own destroy", which adds
-the c_destroy_in_prog term. That patch also says the last stragglers
-"were converted by the previous patch".
-
-There is one narrow interleaving where the IB guards could matter at
-this commit. A CM handler could fetch rds_ibdev through
-rds_ib_get_client_data() before rds_ib_remove_one() clears it. It could
-then call rds_ib_add_conn() after the sweep's list_splice() and bring up
-a QP while rds_conn_destroy() is running. That path already corrupts the
-sweep's on-stack list, and the commit message does not describe it.
-
-Would it be more accurate to describe this as preparation for the next
-patch? The Fixes: tag could then be adjusted or dropped, or this patch
-could be folded into the one that extends the predicate.
-
-The Fixes: tag also doesn't seem to match the rds_sendmsg() hunk. The
-cp_conn_w queue site there came from 9d27a0fb122f, not from
-ebeeb1ad9b8a. The IB queue lines were rewritten to use cp_wq by
-d327e2e74aedbe.
-
-A stable backport chosen from this tag would do nothing on its own. The
-rds_sendmsg() hunk would also lack context in older trees.
+Could the comments and commit message describe that ordering instead?
+Later patches in the series build on this reasoning, and the rds.h comment
+is unchanged at the end of the series.
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260927061448.167862-1-achender%40kernel.org
