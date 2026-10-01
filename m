@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31EB3495500;
-	Thu,  1 Oct 2026 11:56:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 865B14B7A46;
+	Thu,  1 Oct 2026 11:56:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790855815; cv=none; b=nBW92DtM12sBogGbdytFsP5woZqr6+ieZsM7eiZHWPnJG2BvTgervyr4tMUq9ZRT1TNzjx7N8u6dKcWQZAwlKmCu14yqy6muV4rj6G+js7Y9eWZZ3aAWJvOUEE9RpZn/gqrpkxYfyO3hH1rgZvI1qiHl6sCsKI15gLSq+kPiFJU=
+	t=1790855815; cv=none; b=PaZnqpmDo/vVeIctFi3d/hoMfbbEd6vruMNPG5dWH7BDXhkSgAZKn9NELX4pKERb70kI3EPjxFrPYLUrLQtm2KVmikXfGHOrRCtcNjpipdrYVxpSweGjznIjf1/fgkcBZ6k5e2jRngiv+HSpccUDNNXukxC48Q5mFM5uyd+TnM4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1790855815; c=relaxed/simple;
-	bh=g/HLion4Et0LDTGEn/s7bgCzcifzMfiHHE2ZKgXNA4g=;
+	bh=mXkfwVMSTG/O8xES3e+cilNTPUL6vj5Tm7w9qm/T15c=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=nGeCYy9Q2Kc8kb3dmPNphQvE9Uisfz0AiNxdNOlGLG0vjtaeUpB3BBO/MslqX4thQ25McyG0I82fFjQDl8/NHHTa6af5Ua5YSvCMIMLhd5EdoooYJPC0LK3oBfRm45WTVPIy2fYu4SfrCwjKk+A3Vh0dgT3tU8kYVZNbBTdnYGQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eVmWCsSX; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=B/dLpVUmtMSneE7UITrwH5EyS8PvIPwYLO0dh8Ww6a0VmvafE0bsa4P3ZxQsUbu3htM9JDj7ymRB7HTn+LhXZT8vbac7KLjJIQfIhyjT73E34PqagSiXSoOetFJdsd8mHfOEG7+bBm7XomhNxoeH+DJsW0kLT9/5iRM9F2Jaorc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YFsK0+VK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eVmWCsSX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF3181F00899;
-	Thu,  1 Oct 2026 11:56:43 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YFsK0+VK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4A961F0089A;
+	Thu,  1 Oct 2026 11:56:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790855804;
-	bh=dcB/dt2RODrGk4who1xLRn1uh+WqwCM0tgXVdzDauyU=;
+	s=k20260515; t=1790855808;
+	bh=1ffECzzDMF9N/V+IW068tuIKbzvCCrI+xf0c3ifH81I=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=eVmWCsSXKkrYuXOgwT41M2RF2V/ciI5hx+I+duM/JcY+GKCZZfEPbGmyPwQo6SdzD
-	 GqFBKhgIXf17OX5I8qa2/ZNJvXKuT5siYonYH9KmCtcUtj61NX8COAa+4XY9ORqyeC
-	 KArYdx0vGlyZKJ0ElHZpgbj8X3iV5r9RKBDYiF23+9JmatMvKAmtnKPMzS5XmdMsJH
-	 WARWYZGL0B1VlCwXZ5NgvA6i/o+v3zZyzFMO5B476KsI6+2i5pWgnf918CILVtM59A
-	 nq6lQtQQbE3FygOrLXoHL2PcGTyM319ElP8Ghk6/iYUQMLZ8WwN2p0WA6H0tKM15J8
-	 l8Oe/BJ/OrClw==
+	b=YFsK0+VKEXganTCL4uFtKxjL0tKHK9HQELCBPFQW+B64RunZ5cwIcdl5VSbLjyyk9
+	 hp7q/QePiL603BPldDm1amKxlv0cnggedDe4/APPdWo1clWkf4+KkjqU4UH4zqie9v
+	 +0Njoz3shhOG6aN3TofI90r0T827NXVZM6m1MbX5nV9TshyQp8t7qUJRjR5LifiM8a
+	 I1aZSzw+Xk6nn3sR7gVgYFgtuop4hUYkuwJ1kxb6PN1DDiyu7mjD8FiS7IxapSQn0e
+	 JMYDzd7ZCBO5wwZdcLxDLK687Uu6Ifrc4wgdFotJA1T3R3EH64D8Ky/Pu1FcE+9cZB
+	 li2w1ubTvh3bg==
 From: Leon Romanovsky <leon@kernel.org>
 To: Bjorn Helgaas <bhelgaas@google.com>,
 	Logan Gunthorpe <logang@deltatee.com>,
@@ -55,9 +55,9 @@ Cc: linux-pci@vger.kernel.org,
 	Shuah Khan <skhan@linuxfoundation.org>,
 	Randy Dunlap <rdunlap@infradead.org>,
 	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: [PATCH v9 15/18] PCI/P2PDMA: Document TLP-class routing
-Date: Thu,  1 Oct 2026 14:55:23 +0300
-Message-ID: <20261001-fix-p2p-acs-v4-0-v9-15-1a8e0f50ddd9@nvidia.com>
+Subject: [PATCH v9 16/18] PCI/P2PDMA: Let a client declare that it selects ATS per mapping
+Date: Thu,  1 Oct 2026 14:55:24 +0300
+Message-ID: <20261001-fix-p2p-acs-v4-0-v9-16-1a8e0f50ddd9@nvidia.com>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20261001-fix-p2p-acs-v4-0-v9-0-1a8e0f50ddd9@nvidia.com>
 References: <20261001-fix-p2p-acs-v4-0-v9-0-1a8e0f50ddd9@nvidia.com>
@@ -73,95 +73,90 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-The P2PDMA documentation stated that the mapping result is not defined for
-Relaxed Ordering or ATS-translated Requests. It now is.
+The PCIe ATS Enable bit covers the whole device, so P2PDMA cannot tell
+from it whether a client will translate a given address. Most devices
+translate any address once ATS is enabled, but some choose ATS per DMA
+mapping and can still use bus addresses for the rest.
 
-Replace that paragraph with what the three TLP-sensitive ACS controls do
-and the table of outcomes per class. Record that an answer relying on
-Relaxed Ordering Completions holds only for a provider that returns them,
-which the PCIe specification leaves optional.
+Add pcim_p2pdma_set_ats_per_mapping() so the driver of such a device can
+declare that before P2PDMA starts treating clients with ATS enabled as
+translating everything. Keep it in the device's P2PDMA state, which
+already ends with the driver binding.
 
-Tested-by: Tushar Dave <tdave@nvidia.com>
+Reviewed-by: Thomas Hellström <thomas.hellstrom@linux.intel.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- Documentation/driver-api/pci/p2pdma.rst | 64 +++++++++++++++++++++++++++++----
- 1 file changed, 58 insertions(+), 6 deletions(-)
+ drivers/pci/p2pdma.c       | 27 +++++++++++++++++++++++++++
+ include/linux/pci-p2pdma.h |  4 ++++
+ 2 files changed, 31 insertions(+)
 
-diff --git a/Documentation/driver-api/pci/p2pdma.rst b/Documentation/driver-api/pci/p2pdma.rst
-index 42b18610bf7d..39a47b1e308e 100644
---- a/Documentation/driver-api/pci/p2pdma.rst
-+++ b/Documentation/driver-api/pci/p2pdma.rst
-@@ -28,12 +28,64 @@ through the host bridge when either applicable port redirects. If an ACS
- Control register cannot be read, P2P DMA is rejected because the kernel cannot
- establish a usable route.
+diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
+index c1e9d43bded2..126e28d2a5dd 100644
+--- a/drivers/pci/p2pdma.c
++++ b/drivers/pci/p2pdma.c
+@@ -26,6 +26,7 @@
+ struct pci_p2pdma {
+ 	struct gen_pool *pool;
+ 	bool p2pmem_published;
++	bool ats_per_mapping;
+ 	struct xarray map_types;
+ 	struct p2pdma_provider mem[PCI_STD_NUM_BARS];
+ };
+@@ -1568,6 +1569,32 @@ void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
+ }
+ EXPORT_SYMBOL_GPL(pci_p2pmem_publish);
  
--This evaluation assumes clients issue strictly ordered Requests carrying an
--Untranslated address. Its result is not defined when clients use Relaxed
--Ordering or issue ATS-translated Requests because those TLP attributes can
--select different routes through the fabric. Unless ACS Translation Blocking
--is enabled, a Port with ACS Direct Translated P2P enabled routes a
--Translated Request directly to the peer regardless of the redirect controls.
-+Three of those controls act on TLP attributes that the client chooses rather
-+than on the topology, so the same path routes differently for different
-+traffic. ACS Translation Blocking rejects any Request whose Address Type is
-+not Untranslated, and takes precedence over every other P2P control. ACS
-+Direct Translated P2P routes a Translated Request to the peer regardless of
-+Request Redirect and Egress Control. ACS Completion Redirect leaves alone
-+Completions that carry the Relaxed Ordering attribute.
++/**
++ * pcim_p2pdma_set_ats_per_mapping - Declare per-mapping ATS for a client
++ * @pdev: PCI device that initiates peer-to-peer DMA
++ *
++ * Declare that @pdev issues Translated Requests only for the DMA mappings its
++ * driver sets up to use ATS, rather than for any address once ATS is enabled.
++ * P2PDMA then routes this client's Requests with the Address Type each query
++ * asks about, rather than the one its ATS Enable bit implies.
++ */
++void pcim_p2pdma_set_ats_per_mapping(struct pci_dev *pdev)
++{
++	struct pci_p2pdma *p2p;
 +
-+P2PDMA therefore decides each class of traffic separately, and
-+``pci_p2pdma_map_type()`` answers for the one a DMA mapping is built for:
-+strictly ordered Requests carrying an Untranslated address.
++	p2p = rcu_dereference_protected(pdev->p2pdma, 1);
++	if (!p2p)
++		/*
++		 * ats_per_mapping is a performance optimization,
++		 * if pcim_p2pdma_init() didn't set pdev->p2pdma pointer
++		 * for some reason, let's simply use ATS global settings.
++		 */
++		return;
 +
-+The two directions are decided independently. Translation Blocking (TB),
-+Direct Translated P2P (DT), Request Redirect (RR) and Egress Control (EC) on
-+the client-side port decide the Request:
++	p2p->ats_per_mapping = true;
++}
++EXPORT_SYMBOL_GPL(pcim_p2pdma_set_ats_per_mapping);
 +
-+=====  =====  =======  ============  ==========
-+TB     DT     RR/EC    TLP class     Request
-+=====  =====  =======  ============  ==========
-+set    x      x        translated    blocked
-+clear  set    x        translated    direct
-+clear  clear  clear    translated    direct
-+clear  clear  set      translated    redirected
-+x      x      clear    untranslated  direct
-+x      x      set      untranslated  redirected
-+=====  =====  =======  ============  ==========
-+
-+Completion Redirect (CR) on the provider-side port decides the Completions:
-+
-+=====  =========  ==========
-+CR     TLP class  Completion
-+=====  =========  ==========
-+x      relaxed    direct
-+clear  strict     direct
-+set    strict     redirected
-+=====  =========  ==========
-+
-+Combining the two tables gives the mapping type. A class is bus addressable
-+when its Request and its Completions both route directly, and anything else
-+goes through the host bridge. A blocked Request has neither route, because
-+Translation Blocking rejects the Address Type itself rather than the
-+destination. With no ACS control set anywhere, every class routes directly.
-+
-+Note that DT only matters where RR or EC would otherwise redirect: it
-+overrides them for a Translated address rather than granting a direct route
-+that was not already there.
-+
-+Translation Blocking is not a routing control, so it is evaluated on every
-+port the Request passes rather than at the divergence alone. A direct route
-+turns around at the divergence and only passes the ports below it, while the
-+host bridge route keeps climbing and passes that port and everything above it
-+as well. Neither route falls back to the other, because the Address Type is
-+rejected wherever the Request is addressed.
-+
-+The Completer chooses whether a Completion carries Relaxed Ordering, and the
-+PCIe specification does not require it to copy that attribute from the
-+Request, so an answer that relies on Relaxed Ordering Completions holds only
-+for a provider that does.
- 
- However, if the P2P transaction reaches the host bridge then it might have to
- hairpin back out the same root port, be routed inside the CPU SOC to another
+ /**
+  * pci_p2pdma_map_type_tlp - Determine the mapping type for P2PDMA transfers
+  * @provider: P2PDMA provider structure
+diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
+index dd17501ba1b6..ce389e18d023 100644
+--- a/include/linux/pci-p2pdma.h
++++ b/include/linux/pci-p2pdma.h
+@@ -82,6 +82,7 @@ struct scatterlist *pci_p2pmem_alloc_sgl(struct pci_dev *pdev,
+ 					 unsigned int *nents, u32 length);
+ void pci_p2pmem_free_sgl(struct pci_dev *pdev, struct scatterlist *sgl);
+ void pci_p2pmem_publish(struct pci_dev *pdev, bool publish);
++void pcim_p2pdma_set_ats_per_mapping(struct pci_dev *pdev);
+ int pci_p2pdma_enable_store(const char *page, struct pci_dev **p2p_dev,
+ 			    bool *use_p2pdma);
+ ssize_t pci_p2pdma_enable_show(char *page, struct pci_dev *p2p_dev,
+@@ -138,6 +139,9 @@ static inline void pci_p2pmem_free_sgl(struct pci_dev *pdev,
+ static inline void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
+ {
+ }
++static inline void pcim_p2pdma_set_ats_per_mapping(struct pci_dev *pdev)
++{
++}
+ static inline int pci_p2pdma_enable_store(const char *page,
+ 		struct pci_dev **p2p_dev, bool *use_p2pdma)
+ {
 
 -- 
 2.55.0
