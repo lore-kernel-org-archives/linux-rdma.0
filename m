@@ -1,141 +1,124 @@
-Received: from mail-pz2-f41.google.com (mail-pz2-f41.google.com [74.125.228.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CF4D52379B
-	for <linux-rdma@vger.kernel.org>; Thu,  1 Oct 2026 15:23:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8948B52759B;
+	Thu,  1 Oct 2026 15:24:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790868232; cv=none; b=N4bD0IGdkbfuIWF123eInmC8daf+O+Q5F08M+5wtAxdexQXW3VfAvshr14JHFTdpvnzvzvp3HI8AM0BR1vx7TXBjwB5Dd3BVHl8EY/aOqej+WPLNzL3sXHxYLxPclTEtiOBmHhRmGHhVYR1aM710s/DwpH5HSjGKVWtI3NwTcJY=
+	t=1790868242; cv=none; b=tARM+F6vL7LwbNEocBwf01HiAPo466+mDDzx6FYNXRXoP5Mkfl3V+cfGpTgdzMIL0vw+sq4aBdxSkwKafa3LikspZy7iXyNE9yS8UdHijgXWGL7xFTMK+7iNNiXw/5aqSdCGmv3b7WchzlIn8mdMnxcydJPQvoJ+F+NbsEkiKEU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790868232; c=relaxed/simple;
-	bh=xMEwJAJAlv9TTtHLrEel4f5+pmj6Bcx7ffyn43wf64o=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=DBKxDvbFGNglF345tXKzT1VTwlwC7bYPLRSYXFf3xwBW7/NhaZdLF1IvkH6Ff84D8bfjy31Ak2sWOLLKnt4xaeZjw+qUdVpJc66k2Qv8SVdGBxZKizj1r0d4nHSxMNuFqWwofNBS6JxEAC0pqNVQgKmxxAo1Bz5K+uDAxdd6pq0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KahSNWov; arc=none smtp.client-ip=74.125.228.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1790868242; c=relaxed/simple;
+	bh=qisIMv3sJpvvfRJBF+yt/t9IH4umJpP8BzRegAeHITk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=lTS4ZO8oBsguMyxK+SLs54H8xxKQLrXbzM7QYRgSPWoPI99pox/M79Mb802iRuOgOjub+jpldTimxJOtR00lJEOV3cYk2lfngh9vONibw8Ux0/uM560qTnluthHOXreXe5oLxPZpNY2dm3eZfAM3EPnjWK628NVkttGnD8nKX18=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WKHEr+Q/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KahSNWov"
-Received: by mail-pz2-f41.google.com with SMTP id d2e1a72fcca58-8693af0d7c4so3789707b3a.3
-        for <linux-rdma@vger.kernel.org>; Thu, 01 Oct 2026 08:23:50 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790868229; x=1791473029; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=P4hKaeG34BRtgkE3jX44GSeOVayCHlDWIPkw8ynbEqo=;
-        b=KahSNWovj9d8vhOc3/kk/JjsZpUz6Woy7kq3QI5gKgKujq8mzC/5rc80kAd3QfR0+N
-         ppCRWWyZeQd9f8ZIOwsOLmYPs4jnc90M4UxewJAmjvIA4BMiP4AKshu0yfASXVBfxMx3
-         iUHGynZIKtZGOaDsMQjND3b9Ro2pcHnC6LTIGQB/EfUhGQREw+0ycL//synezb9oqZO4
-         vgMTWVpW55ZECBIrP3rpg4Mf88ETlicTvV4RGfI2rdT4NlmAs8oCVGWm3foJe8XQ/YTc
-         SioRc/0uaRWz9W+FcGyEeOq65LL9N1jTwq01/nj5R6SawLIO0Pp38X/vSnELoJN0CfEd
-         Wl3A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790868229; x=1791473029;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=P4hKaeG34BRtgkE3jX44GSeOVayCHlDWIPkw8ynbEqo=;
-        b=oUBemw49BXtS3bYEvJGLTJmtp7Yu7695Z53czBUIUTwW1tz1fl250OYQSLdTHsdTCs
-         CWRMaICXI23LUrhAh1cYbxhHtj4obr+hH+/55AeFRrXnfIjxuUQyVkyEo2cb3Wh4ZBsU
-         Lh7GESoiyDpfjvBGZ9evEliuhGPrMjqD1TeHuT6taUpXn8t2FEgG9pE28i9hFnSi9lCx
-         M4l5XwkrT8OnOnTG/7s4G84gisYLYJNxUQYsOGlHKiaj8qr02dXDLMAasQ9hMt4ohC+s
-         8jrDk+Ee4ts0BAMJ8Kz2LK1hw1ma0+jgFIC5x7qN9ckUAg3GsKSBhcyudke1egxWw6od
-         I7nA==
-X-Gm-Message-State: AFuF++nQdRNU4DHFVbarjvGYEZKA37jAOnPKltm0tkjVTbeMRsqKZLFg
-	PUBtnOkuqL6u4EKdb9qxKWh99HqGa5hf1s9vP2fulnamO9bUEpLyWUdHvNW6icy4
-X-Gm-Gg: AYBFou1a0nbrGfduYTbvzH5Y6qCXfHV9uMCi1t1AcVIdEhylaV9xI+JpfhPIuaYfJWo
-	1Ore94aInZ6o7eYYGKiI7pJ3V0C/ydXPZFvamzMYUxVxrlFnTTHfHSoSCFfP56ikSOTiTtfq4Q9
-	sYQoV7ggH2/Q+9AzDXfE+WXCQb/mwJ8atnvlz/+FdPgRgWfVLDo75h7aZ/uLgzoIe0upL9brpW2
-	dLcVdXDlUD1EFs4BR6y3Vu7WCGZyrMMrE20lnXIjB2wfcNFJXt6K5O0sb2aas3KviaaZM0vI6T+
-	TRnv4BeX4ohxv2c/FCpmPBdDfFe1sWyglpXYgzM/cAHMR1m46hb6GNVFsgNw9AJNdU6lARDLPh7
-	A/vcwSGr91x76pi87PZjIYnQGp9/y9zEhU0WXf3EK5m7PPYPzhai03kGJ6k1AlfKjJ/I3hsipRl
-	zQMs84EKOCOXt55URVs66Egc54etbJVa20i9n57K0uU8R3f/47vpFl0d3Owmjf6mLJttuFqzUrU
-	v0UeKlJVg==
-X-Received: by 2002:a05:6a00:3498:b0:886:9da0:8a79 with SMTP id d2e1a72fcca58-8874af6f4d5mr3949684b3a.23.1790868229345;
-        Thu, 01 Oct 2026 08:23:49 -0700 (PDT)
-Received: from localhost.localdomain ([112.171.72.75])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8881871a46bsm1238234b3a.9.2026.10.01.08.23.47
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 01 Oct 2026 08:23:48 -0700 (PDT)
-From: Youngsung Ahn <ays511.kr@gmail.com>
-To: Zhu Yanjun <yanjun.zhu@linux.dev>
-Cc: linux-rdma@vger.kernel.org,
-	Youngsung Ahn <ays511.kr@gmail.com>,
-	stable@vger.kernel.org
-Subject: [PATCH v2] RDMA/rxe: validate cur_sge on the receive path before indexing dma->sge[]
-Date: Fri,  2 Oct 2026 00:23:45 +0900
-Message-ID: <20261001152345.3259024-1-ays511.kr@gmail.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260930180119.2497360-1-ays511.kr@gmail.com>
-References: <20260930180119.2497360-1-ays511.kr@gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WKHEr+Q/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 090A01F000FF;
+	Thu,  1 Oct 2026 15:23:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790868240;
+	bh=u2Ft3FbFfr4tJ/bFZdJy0PXDor5ut/5iXgrR9l6rsPI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=WKHEr+Q/TULo60S7m4kSFKAMsAxsNLRf9p20X8KWtX2OrakXvwdbBi9nUWwW0a2YC
+	 remeRO9qKeNQ6b7M+nk8n+TQKg2KnxQOjR2Ya/VxkjnCELMva434kMD9v+3or4+mzp
+	 pihzuHWOq1tmhUis81VXca7bqmjlckVkWzJJEsxjs6HL1PoGQrKMU/pz7l/fb+6+bQ
+	 zvf7bIXcfLupi/Oek4XmVP2yJC/cJAXZ4B8xZbDoHZCPuX+k6hwWFAyRJz/l0CAeTd
+	 GGq4d92rNJC5fE693UvPoMEMercHMx6JCiCkcuT/pp/no5FSdbOVpFsiGz1ilIDVak
+	 wHPM7eRgd/MgA==
+Date: Thu, 1 Oct 2026 18:23:55 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: sashiko-reviews@lists.linux.dev
+Cc: media-ci@linuxtv.org, linux-pci@vger.kernel.org, kvm@vger.kernel.org,
+	linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org
+Subject: Re: [PATCH v9 17/18] PCI/P2PDMA: Evaluate the ATS path for clients
+ with ATS enabled
+Message-ID: <20261001152355.GN3401365@unreal>
+References: <20261001-fix-p2p-acs-v4-0-v9-0-1a8e0f50ddd9@nvidia.com>
+ <20261001-fix-p2p-acs-v4-0-v9-17-1a8e0f50ddd9@nvidia.com>
+ <20261001120756.A5CC41F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20261001120756.A5CC41F000FF@smtp.kernel.org>
 
-A user QP's receive queue is an mmap'd ring: the user provider
-writes the WQEs and post_recv does not touch them, so every field of
-struct rxe_recv_wqe is attacker controlled. When the responder takes
-a WQE it validates only dma.num_sge (rxe_get_recv_wqe() /
-get_srq_wqe()); dma.cur_sge, dma.sge_offset and dma.resid are copied
-into qp->resp.srq_wqe unchecked.
+On Thu, Oct 01, 2026 at 12:07:56PM +0000, sashiko-bot@kernel.org wrote:
+> Thank you for your contribution! Sashiko AI review found 1 potential issue(s) to consider:
+> - [High] pci/p2pdma: pcim_p2pdma_set_ats_per_mapping() silently fails for pure clients
+> --
+> 
+> commit 39432dea495f68fb0a21d0daa1f31ba24e130b39
+> Author: Leon Romanovsky <leon@kernel.org>
+> 
+> PCI/P2PDMA: Evaluate the ATS path for clients with ATS enabled
+> 
+> P2PDMA assumes every client issues Untranslated Requests. A device with
+> ATS enabled may translate any address it is handed, including a bus
+> address, and Translation Blocking can reject its Translated Requests on
+> a route the Untranslated answer called usable. This commit takes the
+> Address Type from its ATS Enable bit and avoids handing such a client
+> bus addresses unless the client declared per-mapping ATS.
+> 
+> > diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
+> > index 6a63901c65fb6..9c0943fdb3e36 100644
+> > --- a/drivers/pci/p2pdma.c
+> > +++ b/drivers/pci/p2pdma.c
+> [ ... ]
+> > @@ -1633,6 +1674,9 @@ pci_p2pdma_map_type_tlp(struct p2pdma_provider *provider, struct device *dev,
+> >  	cache_index = map_types_idx(client);
+> >  
+> >  	rcu_read_lock();
+> > +	/* The declaration belongs to the client, the cache to the provider. */
+> > +	p2pdma = rcu_dereference(client->p2pdma);
+> > +	per_mapping = p2pdma && p2pdma->ats_per_mapping;
+> 
+> [Severity: High]
+> Does this code handle pure P2PDMA clients correctly?
+> 
+> Since pure clients (devices initiating P2P transfers but not providing memory)
+> have no mechanism or reason to call pcim_p2pdma_init(), client->p2pdma will
+> be NULL for them.
+> 
+> This means when they call pcim_p2pdma_set_ats_per_mapping(), it silently returns
+> and drops the configuration:
+> 
+> drivers/pci/p2pdma.c:pcim_p2pdma_set_ats_per_mapping() {
+>     ...
+> 	p2p = rcu_dereference_protected(pdev->p2pdma, 1);
+> 	if (!p2p)
+> 		/*
+> 		 * ats_per_mapping is a performance optimization,
+> 		 ...
+> 		 */
+> 		return;
+> 
+> 	p2p->ats_per_mapping = true;
+> }
+> 
+> Because client->p2pdma is NULL, per_mapping will always evaluate to false
+> here in pci_p2pdma_map_type_tlp(). This leads to pci_p2pdma_client_map_type()
+> incorrectly overriding the map type, which could return
+> PCI_P2PDMA_MAP_NOT_SUPPORTED and break P2P transfers that should have been
+> permitted.
+> 
+> How should pure clients register their ATS per-mapping capability if they
+> do not initialize pdev->p2pdma?
 
-copy_data() then uses cur_sge as an index immediately --
-	struct rxe_sge *sge = &dma->sge[dma->cur_sge];
--- and dereferences it (sge->length) before the in-loop
-"dma->cur_sge >= dma->num_sge" test, which only runs after the first
-sge++. cur_sge is a u32, so this reads far out of bounds of the
-RXE_MAX_SGE-entry dma->sge[] embedded in the kmalloc-2k struct
-rxe_qp: an information leak (the out-of-bounds sge->length is
-recoverable through the work-completion status) and a DoS. The send
-queue already got this check in
-commit 126c757e4cd4 ("RDMA/rxe: Validate num_sge/cur_sge before indexing wqe->dma.sge[]");
-the receive path did not.
+I don't know there Sashiko gets these ideas, but no "pure client"
+shouldn't call to pcim_p2pdma_set_ats_per_mapping().
 
-Reject an out-of-range cur_sge in copy_data() before the first sge
-dereference. This also covers the send retry path and is harmless to
-the kernel ULP path, which always sets cur_sge = 0.
+Thanks
 
-Fixes: 8700e3e7c485 ("Soft RoCE driver")
-Cc: stable@vger.kernel.org
-Signed-off-by: Youngsung Ahn <ays511.kr@gmail.com>
-Assisted-by: LLM
----
-Notes (not part of the commit):
-Reproduced on a KASAN x86-64 build of 7.3-rc4 as uid 1000 (uverbs0 is 0666
-after a one-time "rdma link add"), cross-checked via the CQE-status bit
-oracle. Present unchanged in mainline 551c722f4080 (2026-09-29) and rdma
-for-next. Compile-tested (KASAN+RDMA_RXE), not runtime-tested. Per
-security-bugs.rst this is public and a reproducer can be shared on request.
-The responder works on the kernel-side copy in qp->resp.srq_wqe, so there is
-no TOCTOU on cur_sge here.
-
-v2: no code change. Fixed the author/Signed-off-by mismatch (v1 went out via
-Gmail with the display name "AYS"), resent as plain text via git send-email,
-and added Cc: stable@vger.kernel.org and Assisted-by: LLM per Greg KH's review.
-
- drivers/infiniband/sw/rxe/rxe_mr.c | 5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
-index 71d9ea477289..b9aff32fffad 100644
---- a/drivers/infiniband/sw/rxe/rxe_mr.c
-+++ b/drivers/infiniband/sw/rxe/rxe_mr.c
-@@ -437,6 +437,11 @@ int copy_data(
- 		goto err2;
- 	}
-
-+	if (unlikely(dma->cur_sge >= dma->num_sge)) {
-+		err = -EINVAL;
-+		goto err2;
-+	}
-+
- 	if (sge->length && (offset < sge->length)) {
- 		mr = lookup_mr(pd, access, sge->lkey, RXE_LOOKUP_LOCAL);
- 		if (!mr) {
---
-2.43.0
+> 
+> >  	p2pdma = rcu_dereference(pdev->p2pdma);
+> >  
+> >  	if (p2pdma)
+> 
+> -- 
+> Sashiko AI review · https://sashiko.dev/#/patchset/20261001-fix-p2p-acs-v4-0-v9-0-1a8e0f50ddd9@nvidia.com?part=17
