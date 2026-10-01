@@ -1,243 +1,157 @@
-Received: from mail-pj1-f97.google.com (mail-pj1-f97.google.com [209.85.216.97])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB87234F46D
-	for <linux-rdma@vger.kernel.org>; Thu,  1 Oct 2026 05:21:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.97
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A59934752E;
+	Thu,  1 Oct 2026 06:16:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790832118; cv=none; b=LTh6QkHeK94tNl1r1IOkhkFr5KRINF1Kacn8D45Tft45MLOK86Fs5aTv190uZs4PRY3GFSZqcfJ5sT9NX46xkHRyEk/jz8Jn2/XsfG/5qxWMdu1SDKJDhnF12P88hAzktt/9lPhtbAfruRTTSV88hiEhY3peYP/wucmsiwtvmO0=
+	t=1790835369; cv=none; b=Q7WyPUDIsUXUHpvs+MCwZGqc7GOeaKWysA8QZIyA94UFtrMU54lgDC0TQpA+f9bNYgJydK/dssTtBW5cMHkGXRfwhRQjv8U8cnYsEpzNF1tqiSOqvEi1mUrEo2TF5mTGNsXsQBsUD51d0AjBlzxZdEc7mTYO8oT7fCT7zLhPeC8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790832118; c=relaxed/simple;
-	bh=pojgUQbTE28QdHMemP2K1mxz9AQ+GwbhMfKOL/hkwPk=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=QILvDTYdmeVThjnh5OGMQPQO4DLp0M6KUWcNbbQAYNx/WPheO2KQZjkDcX3QCgMVeClzur4ddAuggAiX4EG9UGbMn9kwfZrD6MU1i8vuKfJwN2N0rEt91j4btkt7LX5iDZZcIFivEuOTxjNSgNqS628c56xQemK4gVzk13zugy4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=UpWMBo0B; arc=none smtp.client-ip=209.85.216.97
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
+	s=arc-20240116; t=1790835369; c=relaxed/simple;
+	bh=u65kaEztNW7qf+Yx7osoUH0fSCqTv87bnZW/gl65oiw=;
+	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=YfeFABOePcAWx6ZCKoZCU91v/tBuxIlSv2Nb9uHVm8YoZubkivB0Z9zSW512o8WsWyYVNFJUTxdQoEN36CQyr9BsvdSCL0Mi4F20q+u03WSdQsH032fY6LVGzmFcyB4TCP8SgiyxlWd6sJ8G1AlnhwBPeZWsPQPB+qxgRu/7V4I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ecoktKzv; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="UpWMBo0B"
-Received: by mail-pj1-f97.google.com with SMTP id 98e67ed59e1d1-3856d6fbcb3so2110412a91.2
-        for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 22:21:56 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790832116; x=1791436916;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:dkim-signature:x-gm-gg:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=DJBy4dZZAuwwDWzCEmpbRhY1bIoQpJrlA1wYBnPudso=;
-        b=EHww42pnhpo1c3uto6HmLEufEzMirQSqiXuYliG+0xeCm7wpElAG7U8bMBylIIE/Ta
-         cYCHGMulpoOdtYXOUFuJEXCinEzB9eDHzNqHRz5ru+om3QRhpapBilAu7r+sSm6K40fz
-         oQqjG4AvEWMypH8Y3sf7yO+NakbAgobPB43OQlDCLg6zhbVzj7dmkJvbZKHEPsb9Zq2d
-         8unRiNuERaDphoTg4sZQ+Dj1jYlk+clKu0Q6wPVogEGouhjuarAKhobGhRCoijAgfsH8
-         kBfObhs1Ihd7E7LuhumquY21jw78aBZNCzl+N0ZfhFg+TJCvwKdKX5H7H/uIQ6B29Dev
-         uEAw==
-X-Forwarded-Encrypted: i=1; AKwUvByTp6jgacxvzpSEYsDVkYfmQ+RVzbeNCimE2sA1v5qZac1Zc02PjDdvyjDnstFtMKqU+Rcx7fsMvUg+@vger.kernel.org
-X-Gm-Message-State: AFq9FYI30j7FxyODkh69ADRrBf0SRy0Gx5GqvhffHgVeDURw8mr9BfS0
-	hiYdfpItKl2H6Uf1ZBGDDGyy469kAHGfF9bKBN8BM3jCR7uL8Mho0hIQ/jpM1SFsve6ty5v2r2b
-	aRoIyJZA2TP/2lKesv4kV4Sl2Cs9tgvnFgkQAsFdIlkcY2b++v0v1xSxjmHbHZh+nTQKLWzsp4U
-	jr7f5o8wynWfe1kqWABvH7JYZWLOvly2npApbGRRZErLB4JXrJHjt07DLkEACEewTIy62+DmfL9
-	GavCO/7Fzizeis9UQ==
-X-Gm-Gg: AYBFou1BychDKgZCELR7QE6selh4XPj8QYrNMBNUyXusXUftJKmFU6MhbyPi8gSnz2n
-	D61FUppOgXOj5XlCUHVwTenIlJU2mFEqxiIxsvnxP53Ty3zsB65mmVaVvY44xJyw1PIQUkILtCl
-	2Sk7YJS6T13BdaeJnzMPtTK9qEH/j7LoXSF1o5uFrS/jvDVSdLuRwyEhj0oY59xl+qDdcL9vqGx
-	FQ1tg/VkoCoj+JZiGPLpwjbRSqYUnRCwNPwO4UUfXcZVnRcyp6rwCHhE8yRlAClWjJGq61KJpBo
-	8ivpwCTYWxbyvrANe498OTENU4z148KHhCzrVwXfy/SMAA8Xw8ariXoyxeHuOi7e22ZGFSD2qBz
-	qpsw3J/4r0VJod5uSb7HpJ/PDTOtM/6NLwIgK/5D9zYF9E6+dbzdmoEwRW4p/c6V9Ijcbo8uxZJ
-	qKa1XM8Ik3Q1bye/Q+kHzUudSm7F/OUG/CyGi7eLM=
-X-Received: by 2002:a17:90b:2f4c:b0:3a4:c673:763d with SMTP id 98e67ed59e1d1-3a4d1788696mr3078286a91.43.1790832115965;
-        Wed, 30 Sep 2026 22:21:55 -0700 (PDT)
-Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-120.dlp.protect.broadcom.com. [144.49.247.120])
-        by smtp-relay.gmail.com with ESMTPS id 98e67ed59e1d1-3a4f43c5865sm920191a91.2.2026.09.30.22.21.55
-        for <linux-rdma@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 30 Sep 2026 22:21:55 -0700 (PDT)
-X-Relaying-Domain: broadcom.com
-X-CFilter-Loop: Reflected
-Received: by mail-ot1-f69.google.com with SMTP id 46e09a7af769-81fa41e424fso2401631a34.0
-        for <linux-rdma@vger.kernel.org>; Wed, 30 Sep 2026 22:21:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1790832114; x=1791436914; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=DJBy4dZZAuwwDWzCEmpbRhY1bIoQpJrlA1wYBnPudso=;
-        b=UpWMBo0BbrC6T1emMBHYu5q18SsoJMkSEeIanEQUXzmv1X2vtOf+MdwrkOae5pRljM
-         9PnPmnKQntYjNY/lu+8ZgSElXcquHvnY4uKnHwmHdchapyTknvIkoHTivHtGCbpEgBY8
-         5iQtRgO/v5mg78tNR1kjnvfDWdk2+T4avxV4o=
-X-Forwarded-Encrypted: i=1; AKwUvBykSItlf9tJ0mnVpJvomwrtASGetNE1WqTd3mCY794s89mH9QfudJCBWaplY+/vhYWmBeUCqEfy6cG9@vger.kernel.org
-X-Received: by 2002:a05:6820:201a:b0:6d8:5491:3752 with SMTP id 006d021491bc7-6dcf4e644e3mr4685743eaf.46.1790832114548;
-        Wed, 30 Sep 2026 22:21:54 -0700 (PDT)
-X-Received: by 2002:a05:6820:201a:b0:6d8:5491:3752 with SMTP id
- 006d021491bc7-6dcf4e644e3mr4685728eaf.46.1790832114102; Wed, 30 Sep 2026
- 22:21:54 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ecoktKzv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3B111F000FF;
+	Thu,  1 Oct 2026 06:16:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790835368;
+	bh=ug/Hf8nuv1NDSPNn3qMuPgw1C2cXCMo8z5w7KK59mhc=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=ecoktKzvnMQJpGEPsv/noG4FWirG3v7qa6TtVD16Ak/Xm0nkfywOfakAQ5shzZwuC
+	 4wvpSIm9eoOt94hVmcms1lSCJ2SwW6Ln5muVMkoPwmvvgvqvlXbkSfAZnrU208XkJ/
+	 AlPvpUqaPCd/Zh+T/JjC+kQ0w1ELUybtVdJKhzwpi4NRAKbiU9qHgEIYT29TdasyJ4
+	 pt0O6Usi0oOHPAh4Gb9OhSPQev4ywbcD3Ee0oN6uZWhCs9i+orDpO0IgoLFRZ9JRGz
+	 3+ULpqY2ic4YBcF8b/6FVL34NYLrhKSt+bh9+zS+a4mIgDzf0JI0C8N6vzt9ThRxeO
+	 3a0HafuTDfKjA==
+Subject: Re: [PATCH net-next v7 03/12] net/rds: guard every work-requeueing
+ site with rds_destroy_pending()
+From: netdev-bot+sashiko@kernel.org
+To: achender@kernel.org
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
+ edumazet@google.com, kuba@kernel.org, horms@kernel.org
+Date: Thu, 01 Oct 2026 06:16:07 +0000
+Message-ID: <179083536716.434549.1711044668946975049@kernel.org>
+In-Reply-To: <20260927061448.167862-4-achender@kernel.org>
+References: <20260927061448.167862-4-achender@kernel.org>
+X-sashiko-severity: Low
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260922061230.7909-1-selvin.xavier@broadcom.com> <20260929083651.GI563127@unreal>
-In-Reply-To: <20260929083651.GI563127@unreal>
-From: Selvin Xavier <selvin.xavier@broadcom.com>
-Date: Thu, 1 Oct 2026 10:51:42 +0530
-X-Gm-Features: AclHuK98sR16anKRdQgRaoKH69EUdf3D_8pCNnOZvXSAc05DB-8DgpdiwtfjzLc
-Message-ID: <CA+sbYW1aMLV20zMQHUnZ2P8H6DS+-T6Fd4TxXsVUP_YV5YvQxA@mail.gmail.com>
-Subject: Re: [PATCH for-rc v3 0/8] RDMA/bnxt_re: Fix input validation and
-To: Leon Romanovsky <leon@kernel.org>
-Cc: jgg@ziepe.ca, linux-rdma@vger.kernel.org, andrew.gospodarek@broadcom.com, 
-	kalesh-anakkur.purayil@broadcom.com
-X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-	boundary="0000000000000e8d09065cc098df"
 
---0000000000000e8d09065cc098df
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Thank you for your contribution! Sashiko AI review found more severe
+issue(s) in other patches of this series. This mail is only an FYI, in case
+you want to address the nit picks below when you respin.
 
-On Tue, Sep 29, 2026 at 2:06=E2=80=AFPM Leon Romanovsky <leon@kernel.org> w=
-rote:
->
-> On Mon, Sep 21, 2026 at 11:12:22PM -0700, Selvin Xavier wrote:
-> > This series fixes some of the bugs found while auditing bnxt_re's
-> > handling of user-supplied values and some generic bug fixes
-> >
-> > Please review and apply the series.
-> >
-> > Thanks,
-> > Selvin Xavier
-> >
-> >  v2 -> v3:
-> >   - Drop the VM_MAYEXEC clearing patch from this series. Will work on a
-> >     core level series which implements this in other drivers also
-> >   - Dropped rdev lifetime race patch from v2 series as it is reporting
-> >     few more review comments to be handled
-> >   - New fix to serialize dcb_wq against async notifier
-> >   - Removed is_in_used flags related patch to be posted as a separate r=
-cfw
-> >     series
-> >  v1 -> v2:
-> >    - Handle review comment about clearing VM_MAYEXEC vma flag
-> >
-> > Selvin Xavier (8):
-> >   RDMA/bnxt_re: Fix integer overflow in send payload size computation
-> >   RDMA/bnxt_re: Detect wrong sge_len passed for inline
-> >   RDMA/bnxt_re: Validate SRQ max_sge at create time
-> >   RDMA/bnxt_re: Initialize wqe.flags in bnxt_re_post_srq_recv()
-> >   RDMA/bnxt_re: Serialize dcb_wq access against async notifier
-> >   RDMA/bnxt_re: Fix the PD and DPI table size
-> >   RDMA/bnxt_re: Use bnxt_ext_stats_supported for counter count selectio=
-n
->
-> I have applied all the patches above.
->
-> >   RDMA/bnxt_re: Validate num_sge in bnxt_re_post_srq_recv()
->
-> This needs some more work. It can be improved commit message, or code to
-> make sashiko happy.
->
-> Thanks
-Sure. will repost it.
+Low priority / nit picks for your consideration:
 
---0000000000000e8d09065cc098df
-Content-Type: application/pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
+- [Low] The commit message says this patch fixes a live race, and it
+  carries a Fixes: tag, but none of the five newly guarded sites can…
 
-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
-zJH6Ivyz2skA36zh/px/UmF2ORX4Y0CY6GtU8/vxuN2j4rd2medlyifwALUm+KI3SsD782IwKLCf
-8bNhYGiw4YxsbyX7dV7O4SNQc5U9ktrSKH3D4SuTnK/xdjca5PiNI2NTcBVmP7+u2bvVLdRqISop
-9dpRkJ6xxhGJjxakljIxHdcZLXltxX4YM0Onf3agcjY3boIqnVlDjBwSZX674ZU+YVrcIlcRcqs/
-W83e6PmIRFwpkKOhuLNKSpW5mZoEQdpnxGwE9U7qLGECAwEAAaOCAd4wggHaMA4GA1UdDwEB/wQE
-AwIFoDAMBgNVHRMBAf8EAjAAMIGTBggrBgEFBQcBAQSBhjCBgzBGBggrBgEFBQcwAoY6aHR0cDov
-L3NlY3VyZS5nbG9iYWxzaWduLmNvbS9jYWNlcnQvZ3NnY2NyNnNtaW1lY2EyMDIzLmNydDA5Bggr
-BgEFBQcwAYYtaHR0cDovL29jc3AuZ2xvYmFsc2lnbi5jb20vZ3NnY2NyNnNtaW1lY2EyMDIzMGUG
-A1UdIAReMFwwCQYHZ4EMAQUDAzALBgkrBgEEAaAyASgwQgYKKwYBBAGgMgoDAjA0MDIGCCsGAQUF
-BwIBFiZodHRwczovL3d3dy5nbG9iYWxzaWduLmNvbS9yZXBvc2l0b3J5LzBBBgNVHR8EOjA4MDag
-NKAyhjBodHRwOi8vY3JsLmdsb2JhbHNpZ24uY29tL2dzZ2NjcjZzbWltZWNhMjAyMy5jcmwwJQYD
-VR0RBB4wHIEac2VsdmluLnhhdmllckBicm9hZGNvbS5jb20wEwYDVR0lBAwwCgYIKwYBBQUHAwQw
-HwYDVR0jBBgwFoAUACk2nlx6ug+vLVAt26AjhRiwoJIwHQYDVR0OBBYEFJA9fV7cOoiN64ws5XPC
-J5qtayo5MA0GCSqGSIb3DQEBCwUAA4ICAQBFCIF4AxAiXVz6gX5YfFEbIYtbGFifcfe+QGc5cfac
-CSzIrQWUPXAYAef3G5WouD2AKwa2tPGJgK2L7n1r2W4NIvr93588EDVnGgfMfWaFsB8VlLsPlH8Y
-fLfaTdN3OQPnFFp54yK9wv8AtTIiTQcailMw7QX5x5GE6HVZElxf0V0Ljc2NrUQLoYzHzAU+sysl
-6JQzomxjIfuXiIiUfmnWQdhO95kQchRdOUAaguLTV+RRfPZ1p54dRmgGEpJtzjGLdsrLkZ2rCN5j
-cOTTXyxJmvlgm9jfT0Uy5SOPHdq1jtZbQyXrNT4fQ07Odmq3xQCUTi+a59IiC+6V7nFJ8zyCSk+p
-n/iGouvun/owYzTmFxB6sVLWZcaWz2Ufcm7b6nOYV+pwUS/n6+6oFRKmGLrl0CRCF0AOph5p81aV
-kgKuS5oXBoDefJfjKHuu5lJVelBx3n++iMGMW9FWFmXErCHy2d+L42Raai5X2PL8jAmh+lpPRDX4
-CT9jL6xWM5QkCBtxyVKuxGxxUY2wczmVcQ1nGh9mGghI04Scs4OtE8Qh9LMOe2PXzxcV6lpF+yay
-B3fwJWxl7miwNFjWuu9M6Z+rcjm3JF5srcAu2fp/VzQD4AE5Kq7ywukMvlU4Y3X2t+D2eU1DH8pk
-c8mM1CtQWfWUboaoLABVmYmYfihDvTURkzGCAlcwggJTAgEBMGIwUjELMAkGA1UEBhMCQkUxGTAX
-BgNVBAoTEEdsb2JhbFNpZ24gbnYtc2ExKDAmBgNVBAMTH0dsb2JhbFNpZ24gR0NDIFI2IFNNSU1F
-IENBIDIwMjMCDDy76dRYp65lyF2c4zANBglghkgBZQMEAgEFAKCBxzAvBgkqhkiG9w0BCQQxIgQg
-n0tGl/jOwfbNtE3xrXfaYwMUqq46KAT8Lqgd0pgN5hMwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEH
-ATAcBgkqhkiG9w0BCQUxDxcNMjYxMDAxMDUyMTU0WjBcBgkqhkiG9w0BCQ8xTzBNMAsGCWCGSAFl
-AwQBKjALBglghkgBZQMEARYwCwYJYIZIAWUDBAECMAoGCCqGSIb3DQMHMAsGCSqGSIb3DQEBBzAL
-BglghkgBZQMEAgEwDQYJKoZIhvcNAQEBBQAEggEAlVanP1pRxpgmWC/YuyadjKkpudLObu8mxF1M
-B0BOccVs/BAdZ2/DCzX0qYqrBSjjVlHDJH5sK6N2j9jUtSoowDbU+TfvzQH/RuzgTx9jrBLTuAaM
-mqKRtYmrz+beShhMyVKOHWt91vhJDtY2iQN9zt6q36YznAZP42hq9ldq7FThOBgusVqexI28KWh9
-2xCtSLqtev5Jqyn5g6aGJS1TnF0zXPYnZ7JmWf1MEckbdgrnh4Bzw1ORFwDWNUJ2ko2ayv8gfiDS
-He9s/IH2tNCZ6MOU9+WXL8YJskZBrh7USbAnYbMVc+Rn4Ek3cBrycyy5g01S9SXPnBcq6rAxtY+O
-Wg==
---0000000000000e8d09065cc098df--
+--
+
+net/rds: guard every work-requeueing site with rds_destroy_pending()
+
+This patch wraps five work-arming sites in the rcu_read_lock() plus
+rds_destroy_pending() pattern that the other arming sites already use.
+The sites are the IB send completion and credit paths, rds_ib_recv_refill(),
+rds_tcp_accept_one() and rds_sendmsg(). The goal is to stop new work
+being queued on a path workqueue once rds_conn_destroy() has started
+cancelling it.
+
+> The IB completion sites are reachable from soft-irq at any point
+> before the QP is drained, so a completion landing in the window
+> between the cancel and destroy_workqueue() in rds_conn_path_destroy()
+> re-arms a work on a workqueue that is about to be destroyed: with
+> delay 0 the work is queued directly on the freed workqueue, and with
+> delay 1 the timer survives destroy_workqueue() unseen and fires
+> afterwards, queueing from a timer_list that lives in the freed c_path
+> array.
+
+[ ... ]
+
+> With the predicate as it stands the guards cover the netns teardown and
+> module unload cases; the following patch extends it to the destroy of a
+> single connection.
+>
+> Fixes: ebeeb1ad9b8a ("rds: tcp: use rds_destroy_pending() to synchronize netns/module teardown and rds connection/workq management")
+
+[Severity: Low]
+At this commit, can any of the five newly guarded sites actually fire
+while rds_conn_destroy() is running?
+
+Here rds_destroy_pending() is still only:
+
+net/rds/rds.h:rds_destroy_pending() {
+	return !check_net(rds_conn_net(conn)) ||
+	       (conn->c_trans->t_unloading && conn->c_trans->t_unloading(conn));
+}
+
+The teardown paths that reach rds_conn_destroy() seem to keep these
+sites out of the window between the cancel and destroy_workqueue() in
+rds_conn_path_destroy().
+
+For IB, rds_conn_destroy() is only called from
+rds_ib_exit()->rds_ib_destroy_nodev_conns(), and that function only takes
+connections from ib_nodev_conns:
+
+- rds_ib_setup_qp() takes the connection off that list with
+  rds_ib_add_conn() before it calls rdma_create_qp().
+- rds_ib_conn_path_shutdown() puts it back with rds_ib_remove_conn()
+  only after disable_work_sync() on i_send_work/i_recv_work and after
+  rdma_destroy_qp().
+
+So wouldn't every IB connection that reaches rds_conn_destroy() have no
+QP or CQ? That would leave rds_ib_send_cqe_handler(),
+rds_ib_send_add_credits() and rds_ib_recv_refill() with nothing to
+deliver.
+
+For the TCP accept path, rds_tcp_kill_sock() clears
+rtn->rds_tcp_listen_sock and flushes rds_tcp_accept_w in
+rds_tcp_listen_stop() before it destroys any connection. After that,
+rds_tcp_accept_one() returns early:
+
+	if (!listen_sock) /* module unload or netns delete in progress */
+		return -ENETUNREACH;
+
+rds_tcp_exit() also calls unregister_pernet_device() before
+rds_tcp_destroy_conns().
+
+For rds_sendmsg(), the sending socket holds a reference on its netns.
+rs_transport is also pinned with try_module_get() in
+rds_trans_get_preferred(). So the new guard there looks like it always
+evaluates to false.
+
+The guards seem to take effect only with the follow-up patch, "net/rds:
+make rds_destroy_pending() report a connection's own destroy", which adds
+the c_destroy_in_prog term. That patch also says the last stragglers
+"were converted by the previous patch".
+
+There is one narrow interleaving where the IB guards could matter at
+this commit. A CM handler could fetch rds_ibdev through
+rds_ib_get_client_data() before rds_ib_remove_one() clears it. It could
+then call rds_ib_add_conn() after the sweep's list_splice() and bring up
+a QP while rds_conn_destroy() is running. That path already corrupts the
+sweep's on-stack list, and the commit message does not describe it.
+
+Would it be more accurate to describe this as preparation for the next
+patch? The Fixes: tag could then be adjusted or dropped, or this patch
+could be folded into the one that extends the predicate.
+
+The Fixes: tag also doesn't seem to match the rds_sendmsg() hunk. The
+cp_conn_w queue site there came from 9d27a0fb122f, not from
+ebeeb1ad9b8a. The IB queue lines were rewritten to use cp_wq by
+d327e2e74aedbe.
+
+A stable backport chosen from this tag would do nothing on its own. The
+rds_sendmsg() hunk would also lack context in older trees.
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260927061448.167862-1-achender%40kernel.org
