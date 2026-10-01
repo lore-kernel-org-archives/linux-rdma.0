@@ -1,142 +1,104 @@
-Received: from mail-pz2-f37.google.com (mail-pz2-f37.google.com [74.125.228.37])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF9F352ED30
-	for <linux-rdma@vger.kernel.org>; Thu,  1 Oct 2026 15:24:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.37
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C52CB5221DE;
+	Thu,  1 Oct 2026 15:25:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790868282; cv=none; b=t4gfCHKwy0YdSB9B9woy9s9KTnDctU5XW+qMNf/Tm+Et4evjpfBs+H6S7jLNkkmaiVQ2XPh3yyX/nKqzzIZrAFo1gdNBRwabZ86S93lS1g3Jbo9p29JD2iMf6P4K5ACTByp+kSqdvM5hHW9DZD1QbxG+blCKzcyMVFhoWc+hjok=
+	t=1790868350; cv=none; b=Oibz3qGJArOHq1r15Nhotn1vwl3alSVXzThPy2kLI71HbzokaWDNyHAYG7GUNayQsiUdUzeQLSAEmo5Yva+1tDbQnXfgYlsU/X6mI4hdSiqhF8o4WwWa6R2PipawBk3JwZ0X78YiEICqqjUhw1ZIzuCQmGfUv8afxCMbLrdmjDc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790868282; c=relaxed/simple;
-	bh=4WQWF5+OUtltfz6w2snpbVpU40IHfEIiSULmc0mqAXg=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=pccYRQAwPB/7dZU31N9GfUHELfaELzpwI1TEuBIK44QQGsZJI105zwtlRk2PWRk0aL2fMQ0srSXFOyCNg0HcHe6+UNdqRQ4NjoXPqffOx9dF/TAxDaGw6ZnGwjckan9rC7YQc3q6ql4tbvn/fuOGV2X0I+/xfuAgpLqPHxK8P0g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FPd2iV85; arc=none smtp.client-ip=74.125.228.37
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1790868350; c=relaxed/simple;
+	bh=irm07kEIUGQZOdzhH8gb8bR7eiCymrfDweaU6xPLNxE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=OLhH7sheJEP3fl3OIKNL8/Bg+qCd01hvsXdibKQYC7/3ByAShUN8sbRFcAWK8KkLQ+mgw7+gwvqWhUEw9vA5KedZk61Ogn+2/w25kkXaC4seiCUCAmPQQk3yFILM2fCgl054gSI2KiLlIhTnpMicJkKeiMGEZjuqwM4CFJhYRds=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dyHDOE4I; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FPd2iV85"
-Received: by mail-pz2-f37.google.com with SMTP id d2e1a72fcca58-88826f3ff80so480054b3a.3
-        for <linux-rdma@vger.kernel.org>; Thu, 01 Oct 2026 08:24:40 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790868280; x=1791473080; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=63RaKzWIMFVRr/E5wnyxWJ/zE4DRy1eSD5nRt2ODo5Q=;
-        b=FPd2iV85VfSbxypa38SgGyZYc0tuyQkTZyMT4/lNWVKgpsOHcW2sXo5Y0l5LiCsZjW
-         h35TDxgTJEN+Ru5JZRJ/FK/jB3t1Uxupi5cH68bcJcs8u7HgPXR2TAtHoyit/IwDdc5q
-         uY9pX+aMP1vtIHDBgwVbALpkS0SheYp5+obXdOS1cUvpxVke6A4xUyhL+mcw84+cchFN
-         ldfBLOjgTKRU6rSqROVSGR3mrLJbjXx5FZdlsYh/UQT+yE/hsmOyO/lZ/nKa357Jaed0
-         gF2NRIeZY3FrSJnj2Ui2M1dzdg/IntI/MgUbZI2WSNM+P40C3Q7d+rYyIaTgUdo3nPbZ
-         8hjg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790868280; x=1791473080;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=63RaKzWIMFVRr/E5wnyxWJ/zE4DRy1eSD5nRt2ODo5Q=;
-        b=JEtxxY1YOKpwWzHDOBQpbHmWStx+ruHDutszH31At5LnMum++AYCvtBxFcvlprjH68
-         W8Ezn9FJsg/p9Q27Ri5pX7zgfjY5ttcUScUg+TzUxQOrfWQ/qYcYySZVaHKIV5xCBUae
-         OxEsE/XCrLqb83rkjTQlx1e3PWBHIWwugtMmk2/r+j9/r1aU2Cyra+rucOSvPUNO9Hfi
-         JYLQo5K/EN3gG4c/LgIoF1lXVClZkaVl/m4C1feRpqAro5+BJ5mAeAdwanWpY2/WOzTh
-         ve8spjsTkNKu3QbAlAFG+vPD5f4KrRrIi+5v9gSiHZXf+vMH8Qh1Pog1db83svSZyXxX
-         F/gg==
-X-Gm-Message-State: AFuF++nBgkEJVxyuIxHOMrM73sxEQb73wOXD5uNcTIqksMzKuh7x1I4f
-	TdJYzr0RWieoUy6l/HOyYViEPqULfE2F9b8qchatF1iBVBwrM1soAeFi
-X-Gm-Gg: AYBFou2ouWx3k5UQtNpk95z6KQGVWp+CN5RWAFaPwsmEcOxq6tw9xTjksADxs9MXHLk
-	Vq7IsGESxjKJwlLoc4qhZFFamh0nYOHDUhXT4Ej9u7WavZkbZTGow3nGi2MRFHjsW6NQxAbMEUT
-	VxnSRxR51FMtGRkC7gKoZ/LvEkbSY8KijxFxGu6JX4A3r+LHR59UNH5pu/bmvKauv50fyhz/Xsy
-	EFGbFrUQKM9fIE+14XdHLy8hW5xDW34RYL/U4PAIuNDEpuWwTWrA22vt7YpHmOy+MrzZMC5v2Vn
-	ef7BY+WEaGjGZkImKom+BkdLDBsXT8s5XKR8CNrTPlLrucRpmjoXHelAnXJEYrt26qwT0Svlbdo
-	/S07zdQGhsWdu5t/MJGzaOHfWIm4eFW5+SDFGu/AIj7lWU9Ar8YK1eoC/B5b0bmjXNtuIo2VfSv
-	9+/whJf02xDvqfI3/tRu8A/gIqNmSgwqIVgFpdRVLmUiaJAsJVYBa0a9nLYM2DHpWFwqWsILkLB
-	XsG4vBBg4jzYD7l12FS
-X-Received: by 2002:a05:6a00:3491:b0:881:7ff5:606f with SMTP id d2e1a72fcca58-8874c5db447mr4206416b3a.43.1790868279823;
-        Thu, 01 Oct 2026 08:24:39 -0700 (PDT)
-Received: from localhost.localdomain ([112.171.72.75])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8881871bdc7sm1325282b3a.14.2026.10.01.08.24.37
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 01 Oct 2026 08:24:38 -0700 (PDT)
-From: Youngsung Ahn <ays511.kr@gmail.com>
-To: Zhu Yanjun <yanjun.zhu@linux.dev>
-Cc: linux-rdma@vger.kernel.org,
-	Youngsung Ahn <ays511.kr@gmail.com>,
-	stable@vger.kernel.org
-Subject: [PATCH v2] RDMA/rxe: validate inline sge_offset in finish_packet() before indexing inline_data[]
-Date: Fri,  2 Oct 2026 00:24:33 +0900
-Message-ID: <20261001152433.3259573-1-ays511.kr@gmail.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260930182216.2510953-1-ays511.kr@gmail.com>
-References: <20260930182216.2510953-1-ays511.kr@gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dyHDOE4I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE8671F000FF;
+	Thu,  1 Oct 2026 15:25:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790868348;
+	bh=z6knL9/Ihm/lfv/+/37jqT3/Z2pVr/gurUnfXwQuf5U=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=dyHDOE4IVsd3PWyuV8L9id5hH4j0gzhPnrXHC+3XsImxQA1v+FHwBpHJnUT9j122t
+	 1JiwKfHhSyefRhdjoVfh+U2HSN1FmgBXPPzsMAJYC0vabYiUYknVlLRAVYvIUB+QBW
+	 KppsUGDGUulAu2H5meuWUKgi0RhpJRJMOPC/jCvnLULqjuMDnxuvlzUaE+WZ0IMisZ
+	 Sd5iNHCSVjgamTQoIQJvpt+cmicjIBzWEkC4kaQb50WBOcXH9rhCiWncsv4t5zYJuj
+	 MyF1UBG6cdcBWpClYjy6yxya1NSDaToT8GKYmQF7tsdtpw5YITfO/tF+tlHAICT5G0
+	 k4v3j7LCgqZgA==
+Date: Thu, 1 Oct 2026 18:25:44 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: sashiko-reviews@lists.linux.dev, Bjorn Helgaas <bhelgaas@google.com>
+Cc: dri-devel@lists.freedesktop.org, media-ci@linuxtv.org,
+	linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org,
+	kvm@vger.kernel.org
+Subject: Re: [PATCH v9 05/18] PCI/P2PDMA: Document directional ACS routing
+Message-ID: <20261001152544.GO3401365@unreal>
+References: <20261001-fix-p2p-acs-v4-0-v9-0-1a8e0f50ddd9@nvidia.com>
+ <20261001-fix-p2p-acs-v4-0-v9-5-1a8e0f50ddd9@nvidia.com>
+ <20261001115932.75F881F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20261001115932.75F881F000FF@smtp.kernel.org>
 
-For a user QP, rxe_post_send() takes the qp->is_user branch and
-never runs init_send_wqe(), so
-dma.length/resid/num_sge/cur_sge/sge_offset all come straight from
-the mmap'd SQ ring. In the inline send path finish_packet() uses
-sge_offset directly as an index:
+On Thu, Oct 01, 2026 at 11:59:32AM +0000, sashiko-bot@kernel.org wrote:
+> Thank you for your contribution! Sashiko AI review found 1 potential issue(s) to consider:
+> - [Low] doc: repeated sentence in disable_acs_redir description
+> --
+> 
+> commit 83321a8abe2362759f10e2c9273854fa000319e6
+> Author: Leon Romanovsky <leon@kernel.org>
+> 
+> PCI/P2PDMA: Document directional ACS routing
+> 
+> P2PDMA documentation describes ACS controls as path-wide, although Request
+> and Completion controls apply to different transaction directions. This
+> commit documents the fixed client and provider roles, the divergence port
+> checked, and clarifies which controls disable_acs_redir changes.
+> 
+> > diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
+> > index 68647ff4bdd24..bc83e07dd5fce 100644
+> > --- a/Documentation/admin-guide/kernel-parameters.txt
+> > +++ b/Documentation/admin-guide/kernel-parameters.txt
+> > @@ -5291,12 +5291,15 @@ Kernel parameters
+> >  		disable_acs_redir=<pci_dev>[; ...]
+> >  				Specify one or more PCI devices (in the format
+> >  				specified above) separated by semicolons.
+> > -				Each device specified will have the PCI ACS
+> > -				redirect capabilities forced off which will
+> > -				allow P2P traffic between devices through
+> > -				bridges without forcing it upstream. Note:
+> > -				this removes isolation between devices and
+> > -				may put more devices in an IOMMU group.
+> > +				Each device specified will have the PCI ACS P2P
+> > +				Request Redirect, Completion Redirect, and Egress
+> > +				Control features forced off. This may allow P2P
+> > +				traffic through bridges that would otherwise be
+> > +				redirected upstream. This may allow P2P traffic
+> > +				through bridges that would otherwise be redirected
+> 
+> [Severity: Low]
+> This isn't a bug, but there is a repeated sentence ("This may allow P2P 
+> traffic through bridges that would otherwise be redirected upstream.") in 
+> this block.
 
-	u8 *tmp = &wqe->dma.inline_data[wqe->dma.sge_offset];
-	memcpy(payload_addr(pkt), tmp, payload);
+Right, copy/paste error.
 
-inline_data is a flex array whose capacity is qp->sq.max_inline, but
-sge_offset is a u32 from user space, so the source pointer is
-displaced arbitrarily past the WQE and the memcpy reads out of
-bounds.
-commit 126c757e4cd4 ("RDMA/rxe: Validate num_sge/cur_sge before indexing wqe->dma.sge[]")
-added num_sge/cur_sge checks on the send path but not sge_offset, the
-third attacker-controlled index in the same struct.
+Bjorn, should I resend?
 
-Read sge_offset once with READ_ONCE() and bound it (and the payload
-that follows it) by qp->sq.max_inline before indexing, so the value
-that is validated is the value that is used.
+Thanks
 
-Fixes: 8700e3e7c485 ("Soft RoCE driver")
-Cc: stable@vger.kernel.org
-Signed-off-by: Youngsung Ahn <ays511.kr@gmail.com>
-Assisted-by: LLM
----
-Notes (not part of the commit):
-Reproduced on 7.3-rc4 as uid 1000: "BUG: unable to handle page fault ...
-memcpy+0xc/0x30" from rxe_requester, 4/4. Present unchanged in mainline
-551c722f4080 (2026-09-29) and rdma for-next. Compile-tested (KASAN+RDMA_RXE),
-not runtime-tested. Found through manual review; per security-bugs.rst this is
-public and a reproducer can be shared on request.
-
-v2: the WQE lives in the mmap'd ring, so read dma.sge_offset once with
-READ_ONCE() into a local and validate/index that local, closing the TOCTOU
-noted in automated review (v1 re-read the field after the bounds check).
-Dropped security@kernel.org Cc.
-
- drivers/infiniband/sw/rxe/rxe_req.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-index 24f5c044363f..06e24d818075 100644
---- a/drivers/infiniband/sw/rxe/rxe_req.c
-+++ b/drivers/infiniband/sw/rxe/rxe_req.c
-@@ -510,7 +510,14 @@ static int finish_packet(struct rxe_qp *qp, struct rxe_av *av,
-
- 	if (pkt->mask & RXE_WRITE_OR_SEND_MASK) {
- 		if (wqe->wr.send_flags & IB_SEND_INLINE) {
--			u8 *tmp = &wqe->dma.inline_data[wqe->dma.sge_offset];
-+			u32 sge_offset = READ_ONCE(wqe->dma.sge_offset);
-+			u8 *tmp;
-+
-+			if (unlikely(sge_offset > (u32)qp->sq.max_inline ||
-+				     payload > (u32)qp->sq.max_inline - sge_offset))
-+				return -EINVAL;
-+
-+			tmp = &wqe->dma.inline_data[sge_offset];
-
- 			memcpy(payload_addr(pkt), tmp, payload);
-
---
-2.43.0
+> 
+> > +				upstream and thus this removes isolation between
+> > +				devices and may cause affected devices to share
+> > +				an IOMMU group.
+> 
+> -- 
+> Sashiko AI review · https://sashiko.dev/#/patchset/20261001-fix-p2p-acs-v4-0-v9-0-1a8e0f50ddd9@nvidia.com?part=5
