@@ -1,72 +1,108 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF54936E46F;
-	Thu,  1 Oct 2026 15:55:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 453A53D171B
+	for <linux-rdma@vger.kernel.org>; Thu,  1 Oct 2026 16:01:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790870139; cv=none; b=Kp1YHwxtpt5BunGadejquzNkqTp06XsWf6VM9fvTdi4oeN7rQwsaDHLtlNYhV70Y1xKqzBhVyqlNVHHi73q5urLpIikl80NesO47BIWQbFwtgw3vvC3g/VwzXM+fU4A6MBv4R+4vlhTEtP8yOW4RI6eDHVSCM0AIy1sRVP0kf4Q=
+	t=1790870485; cv=none; b=cIzjZGZd/zjomjUBm+z/MERWdW5CWYDOZao9QSgGsrOqFIeRJn5vSW6B/6ulovm1Hp1IdasNcNieCYSJkFQV6xyCkdx04rNywnvdtG88pnzO9opKAzrlcQH090/E5N6cozMa5gXksB1be6MeHnzXlQNYG3RH2Wv320Wbx+sJoZk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790870139; c=relaxed/simple;
-	bh=MTDQXGGxc+pTRKwaAkP0qLnrnlaZ///2l3xPH4xaIfQ=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=mB6NjArID7BzGJplad2lN3LObUyXu3gjxIMKRnUwfv0c+KtR7S0rVvIRiwMPweb6uUXHMK8F1Hwscr1+1MISuzqaAEvI0pFEX1rpcC3qs+XlinRc/O1SzjxyUnCh7PeyEfHLwoukzr3aYsEbzQgnH4LfknzLJp8t36JwJqDuPoI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Aq0t82JN; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790870485; c=relaxed/simple;
+	bh=6HEr9KRL0zXySaxz8N322/untwMxJ8GcBgIq4KeMoE8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=moC/Am6sne63FPPTetxyDIjVL1pZ66xj/44XUzg53BRWzMck3t0RCLKL58N4ndlPY7b4sViW0+ACOBfk4DJwtTZpyej2JHjghC8UEPoSIFO1YdCCR1U4wcpOILAzKhRJUPcHvCQ1JBs1rjbLgBVMqqEdAxJcmElsdPBG7UzeM+M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RWvBZ1eS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Aq0t82JN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBBC91F000FF;
-	Thu,  1 Oct 2026 15:55:31 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RWvBZ1eS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19CAE1F000FF;
+	Thu,  1 Oct 2026 16:01:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790870132;
-	bh=RygbB9xBwuwMTP2siLgkMsDYObD6FWwDnpI0v/7Py6s=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=Aq0t82JNtkB3bEN1VurwYQcVg0usZrJLklPFSSATxkHXH6H20+EAWAFrHciqqFQtP
-	 8OgL3Bw8W60LJ7na4ir5IsqWmhJdVUajjGlLOeHQoqb76I0rz6rh4bv7ScsDacHQJG
-	 eM5riXQvahIBewz4a+kxmTx3W1/okGp+/ZwIb3w8XHwyFLYyPmySONv50pZxuVG3Rl
-	 0ec98tE/QDYWYffJp8+aD6izPAJi1kkflqc8muyVa2Z8/j88repRaB7pq97t4vbS7z
-	 7MkgctxQCQCQgRW6+6owBKJPir0SADAMkTsYJJ0BMs00zpKBMK1lONzdsCBf6vSYZ9
-	 TFBHVaU8MOGGQ==
+	s=k20260515; t=1790870482;
+	bh=1ng8UWwyuTrFTqvJX9+JJwjeYA8PRB0156Ix8lF8+os=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=RWvBZ1eSV2ZSonQ8ugU+no6Mc8OhImG49ibq5+fXjDDkBkEwceO/O0hscDC4MxPGC
+	 n3ImZZobvPS3obk5srYePMbKFj37lbl/Dd3TKTkfw27/Ch9LLOQUG0fuBOZprMrVyn
+	 3+e6qYhxQ8Rh+J2GEWiK1esyvTQvCaaQUTGOO13WP9wsKteyLpPJkFqa+drQIvEqkI
+	 4+OS4y/YIaZv9Alambzbw9kRxRetNLJBHaxCJZl895xAdFMAWeRIR8FyBUNbGCip7l
+	 YSFr4+Ed5NpnM948umWp2gIMJXlJn9aV3hnoZxUBTsqPCSzevh8N0IuA6hhCMusgyC
+	 AEYcPX58ZrssA==
+Date: Thu, 1 Oct 2026 19:01:19 +0300
 From: Leon Romanovsky <leon@kernel.org>
-To: Zhu Yanjun <zyjzyj2000@gmail.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
- Shuah Khan <shuah@kernel.org>, Bjoern Doebel <doebel@amazon.de>
-Cc: linux-rdma@vger.kernel.org, linux-kselftest@vger.kernel.org, 
- linux-kernel@vger.kernel.org, stable@vger.kernel.org
-In-Reply-To: <20260930135530.881281-1-doebel@amazon.de>
-References: <20260930135530.881281-1-doebel@amazon.de>
-Subject: Re: [PATCH] selftests/rdma: Skip rxe_sent_rcvd_bytes when rdma_rxe
- is missing
-Message-Id: <179087012977.374812.13144988487105376279.b4-ty@kernel.org>
-Date: Thu, 01 Oct 2026 11:55:29 -0400
+To: AYS <ays511.kr@gmail.com>
+Cc: zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org, security@kernel.org
+Subject: Re: [PATCH] RDMA/rxe: bound the ODP page index against the umem in
+ rxe_check_pagefault()
+Message-ID: <20261001160119.GQ3401365@unreal>
+References: <CAPAqSgYP5tNonJb4VRLBt_34R8rcdc-gTB_jjmT221FqW18hmQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-18f8f
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPAqSgYP5tNonJb4VRLBt_34R8rcdc-gTB_jjmT221FqW18hmQ@mail.gmail.com>
 
-
-On Wed, 30 Sep 2026 13:55:30 +0000, Bjoern Doebel wrote:
-> On a kernel built without CONFIG_RDMA_RXE the test exits 1 instead of
-> skipping:
+On Thu, Oct 01, 2026 at 12:15:18AM +0900, AYS wrote:
+> An ODP MR's page array map.pfn_list[] is sized from the umem's start, but
+> rxe_check_pagefault() indexes it with an iova taken relative to that start
+> while the access was range-checked against the MR's iova (ibmr.iova). reg_mr
+> only requires start and hca_va to share a page offset, so a user can register
+> with hca_va = start + N*PAGE, and the index skew (hca_va - start) >>
+> PAGE_SHIFT then lands out of bounds of pfn_list[], which is read with no bound
+> check. An unprivileged local user reaches this with a single RDMA operation on
+> a self-connected rxe QP: observed as a KASAN slab-out-of-bounds read and, when
+> the out-of-bounds qword looks like a writable HMM pfn, a write into an
+> attacker-influenced page.
 > 
->   # modprobe: FATAL: Module rdma_rxe not found in directory ...
->   not ok 467 selftests: rdma: rxe_sent_rcvd_bytes.sh # exit=1
+> Reject an index that leaves the umem and force the fault path, which fails the
+> out-of-range access via the umem range check in
+> ib_umem_odp_map_dma_and_lock(). The downstream pfn_list[] users
+> (__rxe_odp_mr_copy() and the atomic helpers) run only after a successful map,
+> so this check protects them as well.
 > 
-> Every other test in this directory probes with modinfo and exits
-> $KSFT_SKIP. Apply the same guard, identical to the one in the otherwise
-> near-identical rxe_socket_with_netns.sh.
+> Fixes: 2fae67ab63db ("RDMA/rxe: Add support for Send/Recv/Write/Read with ODP")
+> Signed-off-by: Youngsung Ahn <ays511.kr@gmail.com>
+> ---
+> Notes (not part of the commit):
+> Reproduced on a KASAN x86-64 build of 7.3-rc4 as uid 1000; the data-only write
+> primitive was used to reach uid 0 on a fully hardened build.
+> drivers/infiniband/sw/rxe/ is unchanged between 7.3-rc4 (93f51579e7df) and
+> mainline 551c722f4080 (2026-09-29) and rdma for-next, so both are affected.
+> Compile-tested (KASAN+RDMA_RXE), not runtime-tested. Found through AI-assisted
+> review; per Documentation/process/security-bugs.rst this is public and a
+> reproducer can be shared on request. A maintainer may prefer to also index
+> relative to ibmr.iova (as the non-ODP rxe_mr_iova_to_index() does) so
+> legitimately skewed MRs keep working; this patch takes the minimal, safe route.
 > 
-> [...]
+>  drivers/infiniband/sw/rxe/rxe_odp.c | 5 +++++
+>  1 file changed, 5 insertions(+)
+> 
+> diff --git a/drivers/infiniband/sw/rxe/rxe_odp.c
+> b/drivers/infiniband/sw/rxe/rxe_odp.c
+> index ab21b620e94c..07a30c60fc62 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_odp.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_odp.c
+> @@ -136,6 +136,11 @@ static inline bool rxe_check_pagefault(struct
+> ib_umem_odp *umem_odp, u64 iova,
+>   while (addr < iova + length) {
+>   idx = (addr - ib_umem_start(umem_odp)) >> umem_odp->page_shift;
+> 
+> + if (idx >= ib_umem_odp_num_pages(umem_odp)) {
+> + need_fault = true;
+> + break;
+> + }
+> +
+>   if ((umem_odp->map.pfn_list[idx] & access) != access) {
+>   need_fault = true;
+>   break;
 
-Applied, thanks!
+Please stop sending emails about RXE to security@ ML and use proper
+email client to communicate with ML.
 
-[1/1] selftests/rdma: Skip rxe_sent_rcvd_bytes when rdma_rxe is missing
-      https://git.kernel.org/rdma/rdma/c/d2c08575500145
+Thanks
 
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
-
+> --
+> 2.43.0
+> 
