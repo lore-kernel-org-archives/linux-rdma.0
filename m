@@ -1,96 +1,110 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA88352941D;
-	Thu,  1 Oct 2026 15:41:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B92423793DF
+	for <linux-rdma@vger.kernel.org>; Thu,  1 Oct 2026 15:42:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790869290; cv=none; b=gKpnRI5+Ouxr2grrQkjuUaGon/9HPOHl85pb8MhWNdzd/QKACRxIUWSaWtnvpl/7deHyN3a+07DMVoaVA46apQByOwO51bac/hKi49lMhbVCv0XJ5KUP2HwESO2B5oKMKoiLrFfKKkW3xz3P4/ioIT5V6W7jqNWJ9rd+DfVSUPE=
+	t=1790869359; cv=none; b=ueCdwzyiIgmrH9wucRn7nF2dM2AtYltrF1B4O8ky+oBIluMfg+9UrpXpZ+ccig3AenNka3q+7q2K2i0ETomPJRaJ0wMfsmIvHEm/DolPyQMgykeWXQ94DberhgNTThl8hjGBHZdqrlYuuMso9rV4YbgS99sQyV6cfroYn+WC26g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790869290; c=relaxed/simple;
-	bh=upwG9Ajb7HiwDiz7s2DT2P4aDUU67N+8gTTyElgRGi8=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=OaIspFpii3dT+URzG9EDpSvjGLf/X1wNpvK9kdNhVpmsSiapsaCLBsLgfHfsFHz4o2hEwJC1QNPjiHb5Wf5d76imHnHj3BEm4eucL1HoeJtmEsP2j7xIj6Uo7w8H7ufyx6RelcdO/tX2jqiy9YRlSFNYBzcmuOMYv/GaNph+wDk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TQZYxOq1; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790869359; c=relaxed/simple;
+	bh=z1yMaWwb+oPbBbegVnbSgAW8T5oZEil9QFC8qaPIShQ=;
+	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
+	 Message-Id; b=pOf2c/z+GfmlCIU6CeEGS0Cej0sZ+ciW3eShK8lryw5DWuW1J6ImpHCp4+O9bF57QprlGjjjTtRR0RGdkZ4VaZ8O9yK+8a6oFLAQIqnyVYRaAZBPyaqYL4Mux33+rGdICLCcjNEBnFT8DhxT45WtmiCI7OFVzhdkkFO++r/1gDo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Hz+z90m6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TQZYxOq1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B3D31F000FF;
-	Thu,  1 Oct 2026 15:41:27 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Hz+z90m6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 254481F00899;
+	Thu,  1 Oct 2026 15:42:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790869288;
-	bh=/4WbIgH97AoP+BHwk2QH+RwEoL7rad4fL8/FcXMQ58U=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=TQZYxOq1enRn0kLrEZobjY86WDij0EAsM0P17ASk7dENutZLrE9nQkP5v85NmWYKb
-	 1+HWKTb2XYDtx/Z8Ish+jRdNPsDWhVmTcyTHf8QbeSh1bjEHoDPZvm5mDa0NeUK1cI
-	 YgUnfYcOahXe+cFvGEfonuOEN2SFsO/t1OuKjcYF4SMP939K2haR/gCsvfcGLdHWRz
-	 NUytH1A2ujT/XuuMySwF7qwz4BeRjDnxFz2FnAcmdXubBxcVaEI1NEVVUY5Zj8diql
-	 irCiFL5WjZveCBw2jdcfJPsPSUaH1zjO1FWgeOw74Vrak5lleehc+jl2+TVLAa9om3
-	 UlcyhkI6jUOFA==
-From: Leon Romanovsky <leon@kernel.org>
-To: linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>, 
- netdev@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>, 
- Tariq Toukan <tariqt@nvidia.com>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>, Cosmin Ratiu <cratiu@nvidia.com>, 
- "David S. Miller" <davem@davemloft.net>, 
- Dragos Tatulea <dtatulea@nvidia.com>, Eric Dumazet <edumazet@google.com>, 
- Gal Pressman <gal@nvidia.com>, Jakub Kicinski <kuba@kernel.org>, 
- Jason Gunthorpe <jgg@ziepe.ca>, open list <linux-kernel@vger.kernel.org>, 
- Paolo Abeni <pabeni@redhat.com>, Leon Romanovsky <leon@kernel.org>
-In-Reply-To: <20260930114227.139274-1-tariqt@nvidia.com>
-References: <20260930114227.139274-1-tariqt@nvidia.com>
-Subject: Re: [PATCH mlx5-next V2 00/10] mlx5: Move data direct
- infrastructure to mlx5_core
-Message-Id: <179086928533.370711.525345553365862636.b4-ty@kernel.org>
-Date: Thu, 01 Oct 2026 11:41:25 -0400
+	s=k20260515; t=1790869357;
+	bh=zY7hiSWpNWQ1NZ7dT4kZVCOsmEBmz09FezGfik0F4EQ=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=Hz+z90m6T4AFvhTLjAWEJzkHzl1yvHRl0d+n+2tWoeNCGvPl5NZc1uF8x5nNlsKNK
+	 vgTjpzNR7yicaNinm81MfiI3jf5JgNCOVfEUjsEpTNfhJ820WmbKCtAlmH3pIigq9H
+	 IuqUJg7G+Dui8XX7OQL0tbtsRtnZZayMlRchqdhU46AneL5l/8knCJ5CF02HYlbK5V
+	 p3nsFlwZjpKvWdpkkix0hJMJNrgDHH0qWcrlkkEGc+JV+5HTwPMuF0COcgsaB7P5OF
+	 g9ScjqinMzIbxNtfEOQKlzaY8wwOQbzTXj7Auhf8H7NakNgwMnUMKLWq7ngihk+pos
+	 utezY3OzmO4lQ==
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH v2] RDMA/rxe: validate cur_sge on the receive path
+ before indexing dma->sge[]
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Youngsung Ahn" <ays511.kr@gmail.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261001152345.3259024-1-ays511.kr@gmail.com>
+References: <20260930180119.2497360-1-ays511.kr@gmail.com>
+ <20261001152345.3259024-1-ays511.kr@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Thu, 01 Oct 2026 15:42:36 +0000
+Message-Id: <20261001154237.254481F00899@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-18f8f
 
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+s) to consider:
+- [High] RDMA/rxe: double-fetch TOCTOU vulnerability in copy_data() bounds =
+check
+--
 
-On Wed, 30 Sep 2026 14:42:17 +0300, Tariq Toukan wrote:
-> Data direct support currently lives in mlx5_ib, which owns the data
-> direct PCI driver, device matching and resource management. To prepare
-> for data direct support in netdev, move this infrastructure to mlx5_core
-> and provide a common interface for its consumers.
-> 
-> The series first replaces the direct IB unbind callback with a blocking
-> notifier chain, allowing multiple consumers to receive unbind events.
-> It then separates consumer registration from initialization,
-> consolidates the per-device state and resources, and keeps IB-specific
-> locking and MR teardown in mlx5_ib.
-> 
-> [...]
+commit 2fd3d60fe5490f46cfcd1b0614c53c62687fc767
+Author: Youngsung Ahn <ays511.kr@gmail.com>
 
-Applied, thanks!
+RDMA/rxe: validate cur_sge on the receive path before indexing dma->sge[]
 
-[01/10] RDMA/mlx5: Notify data direct users via a notifier chain on unbind
-        https://git.kernel.org/rdma/rdma/c/a727a424068b5d
-[02/10] RDMA/mlx5: Add mlx5_data_direct_supported() helper
-        https://git.kernel.org/rdma/rdma/c/2365f8d7f609cf
-[03/10] RDMA/mlx5: Make the data direct VUID query self-contained
-        https://git.kernel.org/rdma/rdma/c/ebbb9f87689998
-[04/10] RDMA/mlx5: Give the data direct PCI driver a proper name
-        https://git.kernel.org/rdma/rdma/c/0a4095faca722b
-[05/10] RDMA/mlx5: Move and rename data direct resource functions
-        https://git.kernel.org/rdma/rdma/c/47723d4febd62b
-[06/10] RDMA/mlx5: Add new registration stage for data direct users
-        https://git.kernel.org/rdma/rdma/c/1c879b1e9f2ed6
-[07/10] RDMA/mlx5: Extract IB specific lock out of data direct
-        https://git.kernel.org/rdma/rdma/c/26f27809b0034e
-[08/10] RDMA/mlx5: Consolidate data direct state into one object
-        https://git.kernel.org/rdma/rdma/c/f6c452b311f0e4
-[09/10] RDMA/mlx5: Pull data_direct resource creation in init phase
-        https://git.kernel.org/rdma/rdma/c/7611034dc86cfd
-[10/10] mlx5: Move data direct implementation to mlx5_core
-        https://git.kernel.org/rdma/rdma/c/00290b9ff59ef4
+This commit adds bounds validation for cur_sge in copy_data() on the receive
+path before the scatter/gather array is accessed. It intends to reject an
+out-of-range cur_sge to prevent denial of service or information leaks.
 
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
+> diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/r=
+xe/rxe_mr.c
+> index 2afda5154dfb9..0c510bb7ae2a7 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_mr.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_mr.c
+> @@ -436,6 +436,11 @@ int copy_data(
+>  		goto err2;
+>  	}
+> =20
+> +	if (unlikely(dma->cur_sge >=3D dma->num_sge)) {
 
+[Severity: High]
+Since dma can point directly into an attacker-controlled mmap'd ring buffer,
+could this introduce a double-fetch vulnerability?
+
+For example, on the send path, a WQE is retrieved without a kernel copy and
+passed along:
+
+rxe_requester()
+   finish_packet()
+       copy_data(..., &wqe->dma, ...)
+
+Earlier in copy_data(), sge is initialized by fetching dma->cur_sge:
+
+	struct rxe_sge *sge =3D &dma->sge[dma->cur_sge];
+
+Because the check added here lacks READ_ONCE(), the compiler could fetch
+dma->cur_sge twice from shared memory.
+
+A malicious thread might race to provide an out-of-bounds value for the fir=
+st
+fetch, followed by a valid value for this second fetch. This would bypass t=
+he
+check and result in an out-of-bounds dereference when sge->length is evalua=
+ted
+shortly after.
+
+Would caching dma->cur_sge locally with READ_ONCE() prevent this?
+
+> +		err =3D -EINVAL;
+> +		goto err2;
+> +	}
+> +
+>  	if (sge->length && (offset < sge->length)) {
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261001152345.3259=
+024-1-ays511.kr@gmail.com?part=3D1
