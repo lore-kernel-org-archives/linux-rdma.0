@@ -1,65 +1,82 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F6B8547045;
-	Fri,  2 Oct 2026 00:13:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 392568632B;
+	Fri,  2 Oct 2026 00:20:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790900028; cv=none; b=mqWM77Iu+rthsQyXtbwF7BmY58Sw96veNcO/SwA+kfOm6ZjG4LKHzTs2JCT3jut/JVKYDzirIEaxws+8L2ONRB5vAVb1tdQM690Rrfbl9fOoaUArvrM74qU7tZWR2FuVL+ZgZxChYAdGL59z23tMrtBrhCY8G0C2Z8UPy8nZNhw=
+	t=1790900411; cv=none; b=cs/NOdYQIjtAJDCxhUghUMQ7ch3Fxv4JYEMrmL/cGp/muToxFBlSNVhiH4kN6F2VcnaxIKdiTpQCXgNR9FH4aEA71OYkQ2j4H4Ppeyn7Vo8w/rF1PJNEzBG/5TZSkq9TmkNx68WEYg6XmiZyQM8qA5SF4DI9WRXXXayBzqatz8Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790900028; c=relaxed/simple;
-	bh=02mVl/6HwYUNDWB7dDCQuiZxKUXxbuur5L17Usnme9s=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=HHit4LLGYj8A8VhLOzPmpL08jhO6BxCRxIOUw+8GY6D0SZmiRCoKvomAS8Hun6oqMRGgzosCdMqr+Rr4nOrfir6m84k93w/2hx7aFoLzS8ceEOLwgj30Oxlg1zD8W9JClQbyfxP2pUWR8NAXUa2c04x+6AA7TJHnHJ37lL/CJTI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nBf0ik/a; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790900411; c=relaxed/simple;
+	bh=q/Y7bsOAyiZ5iTLS3p0NB8eFnp0RSW/9B1jMWgpGRfU=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=YRkysfniC0ZYvZ0eBEIRe7wMT8GQweLKHvnw5uEDuBG+YQOcOMF8LxVQAiG2I4wrO4z3I9VA22JUisbkTa26u0yX8W1Ms1j1Jke0p7IY7WSjToRRBA6pD0kIqx9jxfOfi4sAzY9ejoRLQB9BH3ZXuyGYEn6Z45tZY38k3eujH1A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TSxK2H+6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nBf0ik/a"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E1911F000FF;
-	Fri,  2 Oct 2026 00:13:46 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TSxK2H+6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 828011F000FF;
+	Fri,  2 Oct 2026 00:20:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790900027;
-	bh=LiiU+jYn+D7MDLNhgI1rcAYoMNaP3mJdQOYKHWh+nJM=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=nBf0ik/avV6a+Cdru2fpH2oO21psFfrUZANQOZoe9tvE9d0JA8LIQU152youHNPnj
-	 zIqOjlSW1nOz36M7yDBQZviPhyysNQlh62cChk5q7lil8uPe8ITsEg5Z7DW0XJxusY
-	 tHe3hmDD7QMLSSiYupIedU6QufrNTA2yQ05rCnud51Sq2IIcyV9BMtrTiz9mWLxz3F
-	 sPdvb8VTy1xHQnmvMvKaH5B6lw8MJeOWFtghsiBWfq6960ErC2lJG0RN3lrynkov+B
-	 Y4OTL9Vg3eT/xJHBB7+89YcB8immyhLzew94tjg5k+gUmyFdAQPCmvgpqk31GlWmEe
-	 ibyC/5mweVN5A==
-Date: Thu, 1 Oct 2026 17:13:45 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Atharva Vartak <atharva.a.vartak@gmail.com>
-Cc: security@kernel.org, alibuda@linux.alibaba.com,
- dust.li@linux.alibaba.com, mjambigi@linux.ibm.com, sidraya@linux.ibm.com,
- w@1wt.eu, tonylu@linux.alibaba.com, guwen@linux.alibaba.com,
- linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
- netdev@vger.kernel.org
-Subject: Re: [PATCH] net/smc: hold a reference on net_device returned by
- pnet_find_base_ndev()
-Message-ID: <20261001171345.1d9d0a2b@kernel.org>
-In-Reply-To: <6aba080c.b933486d.297b72.5042@mx.google.com>
-References: <arn3qTu_SeM8Yrjj@1wt.eu>
-	<6aba080c.b933486d.297b72.5042@mx.google.com>
+	s=k20260515; t=1790900409;
+	bh=uB56XxneOWmJ5Yj57p8lWjnR5tlD06ZBMPCtC4mp7Mo=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=TSxK2H+6ov33TVNg+bEtSoKL2gx503M5IRLrHsnAjUaSzBw5iype1JRhFf+CGV80U
+	 BKtzEYRz6JlJiqwdaCJMm1xPMz9eYgmKtSng53MBycXJAHRspbEMM3X9I+Zp9hQqja
+	 XCBOVHegjWBSW+Uix8Scg2mgm1FrI3Uh8wWlFBmNG+FOdwnkF5M+yaeaQydzNkqlLK
+	 Y0emI1c2AcVM1kz5Dj361TAqY+umZN4/N2FndYz7L2x9ns8n/g41iUjp6OZLzFZOnF
+	 /cIS7kCaMbIBg4GrTMMpTYpZAKC6atUH5D7TxklXHlOCS86G8cK5e5okamc/btzvIL
+	 bfum165s9XBKA==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 774F6381197C;
+	Fri,  2 Oct 2026 00:20:09 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next v4 0/2] net/rds: restrict the rdma_cm ids to IB
+ devices
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <179090040828.3154315.2324104902480212536.git-patchwork-notify@kernel.org>
+Date: Fri, 02 Oct 2026 00:20:08 +0000
+References: <20260927063058.170273-1-achender@kernel.org>
+In-Reply-To: <20260927063058.170273-1-achender@kernel.org>
+To: Allison Henderson <achender@kernel.org>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
+ edumazet@google.com, kuba@kernel.org, horms@kernel.org
 
-On Sun, 27 Sep 2026 23:24:12 -0700 (PDT) Atharva Vartak wrote:
-> @@ -949,6 +952,8 @@ static struct net_device *pnet_find_base_ndev(struct net_device *ndev)
->  {
->  	rtnl_lock();
->  	ndev = __pnet_find_base_ndev(ndev);
-> +	/* keep ndev alive after dropping RTNL, callers must dev_put() */
-> +	dev_hold(ndev);
->  	rtnl_unlock();
->  	return ndev;
+Hello:
 
-dev_hold() is deprecated, please use netdev_hold() with a correctly
-populated ref tracker.
+This series was applied to netdev/net-next.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
+
+On Sat, 26 Sep 2026 23:30:56 -0700 you wrote:
+> Hi all,
+> 
+> This is v4 of the rdma_cm id restriction (v1 at [1], v2 at [2], v3 at
+> [3]).  Patch 1 is the restriction itself; patch 2 is a small follow-on
+> the v3 review turned up in the function patch 1 touches.
+> 
+>   Patch 1 restricts the listener, the per-connection id and the probe
+>   id to RDMA_NODE_IB_CA with rdma_restrict_node_type(), so the rdma_cm
+>   never installs the RDS listener on, or binds an RDS id to, a device
+>   RDS has no transport for.
+> 
+> [...]
+
+Here is the summary with links:
+  - [net-next,v4,1/2] net/rds: restrict the rdma_cm ids to IB devices
+    https://git.kernel.org/netdev/net-next/c/c7fca8aae6fe
+  - [net-next,v4,2/2] net/rds: log the port a listener actually bound
+    https://git.kernel.org/netdev/net-next/c/00d77b181866
+
+You are awesome, thank you!
 -- 
-pw-bot: cr
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
