@@ -1,83 +1,97 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DED947A87E;
-	Fri,  2 Oct 2026 12:12:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF8D81E8826;
+	Fri,  2 Oct 2026 12:27:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790943164; cv=none; b=kzBadtFVTU6mO58DnBYSuQCPvhX7kr2gYJl1Jlji3q0/rMj+0CHm2hznCtUXgBo0Nb7rrVuLReOkfLF+RU+RqzWMR3i9BhI+ijULje3GLyyyuNTWnMdrQslM79OruX9qRl1UMC+LmTmYLKW7rN/DglyiY0ejJ/8zCKYaiPBlFUs=
+	t=1790944029; cv=none; b=erBqfgXGHsd1jVjLho7CugjYYYc55AleATwFlExXA1i1u7aZnMxJMylZf64qcSzNiY0/mDbVG4Z3pS3+8fvCZCn93ZZll1UKXZxjDy7KoqdQsNM5QKZy2HdnCtFX4ULDWwsJs8SRJNKC6r+id5cbcp8FYc5V4hStAHRLpUs7E8k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790943164; c=relaxed/simple;
-	bh=ZJ0Z/r4AiXTZAF8k8QwJ7RvpIWIKMzp9yZ5KsTu0k1c=;
+	s=arc-20240116; t=1790944029; c=relaxed/simple;
+	bh=Rz6XYStyWFzN0ZjvCDWKB7fThH12QCzItZ/47IqIX1M=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=nOeQQAfo1YyH7hFaDJJ8pUQXdVynPHoc8tLxW9kq3ePMtfBKZK/rDD7Xo3w3sZmOp34S8X8QbKtRPV+9IsYz4w9tLdNl/Up70FryHz3SJsorSkeHKbyvrzcfxiNxq6q371iQyNZjc6+Hgixb+kOfHbsbELyhgHQL217XOpvro+k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=c4yl8biB; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=nVGwnXLyY6g12xgkmUUko/v5dErWQpE6JuDyhfLd4cJzhHA0iqbUjJlyNYpOcpiO5CDoM5+lRMJlkNbCZAe4mWVflZKrX9YTc2remEg8chNRtKmJPEoGB1/p03XySvVDjntmpw4dLxN5NqpaRHZodhYMZzIMXBkb+mAUXwFS3SU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cxL+MpzC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="c4yl8biB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B7891F000FF;
-	Fri,  2 Oct 2026 12:12:23 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cxL+MpzC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C8FE1F000FF;
+	Fri,  2 Oct 2026 12:26:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790943162;
-	bh=nX94dzJL8Kj3ESX88e5wjImNlNtcKNqoM+7SGcE8uW0=;
+	s=k20260515; t=1790944027;
+	bh=hHcwGbw/dTLavCD1q0Wz915FUcvfzunoMb3D7u+JUi8=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=c4yl8biBSZCOSz8O02PAfeH7eOGxEphl+j5zx68yHK0rGgywavDJhETeCqFXtb525
-	 drYTuH322sqP8NPQ5ZewzHTnVOIMhBthJu+BRfYK/9P82Fewt1qESLmLaBje/QXlbU
-	 DwFWnhrzPDhC7iHk2BYxuuux04WkpQ1QaA4z1giCRe1/CYf+j/udPDx9BpMRBgE+zE
-	 0Pp4Nr8nepmdcGz6T4V/ZJP/q0Yksmr01oznoU9EHFYDe+Pybk4DVG6cBSpehyP9Up
-	 XaZfWzb0H55uTLR1CMcTUrzHQC2okp7EhDFf3/godjZFN6JSYYuusCC9eACzBjmltf
-	 QSU/lT7DTm+dw==
-Date: Fri, 2 Oct 2026 13:12:20 +0100
+	b=cxL+MpzC1cfSdjAOczoG1wPIbWTQrpCLMvzVBXSmnKiDFYDBMn64LTPj/OWtWuFXw
+	 gMS4it0MZsivPy8icpf5Socvb5mYV2Im4m2dtIO0izWysvPZaaVznKHHE8BUgxTm84
+	 r9D0MJpBzqhVcI1wDRYzLV3kd3Y/HTsDcWwM/QeLKcJvTZvL+5LlcKmc0a0aAwrQ2U
+	 ZYFaZjVC0hCZ6nCAC8I0h5O90ago1k3NGUIsPkt6VWSJG/PggFTuZRQsBvT4/V6tEj
+	 +1USCOD4kbv5ptO7N71o+f+lwiUaQKKZEz6kENcKDRXDz8XMOg2VDIFttVx9pefZu/
+	 Fg8q/hmZlpmxg==
+Date: Fri, 2 Oct 2026 13:26:38 +0100
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-To: Lance Yang <lance.yang@linux.dev>
-Cc: linux-mm@kvack.org, "Liam R. Howlett" <liam@infradead.org>, 
-	Andrew Morton <akpm@linux-foundation.org>, Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
-	David Hildenbrand <david@kernel.org>, Suren Baghdasaryan <surenb@google.com>, 
-	Mike Rapoport <rppt@kernel.org>, Vlastimil Babka <vbabka@kernel.org>, 
-	Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Paul Moore <paul@paul-moore.com>, Leon Romanovsky <leon@kernel.org>, 
+To: Zi Yan <ziy@nvidia.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, 
+	"Liam R. Howlett" <liam@infradead.org>, Vlastimil Babka <vbabka@kernel.org>, 
+	Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
+	David Hildenbrand <david@kernel.org>, Mike Rapoport <rppt@kernel.org>, 
+	Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, 
 	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, 
-	Jaroslav Kysela <perex@perex.cz>, Jason Gunthorpe <jgg@ziepe.ca>, 
-	Thomas Gleixner <tglx@kernel.org>, Usama Arif <usama.arif@linux.dev>, 
-	Dave Hansen <dave.hansen@linux.intel.com>, linux-kernel@vger.kernel.org, 
-	Kumar Kartikeya Dwivedi <memxor@gmail.com>, Daniel Borkmann <daniel@iogearbox.net>, 
-	Eduard Zingerman <eddyz87@gmail.com>, Zi Yan <ziy@nvidia.com>, Nico Pache <nico.pache@linux.dev>, 
-	Namhyung Kim <namhyung@kernel.org>, Ryan Roberts <ryan.roberts@arm.com>, x86@kernel.org, 
-	Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, Kiryl Shutsemau <kas@kernel.org>, 
-	"Martin K. Petersen" <mkp@kernel.org>, Baolin Wang <baolin.wang@linux.alibaba.com>, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Simona Vetter <simona@ffwll.ch>, Peter Xu <peterx@redhat.com>, 
-	Masami Hiramatsu <mhiramat@kernel.org>, Sebastian Reichel <sre@kernel.org>, 
-	Borislav Petkov <bp@alien8.de>, Arnaldo Carvalho de Melo <acme@kernel.org>, 
-	Harry Yoo <harry@kernel.org>, Rik van Riel <riel@surriel.com>, 
-	Peter Zijlstra <peterz@infradead.org>, Helge Deller <deller@gmx.de>, 
-	Mark Rutland <mark.rutland@arm.com>, Ingo Molnar <mingo@redhat.com>, 
-	Juri Lelli <juri.lelli@redhat.com>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
-	Vincent Guittot <vincent.guittot@linaro.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
-	Catalin Marinas <catalin.marinas@arm.com>, Nhat Pham <nphamcs@gmail.com>, 
-	Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Maxime Ripard <mripard@kernel.org>, 
-	Nick Piggin <npiggin@gmail.com>, "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, 
-	Muchun Song <muchun.song@linux.dev>, Marc Zyngier <maz@kernel.org>, Will Deacon <will@kernel.org>, 
-	"Matthew Wilcox (Oracle)" <willy@infradead.org>, Arnd Bergmann <arnd@arndb.de>, 
-	Madhavan Srinivasan <maddy@linux.ibm.com>, "David S. Miller" <davem@davemloft.net>, 
-	Paul Walmsley <pjw@kernel.org>, Anup Patel <anup@brainfault.org>, 
+	Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
+	Paul Moore <paul@paul-moore.com>, Stephen Smalley <stephen.smalley.work@gmail.com>, 
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
+	Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
+	Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>, 
+	Kumar Kartikeya Dwivedi <memxor@gmail.com>, Baolin Wang <baolin.wang@linux.alibaba.com>, 
+	Nico Pache <nico.pache@linux.dev>, Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, 
+	Barry Song <baohua@kernel.org>, Lance Yang <lance.yang@linux.dev>, 
+	Usama Arif <usama.arif@linux.dev>, Kiryl Shutsemau <kas@kernel.org>, 
+	Doug Gilbert <dgilbert@interlog.com>, "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, 
+	"Martin K. Petersen" <mkp@kernel.org>, Jaya Kumar <jayalk@intworks.biz>, 
+	Simona Vetter <simona@ffwll.ch>, Helge Deller <deller@gmx.de>, Sebastian Reichel <sre@kernel.org>, 
+	John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, 
+	Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
+	Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@kernel.org>, 
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, Arnaldo Carvalho de Melo <acme@kernel.org>, 
+	Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
+	Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, Juri Lelli <juri.lelli@redhat.com>, 
+	Vincent Guittot <vincent.guittot@linaro.org>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
+	Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
+	David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>, 
+	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, Nick Piggin <npiggin@gmail.com>, Arnd Bergmann <arnd@arndb.de>, 
+	Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
+	"Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan Kara <jack@suse.cz>, Marc Zyngier <maz@kernel.org>, 
+	Oliver Upton <oupton@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, 
+	Madhavan Srinivasan <maddy@linux.ibm.com>, Anup Patel <anup@brainfault.org>, Paul Walmsley <pjw@kernel.org>, 
 	Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
-	Vasily Gorbik <gor@linux.ibm.com>, Baoquan He <baoquan.he@linux.dev>, 
-	Andreas Larsson <andreas@gaisler.com>, Claudio Imbrenda <imbrenda@linux.ibm.com>, 
-	Kemeng Shi <shikemeng@huaweicloud.com>, Gregory Price <gourry@gourry.net>, Rakie Kim <rakie.kim@sk.com>, 
-	Christian Brauner <brauner@kernel.org>, Alistair Popple <apopple@nvidia.com>, 
-	Axel Rasmussen <axelrasmussen@google.com>, linux-doc@vger.kernel.org, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Matthew Brost <matthew.brost@intel.com>, 
-	Ying Huang <ying.huang@linux.alibaba.com>, Byungchul Park <byungchul@sk.com>, 
-	Joshua Hahn <joshua.hahnjy@gmail.com>, Xu Xin <xu.xin@linux.dev>, Chris Li <chrisl@kernel.org>, 
-	linux-usb@vger.kernel.org, Qi Zheng <qi.zheng@linux.dev>, Yuanchu Xie <yuanchu@google.com>, 
-	linux-rdma@vger.kernel.org, selinux@vger.kernel.org, Youngjun Park <youngjun.park@lge.com>, 
-	Chengming Zhou <chengming.zhou@linux.dev>, Wei Xu <weixugc@google.com>, Miklos Szeredi <miklos@szeredi.hu>, 
-	linux-sound@vger.kernel.org
-Subject: Re: [PATCH v3 10/40] drivers/usb/mon: update to use mmap_prepare +
- map kernel pages
-Message-ID: <ar-e6Njx2MHiGs7G@gremlin>
+	Christian Borntraeger <borntraeger@linux.ibm.com>, Janosch Frank <frankja@linux.ibm.com>, 
+	Claudio Imbrenda <imbrenda@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
+	Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Heiko Carstens <hca@linux.ibm.com>, 
+	Vasily Gorbik <gor@linux.ibm.com>, "David S. Miller" <davem@davemloft.net>, 
+	Andreas Larsson <andreas@gaisler.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Christian Brauner <brauner@kernel.org>, Matthew Brost <matthew.brost@intel.com>, 
+	Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, Byungchul Park <byungchul@sk.com>, 
+	Gregory Price <gourry@gourry.net>, Ying Huang <ying.huang@linux.alibaba.com>, 
+	Alistair Popple <apopple@nvidia.com>, Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>, 
+	Kemeng Shi <shikemeng@huaweicloud.com>, Nhat Pham <nphamcs@gmail.com>, Baoquan He <baoquan.he@linux.dev>, 
+	Youngjun Park <youngjun.park@lge.com>, Johannes Weiner <hannes@cmpxchg.org>, 
+	Qi Zheng <qi.zheng@linux.dev>, Shakeel Butt <shakeel.butt@linux.dev>, 
+	Axel Rasmussen <axelrasmussen@google.com>, Yuanchu Xie <yuanchu@google.com>, Wei Xu <weixugc@google.com>, 
+	Chengming Zhou <chengming.zhou@linux.dev>, Michal Hocko <mhocko@kernel.org>, 
+	Miklos Szeredi <miklos@szeredi.hu>, Xu Xin <xu.xin@linux.dev>, linux-mm@kvack.org, 
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, 
+	linux-rdma@vger.kernel.org, selinux@vger.kernel.org, linux-sound@vger.kernel.org, 
+	bpf@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org, 
+	dri-devel@lists.freedesktop.org, linux-trace-kernel@vger.kernel.org, 
+	linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, 
+	kvm@vger.kernel.org, kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org, 
+	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, fuse-devel@lists.linux.dev
+Subject: Re: [PATCH v3 23/40] mm/mlock: clear VMA_LOCKED_MASK over mmap
+ callback
+Message-ID: <ar-i13TARsDuUsQg@gremlin>
 References: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-0-4583d8a23bca@kernel.org>
- <20260917-b4-mmap-prepare-vma-flag-sanify-v3-10-4583d8a23bca@kernel.org>
- <90811f7b-1751-49cb-bf0b-3d5ee7f10e45@linux.dev>
+ <20260917-b4-mmap-prepare-vma-flag-sanify-v3-23-4583d8a23bca@kernel.org>
+ <DLTLQ9NOBV36.1D1MY7SZABEQP@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -86,46 +100,72 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <90811f7b-1751-49cb-bf0b-3d5ee7f10e45@linux.dev>
+In-Reply-To: <DLTLQ9NOBV36.1D1MY7SZABEQP@nvidia.com>
 
-On Fri, Oct 02, 2026 at 05:55:56PM +0800, Lance Yang wrote:
+On Thu, Oct 01, 2026 at 11:20:17AM -0400, Zi Yan wrote:
+> On Thu Sep 17, 2026 at 12:22 PM EDT, Lorenzo Stoakes (ARM) wrote:
+> > Currently there's a confusing mess around VMA_LOCKED_BIT and
+> > VMA_LOCKONFAULT_BIT.
+> >
+> > It is permitted for drivers to set any flags they like, with the VMA
+> > already possessing lock flags.
+> >
+> > This results in the absurd situation of a VMA possessing both
+> > VMA_SPECIAL_FLAGS and VMA_LOCKED_MASK flags, which is not permitted.
+> >
+> > This has resulted in mlock_vma_folio() having a very silly check for this
+> > scenario to work around it.
+> >
+> > There is no need for this - just clear the flags before invoking the hook
+> > and reinstate them afterwards if they are required.
+> >
+> > Nothing relies upon this being set during the mmap operation.
+> >
+> > mmap_prepare is unaffected by this so requires no fix.
+> >
+> > Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+> > ---
+> >  mm/internal.h |  9 +--------
+> >  mm/vma.c      | 14 ++++++++++++++
+> >  2 files changed, 15 insertions(+), 8 deletions(-)
+> >
+> <snip>
 >
->
-> On 2026/9/18 00:22, Lorenzo Stoakes (ARM) wrote:
-> [...]
-> > +static int mon_bin_discontig_init(void *vm_private_data, void **private)
-> > +{
-> > +	struct mon_reader_bin *rp = vm_private_data;
+> > +	/* If VMA flags still valid for locked mask, reinstate. */
+> > +	if (vma_supports_mlock(vma)) {
+> > +		const vma_flags_t mask =
+> > +			vma_flags_and_mask(&map->vma_flags,
+> > +					   VMA_LOCKED_MASK);
 > > +
-> > +	/* Dropped by mon_bin_vma_close() on unmap, including on error. */
-> > +	__mon_bin_vma_open(rp);
+> > +		vma_set_flags_mask(vma, mask);
 >
-> Em ... If Coda uses a usbmon container and the first page insertion fails
-> (e.g. -ENOMEM when allocating a page table) after mon_bin_discontig_init(),
-> where is mmap_active decremented?
->
-> mmap_action_finish() returns the error when is_compat is true, and
-> mmap_file() then replaces vm_ops with dummy ops.
->
-> Am i missing something?
+> It took me a while to figure out vma_set_flags_mask() is an OR
+> operation.
 
-No, indeed, the contract isn't honoured in the compat path.
+Yeah naming is hard :)
 
-It can't actually happen in practice - the compat layer is only ever
-accessed from a stacked filesystem and those only stack on regular files.
-
-But I should probably update this to be strictly correct regardless to be
-consistent with the non-compat path.
-
-Let me see if that looks sensible and rejig for v4, thanks! :)
+Let me add a comment here though because it's kinda a bit unusual.
 
 >
-> > +	return 0;
-> > +}
+> > +	}
+> > +
+> >  	map->vma_flags = vma->flags;
+> >
+> >  	return 0;
 >
-> Cheers, Lance
+> Otherwise, LGTM.
 >
-> [...]
+> Reviewed-by: Zi Yan <ziy@nvidia.com>
+
+Thanks!
+
+>
+>
+>
+> --
+> Best Regards,
+> Yan, Zi
+>
 
 --
 Cheers, Lorenzo
