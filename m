@@ -1,120 +1,135 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mta1.migadu.com (out-2.mta1.migadu.com [95.215.58.2])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D941D446821
-	for <linux-rdma@vger.kernel.org>; Fri,  2 Oct 2026 09:13:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6433A47DD7A
+	for <linux-rdma@vger.kernel.org>; Fri,  2 Oct 2026 09:56:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.2
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790932388; cv=none; b=i3sX3clyuCt4iOO0JBSj0C5sijJB7D9C/k3YPLy35lbU98KkEzCO8JOPcnXJ2A5J5eBukheUtYh298ZbDmdi7Au4BrLQZH7J/GqvsHBmpyZkcQ4Ee3+Vsb/NHuSVCOgwuMRpMt8XSaonTk1cysrOgnbpRmdHf6TvfhkH9HeyUso=
+	t=1790934999; cv=none; b=hVb5LPkvSpxli/tyYG9DZNE5GXrpaJzFCU+/Mu8LpGKOVxjwet1tFLkbsrpiOXsTdVXdo2NY1cGPAz10styUEzVYKEhMkFwVIfuEHi9Nbg5Y22zxyQQtNW/vKalSYOPDQ5hLfXx7hroIkEmRye18/gEXsk7YvYRxIbpypuLT/CY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790932388; c=relaxed/simple;
-	bh=GYqF1lkqPNYhpigXCokc4TJrnSjwUyfr1Z5+pm6juHk=;
-	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=OyM04BKg3QOS0ODa4yTK2EI2Py+utQtgMVFtk244HsFOCfrHQalqzmK3WhtDawWA5iJw+vZLIFy/tj934X7ynOulqcK9R6rGb8eM65GXaurUFqZ3eHVFrN/ZjO0+0Y1g4LscBIAerFrH3FZSSvDLcaqJv49Ir584Fl57NbhNKV8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=btOZW1yq; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790934999; c=relaxed/simple;
+	bh=92W4VZCSKNhkkdED6V3xajazvmttQRmFoqQ3AYY4EWM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=JtEB1ZyKP5/DOb3ObYAW9TZcc1Nq1rY8L8haxELgNKQoy4aFFYNfsGpVRnIRx5ZQEdlETQGEr5Nlb45YVSHZOzuYR6v4J3WiUWECrotBDKT7fWX6dN+hUwsIyWFG88k6lHW7f5KwxI6n+LDi1xyQn1Zomxgrc7pmxiDFc62m9o0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=H+RRj5jM; arc=none smtp.client-ip=95.215.58.2
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="btOZW1yq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85C271F0089A;
-	Fri,  2 Oct 2026 09:13:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790932386;
-	bh=1iEulYUpegWRR3djDHg64C4HAppsodOKmaGCgAFQDKc=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=btOZW1yq1vGYKTusAdku0Q5n+mNO1XirmLNIloPAL2TNJIv4C0a+0/zks50bTBG36
-	 QlvYPgBiqHrPizcKnDNC8sIXKIROBc06Wkw4ts0IGknnAxjvbI4+cvPqLh8jpa4PrW
-	 nAfUfKik0CXAdE26y2h5hjwxNRSmsoTI8UtN1aDQRc2kmy9BB1jMWFGtuvqILa6My0
-	 +LvFdIkygDUzSMRn7nQMG4RbQfxMFd/dZBkhWb8ABPGnPWEeB/jjNplAxb61xYpu2R
-	 6TF2A6kVEcphfvIdLnrGB5CmQR8usOVj7o3JzfVXuMFKPTQWtQWHb89t69Or7/YTLg
-	 sZKNItAmmYKzA==
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next 06/10] RDMA/mana_ib: Post send and
- memory-management WRs on RC QPs
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Konstantin Taranov" <kotaranov@linux.microsoft.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261001182015.1757203-7-kotaranov@linux.microsoft.com>
-References: <20261001182015.1757203-1-kotaranov@linux.microsoft.com>
- <20261001182015.1757203-7-kotaranov@linux.microsoft.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Fri, 02 Oct 2026 09:13:06 +0000
-Message-Id: <20261002091306.85C271F0089A@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="H+RRj5jM"
+X-Envelope-To: linux-rdma@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=92W4VZCSKNhkkdED6V3xajazvmttQRmFoqQ3AYY4EWM=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1790934995; v=1; x=1791539795;
+ b=H+RRj5jMfyY5EiX9+rlut0MOhxhNeJD1y/XtZjIq8MZBZZULb3mSJ6xTH9JihyOKUmn747wW
+ Zi1edo5Zvv2ht5X2yKTHd1I6SBeMyICbpDqsDglDULJqQY6LrpUhHJg4vO8dhcaAssbEdKzdAMC
+ 143b0C2OWtRG6tbRPmqQTIy4=
+X-Envelope-To: linux-rdma@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id 5ac8ebf340b273e0;
+	Fri, 02 Oct 2026 09:56:30 +0000
+X-Mizu-Trace-ID: 5ac8ebf340b273e0
+X-Migadu-Flow: FLOW_OUT
+Message-ID: <90811f7b-1751-49cb-bf0b-3d5ee7f10e45@linux.dev>
+Date: Fri, 2 Oct 2026 17:55:56 +0800
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 10/40] drivers/usb/mon: update to use mmap_prepare +
+ map kernel pages
+Content-Language: en-US
+To: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Cc: linux-mm@kvack.org, "Liam R. Howlett" <liam@infradead.org>,
+ Andrew Morton <akpm@linux-foundation.org>, Jann Horn <jannh@google.com>,
+ Pedro Falcato <pfalcato@suse.de>, David Hildenbrand <david@kernel.org>,
+ Suren Baghdasaryan <surenb@google.com>, Mike Rapoport <rppt@kernel.org>,
+ Vlastimil Babka <vbabka@kernel.org>, Michal Hocko <mhocko@suse.com>,
+ Jonathan Corbet <corbet@lwn.net>, Paul Moore <paul@paul-moore.com>,
+ Leon Romanovsky <leon@kernel.org>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+ Jaroslav Kysela <perex@perex.cz>, Jason Gunthorpe <jgg@ziepe.ca>,
+ Thomas Gleixner <tglx@kernel.org>, Usama Arif <usama.arif@linux.dev>,
+ Dave Hansen <dave.hansen@linux.intel.com>, linux-kernel@vger.kernel.org,
+ Kumar Kartikeya Dwivedi <memxor@gmail.com>,
+ Daniel Borkmann <daniel@iogearbox.net>, Eduard Zingerman
+ <eddyz87@gmail.com>, Zi Yan <ziy@nvidia.com>,
+ Nico Pache <nico.pache@linux.dev>, Namhyung Kim <namhyung@kernel.org>,
+ Ryan Roberts <ryan.roberts@arm.com>, x86@kernel.org,
+ Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
+ Kiryl Shutsemau <kas@kernel.org>, "Martin K. Petersen" <mkp@kernel.org>,
+ Baolin Wang <baolin.wang@linux.alibaba.com>,
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+ Simona Vetter <simona@ffwll.ch>, Peter Xu <peterx@redhat.com>,
+ Masami Hiramatsu <mhiramat@kernel.org>, Sebastian Reichel <sre@kernel.org>,
+ Borislav Petkov <bp@alien8.de>, Arnaldo Carvalho de Melo <acme@kernel.org>,
+ Harry Yoo <harry@kernel.org>, Rik van Riel <riel@surriel.com>,
+ Peter Zijlstra <peterz@infradead.org>, Helge Deller <deller@gmx.de>,
+ Mark Rutland <mark.rutland@arm.com>, Ingo Molnar <mingo@redhat.com>,
+ Juri Lelli <juri.lelli@redhat.com>,
+ Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+ Vincent Guittot <vincent.guittot@linaro.org>,
+ Thomas Zimmermann <tzimmermann@suse.de>,
+ Catalin Marinas <catalin.marinas@arm.com>, Nhat Pham <nphamcs@gmail.com>,
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+ Maxime Ripard <mripard@kernel.org>, Nick Piggin <npiggin@gmail.com>,
+ "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>,
+ Muchun Song <muchun.song@linux.dev>, Marc Zyngier <maz@kernel.org>,
+ Will Deacon <will@kernel.org>, "Matthew Wilcox (Oracle)"
+ <willy@infradead.org>, Arnd Bergmann <arnd@arndb.de>,
+ Madhavan Srinivasan <maddy@linux.ibm.com>,
+ "David S. Miller" <davem@davemloft.net>, Paul Walmsley <pjw@kernel.org>,
+ Anup Patel <anup@brainfault.org>, Palmer Dabbelt <palmer@dabbelt.com>,
+ Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>,
+ Baoquan He <baoquan.he@linux.dev>, Andreas Larsson <andreas@gaisler.com>,
+ Claudio Imbrenda <imbrenda@linux.ibm.com>,
+ Kemeng Shi <shikemeng@huaweicloud.com>, Gregory Price <gourry@gourry.net>,
+ Rakie Kim <rakie.kim@sk.com>, Christian Brauner <brauner@kernel.org>,
+ Alistair Popple <apopple@nvidia.com>,
+ Axel Rasmussen <axelrasmussen@google.com>, linux-doc@vger.kernel.org,
+ Alexander Viro <viro@zeniv.linux.org.uk>,
+ Matthew Brost <matthew.brost@intel.com>,
+ Ying Huang <ying.huang@linux.alibaba.com>, Byungchul Park
+ <byungchul@sk.com>, Joshua Hahn <joshua.hahnjy@gmail.com>,
+ Xu Xin <xu.xin@linux.dev>, Chris Li <chrisl@kernel.org>,
+ linux-usb@vger.kernel.org, Qi Zheng <qi.zheng@linux.dev>,
+ Yuanchu Xie <yuanchu@google.com>, linux-rdma@vger.kernel.org,
+ selinux@vger.kernel.org, Youngjun Park <youngjun.park@lge.com>,
+ Chengming Zhou <chengming.zhou@linux.dev>, Wei Xu <weixugc@google.com>,
+ Miklos Szeredi <miklos@szeredi.hu>, linux-sound@vger.kernel.org
+References: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-0-4583d8a23bca@kernel.org>
+ <20260917-b4-mmap-prepare-vma-flag-sanify-v3-10-4583d8a23bca@kernel.org>
+From: Lance Yang <lance.yang@linux.dev>
+In-Reply-To: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-10-4583d8a23bca@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
-- [High] rdma/mana_ib: WQE ring buffer overwrite due to missing SQ SGE boun=
-ds check
---
 
-commit 7f1f7264400f5f00c6c885de8b54ac6900f87a1f
-Author: Konstantin Taranov <kotaranov@microsoft.com>
 
-RDMA/mana_ib: Post send and memory-management WRs on RC QPs
-
-This commit implements send work request posting for RC QPs in the mana_ib
-driver. It posts communication work requests to the send queue and memory
-work requests to the memory management queue.
-
-> diff --git a/drivers/infiniband/hw/mana/wr.c b/drivers/infiniband/hw/mana=
-/wr.c
-> index 5d42af91fce4a..6cc67537c6557 100644
-> --- a/drivers/infiniband/hw/mana/wr.c
-> +++ b/drivers/infiniband/hw/mana/wr.c
-[ ... ]
-> @@ -224,6 +289,287 @@ static int mana_ib_post_send_ud(struct mana_ib_qp *=
-qp, const struct ib_send_wr *
->  	return err;
->  }
-> =20
-> +static int mana_ib_post_sq(struct mana_ib_qp *qp, const struct ib_send_w=
-r *wr)
+On 2026/9/18 00:22, Lorenzo Stoakes (ARM) wrote:
+[...]
+> +static int mon_bin_discontig_init(void *vm_private_data, void **private)
 > +{
-> +	struct gdma_queue *sq =3D qp->rc_qp.queues[MANA_RC_SEND_QUEUE_REQUESTER=
-].kmem;
-[ ... ]
-> +	int err, i;
+> +	struct mon_reader_bin *rp = vm_private_data;
 > +
-> +	if (shadow_queue_full(&qp->shadow_sq))
-> +		return -ENOMEM;
-> +
-> +	if (wr->num_sge > MAX_TX_WQE_SGL_ENTRIES)
-> +		return -EINVAL;
+> +	/* Dropped by mon_bin_vma_close() on unmap, including on error. */
+> +	__mon_bin_vma_open(rp);
 
-[Severity: High]
-Does this bounds check in mana_ib_post_sq() allow out-of-bounds memory writ=
-es
-if a kernel RDMA client provides a wr->num_sge that is larger than the QP's
-negotiated maximum capacity?
+Em ... If Coda uses a usbmon container and the first page insertion fails
+(e.g. -ENOMEM when allocating a page table) after mon_bin_discontig_init(),
+where is mmap_active decremented?
 
-Other RDMA core providers typically validate num_sge against the QP's speci=
-fic
-limits because clients can misuse the API.
+mmap_action_finish() returns the error when is_compat is true, and
+mmap_file() then replaces vm_ops with dummy ops.
 
-[ ... ]
-> +	wqe_req.inline_oob_size =3D INLINE_OOB_EXTRA_LARGE_SIZE;
-> +	wqe_req.inline_oob_data =3D &send_oob;
-> +	wqe_req.client_data_unit =3D ib_mtu_enum_to_int(qp->mtu);
-> +	wqe_req.flags |=3D GDMA_WR_GENERATION_1;
-> +	wqe_req.wqe_size_in_bu =3D qp->rc_qp.wqe_size_in_bu;
+Am i missing something?
 
-Because the WQE size is explicitly fixed to the QP's configured size here, =
-if
-wr->num_sge is larger than the QP's negotiated capacity but still less than=
- or
-equal to MAX_TX_WQE_SGL_ENTRIES, mana_gd_post_work_request() will use
-wqe_size_in_bu to calculate the ring buffer slot size.
+> +	return 0;
+> +}
 
-Meanwhile, mana_gd_write_ib_sgl() will write the full wr->num_sge entries i=
-nto
-the queue. This can overwrite the adjacent WQE in the ring buffer, leading =
-to
-hardware memory corruption.
+Cheers, Lance
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261001182015.1757=
-203-1-kotaranov@linux.microsoft.com?part=3D6
+[...]
