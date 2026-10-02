@@ -1,80 +1,68 @@
-Received: from outbound.baidu.com (mx24.baidu.com [111.206.215.185])
-	by smtp.subspace.kernel.org (Postfix) with SMTP id 9F6C2488D84
-	for <linux-rdma@vger.kernel.org>; Fri,  2 Oct 2026 11:03:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=111.206.215.185
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02E7348820B
+	for <linux-rdma@vger.kernel.org>; Fri,  2 Oct 2026 11:14:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790939043; cv=none; b=oTJabxpA5GEA4E5ZCuMpzTATatZDWTkyqucl6TTD3nPUYhxycZOkfK69NocXH9smZhfxTBcmwGB410TSXRHiWvoR8DGAfG6glXqZqrTMk+I38dFYyDcIR1k89TgLFK7JA+XfgegB4x1J2IP91ULERL/MASS11rIKf9H8oK3oDow=
+	t=1790939648; cv=none; b=Y0WdaVpqh5YLNlGHHJSfUHxueMb34E2RwuwUM8UIKOmP5buCld25t0zP2g54dbi5eonwfl6TVpiEkvL0DNF6kkTpqCMS9Uzn7j3j7lNokciYRkpdxU6DaMT966C58FZcQGBozW5Eu3xIEGfKCNDPckOhLLvwU/HLNpqHgv0abtU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790939043; c=relaxed/simple;
-	bh=qsRw7LQx8p19ZvpMrZkZpoe9DfiyAwPADmJYAbUUVK0=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=DF43pZxG7Vfarjl09bwaKQQRJgy0p7eFI+NFNBjhwLbzjY9NZaZ0kLbQc0MbQAJmkurQkUv3iy55jWQ7Bx0P7bA5uMb6mUf3amQeaBrp2dI/q6Qsq3eEnib9JQxhwPae/k0l/NGra2TASScI04moCNB2DwF/fmXIHr9YAVIl7kk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com; spf=pass smtp.mailfrom=baidu.com; dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b=jx/QFEJW; arc=none smtp.client-ip=111.206.215.185
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baidu.com
+	s=arc-20240116; t=1790939648; c=relaxed/simple;
+	bh=cbrvw5/hbnBVDhDUnlAd8toYiqhrB52ctswrnkhjZ3M=;
+	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
+	 Message-Id; b=u7Lal4GvPDt7hsyyFblwIv6D8g1QrPqiUryjH+7DyJWf0Mn5WBi6LHO2gQX6QX7qH12I/N7HzGN4lt5Pn4KjqAJ1oMWk+F9GTR958eOvrU2C93iiD+TdoeBKhgxguYx6EZqxANECB8QAA99GF5cnlXI+py/PmGgqy1YU61Oj5DA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=i0Dz3jgx; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b="jx/QFEJW"
-X-MD-Sfrom: lirongqing@baidu.com
-X-MD-SrcIP: 172.31.50.47
-From: lirongqing <lirongqing@baidu.com>
-To: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>,
-	<linux-rdma@vger.kernel.org>
-CC: Li RongQing <lirongqing@baidu.com>
-Subject: [PATCH] RDMA/mlx5: Fix NULL deref in del_sa_roce_rule() on allocation failure
-Date: Fri, 2 Oct 2026 19:03:29 +0800
-Message-ID: <20261002110329.2350-1-lirongqing@baidu.com>
-X-Mailer: git-send-email 2.17.1
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="i0Dz3jgx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2332E1F000FF;
+	Fri,  2 Oct 2026 11:14:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790939645;
+	bh=veyah7rD/w4/ECBzL8pHJf8AG1kE5uDTDhV8XvFQMZ0=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=i0Dz3jgxgAHwT0wYrF+3B7I0QzoW/hAPpuRYitJvYNeJb9p1QB4qcx5c9Gmey3Y2v
+	 9P0UUhLtOJ4qeW8ThS/3rYQt5y2ncQllfV4ls4ssLj2u0AL65RwWkJpEIe6qoDAADz
+	 73G3VexU5qC0rIZnnhshVEuJERZD6KAPpMOdjSoQdE6pBAhgE6Z8e7GMYuRBnwZveq
+	 qHcat+zao6WNOVCoSFc1SxFwV/dDMqH/twQeb1gjnnrKd89mQhD+13y8+5VF3HGUC0
+	 cOSuwhHZQVHorZ6lP5AcbhqKFJFtnst10k0YOifJdtWkviAnZC7qiOFt9yyZDEk7d5
+	 FO0GC4MG6M9Hw==
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH] RDMA/mlx5: Fix NULL deref in del_sa_roce_rule() on
+ allocation failure
+Reply-To: sashiko-reviews@lists.linux.dev
+To: lirongqing <lirongqing@baidu.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261002110329.2350-1-lirongqing@baidu.com>
+References: <20261002110329.2350-1-lirongqing@baidu.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Fri, 02 Oct 2026 11:14:04 +0000
+Message-Id: <20261002111405.2332E1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain
-X-ClientProxiedBy: bjhj-exc14.internal.baidu.com (172.31.4.12) To
- bjkjy-exc3.internal.baidu.com (172.31.50.47)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=baidu.com;
-	s=selector1; t=1790939026;
-	bh=kZMRB66FeUR6H80WPDVAk0CnHPzPxiW67ZMlqZS3rQ8=;
-	h=From:To:CC:Subject:Date:Message-ID:Content-Type;
-	b=jx/QFEJWkMuKnfiBnWntcnpOvAiK9tFxqOygvLffIQ2qERi4Vv22tsBv3cB7XRVF5
-	 imvqBlEkvbum2aVGjE877oTipcJuZREAvevQSo1MwtDhUdSmUaJ9y9Kz6UzEdnf9WX
-	 U2Sa3WXG9jMe7O3uy1y2iT8xqpsBj7BMjgAesGG3bHDyYLpp1AFF0xBfbaGs7tEDCu
-	 B0bhsDPeh0AfHYR5uf9PEdDJHLOrwgCZhTSJ1G/AQOYpESEouGet2AZ+ovqghwUSxv
-	 s9FGzyDJzBDpbKJ0dqk8Re5JBpHwKYs5quSd7uXGJN+wKVzdJAiNi9UomFTPD11+In
-	 wm6D49xstg9DQ==
 
-From: Li RongQing <lirongqing@baidu.com>
+> From: Li RongQing <lirongqing@baidu.com>
+>=20
+> get_macsec_device() allocates and links a new mlx5_macsec_device when
+> the macdev has no existing entry, and returns NULL when that allocation
+> fails.  del_sa_roce_rule() only flagged the NULL case with WARN_ON() and
+> kept dereferencing macsec_device, so a MACsec SA delete event for a
+> macdev that was never set up by the RoCE GID path would dereference NULL
+> under memory pressure.
+>=20
+> Return after the warning so the SA delete event is dropped instead of
+> oopsing.
+>=20
+> Fixes: 58dbd6428a68 ("RDMA/mlx5: Handles RoCE MACsec steering rules addit=
+ion and deletion")
+> Signed-off-by: Li RongQing <lirongqing@baidu.com>
 
-get_macsec_device() allocates and links a new mlx5_macsec_device when
-the macdev has no existing entry, and returns NULL when that allocation
-fails.  del_sa_roce_rule() only flagged the NULL case with WARN_ON() and
-kept dereferencing macsec_device, so a MACsec SA delete event for a
-macdev that was never set up by the RoCE GID path would dereference NULL
-under memory pressure.
+Sashiko has reviewed this patch and found no issues. It looks great!
 
-Return after the warning so the SA delete event is dropped instead of
-oopsing.
-
-Fixes: 58dbd6428a68 ("RDMA/mlx5: Handles RoCE MACsec steering rules addition and deletion")
-Signed-off-by: Li RongQing <lirongqing@baidu.com>
----
- drivers/infiniband/hw/mlx5/macsec.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/mlx5/macsec.c b/drivers/infiniband/hw/mlx5/macsec.c
-index 4732be5..37394ea 100644
---- a/drivers/infiniband/hw/mlx5/macsec.c
-+++ b/drivers/infiniband/hw/mlx5/macsec.c
-@@ -119,7 +119,8 @@ static void del_sa_roce_rule(struct list_head *macsec_devices_list,
- 	struct mlx5_macsec_device *macsec_device;
- 
- 	macsec_device = get_macsec_device(data->macdev, macsec_devices_list);
--	WARN_ON(!macsec_device);
-+	if (WARN_ON(!macsec_device))
-+		return;
- 
- 	mlx5_macsec_del_roce_sa_rules(data->fs_id, data->macsec_fs,
- 				      &macsec_device->tx_rules_list,
--- 
-2.9.4
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261002110329.2350=
+-1-lirongqing@baidu.com?part=3D1
 
