@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C4F51DF75B;
-	Sat,  3 Oct 2026 09:04:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7A362CCC6;
+	Sat,  3 Oct 2026 13:17:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791018243; cv=none; b=PL7UBZi9abnBNfYCTJqmgs1mIlnFGFPTt8YvMMpwyzH3PEQW5He7OXl8oJPq8Cph58qYNxx72H/HceB449V/lqZ7tFw4pctDvar6IzZt05bdC6uIHa/RTDj4esVb7k3hKaXKAwZHC8FVJRwW3lk2RMUnlXJxq1o2h/zh2Oy0oX8=
+	t=1791033439; cv=none; b=sTSfZ9VX5Pix+m8pt8UasUlJQM70yeu2ROicI4r9bp/20xknINL2wItFWZyEzcZKV6ZkyZOn2TXqcCU6sQcBk5ASiOxNdw0pEz82Fo1i8RXva0RMBL1NMK0E097WxecHTvMvXeHKRSGftTtL+Hc+qLf5ln0JrI0hkbBsQkfwxxo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791018243; c=relaxed/simple;
-	bh=ySVPAx6FaV3b8M7WMt7yxSlRhPhy0oNRcPgzmnCJNSo=;
+	s=arc-20240116; t=1791033439; c=relaxed/simple;
+	bh=iETBdhyd8YA5sdOaV2DmrYdJe9iH68XFXxBT/H5DVtY=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Wg6m51J5JdeRNoH7nrBAfXINIhtt/jk9jjUsH3MvWswIIbUG4ao3XDbCZpWyq2HEsiYsasr0uvY1HJFY8WRW+kR+rYkc77MNrlu/htTi3zzbG6+PCF1sUKo7EqB8fb3j1/xdePAJoBe9eBnUGpwnbME15mc7PAx+zulBlwKjbTA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UU+loouH; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=OtEbh5KxIeN5abM7wrfCQQ/AgTfKwa1PZyTtJSkEsDeUNSbclHQ5wq4fwvYiSxmlM1OiwU7NcALWy+b03FUazdA+V9ZWoJxCtoKfodtguil87gMhDrGH+01iXlFotOhsaCYSIoW0MyPB3vrckc6JwzP3dUXfjTJ3oR1fUKVcCgY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EgLBtik0; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UU+loouH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 767B81F0089B;
-	Sat,  3 Oct 2026 09:03:34 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EgLBtik0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98E6A1F0089B;
+	Sat,  3 Oct 2026 13:16:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791018241;
-	bh=NITJ8yWQ1OUFlY+k5bUccAdy4sUgfCl1c+vQ6EKuHAU=;
+	s=k20260515; t=1791033437;
+	bh=/jEE4HcLwsM6TWLGremQKfzztE+rwvfFYJGPZmoq8a8=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=UU+loouHu/X9/2nGZUM3yCjbj4m/KC/TpyT2T7f6ukoZ0E8xdeCQhCux5NhqFywrK
-	 emhXMJF4ztWEAjcQUfNwmoOfmxWibJrgcS0Y14+/3QYIKiQ5kMD+QrEiMuTQiog1N8
-	 HdzT/Ef9+BC0kDIPVp13fKjpTa3KnJQlYUuTeVVgi+gEshYQcDbogRYzy1bU/u88qg
-	 37uls/VRrrDFxVnS7En+EP+D0EmvYFVAJfg454GL12+afZ6I3k3lu7HdNKAXHgZG9u
-	 cVstBTuY/reLAY7kfSL/oJgi0aXYVR8zFlCr4BXzJpC7jM5kV2qrlq5ymtar6nRky1
-	 2H6/ZXoDRdmXg==
-Date: Sat, 3 Oct 2026 10:03:31 +0100
+	b=EgLBtik0WJzJCXWY/9/TI+W7fRx1wIZ9UfQuWfc+RhMCCFMM/xZJ03UyprLnrZDIx
+	 +hSP6z4pIAKExuSJlxbZygGALgGCQywzqqoPN2+Boz6NDgyFCoTr0xtw8XwpV2ytvg
+	 iOEb69EMyCjSZk8NVHT0gmIKW0rVbZ0F8RMvb9s4VF2Dbo0UftiN8tf9aa6rRRTzuW
+	 Fpm1LnU0F8ufx8E3b1Xf3T36YgbMjc4jOyHoaXzj2tW9/dfBgzxbHqld35pMVHgUgN
+	 4zsEh/CAz3fCIdmxhWutMDOLIRfajy8aGYLGHSvm01TwlgzafI+V3dGI5soFrbsjYq
+	 SFWdbxe9eRGJQ==
+Date: Sat, 3 Oct 2026 14:16:46 +0100
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
 To: "David Hildenbrand (Arm)" <david@kernel.org>
 Cc: Andrew Morton <akpm@linux-foundation.org>, 
@@ -86,14 +86,18 @@ Cc: Andrew Morton <akpm@linux-foundation.org>,
 	linux-arm-kernel@lists.infradead.org, kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, 
 	kvm@vger.kernel.org, kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org, 
 	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, fuse-devel@lists.linux.dev
-Subject: Re: [PATCH v3 15/40] mm/vma: add vma[_flags]_is_kernel_owned()
- predicates
-Message-ID: <asDDLXqBduWVX0k8@gremlin>
-References: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-0-4583d8a23bca@kernel.org>
- <20260917-b4-mmap-prepare-vma-flag-sanify-v3-15-4583d8a23bca@kernel.org>
- <0623ee06-00e5-421e-a24a-ed605abb559b@kernel.org>
- <ar_CYfkR5Pfb7J9b@gremlin>
- <83bf4650-7339-4fc9-89a6-378a327f4f6e@kernel.org>
+Subject: Re: [PATCH v3 31/40] mm/vma: introduce vma[_flags]_is_persistent()
+Message-ID: <asD6cgnNVJhZA98p@gremlin>
+References: <20260917-b4-mmap-prepare-vma-flag-sanify-v3-31-4583d8a23bca@kernel.org>
+ <9bbdf4e8-6984-4477-a183-f0b236047381@kernel.org>
+ <3557015d-23dd-41ef-9832-78b58587f3f4@kernel.org>
+ <81e1e5ae-0aab-4584-81e6-3fc9c2634d07@kernel.org>
+ <ar-b_Ug__TBzIZsb@gremlin>
+ <2e5a4e6c-8f9c-4050-8998-454b83f4823b@kernel.org>
+ <ar-luB9QVCRshtIw@gremlin>
+ <3387642b-c39f-4f19-ba0c-267bbd2fe91d@kernel.org>
+ <ar-ux41ILjI1Px9S@gremlin>
+ <a202523f-a696-4a8e-be77-7170c3913cdf@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -102,131 +106,148 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <83bf4650-7339-4fc9-89a6-378a327f4f6e@kernel.org>
+In-Reply-To: <a202523f-a696-4a8e-be77-7170c3913cdf@kernel.org>
 
-On Fri, Oct 02, 2026 at 11:19:32PM +0200, David Hildenbrand (Arm) wrote:
-
-> > So indeed, vs. user-owned.
->
-> Right, I read "contents of the VMA are owned by the kernel rather than the core
-> mm?" and that confused me, because the opposite of the kernel is to me not core-mm.
->
-> Maybe it would be clearer to focus on the opposite direction, then we wouldn't
-> have to find a word to describe "not core-mm".
-
-Yeah, it is hard to know how to express that.
-
-> > I think the issue here is you're confusing this with other things like the
-> > rmap and refcounting, etc.
->
-> I think it all weirdly interacts.
->
-> In !vma_is_kernel_owned(), would we only expect ordinary folios
-> (anon/pagecache/hugetlb/dax, maybe shared zero folio)?
->
-> That's my best guess looking at
->
-> 	return vma_flags_test_any(flags, VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT,
-> 				  VMA_IO_BIT);
->
-> So one option would be to focus instead on that aspect (folios that are managed
-> by core-mm vs. random other stuff not managed by core-mm). But thinking about
-> it, I'd prefer if we can leave the "folio" bits out, because COW mappings also
-> map (some) folios. See below.
-
-Mostly it does indeed come down to 'can I rely on core mm to do the refcounting,
-mapcounting, rmap, etc.'
-
-But folios are not quite there yet until the memdesc stuff is done as you say,
-so best to leave that out of any description.
-
-> > VDSO/VVAR, perf ring buffers, shmem mapped via PFN map, uprobes, etc. are
-> > all in this category and I doubt people would consider those driver-owned.
->
-> Agreed. They are all special things and won't be folios in the future. (shmem
-> mapped through PFN tells us to ignore its folio background and treat it just as
-> some PFN range).
-
-Yep the shmem mapped via pfnmap is a special case of the 'hands off the folios'
-variety.
-
-> > The distinction is - who put them there and who's allowed to change them
-> > and who owns the lifecycle.
->
-> Lol, I asked AI for better names and it told me "vma_is_special_mapping()".
-> Thanks, I guess.
-
-Yeah you see my point? :)
-
-That's why I want to steer away from ordinary vs. 'not ordinary' (otherwise
-known as special).
-
-The semantics have to be meaningful more than that.
-
->
-> I assume for the reverse, we really just want to say "just an ordinary core-mm
-> vma that you would get from a simple mmap() as long as no weird non-mm drivers
-> or subsystems are involved. Core MM fully manages this thing.".
->
-> * vma_is_mm_managed()
-> * vma_is_mm_controlled()
-
-OK, great, that works!
-
-I think vma_is_mm_managed() works best out of those two.
-
-I'll update v4 to reflect that, I plan to send the respin out today before
-LPC :)
-
-> >>> diff --git a/include/linux/mm.h b/include/linux/mm.h
-> >>> index 2a92193ac6a5..cab29d6e15c1 100644
-> >>> --- a/include/linux/mm.h
-> >>> +++ b/include/linux/mm.h
-
-> >>> +static inline bool vma_flags_is_kernel_owned(const vma_flags_t *flags)
-> >>> +{
-> >>> +	return vma_flags_test_any(flags, VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT,
-> >>> +				  VMA_IO_BIT);
-> >>
-> >> I thought we have cases where we drivers insert pages and neither set
-> >> VMA_PFNMAP_BIT nor VMA_MIXEDMAP_BIT.
+On Fri, Oct 02, 2026 at 11:43:53PM +0200, David Hildenbrand (Arm) wrote:
+> On 10/2/26 15:59, Lorenzo Stoakes (ARM) wrote:
+> > On Fri, Oct 02, 2026 at 03:11:27PM +0200, David Hildenbrand (Arm) wrote:
+> >> I'd be very happy if we could find a clear way to describe "this is what we call
+> >> user memory: anon+pagecache", if that could come handy in such a context.
 > >
-> > There were 4 - defio, cmt_speech, uprobes and the bpf arena, and I fixed
-> > all of them :)
->
-> Great, that helps to identify these things. I didn't look at all patches yet,
-> but we should definitely document that.
-
-You mean the fact that this is required? It's documented certainly insofar that
-this series makes it a literal WARN_ON() error to do that ;)
-
-I'm not sure exactly where you'd document it in the kernel documentation though.
-
-But having this enforced now as a strict requirement is very powerful, because
-it means core mm can assume things that before it couldn't due to drivers doing
-'weird stuff'.
-
-Which I think has been a large part of the problem with the VMA flags - not
-being certain that VM_xxx means y because hey I remember that driver z does
-weird stuff with it suddenly means the flag doesn't have a clear meaning any
-more.
-
-So this I think is a very useful step to take.
-
->
+> > Rather than arguing about it, how about shifting things to 'what backs the
+> > mapping' and something like:
 > >
-> > Other than the DAX-only case below of course.
+> > /* big long kdoc... */
+> > static inline bool vma_flags_is_mm_backed(const vma_flags_t *flags)
+> > {
+> > 	/* hugetlb is a fixed mapping, but the mm owns it entirely. */
+> > 	if (vma_flags_is_hugetlb(flags))
+> > 		return true;
+> >
+> > 	/*
+> > 	 * Kernel-owned mappings are populated by their owner, and fixed mappings
+> > 	 * have a layout the mm cannot assume ordinary fault semantics over.
+> > 	 */
+> > 	if (vma_flags_is_kernel_owned(flags) ||
+> > 	    vma_flags_is_fixed_mapping(flags))
+> > 		return false;
+> >
+> > 	/* The mm has promised it may discard droppable memory at any time. */
+> > 	return !vma_flags_test_single_mask(flags, VMA_DROPPABLE);
+> > }
 >
-> Right, as DAX uses real folios.
+> In my other mail I was wondering whether we could use vma_is_mm_managed() to
+> express !vma_is_kernel_owned(). Maybe vma_is_mm_backed() could fit into that
+> picture.
 
-Yup. And FUSE DAX now too :) Another 'weird byproduct of this series' that :P
+Yeah, vma_is_mm_backed() = 'and the mm actually keeps it there' in effect :)
 
-> > I could also add a patch to this series to do that too if you wanted?
 >
-> We can do a follow up. Not giving others the chance to abuse these interfaces
-> would be great.
+> Reading above I am still confused why something that expresses "backed" talks
+> about "fixed mappings and ownership", sorry :(
 
-OK cool, will add to todo!
+I'll rework the kdoc to be clearer - I think with vma_is_mm_managed() the
+picture actually becomes clearer.
+
+>
+> It's late here, and this is a hard nut to crack.
+
+Yes :)
+
+Thanks for taking the time with this, I know some of it is pretty heavy going.
+
+>
+> What we have here is:
+>
+> 1) Is this an ordinary MM-managed VMA. So far so good, I understand that. (with
+>    a twist what I just learned about things that map random allocated pages
+>    through -> fault, but so far so good)
+
+Ack yeah. And ack on ->fault.
+
+It feels like we let ->fault be FAR too permissive. In retrospect, arbitrarily
+being able to put WHATEVER YOU WANT there was... unwise shall we say.
+
+>
+> 2) Is this MM "fixed" that makes expand/merge tricky, except if it's hugetlb
+>    where we can still handle it.
+
+Yeah the trickiest bit is the 'don't expand'.
+
+The hugetlb exception is ugh, but hugetlb was engineered terribly,
+essentially 'stick something in with total disregard for everything in core
+mm and make it an exception you just have to remember for everything'.
+
+I hope we all learn some lessons about what not to do from hugetlb and uffd
+:)
+
+>
+> I think VM_DONTEXPAND is also rather misnamed :( I assume it really means, using
+> sel_mmap_policy_ops() as an example: the MM manages the things that are getting
+> mapped in here (->fault), but the pages are not really pagecache/anon, but some
+> other shit. So we cannot expand the mapping.
+
+Yeah. And it is terribly named.
+
+>
+> Gah, so complicated.
+>
+> 3) Can the MM drop the pages at any time.
+>
+>
+> I still think that 3) does not quite fit into that picture. Using something like
+
+If you look at what the callers do it makes more sense - mlock pins pages,
+ksm merges them, dump writes them out and uffd hands their faults to userspace.
+
+All four need the page behind the mapping to be the mm's own and _still
+there the next time they look_.
+
+With that in place it's not stable so it's not right to let such callers
+have access, and all the callers have to remember to check that.
+
+>
+> "vma_is_mm_backed" to say "this is mm-managed, but all things in there come from
+> core-mm and not some other random shit people punch into ->fault" would work for me.
+
+Yeah agreed, I will update the kdoc to be clear about that.
+
+>
+> (not sure if there is still some other way how someone could get random pages
+> into a VMA ... or how to catch someone not setting the DONTEXPAND flag)
+
+vm_insert_pages() + friends sets VMA_MIXEDMAP_BIT now and
+vmf_insert_page_mkwrite() is DAX only (a follow up will make that a thing)
+so it's the damn ->fault that's the only thing left now.
+
+Right now I think that everyone that does something weird sets
+VMA_DONTEXPAND_BIT.
+
+It needs renaming to something like VMA_CUSTOM_FAULTED_BIT or
+something. That's probably a terrible name but you get the idea... :)
+
+>
+> God, this is all such a confusing mess with so many ways of getting stuff messed
+> up by other parts of the system. Thanks for working on cleaning that up.
+
+No worries :)
+
+The whole point of the series is to stop treating these flags as vague
+things (which VM_SPECIAL symbolised the most) so a. we can make sensible
+assumptions about flag combinations and b. people can use meaningful
+semantic checks rather than guessing (sometimes wrong).
+
+Hopefully the pain here is all worth it :)
+
+Thanks again for reviewing!
+
+I will respin with kdoc changes.
+
+>
+> --
+> Cheers,
+>
+> David
 
 --
 Cheers, Lorenzo
