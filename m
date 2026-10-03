@@ -1,28 +1,29 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id CBBB9306776;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id CBB502F7EE6;
 	Sat,  3 Oct 2026 06:41:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791009693; cv=none; b=PuC4z8RZzwaDuxHWGZnX+S/SAp8ol+XBSI2KR0cPKk8kDUubZqKUayucHebBPImqHijmv3xqbXntEGnYAS+8LuQoEI0Z0ywLyYi80s4HGrwVF6HqFziSHwucZqY64SRWbiQWfg9Ym1vPB5uSLLuOOz5KfpfyGcSdosq+pFNPBKw=
+	t=1791009693; cv=none; b=uyCT4u43DtLQ8B4y5JQr3BCzk29imhod54iwQnmeo1/Lethuy46nMKhWN90dfRCXI5rEJbuwfcLRAXKia1Ch151UtjrUNnVGQKfsli5GsBESsvaFd6UbPsaY+tLmohOt+pCpf/YR3yVxuxqbCPqDoIzcP9MSPh1A6EKGpyzCXEE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1791009693; c=relaxed/simple;
-	bh=W0Lrp5O7JT9f1/3a3ZLy9aC2ox5FCvI2nsy8n9OtBS0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=RG8r1DEfKppOaY7xA2jFQgyLjw7kByggVtbjOzrFwjwjjXaKFBS+rTMBcp57hB757TRACfQ4HDN5BJ0ATkPpjLmbPJsy1CzmGdugh1QuywqAFB4uxzmXvbCwRSKrv4oVrNQrNaSpaUVHcNvRJC+KejBOXFpnhKwfDGqpRzHGDU8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=ffW1kdUP; arc=none smtp.client-ip=13.77.154.182
+	bh=w7T4TgZEMxDDsR33E7oSNg2ClGxE181mTVJPt0RXX9w=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=BGmG75p+fAxicQN5p7H0h1flSgNDMsPd1GoP3chue1yVIEdrqF27AilhzKytMyeB6e31eTg89gi1OrKrBl5X+VF9CVWgIbGyIarK6kSGW5Ef+cdvNcgJcjojOvDEHiB8G9PTn1r+nzL134goOUWdpJY50B+orprwUDJvDR6CRVs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=s+Nc4Dv/; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="ffW1kdUP"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="s+Nc4Dv/"
 Received: by linux.microsoft.com (Postfix, from userid 1186)
-	id E0CB220B7166; Fri,  2 Oct 2026 23:40:37 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com E0CB220B7166
+	id EDD1920B7168; Fri,  2 Oct 2026 23:40:37 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com EDD1920B7168
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
 	s=default; t=1791009637;
-	bh=hM4XArEYUhe041GLEWfP21/6I8XFIH1+frLMZWEa54k=;
-	h=From:To:Cc:Subject:Date:From;
-	b=ffW1kdUP6kuRfJL37tdEsJR95ijX87EOArMbUO6PfbZgNL4pLaOx2Xje+DNW+4C4M
-	 N7ysfQQu8TsTB4h9tawF4n1DF9Qf8arQ40EF+xKnoDfYKk1K/EUihDom3jl/QSRwXY
-	 53FZ0XCPiOGCCqhiEhpwWalcB3lq3btowao2FTxc=
+	bh=Vi7J2mRnaCIbh8EX8PYz3V3ilGPzqSgRmlD508TWGt8=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=s+Nc4Dv/fdr1zwwQ6Ayx6SL2vN/Plt6cqafO9JZ0+YdoMjnuGBlYAS3RAz6V4knzY
+	 Lf2a9eZIT5+TLNZY/dQiF6iEvEChktJX6dGJoW72t3Yl+W7aAC2bqxEYp7OZ5fBXCV
+	 w+DIyI2IMDNEY/K3ms/e6zS8vWTwqdZTJIxeksIA=
 From: Konstantin Taranov <kotaranov@linux.microsoft.com>
 To: kotaranov@microsoft.com,
 	snsanghvi@microsoft.com,
@@ -31,10 +32,12 @@ To: kotaranov@microsoft.com,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next v2 00/10] RDMA/mana_ib: Add kernel RC and fast registration support
-Date: Fri,  2 Oct 2026 23:40:27 -0700
-Message-ID: <20261003064037.2092669-1-kotaranov@linux.microsoft.com>
+Subject: [PATCH rdma-next v2 01/10] RDMA/mana_ib: Allocate and map fast-registration MRs
+Date: Fri,  2 Oct 2026 23:40:28 -0700
+Message-ID: <20261003064037.2092669-2-kotaranov@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.7
+In-Reply-To: <20261003064037.2092669-1-kotaranov@linux.microsoft.com>
+References: <20261003064037.2092669-1-kotaranov@linux.microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -45,47 +48,324 @@ Content-Transfer-Encoding: 8bit
 
 From: Konstantin Taranov <kotaranov@microsoft.com>
 
-Add kernel RC QPs and fast-registration MRs to the MANA RDMA driver
-for kernel consumers such as NVMe/RDMA and NFS/RDMA.
+Implement alloc_mr and map_mr_sg for memory-registration MRs.
 
-Implement QP creation and state management, work request posting,
-completion processing, error handling, and queue draining. Kernel RC
-QPs require extended-WQE and power-of-two-SQ hardware support.
+Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
+---
+ drivers/infiniband/hw/mana/device.c  |  2 +
+ drivers/infiniband/hw/mana/main.c    |  3 +-
+ drivers/infiniband/hw/mana/mana_ib.h | 46 +++++++++++++++
+ drivers/infiniband/hw/mana/mr.c      | 84 +++++++++++++++++++++++++++-
+ include/net/mana/gdma.h              | 15 +++++
+ 5 files changed, 148 insertions(+), 2 deletions(-)
 
-Tested with krping, NVMe/RDMA, and NFS/RDMA, including RC send and
-receive error recovery with krping and NVMe/RDMA.
-
-v2:
-- Patch 03: Validate fixed-WQE capacity for the header, OOB and SGEs.
-- Patch 04: Preserve UC QP modification support.
-- Patch 08: Skip software CQ notifications for direct-polling CQs.
-- Patch 09: Flush that ERR work during QP teardown.
-- Patch 10: Limit drain callbacks to RC QPs and avoid completion
-  callbacks for direct-polling CQs.
-
-Konstantin Taranov (10):
-  RDMA/mana_ib: Allocate and map fast-registration MRs
-  RDMA/mana: Create and destroy kernel RC QPs
-  net/mana: Extend GDMA encoding for new RDMA WQEs
-  RDMA/mana_ib: Maintain kernel RC QP state
-  RDMA/mana_ib: Post receive WRs on kernel RC QPs
-  RDMA/mana_ib: Post send and memory-management WRs on RC QPs
-  RDMA/mana_ib: Poll RC completions using PSN and FSN progress
-  RDMA/mana_ib: Flush and notify CQs when kernel QPs enter ERR
-  RDMA/mana_ib: Handle error CQEs for RC QPs
-  RDMA/mana_ib: Drain kernel receive and send queues
-
- drivers/infiniband/hw/mana/cq.c               | 242 ++++++++++-
- drivers/infiniband/hw/mana/device.c           |   4 +
- drivers/infiniband/hw/mana/main.c             |   8 +-
- drivers/infiniband/hw/mana/mana_ib.h          | 135 +++++-
- drivers/infiniband/hw/mana/mr.c               |  84 +++-
- drivers/infiniband/hw/mana/qp.c               | 336 ++++++++++++++-
- drivers/infiniband/hw/mana/shadow_queue.h     |  22 +
- drivers/infiniband/hw/mana/wr.c               | 385 ++++++++++++++++++
- .../net/ethernet/microsoft/mana/gdma_main.c   |  55 ++-
- include/net/mana/gdma.h                       |  38 +-
- 10 files changed, 1274 insertions(+), 35 deletions(-)
-
+diff --git a/drivers/infiniband/hw/mana/device.c b/drivers/infiniband/hw/mana/device.c
+index 62c7803ca6c6..cdaada7f6e8a 100644
+--- a/drivers/infiniband/hw/mana/device.c
++++ b/drivers/infiniband/hw/mana/device.c
+@@ -19,6 +19,7 @@ static const struct ib_device_ops mana_ib_dev_ops = {
+ 
+ 	.add_gid = mana_ib_gd_add_gid,
+ 	.alloc_mw = mana_ib_alloc_mw,
++	.alloc_mr = mana_ib_alloc_mr,
+ 	.alloc_pd = mana_ib_alloc_pd,
+ 	.alloc_ucontext = mana_ib_alloc_ucontext,
+ 	.create_ah = mana_ib_create_ah,
+@@ -40,6 +41,7 @@ static const struct ib_device_ops mana_ib_dev_ops = {
+ 	.get_dma_mr = mana_ib_get_dma_mr,
+ 	.get_link_layer = mana_ib_get_link_layer,
+ 	.get_port_immutable = mana_ib_get_port_immutable,
++	.map_mr_sg = mana_ib_map_mr_sg,
+ 	.mmap = mana_ib_mmap,
+ 	.modify_qp = mana_ib_modify_qp,
+ 	.modify_wq = mana_ib_modify_wq,
+diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
+index 672bd3f650dd..ceb4ec58023a 100644
+--- a/drivers/infiniband/hw/mana/main.c
++++ b/drivers/infiniband/hw/mana/main.c
+@@ -133,7 +133,7 @@ int mana_ib_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
+ 			     sizeof(resp));
+ 
+ 	if (!udata)
+-		flags |= GDMA_PD_FLAG_ALLOW_GPA_MR;
++		flags |= GDMA_PD_FLAG_ALLOW_GPA_MR | GDMA_PD_FLAG_ALLOW_FMR_MR;
+ 
+ 	req.flags = flags;
+ 	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
+@@ -647,6 +647,7 @@ int mana_ib_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
+ 	props->max_ah = INT_MAX;
+ 	props->max_pkeys = 1;
+ 	props->local_ca_ack_delay = MANA_CA_ACK_DELAY;
++	props->max_fast_reg_page_list_len = MANA_MAX_FMR_PAGES;
+ 	if (!mana_ib_is_rnic(dev))
+ 		props->raw_packet_caps = IB_RAW_PACKET_CAP_IP_CSUM;
+ 
+diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
+index 74edb6e707a1..ceb7830b8da1 100644
+--- a/drivers/infiniband/hw/mana/mana_ib.h
++++ b/drivers/infiniband/hw/mana/mana_ib.h
+@@ -39,6 +39,8 @@
+  */
+ #define MANA_IB_MAX_MR		0xFFFFFFu
+ 
++#define MANA_MAX_FMR_PAGES	504
++
+ /*
+  * The CA timeout is approx. 260ms (4us * 2^(DELAY))
+  */
+@@ -51,6 +53,8 @@
+ 
+ #define MANA_GSI_QPN		(1)
+ 
++#define MANA_PTE_VALID_MASK	0x1ULL
++
+ struct mana_ib_adapter_caps {
+ 	u32 max_sq_id;
+ 	u32 max_rq_id;
+@@ -150,10 +154,44 @@ struct mana_ib_mw {
+ 	mana_handle_t mw_handle;
+ };
+ 
++struct mana_fmr_mst_entry {
++	u32 reserved1;
++	u32 reserved2		: 8;
++	u32 page_size		: 5;
++	u32 reserved3		: 3;
++	u32 access_right	: 8;
++	u32 addr_type		: 2;
++	u32 reserved4		: 6;
++	u32 reserved5[2];
++	u64 start_va;
++	u64 length;
++	u32 reserved6[8];
++}; /* HW DATA */
++
++static inline u32 mana_ib_fmr_header_offset(u32 num_ptes)
++{
++	/* the header is located after the PTEs and aligned to mst entry */
++	return ALIGN(sizeof(u64) * num_ptes, sizeof(struct mana_fmr_mst_entry));
++}
++
++static inline u32 mana_ib_fmr_buf_sz(u32 num_ptes)
++{
++	return mana_ib_fmr_header_offset(num_ptes) + sizeof(struct mana_fmr_mst_entry);
++}
++
++struct mana_ib_fmr {
++	u64 *ptes;
++	dma_addr_t dma_handle;
++	size_t size;
++	u32 max_ptes;
++	u32 pte_count;
++};
++
+ struct mana_ib_mr {
+ 	struct ib_mr ibmr;
+ 	struct ib_umem *umem;
+ 	mana_handle_t mr_handle;
++	struct mana_ib_fmr fmr;
+ };
+ 
+ struct mana_ib_dm {
+@@ -840,8 +878,16 @@ int mana_ib_create_rwq_ind_table(struct ib_rwq_ind_table *ib_rwq_ind_table,
+ 
+ int mana_ib_destroy_rwq_ind_table(struct ib_rwq_ind_table *ib_rwq_ind_tbl);
+ 
++enum gdma_mr_access_flags
++mana_ib_verbs_to_gdma_access_flags(int access_flags);
++
+ struct ib_mr *mana_ib_get_dma_mr(struct ib_pd *ibpd, int access_flags);
+ 
++struct ib_mr *mana_ib_alloc_mr(struct ib_pd *ibpd, enum ib_mr_type mr_type,
++			       u32 max_num_sg);
++int mana_ib_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
++		      unsigned int *sg_offset);
++
+ struct ib_mr *mana_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 				  u64 iova, int access_flags,
+ 				  struct ib_dmah *dmah,
+diff --git a/drivers/infiniband/hw/mana/mr.c b/drivers/infiniband/hw/mana/mr.c
+index 1233685b4b89..34dcc50d0be9 100644
+--- a/drivers/infiniband/hw/mana/mr.c
++++ b/drivers/infiniband/hw/mana/mr.c
+@@ -10,7 +10,7 @@
+ 
+ #define VALID_DMA_MR_FLAGS (IB_ACCESS_LOCAL_WRITE)
+ 
+-static enum gdma_mr_access_flags
++enum gdma_mr_access_flags
+ mana_ib_verbs_to_gdma_access_flags(int access_flags)
+ {
+ 	enum gdma_mr_access_flags flags = GDMA_ACCESS_FLAG_LOCAL_READ;
+@@ -55,6 +55,11 @@ static int mana_ib_gd_create_mr(struct mana_ib_dev *dev, struct mana_ib_mr *mr,
+ 		req.gva.virtual_address = mr_params->gva.virtual_address;
+ 		req.gva.access_flags = mr_params->gva.access_flags;
+ 		break;
++	case GDMA_MR_TYPE_FMR:
++		/* page_size is deprecated field and must be 0. */
++		req.fmr.page_size = 0;
++		req.fmr.rsvd_pte_count = mr_params->fmr.rsvd_pte_count;
++		break;
+ 	case GDMA_MR_TYPE_ZBVA:
+ 		req.zbva.dma_region_handle = mr_params->zbva.dma_region_handle;
+ 		req.zbva.access_flags = mr_params->zbva.access_flags;
+@@ -294,6 +299,77 @@ err_free:
+ 	return ERR_PTR(err);
+ }
+ 
++struct ib_mr *mana_ib_alloc_mr(struct ib_pd *ibpd, enum ib_mr_type mr_type,
++			       u32 max_num_sg)
++{
++	struct mana_ib_pd *pd = container_of(ibpd, struct mana_ib_pd, ibpd);
++	struct gdma_create_mr_params mr_params = {};
++	struct gdma_context *gc;
++	struct mana_ib_dev *dev;
++	struct mana_ib_mr *mr;
++	int err;
++
++	dev = container_of(ibpd->device, struct mana_ib_dev, ib_dev);
++	gc = mdev_to_gc(dev);
++
++	if (mr_type != IB_MR_TYPE_MEM_REG)
++		return ERR_PTR(-EOPNOTSUPP);
++
++	mr = kzalloc_obj(*mr);
++	if (!mr)
++		return ERR_PTR(-ENOMEM);
++
++	mr->fmr.max_ptes = max_num_sg;
++	mr->fmr.size = mana_ib_fmr_buf_sz(max_num_sg);
++	mr->fmr.ptes = dma_alloc_coherent(gc->dev, mr->fmr.size, &mr->fmr.dma_handle,
++					  GFP_KERNEL);
++	if (!mr->fmr.ptes) {
++		err = -ENOMEM;
++		goto err_free;
++	}
++
++	mr_params.pd_handle = pd->pd_handle;
++	mr_params.mr_type = GDMA_MR_TYPE_FMR;
++	mr_params.fmr.rsvd_pte_count = max_num_sg;
++
++	err = mana_ib_gd_create_mr(dev, mr, &mr_params);
++	if (err)
++		goto err_dma;
++
++	return &mr->ibmr;
++
++err_dma:
++	dma_free_coherent(gc->dev, mr->fmr.size, mr->fmr.ptes,
++			  mr->fmr.dma_handle);
++
++err_free:
++	kfree(mr);
++	return ERR_PTR(err);
++}
++
++static int mana_ib_set_page(struct ib_mr *ibmr, u64 addr)
++{
++	struct mana_ib_mr *mr = container_of(ibmr, struct mana_ib_mr, ibmr);
++
++	if (mr->fmr.pte_count >= mr->fmr.max_ptes)
++		return -ENOMEM;
++
++	mr->fmr.ptes[mr->fmr.pte_count] = addr | MANA_PTE_VALID_MASK;
++	mr->fmr.pte_count++;
++
++	return 0;
++}
++
++int mana_ib_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
++		      unsigned int *sg_offset)
++{
++	struct mana_ib_mr *mr = container_of(ibmr, struct mana_ib_mr, ibmr);
++
++	mr->fmr.pte_count = 0;
++
++	return ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, mana_ib_set_page);
++}
++
+ static int mana_ib_gd_create_mw(struct mana_ib_dev *dev, struct mana_ib_pd *pd, struct ib_mw *ibmw)
+ {
+ 	struct mana_ib_mw *mw = container_of(ibmw, struct mana_ib_mw, ibmw);
+@@ -352,6 +428,7 @@ int mana_ib_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
+ {
+ 	struct mana_ib_mr *mr = container_of(ibmr, struct mana_ib_mr, ibmr);
+ 	struct ib_device *ibdev = ibmr->device;
++	struct gdma_context *gc;
+ 	struct mana_ib_dev *dev;
+ 	int err;
+ 
+@@ -360,11 +437,16 @@ int mana_ib_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
+ 		return err;
+ 
+ 	dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
++	gc = mdev_to_gc(dev);
+ 
+ 	err = mana_ib_gd_destroy_mr(dev, mr->mr_handle);
+ 	if (err)
+ 		return err;
+ 
++	if (mr->fmr.ptes)
++		dma_free_coherent(gc->dev, mr->fmr.size, mr->fmr.ptes,
++				  mr->fmr.dma_handle);
++
+ 	if (mr->umem)
+ 		ib_umem_release(mr->umem);
+ 
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index 2a28fcaa637d..332f394b82e1 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -865,6 +865,8 @@ enum gdma_mr_access_flags {
+ 	GDMA_ACCESS_FLAG_REMOTE_WRITE = BIT_ULL(3),
+ 	GDMA_ACCESS_FLAG_REMOTE_ATOMIC = BIT_ULL(4),
+ 	GDMA_ACCESS_FLAG_BIND_MW = BIT_ULL(5),
++	GDMA_ACCESS_FLAG_INVALIDATE = BIT_ULL(6),
++	GDMA_ACCESS_FLAG_FMR = BIT_ULL(7),
+ };
+ 
+ /* GDMA_CREATE_DMA_REGION */
+@@ -917,6 +919,7 @@ struct gdma_destroy_dma_region_req {
+ 
+ enum gdma_pd_flags {
+ 	GDMA_PD_FLAG_ALLOW_GPA_MR = BIT(0),
++	GDMA_PD_FLAG_ALLOW_FMR_MR = BIT(1),
+ 	GDMA_PD_FLAG_SHORT_PDN = BIT(2),
+ };
+ 
+@@ -953,6 +956,11 @@ enum gdma_mr_type {
+ 	 * address that is set up in the MST
+ 	 */
+ 	GDMA_MR_TYPE_GVA = 2,
++	/* Fast Memory - MRs are initially put in the free state,
++	 * and the specified number of PTEs are reserved for future fast
++	 * memory registrations
++	 */
++	GDMA_MR_TYPE_FMR = 3,
+ 	/* Guest zero-based address MRs */
+ 	GDMA_MR_TYPE_ZBVA = 4,
+ 	/* Device address MRs */
+@@ -982,6 +990,9 @@ struct gdma_create_mr_params {
+ 			u64 length;
+ 			enum gdma_mr_access_flags access_flags;
+ 		} da;
++		struct {
++			u32 rsvd_pte_count;
++		} fmr;
+ 	};
+ };
+ 
+@@ -1006,6 +1017,10 @@ struct gdma_create_mr_request {
+ 			u64 offset;
+ 			enum gdma_mr_access_flags access_flags;
+ 		} __packed da;
++		struct {
++			u32 page_size;
++			u32 rsvd_pte_count;
++		} __packed fmr;
+ 	} __packed;
+ 	u32 reserved_2;
+ 	union {
 -- 
 2.43.0
+
