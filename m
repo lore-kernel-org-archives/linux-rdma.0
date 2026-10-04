@@ -1,41 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B60B9230BE9;
-	Sun,  4 Oct 2026 16:34:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C54E03093CB;
+	Sun,  4 Oct 2026 16:35:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791131700; cv=none; b=BW2dVpz3Mtr6+gp8z4dgMYo8LXyGHnrpjSXkpT5FA82bL72/oelEbB0J+HU7rsCh/Zrb22AxmCx55gWspptzkx75tberm9lhdtebHtjtdW3l21tAycaGgM1G/HB3/RfYt0XTAIitsL+yGfCya+xeLRDO+pn57pPW/Qm2Sudh0NQ=
+	t=1791131701; cv=none; b=UwYmUKjIQZMWmclLtZ1rkcPX7nxHxfHH0HW+A2lP1rR2H1vjI4Cm/T/7CUN1iNAv+EukPJRQVM/dZcf74st6i4b1gDX1ykHqVE2IP/DW7BZbzvdIC8A4f4WWBPdn/KxOMgfjp0tbVR6B9WwONej9qZyPKkUeeX+TIQ02f/oiQPc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791131700; c=relaxed/simple;
-	bh=zynyWVNabLTuT23r0wxYGi1ppYW/+vS6HAa8uJcfn2U=;
+	s=arc-20240116; t=1791131701; c=relaxed/simple;
+	bh=f77vsx/NWMzwIav7G/S106cUu17rsimFxfh9DecTv18=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=i+jf3M9cPePBMTBa3ozefQknGuz6MbaY8+00qVZUIEO4ovj8hH7tfnex0RmJTsU4q675W2QnJme3l50oJpwozeE8KhRkFzrwmw1Iset5gTctDojMM7U2OthobLbzXT3603slIqp7KP9n05F+/vlhPNZIhp5OK6R6FIyCmegvXJU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DbALxmU3; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=fO4DGN8VjlO8uJDaZhxmwkTLycSpSRbG5940kFJy2d55PnTVlKGrHA5VTOHSjj5LT+Ng65f7b/FrnkynyuIjNS4cl4CybS9k0KcZwfSAoTDcrBt0xOlCVCBzjvBKVh3Ml7p5dTYts42nSm9pVw+wsmsinmhYg0RicmheJBI0vSg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fEnIDuBN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DbALxmU3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC4521F000FF;
-	Sun,  4 Oct 2026 16:34:58 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fEnIDuBN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC1B11F00893;
+	Sun,  4 Oct 2026 16:34:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791131699;
-	bh=Ab5kT+4tqPApjC4hOOwkF+7Qbykw/cgm4dSPeuK25UI=;
+	s=k20260515; t=1791131700;
+	bh=TyFTddv09pLTHy6PO+EsKcwOkXCYYNtumv+K3bnWGhQ=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=DbALxmU35sbARYw5UgrRfwyE9HewqgrIZPVc1p19wh02CX+ct8S5W+GRiWrC9esiV
-	 m7dQ3aTt2mcs7oObxGZ4xi3PkKSDbvncfDZJAcdJHJ2I0HUTOIjLsGtB1e00Ep65dD
-	 pBJJ+bnhW7Dj5vLQero2LV0qbmv1I301zAJzVnnLtnfJAPp8etefsl6y6HrBwy/FHI
-	 ukruA1kXf9j2/Hn3Vlr3Hx+YF81eq70zJnBsnFS6h1d0jZ9nxTUwGAK4+Y820mjyM8
-	 tYDD76CMAoa+NOQ25S4GtpeK3nY1YnGtVeBjzTUl9cTUxaXNDpAVvZ4kNhql1MDPMG
-	 8uHeKTuEDb9IQ==
-Subject: Re: [PATCH net-next v8 03/13] net/rds: ib: refuse to attach a
- connection to a device being removed
+	b=fEnIDuBNWM6+b28nFtOkBEpXOWynLB4H9JFmaGp/yAKC9P+dLpn8gDi879yCE2lvd
+	 pzvv/txqI5LVR5BAEWP0zeZLNv09gGocfRQ85CJ0KGqxSVN9mb8tpz2ZHFcDlYlvlB
+	 4Z5n69YYFE73J1V9Z44Z5ITjGYSvfae9wDttJPb6dJL8ZMgb2LRKDjfUWDTeujPvY0
+	 IAaINi1xJcDbNHUakhvLPLxVu9nm3ieDCx2vE+KICNSIVEyjTCk+Nu8i0VKoiAB8s7
+	 dre235JXfIxATCsUeTta1q51iTkAtbpneTLgVzNtHU+m9OgY68O6fiDs5+yTW1gpzw
+	 MuEBOcYy53wxw==
+Subject: Re: [PATCH net-next v8 04/13] net/rds: guard every work-requeueing
+ site with rds_destroy_pending()
 From: netdev-bot+sashiko@kernel.org
 To: achender@kernel.org
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
  edumazet@google.com, kuba@kernel.org, horms@kernel.org
-Date: Sun, 04 Oct 2026 16:34:58 +0000
-Message-ID: <179113169845.434549.16777871408089243882@kernel.org>
-In-Reply-To: <20261003163215.250253-4-achender@kernel.org>
-References: <20261003163215.250253-4-achender@kernel.org>
+Date: Sun, 04 Oct 2026 16:34:59 +0000
+Message-ID: <179113169947.434549.17756429596331380093@kernel.org>
+In-Reply-To: <20261003163215.250253-5-achender@kernel.org>
+References: <20261003163215.250253-5-achender@kernel.org>
 X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -52,78 +52,37 @@ you want to address the nit picks below when you respin.
 
 Low priority / nit picks for your consideration:
 
-- [Low] The commit message gets the trigger wrong.
+- [Low] The commit message of "net/rds: guard every work-requeueing site
+  with rds_destroy_pending()" has no blank line between the last…
 
 --
 
-net/rds: ib: refuse to attach a connection to a device being removed
+net/rds: guard every work-requeueing site with rds_destroy_pending()
 
-This patch adds a shutting_down flag to struct rds_ib_device.
-rds_ib_dev_shutdown() sets it under rds_ibdev->spinlock before walking
-conn_list. rds_ib_add_conn() checks the flag under the same lock and
-returns -ENODEV, which makes rds_ib_setup_qp() fail the connect.
+This commit adds the rcu_read_lock() + rds_destroy_pending() guard to five
+RDS sites that can re-arm path works: the IB send completion and credit
+paths, the IB recv refill, the TCP accept path, and the multipath reconnect
+in rds_sendmsg(). It prepares for a following patch that adds a
+per-connection term to the predicate.
 
-> rds_ib_remove_one() drops every connection on the device's conn_list
-> in rds_ib_dev_shutdown(), then clears the client data so that no new
-> connect can find the device.  A connect that is already past
-> rds_ib_get_client_data() when the walk runs is not covered by either:
-> rds_ib_setup_qp() goes on to rds_ib_add_conn(), which moves the
-> connection onto the conn_list the walk has just finished with, and
-> builds a QP on a device that is on its way out.  Nothing drops that
-> connection afterwards - the device's shutdown walk is over, and the
-> connection never returns to ib_nodev_conns, which is the only list the
-> transport exit sweeps - so it outlives the device, and the module.
+> With the predicate as it stands the guards cover the netns teardown and
+> module unload cases; the following patch extends it to the destroy of a
+> single connection.
+> Assisted-by: Claude-Code:claude-fable-5
+> Signed-off-by: Allison Henderson <achender@kernel.org>
 
 [Severity: Low]
-Does this description hold for a real IB device hot-removal?
+This isn't a bug, but there is no blank line between the last paragraph of
+the body and the trailers. "single connection." is followed directly by the
+Assisted-by: and Signed-off-by: lines.
 
-disable_device() in drivers/infiniband/core/device.c removes clients in
-LIFO order. That means rds_ib_remove_one() runs before rdma_cm's
-cma_remove_one().
+git interpret-trailers and b4 treat the last paragraph as the trailer block.
+In that paragraph, 2 of the 5 lines are trailers, which is over git's 25%
+threshold. So the prose lines get counted as part of the trailer block too,
+and any tags added later (Reviewed-by:, Link:, Cc: stable) would be appended
+to that mixed paragraph.
 
-cma_process_remove() then sends DEVICE_REMOVAL to every cm_id still on the
-device, including the late connection's ic->i_cm_id. It then waits for
-those ids to be destroyed:
-
-cma_remove_one()
-  cma_process_remove()
-    cma_send_device_removal_put(id_priv)
-      ...
-        rds_rdma_cm_event_handler_cmn()
-
-net/rds/rdma_transport.c:rds_rdma_cm_event_handler_cmn() {
-    ...
-	case RDMA_CM_EVENT_DEVICE_REMOVAL:
-	case RDMA_CM_EVENT_ADDR_CHANGE:
-		if (conn)
-			rds_conn_drop(conn);
-		break;
-    ...
-}
-
-During a plain hot-removal, rds_destroy_pending() is false, so this
-rds_conn_drop() queues the shutdown. The shutdown tears down the QP and
-cm_id, and rds_ib_remove_conn() puts the connection back on
-ib_nodev_conns. So on hot-removal the connection does not seem to outlive
-the device.
-
-The leak described here seems to need the module unload path instead:
-
-rds_ib_exit()
-  rds_ib_set_unloading()
-  rds_ib_unregister_client()
-    rds_ib_remove_one()    <- device stays registered, no DEVICE_REMOVAL
-  rds_ib_destroy_nodev_conns()
-
-On this path rds_destroy_pending() is true, so every non-destroy
-rds_conn_drop() returns early. rds_ib_destroy_nodev_conns() only sweeps
-ib_nodev_conns. A connection attached after the walk is then leaked.
-
-The code change looks correct for both cases. Could the commit message
-name the trigger as unloading rds_rdma while a connect is in flight,
-rather than device removal in general? The patch carries a Fixes: tag, so
-stable backporters will use this description to judge how the bug
-reproduces and what it affects.
+Could a blank line be added before "Assisted-by:" when this is respun?
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261003163215.250253-1-achender%40kernel.org
