@@ -1,41 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BDB13C3F64;
-	Sun,  4 Oct 2026 16:35:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DF643C73EC;
+	Sun,  4 Oct 2026 16:35:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791131704; cv=none; b=tWCsrjVF9q71209f1C7IwCbqMOCjNJUeQ9nYqtn+DUGKDCzFTzO7H2LM9ADERi7EN91fYsPNON1Jwu+V2VH8e7FWZ84jXJKYiUY0Q5+IlsyW/tzQr3YzSJT+WDIjFgzXbBmjMT2TaESWfXkFCJoDfE/+KdS6tZjVbAItopGjiCQ=
+	t=1791131705; cv=none; b=mxlTqr2xOxEX2RvnbftBmGFBHWBDupowFuw2qETL1bodX4bhzDzEL1gcK5WaFS9pwxp2X29chr5L6KGqP+Ya27HBYRuIP7d/mX5syJLI4RcVNt4mWO25pGsygmT93lITUkq0+jqdF0SOWdpewdhZqCBV3c75fLIjPY52tzAKfPw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791131704; c=relaxed/simple;
-	bh=skFmr7EynxOzRSh22a4jRpDNXwPNmUQUqfA1Jh8IxoU=;
+	s=arc-20240116; t=1791131705; c=relaxed/simple;
+	bh=YvVQFb8ntZ1uYruZvTEpMRZumuGkvU4Yznh0HABMjQE=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=WvYiLrh4ew33MzsAW7pGwo3ErKXIICuOaLMtaWCUJZQ8bpv6zniJTcGKMkzeUU9C3C0eCkj5POdTlypAe6mKdTtnBDWHbTeOvsJLPD21WtMLe+z7sNnmTAG325lRlR8+ZpfCbO7k0rBhmd/zk061JLHb5Y2e0RBaLFierbDHxko=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=luE4wHsD; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=m8HZL0suO74+w+ol7sUwEAK5tpIHwTfUNMOoIKX1mltGz5Q4ZBSh1IOrZww3PJqc2cy3ctyk11XVVjTbS2JHhdY9rVkV2MjqMI6dEzHMJbk/lfz/xFYWYIQM1F9wNPztquOZydu2hSd1/O9o2joLDwdOs+G8Yr2bVb53SsVu5FQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=K1pWfGCd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="luE4wHsD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26A2F1F00893;
-	Sun,  4 Oct 2026 16:35:03 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="K1pWfGCd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22CA21F000FF;
+	Sun,  4 Oct 2026 16:35:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791131703;
-	bh=b6Co69KpyxamZ810DrWt9NFGQ2dWIkPHj6OgqGAXK+A=;
+	s=k20260515; t=1791131704;
+	bh=wVg3p4nG6+ugwUczeKXrVxwDXc/NVtTLfIMRNAYL0SY=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=luE4wHsDbRWPnAhDsqj9dnG3zcMMqQ+mekR5hF0SyFu/8YHFToOmxFhlFYqFFHBck
-	 /7aXSGDQhBvZn37gGA2JOwXy+BoleOpLvbf0QtBNEBkHuX/0Z9ETMQJguulSQzVkD6
-	 2y9Kcd9CuiJR796HMaVpLSRoaiC0As1FY13fP/Yo9SK+KlZKC6meCUedbGNQiN4WPo
-	 GZ//PXY2FRWHNozdDrzCK9peEVAy6FEZV9/t4dwXQatES3lNsUdU62nK29+tOa+dRA
-	 drhIfwrVHkKbWdMPiDYgoIpMTMJMiCYd/hZfzsTj+cFdbOpcldi37Wi3aE8eKEp7Ix
-	 Ostu4dcfwxCaA==
-Subject: Re: [PATCH net-next v8 09/13] net/rds: hold a connection reference
- from struct rds_incoming
+	b=K1pWfGCdVNJBJjMQvtYD2kVpNtymVbqy5ASyuCzacbuRwMLL2BuJl/2s7H/CPn7Y0
+	 pHSJKOO4e6ifR3KPJvXx9OGePDlYaT12gdvWKMVcp9P41XmxlEquLtrK9jS7xO0WwP
+	 BBZc2JCM3aZZblFYeau91NeLD9W7ARSdkbXfBy8JyyEOo+uG+l39bRVADI8RAcEzqM
+	 0QANRrYXTm8ozFxKjcKtD6lxe3fKoXH4aNWD/M4NIfjZ2Dar4NXyc2j4iI+xa9KhVO
+	 lhfcE73PliiixsZmO4Od8mUAUcX+D9RGnJoo6QmQT0B/6er2mfOZgTx7cfLACuDuMd
+	 I8V6b15etgEmg==
+Subject: Re: [PATCH net-next v8 11/13] net/rds: hold connection references in
+ lookup, sockets and c_passive
 From: netdev-bot+sashiko@kernel.org
 To: achender@kernel.org
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
  edumazet@google.com, kuba@kernel.org, horms@kernel.org
-Date: Sun, 04 Oct 2026 16:35:02 +0000
-Message-ID: <179113170256.434549.13509160996868821054@kernel.org>
-In-Reply-To: <20261003163215.250253-10-achender@kernel.org>
-References: <20261003163215.250253-10-achender@kernel.org>
+Date: Sun, 04 Oct 2026 16:35:03 +0000
+Message-ID: <179113170371.434549.16420212247196359314@kernel.org>
+In-Reply-To: <20261003163215.250253-12-achender@kernel.org>
+References: <20261003163215.250253-12-achender@kernel.org>
 X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -52,132 +52,117 @@ you want to address the nit picks below when you respin.
 
 Low priority / nit picks for your consideration:
 
-- [Low] The commit message gives the wrong triggers for the use-after-
-  free.
-- [Low] The commit fixes a documented use-after-free and panic (KASAN
-  slab-use-after-free in rds6_inc_info_copy, and the…
-- [Low] In rds_inc_on_sock_queue() (net/rds/recv.c:505), the comment "/*
-  XXX make sure this i_conn is reliable */" still sits right before…
+- [Low] Two new comments in this patch don't match what the rs_conn cache
+  code does.
+
+Pre-existing issues:
+- [Medium] The rs_conn cache-hit check in rds_sendmsg() (net/rds/send.c)
+  compares only the destination address and ToS…
 
 --
 
-net/rds: hold a connection reference from struct rds_incoming
+net/rds: hold connection references in lookup, sockets and c_passive
 
-This patch makes every assignment of rds_incoming->i_conn take a
-connection reference. Received incs drop it in rds_inc_put(), and
-messages drop it through a new rds_message_free() helper. The goal is to
-keep a connection allocated for as long as incs or messages that point
-at it remain queued on sockets.
+This patch makes rds_conn_lookup(), __rds_conn_create(), the rs->rs_conn
+sendmsg cache and parent->c_passive hold real connection references.
+rs_lock now serializes the rs_conn cache, which also resolves a syzbot
+KCSAN data race between concurrent rds_sendmsg() calls.
 
-Closes: https://lore.kernel.org/netdev/20260720184955.3008978-1-nicoyip.dev@gmail.com/
+Closes: https://syzkaller.appspot.com/bug?extid=879c1877016972360186
 
-> Embedded as the messages m_inc, an inc routinely outlives the connection
-> it points at, by sitting in the socket's receive queue until the
-> application reads it, while the connection is destroyed by netns
-> teardown or module unload - and every dereference of i_conn after that
-> point touches freed memory.
-
-[Severity: Low]
-Are netns teardown and core module unload the right triggers here?
-
-rds_create() allocates user RDS sockets with kern == 0:
-
-    sk = sk_alloc(net, AF_RDS, GFP_KERNEL, &rds_proto, kern);
-
-So each socket holds a reference on its netns. rds_recv_incoming() also
-already drops incs whose socket lives in a different netns from the
-connection:
-
-    if (!net_eq(sock_net(rds_rs_to_sk(rs)), rds_conn_net(conn))) {
-
-Taken together, it doesn't look like rds_loop_exit_net() or
-rds_tcp_exit_net() can destroy a connection that an inc on a live
-socket's receive queue still points at.
-
-For the first KASAN trace, rds_proto.owner and rds_proto_ops.owner are
-both THIS_MODULE in af_rds.c. Every open RDS socket therefore pins
-rds.ko, and delete_module() can't reach rds_exit() while task 101 is in
-getsockopt() on one. Does that trace need a forced unload
-(CONFIG_MODULE_FORCE_UNLOAD)?
-
-The path that does look reachable without a forced unload is a
-cross-transport one. rds_find_bound() looks up sockets by address, port
-and scope_id only, and doesn't check rs_transport. A socket bound with
-one transport (for example TCP chosen via SO_RDS_TRANSPORT on an IPoIB
-address) can then have incs queued that arrived on an IB connection.
-
-That socket pins only rds.ko and its own rs_transport module, so
-rmmod rds_rdma succeeds:
-
-    rds_ib_exit()
-      rds_ib_destroy_nodev_conns()
-        rds_conn_destroy()
-
-A later close then reaches the freed connection:
-
-    rds_release()->rds_clear_recv_queue()->rds_inc_put()->rds_ib_inc_free()
-
-This matches the second trace.
-
-Could the commit message describe this cross-transport unload case
-instead of netns teardown or unloading rds.ko? The conclusion about
-CAP_SYS_MODULE and stable still holds either way.
-
-> Reported-by: Chengfeng Ye <nicoyip.dev@gmail.com>
-> Closes: https://lore.kernel.org/netdev/20260720184955.3008978-1-nicoyip.dev@gmail.com/
-
-[Severity: Low]
-This isn't a bug, but the trailers have no Fixes: tag. The underlying
-defect is that rds_incoming->i_conn never held a connection reference,
-and that goes back to the original RDS code.
-
-The message explains why this isn't a stable candidate, so leaving out
-Fixes: may be deliberate, to keep AUTOSEL from picking it up. If so,
-could the commit message say that explicitly?
-
-> diff --git a/net/rds/recv.c b/net/rds/recv.c
-> index 6204e577a90ae..1fcd4483d3be4 100644
-> --- a/net/rds/recv.c
-> +++ b/net/rds/recv.c
+> diff --git a/net/rds/send.c b/net/rds/send.c
+> index 7235974343dda..bedcd8b836f66 100644
+> --- a/net/rds/send.c
+> +++ b/net/rds/send.c
 
 [ ... ]
 
-> @@ -406,8 +425,9 @@ void rds_recv_incoming(struct rds_connection *conn, struct in6_addr *saddr,
->  	 * rds_find_bound() uses a global (netns-agnostic) hash table.
->  	 * An RDS connection created in netns A can match a socket bound
->  	 * in the init netns, delivering inc cross-netns with inc->i_conn
-> -	 * pointing into netns A.  When cleanup_net() then frees that conn,
-> -	 * any subsequent dereference of inc->i_conn is a use-after-free.
-> +	 * pointing into netns A.  Cross-netns delivery is wrong on its
-> +	 * own, and the inc's connection reference would keep a
-> +	 * connection of a dead netns around, with a stale c_net.
->  	 * Drop the inc if the receiving socket lives in a different netns.
->  	 */
->  	if (!net_eq(sock_net(rds_rs_to_sk(rs)), rds_conn_net(conn))) {
+> @@ -1343,21 +1344,68 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
+>  	rm->m_daddr = daddr;
+>  
+>  	/* rds_conn_create has a spinlock that runs with IRQ off.
+> -	 * Caching the conn in the socket helps a lot. */
+> -	if (rs->rs_conn && ipv6_addr_equal(&rs->rs_conn->c_faddr, &daddr) &&
+> -	    rs->rs_tos == rs->rs_conn->c_tos) {
+> -		conn = rs->rs_conn;
+> +	 * Caching the conn in the socket helps a lot.
+> +	 *
+> +	 * The cached rs_conn holds a connection reference; take one of
+> +	 * our own for the duration of this call (dropped on both exit
+> +	 * paths), so that neither a concurrent sender replacing the
+> +	 * cache nor rds_conn_destroy() can free the connection under
+> +	 * us.  A cached connection whose destruction has begun is not
+> +	 * reused: dropping it here lets the next sendmsg look up or
+> +	 * create a live one instead of returning -EAGAIN forever.
+> +	 */
+> +	spin_lock_irqsave(&rs->rs_lock, flags);
+> +	conn = rs->rs_conn;
+> +	if (conn && rds_destroy_pending(conn)) {
+> +		/* drop the cache's reference right here, or the socket
+> +		 * would pin the quiesced connection until it is closed
+> +		 */
+> +		rs->rs_conn = NULL;
+> +		spin_unlock_irqrestore(&rs->rs_lock, flags);
+> +		rds_conn_put(conn);
+> +		conn = NULL;
 
 [Severity: Low]
-This isn't a bug, but this comment was updated for the new reference
-rules while a nearby one in the same file was left as is.
-rds_inc_on_sock_queue() still has:
+This isn't a bug, but do the new comments match what this path does?
 
-net/rds/recv.c:rds_inc_on_sock_queue() {
-    ...
-		if (drop) {
-			/* XXX make sure this i_conn is reliable */
-			rds_recv_rcvbuf_delta(rs, sk, inc->i_conn->c_lcong,
-					      -be32_to_cpu(inc->i_hdr.h_len),
-					      inc->i_hdr.h_dport);
-    ...
-}
+The comment above says that dropping the cached connection "lets the next
+sendmsg look up or create a live one". After conn = NULL here, though,
+execution goes straight into the if (!conn) block below and calls
+rds_conn_create_outgoing() in this same call. A later sendmsg only has to
+do the work if that create fails.
 
-With this patch, an inc linked on rs_recv_queue holds its own reference
-on i_conn. That reference is taken in rds_inc_init(), rds_inc_path_init()
-or rds_recv_incoming(), and dropped only in rds_inc_put() after
-inc_free(). The kernel-doc for rds_conn_wait_conns_freed() also says
-that incs now pin their connection.
+The new rs_conn comment in net/rds/rds.h also says:
 
-Should this XXX comment be removed or reworded, since it now contradicts
-that contract? It is still there at the end of the series.
+    The cache owns a connection
+    reference, dropped when it is replaced or the socket is
+    released, ...
+
+That misses this eviction case, where rds_sendmsg() sets rs_conn to NULL
+whenever rds_destroy_pending(conn) is true. If the create that follows
+fails, rs_conn stays NULL and nothing replaces it.
+
+Could both comments be updated to cover the eviction path?
+
+>  	} else {
+> +		if (conn && ipv6_addr_equal(&conn->c_faddr, &daddr) &&
+> +		    rs->rs_tos == conn->c_tos)
+> +			rds_conn_get(conn);
+
+[Severity: Medium]
+This is a pre-existing issue and was not introduced by this patch, but
+should the cache-hit check also compare scope_id against conn->c_dev_if?
+
+rds_conn_lookup() tells connections apart with conn->c_dev_if == dev_if.
+The TCP connect path in net/rds/tcp_connect.c uses
+sin6.sin6_scope_id = conn->c_dev_if. So a cached connection is tied to
+one interface.
+
+If the socket is bound to a global IPv6 address, rs_bound_scope_id is 0.
+This earlier check in rds_sendmsg() then accepts any nonzero scope_id:
+
+	if (scope_id != rs->rs_bound_scope_id) {
+		if (!scope_id) {
+			scope_id = rs->rs_bound_scope_id;
+		} else if (rs->rs_bound_scope_id) {
+
+A send to fe80::X with sin6_scope_id = A creates and caches a conn with
+c_dev_if = A. A later send to fe80::X with sin6_scope_id = B hits the
+cache here and reuses the interface A connection.
+
+Would that message go to fe80::X on link A instead of link B? The
+baseline predicate used the same key, and this rewrite keeps it. Adding
+conn->c_dev_if == scope_id to the check looks like it would fix this.
+
+> +		else
+> +			conn = NULL;
+> +		spin_unlock_irqrestore(&rs->rs_lock, flags);
+> +	}
+
+[ ... ]
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261003163215.250253-1-achender%40kernel.org
