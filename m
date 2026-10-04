@@ -1,42 +1,42 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DF643C73EC;
-	Sun,  4 Oct 2026 16:35:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AA203C9891;
+	Sun,  4 Oct 2026 16:35:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791131705; cv=none; b=mxlTqr2xOxEX2RvnbftBmGFBHWBDupowFuw2qETL1bodX4bhzDzEL1gcK5WaFS9pwxp2X29chr5L6KGqP+Ya27HBYRuIP7d/mX5syJLI4RcVNt4mWO25pGsygmT93lITUkq0+jqdF0SOWdpewdhZqCBV3c75fLIjPY52tzAKfPw=
+	t=1791131706; cv=none; b=CTdirPeUXV82UkizMXI5B2u2H3OsLON/1Gl1AlUdYtQLScZXB9PqYrvSmFaPFYUVsNzv6m5nn0RgEO5AQlWdzoubnIEi1OooWUndoLYB7cDCMY31fIgDTw6S7yfvsxaf32wEVDGwuJ5zWGMdI8x9fypTVRX0HRKEbYCOSDSFXAs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791131705; c=relaxed/simple;
-	bh=YvVQFb8ntZ1uYruZvTEpMRZumuGkvU4Yznh0HABMjQE=;
+	s=arc-20240116; t=1791131706; c=relaxed/simple;
+	bh=Lm7sGLnX4QMUbEw+a54w7AGBJFi2lzqeZU43AGDZ+EI=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=m8HZL0suO74+w+ol7sUwEAK5tpIHwTfUNMOoIKX1mltGz5Q4ZBSh1IOrZww3PJqc2cy3ctyk11XVVjTbS2JHhdY9rVkV2MjqMI6dEzHMJbk/lfz/xFYWYIQM1F9wNPztquOZydu2hSd1/O9o2joLDwdOs+G8Yr2bVb53SsVu5FQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=K1pWfGCd; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=TFApaealOmmpcvn5FYeBkwP8+6ZOoCgyutNQKHKVkD9oRrbEnuJWAQ/S28rFYZf8NeYhyJrghk4XFlXujz+cJ0Qi7fS9WG7uxLkp2NIwDIntehGoOIcwDhezsSDZOVs+zCAyzDJMMBcYudQtk5ZI7CilT62kIaO2wsNYE9OrbnY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NGfxOx7r; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="K1pWfGCd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22CA21F000FF;
-	Sun,  4 Oct 2026 16:35:04 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NGfxOx7r"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1015A1F00893;
+	Sun,  4 Oct 2026 16:35:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791131704;
-	bh=wVg3p4nG6+ugwUczeKXrVxwDXc/NVtTLfIMRNAYL0SY=;
+	s=k20260515; t=1791131705;
+	bh=kjr9/0nKb1J6ihVqg9Ainpe2oMxh8KPtexF8CcgGBl8=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=K1pWfGCdVNJBJjMQvtYD2kVpNtymVbqy5ASyuCzacbuRwMLL2BuJl/2s7H/CPn7Y0
-	 pHSJKOO4e6ifR3KPJvXx9OGePDlYaT12gdvWKMVcp9P41XmxlEquLtrK9jS7xO0WwP
-	 BBZc2JCM3aZZblFYeau91NeLD9W7ARSdkbXfBy8JyyEOo+uG+l39bRVADI8RAcEzqM
-	 0QANRrYXTm8ozFxKjcKtD6lxe3fKoXH4aNWD/M4NIfjZ2Dar4NXyc2j4iI+xa9KhVO
-	 lhfcE73PliiixsZmO4Od8mUAUcX+D9RGnJoo6QmQT0B/6er2mfOZgTx7cfLACuDuMd
-	 I8V6b15etgEmg==
-Subject: Re: [PATCH net-next v8 11/13] net/rds: hold connection references in
- lookup, sockets and c_passive
+	b=NGfxOx7rHK2h7s5GK8jKMSjk2a/Q14W2A1+/2HYsQJGBiPv+imdwO2HC+ZdA775L8
+	 nHeDJ5PX8E9LLSKQ1g7k/kctzQjk3B39kWyPgZlX7LIM6zZF8opSNBcT9m8lMPbU+3
+	 +mb8CJOOJlC//aduzSTpT3FzrcyQX3AXOufCo4kFIfk97pD4cy2nLvVHCvzgHx48de
+	 5agfK0ErnmW+uPWSO0eqfi3ey+KQpICxR9V6IEwgxAmPvia+3M6BubJH9FioJ4A+6P
+	 3BpW3Nf5oQEXN249XoOCJ1DgV+zKdV77iXcGzDl9TPVkssvrrUZfI6VxJh5YHt7sz7
+	 cotX45w2NO9jw==
+Subject: Re: [PATCH net-next v8 12/13] net/rds: pin the connection across
+ RDMA-CM event handling
 From: netdev-bot+sashiko@kernel.org
 To: achender@kernel.org
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
  edumazet@google.com, kuba@kernel.org, horms@kernel.org
-Date: Sun, 04 Oct 2026 16:35:03 +0000
-Message-ID: <179113170371.434549.16420212247196359314@kernel.org>
-In-Reply-To: <20261003163215.250253-12-achender@kernel.org>
-References: <20261003163215.250253-12-achender@kernel.org>
-X-sashiko-severity: Low
+Date: Sun, 04 Oct 2026 16:35:04 +0000
+Message-ID: <179113170465.434549.8485797174502943029@kernel.org>
+In-Reply-To: <20261003163215.250253-13-achender@kernel.org>
+References: <20261003163215.250253-13-achender@kernel.org>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -46,123 +46,151 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue(s) to consider.
 
-Low priority / nit picks for your consideration:
+Critical: 0 · High: 0 · Medium: 1 · Low: 0
 
-- [Low] Two new comments in this patch don't match what the rs_conn cache
-  code does.
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-Pre-existing issues:
-- [Medium] The rs_conn cache-hit check in rds_sendmsg() (net/rds/send.c)
-  compares only the destination address and ToS…
+- [Medium] The commit message and the new comment in
+  rds_ib_cm_initiate_connect() (net/rds/ib_cm.c) describe a resource…
 
 --
 
-net/rds: hold connection references in lookup, sockets and c_passive
+net/rds: pin the connection across RDMA-CM event handling
 
-This patch makes rds_conn_lookup(), __rds_conn_create(), the rs->rs_conn
-sendmsg cache and parent->c_passive hold real connection references.
-rs_lock now serializes the rs_conn cache, which also resolves a syzbot
-KCSAN data race between concurrent rds_sendmsg() calls.
+This patch makes rds_rdma_cm_event_handler_cmn() take a reference on the
+connection for the duration of each RDMA-CM event. It also adds
+rds_destroy_pending() checks to rds_ib_cm_initiate_connect() and
+rds_ib_cm_handle_connect(), so a connection that is being destroyed does
+not get a new QP or cm_id set up.
 
-Closes: https://syzkaller.appspot.com/bug?extid=879c1877016972360186
-
-> diff --git a/net/rds/send.c b/net/rds/send.c
-> index 7235974343dda..bedcd8b836f66 100644
-> --- a/net/rds/send.c
-> +++ b/net/rds/send.c
+> diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
+> index 165a29d4196e8..6307c88c31431 100644
+> --- a/net/rds/ib_cm.c
+> +++ b/net/rds/ib_cm.c
+> @@ -876,6 +876,13 @@ int rds_ib_cm_handle_connect(struct rdma_cm_id *cm_id,
+>  	 * see the comment above rds_queue_reconnect()
+>  	 */
+>  	mutex_lock(&conn->c_cm_lock);
+> +	/* A destroy that has already quiesced this conn leaves it in
+> +	 * RDS_CONN_DOWN with no cm_id, exactly what the transition
+> +	 * below would happily claim; nothing would tear the new cm_id
+> +	 * and QP down again before the conn is freed.  Reject instead.
+> +	 */
+> +	if (rds_destroy_pending(conn))
+> +		goto out;
 
 [ ... ]
 
-> @@ -1343,21 +1344,68 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
->  	rm->m_daddr = daddr;
+> @@ -950,6 +957,17 @@ int rds_ib_cm_initiate_connect(struct rdma_cm_id *cm_id, bool isv6)
+>  	union rds_ib_conn_priv dp;
+>  	int ret;
 >  
->  	/* rds_conn_create has a spinlock that runs with IRQ off.
-> -	 * Caching the conn in the socket helps a lot. */
-> -	if (rs->rs_conn && ipv6_addr_equal(&rs->rs_conn->c_faddr, &daddr) &&
-> -	    rs->rs_tos == rs->rs_conn->c_tos) {
-> -		conn = rs->rs_conn;
-> +	 * Caching the conn in the socket helps a lot.
-> +	 *
-> +	 * The cached rs_conn holds a connection reference; take one of
-> +	 * our own for the duration of this call (dropped on both exit
-> +	 * paths), so that neither a concurrent sender replacing the
-> +	 * cache nor rds_conn_destroy() can free the connection under
-> +	 * us.  A cached connection whose destruction has begun is not
-> +	 * reused: dropping it here lets the next sendmsg look up or
-> +	 * create a live one instead of returning -EAGAIN forever.
+> +	/* A destroy that began while the address and route were being
+> +	 * resolved has already quiesced this conn, or is waiting on
+> +	 * c_cm_lock to do so.  Setting up a QP now would leave it - and
+> +	 * the device reference rds_ib_add_conn() takes - with no
+> +	 * shutdown pass left to tear them down.  The id we were handed
+> +	 * is still ic->i_cm_id, so return success and let that shutdown
+> +	 * destroy it, rather than have the rdma_cm destroy it on error.
 > +	 */
-> +	spin_lock_irqsave(&rs->rs_lock, flags);
-> +	conn = rs->rs_conn;
-> +	if (conn && rds_destroy_pending(conn)) {
-> +		/* drop the cache's reference right here, or the socket
-> +		 * would pin the quiesced connection until it is closed
-> +		 */
-> +		rs->rs_conn = NULL;
-> +		spin_unlock_irqrestore(&rs->rs_lock, flags);
-> +		rds_conn_put(conn);
-> +		conn = NULL;
-
-[Severity: Low]
-This isn't a bug, but do the new comments match what this path does?
-
-The comment above says that dropping the cached connection "lets the next
-sendmsg look up or create a live one". After conn = NULL here, though,
-execution goes straight into the if (!conn) block below and calls
-rds_conn_create_outgoing() in this same call. A later sendmsg only has to
-do the work if that create fails.
-
-The new rs_conn comment in net/rds/rds.h also says:
-
-    The cache owns a connection
-    reference, dropped when it is replaced or the socket is
-    released, ...
-
-That misses this eviction case, where rds_sendmsg() sets rs_conn to NULL
-whenever rds_destroy_pending(conn) is true. If the create that follows
-fails, rs_conn stays NULL and nothing replaces it.
-
-Could both comments be updated to cover the eviction path?
-
->  	} else {
-> +		if (conn && ipv6_addr_equal(&conn->c_faddr, &daddr) &&
-> +		    rs->rs_tos == conn->c_tos)
-> +			rds_conn_get(conn);
+> +	if (rds_destroy_pending(conn))
+> +		return 0;
+> +
 
 [Severity: Medium]
-This is a pre-existing issue and was not introduced by this patch, but
-should the cache-hit check also compare scope_id against conn->c_dev_if?
+Can the leak described in this comment and in the commit message actually
+happen? The commit message says:
 
-rds_conn_lookup() tells connections apart with conn->c_dev_if == dev_if.
-The TCP connect path in net/rds/tcp_connect.c uses
-sin6.sin6_scope_id = conn->c_dev_if. So a cached connection is tied to
-one interface.
+  "a connection whose destroy began while its address and route were
+  resolving reaches RDMA_CM_EVENT_ROUTE_RESOLVED and sets up a QP -
+  taking a device reference in rds_ib_add_conn() - after the destroy's
+  shutdown pass has run, or with that pass waiting on c_cm_lock behind
+  the handler.  Nothing would ever release the QP, the cm_id or the
+  device reference, and rds_ib_exit() would wait forever for the
+  device."
 
-If the socket is bound to a global IPv6 address, rs_bound_scope_id is 0.
-This earlier check in rds_sendmsg() then accepts any nonzero scope_id:
+First, the case where the shutdown pass is waiting on c_cm_lock. The
+quiesce calls rds_conn_path_drop(cp, true), which sets RDS_CONN_ERROR and
+queues cp_down_w. Nothing in the ROUTE_RESOLVED path moves the state away
+from ERROR.
 
-	if (scope_id != rs->rs_bound_scope_id) {
-		if (!scope_id) {
-			scope_id = rs->rs_bound_scope_id;
-		} else if (rs->rs_bound_scope_id) {
+Once the handler releases c_cm_lock, rds_conn_shutdown() moves ERROR to
+DISCONNECTING and calls rds_ib_conn_path_shutdown(). Because ic->i_cm_id
+is set, that function already tears everything down:
 
-A send to fe80::X with sin6_scope_id = A creates and caches a conn with
-c_dev_if = A. A later send to fe80::X with sin6_scope_id = B hits the
-cache here and reuses the interface A connection.
+rds_ib_conn_path_shutdown() {
+    ...
+		rdma_destroy_id(ic->i_cm_id);
+    ...
+		if (ic->rds_ibdev)
+			rds_ib_remove_conn(ic->rds_ibdev, conn);
 
-Would that message go to fe80::X on link A instead of link B? The
-baseline predicate used the same key, and this rewrite keeps it. Adding
-conn->c_dev_if == scope_id to the check looks like it would fix this.
+		ic->i_cm_id = NULL;
+    ...
+}
 
-> +		else
-> +			conn = NULL;
-> +		spin_unlock_irqrestore(&rs->rs_lock, flags);
-> +	}
+So the QP, CQs, cm_id and device reference are all released, with or
+without this patch.
 
-[ ... ]
+Second, the case where the shutdown pass has already run. By then
+ic->i_cm_id has been destroyed and cleared, and rdma_destroy_id() waits
+for a running handler and blocks later callbacks on that id.
+
+A ROUTE_RESOLVED event on some other id fails the ibic->i_cm_id == cm_id
+test in rds_rdma_cm_event_handler_cmn() and only calls rds_conn_drop().
+While the pass is running, the handler exits early on
+RDS_CONN_DISCONNECTING. A conn that is unhashed and destroy-pending can't
+be reconnected either.
+
+Third, the device reference. IB conns are only destroyed from
+rds_ib_destroy_nodev_conns(), which rds_ib_exit() calls after
+rds_ib_unregister_client(). By that point rds_ib_dev_shutdown() has set
+shutting_down on every device, and rds_ib_add_conn() bails out before it
+takes the reference:
+
+rds_ib_add_conn() {
+    ...
+	if (rds_ibdev->shutting_down) {
+		ret = -ENODEV;
+    ...
+}
+
+As far as I can tell, the new early return only fires when
+rds_destroy_pending() is true through t_unloading (rds_ib_is_unloading())
+before any destroy has started. Neither the comment nor the commit
+message mentions that case, and the exit sweep would tear such a conn
+down anyway.
+
+Also, suppose the "already quiesced" case could be reached. Would
+returning 0 here help? It would leave a cm_id whose context points at a
+conn that is about to be freed, and rds_ib_conn_free() never destroys
+ic->i_cm_id.
+
+The check in rds_ib_cm_handle_connect() has the same problem. The commit
+message calls it "the mirror-image hole", but rds_rdma_exit() stops the
+listeners before rds_ib_exit() runs:
+
+rds_rdma_exit() {
+	rds_rdma_listen_stop();
+	rds_ib_exit();
+}
+
+So the listeners are destroyed before the unloading flag is set or any
+IB conn is destroyed. In addition, the lookup in rds_conn_create() can't
+return a conn once rds_conn_destroy() has unhashed it under
+rds_conn_lock.
+
+Both checks look harmless. Could the commit message and these two
+comments describe them as defensive, the way the handler pin is
+described? Right now they read as fixes for a reachable QP/cm_id/device
+reference leak and an rds_ib_exit() hang.
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261003163215.250253-1-achender%40kernel.org
