@@ -1,74 +1,72 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C5883B14C7
-	for <linux-rdma@vger.kernel.org>; Sun,  4 Oct 2026 06:53:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B5EA282F15
+	for <linux-rdma@vger.kernel.org>; Sun,  4 Oct 2026 07:02:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791096841; cv=none; b=AYkoFIf2wkdwrL7yR0IczQa8hCAyVj4nUi76TvcbpyDkyQcp1XOShj/0QeFCSFoEnPvaLSmJ2isN/DLgbcoJ1rN2BS8TyO3QwCG/Gq7TLSXq+gCkQBQSheAMlCZB1QhCRq9YA8Qiah5gFkkXHu0VWrm12K879bCKQyTQWSiLOWM=
+	t=1791097359; cv=none; b=oC/nGvuAJGMwweaQXT9I+6+pIJ4JrBVWUsNDMBSfylEnOCxyCXVZSY/7rL/KJQ7D7tpn/DWR2tc/stlVUNWwIIsc977r1V1U+5MiFowB16S4gNG/Pfe0pi0o9EPWXluIxqoJExEcVBp+zuSzDIPo7mvHGSjtxMytzj/WE0uEV48=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791096841; c=relaxed/simple;
-	bh=h5uaN9M7gkb3V3O7srp9R/iHZ5ccQDOBC4/S15xh2+U=;
-	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=HXZ8zwHj8XKb2NtuM7ldEInYwiJQBM0oFRXLXVDygqa4gc/mfLRcUmqWPiNaH0p0xi0k/0toG/pcCPwJ29Q31H8vTCSZwO/zJ7W+r1n1ZjT0kU6xpeVsOFcqO5/AB5QnyWbX1Wt8sh8RS7ct3viujDlxHQgaPn95jYO5TSZNVQ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=n9F6IxH6; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791097359; c=relaxed/simple;
+	bh=44htYIOJWaocVphmMBjew6h+MC8NZQjNoT/P+yaDj/Q=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:Content-Type:
+	 MIME-Version:Message-ID; b=smftYHo3A95/D3J3rke9dqLgRJJ4ZM6iHUfGva6B66AxdnO5iRg9A4qyy0pZ8RtiiRAf7fwEAma1eohDhGQJmMmTK78wHE7X2VeCiiSYi6kPf5krxPu+oQyXubXDD62lVPAoHYjSFtNVjK2TU8mpj4/f8i3Ja460Pc7+fMt6IIA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=U9NNiOi3; arc=none smtp.client-ip=220.197.31.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="n9F6IxH6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 975921F000FF;
-	Sun,  4 Oct 2026 06:53:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791096839;
-	bh=QpPbNPGON81ldYCBMc5Py6rVSMK5CmvTZEi7Eg9USAY=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=n9F6IxH6MkyBn9EGw1hRmYE9Tn9w+zbyy1QD/fHMtEDZ2FgNp9gSZp9HLOG5c4xPX
-	 rnv2szXg6VU+CpJeuyBjUfR+B/lepDV2BGP2xmzYvuCM6mVX0NC+U7S1qBreynhwXV
-	 ayYpth3XMpaiVcMFLKUebRi3CpfljLuHg/pOthLX6NZNC7ndeOilBGfo91Y/thTYkG
-	 XOBnvMCHSEBq44fawnB8AgCUTJwokoXfkjXTlvydIDNetF9TTLd/enGc3aEeTwFQHF
-	 +8gmgXGXch3UFpGeG2wwUa+WcojoV/Khtp/024HWM9OjGQTfyUkENjB5QJuTbThuf7
-	 eu5AoR/2QrAKw==
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v3] RDMA/rxe: Validate inline data range in user WQEs
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Jiale Yao" <yaojiale02@163.com>
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="U9NNiOi3"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=Date:From:To:Subject:Content-Type:MIME-Version:
+	Message-ID; bh=44htYIOJWaocVphmMBjew6h+MC8NZQjNoT/P+yaDj/Q=; b=U
+	9NNiOi3K44C7F+C01GYLI8Ckisau0epJSDY2UdzeK1TpLzEuSriTe7/Uk27ctJcB
+	A1uhkpXnjHroxEvv5mpyilv4V5eZo//UupH/0Ldcqjsx7Vh2xZ5FTIu2VNV9jMtw
+	n5I9fYUnu+HVM8v9r/y+WRnH2+vyjtuktWGkK6Z+yk=
+Received: from 19888972804$163.com (
+ [2408:8207:2421:84e0:61d7:4f14:bc92:6eb5] ) by ajax-webmail-wmsvr-40-144
+ (Coremail) ; Sun, 4 Oct 2026 15:02:15 +0800 (CST)
+Date: Sun, 4 Oct 2026 15:02:15 +0800 (CST)
+From: "jiale yao" <19888972804@163.com>
+To: "Zhu Yanjun" <yanjun.zhu@linux.dev>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261004064445.1488753-1-yaojiale02@163.com>
-References: <20261004064445.1488753-1-yaojiale02@163.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Sun, 04 Oct 2026 06:53:59 +0000
-Message-Id: <20261004065359.975921F000FF@smtp.kernel.org>
+Subject: Re:Re: [PATCH] RDMA/rxe: Validate inline data range in user WQEs
+X-Priority: 3
+X-Mailer: Coremail Webmail Server Version 2023.4-cmXT build
+ 20260511(2e539873) Copyright (c) 2002-2026 www.mailtech.cn 163com
+In-Reply-To: <862e30b2-5128-4b1b-985d-cd3faa21fc91@linux.dev>
+References: <20260924100515.502912-1-yaojiale02@163.com>
+ <20260924101736.9FA281F000FF@smtp.kernel.org>
+ <a1ef2c45-431f-4dad-b812-0b6cccf9ecc5@linux.dev>
+ <1c28994b.869.1a105467816.Coremail.19888972804@163.com>
+ <862e30b2-5128-4b1b-985d-cd3faa21fc91@linux.dev>
+X-NTES-SC: AL_Qu2SA/ySuEso4yeaY+kdmE8Uges8WcC0svki1YJUc+wGgwDS/RwQQXJ+G1vY7OaCNhuhvT2zTjZ3yOl6eJFAFZUaWI9fDl8kUtulvvDVxQ==
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=GBK
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Message-ID: <6d3b6560.c4b.1a105b86fb5.Coremail.19888972804@163.com>
+X-Coremail-Locale: zh_CN
+X-CM-TRANSID:kCgvCgD3_7L3+cFq56BSAA--.4728W
+X-CM-SenderInfo: x1dryxhdohiji6rwjhhfrp/xtbCzhfGAWrB+fdLbgAA3e
+X-Coremail-Antispam: 1U5529EdanIXcx71UUUUU7vcSsGvfC2KfnxnUU==
 
-> For a user QP, the send queue is an mmap'd ring which userspace writes
-> directly.  rxe_post_send() only schedules the send task for such a QP,
-> so userspace can also change WQE fields while rxe_requester() processes
-> the WQE.
->=20
-> Commit 126c757e4cd46f866ddc283143b58eb4d9bf52cd ("RDMA/rxe:
-> Validate num_sge/cur_sge before indexing wqe->dma.sge[]") added bounds
-> checks for two members of the userspace-controlled dma structure, but
-> left sge_offset unchecked.  For an inline WQE, finish_packet() uses that
-> value directly as an index into inline_data[] and copies dma.resid bytes
-> from the resulting pointer into the packet payload.
->=20
-> A local user with access to uverbs can therefore put an out-of-range
-> sge_offset in the mmap'd SQ ring.  This can disclose kernel memory in the
-> outgoing packet or cause a vmalloc out-of-bounds access.
-> [ ... ]
->    process_scheduled_works+0x7c0/0xf10
->=20
-> Fixes: 8700e3e7c485 ("Soft RoCE driver")
-> Link: https://lore.kernel.org/all/20260708224534.1206-1-security@auditcod=
-e.ai/
-> Signed-off-by: Jiale Yao <yaojiale02@163.com>
-
-Sashiko has reviewed this patch and found no issues. It looks great!
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261004064445.1488=
-753-1-yaojiale02@163.com?part=3D1
-
+SGkgWWFuanVuLApBdCAyMDI2LTEwLTA0IDE0OjE0OjA0LCAiWmh1IFlhbmp1biIgPHlhbmp1bi56
+aHVAbGludXguZGV2PiB3cm90ZToKPgo+1NogMjAyNi8xMC8zIDIxOjU3LCBqaWFsZSB5YW8g0LS1
+wDoKPj4+IEhpLCBKaWFsZQo+Pj4KPj4+IFBsZWFzZSBmaXggdGhlIHByb2JsZW0gdGhhdCBTYXNo
+aWtvIG1lbnRpb25lZC4gVGhlbiBzZW5kIG91dCBhIG5ldyBjb21taXQuCj4+Pgo+Pj4gVGhhbmtz
+IGEgbG90Lgo+Pj4gWWFuanVuIFpodQo+PiBIb3cgYWJvdXQgdGhpcyBvbmUsCj4+IGh0dHBzOi8v
+bG9yZS5rZXJuZWwub3JnL2FsbC8yMDI2MDkyNjA3MDQwMy4zMDA1MjUwLTEteWFvamlhbGUwMkAx
+NjMuY29tLwo+Cj5TYXNoaWtvIHN0aWxsIGNvbXBsYWlucyBzb21ldGhpbmcuIFBsZWFzZSB0cnkg
+dG8gZml4IGl0LgoKRml4ZWQgaXQgaW4sIGh0dHBzOi8vbG9yZS5rZXJuZWwub3JnL2FsbC8yMDI2
+MTAwNDA2NDQ0NS4xNDg4NzUzLTEteWFvamlhbGUwMkAxNjMuY29tLwpTYXNoaWtvIGhhcyByZXZp
+ZXdlZCB0aGlzIHBhdGNoIGFuZCBmb3VuZCBubyBpc3N1ZXMuIAoKPgo+VGhhbmtzIGEgbG90Lgo+
+Cj5ZYW5qdW4gWmh1Cj4KPj4+Pj4gKwkJcnhlX2RiZ19xcChxcCwgImludmFsaWQgaW5saW5lIGRh
+dGEgcmFuZ2UgaW4gc2VuZCB3cWVcbiIpOwo+Pj4+PiArCQl3cWUtPnN0YXR1cyA9IElCX1dDX0xP
+Q19RUF9PUF9FUlI7Cj4+Pj4+ICsJCWdvdG8gZXJyOwo+Pj4+PiArCX0KPj4+Pj4gKwo+Pj4+PiAg
+ICAJaWYgKHJ4ZV93cWVfaXNfZmVuY2VkKHFwLCB3cWUpKSB7Cj4+Pj4+ICAgIAkJcXAtPnJlcS53
+YWl0X2ZlbmNlID0gMTsKPj4+Pj4gICAgCQlnb3RvIGV4aXQ7Cj4KPi0tIAo+QmVzdCBSZWdhcmRz
+LAo+WWFuanVuLlpodQoKSmlhbGU=
