@@ -1,68 +1,68 @@
-Received: from mail-pj1-f47.google.com (mail-pj1-f47.google.com [209.85.216.47])
+Received: from mail-pz2-f38.google.com (mail-pz2-f38.google.com [74.125.228.38])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BC99175A5
-	for <linux-rdma@vger.kernel.org>; Sun,  4 Oct 2026 15:33:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEB3D331ED7
+	for <linux-rdma@vger.kernel.org>; Sun,  4 Oct 2026 15:33:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.38
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791127988; cv=none; b=d8hrxfyjIS60JXE/VrJ3KoPg4mOGFp3bq3FYuo1RoHcn7pbIiDmlhlCLPNY0f/b0NUw7N8/k08BJNCXILTUekbDPir0x75K0bVw8FBeqADo6sOrzu00ab0xMUDOV507naC2TqTMec7V7SuL+PFeR4narpzVYt2Bb9lH17vBE3sE=
+	t=1791128018; cv=none; b=ikaUruE2J7QgLw8zxiFa7J3Fs1k5nE4HYLDUGXRm7whYMiINufPB4EY6Jxal+2upb1Yc5sy6XhUC6Zxx7NRkhuojSQOChZrwZ+k66VXIdoWfx6mf9A3DPBtD5hMBPQBHejMbz2bOnso/ZOYEXZMg9TZt7OyQVladr+xY2Il1GsM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791127988; c=relaxed/simple;
-	bh=frEu0+YHCYEAIISEUSqAHXn1SA2CikdbNDhLxgGORsY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=rXunljFkWeqOId/zVSOlUhKnY9cYXrKE20q9EDigYar+KqdCXvyRHuqplyBvy/jWB6/BTZ/lrbhfKX7GrEhes0DZRauQt0EIIjzC1hpk9e06hrMVq0lzAoHKbul9VTG3rdL5qc7bsavX3M3b1zj60JKtlNPzm2u3DzynlEs3Su0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jMrRmUqr; arc=none smtp.client-ip=209.85.216.47
+	s=arc-20240116; t=1791128018; c=relaxed/simple;
+	bh=+aWDV+3i8d84MGSwCXMxxYkiI3P/D1+5+nRd6YrFCbA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=to27ysrDqd9NxcDObdiVWgbUX3PQOcz/bPy6Rdfk4y27kIKlxWiZfa3f+THvuEA/S7YH3p9V5N7YQ29Y1oiC7On9oHkt3D+IK9YsCJynB8ClLx5uPxEJs7QF7eOKWvx3sVrCVntetbFX4+fplpspMhhDa+duGB2UCBbNu82XUZA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Zy1rqnB5; arc=none smtp.client-ip=74.125.228.38
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jMrRmUqr"
-Received: by mail-pj1-f47.google.com with SMTP id 98e67ed59e1d1-381b831d535so806529a91.0
-        for <linux-rdma@vger.kernel.org>; Sun, 04 Oct 2026 08:33:06 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Zy1rqnB5"
+Received: by mail-pz2-f38.google.com with SMTP id d2e1a72fcca58-881a3a28e72so191230b3a.2
+        for <linux-rdma@vger.kernel.org>; Sun, 04 Oct 2026 08:33:36 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791127986; x=1791732786; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1791128016; x=1791732816; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=TL/5kgxzdG0IO6VNLnymmQGflm7TnGNgH/JOmRhyvJE=;
-        b=jMrRmUqrm3c/mvzSNVa5TAlkV8M71INBsVt1bsdTNxq9JXSG77L8ROR3v5hLgFqg+L
-         /MSHyNSy0S0weSdM1Tx5EAe9ah/BEqRKQY/wwM3mvdjVXbihHd0guoq91yK1xIQLWs/r
-         i1qI7+wA5VEI0ZywnyC1iDc2AVIipUAv2zQG6ri+74rqsMnqiQiQhbAedKlmcnvC4n7f
-         ZVZh7Dfi/3hOgh0D5vSj5eHNE2DaEC2PDSEHaxgGYyvokHMPmRhzniAh1tyO+NNI4fn1
-         hpcsKwNLJkd9nqV9xjw/lVU4Q3joVcAfBpzC7AHaXEMHiTtlhEo3V0EHPcngYB6ivtm1
-         ctUg==
+        bh=RawzNlFLUeN3ZVSblJSFdNt+fFTr55IA65m1ZA+aKCc=;
+        b=Zy1rqnB5Dv4xfFErLUUEOiV0IVWZyhjW3Z/Pi2OFWt+mf48MW8BErkWv2OSurpg4Ms
+         x7fqorDK0BpMlv206qpVEoXaG5vs0LeOfZXbwf8eX+laycXeNcvEwIHq2jAbcmshYVbr
+         h7y1jsMEAXAguwujZ2EXKRQAad7YWWE+i1/NcJTUNhqM3GZFAYoxdiKkRQaB2/bCv6ML
+         spi1ilMwP6v5Pg4Tgn5cMitd5QhfXAz6PfF88eBHUuLp/qfOVXZl2vY7hpg7rTdsRGYe
+         6Uvx0AFVclf2xtnpGAr5rrChNjQ8sjIjaqfn/NXeVbA/sQoOFUFuUQS/T2IbzCEWu6/7
+         JTuw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791127986; x=1791732786;
+        d=1e100.net; s=20260707; t=1791128016; x=1791732816;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=TL/5kgxzdG0IO6VNLnymmQGflm7TnGNgH/JOmRhyvJE=;
-        b=jMQUwIzkQQthw1733z4XyIa4/qIshS01Q5nPaCNEUPqKh6AYhN9xX6GSGRD924W4Rg
-         PDe8gC3n9uORgKJSB8zrvz7MDprUPuXVvmlf4KMFlKkMRXTAIN+L/kzB3EnT1ABl4EKH
-         74o+QdRF9xaowHM+yMDFk2UmJZSTJ3fMpaLuaVkZwgNWDibPV0SF3utb5Kf80gFhneaG
-         MWMy9U7ctoo0jPzddMt0AmaU6IpOVuzVdY9+O7Yji7MWor//0RcL7Mka1ha1q8qKONOX
-         WSZlV8aYtqAReXp1ZT4iFQWh53HpwhiOQMDCyxhMzpYRlTzkqlewHmj8BMiCOq4cGH8j
-         6skg==
-X-Gm-Message-State: AFq9FYJ5WvN20pgLQhdc/iLBwTjuxwgxEDS8FT4rFbOvq4+ummC0C9Y3
-	ra9wFIw1tg7zSfhucW+GY6QxSAAw7RDrGXJ3T88zsp9M2w3RzHjd9FSs
-X-Gm-Gg: AYBFou0Mj6GAo3sHzU8OlWAvMD/xAflV8PLWr2RacA2xIThNTAGS6rWS0gYErVrSG1t
-	Cijs2MQHM7Wfno/e11lApD371FUnVGzbEMiz7kaHxUCw17nvAYxvdCdVvfYGgHb8t7EIBYsNZqI
-	oimzKiXqRX159Nay/+7fbxFLkLaCsOvpUqGIT2brK9qZwl2xhJhy5Cd6h/Q3e23QMGQpf3f4HlG
-	VPR7ocy4U0/WyVYxQBmnjKDoNpjlydZGz+lmq6IUPd6z2WdRtuInhDVkr69NvMHG7lhjdwEvz2q
-	PjwLNjqu3T2864eBpvnqF9q7FqWfyjdufGbDIOreVQcw+fx4e9P59Ly68Rjjque+O0VrjyPrx1E
-	341becIFoB1nLlgrqptEJakHHcEJvssebDkjWNy4WfM7VHMhgkPtAVEAHyxqoFs+4mXF5KL6F8P
-	YMDWU5P7QaeR0jPObZWQVlVmfciqxhIiBrN8GAVEhvCczwGuglsWD8XMioaOjSXe/guFI7NKVbY
-	sMOd2r+eg==
-X-Received: by 2002:a17:90b:55cc:b0:3a7:f64f:6467 with SMTP id 98e67ed59e1d1-3a7f64f6837mr658082a91.57.1791127986369;
-        Sun, 04 Oct 2026 08:33:06 -0700 (PDT)
+        bh=RawzNlFLUeN3ZVSblJSFdNt+fFTr55IA65m1ZA+aKCc=;
+        b=oiXeR9BkqNvKcg9uSOUsnpQrgRENvbrUBb5qn5JiF+mqCfp4a6CKdE50xB57sVSP/P
+         RFQxfu1DsQhU/t4kDsbsv7QKEE/2uVoJx99PxdOma74/zvW6vGQAbXKvAqv3X/GG+0Ko
+         T+HR0o0wzWk6NPXbpq50InxMrlHS7jYLDSpOPObHP45/l+FXKC85SOZoXy7A90vBoMix
+         kVAs1uSqO7o2YSBYGy3KIoVGdPFYXIMdbnT8PUibuGmeMEWiL2qR0kVPht0IfFML+vQC
+         CX3QHL9GAiNjbX5Q1Cbhdji2/SwL2rdT9XsOPmh6FxmqgiWuCZlE+xERDmjCcmiADdRD
+         et8g==
+X-Gm-Message-State: AFuF++lIPv6DLEaxcQjvicoCBUe66cpV8af7XVt8WTxkJytuLUNqE95I
+	gwuQ+sYh9JtnuemLSqhHNbKbfx7ufllQIyano3E56lo1uPSfROHvkjA3SnL/rQ==
+X-Gm-Gg: AYBFou22dygJ6aMg2NV3uRPaI4e/wYHTVEklZpMNQ0aj1nqZhO7znjXnsk6CJWAbksl
+	zwgXLor31X1Pds8Z4g5MyIiuR7IlSlgQX42Ki3M0ykh8eNF1kgFrdh5rmP7TPSsWx0+TwOb3ivb
+	hEnIhHF26DNrg/IL14VemIQ/6GJ+Nxhj3ZOGecJQWbUVavZssROwIkONpXq/msyXwIi/QSpQpWm
+	udC0vb/Bog5Bp6ODFqsv+rqvQijq0GbnqB8TVEBrNY5aycgpVEEfI9v9RVEDY/ZK5ihzYDrWCov
+	nRYCaLnd6mNQSoDlViQK/T50QWBZjvFU/ZCgLRfgdmJ56XzZWVx1S9M1dPGJ/JTUGEHHasqrWpt
+	/Qh+BfVLT/BOE35SxN0f9BIHG1cenSaFw5uV5ka+iLlHkJiPvqhvvMbs8nbjsD3vRmHPBhi4PTQ
+	mGeCSHifs7tTDvGpFN12IktLWVE+zrzyz/cFH+sZdLBLRAovwAGUoLrHYpABQ7onZLTpYS2Dtt4
+	Un/AMbqWaUE9RBy/vHy
+X-Received: by 2002:a05:6a00:451b:b0:86a:c062:8af2 with SMTP id d2e1a72fcca58-88af249500emr7439424b3a.3.1791128016100;
+        Sun, 04 Oct 2026 08:33:36 -0700 (PDT)
 Received: from localhost.localdomain ([112.171.72.75])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3a78e61386csm7363090a91.17.2026.10.04.08.33.04
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-88b0d04ed92sm2582414b3a.51.2026.10.04.08.33.32
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 04 Oct 2026 08:33:05 -0700 (PDT)
+        Sun, 04 Oct 2026 08:33:34 -0700 (PDT)
 From: Youngsung Ahn <ays511.kr@gmail.com>
 To: Zhu Yanjun <yanjun.zhu@linux.dev>,
 	Leon Romanovsky <leon@kernel.org>
 Cc: linux-rdma@vger.kernel.org
-Subject: [PATCH v3] RDMA/rxe: bound the ODP page index against the umem in rxe_check_pagefault()
-Date: Mon,  5 Oct 2026 00:32:46 +0900
-Message-ID: <20261004153246.2951263-1-ays511.kr@gmail.com>
+Subject: [PATCH v3] RDMA/rxe: validate cur_sge on the receive path before indexing dma->sge[]
+Date: Mon,  5 Oct 2026 00:33:25 +0900
+Message-ID: <20261004153325.2952372-1-ays511.kr@gmail.com>
 X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -72,106 +72,136 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-An ODP MR has a page array, map.pfn_list[]. Its size is computed from
-the umem start address. But rxe_check_pagefault() builds the index into
-that array from an iova that is relative to the same start, while the
-access itself was range-checked against the MR's iova (ibmr.iova).
+A user QP's receive queue is an mmap'd ring. The user provider writes
+the WQEs into it and post_recv never touches them, so every field of
+struct rxe_recv_wqe comes from user space. When the responder picks up a
+WQE it only checks dma.num_sge (in rxe_get_recv_wqe() and
+get_srq_wqe()). dma.cur_sge, dma.sge_offset and dma.resid are copied
+into qp->resp.srq_wqe without any check.
 
-Those two bases do not have to match. reg_mr only requires that start
-and hca_va have the same page offset, so a user can register an MR with
-hca_va = start + N*PAGE. The difference then becomes an index skew of
-(hca_va - start) >> PAGE_SHIFT. Nothing compares the result with the
-size of pfn_list[], so the read goes past the end of the array.
+copy_data() then uses cur_sge as an index right away:
 
-An unprivileged local user can reach this with a single RDMA operation
-on a self-connected rxe QP. KASAN reports a slab-out-of-bounds read. If
-the out-of-bounds qword happens to look like a writable HMM pfn, rxe
-then copies the payload into a page the user never registered.
+	struct rxe_sge *sge = &dma->sge[dma->cur_sge];
 
-Reject an index that falls outside the umem and take the fault path
-instead. That path rejects the out-of-range access in
-ib_umem_odp_map_dma_and_lock(), which does check the umem range. The
-other users of pfn_list[], __rxe_odp_mr_copy() and the atomic helpers,
-run only after a successful map, so this single check covers them too.
+It dereferences that pointer (sge->length) before the in-loop
+"dma->cur_sge >= dma->num_sge" test, which only runs after the first
+sge++. cur_sge is a u32, so the pointer can land far outside
+dma->sge[], which has RXE_MAX_SGE entries and sits inside the
+kmalloc-2k struct rxe_qp. That gives an information leak, because the
+out-of-bounds sge->length can be recovered from the work-completion
+status, and it also gives a DoS. The send queue already got a
+num_sge/cur_sge check in commit 126c757e4cd4 ("RDMA/rxe: Validate
+num_sge/cur_sge before indexing wqe->dma.sge[]"). The receive path did
+not.
 
-Fixes: 2fae67ab63db ("RDMA/rxe: Add support for Send/Recv/Write/Read with ODP")
+Reject an out-of-range cur_sge before the first dereference. Read the
+field once with READ_ONCE() into a local, then check and index that
+same local. This matters because copy_data() also runs on the send path
+(finish_packet() -> copy_data(&wqe->dma, ...)), and there dma points
+straight at the mmap'd ring instead of the kernel copy the responder
+makes. So the value that is checked must be the value that is used. The
+kernel ULP path always sets cur_sge = 0, so it is not affected.
+
+This is not a complete bound for the send path, and I would rather say
+so than imply otherwise. num_sge is read from the ring as well, and the
+retransmit path reaches dma->sge[] through advance_dma_data(), which
+still has the same unchecked index. I will send those separately.
+
+Fixes: 8700e3e7c485 ("Soft RoCE driver")
 Signed-off-by: Youngsung Ahn <ays511.kr@gmail.com>
 Assisted-by: LLM
 ---
-v3: no code change. I am sending it as a standalone mail this time,
-because v2 was sent as a reply to v1. I also dropped the Cc: stable
-trailer. Both were asked for on the list.
+v3: read dma->cur_sge once with READ_ONCE() into a local, then check and
+index that same local, so the value that is checked is the value that is
+used. Automated review pointed out that v2 read the field twice. I am
+also sending this as a standalone mail and I dropped the Cc: stable
+trailer.
+
+As the commit message says, this is not a complete bound for the send
+path. num_sge also comes from the ring, so a concurrent write can still
+widen the window, and the retransmit path reaches dma->sge[] through
+advance_dma_data() instead of copy_data(). A complete fix would pass the
+queue's max_sge into copy_data(), instead of comparing two fields that
+both come from the ring. I did not want to change the function signature
+in a fix patch without asking first. Please tell me if you prefer that.
 
 Test results. The kernel is an unpatched KASAN x86-64 build of 7.3-rc4
-(93f51579e7df). The reproducer runs as uid 1000, against an rxe link on
-lo. It registers an ODP MR with length 0x8000 and
-hca_va = start + 0x8000, that is 8 pages of skew. So map.pfn_list[] has
-8 entries and the valid indices are 0..7. The reproducer then posts a
-recv WQE in which every field is legal (num_sge=1, cur_sge=0,
-sge_offset=0, sge.addr == ibmr.iova) and sends 64 bytes to its own QPN.
-The skewed index lands on entry 8:
+(93f51579e7df). The reproducer runs as a normal user (uid 1000), against
+an rxe link on lo. It writes a recv WQE straight into the mmap'd RQ ring
+with dma.cur_sge = 0x30, then posts a 64-byte SEND to the same QP:
 
-  BUG: KASAN: slab-out-of-bounds in rxe_odp_map_range_and_lock+0x13b/0x280
-  Read of size 8 at addr ffff888102bf3f40 by task kworker/u8:1/32
-  CPU: 0 UID: 0 PID: 32 Comm: kworker/u8:1 Not tainted 7.3.0-rc4 #3
+  BUG: KASAN: slab-out-of-bounds in copy_data+0xa5/0x2d0
+  Read of size 4 at addr ffff88810164c858 by task kworker/u8:1/32
+  CPU: 1 UID: 0 PID: 32 Comm: kworker/u8:1 Not tainted 7.3.0-rc4 #3
   Workqueue: rxe_wq do_work
   Call Trace:
    kasan_report+0xce/0x100
-   rxe_odp_map_range_and_lock+0x13b/0x280
-   rxe_odp_mr_copy+0x7f/0x1e0
-   copy_data+0x124/0x2d0
+   copy_data+0xa5/0x2d0
    rxe_receiver+0x20a6/0x3cb0
    do_work+0xb6/0x250
    process_one_work+0x3d1/0x790
    worker_thread+0x296/0x500
    kthread+0x194/0x1e0
    ret_from_fork+0x2ac/0x3c0
-  Allocated by task 86:
-   rxe_odp_mr_init_user+0x52/0x180
-  The buggy address belongs to the object at ffff888102bf3f00
-   which belongs to the cache kmalloc-64 of size 64
-  The buggy address is located 0 bytes to the right of
-   allocated 64-byte region [ffff888102bf3f00, ffff888102bf3f40)
+  The buggy address belongs to the object at ffff88810164c000
+   which belongs to the cache kmalloc-2k of size 2048
+  The buggy address is located 96 bytes to the right of
+   allocated 2040-byte region [ffff88810164c000, ffff88810164c7f8)
 
-The 64-byte region is map.pfn_list[] itself, which is 8 entries of 8
-bytes. The "Allocated by" stack names rxe_odp_mr_init_user(), so the
-object really is the pfn_list of this MR. The read is exactly one entry
-past the end. That is the (hca_va - start) >> PAGE_SHIFT skew described
-above. rxe_check_pagefault() is inlined, so the report names
-rxe_odp_map_range_and_lock() instead.
+The 2040-byte kmalloc-2k region is the struct rxe_qp from the commit
+message. A second report follows at copy_data+0xda, which is the
+sge->length read inside the loop. The report names the rxe_wq kworker
+because that is where the responder consumes the WQE.
+
+With a larger cur_sge (0x40000) the same read lands outside any live
+object, and KASAN reports use-after-free instead. So the index is not
+just off by a few entries:
+
+  BUG: KASAN: use-after-free in copy_data+0xa5/0x2d0
 
 The code is unchanged in mainline 551c722f4080 (2026-09-29). This patch
 itself is only compile-tested (KASAN + CONFIG_RDMA_RXE). I have not run
 the reproducer again on a patched kernel.
 
-You may prefer to index relative to ibmr.iova instead, the way the
-non-ODP rxe_mr_iova_to_index() does, so that MRs with a legitimate skew
-keep working. This patch takes the smaller and safer route. Please tell
-me if you want the other approach.
+The reproducer is a small C program. It uses the legacy uverbs write ABI,
+so it does not need libibverbs. The fix is not merged yet, so I am not
+posting it on the list. I can send it to you off-list, as I did for the
+wr_opcode patch.
 
-The reproducer needs CONFIG_INFINIBAND_ON_DEMAND_PAGING. The fix is not
-merged yet, so I am not posting it on the list. I can send it to you
-off-list, as I did for the wr_opcode patch.
+ drivers/infiniband/sw/rxe/rxe_mr.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
- drivers/infiniband/sw/rxe/rxe_odp.c | 5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/drivers/infiniband/sw/rxe/rxe_odp.c b/drivers/infiniband/sw/rxe/rxe_odp.c
-index ab21b620e94c..07a30c60fc62 100644
---- a/drivers/infiniband/sw/rxe/rxe_odp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_odp.c
-@@ -136,6 +136,11 @@ static inline bool rxe_check_pagefault(struct ib_umem_odp *umem_odp, u64 iova,
- 	while (addr < iova + length) {
- 		idx = (addr - ib_umem_start(umem_odp)) >> umem_odp->page_shift;
+diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
+index 71d9ea477289..6c7d6919e5d5 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mr.c
++++ b/drivers/infiniband/sw/rxe/rxe_mr.c
+@@ -422,7 +422,8 @@ int copy_data(
+ 	enum rxe_mr_copy_dir	dir)
+ {
+ 	int			bytes;
+-	struct rxe_sge		*sge	= &dma->sge[dma->cur_sge];
++	struct rxe_sge		*sge;
++	u32			cur_sge	= READ_ONCE(dma->cur_sge);
+ 	int			offset	= dma->sge_offset;
+ 	int			resid	= dma->resid;
+ 	struct rxe_mr		*mr	= NULL;
+@@ -437,6 +438,16 @@ int copy_data(
+ 		goto err2;
+ 	}
  
-+		if (idx >= ib_umem_odp_num_pages(umem_odp)) {
-+			need_fault = true;
-+			break;
-+		}
++	/*
++	 * dma may live in a user-mapped queue, so read cur_sge once and
++	 * validate the value that is actually used to index sge[].
++	 */
++	if (unlikely(cur_sge >= dma->num_sge)) {
++		err = -EINVAL;
++		goto err2;
++	}
++	sge = &dma->sge[cur_sge];
 +
- 		if ((umem_odp->map.pfn_list[idx] & access) != access) {
- 			need_fault = true;
- 			break;
+ 	if (sge->length && (offset < sge->length)) {
+ 		mr = lookup_mr(pd, access, sge->lkey, RXE_LOOKUP_LOCAL);
+ 		if (!mr) {
 -- 
 2.43.0
 
