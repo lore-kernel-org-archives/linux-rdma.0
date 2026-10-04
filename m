@@ -1,174 +1,77 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8FEE33B97B
-	for <linux-rdma@vger.kernel.org>; Sun,  4 Oct 2026 16:35:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81A4923643F
+	for <linux-rdma@vger.kernel.org>; Sun,  4 Oct 2026 16:35:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791131740; cv=none; b=u/vvsZQGMC3ZttjlodoHpOG9NdYP69vXwQYCTJo4BZIPl12h0YOGEfWrx92WxsPY2swVyQkE8GSAqimBuWFeMN7B/s6C/uh+uXHiEKh2mA7mbLaq3BfgxlIRygElmaTJoQJqJYMAbMD6DFVKONgop8k51UcrFnCmyzFEAKBV/uk=
+	t=1791131741; cv=none; b=WcWgeQEUYayH+WH9uQAGGbkZE9zgl6SOWlNj4rov0PNswkCOixJqU1iMX0lTQWvwVWMIz2rp8heDyngIGctCRsP3vf6daOnH7HZAt0QbjkGgfEDnL3z6ZC5sYJNH6HBzPUhrtixwvurr15PG9soAXYtUXsU5u3JeYpArH0aeiCY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791131740; c=relaxed/simple;
-	bh=ATo0HMxkBPq5Qnz1KQQhyyL43trHwElfuupWQWpqsc8=;
+	s=arc-20240116; t=1791131741; c=relaxed/simple;
+	bh=EXL2E8qsXRD9bFgR76fG69HD9oh9SohaI6eB0FtSga0=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=LNvuZl5BDbQcpmRdK4KMMi060mDMvmZB1DlFVTTvXUshKK1b6IvF+ee8MSERtAUGBMJofWFNclKP2S+aDf07I8Bxw9H1oU3YFNKZkyo+La5bSfTGTQi/mP+px0z6I+U279NOb+yjrRXD9QMiVfVSKjl5/ff5iOTt1N32Hqt0TUo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dcN628/I; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=g2sN09vHCiqvjvdlj/Y1BfxWFXBK0kmgg8s/GodFgqNBYJQMuSPgWOmX00xLqy+HjHYcgmxeQidngdGKExVDzoKluEAXVfUWhDOkkp8LweA/SYlbaeZtdXh2NPJznb4MHacfBzY5UHqemdwxlwdm8KV4ccZPZRidOA/g93jyMWc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gvYkfywd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dcN628/I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67D571F000FF;
-	Sun,  4 Oct 2026 16:35:39 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gvYkfywd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 128BB1F00893;
+	Sun,  4 Oct 2026 16:35:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791131739;
-	bh=ZMk+gbn+ZFw9b4rHGeQQgPGSwhITdkQ3RbefG/4VtcM=;
+	s=k20260515; t=1791131740;
+	bh=p5axOCzBeLZ6IB16xJ2wiEq+2u3D0vacNjK2od9IgYA=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=dcN628/I44ezHNkXNhqqHj39+qzKXj28MUgYzhZ4IZAartZB6JC+YihXnK8UK7r0k
-	 4STGqgMFfm5cD6AWg4bNBlXD89I89HAoBg2e8WRbOxHhcRyq/Ddn9zdqojPXSeA0NX
-	 C3ZX2pbvU1/1bQVgpmXGqAobrSVAOIRhcM5V/wM/3fJ9kK/ibupnLZhP5ImTsZHAie
-	 Jh6Kv0KiQRlyPG4gOghjI4MLl9c/un9ixY7E8f7b40PUXNkzeXKrHwq/oEbeaF/Y46
-	 2UnwfdVmyT+MN7IDSYdus4j8PvYVPrMkQd1gro+ywtX/nQ+bJYfpjnEI1a9vaVG7a/
-	 CBS6ykM5ltDJA==
+	b=gvYkfywdiqJjSPr/ASmCZwj6JtMg9pOfm4lj+5xLgJclrkDiXtpO0ixJaZU3d/OsI
+	 KnsasQOOh+kDLB6ABARrwcalxwdE2xM4W15lik9duCQnyPbcaerIhjT5olwG9WKbj4
+	 tWua3sX/rwxY6Hqu3V3DRR2t6XkcCqNmkxaYFME7ONPNws+Ga5lN9g4fVSCNAAITSD
+	 1MrmNmJKcQY4B1FckzF2tqgX+3dLsdCkebFrPnJ37RW9Qb29B+tbydZgn1/hsQNyAM
+	 vbS74LW5axMV29/cLlW0WmDCU6MT0YKGgpFf1t1f9CpVzv416KBABp543embgP85F0
+	 7NeWmBIWxRM5w==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net v3 1/2] net/rds: keep the connected peer's scope id
- apart from the bound one
+Subject: Re: [PATCH net v3 2/2] net/rds: include the scope id in the sendmsg
+ connection cache check
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Allison Henderson" <achender@kernel.org>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261003163526.250805-2-achender@kernel.org>
+In-Reply-To: <20261003163526.250805-3-achender@kernel.org>
 References: <20261003163526.250805-1-achender@kernel.org>
- <20261003163526.250805-2-achender@kernel.org>
+ <20261003163526.250805-3-achender@kernel.org>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Sun, 04 Oct 2026 16:35:38 +0000
-Message-Id: <20261004163539.67D571F000FF@smtp.kernel.org>
+Date: Sun, 04 Oct 2026 16:35:39 +0000
+Message-Id: <20261004163540.128BB1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-Thank you for your contribution! Sashiko AI review found 2 potential issue(=
-s) to consider:
-- [High] rds: getname() and recvmsg() break IPv6 link-local scope ID
-- [High] rds: destination-less sendmsg() fails for global dests if bound li=
-nk-local
---
+> rds_sendmsg() reuses the connection cached in rs->rs_conn when its
+> peer address and ToS match the request.  The interface index is part
+> of a connection's identity as well: rds_conn_create_outgoing() passes
+> the request's scope_id down as dev_if, and rds_conn_lookup() compares
+> c_dev_if, so sends to the same link-local address through two
+> interfaces are two different connections.  The cache-hit test never
+> looked at it.
+>=20
+> A socket bound to a non-link-local address has rs_bound_scope_id 0,
+> and the scope check at the top of rds_sendmsg() accepts any non-zero
+> destination scope for such a socket.  So after a send to fe80::x%ifA,
+> a send to fe80::x%ifB hits the cached ifA connection and the datagram
+> leaves through ifA, to whichever peer answers to that address there.
+>=20
+> Compare c_dev_if with the request's scope_id in the cache test, so
+> that such a send takes the lookup path and finds, or creates, the ifB
+> connection - the same key the lookup uses.  With the previous patch a
+> send without a destination carries the connected peer's scope, so the
+> comparison is exact for it too.
+>=20
+> Fixes: 1e2b44e78eea ("rds: Enable RDS IPv6 support")
+> Assisted-by: Claude-Code:claude-fable-5
+> Signed-off-by: Allison Henderson <achender@kernel.org>
 
-commit 898dc27ebfe8db635a3eb7a78c44763fbfcf0c43
-Author: Allison Henderson <achender@kernel.org>
-
-net/rds: keep the connected peer's scope id apart from the bound one
-
-This commit isolates the connected peer's scope ID into a new
-rs_conn_scope_id field, leaving the bound scope ID in
-rs_bound_scope_id alone. It updates rds_connect(), rds_bind(), and
-rds_sendmsg() to use the new field to ensure destination-less sends
-and link-local binds operate with the correct interface scopes.
-
-> diff --git a/net/rds/af_rds.c b/net/rds/af_rds.c
-> index d5defe9172e36..ba726782addf7 100644
-> --- a/net/rds/af_rds.c
-> +++ b/net/rds/af_rds.c
-[ ... ]
-> @@ -616,11 +617,14 @@ static int rds_connect(struct socket *sock, struct =
-sockaddr_unsized *uaddr,
->  				ret =3D -EINVAL;
->  				break;
->  			}
-> -			/* Remember the connected address scope ID.  It will
-> -			 * be checked against the binding local address when
-> -			 * the socket is bound.
-> +			/* Remember the connected address scope ID.  It is
-> +			 * checked against the binding local address when
-> +			 * the socket is bound, and gives a send without a
-> +			 * destination its scope.
->  			 */
-> -			rs->rs_bound_scope_id =3D sin6->sin6_scope_id;
-> +			rs->rs_conn_scope_id =3D sin6->sin6_scope_id;
-
-[Severity: High]
-Does this change miss updating rds_getname() and rds_recvmsg()?
-
-By no longer storing the peer's scope ID in rs->rs_bound_scope_id,
-userspace programs calling getpeername() or receiving messages via recvmsg()
-may receive a scope ID of 0 for connected link-local peers when the
-local socket is unbound or globally bound.
-
-For example, rds_getname() appears to still populate the address using
-the bound scope:
-
-net/rds/af_rds.c:rds_getname() {
-    ...
-    sin6->sin6_scope_id =3D rs->rs_bound_scope_id;
-    ...
-}
-
-Similarly in rds_recvmsg():
-
-net/rds/recv.c:rds_recvmsg() {
-    ...
-    sin6->sin6_scope_id =3D rs->rs_bound_scope_id;
-    ...
-}
-
-Could this prevent userspace from properly parsing the address or
-sending replies to the correct interface?
-
-> +		} else {
-> +			rs->rs_conn_scope_id =3D 0;
->  		}
->  		rs->rs_conn_addr =3D sin6->sin6_addr;
->  		rs->rs_conn_port =3D sin6->sin6_port;
-[ ... ]
-> diff --git a/net/rds/send.c b/net/rds/send.c
-> index 1afa981e5c06d..9380b67675bdc 100644
-> --- a/net/rds/send.c
-> +++ b/net/rds/send.c
-> @@ -1256,7 +1256,7 @@ int rds_sendmsg(struct socket *sock, struct msghdr =
-*msg, size_t payload_len)
->  		lock_sock(sk);
->  		daddr =3D rs->rs_conn_addr;
->  		dport =3D rs->rs_conn_port;
-> -		scope_id =3D rs->rs_bound_scope_id;
-> +		scope_id =3D rs->rs_conn_scope_id;
->  		release_sock(sk);
->  	}
-> =20
-
-[Severity: High]
-Does this cause destination-less sendmsg() calls to bypass the bound
-scope fallback for global connections?
-
-If an RDS socket is bound to an IPv6 link-local address (with a valid
-scope) and connected to a global IPv6 address, a destination-less
-sendmsg() will have namelen =3D=3D 0.
-
-It looks like it will assign scope_id from rs_conn_scope_id (which is
-0 for global peers), but then skip the fallback logic entirely:
-
-net/rds/send.c:rds_sendmsg() {
-    ...
-    } else {
-        /* We only care about consistency with ->connect() */
-        ...
-        scope_id =3D rs->rs_conn_scope_id;
-    }
-
-    lock_sock(sk);
-    if (ipv6_addr_any(&rs->rs_bound_addr) || ipv6_addr_any(&daddr)) {
-        ...
-    } else if (namelen !=3D 0) {
-        ...
-        if (scope_id !=3D rs->rs_bound_scope_id) {
-            if (!scope_id) {
-                scope_id =3D rs->rs_bound_scope_id;
-    ...
-}
-
-Because the fallback logic is inside the else if (namelen !=3D 0) block,
-scope_id remains 0. The connection could then be created with a dev_if
-of 0, causing the TCP transport to attempt a kernel_bind() to a
-link-local source address with no scope ID, which the IPv6 stack will
-reject.
+Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261003163526.2508=
-05-1-achender@kernel.org?part=3D1
+05-1-achender@kernel.org?part=3D2
+
