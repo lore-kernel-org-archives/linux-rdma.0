@@ -1,41 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5C9A3BE623;
-	Sun,  4 Oct 2026 16:35:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BDB13C3F64;
+	Sun,  4 Oct 2026 16:35:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791131704; cv=none; b=qrDsAcrWHyzqyd6lddw6X43UDQXkkeHVFvUKENm0Qr+OfMnkr8CQ7oiy/xJfa2WklEFffxvxtGbZqF7SGZaiuyvMJkca6xzB2oj8cU15FrOmFBTERidCwBJFDg05oMV3nb1zyE0hnQ2ul3z5EXzry8vZtiApLmQuaxDQdZAkReA=
+	t=1791131704; cv=none; b=tWCsrjVF9q71209f1C7IwCbqMOCjNJUeQ9nYqtn+DUGKDCzFTzO7H2LM9ADERi7EN91fYsPNON1Jwu+V2VH8e7FWZ84jXJKYiUY0Q5+IlsyW/tzQr3YzSJT+WDIjFgzXbBmjMT2TaESWfXkFCJoDfE/+KdS6tZjVbAItopGjiCQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1791131704; c=relaxed/simple;
-	bh=25ovSf3ZVo1hp9jvfzzP/bz85epQv5OseCLdeNQQY7g=;
+	bh=skFmr7EynxOzRSh22a4jRpDNXwPNmUQUqfA1Jh8IxoU=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=K0Z04gGZeZvezxWuX0Y3TAf5yszXDeyt6HmOdn+r68mU6n6XZN34QD0Gbj+KyaKkguhmA3kRE/CIRDIMN1Esw9JK78sZffpGbCH6VmjXFKPqUktlMzl7OoJ5Uek8x2GLh3Kt3/6NQRxLCjXlC0mBg5ADlRYKhJgnPLZi2Z7lXNc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Lh1n2rdy; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=WvYiLrh4ew33MzsAW7pGwo3ErKXIICuOaLMtaWCUJZQ8bpv6zniJTcGKMkzeUU9C3C0eCkj5POdTlypAe6mKdTtnBDWHbTeOvsJLPD21WtMLe+z7sNnmTAG325lRlR8+ZpfCbO7k0rBhmd/zk061JLHb5Y2e0RBaLFierbDHxko=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=luE4wHsD; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Lh1n2rdy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0096A1F000FF;
-	Sun,  4 Oct 2026 16:35:01 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="luE4wHsD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26A2F1F00893;
+	Sun,  4 Oct 2026 16:35:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791131702;
-	bh=sHWAyHZSoA/9wsJ4w9QC0/iaiENdsX/sZg7K/rGEW2o=;
+	s=k20260515; t=1791131703;
+	bh=b6Co69KpyxamZ810DrWt9NFGQ2dWIkPHj6OgqGAXK+A=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=Lh1n2rdyUdQx1IykwnTRWN6eNFIQTGzTasOjYl6Vk1klOCvW4kswBRyXi2musyhKg
-	 cHOt8Srfm3DvYJJL8F3AZKCYH/f1jmvoLodjHxQMGEqBme+hXn7oSnQS2/UDbDCSbY
-	 vshXFHfRztH+d/UmPuwrb3hWxutOPgwE3id4Rt74FWN4B5y0Aeu+f6EpOQ2z9WByT0
-	 /CnYyJKz0NlIpXOCYY+FS1oa3swCGys0tAv86pbMfers+MPnzALKQTJiMVfO7iJUZd
-	 bub7+IGcZLLq9Ccsm2oAoAWpmHpSxGPSa5Wo13ilElVKMytjdtuD56Uqjj4Qq6bAmd
-	 fyvMO5/srhOFw==
-Subject: Re: [PATCH net-next v8 08/13] net/rds: wait for connections to be
- freed on transport unload
+	b=luE4wHsDbRWPnAhDsqj9dnG3zcMMqQ+mekR5hF0SyFu/8YHFToOmxFhlFYqFFHBck
+	 /7aXSGDQhBvZn37gGA2JOwXy+BoleOpLvbf0QtBNEBkHuX/0Z9ETMQJguulSQzVkD6
+	 2y9Kcd9CuiJR796HMaVpLSRoaiC0As1FY13fP/Yo9SK+KlZKC6meCUedbGNQiN4WPo
+	 GZ//PXY2FRWHNozdDrzCK9peEVAy6FEZV9/t4dwXQatES3lNsUdU62nK29+tOa+dRA
+	 drhIfwrVHkKbWdMPiDYgoIpMTMJMiCYd/hZfzsTj+cFdbOpcldi37Wi3aE8eKEp7Ix
+	 Ostu4dcfwxCaA==
+Subject: Re: [PATCH net-next v8 09/13] net/rds: hold a connection reference
+ from struct rds_incoming
 From: netdev-bot+sashiko@kernel.org
 To: achender@kernel.org
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
  edumazet@google.com, kuba@kernel.org, horms@kernel.org
-Date: Sun, 04 Oct 2026 16:35:01 +0000
-Message-ID: <179113170151.434549.12580197013439113648@kernel.org>
-In-Reply-To: <20261003163215.250253-9-achender@kernel.org>
-References: <20261003163215.250253-9-achender@kernel.org>
+Date: Sun, 04 Oct 2026 16:35:02 +0000
+Message-ID: <179113170256.434549.13509160996868821054@kernel.org>
+In-Reply-To: <20261003163215.250253-10-achender@kernel.org>
+References: <20261003163215.250253-10-achender@kernel.org>
 X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -52,100 +52,132 @@ you want to address the nit picks below when you respin.
 
 Low priority / nit picks for your consideration:
 
-- [Low] This patch fixes two real, pre-existing unload bugs in the IB
-  transport, but carries no Fixes: tag.
+- [Low] The commit message gives the wrong triggers for the use-after-
+  free.
+- [Low] The commit fixes a documented use-after-free and panic (KASAN
+  slab-use-after-free in rds6_inc_info_copy, and the…
+- [Low] In rds_inc_on_sock_queue() (net/rds/recv.c:505), the comment "/*
+  XXX make sure this i_conn is reliable */" still sits right before…
 
 --
 
-net/rds: wait for connections to be freed on transport unload
+net/rds: hold a connection reference from struct rds_incoming
 
-This patch adds a per-transport t_conn_count of live connections. The IB,
-TCP and loop exit paths now wait for that count to reach zero before
-unloading. For IB, the wait also calls rds_ib_destroy_nodev_conns() on
-every poll, and rds_ib_exit() flushes rds_wq again once the connections
-are gone.
+This patch makes every assignment of rds_incoming->i_conn take a
+connection reference. Received incs drop it in rds_inc_put(), and
+messages drop it through a new rds_message_free() helper. The goal is to
+keep a connection allocated for as long as incs or messages that point
+at it remain queued on sockets.
 
-> diff --git a/net/rds/ib.c b/net/rds/ib.c
-> index d9879b6129e73..7b1f611c0a3e5 100644
-> --- a/net/rds/ib.c
-> +++ b/net/rds/ib.c
-> @@ -540,7 +540,24 @@ void rds_ib_exit(void)
->  	rds_info_deregister_func(RDS6_INFO_IB_CONNECTIONS, rds6_ib_ic_info);
->  #endif
->  	rds_ib_unregister_client();
-> +
-> +	/* rds_ib_dev_shutdown() only dropped the connections still
-> +	 * attached to a device; each moves itself to ib_nodev_conns
-> +	 * from its shutdown work.  Destroy what is there now and keep
-> +	 * sweeping the list while the wait sees connections outstanding,
-> +	 * so a late arrival is destroyed rather than waited on forever.
-> +	 */
->  	rds_ib_destroy_nodev_conns();
-> +	rds_conn_wait_conns_freed(&rds_ib_transport,
-> +				  rds_ib_destroy_nodev_conns);
-> +
-> +	/* Tearing down the last connection may have dropped the final
-> +	 * reference on a device, deferring rds_ib_dev_free() to rds_wq.
-> +	 * Drain it before the module goes away; it queues nothing
-> +	 * further on rds_wq.
-> +	 */
-> +	flush_workqueue(rds_wq);
-> +
+Closes: https://lore.kernel.org/netdev/20260720184955.3008978-1-nicoyip.dev@gmail.com/
+
+> Embedded as the messages m_inc, an inc routinely outlives the connection
+> it points at, by sitting in the socket's receive queue until the
+> application reads it, while the connection is destroyed by netns
+> teardown or module unload - and every dereference of i_conn after that
+> point touches freed memory.
 
 [Severity: Low]
+Are netns teardown and core module unload the right triggers here?
 
-The resweep and the second flush_workqueue(rds_wq) seem to fix two IB
-unload bugs that already exist in the tree before this patch. Should this
-patch have a Fixes: tag?
+rds_create() allocates user RDS sockets with kern == 0:
 
-The first bug starts in rds_ib_dev_shutdown(), which queues cp_down_w on
-the per-path cp_wq:
+    sk = sk_alloc(net, AF_RDS, GFP_KERNEL, &rds_proto, kern);
 
-	list_for_each_entry(ic, &rds_ibdev->conn_list, ib_node)
-		rds_conn_path_drop(&ic->conn->c_path[0], true);
+So each socket holds a reference on its netns. rds_recv_incoming() also
+already drops incs whose socket lives in a different netns from the
+connection:
 
-Since commit 4716af3897e9 ("net/rds: Give each connection path its own
-workqueue"), cp_wq is a private ordered workqueue instead of rds_wq. So
-the flush_workqueue(rds_wq) in rds_ib_unregister_client() does not wait
-for those shutdown works.
+    if (!net_eq(sock_net(rds_rs_to_sk(rs)), rds_conn_net(conn))) {
 
-If rds_ib_remove_conn() moves a connection to ib_nodev_conns after the
-single rds_ib_destroy_nodev_conns() sweep, nothing destroys it. It
-outlives the module and still points at rds_ib_transport.
+Taken together, it doesn't look like rds_loop_exit_net() or
+rds_tcp_exit_net() can destroy a connection that an inc on a live
+socket's receive queue still points at.
 
-The second bug follows from that. rds_ib_remove_conn() then calls
-rds_ib_dev_put(), which does this when it drops the last device
-reference:
+For the first KASAN trace, rds_proto.owner and rds_proto_ops.owner are
+both THIS_MODULE in af_rds.c. Every open RDS socket therefore pins
+rds.ko, and delete_module() can't reach rds_exit() while task 101 is in
+getsockopt() on one. Does that trace need a forced unload
+(CONFIG_MODULE_FORCE_UNLOAD)?
 
-	if (refcount_dec_and_test(&rds_ibdev->refcount))
-		queue_work(rds_wq, &rds_ibdev->free_work);
+The path that does look reachable without a forced unload is a
+cross-transport one. rds_find_bound() looks up sockets by address, port
+and scope_id only, and doesn't check rs_transport. A socket bound with
+one transport (for example TCP chosen via SO_RDS_TRANSPORT on an IPoIB
+address) can then have incs queued that arrived on an IB connection.
 
-That queues rds_ib_dev_free() after the only flush of rds_wq. It could
-then run after the module text is gone.
+That socket pins only rds.ko and its own rs_transport module, so
+rmmod rds_rdma succeeds:
 
-The commit message already calls the first bug "an existing hole". Of
-the second it says "nothing flushed rds_wq again after
-rds_ib_unregister_client() before". Other fixes in this series carry a
-Fixes: tag. Would a Fixes: 4716af3897e9 tag fit here as well?
+    rds_ib_exit()
+      rds_ib_destroy_nodev_conns()
+        rds_conn_destroy()
 
-The opening paragraph of the commit message also says:
+A later close then reaches the freed connection:
 
-  At this point in the series the initial reference is the only one
-  and the wait returns at once; the guarantee becomes load-bearing
-  with those patches.
+    rds_release()->rds_clear_recv_queue()->rds_inc_put()->rds_ib_inc_free()
 
-Is that accurate for IB? A connection that reaches ib_nodev_conns late
-keeps t_conn_count above zero. The loop in rds_conn_wait_conns_freed()
-then has to call the resweep to destroy it, so the patch already changes
-behavior at this point in the series.
+This matches the second trace.
 
-Could the opening paragraph be reworded so backport readers don't take
-the patch as a no-op?
+Could the commit message describe this cross-transport unload case
+instead of netns teardown or unloading rds.ko? The conclusion about
+CAP_SYS_MODULE and stable still holds either way.
 
-It may also be worth splitting out a small standalone fix that doesn't
-depend on the kref/t_conn_count infrastructure. One option is to flush
-the per-connection shutdown works, or loop until the device lists and
-ib_nodev_conns are empty, and then flush rds_wq.
+> Reported-by: Chengfeng Ye <nicoyip.dev@gmail.com>
+> Closes: https://lore.kernel.org/netdev/20260720184955.3008978-1-nicoyip.dev@gmail.com/
+
+[Severity: Low]
+This isn't a bug, but the trailers have no Fixes: tag. The underlying
+defect is that rds_incoming->i_conn never held a connection reference,
+and that goes back to the original RDS code.
+
+The message explains why this isn't a stable candidate, so leaving out
+Fixes: may be deliberate, to keep AUTOSEL from picking it up. If so,
+could the commit message say that explicitly?
+
+> diff --git a/net/rds/recv.c b/net/rds/recv.c
+> index 6204e577a90ae..1fcd4483d3be4 100644
+> --- a/net/rds/recv.c
+> +++ b/net/rds/recv.c
+
+[ ... ]
+
+> @@ -406,8 +425,9 @@ void rds_recv_incoming(struct rds_connection *conn, struct in6_addr *saddr,
+>  	 * rds_find_bound() uses a global (netns-agnostic) hash table.
+>  	 * An RDS connection created in netns A can match a socket bound
+>  	 * in the init netns, delivering inc cross-netns with inc->i_conn
+> -	 * pointing into netns A.  When cleanup_net() then frees that conn,
+> -	 * any subsequent dereference of inc->i_conn is a use-after-free.
+> +	 * pointing into netns A.  Cross-netns delivery is wrong on its
+> +	 * own, and the inc's connection reference would keep a
+> +	 * connection of a dead netns around, with a stale c_net.
+>  	 * Drop the inc if the receiving socket lives in a different netns.
+>  	 */
+>  	if (!net_eq(sock_net(rds_rs_to_sk(rs)), rds_conn_net(conn))) {
+
+[Severity: Low]
+This isn't a bug, but this comment was updated for the new reference
+rules while a nearby one in the same file was left as is.
+rds_inc_on_sock_queue() still has:
+
+net/rds/recv.c:rds_inc_on_sock_queue() {
+    ...
+		if (drop) {
+			/* XXX make sure this i_conn is reliable */
+			rds_recv_rcvbuf_delta(rs, sk, inc->i_conn->c_lcong,
+					      -be32_to_cpu(inc->i_hdr.h_len),
+					      inc->i_hdr.h_dport);
+    ...
+}
+
+With this patch, an inc linked on rs_recv_queue holds its own reference
+on i_conn. That reference is taken in rds_inc_init(), rds_inc_path_init()
+or rds_recv_incoming(), and dropped only in rds_inc_put() after
+inc_free(). The kernel-doc for rds_conn_wait_conns_freed() also says
+that incs now pin their connection.
+
+Should this XXX comment be removed or reworded, since it now contradicts
+that contract? It is still there at the end of the series.
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261003163215.250253-1-achender%40kernel.org
