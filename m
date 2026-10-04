@@ -1,196 +1,174 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AA203C9891;
-	Sun,  4 Oct 2026 16:35:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8FEE33B97B
+	for <linux-rdma@vger.kernel.org>; Sun,  4 Oct 2026 16:35:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791131706; cv=none; b=CTdirPeUXV82UkizMXI5B2u2H3OsLON/1Gl1AlUdYtQLScZXB9PqYrvSmFaPFYUVsNzv6m5nn0RgEO5AQlWdzoubnIEi1OooWUndoLYB7cDCMY31fIgDTw6S7yfvsxaf32wEVDGwuJ5zWGMdI8x9fypTVRX0HRKEbYCOSDSFXAs=
+	t=1791131740; cv=none; b=u/vvsZQGMC3ZttjlodoHpOG9NdYP69vXwQYCTJo4BZIPl12h0YOGEfWrx92WxsPY2swVyQkE8GSAqimBuWFeMN7B/s6C/uh+uXHiEKh2mA7mbLaq3BfgxlIRygElmaTJoQJqJYMAbMD6DFVKONgop8k51UcrFnCmyzFEAKBV/uk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791131706; c=relaxed/simple;
-	bh=Lm7sGLnX4QMUbEw+a54w7AGBJFi2lzqeZU43AGDZ+EI=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=TFApaealOmmpcvn5FYeBkwP8+6ZOoCgyutNQKHKVkD9oRrbEnuJWAQ/S28rFYZf8NeYhyJrghk4XFlXujz+cJ0Qi7fS9WG7uxLkp2NIwDIntehGoOIcwDhezsSDZOVs+zCAyzDJMMBcYudQtk5ZI7CilT62kIaO2wsNYE9OrbnY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NGfxOx7r; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791131740; c=relaxed/simple;
+	bh=ATo0HMxkBPq5Qnz1KQQhyyL43trHwElfuupWQWpqsc8=;
+	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
+	 Message-Id; b=LNvuZl5BDbQcpmRdK4KMMi060mDMvmZB1DlFVTTvXUshKK1b6IvF+ee8MSERtAUGBMJofWFNclKP2S+aDf07I8Bxw9H1oU3YFNKZkyo+La5bSfTGTQi/mP+px0z6I+U279NOb+yjrRXD9QMiVfVSKjl5/ff5iOTt1N32Hqt0TUo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dcN628/I; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NGfxOx7r"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1015A1F00893;
-	Sun,  4 Oct 2026 16:35:05 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dcN628/I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67D571F000FF;
+	Sun,  4 Oct 2026 16:35:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791131705;
-	bh=kjr9/0nKb1J6ihVqg9Ainpe2oMxh8KPtexF8CcgGBl8=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=NGfxOx7rHK2h7s5GK8jKMSjk2a/Q14W2A1+/2HYsQJGBiPv+imdwO2HC+ZdA775L8
-	 nHeDJ5PX8E9LLSKQ1g7k/kctzQjk3B39kWyPgZlX7LIM6zZF8opSNBcT9m8lMPbU+3
-	 +mb8CJOOJlC//aduzSTpT3FzrcyQX3AXOufCo4kFIfk97pD4cy2nLvVHCvzgHx48de
-	 5agfK0ErnmW+uPWSO0eqfi3ey+KQpICxR9V6IEwgxAmPvia+3M6BubJH9FioJ4A+6P
-	 3BpW3Nf5oQEXN249XoOCJ1DgV+zKdV77iXcGzDl9TPVkssvrrUZfI6VxJh5YHt7sz7
-	 cotX45w2NO9jw==
-Subject: Re: [PATCH net-next v8 12/13] net/rds: pin the connection across
- RDMA-CM event handling
-From: netdev-bot+sashiko@kernel.org
-To: achender@kernel.org
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
- edumazet@google.com, kuba@kernel.org, horms@kernel.org
-Date: Sun, 04 Oct 2026 16:35:04 +0000
-Message-ID: <179113170465.434549.8485797174502943029@kernel.org>
-In-Reply-To: <20261003163215.250253-13-achender@kernel.org>
-References: <20261003163215.250253-13-achender@kernel.org>
-X-sashiko-severity: Medium
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	s=k20260515; t=1791131739;
+	bh=ZMk+gbn+ZFw9b4rHGeQQgPGSwhITdkQ3RbefG/4VtcM=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=dcN628/I44ezHNkXNhqqHj39+qzKXj28MUgYzhZ4IZAartZB6JC+YihXnK8UK7r0k
+	 4STGqgMFfm5cD6AWg4bNBlXD89I89HAoBg2e8WRbOxHhcRyq/Ddn9zdqojPXSeA0NX
+	 C3ZX2pbvU1/1bQVgpmXGqAobrSVAOIRhcM5V/wM/3fJ9kK/ibupnLZhP5ImTsZHAie
+	 Jh6Kv0KiQRlyPG4gOghjI4MLl9c/un9ixY7E8f7b40PUXNkzeXKrHwq/oEbeaF/Y46
+	 2UnwfdVmyT+MN7IDSYdus4j8PvYVPrMkQd1gro+ywtX/nQ+bJYfpjnEI1a9vaVG7a/
+	 CBS6ykM5ltDJA==
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net v3 1/2] net/rds: keep the connected peer's scope id
+ apart from the bound one
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Allison Henderson" <achender@kernel.org>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261003163526.250805-2-achender@kernel.org>
+References: <20261003163526.250805-1-achender@kernel.org>
+ <20261003163526.250805-2-achender@kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Sun, 04 Oct 2026 16:35:38 +0000
+Message-Id: <20261004163539.67D571F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue(s) to consider.
-
-Critical: 0 · High: 0 · Medium: 1 · Low: 0
-
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [Medium] The commit message and the new comment in
-  rds_ib_cm_initiate_connect() (net/rds/ib_cm.c) describe a resource…
-
+Thank you for your contribution! Sashiko AI review found 2 potential issue(=
+s) to consider:
+- [High] rds: getname() and recvmsg() break IPv6 link-local scope ID
+- [High] rds: destination-less sendmsg() fails for global dests if bound li=
+nk-local
 --
 
-net/rds: pin the connection across RDMA-CM event handling
+commit 898dc27ebfe8db635a3eb7a78c44763fbfcf0c43
+Author: Allison Henderson <achender@kernel.org>
 
-This patch makes rds_rdma_cm_event_handler_cmn() take a reference on the
-connection for the duration of each RDMA-CM event. It also adds
-rds_destroy_pending() checks to rds_ib_cm_initiate_connect() and
-rds_ib_cm_handle_connect(), so a connection that is being destroyed does
-not get a new QP or cm_id set up.
+net/rds: keep the connected peer's scope id apart from the bound one
 
-> diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
-> index 165a29d4196e8..6307c88c31431 100644
-> --- a/net/rds/ib_cm.c
-> +++ b/net/rds/ib_cm.c
-> @@ -876,6 +876,13 @@ int rds_ib_cm_handle_connect(struct rdma_cm_id *cm_id,
->  	 * see the comment above rds_queue_reconnect()
->  	 */
->  	mutex_lock(&conn->c_cm_lock);
-> +	/* A destroy that has already quiesced this conn leaves it in
-> +	 * RDS_CONN_DOWN with no cm_id, exactly what the transition
-> +	 * below would happily claim; nothing would tear the new cm_id
-> +	 * and QP down again before the conn is freed.  Reject instead.
-> +	 */
-> +	if (rds_destroy_pending(conn))
-> +		goto out;
+This commit isolates the connected peer's scope ID into a new
+rs_conn_scope_id field, leaving the bound scope ID in
+rs_bound_scope_id alone. It updates rds_connect(), rds_bind(), and
+rds_sendmsg() to use the new field to ensure destination-less sends
+and link-local binds operate with the correct interface scopes.
 
+> diff --git a/net/rds/af_rds.c b/net/rds/af_rds.c
+> index d5defe9172e36..ba726782addf7 100644
+> --- a/net/rds/af_rds.c
+> +++ b/net/rds/af_rds.c
 [ ... ]
+> @@ -616,11 +617,14 @@ static int rds_connect(struct socket *sock, struct =
+sockaddr_unsized *uaddr,
+>  				ret =3D -EINVAL;
+>  				break;
+>  			}
+> -			/* Remember the connected address scope ID.  It will
+> -			 * be checked against the binding local address when
+> -			 * the socket is bound.
+> +			/* Remember the connected address scope ID.  It is
+> +			 * checked against the binding local address when
+> +			 * the socket is bound, and gives a send without a
+> +			 * destination its scope.
+>  			 */
+> -			rs->rs_bound_scope_id =3D sin6->sin6_scope_id;
+> +			rs->rs_conn_scope_id =3D sin6->sin6_scope_id;
 
-> @@ -950,6 +957,17 @@ int rds_ib_cm_initiate_connect(struct rdma_cm_id *cm_id, bool isv6)
->  	union rds_ib_conn_priv dp;
->  	int ret;
->  
-> +	/* A destroy that began while the address and route were being
-> +	 * resolved has already quiesced this conn, or is waiting on
-> +	 * c_cm_lock to do so.  Setting up a QP now would leave it - and
-> +	 * the device reference rds_ib_add_conn() takes - with no
-> +	 * shutdown pass left to tear them down.  The id we were handed
-> +	 * is still ic->i_cm_id, so return success and let that shutdown
-> +	 * destroy it, rather than have the rdma_cm destroy it on error.
-> +	 */
-> +	if (rds_destroy_pending(conn))
-> +		return 0;
-> +
+[Severity: High]
+Does this change miss updating rds_getname() and rds_recvmsg()?
 
-[Severity: Medium]
-Can the leak described in this comment and in the commit message actually
-happen? The commit message says:
+By no longer storing the peer's scope ID in rs->rs_bound_scope_id,
+userspace programs calling getpeername() or receiving messages via recvmsg()
+may receive a scope ID of 0 for connected link-local peers when the
+local socket is unbound or globally bound.
 
-  "a connection whose destroy began while its address and route were
-  resolving reaches RDMA_CM_EVENT_ROUTE_RESOLVED and sets up a QP -
-  taking a device reference in rds_ib_add_conn() - after the destroy's
-  shutdown pass has run, or with that pass waiting on c_cm_lock behind
-  the handler.  Nothing would ever release the QP, the cm_id or the
-  device reference, and rds_ib_exit() would wait forever for the
-  device."
+For example, rds_getname() appears to still populate the address using
+the bound scope:
 
-First, the case where the shutdown pass is waiting on c_cm_lock. The
-quiesce calls rds_conn_path_drop(cp, true), which sets RDS_CONN_ERROR and
-queues cp_down_w. Nothing in the ROUTE_RESOLVED path moves the state away
-from ERROR.
-
-Once the handler releases c_cm_lock, rds_conn_shutdown() moves ERROR to
-DISCONNECTING and calls rds_ib_conn_path_shutdown(). Because ic->i_cm_id
-is set, that function already tears everything down:
-
-rds_ib_conn_path_shutdown() {
+net/rds/af_rds.c:rds_getname() {
     ...
-		rdma_destroy_id(ic->i_cm_id);
-    ...
-		if (ic->rds_ibdev)
-			rds_ib_remove_conn(ic->rds_ibdev, conn);
-
-		ic->i_cm_id = NULL;
+    sin6->sin6_scope_id =3D rs->rs_bound_scope_id;
     ...
 }
 
-So the QP, CQs, cm_id and device reference are all released, with or
-without this patch.
+Similarly in rds_recvmsg():
 
-Second, the case where the shutdown pass has already run. By then
-ic->i_cm_id has been destroyed and cleared, and rdma_destroy_id() waits
-for a running handler and blocks later callbacks on that id.
-
-A ROUTE_RESOLVED event on some other id fails the ibic->i_cm_id == cm_id
-test in rds_rdma_cm_event_handler_cmn() and only calls rds_conn_drop().
-While the pass is running, the handler exits early on
-RDS_CONN_DISCONNECTING. A conn that is unhashed and destroy-pending can't
-be reconnected either.
-
-Third, the device reference. IB conns are only destroyed from
-rds_ib_destroy_nodev_conns(), which rds_ib_exit() calls after
-rds_ib_unregister_client(). By that point rds_ib_dev_shutdown() has set
-shutting_down on every device, and rds_ib_add_conn() bails out before it
-takes the reference:
-
-rds_ib_add_conn() {
+net/rds/recv.c:rds_recvmsg() {
     ...
-	if (rds_ibdev->shutting_down) {
-		ret = -ENODEV;
+    sin6->sin6_scope_id =3D rs->rs_bound_scope_id;
     ...
 }
 
-As far as I can tell, the new early return only fires when
-rds_destroy_pending() is true through t_unloading (rds_ib_is_unloading())
-before any destroy has started. Neither the comment nor the commit
-message mentions that case, and the exit sweep would tear such a conn
-down anyway.
+Could this prevent userspace from properly parsing the address or
+sending replies to the correct interface?
 
-Also, suppose the "already quiesced" case could be reached. Would
-returning 0 here help? It would leave a cm_id whose context points at a
-conn that is about to be freed, and rds_ib_conn_free() never destroys
-ic->i_cm_id.
+> +		} else {
+> +			rs->rs_conn_scope_id =3D 0;
+>  		}
+>  		rs->rs_conn_addr =3D sin6->sin6_addr;
+>  		rs->rs_conn_port =3D sin6->sin6_port;
+[ ... ]
+> diff --git a/net/rds/send.c b/net/rds/send.c
+> index 1afa981e5c06d..9380b67675bdc 100644
+> --- a/net/rds/send.c
+> +++ b/net/rds/send.c
+> @@ -1256,7 +1256,7 @@ int rds_sendmsg(struct socket *sock, struct msghdr =
+*msg, size_t payload_len)
+>  		lock_sock(sk);
+>  		daddr =3D rs->rs_conn_addr;
+>  		dport =3D rs->rs_conn_port;
+> -		scope_id =3D rs->rs_bound_scope_id;
+> +		scope_id =3D rs->rs_conn_scope_id;
+>  		release_sock(sk);
+>  	}
+> =20
 
-The check in rds_ib_cm_handle_connect() has the same problem. The commit
-message calls it "the mirror-image hole", but rds_rdma_exit() stops the
-listeners before rds_ib_exit() runs:
+[Severity: High]
+Does this cause destination-less sendmsg() calls to bypass the bound
+scope fallback for global connections?
 
-rds_rdma_exit() {
-	rds_rdma_listen_stop();
-	rds_ib_exit();
+If an RDS socket is bound to an IPv6 link-local address (with a valid
+scope) and connected to a global IPv6 address, a destination-less
+sendmsg() will have namelen =3D=3D 0.
+
+It looks like it will assign scope_id from rs_conn_scope_id (which is
+0 for global peers), but then skip the fallback logic entirely:
+
+net/rds/send.c:rds_sendmsg() {
+    ...
+    } else {
+        /* We only care about consistency with ->connect() */
+        ...
+        scope_id =3D rs->rs_conn_scope_id;
+    }
+
+    lock_sock(sk);
+    if (ipv6_addr_any(&rs->rs_bound_addr) || ipv6_addr_any(&daddr)) {
+        ...
+    } else if (namelen !=3D 0) {
+        ...
+        if (scope_id !=3D rs->rs_bound_scope_id) {
+            if (!scope_id) {
+                scope_id =3D rs->rs_bound_scope_id;
+    ...
 }
 
-So the listeners are destroyed before the unloading flag is set or any
-IB conn is destroyed. In addition, the lookup in rds_conn_create() can't
-return a conn once rds_conn_destroy() has unhashed it under
-rds_conn_lock.
+Because the fallback logic is inside the else if (namelen !=3D 0) block,
+scope_id remains 0. The connection could then be created with a dev_if
+of 0, causing the TCP transport to attempt a kernel_bind() to a
+link-local source address with no scope ID, which the IPv6 stack will
+reject.
 
-Both checks look harmless. Could the commit message and these two
-comments describe them as defensive, the way the handler pin is
-described? Right now they read as fixes for a reachable QP/cm_id/device
-reference leak and an rds_ib_exit() hang.
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261003163215.250253-1-achender%40kernel.org
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261003163526.2508=
+05-1-achender@kernel.org?part=3D1
