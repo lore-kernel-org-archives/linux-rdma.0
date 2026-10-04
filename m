@@ -1,41 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B6B22D23A6;
-	Sun,  4 Oct 2026 16:41:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3D8130F81A;
+	Sun,  4 Oct 2026 16:41:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791132080; cv=none; b=Z1xJQ4CEqVHi7ex8w65zYE6FRDDoLvL5zuNaALf6rJ/XmzJTqValyaNZbfYq/ukRAfF93ujVgb0Umx3kGR9AmaltUgye3jjjkn7WNbT6etaJC06SLlgQ/NDs35cePRIsc6OIkPyo63LD1FWSIH0MjmLyuXyvnEi94KmsT4elK08=
+	t=1791132081; cv=none; b=QH/aw3YZgIDADI/6v4snaDQLyTrAdT0H8B66dlG4s3Dz8rZSlaOHFoq9jFsKORQhJFRGb+tA0TCB2RhSp9B5TjjvDWTIcREw1hxhWyLT+cIjzFATZPgf3HSRvziTP2tbdK56DDLlTR8WO/afrPoDvtbiSGVep0VhLA1K+FkuUjE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791132080; c=relaxed/simple;
-	bh=QBgN2T0IvkvCHuoU2xoCwxC3VPsknbFNwdtlX4eKQhA=;
+	s=arc-20240116; t=1791132081; c=relaxed/simple;
+	bh=A+RLcd2EYo4aZlrZXEFns5GufK6+zGDKQUG43L+7+yU=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=OxMqqdm6td/jeXbUdzK7hw4/t8oYc9S0wS2ajvD5ZIvJZjsktvuWZhCePioS4H/C4NK5P8V7r/BVh5tSMpojNxB4ZPKcaMtsimLGsGWm8+UUkCX3kzZfoGHRaIx1N2H8rXXHZyjA9+JL8g9nbDPQyWLEpTduJEYKL6JuL2Q00X8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=b57zcicc; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=ULxJ4yShyEAf0OKp5zhcFkZDWewuNuJd40WN2D1YVLoRZtqwxQv11mlpxgIXlAe9KO7VwJyrlsG8RiNJ+djSooQBX20Ewcy2nTHJdtta6m+1SSzlSYpsk2F881gtZfkzuaYLwePY+YG+3fUvwxO7+/Eq39AqmEorFdJIHU01nBU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SrB6QMP4; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="b57zcicc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C7371F000FF;
-	Sun,  4 Oct 2026 16:41:18 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SrB6QMP4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26BEE1F00893;
+	Sun,  4 Oct 2026 16:41:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791132078;
-	bh=WrhsI8Xlhy/BZB624GzsXLY6E63J6ykAFI7KwH3gqCw=;
+	s=k20260515; t=1791132079;
+	bh=Z7xZoeysM9J9Z/k1WQciyR7kOIhi2cfw9s4xQwi7BUs=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=b57zciccar+jpNj95jPrzhh32IyeR6asOJL2kexcAmlFVBpxDkUHRbZ9arEUCO1as
-	 1Y5+LrGozy+sCmYMfXtBSuDOjrIoobSYj6ppXAOSVXJ7hd3aGXUbaFHdnz/HUc6BfY
-	 wia6k/fKVhaQnr0CaLOPms0IHNqymJuwLJ2BKP3CGv5077Q8wvLmRIcbdz+9/qNG5e
-	 MtfapbP/MLTDmV2wFFo+RLTEQx764PMA7iY47DQOSPUQQDH3vGV9HTp5VpKltcqqXK
-	 wvifOmmUG5eHkvWxnMawNjG2HcZ24hpXOtehXEoHA/QHqIg6OYBu3m5VVaiG8Lil8P
-	 PPCXfyFaHBS2w==
-Subject: Re: [PATCH net v3 1/2] net/rds: keep the connected peer's scope id
- apart from the bound one
+	b=SrB6QMP48uthfjxy0FLXWIk/O9nLYj3u9WcSrZd/yeuubZDC4WNM3mF5BbcuMTh9H
+	 eDY8aw0Pl25D4Jh50NKDujQEN+7F9gdqXL946+iiYGir3tzaFxx4CCHlTUjr5NcbCX
+	 CamII//WG7G1Ngf61weYZ9lWiAOIOnKIgrwfvm4xfyRxcUNXNtwXqF1AQWpOt8pRey
+	 QIl8mbsTqKDiCqtaJNgoQkPjAHN0ca0NYReoK+fX5w3vMl3rQUXIB394gMDPUP252j
+	 MnHLW4t6kQCdDUzMJDqmOQstE0v64X3/Upte2IFATAOq+JDHuqkbShBB9AAbmnSYc3
+	 9YuFfLTFOjuSg==
+Subject: Re: [PATCH net v3 2/2] net/rds: include the scope id in the sendmsg
+ connection cache check
 From: netdev-bot+sashiko@kernel.org
 To: achender@kernel.org
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
  edumazet@google.com, kuba@kernel.org, horms@kernel.org
-Date: Sun, 04 Oct 2026 16:41:17 +0000
-Message-ID: <179113207763.434549.2587721796122808515@kernel.org>
-In-Reply-To: <20261003163526.250805-2-achender@kernel.org>
-References: <20261003163526.250805-2-achender@kernel.org>
+Date: Sun, 04 Oct 2026 16:41:18 +0000
+Message-ID: <179113207873.434549.8956852997025096360@kernel.org>
+In-Reply-To: <20261003163526.250805-3-achender@kernel.org>
+References: <20261003163526.250805-3-achender@kernel.org>
 X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -46,10 +46,10 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 3 potential
+Thank you for your contribution! Sashiko AI review found 2 potential
 issue(s) to consider.
 
-Critical: 0 · High: 1 · Medium: 2 · Low: 0
+Critical: 0 · High: 1 · Medium: 1 · Low: 0
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -57,163 +57,132 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [High] Regression in rds_sendmsg() (net/rds/send.c:1259) for
-  destination-less sends.
-- [Medium] The patch moves the connected peer's scope into the new
-  rs_conn_scope_id but does not update rds_getname()'s peer branch…
-- [Medium] rds_recvmsg() (net/rds/recv.c:788-793) builds the IPv6 sender
-  name from inc->i_saddr and rs->rs_bound_scope_id, i.e. the socket's…
+- [High] In rds_sendmsg() (net/rds/send.c), send() and sendto() to the
+  same peer now build different connection keys.
+- [Medium] In rds_sendmsg() (net/rds/send.c:1344-1347), the cache test
+  reads rs->rs_conn with plain loads and no lock: the NULL check, the…
 
 --
 
-net/rds: keep the connected peer's scope id apart from the bound one
+net/rds: include the scope id in the sendmsg connection cache check
 
-This patch adds a separate rs_conn_scope_id field to struct rds_sock.
-With it, rds_connect() no longer stores a link-local peer's scope in
-rs_bound_scope_id. The connected-socket check in rds_bind() and the
-destination-less path in rds_sendmsg() now use the new field.
-
-> diff --git a/net/rds/af_rds.c b/net/rds/af_rds.c
-> index d5defe9172e36..ba726782addf7 100644
-> --- a/net/rds/af_rds.c
-> +++ b/net/rds/af_rds.c
-
-[ ... ]
-
-> @@ -616,11 +617,14 @@ static int rds_connect(struct socket *sock, struct sockaddr_unsized *uaddr,
->  				ret = -EINVAL;
->  				break;
->  			}
-> -			/* Remember the connected address scope ID.  It will
-> -			 * be checked against the binding local address when
-> -			 * the socket is bound.
-> +			/* Remember the connected address scope ID.  It is
-> +			 * checked against the binding local address when
-> +			 * the socket is bound, and gives a send without a
-> +			 * destination its scope.
->  			 */
-> -			rs->rs_bound_scope_id = sin6->sin6_scope_id;
-> +			rs->rs_conn_scope_id = sin6->sin6_scope_id;
-
-[Severity: Medium]
-The peer scope now lives only in rs_conn_scope_id. Does rds_getname()
-still give getpeername() the right scope? Its peer branch still pairs
-the connected address with the bound scope:
-
-net/rds/af_rds.c:rds_getname() {
-    ...
-			sin6->sin6_addr = rs->rs_conn_addr;
-			sin6->sin6_flowinfo = 0;
-			/* scope_id is the same as in the bound address. */
-			sin6->sin6_scope_id = rs->rs_bound_scope_id;
-    ...
-}
-
-Before this patch, connect(fe80::x%ifA) on an unbound socket reported
-fe80::x%ifA. With this patch it reports scope 0. bind(global) followed
-by connect(fe80::x%ifB) also goes from ifB to 0. bind(fe80::a%ifA)
-followed by connect(2001::1) reports ifA for a global peer.
-
-rds_connect() and rds_sendmsg() both reject a link-local sockaddr_in6
-with sin6_scope_id == 0. So the address getpeername() returns for a
-link-local peer can't be passed back to connect() or sendto().
-
-Should this read rs->rs_conn_scope_id instead? That would match the new
-field's comment in rds.h ("scope of rs_conn_addr when it is link-local,
-0 otherwise"). The later patch in this series doesn't change
-rds_getname() either.
-
-[Severity: Medium]
-There is a similar question for rds_recvmsg(). It takes the sender's
-scope from the socket's bound scope:
-
-net/rds/recv.c:rds_recvmsg() {
-    ...
-				sin6->sin6_addr = inc->i_saddr;
-				sin6->sin6_flowinfo = 0;
-				sin6->sin6_scope_id = rs->rs_bound_scope_id;
-    ...
-}
-
-Take bind(global) followed by connect(fe80::x%ifB). Before this patch,
-rds_connect() left ifB in rs_bound_scope_id, so recvmsg() from the
-connected peer reported fe80::x%ifB. Now rs_bound_scope_id stays 0.
-
-The connection's laddr is global, so c_bound_if is 0. The message is
-still delivered to the socket via:
-
-rds_recv_incoming()->rds_find_bound(daddr, dport, conn->c_bound_if)
-
-Does recvmsg() now report fe80::x with scope 0? rds_sendmsg() would
-reject that address if it is used to reply. The same applies to the
-connections that connect(fe80::x%ifA) followed by bind(global) can now
-set up.
-
-Using the bound scope as the sender's scope is older behavior. It also
-affects unconnected global-bound sockets. The change in the connected
-case comes from this patch, and the commit message doesn't mention it.
-
-[ ... ]
+This patch adds a comparison of rs->rs_conn->c_dev_if against the
+request's scope_id to the connection cache test in rds_sendmsg(). The aim
+is that sends to the same link-local address through different interfaces
+go through the lookup path and use the matching connection, not the cached
+one.
 
 > diff --git a/net/rds/send.c b/net/rds/send.c
-> index 1afa981e5c06d..9380b67675bdc 100644
+> index 9380b67675bdc..26a937a9df6af 100644
 > --- a/net/rds/send.c
 > +++ b/net/rds/send.c
-> @@ -1256,7 +1256,7 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
->  		lock_sock(sk);
->  		daddr = rs->rs_conn_addr;
->  		dport = rs->rs_conn_port;
-> -		scope_id = rs->rs_bound_scope_id;
-> +		scope_id = rs->rs_conn_scope_id;
+> @@ -1342,7 +1342,8 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
+>  	/* rds_conn_create has a spinlock that runs with IRQ off.
+>  	 * Caching the conn in the socket helps a lot. */
+>  	if (rs->rs_conn && ipv6_addr_equal(&rs->rs_conn->c_faddr, &daddr) &&
+> -	    rs->rs_tos == rs->rs_conn->c_tos) {
+> +	    rs->rs_tos == rs->rs_conn->c_tos &&
+> +	    rs->rs_conn->c_dev_if == scope_id) {
 
 [Severity: High]
-Can this break destination-less sends on a socket that is bound to a
-link-local address and connected to a global peer? For example,
-bind(fe80::y%ifA) and connect(2001:db8::1), in either order.
+On a socket bound to a link-local address and connected to a
+non-link-local peer, can send() and sendto() to the same peer now end up
+with different connection keys?
 
-rds_connect() now sets rs_conn_scope_id to 0 for the global peer. So a
-send() with msg_namelen == 0 gets scope_id 0, where it used to get ifA
-from rs_bound_scope_id.
+Take bind(fe80::a%X) followed by connect(G), where G is a global address.
+rds_bind() stores rs_bound_scope_id = X, and rds_connect() takes the
+non-link-local branch:
 
-Later in rds_sendmsg(), the fallback to the bound scope only runs when
-namelen != 0:
+net/rds/af_rds.c:rds_connect() {
+    ...
+		} else {
+			rs->rs_conn_scope_id = 0;
+		}
+    ...
+}
 
-	} else if (namelen != 0) {
-		...
+A sendto(G) starts with scope_id 0. The namelen != 0 block in
+rds_sendmsg() then falls back to the bound scope:
+
 		if (scope_id != rs->rs_bound_scope_id) {
 			if (!scope_id) {
 				scope_id = rs->rs_bound_scope_id;
-		...
 
-So rds_conn_create_outgoing() is called with laddr fe80::y and dev_if
-0, which sets both c_dev_if and c_bound_if to 0.
-rds_tcp_conn_path_connect() then binds with:
+So sendto(G) creates and caches a connection with c_dev_if = X.
+
+A send() with no destination takes scope_id = rs->rs_conn_scope_id, which
+is 0. It never gets that fallback, because the fallback sits inside the
+else if (namelen != 0) branch.
+
+With the new c_dev_if == scope_id test, X != 0, so the cache misses.
+rds_conn_create_outgoing(..., 0) then returns a connection with a
+link-local c_laddr and c_dev_if = 0, and c_bound_if = 0 from
+__rds_conn_create(). rs->rs_conn is overwritten with that connection.
+
+For TCP, rds_tcp_conn_path_connect() binds the kernel socket with:
 
 		sin6.sin6_addr = conn->c_laddr;
 		...
 		sin6.sin6_scope_id = conn->c_dev_if;
 
-__inet6_bind() rejects a link-local bind without an interface with
--EINVAL.
+That socket has no sk_bound_dev_if, so __inet6_bind() rejects the
+link-local bind:
 
-Wouldn't every reconnect attempt fail, leaving the connected socket's
-data queued on a connection that never comes up?
+			/* Binding to link-local address requires an interface */
+			if (!sk->sk_bound_dev_if) {
+				err = -EINVAL;
 
-sendto(2001:db8::1) on the same socket still works because it inherits
-rs_bound_scope_id. That means the two send paths now pick different
-connections for the same peer.
+Wouldn't that connection never come up, so that data queued by send()
+stalls? An application that mixes sendto(G) and send() would also switch
+rs_conn between the two connections on every call.
 
-The later patch "net/rds: include the scope id in the sendmsg
-connection cache check" only changes the rs_conn cache check. It
-doesn't seem to address this.
+Before this series, send() used rs_bound_scope_id, which matches what
+sendto() computes. The earlier patch "net/rds: keep the connected peer's
+scope id apart from the bound one" switched send() to rs_conn_scope_id.
+This patch then removes the faddr/tos-only cache hit that was hiding the
+mismatch.
 
-Would something like this work instead?
+The commit message says:
 
-		scope_id = rs->rs_conn_scope_id ?: rs->rs_bound_scope_id;
+  With the previous patch a send without a destination carries the
+  connected peer's scope, so the comparison is exact for it too.
 
->  		release_sock(sk);
->  	}
->
+Does that hold when the bound address is link-local and the peer is not?
+
+Would it help to apply the rs_bound_scope_id fallback to the namelen == 0
+path too, or to store the effective scope in rds_connect(), so both paths
+use the same key?
+
+>  		conn = rs->rs_conn;
+
+[Severity: Medium]
+Can rs->rs_conn change between the checks above and this assignment?
+
+By this point lock_sock() has been released, and every access to
+rs->rs_conn in this test is a plain load. Other senders on the same
+socket store to it without a lock in the else branch:
+
+		rs->rs_conn = conn;
+
+That seems to allow a sequence like this:
+
+T1: sendto(fe80::x%ifB) passes the checks against the cached connB
+T2: sendto(fe80::x%ifA) misses the cache and stores rs->rs_conn = connA
+T1: reloads rs->rs_conn and queues the ifB message on connA
+
+The result would be the same wrong-interface send this patch is trying to
+close, reached through a race. It requires the compiler to reload
+rs->rs_conn, which C allows for plain accesses.
+
+The unsnapshotted read was already there before this patch. With this
+change, though, a socket that alternates interfaces rewrites rs_conn on
+every send.
+
+Would reading rs->rs_conn once with READ_ONCE(), running all the
+comparisons on that snapshot, and publishing with WRITE_ONCE() close this?
+
+>  	} else {
+>  		conn = rds_conn_create_outgoing(sock_net(sock->sk),
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261003163526.250805-1-achender%40kernel.org
