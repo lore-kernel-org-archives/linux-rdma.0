@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1335B3B6BEE;
-	Sun,  4 Oct 2026 18:34:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61CEC3BE623;
+	Sun,  4 Oct 2026 18:34:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791138867; cv=none; b=WDAnmFYCV3QJQH6Rxey+221Mx5mlh5eAvN0MNFP08khSoO/OrcLXw+o/beSRA9FOKMRUAsxLn8ifpa/m6DqNzZXhu6qTDKP5NYXVWjZcwkkbX+X3dKqniyCg5iAt6pXGyUZEgvITY8krSOmmu95qdZvOp6tONR3NfAbWyn7tXsQ=
+	t=1791138868; cv=none; b=TIgnyY5cbJH9xGTHoeQOwMcElhi6Q+KVs9tr/Sh/wCEoKw4Bx6kMvAVFt4CeLy9RQXjUXmvnN0YbPze7XcKLZ2oUS0TdKXxD059YnxBEtCQGxrZVpc6AIHSwUKALmwSasCW3zWiSta4V9zSg2d86h2gO9bnKM2mQ+OtQFuE4ACs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791138867; c=relaxed/simple;
-	bh=gLw90hxFsa/ClkQtbv9ZCyhLYqtMx55ygEUZgw/PJf0=;
+	s=arc-20240116; t=1791138868; c=relaxed/simple;
+	bh=ZoUL9vFrZiqSevq5Z1f//XJFOqm1V4r8RtSTtomzUaA=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=YtqwqZ/ZzaMbFlR3wuohDRP233JTq3kdwynT6h2ByO5m4EVOCaetVHosz0C8yVSrVF7D2PVwZWizj3HzAaW5PGaVHMpLbYFfqol/VpydVzUk+/d/t2E2fq8A7MkOAv9L3r+0pSutldXDYqGyT+2s97MXsr9MPiCkVyZRiLiB8Fk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FC383d7Y; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=HTsBelLN0rWwD0FfrrZRW25PS2HcwO6mWVG858i9ZDhtVhlFaePPkiZaQibLt0s5B2vbg9UI3D1WxQQTq5PgOvyXYH5Nk/8Fv3eAlrgaSUjHc0pG2qVGbviXXPio79lM6CpltopAWyHzk5ZNnOEtiHWGX9a/mgwWm5xRPDoph0Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AZoFj3AM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FC383d7Y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C61C01F000FF;
-	Sun,  4 Oct 2026 18:34:24 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AZoFj3AM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3404C1F00893;
+	Sun,  4 Oct 2026 18:34:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791138865;
-	bh=Sjya9qHx6cALlHzqDrLnhEqFfoUxcFbm1p3mIJcgqOs=;
+	s=k20260515; t=1791138867;
+	bh=HJ04tlP5TSoRPXEqINwFS/UNlbWsKcgl7Yc3k992UDs=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=FC383d7YrT9ccBTOd31LNQfpPi48xb3msmKvXUk8uDBuBx44FRe7wT0mJxjrqlyGq
-	 tXV6T6c9X++i8bkuqkXwKUIANUfyyoMaj10dqwgOu/BYZpZsqN3Hi67X05xl4O/jlV
-	 Y/AjGYoFsaKUOPpBKDI+4GZEd9snep+/ksgb8ubiL/Ex/flwgHCErgAHie+3yKRwwJ
-	 9ZtdeQC6UHMW3pcPUfcsRphZ5HmzwpTix4ebjqcQTSPdOxEsJn0Wpa7Dir1WSvSp0c
-	 hVSTjm/wst9sv568DMdLN072p4UfbIPWFXZwajdYWe3U9ZbVg7FOePJzaCwK1IgIyP
-	 iuSqvjYeqZZIw==
-Subject:
- Re: [PATCH net v2 1/2] net/smc: serialize link group free work scheduling
+	b=AZoFj3AMFZYNDyAOhNP+hYrjoC7g3FwgX3Z6nDQ/q0g40EtHW5DI22Lzl6eEElldW
+	 UKVIuQZmTjPk2HpXjZV5GPbo1LcSNSjTmiJ3OV7Ow9YdvLst1TONZHdJQ2+dxkMJVh
+	 9w1uSMOyE0X5xDYyrVAmYT0bEtBjNT5uyQHeOH96LnA3Hr3rIHmMJ8JBU7FUWsKUai
+	 wSd2q78pLSYpS9gWZDo5znk9IJKeaiKs7/YO1NyVijYguYBRwzyLms9Ju5Hu3t2C3e
+	 mhY+8+sQdpYX7MbDPRbc0OM7Rg8O682czYxiYIBAiLWLB3GfsdGR1q+vxr3Kr7oBn9
+	 oL0h/4dsN7mmQ==
+Subject: Re: [PATCH net v2 2/2] net/smc: serialize early link group cleanup
+ with termination
 From: netdev-bot+sashiko@kernel.org
 To: nicoyip.dev@gmail.com
 Cc: alibuda@linux.alibaba.com, dust.li@linux.alibaba.com,
@@ -36,10 +36,10 @@ Cc: alibuda@linux.alibaba.com, dust.li@linux.alibaba.com,
  tonylu@linux.alibaba.com, guwen@linux.alibaba.com, horms@kernel.org,
  linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
  netdev@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Date: Sun, 04 Oct 2026 18:34:24 +0000
-Message-ID: <179113886433.434549.10069135669585050618@kernel.org>
-In-Reply-To: <20261003183237.2284245-2-nicoyip.dev@gmail.com>
-References: <20261003183237.2284245-2-nicoyip.dev@gmail.com>
+Date: Sun, 04 Oct 2026 18:34:25 +0000
+Message-ID: <179113886579.434549.12546097168507601074@kernel.org>
+In-Reply-To: <20261003183237.2284245-3-nicoyip.dev@gmail.com>
+References: <20261003183237.2284245-3-nicoyip.dev@gmail.com>
 X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -50,10 +50,10 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 1 potential
+Thank you for your contribution! Sashiko AI review found 2 potential
 issue(s) to consider.
 
-Critical: 0 · High: 1 · Medium: 0 · Low: 0 (3)
+Critical: 0 · High: 1 (1) · Medium: 0 · Low: 1
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -61,117 +61,81 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [High] __smc_lgr_terminate() (net/smc/smc_core.c) still cancels
-  free_work with cancel_delayed_work(), which does not wait for a…
+- [High] The new temporary hold in smc_lgr_create()/smc_conn_create()
+  keeps only the struct smc_link_group memory alive across the window…
+- [Low] The fix only works if the preceding series patch "net/smc:
+  serialize link group free work scheduling" is also applied, and this…
 
 Pre-existing issues:
-- [Low] Baseline decision: not a valid finding for the final state of the
-  series.
-- [Low] Baseline decision: not reported (a pre-existing, low-impact race
-  the patch does not claim to fix).
-- [Low] Baseline decision: not a valid finding for the final state of the
-  series.
+- [High] This problem wasn't introduced by this patch, but the exclusive-
+  teardown protocol this patch builds on is unsafe against an already-…
 
 --
 
-net/smc: serialize link group free work scheduling
+net/smc: serialize early link group cleanup with termination
 
-This patch holds the link group list lock across the freeing check and
-mod_delayed_work() in smc_lgr_schedule_free_work(). It also sets
-lgr->freeing under that lock in smc_lgr_cleanup_early(). Finally, it moves
-freeing out of the shared bitfield byte and gives it its own bool.
+This patch makes smc_lgr_cleanup_early() check lgr->freeing under the link
+group list lock, so it does not tear down a group that another path
+already owns. It also takes a temporary lgr reference in smc_conn_abort().
+For newly created groups, it takes another temporary reference from
+publication in smc_lgr_create() until registration in smc_conn_create()
+finishes.
 
 > diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-> index 9974149659c2f..478c8bc2759a0 100644
+> index 478c8bc2759a0..1918a79ff60e4 100644
 > --- a/net/smc/smc_core.c
 > +++ b/net/smc/smc_core.c
-
-[ ... ]
-
-> @@ -691,6 +696,7 @@ void smc_lgr_cleanup_early(struct smc_link_group *lgr)
->  	/* do not use this link group for new connections */
->  	if (!list_empty(&lgr->list))
->  		list_del_init(&lgr->list);
-> +	lgr->freeing = 1;
->  	spin_unlock_bh(lgr_lock);
->  	__smc_lgr_terminate(lgr, true);
->  }
-
-[Severity: Low]
-This is a pre-existing issue, but is lgr still guaranteed to be alive when
-smc_lgr_cleanup_early() is reached from smc_conn_abort()?
-
-net/smc/af_smc.c:smc_conn_abort() {
-    ...
-	smc_conn_free(conn);
-	if (local_first && lgr_valid)
-		smc_lgr_cleanup_early(lgr);
-}
-
-smc_conn_free() drops the connection's reference:
-
-	smc_lgr_put(lgr); /* lgr_hold in smc_conn_create() */
-
-After that, smc_lgr_list_head(), spin_lock_bh(), list_del_init() and the
-new freeing store all run without a reference held.
-
-The unreferenced access was already there before this patch. The next
-patch in the series, "net/smc: serialize early link group cleanup with
-termination", adds smc_lgr_hold()/smc_lgr_put() around smc_conn_free()
-and smc_lgr_cleanup_early(). It does the same on the registration
-failure path in smc_conn_create().
-
-Both patches carry Cc: stable. Could this changelog say that the
-follow-up patch has to be backported with it?
-
-[Severity: Low]
-This isn't a bug introduced by this patch, but should lgr->freeing be
-tested before it is set here?
-
-At this commit, smc_lgr_cleanup_early() sets freeing unconditionally and
-always calls __smc_lgr_terminate(). Suppose smc_lgr_free_work() has
-already claimed the group:
-
-smc_lgr_free_work()
-    lgr->freeing = 1; /* this instance does the freeing, no new schedule */
-    ...
-    smc_lgr_free(lgr);
-
-__smc_lgr_terminate() only checks lgr->terminating, and
-smc_lgr_free_work() never sets it. The second teardown would then go into
-smc_lgr_free() again. The same applies to a group already claimed by
-smc_lgr_terminate_sched() or smc_smcd_terminate().
-
-Can this end in a second destroy_workqueue() of lgr->tx_wq, a second
-put_device(), and an lgr refcount underflow?
-
-The baseline smc_lgr_cleanup_early() did not test freeing either. The
-follow-up patch "net/smc: serialize early link group cleanup with
-termination" adds the check under lgr_lock:
-
-	if (lgr->freeing) {
-		spin_unlock_bh(lgr_lock);
-		return;
-	}
-
-[ ... ]
-
-> @@ -1565,7 +1571,7 @@ static void __smc_lgr_terminate(struct smc_link_group *lgr, bool soft)
+> @@ -693,6 +693,10 @@ void smc_lgr_cleanup_early(struct smc_link_group *lgr)
 >  
->  	if (lgr->terminating)
->  		return;	/* lgr already terminating */
-> -	/* cancel free_work sync, will terminate when lgr->freeing is set */
-> +	/* cancel pending free_work; a running instance rechecks freeing */
->  	cancel_delayed_work(&lgr->free_work);
->  	lgr->terminating = 1;
+>  	smc_lgr_list_head(lgr, &lgr_lock);
+>  	spin_lock_bh(lgr_lock);
+> +	if (lgr->freeing) {
+> +		spin_unlock_bh(lgr_lock);
+> +		return;
+> +	}
+
+[Severity: Low]
+
+This early return only gives exclusive teardown ownership in combination
+with two other pieces: the lgr->freeing = 1 write later in
+smc_lgr_cleanup_early(), and freeing being a standalone bool instead of a
+bitfield that shares storage with sync_err and terminating.
+
+Both of those come from the earlier series patch "net/smc: serialize link
+group free work scheduling". The baseline smc_lgr_cleanup_early() never
+sets freeing.
+
+The commit body only says:
+
+    The existing locked freeing transition then claims exclusive teardown
+    ownership
+
+The explicit dependency is stated only in the v2 changelog below the ---
+line, and git am drops that part.
+
+The context lines of this hunk don't include the lgr->freeing = 1 line,
+so the hunk applies cleanly to a tree without the prerequisite. The two
+patches also carry different Fixes: tags (8e316b9e7260 and f9aab6f2ce57).
+
+Suppose a stable tree takes only this patch. smc_lgr_cleanup_early()
+would then check freeing but never claim it. Couldn't
+smc_lgr_terminate_sched(), smc_smcd_terminate() or
+smc_smcr_terminate_all() still claim the group after the check, so that
+both paths enter __smc_lgr_terminate()?
+
+Could the body mention the dependency? Another option is a "# needs ..."
+annotation on the Cc: stable line.
 
 [Severity: High]
-Can a running free_work instance safely do that recheck?
 
-smc_lgr_free_work() holds no reference on lgr, and the recheck itself
-dereferences lgr:
+This is a pre-existing issue and wasn't introduced by this patch. Still,
+the exclusive teardown protocol that this check builds on doesn't seem
+safe against a free_work instance that is already running.
 
-smc_lgr_free_work() {
+smc_lgr_free_work() holds no lgr reference. It dereferences the group
+before it can see that freeing was claimed:
+
+net/smc/smc_core.c:smc_lgr_free_work() {
     ...
 	smc_lgr_list_head(lgr, &lgr_lock);
 	spin_lock_bh(lgr_lock);
@@ -179,84 +143,154 @@ smc_lgr_free_work() {
     ...
 }
 
-cancel_delayed_work() does not wait for a callback that is already
-running. smc_lgr_free() only drains tx_wq before it drops the base
-reference.
+__smc_lgr_terminate() only uses the non-synchronous cancel:
 
-Could this sequence free lgr while the worker is still using it?
+	/* cancel pending free_work; a running instance rechecks freeing */
+	cancel_delayed_work(&lgr->free_work);
 
-CPU 0 (kworker)                     CPU 1 (terminator)
-smc_lgr_free_work() starts
-  (PENDING already cleared)
-  preempted before
-  smc_lgr_list_head()
-                                    set lgr->freeing under lgr_lock
-                                    __smc_lgr_terminate()
-                                      cancel_delayed_work() returns false
-                                      smc_lgr_cleanup()
-                                      smc_lgr_free()
-                                        smc_lgr_put()
-                                          __smc_lgr_free()
-                                            kfree(lgr)
-  smc_lgr_list_head(lgr, ...)
-  spin_lock_bh(lgr_lock)
-  reads lgr->freeing
+Neither smc_lgr_free() nor __smc_lgr_free() waits for free_work before
+kfree(lgr).
 
-free_work is only scheduled when the group has no connections. So the put
-in smc_lgr_free() drops the last reference.
+Can this sequence happen on an idle group (conns_num == 0)?
 
-The terminator could be any of these:
+CPU1 (free_work timer expired)
+smc_lgr_free_work()
+  <preempted before spin_lock_bh(lgr_lock)>
 
-  terminate_work after a peer-triggered smc_smcd_terminate()
-  smc_lgr_terminate_sched() after a CLC DECLINE with the first contact flag
-  smc_smcr_terminate_all() or smc_smcd_terminate_all()
+CPU2 (peer DELETE_LINK with SMC_LLC_FLAG_DEL_LINK_ALL)
+smc_llc_process_cli_delete_link()
+  smc_lgr_terminate_sched()
+    lgr->freeing = 1;
+    schedule_work(&lgr->terminate_work);
+smc_lgr_terminate_work()
+  __smc_lgr_terminate()
+    cancel_delayed_work(&lgr->free_work);   <- does not wait
+    smc_lgr_free()
+      smc_lgr_put()
+        __smc_lgr_free()
+          kfree(lgr);
 
-If the freed memory reads freeing == 0, the worker also goes on to
-list_del_init() and a second smc_lgr_free() on the freed object.
+CPU1 resumes
+  smc_lgr_list_head(lgr, &lgr_lock);   <- reads freed lgr
+  spin_lock_bh(lgr_lock);
 
-The asynchronous cancel predates this patch. However, the new comment
-describes running instances as safe, and the v2 notes say the patch keeps
-"asynchronous cancellation without adding work-owned references".
+The resumed worker would take a spinlock through a pointer loaded from
+freed memory. If the slab has been reused and reads freeing == 0 with an
+empty tree, the worker could also run list_del_init() and smc_lgr_free()
+on foreign memory.
 
-Does this need cancel_delayed_work_sync() on the terminate paths that can
-drop the last reference, or a reference owned by the work item?
+Other terminators would reach the same window, for example an LLC protocol
+violation, or smc_smcd_terminate() from an ISM event.
 
-> diff --git a/net/smc/smc_core.h b/net/smc/smc_core.h
-> index 5c18f08a4c8a5..b8c67f277337a 100644
-> --- a/net/smc/smc_core.h
-> +++ b/net/smc/smc_core.h
-> @@ -303,7 +303,7 @@ struct smc_link_group {
->  	struct workqueue_struct	*tx_wq;		/* wq for conn. tx workers */
->  	u8			sync_err : 1;	/* lgr no longer fits to peer */
->  	u8			terminating : 1;/* lgr is terminating */
-> -	u8			freeing : 1;	/* lgr is being freed */
-> +	bool			freeing;	/* lgr is being freed */
+The smc_conn_abort()->smc_lgr_cleanup_early() path doesn't look like a
+realistic trigger here. smc_lgr_schedule_free_work() is only called once
+conns_num reaches zero, and the creating connection stays registered
+until its own abort.
 
-[Severity: Low]
-This is a pre-existing issue, but sync_err and terminating still share a
-byte after freeing moves out.
+Could free_work hold its own lgr reference, taken when it is armed and
+dropped when the work exits or is cancelled successfully? Alternatively,
+the final put could use cancel_delayed_work_sync() when it is not running
+from free_work itself.
 
-smc_clc_wait_msg() does:
+>  	/* do not use this link group for new connections */
+>  	if (!list_empty(&lgr->list))
+>  		list_del_init(&lgr->list);
+> @@ -999,6 +1003,7 @@ static int smc_lgr_create(struct smc_sock *smc, struct smc_init_info *ini)
+>  		lgr->buf_type = lgr->net->smc.sysctl_smcr_buf_type;
+>  		atomic_inc(&lgr_cnt);
+>  	}
+> +	smc_lgr_hold(lgr); /* lgr_put in smc_conn_create() */
+>  	smc->conn.lgr = lgr;
+>  	spin_lock_bh(lgr_lock);
+>  	list_add_tail(&lgr->list, lgr_list);
+> @@ -2054,10 +2059,13 @@ int smc_conn_create(struct smc_sock *smc, struct smc_init_info *ini)
+>  		write_unlock_bh(&lgr->conns_lock);
+>  		if (rc) {
+>  			smc_lgr_cleanup_early(lgr);
+> +			smc_lgr_put(lgr); /* lgr_hold in smc_lgr_create() */
+>  			goto out;
+>  		}
+>  	}
+>  	smc_lgr_hold(conn->lgr); /* lgr_put in smc_conn_free() */
+> +	if (ini->first_contact_local)
+> +		smc_lgr_put(conn->lgr); /* lgr_hold in smc_lgr_create() */
 
-	smc->conn.lgr->sync_err = 1;
-	smc_lgr_terminate_sched(smc->conn.lgr);
+[Severity: High]
 
-and __smc_lgr_terminate() does:
+The temporary hold taken in smc_lgr_create() keeps the lgr allocation
+alive between list_add_tail() and smc_lgr_register_conn(). Does it also
+stop a terminator from tearing the group down in that window?
 
-	lgr->terminating = 1;
+smc_conn_create() only takes lgr->conns_lock around
+smc_lgr_register_conn(conn, true). Nothing rechecks lgr->freeing under
+lgr_lock. For SMC-D, this sequence seems possible:
 
-The two writes have no common lock. Can one read-modify-write overwrite
-the other?
+CPU1 (first-contact connect or listen)
+smc_conn_create()
+  smc_lgr_create()
+    smc_lgr_hold(lgr);
+    list_add_tail(&lgr->list, lgr_list);
 
-The impact looks limited. freeing and list membership still prevent
-reuse or a double teardown. If terminating = 1 is lost, the main effect
-is that smc_wr_tx_get_free_slot() waits instead of failing fast on:
+CPU2 (peer ISM GID or shutdown event)
+smc_smcd_terminate()
+  lgr->peer_shutdown = 1;
+  list_move(&lgr->list, &lgr_free_list);
+  lgr->freeing = 1;
+  schedule_work(&lgr->terminate_work);
+smc_lgr_terminate_work()
+  __smc_lgr_terminate()
+    rb_first(&lgr->conns_all) is NULL, kill loop skipped
+    smc_lgr_free()
+      destroy_workqueue(lgr->tx_wq);
+      smc_ism_put_vlan(); put_device();
+      smc_lgr_put(lgr);   <- only the temporary hold remains
 
-	if (in_softirq() || lgr->terminating) {
+CPU1
+  write_lock_bh(&lgr->conns_lock);
+  smc_lgr_register_conn(conn, true);  <- cannot fail for SMC-D,
+                                         sock_hold(), conns_num++
+  smc_lgr_hold(conn->lgr);
+  smc_lgr_put(conn->lgr);             <- temporary hold dropped
+  return 0;
 
-That wait ends when the link stops being sendable or after
-SMC_WR_TX_WAIT_FREE_SLOT_TIME. The changelog only claims to protect
-freeing, so this could be handled in a separate patch.
+The kill loop never visited this connection, so conn->killed stays clear.
+Two problems seem to follow.
+
+First, smc_tx_consumer_update() can get -EPIPE from
+smc_cdc_get_slot_and_msg_send() because peer_shutdown is set. It would
+then queue work on the destroyed workqueue:
+
+		if ((smc_cdc_get_slot_and_msg_send(conn) < 0) &&
+		    !conn->killed) {
+			queue_delayed_work(conn->lgr->tx_wq, &conn->tx_work,
+					   SMC_TX_WORK_DELAY);
+
+Second, smc_conn_free() sees list_empty(&lgr->list) and skips
+smc_lgr_unregister_conn(). That leaks the sock_hold() taken at
+registration. The final smc_lgr_put() would then free the lgr while
+smc_conn_lgr_valid() still returns true for the connection.
+
+The publication-to-registration window itself predates this patch. Before
+it, the later write_lock_bh(&lgr->conns_lock) was a direct
+use-after-free.
+
+The commit message says "On success, acquire the ordinary connection
+reference before releasing the temporary hold". This handoff doesn't seem
+to serialize registration with the freeing claim.
+
+Could first-contact registration take lgr_lock, fail if lgr->freeing is
+set, and then take conns_lock and register? That would match the lock
+order of the reuse path. Alternatively, could the group be published only
+after its first connection is registered?
+
+The SMC-R variant looks mostly blocked. smc_lgr_free() clears the links,
+so registration then fails with SMC_CLC_DECL_NOACTLINK and takes the
+fixed failure path. It is unclear whether a concurrent smcr_link_clear()
+could still hand out a link while it is clearing.
+
+>  	if (!conn->lgr->is_smcd)
+>  		smcr_link_hold(conn->lnk); /* link_put in smc_conn_free() */
+>  	conn->freed = 0;
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261003183237.2284245-1-nicoyip.dev%40gmail.com
