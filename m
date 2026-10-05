@@ -1,116 +1,158 @@
-Received: from sender6-of-o55.zoho.com (sender6-of-o55.zoho.com [165.173.180.55])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mta0.migadu.com (out-72.mta0.migadu.com [91.218.175.72])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE37119CC0F;
-	Mon,  5 Oct 2026 00:25:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=165.173.180.55
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791159945; cv=pass; b=gPldSzmhUohIdw4GBT5ShPg6IqDvgK+ReP0W2LljqzNPUehUxbrrLatvdOgb6XpGryVxZmBx2gQ0fNytJxFFg9umos2NbilyehFI/pggaMLua/ttkTSnddanXVjohY5fIxw+/AcfFInNPT1l45EYR0tgld1PIweP1iFU6eyEa7Q=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791159945; c=relaxed/simple;
-	bh=g6Id/CITe1AjCOe8BiyGg2h/PT4nBSQdxzRDYcfScYQ=;
-	h=Date:From:To:Cc:Message-ID:In-Reply-To:Subject:MIME-Version:
-	 Content-Type; b=nlmTa+HT09ieMjdPPl83ikA3QZuzxfudfXMEliypPiMelFBCCe1W0F82uyW5RhqMO9/M/2WDJqJ3Zgh+9eg090UijAT5fmVgrlQfIRS1sGY2NsPJOy2w8v/v6cOUCQvKexYOhMQd4yk85ZWjDcFgx9Y7mCQw2VEzJ2f3Fv/4+As=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lazaarsec.com; spf=pass smtp.mailfrom=lazaarsec.com; dkim=pass (1024-bit key) header.d=lazaarsec.com header.i=haitam@lazaarsec.com header.b=IcaliGFB; arc=pass smtp.client-ip=165.173.180.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lazaarsec.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lazaarsec.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F43E1EFFA1
+	for <linux-rdma@vger.kernel.org>; Mon,  5 Oct 2026 00:29:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.72
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791160201; cv=none; b=n7f7qJzMjnnBcQ3fTY0s2yaKkiWTjHHaUQ9bgxdWvaro5qFSES+Fp5FfOBY25y5GXjXWKhZYMvVKCqYibCzgKzVgbL6IZbch7zwC+razv6lJgAhiKAvAxL2Zr/7+TO81FNyY23+IRlVEFfunuorGRg6P56GBoneFfoMMZviF4js=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791160201; c=relaxed/simple;
+	bh=B3/DFcp+SyH8b+Kah5V3t9QdusNse+6V3nxVXGVaM10=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=k5si+BvCf3id+9jTrG49weFEEhEdDBq7bxjncoBNOdi0iOm6dWkdhvxwLIJFl4yWwvhlXYUz7wqRtgLBXf0/wU/VjcFdd2FypcDJGkTao/x1MbhclTJYXnGiYaqyWwrCh/JVBEI3jIABdV14EfDIW1ecMvNp7opAT7z3zruzPAc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=iOV56fZH; arc=none smtp.client-ip=91.218.175.72
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=lazaarsec.com header.i=haitam@lazaarsec.com header.b="IcaliGFB"
-ARC-Seal: i=1; a=rsa-sha256; t=1791159937; cv=none; 
-	d=zohomail.com; s=zohoarc; 
-	b=SFG+UL0pCCK98a6LIqckXsYMchHYNIEl6T84lsqsvTbIHS4ezrf3fHhQAtQ2w/T3ybcLZzYiTjB+S34o2oljoVocYkC4EgGfPdXahdjL1nTCCGySW8rkWaObNU5AxrQEaVMa4M/64AJWNq+5O4sipAhsEkvYHJj2cM4cVYCTCfc=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
-	t=1791159937; h=Content-Type:Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To; 
-	bh=QjlTM+K9c2VSwtfFNdZjfx0yyzVG/WinHq6Izi14f8A=; 
-	b=HmoMft81pT4PSUQRGgnQlI49ac5dYHHjr4sV1GZyKws2zHnIKBwx5iwSefNeymAqN8tn+iuLguBTA2xwwN+ZFkXruXC74OuafgcT2dgUoBs8WK/jQ0YtQ+8kKhjO8ummTJauJdSqq0kRBZP0fUC5CpLuC5KQMVHDDpKsbaYSJwY=
-ARC-Authentication-Results: i=1; mx.zohomail.com;
-	dkim=pass  header.i=lazaarsec.com;
-	spf=pass  smtp.mailfrom=haitam@lazaarsec.com;
-	dmarc=pass header.from=<haitam@lazaarsec.com>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1791159937;
-	s=zmail; d=lazaarsec.com; i=haitam@lazaarsec.com;
-	h=Date:Date:From:From:To:To:Cc:Cc:Message-ID:In-Reply-To:Subject:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:Message-Id:Reply-To;
-	bh=QjlTM+K9c2VSwtfFNdZjfx0yyzVG/WinHq6Izi14f8A=;
-	b=IcaliGFBf1jejekqvuj5B1hecXmYDPEVgiMEm6y+OiQBTlI73XLO29bKc8R08+Hk
-	YqVl3mr9ZGls+bBOyMLHUfseclUQn7T1zILERCjYRTuBh/BplV822dmuep37PWHlgAc
-	I06C+8hWIr6kf1CVrKkjHkb654TGpv6XVWsf3gO8=
-Received: from mail.zoho.com by mx.zohomail.com
-	with SMTP id 1791159937285562.4403118885974; Sun, 4 Oct 2026 17:25:37 -0700 (PDT)
-Received: from mail.zoho.com by mx.zohomail.com
-	with SMTP id 1791159935674155.37696301141693; Sun, 4 Oct 2026 17:25:35 -0700 (PDT)
-Date: Mon, 05 Oct 2026 00:25:35 +0000
-From: Haitam Lazaar <haitam@lazaarsec.com>
-To: "Bernard Metzler" <bernard.metzler@linux.dev>
-Cc: "Jason Gunthorpe" <jgg@ziepe.ca>, "Leon Romanovsky" <leon@kernel.org>,
-	"linux-rdma" <linux-rdma@vger.kernel.org>,
-	"stable" <stable@vger.kernel.org>
-Message-ID: <1a10973a2a8.17e04b672219.8760522594078806286@lazaarsec.com>
-In-Reply-To: 
-Subject: [PATCH for-rc] RDMA/siw: Enforce IB_ACCESS_REMOTE_READ for read
- responses
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="iOV56fZH"
+X-Envelope-To: linux-rdma@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=B3/DFcp+SyH8b+Kah5V3t9QdusNse+6V3nxVXGVaM10=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1791160196; v=1; x=1791764996;
+ b=iOV56fZHygNFX4pDskHJRgtUivQns04tYHDWyziB6cERI82HfFpgpZdGyCWi1os5GX0PXhn9
+ aXdxmWG9jMJ2ItbDep8o0tJRZ64R2IkTejkvdz5lNRX+7Iu7IePZf/ISqxFhI7+Pg9j0W76YEmP
+ 2RswZHCIxhRWpFsqBy+Tejuw=
+X-Envelope-To: linux-rdma@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id 8d3e8eaf5c7ddbfd;
+	Mon, 05 Oct 2026 00:29:46 +0000
+X-Mizu-Trace-ID: 8d3e8eaf5c7ddbfd
+X-Migadu-Flow: FLOW_OUT
+Message-ID: <009f918c-f77a-4b46-ab6d-96d81e1ed87d@linux.dev>
+Date: Sun, 4 Oct 2026 17:29:42 -0700
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Importance: Medium
-User-Agent: Zoho Mail
-X-Mailer: Zoho Mail
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3] RDMA/rxe: Validate inline data range in user WQEs
+To: Jiale Yao <yaojiale02@163.com>, Zhu Yanjun <zyjzyj2000@gmail.com>,
+ Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
+ Doug Ledford <dledford@redhat.com>, Moni Shoua <monis@mellanox.com>,
+ Haggai Eran <haggaie@mellanox.com>, Kamal Heib <kamalh@mellanox.com>,
+ Amir Vadai <amirv@mellanox.com>, linux-rdma@vger.kernel.org,
+ linux-kernel@vger.kernel.org, "yanjun.zhu@linux.dev" <yanjun.zhu@linux.dev>
+References: <20261004064445.1488753-1-yaojiale02@163.com>
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
+In-Reply-To: <20261004064445.1488753-1-yaojiale02@163.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-When generating an RDMA READ response (SIW_OP_READ_RESPONSE),
-siw_check_sgl_tx() unconditionally passes 0 as the required permission
-mask:
+在 2026/10/3 23:44, Jiale Yao 写道:
+> For a user QP, the send queue is an mmap'd ring which userspace writes
+> directly.  rxe_post_send() only schedules the send task for such a QP,
+> so userspace can also change WQE fields while rxe_requester() processes
+> the WQE.
+> 
+> Commit 126c757e4cd46f866ddc283143b58eb4d9bf52cd ("RDMA/rxe:
+> Validate num_sge/cur_sge before indexing wqe->dma.sge[]") added bounds
+> checks for two members of the userspace-controlled dma structure, but
+> left sge_offset unchecked.  For an inline WQE, finish_packet() uses that
+> value directly as an index into inline_data[] and copies dma.resid bytes
+> from the resulting pointer into the packet payload.
+> 
+> A local user with access to uverbs can therefore put an out-of-range
+> sge_offset in the mmap'd SQ ring.  This can disclose kernel memory in the
+> outgoing packet or cause a vmalloc out-of-bounds access.
+> 
+> Since sge_offset comes from shared memory, validating it in
+> rxe_requester() and then reading it again in finish_packet() leaves a
+> TOCTOU window.  Load it exactly once with READ_ONCE() in finish_packet(),
+> validate that local value, and use the same value for the copy and update.
+> Check the offset first and use subtraction for the length check to avoid
+> an integer overflow.
+> 
+> I reproduced this on Linux 7.3-rc4 with an RC user QP, IB_SEND_INLINE,
+> a 64-byte residual length, and sge_offset set to 0x100000.  KASAN
+> reported:
+> 
+>    BUG: KASAN: vmalloc-out-of-bounds in rxe_requester+0x1f27/0x4940
+>    Read of size 64 at addr ffffc90000191250 by task kworker/u16:0/12
+>    Workqueue: rxe_wq do_work
+>    Call Trace:
+>     __asan_memcpy
+>     rxe_requester+0x1f27/0x4940
+>     rxe_sender+0xe/0x30
+>     do_work+0x184/0x3d0
+>     process_scheduled_works+0x7c0/0xf10
 
-    /* Reference memory to be tx'd w/o checking access for LOCAL_READ */
-    rv = siw_check_sgl_tx(qp->pd, wqe, 0);
+Conceptually, wqe->dma.sge_offset is runtime state that should be 
+exclusively managed by the kernel, but mapping the SQ into user space 
+via mmap exposes it to untrusted asynchronous writes.
 
-Because perms is 0, siw_check_mem()'s authorization test:
-    if ((mem->perms & perms) < perms)
-evaluates to (mem->perms & 0) < 0, which is always false. Consequently,
-an untrusted remote peer can issue an RDMA Read targeting any valid
-STag in the Protection Domain, even if the memory was registered strictly
-as write-only (IB_ACCESS_REMOTE_WRITE) without IB_ACCESS_REMOTE_READ.
+Beyond finish_packet(), every reader of sge_offset across the driver 
+(such as in rxe_sge.c and rxe_resp.c) must treat it as untrusted input.
 
-Enforce that the target memory region was granted IB_ACCESS_REMOTE_READ
-when answering SIW_OP_READ_RESPONSE work queue entries, while preserving
-perms = 0 for standard local sends.
+We should audit all access points to ensure they consistently use a 
+READ_ONCE() local snapshot followed by underflow-safe bounds checks. 
+Longer term, moving kernel-managed progress state into kernel-private 
+memory would eliminate this attack surface entirely.
 
-Fixes: b9be6f18cf9e ("rdma/siw: transmit path")
-Cc: stable@vger.kernel.org
-Signed-off-by: Haitam Lazaar <haitam@lazaarsec.com>
----
- drivers/infiniband/sw/siw/siw_qp_tx.c | 13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+Yanjun Zhu
 
-diff --git a/drivers/infiniband/sw/siw/siw_qp_tx.c b/drivers/infiniband/sw/siw/siw_qp_tx.c
-index f7dd32c6e5ba..9e652585f904 100644
---- a/drivers/infiniband/sw/siw/siw_qp_tx.c
-+++ b/drivers/infiniband/sw/siw/siw_qp_tx.c
-@@ -810,12 +810,17 @@ static int siw_qp_sq_proc_tx(struct siw_qp *qp, struct siw_wqe *wqe)
- 
- 			if (tx_type(wqe) != SIW_OP_READ &&
- 			    tx_type(wqe) != SIW_OP_READ_LOCAL_INV) {
-+				enum ib_access_flags perms = 0;
-+
- 				/*
--				 * Reference memory to be tx'd w/o checking
--				 * access for LOCAL_READ permission, since
--				 * not defined in RDMA core.
-+				 * Local READ permission doesn't exist in RDMA core.
-+				 * A READ RESPONSE source is read by the remote peer,
-+				 * so it must be checked for REMOTE_READ permission.
- 				 */
--				rv = siw_check_sgl_tx(qp->pd, wqe, 0);
-+				if (tx_type(wqe) == SIW_OP_READ_RESPONSE)
-+					perms = IB_ACCESS_REMOTE_READ;
-+
-+				rv = siw_check_sgl_tx(qp->pd, wqe, perms);
- 				if (rv < 0) {
- 					if (tx_type(wqe) ==
- 					    SIW_OP_READ_RESPONSE)
--- 
-
+> 
+> Fixes: 8700e3e7c485 ("Soft RoCE driver")
+> Link: https://lore.kernel.org/all/20260708224534.1206-1-security@auditcode.ai/
+> Signed-off-by: Jiale Yao <yaojiale02@163.com>
+> ---
+> 
+> Notes:
+>      Changes in v3:
+>      - Read sge_offset from the shared WQE with READ_ONCE(), as requested.
+>      
+>      Changes in v2:
+>      - Copy sge_offset into a local variable in finish_packet(), validate that
+>        value, and reuse it for the memcpy and update.
+> 
+>   drivers/infiniband/sw/rxe/rxe_req.c | 14 +++++++++++---
+>   1 file changed, 11 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+> index 24f5c044363f..9be753d2e5dd 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_req.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_req.c
+> @@ -503,6 +503,7 @@ static int finish_packet(struct rxe_qp *qp, struct rxe_av *av,
+>   			 struct sk_buff *skb, u32 payload)
+>   {
+>   	int err;
+> +	u32 sge_offset;
+>   
+>   	err = rxe_prepare(av, pkt, skb);
+>   	if (err)
+> @@ -510,12 +511,19 @@ static int finish_packet(struct rxe_qp *qp, struct rxe_av *av,
+>   
+>   	if (pkt->mask & RXE_WRITE_OR_SEND_MASK) {
+>   		if (wqe->wr.send_flags & IB_SEND_INLINE) {
+> -			u8 *tmp = &wqe->dma.inline_data[wqe->dma.sge_offset];
+> +			sge_offset = READ_ONCE(wqe->dma.sge_offset);
+> +			if (unlikely(sge_offset > qp->sq.max_inline ||
+> +				     payload >
+> +				     qp->sq.max_inline - sge_offset)) {
+> +				rxe_dbg_qp(qp, "invalid inline data range in send wqe\n");
+> +				return -EINVAL;
+> +			}
+>   
+> -			memcpy(payload_addr(pkt), tmp, payload);
+> +			memcpy(payload_addr(pkt),
+> +			       &wqe->dma.inline_data[sge_offset], payload);
+>   
+>   			wqe->dma.resid -= payload;
+> -			wqe->dma.sge_offset += payload;
+> +			wqe->dma.sge_offset = sge_offset + payload;
+>   		} else {
+>   			err = copy_data(qp->pd, 0, &wqe->dma,
+>   					payload_addr(pkt), payload,
 
