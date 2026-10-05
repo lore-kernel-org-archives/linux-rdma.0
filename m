@@ -1,82 +1,120 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mta1.migadu.com (out-156.mta1.migadu.com [95.215.58.156])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FF4C418A5E
-	for <linux-rdma@vger.kernel.org>; Mon,  5 Oct 2026 09:10:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0444C3CBE91
+	for <linux-rdma@vger.kernel.org>; Mon,  5 Oct 2026 11:32:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.156
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791191436; cv=none; b=qPRuX0KycDOKNDCIDvb908WlyTl/Q/1Gy7wBTDLZxzm2q/xYGMa9fkCW2R9/peR4iGU3gSHiytZ2wzC6APrmkjhBtYCdwJBfGn7TDQGtAld5YdyzDn8EJCQvnZ88fRwxULPC6K2HJjCjbSuGL+lILZGDsw4g3x8GcyWKWeP4mHI=
+	t=1791199929; cv=none; b=gQXz0hM/vRWyy9bEIG4kkoRRdVivm4wEHkae2RneLjmSvHGcb+GqVRuffcqORT5n48+glnM/KVEjAPf4nlD+pwqBIP94nMqPHeXqrmyeJsdSQyGOrdBE56S8F1G6nS8M8dq09E1Jgew1+h7HqBppLzaoq+WFM3cS2yqnQirL6Wk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791191436; c=relaxed/simple;
-	bh=IgVcEOSCTESsMeEd/DUwt3qbz4BaWAzpFH4IwGdU9PI=;
-	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=OzX9Y/+c21UthR9QdMUQ3gGsyQDXjdNwwfpN69N4XY6/PvtAF7WmnIXmeQTGRJ7FVjOms2LPeQFaR2lS7/yXlS5NYSmi9RgNHrD+Or/xNCV0TZWREApDGyUQogRF9O7NHKqWoBhZl8LhljYUYscTZj+A3op0CrwfufNf11AKvaU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nB8sBl+6; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791199929; c=relaxed/simple;
+	bh=269nd+I1EAeOX0RpssvCfGisJcgoKXgWwOs4dp/AG1M=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=gq4tf0y6CfVSNmJUiKD8537Ua4p4BClO2ABM1QQ+TA/hH8ooR51GON6mHRxsKEjHR7EhxKF3P1rrFiL0InS9jnAGxI2ObJnf4NRW6TUGDu0HLurD8CQkbVi83VkpGX4CkA1BOaU8EcLHgzVc9aj7KTSqVFO3B8T8pGh8GkjlCwQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=AfLbuTuy; arc=none smtp.client-ip=95.215.58.156
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nB8sBl+6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E25B41F000FF;
-	Mon,  5 Oct 2026 09:10:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791191435;
-	bh=5zs9CIn24Q/YlWlIKSXCsuHq1dBk8tYMbGAEufkzf84=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=nB8sBl+64PrsmvBFrhRqPo3T4Y/f0AyYtEr1GpbpFiWCaUMFFGmqWBHh7zEFtz03N
-	 jhSFqZlmr7YkwZeHo/bITepk4zFKn4YN3UveWyhvQgqUGZq60VVq2LOnUUKgJc7100
-	 Ef1Nz0W+cel2H8KISxsLc4WfyA4hmwvgG2RhZYNuPCIBRAHiMhJVjL/cLMNlRs5RiT
-	 9oujJePxYYTJ3u7mZKEhYaWrdu4d/0+gDeuIxyO+lSqVULZOM6zn7learbLWg8JQr3
-	 7Ip+2Bq13PB7xDx9OFZWNZcj+wAnaEu41dW0+Fxu0+jsl6jy+uj/QuZW+3XBmY8P7N
-	 Ln8R8ldmlduow==
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v2] RDMA/rtrs-clt: Fix recv repost to satisfy
- ib_drain_rq
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Quanye Yang" <quanyeyang@proton.me>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261005-rtrs-fix-ib-drain-rq-v2-1-35535a3ed115@proton.me>
-References: <20261005-rtrs-fix-ib-drain-rq-v2-1-35535a3ed115@proton.me>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Mon, 05 Oct 2026 09:10:34 +0000
-Message-Id: <20261005091034.E25B41F000FF@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="AfLbuTuy"
+X-Envelope-To: linux-rdma@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=269nd+I1EAeOX0RpssvCfGisJcgoKXgWwOs4dp/AG1M=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1791199923; v=1; x=1791804723;
+ b=AfLbuTuyVZmsi/EBqgXpDf/VK/olQV2hi5/9kCQRCNLq5bdsQhZWS0XsZGb02lALvBF/SIv7
+ 0Qrl/b+gkS2CxjJDmK59p4nPJ0TAlm/tVA+7IOsu7X6tHl8O+yTNxN6V8YxOfl71b6mxPLWTXAC
+ k2h3K5DigV+XtkJT97UOXwJs=
+X-Envelope-To: linux-rdma@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id 5a01dbf037b0ce12;
+	Mon, 05 Oct 2026 11:32:03 +0000
+X-Mizu-Trace-ID: 5a01dbf037b0ce12
+X-Migadu-Flow: FLOW_OUT
+Message-ID: <ecf307a2-e814-480d-8da8-1a7b76537d3f@linux.dev>
+Date: Mon, 5 Oct 2026 13:31:59 +0200
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH for-rc] RDMA/siw: Enforce IB_ACCESS_REMOTE_READ for read
+ responses
+To: Haitam Lazaar <haitam@lazaarsec.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
+ linux-rdma <linux-rdma@vger.kernel.org>, stable <stable@vger.kernel.org>
+References: <1a10973a2a8.17e04b672219.8760522594078806286@lazaarsec.com>
+From: Bernard Metzler <bernard.metzler@linux.dev>
+In-Reply-To: <1a10973a2a8.17e04b672219.8760522594078806286@lazaarsec.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> From: Quanye Yang <quanyeyang@proton.me>
->=20
-> On disconnect the client error recovery path calls ib_drain_qp(), which
-> requires one free RQ slot and that no recv WQEs are posted while the
-> queue is being drained.
->=20
-> When the server is loaded with always_invalidate=3DN, the path does not
-> advertise RTRS_MSG_NEW_RKEY_F.  A client-requested invalidation is then
-> a standalone SEND_WITH_INV.  The recv completion path did not repost
-> that WQE; it posted two empty recv WQEs later, when the RDMA-with-IMM
-> response carried RTRS_IO_RSP_W_INV_IMM.  If the invalidate receive
-> never arrived, each such response increased RQ occupancy by one until
-> ib_post_recv() started returning -ENOMEM and __ib_drain_rq() failed
-> with:
->=20
->   failed to drain recv queue: -12
->=20
-> Repost one empty recv WQE for every receive completion, including
-> SEND_WITH_INV completions on the always_invalidate=3DN path, and only
-> while the path is still connected so CQ polling cannot race with
-> ib_drain_qp().  Size IO connection RQs to 2 * queue_depth + 1 to match
-> the posted recv count and leave the drain slot.
->=20
-> Tested with a synthetic RTRS client flooding unpaired
-> RTRS_IO_RSP_W_INV_IMM messages; error recovery no longer triggers
-> __ib_drain_rq() warnings.
->=20
-> Fixes: 6a98d71daea1 ("RDMA/rtrs: client: main functionality")
-> Signed-off-by: Quanye Yang <quanyeyang@proton.me>
+On 05.10.2026 02:25, Haitam Lazaar wrote:
+> When generating an RDMA READ response (SIW_OP_READ_RESPONSE),
+> siw_check_sgl_tx() unconditionally passes 0 as the required permission
+> mask:
+> 
+>      /* Reference memory to be tx'd w/o checking access for LOCAL_READ */
+>      rv = siw_check_sgl_tx(qp->pd, wqe, 0);
+> 
+> Because perms is 0, siw_check_mem()'s authorization test:
+>      if ((mem->perms & perms) < perms)
+> evaluates to (mem->perms & 0) < 0, which is always false. Consequently,
+> an untrusted remote peer can issue an RDMA Read targeting any valid
+> STag in the Protection Domain, even if the memory was registered strictly
+> as write-only (IB_ACCESS_REMOTE_WRITE) without IB_ACCESS_REMOTE_READ.
+> 
+> Enforce that the target memory region was granted IB_ACCESS_REMOTE_READ
+> when answering SIW_OP_READ_RESPONSE work queue entries, while preserving
+> perms = 0 for standard local sends.
+> 
+> Fixes: b9be6f18cf9e ("rdma/siw: transmit path")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Haitam Lazaar <haitam@lazaarsec.com>
+> ---
+>   drivers/infiniband/sw/siw/siw_qp_tx.c | 13 +++++++++----
+>   1 file changed, 9 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/infiniband/sw/siw/siw_qp_tx.c b/drivers/infiniband/sw/siw/siw_qp_tx.c
+> index f7dd32c6e5ba..9e652585f904 100644
+> --- a/drivers/infiniband/sw/siw/siw_qp_tx.c
+> +++ b/drivers/infiniband/sw/siw/siw_qp_tx.c
+> @@ -810,12 +810,17 @@ static int siw_qp_sq_proc_tx(struct siw_qp *qp, struct siw_wqe *wqe)
+>   
+>   			if (tx_type(wqe) != SIW_OP_READ &&
+>   			    tx_type(wqe) != SIW_OP_READ_LOCAL_INV) {
+> +				enum ib_access_flags perms = 0;
+> +
+>   				/*
+> -				 * Reference memory to be tx'd w/o checking
+> -				 * access for LOCAL_READ permission, since
+> -				 * not defined in RDMA core.
+> +				 * Local READ permission doesn't exist in RDMA core.
+> +				 * A READ RESPONSE source is read by the remote peer,
+> +				 * so it must be checked for REMOTE_READ permission.
+>   				 */
+> -				rv = siw_check_sgl_tx(qp->pd, wqe, 0);
+> +				if (tx_type(wqe) == SIW_OP_READ_RESPONSE)
+> +					perms = IB_ACCESS_REMOTE_READ;
+> +
+> +				rv = siw_check_sgl_tx(qp->pd, wqe, perms);
+>   				if (rv < 0) {
+>   					if (tx_type(wqe) ==
+>   					    SIW_OP_READ_RESPONSE)
 
-Sashiko has reviewed this patch and found no issues. It looks great!
+Excellent finding! You may further compact the code by
+moving the test and set...
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261005-rtrs-fix-i=
-b-drain-rq-v2-1-35535a3ed115@proton.me?part=3D1
+                         if (tx_type(wqe) == SIW_OP_READ_RESPONSE)
+                                 wqe->sqe.num_sge = 1;
 
+.. from a few lines above and merge it with the new 'perms'
+assignmnet like:
+
+			if (tx_type(wqe) == SIW_OP_READ_RESPONSE) {
+				perms = IB_ACCESS_REMOTE_READ;
+				wqe->sqe.num_sge = 1;
+			}
+
+Thanks,
+Bernard.
