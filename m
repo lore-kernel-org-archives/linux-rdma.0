@@ -1,34 +1,40 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from smtp-relay-services-1.canonical.com (smtp-relay-services-1.canonical.com [185.125.188.251])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C14DF371868;
-	Mon,  5 Oct 2026 23:00:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B26F4374A0E
+	for <linux-rdma@vger.kernel.org>; Mon,  5 Oct 2026 23:42:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.125.188.251
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791241210; cv=none; b=ssXQY4vp3EJIqxniAE/WlSJHBnqOTxTfntDJjcMfsQByP0fQb4SoAk7OfjkPcOpOd0TPmT7OcSJKiGmzORT1hKgLvv0N/zQT4Z0wbWNzOMcUe9QIdyHi4wFV1C41dSb6Gw37NCKOuL4Cne4OOnsXYxDg4nzi+EpjufsrSQ10mP8=
+	t=1791243779; cv=none; b=BK94X4PJ0DAfyaMqoZEjxXnvZ2H++ugSfeR5cO2+ZX5x0gwZLyXQn/PtuMw8KxNjNLCBH/xzq4P2NsPwat1ccCu+KlpW7/T+mF1Fr7/ZW5PvwxFuLWFu4mI5EPjPmXvhv7mQRW/s9UJbBeT3cqq79iQvjkczg7Bcwoi4wv0xLi4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791241210; c=relaxed/simple;
-	bh=yYqTbkj3y0u2C4MZ+NdQC2IVoAfv/lk2+AvvX91cAA4=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=KURK1bOtJr6wxp8VbwMaYmiEFhA3GeWfg0EBtCPe6VBHXtwdkDtp9ILdPAPJ6rqxLLgEJwh5xaBJOJ/kbYzchL9T7ODq93OwMdvHE7tHlWsDHeY2qci8X9HTC4D88rQ2dUTtk+5ihWzGonGBpYDl/au6YN/be2S0YcSUH1NJ+kk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MqOUtiQk; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791243779; c=relaxed/simple;
+	bh=hsrsvt4/we+qt0vVMceJhMhVG0J6wk5qrO+6R2CI7ZM=;
+	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date; b=Te2Ek4gHr+yAxiPUc/wpo5FRCcAOanc4ynrz2VQh2TFMj7dzVxVfcwCVVOgTAbjTLm/7ajvbBtPvPxoqb/vUe+cArB5UvD20Uu2CugUZM2wXRmdJ3Qgl1LrhiHNydesBzdYbZtOZKhuKcNOLKtHtn/2EIjQ4tbP/jNeJIGP9n+4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net; spf=pass smtp.mailfrom=launchpad.net; dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b=gQEmBlhN; arc=none smtp.client-ip=185.125.188.251
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=launchpad.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MqOUtiQk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4741E1F00898;
-	Mon,  5 Oct 2026 23:00:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791241208;
-	bh=l4VDfzYjyF/CeTJCAJkQzp1OU7rrSBxg76C+MHwxr7k=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=MqOUtiQkw7cxyYwfDW2jBTfAPfle0x3P9EA+zVkk0KJoDPpu/jo9nTTxjQmzjTatg
-	 80eqzHi+yhh0vR8eQz7vJbCVe9MsE7mV6SpfyAhmvUG5aKfxTVSlAPKArr7I39VmKT
-	 db/+OjgjSucFt6WG/Nx8JhuCfFcoqRsztMjuAoLOpQeaVMTQYtsQIwUiEMPqlEVHi1
-	 1jpauxtJ5YU+Lw6kbG1KznGKhby2i1cPj8J6ACZNKVGtXRMRwvTgrugA+uvV0KGKWe
-	 A+zr0VDMBq1q+gNy08q1Zdr92hksSw7YxhiA6Gb88DPLI1UtR52yBby8w6evn3q7+Z
-	 xXMFjEOmhB09g==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 3A2B23926677;
-	Mon,  5 Oct 2026 23:00:08 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b="gQEmBlhN"
+Received: from juju-98d295-prod-launchpad-51.localdomain (unknown [10.131.215.15])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-relay-services-1.canonical.com (Postfix) with ESMTPSA id 4D16E419E5
+	for <linux-rdma@vger.kernel.org>; Mon,  5 Oct 2026 23:35:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=launchpad.net;
+	s=20210803; t=1791243312;
+	bh=hsrsvt4/we+qt0vVMceJhMhVG0J6wk5qrO+6R2CI7ZM=;
+	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date:
+	 Reply-To;
+	b=gQEmBlhNoBjYRd1CA+/tcfn7SQN+75S5I6RPivMC9C5PLifEb7/SI0uwPY3yYOM9P
+	 6ov5eMDE5K6OYn/pNIDCse2LpuT3Wu87dZVeVqGXp7IJGhxFteP18R2WLGyB5NLdSq
+	 IMPug4uVYYSKwgqDFp8BeDxe66aTUF7Oc3qTzogHBQyR2wwRJxnhdlM6IWd5waLZ/e
+	 aJVI73bQFDurJxAkkY2Q48337r2PSWId4oeUEoH7DAjoQoF/RTsfl2IfRT7C9wrFcf
+	 RZ/Rlmb7srQzX/mhaEnWAslpaQv+DD2Bnfi+CvkLouKO/HcHD0s0Xh0avt5ffC1bDe
+	 wB7oqq38919dw==
+Received: from [10.131.215.15] (localhost [127.0.0.1])
+	by juju-98d295-prod-launchpad-51.localdomain (Postfix) with ESMTP id 08D15BDA10
+	for <linux-rdma@vger.kernel.org>; Mon,  5 Oct 2026 23:35:12 +0000 (UTC)
 Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -36,50 +42,36 @@ List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net V2] net/mlx5: Lag,
- split aggregate speed into oper and max helpers
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <179124120688.1929441.14203298902911424554.git-patchwork-notify@kernel.org>
-Date: Mon, 05 Oct 2026 23:00:06 +0000
-References: <20260930170406.148548-1-tariqt@nvidia.com>
-In-Reply-To: <20260930170406.148548-1-tariqt@nvidia.com>
-To: Tariq Toukan <tariqt@nvidia.com>
-Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
- kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com,
- edwards@nvidia.com, gal@nvidia.com, leon@kernel.org,
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
- msanalla@nvidia.com, mbloch@nvidia.com, ohartoov@nvidia.com,
- saeedm@nvidia.com, shayd@nvidia.com
+Content-Transfer-Encoding: quoted-printable
+X-Launchpad-Message-Rationale: Requester @linux-rdma
+X-Launchpad-Message-For: linux-rdma
+X-Launchpad-Notification-Type: recipe-build-status
+X-Launchpad-Archive: ~linux-rdma/ubuntu/rdma-core-daily
+X-Launchpad-Build-State: MANUALDEPWAIT
+To: Linux RDMA <linux-rdma@vger.kernel.org>
+From: noreply@launchpad.net
+Subject: [recipe build #4097252] of ~linux-rdma rdma-core-daily in xenial: Dependency wait
+Message-Id: <179124331193.449914.3780562469945984585.launchpad@juju-98d295-prod-launchpad-51>
+Date: Mon, 05 Oct 2026 23:35:11 -0000
+Reply-To: noreply@launchpad.net
+Sender: noreply@launchpad.net
+Errors-To: noreply@launchpad.net
+Precedence: bulk
+X-Generated-By: Launchpad (canonical.com); Revision="ad10a72802faca6d6a2802f2e3a89ba90e7214dd"; Instance="launchpad-buildd-manager"
+X-Launchpad-Hash: ca655e6c060ac09ca10cb169c43bf3a598511a2e
 
-Hello:
+ * State: Dependency wait
+ * Recipe: linux-rdma/rdma-core-daily
+ * Archive: ~linux-rdma/ubuntu/rdma-core-daily
+ * Distroseries: xenial
+ * Duration: 5 minutes
+ * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-d=
+aily/+recipebuild/4097252/+files/buildlog.txt.gz
+ * Upload Log:=20
+ * Builder: https://launchpad.net/builders/lcy02-amd64-105
 
-This patch was applied to netdev/net.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
-
-On Wed, 30 Sep 2026 20:04:06 +0300 you wrote:
-> From: Or Har-Toov <ohartoov@nvidia.com>
-> 
-> mlx5_lag_sum_devices_speed computes the LAG aggregate by summing oper
-> speeds across all ports. This has two bugs.
-> 
-> First, it relies on the assumption that a port whose carrier is down
-> will report an oper speed of zero and therefore not contribute to the
-> sum. This assumption does not always hold: when the link partner
-> disconnects the port transitions to DOWN state but firmware may still
-> report a non-zero oper speed, causing the aggregate to include a port
-> that is not actively carrying traffic.
-> 
-> [...]
-
-Here is the summary with links:
-  - [net,V2] net/mlx5: Lag, split aggregate speed into oper and max helpers
-    https://git.kernel.org/netdev/net/c/fe4114221364
-
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+--=20
+https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebu=
+ild/4097252
+Your team Linux RDMA is the requester of the build.
 
