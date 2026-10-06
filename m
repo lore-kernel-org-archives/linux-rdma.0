@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B0FE37F00C;
-	Tue,  6 Oct 2026 22:21:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D0BB3806AD;
+	Tue,  6 Oct 2026 22:28:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791325272; cv=none; b=lNsXG5D+KHBNcJI9eoJWspjQ2es9Ba4WQLbEXRFsdH1mLVsN5hBk6h+RP9TXEjlMe5nqS4zTPeBFdkEQqgwHtc9ugwywVuftxHfH3aA+Kmu94u3uMXrqlShaes5y7MIivWLG6kEaHYO30jFXC7aZQOW8GHkZckwnZ4+7jVpXgqc=
+	t=1791325728; cv=none; b=iTVcnF5GYeVOzLMJkZS7qnWdFuR8bs+J3A8fdzKMDXSR4bT6E6dqn8WZWWHjW3oDruVvf5CcW5Om227aOZqmL7Ge5kmnHyN9i1q9534bp4XW5agISqBvxWFwTQqxAh65f485ytOg1W1T849KDAjDQl51XWL9KRNHQDOrQDojenA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791325272; c=relaxed/simple;
-	bh=MoO9vgW9a3cnb7uJYv4Pp/f04GYp/V+VqdxQZcRfd5c=;
+	s=arc-20240116; t=1791325728; c=relaxed/simple;
+	bh=j2G6NcR8BQnzv0C+V6dKlidVCNs6tTwY8mfWhlnrjQA=;
 	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To; b=cqycdkrrjoqotaA5Fs/IrvebhFpaiMliLSDXglf8g9Pwlu1P1xHVkopdalV6vnXllV85CTU4PwhrsP91XiAAEX45T09NK3y0HMyUZp7ilkyxhi9yUAMjJw+nSFSdCPn6kth7pYhzTxDlIzDVEFOeV5A5pY2GLFOpNqCWYq+1Bjc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iVNBsQT2; arc=none smtp.client-ip=100.103.45.18
+	 Content-Disposition:In-Reply-To; b=JbMdnne8JoN4gWZyq4056WTRzCUPYF7qS8NolKUIv09SB9hPGDfxFxuc0GZMNSygB8rw3o/ZHS9BFHjqzwzewbyPrEgHc88YczK2AIp33ATvWII6MVFKYTrVM8pPjaEPy+/DX4x/tB6AxLtwEKL2YidW50PB70PIiNFeZBSn63E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Y/eZQErM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iVNBsQT2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 013941F0089B;
-	Tue,  6 Oct 2026 22:21:10 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Y/eZQErM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 205B01F0089B;
+	Tue,  6 Oct 2026 22:28:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791325271;
-	bh=cfp7iysnIwOqsRhNGcF+6fkeHEEsvMikccHQN1B4900=;
+	s=k20260515; t=1791325727;
+	bh=vg7G4HiPkptQPm3evnSk6lG8AgtDf343Tc7MR47TUHg=;
 	h=Date:From:To:Cc:Subject:In-Reply-To;
-	b=iVNBsQT2JyG7a+snUA5nIQ1ulrZjmPQ+zyhqCKUU6vQrX82EgZ9XU+IxZZtaq65Hf
-	 Wk+SbIc2uKAYC7oQNgHgWLE9McyajhTdjK5dHAhg8P8lDoHyKRVkT1XBnoGz6FBVPd
-	 mvk28ogpARegCJX/y95b8aVtrLJPwsY8A6A8YxdVU/scKs5dhnhXHMjwPo4kXOYW3m
-	 dcQGBbQF/dykB7LV5e3KX8WKAMKbiuOmzbQ8LSwDlorzpUt01HxkTtsWx9ctQCMR2R
-	 a03y7NGZtZyN/hSJWkuqlv8hurAKLT+8wPJ7+g2JP12OjsQdyDgbj0KwE/r7CCgSLy
-	 fvfn6E2kqjO6Q==
-Date: Tue, 6 Oct 2026 17:21:09 -0500
+	b=Y/eZQErMXEP25vb1Dt4oo2ehdXUJ5pWX797BRgFdDEjmbdPT/G+IUa63Poqz5d0JZ
+	 hp0jhOQA9HuTbX+J+Ux06nKuBYjbrse2YTqt/c1EIsVRBF+UGRhNPWOdGnemGaxFhH
+	 tLceRDTxl2FwAhTqlhtP9IFG66qJdWLR9wWLIxjfo9ENrO6H5HjtvJ15oCqm4LzcxN
+	 Owk/derrwcbs/9bIHJKxU4Kw/4WymEb+RBZ1gMJ5ZTnBAnfsb80rOo47jPvltWjjGZ
+	 BGLS3Wx5VP6Gj/zMCprwcGssdE7rr7BovXYpRQf+UG5sdvpEaU/gECPpiBvwAA2zpa
+	 89Bm4Abwb4I5Q==
+Date: Tue, 6 Oct 2026 17:28:45 -0500
 From: Bjorn Helgaas <helgaas@kernel.org>
 To: Leon Romanovsky <leon@kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>,
@@ -48,9 +48,9 @@ Cc: Bjorn Helgaas <bhelgaas@google.com>,
 	Shuah Khan <skhan@linuxfoundation.org>,
 	Randy Dunlap <rdunlap@infradead.org>,
 	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: Re: [PATCH v9 08/18] PCI/P2PDMA: Route Relaxed Ordering Completions
- directly
-Message-ID: <20261006222109.GA719055@bhelgaas>
+Subject: Re: [PATCH v9 10/18] PCI/P2PDMA: Route Translated Requests under
+ Direct Translated P2P
+Message-ID: <20261006222845.GA720627@bhelgaas>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -59,58 +59,56 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261001-fix-p2p-acs-v4-0-v9-8-1a8e0f50ddd9@nvidia.com>
+In-Reply-To: <20261001-fix-p2p-acs-v4-0-v9-10-1a8e0f50ddd9@nvidia.com>
 
-On Thu, Oct 01, 2026 at 02:55:16PM +0300, Leon Romanovsky wrote:
+On Thu, Oct 01, 2026 at 02:55:18PM +0300, Leon Romanovsky wrote:
 > From: Leon Romanovsky <leonro@nvidia.com>
 > 
-> ACS P2P Completion Redirect leaves Completions carrying the Relaxed
-> Ordering attribute alone. PCIe r7.0 sec 6.12.1.1 redirects only those "that
-> do not have the Relaxed Ordering Attribute bit set", and sec 7.7.12.5
-> describes the enable bit as "applicable only to Completions whose Relaxed
-> Ordering Attribute is clear". P2PDMA reports one answer for every kind of
-> TLP, so a client whose provider returns such Completions is sent through
-> the host bridge for a redirect that never happens to it.
+> A Downstream Port with ACS Direct Translated P2P enabled routes a Request
+> whose Address Type is Translated "to the peer Egress Port without
+> redirection, regardless of ACS P2P Request Redirect and ACS P2P Egress
+> Control", per PCIe r7.0 sec 6.12.3. P2PDMA assumes every Request carries an
+> Untranslated address, so it sends an ATS client through the host bridge
+> even where the fabric would route it straight to the peer.
 
-I guess pci_acs_p2pdma_completion() returned PCI_ACS_P2PDMA_REDIRECT
-even for RO Completions?  But that didn't change the hardware
-behavior -- maybe the caller *thought* Completions were routed through
-the host bridge, but they actually weren't.
+"sends an ATS client through the host bridge" -- I assume this really
+means "we told the caller that Requests would be routed through the
+host bridge" when in reality they wouldn't?  I don't think this
+actually changes any routing in the fabric, does it?
 
-I kind of lost the plot here.  What does the caller do with this
-information?  I don't think a device is *required* to set RO even when
-it is enabled, and it may set RO on some transactions but not others.
+So essentially we told the caller that P2P between A and B was, e.g.,
+5 hops when it was really only 2?
 
-> Add enum pci_p2pdma_tlp_flags and let a caller state that property.
+> Add PCI_P2PDMA_TLP_TRANSLATED and consult Direct Translated P2P for the
+> Requests it describes.
 > 
 > Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
 > Tested-by: Tushar Dave <tdave@nvidia.com>
 > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 > ---
->  drivers/pci/p2pdma.c | 6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
+>  drivers/pci/p2pdma.c | 9 +++++++++
+>  1 file changed, 9 insertions(+)
 > 
 > diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-> index 43e225cc5735..1fadef6d0609 100644
+> index 569a74de3b3a..3fd2cb8d16f0 100644
 > --- a/drivers/pci/p2pdma.c
 > +++ b/drivers/pci/p2pdma.c
-> @@ -544,11 +544,15 @@ pci_acs_p2pdma_request(u16 ctrl, unsigned int tlp_flags)
->  /*
->   * Decide how a peer-to-peer Completion at an ACS-capable ingress port routes.
->   * PCIe r7.0 sec 6.12.1.1: no ACS control other than P2P Completion Redirect
-> - * affects a Completion.
-> + * affects a Completion, and that one leaves Completions carrying the Relaxed
-> + * Ordering attribute alone.
->   */
->  static enum pci_acs_p2pdma_state
->  pci_acs_p2pdma_completion(u16 ctrl, unsigned int tlp_flags)
->  {
-> +	if (tlp_flags & PCI_P2PDMA_TLP_RELAXED_CPL)
-> +		return PCI_ACS_P2PDMA_DIRECT;
+> @@ -548,6 +548,15 @@ pci_acs_p2pdma_request(u16 ctrl, unsigned int tlp_flags)
+>  		 */
+>  		if (ctrl & PCI_ACS_TB)
+>  			return PCI_ACS_P2PDMA_BLOCKED;
 > +
->  	return ctrl & PCI_ACS_CR ? PCI_ACS_P2PDMA_REDIRECT :
->  				   PCI_ACS_P2PDMA_DIRECT;
->  }
+> +		/*
+> +		 * PCIe r7.0 sec 6.12.3: ACS Direct Translated P2P routes a
+> +		 * Request carrying a Translated address to the peer "without
+> +		 * redirection, regardless of ACS P2P Request Redirect and ACS
+> +		 * P2P Egress Control settings".
+> +		 */
+> +		if (ctrl & PCI_ACS_DT)
+> +			return PCI_ACS_P2PDMA_DIRECT;
+>  	}
+>  
+>  	return ctrl & (PCI_ACS_RR | PCI_ACS_EC) ?
 > 
 > -- 
 > 2.55.0
