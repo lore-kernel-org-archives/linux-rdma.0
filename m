@@ -1,51 +1,53 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4461D380FDF;
-	Tue,  6 Oct 2026 09:01:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from cvsmtppost33.nm.naver.com (cvsmtppost33.nm.naver.com [114.111.35.40])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B318E19B3CB
+	for <linux-rdma@vger.kernel.org>; Tue,  6 Oct 2026 09:11:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=114.111.35.40
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791277278; cv=none; b=slY3JTOtKwLl+6+2XRExsOca2i/ycK0rFAfKkwsnnsMtJ7g/KxEtSn54rLgzDx+BaZTmL5ai7JcO1CX0VggioNy1bkmR/Gx/WC3i2a6ZYn4tIO+XOJ3aeu9wuwVOmwSObJIVElWyRAVa7CWfZERmUH7gMwem5RvRNahrVm8m0Qw=
+	t=1791277877; cv=none; b=UGXmOpjtjJu9PUu50SK25r5dR3iI0Iy61u/hxXNfFDlpq3L4DF9RKn+HiGWbKXLvjHSbcFWhgpmIrC3X8iuClH1RAG6gUvWC3t1ZrOxYoEItcc2ACXzOV8g80dNy4MX+jXn9uMUzhr7CxJefFl06F92kAEvdQEj/k8uOJGyW0cQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791277278; c=relaxed/simple;
-	bh=AELUTqlq3anC70GDmOecyI7mp3TZUze0YupBeXyhFto=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=d+vvgNFg5u/6AcFKqoiByb2RFBdyroIn64XFgNgtAkNEla9Cj42Htx0XRD26nDPd2i0RGY6T6TvzDQQKYeEXo7p6vXE8IrI4Tfz9qgbVhFwvU0AfiPxaUzVRzNcQrST89wQCEgVZy+Y6932O8Z9NnuWtWmgcnO18/UjGanstcmU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=nFOg0mt9; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1791277877; c=relaxed/simple;
+	bh=vSNHTD+dPCv2xEtQ52r2jcGC3tPg7oclUecwXiN2h0I=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=d10Ugc350T0KwpURd4WVXzpjxCg/wZL/QctigJqOslaBYOJsK4x3VrliAuMd5IOLhYWzaiMRoMTd+/AQQFD8MGoD1IxIsqSyfoO7BUFqeDNkHn7HazySciCJSxnUdSxPMYQs0/LXc3cApVgbL54swnQM3wmJNOYQP/5Uyn0V29o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=naver.com; spf=pass smtp.mailfrom=naver.com; dkim=pass (2048-bit key) header.d=naver.com header.i=@naver.com header.b=URdv7Jlo; arc=none smtp.client-ip=114.111.35.40
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=naver.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=naver.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="nFOg0mt9"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 264DC1A25;
-	Tue,  6 Oct 2026 02:01:13 -0700 (PDT)
-Received: from e132076.cambridge.arm.com (e132076.arm.com [10.2.197.107])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id D02843F86F;
-	Tue,  6 Oct 2026 02:01:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1791277276; bh=AELUTqlq3anC70GDmOecyI7mp3TZUze0YupBeXyhFto=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=nFOg0mt9FbLeldUBKwCuALHHocuo3GOzrAlbbcdmWN/7xp1tGw/BGXPtsVRHy4l2E
-	 INggRlKCZh2MWEJ5gHDmcNLO1KtIXovQFHdAy7aQt5W66NjFQ91fbJ8Rpq/HytwAA0
-	 Uc+RLLfF7nRQhL5BDUQC2hzkL8tpcbl83vTrXOw4=
-From: J Louis Kaplan <Louis.Kaplan@arm.com>
-To: cel@kernel.org,
-	dai.ngo@oracle.com,
-	jlayton@kernel.org,
-	neil@brown.name,
-	okorniev@redhat.com,
-	tom@talpey.com
-Cc: linux-nfs@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	anna@kernel.org,
-	jgg@ziepe.ca,
-	leon@kernel.org,
-	trondmy@kernel.org,
-	J Louis Kaplan <Louis.Kaplan@arm.com>
-Subject: [RFC PATCH 6/6] sunrpc: Allocate svc request pages from large folios
-Date: Tue,  6 Oct 2026 10:00:28 +0100
-Message-ID: <20261006090028.3412544-7-Louis.Kaplan@arm.com>
+	dkim=pass (2048-bit key) header.d=naver.com header.i=@naver.com header.b="URdv7Jlo"
+Received: from cvsendbo022.nm ([10.112.20.47])
+  by cvsmtppost33.nm.naver.com with ESMTP id j3VU70BFTHycEkzP72Yydg
+  for <linux-rdma@vger.kernel.org>;
+  Tue, 06 Oct 2026 09:11:13 -0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=naver.com; s=s20171208;
+	t=1791277873; bh=vSNHTD+dPCv2xEtQ52r2jcGC3tPg7oclUecwXiN2h0I=;
+	h=From:To:Subject:Date:Message-ID:From:Subject:Feedback-ID:
+	 X-Works-Security;
+	b=URdv7JloOPNt2oadQ/LZtIGB0SfvrFOjEJyy+Ol5cFSm7dO/MO5bqp4Igt3eUh53e
+	 S6lUiO9EsxRFGkeNpgfaFtAQ2SCCFUZNurAd3GiBwVagNZHYlXja69YqDbB1rxSF7f
+	 nldhriPYIXI/RDjst0L9wlfifP6FqUbtZ/+6wlRXPzOz3ne7bqT3DvFL9F3rpNzmO+
+	 5Bbr9ppJIiz0/P8jZ4ImB7wwpVjKsxr6NcLaKtxzG/Ghu39GutHwRqktk7GFPpGU4r
+	 3PvZkO2h5tV7nL6St2WyZQlS7indxsyyaIn36QWSc+TJLWA32ffL3WRSQalZYOZNJO
+	 ilu2t8XWt/qwg==
+X-Session-ID: t2sidC+JSpuZ+jfPGS3U9w
+X-Works-Send-Opt: OPRwpzGdjHmdKHFOMr39Ko3YKHmrjAudFqM9KqMqFxIYkEljxBmwjAg=
+X-Works-Smtp-Source: /qndKoulFqJZ+HmZFqt9+6E=
+Received: from localhost.localdomain ([115.136.205.4])
+  by cvnsmtp002.nm.naver.com with ESMTP id t2sidC+JSpuZ+jfPGS3U9w
+  for <multiple recipients>
+  (version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384);
+  Tue, 06 Oct 2026 09:11:12 -0000
+From: sungbyeongchan <tjdqudcks0424@naver.com>
+To: Zhu Yanjun <zyjzyj2000@gmail.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>
+Cc: linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	security@kernel.org
+Subject: [BUG] RDMA/rxe: MW rkey authorizes accesses outside the bound range
+Date: Tue,  6 Oct 2026 18:11:03 +0900
+Message-ID: <20261006091105.827719-1-tjdqudcks0424@naver.com>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20261006090028.3412544-1-Louis.Kaplan@arm.com>
-References: <20261006090028.3412544-1-Louis.Kaplan@arm.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -54,94 +56,53 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Bulk allocation of base pages does not guarantee physical
-contiguity, limiting opportunities to coalesce service buffers.
+Hello,
 
-Allocate large folios opportunistically and populate the service
-page arrays with their constituent pages. Cap folio size at
-64 KiB and allocation order at PAGE_ALLOC_COSTLY_ORDER, falling
-back through smaller orders to bulk base-page allocation.
+I found a memory-window range authorization bug in the RXE responder.
 
-Retain one reference per populated page-array slot so existing
-page-based ownership and release paths remain valid.
+A peer with a valid type-2 MW rkey can issue RDMA READ or WRITE outside
+the interval authorized by the MW bind, provided the request remains
+inside the wider backing MR.  rxe_lookup_mw() validates the key, PD, QP,
+access rights, state, and nonzero length, but check_rkey() checks the
+request address only against the backing MR.  It never checks the full
+request extent against mw->addr and mw->length.
 
-Signed-off-by: J Louis Kaplan <Louis.Kaplan@arm.com>
+I reproduced this twice on commit
+ff47652a4b66c067c765a7ad464d930b5a9367cc.  A 64-byte type-2 MW at
+offset 1024 in a 4096-byte MR allowed a valid connected peer to read an
+eight-byte sentinel at offset 2048 and replace it with peer-selected
+bytes.  In-window READ and WRITE succeeded, while a request crossing the
+backing-MR end was rejected.
+
+The demonstrated impact is disclosure and modification of registered
+userspace memory outside the delegated MW.  I did not demonstrate kernel
+memory access, a kernel crash, code execution, or privilege escalation.
+
+The affected path is:
+
+  rxe_responder()
+    -> check_rkey()
+      -> rxe_lookup_mw()
+      -> mr_check_range() against only the backing MR
+
+I tested an overflow-safe MW interval check immediately after MW lookup.
+With that change, outside-window READ and WRITE return a remote-access
+error, while valid in-window operations continue to work.  Fixed A/B
+testing passed with the same kernel configuration.
+
+I performed a best-effort public duplicate search through 2026-10-06.
+The public RXE MW/MR lifetime-race series addresses reference and object
+lifetime races, not this missing MW range check; I found no exact public
+report of this range bypass.
+
+This report was prepared with AI assistance and is being treated as
+public under Documentation/process/security-bugs.rst.  A tested source
+reproducer, logs, configuration, and proposed patch are available to the
+maintainers on request; the reproducer is intentionally not attached to
+this public report.
+
 Assisted-by: LLM
----
- net/sunrpc/svc_xprt.c | 44 ++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 39 insertions(+), 5 deletions(-)
 
-diff --git a/net/sunrpc/svc_xprt.c b/net/sunrpc/svc_xprt.c
-index 9858dfcb846a8..90ec75a848da9 100644
---- a/net/sunrpc/svc_xprt.c
-+++ b/net/sunrpc/svc_xprt.c
-@@ -19,6 +19,7 @@
- #include <linux/sunrpc/bc_xprt.h>
- #include <linux/module.h>
- #include <linux/netdevice.h>
-+#include <linux/sizes.h>
- #include <trace/events/sunrpc.h>
- 
- #define RPCDBG_FACILITY	RPCDBG_SVCXPRT
-@@ -708,20 +709,53 @@ static void svc_check_conn_limits(struct svc_serv *serv)
- static bool svc_fill_pages(struct svc_rqst *rqstp, struct page **pages,
- 			   unsigned long npages)
- {
--	unsigned long filled, ret;
-+	unsigned int order = min_t(unsigned int, PAGE_ALLOC_COSTLY_ORDER,
-+				   get_order(SZ_64K));
-+	unsigned long filled = 0;
- 
--	for (filled = 0; filled < npages; filled = ret) {
--		ret = alloc_pages_bulk(GFP_KERNEL, npages, pages);
--		if (ret > filled)
-+	/*
-+	 * Prefer folios no larger than 64 KiB or the page allocator's
-+	 * costly-order threshold. After a failure, use smaller orders for
-+	 * the rest of this fill; order zero is handled by the bulk allocator.
-+	 * All callers provide a range containing only NULL entries.
-+	 */
-+	while (filled < npages) {
-+		struct folio *folio;
-+		unsigned int nr_pages;
-+		unsigned long ret;
-+
-+		while (order && (1UL << order) > npages - filled)
-+			order--;
-+
-+		if (order) {
-+			folio = folio_alloc(GFP_NOWAIT, order);
-+			if (!folio) {
-+				order--;
-+				continue;
-+			}
-+
-+			nr_pages = folio_nr_pages(folio);
-+			folio_ref_add(folio, nr_pages - 1);
-+			for (unsigned int i = 0; i < nr_pages; i++)
-+				pages[filled + i] = folio_page(folio, i);
-+			filled += nr_pages;
-+			continue;
-+		}
-+
-+		ret = alloc_pages_bulk(GFP_KERNEL, npages - filled,
-+				       pages + filled);
-+		if (ret) {
-+			filled += ret;
- 			/* Made progress, don't sleep yet */
- 			continue;
-+		}
- 
- 		set_current_state(TASK_IDLE);
- 		if (svc_thread_should_stop(rqstp)) {
- 			set_current_state(TASK_RUNNING);
- 			return false;
- 		}
--		trace_svc_alloc_arg_err(npages, ret);
-+		trace_svc_alloc_arg_err(npages, filled);
- 		memalloc_retry_wait(GFP_KERNEL);
- 	}
- 	return true;
--- 
-2.43.0
+Regards,
+sungbyeongchan
 
