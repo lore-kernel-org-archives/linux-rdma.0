@@ -1,302 +1,258 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0C21134CCF;
-	Tue,  6 Oct 2026 21:49:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791323342; cv=none; b=rtyBuGrMEsoFU5mJZIfvYgwBTtchWeYFwI8eqhHdUUKKUHGriYvx8ztFv6+UGM5hTH0V/894p6OgQVTTsbP3PDdjEgI46/qgpBxJiSFaa3X/9FAnUVCVvYNlprp1Z3WPds3v0GOOh4PJ9C2+JUk/TRXpME06YVtcGEEdlHUVP/M=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791323342; c=relaxed/simple;
-	bh=9/kIwIroF3I78IKmLSDuil+2CDGn0X72S83yzgqd7/g=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To; b=BSrlAfsrj0OZzKhi+9OpUllWeFarU8x9UB+jQTvhZ2WIwQd/VIFRI2bUDYmExoN0ag1FyUBK9eftNG4SJsgiO7d/QA5VsMOJKkBsyIrinEv0lp+7mc4kEgL1g58kFTT1A34o3M8A8pymts5eNLWqFfhxBEn1bvowM5d2MXUqJHg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Q5v2niIJ; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5123386C25;
+	Tue,  6 Oct 2026 21:57:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.13
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791323859; cv=fail; b=ZqrlXfgkW8gnGfaFMqznRrW1/dwnQxs60hBvMiTeFHyadQyBX3jRCFVt6Khud8pA7E0Di7BS76C8ddYPxJRQUb3AnJphDBonW0AyL4ACwXU0T5kc7V7N34yXnz9314vqPTbyIgitgbjIVYJKlxc+HvD1qaAO9E8x+wGjIX68Zkk=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791323859; c=relaxed/simple;
+	bh=UVP1sj2Jc7WC7lDaJUenCUTeRBdaRHZw/7ukygKBXFs=;
+	h=Message-ID:Date:Subject:To:CC:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=k38fs5dsVbEL6IPTnQebGJoYAdED9lN8OBMVbvslSBqfNmzCUL5eBPUNlpozwmGAzUxHwn1zb61bNtRhOhWgXAChATxLjxbZFxJdfqgcKVMW4716ig6lE4Cal9OfCt7OvWnfrRcgvWY6HUkBxu1+CSTNIsqNymhpX8jFtQMOnrg=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Jz8Q/ZOy; arc=fail smtp.client-ip=192.198.163.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Q5v2niIJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D35B91F0089B;
-	Tue,  6 Oct 2026 21:48:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791323340;
-	bh=DOWWt1KJLFYMrWcgT4FQO58tS9UYRaxA2t0lKYqxiTY=;
-	h=Date:From:To:Cc:Subject:In-Reply-To;
-	b=Q5v2niIJ5LRiKoDFZltL3IbLPktOJr5pP30s5DSLcbt7GSEtaOrjaS2MbGXva/rHo
-	 QphiZGiboKLj+JYKWvdvZpAQTI1HZk7dqUpSR/BsyAJVl8JlvzTyBSdXtc0qxOSAcP
-	 UJTUQDck9g0spi4EUe2Cg6f0RMqY//NeuZoQxvXlx5fsAMPtQY3ETYBtdfyd82pqd5
-	 17Tyk3Zpyh8Smibz0CdsEbfty1JqfiHQogouoEZZnJilPhni1gh7ZN5IwXEFOcsHz5
-	 xpn7wVe6vIYIfBKbZXDwfXxj3/7Nfo9zSphjycYssaD1pFvLPuV7NEvEe/THhy/u8k
-	 rlMDKf7O8JzeA==
-Date: Tue, 6 Oct 2026 16:48:58 -0500
-From: Bjorn Helgaas <helgaas@kernel.org>
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>,
-	Logan Gunthorpe <logang@deltatee.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	"Joerg Roedel (AMD)" <joro@8bytes.org>,
-	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
-	Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>,
-	Thomas =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
-	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org, iommu@lists.linux.dev,
-	Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
-	Chaitanya Kulkarni <kch@nvidia.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
-	Ankit Agrawal <ankita@nvidia.com>, Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: Re: [PATCH v9 06/18] PCI/P2PDMA: Collect the path's ACS controls
- before deciding
-Message-ID: <20261006214858.GA717151@bhelgaas>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Jz8Q/ZOy"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1791323857; x=1822859857;
+  h=message-id:date:subject:to:cc:references:from:
+   in-reply-to:content-transfer-encoding:mime-version;
+  bh=UVP1sj2Jc7WC7lDaJUenCUTeRBdaRHZw/7ukygKBXFs=;
+  b=Jz8Q/ZOy/Mta1uW3bKZxKJroTUiaNU9u3ZjjiXJ84RMniKh4vXC0hlDz
+   xh00LpmeZQNhVndCBL1BPGoMgXE/WNz6yaHpQaXtJKa0rQc3gWdRk6eTv
+   SJFtXm23lGiiHxSyJwZHrRkPCmUfr7WEdOLarT6U6FJONpTZGz+neqCYE
+   dcqmI/BF9Panh1SOle6feH2Bv8L+FMaku3+GqRK14LDUWXx97HbYWhyGs
+   1qMTWuoavw4lAJhlJ1oQpEZWE7hE/XvKGkJ7ycztat2LFg0+pFwyWZE7S
+   r5SAE+wU8ASAITSBe+sISouPofcMRa7Rjz7pgONSfUnrangYj3MQf30gF
+   Q==;
+X-CSE-ConnectionGUID: Thpmw0DcRhqGSf8nFbp73g==
+X-CSE-MsgGUID: oxNVqVFYReSQGwesO2T+ww==
+X-IronPort-AV: E=McAfee;i="6800,10657,11927"; a="72355"
+X-IronPort-AV: E=Sophos;i="6.27,143,1787036400"; 
+   d="scan'208";a="72355"
+Received: from fmviesa003.fm.intel.com ([10.60.135.143])
+  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Oct 2026 14:57:36 -0700
+X-CSE-ConnectionGUID: d+K/X1RYRoS9v+U/8xNRJw==
+X-CSE-MsgGUID: hq00iYyvRbyffu/371t+YA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,143,1787036400"; 
+   d="scan'208";a="285178714"
+Received: from fmsmsx901.amr.corp.intel.com ([10.18.126.90])
+  by fmviesa003.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Oct 2026 14:57:36 -0700
+Received: from FMSMSX901.amr.corp.intel.com (10.18.126.90) by
+ fmsmsx901.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.49; Tue, 6 Oct 2026 14:57:35 -0700
+Received: from fmsedg902.ED.cps.intel.com (10.1.192.144) by
+ FMSMSX901.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.49 via Frontend Transport; Tue, 6 Oct 2026 14:57:35 -0700
+Received: from DM1PR04CU001.outbound.protection.outlook.com (52.101.61.1) by
+ edgegateway.intel.com (192.55.55.82) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.49; Tue, 6 Oct 2026 14:57:35 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=O6hd/B3m97FZQJff7PZluYYdN/rMaQ0nd3gDj5PmsmJTjoXLrmT5sTzsCjayZoOvJAIzmwmKI8JpTM4Qb7qriOCruuJQ9rmp9PztQYC4bMuic376ib0BXoAZfwKKrGWiFynBGz52Ad+HLOSazk7R99cKvFLjKIGXbcVRAos7ieW8sVPTd9CugYCHzqwrNCCGF1MiDIv4jybdJgM7xfNpD9b/vFf39cZPDR0QmPaIW/IC779ZRBY9PWG2Ds681lpyBF8olafDaJzn45UKCZpj13LmA+iZzPrSy5TRNsxuekWLrae4utorJy/DFwtyARKYxZc6ydhQ86cEd2iWN+Uvaw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=y7Lkvbx9uCGtnXAWNsrsjZ4JbdQIkr+CCNhQrKgOu3c=;
+ b=hrjm40Rrd3sa9TU8FHc9sR5zfwtfJWuFHj1ZXL4+zYvc09piIaaLhSZtvAGVhIxywQfjc8lxruSepq7IuY5g56QMorHU1z7LWf3Md5LE7sixPK9kqzEY1NQAP/sKaVkcYpfyAHFS6Mrq7HLVB30XOEVDCtXdGsug1Xxuo3QBiVdKL3+GaDTINIYc3wcJV0Z34NMn9iVRZO3vnLCpbS/cwgBHNlfNwL579CSwgffO2cnFPJEqM+IPCkyWP5qXWIZlkL0TRljU0ZG4PYl0ezlF6MqXkNlS8PeXfpc4HGh88waHbsys+IcfIwZ4/3Ef1hiBSBgNnyTyMZfbec6Aomwcgg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from DS0PR11MB7381.namprd11.prod.outlook.com (2603:10b6:8:134::14)
+ by MW4PR11MB5776.namprd11.prod.outlook.com (2603:10b6:303:183::9) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.496.15; Tue, 6 Oct
+ 2026 21:57:31 +0000
+Received: from DS0PR11MB7381.namprd11.prod.outlook.com
+ ([fe80::4c39:dfe6:d6dc:6f58]) by DS0PR11MB7381.namprd11.prod.outlook.com
+ ([fe80::4c39:dfe6:d6dc:6f58%6]) with mapi id 15.21.0451.022; Tue, 6 Oct 2026
+ 21:57:31 +0000
+Message-ID: <345a40de-5353-477d-8be2-8c4e6468875e@intel.com>
+Date: Tue, 6 Oct 2026 14:57:28 -0700
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next v2] net/mlx5: allocate DMA pool structs on the
+ pool's NUMA node
+To: Seongjun Hong <hsj0512@snu.ac.kr>, Saeed Mahameed <saeedm@nvidia.com>,
+	Leon Romanovsky <leon@kernel.org>, Tariq Toukan <tariqt@nvidia.com>, "Mark
+ Bloch" <mbloch@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>, "David S.
+ Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, "Jakub
+ Kicinski" <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
+CC: <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>
+References: <20261006-net-mlx5-numa-allocate-pool-page-v2-1-0dc4c2eb1376@snu.ac.kr>
+Content-Language: en-US
+From: Jacob Keller <jacob.e.keller@intel.com>
+In-Reply-To: <20261006-net-mlx5-numa-allocate-pool-page-v2-1-0dc4c2eb1376@snu.ac.kr>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: MW4PR04CA0329.namprd04.prod.outlook.com
+ (2603:10b6:303:82::34) To DS0PR11MB7381.namprd11.prod.outlook.com
+ (2603:10b6:8:134::14)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261001-fix-p2p-acs-v4-0-v9-6-1a8e0f50ddd9@nvidia.com>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DS0PR11MB7381:EE_|MW4PR11MB5776:EE_
+X-MS-Office365-Filtering-Correlation-Id: 259cfee8-ff33-44a9-5c78-08df23f4d1ba
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|366016|7416014|376014|23010399003|18002099003|22082099003|921020|10067099003|11063799006|56012099006;
+X-Microsoft-Antispam-Message-Info: bNuNUMKF65+7BvY1nxjLVwC2sV5sSnuObb/EJccwrGgA10RfVRWmzgm8tfNkk9HwDSKM/hjySN7W87TVdL73N8yvFnEWNiIzaN/JMbc3JlUNVXwMErzbFOwwnf0tWIqfXv8b/izvQgctVLajBUBz9tJBTuAFw1i5MfPaGRo4fQRWhqz5j/IFDVJSQajJvSr38q4zFRiUjr64kuw3GL5B1w60bUUvV3IZAjvLJ7dEIEDrwLgoiNwevK9HkxMGI8EFggQLsLYlOMwP6cT6d5AsJf7PvrSyZT1c/3LkQ85zF7BsjN5IN8TVQ6QQULOuHp0c/RB3VnOdW+UICRHIVKCUZ46aFJF86vv69e6fXLn65cc0ZWhB28Jo3gF5HJN5CSs2dLNGcWUayFuv7njjpo6ITo8gBhzCkJJUxL7wDLHt5MzaeFm+9e/oneO0wYrpAaIFeulBhE8fwqGbqp71VYwvST3l/ZZ7cuopCP27F7pwyP4Q6HoJc3P9KIgUDCU0l5BifkPKBLzTAubeAODEAWnQzcx0feiC2l33MfYuCWvOiDmjdYDud50wuCoGgmivRHPdcoSEmoG0UDVLl3NlvDTJFeliH27KGPCykW5VqVscO+NhSUDjRgoHG2IiVEnC/8vD2PvpViso3rjk32vyDlVFE7/BR1MjIrt4KtvHUTfp835Wia7XApZDLBTdSyaxVqvPk0k/HCvVn7k8Hw7O2wHp7w==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS0PR11MB7381.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(7416014)(376014)(23010399003)(18002099003)(22082099003)(921020)(10067099003)(11063799006)(56012099006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?YVBFQ0NNdXRuVlRPOUVSa0ZnYlQveHluNHgvblp5SEphS0JCeFBQK1NPTk1l?=
+ =?utf-8?B?WTRjcXRVdGJPenp3eVEwV2hsNWFvRS8xWWk5aGIyaXV4K0RBUkFnYUhMcWNZ?=
+ =?utf-8?B?UDhhdnJlcFNLSGxEMHJZUDNWaXVwb1N4d2hodFJ4aFlzTkNIdzN6S2JNOUlP?=
+ =?utf-8?B?VmZTY3BCRmVpVkxVLzRyMDJBWnJlQllzZnRCajMybmErZk5xcnIxWkNiUWYv?=
+ =?utf-8?B?MlhPYXE5SlNnWGFXN2Ruc2FIeHFpK295Y1BqaGd5TnJWbFE4TFpRQkwvVjRS?=
+ =?utf-8?B?Z3hIVEpUQWRUdUx5ZGQvWGk2Ukt5elVHWlVVa1ovN3pOVjdFcmRqbzhTWHhr?=
+ =?utf-8?B?N3ZwUWRza3g1WDRqaExjbS9wQ1EvSVNYd3dGaTR6dmljdWVLYVpCNXZVcVFx?=
+ =?utf-8?B?NUx5TVlRbEpKV3p4ck85NVVpTURwejJrRjNzM3lDVmM3ZDRLWmx1cHg2c0hD?=
+ =?utf-8?B?OUtvQ0ZORzNMbDh0a1JEeEJWUkhVZkhNNEw1L0xXUjdheXZRVExnSU5jZ2Q0?=
+ =?utf-8?B?T1BrTmZITS95aTdHNHliQzQ5amNpZlNRUmxmQWNSOFZHMy9sUFVIYWhzbmVy?=
+ =?utf-8?B?M25QTzE3R3VJSjNlckZYMmNWTTdiNTJXWkgraldjOStxUHJqdjI3TTVoNkZk?=
+ =?utf-8?B?bEVrY1pSTDQ5WVltTEtXVFZMMWRybWYzbkhtZDZqejJaY01QakRFdy9wN1NY?=
+ =?utf-8?B?cnltUTJqbGpNcVdMaU4rTkJJSFQyVFN0b0dNNHFOcGtnWFYwbTA3SUh1WHNC?=
+ =?utf-8?B?ZFY3L3VsUzdXMnZiNklheEdZS3V6V2dvRlBvSTBFbW5uemVWa3puUFRqMWRL?=
+ =?utf-8?B?cGxxL3V6bWNVdE5QZkZjbXRjYkYxVkpmZTVlb1pobkw4dG91d1BCMldwTVlV?=
+ =?utf-8?B?TXl4WmFmaTROWWZwQlBML0JiTk1PRXE5YkRNMWhnbHhVaW01SHlNbnBCdlFD?=
+ =?utf-8?B?Z0prNXJNNGJKeGZFOCtJT3NhV1pUK1Aray9KajlyWWd1U0t5NDZ2VU9QNXk5?=
+ =?utf-8?B?VU9TQ3YrSUlaRFpuaWQyVlJMa3RaKzlqZ281RU0rak9JMi9FWDNRWjdaOTc4?=
+ =?utf-8?B?ZG0yWisvdkltM0F0WWZCUUo4UHBkM1BBV1crRkxjemZLSndVZzN5RmxHQnpu?=
+ =?utf-8?B?NllQTEVPMjlYZ1oyY3pod1VNZ1N0L0g3SEV4NVFoN0NJMGFrN2lLUEFaWHRp?=
+ =?utf-8?B?V0FqanI0b1BIWnZaekZSTlRZTml2NGE1RWRsOS8rd3lWL3JPaUYzMVZEMlNw?=
+ =?utf-8?B?cGh5OE52aHFBVVdKOEdCWHkrK1VXdlQ4MlFZMFBxRnVtWkNxTmFYeWdNV2xF?=
+ =?utf-8?B?S09BTm11NkxDTzdJZDJyVEdZekprM2VacUE3UTRSWVZ1ZnhZY1VUZ2RQSndu?=
+ =?utf-8?B?RncvT092MGdteHUyMU5RY0ljMmJORzVCZ0hFQ3RZb1J2aDdaUkdSOXdLem1u?=
+ =?utf-8?B?cS9lUzN5bzEvbHdVTys1NGdabEIxY1k0MEd3bXordlduOTBSTVIwWE9xNmQw?=
+ =?utf-8?B?ZnRUV3VtTW9EbE9mUDlSL2U0c0E1bng0OEpPakQzNkxxRTNRUlQ4VlY2aHk4?=
+ =?utf-8?B?MSt2TUtBYXgvZzdXaTBPUklqNHViMmZXQzkxVXYvU3VkM2xvWmJsYjVCQ0dw?=
+ =?utf-8?B?RStZaEEvSDRyQjkxT2FqOVhLNGRCOGpPbWtmdGlqaWJFQU04VXVUK25aYnJE?=
+ =?utf-8?B?MFBmRUZqd0daUVhQWTRPM1dOcmlETVU1emxIVjA0L1RFVktqc1JBWGxkRmRa?=
+ =?utf-8?B?eVJadjd3Q2dIUkVXYVlaZEZlWjA5OHdEdUdiTytTWll5ZmZMaXlTdXFyYXox?=
+ =?utf-8?B?cjFnbEtUQ3VMR0ZYZXQzV3VDTGtUZndSZitsMGdmWjZHRXBBQ3I4Y0doT3l5?=
+ =?utf-8?B?Qm5QMVJHWjM3MjhCeXh2WXdSRmhnU1Q2RzV1ejNVdzI4KzR6bU9qeTgxaGVY?=
+ =?utf-8?B?b0F3cVJXMjZJMCt0cW5nclVZeVN0KzVoNUhyRjZTSllOdCtUQTBnQnVRc3VN?=
+ =?utf-8?B?VFg0ODVyQnBqYkNKYmRLRVhuZlNHSllOWXhQZ3Q3OEtJUnc3alR5V296cVhh?=
+ =?utf-8?B?T2pmMXFPZkFSZzgxa3gzVjBNTmtWQTcyODJ3WDJ0VDV6dHVxWFBUVlpuSDZS?=
+ =?utf-8?B?MUJiOWtQcmh3Si8rODN3amZLVm5XTitpdHF6Q1A3L043N2kzbUFsOFVkS2ZN?=
+ =?utf-8?B?NktDRmJWUFAxbzZoUzhaSVVtN1R1THprczFlbjF0eDV4Q2hlSHhLb0NpeGhm?=
+ =?utf-8?B?MUJndDFVUjZRclJ0RjFESWhDckRIWUROSDk2RTFGR0pVSXhUV1k5MHF1MXFR?=
+ =?utf-8?B?M3d1b0w3VFg1QUp0Tzg1MHdtc0FQUStiQnpkamg3MnhFTmxkZGttWnpwbEZq?=
+ =?utf-8?Q?CVWEQ/eCbrSYot8Y=3D?=
+X-Exchange-RoutingPolicyChecked: J0qPsg7NHrOeF4ZpkinQ7iN0ckTOdf+SS8wUjaMYtpgi4b6FHIe8VpSkFQQxQH2xWPRhitjZyzjv1RDMSLrmRWBCJ2q6nPK3ExFlNjI9XPowSvKoXm/8/WphH1m+NC37ajDHBHqBI62piWCNwuheHGBskuGOi+kz/Ver14TTXtmk01+MC/dw02FaUVZKGTyn0USgW+xunvHBhyFBAfdDBFMCafLMeAjoG9xDi6eEjrcEIz+rEGlYX6qM/4Dit7KlOHa9M0Twm8PP5iManIqzAW6cauf1E270CeSY6iYEXgPtZe4yJBVuocb1W1kooRekstNpvvoOnnX24D+Yjc6zag==
+X-MS-Exchange-CrossTenant-Network-Message-Id: 259cfee8-ff33-44a9-5c78-08df23f4d1ba
+X-MS-Exchange-CrossTenant-AuthSource: DS0PR11MB7381.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Oct 2026 21:57:30.9449
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: HjqCHp+6t517R2UuJ2iAlW3EnwbqJrCMPmTP4t/fbVpzU85kVUV6RLZgBSVZuM4XJlHjR62/7oi3606Bzd9QYt6sKscXeXocaJ1dlxXLmtk=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR11MB5776
+X-OriginatorOrg: intel.com
 
-On Thu, Oct 01, 2026 at 02:55:14PM +0300, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@nvidia.com>
+On 10/6/2026 7:16 AM, Seongjun Hong wrote:
+> The mlx5 DMA pool structs (mlx5_dma_pool, mlx5_dma_pool_page and its
+> block bitmap, and mlx5_frag_buf_node_pools) are allocated without a
+> node hint, so they land on the node of whichever CPU happens to create
+> or fill the pool, while the DMA pages they describe are allocated on
+> the pool's node.
 > 
-> calc_map_type_and_dist() reads each divergence port's ACS Control register
-> and folds the result into running counters as it goes. Any routing property
-> that depends on the kind of TLP being routed would have to be threaded
-> through that code, so there is nowhere to put one without reading the
-> registers again for each kind.
-
-What is the "one" that there's nowhere to put?  I guess the routing
-property?  So this is an optimization to avoid some config reads?
-
-> Collect the two ports' ACS Control values into struct pci_p2pdma_acs_path
-> first, then decide from it. pci_p2pdma_route() applies the same rule as
-> before: a path routes directly only when both directions do.
+> The pool, page and bitmap are dereferenced on every block allocation
+> and free. Allocate them on the pool's NUMA node as well, so that all
+> of a pool's state lives on one node.
 > 
-> Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
-> Tested-by: Tushar Dave <tdave@nvidia.com>
-> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+> These allocations happen on the control path, so the performance gain
+> is expected to be small; the change is mainly for consistency.
+> 
+> Signed-off-by: Seongjun Hong <hsj0512@snu.ac.kr>
 > ---
->  drivers/pci/p2pdma.c | 148 +++++++++++++++++++++++++++++++++------------------
->  1 file changed, 96 insertions(+), 52 deletions(-)
+> Changes in v2:
+> - fix typo and specify the structs are allocated on the control path
+> - add a prefix net-next to the subject
+> - Link to v1: https://lore.kernel.org/r/20261005-net-mlx5-numa-allocate-pool-page-v1-1-01f4283932b4@snu.ac.kr
+> ---
+>  drivers/net/ethernet/mellanox/mlx5/core/alloc.c | 11 ++++++-----
+>  1 file changed, 6 insertions(+), 5 deletions(-)
 > 
-> diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-> index 550e6c7346ef..841c86be31bb 100644
-> --- a/drivers/pci/p2pdma.c
-> +++ b/drivers/pci/p2pdma.c
-> @@ -553,6 +553,80 @@ static void seq_buf_print_bus_devfn(struct seq_buf *buf, struct pci_dev *pdev)
->  	seq_buf_printf(buf, "%s;", pci_name(pdev));
->  }
->  
-> +/*
-> + * What the topology walk found out about one provider/client path. Producing
-> + * this costs a walk and one config read per divergence port, none of which
-> + * depends on the TLP being routed.
-> + *
-> + * @req_ctrl:	ACS Control of the client-side divergence port. That is the
-> + *		first port at which a Request can route toward the peer rather
-> + *		than upstream, so it is where the Request controls apply.
-> + * @cpl_ctrl:	ACS Control of the provider-side divergence port, likewise for
-> + *		the Completions travelling back.
-> + * @unreadable:	First port whose ACS Control could not be read, if any.
-> + */
-> +struct pci_p2pdma_acs_path {
-> +	u16 req_ctrl;
-> +	u16 cpl_ctrl;
-> +	struct pci_dev *unreadable;
-> +};
-> +
-> +/*
-> + * Combine both directions into a mapping type. Only a path that routes the
-> + * Request and the Completions it generates directly can be programmed with
-> + * the peer's bus addresses.
-> + */
-> +static enum pci_p2pdma_map_type
-> +pci_p2pdma_route(const struct pci_p2pdma_acs_path *path)
-> +{
-> +	if (path->unreadable)
-> +		return PCI_P2PDMA_MAP_NOT_SUPPORTED;
-> +
-> +	if (pci_acs_p2pdma_request(path->req_ctrl) == PCI_ACS_P2PDMA_DIRECT &&
-> +	    pci_acs_p2pdma_completion(path->cpl_ctrl) == PCI_ACS_P2PDMA_DIRECT)
-> +		return PCI_P2PDMA_MAP_BUS_ADDR;
-> +
-> +	return PCI_P2PDMA_MAP_THRU_HOST_BRIDGE;
-> +}
-> +
-> +/*
-> + * Name the ports that keep this path off a direct route, so that the admin
-> + * can hand them to pci=disable_acs_redir=.
-> + */
-> +static void pci_p2pdma_warn_path(struct pci_dev *client,
-> +				 struct pci_dev *provider,
-> +				 const struct pci_p2pdma_acs_path *path,
-> +				 struct pci_dev *a_child,
-> +				 struct pci_dev *b_child)
-> +{
-> +	struct seq_buf acs_list;
-> +	char buf[128];
-> +
-> +	if (path->unreadable) {
-> +		pci_warn(client,
-> +			 "ACS Control is unreadable for provider %s at %s\n",
-> +			 pci_name(provider), pci_name(path->unreadable));
-> +		return;
-> +	}
-> +
-> +	seq_buf_init(&acs_list, buf, sizeof(buf));
-> +	if (pci_acs_p2pdma_completion(path->cpl_ctrl) != PCI_ACS_P2PDMA_DIRECT)
-> +		seq_buf_print_bus_devfn(&acs_list, a_child);
-> +	if (pci_acs_p2pdma_request(path->req_ctrl) != PCI_ACS_P2PDMA_DIRECT)
-> +		seq_buf_print_bus_devfn(&acs_list, b_child);
-> +
-> +	/* Drop the final semicolon; the list is not empty here. */
-> +	if (!seq_buf_has_overflowed(&acs_list))
-> +		acs_list.buffer[acs_list.len - 1] = '\0';
-> +
-> +	pci_warn(client,
-> +		 "ACS redirect is set between the client and provider (%s)\n",
-> +		 pci_name(provider));
-> +	pci_warn(client,
-> +		 "to disable ACS controls for this path, add the kernel parameter: pci=disable_acs_redir=%s\n",
-> +		 seq_buf_str(&acs_list));
-> +}
-> +
->  static bool cpu_supports_p2pdma(void)
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/alloc.c b/drivers/net/ethernet/mellanox/mlx5/core/alloc.c
+> index a92cf545bdaf..dcd281c4691d 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/alloc.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/alloc.c
+> @@ -110,7 +110,7 @@ static struct mlx5_dma_pool *mlx5_dma_pool_create(struct mlx5_core_dev *dev,
 >  {
->  #ifdef CONFIG_X86
-> @@ -751,19 +825,13 @@ calc_map_type_and_dist(struct pci_dev *provider, struct pci_dev *client,
->  		int *dist, bool verbose)
+>  	struct mlx5_dma_pool *pool;
+>  
+> -	pool = kzalloc_obj(*pool);
+> +	pool = kzalloc_node(sizeof(*pool), GFP_KERNEL, node);
+
+This removes all the benefits of kzalloc_obj() here...
+
+But I guess the __alloc_objs API doesn'thave the ability to add a node?
+It seems like we'd benefit from having support for the node parameter..
+but it does seem tricky to add. kzalloc_node_obj() could potentially be
+added. Staring at the implementation I have no idea how complicated that
+would be.
+
+Still, this only really changes two allocations and they're pretty
+obviously correct.
+
+Reviewed-by: Jacob Keller <jacob.e.keller@intel.com>
+
+>  	if (!pool)
+>  		return NULL;
+>  
+> @@ -127,19 +127,20 @@ mlx5_dma_pool_page_alloc(struct mlx5_dma_pool *pool)
 >  {
->  	enum pci_p2pdma_map_type map_type = PCI_P2PDMA_MAP_THRU_HOST_BRIDGE;
-> -	enum pci_acs_p2pdma_state state = PCI_ACS_P2PDMA_NOT_SUPPORTED;
->  	struct pci_dev *a = provider, *b = client, *bb;
->  	struct pci_dev *a_child = NULL, *b_child = NULL;
-> -	struct pci_dev *acs_unreadable = NULL;
-> +	struct pci_p2pdma_acs_path path = {};
->  	struct pci_p2pdma *p2pdma;
-> -	struct seq_buf acs_list;
-> -	int acs_redirect_cnt = 0;
-> +	bool cpu_p2pdma, host_whitelisted = false;
->  	int dist_a = 0;
->  	int dist_b = 0;
-> -	char buf[128];
-> -	u16 ctrl;
-> -
-> -	seq_buf_init(&acs_list, buf, sizeof(buf));
+>  	int blocks_per_page = BIT(PAGE_SHIFT - pool->block_shift);
+>  	struct mlx5_dma_pool_page *page;
+> +	int node = pool->node;
 >  
->  	/*
->  	 * Note, we don't need to take references to devices returned by
-> @@ -806,61 +874,35 @@ calc_map_type_and_dist(struct pci_dev *provider, struct pci_dev *client,
->  	 * branch is upstream, so redirect controls do not affect the path.
->  	 */
->  	if (a_child && b_child) {
-> -		if (pci_acs_p2pdma_ctrl(a_child, &ctrl))
-> -			state = pci_acs_p2pdma_completion(ctrl);
-> -		if (state != PCI_ACS_P2PDMA_DIRECT) {
-> -			seq_buf_print_bus_devfn(&acs_list, a_child);
-> -			if (state == PCI_ACS_P2PDMA_REDIRECT)
-> -				acs_redirect_cnt++;
-> -			else if (!acs_unreadable)
-> -				acs_unreadable = a_child;
-> -		}
-> -
-> -		state = PCI_ACS_P2PDMA_NOT_SUPPORTED;
-> -		if (pci_acs_p2pdma_ctrl(b_child, &ctrl))
-> -			state = pci_acs_p2pdma_request(ctrl);
-> -		if (state != PCI_ACS_P2PDMA_DIRECT) {
-> -			seq_buf_print_bus_devfn(&acs_list, b_child);
-> -			if (state == PCI_ACS_P2PDMA_REDIRECT)
-> -				acs_redirect_cnt++;
-> -			else if (!acs_unreadable)
-> -				acs_unreadable = b_child;
-> -		}
-> +		if (!pci_acs_p2pdma_ctrl(a_child, &path.cpl_ctrl))
-> +			path.unreadable = a_child;
-> +		if (!pci_acs_p2pdma_ctrl(b_child, &path.req_ctrl) &&
-> +		    !path.unreadable)
-> +			path.unreadable = b_child;
->  	}
+> -	page = kzalloc_obj(*page);
+> +	page = kzalloc_node(sizeof(*page), GFP_KERNEL, node);
+>  	if (!page)
+>  		goto err_out;
 >  
->  	/*
->  	 * Below a shared upstream bridge, a path whose divergence ports do not
->  	 * redirect routes the request directly.
->  	 */
-> -	if (!acs_unreadable && !acs_redirect_cnt) {
-> -		map_type = PCI_P2PDMA_MAP_BUS_ADDR;
-> +	map_type = pci_p2pdma_route(&path);
-> +	if (map_type == PCI_P2PDMA_MAP_BUS_ADDR)
->  		goto done;
-> -	}
+>  	page->pool = pool;
+> -	page->bitmap = bitmap_zalloc(blocks_per_page, GFP_KERNEL);
+> +	page->bitmap = bitmap_zalloc_node(blocks_per_page, GFP_KERNEL, node);
+>  	if (!page->bitmap)
+>  		goto err_free_page;
 >  
-> -	if (verbose) {
-> -		/* Drop the final semicolon; the list is not empty here. */
-> -		if (!seq_buf_has_overflowed(&acs_list))
-> -			acs_list.buffer[acs_list.len - 1] = '\0';
-> -		if (acs_unreadable)
-> -			pci_warn(client, "ACS Control is unreadable for provider %s at %s\n",
-> -				 pci_name(provider), pci_name(acs_unreadable));
-> -		else {
-> -			pci_warn(client, "ACS redirect is set between the client and provider (%s)\n",
-> -				 pci_name(provider));
-> -			pci_warn(client, "to disable ACS controls for this path, add the kernel parameter: pci=disable_acs_redir=%s\n",
-> -				 seq_buf_str(&acs_list));
-> -		}
-> -	}
-> +	if (verbose)
-> +		pci_p2pdma_warn_path(client, provider, &path, a_child, b_child);
+>  	bitmap_fill(page->bitmap, blocks_per_page);
+>  	page->buf = mlx5_dma_zalloc_coherent_node(pool->dev, PAGE_SIZE,
+> -						  &page->dma, pool->node);
+> +						  &page->dma, node);
+>  	if (!page->buf)
+>  		goto err_free_bitmap;
 >  
->  	/* An unreadable control does not establish an upstream redirect. */
-> -	if (acs_unreadable) {
-> -		map_type = PCI_P2PDMA_MAP_NOT_SUPPORTED;
-> +	if (path.unreadable)
->  		goto done;
-> -	}
->  
->  map_through_host_bridge:
-> -	if (!cpu_supports_p2pdma() &&
-> -	    !host_bridge_whitelist(provider, client, verbose)) {
-> +	cpu_p2pdma = cpu_supports_p2pdma();
-> +	if (!cpu_p2pdma)
-> +		host_whitelisted = host_bridge_whitelist(provider, client,
-> +							  verbose);
-> +
-> +	if (!cpu_p2pdma && !host_whitelisted) {
->  		if (verbose)
->  			pci_warn(client, "cannot be used for peer-to-peer DMA as the client and provider (%s) do not share an upstream bridge or whitelisted host bridge\n",
->  				 pci_name(provider));
-> @@ -1193,8 +1235,9 @@ enum pci_p2pdma_map_type pci_p2pdma_map_type(struct p2pdma_provider *provider,
+> @@ -278,7 +279,7 @@ mlx5_frag_buf_node_pools_create(struct mlx5_core_dev *dev, int node)
 >  {
->  	enum pci_p2pdma_map_type type = PCI_P2PDMA_MAP_NOT_SUPPORTED;
->  	struct pci_dev *pdev = to_pci_dev(provider->owner);
-> -	struct pci_dev *client;
->  	struct pci_p2pdma *p2pdma;
-> +	unsigned long cache_index;
-> +	struct pci_dev *client;
->  	int dist;
+>  	struct mlx5_frag_buf_node_pools *node_pools;
 >  
->  	if (!pdev->p2pdma)
-> @@ -1204,13 +1247,14 @@ enum pci_p2pdma_map_type pci_p2pdma_map_type(struct p2pdma_provider *provider,
->  		return PCI_P2PDMA_MAP_NOT_SUPPORTED;
+> -	node_pools = kzalloc_obj(*node_pools);
+> +	node_pools = kzalloc_node(sizeof(*node_pools), GFP_KERNEL, node);
+>  	if (!node_pools)
+>  		return NULL;
 >  
->  	client = to_pci_dev(dev);
-> +	cache_index = map_types_idx(client);
->  
->  	rcu_read_lock();
->  	p2pdma = rcu_dereference(pdev->p2pdma);
->  
->  	if (p2pdma)
->  		type = xa_to_value(xa_load(&p2pdma->map_types,
-> -					   map_types_idx(client)));
-> +					   cache_index));
->  	rcu_read_unlock();
->  
->  	if (type == PCI_P2PDMA_MAP_UNKNOWN)
 > 
-> -- 
-> 2.55.0
+> ---
+> base-commit: 8b4e7209c842d8cb9516f1f5ef0a88aa2d8831a6
+> change-id: 20261005-net-mlx5-numa-allocate-pool-page-2ee20a04147e
 > 
+> Best regards,
+
