@@ -1,141 +1,119 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f177.google.com (mail-pg1-f177.google.com [209.85.215.177])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 977D73D9DD1
-	for <linux-rdma@vger.kernel.org>; Tue,  6 Oct 2026 13:47:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71CA6424D6D
+	for <linux-rdma@vger.kernel.org>; Tue,  6 Oct 2026 13:48:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791294468; cv=none; b=tTz5FjTqwrK09u74qrCjUr7HDCG8PsHO2KiSZTmxISE/5O2FttExWb434p/gDN+/55/6OFm/xu5A8DyFBQkY6j9nxIIL8PVyb3f8IXGwvn+kMsaKtXamfa7tya7FVIKmk1Ows06K2JgGm8YfmwREA3Al6oXg/UwB0yB+zwi4KI4=
+	t=1791294514; cv=none; b=EyfT5hMr9Y83oGF6aFds5v4SPPQPrtLWko7JiZlcjEJN4zkIwbZ8GX86C1FrXRcwYKw6f+kvQu52Yc5gFYJmm6itVDWlI6GywlApqCg3sz24XOw2ukZUwkRDHlT4o7cI23V8VhG60iSa0CjTgGkdE2rfu3fcteOkYIbECQljP7U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791294468; c=relaxed/simple;
-	bh=MxyGa2i0GFPM1T2Ny30asuy+UCUNkZHMxNy6WfbG/GY=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=kw0/MWZ5I1xlgcTcEPWaA5IZzJ3kfEcMhw0nhjIakPp+q5vGjg2xdS/PDKUXoF5qD7iWRGepA8gHVmhCuJFHUZWRUuttEi6Ni6eGfLgFLofiFhlJG1dB6Fp5tMhs2Otk5FhbpvtIpPpf01ps0gd2DxTRzLU8ym3/0BejIxiPOD0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TlXEotUy; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791294514; c=relaxed/simple;
+	bh=kMtTkezz8RK0C6SIlG94IbvLyEEsxqh9OTzo4DlPCrU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=JTcvVpN8KRKe9wH6saTMZQ/yDtbloYhqlnJwUtkFVxPNfXA0H8ANS7WjBYtik9NV386qgvbnup4iupnLvmVvEN7O6jw7ToQLtKARc5wRhXQn9rEKEEK7db/+pKUxf4MxG82+/RRI9peHkrHfCBGxp/29rvfKCIecE3jD2YDZytE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=snu.ac.kr; spf=pass smtp.mailfrom=snu.ac.kr; dkim=pass (1024-bit key) header.d=snu.ac.kr header.i=@snu.ac.kr header.b=zDL/YGnq; arc=none smtp.client-ip=209.85.215.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=snu.ac.kr
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=snu.ac.kr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TlXEotUy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1CF91F00893;
-	Tue,  6 Oct 2026 13:47:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791294467;
-	bh=4Gtx1novXP6NqQnE1CX/522SAS8aNnUdLs4H64hBEnI=;
-	h=Date:From:To:Cc:In-Reply-To:References:Subject;
-	b=TlXEotUyfN4Ui8BtrraBmYMlC9P3jQs2WXBc897AfBo6she2Q0cULcJBjw/A82sgt
-	 MZkg6A1XoUu+KyrH/sxKIvJqP8bgkR+5k2gZZ0Cr29TX8ZcPXG02E2ydp5lyM377Li
-	 1d++6uRHKxTZ7iCq75Hed5xo/RMxSaPo2jaTIA2ujAAvZuq5zj0g7ik4ZygO5wVNQ6
-	 xfENvhRbb+oHnzWdXkJYiA7gCp/spmNCESnPrMi2WnHuTA7GL5B00tuOtPiEX/qCRH
-	 uIh2dTypCoiy1zYdCWPE3taEILtmhMYMQRTDk5UocsenuY5RjAqenm9ANXzJBYMaKI
-	 1UvmqcRbligyA==
-Received: from phl-compute-10.internal (phl-compute-10.internal [10.202.2.50])
-	by mailfauth.phl.internal (Postfix) with ESMTP id 38455F40068;
-	Tue,  6 Oct 2026 09:47:46 -0400 (EDT)
-Received: from phl-imap-15 ([10.202.2.104])
-  by phl-compute-10.internal (MEProxy); Tue, 06 Oct 2026 09:47:46 -0400
-X-ME-Sender: <xms:AvzEahggaACIo9zFZVWzcvHtKtkOmk_HRmamTBaSyQyeBTgK2Q5hnw>
-    <xme:AvzEag0O2vopuPvVB2wHr61t0puX2buFVa7yDD06A3e26PhLn5ke0N-AczD7cvDKs
-    xfE9I5cb50trvO251NPW0MIJ_6EbqFv8dmE54_3jEY9y_U0qPvu8r0>
-X-ME-Proxy-Cause: dmFkZTFre9ofM+lzYYLcctWi1Mf9vIDpVpzAQnegcTHCGRTPoVIa7iVaZyBIeYH6XI6anR
-    kT7+/hCBpSOtTlzv1f1kog+0sGLuhQm2MIWuTCmBNwigr/Rdzh4E8OmBsddbWqGvSvRSDj
-    XxPVG2EJv8gtl33qDII7a0rdD0Qs2ISfKfGCBQImC6TabGg+dMmqjS1l2jdVmG5dXkO0Re
-    ZNGJh3kKD5ni3hzsZCEsWWlG9X217CGxOWWulHbNTjsaQ+cm049OJW0XLsgKw+qK4fXFhX
-    48JB58dMeCT4TtAcmMw/AcBWVuxz+6p9j1ZNnJj+Y+eTTh+GKP199TqALT+swGW+mHyAMk
-    zPdfpzwMNCVsCrxa0ld/tyt6S65DHINoPhzYuVKJMTUPPei3eR3spECwjtxoVVrYJKTGfa
-    w5y2kCQugxk3gGCLp942QYY0dG5zbknpoRCzfNHvgl7qg5pKg08g6dCQjN8aw6sdK6bwzf
-    R47odG02mSQCuQtY3Gy9ZX9KywebqZFyzCm/rSwazNGYqY8LvMuJA0G0kDkEap+vHwsRq3
-    oln9LeOptCj2tXC/kxcq5xhw3gnSALJeroOzy91hazDTgLleqzC+jc6iCHFTCVncT3xJ7Q
-    1bzjBQZy7gZwytDsScwVZTTLvkfUW7ztaAl25+BXhpfdT0eCxy2bbozbanUA
-X-ME-Proxy: <xmx:AvzEajYumCiRKQTPglPX9TIhKgQIojx-yQfvmEXrHf7Lc5XPGk2CGQ>
-    <xmx:AvzEaqgCF5v8ixS2wAUVQFzOtvGHrxGA0Nr62EIvfW-MuRGjwgNPDA>
-    <xmx:AvzEalcfqKGobYysh97vu8Rcx-CqndrFhUAMzZ8310V6VJ-CfsIQPg>
-    <xmx:AvzEapkAXIkbjmtLLsQ1zDHSkAk4yJltVoqkjX3JQezjY1-_JsofSw>
-    <xmx:AvzEaqzYsdyGabOS-_ax0L3d8lIH9pece-Ch_KmcqMJUZ99R9epzxwCA>
-Feedback-ID: ifa6e4810:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 13211780070; Tue,  6 Oct 2026 09:47:46 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (1024-bit key) header.d=snu.ac.kr header.i=@snu.ac.kr header.b="zDL/YGnq"
+Received: by mail-pg1-f177.google.com with SMTP id 41be03b00d2f7-cc4be0e5351so920866a12.0
+        for <linux-rdma@vger.kernel.org>; Tue, 06 Oct 2026 06:48:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=snu.ac.kr; s=google; t=1791294508; x=1791899308; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=Xd+YhTvmmDiJasiYfZDfV8qAggwrlgKHI8hk48pv8dg=;
+        b=zDL/YGnqH8YvAHo0vE2booW3iNn8L9i59YIB/gJBLc2H4PWlGJZxGgX0P/sp5ndVsR
+         UxPUwkcIoUbPUSkHdOoDB5MpQ15ma6dr3Ln6b6MSf5KpzEOk7+L2dfxb+YhLCiTlBr3l
+         UCjWHsdQbc1biSstrrsCR/bO+gDkizBulxzxU=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791294508; x=1791899308;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=Xd+YhTvmmDiJasiYfZDfV8qAggwrlgKHI8hk48pv8dg=;
+        b=EvbO+oh6VsOAwEFvtmi1v8jkofszsGmwvNPMBkY322EJmjagiZtI8QqiKsPF3fnDPP
+         AdfcInf5Jaik1NuawcDd3YjO02nFmEUDcTFlcdCnkPckR3HZH2pTN095SEwrkgEDRdYJ
+         Y8PkGi95SPwnOKuM2vy0T4YeMTXZlDgvNYupBqqiht4YwQjdTkGzAiohQ0CQoVAUgPQ2
+         CVGGR6BAPo0Uk8etlARwKYFEpoi58JhREN2HbpDzQzsUad3vrIMGYXrSUE0o2XM6yvT5
+         dBlmeQqYVN3ED/xplZs1RkvpYd88X1kuaYchUSxTChSfsDsPR2BZSdneIqb5Zn9MV4kC
+         WrMw==
+X-Forwarded-Encrypted: i=1; AKwUvBwe0KC6WG917vvdOO7peIZz43vEIhPVqG7cykykKLYgrR3k+9VjJLd+gr4q3iQUcRu08hEJLFS3NJoV@vger.kernel.org
+X-Gm-Message-State: AFq9FYJ550zW0D727bAagnelvpcgK3JBJJJS1746JUW6GEInxdTup3Xn
+	aKQoCQZibLrIYlCZ07/03vWvVCaK5hJ5RyJVlTa92Kgd51D1OPr/z6C03q92OyDvFYk=
+X-Gm-Gg: AYBFou06pfRX8FTqH20g0RTzj5ElxM8CNfO79vBRgomXh/Rp6Gj96C6ejJJGD9pqtmg
+	qbSzN8YD+IRtpTEdx/v2Q07M4dj750Xs/S7mao5f0XkCmshZJFM9wFkvTm7yEi2M7YBeHuRkQ6N
+	8bVr21QhUaXzcUynThax8N8KrlHJO8Ys0qcxJnocpZpI77EN89kt9iUTxlHXW7UVQ5SzAbomwbv
+	iaLxkhfBokuSPlgMtTyQtZTr8wUzRaTODrRnlCiyCXzX7cx7mEqpUNAckoKCxaQ9qw8hubyvSNU
+	vLLIXof8zw7TPnGWtYQ6fTj4BrgP3RJNr9i2zQ+Xo7YXm+PVUocPIzwEz3BMbCBmsoRUZdcpmDa
+	ySGApAaorBxnXSC7FBMxj7JhJZNiPTR+zUprIgydAc1vkBjlA/IQYgyKPklTLVGVG+4zF7zB/XA
+	Kzf+6PEowZGkIFEBT4BZI5njgCpiTZfRUrOumoIwhr5s91pWqxJjR+6p6hcgFBte2fuQ==
+X-Received: by 2002:a17:902:f78c:b0:2da:eb8f:b4e4 with SMTP id d9443c01a7336-2e4e9c29bdbmr98737285ad.7.1791294508455;
+        Tue, 06 Oct 2026 06:48:28 -0700 (PDT)
+Received: from 1c1aead48890 ([49.142.45.25])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2e5a5eeca3dsm24227885ad.67.2026.10.06.06.48.24
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 06 Oct 2026 06:48:27 -0700 (PDT)
+Date: Tue, 6 Oct 2026 13:48:21 +0000
+From: Seongjun Hong <hsj0512@snu.ac.kr>
+To: Tariq Toukan <tariqt@nvidia.com>
+Cc: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
+	Mark Bloch <mbloch@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>, 
+	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, 
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org, 
+	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] net/mlx5: allocate dma pool structs on the pool's NUMA
+ node
+Message-ID: <z42vlmle2feb67bdkt6oswrhytfuruznrfnfo7z7caad46sp3j@ms7c7rxs6vfc>
+References: <20261005-net-mlx5-numa-allocate-pool-page-v1-1-01f4283932b4@snu.ac.kr>
+ <dd8747e3-5502-44dd-a64b-8d2ad5fae1ea@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ThreadId: AFCZ3x6p1CiR
-Date: Tue, 06 Oct 2026 09:47:25 -0400
-From: "Chuck Lever" <cel@kernel.org>
-To: "J Louis Kaplan" <Louis.Kaplan@arm.com>, "Dai Ngo" <dai.ngo@oracle.com>,
- "Jeff Layton" <jlayton@kernel.org>, NeilBrown <neil@brown.name>,
- "Olga Kornievskaia" <okorniev@redhat.com>, "Tom Talpey" <tom@talpey.com>
-Cc: linux-nfs@vger.kernel.org, linux-rdma@vger.kernel.org,
- "Anna Schumaker" <anna@kernel.org>, "Jason Gunthorpe" <jgg@ziepe.ca>,
- "Leon Romanovsky" <leon@kernel.org>, "Trond Myklebust" <trondmy@kernel.org>
-Message-Id: <cbc3ff79-4866-4433-a01b-3d5eeab1962b@app.fastmail.com>
-In-Reply-To: <20261006090028.3412544-1-Louis.Kaplan@arm.com>
-References: <20261006090028.3412544-1-Louis.Kaplan@arm.com>
-Subject: Re: [RFC PATCH 0/6] Improve NFS server direct throughput with passthrough
- enabled
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <dd8747e3-5502-44dd-a64b-8d2ad5fae1ea@nvidia.com>
 
+On Tue, Oct 06, 2026 at 10:10:06AM +0300, Tariq Toukan wrote:
+> 
+> 
+> On 05/10/2026 16:46, Seongjun Hong wrote:
+> > The mlx5 DMA pool structs (mlx5_dma_pool, mlx5_dma_pool_page and its
+> > block bitmap, and mlx5_frag_buf_node_pools) are allocated without a
+> > node hint, so they land on the node of whichever CPU happens to create
+> > or fill the pool, whiile
+> 
+> nit: typo
+> 
+> > the DMA pages they describe are allocated on
+> > the pool's node.
+> > 
+> > The pool, page and bitmap are dereferenced on every block allocation
+> > and free. Allocate them on the pool's NUMA node as well, so that all
+> > of a pool's state lives on one node.
+> > 
+> 
+> Thanks for the patch.
+> 
+> That is true, but these structs are only used from the control path.
+> That is once per WQ/CQ/EQ or doorbell record at open/close, not per packet.
+> 
+> I doubt we can measure any benefit, so it's just a matter of consistency
+> with the other fields access in data-path.
+> 
+> The API kzalloc_node falls back if node is offline, so it's safe.
+> 
+> No strong motivation, but we can accept it.
+> Please fix the typo and emphasize that these are control-path objects.
+> 
 
+Will do, thanks! :)
 
-On Tue, Oct 6, 2026, at 5:00 AM, J Louis Kaplan wrote:
-> For NFSoRDMA using RoCE, and with IOMMU passthrough enabled, use of a
-> 64KiB base page size was found to provide higher NFS read throughput
-> than a 4KiB base page size. This patch series recovers some of that
-> throughput with a 4k base page size by opportunistic use of large foli=
-os
-> for the svc reply buffer.
-
-> LLM Usage
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D
->
-> The idea of folio usage here was human-generated from observations of
-> performance differences between 4KiB and 64KiB page size kernels.
-
-Actually a similar approach has been tried before, but on x86_64:
-
-https://lore.kernel.org/linux-nfs/20260319133610.2556826-1-cel@kernel.or=
-g/
-
-And it had to be reverted:
-
-- Mike Snitzer's report (4 Jun=C2=A02026):
-    https://lore.kernel.org/linux-nfs/aiHlPmeZq3WgMwoJ@kernel.org/
-
-- Jonathan Flynn's benchmark and perf data (5 Jun=C2=A02026), showing se=
-rver
-  CPU going from 8.54% to 76.35% with the commit present:
-    https://lore.kernel.org/linux-nfs/3cb119b4b2a8aada30c0c60286778a54@m=
-ail.gmail.com/
-
-These two are the Closes: targets in the revert, which is a39f0ce0c9da
-upstream and 284d5ba931a5 in stable.
-
-Lock contention analysis and the decision to revert
-
-- "[PATCH] svcrdma: Cap Read sink allocations at PAGE_ALLOC_COSTLY_ORDER"
-  (5 Jun=C2=A02026), whose description carries the zone->lock analysis:
-    https://lore.kernel.org/linux-nfs/20260606035722.83175-1-cel@kernel.=
-org/
-- Flynn's results for that fix (25.4 GiB/s, against 30.3 regressed and
-  73.9 reverted):
-    https://lore.kernel.org/linux-nfs/65a2cdb132b0c28e69a29955e3bd37e7@m=
-ail.gmail.com/
-- Your reply saying the two failed fixes mean 18755b8c2f24 has to be
-  reverted (6 Jun=C2=A02026):
-    https://lore.kernel.org/linux-nfs/096a2b91-7a19-48da-a06a-dc60e71509=
-56@app.fastmail.com/
-
-The earlier failed fix, "[PATCH] svcrdma: Avoid direct reclaim when
-allocating Read sink buffers", is at
-    https://lore.kernel.org/linux-nfs/20260605223118.75092-1-cel@kernel.=
-org/.
-
-So: Yes, we would like to ensure that svcrdma's RDMA Read buffers (at
-least, and maybe RDMA Write) are contiguous so that the overhead of a
-DMA mapping operation will be low. I'm not expert enough with the page
-allocator's free path to address the lock contention problem, however.
-
-
---=20
-Chuck Lever (Come to NFS bake-a-thon! https://nfsv4bat.org)
+Best regards,
+-- 
+Seongjun Hong
