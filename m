@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5CF73D411D;
-	Tue,  6 Oct 2026 21:32:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E48073DC4BC;
+	Tue,  6 Oct 2026 21:36:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791322330; cv=none; b=ATQAeH24Fa2+Z+b4RS7Jy7AS++qkh5DD83S8kNGpTFSi9aAFVLbzP5Iw6KQ0TYzmdsx1VkQGFkW+zs/4wO1b34ze2XQ7TjdbZjrbBshb2io8XyXnUduGovyfIWEFOTUyrMuZRl588wrIHGkkM12mWjISg8XovAoydZ2Dd3Fnib4=
+	t=1791322613; cv=none; b=YF2FdH3r0EOi13YnPgsFo8ZvAjwklyZIXC10b2765Vs62yg0m8LpGGlgCt7q14EpfpkZSvnKGY/5mvCjhJqprQGel0LQUFcR0xwAJsTJYdZbJhuvR35oo87+mLARMp8wPXmL5I8ZbHKA0uk4bzz8aVe7MVw1EdlDLvJmCwxyYnc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791322330; c=relaxed/simple;
-	bh=bzfvYExlUeiBsAerby/OOOHUWMbab8lSYw8VKLITbAM=;
+	s=arc-20240116; t=1791322613; c=relaxed/simple;
+	bh=Xcv+Vm/jbRp2Q6/9NtuGI1Gim0KGGilL8hp/09vEgGg=;
 	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To; b=Y2dVDD/Aqx800TXv+6k/L4YafQ5l5VRh5by89jjQ04+FMVVTb2GkAMZGAhBN/HQ9fsHmpK7lL3C25tKDCE3uCFQcLlZz3FxygLpdEzrw0ZINC2Nt/RYXTG20AbXMkCkHGVek61iVQCO9u8xPer6V/Afy0KiIukVcnjccFT8rPDk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mu7i09Li; arc=none smtp.client-ip=100.103.45.18
+	 Content-Disposition:In-Reply-To; b=ioLaheCXALY8SYL9JY0FQoCTXGkEC8gKJd7sGeFPnwsFOs7RB27NgB6XiR/1VXja8/SxbPpQurrSThv4ikgaF6Rb9BNWplGQhWfdDdaHoDa+gMJils0+RPqHJUgIjddoq5Pl2xWlnCNAdEKkYbHewAeUudKKMH4QwfN5IwaAX60=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LEA/N8ye; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mu7i09Li"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AC151F0089C;
-	Tue,  6 Oct 2026 21:32:06 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LEA/N8ye"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A12C71F0089C;
+	Tue,  6 Oct 2026 21:36:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791322326;
-	bh=lPh972gHXCkD0mD4dAGIvo5Eox0pSnObmtanCp/CfDA=;
+	s=k20260515; t=1791322611;
+	bh=jO1rNsL4MEoaqt+EDLxFDNqJq3+GIguSxOzwozJ8c1U=;
 	h=Date:From:To:Cc:Subject:In-Reply-To;
-	b=mu7i09Lim4PhqcCC67x3w+Uluo0qAKUrEbAdFHhsvwu/V1lZt/aigzR71Q7rg0MsM
-	 /ytWgZzcsJ2B/d/ZqhqjdyvErwMPeNzpxLNM/MnYYaW0tG2kndql6Axzjjt6SaD56H
-	 Fbb3bMb3hBJ5bTMKUH/sLZ6iO4yKLkDMtqNd+HJ1S4KjfRaPsdr6I2wCOt22o+g6b6
-	 vve7fEpP8DN40APkXPjDJskv4nsDESequYUBh23pdGNG/+bhPoXhOLWdAL+mKqB4N8
-	 c+X4Kej0Ppf/y2Zdfa6mr29PUZyBUC6h+atz46KjE9/jhZ+z2J5j5J+fTg78F8ALm6
-	 xv2T+A+ZSOT4A==
-Date: Tue, 6 Oct 2026 16:32:05 -0500
+	b=LEA/N8yeHjy4SYd/wWMhspV55RDyEFyUH6Gre+O+y20X2dHCZ1VFdedVDBcYMVPZ7
+	 zAQRArHg7K0x2xZjt3tcjC22uKAUZj7ltbiMBw3d8zzcau5qTw9t2THEcpwtGtiuqG
+	 UA5sTicyur71JTs5u4w0kHbViIyDDfC+0SNRqiPMfGdKnoxy1dDc51wm4YviLXFrkO
+	 PXMqpvagxGWh6FDj4b8h1D3HCvc6HBkTzWBKD/dzMzJ5FJdQHxqajQCxrgv0asCl0A
+	 4ygRC49Ss94R002VvZYzG+uq/wLAf/KwzPwSCc6Runw8uTU9U1vPar+HhcmP+tPUTQ
+	 6yb9hL78+a0rQ==
+Date: Tue, 6 Oct 2026 16:36:50 -0500
 From: Bjorn Helgaas <helgaas@kernel.org>
 To: Leon Romanovsky <leon@kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>,
@@ -48,8 +48,8 @@ Cc: Bjorn Helgaas <bhelgaas@google.com>,
 	Shuah Khan <skhan@linuxfoundation.org>,
 	Randy Dunlap <rdunlap@infradead.org>,
 	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: Re: [PATCH v9 05/18] PCI/P2PDMA: Document directional ACS routing
-Message-ID: <20261006213205.GA713622@bhelgaas>
+Subject: Re: [PATCH v9 00/18] PCI/P2PDMA: Route peer-to-peer DMA by TLP class
+Message-ID: <20261006213650.GA716945@bhelgaas>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -58,89 +58,81 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261001-fix-p2p-acs-v4-0-v9-5-1a8e0f50ddd9@nvidia.com>
+In-Reply-To: <20261006212227.GB7822@unreal>
 
-On Thu, Oct 01, 2026 at 02:55:13PM +0300, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@nvidia.com>
+On Wed, Oct 07, 2026 at 12:22:27AM +0300, Leon Romanovsky wrote:
+> On Tue, Oct 06, 2026 at 02:29:55PM -0500, Bjorn Helgaas wrote:
+> > On Thu, Oct 01, 2026 at 02:55:08PM +0300, Leon Romanovsky wrote:
+> > > PCI P2PDMA applies Request and Completion Redirect throughout both paths.
+> > > This misclassifies asymmetric and nested switches, and reports one answer
+> > > for every kind of TLP.
+> > > 
+> > > Three ACS controls act on TLP attributes the client chooses rather than
+> > > on the topology: Translation Blocking and Direct Translated P2P act on
+> > > a Request's Address Type, and Completion Redirect skips Completions carrying
+> > > Relaxed Ordering.
+> > > 
+> > > Evaluate each direction at the path divergence, decide every class from the
+> > > one walk, and treat a client with ATS enabled as translating unless its
+> > > driver declares per-mapping ATS.
+> > > 
+> > > This completes the P2PDMA side; dma-buf and mlx5 follow separately.
+> > > ...
+> > 
+> > > Leon Romanovsky (18):
+> > >       PCI/P2PDMA: Document the TLP attribute assumptions
+> > >       PCI/P2PDMA: Derive routing from directional ACS controls
+> > >       PCI: Reject unreadable ACS controls in isolation checks
+> > >       PCI/P2PDMA: Evaluate ACS controls at the path divergence
+> > >       PCI/P2PDMA: Document directional ACS routing
+> > >       PCI/P2PDMA: Collect the path's ACS controls before deciding
+> > >       PCI/P2PDMA: Answer routing per TLP class
+> > >       PCI/P2PDMA: Route Relaxed Ordering Completions directly
+> > >       PCI/P2PDMA: Reject Translated Requests blocked by Translation Blocking
+> > >       PCI/P2PDMA: Route Translated Requests under Direct Translated P2P
+> > >       PCI/P2PDMA: Log detailed ACS routing diagnostics
+> > >       PCI/P2PDMA: Add KUnit tests for the ACS routing decisions
+> > >       PCI/P2PDMA: Test the ACS P2P routing walk
+> > >       PCI: Add KUnit coverage for ACS isolation checks
+> > >       PCI/P2PDMA: Document TLP-class routing
+> > >       PCI/P2PDMA: Let a client declare that it selects ATS per mapping
+> > >       PCI/P2PDMA: Evaluate the ATS path for clients with ATS enabled
+> > >       PCI/P2PDMA: Test the routing of clients with ATS enabled
+> > > 
+> > >  Documentation/admin-guide/kernel-parameters.txt |  15 +-
+> > >  Documentation/driver-api/pci/p2pdma.rst         |  80 +++
+> > >  drivers/pci/Kconfig                             |  15 +
+> > >  drivers/pci/Makefile                            |   1 +
+> > >  drivers/pci/p2pdma.c                            | 719 ++++++++++++++++++--
+> > >  drivers/pci/pci.c                               |   7 +-
+> > >  drivers/pci/pci.h                               |  58 ++
+> > >  drivers/pci/pci_acs_test.c                      | 860 ++++++++++++++++++++++++
+> > >  drivers/pci/quirks.c                            |   6 +-
+> > >  include/linux/pci-p2pdma.h                      |  12 +-
+> > >  10 files changed, 1687 insertions(+), 86 deletions(-)
+> > > ---
+> > > base-commit: 08dbfad3f5040f5bdb6c529da20d6d4e81fefd72
+> > > change-id: 20260821-fix-p2p-acs-v4-0-e72455e3a261
+> > > prerequisite-message-id: <20260830-batch-p2p-fixes-v1-0-5044e8dfbe2e@nvidia.com>
+> > > prerequisite-patch-id: 6b25c7fcf164cdfc14e9fac5b908d97fcf6509d7
+> > > prerequisite-patch-id: 0d083c281001365aae4b35544cf28891a6ab9a96
+> > > prerequisite-patch-id: bfd9dabf271f3cc9a3a61f46387d20c20311363d
+> > > prerequisite-patch-id: fad0275efc722830fc591509506c0a5e4f581073
+> > > prerequisite-patch-id: 0c83bee688fec1f6d1564654df7c630fa6a4a978
+> > 
+> > This seems like material for the PCI tree, but I'm not sure how to
+> > apply it.  It doesn't apply cleanly on the current pci/p2pdma
+> > (https://git.kernel.org/pub/scm/linux/kernel/git/pci/pci.git/log/?h=p2pdma),
+> > which does contain your series from
+> > 20260830-batch-p2p-fixes-v1-0-5044e8dfbe2e@nvidia.com.
+> > 
+> > I could probably fix the conflicts but I don't know why there should
+> > be conflicts, since the only commits on pci/p2pdma other than yours
+> > are a few trivial allow-list updates.
 > 
-> P2PDMA documentation describes ACS controls as path-wide, although Request
-> and Completion controls apply to different transaction directions and only
-> affect peer-versus-upstream decisions at the path divergence.
-> 
-> Document the fixed client and provider roles, the divergence port checked
-> for each TLP direction, and the conservative handling of unreadable ACS
-> state. Clarify which controls disable_acs_redir changes.
-> 
-> Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
-> Tested-by: Tushar Dave <tdave@nvidia.com>
-> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
-> ---
->  Documentation/admin-guide/kernel-parameters.txt | 15 +++++++++------
->  Documentation/driver-api/pci/p2pdma.rst         | 13 +++++++++++++
->  2 files changed, 22 insertions(+), 6 deletions(-)
-> 
-> diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-> index 68647ff4bdd2..bc83e07dd5fc 100644
-> --- a/Documentation/admin-guide/kernel-parameters.txt
-> +++ b/Documentation/admin-guide/kernel-parameters.txt
-> @@ -5291,12 +5291,15 @@ Kernel parameters
->  		disable_acs_redir=<pci_dev>[; ...]
->  				Specify one or more PCI devices (in the format
->  				specified above) separated by semicolons.
-> -				Each device specified will have the PCI ACS
-> -				redirect capabilities forced off which will
-> -				allow P2P traffic between devices through
-> -				bridges without forcing it upstream. Note:
-> -				this removes isolation between devices and
-> -				may put more devices in an IOMMU group.
-> +				Each device specified will have the PCI ACS P2P
-> +				Request Redirect, Completion Redirect, and Egress
-> +				Control features forced off. This may allow P2P
-> +				traffic through bridges that would otherwise be
-> +				redirected upstream. This may allow P2P traffic
-> +				through bridges that would otherwise be redirected
-> +				upstream and thus this removes isolation between
-> +				devices and may cause affected devices to share
-> +				an IOMMU group.
->  		config_acs=
->  				Format:
->  				<ACS flags>@<pci_dev>[; ...]
-> diff --git a/Documentation/driver-api/pci/p2pdma.rst b/Documentation/driver-api/pci/p2pdma.rst
-> index 80f8fec9b0e9..42b18610bf7d 100644
-> --- a/Documentation/driver-api/pci/p2pdma.rst
-> +++ b/Documentation/driver-api/pci/p2pdma.rst
-> @@ -15,6 +15,19 @@ then based on the ACS settings the transaction can route entirely within
->  the PCIe hierarchy and never reach the root port. The kernel will evaluate
->  the PCIe topology and always permit P2P in these well-defined cases.
->  
-> +The client remains the PCIe requester when it reads or writes provider memory.
-> +Where the paths diverge, the kernel therefore evaluates P2P Request Redirect
-> +and Egress Control on the client-side port, and P2P Completion Redirect on the
-> +provider-side port for completions from a read. An enabled Egress Control is
-> +conservatively treated as a Request redirect.
+> So maybe this is related to these trivial updates, my series was based
+> on the clean p2pdma branch:
+> https://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git/log/?h=fix-p2p-acs-v9
 
-I think "where the paths diverge" means the point where a port decides
-whether to route a TLP up through its Upstream Port (or to the RC) or
-back down via a sibling Downstream Port?
-
-I'm not sure p2pdma.rst includes the context to interpret "divergence"
-yet.  I think the code comments in [4/18] might also need a little
-more context about divergence.
-
-IIUC, this divergence point is basically a static point where the ACS
-controls being applied makes a routing difference.
-
-> +Below the divergence, the route toward the other branch is already upstream,
-> +so those P2P redirect controls do not affect it. Redirect controls for the
-> +reverse transaction directions do not affect the mapping. P2P DMA is routed
-> +through the host bridge when either applicable port redirects. If an ACS
-> +Control register cannot be read, P2P DMA is rejected because the kernel cannot
-> +establish a usable route.
-> +
->  This evaluation assumes clients issue strictly ordered Requests carrying an
->  Untranslated address. Its result is not defined when clients use Relaxed
->  Ordering or issue ATS-translated Requests because those TLP attributes can
-> 
-> -- 
-> 2.55.0
-> 
+Ah, yeah, it must be the allow-list additions that I have but you
+don't.  I wouldn't have thought the offsets would have been a problem.
