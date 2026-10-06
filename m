@@ -1,80 +1,155 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E92273E63AC
-	for <linux-rdma@vger.kernel.org>; Tue,  6 Oct 2026 13:06:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01FDA3AB288
+	for <linux-rdma@vger.kernel.org>; Tue,  6 Oct 2026 13:37:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791291993; cv=none; b=lNAsT4FTQBZcQQepoGtqxogHBLMM1kiekDWpmOeurY25QW9tIz6BZJRgE/uNS4wFhEVEihPfXuNQ/IZ3dU8JXnMn5wvNZw3MYTcNt8hMX0D9qoFoXSuH5Y3pUz9jggkBLqw74DvGIQC90nC5KrNZI4HOCUzHkw9gIrw/Pfr4M4g=
+	t=1791293866; cv=none; b=iuabM57qc/F68nP+aLjfQlvXTMVnWs4SAQoMjxqjk4WxdPTNkSRGdr4K65GCV0liQIC9eFQHwM4/4XOlsAm+vcu7+6eEGewB7OicKIU2nWiGmKqQh/ETMNGKZiXAaa4n34cCrAYbWC7cMRCf9J3FCkLDuZwyHVk5D/hJAqhKN4I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791291993; c=relaxed/simple;
-	bh=gihrtFBH+QGeM1ALPaCZEwNU9Niwh3v3zPVOaJoGKxQ=;
-	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=Y47l65oVYBU1QRSc6z/9KWbQyF1+MmYRY9onZ+ydanYJIXd+fJyHfAFU7X8EU6iXSxX7mH+5irS4TC/jqIE1BIqXB+z/7tREDOEvIMzP2bY+czhQ0rFTkQ3BW8cd4HH0lgU6k5jYccrswtL79mpK/ON9AIhf57ai4CfJJF6M38o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=m8vnc7Da; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791293866; c=relaxed/simple;
+	bh=JObbdodZlnC6pk7GRpxaq7KKSMUim6qqpDSNVeh692s=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=fFmGIJF7gVH+Hguqatr88dPgLfGxneill8+c4k+z9dVzpHdR+a8wu8bsaauk7ygMNhfNhPqHx93MT1UisPu2/NFwD0LTHtQMXYvfEumV6JhmWML0Adw1+6ZcxOGMciKylZUoxsOnsUD62JPWDJMVY33RHZakyYxWpqSJlMGAvEc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iwM3A+41; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="m8vnc7Da"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 642871F000FF;
-	Tue,  6 Oct 2026 13:06:31 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iwM3A+41"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28FAC1F000FF;
+	Tue,  6 Oct 2026 13:37:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791291991;
-	bh=i6EUmGNBnSz+J0nitR9um+NRm9rBI+pVWaoF1yhdeQs=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=m8vnc7DaDLxOqBFqcT7xt9T4K6WfYWNeyqvscfrFGYIUKTPy5atEWPzRpYxBcdUAW
-	 KvCSDETAcV5uk7f9Ys7m7tLL79cJOkwOS04sD/euF3kI92WWhCIKfMWJEJWxYvIwvL
-	 waWYxdvETRHxlwIrhBZOvXNJKKFi+Q2l63g14DmpXg738vmU4AZcHkmjrQxEm/rZPa
-	 7jEHqMozd3ZIPe/p47hbk/D2HViWZIgZQKw6lc1UWnZju1X1clIsWj8RSR9+8KP/l7
-	 HCbCP89SrmY9uDTHrnDueMP/BXXNLfA+9Cb+oqkifTD/z/iriJNIzMrms8r7fjjjBR
-	 eFvpEj9N3QHhg==
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net] net/rds: ib: drop fragments shorter than the
- header-declared length
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Shubham Antil" <shubham@octane.security>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261006125720.81227-1-shubham@octane.security>
-References: <20261006125720.81227-1-shubham@octane.security>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Tue, 06 Oct 2026 13:06:31 +0000
-Message-Id: <20261006130631.642871F000FF@smtp.kernel.org>
+	s=k20260515; t=1791293863;
+	bh=3rj0mP8eO2TmeXpcDj1nBLatHS3PdDhrEGr5fImp/zM=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=iwM3A+41+6FnHZd0/m5LTDIZnmD8PBgUfS5AJKQtJ6FNYEmvQ0FxdmFYx4D/INZ8W
+	 soP4Hz1VZZr3TtQhx8soX2wv92mWCqC5u9HfYunaigWTDiNAnMrPBBIkeOEuwSez4J
+	 UoEKW1S9wLRelclr/wLR/Kd+plkdkujghLRRMtO2VKCOmrcPtErof4RSwVtV5+VsDe
+	 OLrdphernZcjV1dyU/Cd54hRzfwVctm0dwk51sCyUpyhVXWL9g8BeUl4KyzBj+nR17
+	 f188QBPK4fug1AqSs5h8GXyohw1p30YY7nAwNIuGgqTqFBRgQant9blfewCqdLSi5X
+	 kz6YIiprLxxNg==
+Date: Tue, 6 Oct 2026 16:37:39 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Jacob Moroni <jmoroni@google.com>
+Cc: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org
+Subject: Re: [PATCH] RDMA/core: Clear driver_udata before destroying objects
+ in rdma_core
+Message-ID: <20261006133739.GA7822@unreal>
+References: <20261001162628.3187887-1-jmoroni@google.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261001162628.3187887-1-jmoroni@google.com>
 
-> rds_ib_process_recv() accepts an incoming RDS/IB fragment once the
-> receive completion reports at least an RDS header
-> (data_len >=3D sizeof(struct rds_header)).  It then trusts the
-> header-declared total message length h_len: for the first fragment of
-> a message it stores be32_to_cpu(hdr->h_len) in ic->i_recv_data_rem,
-> and rds_ib_inc_copy_to_user() later copies up to h_len bytes from the
-> fragment pages to userspace on recvmsg().
->=20
-> The number of payload bytes actually received into the fragment page is
-> data_len (after subtracting the header), but it is never checked against
-> the amount the fragment is accounted to contribute to the message,
-> min(i_recv_data_rem, RDS_FRAG_SIZE).  A fragment whose header advertises
-> a larger h_len than the payload it delivers is still linked onto the
-> reassembly list.  The fragment page comes from the per-CPU receive cache
-> and is not zeroed, so rds_ib_inc_copy_to_user() then copies up to h_len
-> bytes to the PF_RDS reader, including the uninitialized tail the receive
-> never wrote.
->=20
-> Reject a fragment that carries fewer payload bytes than it is accounted
-> to contribute before linking it onto the reassembly list.
->=20
-> The issue is reproducible under KMSAN with two hosts over rdma_rxe
-> (Soft-RoCE); the same reproducer confirms the fix stops it.
->=20
-> Fixes: 1e23b3ee0e94 ("RDS/IB: Receive datagrams via IB")
-> Assisted-by: Claude:claude-opus-4-8
-> Signed-off-by: Shubham Antil <shubham@octane.security>
+On Thu, Oct 01, 2026 at 04:26:28PM +0000, Jacob Moroni wrote:
+> When uobject creation fails while copying user output data (i.e.,
+> after the HW object has been created), it calls
+> rdma_alloc_abort_uobject() with hw_obj_valid=true which then
+> invokes the object's destroy callback, but passes the
+> uverbs_attr_bundle from the original creation command.
+> 
+> The issue is that drivers are expected to validate the udata
+> and return an error if there's unexpected content, and data from
+> the wrong command counts as "unexpected content", so this ends
+> up causing the driver's destroy call to fail.
+> 
+> A similar issue exists in the rereg_mr path when a new MR
+> is created and the old one is destroyed.
+> 
+> Fix this by clearing driver_udata before invoking the driver's
+> destroy method.
+> 
+> Fixes: 6e0954b11c05 ("RDMA/uverbs: Allow drivers to create a new HW object during rereg_mr")
+> Fixes: 0ac8903cbbe6 ("RDMA/core: Allow the ioctl layer to abort a fully created uobject")
+> Signed-off-by: Jacob Moroni <jmoroni@google.com>
+> ---
+>  drivers/infiniband/core/ib_core_uverbs.c | 12 ------------
+>  drivers/infiniband/core/rdma_core.c      |  2 ++
+>  drivers/infiniband/core/rdma_core.h      | 17 +++++++++++------
+>  3 files changed, 13 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/ib_core_uverbs.c b/drivers/infiniband/core/ib_core_uverbs.c
+> index 41c84ffe8c09..1482d9b27b38 100644
+> --- a/drivers/infiniband/core/ib_core_uverbs.c
+> +++ b/drivers/infiniband/core/ib_core_uverbs.c
+> @@ -535,18 +535,6 @@ int uverbs_destroy_def_handler(struct uverbs_attr_bundle *attrs)
+>  }
+>  EXPORT_SYMBOL(uverbs_destroy_def_handler);
+>  
+> -/*
+> - * When calling a destroy function during an error unwind we need to pass in
+> - * the udata that is sanitized of all user arguments. Ie from the driver
+> - * perspective it looks like no udata was passed.
+> - */
+> -struct ib_udata *uverbs_get_cleared_udata(struct uverbs_attr_bundle *attrs)
+> -{
+> -	attrs->driver_udata = (struct ib_udata){};
+> -	return &attrs->driver_udata;
+> -}
+> -EXPORT_SYMBOL_NS_GPL(uverbs_get_cleared_udata, "rdma_core");
+> -
+>  /**
+>   * _uverbs_alloc() - Quickly allocate memory for use with a bundle
+>   * @bundle: The bundle
+> diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
+> index fd5651c003ae..fc727dbbb897 100644
+> --- a/drivers/infiniband/core/rdma_core.c
+> +++ b/drivers/infiniband/core/rdma_core.c
+> @@ -735,6 +735,7 @@ void rdma_assign_uobject(struct ib_uobject *to_uobj, struct ib_uobject *new_uobj
+>  	 * If this fails then the uobject is still completely valid (though with
+>  	 * a new ID) and we leak it until context close.
+>  	 */
+> +	uverbs_get_cleared_udata(attrs);
+>  	uverbs_destroy_uobject(to_uobj, RDMA_REMOVE_DESTROY, attrs);
+>  }
+>  EXPORT_SYMBOL_NS_GPL(rdma_assign_uobject, "rdma_core");
+> @@ -751,6 +752,7 @@ void rdma_alloc_abort_uobject(struct ib_uobject *uobj,
+>  	int ret;
+>  
+>  	if (hw_obj_valid) {
+> +		uverbs_get_cleared_udata(attrs);
+>  		ret = uobj->uapi_object->type_class->destroy_hw(
+>  			uobj, RDMA_REMOVE_ABORT, attrs);
+>  		/*
+> diff --git a/drivers/infiniband/core/rdma_core.h b/drivers/infiniband/core/rdma_core.h
+> index 2b91e8527287..9de14e625dd3 100644
+> --- a/drivers/infiniband/core/rdma_core.h
+> +++ b/drivers/infiniband/core/rdma_core.h
+> @@ -71,14 +71,19 @@ int uverbs_output_written(const struct uverbs_attr_bundle *bundle, size_t idx);
+>  
+>  void setup_ufile_idr_uobject(struct ib_uverbs_file *ufile);
+>  
+> -#if IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS)
+> -struct ib_udata *uverbs_get_cleared_udata(struct uverbs_attr_bundle *attrs);
+> -#else
+> -static inline struct ib_udata *uverbs_get_cleared_udata(struct uverbs_attr_bundle *attrs)
+> +/*
+> + * When calling a destroy function during an error unwind we need to pass in
+> + * the udata that is sanitized of all user arguments. Ie from the driver
+> + * perspective it looks like no udata was passed.
+> + */
+> +static inline struct ib_udata *
+> +uverbs_get_cleared_udata(struct uverbs_attr_bundle *attrs)
+>  {
+> -	return NULL;
+> +	if (!attrs)
+> +		return NULL;
 
-Sashiko has reviewed this patch and found no issues. It looks great!
+I would expect changes in create_qp() too after writing this function
+like you wrote.
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261006125720.8122=
-7-1-shubham@octane.security?part=3D1
+Thanks
 
+> +	attrs->driver_udata = (struct ib_udata){};
+> +	return &attrs->driver_udata;
+>  }
+> -#endif
+>  
+>  /*
+>   * This is the runtime description of the uverbs API, used by the syscall
+> -- 
+> 2.56.0.rc1.315.gc6ed9934b7-goog
+> 
