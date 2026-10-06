@@ -1,56 +1,56 @@
-Received: from mail-pg1-f197.google.com (mail-pg1-f197.google.com [209.85.215.197])
+Received: from mail-pg1-f200.google.com (mail-pg1-f200.google.com [209.85.215.200])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36A613BED1F
-	for <linux-rdma@vger.kernel.org>; Tue,  6 Oct 2026 23:33:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.197
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74C574AD7FB
+	for <linux-rdma@vger.kernel.org>; Tue,  6 Oct 2026 23:33:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.200
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791329592; cv=none; b=GnaHmsMYsdvyfkaEqsX7d4rypbTdtZec8zVT0R6dgvlIvu1/j5YbXRDwYMue/ZRsniJDmbWtBL64sHSCvbgbcvAR68yN61CcZ5bBzwYkEEoIWE9/0j9RpGoJWklTrAXHdZG8W/9mi4QcSl0KUBMdzsI1NhX/CvZvArZGZBu0AlE=
+	t=1791329593; cv=none; b=VXGQTSZ+96RbXH3x6PCk2mLvDpcOLBLOokX9rMjsZAspDKskrQYKftnhuZNA1r8JdLJugz/QHWB3ENbvAjimXtV+4C37SdYrDOCmFazBE/yT1ysle/eS5CInxPdw5N5efdn8Ec0lMmniLmEMdAF94bUBj5Txgn20dmQ0ZRVySpQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791329592; c=relaxed/simple;
-	bh=6do5GILneM2SelSiDGSkhgGo9BTvgOAIY7d7Bg1SjQ8=;
+	s=arc-20240116; t=1791329593; c=relaxed/simple;
+	bh=jeh8wX1VtM8rIztS1mGHGilDl1cowvi7CkMOJho//9g=;
 	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=HLFxp5jt1o6Fj9cjLbh+aK0ENN1PyK6g6Rw9qAJ7byGJvHMA9+ClPifzmYGTKXKXyy8rAELTTQrdgRZolpW4POk8Vk59m8GOoaMNFxLDg4Jj5bolvZTqDDZSgp0++AMLWj8tNU8ERqHwfQULJ7rb8R5lxOJf3hhKpYSWQx3DdTg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--praan.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=MnEnWh2f; arc=none smtp.client-ip=209.85.215.197
+	 To:Cc:Content-Type; b=hkuhnWJIwU88/J22UJaKRLRZutihIue8iv3HehyZFv9WKY9uD+dt6eqUT09GYHkpUhKw1wKDIreBFvx/PHz9QrGjbu4XmcfDB6HKmCQPXdt5K4lwsEJXw6saiMG7sJPPsCr9bkVZpcx22WeCG67qjsH37dGfP8+RFGq6Y+w8dvg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--praan.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=VdtbWuDA; arc=none smtp.client-ip=209.85.215.200
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--praan.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="MnEnWh2f"
-Received: by mail-pg1-f197.google.com with SMTP id 41be03b00d2f7-cca35cf9f77so2002007a12.2
-        for <linux-rdma@vger.kernel.org>; Tue, 06 Oct 2026 16:33:09 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="VdtbWuDA"
+Received: by mail-pg1-f200.google.com with SMTP id 41be03b00d2f7-cc4216aee8fso3642596a12.1
+        for <linux-rdma@vger.kernel.org>; Tue, 06 Oct 2026 16:33:11 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1791329588; x=1791934388; darn=vger.kernel.org;
+        d=google.com; s=20251104; t=1791329591; x=1791934391; darn=vger.kernel.org;
         h=content-type:cc:to:from:subject:message-id:references:mime-version
          :in-reply-to:date:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=Uzjnm4DC8/yngbTXbJn1X0a1+gZkIVZaTLffWNrxWJE=;
-        b=MnEnWh2fR6g1/Zzg1XlOWgScAw+AQt1DDv2dqPeh/wfRdCXRJ4kPh3e2uOOe1gVAc6
-         uSRyBWI2PLCHM3h7GjbPRSAg/QCv2P1Ly34zAkdXv85tyZSuY881wgoeU9FxTVRLu3qo
-         yfVgXbpIbOY5gdxNLIwsGKen3+CKHErb2JfKlFF+AEx9fHcOt2Vbz8eLV9gQ6duWctaW
-         ujoR4ERDLpk8dZIu+CP1LYUt0lNoI3dG2kj3JBcjvdfejJ5an520et1SL1kTqQkyT4Ue
-         Hkc1H/WySsePnInMCowfSCQWij7R4pcg/Aq8yv7WZaFKqsZ0tDSk/b4QMXjCjGBQvKFq
-         ajzQ==
+        bh=6upXy1ggiAmqRn8NzAPWCi+VBffm0mcFL33X4iCEF+M=;
+        b=VdtbWuDAr0QAZhJjWAvENo+r7eEE8Ko6rX13d+fSRMAzhMMefhMEXPc84N5s6QKL0C
+         31/WefkyE6rp3yOAuqdkfD2Ai7dn35WWNG6368TjLwCIyo4wXlYmNhOgdyDfft5PrZri
+         5XkeRCxBBB0ITKgUTrAZfLrsvySbZCC8L/nxuxRofO6PuiQr8fPk7338ByD8/h1pJsxH
+         NHfXKnFOzez0sWHNwq7DugNkewjR7MgITCSDiSqYv9+1dna+k+M+VjtQB6eaWVmUzlPe
+         /oXNhTMM03yRf73tweBF43zXkOMAXTlXuBM0USED7oIQYDCLfHBDGvIBnN4vpFbT7DEC
+         6FYg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791329588; x=1791934388;
+        d=1e100.net; s=20260707; t=1791329591; x=1791934391;
         h=content-type:cc:to:from:subject:message-id:references:mime-version
          :in-reply-to:date:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=Uzjnm4DC8/yngbTXbJn1X0a1+gZkIVZaTLffWNrxWJE=;
-        b=DMcqg+Fq+xkFHuJjBXse6VNKBJ/un/FbBtUZW1hUAvwU+BdwCopMtdf7Pz4Bf/pBBl
-         DX9dN7ed/7vWMxn8oAn4SuNEJLIHa0967vJdXUo8zjlD75/nQ4jBq30dxuiriWQcaoSM
-         jSOGMLRudpMy6tOoSt2+0fUUs4cgBe6s8aHQ4FI3Wszw23lSzQB+9hiDW9bjatSZduEN
-         GnAMNzGrSqh1eZ8iFW0KjEXJx9qB8dfP+I8i8utUPqRdN6BF6hL++kp8l1CSCtEhlGhG
-         Ef3Z91GOCGc+4NuOz4CO/pGP2nkkMNbY9Nr+0h5CWar0ZY1HZLlnxAr7WgD9VpI5ZYV2
-         Ez9w==
-X-Forwarded-Encrypted: i=1; AKwUvBzCmxyG3NIypnbPnBsUZW2UMcY3gVfCisM2Ir0JR7kC2c7Nvol2Anhi3BgmMG2C5HkZBfq5f+yRYhKy@vger.kernel.org
-X-Gm-Message-State: AFuF++lpT+s62m70a3Bx0BjxtBL68HzbO9f5BMxPy0OAulKjb1N+dmz6
-	xCrgnQho3uuyfxYM4x4/Q9brSkQaiIDnG78/62CY+8cziZSjkPQlZaX1FCa6WSfSWATtnTE8zk4
-	Aeg==
-X-Received: from pgbd18-n1.prod.google.com ([2002:a05:6a02:64d2:10b0:cc7:b263:342e])
- (user=praan job=prod-delivery.src-stubby-dispatcher) by 2002:a05:6a21:484:b0:3de:247d:73de
- with SMTP id adf61e73a8af0-3e133fffe0bmr404483637.19.1791329588288; Tue, 06
- Oct 2026 16:33:08 -0700 (PDT)
-Date: Tue,  6 Oct 2026 23:32:45 +0000
+        bh=6upXy1ggiAmqRn8NzAPWCi+VBffm0mcFL33X4iCEF+M=;
+        b=dvOgPKlYN5IyUyllKk9LJ85e4S9E1S2rcPTP9ppxW6bTCKmYb1ygkxzrsJvM8s4Sw7
+         zzDNzEQMCuSPCW9GxGNceUg1SAb14C/h+OyFmQZYGbp4W82WqvinsYkwL2k/YyfzhjvH
+         11UH+l9AsVSdY4iejiTIvCr0lZsoAf/9WFkaE3z7ouyOqxRUhoe73jozoMQdi0RYUB2f
+         7u6FPP57uIBUYIi6huTwRmxak8BJfhgCO2xavBErjdIwD+oIeK1nrt1QaHrVLI5eU2G1
+         CED6XPVB0AAEtIWseS1Dg3aXpKC+wEyx5niPdKC90ZbEIBnxXqF7juSHALojZP4GJCtF
+         /dWw==
+X-Forwarded-Encrypted: i=1; AKwUvBx5ZeIFbfda3ThNQL1JFJzuP2Xi7cF6fxbT3RTCwaIbCltX5JeQHPWacq933ME3NOZ2k3mJuVHkGYTg@vger.kernel.org
+X-Gm-Message-State: AFuF++k52ZtkU5A3pu0Z3jrqtzyTrz8nuStNCO1aO9DvX5v4wkvc5cw/
+	YGjXUmglRRp/QI5phedfyyDU9ijA7TgQ3QA+3d5ynV+k3gWrg2mxhCZkBgNW9S2JDFxIwcrE6Dj
+	8KA==
+X-Received: from pgej2.prod.google.com ([2002:a05:6a02:5402:b0:cc7:d4f0:846d])
+ (user=praan job=prod-delivery.src-stubby-dispatcher) by 2002:a05:6a21:6012:b0:3e0:f4a9:3615
+ with SMTP id adf61e73a8af0-3e1341549e5mr399754637.54.1791329590656; Tue, 06
+ Oct 2026 16:33:10 -0700 (PDT)
+Date: Tue,  6 Oct 2026 23:32:46 +0000
 In-Reply-To: <20261006233248.705086-1-praan@google.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -60,8 +60,8 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0
 References: <20261006233248.705086-1-praan@google.com>
 X-Mailer: git-send-email 2.56.0.rc1.315.gc6ed9934b7-goog
-Message-ID: <20261006233248.705086-6-praan@google.com>
-Subject: [RFC PATCH v1 5/8] nfs: tag READ/WRITE RPCs carrying P2PDMA pages
+Message-ID: <20261006233248.705086-7-praan@google.com>
+Subject: [RFC PATCH v1 6/8] nfs: refuse P2PDMA pages with krb5i and krb5p
 From: Pranjal Shrivastava <praan@google.com>
 To: linux-nfs@vger.kernel.org, Trond Myklebust <trondmy@kernel.org>, 
 	Anna Schumaker <anna@kernel.org>
@@ -73,131 +73,37 @@ Cc: Chuck Lever <cel@kernel.org>, Jeff Layton <jlayton@kernel.org>, linux-kernel
 	Pranjal Shrivastava <praan@google.com>
 Content-Type: text/plain; charset="UTF-8"
 
-A transport must know when an RPC's payload pages are P2PDMA memory,
-so it can move them by DMA or refuse the RPC.
+krb5i checksums and krb5p encrypts the payload via CPU accesses
+while the RPC is encoded, before the transport can refuse it.
 
-Check each page as nfs_generic_pgio() builds the page array, and
-record the result in nfs_pgio_args. The READ and WRITE encoders of
-every NFS version then set XDRBUF_P2PDMA on the buffer holding the
-payload.
-
-Additionally, avoid using READ_PLUS when the pages are P2PDMA memory.
+Fail such READs and WRITEs with -EREMOTEIO in nfs_pgio_prepare(),
+before encoding. Check the task's RPC client, which for a WRITE may
+be the krb5i client that SP4_MACH_CRED swaps in.
 
 Signed-off-by: Pranjal Shrivastava <praan@google.com>
 ---
- fs/nfs/nfs2xdr.c        | 4 ++++
- fs/nfs/nfs3xdr.c        | 4 ++++
- fs/nfs/nfs4proc.c       | 3 +++
- fs/nfs/nfs4xdr.c        | 4 ++++
- fs/nfs/pagelist.c       | 2 ++
- include/linux/nfs_xdr.h | 1 +
- 6 files changed, 18 insertions(+)
+ fs/nfs/pagelist.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/fs/nfs/nfs2xdr.c b/fs/nfs/nfs2xdr.c
-index 9eff09158518..5a8f2eccd068 100644
---- a/fs/nfs/nfs2xdr.c
-+++ b/fs/nfs/nfs2xdr.c
-@@ -628,6 +628,8 @@ static void nfs2_xdr_enc_readargs(struct rpc_rqst *req,
- 	rpc_prepare_reply_pages(req, args->pages, args->pgbase, args->count,
- 				NFS_readres_sz - NFS_pagepad_sz);
- 	req->rq_rcv_buf.flags |= XDRBUF_READ;
-+	if (args->p2pdma)
-+		req->rq_rcv_buf.flags |= XDRBUF_P2PDMA;
- }
- 
- /*
-@@ -668,6 +670,8 @@ static void nfs2_xdr_enc_writeargs(struct rpc_rqst *req,
- 
- 	encode_writeargs(xdr, args);
- 	xdr->buf->flags |= XDRBUF_WRITE;
-+	if (args->p2pdma)
-+		xdr->buf->flags |= XDRBUF_P2PDMA;
- }
- 
- /*
-diff --git a/fs/nfs/nfs3xdr.c b/fs/nfs/nfs3xdr.c
-index e745e78faab0..e39c58883a2a 100644
---- a/fs/nfs/nfs3xdr.c
-+++ b/fs/nfs/nfs3xdr.c
-@@ -946,6 +946,8 @@ static void nfs3_xdr_enc_read3args(struct rpc_rqst *req,
- 	rpc_prepare_reply_pages(req, args->pages, args->pgbase,
- 				args->count, replen);
- 	req->rq_rcv_buf.flags |= XDRBUF_READ;
-+	if (args->p2pdma)
-+		req->rq_rcv_buf.flags |= XDRBUF_P2PDMA;
- }
- 
- /*
-@@ -988,6 +990,8 @@ static void nfs3_xdr_enc_write3args(struct rpc_rqst *req,
- 
- 	encode_write3args(xdr, args);
- 	xdr->buf->flags |= XDRBUF_WRITE;
-+	if (args->p2pdma)
-+		xdr->buf->flags |= XDRBUF_P2PDMA;
- }
- 
- /*
-diff --git a/fs/nfs/nfs4proc.c b/fs/nfs/nfs4proc.c
-index beb659744760..443079f5adc9 100644
---- a/fs/nfs/nfs4proc.c
-+++ b/fs/nfs/nfs4proc.c
-@@ -5721,6 +5721,9 @@ static int nfs4_read_done(struct rpc_task *task, struct nfs_pgio_header *hdr)
- static bool nfs42_read_plus_support(struct nfs_pgio_header *hdr,
- 				    struct rpc_message *msg)
- {
-+	/* P2PDMA payloads move only by DMA */
-+	if (hdr->args.p2pdma)
-+		return false;
- 	/* Note: We don't use READ_PLUS with pNFS yet */
- 	if (nfs_server_capable(hdr->inode, NFS_CAP_READ_PLUS) && !hdr->ds_clp) {
- 		msg->rpc_proc = &nfs4_procedures[NFSPROC4_CLNT_READ_PLUS];
-diff --git a/fs/nfs/nfs4xdr.c b/fs/nfs/nfs4xdr.c
-index 8b3d96b4a0f0..04765b56de28 100644
---- a/fs/nfs/nfs4xdr.c
-+++ b/fs/nfs/nfs4xdr.c
-@@ -2621,6 +2621,8 @@ static void nfs4_xdr_enc_read(struct rpc_rqst *req, struct xdr_stream *xdr,
- 	rpc_prepare_reply_pages(req, args->pages, args->pgbase,
- 				args->count, hdr.replen - pagepad_maxsz);
- 	req->rq_rcv_buf.flags |= XDRBUF_READ;
-+	if (args->p2pdma)
-+		req->rq_rcv_buf.flags |= XDRBUF_P2PDMA;
- 	encode_nops(&hdr);
- }
- 
-@@ -2686,6 +2688,8 @@ static void nfs4_xdr_enc_write(struct rpc_rqst *req, struct xdr_stream *xdr,
- 	encode_putfh(xdr, args->fh, &hdr);
- 	encode_write(xdr, args, &hdr);
- 	req->rq_snd_buf.flags |= XDRBUF_WRITE;
-+	if (args->p2pdma)
-+		req->rq_snd_buf.flags |= XDRBUF_P2PDMA;
- 	if (args->bitmask)
- 		encode_getfattr(xdr, args->bitmask, &hdr);
- 	encode_nops(&hdr);
 diff --git a/fs/nfs/pagelist.c b/fs/nfs/pagelist.c
-index 71f0ce2bc4ea..3ec4e1e5fe1f 100644
+index 3ec4e1e5fe1f..ec535ed3051d 100644
 --- a/fs/nfs/pagelist.c
 +++ b/fs/nfs/pagelist.c
-@@ -970,6 +970,8 @@ int nfs_generic_pgio(struct nfs_pageio_descriptor *desc,
- 				if (pageused > pagecount)
- 					goto full;
- 				*pages++ = last_page = page;
-+				if (is_pci_p2pdma_page(page))
-+					hdr->args.p2pdma = true;
- 			}
- 		}
- 	}
-diff --git a/include/linux/nfs_xdr.h b/include/linux/nfs_xdr.h
-index c0e29b4dfa62..85cdee107559 100644
---- a/include/linux/nfs_xdr.h
-+++ b/include/linux/nfs_xdr.h
-@@ -685,6 +685,7 @@ struct nfs_pgio_args {
- 	__u32			count;
- 	unsigned int		pgbase;
- 	struct page **		pages;
-+	bool			p2pdma;		/* pages include P2PDMA memory */
- 	union {
- 		unsigned int		replen;			/* used by read */
- 		struct {
+@@ -771,6 +771,14 @@ static void nfs_pgio_prepare(struct rpc_task *task, void *calldata)
+ {
+ 	struct nfs_pgio_header *hdr = calldata;
+ 	int err;
++
++	/* P2PDMA payloads move only by DMA */
++	if (hdr->args.p2pdma &&
++	    test_bit(RPCAUTH_AUTH_DATATOUCH,
++		     &task->tk_client->cl_auth->au_flags)) {
++		rpc_exit(task, -EREMOTEIO);
++		return;
++	}
+ 	err = NFS_PROTO(hdr->inode)->pgio_rpc_prepare(task, hdr);
+ 	if (err)
+ 		rpc_exit(task, err);
 -- 
 2.56.0.rc1.315.gc6ed9934b7-goog
 
