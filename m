@@ -1,44 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10F164BF926
-	for <linux-rdma@vger.kernel.org>; Wed,  7 Oct 2026 15:50:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 231751DCB24
+	for <linux-rdma@vger.kernel.org>; Wed,  7 Oct 2026 15:51:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791388230; cv=none; b=pB65TZc5MQtn/sZuco/oNCtQt+O7Umpw3tYkhzWEgV2m8gCy6cvkTAz460RX548w8QQ+muCN3y0tjQAa8NO8O+L6yFwxQtdcZf3htY9HC37+ri1Cv1bWLkd2rye4Td7GnfBBCOU7RWBYRM70Qfpd9K54YkHxguO3XWaUXLB+Fqk=
+	t=1791388297; cv=none; b=l+vg7J9DuZ7bhMwARTHQO1P7hd+ebRtmiDtaAL/HmJfROhru0gwqGzv1+7VcHvfoBqbedKl2R6xzVgDZeMs4QYBXzePUbX5s3973po9G3AUUT9Br4x3vVXW3spp+MJ8JLBtNzr8Cbx2FOz4HhdKWn49XtouUIJTtTzJtFjJ/7VA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791388230; c=relaxed/simple;
-	bh=pvLRFW8X7+JDmC5RQtjtUXX9S03J5a/2DrlcTBCV7uI=;
+	s=arc-20240116; t=1791388297; c=relaxed/simple;
+	bh=X/R3hNnQ4Zh/aF2cuXpB/gMwW+9sIHbjtlHNkVbLulE=;
 	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=APQXHQGSvciI+c7dO3fvOD+/Sv8CP9Kivb6pKLQgKW3/PAlbv7FGGnQF2UuyE0j+Jh+ONrRnKdvG3zfo0VIZ/9XDSIU924bzOiPSChJdtdwqBxckofwQyRKRqBUpGStLaXGVe8BfNYTFtz8zarrHAWPDrn9a8dkXMwkIqXbFwq0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Uc3j68Ip; arc=none smtp.client-ip=100.103.45.18
+	 Date; b=HyibfBFGHPOsrebBRTV8y3tZM3GUP/s1IX/Qcqyny5O5IErRMa6x9s8+yxM8rLF6QX88Cfqt+T8zrhNMWCLpEIz027mgyAaWTqV6BAXAOw6VxnbdD94n3vFJVgfZl98teaKH2Yz3BflYy52QzbG82rv4BdnolbAVdx0O6hNyV/0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BXZTbi81; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Uc3j68Ip"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B8E71F000FF;
-	Wed,  7 Oct 2026 15:50:24 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BXZTbi81"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 929AA1F000FF;
+	Wed,  7 Oct 2026 15:51:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791388224;
-	bh=pFdFHhjGEwXmglS/UrCyXPoNL/oamw+U+4UcHVo4gmk=;
+	s=k20260515; t=1791388295;
+	bh=3mckdnL9nULipfkmzER5PI9KwjPGJBSTx6DsT03dLW8=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=Uc3j68Ip453yNWMo5ppNLcokXTTqnYQ7M8pyTC0mQJJntjcuB4E4kY9k8ephcjQat
-	 9gp/bIxK9/Sxw6nzP9jDlnDd0RKR893Ujt6aWEZ7D1t4kmU8K3q3Wf2dHtHUXB78zK
-	 4dXDvhJUictJ2Du3XOu3lJ414j7coOvsvPIKsLuiKte1EgxV7J2cE3cxPpthpgpIIS
-	 UeHrT9fHGDeLd5V6frT0G9LjyslGaY84COyi7aNqVtrByv5c31kXQgXvvlLXVp6vvf
-	 bZoRrc/nsQzNreNXGTYvkWynGZWK1c5HNN+qu+K7HcEr31fnPBBtEvL3SzNSAyrS9e
-	 JVeSNq88Lu82A==
-Message-ID: <sashiko-outbox-163165@kernel.org>
+	b=BXZTbi81mk/G4vJPxyFXVyc963eR4xnnM0y7Xr0ZoilAuIcXBv6xhG/Dg0N3E+MpQ
+	 VO41PcoCtX3T5aZmQ6rKlOMRvNDz4JKCg56fsXTyy3oP0mT4LoX0+T5SL8srvslXcL
+	 zNIXV5yzY6+k7lmawdtCxtZ1AOskBMveIILSYtOJ6VSXGzF4OQ8kTrvabJybYO1LnU
+	 dGnGEmemTnLq+Il/MfYOt5BtZW1tc37aJITtqF+k/GmfR/GPI9uQgTVMojIlcEtxuG
+	 J9pWpDYZh0WtlcoVOVC/xSn5LVxFn5mUIY74/XHDwktIpyXgAG4mp4Kj0O76SL8Rfb
+	 4w1RgB9cXbzyg==
+Message-ID: <sashiko-outbox-163167@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v3 02/10] RDMA/mana: Create and destroy kernel
+Subject: Re: [PATCH rdma-next v3 09/10] RDMA/mana_ib: Handle error CQEs for
  RC QPs
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Konstantin Taranov" <kotaranov@linux.microsoft.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261007153330.2979799-3-kotaranov@linux.microsoft.com>
+In-Reply-To: <20261007153330.2979799-10-kotaranov@linux.microsoft.com>
 References: <20261007153330.2979799-1-kotaranov@linux.microsoft.com>
- <20261007153330.2979799-3-kotaranov@linux.microsoft.com>
+ <20261007153330.2979799-10-kotaranov@linux.microsoft.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 07 Oct 2026 15:50:24 +0000
+Date: Wed, 07 Oct 2026 15:51:35 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -47,97 +47,108 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 Thank you for your contribution! Sashiko AI review found 2 potential issue(=
 s) to consider:
-- [High] mana: Missing bounds checks on QP capacities cause integer overflo=
-w and undefined behavior
-- [Medium] mana: Integer underflow in mana_ib_query_device when SGE count i=
-s 0
+- [High] RDMA/mana_ib: Inverted RC QP shadow queue mapping for GDMA receive=
+ errors
+- [High] RDMA/mana_ib: QP lookup drops error CQEs for RC RREQ and RRESP que=
+ues
 --
 
-commit 5b497775948fa714374d6418c365f7b62d67deb5
+commit e1f8a51fcdc185eb1ad07f40a479febe1cbab173
 Author: Konstantin Taranov <kotaranov@microsoft.com>
 
-RDMA/mana: Create and destroy kernel RC QPs
+RDMA/mana_ib: Handle error CQEs for RC QPs
 
-Implement kernel RC QP creation and destruction. This feature requires
-extended-WQE and power-of-two-SQ support from the HW.
+This commit decodes hardware error CQEs and processes them on the
+corresponding work queue, completing the failing shadow entry with the
+vendor status. It also defers transitioning RC QPs to the ERR state to
+allow other work queues to be flushed.
 
-> diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/ma=
-na/main.c
-> index fa47c988a2747..329bc9f30aa10 100644
-> --- a/drivers/infiniband/hw/mana/main.c
-> +++ b/drivers/infiniband/hw/mana/main.c
-> @@ -637,7 +637,8 @@ int mana_ib_query_device(struct ib_device *ibdev, str=
-uct ib_device_attr *props,
->  	props->max_qp =3D dev->adapter_caps.max_qp_count;
->  	props->max_qp_wr =3D dev->adapter_caps.max_qp_wr;
->  	props->device_cap_flags =3D IB_DEVICE_RC_RNR_NAK_GEN;
-> -	props->max_send_sge =3D dev->adapter_caps.max_send_sge_count;
-> +	/* Subtract 1 from max_send_sge to account for the reserved SGE */
-> +	props->max_send_sge =3D dev->adapter_caps.max_send_sge_count - 1;
-
-[Severity: Medium]
-Could this subtraction underflow if the firmware reports max_send_sge_count
-as 0?
-
-If it underflows to 0xffffffff, this massively inflated value would be
-reported to the RDMA core, which relies on it to bound user QP requests.
-Could this allow malicious userspace to bypass sizing limits and induce
-integer overflows during queue allocations?
-
->  	props->max_recv_sge =3D dev->adapter_caps.max_recv_sge_count;
->  	props->max_sge_rd =3D dev->adapter_caps.max_recv_sge_count;
->  	props->max_cq =3D dev->adapter_caps.max_cq_count;
+> diff --git a/drivers/infiniband/hw/mana/cq.c b/drivers/infiniband/hw/mana=
+/cq.c
+> index f3002324754f7..18c8e8a98bb58 100644
+> --- a/drivers/infiniband/hw/mana/cq.c
+> +++ b/drivers/infiniband/hw/mana/cq.c
 
 [ ... ]
 
-> diff --git a/drivers/infiniband/hw/mana/qp.c b/drivers/infiniband/hw/mana=
-/qp.c
-> index 15c5d6cefd628..edaf03372cd81 100644
-> --- a/drivers/infiniband/hw/mana/qp.c
-> +++ b/drivers/infiniband/hw/mana/qp.c
-> @@ -442,6 +442,32 @@ static u32 mana_ib_queue_size(struct ib_qp_init_attr=
- *attr, u32 queue_type)
->  			queue_size =3D attr->cap.max_recv_wr *
->  				mana_ib_wqe_size(attr->cap.max_recv_sge, INLINE_OOB_SMALL_SIZE);
->  		break;
-> +	case IB_QPT_RC:
-> +		switch (queue_type) {
-> +		case MANA_RC_SEND_QUEUE_REQUESTER:
-> +			queue_size =3D attr->cap.max_send_wr *
-> +				mana_ib_fixed_wqe_size(attr->cap.max_send_sge,
-> +						       INLINE_OOB_EXTRA_LARGE_SIZE);
+> @@ -490,6 +513,71 @@ static bool handle_psn_cqe(struct mana_ib_qp *qp, u3=
+2 psn,
+>  	return consumed;
+>  }
+> =20
+> +static bool mana_cqe_is_send(struct mana_ib_qp *qp, struct gdma_comp *cq=
+e)
+> +{
+> +	u32 qtype =3D cqe->wq_num & MANA_QID_SUBTYPE_MASK;
+> +
+> +	if (qp->ibqp.qp_type !=3D IB_QPT_RC)
+> +		return cqe->is_sq;
+> +
+> +	return cqe->is_sq ? (qtype =3D=3D MANA_QID_SUBTYPE_SREQ ||
+> +			    qtype =3D=3D MANA_QID_SUBTYPE_MMQ) :
+> +			    qtype =3D=3D MANA_QID_SUBTYPE_RREQ;
 
 [Severity: High]
-Does this missing bounds check on attr->cap allow for integer overflow or
-undefined behavior here?
+Does this logic invert the mapping for GDMA receive errors?
 
-In mana_ib_create_rc_qp_kernel() and mana_ib_create_ud_qp(), attr->cap is
-passed to mana_ib_queue_size() without bounds-checking against the adapter's
-capabilities, unlike mana_ib_create_qp_raw() which validates the queue
-capacities.
+When cqe->is_sq is false, it returns true for Responder Requests (RREQ)
+and false for Requester Responses (RRESP). Since RREQ consumes RECV WQEs and
+RRESP consumes SEND WQEs, this seems to cause error completions to pop from
+the wrong shadow queues.
 
-If max_send_wr and max_send_sge are abnormally large, could this 32-bit u32
-multiplication overflow and wrap around to a small queue_size?=20
+Could this corrupt the shadow queues and user completions if a remote peer
+sends a NAK or a packet drops, generating an error CQE on the GDMA receive
+queue?
 
-This would lead to an undersized GDMA queue allocation while the massive
-size is sent to the RNIC, potentially resulting in out-of-bounds DMA access.
-
-Additionally, if QPs are legitimately created with max_send_wr =3D 0 or
-max_recv_wr =3D 0 (e.g., receive-only), queue_size becomes 0. The subsequent
-call to roundup_pow_of_two(0) at the end of mana_ib_queue_size() evaluates
-to fls_long(-1), which is undefined behavior in the kernel.
-
-> +			break;
-> +		case MANA_RC_SEND_QUEUE_MMQ:
-> +			queue_size =3D attr->cap.max_send_wr *
-> +				mana_ib_wqe_size(1U, INLINE_OOB_EXTRA_LARGE_SIZE);
-> +			break;
-> +		case MANA_RC_SEND_QUEUE_RESPONDER:
-> +			queue_size =3D MANA_PAGE_SIZE;
-> +			break;
+> +}
+> +
+> +static void mana_ib_schedule_qp_error(struct mana_ib_qp *qp)
+> +{
 
 [ ... ]
+
+> @@ -521,6 +609,9 @@ static bool mana_handle_cqe(struct mana_ib_cq *cq, st=
+ruct mana_ib_dev *mdev,
+>  	case CQE_TYPE_LWR:
+>  		consumed =3D handle_mmq_cqe(qp, rdma_cqe->rc_mm.fsn, poll);
+>  		break;
+> +	case CQE_TYPE_ERROR:
+> +		consumed =3D handle_error_cqe(cq, qp, cqe, poll);
+
+[Severity: High]
+Will the QP lookup in mana_handle_cqe() successfully find the QP for RREQ
+and RRESP error CQEs?
+
+Earlier in mana_handle_cqe(), the QP is looked up via:
+
+	struct mana_ib_qp *qp =3D mana_get_qp_ref(mdev, cqe->wq_num, cqe->is_sq);
+	if (!qp)
+		return true;
+
+mana_get_qp_ref() searches for the base ID without MANA_SENDQ_MASK if
+cqe->is_sq is false:
+
+	qid &=3D ~MANA_QID_SUBTYPE_MASK;
+	if (is_sq)
+		qid |=3D MANA_SENDQ_MASK;
+	qp =3D xa_load(&mdev->qp_table_wq, qid);
+
+However, mana_table_store_qp() only inserts the SREQ (with MANA_SENDQ_MASK)
+and Responder RQ (without the mask) into the QP table, omitting RREQ and
+RRESP.
+
+If the lookup fails, will this cause hardware error CQEs for the Requester
+Receive Queue (RREQ) and Responder Send Queue (RRESP) to be silently droppe=
+d?
+This appears to lead to leaked shadow WQEs and indefinitely hung RDMA clien=
+ts
+during READ/ATOMIC response errors.
+
+> +		break;
+>  	case CQE_TYPE_UD_SEND:
+>  		if (cqe->is_sq) {
+>  			handle_ud_sq_cqe(qp, rdma_cqe, poll);
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261007153330.2979=
-799-1-kotaranov@linux.microsoft.com?part=3D2
+799-1-kotaranov@linux.microsoft.com?part=3D9
