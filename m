@@ -1,169 +1,235 @@
-Received: from BN1PR04CU002.outbound.protection.outlook.com (mail-eastus2azon11010010.outbound.protection.outlook.com [52.101.56.10])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27B0949158C;
-	Wed,  7 Oct 2026 12:28:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.56.10
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791376130; cv=fail; b=nNk5fpIlA5K7GjQxIm+WTKKSbjtC++pY0L/G4AmOxJId8eZI/OF0hL58FfTxI00k7oJM3yvimxNNNuTNdjFL+MJ3Fk/3kWn5VhyDPzbSgAajQpJmKHFvs2zPfZ8W3L3k4OlAt+ixtyafmXUwi2l/1aSP6G5HkI2JVNmeJ8xkg1E=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791376130; c=relaxed/simple;
-	bh=dxHO6BJpT2CCrR5UnHDL06muFJE8yhOcN9xPPkf5eCk=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=YWWGEI7HswwunimZw5Igku7NykVinyzY6FBLdmg+0RQBSvURMIPkOMfJC5xb4MiA+MxVvmmtPCTbsSbUiQaRVVbamGDKGoQ4vv6vAlNyIsvQF/E9u1Rndrbv7EUaNosYAQAeSyg95nH0vS9y9tL+LaX0GmKI4WuABRW3R2J/Ye8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=ankEm3EJ; arc=fail smtp.client-ip=52.101.56.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 16BEE3D47BF;
+	Wed,  7 Oct 2026 12:53:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791377623; cv=none; b=WM3s3C1UrTHldWpUwtODKgfW9QtKLtf7g3p5Hn6sKKUlq8XSJutKDHYocyEZcV9/uKcerW7H2Cpn9YX8GsaiaPxI/sHjMJsKDER91bd4XYjERT8WQALfHi9FtY7MorZp/uWLoZrfhtQs8UU2qURwZJWOqr0XYUBUEdzD5Xn6c2A=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791377623; c=relaxed/simple;
+	bh=9cPNyRHGG2WmvFE7FD4D24TAmZAqJuJz5eqk8zSTrv8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=FeROu8a+0msJF1dxyiq6O4iBimSUtRVAaDWKA33EYcQYovtS1RE4iPykHeL8qdgs2sJ3Hin+7mUPqCh98+Mr4jh8ka1Y+e0h8mpo1ZOva3TGkkuerG085nJ/2Z5+DHWaKylsJuT/Ro6hHJDNjIZov/CTewFyJWQ4+6JEopuNtco=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=mFyUo4Iv; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="ankEm3EJ"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=WK3bu0sOXaslZuknzhG4sZrdEHMLzwdfVKVv2aG5So8qox+IvOeogN/o5k+YjFf2TapTe/KuUJIh5S+QnTdwAKDJEaL7/3/ZaJViNEK7mjjLPNpgqaRUVRB0xOVzvpA1PIHTmDLXpi4nuWkkG9I4Ts6+X5sWv0l7HgBqeJKow1UOWrOGW5WE2Bf7CXvhQ2OD9EkroakGh2eKa2KqVH587hXynz7sBBtq3LXrxX3pmkbnWKAXn/xQxRX20WpkM8+a1z6avBvfKGvcqM53FR4fsZS5q91VpWXoIoFS6FBK5hdC78dcivMkPCrIPzLTgsaOAcd6aTUc4Pq0ga7RZ+8a5Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=w40A4VKZaVONL9nN8kTnCSxbyJhtCFzUgjwQXbvJa5g=;
- b=P5ZQZzPNvi/9reH/Zm5BcX7w008VvgW7O7d0K7h1RjyJIBFzFOapxpU6jcaEfSLniLZF1ahcJxLTfGZ1/FCL0Tg+JtrAh6DyU0uMBk7QjvkwTpN3amPYcyOCEB1nP1Bcy1YWEnM6wftfceJKsCxBQHjc6KXQGR/nD/ymUjNksjWGESHaO4vRschO3TEU3+PEaH5Xhz8Y2vzfFVTAtQ1Bo0qGFzXhr5tdaBqPldX5vlSQZRxQPV1gviuY+dwQiJp0RS0fnbKvz1KyxGsLuxCvfg3NQ2swRrFj4n6+sXGFqTeNOLFQk0eM9dBJBBMCJ4MI8OT3Je4Rz6zbqSLynliBmQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=w40A4VKZaVONL9nN8kTnCSxbyJhtCFzUgjwQXbvJa5g=;
- b=ankEm3EJa9CExW/Qg7rntcfcyzD7+4KP3Tck9EUL+iXNubPkRAvxqP1Wz3KJIvERfSq/e6YWZzyvKGqtaEyLzhTaB4bO9Ul49B4vR4yvIWHF/t/IcCZ8xU/13OdM73ywsPgB8YdSU3uNPuq2lPGWQgkqrk8F9ASOogiGitZxfp5TphLEF/mIXpLoPekaOKOY1VRnhy3Gg5Pa5PSK22wagAkGTP5I1cugHOd+llYMFJy9pS2Re6+tjFuhT9ys53JA7aMD7NkXeIsDJHQle+1Z/9L1fa6BqfAsLEc6moSx4gsGQx+wUyyutj+0YvdqHCpGHPMNwVdrE36uwvJC9saouw==
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from SA3PR12MB239779.namprd12.prod.outlook.com
- (2603:10b6:806:5a5::7) by SJ2PR12MB9190.namprd12.prod.outlook.com
- (2603:10b6:a03:554::7) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.496.16; Wed, 7 Oct
- 2026 12:28:32 +0000
-Received: from SA3PR12MB239779.namprd12.prod.outlook.com
- ([fe80::2ac4:299a:52e3:5d9c]) by SA3PR12MB239779.namprd12.prod.outlook.com
- ([fe80::2ac4:299a:52e3:5d9c%6]) with mapi id 15.21.0496.015; Wed, 7 Oct 2026
- 12:28:32 +0000
-Message-ID: <f47082d2-dc2b-450d-844f-7c6bda66c051@nvidia.com>
-Date: Wed, 7 Oct 2026 15:28:25 +0300
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net V2] net/mlx5: Lag, reset vport speed on MPESW teardown
-To: netdev-bot+sinfo@kernel.org, Tariq Toukan <tariqt@nvidia.com>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
- <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
- Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
- Paolo Abeni <pabeni@redhat.com>, Edward Srouji <edwards@nvidia.com>,
- Gal Pressman <gal@nvidia.com>, Kees Cook <kees@kernel.org>,
- Leon Romanovsky <leon@kernel.org>, open list <linux-kernel@vger.kernel.org>,
- linux-rdma@vger.kernel.org, Maher Sanalla <msanalla@nvidia.com>,
- Mark Bloch <mbloch@nvidia.com>, Moshe Shemesh <moshe@nvidia.com>,
- Saeed Mahameed <saeedm@nvidia.com>, Shay Drori <shayd@nvidia.com>
-References: <20261006112415.259157-1-tariqt@nvidia.com>
- <179128616987.2231598.8807408813571443447@kernel.org>
-Content-Language: en-US
-From: Or Har-Toov <ohartoov@nvidia.com>
-In-Reply-To: <179128616987.2231598.8807408813571443447@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: FR4P281CA0339.DEUP281.PROD.OUTLOOK.COM
- (2603:10a6:d10:ea::13) To SA3PR12MB239779.namprd12.prod.outlook.com
- (2603:10b6:806:5a5::7)
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="mFyUo4Iv"
+Received: from weh-cvm-dev-vm.y50bckvjo0hefgfnzfztsfttff.phxx.internal.cloudapp.net (unknown [20.169.55.37])
+	by linux.microsoft.com (Postfix) with ESMTPSA id DC8CE20B7166;
+	Wed,  7 Oct 2026 05:52:36 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com DC8CE20B7166
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1791377558;
+	bh=pgXXnsxbosFwljyh+v9NmPF4yFb98y3x90Qgy6et6YA=;
+	h=From:To:Cc:Subject:Date:From;
+	b=mFyUo4IvqOg+G1TYdkFWFRcW2cgrsBhxgO5PLj8sXYeFF82tXzp4/vKeYEf/uRsn8
+	 TggdHiK8ylLWtpdLbZrQ00/hmDdsCyG0xPilTMyk9837cph/CmJvcQETH11A7xk0mH
+	 VkK5N8qxB4go+I4FnjwCuvoYQstRHBzTZL22O380=
+From: Wei Hu <weh@linux.microsoft.com>
+To: Long Li <longli@kernel.org>,
+	Konstantin Taranov <kotaranov@microsoft.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Eric Dumazet <edumazet@google.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>,
+	Haiyang Zhang <haiyangz@microsoft.com>,
+	"K. Y. Srinivasan" <kys@microsoft.com>,
+	Wei Liu <wei.liu@kernel.org>,
+	Dexuan Cui <decui@microsoft.com>,
+	Shradha Gupta <shradhagupta@linux.microsoft.com>,
+	Simon Horman <horms@kernel.org>,
+	Erni Sri Satya Vennela <ernis@linux.microsoft.com>,
+	Stephen Hemminger <stephen@networkplumber.org>,
+	Shiraz Saleem <shirazsaleem@microsoft.com>
+Cc: netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-hyperv@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Aditya Garg <gargaditya@linux.microsoft.com>,
+	Dipayaan Roy <dipayanroy@linux.microsoft.com>,
+	Kees Cook <kees+treewide@kernel.org>,
+	Kees Cook <kees@kernel.org>,
+	Manish Awasthi <mawasthi@linux.microsoft.com>,
+	Wei Hu <weh@microsoft.com>
+Subject: [PATCH net-next v6 0/4] net: mana: concurrent HWC requests and dynamic queue depth
+Date: Wed,  7 Oct 2026 12:53:26 +0000
+Message-ID: <cover.1790665894.git.weh@linux.microsoft.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA3PR12MB239779:EE_|SJ2PR12MB9190:EE_
-X-MS-Office365-Filtering-Correlation-Id: f11c1e01-1d57-473f-bcb4-08df246e7fc8
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|366016|1800799024|376014|7416014|23010399003|18002099003|22082099003|11063799006|4143699003|6133799003|10067099003|56012099006;
-X-Microsoft-Antispam-Message-Info:
-	qh6CyK5evMGT/asLFFnHxVLsVYw+6kxitVRjGUgIdAPM1Vmvraygl7OBg/FmJCqo00Xb6IrNHnJCsebb6jdVAy1KpsM6P1xgEF9xgYxwYynPst4NPhuO7hxUUO+7M4fxputJ4Szrdy/rd/niGJbwr4ni6ciEe+1FQ68f5jWJv5dzSImebt/liTTVyCboX7KuKOvhjGkNUlhgml1eJN/v+4V26G13a8nPJVLRXjHWYjU9xKJEzWZ7bOmHHkzY2SRdnBPOtyugm0VaVsErmd/SGov6+ulICumTZddB2xfdhnKC+py5D7quDrZhg6cIQoQ/nsIFH4q6CwSpQ7n1Ujb0pLH6kUxE2KCX8C1bnWolH0mEUIzQiIWVuMWy9IKbFaRfDoYrhQF9K1wJV4ujrkNXJPj1VtjhpoeiV6qt3Wa75XQAP/EbWtDBkFDsDUJXNETKE5qzUcKz3gxuPTyuphTdI7eqxylSez6dry7+HqQkzSDYxHTBBAS6S7icbGC+agO5cMe07eLn8XIZDGsiXMhJaYdmCDys+G4XOA2seWe7r9gPXiETFT1Rpb4H+iJZRiN6KCoApo+MBPZdZL1t/adayizTTyMAhawHPXU6XBHbXbOu7EufhT5qybate7iuHnMmIFyXWZNL8435/auUrMvT/gDmwohZwiAwp57usy3wD2k=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA3PR12MB239779.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(376014)(7416014)(23010399003)(18002099003)(22082099003)(11063799006)(4143699003)(6133799003)(10067099003)(56012099006);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?RTBLK2l0dDFvazdlUVhXSzJsSUpkTVFGT3ozMlpReHpqbmVJNjlrQnRSRGlk?=
- =?utf-8?B?c1pjRUNsdlZqNnJ0RlorOHZJNUNHZFdnc2EwT0VoSjRSTXB5d0ZqODBRVW5K?=
- =?utf-8?B?dmh4VEl6U0IrcDZGTW4vNjJPeVV0N3pvVlI1OHhWdmdSb2VTKzZrdG15MTFy?=
- =?utf-8?B?SUVHZWpsa0F5aEtPWVVLb0dDU0NVRlJROU1QU2xBeXJoenJHUndIVVRhYTZ5?=
- =?utf-8?B?VDRLSlNYTXZ4dTJzOCtqbGNvNGxLdjUxRmN1MndaZ1I0MXQxa1lNSXBmUFlM?=
- =?utf-8?B?UWVRNno1R3k1Sis3Y0NZMlNzM0NHdGxtL3lPTFZwNnQ5bXBVNUVYVGdIa1JN?=
- =?utf-8?B?cDI2NHU2bW9zdXM3RkhtQjBHRk5RbFJhWGVGL2NyV1Y1a3NKaS9EaStQNWUv?=
- =?utf-8?B?TzVZWkovUEUwajRiWWQ2MFR1aHcxK08zNTJ2Z0pxbmhGQjRlbnFaMFZsVVg4?=
- =?utf-8?B?VjhIMFpzS1NQNmR1cnJCdHhpMHRsdytJMlpwSy9Rb3QrajNkY01SRDZUejZz?=
- =?utf-8?B?UWliMm9jeU5EWGIwcG1sT1FmdTRaRWRranVSWTM4UW5QN2g0eElnMCtxdCtM?=
- =?utf-8?B?OXM0QW5QeVc1blAxb0gyZWhHL05zQ3QvVURnWVBVRkNBTGpDQi81RU9kNnZ2?=
- =?utf-8?B?b3RyRmNCWCtkZ2tnZjJqK3AwTzg1bXJuUWs5WGI0WDByWklVWWZ5ZzFZY2lF?=
- =?utf-8?B?RGcvWmV1Q3htQk5GZnRKSXI0MVdDVXZSdkNUbEFiL2E4a2EzcklFK0hDTG1I?=
- =?utf-8?B?YXZ0bEZJTWxYNVFqL1h5Qmh6NW5HNDUrdENqVUZVSmptV2dZR2ZxdW1RU0lY?=
- =?utf-8?B?K0lUUHNtcVVOaG1DOFNXczQwRkJaZ29Kd3hRbU1pb05SWStkUVhqR1ZGWitP?=
- =?utf-8?B?SEk4RVBFdnJuNnpGRk44aldJYnp1MkFCZURRekpWVVA1NzRRMGdLdnZ0TW41?=
- =?utf-8?B?U1hEK0JoY0RYMFZTMHdFc2tyWmoyYU54aFRUU0V0WG4xalBvVWVtc1JjWFpv?=
- =?utf-8?B?TVcyeE5YMVY3STg2eTI1WlUrZ0k2bW9vUzllY3dia2lsREpqOGlDZXNlZVR3?=
- =?utf-8?B?WmJxWHZtTVdYMDdNVVdpa1d4dkRZZjhMSCs4QmFheE9zYVF5Yk5PTE0wMStu?=
- =?utf-8?B?TEY3aWlZZVhYOFpteXY5ekpKTjhNVXdrZTJnSlNSSjFMbTRnYkdKWjE0UmZD?=
- =?utf-8?B?MUtsUnRWd3R6NjNBNUdMMjdKcHphQTZ4WENWdzdaTzlneTlFbmJZQkJDWWs0?=
- =?utf-8?B?U3NpK3F1QzYvcjR1NXRpbzE1ZjB3S3ZvSTE5WW5ncGd3WWkrekxNVEN3UTJ2?=
- =?utf-8?B?Y2JxSjBVWTFmd0pCcm85bFhrWlZRcGtsMzQvbGFGdTd1U2d5UytKYzVQR2ly?=
- =?utf-8?B?N0UyWDFhOURGaXpFb2ZXamJrc0g0TjdscTk3UEZQeEN4L1M0YTlFalVvWnYx?=
- =?utf-8?B?d1QrNDNwZWlSaFlLQW8rTWw4TFRGR1lWWjVwY2Y5N0pURVRRcTRieTgvQncz?=
- =?utf-8?B?TUIyZ1BRazhycG0yTVFZQjdDZVRaNGNwaC9pU2Z0ZGdlY1g2dE1zVFljeVFT?=
- =?utf-8?B?WlJuY1RpM0RaSG1hTExDVWU3dnlqd3B3YUw0SFYvdXpBK3NQeWUvVEN0eTJN?=
- =?utf-8?B?cjNUaitWbmRzVTg2Z1VHTER1MVJLb3FpZGZuN0h6VUpJdWhickZXRE9LQzQr?=
- =?utf-8?B?ZFpoUUFYdGxXLzZxT1JZWFFXdDhISnROWXZybk5jY0R0bGlMRzVLT0cwUXpv?=
- =?utf-8?B?bXNpaEtMZEh6QktvS1JjSFVoTytUWlpXWlFtY2ZHWkc3ZzFGRGJzUzVNWFU5?=
- =?utf-8?B?SitRLzhIMW9jelJEUnREcW1vSVB2ekphUHc1UEtlYlRuZkVwcHNteFNQQnBI?=
- =?utf-8?B?MUhRUG9SWXhtOHJiVU9QUkdkWndZRHFQZ0Nzb3YvMnlqT0d2SUt5UWcxOStX?=
- =?utf-8?B?ejcyQzNENGRRNm5JMjZ1cWx1MXRZZVBMbGhMOGxCeHpLM3VMKyt2cnc5eGtB?=
- =?utf-8?B?cnNjYm9lb294RE1VdlZib21lVkkvWS9RMUNLUVdrMi9RS255YnpZbWc5dHFx?=
- =?utf-8?B?bkxtVkR0RDhFemo5ak5pd0o2bkNCSXlmMndNczBZVm5mUUtPdVV0dlRHOWZ3?=
- =?utf-8?B?ckNDRVZvbngxbzVvT3E0WEdqbXMrNnE5WVBuRzcwVHZyNDlBTk5Gb1J6ZU1l?=
- =?utf-8?B?R2JXa2VDdXIzRXhRS0l3QUF1MWt3YVAybWMyZFgyYnErNHhzRWVqa1crY01T?=
- =?utf-8?B?dXZJY0Z2cHdMZWs1bzRTdjhCN2c2V1B2MmxEWHRKYVp1Q3BJcGRCRVI3YnBM?=
- =?utf-8?B?bG44eHlicFdoL2dRSlZRVmdaTFVMR1ZpVHZHWE5HemVqN0lBVTkxdz09?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: f11c1e01-1d57-473f-bcb4-08df246e7fc8
-X-MS-Exchange-CrossTenant-AuthSource: SA3PR12MB239779.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Oct 2026 12:28:32.0922
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: AUkHPo5+BqsR8HXX18lyORDW30wXWuWbJ4EfWeF0VzCxOaabqqq8EeFBgpcvwFgfKb09uDZ3/guFKBhXyGP6uw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR12MB9190
+Content-Transfer-Encoding: 8bit
+
+This series picks up Long Li's v5 MANA Hardware Channel (HWC) work,
+addresses its review findings, and retains its four-patch feature lineage.
+Safety changes required by concurrency and repeated HWC reinitialization
+are folded into the patch which owns each behavior rather than posted as a
+separate fixes series.
+
+I have taken over follow-up upstreaming from Long. Long remains the author
+of every patch, his existing sign-off is preserved, and I added mine for
+the changes and submission custody.
+
+Patch 1 prepares HWC ownership for safe reinitialization. It serializes
+complete shared-memory transactions, tracks possible PF ownership,
+retains mappings after an unacknowledged destroy, fences the HWC EQ before
+releasing CQ state, and safely publishes and withdraws the HWC CQ table.
+
+Patch 2 gives each slot independent completion state, withdraws caller
+storage before sender return, handles the response-versus-timeout race,
+and prevents depth-one slot reuse after a genuine timeout.
+
+Patch 3 adds concurrent requests with bounded admission, serialized SQ
+posting, separate sender/response ownership, stale-response quarantine,
+coherent timeout updates, private setup publication, and sender draining.
+
+Patch 4 rebuilds the depth-one bootstrap queues at validated depths from 2
+through 128. It validates both reports, message limits and doorbells,
+keeps the untouched bootstrap channel for depth one or reports above 128,
+and restores fresh bootstrap queues after a failed rebuild only when
+teardown was acknowledged.
+
+Generic Ethernet/RDMA CQ callback refcounting and generic service-work
+versus device-lifecycle serialization are independent pre-existing work
+and are intentionally excluded. Malformed-RX handling, duplicate-success
+correlation, and broad device-controlled allocation/timeout policy caps
+also remain separate follow-ups.
+
+Changes in v6 (v5 -> v6):
+ - Keep the four-patch v5 structure while folding review-required HWC
+   ownership, teardown, timeout, publication and fallback safety into
+   their owning feature patches.
+ - Serialize complete ESTABLISH_HWC and DESTROY_HWC shared-memory
+   transactions. Record possible PF ownership before MMIO submission and
+   clear it only after DESTROY_HWC is acknowledged.
+ - Retain PF-visible queues after an indeterminate destroy. Fence the
+   dedicated HWC EQ and withdraw its CQ from dispatch without freeing the
+   mappings, then retry teardown before assigning fresh queues.
+ - Destroy the HWC EQ before CQ and completion state. Release-publish the
+   CQ table and wait for IRQ-side RCU readers before freeing it, without
+   adding per-completion refcount operations.
+ - Withdraw the caller's response buffer before return and quarantine a
+   timed-out slot until its late response arrives or teardown cancels it.
+ - Return -EBUSY for healthy slot pressure and reserve -ETIMEDOUT for an
+   admitted request which receives no response.
+ - Publish slots under the inflight lock, protect response state with the
+   per-slot lock, and retain sender/response references until both sides
+   finish.
+ - Synchronize hwc_timeout updates and publish the HWC only after queues,
+   admission state, caller contexts and the direct EQ test are ready.
+ - Replace the goto-heavy request and channel-creation flows called out in
+   review with focused admission, submission, wait, build, validation,
+   rebuild and fallback helpers.
+ - Treat reported depth as a maximum: rebuild exactly for 2 through 128,
+   retain untouched bootstrap queues for 1 or above 128, and require the
+   rebuilt report to repeat the selected depth.
+ - Enforce directional request/response maxima against both the report
+   and allocated buffers. Rebuild only for exact 4096-byte reports while
+   permitting bootstrap operation for other nonzero maxima.
+ - Validate BAR page geometry and every stored doorbell. Invalidate the
+   old HWC doorbell before re-establishment and suppress MMIO while the
+   invalid sentinel is present, without adding full validation to each
+   data-path doorbell ring.
+ - Remove the proposed capability bit because driver-version
+   advertisement occurs after HWC establishment and cannot negotiate
+   creation-time behavior.
+ - Preserve current net-next behavior which always uses the
+   hardware-reported dest_vrq_id and dest_vrcq_id.
+
+Changes in v5 (v4 -> v5):
+ - Shortened comments and documented the existing error paths in patches
+   1 and 2.
+ - Rejected apparent success from a response accepted before request
+   submission.
+ - Guarded CQ unpublication when establishment failed before cq_table
+   allocation.
+ - Required successful retry teardown before creating fresh bootstrap
+   queues after an initial destroy failure.
+
+Changes in v4 (return to net-next after the v3 split):
+ - Reworked the feature series into four standalone patches for handover,
+   per-slot completion state, concurrency and dynamic depth.
+ - Added bounded admission, guarded sender accounting, timeout quarantine,
+   queue-depth bounds, message-buffer sizing and rebuild validation.
+ - Reset routing IDs for each establish and rejected a missing doorbell.
+
+Changes in v3 (v2 -> net v3, historical fixes-only posting):
+ - Split the combined series after maintainer feedback, posting fixes to
+   net and deferring concurrency and dynamic depth.
+ - Added response-buffer withdrawal and stale-response handling.
+ - Removed pcie_flr() teardown fallback and retained resources after an
+   unacknowledged destroy.
+
+Changes in v2 (v1 -> v2):
+ - Bounds-checked the SGE pointer derived from inline OOB size.
+ - Protected active-sender accounting and drained senders during
+   teardown and failure exits.
+ - Rebased on net-next e354f7d60f14.
+
+v1:
+ - Combined CQ-table lifetime, queue sizing, RX validation, teardown,
+   concurrent-request and dynamic-depth work in seven patches.
+
+Validation:
+ - All four patches pass diff-check and strict checkpatch.
+ - Every patch passes targeted GCC 13 and Clang 18 W=1 MANA
+   Ethernet/RDMA builds on base c66d93e68728.
+ - Sparse and Smatch add no diagnostics over that current-base baseline.
+ - Release kernel 7.3.0-rc4-mana-hwc-v6-4p-g7065a269bba5 booted via
+   one-time GRUB entries on two Azure MANA VMs.
+ - Each VM passed 32-worker control stress, queue resizing from 8 to 4
+   and back, MTU/link changes, three standalone PCI remove/rescan cycles,
+   and two further cycles while control queries ran concurrently.
+ - MANA rebound, peer connectivity recovered, and both RDMA links
+   returned ACTIVE after every cycle. No new MANA error, timeout, warning,
+   UAF, refcount, RCU, lockdep, KASAN or KCSAN report appeared.
+ - Fresh safe-kernel and four-patch 16-stream TCP receive throughput was
+   24.338 and 24.337 Gbit/s respectively. Concurrent control stress
+   measured 24.339 Gbit/s.
+ - Four-stream 64-byte UDP sustained the requested 399.986 Mbit/s on both
+   kernels; loss was 0.812% on the fresh safe baseline and 0.041% on the
+   four-patch kernel.
+ - RDMA devices and links remained active. ib_write_bw reproduced the
+   environment baseline status 21 / syndrome 0x1c6.
+ - The request, timeout, rebuild, fallback, message-limit and shared-
+   memory state machines are unchanged from the previously injected
+   depth/message/doorbell/destroy/response fault tests. Fresh runtime
+   additionally exercised the new HWC-specific CQ publication path.
+ - Both VMs were finally rebooted to the known-good
+   7.3.0-rc5-mana-vmtest-g72d3fcf802c4 kernel with the safe saved_entry,
+   empty next_entry, active MANA/RDMA and a 24.347 Gbit/s smoke test.
+
+v5:
+https://lore.kernel.org/all/20260908035201.402424-1-longli@microsoft.com/
+v4:
+https://lore.kernel.org/all/20260901200018.3194525-1-longli@microsoft.com/
+v3:
+https://lore.kernel.org/all/20260803234355.636038-1-longli@microsoft.com/
+v2:
+https://lore.kernel.org/all/20260721234339.1476932-1-longli@microsoft.com/
+v1:
+https://lore.kernel.org/all/20260715032942.3945317-1-longli@microsoft.com/
+
+Long Li (4):
+  net: mana: prepare HWC ownership for safe reinitialization
+  net: mana: give each HWC message slot its own completion state
+  net: mana: support concurrent HWC requests
+  net: mana: add dynamic HWC queue depth with reinit path
+
+ .../net/ethernet/microsoft/mana/gdma_main.c   | 129 ++-
+ .../net/ethernet/microsoft/mana/hw_channel.c  | 928 +++++++++++++++---
+ .../net/ethernet/microsoft/mana/shm_channel.c |  58 +-
+ include/net/mana/gdma.h                       |  14 +
+ include/net/mana/hw_channel.h                 |  56 +-
+ include/net/mana/shm_channel.h                |  10 +-
+ 6 files changed, 1000 insertions(+), 195 deletions(-)
 
 
-
-On 06/10/2026 14:29, netdev-bot+sinfo@kernel.org wrote:
-> External email: Use caution opening links or attachments
-> 
-> 
-> Hi!
-> 
-> This is an automated message. This series looks like a fix, but its
-> commit messages seem to be missing some information:
-> 
->   - How the issue was discovered, e.g. hit in production, hit during
->     development, syzbot report, manual code inspection, LLM or static
->     analysis tool scan.
-> 
->   - Whether the issue was actually triggered, or is only theoretical
->     (e.g. found by code inspection). If it was triggered please include
->     the symptoms, like the stack trace or error messages.
-> 
-> Please do not repost the series just to address the above. Instead,
-> reply to this email with the missing information, so that reviewers
-> can take it into account. If the series needs another revision for
-> other reasons, please include the information in the commit messages
-> then.
-> 
-> The evaluation is done by an LLM so it may be wrong, if you think
-> that is the case please reply and explain.
-
-it was found by code inspection but it is not only theoretical. I 
-reproduced it on CX8 by enabling MPESW, tearing it down and see that 
-query_vport_state on the VF still returns the aggrgated speed.
+base-commit: c66d93e68728cfb5f40b40d0f24129d7768faf43
+-- 
+2.43.0
