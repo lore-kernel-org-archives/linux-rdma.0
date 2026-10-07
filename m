@@ -1,212 +1,187 @@
-Received: from mail-wr1-f50.google.com (mail-wr1-f50.google.com [209.85.221.50])
+Received: from mail-pj1-f54.google.com (mail-pj1-f54.google.com [209.85.216.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96D183515CE
-	for <linux-rdma@vger.kernel.org>; Wed,  7 Oct 2026 01:43:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.221.50
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791337429; cv=pass; b=iXUxjOMy4oSMqcohNMxyCZcr9RuTvazcXJQxQONktgw/RP2dQ6QAkLszWusS2yIfXfDvw3/rsRmwYCgxMNN1F3UMdee5N74LTb5zhIq8bzShJgkHCfcymwHfI2o5YrP5tH41JNw2lUXMFwy9zO/k7FkeyoyO/MnG35z1slpo6OU=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791337429; c=relaxed/simple;
-	bh=MBWdR1GxlvvVqaEyNujZIDbcJb/clAS5HIycWC0LYf4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=cj8yTO5CBYS7nrvwsUKaz6WaDrwtxnVOuB4yu4B3B1ZlttBEa6g0JtoDDid4oLom27q04FD54u1oja7NS8Zq+zxVMMtwW08FHY5s7S/Jcz0ZEdHJQiqy6LTEONCW7e7sck6aEI78X+4AMygksIVLwsXPHwnQAgPUZoRj/VI92Rw=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=octane.security; spf=pass smtp.mailfrom=octane.security; dkim=pass (2048-bit key) header.d=octane.security header.i=@octane.security header.b=VIy4kl8K; arc=pass smtp.client-ip=209.85.221.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=octane.security
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=octane.security
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D220333A02B
+	for <linux-rdma@vger.kernel.org>; Wed,  7 Oct 2026 01:56:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.54
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791338215; cv=none; b=WyAcnN/1hLL6wr54gSed4MiOmrLnXp+uVFakDXtUNc/g1iwoFRc1tMZhBBDdRPuUAltorde1wpFYg+Vg4rwTFuXpXKc5IbN8zC+CwFNQyeF98gzAoZnyDkyGQBvMpDkJ9T4qUV44Dfa9TfWLg26emKpBvtOAhCZnm56yxSapt2c=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791338215; c=relaxed/simple;
+	bh=aaoTkzvGraljyhIZpjL82TahsK7uxoazLyixX/8oTGE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=bVZ1ZAsTFvLMQ1V9Qn08kM3Tf0LNkCAPDMYnp5zlWAXJ3Og79wS+7GSVwHdcSC/Cm56v5osDt6dxIvbf7VvRcYVUP7FjjjIO7N0L387hX078YLnZtDQlBqzWw5zMRPq0b8yar0YcTq5jYEnEtRFfog/CZK0yFCUOjkL2vT/WfxQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=snu.ac.kr; spf=pass smtp.mailfrom=snu.ac.kr; dkim=pass (1024-bit key) header.d=snu.ac.kr header.i=@snu.ac.kr header.b=y6OhR2d2; arc=none smtp.client-ip=209.85.216.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=snu.ac.kr
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=snu.ac.kr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=octane.security header.i=@octane.security header.b="VIy4kl8K"
-Received: by mail-wr1-f50.google.com with SMTP id ffacd0b85a97d-48b02b1b4cfso903453f8f.0
-        for <linux-rdma@vger.kernel.org>; Tue, 06 Oct 2026 18:43:47 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791337426; cv=none;
-        d=google.com; s=arc-20260327;
-        b=A4luj53dy1G8iypaLp7ZDVTQDyBDMF3er5hkLe9esK3vn0rtY3+lNSPzFZodFCuBO7
-         TRefa5D4CsF8sFwIMqr0W60bgyQDiyUPVUkw4sY8TySvr/Fgdc8Fl57jZdrz5NcACOhu
-         UAiaiRr/alxw3MMHL+S4eSh3aLpzlW7Asfh7nCqaZBkp/d7Es9BILZ4+XVtp4NMiJKYI
-         Tqo9dpbZ1T0wM6INztCffgdKyRF/2gOaVDTLHye3FanlQM6S2dVdZb6PO5MpEJDldEUG
-         2TkugE4ZOpiNmdvILg5RNOeWGPPnuMf0LOHZgcST3RO7gj+9tkAzGIGgWbaYlA9ykQ2k
-         tmQg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=Z2R0isuQWmYfjmDBBvPENUql08JMDQxxwrQkmjzWgTc=;
-        fh=zGkRwm4CpTZBURNg1pOTO2WNAI8xDZ/TxpL0Tl2mfuM=;
-        b=NV+VsJhgV78Y/RrAV05Tzf7E3FV8SboOBMZjIwCt1GyHlthX50lCheQmiut2VEPMGO
-         fatC16tkggLPcz4tcDkK/zwX4UjfbV1MYabWiiMho2M7Xd7rw4zd0IWNvvMoKdStZ8fI
-         cOyWAT5XCK09W0zkTfqlXlbGzPumhI+dN61Ty7XLM/sDDSlWlo8tGhtPcRFdLypgE5JW
-         TYN84nTJ/z+Uk69cKvE3Pl/IxfH212GgdTbcZRtaOiEeaNh35T4UQsvdcZCzXCUwUlcR
-         y/NrCEMZYkvCsE8BDyVjgp7rsODWLplR6Sc5SdfTHDNGJlKrgF5Z85fdS+Ys+zDLjdqo
-         hdYw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (1024-bit key) header.d=snu.ac.kr header.i=@snu.ac.kr header.b="y6OhR2d2"
+Received: by mail-pj1-f54.google.com with SMTP id 98e67ed59e1d1-3a0aaa0fd13so1831601a91.2
+        for <linux-rdma@vger.kernel.org>; Tue, 06 Oct 2026 18:56:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=octane.security; s=google; t=1791337426; x=1791942226; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+        d=snu.ac.kr; s=google; t=1791338209; x=1791943009; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=Z2R0isuQWmYfjmDBBvPENUql08JMDQxxwrQkmjzWgTc=;
-        b=VIy4kl8K9nyYoJ4xTaIvuOA3XJmxtego6NP/Ovxz2YwHq14dsATF9Xh4SapdlJs+CQ
-         /x09sWIL4C0wt3+QbNVyKeMrZziS2GNd/ysyZG87MI5kC/yRzi477L5C3V6tCTwvleye
-         X+wb+N2Ala64VzrjYlOCm+rToIPHHRhctloxc93rgGhabklyurVXeah5ZJpfg8l0nPJY
-         y+h8I8t51fp8wJj4dhBV8CVjtPZQY3YUeChHLeJ0q2KDG+3fxuM5qyyyUnwuxJuHSGOF
-         wAbWM7BiabaQjuWnhDnfVcBuoDGOcBr7PSdFMjFFtxU0cQbfZjEH0tUhAqAbrM4TPksA
-         9sew==
+        bh=1ydTs/xapg98AneWzvg1UmYdjd9wqdEiZ1v4vRT6sJY=;
+        b=y6OhR2d2m+kPGSMpzLRpu72k9x303GXzOQbLbVIJV6Nh30ylnetL9thCHXjGDWGzdW
+         KgW91FQbabUvOaTqYJmK5T/bq30O2p2t3169/sEpQUMGxxfF4LoL4nvq819rNhaZgk3Z
+         fJMrFUPwWofs7mAzExYn4bzpD6Yc4ZOvssU50=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791337426; x=1791942226;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
+        d=1e100.net; s=20260707; t=1791338209; x=1791943009;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=Z2R0isuQWmYfjmDBBvPENUql08JMDQxxwrQkmjzWgTc=;
-        b=sWp504LpPENCRMpvB6cMCq3S4pke5aMJYputuhKDVIFadIu+55Wj0cUNJbbD6TdQUE
-         w3VtTAS/wHmL12doXG73b/KEEhVOEXR5rMM16eqHTmAoVBx8F0DHesNBP8BVQuRGZlcE
-         sEJDt5OGj3tDjjxIp/D3HqGoWyKmfjXf40G0RN3E6Q2sVl8AtLbkA9qxhtjjR+MIWSsM
-         yUVcX1mEeALeFAQ2nTO4e+CeyqdEFuapiO5vJLJPx7quqNZRSlel7LLTfhlKYx4cnjZ4
-         8FxQ+hSLrUokTH/Jme27APM7aYrNc5zFKCgVOorlVTwMrgvOSFIGnXdsIAy3AuyqDNsC
-         BtFA==
-X-Forwarded-Encrypted: i=1; AKwUvBwLQjc3LwXPM+XBV+qByN566Sc6uv3mCpEW6HRUKeSIHSaqTZ6rrwRRyQPsK/67WZo3Pv481cJnAQ23@vger.kernel.org
-X-Gm-Message-State: AFuF++mMftkeayoKyw1O8C0h/8QZbzgGeEKLo+9iS/62jcjyUgSl+OYd
-	7wNSbxtvusgjCUrUaal4MmPw578aR56g6OfyBshrCezA5WiAcmfw6SnioX7AkDVpcnenmLAVAKx
-	0ax8oYdKU6fdOUpr3dBws4x/1vCF+ecJYsfQTwbi0kg==
-X-Gm-Gg: AYBFou3QKCi9Qz1dv1hAk57oUyv8Ew5zBYqD5OoZKYlvVmlW2s35tnPuNDK+X05GDCH
-	9A4+vRxXYjNWqktuejFDMilCwNN/C5vP2y9hFCpjiXeErzWHnER6wT4a45hwuwpQ8aj9Wb7Zg4e
-	RJi89iJpdinivC+g9bJmyfJfhZgIe0z1No3vo0q2lQmBykedvO4AibMy//0WPm8wH4sGxjuU6LZ
-	t/M140hBcAphib3qCASCCs7RDoPZSWSZwYOCv8Sk4gADkCeLs4wTFvGRgm5AhjGH71edf9LahNV
-	S/IfnfRRuURfidk2NWnNv9EsJDpY8fpqFIMeXsR0804GpxfRybWG0QKm6tQoA4WN8u+7Fg9zzqG
-	/ES0e7rhc6XygMQTI6FwhEZBW5bOdNgzvnjMgCUUEWoM=
-X-Received: by 2002:a05:600c:3f0b:b0:4a0:ec5:46d9 with SMTP id
- 5b1f17b1804b1-4a180080187mr8701305e9.0.1791337425901; Tue, 06 Oct 2026
- 18:43:45 -0700 (PDT)
+        bh=1ydTs/xapg98AneWzvg1UmYdjd9wqdEiZ1v4vRT6sJY=;
+        b=vSgqXzSyu5hSvrBRsTEHzKQBHdC9UZILX46B4Zq0yAbluWLCI72Ub+n1olp65tfHdW
+         lo6tTdjvc9T89BeU+8xXvxRgi74kbWuuX6sV45DBvcDij6jTpKtE4rwnO3u9dO1wXYoL
+         UrMIz1duOoloH37m6XTFvRoC7WG+F+7riulw/+ZZKbR7Iz+4BuzJqpN4zEF/ZnpGezZK
+         xFkk9AEL4LD3MBM5ZhoKdOqK/sOjGQOZN1/ExM1MYsQxq2gcHrEwR1NBkFYU5MQ00yuv
+         3aFucEFpO6SzECGzVVR9PsLh0kiyHbIU9rJAqMVoKtnrGogdhqB7ol0niqkeEn6PjF6u
+         sz7g==
+X-Forwarded-Encrypted: i=1; AKwUvBynTY3OM8t1MI6iePNYNYNcCctUmPE1+QUTtm8EBeKg1jkRIAo9BcJ/QfEJPXkoNpZzfECI9sUc/V6U@vger.kernel.org
+X-Gm-Message-State: AFq9FYJVmSrzGp0RwgksDnbo5gH+rOnpreAu77SVgksXlVKU6rEM4Ps1
+	/ot2gy1ynTqIg0QsNEc+pE+YWozuzaffBVXz0ep/NTZz4lUWwaGBncljDENu2CzdMV4=
+X-Gm-Gg: AYBFou3PIRcT84jIfgxvPV8M9kjb60aVOyBpb5Zcnw5PNpx3anvULH9qLhU5rQdrqc9
+	0ut/ACKCjPG2m6UTd3bc8aGopzhpZTBahpBggFSdZjzJ8qVQ4S9xC1GlBOpz1ILFwmg5bFk1ggb
+	rZN+xu3AY32BzY4BXzvD8mfV8Sr87YLGJ+Rf3EmaLqfRvIcC1ZDQnh1HA9V8MUgSgYdlHTz0am0
+	cCjidOpoXN20N1NOEd6Qa9bh0o1/Zx91Axdh22K5dw9io5ZwIDwuqmCxlFbopXLzyxJHJIIB2HG
+	Uuqu/Str8YtwOeBDaIbAaHDCM6ZUFcdYKjexmozAq0gkv/g78CvrBZkcQtN/uw17qrQOrjmqrV7
+	57djrBkcLKXauVT1y4Fcdefdsi6tGejBKnaw/gwJQyz9mW8iocDMjnLNu0HAD3iFwmv4lLjfsVq
+	Bf4ZBnHJei57J2Yrv7d+0+M8zOwyLf/Oane0W9ZPhDatsDdlORU36aZsO3exyUcNt8
+X-Received: by 2002:a17:90b:4a44:b0:3a5:37e7:7118 with SMTP id 98e67ed59e1d1-3a8a0741012mr737133a91.16.1791338209145;
+        Tue, 06 Oct 2026 18:56:49 -0700 (PDT)
+Received: from 1c1aead48890 ([49.142.45.25])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3a89ab84fa7sm2045718a91.4.2026.10.06.18.56.45
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 06 Oct 2026 18:56:48 -0700 (PDT)
+Date: Wed, 7 Oct 2026 01:56:43 +0000
+From: Seongjun Hong <hsj0512@snu.ac.kr>
+To: Jacob Keller <jacob.e.keller@intel.com>
+Cc: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
+	Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, 
+	Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, 
+	Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, 
+	Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net-next v2] net/mlx5: allocate DMA pool structs on the
+ pool's NUMA node
+Message-ID: <elnyg2237rbomihddfd6b2vjoqonvdyl5fgcnzyquzn4kk5u6g@t3jm4ppczv5i>
+References: <20261006-net-mlx5-numa-allocate-pool-page-v2-1-0dc4c2eb1376@snu.ac.kr>
+ <345a40de-5353-477d-8be2-8c4e6468875e@intel.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20261006125720.81227-1-shubham@octane.security> <661e8b900c97d701382af26462bead7277eaa41f.camel@kernel.org>
-In-Reply-To: <661e8b900c97d701382af26462bead7277eaa41f.camel@kernel.org>
-From: Shubham Antil <shubham@octane.security>
-Date: Wed, 7 Oct 2026 07:13:34 +0530
-X-Gm-Features: AclHuK8z21OahSGKxZJkHHl4QwGCa6UFLpgcI58u5NRwTzLJWRTQgLKYVsOlN_Y
-Message-ID: <CAEBzjKEFZdKWHa5puYH6dKvaesCf-KGmZ+Z=fFECRi_0PhiY_A@mail.gmail.com>
-Subject: Re: [PATCH net] net/rds: ib: drop fragments shorter than the
- header-declared length
-To: Allison Henderson <achender@kernel.org>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, 
-	"David S . Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
-	linux-kernel@vger.kernel.org, Giovanni Vignone <gio@octane.security>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <345a40de-5353-477d-8be2-8c4e6468875e@intel.com>
 
-Hi Allison,
-
-Thanks very much =E2=80=94 I'll carry your Reviewed-by on the next revision=
-:
-
-Reviewed-by: Allison Henderson <achender@kernel.org>
-
-And no objection at all to crediting the earlier private report:
-
-Reported-by: sungbyeongchan <tjdqudcks0424@naver.com>
-
-This bug was found and reported by our team at Octane Security. Would
-it be okay if we add Reported-by tags for the people on our side who
-reported it along with the first reporter in the V2 patch?
-
-Reported-by: Shubham Antil <shubham@octane.security>
-Reported-by: Giovanni Vignone <gio@octane.security>
-Reported-by: Robert van Eijk <robert@octane.security>
-Reported-by: Paolo Gentry <paolo@octane.security>
-
-I'm happy to send a v2 with everything folded in - your Reviewed-by,
-sungbyeongchan's Reported-by and ours. Just let me know which you
-prefer.
-
-Thanks again,
-Shubham Antil
-
-On Wed, Oct 7, 2026 at 6:43=E2=80=AFAM Allison Henderson <achender@kernel.o=
-rg> wrote:
->
-> On Tue, 2026-10-06 at 18:27 +0530, Shubham Antil wrote:
-> > rds_ib_process_recv() accepts an incoming RDS/IB fragment once the
-> > receive completion reports at least an RDS header
-> > (data_len >=3D sizeof(struct rds_header)).  It then trusts the
-> > header-declared total message length h_len: for the first fragment of
-> > a message it stores be32_to_cpu(hdr->h_len) in ic->i_recv_data_rem,
-> > and rds_ib_inc_copy_to_user() later copies up to h_len bytes from the
-> > fragment pages to userspace on recvmsg().
-> >
-> > The number of payload bytes actually received into the fragment page is
-> > data_len (after subtracting the header), but it is never checked agains=
-t
-> > the amount the fragment is accounted to contribute to the message,
-> > min(i_recv_data_rem, RDS_FRAG_SIZE).  A fragment whose header advertise=
-s
-> > a larger h_len than the payload it delivers is still linked onto the
-> > reassembly list.  The fragment page comes from the per-CPU receive cach=
-e
-> > and is not zeroed, so rds_ib_inc_copy_to_user() then copies up to h_len
-> > bytes to the PF_RDS reader, including the uninitialized tail the receiv=
-e
-> > never wrote.
-> >
-> > Reject a fragment that carries fewer payload bytes than it is accounted
-> > to contribute before linking it onto the reassembly list.
-> >
-> > The issue is reproducible under KMSAN with two hosts over rdma_rxe
-> > (Soft-RoCE); the same reproducer confirms the fix stops it.
-> >
-> > Fixes: 1e23b3ee0e94 ("RDS/IB: Receive datagrams via IB")
-> > Assisted-by: Claude:claude-opus-4-8
-> > Signed-off-by: Shubham Antil <shubham@octane.security>
->
-> Hi Shubham,
->
-> Thanks for working on this.  This patch looks good to me, you can add my =
-rvb:
-> Reviewed-by: Allison Henderson <achender@kernel.org>
->
-> Also, this bug was found and reported privately by another contributor, w=
-hom I had
-> counseled to send a patch publicly before I had noticed this one.
-> https://lore.kernel.org/netdev/20261006205204.1322102-1-tjdqudcks0424@nav=
-er.com/
->
-> I find that patches equivalent, and this patch was posted first. But I wo=
-uld like to apply
-> the reported by tag since sungbyeongchan was the first to report it.
-> Reported-by: sungbyeongchan <tjdqudcks0424@naver.com>
->
-> Thank you both for working on this bug!
-> Allison
->
+On Tue, Oct 06, 2026 at 02:57:28PM -0700, Jacob Keller wrote:
+> On 10/6/2026 7:16 AM, Seongjun Hong wrote:
+> > The mlx5 DMA pool structs (mlx5_dma_pool, mlx5_dma_pool_page and its
+> > block bitmap, and mlx5_frag_buf_node_pools) are allocated without a
+> > node hint, so they land on the node of whichever CPU happens to create
+> > or fill the pool, while the DMA pages they describe are allocated on
+> > the pool's node.
+> > 
+> > The pool, page and bitmap are dereferenced on every block allocation
+> > and free. Allocate them on the pool's NUMA node as well, so that all
+> > of a pool's state lives on one node.
+> > 
+> > These allocations happen on the control path, so the performance gain
+> > is expected to be small; the change is mainly for consistency.
+> > 
+> > Signed-off-by: Seongjun Hong <hsj0512@snu.ac.kr>
 > > ---
-> >  net/rds/ib_recv.c | 9 +++++++++
-> >  1 file changed, 9 insertions(+)
-> >
-> > diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c
-> > index bd6cb3ffa..fee77b6d7 100644
-> > --- a/net/rds/ib_recv.c
-> > +++ b/net/rds/ib_recv.c
-> > @@ -949,6 +949,15 @@ static void rds_ib_process_recv(struct rds_connect=
-ion *conn,
-> >               }
-> >       }
-> >
-> > +     /* h_len must be backed by the payload actually received (data_le=
-n),
-> > +      * else the unwritten frag-page tail is copied to userspace.
-> > +      */
-> > +     if (data_len < min_t(u32, ic->i_recv_data_rem, RDS_FRAG_SIZE)) {
-> > +             rds_ib_conn_error(conn,
-> > +                     "fragment shorter than header-declared length; fo=
-rcing reconnect\n");
-> > +             goto done;
-> > +     }
-> > +
-> >       list_add_tail(&recv->r_frag->f_item, &ibinc->ii_frags);
-> >       recv->r_frag =3D NULL;
-> >
->
+> > Changes in v2:
+> > - fix typo and specify the structs are allocated on the control path
+> > - add a prefix net-next to the subject
+> > - Link to v1: https://lore.kernel.org/r/20261005-net-mlx5-numa-allocate-pool-page-v1-1-01f4283932b4@snu.ac.kr
+> > ---
+> >  drivers/net/ethernet/mellanox/mlx5/core/alloc.c | 11 ++++++-----
+> >  1 file changed, 6 insertions(+), 5 deletions(-)
+> > 
+> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/alloc.c b/drivers/net/ethernet/mellanox/mlx5/core/alloc.c
+> > index a92cf545bdaf..dcd281c4691d 100644
+> > --- a/drivers/net/ethernet/mellanox/mlx5/core/alloc.c
+> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/alloc.c
+> > @@ -110,7 +110,7 @@ static struct mlx5_dma_pool *mlx5_dma_pool_create(struct mlx5_core_dev *dev,
+> >  {
+> >  	struct mlx5_dma_pool *pool;
+> >  
+> > -	pool = kzalloc_obj(*pool);
+> > +	pool = kzalloc_node(sizeof(*pool), GFP_KERNEL, node);
+> 
+> This removes all the benefits of kzalloc_obj() here...
+
+Do you mean type checking on compile?
+
+> 
+> But I guess the __alloc_objs API doesn'thave the ability to add a node?
+> It seems like we'd benefit from having support for the node parameter..
+> but it does seem tricky to add. kzalloc_node_obj() could potentially be
+> added. Staring at the implementation I have no idea how complicated that
+> would be.
+> 
+> Still, this only really changes two allocations and they're pretty
+> obviously correct.
+> 
+> Reviewed-by: Jacob Keller <jacob.e.keller@intel.com>
+> 
+
+Jacob, thanks for the review.
+As far as I know, there is no node-aware variant of _obj APIs yet,
+so kzalloc_node() was the only option here.
+
+> >  	if (!pool)
+> >  		return NULL;
+> >  
+> > @@ -127,19 +127,20 @@ mlx5_dma_pool_page_alloc(struct mlx5_dma_pool *pool)
+> >  {
+> >  	int blocks_per_page = BIT(PAGE_SHIFT - pool->block_shift);
+> >  	struct mlx5_dma_pool_page *page;
+> > +	int node = pool->node;
+> >  
+> > -	page = kzalloc_obj(*page);
+> > +	page = kzalloc_node(sizeof(*page), GFP_KERNEL, node);
+> >  	if (!page)
+> >  		goto err_out;
+> >  
+> >  	page->pool = pool;
+> > -	page->bitmap = bitmap_zalloc(blocks_per_page, GFP_KERNEL);
+> > +	page->bitmap = bitmap_zalloc_node(blocks_per_page, GFP_KERNEL, node);
+> >  	if (!page->bitmap)
+> >  		goto err_free_page;
+> >  
+> >  	bitmap_fill(page->bitmap, blocks_per_page);
+> >  	page->buf = mlx5_dma_zalloc_coherent_node(pool->dev, PAGE_SIZE,
+> > -						  &page->dma, pool->node);
+> > +						  &page->dma, node);
+> >  	if (!page->buf)
+> >  		goto err_free_bitmap;
+> >  
+> > @@ -278,7 +279,7 @@ mlx5_frag_buf_node_pools_create(struct mlx5_core_dev *dev, int node)
+> >  {
+> >  	struct mlx5_frag_buf_node_pools *node_pools;
+> >  
+> > -	node_pools = kzalloc_obj(*node_pools);
+> > +	node_pools = kzalloc_node(sizeof(*node_pools), GFP_KERNEL, node);
+> >  	if (!node_pools)
+> >  		return NULL;
+> >  
+> > 
+> > ---
+> > base-commit: 8b4e7209c842d8cb9516f1f5ef0a88aa2d8831a6
+> > change-id: 20261005-net-mlx5-numa-allocate-pool-page-2ee20a04147e
+> > 
+> > Best regards,
+> 
+> 
+> 
+
+-- 
+Seongjun Hong
