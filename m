@@ -1,71 +1,76 @@
-Received: from mail-wm1-f54.google.com (mail-wm1-f54.google.com [209.85.128.54])
+Received: from mail-wr1-f42.google.com (mail-wr1-f42.google.com [209.85.221.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D143F3914EB
-	for <linux-rdma@vger.kernel.org>; Wed,  7 Oct 2026 22:32:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D39553914EB
+	for <linux-rdma@vger.kernel.org>; Wed,  7 Oct 2026 22:32:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791412348; cv=none; b=Y8HHU4rUzOiIdod9zgW6bk0shV0atEl1YF4NEvPEg1UW7UVlzNlltFEayJi7WjeDtYtQJ9byEJgAX3EvLvddSF1O6QE38YkJ0pNw1gFB3hXevp/55Zs7ZhGByx3656cL8ftjw7fc530+F0KpTP4sHBoXObtgo6lztYlcWEUb9IM=
+	t=1791412351; cv=none; b=ZxBbjJ6h3cP+SijSffshYZq3GLUvFelvqkMgaIVpxgB1pmpngEYMbql+yY0ewbu8G7WI+H9H37YRx1mtOYndNy/gInURuwA0HeaXPmlC1u6wyZ9YoBjeE1lljXZghpOMOt/07GPsu7nfWVyVllmYb0FxXxCAhWFFlAKU6Thj5yY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791412348; c=relaxed/simple;
-	bh=4M18bMgvdRGJDiD23QqzIbOOWWQtTqINwj+K3l62LQQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=CmQjj/pyIiestXKPYrUQioi1nKLXsaZqG/mA6AXgg7+jzX58EFwHY/wsJABMG9AYcFc2psBN9uhf+JnlJD3lS3kTcl8HpyEC46HdF09+22tHxFLbZ4Vf3m/DVMXbioUAxtaMe4ISWekPUjOFUb/1j4FaEJ0nzMhOen66mY6xsBs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XYZ59GIs; arc=none smtp.client-ip=209.85.128.54
+	s=arc-20240116; t=1791412351; c=relaxed/simple;
+	bh=eqCo2qRnfA4vab3NPA7vegOdnDJoFIu9N3t2rRi1Y6s=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=tMwdbb3oI3KqitWKFUtCe5s44Ja8ZUDDivQEsxfEJISd2zRL1hZMFIDCc5xDuIoj3bxZPnUnL0q69plJDJuTCTuOmmw6Fj0QFg698SHOdE5a5zSzX+nhfdKo5fpwoP7jpt11Z8gns49jYwS2oD8qDHscBvTfAhGHvopSiqvVA/U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Ji5wZR4o; arc=none smtp.client-ip=209.85.221.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XYZ59GIs"
-Received: by mail-wm1-f54.google.com with SMTP id 5b1f17b1804b1-4a02667ccebso19293055e9.0
-        for <linux-rdma@vger.kernel.org>; Wed, 07 Oct 2026 15:32:26 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Ji5wZR4o"
+Received: by mail-wr1-f42.google.com with SMTP id ffacd0b85a97d-48c4d99c32bso1951620f8f.1
+        for <linux-rdma@vger.kernel.org>; Wed, 07 Oct 2026 15:32:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791412345; x=1792017145; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=LsGpXsjhSIt6Hp0xVu6tLDy44l44xi/XBn27PlboDSQ=;
-        b=XYZ59GIsxpnHuTNP5U8zx5cdGE6HpdQ4T4y71a9yyZb+gZAjDUJ56MUGx/nVhWpj7x
-         mQYfqaBJiX9CpSLdEso9AFr2yTpAIMLLxor/+AvtanCHodS9/hx18l5DmXEsAzaagfb+
-         7vZ+j83ci69tqiCPfJpyV2ejNELGuQo8+y9/KXS2lzk3GrzKQmosTH6Wm1h2j6cURGV4
-         4NQXdrDPFjlws34h0GcjKoaZ65VUU8+8TUZjLgJ1N1Tph/ilgqvFPw2EqX2v0JzpE4QQ
-         nW/2uwfibQwfh466PLn/YSzDPZImFabaeDe5L5akiXrtBcIwQY35ssGd22t7zNtVr7qX
-         GAhA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791412345; x=1792017145;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20251104; t=1791412348; x=1792017148; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=LsGpXsjhSIt6Hp0xVu6tLDy44l44xi/XBn27PlboDSQ=;
-        b=E2gI0DP/gb0Blosyu9N4vG23QX0jyk7S4tg9g8y0eerYDgOhmQ2/69fZh1IZ8uimV7
-         RttZ+7FIaUs1hvkloFhtRAjAuZ8/ZGTsnDodohmHJtzR/QVcVqY+SDPKuHh04sRnJ1fc
-         bIQuTXKxjmAbPk9cqO4ITBsFHdWBHqCvB4nGXvBnH50YG3Ln9i25o0se+rGJJlQ5S5/J
-         8QpQNRTS1HfplrODJu5zkCcre44rZJVvNfLwwYIGKTIrFi+X9l21n99fhR5q7JEt0WNB
-         Qe+kw8j5WJNEaWGGtOPBH8LkfBqXlLaDTztNol0fabvCZU7g0Id/EvRKNRhpqsNpj2k1
-         4nKg==
-X-Gm-Message-State: AFuF++mFWKm/+0NyLMn1UIKd9ahyuBf14xxLBsmnMGqQ2ay/BBF53t08
-	jPQf5ZTiUL6Us0ZHhoCPX9j3eX4mBDUbecgYV/xRcBLIaLpo47mjNoAaEhEN
-X-Gm-Gg: AYBFou32SOt00eRzYce4aDCpH67LpK2wapa6QeDngqVLDNY8u7EsChX70G7fPK51g/d
-	iY5CAqh+hQRf3Y7X3kAQWOGOjLTc0tbnQ2kSZN5DD6JxgYUrfzpYsjA+UlGa48yQnjEsJ0u13QF
-	6jinV4bTvetlIphoGaHqxCogA4BjA8BRpxkyDlLK8+Y9NBhRHJL50Xn6w4RTd/prmikqQ11o/77
-	uTkWwgsh+b9XIlQyk3JIJ/JuR9FxsLk3vX6RJXjkGwfECDdPMNveyV+RRSZtb0KeDIo+x9GpUKN
-	KYeCkDC2xK9IP/HpV79db5B5LI3B3xVj0ZZ7sN7JwmHWMo4RnUV/rXtbNxTmiIkx362y8Q2STXG
-	ny1tk/Kpm9IXeRHHFKC0KgwnUxBnk8zVVQ99Dk2shmjM3cUtDfI38rdc7TE5IurKcgazdjnnFCO
-	ZFL6qnHwnMRrwtJSxJeG827BWYxVzvtWVbv0Bq0sc=
-X-Received: by 2002:a05:600c:c4a6:b0:49f:ec98:f030 with SMTP id 5b1f17b1804b1-4a1806719aemr65687335e9.33.1791412344962;
-        Wed, 07 Oct 2026 15:32:24 -0700 (PDT)
+        bh=8eJKNdBnTPZ3hgwXGaLanmX1oM8J06Yj2qpGihu5c/k=;
+        b=Ji5wZR4opdbrmpCXFbGEzdUxtNfXV74euscJMAWjIyzHzacjaxwKiaFeIZAELtupvC
+         MhyYtvLZiVMU8z95AfqYZVyQ0X08TgR44xM3OUw06O7w35whN1CNgyiBNN3YQQZwbcN6
+         PLbaGhi4E7a1kXe3XLsJAdYKAuTkVwmWrXQBJ/PfZeUyvFkAUZFn6QrbvHrwLj61NT2s
+         bYUUAYi5GTStTWkP9dBT6/L0poUp6Q6cdvYSzttNnGHXk3s8hCU6H4nNWrNr5iW5MeFL
+         PdB6CA5Vu9vWJ6nwLdbHMkxqOO3rGYeATc+G+w/KtSMEiHGpVhNlayviJLAQx49L72dK
+         Io/A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791412348; x=1792017148;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=8eJKNdBnTPZ3hgwXGaLanmX1oM8J06Yj2qpGihu5c/k=;
+        b=sOrP96VQTrmTYXAR+eL7RKy6w2dTiVnZ+ojiEMP66ak0+zZH8l+bxpB/+AYl0ygWTi
+         OMo3Bgjy4jdPk/H3qYpUINUBF6/y/1JdtOYa3s5LZyqwqVWycxMD6ZG5B4S6xucDc3C/
+         sY8r/b/eO41+VpbblBhZSkYKLv8wFqbbHLBcFpChxIxgbtDomrUfXCp1lQllES+ukxsz
+         SoOig65SDQo0GjSuU2H4gmeCNKuj1r32WzYqZQ653y7lv5CX2HVgZZpIBTLLlbFbpyI3
+         PBAZy5oGbnvMEZilPjq8b4j7+ibOQr/myQpqfmNWpbchQpTxzihjjyrmyO3Huwf2Ape5
+         wElA==
+X-Gm-Message-State: AFq9FYIYTllJ4ZWS/oLwzcznAxN/n62izasGWsbh7RLKXKOppfdCmUFN
+	k02raL5tFRgZhpnzygTYJ4wzuTJWmoTlABdWFRWgPpmV6gjFfMRQ/iDMjI+n
+X-Gm-Gg: AYBFou0GbNX/5rWDS8f3Li6EeHIC5Fg5GCZOCyT+WXDINqpjZbVzbRVOb7mK7eYwp4q
+	WYH7z9RMlz8KQnJPJQmnQQ3OQ72btpSTQJu8Z9j/DwFhaebOLp6A4SEAXC2mbY+I5n3SCqCVHcG
+	NyRoZvYDjg7Egdt/7TcC5Yt1DSqOIaXCOLEDXADgPr3Ut0Futoc6237jn2Fv+bjsTSalL6Llq65
+	3gK44E78zSn2jg+f9DRnUYWwuQsEXOrgO36R7WQTT+itCBiekVn7F0/d6b+u8V0yll+VpV50oEM
+	Sw6MkO3zHm1PrJ7rZPQn1Uh85xj80bSvXOiY0GwlcLEHIgaiDu0fb7Pbr5SVGBQiYjUmfqYyOn4
+	qq2nGNDBgXwxbz3MIyxgORJlVfgWxcGH3R+46+/sBfY1eLzQKF1BN+HIbZKY6TBZYdJa23zFval
+	ck0Ydu2le6ZYLKjbQeyVFOf46nnOGk52kgbwhWDPrWc9YfNIdCuw==
+X-Received: by 2002:a05:6000:4550:b0:488:8525:4979 with SMTP id ffacd0b85a97d-48c72896065mr4171779f8f.45.1791412348125;
+        Wed, 07 Oct 2026 15:32:28 -0700 (PDT)
 Received: from debian.. ([2001:41d0:303:db6b::])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48c71d1fec3sm7743500f8f.37.2026.10.07.15.32.23
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48c71d1fec3sm7743500f8f.37.2026.10.07.15.32.25
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 07 Oct 2026 15:32:24 -0700 (PDT)
+        Wed, 07 Oct 2026 15:32:26 -0700 (PDT)
 From: Tristan Madani <tristmd@gmail.com>
 To: linux-rdma@vger.kernel.org
 Cc: jgg@ziepe.ca,
 	leon@kernel.org,
 	zyjzyj2000@gmail.com,
 	bob.pearson@hpe.com,
-	Tristan Madani <tristan@talencesecurity.com>
-Subject: [PATCH v4 0/2] RDMA/rxe: fix TOCTOU races in send WQE processing
-Date: Wed,  7 Oct 2026 22:32:20 +0000
-Message-ID: <20261007223222.2342804-1-tristmd@gmail.com>
+	Tristan Madani <tristan@talencesecurity.com>,
+	stable@vger.kernel.org
+Subject: [PATCH v4 1/2] RDMA/rxe: copy send WQE to kernel buffer before processing
+Date: Wed,  7 Oct 2026 22:32:21 +0000
+Message-ID: <20261007223222.2342804-2-tristmd@gmail.com>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20261007223222.2342804-1-tristmd@gmail.com>
+References: <20261007223222.2342804-1-tristmd@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -76,46 +81,200 @@ Content-Transfer-Encoding: 8bit
 
 From: Tristan Madani <tristan@talencesecurity.com>
 
-The SoftRoCE driver maps its send work queue into userspace for direct
-posting. The kernel reads WQE fields directly from this shared mapping,
-which allows a concurrent userspace thread to modify fields between
-kernel reads -- classic TOCTOU.
+The rxe send queue is mapped into userspace via mmap. The requester
+processes Work Queue Entries (WQEs) directly from this shared buffer
+without first copying them to kernel memory. Userspace can modify WQE
+fields (num_sge, sge_offset, SGE entries) between kernel reads,
+leading to inconsistent state in copy_data().
 
-This series copies each send WQE to a kernel-private buffer before
-processing, in both the requester (patch 1) and completer (patch 2)
-paths.
+This is the send-path counterpart to the receive-path fixes:
+  - commit 22b8fbded65b8 ("RDMA/rxe: Fix TOCTOU heap overflow in
+    get_srq_wqe")
+  - commit d6ab440240a04 ("RDMA/rxe: Copy WQE to local buffer in
+    non-SRQ receive path")
 
-Changes since v3:
-  - Copy the full queue element (max_sge SGEs) instead of computing a
-    per-WQE copy size from num_sge. This ensures inline data (which
-    shares the flex array with SGEs) is always captured, and eliminates
-    a TOCTOU on the copy size itself.
-  - Clamp dma.num_sge against qp->sq.max_sge after copy (patch 2)
-    instead of against the global RXE_MAX_SGE constant.
-  - Invalidate the cached copy on QP reset (rxe_qp_reset), on the
-    ERR flush path, and on the RESET state check in the requester.
-    This prevents stale-cache reuse after state transitions.
-  - Each patch now also touches rxe_qp.c for the reset invalidation.
+Fix by copying the send WQE to a kernel-private buffer in req_next_wqe()
+before processing. The copy uses the full queue element size (max_sge
+SGEs) so that inline data, which shares the flex array with SGEs, is
+always captured regardless of num_sge.
 
-Changes since v2:
-  - Addressed review comments on naming and ordering.
-  - Writeback status using WRITE_ONCE() instead of plain store.
-  - Added smp_store_release() in requester for state transitions.
+The local copy is reused across multi-packet sends to preserve DMA
+progress state (cur_sge, sge_offset, resid). Field updates are written
+back to the shared queue using WRITE_ONCE() for individual fields and
+smp_store_release() for state transitions, so the completer and
+userspace observe consistent values without the tearing risk of bulk
+memcpy().
 
-Changes since v1:
-  - Split into per-path patches (requester, completer).
-  - Cache the local copy across retransmits and multi-packet operations.
-  - Added writeback of completion status and rd_atomic state.
+The copy is invalidated when the WQE index advances (last packet sent,
+error, local ops, UD oversized), when a retry resets WQE state, on QP
+reset, or when the QP enters error state for flush.
 
-Tristan Madani (2):
-  RDMA/rxe: copy send WQE to kernel buffer before processing
-  RDMA/rxe: copy send WQE to kernel buffer in completer path
-
- drivers/infiniband/sw/rxe/rxe_comp.c  | 53 +++++++++++++++++++++++++-
- drivers/infiniband/sw/rxe/rxe_qp.c    |  2 +
+Fixes: 8700e3e7c485 ("Soft RoCE driver")
+Cc: stable@vger.kernel.org
+Signed-off-by: Tristan Madani <tristan@talencesecurity.com>
+---
+ drivers/infiniband/sw/rxe/rxe_qp.c    |  1 +
  drivers/infiniband/sw/rxe/rxe_req.c   | 55 +++++++++++++++++++++++++--
- drivers/infiniband/sw/rxe/rxe_verbs.h | 12 ++++++
- 4 files changed, 116 insertions(+), 6 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_verbs.h |  6 +++
+ 3 files changed, 58 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
+index 311f285d78a6b..77606c4a039b1 100644
+--- a/drivers/infiniband/sw/rxe/rxe_qp.c
++++ b/drivers/infiniband/sw/rxe/rxe_qp.c
+@@ -581,6 +581,7 @@ static void rxe_qp_reset(struct rxe_qp *qp)
+ 	qp->req.need_retry = 0;
+ 	qp->req.wait_for_rnr_timer = 0;
+ 	qp->req.noack_pkts = 0;
++	qp->req.send_wqe_valid = false;
+ 	qp->resp.msn = 0;
+ 	qp->resp.opcode = -1;
+ 	qp->resp.drop_msg = 0;
+diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+index 24f5c044363f7..2abb2131c0a90 100644
+--- a/drivers/infiniband/sw/rxe/rxe_req.c
++++ b/drivers/infiniband/sw/rxe/rxe_req.c
+@@ -161,6 +161,26 @@ static void req_check_sq_drain_done(struct rxe_qp *qp)
+ 	spin_unlock_irqrestore(&qp->state_lock, flags);
+ }
+ 
++/* Write back requester WQE fields to shared memory using targeted
++ * stores so the completer and userspace observe consistent state.
++ */
++static void rxe_req_writeback_wqe(struct rxe_qp *qp)
++{
++	struct rxe_send_wqe *shared = qp->req.shared_wqe;
++	struct rxe_send_wqe *local = &qp->req.send_wqe.wqe;
++
++	if (!qp->req.send_wqe_valid || !shared)
++		return;
++
++	WRITE_ONCE(shared->status, local->status);
++	WRITE_ONCE(shared->first_psn, local->first_psn);
++	WRITE_ONCE(shared->last_psn, local->last_psn);
++	WRITE_ONCE(shared->mask, local->mask);
++	WRITE_ONCE(shared->has_rd_atomic, local->has_rd_atomic);
++	/* State must be last so the completer sees prior updates */
++	smp_store_release(&shared->state, local->state);
++}
++
+ static struct rxe_send_wqe *__req_next_wqe(struct rxe_qp *qp)
+ {
+ 	struct rxe_queue *q = qp->sq.queue;
+@@ -193,6 +213,20 @@ static struct rxe_send_wqe *req_next_wqe(struct rxe_qp *qp)
+ 	}
+ 	spin_unlock_irqrestore(&qp->state_lock, flags);
+ 
++	/* Reuse the existing kernel-private copy if still valid */
++	if (qp->req.send_wqe_valid && qp->req.shared_wqe == wqe)
++		return &qp->req.send_wqe.wqe;
++
++	/* Copy WQE from userspace-mapped shared queue to kernel-private
++	 * buffer. Copy the full element (max_sge SGEs) so that inline
++	 * data, which shares the flex array with SGEs, is always captured.
++	 */
++	memcpy(&qp->req.send_wqe.wqe, wqe,
++	       sizeof(*wqe) + qp->sq.max_sge * sizeof(struct rxe_sge));
++	qp->req.shared_wqe = wqe;
++	qp->req.send_wqe_valid = true;
++
++	wqe = &qp->req.send_wqe.wqe;
+ 	wqe->mask = wr_opcode_mask(wqe->wr.opcode, qp);
+ 	return wqe;
+ }
+@@ -582,9 +616,13 @@ static void update_state(struct rxe_qp *qp, struct rxe_pkt_info *pkt)
+ {
+ 	qp->req.opcode = pkt->opcode;
+ 
+-	if (pkt->mask & RXE_END_MASK)
++	rxe_req_writeback_wqe(qp);
++
++	if (pkt->mask & RXE_END_MASK) {
+ 		qp->req.wqe_index = queue_next_index(qp->sq.queue,
+ 						     qp->req.wqe_index);
++		qp->req.send_wqe_valid = false;
++	}
+ 
+ 	qp->need_req_skb = 0;
+ 
+@@ -634,7 +672,9 @@ static int rxe_do_local_ops(struct rxe_qp *qp, struct rxe_send_wqe *wqe)
+ 
+ 	wqe->state = wqe_state_done;
+ 	wqe->status = IB_WC_SUCCESS;
++	rxe_req_writeback_wqe(qp);
+ 	qp->req.wqe_index = queue_next_index(qp->sq.queue, qp->req.wqe_index);
++	qp->req.send_wqe_valid = false;
+ 
+ 	return 0;
+ }
+@@ -666,6 +706,7 @@ int rxe_requester(struct rxe_qp *qp)
+ 		wqe = __req_next_wqe(qp);
+ 		spin_unlock_irqrestore(&qp->state_lock, flags);
+ 		if (wqe) {
++			qp->req.send_wqe_valid = false;
+ 			wqe->status = IB_WC_WR_FLUSH_ERR;
+ 			goto err;
+ 		} else {
+@@ -681,6 +722,7 @@ int rxe_requester(struct rxe_qp *qp)
+ 		qp->req.wait_psn = 0;
+ 		qp->req.need_retry = 0;
+ 		qp->req.wait_for_rnr_timer = 0;
++		qp->req.send_wqe_valid = false;
+ 		spin_unlock_irqrestore(&qp->state_lock, flags);
+ 		goto exit;
+ 	}
+@@ -695,6 +737,7 @@ int rxe_requester(struct rxe_qp *qp)
+ 	if (unlikely(qp->req.need_retry && !qp->req.wait_for_rnr_timer)) {
+ 		req_retry(qp);
+ 		qp->req.need_retry = 0;
++		qp->req.send_wqe_valid = false;
+ 	}
+ 
+ 	wqe = req_next_wqe(qp);
+@@ -772,10 +815,12 @@ int rxe_requester(struct rxe_qp *qp)
+ 			wqe->last_psn = qp->req.psn;
+ 			qp->req.psn = (qp->req.psn + 1) & BTH_PSN_MASK;
+ 			qp->req.opcode = IB_OPCODE_UD_SEND_ONLY;
+-			qp->req.wqe_index = queue_next_index(qp->sq.queue,
+-						       qp->req.wqe_index);
+ 			wqe->state = wqe_state_done;
+ 			wqe->status = IB_WC_SUCCESS;
++			rxe_req_writeback_wqe(qp);
++			qp->req.wqe_index = queue_next_index(qp->sq.queue,
++						       qp->req.wqe_index);
++			qp->req.send_wqe_valid = false;
+ 			goto done;
+ 		}
+ 		payload = mtu;
+@@ -839,8 +884,10 @@ int rxe_requester(struct rxe_qp *qp)
+ 	goto out;
+ err:
+ 	/* update wqe_index for each wqe completion */
+-	qp->req.wqe_index = queue_next_index(qp->sq.queue, qp->req.wqe_index);
+ 	wqe->state = wqe_state_error;
++	rxe_req_writeback_wqe(qp);
++	qp->req.wqe_index = queue_next_index(qp->sq.queue, qp->req.wqe_index);
++	qp->req.send_wqe_valid = false;
+ 	rxe_qp_error(qp);
+ exit:
+ 	ret = -EAGAIN;
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
+index 0f5ffd94643f9..a22dfc6e5ae3c 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.h
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
+@@ -114,6 +114,12 @@ struct rxe_req_info {
+ 	int			wait_for_rnr_timer;
+ 	int			noack_pkts;
+ 	int			again;
++	struct rxe_send_wqe	*shared_wqe;
++	bool			send_wqe_valid;
++	struct {
++		struct rxe_send_wqe	wqe;
++		struct ib_sge		sge[RXE_MAX_SGE];
++	} send_wqe;
+ };
+ 
+ struct rxe_comp_info {
 -- 
 2.47.3
+
