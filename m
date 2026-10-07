@@ -1,101 +1,93 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f51.google.com (mail-wm1-f51.google.com [209.85.128.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3AC041169B
-	for <linux-rdma@vger.kernel.org>; Wed,  7 Oct 2026 16:24:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F70B37A4AB
+	for <linux-rdma@vger.kernel.org>; Wed,  7 Oct 2026 16:33:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791390262; cv=none; b=bMdwML2SopM3JDzji4VmZf+vxClNSebZFpnvdb69Nk5qDjIKL8rd95KiFCQLkzqSt/JtKcZj3rsOsYNEgSq8QJPqgr0mfpsxf9b+loyGdFHxPGOQyRZzkf1TAwV8BvDVB6IODtZzcWfm3YfS3mGc6EBEWc4t9cL7qCAAb8kgG7E=
+	t=1791390840; cv=none; b=ZuU7kKzJOohCrnxQJcJHkT8huh7C1eSyLJ7wF0/VuFIweehCErIRSnshJlXxuXfgJNY+ME4PBEV5oeheykrE8pR8NgasZnjSxvoszeNz6FolvnPfOjx7eIUxmjrOeohYIIETif791AoOvrfZ6qVY4rtTJgE1OQr/Ny9dbtF95V4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791390262; c=relaxed/simple;
-	bh=GKAx8vzn053K/2OIqoJSJuS0YF5rn6qTTGrhATijUBc=;
-	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=UyIu2Xw+xGjEv4nru9J8uXg9+mQpCO25qd3jCl0vOW13L3xK+k6NDpjTHFjdzUIPmopw3KPiwkTEfYpb0qN7/WYYMrQvTQj1e1/T5TYhwxaXOfzNwsoiEIqOKCR7iZIfT1WzgLXk8QzV1G+DWv/mrXphUjqOgqiI6B2TCajZngg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LFph/7K4; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791390840; c=relaxed/simple;
+	bh=7evDrsn33ZOZyzUJ4PxA3QjtwQoT19qOjju1qVoOdc0=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=bUDemi0f+3ZFrUfzVdi6YuRBpivJoUX3zlD25pHjuBd/pgC3tQa0hIk/p7ak+G7bheb+5v8QBwl+IhghUeqdY63VrLOlfIoeD1ee5YCt1URZvLaGOtg/KIHo1oUbdG/4JV/RtvLNapAUp769qKC/sAI0C5SoJyNh8J+1xnVB6Mk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Oga+ACWQ; arc=none smtp.client-ip=209.85.128.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LFph/7K4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DC821F00898;
-	Wed,  7 Oct 2026 16:24:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791390261;
-	bh=ZgfBcTjAPPjOtgT187KLo/FkbgGuLtrFgTZ7huCKEks=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=LFph/7K4c4b7dVTMOQuU1s/0cJF+yho3iRCxZ+QnxygrScCU+e00VGkG/6dekJoFu
-	 N050Moq7zEL0HjpWLBaRne1h9FnvCf80L1REbBeK4R++H7qCBAEqkvrbYNe/P2s68p
-	 r3mhChgikB+8gAD6/q4W84GVEFOJGhm8LJXlfEEKBqi8tr9w5zcqSey5TKEeXcIoOB
-	 OOvex0G4x+63xI2G5Adc38dnW7yYqScB7i3+Hrv6hlnrMAm2tMOKWZp9D/ZFusdsh8
-	 dfnuXaASj6NxliMHfVAm9nI2Wj8Cr9Zvw9gJm+1XIBIIlcLvyVSLgx+VJAIY0JOUSM
-	 c37zBHVdH6lrQ==
-Message-ID: <sashiko-outbox-163192@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [net-next v2 3/3] bnge: reserve TX/completion rings for the
- RoCE MPC channel
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Siva Reddy Kallam" <siva.kallam@broadcom.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261006161256.1493672-4-siva.kallam@broadcom.com>
-References: <20261006161256.1493672-1-siva.kallam@broadcom.com>
- <20261006161256.1493672-4-siva.kallam@broadcom.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Wed, 07 Oct 2026 16:24:20 +0000
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Oga+ACWQ"
+Received: by mail-wm1-f51.google.com with SMTP id 5b1f17b1804b1-4998b5a63e2so41530665e9.1
+        for <linux-rdma@vger.kernel.org>; Wed, 07 Oct 2026 09:33:59 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1791390837; x=1791995637; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:references
+         :in-reply-to:message-id:date:subject:cc:to:from:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=7evDrsn33ZOZyzUJ4PxA3QjtwQoT19qOjju1qVoOdc0=;
+        b=Oga+ACWQ80glITGJf9Syxbn629N1NR8aWMjJTZz67vau6xa7Dwi6W+8Sepz4G59NLh
+         02kMBmhByo9EIIBpNGwxzSZ5OxGq+nxCwZ81dtNC5+4f47+6pMvjpKMFkeeAtjir+Jb+
+         Qpg/bLANel154jR3mIkcCZeaZkppiE3/7m+EpQspgi9E5+aNO1Ct/sU9zmbUrpETNkvm
+         5QIKxGzDdR8hLTTY7IIoNec6JF7JIe9qWyOFmzbWRbqfz75OwU2W5L/NCWyiSZcymRoV
+         KlbdXF6yUfa7hbExAVC0chlXI+GW5kzLDcmACVk44Di7DJEkbKWE77DODevJlPWwVFSF
+         fVKw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791390837; x=1791995637;
+        h=content-transfer-encoding:content-type:mime-version:references
+         :in-reply-to:message-id:date:subject:cc:to:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=7evDrsn33ZOZyzUJ4PxA3QjtwQoT19qOjju1qVoOdc0=;
+        b=RobLCKiITo6x8pcOA5uK+rQmcvhdQbV22+LXTVWlu/2i+c2skxhIH03llnR3g4naTW
+         NcV4OSR87OBREumfnhwidN1mTi5hyEjhYhhkgHK3O9kjR/LtTnDYtTQaITOjLEbaYGtp
+         q1ZHtFU+mPevW3EG8nqPnlKdGSWSH5KNC/iLHiwanHZu+GOSsYjWCHDpsGcgj8rED4Tu
+         PALnmYIZ/ifpdzzJJU+6aAaiW4Wlwn+cMVtQgcc+wDMvoU20CTetg6JhGBqzsN/+WmJT
+         Uruh3TawNbBm7SyCJQQpwj0a7XczIy6WwDe0e3ioLBRy3/vbCIAoTekf2zZpx/GMH+Sz
+         HjBw==
+X-Forwarded-Encrypted: i=1; AKwUvBykvwqpOO3aST+svnDHvOk4v8U8VwREDIWiLaY7Zjpc8o28WP7NEDHrdBj023UfJqJsqzlwbfxbAZFy@vger.kernel.org
+X-Gm-Message-State: AFuF++mlHI+CCPOQejB0PqWoNcNo5JBVE7WRCwUBnR6QAnFvSkSbnncW
+	gynf8NRQDk4pyeTZD6LBgealhTCY7SOgi8Zax0cZJjrFm5OYUy2yNGQ=
+X-Gm-Gg: AYBFou1qheNVkQ31gdBHsDflwtIdA8EF9Dv8q00XwEUXjClgdMX71yG8twzymxTzMVi
+	4D7P7oalOX8cHaPe2E9NFJh8AeheHlLwRvUIuNnFtB0QD/3Hw1jydp5JmNFBEbmGFTXhMvJEwHz
+	1oRpu6xCTpUHMwQNWlhKXoEt++i1KDLZRJHcDZfKxhLB6Cxb3A3xekIyXo+Apz7n6WPisJjWvh6
+	GcRPHusEtsjJ/K6QP5QnxO1k05UrC23LqfSyR7NeOsbHK2+uJq645G3r+TqreUa6zIuOzKSK6w2
+	HBRecIzR0c8iwiQHzdrZeuBbd3wKmKwe/pctx1Vk7JoZxp+8Tzb5IVYoVO/yRR6cDeZfGuXMpuE
+	+mJLwtU8GrfyeCf2VwkcK2o4QWj/wcKxFlfKUxHiaRGi0ia8jgzVBRdkQujV5sOo2CTFR6e8Smp
+	QDZSQziWL7X+AdFPe1zmM2vibWuEqFQlJJ4foKcphsln0VPzU8rg==
+X-Received: by 2002:a05:600c:1551:b0:4a1:7733:5102 with SMTP id 5b1f17b1804b1-4a180443559mr44304695e9.15.1791390837363;
+        Wed, 07 Oct 2026 09:33:57 -0700 (PDT)
+Received: from debian.. ([2001:41d0:303:db6b::])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48c71c0b860sm5647218f8f.11.2026.10.07.09.33.56
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 07 Oct 2026 09:33:56 -0700 (PDT)
+From: Tristan Madani <tristmd@gmail.com>
+To: Zhu Yanjun <yanjun.zhu@linux.dev>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>,
+	linux-rdma@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: Re: [PATCH v2 2/2] RDMA/rxe: copy completer WQE to kernel buffer before processing
+Date: Wed,  7 Oct 2026 16:33:55 +0000
+Message-ID: <20261007163356.407937-1-tristmd@gmail.com>
+X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260830191344.2026524-1-tristmd@gmail.com>
+References: <20260830191344.2026524-1-tristmd@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
-- [Medium] bnge: strict check against tx_demand breaks graceful TX ring fal=
-lback
---
+Hi Zhu Yanjun,
 
-commit 03cbac58eff7b84409d8e42c716c6db377e04ad6
-Author: Sachin Holla <sachin.holla@broadcom.com>
-bnge: reserve TX/completion rings for the RoCE MPC channel
+Gentle ping on this v2 series. The v2 addresses your review feedback
+from v1 — bulk memcpy() writebacks were replaced with targeted
+WRITE_ONCE() for individual fields and smp_store_release() for state
+transitions.
 
-This commit updates the driver to reserve extra TX and completion rings
-specifically for the RoCE MPC channel when RoCE is enabled. It modifies
-the ring reservation logic to account for this extra demand to prevent
-pool overflow.
+Would you have a chance to take another look?
 
-> diff --git a/drivers/net/ethernet/broadcom/bnge/bnge_resc.c b/drivers/net=
-/ethernet/broadcom/bnge/bnge_resc.c
-> index 4711dd4945ffe..9dfb22b7c7c7a 100644
-> --- a/drivers/net/ethernet/broadcom/bnge/bnge_resc.c
-> +++ b/drivers/net/ethernet/broadcom/bnge/bnge_resc.c
-[ ... ]
-> @@ -327,6 +344,13 @@ int bnge_reserve_rings(struct bnge_dev *bd)
->  	if (hwr.stat > bnge_aux_get_stat_ctxs(bd))
->  		hwr.stat -=3D bnge_aux_get_stat_ctxs(bd);
->  	hwr.nq =3D min_t(u16, hwr.nq, hwr.stat);
-> +	/* Drop MPC TX ring from L2 TX ring count; it is owned by RoCE driver */
-> +	if (bnge_is_roce_en(bd)) {
-> +		if (hwr.tx >=3D tx_demand)
-> +			hwr.tx -=3D 1;
-> +		else
-> +			return -ENOMEM;
-
-[Severity: Medium]
-Does this strict check against tx_demand prevent the driver from gracefully
-degrading TX rings when firmware resources are constrained?
-
-When firmware grants fewer TX rings than initially requested
-(meaning hwr.tx < tx_demand), this condition immediately fails network
-driver initialization with -ENOMEM.
-
-When RoCE is disabled, the partially granted hwr.tx count is passed down
-to bnge_adjust_rings(), which scales down the L2 queue counts gracefully.
-Could this logic be adjusted to verify there are enough rings to satisfy
-the absolute minimum requirement, subtract 1 for the RoCE MPC ring, and
-then let bnge_adjust_rings() adjust the remaining L2 rings?
-
-> +	}
-> =20
->  	/* Adjust the rings */
->  	rc =3D bnge_adjust_rings(bd, &rx_rings, &hwr.tx, hwr.nq, sh);
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261006161256.1493=
-672-1-siva.kallam@broadcom.com?part=3D3
+Thanks,
+Tristan
