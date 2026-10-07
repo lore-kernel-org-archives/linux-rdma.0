@@ -1,84 +1,62 @@
-Received: from esa.microchip.iphmx.com (esa.microchip.iphmx.com [68.232.153.233])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDED54E01FC;
-	Wed,  7 Oct 2026 18:40:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=68.232.153.233
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87D4A455176
+	for <linux-rdma@vger.kernel.org>; Wed,  7 Oct 2026 18:43:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791398420; cv=none; b=GRqptsNpgmvLjj2PG9L/hbYdKaJZUgNm0GsJmKVDy116KKFgw1hv/alrDtQOVKOhyot4bUKQq6yCczyeuseSJkC2UPipjYxuLrNO+I9Ea7YyY9+tFMcBOCgghxEfG5LGCFTVW6NpTSN6ZsT88m0acXF/TyiTqlLMAM/BZnTNns8=
+	t=1791398608; cv=none; b=Qa5OsrXyU1XhyepuMZRbBkcyOr6rTEB1F5D2KdMgHOm2OGKkfXpIvzDAbNacLWostQ8jqV9aSgyX5dLUVraMXogEaWX9w9nhY0VO/380Sp5JlmH200BFeLYakmbffabahC31z/DzQB8Ua5z4rEMF6kyxkvl+U6gvlBv6xThX4Yg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791398420; c=relaxed/simple;
-	bh=HHlCqGav/n7NtJLQSHN2S4LltChege0BzhxasuthA0k=;
-	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ewpZxx2hc0KacHKSGkFBQm0map5FkdiIDzloA2GpMCBBea+CinWRIaPqt6aTqqQIZAkNNNBBgClYaMJMQAm8tDQJWv/dkWT9ZIszpw2fZqetgm3XQ+aTN62XbpbX6wK9bD1v3TNYslUwWXVCiZsJr48G/2+IpJfsiDHzju97PC4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microchip.com; spf=pass smtp.mailfrom=microchip.com; dkim=pass (2048-bit key) header.d=microchip.com header.i=@microchip.com header.b=jLA3lC8s; arc=none smtp.client-ip=68.232.153.233
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microchip.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=microchip.com
+	s=arc-20240116; t=1791398608; c=relaxed/simple;
+	bh=xNqqJIBjeDPLhxdkLAIY2DhQ/AzEiPOwvu6ke0hyjdU=;
+	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
+	 Date; b=NY2QPquy1ll7fV7pGU0dPOMfvMgXdYBHkeFcYEcnahS7WI9FxYZvjoIBgDFOjQT0jl4mfiatRJ6ElzrHoU6XPUXHpjkDIL1Q5NzrnWxzgr9JVq/c5b+flqtJ6o7aO+SSb3KPVqQdZglyCHogy1UbTdFA4A0heng51l3/C6ztzWc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fSH45ZRh; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=microchip.com header.i=@microchip.com header.b="jLA3lC8s"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=microchip.com; i=@microchip.com; q=dns/txt; s=mchp;
-  t=1791398418; x=1822934418;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=HHlCqGav/n7NtJLQSHN2S4LltChege0BzhxasuthA0k=;
-  b=jLA3lC8sNOZHi1VInAyfo2Gb0ekSWMryW3Z65n5nXQQKpDhpVNOOWPut
-   haDK/5kO1NS4Dt6EVtWP5uuEb2d3TyH1agJKQxyJJUBj30YoOxAPyyMLJ
-   vxuO+vVlNdbzCHOshnJpcaDWjc9IUmwN2bv15POLWzVso6+FYwyJROlSl
-   xgD2qO+CcIQ0c+LR+SKhYriR86Pdjz4TLqCqfVd1sLrftStcgsx0bg1Ea
-   /zWGEilJZ5+b2/XQ3a27Wnp+1RFD3H7qMzSkj0n9KYnaQpn3Ly2kXQA7q
-   B9PtqzB7EgCSBrmGO7ABqF9awH/fCzQpg3aTurdTk/Sf37ScBALw+ibx3
-   A==;
-X-CSE-ConnectionGUID: DC8nyTfxQSSDRldCkE/feQ==
-X-CSE-MsgGUID: WArMQrM9TDiPxD9S8CSOvg==
-X-IronPort-AV: E=Sophos;i="6.27,144,1787036400"; 
-   d="scan'208";a="64715694"
-X-Amp-Result: SKIPPED(no attachment in message)
-Received: from unknown (HELO email.microchip.com) ([170.129.1.10])
-  by esa3.microchip.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2026 11:40:17 -0700
-Received: from chn-vm-ex02.mchp-main.com (10.10.87.72) by
- chn-vm-ex3.mchp-main.com (10.10.87.32) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.2.2562.49; Wed, 7 Oct 2026 11:40:16 -0700
-Received: from DEN-DL-M70577 (10.10.85.11) by chn-vm-ex02.mchp-main.com
- (10.10.85.144) with Microsoft SMTP Server id 15.1.2507.58 via Frontend
- Transport; Wed, 7 Oct 2026 11:40:13 -0700
-Date: Wed, 7 Oct 2026 20:40:12 +0200
-From: Daniel Machon <daniel.machon@microchip.com>
-To: Tariq Toukan <tariqt@nvidia.com>
-CC: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
-	<davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski
-	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Dragos Tatulea <dtatulea@nvidia.com>, Gal Pressman <gal@nvidia.com>, Leon
- Romanovsky <leon@kernel.org>, open list <linux-kernel@vger.kernel.org>,
-	<linux-rdma@vger.kernel.org>, Li RongQing <lirongqing@baidu.com>, Mark Bloch
-	<mbloch@nvidia.com>, Saeed Mahameed <saeedm@mellanox.com>, Saeed Mahameed
-	<saeedm@nvidia.com>, Tariq Toukan <tariqt@mellanox.com>
-Subject: Re: [PATCH net V2] net/mlx5e: Order ICOSQ cc update after CQ doorbell
-Message-ID: <20261007184012.x7qmcjh4xuks3jbw@DEN-DL-M70577>
-References: <20261006105820.257208-1-tariqt@nvidia.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fSH45ZRh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D2111F00893;
+	Wed,  7 Oct 2026 18:43:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791398607;
+	bh=xNqqJIBjeDPLhxdkLAIY2DhQ/AzEiPOwvu6ke0hyjdU=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=fSH45ZRh5/QIV/W7x6pFFdtv0WEmusyvYIXHv6Brmv/x9XvWSKETGTtzDbd5IBuKU
+	 PYmOwKj96WhzJu1TQ5VrV6XcHqG+zj5VVUrO5SSwa7di/8ixad/mmfDsVwg3JONJdQ
+	 zkSA8zGE0IzvCIbiKNxsg/tWcEASRYhi+vm6u9P+vzJpbQW5H9oToP1Vc2Owc6v3sk
+	 o6Jd1iwtLou6jH40G1m+miLcGsc0zvBMoFAzTCEotVQ1iAMpE35X3VPO8ZWByiQEAA
+	 lkF5aSaYzvlnZokNRoAqasV8hGOdzA3QxRzSKENP4lRtP2sm73Bj9jmSRKtA0xfRHQ
+	 6fyeQkBGagm3g==
+Message-ID: <sashiko-outbox-163296@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net-next 2/3] net: stmmac: selftests: use
+ skb_share_check() in the loopback receive hook
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Nicolai Buchwitz" <nb@tipi-net.de>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261007-nb-net-selftest-shared-net-v1-2-458369bfa1ba@tipi-net.de>
+References: <20261007-nb-net-selftest-shared-net-v1-0-458369bfa1ba@tipi-net.de>
+ <20261007-nb-net-selftest-shared-net-v1-2-458369bfa1ba@tipi-net.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Wed, 07 Oct 2026 18:43:26 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20261006105820.257208-1-tariqt@nvidia.com>
 
-> From: Li RongQing <lirongqing@baidu.com>
-> 
-> mlx5e_poll_ico_cq() requires sq->cc to be updated only after
-> mlx5_cqwq_update_db_record(), otherwise a CQ overrun may occur.
-> 
-> The current implementation updates sq->cc before the CQ doorbell
-> record, violating this ordering requirement.
-> 
-> Update the CQ doorbell record first and use dma_wmb() before updating
-> sq->cc. This ensures that the CQ space is released to the device
-> before the corresponding ICOSQ consumer index is updated by software.
-> 
+> The loopback hook gets a shared skb when another ETH_P_IP handler is
+> bound to the device. skb_unshare() does not unshare it, so
+> skb_linearize() on a non-linear frame hits BUG_ON(skb_shared()).
+>=20
+> Use skb_share_check() instead.
+>=20
+> Fixes: 091810dbded9 ("net: stmmac: Introduce selftests support")
+> Signed-off-by: Nicolai Buchwitz <nb@tipi-net.de>
 
-Reviewed-by: Daniel Machon <daniel.machon@microchip.com>
+Sashiko has reviewed this patch and found no issues. It looks great!
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261007-nb-net-sel=
+ftest-shared-net-v1-0-458369bfa1ba@tipi-net.de?part=3D2
 
