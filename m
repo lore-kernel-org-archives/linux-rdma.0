@@ -1,142 +1,120 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9ECEE3D5C31;
-	Wed,  7 Oct 2026 06:56:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43D964119F2;
+	Wed,  7 Oct 2026 07:36:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791356207; cv=none; b=FLp/pboOQR2VfkcX2Je25Het7X6lJErNTVG7yVYpVibPApukpl8r4uc6NCbkOV/kKNRaYftrwSL7StkBhjdM6u7kpuuYyOsWPWOKDzf2DAZOHZBlBa5Uysj8V1zjZ5eejuxfsEanlLQqAZM1+xEbEdNQOGKI8rK4WtCaTELpiBE=
+	t=1791358567; cv=none; b=nA33DlXb5FY3xpaiCv7YzI7fU4MKsM8H+lx9LPAXRqRDnl6eRHTqfTmPYeYh6ZHkZd6hvzJOqcOEANPItSoSy0fjv5Q1fRR6nWorR5Vis98lnK0SJ6Y6Kfw8IQ9jbgY8To8ZIbHDPT2WAq6wXjXqxqpQWTRmKERoDfTBpVpehW4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791356207; c=relaxed/simple;
-	bh=i/w6aSs6ipqVcxMHyaaayLag4mGXnleBhYq5m0XB8W4=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To; b=jSxp3vi/5AAmSxGMMXPoAaI9Gc+5xd19chEnh35z6EsJEWrSj9dTFf+nyn1ZAHIYd0x5aSzQdrxEY1tU1kohk10esouCQGpd1nd97ZU//lDsnKWR95gIN44TThr2YLuQ7M9LdqL6qXUZcMuhGOGyItrbVaqr8KuzAFAnaDkQlxE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fy8Ej3IW; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791358567; c=relaxed/simple;
+	bh=5pXeJttJkl0s/GsBDvdu3Qw4DOLa5agfZfKA3FzqLRk=;
+	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
+	 Date; b=A/M4XAd5NQtmMLfueClSkjQUT+RfB0t64s7KwzrYgvgvOyw+ULxWRsBYMcgy3xnBxXPt9GpnamXXpF2BVfTemuYzA1ILLavZfowUaQwMS91VPK83l6nVJMh56r0y/avkZGOEqyjuMrpwjRB3Cu0ig8FNQVy18OQLu/Tyht2nkic=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IJTE8Z/T; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fy8Ej3IW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC48A1F0089C;
-	Wed,  7 Oct 2026 06:56:45 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IJTE8Z/T"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70A431F0089B;
+	Wed,  7 Oct 2026 07:36:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791356206;
-	bh=HisrRVGC92tKPD0LAPWqgT9gHnJ0s7URX0WuhC80XCg=;
-	h=Date:From:To:Cc:Subject:In-Reply-To;
-	b=fy8Ej3IWg/dlOU4KkZAF3x3+hrnWc512SaYuqdY7pw5tpa5ZO895yxE3XrZ72vCMp
-	 3XrduMnI5oRfjbLc0PsgllK/yBo5vEaPmkbqhjF7t60tRtHsHt9iC9frDT0tD1LSnu
-	 aE72rRQJCbH9QFZt9tW1OBMVGaOhgkA/v17ZwS8SO7ztvOPmuCcAhCen6OWoKgyMQT
-	 oxkPPCRkc3djhtsrufoRq8ZWXI3S0Mks2rB5uMTpkhGCusu+z+rWd3Sh3oaUdOm60q
-	 pThw/8mSpVd59birDXemOo47ZJsh+5xqtF5TuPrLqmiFcIvYNQvZrJSFoFkIIwfn+F
-	 lmw1+pf6dpxUw==
-Date: Wed, 7 Oct 2026 01:56:44 -0500
-From: Bjorn Helgaas <helgaas@kernel.org>
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>,
-	Logan Gunthorpe <logang@deltatee.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	"Joerg Roedel (AMD)" <joro@8bytes.org>,
-	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
-	Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>,
-	Thomas =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
-	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org, iommu@lists.linux.dev,
-	Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
-	Chaitanya Kulkarni <kch@nvidia.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
-	Ankit Agrawal <ankita@nvidia.com>, Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: Re: [PATCH v9 00/18] PCI/P2PDMA: Route peer-to-peer DMA by TLP class
-Message-ID: <20261007065644.GA738981@bhelgaas>
+	s=k20260515; t=1791358565;
+	bh=4uKv6vMSg/oBjYDMaeegDobSI3yYRTcC+FGY8h95PZY=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=IJTE8Z/TkmWks7h3YWCDWvbcCB/0NIOKDLwRkohDkTm2bSeGzmT3tTo13+1pW17So
+	 7RgIFRSYyPns3e9200lEOY9DaavlITt1RRfglGnKBtUFGIIy9YMZKJBILoVlwGfWHw
+	 E7HYcLXwf3BtV2cdm9RV2aABB0kikNqHOBqgGHbPtg8exIE+X097iCSk7iMzVJ94La
+	 gsDcPOb7o9WtgdVm+H/yJi00KjbehpQZ80270uUIGmPoqI9UwIR2+NUhobXzZ/FKkH
+	 2Po261MGhtrHm+oqdxYAOJVtjF6iqzJntuFKvO4kPQngSCyDhJeKbwUAnh0raeuMzP
+	 iXeysGdEWB8sA==
+Message-ID: <sashiko-outbox-162715@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net v3] net/smc: fix abort_work termination in
+ smc_conn_free()
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Hidayath Khan" <hidayath@linux.ibm.com>
+Cc: "Vasily Gorbik" <gor@linux.ibm.com>, "Alexander Gordeev" <agordeev@linux.ibm.com>, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, "Heiko
+ Carstens" <hca@linux.ibm.com>, "Christian Borntraeger" <borntraeger@linux.ibm.com>
+In-Reply-To: <20261006073550.1595003-1-hidayath@linux.ibm.com>
+References: <20261006073550.1595003-1-hidayath@linux.ibm.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Wed, 07 Oct 2026 07:36:05 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261006213650.GA716945@bhelgaas>
 
-On Tue, Oct 06, 2026 at 04:36:50PM -0500, Bjorn Helgaas wrote:
-> On Wed, Oct 07, 2026 at 12:22:27AM +0300, Leon Romanovsky wrote:
-> > On Tue, Oct 06, 2026 at 02:29:55PM -0500, Bjorn Helgaas wrote:
-> > > On Thu, Oct 01, 2026 at 02:55:08PM +0300, Leon Romanovsky wrote:
-> > > > PCI P2PDMA applies Request and Completion Redirect throughout both paths.
-> > > > This misclassifies asymmetric and nested switches, and reports one answer
-> > > > for every kind of TLP.
-> > > > 
-> > > > Three ACS controls act on TLP attributes the client chooses rather than
-> > > > on the topology: Translation Blocking and Direct Translated P2P act on
-> > > > a Request's Address Type, and Completion Redirect skips Completions carrying
-> > > > Relaxed Ordering.
-> > > > 
-> > > > Evaluate each direction at the path divergence, decide every class from the
-> > > > one walk, and treat a client with ATS enabled as translating unless its
-> > > > driver declares per-mapping ATS.
-> > > > 
-> > > > This completes the P2PDMA side; dma-buf and mlx5 follow separately.
-> > > > ...
-> > > 
-> > > > Leon Romanovsky (18):
-> > > >       PCI/P2PDMA: Document the TLP attribute assumptions
-> > > >       PCI/P2PDMA: Derive routing from directional ACS controls
-> > > >       PCI: Reject unreadable ACS controls in isolation checks
-> > > >       PCI/P2PDMA: Evaluate ACS controls at the path divergence
-> > > >       PCI/P2PDMA: Document directional ACS routing
-> > > >       PCI/P2PDMA: Collect the path's ACS controls before deciding
-> > > >       PCI/P2PDMA: Answer routing per TLP class
-> > > >       PCI/P2PDMA: Route Relaxed Ordering Completions directly
-> > > >       PCI/P2PDMA: Reject Translated Requests blocked by Translation Blocking
-> > > >       PCI/P2PDMA: Route Translated Requests under Direct Translated P2P
-> > > >       PCI/P2PDMA: Log detailed ACS routing diagnostics
-> > > >       PCI/P2PDMA: Add KUnit tests for the ACS routing decisions
-> > > >       PCI/P2PDMA: Test the ACS P2P routing walk
-> > > >       PCI: Add KUnit coverage for ACS isolation checks
-> > > >       PCI/P2PDMA: Document TLP-class routing
-> > > >       PCI/P2PDMA: Let a client declare that it selects ATS per mapping
-> > > >       PCI/P2PDMA: Evaluate the ATS path for clients with ATS enabled
-> > > >       PCI/P2PDMA: Test the routing of clients with ATS enabled
-> > > > 
-> > > >  Documentation/admin-guide/kernel-parameters.txt |  15 +-
-> > > >  Documentation/driver-api/pci/p2pdma.rst         |  80 +++
-> > > >  drivers/pci/Kconfig                             |  15 +
-> > > >  drivers/pci/Makefile                            |   1 +
-> > > >  drivers/pci/p2pdma.c                            | 719 ++++++++++++++++++--
-> > > >  drivers/pci/pci.c                               |   7 +-
-> > > >  drivers/pci/pci.h                               |  58 ++
-> > > >  drivers/pci/pci_acs_test.c                      | 860 ++++++++++++++++++++++++
-> > > >  drivers/pci/quirks.c                            |   6 +-
-> > > >  include/linux/pci-p2pdma.h                      |  12 +-
-> > > >  10 files changed, 1687 insertions(+), 86 deletions(-)
-> > > > ---
-> > > > base-commit: 08dbfad3f5040f5bdb6c529da20d6d4e81fefd72
-> > > > change-id: 20260821-fix-p2p-acs-v4-0-e72455e3a261
-> > > > prerequisite-message-id: <20260830-batch-p2p-fixes-v1-0-5044e8dfbe2e@nvidia.com>
-> > > > prerequisite-patch-id: 6b25c7fcf164cdfc14e9fac5b908d97fcf6509d7
-> > > > prerequisite-patch-id: 0d083c281001365aae4b35544cf28891a6ab9a96
-> > > > prerequisite-patch-id: bfd9dabf271f3cc9a3a61f46387d20c20311363d
-> > > > prerequisite-patch-id: fad0275efc722830fc591509506c0a5e4f581073
-> > > > prerequisite-patch-id: 0c83bee688fec1f6d1564654df7c630fa6a4a978
-> > > 
-> > > This seems like material for the PCI tree, but I'm not sure how to
-> > > apply it.  It doesn't apply cleanly on the current pci/p2pdma
-> > > (https://git.kernel.org/pub/scm/linux/kernel/git/pci/pci.git/log/?h=p2pdma),
-> > > which does contain your series from
-> > > 20260830-batch-p2p-fixes-v1-0-5044e8dfbe2e@nvidia.com.
-> > > 
-> > > I could probably fix the conflicts but I don't know why there should
-> > > be conflicts, since the only commits on pci/p2pdma other than yours
-> > > are a few trivial allow-list updates.
-> > 
-> > So maybe this is related to these trivial updates, my series was based
-> > on the clean p2pdma branch:
-> > https://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git/log/?h=fix-p2p-acs-v9
-> 
-> Ah, yeah, it must be the allow-list additions that I have but you
-> don't.  I wouldn't have thought the offsets would have been a problem.
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+s) to consider:
+- [High] net/smc: zombie abort_work terminates valid fallback connection
+--
 
-It applies fine if I move the Haswell and Alibaba allowlist patches t
-to the end so the base matches fix-p2p-acs-v9, thanks.
+commit cebb96f694baa10cd5a7d057d497a08031c69485
+Author: Hidayath Khan <hidayath@linux.ibm.com>
+
+net/smc: fix abort_work termination in smc_conn_free()
+
+This commit switches smc_conn_free() to use a non-blocking cancel_work()
+for abort_work to avoid deadlocks. It also adds a check for conn->freed
+inside smc_conn_abort_work() and initializes abort_work once per socket
+in smc_sk_init() instead of per connection.
+
+Link: https://lore.kernel.org/netdev/20260806081549.595001-1-hidayath@linux=
+.ibm.com/
+
+> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+> index 9974149659c2f..907530e1d6464 100644
+> --- a/net/smc/smc_core.c
+> +++ b/net/smc/smc_core.c
+
+[ ... ]
+
+> @@ -1276,8 +1280,13 @@ void smc_conn_free(struct smc_connection *conn)
+>  			smcd_buf_detach(conn);
+>  	} else {
+>  		smc_cdc_wait_pend_tx_wr(conn);
+> -		if (current_work() !=3D &conn->abort_work)
+> -			cancel_work_sync(&conn->abort_work);
+> +		/* Do not wait here: the work takes the socket lock this
+> +		 * caller holds. An instance that is already running is
+> +		 * parked on that lock and will find conn->freed set; only a
+> +		 * still-pending one has to give its reference back.
+> +		 */
+> +		if (cancel_work(&conn->abort_work))
+> +			sock_put(&smc->sk);
+
+[Severity: High]
+Does changing this to a non-blocking cancel_work() introduce a race with
+server-side fallback connections?
+
+During server listen, smc_listen_find_device() iterates over proposed
+devices while holding the socket lock. If an initial connection attempt
+calls smc_conn_create() but fails and is aborted via smc_conn_free(), an
+abort_work queued concurrently could transition to running but block on the
+socket lock.
+
+Since cancel_work() does not wait, it would return false for the running
+worker and leave it parked on the lock. When the fallback loop continues,
+it calls smc_conn_create() for the next device on the same socket, which
+unconditionally resets the flag:
+
+net/smc/smc_core.c:smc_conn_create() {
+    ...
+    conn->freed =3D 0;
+    ...
+}
+
+When the fallback connection ultimately succeeds and releases the socket
+lock, could the parked abort_work unblock, observe the reset conn->freed
+flag, and erroneously call smc_conn_kill() on the new, valid connection?
+
+>  	}
+>  	if (!list_empty(&lgr->list)) {
+>  		smc_buf_unuse(conn, lgr); /* allow buffer reuse */
+
+[ ... ]
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261006073550.1595=
+003-1-hidayath@linux.ibm.com?part=3D1
