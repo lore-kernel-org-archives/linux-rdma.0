@@ -1,44 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 157613ACA49
-	for <linux-rdma@vger.kernel.org>; Wed,  7 Oct 2026 15:48:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10F164BF926
+	for <linux-rdma@vger.kernel.org>; Wed,  7 Oct 2026 15:50:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791388121; cv=none; b=oD4tsFQzpOampSQwFovp66ujix7uXWtL6bFVqJGbHdVXR8fLkz1PNqHDkEeiEoZK2riLsF0zkzmvCtJNnjwBRBpyEgvSDfY+2VtW7ssyC+KRdDpYO3LDdjFTD1aNnHw/CJ25Y2ykAn4/NBmJ3F1hjpnNpCgiVXitVSKIkKBnQaQ=
+	t=1791388230; cv=none; b=pB65TZc5MQtn/sZuco/oNCtQt+O7Umpw3tYkhzWEgV2m8gCy6cvkTAz460RX548w8QQ+muCN3y0tjQAa8NO8O+L6yFwxQtdcZf3htY9HC37+ri1Cv1bWLkd2rye4Td7GnfBBCOU7RWBYRM70Qfpd9K54YkHxguO3XWaUXLB+Fqk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791388121; c=relaxed/simple;
-	bh=jUC8qrQ82tGD2xq9j+P8wKeQx8GegMzLtKHvTk3PerM=;
+	s=arc-20240116; t=1791388230; c=relaxed/simple;
+	bh=pvLRFW8X7+JDmC5RQtjtUXX9S03J5a/2DrlcTBCV7uI=;
 	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=hl3LnSkrIzArdM86q7GQDft5waZ6eehcgn7CIyVWMuGuJUvNHWzxg4kBJZSd4IWGGhOE7hMViYkZPx9kN3EvYaSw+2b4EkPVG/nXZecaqXrs5FGoZuDX/9PrcnRyK/beUDyqc0dcwkcwM2z3bjbHizUxvEkvH0NmZuKkmYPxQVg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BJgBAvbW; arc=none smtp.client-ip=100.103.45.18
+	 Date; b=APQXHQGSvciI+c7dO3fvOD+/Sv8CP9Kivb6pKLQgKW3/PAlbv7FGGnQF2UuyE0j+Jh+ONrRnKdvG3zfo0VIZ/9XDSIU924bzOiPSChJdtdwqBxckofwQyRKRqBUpGStLaXGVe8BfNYTFtz8zarrHAWPDrn9a8dkXMwkIqXbFwq0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Uc3j68Ip; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BJgBAvbW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB5AC1F000FF;
-	Wed,  7 Oct 2026 15:48:38 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Uc3j68Ip"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B8E71F000FF;
+	Wed,  7 Oct 2026 15:50:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791388118;
-	bh=PNgDNkvoWOttZWPeAql72e2Jh8Jy+tyYDf1UaCYNWVI=;
+	s=k20260515; t=1791388224;
+	bh=pFdFHhjGEwXmglS/UrCyXPoNL/oamw+U+4UcHVo4gmk=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=BJgBAvbWyBNcIgBAUXtGOwrGKlHc6VCuczqu2fH4DG41yUnAAXFseoalIEY16kIbm
-	 rcfZ11+JFC8JvVlKadxr2jDe/IhuUE5DCVz20wdns0eLEaMBykBxjXP1wjE4ek+Lao
-	 +gYaRvsESrGNGQvMLbxc4ZBqYMjhko4hZB5qaxKHv1Q49GSAbbJWTSyWe0WjoAzd0+
-	 sCyu+spZHqKSPJ7bhsS1h8LeHXGKwmVLv2ObQEzStVnyJDZRQHfCXaIcvlg2WdEwO0
-	 ri1gbf5kne8Wz+1KBCS08JksZgj3NaWgbXvekINlXs37Z/od0N31FL3tcB2g4Yip4e
-	 iT2h43w77MzDQ==
-Message-ID: <sashiko-outbox-163163@kernel.org>
+	b=Uc3j68Ip453yNWMo5ppNLcokXTTqnYQ7M8pyTC0mQJJntjcuB4E4kY9k8ephcjQat
+	 9gp/bIxK9/Sxw6nzP9jDlnDd0RKR893Ujt6aWEZ7D1t4kmU8K3q3Wf2dHtHUXB78zK
+	 4dXDvhJUictJ2Du3XOu3lJ414j7coOvsvPIKsLuiKte1EgxV7J2cE3cxPpthpgpIIS
+	 UeHrT9fHGDeLd5V6frT0G9LjyslGaY84COyi7aNqVtrByv5c31kXQgXvvlLXVp6vvf
+	 bZoRrc/nsQzNreNXGTYvkWynGZWK1c5HNN+qu+K7HcEr31fnPBBtEvL3SzNSAyrS9e
+	 JVeSNq88Lu82A==
+Message-ID: <sashiko-outbox-163165@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v3 07/10] RDMA/mana_ib: Poll RC completions
- using PSN and FSN progress
+Subject: Re: [PATCH rdma-next v3 02/10] RDMA/mana: Create and destroy kernel
+ RC QPs
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Konstantin Taranov" <kotaranov@linux.microsoft.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261007153330.2979799-8-kotaranov@linux.microsoft.com>
+In-Reply-To: <20261007153330.2979799-3-kotaranov@linux.microsoft.com>
 References: <20261007153330.2979799-1-kotaranov@linux.microsoft.com>
- <20261007153330.2979799-8-kotaranov@linux.microsoft.com>
+ <20261007153330.2979799-3-kotaranov@linux.microsoft.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 07 Oct 2026 15:48:38 +0000
+Date: Wed, 07 Oct 2026 15:50:24 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -47,98 +47,97 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 Thank you for your contribution! Sashiko AI review found 2 potential issue(=
 s) to consider:
-- [High] rdma/mana_ib: RC SQ queue->tail stalls due to missing wqe_size_in_=
-bu initialization
-- [High] rdma/mana_ib: mana_ib_arm_cq returns 0 when has_pending_cqe is tru=
-e, missing events
+- [High] mana: Missing bounds checks on QP capacities cause integer overflo=
+w and undefined behavior
+- [Medium] mana: Integer underflow in mana_ib_query_device when SGE count i=
+s 0
 --
 
-commit e4f126a1330a4d8df81cbe90bf16cac4e71247c6
+commit 5b497775948fa714374d6418c365f7b62d67deb5
 Author: Konstantin Taranov <kotaranov@microsoft.com>
 
-RDMA/mana_ib: Poll RC completions using PSN and FSN progress
+RDMA/mana: Create and destroy kernel RC QPs
 
-This commit decodes RC receive completions, armed-PSN notifications, and MMQ
-completions. It retires requester and MMQ shadow entries using their
-sequence numbers, honors cross-queue fence dependencies, and suppresses
-successful WCs for unsignaled work requests.
+Implement kernel RC QP creation and destruction. This feature requires
+extended-WQE and power-of-two-SQ support from the HW.
 
-> diff --git a/drivers/infiniband/hw/mana/cq.c b/drivers/infiniband/hw/mana=
-/cq.c
-> --- a/drivers/infiniband/hw/mana/cq.c
-> +++ b/drivers/infiniband/hw/mana/cq.c
+> diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/ma=
+na/main.c
+> index fa47c988a2747..329bc9f30aa10 100644
+> --- a/drivers/infiniband/hw/mana/main.c
+> +++ b/drivers/infiniband/hw/mana/main.c
+> @@ -637,7 +637,8 @@ int mana_ib_query_device(struct ib_device *ibdev, str=
+uct ib_device_attr *props,
+>  	props->max_qp =3D dev->adapter_caps.max_qp_count;
+>  	props->max_qp_wr =3D dev->adapter_caps.max_qp_wr;
+>  	props->device_cap_flags =3D IB_DEVICE_RC_RNR_NAK_GEN;
+> -	props->max_send_sge =3D dev->adapter_caps.max_send_sge_count;
+> +	/* Subtract 1 from max_send_sge to account for the reserved SGE */
+> +	props->max_send_sge =3D dev->adapter_caps.max_send_sge_count - 1;
+
+[Severity: Medium]
+Could this subtraction underflow if the firmware reports max_send_sge_count
+as 0?
+
+If it underflows to 0xffffffff, this massively inflated value would be
+reported to the RDMA core, which relies on it to bound user QP requests.
+Could this allow malicious userspace to bypass sizing limits and induce
+integer overflows during queue allocations?
+
+>  	props->max_recv_sge =3D dev->adapter_caps.max_recv_sge_count;
+>  	props->max_sge_rd =3D dev->adapter_caps.max_recv_sge_count;
+>  	props->max_cq =3D dev->adapter_caps.max_cq_count;
 
 [ ... ]
 
-> @@ -324,8 +330,19 @@ static void mana_complete_send(struct mana_ib_qp *qp,
->  	if (vendor_error || !(wqe->flags & MANA_WQ_NO_SIGNAL_WC))
->  		mana_fill_wc(qp, poll, wqe, wqe->send_opcode, vendor_error);
-> =20
-> -	queue =3D mana_qp_get_sq(qp)->kmem;
-> -	queue->tail +=3D wqe->wqe_size_in_bu;
-> +	if (mmq) {
-> +		queue =3D qp->rc_qp.queues[MANA_RC_SEND_QUEUE_MMQ].kmem;
-> +		queue->tail +=3D wqe->wqe_size_in_bu;
-> +	} else {
-> +		queue =3D mana_qp_get_sq(qp)->kmem;
-> +		if (wqe->send_opcode =3D=3D IB_WC_RDMA_READ) {
-> +			qp->rc_qp.queues[MANA_RC_RECV_QUEUE_REQUESTER].kmem->tail +=3D
-> +				wqe->wqe_size_in_bu;
-> +			queue->tail +=3D qp->rc_qp.wqe_size_in_bu;
-> +		} else {
-> +			queue->tail +=3D wqe->wqe_size_in_bu;
+> diff --git a/drivers/infiniband/hw/mana/qp.c b/drivers/infiniband/hw/mana=
+/qp.c
+> index 15c5d6cefd628..edaf03372cd81 100644
+> --- a/drivers/infiniband/hw/mana/qp.c
+> +++ b/drivers/infiniband/hw/mana/qp.c
+> @@ -442,6 +442,32 @@ static u32 mana_ib_queue_size(struct ib_qp_init_attr=
+ *attr, u32 queue_type)
+>  			queue_size =3D attr->cap.max_recv_wr *
+>  				mana_ib_wqe_size(attr->cap.max_recv_sge, INLINE_OOB_SMALL_SIZE);
+>  		break;
+> +	case IB_QPT_RC:
+> +		switch (queue_type) {
+> +		case MANA_RC_SEND_QUEUE_REQUESTER:
+> +			queue_size =3D attr->cap.max_send_wr *
+> +				mana_ib_fixed_wqe_size(attr->cap.max_send_sge,
+> +						       INLINE_OOB_EXTRA_LARGE_SIZE);
 
 [Severity: High]
-For RC Send and Write shadow WQEs, wqe_size_in_bu is left as 0 during
-posting. When adding it to the queue tail here in mana_complete_send(),
-could this stall space accounting because queue->tail won't advance?
+Does this missing bounds check on attr->cap allow for integer overflow or
+undefined behavior here?
 
-This could eventually cause mana_gd_wq_avail_space() to calculate incorrect
-available space, permanently hanging the RC send queue under standard
-SEND/WRITE traffic.
+In mana_ib_create_rc_qp_kernel() and mana_ib_create_ud_qp(), attr->cap is
+passed to mana_ib_queue_size() without bounds-checking against the adapter's
+capabilities, unlike mana_ib_create_qp_raw() which validates the queue
+capacities.
 
-> +		}
-> +	}
->  	shadow_queue_advance_consumer(shadow);
->  }
+If max_send_wr and max_send_sge are abnormally large, could this 32-bit u32
+multiplication overflow and wrap around to a small queue_size?=20
 
-[ ... ]
+This would lead to an undersized GDMA queue allocation while the massive
+size is sent to the RNIC, potentially resulting in out-of-bounds DMA access.
 
-> @@ -390,17 +422,105 @@ static void handle_rq_cqe(struct mana_ib_qp *qp, s=
-truct gdma_comp *cqe,
+Additionally, if QPs are legitimately created with max_send_wr =3D 0 or
+max_recv_wr =3D 0 (e.g., receive-only), queue_size becomes 0. The subsequent
+call to roundup_pow_of_two(0) at the end of mana_ib_queue_size() evaluates
+to fls_long(-1), which is undefined behavior in the kernel.
 
-[ ... ]
-
-> +static bool mana_advance_send(struct mana_ib_qp *qp, bool mmq, u32 seq,
-> +			      struct mana_cq_poll *poll)
-> +{
-> +	struct shadow_queue *shadow =3D mmq ? &qp->shadow_mmq : &qp->shadow_sq;
-> +	struct shadow_queue *other =3D mmq ? &qp->shadow_sq : &qp->shadow_mmq;
-> +	struct shadow_wqe_header *shadow_wqe;
-> +
-> +	while ((shadow_wqe =3D shadow_queue_get_next_to_consume(shadow))) {
-> +		if (PSN_LT(seq, mmq ? shadow_wqe->fsn : shadow_wqe->wqe_offset_or_psn))
 > +			break;
-> +		if (poll->produced =3D=3D poll->budget)
-> +			return false;
+> +		case MANA_RC_SEND_QUEUE_MMQ:
+> +			queue_size =3D attr->cap.max_send_wr *
+> +				mana_ib_wqe_size(1U, INLINE_OOB_EXTRA_LARGE_SIZE);
+> +			break;
+> +		case MANA_RC_SEND_QUEUE_RESPONDER:
+> +			queue_size =3D MANA_PAGE_SIZE;
+> +			break;
 
-[Severity: High]
-Returning false here when poll->produced =3D=3D poll->budget causes a hardw=
-are
-CQE to be cached in software by setting cq->has_pending_cqe to true.
-
-If an application subsequently calls ib_req_notify_cq() with
-IB_CQ_REPORT_MISSED_EVENTS, wouldn't the driver return 0 because it misses
-checking this software-cached CQE?
-
-This could cause standard RDMA ULPs to hang permanently waiting for an
-interrupt, as the CQ is falsely reported as empty.
-
-> +		if (shadow_wqe->flags & MANA_WQ_FENCE_WC) {
-> +			u32 dependency =3D mmq ? shadow_wqe->wqe_offset_or_psn : shadow_wqe->=
-fsn;
-> +			struct shadow_wqe_header *other_wqe;
+[ ... ]
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261007153330.2979=
-799-1-kotaranov@linux.microsoft.com?part=3D7
+799-1-kotaranov@linux.microsoft.com?part=3D2
