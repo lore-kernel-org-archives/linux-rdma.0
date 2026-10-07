@@ -1,69 +1,69 @@
 Received: from mail-qt1-f175.google.com (mail-qt1-f175.google.com [209.85.160.175])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EADF4E0B83
-	for <linux-rdma@vger.kernel.org>; Wed,  7 Oct 2026 18:16:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E4584DEC3D
+	for <linux-rdma@vger.kernel.org>; Wed,  7 Oct 2026 18:16:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791397014; cv=none; b=r7VkMY+CO+HVpQ4/N+C0cUIN64+Mtqp4eQ0OJwELACDoVj4oYAXVZ0RyC4oVhcECYN2BemUD474Uh3rNJblVG3dvbNvZsebhdxy2hAZ/Euh8Oa95J6HdjguzHj7QmJjtEIN/w4W+xzqqNn17jMGROV3DvAQOQg6JM/dAmFTrOrA=
+	t=1791397015; cv=none; b=JKhRXmzT86iEZFImHFxtl8MTK36KUabb7bSYkokgWMzeK1fcfVV6cBNXb7ssUJ0IYB83EOWNfC28I4QV4/NuJY99KiQ6+LaajqI6lbtAdsBFoxPy8L7yN7c0e7060lSmmmbcp64j9gv9rAI0Lx1fAEpqhMDBRFhGFC3UhpUkunk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791397014; c=relaxed/simple;
-	bh=McO8YjXlypOeoX4QkYeNrhdO3XuQh8G3BcccmslsJYQ=;
+	s=arc-20240116; t=1791397015; c=relaxed/simple;
+	bh=aE3S/MO9vLOemBhMvEWEtBv4CYrulZjUcAw8T5FEx9E=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=NFCFzWwtPzuGUwOrcKiv41L2xbQNisew9aqP84CzgyP8OOBFfWd6wD46HURBeJJI0hTV44Dt4bwyCzGRLCbBVGJJB3jj45vweqpHmpAce8Jfcz3XIdW1eIJASiPpkZKdMHHkSzK6OQ+iuQBan+buk3xJj/FB0mKHhZE34Zc5sBk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=toxicpanda.com; spf=pass smtp.mailfrom=toxicpanda.com; dkim=pass (2048-bit key) header.d=toxicpanda.com header.i=@toxicpanda.com header.b=NG0LimwE; arc=none smtp.client-ip=209.85.160.175
+	 In-Reply-To:To:Cc; b=muLlvlgXGkAI3byaHnGFphgb9Yig0lWUvNETALHxRLOSMemD7K/GluaIoXWphPnNMBQy806zB1qQWXMFisTPv5cNLHZ02/HADwr56KCJvsqqHUT9XZ/0IZLaWN+FffiHTpafog6zTXPOkbEzF0kTogd8QW2IRrnpETQGfT+UcrA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=toxicpanda.com; spf=pass smtp.mailfrom=toxicpanda.com; dkim=pass (2048-bit key) header.d=toxicpanda.com header.i=@toxicpanda.com header.b=phZMt/nm; arc=none smtp.client-ip=209.85.160.175
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=toxicpanda.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=toxicpanda.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=toxicpanda.com header.i=@toxicpanda.com header.b="NG0LimwE"
-Received: by mail-qt1-f175.google.com with SMTP id d75a77b69052e-5338c1197easo35627991cf.0
-        for <linux-rdma@vger.kernel.org>; Wed, 07 Oct 2026 11:16:47 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=toxicpanda.com header.i=@toxicpanda.com header.b="phZMt/nm"
+Received: by mail-qt1-f175.google.com with SMTP id d75a77b69052e-5339199d8c3so18261101cf.0
+        for <linux-rdma@vger.kernel.org>; Wed, 07 Oct 2026 11:16:51 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=toxicpanda.com; s=google; t=1791397006; x=1792001806; darn=vger.kernel.org;
+        d=toxicpanda.com; s=google; t=1791397010; x=1792001810; darn=vger.kernel.org;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=HlPhbKKLwkJ8jfy0wR1jO0OPJAX2t4fwgDWWxi6hd3M=;
-        b=NG0LimwEZf7Y5Q0DifD1WTjpRfKMzv3GNMEogBoX8HRaO1DKFk4SNEf64XBbLcBJZx
-         B2Yop5sClPKNstN72hNwbJC0RQMvMMQMGnH3sb+1zX1r1+BO3jm6gpOqu0YxJyAnCHM0
-         1ZkGIFLub6QEAxlB73vYQ9Vp+3jYfqiBMoQb8ESDXTWqt3KL+DGc3kN2Y8vEddNC8CA/
-         0hGEZN19zmIJ1Gk3VZCzDfPLdPA+AFU6g3tkPKyZsgeEq7cLdmbkLXwrZI2FAS1Hut5L
-         IUje4i0vlnFHVSRULfaricR+wj+f5OiwEsnqEGCUm663yZq2O6Jr/NRDGuItN03vYpeR
-         ZAwQ==
+        bh=DbLtENrG5I00kMX4i+UCiZIr5Qm/AkQbhE28uvMASeM=;
+        b=phZMt/nmufB2UOX8QExs+B0insi7qEQd58keteUiSUff+59nBs+4T7aQ0NYM1CaM6m
+         oIBw+vu471oZ/TgqD6oWPkHnN4iizvcrGhH1mFQgP+AzTOjEoss1lzpDEaCApKein7eM
+         rN86Lfzv0euZe1WaJVvDrJmmnuvSJyu2ilmvwIj7tpUHti20nzP93I1eqhXjmAr2hdPB
+         9E8TXZ1YjE8aeGgl45pgDzfYVwd0CNJYUF1c7uJ82DKtrruwwWm3rdgZ2wQIwI/xIBIo
+         RENmXtgiytt7usnSxWAPCDSKVB6oR0ttFzqWZkZBw8r7e8AOwJ1/PQzQ2dJi7JaVW3kn
+         dqMA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791397006; x=1792001806;
+        d=1e100.net; s=20260707; t=1791397010; x=1792001810;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=HlPhbKKLwkJ8jfy0wR1jO0OPJAX2t4fwgDWWxi6hd3M=;
-        b=nHznJLhwxuGTvCpJd516efTy3+3en7m15NY7ox0mUokmyNP0DxUhywL4Y+7ADLxjTL
-         viX/iqF3cZdsjQWcXI70TYoZZKfKByxuBNELbQegL8Pe4UI7ZWve18JJ/ICpKUe5sWMB
-         ICEFvW9P92fvN8E+WMjQXYz7ADvwUNmeYIbRmJdsEwTxmXBCu7qN3biub6ZJAfRaV7aU
-         ydLwiSjiaNj7bWLwyDeGHywHL96sEN3aEPlCBHsA7gvUpa1WIvCukeyzr4HbhLdHAnFt
-         xtIUNUzrP16W6PgwmUfuzE8Tnb+kuDmRyvKlbAtFQCdsALJGdWRzhZwnNlAYLt12EYfl
-         QaeQ==
-X-Forwarded-Encrypted: i=1; AKwUvBwiUtZ0HD0Dvb6fRf2rkR77HELe32ZhLXd/cKnDfZmmoPKiIufvcFKcf2IHmsONvn4N+WqcB910Sg7e@vger.kernel.org
-X-Gm-Message-State: AFuF++nMW2zTq46STexyyFJjsKyi3rNBKk3T5MWkLTGiSe84CjazRnAx
-	qqGZF3q4wOzlq2tG7dwhemciIJLD9BpaD2SAWKXtT+5/JnA/N1fkm9lbhkNsGHe1mnw=
-X-Gm-Gg: AYBFou3Jdc1kvPIDzz5XIXLa4wwdxpBzFRa/fftYny1n8bmjq201XKI3qRTELAncblq
-	n9HCv4z0nb7C2V6jvLZVFNTdvZjdkNDLNiaLJjIeuqrCQq2gplg/fY5v8za+Ob3g0sbD/k+Zeoa
-	dcLBWttFsnwSrOqbGyFW9r0fCBKjuKERjWoVaZARpqcQZlD/HYB8hGV58ouoUWlu+bNAQxoBCi7
-	Om+tabK1Qa+ySEs0eusLiVgLpEyrLYGGkqwkJ/mdNsnqfW2s0cl080h3RC6tnLCbWMzNFwxK0Qx
-	pcm+8sGo04UPb8FNKqFbErDzf/0jZr4AeaVXChWNtBZHjtnWasyas3zccFqgkCjRm42EVe6KCxO
-	G5DryvtW7Af8lmmK8sv8WqSXCKHvoJLw0RrpJ6vJMfV8buZicLeIk3rwpP8hbl9fCJPPBaNBkI2
-	hpEKjAp9pJ0LAcYm5VW/fbRZ5/aFrKqKw+g3ezYhQ2nL2YAJGrX4NZiiN4iF8POyJkEmII20cYh
-	c6blAukWZVOVWA=
-X-Received: by 2002:a05:622a:4106:b0:533:3d48:37f0 with SMTP id d75a77b69052e-53575555c86mr50817771cf.47.1791397006325;
-        Wed, 07 Oct 2026 11:16:46 -0700 (PDT)
+        bh=DbLtENrG5I00kMX4i+UCiZIr5Qm/AkQbhE28uvMASeM=;
+        b=PIZqjHlknQ8tHOaeat1pjncddREjqoKauKBHAsd1Piyo/Zr+RPz0J7QlD93teP+r0d
+         uX8naNlI2Jyeko/kOa16JP/J6v02lA66KeyTCy9au1GQALwKQlLzso2HrTUi2yQCFSNi
+         waN9B28826yxF3/iSBrHmmX+DqJXfeCck80iRg7K2KejXH+0btUvEo1JuWdY3NxlRBWk
+         zAHNsX/qlNW9FRuD2ZtdB7BI2AxEo8Xpd5FxjfEj6tN36l8tegdGAAimKP1Kkl6l6Z4x
+         0Mb3NirxC/fEEpSeayzLkceMmHNrgLMdb33LD0nMOFrXo4YQzlRL+X6PB7mGYSoR/oTP
+         nmvQ==
+X-Forwarded-Encrypted: i=1; AKwUvBxXybwGKxR0SeS3NCaWJ1DMvBlyL8tJTChAqWKh4XPMxiBVzdwilVXwQoC+A8GOnWIoUzbB8DE6beSb@vger.kernel.org
+X-Gm-Message-State: AFuF++migtP3FHbmUlFMAroIi5hZhG6XSO8rKUCyRc2IkRNqIH2Puswg
+	nfjHB4Pkq+QZSbFxspzfzElgnXUtqjNHyWCcvnzS8M6UuVvNIvOfhkJwjU7H+erEpeM=
+X-Gm-Gg: AYBFou2kRzAWnBMLgqoBsLuq0niopFP0LECleIoJUEXP4XMzNMb+3WkjwEHE8Mh1bZb
+	ZeuLsSJokCes2XKuLs9Q/WPTJejzH92tbeeYVx3PO2ES4Gir4moG+JW/k21/fYiUIcDh0UtH4Hz
+	1KLNH5zqPFhS63CnfkEUE1kL8ha1W+bf24NONHBu1woLVFedtvw2H97Lg5HtVnxA5q4Ayb7YWQa
+	afkVCliB+YJgWLLdJsbHECSSRXLrRsgXrGSkAy4bDMQdAssAxCzkudTNpVQZDTI9Ud90fgT7a1B
+	5KVSnCfHsgCdPQFClAAgPpT3sa2h5ENlEU5Jreq3yiNV2iOjZ2DCIK15pejmclCjHjaoACvSn9a
+	3bd1uLiJN1kR0hFRAvOBIAxZK9eyhYUtWM19HJi5UaW/Jv4rnR/VQjNV2JJqHxVJEymSMbWAs+0
+	wg8q9H7b2y70CrTWMSTtTqS1/XUA/iLHuMLWQMtHbkXF9lwt+/MspYxJE9AiWw8f8CaCHXSowBa
+	Dg2orPb/T9jptexvkJHoYc3HA==
+X-Received: by 2002:a05:622a:60b:b0:533:94fc:1e69 with SMTP id d75a77b69052e-535755237d0mr54333081cf.21.1791397010017;
+        Wed, 07 Oct 2026 11:16:50 -0700 (PDT)
 Received: from toxicpanda.com ([153.61.196.242])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-53572103ae6sm26011521cf.15.2026.10.07.11.16.45
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-5357214830fsm26034571cf.19.2026.10.07.11.16.49
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 07 Oct 2026 11:16:45 -0700 (PDT)
+        Wed, 07 Oct 2026 11:16:49 -0700 (PDT)
 From: Josef Bacik <josef@toxicpanda.com>
-Date: Wed, 07 Oct 2026 18:16:20 +0000
-Subject: [PATCH net-next 7/9] netxen: use pskb_may_pull() to pull excess TX
- frags into the head
+Date: Wed, 07 Oct 2026 18:16:22 +0000
+Subject: [PATCH net-next 9/9] net: skbuff: don't reset truesize in
+ skb_condense() if the pull fails
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -72,7 +72,7 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20261007-b4-pskb-pull-tail-drivers-v1-7-9512b0fb977b@toxicpanda.com>
+Message-Id: <20261007-b4-pskb-pull-tail-drivers-v1-9-9512b0fb977b@toxicpanda.com>
 References: <20261007-b4-pskb-pull-tail-drivers-v1-0-9512b0fb977b@toxicpanda.com>
 In-Reply-To: <20261007-b4-pskb-pull-tail-drivers-v1-0-9512b0fb977b@toxicpanda.com>
 To: Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
@@ -92,41 +92,48 @@ Cc: Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>,
  xen-devel@lists.xenproject.org, intel-wired-lan@lists.osuosl.org, 
  Josef Bacik <josef@toxicpanda.com>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=openssh-sha256; t=1791396985; l=1110;
+X-Developer-Signature: v=1; a=openssh-sha256; t=1791396985; l=1285;
  i=josef@toxicpanda.com; h=from:subject:message-id;
- bh=McO8YjXlypOeoX4QkYeNrhdO3XuQh8G3BcccmslsJYQ=;
+ bh=aE3S/MO9vLOemBhMvEWEtBv4CYrulZjUcAw8T5FEx9E=;
  b=U1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAgUBr36M/n0nWN0DNbnxwzIiCZez6MG
  JiruuNaSCI/zXsAAAAGcGF0YXR0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5AAAA
- QEER6Cf6YiSeQas1SDvrXyD48BT2JMKt5v+EgNKlM2X9W7DYLscC2uLR/v/alcS1X9KdG7G/jh6
- TE0kjRM5PRAc=
+ QAKmlD/cXgBiooOoWC6A+H7tw5dWzG4gHatAYnnjbF9tFpPNqC/1rDXMvdLjveUvTCKNu/kJ24U
+ cYCfNc2tlrQI=
 X-Developer-Key: i=josef@toxicpanda.com; a=openssh;
  fpr=SHA256:C8kOX2QUJCMqnCX+KEeoqRAjLo9L+ELOSH2NSAJHqGA
 
-netxen_nic_xmit_frame() pulls the frags that don't fit in a TX
-descriptor into the head with __pskb_pull_tail().  It already checks
-the result.  Switch to pskb_may_pull(), which takes the length the head
-should end up with and checks it against the skb, so this driver no
-longer calls __pskb_pull_tail() directly.
+skb_condense() pulls all of the frag data into the head and then sets
+truesize to cover just the head, but it ignores the return value of
+__pskb_pull_tail().  If the pull failed, the frags would still be
+attached and truesize would undercount them.
+
+It can't fail today.  The caller has checked that the head has room,
+that the skb isn't cloned and that the frags are readable, and pulling
+all of data_len eats every frag_list skb whole, so nothing is
+allocated.  Check the result anyway and leave the skb alone on
+failure, so this stays correct if any of that changes.  Use
+__skb_linearize(), which is what this pull is.
 
 Assisted-by: LLM
 Signed-off-by: Josef Bacik <josef@toxicpanda.com>
 ---
- drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/core/skbuff.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c b/drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c
-index 67d9bf69f8f2..202deb64ddef 100644
---- a/drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c
-+++ b/drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c
-@@ -2045,7 +2045,7 @@ netxen_nic_xmit_frame(struct sk_buff *skb, struct net_device *netdev)
- 			delta += skb_frag_size(frag);
- 		}
+diff --git a/net/core/skbuff.c b/net/core/skbuff.c
+index 43ebe61c7fc4..70df607da05e 100644
+--- a/net/core/skbuff.c
++++ b/net/core/skbuff.c
+@@ -7118,7 +7118,8 @@ void skb_condense(struct sk_buff *skb)
+ 			return;
  
--		if (!__pskb_pull_tail(skb, delta))
-+		if (!pskb_may_pull(skb, skb_headlen(skb) + delta))
- 			goto drop_packet;
- 
- 		frag_count = 1 + skb_shinfo(skb)->nr_frags;
+ 		/* Nice, we can free page frag(s) right now */
+-		__pskb_pull_tail(skb, skb->data_len);
++		if (__skb_linearize(skb))
++			return;
+ 	}
+ 	/* At this point, skb->truesize might be over estimated,
+ 	 * because skb had a fragment, and fragments do not tell
 
 -- 
 2.55.0
