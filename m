@@ -1,69 +1,35 @@
-Received: from mail-qk1-f171.google.com (mail-qk1-f171.google.com [209.85.222.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.tipi-net.de (mail.tipi-net.de [194.13.80.246])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BB4737BE6F
-	for <linux-rdma@vger.kernel.org>; Wed,  7 Oct 2026 18:16:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CAA84DEC3A;
+	Wed,  7 Oct 2026 18:29:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=194.13.80.246
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791397015; cv=none; b=ZWRWTGE7Bcb+H8S4LtcSbrgPozkK28BzErAPzFdrtA5zX2jjNiFj+i2s6qvkJlevj7pMa1eVM0mOH32EIwbt6SQ9nKOnhlUtQ5R6/GPRDll1sjnFSoBwIaMqZAFeLISUEiwUwNjdllGu4xkSGkPOMcGE9TUs5xX9ASC0mEGHM5w=
+	t=1791397784; cv=none; b=IDZv19RCFugdhyM3NMdyxJWyzvIb2hx10GzDVVLtgrH61lwbgDHlGqEKvlLetoMj6naUgQ4bbReP0B9YS/NN5L/MLGpBpVwmxUrJ1A4MG8oFPMrWnXCbTESyKbBxvcOZuMUmt0nPYYiao4PLcCNjjJMLV/cpQK7+os382d4JU4g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791397015; c=relaxed/simple;
-	bh=SB4NDDKRAhqSJIc9FavKPbItFv2yX/PiEJ0MJpAzuVo=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=QivxT8GiBC02nSnwYHadpyWTFNrPIFAltvc5bYjfQ4J3v7BBt96BqnWKpVlFZhQf1qdJb2RiZvtdFJBxhSZE2CpQdvREf7NSSZyDEpl1aA6NRGeoO4hZUOHtUO2gCZotsxpQbcZpUu5NZprIL1JZXXVrlHAKAWHDuALg2kT3Znc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=toxicpanda.com; spf=pass smtp.mailfrom=toxicpanda.com; dkim=pass (2048-bit key) header.d=toxicpanda.com header.i=@toxicpanda.com header.b=DwCApEzT; arc=none smtp.client-ip=209.85.222.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=toxicpanda.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=toxicpanda.com
+	s=arc-20240116; t=1791397784; c=relaxed/simple;
+	bh=i9H44DowS6+oasXyh4/SXrZHWueedVWfI+Cxyl6TIXI=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=meZnpOiWe8KCv17kLLNqBWfx4N0xipjaJqYZT1cibBm00tM+YqERkz2zJC5/aWKneyo4xUpR7WiJ/4NxXPZrQfqUlq9QwF63sKcGB4ygETf3wwe0xZcV9xBs9L/Zz/ZtlxvQOhgVygJEzUa0Z+Dw1kILU47W21Vj55pStPSBopk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=tipi-net.de; spf=pass smtp.mailfrom=tipi-net.de; dkim=pass (2048-bit key) header.d=tipi-net.de header.i=@tipi-net.de header.b=uyz4eUp9; arc=none smtp.client-ip=194.13.80.246
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=tipi-net.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=tipi-net.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=toxicpanda.com header.i=@toxicpanda.com header.b="DwCApEzT"
-Received: by mail-qk1-f171.google.com with SMTP id af79cd13be357-93e51d8d400so133083085a.0
-        for <linux-rdma@vger.kernel.org>; Wed, 07 Oct 2026 11:16:49 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=toxicpanda.com; s=google; t=1791397008; x=1792001808; darn=vger.kernel.org;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=v9LzkPOzVBtC2oeBzL2RQojlIYdLdy9WRgZ+InvbO8E=;
-        b=DwCApEzTOcjs1Ik9Y6zAw2DFEdXPQV6mWNK2FgXlEpn0Ajy5Caw20hy1fEPKy4R/Qv
-         dOGDzYneuMXTJj9J4w9OeORvVKyc1WteXcoSrD9MAzADDmGcTUuoJRoRWkWlbM4Xkf3w
-         Pj4FdGrI5vm+XfcnM96Ao5wBFihBkeHzx83u9eTazUMT3YC3HsHAWVfilwnrJQ5wbqda
-         L7leCAJ6U/AteWl2RwPeY0StCu0pncvwSEVM2lKvbvGQbOQYlm2JYDw1eOpe0rT10sm2
-         9DgdU0zAizraGaoPglMrV0lRl9iaR5q8Nsmmup6DRH4CGmd5jMHXrG4lXQAmLCjfxTHC
-         Y3PA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791397008; x=1792001808;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=v9LzkPOzVBtC2oeBzL2RQojlIYdLdy9WRgZ+InvbO8E=;
-        b=LT+ZiquFvNF61+nisjRrgk0NomhMLTL9JHG4d9udzWYWPf6P25B2UQoLxMCWohko8L
-         af/DwAnsdAiuB/d5GNIzgY1bacgFezkF9BCBmr6X97JhGBeHcPidxNWdniP5ibYCwa+3
-         /RQjmmIU2gMx+6y/2uOTwLO3gVz5xMibsRqGdpNqCeMJinrrFw6UOO/NSU8hJp2obHIR
-         GTLbh4JdY/tWqsuQVjLdkp+KJVP4ayrCEyjn48UW+lFoUCagNTMt7OsM9Gc94G9oWr3V
-         2+OxXNuruh4cW4s98i1gfg5FZGGLkdmqRwy83TI5MmEiQnFoSWP9iMbpAl5niiWhBCiU
-         hFRA==
-X-Forwarded-Encrypted: i=1; AKwUvBwucjJCRE2dmwXvm6URCiwFiInavVMIsQZA0HND5vE1sbD634Y7okyYAFc7htxStvK5xiTW82Eshjc8@vger.kernel.org
-X-Gm-Message-State: AFuF++kdL45VLU2fzHMW/DjNpmkJZjrnIx6ClfolD7NAPWuEH2OzwMls
-	aRoUfD2l7y3RUJ1mxyIjddF84EmlExv6hd2KScYpS4DoOcJYGL9xG4DYUMNpacZumDQ=
-X-Gm-Gg: AYBFou1gwFyaAC6Mw7F+zDkHmy3IawvZgSrIMR2KnUKU8pqpuZVVSJr343rpMvtcRZP
-	wubF4lQDdZg12xaMDuZSj26ijtnUmEhkKhoFU7Hq27Uj9swPq4KW2/urBKoD5J0xszaA9f/cc3d
-	bEaQNsb5OcxbXYZ2o/egGLd4IgBwBDJuH6je+82gKA+/hUlxAcmg6ZIUn5VKlj3T9WyH9mUhDR8
-	YxyzP75bhRPH31HmgjJe+DYlKI1UVpexXzVzKeiYJWEGc0EkyaU77TY4fUTCLRXA8nDSPQBuqfK
-	Dz041q1uuzh3Oz/y7xXpamqTy3CytxmY8kkHHBExMuxKu0I4vvNZZyiTaAeCPcg7Yva4Hm/L1A6
-	foc9YOlwTrJacgkAvTV3wnx0QpjEbaEzPhgFNRxqfGagQ0yYH/Z/EtghN1KrDo/teyO1fEx+j4H
-	kaRglzKse4zE6uqJT8Ze67m9qtZGsE7aKhKasGg9z2qvOUXMjNJ5KKz8i3Ke7YwoVrCEnLc7qKY
-	Sb0RcfPuMEDV+Q=
-X-Received: by 2002:a05:620a:1d01:b0:92e:bc28:5479 with SMTP id af79cd13be357-93e9b0d409fmr622164685a.2.1791397008056;
-        Wed, 07 Oct 2026 11:16:48 -0700 (PDT)
-Received: from toxicpanda.com ([153.61.196.250])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91996cb6482sm26056716d6.14.2026.10.07.11.16.47
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 07 Oct 2026 11:16:47 -0700 (PDT)
-From: Josef Bacik <josef@toxicpanda.com>
-Date: Wed, 07 Oct 2026 18:16:21 +0000
-Subject: [PATCH net-next 8/9] qlcnic: use pskb_may_pull() to pull excess TX
- frags into the head
+	dkim=pass (2048-bit key) header.d=tipi-net.de header.i=@tipi-net.de header.b="uyz4eUp9"
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id A7906A05A5;
+	Wed,  7 Oct 2026 20:29:28 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=tipi-net.de; s=dkim;
+	t=1791397776; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding; bh=SDkbcKEg56Hg163LutOTCLb1IktY/aVEl/Io7G5PV78=;
+	b=uyz4eUp9ohF/ZZk0czJGYV9mwV2vkj6EBQeljHKPvD6HA+Xq8NffbjfykVavvpW7xGvAlS
+	prXUHs9fygmzq0JEzpdYTKF9NOIGeyR9DDD7c9aFBqtmXfFCMQwaf81BfqPCrH4IHQXAAX
+	5N+NaDGU8xnLCMtzqHSsNkR93PHDrkIBB6kEZ3E9vY/Ry8lmVg8iX9vKzF3UujXI5wi+D7
+	hS+J38JK/VeQNUWZ0EHOWAheD9l/pStKfQBAWW4vMEoeM8TBSdbRfKTjXJ7od6FFkK1dbz
+	0kt2cqhepQIjIadJe4Fy0vy2pf7VJEhG3ECJUlLtl3FZioIIb+I9MNAygW5+ZQ==
+From: Nicolai Buchwitz <nb@tipi-net.de>
+Subject: [PATCH net-next 0/3] net: use skb_share_check() in loopback
+ selftest hooks
+Date: Wed, 07 Oct 2026 20:29:21 +0200
+Message-Id: <20261007-nb-net-selftest-shared-net-v1-0-458369bfa1ba@tipi-net.de>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -72,62 +38,60 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20261007-b4-pskb-pull-tail-drivers-v1-8-9512b0fb977b@toxicpanda.com>
-References: <20261007-b4-pskb-pull-tail-drivers-v1-0-9512b0fb977b@toxicpanda.com>
-In-Reply-To: <20261007-b4-pskb-pull-tail-drivers-v1-0-9512b0fb977b@toxicpanda.com>
-To: Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
- Eric Dumazet <edumazet@kernel.org>, "David S. Miller" <davem@davemloft.net>, 
- Andrew Lunn <andrew+netdev@lunn.ch>
-Cc: Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>, 
- Mark Bloch <mbloch@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
- Juergen Gross <jgross@suse.com>, 
- Stefano Stabellini <sstabellini@kernel.org>, 
- Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>, 
- Tony Nguyen <anthony.l.nguyen@intel.com>, 
- Przemek Kitszel <przemyslaw.kitszel@intel.com>, 
- Manish Chopra <manishc@marvell.com>, Rahul Verma <rahulv@marvell.com>, 
- GR-Linux-NIC-Dev@marvell.com, Shahed Shaikh <shshaikh@marvell.com>, 
- Simon Horman <horms@kernel.org>, netdev@vger.kernel.org, 
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, 
- xen-devel@lists.xenproject.org, intel-wired-lan@lists.osuosl.org, 
- Josef Bacik <josef@toxicpanda.com>
-X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=openssh-sha256; t=1791396985; l=1162;
- i=josef@toxicpanda.com; h=from:subject:message-id;
- bh=SB4NDDKRAhqSJIc9FavKPbItFv2yX/PiEJ0MJpAzuVo=;
- b=U1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAgUBr36M/n0nWN0DNbnxwzIiCZez6MG
- JiruuNaSCI/zXsAAAAGcGF0YXR0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5AAAA
- QKawHW1ued0W6S4cwaeFnOXmxDTI/W4Hxcn7RUYBu6+BybT6utdZRP6YL9LzmS5Mmr1yUPxsj4f
- B1rA2kxPagA8=
-X-Developer-Key: i=josef@toxicpanda.com; a=openssh;
- fpr=SHA256:C8kOX2QUJCMqnCX+KEeoqRAjLo9L+ELOSH2NSAJHqGA
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yWM2wrCMBBEf6Xss4Ek4vVXpA9NMrErsko2SqH03
+ 03r25yZ4cykKAylazdTwZeVX9LA7TqK4yB3GE6NyVt/dNaejAQjqEbxzBXawjgUpK07+32KF4d
+ 0CJma4F2QedrkN1oPgqlS/1/0Ex6IdXXTsvwAFEg6IIgAAAA=
+X-Change-ID: 20261007-nb-net-selftest-shared-net-823dc91ed5bf
+To: "David S. Miller" <davem@davemloft.net>, 
+ Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, 
+ Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
+ Oleksij Rempel <o.rempel@pengutronix.de>, 
+ Maxime Chevallier <maxime.chevallier@bootlin.com>, 
+ Andrew Lunn <andrew+netdev@lunn.ch>, 
+ Maxime Coquelin <mcoquelin.stm32@gmail.com>, 
+ Alexandre Torgue <alexandre.torgue@foss.st.com>, 
+ Jose Abreu <Jose.Abreu@synopsys.com>, Saeed Mahameed <saeedm@nvidia.com>, 
+ Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, 
+ Leon Romanovsky <leon@kernel.org>, Dragos Tatulea <dtatulea@nvidia.com>, 
+ Alexei Lazar <alazar@nvidia.com>
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linux-stm32@st-md-mailman.stormreply.com, 
+ linux-arm-kernel@lists.infradead.org, linux-rdma@vger.kernel.org, 
+ Nicolai Buchwitz <nb@tipi-net.de>
+X-Mailer: b4 0.16.0
+X-Last-TLS-Session-Version: TLSv1.3
 
-qlcnic_xmit_frame() pulls the frags that don't fit in a TX descriptor
-into the head with __pskb_pull_tail().  It already checks the result.
-Switch to pskb_may_pull(), which takes the length the head should end
-up with and checks it against the skb, so this driver no longer calls
-__pskb_pull_tail() directly.
+The loopback selftest hooks can get a shared skb when another handler
+is bound to the device. Linearizing a non-linear frame then hits
+BUG_ON(skb_shared()) in pskb_expand_head().
 
-Assisted-by: LLM
-Signed-off-by: Josef Bacik <josef@toxicpanda.com>
+Stumbled over this on RPi CM4 (bcmgenet, with jumbo series applied +
+WIP selftest patches) with a packet socket open at the same time as
+running ethtool -t.
+
+stmmac and mlx5 seem to have the same pattern, xgbe already handles
+shared skbs. Patches 2 and 3 are compile tested only.
+
+As the impact is pretty limited and doesn't seem to bother anyone in
+the wild, I've chosen net-next, but kept the Fixes tags. That matches
+what Paolo suggested during the LPC track.
+
+Signed-off-by: Nicolai Buchwitz <nb@tipi-net.de>
 ---
- drivers/net/ethernet/qlogic/qlcnic/qlcnic_io.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Nicolai Buchwitz (3):
+      net: selftests: use skb_share_check() in the loopback receive hook
+      net: stmmac: selftests: use skb_share_check() in the loopback receive hook
+      net/mlx5e: use skb_share_check() in the loopback selftest hook
 
-diff --git a/drivers/net/ethernet/qlogic/qlcnic/qlcnic_io.c b/drivers/net/ethernet/qlogic/qlcnic/qlcnic_io.c
-index 761ef3bc8193..4a81d499e51c 100644
---- a/drivers/net/ethernet/qlogic/qlcnic/qlcnic_io.c
-+++ b/drivers/net/ethernet/qlogic/qlcnic/qlcnic_io.c
-@@ -682,7 +682,7 @@ netdev_tx_t qlcnic_xmit_frame(struct sk_buff *skb, struct net_device *netdev)
- 		for (i = 0; i < (frag_count - QLCNIC_MAX_FRAGS_PER_TX); i++)
- 			delta += skb_frag_size(&skb_shinfo(skb)->frags[i]);
- 
--		if (!__pskb_pull_tail(skb, delta))
-+		if (!pskb_may_pull(skb, skb_headlen(skb) + delta))
- 			goto drop_packet;
- 
- 		frag_count = 1 + skb_shinfo(skb)->nr_frags;
+ drivers/net/ethernet/mellanox/mlx5/core/en_selftest.c  | 4 ++++
+ drivers/net/ethernet/stmicro/stmmac/stmmac_selftests.c | 2 +-
+ net/core/selftests.c                                   | 2 +-
+ 3 files changed, 6 insertions(+), 2 deletions(-)
+---
+base-commit: 45ad84d2800e4a092fb8d96006a533b2d0ab13f6
+change-id: 20261007-nb-net-selftest-shared-net-823dc91ed5bf
 
--- 
-2.55.0
+Best regards,
+--  
+Nicolai Buchwitz <nb@tipi-net.de>
 
