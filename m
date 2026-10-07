@@ -1,82 +1,73 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from rcs.proxad.net (rcs.proxad.net [212.27.60.169])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA70C45A287;
-	Wed,  7 Oct 2026 13:50:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F25D4B049F;
+	Wed,  7 Oct 2026 14:38:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.27.60.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791381059; cv=none; b=UG+SPmfSkrvfXlCGZdLw/dOyWNIsJexUdOAaCydiQEL8Fc7XweP3cTWPx4rzjJ3vGKLM2bq920yqDSkwihsjUM9hzZZWAApjYZciMdR1WgW7cbCeyZNu3So8K/5fzyNUtx2Siml7Pl0IXXJAG0GB+vZ9LchoEyeux0uSAaIcKSU=
+	t=1791383925; cv=none; b=MXSwW6h7E0P1GsYjeb8mZigjhEb4fmaopbFWILS8UbqJrBAIASQ+t6eURBeUPxjvZEyiw9cmDJKldRE+lo7FNu1nT+J8blTaJgXmWmODKUBx5NC41cmiWDExNrU4KX+qLmqddX511o73I1L0ROuBSXGZdVy9u4D/fL1IgE9qllo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791381059; c=relaxed/simple;
-	bh=idwY4yyE4yrbcS+m0AUMe4/vP4sler0GEpgHkkuCuzE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=c7AdZQpHNNdVW1ftvPDixOCATQS0sp+RDOdWQGmQTeljVb3Eo6D6JjmhR24p80E0qoKDicI8aGBhK09yrFavIrtX200LAio82CDwKe1NQOmMjxms4e/UEdoY2utGppYrXqL9qxsLfNtc+w3zTmXm8aLchGegMegCzblYVmF0nKg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HjQgmPnt; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791383925; c=relaxed/simple;
+	bh=zUQfm2JaDqXAvZhZYyIo8svOl1WIEiKjCHBGoWEvENQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=jF2hREQyO4aFhcmquOB5o77HCrEFGGoaFyrakSpd7kj1c9o9XogAX1c8ltOAnmTrMUZHp3Hv7cfmsp4Wmh4VbgZ8NdIge8CKW5Bh2oetXdb+U9MDsRkw+uX0UpX15BwVzrJ0LRYsbbDBv9EnLlM7dtqq9/EZeOKQq7gAiBaJWBk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=corp.free.fr; spf=pass smtp.mailfrom=corp.free.fr; dkim=pass (2048-bit key) header.d=corp.free.fr header.i=@corp.free.fr header.b=ex1mY1o2; arc=none smtp.client-ip=212.27.60.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=corp.free.fr
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=corp.free.fr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HjQgmPnt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41A4D1F0089B;
-	Wed,  7 Oct 2026 13:50:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791381049;
-	bh=1shPG4ZK7PMcDI/u1JoCLyyFAzztG3l8pUDkDi8PnMA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=HjQgmPntYWukekS4isKgEoaEI0YgYaa+J7dSy2VcyfslrCHoyEYXOCAlgLlz19NcR
-	 ItQy6KmofW1ILo8FWaD7RFVo9zAI1pwHbZIUosTXgq4byEJDlJHVHzkkTn3TJjmMig
-	 KqVJJOlrLwzl4Y7f1cx27EEnYhlhRt47oKViVGP7tDY6fYohcFbX6onxkx3PY2ZxNj
-	 Z9FJXVDIW94u9C85e+KA3u75zw28NZ/T8uh8qXWvvQ4FW8exvmsz1+CdJp1ThtK53N
-	 uInKu6uJmJfx/aJf0tsqrOwriH7LYFLxfrKSLqOloLlMATybqcP8bTMTaB4ef1yX9i
-	 F+nbmWETw9JaA==
-Date: Wed, 7 Oct 2026 16:50:44 +0300
-From: Leon Romanovsky <leon@kernel.org>
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>,
-	Logan Gunthorpe <logang@deltatee.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	"Joerg Roedel (AMD)" <joro@8bytes.org>,
-	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
-	Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
-	Thomas =?iso-8859-1?Q?Hellstr=F6m?= <thomas.hellstrom@linux.intel.com>,
-	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org, iommu@lists.linux.dev,
-	Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
-	Chaitanya Kulkarni <kch@nvidia.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
-	Ankit Agrawal <ankita@nvidia.com>, Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: Re: [PATCH v9 06/18] PCI/P2PDMA: Collect the path's ACS controls
- before deciding
-Message-ID: <20261007135044.GG7822@unreal>
-References: <20261001-fix-p2p-acs-v4-0-v9-6-1a8e0f50ddd9@nvidia.com>
- <20261006214858.GA717151@bhelgaas>
+	dkim=pass (2048-bit key) header.d=corp.free.fr header.i=@corp.free.fr header.b="ex1mY1o2"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=corp.free.fr; s=rcs;
+	t=1791383918; bh=zUQfm2JaDqXAvZhZYyIo8svOl1WIEiKjCHBGoWEvENQ=;
+	h=From:To:Cc:Subject:Date:From;
+	b=ex1mY1o2niY+xxu4vYSGEkYVhKraL4aKe3w/0T6cV/EcDYJ1I8qLDhzQI4dUmvU3w
+	 uK70Ux/4m9rEI2yAq6Y0m1vhwXDbBWK7VokElutVzZTohCp7fKrSO2DZPBW8TOzuGi
+	 2nhS6Kr+2eYsO+gN/sGuXvKEg29kjfYV0BzmhJ8l78c4SYWK+SsqVutKoK/l5YhfsH
+	 60rXikuYsjrEJAM2a1wLcTLidjZYmrU0v9Kw34i/jpwSFIY9pG6ZU7mZ+AKQ1HFxVe
+	 4Oz6ANLz+w9uSzIy//EbftNZNPiJdjSH4YY7qHO1H+Z1v72XMacpJeMdFUIES6kzu2
+	 7n+q1k2tU56Aw==
+Received: from lnxos-dev.home (82-66-150-212.subs.proxad.net [82.66.150.212])
+	by rcs.proxad.net (Postfix) with ESMTPSA id 0FA7D44C0D0B;
+	Wed,  7 Oct 2026 16:38:38 +0200 (CEST)
+From: Alexandre Cassen <acassen@corp.free.fr>
+To: Saeed Mahameed <saeedm@nvidia.com>,
+	Leon Romanovsky <leon@kernel.org>,
+	Tariq Toukan <tariqt@nvidia.com>,
+	Mark Bloch <mbloch@nvidia.com>
+Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Moshe Shemesh <moshe@nvidia.com>,
+	Yevgeny Kliteynik <kliteyn@nvidia.com>,
+	netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org
+Subject: [PATCH net 0/2] net/mlx5: HWS, fix reformat release and meter offset
+Date: Wed,  7 Oct 2026 16:38:21 +0200
+Message-ID: <20261007143830.1733583-1-acassen@corp.free.fr>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261006214858.GA717151@bhelgaas>
+Content-Transfer-Encoding: 8bit
 
-On Tue, Oct 06, 2026 at 04:48:58PM -0500, Bjorn Helgaas wrote:
-> On Thu, Oct 01, 2026 at 02:55:14PM +0300, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro@nvidia.com>
-> > 
-> > calc_map_type_and_dist() reads each divergence port's ACS Control register
-> > and folds the result into running counters as it goes. Any routing property
-> > that depends on the kind of TLP being routed would have to be threaded
-> > through that code, so there is nowhere to put one without reading the
-> > registers again for each kind.
-> 
-> What is the "one" that there's nowhere to put?  I guess the routing
-> property?  So this is an optimization to avoid some config reads?
+This series fixes two issues in fs_hws found while offloading one tc
+rule with its own encap and meter:
 
-Right, cache the ACS bits, since we need to query them for both devices
-whenever we calculate routing.
+- Releases L2 to L3 tunnel reformats to the pool they come from.
+- Makes a rule select its flow meter within the whole ASO bulk.
 
-Thanks
+Alexandre
+
+Alexandre Cassen (2):
+  net/mlx5: HWS, release L2 to L3 tunnel reformats to their own pool
+  net/mlx5: HWS, fix flow meter offset within its bulk
+
+ .../net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c    | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+-- 
+2.43.0
+
