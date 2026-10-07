@@ -1,125 +1,90 @@
-Received: from hr2.samba.org (hr2.samba.org [144.76.82.148])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC11247AF6F;
-	Wed,  7 Oct 2026 10:26:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=144.76.82.148
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C48749DB98;
+	Wed,  7 Oct 2026 10:51:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791368798; cv=none; b=ZMy4Wsbf8v8bhxqe9H8K0u3iun3GlPzjBOAS/n0wcdw4Ly2IPIQQcmrUfanmPAKayYL/c9Dz7eX9BhnLKTqQvEUCeNHld7f5XiUiL9HkVPvdCmf+KeEmxs3xbBW1K1LURnXxlGWH7znXBU7wz1hsUEhLAR2R8cWlXTZEkQNZKaM=
+	t=1791370297; cv=none; b=ucWu3TH6emHWLUlXYtwnWp3VkVxiz2jL/jmZuDwTOCuZMq7S5Yeze5k4oYjmvDZhq0ggvXIebE24E1QN+hsUDs4YU3f3WTB8F7RVbrprfWaSd8LagMs44xWhg4fx5xwwZt3pmgSPk6MZKa/JvvAfR7hNPGjRWPJ9v1UiAFbq6ic=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791368798; c=relaxed/simple;
-	bh=40n6OsY1r4elr4k+ueEw9vMbqB8Q5Bs0/5Hv4rLsR+A=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=BEehJoNBNCFnnib0oThuATXuqCHuUY2XRlUQesZdM0OxtK3jADod4SEQ+jjwgYDg7ACThC3bXOXHXwIF0/GfotmtkXGvEohAcwa8bEgZz3lrR0NzFquYAm28UyzJBvnqtB427Ng3y1FIOAfEWBA/3A3MlPf66hNpTMe9a2sxT/s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=samba.org; spf=pass smtp.mailfrom=samba.org; dkim=pass (3072-bit key) header.d=samba.org header.i=@samba.org header.b=Ugsa54hS; arc=none smtp.client-ip=144.76.82.148
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=samba.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samba.org
+	s=arc-20240116; t=1791370297; c=relaxed/simple;
+	bh=J+DFMDnlZ3G9MVUQd4T8u6HsYYM3KMhWI8aLB4phSgE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=PzVNRhsRYQNCFQIdiVId3n9sffvqzy3o8S4F62py5bEHvA+WaNm3oB5Y62t/5ph3qs96S/QybuapxvNT/WMalF1JISmBLo6GMmg85UY+zYg+t/F+lePzXgUaadZZf32jeIx4TJ5mWlScHETkQYRsxg4axc8shRok1nbBSz1GAr0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aB0CPojg; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (3072-bit key) header.d=samba.org header.i=@samba.org header.b="Ugsa54hS"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=samba.org;
-	s=42; h=From:Cc:To:Date:Message-ID;
-	bh=w9On+VUqL6TLLSQtONNi6Y5iDS4Auy48MUQ7D5Eq3Uc=; b=Ugsa54hSp+/R4maiBQw+R5Il1a
-	pKPBPTDcK/Xnx+O1ZjkXq/8CN+ApPoGmZ5vtz5tq7bgomvJcv+cI0G40ERjU0QwSH95qTqTbX6QS8
-	j6+Kw61qiTDqa9QIhAIM7iSo8b0jNH/b6uRiZg6jK61WzlbXL9ObecU9J+/xOsdutZiVmS9h3nmn4
-	qmlhm4A2NHL0d9Z8hWBCjCfATAe84LoEiuruM4vzOp2djFaHw/A39APLboCqP7OQdp+n104avcx96
-	22g6Vm+5FlqYx7JiYRvuqGUgWQErOp9Ag7PFIvoJ3YF7OP90glICpkHyT2xSH3bcXgD1InMq5y0uZ
-	cOMWkcQ3ZX5loHLqsGlPphvgjQ24UKUIqLrvHYd0oUf8OrIyhOd7So7U0oL5jhJaiZur5sK9CbOvI
-	7rAyEILa51fQt+Xn5d2bEAgCnYxzFpkirWeloYwVZOV2D7bgIWC1D0+FjtN0hvyQ93FRwDaZHORCZ
-	ajLpKzQn+yqj0E5XLEfEbdfl;
-Received: from [127.0.0.2] (localhost [127.0.0.1])
-	by hr2.samba.org with esmtpsa (TLS1.3:ECDHE_SECP256R1__ECDSA_SECP256R1_SHA256__CHACHA20_POLY1305:256)
-	(Exim)
-	id 1xEOqw-00000006AAX-0TMV;
-	Wed, 07 Oct 2026 10:26:26 +0000
-Message-ID: <acccb494-988e-4b87-b40c-42421d2e31e5@samba.org>
-Date: Wed, 7 Oct 2026 12:26:25 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aB0CPojg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84D201F0089B;
+	Wed,  7 Oct 2026 10:51:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791370268;
+	bh=weSi5GskMQcEeS2NiW1uUS0DljvEtWiOygax9Ns7zp8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=aB0CPojga/mp5PJnUHNynUO3VHoezNfPEjLWND7BpXC8J4A+Z4VctOV0EybFyiCXA
+	 LlYp+FK1nbqf0as+ZbN6Tco7T6z4qAB/edMjNHhgXQLk3WDy3+/9RYGLamn/UHJ+Pp
+	 ZvLlvcbTDFnXxNsYhj+fHc24kE1SenB9XFzDFjNDvZ5EQI6v5LFoC1yibaRNzuHplB
+	 nBKlna6sthqpyLF2Tss+WOBkeYgO+5N12aegqpOwKWgyeVLO4QbzHaORjfSK8R82Rm
+	 mx+WM6PP8z8AH0dvvVRwbAyph4bkrTOMGqFmFAVWepY6r/5+2/mVscuFGz5Re0tPOD
+	 1k9ZJmr0mZRvw==
+Date: Wed, 7 Oct 2026 13:51:04 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>,
+	Logan Gunthorpe <logang@deltatee.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	"Joerg Roedel (AMD)" <joro@8bytes.org>,
+	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
+	Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+	Thomas =?iso-8859-1?Q?Hellstr=F6m?= <thomas.hellstrom@linux.intel.com>,
+	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org, iommu@lists.linux.dev,
+	Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
+	Chaitanya Kulkarni <kch@nvidia.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
+	Ankit Agrawal <ankita@nvidia.com>, Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>
+Subject: Re: [PATCH v9 04/18] PCI/P2PDMA: Evaluate ACS controls at the path
+ divergence
+Message-ID: <20261007105104.GD7822@unreal>
+References: <20261001-fix-p2p-acs-v4-0-v9-4-1a8e0f50ddd9@nvidia.com>
+ <20261006210848.GA712422@bhelgaas>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] RDMA/irdma: always route IB_WR_REG_MR through the
- allocated PBL
-To: linux-rdma@vger.kernel.org
-Cc: Tatyana Nikolova <tatyana.e.nikolova@intel.com>,
- Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
- Mustafa Ismail <mustafa.ismail@intel.com>,
- Shiraz Saleem <shiraz.saleem@intel.com>, linux-kernel@vger.kernel.org
-References: <20261007095312.1523211-1-metze@samba.org>
-Content-Language: en-US
-From: Stefan Metzmacher <metze@samba.org>
-In-Reply-To: <20261007095312.1523211-1-metze@samba.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261006210848.GA712422@bhelgaas>
 
-Am 07.10.26 um 11:53 schrieb Stefan Metzmacher:
-> irdma_alloc_mr() always allocates a PBL via irdma_get_pble(), but
-> irdma_post_send()'s IB_WR_REG_MR handling only pointed the FAST_REGISTER
-> WQE at that PBL (chunk_size != 0, first_pm_pbl_index) when
-> iwmr->npages exceeded IRDMA_MIN_PAGES_PER_FMR (1) - leaving chunk_size
-> at 0 for a single-page (npages == 1) registration, telling hardware to
-> use direct/PBL-less addressing for a registration that was never
-> allocated that way.
+On Tue, Oct 06, 2026 at 04:08:48PM -0500, Bjorn Helgaas wrote:
+> On Thu, Oct 01, 2026 at 02:55:12PM +0300, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro@nvidia.com>
+> > 
+> > ACS redirect controls choose between peer and upstream routes only at the
+> > path divergence. Applying them below that point rejects valid nested
+> > topologies because traffic already has only an upstream route.
 > 
-> This reproduces as data corruption / an IOMMU IO_PAGE_FAULT when a
-> peer later performs an RDMA WRITE/READ against such a single-page
-> FRWR-registered MR, even though ib_map_mr_sg() itself reports success.
-> 100% reproducible on iWARP, intermittent on RoCEv2, with fs/smb/smbdirect's
-> own single-page memory registrations on an Intel E810-CQDA2 (irdma).
-> 
-> Intel's current out-of-tree irdma driver (2.6.96) never gates this on
-> npages - it always sets chunk_size/first_pm_pbl_index based on the
-> actual PBL level (PBLE_LEVEL_1 vs PBLE_LEVEL_2), matching what
-> irdma_alloc_mr() actually allocated. Mirror that here instead of the
-> npages-based heuristic.
-> 
-> Also drop the reg_addr_pa assignment. irdma_sc_mr_fast_register()
-> packs reg_addr_pa into the FAST_REGISTER WQE's PBLADDR field, which
-> hardware only consults when chunk_size == 0 (direct/PBL-less
-> addressing); with chunk_size now always nonzero for this opcode, that
-> field is never read for IB_WR_REG_MR and the assignment is dead code -
-> Intel's driver never sets it for this path either (only the separate,
-> non-FRWR irdma_sc_mr_reg_non_shared() path actually branches on
-> chunk_size between reg_addr_pa and first_pm_pbl_index). Removing it is
-> not required for correctness: *palloc->level1.addr is always a
-> page-aligned address (low 12 bits zero), so it could never have
-> collided with the first_pm_pbl_index bits sharing those same bit
-> positions in the WQE word even if some path still read it.
-> 
-> This leaves one deliberate difference from irdma-2.6.96: that driver also
-> ties local_fence to the WR's IB_SEND_FENCE flag
-> (stag_info.local_fence = ib_wr->send_flags & IB_SEND_FENCE) rather than
-> hardcoding it true for IB_WR_REG_MR. That is a separate, non-corruption
-> behavioural change, so local_fence is left at true here.
+> I guess the point here is that prior to this patch,
+> calc_map_type_and_dist() returned PCI_P2PDMA_MAP_NOT_SUPPORTED in a
+> case where it didn't need to?  Can you include an example to make this
+> concrete?
 
-I realized to late this was changed just recently in:
+One possible example I had in mind while preparing the presentation [1] was
+ability to connect devices to different switches. Despite devices and switches
+support P2P, but from the P2P subsystem's point of view, traffic between them
+was not P2P (see slide 4).
 
-commit 3fb905f07ea45b31c8f67ba6e4668de46f527e65
-Author:     Jacob Moroni <jmoroni@google.com>
-AuthorDate: Tue Sep 1 16:00:14 2026 +0000
-Commit:     Leon Romanovsky <leon@kernel.org>
-CommitDate: Wed Sep 2 12:27:03 2026 -0400
+This support will become even more important when we reach the point of
+enabling P2P inside a VM. It will allow us to hide the underlying PCI
+topology from the VM.
 
-     RDMA/irdma: Enforce local fence for IB_WR_REG_MR
+Thanks
 
-I also noticed that these two from linux-rdma/for-next
-are in conflict:
-
-4a93466061d38f159b857aad63a9cc3cd3affadb RDMA/irdma: Remove unused post_sq arguments
-c470050f2a7a7748ce35367e828885a8e658d712 RDMA/irdma: Preserve fast-registration IOVA on 32-bit
-
-What's best way forward here, is this something that
-would go via linux-rdma/for-rc or via linux-rdma/for-next?
-
-as we're at rc6 already waiting ~3 weeks before it hits upstream
-is fine, I have it in my local test kernels anyway...
-
-Should I resubmit a v2 with the commit message clarified
-regarding "RDMA/irdma: Enforce local fence for IB_WR_REG_MR"
-and should I base this on top of linux-rdma/for-rc or linux-rdma/for-next?
-
-Thanks!
-metze
-
+[1] http://lpc.events/event/20/contributions/2508/
