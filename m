@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CFC6308F07;
-	Wed,  7 Oct 2026 00:51:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C62330C168;
+	Wed,  7 Oct 2026 00:51:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334273; cv=none; b=t+1uPrhEMo4uvKH9xUCK0vXBhrbkXQ9EwVxewyXiSMG8ZX63fTA06NVNZsHBaXTAlsPeXjyYe76g9Nec/xf0AN8le/Ut8wiUEcJKc6jwKc2ocUm129jovpFh6KsPoZ2gDYj3kZ4LlBTTNEjF2VZgafFzcO6I4GiaDZ32cxeLPF8=
+	t=1791334281; cv=none; b=opowXQhGuwuBljEJcfK4K99ZTH2CpboveQoRWoLI41CXXMmULjnZJZ++4/bK5gnAW7MmzV0l2f3UtXo8lbqtTc7w/7MePTwy/PEbS+29RhXI7ZqTwGQFuxZdGHCwlkTTddrPC2ApQP/TCTdWCTztGAfg3Y281fsrRH+kOLdxPjI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334273; c=relaxed/simple;
-	bh=lIQZ7eq6UC5pl2Vc5WNTuNSuPRM7XmllbT3i+7AQdlw=;
+	s=arc-20240116; t=1791334281; c=relaxed/simple;
+	bh=okGEdy0TCs17epeisTSHGYVdbyU0laJJ+T2t6Dzzues=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=efAn1I8iTBRuBG7R3p8fokphsq5hyOu+Xb74r8HarvEFxspXXkm1Ekg/ECbjyYQxdEsaQtPdLEuaSGCOwsXCgq5ya5ajoaqDggUMHhDeNRKot5TR2JT0sxWN+RDfMkGHbvQjjkYMpBqbXNUKCblkIucjnLgDgps4JxJpGVRhhd4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TGrky32N; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=tH9+bNfwmOPxC21Fzp2/0pZa0ML+Ib+Z4alBaGSjIj+hw9M61gkCUs6y0Kt+Gbr48834+VLAJDAxAZVj7qoHgZ7OdrwOKiFh6qjuzFWNAkOktbk0MbcAyWbiH2aGpR71X2ZEyD0koiII4cxNETu6QPRS8xjYQ9oBE0X3A0rZczs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HETHVJhd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TGrky32N"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3149D1F0089F;
-	Wed,  7 Oct 2026 00:51:11 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HETHVJhd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A64C1F0089C;
+	Wed,  7 Oct 2026 00:51:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791334271;
-	bh=lyJYA6zWZIgvnYgMlO8dRgk6YnVqnolEHHJmiel5PpY=;
+	s=k20260515; t=1791334279;
+	bh=3TGexGGGG0fwacOWTt8OfO7JPYWc0El5ugFGukBR5ow=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=TGrky32NQXYXgTDkCRfR1Xx+UlUlQ4BdqVjDwh7FuOKz9SNV2SDZy0xrEm+TqxPUp
-	 WCnbPn+5oM9S/v/hlpoABNHBTI5htxsn7WFxtc6K+I8HsX+gVdwGIiJpbTxClHyOgn
-	 j3ONlGbp/7tFdSViGZVtBb4K0oQF9nGwzILTSf64krozg+jWV5HnJ52IK0YmtlDgib
-	 drQKM0ZIrBfj6POk6PnR1XLUxVTGVDJDY4xKBZnVh/Dvwkdw4SiHbqHCe22JnzkVCJ
-	 JZN4HwEOl0VkLYbaFGx7k83a9Y0tcExFawjXkm61BtDzBzzN7PAJiDlxGfjuqagPoD
-	 cf1ORNM/F5hKg==
+	b=HETHVJhde1y/SxnZ37Atbj03AMwwHLYJm8OrvoWdS4XHj73Zii+trI5aD71rxJ8CK
+	 4TTJ7/2WeCXy1WDJEIuYQkXPTC0G63AFh3nKYxxnOJlln41vjBkyflDyjN1qvescap
+	 K9SR/TcSQMkz5s3rqPFQ1QfSeTm1IARav2tY4d0riCBoI55Jl5zbG/Yw1ndAuirwDj
+	 8Bj9QZS8kiL49yiyW3GjNPMfNjjOapJj34YhP00hHwoBFlfHxKZKFDC6ImZ9+1o95j
+	 DIt1duORSj6cfvaZblVAjY5lYfssc+Ej2+4z+O/gr5wMJ3cyf2LrbiG7MRDVgK7GmB
+	 JHx8BrGn/n8vA==
 From: Jakub Kicinski <kuba@kernel.org>
 To: tariqt@nvidia.com
 Cc: Jakub Kicinski <kuba@kernel.org>,
@@ -53,12 +53,12 @@ Cc: Jakub Kicinski <kuba@kernel.org>,
 	roid@nvidia.com,
 	saeedm@nvidia.com,
 	steffen.klassert@secunet.com
-Subject: Re: [PATCH net V2 1/4] net/mlx5e: ipsec: Block eswitch mode changes during policy creation
-Date: Tue,  6 Oct 2026 17:51:09 -0700
-Message-ID: <20261007005109.2944293-1-kuba@kernel.org>
+Subject: Re: [PATCH net V2 2/4] net/mlx5e: ipsec: Block eswitch mode changes before accessing priv->ipsec
+Date: Tue,  6 Oct 2026 17:51:18 -0700
+Message-ID: <20261007005118.2944625-1-kuba@kernel.org>
 X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260930121119.141953-2-tariqt@nvidia.com>
-References: <20260930121119.141953-2-tariqt@nvidia.com>
+In-Reply-To: <20260930121119.141953-3-tariqt@nvidia.com>
+References: <20260930121119.141953-3-tariqt@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -68,203 +68,145 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
 This is an AI-generated review of your patch. The human sending this
-email says "Auto-emailing seemed not to have triggered."
+email has considered the AI review valid, or at least plausible.
 ---
-net/mlx5e: ipsec: Block eswitch mode changes during policy creation
+net/mlx5e: ipsec: Block eswitch mode changes before accessing priv->ipsec
 
-This commit takes a temporary eswitch mode block at the start of
-mlx5e_xfrm_add_policy() and releases it once the flow tables hold their
-own reference. It also adds a check_users argument to
-mlx5_eswitch_block_mode() and mlx5_esw_lock(), and switches
-mlx5_eswitch_block_mode() from mlx5_esw_try_lock() to mlx5_esw_lock().
+This patch moves the eswitch mode block in mlx5e_xfrm_add_state() so it is
+taken before priv->ipsec is read and before the state is validated. A
+concurrent profile change can then no longer free the IPsec context while
+it is in use. The acquire placeholder path is still not blocked, and
+mlx5e_xfrm_add_policy() gains a local mdev with a NULL check.
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
-> index db260e3d1412f..841ecdc2c4d9e 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
+> mlx5e_xfrm_add_state() reads priv->ipsec and validates mode-dependent
+> capabilities before blocking eswitch mode changes. A concurrent profile
+> change can free the saved IPsec context and cause use-after-free.
 
 [ ... ]
 
-> @@ -1266,18 +1266,28 @@ static int mlx5e_xfrm_add_policy(struct xfrm_policy *x,
+> Fixes: 22239eb258bc ("net/mlx5e: Prevent tunnel reformat when tunnel mode not allowed")
+
+[Severity: Medium]
+Is this the right Fixes: tag for the race being closed?
+
+Before 22239eb258bc, mlx5e_xfrm_add_state() had no eswitch mode block at
+all. It already read priv->ipsec, stored it in sa_entry, and used it for
+validation, SA hardware context creation and
+mlx5e_accel_ipsec_fs_add_rule(). 22239eb258bc added a block after that
+read. It did not move an existing block later.
+
+Before 22239eb258bc, the only mode block on this path was the late one in
+rx_get()/tx_get() in ipsec_fs.c:
+
+    err = mlx5_eswitch_block_mode(mdev, true);
+
+The previous patch in this series ("net/mlx5e: ipsec: Block eswitch mode
+changes during policy creation") says that late block comes too late,
+because the table lookup already touches the IPsec context. That patch
+tags a5b8ca9471d3 and says "mlx5e_xfrm_add_state() has the same race".
+
+With the current tag, could a stable tree that has the packet offload
+state path but not 22239eb258bc take the add_policy half of the fix and
+never get this add_state half? Should this patch carry the same tag as
+the policy patch?
+
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
+> index 841ecdc2c4d9e..cf721ef83d597 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
+> @@ -771,28 +771,44 @@ static int mlx5e_xfrm_add_state(struct net_device *dev,
+>  				struct xfrm_state *x,
+>  				struct netlink_ext_ack *extack)
+>  {
+
+[ ... ]
+
+>  	priv = netdev_priv(dev);
+> -	if (!priv->ipsec)
+> +	mdev = priv->mdev;
+> +	if (!mdev || !priv->ipsec)
+>  		return -EOPNOTSUPP;
+>  
+> +	if (!is_acq) {
+> +		err = mlx5_eswitch_block_mode(mdev, false);
+> +		if (err)
+> +			return err;
+> +	}
+
+[Severity: Low]
+Should these loads of priv->mdev and priv->ipsec use READ_ONCE()?
+
+They happen without a lock, before the mode block is held, so they can
+race with a concurrent profile change:
+
+mlx5e_netdev_change_profile()
+  mlx5e_priv_cleanup()
+    memset(priv, 0, sizeof(*priv));
+
+The !mdev check only covers that window if priv->mdev is loaded exactly
+once. With a plain load, the compiler may reload priv->mdev for the
+mlx5_eswitch_block_mode() argument. The reloaded value could be NULL, and
+mlx5_eswitch_block_mode() would then dereference dev->priv.eswitch. KCSAN
+would also report these as data races.
+
+The same question applies to the new mdev = priv->mdev read in
+mlx5e_xfrm_add_policy().
+
+[ ... ]
+
+> @@ -1262,12 +1275,17 @@ static int mlx5e_xfrm_add_policy(struct xfrm_policy *x,
+>  {
+>  	struct net_device *netdev = x->xdo.dev;
+>  	struct mlx5e_ipsec_pol_entry *pol_entry;
+> +	struct mlx5_core_dev *mdev;
+>  	struct mlx5e_priv *priv;
 >  	int err;
 >  
 >  	priv = netdev_priv(netdev);
-> +	/* Block esw mode changes until the policy holds its own block. */
-> +	err = mlx5_eswitch_block_mode(priv->mdev, false);
+> +	mdev = priv->mdev;
+> +	if (!mdev)
+> +		return -EOPNOTSUPP;
+> +
+>  	/* Block esw mode changes until the policy holds its own block. */
+> -	err = mlx5_eswitch_block_mode(priv->mdev, false);
+> +	err = mlx5_eswitch_block_mode(mdev, false);
 
-[Severity: High]
+[Severity: Medium]
+The commit message only covers add_state and does not mention this new
+NULL check in mlx5e_xfrm_add_policy(). Should the check go into the
+previous patch instead?
 
-Can priv->mdev be NULL at this point? mlx5_eswitch_block_mode() reads
-dev->priv.eswitch right away.
+The previous patch ("net/mlx5e: ipsec: Block eswitch mode changes during
+policy creation") moved mlx5_eswitch_block_mode(priv->mdev, false) ahead
+of the !priv->ipsec check. mlx5_eswitch_block_mode() dereferences
+dev->priv.eswitch without checking dev for NULL.
 
-mlx5e_priv_cleanup() does memset(priv, 0, sizeof(*priv)), but the netdev
-stays registered and keeps its xfrmdev_ops. One case is the
-switchdev->legacy profile swap in mlx5e_vport_uplink_rep_unload(). The
-state becomes permanent if a profile change and its rollback both fail.
+priv->mdev can be NULL while the netdev is still registered. If a profile
+change fails and its rollback also fails, mlx5e_priv_cleanup() zeroes
+priv:
 
-xfrm_dev_policy_add() only checks that xdo_dev_policy_add exists, so this
-path looks reachable:
+mlx5e_priv_cleanup() {
+    ...
+	/* bail if change profile failed and also rollback failed */
+	if (!priv->mdev)
+		return;
+    ...
+	memset(priv, 0, sizeof(*priv));
+}
+
+netdev->xfrmdev_ops is not cleared, so a CAP_NET_ADMIN user who adds an
+offloaded policy still reaches:
 
 xfrm_dev_policy_add()
   mlx5e_xfrm_add_policy()
     mlx5_eswitch_block_mode(NULL, false)
-      esw = dev->priv.eswitch;
 
-Before this patch, the !priv->ipsec check ran first and returned
--EOPNOTSUPP.
+At baseline, the !priv->ipsec check returned -EOPNOTSUPP in that state.
+With only the previous patch applied, this path oopses.
 
-The next patch in the series, "net/mlx5e: ipsec: Block eswitch mode
-changes before accessing priv->ipsec", adds a !mdev check before this
-call. Without that patch, this commit oopses with CONFIG_MLX5_ESWITCH=y.
-
-[Severity: High]
-
-Can this blocking down_write() deadlock against driver unload or devlink
-reload? The xfrm core calls this callback with a netdev reference held.
-xfrm_dev_policy_add() takes it with dev_get_by_index(), and the call runs
-under xfrm_cfg_mutex.
-
-On the unload side, mlx5_eswitch_safe_aux_devs_remove() holds
-esw->mode_lock for read across the uplink netdev unregister:
-
-CPU1
-_mlx5e_remove()
-  mlx5_eswitch_safe_aux_devs_remove()
-    mlx5_esw_hold()                  /* mode_lock held for read */
-    mlx5_core_reps_aux_devs_remove()
-      ...
-      mlx5e_vport_uplink_rep_unload()
-        unregister_netdev()
-          netdev_wait_allrefs_any()  /* waits for CPU0's netdev ref */
-
-CPU0
-xfrm_dev_policy_add()
-  dev_get_by_index()
-  mlx5e_xfrm_add_policy()
-    mlx5_eswitch_block_mode()
-      mlx5_esw_lock()
-        down_write(&esw->mode_lock)  /* waits for CPU1's read hold */
-
-CPU0's policy isn't inserted yet, so the unregister flush never reaches
-it. Each task then waits on the other forever. xfrm_cfg_mutex stays held,
-so XFRM configuration in the netns would hang as well.
-
-Before this patch, mlx5_eswitch_block_mode() used down_write_trylock()
-and failed at once. mlx5e_xfrm_add_state(), rx_get() and tx_get() get the
-same trylock-to-blocking change. The mlx5_eswitch_unblock_mode() on the
-success path here is another down_write().
-
-At baseline, mlx5e_ipsec_block_tc_offload()->mlx5_esw_lock() already
-took the lock in a similar blocking way. The later patch "net/mlx5e:
-Serialize TC and IPsec offload exclusion counters" removes that
-acquisition, which leaves these block_mode/unblock_mode calls as the ones
-that can trigger the hang. The lock is now also taken for policies that
-fail validation and for devices without IPsec.
-
-> +	if (err) {
-> +		NL_SET_ERR_MSG_MOD(extack, "Eswitch busy, can't add policy");
-> +		return err;
-> +	}
-> +
->  	if (!priv->ipsec) {
->  		NL_SET_ERR_MSG_MOD(extack, "Device doesn't support IPsec packet offload");
-> -		return -EOPNOTSUPP;
-> +		err = -EOPNOTSUPP;
-> +		goto unblock_mode;
->  	}
+The previous patch carries Fixes: a5b8ca9471d3 and this one carries
+Fixes: 22239eb258bc. Could the previous patch be backported without this
+guard? As posted, the series is also not bisect-safe at the previous
+patch.
 
 [ ... ]
-
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
-> index 8ffa8068e90ac..cd7ff36135244 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
-> @@ -1127,7 +1127,7 @@ static int rx_get(struct mlx5_core_dev *mdev, struct mlx5e_ipsec *ipsec,
->  	if (rx->ft.refcnt)
->  		goto skip;
->  
-> -	err = mlx5_eswitch_block_mode(mdev);
-> +	err = mlx5_eswitch_block_mode(mdev, true);
->  	if (err)
->  		return err;
-
-[Severity: High]
-
-This is a pre-existing issue and was not introduced by this patch. This
-patch adds more blocking down_write() sites on mode_lock, though. Can
-the release side of this reference self-deadlock during driver unload or
-devlink reload in switchdev mode?
-
-mlx5_eswitch_safe_aux_devs_remove() holds esw->mode_lock for read while
-it unregisters the uplink netdev. NETDEV_UNREGISTER then flushes the
-offloaded policies in the same task:
-
-mlx5_eswitch_safe_aux_devs_remove()
-  mlx5_esw_hold()            /* down_read_trylock(&esw->mode_lock) */
-  mlx5_core_reps_aux_devs_remove()
-    ...
-    mlx5e_vport_uplink_rep_unload()
-      unregister_netdev()
-        xfrm_dev_unregister()
-          xfrm_dev_policy_flush()
-            xfrm_policy_kill()
-              xfrm_dev_policy_delete()
-                mlx5e_xfrm_del_policy()
-                  mlx5e_accel_ipsec_fs_del_pol()
-                    rx_ft_put_policy()
-                      rx_put()
-                        mlx5_eswitch_unblock_mode()
-                          down_write(&esw->mode_lock)
-
-tx_put() has the same pattern. An rwsem read hold can't be upgraded to a
-write hold.
-
-Wouldn't the task hang whenever an offloaded IPsec policy exists on the
-uplink at unload time? The read hold comes from commit 2ae8c7edea87f5,
-and this path is still there at the end of the series.
-
-[ ... ]
-
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-> index eb74b62601682..95e856f8d834d 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-> @@ -4343,7 +4343,7 @@ static int esw_inline_mode_to_devlink(u8 mlx5_mode, u8 *mode)
->  	return 0;
->  }
->  
-> -int mlx5_eswitch_block_mode(struct mlx5_core_dev *dev)
-> +int mlx5_eswitch_block_mode(struct mlx5_core_dev *dev, bool check_users)
->  {
->  	struct mlx5_eswitch *esw = dev->priv.eswitch;
->  	int err;
-> @@ -4351,9 +4351,8 @@ int mlx5_eswitch_block_mode(struct mlx5_core_dev *dev)
->  	if (!mlx5_esw_allowed(esw))
->  		return 0;
->  
-> -	/* Take TC into account */
-> -	err = mlx5_esw_try_lock(esw);
-> -	if (err < 0)
-> +	err = mlx5_esw_lock(esw, check_users);
-> +	if (err)
->  		return err;
-
-[Severity: Medium]
-
-This replaces mlx5_esw_try_lock() with mlx5_esw_lock(). The old function
-used down_write_trylock() and returned -EINVAL when mode_lock was held.
-The new one does an unconditional down_write().
-
-All existing callers now sleep waiting for mode_lock where they used to
-fail right away. That covers mlx5e_xfrm_add_state(), rx_get() and
-tx_get(). rx_get() and tx_get() run under rx->ft.mutex and tx->ft.mutex.
-
-The commit message only says:
-
-    To avoid that, I was forced to separate the mode blocking from the TC
-    check by introducing a check_users argument to
-    mlx5_eswitch_block_mode().
-
-Could the commit message also mention the switch from trylock to a
-blocking acquisition? It adds a new lock dependency, as described in the
-deadlock question in mlx5e_xfrm_add_policy() above.
