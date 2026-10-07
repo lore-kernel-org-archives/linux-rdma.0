@@ -1,44 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CF7F36F41C
-	for <linux-rdma@vger.kernel.org>; Wed,  7 Oct 2026 22:47:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DEE43A0B3F
+	for <linux-rdma@vger.kernel.org>; Wed,  7 Oct 2026 22:48:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791413234; cv=none; b=lnTEt2kTCC6NXR9/l8e5tokJQMSB4y3UUA5/cJvrXLAMe5e+yYXEOSHgyGJuRIEmSTIdmsDi/ME20MXO5Q7OM1KqaUnUi1YPO906PmA/n9kiL33klM1M/nh8JIraCE9Tympp9t+KMWg91toR0gkGiV//HHRL0tTU52Vu89phjsA=
+	t=1791413285; cv=none; b=A4a2a4na90iNvnpD4oo6cu/M6Qs1IYTdID4tH0TQvmNG1+NycACoLr2+fL8fwV6qH7PtIpqspyEMnRH0VtmwYBD9urg4d8yRp5J3WZZoi8b7FlO/6tf96/doZyD/bETRAHcZ70jmiNjlzgjLOzVRe/uWwxxoXK4aFj3q97hDdlk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791413234; c=relaxed/simple;
-	bh=EPKoXPnR6W6SNdpWqO8rPeIIGeHCEi05zHIAPk1wnCk=;
+	s=arc-20240116; t=1791413285; c=relaxed/simple;
+	bh=+0x53Ik7FIMOhkkghmFNfgD2r4AQOjOacCiLADMX8nI=;
 	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=Q3y2JbXuq0A/JvlP3zBJ5MJyDcm9VN7r5hcMiRE/EsH6XmSgzBSTvcl76vm4CtAXenaQmAm6O+d7G46XgA/D3PE2brTCi+UQET3J4haW29BhNLEGHrFdNBnLcRDiPvGCJSN9T3nrzIKxm0jWKlGu/hcM8ZQlgbGC3yxIsyePrkI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jqXBavH2; arc=none smtp.client-ip=100.103.45.18
+	 Date; b=enwDxMuJpmOAeK1ISDWUAn13YmFVoNZKKwH4wtM5OfRJFZ0U+IQWnv8SztywcHb3fcOfBiTM2Zi5jMbHIjD3jLKRQs3FCOzS6RWlw5Xh1j+yiBhvCL/dQB68tga3qxppzlepqsR/wNJxPsy4L4os6tW4k0Ec1NCWQwyHzpwxm64=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RxnGEWbq; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jqXBavH2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C53801F000FF;
-	Wed,  7 Oct 2026 22:47:12 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RxnGEWbq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19DAE1F000FF;
+	Wed,  7 Oct 2026 22:48:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791413233;
-	bh=tAttWHs9FqC3BNXfXXCphwMJJzDpRb94by/qeDN6hqc=;
+	s=k20260515; t=1791413284;
+	bh=wuEK3tKq0146bXDXR5NkJKFX+LtFzRDJHrl2yughJfw=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=jqXBavH2a+qcFIWWygzS3acSDLzA7pzDZr2Op7Bt46VSNYctcPOTd4zyxONJ217iC
-	 LVxwYmQsdAzpDl8f1CcXM8rGx43xGYGrMHQup77bHmllPZUdRgJrRzRoquaC83355l
-	 yd14UOnobCXC7od++5bXLoJ/3NBK0RkZR1aSbuOG+MlMxvBiqgFlS9cAH7nW7m/7RE
-	 qn+6pKt3ATHkrHdsrSneZw71LwiOe9I+WLTotEpig2UGQsWNbS3cooW5PSVifGBwry
-	 /J7kk23VR3uEE9rv8XsRu5jCYllopBRbysYD+OCRr0W5I9YKGSyZCuIgn+HmCm/RsT
-	 i7qqJyuDHGQXg==
-Message-ID: <sashiko-outbox-163420@kernel.org>
+	b=RxnGEWbqAAVdAoFy8UgXxVCbghZ/WAcBRMpxH/A0mVqvSWrhQXlBwHQF7T0uSEm6x
+	 hALgetuGMEilw1xkJWI81CwQmuVNCRB+UMdFUkdXBajm1gGaV0Oj4pz7iIPFpUE6C7
+	 TYjyrzfTYiuaBSs0YkG3XakBEDtSJ7Fn5VlklzxnjqWhzd349mOkDDizvYNGl3f+fk
+	 9hPU+CIiUO+XQZ3eCwINNP36gVED9gkJNtvO/DD9d8RV3NC05Xx7MAGMyg3N1CnRuA
+	 /QfxyuuYLSuURiQxmlhUZAoCHTTn3pzHjt9EhKukcaMRLGs1xe5OZWzNmu0p3L8opp
+	 Uf3HM1tbfn9oA==
+Message-ID: <sashiko-outbox-163423@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v4 1/2] RDMA/rxe: copy send WQE to kernel buffer before
- processing
+Subject: Re: [PATCH v4 2/2] RDMA/rxe: copy send WQE to kernel buffer in
+ completer path
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Tristan Madani" <tristmd@gmail.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261007223222.2342804-2-tristmd@gmail.com>
+In-Reply-To: <20261007223222.2342804-3-tristmd@gmail.com>
 References: <20261007223222.2342804-1-tristmd@gmail.com>
- <20261007223222.2342804-2-tristmd@gmail.com>
+ <20261007223222.2342804-3-tristmd@gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 07 Oct 2026 22:47:12 +0000
+Date: Wed, 07 Oct 2026 22:48:03 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -47,157 +47,157 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 Thank you for your contribution! Sashiko AI review found 4 potential issue(=
 s) to consider:
-- [Critical] rdma: remote kernel heap information leak via unvalidated inli=
-ne data length
-- [High] mm: fortify_source field-spanning write warning in req_next_wqe me=
-mcpy
-- [High] mm: truncated memcpy of WQE flex array corrupts inline data
-- [Medium] locking: missing memory barriers when flushing WQEs leads to sta=
-le completion status
+- [Critical] rdma/rxe: data corruption in RDMA READ retry due to private WQ=
+E DMA state
+- [High] rdma/rxe: TOCTOU / lockless torn read of wqe->state during memcpy
+- [High] RDMA/rxe: memcpy into WQE buffer triggers FORTIFY_SOURCE panic
+- [High] RDMA/rxe: TOCTOU bypass in completer WQE copy via timeout retry pa=
+th
 --
 
-commit 05fdd210d6581da6d266954d4f637a96e6640c15
+commit 59f69c9fb12619fc21466b561c2742dd05e89831
 Author: Tristan Madani <tristan@talencesecurity.com>
-Subject: RDMA/rxe: copy send WQE to kernel buffer before processing
+Date:   Wed Oct 7 22:32:22 2026 +0000
 
-This commit copies the requester WQE from a user-space mapped buffer to a
-kernel-private buffer before processing to prevent Time-Of-Check to
-Time-Of-Use (TOCTOU) modifications. It also introduces a local copy reuse
-mechanism and targeted writebacks to the shared queue to prevent tearing.
+    RDMA/rxe: copy send WQE to kernel buffer in completer path
+   =20
+This patch aims to prevent TOCTOU races by copying send WQEs to a kernel
+private buffer during completion processing. It uses an acquire/release
+pattern to observe state transitions and writes back completion status
+and rd_atomic state to the shared memory queue.
 
-> diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/=
-rxe/rxe_req.c
-> index 53f7c1e7fe55b..df0fa455cd9c1 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_req.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_req.c
-
+> diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw=
+/rxe/rxe_comp.c
+> index 1390e861bd1d7..ca31093fdf3aa 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_comp.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_comp.c
 [ ... ]
-
-> @@ -193,6 +213,20 @@ static struct rxe_send_wqe *req_next_wqe(struct rxe_=
-qp *qp)
->  	}
->  	spin_unlock_irqrestore(&qp->state_lock, flags);
-> =20
-> +	/* Reuse the existing kernel-private copy if still valid */
-> +	if (qp->req.send_wqe_valid && qp->req.shared_wqe =3D=3D wqe)
-> +		return &qp->req.send_wqe.wqe;
+> +/* Write back completer WQE fields to shared memory */
+> +static void rxe_comp_writeback_wqe(struct rxe_qp *qp)
+> +{
+> +	struct rxe_send_wqe *shared =3D qp->comp.shared_wqe;
+> +	struct rxe_send_wqe *local =3D &qp->comp.comp_wqe.wqe;
 > +
-> +	/* Copy WQE from userspace-mapped shared queue to kernel-private
-> +	 * buffer. Copy the full element (max_sge SGEs) so that inline
-> +	 * data, which shares the flex array with SGEs, is always captured.
+> +	if (!qp->comp.comp_wqe_valid || !shared)
+> +		return;
+> +
+> +	WRITE_ONCE(shared->status, local->status);
+> +	WRITE_ONCE(shared->has_rd_atomic, local->has_rd_atomic);
+> +}
+
+[Severity: Critical]
+Does this omit writing back the advanced dma.resid and dma.sge_offset fields
+to the shared WQE?
+
+If a multi-packet RDMA READ response experiences a network drop and triggers
+a requester retry, the requester will read the shared WQE where dma.resid
+still equals dma.length. This causes it to re-request data from the original
+starting iova.
+
+>  static inline enum comp_state get_wqe(struct rxe_qp *qp,
+>  				      struct rxe_pkt_info *pkt,
+>  				      struct rxe_send_wqe **wqe_p)
+>  {
+>  	struct rxe_send_wqe *wqe;
+> +	u32 state;
+[ ... ]
+> +	/* Pairs with smp_store_release() in rxe_req_writeback_wqe() */
+> +	state =3D smp_load_acquire(&wqe->state);
+> +	if (state =3D=3D wqe_state_posted) {
+> +		*wqe_p =3D wqe;
+> +		return pkt ? COMPST_DONE : COMPST_EXIT;
+> +	}
+
+[Severity: High]
+If state is wqe_state_posted, this assigns the shared memory pointer direct=
+ly
+to wqe_p without making a local copy.
+
+If a timeout triggers this path, rxe_completer() transitions to
+COMPST_ERROR_RETRY where it re-reads wqe->state from this shared pointer.
+Could a concurrent userspace modification change the state to bypass the
+wqe_state_posted check, leading to COMPST_ERROR where it re-reads
+wqe->status directly from shared memory?
+
+If userspace races to set wqe->status to IB_WC_SUCCESS, could this trigger
+the WARN_ON_ONCE(wqe->status =3D=3D IB_WC_SUCCESS) in rxe_completer() and
+subsequently process a corrupted WQE?
+
+> +
+> +	/* Reuse existing local copy if still processing same WQE
+> +	 * with unchanged state (preserves DMA progress for multi-packet ops)
 > +	 */
-> +	memcpy(&qp->req.send_wqe.wqe, wqe,
+> +	if (qp->comp.comp_wqe_valid && qp->comp.shared_wqe =3D=3D wqe &&
+> +	    qp->comp.comp_wqe.wqe.state =3D=3D state) {
+> +		wqe =3D &qp->comp.comp_wqe.wqe;
+> +		*wqe_p =3D wqe;
+> +		goto check_state;
+> +	}
+
+[Severity: Critical]
+Could this reuse logic cause memory corruption during an RDMA READ retry?
+
+Because rxe_comp_writeback_wqe() does not sync the advanced DMA state to
+shared memory, a retried request will re-request the beginning of the
+data. However, the requester's retry rewinds the shared WQE state to
+wqe_state_posted and back to wqe_state_pending.
+
+This allows the state check here to succeed, meaning the completer reuses
+its private WQE containing the advanced DMA pointer. Won't the completer
+then write the re-transmitted beginning data into the middle of the local
+buffer?
+
+> +
+> +	/* Copy shared WQE to kernel-private buffer. Copy the full
+> +	 * element (max_sge SGEs) so that inline data, which shares
+> +	 * the flex array with SGEs, is always captured.
+> +	 */
+> +	qp->comp.shared_wqe =3D wqe;
+> +	memcpy(&qp->comp.comp_wqe.wqe, wqe,
 > +	       sizeof(*wqe) + qp->sq.max_sge * sizeof(struct rxe_sge));
 
 [Severity: High]
-Does this memcpy trigger a fortify_source field-spanning write warning?
+This problem wasn't introduced by this patch, but it appears here and was
+also introduced in the requester path in the previous patch of this series.
 
-The destination pointer &qp->req.send_wqe.wqe explicitly points to the wqe
-member of the anonymous send_wqe struct, which has a size of 64 bytes. If
-max_sge > 0, the copy length exceeds 64 bytes.
+Because the destination pointer specifically targets the wqe field
+(&qp->comp.comp_wqe.wqe), the compiler evaluates the object size strictly
+as sizeof(struct rxe_send_wqe).
 
-When compiled with CONFIG_FORTIFY_SOURCE=3Dy, __builtin_object_size(p, 1) b=
-ounds
-the destination to the exact size of the wqe member because it is embedded
-inside an outer struct before the sge array. This detects the out-of-bounds
-write and triggers a deterministic run-time field-spanning write warning,
-potentially crashing the kernel if panic_on_warn is enabled.
+When max_sge > 0, the size exceeds the bounds of the wqe field. When
+CONFIG_FORTIFY_SOURCE=3Dy is enabled, will this trigger a runtime
+field-spanning write warning or panic? Would it be safer to copy into
+the enclosing struct address, such as &qp->comp.comp_wqe?
 
 [Severity: High]
-Can this size calculation truncate the inline data if max_inline_data is not
-a multiple of 16?
+Is there a Time-of-Check to Time-of-Use race when copying the state?
 
-During QP initialization, qp->sq.max_sge is computed via integer division
-(wqe_size / sizeof(struct ib_sge)). If max_inline_data is configured to a
-value that is not a multiple of 16 (e.g., 20 bytes), wqe_size evaluates to
-20, but max_sge evaluates to 1.
+The memcpy is an unordered bulk copy that re-reads wqe->state from shared
+memory. A concurrent requester could update the WQE fields in shared memory
+during this copy. Because memcpy provides no memory ordering, it could copy
+the new state but an old status.
 
-The memcpy size would then evaluate to 64 + 1 * 16 =3D 80 bytes, whereas the
-inline data spans 20 bytes up to offset 84. This truncates the copy, leaving
-the last 4 bytes of inline data uncopied. When finish_packet() reads the
-inline data from the kernel buffer, will it transmit uninitialized or stale
-kernel memory instead of the user's provided payload?
-
-> +	qp->req.shared_wqe =3D wqe;
-> +	qp->req.send_wqe_valid =3D true;
+> +	qp->comp.comp_wqe_valid =3D true;
+> +	if (qp->comp.comp_wqe.wqe.dma.num_sge > qp->sq.max_sge)
+> +		qp->comp.comp_wqe.wqe.dma.num_sge =3D qp->sq.max_sge;
 > +
-> +	wqe =3D &qp->req.send_wqe.wqe;
->  	wqe->mask =3D wr_opcode_mask(wqe->wr.opcode, qp);
->  	return wqe;
->  }
-
-[ ... ]
-
-> @@ -666,6 +706,7 @@ int rxe_requester(struct rxe_qp *qp)
->  		wqe =3D __req_next_wqe(qp);
->  		spin_unlock_irqrestore(&qp->state_lock, flags);
->  		if (wqe) {
-> +			qp->req.send_wqe_valid =3D false;
->  			wqe->status =3D IB_WC_WR_FLUSH_ERR;
->  			goto err;
-
-[ ... ]
-
-> @@ -695,6 +737,7 @@ int rxe_requester(struct rxe_qp *qp)
->  	if (unlikely(qp->req.need_retry && !qp->req.wait_for_rnr_timer)) {
->  		req_retry(qp);
->  		qp->req.need_retry =3D 0;
-> +		qp->req.send_wqe_valid =3D false;
->  	}
+> +	wqe =3D &qp->comp.comp_wqe.wqe;
+> +	*wqe_p =3D wqe;
 > =20
->  	wqe =3D req_next_wqe(qp);
+> +check_state:
+>  	/* WQE does not require an ack */
+> -	if (wqe->state =3D=3D wqe_state_done)
+> +	if (wqe->state =3D=3D wqe_state_done)
 
-[Severity: Critical]
-Does this introduce a remote kernel heap information leak for inline packet=
-s?
+[Severity: High]
+Here, the code checks if wqe->state =3D=3D wqe_state_done using the value
+inside the locally copied WQE.
 
-By moving the WQE buffer to the kernel heap, we now need to validate bounds
-that were previously safe to read from shared memory. For inline data packe=
-ts,
-wqe->dma.resid (which stores the user-provided payload length) is only boun=
-ded
-by qp->mtu (e.g. 4096). The validation checks in this function completely
-ignore wqe->dma.resid and wqe->dma.sge_offset for inline sends.
-
-Later in finish_packet(), the inline payload is copied into the network pac=
-ket:
-
-memcpy(payload_addr(pkt), &wqe->dma.inline_data[wqe->dma.sge_offset], paylo=
-ad);
-
-Could a malicious user set sge_offset =3D 0 and length to 4096? The memcpy
-would read past the end of the qp->req.send_wqe allocation and leak adjacent
-kernel heap memory into the outgoing network packet.
-
->  	if (unlikely(!wqe))
->  		goto exit;
-
-[ ... ]
-
-> @@ -839,8 +884,10 @@ int rxe_requester(struct rxe_qp *qp)
->  	goto out;
->  err:
->  	/* update wqe_index for each wqe completion */
-> -	qp->req.wqe_index =3D queue_next_index(qp->sq.queue, qp->req.wqe_index);
->  	wqe->state =3D wqe_state_error;
-> +	rxe_req_writeback_wqe(qp);
-
-[Severity: Medium]
-Does this fast-flush path miss memory barriers when updating the shared WQE?
-
-When handling IB_QPS_ERR, this function sets qp->req.send_wqe_valid =3D fal=
-se,
-assigns wqe->status =3D IB_WC_WR_FLUSH_ERR directly, and then jumps to err:,
-where it sets wqe->state =3D wqe_state_error; and calls rxe_req_writeback_w=
-qe(qp).
-
-Because qp->req.send_wqe_valid is false, rxe_req_writeback_wqe() returns
-immediately without issuing the intended smp_store_release() memory barrier.
-
-Could the CPU or compiler reorder the writes to status and state, causing
-the completer polling the shared queue to observe wqe_state_error but read a
-stale or uninitialized status?
+Since this evaluates the re-read state from the memcpy rather than the
+state local variable acquired safely via smp_load_acquire() earlier, could
+this defeat the memory barrier and cause the completer to process a done
+WQE with stale fields?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261007223222.2342=
-804-1-tristmd@gmail.com?part=3D1
+804-1-tristmd@gmail.com?part=3D2
