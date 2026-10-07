@@ -1,77 +1,81 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3AF41BD9D0;
-	Wed,  7 Oct 2026 04:03:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EFB7184540;
+	Wed,  7 Oct 2026 04:07:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791345834; cv=none; b=D5W5hwgyYIS24NJIrXVcWQxQfkjoI9KFbFCmFKPTAn+36X9RYjrpzrj8CUbTkpiECgdARfXYqik/iQb1ae3y4aoZUREf5ADXIX/cI13zCrJHVtpBuGnRfL5FKZJ8R6lsw1ofz9MSlz0GuYZE9BkginuFrEZ3yuZ5BHRaKRxNhXI=
+	t=1791346068; cv=none; b=fpohlL2m4JYhrPQhq9CQF+6dhakkKYgVUHImvXPKre4pbiNg9ZuY7JpT1rVLipopZBcFeadekSNqEYz0vPDroqRM64WjPmB1m54Bj4ammINnItxCQV9XPED2PLA1+CFP5HzfYZWtKA55shO9/Q1DzROjn1A0B7/mtxXREFKRpbc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791345834; c=relaxed/simple;
-	bh=gp7PRv3WjAiMJrp0DvXpRvTv3mwC8R3NiezXzUE7FxE=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=m1lyndtAH+aNr3mMLoNXrg5q4q7F4PN1H7/ojcd+zw18dhZOOEXOrBvcbPheAOxPCP6pJ25bu64JzcFD5EiLKCAWUJfT+mviWDLxicO3hxNg2v6ELixKia4UcpXAnV7fMlP1FeiibM7Ncl0uekOMmuc4DvUDWArPCi3KOaIdczU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Z6jcccpF; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791346068; c=relaxed/simple;
+	bh=Az47Tcz8A7CK+UvGsJtxSuxn0K1P1yNAWmP5SHOut/k=;
+	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
+	 Date; b=VkW0VmKAPt6SKHZZE/9PwwPu9719KSDC8PlS0bsiyT7KtUImUqRs/AEiExE5dxuFrM3tfNyElSwCWBnLJcC3QLaAfMi3alRgrvpDXEQdD084Xw9TDPZfVX0C3lIejC8WVdpUHEAyDRTt8faDWlTWSgLF4pmcD+C/CEQ62zLbGDs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=i3jA/YN/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Z6jcccpF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F0DF1F0089B;
-	Wed,  7 Oct 2026 04:03:52 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="i3jA/YN/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A141F1F0089B;
+	Wed,  7 Oct 2026 04:07:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791345833;
-	bh=Z9zRtXHe/J1k/4/9wAeq1n+PwAt+ioXmV3zyjSNrjDw=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=Z6jcccpFsQ9cxLN/2ksxk1npoxZ8mmUOummcirC3bu0aCLONYRyM3YaTZTLi8gnbv
-	 XGi2fdgVjLNHFhXp7CDRCcfnrkZM8cr7YGF80ucSJrcmCDT+gAMFwjZbu3YXHunfPB
-	 g+OHwoP6hAAsQwwSadpysahXji1xVSNp+/YwrMCgAtxQYIArgQtTQdRx6y8AbbNkiU
-	 dwgYM44C1gaTdoL1nlYGtroJsjhMVWM7iYNcyPilgUnojXDOp65AUCjk6vNO3v1n0U
-	 QgxO01K3s5E+TgvnE4X2zyPjDPUurRzohIu0oQe164dG+pr0o/HB6UiD05Fifl7mSF
-	 hkJSZrnQeXnyA==
-From: netdev-bot+sinfo@kernel.org
-To: Atharva Vartak <atharva.a.vartak@gmail.com>
-Cc: "D. Wythe" <alibuda@linux.alibaba.com>,
- Dust Li <dust.li@linux.alibaba.com>, Sidraya Jayagond <sidraya@linux.ibm.com>,
- Mahanta Jambigi <mjambigi@linux.ibm.com>, Tony Lu <tonylu@linux.alibaba.com>,
- Wen Gu <guwen@linux.alibaba.com>, "David S. Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
- Ursula Braun <ubraun@linux.ibm.com>, Hans Wippel <hwippel@linux.ibm.com>,
- linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
- Willy Tarreau <w@1wt.eu>
+	s=k20260515; t=1791346067;
+	bh=3YBETmkndpLPDYtdhcyRzFAN2o33DcilpM8etLw0yVI=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=i3jA/YN/NSDCa6E9g1JQSptM3X0tULtHWmWb+MJFijg1ETjQj5M8zrrATBUKEvNCD
+	 KiMEA2Aru20kBEsup4PxOtVLQEeqVnWDCW0w3lOJygvQLs2+le/gyVox8dOYKHDmpZ
+	 bbN1nE1WMz1Z/6IMBLiCIvyn6pTvXvYumi5uWMe3qYgaN2tSJEkhRttPMfC6gZFTGb
+	 FD/o2Yp9ingQ6SiqjuxHyFilfaS4Dy9aWkQLLAYbqHWRldeY1DCczqDiBsZmdHGMy4
+	 nKIjrzfnuoLEvvQeCwL5iCCyPtaYx80wXvw6R0MTEt8jaUY2+1EOC6mow7l1BiDzew
+	 g8Qy7FnvhONHw==
+Message-ID: <sashiko-outbox-162620@kernel.org>
+From: sashiko-bot@kernel.org
 Subject: Re: [PATCH v2] net/smc: hold a reference on net_device returned by
  pnet_find_base_ndev()
-Date: Wed, 07 Oct 2026 04:03:51 +0000
-Message-ID: <179134583170.2527009.15228546923733851986@kernel.org>
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Atharva Vartak" <atharva.a.vartak@gmail.com>
+Cc: "Alexander Gordeev" <agordeev@linux.ibm.com>, "Heiko Carstens" <hca@linux.ibm.com>, "Christian
+ Borntraeger" <borntraeger@linux.ibm.com>, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, "Vasily
+ Gorbik" <gor@linux.ibm.com>
 In-Reply-To: <20261007040009.137568-1-atharva.a.vartak@gmail.com>
 References: <20261007040009.137568-1-atharva.a.vartak@gmail.com>
-Auto-Submitted: auto-generated
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Wed, 07 Oct 2026 04:07:46 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
 
-Hi!
+> pnet_find_base_ndev() resolves the base net_device for stacked devices
+> under RTNL, then drops the lock and returns the raw pointer without
+> taking a reference.  All three callers dereference the pointer after
+> RTNL has been released, creating a use-after-free window if the device
+> is concurrently unregistered.
+>=20
+> Take a reference with netdev_hold() before dropping RTNL and add the
+> matching netdev_put() in every return path of the three callers:
+>=20
+>   - smc_pnet_add_eth()
+>   - smc_pnet_find_roce_by_pnetid()
+>   - smc_pnet_find_ism_by_pnetid()
+>=20
+> Fixes: 0afff91c6f5e ("net/smc: add pnetid support")
+> Fixes: 1619f770589a ("net/smc: add pnetid support for SMC-D and ISM")
+> Cc: "D. Wythe" <alibuda@linux.alibaba.com>
+> Cc: Dust Li <dust.li@linux.alibaba.com>
+> Cc: Sidraya Jayagond <sidraya@linux.ibm.com>
+> Cc: Mahanta Jambigi <mjambigi@linux.ibm.com>
+> Cc: Tony Lu <tonylu@linux.alibaba.com>
+> Cc: Wen Gu <guwen@linux.alibaba.com>
+> Cc: Willy Tarreau <w@1wt.eu>
+> Cc: linux-rdma@vger.kernel.org
+> Cc: linux-s390@vger.kernel.org
+> Cc: netdev@vger.kernel.org
+> Signed-off-by: Atharva Vartak <atharva.a.vartak@gmail.com>
 
-This is an automated message. This series looks like a fix, but its
-commit messages seem to be missing some information:
+Sashiko has reviewed this patch and found no issues. It looks great!
 
- - How the issue was discovered, e.g. hit in production, hit during
-   development, syzbot report, manual code inspection, LLM or static
-   analysis tool scan.
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261007040009.1375=
+68-1-atharva.a.vartak@gmail.com?part=3D1
 
- - Whether the issue was actually triggered, or is only theoretical
-   (e.g. found by code inspection). If it was triggered please include
-   the symptoms, like the stack trace or error messages.
-
-Please do not repost the series just to address the above. Instead,
-reply to this email with the missing information, so that reviewers
-can take it into account. If the series needs another revision for
-other reasons, please include the information in the commit messages
-then.
-
-The evaluation is done by an LLM so it may be wrong, if you think
-that is the case please reply and explain.
