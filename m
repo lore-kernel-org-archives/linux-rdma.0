@@ -1,134 +1,96 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C573D39EF01;
-	Wed,  7 Oct 2026 15:09:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 700F74BA1E1;
+	Wed,  7 Oct 2026 15:34:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791385763; cv=none; b=FqGcw53WQncDsqa7v+Tgw1igZZ0w4XP3qDPz0WqTxVmEypIgOXAL4SJZeey+T/p7qNbKrW2XiT054mbYPy8j8/+exFQ8uifecZIum+2LwHgbVR73hGFK3jrpp//Qr5Buq1jimg+AKK16pYtcHG/Qy2Bam69ZdVya25vRO7qxPYQ=
+	t=1791387273; cv=none; b=phN1j/sMhuCBK5iYscpuxF27YE2keq9hYUUhV510WqZh+w7qZ5eosD8VWczramYiUo1uJSwwqhfs7fB+zpHVDygi7zEYzC79y/QgAVLuAREEeSBEU/KVBICrpO17eM1qb+jKShqb5ieoxDRsg02x81SSa2O5fbnjBDjze5Q1OfU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791385763; c=relaxed/simple;
-	bh=n1PlzXgKPPWXn4xBrMXursX6M7s4AJx/3w1A7rIncZY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Kq7/NBIFUDDrw5wyaGEZzYnrYldJcdrk+YkqGzjh59kXsXqrYTAAwVHYMK3gEEPSDvCEuDGhNeO2jxT9LhBzQecHHsp0P3265zh86LgeK1EEl1S6miiXTjClMXSGt4Gqv9CW/+WqBtJBGMqnvvI6VtNu23G2vtXd4tBDiPSXmcw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dzRhiDBv; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791387273; c=relaxed/simple;
+	bh=sJPC+6KqEiiYcLwYM5XpJuVIQep/HsjJoVlUvGEgAd4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=kjJEtFqj3zZrakWtsn4HKyAC59vVb95FTDEAnL80OYSX8d/MXGyApOGqvm29Owg98bNjrG3dw1rYfKv7kwJ3Xl9hhvm/1rbZg87Dy+qAGD6XXyb9/0ZYn7Lw6Ye3VRThQ5aMQHD9/OgS23t0VFdE1xZKBAwXJNEDb0iSjajk3G4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=UF7LrUob; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dzRhiDBv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC3451F000FF;
-	Wed,  7 Oct 2026 15:09:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791385759;
-	bh=WnK/pW8OTBOt0Pd2o1F+d7eEU1h//o2tR25a99I73TE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=dzRhiDBv72YcUM1r11uYi3PAQO/Ueytd0lm0ymmfJdcVsUeI3DxWOwxpGRU5t1jAG
-	 qU5PWSqWLhbSQeJ6s9PzwABy7evJ8KIipPs7+2aTsylKglnpr1hWD7QFSjkFqRYmZ7
-	 OnfskU211WH0B/4iyaCE/9JM4pVprgKQjzGEKkJqN3wtUD45151KH0RMHYbn9x0dc6
-	 z8IuEALhK4/sa+MPtC1xBC9O2WwKVy7EnSmfcAbRhDos3SH1Z650oEgZjV9bfhMXov
-	 182ys4RrmdMyDyb6YQKbXRHPcm7XzxfmEvs3fBYyL1PBCCaqcEJhkuzyD8YgepOZfk
-	 frOqgkL1hdMig==
-Date: Wed, 7 Oct 2026 16:09:11 +0100
-From: Simon Horman <horms@kernel.org>
-To: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
-Cc: netdev@vger.kernel.org, Haiyang Zhang <haiyangz@microsoft.com>,
-	Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Konstantin Taranov <kotaranov@microsoft.com>,
-	Alexei Starovoitov <ast@kernel.org>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	Jesper Dangaard Brouer <hawk@kernel.org>,
-	John Fastabend <john.fastabend@gmail.com>,
-	Erni Sri Satya Vennela <ernis@linux.microsoft.com>,
-	Aditya Garg <gargaditya@linux.microsoft.com>,
-	Dipayaan Roy <dipayanroy@linux.microsoft.com>,
-	Breno Leitao <leitao@debian.org>,
-	Jacob Keller <jacob.e.keller@intel.com>,
-	Saurabh Sengar <ssengar@linux.microsoft.com>,
-	linux-hyperv@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-rdma@vger.kernel.org, bpf@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: Re: [PATCH net v2] net: mana: reserve RX buffer headroom to fix
- forwarding performance
-Message-ID: <20261007150911.GT83879@horms.kernel.org>
-References: <20261003013647.2051416-1-hamzamahfooz@linux.microsoft.com>
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="UF7LrUob"
+Received: by linux.microsoft.com (Postfix, from userid 1186)
+	id C492A20B7166; Wed,  7 Oct 2026 08:33:30 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com C492A20B7166
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1791387210;
+	bh=xgaAkx66IrA/fboS29JwalNhauKWU0sJvD8sU16dDf0=;
+	h=From:To:Cc:Subject:Date:From;
+	b=UF7LrUobsYLr6BowMqLwaLAtNIUIBBMxdZVjx4zJrcEtLIj5w0lSxZ2edl5PmpNOj
+	 nPibXEZBRVm5qpnSz4V0OuTEREKQmwDGibRTxOFAFeyP5/Jw8oLyecrYjT0B0C9/KW
+	 YZzlrgMW4DiJbyJYwSiSdeH9tLECP1eKH8KkegZ0=
+From: Konstantin Taranov <kotaranov@linux.microsoft.com>
+To: kotaranov@microsoft.com,
+	snsanghvi@microsoft.com,
+	longli@microsoft.com,
+	jgg@ziepe.ca,
+	leon@kernel.org
+Cc: linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH rdma-next v3 00/10] RDMA/mana_ib: Add kernel RC and fast registration support
+Date: Wed,  7 Oct 2026 08:33:20 -0700
+Message-ID: <20261007153330.2979799-1-kotaranov@linux.microsoft.com>
+X-Mailer: git-send-email 2.43.7
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261003013647.2051416-1-hamzamahfooz@linux.microsoft.com>
+Content-Transfer-Encoding: 8bit
 
-On Fri, Oct 02, 2026 at 09:36:47PM -0400, Hamza Mahfooz wrote:
-> Commit 730ff06d3f5c ("net: mana: Use page pool fragments for RX buffers
-> instead of full pages to improve memory efficiency.") started handing
-> out RX buffers with zero headroom so that two buffers fit into one page
-> at the default MTU.
-> 
-> The MANA TX path, however, stores the per scatter-gather entry DMA
-> mappings in `struct mana_skb_head` at skb->head, and mana_start_xmit()
-> therefore calls skb_cow_head(skb, MANA_HEADROOM). The port advertises
-> this requirement as ndev->needed_headroom = MANA_HEADROOM.
-> 
-> As a result every packet that is received and then forwarded out of a
-> MANA port fails the skb_cow() in ip_forward() and gets reallocated and
-> copied by pskb_expand_head(). This is invisible to a plain RX or TX
-> workload, but it puts a full skb reallocation plus memcpy on the hot
-> path of every single forwarded packet, which is exactly what a
-> router/NVA workload does.
-> 
-> Restore the headroom. Note that reserving MANA_HEADROOM (232) is not
-> enough: ip_forward() asks for LL_RESERVED_SPACE(dev), which rounds
-> hard_header_len + needed_headroom up to HH_DATA_MOD and is 256 bytes on
-> ethernet. Use LL_RESERVED_SPACE() directly so the value keeps tracking
-> both constants. Also, since LL_RESERVED_SPACE() tracks MANA_HEADROOM,
-> it grows with MAX_SKB_FRAGS and for MAX_SKB_FRAGS >= 19 it is greater
-> than 256, so we have to account for that by using the headroom the RX
-> queue actually uses (instead of assuming XDP_PACKET_HEADROOM) and
-> turning MANA_XDP_MTU_MAX into MANA_XDP_MTU_MAX(ndev) (note that at the
-> default CONFIG_MAX_SKB_FRAGS=17 they are equivalent).
-> 
-> At the default MTU on a 4K page this means a buffer no longer fits twice
-> into a page (SKB_DATA_ALIGN(1500 + MANA_RXBUF_PAD + 256) = 2112), so the
-> frag-vs-single decision is now made by computing the real buffer size
-> instead of comparing the MTU against PAGE_SIZE / 2. The page_pool
-> fragment path is still used wherever at least two buffers genuinely fit,
-> e.g. on 16K and 64K page sizes.
-> 
-> Measured on an Azure VM with a MANA NIC acting as a forwarding NVA (UDP,
-> 1400 byte payload, 4 streams, 8 Gbps offered, only the forwarding
-> node's kernel differs), 8 runs each, median:
-> 
->                   forwarded pps    throughput
->   before              272,830       3.06 Gbps
->   after               390,560       4.37 Gbps   (+43%)
-> 
-> perf on the forwarding node, same workload:
-> 
->                   memset_orig   __pi_memcpy   pskb_expand_head
->   before             10.07%         3.96%         present
->   after               0.94%         0.64%         gone
-> 
-> Cc: stable@vger.kernel.org
-> Fixes: 730ff06d3f5c ("net: mana: Use page pool fragments for RX buffers instead of full pages to improve memory efficiency.")
-> Signed-off-by: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
-> ---
-> v2:
-> - Fix the XDP headroom mismatch with CONFIG_MAX_SKB_FRAGS >= 19,
->   by passing rxq->headroom to xdp_prepare_buff().
->   mana_build_skb() then picks up the correct offset via
->   xdp->data - xdp->data_hard_start. Also, turn MANA_XDP_MTU_MAX
->   into MANA_XDP_MTU_MAX(ndev) to account for the headroom,
->   since it is no longer a constant. (Narcisa, Sashiko)
-> - Use the new mana_single_rxbuf_per_page_forced() helper in
->   mana_set_priv_flags(). (Sashiko)
-> - Trim the comment above mana_get_rxbuf_headroom() and drop the stale
->   "XDP headroom" wording from the comment above mana_get_rxbuf_cfg().
->   (Narcisa, Sashiko)
+From: Konstantin Taranov <kotaranov@microsoft.com>
 
-Reviewed-by: Simon Horman <horms@kernel.org>
+Add kernel RC QPs and fast-registration MRs to the MANA RDMA driver
+for kernel consumers such as NVMe/RDMA and NFS/RDMA.
 
+Implement QP creation and state management, work request posting,
+completion processing, error handling, and queue draining. Kernel RC
+QPs require extended-WQE and power-of-two-SQ hardware support.
+
+Tested with krping, NVMe/RDMA, and NFS/RDMA, including RC send and
+receive error recovery with krping and NVMe/RDMA.
+
+v3:
+- Patch 07: Mask arm_psn to 24 bits before ringing the doorbell.
+- Patch 08: Exclude userspace QPs from kernel software-state handling
+  and CQ error-list insertion, and unlink UC QPs during destruction.
+
+v2:
+- Patch 03: Validate fixed-WQE capacity for the header, OOB and SGEs.
+- Patch 04: Preserve UC QP modification support.
+- Patch 08: Skip software CQ notifications for direct-polling CQs.
+- Patch 09: Flush that ERR work during QP teardown.
+- Patch 10: Limit drain callbacks to RC QPs and avoid completion
+  callbacks for direct-polling CQs.
+
+Konstantin Taranov (10):
+  RDMA/mana_ib: Allocate and map fast-registration MRs
+  RDMA/mana: Create and destroy kernel RC QPs
+  net/mana: Extend GDMA encoding for new RDMA WQEs
+  RDMA/mana_ib: Maintain kernel RC QP state
+  RDMA/mana_ib: Post receive WRs on kernel RC QPs
+  RDMA/mana_ib: Post send and memory-management WRs on RC QPs
+  RDMA/mana_ib: Poll RC completions using PSN and FSN progress
+  RDMA/mana_ib: Flush and notify CQs when kernel QPs enter ERR
+  RDMA/mana_ib: Handle error CQEs for RC QPs
+  RDMA/mana_ib: Drain kernel receive and send queues
+
+ drivers/infiniband/hw/mana/cq.c               | 243 ++++++++++-
+ drivers/infiniband/hw/mana/device.c           |   4 +
+ drivers/infiniband/hw/mana/main.c             |   8 +-
+ drivers/infiniband/hw/mana/mana_ib.h          | 135 +++++-
+ drivers/infiniband/hw/mana/mr.c               |  84 +++-
+ drivers/infiniband/hw/mana/qp.c               | 342 ++++++++++++++-
+ drivers/infiniband/hw/mana/shadow_queue.h     |  22 +
+ drivers/infiniband/hw/mana/wr.c               | 385 ++++++++++++++++++
+ .../net/ethernet/microsoft/mana/gdma_main.c   |  55 ++-
+ include/net/mana/gdma.h                       |  38 +-
+ 10 files changed, 1280 insertions(+), 36 deletions(-)
+
+-- 
+2.43.0
