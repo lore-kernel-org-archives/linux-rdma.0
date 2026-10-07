@@ -1,94 +1,73 @@
-Received: from mail.tipi-net.de (mail.tipi-net.de [194.13.80.246])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mta1.migadu.com (out-210.mta1.migadu.com [95.215.58.210])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BD284E0B6E;
-	Wed,  7 Oct 2026 18:29:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=194.13.80.246
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AE2734B40F
+	for <linux-rdma@vger.kernel.org>; Wed,  7 Oct 2026 18:36:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791397788; cv=none; b=kEGSkB0gaGaQn+iMpnAko4lT+dAMS6VWWBgvDao6vXh9ImXJ2bDAnaPBtYcpR944Z3Jb6tJWcRzbfNII+aQqejFCq1gkmduaFtKX+WBhdh5O+GuopPegpYMEtbvlnpjvKPWOyM7kKTUd11n+IWeudwYwmIIdYJ+dJ553fFVPNgg=
+	t=1791398210; cv=none; b=em5FzSCaCGjrTBi1L9bTuDL9uHUKZY+ZChNvFB5lUb5VurrbNfR9dhZl3my7FWbjn66OI8grIMoEbjvgV+PRUeBZfVFHxGMuX+yIg3GVzFMTP2nxarI6BZVQLHj1Vfvc3EzVAvM/BXjnvBf9jLIover0b6HMQQyXVoxWk1j4jeE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791397788; c=relaxed/simple;
-	bh=zSw4MvkKTAyxu2Chr4JiaTHB9/UhfdQZiXE9PiL5x9Y=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=aB8ALA7jhVSHoL+lwvXxTdWC3cPWvYUZ2oVct4ZwZ4S/QBistfZYzvD8nsrz580ufaHn/l2J1ZHElrvJLujlFzSPkeHfEcGp6cfLQDU9FLP6fd7by/HxPN4npqTiRNH24RsVMV179QeFKV9tD/ZXBjdOtGPbdWqgMbdJRT3teGA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=tipi-net.de; spf=pass smtp.mailfrom=tipi-net.de; dkim=pass (2048-bit key) header.d=tipi-net.de header.i=@tipi-net.de header.b=LwzuGWoN; arc=none smtp.client-ip=194.13.80.246
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=tipi-net.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=tipi-net.de
+	s=arc-20240116; t=1791398210; c=relaxed/simple;
+	bh=JrLa3HexNJbbVKnunxiIgrli+e3/+0NTV8uujfvINgw=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=H2EG50UYce4pgdCQVcCkJDfqVkl2z4soZw9SL7R3BAEcQ6NwEWgFF9n5MrWebfVesMy6T1I1eI680PAQTITi2tL5KeIPVg1aCXpd3E914F60wg6wwOL47fuyZ2bupaXH+KqjmWlOa9jEdKVuzDGo/PhN5sXxAJMvPWAVgTV2h50=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=T45ZHqlG; arc=none smtp.client-ip=95.215.58.210
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=tipi-net.de header.i=@tipi-net.de header.b="LwzuGWoN"
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 2101EA154E;
-	Wed,  7 Oct 2026 20:29:41 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=tipi-net.de; s=dkim;
-	t=1791397783; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=+vwzImBllyc3KkMfgkhrOwCBUwVrLqdZ+ruuZlAUn4g=;
-	b=LwzuGWoNsgTkxuu+VoKQ2EDZKSS4AXl1JK/uAQ7DmkdAgXNErOy9H2t1+mSO6fqWGwzesb
-	hlfHio3Lolq8R69IG/jBZEAF8jgRHBktf1HHA31KxMti4X+vyc+3arr2OmYKrfRB3/iM5I
-	Gh+Y1j3gRBrbWuaPf64nqp5XInEiYy/7eK0sUVkNkIJPz9MLspsQCj2sDOm4V0CLUV732N
-	YiyLxnvWcLLlN67YRiHSbRyReJnAH5fZESJcandycRY63SKtPl1C9r2ECzvU6WVJ3aDf9g
-	f0t6PoCh+T4CHtcBTmHU+vsBHpsLeCIdk30ZuSqAV/7XnH6UXI96+nY0BMIh6g==
-From: Nicolai Buchwitz <nb@tipi-net.de>
-Date: Wed, 07 Oct 2026 20:29:24 +0200
-Subject: [PATCH net-next 3/3] net/mlx5e: use skb_share_check() in the
- loopback selftest hook
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="T45ZHqlG"
+X-Envelope-To: linux-rdma@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=JrLa3HexNJbbVKnunxiIgrli+e3/+0NTV8uujfvINgw=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1791398204; v=1; x=1792003004;
+ b=T45ZHqlGbp1VI7HCvHR3VBtFRdK+pj1I4SnuK2NHtgO9ecDDv6MJxWvyT8bRzGs0vClu9TIP
+ vYruKJ6FSymNkpxCEaAbI26J2k3AagoXnjcHHjvvGZBLx33vFf9M2jM3bBTggIvAmtkB8arOdox
+ Xu4/Z0XRV6+uH4EtubgM6x5I=
+X-Envelope-To: linux-rdma@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id c47590e99ebdb691;
+	Wed, 07 Oct 2026 18:36:44 +0000
+X-Mizu-Trace-ID: c47590e99ebdb691
+X-Migadu-Flow: FLOW_OUT
+Message-ID: <92db8ba8-a77e-449b-b238-efcee90dad4e@linux.dev>
+Date: Wed, 7 Oct 2026 11:36:41 -0700
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20261007-nb-net-selftest-shared-net-v1-3-458369bfa1ba@tipi-net.de>
-References: <20261007-nb-net-selftest-shared-net-v1-0-458369bfa1ba@tipi-net.de>
-In-Reply-To: <20261007-nb-net-selftest-shared-net-v1-0-458369bfa1ba@tipi-net.de>
-To: "David S. Miller" <davem@davemloft.net>, 
- Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, 
- Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
- Oleksij Rempel <o.rempel@pengutronix.de>, 
- Maxime Chevallier <maxime.chevallier@bootlin.com>, 
- Andrew Lunn <andrew+netdev@lunn.ch>, 
- Maxime Coquelin <mcoquelin.stm32@gmail.com>, 
- Alexandre Torgue <alexandre.torgue@foss.st.com>, 
- Jose Abreu <Jose.Abreu@synopsys.com>, Saeed Mahameed <saeedm@nvidia.com>, 
- Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, 
- Leon Romanovsky <leon@kernel.org>, Dragos Tatulea <dtatulea@nvidia.com>, 
- Alexei Lazar <alazar@nvidia.com>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
- linux-stm32@st-md-mailman.stormreply.com, 
- linux-arm-kernel@lists.infradead.org, linux-rdma@vger.kernel.org, 
- Nicolai Buchwitz <nb@tipi-net.de>
-X-Mailer: b4 0.16.0
-X-Last-TLS-Session-Version: TLSv1.3
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 2/2] RDMA/rxe: copy completer WQE to kernel buffer
+ before processing
+To: Tristan Madani <tristmd@gmail.com>,
+ "yanjun.zhu@linux.dev" <yanjun.zhu@linux.dev>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
+ linux-rdma@vger.kernel.org, stable@vger.kernel.org
+References: <20260830191344.2026524-1-tristmd@gmail.com>
+ <20261007163356.407937-1-tristmd@gmail.com>
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
+In-Reply-To: <20261007163356.407937-1-tristmd@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-The loopback hook gets a shared skb when another ETH_P_IP handler is
-bound to the device. skb_linearize() on a non-linear frame then hits
-BUG_ON(skb_shared()).
+在 2026/10/7 9:33, Tristan Madani 写道:
+> Hi Zhu Yanjun,
+> 
+> Gentle ping on this v2 series. The v2 addresses your review feedback
+> from v1 — bulk memcpy() writebacks were replaced with targeted
+> WRITE_ONCE() for individual fields and smp_store_release() for state
+> transitions.
 
-Call skb_share_check() before linearizing the skb.
+Please follow my advice to modify v2. I have sent my comments.
+Follow Leon's advice, please send the latest patchset as a standalone 
+patchset.
 
-Fixes: 95b9606b15bb ("net/mlx5: Extend Ethtool loopback selftest to support non-linear SKB")
-Signed-off-by: Nicolai Buchwitz <nb@tipi-net.de>
----
- drivers/net/ethernet/mellanox/mlx5/core/en_selftest.c | 4 ++++
- 1 file changed, 4 insertions(+)
+Yanjun Zhu
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_selftest.c b/drivers/net/ethernet/mellanox/mlx5/core/en_selftest.c
-index 1dcdb86690bb..8eb9a9469549 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_selftest.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_selftest.c
-@@ -166,6 +166,10 @@ mlx5e_test_loopback_validate(struct sk_buff *skb,
- 	struct udphdr *udph;
- 	struct iphdr *iph;
- 
-+	skb = skb_share_check(skb, GFP_ATOMIC);
-+	if (!skb)
-+		goto out;
-+
- 	if (skb_linearize(skb))
- 		goto out;
- 
-
--- 
-2.53.0
+> 
+> Would you have a chance to take another look?
+> 
+> Thanks,
+> Tristan
 
