@@ -1,203 +1,111 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DEE43A0B3F
-	for <linux-rdma@vger.kernel.org>; Wed,  7 Oct 2026 22:48:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2ABA376BF2
+	for <linux-rdma@vger.kernel.org>; Wed,  7 Oct 2026 23:44:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791413285; cv=none; b=A4a2a4na90iNvnpD4oo6cu/M6Qs1IYTdID4tH0TQvmNG1+NycACoLr2+fL8fwV6qH7PtIpqspyEMnRH0VtmwYBD9urg4d8yRp5J3WZZoi8b7FlO/6tf96/doZyD/bETRAHcZ70jmiNjlzgjLOzVRe/uWwxxoXK4aFj3q97hDdlk=
+	t=1791416681; cv=none; b=qdfgvh3pXx6dXYHa/BtUnz4lp9wyfsKuDtPW9shulXfKxLQXQxFm5mIz4SDPNnugtxLuFmLa/W0Fq3yqvGkdU2DMgeCZTLDa7aN+01lcd/KJSoAYccnlkDE47IiplOW3dmJ3iWEd30OQF6ErucfSFUCzt1J6hYwpRFPNILd4M4U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791413285; c=relaxed/simple;
-	bh=+0x53Ik7FIMOhkkghmFNfgD2r4AQOjOacCiLADMX8nI=;
-	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=enwDxMuJpmOAeK1ISDWUAn13YmFVoNZKKwH4wtM5OfRJFZ0U+IQWnv8SztywcHb3fcOfBiTM2Zi5jMbHIjD3jLKRQs3FCOzS6RWlw5Xh1j+yiBhvCL/dQB68tga3qxppzlepqsR/wNJxPsy4L4os6tW4k0Ec1NCWQwyHzpwxm64=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RxnGEWbq; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791416681; c=relaxed/simple;
+	bh=YARXCShK/9vVXfiD1gwkK6sm53zPdGGWb0rudFpHQbQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=jWME/a/1RjRqmg4b2aA0qaf5/2Lt7K+4mlJvosc2vLKAf7TmB6N0EtqTXUxf+CMgyQtiv9rNPhkTwKHwzx9G5DOLfdkHnEAU3oHRgadNvJNPFyfnK906WE6AXK8s0aJ3hAsJy0u3SuMqmk7T4nxZyKPxJ4Uobq5ix1eJUALCoM4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EOIspdG0; arc=none smtp.client-ip=209.85.128.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RxnGEWbq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19DAE1F000FF;
-	Wed,  7 Oct 2026 22:48:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791413284;
-	bh=wuEK3tKq0146bXDXR5NkJKFX+LtFzRDJHrl2yughJfw=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=RxnGEWbqAAVdAoFy8UgXxVCbghZ/WAcBRMpxH/A0mVqvSWrhQXlBwHQF7T0uSEm6x
-	 hALgetuGMEilw1xkJWI81CwQmuVNCRB+UMdFUkdXBajm1gGaV0Oj4pz7iIPFpUE6C7
-	 TYjyrzfTYiuaBSs0YkG3XakBEDtSJ7Fn5VlklzxnjqWhzd349mOkDDizvYNGl3f+fk
-	 9hPU+CIiUO+XQZ3eCwINNP36gVED9gkJNtvO/DD9d8RV3NC05Xx7MAGMyg3N1CnRuA
-	 /QfxyuuYLSuURiQxmlhUZAoCHTTn3pzHjt9EhKukcaMRLGs1xe5OZWzNmu0p3L8opp
-	 Uf3HM1tbfn9oA==
-Message-ID: <sashiko-outbox-163423@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v4 2/2] RDMA/rxe: copy send WQE to kernel buffer in
- completer path
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Tristan Madani" <tristmd@gmail.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261007223222.2342804-3-tristmd@gmail.com>
-References: <20261007223222.2342804-1-tristmd@gmail.com>
- <20261007223222.2342804-3-tristmd@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Wed, 07 Oct 2026 22:48:03 +0000
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EOIspdG0"
+Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-4a17f65ab8bso8667235e9.1
+        for <linux-rdma@vger.kernel.org>; Wed, 07 Oct 2026 16:44:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1791416678; x=1792021478; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=KVyDlZ+Tk8cP0JL9kHRLRfhLRbrCqUU0BJbBP7MDZts=;
+        b=EOIspdG0YMYc6fC8A7mEqcqUIfuLRLfSr36KWWWAOthJszpcPRAvx820SRXYi9pzKa
+         Ndgoj9Ibr15wWDazal2Nz8qrMsXaGgXvBGG2BNVH1LZSGzqmRdpOTGBnBD6LgMPXX9br
+         qfUgwEYjsBNd0byzGnypwOeLtpSLHhgv6nddgk4+6sfyfwHmme4QV+Tqm4OXOs9/P6Mn
+         Z+JXd8WzlIv6OFilHhhv5iWo/KAvM8bEWZXI0VAyA7DlCpbLHzRPrkYmShrcZAdGdUAS
+         1NceryOYI0aRZNWjgpIYKBKcBIZNtShV465vbxqNievzviOnoXpACSTBFHFc3/d4CrMc
+         hKMA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791416678; x=1792021478;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=KVyDlZ+Tk8cP0JL9kHRLRfhLRbrCqUU0BJbBP7MDZts=;
+        b=fBUMu5otgR8XflhDcaXC8TbvbrtJ3SwEt8LaKpHnsOVpsiniHDnYJxj0h/ejDroD2h
+         4f2l1UUOH53VHjMVc7HhfI9PSoIkGsuGXGV3cQs73OSwBRxXu8dJWlOwlmQa4FrowwxB
+         CvpPK61sw4IGJ2SP+QaWEOY9s6BA/hRWyMEzybsr02066RaxRpuDAhriwl2dZUGhvvAX
+         i7bhApNUKZYrhPi4bS+sRLklipqDcgy/rSefcFwJRZP8V6sJiJIzaA24LnOGaI4DWF07
+         n9lQ2GLiDIZSYr8eA8LCettjcAsEwiOlV2E9quPFT3sGTxf2R/IxA1rV+z8/ZqLEMKJ2
+         dLOQ==
+X-Forwarded-Encrypted: i=1; AKwUvByjDcioqVr804C9A8UPVV45HHuSTKsuVNADcGgT2z22dmRQBE+vo+dx96NrtIOgiYw6LTlKzoXgYtwG@vger.kernel.org
+X-Gm-Message-State: AFuF++lm1E8yhkOtg5cKXN8riBXoidLqRSLvoFoJG3P0T0CMDlFsUSrj
+	yt0hzdiPejlZrcPn8eYFszqFLQGCwuKAPJDhzWtjqDC90hjzl2eMszu4
+X-Gm-Gg: AYBFou3cSKeTgUMlPWFhjZQam0j6Rj1X8QKShiDWQ6DCvrzQxavWOE9XFNGv58X98hR
+	wLVWwSYfGDsBYfVqCAON8/z1cnl/tG9fOYm0CaAnETIxuoIVvtQj3ES4JWapSjzsm86nIrdwHTU
+	13kXpsN+txE2DVlsjAVaU2kVgcfajAMcvAqwyySlX7aJ+Hn9ryK9XXS+otkClQSV/4l1IJ+3c/U
+	iDXYs3ZxR1T/rKILTV486m2MAUUwWHGcgMwyvoevTE51/1lPD3s46CwY8VDPP+4VyHFqrJM747Q
+	T+KFz+0RmjECV1jgAa11VqSRtevUgjgF/l5sV0wCL52lv5Lz1krhASt1u3vmEiLo/3ULFxXuZgn
+	XgLuKf2TkW8M3UT/6G0OvxXF5KzvRZBaHDfUXFwWXmLFWIElFELI5brIo7laGmxh/mVTeo0uaWN
+	QA/EZQYOIb3DZp1e9olGDejqAgxBxvSvnoUE/qjFMl5wvUTaGvDnYyZkLlTwOivt5o0srgmlVjc
+	DhSPjZ6Mh1HlWQdcPYwR+kz+Q2zblVS20l+OBug6h+edIYe/OEUamDRgMQ6BtMfYhZZo+FRGrkv
+	2tHrK45krQU/LBE=
+X-Received: by 2002:a05:600c:3152:b0:49f:ce72:e931 with SMTP id 5b1f17b1804b1-4a180650fc6mr61558085e9.35.1791416677952;
+        Wed, 07 Oct 2026 16:44:37 -0700 (PDT)
+Received: from SD.localdomain (heme-13-b2-v4wan-167795-cust403.vm32.cable.virginm.net. [81.108.45.148])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a17f4480a4sm76816995e9.0.2026.10.07.16.44.36
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 07 Oct 2026 16:44:37 -0700 (PDT)
+From: Prathamesh Deshpande <prathameshdeshpande7@gmail.com>
+To: Leon Romanovsky <leon@kernel.org>,
+	Tariq Toukan <tariqt@mellanox.com>,
+	Saeed Mahameed <saeedm@mellanox.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: saeedm@nvidia.com,
+	tariqt@nvidia.com,
+	Prathamesh Deshpande <prathameshdeshpande7@gmail.com>
+Subject: [PATCH rdma] RDMA/mlx5: Cancel deferred page-fault EQ work before teardown
+Date: Thu,  8 Oct 2026 00:42:11 +0100
+Message-ID: <20261007234216.2765-1-prathameshdeshpande7@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found 4 potential issue(=
-s) to consider:
-- [Critical] rdma/rxe: data corruption in RDMA READ retry due to private WQ=
-E DMA state
-- [High] rdma/rxe: TOCTOU / lockless torn read of wqe->state during memcpy
-- [High] RDMA/rxe: memcpy into WQE buffer triggers FORTIFY_SOURCE panic
-- [High] RDMA/rxe: TOCTOU bypass in completer WQE copy via timeout retry pa=
-th
---
+Page-fault EQ work can remain queued after the notifier is disabled.
+Destroying the EQ before cancelling that work can let the worker access
+freed EQ memory.
 
-commit 59f69c9fb12619fc21466b561c2742dd05e89831
-Author: Tristan Madani <tristan@talencesecurity.com>
-Date:   Wed Oct 7 22:32:22 2026 +0000
+Cancel the deferred work before destroying the EQ.
 
-    RDMA/rxe: copy send WQE to kernel buffer in completer path
-   =20
-This patch aims to prevent TOCTOU races by copying send WQEs to a kernel
-private buffer during completion processing. It uses an acquire/release
-pattern to observe state transitions and writes back completion status
-and rd_atomic state to the shared memory queue.
+Fixes: d5d284b829a6 ("{net,IB}/mlx5: Move Page fault EQ and ODP logic to RDMA")
+Signed-off-by: Prathamesh Deshpande <prathameshdeshpande7@gmail.com>
+---
+ drivers/infiniband/hw/mlx5/odp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw=
-/rxe/rxe_comp.c
-> index 1390e861bd1d7..ca31093fdf3aa 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_comp.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_comp.c
-[ ... ]
-> +/* Write back completer WQE fields to shared memory */
-> +static void rxe_comp_writeback_wqe(struct rxe_qp *qp)
-> +{
-> +	struct rxe_send_wqe *shared =3D qp->comp.shared_wqe;
-> +	struct rxe_send_wqe *local =3D &qp->comp.comp_wqe.wqe;
-> +
-> +	if (!qp->comp.comp_wqe_valid || !shared)
-> +		return;
-> +
-> +	WRITE_ONCE(shared->status, local->status);
-> +	WRITE_ONCE(shared->has_rd_atomic, local->has_rd_atomic);
-> +}
+diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
+index b8618610737a..1f28c30095dc 100644
+--- a/drivers/infiniband/hw/mlx5/odp.c
++++ b/drivers/infiniband/hw/mlx5/odp.c
+@@ -1885,8 +1885,8 @@ mlx5_ib_odp_destroy_eq(struct mlx5_ib_dev *dev, struct mlx5_ib_pf_eq *eq)
+ 	if (!eq->core)
+ 		return 0;
+ 	mlx5_eq_disable(dev->mdev, eq->core, &eq->irq_nb);
+-	err = mlx5_eq_destroy_generic(dev->mdev, eq->core);
+ 	cancel_work_sync(&eq->work);
++	err = mlx5_eq_destroy_generic(dev->mdev, eq->core);
+ 	destroy_workqueue(eq->wq);
+ 	mempool_destroy(eq->pool);
+ 
+-- 
+2.43.0
 
-[Severity: Critical]
-Does this omit writing back the advanced dma.resid and dma.sge_offset fields
-to the shared WQE?
-
-If a multi-packet RDMA READ response experiences a network drop and triggers
-a requester retry, the requester will read the shared WQE where dma.resid
-still equals dma.length. This causes it to re-request data from the original
-starting iova.
-
->  static inline enum comp_state get_wqe(struct rxe_qp *qp,
->  				      struct rxe_pkt_info *pkt,
->  				      struct rxe_send_wqe **wqe_p)
->  {
->  	struct rxe_send_wqe *wqe;
-> +	u32 state;
-[ ... ]
-> +	/* Pairs with smp_store_release() in rxe_req_writeback_wqe() */
-> +	state =3D smp_load_acquire(&wqe->state);
-> +	if (state =3D=3D wqe_state_posted) {
-> +		*wqe_p =3D wqe;
-> +		return pkt ? COMPST_DONE : COMPST_EXIT;
-> +	}
-
-[Severity: High]
-If state is wqe_state_posted, this assigns the shared memory pointer direct=
-ly
-to wqe_p without making a local copy.
-
-If a timeout triggers this path, rxe_completer() transitions to
-COMPST_ERROR_RETRY where it re-reads wqe->state from this shared pointer.
-Could a concurrent userspace modification change the state to bypass the
-wqe_state_posted check, leading to COMPST_ERROR where it re-reads
-wqe->status directly from shared memory?
-
-If userspace races to set wqe->status to IB_WC_SUCCESS, could this trigger
-the WARN_ON_ONCE(wqe->status =3D=3D IB_WC_SUCCESS) in rxe_completer() and
-subsequently process a corrupted WQE?
-
-> +
-> +	/* Reuse existing local copy if still processing same WQE
-> +	 * with unchanged state (preserves DMA progress for multi-packet ops)
-> +	 */
-> +	if (qp->comp.comp_wqe_valid && qp->comp.shared_wqe =3D=3D wqe &&
-> +	    qp->comp.comp_wqe.wqe.state =3D=3D state) {
-> +		wqe =3D &qp->comp.comp_wqe.wqe;
-> +		*wqe_p =3D wqe;
-> +		goto check_state;
-> +	}
-
-[Severity: Critical]
-Could this reuse logic cause memory corruption during an RDMA READ retry?
-
-Because rxe_comp_writeback_wqe() does not sync the advanced DMA state to
-shared memory, a retried request will re-request the beginning of the
-data. However, the requester's retry rewinds the shared WQE state to
-wqe_state_posted and back to wqe_state_pending.
-
-This allows the state check here to succeed, meaning the completer reuses
-its private WQE containing the advanced DMA pointer. Won't the completer
-then write the re-transmitted beginning data into the middle of the local
-buffer?
-
-> +
-> +	/* Copy shared WQE to kernel-private buffer. Copy the full
-> +	 * element (max_sge SGEs) so that inline data, which shares
-> +	 * the flex array with SGEs, is always captured.
-> +	 */
-> +	qp->comp.shared_wqe =3D wqe;
-> +	memcpy(&qp->comp.comp_wqe.wqe, wqe,
-> +	       sizeof(*wqe) + qp->sq.max_sge * sizeof(struct rxe_sge));
-
-[Severity: High]
-This problem wasn't introduced by this patch, but it appears here and was
-also introduced in the requester path in the previous patch of this series.
-
-Because the destination pointer specifically targets the wqe field
-(&qp->comp.comp_wqe.wqe), the compiler evaluates the object size strictly
-as sizeof(struct rxe_send_wqe).
-
-When max_sge > 0, the size exceeds the bounds of the wqe field. When
-CONFIG_FORTIFY_SOURCE=3Dy is enabled, will this trigger a runtime
-field-spanning write warning or panic? Would it be safer to copy into
-the enclosing struct address, such as &qp->comp.comp_wqe?
-
-[Severity: High]
-Is there a Time-of-Check to Time-of-Use race when copying the state?
-
-The memcpy is an unordered bulk copy that re-reads wqe->state from shared
-memory. A concurrent requester could update the WQE fields in shared memory
-during this copy. Because memcpy provides no memory ordering, it could copy
-the new state but an old status.
-
-> +	qp->comp.comp_wqe_valid =3D true;
-> +	if (qp->comp.comp_wqe.wqe.dma.num_sge > qp->sq.max_sge)
-> +		qp->comp.comp_wqe.wqe.dma.num_sge =3D qp->sq.max_sge;
-> +
-> +	wqe =3D &qp->comp.comp_wqe.wqe;
-> +	*wqe_p =3D wqe;
-> =20
-> +check_state:
->  	/* WQE does not require an ack */
-> -	if (wqe->state =3D=3D wqe_state_done)
-> +	if (wqe->state =3D=3D wqe_state_done)
-
-[Severity: High]
-Here, the code checks if wqe->state =3D=3D wqe_state_done using the value
-inside the locally copied WQE.
-
-Since this evaluates the re-read state from the memcpy rather than the
-state local variable acquired safely via smp_load_acquire() earlier, could
-this defeat the memory barrier and cause the completer to process a done
-WQE with stale fields?
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261007223222.2342=
-804-1-tristmd@gmail.com?part=3D2
