@@ -1,63 +1,67 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D9C439524E
-	for <linux-rdma@vger.kernel.org>; Wed,  7 Oct 2026 15:53:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 975AF466AE6
+	for <linux-rdma@vger.kernel.org>; Wed,  7 Oct 2026 16:24:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791388394; cv=none; b=QyyL3SDVzJrYubUij8Ww3H1tW/AoBoaccYU0ZolGN7osNHsuoSjwV7O0Qm8AF6YoQdn3WpkfBbKew8QFLHbQKuNG9FI1EQMDHxPIYTfkU0zBKhRuMBpLo3uGvoFdeZMVBf0xVIEGN6a2BvPauEZHA2REfy1jzyORMf/6FoYdwzo=
+	t=1791390261; cv=none; b=T8iCzEDpA9fL5NpuTx8tT4acfAUPVVUonQ7U7+6IyXFHr9z5itCr+AnFfEK2ZVG9XTk8QSM+MdotkH032BiTW66IcespGvfqd/4/JqkzlNrLfm1Y2cPvkdQJZ2voEideCUXBTwzbT6ktpo7fusOLdCG0dlEOj5qEQo/lrbO0/6k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791388394; c=relaxed/simple;
-	bh=OTQfNnWUCcUMRkkavvAFOMJb1ZByMjksv8CGXqgPKLA=;
+	s=arc-20240116; t=1791390261; c=relaxed/simple;
+	bh=7F+cr7Xwh6tXPlz2JskTkNag2Wn4PJa96bTDWdnGWMM=;
 	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=jtxT6gGBpJ6zf8sgmKBsi/8fojAw33eBZyV8Q9Dc0UYXwof1TC29HS28ONC9IFQ93FfIUegrjLpIrQRaiJd/qBgIh6hJ8fSWy6YlwJMv4UQmifFfqU1pfqoOHLgOlb3ud4Vm4icY+GqLwSlSt0tO3EH4nsfS6LZxqGicr77pnYc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FAwVVxNA; arc=none smtp.client-ip=100.103.45.18
+	 Date; b=mEXfJgGkZwoJg4fqVnl6JumLKexUtpj31jRjK7eUW3sOPK7vo+kNx+Z+qJGofxDkvPLVg83wFVR9J/BsDjsGfeGK1szi7tgXB1yBA2SnLV8W7LmjVR65A7Qk3sRXNB4BEgPsUtIrenqPZSZYyvxtmFwu/M5pUcZCk+GWFGDNu0c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dCjtAhX+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FAwVVxNA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 151371F00893;
-	Wed,  7 Oct 2026 15:53:13 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dCjtAhX+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 043DB1F000FF;
+	Wed,  7 Oct 2026 16:24:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791388393;
-	bh=OTQfNnWUCcUMRkkavvAFOMJb1ZByMjksv8CGXqgPKLA=;
+	s=k20260515; t=1791390260;
+	bh=RD825/1iu4vLVN3XEST7iIulBNNtm7ang3vw6a7+FIc=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=FAwVVxNAInb3/RBhQvdK8YtB9gw8qUPLS1wFd9KnFXZ6XkqLPOgzD0kDZy3J1Fsla
-	 Z7odOZFXziZCPKrqoPtkoYTVvEbcJBG9hvBgAd0De4GCex7nwPLoYmr39rBujzsW5K
-	 95gS1DMQCh5QGnNxUOQ42k6/XxHXkfq4TT0YaF6MFYjnnlM9nU6B/9Uwc12tDpWs7t
-	 oB1Eeb8aeeLaRfMgrw3C18wralT1XQ23rdR0rOS2zyb/OUiGv55v09iJqH+qrc4zVa
-	 YGaYMnCDZJv57GYBQca+c4k7Y/23wbtUwVOE9EXvlvMbHWiAq9rRve7VHWRLhamSrS
-	 Y1fhpI4WKmiqA==
-Message-ID: <sashiko-outbox-163171@kernel.org>
+	b=dCjtAhX+R4CUMumxkdivPsPP1bz1Eus5Q0roFFTWBj54spSLnWcOaRPZyUXeamyEZ
+	 Xn0fTz3jeagGmJfLtKeVbJDSHKD+CIWZVP06IHPronDxrHopNsLLMyz/6PYPJCi0pX
+	 87I9T46yEBlYfSXfyDai7r+HUzTqnp4bCvjnvVvTUFE1TUqPUlm47X7ULkEcLJa6PV
+	 AImkT3cZbCvkjDCQ023OPUSrN8ots6CqoUtJ6Llp8PpLCUCrYi68hS31xoArzZliWs
+	 i7UfMNE/XF8s2i8VrLkBAHIMt1r61HzYR5jcKxeIJ5xzsaVEvW0TOTOCOViguRYsbb
+	 Lz0Abv/gcEaTQ==
+Message-ID: <sashiko-outbox-163190@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v3 06/10] RDMA/mana_ib: Post send and
- memory-management WRs on RC QPs
+Subject: Re: [net-next v2 1/3] bnge: Add infrastructure support for RoCE MPC
+ channels
 Reply-To: sashiko-reviews@lists.linux.dev
-To: "Konstantin Taranov" <kotaranov@linux.microsoft.com>
+To: "Siva Reddy Kallam" <siva.kallam@broadcom.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261007153330.2979799-7-kotaranov@linux.microsoft.com>
-References: <20261007153330.2979799-1-kotaranov@linux.microsoft.com>
- <20261007153330.2979799-7-kotaranov@linux.microsoft.com>
+In-Reply-To: <20261006161256.1493672-2-siva.kallam@broadcom.com>
+References: <20261006161256.1493672-1-siva.kallam@broadcom.com>
+ <20261006161256.1493672-2-siva.kallam@broadcom.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 07 Oct 2026 15:53:12 +0000
+Date: Wed, 07 Oct 2026 16:24:19 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-> From: Konstantin Taranov <kotaranov@microsoft.com>
+> From: Saswati Das <saswati.das@broadcom.com>
 >=20
-> Implement send work request posting for RC QPs. Post communication WRs
-> to the send queue and memory WRs to the memory management queue.
+> Add the initial L2 driver plumbing for RoCE MPC (PRIMATE channel)
+> support:
 >=20
-> Advertise the memory management extensions on adapters that support
-> extended WQEs.
+> - Plumb BAR1 through to the RoCE auxiliary device info, alongside the
+>   existing BAR0, so the RoCE driver can reach the doorbell BAR.
 >=20
-> Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
+> This will be used by follow-on patches to issue RoCE commands over the
+> MPC channels to the firmware.
+>=20
+> Signed-off-by: Saswati Das <saswati.das@broadcom.com>
+> Signed-off-by: Siva Reddy Kallam <siva.kallam@broadcom.com>
 
 Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261007153330.2979=
-799-1-kotaranov@linux.microsoft.com?part=3D6
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261006161256.1493=
+672-1-siva.kallam@broadcom.com?part=3D1
 
