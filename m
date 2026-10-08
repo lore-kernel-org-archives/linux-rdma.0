@@ -1,62 +1,61 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DE8F3806B5
-	for <linux-rdma@vger.kernel.org>; Wed,  7 Oct 2026 23:56:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B39B13D886;
+	Thu,  8 Oct 2026 02:17:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791417395; cv=none; b=hk/M2Q6cm0UgWlptsxvFPUlZHrLi9PEpwq1w7FM7EZWVt3NqdeYU4bT3kXKcAa6HsOkA9sHLwJY43EBRD4BKAloGlzzonwq+ArbtpGKW/9aaqwZKT4vtcZeKQrERh7HfxRGIr7d0PPRMHRAsbC7X9THD4Rgf6sFBsli5Bkrpcnk=
+	t=1791425824; cv=none; b=FManvZEl2dk//OzgPTjM9Ydp1wExnLCrKu0ERjlJbAmMpogbrUJw6ApOc9AIsh87amdN0UWnMi1LMHIpYiQB/WugmFo5biiU5WHViZwEGx1w2mOXhiwXFRRqsZ5AW3cxymG8h/RjZyn4z2qaDrWzLlnqk11drCJhbbHmQ/q3Jhc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791417395; c=relaxed/simple;
-	bh=ZPtgTDaybpPl4eQSKFVzVUpa433crnIFlmHKeyaR4vk=;
-	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=Ww3QpRFWqvLYgcRUWgBfNSygcv4Pb7/o9YXG0ZKlEegiFR9ZsLU6fvJjalgFG5+M0ZzxGl4tMSZ8buGhiJtpbeADrRzAc/e/ThtD2bj9B1uIyoNRV9TYxFb/mYzUPRjPKZxqe5T11AZbwTIcpBB/YDa/B7Qq79bPz0j+r1NbgF0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OTodjnUI; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791425824; c=relaxed/simple;
+	bh=5Igza3zbL8DsL8iZkd4iOPUqt5mfV9bwMscd7jEwYAs=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=vCHDMAN4jr2lRkXXYf+VQqPCxxpfKcB3wCZhfTzx+QdktUdqfrHwDj+3T98U2roqRkXg0u7AVjgCaXCg+8ir1nZHXO9QqbwFWsqm2nd+g+TUAUKiCBVD+UyxE+dzavliDQi4bX2WzAm72TKVVhh3lOtT/Tnx1utrxd6iS5AZXTs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=A/HC2Kpz; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OTodjnUI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9174F1F000FF;
-	Wed,  7 Oct 2026 23:56:33 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="A/HC2Kpz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1219B1F000FF;
+	Thu,  8 Oct 2026 02:17:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791417393;
-	bh=ZPtgTDaybpPl4eQSKFVzVUpa433crnIFlmHKeyaR4vk=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=OTodjnUIwvIuXwYRjeXoSvCnfw3Mi/NT4TlP02Tga06/wD3Um/mg8srNeUla+jxHw
-	 1KqIE5XT2/LbqigiAb3Ji9u3qOh9kQojxUwzAUVjnuvCtjkoD4iATLWPK5BeBJ07wi
-	 6efVJfMsL5sHkw+sHBFZPlS77g6m1V649XJYdEBmkijttR++GlQwaajiblx95p9OyZ
-	 jYC1jD03F+CW4PouGolVCbJzEIQfpwC/6j+NKFDkG+SV1LWArATbgxjw8JjY2Ao+QX
-	 hqlxLfEWrSDUhFA1qktFJ6ctqCnmQUiGDTLi7pz1DmwmXVfRhJ5cJ3W+/zw5jDgqmP
-	 Bmvj6AvKvfguQ==
-Message-ID: <sashiko-outbox-163443@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma] RDMA/mlx5: Cancel deferred page-fault EQ work
- before teardown
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Prathamesh Deshpande" <prathameshdeshpande7@gmail.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261007234216.2765-1-prathameshdeshpande7@gmail.com>
-References: <20261007234216.2765-1-prathameshdeshpande7@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Wed, 07 Oct 2026 23:56:33 +0000
+	s=k20260515; t=1791425822;
+	bh=09TxWdiMFYWRVecDe6e1P2wuubcsPRofkfD/tSUrqmI=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=A/HC2KpzGBA5D2N0yCzmSAuzt5ZQdDMcx96SL6btyOfx+IZb7c516v5ZE1cJGC5wS
+	 ChUpUGmgxixRUGj81V5Spef75LvsUIpgoAsEOPAOZ7+c2XIzVnxLXdukGUbBIiEodh
+	 PUhqOQ0CZJnOOhZShCImDd2y5NqTZPfxoT3WAcbvgDP7JhLLDfGEPz/8fdP7n6yx4n
+	 L4qNqhvlRnbW3AOnrfEDDmmtT+MQn7++yb99DYUZnyQjH66bKcoI/aIoLPTAiOnmcX
+	 QoIIS39vDVU5t12COaa5ms2vcLGlNmCnW4iw26eVKMoi0l0wPwJlNx6om1aDn2EKhz
+	 tMPxQmpCmXxsA==
+Date: Wed, 7 Oct 2026 19:17:01 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: "D . Wythe" <alibuda@linux.alibaba.com>, Dust Li
+ <dust.li@linux.alibaba.com>, Sidraya Jayagond <sidraya@linux.ibm.com>,
+ Mahanta Jambigi <mjambigi@linux.ibm.com>, Tony Lu
+ <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>
+Cc: Chengfeng Ye <nicoyip.dev@gmail.com>, "David S . Miller"
+ <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, Paolo Abeni
+ <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
+ linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
+ netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+ stable@vger.kernel.org
+Subject: Re: [PATCH net v2] net/smc: serialize clcsock access with its
+ release
+Message-ID: <20261007191701.078bfbc1@kernel.org>
+In-Reply-To: <20261003183325.2289707-1-nicoyip.dev@gmail.com>
+References: <20261003183325.2289707-1-nicoyip.dev@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-> Page-fault EQ work can remain queued after the notifier is disabled.
-> Destroying the EQ before cancelling that work can let the worker access
-> freed EQ memory.
->=20
-> Cancel the deferred work before destroying the EQ.
->=20
-> Fixes: d5d284b829a6 ("{net,IB}/mlx5: Move Page fault EQ and ODP logic to =
-RDMA")
-> Signed-off-by: Prathamesh Deshpande <prathameshdeshpande7@gmail.com>
+On Sun,  4 Oct 2026 02:33:25 +0800 Chengfeng Ye wrote:
+> Link-group termination can release the CLC socket through
+> smc_close_active_abort() while the SMC socket is still open, for example
+> after shutdown(SHUT_WR). A file reference keeps the SMC socket alive but
+> does not prevent this asynchronous release of its CLC socket.
 
-Sashiko has reviewed this patch and found no issues. It looks great!
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261007234216.2765=
--1-prathameshdeshpande7@gmail.com?part=3D1
-
+SMC maintainers, please review
