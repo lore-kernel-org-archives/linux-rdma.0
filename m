@@ -1,201 +1,188 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FF7B48D872
-	for <linux-rdma@vger.kernel.org>; Thu,  8 Oct 2026 09:54:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7DEA46AA9A
+	for <linux-rdma@vger.kernel.org>; Thu,  8 Oct 2026 09:55:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791453270; cv=none; b=JcmXmPN1QqQObuq3S8hJ1In8XI66dH0/tSML5r3ELShZ2ZMkCaNmcnjXS2R/1JzvzI7oTKwIArQlIhe2WSgRkzcHK4TW/ipJfh+11kOo1AI7ygPeIe315+hVrXbz0IkoBdP7x1s8U55J6338bW9yWhHC+BljBgpzk87D5LbW7Mw=
+	t=1791453304; cv=none; b=IX0glMx7mCiDiAAfEQuNcTec8lwe8APgO88C2tMQ7kKP7szFYiuG93pocjXdAbGy/uzoGRF/t+s6GR30WQgAc4OyvoYTWoONhTW71CshEr6rxEhJVIemGb6SMM6XGRCHxkxLPHBPfzEb82fj9Xw5aQq45IjxRRU8zDnwFkRTdY0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791453270; c=relaxed/simple;
-	bh=HRHuJBlT1VFkI9qGwaPTE5DlSlAKtsj990ClGjKTw0w=;
+	s=arc-20240116; t=1791453304; c=relaxed/simple;
+	bh=1oZy1Gnd9qJn+2r5OBMbPsTVT3q9RKHfjDCbRAdnTBU=;
 	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=FbkvO6e+h7FLYaWAdwK51ALPqJ+fzNMYDT1VzZRsQaWdHP8CBmybmwY1tnHK8gwW9ZXP6vcWXmdXwTKg1D+61IvqkQEn4gyY6rKEVa06g/sA9u8zfi5AnXUBKkZf/Umo1ZZ5mzbJE2nSX0PHkFYiA6EWdy4uDCxpHD7mMy0F98s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mdGnq8+l; arc=none smtp.client-ip=100.103.45.18
+	 Date; b=M5IIFV5lPvSyc2m/7hlOjaGas4s0DMFH1UgG5Q3aMtrOp40yA7xHIXE9+ixsbINvTrzBq2PlIoijCMiJEKsmzNDm0yUgrOJgiMDRvJRb19vNdkJ20zvmHiLcne7K2hreUCOmN+I92jxsraeKMFDzFoqK4POcL0yhBK7cTkJINMo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=b2VHVSAe; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mdGnq8+l"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 844C71F000FF;
-	Thu,  8 Oct 2026 09:54:27 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="b2VHVSAe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33A011F000FF;
+	Thu,  8 Oct 2026 09:55:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791453267;
-	bh=4yKfNkrDhxQC0LEKVSbDkEXuodw0bOUtJE4NUgBhFcs=;
+	s=k20260515; t=1791453303;
+	bh=uWWaZVzSynB4eKKjDBsFjMp1GPROjSBFEEnHDlstSMs=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=mdGnq8+l+b1UfC9RlAeqHbTlf5nXRytjCMwGGgsU8uC41WpjLeGucJCizY4a1PUmA
-	 rU/gwsIid29L9GrUeGy+FAL9yt2EhRFyg79hnQ/66jzGvYxkx1Ji28Ae4WG0vSVsMU
-	 rvj/sIHjL+X7Mo0dNYo13gaicwIW8AFT6rl5DOf3XgfwwZ+pUkgkMCvs2xzHEdyJW6
-	 2qwMBySmSrb/MBm9OoSSoScbE9n1Bo7SowEvBfKZokcMMKMg4jrI0KtmDlk1HdXZsw
-	 SE6yg7TDKUMNfuItFB0R8bQIoQs+wsggiz90bzTKDQasaTU/t91OWdPBP8xMdWjRNb
-	 yt5qiwJF1MNOg==
-Message-ID: <sashiko-outbox-163967@kernel.org>
+	b=b2VHVSAeHRtLeBASgGwKHHhbgBl8FxbTHfB9s4bYsHmvf192vNWBnxY0qy09G/CwO
+	 PL3nkTxYQNYLd/NEe7zVTfJu+3kHVaD2R0Oti/PYjiTdi01TGbNzfTM4icwRmPMHbe
+	 mew4KfFizfN6iBeKTRd4GMaHW4K5x+3WG41uKq1xhm29RXR0nDXz8ev5aUEMrnd9l1
+	 0gcaMKFwqK27tHL6dA+R/oxFtLk9FpyTXAjNP0vVHUv/YsUh7itmSICFa08i4VRq4P
+	 2Qyo6W5E1FKR35PEk3gMk870PDXzXTmPsE+wAmzMwLomKDn84b8T1Xv4LyEvp3yDRA
+	 xH1ckA3lueyyQ==
+Message-ID: <sashiko-outbox-163969@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v5 1/2] RDMA/rxe: copy send WQE to kernel buffer before
- processing
+Subject: Re: [PATCH v5 2/2] RDMA/rxe: copy send WQE to kernel buffer in
+ completer path
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Tristan Madani" <tristmd@gmail.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261008093740.3034881-2-tristmd@gmail.com>
+In-Reply-To: <20261008093740.3034881-3-tristmd@gmail.com>
 References: <20261007223222.2342804-1-tristmd@gmail.com>
  <20261008093740.3034881-1-tristmd@gmail.com>
- <20261008093740.3034881-2-tristmd@gmail.com>
+ <20261008093740.3034881-3-tristmd@gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 08 Oct 2026 09:54:26 +0000
+Date: Thu, 08 Oct 2026 09:55:02 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-Thank you for your contribution! Sashiko AI review found 3 potential issue(=
+Thank you for your contribution! Sashiko AI review found 4 potential issue(=
 s) to consider:
-- [High] rxe: kernel heap leak via unvalidated inline WQE fields
-- [High] rxe: out-of-bounds read in wr_opcode_mask() via untrusted userspac=
-e WQE opcode
-- [Medium] rdma/rxe: Missing memory barrier in IB_QPS_ERR flush path violat=
-es concurrency model
+- [Critical] RDMA/rxe: Out-of-bounds array access due to unvalidated dma.cu=
+r_sge in copied WQE
+- [High] RDMA/rxe: Incomplete TOCTOU fix leaks shared WQE pointer when wqe_=
+state_posted
+- [High] RDMA/rxe: Broken RDMA READ retry logic due to omitted dma.resid wr=
+iteback
+- [High] rdma/rxe: FORTIFY_SOURCE field-spanning write warning in get_wqe()
 --
 
-commit ffc0feb820a2586eb777f9f2b8fd3b594b8c06e6
+commit cf86a77297c64ab74c16b59fe4e3de0489c867e4
 Author: Tristan Madani <tristan@talencesecurity.com>
 
-RDMA/rxe: copy send WQE to kernel buffer before processing
+RDMA/rxe: copy send WQE to kernel buffer in completer path
 
-The rxe send queue is mapped into userspace via mmap. The requester
-processes Work Queue Entries (WQEs) directly from this shared buffer
-without first copying them to kernel memory. Userspace can modify WQE
-fields (num_sge, sge_offset, SGE entries) between kernel reads,
-leading to inconsistent state in copy_data().
+This commit attempts to fix TOCTOU races by copying send WQEs from the
+shared queue to a kernel-private buffer in the completer path. It
+introduces local copies of the WQE to preserve DMA progress and updates
+writeback logic before advancing the consumer index.
 
-> diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/=
-rxe/rxe_req.c
-> index 53f7c1e7fe55b..5bd6bcad2ab97 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_req.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_req.c
-
+> diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw=
+/rxe/rxe_comp.c
+> index 1390e861bd1d7..5d8b692114a33 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_comp.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_comp.c
 [ ... ]
-
-> @@ -193,6 +213,20 @@ static struct rxe_send_wqe *req_next_wqe(struct rxe_=
-qp *qp)
->  	}
->  	spin_unlock_irqrestore(&qp->state_lock, flags);
-> =20
-> +	/* Reuse the existing kernel-private copy if still valid */
-> +	if (qp->req.send_wqe_valid && qp->req.shared_wqe =3D=3D wqe)
-> +		return &qp->req.send_wqe.wqe;
+> +/* Write back completer WQE fields to shared memory */
+> +static void rxe_comp_writeback_wqe(struct rxe_qp *qp)
+> +{
+> +	struct rxe_send_wqe *shared =3D qp->comp.shared_wqe;
+> +	struct rxe_send_wqe *local =3D &qp->comp.comp_wqe.wqe;
 > +
-> +	/* Copy WQE from userspace-mapped shared queue to kernel-private
-> +	 * buffer. Use max_inline as copy size since it covers both SGEs
-> +	 * and inline data, which share the flex array.
+> +	if (!qp->comp.comp_wqe_valid || !shared)
+> +		return;
+> +
+> +	WRITE_ONCE(shared->status, local->status);
+> +	WRITE_ONCE(shared->has_rd_atomic, local->has_rd_atomic);
+
+[Severity: High]
+Does this code fail to write back dma.resid and dma.sge_offset?
+
+If a timeout occurs, the requester's retry logic (req_retry()) reads the
+unmodified dma.resid from the shared WQE (or its own unmodified private
+copy) to calculate the retry offset.
+
+This causes it to retry from the beginning (offset 0) but with an advanced
+PSN, resulting in the completer writing redundant remote data into advanced
+local offsets.
+
+> +}
+> +
+>  static inline enum comp_state get_wqe(struct rxe_qp *qp,
+>  				      struct rxe_pkt_info *pkt,
+>  				      struct rxe_send_wqe **wqe_p)
+>  {
+>  	struct rxe_send_wqe *wqe;
+> +	u32 state;
+> =20
+>  	/* we come here whether or not we found a response packet to see if
+>  	 * there are any posted WQEs
+>  	 */
+>  	wqe =3D queue_head(qp->sq.queue, QUEUE_TYPE_FROM_CLIENT);
+> =20
+>  	/* no WQE or requester has not started it yet */
+> -	if (!wqe || wqe->state =3D=3D wqe_state_posted)
+> +	if (!wqe) {
+> +		*wqe_p =3D NULL;
+>  		return pkt ? COMPST_DONE : COMPST_EXIT;
+> +	}
+> +
+> +	/* Pairs with smp_store_release() in rxe_req_writeback_wqe() */
+> +	state =3D smp_load_acquire(&wqe->state);
+> +	if (state =3D=3D wqe_state_posted) {
+> +		*wqe_p =3D wqe;
+
+[Severity: High]
+Does this code assign the userspace-mapped shared memory pointer to *wqe_p
+instead of forcing a local copy or returning NULL?
+
+If the completer drops into COMPST_ERROR_RETRY (e.g., following a timeout),
+it evaluates wqe->state =3D=3D wqe_state_posted using this shared pointer.
+
+Userspace can concurrently modify wqe->state to bypass this check, causing
+the completer to erroneously process un-started WQEs.
+
+> +		return pkt ? COMPST_DONE : COMPST_EXIT;
+> +	}
+> +
+> +	/* Reuse existing local copy if still processing same WQE
+> +	 * with unchanged state (preserves DMA progress for multi-packet ops)
 > +	 */
-> +	memcpy(&qp->req.send_wqe.wqe, wqe,
-> +	       sizeof(*wqe) + qp->sq.max_inline);
-> +	qp->req.shared_wqe =3D wqe;
-> +	qp->req.send_wqe_valid =3D true;
+> +	if (qp->comp.comp_wqe_valid && qp->comp.shared_wqe =3D=3D wqe &&
+> +	    qp->comp.comp_wqe.wqe.state =3D=3D state) {
+> +		wqe =3D &qp->comp.comp_wqe.wqe;
+> +		*wqe_p =3D wqe;
+> +		goto check_state;
+> +	}
 > +
-> +	wqe =3D &qp->req.send_wqe.wqe;
->  	wqe->mask =3D wr_opcode_mask(wqe->wr.opcode, qp);
+> +	/* Copy shared WQE to kernel-private buffer. Use max_inline
+> +	 * as copy size since it covers both SGEs and inline data,
+> +	 * which share the flex array.
+> +	 */
+> +	qp->comp.shared_wqe =3D wqe;
+> +	memcpy(&qp->comp.comp_wqe.wqe, wqe,
+> +	       sizeof(*wqe) + qp->sq.max_inline);
 
 [Severity: High]
-Does this code perform an out-of-bounds read of rxe_wr_opcode_info[]?
+Can this memcpy trigger a FORTIFY_SOURCE field-spanning write warning?
 
-The opcode in the WQE comes directly from userspace without validation. It =
-is
-passed to wr_opcode_mask():
+This memcpy targets the wqe sub-object but copies a length that spans into
+the adjacent sge field.
 
-drivers/infiniband/sw/rxe/rxe_loc.h:wr_opcode_mask() {
-    return rxe_wr_opcode_info[opcode].mask[qp->ibqp.qp_type];
-}
+The compiler's bounds check restricts the write destination field to exactly
+sizeof(*wqe), so this triggers a fortify warning (and panic if panic_on_warn
+is enabled) when max_inline > 0.
 
-If a malicious user provides an out-of-bounds opcode (e.g. 0xFFFFFFFF), cou=
-ld
-it read unmapped kernel memory or use garbage memory as an opcode mask?
+> +	qp->comp.comp_wqe_valid =3D true;
+> +	if (qp->comp.comp_wqe.wqe.dma.num_sge > qp->sq.max_sge)
+> +		qp->comp.comp_wqe.wqe.dma.num_sge =3D qp->sq.max_sge;
 
-[ ... ]
+[Severity: Critical]
+Does this code neglect to validate cur_sge after the copy from userspace?
 
-> @@ -666,6 +706,7 @@ int rxe_requester(struct rxe_qp *qp)
->  		wqe =3D __req_next_wqe(qp);
->  		spin_unlock_irqrestore(&qp->state_lock, flags);
->  		if (wqe) {
-> +			qp->req.send_wqe_valid =3D false;
->  			wqe->status =3D IB_WC_WR_FLUSH_ERR;
->  			goto err;
+A malicious userspace application can set cur_sge to an arbitrarily large
+value.
 
-[Severity: Medium]
-Does this bypass the required memory barriers for updating the WQE in shared
-memory?
+During RDMA read or Atomic response processing, copy_data() indexes the
+dma->sge array using this unvalidated cur_sge, accessing memory outside
+the comp_wqe buffer.
 
-Since qp->req.send_wqe_valid is set to false here, the subsequent call to
-rxe_req_writeback_wqe() at the err label will be a no-op. The WQE state and
-status are directly modified on the shared memory WQE:
-
-err:
-	wqe->state =3D wqe_state_error;
-	rxe_req_writeback_wqe(qp);
-
-Without the intended smp_store_release() or WRITE_ONCE() macros, could
-the completer or userspace observe wqe_state_error before the status update
-is visible?
-
->  		} else {
->  			goto exit;
->  		}
-
-[ ... ]
-
-> @@ -695,6 +737,7 @@ int rxe_requester(struct rxe_qp *qp)
->  	if (unlikely(qp->req.need_retry && !qp->req.wait_for_rnr_timer)) {
->  		req_retry(qp);
->  		qp->req.need_retry =3D 0;
-> +		qp->req.send_wqe_valid =3D false;
->  	}
+> +
+> +	wqe =3D &qp->comp.comp_wqe.wqe;
+> +	*wqe_p =3D wqe;
 > =20
->  	wqe =3D req_next_wqe(qp);
-
-[Severity: High]
-Does this code allow an out-of-bounds read of the kernel heap memory when
-processing IB_SEND_INLINE WQEs?
-
-Just below this in rxe_requester(), num_sge and cur_sge are bounds checked,
-but sge_offset and resid are not validated against qp->sq.max_inline:
-
-drivers/infiniband/sw/rxe/rxe_req.c:rxe_requester() {
-	...
-	if (unlikely(wqe->dma.num_sge > qp->sq.max_sge ||
-		     (wqe->dma.resid &&
-		      wqe->dma.cur_sge >=3D qp->sq.max_sge))) {
-		rxe_dbg_qp(qp, "invalid num_sge/cur_sge in send wqe\n");
-	...
-}
-
-Because this patch relocates the WQE into a kmalloc'd kernel buffer, can
-a malicious user supply large values for sge_offset and resid to leak
-adjacent kernel heap memory when the payload is copied to the network packe=
-t?
-
-drivers/infiniband/sw/rxe/rxe_req.c:finish_packet() {
-        ...
-		if (wqe->wr.send_flags & IB_SEND_INLINE) {
-			u8 *tmp =3D &wqe->dma.inline_data[wqe->dma.sge_offset];
-
-			memcpy(payload_addr(pkt), tmp, payload);
-        ...
-}
-
-[ ... ]
-
-> @@ -839,8 +884,10 @@ int rxe_requester(struct rxe_qp *qp)
->  	goto out;
->  err:
->  	/* update wqe_index for each wqe completion */
-> -	qp->req.wqe_index =3D queue_next_index(qp->sq.queue, qp->req.wqe_index);
->  	wqe->state =3D wqe_state_error;
-> +	rxe_req_writeback_wqe(qp);
-> +	qp->req.wqe_index =3D queue_next_index(qp->sq.queue, qp->req.wqe_index);
-> +	qp->req.send_wqe_valid =3D false;
->  	rxe_qp_error(qp);
->  exit:
->  	ret =3D -EAGAIN;
+> +check_state:
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261008093740.3034=
-881-1-tristmd@gmail.com?part=3D1
+881-1-tristmd@gmail.com?part=3D2
