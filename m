@@ -1,188 +1,120 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo2-f0.google.com (mail-oo2-f0.google.com [74.125.231.128])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37EBF38AC99;
-	Thu,  8 Oct 2026 16:13:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A38C3A3E73
+	for <linux-rdma@vger.kernel.org>; Thu,  8 Oct 2026 16:38:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.231.128
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791476001; cv=none; b=EuJil/DEBMOxwKIB8q1boVD6it3nfO5wGObpPvuVR5Adg1QI9fdpdzQg/XRW6+p/dxx73lsB7z+r4L3U8YVZh3aD8sWp1PZV5WiD9RAvDc4e7QlXoMtKVRsJ4rF1U59RaLrBdsZiboOVeoc27C/oD5NI9KKvfTpONzxlc87LCMY=
+	t=1791477538; cv=none; b=fPgdywzU/wjbUAAB/lLTl96FGCBo1rM15Jvk7YdHunmQ1h/6RIbA4Q+1imGSkFhRv+l8RgWUIAozYJhp3Y26QqceCqxhY8HLbZzLpw9QPPQNeUZKj0VfoAuWL5R06sCpjLXpJbc4WQyzdwiL7hrnyO7saujBN+eqKN7cTCN6WM0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791476001; c=relaxed/simple;
-	bh=I+xC+WZE121bT0mroLJdu1L8ddUbslmzPDc4dujPHac=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=Yf63hxSRR1EbLJ1Ge0NayoZPHJNiheNRI7iHKdzLLhfr58RQftA4CQ34JsN5vM1ilgm0cQg/ZLiqAsLHhYxCNrg2eT/UYzcEquHcjeJI2i+qp7GYR4EiFXX131kByl4sx6FDiiQlE4FIBnDd13jzyWGIl0SQ6YrYewzFJp2/ijs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=m3MQrl45; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791477538; c=relaxed/simple;
+	bh=B7/RTXGw6xEkN4S3aF0mbacVGPs2NY7fb3eIo7Z50+k=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=GD8d1CFTlu4vLRRBveas2matYnZ/u5m71M7n7mXnztjTMVO4RjAwFcMBSEY6zrpbq1Thv1wWBTR2deNav6dL9jAkAxxd5cP9pXutcfrKypDxYMT8B+GDRfFqgD84BCTKu9gwKz+ZAJpkr2ZjwPh3yHzvKYUx51plNYLZVrDN9Mw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=bd12I3zl; arc=none smtp.client-ip=74.125.231.128
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="m3MQrl45"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E89A21F0089E;
-	Thu,  8 Oct 2026 16:13:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791475999;
-	bh=bR3lSv4dtTfWpHF6ntHioN9j/2JEJW6KkCIUr1O2GkU=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=m3MQrl45/OFi0u+vQPtD9nCP88Q+TCS8U/vZG4QTBVfNYOFDYTfyyCwTRIFxJhJkX
-	 XM1bPBBkjDdfaAmMt6Nx7sfw7IZgEmBRQzJyFvPOi7jrW9dPTfIkQzyK0WpATL9CJ4
-	 g2xdPJMhRBph1nRsPZywG7BUjDRCZ2+zNq7CUiTLfcrfhJ+oig7QHveFp5S1NF3nCO
-	 hvtadbFAgj97fJbb1dgeDZkX1juX5n8ZSwvG4drtuC2KAYRTdM738hTyWLR1p9gGpN
-	 1IeX2LXld5Hy1UdzwjIqG+GV5uyVqXDK9gw3UJuZHKPEIy99H4tGtSi3CbecbC7GXq
-	 LhkrNLUEqgKBg==
-Subject: Re: [PATCH net v8] net/smc: fix lgr/lnk lifetime vs diag reader race
-From: netdev-bot+sashiko@kernel.org
-To: mjambigi@linux.ibm.com
-Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
- kuba@kernel.org, pabeni@redhat.com, alibuda@linux.alibaba.com,
- dust.li@linux.alibaba.com, sidraya@linux.ibm.com, hidayath@linux.ibm.com,
- pasic@linux.ibm.com, horms@kernel.org, tonylu@linux.alibaba.com,
- guwen@linux.alibaba.com, stable@vger.kernel.org, netdev@vger.kernel.org,
- linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
-Date: Thu, 08 Oct 2026 16:13:18 +0000
-Message-ID: <179147599850.434549.17282557208373125996@kernel.org>
-In-Reply-To: <20261005131241.1575131-1-mjambigi@linux.ibm.com>
-References: <20261005131241.1575131-1-mjambigi@linux.ibm.com>
-X-sashiko-severity: Medium
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bd12I3zl"
+Received: by mail-oo2-f0.google.com with SMTP id 006d021491bc7-6a3900cb2b5so3090637eaf.0
+        for <linux-rdma@vger.kernel.org>; Thu, 08 Oct 2026 09:38:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1791477536; x=1792082336; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=wcr1e3DelCZYM4o9phxk5vNklRMQLSyAKhNB5dBEr6o=;
+        b=bd12I3zlGqyad1SU1bgON32oKdVg4UULWAImb6h+3sJnng3qlhcbkplvxvAkvuk4wy
+         n7fxfP1/TRsOZqH/+7c4BzFXKjP7Yl7k4wliFAro8W/8j4Ze7RHGVoEkYBB+dVGXF17n
+         BLwdE4Shb1LzlCR1TKekFl1fF25eYKIUcJFPEhPfUDv/lqxm7tqe0kvYFFRxCB3Vdm0l
+         QJtS3AU2q4FwEkuhBWyr8qSG119ifKefVvF7EDPdv+EHNIvbwuPN5hTqBlZdsCX3IlcQ
+         U1+KL5Z7GdhuL5BUi6Xnz65klnYNoncYECenOGTtbQSbSnh62anWF8f9bUzli/prkDxi
+         dWeQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791477536; x=1792082336;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=wcr1e3DelCZYM4o9phxk5vNklRMQLSyAKhNB5dBEr6o=;
+        b=JJnING6xtePpKc2VgabqL7JLZby/qvg6rtD7s4K+3lFkKDPya3hXAz0Yd23BzBgovl
+         LF3KtWSSJj4BDQVAtaJ+CLGetYt4J8FUrg/bp+FIsd3coIxbCsfbR6Gn7yYG/v+7kMch
+         lm3uTIApKpXGYADUIhadJ/CKiEB9sfuViPeUA40Y/kiJ6cyw+zmdEYHAHV0cQvNMIh5w
+         wMnpzDVC4YuW15o4Wn/UF8EeAfNpHh5piKad7uRB6CL/DsMSkmf4qCuA4UnyBC59g9h0
+         +HgUVOONRoQT7dVTIpiCUpKZzfVUVMub+0ubxCI4gcxzI7BBc676dIWkGgF8fuWHk5DK
+         hUDw==
+X-Forwarded-Encrypted: i=1; AKwUvBxXu9u871G4KYyvaxkrmXIvksyTNQtg0Jka6uO7wXDWVp2Pcmv2MUEdEt1atXk2iRAdRlY4RhEA9ONr@vger.kernel.org
+X-Gm-Message-State: AFuF++lVodSLFYaylPpJqhi7eeg4z0EyiJVtARnIRNR59GdMlLxQO1qn
+	ojmbVXPxKFynT0ekiumqZWAsZKnCQ7T8hUQtr4u93HRKpkIa+X+2A47a
+X-Gm-Gg: AYBFou0TlaFfy1U1NmQX2Quta+dFZSEbyCxj/yazYyf3ryJKV2VIZZV4ngJpNPJ6S1j
+	qs8xEuXtHXxSgFSZObcROYzhopQjhNZdYMJSVl7EQpvJBKiuu0uimNvfRe2DsJwG7om087kU/RP
+	rpVD2C0HAYeq+yF27M9FBCSoYbB5ML4GG1OeHTjo63xm/6WodflRdXsVD2L/fWMdfW2Un4+HQiU
+	BRYXYFh9eRwzr6UlOyg8ESwWvt+v5hq5C5kZEMw0WwMXrdozueqZZm3amaY+hLpsM17ejImrR7I
+	AcrVwx9RdHZ+ldfCN/2n4VneOeNqYhzaijm7IrOCyQ8pnP/E4UW1xc5BnPR/pwAOdNG/3HLwfvl
+	JNrwfWEgaWpLtI3zelcloJe9aQJgCeW5b5RdMUHHUHYBEuTQSFiC5GMQY2LPPRG7B/ljlNXR9ok
+	XMEDbT1EBjzIHgmlWaXbc+rRrWRnNNYxIvAHeUxZwe0s6g1STO5Gq0Lp6cqwavjnow09KzUYlza
+	a5xyBa9yF/BzDcYLq7YzzGBjX7lo1G6Agtr
+X-Received: by 2002:a05:6820:1628:b0:6d7:a13d:fd7d with SMTP id 006d021491bc7-6e7a727cb87mr5941490eaf.53.1791477535895;
+        Thu, 08 Oct 2026 09:38:55 -0700 (PDT)
+Received: from localhost.localdomain ([14.22.11.164])
+        by smtp.gmail.com with ESMTPSA id 46e09a7af769-82fc7cc8ad4sm64328a34.7.2026.10.08.09.38.49
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 08 Oct 2026 09:38:55 -0700 (PDT)
+From: Henry Martin <bsdhenrymartin@gmail.com>
+To: Allison Henderson <achender@kernel.org>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>
+Cc: netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Henry Martin <bsdhenrymartin@gmail.com>,
+	stable@vger.kernel.org
+Subject: [PATCH] rds: fix out-of-bounds conn_path access via handshake NPATHS
+Date: Fri,  9 Oct 2026 00:38:43 +0800
+Message-ID: <20261008163843.957325-1-bsdhenrymartin@gmail.com>
+X-Mailer: git-send-email 2.43.7
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found 2 potential
-issue(s) to consider.
+Connections on the IB transport (t_mp_capable unset) own exactly one
+rds_conn_path slot, but the peer can still claim eight lanes through
+the NPATHS extension header of a handshake packet, and every
+subsequent fan-out path then treats all eight entries as real: the
+mp-start helper iterates conn->c_path[0..7], dereferencing cp->cp_conn,
+taking cp->cp_lock and queueing delayed work on cp->cp_wq at 504-byte
+strides into whatever comes after the single allocated slot (KASAN:
+"Read of size 8 in rds_conn_path_connect_if_down").
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 1
+The negotiated lane count is now clamped to the same value the
+transport was allocated with (trans->t_mp_capable ?
+RDS_MPATH_WORKERS : 1), so a peer can never ask us to walk lanes that
+do not exist.
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+This vulnerability was discovered by Tencent CodeBuddy Security.
 
-- [Medium] The commit message says the conn/lgr/lnk blocks of
-  __smc_diag_dump() are guarded for SMC_INIT and SMC_CLOSED sockets.
-- [Low] In __smc_diag_dump() (net/smc/smc_diag.c:93-97) the new
-  `r->diag_state != SMC_INIT &&` check in the diag_mode selection sends…
+Cc: stable@vger.kernel.org
+Fixes: ba3d1f480c7a ("net/rds: size a connection's path set by the transport it ends up with")
+Signed-off-by: Henry Martin <bsdhenrymartin@gmail.com>
+---
+ net/rds/recv.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
+--- a/net/rds/recv.c
++++ b/net/rds/recv.c
+@@ -224,7 +224,8 @@
+ 		/* Process extension header here */
+ 		switch (type) {
+ 		case RDS_EXTHDR_NPATHS:
+-			new_npaths = min_t(int, RDS_MPATH_WORKERS,
++			new_npaths = min_t(int, conn->c_trans->t_mp_capable ?
++					   RDS_MPATH_WORKERS : 1,
+ 					   be16_to_cpu(buffer.rds_npaths));
+ 			break;
+ 		case RDS_EXTHDR_GEN_NUM:
 --
-
-net/smc: fix lgr/lnk lifetime vs diag reader race
-
-The patch closes races between the SMC diag dump and connection teardown.
-It skips the conn/lgr/lnk attribute blocks for SMC_INIT and SMC_CLOSED
-sockets, and pairs smp_load_acquire()/smp_store_release() on sk_state. It
-also unhashes the socket before smc_conn_free() or smcd_buf_detach() in
-several teardown paths, and copies the cached link->ibname.
-
-> diff --git a/net/smc/smc_diag.c b/net/smc/smc_diag.c
-> index bf0beaa23bdb6..36a3b8f31f28d 100644
-> --- a/net/smc/smc_diag.c
-> +++ b/net/smc/smc_diag.c
-> @@ -87,10 +87,11 @@ static int __smc_diag_dump(struct sock *sk, struct sk_buff *skb,
->  
->  	r = nlmsg_data(nlh);
->  	smc_diag_msg_common_fill(r, sk);
-> -	r->diag_state = sk->sk_state;
-> +	r->diag_state = smp_load_acquire(&sk->sk_state);
->  	if (smc->use_fallback)
->  		r->diag_mode = SMC_DIAG_MODE_FALLBACK_TCP;
-> -	else if (smc_conn_lgr_valid(&smc->conn) && smc->conn.lgr->is_smcd)
-> +	else if (r->diag_state != SMC_INIT &&
-> +		 smc_conn_lgr_valid(&smc->conn) && smc->conn.lgr->is_smcd)
->  		r->diag_mode = SMC_DIAG_MODE_SMCD;
->  	else
->  		r->diag_mode = SMC_DIAG_MODE_SMCR;
-
-[Severity: Low]
-Is this change to diag_mode intended? With the new r->diag_state !=
-SMC_INIT check, every non-fallback SMC_INIT socket falls into the else
-branch and is reported as SMC_DIAG_MODE_SMCR.
-
-Before this patch, an SMC_INIT socket with a registered SMC-D link group
-was reported as SMC_DIAG_MODE_SMCD.
-
-On the client side, this window runs from smc_conn_create() in
-smc_connect_ism() until the smp_store_release() to SMC_ACTIVE. On the
-server side it lasts until smc_listen_out_connected(), which includes
-waiting for the peer's CLC CONFIRM. During that time, sock_diag users see
-an SMC-D connection labelled as SMC-R. The "Mode of a connection" enum in
-include/uapi/linux/smc_diag.h has no "unknown" value for this case.
-
-The commit message says:
-
-  "Guard the conn/lgr/lnk blocks in __smc_diag_dump() for SMC_INIT and
-   SMC_CLOSED sockets; smcss already suppresses these attributes for
-   closed/unconnected sockets so there is no observability regression."
-
-It doesn't mention the diag_mode change, which only appears in the v6
-changelog below the --- line.
-
-Could the transport type be recorded in a field of struct smc_sock when
-the lgr is assigned? That would avoid both the lgr dereference and the
-wrong mode.
-
-[ ... ]
-
-> @@ -103,6 +104,9 @@ static int __smc_diag_dump(struct sock *sk, struct sk_buff *skb,
->  	if (nla_put(skb, SMC_DIAG_FALLBACK, sizeof(fallback), &fallback) < 0)
->  		goto errout;
->  
-> +	if (r->diag_state == SMC_INIT || r->diag_state == SMC_CLOSED)
-> +		goto out;
-> +
-
-[Severity: Medium]
-The commit message says the conn/lgr/lnk blocks are guarded for both
-SMC_INIT and SMC_CLOSED. The diag_mode selection above excludes only
-SMC_INIT, and it runs before this early exit.
-
-For an SMC_CLOSED socket, can __smc_diag_dump() still call
-smc_conn_lgr_valid() and then dereference smc->conn.lgr->is_smcd?
-
-In the server handshake error path, a CLOSED socket stays hashed after
-its conn has been freed:
-
-smc_listen_decline()
-  smc_conn_abort()
-    smc_conn_free()
-      smc_lgr_unregister_conn()
-        write_lock_bh(&lgr->conns_lock);
-        __smc_lgr_unregister_conn()
-          conn->alert_token_local = 0;
-        write_unlock_bh(&lgr->conns_lock);
-      smcr_link_put(conn->lnk);
-      smc_lgr_put(lgr);          <-- conn->lgr is left set
-  smc_listen_out_err()
-    newsmcsk->sk_state = SMC_CLOSED;
-
-The SMC_CLOSED store in smc_listen_out_err() is a plain store, not the
-smp_store_release() this patch adds for SMC_ACTIVE.
-
-Between the alert_token_local reset and the CLOSED store, the only
-operations are release-ordered ones: write_unlock_bh(),
-refcount_dec_and_test() via smcr_link_put()/smc_lgr_put(), and
-sock_put(). None of them orders the later CLOSED store.
-
-On a weakly ordered CPU such as arm64, could the reader's
-smp_load_acquire() see SMC_CLOSED while alert_token_local still reads as
-non-zero? The reader would then dereference an lgr that the connection no
-longer holds a reference to. If link-group freeing runs concurrently,
-that read is a use-after-free.
-
-This needs a non-local-first lgr with a negative reason code, so that
-smc_lgr_cleanup_early() is not called. The window is narrow.
-
-Would it help to exclude SMC_CLOSED from the diag_mode condition as well,
-or to move this early exit ahead of the diag_mode selection? Publishing
-SMC_CLOSED in smc_listen_out_err() with smp_store_release() would also
-close the gap.
-
->  	if ((req->diag_ext & (1 << (SMC_DIAG_CONNINFO - 1))) &&
->  	    smc->conn.alert_token_local) {
->  		struct smc_connection *conn = &smc->conn;
-
-[ ... ]
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261005131241.1575131-1-mjambigi%40linux.ibm.com
+2.43.7
