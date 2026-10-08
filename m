@@ -1,47 +1,75 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f43.google.com (mail-wm1-f43.google.com [209.85.128.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C87E73F9278;
-	Thu,  8 Oct 2026 11:25:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 066BF49362D
+	for <linux-rdma@vger.kernel.org>; Thu,  8 Oct 2026 12:01:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791458710; cv=none; b=kMwEURF3RP7fbAh3D1laQY5p1muOgnz/ZiiWWmpn2BghrCsIgNrKMVKB63riNiUktYxQJIHlxP0lgccfBGYc4UC0U+Iu0d1pimZ6rMbYcIAWQ/8gTOfo0yGRtPYFTg2VCpXcPMOTpsDlRwsF2Cq/LhKitZLHYZd+V4gyKD2mVNI=
+	t=1791460921; cv=none; b=E8fs44WoWTPUY+mtqfWlZv5aLtwBfTpjoFvVCjILSgZBcBUYmtTInAkuxNAfa03fMfb32qVU8SO85kgSX3ZYTuUuepZQQE5QB4FEi+4z1uv3QzM1b3QblKUOUUS3hngwBmwWAX6Hm3gSHGEmuRj5uAp1xROEH1beSgdLYaaC4j0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791458710; c=relaxed/simple;
-	bh=n1zXg+ubN5fMmYdyWRd04OhARz9l/0jBEVVvFXlnO4A=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=HrAgy7+iCKEWYWdHtIlHlIgOmKkbFzLKoRNVv0uMzzwRkA/LIOpI1ruzazM3AH9d2FPTlLR1YH52SfjsOtBQ4Ei92B4NsRpBYkGUQx8p21x3DZxyTWB/4/DS+4PK4dUJ8q9LK1irzw7ZQ0uoiiJ2OHabYPag6xmF/eT7PmCCqfk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ps1HK+Jh; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791460921; c=relaxed/simple;
+	bh=3tqj8Zo7XJ8hZdiFcRSIYKAGzk68q4VHp4XNaAc9QBQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=SVVi2YeDDX0JPfMPMZqnssHEgrAvLtkcEbee90vMRBC0vi5bKTxtYIjICpIuSb9IeqJzMEHG4/tmn8brCM2VU3AXSLp4GC5sv7d1Lyg8wT6sIdHQUI3doQmNWu55dDRprAbBLeqjDCsg0h5HF/UXU4e6nsW1WVqMUe2ejraZcww=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=fMK+Heat; arc=none smtp.client-ip=209.85.128.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ps1HK+Jh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B61DC1F000FF;
-	Thu,  8 Oct 2026 11:25:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791458709;
-	bh=FLHQ3z0rCPAU/bcGQQoije/kQRz+r11dxAy44WD1rb8=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=Ps1HK+JhbffBvuxRoj/rHaqI5HPo1Pa7JQMfDh/5TfM3gyn4fEczTX2+fxdov+e8E
-	 5rXoJ8F6GhGxaF7zLWy10Xwzowbqf6H/MXLyhAnLOiJZDEYEnzFIVH/cBu+Gfb0N9i
-	 rIYUxiSYGg7NlL5nqtk7aD1QG+Qr1bRlQ3mCh5hkNtwzwfZtNzrPJVOgsDFFZMnTdz
-	 mh6Uf2cKjBtGNPDiyzd/ZJGQ72E2Yi2EPf+2MCnSW2mFG9aJHoNol7Q3yWWywz2D+B
-	 3TT96Rw7KclX2YhaBdZAFnOiZjCI/7vL9y7nAtLPwuuL/oITX1rTQZm7G8r6lcWave
-	 7TxPDFQgPl0Kw==
-Subject: Re: [PATCH net V2] net/mlx5: Lag, reset vport speed on MPESW teardown
-From: netdev-bot+sashiko@kernel.org
-To: tariqt@nvidia.com
-Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
- kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com,
- edwards@nvidia.com, gal@nvidia.com, kees@kernel.org, leon@kernel.org,
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, msanalla@nvidia.com,
- mbloch@nvidia.com, moshe@nvidia.com, ohartoov@nvidia.com, saeedm@nvidia.com,
- shayd@nvidia.com
-Date: Thu, 08 Oct 2026 11:25:08 +0000
-Message-ID: <179145870829.434549.18408966313287855938@kernel.org>
-In-Reply-To: <20261006112415.259157-1-tariqt@nvidia.com>
-References: <20261006112415.259157-1-tariqt@nvidia.com>
-X-sashiko-severity: Medium
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fMK+Heat"
+Received: by mail-wm1-f43.google.com with SMTP id 5b1f17b1804b1-4a02718da81so22720895e9.1
+        for <linux-rdma@vger.kernel.org>; Thu, 08 Oct 2026 05:01:59 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1791460918; x=1792065718; darn=vger.kernel.org;
+        h=mime-version:content-transfer-encoding:content-type:references
+         :in-reply-to:message-id:date:subject:cc:to:from:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=N15FR/lrbJ5GLsPhF2Pbd6l/4dIVTCcLD/U1z5cW6/g=;
+        b=fMK+HeatfbUTFIg3+W5uRLOXhRvmKlErqwlYpIrBL5fntHhTD0tenLB49D8uCdb/2m
+         nB+4eOyMuWzxE0b1pTbv5a95TxpVeGO1esF65BsUCMSSaqSWaYeKrcl+O8xkLe+BuKPa
+         ZUaiWbl19albjq8xkXHPDCcJoQ7zt5n1aGIpM7Pb11Z49dxX4xjSpFafN2xcvXVJ1GDk
+         eVLqBu+31qtWbduJW7Npzb0I6NMsQ+2iBlWBIHU+FILU6njo9BRKqAZ6XJ6BpfObvuM/
+         7NEzI3fJrDyWHrb2OgmtO78y6o5JhovGeP+h8vNRvGdWtXd5wJxTYvUZvbTsw3c3JU/9
+         Uymw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791460918; x=1792065718;
+        h=mime-version:content-transfer-encoding:content-type:references
+         :in-reply-to:message-id:date:subject:cc:to:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=N15FR/lrbJ5GLsPhF2Pbd6l/4dIVTCcLD/U1z5cW6/g=;
+        b=yEWkQXcfqKyHU9rA/kn8NfZedLp4X4Nb25Oif3Fh4wR7p6HDGDruYQNf194qWJzXOv
+         S7mYi0IVz5j+ilFumqfmCw8maex1MOhz94YWC6BpBb9IB/yeaPV5VjKwyr/8SRB1LyTK
+         o4yzfFN3/zDMPjj0w8z4zWji+e/ptcmoyB26nGMuJXqd+cUV/ISqlSjJlmzEkPbeVpqT
+         kIh5zaSN2V936l4WzKR1R+URplj1zNf0MRvMiZWM1I3HxqZDlbfvDqXg/ACfsXLCO9d6
+         7wFLoGwMdUwebwq7QkLG8JklqXF0n4FIX07MKrRvpK/WIwMxbLkutQ9pqc3TltIDWOLp
+         oaxw==
+X-Gm-Message-State: AFuF++kMlow1ZbaCODHmND9isy0WNXknwrsD0hWLxk+qHy9bO2cbQOSa
+	4mVKr2VeiAMtgxncGfgCoguW+ZErFA6kNAEt1p9J+uiaeuHhdExJMtI=
+X-Gm-Gg: AYBFou0MygZt6UsgGZfsD2MI6vXha/fRNBAoSYkyQGtUcBz7rg/aku0I8m+gQHGnWsX
+	+iotRLvLsH9u9O9svBY9hNW74cuDe+AOKSk86F6qLiVR2Hn6qYzASdLnlV3Hx72sCooSM++6zTD
+	WUYWqNvaaM/cz50IA/6VPCIoasjvjHK9KfU1fHAXoFO8OgrrN2pJyQ8lenCsK24I5FVx3RNzWWa
+	NsrSxkeVL9A2ge8PCPQ+BJXNVASTCI2Ah9J10Z4zzvauUUub6d3k4IwLOhM1CwMLjFTjAGHCtLV
+	FpHEcYDtOKfXei8ICjQ6+uO4U2+iC9Xk26p98TkG1DEec0ooGoL4Yam3l+AavVJvw/GlqnkPfrF
+	OMWDFkP5+ja6HkGqUERhV6wVgi5wiWU/1sfortt9wYNicgBk537WSBlcaMKCQObxYEN2AdsqPAP
+	Q+N+klQj1QEHVkrCiqwaOMEnhpn28c+S21jj4z
+X-Received: by 2002:a05:600c:a30c:b0:4a1:80d8:aed0 with SMTP id 5b1f17b1804b1-4a180d8b180mr67907355e9.15.1791460917984;
+        Thu, 08 Oct 2026 05:01:57 -0700 (PDT)
+Received: from debian ([2001:41d0:303:db6b::])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48c71d2e2dcsm12223759f8f.42.2026.10.08.05.01.56
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 08 Oct 2026 05:01:57 -0700 (PDT)
+From: Tristan Madani <tristmd@gmail.com>
+To: yanjun.zhu@linux.dev
+Cc: linux-rdma@vger.kernel.org, jgg@ziepe.ca, leon@kernel.org,
+ zyjzyj2000@gmail.com, tristan@talencesecurity.com
+Subject: Re: [PATCH v4 0/2] RDMA/rxe: fix TOCTOU races in send WQE processing
+Date: Thu, 08 Oct 2026 12:01:56 -0000
+Message-ID: <179146091623.3840242.8978910812704841884@gmail.com>
+In-Reply-To: <714b1a9e-560d-4fbb-9dfa-6f1fee5cb13f@linux.dev>
+References: <20261007223222.2342804-1-tristmd@gmail.com>
+ <714b1a9e-560d-4fbb-9dfa-6f1fee5cb13f@linux.dev>
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -49,99 +77,49 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue(s) to consider.
+Hi Yanjun,
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 0
+Thanks for flagging the Sashiko review. I went through all 8 findings
+across both patches.
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+One was a genuine issue: the memcpy size used qp->sq.max_sge * sizeof(sge),
+which truncates when max_inline_data is not a multiple of sizeof(struct
+ib_sge). For example, if a QP is created with max_inline_data=3D20, the
+integer division gives max_sge=3D1, and only 16 bytes of the flex array are
+copied instead of 20. v5 fixes this by using qp->sq.max_inline directly,
+which is the exact data portion size stored at QP creation.
 
-- [Medium] The fix says it removes stale cached and FW-configured vport
-  speeds after MPESW teardown, and it relies on…
+The remaining 7 seem to be false positives:
 
---
+  - FORTIFY_SOURCE (raised on both patches): struct rxe_send_wqe ends
+    with struct rxe_dma_info which contains __DECLARE_FLEX_ARRAY, so
+    __builtin_object_size returns (size_t)-1. The merged receive-path
+    fix (d6ab440240a04) uses the same pattern without issues.
 
-net/mlx5: Lag, reset vport speed on MPESW teardown
+  - Inline data / sge_offset / resid / cur_sge validation: these fields
+    were already unvalidated against max_inline before this series. The
+    requester path bounds-checks num_sge and cur_sge (lines 754-760 in
+    rxe_req.c); adding resid/sge_offset validation is a valid hardening
+    improvement, but it is a pre-existing gap, not introduced here.
 
-This adds a call to mlx5_lag_reset_vports_speed() in
-mlx5_lag_disable_mpesw(). Regular LAG teardown in mlx5_do_bond() already
-makes this call, and the MPESW path now matches it. The goal is to stop
-cached and FW-configured vport speeds from going stale after MPESW
-teardown.
+  - wr_opcode_mask() OOB via untrusted opcode: the call existed at the
+    same location before this series. We did not add it.
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/mpesw.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/mpesw.c
-> index abf72026c7513..e0a57b7dd82ed 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/lag/mpesw.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/mpesw.c
-> @@ -157,6 +157,7 @@ void mlx5_lag_disable_mpesw(struct mlx5_lag *ldev)
->  	if (ldev->mode != MLX5_LAG_MODE_MPESW)
->  		return;
->  
-> +	mlx5_lag_reset_vports_speed(ldev);
+  - DMA state writeback for RDMA READ retry: on retry, the requester
+    changes the WQE state via smp_store_release(). The completer's
+    smp_load_acquire() detects the change, bypasses the reuse path, and
+    takes a fresh copy from shared memory with the original DMA offsets.
 
-[Severity: Medium]
-The commit message says this addresses "stale cached and FW-configured
-speeds after MPESW is torn down". Does mlx5_lag_reset_vports_speed()
-actually put the vports back into their pre-LAG unset state?
+  - ERR flush path barriers: when send_wqe_valid is false, writes go
+    directly to shared memory, which is identical to the pre-patch
+    behavior.
 
-The helper reads the current uplink oper speed and writes it as a non-zero
-value:
+  - Shared pointer for wqe_state_posted: posted WQEs cause the
+    completer to return COMPST_DONE/COMPST_EXIT without processing.
 
-drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c:mlx5_lag_reset_vports_speed() {
-    ...
-		ret = mlx5_port_oper_linkspeed(mdev, &speed);
-    ...
-		speed = speed / MLX5_MAX_TX_SPEED_UNIT;
-		mlx5_lag_modify_device_vports_speed(mdev, speed);
-}
+v5 is already sent with the max_inline fix:
+  https://lore.kernel.org/linux-rdma/20261008093740.3034881-1-tristmd@gmail.c=
+om/
 
-mlx5_lag_modify_device_vports_speed() then caches that value. It also
-programs the value into FW for every enabled non-uplink vport:
-
-		vport->agg_max_tx_speed = speed;
-    ...
-		ret = mlx5_modify_vport_max_tx_speed(mdev, op_mod,
-						     vport->vport, true, speed);
-
-Elsewhere, 0 looks like the "no override" value. mlx5_esw_vport_enable()
-only programs a speed when the cached value is non-zero:
-
-	if (vport->agg_max_tx_speed)
-		mlx5_esw_vport_set_max_tx_speed(esw, vport);
-
-mlx5_ib_query_port_speed_from_vport() falls back to the live port speed
-only when max_tx_speed is 0:
-
-	if (vport_state == VPORT_STATE_DOWN || max_tx_speed == 0)
-		/* Value 0 indicates field not supported, fallback */
-
-After teardown, nothing refreshes this snapshot.
-mlx5_mpesw_speed_update_work() only acts when ldev->mode is still
-MLX5_LAG_MODE_MPESW.
-
-Say the uplink later renegotiates to a different speed. Would the vports
-keep reporting the teardown-time speed, with FW still holding it as
-max_tx_speed? VFs created after the LAG is gone would also get the
-snapshot through mlx5_esw_vport_enable().
-
-There is also the failure path. If mlx5_port_oper_linkspeed() fails during
-the reset, the helper skips that device:
-
-		if (ret) {
-			mlx5_core_dbg(mdev, ...);
-			continue;
-		}
-
-That leaves the full MPESW aggregate in both agg_max_tx_speed and FW for
-that device. Isn't that the same stale state this commit is meant to
-remove?
-
-Should teardown clear the override back to 0 instead of writing a
-snapshot of the current oper speed?
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261006112415.259157-1-tariqt%40nvidia.com
+Best,
+Tristan
