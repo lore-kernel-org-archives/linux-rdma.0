@@ -1,233 +1,242 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A72D41CB2E;
-	Thu,  8 Oct 2026 07:32:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 273DB3E4117;
+	Thu,  8 Oct 2026 08:33:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791444738; cv=none; b=OgYqY0qrkgk8xCrivlDk0BA4nMxCNJ930IYkXEmloguPPrEicGUgakk+wiLJD08YLyb9osbLvtIofwGUX43u8dWdATzvWG+/5ZqDlfWoPCHQxsL7nF03Mej8LyZtSIn42Lxnxnug4xUjkBbd+GXa9synss0js9PZD0vUcFAen6c=
+	t=1791448409; cv=none; b=KDO05QuhWrhagPEEYKjdTQhB1d8sM0adQMNwo3CiIof6QpY4tGiBnnhRPiBHXlxkp+NZDjAHbajqCyiM5SclOXnav1sW5IyfbPJPKMUV/dtC/BQEqM4b4sB2VoMhX/7gVKMZ2NR7zm1Xnczfn8hiGorHSJtvTW5Um61m3ZU/Aus=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791444738; c=relaxed/simple;
-	bh=1H5ao11OpqcDBK1gtnGjlc3WEjMqPTLmxmkaQFoAt6M=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=CG/Oq5gmpXVUShEojGnFaoRx+1cye/SoNtWaEZpdfdip9lDLxkbiF4phQXLH4pCrJN7i5vBACUaIR+cZGeQUL3+/65BYykYCZT0IW/NOQe8ElVa8Ub2L9k86b90muyOFkV/cnSbica4VssiIqv/I6RazfR0+2rt+CLQ/7qGESmI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=JwWTbJkF; arc=none smtp.client-ip=148.163.156.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	s=arc-20240116; t=1791448409; c=relaxed/simple;
+	bh=K+8ZbQLfCg0PV60dBTg4VgqRWIwicKQQgKOKwxC36pw=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=gcCjaV/fIv0+Ipn0iMVtf1SskG3FQNxVE9EY6hBgyjvHDYbsL5SZRoKtyJYxwe/yN+na+pD/xsyz4VtBYMfZy9Efzg3V3oRAVLnKAu/8t7X0ooFKM0aef8IbGtXtKfUeLqJcOfZTaG7NZ5lVw66m6T+KbE484PvSIJnobYgqH20=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=mPgLOUlY; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="JwWTbJkF"
-Received: from pps.filterd (m0353729.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6984Zdfl2735873;
-	Thu, 8 Oct 2026 07:32:02 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pp1; bh=454br6
-	3ae/7yeUKzAmFzQqTylu9PzF1I1saksy/sCCA=; b=JwWTbJkFv1J6gdALgWEr8J
-	9x/VkUvzrxuwLk2euPnU83b6Q1r+ClApiuSmVY0yLKaw+8Dv2av0E6jtNcdlLBVG
-	51ssM87r7YS1xk+CcUcvQ6581S92bTzqKS7eDu6SGOXReXwY81IV9yjWU0u7j6Ks
-	OsJSWcN25F6rGUgKeBnpLatt8TdPOE5Vk6+zs5iSGaUeOYh/tUfXpxLnKyywx9Z5
-	emKm4rNc12odDV0bl2bZs0mfIGLEsCYsXBCF7q6MITwthY7b8uZae+t/baAV0NXp
-	w9gIcPUgyA7TFQ/K7LuMRHQazuV9wBoUPxnK6iOG/MYGE7T4Ad2DMdg9Xb3iPWiw
-	==
-Received: from ppma12.dal12v.mail.ibm.com (dc.9e.1632.ip4.static.sl-reverse.com [50.22.158.220])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4h5xjw24kw-1
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Thu, 08 Oct 2026 07:31:59 +0000 (GMT)
-Received: from pps.filterd (ppma12.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma12.dal12v.mail.ibm.com (8.18.1.11/8.18.1.11) with ESMTP id 6987IXkr3107263;
-	Thu, 8 Oct 2026 07:31:58 GMT
-Received: from smtprelay05.wdc07v.mail.ibm.com ([172.16.1.72])
-	by ppma12.dal12v.mail.ibm.com (PPS) with ESMTPS id 4h58ek6ckx-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 08 Oct 2026 07:31:58 +0000 (GMT)
-Received: from smtpav05.dal12v.mail.ibm.com (smtpav05.dal12v.mail.ibm.com [10.241.53.104])
-	by smtprelay05.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 6987VvuL33554990
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 8 Oct 2026 07:31:57 GMT
-Received: from smtpav05.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 3564D58069;
-	Thu,  8 Oct 2026 07:31:57 +0000 (GMT)
-Received: from smtpav05.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 3DC055805D;
-	Thu,  8 Oct 2026 07:31:51 +0000 (GMT)
-Received: from [9.124.217.43] (unknown [9.124.217.43])
-	by smtpav05.dal12v.mail.ibm.com (Postfix) with ESMTP;
-	Thu,  8 Oct 2026 07:31:50 +0000 (GMT)
-Message-ID: <4bb7f15e-2cd8-4598-9bab-1ea5f5d2bb59@linux.ibm.com>
-Date: Thu, 8 Oct 2026 13:01:49 +0530
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="mPgLOUlY"
+Received: from kali.mshome.net (unknown [4.213.232.17])
+	by linux.microsoft.com (Postfix) with ESMTPSA id 3FBB820B7167;
+	Thu,  8 Oct 2026 01:32:26 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 3FBB820B7167
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1791448350;
+	bh=Pn9xSQav7Mt56V0G61/8zYZp9JX8VoM9Cp2v/Ee6wtE=;
+	h=From:To:Subject:Date:From;
+	b=mPgLOUlYD6U3WQheqPW6sGS2jag1ERBDY/iQRUUUUZ88obHOtmn2VlsUJK/+ngx/1
+	 muAtb6Fm+fqRZhZrN30KAs/dUXrM5MCuSB4ne7IRTZTCpdmCNotm9avHcCQiq/fZVd
+	 O9AVf3WRwDEz8W/hOfgm6VtX7xcP/pFaZTYHZWkc=
+From: Sahil Chandna <sahilchandna@linux.microsoft.com>
+To: haiyangz@microsoft.com,
+	wei.liu@kernel.org,
+	decui@microsoft.com,
+	andrew+netdev@lunn.ch,
+	davem@davemloft.net,
+	edumazet@kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	kotaranov@microsoft.com,
+	horms@kernel.org,
+	ernis@linux.microsoft.com,
+	gargaditya@linux.microsoft.com,
+	mawasthi@linux.microsoft.com,
+	leitao@debian.org,
+	linux-hyperv@vger.kernel.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org
+Subject: [PATCH net-next] net: mana: Add support to process throttled EQEs
+Date: Thu,  8 Oct 2026 03:33:05 -0500
+Message-ID: <20261008083315.306076-1-sahilchandna@linux.microsoft.com>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net v2] net/smc: serialize clcsock access with its release
-To: Chengfeng Ye <nicoyip.dev@gmail.com>,
-        "D . Wythe" <alibuda@linux.alibaba.com>,
-        Dust Li
- <dust.li@linux.alibaba.com>,
-        Sidraya Jayagond <sidraya@linux.ibm.com>
-Cc: Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        Eric Dumazet
- <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
-        linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        stable@vger.kernel.org
-References: <20261003183325.2289707-1-nicoyip.dev@gmail.com>
-Content-Language: en-US
-From: Mahanta Jambigi <mjambigi@linux.ibm.com>
-In-Reply-To: <20261003183325.2289707-1-nicoyip.dev@gmail.com>
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-Reinject: loops=2 maxloops=12
-X-Proofpoint-GUID: q2F9IXGVQIzMayWxBpIM2DNicJHxAFlJ
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDA4MDAyOCBTYWx0ZWRfX9E8vBci6Wzuc
- kwn5Viq5UEJF8uwiBEXR3KBfcoZL3Ta5L0W0fHl4WlY39l342qg+AIwN8Qh5kR19j1JKvqKDOUf
- sQCLX0a93Pnrca4eAmzljObUJDE6iYdYQcKf9PR8RytmhosqCx2Sx+QW3h1NuseVD6D5xYsi6CQ
- ZF8hdQpmYrutbf7/wh6CQe3NKHxUYxczgOIHGTWi1kvm0KJ3olO3PJw9pkivPYwJodKKr5Ua3jE
- vr+gG6yblN46J+amero0HpNOco/itA97DBKXK1YhGKLU2ukWS3gS6f3P3G0fjrPREVEHEPk1ZNa
- aEvbe0QYjWf0nMx5rOBwVnmMvTO36XZm6QySkGRewpGzUMEx/6cfvwvpmPFF+Ecz04u/NlcIMSX
- o1hx5u7xnZctYTcjdHxbOYkUHSDhrBVRGoQfOqbO5JXLQNeKbLVMvlrl417mClBgDAMfte8lIU4
- ou3X3Rbt4oQBysBJxEg==
-X-Authority-Analysis: v=2.4 cv=cIt1IVeN c=1 sm=1 tr=0 ts=6ac746ef cx=c_pps
- a=bLidbwmWQ0KltjZqbj+ezA==:117 a=bLidbwmWQ0KltjZqbj+ezA==:17
- a=IkcTkHD0fZMA:10 a=660iZSQnnn4A:10 a=VkNPw1HP01LnGYTKEx00:22
- a=RnoormkPH1_aCDwRdu11:22 a=uAbxVGIbfxUO_5tXvNgY:22 a=VwQbUJbxAAAA:8
- a=SRrdq9N9AAAA:8 a=8oSq24xotcjpyH-63FsA:9 a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMDA4MDAyOCBTYWx0ZWRfX+SGf45hTQ8B+
- 1wuQQ9RpTsjT7K53v9IVJzYoi2fOU/rfQBzAWgatVw1XnYTAiySMuvV884vUxUpMETMN6ZGBHnU
- tcY2SU7NDR7WuSQN7kMGOtDKyksxscw=
-X-Proofpoint-ORIG-GUID: xlM9j_tYAlyiAIR9UZ92kv-f7uKfOZjY
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-10-08_02,2026-10-06_03,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- clxscore=1011 malwarescore=0 priorityscore=1501 adultscore=0 impostorscore=0
- lowpriorityscore=0 suspectscore=0 spamscore=0 phishscore=0 bulkscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2610020000 definitions=main-2610080028
 
+When an event queue nears full, the hardware coalesces the per-CQ
+GDMA_EQE_COMPLETION notifications into a single throttle EQE of type 4
+that carries no cq_id. The driver does not handle this event type, so
+it falls through to the default case and is dropped. Any CQ whose
+completion notification was replaced by the throttle EQE is then never
+scheduled again and its queue stalls.
+Add support to process the CQs which belong to a throttled EQE of type 4.
 
+Signed-off-by: Sahil Chandna <sahilchandna@linux.microsoft.com>
+---
+ .../net/ethernet/microsoft/mana/gdma_main.c   | 43 ++++++++++++++++++-
+ .../ethernet/microsoft/mana/mana_ethtool.c    |  7 +++
+ include/net/mana/gdma.h                       | 12 +++++-
+ include/net/mana/mana.h                       |  1 +
+ 4 files changed, 61 insertions(+), 2 deletions(-)
 
-On 04/10/26 12:03 am, Chengfeng Ye wrote:
-> Link-group termination can release the CLC socket through
-> smc_close_active_abort() while the SMC socket is still open, for example
-> after shutdown(SHUT_WR). A file reference keeps the SMC socket alive but
-> does not prevent this asynchronous release of its CLC socket.
-> 
-> smc_getname() can race the pointer removal and sock_release(). The same
-> missing lifetime synchronization affects smc_set_keepalive(), diagnostic
-> address copying and an in-flight SMC-R CDC receiver. smc_shutdown() can
-> also reach its final CLC shutdown after its close helper drops the socket
-> lock and a concurrent abort closes the socket. Holding the SMC socket
-> lock alone is insufficient because CLC release runs outside that lock.
-> 
-> KASAN reported the getname failure:
-> 
->   BUG: KASAN: slab-use-after-free in smc_getname+0x19e/0x1b0
->   Read of size 8 at addr ffff888109abb4e0 by task poc/103
->   Call Trace:
->    smc_getname+0x19e/0x1b0
->    do_getsockname+0xe5/0x170
->    __sys_getsockname+0x8c/0x100
-> 
->   Allocated by task 95:
->    sock_alloc_inode+0x1e/0x280
->    sock_alloc+0x3d/0x240
->    __sock_create+0x7e/0x430
->    smc_create+0x121/0x240
-> 
->   Freed by task 0:
->    kmem_cache_free+0xcc/0x340
->    rcu_core+0x50a/0x1850
-> 
->   Last potentially related work creation:
->    evict+0x446/0x6c0
->    smc_clcsock_release+0xa8/0xd0
->    smc_close_active_abort+0x26a/0x3a0
->    __smc_lgr_terminate.part.0+0x137/0x2e0
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+index ae0ed700b3b9..b8e5ad2c6d31 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
++++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+@@ -747,6 +747,18 @@ void mana_gd_free_service_wq(struct gdma_context *gc)
+ 	gc->service_wq = NULL;
+ }
 
-Hi Chengfeng,
++static void mana_gd_schedule_eq_cqs(struct gdma_queue *eq)
++{
++	struct gdma_queue *cq;
++	u8 i;
++
++	for (i = 0; i < GDMA_EQ_MAX_CHILD_CQ; i++) {
++		cq = rcu_dereference(eq->eq.child_cq[i]);
++		if (cq && cq->cq.callback)
++			cq->cq.callback(cq->cq.context, cq);
++	}
++}
++
+ static void mana_gd_process_eqe(struct gdma_queue *eq)
+ {
+ 	u32 head = eq->head % (eq->queue_size / GDMA_EQE_SIZE);
+@@ -777,6 +789,11 @@ static void mana_gd_process_eqe(struct gdma_queue *eq)
 
-Thanks for the KASAN report and the fix. The UAF in smc_getname is real
-and needs to go to net and stable. However, I think the v2 approach of
-adding a new spinlock and extending clcsock_release_lock to cover more
-readers is treating symptoms rather than the root cause. Let me explain
-what I think should happen instead. What to keep from your patch.
+ 		break;
 
-Please send a v3 with only the smc_getname fix:
++	case GDMA_EQE_THROTTLE:
++		eq->eq.throttle_count++;
++		mana_gd_schedule_eq_cqs(eq);
++		break;
++
+ 	case GDMA_EQE_TEST_EVENT:
+ 		gc->test_event_eq_id = eq->id;
+ 		complete(&gc->eq_test_event);
+@@ -1063,17 +1080,41 @@ static void mana_gd_create_cq(const struct gdma_queue_spec *spec,
+ 			      struct gdma_queue *queue)
+ {
+ 	u32 log2_num_entries = ilog2(spec->queue_size / GDMA_CQE_SIZE);
++	struct gdma_queue *parent;
++	u8 i;
 
-int smc_getname(struct socket *sock, struct sockaddr *addr,
-		int peer)
-{
-	struct smc_sock *smc;
-+	int rc = -EBADF;
+ 	queue->head |= INITIALIZED_OWNER_BIT(log2_num_entries);
+-	queue->cq.parent = spec->cq.parent_eq;
++	parent = spec->cq.parent_eq;
++	queue->cq.parent = parent;
+ 	queue->cq.context = spec->cq.context;
+ 	queue->cq.callback = spec->cq.callback;
++
++	if (!parent)
++		return;
++
++	/* For throttled EQE store the child CQ */
++	for (i = 0; i < GDMA_EQ_MAX_CHILD_CQ; i++)
++		if (!rcu_access_pointer(parent->eq.child_cq[i])) {
++			rcu_assign_pointer(parent->eq.child_cq[i], queue);
++			return;
++		}
+ }
 
-	if (peer && (sock->sk->sk_state != SMC_ACTIVE) &&
-	    (sock->sk->sk_state != SMC_APPCLOSEWAIT1))
-		return -ENOTCONN;
+ static void mana_gd_destroy_cq(struct gdma_context *gc,
+ 			       struct gdma_queue *queue)
+ {
++	struct gdma_queue *parent = queue->cq.parent;
+ 	u32 id = queue->id;
++	u8 i;
++
++	if (parent) {
++		for (i = 0; i < GDMA_EQ_MAX_CHILD_CQ; i++) {
++			if (rcu_access_pointer(parent->eq.child_cq[i]) == queue)
++				RCU_INIT_POINTER(parent->eq.child_cq[i], NULL);
++		}
++
++		synchronize_rcu();
++	}
 
-	smc = smc_sk(sock->sk);
+ 	if (id >= gc->max_num_cqs)
+ 		return;
+diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
+index ece7ff9cc409..1004c3334532 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
++++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
+@@ -22,6 +22,8 @@ static const struct mana_stats_desc mana_eth_stats[] = {
+ 				       tx_linear_pkt_cnt)},
+ 	{"rx_cqe_unknown_type", offsetof(struct mana_ethtool_stats,
+ 					rx_cqe_unknown_type)},
++	{"eq_throttle_events", offsetof(struct mana_ethtool_stats,
++					eq_throttle_events)},
+ };
 
--	return smc->clcsock->ops->getname(smc->clcsock, addr, peer);
-+	mutex_lock(&smc->clcsock_release_lock);
-+	if (smc->clcsock)
-+		rc = smc->clcsock->ops->getname(smc->clcsock, addr, peer);
-+	mutex_unlock(&smc->clcsock_release_lock);
-+	return rc;
-}
+ static const struct mana_stats_desc mana_hc_stats[] = {
+@@ -261,6 +263,11 @@ static void mana_get_ethtool_stats(struct net_device *ndev,
+ 	 */
+ 	mana_query_phy_stats(apc);
 
-That is 4 lines against the confirmed KASAN-reported UAF, uses
-infrastructure that already exists (clcsock_release_lock is already held
-by smc_clcsock_release() when it frees clcsock, and already initialized
-in smc_sk_init()), and is a clean candidate for stable. Nothing else
-from v2 is needed for this specific bug.
++	apc->eth_stats.eq_throttle_events = 0;
++	for (q = 0; q < num_queues; q++)
++		apc->eth_stats.eq_throttle_events +=
++			apc->eqs[q].eq->eq.throttle_count;
++
+ 	for (q = 0; q < ARRAY_SIZE(mana_eth_stats); q++)
+ 		data[i++] = *(u64 *)(eth_stats + mana_eth_stats[q].offset);
 
-Drop the clcsock_lock spinlock, the CDC change, the diag change, the
-shutdown change, the connect-abort change, and the smc_accept_dequeue
-change. Those races are real but I will address them with a proper
-structural fix as Me & Dust Li have already discussed on LKML in August[1].
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index c610fc1067e0..03fe9395604d 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -58,6 +58,7 @@ enum gdma_work_request_flags {
 
-Why the other races exist and what the right fix is
+ enum gdma_eqe_type {
+ 	GDMA_EQE_COMPLETION		= 3,
++	GDMA_EQE_THROTTLE		= 4,
+ 	GDMA_EQE_TEST_EVENT		= 64,
+ 	GDMA_EQE_HWC_INIT_EQ_ID_DB	= 129,
+ 	GDMA_EQE_HWC_INIT_DATA		= 130,
+@@ -286,6 +287,7 @@ struct gdma_dev {
+ #define GDMA_EQE_SIZE 16
+ #define GDMA_MAX_SQE_SIZE 512
+ #define GDMA_MAX_RQE_SIZE 256
++#define GDMA_EQ_MAX_CHILD_CQ  2
 
-Every race in your v2 — keepalive, CDC, diag, shutdown, the
-connect-abort path — has the same root cause: clcsock can be freed while
-the SMC socket is still alive. Several close paths call
-sock_release(clcsock) before the SMC socket's own refcount reaches zero:
+ #define GDMA_COMP_DATA_SIZE 0x3C
 
-1) smc_close_active_abort() — for PEERCLOSEWAIT*, PROCESSABORT,
-APPFINCLOSEWAIT states
-2) smc_close_passive_work() — when the passive close work transitions to
-SMC_CLOSED
-3) __smc_release() — when sk_state == SMC_CLOSED
+@@ -366,6 +368,10 @@ struct gdma_queue {
+ 			unsigned int irq;
 
-Every access site that can race with those releases is then forced to
-take clcsock_release_lock and check if (!smc->clcsock). Your v2 adds a
-second lock on top of this for the BH/atomic readers that cannot take a
-mutex. This complexity is unnecessary because none of those early paths
-actually need to destroy the socket — they only need to stop it.
-tcp_abort() and kernel_sock_shutdown() are sufficient for that, and both
-are safe to call more than once. sock_release() is the exception: it
-frees memory and must happen exactly once.
+ 			u32 log2_throttle_limit;
++
++			u64 throttle_count;
++
++			struct gdma_queue __rcu *child_cq[GDMA_EQ_MAX_CHILD_CQ];
+ 		} eq;
 
-The fix is to move that single sock_release() call to smc_destruct() —
-the sk->sk_destruct callback that fires from __sk_free() when the last
-sock reference drops. At that point no concurrent user can exist:
+ 		struct {
+@@ -752,6 +758,9 @@ enum {
+ /* Driver supports non-contiguous queue buffers */
+ #define GDMA_DRV_CAP_FLAG_1_NON_CONTIGUOUS_BUFFERS BIT(30)
 
-1) fd users are gone: smc_release() calls sock_orphan() before dropping
-its reference, so no file descriptor can reach the socket after that point
-2) workqueue contexts (close_work, smc_listen_work) hold a sock_hold()
-and therefore keep smc_destruct() from running while they are active
-3) accept-queue entries hold a sock_hold() via smc_accept_enqueue() for
-the same reason
++/* Driver supports handling throttled EQEs */
++#define GDMA_DRV_CAP_FLAG_1_THROTTLED_EVENT_QUEUE BIT_ULL(32)
++
+ /* Capabilities in the PCI-only group below rely on dynamic MSI-X allocation
+  * and on the servicing and reset paths reached through
+  * mana_schedule_serv_work(). Transports that provide neither leave
+@@ -776,7 +785,8 @@ enum {
+ 	 GDMA_DRV_CAP_FLAG_1_HANDLE_STALL_SQ_RECOVERY | \
+ 	 GDMA_DRV_CAP_FLAG_1_EQ_MSI_UNSHARE_MULTI_VPORT | \
+ 	 GDMA_DRV_CAP_FLAG_1_DYN_INTERRUPT_MODERATION | \
+-	 GDMA_DRV_CAP_FLAG_1_NON_CONTIGUOUS_BUFFERS)
++	 GDMA_DRV_CAP_FLAG_1_NON_CONTIGUOUS_BUFFERS | \
++	 GDMA_DRV_CAP_FLAG_1_THROTTLED_EVENT_QUEUE)
 
-This gives us a simple invariant: clcsock is non-NULL for the entire
-lifetime of the SMC socket. With that invariant every reader becomes
-trivially safe — no lock needed, no NULL check needed, the race
-condition simply cannot occur.
+ #define GDMA_DRV_CAP_FLAGS2 0
 
-[1] https://lore.kernel.org/netdev/ao5bB9OCbJ5PQbEp@linux.alibaba.com/
+diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
+index 83b7eff4646e..46aa843737b8 100644
+--- a/include/net/mana/mana.h
++++ b/include/net/mana/mana.h
+@@ -439,6 +439,7 @@ struct mana_ethtool_stats {
+ 	u64 tx_cqe_unknown_type;
+ 	u64 tx_linear_pkt_cnt;
+ 	u64 rx_cqe_unknown_type;
++	u64 eq_throttle_events;
+ };
+
+ struct mana_ethtool_hc_stats {
+--
+2.53.0
+
