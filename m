@@ -1,62 +1,62 @@
-Received: from mail-oo2-f0.google.com (mail-oo2-f0.google.com [74.125.231.128])
+Received: from mail-oa2-f0.google.com (mail-oa2-f0.google.com [74.125.231.64])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A38C3A3E73
-	for <linux-rdma@vger.kernel.org>; Thu,  8 Oct 2026 16:38:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.231.128
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB81B3AEB29
+	for <linux-rdma@vger.kernel.org>; Thu,  8 Oct 2026 16:40:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.231.64
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791477538; cv=none; b=fPgdywzU/wjbUAAB/lLTl96FGCBo1rM15Jvk7YdHunmQ1h/6RIbA4Q+1imGSkFhRv+l8RgWUIAozYJhp3Y26QqceCqxhY8HLbZzLpw9QPPQNeUZKj0VfoAuWL5R06sCpjLXpJbc4WQyzdwiL7hrnyO7saujBN+eqKN7cTCN6WM0=
+	t=1791477653; cv=none; b=sbTT/PM/rF+RAyCzDQCf0UhSMJhQ+E0nALI5JfoXpMUChoSwPI1UCg0DqpI/KofGOSZg/sC6QtX22woDfSMvHrOnyr6e6CUEw2r9qXH6LyOF+AfSnV50uwYzNHdH6/fArtbREXkLRAGcAHIz/NrbE17UyzDBpBd1pGBAIbff3+8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791477538; c=relaxed/simple;
-	bh=B7/RTXGw6xEkN4S3aF0mbacVGPs2NY7fb3eIo7Z50+k=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=GD8d1CFTlu4vLRRBveas2matYnZ/u5m71M7n7mXnztjTMVO4RjAwFcMBSEY6zrpbq1Thv1wWBTR2deNav6dL9jAkAxxd5cP9pXutcfrKypDxYMT8B+GDRfFqgD84BCTKu9gwKz+ZAJpkr2ZjwPh3yHzvKYUx51plNYLZVrDN9Mw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=bd12I3zl; arc=none smtp.client-ip=74.125.231.128
+	s=arc-20240116; t=1791477653; c=relaxed/simple;
+	bh=imWuqE76DrVJWZgCKyCFc7MWU5CZeZEyrJt3Q6oHClQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=djJ1oSSJlC0Td0ecCAEF2Pno/7A7MJgBcwauGKRMYCjwq9O1/o6PNP44ESNmPFMLmSYLagcbl8Nt6HGPAhqnEkvXdVjKECVC2apl56tuaCFYBB0M70Ss/h2hKyjXoVKGpbVsNLNPnF61epX3sICBpSGKhQboO/HjFoayg+I4S6s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=K+CYnki3; arc=none smtp.client-ip=74.125.231.64
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bd12I3zl"
-Received: by mail-oo2-f0.google.com with SMTP id 006d021491bc7-6a3900cb2b5so3090637eaf.0
-        for <linux-rdma@vger.kernel.org>; Thu, 08 Oct 2026 09:38:56 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="K+CYnki3"
+Received: by mail-oa2-f0.google.com with SMTP id 586e51a60fabf-44cdbcd53b8so1403907fac.0
+        for <linux-rdma@vger.kernel.org>; Thu, 08 Oct 2026 09:40:51 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791477536; x=1792082336; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1791477650; x=1792082450; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=wcr1e3DelCZYM4o9phxk5vNklRMQLSyAKhNB5dBEr6o=;
-        b=bd12I3zlGqyad1SU1bgON32oKdVg4UULWAImb6h+3sJnng3qlhcbkplvxvAkvuk4wy
-         n7fxfP1/TRsOZqH/+7c4BzFXKjP7Yl7k4wliFAro8W/8j4Ze7RHGVoEkYBB+dVGXF17n
-         BLwdE4Shb1LzlCR1TKekFl1fF25eYKIUcJFPEhPfUDv/lqxm7tqe0kvYFFRxCB3Vdm0l
-         QJtS3AU2q4FwEkuhBWyr8qSG119ifKefVvF7EDPdv+EHNIvbwuPN5hTqBlZdsCX3IlcQ
-         U1+KL5Z7GdhuL5BUi6Xnz65klnYNoncYECenOGTtbQSbSnh62anWF8f9bUzli/prkDxi
-         dWeQ==
+        bh=HXq065e6nI28MxLdaLNxE40ltfZ0a3n1jeYu75IbvbU=;
+        b=K+CYnki3ljfXAE3w7bhJEn7+yVxxIJgBa/NrLODm4Fs9gBhHngPjEkPCoRRNL3GzYn
+         Vkb6dSVIjQF9gu0GRky5QNjkoxu3Qy3wl35CTm4INWra1fET4e45I/99XIoT/nO3v9G/
+         NTLvR6CUsayYkNzzrIW7Mid7vXHbtkGE67J8OhSAg9QHf8h39kqJtJZmy3kfAIIKSxm6
+         48KgYM/2beDck1BkkXfPRneMA6rhjZUkdXFVVkbuvozVpELS/4bA7h7UEoP9VKrHYORZ
+         RFYx1DoqrgJLn8M33tYKAmA6rkuP2Qjg+5Lk9p7MfXIpKN4eOEWDYDcBn8S3xC4qWuOX
+         qUvQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791477536; x=1792082336;
+        d=1e100.net; s=20260707; t=1791477650; x=1792082450;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=wcr1e3DelCZYM4o9phxk5vNklRMQLSyAKhNB5dBEr6o=;
-        b=JJnING6xtePpKc2VgabqL7JLZby/qvg6rtD7s4K+3lFkKDPya3hXAz0Yd23BzBgovl
-         LF3KtWSSJj4BDQVAtaJ+CLGetYt4J8FUrg/bp+FIsd3coIxbCsfbR6Gn7yYG/v+7kMch
-         lm3uTIApKpXGYADUIhadJ/CKiEB9sfuViPeUA40Y/kiJ6cyw+zmdEYHAHV0cQvNMIh5w
-         wMnpzDVC4YuW15o4Wn/UF8EeAfNpHh5piKad7uRB6CL/DsMSkmf4qCuA4UnyBC59g9h0
-         +HgUVOONRoQT7dVTIpiCUpKZzfVUVMub+0ubxCI4gcxzI7BBc676dIWkGgF8fuWHk5DK
-         hUDw==
-X-Forwarded-Encrypted: i=1; AKwUvBxXu9u871G4KYyvaxkrmXIvksyTNQtg0Jka6uO7wXDWVp2Pcmv2MUEdEt1atXk2iRAdRlY4RhEA9ONr@vger.kernel.org
-X-Gm-Message-State: AFuF++lVodSLFYaylPpJqhi7eeg4z0EyiJVtARnIRNR59GdMlLxQO1qn
-	ojmbVXPxKFynT0ekiumqZWAsZKnCQ7T8hUQtr4u93HRKpkIa+X+2A47a
-X-Gm-Gg: AYBFou0TlaFfy1U1NmQX2Quta+dFZSEbyCxj/yazYyf3ryJKV2VIZZV4ngJpNPJ6S1j
-	qs8xEuXtHXxSgFSZObcROYzhopQjhNZdYMJSVl7EQpvJBKiuu0uimNvfRe2DsJwG7om087kU/RP
-	rpVD2C0HAYeq+yF27M9FBCSoYbB5ML4GG1OeHTjo63xm/6WodflRdXsVD2L/fWMdfW2Un4+HQiU
-	BRYXYFh9eRwzr6UlOyg8ESwWvt+v5hq5C5kZEMw0WwMXrdozueqZZm3amaY+hLpsM17ejImrR7I
-	AcrVwx9RdHZ+ldfCN/2n4VneOeNqYhzaijm7IrOCyQ8pnP/E4UW1xc5BnPR/pwAOdNG/3HLwfvl
-	JNrwfWEgaWpLtI3zelcloJe9aQJgCeW5b5RdMUHHUHYBEuTQSFiC5GMQY2LPPRG7B/ljlNXR9ok
-	XMEDbT1EBjzIHgmlWaXbc+rRrWRnNNYxIvAHeUxZwe0s6g1STO5Gq0Lp6cqwavjnow09KzUYlza
-	a5xyBa9yF/BzDcYLq7YzzGBjX7lo1G6Agtr
-X-Received: by 2002:a05:6820:1628:b0:6d7:a13d:fd7d with SMTP id 006d021491bc7-6e7a727cb87mr5941490eaf.53.1791477535895;
-        Thu, 08 Oct 2026 09:38:55 -0700 (PDT)
-Received: from localhost.localdomain ([14.22.11.164])
-        by smtp.gmail.com with ESMTPSA id 46e09a7af769-82fc7cc8ad4sm64328a34.7.2026.10.08.09.38.49
+        bh=HXq065e6nI28MxLdaLNxE40ltfZ0a3n1jeYu75IbvbU=;
+        b=g3tEX6EaB6BIJ7b9kiY3v3OkcfhO8Tji40wp94S/99d3MgMgWlRLxxice/tJN8p1TQ
+         ZoQI36g5nNxZ1UM0AQPE256eFFG+YJi+09RBZEV1awZCD2SCRcLOcAknXe6ru2vy7enU
+         tbONzAiGTQSjdquYBLuK/I7NZCcPuB838Rj1jWHew9mQ/Hr5yz+lh+15sPkiZsXeBmNb
+         qE+Ocs3N4XwKMPBLCRWthCgWHxMr+8UiBk8nC8pt73BANc9RYwT1X91ISdbxveaUDLG7
+         5oDK6K25byzwWFh99aCNBjn1SgL6FGS8x+1inIQWH/mFDpYlbZPX8Es+wORbjURuxsIf
+         BptQ==
+X-Forwarded-Encrypted: i=1; AKwUvBxuzeutyIoLbmfET/EWznJq7ZEIWHm/tMp/9RCLGlMuxQvYVenvQLNv8rInaQUDgWMct33ncgSfegFQ@vger.kernel.org
+X-Gm-Message-State: AFuF++kt97UXtVazLi1TftgGMZt6kSjKN0AQUBI5stMDTyfp9eiX2tBb
+	0XuZGweYG972q78cQxvqq44SY++MgyLVgTr6stna2lmvZC+A0hSu69Ym
+X-Gm-Gg: AYBFou1Fsb8Vsy6+/f4EplTIBVfz5XrzZqmfpNY8jpVf3D+xS9swXiIQyJtqDtCoSiz
+	IZlRGq6h/bqSoNe3nHgeG77cvSl/bsafLUnwhgiFwiiHcYFDOEEwnZrqOaCjnE+c7+j4tzXYgxl
+	Ln2Lgdbe0H27KfvmiZc/ncol98YLfi1k/2QIq97LvsRbiHay+P6fXZIJNyJ2kcR+//2ct5AN0ga
+	fT92+pRUUL0PXKwKD9I3R3DKplucmXBdti5oAqKfuDrBww1/ZxfIPIZRGKIs2r8h9IzlK/mArWH
+	kjkxNNZyc9xdf8jiDvWqDMuTQSqr/EwSSPediqmRkjo5Lik/339+uf2d/d6gnP8KcKHH07iOJlE
+	arRQY9MGD96VOL98J0SqDRBQBAmkM+vB/s+i5WG+ABfD/uzOqI+EbGENfiEHk4G6/cCCSeyCrRA
+	VEmy5lfzpzMZAk+iV7XgHM+CtEi0uOL7YNZQDFCtHPdbD2a6Kht4ns1Y7usKPK7hkHkudKtO9TU
+	4tMWQxo7LTxmVhn0yWF9zCqOw8yo2IWSwwpjA==
+X-Received: by 2002:a05:6870:568b:b0:475:e0a7:9f2f with SMTP id 586e51a60fabf-4a2595b8b6cmr5129058fac.29.1791477650369;
+        Thu, 08 Oct 2026 09:40:50 -0700 (PDT)
+Received: from localhost.localdomain ([14.116.239.36])
+        by smtp.gmail.com with ESMTPSA id 586e51a60fabf-4a274ca5a26sm3560744fac.17.2026.10.08.09.40.45
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 08 Oct 2026 09:38:55 -0700 (PDT)
+        Thu, 08 Oct 2026 09:40:48 -0700 (PDT)
 From: Henry Martin <bsdhenrymartin@gmail.com>
 To: Allison Henderson <achender@kernel.org>,
 	"David S . Miller" <davem@davemloft.net>,
@@ -69,9 +69,9 @@ Cc: netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Henry Martin <bsdhenrymartin@gmail.com>,
 	stable@vger.kernel.org
-Subject: [PATCH] rds: fix out-of-bounds conn_path access via handshake NPATHS
-Date: Fri,  9 Oct 2026 00:38:43 +0800
-Message-ID: <20261008163843.957325-1-bsdhenrymartin@gmail.com>
+Subject: [PATCH] rds: fix out-of-bounds conn_path walk in peer gen update
+Date: Fri,  9 Oct 2026 00:40:41 +0800
+Message-ID: <20261008164041.961961-1-bsdhenrymartin@gmail.com>
 X-Mailer: git-send-email 2.43.7
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -81,19 +81,21 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Connections on the IB transport (t_mp_capable unset) own exactly one
-rds_conn_path slot, but the peer can still claim eight lanes through
-the NPATHS extension header of a handshake packet, and every
-subsequent fan-out path then treats all eight entries as real: the
-mp-start helper iterates conn->c_path[0..7], dereferencing cp->cp_conn,
-taking cp->cp_lock and queueing delayed work on cp->cp_wq at 504-byte
-strides into whatever comes after the single allocated slot (KASAN:
-"Read of size 8 in rds_conn_path_connect_if_down").
+A connection on the IB transport (t_mp_capable unset) is allocated
+with exactly one rds_conn_path slot, yet the peer's genetic number
+update routine is hardcoded to walk RDS_MPATH_WORKERS entries whenever
+the peer announces a non-zero gen number that differs from the one we
+cached.  Everything past the first entry lands on whatever happens to
+follow the single-slot array in the same slab slot group, and the loop
+then reads and modifies struct fields there (lock acquired,
+cp_next_tx_seq cleared, retransmit list inspected).  A malicious peer
+can therefore force consecutive out-of-bounds writes into neighbouring
+kmalloc-512 objects (KASAN: "Write of size 4 in
+_raw_spin_lock_irqsave").
 
-The negotiated lane count is now clamped to the same value the
-transport was allocated with (trans->t_mp_capable ?
-RDS_MPATH_WORKERS : 1), so a peer can never ask us to walk lanes that
-do not exist.
+The allocation and the walk now agree on the same expression
+(trans->t_mp_capable ? RDS_MPATH_WORKERS : 1), so the loop can never
+outlive the array regardless of what the peer reports.
 
 This vulnerability was discovered by Tencent CodeBuddy Security.
 
@@ -106,15 +108,15 @@ Signed-off-by: Henry Martin <bsdhenrymartin@gmail.com>
 
 --- a/net/rds/recv.c
 +++ b/net/rds/recv.c
-@@ -224,7 +224,8 @@
- 		/* Process extension header here */
- 		switch (type) {
- 		case RDS_EXTHDR_NPATHS:
--			new_npaths = min_t(int, RDS_MPATH_WORKERS,
-+			new_npaths = min_t(int, conn->c_trans->t_mp_capable ?
-+					   RDS_MPATH_WORKERS : 1,
- 					   be16_to_cpu(buffer.rds_npaths));
- 			break;
- 		case RDS_EXTHDR_GEN_NUM:
+@@ -144,7 +144,8 @@
+ 	if (peer_gen_num != 0) {
+ 		if (conn->c_peer_gen_num != 0 &&
+ 		    peer_gen_num != conn->c_peer_gen_num) {
+-			for (i = 0; i < RDS_MPATH_WORKERS; i++) {
++			for (i = 0; i < (conn->c_trans->t_mp_capable ?
++			     RDS_MPATH_WORKERS : 1); i++) {
+ 				struct rds_conn_path *cp;
+
+ 				cp = &conn->c_path[i];
 --
 2.43.7
