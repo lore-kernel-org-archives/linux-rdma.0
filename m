@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C62153AE6FC;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C61833ACF15;
 	Thu,  8 Oct 2026 03:13:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791429222; cv=none; b=sXyRA/PVXRcISgNDqLGUC7+eFDlGod4UnPvDTkHdYnyDQyxmVEjtR8wADBRCSvISVCXCV9FiIY1dpl+cJKKdyqbTrMAog7OwJK0rQw5lJWtTWf+LPwBaWCkjnLIWNWmOyVeVKK4mr7k3HadxAXy3II2B9qDyeDXyot25AyvMK0M=
+	t=1791429222; cv=none; b=IAc13skUV2kKA5tJHT5loobLjLifzGuVSUVmfGSgpTH9WpbqNPEG/wPuRi9KWsSYZFG80XasuE08W9uGbJ9jtFmt0baQ9sgPXwLdfcdaTbB2rS34hwH94jG9YE2WRDoaRfQ7/n3G55JgCJ47OKkpus06GryGhLpgUNs5495nwjY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1791429222; c=relaxed/simple;
-	bh=7rWMTNKDNLBbmb+h/nkRosnrwrNG/Hc8yWk7scsI65I=;
+	bh=pWhSMuffQMItJCu0Oe14TzbBjP/+UJXVmuZSPILYXjU=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=MeTEqW1Tv6I3xL0hVQcqM5CM94qlOGdGc6X5qPke+wSZfM1rC6wP+eL9Q4hzVmnaPO5fvEWXfGc2j5/sW73R1yaQ+eTikzHnLrsZLoaUXdssMBTNlZTBSeNtqoMEQRXi+mzjkJ+lo+tirgBCJ9P8vQ2fPBH35UtE9redJdwoe/0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AfJitT+k; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=BpZoxUPzD0uG898rFTmA2m+BFxYoI7QGiGnONqxlRR4e4qnq1skwwExDcRoHbJct6iqZsUStgZxYTAgcablP8WsziegAVXO1zvZosr+Q6UCcXy4CD4GMHwMz0CUfLWwRCPFikOXf2sM+iE2zcqp9ua4GANB6BmKnFUjTHktuTf8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hJOCa72p; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AfJitT+k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60DC21F00899;
-	Thu,  8 Oct 2026 03:13:40 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hJOCa72p"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBE8E1F000FF;
+	Thu,  8 Oct 2026 03:13:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1791429220;
-	bh=vsgT4EegZshDoVvMGK9Sk20PzYAQop1qCYh2ThW3v/U=;
+	bh=smzi/W0Gtsgu8yu8JYrsSdzNZn2asxXqg2T51hkKX6s=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=AfJitT+kYUgrgdyD+WgNYaRsCqLfDrkTpswMI1A00AFqo57rBtaWbelr4sZY0vNLZ
-	 HZNuZdbJmZoOyWp7R6cKjbKnpD0oNg9zugd8sfntBnC8Y0xl/Jjv4mp4nh0WjCfbZR
-	 dpckKleGPhfVUZTcW7ZKwkbu/9z9xMMu4R1trt8Lt8hDHGzND50Erjg66556n3p+oh
-	 rK7pBwVg+zJo8gRyDRZZuh9ARWIJE7ESiwqrd3axoR5lpCZ02WtWN/jdx95EB2q8Op
-	 8fdWzoF2mh45C7S1NLLwDrCRCABvs129BrJB1x/IiYrJ2TooINOqxEpxKylhCqzmAD
-	 KPjCXGg6HSdPA==
+	b=hJOCa72pTONSEKuY62ZLpgQY9cOLzZr8f2CpFt5sJfNznpAzQoriE51D/p3lw5RvN
+	 UoVAgNq75zy9+UPhVkgs/JHAM++HtFzwYnmnIIPo4OjpDpgKUhvISv0rypNIddp927
+	 2I3sxpLEKP9SqqsOhcvLmm4czJaLlZiT5xbM+PzzkWczkFzF2IHESWy/o0/ThZAf1z
+	 vOwGW9v40xH8HA/9HxTdhS/dumofTGQ93axBNefTP1liIPFP9A6YfC+UiBPR/t25w+
+	 kPlN/qmi4hyqxFJ7LFSoga9NH4Cc+Npdl5rabChV9SsfH/tINgbBUtgSO/J1PkGdCh
+	 OagSntOkUhCVQ==
 From: Allison Henderson <achender@kernel.org>
 To: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
@@ -34,9 +34,9 @@ To: netdev@vger.kernel.org,
 	kuba@kernel.org,
 	horms@kernel.org
 Cc: achender@kernel.org
-Subject: [PATCH net-next v9 13/13] net/rds: drop rds_conn_count in favor of t_conn_count
-Date: Wed,  7 Oct 2026 20:13:33 -0700
-Message-Id: <20261008031333.1142174-14-achender@kernel.org>
+Subject: [PATCH net-next v9 12/13] net/rds: pin the connection across RDMA-CM event handling
+Date: Wed,  7 Oct 2026 20:13:32 -0700
+Message-Id: <20261008031333.1142174-13-achender@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20261008031333.1142174-1-achender@kernel.org>
 References: <20261008031333.1142174-1-achender@kernel.org>
@@ -48,95 +48,147 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The patch "net/rds: wait for connections to be freed on transport
-unload", earlier in this series, gave each transport its own
-connection count in t_conn_count, incremented and decremented at
-exactly the points where the global rds_conn_count is.  That leaves
-rds_conn_count with a single remaining consumer: the seed of the
-per-path workqueue names in __rds_conn_create().
+rds_rdma_cm_event_handler_cmn() picks the connection up from
+cm_id->context, which carries no reference, and holds c_cm_lock - a
+mutex that lives in the connection's path array - across the transport
+callbacks.  Before this series that was already a use-after-free
+whenever a callback destroyed the connection, since rds_conn_destroy()
+freed it synchronously and the handler's mutex_unlock() ran on freed
+memory; the one such callback, rds_ib_cm_connect_complete() on a
+protocol version below 3.1, has meanwhile been switched to
+rds_conn_drop() by commit f97d8c7bab78 ("rds: ib: use rds_conn_drop()
+on protocol version mismatch"), which also removed the deadlock that
+destroy took on c_cm_lock.
 
-Switch the name seed to t_conn_count, as UEK does, and remove
-rds_conn_count.  The numbering becomes per-transport instead of
-global, so connections of different transports can now receive the
-same seed; workqueue names carry no uniqueness requirement, and the
-seed was already reused as the count rose and fell.  Removing the
-counter also removes the rds_conn_lock round-trip that
-rds_conn_destroy_fini() took solely to decrement it.  (The free path
-still sleeps in destroy_workqueue(), so the last reference has to be
-dropped from process context as before; only that one lock goes.)
+Now that a connection is freed by its last reference, none of the
+callbacks the handler dispatches drops a reference on the connection
+it was handed: the version-mismatch path only drops the connection,
+and rds_ib_cm_handle_connect() puts the reference rds_conn_create()
+gave it, on a connection the listener's cm_id never pointed at.  What
+can reach zero while an event is in flight are the holders outside
+the handler - the destroy's initial reference, a socket's cache, a
+parent's c_passive, an inc.  Today the shutdown pass destroys the
+cm_id, and rdma_destroy_id() waits for a running handler, before the
+initial reference is dropped, so every event is ordered ahead of the
+free; the pin is defensive, keeping the handler correct without
+leaning on that ordering.  Take a reference for the duration of the
+handler, and ignore the event if the connection is already at zero
+references rather than handle it.
 
-Based on the Oracle UEK commit "net/rds: Each RDS transport
-should keep its own connection count".
+rds_ib_cm_initiate_connect() and rds_ib_cm_handle_connect() get a
+defensive check of the same kind.  A destroy that began while the
+address and route were resolving either waits on c_cm_lock behind the
+ROUTE_RESOLVED handler - and its shutdown pass then tears down
+whatever the handler set up, QP, cm_id and device reference alike - or
+has already destroyed the id, in which case no event for it reaches
+the handler.  On the passive side a quiesced connection is unhashed,
+so rds_conn_create() cannot hand it to a connect request, and the
+listeners are stopped before any IB connection is destroyed at unload.
+Neither path is reachable today, then; both functions nevertheless
+decline to set up a QP, or install a new cm_id, on a connection whose
+destroy has begun, so that the contract does not rest on that
+ordering.  rds_ib_cm_initiate_connect() returns success when it
+declines: the id is still ic->i_cm_id, for the shutdown to destroy,
+and a non-zero return would have the rdma_cm destroy it instead.  An
+unload that begins after the check has passed is covered by
+rds_ib_add_conn() refusing a device that rds_ib_dev_shutdown() has
+marked.
 
 Assisted-by: Claude-Code:claude-fable-5
 Signed-off-by: Allison Henderson <achender@kernel.org>
 ---
- net/rds/connection.c | 13 +++----------
- 1 file changed, 3 insertions(+), 10 deletions(-)
+ net/rds/ib_cm.c          | 25 +++++++++++++++++++++++--
+ net/rds/rdma_transport.c | 19 ++++++++++++++++++-
+ 2 files changed, 41 insertions(+), 3 deletions(-)
 
-diff --git a/net/rds/connection.c b/net/rds/connection.c
-index 7d03d53a3101..8c4df7d6b294 100644
---- a/net/rds/connection.c
-+++ b/net/rds/connection.c
-@@ -47,7 +47,6 @@
- 
- /* converting this to RCU is a chore for another day.. */
- static DEFINE_SPINLOCK(rds_conn_lock);
--static unsigned long rds_conn_count;
- /* woken whenever a transport's t_conn_count drops to zero */
- static DECLARE_WAIT_QUEUE_HEAD(rds_conn_freed_waitq);
- static struct hlist_head rds_conn_hash[RDS_CONNECTION_HASH_ENTRIES];
-@@ -338,12 +337,13 @@ static struct rds_connection *__rds_conn_create(struct net *net,
- 
- 	init_waitqueue_head(&conn->c_hs_waitq);
- 	for (i = 0; i < npaths; i++) {
-+		int seq = atomic_read(&trans->t_conn_count);
-+
- 		__rds_conn_path_init(conn, &conn->c_path[i],
- 				     is_outgoing);
- 		conn->c_path[i].cp_index = i;
- 		conn->c_path[i].cp_wq =
--			alloc_ordered_workqueue("krds_cp_wq#%lu/%d", 0,
--						rds_conn_count, i);
-+			alloc_ordered_workqueue("krds_cp_wq#%d/%d", 0, seq, i);
- 		if (!conn->c_path[i].cp_wq)
- 			conn->c_path[i].cp_wq = rds_wq;
- 	}
-@@ -412,7 +412,6 @@ static struct rds_connection *__rds_conn_create(struct net *net,
- 			rds_conn_get(conn);	/* caller */
- 			rcu_assign_pointer(parent->c_passive, conn);
- 			rds_cong_add_conn(conn);
--			rds_conn_count++;
- 			atomic_inc(&conn->c_trans->t_conn_count);
- 		}
- 	} else {
-@@ -435,7 +434,6 @@ static struct rds_connection *__rds_conn_create(struct net *net,
- 			rds_conn_get(conn);
- 			hlist_add_head_rcu(&conn->c_hash_node, head);
- 			rds_cong_add_conn(conn);
--			rds_conn_count++;
- 			atomic_inc(&conn->c_trans->t_conn_count);
- 		}
- 	}
-@@ -684,7 +682,6 @@ static void rds_conn_destroy_fini(struct kref *kref)
- 						   c_refcount);
- 	int npaths = (conn->c_trans->t_mp_capable ? RDS_MPATH_WORKERS : 1);
- 	struct rds_transport *trans = conn->c_trans;
--	unsigned long flags;
- 	int i;
- 
- 	for (i = 0; i < npaths; i++)
-@@ -693,10 +690,6 @@ static void rds_conn_destroy_fini(struct kref *kref)
- 	kfree(conn->c_path);
- 	kmem_cache_free(rds_conn_slab, conn);
- 
--	spin_lock_irqsave(&rds_conn_lock, flags);
--	rds_conn_count--;
--	spin_unlock_irqrestore(&rds_conn_lock, flags);
--
- 	/* only after everything the transport module owns has been
- 	 * freed above may its unload proceed
+diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
+index 165a29d4196e..38d95b016773 100644
+--- a/net/rds/ib_cm.c
++++ b/net/rds/ib_cm.c
+@@ -876,6 +876,15 @@ int rds_ib_cm_handle_connect(struct rdma_cm_id *cm_id,
+ 	 * see the comment above rds_queue_reconnect()
  	 */
+ 	mutex_lock(&conn->c_cm_lock);
++	/* Defensive: a destroy that has quiesced this conn also unhashed
++	 * it, so rds_conn_create() cannot have returned it, and the
++	 * listeners are stopped before any IB connection is destroyed at
++	 * unload.  Should a request reach a conn in RDS_CONN_DOWN with
++	 * its destroy begun all the same, do not install a new cm_id and
++	 * QP that nothing would tear down.
++	 */
++	if (rds_destroy_pending(conn))
++		goto out;
+ 	if (!rds_conn_transition(conn, RDS_CONN_DOWN, RDS_CONN_CONNECTING)) {
+ 		if (rds_conn_state(conn) == RDS_CONN_UP) {
+ 			rdsdebug("incoming connect while connecting\n");
+@@ -930,8 +939,8 @@ int rds_ib_cm_handle_connect(struct rdma_cm_id *cm_id,
+ 		mutex_unlock(&conn->c_cm_lock);
+ 		/* Drop the reference rds_conn_create() handed us.  The
+ 		 * conn stays reachable through cm_id->context without a
+-		 * reference of its own for now; the CM event handler is
+-		 * given one of its own by a following patch.
++		 * reference of its own; rds_rdma_cm_event_handler_cmn()
++		 * takes one for the duration of each event it handles.
+ 		 */
+ 		rds_conn_put(conn);
+ 	}
+@@ -950,6 +959,18 @@ int rds_ib_cm_initiate_connect(struct rdma_cm_id *cm_id, bool isv6)
+ 	union rds_ib_conn_priv dp;
+ 	int ret;
+ 
++	/* Defensive: a destroy that began while the address and route
++	 * were being resolved either waits on c_cm_lock behind this
++	 * handler, and its shutdown pass then tears down whatever is
++	 * set up here, or has already destroyed the id this event
++	 * arrived on, in which case the event never gets here.  Decline
++	 * to set up a QP all the same, and return success: the id is
++	 * still ic->i_cm_id, for that shutdown to destroy, and a
++	 * non-zero return would have the rdma_cm destroy it instead.
++	 */
++	if (rds_destroy_pending(conn))
++		return 0;
++
+ 	/* If the peer doesn't do protocol negotiation, we must
+ 	 * default to RDSv3.0 */
+ 	rds_ib_set_protocol(conn, RDS_PROTOCOL_4_1);
+diff --git a/net/rds/rdma_transport.c b/net/rds/rdma_transport.c
+index 3f853004c490..a789104725c9 100644
+--- a/net/rds/rdma_transport.c
++++ b/net/rds/rdma_transport.c
+@@ -63,6 +63,21 @@ static int rds_rdma_cm_event_handler_cmn(struct rdma_cm_id *cm_id,
+ 	if (cm_id->device->node_type == RDMA_NODE_IB_CA)
+ 		trans = &rds_ib_transport;
+ 
++	/* cm_id->context carries no reference of its own.  Pin the
++	 * connection for the duration of the handler, since the mutex
++	 * released at out: lives in the connection's path array.  None
++	 * of the callbacks below drops a reference on this connection,
++	 * and the shutdown destroys the cm_id - waiting for a running
++	 * handler - before the last reference can go, so this is
++	 * defensive.  A connection already at zero references gets no
++	 * events handled.
++	 */
++	if (conn && !rds_conn_get_unless_zero(conn)) {
++		rdsdebug("conn %p id %p is being freed, ignoring event\n",
++			 conn, cm_id);
++		return 0;
++	}
++
+ 	/* Prevent shutdown from tearing down the connection
+ 	 * while we're executing. */
+ 	if (conn) {
+@@ -171,8 +186,10 @@ static int rds_rdma_cm_event_handler_cmn(struct rdma_cm_id *cm_id,
+ 	}
+ 
+ out:
+-	if (conn)
++	if (conn) {
+ 		mutex_unlock(&conn->c_cm_lock);
++		rds_conn_put(conn);
++	}
+ 
+ 	rdsdebug("id %p event %u (%s) handling ret %d\n", cm_id, event->event,
+ 		 rdma_event_msg(event->event), ret);
 -- 
 2.25.1
 
