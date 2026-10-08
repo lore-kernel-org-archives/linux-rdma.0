@@ -1,95 +1,84 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90FAA4EFFCB
-	for <linux-rdma@vger.kernel.org>; Thu,  8 Oct 2026 18:17:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EF784F55D2;
+	Thu,  8 Oct 2026 18:50:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791483422; cv=none; b=qjhv8aSkqVPoRLFSupJmkX7aLmRINnhsw9ry/NkZSJOt/WOdxBa9M0LaxozpqKbPMlRN3MXCHEt28FJCIUKNCNqst6he/KjdFhFyXfZIzsXUloE9aLX62w7jNaIt3pkBUr1BEA6YPsR1C7sY+71n0tFANkoGfjHsEAiwTk2dMoQ=
+	t=1791485417; cv=none; b=O1Q+5YwP2cygTkKgytFFTg6FbqquHt6TrPWskY+kxDhRyC9J2O2N2d2uN1PPlmqvx+FoCVhuHHPZyjo/9QQEHgvDMjwDWpaKFVKKE/xGVLpRcV5uARTFyZCSIiONF6ASukeHEBzMF7kNgybiBshhZsbuuQd8JPLmfI3siJFd1uM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791483422; c=relaxed/simple;
-	bh=Uf3OPM5UrIF+Fnb66JVHdzxg5i44mq/8ixlHeHME670=;
-	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=aeiHIaC/1rSDn9xto5aOrrkY0BP1r1BvrQ+zljwmFzcArJ8EbSCzWopPORNrWmtsTudExajHIeNzaGIBqdPoX2xg6yUcgnWGYZGOKOmd9lklbNkqBc0Z/CH2pQj5cVryc/vadVNQaEIxvd3NMGrauS7iPd3l9DvkanhAcYZznHU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ukvs7Slp; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791485417; c=relaxed/simple;
+	bh=TWauTdYi7aFdx//up6fGxPh6MopKTH1dGtHVw6qEgUk=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=GarLNPZbNYvrBzJv/pxvRt36sdSn7dYtNCnUHW88avioXql2U/0M6v4+40sniGM298LlLA04Ndc82sT5obis2YMq1KVMKE/Tk8CmnepeIfn+9SD4qhDa9KdeEqQ3ynj9zIpL97x0fTm/Pu5umKhHsyGFrgfIjhUn12Pvub/i43E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BFfpGFzs; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ukvs7Slp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FE991F000FF;
-	Thu,  8 Oct 2026 18:17:01 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BFfpGFzs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0751D1F000FF;
+	Thu,  8 Oct 2026 18:50:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791483421;
-	bh=CHwS+u36SNW7geX74e8e6wix0qei4qt+RPnUFFfW2PY=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=Ukvs7Slpruk5T3whfx6wyBuVRNsutjfcxktg56Ixcp9XFECad9pL2C0O11tiLZjea
-	 t9LsiUnes/JQa+M+ozqsiuPR9k00tEoVdhJMSqaAMFJJX+ZZmZeeUJEQ5mLV5Zdh6o
-	 BGDoP2kiiYey0WgylIkWKlW5yGn1otEiAd02M7tZmS47rMeyycvqMf6MhUbenGDSGP
-	 aaMvKc8kkQJLkkNjatvLKu8IMLm9ZtiaQnODqzwBQhfuXaF53qLzTkf8JXlTuUfBfZ
-	 +39vMhRyPB1qqVgeHZOJgodIFoH02qJeqlgKUM8GJZ4eg1aMRXhvR/7AUIxMFkEDje
-	 p03ku7iTH1g4Q==
-Message-ID: <sashiko-outbox-164450@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next 3/9] net: niu: check for failure when pulling
- in the RX header
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Josef Bacik" <josef@toxicpanda.com>
-Cc: linux-rdma@vger.kernel.org, intel-wired-lan@lists.osuosl.org
-In-Reply-To: <20261007-b4-pskb-pull-tail-drivers-v1-3-9512b0fb977b@toxicpanda.com>
-References: <20261007-b4-pskb-pull-tail-drivers-v1-0-9512b0fb977b@toxicpanda.com>
- <20261007-b4-pskb-pull-tail-drivers-v1-3-9512b0fb977b@toxicpanda.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Thu, 08 Oct 2026 18:17:00 +0000
+	s=k20260515; t=1791485416;
+	bh=YVEM8wubkfgoO6VY6b9IYQ8KVp9Yd8n0IdmY+rRBGSc=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=BFfpGFzsiieIAVfuXPfu/MURAqPT0JE2yLer61po92pKP7i5yaaMpXbWBd5S77Y+/
+	 2exjrNWIE8Yz5ZrGmdCoH2uGs4EZ5cg8fP9s+7AQF3KSXzObfzUBSl8/TdycypNhZs
+	 ClNeepubg5wUDpjKmBUVURKJRlskvSzKnQxnC375oHnI/1Kc5rtshrUkf/JTqxR+HO
+	 ensfrtFiK3ZP6igWqCSzE6hievyqC4VENFYWLsPxdlqpHibdK8ghzelMoCYtNMT9tO
+	 wLSQldLmJ2LzbMuvUhxQib9EysdTUB9aPFrzs8wIQ0hiHMlAGV9z23x1fz/PGeOcqh
+	 e5VNqT9huCP/g==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id F14CC380CEC8;
+	Thu,  8 Oct 2026 18:50:15 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net v3] net/smc: protect clcsock lifetime in smc_getname
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <179148541452.391001.7821092438083356989.git-patchwork-notify@kernel.org>
+Date: Thu, 08 Oct 2026 18:50:14 +0000
+References: <20261008084444.787449-1-nicoyip.dev@gmail.com>
+In-Reply-To: <20261008084444.787449-1-nicoyip.dev@gmail.com>
+To: Chengfeng Ye <nicoyip.dev@gmail.com>
+Cc: alibuda@linux.alibaba.com, dust.li@linux.alibaba.com,
+ sidraya@linux.ibm.com, mjambigi@linux.ibm.com, tonylu@linux.alibaba.com,
+ guwen@linux.alibaba.com, davem@davemloft.net, edumazet@kernel.org,
+ kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
+ linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
+ netdev@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
-- [Medium] net: torn read on 64-bit statistic rp->rx_dropped without u64_st=
-ats_sync
---
+Hello:
 
-commit c489740632704e1a68308e50d5ffe53ae3415f3f
-Author: Josef Bacik <josef@toxicpanda.com>
+This patch was applied to netdev/net.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
 
-net: niu: check for failure when pulling in the RX header
+On Thu,  8 Oct 2026 16:44:44 +0800 you wrote:
+> smc_getname() dereferences smc->clcsock without holding
+> clcsock_release_lock. Link-group termination can release the CLC socket
+> through smc_close_active_abort() while the SMC socket is still open,
+> for example after shutdown(SHUT_WR).
+> 
+> A getsockname() caller can load smc->clcsock, then the termination worker
+> can clear the pointer and call sock_release() before the caller accesses
+> clcsock->ops or invokes getname(). This causes a use-after-free; if the
+> worker clears the pointer before the load, it causes a NULL dereference.
+> The syscall's file reference keeps the SMC socket alive but does not
+> prevent asynchronous release of its CLC socket.
+> 
+> [...]
 
-This patch updates niu_process_rx_pkt() to use pskb_may_pull() to ensure
-there is enough room in the SKB head for the hardware RX and Ethernet
-headers. If the pull fails, the packet is now dropped instead of relying
-on the buffer's initial state.
+Here is the summary with links:
+  - [net,v3] net/smc: protect clcsock lifetime in smc_getname
+    https://git.kernel.org/netdev/net/c/64a6b36b0e18
 
-> diff --git a/drivers/net/ethernet/sun/niu.c b/drivers/net/ethernet/sun/ni=
-u.c
-> index c74a97fe54641..d1c0e868004d1 100644
-> --- a/drivers/net/ethernet/sun/niu.c
-> +++ b/drivers/net/ethernet/sun/niu.c
-> @@ -3488,7 +3488,11 @@ static int niu_process_rx_pkt(struct napi_struct *=
-napi, struct niu *np,
-> =20
->  	len +=3D sizeof(*rh);
->  	len =3D min_t(int, len, sizeof(*rh) + VLAN_ETH_HLEN);
-> -	__pskb_pull_tail(skb, len);
-> +	if (unlikely(!pskb_may_pull(skb, len))) {
-> +		rp->rx_dropped++;
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-[Severity: Medium]
-Could this 64-bit counter update cause a torn read on 32-bit architectures?
 
-Looking at struct rx_ring_info, rx_dropped is declared as a u64. Without
-wrapping the increment in u64_stats_update_begin() and=20
-u64_stats_update_end(), a concurrent reader might fetch half of an old value
-and half of a new value during ndo_get_stats64.
-
-> +		kfree_skb(skb);
-> +		return num_rcr;
-> +	}
-> =20
->  	rh =3D (struct rx_pkt_hdr1 *) skb->data;
->  	if (np->dev->features & NETIF_F_RXHASH)
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261007-b4-pskb-pu=
-ll-tail-drivers-v1-0-9512b0fb977b@toxicpanda.com?part=3D3
