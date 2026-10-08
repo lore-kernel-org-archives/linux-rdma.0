@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4604F3ABD82;
-	Thu,  8 Oct 2026 03:13:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C62153AE6FC;
+	Thu,  8 Oct 2026 03:13:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791429220; cv=none; b=Pa8WBSKwl3O0/5+asqBz1XclsLn121i4LccSuWTTCw99J1EJNjL12Nqs2O5COtsniSBSP8Y7yJcwT1n/6Uyw/LUXUMB425Z3AXBM/7AWR5Tu22Y2VeuCqUqZuEutkAHsezo1/WAfZB2Xspa45BX8fiRDoDlyGJ+Nrd8LRN7UElA=
+	t=1791429222; cv=none; b=sXyRA/PVXRcISgNDqLGUC7+eFDlGod4UnPvDTkHdYnyDQyxmVEjtR8wADBRCSvISVCXCV9FiIY1dpl+cJKKdyqbTrMAog7OwJK0rQw5lJWtTWf+LPwBaWCkjnLIWNWmOyVeVKK4mr7k3HadxAXy3II2B9qDyeDXyot25AyvMK0M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791429220; c=relaxed/simple;
-	bh=lFxnp+0T3xUD0pesEZjinLYrx1nPfwUvYRaGJhvZ5sI=;
+	s=arc-20240116; t=1791429222; c=relaxed/simple;
+	bh=7rWMTNKDNLBbmb+h/nkRosnrwrNG/Hc8yWk7scsI65I=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=oHdyag32QbYmqKNwY7gMQEavmIG8AqcWa6t0KRP7Fqao/ShErG2rbM5Xau10fnGNpp+uHbgcuNxe1HEJgmG1L/qUpZqAhrxG0Jq610qP33Mip5kBuvFwXf8fL/QnJ+6MFJuc96ztr6A5YUzp8oMxVuaa74uDa1oKgDHvBs7uKfY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZkxbXsij; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=MeTEqW1Tv6I3xL0hVQcqM5CM94qlOGdGc6X5qPke+wSZfM1rC6wP+eL9Q4hzVmnaPO5fvEWXfGc2j5/sW73R1yaQ+eTikzHnLrsZLoaUXdssMBTNlZTBSeNtqoMEQRXi+mzjkJ+lo+tirgBCJ9P8vQ2fPBH35UtE9redJdwoe/0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AfJitT+k; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZkxbXsij"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D41711F0089B;
-	Thu,  8 Oct 2026 03:13:38 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AfJitT+k"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60DC21F00899;
+	Thu,  8 Oct 2026 03:13:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791429219;
-	bh=/uPDUY3wwVIRqLO8keCN951MAtCrIwbwiDF+YltReJA=;
+	s=k20260515; t=1791429220;
+	bh=vsgT4EegZshDoVvMGK9Sk20PzYAQop1qCYh2ThW3v/U=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=ZkxbXsijNG5DNQZyvrVFNH/Sahy37wUwt364NKFh+rOCRL6x9l30kayq4x67yXEBE
-	 /7ibwRBnW8YfktGejJASRnxrAZXlVWSDmhDU8TtqHI8vp47deL4Vf7nuSNOD+xt6Ni
-	 eeVk+YXIwiq2n6+cjZJLuhcPOkYYU1Jhxnf0A9lYuCgpt+J8ouKp7oxo16xi3l/qjh
-	 ezSWND27dWoQvkP9TEWd4LAtfw0QCazH8WU6IQgnJ00K9BOX3rVNKn8VRYs4o3dpzC
-	 wqNT/f1GMuUgqMnph3jJNpQIuvM/+2X6IVK/nF02qrEIysFBM3X5phIQHrk77rwJY8
-	 qmKk5g32UAk6A==
+	b=AfJitT+kYUgrgdyD+WgNYaRsCqLfDrkTpswMI1A00AFqo57rBtaWbelr4sZY0vNLZ
+	 HZNuZdbJmZoOyWp7R6cKjbKnpD0oNg9zugd8sfntBnC8Y0xl/Jjv4mp4nh0WjCfbZR
+	 dpckKleGPhfVUZTcW7ZKwkbu/9z9xMMu4R1trt8Lt8hDHGzND50Erjg66556n3p+oh
+	 rK7pBwVg+zJo8gRyDRZZuh9ARWIJE7ESiwqrd3axoR5lpCZ02WtWN/jdx95EB2q8Op
+	 8fdWzoF2mh45C7S1NLLwDrCRCABvs129BrJB1x/IiYrJ2TooINOqxEpxKylhCqzmAD
+	 KPjCXGg6HSdPA==
 From: Allison Henderson <achender@kernel.org>
 To: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
@@ -34,9 +34,9 @@ To: netdev@vger.kernel.org,
 	kuba@kernel.org,
 	horms@kernel.org
 Cc: achender@kernel.org
-Subject: [PATCH net-next v9 10/13] net/rds: take cp_lock to purge cp_send_queue in the quiesce
-Date: Wed,  7 Oct 2026 20:13:30 -0700
-Message-Id: <20261008031333.1142174-11-achender@kernel.org>
+Subject: [PATCH net-next v9 13/13] net/rds: drop rds_conn_count in favor of t_conn_count
+Date: Wed,  7 Oct 2026 20:13:33 -0700
+Message-Id: <20261008031333.1142174-14-achender@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20261008031333.1142174-1-achender@kernel.org>
 References: <20261008031333.1142174-1-achender@kernel.org>
@@ -48,94 +48,95 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-rds_conn_path_quiesce() empties cp_send_queue by walking it with no
-lock held, while every path that adds to that queue -
-rds_send_queue_rm(), rds_send_probe(), the retransmit requeue in
-rds_send_path_reset() - does so under cp_lock.  The unlocked walk was
-justified by the destroy running with nothing else alive: at every
-destroy trigger there is - netns teardown and module unload - no
-socket can still be sending on the connection, since a bound socket
-pins its transport module and a namespace closes its sockets before
-its RDS connections are torn down.
+The patch "net/rds: wait for connections to be freed on transport
+unload", earlier in this series, gave each transport its own
+connection count in t_conn_count, incremented and decremented at
+exactly the points where the global rds_conn_count is.  That leaves
+rds_conn_count with a single remaining consumer: the seed of the
+per-path workqueue names in __rds_conn_create().
 
-That argument still holds, but it is an argument about the callers,
-not a property of the code.  Splice the queue away under cp_lock and
-drop the message references outside it, so that the one walker of the
-list follows the same lock discipline as its adders.  This does not
-by itself make a sender that is still running safe - nothing here
-tells such a sender that the queue is closed - and it does not need
-to, since no such sender exists at any destroy trigger.
+Switch the name seed to t_conn_count, as UEK does, and remove
+rds_conn_count.  The numbering becomes per-transport instead of
+global, so connections of different transports can now receive the
+same seed; workqueue names carry no uniqueness requirement, and the
+seed was already reused as the count rose and fell.  Removing the
+counter also removes the rds_conn_lock round-trip that
+rds_conn_destroy_fini() took solely to decrement it.  (The free path
+still sleeps in destroy_workqueue(), so the last reference has to be
+dropped from process context as before; only that one lock goes.)
 
-While at it, make the purge coherent with rds_send_drop_to(), the
-other path that removes messages from a connection queue.  drop_to
-decides whether it owns the queue's reference by test_and_clear on
-RDS_MSG_ON_CONN, and unlinks m_conn_item from whatever list the
-message is on.  The purge used to BUG_ON() a message that a socket
-still had queued, and that assertion is also what kept a drop_to
-racing it from putting the queue's reference a second time or
-unlinking from the purge list; the lock above is what closes the
-stale-next hazard of the old walk, not the assertion.  Clear the bit
-under cp_lock as part of the splice, so that drop_to leaves a purged
-message alone, and turn the BUG_ON() into a WARN_ON_ONCE(): a socket
-with messages queued at destroy is still a condition worth reporting -
-no sender or closer can be running at any destroy trigger today - but
-not one worth a panic, since the socket side keeps its own reference
-and retires the message on close.
+Based on the Oracle UEK commit "net/rds: Each RDS transport
+should keep its own connection count".
 
 Assisted-by: Claude-Code:claude-fable-5
 Signed-off-by: Allison Henderson <achender@kernel.org>
 ---
- net/rds/connection.c | 29 ++++++++++++++++++++++++-----
- 1 file changed, 24 insertions(+), 5 deletions(-)
+ net/rds/connection.c | 13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
 
 diff --git a/net/rds/connection.c b/net/rds/connection.c
-index c7655e9339ca..9c8c4b28d2b2 100644
+index 7d03d53a3101..8c4df7d6b294 100644
 --- a/net/rds/connection.c
 +++ b/net/rds/connection.c
-@@ -540,6 +540,8 @@ void rds_conn_shutdown(struct rds_conn_path *cp)
- static void rds_conn_path_quiesce(struct rds_conn_path *cp)
- {
- 	struct rds_message *rm, *rtmp;
-+	unsigned long flags;
-+	LIST_HEAD(purge);
+@@ -47,7 +47,6 @@
  
- 	if (!cp->cp_transport_data)
- 		return;
-@@ -551,12 +553,29 @@ static void rds_conn_path_quiesce(struct rds_conn_path *cp)
- 	rds_conn_path_drop(cp, true);
- 	flush_work(&cp->cp_down_w);
+ /* converting this to RCU is a chore for another day.. */
+ static DEFINE_SPINLOCK(rds_conn_lock);
+-static unsigned long rds_conn_count;
+ /* woken whenever a transport's t_conn_count drops to zero */
+ static DECLARE_WAIT_QUEUE_HEAD(rds_conn_freed_waitq);
+ static struct hlist_head rds_conn_hash[RDS_CONNECTION_HASH_ENTRIES];
+@@ -338,12 +337,13 @@ static struct rds_connection *__rds_conn_create(struct net *net,
  
--	/* tear down queued messages */
--	list_for_each_entry_safe(rm, rtmp,
--				 &cp->cp_send_queue,
--				 m_conn_item) {
-+	/* Tear down queued messages.  Every path that adds to
-+	 * cp_send_queue does so under cp_lock; take it here too.  No
-+	 * sender can still be running at any destroy trigger, so this is
-+	 * lock discipline rather than a race fix: nothing here tells a
-+	 * sender that the queue is closed.
-+	 */
-+	spin_lock_irqsave(&cp->cp_lock, flags);
-+	list_splice_init(&cp->cp_send_queue, &purge);
-+	/* Give up the queue's claim on each message while still under
-+	 * the lock, so that rds_send_drop_to(), which decides ownership
-+	 * of the connection-queue reference by this bit, neither drops
-+	 * it a second time nor unlinks the message from our list.
-+	 */
-+	list_for_each_entry(rm, &purge, m_conn_item)
-+		clear_bit(RDS_MSG_ON_CONN, &rm->m_flags);
-+	spin_unlock_irqrestore(&cp->cp_lock, flags);
-+	list_for_each_entry_safe(rm, rtmp, &purge, m_conn_item) {
-+		/* No socket can still have messages queued on a connection
-+		 * at any destroy trigger; say so if one does, since the
-+		 * socket side then retires the message on its own.
-+		 */
-+		WARN_ON_ONCE(!list_empty(&rm->m_sock_item));
- 		list_del_init(&rm->m_conn_item);
--		BUG_ON(!list_empty(&rm->m_sock_item));
- 		rds_message_put(rm);
+ 	init_waitqueue_head(&conn->c_hs_waitq);
+ 	for (i = 0; i < npaths; i++) {
++		int seq = atomic_read(&trans->t_conn_count);
++
+ 		__rds_conn_path_init(conn, &conn->c_path[i],
+ 				     is_outgoing);
+ 		conn->c_path[i].cp_index = i;
+ 		conn->c_path[i].cp_wq =
+-			alloc_ordered_workqueue("krds_cp_wq#%lu/%d", 0,
+-						rds_conn_count, i);
++			alloc_ordered_workqueue("krds_cp_wq#%d/%d", 0, seq, i);
+ 		if (!conn->c_path[i].cp_wq)
+ 			conn->c_path[i].cp_wq = rds_wq;
  	}
- 	if (cp->cp_xmit_rm)
+@@ -412,7 +412,6 @@ static struct rds_connection *__rds_conn_create(struct net *net,
+ 			rds_conn_get(conn);	/* caller */
+ 			rcu_assign_pointer(parent->c_passive, conn);
+ 			rds_cong_add_conn(conn);
+-			rds_conn_count++;
+ 			atomic_inc(&conn->c_trans->t_conn_count);
+ 		}
+ 	} else {
+@@ -435,7 +434,6 @@ static struct rds_connection *__rds_conn_create(struct net *net,
+ 			rds_conn_get(conn);
+ 			hlist_add_head_rcu(&conn->c_hash_node, head);
+ 			rds_cong_add_conn(conn);
+-			rds_conn_count++;
+ 			atomic_inc(&conn->c_trans->t_conn_count);
+ 		}
+ 	}
+@@ -684,7 +682,6 @@ static void rds_conn_destroy_fini(struct kref *kref)
+ 						   c_refcount);
+ 	int npaths = (conn->c_trans->t_mp_capable ? RDS_MPATH_WORKERS : 1);
+ 	struct rds_transport *trans = conn->c_trans;
+-	unsigned long flags;
+ 	int i;
+ 
+ 	for (i = 0; i < npaths; i++)
+@@ -693,10 +690,6 @@ static void rds_conn_destroy_fini(struct kref *kref)
+ 	kfree(conn->c_path);
+ 	kmem_cache_free(rds_conn_slab, conn);
+ 
+-	spin_lock_irqsave(&rds_conn_lock, flags);
+-	rds_conn_count--;
+-	spin_unlock_irqrestore(&rds_conn_lock, flags);
+-
+ 	/* only after everything the transport module owns has been
+ 	 * freed above may its unload proceed
+ 	 */
 -- 
 2.25.1
 
