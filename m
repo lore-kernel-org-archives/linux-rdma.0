@@ -1,127 +1,78 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2437A49B5D7;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D10549EC55;
 	Thu,  8 Oct 2026 12:54:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791464044; cv=none; b=WPCokUryHSOrhfTDEDQcVjZXAHRQv5LpEbFOZhSI0Mf3ncqLa8O+khuq5zWJUWvrd6r0WqkwWB/2h+evHbNb+qSamPOrqRlGIhjK3PpCwrvYzim3d//X25Q+vKQwoJeleeaNBu+eghSIuycOzysu3ZGuHRMs1wShQB2pTCxB6j8=
+	t=1791464045; cv=none; b=GxBsUMyZPy7qHa4dIqTvwOaT9ZhUmK+bxwCIvXswg8byvfNl8NYkpNQT7HZZRpEFR24R6m40jiF3B7miQoy3F2kMv+B3fSsJqUNoLO7PssXs9YILeZ8seHuP7h4mrHMTD4x7UyesX1U4RJ+k/4LPwXieidoumq1c+0G8y7htmLg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791464044; c=relaxed/simple;
-	bh=srfCvY/4aEWZISCq1me9MyUkzioS9cO/PoiykOhsjFQ=;
+	s=arc-20240116; t=1791464045; c=relaxed/simple;
+	bh=qHvS/wmHdKJeHQcg5n3Ob9AhoXhD288LipBUyEfPe1M=;
 	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=Mrt3KC7NAAXYlJ0swldmMKM1u8dw3WnElgfNuWlvGELh96BHuBLs2eivu0jOVbAtD4KeglCZV+DvsKMHxT21E657g2W6+KBy38LA2l1j1tJEXx6DpnwuVTje5adzxFsPuHKb0freaijTAm6lale1DblM0GBkKwRwxpUYYZrxVvQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=e5H7KrRQ; arc=none smtp.client-ip=100.103.45.18
+	 Date; b=IkQEn1lY8PeAyHB4rDY585K2na8N+Coy/pekkV46Q+UHrvI9vb2SxP1FVcqRCYqV3s+7aKViElBPJoRilXGadhKkL27TTohqsnh0fOJZJHbycHQF/W4GwdqshL/Zo+xzppThrUG8jDTE5mn+EuMg2owDFLjIy4Se8XV8VeWDlNg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UC8MON5S; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="e5H7KrRQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1DC01F00898;
-	Thu,  8 Oct 2026 12:54:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UC8MON5S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E8EB1F000FF;
+	Thu,  8 Oct 2026 12:54:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791464042;
-	bh=8fl65qiN/3whdxxO+Pebh37Wz7C+ENPtqgMtjZE5Lqc=;
+	s=k20260515; t=1791464043;
+	bh=qHvS/wmHdKJeHQcg5n3Ob9AhoXhD288LipBUyEfPe1M=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=e5H7KrRQiSz5LJ2VDJYGccm/MdMygcSiu9DxMgqIzj8qHOOnCyZy22SDYIR8Yz/bT
-	 4WcrmzhVd6IJueVw61ISO5qAXSETj235x3D5QX4XK3WINZbN4yx4OEOh+L64Yb8vHM
-	 ulRrG0uvfRuu9WkPOeiy1iOcjfy5KZY3uTbosxC4Kv6RUO4JpGHhL4qJFVeGL2qwoN
-	 1BW3vu1In5sZp/jZDbQsNfYVzH3luD5QX/fo9BElx5cl7fXjHnCzL/lFOLc3awDnwq
-	 UoDUF1gyW3Creo3wDiiunjtnjQSoiUrkJ4iRJWYETZQxx6ED/Ur3UwuOMlu9Wv3ojM
-	 0aKSZaBXqdv8Q==
-Message-ID: <sashiko-outbox-164177@kernel.org>
+	b=UC8MON5SK5vdGeu8eoJLKXulPVkQnvQqgYe5vz8E7iRr7qNzZGBG2V2x4QY+jurGt
+	 Nt/mH0XPpUtqhgBRspuGwgfZo1nU88tdU3k2PfHyBvJchp62bqjAxixNi0THf6LqVG
+	 RoJ6H9e8T7ax9STU5mRJqw8urUwoDqNyDa2/kPKb1vjPcOPTRUrfpEh+S9+MMYx8XD
+	 9nEcEQhBLfIXqYKSyzYzrXYRABqdCZvtDpctuxkPR40VHFVzQCf+l0pM1QxdqIdIrc
+	 iRvlzh2hCEclHVLH6R2SXGsTDCqaB7qBy6siHX7JTiErzaek3YmwZQdA0/srpf+1YC
+	 i1wZz23GJ/8DQ==
+Message-ID: <sashiko-outbox-164178@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next v6 1/4] net: mana: prepare HWC ownership for
- safe reinitialization
+Subject: Re: [PATCH net-next v6 4/4] net: mana: add dynamic HWC queue depth
+ with reinit path
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Wei Hu" <weh@linux.microsoft.com>
 Cc: linux-hyperv@vger.kernel.org, linux-rdma@vger.kernel.org
-In-Reply-To: <901e5237127da4fbd8e14ff07fa32dec8a20fd84.1790670523.git.weh@linux.microsoft.com>
+In-Reply-To: <693ae6ea1884f7f56ba6a2f11f03beaa5b74a232.1790670523.git.weh@linux.microsoft.com>
 References: <cover.1790665894.git.weh@linux.microsoft.com>
- <901e5237127da4fbd8e14ff07fa32dec8a20fd84.1790670523.git.weh@linux.microsoft.com>
+ <693ae6ea1884f7f56ba6a2f11f03beaa5b74a232.1790670523.git.weh@linux.microsoft.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 08 Oct 2026 12:54:01 +0000
+Date: Thu, 08 Oct 2026 12:54:03 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
-- [High] net: mana: Use-After-Free of CQ during queue teardown due to missi=
-ng RCU grace period
---
+> From: Long Li <longli@microsoft.com>
+>=20
+> The HWC starts with depth-one bootstrap queues. Treat the PF-reported dep=
+th
+> as a maximum and rebuild the channel exactly for reports from 2 through
+> 128. Keep the untouched bootstrap queues for depth one and reports above
+> 128, and require a rebuilt channel to repeat the selected depth.
+>=20
+> Treat the reported request and response sizes as directional maxima.
+> Rebuild only when both reports equal the 4096-byte bootstrap allocation,
+> then enforce the effective report/allocation limit on every request and
+> expected response.
+>=20
+> Keep each candidate channel private through queue creation, establishment
+> and the direct EQ test. Publish only the final tested channel. If a rebui=
+ld
+> fails after acknowledged teardown, destroy that candidate and establish
+> [ ... ]
+> goto-heavy creation flow from v5.
+>=20
+> Link: https://lore.kernel.org/r/20260908035201.402424-5-longli@microsoft.=
+com
+> Signed-off-by: Long Li <longli@microsoft.com>
+> Signed-off-by: Wei Hu <weh@microsoft.com>
 
-commit 50d2c3c4bc7f5e569d234a68a7842e4c466d0022
-Author: Long Li <longli@microsoft.com>
-
-net: mana: prepare HWC ownership for safe reinitialization
-
-Dynamic HWC queue sizing tears down the bootstrap queues and establishes a
-second channel before publishing it. Prepare the existing HWC ownership and
-teardown paths so that sequence cannot free or reuse state still reachable
-by either the PF or an EQ handler.
-
-Link: https://lore.kernel.org/r/20260908035201.402424-2-longli@microsoft.com
-Link: https://lore.kernel.org/r/20260908035201.402424-5-longli@microsoft.com
-Link: https://lore.kernel.org/r/178910960115.219967.13830871915506436112@ke=
-rnel.org
-
-> diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/ne=
-t/ethernet/microsoft/mana/gdma_main.c
-> index 8e9bfc1d6a2ae..f63e236d4d190 100644
-> --- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
-> +++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-[ ... ]
-> @@ -922,11 +923,16 @@ static void mana_gd_process_eqe(struct gdma_queue *=
-eq)
->  	switch (type) {
->  	case GDMA_EQE_COMPLETION:
->  		cq_id =3D eqe->details[0] & 0xFFFFFF;
-> -		if (WARN_ON_ONCE(cq_id >=3D gc->max_num_cqs))
-> +		/* The IRQ handler's RCU read-side section protects the table
-> +		 * until HWC teardown has fenced its EQ and waited for readers.
-> +		 */
-> +		cq_table =3D smp_load_acquire(&gc->cq_table);
-> +		if (!cq_table || cq_id >=3D READ_ONCE(gc->max_num_cqs))
->  			break;
-> =20
-> -		cq =3D gc->cq_table[cq_id];
-> -		if (WARN_ON_ONCE(!cq || cq->type !=3D GDMA_CQ || cq->id !=3D cq_id))
-> +		cq =3D READ_ONCE(cq_table[cq_id]);
-> +		if (!cq || WARN_ON_ONCE(cq->type !=3D GDMA_CQ ||
-> +					cq->id !=3D cq_id))
-
-[Severity: High]
-Can this dereference of cq race with mana_gd_destroy_queue() and cause a
-use-after-free?
-
-When the network device is detached (e.g., driver unload or suspend),
-mana_dealloc_queues() destroys Ethernet CQs via mana_destroy_rxqs() and
-mana_destroy_txq() before destroying the Ethernet EQs via mana_destroy_eq().
-
-Because the Ethernet EQ handler is still active, its IRQ handler
-(mana_gd_process_eqe()) can run concurrently.  Inside the RCU read-side
-critical section, mana_gd_process_eqe() reads the CQ pointer from cq_table.
-
-If the pointer is read just before it is unpublished, the subsequent cq->ty=
-pe
-dereference will access memory that is immediately freed by
-mana_gd_destroy_queue():
-
-drivers/net/ethernet/microsoft/mana/gdma_main.c:mana_gd_destroy_queue() {
-    ...
-    mana_gd_free_memory(gmi);
-    kfree(queue);
-}
-
-The kfree(queue) here doesn't wait for an RCU grace period (via
-synchronize_rcu() or kfree_rcu()), allowing the active EQ handler to access
-freed memory.
-
->  			break;
-> =20
->  		if (cq->cq.callback)
+Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/cover.1790665894.gi=
-t.weh@linux.microsoft.com?part=3D1
+t.weh@linux.microsoft.com?part=3D4
+
