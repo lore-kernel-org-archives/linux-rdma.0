@@ -1,41 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D10549EC55;
-	Thu,  8 Oct 2026 12:54:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B085F49B5D7;
+	Thu,  8 Oct 2026 12:54:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791464045; cv=none; b=GxBsUMyZPy7qHa4dIqTvwOaT9ZhUmK+bxwCIvXswg8byvfNl8NYkpNQT7HZZRpEFR24R6m40jiF3B7miQoy3F2kMv+B3fSsJqUNoLO7PssXs9YILeZ8seHuP7h4mrHMTD4x7UyesX1U4RJ+k/4LPwXieidoumq1c+0G8y7htmLg=
+	t=1791464045; cv=none; b=bcMy9vCd4InToNuCGGoM2ZGe8oTsi5engxz+tjgOJmwJn4Xup6JOpuS2114dDulRNqLuAUWDrCj3D/kMrEgqwTXaOA6Rf1dZubx2f3vdySsU5layRWYEnazpVbuiY92dUesxK4OeWQnMj2/Nx9qLZOP4W64apH5Tu1B+5/yS5MQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1791464045; c=relaxed/simple;
-	bh=qHvS/wmHdKJeHQcg5n3Ob9AhoXhD288LipBUyEfPe1M=;
+	bh=7bfj7AyTL/zmGP8FIqqLqEtrx5SPfm7jaeWMD4rGd2Q=;
 	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=IkQEn1lY8PeAyHB4rDY585K2na8N+Coy/pekkV46Q+UHrvI9vb2SxP1FVcqRCYqV3s+7aKViElBPJoRilXGadhKkL27TTohqsnh0fOJZJHbycHQF/W4GwdqshL/Zo+xzppThrUG8jDTE5mn+EuMg2owDFLjIy4Se8XV8VeWDlNg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UC8MON5S; arc=none smtp.client-ip=100.103.45.18
+	 Date; b=WcwYmwtqtW2FEif3kQodwGEreiUHxM0B/Zu/xnPaAV+nGaFHgTWhG2ndlJke5Nu42SAiN02gqmKZNahSHEwtv6YOPC6Q/3V4wHlwnhYfD//QC37qYIHD4M7LT2lEdcs3Mcevt2MqKHkZFbu9yHCv/ub482r7CxDrrjIliheOIok=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HuzH5R44; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UC8MON5S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E8EB1F000FF;
-	Thu,  8 Oct 2026 12:54:03 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HuzH5R44"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5652A1F00893;
+	Thu,  8 Oct 2026 12:54:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791464043;
-	bh=qHvS/wmHdKJeHQcg5n3Ob9AhoXhD288LipBUyEfPe1M=;
+	s=k20260515; t=1791464044;
+	bh=7bfj7AyTL/zmGP8FIqqLqEtrx5SPfm7jaeWMD4rGd2Q=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=UC8MON5SK5vdGeu8eoJLKXulPVkQnvQqgYe5vz8E7iRr7qNzZGBG2V2x4QY+jurGt
-	 Nt/mH0XPpUtqhgBRspuGwgfZo1nU88tdU3k2PfHyBvJchp62bqjAxixNi0THf6LqVG
-	 RoJ6H9e8T7ax9STU5mRJqw8urUwoDqNyDa2/kPKb1vjPcOPTRUrfpEh+S9+MMYx8XD
-	 9nEcEQhBLfIXqYKSyzYzrXYRABqdCZvtDpctuxkPR40VHFVzQCf+l0pM1QxdqIdIrc
-	 iRvlzh2hCEclHVLH6R2SXGsTDCqaB7qBy6siHX7JTiErzaek3YmwZQdA0/srpf+1YC
-	 i1wZz23GJ/8DQ==
-Message-ID: <sashiko-outbox-164178@kernel.org>
+	b=HuzH5R440E2Om5Q+vG3Sye8Hz7t/LGBazG+yqenaVdPFT0RHaoL2LpjFMJUYzEFRr
+	 Jif5F+M2F0MiuaM77JOHmWbL/hSHWhTXTce2w0sSSIJe9NNhdPlBHLaRMCJA0Zpxdv
+	 QYymXvh16eC2gYV7inTl0Wc45M5gfS4PqSwxc7bXnainEMaWwwl5k8n/bbWLcrIWdc
+	 EOTe+CoR/Kwe5ZEu6jXNEgL340HDBVlVa6QrdB1dGz2uUqhzueX+pRd3k66EcmXS7W
+	 J8x7SpS1WIYftKhMWSmJ/q9EYBwlFXkzjvONvZdDibp2oaRgPwEbSCg/WBRWryU6VR
+	 pktd+MV0Dlsxw==
+Message-ID: <sashiko-outbox-164179@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next v6 4/4] net: mana: add dynamic HWC queue depth
- with reinit path
+Subject: Re: [PATCH net-next v6 2/4] net: mana: give each HWC message slot
+ its own completion state
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Wei Hu" <weh@linux.microsoft.com>
-Cc: linux-hyperv@vger.kernel.org, linux-rdma@vger.kernel.org
-In-Reply-To: <693ae6ea1884f7f56ba6a2f11f03beaa5b74a232.1790670523.git.weh@linux.microsoft.com>
+Cc: linux-rdma@vger.kernel.org, linux-hyperv@vger.kernel.org
+In-Reply-To: <58fd3296e5fa48a9fc91eb4059a4f4162d4d8479.1790670523.git.weh@linux.microsoft.com>
 References: <cover.1790665894.git.weh@linux.microsoft.com>
- <693ae6ea1884f7f56ba6a2f11f03beaa5b74a232.1790670523.git.weh@linux.microsoft.com>
+ <58fd3296e5fa48a9fc91eb4059a4f4162d4d8479.1790670523.git.weh@linux.microsoft.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Date: Thu, 08 Oct 2026 12:54:03 +0000
@@ -47,25 +47,31 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 > From: Long Li <longli@microsoft.com>
 >=20
-> The HWC starts with depth-one bootstrap queues. Treat the PF-reported dep=
-th
-> as a maximum and rebuild the channel exactly for reports from 2 through
-> 128. Keep the untouched bootstrap queues for depth one and reports above
-> 128, and require a rebuilt channel to repeat the selected depth.
+> Concurrent requests require the response handler and the waiting sender to
+> agree on the lifetime and result state of each message slot.
 >=20
-> Treat the reported request and response sizes as directional maxima.
-> Rebuild only when both reports equal the 4096-byte bootstrap allocation,
-> then enforce the effective report/allocation limit on every request and
-> expected response.
+> Protect the caller's output buffer, Linux error and device status with a
+> per-slot lock. Publish the output buffer only while the sender is waiting
+> and withdraw it before every return. A late response therefore cannot copy
+> through a pointer to caller storage whose lifetime has ended.
 >=20
-> Keep each candidate channel private through queue creation, establishment
-> and the direct EQ test. Publish only the final tested channel. If a rebui=
-ld
-> fails after acknowledged teardown, destroy that candidate and establish
-> [ ... ]
-> goto-heavy creation flow from v5.
+> Reinitialize completion and result state when the slot is acquired. If
+> the response records its result while the timed wait expires, return that
+> result instead of reporting a false timeout.
 >=20
-> Link: https://lore.kernel.org/r/20260908035201.402424-5-longli@microsoft.=
+> HWC responses contain only the slot ID. After a genuine timeout, prevent
+> the serialized bootstrap channel from reusing that ID until teardown. This
+> keeps a stale response from completing a later request before the next
+> patch replaces the depth-one latch with per-slot sender and response
+> ownership.
+>=20
+> Split response-status handling and request cleanup into helpers so the se=
+nd
+> path has structured returns rather than phase-jumping gotos.
+>=20
+> Link: https://lore.kernel.org/r/20260908035201.402424-3-longli@microsoft.=
+com
+> Link: https://lore.kernel.org/r/20260908035201.402424-4-longli@microsoft.=
 com
 > Signed-off-by: Long Li <longli@microsoft.com>
 > Signed-off-by: Wei Hu <weh@microsoft.com>
@@ -74,5 +80,5 @@ Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/cover.1790665894.gi=
-t.weh@linux.microsoft.com?part=3D4
+t.weh@linux.microsoft.com?part=3D2
 
