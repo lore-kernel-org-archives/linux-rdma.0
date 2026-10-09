@@ -1,155 +1,162 @@
-Received: from mail.tipi-net.de (mail.tipi-net.de [194.13.80.246])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 746363AEF50;
-	Fri,  9 Oct 2026 06:49:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=194.13.80.246
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDAD33D410C;
+	Fri,  9 Oct 2026 08:33:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791528558; cv=none; b=UMetTizweKxlRJ1kB7TtKuPBRXNF+wTT7c1tuSt8Q2AmF6bCbK0GXVg1cRE9Nv3pzAiUOkusRtMga8San48WYwVADw1sruNb300EXhEbGGgfAMAEZTSizWS/tcN3djl7F39DyfonuTYLSV1qcyn//+5yNR5uaDR2UgBdAeb3gjM=
+	t=1791534819; cv=none; b=olqngRqZd++Z+v3MPybP8t/NBaJ5tNzlmGz3dwdRyYVQ17LZTryZ70tBS8qNBh/MCRgn77pG4/XxIBkTr3MNXWu9JXEY5m6TkDfNCMmVlt/P/9OejGGlzv/ooUVaTnkd9WxPvIRJhs+6Hz7L2evbx7P2d6RtHyNQccEq6ugaglM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791528558; c=relaxed/simple;
-	bh=7w6WtgOAooBhMLzwKrrQuDQCvTsa7DPrL70+gYLvitY=;
-	h=MIME-Version:Date:From:To:Cc:Subject:In-Reply-To:References:
-	 Message-ID:Content-Type; b=ctUnP2Q+4oENu0TX/DuHh11qzozRC5b4mcF/NgY2Lp2m3/reXn6QRszxfCdhrV9BIX0kcEmqe6ncMDzHOcCTQmB5/oAX2xLFyI6KVrZ0j4teNNHBvFwQ9ZPRYw4TZPBT/C7B1yofDwyF+c1jkLTKnXq4lGz55PM5L62RAG+o9o4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=tipi-net.de; spf=pass smtp.mailfrom=tipi-net.de; dkim=pass (2048-bit key) header.d=tipi-net.de header.i=@tipi-net.de header.b=kZFuYIPz; arc=none smtp.client-ip=194.13.80.246
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=tipi-net.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=tipi-net.de
+	s=arc-20240116; t=1791534819; c=relaxed/simple;
+	bh=n5BrO2f+BSSxXxilLwcrQNqBy4td6k5P5s1mOZQJTb4=;
+	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
+	 Date; b=sKGdMvL/XFPc7cVzh+2r/aDsQxvDR0qZh13t93aAwZWitVRZYwjBGjpdKPu+BitexQV6jd+8PIzEWPG9jSCwgqmKT5Jx1SNCIn6pqLcolBeFDrt39IYQwwRW6sQUs/TfH3eNpdHAEe4Y6YhgOuXiEW7l18T7vEds5HEFS7Epvx4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kU/KZbAl; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=tipi-net.de header.i=@tipi-net.de header.b="kZFuYIPz"
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 125E7A1545;
-	Fri,  9 Oct 2026 08:49:03 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=tipi-net.de; s=dkim;
-	t=1791528548; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=lcrb/n6yq9rUogTadFHg4X4Vn+bgruUv47sFAGOzlDo=;
-	b=kZFuYIPzYEsMBF16NbUxECIKID0eVOFlNivAcf8B7RmcGRTJnFUDgWTEb+PS7FvFSjwj/1
-	8+3+RMYjhVY4RsK8ZFeGRt88EUqXpQX1f5hENOyPHDC6aZFjaaaehf9TN5n6SYUyaG3x77
-	KJSehPNwPCnZhU1gduLne/X3t2a7kO/6c+P3cGRlM1A+pqLGgoMo5hPQXAfSEqH1vhTLjT
-	QNFwKsC70h3bUNtvjheIQUAhgbvbuYODR8QVA7qpq28ir4W9rRxRx7EJauo3ZzdfoGSfxg
-	dNPId/Wbkx0rEzev4bTN5gFtwIvFv2Dj9hLpZOCSkBTeD2STbqzDgLd4JHwmgQ==
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kU/KZbAl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48A211F00893;
+	Fri,  9 Oct 2026 08:33:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791534818;
+	bh=PzDn7KdPLT3gxWYvd9RFWCJQb0rR8adAZzAh0TZVtB0=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=kU/KZbAl3z6E9xQRFUnyRf96W6Ut5JYkjPIKqR0KMFlGjHHUYcL5b01q70Fj46XnX
+	 +RBrvcGKLdRsa8cSRDPDafgRfslONA2SpO6svp3PadDJ1w93RbDx4j1MUVghncVE7l
+	 CH5JfBsB2t/29MxgoF+yo1D2Xn2S8qlReuTKpxfdBZPllujh/hfJQLqINXxwUqBjJc
+	 nkCPyRRnXfXTJvWXe6V92icHKhG5xIwWNDuO7Nhyyo1sjBR6W1HkTJVKTy2wSNas1L
+	 ncwWZJNhRlN1ysG1Ei71hFUifCqPMSUcL+9I+rcIm2ygPrguyMBEk9mhUwp8qbsGoK
+	 AVyyDFz+rpmAQ==
+Message-ID: <sashiko-outbox-165094@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net-next] net: mana: Add support to process throttled
+ EQEs
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Sahil Chandna" <sahilchandna@linux.microsoft.com>
+Cc: linux-rdma@vger.kernel.org, linux-hyperv@vger.kernel.org
+In-Reply-To: <20261008083315.306076-1-sahilchandna@linux.microsoft.com>
+References: <20261008083315.306076-1-sahilchandna@linux.microsoft.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Fri, 09 Oct 2026 08:33:37 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Date: Fri, 09 Oct 2026 08:49:02 +0200
-From: Nicolai Buchwitz <nb@tipi-net.de>
-To: netdev-bot+sashiko@kernel.org
-Cc: davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org,
- pabeni@redhat.com, horms@kernel.org, o.rempel@pengutronix.de,
- maxime.chevallier@bootlin.com, andrew+netdev@lunn.ch,
- mcoquelin.stm32@gmail.com, alexandre.torgue@foss.st.com,
- Jose.Abreu@synopsys.com, saeedm@nvidia.com, tariqt@nvidia.com,
- mbloch@nvidia.com, leon@kernel.org, dtatulea@nvidia.com, alazar@nvidia.com,
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-stm32@st-md-mailman.stormreply.com,
- linux-arm-kernel@lists.infradead.org, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH net-next 1/3] net: selftests: use skb_share_check() in the
- loopback receive hook
-In-Reply-To: <179149509090.434549.9918598206439291164@kernel.org>
-References: <20261007-nb-net-selftest-shared-net-v1-1-458369bfa1ba@tipi-net.de>
- <179149509090.434549.9918598206439291164@kernel.org>
-Message-ID: <533b88ce917b59f4f59f52145d2f035f@tipi-net.de>
-X-Sender: nb@tipi-net.de
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-X-Last-TLS-Session-Version: TLSv1.3
 
-Hi Clashiko
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+s) to consider:
+- [High] mana: RDMA queue stalls due to dropped throttle events
+--
 
-On 8.10.2026 23:31, netdev-bot+sashiko@kernel.org wrote:
+commit 49b4827fa426b6ae0b8759a5984d01f44b8db5e1
+Author: Sahil Chandna <sahilchandna@linux.microsoft.com>
 
-> [...]
+net: mana: Add support to process throttled EQEs
 
-> [Severity: High]
-> This change looks correct for net_test_loopback_validate(). The same
-> pattern still seems to be present in stmmac_test_vlan_validate() in
-> drivers/net/ethernet/stmicro/stmmac/stmmac_selftests.c, though.
-> 
-> A later commit in this series, "net: stmmac: selftests: use
-> skb_share_check() in the loopback receive hook", converts
-> stmmac_test_loopback_validate(). The second copy of this handler in the
-> same file is left as:
-> 
-> stmmac_test_vlan_validate() {
->     ...
-> 	skb = skb_unshare(skb, GFP_ATOMIC);
-> 	if (!skb)
-> 		goto out;
-> 
-> 	if (skb_linearize(skb))
-> 		goto out;
->     ...
-> }
-> 
-> __stmmac_test_vlanfilt() and the other VLAN tests register this handler 
-> as
-> a device-bound packet_type. The type is ETH_P_IP, ETH_P_8021Q, or 
-> either
-> one depending on svlan:
-> 
-> 	tpriv->pt.type = htons(ETH_P_IP);
-> 	tpriv->pt.func = stmmac_test_vlan_validate;
-> 	tpriv->pt.dev = priv->dev;
-> 
-> Suppose another handler for the same type sits later in the device's
-> ptype list, for example an AF_PACKET socket bound to ETH_P_IP on that
-> interface. deliver_skb() then increments skb->users, so the hook gets 
-> an
-> skb that is shared but not cloned. skb_unshare() only checks
-> skb_cloned(), so it returns that skb unchanged.
-> 
-> For a non-linear frame with less tailroom than data_len, this path
-> follows:
-> 
-> skb_linearize()
->   __pskb_pull_tail()
->     pskb_expand_head()
->       BUG_ON(skb_shared(skb));
-> 
-> Should stmmac_test_vlan_validate() get the same skb_share_check()
-> conversion, so the series covers every copy of this hook?
+This commit adds support for processing throttled EQEs of type 4 when an
+event queue nears full capacity. The driver advertises the
+GDMA_DRV_CAP_FLAG_1_THROTTLED_EVENT_QUEUE capability and attempts to schedu=
+le
+the CQs associated with a throttled EQE. CQs are tracked in a new child_cq
+array initialized when creating a CQ.
 
-No, AFAIU the VLAN tests can't get a shared skb here. They set
-capture_all, so stmmac_sft_add_pack() registers stmmac_sft_filter()
-instead, which passes stmmac_test_vlan_validate() its own clone.
+> diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/ne=
+t/ethernet/microsoft/mana/gdma_main.c
+> index ae0ed700b3b93..b8e5ad2c6d312 100644
+> --- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
+> +++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+> @@ -747,6 +747,18 @@ void mana_gd_free_service_wq(struct gdma_context *gc)
+>  	gc->service_wq =3D NULL;
+>  }
+> =20
+> +static void mana_gd_schedule_eq_cqs(struct gdma_queue *eq)
+> +{
+> +	struct gdma_queue *cq;
+> +	u8 i;
+> +
+> +	for (i =3D 0; i < GDMA_EQ_MAX_CHILD_CQ; i++) {
+> +		cq =3D rcu_dereference(eq->eq.child_cq[i]);
+> +		if (cq && cq->cq.callback)
+> +			cq->cq.callback(cq->cq.context, cq);
 
-> 
-> The xgbe sibling, xgbe_test_loopback_validate(), does not seem to be
-> affected. It already calls skb_share_check() before it expands a shared
-> skb.
-> 
-> [Severity: Low]
-> This is a pre-existing issue that this patch did not introduce. The
-> length check further down in net_test_loopback_validate() looks too
-> short for what the function parses afterwards:
-> 
-> 	if (skb_headlen(skb) < (NET_TEST_PKT_SIZE - ETH_HLEN))
-> 		goto out;
-> 
-> NET_TEST_PKT_SIZE in include/net/selftests.h covers only ethhdr, iphdr
-> and netsfhdr. That guarantees 33 bytes past the network header and does
-> not include the TCP/UDP header.
-> 
-> The function then reads:
-> 
-> 	thdr = (struct tcphdr *)((u8 *)ihdr + 4 * ihdr->ihl);
-> 	...
-> 	if (shdr->magic != cpu_to_be64(NET_TEST_PKT_MAGIC))
-> 
-> It never checks ihl >= 5, the IP version, tot_len or the L4 header
-> length, and double_vlan adds another 4 bytes.
-> 
-> Could an IPv4 frame that arrives during ethtool -t make the hook read 
-> up
-> to about 64 bytes past skb->tail? Examples would be a minimum-size TCP
-> segment or a frame with ihl=15.
-> 
-> The over-read seems to stay inside the skb head allocation, because
-> skb_shared_info follows skb->end. If so, the only effect is a possibly
-> wrong selftest result.
+[Severity: High]
+When a GDMA_EQE_THROTTLE event is processed, this function attempts to noti=
+fy
+the CQs. Will RDMA CQs receive these notifications?
 
-The length check is pre-existing, will address that in a follow-up 
-patch.
+RDMA CQs do not appear to be added to child_cq, which might cause their
+notifications to be entirely dropped and result in RDMA queue stalls.
+
+> +	}
+> +}
+> +
+
+[ ... ]
+
+> @@ -1063,17 +1080,41 @@ static void mana_gd_create_cq(const struct gdma_q=
+ueue_spec *spec,
+>  			      struct gdma_queue *queue)
+>  {
+>  	u32 log2_num_entries =3D ilog2(spec->queue_size / GDMA_CQE_SIZE);
+> +	struct gdma_queue *parent;
+> +	u8 i;
+> =20
+>  	queue->head |=3D INITIALIZED_OWNER_BIT(log2_num_entries);
+> -	queue->cq.parent =3D spec->cq.parent_eq;
+> +	parent =3D spec->cq.parent_eq;
+> +	queue->cq.parent =3D parent;
+>  	queue->cq.context =3D spec->cq.context;
+>  	queue->cq.callback =3D spec->cq.callback;
+> +
+> +	if (!parent)
+> +		return;
+> +
+> +	/* For throttled EQE store the child CQ */
+> +	for (i =3D 0; i < GDMA_EQ_MAX_CHILD_CQ; i++)
+> +		if (!rcu_access_pointer(parent->eq.child_cq[i])) {
+> +			rcu_assign_pointer(parent->eq.child_cq[i], queue);
+> +			return;
+> +		}
+
+[Severity: High]
+Does this logic handle RDMA CQs correctly?
+
+RDMA CQs are created with a NULL parent_eq (via mana_ib_create_kernel_queue=
+),
+which causes this function to return early without populating the child_cq
+array.
+
+Additionally, if an EQ has more than GDMA_EQ_MAX_CHILD_CQ (which is 2) CQs
+attached, which is common in RDMA workloads, this loop will silently return
+without adding the additional CQs. Can this lead to lost completions?
+
+>  }
+
+[ ... ]
+
+> diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+> index c610fc1067e0d..03fe9395604d6 100644
+> --- a/include/net/mana/gdma.h
+> +++ b/include/net/mana/gdma.h
+> @@ -776,7 +785,8 @@ enum {
+>  	 GDMA_DRV_CAP_FLAG_1_HANDLE_STALL_SQ_RECOVERY | \
+>  	 GDMA_DRV_CAP_FLAG_1_EQ_MSI_UNSHARE_MULTI_VPORT | \
+>  	 GDMA_DRV_CAP_FLAG_1_DYN_INTERRUPT_MODERATION | \
+> -	 GDMA_DRV_CAP_FLAG_1_NON_CONTIGUOUS_BUFFERS)
+> +	 GDMA_DRV_CAP_FLAG_1_NON_CONTIGUOUS_BUFFERS | \
+> +	 GDMA_DRV_CAP_FLAG_1_THROTTLED_EVENT_QUEUE)
+
+[Severity: High]
+Since this patch globally advertises throttling support, the hardware might
+send throttle events on RDMA EQs when they are heavily loaded.
+
+Given that RDMA EQs are initialized with a log2_throttle_limit in
+mana_ib_create_eqs(), will enabling this capability cause RDMA workloads to
+stall if their throttle events are dropped due to the missing child_cq mapp=
+ing
+in mana_gd_create_cq()?
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261008083315.3060=
+76-1-sahilchandna@linux.microsoft.com?part=3D1
