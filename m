@@ -1,201 +1,155 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mail.tipi-net.de (mail.tipi-net.de [194.13.80.246])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E94044C51D;
-	Fri,  9 Oct 2026 06:41:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 746363AEF50;
+	Fri,  9 Oct 2026 06:49:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=194.13.80.246
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791528083; cv=none; b=lhFF0fOkXZRCfar/8fWXiQPd7gpR9x082q8NEWxSrowrJT9pdvOKbEILe4bemnM6vFdJfWYiBU3Y2D3te2eR8YhAN6xNXmhQQVXIL49TA5WR3DJEG6Y9XBercs0TMPHxeaRNwMp+FOOFGj0kyoSvFhFwEm35ZaMVIx2kGkDtxM0=
+	t=1791528558; cv=none; b=UMetTizweKxlRJ1kB7TtKuPBRXNF+wTT7c1tuSt8Q2AmF6bCbK0GXVg1cRE9Nv3pzAiUOkusRtMga8San48WYwVADw1sruNb300EXhEbGGgfAMAEZTSizWS/tcN3djl7F39DyfonuTYLSV1qcyn//+5yNR5uaDR2UgBdAeb3gjM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791528083; c=relaxed/simple;
-	bh=5b7bEvA9D1R3qorEecj7lbUy+UeZj+EmNcJYtor+Izw=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=cA1HlrKtr6H1vet8orAOjAFEtin5g5g7KCk8kbPnBmNo1rZFYIwYzPeEuTo8JcofrKM0eJPbQIvHK/zCnZ1j1LE7bPTg2DQAbXRBMhI/dt0RiFdLKtZkncFMl290sXoqioi9KdjGGALmtDX7eUd/YTg0Cr7XbzaNwwW8UbaTdcg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=T8VAtbVO; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791528558; c=relaxed/simple;
+	bh=7w6WtgOAooBhMLzwKrrQuDQCvTsa7DPrL70+gYLvitY=;
+	h=MIME-Version:Date:From:To:Cc:Subject:In-Reply-To:References:
+	 Message-ID:Content-Type; b=ctUnP2Q+4oENu0TX/DuHh11qzozRC5b4mcF/NgY2Lp2m3/reXn6QRszxfCdhrV9BIX0kcEmqe6ncMDzHOcCTQmB5/oAX2xLFyI6KVrZ0j4teNNHBvFwQ9ZPRYw4TZPBT/C7B1yofDwyF+c1jkLTKnXq4lGz55PM5L62RAG+o9o4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=tipi-net.de; spf=pass smtp.mailfrom=tipi-net.de; dkim=pass (2048-bit key) header.d=tipi-net.de header.i=@tipi-net.de header.b=kZFuYIPz; arc=none smtp.client-ip=194.13.80.246
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=tipi-net.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=tipi-net.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="T8VAtbVO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5471B1F000FF;
-	Fri,  9 Oct 2026 06:41:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791528081;
-	bh=3/gbkzEDX1YSsF3k49PS/NV+iCMWzcitK5U03jM0BP8=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=T8VAtbVOuBa1Ye5d8d03QSCkbp/iRJjaONNklr+BXGSlMMg0kL9KaS/9kE0jDjZDv
-	 GHMlauRRxPpky9QHwahVofNgAVqug0A+2rEZ601nemODJOewvRdlAqdTjyVaZ/miJm
-	 Uxwg0ziiZ9U8isHpM57mwK/OGcIRpS0dH/O41akVNun1IyhPkydf4O7BnPf3k43Opr
-	 4bU6xGMXRTAN0EhuZlnxy7Xk1tVFDqQEqvgWDGvhgs9aLtq83TmFqxczG31hDh47rB
-	 pRxbogHCLEHveVHF514m3to5ltC0YcaFRzzBZExMi+Y6eFy+WR5W5GQqHtZuELVqZe
-	 BvRxLaipnzNpg==
-Subject: Re: [PATCH net v6 3/3] net/smc: bound the send length to the send
- buffer in smc_tx_sendmsg()
-From: netdev-bot+sashiko@kernel.org
-To: hexlabsecurity@proton.me
-Cc: sidraya@linux.ibm.com, alibuda@linux.alibaba.com, edumazet@kernel.org,
- mjambigi@linux.ibm.com, dust.li@linux.alibaba.com, davem@davemloft.net,
- pabeni@redhat.com, kuba@kernel.org, raspl@linux.ibm.com,
- tonylu@linux.alibaba.com, hidayath@linux.ibm.com, ubraun@linux.ibm.com,
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org, horms@kernel.org,
- linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
- guwen@linux.alibaba.com, wenjia@linux.ibm.com
-Date: Fri, 09 Oct 2026 06:41:19 +0000
-Message-ID: <179152807992.434549.3295281690534839972@kernel.org>
-In-Reply-To: <20261008-b4-disp-f7cd3d96-v6-3-fba616c0920c@proton.me>
-References: <20261008-b4-disp-f7cd3d96-v6-3-fba616c0920c@proton.me>
-X-sashiko-severity: Medium
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (2048-bit key) header.d=tipi-net.de header.i=@tipi-net.de header.b="kZFuYIPz"
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 125E7A1545;
+	Fri,  9 Oct 2026 08:49:03 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=tipi-net.de; s=dkim;
+	t=1791528548; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding:in-reply-to:references;
+	bh=lcrb/n6yq9rUogTadFHg4X4Vn+bgruUv47sFAGOzlDo=;
+	b=kZFuYIPzYEsMBF16NbUxECIKID0eVOFlNivAcf8B7RmcGRTJnFUDgWTEb+PS7FvFSjwj/1
+	8+3+RMYjhVY4RsK8ZFeGRt88EUqXpQX1f5hENOyPHDC6aZFjaaaehf9TN5n6SYUyaG3x77
+	KJSehPNwPCnZhU1gduLne/X3t2a7kO/6c+P3cGRlM1A+pqLGgoMo5hPQXAfSEqH1vhTLjT
+	QNFwKsC70h3bUNtvjheIQUAhgbvbuYODR8QVA7qpq28ir4W9rRxRx7EJauo3ZzdfoGSfxg
+	dNPId/Wbkx0rEzev4bTN5gFtwIvFv2Dj9hLpZOCSkBTeD2STbqzDgLd4JHwmgQ==
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Date: Fri, 09 Oct 2026 08:49:02 +0200
+From: Nicolai Buchwitz <nb@tipi-net.de>
+To: netdev-bot+sashiko@kernel.org
+Cc: davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org,
+ pabeni@redhat.com, horms@kernel.org, o.rempel@pengutronix.de,
+ maxime.chevallier@bootlin.com, andrew+netdev@lunn.ch,
+ mcoquelin.stm32@gmail.com, alexandre.torgue@foss.st.com,
+ Jose.Abreu@synopsys.com, saeedm@nvidia.com, tariqt@nvidia.com,
+ mbloch@nvidia.com, leon@kernel.org, dtatulea@nvidia.com, alazar@nvidia.com,
+ netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-stm32@st-md-mailman.stormreply.com,
+ linux-arm-kernel@lists.infradead.org, linux-rdma@vger.kernel.org
+Subject: Re: [PATCH net-next 1/3] net: selftests: use skb_share_check() in the
+ loopback receive hook
+In-Reply-To: <179149509090.434549.9918598206439291164@kernel.org>
+References: <20261007-nb-net-selftest-shared-net-v1-1-458369bfa1ba@tipi-net.de>
+ <179149509090.434549.9918598206439291164@kernel.org>
+Message-ID: <533b88ce917b59f4f59f52145d2f035f@tipi-net.de>
+X-Sender: nb@tipi-net.de
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+X-Last-TLS-Session-Version: TLSv1.3
 
-Thank you for your contribution! Sashiko AI review found 2 potential
-issue(s) to consider.
+Hi Clashiko
 
-Critical: 0 · High: 0 · Medium: 2 · Low: 0
+On 8.10.2026 23:31, netdev-bot+sashiko@kernel.org wrote:
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+> [...]
 
-- [Medium] The commit message's threat model does not match the code it
-  changes.
-- [Medium] The patch says it 'enforces the documented 0 <= sndbuf_space
-  <= sndbuf_desc->len invariant'.
+> [Severity: High]
+> This change looks correct for net_test_loopback_validate(). The same
+> pattern still seems to be present in stmmac_test_vlan_validate() in
+> drivers/net/ethernet/stmicro/stmmac/stmmac_selftests.c, though.
+> 
+> A later commit in this series, "net: stmmac: selftests: use
+> skb_share_check() in the loopback receive hook", converts
+> stmmac_test_loopback_validate(). The second copy of this handler in the
+> same file is left as:
+> 
+> stmmac_test_vlan_validate() {
+>     ...
+> 	skb = skb_unshare(skb, GFP_ATOMIC);
+> 	if (!skb)
+> 		goto out;
+> 
+> 	if (skb_linearize(skb))
+> 		goto out;
+>     ...
+> }
+> 
+> __stmmac_test_vlanfilt() and the other VLAN tests register this handler 
+> as
+> a device-bound packet_type. The type is ETH_P_IP, ETH_P_8021Q, or 
+> either
+> one depending on svlan:
+> 
+> 	tpriv->pt.type = htons(ETH_P_IP);
+> 	tpriv->pt.func = stmmac_test_vlan_validate;
+> 	tpriv->pt.dev = priv->dev;
+> 
+> Suppose another handler for the same type sits later in the device's
+> ptype list, for example an AF_PACKET socket bound to ETH_P_IP on that
+> interface. deliver_skb() then increments skb->users, so the hook gets 
+> an
+> skb that is shared but not cloned. skb_unshare() only checks
+> skb_cloned(), so it returns that skb unchanged.
+> 
+> For a non-linear frame with less tailroom than data_len, this path
+> follows:
+> 
+> skb_linearize()
+>   __pskb_pull_tail()
+>     pskb_expand_head()
+>       BUG_ON(skb_shared(skb));
+> 
+> Should stmmac_test_vlan_validate() get the same skb_share_check()
+> conversion, so the series covers every copy of this hook?
 
---
+No, AFAIU the VLAN tests can't get a shared skb here. They set
+capture_all, so stmmac_sft_add_pack() registers stmmac_sft_filter()
+instead, which passes stmmac_test_vlan_validate() its own clone.
 
-net/smc: bound the send length to the send buffer in smc_tx_sendmsg()
+> 
+> The xgbe sibling, xgbe_test_loopback_validate(), does not seem to be
+> affected. It already calls skb_share_check() before it expands a shared
+> skb.
+> 
+> [Severity: Low]
+> This is a pre-existing issue that this patch did not introduce. The
+> length check further down in net_test_loopback_validate() looks too
+> short for what the function parses afterwards:
+> 
+> 	if (skb_headlen(skb) < (NET_TEST_PKT_SIZE - ETH_HLEN))
+> 		goto out;
+> 
+> NET_TEST_PKT_SIZE in include/net/selftests.h covers only ethhdr, iphdr
+> and netsfhdr. That guarantees 33 bytes past the network header and does
+> not include the TCP/UDP header.
+> 
+> The function then reads:
+> 
+> 	thdr = (struct tcphdr *)((u8 *)ihdr + 4 * ihdr->ihl);
+> 	...
+> 	if (shdr->magic != cpu_to_be64(NET_TEST_PKT_MAGIC))
+> 
+> It never checks ihl >= 5, the IP version, tot_len or the L4 header
+> length, and double_vlan adds another 4 bytes.
+> 
+> Could an IPv4 frame that arrives during ethtool -t make the hook read 
+> up
+> to about 64 bytes past skb->tail? Examples would be a minimum-size TCP
+> segment or a frame with ihl=15.
+> 
+> The over-read seems to stay inside the skb head allocation, because
+> skb_shared_info follows skb->end. If so, the only effect is a possibly
+> wrong selftest result.
 
-This patch clamps the local writespace snapshot in smc_tx_sendmsg() to
-sndbuf_desc->len. A negative value is also treated as out of range. The
-stated goal is to prevent a heap out-of-bounds write in the wrap-around
-copy when the SMC-D DMB-merge path inflates conn->sndbuf_space from a
-forged consumer cursor.
-
-> On the SMC-D DMB-merge (nocopy) path, smc_cdc_msg_recv_action()
-> advances conn->sndbuf_space from the peer's wire-controlled consumer
-> cursor via smc_curs_diff(), which can return more than sndbuf_desc->len;
-> a forged cursor drives sndbuf_space past the send buffer, and over many
-> CDC messages overflows the signed counter negative. smc_tx_sendmsg()
-> reads it as the write space and does a wrap-around copy whose second
-> chunk is not re-bounded to sndbuf_desc->len, spilling the local
-> sender's outbound data past the send buffer at a peer-controlled
-> length: a heap out-of-bounds write.
-
-[Severity: Medium]
-Is "the peer's wire-controlled consumer cursor" accurate for this path?
-
-The diff_tx update in smc_cdc_msg_recv_action() only runs behind this
-check:
-
-	if (conn->lgr->is_smcd &&
-	    smc_ism_support_dmb_nocopy(conn->lgr->smcd)) {
-
-and smc_ism_support_dmb_nocopy() is:
-
-	/* for now only loopback-ism supports
-	 * merging sndbuf with peer DMB to avoid
-	 * data copies between them.
-	 */
-	return (smcd->dibs->ops->support_mmapped_rdmb &&
-		smcd->dibs->ops->support_mmapped_rdmb(smcd->dibs));
-
-The only in-tree provider of support_mmapped_rdmb is dibs_lo_ops in
-drivers/dibs/dibs_loopback.c. dibs_lo_query_rgid() accepts only its own
-GID, so the peer on this path is the same kernel's SMC stack.
-
-That kernel builds the consumer cursor from its own connection state in
-smcd_cdc_msg_send():
-
-	curs.acurs.counter = atomic64_read(&conn->local_tx_ctrl.cons.acurs);
-	cdc.cons.wrap = curs.wrap;
-	cdc.cons.count = curs.count;
-
-dibs_lo_move_data() then copies it into the DMB with a bounds check.
-Userspace does not write the CDC header area of the DMB.
-
-The buffer lengths also match. smcd_new_buf_create() sets rmb_desc->len
-to bufsize - sizeof(struct smcd_cdc_msg). smcd_buf_attach() sets the
-attached sndbuf_desc->len to dmb_len - sizeof(struct smcd_cdc_msg). So a
-conforming cursor should not produce a diff_tx larger than
-sndbuf_desc->len.
-
-Given this, is the patch hardening against a misbehaving in-kernel peer
-or a future nocopy-capable device, rather than fixing a heap
-out-of-bounds write that a peer can trigger? If so, could the commit
-message be reworded? The current wording and the Fixes: and Cc: stable
-tags describe a memory corruption that a remote peer controls.
-
-> diff --git a/net/smc/smc_tx.c b/net/smc/smc_tx.c
-> index 3144b4b1fe290..5916f02060fb9 100644
-> --- a/net/smc/smc_tx.c
-> +++ b/net/smc/smc_tx.c
-> @@ -233,6 +233,19 @@ int smc_tx_sendmsg(struct smc_sock *smc, struct msghdr *msg, size_t len)
->  		/* initialize variables for 1st iteration of subsequent loop */
->  		/* could be just 1 byte, even after smc_tx_wait above */
->  		writespace = atomic_read(&conn->sndbuf_space);
-> +		/* sndbuf_space is advanced from the peer's wire-controlled
-> +		 * consumer cursor on the SMC-D DMB-merge path; a forged cursor
-> +		 * can inflate it past the send buffer, or overflow the signed
-> +		 * accumulator to a negative value across many CDC messages
-> +		 * (which a plain "> len" check would miss before the size_t
-> +		 * cast below turns it huge).  Bound it to the send buffer in
-> +		 * either case so the wrap-around write cannot run past
-> +		 * sndbuf_desc->len.  This enforces the documented
-> +		 * 0 <= sndbuf_space <= sndbuf_desc->len invariant at the
-> +		 * producer, race-free against the CDC tasklet.
-> +		 */
-> +		if (writespace < 0 || writespace > conn->sndbuf_desc->len)
-> +			writespace = conn->sndbuf_desc->len;
-
-[Severity: Medium]
-Does this enforce the invariant on conn->sndbuf_space itself? Only the
-local writespace snapshot is clamped. The shared atomic is never
-corrected.
-
-Later in smc_tx_sendmsg(), the subtraction still runs on the
-out-of-range value:
-
-		atomic_sub(copylen, &conn->sndbuf_space);
-		/* guarantee 0 <= sndbuf_space <= sndbuf_desc->len */
-
-A negative counter goes further negative. A value of
-2 * sndbuf_desc->len stays at sndbuf_desc->len after a full-ring copy.
-
-The source of the value is also unchanged.
-smc_cdc_msg_recv_action() still adds diff_tx without a bound:
-
-			atomic_add(diff_tx, &conn->sndbuf_space);
-			/* guarantee 0 <= sndbuf_space <= sndbuf_desc->len */
-
-smcd_cdc_msg_to_host() copies peer->cons without the wrap and count
-check that smc_cdc_cursor_to_host() does for SMC-R.
-
-If the premise in the commit message holds, the other readers would
-still see the bad value:
-
-  smc_tx_sendmsg():  if (!atomic_read(&conn->sndbuf_space) || ...
-  smc_tx_wait(), smc_tx_should_cork(), smc_poll() EPOLLOUT
-  smc_ioctl() SIOCOUTQ:
-	answ = smc->conn.sndbuf_desc->len -
-			atomic_read(&smc->conn.sndbuf_space);
-
-The counter would never reach zero, so sendmsg would not block. It
-would keep rewriting the whole ring over data the peer has not consumed
-yet. SIOCOUTQ could return a negative value or one larger than the
-buffer.
-
-The commit message also says the bound is applied "at the consumer",
-but this comment says "at the producer". Which one is meant?
-
-Would it be more accurate to describe this as bounding the copy length?
-Alternatively, diff_tx (or the cursor) could also be bounded where it is
-received, in smc_cdc_msg_recv_action().
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261008-b4-disp-f7cd3d96-v6-0-fba616c0920c%40proton.me
+The length check is pre-existing, will address that in a follow-up 
+patch.
