@@ -1,149 +1,133 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-dy1-f172.google.com (mail-dy1-f172.google.com [74.125.82.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EC994D09F6
-	for <linux-rdma@vger.kernel.org>; Fri,  9 Oct 2026 13:31:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791552669; cv=none; b=Er8UddJoCwKGN7yEPWyXwFsYkl4BW4u56h1MqGPNdLtLm67YKHc8KYMAOqoxRoJr6YrVjUKt9HJU2WZOkwSb6mJsIcpR1UltruvN2P5d+yZ8EIpxSOiKUuposrdAWXBRb6wEubUP+ifUJrZ67l559wRAy5IJbcM6uTqrCCd/zMo=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791552669; c=relaxed/simple;
-	bh=iP6dVOsnw5rQhp8360xQd5dIqh1JR9dIdKD61MsunNI=;
-	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=jU+3wukc+bnSPS5727Flt+H71cJWPmmjOoWYSAMc25LrGo5NX38d0j6IBeTNIV/A7344X3zWQeA8B1YkXjuYOW9kOzxJfiqXcRw/alSRxQx4T0Bk8j7aZ1uAVW+4u3kYwICxHhk86dLmr9AdLWIkRtYhs7bswQ8RM40NL8SUpRY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VlLB2zRU; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05F804E50CC
+	for <linux-rdma@vger.kernel.org>; Fri,  9 Oct 2026 13:43:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.82.172
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791553426; cv=pass; b=Hm5Ohwr7TAUPMfI7JJ2GpOiVSN2xab+0Io8ona9Y+G7BVoIGlnAlKDyp0f7Cx6E1ajyrDOC1E3mNHE99poruNMy3ZcmtC2YpCzXJ7y6wPzPbEvZ7p8KXoqJs3E26kW3yq0MMPMcTyURH6N6EcTo3qUQy2Kovq6rocNKctjMhgKk=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791553426; c=relaxed/simple;
+	bh=LQYO10lBY8YucsXcJTd6r+9tll/gYfDwC9yXCQh2QM0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=gEAHMTyDca/3kJz6sauXFF7bdheUeQL0khFNUh06ImxoKznyH/TMc5cYfW3tpF3C501HCnp4S2dcBoHRREaRu0XKgHq7YzaU74uujfk7Gmu2qyAfca2QoNbqiPNNv1kqPBgiLeX0tL9IiWjtLFGRaccNKkjtR3HWjPCoZZGtH10=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=toxicpanda.com; spf=pass smtp.mailfrom=toxicpanda.com; dkim=pass (2048-bit key) header.d=toxicpanda.com header.i=@toxicpanda.com header.b=KK/LlfF5; arc=pass smtp.client-ip=74.125.82.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=toxicpanda.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=toxicpanda.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VlLB2zRU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC0031F000FF;
-	Fri,  9 Oct 2026 13:31:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791552668;
-	bh=U1X6fcr6hujX07ip9OhDd0dD9oeWHXeTcaLbddCCHlU=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=VlLB2zRUw8ZxVriy2iFZnSGTFkFMG2iVEpIh8gzZs8EkNT7XTYgfsOAy1yoM99yzi
-	 YBIlbDhqENPpAIWmJgcart0bfv7EkoA1hij9qgJXoXznGz4TZ+a8Wz5uUUaq7x+XyV
-	 WC1tUF4STDzfE/CfoopWpC4U3GQ78a0OPGJ8aAOSDHvTrCrRmGuLA6UlCGORVtBwJo
-	 R1Hq51bX21pv8lwKG8gkPKrKjEu4pmU46LidJ8q7Ing2Eo4NFnfcMM6E0e8dxZFdan
-	 w5e/gzwB1fHbIa2x7VdAZmeR8ZI75RVewlJY6W3ZqnniQove/IBtqewQu1nUl7SC6I
-	 BVqnzN5AiAd0w==
-Message-ID: <sashiko-outbox-165644@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next 10/10] net/mlx5e: Enable the data direct netdev
- feature
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Tariq Toukan" <tariqt@nvidia.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261008132815.654147-11-tariqt@nvidia.com>
-References: <20261008132815.654147-1-tariqt@nvidia.com>
- <20261008132815.654147-11-tariqt@nvidia.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Fri, 09 Oct 2026 13:31:07 +0000
+	dkim=pass (2048-bit key) header.d=toxicpanda.com header.i=@toxicpanda.com header.b="KK/LlfF5"
+Received: by mail-dy1-f172.google.com with SMTP id 5a478bee46e88-354ba08cfd1so680661eec.1
+        for <linux-rdma@vger.kernel.org>; Fri, 09 Oct 2026 06:43:43 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1791553423; cv=none;
+        d=google.com; s=arc-20260327;
+        b=CgUDk7LrCl6b45SNE9hpTUgmvS9hQnY67GOodb19VeS250kuGmEM3oLDrmELLfOAqJ
+         EkvTi3zCE0k6cV4xz7oOpgNAlxhpb75gESJ3gVUZFJUxMqxCHeztDqyi9tb+0XS4K9TU
+         xis/b7t/ORRsiduD1NUcNWg0SMyfZAb3SWrv+mQwfmO+omccDLGZctaDseb1BuIDJzax
+         WDu1tO9Rt+WrGHCt3FHf/8k8o7oj7Wey90C+Tel0z+Cg6/SMxbcsguXrXc/7Ub/x2BSp
+         nT9TTkuQgct1K9pQLo53cpVmflT/5HyYqoDNLYW5bgubHctKcWkkNXNBMfDhvAauP49+
+         x3fA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=Cr53QXzLPPnzzAYL9+Ow9RuREkmHHvveZLDzlgyx6as=;
+        fh=kwzvxOSiFVlX11UWP08fDt8HMkrWmIz3wCWrTrzMvzs=;
+        b=H49fRU+RS+8ZhiPVIKWpwe7NEyZRSl+cbNN8zpgruJ0b6v/zRYGURhPKV455TCNwK3
+         SsxJih2CXWqgnSbC4+CvHW82N0aelYc/XJSAfSlmHKwHd5f/c+CQ6UVJx2voeKyjeBMD
+         kFB+ZqAiakbhVjWFtvGEHSveRt7CHNW7qi4ygmHlF7CDVdPmhMt1lbcx+3Lm/mJsfHgw
+         VHS6xYx/nmgmPwgwJDNMOSR/LgVp9STnil8Ax4ed05i24QoC6uLcsB17A5zVH+T0D2pR
+         l0+jAk1h0hE1ckf+K2a7+nvO80WhIEZCBItCdc0zK+9j2m2DfXUvROiLH2AkENLGpJeX
+         5nsA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=toxicpanda.com; s=google; t=1791553423; x=1792158223; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=Cr53QXzLPPnzzAYL9+Ow9RuREkmHHvveZLDzlgyx6as=;
+        b=KK/LlfF500M9HKvvEgwUZaMtwopK0KJsc7zlInv3lmgORbkZwrgh1WDGJoxJHLO40o
+         pHVo62d91gMPpJ3soaq1BiMrYr0AizMjjPyqCIBkIC4w7gjHvTfLXybRAUnI5Po67+ie
+         n137UHeoo/KUHK5CaLCeN98pBwDFobrzY5qzA/8N0CnbljkinGekpq6jiakTio/VeKRu
+         uZQBtUFGx4xjW+G3Qg29Fz00i5EgI3yHysYnN5n5UAl/a272zYo6fcBrghJk14YL9/ot
+         Spbh2FcFdSnRMUlw5oad4QAPXxpc2UICU9dzngX3csn5Koj5Xd9VcWaEv6Qq+EplAiAf
+         BntA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791553423; x=1792158223;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=Cr53QXzLPPnzzAYL9+Ow9RuREkmHHvveZLDzlgyx6as=;
+        b=L2nZTXp+qnal0jwokDGzeLA1P5Y+ysQBZWgQOuUwpBXwvuQTf91WxSfsrvPzWXmqvY
+         DB9px4mXtuP3z6GXgJV634PKo0oYoCKQFhh++XNoJdHlqbpT5NKdkmvepfeZDGYILGl6
+         519DvkBoCIXkhA1wUphheKvhyXvDyE+tbmKbg/D3ygB3LGfRxsEriBLC7DeB2uqp+Rv3
+         KWKy+qaUVwX71ImeicuLMHdDuXS/UJIrvXbxCWGnrdfomiVTzY4WR7YwE2YJuMTI36iq
+         v9jZZ4db6hfxSiAaJrnQAF8of3L301WWCyBjBtrg+ug4n7U/S2GhMDXTBx5qQcDzMZIF
+         5FRw==
+X-Forwarded-Encrypted: i=1; AKwUvByw3MME7g882XFyFHNOFLRhFLeiKqGB52dSIkeWzF9VxW3IO2XD5s5VXJdU6JLvc3YuSUjG71K7J19k@vger.kernel.org
+X-Gm-Message-State: AFuF++nR0y7N2hiPGXn6eVmGs1KT6i/Y8Y+pYBplBt4owVuS78CdbpLl
+	fs9K9ExQWyjXhlEcJGrAbUB7BbwoR2/YnzfZ5MT+MbebcbmhwL81WIE6rCv5G6htZrqdM7IkuA9
+	ZTMfHgX0qJtOWxfd5WCtAnHS54ytJ2oqB4pfHFCO9EH/iffw1lqbDQDUs2Wcd
+X-Gm-Gg: AYBFou3CVvOJbMe3cgeDbItmn/LqlzoaImop/Qd3SZ4YxDxkT5KebRyRSBvc+mtPriP
+	h9NVGBn9thNj/VmfWk2skHPRXYIWDqJHrkIHJtf2mE93MPksowvaCB4iCWzGtiq+x198MTTR5iL
+	0X4V5TiMwHHWTd+ShxGzF3m6n+AJGbmH6hixW18lt04by8IiSn4x5ABnaIs4FVdFrcmziPNjqA9
+	p7U6u7Ma6fN9AZf2cvwtPuUPsXnr5h/cT5qvFmydlvN9QT7wrALdrzswN/wUP69ABhOICH2nH9n
+	qZOH4Sy+UsGUs73jhWdo3mOLrA9UWMSDEoMyrFMuGqos5EHRh6FocptlDMA/TWkEngvwwr/pya7
+	CSC745JpMmPqB8Q==
+X-Received: by 2002:a05:7301:6e98:b0:33c:e74:4624 with SMTP id
+ 5a478bee46e88-3537e112919mr2778982eec.27.1791553422908; Fri, 09 Oct 2026
+ 06:43:42 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <20261008-b4-pskb-pull-tail-drivers-v2-0-8f2bd9bee138@toxicpanda.com>
+ <20261008141131.0ac356dd@kernel.org>
+In-Reply-To: <20261008141131.0ac356dd@kernel.org>
+From: Josef Bacik <josef@toxicpanda.com>
+Date: Fri, 9 Oct 2026 09:43:31 -0400
+X-Gm-Features: AclHuK9i2kH_QiKyGXflCaQStHSk6ronnlxME5kUtzkQ0rs0GpgdrjH4gnmAJRI
+Message-ID: <CAEzrpqfgBrvwy0Q_AX8X1s3ogq3g1U=JmpqHAM8QUmMHAqWPsw@mail.gmail.com>
+Subject: Re: [PATCH net-next v2 00/10] net: stop calling __pskb_pull_tail()
+ from drivers
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>, Eric Dumazet <edumazet@kernel.org>, 
+	"David S. Miller" <davem@davemloft.net>, Andrew Lunn <andrew+netdev@lunn.ch>, 
+	Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, 
+	Leon Romanovsky <leon@kernel.org>, Juergen Gross <jgross@suse.com>, 
+	Stefano Stabellini <sstabellini@kernel.org>, 
+	Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>, Tony Nguyen <anthony.l.nguyen@intel.com>, 
+	Przemek Kitszel <przemyslaw.kitszel@intel.com>, Manish Chopra <manishc@marvell.com>, 
+	Rahul Verma <rahulv@marvell.com>, GR-Linux-NIC-Dev@marvell.com, 
+	Shahed Shaikh <shshaikh@marvell.com>, Simon Horman <horms@kernel.org>, netdev@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, 
+	xen-devel@lists.xenproject.org, intel-wired-lan@lists.osuosl.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
-- [High] net/mlx5e: unbind event ignores dmabuf bindings and channel switch=
- failures
---
+On Thu, Oct 8, 2026 at 5:11=E2=80=AFPM Jakub Kicinski <kuba@kernel.org> wro=
+te:
+>
+> On Thu, 08 Oct 2026 21:02:47 +0000 Josef Bacik wrote:
+> > v1->v2:
+> > - New 1/10: skb_drop_empty_frags(). xen-netfront, netxen and qlcnic
+> >   relied on __pskb_pull_tail() releasing zero-length frags even when
+> >   there's nothing to pull, which pskb_may_pull() doesn't do (Sashiko).
+> > - xen-netfront, netxen, qlcnic: call skb_drop_empty_frags() after
+> >   pskb_may_pull().
+> > - skb_drop_empty_frags() checked with a boot-time test under KASAN and
+> >   kmemleak, on cloned and uncloned skbs.
+>
+> Please keep in mind that we ask people to limit themselves to 15
+> outstanding patches per tree. You have 18 right now.
+> (200 active netdev contributors + an LLM) x 20 patches =3D=3D insanity :/
 
-commit 9f56d4d1fade135dc92a72f9f099f77953de0c1d
-Author: Dragos Tatulea <dtatulea@nvidia.com>
+Eesh sorry Jakub, the skbuff BUG_ON() removal series is the more
+important one, this series is the followup so I can finish that work.
+By outstanding do you mean per-merge window or once I get
+notifications for things being merged I'm good to send the next batch?
+ Thanks,
 
-net/mlx5e: Enable the data direct netdev feature
-
-This commit implements the data_direct private flag in the mlx5e driver,
-enabling the feature. It also adds a check to prevent changing the flag's
-state if there are active dmabuf bindings to avoid breaking them during
-the resulting DMA device change.
-
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c b/drive=
-rs/net/ethernet/mellanox/mlx5/core/en_ethtool.c
-> index b3eced1dd43fd..8ab1150ce3f20 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
-
-[ ... ]
-
-> @@ -2402,7 +2403,40 @@ static int set_pflag_tx_port_ts(struct net_device =
-*netdev, bool enable)
-> =20
->  static int set_pflag_data_direct(struct net_device *netdev, bool enable)
->  {
-> -	return -EOPNOTSUPP;
-> +	struct mlx5e_priv *priv =3D netdev_priv(netdev);
-> +	struct mlx5_core_dev *mdev =3D priv->mdev;
-> +	struct mlx5e_params new_params;
-> +
-> +	if (enable) {
-> +		if (!mlx5_data_direct_supported(mdev) ||
-> +		    !MLX5_CAP_GEN(mdev, crossing_vhca_mkey)) {
-> +			netdev_err(netdev, "data_direct is not supported by the device\n");
-> +			return -EOPNOTSUPP;
-> +		}
-> +
-> +		if (!MLX5_CAP_GEN(mdev, shampo)) {
-> +			netdev_err(netdev, "data_direct requires SHAMPO (Header-Data Split) s=
-upport\n");
-> +			return -EOPNOTSUPP;
-> +		}
-> +
-> +		if (!mlx5_data_direct_get_dev(mdev->data_direct)) {
-> +			netdev_err(netdev, "data_direct device not bound\n");
-> +			return -ENODEV;
-> +		}
-> +	}
-> +
-> +	/* Changing the flag reopens the channels with a different DMA device,
-> +	 * which would break any dmabuf currently bound to this netdev.
-> +	 */
-> +	if (netdev_has_dmabuf_binding(netdev, NULL)) {
-> +		netdev_err(netdev, "Can't change data_direct while dmabufs are bound\n=
-");
-> +		return -EBUSY;
-> +	}
-> +
-> +	new_params =3D priv->channels.params;
-> +	MLX5E_SET_PFLAG(&new_params, MLX5E_PFLAG_DATA_DIRECT, enable);
-> +
-> +	return mlx5e_safe_switch_params(priv, &new_params, NULL, NULL, true);
->  }
-
-[Severity: High]
-This ethtool callback explicitly acknowledges that reopening channels with a
-different DMA device breaks dmabuf bindings. However, does the unbind notif=
-ier
-in mlx5e_data_direct_event() omit this safety check?
-
-Looking at mlx5e_data_direct_event() in
-drivers/net/ethernet/mellanox/mlx5/core/en_main.c:
-
-	new_params =3D priv->channels.params;
-	MLX5E_SET_PFLAG(&new_params, MLX5E_PFLAG_DATA_DIRECT, false);
-
-	mlx5e_safe_switch_params(priv, &new_params, NULL, NULL, true);
-
-	netdev_info(priv->netdev,
-		    "data_direct device unbound, disabled data_direct\n");
-
-The notifier forcefully reopens the channels without checking for or revoki=
-ng
-active dmabuf bindings. The channels are reopened using the netdev's primary
-DMA device, but the dmabufs remain mapped for the removed data_direct GPU,
-which could cause IOMMU faults.
-
-Additionally, what happens if the channel switch in the notifier fails?
-
-The return value of mlx5e_safe_switch_params() is ignored. If it fails
-(e.g., due to ENOMEM), the old channels might continue running with the old
-parameters, actively issuing DMA requests to the unbound and
-soon-to-be-freed data_direct device, potentially leading to a
-use-after-free and DMA corruption.
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261008132815.6541=
-47-1-tariqt@nvidia.com?part=3D10
+Josef
