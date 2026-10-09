@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C16EF3B7B7B;
-	Fri,  9 Oct 2026 16:59:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E07793B7B93;
+	Fri,  9 Oct 2026 17:00:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791565193; cv=none; b=cxpgySlJm1Ifi+sVDtnBrU7yXN5J5jk5e2l3U1AUw7gypUS8OU8GS6XzCf7cqxtLTWz/SWVAIUBaXFVCXsXRHXAo2T8V2w5grp9POn/YSP4soZtCBxW4jsD1GlbCzhyhTXtRrCnWS4ZLu7RHsQw8wH+P9KsaKUQTK7ou26ZCJ1E=
+	t=1791565213; cv=none; b=f+oUVGmOvCieiN15liW46hjwrch1bvuwbZu13eTGsmVs2Izp3Q1fP7LtzyvyExc+Vfo13rZgXxfeTkNRAlCZwgf+Wb4xfvAMien70I9F3jvGXSG9ngTquYxqVUXLLxGlbQcUbA2qhsodTts5+hhrtOuqTnABnnP7eIe1xxlcn5g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791565193; c=relaxed/simple;
-	bh=mx5HLX7NQip7DTHJlffeAg4KNsmsdr7n2PNVP74wSUk=;
+	s=arc-20240116; t=1791565213; c=relaxed/simple;
+	bh=f4hqEti0uqNvIlR4oCQlE7kLrMLq2qTdUcn75V2nhl4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ssW+6cudWWZ/hA2DGBS34u/rqh4N5wVy1Nr4ZjD/AKTT5RCmcJqygu5auqWcy8le9v8YHHD7F1qaMLVXEHDCT71lwMirPlYljOAz6KMp6xl00ffpUXMBKaqkuHhrwquzIFZYH8GSEo+TsTgVGx8KfS2TLx2tB6KKB60zI/Sb2aQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=chtnWsYi; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=mFaYgdGAv9vvkkunZXVl4lieMt0umtTnJ7MXbTPsHO5iZwxP1lhe3rMjG0qmZszLAtR2B5vzXTmmf0QuaTuXTlR/2fPhO1Zv+/vJNBRzSubRkuaWlzPKRBLDFsuy5JqDQK5CE9jztsTMSqNlLhGVEHaVfDvQ/cjNeAxGjYiLmAc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WhJitxze; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="chtnWsYi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB8941F000FF;
-	Fri,  9 Oct 2026 16:59:47 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WhJitxze"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89BF21F000FF;
+	Fri,  9 Oct 2026 17:00:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791565191;
-	bh=+BbB+5V1DDE74DWo4AdI8hldCRXKuou9E7wAUg4Z9Ls=;
+	s=k20260515; t=1791565208;
+	bh=PoY3aqr6DG621pLXXsvlPveTjmtP6GG3qEUPuZfhjU4=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=chtnWsYin7j3tISjqYSPw9WzoFctpPMc/kleUrQaf9M1veFXAXBd1SBaJlTK8Fk3e
-	 X0j7ZFmZnT6P1WURoFLqgvayj80vQVshPh4n3lKJLE/Y6znMWuZAA98linXTtJgkou
-	 PtARy39gJebp4DVGvpQxKqbHSEX3xjlkBX3dR98HtywE6G63s2tM9N3RYEYdg3zBPv
-	 Pxy2QGfT/1Xr/oSg3mxw0KZws7zpCPPjHiGTJhciqW5JteyhzSbimddJbg3FSEyK5q
-	 /zj2a6yK/rftr/SrNBTVKUpbCz8Ncj0ZdKAaDO4q2qidbdHfRrfRsSk4uROEAE9x9C
-	 NdwH/vB9UW2uw==
-Date: Fri, 9 Oct 2026 17:59:45 +0100
+	b=WhJitxzey9fFvZssGdVh4OkxbcK556oIMxrOSJlkd+cuyE1a1yL+4hn1TD2yKSvMW
+	 w81ayDZtb3I1ndEYxELbhe2BRdAPrZHe4UpCpW4ZtbK4bkhPYECiN6oGw+pZhCnXb2
+	 r9zooJiczfnv33ZtP2Qu4rhoYFgjBxosZPA9kZijL6ekYf7BQ1r6r0HGPiN7DBrZeb
+	 dusOP75IyE5DYdEb3lcVl9It/HS2k0cq50wPqlfKyWPXj4iPRkk1n6L0rIDkXuh1wv
+	 qJOoHafPffUVYnApVyFHS3vCD0mo96TboHLsXlXXIO44Z8i6n/EP7z/lr2D41qaWM3
+	 m/JtRc9gaRJBw==
+Date: Fri, 9 Oct 2026 18:00:02 +0100
 From: Simon Horman <horms@kernel.org>
 To: Nicolai Buchwitz <nb@tipi-net.de>
 Cc: "David S. Miller" <davem@davemloft.net>,
@@ -46,11 +46,11 @@ Cc: "David S. Miller" <davem@davemloft.net>,
 	linux-kernel@vger.kernel.org,
 	linux-stm32@st-md-mailman.stormreply.com,
 	linux-arm-kernel@lists.infradead.org, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH net-next 2/3] net: stmmac: selftests: use
- skb_share_check() in the loopback receive hook
-Message-ID: <20261009165945.GJ83879@horms.kernel.org>
+Subject: Re: [PATCH net-next 3/3] net/mlx5e: use skb_share_check() in the
+ loopback selftest hook
+Message-ID: <20261009170002.GK83879@horms.kernel.org>
 References: <20261007-nb-net-selftest-shared-net-v1-0-458369bfa1ba@tipi-net.de>
- <20261007-nb-net-selftest-shared-net-v1-2-458369bfa1ba@tipi-net.de>
+ <20261007-nb-net-selftest-shared-net-v1-3-458369bfa1ba@tipi-net.de>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -59,16 +59,16 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261007-nb-net-selftest-shared-net-v1-2-458369bfa1ba@tipi-net.de>
+In-Reply-To: <20261007-nb-net-selftest-shared-net-v1-3-458369bfa1ba@tipi-net.de>
 
-On Wed, Oct 07, 2026 at 08:29:23PM +0200, Nicolai Buchwitz wrote:
+On Wed, Oct 07, 2026 at 08:29:24PM +0200, Nicolai Buchwitz wrote:
 > The loopback hook gets a shared skb when another ETH_P_IP handler is
-> bound to the device. skb_unshare() does not unshare it, so
-> skb_linearize() on a non-linear frame hits BUG_ON(skb_shared()).
+> bound to the device. skb_linearize() on a non-linear frame then hits
+> BUG_ON(skb_shared()).
 > 
-> Use skb_share_check() instead.
+> Call skb_share_check() before linearizing the skb.
 > 
-> Fixes: 091810dbded9 ("net: stmmac: Introduce selftests support")
+> Fixes: 95b9606b15bb ("net/mlx5: Extend Ethtool loopback selftest to support non-linear SKB")
 > Signed-off-by: Nicolai Buchwitz <nb@tipi-net.de>
 
 Reviewed-by: Simon Horman <horms@kernel.org>
