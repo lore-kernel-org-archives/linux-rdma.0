@@ -1,30 +1,30 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E87294EBAD1;
-	Fri,  9 Oct 2026 14:41:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 64EF84EC648;
+	Fri,  9 Oct 2026 14:41:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791556916; cv=none; b=lo08ebAXEW4b+idEtuTc/1zvrbSzhvtCihdE+aSXhaYGHMGec10FqcQIEXYdvQvq5x+BhBMS+Hb07h9robintVF3UtHXbD3jAburH1wpab2y6/+GuZWIZACzrOQZmexr0o2kXrbZ/C3kE6qJLssmjBtspUv/zprdgmSRUFf2+/U=
+	t=1791556917; cv=none; b=J03nK/sN8WXL0+Lg10GAczHxQ7gE/AuAZEXR8qOhcfJZUtPCSBtCrM6jvbE3AOb9v1RLhpb0UzcftONOcqfaBFfzWJuWX4S4haU/1oyS/4G4aqFjq6Jkp+/eZ2sflK/8FfM06b7x29x+1evK5hkU5tScS52g0dVRsDwGxXPayWU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791556916; c=relaxed/simple;
-	bh=oOAR9uM6jMAxb3MDVr/OypcqUWtATGYD1cP1X3m7jvw=;
+	s=arc-20240116; t=1791556917; c=relaxed/simple;
+	bh=QUiFC7rcemyKYdV1iCB/mWiSZ26aRyV96U2si69nZwo=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=f2PF/JzEg31Rdh9r0uXQZesokgoYRFev+nvmJ8hzkJ2F072KfKnxmX1f5rCh47kNAftGyKvm3PeGphNAawEYY5yOL4m3cm1XInmhtxZOQLkdvK6k6rXfMlyzMlNkZWxLkc+urOpHKwbf/alLA8UqZZZljeD71XfWWeau1EEerik=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=XklSg7LF; arc=none smtp.client-ip=13.77.154.182
+	 MIME-Version; b=bp6QGbk33BF00x9CtPA+07C6xJMjNGBomY9OLWiQ0TvHXZio5gqz5FuQtGg5Cpq3tsxhlQQNOaKA0vbV7QKe8TwFvIzrEasm/JayTFeg0y0o97Zj1i/pE+AaHw3n9ygO7rg+UTfMf4rkgb9WqhsmlaxN6+3DlmB12M34v2I84Vc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=JbSJnX6A; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="XklSg7LF"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="JbSJnX6A"
 Received: from weh-cvm-dev-vm.y50bckvjo0hefgfnzfztsfttff.phxx.internal.cloudapp.net (unknown [20.169.55.37])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 4D3EC20B7172;
-	Fri,  9 Oct 2026 07:41:52 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 4D3EC20B7172
+	by linux.microsoft.com (Postfix) with ESMTPSA id EC72E20B716B;
+	Fri,  9 Oct 2026 07:41:53 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com EC72E20B716B
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1791556913;
-	bh=y3kjZQnQX1BLL963AQ8zr3vaaYn7mP9UciD1t9exCeA=;
+	s=default; t=1791556915;
+	bh=OqUmduQCxnR2iaI4Vd0eZfeeNmtpA4pzhT5I+RqLk08=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=XklSg7LFl3uTwsAful9otzflBfCF7GRUMdWEeDmtWkHo6jHKpi1k6jE2zS8o5Gm7J
-	 ASZLRAOfhEkCOwQT0H15128HYIxVrnUE1qR1+3niA7I6CVEuTqw52WWH0/Vhfzcdiz
-	 aIzA0G80AWbAqFWdkgdSTuAmmYUXSp8gcPJQ1Mco=
+	b=JbSJnX6AP2FMzVzKtuJxZbIk9eYZFyOTurOyL9jnOq0JWtpnvk7Bgil+q5C1ef+g5
+	 O7siQQwpm7TdXmWfr2FltUcNM5uzVAdTEqFoWgekDFkMUwyDqHoW97/nc5ukek+DDW
+	 bNcg7KJgs73RgvI1/ft//DWuByJFHJJwm9lM4LWk=
 From: Wei Hu <weh@linux.microsoft.com>
 To: longli@kernel.org,
 	kotaranov@microsoft.com,
@@ -54,9 +54,9 @@ Cc: netdev@vger.kernel.org,
 	ast@kernel.org,
 	john.fastabend@gmail.com,
 	weh@microsoft.com
-Subject: [PATCH net-next v6 10/13] net: mana: release EQs left idle by a channel-count reduction
-Date: Fri,  9 Oct 2026 14:41:21 +0000
-Message-ID: <6e4516ff65217677f0179ee4921752c3f86379ee.1790795005.git.weh@linux.microsoft.com>
+Subject: [PATCH net-next v6 11/13] net: mana: keep a user-configured RSS table across a queue rebuild
+Date: Fri,  9 Oct 2026 14:41:22 +0000
+Message-ID: <c55b41e6ee099a5c49d68a167b91b0810435c291.1790795005.git.weh@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <cover.1790795005.git.weh@linux.microsoft.com>
 References: <cover.1790795005.git.weh@linux.microsoft.com>
@@ -70,123 +70,146 @@ Content-Transfer-Encoding: 8bit
 
 From: Long Li <longli@microsoft.com>
 
-Release EQs above the live queue count after retiring queues are freed
-or replacement allocation fails. All CQs using those EQs must be gone.
-Return their vector allocations to the pool; IRQ registrations remain.
+Preserve a user RSS table whenever all entries fit the requested queue
+count. Regenerate driver defaults. On growth, a retained user table does
+not steer RSS traffic to the added queues until the user updates it.
 
-Store each EQ's debugfs dentry in apc->eqs[] rather than a stack copy so
-shrinking can remove individual EQ directories.
+Report table loss only after successful queue-set publication. The
+non-swap allocation path still replaces invalid tables silently because
+its callers do not consistently hold the notification's netdev lock.
+
+Require RTNL for RSS setters to serialize them with reset/resume rebuilds.
 
 Signed-off-by: Long Li <longli@microsoft.com>
 Signed-off-by: Wei Hu <weh@microsoft.com>
 ---
- drivers/net/ethernet/microsoft/mana/mana_en.c | 49 ++++++++++++++++---
- .../ethernet/microsoft/mana/mana_ethtool.c    |  1 -
- 2 files changed, 41 insertions(+), 9 deletions(-)
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 41 +++++++++++++++++--
+ .../ethernet/microsoft/mana/mana_ethtool.c    |  3 +-
+ include/net/mana/mana.h                       |  2 +
+ 3 files changed, 42 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index 9297ce15efce..86a09828b5f4 100644
+index 86a09828b5f4..5619c6a763c2 100644
 --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
 +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -1910,6 +1910,8 @@ void mana_destroy_eq(struct mana_port_context *apc)
- 		msi = eq->eq.msix_index;
- 		mana_gd_destroy_queue(gc, eq);
- 		mana_gd_put_gic(gc, !gc->msi_sharing, msi);
-+		apc->eqs[i].eq = NULL;
-+		apc->eqs[i].mana_eq_debugfs = NULL;
- 	}
- 
- 	kfree(apc->eqs);
-@@ -1920,15 +1922,16 @@ EXPORT_SYMBOL_NS(mana_destroy_eq, "NET_MANA");
- 
- static void mana_create_eq_debugfs(struct mana_port_context *apc, int i)
- {
--	struct mana_eq eq = apc->eqs[i];
-+	struct mana_eq *eq = &apc->eqs[i];
- 	char eqnum[32];
- 
- 	sprintf(eqnum, "eq%d", i);
--	eq.mana_eq_debugfs = debugfs_create_dir(eqnum, apc->mana_eqs_debugfs);
--	debugfs_create_u32("head", 0400, eq.mana_eq_debugfs, &eq.eq->head);
--	debugfs_create_u32("tail", 0400, eq.mana_eq_debugfs, &eq.eq->tail);
--	debugfs_create_u32("irq", 0400, eq.mana_eq_debugfs, &eq.eq->eq.irq);
--	debugfs_create_file("eq_dump", 0400, eq.mana_eq_debugfs, eq.eq, &mana_dbg_q_fops);
-+	eq->mana_eq_debugfs = debugfs_create_dir(eqnum, apc->mana_eqs_debugfs);
-+	debugfs_create_u32("head", 0400, eq->mana_eq_debugfs, &eq->eq->head);
-+	debugfs_create_u32("tail", 0400, eq->mana_eq_debugfs, &eq->eq->tail);
-+	debugfs_create_u32("irq", 0400, eq->mana_eq_debugfs, &eq->eq->eq.irq);
-+	debugfs_create_file("eq_dump", 0400, eq->mana_eq_debugfs, eq->eq,
-+			    &mana_dbg_q_fops);
+@@ -3595,6 +3595,27 @@ static void mana_rss_table_init(struct mana_port_context *apc)
+ 			ethtool_rxfh_indir_default(i, apc->num_queues);
  }
  
- int mana_create_eq(struct mana_port_context *apc)
-@@ -2037,11 +2040,37 @@ static int mana_grow_eqs(struct mana_port_context *apc, unsigned int need)
- 
- 	return 0;
- out:
--	/* Retain partial growth for reuse; the live set still needs this pool.
--	 */
- 	return err;
- }
- 
-+/* All CQs referencing EQs at or above @keep must be destroyed first. */
-+static void mana_shrink_eqs(struct mana_port_context *apc, unsigned int keep)
++/* Keep user tables with valid indices; defer loss notification. */
++static bool mana_rss_table_keep(struct mana_port_context *apc,
++				unsigned int num_queues, bool *lost)
 +{
-+	struct gdma_context *gc = apc->ac->gdma_dev->gdma_context;
-+	struct gdma_queue *eq;
-+	unsigned int msi;
-+	unsigned int i;
++	u32 i;
 +
-+	if (!apc->eqs || keep >= apc->num_eqs)
-+		return;
++	*lost = false;
 +
-+	for (i = keep; i < apc->num_eqs; i++) {
-+		eq = apc->eqs[i].eq;
-+		if (!eq)
-+			continue;
++	if (!netif_is_rxfh_configured(apc->ndev))
++		return false;
 +
-+		debugfs_remove_recursive(apc->eqs[i].mana_eq_debugfs);
-+		apc->eqs[i].mana_eq_debugfs = NULL;
-+
-+		msi = eq->eq.msix_index;
-+		mana_gd_destroy_queue(gc, eq);
-+		mana_gd_put_gic(gc, !gc->msi_sharing, msi);
-+		apc->eqs[i].eq = NULL;
++	for (i = 0; i < apc->indir_table_sz; i++) {
++		if (apc->indir_table[i] >= num_queues) {
++			*lost = true;
++			return false;
++		}
 +	}
 +
-+	apc->num_eqs = keep;
++	return true;
 +}
 +
- static int mana_fence_rq(struct mana_port_context *apc, struct mana_rxq *rxq)
+ int mana_disable_vport_rx(struct mana_port_context *apc)
  {
- 	struct mana_fence_rq_resp resp = {};
-@@ -4151,6 +4180,8 @@ int mana_alloc_qset(struct mana_port_context *apc,
- 	kfree(scratch->rxqs);
- 	scratch->rxqs = NULL;
- out_err:
-+	mana_shrink_eqs(apc, apc->num_queues);
-+
- 	netdev_err(ndev, "%s(num_queues=%u) failed: %d\n", __func__,
- 		   num_queues, err);
- 	return err;
-@@ -4511,6 +4542,8 @@ void mana_free_qset(struct mana_port_context *scratch, struct mana_qset *qset)
- 	 */
- 	netif_set_real_num_rx_queues(apc->ndev, apc->num_queues);
+ 	return mana_cfg_vport_steering(apc, TRI_STATE_FALSE, false, false,
+@@ -3865,6 +3886,7 @@ int mana_alloc_queues(struct net_device *ndev)
+ {
+ 	struct mana_port_context *apc = netdev_priv(ndev);
+ 	struct gdma_dev *gd = apc->ac->gdma_dev;
++	bool indir_lost;
+ 	int err;
  
-+	mana_shrink_eqs(apc, apc->num_queues);
+ 	err = mana_create_vport(apc, ndev);
+@@ -3910,7 +3932,9 @@ int mana_alloc_queues(struct net_device *ndev)
+ 		goto destroy_rxq;
+ 	}
+ 
+-	mana_rss_table_init(apc);
++	/* Loss notification needs a netdev instance lock we may lack. */
++	if (!mana_rss_table_keep(apc, apc->num_queues, &indir_lost))
++		mana_rss_table_init(apc);
+ 
+ 	err = mana_config_rss(apc, TRI_STATE_TRUE, true, true);
+ 	if (err) {
+@@ -4069,9 +4093,10 @@ static void mana_qset_snapshot(const struct mana_port_context *ctx,
+ 	out->priv_flags		= ctx->priv_flags;
+ 	out->mtu		= ctx->configured_mtu;
+ 	out->bpf_prog		= ctx->bpf_prog;
 +
- 	mana_qset_debugfs_publish(apc);
++	out->rxfh_indir_lost	= false;
  }
  
+-/* Vport identity and port debugfs outlive queue sets. */
+ static void mana_qset_install(struct mana_port_context *ctx,
+ 			      const struct mana_qset *qset)
+ {
+@@ -4131,6 +4156,7 @@ int mana_alloc_qset(struct mana_port_context *apc,
+ 		    struct mana_qset *out)
+ {
+ 	struct net_device *ndev = scratch->ndev;
++	bool indir_lost;
+ 	int err;
+ 
+ 	ASSERT_RTNL();
+@@ -4166,9 +4192,14 @@ int mana_alloc_qset(struct mana_port_context *apc,
+ 	if (err)
+ 		goto cleanup_rxq;
+ 
+-	mana_rss_table_init(scratch);
++	if (mana_rss_table_keep(apc, num_queues, &indir_lost))
++		memcpy(scratch->indir_table, apc->indir_table,
++		       apc->indir_table_sz * sizeof(*apc->indir_table));
++	else
++		mana_rss_table_init(scratch);
+ 
+ 	mana_qset_snapshot(scratch, out);
++	out->rxfh_indir_lost = indir_lost;
+ 	return 0;
+ 
+ cleanup_rxq:
+@@ -4407,6 +4438,10 @@ int mana_publish_qset(struct mana_port_context *apc, struct mana_qset *newq,
+ 	WRITE_ONCE(apc->port_is_up, true);
+ 	mana_start_txqs(apc);
+ 
++	/* Report a lost user table only after successful publication. */
++	if (newq->rxfh_indir_lost)
++		ethtool_rxfh_indir_lost(ndev);
++
+ 	return 0;
+ 
+ rollback:
 diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-index a438bc6097d6..611521d2d6d1 100644
+index 611521d2d6d1..a53e19b15bae 100644
 --- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
 +++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-@@ -752,7 +752,6 @@ static int mana_set_channels(struct net_device *ndev,
- 	mana_free_qset(scratch, &oldq);
+@@ -953,7 +953,8 @@ const struct ethtool_ops mana_ethtool_ops = {
+ 	.op_needs_rtnl		= ETHTOOL_OP_NEEDS_RTNL_SCHANNELS |
+ 				  ETHTOOL_OP_NEEDS_RTNL_SRINGPARAM |
+ 				  ETHTOOL_OP_NEEDS_RTNL_SPFLAGS |
+-				  ETHTOOL_OP_NEEDS_RTNL_GLINK,
++				  ETHTOOL_OP_NEEDS_RTNL_GLINK |
++				  ETHTOOL_OP_NEEDS_RTNL_RSS,
+ 	.get_ethtool_stats	= mana_get_ethtool_stats,
+ 	.get_sset_count		= mana_get_sset_count,
+ 	.get_strings		= mana_get_strings,
+diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
+index 5f9461bc16e9..9dad03150d1b 100644
+--- a/include/net/mana/mana.h
++++ b/include/net/mana/mana.h
+@@ -709,6 +709,8 @@ struct mana_qset {
+ 	int			mtu;
+ 	struct bpf_prog		*bpf_prog;
  
- free_scratch:
--	/* Release unpublished queues before closing their shared EQ pool. */
- 	mana_publish_close_if_needed(apc);
- 	mana_qset_scratch_free(scratch);
- clear_flag:
++	/* Notify the core only after this set is published. */
++	bool			rxfh_indir_lost;
+ };
+ 
+ netdev_tx_t mana_start_xmit(struct sk_buff *skb, struct net_device *ndev);
