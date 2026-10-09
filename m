@@ -1,150 +1,128 @@
-Received: from mail-ed1-f41.google.com (mail-ed1-f41.google.com [209.85.208.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C1BA4EB870
-	for <linux-rdma@vger.kernel.org>; Fri,  9 Oct 2026 16:43:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.41
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791564181; cv=pass; b=KnnP4Sb+MfIf/np+2a/7PCuQJs2de1Pix5bd6Wgu7EKeloMYm49n4m1S0K5jqhNwfEAE4j4GmEhet4UYT0Ol9n1qaxwHkng0w0mbUgrgBYtu06N9ja1d84vArI2i+W9+Pa2muLNxgEg4WXdkMF3X3T3HBFqKFlp/ctXrIVzsnkE=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791564181; c=relaxed/simple;
-	bh=8yVafqw/tymMZHiBDDTV1POQxrFPmsVlSQFwXIA6JgY=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Dgghro1UCeq07mECLq73Raj1ejBlgbklh6oBQgFA1gVx3zb5XaVsJ6VOuMByCGeT6Vvgh/Wl/UMN9mnuwpkKLKDwWfebmidy4uA/uMYyNH9dLNx5bggjYS00K+gRPPZnlZJy+vtx4AXq4DbpUSYwxT0JbxoTzlJtkLPXVwyUj+I=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=CYy98r9I; arc=pass smtp.client-ip=209.85.208.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7532A2D8378;
+	Fri,  9 Oct 2026 16:56:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791564992; cv=none; b=elEOgTtEHsPhwjmcjbQep2msLS/L+KTzU4uVeWecuz+Tk7AQU+E93GTQoGXA2kxAzKKaXIRA/afUyQlA/o9NrXFYpDsz3lesUcs/X9hNHR+XQ+RQyY3WwIXHDpoI3OsgutVqDFWaZ6SDVXBQTlTHW4RFvGYejBq0bDnkL+12WJM=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791564992; c=relaxed/simple;
+	bh=Gsc13vUDcqHhR9WqLn+uEOJ3bL2AXkQlfX0gpVkBRts=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=MkvG/1pLRqmKNPgkDjWOd+M2g2fz3TDtk49oOlUHUdVn96aty4ScJ6PblUBstN+NcMwmtEoa0RfWT9hpXFio6RF0m7tWe5JTU1O2J0NJII8pn0waq0LXE0axgTItNb+SkByVBBnslwEb28h/8Nenj6UzPP8um5c4a0lx/WhTP7U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RUsl9XnU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="CYy98r9I"
-Received: by mail-ed1-f41.google.com with SMTP id 4fb4d7f45d1cf-6ae14cdc63aso12972a12.1
-        for <linux-rdma@vger.kernel.org>; Fri, 09 Oct 2026 09:42:59 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791564178; cv=none;
-        d=google.com; s=arc-20260327;
-        b=dUTtL1mK7kp6AwKfNFdzxAAur661cUARkjinBaYI81do+Shkr28qmrQCERvaMdaxqm
-         yOsUDQNF4htYE7zvsaVVVeZzYJkxGE+VMfB/sDTNlZfCJAInVKbJU+BoxDZa0EJXt3Aq
-         7YqVwZwx5iLyxEyeUo7HQzCR5VAVz8j1hCQvKPuQE9roamwzk9UVUuSin1+M2Pg4UFaK
-         wR/5cEaypfcPqEYZJ17trP/VWiNDfgag19mcBM3btKeFSXDPJv6A33VYNdpYXC1DCyaT
-         z/8vkZ6pyKGpNUhQkfJayI9RD4CWVEq4NwTgLIXg0xjIHlkpJRyTzc7j33MHp3o8+7c9
-         ok3g==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=8yVafqw/tymMZHiBDDTV1POQxrFPmsVlSQFwXIA6JgY=;
-        fh=ZPkFGIysKxLOrvV+UD/4XJ8UR4d7RWP8dzFd1ngR8MU=;
-        b=KIsyjQ6UCVNx47rG8UaKLSW9OW6TdFUIpqYPYGx44p/vHt2XVHQnhc4YkRfMdL8BQq
-         jZ0CuZOkbm+974BpAofVta9ds+XmLec5yGyt+qv5e0S3wyE1V5nL+tweeRg8IsnJx8RU
-         qsN1ufPK7qpb7afpECdLNlg2Hkr0Ilr2aCsF+wl23inv48TfXBBhKRpvgdp54bpXeL7I
-         gsFZtbk8LSfEayddQI4v9I0Xt0tH1Dry495u10WEVYWPRLrC+fF8aXmIwAAWiYFlZLFp
-         Iqi53PDICuRfHaPr5+WJbrKHHYz+k9bIBMcQrHe1k438TKt5Sitf7xwGNIAQJKd/AO7W
-         siIg==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1791564178; x=1792168978; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=8yVafqw/tymMZHiBDDTV1POQxrFPmsVlSQFwXIA6JgY=;
-        b=CYy98r9IJfEnurNzNStEF1xcp4Z2bhfU5tIS/5Qkj1YvCO5RwuY3PzCnEkisRbTpsw
-         P9qoUg8wkhoUkSi3ugQHHUvIsgiurnNAIueYz/HwXLM4EBd2sthNhi7p9Ro7tFAVIu35
-         57WdtKULZkCZDP0ZtlX4p3rGTIgudWfh/VeS423w84ibFdLCRbQgX5s+YzDxD6k4rgSL
-         Mj8g68bRZNysAUn8vQNr+qF2WbNAC8PVsvRYm5PoTD/kwXFDd9QPFY5vb17ksWm7z7m8
-         DIJH6+bSPKp9YXu6k/J4z7aSQjD70oFJl3fLHjlRUxNvOwqwQiv/neliemiVzJYOO1GI
-         +uPg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791564178; x=1792168978;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=8yVafqw/tymMZHiBDDTV1POQxrFPmsVlSQFwXIA6JgY=;
-        b=SLpomPr4bRGYuuLTkDXSpVrsBBmNE41Bs6HZ7mVZbZ41u3KaqAl8OphQ43kFyrPgzg
-         gOJa0F37VGeBqlIrLdceJeL2w6OtC7dvoXqeAkNCAP2DEQA6GH3RvTSLjh/hWPv/HXEd
-         DFhlNP7CAFmwfGH3QgBVnxsy0Ik2/QyHftGKVdHj0+JQqSG1G4dmY7nANPDrO5U05BdR
-         iVkKxu/fSJZZ0MQ1RER9e/csI7VnNMzoXKIbLWYJW9zgb/n/OTZnbex5xJXaxZXE5L3S
-         qWcPIHsH/CDw4eL27SWxB574OSY4zX628S7n8a+oHzUFq1kvFAo2TirFNZTRKGsWM373
-         7z8Q==
-X-Forwarded-Encrypted: i=1; AKwUvBwymKt2aRW0VtZ/pDDMMbMTMdMEH8/KZKq4ygqbXKx1UPG0cgnNL3kfB3S2S+jLxlKLrWPgnGZGGpsk@vger.kernel.org
-X-Gm-Message-State: AFq9FYJtu9+koEWqyEKt47ugZW6WbTO0HqIBQDLaMj9DkOSw/hrTnfWD
-	D0v002lgsOAOmdSLxmt/h+Mus91qOYk+tizdIe4j397d29Zmbh7hL9xZggrcqr569VVFfMpUs/o
-	P0IkKpoAUFccQneuc/+FOBU8O1sHs4+WNHLBiFZVLfRlXzlWwX57pPXxC
-X-Gm-Gg: AYBFou07dG0/MJjHIHfFiyN/wnTBj8XRc0oGM2qHp5H7pFt+OvGqd3ZlS2BzXDI75B8
-	tnSYGBvB2YZij9itjhVkQ5AgEYnVV3fUd2SJhsymit8FbS6O0ehOtJrUjoYQ+6FyZ95vSFAw2Qo
-	KX478qEqy+BUzd9+Yy1FEGsQ1txtVxd3PqjygMJRYymeqU9hZCuQ9YbmbHDwSyinBD76LVoobc4
-	2Bt/OK7DfMHBGnbvGmvpWa0kR+Odn1ALxT3vhbeNfxCIr8GLKORu3NKuhnkpuubHxlMpLH9NmlF
-	n0zA4+qBjMnDm8jJbSoF1Zz8DQ/xOEs8F6KnOZNReaurnPOoiVu4JQ==
-X-Received: by 2002:a05:6402:c553:20b0:6aa:b72b:d762 with SMTP id
- 4fb4d7f45d1cf-6b1776e1bf1mr53790a12.1.1791564177860; Fri, 09 Oct 2026
- 09:42:57 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RUsl9XnU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA2421F000FF;
+	Fri,  9 Oct 2026 16:56:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791564991;
+	bh=fE0OAfD+VvZZQlsp7SZETT3KsGTWZ99jT3uHHIgYDkQ=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=RUsl9XnUQdex4hYDI/nvqZumtgOTjlWiX0N56fVGal9ZXTElbzreII28hFeRkApJB
+	 NHo6FTkv1s0R1SKHMxFh2yoyGgEj94FI2YTZ5R2m7lwDx9O3N5/dtVzHCZ7rRFHg+b
+	 AtSEfYi+n++t5xP6H8VImwwnXKYhoLn2R1W0Koa99MOWI+o8HHqK2kIurxPlAU0Yri
+	 ygANXuDjupNkgl+uor72EiN8FZ3fmo02D0/KSu5wQ2x84hwaNSlHgKIyyR/PugD/c9
+	 1rQuaM8k2AyO9mDtnEOKbWctVlZ0WY0IhSQdg1dl1SdQIKXtdsg79DgnHAMkLcGLF5
+	 UTDY8ujTUNlMg==
+Date: Fri, 9 Oct 2026 17:56:08 +0100
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+To: Suren Baghdasaryan <surenb@google.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, 
+	"Liam R. Howlett" <liam@infradead.org>, Vlastimil Babka <vbabka@kernel.org>, 
+	Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
+	David Hildenbrand <david@kernel.org>, Mike Rapoport <rppt@kernel.org>, Michal Hocko <mhocko@suse.com>, 
+	Jonathan Corbet <corbet@lwn.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
+	Leon Romanovsky <leon@kernel.org>, Paul Moore <paul@paul-moore.com>, 
+	Stephen Smalley <stephen.smalley.work@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
+	Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
+	Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>, 
+	Kumar Kartikeya Dwivedi <memxor@gmail.com>, Zi Yan <ziy@nvidia.com>, 
+	Baolin Wang <baolin.wang@linux.alibaba.com>, Nico Pache <nico.pache@linux.dev>, 
+	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
+	Lance Yang <lance.yang@linux.dev>, Usama Arif <usama.arif@linux.dev>, 
+	Kiryl Shutsemau <kas@kernel.org>, Doug Gilbert <dgilbert@interlog.com>, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, "Martin K. Petersen" <mkp@kernel.org>, 
+	Simona Vetter <simona@ffwll.ch>, Helge Deller <deller@gmx.de>, Sebastian Reichel <sre@kernel.org>, 
+	John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, 
+	Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
+	Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@kernel.org>, 
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, Arnaldo Carvalho de Melo <acme@kernel.org>, 
+	Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
+	Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, Juri Lelli <juri.lelli@redhat.com>, 
+	Vincent Guittot <vincent.guittot@linaro.org>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
+	Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
+	David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>, 
+	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, Nick Piggin <npiggin@gmail.com>, Arnd Bergmann <arnd@arndb.de>, 
+	Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
+	"Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan Kara <jack@suse.cz>, Marc Zyngier <maz@kernel.org>, 
+	Oliver Upton <oupton@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, 
+	Madhavan Srinivasan <maddy@linux.ibm.com>, Anup Patel <anup@brainfault.org>, Paul Walmsley <pjw@kernel.org>, 
+	Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
+	Christian Borntraeger <borntraeger@linux.ibm.com>, Janosch Frank <frankja@linux.ibm.com>, 
+	Claudio Imbrenda <imbrenda@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
+	Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Heiko Carstens <hca@linux.ibm.com>, 
+	Vasily Gorbik <gor@linux.ibm.com>, "David S. Miller" <davem@davemloft.net>, 
+	Andreas Larsson <andreas@gaisler.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Christian Brauner <brauner@kernel.org>, Matthew Brost <matthew.brost@intel.com>, 
+	Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, Byungchul Park <byungchul@sk.com>, 
+	Gregory Price <gourry@gourry.net>, Ying Huang <ying.huang@linux.alibaba.com>, 
+	Alistair Popple <apopple@nvidia.com>, Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>, 
+	Kemeng Shi <shikemeng@huaweicloud.com>, Nhat Pham <nphamcs@gmail.com>, Baoquan He <baoquan.he@linux.dev>, 
+	Youngjun Park <youngjun.park@lge.com>, Johannes Weiner <hannes@cmpxchg.org>, 
+	Qi Zheng <qi.zheng@linux.dev>, Shakeel Butt <shakeel.butt@linux.dev>, 
+	Axel Rasmussen <axelrasmussen@google.com>, Yuanchu Xie <yuanchu@google.com>, Wei Xu <weixugc@google.com>, 
+	Chengming Zhou <chengming.zhou@linux.dev>, Michal Hocko <mhocko@kernel.org>, 
+	Miklos Szeredi <miklos@szeredi.hu>, Xu Xin <xu.xin@linux.dev>, linux-mm@kvack.org, 
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, 
+	linux-rdma@vger.kernel.org, selinux@vger.kernel.org, linux-sound@vger.kernel.org, 
+	bpf@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org, 
+	dri-devel@lists.freedesktop.org, linux-trace-kernel@vger.kernel.org, 
+	linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, 
+	kvm@vger.kernel.org, kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org, 
+	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, fuse-devel@lists.linux.dev
+Subject: Re: [PATCH v4 07/38] mm: add mmap action for discontiguous kernel
+ page mapping
+Message-ID: <askajMD6aWnRZzwK@gremlin>
+References: <20261003-b4-mmap-prepare-vma-flag-sanify-v4-0-a1f052500fd7@kernel.org>
+ <20261003-b4-mmap-prepare-vma-flag-sanify-v4-7-a1f052500fd7@kernel.org>
+ <CAJuCfpGj2Q092+zB=Z-d1iAOD6n1_HXVZQAL+YM6x_CeUEMpcw@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20261008132815.654147-1-tariqt@nvidia.com>
-In-Reply-To: <20261008132815.654147-1-tariqt@nvidia.com>
-From: Mina Almasry <almasrymina@google.com>
-Date: Fri, 9 Oct 2026 09:42:46 -0700
-X-Gm-Features: AclHuK9YIcoqyRx7ZdV1TYGtJevv7ew5G8vshJKEoIcRV7Km280vcnLyswG0lkU
-Message-ID: <CAHS8izNSo4YzXxD3C6c2HohdOfH2GK1M=51biuevLUk3vz5k4g@mail.gmail.com>
-Subject: Re: [PATCH net-next 00/10] net/mlx5e: Add netdev support for data direct
-To: Tariq Toukan <tariqt@nvidia.com>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org, 
-	Paolo Abeni <pabeni@redhat.com>, Bobby Eshleman <bobbyeshleman@meta.com>, 
-	Byungchul Park <byungchul@sk.com>, Carolina Jubran <cjubran@nvidia.com>, Cosmin Ratiu <cratiu@nvidia.com>, 
-	Dragos Tatulea <dtatulea@nvidia.com>, Gal Pressman <gal@nvidia.com>, 
-	Jacob Keller <Jacob.e.keller@intel.com>, Kees Cook <kees@kernel.org>, 
-	Leon Romanovsky <leon@kernel.org>, open list <linux-kernel@vger.kernel.org>, 
-	linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>, 
-	Matt Fleming <mfleming@cloudflare.com>, Nikolay Aleksandrov <razor@blackwall.org>, 
-	Saeed Mahameed <saeedm@nvidia.com>, Shivaji Kant <shivajikant@google.com>, 
-	Simon Horman <horms@kernel.org>, Stanislav Fomichev <sdf@fomichev.me>, 
-	Stanislav Fomichev <sdf.kernel@gmail.com>, William Tu <witu@nvidia.com>, 
-	Yue Haibing <yuehaibing@huawei.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAJuCfpGj2Q092+zB=Z-d1iAOD6n1_HXVZQAL+YM6x_CeUEMpcw@mail.gmail.com>
 
-On Thu, Oct 8, 2026 at 6:28=E2=80=AFAM Tariq Toukan <tariqt@nvidia.com> wro=
-te:
->
-> Hi,
->
-> This patch series by Dragos adds data direct support for netdev devices,
-> allowing a mlx5 netdev to issue DMA commands through multiple paths.
-> This feature is critical for improving performance and reaching line
-> rate in certain environments where issuing PCI transactions over one
-> path may be significantly faster than over another. These differences
-> can arise from various PCI generations in the system or the specific
-> system topology.
->
-> Data direct for netdev will work with devmem by returning the data
-> direct DMA device instead of the DMA device of the NIC. Each PF netdev
-> registers its own data direct device and support for RX and TX datapath
-> is added. The feature is selected through a new data direct priv flag.
->
-> The feature is enabled though a ethtool private flag. When this flag
-> is enabled, the driver will return the data direct device in the
-> ndo_queue_get_dma_dev op.
->
-> During data_direct device unbind, a re-creation of the channels is
-> triggered.
->
-> A note about the unbind: it does not does not tear down dmabuf bindings
-> attached to the data direct device; the recreated channels will still
-> pick up the binding via rxq->mp_params and post DMA addresses from the
-> data direct IOMMU domain to the PF, causing IOMMU faults. A devmem
-> revoke hook is needed to close those bindings before the switch. This is
-> out of scope for this series.
->
+On Sun, Oct 04, 2026 at 10:11:18AM -0700, Suren Baghdasaryan wrote:
+> On Sat, Oct 3, 2026 at 6:35 PM Lorenzo Stoakes (ARM) <ljs@kernel.org> wrote:
 
-Elaborate on this please. Are you referring to the fact that on
-page_pool_scrub we unmap the netmems dma-mapped by the page-pool, but
-we don't unmap the netmems dma-mapped by the memory provider?
+> > diff --git a/mm/memory.c b/mm/memory.c
+> > index 448342883e9d..45b21bb04a18 100644
+> > --- a/mm/memory.c
+> > +++ b/mm/memory.c
 
-What's the impact of leaving this unfixed? Is the machine going to
-crash if the device goes away but we don't unmap the dmabuf?
---=20
-Thanks,
-Mina
+> > +static void __map_kernel_pages_prepare(struct vm_area_desc *desc)
+> > +{
+> > +       if (vma_desc_test(desc, VMA_MIXEDMAP_BIT))
+> > +               return;
+> > +
+> > +       VM_WARN_ON_ONCE(mmap_read_trylock(desc->mm));
+>
+> Sorry I missed this before and it is pre-existing code but is this a
+> weird way of asserting that mmap_lock is write-locked? If so, why not
+> just use mmap_assert_write_locked()?
+
+Ah yeah, this weirdness is duplicated from the existing code. Will fix up on
+resin!
+
+--
+Cheers, Lorenzo
