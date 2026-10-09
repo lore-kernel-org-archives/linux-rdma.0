@@ -1,50 +1,50 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2A41445041C;
-	Thu,  8 Oct 2026 22:58:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from rcs.proxad.net (rcs.proxad.net [212.27.60.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 439A23BC680;
+	Fri,  9 Oct 2026 05:21:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.27.60.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791500326; cv=none; b=g+siSr3RWkg0L/bbZL8AMtFh8RyaYKweRqbP9PXJbaZcagRaP5yO2+m5Cpy2EO6AfTKBYTsf993BGv+L4v+geDx6RteeGjXS/wXqkMCcH772Ojl62EssuKqgw51FcdJPkX9XUJkOE0lwTiT5eHKcY4h/oNY6lb33CQ1joNKygG4=
+	t=1791523272; cv=none; b=Ha2S1Je9ZGVcGsSca/Rg7GJT/OLfIpDKKHF7SFkq/5MG8yPiEpOhvV8K/2vPCoRNvImXVMX3UvAZi3itCuSbqOzTWRlFNVpUfXoVVvRYr2yFsWtxj/Qlp+oMisQ4b8U1njZ8GpHSllIEW3u+S7dJnoz23Zp24ldlPS5ajPmpL9Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791500326; c=relaxed/simple;
-	bh=dfD+bJF9h7dLTRCLt8lHJBwiu1mQ2/5+5VLsZj+oO7Y=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=A1/RZeMT2pKyKH9qiyxM0Pj9ZOf2TxQ6LWLePrOC+lpOq/gon0kQBJpX2WoqDelNu7a8RFWUjbsUJZTFGgw7SbbXbJB44+vofd1ZnIyPJRbqVSGOAVU2rgLTAbzx6xrCplOQV5zfFhLbvGztaNCwBpnTrtq9eiy+ExJ4APwmNng=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=VKM+cnEw; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1791523272; c=relaxed/simple;
+	bh=Aoi+FScMs1oXrwhDzPRYaLIBrjXVMZKX9oIxsz6BQAg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=FE7ejZ299scqF7CXjWckAVt8phdirxeFu5wawcoaap8wmKrCoAZbTng6bSrQas8kiWqm4A9d1P2gdOt27TJzXLcBzYn6OqvTeIx9xiwGy/bFwSsRvgTIj9ud9fvnot24VlGSdPxW29sc0rgRHQqNbou+9ql+Mv2gU2vPw/0K2L8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=corp.free.fr; spf=pass smtp.mailfrom=corp.free.fr; dkim=pass (2048-bit key) header.d=corp.free.fr header.i=@corp.free.fr header.b=ICjkJM54; arc=none smtp.client-ip=212.27.60.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=corp.free.fr
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=corp.free.fr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="VKM+cnEw"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 14C941692;
-	Thu,  8 Oct 2026 15:58:41 -0700 (PDT)
-Received: from e132076.cambridge.arm.com (e132076.arm.com [10.2.197.107])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id CE7013F66F;
-	Thu,  8 Oct 2026 15:58:42 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1791500324; bh=dfD+bJF9h7dLTRCLt8lHJBwiu1mQ2/5+5VLsZj+oO7Y=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=VKM+cnEw6A5VPtIxfkjBJ57FpyKUJavXooSEDKXKjTLBZVNB4cqE65t76/E3uejpR
-	 R54GdldP3piNy5/ARTwtg1Ht+JI1IfRD2yZla88E3qS1NSK5GYGzq+pJczAg75MCEx
-	 UCPDpIiXt+BDS+PW9LP1sDJzUjbfM3Ag7F8RF7F0=
-From: J Louis Kaplan <Louis.Kaplan@arm.com>
-To: cel@kernel.org,
-	dai.ngo@oracle.com,
-	jlayton@kernel.org,
-	neil@brown.name,
-	okorniev@redhat.com,
-	tom@talpey.com
-Cc: anna@kernel.org,
-	jgg@ziepe.ca,
-	leon@kernel.org,
-	linux-nfs@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	trondmy@kernel.org
-Subject: Re: [RFC PATCH 6/6] sunrpc: Allocate svc request pages from large folios
-Date: Thu,  8 Oct 2026 23:58:33 +0100
-Message-ID: <20261008225833.682794-1-Louis.Kaplan@arm.com>
+	dkim=pass (2048-bit key) header.d=corp.free.fr header.i=@corp.free.fr header.b="ICjkJM54"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=corp.free.fr; s=rcs;
+	t=1791523269; bh=Aoi+FScMs1oXrwhDzPRYaLIBrjXVMZKX9oIxsz6BQAg=;
+	h=From:To:Cc:Subject:Date:From;
+	b=ICjkJM54cV7R6lqcTyO7ldcjtJuoXROmq2l0nkA/OTyq39tG3AUlQauhrZDvyulOK
+	 YX4r2Z6YjusVtKA6BJ4Q4hGDUC0M0QhZK84/D2TMismZTRa/m0rPL/C9ZcjtO8chDQ
+	 4HXh5zciGG+d2VzemHIwvx4RgfHSS/iuSoz6+CJj/n2lrxAYvyiQ+X+W4/jEzYdQ96
+	 6PPiz46egZ8o1qJvGOTZmnjubrJEHcN3N7aOgaENPA1yC5ao1Zr/MekfR8lAeSsCzT
+	 0fje8VAvQ9stoxv1R79sT6ud+LniFSK6wADdb1ASAQt1Xj76vHLxD0dzIILuPUaIfe
+	 JA55NKHdmnkZw==
+Received: from lnxos-dev.home (82-66-150-212.subs.proxad.net [82.66.150.212])
+	by rcs.proxad.net (Postfix) with ESMTPSA id 171DD44C0B4E;
+	Fri,  9 Oct 2026 07:21:09 +0200 (CEST)
+From: Alexandre Cassen <acassen@corp.free.fr>
+To: Saeed Mahameed <saeedm@nvidia.com>,
+	Leon Romanovsky <leon@kernel.org>,
+	Tariq Toukan <tariqt@nvidia.com>,
+	Mark Bloch <mbloch@nvidia.com>
+Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Moshe Shemesh <moshe@nvidia.com>,
+	Yevgeny Kliteynik <kliteyn@nvidia.com>,
+	netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org
+Subject: [PATCH net-next 0/2] net/mlx5: less memory per offloaded tc rule
+Date: Fri,  9 Oct 2026 07:20:59 +0200
+Message-ID: <20261009052103.3621855-1-acassen@corp.free.fr>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <d189ba0e-6215-433e-b27e-859502db67e5@app.fastmail.com>
-References: <d189ba0e-6215-433e-b27e-859502db67e5@app.fastmail.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -53,16 +53,23 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-> Given past experience with contention in the page free path, IMO
-> this one needs careful macro and micro benchmarking.
+Two mlx5 allocations hold more memory than an offloaded tc rule needs.
+A NIC flow keeps a 4 KB allocation for parse attributes that nothing
+reads after offload. An FTE under hardware steering keeps the 1 KB
+action array it was built in while a rule rarely needs more than three
+entries.
 
-Makes sense to me after reading through the links you posted in the
-other reply.
+Freeing the first after offload saves 4 KB per NIC flow. Shrinking the
+second saves about 1 KB per FTE under hardware steering.
 
-> I wonder if this change should get merged first instead of last.
-> It's probably going to have broad impact and high risk, and will
-> need testing across all hardware platforms and on large- and small-
-> memory configurations.
+Alexandre Cassen (2):
+  net/mlx5e: TC, free NIC flow parse attributes after offload
+  net/mlx5: HWS, shrink FTE action array to fit
 
-Happy to do that. Should I consider a separate single-commit submission
-for this change?
+ .../net/ethernet/mellanox/mlx5/core/en_tc.c    | 18 +++++++++++++-----
+ .../mellanox/mlx5/core/steering/hws/fs_hws.c   | 10 +++++++++-
+ 2 files changed, 22 insertions(+), 6 deletions(-)
+
+-- 
+2.43.0
+
