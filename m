@@ -1,113 +1,166 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9229F1D9663
-	for <linux-rdma@vger.kernel.org>; Sat, 10 Oct 2026 07:15:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B60742AA9
+	for <linux-rdma@vger.kernel.org>; Sat, 10 Oct 2026 07:15:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791616514; cv=none; b=D9txp+2/dI0gs1jDtdI1+20tiOrH+hABdvx+0hApFODb8+rMl+9fTI7V+blTnVbgo2kRoQG3vUIDvnkuZld3rqPoAKkde9x6Dj93vTxfVhw5X1d+AB/8IqRJK3jswbKuc5mdqWimyJPsqeYBJqi8c0Mep46IBPEe3+ENgJz8OEs=
+	t=1791616541; cv=none; b=lPrZ5l2QPiPphExfHQLUUG3tDX4eYOliqagB9tk5CRMIitGRloeV+hz2/jS6IRjVKvqQOjelj47BakDQtM3Ex6UHJovqbM/a70AJaeSMVkegqAWSQ63pAbsL7uDMgBDm7jsG13+jgTFFnr2IJM0a+BINeA5a+MFZ7yoRiey6tag=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791616514; c=relaxed/simple;
-	bh=dm7Hf+zwQ8rb65JM+sKNegkjNT/MFvcQcgse5baUVu0=;
+	s=arc-20240116; t=1791616541; c=relaxed/simple;
+	bh=b1gpTEjR1SuO8kt6VhlCD2mnIeg7oe4kvzwFBPmpOK0=;
 	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=KhU21HgrOnjrZxQ6FobcxKurMRAZZEX7PomApM6mfB0O2gum21HCEGwIrBKWaJGC+ewubk9YQ9/Zd70V08nE7BaL65k7CSmOOdHqWijtIzdO/rLXbJTuNf7bw0nbCV/cbkbE4SNku8VsIfQIa3TjiwV+vtXZJMWlYRNAumwIZ+s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=W66oVizO; arc=none smtp.client-ip=100.103.45.18
+	 Date; b=n9nRieHkypgSmbvj8Ix7547pWdbyS4V9S1ogWaI0k7i0xBzLdHvGhNsdC1w1kBzZ+K5i/MWB0uPQnsLtrrrvUZHnpXmrxAk32EOqOhw11i1huabaGepyGFFrfZN3EkGTDe7V979PfWFVT8R+IYuo91AM8ei+ioB4bRkdH6ZmDTA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Igec1nXK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="W66oVizO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4805F1F000FF;
-	Sat, 10 Oct 2026 07:15:13 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Igec1nXK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11C221F000FF;
+	Sat, 10 Oct 2026 07:15:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791616513;
-	bh=8/TXzWw1Au50eXpr3o+nv+EpXkDiOAgHON/zteQ+vu4=;
+	s=k20260515; t=1791616539;
+	bh=vPunYP22Os+AS80GlBbE1ukJdZC1I0QhLqADdP36GtQ=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=W66oVizO2iE3jtrucMvm21CYh2UD5j69QAv8hISfF56flwSQWLZ0y8wsOEZ6fnLuZ
-	 FxIei0POTGVfmpzJbumcfqctxwXL6anh2Pjk8Uot4VfO1YFnyc9zCFraJMCS0xuYxl
-	 w71xLw5RJeCOk2dk8y29Iu+6rrriMmJiprXWHBsa9JbbYamHudWtdE2reoFuwdZLoy
-	 K7RDMvfLIsKebOYDJjDriqESaZaDyBsLRQsb2m8/N9PtTj/PXzZXbDp1hPxAfz43hM
-	 D5/k2laMp0IErSWzLGmwNEfYpcnOELXOIJ87uemwNs2lrWcHlfHS8Ssr3n+nfZejRP
-	 vy7Gf1pdI1/cw==
-Message-ID: <sashiko-outbox-166306@kernel.org>
+	b=Igec1nXKcOjTVw9hOJ9vhZnG0rmkmlFdpLHNfdtmWkYjyfu8DNSj8B/TQuYnDTou5
+	 DMnQajHoyWfTJ+i8JIGW7HMMumK0sQVJCqD2ANpdz6X7trneBVyunROoI6PEnxnbCR
+	 Lp8dT3rBDM4j44zeDMuKF15MvsfRGW7srUXqN6TqLYgWEW7EjAcO1+xmCkUWR2JN9f
+	 Q9pqMIfk2B79/7i34qGUrOxLgzEN6Oq3j8TsPYfZ+YP6Cxol3ShvRhz698By1VRvgE
+	 VvCQCWRp0PcymsZlxtXKf7o5t7mWzAaxSXTWyBobQx381NHUwT84NphfQeSWIMwfHX
+	 VhjZU+qkH8KkQ==
+Message-ID: <sashiko-outbox-166307@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v4 08/10] RDMA/mana_ib: Flush and notify CQs
- when kernel QPs enter ERR
+Subject: Re: [PATCH rdma-next v4 06/10] RDMA/mana_ib: Post send and
+ memory-management WRs on RC QPs
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Konstantin Taranov" <kotaranov@linux.microsoft.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261010065443.3554193-9-kotaranov@linux.microsoft.com>
+In-Reply-To: <20261010065443.3554193-7-kotaranov@linux.microsoft.com>
 References: <20261010065443.3554193-1-kotaranov@linux.microsoft.com>
- <20261010065443.3554193-9-kotaranov@linux.microsoft.com>
+ <20261010065443.3554193-7-kotaranov@linux.microsoft.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Sat, 10 Oct 2026 07:15:12 +0000
+Date: Sat, 10 Oct 2026 07:15:38 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+Thank you for your contribution! Sashiko AI review found 3 potential issue(=
 s) to consider:
-- [Low] rdma/mana_ib: dead code - qp->state is write-only and never read
+- [High] rdma/mana_ib: integer overflow in msg_sz causes silent data corrup=
+tion
+- [High] rdma/mana_ib: shadow queue stall due to leaked unsignaled MMQ WQEs
+- [High] rdma: mana_ib: shadow queue leak on unsignaled fenced WQEs
 --
 
-commit 77c71a02dc85cc117e4f58d2a8f85635639fc4ac
+commit b07a49d6904077b337ee7637a4f192e98b247c4a
 Author: Konstantin Taranov <kotaranov@microsoft.com>
+RDMA/mana_ib: Post send and memory-management WRs on RC QPs
 
-    RDMA/mana_ib: Flush and notify CQs when kernel QPs enter ERR
-   =20
-    Complete the RC software flush path by adding a kernel QP to the CQ
-    error lists when it transitions to the ERR state.
-   =20
-    Invoke the CQ handlers after the transition to flush pending work
-    requests.
+This commit implements send work request posting for RC QPs. It posts
+communication WRs to the send queue and memory WRs to the memory
+management queue.
 
-> diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw=
-/mana/mana_ib.h
-> index 55899b1e2f868..a72bed94c08d7 100644
-> --- a/drivers/infiniband/hw/mana/mana_ib.h
-> +++ b/drivers/infiniband/hw/mana/mana_ib.h
-> @@ -271,6 +271,7 @@ struct mana_ib_qp {
->  	bool pending_mmq_fence;
->  	bool sq_sig_all;
->  	enum ib_mtu mtu;
-> +	enum ib_qp_state state;
+> diff --git a/drivers/infiniband/hw/mana/wr.c b/drivers/infiniband/hw/mana=
+/wr.c
+> index 5d42af91fce4a..6cc67537c6557 100644
+> --- a/drivers/infiniband/hw/mana/wr.c
+> +++ b/drivers/infiniband/hw/mana/wr.c
+[ ... ]
+> @@ -224,6 +289,287 @@ static int mana_ib_post_send_ud(struct mana_ib_qp *=
+qp, const struct ib_send_wr *
+>  	return err;
+>  }
 > =20
->  	/* Serializes receive WR posting. */
->  	spinlock_t rq_lock;
+> +static int mana_ib_post_sq(struct mana_ib_qp *qp, const struct ib_send_w=
+r *wr)
+> +{
+[ ... ]
+> +	u32 msg_sz =3D 0;
+> +	int err, i;
+> +
+> +	if (shadow_queue_full(&qp->shadow_sq))
+> +		return -ENOMEM;
+> +
+> +	if (wr->num_sge > MAX_TX_WQE_SGL_ENTRIES)
+> +		return -EINVAL;
+> +
+> +	for (i =3D 0; i < wr->num_sge; i++)
+> +		msg_sz +=3D wr->sg_list[i].length;
+
+[Severity: High]
+Does this loop overflow msg_sz if a userspace application posts an RDMA
+READ/WRITE or SEND WR with a total SGL length exceeding 4GB?
+
+The IB core does not validate total SGL length, so drivers usually enforce
+their own hardware limits.
 
 [ ... ]
+> +	switch (wr->opcode) {
+> +	case IB_WR_SEND_WITH_INV:
+[ ... ]
+> +	case IB_WR_RDMA_WRITE_WITH_IMM:
+> +		send_oob.immediate_ext =3D cpu_to_le32(be32_to_cpu(wr->ex.imm_data));
+> +		fallthrough;
+> +	case IB_WR_RDMA_WRITE:
+> +	case IB_WR_RDMA_READ:
+> +		send_oob.rdma.address_hi =3D upper_32_bits(rdma_wr(wr)->remote_addr);
+> +		send_oob.rdma.address_low =3D lower_32_bits(rdma_wr(wr)->remote_addr);
+> +		send_oob.rdma.rkey =3D rdma_wr(wr)->rkey;
+> +		send_oob.rdma.dma_len =3D msg_sz;
 
-> diff --git a/drivers/infiniband/hw/mana/qp.c b/drivers/infiniband/hw/mana=
-/qp.c
-> index 74cf80074e54f..31e91cc657ac7 100644
-> --- a/drivers/infiniband/hw/mana/qp.c
-> +++ b/drivers/infiniband/hw/mana/qp.c
+If msg_sz overflows, would this instruct the hardware to silently truncate
+the transfer while completing with success?
 
 [ ... ]
+> +	err =3D mana_gd_post_work_request(sq, &wqe_req, &wqe_info);
+> +	if (err)
+> +		return err;
+> +
+> +	shadow_wqe->wr_id =3D wr->wr_id;
+> +	shadow_wqe->send_opcode =3D convert_wr_to_wc(wr->opcode);
+> +	if (!signaled)
+> +		shadow_wqe->flags |=3D MANA_WQ_NO_SIGNAL_WC;
+> +	else if ((wr->send_flags & IB_SEND_FENCE) || qp->pending_mmq_fence)
+> +		shadow_wqe->flags |=3D MANA_WQ_FENCE_WC;
 
-> @@ -1049,6 +1071,11 @@ static void mana_ib_modify_qp_state(struct ib_qp *=
-ibqp, struct ib_qp_attr *attr,
->  		default:
->  			break;
->  		}
-> +		qp->state =3D attr->qp_state;
+[Severity: High]
+Does the else if prevent an unsignaled work request from recording its
+fence dependency in the shadow queue?
 
-[Severity: Low]
-Is this state field ever read?=20
+The RDMA verb API allows posting unsignaled WQEs that have fencing
+requirements (either explicitly via IB_SEND_FENCE or implicitly via
+pending_mmq_fence).
 
-It appears to be write-only in the driver, including in subsequent patches =
-in
-the series. Could this field be removed to save memory and avoid unnecessary
-instructions?
+If MANA_WQ_FENCE_WC is missing on an unsignaled fenced WQE, it seems
+the CQ polling logic won't evaluate the fence dependency. Could this leave
+dependent WQEs leaked in the fixed-size shadow queue, eventually leading
+to -ENOMEM failures?
 
-> +		if (attr->qp_state =3D=3D IB_QPS_ERR) {
-> +			mana_add_qp_to_error_cqs(qp);
-> +			notify =3D true;
-> +		}
->  	}
-> =20
->  	if (attr_mask & IB_QP_SQ_PSN) {
+> +	shadow_wqe->wqe_offset_or_psn =3D qp->sq_psn + mana_count_packets(msg_s=
+z, qp->mtu);
+
+Also related to the msg_sz overflow above, could the wrapped msg_sz
+cause the software PSN to be advanced by a smaller amount than the hardware
+transmits, desynchronizing the software PSN from the hardware PSN and
+tearing down the QP?
+
+[ ... ]
+> +static int mana_ib_post_mmq(struct mana_ib_qp *qp, const struct ib_send_=
+wr *wr)
+> +{
+[ ... ]
+> +	shadow_wqe->wr_id =3D wr->wr_id;
+> +	shadow_wqe->send_opcode =3D convert_wr_to_wc(wr->opcode);
+> +	if (!signaled)
+> +		shadow_wqe->flags |=3D MANA_WQ_NO_SIGNAL_WC;
+> +	else if (wr->send_flags & IB_SEND_FENCE)
+> +		shadow_wqe->flags |=3D MANA_WQ_FENCE_WC;
+
+[Severity: High]
+Does this else if block similarly prevent an unsignaled fenced WQE on
+the MMQ from recording its fence dependency?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261010065443.3554=
-193-1-kotaranov@linux.microsoft.com?part=3D8
+193-1-kotaranov@linux.microsoft.com?part=3D6
