@@ -1,166 +1,128 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo2-f11.google.com (mail-oo2-f11.google.com [74.125.231.139])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B60742AA9
-	for <linux-rdma@vger.kernel.org>; Sat, 10 Oct 2026 07:15:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EECB72E0B5C
+	for <linux-rdma@vger.kernel.org>; Sat, 10 Oct 2026 08:15:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.231.139
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791616541; cv=none; b=lPrZ5l2QPiPphExfHQLUUG3tDX4eYOliqagB9tk5CRMIitGRloeV+hz2/jS6IRjVKvqQOjelj47BakDQtM3Ex6UHJovqbM/a70AJaeSMVkegqAWSQ63pAbsL7uDMgBDm7jsG13+jgTFFnr2IJM0a+BINeA5a+MFZ7yoRiey6tag=
+	t=1791620124; cv=none; b=XomPKqTyZghl300bC0wg2hFBjzhpQeNm3OD5kUKBX1KvjnFr4O7q5nsRb3cIp2QzJ4yC9VN/0LolEKGksUEmLep3U5fTMvfY2aScXdlHVGUhYJk4OGw4BeIDFMs37e+y84ID61vj0MEueaeqt7YKVcnhnTEyCfzZaYYh3KUCJcE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791616541; c=relaxed/simple;
-	bh=b1gpTEjR1SuO8kt6VhlCD2mnIeg7oe4kvzwFBPmpOK0=;
-	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=n9nRieHkypgSmbvj8Ix7547pWdbyS4V9S1ogWaI0k7i0xBzLdHvGhNsdC1w1kBzZ+K5i/MWB0uPQnsLtrrrvUZHnpXmrxAk32EOqOhw11i1huabaGepyGFFrfZN3EkGTDe7V979PfWFVT8R+IYuo91AM8ei+ioB4bRkdH6ZmDTA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Igec1nXK; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791620124; c=relaxed/simple;
+	bh=Uf/oosQ/UAQy81xB9H7Rsx1eC7q8VdIACUuGXMPsPNM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DZnI9+UtwERy28rlv9LkVNMS2INIt7uZu95Bew1EbkCr9e5eGP0v+CYPfvdg7RS4/pHfPd/X4tpLUhQp63eO28c3f5pX3MChkjTvlvDHSgTLd6ky3tsjECpFIedCCQ8Ed9IOiFRgPIzBLvKXUOHxHRdzUA/k0uUpyt+cavIlt2M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=IfCRkZGK; arc=none smtp.client-ip=74.125.231.139
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Igec1nXK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11C221F000FF;
-	Sat, 10 Oct 2026 07:15:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791616539;
-	bh=vPunYP22Os+AS80GlBbE1ukJdZC1I0QhLqADdP36GtQ=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=Igec1nXKcOjTVw9hOJ9vhZnG0rmkmlFdpLHNfdtmWkYjyfu8DNSj8B/TQuYnDTou5
-	 DMnQajHoyWfTJ+i8JIGW7HMMumK0sQVJCqD2ANpdz6X7trneBVyunROoI6PEnxnbCR
-	 Lp8dT3rBDM4j44zeDMuKF15MvsfRGW7srUXqN6TqLYgWEW7EjAcO1+xmCkUWR2JN9f
-	 Q9pqMIfk2B79/7i34qGUrOxLgzEN6Oq3j8TsPYfZ+YP6Cxol3ShvRhz698By1VRvgE
-	 VvCQCWRp0PcymsZlxtXKf7o5t7mWzAaxSXTWyBobQx381NHUwT84NphfQeSWIMwfHX
-	 VhjZU+qkH8KkQ==
-Message-ID: <sashiko-outbox-166307@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v4 06/10] RDMA/mana_ib: Post send and
- memory-management WRs on RC QPs
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Konstantin Taranov" <kotaranov@linux.microsoft.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261010065443.3554193-7-kotaranov@linux.microsoft.com>
-References: <20261010065443.3554193-1-kotaranov@linux.microsoft.com>
- <20261010065443.3554193-7-kotaranov@linux.microsoft.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Sat, 10 Oct 2026 07:15:38 +0000
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IfCRkZGK"
+Received: by mail-oo2-f11.google.com with SMTP id 006d021491bc7-6e55f7a1ce4so45060eaf.1
+        for <linux-rdma@vger.kernel.org>; Sat, 10 Oct 2026 01:15:21 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1791620121; x=1792224921; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=/b9AkOusiOjPBsWU4XsABElpJcJY0c8yQLeU8F399Ww=;
+        b=IfCRkZGK1vl8aNQnmZ1Tz1GIj6Mqj6rmQZI7dheMnOJDLRDnedgS4oNz3mZiixGmi1
+         EGNlqzplQZsloPkDwaWOVYSL7sjHvi0MQKVrQI8/ceBKjkIIP/HZQZBZu0kqgl6tAPJS
+         yyfa5+umi0Pfi0PUFEbvKlLrQtEfkljIviODG8Gwm4pwFTQ72SqNeaZIW0VOzZ/1kWym
+         tVWb7+z0OQD9pAQICqvD+o91/jpPGFy41eK7W0ImOU4lE7aOyq6iL2KtzyRbgeU+w4UG
+         AxmHOwdwvbBMM63KQB71JMpX+3Hkhwc0VV83dO0QTToXAIM2QhrU7oMy+ex6124QCWd3
+         VM2A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791620121; x=1792224921;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=/b9AkOusiOjPBsWU4XsABElpJcJY0c8yQLeU8F399Ww=;
+        b=mRQuE7S3ZAA0AeYIlh5jQeChkcy6hnQ9J5CSzzMbcz8aKZIhmrmSKvz3/wlMuLBnsD
+         ozuWBCYMaTGRJZM5PTLWq3xMD9bCbGDUkr/QUPv+7jBvX9gFYxoDrvgGNrJi2ugvA4Er
+         IgPF0IhmualNmBrmJ2r6JVD2mbvln0qsihE6AiEPKv4xbF/iYBoUuKWMxGxJW9JjgzvH
+         xoNa2yfQ5wMv1XRx1g1fAxCtB5LmOamOqd7bK91Nj68vTiYKBllMdlSX3cwky5zkIy63
+         dKEnUF9cLhaDLMav7TIBBGXJYanhwGArhfJABwEFP4UHnMgeHkOEISlDMoNzursXubco
+         X3Vg==
+X-Gm-Message-State: AFq9FYJs5aBTRhSW6BqRMLMVN9ouFiepar8vXXBMEYd13D7BT3MlTfYS
+	QT1k2GJHt0jVpsBD72crPa4aGlZ8JgE03/qNnj8ZSvN5FPgg9yLzdJos
+X-Gm-Gg: AYBFou0VtZK+aaOCWnVLrW17lOW4D45aAfBWFlm6DGFR9+63XkLZQ5QyyoornBFyHSG
+	BtNVM0HczQHrNZz3ZP+IXkdoV5ZeX6D2Hf4NJWoqZqIoSs+IG93KlEe62KDU5QUXomhGS4UOhul
+	mfbCAyauGSfM3zgXdVWOW7/ISD0OSXOE6/xqCeRk3hJTqhNRLiP+4BlaFoWgWVEj3vmeVao9uO8
+	OdzYyg5XTgDjclNhbgttHRaIhCTVE3XNpElYOfBQEdyY/frNFIjSH0QwXfEpkq+cX2VsTndnbrK
+	CA+r6x92ZDqORNNdPp7STvNJxSGYjx2KQwxPZqNHH8gtfkexDweuJxupWcfv1nxVmSZ+upEMw83
+	4JeMcaVZf7/lJYv+eg5/xi0qQ6eTP4zbxxOrUhEKCGK8vxXBdZCihBmNNT9vnpFqeZaXgrIx80y
+	2xh2rzn1fvuMEDyun8K9IgTdSOH3E18wZlOuLZISoXORw4nAssjQWbvu6/cW5Gs4MjljTzyccUs
+	Widcj9/yLQbSbgBxBO+7PsQaGgSf+UoLpOj
+X-Received: by 2002:a05:6820:1ca7:b0:6dd:d08d:7900 with SMTP id 006d021491bc7-6ef0fbb6725mr3230261eaf.54.1791620120710;
+        Sat, 10 Oct 2026 01:15:20 -0700 (PDT)
+Received: from localhost.localdomain ([14.22.11.162])
+        by smtp.gmail.com with ESMTPSA id 46e09a7af769-8302f625a10sm4067822a34.0.2026.10.10.01.15.04
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 10 Oct 2026 01:15:19 -0700 (PDT)
+From: Henry Martin <bsdhenrymartin@gmail.com>
+To: Allison Henderson <achender@kernel.org>,
+	"David S . Miller" <davem@davemloft.net>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>
+Cc: linux-rdma@vger.kernel.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Henry Martin <bsdhenrymartin@gmail.com>,
+	stable@vger.kernel.org
+Subject: [PATCH net] rds: fix transport reference leak on rds_add_bound() failure
+Date: Sat, 10 Oct 2026 16:14:46 +0800
+Message-ID: <20261010081446.3112217-1-bsdhenrymartin@gmail.com>
+X-Mailer: git-send-email 2.43.7
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found 3 potential issue(=
-s) to consider:
-- [High] rdma/mana_ib: integer overflow in msg_sz causes silent data corrup=
-tion
-- [High] rdma/mana_ib: shadow queue stall due to leaked unsignaled MMQ WQEs
-- [High] rdma: mana_ib: shadow queue leak on unsignaled fenced WQEs
---
+rds_bind() takes a module reference on the chosen transport via
+rds_trans_get_preferred().  If the subsequent rds_add_bound() fails,
+rs->rs_transport is reset to NULL without dropping the reference,
+and rds_release_sock() later only calls rds_trans_put() when
+rs_transport is non-NULL.
 
-commit b07a49d6904077b337ee7637a4f192e98b247c4a
-Author: Konstantin Taranov <kotaranov@microsoft.com>
-RDMA/mana_ib: Post send and memory-management WRs on RC QPs
+Every failed bind therefore leaks one rds_tcp module reference,
+unprivileged and unbounded: a few hundred failed binds (e.g. to
+port 1) make "rmmod rds_tcp" permanently impossible.  The reference
+was originally balanced because the failed bind left rs_transport
+in place for the release path; commit 05733434ee9a ("net/rds: Check
+laddr_check before calling it") added the NULL-out without the
+matching put.
 
-This commit implements send work request posting for RC QPs. It posts
-communication WRs to the send queue and memory WRs to the memory
-management queue.
+Drop the reference in the failure branch; rds_trans_put() already
+tolerates NULL.  The symmetric SO_RDS_TRANSPORT leak is covered by
+the same fix.
 
-> diff --git a/drivers/infiniband/hw/mana/wr.c b/drivers/infiniband/hw/mana=
-/wr.c
-> index 5d42af91fce4a..6cc67537c6557 100644
-> --- a/drivers/infiniband/hw/mana/wr.c
-> +++ b/drivers/infiniband/hw/mana/wr.c
-[ ... ]
-> @@ -224,6 +289,287 @@ static int mana_ib_post_send_ud(struct mana_ib_qp *=
-qp, const struct ib_send_wr *
->  	return err;
->  }
-> =20
-> +static int mana_ib_post_sq(struct mana_ib_qp *qp, const struct ib_send_w=
-r *wr)
-> +{
-[ ... ]
-> +	u32 msg_sz =3D 0;
-> +	int err, i;
-> +
-> +	if (shadow_queue_full(&qp->shadow_sq))
-> +		return -ENOMEM;
-> +
-> +	if (wr->num_sge > MAX_TX_WQE_SGL_ENTRIES)
-> +		return -EINVAL;
-> +
-> +	for (i =3D 0; i < wr->num_sge; i++)
-> +		msg_sz +=3D wr->sg_list[i].length;
+This issue was discovered by Tencent CodeBuddy Security.
 
-[Severity: High]
-Does this loop overflow msg_sz if a userspace application posts an RDMA
-READ/WRITE or SEND WR with a total SGL length exceeding 4GB?
+Cc: stable@vger.kernel.org
+Fixes: 05733434ee9a ("net/rds: Check laddr_check before calling it")
+Signed-off-by: Henry Martin <bsdhenrymartin@gmail.com>
+---
+ net/rds/bind.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-The IB core does not validate total SGL length, so drivers usually enforce
-their own hardware limits.
+diff --git a/net/rds/bind.c b/net/rds/bind.c
+index f800d920d9690..e4667b3128940 100644
+--- a/net/rds/bind.c
++++ b/net/rds/bind.c
+@@ -264,8 +264,10 @@ int rds_bind(struct socket *sock, struct sockaddr_unsized *uaddr, int addr_len)
+ 
+ 	sock_set_flag(sk, SOCK_RCU_FREE);
+ 	ret = rds_add_bound(rs, binding_addr, &port, scope_id);
+-	if (ret)
++	if (ret) {
++		rds_trans_put(rs->rs_transport);
+ 		rs->rs_transport = NULL;
++	}
+ 
+ out:
+ 	release_sock(sk);
+-- 
+2.43.7
 
-[ ... ]
-> +	switch (wr->opcode) {
-> +	case IB_WR_SEND_WITH_INV:
-[ ... ]
-> +	case IB_WR_RDMA_WRITE_WITH_IMM:
-> +		send_oob.immediate_ext =3D cpu_to_le32(be32_to_cpu(wr->ex.imm_data));
-> +		fallthrough;
-> +	case IB_WR_RDMA_WRITE:
-> +	case IB_WR_RDMA_READ:
-> +		send_oob.rdma.address_hi =3D upper_32_bits(rdma_wr(wr)->remote_addr);
-> +		send_oob.rdma.address_low =3D lower_32_bits(rdma_wr(wr)->remote_addr);
-> +		send_oob.rdma.rkey =3D rdma_wr(wr)->rkey;
-> +		send_oob.rdma.dma_len =3D msg_sz;
-
-If msg_sz overflows, would this instruct the hardware to silently truncate
-the transfer while completing with success?
-
-[ ... ]
-> +	err =3D mana_gd_post_work_request(sq, &wqe_req, &wqe_info);
-> +	if (err)
-> +		return err;
-> +
-> +	shadow_wqe->wr_id =3D wr->wr_id;
-> +	shadow_wqe->send_opcode =3D convert_wr_to_wc(wr->opcode);
-> +	if (!signaled)
-> +		shadow_wqe->flags |=3D MANA_WQ_NO_SIGNAL_WC;
-> +	else if ((wr->send_flags & IB_SEND_FENCE) || qp->pending_mmq_fence)
-> +		shadow_wqe->flags |=3D MANA_WQ_FENCE_WC;
-
-[Severity: High]
-Does the else if prevent an unsignaled work request from recording its
-fence dependency in the shadow queue?
-
-The RDMA verb API allows posting unsignaled WQEs that have fencing
-requirements (either explicitly via IB_SEND_FENCE or implicitly via
-pending_mmq_fence).
-
-If MANA_WQ_FENCE_WC is missing on an unsignaled fenced WQE, it seems
-the CQ polling logic won't evaluate the fence dependency. Could this leave
-dependent WQEs leaked in the fixed-size shadow queue, eventually leading
-to -ENOMEM failures?
-
-> +	shadow_wqe->wqe_offset_or_psn =3D qp->sq_psn + mana_count_packets(msg_s=
-z, qp->mtu);
-
-Also related to the msg_sz overflow above, could the wrapped msg_sz
-cause the software PSN to be advanced by a smaller amount than the hardware
-transmits, desynchronizing the software PSN from the hardware PSN and
-tearing down the QP?
-
-[ ... ]
-> +static int mana_ib_post_mmq(struct mana_ib_qp *qp, const struct ib_send_=
-wr *wr)
-> +{
-[ ... ]
-> +	shadow_wqe->wr_id =3D wr->wr_id;
-> +	shadow_wqe->send_opcode =3D convert_wr_to_wc(wr->opcode);
-> +	if (!signaled)
-> +		shadow_wqe->flags |=3D MANA_WQ_NO_SIGNAL_WC;
-> +	else if (wr->send_flags & IB_SEND_FENCE)
-> +		shadow_wqe->flags |=3D MANA_WQ_FENCE_WC;
-
-[Severity: High]
-Does this else if block similarly prevent an unsignaled fenced WQE on
-the MMQ from recording its fence dependency?
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261010065443.3554=
-193-1-kotaranov@linux.microsoft.com?part=3D6
