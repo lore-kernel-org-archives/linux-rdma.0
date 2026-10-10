@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 178AD3B5318;
-	Sat, 10 Oct 2026 15:42:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72E0C3793D5;
+	Sat, 10 Oct 2026 15:42:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791646932; cv=none; b=aJxNgKJ9yrAIAqdvHeanwinhBoJIFCiByRR1DuVu7s4RMCLC6LBkw5fJzcy4rcmGnc7c03vqVVMibo/WSxOXqr6JA6Yu+ZXLcyrs3kjSmslNWx7Z0MNaRs1a/k88X0eFwuXyH5n678mXcTrULeXMaobXfuJAjUkDLfIO4X9wykU=
+	t=1791646953; cv=none; b=e7mhiWuQvk9TUEwH1nmlR/skWfDfnSyw/h+YuHr3F61VnqHimdwCSzlaIR0lEmHnu5gFiYVwl0cxnKv3p/fNBYtwiqNeNZpRLCdjOZPnJlvchgr5Qe5FeLbuNKyDmA0POoNILs+QiZvfHCSXzPaZpCm0QV5DqJW5TXIqQnd4E14=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791646932; c=relaxed/simple;
-	bh=o0Nbdtt+z9Xl9B0BpBsREqyYw5ZQK58jImSSl3F1+DA=;
+	s=arc-20240116; t=1791646953; c=relaxed/simple;
+	bh=+/stIHVnNllyLNmgxOiEfWQPD3m+sCUJ6EaD1hPNroc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=tsrRuablmgMka6zK28dLLM1Kb6TuLY5MZQL6pgxKi1gPYzGmmz+KA6PuUAMQda2DdwHcnOQ4Vrpd007cgWkApPMOdV0svBSESo9T5jyuf1GZj1L1zTfMEo53CXaqzZTWXCHW+pOh2yySyRRjWqp8tZTr2MTGYSdM/mxK+WJgHP4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eXxjPo13; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=BOpe2rng736T3SNiZJrDBW8Ps3ZAH8R/EIu1XEjKFVcBKaGSM7BUIxN+nkfCxffrGaeKyDieZB6NpTVZkBzX+jT63JzuBEM8aHClq1xvL0ae+fFj7NGwI7QypM5RfjxzejhIrc5OqYz4tVXpPzhSRLPY/SLHL54fvNIrBvk86RA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HaB2IpWp; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eXxjPo13"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 336991F000FF;
-	Sat, 10 Oct 2026 15:42:08 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HaB2IpWp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 738DD1F000FF;
+	Sat, 10 Oct 2026 15:42:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791646930;
-	bh=Ap+Tq/Y+qhjykp5ER3ePeXaxEviOW6XIy2R2my+Dgsk=;
+	s=k20260515; t=1791646951;
+	bh=t3Bj1MwXTOKzIBEfeF8JBZnRpIJ12Xf+XRKo8umfYuQ=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=eXxjPo13ut2gtaFOMruHDJlPpKT4h50VawIOovx8npMzZpm/9l+v9sZLMxAcnRuix
-	 x/2GPDzg5Z7AoXpa9uWisGGdwDjW5TF6eaUUYI6whlE5a83QXJjY9rsnsB304ZmgUE
-	 hJwd7qNak+9hjSaN2exjFsil2ykZ878qjYPMtcgTTmHMBLS0ieKqzQ9WOAdNQHFsLf
-	 ySljyUEWaeCtrmxKAyV0wYSBIWgkGZ+MIXwTLtIsUrTFRiZ+iIMg2C1I785Ht1N1gm
-	 4+g4/Smn7aTdeA2azs/FmSNpGKrh1ohoQaH1j6c5H4KoBqnWhhFdjA0LxM+XRkLaRS
-	 RbFyslVnw0+RA==
-Date: Sat, 10 Oct 2026 16:42:05 +0100
+	b=HaB2IpWpTyqZzWXjSUxNAC3YA9UmHVXV7wkhKcW50MF8ZBRB8Er5QqTFdjzCIWWJt
+	 u2lAHg9jjVUCquQ/F7Yahz55a9iRn6bMC3irRRaOkl+1wORQw2sS7ctlZHXgsflX6G
+	 qqrwerWL34jgUvqfq8Zs/tCxvz5JAfdHSA4QFRSgKyOywXKJU4laW8tbTVVmntT5m6
+	 nC27N5RhkSsTQViOdm43tiUo1C4OXazfTzo8glPNzQ8kOM251qrKxZgcZ+rxVoG8Qr
+	 SY29wERWnn5+iV1S3fcAMkBJvC5Sy3N+RYf+W4I1IdB4Pv5u5rBlgjFvyO1rXruXHz
+	 cc5Kc2z0fIhAQ==
+Date: Sat, 10 Oct 2026 16:42:27 +0100
 From: Simon Horman <horms@kernel.org>
 To: Alexandre Cassen <acassen@corp.free.fr>
 Cc: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
@@ -38,11 +38,11 @@ Cc: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
 	Moshe Shemesh <moshe@nvidia.com>,
 	Yevgeny Kliteynik <kliteyn@nvidia.com>, netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org
-Subject: Re: [PATCH net-next 1/2] net/mlx5e: TC, free NIC flow parse
- attributes after offload
-Message-ID: <20261010154205.GS83879@horms.kernel.org>
+Subject: Re: [PATCH net-next 2/2] net/mlx5: HWS, shrink FTE action array to
+ fit
+Message-ID: <20261010154227.GT83879@horms.kernel.org>
 References: <20261009052103.3621855-1-acassen@corp.free.fr>
- <20261009052103.3621855-2-acassen@corp.free.fr>
+ <20261009052103.3621855-3-acassen@corp.free.fr>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -51,12 +51,13 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261009052103.3621855-2-acassen@corp.free.fr>
+In-Reply-To: <20261009052103.3621855-3-acassen@corp.free.fr>
 
-On Fri, Oct 09, 2026 at 07:21:00AM +0200, Alexandre Cassen wrote:
-> A NIC flow holds a 4 KB allocation for its parse attributes until
-> deletion although nothing reads them after offload. Free them once the
-> rule is in.
+On Fri, Oct 09, 2026 at 07:21:01AM +0200, Alexandre Cassen wrote:
+> An FTE keeps the actions it must release in the array used to build
+> them. This is a 1 KB allocation sized for MLX5_FLOW_CONTEXT_ACTION_MAX
+> entries while a rule rarely needs more than three. Keep a copy sized to
+> the actions in use.
 > 
 > Signed-off-by: Alexandre Cassen <acassen@corp.free.fr>
 
