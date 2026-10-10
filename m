@@ -1,64 +1,64 @@
-Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012005.outbound.protection.outlook.com [40.93.195.5])
+Received: from PH0PR06CU001.outbound.protection.outlook.com (mail-westus3azon11011039.outbound.protection.outlook.com [40.107.208.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37BC1369207;
-	Sat, 10 Oct 2026 13:45:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.195.5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98BB537647E;
+	Sat, 10 Oct 2026 13:47:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.208.39
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791639935; cv=fail; b=FpYFiap9IDT3uC2ddl4bZmcDocnjEq+Oek47WsSLIyEsd9xxZC4miQA4WEds5pl4boO42UMoEqWB5J4MkavMNpsQ8m7vrsZNVHkD+wr9A+IyGZ8cWYYdbUsOMBlM2sXCcZwZfz9blrIH6Ko4tt5FI84rwVxvKGifeX7lLCqHsSk=
+	t=1791640044; cv=fail; b=tZCQIFeHBqDIW80krSaoP7jxn3O7FT9AXFgznaiSVaK9CrXxKaQtoMcSfDDHDbYi6N1COSFuhMugPvEr8bg4cbC4rhwdNOR+XegTAeH2q+A1fTndUnFRX3GNaGPWDcJ2KbCS1+8tgs2UDK8GPCf5wnhp8dPOBTUu0Mb/QZY9Bsc=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791639935; c=relaxed/simple;
-	bh=7N/oTy6ZhokL21Niq6A/hwqBAVq5U4RCTVYRkJZ3Hjs=;
+	s=arc-20240116; t=1791640044; c=relaxed/simple;
+	bh=8Q6M/2s8q8LFNzxMtlfALbHKKAp4V8Rj2IdWBEah6hQ=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=leov8DeIlIeV2NApqHcIDCAf8ORORGkLnU0jsMNo4v+a+rMYVQJvlX5RMhIo28/HhqOwjma7CLb+B73EROkyNwC3ZMtSoOKJAFJ9+EGkdGiXimQNjshxYjLSh2BlhiLC3cesTdNKUj25ItecgWTSDcmwzYcezo1nRAYlG6qDJp0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=fail (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=fail (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=KM1CzHvi reason="signature verification failed"; arc=fail smtp.client-ip=40.93.195.5
+	 Content-Disposition:In-Reply-To:MIME-Version; b=OYSGPmBxF/1/QPiThFkJ3+l5F9YDdh/UVpU9sydgJp98j0MCAJOBjGay0bA3ndUDRZhQpv6Udnj/WebIC3cwrnyio69i1pFd2mdF/rj/8e2Yh6p/2iRkBr3zrqtpErVOFqJmPk97LLm+sSwPgs92wj44k34KPwnsCzr1XOxbCgE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=fail (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=fail (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=qi+ddjMT reason="signature verification failed"; arc=fail smtp.client-ip=40.107.208.39
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="KM1CzHvi"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="qi+ddjMT"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=tHp5vMmmxdComu2Cbsa7v8qEDWUVT9Bur+f/n2/Wi/4eTpgeNFAEf2ty4nsbif+F3JNjxvTz5OyhWlztrdhg5dmLzzdNR4EC+MvLMvJ/DZbrKXu9lCDCObQsTmpHj1wANaZoFiTH0SYTpEE8url6IX1CUSIPjRAZHUpzN8bGeceBsLH85HGgXwNf7gGnQH50N+Ktx1a5mQgCW0HaQHYU0/iD2y26cYc3NtOyiOzY3q+24tthMiLkPUlLhVQvi5lEp7REd3yLGB750Urtl3GdGBuPulSlS5jal1a52zNpHe9VoG3usQ0k6trLCWbzAgGOKNVavVs393dVTB5QB7tZag==
+ b=kvo9JZjsvJYxvmBQAAiWwaAo1eOnaa7U6t777SQ0Htk/iPPcOxnoLRMOfHciKREdPAseKsc4E2FIjcNAc4eIapzTY2ikOANoFomWFJeNMpZdzR5NcLp7CYp6PW/MKhjDwFz8CtvyuqNByFVwEeVz4L1tvIHRLCjmSoxAmHXjmqQtYSP2Yl/PVCzR0LgQMPmQ7zgdAjz9VCIuRH2C74PkUvs0J+H1r+13ZchiXZ9ElrYEEfZiVMhdueSyz7/YDSTpOEaM+67NWwnTVFE4ORgp1uk08hUibJihb2AhP/NOGU70kBAM4Bs3ersl955gZMju/ty7KAmiAiKBaGv6rWZWbQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=w9FER3A9qoq4DEjiv6uRsU3AN3c0RELgD5i2ryGfe8A=;
- b=h/P6HrkcGOcAIur6LQknCcZT9bczCCYU5QR2P136lv3EsCdKVHX6FuP0NMfRlcyRFLIxh/5SbQD3t7Q8mVuo7jY7t8M9vLXtwys8S/4EG4OvAJAZgH7QViTVW1Yj9XaVl2NO219mHOmXodAeK/zlI1ZgIMjZidcYj2AVKSImRJGuPCLmLn4BPI2Klxe8QV2Xm+2sJc3416+305wEa/ACLLxleHQ7RrZd4xfDryApeoXIgCKQVl15y4aslbjlJGB4yeorfMQgaXknYP58Qr2rlj4kWQXeIAvrGzNJqfBqiqbHtBBUVBWmnbdI9qO7ciL1Mvxgc74/8wWz3lOg7EIHhQ==
+ bh=UJ+UcHrkeA8JwSMkxh7hai7Xo53euoXaxNzQRiB6S/E=;
+ b=I2OamiTm390vUZCNpcHN8gNXQbrcrTBZoc0Cgfrkslnr8rgowoHmOPFcClHm2CNEeExW0ml/kbqOeqBVa506jIcSA00wKFeo3tTA8Atmp/KNfmVKMqvJbPvZ+40EEGF17wtJN+3CKmAq4o3j+hsoNJ4rPySoNmEwuUBfvS6WW2idTvX+azGwA7/U6v5fKZcabMAPNKLDve3EJ9DwyO+13gnEMgcBMsEbELZwepXnPrOOS0dZn6jXh7hVuu/o7QXDbXrYZkYVIU8agTGfGjfXPTq6eAKUpLdvdkkP2yFfVKN5eJgpLS6t8VPpQL3fz4ha4QOCrJzUPSflvoVX1J5Y8Q==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=w9FER3A9qoq4DEjiv6uRsU3AN3c0RELgD5i2ryGfe8A=;
- b=KM1CzHviCYLffHEyJnoSfi3HJ6fmdwTt6Lw291J367giaACixuDm0E03ut7CKeEPKCeFymJc6+RFvPxoWwRVZjC5KX0oYUVubwgNPsUirjHHrMpsyP076GBXQ/nET+FJUO6sr5z47CnMgOSlSyC35Vv28sorBTeroXOa23Zen5x5ool+bSoGdFEKQHOcebSFV8mHUkqlThQU908jIz9QBgKypMWiTuEZqgMfmMFSHulPylUe3h6rAuWhN0uJQ0dBdSH7W2KKMqSiOejTcayAZa48hcb9bpBRAUkdJfTQIoLgeRDf0rg61TxyCSa0iWrqNyolqhBYymFYCsa+qYtEhw==
+ bh=UJ+UcHrkeA8JwSMkxh7hai7Xo53euoXaxNzQRiB6S/E=;
+ b=qi+ddjMTpsKhz46KiGY67rft0RkHG3nBQajAoL0jUPe93ZI2PqMA14xkgCBHPOrxgdNF7FsrXN50tikrfhix3g7mp0CIQphDnMcK97kJDPsR0+AvWxQ/ezuPTCUxL5Wvt+TK0Ng3Lga3TlnqM2PT3u9TKBl9tqa0JCp0a8QVPGMHWLGgER/jhM8wkSxc/lgwrxlh47jsz4A2bvkXab9IAui/v+918tArczS++ZhHO2UEtfmIlhlNpN0WfMIloHOa6xo5g4QVpaY9wxq80Gsdr41glTKEFErJcWouV0AK33bB+l/g4qPfJZVg4+sK9ZZvlpvBURO4ZZ9yXB977gOcvA==
 Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=nvidia.com;
 Received: from CH1PR12MB9647.namprd12.prod.outlook.com (2603:10b6:610:2b0::10)
  by CY8PR12MB8338.namprd12.prod.outlook.com (2603:10b6:930:7b::8) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.496.15; Sat, 10 Oct
- 2026 13:45:30 +0000
+ 2026 13:47:19 +0000
 Received: from CH1PR12MB9647.namprd12.prod.outlook.com
  ([fe80::228c:766a:191d:77b2]) by CH1PR12MB9647.namprd12.prod.outlook.com
  ([fe80::228c:766a:191d:77b2%3]) with mapi id 15.21.0496.019; Sat, 10 Oct 2026
- 13:45:29 +0000
-Date: Sat, 10 Oct 2026 13:45:26 +0000
+ 13:47:19 +0000
+Date: Sat, 10 Oct 2026 13:47:16 +0000
 From: Dragos Tatulea <dtatulea@nvidia.com>
 To: sashiko-reviews@lists.linux.dev, Tariq Toukan <tariqt@nvidia.com>, 
 	dtatulea@nvidia.com
 Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH net-next 06/10] net/mlx5e: Add data direct TX
- infrastructure
-Message-ID: <uc63em2ficuikpwefcdn46dayb2lalnynylbc7wkmeua4l6scc@i3yoeilmyyke>
+Subject: Re: [PATCH net-next 08/10] net/mlx5e: Recreate netdev channels on
+ data direct device unbind
+Message-ID: <wlgqjiussmqbvbpzygi2jrtexupsu4l6a7j3vnm6dgkrbvtxez@goz2l6jmrvcz>
 References: <20261008132815.654147-1-tariqt@nvidia.com>
- <20261008132815.654147-7-tariqt@nvidia.com>
- <sashiko-outbox-165640@kernel.org>
+ <20261008132815.654147-9-tariqt@nvidia.com>
+ <sashiko-outbox-165642@kernel.org>
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <sashiko-outbox-165640@kernel.org>
-X-ClientProxiedBy: FR4P281CA0356.DEUP281.PROD.OUTLOOK.COM
- (2603:10a6:d10:f4::20) To CH1PR12MB9647.namprd12.prod.outlook.com
+In-Reply-To: <sashiko-outbox-165642@kernel.org>
+X-ClientProxiedBy: FR0P281CA0181.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:d10:ab::8) To CH1PR12MB9647.namprd12.prod.outlook.com
  (2603:10b6:610:2b0::10)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -68,119 +68,115 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
 X-MS-TrafficTypeDiagnostic: CH1PR12MB9647:EE_|CY8PR12MB8338:EE_
-X-MS-Office365-Filtering-Correlation-Id: 6c25412c-b1db-4a68-4f90-08df26d4bf5d
+X-MS-Office365-Filtering-Correlation-Id: 83745309-5b07-4665-9a55-08df26d500e1
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|23010399003|366016|1800799024|6133799003|18002099003|22082099003|4143699003|11063799006|10067099003|261009223027099003|56012099006;
+	BCL:0;ARA:13230040|376014|23010399003|366016|1800799024|6133799003|18002099003|22082099003|4143699003|11063799006|10067099003|5023799004|261009223027099003|56012099006;
 X-Microsoft-Antispam-Message-Info:
-	gTkK9ymKdRY/aZmf+H8Mih8tTLLzGZRGIPt/jKIDW0Cs0F4wCbcQSsXJSgB1aKfICf8GVXjNnlXpdY70nFJqYbaq/OhQWLIoxLls2gRdHIL25wNwjpaj29xm2jCbIOJ/EPqXPnXVwyvTmawNUxJkypjuDaYzlj/455ldTW2NUzqa77+K509S8g2Mm3X6+A3PtY0nTPcy9w/Q+ZZwIX4C9ydyqb+19H3VoPhpeLxgDbV77d8XHOJFnGxAJMEEduusGj2N0B3/PQhTnwOmurgELveloFtyhdsZK1YKVMhhgPw44sanMeZrdxvGfQACYN3Y8WeZca/9JwWqXqvXDk6SAOUKii73hloeiFfjGjwb5Oac0AQdQ/3V52+fDmlAYtgCxzdKaQfI8Ek6wDWnxiotrmQkr6E6h6DG2AEMzwLR1PZRlkCtjTwyPuijqKV0U+HOIMpViY4eM9jFUOIAiwM7gG9Dl7iX+g4jZx/0QMXq1BLuR3j9DUS03dDSYoP9H7tmrQYXw29AcUbVGzCOV39egdHRls429Q25Xzkp+lhh7HK8KafzaidALdaTdMris1CTYySRVNFlecxkRReaXl8p7tOjNJ6qY3Yp9foCyXDTiowuzCJnLBlwD2SVxKgBLlXxh3EzIdeWLc5AGkQuP13xtPAWd+oEXjG+8ItjnealKHA=
+	pR+qmpkoovTKzJIAK7ilC22BTRG7H0APnUHwcLdrvx4sPoeANjbHL4uVlRLKr2gbLvaFyGOKOwE0/0QTY2c2QvBF6B8pCsGRZwDq+t/92tCKVW/52otld2pXmqWC6gTO0XlYp0itbzCy7hrtHHotmFRjyZKdhesiB2w5cH108Jg2R++Hi/1ufDZqA1IKq5W35zNHfavQBi1IkKIsTFE264WlpaGlV/o94NopNYSFc41D3YKJ6ThZBvQYk9Dp/giG1zJWZqxGsb98sFiTVIrKtA7/xHfrkR+hdrWzSvZ5T419G18JK9YzSYAS3BvdtRzmLl00iKvBqUZA/gxzT00svtSEF486sxemEm/rB5sAEAhivnIiz/2OZehyMXT0RWW8Xka+J+juvt9RMRho5nVMEM2HfGRtjH3uM0RGBKNVem/lFJT8geQKQfVBPCEv0HSoD4iUJfHE2ZbxpRaOBG1/t8hcSp2po/WYKNFU3yeQnfSpYajft5LQwPPnrMwBFtW0l7WzE6ByqPt1Ii/hA/5RwLIhjK6lnwwvjJVUzzeWxfDKEV475FV/eICwWjtOiEeI2Hr8IZlWsiVeupq6sZeJ9oQNH48y97DFjf7JnAmAb777qeZhXRxuNGp5comT6eWO9hsCl4lf6nMjqCnMhepXPkBEnUUdB8izijol9mdB/IY=
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH1PR12MB9647.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(23010399003)(366016)(1800799024)(6133799003)(18002099003)(22082099003)(4143699003)(11063799006)(10067099003)(261009223027099003)(56012099006);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH1PR12MB9647.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(23010399003)(366016)(1800799024)(6133799003)(18002099003)(22082099003)(4143699003)(11063799006)(10067099003)(5023799004)(261009223027099003)(56012099006);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?iso-8859-1?Q?xi/0BWPuIjmY6/hLDHE2afXC3+Qx9LzU8gHMSVbP0vx2Hrh4r1NS4J7bqx?=
- =?iso-8859-1?Q?SWbxCLAXlAnOq6v4JJ6cgiZ1JfRis5OztIk5HV10/psgkw9/DhqCHK2CF/?=
- =?iso-8859-1?Q?PZaSMExlQQAW+ndFZyCTrUzUEdlOAg7rsQoutv04tBjqDocVK0YvO9Zpx6?=
- =?iso-8859-1?Q?6T38PiSHYlubsrDTvuStWtJItf/0XHqEkVMCIw3WZ1G7oXgJxuwVbJ3lVD?=
- =?iso-8859-1?Q?DKuZpOaQTNMM4ptLnDy7XAbi5IPpdg4kPgeqD6imR/2vNZEglsRzKoLjW4?=
- =?iso-8859-1?Q?U8GQJ4Kmj/6UIK8dy89/YzDdx8eeFNyGNbVyqk+FjL2sAo/6LFnys4oDgp?=
- =?iso-8859-1?Q?AAYDkgZFM/3u53hNLndsC+f8XlRKmajV6oTi6g6wjjlfNBjq0cv09GfuQd?=
- =?iso-8859-1?Q?+t7B36khQxDdZ3QNV3HHDtF9t1CL7Jnx8vRjwHkIqGmXt5BQG35kW1JrRG?=
- =?iso-8859-1?Q?2gUtOElyShU38oanEBttkWdLy6ilmhV9EXE7fgLf7JC26SHCn21n3eAhWr?=
- =?iso-8859-1?Q?oO2ozjP8WjvTEO/NDk5prV5OF6hHMTtV69j9eu0QY9sIjeORmHZUD8K8N/?=
- =?iso-8859-1?Q?vIkrgTuHXlo8fFjYanTs/UIecUVM5ML3jVSYzlgE4x+J/HraMRL6sw9LYF?=
- =?iso-8859-1?Q?HKkv1/KXNX41DapDUETP95gU+k/qJPejgue1osuIK2PneaMtIu96f6ddyO?=
- =?iso-8859-1?Q?9MNRgTjfR4vzA9tJrIhep+i3OVuq42Aj7MUR5HxvhKheQE/ZehFu6UZGAq?=
- =?iso-8859-1?Q?KoRGAI7DQu2MHE+eJ+8i1QBDRcDCXGzX+IR//1AhR3EUkKzPnq0qw194Wu?=
- =?iso-8859-1?Q?1zSqxljlnwpKnhUwYdGfll71GaxYGDIf5mXTRe3Se0Bd5N1DhBQce5kldu?=
- =?iso-8859-1?Q?sM3Q/AZc473Nh3jp34w7ANrOvKzQ/u2Ua35JZvlqmSuRW9b9RlWIP2RLG1?=
- =?iso-8859-1?Q?qFGy3FisR9XiMk43PxKpkA4kyJfe4nrBIjAUXIlh6PPz5qRsm6mBcBE+Nq?=
- =?iso-8859-1?Q?YqgneXwpSQy+LoypmWAdTiiEAfKoQl2M6OPeAWP9XXdpSlbgE/ZIkre6mS?=
- =?iso-8859-1?Q?fcC3vCiMgaNmNSXns617QzVFumqTYMXeXmiiEdUInfxkeLp/rciS8RlJRk?=
- =?iso-8859-1?Q?T81HyGIMNLj1IKAMrjGouagoTZbiwMuwaEfdpomchyLhBEme/S9wV9zhdx?=
- =?iso-8859-1?Q?FiD9rKRbswUeXj8HcwY9ij00b37zjkjiL4+6aJK7bXvQPjpGPNmBq9O/8E?=
- =?iso-8859-1?Q?QKsS6U2npMoXHAG1+hZDR2BNhjMRCgZ7v6J8mg0ZpRHETSjvOuXZxBHtTg?=
- =?iso-8859-1?Q?oFlHRsKGo5vrJ8zbX8w7cd4eSx0gF36JYltO/pQjyLC3nlKgkUmY+kMQZu?=
- =?iso-8859-1?Q?thokbj408nrIOsxd+qPiO/1RiouyuiSj+3Qs2KTiuu0RmifHbGqCgjh4Qn?=
- =?iso-8859-1?Q?aKlV1s9AG7TNeed2SpHFc/Zj3W+lbEQv+8dYIhOU+Cf0Zc9AaKmPymlSHC?=
- =?iso-8859-1?Q?btlpxSkqMtpsNuHVmE2gmaQ8eWf7pMBFjuLwx7idinlOZq/Wz3v+OPHTpT?=
- =?iso-8859-1?Q?lRviehhoxyhtf6vulvzGjYC/Rd/sT8wSoHY6DuApV+eWDy9QLQWoViB2tJ?=
- =?iso-8859-1?Q?DPwXeoFUx/BaZcqnCFycY1i5ec8w590O/Njj/8fQ5xkfMqHsBgXVqzO7Uc?=
- =?iso-8859-1?Q?UG73Fpicxq2uQ2h8GjaDrW5fOisDgZyDVXcPDMhWq18HgBJYtBkQsoFGIE?=
- =?iso-8859-1?Q?Ah91+Y9X5wp+9G8ROWwHqK/JFunbjY+cL5UKmHR7B5jEMS1y0DuwGcq1QZ?=
- =?iso-8859-1?Q?LlCDxA2HfQ=3D=3D?=
+	=?iso-8859-1?Q?miHBk2B0CzlLPVQPs0WjCljyAzGeMQoGwkgZmdqZ79auI2JS+YvqiHAEKe?=
+ =?iso-8859-1?Q?1flCk+cvBEKv3+AkzFgmm3fTUCWQYYv1tvFuhBBosPAaMx23jzK0JQX9z0?=
+ =?iso-8859-1?Q?NyhDbhpL9Z8uGCb1yBdCrsjUuI+rk91f7+eBSCYan70u2g93BvL4ArRPvK?=
+ =?iso-8859-1?Q?2E2QX937aazRnr6ceIpSPpRfgVPiKFLlYDr61Rem3uw72Zy6cmd04RrT+P?=
+ =?iso-8859-1?Q?8ljvsLg9EMn43Pzce1xgzQ6bDqLJJS4DHB52OiYd3u7I78Di3dc1cS29lA?=
+ =?iso-8859-1?Q?lTJ2Dr6ZTkr7YfmBcd/WECg6n2FshhoqXdmKkGG8sUH1Ad027ZcYJ6LJQC?=
+ =?iso-8859-1?Q?RzH0+OIiJVCXlSsgWlB/buMO6mzm/GIznDTS+NiXP7LPlzHZcnPvAVfhZQ?=
+ =?iso-8859-1?Q?Fi4XNDMFRODW4T/wv8k8eSnvP+LpCKFnlMpedXTdm2+espTEhdn1c2ugZv?=
+ =?iso-8859-1?Q?m3XFeGCaBdt+83uPoXoW4GnKkGMDXYHwxL56ZlFffWdoKoLaJ9k22oZXDd?=
+ =?iso-8859-1?Q?rLhnxZ3OuO2swBlJdz2NadCbYRgZZZKboK37FiYMTLtKJj0qL+n4xfdMeb?=
+ =?iso-8859-1?Q?DB58KgkDWBDVDUGQqL1rXJ2egxL2O0u7hEKXRtMZjht27k/uq8N9dloKgS?=
+ =?iso-8859-1?Q?gu+ixKjKx82eABkU/hBvA5y/rriRoScqWCO9RBxYukirqqxPNizFuSDM85?=
+ =?iso-8859-1?Q?Mknb2kHpGw+jUBmOcgoOBUVxV+S367yTjD3SwpBty3PPqSedKAXsvvVbT9?=
+ =?iso-8859-1?Q?n3s4Siz41QEr7CTky5H4IA6hOb2MrWbR+bVLrRGViEGpjW701sIsa5yvef?=
+ =?iso-8859-1?Q?6Er7/5pJ1cQpaKX8PwuLPxrT9g3KEA4uVO9XlC4iSA+cB+r6L4GxmkQIGU?=
+ =?iso-8859-1?Q?wgigqBCiL12NHBUls4heoglUpjhhcLOLFPWNFj3PjiZjOCLQ1qjzZ3TSRf?=
+ =?iso-8859-1?Q?io/H4zuzEyC0pN+u5A0b8H/ZBgTuGoecAaunoDG9uuwoGMUFLF6ea4Sysp?=
+ =?iso-8859-1?Q?KLsnuhXeOZ0Qh2OV9LAvvNqxLJ2IO33LaNx4Fxcxpl3zgByWZPBzpcQc5k?=
+ =?iso-8859-1?Q?pkqwCr2U4Q9VwThCt7DQBpcUSxXL/OvKUyHZRnat1nnv3mvkmBBTPqddKw?=
+ =?iso-8859-1?Q?P1yQkzVcsTxxiwdfBYs5vwGJJtVpS/sF3jqcrHhf3rwxKOHG059zt99jpB?=
+ =?iso-8859-1?Q?uKU9BimWiiriAO3gFgYCQGQJmHbOJEtHidujnwWAYo9z+kwSpM5rLZA6dQ?=
+ =?iso-8859-1?Q?xnbj0cCupLGomtf1+1ftQH/nRKDKEAGTg6wndM0rAsdhbP9pWlXEuHo6m5?=
+ =?iso-8859-1?Q?l+7oX7cPT1VHzK6JT7hauxQeij1yvE7PH7Ji9iaHiMciPmHlY/X1b51U8U?=
+ =?iso-8859-1?Q?pnsOoGNoIMm7idJCeWIYc2mOMnuEN6/4ZaoNpG2HnbeZti4Bekq22DYb3W?=
+ =?iso-8859-1?Q?ndlFpjoD1EYuCVlZe1MovKclBTHsRSp/A1h8gX8A47uA4T41S7KDjgjLg6?=
+ =?iso-8859-1?Q?qaJEXP5CzAlyLeUib06LjsvkPXy1jm+35+RJ5KYw4AS3DNMmS2U4BeeX+G?=
+ =?iso-8859-1?Q?u3gTTew9TGx6Fb/OxhM/qiw5vr7Ay6U9+OBfBsKQyFjx1rLtkMxW2XTMec?=
+ =?iso-8859-1?Q?WI2alxX/3rJzdQ/9BFkU80FEhlQpUuFI0kZwyWet0tXKFf8JlPJLU/LZZX?=
+ =?iso-8859-1?Q?kdm2XUOrkr2X5W0xMRxPhgBr0BcPpC08MaxeIkw8L1gUbsR+D+ZuT0v67d?=
+ =?iso-8859-1?Q?dR/yCP5kcMqX51zTr9rLOGddkCg4haHsG58XiHpiOF/ebObMjlguQsy5uj?=
+ =?iso-8859-1?Q?ll/zS/91Rw=3D=3D?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 6c25412c-b1db-4a68-4f90-08df26d4bf5d
+X-MS-Exchange-CrossTenant-Network-Message-Id: 83745309-5b07-4665-9a55-08df26d500e1
 X-MS-Exchange-CrossTenant-AuthSource: CH1PR12MB9647.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Oct 2026 13:45:29.8482
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Oct 2026 13:47:19.5764
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: Cp0yEm3qiBY2jXwJQ29eswdiRDr+ZdesSvFbCO4uQoVBOuWltxIBHAllE4PS6pqe3Yz81bQrf+/4Xra6fvWXtA==
+X-MS-Exchange-CrossTenant-UserPrincipalName: RteMnffkXY5D8SaM6S+xRY7LeNxr+BmTL4CPYBFmlE+tnyDBhlDzOs9fmZMdP78n8octYZK4r/69XFnwq35pIA==
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY8PR12MB8338
 
-On Fri, Oct 09, 2026 at 01:31:04PM +0000, sashiko-bot@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found 1 potential issue(s) to consider:
-> - [High] net/mlx5e: GPU unbind causes DMA corruption for active devmem TX
+On Fri, Oct 09, 2026 at 01:31:06PM +0000, sashiko-bot@kernel.org wrote:
+> Thank you for your contribution! Sashiko AI review found 2 potential issue(s) to consider:
+> - [High] net/mlx5e: unhandled mlx5e_safe_switch_params() failure leaves queues using unbound data direct device
+> - [High] net/mlx5e: missing devmem revoke hook causes IOMMU faults for dmabuf bindings on unbind
 > --
 > 
-> commit 2beff8c1365001300351d8ed26d31fd617a37400
+> commit e6199c36bc278fa5fdfb415d4fa28dbdfc733a06
 > Author: Dragos Tatulea <dtatulea@nvidia.com>
+> Subject: net/mlx5e: Recreate netdev channels on data direct device unbind
 > 
-> net/mlx5e: Add data direct TX infrastructure
+> This commit handles the unbinding of a data direct device by disabling
+> the data direct flag and triggering channel recreation for the affected
+> netdevs. It intends to stop queues from using data direct resources.
 > 
-> This commit introduces the necessary infrastructure for peer-to-peer DMA
-> between the NIC and another device (e.g., GPU) on the TX path. It creates
-> a crossing mkey linked to the SQ and adds a new SQ state flag to indicate
-> when Data Direct is enabled.
-> 
-> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
-> > index 14479da98f427..62ffb41a64dfe 100644
-> > --- a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
-> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
-> > @@ -182,6 +182,7 @@ mlx5e_txwqe_build_dsegs(struct mlx5e_txqsq *sq, struct sk_buff *skb,
-> >  			unsigned char *skb_data, u16 headlen,
-> >  			struct mlx5_wqe_data_seg *dseg)
-> >  {
-> > +	bool dd = test_bit(MLX5E_SQ_STATE_DATA_DIRECT, &sq->state);
-> >  	dma_addr_t dma_addr = 0;
-> >  	u8 num_dma          = 0;
-> >  	int i;
+> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> > --- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> > @@ -6144,9 +6144,28 @@ static int mlx5e_data_direct_event(struct notifier_block *nb,
 > 
 > [ ... ]
 > 
-> > @@ -211,7 +212,8 @@ mlx5e_txwqe_build_dsegs(struct mlx5e_txqsq *sq, struct sk_buff *skb,
-> >  			goto dma_unmap_wqe_err;
-> >  
-> >  		dseg->addr       = cpu_to_be64(dma_addr);
-> > -		dseg->lkey       = sq->mkey_be;
-> > +		dseg->lkey       = dd && skb_frag_is_net_iov(frag) ?
-> > +				   sq->crossing_mkey_be : sq->mkey_be;
+> > +	new_params = priv->channels.params;
+> > +	MLX5E_SET_PFLAG(&new_params, MLX5E_PFLAG_DATA_DIRECT, false);
+> > +	mlx5e_safe_switch_params(priv, &new_params, NULL, NULL, true);
 > 
 > [Severity: High]
-> If a peer GPU device unbinds while a Data Direct devmem DMABUF is mapped
-> for TX, the MLX5E_SQ_STATE_DATA_DIRECT flag is forcefully cleared.
+> Is it safe to ignore the return value of mlx5e_safe_switch_params() here?
 > 
-This requires devmem to implement dma-buf importer ops and implement
-revoking. The driver can't do anything about it.
+The unbind operation can't be rolled back. So even if we check for error
+there's nothing to be done about it.
 
-> Since the asynchronous unbind bypasses the devmem socket binding safety
-> checks, the application can continue transmitting net_iov fragments that
-> still contain GPU IOVAs.
+> If this function fails (for example, due to an allocation failure when setting
+> up the new channels), the parameter switch is aborted and the currently active
+> channels are left untouched. They will continue to run with the data direct
+> flag enabled.
 > 
-> When those fragments arrive here, dd is now false, so the code falls
-> back to using the NIC's local sq->mkey_be for those GPU IOVAs.
+> Since the driver proceeds with the unbind process while the active queues
+> still reference the soon-to-be-destroyed data direct resources, could the
+> hardware access invalid resources and cause use-after-free or crashes?
 > 
-> Could this cause the NIC to read incorrect local memory or trigger host
-> IOMMU protection faults? How should active net_iov transmissions be explicitly
-> fenced or dropped when the queue state reverts?
+> [Severity: High]
+> Additionally, since the newly recreated channels inherit existing bindings
+> via rxq->mp_params, won't they continue to post DMA addresses mapped in
+> the unbound data direct IOMMU domain to the primary PF?
 > 
-> >  		dseg->byte_count = cpu_to_be32(fsz);
-> >  
-> >  		mlx5e_dma_push_netmem(sq, skb_frag_netmem(frag), dma_addr, fsz);
+> The commit message notes this will cause IOMMU faults because a devmem
+> revoke hook is needed to close those bindings before the switch. Does this
+> leave the automatic unbind path fundamentally broken when dmabuf bindings
+> are present?
+> 
+> > +	netdev_info(priv->netdev,
+> > +		    "data_direct device unbound, disabled data_direct\n");
+> > +
+> > +out:
+> > +	mutex_unlock(&priv->state_lock);
 > 
 > -- 
-> Sashiko AI review · https://sashiko.dev/#/patchset/20261008132815.654147-1-tariqt@nvidia.com?part=6
+> Sashiko AI review · https://sashiko.dev/#/patchset/20261008132815.654147-1-tariqt@nvidia.com?part=8
