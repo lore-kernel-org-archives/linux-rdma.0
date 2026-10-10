@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6009E3BFE41;
-	Sat, 10 Oct 2026 16:45:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCF4C358363;
+	Sat, 10 Oct 2026 16:45:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791650726; cv=none; b=BbHs16xwR1cja9+yPODK/T7qNdUOLX1pBlPvnnzruKPofY4sAazrUOU4yVJlW58BbwhhQ9DgwatqEbeLIrJsiM60KqL84cVk8murP61FZi7/w97aFXHKt8ofcH9dX/O/PJdXbWShv9CjF2EXaaPm3Jj7xo1trg8b9dbbLnZ83Bg=
+	t=1791650727; cv=none; b=VXewYUoB4wiZFcg6pPIU3tPIm/3a+n68Ajf6gmdF0bQt53AjLQP/GzZjToBwPWSG+YoSlsOuw1BczeH+l9y4CeztFL7rjSVZyapmKnTGI2nR2ZY4ThgQNZALSSFsP78B4rU6IKOvymttp1aTNzEVSfqaH2S/IdetM+2VRkZrmA8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791650726; c=relaxed/simple;
-	bh=ADsm7uiEMCxBHs6X1kEtYy6VCQL+Q1sBBSVnXBZ3fi0=;
+	s=arc-20240116; t=1791650727; c=relaxed/simple;
+	bh=BjQcWrxxEzY2pQplQyWwEqszwZkK5CivOSc9qGwM60A=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=Szi3P+HrovtPm8WHtaj+hC7WSjzRbW79Lii6omTBrDLrHBfPJl54zuw84v8Lb7zp5kVEgu5wJYCEsNvatTAUZ6IiQ4HBwYkKsnXf6K8pVgZ6+sdrl3Tmcr6agA9uYQKf1BAfHpGujZybQi1lV05LfY2AYleLAqDD2wgNHO/JEH4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cW8daFep; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=oJF5+Mq/Au9kfdA1bZ3EyIvhmW+0OVzvpfpK7aqfFUlP8eQctA418SELEIkJNg6zAzSrJaocu3c8d+kcV2q6Pzfn3GHlpBRi8v01BwiugRQ1IGJLtJEJ2HyNkR68cuJO00scViA1ltAe3xV2dIphTW3n+gO3zF4qA427+cAtd6A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bossdBL+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cW8daFep"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E546B1F000FF;
-	Sat, 10 Oct 2026 16:45:22 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bossdBL+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A2C71F00893;
+	Sat, 10 Oct 2026 16:45:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791650723;
-	bh=pvsjiwZx+xIsJolf/NAt29QhFY341sWiNZv+tPj/ZoE=;
+	s=k20260515; t=1791650725;
+	bh=WsUaTQW16T+VJ/IXuKMk2nCrenXhAlNwSmjK48HhIf0=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=cW8daFep2Y6UyKJg4dcQNh74s6YaRYOl/kSBxCKTDYpc3oWQpevNIsXvDm/32764V
-	 uGDNoRe/x/CnGDVhRhcuwc/WhkJVFpEyk37nfNt7cXOxw+FV6uS3WDUQH7/bk12k33
-	 qfPUdF31VeLddmT4qhn2r1AjL15ZBcdX4aiahygO5TtdQ5dMIERytuYqrj5X2FEJNZ
-	 rv6XbJSghQ6XsqwGJK+TrJCQHseo8QfJVk2GrRQS3ePr5kIsXP3HXDERt0bBV64qNM
-	 OxYrHT3GfbQFiE1CpLSs/CMw7jBK0X4t1cX86rDf+aEoLyxlFLA61A62zNzlqqmaag
-	 hKkU+dLDzg0lA==
-Subject:
- Re: [net-next v2 1/3] bnge: Add infrastructure support for RoCE MPC channels
+	b=bossdBL+e4oI2KCDhndhK/ogW5fFjXO36mLNSUPi1FY9LHtuk/+09ELXOXOSBu+e2
+	 fOhvoF+zWqTAfwoWfXQ1dhIikZTNNhRwpTq4Vs7NPhA5L4ohUlDfmODq6Ws/BG3yZs
+	 es5vzZ8J8lMBDSbhtpFMcwS9rnUNZBFcm7TnUmvAdnfSzyaesS8ulqC2+HZVgr2h74
+	 9ge9UcyZJQTPGRnjsqjBF9rG8k0obkxhqrL8/eD6zX25s/MI/FLoA9557I3AYaO7ah
+	 PQPeeK09TwvMNd6j1lOD97HQfjjIOaK/6z4lTsi0LFG2ZvDPnl5Y4FwT4T62tVr7RE
+	 8Cots2c/vBcbA==
+Subject: Re: [net-next v2 3/3] bnge: reserve TX/completion rings for the RoCE
+ MPC channel
 From: netdev-bot+sashiko@kernel.org
 To: siva.kallam@broadcom.com
 Cc: leonro@nvidia.com, jgg@nvidia.com, davem@davemloft.net,
@@ -36,11 +36,11 @@ Cc: leonro@nvidia.com, jgg@nvidia.com, davem@davemloft.net,
  ajit.khaparde@broadcom.com, netdev@vger.kernel.org,
  linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
  sachin.holla@broadcom.com, dharmender.garg@broadcom.com
-Date: Sat, 10 Oct 2026 16:45:22 +0000
-Message-ID: <179165072240.434549.10870506597507225182@kernel.org>
-In-Reply-To: <20261006161256.1493672-2-siva.kallam@broadcom.com>
-References: <20261006161256.1493672-2-siva.kallam@broadcom.com>
-X-sashiko-severity: Low
+Date: Sat, 10 Oct 2026 16:45:24 +0000
+Message-ID: <179165072406.434549.12670474627195598439@kernel.org>
+In-Reply-To: <20261006161256.1493672-4-siva.kallam@broadcom.com>
+References: <20261006161256.1493672-4-siva.kallam@broadcom.com>
+X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -50,79 +50,294 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+Thank you for your contribution! Sashiko AI review found 3 potential
+issue(s) to consider.
 
-Low priority / nit picks for your consideration:
+Critical: 0 · High: 2 · Medium: 1 · Low: 0 (1)
 
-- [Low] The patch has no consumer, and its subject and body promise more
-  than it does.
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [High] In bnge_reserve_rings()
+  (drivers/net/ethernet/broadcom/bnge/bnge_resc.c:347-353), the new RoCE…
+- [High] The patch adds an MPC TX ring and CQ on top of the L2 demand.
+- [Medium] The commit message says the bng_re driver allocates its own
+  TX/CQ rings for an MPC control channel from the per-function FW ring…
+
+Pre-existing issues:
+- [Low] bnge_reserve_rings() now reads bnge_is_roce_en() separately for
+  need_reserve, tx_demand/hwr.tx (line 312), hwr.cmpl (line 317) and the…
 
 --
 
-bnge: Add infrastructure support for RoCE MPC channels
+bnge: reserve TX/completion rings for the RoCE MPC channel
 
-This patch adds a bar1 pointer to struct bnge_auxr_dev. It also fills that
-pointer in from bd->bar1 in bnge_set_auxr_dev_info(), next to the existing
-bar0. The commit message says follow-on patches will use it to send RoCE
-commands to the firmware over the MPC channels.
+When RoCE is enabled, this patch makes bnge_reserve_rings() request one
+extra TX ring and one extra completion ring for an MPC control channel
+that the commit says bng_re owns. Once firmware has made the reservation,
+the extra TX ring is taken out of the L2 TX count. If firmware did not
+grant the full TX demand, the function returns -ENOMEM.
 
-> diff --git a/drivers/net/ethernet/broadcom/bnge/bnge_auxr.c b/drivers/net/ethernet/broadcom/bnge/bnge_auxr.c
-> index 0955b488b6fea..87ae40eab5926 100644
-> --- a/drivers/net/ethernet/broadcom/bnge/bnge_auxr.c
-> +++ b/drivers/net/ethernet/broadcom/bnge/bnge_auxr.c
-> @@ -181,6 +181,7 @@ static void bnge_set_auxr_dev_info(struct bnge_auxr_dev *auxr_dev,
->  	auxr_dev->pf_port_id = bd->pf.port_id;
->  	auxr_dev->en_state = bd->state;
->  	auxr_dev->bar0 = bd->bar0;
-> +	auxr_dev->bar1 = bd->bar1;
+> diff --git a/drivers/net/ethernet/broadcom/bnge/bnge_resc.c b/drivers/net/ethernet/broadcom/bnge/bnge_resc.c
+> index 4711dd4945ffe..9dfb22b7c7c7a 100644
+> --- a/drivers/net/ethernet/broadcom/bnge/bnge_resc.c
+> +++ b/drivers/net/ethernet/broadcom/bnge/bnge_resc.c
+> @@ -110,9 +110,24 @@ static u16 bnge_nqs_demand(struct bnge_dev *bd)
+>  	return bd->nq_nr_rings + bnge_aux_get_msix(bd);
 >  }
 >  
->  void bnge_rdma_aux_device_add(struct bnge_dev *bd)
-> diff --git a/drivers/net/ethernet/broadcom/bnge/bnge_auxr.h b/drivers/net/ethernet/broadcom/bnge/bnge_auxr.h
-> index 6c5c15ef2b0a7..13cb9289f5b89 100644
-> --- a/drivers/net/ethernet/broadcom/bnge/bnge_auxr.h
-> +++ b/drivers/net/ethernet/broadcom/bnge/bnge_auxr.h
-> @@ -46,6 +46,7 @@ struct bnge_auxr_dev {
->  	struct net_device	*net;
->  	struct pci_dev		*pdev;
->  	void __iomem		*bar0;
-> +	void __iomem		*bar1;
+> +static u16 bnge_tx_rings_demand(struct bnge_dev *bd)
+> +{
+> +	u16 tx_rings = bd->tx_nr_rings;
+> +
+> +	if (bnge_is_roce_en(bd))
+> +		tx_rings += 1; /* For MPC TX ring */
+
+[Severity: Medium]
+
+The commit message says:
+
+  When RoCE is enabled, the bng_re driver allocates its own TX/CQ rings
+  for the MPC control channel out of the same per-function FW ring pool.
+
+Is there an in-tree user of this ring? In
+drivers/infiniband/hw/bng_re/bng_dev.c, the only firmware ring allocation
+is in bng_re_dev_init(), and it allocates an NQ for the CREQ:
+
+bng_re_dev_init() {
+    ...
+	type = RING_ALLOC_REQ_RING_TYPE_NQ;
+	creq = &rdev->rcfw.creq;
+    ...
+	rc = bng_re_net_ring_alloc(rdev, &rattr, &creq->ring_id);
+    ...
+}
+
+Nothing else calls bng_re_net_ring_alloc(), and the matching free in
+bng_re_dev_uninit() is also for the NQ. A search for mpc in bng_re and
+bnge only turns up the comments this patch adds.
+
+In the current tree, each RoCE-enabled function gives up one TX ring and
+one completion ring that nothing uses. The "pool overflow" in the commit
+message also doesn't look reachable.
+
+If this prepares for a future bng_re MPC series, could the commit message
+say so, or could the patch go in with that series? The same goes for the
+"it is owned by RoCE driver" comment in bnge_reserve_rings().
+
+> +
+> +	return tx_rings;
+> +}
+> +
+>  static u16 bnge_cprs_demand(struct bnge_dev *bd)
+>  {
+> -	return bd->tx_nr_rings + bd->rx_nr_rings;
+> +	u16 cprs = bd->tx_nr_rings + bd->rx_nr_rings;
+> +
+> +	if (bnge_is_roce_en(bd))
+> +		cprs += 1; /* For MPC CQ ring */
+> +
+> +	return cprs;
+>  }
+
+[Severity: High]
+
+Can the extra ring push the request past the firmware pool it is meant
+to protect?
+
+The L2 maximums still let L2 take the whole TX pool:
+
+_bnge_get_max_rings() {
+    ...
+	*max_tx = hw_resc->max_tx_rings;
+    ...
+}
+
+The RoCE branch of bnge_get_dflt_rings() lowers max_cp, max_irq and
+max_stat, but leaves max_tx alone:
+
+	max_cp -= BNGE_MIN_ROCE_CP_RINGS;
+	max_irq -= BNGE_MIN_ROCE_CP_RINGS;
+	max_stat -= BNGE_MIN_ROCE_STAT_CTXS;
+	...
+	rc = bnge_adjust_rings(bd, max_rx, max_tx, max_cp, shared);
+
+Shared mode is the only mode used, via bnge_net_init_dflt_rings(bd, true).
+In that mode TX and RX are each clamped to max_cp, not their sum.
+
+bnge_net_init_dflt_rings() then does:
+
+	bd->tx_nr_rings_per_tc = min_t(u16, dflt_rings, max_tx_rings);
+
+If max_tx_rings is at or below netif_get_num_default_rss_queues(),
+tx_nr_rings equals max_tx_rings. bnge_tx_rings_demand() then asks for
+max_tx_rings + 1, and __bnge_hwrm_reserve_pf_rings() passes that to
+FUNC_CFG as is:
+
+	req->num_tx_rings = cpu_to_le16(hwr->tx);
+	...
+	req->num_cmpl_rings = cpu_to_le16(hwr->cmpl);
+
+Completion rings have the same problem. _bnge_get_max_rings() only
+enforces rx + tx <= max_cp, so rx + tx + 1 can go over it.
+
+>From there firmware has two options:
+
+- Reject FUNC_CFG. bnge_reserve_rings() then returns before any counts
+  are adjusted.
+- Grant at most max_tx_rings. That hits the new -ENOMEM check below.
+
+In both cases the retry in bnge_net_init_dflt_rings() sends the same
+request again and probe fails, even though (L2 TX - 1) plus MPC would fit.
+
+Should the L2 max/default calculation hold back one TX ring and one
+completion ring for MPC when RoCE is enabled? Relaxing the check below
+would not fix the FUNC_CFG rejection case.
+
+[ ... ]
+
+> @@ -293,11 +309,12 @@ int bnge_reserve_rings(struct bnge_dev *bd)
+>  		hwr.nq = bnge_nqs_demand(bd);
+>  	}
+>  
+> -	hwr.tx = bd->tx_nr_rings;
+> +	tx_demand = bnge_tx_rings_demand(bd);
+> +	hwr.tx = tx_demand;
+>  	hwr.rx = bd->rx_nr_rings;
+>  	if (bd->flags & BNGE_EN_SHARED_CHNL)
+>  		sh = true;
+> -	hwr.cmpl = hwr.rx + hwr.tx;
+> +	hwr.cmpl = bnge_cprs_demand(bd);
 
 [Severity: Low]
-Does anything read auxr_dev->bar1? This commit has no user of the new
-field. The later patches in the series ("bnge: Update HSI" and "bnge:
-reserve TX/completion rings for the RoCE MPC channel") don't add one either.
 
-drivers/infiniband/hw/bng_re/ dereferences neither ->bar0 nor ->bar1. It
-still maps its own regions, in bng_re_map_cmdq_mbox():
+This is a pre-existing issue and was not introduced by this patch. Could
+BNGE_EN_ROCE change between reads here? bnge_reserve_rings() now reads
+bnge_is_roce_en() in four places:
 
-	mbox->reg.bar_base = pci_resource_start(pdev, mbox->reg.bar_id);
+- bnge_need_reserve_rings()
+- the tx_demand calculation
+- bnge_cprs_demand()
+- the MPC subtraction after the firmware exchange
 
-and in bng_re_map_creq_db():
+The flag can be cleared without holding rtnl or the netdev lock:
 
-	creq_db->reg.bar_base = pci_resource_start(pdev, creq_db->reg.bar_id);
+bnge_rdma_aux_device_add() {
+    ...
+	bd->flags &= ~BNGE_EN_ROCE;
+    ...
+}
 
-Could this assignment and the new field move into the bng_re patch that
-first uses auxr_dev->bar1?
+bnge_probe_one() calls this after bnge_netdev_alloc() has registered the
+netdev. So ndo_open->bnge_open_core()->bnge_reserve_rings() could run at
+the same time.
 
-The subject and body also describe more than the patch does:
+I don't think the result is harmful:
 
-    bnge: Add infrastructure support for RoCE MPC channels
+- If the flag clears between tx_demand and hwr.cmpl,
+  bnge_hwrm_get_rings() sees cp < rx + tx and trims the reserved TX/RX
+  counts through bnge_fix_rings_count().
+- If it clears before the subtraction, L2 keeps one extra TX ring. That
+  ring still fits inside the firmware reservation, and
+  bnge_adjust_rings() clamps it.
 
-    Add the initial L2 driver plumbing for RoCE MPC (PRIMATE channel)
-    support:
+At worst, one TX ring stays over-reserved until the next reservation.
 
-Nothing in the change is specific to MPC or PRIMATE. The body also has a
-bullet list with only one item.
-
-If the field stays in this patch, could the message say that it only
-passes the existing L2 BAR1 doorbell mapping to the RoCE auxiliary device?
+Both the unlocked flag clear and the earlier flag-dependent reads (via
+bnge_aux_get_msix() and bnge_aux_get_stat_ctxs()) existed before this
+patch.
 
 >  
->  	struct bnge_msix_info	msix_info[BNGE_MAX_ROCE_MSIX];
->
+>  	hwr.vnic = bnge_get_total_vnics(bd, hwr.rx);
+>  
+> @@ -327,6 +344,13 @@ int bnge_reserve_rings(struct bnge_dev *bd)
+>  	if (hwr.stat > bnge_aux_get_stat_ctxs(bd))
+>  		hwr.stat -= bnge_aux_get_stat_ctxs(bd);
+>  	hwr.nq = min_t(u16, hwr.nq, hwr.stat);
+> +	/* Drop MPC TX ring from L2 TX ring count; it is owned by RoCE driver */
+> +	if (bnge_is_roce_en(bd)) {
+> +		if (hwr.tx >= tx_demand)
+> +			hwr.tx -= 1;
+> +		else
+> +			return -ENOMEM;
+> +	}
+
+[Severity: High]
+
+Does this make any partial TX grant from firmware a hard failure?
+
+By this point bnge_copy_reserved_rings() has replaced hwr.tx with the
+granted count. That count can't be larger than tx_demand, so the check
+in effect requires the full tx_nr_rings + 1.
+
+bnge_hwrm_get_rings() can lower resv_tx_rings even when the HWRM command
+succeeds. Firmware may return a smaller alloc_tx_rings, or the count is
+trimmed to fit the granted completion rings:
+
+	if (cp < (rx + tx)) {
+		rc = bnge_fix_rings_count(&rx, &tx, cp, false);
+		...
+		hw_resc->resv_tx_rings = tx;
+
+For example, take 8 L2 TX rings and 8 RX rings. The request is 9 TX and
+17 completion rings. If firmware grants 16 completion rings, TX is
+trimmed to 8. Since 8 < 9, this returns -ENOMEM, even though 7 L2 TX
+rings plus MPC would have fit.
+
+Before this patch, bnge_adjust_rings() absorbed a short grant and
+bd->tx_nr_rings was set to the granted value.
+
+Now the return comes after firmware has committed the reservation and
+hw_resc has been updated. It also comes before any of these are updated:
+
+- bd->tx_nr_rings, bd->rx_nr_rings and bd->nq_nr_rings
+- the RSS table
+- the aux MSI-X/stat-ctx split
+
+tx_nr_rings is never lowered, so bnge_need_reserve_rings() stays true.
+The re-reserve retry in bnge_net_init_dflt_rings() then sends the same
+demand and fails again:
+
+	if (bnge_need_reserve_rings(bd)) {
+		rc = bnge_reserve_rings(bd);
+		...
+	}
+	if (rc) {
+		bd->tx_nr_rings = 0;
+		bd->rx_nr_rings = 0;
+	}
+
+That leads to bnge_probe_one() failing with "Error setting up default
+cfg". bnge_open_core() hits the same check, so the interface couldn't be
+opened either.
+
+There may also be a knock-on effect on the RSS table. rss_indir_tbl is
+allocated with kmalloc_array() and only initialized when the reserved RX
+count changes:
+
+	if (old_rx_rings != bd->hw_resc.resv_rx_rings)
+		bnge_set_dflt_rss_indir_tbl(bd);
+
+Suppose a reservation changes resv_rx_rings and then fails here. A later
+successful call with the same RX grant would then skip the
+initialization. bnge_fill_hw_rss_tbl() uses the stale or uninitialized
+entries as indexes:
+
+	j = bd->rss_indir_tbl[i];
+	rxr = &bn->rx_ring[j];
+
+Can that index past the end of bn->rx_ring[]?
+
+Would it work to only require room for MPC plus one L2 TX ring here? For
+example, hwr.tx >= 2, like the hwr.rx >= 2 aggregation check above, and
+then let bnge_adjust_rings() scale down as before.
+
+>  
+>  	/* Adjust the rings */
+>  	rc = bnge_adjust_rings(bd, &rx_rings, &hwr.tx, hwr.nq, sh);
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261006161256.1493672-1-siva.kallam%40broadcom.com
