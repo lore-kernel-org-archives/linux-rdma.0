@@ -1,128 +1,198 @@
-Received: from mail-oo2-f11.google.com (mail-oo2-f11.google.com [74.125.231.139])
+Received: from mail-dy1-f199.google.com (mail-dy1-f199.google.com [74.125.82.199])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EECB72E0B5C
-	for <linux-rdma@vger.kernel.org>; Sat, 10 Oct 2026 08:15:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.231.139
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B7D23B83FE
+	for <linux-rdma@vger.kernel.org>; Sat, 10 Oct 2026 08:39:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.199
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791620124; cv=none; b=XomPKqTyZghl300bC0wg2hFBjzhpQeNm3OD5kUKBX1KvjnFr4O7q5nsRb3cIp2QzJ4yC9VN/0LolEKGksUEmLep3U5fTMvfY2aScXdlHVGUhYJk4OGw4BeIDFMs37e+y84ID61vj0MEueaeqt7YKVcnhnTEyCfzZaYYh3KUCJcE=
+	t=1791621581; cv=none; b=Vk33xiVeSsKwlgcQ/rvaXIZD0NE9P+ta6XtKISlRoeNMgCiUgUejvonQTCwYF4Hw2KNM34ubeAzaONUDpShBMZ7QX/rKMJRDN94AgtIKlNyUH0Za73qeQQjzarC0lYlL9S1kiF7DsQEJPN4HsNORwCOPIyxKk833MTNA+VwcKjw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791620124; c=relaxed/simple;
-	bh=Uf/oosQ/UAQy81xB9H7Rsx1eC7q8VdIACUuGXMPsPNM=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DZnI9+UtwERy28rlv9LkVNMS2INIt7uZu95Bew1EbkCr9e5eGP0v+CYPfvdg7RS4/pHfPd/X4tpLUhQp63eO28c3f5pX3MChkjTvlvDHSgTLd6ky3tsjECpFIedCCQ8Ed9IOiFRgPIzBLvKXUOHxHRdzUA/k0uUpyt+cavIlt2M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=IfCRkZGK; arc=none smtp.client-ip=74.125.231.139
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1791621581; c=relaxed/simple;
+	bh=c4i6mi3hlpud4ggYzlYd71WHusW0w0pU98zmW2ROBu8=;
+	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
+	 To:Cc:Content-Type; b=XsFWfZhDchhwxruiZgwD9Y4MuFTtA7pj+BeYoH8s0yVPvMbWwgfQczWtwE6ixcGjvkvZp9A5z/4B+sUH80b6TgLY3Kuh2FrWRBIqjd6z/fGoQ4ZO0rkvwGHlpXwlF9YdLSM56BfNvjH9X7Eth/2dozSUaVU+yTeWG50kk9EFc/s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--almasrymina.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=Ok+GrNS8; arc=none smtp.client-ip=74.125.82.199
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--almasrymina.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IfCRkZGK"
-Received: by mail-oo2-f11.google.com with SMTP id 006d021491bc7-6e55f7a1ce4so45060eaf.1
-        for <linux-rdma@vger.kernel.org>; Sat, 10 Oct 2026 01:15:21 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="Ok+GrNS8"
+Received: by mail-dy1-f199.google.com with SMTP id 5a478bee46e88-3548cdfd2fbso664753eec.1
+        for <linux-rdma@vger.kernel.org>; Sat, 10 Oct 2026 01:39:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791620121; x=1792224921; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=/b9AkOusiOjPBsWU4XsABElpJcJY0c8yQLeU8F399Ww=;
-        b=IfCRkZGK1vl8aNQnmZ1Tz1GIj6Mqj6rmQZI7dheMnOJDLRDnedgS4oNz3mZiixGmi1
-         EGNlqzplQZsloPkDwaWOVYSL7sjHvi0MQKVrQI8/ceBKjkIIP/HZQZBZu0kqgl6tAPJS
-         yyfa5+umi0Pfi0PUFEbvKlLrQtEfkljIviODG8Gwm4pwFTQ72SqNeaZIW0VOzZ/1kWym
-         tVWb7+z0OQD9pAQICqvD+o91/jpPGFy41eK7W0ImOU4lE7aOyq6iL2KtzyRbgeU+w4UG
-         AxmHOwdwvbBMM63KQB71JMpX+3Hkhwc0VV83dO0QTToXAIM2QhrU7oMy+ex6124QCWd3
-         VM2A==
+        d=google.com; s=20251104; t=1791621577; x=1792226377; darn=vger.kernel.org;
+        h=content-type:cc:to:from:subject:message-id:references:mime-version
+         :in-reply-to:date:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=lHcZnhc3QYZQ2/oBZUUaxlLCVCxGa2In7CH7r+34iGA=;
+        b=Ok+GrNS8Y6mqZFXOGu2tI+Ipn9Oaw1NOXxHv/R3bCRjwf2VIYL4wXuH2ukDmQ7cqcy
+         zVIxQu3xLZ0khGcsrw5Q290xOqiFL8Wov3uS0uej/yHDq0SAnyZNAwWaFI/09FRrQiqf
+         IrPSCkNPc8dQDMv93KmdkOfUoZ0ky8tmocTO4dez2wwxbn5JeyQK1HI6L7BrvIzcAYUZ
+         6cNKsTPaSZtao6qmBqSMIHpD+HN+8VOu1gfX5oqrV2VwASzB6r9xmKAwdCfeOdpm71FL
+         o7Xa1NosM3mQYqMNXRzSTLd62pIH6p/rxzryZ+V3CnfthZGjc2ONY1QrQ49cc2RV1XYB
+         NFtg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791620121; x=1792224921;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=1e100.net; s=20260707; t=1791621577; x=1792226377;
+        h=content-type:cc:to:from:subject:message-id:references:mime-version
+         :in-reply-to:date:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=/b9AkOusiOjPBsWU4XsABElpJcJY0c8yQLeU8F399Ww=;
-        b=mRQuE7S3ZAA0AeYIlh5jQeChkcy6hnQ9J5CSzzMbcz8aKZIhmrmSKvz3/wlMuLBnsD
-         ozuWBCYMaTGRJZM5PTLWq3xMD9bCbGDUkr/QUPv+7jBvX9gFYxoDrvgGNrJi2ugvA4Er
-         IgPF0IhmualNmBrmJ2r6JVD2mbvln0qsihE6AiEPKv4xbF/iYBoUuKWMxGxJW9JjgzvH
-         xoNa2yfQ5wMv1XRx1g1fAxCtB5LmOamOqd7bK91Nj68vTiYKBllMdlSX3cwky5zkIy63
-         dKEnUF9cLhaDLMav7TIBBGXJYanhwGArhfJABwEFP4UHnMgeHkOEISlDMoNzursXubco
-         X3Vg==
-X-Gm-Message-State: AFq9FYJs5aBTRhSW6BqRMLMVN9ouFiepar8vXXBMEYd13D7BT3MlTfYS
-	QT1k2GJHt0jVpsBD72crPa4aGlZ8JgE03/qNnj8ZSvN5FPgg9yLzdJos
-X-Gm-Gg: AYBFou0VtZK+aaOCWnVLrW17lOW4D45aAfBWFlm6DGFR9+63XkLZQ5QyyoornBFyHSG
-	BtNVM0HczQHrNZz3ZP+IXkdoV5ZeX6D2Hf4NJWoqZqIoSs+IG93KlEe62KDU5QUXomhGS4UOhul
-	mfbCAyauGSfM3zgXdVWOW7/ISD0OSXOE6/xqCeRk3hJTqhNRLiP+4BlaFoWgWVEj3vmeVao9uO8
-	OdzYyg5XTgDjclNhbgttHRaIhCTVE3XNpElYOfBQEdyY/frNFIjSH0QwXfEpkq+cX2VsTndnbrK
-	CA+r6x92ZDqORNNdPp7STvNJxSGYjx2KQwxPZqNHH8gtfkexDweuJxupWcfv1nxVmSZ+upEMw83
-	4JeMcaVZf7/lJYv+eg5/xi0qQ6eTP4zbxxOrUhEKCGK8vxXBdZCihBmNNT9vnpFqeZaXgrIx80y
-	2xh2rzn1fvuMEDyun8K9IgTdSOH3E18wZlOuLZISoXORw4nAssjQWbvu6/cW5Gs4MjljTzyccUs
-	Widcj9/yLQbSbgBxBO+7PsQaGgSf+UoLpOj
-X-Received: by 2002:a05:6820:1ca7:b0:6dd:d08d:7900 with SMTP id 006d021491bc7-6ef0fbb6725mr3230261eaf.54.1791620120710;
-        Sat, 10 Oct 2026 01:15:20 -0700 (PDT)
-Received: from localhost.localdomain ([14.22.11.162])
-        by smtp.gmail.com with ESMTPSA id 46e09a7af769-8302f625a10sm4067822a34.0.2026.10.10.01.15.04
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 10 Oct 2026 01:15:19 -0700 (PDT)
-From: Henry Martin <bsdhenrymartin@gmail.com>
-To: Allison Henderson <achender@kernel.org>,
-	"David S . Miller" <davem@davemloft.net>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>
-Cc: linux-rdma@vger.kernel.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Henry Martin <bsdhenrymartin@gmail.com>,
-	stable@vger.kernel.org
-Subject: [PATCH net] rds: fix transport reference leak on rds_add_bound() failure
-Date: Sat, 10 Oct 2026 16:14:46 +0800
-Message-ID: <20261010081446.3112217-1-bsdhenrymartin@gmail.com>
-X-Mailer: git-send-email 2.43.7
+        bh=lHcZnhc3QYZQ2/oBZUUaxlLCVCxGa2In7CH7r+34iGA=;
+        b=qeCnu8l4LP+TIUBA84rsjb2TORRhAlmdoaDLAOC1Kpd/ZY7IeW6dELp8oXOzy2BqMc
+         bFioTCo6RjnMXmh6Kx2NOjXTucItvGP7ecc9SIQ+LWSxMLALPYUWLTz5ge+bhNLq+aZ7
+         T70M3uRbdSkCh7svopJ0HyYMPn0e81mEyBnjYtWypnhl6f1PTvAeHoJ4VYZL13ME8/rU
+         qJ4fZ66cnTtRbkRdSVysPfyZlACNopULItOX8lg9tKXGu3k97PS7gOC6+43CRh+nfV1C
+         pEldcNNIpRtletRyywMW7Npbj2ZRcFp9n5L4X6oKeorF0uqH7u8u30WLLJmJkg1Fbpvp
+         FNDg==
+X-Forwarded-Encrypted: i=1; AKwUvBx0gb3krZ5GpkMr3/BOarLfYKKYxOzo6+7JlzJFBVG90BgiZ4fhzNdwUw/DnpVKrqB/vHkTJq9VW2vO@vger.kernel.org
+X-Gm-Message-State: AFq9FYKoF8EyLSfnKsLbAbFL+rvemB8utx2KwElXA20uWUNA9F6GYTO2
+	7RbkHov/C9YR2TVZmBvTbJQ1q+gM3/zJXvqTZd2Oe930l033W6VEthooxyIvM4hVW+FPon9f9f0
+	tqK7w0AgquH/Lyx0KRUm5I2RNdg==
+X-Received: from dybqm7.prod.google.com ([2002:a05:7301:6707:b0:351:5787:a37a])
+ (user=almasrymina job=prod-delivery.src-stubby-dispatcher) by
+ 2002:a05:693c:6394:10b0:34a:48ce:b687 with SMTP id 5a478bee46e88-3537e010c56mr5272905eec.32.1791621576769;
+ Sat, 10 Oct 2026 01:39:36 -0700 (PDT)
+Date: Sat, 10 Oct 2026 08:38:42 +0000
+In-Reply-To: <20261010083935.3274178-1-almasrymina@google.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
+References: <20261010083935.3274178-1-almasrymina@google.com>
+X-Mailer: git-send-email 2.56.0.385.gd3acb90ef8-goog
+Message-ID: <20261010083935.3274178-2-almasrymina@google.com>
+Subject: [PATCH net-next v1 1/6] netmem: rename __get/__put_netmem() to get/put_net_iov()
+From: Mina Almasry <almasrymina@google.com>
+To: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-rdma@vger.kernel.org, bpf@vger.kernel.org
+Cc: Mina Almasry <almasrymina@google.com>, Ayush Sawal <ayush.sawal@chelsio.com>, 
+	Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, 
+	Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+	Tariq Toukan <tariqt@nvidia.com>, Simon Horman <horms@kernel.org>, 
+	Steffen Klassert <steffen.klassert@secunet.com>, Herbert Xu <herbert@gondor.apana.org.au>, 
+	Neal Cardwell <ncardwell@google.com>, Kuniyuki Iwashima <kuniyu@google.com>, 
+	John Fastabend <john.fastabend@gmail.com>, Sabrina Dubroca <sd@queasysnail.net>, 
+	Eric Biggers <ebiggers@kernel.org>, Kees Cook <kees@kernel.org>, 
+	Michael Grzeschik <mgr@kernel.org>, 
+	"=?UTF-8?q?Uwe=20Kleine-K=C3=B6nig=20=28The=20Capable=20Hub=29?=" <u.kleine-koenig@baylibre.com>, Petr Machata <petrm@nvidia.com>, 
+	Arend van Spriel <arend.vanspriel@broadcom.com>, Jakub Raczynski <j.raczynski@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
 
-rds_bind() takes a module reference on the chosen transport via
-rds_trans_get_preferred().  If the subsequent rds_add_bound() fails,
-rs->rs_transport is reset to NULL without dropping the reference,
-and rds_release_sock() later only calls rds_trans_put() when
-rs_transport is non-NULL.
+netmems carry both a non-pp backing refcount and a page_pool
+pp_ref_count. Make the non-pp layer explicit and symmetric across both
+netmem types: get/put_netmem() dispatches to get/put_page() for pages
+and get/put_net_iov() for net_iovs, always acquiring or releasing a
+non-pp reference regardless of page_pool membership.
 
-Every failed bind therefore leaks one rds_tcp module reference,
-unprivileged and unbounded: a few hundred failed binds (e.g. to
-port 1) make "rmmod rds_tcp" permanently impossible.  The reference
-was originally balanced because the failed bind left rs_transport
-in place for the release path; commit 05733434ee9a ("net/rds: Check
-laddr_check before calling it") added the NULL-out without the
-matching put.
+Warn via DEBUG_NET_WARN_ON_ONCE() for net_iov types that do not support
+non-pp references.
 
-Drop the reference in the failure branch; rds_trans_put() already
-tolerates NULL.  The symmetric SO_RDS_TRANSPORT leak is covered by
-the same fix.
-
-This issue was discovered by Tencent CodeBuddy Security.
-
-Cc: stable@vger.kernel.org
-Fixes: 05733434ee9a ("net/rds: Check laddr_check before calling it")
-Signed-off-by: Henry Martin <bsdhenrymartin@gmail.com>
+Signed-off-by: Mina Almasry <almasrymina@google.com>
 ---
- net/rds/bind.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/net/netmem.h | 24 ++++++++++++++++++++----
+ net/core/skbuff.c    | 36 ++++++++++++++++++++++++++----------
+ 2 files changed, 46 insertions(+), 14 deletions(-)
 
-diff --git a/net/rds/bind.c b/net/rds/bind.c
-index f800d920d9690..e4667b3128940 100644
---- a/net/rds/bind.c
-+++ b/net/rds/bind.c
-@@ -264,8 +264,10 @@ int rds_bind(struct socket *sock, struct sockaddr_unsized *uaddr, int addr_len)
+diff --git a/include/net/netmem.h b/include/net/netmem.h
+index 0cc8572f62caf..697d50c51a5ee 100644
+--- a/include/net/netmem.h
++++ b/include/net/netmem.h
+@@ -399,21 +399,37 @@ static inline bool net_is_devmem_iov(const struct net_iov *niov)
+ }
+ #endif
  
- 	sock_set_flag(sk, SOCK_RCU_FREE);
- 	ret = rds_add_bound(rs, binding_addr, &port, scope_id);
--	if (ret)
-+	if (ret) {
-+		rds_trans_put(rs->rs_transport);
- 		rs->rs_transport = NULL;
-+	}
+-void __get_netmem(netmem_ref netmem);
+-void __put_netmem(netmem_ref netmem);
++void get_net_iov(struct net_iov *niov);
++void put_net_iov(struct net_iov *niov);
  
- out:
- 	release_sock(sk);
++/**
++ * get_netmem - acquire a non-page_pool reference on a netmem
++ * @netmem: netmem to reference
++ *
++ * Acquires a non-pp backing reference (page._refcount via get_page() or
++ * binding->ref via get_net_iov()) regardless of page_pool membership.
++ * Counterpart to put_netmem().
++ */
+ static __always_inline void get_netmem(netmem_ref netmem)
+ {
+ 	if (netmem_is_net_iov(netmem))
+-		__get_netmem(netmem);
++		get_net_iov(netmem_to_net_iov(netmem));
+ 	else
+ 		get_page(netmem_to_page(netmem));
+ }
+ 
++/**
++ * put_netmem - release a non-page_pool reference on a netmem
++ * @netmem: netmem to unreference
++ *
++ * Drops a non-pp backing reference (page._refcount via put_page() or
++ * binding->ref via put_net_iov()) regardless of page_pool membership.
++ * Counterpart to get_netmem().
++ */
+ static __always_inline void put_netmem(netmem_ref netmem)
+ {
+ 	if (netmem_is_net_iov(netmem))
+-		__put_netmem(netmem);
++		put_net_iov(netmem_to_net_iov(netmem));
+ 	else
+ 		put_page(netmem_to_page(netmem));
+ }
+diff --git a/net/core/skbuff.c b/net/core/skbuff.c
+index d56f4f0102f75..b459264ba5180 100644
+--- a/net/core/skbuff.c
++++ b/net/core/skbuff.c
+@@ -7551,23 +7551,39 @@ bool csum_and_copy_from_iter_full(void *addr, size_t bytes,
+ }
+ EXPORT_SYMBOL(csum_and_copy_from_iter_full);
+ 
+-void __get_netmem(netmem_ref netmem)
++/**
++ * get_net_iov - acquire a non-page_pool reference on a net_iov
++ * @niov: net_iov to reference
++ *
++ * Acquires a non-pp backing reference (binding->ref) on @niov regardless of
++ * page_pool membership, warning if @niov does not support non-pp references.
++ * Counterpart to put_net_iov().
++ */
++void get_net_iov(struct net_iov *niov)
+ {
+-	struct net_iov *niov = netmem_to_net_iov(netmem);
+-
+ 	if (net_is_devmem_iov(niov))
+-		net_devmem_get_net_iov(netmem_to_net_iov(netmem));
++		net_devmem_get_net_iov(niov);
++	else
++		DEBUG_NET_WARN_ON_ONCE(true);
+ }
+-EXPORT_SYMBOL(__get_netmem);
++EXPORT_SYMBOL(get_net_iov);
+ 
+-void __put_netmem(netmem_ref netmem)
++/**
++ * put_net_iov - release a non-page_pool reference on a net_iov
++ * @niov: net_iov to unreference
++ *
++ * Drops a non-pp backing reference (binding->ref) on @niov regardless of
++ * page_pool membership, warning if @niov does not support non-pp references.
++ * Counterpart to get_net_iov().
++ */
++void put_net_iov(struct net_iov *niov)
+ {
+-	struct net_iov *niov = netmem_to_net_iov(netmem);
+-
+ 	if (net_is_devmem_iov(niov))
+-		net_devmem_put_net_iov(netmem_to_net_iov(netmem));
++		net_devmem_put_net_iov(niov);
++	else
++		DEBUG_NET_WARN_ON_ONCE(true);
+ }
+-EXPORT_SYMBOL(__put_netmem);
++EXPORT_SYMBOL(put_net_iov);
+ 
+ struct vlan_type_depth __vlan_get_protocol_offset(const struct sk_buff *skb,
+ 						  __be16 type,
 -- 
-2.43.7
+2.56.0.385.gd3acb90ef8-goog
 
