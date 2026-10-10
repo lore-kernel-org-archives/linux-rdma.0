@@ -1,75 +1,103 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42F5078F3A
-	for <linux-rdma@vger.kernel.org>; Sat, 10 Oct 2026 03:32:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 36E1128B7EA;
+	Sat, 10 Oct 2026 06:54:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791603146; cv=none; b=axjPYsauTn2mfHMABa8mtIDp/0T4O6Ur8ogWLIaCmti/AYZUOYDgZYUsV2faaAUSjMHVt5NdztO+pmaKtPZQc3ooDlyM/YQZon5r0DWwVSVZqHk66gXMo8phbTM7LgK2cpOanNZekLNb+Pn0/bC2GhIM85IBMiguYK9v6JOeTJY=
+	t=1791615286; cv=none; b=KqsBfIihReDWzQ2kP6a6rL7PghiB7PKTRyLgO+bh+J43Pl0/LNJ6sWtP/NL24swhja86sEUsMB1zmz22zhRb8mpAhziajJxVMZxppSI82xVtPUrhV3EhfoMDW8kk1t9FDpsGb53cw8LHar8tIxND3TzV8VYKIn1Vb85rOn60b00=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791603146; c=relaxed/simple;
-	bh=UOTKI/QYO1GxD/5Aya7fgT0g7kAeLdc/Lp3Toj6J9+I=;
-	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=Ks7CZgl8nnGLDCEHVe5O1g6x36Fft6gOphmTDaO0CKmOvJ4naZLETIL/zqYPtK8ifcW0kgSJ83ZuYCutnJbMxrn7lfYZJ5IjIHorwEMzQ/Ed/EjwlnQg0iaSmHo7CrV04wFJnf1Ndcr6EXhJ5on0IGtG15DVZtc+HpjubhpG/2c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ec8Aqzq/; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791615286; c=relaxed/simple;
+	bh=AzSpBkcUmtXIAglapaFQzGJ2xrA1A50rumV25WCyoQc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=moLnqxAgydSq3STD2DpVKVF8tU3U2GGQX3qFQ3QP3NOViaxZD1qVfBUteZMFtPPolcieg5Aaizzw/6k+64X3kTbnA6hvuJRdwOVMI6IsegU1TuWfx/4RJ5Xugxu1bhCBC/Hr3zXg53LDLH3bvmL6TpuJ7xBODbOPSDKJYhm5SWw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=BcSN5QsZ; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ec8Aqzq/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB3E41F00893;
-	Sat, 10 Oct 2026 03:32:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791603144;
-	bh=fgS8uh/PRnLCrIq1H+RA1/wW6yVKrKmZ6KoTFJaKhN0=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=Ec8Aqzq/3gqzRHTgP/odpQGq8Vi49Z5ROZhleuLm3NXGwnX8GPSnlH1ZF/3hOKcHG
-	 e29ey+79q/NjHBq0LtpTxMfT9nW12Pu54es943oPXvhAODfUMgvo3hdWenLGay20HP
-	 psyNLXjd6KRH1cXaWqwP9aL3vhGXltLzCafhDwq/ohCRomcNJowQr6oFXlkJ+/oO6A
-	 PbZyRAAW0ixo12o7ZUJB0pW5B/cTr+jOn5PZz0VWjrKvT9N+i6Gj2seUg/ZrcfSP0B
-	 rYieBuzj/yMpdb9BMJsWinSNpg/3cMF19jfHveLGRHIMVaGz6zBKJE0JuNRV8NKoRC
-	 4keVb5DO4eeiQ==
-Message-ID: <sashiko-outbox-166248@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net v2] net: mlx5e: Fix use-after-free of the MACsec
- xarray entry on RX SC deletion
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Binbin Deng" <18983559317@163.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261010032115.93545-1-18983559317@163.com>
-References: <20261010032115.93545-1-18983559317@163.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Sat, 10 Oct 2026 03:32:24 +0000
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="BcSN5QsZ"
+Received: by linux.microsoft.com (Postfix, from userid 1186)
+	id A05EA20B7166; Fri,  9 Oct 2026 23:54:43 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com A05EA20B7166
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1791615283;
+	bh=1KD7/ufdcs4vrJXuUUzRxBgQsE+UFt7wCNVL75TTFrI=;
+	h=From:To:Cc:Subject:Date:From;
+	b=BcSN5QsZ0tlJQIItQO/Z0NPbGCdY7DlEPR08HV3fSK3gm5kC9+sklsybSuoT4fVIe
+	 b3ijs0WT5kilxhcHtPXKB112TtXX2X6a8XbiR8k2lzEnSnXA2wqpZWuNyfLnUkoHVd
+	 xErIkbEYtAHKuoxmCqT0g7YJHShyaG4SgMF1VMzE=
+From: Konstantin Taranov <kotaranov@linux.microsoft.com>
+To: kotaranov@microsoft.com,
+	snsanghvi@microsoft.com,
+	longli@microsoft.com,
+	jgg@ziepe.ca,
+	leon@kernel.org
+Cc: linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH rdma-next v4 00/10] RDMA/mana_ib: Add kernel RC and fast registration support
+Date: Fri,  9 Oct 2026 23:54:33 -0700
+Message-ID: <20261010065443.3554193-1-kotaranov@linux.microsoft.com>
+X-Mailer: git-send-email 2.43.7
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-> In macsec_del_rxsc_ctx(), the RX secure channel is torn down with:
->=20
-> 	list_del_rcu(&rx_sc->rx_sc_list_element);
-> 	xa_erase(&macsec->sc_xarray, rx_sc->sc_xarray_element->fs_id);
-> 	dst_release(&rx_sc->md_dst->dst);
-> 	kfree(rx_sc->sc_xarray_element);
-> 	kfree_rcu_mightsleep(rx_sc);
->=20
-> The comment above the sequence claims that "xa_erase which uses rcu to
-> sync" hides the RX SC from the data path, but this is not sufficient:
-> the RCU protection of xarray covers only its internal nodes (making
-> xa_load() safe against concurrent erase); it does not extend to the
-> object pointed to by the entry value.  A reader that has already
-> obtained the pointer from xa_load() is not covered by any grace period,
-> and the bare kfree() releases the entry object immediately.
-> [ ... ]
-> confirmed by LLM-assisted (GLM-5.3) code inspection.  The issue was
-> not observed at runtime; it is identified by code inspection only.
->=20
-> Fixes: b7c9400cbc48 ("net/mlx5e: Implement MACsec Rx data path using MACs=
-ec skb_metadata_dst")
-> Signed-off-by: Binbin Deng <18983559317@163.com>
+From: Konstantin Taranov <kotaranov@microsoft.com>
 
-Sashiko has reviewed this patch and found no issues. It looks great!
+Add kernel RC QPs and fast-registration MRs to the MANA RDMA driver
+for kernel consumers such as NVMe/RDMA and NFS/RDMA.
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261010032115.9354=
-5-1-18983559317@163.com?part=3D1
+Implement QP creation and state management, work request posting,
+completion processing, error handling, and queue draining. Kernel RC
+QPs require extended-WQE and power-of-two-SQ hardware support.
 
+Tested with krping, NVMe/RDMA, and NFS/RDMA, including RC send and
+receive error recovery with krping and NVMe/RDMA.
+
+v4:
+- Patch 01: Use an explicit 64-byte FMR MST alignment
+- Patch 02: Validate that the RNIC firmware reports at least two send
+  SGEs and subtract the reserved SGE only for RNIC-based mana_ib.
+- Patch 07: Add missing wqe_size to shadow wqe for SEND/Write, and
+  return a missed-event hint for cached CQEs when CQ is armed
+
+v3:
+- Patch 07: Mask arm_psn to 24 bits before ringing the doorbell.
+- Patch 08: Exclude userspace QPs from kernel software-state handling
+  and CQ error-list insertion, and unlink UC QPs during destruction.
+
+v2:
+- Patch 03: Validate fixed-WQE capacity for the header, OOB and SGEs.
+- Patch 04: Preserve UC QP modification support.
+- Patch 08: Skip software CQ notifications for direct-polling CQs.
+- Patch 09: Flush that ERR work during QP teardown.
+- Patch 10: Limit drain callbacks to RC QPs and avoid completion
+  callbacks for direct-polling CQs.
+
+Konstantin Taranov (10):
+  RDMA/mana_ib: Allocate and map fast-registration MRs
+  RDMA/mana: Create and destroy kernel RC QPs
+  net/mana: Extend GDMA encoding for new RDMA WQEs
+  RDMA/mana_ib: Maintain kernel RC QP state
+  RDMA/mana_ib: Post receive WRs on kernel RC QPs
+  RDMA/mana_ib: Post send and memory-management WRs on RC QPs
+  RDMA/mana_ib: Poll RC completions using PSN and FSN progress
+  RDMA/mana_ib: Flush and notify CQs when kernel QPs enter ERR
+  RDMA/mana_ib: Handle error CQEs for RC QPs
+  RDMA/mana_ib: Drain kernel receive and send queues
+
+ drivers/infiniband/hw/mana/cq.c                 | 248 ++++++++++++++-
+ drivers/infiniband/hw/mana/device.c             |   4 +
+ drivers/infiniband/hw/mana/main.c               |  15 +-
+ drivers/infiniband/hw/mana/mana_ib.h            | 137 ++++++++-
+ drivers/infiniband/hw/mana/mr.c                 |  84 ++++-
+ drivers/infiniband/hw/mana/qp.c                 | 342 ++++++++++++++++++++-
+ drivers/infiniband/hw/mana/shadow_queue.h       |  22 ++
+ drivers/infiniband/hw/mana/wr.c                 | 388 ++++++++++++++++++++++++
+ drivers/net/ethernet/microsoft/mana/gdma_main.c |  55 +++-
+ include/net/mana/gdma.h                         |  38 ++-
+ 10 files changed, 1296 insertions(+), 37 deletions(-)
+
+-- 
+2.43.0
