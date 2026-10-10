@@ -1,29 +1,29 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 36F763B1EEF;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 370003CCA13;
 	Sat, 10 Oct 2026 06:54:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791615286; cv=none; b=efd9rvuU1A8G22SYRmO09kYviNGFiw6egR9BRnjB2RWtuib1d9Lh/boqF9JXTNjeKvKEmfpAvrWDW7tAMUpZ/JyoJzdW9RvJXdPuof5/cO3GrlXDSBJUPOPGjAsIpqFub7o96ubjcZNepNcGOEqJEVfeN99n4qTff2ABpnuxcwU=
+	t=1791615287; cv=none; b=kTmJtGxLsIKOdSeh+NXshoI4QUKyWPL4g4JNsf+T5lIIgTrOwyFUn6HtOtakMvZLVh8ckI/+X14bzfEAjH32HIilkAVswYpSORCvQHCMgD4kIrT0zWv/46d05V0IfDTRIGf8EqGacYsvFbtOlG6lg5yNxIi7zLsuW5UY018eMBw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791615286; c=relaxed/simple;
-	bh=zUGFoiD9D+xeHR0czqRgKFNFvIZpFCWLSV/LAjaur5E=;
+	s=arc-20240116; t=1791615287; c=relaxed/simple;
+	bh=niC3ykvqlBv/Cm5Iu0Q9tc/bMWrB6l0NbYLzXfnRI6I=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=oxE2gHTgmQf18Pe6aE1ympXQEkBFasmP8RvJuGjyl7q8NJVqIYCjReNh0BiGLMp+OxpgdKfKZoOhEIBt3QgcfG+BRbKIqR0VpRJ2PqoMSqtPub0D1z35Nr2UPF3Uwn4EMmvvgxc+MtjWhQhjn5dmx2pQJI8FXpBIC5hGLM4vBC4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=fgiD6DnP; arc=none smtp.client-ip=13.77.154.182
+	 MIME-Version; b=mfeufJ2VDwyNhKXUduyTFFLS605Gtkk6H+f6FxEER9BVGj3F4dRCL1EKFDdufiLf7pUYyDSpbVrgPCsPLTrr8cQ3SqS+EiOtgQy+gR1Ng3F87fVww3KckgWvG0Voy/WDLgXZ+9uSAaCztuhZaH8Tofo0NzJiWRxZI4UOSz+/FHY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=Y6ibKT0U; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="fgiD6DnP"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="Y6ibKT0U"
 Received: by linux.microsoft.com (Postfix, from userid 1186)
-	id BA8E520B7169; Fri,  9 Oct 2026 23:54:43 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com BA8E520B7169
+	id AD10020B7168; Fri,  9 Oct 2026 23:54:43 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com AD10020B7168
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
 	s=default; t=1791615283;
-	bh=u/ohkH/jK148CtSiT5elky1oyUSaqy5FoeC4LeumF/s=;
+	bh=uyNVKhmWV9ZEhAXObss1/ot6wg3NWoQ7DX7Kxti9j/4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=fgiD6DnPFQdnDah7Q2e9j0ftBTaBbNIjWtOfghAVPGZnBR9AC/5OpXh7R+v39n+hT
-	 e7eGv1tAKE0K93aa2NCcnnyQEp7aX+CYD8dZ9GRwtDYt+b8oV/sKT8JRkuqnXhxWGE
-	 KmBTwG2zeiih38/fvKT7eqOwH4SuK4N8J9LwwapQ=
+	b=Y6ibKT0UTjFFWmmzxBPhN9q3oauozgoMELWNK3h8hKTOER2s9HHqgaXGnuJpzUGtd
+	 DvhRBBA/c51bvFcdWKQae0SnlTL4j8pZV/I9jmlszhOuXhWEazxWq7FKZdGKaJDjiz
+	 sc4IOe8NnXpstvRCtfkwt0YfPzi+0Y4JF1fQF/rU=
 From: Konstantin Taranov <kotaranov@linux.microsoft.com>
 To: kotaranov@microsoft.com,
 	snsanghvi@microsoft.com,
@@ -32,9 +32,9 @@ To: kotaranov@microsoft.com,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next v4 02/10] RDMA/mana: Create and destroy kernel RC QPs
-Date: Fri,  9 Oct 2026 23:54:35 -0700
-Message-ID: <20261010065443.3554193-3-kotaranov@linux.microsoft.com>
+Subject: [PATCH rdma-next v4 01/10] RDMA/mana_ib: Allocate and map fast-registration MRs
+Date: Fri,  9 Oct 2026 23:54:34 -0700
+Message-ID: <20261010065443.3554193-2-kotaranov@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.7
 In-Reply-To: <20261010065443.3554193-1-kotaranov@linux.microsoft.com>
 References: <20261010065443.3554193-1-kotaranov@linux.microsoft.com>
@@ -48,270 +48,329 @@ Content-Transfer-Encoding: 8bit
 
 From: Konstantin Taranov <kotaranov@microsoft.com>
 
-Implement kernel RC QP creation and destruction. This feature requires
-extended-WQE and power-of-two-SQ support from the HW.
+Implement alloc_mr and map_mr_sg for memory-registration MRs.
 
 Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
 ---
 v4:
-- Reject RNIC firmware send-SGE counts below 2.
-- Subtract the reserved SGE for extra-large OOB only for RNIC mana_ib.
+- Use an explicit 64-byte FMR MST alignment
 
- drivers/infiniband/hw/mana/main.c    |  10 +-
- drivers/infiniband/hw/mana/mana_ib.h |   6 ++
- drivers/infiniband/hw/mana/qp.c      | 145 ++++++++++++++++++++++++++-
- 3 files changed, 159 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mana/device.c  |  2 +
+ drivers/infiniband/hw/mana/main.c    |  3 +-
+ drivers/infiniband/hw/mana/mana_ib.h | 48 ++++++++++++++++
+ drivers/infiniband/hw/mana/mr.c      | 84 +++++++++++++++++++++++++++-
+ include/net/mana/gdma.h              | 15 +++++
+ 5 files changed, 150 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/infiniband/hw/mana/device.c b/drivers/infiniband/hw/mana/device.c
+index 62c7803ca6c6..cdaada7f6e8a 100644
+--- a/drivers/infiniband/hw/mana/device.c
++++ b/drivers/infiniband/hw/mana/device.c
+@@ -19,6 +19,7 @@ static const struct ib_device_ops mana_ib_dev_ops = {
+ 
+ 	.add_gid = mana_ib_gd_add_gid,
+ 	.alloc_mw = mana_ib_alloc_mw,
++	.alloc_mr = mana_ib_alloc_mr,
+ 	.alloc_pd = mana_ib_alloc_pd,
+ 	.alloc_ucontext = mana_ib_alloc_ucontext,
+ 	.create_ah = mana_ib_create_ah,
+@@ -40,6 +41,7 @@ static const struct ib_device_ops mana_ib_dev_ops = {
+ 	.get_dma_mr = mana_ib_get_dma_mr,
+ 	.get_link_layer = mana_ib_get_link_layer,
+ 	.get_port_immutable = mana_ib_get_port_immutable,
++	.map_mr_sg = mana_ib_map_mr_sg,
+ 	.mmap = mana_ib_mmap,
+ 	.modify_qp = mana_ib_modify_qp,
+ 	.modify_wq = mana_ib_modify_wq,
 diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
-index ceb4ec58023a..f54905764f59 100644
+index 672bd3f650dd..ceb4ec58023a 100644
 --- a/drivers/infiniband/hw/mana/main.c
 +++ b/drivers/infiniband/hw/mana/main.c
-@@ -733,6 +733,13 @@ int mana_ib_gd_query_adapter_caps(struct mana_ib_dev *dev)
+@@ -133,7 +133,7 @@ int mana_ib_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
+ 			     sizeof(resp));
+ 
+ 	if (!udata)
+-		flags |= GDMA_PD_FLAG_ALLOW_GPA_MR;
++		flags |= GDMA_PD_FLAG_ALLOW_GPA_MR | GDMA_PD_FLAG_ALLOW_FMR_MR;
+ 
+ 	req.flags = flags;
+ 	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
+@@ -647,6 +647,7 @@ int mana_ib_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
+ 	props->max_ah = INT_MAX;
+ 	props->max_pkeys = 1;
+ 	props->local_ca_ack_delay = MANA_CA_ACK_DELAY;
++	props->max_fast_reg_page_list_len = MANA_MAX_FMR_PAGES;
+ 	if (!mana_ib_is_rnic(dev))
+ 		props->raw_packet_caps = IB_RAW_PACKET_CAP_IP_CSUM;
+ 
+diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
+index 74edb6e707a1..5ca6e2acf974 100644
+--- a/drivers/infiniband/hw/mana/mana_ib.h
++++ b/drivers/infiniband/hw/mana/mana_ib.h
+@@ -39,6 +39,8 @@
+  */
+ #define MANA_IB_MAX_MR		0xFFFFFFu
+ 
++#define MANA_MAX_FMR_PAGES	504
++
+ /*
+  * The CA timeout is approx. 260ms (4us * 2^(DELAY))
+  */
+@@ -51,6 +53,8 @@
+ 
+ #define MANA_GSI_QPN		(1)
+ 
++#define MANA_PTE_VALID_MASK	0x1ULL
++
+ struct mana_ib_adapter_caps {
+ 	u32 max_sq_id;
+ 	u32 max_rq_id;
+@@ -150,10 +154,46 @@ struct mana_ib_mw {
+ 	mana_handle_t mw_handle;
+ };
+ 
++#define MANA_FMR_MST_ALIGNMENT 64
++
++struct mana_fmr_mst_entry {
++	u32 reserved1;
++	u32 reserved2		: 8;
++	u32 page_size		: 5;
++	u32 reserved3		: 3;
++	u32 access_right	: 8;
++	u32 addr_type		: 2;
++	u32 reserved4		: 6;
++	u32 reserved5[2];
++	u64 start_va;
++	u64 length;
++	u32 reserved6[8];
++}; /* HW DATA */
++
++static inline u32 mana_ib_fmr_header_offset(u32 num_ptes)
++{
++	/* The header follows the PTEs with the required MST alignment. */
++	return ALIGN(sizeof(u64) * num_ptes, MANA_FMR_MST_ALIGNMENT);
++}
++
++static inline u32 mana_ib_fmr_buf_sz(u32 num_ptes)
++{
++	return mana_ib_fmr_header_offset(num_ptes) + sizeof(struct mana_fmr_mst_entry);
++}
++
++struct mana_ib_fmr {
++	u64 *ptes;
++	dma_addr_t dma_handle;
++	size_t size;
++	u32 max_ptes;
++	u32 pte_count;
++};
++
+ struct mana_ib_mr {
+ 	struct ib_mr ibmr;
+ 	struct ib_umem *umem;
+ 	mana_handle_t mr_handle;
++	struct mana_ib_fmr fmr;
+ };
+ 
+ struct mana_ib_dm {
+@@ -840,8 +880,16 @@ int mana_ib_create_rwq_ind_table(struct ib_rwq_ind_table *ib_rwq_ind_table,
+ 
+ int mana_ib_destroy_rwq_ind_table(struct ib_rwq_ind_table *ib_rwq_ind_tbl);
+ 
++enum gdma_mr_access_flags
++mana_ib_verbs_to_gdma_access_flags(int access_flags);
++
+ struct ib_mr *mana_ib_get_dma_mr(struct ib_pd *ibpd, int access_flags);
+ 
++struct ib_mr *mana_ib_alloc_mr(struct ib_pd *ibpd, enum ib_mr_type mr_type,
++			       u32 max_num_sg);
++int mana_ib_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
++		      unsigned int *sg_offset);
++
+ struct ib_mr *mana_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 				  u64 iova, int access_flags,
+ 				  struct ib_dmah *dmah,
+diff --git a/drivers/infiniband/hw/mana/mr.c b/drivers/infiniband/hw/mana/mr.c
+index 1233685b4b89..34dcc50d0be9 100644
+--- a/drivers/infiniband/hw/mana/mr.c
++++ b/drivers/infiniband/hw/mana/mr.c
+@@ -10,7 +10,7 @@
+ 
+ #define VALID_DMA_MR_FLAGS (IB_ACCESS_LOCAL_WRITE)
+ 
+-static enum gdma_mr_access_flags
++enum gdma_mr_access_flags
+ mana_ib_verbs_to_gdma_access_flags(int access_flags)
+ {
+ 	enum gdma_mr_access_flags flags = GDMA_ACCESS_FLAG_LOCAL_READ;
+@@ -55,6 +55,11 @@ static int mana_ib_gd_create_mr(struct mana_ib_dev *dev, struct mana_ib_mr *mr,
+ 		req.gva.virtual_address = mr_params->gva.virtual_address;
+ 		req.gva.access_flags = mr_params->gva.access_flags;
+ 		break;
++	case GDMA_MR_TYPE_FMR:
++		/* page_size is deprecated field and must be 0. */
++		req.fmr.page_size = 0;
++		req.fmr.rsvd_pte_count = mr_params->fmr.rsvd_pte_count;
++		break;
+ 	case GDMA_MR_TYPE_ZBVA:
+ 		req.zbva.dma_region_handle = mr_params->zbva.dma_region_handle;
+ 		req.zbva.access_flags = mr_params->zbva.access_flags;
+@@ -294,6 +299,77 @@ err_free:
+ 	return ERR_PTR(err);
+ }
+ 
++struct ib_mr *mana_ib_alloc_mr(struct ib_pd *ibpd, enum ib_mr_type mr_type,
++			       u32 max_num_sg)
++{
++	struct mana_ib_pd *pd = container_of(ibpd, struct mana_ib_pd, ibpd);
++	struct gdma_create_mr_params mr_params = {};
++	struct gdma_context *gc;
++	struct mana_ib_dev *dev;
++	struct mana_ib_mr *mr;
++	int err;
++
++	dev = container_of(ibpd->device, struct mana_ib_dev, ib_dev);
++	gc = mdev_to_gc(dev);
++
++	if (mr_type != IB_MR_TYPE_MEM_REG)
++		return ERR_PTR(-EOPNOTSUPP);
++
++	mr = kzalloc_obj(*mr);
++	if (!mr)
++		return ERR_PTR(-ENOMEM);
++
++	mr->fmr.max_ptes = max_num_sg;
++	mr->fmr.size = mana_ib_fmr_buf_sz(max_num_sg);
++	mr->fmr.ptes = dma_alloc_coherent(gc->dev, mr->fmr.size, &mr->fmr.dma_handle,
++					  GFP_KERNEL);
++	if (!mr->fmr.ptes) {
++		err = -ENOMEM;
++		goto err_free;
++	}
++
++	mr_params.pd_handle = pd->pd_handle;
++	mr_params.mr_type = GDMA_MR_TYPE_FMR;
++	mr_params.fmr.rsvd_pte_count = max_num_sg;
++
++	err = mana_ib_gd_create_mr(dev, mr, &mr_params);
++	if (err)
++		goto err_dma;
++
++	return &mr->ibmr;
++
++err_dma:
++	dma_free_coherent(gc->dev, mr->fmr.size, mr->fmr.ptes,
++			  mr->fmr.dma_handle);
++
++err_free:
++	kfree(mr);
++	return ERR_PTR(err);
++}
++
++static int mana_ib_set_page(struct ib_mr *ibmr, u64 addr)
++{
++	struct mana_ib_mr *mr = container_of(ibmr, struct mana_ib_mr, ibmr);
++
++	if (mr->fmr.pte_count >= mr->fmr.max_ptes)
++		return -ENOMEM;
++
++	mr->fmr.ptes[mr->fmr.pte_count] = addr | MANA_PTE_VALID_MASK;
++	mr->fmr.pte_count++;
++
++	return 0;
++}
++
++int mana_ib_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
++		      unsigned int *sg_offset)
++{
++	struct mana_ib_mr *mr = container_of(ibmr, struct mana_ib_mr, ibmr);
++
++	mr->fmr.pte_count = 0;
++
++	return ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, mana_ib_set_page);
++}
++
+ static int mana_ib_gd_create_mw(struct mana_ib_dev *dev, struct mana_ib_pd *pd, struct ib_mw *ibmw)
+ {
+ 	struct mana_ib_mw *mw = container_of(ibmw, struct mana_ib_mw, ibmw);
+@@ -352,6 +428,7 @@ int mana_ib_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
+ {
+ 	struct mana_ib_mr *mr = container_of(ibmr, struct mana_ib_mr, ibmr);
+ 	struct ib_device *ibdev = ibmr->device;
++	struct gdma_context *gc;
+ 	struct mana_ib_dev *dev;
+ 	int err;
+ 
+@@ -360,11 +437,16 @@ int mana_ib_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
+ 		return err;
+ 
+ 	dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
++	gc = mdev_to_gc(dev);
+ 
+ 	err = mana_ib_gd_destroy_mr(dev, mr->mr_handle);
  	if (err)
  		return err;
  
-+	/* Hardware supports at least one data SGE plus one reserved for extra-large OOB. */
-+	if (resp.max_send_sge_count < 2) {
-+		ibdev_err(&dev->ib_dev, "Invalid max_send_sge_count %u, expected at least 2\n",
-+			  resp.max_send_sge_count);
-+		return -EINVAL;
-+	}
++	if (mr->fmr.ptes)
++		dma_free_coherent(gc->dev, mr->fmr.size, mr->fmr.ptes,
++				  mr->fmr.dma_handle);
 +
- 	caps->max_sq_id = resp.max_sq_id;
- 	caps->max_rq_id = resp.max_rq_id;
- 	caps->max_cq_id = resp.max_cq_id;
-@@ -748,7 +755,8 @@ int mana_ib_gd_query_adapter_caps(struct mana_ib_dev *dev)
- 				resp.max_requester_sq_size / GDMA_MAX_SQE_SIZE,
- 				resp.max_requester_rq_size / GDMA_MAX_RQE_SIZE);
- 	caps->max_inline_data_size = resp.max_inline_data_size;
--	caps->max_send_sge_count = resp.max_send_sge_count;
-+	/* Account for the SGE reserved for extra-large OOB. */
-+	caps->max_send_sge_count = resp.max_send_sge_count - 1;
- 	caps->max_recv_sge_count = resp.max_recv_sge_count;
- 	caps->feature_flags = resp.feature_flags;
+ 	if (mr->umem)
+ 		ib_umem_release(mr->umem);
  
-diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
-index 5ca6e2acf974..6f5df64e838a 100644
---- a/drivers/infiniband/hw/mana/mana_ib.h
-+++ b/drivers/infiniband/hw/mana/mana_ib.h
-@@ -267,6 +267,10 @@ struct mana_ib_qp {
- 	u32 sq_psn;
- 	bool sq_sig_all;
- 
-+	/* Serializes receive WR posting. */
-+	spinlock_t rq_lock;
-+	/* Serializes send and memory-management WR posting. */
-+	spinlock_t sq_lock;
- 	/* Serializes QP modification and error-list transitions. */
- 	struct mutex modify_lock;
- 
-@@ -274,6 +278,7 @@ struct mana_ib_qp {
- 	struct list_head recv_err_node;
- 	struct shadow_queue shadow_rq;
- 	struct shadow_queue shadow_sq;
-+	struct shadow_queue shadow_mmq;
- 
- 	refcount_t		refcount;
- 	struct completion	free;
-@@ -315,6 +320,7 @@ enum mana_ib_adapter_features {
- 	MANA_IB_FEATURE_DEV_COUNTERS_SUPPORT = BIT(5),
- 	MANA_IB_FEATURE_MULTI_PORTS_SUPPORT = BIT(6),
- 	MANA_IB_FEATURE_MSN_IN_WQE_SUPPORT = BIT(7),
-+	MANA_IB_FEATURE_EXTENDED_WQE_FORMAT = BIT(9),
- 	MANA_IB_FEATURE_RC_QP_SQ_POW2_SUPPORT = BIT(14),
- 	MANA_IB_FEATURE_MULTI_PORT_GSI_SUPPORT = BIT(15),
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index 2a28fcaa637d..332f394b82e1 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -865,6 +865,8 @@ enum gdma_mr_access_flags {
+ 	GDMA_ACCESS_FLAG_REMOTE_WRITE = BIT_ULL(3),
+ 	GDMA_ACCESS_FLAG_REMOTE_ATOMIC = BIT_ULL(4),
+ 	GDMA_ACCESS_FLAG_BIND_MW = BIT_ULL(5),
++	GDMA_ACCESS_FLAG_INVALIDATE = BIT_ULL(6),
++	GDMA_ACCESS_FLAG_FMR = BIT_ULL(7),
  };
-diff --git a/drivers/infiniband/hw/mana/qp.c b/drivers/infiniband/hw/mana/qp.c
-index ae2ebbcc759a..1dc5b078b4ff 100644
---- a/drivers/infiniband/hw/mana/qp.c
-+++ b/drivers/infiniband/hw/mana/qp.c
-@@ -441,6 +441,32 @@ static u32 mana_ib_queue_size(struct ib_qp_init_attr *attr, u32 queue_type)
- 			queue_size = attr->cap.max_recv_wr *
- 				mana_ib_wqe_size(attr->cap.max_recv_sge, INLINE_OOB_SMALL_SIZE);
- 		break;
-+	case IB_QPT_RC:
-+		switch (queue_type) {
-+		case MANA_RC_SEND_QUEUE_REQUESTER:
-+			queue_size = attr->cap.max_send_wr *
-+				mana_ib_fixed_wqe_size(attr->cap.max_send_sge,
-+						       INLINE_OOB_EXTRA_LARGE_SIZE);
-+			break;
-+		case MANA_RC_SEND_QUEUE_MMQ:
-+			queue_size = attr->cap.max_send_wr *
-+				mana_ib_wqe_size(1U, INLINE_OOB_EXTRA_LARGE_SIZE);
-+			break;
-+		case MANA_RC_SEND_QUEUE_RESPONDER:
-+			queue_size = MANA_PAGE_SIZE;
-+			break;
-+		case MANA_RC_RECV_QUEUE_REQUESTER:
-+			queue_size = attr->cap.max_send_wr *
-+				mana_ib_wqe_size(attr->cap.max_send_sge, INLINE_OOB_SMALL_SIZE);
-+			break;
-+		case MANA_RC_RECV_QUEUE_RESPONDER:
-+			queue_size = attr->cap.max_recv_wr *
-+				mana_ib_wqe_size(attr->cap.max_recv_sge, INLINE_OOB_SMALL_SIZE);
-+			break;
-+		default:
-+			return 0;
-+		}
-+		break;
- 	default:
- 		return 0;
- 	}
-@@ -460,6 +486,21 @@ static enum gdma_queue_type mana_ib_queue_type(struct ib_qp_init_attr *attr, u32
- 		else
- 			type = GDMA_RQ;
- 		break;
-+	case IB_QPT_RC:
-+		switch (queue_type) {
-+		case MANA_RC_SEND_QUEUE_REQUESTER:
-+		case MANA_RC_SEND_QUEUE_RESPONDER:
-+		case MANA_RC_SEND_QUEUE_MMQ:
-+			type = GDMA_SQ;
-+			break;
-+		case MANA_RC_RECV_QUEUE_REQUESTER:
-+		case MANA_RC_RECV_QUEUE_RESPONDER:
-+			type = GDMA_RQ;
-+			break;
-+		default:
-+			type = GDMA_INVALID_QUEUE;
-+		}
-+		break;
- 	default:
- 		type = GDMA_INVALID_QUEUE;
- 	}
-@@ -779,12 +820,107 @@ destroy_queues:
- 	return err;
- }
  
-+static int mana_init_kernel_rc_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp,
-+				  struct ib_qp_init_attr *attr, u64 *flags)
-+{
-+	u32 wqe_size;
-+	int err;
-+
-+	err = create_shadow_queue(&qp->shadow_rq, attr->cap.max_recv_wr,
-+				  sizeof(struct shadow_wqe_header));
-+	if (err)
-+		return err;
-+
-+	err = create_shadow_queue(&qp->shadow_sq, attr->cap.max_send_wr,
-+				  sizeof(struct shadow_wqe_header));
-+	if (err)
-+		goto destroy_rq;
-+
-+	err = create_shadow_queue(&qp->shadow_mmq, attr->cap.max_send_wr,
-+				  sizeof(struct shadow_wqe_header));
-+	if (err)
-+		goto destroy_sq;
-+
-+	wqe_size = mana_ib_fixed_wqe_size(attr->cap.max_send_sge,
-+					  INLINE_OOB_EXTRA_LARGE_SIZE);
-+	*flags |= MANA_RC_FLAG_FIXED_SIZE_WQE;
-+	if (mdev->adapter_caps.feature_flags & MANA_IB_FEATURE_MSN_IN_WQE_SUPPORT)
-+		*flags |= MANA_RC_FLAG_MSN_IN_WQE;
-+	qp->rc_qp.wqe_size_in_bu = wqe_size / GDMA_WQE_BU_SIZE;
-+
-+	return 0;
-+
-+destroy_sq:
-+	destroy_shadow_queue(&qp->shadow_sq);
-+destroy_rq:
-+	destroy_shadow_queue(&qp->shadow_rq);
-+	return err;
-+}
-+
-+static int mana_ib_create_rc_qp_kernel(struct ib_qp *ibqp, struct ib_pd *ibpd,
-+				       struct ib_qp_init_attr *attr)
-+{
-+	struct mana_ib_dev *mdev = container_of(ibpd->device, struct mana_ib_dev, ib_dev);
-+	struct mana_ib_qp *qp = container_of(ibqp, struct mana_ib_qp, ibqp);
-+	u32 doorbell = mdev->gdma_dev->doorbell;
-+	u32 queue_size;
-+	u64 flags = 0;
-+	int i, err;
-+
-+	if (!(mdev->adapter_caps.feature_flags & MANA_IB_FEATURE_EXTENDED_WQE_FORMAT))
-+		return -EOPNOTSUPP;
-+	if (!(mdev->adapter_caps.feature_flags & MANA_IB_FEATURE_RC_QP_SQ_POW2_SUPPORT))
-+		return -EOPNOTSUPP;
-+
-+	for (i = 0; i < MANA_RC_QUEUE_TYPE_MAX; ++i) {
-+		queue_size = mana_ib_queue_size(attr, i);
-+		err = mana_ib_create_kernel_queue(mdev, queue_size,
-+						  mana_ib_queue_type(attr, i),
-+						  &qp->rc_qp.queues[i]);
-+		if (err)
-+			goto destroy_queues;
-+	}
-+
-+	err = mana_init_kernel_rc_qp(mdev, qp, attr, &flags);
-+	if (err)
-+		goto destroy_queues;
-+
-+	err = mana_ib_gd_create_rc_qp(mdev, qp, attr, doorbell, flags);
-+	if (err)
-+		goto deinit_queues;
-+
-+	qp->ibqp.qp_num = qp->rc_qp.queues[MANA_RC_RECV_QUEUE_RESPONDER].id;
-+	qp->port = attr->port_num;
-+
-+	for (i = 0; i < MANA_RC_QUEUE_TYPE_MAX; ++i)
-+		qp->rc_qp.queues[i].kmem->id = qp->rc_qp.queues[i].id;
-+
-+	err = mana_table_store_qp(mdev, qp);
-+	if (err)
-+		goto destroy_qp;
-+
-+	return 0;
-+
-+destroy_qp:
-+	mana_ib_gd_destroy_rnic_qp(mdev, qp);
-+deinit_queues:
-+	destroy_shadow_queue(&qp->shadow_rq);
-+	destroy_shadow_queue(&qp->shadow_sq);
-+	destroy_shadow_queue(&qp->shadow_mmq);
-+destroy_queues:
-+	while (i-- > 0)
-+		mana_ib_destroy_queue(mdev, &qp->rc_qp.queues[i]);
-+	return err;
-+}
-+
- int mana_ib_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attr,
- 		      struct ib_udata *udata)
- {
- 	struct mana_ib_qp *qp = container_of(ibqp, struct mana_ib_qp, ibqp);
+ /* GDMA_CREATE_DMA_REGION */
+@@ -917,6 +919,7 @@ struct gdma_destroy_dma_region_req {
  
- 	qp->sq_sig_all = attr->sq_sig_type == IB_SIGNAL_ALL_WR;
-+	spin_lock_init(&qp->rq_lock);
-+	spin_lock_init(&qp->sq_lock);
- 	mutex_init(&qp->modify_lock);
- 	INIT_LIST_HEAD(&qp->send_err_node);
- 	INIT_LIST_HEAD(&qp->recv_err_node);
-@@ -798,7 +934,10 @@ int mana_ib_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attr,
+ enum gdma_pd_flags {
+ 	GDMA_PD_FLAG_ALLOW_GPA_MR = BIT(0),
++	GDMA_PD_FLAG_ALLOW_FMR_MR = BIT(1),
+ 	GDMA_PD_FLAG_SHORT_PDN = BIT(2),
+ };
  
- 		return mana_ib_create_qp_raw(ibqp, ibqp->pd, attr, udata);
- 	case IB_QPT_RC:
--		return mana_ib_create_rc_qp(ibqp, ibqp->pd, attr, udata);
-+		if (udata)
-+			return mana_ib_create_rc_qp(ibqp, ibqp->pd, attr, udata);
-+		else
-+			return mana_ib_create_rc_qp_kernel(ibqp, ibqp->pd, attr);
- 	case IB_QPT_UC:
- 		return mana_ib_create_uc_qp(ibqp, ibqp->pd, attr, udata);
- 	case IB_QPT_UD:
-@@ -1030,7 +1169,11 @@ static int mana_ib_destroy_rc_qp(struct mana_ib_qp *qp, struct ib_udata *udata)
- 		return err;
- 
- 	mana_table_remove_qp(mdev, qp);
-+	mana_remove_qp_from_cqs(qp, false);
- 
-+	destroy_shadow_queue(&qp->shadow_rq);
-+	destroy_shadow_queue(&qp->shadow_sq);
-+	destroy_shadow_queue(&qp->shadow_mmq);
- 	/* Ignore return code as there is not much we can do about it.
- 	 * The error message is printed inside.
+@@ -953,6 +956,11 @@ enum gdma_mr_type {
+ 	 * address that is set up in the MST
  	 */
+ 	GDMA_MR_TYPE_GVA = 2,
++	/* Fast Memory - MRs are initially put in the free state,
++	 * and the specified number of PTEs are reserved for future fast
++	 * memory registrations
++	 */
++	GDMA_MR_TYPE_FMR = 3,
+ 	/* Guest zero-based address MRs */
+ 	GDMA_MR_TYPE_ZBVA = 4,
+ 	/* Device address MRs */
+@@ -982,6 +990,9 @@ struct gdma_create_mr_params {
+ 			u64 length;
+ 			enum gdma_mr_access_flags access_flags;
+ 		} da;
++		struct {
++			u32 rsvd_pte_count;
++		} fmr;
+ 	};
+ };
+ 
+@@ -1006,6 +1017,10 @@ struct gdma_create_mr_request {
+ 			u64 offset;
+ 			enum gdma_mr_access_flags access_flags;
+ 		} __packed da;
++		struct {
++			u32 page_size;
++			u32 rsvd_pte_count;
++		} __packed fmr;
+ 	} __packed;
+ 	u32 reserved_2;
+ 	union {
 
 -- 
 2.43.0
