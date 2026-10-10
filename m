@@ -1,168 +1,135 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.3])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF0641F94F;
-	Sat, 10 Oct 2026 02:01:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C212C2E6CB8;
+	Sat, 10 Oct 2026 03:22:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.3
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791597695; cv=none; b=AjmgvN7J6NASYXAbX0e8bUpaXopVvSPNlDWYhPzsSfn8eWn/CXTjJNz6t0VooLUlh1J46hdkUFnh/hlRVV9gb2D5gkJgvktMppeL4XLYbbXU9sAeq4P1sSTs5ahST8Z0kxyw3Fr6zHd9lJa/AxRn+u2E489Y3Fk6cOGT6qFqk44=
+	t=1791602524; cv=none; b=gRhJvdgh1i9LcQ4ealdZugxE1pHOJuCIthVVqvanzmZzPGrN8o7bK9enbzS47yxuEetcZyfsJsk6GuBzbtaA8oyHNWPfOZ5o7XPRAiE0ZA4haxtqEo2DBQq9HGnwy9PIerfplYEELOA6RsORgAaAezjUyrKBgCxFM7TDCHmo2ms=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791597695; c=relaxed/simple;
-	bh=DLBa0K1vHAxtwkOYYKWvmMwhCtZudRLnRf10Q+jOC4E=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=FYsWqYDDCgfvCeIWIZWh3dJS9e9B/K61QY6bbdpbY5dOKXLb2RtzhrR8fV4sc2gLYUEPTLYcFGWiFI21/4xaUHzaz9m52fTfs2LoYbzAb/Mamvb/68H8EkrAaAZGcGgwQAJVWWzcDyxz/UPjiWc/+IAjfg8m6qqjl76wKtQMFcI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LmjDvIau; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791602524; c=relaxed/simple;
+	bh=iznYCBsnuDD7TtKTvWpvkkDtxuHJRApQbTM5v5Rs2d8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Xyrzd4hqcSilKy9mhvHlr8oUIRy/C3mJEAQtz18x2LD3L9XNdMeKOlLn4Dpta/SrB0aWBZm9QzgcXknun/f6ECHbKfl8P1/pkHec09S2yV48vbl9Ez+5mSUR/klfOvL9Y8zUVw0eYdo0itV6HeiFyDLPPWah7SN4oOofoi3zg4g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=OOFFvlus; arc=none smtp.client-ip=117.135.210.3
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LmjDvIau"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94C781F000FF;
-	Sat, 10 Oct 2026 02:01:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791597694;
-	bh=ne0o7MT5kAKKtWGZv5U4QSpHDlR8HOjUJP7Fk1RxxK0=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=LmjDvIau3piq8g4QRjd1ptT83TE0H2cSTnF0LYw9vK3aOHB4fnS7bOoZ41/LTuZG2
-	 udNWPuAotNgVVdDFIynjyTWDvum91YANqG/QswJL4aj1GPo32j9qVFvqyxYpuaujWl
-	 Yrux2o93OdOSIGF6ArGQLOwy/1awXT6cWrksnKr9XWXlC/HrwV7PTuiJs5X5zFryud
-	 840WqadNrkYCuUzGtWs/csLzcgvyy6c85yNZYQyviRtmiPZuWILSsK8yMgsjFbz/oN
-	 QK0KszI5o8jKuenGvfZSVsYd2m7TKgV4WTqYIt0xUdGNRIjGOItuKV9ZJ+zfY6FqNd
-	 hPEKIf+IXCwRQ==
-Subject: Re: [PATCH net v2] net/rds: ib: drop fragments shorter than the
- header-declared length
-From: netdev-bot+sashiko@kernel.org
-To: shubham@octane.security
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, achender@kernel.org,
- davem@davemloft.net, edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
- horms@kernel.org, linux-kernel@vger.kernel.org, gio@octane.security,
- tjdqudcks0424@naver.com
-Date: Sat, 10 Oct 2026 02:01:33 +0000
-Message-ID: <179159769310.434549.3983712650254492426@kernel.org>
-In-Reply-To: <20261007062135.49946-1-shubham@octane.security>
-References: <20261007062135.49946-1-shubham@octane.security>
-X-sashiko-severity: High
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="OOFFvlus"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=nW
+	Lvz8pjTi2eJKYRDz83xjnrYXYS3iiNIjJCpfNJPd8=; b=OOFFvluspDZZ/BNTLO
+	1jRAxcQAWHLgAD/dpO1zO1bl5MjhhBPwTxz1Zj6g67CAs6vbE3ygwr2fcsF/CmVZ
+	xIKKL66wDCpwxxuX0EfU/ltWKmiEIi1N68W4MrEuEkQbH7KoyERO1DMRG8GdpFE2
+	+UZIK1tREjyc+yEAVMZzEG9pk=
+Received: from colol4bi5.localdomain (unknown [])
+	by gzga-smtp-mtada-g1-4 (Coremail) with SMTP id _____wCXb+Usr8lqH2_BDg--.64530S2;
+	Sat, 10 Oct 2026 11:21:18 +0800 (CST)
+From: Binbin Deng <18983559317@163.com>
+To: borisp@nvidia.com,
+	saeedm@nvidia.com,
+	leon@kernel.org,
+	tariqt@nvidia.com,
+	mbloch@nvidia.com,
+	andrew+netdev@lunn.ch,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	sd@queasysnail.net
+Cc: netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Binbin Deng <18983559317@163.com>
+Subject: [PATCH net v2] net: mlx5e: Fix use-after-free of the MACsec xarray entry on RX SC deletion
+Date: Sat, 10 Oct 2026 11:21:15 +0800
+Message-ID: <20261010032115.93545-1-18983559317@163.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:_____wCXb+Usr8lqH2_BDg--.64530S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxJw18XFyrAF13tF1rKrW7urg_yoW5tF15pa
+	yfJFW7CFykGry8XryxAa1xWw15ZrZ2qa43u3W5C3yfA3Z8Z3y0vFy8Gay09r90krWrC3ZI
+	vws29w47Xa15Gw7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07UoSoXUUUUU=
+X-CM-SenderInfo: jprymmytvvmjmrxbiqqrwthudrp/xtbC+w4E52rJry5ZvwAA3S
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue(s) to consider.
+In macsec_del_rxsc_ctx(), the RX secure channel is torn down with:
 
-Critical: 0 · High: 1 · Medium: 0 · Low: 0
+	list_del_rcu(&rx_sc->rx_sc_list_element);
+	xa_erase(&macsec->sc_xarray, rx_sc->sc_xarray_element->fs_id);
+	dst_release(&rx_sc->md_dst->dst);
+	kfree(rx_sc->sc_xarray_element);
+	kfree_rcu_mightsleep(rx_sc);
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+The comment above the sequence claims that "xa_erase which uses rcu to
+sync" hides the RX SC from the data path, but this is not sufficient:
+the RCU protection of xarray covers only its internal nodes (making
+xa_load() safe against concurrent erase); it does not extend to the
+object pointed to by the entry value.  A reader that has already
+obtained the pointer from xa_load() is not covered by any grace period,
+and the bare kfree() releases the entry object immediately.
 
-- [High] The patch is incomplete.
+The reader is mlx5e_macsec_offload_handle_rx_skb() in the NAPI RX
+path, which runs under rcu_read_lock() only:
 
---
+	sc_xarray_element = xa_load(&macsec->sc_xarray, fs_id);
+	rx_sc = sc_xarray_element ? sc_xarray_element->rx_sc : NULL;
 
-net/rds: ib: drop fragments shorter than the header-declared length
+An RCU read-side critical section protects only against deferred frees
+(call_rcu()/kfree_rcu()); it provides no protection against the
+immediate kfree() above.  If the NAPI reader loads the entry pointer
+and is then delayed while another CPU executes the deletion path, the
+subsequent read of sc_xarray_element->rx_sc dereferences freed memory.
 
-This patch adds a check to rds_ib_process_recv(). A fragment is rejected
-when the payload length from the receive completion (data_len) is smaller
-than the amount the fragment is accounted to contribute,
-min(i_recv_data_rem, RDS_FRAG_SIZE). The goal is to stop
-rds_ib_inc_copy_to_user() from copying uninitialized fragment page
-contents to userspace.
+The path is reachable with CAP_NET_ADMIN while an RX SC has in-flight
+traffic: CQEs carrying the fs_id metadata can still arrive after the
+offload rule has been removed, so deleting an RX SC concurrently with
+reception can race the reader.
 
-Closes: https://lore.kernel.org/netdev/20261006205204.1322102-1-tjdqudcks0424@naver.com/
+Note that the same function already releases rx_sc itself via
+kfree_rcu_mightsleep(): the author was aware that this teardown needs a
+deferred free, but the intermediate entry object was missed.
 
-> diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c
-> index bd6cb3ffaa571..fee77b6d7ffb2 100644
-> --- a/net/rds/ib_recv.c
-> +++ b/net/rds/ib_recv.c
-> @@ -949,6 +949,15 @@ static void rds_ib_process_recv(struct rds_connection *conn,
->  		}
->  	}
->  
-> +	/* h_len must be backed by the payload actually received (data_len),
-> +	 * else the unwritten frag-page tail is copied to userspace.
-> +	 */
-> +	if (data_len < min_t(u32, ic->i_recv_data_rem, RDS_FRAG_SIZE)) {
+Fix this by adding an rcu_head to the entry object and releasing it
+with kfree_rcu().
 
-[Severity: High]
-Is data_len always the number of bytes written into the fragment page?
-The commit message says:
+Found during a static-analysis-assisted audit: candidate sites were
+surfaced by a Coccinelle rule, and the reader/writer paths were
+confirmed by LLM-assisted (GLM-5.3) code inspection.  The issue was
+not observed at runtime; it is identified by code inspection only.
 
-  "The number of payload bytes actually received into the fragment page is
-  data_len (after subtracting the header)"
+Fixes: b7c9400cbc48 ("net/mlx5e: Implement MACsec Rx data path using MACsec skb_metadata_dst")
+Signed-off-by: Binbin Deng <18983559317@163.com>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-rds_ib_recv_cqe_handler() checks only the completion status. It never
-checks wc->opcode:
-
-net/rds/ib_recv.c:rds_ib_recv_cqe_handler() {
-    ...
-	if (wc->status == IB_WC_SUCCESS) {
-		rds_ib_process_recv(conn, recv, wc->byte_len, state);
-    ...
-}
-
-An RDMA WRITE-with-immediate from the peer uses up a posted receive WR and
-completes as IB_WC_RECV_RDMA_WITH_IMM. Its payload goes to the MR named by
-the rkey, so nothing is written to the WR's header SGE or fragment SGE.
-rxe still reports byte_len as the remote write length for this opcode:
-
-drivers/infiniband/sw/rxe/rxe_resp.c:do_complete() {
-    ...
-	wc->byte_len = (pkt->mask & RXE_IMMDT_MASK &&
-				pkt->mask & RXE_WRITE_MASK) ?
-					qp->resp.length : wqe->dma.length - wqe->dma.resid;
-    ...
-}
-
-RDS RC QPs get IB_ACCESS_REMOTE_WRITE through cm_init_qp_init_attr().
-RDS MRs are registered with remote write access in the shared PD, so a
-peer can get a writable rkey through the normal RDMA cookie exchange.
-
-If the peer sends a WRITE_WITH_IMM of at least sizeof(struct rds_header)
-+ RDS_FRAG_SIZE bytes, it looks like this happens:
-
-  - The slot's i_recv_hdrs[] entry still holds the header from that
-    slot's last use. That header has a valid checksum.
-
-  - If no message is being reassembled, the old header starts a new
-    message with its old h_len.
-
-  - If a message is being reassembled, the old header can also pass the
-    h_sequence, h_len and port mismatch checks.
-
-  - data_len is large, so the new min_t() check passes.
-
-  - The fragment page was never written. It is linked onto ii_frags
-    anyway.
-
-The page comes from the frag cache or rds_page_remainder_alloc() and is
-not zeroed. rds_ib_inc_copy_to_user() would then copy up to h_len bytes
-of it, which could include earlier RDS payloads meant for other sockets:
-
-net/rds/ib_recv.c:rds_ib_inc_copy_to_user() {
-    ...
-		ret = copy_page_to_iter(sg_page(&frag->f_sg),
-					frag->f_sg.offset + frag_off,
-					to_copy,
-					to);
-    ...
-}
-
-Should completions with wc->opcode != IB_WC_RECV be rejected before
-byte_len is trusted as the received length? The disclosure this patch
-targets seems to remain reachable through this path.
-
-> +		rds_ib_conn_error(conn,
-> +			"fragment shorter than header-declared length; forcing reconnect\n");
-> +		goto done;
-> +	}
-> +
->  	list_add_tail(&recv->r_frag->f_item, &ibinc->ii_frags);
->  	recv->r_frag = NULL;
->
-
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c
+index daff53ba7d09..d4caa7affae6 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c
+@@ -75,6 +75,7 @@ struct mlx5e_macsec_rx_sc;
+ struct mlx5e_macsec_rx_sc_xarray_element {
+ 	u32 fs_id;
+ 	struct mlx5e_macsec_rx_sc *rx_sc;
++	struct rcu_head rcu_head;
+ };
+ 
+ struct mlx5e_macsec_rx_sc {
+@@ -839,7 +840,7 @@ static void macsec_del_rxsc_ctx(struct mlx5e_macsec *macsec, struct mlx5e_macsec
+ 	list_del_rcu(&rx_sc->rx_sc_list_element);
+ 	xa_erase(&macsec->sc_xarray, rx_sc->sc_xarray_element->fs_id);
+ 	dst_release(&rx_sc->md_dst->dst);
+-	kfree(rx_sc->sc_xarray_element);
++	kfree_rcu(rx_sc->sc_xarray_element, rcu_head);
+ 	kfree_rcu_mightsleep(rx_sc);
+ }
+ 
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261007062135.49946-1-shubham%40octane.security
+2.43.0
+
