@@ -1,29 +1,29 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id AB4B7414409;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B021041834D;
 	Sat, 10 Oct 2026 06:54:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791615288; cv=none; b=W0kta1arVuo++pg8S8PgyeetdXwp1JHoCJmwDY8cTLnjBKvk3WbgxYEDVr+/o34eMbZNojv0TjlUTDyewNnY6o2gLX4/+KJWLakLZ+eFRDtT/Hpy8fXlzqw0ScBUgN0Q2Rat/FXhSPnRF8MfPFZe6qaD8Ep4u7t46cejZ7E/pMU=
+	t=1791615288; cv=none; b=o5QDp6pU4grdP0+QrL62ZngPDpNH0WavHI2tA7CCVnp5gVE1UZMoZ+O9Y9FmjD1ZJNHmqBiegmqvallCymIBWHKFJshyo5f9FphnD6g1RmC+/qwRvbha+8oK6G02GeGpz+WcGPa/76CiTgjIEgeZd97AchVRIo0cAS7T//4soMM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1791615288; c=relaxed/simple;
-	bh=k9V58RYpFqYWplv8j4g3Nb0SIXka41WV3/LLuoh/hE8=;
+	bh=8eAKSR8uoa2qvNQKY6PXNHVSk6jBrzGtU1C0QgG5huw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=QZy7II92oCEowvVXYEM/FQctFxP/sXLB9M4B56CPTkL1yyquJ095X2vg0eIHuo3xJOslhlZ6k6W80waZLKZtzVCmncLghtlCClX94f3WcqYIzoJ5xfTnA3Z7ITPIucOnGaUDbfpHk1iwyATlKYgeRKC/4TSqUkhGNjxvAaAkxpA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=M4771jlC; arc=none smtp.client-ip=13.77.154.182
+	 MIME-Version; b=pJ5s1gnNI22u5/ifP1YX6Srp0GnqR/Ba24cLfputo/NrH9posxedqQAIfPasvqQRIL5yA+mRoVBEPSUwkcAIFzjhoz+pwJ7W7jg9aVLvGcoNDPI5FqOpauF38/adQdzIC+bcZm68E8DQu8H7UB5bNMCIdeY+/3XQV0RmNn/7eeE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=R7wpAUQT; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="M4771jlC"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="R7wpAUQT"
 Received: by linux.microsoft.com (Postfix, from userid 1186)
-	id 13C0820B716F; Fri,  9 Oct 2026 23:54:43 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 13C0820B716F
+	id 2E01E20B7171; Fri,  9 Oct 2026 23:54:43 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 2E01E20B7171
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
 	s=default; t=1791615284;
-	bh=DxmvZtcZBOSk2bTnwOeEpR0w2sz+sOiOmHA2TvmNXGU=;
+	bh=zQJckXSx2B/R1Mj4Oqq4h8fv4ke2Yyk9rGNZLkVhO0w=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=M4771jlCteenCMpJE9RfeYIRrYt8FdQ+Q6IZ86J4CC7jCmV8ncAMhgL3MMUZ2vqPA
-	 GJqPgST+7YZjGD7TGKH6XEoDVJPADfBEtByvpOADjo4AwdaYaVgFCnDzMDDF2FMC2f
-	 uBIS3VM6x3hqV9DrnSv4M7s3RtK+poDwnFiD9Tqk=
+	b=R7wpAUQTdCzhy6FGXsNgeANcFBashhFmFka2TtqQyP9xBetwQkfILj2OBRV1o8F0h
+	 vt/e6WP3/7Qp+mUIJPp+dSOLHX1Duy8n++bNWQN+miRDeEpBX7shoTf2sPO0lPF4yH
+	 kR8lHIs4ICtd4nYNdicPlzZVjmxKytDcK6u13/sw=
 From: Konstantin Taranov <kotaranov@linux.microsoft.com>
 To: kotaranov@microsoft.com,
 	snsanghvi@microsoft.com,
@@ -32,9 +32,9 @@ To: kotaranov@microsoft.com,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next v4 08/10] RDMA/mana_ib: Flush and notify CQs when kernel QPs enter ERR
-Date: Fri,  9 Oct 2026 23:54:41 -0700
-Message-ID: <20261010065443.3554193-9-kotaranov@linux.microsoft.com>
+Subject: [PATCH rdma-next v4 10/10] RDMA/mana_ib: Drain kernel receive and send queues
+Date: Fri,  9 Oct 2026 23:54:43 -0700
+Message-ID: <20261010065443.3554193-11-kotaranov@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.7
 In-Reply-To: <20261010065443.3554193-1-kotaranov@linux.microsoft.com>
 References: <20261010065443.3554193-1-kotaranov@linux.microsoft.com>
@@ -48,168 +48,157 @@ Content-Transfer-Encoding: 8bit
 
 From: Konstantin Taranov <kotaranov@microsoft.com>
 
-Complete the RC software flush path by adding a kernel QP to the CQ
-error lists when it transitions to the ERR state.
-
-Invoke the CQ handlers after the transition to flush pending work
-requests.
+Implement the core drain callbacks by moving the QP to ERR, posting a
+completion-bearing marker, and waiting until that marker is flushed.
 
 Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
 ---
-v3:
-- Skip kernel state update handling for userspace QPs.
-- Warn and refuse to add userspace QPs to the CQ error lists.
-- Add mana_remove_qp_from_cqs() for UC
-
 v2:
-- Skip software CQ notifications for IB_POLL_DIRECT.
+- Limit the drain callbacks to RC QPs.
+- Skip completion callbacks for IB_POLL_DIRECT and retain direct polling.
 
- drivers/infiniband/hw/mana/cq.c      |  2 +-
- drivers/infiniband/hw/mana/mana_ib.h |  1 +
- drivers/infiniband/hw/mana/qp.c      | 54 +++++++++++++++++++++++++---
- 3 files changed, 52 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/mana/device.c  |   2 +
+ drivers/infiniband/hw/mana/mana_ib.h |   2 +
+ drivers/infiniband/hw/mana/qp.c      | 103 +++++++++++++++++++++++++++
+ 3 files changed, 107 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mana/cq.c b/drivers/infiniband/hw/mana/cq.c
-index a4d886b9ecc6..90a43c7feb31 100644
---- a/drivers/infiniband/hw/mana/cq.c
-+++ b/drivers/infiniband/hw/mana/cq.c
-@@ -589,7 +589,7 @@ static void mana_drain_gsi_sq(struct mana_ib_qp *qp)
- 		list_add_tail(&qp->send_err_node, &cq->send_err_qp_list);
- 	spin_unlock_irqrestore(&cq->cq_lock, flags);
- 
--	if (cq->ibcq.comp_handler)
-+	if (cq->ibcq.poll_ctx != IB_POLL_DIRECT && cq->ibcq.comp_handler)
- 		cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
- }
- 
+diff --git a/drivers/infiniband/hw/mana/device.c b/drivers/infiniband/hw/mana/device.c
+index cdaada7f6e8a..07c7fe678ff7 100644
+--- a/drivers/infiniband/hw/mana/device.c
++++ b/drivers/infiniband/hw/mana/device.c
+@@ -38,6 +38,8 @@ static const struct ib_device_ops mana_ib_dev_ops = {
+ 	.destroy_rwq_ind_table = mana_ib_destroy_rwq_ind_table,
+ 	.destroy_wq = mana_ib_destroy_wq,
+ 	.disassociate_ucontext = mana_ib_disassociate_ucontext,
++	.drain_rq = mana_ib_drain_rq,
++	.drain_sq = mana_ib_drain_sq,
+ 	.get_dma_mr = mana_ib_get_dma_mr,
+ 	.get_link_layer = mana_ib_get_link_layer,
+ 	.get_port_immutable = mana_ib_get_port_immutable,
 diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
-index d64d3a9c992d..bea19d1d0dc1 100644
+index 2fbb1c662d93..97cd5193fcb5 100644
 --- a/drivers/infiniband/hw/mana/mana_ib.h
 +++ b/drivers/infiniband/hw/mana/mana_ib.h
-@@ -271,6 +271,7 @@ struct mana_ib_qp {
- 	bool pending_mmq_fence;
- 	bool sq_sig_all;
- 	enum ib_mtu mtu;
-+	enum ib_qp_state state;
+@@ -1061,6 +1061,8 @@ int mana_ib_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
+ int mana_ib_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
+ 		      const struct ib_send_wr **bad_wr);
  
- 	/* Serializes receive WR posting. */
- 	spinlock_t rq_lock;
++void mana_ib_drain_sq(struct ib_qp *ibqp);
++void mana_ib_drain_rq(struct ib_qp *ibqp);
+ void mana_drain_gsi_sqs(struct mana_ib_dev *mdev);
+ int mana_ib_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc);
+ int mana_ib_arm_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags flags);
 diff --git a/drivers/infiniband/hw/mana/qp.c b/drivers/infiniband/hw/mana/qp.c
-index 65b0ebf4df3f..f26f73025d12 100644
+index 3158d41db709..23ae87212ad8 100644
 --- a/drivers/infiniband/hw/mana/qp.c
 +++ b/drivers/infiniband/hw/mana/qp.c
-@@ -735,6 +735,27 @@ destroy_queues:
- 	return err;
- }
+@@ -1338,3 +1338,106 @@ int mana_ib_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
  
-+static void mana_add_qp_to_error_cqs(struct mana_ib_qp *qp)
-+{
-+	struct mana_ib_cq *send_cq = container_of(qp->ibqp.send_cq, struct mana_ib_cq, ibcq);
-+	struct mana_ib_cq *recv_cq = container_of(qp->ibqp.recv_cq, struct mana_ib_cq, ibcq);
-+	unsigned long flags;
+ 	return -ENOENT;
+ }
 +
-+	if (WARN_ON_ONCE(qp->ibqp.uobject))
++struct mana_ib_drain_cqe {
++	struct ib_cqe cqe;
++	struct completion done;
++};
++
++static void mana_ib_drain_qp_done(struct ib_cq *cq, struct ib_wc *wc)
++{
++	struct mana_ib_drain_cqe *cqe = container_of(wc->wr_cqe,
++						     struct mana_ib_drain_cqe,
++						     cqe);
++	complete(&cqe->done);
++}
++
++void mana_ib_drain_sq(struct ib_qp *ibqp)
++{
++	struct ib_qp_attr attr = { .qp_state = IB_QPS_ERR };
++	struct mana_ib_drain_cqe sdrain;
++	struct ib_rdma_wr swr = {
++		.wr = {
++			.next = NULL,
++			.wr_cqe = &sdrain.cqe,
++			.opcode = IB_WR_SEND,
++		},
++	};
++	const struct ib_send_wr *bad_swr;
++	struct ib_cq *cq = ibqp->send_cq;
++	int ret;
++
++	if (ibqp->qp_type != IB_QPT_RC) {
++		ibdev_err(ibqp->device, "SQ drain is only supported for RC QPs (type %u)\n",
++			  ibqp->qp_type);
 +		return;
++	}
 +
-+	/* Keep ERR QPs linked until reset/destroy, including later drain WRs. */
-+	spin_lock_irqsave(&send_cq->cq_lock, flags);
-+	if (list_empty(&qp->send_err_node))
-+		list_add_tail(&qp->send_err_node, &send_cq->send_err_qp_list);
-+	spin_unlock_irqrestore(&send_cq->cq_lock, flags);
++	ret = ib_modify_qp(ibqp, &attr, IB_QP_STATE);
++	if (ret) {
++		ibdev_err(ibqp->device, "Failed to drain SQ: modify QP returned %d\n", ret);
++		return;
++	}
 +
-+	spin_lock_irqsave(&recv_cq->cq_lock, flags);
-+	if (list_empty(&qp->recv_err_node))
-+		list_add_tail(&qp->recv_err_node, &recv_cq->recv_err_qp_list);
-+	spin_unlock_irqrestore(&recv_cq->cq_lock, flags);
++	sdrain.cqe.done = mana_ib_drain_qp_done;
++	init_completion(&sdrain.done);
++
++	ret = ib_post_send(ibqp, &swr.wr, &bad_swr);
++	if (ret) {
++		ibdev_err(ibqp->device, "Failed to post SQ drain WR: %d\n", ret);
++		return;
++	}
++
++	if (cq->poll_ctx != IB_POLL_DIRECT && cq->comp_handler)
++		cq->comp_handler(cq, cq->cq_context);
++
++	if (cq->poll_ctx == IB_POLL_DIRECT) {
++		while (!wait_for_completion_timeout(&sdrain.done, HZ / 10))
++			ib_process_cq_direct(cq, -1);
++	} else {
++		wait_for_completion(&sdrain.done);
++	}
 +}
 +
- static void mana_remove_qp_from_cqs(struct mana_ib_qp *qp, bool reset)
- {
- 	struct mana_ib_cq *send_cq = container_of(qp->ibqp.send_cq, struct mana_ib_cq, ibcq);
-@@ -1027,15 +1048,16 @@ static int mana_ib_gd_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 	return 0;
- }
- 
--static void mana_ib_modify_qp_state(struct ib_qp *ibqp, struct ib_qp_attr *attr,
-+static bool mana_ib_modify_qp_state(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 				    int attr_mask, struct ib_udata *udata)
- {
- 	struct mana_ib_dev *mdev = container_of(ibqp->device, struct mana_ib_dev, ib_dev);
- 	struct mana_ib_qp *qp = container_of(ibqp, struct mana_ib_qp, ibqp);
- 	struct gdma_queue *rq;
-+	bool notify = false;
- 
--	if (udata)
--		return;
-+	if (udata || ibqp->uobject)
-+		return false;
- 
- 	if (attr_mask & IB_QP_PATH_MTU)
- 		qp->mtu = attr->path_mtu;
-@@ -1048,6 +1070,11 @@ static void mana_ib_modify_qp_state(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 		default:
- 			break;
- 		}
-+		qp->state = attr->qp_state;
-+		if (attr->qp_state == IB_QPS_ERR) {
-+			mana_add_qp_to_error_cqs(qp);
-+			notify = true;
-+		}
- 	}
- 
- 	if (attr_mask & IB_QP_SQ_PSN) {
-@@ -1063,12 +1090,27 @@ static void mana_ib_modify_qp_state(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 						     SET_ARM_BIT, MANA_PSN_CLIENT_OFFSET);
- 		}
- 	}
-+
-+	return notify;
-+}
-+
-+static void mana_ib_notify_error_cqs(struct mana_ib_qp *qp)
++void mana_ib_drain_rq(struct ib_qp *ibqp)
 +{
-+	struct ib_cq *send_cq = qp->ibqp.send_cq;
-+	struct ib_cq *recv_cq = qp->ibqp.recv_cq;
++	struct ib_qp_attr attr = { .qp_state = IB_QPS_ERR };
++	struct mana_ib_drain_cqe rdrain;
++	struct ib_recv_wr rwr = {
++		.next = NULL,
++		.wr_cqe = &rdrain.cqe,
++	};
++	struct ib_cq *cq = ibqp->recv_cq;
++	int ret;
 +
-+	if (send_cq->poll_ctx != IB_POLL_DIRECT && send_cq->comp_handler)
-+		send_cq->comp_handler(send_cq, send_cq->cq_context);
-+	if (recv_cq != send_cq && recv_cq->poll_ctx != IB_POLL_DIRECT &&
-+	    recv_cq->comp_handler)
-+		recv_cq->comp_handler(recv_cq, recv_cq->cq_context);
- }
- 
- int mana_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 		      int attr_mask, struct ib_udata *udata)
- {
- 	struct mana_ib_qp *qp = container_of(ibqp, struct mana_ib_qp, ibqp);
-+	bool notify = false;
- 	int ret;
- 
- 	mutex_lock(&qp->modify_lock);
-@@ -1087,11 +1129,14 @@ int mana_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 		goto out_unlock;
- 	}
- 
--	mana_ib_modify_qp_state(ibqp, attr, attr_mask, udata);
-+	notify = mana_ib_modify_qp_state(ibqp, attr, attr_mask, udata);
- 
- out_unlock:
- 	mutex_unlock(&qp->modify_lock);
- 
-+	if (notify)
-+		mana_ib_notify_error_cqs(qp);
++	if (ibqp->qp_type != IB_QPT_RC) {
++		ibdev_err(ibqp->device, "RQ drain is only supported for RC QPs (type %u)\n",
++			  ibqp->qp_type);
++		return;
++	}
 +
- 	return ret;
- }
- 
-@@ -1213,6 +1258,7 @@ static int mana_ib_destroy_uc_qp(struct mana_ib_qp *qp, struct ib_udata *udata)
- 		return err;
- 
- 	mana_table_remove_qp(mdev, qp);
-+	mana_remove_qp_from_cqs(qp, false);
- 	/* Ignore return code as there is not much we can do about it.
- 	 * The error message is printed inside.
- 	 */
++	ret = ib_modify_qp(ibqp, &attr, IB_QP_STATE);
++	if (ret) {
++		ibdev_err(ibqp->device, "Failed to drain RQ: modify QP returned %d\n", ret);
++		return;
++	}
++
++	rdrain.cqe.done = mana_ib_drain_qp_done;
++	init_completion(&rdrain.done);
++
++	ret = ib_post_recv(ibqp, &rwr, NULL);
++	if (ret) {
++		ibdev_err(ibqp->device, "Failed to post RQ drain WR: %d\n", ret);
++		return;
++	}
++
++	if (cq->poll_ctx != IB_POLL_DIRECT && cq->comp_handler)
++		cq->comp_handler(cq, cq->cq_context);
++
++	if (cq->poll_ctx == IB_POLL_DIRECT) {
++		while (!wait_for_completion_timeout(&rdrain.done, HZ / 10))
++			ib_process_cq_direct(cq, -1);
++	} else {
++		wait_for_completion(&rdrain.done);
++	}
++}
 
 -- 
 2.43.0
