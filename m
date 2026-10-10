@@ -1,464 +1,193 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 999CD3DB339;
-	Sat, 10 Oct 2026 06:54:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791615291; cv=none; b=ZS+pdXxyMIcEeKhw1TXqnpeghdnzPjwiyJsIz+bYjVWTFezG/dryUrANvop3DG0IHCMFEoaGl2NPC5rnzy29CzVxHMZPWjQL9+XH6ets8HP6wHoGsQY83wiS2bG0044G/wSYWvXwO55igjD4QZDzduR8MzbqISS1TY224gFDizQ=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791615291; c=relaxed/simple;
-	bh=BZwtYSc3wGLGLOQ0/G5jZ8zzkq8QhpI7DZA470y4gRo=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ILgIQw5ginxPBjA9TW44ekrTiT6Wgz+M+UVRdzw4D9DUqoh6SwlM+0TzricM/f4+N0lvsqnup8j4EVey/EL5QoL+oc1GiHinC30YYfTGGGl3ACgcT3nBFVLHqyoXq52j64Axanis+1zkzkC6OfuYwgQJXMDcaf4y/e0sepGIEbI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=cimu1yF5; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+Received: from SEYPR02CU001.outbound.protection.outlook.com (mail-koreacentralazon11023141.outbound.protection.outlook.com [40.107.44.141])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A019D360751;
+	Sat, 10 Oct 2026 07:01:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.44.141
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791615665; cv=fail; b=e1xzK5OI6yKmSuwhezEC6FxPH5ZF1Nkam69zTnXQT58G5DbhVPnHGATCfwjkvXt2kF3jgEf6DQtZLqLeXWdvCuKqGfH+MMalRhqrcw1cxVEy77IQbLAbVKj0Sqa4SOBmPGTxYrdPrcQNOvR132fjNh0lTeLyLozSXxMSVlrCjgE=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791615665; c=relaxed/simple;
+	bh=Ijo5uDns4zlj6csZrUnOtuyVipCIe3oTIGErUS0urdU=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=kat7Ik1i0dGqoKj7ZF/9g8nFLGEO8Iash/zvYZaOqh7ai9d5SKP7l7QwRQaEhy4bWIyJ6kaO7JLvIbPWHRXH122/c4FIcNXgnQ2va05wc6yu1DMN5lUEs0vSyiZzqcnZUPyJoXRQ45RnsH1QlamUN/CVKmTxJFbHchLkpFG7Kfc=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=microsoft.com; dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b=JKiHHKM4; arc=fail smtp.client-ip=40.107.44.141
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="cimu1yF5"
-Received: by linux.microsoft.com (Postfix, from userid 1186)
-	id EE3FB20B716D; Fri,  9 Oct 2026 23:54:43 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com EE3FB20B716D
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1791615283;
-	bh=Qy/iZEXfXTjvEfhzT1uRHu+cKOl8LO/w1B3KvSZvDRA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=cimu1yF56BTB5lrrjoQFo9Zk6VvtswJmIwhnTl3ESYYZHUFpDpKUqsRre+CQXSioT
-	 1tVeJ6Xw2SvgQg+MwebZd5NtWEcT8bra6sT0H95CruNum7NcReHoVCMAT00521O64s
-	 rjWLF6CaT93vYVkiAA82VzbYYeGl/PPCpWpQBK80=
-From: Konstantin Taranov <kotaranov@linux.microsoft.com>
-To: kotaranov@microsoft.com,
-	snsanghvi@microsoft.com,
-	longli@microsoft.com,
-	jgg@ziepe.ca,
-	leon@kernel.org
-Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next v4 06/10] RDMA/mana_ib: Post send and memory-management WRs on RC QPs
-Date: Fri,  9 Oct 2026 23:54:39 -0700
-Message-ID: <20261010065443.3554193-7-kotaranov@linux.microsoft.com>
-X-Mailer: git-send-email 2.43.7
-In-Reply-To: <20261010065443.3554193-1-kotaranov@linux.microsoft.com>
-References: <20261010065443.3554193-1-kotaranov@linux.microsoft.com>
+	dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b="JKiHHKM4"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=GZxW2gDx2LArwUIp7qthuX2YTT2+p/cBwD0zc757dtBUxY2DVCXvHR7qZvjCm7a3VgVZz8GUbEeuU/6HEWF1okE2qHuJAHCfDJR8ylYdKvd+tNBtf57IG4LvJzRrQN1Tu43NQ10q4lsSg4OAiRI1PeQYohZJY61yNmfDxLjVHwTrCP30c3r5Ye68Lrf66sybmqR1SzRAhSNa4VkGcTrCJ6+j/ZDHj1W4y93rwefPmjZ0ijncNfjZxfC+pchPNVIZpwBbNMYQWdzp31Fswhn9arncVsIOjbsLvPeuWrV9BptQ1AtyGQMWIBWSSPPzdkdjZ3hiowAWjZLW5dUvfY5U+A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001; h=From:Date:Subject:Message-ID:MIME-Version;
+ bh=7SU/4lOHtyEHfFJI0xL/1D27gniJmfS8h4opydbssV8=;
+ b=yl3WJY6UsqJEC/s/3j20Ctt9LZKk9YaIIKacpCdVHGkiNf5ZezHmw8dlJuCD/7UWzeDkeVMRBWpukatXQ5h2oyq5qw1xQAdDJUo4lQLrSfAoLL/tyaeA21IrbTbL+kPVdgOXuwQ5uZ3AEHBBfFuY2O3Z8P1pGqlgsX+wgm2igCnvwG0dEdpJgqBC/yoAe9eq2HDkAveKhCEAjklbboTLx2+bnmEYJrEOE4sFFiyeG50CooGQXbNnjc7AUvmewOUlrwyNzdbDxosriJNFIOVovky87DG7PDPeHiHXR9xX36QntxkdiUb5Ag0XavGPnqMukg3aEHuCSsUi1pTlsjTPQA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=microsoft.com; dmarc=pass action=none
+ header.from=microsoft.com; dkim=pass header.d=microsoft.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=7SU/4lOHtyEHfFJI0xL/1D27gniJmfS8h4opydbssV8=;
+ b=JKiHHKM4RlD+ixPq/086MU8FvnyZIWcZjqy6kQ2dCISX5WXp95+GNrfu+KiymAJEDYM8Erx73IAOZCjnVLHwHk7Mf0P1euEUkEuQtOTtO62jGrtdw+z+sMpy0pw/umw+zW5qtIhbSLBuDq0uLEmQZ713clwuYCfpmdr1qlQJwT4=
+Received: from SE3P153MB1848.APCP153.PROD.OUTLOOK.COM (2603:1096:101:340::5)
+ by SI3P153MB2078.APCP153.PROD.OUTLOOK.COM (2603:1096:4:29e::5) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.546.0; Sat, 10 Oct 2026 07:00:55 +0000
+Received: from SE3P153MB1848.APCP153.PROD.OUTLOOK.COM
+ ([fe80::8f4e:575a:4706:a56e]) by SE3P153MB1848.APCP153.PROD.OUTLOOK.COM
+ ([fe80::8f4e:575a:4706:a56e%6]) with mapi id 15.21.0522.006; Sat, 10 Oct 2026
+ 07:00:53 +0000
+From: Wei Hu <weh@microsoft.com>
+To: Simon Horman <horms@kernel.org>, Wei Hu <weh@linux.microsoft.com>
+CC: Long Li <longli@kernel.org>, Konstantin Taranov <kotaranov@microsoft.com>,
+	Jakub Kicinski <kuba@kernel.org>, "David S. Miller" <davem@davemloft.net>,
+	Paolo Abeni <pabeni@redhat.com>, Eric Dumazet <edumazet@google.com>, Andrew
+ Lunn <andrew+netdev@lunn.ch>, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky
+	<leon@kernel.org>, Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu
+	<wei.liu@kernel.org>, Dexuan Cui <DECUI@microsoft.com>, Shradha Gupta
+	<shradhagupta@linux.microsoft.com>, Erni Sri Satya Vennela
+	<ernis@linux.microsoft.com>, Stephen Hemminger <stephen@networkplumber.org>,
+	Shiraz Saleem <shirazsaleem@microsoft.com>, "netdev@vger.kernel.org"
+	<netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org"
+	<linux-rdma@vger.kernel.org>, "linux-hyperv@vger.kernel.org"
+	<linux-hyperv@vger.kernel.org>, "linux-kernel@vger.kernel.org"
+	<linux-kernel@vger.kernel.org>, Aditya Garg <gargaditya@linux.microsoft.com>,
+	Kees Cook <kees+treewide@kernel.org>, Kees Cook <kees@kernel.org>, Manish
+ Awasthi <mawasthi@linux.microsoft.com>
+Subject: RE: [EXTERNAL] Re: [PATCH net-next v6 0/4] net: mana: concurrent HWC
+ requests and dynamic queue depth
+Thread-Topic: [EXTERNAL] Re: [PATCH net-next v6 0/4] net: mana: concurrent HWC
+ requests and dynamic queue depth
+Thread-Index: AQHdVlrjqAKo7MR9c0+EfVD6M1+h6bb1VlYAgADn0gA=
+Date: Sat, 10 Oct 2026 07:00:52 +0000
+Message-ID:
+ <SE3P153MB18480F7AC211C30412907878BB912@SE3P153MB1848.APCP153.PROD.OUTLOOK.COM>
+References: <cover.1790665894.git.weh@linux.microsoft.com>
+ <20261009151906.GF83879@horms.kernel.org>
+In-Reply-To: <20261009151906.GF83879@horms.kernel.org>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+msip_labels:
+ MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ActionId=2b79d915-9e74-47d9-b7ad-9d816fb3af14;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ContentBits=0;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Enabled=true;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Method=Standard;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Name=Internal;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SetDate=2026-10-10T05:08:48Z;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SiteId=72f988bf-86f1-41af-91ab-2d7cd011db47;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Tag=10,
+ 3, 0, 1;
+authentication-results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=microsoft.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: SE3P153MB1848:EE_|SI3P153MB2078:EE_
+x-ms-office365-filtering-correlation-id: b4e65e7f-60f1-4d0d-061c-08df269c3967
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam:
+ BCL:0;ARA:13230040|366016|1800799024|23010399003|376014|7416014|42112799006|38070700021|56012099006|11063799006|4143699003|7146999003|10067099003|22082099003|18002099003|6133799003;
+x-microsoft-antispam-message-info:
+ yGm3IZE2G52O8Za4VrOi5yrgCk2TiKQLlQXsT1mJgDWEOitm9qIkqgJvs5jREcoWkyfu6/nMu4cZlJKCYWdsYWeVxac4A9MuJN3jAylxOyqKYBAgw+jXKxfwkHzU5+CRyrWraqM7RxJSrDlse5A/Uu3BEhW4zbGT7jZq2n1rXc/4Y1FoqYnlorOXLpY5iBEYlgcbr0zYs3SMDPeZ/PgLnE/J0JO7pul9B/tJYmOo7IgQveZYK/k/sTa4gdmelAOaGwt8yV0TSUQyUHy7fmN2WDpxnl1cunwPeLOEGwb/qV2vnCgBEFFFNUhSluqNaVVrovkTKfFr9r36cEQ+0ZEhdUwVhTO0V463dPvKO3PhfdWgaaoypOQ5NGK0FctMG/R0yNSk/GxeCIp1QY+JGNjP6c8RX1/t6tLegQIBma9AaHS+dJQZ8+kGPuTEZ4cekoz1guZbCGZsZlEA30UW63QgIAArgwRmXLYQ21eAIvfuKT0knxEHT4IcmsA670cLvrMoETpGGkWK90e6DK9ijn0rw5Q1UiXijSb63t0At3AxmhFPvjWdO9K6SxS5IwSzPXlujsUCRHDZMdY9Jo7WwH6cnTeJnNf13Eibf4X/QFq56YU1RbsKn/u4s/abHj34sNhbnu06lWFwPfUE5bN3cadIb4K8A1Ad+cVk0fDu+SrjywHKOq1XSdj1KKQFmiVoYeF1/khdY6VbNoZDtZ/f4Pg8tjmQRNyahM+Bhg/Q/+VG+Tg=
+x-forefront-antispam-report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SE3P153MB1848.APCP153.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(23010399003)(376014)(7416014)(42112799006)(38070700021)(56012099006)(11063799006)(4143699003)(7146999003)(10067099003)(22082099003)(18002099003)(6133799003);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?us-ascii?Q?2eAKXF3YpTciLphjwHmlGsNTUQ4dnGqYxQss0ZkHacBN2HYkjY3Klwo5godo?=
+ =?us-ascii?Q?pDTA9h3k42dOKYksbZR8u8NxWtE+AuYf2lfVo0DTGKB8fgDCEVQPFuD0J1xR?=
+ =?us-ascii?Q?AOOjfWEQFybF7i03NVamG+SSZQAuNESe9DhjM10O+Hg0Vtc9BS7v1TKx0i6r?=
+ =?us-ascii?Q?Hp2dAJ6AFkYuhmorWU7hhbQfbwII5YEij7HyfSOYwBvG5l0cvPSR+GeeRxqd?=
+ =?us-ascii?Q?RXGo3/lxQ58PHWFa3o+pMkDxiwJcAU4Mx8m7g6+2CXt8wk5ApSbgxE3EI4cx?=
+ =?us-ascii?Q?/nGzoZUyIWk3z2lrjGXdQaLcPGlFBgWdN/vedBt/yt5Tb0tGzCjhZNlfWmZD?=
+ =?us-ascii?Q?NCIM9r9rmBCGI3Vt/QWCyaLo0iEo+RtuN+YNX3SL0N6qqU9uj2XIiHC6w9iQ?=
+ =?us-ascii?Q?9Ibp8CLR7gx9b4XbgLFGCohxuETXTv+mE3aztnYzT7r59dt9hmcEVM1xya95?=
+ =?us-ascii?Q?FBhTb80k7JkwtbtKbYs656xtG+wg2IDDRkhDA73QH7xXg9jkv4q27QvFm+3s?=
+ =?us-ascii?Q?dgSBqZJwxd+Un0cAukDvWkghlKqM2CJR8KSIRJBm5iuW3VWZQIQd8c9zxexX?=
+ =?us-ascii?Q?1ckqU4h0Kn7gGnPEbpYRo4T7YgBUwao7WA9KJmKPTNnVQXT+7GurvtGzQVLk?=
+ =?us-ascii?Q?7YfpH090cHsxEyG+Pkv+ziQAKOTNljMP0wzfgEkn8Y8X33GnYkmqz5WGc9ut?=
+ =?us-ascii?Q?56NjyWAF5Me/x7tzAC3W9VwSxvCRN/4SIzZaQF12CiFCK/707nTBoXCEe4e5?=
+ =?us-ascii?Q?NUFMSQY1jUz7yy5SAlCm1FpEBAF5qOZwvePyUwhqjYbx4xh+jNdxTkgohBkv?=
+ =?us-ascii?Q?bJhPqAQ4XKv+iinJ7UjeI67gOy8BQYfcWJ8flhtBRLWo91ZuFFmHS9Kr3yKC?=
+ =?us-ascii?Q?bGet/9/182YY1vM18u+u5qAPnz+AAlYMEDqJiWsJUI+U8iqHZ3JrKnOjpFDr?=
+ =?us-ascii?Q?X8l+rGfyX5y2q2QbLCConm+NA/TqpZ0q/cUQtb57NLWrQxcSzE/11ZjNBl7m?=
+ =?us-ascii?Q?o8rn56+9av7PhWZQXuZt0MXRRUe2JqVNXsbAesgzHXL9AGhWZfrxHmrS83nT?=
+ =?us-ascii?Q?C4QpabE/vyd2pWr5eLWEvKIizieokt01lotA/0edKqGSTSxdS6Dk7KaZYFVD?=
+ =?us-ascii?Q?t5HMr/Vx+yww43CEwu3M/xg9VwjeC1lPDKETr3H7WTTABpQO5E+1tP7ZtYtl?=
+ =?us-ascii?Q?Bb6ZI5YbiykHj1j7aoaoCaT9+U/4GA7gDw6UXmxL2rX/0IYspTcf6x9FTtau?=
+ =?us-ascii?Q?fbPSv4FF70dp1USWMLZMBr6g0a3lZIWr534LH12wJv+RcHf+MDFfagtJz9HP?=
+ =?us-ascii?Q?fOLeTGlY0P+Clf5GXsFy/s52vCQo81LK3eiV8GD40TD97XeUfu0fBUuSMiZY?=
+ =?us-ascii?Q?uulkurbf50e78lxY21aKzljWbwy92bof83o9FCnqUIOhsTUwHNYeg6GElKIN?=
+ =?us-ascii?Q?cLI8CQwokc9ejlJWHlwzW0QfbCL3WwFuz0Q6MWSIXEJAKPRtueU2bycjwrVe?=
+ =?us-ascii?Q?Y+ivUr/L8o1mPrrJba8hD/FFVrTuC3pT6Gq3ZK9+13J7pBZ4kbWDRCDbQR6z?=
+ =?us-ascii?Q?1vWdl02PjoALmdE4zZkxRoPwF73ivGCFsgQhyPraGY5uZ5bqYg6zEteg1lbZ?=
+ =?us-ascii?Q?EcQSQGGw0BoW8LEmkk2CJaXv9ipaTPkcm0u3eCTzieZg1aiYv0xBcTMacT2D?=
+ =?us-ascii?Q?D1Iig6h/C4sHexuIeFHd8i62mrc8vGUBMOGFd/+QBWPc2PFd?=
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-OriginatorOrg: microsoft.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: SE3P153MB1848.APCP153.PROD.OUTLOOK.COM
+X-MS-Exchange-CrossTenant-Network-Message-Id: b4e65e7f-60f1-4d0d-061c-08df269c3967
+X-MS-Exchange-CrossTenant-originalarrivaltime: 10 Oct 2026 07:00:52.9291
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 72f988bf-86f1-41af-91ab-2d7cd011db47
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: RA9aeIiZPAhVbBXfWd37z4Xjh3TeJaUZAKuw3HYFxkNB8oCkP1MPyqeQLqEBgTxT8s7Yy2cbbTHunswewXWr6w==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SI3P153MB2078
 
-From: Konstantin Taranov <kotaranov@microsoft.com>
 
-Implement send work request posting for RC QPs. Post communication WRs
-to the send queue and memory WRs to the memory management queue.
 
-Advertise the memory management extensions on adapters that support
-extended WQEs.
+> -----Original Message-----
+> From: Simon Horman <horms@kernel.org>
+> Sent: Friday, October 9, 2026 11:19 PM
+> To: Wei Hu <weh@linux.microsoft.com>
+> Cc: Long Li <longli@kernel.org>; Konstantin Taranov
+> <kotaranov@microsoft.com>; Jakub Kicinski <kuba@kernel.org>; David S.
+> Miller <davem@davemloft.net>; Paolo Abeni <pabeni@redhat.com>; Eric
+> Dumazet <edumazet@google.com>; Andrew Lunn
+> <andrew+netdev@lunn.ch>; Jason Gunthorpe <jgg@ziepe.ca>; Leon
+> Romanovsky <leon@kernel.org>; Haiyang Zhang <haiyangz@microsoft.com>;
+> K. Y. Srinivasan <kys@microsoft.com>; Wei Liu <wei.liu@kernel.org>; Dexua=
+n
+> Cui <DECUI@microsoft.com>; Shradha Gupta
+> <shradhagupta@linux.microsoft.com>; Erni Sri Satya Vennela
+> <ernis@linux.microsoft.com>; Stephen Hemminger
+> <stephen@networkplumber.org>; Shiraz Saleem
+> <shirazsaleem@microsoft.com>; netdev@vger.kernel.org; linux-
+> rdma@vger.kernel.org; linux-hyperv@vger.kernel.org; linux-
+> kernel@vger.kernel.org; Aditya Garg <gargaditya@linux.microsoft.com>;
+> Dipayaan Roy <dipayanroy@linux.microsoft.com>; Kees Cook
+> <kees+treewide@kernel.org>; Kees Cook <kees@kernel.org>; Manish Awasthi
+> <mawasthi@linux.microsoft.com>; Wei Hu <weh@microsoft.com>
+> Subject: [EXTERNAL] Re: [PATCH net-next v6 0/4] net: mana: concurrent HWC
+> requests and dynamic queue depth
+>=20
+> On Wed, Oct 07, 2026 at 12:53:26PM +0000, Wei Hu wrote:
+>=20
+> ...
+>=20
+> > Long Li (4):
+> >   net: mana: prepare HWC ownership for safe reinitialization
+> >   net: mana: give each HWC message slot its own completion state
+> >   net: mana: support concurrent HWC requests
+> >   net: mana: add dynamic HWC queue depth with reinit path
+>=20
+> Hi Wei,
+>=20
+> Unfortunately this patch-set did not apply cleanly to net-next, and thus =
+our CI
+> did not run.
+>=20
+> Please rebase and repost.
+>=20
+> ...
+>=20
+> --
+> pw-bot: changes-requested
+Hi Simon,
 
-Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
----
- drivers/infiniband/hw/mana/main.c    |   2 +
- drivers/infiniband/hw/mana/mana_ib.h |   1 +
- drivers/infiniband/hw/mana/wr.c      | 348 +++++++++++++++++++++++++++
- 3 files changed, 351 insertions(+)
+Thanks. I will send the rebased v7 soon.
 
-diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
-index f54905764f59..775b3cca8ec4 100644
---- a/drivers/infiniband/hw/mana/main.c
-+++ b/drivers/infiniband/hw/mana/main.c
-@@ -632,6 +632,8 @@ int mana_ib_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
- 	props->max_qp = dev->adapter_caps.max_qp_count;
- 	props->max_qp_wr = dev->adapter_caps.max_qp_wr;
- 	props->device_cap_flags = IB_DEVICE_RC_RNR_NAK_GEN;
-+	if (dev->adapter_caps.feature_flags & MANA_IB_FEATURE_EXTENDED_WQE_FORMAT)
-+		props->device_cap_flags |= IB_DEVICE_MEM_MGT_EXTENSIONS;
- 	props->max_send_sge = dev->adapter_caps.max_send_sge_count;
- 	props->max_recv_sge = dev->adapter_caps.max_recv_sge_count;
- 	props->max_sge_rd = dev->adapter_caps.max_recv_sge_count;
-diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
-index 1094429af801..f7cc9abeb071 100644
---- a/drivers/infiniband/hw/mana/mana_ib.h
-+++ b/drivers/infiniband/hw/mana/mana_ib.h
-@@ -325,6 +325,7 @@ enum mana_ib_adapter_features {
- 	MANA_IB_FEATURE_DEV_COUNTERS_SUPPORT = BIT(5),
- 	MANA_IB_FEATURE_MULTI_PORTS_SUPPORT = BIT(6),
- 	MANA_IB_FEATURE_MSN_IN_WQE_SUPPORT = BIT(7),
-+	MANA_IB_FEATURE_FMR_IN_OOB_SUPPORT = BIT(8),
- 	MANA_IB_FEATURE_EXTENDED_WQE_FORMAT = BIT(9),
- 	MANA_IB_FEATURE_RC_QP_SQ_POW2_SUPPORT = BIT(14),
- 	MANA_IB_FEATURE_MULTI_PORT_GSI_SUPPORT = BIT(15),
-diff --git a/drivers/infiniband/hw/mana/wr.c b/drivers/infiniband/hw/mana/wr.c
-index 5d42af91fce4..6cc67537c655 100644
---- a/drivers/infiniband/hw/mana/wr.c
-+++ b/drivers/infiniband/hw/mana/wr.c
-@@ -7,6 +7,71 @@
- 
- #define MAX_WR_SGL_NUM (2)
- 
-+static inline u32 mana_count_packets(u32 msg_size, enum ib_mtu mtu)
-+{
-+	return (msg_size - !!msg_size) >> (mtu + 7);
-+}
-+
-+static inline bool wr_is_mmq(enum ib_wr_opcode opcode)
-+{
-+	switch (opcode) {
-+	case IB_WR_LOCAL_INV:
-+	case IB_WR_REG_MR:
-+	case IB_WR_REG_MR_INTEGRITY:
-+	case IB_WR_BIND_MW:
-+		return true;
-+	default:
-+		return false;
-+	}
-+}
-+
-+static inline u8 convert_wr_to_wc(enum ib_wr_opcode opcode)
-+{
-+	switch (opcode) {
-+	case IB_WR_SEND_WITH_IMM:
-+	case IB_WR_SEND_WITH_INV:
-+	case IB_WR_SEND:
-+		return IB_WC_SEND;
-+	case IB_WR_RDMA_WRITE_WITH_IMM:
-+	case IB_WR_RDMA_WRITE:
-+		return IB_WC_RDMA_WRITE;
-+	case IB_WR_RDMA_READ:
-+		return IB_WC_RDMA_READ;
-+	case IB_WR_LOCAL_INV:
-+		return IB_WC_LOCAL_INV;
-+	case IB_WR_BIND_MW:
-+		return IB_WC_BIND_MW;
-+	case IB_WR_REG_MR:
-+		return IB_WC_REG_MR;
-+	default:
-+		return 0;
-+	}
-+}
-+
-+static inline u8 convert_wr_to_hw_opcode(enum ib_wr_opcode opcode)
-+{
-+	switch (opcode) {
-+	case IB_WR_RDMA_WRITE:
-+		return WQE_TYPE_WRITE;
-+	case IB_WR_RDMA_WRITE_WITH_IMM:
-+		return WQE_TYPE_WRITE_IMM;
-+	case IB_WR_SEND:
-+		return WQE_TYPE_RC_SEND;
-+	case IB_WR_SEND_WITH_IMM:
-+		return WQE_TYPE_RC_SEND_IMM;
-+	case IB_WR_SEND_WITH_INV:
-+		return WQE_TYPE_RC_SEND_INV;
-+	case IB_WR_LOCAL_INV:
-+		return WQE_TYPE_LOCAL_INV;
-+	case IB_WR_RDMA_READ:
-+		return WQE_TYPE_READ;
-+	case IB_WR_REG_MR:
-+		return WQE_TYPE_REG_MR;
-+	default:
-+		return 0;
-+	}
-+}
-+
- static int mana_ib_post_rq(struct mana_ib_qp *qp, const struct ib_recv_wr *wr)
- {
- 	struct ib_sge mana_ib_dummy_sge = {.addr = 1, .length = 0, .lkey = 0};
-@@ -224,6 +289,287 @@ static int mana_ib_post_send_ud(struct mana_ib_qp *qp, const struct ib_send_wr *
- 	return err;
- }
- 
-+static int mana_ib_post_sq(struct mana_ib_qp *qp, const struct ib_send_wr *wr)
-+{
-+	struct gdma_queue *sq = qp->rc_qp.queues[MANA_RC_SEND_QUEUE_REQUESTER].kmem;
-+	struct ib_sge mana_ib_dummy_sge = {.addr = 1, .length = 0, .lkey = 0};
-+	struct gdma_posted_wqe_info wqe_info = {0};
-+	struct gdma_wqe_request wqe_req = {0};
-+	struct rdma_send_oob send_oob = {0};
-+	struct shadow_wqe_header *shadow_wqe;
-+	bool signaled = qp->sq_sig_all || (wr->send_flags & IB_SEND_SIGNALED);
-+	u32 msg_sz = 0;
-+	int err, i;
-+
-+	if (shadow_queue_full(&qp->shadow_sq))
-+		return -ENOMEM;
-+
-+	if (wr->num_sge > MAX_TX_WQE_SGL_ENTRIES)
-+		return -EINVAL;
-+
-+	for (i = 0; i < wr->num_sge; i++)
-+		msg_sz += wr->sg_list[i].length;
-+
-+	shadow_wqe = shadow_queue_producer_entry(&qp->shadow_sq);
-+	memset(shadow_wqe, 0, sizeof(*shadow_wqe));
-+
-+	wqe_req.num_sge = wr->num_sge;
-+	wqe_req.ib_sgl = wr->sg_list;
-+	wqe_req.flags = GDMA_WR_IB_SGL;
-+
-+	if (wr->num_sge == 0) {
-+		wqe_req.ib_sgl = &mana_ib_dummy_sge;
-+		wqe_req.num_sge = 1;
-+	}
-+
-+	if (wr->opcode == IB_WR_RDMA_READ) {
-+		struct gdma_queue *rq = qp->rc_qp.queues[MANA_RC_RECV_QUEUE_REQUESTER].kmem;
-+		struct rdma_recv_oob recv_oob = {0};
-+
-+		recv_oob.psn_start = qp->sq_psn;
-+		recv_oob.msn = qp->sq_ssn;
-+
-+		wqe_req.inline_oob_size = INLINE_OOB_SMALL_SIZE;
-+		wqe_req.inline_oob_data = &recv_oob;
-+		wqe_req.flags |= GDMA_WR_CHECK_SN;
-+
-+		err = mana_gd_post_work_request(rq, &wqe_req, &wqe_info);
-+		if (err)
-+			return err;
-+
-+		/* For reads we store the WQE size of the receive WQE */
-+		shadow_wqe->wqe_size_in_bu = wqe_info.wqe_size_in_bu;
-+
-+		/* SQ WQE for read uses dummy SGE */
-+		wqe_req.num_sge = 1;
-+		wqe_req.ib_sgl = &mana_ib_dummy_sge;
-+		wqe_req.flags = GDMA_WR_IB_SGL;
-+	}
-+
-+	wqe_req.inline_oob_size = INLINE_OOB_EXTRA_LARGE_SIZE;
-+	wqe_req.inline_oob_data = &send_oob;
-+	wqe_req.client_data_unit = ib_mtu_enum_to_int(qp->mtu);
-+	wqe_req.flags |= GDMA_WR_GENERATION_1;
-+	wqe_req.wqe_size_in_bu = qp->rc_qp.wqe_size_in_bu;
-+
-+	send_oob.wqe_type = convert_wr_to_hw_opcode(wr->opcode);
-+	send_oob.signaled = signaled;
-+	send_oob.solicited = !!(wr->send_flags & IB_SEND_SOLICITED);
-+	send_oob.psn = qp->sq_psn;
-+	send_oob.ssn_or_rqpn = qp->sq_ssn;
-+
-+	if (qp->pending_mmq_fence) {
-+		/* set local fence */
-+		send_oob.fence = 1;
-+		send_oob.fsn = qp->sq_fsn;
-+		wqe_req.flags |= GDMA_WR_FENCE;
-+	}
-+
-+	if (wr->send_flags & IB_SEND_FENCE) {
-+		/* add remote fence */
-+		if (qp->pending_mmq_fence)
-+			wqe_req.flags |= GDMA_WR_FENCE_EXTENDED;
-+		else
-+			wqe_req.flags |= GDMA_WR_FENCE;
-+	}
-+
-+	switch (wr->opcode) {
-+	case IB_WR_SEND_WITH_INV:
-+		send_oob.rc_send.invalidate_key = wr->ex.invalidate_rkey;
-+		wqe_req.flags |= GDMA_WR_CHECK_SN;
-+		break;
-+	case IB_WR_SEND_WITH_IMM:
-+		send_oob.rc_send.immediate = cpu_to_le32(be32_to_cpu(wr->ex.imm_data));
-+		fallthrough;
-+	case IB_WR_SEND:
-+		wqe_req.flags |= GDMA_WR_CHECK_SN;
-+		break;
-+	case IB_WR_RDMA_WRITE_WITH_IMM:
-+		send_oob.immediate_ext = cpu_to_le32(be32_to_cpu(wr->ex.imm_data));
-+		fallthrough;
-+	case IB_WR_RDMA_WRITE:
-+	case IB_WR_RDMA_READ:
-+		send_oob.rdma.address_hi = upper_32_bits(rdma_wr(wr)->remote_addr);
-+		send_oob.rdma.address_low = lower_32_bits(rdma_wr(wr)->remote_addr);
-+		send_oob.rdma.rkey = rdma_wr(wr)->rkey;
-+		send_oob.rdma.dma_len = msg_sz;
-+		if (wr->opcode == IB_WR_RDMA_READ) {
-+			send_oob.read.rsn = qp->sq_rsn;
-+			wqe_req.flags |= GDMA_WR_CHECK_RSN;
-+		} else {
-+			wqe_req.flags |= GDMA_WR_CHECK_SN;
-+		}
-+		break;
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+
-+	err = mana_gd_post_work_request(sq, &wqe_req, &wqe_info);
-+	if (err)
-+		return err;
-+
-+	shadow_wqe->wr_id = wr->wr_id;
-+	shadow_wqe->send_opcode = convert_wr_to_wc(wr->opcode);
-+	if (!signaled)
-+		shadow_wqe->flags |= MANA_WQ_NO_SIGNAL_WC;
-+	else if ((wr->send_flags & IB_SEND_FENCE) || qp->pending_mmq_fence)
-+		shadow_wqe->flags |= MANA_WQ_FENCE_WC;
-+	shadow_wqe->wqe_offset_or_psn = qp->sq_psn + mana_count_packets(msg_sz, qp->mtu);
-+	shadow_wqe->fsn = qp->sq_fsn - 1;
-+	shadow_queue_advance_producer(&qp->shadow_sq);
-+
-+	qp->pending_mmq_fence = false;
-+	qp->sq_psn = shadow_wqe->wqe_offset_or_psn + 1;
-+	qp->sq_ssn++;
-+	if (wr->opcode == IB_WR_RDMA_READ)
-+		qp->sq_rsn++;
-+
-+	return 0;
-+}
-+
-+static u8 mana_ib_fmr_access_flags(int ib_access_flags)
-+{
-+	u8 access = mana_ib_verbs_to_gdma_access_flags(ib_access_flags);
-+
-+	return (access | GDMA_ACCESS_FLAG_INVALIDATE | GDMA_ACCESS_FLAG_FMR);
-+}
-+
-+static void mana_ib_build_fmr_payload(const struct ib_reg_wr *wr, struct ib_sge *sge)
-+{
-+	struct mana_ib_mr *mr = container_of(wr->mr, struct mana_ib_mr, ibmr);
-+	u8 access = mana_ib_fmr_access_flags(wr->access);
-+	u8 *mst_base = (u8 *)mr->fmr.ptes;
-+	struct mana_fmr_mst_entry *mst;
-+
-+	mst = (struct mana_fmr_mst_entry *)(mst_base +
-+		mana_ib_fmr_header_offset(mr->fmr.pte_count));
-+	memset(mst, 0, sizeof(struct mana_fmr_mst_entry));
-+	mst->access_right = access;
-+	mst->addr_type = GDMA_MR_TYPE_GVA;
-+	mst->start_va = wr->mr->iova;
-+	mst->length = wr->mr->length;
-+	mst->page_size = order_base_2(wr->mr->page_size) - MANA_PAGE_SHIFT;
-+
-+	sge->addr = mr->fmr.dma_handle;
-+	sge->lkey = mr->ibmr.pd->local_dma_lkey;
-+	sge->length = mana_ib_fmr_buf_sz(mr->fmr.pte_count);
-+}
-+
-+static int mana_ib_post_mmq(struct mana_ib_qp *qp, const struct ib_send_wr *wr)
-+{
-+	struct mana_ib_dev *mdev = container_of(qp->ibqp.device, struct mana_ib_dev, ib_dev);
-+	struct gdma_queue *queue = qp->rc_qp.queues[MANA_RC_SEND_QUEUE_MMQ].kmem;
-+	struct ib_sge sge = {.addr = 1, .length = 0, .lkey = 0};
-+	struct gdma_posted_wqe_info wqe_info = {0};
-+	struct gdma_wqe_request wqe_req = {0};
-+	struct rdma_send_oob send_oob = {0};
-+	struct shadow_wqe_header *shadow_wqe;
-+	bool signaled = qp->sq_sig_all || (wr->send_flags & IB_SEND_SIGNALED);
-+	int ret;
-+
-+	if (shadow_queue_full(&qp->shadow_mmq))
-+		return -ENOMEM;
-+
-+	shadow_wqe = shadow_queue_producer_entry(&qp->shadow_mmq);
-+	memset(shadow_wqe, 0, sizeof(*shadow_wqe));
-+
-+	wqe_req.num_sge = 1;
-+	wqe_req.ib_sgl = &sge;
-+	wqe_req.flags = GDMA_WR_IB_SGL;
-+
-+	wqe_req.inline_oob_size = INLINE_OOB_EXTRA_LARGE_SIZE;
-+	wqe_req.inline_oob_data = &send_oob;
-+	wqe_req.client_data_unit = 0;
-+	wqe_req.flags |= GDMA_WR_GENERATION_1;
-+
-+	send_oob.wqe_type = convert_wr_to_hw_opcode(wr->opcode);
-+	send_oob.psn = qp->sq_fsn;
-+	send_oob.ssn_or_rqpn = qp->sq_ssn;
-+	send_oob.fsn = qp->sq_psn;
-+	send_oob.signaled = signaled;
-+
-+	if (wr->send_flags & IB_SEND_FENCE)
-+		wqe_req.flags |= GDMA_WR_FENCE | GDMA_WR_FENCE_EXTENDED;
-+
-+	switch (wr->opcode) {
-+	case IB_WR_LOCAL_INV:
-+		send_oob.mm.mkey = wr->ex.invalidate_rkey;
-+		break;
-+	case IB_WR_REG_MR:
-+		send_oob.mm.mkey = reg_wr(wr)->key;
-+		mana_ib_build_fmr_payload(reg_wr(wr), &sge);
-+		if (mdev->adapter_caps.feature_flags & MANA_IB_FEATURE_FMR_IN_OOB_SUPPORT)
-+			wqe_req.flags |= GDMA_WR_OOB_IN_SGL;
-+		break;
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+
-+	ret = mana_gd_post_work_request(queue, &wqe_req, &wqe_info);
-+	if (ret)
-+		return ret;
-+
-+	shadow_wqe->wr_id = wr->wr_id;
-+	shadow_wqe->send_opcode = convert_wr_to_wc(wr->opcode);
-+	if (!signaled)
-+		shadow_wqe->flags |= MANA_WQ_NO_SIGNAL_WC;
-+	else if (wr->send_flags & IB_SEND_FENCE)
-+		shadow_wqe->flags |= MANA_WQ_FENCE_WC;
-+	shadow_wqe->wqe_size_in_bu = wqe_info.wqe_size_in_bu;
-+	shadow_wqe->wqe_offset_or_psn = qp->sq_psn - 1;
-+	shadow_wqe->fsn = qp->sq_fsn;
-+
-+	shadow_queue_advance_producer(&qp->shadow_mmq);
-+
-+	qp->sq_fsn++;
-+	qp->pending_mmq_fence = true;
-+
-+	return 0;
-+}
-+
-+static int mana_ib_post_send_rc(struct mana_ib_qp *qp, const struct ib_send_wr *wr,
-+				const struct ib_send_wr **bad_wr)
-+{
-+	struct mana_ib_dev *mdev = container_of(qp->ibqp.device, struct mana_ib_dev, ib_dev);
-+	bool ring_mmq = false, ring_sq = false, ring_rq = false;
-+	unsigned long flags;
-+	int err = 0;
-+
-+	spin_lock_irqsave(&qp->sq_lock, flags);
-+
-+	for (; wr; wr = wr->next) {
-+		if (wr_is_mmq(wr->opcode)) {
-+			err = mana_ib_post_mmq(qp, wr);
-+			if (unlikely(err)) {
-+				*bad_wr = wr;
-+				break;
-+			}
-+			ring_mmq = true;
-+		} else {
-+			err = mana_ib_post_sq(qp, wr);
-+			if (unlikely(err)) {
-+				*bad_wr = wr;
-+				break;
-+			}
-+			if (wr->opcode == IB_WR_RDMA_READ)
-+				ring_rq = true;
-+			ring_sq = true;
-+		}
-+	}
-+	if (ring_rq)
-+		mana_gd_wq_ring_doorbell(mdev_to_gc(mdev),
-+					 qp->rc_qp.queues[MANA_RC_RECV_QUEUE_REQUESTER].kmem);
-+	if (ring_mmq)
-+		mana_gd_wq_ring_doorbell(mdev_to_gc(mdev),
-+					 qp->rc_qp.queues[MANA_RC_SEND_QUEUE_MMQ].kmem);
-+	if (ring_sq)
-+		mana_gd_wq_ring_doorbell(mdev_to_gc(mdev),
-+					 qp->rc_qp.queues[MANA_RC_SEND_QUEUE_REQUESTER].kmem);
-+
-+	spin_unlock_irqrestore(&qp->sq_lock, flags);
-+	return err;
-+}
-+
- int mana_ib_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
- 		      const struct ib_send_wr **bad_wr)
- {
-@@ -233,6 +579,8 @@ int mana_ib_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
- 	case IB_QPT_UD:
- 	case IB_QPT_GSI:
- 		return mana_ib_post_send_ud(qp, wr, bad_wr);
-+	case IB_QPT_RC:
-+		return mana_ib_post_send_rc(qp, wr, bad_wr);
- 	default:
- 		/* Unsupported QP type */
- 		*bad_wr = wr;
-
--- 
-2.43.0
+Wei
