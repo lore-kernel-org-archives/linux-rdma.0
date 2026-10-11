@@ -1,234 +1,276 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from SA9PR02CU001.outbound.protection.outlook.com (mail-southcentralusazon11013055.outbound.protection.outlook.com [40.93.196.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F2AB421245;
-	Sun, 11 Oct 2026 08:46:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791708380; cv=none; b=CQnU4WPCNYEbSuI2wnvRpyBHJs4ZOGBAV9kHmxW5k4EvQLjEgk24PAfX6zD0fOprTyr1qj42xIxQO+Ui5o+439hp6QD39HXJocNyNsMZ3WxnC65tBGd0vhRvygIhXZwgRcX7XfjhJQbthYcsulHQRkWvtqrSEUQNIvyRAF0pFKE=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791708380; c=relaxed/simple;
-	bh=JXK4oSCpErPklpc7lLoKnemVgdcwS7et3wPxvHo68bk=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=EU52+xfeBL0GKeqJzXu1blern/1pE3OC/fNL2TWUbDoYq6shD/ov3uhIwEToEDDz88qhh2+1h1nkjbBlB97BN+zOA613cpcrRH+4OQsxEV+FVvPiLtljI3NQpdfqYw9+LmPhdoezMf9Z2I2plCN+aNqhs27VnSED04nqvbw0nts=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XObUx/gw; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 690B013CA92;
+	Sun, 11 Oct 2026 09:32:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.196.55
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791711132; cv=fail; b=MXkg6sVPY/AaCIVJMHX1C5UUEax7PuDfgnwJwIvZpwchd759wx7ZOK/Jy3mj2feirt5vGEQHVLmVzpG67yBb+PyP3Zq3nXxTcyxwR36w9d91bIGgGywmQzMEbEf9caBU1Zt/V/ONJCqHfebcSounm1JdxOHJ9gBZj8ke6GfCrgI=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791711132; c=relaxed/simple;
+	bh=4MfmwV8qufhWUaprpHWFBVU4AnojlE3qGH4MT4MnPGc=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=UkYPj1+Ps8ALQ5BgvfknNHlD5LxVAtrFfEHsHmaPpPOCtK0FO1qebPBCOYkY8u/Pl85QP5PegqLHUJRcMTMjct51Qe0Q5E6NiJSrXWuTG9GopvcFabU5kISfL/yyN1A5a6bFI/W9nKeTuRNH7F9WJLds+gwnVfvCq5URbKcQqqU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=RfzITYbd; arc=fail smtp.client-ip=40.93.196.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XObUx/gw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A40E61F0089B;
-	Sun, 11 Oct 2026 08:46:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791708378;
-	bh=FYthYDxYDoOAgUYRAWkQ0GCdhoXr4bMX021KWI/g0l4=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=XObUx/gwFpLfOl4g6Ss5t9I77a8SxllPvTsONJgeUCLUJJU+ZXuTYa6UpZR8oT7+c
-	 /sqXKyjlVCnowuCWp2wvklgrQXFZ3kIAHL4wcWFzfYzVosFao1eDyyXFDXbyOnxb+4
-	 Vxy8kkIG2fwkdwcvyTEJKjItVufght8LrBGX710ZZuUdYm4xxnjQn7aOWcSJYvhfvL
-	 xjZ8+QZavRE2m0sYrqST+vwJ6UqRH64S3Q+a+m0QIcQfXA3KhcRffAutPI33RY6Af6
-	 JxnzqrXkwdECscqE+0BUrG1Z6aQ7xE4lOZrzKrz97OFyRXdg7I+TsiUHsnUvO/SFCI
-	 /ly5AQbE9FQqQ==
-Subject:
- Re: [PATCH net] rds: fix transport reference leak on rds_add_bound() failure
-From: netdev-bot+sashiko@kernel.org
-To: bsdhenrymartin@gmail.com
-Cc: achender@kernel.org, davem@davemloft.net, kuba@kernel.org,
- edumazet@kernel.org, pabeni@redhat.com, horms@kernel.org,
- linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Date: Sun, 11 Oct 2026 08:46:17 +0000
-Message-ID: <179170837722.434549.13971101110405723728@kernel.org>
-In-Reply-To: <20261010081446.3112217-1-bsdhenrymartin@gmail.com>
-References: <20261010081446.3112217-1-bsdhenrymartin@gmail.com>
-X-sashiko-severity: High
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="RfzITYbd"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=Ejpzbc6FyUroZOykd69FaJJ61ovKk4+r+SKRUeOOg1/FbTCS0avY/KSuCra/w/AlbADT9K9wxXLPR0VY7krsFHzZgu80GHX/u33IEvJhgye62FI6P0B0S0buO89my2ZOrdlXUwDjf2Zlk2Kf4bFckDTmOdHF88n+v5tUBno/+x6ax52YkPBYSgIq9RsGwzJYZi+oijMuItcSfdC3Che52sX5Z+YeLpgf/vhZTzjlTiPx2UocMVcf7PU7pAGbRlaOw3pL7sdA9S2k7Tyw8o6LAi3A0+UDSvMDlL1sClxE7ZcMT0+U62r6p7I2oQrXTzlYM0BpirIm9wgPBM24+ndzJg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=JpohDi9kokQfUZGJwQDGpF3mgfiuOjp9jxcdQ+UKDtw=;
+ b=ihTcopdina8TlBmpNZxC94qg/8EBnsh7lVrr9MfM5LvK9+lwi1m3ATUkXs+OPp+BrH4W1fe8YONhq2Xk/Y9Yt+9HAZlMMJ6KbHXmeVSQnH5OMzCeMTWZz3DCE+tWxPcYG+pHyU5K0QzmMXOMwRZV8detbxSwqSI/SonXLqw/0S8dl6WoEmCuD+FOLG2wBaYDIJ9TnDgjw9L1lsMgJ+rh0glvb/7Z5HE61hiVZQeCfOVgBd2nghV7yvOzXJC3orq5V9BI5y1hIEN/Kggsj6luu4HFZtYgwK7VYnA+Yoq3rOAQFCPyGh27DInXusma1IrkRL5yNN3u3iXXTyHzqnAARQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.160) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=JpohDi9kokQfUZGJwQDGpF3mgfiuOjp9jxcdQ+UKDtw=;
+ b=RfzITYbdhLgC71SO83x/IebLyQn/tiM+0DCd3AEEdjUwrUJBElebbeUFsePLunFgYijVJyp4qWC91uiH/pOBmrngRUFuRzzi860o+xNwgiGTbEPyeu6mj2+9QgNeqmDPwGJPDYswrpOHGUhUyVE6CbXzebKFtsW4HPlxljlpDnbWcw9iOdWhnu1a9r3MskPD8uueVBKLvb1I/bT3aIn0UWm6PXVp4pWDipiJ+VSf59rXW2rxU7TUflW41VlD4fyQNF5HcdWaBoYt0DKRsLVJgbDIn3tbBtMKPfC4lrMeo3FeC1+KkBu/pLpIyah2pwE6WWqRrfBg0MEN5jtX1A1ouQ==
+Received: from CH2PR18CA0051.namprd18.prod.outlook.com (2603:10b6:610:55::31)
+ by BL1PR12MB5827.namprd12.prod.outlook.com (2603:10b6:208:396::19) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.496.20; Sun, 11 Oct
+ 2026 09:32:02 +0000
+Received: from CH3PEPF0000000F.namprd04.prod.outlook.com
+ (2603:10b6:610:55:cafe::3a) by CH2PR18CA0051.outlook.office365.com
+ (2603:10b6:610:55::31) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.472.20 via Frontend Transport; Sun,
+ 11 Oct 2026 09:32:02 +0000
+X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
+ is 216.228.117.160) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.160) by
+ CH3PEPF0000000F.mail.protection.outlook.com (10.167.244.40) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.522.6 via Frontend Transport; Sun, 11 Oct 2026 09:32:02 +0000
+Received: from rnnvmail205.nvidia.com (10.129.68.10) by mail.nvidia.com
+ (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Sun, 11 Oct
+ 2026 02:31:54 -0700
+Received: from rnnvmail202.nvidia.com (10.129.68.7) by rnnvmail205.nvidia.com
+ (10.129.68.10) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Sun, 11 Oct
+ 2026 02:31:53 -0700
+Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.7)
+ with Microsoft SMTP Server id 15.2.2562.49 via Frontend Transport; Sun, 11
+ Oct 2026 02:31:48 -0700
+From: Tariq Toukan <tariqt@nvidia.com>
+To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
+	<davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski
+	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>
+CC: Aleksandr Loktionov <aleksandr.loktionov@intel.com>, Alexei Lazar
+	<alazar@nvidia.com>, Cosmin Ratiu <cratiu@nvidia.com>, Dragos Tatulea
+	<dtatulea@nvidia.com>, Gal Pressman <gal@nvidia.com>, Leon Romanovsky
+	<leon@kernel.org>, open list <linux-kernel@vger.kernel.org>,
+	<linux-rdma@vger.kernel.org>, Mark Bloch <mbloch@nvidia.com>, Saeed Mahameed
+	<saeedm@nvidia.com>, Shahar Shitrit <shshitrit@nvidia.com>, "Stanislav
+ Fomichev" <sdf@fomichev.me>, Stanislav Fomichev <sdf.kernel@gmail.com>,
+	"Tariq Toukan" <tariqt@nvidia.com>
+Subject: [PATCH net-next] net/mlx5e: Rename state_destroy to rx_mode_active in flow steering
+Date: Sun, 11 Oct 2026 12:31:00 +0300
+Message-ID: <20261011093100.769149-1-tariqt@nvidia.com>
+X-Mailer: git-send-email 2.44.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CH3PEPF0000000F:EE_|BL1PR12MB5827:EE_
+X-MS-Office365-Filtering-Correlation-Id: 676c0bc1-8a8e-4414-952d-08df277a81aa
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|23010399003|376014|7416014|36860700016|82310400026|56012099006|11063799006|261009223027099003|10067099003|18002099003;
+X-Microsoft-Antispam-Message-Info:
+	PmhaNSVRohzjcWy65c+aEWcNMrHOpxyZNOCFizlf/3QTH0/z+sNzFHNlPeWvw4zb4Yj8kQSq1+x2WdPM1dlDfQr5hnRAPnQv9URItR1u2+HfS63r7RNT1kHSswr+JiBJMP4Iypbcp47hR1MWIs5qytyYxeDPLdG0KBT9qKFI6N5yEehpaYrJJ9g7AHSYbewCxPEKbyzEEtWzcjyruzcvYk7gvu/r2pTH5C+U5vb9w+Y3lTSLYbEezagZ9A+rtOsisYVsLwjWzDzeTd3i8h4G7i12ebYlZzOEX/fiE6v7yBMuHKbArT0I4xZ2PD5RkshkgPRHVXWDNJQpYu6iWl8bXCzrqujgsPhzw7FGYMdy1OATbHQPYjMoTjjGWMMgyx6+SaRV/S0wEZnJZflZD7PHHbDCmqfZcoQlDa3JIeHJgkLzEe0tqmWuV/VumgNY+yDTbT8MdkF+oyF7215KYNv7KjIZGAc8ZqizyXV9ZQlWUckBmFBPfOCr2yfT/W+mHv5XYXv7L4H631lcIx41BT8/8KlpDfW+gv8jQFo0IMCf1AQmUKxO5SzZl3Kd25ginvY8jJmmibiy4ryRK/fr9UJ3akHDq2hdkBAkmy1OhisODPUQ0e3SZ4OzCq3RiqP0ZPYGO+d7DeOe0RKiszZvclJh/GL0bkrIg2xt9pV4g6KWy41E6K7KEGcC+nRCZLtUDe/4kdhBs7jeKrATkjBHr9LjCw==
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(23010399003)(376014)(7416014)(36860700016)(82310400026)(56012099006)(11063799006)(261009223027099003)(10067099003)(18002099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	u+n0ahPVFze03PWezREyQr1F7bsv2hBN797kuwczEmQFECcT7+RwMrYfimjSwyBcF2eO9QDpZw2SwsImmtcmZCyB2Qbn3/vBUWjmAsTdKo/JJxvVapr8dUzgGtRdYNTbCe0Y0hLXREHlEb7cy5B7DMP/xGodPU4MFieVqL07EevR5OnJ6IH0j5v7rsbg9HBZNAyG4Q0WsLl2SEV7P09Jjf61vfHeR7q82gxEInV0+734nsdm3G1FsyDbIeRkqwr2ILPgUN8Tel4GT5B+eGjamJ3KrL9GuqRQwaGzwWEr7S2KTHOObnAEAfGURmuOOqmwF2W+Paq7KfkOjmN4+xjymaXPoCqj0sbtU0YjBCnBlKRk8gDUryurb2gV07Pt7Q1k1fpy836uazbXOAU+WuUjaA3XxqsexmEtkToO0rp04p8rF0nIab6uthx7vjC5WlX6
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Oct 2026 09:32:02.3242
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 676c0bc1-8a8e-4414-952d-08df277a81aa
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	CH3PEPF0000000F.namprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL1PR12MB5827
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue(s) to consider.
+From: Alexei Lazar <alazar@nvidia.com>
 
-Critical: 0 · High: 1 · Medium: 0 (3) · Low: 0
+This flag controls the enablement of RX mode handling (promisc,
+allmulti, broadcast, netdev addr sync). It acts as a safeguard
+that prevents new FS (flow steering) operations during device
+teardown. When the device is in destroying state it is set to
+false to indicate RX mode operations are not allowed.
+Its name is misleading, as it suggests a destroy-state flag
+rather than RX mode activity. Rename it for clarity.
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+No functional change.
 
-- [High] In rds_bind() (net/rds/bind.c:267-270), the new failure branch
-  calls rds_trans_put(rs->rs_transport) while the socket is still live.
+Signed-off-by: Alexei Lazar <alazar@nvidia.com>
+Reviewed-by: Shahar Shitrit <shshitrit@nvidia.com>
+Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/en/fs.h |  5 +++--
+ drivers/net/ethernet/mellanox/mlx5/core/en_fs.c | 17 +++++++++--------
+ .../net/ethernet/mellanox/mlx5/core/en_main.c   | 15 +++++++++------
+ 3 files changed, 21 insertions(+), 16 deletions(-)
 
-Pre-existing issues:
-- [Medium] The SO_RDS_TRANSPORT once-only contract breaks after a failed
-  bind.
-- [Medium] rds_ioctl(SIOCRDSSETTOS) (af_rds.c:264-266) and
-  rds_getsockopt(SO_RDS_TRANSPORT) (af_rds.c:525-526) read…
-- [Medium] When rhashtable_insert_fast() fails, rds_add_bound() briefly
-  sets rs->rs_bound_addr = *addr (bind.c:123) and then resets it…
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/fs.h b/drivers/net/ethernet/mellanox/mlx5/core/en/fs.h
+index 4973fb473ff0..aa370227b7bc 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/fs.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/fs.h
+@@ -158,7 +158,7 @@ void mlx5e_destroy_flow_steering(struct mlx5e_flow_steering *fs, bool ntuple,
+ 
+ struct mlx5e_flow_steering *mlx5e_fs_init(const struct mlx5e_profile *profile,
+ 					  struct mlx5_core_dev *mdev,
+-					  bool state_destroy,
++					  bool rx_mode_active,
+ 					  struct dentry *dfs_root);
+ void mlx5e_fs_cleanup(struct mlx5e_flow_steering *fs);
+ struct mlx5e_vlan_table *mlx5e_fs_get_vlan(struct mlx5e_flow_steering *fs);
+@@ -198,7 +198,8 @@ void mlx5e_fs_set_udp(struct mlx5e_flow_steering *fs, struct mlx5e_fs_udp *udp);
+ struct mlx5e_accel_fs_tcp *mlx5e_fs_get_accel_tcp(struct mlx5e_flow_steering *fs);
+ void mlx5e_fs_set_accel_tcp(struct mlx5e_flow_steering *fs, struct mlx5e_accel_fs_tcp *accel_tcp);
+ #endif
+-void mlx5e_fs_set_state_destroy(struct mlx5e_flow_steering *fs, bool state_destroy);
++void mlx5e_fs_set_rx_mode_active(struct mlx5e_flow_steering *fs,
++				 bool rx_mode_active);
+ void mlx5e_fs_set_vlan_strip_disable(struct mlx5e_flow_steering *fs, bool vlan_strip_disable);
+ 
+ struct mlx5_core_dev *mlx5e_fs_get_mdev(struct mlx5e_flow_steering *fs);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_fs.c b/drivers/net/ethernet/mellanox/mlx5/core/en_fs.c
+index 12492c4a5d41..c19238bc821f 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_fs.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_fs.c
+@@ -44,7 +44,7 @@
+ 
+ struct mlx5e_flow_steering {
+ 	struct work_struct		set_rx_mode_work;
+-	bool				state_destroy;
++	bool				rx_mode_active;
+ 	bool				vlan_strip_disable;
+ 	struct mlx5_core_dev		*mdev;
+ 	struct mlx5_flow_namespace      *ns;
+@@ -560,7 +560,7 @@ static void mlx5e_del_vlan_rules(struct mlx5e_flow_steering *fs)
+ 	for_each_set_bit(i, fs->vlan->active_svlans, VLAN_N_VID)
+ 		mlx5e_fs_del_vlan_rule(fs, MLX5E_VLAN_RULE_TYPE_MATCH_STAG_VID, i);
+ 
+-	WARN_ON_ONCE(fs->state_destroy);
++	WARN_ON_ONCE(fs->rx_mode_active);
+ 
+ 	mlx5e_remove_vlan_trap(fs);
+ 
+@@ -743,7 +743,7 @@ static void mlx5e_handle_netdev_addr(struct mlx5e_flow_steering *fs,
+ 	mlx5e_for_each_hash_node(hn, tmp, fs->l2.netdev_mc, i)
+ 		hn->action = MLX5E_ACTION_DEL;
+ 
+-	if (fs->state_destroy)
++	if (fs->rx_mode_active)
+ 		mlx5e_sync_netdev_addr(fs, netdev, uc, mc);
+ 
+ 	mlx5e_apply_netdev_addr(fs);
+@@ -840,7 +840,7 @@ void mlx5e_fs_set_rx_mode_work(struct mlx5e_flow_steering *fs,
+ 		goto update_vport_context;
+ 	}
+ 
+-	bool rx_mode_enable  = fs->state_destroy;
++	bool rx_mode_enable    = fs->rx_mode_active;
+ 	bool promisc_enabled   = rx_mode_enable && (netdev->flags & IFF_PROMISC);
+ 	bool allmulti_enabled  = rx_mode_enable && (netdev->flags & IFF_ALLMULTI);
+ 	bool broadcast_enabled = rx_mode_enable;
+@@ -1479,7 +1479,7 @@ static void mlx5e_fs_debugfs_init(struct mlx5e_flow_steering *fs,
+ 
+ struct mlx5e_flow_steering *mlx5e_fs_init(const struct mlx5e_profile *profile,
+ 					  struct mlx5_core_dev *mdev,
+-					  bool state_destroy,
++					  bool rx_mode_active,
+ 					  struct dentry *dfs_root)
+ {
+ 	struct mlx5e_flow_steering *fs;
+@@ -1490,7 +1490,7 @@ struct mlx5e_flow_steering *mlx5e_fs_init(const struct mlx5e_profile *profile,
+ 		goto err;
+ 
+ 	fs->mdev = mdev;
+-	fs->state_destroy = state_destroy;
++	fs->rx_mode_active = rx_mode_active;
+ 	if (mlx5e_profile_feature_cap(profile, FS_VLAN)) {
+ 		err = mlx5e_fs_vlan_alloc(fs);
+ 		if (err)
+@@ -1606,9 +1606,10 @@ void mlx5e_fs_set_accel_tcp(struct mlx5e_flow_steering *fs, struct mlx5e_accel_f
+ }
+ #endif
+ 
+-void mlx5e_fs_set_state_destroy(struct mlx5e_flow_steering *fs, bool state_destroy)
++void mlx5e_fs_set_rx_mode_active(struct mlx5e_flow_steering *fs,
++				 bool rx_mode_active)
+ {
+-	fs->state_destroy = state_destroy;
++	fs->rx_mode_active = rx_mode_active;
+ }
+ 
+ void mlx5e_fs_set_vlan_strip_disable(struct mlx5e_flow_steering *fs,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+index f90b5a34e097..478b5956044b 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -6557,8 +6557,9 @@ int mlx5e_attach_netdev(struct mlx5e_priv *priv)
+ 
+ 	clear_bit(MLX5E_STATE_DESTROYING, &priv->state);
+ 	if (priv->fs)
+-		mlx5e_fs_set_state_destroy(priv->fs,
+-					   !test_bit(MLX5E_STATE_DESTROYING, &priv->state));
++		mlx5e_fs_set_rx_mode_active(priv->fs,
++					    !test_bit(MLX5E_STATE_DESTROYING,
++						      &priv->state));
+ 
+ 	/* Validate the max_wqe_size_sq capability. */
+ 	if (WARN_ON_ONCE(mlx5e_get_max_sq_wqebbs(priv->mdev) < MLX5E_MAX_TX_WQEBBS)) {
+@@ -6638,8 +6639,9 @@ int mlx5e_attach_netdev(struct mlx5e_priv *priv)
+ 	mlx5e_reset_channels(priv->netdev);
+ 	set_bit(MLX5E_STATE_DESTROYING, &priv->state);
+ 	if (priv->fs)
+-		mlx5e_fs_set_state_destroy(priv->fs,
+-					   !test_bit(MLX5E_STATE_DESTROYING, &priv->state));
++		mlx5e_fs_set_rx_mode_active(priv->fs,
++					    !test_bit(MLX5E_STATE_DESTROYING,
++						      &priv->state));
+ 	cancel_work_sync(&priv->update_stats_work);
+ 	return err;
+ }
+@@ -6650,8 +6652,9 @@ void mlx5e_detach_netdev(struct mlx5e_priv *priv)
+ 
+ 	set_bit(MLX5E_STATE_DESTROYING, &priv->state);
+ 	if (priv->fs)
+-		mlx5e_fs_set_state_destroy(priv->fs,
+-					   !test_bit(MLX5E_STATE_DESTROYING, &priv->state));
++		mlx5e_fs_set_rx_mode_active(priv->fs,
++					    !test_bit(MLX5E_STATE_DESTROYING,
++						      &priv->state));
+ 
+ 	if (profile->disable)
+ 		profile->disable(priv);
 
---
-
-rds: fix transport reference leak on rds_add_bound() failure
-
-When rds_add_bound() fails, rds_bind() now drops the transport module
-reference before it clears rs->rs_transport. Before this change, every
-failed bind leaked one reference on the transport module (for example
-rds_tcp), and the module could no longer be unloaded.
-
-> diff --git a/net/rds/bind.c b/net/rds/bind.c
-> index f800d920d9690..e4667b3128940 100644
-> --- a/net/rds/bind.c
-> +++ b/net/rds/bind.c
-> @@ -264,8 +264,10 @@ int rds_bind(struct socket *sock, struct sockaddr_unsized *uaddr, int addr_len)
->  
->  	sock_set_flag(sk, SOCK_RCU_FREE);
->  	ret = rds_add_bound(rs, binding_addr, &port, scope_id);
-> -	if (ret)
-> +	if (ret) {
-> +		rds_trans_put(rs->rs_transport);
-
-[Severity: High]
-Can this module_put() race with code on the same socket that reads
-rs->rs_transport without a lock?
-
-Before this patch, rds_release() was the only place that dropped the
-transport module reference. No other syscall can be running on the
-socket at that point.
-
-With this change, the socket's only reference can be dropped while
-rs->rs_transport is still set and other threads may already hold the
-pointer. The pointer gets set either by setsockopt(SO_RDS_TRANSPORT) or
-by rds_bind() itself, which assigns rs->rs_transport = trans before it
-calls rds_add_bound().
-
-Several readers use rs->rs_transport without lock_sock() and without
-taking their own module reference:
-
-net/rds/af_rds.c:rds_ioctl() {
-    ...
-		if (rs->rs_transport &&
-		    rs->rs_transport->get_tos_map)
-			tos = rs->rs_transport->get_tos_map(utos);
-    ...
-}
-
-net/rds/af_rds.c:rds_getsockopt() {
-    ...
-		trans = (rs->rs_transport ? rs->rs_transport->t_type :
-			 RDS_TRANS_NONE); /* unbound */
-    ...
-}
-
-There is also __rds_rdma_map() in net/rds/rdma.c. It is reached through
-RDS_GET_MR, which does not take lock_sock(). It stores rs->rs_transport
-in mr->r_trans and calls ->get_mr().
-
-A possible sequence:
-
-CPU1                                  CPU0
-rds_ioctl(SIOCRDSSETTOS)
-  reads rs->rs_transport
-                                      rds_bind()
-                                        rds_add_bound() fails (port 1)
-                                        rds_trans_put(rs->rs_transport)
-                                          module_put(rds_tcp)
-                                      rmmod rds_tcp frees the module
-  rs->rs_transport->get_tos_map(utos)
-
-At that point CPU1 reads the freed rds_tcp_transport and calls into
-freed module text. This needs a concurrent rmmod, but making
-"rmmod rds_tcp" possible again is the stated goal of the patch.
-
-Would it work to keep the result of rds_trans_get_preferred() in a
-local variable and assign rs->rs_transport only after rds_add_bound()
-succeeds? On failure, only the local reference would be put. A
-transport chosen with SO_RDS_TRANSPORT would stay attached and be
-released in rds_release().
-
->  		rs->rs_transport = NULL;
-
-[Severity: Medium]
-This isn't a bug introduced by this patch, but should rs->rs_transport
-be cleared here when the user picked the transport with
-SO_RDS_TRANSPORT?
-
-Documentation/networking/rds.rst says of SO_RDS_TRANSPORT:
-
-    This socket option may only be set exactly once on the socket,
-    prior to binding it via the bind(2) system call.
-
-rds_set_transport() enforces this only with:
-
-	if (rs->rs_transport)
-		return -EOPNOTSUPP; /* previously attached to transport */
-
-After a failed bind(), getsockopt(SO_RDS_TRANSPORT) returns
-RDS_TRANS_NONE and a second setsockopt(SO_RDS_TRANSPORT) succeeds. If
-the user simply retries bind(), it quietly uses
-rds_trans_get_preferred() instead of the transport the user chose.
-
-The NULL-out was added by commit 05733434ee9a ("net/rds: Check
-laddr_check before calling it"). This patch keeps it as is.
-
-[Severity: Medium]
-This is a pre-existing issue, but can the unlocked readers see this
-NULL store between their NULL check and their dereference?
-
-rds_ioctl(SIOCRDSSETTOS) and rds_getsockopt(SO_RDS_TRANSPORT), quoted
-above, read rs->rs_transport with plain loads and no lock_sock(). They
-load it once for the NULL check and again for the dereference. This
-store runs under lock_sock(), which those readers don't hold.
-
-If the compiler emits two separate loads, a reader can pass the
-non-NULL check, then see NULL and dereference NULL->get_tos_map or
-NULL->t_type. The NULL-out also comes from commit 05733434ee9a.
-
-[Severity: Medium]
-This is also a pre-existing issue, but is there a similar window in
-__rds_rdma_map()?
-
-If rhashtable_insert_fast() fails, rds_add_bound() sets the bound
-address for a moment and then resets it:
-
-net/rds/bind.c:rds_add_bound() {
-    ...
-		rs->rs_bound_addr = *addr;
-    ...
-		} else {
-			rs->rs_bound_addr = in6addr_any;
-			rds_sock_put(rs);
-			ret = -ENOMEM;
-			break;
-		}
-    ...
-}
-
-rds_bind() then puts and clears rs->rs_transport. RDS_GET_MR and
-RDS_GET_MR_FOR_DEST run without lock_sock(), so __rds_rdma_map() can
-pass this check while the address is briefly set:
-
-	if (ipv6_addr_any(&rs->rs_bound_addr) || !rs->rs_transport) {
-
-Later, after calls that force the pointer to be loaded again, it does:
-
-	trans_private = rs->rs_transport->get_mr(
-
-That load can see NULL. __rds_rdma_map() can also store mr->r_trans for
-a transport whose socket reference the failing bind then drops.
-
-The window opens only when rhashtable_insert_fast() fails (-ENOMEM,
--EBUSY or -E2BIG), which an attacker cannot control. The NULL
-dereference also needs a transport that has get_mr. The dropped module
-reference part is the same race described in the first comment above.
-
-> +	}
->  
->  out:
->  	release_sock(sk);
-
+base-commit: d8674294aefef02266c4d47ad10131f1bffbe534
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261010081446.3112217-1-bsdhenrymartin%40gmail.com
+2.44.0
+
