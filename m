@@ -1,64 +1,64 @@
-Received: from mail-yx1-f48.google.com (mail-yx1-f48.google.com [74.125.224.48])
+Received: from mail-yw1-f178.google.com (mail-yw1-f178.google.com [209.85.128.178])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B458B2D1F40
-	for <linux-rdma@vger.kernel.org>; Sun, 11 Oct 2026 01:11:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.224.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF7722D1F40
+	for <linux-rdma@vger.kernel.org>; Sun, 11 Oct 2026 01:11:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791681087; cv=none; b=I8PHpMmqJ9JlQ2irsmV3ZOPJ5K7cbAVyiEEMYq7sTi+f94ER02Ihau+hkg8OGBlYS9/X13nkyvBhGzkQ9aGjZdUKUDI/WAR11dQyA/D2cQdrUD6l8lSm0yc838ps9AIqRjvtmufkXgzpLTUsR1IV+t5zWzyULc2CPFOk85vf9Ro=
+	t=1791681091; cv=none; b=GClyR6XbVKDdiDVH3+b1Rgb9KW6wYPMx6owRX+P8Bi+ixqdJKiBFJEoJ66aOYDUf0xIIqHWi/jKtE/24xQLoFzxrZ0Fn2ekw5IR0++i7B0ef80IZm01BEz2nI51IoMipAyw1hrv4obWLW7pGfdomxwgYul/ARG0EKixlmVEArwI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791681087; c=relaxed/simple;
-	bh=4goITpC+hJeEoRY18xKASITy1Mh1QU58vYjek2AXJUw=;
+	s=arc-20240116; t=1791681091; c=relaxed/simple;
+	bh=SdYKlGAk5FxGTnN7edG6HjQX9dfLZMrPwHGdCAUwRSU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=eGsvZbylL7GG3wJLCNHwPkmClN16icF2u5fO0oYgUArnRzTxrUicJojhT/qU+YxEBKA7QswJMMJrRu/uT/XNxvFDsBsyNnk0Ceeax3NeCkCA72UK9d1XE6dcuTaAzZWX/77n8JvZd731t8cDYNOpQtxebAY479fWPCGMI7ccAKc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=x6u.co; spf=pass smtp.mailfrom=x6u.co; dkim=pass (2048-bit key) header.d=x6u.co header.i=@x6u.co header.b=FCNgxR4R; arc=none smtp.client-ip=74.125.224.48
+	 MIME-Version; b=lZMBkn4hFdRVuKhVC3ibXgVAtvyzLaRl7mYfjqgalA2IALqJP7CpY27WneWSDNqkB0+XXAV6LPuV7JhUOHF7oN1xgDL8D0uOXGToOFmQ1lLXsHi4WForGj0QdCfAICWMyburA75w1xii+qHK60TmRlZeBmGwmNh/wpB9CkDVbpI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=x6u.co; spf=pass smtp.mailfrom=x6u.co; dkim=pass (2048-bit key) header.d=x6u.co header.i=@x6u.co header.b=y/Mx2Z4d; arc=none smtp.client-ip=209.85.128.178
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=x6u.co
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=x6u.co
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=x6u.co header.i=@x6u.co header.b="FCNgxR4R"
-Received: by mail-yx1-f48.google.com with SMTP id 956f58d0204a3-677dbe051d4so688779d50.0
-        for <linux-rdma@vger.kernel.org>; Sat, 10 Oct 2026 18:11:25 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=x6u.co header.i=@x6u.co header.b="y/Mx2Z4d"
+Received: by mail-yw1-f178.google.com with SMTP id 00721157ae682-8ace0741488so5577057b3.3
+        for <linux-rdma@vger.kernel.org>; Sat, 10 Oct 2026 18:11:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=x6u.co; s=google; t=1791681084; x=1792285884; darn=vger.kernel.org;
+        d=x6u.co; s=google; t=1791681089; x=1792285889; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=DdSUFoY6Y0fSzoD4LiGZ5RlgR+C+orQ2WYuanbz8+yA=;
-        b=FCNgxR4RPWPnQJVHDxZ5oVbZCQA9Tt/HOTw84jD68Vf0UVPY8xBGDyk6pH9d5sXGM2
-         wyqnONvu1FOApX3AfE+m7I23CvZBXmwRRqyEs+AUDWhb5qoKlu5ZBmER2v/j7pBWR67J
-         U63MxMMSpQZ7DYALbseRCVnoLeQG6QOAWmtlt1znez0boegCgS0eyy1LRa2LT+4YJfnk
-         sBc1/qtASS53zzEcgcSIacMWXEG2u17CVKtLU7sECqBuVHpyWIvoFG6ZL7ztCL/OVU2q
-         u3g5zxEMFSy0hCCkc6gKZzHwRmj40pHS4GEXeEjSNQE4tZJ/KtmQoUL4FFnTzDFsA+zw
-         wQyg==
+        bh=Y6T360LoHPKeGGB11zAlRCDIQcDQxGKl910+v9te6Pw=;
+        b=y/Mx2Z4dbCw7JwaeJaaNX1s1qi6aDSWdPrOiBoqU9yc9R79ep4AePP3OASCZW+49cs
+         5GXwq+BtmiAPdxpisG1vhoO0PMmChJ93uxN4hBfgEEe7zVIZegZfPWo2COTIhcbikwF4
+         4AAmb4ohueLpnQ7wiI6pGvT0vi6sJe8A+gPB0RtXfuItOB0X6lCeIPevbkjrm04d/v+L
+         AN3kmHUuNcLpYiQQ7D/MX1MoQFBA0Rxp36IDMzn/8w+IAlqD1GIOqHbEFWj6nh/CL41D
+         WUkLSoZ+TtJD2GorcA0sslL/+xEaPpDb9vhf1QYhK7cYoB8OSRID2N6O9c0lWyz3JRH7
+         dnbQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791681084; x=1792285884;
+        d=1e100.net; s=20260707; t=1791681089; x=1792285889;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=DdSUFoY6Y0fSzoD4LiGZ5RlgR+C+orQ2WYuanbz8+yA=;
-        b=GEyB7Hh3UmNTm2Xnj+Dr03W7vyIODRU7vLd4/H8SC7KDeDUXuMNkCkdQSbXhhg97xX
-         4yL3QhMSbe2nHKYWc0jIWi23DQay9IJOcDSf93i28CmscfcWiutB0S7zK1MpnpE932C0
-         LYnNCMiMdPOQYPXWJfe8GR3llotDfPGpAiQrDP8Sf6sTEB6cP1YeRPnLru8T0MF89cYq
-         IOlrZex6ajXSkHTHYvdNfSG4EcSZar7NrevuDY84g5ncRX87O87CTFTWtwdvwboFnAD7
-         cEgIrACfZIuqKwHW6QABKhQUAyaWcIzYq2StzMRo5t0Ij1Rbs+cdHg4mZdSL6vur1G5X
-         ugQA==
-X-Gm-Message-State: AFq9FYJ+cWyKrXtXah/rbkwxgF0eXqnh1zwNE2aZvdTlq95a/kdPDqz0
-	p+qo86JyKVKqs8syXkBt1Prb/2m0BkrsvWDcmo4Cpwdu0BVaWTuEANGP/Nfv+D897BdG
-X-Gm-Gg: AYBFou1FcTq6SMH1J4vr2ehz4tYOE+IKLmY5FXqDJwewgbYQ/x66E/RG5Z8rHuikaAD
-	GJxc3hl6W2FIcwWMGW4W9CaXxvZC4d+uEQsDnUQtp9j1fvC2gQ12uovgPUZyJYN+GQ9xj9WWQLL
-	kQCKQx95k1C6El/ayB6DPCM9vEQtmg30oIZyqAGEYiPXcX7lqKEYUsRG7PNZliLt89or1NEd7GD
-	cEEATBgAamh/ePynuyjvVZHdpVO0DjcqfHGMKAG4zEe8aAYOwAGtQAbLrK5TIDA+pt9yrSUiqvg
-	RbIKKVegBXTdRs5vMi69tsxAmei9ScfMxW1tZAlThM49C+36n9Hl7A94tHUjwUK31CXsPG+H4f2
-	JRjnmsSUCZJZ2v9PtKqjhOUx8/YdaGnlLH6mPlKrskNhWEz3puOoNjTl/okt/g/TRrb3Ms++QhM
-	wQ9yZHeV0Dj6Xy+tQ7nJ3xQ2zAYHCDLp11g6uJtV+hjnn7bq8UC25/H0wxn9ZG81vl7jpYlqJRt
-	0u93mguf6a61rpgipAWeL+w90rTRrP1nBRqmrqqKA4lNAj8fnX744ArJTS2HcYSOMaSvk66xHkz
-	sGAStWqECw==
-X-Received: by 2002:a05:690c:e1c2:10b0:8aa:3a3a:1fcb with SMTP id 00721157ae682-8b07ee2f72bmr11973327b3.67.1791681084619;
-        Sat, 10 Oct 2026 18:11:24 -0700 (PDT)
+        bh=Y6T360LoHPKeGGB11zAlRCDIQcDQxGKl910+v9te6Pw=;
+        b=aDCD7n+EvpOKZXZq1efhnK5UUMjPvlo3/oCGbvhh/rGfCWHZz7JDtoeOhVCW8WlYIl
+         4wEvRTYlzFwiMZ2pKFetcv3nAf8L3XXj7JkYhr8q51oA5uWXR7677pkTkqP38Sj2ijzS
+         i76m1yyuDLJth7yUyeboGkaP7XqzcovHhZ4Ij/enFbrQl3Jf6APAmmbFSe0ssZ3i7PBe
+         sS49iHNiPwkj34Mu9gvB+RQDt/dF7B8I+j8UWIHXFnnrYOkneal5SgYuucfg4s6ntUk1
+         0IVQQK9EmJoerSdFEFT/EsHwYqd8hB3KcclWgkVxq80Ln5tY+TO6uDM7YVwdkwPtCFyq
+         ndwg==
+X-Gm-Message-State: AFq9FYKn/04QrXe9zqpp2KB40O8RaVHF/BKHHQRPgI4O+HQuFAleNEng
+	rLJQsacfdvYT+yy3xnAhOjXW8DPECkQkXdiIsCbCQfiET3ssF0+AqvpwTFJwaFQyufpt
+X-Gm-Gg: AYBFou3qwB+Pr1+ddwukXalt0tAQtdvZBilzxOUxTrClW1SJnPhvT0Zyq3TBc1mY0HN
+	99Lm1vWhcv1DkgnHwAHa+nHAL3i5SEu0BiFY6stfCZBBH+g8+hO2LsXS/jweDUgULKAdChIcpzL
+	PbQU+lGTRoniRhOqG8po/Aq+okjoYA7m7IOkEoLVgSTUzr1znnM4HG+VpVSaJdT8u8A6vTij/Um
+	A8MdqC2KIei2tweX72f5gzJnihWpYDtoGpNfzLHOMlPooazMLBaqiurJugzVQpBYG6u2aw0pARv
+	pp5RQ8nS5eFZP4VJdkQZC+bUgPRGHWP414Jc8Cw/4itqpOF019vRtT2u60fCxHZx9okEaV387bD
+	cFJIUFG9Xg9wYDXXtuSeaiTVzA5B+g3i542iqEvwHyaXLt2SPCd1pfRj+S6oYEtkNnCGzip1gJX
+	Zn4wD8a166vGAhcOxWaDP7nnR2UK39t2a8lz2tFq8TvfYdmWt3gqzxbDagV83szork97xOx6S1+
+	761jZlZhWquHA00qfgO+bsngLS4dHwxeV2P445iLE8rLxPIVhfUxicf57JpoKbDhssDc1IkfrxF
+	wpIZXCf1vw==
+X-Received: by 2002:a05:690c:6e83:b0:8b0:76e5:ed0c with SMTP id 00721157ae682-8b07ed3e710mr19097207b3.39.1791681088722;
+        Sat, 10 Oct 2026 18:11:28 -0700 (PDT)
 Received: from worldpeace10.c.googlers.com.com (119.20.221.35.bc.googleusercontent.com. [35.221.20.119])
-        by smtp.gmail.com with ESMTPSA id 00721157ae682-8b07f263bc8sm21311817b3.45.2026.10.10.18.11.23
+        by smtp.gmail.com with ESMTPSA id 00721157ae682-8b07f263bc8sm21311817b3.45.2026.10.10.18.11.26
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 10 Oct 2026 18:11:23 -0700 (PDT)
+        Sat, 10 Oct 2026 18:11:27 -0700 (PDT)
 From: David Hu <dhu@x6u.co>
 To: Tatyana Nikolova <tatyana.e.nikolova@intel.com>,
 	Jason Gunthorpe <jgg@ziepe.ca>,
@@ -68,9 +68,9 @@ Cc: linux-rdma@vger.kernel.org,
 	jmoroni@google.com,
 	eagleshaw@google.com,
 	David Hu <xuehaohu@google.com>
-Subject: [PATCH rdma-next 1/5] RDMA/irdma: Plumb uverbs_attr_bundle for QP, SRQ
-Date: Sun, 11 Oct 2026 01:10:18 +0000
-Message-ID: <20261011011022.1445352-2-dhu@x6u.co>
+Subject: [PATCH rdma-next 2/5] RDMA/irdma: Register irdma UVERBS ioctl namespace
+Date: Sun, 11 Oct 2026 01:10:19 +0000
+Message-ID: <20261011011022.1445352-3-dhu@x6u.co>
 X-Mailer: git-send-email 2.56.0.385.gd3acb90ef8-goog
 In-Reply-To: <20261011011022.1445352-1-dhu@x6u.co>
 References: <20261011011022.1445352-1-dhu@x6u.co>
@@ -84,105 +84,83 @@ Content-Transfer-Encoding: 8bit
 
 From: David Hu <xuehaohu@google.com>
 
-In preparation to support modern UVERBS ioctl attributes
-(such as UVERBS_ATTR_UMEM for CoCo DMA bounce buffers), we
-pass down `uverbs_attr_bundle` for inner QP, SRQ routines.
-Since standard uAPIs provide `ib_udata`, we derive it via
-the helper macro, `rdma_udata_to_uverbs_attr_bundle`.
-`irdma_create_cq()` supports `uverbs_attr_bundle` already,
-therefore, this patch fills the gap for QP and SRQ.
+An irdma UVERBS module is now created. An irdma
+specific shadow buf is defined for CQ, while QP and
+SRQ reuses core's uapi definitions. This works since
+core builds shared core ioctl parsing tree first,
+before adding driver specific `uapi_definition`.
 
-QP, SRQ uAPI will now have `ib_udata`, and CQ uAPI has
-`uverbs_attr_bundle` as a top level input. However, we think
-it is a future project to unify them.
+Destroy paths are automatically handled by core
+dispatchers, as objects are now registered in the
+parsing tree and no additional driver specifics are
+needed in destroy ioctls. Resize, Query, and Modify
+continue to go through write() cmds.
 
 Signed-off-by: David Hu <xuehaohu@google.com>
 ---
- drivers/infiniband/hw/irdma/verbs.c | 19 +++++++++++++++----
- 1 file changed, 15 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/irdma/verbs.c | 18 ++++++++++++++++++
+ include/uapi/rdma/irdma-abi.h       |  5 +++++
+ 2 files changed, 23 insertions(+)
 
 diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-index 71d7ae7baa47..10c790fdfc57 100644
+index 10c790fdfc57..b2ffdc8e3d67 100644
 --- a/drivers/infiniband/hw/irdma/verbs.c
 +++ b/drivers/infiniband/hw/irdma/verbs.c
-@@ -637,13 +637,15 @@ static void irdma_setup_virt_qp(struct irdma_device *iwdev,
-  * @iwqp: qp ptr (user or kernel)
-  * @info: initialize info to return
-  * @init_attr: Initial QP create attributes
-+ * @attrs: uverbs attribute bundle
-  */
- static int irdma_setup_umode_qp(struct irdma_ucontext *ucontext,
- 				struct irdma_create_qp_req *req,
- 				struct irdma_device *iwdev,
- 				struct irdma_qp *iwqp,
- 				struct irdma_qp_init_info *info,
--				struct ib_qp_init_attr *init_attr)
-+				struct ib_qp_init_attr *init_attr,
-+				struct uverbs_attr_bundle *attrs)
- {
- 	struct irdma_qp_uk_init_info *ukinfo = &info->qp_uk_init_info;
- 	unsigned long flags;
-@@ -981,10 +983,14 @@ static int irdma_create_qp(struct ib_qp *ibqp,
- 	struct irdma_qp_init_info init_info = {};
- 	struct irdma_qp_host_ctx_info *ctx_info;
- 	struct irdma_create_qp_req ureq = {};
-+	struct uverbs_attr_bundle *attrs = NULL;
- 	struct irdma_srq *iwsrq;
- 	bool srq_valid = false;
- 	u32 srq_id = 0;
- 
-+	if (udata)
-+		attrs = rdma_udata_to_uverbs_attr_bundle(udata);
+@@ -1,6 +1,22 @@
+ // SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
+ /* Copyright (c) 2015 - 2021 Intel Corporation */
+ #include "main.h"
++#include <rdma/uverbs_ioctl.h>
++#define UVERBS_MODULE_NAME irdma
++#include <rdma/uverbs_named_ioctl.h>
++#include <rdma/ib_user_ioctl_cmds.h>
 +
- 	if (init_attr->srq) {
- 		iwsrq = to_iwsrq(init_attr->srq);
- 		srq_valid = true;
-@@ -1071,7 +1077,7 @@ static int irdma_create_qp(struct ib_qp *ibqp,
- 
- 		init_info.qp_uk_init_info.abi_ver = iwpd->sc_pd.abi_ver;
- 		err_code = irdma_setup_umode_qp(ucontext, &ureq, iwdev, iwqp,
--						&init_info, init_attr);
-+						&init_info, init_attr, attrs);
- 	} else {
- 		INIT_DELAYED_WORK(&iwqp->dwork_flush, irdma_flush_worker);
- 		init_info.qp_uk_init_info.abi_ver = IRDMA_ABI_VER;
-@@ -2337,7 +2343,8 @@ static int irdma_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
- static int irdma_setup_umode_srq(struct irdma_device *iwdev,
- 				 struct irdma_srq *iwsrq,
- 				 struct irdma_srq_init_info *info,
--				 struct ib_udata *udata)
-+				 struct ib_udata *udata,
-+				 struct uverbs_attr_bundle *attrs)
- {
- 	struct irdma_create_srq_req req = {};
- 	struct irdma_ucontext *ucontext;
-@@ -2420,6 +2427,7 @@ static int irdma_create_srq(struct ib_srq *ibsrq,
- 	struct ib_srq_attr *attr = &initattrs->attr;
- 	struct irdma_pd *iwpd = to_iwpd(ibsrq->pd);
- 	struct irdma_srq *iwsrq = to_iwsrq(ibsrq);
-+	struct uverbs_attr_bundle *attrs = NULL;
- 	struct irdma_srq_uk_init_info *ukinfo;
- 	struct irdma_cqp_request *cqp_request;
- 	struct irdma_srq_init_info info = {};
-@@ -2430,6 +2438,9 @@ static int irdma_create_srq(struct ib_srq *ibsrq,
- 	u32 depth;
- 	u8 shift;
- 
-+	if (udata)
-+		attrs = rdma_udata_to_uverbs_attr_bundle(udata);
++ADD_UVERBS_ATTRIBUTES_SIMPLE(
++	irdma_cq_attrs,
++	UVERBS_OBJECT_CQ,
++	UVERBS_METHOD_CQ_CREATE,
++	UVERBS_ATTR_UMEM(IRDMA_IB_ATTR_CREATE_CQ_SHADOW_BUF_UMEM, UA_OPTIONAL)
++);
 +
- 	uk_attrs = &rf->sc_dev.hw_attrs.uk_attrs;
- 	ukinfo = &info.srq_uk_init_info;
++static const struct uapi_definition irdma_uapi_defs[] = {
++	UAPI_DEF_CHAIN_OBJ_TREE(UVERBS_OBJECT_CQ, &irdma_cq_attrs),
++	{}
++};
  
-@@ -2470,7 +2481,7 @@ static int irdma_create_srq(struct ib_srq *ibsrq,
- 	attr->max_wr = iwsrq->max_wr;
+ /**
+  * irdma_query_device - get device attributes
+@@ -5629,6 +5645,8 @@ static void irdma_init_rdma_device(struct irdma_device *iwdev)
+ 	iwdev->ibdev.phys_port_cnt = 1;
+ 	iwdev->ibdev.num_comp_vectors = iwdev->rf->ceqs_count;
+ 	iwdev->ibdev.dev.parent = &pcidev->dev;
++	if (IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS))
++		iwdev->ibdev.driver_def = irdma_uapi_defs;
+ 	ib_set_device_ops(&iwdev->ibdev, &irdma_dev_ops);
+ 	if (iwdev->rf->rdma_ver == IRDMA_GEN_1)
+ 		ib_set_device_ops(&iwdev->ibdev, &irdma_gen1_dev_ops);
+diff --git a/include/uapi/rdma/irdma-abi.h b/include/uapi/rdma/irdma-abi.h
+index 38155affc8b4..a1a26529aa85 100644
+--- a/include/uapi/rdma/irdma-abi.h
++++ b/include/uapi/rdma/irdma-abi.h
+@@ -10,6 +10,7 @@
+ #define IRDMA_ABI_H
  
- 	if (udata)
--		err_code = irdma_setup_umode_srq(iwdev, iwsrq, &info, udata);
-+		err_code = irdma_setup_umode_srq(iwdev, iwsrq, &info, udata, attrs);
- 	else
- 		err_code = irdma_setup_kmode_srq(iwdev, iwsrq, &info, depth,
- 						 shift);
+ #include <linux/types.h>
++#include <rdma/ib_user_ioctl_cmds.h>
+ 
+ /* irdma must support legacy GEN_1 i40iw kernel
+  * and user-space whose last ABI ver is 5
+@@ -23,6 +24,10 @@ enum irdma_memreg_type {
+ 	IRDMA_MEMREG_TYPE_SRQ  = 3,
+ };
+ 
++enum irdma_ib_create_cq_attrs {
++	IRDMA_IB_ATTR_CREATE_CQ_SHADOW_BUF_UMEM = UVERBS_ID_DRIVER_NS_WITH_UHW,
++};
++
+ enum {
+ 	IRDMA_ALLOC_UCTX_USE_RAW_ATTR = 1 << 0,
+ 	IRDMA_ALLOC_UCTX_MIN_HW_WQ_SIZE = 1 << 1,
 -- 
 2.56.0.385.gd3acb90ef8-goog
 
