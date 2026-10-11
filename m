@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C777A451982;
-	Sun, 11 Oct 2026 19:04:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7689459AE0;
+	Sun, 11 Oct 2026 19:04:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791745445; cv=none; b=c699y/Nz42LQhWQFC8d7mIadEmYzFJILjG5//y35oyPM62LSSYEgBb7zupPjLIKN2YGkTNCuJnkI1Tbtjz2sexHCSPDBrGd7xCh9pxkm5YH4S6PFXM37TDfdXi+p00so/n2CaleowzT5R7Gh+DQ7ft2bdMxPnPwWakjDel7Ap6U=
+	t=1791745446; cv=none; b=PWWNFnZHbXuHnZOX8bqrig9ASypcWIRRlVEIrLjxyxuXt4rmWsn9lHgdjdyVP0tDu5eccZ9XLiXjrmwFHe77LYIAenqdVtbTeIRZSGa0vfhkqvTX6eED5a3xn4WgO7SDZn6zhYmcDbJPx1GWiTlGt09qhSnhBbE5f5FfvGyQrFg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791745445; c=relaxed/simple;
-	bh=suUcl1hfTjkZCJFPT4WSQGoE5Gb6CSjjO/TS3UMQFCU=;
+	s=arc-20240116; t=1791745446; c=relaxed/simple;
+	bh=u3+DCG4OBowxaxxrfkmvj9Ezccoo3SArK3og9ZMW4NQ=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=TSuFpM6qNSXrW1mb9AWeBYsbH7ppGn4hklYORB9/LYQ4+Nv/Z/lLz8G4bx9IcJylNCr1by2L2G4z71dk57/FcdX2c8UX2ucYdb8wzPElWc5/xveP7ZB8h2zNJa05zogchkAjN9gPq+ApvZVLtqyWtUr+mjHtUyGgp8pnnYxa458=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=T6j22e7N; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=k4tkMEMYuByzyNtFcN6x/oQO/ZncR2A3K7HoywRjsKVpY3JsF690hGs5B7sgbJlNFOw8pEd6jLuMcMdZmNHewF+4SSIZQxZxWq2DJ0ZTgehhwSS4zD23jGT852pijBnrSonjw3Lw5/JIJB6Q997o71oYMWPB2q2ffPplUiFjgfk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BZo2F/Sw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="T6j22e7N"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 435F91F0089C;
-	Sun, 11 Oct 2026 19:04:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BZo2F/Sw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4241F1F0089B;
+	Sun, 11 Oct 2026 19:04:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791745443;
-	bh=xwkEhVzbUvjpITITmAO4h3R+R7/UDQRQJB9aMn4M6nw=;
+	s=k20260515; t=1791745445;
+	bh=Ig+0+y+f6lfiozGzYQzbwtDL6sxb4GUQ6Cp/t/tcq3s=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=T6j22e7NaJcS2fr8bxi+2fkNg3yrrBUkW62t0KEMPQPEPq6c0g63GVfOejKgcDELZ
-	 nmYI+TGJ0tsychweaRGXM07GIaFEB966dLGXJyiPj6MPWOn/DFHhGqWRvNFsXTA1ra
-	 87Xeej/L81UcUVZorzjZeW51kYQGMzJcfsJTcZoB4zTKj0JyWidBNaJOJ6Ktoxn5FJ
-	 GSPMJY8QX27VBcLnNvtiLgJLQ18xB1oxYB/arUS4CmN/96Q3lt5LR2+ABSHrV4KunZ
-	 WzUvdS5XWPMRzPg/0rwoxHPa8HFmiuoRrT0YDo5ToOt5LgXojsjM/Jcx4KN/A2GZD8
-	 uXYz9dXc4NUqA==
-Subject: Re: [PATCH net-next 4/9] xen/netfront: check for failure when pulling
- in xennet_fill_frags()
+	b=BZo2F/SwAn3E6EeHf7x+ECDWtVASPkWlWNzltBFSHAwoxQnOlT+nh1NASgrpE4PGO
+	 lZQJ4xmjJ39tPWzPWN99gpIMFwxDgHEVLl8vW+139XhWKJoem1PGY312qI1g10Ubhz
+	 jX2cHNndfHdZo5gAY8Nz9UtzxUb2LGjZ5ZaqGV3HG3JWhA4HpZMHhde5fFLf0wPGiv
+	 WnfkWQSQTZa3/h1B9bg3CDJ3KZnuk8xPoWmwECdRyAI7EEfq6BGXDkog+blD6JuDSL
+	 KISORjp/9xhmHxYaTyNNpF0/gThUv4mpigBSi66Ksw1rhYxCevY2lkJHqHQXsNHnPx
+	 TILMeHZD3vnCA==
+Subject: Re: [PATCH net-next 6/9] e1000e: use pskb_may_pull() in the 82571/2/3
+ TSO workaround
 From: netdev-bot+sashiko@kernel.org
 To: josef@toxicpanda.com
 Cc: kuba@kernel.org, pabeni@redhat.com, edumazet@kernel.org,
@@ -39,13 +39,13 @@ Cc: kuba@kernel.org, pabeni@redhat.com, edumazet@kernel.org,
  horms@kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
  linux-rdma@vger.kernel.org, xen-devel@lists.xenproject.org,
  intel-wired-lan@lists.osuosl.org
-Date: Sun, 11 Oct 2026 19:04:01 +0000
-Message-ID: <179174544182.434549.6411289628191595001@kernel.org>
+Date: Sun, 11 Oct 2026 19:04:03 +0000
+Message-ID: <179174544385.434549.3694135096916688968@kernel.org>
 In-Reply-To:
- <20261007-b4-pskb-pull-tail-drivers-v1-4-9512b0fb977b@toxicpanda.com>
+ <20261007-b4-pskb-pull-tail-drivers-v1-6-9512b0fb977b@toxicpanda.com>
 References:
- <20261007-b4-pskb-pull-tail-drivers-v1-4-9512b0fb977b@toxicpanda.com>
-X-sashiko-severity: High
+ <20261007-b4-pskb-pull-tail-drivers-v1-6-9512b0fb977b@toxicpanda.com>
+X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -55,220 +55,68 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 3 potential
-issue(s) to consider.
+Thank you for your contribution! Sashiko AI review found more severe
+issue(s) in other patches of this series. This mail is only an FYI, in case
+you want to address the nit picks below when you respin.
 
-Critical: 0 · High: 2 (2) · Medium: 1 · Low: 0
+Low priority / nit picks for your consideration:
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [High] The patch now sends pull failures explicitly to an error path
-  that leaks the head skb.
-- [High] net: xen-netfront: memory leak of head SKB on
-  xennet_fill_frags() error path
-- [Medium] In xennet_fill_frags() (drivers/net/xen-netfront.c), replacing
-  __pskb_pull_tail(skb, pull_to - skb_headlen(skb)) with…
-
-Pre-existing issues:
-- [High] This problem wasn't introduced by this patch, but
-  xennet_fill_frags() (drivers/net/xen-netfront.c) reads each follow-on…
-- [High] This problem wasn't introduced by this patch, but in
-  xennet_poll() (drivers/net/xen-netfront.c)…
+- [Low] After this patch, two unrelated error paths in e1000e log the
+  same message.
 
 --
 
-xen/netfront: check for failure when pulling in xennet_fill_frags()
+e1000e: use pskb_may_pull() in the 82571/2/3 TSO workaround
 
-When the skb already has MAX_SKB_FRAGS frags, this patch makes
-xennet_fill_frags() call pskb_may_pull() instead of __pskb_pull_tail(), and
-it now checks the return value. The BUG_ON() on pull_to is removed. Both
-failure exits now share a common err label.
+This commit changes the 82571/2/3 TSO workaround in e1000_xmit_frame() to
+use pskb_may_pull(skb, len + pull_size) in place of a direct
+__pskb_pull_tail() call. With this change the driver no longer calls
+__pskb_pull_tail() itself. The error message printed on failure is
+updated to match.
 
-> diff --git a/drivers/net/xen-netfront.c b/drivers/net/xen-netfront.c
-> index 2ed673649c488..6e01a883cc64a 100644
-> --- a/drivers/net/xen-netfront.c
-> +++ b/drivers/net/xen-netfront.c
-> @@ -1174,18 +1174,11 @@ static int xennet_fill_frags(struct netfront_queue *queue,
+> diff --git a/drivers/net/ethernet/intel/e1000e/netdev.c b/drivers/net/ethernet/intel/e1000e/netdev.c
+> index 844f31ab37ad4..e216868e15cba 100644
+> --- a/drivers/net/ethernet/intel/e1000e/netdev.c
+> +++ b/drivers/net/ethernet/intel/e1000e/netdev.c
+> @@ -5859,8 +5859,8 @@ static netdev_tx_t e1000_xmit_frame(struct sk_buff *skb,
+>  			unsigned int pull_size;
 >  
->  		RING_COPY_RESPONSE(&queue->rx, ++cons, &rx);
->  
-> -		if (skb_shinfo(skb)->nr_frags == MAX_SKB_FRAGS) {
-> -			unsigned int pull_to = NETFRONT_SKB_CB(skb)->pull_to;
-> -
-> -			BUG_ON(pull_to < skb_headlen(skb));
-> -			__pskb_pull_tail(skb, pull_to - skb_headlen(skb));
-> -		}
-> -		if (unlikely(skb_shinfo(skb)->nr_frags >= MAX_SKB_FRAGS)) {
-> -			xennet_set_rx_rsp_cons(queue,
-> -					       ++cons + skb_queue_len(list));
-> -			kfree_skb(nskb);
-> -			return -ENOENT;
-> -		}
-> +		if (skb_shinfo(skb)->nr_frags == MAX_SKB_FRAGS &&
-> +		    unlikely(!pskb_may_pull(skb, NETFRONT_SKB_CB(skb)->pull_to)))
-> +			goto err;
-> +		if (unlikely(skb_shinfo(skb)->nr_frags >= MAX_SKB_FRAGS))
-> +			goto err;
+>  			pull_size = min_t(unsigned int, 4, skb->data_len);
+> -			if (!__pskb_pull_tail(skb, pull_size)) {
+> -				e_err("__pskb_pull_tail failed.\n");
+> +			if (!pskb_may_pull(skb, len + pull_size)) {
+> +				e_err("pskb_may_pull failed.\n");
 
-[Severity: Medium]
-Is pskb_may_pull() really equivalent to the old call when pull_to equals
-skb_headlen(skb)?
+[Severity: Low]
+This isn't a bug, but this TX message now matches a message that
+already exists on the jumbo RX path in the same file:
 
-pskb_may_pull_reason() returns before it reaches __pskb_pull_tail():
-
-    if (likely(len <= skb_headlen(skb)))
-        return SKB_NOT_DROPPED_YET;
-
-The old code still called __pskb_pull_tail(skb, 0) in that case. Its
-pull_pages loop removes every zero-length frag, even with eat == 0:
-
-    if (size <= eat) {
-        skb_frag_unref(skb, i);
-        eat -= size;
-    }
-
-That lowered nr_frags and freed a slot.
-
-xennet_get_responses() accepts zero-length responses, since it only rejects
-status < 0 and offset + status > XEN_PAGE_SIZE. It also allows
-XEN_NETIF_NR_SLOTS_MIN + 1 (19) slots when the first response is at most
-RX_COPY_THRESHOLD bytes.
-
-Take the default MAX_SKB_FRAGS of 17, no XDP, a 64-byte first slot,
-non-empty slots 2-17, a zero-length slot 18 and a non-empty slot 19:
-
-    slot 18: nr_frags == 17, pull 64 bytes, frags[0] consumed -> 16
-             zero-length slot 18 added -> 17
-    slot 19: nr_frags == 17, pull_to == headlen, pskb_may_pull() no-op
-             nr_frags >= MAX_SKB_FRAGS -> goto err
-
-The old code would have dropped the zero-length frag at slot 19 and
-accepted the packet. A zero-length first slot gives the same result,
-because frags[0] is then zero-length.
-
-Are these packets now dropped and counted in rx_errors, when the old code
-assembled them? The commit message says "pskb_may_pull() does nothing if the
-head already holds pull_to bytes", but that does not match the old
-behaviour in this case. These drops also go through the xennet_poll() err
-path discussed below.
-
-[Severity: High]
-This is a pre-existing issue, but in xennet_poll() pull_to comes from the
-first slot's status. It has an upper cap but no lower bound:
-
-    NETFRONT_SKB_CB(skb)->pull_to = rx->status;
-    if (NETFRONT_SKB_CB(skb)->pull_to > RX_COPY_THRESHOLD)
-        NETFRONT_SKB_CB(skb)->pull_to = RX_COPY_THRESHOLD;
-
-Suppose the backend sends a first slot with status below ETH_HLEN and
-XEN_NETRXF_more_data set, followed by non-empty slots.
-handle_incoming_queue() pulls only pull_to bytes and then calls
-eth_type_trans():
-
-    handle_incoming_queue()
-      __pskb_pull_tail(skb, pull_to - skb_headlen(skb))
-      eth_type_trans()
-        eth_skb_pull_mac()
-          skb_pull_inline(skb, ETH_HLEN)
-            __skb_pull()
-              skb->len < skb->data_len -> BUG()
-
-For example, a 5-byte first slot followed by a 1000-byte slot gives len =
-1005, data_len = 1000 and headlen = 5. Pulling ETH_HLEN leaves len = 991,
-which is less than data_len.
-
-Can a backend crash the guest this way? Should pull_to be clamped to at
-least ETH_HLEN? With a single short slot, skb_pull_inline() returns NULL,
-so this only applies when frags follow.
-
->  
->  		skb_add_rx_frag(skb, skb_shinfo(skb)->nr_frags,
->  				skb_frag_page(nfrag),
-
-[Severity: High]
-This isn't a bug introduced by this patch, but xennet_fill_frags() reads
-each follow-on response from the shared ring a second time. It then uses
-offset and status without checking them again:
-
-    RING_COPY_RESPONSE(&queue->rx, ++cons, &rx);
+drivers/net/ethernet/intel/e1000e/netdev.c:e1000_clean_jumbo_rx_irq() {
     ...
-    skb_add_rx_frag(skb, skb_shinfo(skb)->nr_frags,
-                    skb_frag_page(nfrag),
-                    rx.offset, rx.status, PAGE_SIZE);
-
-The only bounds check runs in xennet_get_responses(), on a separate local
-copy that is then thrown away:
-
-    if (unlikely(rx->status < 0 ||
-                 rx->offset + rx->status > XEN_PAGE_SIZE)) {
-
-RING_COPY_() does a volatile load, so this is a fresh read of memory that
-the backend can still write.
-
-Could a backend rewrite the slot between the check and this read? A
-negative status would lower skb->len and skb->data_len and store a huge
-frag size. An offset plus status past the page would create a frag that
-runs past the RX page.
-
-Commit 8446066bf8c1 was meant to make netfront read each response only
-once. Could the copy already validated in xennet_get_responses() be reused
-here?
-
-[ ... ]
-
-> @@ -1198,6 +1191,11 @@ static int xennet_fill_frags(struct netfront_queue *queue,
->  	xennet_set_rx_rsp_cons(queue, cons);
->  
->  	return 0;
-> +
-> +err:
-> +	xennet_set_rx_rsp_cons(queue, ++cons + skb_queue_len(list));
-> +	kfree_skb(nskb);
-> +	return -ENOENT;
->  }
-
-[Severity: High]
-net: xen-netfront: memory leak of head SKB on xennet_fill_frags() error path
-
-1. Consequence: Memory leak of the main/head SKB and its data on the RX error path. Over time, an attacker triggering this error could exhaust system memory (DoS).
-2. Triggering path: In xennet_poll(), a head SKB is dequeued from tmpq. It is passed to xennet_fill_frags(), which attempts to merge additional fragments. If pskb_may_pull() fails (e.g., due to memory allocation failure) or if nr_frags still exceeds MAX_SKB_FRAGS, xennet_fill_frags() returns -ENOENT without freeing the head SKB. Back in xennet_poll(), this triggers goto err, which loops over the remaining fragments in tmpq using while ((skb = __skb_dequeue(&tmpq))). This loop overwrites the skb local variable, causing the head SKB pointer to be permanently lost and leaked.
-3. Reachability: High. A remote attacker could potentially send highly fragmented packets designed to exceed MAX_SKB_FRAGS to intentionally trigger this error path and exhaust memory.
-
-[Severity: High]
-Does this error path leak the head skb?
-
-This exit frees only nskb and leaves the partly built head skb with the
-caller. In xennet_poll(), the head skb has already been taken off tmpq:
-
-    skb = __skb_dequeue(&tmpq);
+		/* eth type trans needs skb->data to point to something */
+		if (!pskb_may_pull(skb, ETH_HLEN)) {
+			e_err("pskb_may_pull failed.\n");
+			dev_kfree_skb_irq(skb);
+			goto next_desc;
+		}
     ...
-    if (unlikely(xennet_fill_frags(queue, skb, &tmpq)))
-        goto err;
+}
 
-The err label there only drains tmpq, and it overwrites the local skb
-pointer:
+e_err() expands to netdev_err(adapter->netdev, ...). The log line
+therefore shows only the device name, not the function or the
+direction.
 
-err:
-    while ((skb = __skb_dequeue(&tmpq)))
-        __skb_queue_tail(&errq, skb);
+Before this patch the TX site printed "__pskb_pull_tail failed.", so the
+two failures could be told apart in dmesg. After it, a failed RX
+ETH_HLEN pull and a failed pull in the TX TSO workaround print the same
+line.
 
-The GSO failure path just above calls __skb_queue_head(&tmpq, skb) before
-goto err, but this path does not. The head skb is never freed or requeued.
+Could the TX site use a TX-specific message instead, for example
+"TSO workaround pskb_may_pull failed.\n"?
 
-That would leak the linear buffer and the page_pool frag pages attached to
-the skb. These include pages moved over from earlier nskbs whose nr_frags
-was set to 0.
-
-The leak has existed since commit ad4f15dc2c70 (2018). However, the commit
-message assumes this path drops the packet ("take the error path
-explicitly"), and the change above sends more packets into it.
-
-Should the head skb be put back on tmpq, or freed, before goto err in
-xennet_poll()?
+>  				dev_kfree_skb_any(skb);
+>  				return NETDEV_TX_OK;
+>  			}
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261007-b4-pskb-pull-tail-drivers-v1-0-9512b0fb977b%40toxicpanda.com
