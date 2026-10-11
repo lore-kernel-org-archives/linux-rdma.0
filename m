@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7689459AE0;
-	Sun, 11 Oct 2026 19:04:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F2D44519AE;
+	Sun, 11 Oct 2026 19:04:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791745446; cv=none; b=PWWNFnZHbXuHnZOX8bqrig9ASypcWIRRlVEIrLjxyxuXt4rmWsn9lHgdjdyVP0tDu5eccZ9XLiXjrmwFHe77LYIAenqdVtbTeIRZSGa0vfhkqvTX6eED5a3xn4WgO7SDZn6zhYmcDbJPx1GWiTlGt09qhSnhBbE5f5FfvGyQrFg=
+	t=1791745452; cv=none; b=PExQ5BhxWZ/I4Hkolh6JwkxYDAvBTuqA8K6ZMuxWqYOH9xToXY8ghG4Ce72yf13IqgkjovVuntBA6EsOfolbtnQxY15bFsrh/FccHSHTa5b/ylKbtpRs7pO7odwD1aa2XZNiJOLnC+qwxYzUblqwAb+SmK0WL4FpKOJtjm3d7vU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791745446; c=relaxed/simple;
-	bh=u3+DCG4OBowxaxxrfkmvj9Ezccoo3SArK3og9ZMW4NQ=;
+	s=arc-20240116; t=1791745452; c=relaxed/simple;
+	bh=SJlCXQYRmNfgVBXbcrpiSlDZf/upxaVz9D0231dxsMk=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=k4tkMEMYuByzyNtFcN6x/oQO/ZncR2A3K7HoywRjsKVpY3JsF690hGs5B7sgbJlNFOw8pEd6jLuMcMdZmNHewF+4SSIZQxZxWq2DJ0ZTgehhwSS4zD23jGT852pijBnrSonjw3Lw5/JIJB6Q997o71oYMWPB2q2ffPplUiFjgfk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BZo2F/Sw; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=rMbPa2bj97jj6Dv5fR1u0l8CeRVtXbZ+culoJdYkTvqxWbT+pBi+9Y4bG/HILWBjSwTPrjP8ZXYMgI4MtorIRQartvXOzJ+T4rNtsbfsqOwCGZrbIyHKfbmpzgGmDdyencvKJh42/8sAiD+W5BaWswTJfJXxJTQuQINm5BX2lUc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RjO6s4Kj; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BZo2F/Sw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4241F1F0089B;
-	Sun, 11 Oct 2026 19:04:04 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RjO6s4Kj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CDB91F0089C;
+	Sun, 11 Oct 2026 19:04:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791745445;
-	bh=Ig+0+y+f6lfiozGzYQzbwtDL6sxb4GUQ6Cp/t/tcq3s=;
+	s=k20260515; t=1791745447;
+	bh=WuowvedJwpfz9l4BSl0jWJ9ure/QdY1u7QLk9R2KaLE=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=BZo2F/SwAn3E6EeHf7x+ECDWtVASPkWlWNzltBFSHAwoxQnOlT+nh1NASgrpE4PGO
-	 lZQJ4xmjJ39tPWzPWN99gpIMFwxDgHEVLl8vW+139XhWKJoem1PGY312qI1g10Ubhz
-	 jX2cHNndfHdZo5gAY8Nz9UtzxUb2LGjZ5ZaqGV3HG3JWhA4HpZMHhde5fFLf0wPGiv
-	 WnfkWQSQTZa3/h1B9bg3CDJ3KZnuk8xPoWmwECdRyAI7EEfq6BGXDkog+blD6JuDSL
-	 KISORjp/9xhmHxYaTyNNpF0/gThUv4mpigBSi66Ksw1rhYxCevY2lkJHqHQXsNHnPx
-	 TILMeHZD3vnCA==
-Subject: Re: [PATCH net-next 6/9] e1000e: use pskb_may_pull() in the 82571/2/3
- TSO workaround
+	b=RjO6s4KjJvi7xkGcHN5EHGT6aPnhgDHeKBQR4KlNGg7G3veS5ERT6aUTK0AaS+4Au
+	 QseF9/l1US2IoNpmNX9S4or7ctEpEDBqd4luzSXcwVwLvWC/ob4sSqW50KbQFv8VP+
+	 cSKMW70BgZb4peazc+WL0283hDfOSOndopEX2uDci/VjZ3T9uvQjL7oxNMNy4J6w4a
+	 ZwHUFm0MglbCCDknOMuQEuBbGKN1yCMBhv60uStpzDWgSMLVy2rZ/sdk7S2gq+AV/p
+	 +L+qnEjLswbYR/fpUhp92yCUmV+pDpVv08AfapC+huhSJ0OAdvt+J8K2Qskq7fTlCj
+	 rEvn6Jy/KogHg==
+Subject: Re: [PATCH net-next 7/9] netxen: use pskb_may_pull() to pull excess
+ TX frags into the head
 From: netdev-bot+sashiko@kernel.org
 To: josef@toxicpanda.com
 Cc: kuba@kernel.org, pabeni@redhat.com, edumazet@kernel.org,
@@ -39,13 +39,13 @@ Cc: kuba@kernel.org, pabeni@redhat.com, edumazet@kernel.org,
  horms@kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
  linux-rdma@vger.kernel.org, xen-devel@lists.xenproject.org,
  intel-wired-lan@lists.osuosl.org
-Date: Sun, 11 Oct 2026 19:04:03 +0000
-Message-ID: <179174544385.434549.3694135096916688968@kernel.org>
+Date: Sun, 11 Oct 2026 19:04:05 +0000
+Message-ID: <179174544563.434549.2218178416870785309@kernel.org>
 In-Reply-To:
- <20261007-b4-pskb-pull-tail-drivers-v1-6-9512b0fb977b@toxicpanda.com>
+ <20261007-b4-pskb-pull-tail-drivers-v1-7-9512b0fb977b@toxicpanda.com>
 References:
- <20261007-b4-pskb-pull-tail-drivers-v1-6-9512b0fb977b@toxicpanda.com>
-X-sashiko-severity: Low
+ <20261007-b4-pskb-pull-tail-drivers-v1-7-9512b0fb977b@toxicpanda.com>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -55,68 +55,112 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue(s) to consider.
 
-Low priority / nit picks for your consideration:
+Critical: 0 · High: 0 · Medium: 1 · Low: 0
 
-- [Low] After this patch, two unrelated error paths in e1000e log the
-  same message.
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [Medium] In netxen_nic_xmit_frame()
+  (drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c), the new…
 
 --
 
-e1000e: use pskb_may_pull() in the 82571/2/3 TSO workaround
+netxen: use pskb_may_pull() to pull excess TX frags into the head
 
-This commit changes the 82571/2/3 TSO workaround in e1000_xmit_frame() to
-use pskb_may_pull(skb, len + pull_size) in place of a direct
-__pskb_pull_tail() call. With this change the driver no longer calls
-__pskb_pull_tail() itself. The error message printed on failure is
-updated to match.
+This patch changes how netxen_nic_xmit_frame() pulls the TX frags that
+don't fit in a descriptor into the head. It used to call
+__pskb_pull_tail(skb, delta) directly. It now calls
+pskb_may_pull(skb, skb_headlen(skb) + delta).
 
-> diff --git a/drivers/net/ethernet/intel/e1000e/netdev.c b/drivers/net/ethernet/intel/e1000e/netdev.c
-> index 844f31ab37ad4..e216868e15cba 100644
-> --- a/drivers/net/ethernet/intel/e1000e/netdev.c
-> +++ b/drivers/net/ethernet/intel/e1000e/netdev.c
-> @@ -5859,8 +5859,8 @@ static netdev_tx_t e1000_xmit_frame(struct sk_buff *skb,
->  			unsigned int pull_size;
+> diff --git a/drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c b/drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c
+> index 67d9bf69f8f29..202deb64ddefb 100644
+> --- a/drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c
+> +++ b/drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c
+> @@ -2045,7 +2045,7 @@ netxen_nic_xmit_frame(struct sk_buff *skb, struct net_device *netdev)
+>  			delta += skb_frag_size(frag);
+>  		}
 >  
->  			pull_size = min_t(unsigned int, 4, skb->data_len);
-> -			if (!__pskb_pull_tail(skb, pull_size)) {
-> -				e_err("__pskb_pull_tail failed.\n");
-> +			if (!pskb_may_pull(skb, len + pull_size)) {
-> +				e_err("pskb_may_pull failed.\n");
+> -		if (!__pskb_pull_tail(skb, delta))
+> +		if (!pskb_may_pull(skb, skb_headlen(skb) + delta))
+>  			goto drop_packet;
+>  
+>  		frag_count = 1 + skb_shinfo(skb)->nr_frags;
 
-[Severity: Low]
-This isn't a bug, but this TX message now matches a message that
-already exists on the jumbo RX path in the same file:
+[Severity: Medium]
+Does this behave the same as the old call when delta is 0?
 
-drivers/net/ethernet/intel/e1000e/netdev.c:e1000_clean_jumbo_rx_irq() {
+delta is the sum of the sizes of the leading excess frags. It is 0 when
+every frag in frags[0 .. frag_count - NETXEN_MAX_FRAGS_PER_TX - 1] has
+size 0.
+
+The old __pskb_pull_tail(skb, 0) still ran the pull_pages loop. With
+eat == 0, every zero-size frag matched the size <= eat test:
+
+net/core/skbuff.c:__pskb_pull_tail() {
     ...
-		/* eth type trans needs skb->data to point to something */
-		if (!pskb_may_pull(skb, ETH_HLEN)) {
-			e_err("pskb_may_pull failed.\n");
-			dev_kfree_skb_irq(skb);
-			goto next_desc;
-		}
+	eat = delta;
+	k = 0;
+	for (i = 0; i < skb_shinfo(skb)->nr_frags; i++) {
+		int size = skb_frag_size(&skb_shinfo(skb)->frags[i]);
+
+		if (size <= eat) {
+			skb_frag_unref(skb, i);
+			eat -= size;
+		} else {
+		...
+	}
+	skb_shinfo(skb)->nr_frags = k;
     ...
 }
 
-e_err() expands to netdev_err(adapter->netdev, ...). The log line
-therefore shows only the device name, not the function or the
-direction.
+So those frags were dropped, and the recomputed frag_count was back
+within the limit.
 
-Before this patch the TX site printed "__pskb_pull_tail failed.", so the
-two failures could be told apart in dmesg. After it, a failed RX
-ETH_HLEN pull and a failed pull in the TX TSO workaround print the same
-line.
+With this patch the length passed is exactly skb_headlen(skb). That makes
+pskb_may_pull_reason() return early without calling __pskb_pull_tail():
 
-Could the TX site use a TX-specific message instead, for example
-"TSO workaround pskb_may_pull failed.\n"?
+include/linux/skbuff.h:pskb_may_pull_reason() {
+    ...
+	if (likely(len <= skb_headlen(skb)))
+		return SKB_NOT_DROPPED_YET;
+    ...
+}
 
->  				dev_kfree_skb_any(skb);
->  				return NETDEV_TX_OK;
->  			}
+The skb is left unchanged, so frag_count stays above
+NETXEN_MAX_FRAGS_PER_TX (14), and nothing checks it again. After that:
+
+netxen_nic_xmit_frame()
+    netxen_map_tx_skb()        maps every frag, zero-length ones included
+    netxen_set_tx_frags_len()  writes the oversized frag count
+    descriptor loop            posts buffer_length[k] = 0 entries across
+                               extra cmd_desc_type0 descriptors
+
+The comment above this block says only 14 frags are supported for normal
+(non-TSO) packets. Could this post a descriptor chain the hardware
+doesn't support?
+
+When delta > 0 the two calls are equivalent, so only the delta == 0 case
+changes. It isn't clear whether zero-length leading frags can reach a TX
+driver today. Nothing on the TX path appears to rule them out, though.
+
+The commit message describes this as a direct swap:
+
+  "It already checks the result.  Switch to pskb_may_pull(), which takes
+  the length the head should end up with and checks it against the skb"
+
+Would it make sense to re-check frag_count against
+NETXEN_MAX_FRAGS_PER_TX after the pull, and drop or linearize the skb if
+it is still too large?
+
+The later patch "qlcnic: use pskb_may_pull() to pull excess TX frags into
+the head" makes the same change in qlcnic_xmit_frame(). It looks like it
+has the same delta == 0 gap.
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261007-b4-pskb-pull-tail-drivers-v1-0-9512b0fb977b%40toxicpanda.com
