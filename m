@@ -1,162 +1,143 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A58592236EB;
-	Mon, 12 Oct 2026 13:29:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC2D436C0D6;
+	Mon, 12 Oct 2026 13:33:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791811776; cv=none; b=tMVL4dnwOahsTDCua7kIRCtPuN9ZHUO0QnsBtj2V8I+gRTBaTRYY9fAQxxHlb/ZgcVS6xDfQVT9e/Zv1OXQdG9hklA6icH/Yb1lFWYBSjYTM3xECLTWiT6xHZ/c4xniSIsraC07zx4FbPKa7dpTPlBhNtccQDjJ0kijsrdFrFzE=
+	t=1791812024; cv=none; b=vE+MW/10nxbmFAtj3kqvwmE7P9J3m0YR9oe9gDMm8puZ7WA92A+p1U4gtF0fTUphJMvpvAAzEyNabcbgqRPqiTfVRV8jBFcudTiC2+CUUVQdGuvpKwk0fmQbnXxbhM/A5ZQbdFQtXL52D7i+SGXioWywmMV2Av3FPldHW32a2WY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791811776; c=relaxed/simple;
-	bh=1/h8OGci7sib4x6nRXRpLYPTLvff9hRPycVbbE11w10=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=EndohHbj9pNFW9ihhbB5hwwfY6fRIfvMGbcQi7+ZB1JZNhtesudqvc7zbrfXNB94fWFNVjrwy8/dqKNxHFG+0Sg4OOjFmcMo3jC7nE5kOMoIIWvTnM3m6Z1qs6I0pPS5rhGiQXoW/PCsFotxUgPoXdLZHondkFjYNTruZJQ0DbE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=P3rJo9mF; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791812024; c=relaxed/simple;
+	bh=JqUgXWON+6+bntjWTf83yFZJzED4XjpGxZwD1jCOx+U=;
+	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
+	 Date; b=UNLor6SxC/esER8jcN3FgnVdZTtfRGtvdSbAP/gm/cA2tKFmm40tpEkUYtdHmr0YG2RcpR5QBJpu1anW0fnNgNzn1WyhmIVpRtI4POS14Mz5imwTa2GvrxMu9tLG9zwfLFMzDo31dhdnXNsRmn5dE+x5+6WmR3aCjx6DkTBKMo8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=g/ehTtty; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="P3rJo9mF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FA4A1F0089B;
-	Mon, 12 Oct 2026 13:29:34 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="g/ehTtty"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AE9B1F0089B;
+	Mon, 12 Oct 2026 13:33:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791811775;
-	bh=Qt71Wpe5vZz/eJo/NTKl4S8jSBeNz9JRB3NW9TiAP+Q=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=P3rJo9mFl5uX74K17iAzES6Zh2fPEWw9qO3gf5/8cWp9MOsdEz+NTkndRuUKl+t+c
-	 KIcZT0heGNIsx6tsIMrp+iApc7TRZhqXhTHCYzlfM5o50ETlVCcV8mW6eNAxvSN2A5
-	 3+zmYEJB/R8wTQ2v3gkji3eBPzdwMtQpLmKEhw71k3EH6gNn2bWu4b4upI0JZZRu5h
-	 GUfRzaVMdKjTt6X6Zu8AO7h2uxOHI9w9uzINRrjLXOIOYP8oubO+gVnZsRrWvSvQF2
-	 q2X2yjUWcKRnpsoGiO5kBgsPfVOGk1PyEM4SSN7+WbMRD5Vm+FLl9V/HU3TbqcJKN2
-	 FYrjLoPnICjHA==
-Subject: Re: [PATCH net v3] net/rds: ib: zero the unwritten tail of a short
- receive fragment
-From: netdev-bot+sashiko@kernel.org
-To: shubham@octane.security
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, achender@kernel.org,
- davem@davemloft.net, edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
- horms@kernel.org, linux-kernel@vger.kernel.org, gio@octane.security,
- tjdqudcks0424@naver.com
-Date: Mon, 12 Oct 2026 13:29:34 +0000
-Message-ID: <179181177407.434549.13953919662725859235@kernel.org>
-In-Reply-To: <20261008124940.13371-1-shubham@octane.security>
-References: <20261008124940.13371-1-shubham@octane.security>
-X-sashiko-severity: Medium
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	s=k20260515; t=1791812022;
+	bh=D15LDEeqeI9N/bgW/pCjTxRVQlTpy79Ogy+0e1U5DQs=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=g/ehTttyT/xX5YzNlw0hR75xfZ296OokJ17p6HZGYVva+IxMtOBBryXcVR35JQGzq
+	 ukhlN3dcIakuqW1/iHU0WhaBhjjwt9DgfFOHJGwZzkGnNHemNGVDpLagPhphzk8Qzs
+	 YM+TCt6U8ciiexwViMCbptULyD4/XeQEoHtTzC+DwGCrwgJ11z7Hwlh6lfH5r1iTUb
+	 4uISkb8NIEv997qQ2RZzFsgf3EN6GZrk9wen+j55InLlYDsmXoqyyRy+58s90Z2u0m
+	 ydqLy69eYQGkNWdPBMishiw5vcOiAN3vUG3sM3t1BkzA7iR5lgfVs/AYyIPGB8aF4V
+	 P3po6lYouMi+g==
+Message-ID: <sashiko-outbox-168187@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net-next 2/2] net/mlx5e: Batch ICOSQ trigger RCU
+ synchronization
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Tariq Toukan" <tariqt@nvidia.com>
+Cc: bpf@vger.kernel.org, linux-rdma@vger.kernel.org
+In-Reply-To: <20261011133212.807979-3-tariqt@nvidia.com>
+References: <20261011133212.807979-1-tariqt@nvidia.com>
+ <20261011133212.807979-3-tariqt@nvidia.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Mon, 12 Oct 2026 13:33:41 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue(s) to consider.
-
-Critical: 0 · High: 0 · Medium: 1 · Low: 0
-
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [Medium] The patch closes the info leak, but its v3 approach rests on a
-  false premise, and the commit message leaves out what the new memset…
-
+Thank you for your contribution! Sashiko AI review found 2 potential issue(=
+s) to consider:
+- [High] net/mlx5e: Lock bypass in mlx5e_trigger_napi_icosq due to prematur=
+e flag clear
+- [High] net/mlx5e: race condition in ICOSQ NAPI trigger due to unordered c=
+lear_bit
 --
 
-net/rds: ib: zero the unwritten tail of a short receive fragment
+commit dcc196ca7d5ea35aa83767536fe42c5734f5a395
+Author: Carolina Jubran <cjubran@nvidia.com>
 
-This patch zeroes the unwritten tail of an RDS/IB receive fragment page in
-rds_ib_process_recv() when the received payload is shorter than
-RDS_FRAG_SIZE. The goal is to stop rds_ib_inc_copy_to_user() from copying
-stale page contents to userspace when a peer sends a fragment shorter than
-its h_len implies.
+net/mlx5e: Batch ICOSQ trigger RCU synchronization
 
-Closes: https://lore.kernel.org/netdev/20261006205204.1322102-1-tjdqudcks0424@naver.com/
+This commit splits mlx5e_trigger_napi_icosq() to mark ICOSQs as requiring
+locking, waits for a single RCU grace period, and then triggers all of them
+during channel activation. It also retains the existing synchronization
+semantics for standalone callers.
 
-> diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c
-> index bd6cb3ffaa571..9695c7f24eaa7 100644
-> --- a/net/rds/ib_recv.c
-> +++ b/net/rds/ib_recv.c
-
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/=
+net/ethernet/mellanox/mlx5/core/en_main.c
+> index fe4e5d0b2e9a9..58e4874b664f1 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> @@ -2837,14 +2837,11 @@ static int mlx5e_channel_stats_alloc(struct mlx5e=
+_priv *priv, int ix, int cpu)
 [ ... ]
+> -void mlx5e_trigger_napi_icosq(struct mlx5e_channel *c)
+> +static void mlx5e_trigger_napi_icosq_post_sync(struct mlx5e_channel *c)
+>  {
+>  	struct mlx5e_icosq *sq =3D &c->icosq;
+>  	bool locked;
+> =20
+> -	set_bit(MLX5E_SQ_STATE_LOCK_NEEDED, &sq->state);
+> -	synchronize_net();
+> -
+>  	locked =3D mlx5e_icosq_sync_lock(sq);
+>  	mlx5e_trigger_irq(sq);
+>  	mlx5e_icosq_sync_unlock(sq, locked);
+> @@ -2852,6 +2849,13 @@ void mlx5e_trigger_napi_icosq(struct mlx5e_channel=
+ *c)
+>  	clear_bit(MLX5E_SQ_STATE_LOCK_NEEDED, &sq->state);
 
-> @@ -949,6 +950,19 @@ static void rds_ib_process_recv(struct rds_connection *conn,
->  		}
->  	}
->  
-> +	/* The device wrote only data_len bytes into this recycled fragment
-> +	 * page.  Zero the unwritten tail so a later rds_ib_inc_copy_to_user(),
-> +	 * which copies up to the peer-declared h_len, cannot hand stale page
-> +	 * contents to userspace.
-> +	 */
-> +	if (data_len < RDS_FRAG_SIZE) {
-> +		void *frag = kmap_local_page(sg_page(&recv->r_frag->f_sg));
-> +
-> +		memset(frag + recv->r_frag->f_sg.offset + data_len, 0,
-> +		       RDS_FRAG_SIZE - data_len);
-> +		kunmap_local(frag);
-> +	}
+[Severity: High]
+Can the unconditional clearing of this bit break the lock bypass mechanism
+for concurrent callers that have already waited for the RCU grace period?
 
-[Severity: Medium]
-Isn't this condition true for the final fragment of almost every well-formed
-message? A message whose h_len is not a multiple of RDS_FRAG_SIZE always
-ends with a short fragment. So a 100 byte message now pays for a kmap and a
-memset of roughly 4KB in the receive completion path.
+If concurrent devlink health recoveries for TX and RX reporters run on the
+same channel (e.g., mlx5e_tx_reporter_err_cqe_recover() and
+mlx5e_rx_reporter_err_rq_cqe_recover()), both will call
+mlx5e_trigger_napi_icosq() and set the MLX5E_SQ_STATE_LOCK_NEEDED bit
+before calling synchronize_net().
 
-For well-formed traffic that work doesn't look necessary, because
-rds_ib_inc_copy_to_user() already stops at h_len:
+If the first thread to wake up executes mlx5e_trigger_napi_icosq_post_sync(=
+),
+acquires the lock, and unconditionally clears the bit here, would the second
+thread then bypass the lock?
 
-net/rds/ib_recv.c:rds_ib_inc_copy_to_user() {
-    ...
-		to_copy = min_t(unsigned long, to_copy, len - copied);
-    ...
-}
+When the second thread executes mlx5e_trigger_napi_icosq_post_sync(), it
+calls mlx5e_icosq_sync_lock(). Since the bit was cleared by the first
+thread, mlx5e_icosq_sync_lock() would see the bit cleared:
 
-The stale tail can only be reached when a peer sends a short non-final
-fragment, meaning data_len < min(RDS_FRAG_SIZE, ic->i_recv_data_rem).
-
-The v3 changelog gives this reason for dropping the v2 length check:
-
-  A zero-copy send with a small iovec segment can legitimately produce a
-  non-final fragment shorter than RDS_FRAG_SIZE
-
-Can that happen on RDS/IB? rds_sendmsg() rejects zero-copy on every
-transport except TCP:
-
-net/rds/send.c:rds_sendmsg() {
-    ...
-	if (zcopy) {
-		if (rs->rs_transport->t_type != RDS_TRANS_TCP) {
-			ret = -EOPNOTSUPP;
-			goto out;
-		}
+drivers/net/ethernet/mellanox/mlx5/core/en.h:mlx5e_icosq_sync_lock() {
+    if (likely(!test_bit(MLX5E_SQ_STATE_LOCK_NEEDED, &sq->state)))
+        return false;
     ...
 }
 
-On the copy path, rds_message_copy_from_user() gets its sg entries from
-rds_page_remainder_alloc(). Every entry it returns is a full PAGE_SIZE
-except the last one. rds_ib_xmit() then splits each entry with:
+Will this cause the second thread to call mlx5e_trigger_irq() without the
+lock, racing with NAPI softirq operations and leading to queue corruption?
 
-	len = min(RDS_FRAG_SIZE, sg_dma_len(scat) - rm->data.op_dmaoff);
+[Severity: High]
+Does this clear_bit() execution lack a memory barrier, allowing it to be
+reordered before the doorbell write in mlx5e_trigger_irq()?
 
-That means only the last fragment of a message should ever be short.
+spin_unlock_bh() in mlx5e_icosq_sync_unlock() provides RELEASE semantics,
+which prevents preceding memory operations from being reordered after the
+release. However, it allows subsequent operations, like this clear_bit(),
+to be reordered before the release.
 
-Would it be better to bound the memset by
-min(RDS_FRAG_SIZE, ic->i_recv_data_rem), which is already set at this
-point? Rejecting that case as v2 did is another option. Either one should
-still close the leak and leave well-formed traffic alone.
+If the CPU reorders the clear_bit() operation before the I/O doorbell write
+in mlx5e_trigger_irq(), and is delayed, could a concurrent NAPI poll write
+new WQEs and its own doorbell, followed by this CPU writing its older
+doorbell and corrupting the queue?
 
-As written, a peer that sends short non-final fragments also gets its
-message passed to the application with zero-filled holes, as if it were
-valid.
+>  }
+> =20
+> +void mlx5e_trigger_napi_icosq(struct mlx5e_channel *c)
+> +{
+> +	set_bit(MLX5E_SQ_STATE_LOCK_NEEDED, &c->icosq.state);
+> +	synchronize_net();
+> +	mlx5e_trigger_napi_icosq_post_sync(c);
+> +}
 
-The commit message also says:
-
-  Fragments that fill the page are unaffected.
-
-In the common small-message case the final fragment doesn't fill the page.
-Could the changelog say that the memset runs on most messages?
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261008124940.13371-1-shubham%40octane.security
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261011133212.8079=
+79-1-tariqt@nvidia.com?part=3D2
