@@ -1,193 +1,137 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C56052AD36;
-	Mon, 12 Oct 2026 09:40:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FD3B46A5E3;
+	Mon, 12 Oct 2026 09:49:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791798049; cv=none; b=AhIoQpDPjMAiXxRLQ6ez+kut24y2Il/QXWC6Z3EsFdFr2vZrtjQrbi5hRaw6ETV3tR4GZdeA1Lkdknh2YH1rqintpSfaffucvyRNy8uz4Vh2S5AZsmatYz5KXSJ5Om/ly3vvDK9IQ37i32thI6OfTrwv9TvRJcZDtK17Fq3h/jU=
+	t=1791798583; cv=none; b=cXOtXok2V8HMVjt6ejQNS6ruYXMYVuX57eGu7okUPqD/SdtTLPfLyI6gXReywd/hkATUs1OKv6F+MF6bdyZWgKie7O/4jiBZNwnheUDkoFU1A5yGumCs1k93JhcxT+t3gHBAkDe3M+EASck2dJP1gWSCeRnkpkm9NGRL8vSkiQk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791798049; c=relaxed/simple;
-	bh=a6FvpKy2Z1vtgnntPtKf+UWcUhRmkqdd5O8tdJ5HVP8=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=Lz9nPz53l6TTu4ZHPxndkl1hEbSWukYoUSmGvU88FuflWQj92IqQdN+ZRO+1Xx2dlSWeHprzIBFX1uHVWBIbYZ5Hc5VL0wiKfVRNMcC/S8FfoFUJbRnHaO9dnqfy97Z7U+vz+l7CJgjmYIccP6tK7+1bgeWwJUNAOFJ3hjXdH0M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=e8rGZPJm; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791798583; c=relaxed/simple;
+	bh=JSrO162Bb0xVGY82I6TqZjOWNSQgDe1p/FuUG32frlk=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=kRfRMTw4eg0d9Cx/ZMf3snCy7OFGP9TRoUZD6c5rx0Tq6UVo05BBBG1vJ0PdbhC+/V//SkSZYdvim6+RRNFcMs1VTRs3UQqsIGtgjIoIPohpd4iE0avRtGvDQVbT1OphFMY1SR7oS7/sm/xr3VsdBhBdIruZoQN2vO4lC7ipriQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=eGIHhL7e; arc=none smtp.client-ip=148.163.158.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="e8rGZPJm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 193621F0089D;
-	Mon, 12 Oct 2026 09:40:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791798047;
-	bh=ZzTdgKXEL3BVoaE1Vc+qFEalY2IjFij49xzMtVOaX44=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=e8rGZPJmlk9vGjVE0GMJXTi2yzoes3DQkJN+9veJ4/H2CH8S0wVK3juo+U3mReCok
-	 PMYI611mdsSD8QHFqUACqHfsp2ueJAycQdtvWXxhTSDzpU0zAc+Cn5EVIAApzZWVfM
-	 iezEHOJGExTU4pM/GYeUrusXlODXp9UUxf1E/zE5zgj9qP1evZSu85mS3GUBqPDWd/
-	 fySIBvvi3rhHWcmDYaJN5Ij1ro1QXJE839m5LdjwnNPqvhPPj88d6Z6C8klEBKwDAG
-	 6e//OQda/9ZKKiHNnMNjD4QZnhKTP+o6hwLIbMtMEU6Hfn5BefVsaDf+xjuwaCEmPR
-	 Zs/2U7ABgq/Tw==
-Subject:
- Re: [PATCH net-next] net/mlx5: Remove max_external_SFs device resource
-From: netdev-bot+sashiko@kernel.org
-To: tariqt@nvidia.com
-Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
- kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com,
- cjubran@nvidia.com, cmi@nvidia.com, cratiu@nvidia.com, gal@nvidia.com,
- jiri@resnulli.us, corbet@lwn.net, kees@kernel.org, leon@kernel.org,
- linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-rdma@vger.kernel.org, mbloch@nvidia.com, moshe@nvidia.com,
- ohartoov@nvidia.com, rdunlap@infradead.org, saeedm@nvidia.com,
- shayd@nvidia.com, skhan@linuxfoundation.org, horms@kernel.org
-Date: Mon, 12 Oct 2026 09:40:45 +0000
-Message-ID: <179179804565.434549.2194696630956114111@kernel.org>
-In-Reply-To: <20261011093828.784454-1-tariqt@nvidia.com>
-References: <20261011093828.784454-1-tariqt@nvidia.com>
-X-sashiko-severity: Medium
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="eGIHhL7e"
+Received: from pps.filterd (m0353725.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69C8iMLL2750236;
+	Mon, 12 Oct 2026 09:49:32 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=pp1; bh=yWvg31
+	cmrWnAjP2Wz00NBC1QFW9PNKonLylsY2mzdeA=; b=eGIHhL7e0x0iI3v9aBt57d
+	hrYh4W14NOpNG2QAIif1jkPBwxaETovTFlApuebW799+kGWpAcQ+dKI4+CsyOFpd
+	gZe7h/PFxepQOVi6rveoBo1/yGQOcgP6D3fG3qFd4y7wsDnXjbBZE3vEeVB9GXp0
+	JmXbaB61xtwJttII1WXLhG9SLIyjWeq/BErU8R0BLG+UeDWba+swF0Snk15lfT/G
+	BqBv4/p7MA7uMk7TSMzz3Cl/I+6mTFmRMDdOa11oli9Z8+NOi6jo0zLIIOdsdsbD
+	SEys/gqeXXMRq+z/HSkggZyy/t056Cp1GhntuXeJPNcWRC/ekmIQ7Tmak9jYy8Lw
+	==
+Received: from ppma11.dal12v.mail.ibm.com (db.9e.1632.ip4.static.sl-reverse.com [50.22.158.219])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4h7dv07wqf-1
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
+	Mon, 12 Oct 2026 09:49:31 +0000 (GMT)
+Received: from pps.filterd (ppma11.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma11.dal12v.mail.ibm.com (8.18.1.11/8.18.1.11) with ESMTP id 69C8K3NL1013624;
+	Mon, 12 Oct 2026 09:49:30 GMT
+Received: from smtprelay04.dal12v.mail.ibm.com ([172.16.1.6])
+	by ppma11.dal12v.mail.ibm.com (PPS) with ESMTPS id 4h82cycass-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 12 Oct 2026 09:49:30 +0000 (GMT)
+Received: from smtpav05.dal12v.mail.ibm.com (smtpav05.dal12v.mail.ibm.com [10.241.53.104])
+	by smtprelay04.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 69C9nU3h13107784
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 12 Oct 2026 09:49:30 GMT
+Received: from smtpav05.dal12v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 0DD97581F6;
+	Mon, 12 Oct 2026 09:49:29 +0000 (GMT)
+Received: from smtpav05.dal12v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 0B3AB581FA;
+	Mon, 12 Oct 2026 09:49:22 +0000 (GMT)
+Received: from [9.124.213.153] (unknown [9.124.213.153])
+	by smtpav05.dal12v.mail.ibm.com (Postfix) with ESMTP;
+	Mon, 12 Oct 2026 09:49:21 +0000 (GMT)
+Message-ID: <8af035ab-fe01-4ca4-8f39-6a409127d915@linux.ibm.com>
+Date: Mon, 12 Oct 2026 15:19:20 +0530
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net v9] net/smc: fix lgr/lnk lifetime vs diag reader race
+To: netdev-bot+sinfo@kernel.org
+Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
+        kuba@kernel.org, pabeni@redhat.com, alibuda@linux.alibaba.com,
+        dust.li@linux.alibaba.com, sidraya@linux.ibm.com,
+        hidayath@linux.ibm.com, pasic@linux.ibm.com, horms@kernel.org,
+        tonylu@linux.alibaba.com, guwen@linux.alibaba.com,
+        stable@vger.kernel.org, netdev@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
+References: <20261012080034.38770-1-mjambigi@linux.ibm.com>
+ <179179225758.2527009.15422843250132893660@kernel.org>
+Content-Language: en-US
+From: Mahanta Jambigi <mjambigi@linux.ibm.com>
+In-Reply-To: <179179225758.2527009.15422843250132893660@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-Reinject: loops=2 maxloops=12
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDEyMDAzOCBTYWx0ZWRfX+PbO2ah4xNx+
+ A5Aq60JZ6kdHydakK4Zg6vyl1tRHadwf1Jr9xm4pgTqvnhC4B8UKwN09T0ZU9RpWlAQXtkPJjy4
+ RzFC8fN3w6iltxC23GopTDBRKDUDI52qYwanODuPGe5fkNkxojtWIyoSOLMWpg+Myol2oZkKMgk
+ DEmcCSGnsoWGVk/3BboyONa2zCYiYjuYsKFXI9UpeT+DuUS8jdO7nNwhuBgvoLWg5gJ77UJDdZD
+ tDFPq0dco3CxO+5+qbPfD0Sv2XvFcDjzqZ3ArV0TdL/zeO7zwVL2cxouG3zCDKEeR4SDzUmunXa
+ 0YN4KYGO29tvi1f5Y9ndpAno4AbMuhLQpv2Mnm/dE2RAydfW6481buC1k8ISmNpMCx6ivXXKFXy
+ crX5pszzeKiHInwAOgcMY/9vS0Jpre0A6bq4MTzVGvHIcDc78UYGcRwn7wmQYSktnTw5zYMlGkP
+ iobEOUmF5xB7U12Ct7w==
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMDEyMDAzOCBTYWx0ZWRfX71zX/M//M6qq
+ CkxGghcfMhuAeLeyNTZT7uWNaNJio+CBgOWZkMO7hRFHnF3cuEb3Sn/gUyAjovB25eY8r4ZAY5O
+ o/XGFGEghltDBNUbnQA5IItf5LaCrl8=
+X-Proofpoint-ORIG-GUID: gpN-nQqL1g5TVOLUHsXe2_cpzlA37IxF
+X-Authority-Analysis: v=2.4 cv=a6KlZkSF c=1 sm=1 tr=0 ts=6accad2c cx=c_pps
+ a=aDMHemPKRhS1OARIsFnwRA==:117 a=aDMHemPKRhS1OARIsFnwRA==:17
+ a=IkcTkHD0fZMA:10 a=660iZSQnnn4A:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=RnoormkPH1_aCDwRdu11:22 a=V8glGbnc2Ofi9Qvn3v5h:22 a=VwQbUJbxAAAA:8
+ a=8WImSUdLa4LpenjYlHkA:9 a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
+X-Proofpoint-GUID: mNU-isJH3YWoj62YpE7kxzk7RJ5jxZqF
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-10-12_03,2026-10-09_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ bulkscore=0 malwarescore=0 spamscore=0 suspectscore=0 clxscore=1015
+ phishscore=0 priorityscore=1501 lowpriorityscore=0 impostorscore=0
+ adultscore=0 classifier=typeunknown authscore=0 authtc= authcc=
+ route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2610080000
+ definitions=main-2610120038
 
-Thank you for your contribution! Sashiko AI review found 2 potential
-issue(s) to consider.
+On 12/10/26 1:34 pm, netdev-bot+sinfo@kernel.org wrote:
+> Hi!
+> 
+> This is an automated message. This series looks like a fix, but its
+> commit messages seem to be missing some information:
+> 
+>  - How the issue was discovered, e.g. hit in production, hit during
+>    development, syzbot report, manual code inspection, LLM or static
+>    analysis tool scan.
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 1
+The issue was found by manual code inspection while reviewing the diag
+dump path in net/smc/smc_diag.c.
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+> 
+>  - Whether the issue was actually triggered, or is only theoretical
+>    (e.g. found by code inspection). If it was triggered please include
+>    the symptoms, like the stack trace or error messages.
 
-- [Medium] The patch removes the device-scope devlink resource
-  `max_external_SFs` (resource id 2, MLX5_DL_RES_MAX_EXTERNAL_SFS) from…
-- [Low] The commit message says "Users can look up SF limits per-port
-  directly via 'devlink port show'".
+The races are theoretical — none of the four windows were triggered in
+practice. The smc_conn_kill() / smcd_buf_detach() race requires an
+active smcss poll to coincide with an SMC-D lgr termination on the
+dmb_nocopy path; the smc_close_active_abort() and
+smc_close_passive_work() races require a concurrent diag dump during the
+narrow teardown window between sk_state = SMC_CLOSED and
+smc_conn_free(). No stack trace or error message is available since the
+bugs were not hit in a running system.
 
---
-
-net/mlx5: Remove max_external_SFs device resource
-
-This commit removes the device-level max_external_SFs devlink resource
-from mlx5. The reason given is that the per-port max_SFs resources on
-each PF port representor make it redundant. The devlink-resource.rst
-examples are updated to match.
-
-> Users can look up SF limits per-port directly via 'devlink port show'
-> to correlate with controller number and pfnum.
-
-[Severity: Low]
-Is 'devlink port show' the right command here? Port-scoped resources are
-returned by DEVLINK_CMD_RESOURCE_DUMP in net/devlink/resource.c. The port
-get reply does not include them:
-
-net/devlink/resource.c:devlink_nl_resource_dump_doit() {
-    ...
-	resource_list = devlink_port ?
-		&devlink_port->resource_list : &devlink->resource_list;
-    ...
-}
-
-The devlink-resource.rst updated by this patch lists port resources with
-'devlink resource show pci/0000:03:00.0/196608' and 'devlink resource
-show scope port'.
-
-Could the commit message say that the max_SFs values come from devlink
-resource show, and that devlink port show only maps the port index to
-controller and pfnum?
-
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/sf/hw_table.c b/drivers/net/ethernet/mellanox/mlx5/core/sf/hw_table.c
-> index 1724bf7e0e7af..c36dbd7de8778 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/sf/hw_table.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/sf/hw_table.c
-> @@ -262,24 +262,17 @@ static void mlx5_sf_hw_table_res_unregister(struct mlx5_core_dev *dev)
->  	devl_resources_unregister(priv_to_devlink(dev));
->  }
->  
-> -static int mlx5_sf_hw_table_res_register(struct mlx5_core_dev *dev, u16 max_fn,
-> -					 u16 max_ext_fn)
-> +static int mlx5_sf_hw_table_res_register(struct mlx5_core_dev *dev,
-> +					 u16 max_fn)
->  {
->  	struct devlink_resource_size_params size_params;
->  	struct devlink *devlink = priv_to_devlink(dev);
-> -	int err;
->  
->  	devlink_resource_size_params_init(&size_params, max_fn, max_fn, 1,
->  					  DEVLINK_RESOURCE_UNIT_ENTRY);
-> -	err = devl_resource_register(devlink, "max_local_SFs", max_fn, MLX5_DL_RES_MAX_LOCAL_SFS,
-> -				     DEVLINK_RESOURCE_ID_PARENT_TOP, &size_params);
-> -	if (err)
-> -		return err;
-> -
-> -	devlink_resource_size_params_init(&size_params, max_ext_fn, max_ext_fn, 1,
-> -					  DEVLINK_RESOURCE_UNIT_ENTRY);
-> -	return devl_resource_register(devlink, "max_external_SFs", max_ext_fn,
-> -				      MLX5_DL_RES_MAX_EXTERNAL_SFS, DEVLINK_RESOURCE_ID_PARENT_TOP,
-> +	return devl_resource_register(devlink, "max_local_SFs", max_fn,
-> +				      MLX5_DL_RES_MAX_LOCAL_SFS,
-> +				      DEVLINK_RESOURCE_ID_PARENT_TOP,
->  				      &size_params);
->  }
-
-[Severity: Medium]
-Does the per-port max_SFs fully replace max_external_SFs?
-
-max_external_SFs has been visible on pci/<bdf> since commit 6486c0f44ed8
-("net/mlx5: Expose max possible SFs via devlink resource"). It was
-registered at probe, gated only by mlx5_vhca_event_supported(). Anything
-that looks it up by name, or by resource id 2, will no longer find it in
-any eswitch mode.
-
-The replacement is registered only on this path:
-
-mlx5_esw_offloads_load_rep()
-  mlx5_esw_offloads_devlink_port_register()
-    mlx5_esw_devlink_port_res_register()
-
-Both ends of that path can skip it:
-
-eswitch_offloads.c:mlx5_esw_offloads_load_rep() {
-	if (esw->mode != MLX5_ESWITCH_OFFLOADS)
-		return 0;
-    ...
-}
-
-esw/devlink_port.c:mlx5_esw_devlink_port_res_register() {
-    ...
-	if (vport_num != MLX5_VPORT_HOST_PF &&
-	    !mlx5_esw_is_spf_vport(esw, vport_num))
-		return 0;
-    ...
-}
-
-In legacy mode (the default at probe), or when the host PF representor
-isn't loaded, does any devlink resource still report the external host
-SF capacity?
-
-mlx5_sf_hw_table_init() still computes max_ext_fn through
-mlx5_esw_sf_max_hpf_functions() and uses it for MLX5_SF_HWC_EXT_HOST. So
-the driver still has the value, but no longer exposes it.
-
-Also, mlx5_esw_offloads_devlink_port_register() only reports a failure
-from mlx5_esw_devlink_port_res_register() through mlx5_core_dbg(). If
-that registration fails, nothing exposes the value at all.
-
-max_local_SFs stays device-level and is always visible, so the two
-limits are now exposed in different ways.
-
-SF port creation already requires switchdev mode, so in legacy mode the
-missing value is planning information rather than something needed at
-runtime. Even so, neither the commit message nor the devlink-resource.rst
-update says that a user-visible resource is being removed. Neither says
-that the port-level max_SFs entries exist only in switchdev mode.
-
-Could this be stated, or could the device-level entry be kept for
-compatibility?
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261011093828.784454-1-tariqt%40nvidia.com
