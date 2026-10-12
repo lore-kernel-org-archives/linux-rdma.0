@@ -1,48 +1,35 @@
-Received: from hr2.samba.org (hr2.samba.org [144.76.82.148])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 896A04AB3C3;
-	Mon, 12 Oct 2026 16:11:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=144.76.82.148
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 147BF49DBBE;
+	Mon, 12 Oct 2026 16:20:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791821517; cv=none; b=j+rlYelvdLp8TZWJtEosM67tTR6DqPjXVn5MyFFDnIGUdmXh8hr/9uWSmpXNyt18mSvdooDOippBDFX/addIBmm5rBsrUYjU0//lwR+BZBkBQYL2Rts41L4l0T8EOR93kuHVGcVtxt1c6PE8npU5fAhQZRLh9A2gXfgzTkGO0wI=
+	t=1791822008; cv=none; b=eEGXCF+88nO/GaSrCZ8OLxx7AN1E1WUFhjdsC55GnHAo2uCeaN/9w+tbmnAzBnDpcGYg59N0NsVh7a9Q60B9zpz2drTG1I5WepcJ2WndVEDZKUk4L+uircnI99EOVtMxpt6xAWduD0FE0KDjUvEClTh6RiCjkwe0JSlEeNUPSpE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791821517; c=relaxed/simple;
-	bh=e/8swMYCLvyy1dlqt5ZkkmyUvBjW05+gIwT317lRJA8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=gP5q73Dm5RT6zGeIYXxzu+y0kRk9TljhjU9IIMYZQp+i/mgpJxvG7NRRW8ywWyLH/X24Eqpu4TKAiq1x0v6Pcqouf2HLQyqhSVwgQs3bTrm431BA6fcYR+VdKWj3Sa2b8/PCr6kqq5/KLjyF0DQeUMhGfbT1P4e1+VhFhJVqct8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=samba.org; spf=pass smtp.mailfrom=samba.org; dkim=pass (3072-bit key) header.d=samba.org header.i=@samba.org header.b=IWQFas00; arc=none smtp.client-ip=144.76.82.148
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=samba.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samba.org
+	s=arc-20240116; t=1791822008; c=relaxed/simple;
+	bh=oO/9OvzsNv9yAEOKpmwFo1I13eXsovRVaqug9NVsDlY=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=btCvQi9ejkzc4uv6pB2wx6qaTwgFr4HuHOWC+bAMomb/Vz1Ltux4z1mRi3jSxjMxLf5Vr+Vl6SeCIv4MsubG41ccvsGbzZqMRy94FaXVYeiChmSBjGrwNv2uJzKKnVwWhNJ90nAhvIJxcp00ILA3qifOerERackkZGi+ok71RSo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dx9HqwAJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (3072-bit key) header.d=samba.org header.i=@samba.org header.b="IWQFas00"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=samba.org;
-	s=42; h=Message-ID:Date:Cc:To:From;
-	bh=ug2U4uOR87PKxNvkhazP9qraYMh5L+a55RRax+7Ny8I=; b=IWQFas007aLkz8phz/3c2rYKBK
-	8PR3KDrSFgKHno6++93qRaDx4bKkbM2rX8bBRr8m691MSQFMXS5Ayz3drENTzLUNeRhOH/NeqKFWX
-	jg6IZmOThwi9L6EZnSgPnp2mQejMUQrqg8V5F/pHbq8fN0qvfKUJCrh+J3cOkO0OqNLcIgm5V+tVV
-	9xHx5HUlr0hRcjgzdX4Q/oKThaw37x7oO/Wl+OFNAv1xeVLYBc/rAyDpB0F6F7GJIlwLrIrFP6skC
-	lTNWE0/5jausBcftnDUdzztHEGb4nJWftitGcipoiY0qtBEoz+GFWO9zOkSC2SlKeV8iBOcOk2PlC
-	64FhOJ+oP5bwdGZh20W0Z36FXRprBM3eKJEGAysobouZorbwoHgi9ZKUY34zy2/5PixsuMBSFqsfL
-	JZW9gi9eIPKx0QdvUDNUBSKoYciBjSXE5PDwfuCNFswlY1ORAt7jmrecak4ooUGFQZtw4btSnMTlz
-	ocw9/+Z3S73CygctdKJGeGtd;
-Received: from [127.0.0.2] (localhost [127.0.0.1])
-	by hr2.samba.org with esmtpsa (TLS1.3:ECDHE_SECP256R1__ECDSA_SECP256R1_SHA256__CHACHA20_POLY1305:256)
-	(Exim)
-	id 1xGIco-00000001Jte-3mB9;
-	Mon, 12 Oct 2026 16:11:42 +0000
-From: Stefan Metzmacher <metze@samba.org>
-To: linux-rdma@vger.kernel.org
-Cc: metze@samba.org,
-	Tatyana Nikolova <tatyana.e.nikolova@intel.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	Mustafa Ismail <mustafa.ismail@intel.com>,
-	Shiraz Saleem <shiraz.saleem@intel.com>,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v2] RDMA/irdma: always route IB_WR_REG_MR through the allocated PBL
-Date: Mon, 12 Oct 2026 18:11:35 +0200
-Message-ID: <20261012161135.494544-1-metze@samba.org>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dx9HqwAJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD98C1F0089B;
+	Mon, 12 Oct 2026 16:20:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791822006;
+	bh=zhqAnRnsa47xjlXiUf6w9ICr6x9CkLhuiI0AeQO0imY=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=dx9HqwAJK7CDfjq+thP0ST8ALc2PppDAfkXOXnpPQ0qf14OMbnWr0tZXpjTU6O/Z1
+	 BVeFr8zHkzxsFY2d03e/3tFtw72PxXPxYNe3nqIP6EuefV9iWo2L6qiwX4DOW2C4Xo
+	 0jHcgQp5s1UMwlEP+dJEKeY/WDonhx+JlyYWEtaMo8Nz52lpBPJQa/WjYuRmxp2PVk
+	 TNpR+dxYJP13kwOuefyeGjnR6T3yy2IGd3rTFvFjiizuDXUSE6nFkScEH3Z+HeZVLp
+	 ekSd1q3chGDZ9KNagpq3AFx2Qii5xpNTvK/eTxhijdFM5Mgx8rfskOpIULwjY63LF1
+	 xqvCCiCm8TEiA==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id B44A73924A5F;
+	Mon, 12 Oct 2026 16:20:06 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -50,82 +37,50 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net v4 0/2] net/rds: RDMA-CM event handler fixes for
+ non-IB
+ devices
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <179182200552.3524695.4623096369791034138.git-patchwork-notify@kernel.org>
+Date: Mon, 12 Oct 2026 16:20:05 +0000
+References: <20261003163408.250568-1-achender@kernel.org>
+In-Reply-To: <20261003163408.250568-1-achender@kernel.org>
+To: Allison Henderson <achender@kernel.org>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
+ edumazet@google.com, kuba@kernel.org, horms@kernel.org,
+ ljp1205831794@gmail.com, henrymei@tencent.com
 
-irdma_alloc_mr() always allocates a PBL via irdma_get_pble(), but
-irdma_post_send()'s IB_WR_REG_MR handling only pointed the FAST_REGISTER
-WQE at that PBL (chunk_size != 0, first_pm_pbl_index) when
-iwmr->npages exceeded IRDMA_MIN_PAGES_PER_FMR (1) - leaving chunk_size
-at 0 for a single-page (npages == 1) registration, telling hardware to
-use direct/PBL-less addressing for a registration that was never
-allocated that way.
+Hello:
 
-This reproduces as data corruption / an IOMMU IO_PAGE_FAULT when a
-peer later performs an RDMA WRITE/READ against such a single-page
-FRWR-registered MR, even though ib_map_mr_sg() itself reports success.
-100% reproducible on iWARP, intermittent on RoCEv2, with fs/smb/smbdirect's
-own single-page memory registrations on an Intel E810-CQDA2 (irdma).
+This series was applied to netdev/net.git (main)
+by Paolo Abeni <pabeni@redhat.com>:
 
-Intel's current out-of-tree irdma driver (2.6.96) never gates this on
-npages - it always sets chunk_size/first_pm_pbl_index based on the
-actual PBL level (PBLE_LEVEL_1 vs PBLE_LEVEL_2), matching what
-irdma_alloc_mr() actually allocated. Mirror that here instead of the
-npages-based heuristic.
+On Sat,  3 Oct 2026 09:34:06 -0700 you wrote:
+> Hi all,
+> 
+> This is v4 of Aohan Mei's fix for the uninitialized transport pointer
+> in the RDMA-CM event handler (v1 at [1], v2 at [2], v3 at [3]), now a
+> two-patch set.
+> 
+>   Patch 1 is the fix itself.  v3 only rejected a connect request
+>   arriving on a non-IB device; the active side can bind an id to one
+>   as well, and resolving a route on an iWARP id leaves
+>   cm_id->route.path_rec unset, which the ROUTE_RESOLVED case
+>   dereferences.  Such a connection is now dropped at ADDR_RESOLVED
+>   instead of resolving a route.
+> 
+> [...]
 
-Also drop the reg_addr_pa assignment. irdma_sc_mr_fast_register()
-packs reg_addr_pa into the FAST_REGISTER WQE's PBLADDR field, which
-hardware only consults when chunk_size == 0 (direct/PBL-less
-addressing); with chunk_size now always nonzero for this opcode, that
-field is never read for IB_WR_REG_MR and the assignment is dead code -
-Intel's driver never sets it for this path either (only the separate,
-non-FRWR irdma_sc_mr_reg_non_shared() path actually branches on
-chunk_size between reg_addr_pa and first_pm_pbl_index). Removing it is
-not required for correctness: *palloc->level1.addr is always a
-page-aligned address (low 12 bits zero), so it could never have
-collided with the first_pm_pbl_index bits sharing those same bit
-positions in the WQE word even if some path still read it.
+Here is the summary with links:
+  - [net,v4,1/2] net: rds: fix uninitialized trans dereference in CM event handler
+    https://git.kernel.org/netdev/net/c/492ba6ac1b1f
+  - [net,v4,2/2] net/rds: don't let the rdma_cm destroy an id RDS still owns on route failure
+    https://git.kernel.org/netdev/net/c/98d446b7c013
 
-Fixes: b48c24c2d710 ("RDMA/irdma: Implement device supported verb APIs")
-Cc: Tatyana Nikolova <tatyana.e.nikolova@intel.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Mustafa Ismail <mustafa.ismail@intel.com>
-Cc: Shiraz Saleem <shiraz.saleem@intel.com>
-Cc: linux-rdma@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Assisted-by: Claude:claude-sonnet-5-5
-Signed-off-by: Stefan Metzmacher <metze@samba.org>
-
---
-
-change in v2:
-- rebased on linux-rdma/for-next
----
- drivers/infiniband/hw/irdma/verbs.c | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-index 71d7ae7baa47..e3cd38e0b3dd 100644
---- a/drivers/infiniband/hw/irdma/verbs.c
-+++ b/drivers/infiniband/hw/irdma/verbs.c
-@@ -4286,11 +4286,14 @@ static int irdma_post_send(struct ib_qp *ibqp,
- 			stag_info.wr_id = ib_wr->wr_id;
- 			stag_info.va = iwmr->ibmr.iova;
- 			stag_info.total_len = iwmr->ibmr.length;
--			stag_info.reg_addr_pa = *palloc->level1.addr;
--			stag_info.first_pm_pbl_index = palloc->level1.idx;
--			stag_info.local_fence = true;
--			if (iwmr->npages > IRDMA_MIN_PAGES_PER_FMR)
-+			if (palloc->level == PBLE_LEVEL_2) {
-+				stag_info.chunk_size = 3;
-+				stag_info.first_pm_pbl_index = palloc->level2.root.idx;
-+			} else {
- 				stag_info.chunk_size = 1;
-+				stag_info.first_pm_pbl_index = palloc->level1.idx;
-+			}
-+			stag_info.local_fence = true;
- 			err = irdma_sc_mr_fast_register(&iwqp->sc_qp,
- 							&stag_info);
- 			break;
+You are awesome, thank you!
 -- 
-2.43.0
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
