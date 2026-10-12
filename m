@@ -1,190 +1,186 @@
-Received: from pdx-out-007.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-007.esa.us-west-2.outbound.mail-perimeter.amazon.com [52.34.181.151])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38AB323ED6A
-	for <linux-rdma@vger.kernel.org>; Mon, 12 Oct 2026 16:51:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=52.34.181.151
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DEC73FCB32;
+	Mon, 12 Oct 2026 16:54:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791823895; cv=none; b=m6PEJag2ox0fqARU4WbkcPUbHiUnMjXCGkobOx8xJAXH7bFq+UMovnOYbeaR4LL0AykjOHNk9g6wtTDogQIjiN7c9VnqWi8kZdCvJd9lXcuLIwDGhztFZLHzZRMNaFIQuF3arSs/xwhV4bUrIn2ixbvfyYg88+jqFiKrrga0qJ8=
+	t=1791824082; cv=none; b=psD6EAwQZDja4+6F91QoDCe7qR/DN3HviFRlcJTF4apABduNqwSc+0nqe/nkrYpOa94PUZxyktmEACQ2gxYVK2tWjO14Q0qI9Ns/TjWLKpV9gdwCktrrapHDO1e7j/ptVZjMU7EuoGISGqjjQn882tqeKRjl/qPSMrP6kuWdb5E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791823895; c=relaxed/simple;
-	bh=IL+VO4COGP0HKe4libp4uI+n/Jfy9vlssPLZAkyKZuM=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=fGlIuAJ3fAu3RaKgNre3dFK69XvJtvYudYTNkICO79gXxhzzy7vG88H43Z+B3S0oiXKeBTzblbfbIse3zWfI6biNjNb+KDrbRc90L8FKGVA36GKN3QSzX+sGtBSy0co7BNTngErC6blaLSx43eHk/T7QX69eiXppWva98c65bL0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=cz+5PBVi; arc=none smtp.client-ip=52.34.181.151
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
+	s=arc-20240116; t=1791824082; c=relaxed/simple;
+	bh=x9wz9JjXgx9QSm2ge9ebY1KM5lLelapl//gXR5hfebY=;
+	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=Y93L9TnFdZqGVYwaD+Qt7LRYATirDgI6u8Vi0Y5kgWtIvSUW+k92XCTN3g+KxUQA9YTdtT25CDfAP2TryTSs9af8fUdaeUI8/YPZKrKIMMEJN/IgtcNH7g80+V9ajw1BInBoNn52XhsA1YDw1RCOQJDRFdI2XaWVRv8hzMSKOT0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ixulb86s; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="cz+5PBVi"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
-  t=1791823894; x=1823359894;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=7QrH2rlcgkDrQB0mXo1DLZ2j9ZhiZxrbh7i7op2bkM4=;
-  b=cz+5PBViFX+tt08vxWwtgCdfx/FVo1d619bj6eGliHH6TVxPcy98LyOf
-   odk9QVGXIpPfJKK+5i3NUgeyOLOn+bskNudqIVF+S2lELXjPN8wqZtwZ2
-   jcr7YCtfhj3/+Pf+rEKSQ2KozKL3W6SIHxSuhqFyKUIXV6t4MwaeR/VNa
-   9qK+dExwvoBZehfSVic0bbpP9zgJieybDwFJZjDqvK2enbG6gj+p1dOcX
-   FiayUOIXDxxJkcKUFWkiGc1bzJoHq6svrITicIH9NIqBPYsdzBUcsYj8M
-   UhH9d/4vPYKVBhc+HKogKvZxczK+dCqeGoFuDVRv602hA9hTb96UmIcQS
-   g==;
-X-CSE-ConnectionGUID: nGjBrjB+QgiWJ2dI+C1hRw==
-X-CSE-MsgGUID: v/DE72CbQzO9NIw7WTSzjg==
-X-IronPort-AV: E=Sophos;i="6.27,154,1787011200"; 
-   d="scan'208";a="31042836"
-Received: from ip-10-5-12-219.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.12.219])
-  by internal-pdx-out-007.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Oct 2026 16:51:31 +0000
-Received: from EX19MTAUWC001.ant.amazon.com [205.251.233.53:4929]
- by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.35.113:2525] with esmtp (Farcaster)
- id c3b7bb37-0cae-4bf2-8cd9-1f3a93c33c33; Mon, 12 Oct 2026 16:51:31 +0000 (UTC)
-X-Farcaster-Flow-ID: c3b7bb37-0cae-4bf2-8cd9-1f3a93c33c33
-Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
- EX19MTAUWC001.ant.amazon.com (10.250.64.174) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.49;
- Mon, 12 Oct 2026 16:51:31 +0000
-Received: from dev-dsk-ynachum-1b-0ecf7b87.eu-west-1.amazon.com
- (10.13.226.176) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.53; Mon, 12 Oct 2026
- 16:51:29 +0000
-From: Yonatan Nachum <ynachum@amazon.com>
-To: <jgg@nvidia.com>, <leon@kernel.org>, <linux-rdma@vger.kernel.org>
-CC: <sleybo@amazon.com>, <matua@amazon.com>, <gal.pressman@linux.dev>,
-	"Yonatan Nachum" <ynachum@amazon.com>, Michael Margolin <mrgolin@amazon.com>,
-	Tom Sela <tomsela@amazon.com>
-Subject: [PATCH for-rc v2] RDMA/efa: Fix race between admin command timeout and completion
-Date: Mon, 12 Oct 2026 16:51:13 +0000
-Message-ID: <20261012165113.576899-1-ynachum@amazon.com>
-X-Mailer: git-send-email 2.50.1
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ixulb86s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80A0D1F0089B;
+	Mon, 12 Oct 2026 16:54:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791824081;
+	bh=/0LLAYE84Hs0+AqFqH67O/smM4bU/0+rUKWG9IN4Vlw=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=Ixulb86sjXVmEsRylqbooEFUGLMovYrx8suPMVDK3bLwfyBXfGY3wet/01bbPeFSi
+	 /tL7nfl1wF+v0iVHHXAy93UNFOiGWnpgHyi00eATq6LWtrLkOdJxaO2/YJWrq7d4eJ
+	 TmfR7lsQcLR9BtOqNvv5G4nSTqVIdZFzeXv5VS26j/hqxT1o8zMygRBhHBzTx3KIre
+	 dmeOy3RHi11BYvwc//hCQRZThh85sgjq7U3xLM5lAHehTzobyIWUrE0cjWg4fyurFg
+	 UPG4knxasN/ZADdINrv+WmyA1LZVlYo4HOkKkv0stqk6PqO0/WGQm72fHFxC6KeBLp
+	 9krNOeMB6Sy6Q==
+Subject:
+ Re: [PATCH] rds: fix out-of-bounds conn_path access via handshake NPATHS
+From: netdev-bot+sashiko@kernel.org
+To: bsdhenrymartin@gmail.com
+Cc: achender@kernel.org, davem@davemloft.net, edumazet@kernel.org,
+ kuba@kernel.org, pabeni@redhat.com, horms@kernel.org, netdev@vger.kernel.org,
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+ stable@vger.kernel.org
+Date: Mon, 12 Oct 2026 16:54:40 +0000
+Message-ID: <179182408008.434549.9079047641584992003@kernel.org>
+In-Reply-To: <20261008163843.957325-1-bsdhenrymartin@gmail.com>
+References: <20261008163843.957325-1-bsdhenrymartin@gmail.com>
+X-sashiko-severity: Critical
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: EX19D031UWC004.ant.amazon.com (10.13.139.246) To
- EX19D001UWA001.ant.amazon.com (10.13.138.214)
 
-An admin command that times out can race with the interrupt handler
-processing its completion, in two ways.
+Thank you for your contribution! Sashiko AI review found 2 potential
+issue(s) to consider.
 
-The timeout path releases the completion context without synchronizing
-against the handler. A handler that has already seen the command as
-submitted then copies the CQE into the caller's response buffer after
-the waiter returned and that buffer went out of scope.
+Critical: 1 · High: 0 · Medium: 1 · Low: 0
 
-The waiter can also observe the command as completed before the CQE was
-copied, since the status is published first. It decodes its own
-uninitialized response buffer, returns success with garbage contents and
-leaks stack data to the caller. Both wait paths read the status without
-the CQ lock.
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-Add a timed-out state and publish it under the CQ lock in both wait
-paths before returning, so the handler, which only completes commands in
-submitted state, cannot act on an abandoned context. In the interrupt
-wait path test the return value of the wait instead of the status: the
-handler signals the completion after copying the CQE, so a successful
-wait implies a valid response. Read the status in the polling wait path
-inside the critical section that drains the CQ, which also lets a
-completion arriving on the last iteration be honored instead of reported
-as a timeout.
+- [Critical] This fix leaves the same out-of-bounds walk reachable
+  through another lane loop.
+- [Medium] The Fixes: tag names the wrong commit.
 
-Fixes: 0420e542569b ("RDMA/efa: Implement functions that submit and complete admin commands")
-Reviewed-by: Michael Margolin <mrgolin@amazon.com>
-Reviewed-by: Tom Sela <tomsela@amazon.com>
-Signed-off-by: Yonatan Nachum <ynachum@amazon.com>
----
-Changelog:
-v2:
- * Read the completion status under the CQ lock in the polling path
-   instead of only taking the lock around the timed-out store.
- * Use the wait_for_completion_timeout() return value in the interrupt
-   path instead of reading the status unlocked to determine whether the
-   command timed out.
-v1: https://lore.kernel.org/all/20260901113016.581935-1-ynachum@amazon.com/
+--
 
- drivers/infiniband/hw/efa/efa_com.c | 28 ++++++++++++++++++++--------
- 1 file changed, 20 insertions(+), 8 deletions(-)
+rds: fix out-of-bounds conn_path access via handshake NPATHS
 
-diff --git a/drivers/infiniband/hw/efa/efa_com.c b/drivers/infiniband/hw/efa/efa_com.c
-index 04c6d63c449e..9c59d127e1e0 100644
---- a/drivers/infiniband/hw/efa/efa_com.c
-+++ b/drivers/infiniband/hw/efa/efa_com.c
-@@ -41,6 +41,7 @@ enum efa_cmd_status {
- 	EFA_CMD_ALLOCATED,
- 	EFA_CMD_SUBMITTED,
- 	EFA_CMD_COMPLETED,
-+	EFA_CMD_TIMED_OUT,
- };
- 
- struct efa_comp_ctx {
-@@ -591,6 +592,7 @@ static int efa_com_comp_status_to_errno(u8 comp_status)
- static int efa_com_wait_and_process_admin_cq_polling(struct efa_comp_ctx *comp_ctx,
- 						     struct efa_com_admin_queue *aq)
- {
-+	bool comp_timeout = false;
- 	unsigned long timeout;
- 	unsigned long flags;
- 
-@@ -599,12 +601,19 @@ static int efa_com_wait_and_process_admin_cq_polling(struct efa_comp_ctx *comp_c
- 	while (1) {
- 		spin_lock_irqsave(&aq->cq.lock, flags);
- 		efa_com_handle_admin_completion(aq);
--		spin_unlock_irqrestore(&aq->cq.lock, flags);
--
--		if (comp_ctx->status != EFA_CMD_SUBMITTED)
-+		if (comp_ctx->status != EFA_CMD_SUBMITTED) {
-+			spin_unlock_irqrestore(&aq->cq.lock, flags);
- 			break;
-+		}
- 
- 		if (time_is_before_jiffies(timeout)) {
-+			comp_ctx->status = EFA_CMD_TIMED_OUT;
-+			comp_timeout = true;
-+		}
-+
-+		spin_unlock_irqrestore(&aq->cq.lock, flags);
-+
-+		if (comp_timeout) {
- 			ibdev_err_ratelimited(
- 				aq->efa_dev,
- 				"Wait for completion (polling) timeout\n");
-@@ -625,10 +634,11 @@ static int efa_com_wait_and_process_admin_cq_polling(struct efa_comp_ctx *comp_c
- static int efa_com_wait_and_process_admin_cq_interrupts(struct efa_comp_ctx *comp_ctx,
- 							struct efa_com_admin_queue *aq)
- {
--	unsigned long flags;
-+	unsigned long flags, remaining_jiffies;
-+	bool completed;
- 
--	wait_for_completion_timeout(&comp_ctx->wait_event,
--				    usecs_to_jiffies(aq->completion_timeout));
-+	remaining_jiffies = wait_for_completion_timeout(
-+		&comp_ctx->wait_event, usecs_to_jiffies(aq->completion_timeout));
- 
- 	/*
- 	 * In case the command wasn't completed find out the root cause.
-@@ -636,14 +646,16 @@ static int efa_com_wait_and_process_admin_cq_interrupts(struct efa_comp_ctx *com
- 	 * 1) No completion (timeout reached)
- 	 * 2) There is completion but the device didn't get any msi-x interrupt.
- 	 */
--	if (comp_ctx->status == EFA_CMD_SUBMITTED) {
-+	if (remaining_jiffies == 0) {
- 		spin_lock_irqsave(&aq->cq.lock, flags);
- 		efa_com_handle_admin_completion(aq);
-+		completed = (comp_ctx->status == EFA_CMD_COMPLETED);
-+		comp_ctx->status = EFA_CMD_TIMED_OUT;
- 		spin_unlock_irqrestore(&aq->cq.lock, flags);
- 
- 		atomic64_inc(&aq->stats.no_completion);
- 
--		if (comp_ctx->status == EFA_CMD_COMPLETED)
-+		if (completed)
- 			ibdev_err_ratelimited(
- 				aq->efa_dev,
- 				"The device sent a completion but the driver didn't receive any MSI-X interrupt for admin cmd %s(%d) status %d (id: %d, sq producer: %d, sq consumer: %d, cq consumer: %d)\n",
+This patch clamps the RDS_EXTHDR_NPATHS value the peer sends in
+rds_recv_hs_exthdrs() to the number of rds_conn_path slots the transport
+was allocated with. As a result, IB connections (t_mp_capable unset)
+negotiate at most one lane. The aim is to stop fan-out paths such as
+rds_start_mprds() from walking past the single allocated c_path entry.
+
+> Cc: stable@vger.kernel.org
+> Fixes: ba3d1f480c7a ("net/rds: size a connection's path set by the transport it ends up with")
+
+[Severity: Medium]
+Is this the right commit for the Fixes: tag?
+
+All ba3d1f480c7a does is recompute npaths a second time after the
+loopback swap in __rds_conn_create():
+
+    npaths = (trans->t_mp_capable ? RDS_MPATH_WORKERS : 1);
+
+Its own message says "The c_path array stays sized for the caller's
+transport". So it doesn't change how many slots an IB connection gets.
+
+IB connections have had a one-element c_path since 840df162b3eb ("rds:
+reduce memory footprint for RDS when transport is RDMA"). That commit
+replaced the inline c_path[RDS_MPATH_WORKERS] array with an allocation
+sized by:
+
+    int npaths = (trans->t_mp_capable ? RDS_MPATH_WORKERS : 1);
+
+The NPATHS clamp to RDS_MPATH_WORKERS and the rds_start_mprds() loop over
+c_npaths are even older (5916e2c1554f and 69b92b5b7419).
+
+Stable tooling chooses target trees from the Fixes: tag. Would LTS trees
+that carry 840df162b3eb but not ba3d1f480c7a miss this fix? Should the
+tag be:
+
+Fixes: 840df162b3eb ("rds: reduce memory footprint for RDS when transport is RDMA")
+
+> diff --git a/net/rds/recv.c b/net/rds/recv.c
+> index 6204e577a90ae..c9528812edef1 100644
+> --- a/net/rds/recv.c
+> +++ b/net/rds/recv.c
+> @@ -224,7 +224,8 @@ static void rds_recv_hs_exthdrs(struct rds_header *hdr,
+>  		/* Process extension header here */
+>  		switch (type) {
+>  		case RDS_EXTHDR_NPATHS:
+> -			new_npaths = min_t(int, RDS_MPATH_WORKERS,
+> +			new_npaths = min_t(int, conn->c_trans->t_mp_capable ?
+> +					   RDS_MPATH_WORKERS : 1,
+>  					   be16_to_cpu(buffer.rds_npaths));
+>  			break;
+>  		case RDS_EXTHDR_GEN_NUM:
+
+[Severity: Critical]
+This clamps NPATHS. Can the RDS_EXTHDR_GEN_NUM case just below it still
+cause the same out-of-bounds walk on IB connections?
+
+rds_recv_hs_exthdrs() always calls rds_conn_peer_gen_update() at the end.
+The call does not depend on c_npaths, fan_out or t_mp_capable:
+
+    conn->c_ping_triggered = 0;
+    rds_conn_peer_gen_update(conn, new_peer_gen_num);
+
+rds_conn_peer_gen_update() then loops over a fixed RDS_MPATH_WORKERS
+lanes:
+
+net/rds/recv.c:rds_conn_peer_gen_update() {
+    ...
+	WARN_ON(conn->c_trans->t_type != RDS_TRANS_TCP);
+	if (peer_gen_num != 0) {
+		if (conn->c_peer_gen_num != 0 &&
+		    peer_gen_num != conn->c_peer_gen_num) {
+			for (i = 0; i < RDS_MPATH_WORKERS; i++) {
+				struct rds_conn_path *cp;
+
+				cp = &conn->c_path[i];
+				spin_lock_irqsave(&cp->cp_lock, flags);
+				cp->cp_next_tx_seq = 1;
+				cp->cp_next_rx_seq = 0;
+				list_for_each_entry_safe(rm, tmp,
+							 &cp->cp_retrans,
+							 m_conn_item) {
+					set_bit(RDS_MSG_FLUSH, &rm->m_flags);
+				}
+    ...
+}
+
+The WARN_ON() only prints a warning. It doesn't return.
+
+On IB, __rds_conn_create() allocates a single c_path slot. A peer can
+send two handshake probes carrying different nonzero GEN_NUM values. A
+pong (h_sport == 0, h_dport == RDS_FLAG_PROBE_PORT) has no sysctl or
+transport gate. A ping also works if rds_sysctl_ping_enable is set. The
+call chain is:
+
+rds_ib_process_recv()
+  rds_recv_incoming()
+    rds_recv_hs_exthdrs()
+      rds_conn_peer_gen_update()
+
+The first probe stores c_peer_gen_num, and the second enters the loop.
+For i=1..7, would the loop take a spinlock and write cp_next_tx_seq and
+cp_next_rx_seq in heap memory past the allocated slot? It would also walk
+a cp_retrans list head read from that memory and call set_bit() through
+whatever pointers it finds there.
+
+If so, the commit message's claim "so a peer can never ask us to walk
+lanes that do not exist" doesn't hold yet.
+
+Could this loop also be bounded by:
+
+    conn->c_trans->t_mp_capable ? RDS_MPATH_WORKERS : 1
+
+which is the count __rds_conn_create() already uses? Another option is to
+skip handshake extension processing entirely on transports that are not
+mp-capable.
+
 -- 
-2.50.1
-
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261008163843.957325-1-bsdhenrymartin%40gmail.com
