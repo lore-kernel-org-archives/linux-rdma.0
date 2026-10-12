@@ -1,70 +1,71 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BAA13CB8F1;
-	Mon, 12 Oct 2026 10:24:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8E8F41835E
+	for <linux-rdma@vger.kernel.org>; Mon, 12 Oct 2026 10:32:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791800678; cv=none; b=Y5ZGjS9f45njREqq2+nsMzzmWsWopGa/6amLDE7elbpnUKxEwaaLnRW0+sNrpYcO6zPhtlSbUjh6+55ZVidAIQp1cjPqCWv5xXjQwXqdrCMJRn/WQW6cnMhcSJ+CFGLOkGMAjXzaXcQrgot8R6wnNQczNas1t76S3zZDCqAsrlg=
+	t=1791801151; cv=none; b=i2Yv9qHTu7itTNoZ3wxdZLljlf8dJ/kS9qy12SIbclidgboqL7MNAg5xFferaYf5bnIbXdZcXA8tpRGrw+eMyL/0wf9cX2+iCTLjZOQ4oe/IuNv9UFLkqcUnc0cuLDzRpWAtqyEenaByrlq9+bLuGDnwcRKMHlEPNGuWQQxreA8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791800678; c=relaxed/simple;
-	bh=Frc+ADQTxRwKDWaoqMQMlUJQ/gCXB8qyIs31/48aD70=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=QMucuOR2MMp9xGZZzhcXHGPV0U/FxRjQ0fiE+BbFxvy86IDoayYpvv9m2JNco5eICOw5MFadMzJAgc74Z/yMBk8q58yqGrGNdo/fJGMVVoCiq9e+/bQsfLuf68RbJ9mUDKoT1UHsMnTJaUcsjYlG0fee2AN0+OXF7KkAh44VMYM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GSBFVxer; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791801151; c=relaxed/simple;
+	bh=lPVyf9qd/L7uhI48rxK4Ar4FlWJirChDP2HvVQ/YG9Y=;
+	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
+	 Date; b=mwFULHJ0mL1gf1aEeBXS2nHdMYvIl0cTWM40vcqSe0d7WsKwd4n0EafsRK654qJlEq9bZxQAbWT0iybq3q+096aocMB3W/8Alx1m0D/IfQx0qUfr09l9zzLoMWLKpHlOCxlYov7oKrQpPHOxf4Pp1QrBl5gIdrspeuyEi6HAT1M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iAw4uSh2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GSBFVxer"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9106D1F0089C;
-	Mon, 12 Oct 2026 10:24:28 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iAw4uSh2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 234621F0089B;
+	Mon, 12 Oct 2026 10:32:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791800669;
-	bh=80POjU5WP6ctS0DqN7hA/63JAQ8Agh1hTny2C1kJcvk=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=GSBFVxer3CLhhERLbqG92AhzyKE2zeFTYQ94NorWbPGdMvx/0WXKMZD9lNpjRsCkS
-	 iCjlY7YTwiIA+xX5g9jXGWDLZl9sEYaVaLz6F6fZWRHbm3CrZEagoZZIAbFiIXd2bc
-	 GsbnzMrNX55Xx8g76hHW4LCuQ3Pn1pZc923hfhsNq3v97VjvdvrYBd68tzwDDK+GeI
-	 f2Gm4x5Y/WeJtsuYvttVJxblzxcrPBQ8U8OYtbvAhg4+hukE8rmBQ0ltlRhfsmckUy
-	 5HOuGuGUzSQTGRez2h/z7NoBI1HK4wwpZT+9JHg4jiQVCVf50fOh6/fsH+9NkxKEiS
-	 6rQelr0goOaNQ==
-From: netdev-bot+sinfo@kernel.org
-To: Alexandre Cassen <acassen@corp.free.fr>
-Cc: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
- Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
- Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>, Moshe Shemesh <moshe@nvidia.com>,
- Yevgeny Kliteynik <kliteyn@nvidia.com>, Hamdan Agbariya <hamdani@nvidia.com>,
- netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: 
- Re: [PATCH net v2 0/2] net/mlx5: HWS, fix modify header pattern compare
-Date: Mon, 12 Oct 2026 10:24:28 +0000
-Message-ID: <179180066813.2527009.4759083074035124601@kernel.org>
-In-Reply-To: <20261012101937.1335231-1-acassen@corp.free.fr>
+	s=k20260515; t=1791801141;
+	bh=lPVyf9qd/L7uhI48rxK4Ar4FlWJirChDP2HvVQ/YG9Y=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=iAw4uSh2k2xsE1ryKJ2GP3IsjQSxX3yvU1cwdhFj8gseSPPc5RrlE1vhfv7x8wl3q
+	 KwSuAYWVmq7iY8npXiHc2HkbmAyMI24ZflflAL6ku6xxfw2AfUSwW0xJWbmU2KILEQ
+	 XOOf6si7gWZegw8sgwooPqRHidsPSWj+yBq3oAoLOASCvX9uxkQHSTR/y5YPq5iJXc
+	 4V3p34O61eQdddByUxmAxT7I0N0P5rX52D+Lk0dopkWiR+ajemv0nKH9k5wsGDO7ID
+	 WlzgqbSOTJVU33LPitcJtQ19pItMgC9hczqBN9bjKs4ffJuWDMiJ9iRDkkXN+9aDpP
+	 uMhHORWTAmT0w==
+Message-ID: <sashiko-outbox-167959@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net v2 1/2] net/mlx5: HWS, fix modify header pattern
+ compare on big-endian
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Alexandre Cassen" <acassen@corp.free.fr>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261012101937.1335231-2-acassen@corp.free.fr>
 References: <20261012101937.1335231-1-acassen@corp.free.fr>
-Auto-Submitted: auto-generated
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+ <20261012101937.1335231-2-acassen@corp.free.fr>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Mon, 12 Oct 2026 10:32:20 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
 
-Hi!
+> mlx5hws_pat_compare_pattern() casts each __be64 action to __be32 to
+> compare only its control dword. On big-endian this keeps the data dword
+> instead, which HWS clears from the pattern of set and add actions. Two
+> such actions writing the same value into different fields then share a
+> pattern and the second rule modifies the wrong field.
+>=20
+> Read the first dword of each action from memory instead. Little-endian
+> behavior is unchanged.
+>=20
+> Discovered by an AI code review agent [1] and confirmed by code
+> inspection. Not reproduced for lack of big-endian hardware running HWS.
+>=20
+> Fixes: aefc15a0fa1c ("net/mlx5: HWS, added modify header pattern and args=
+ handling")
+> Link: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261010120147.=
+135825-1-acassen%40corp.free.fr [1]
+> Signed-off-by: Alexandre Cassen <acassen@corp.free.fr>
 
-This is an automated message. This series looks like a fix, but its
-commit messages seem to be missing some information:
+Sashiko has reviewed this patch and found no issues. It looks great!
 
- - What hardware the change was tested on. For driver fixes please
-   mention the device (and if relevant firmware version) used for
-   testing, or say that the change was not tested on real hardware.
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261012101937.1335=
+231-1-acassen@corp.free.fr?part=3D1
 
-Please do not repost the series just to address the above. Instead,
-reply to this email with the missing information, so that reviewers
-can take it into account. If the series needs another revision for
-other reasons, please include the information in the commit messages
-then.
-
-The evaluation is done by an LLM so it may be wrong, if you think
-that is the case please reply and explain.
