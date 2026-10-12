@@ -1,207 +1,220 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA3EF41A4E4;
-	Mon, 12 Oct 2026 12:10:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4582E375F81;
+	Mon, 12 Oct 2026 13:08:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791807023; cv=none; b=KSCqyYJVK5rxHaHr588zr4b0VQY+VuUouJgtMn31qS/c/71a09g14ZXy5ARjEsy3iIFzg8lNGAisbX1e32nlJB6RP/wVu6cgt9sXX3MS6xoCJrG1M8zoejrsB03ie/ga0x1GZeIUdobnnWI6JvmRdi2sabM0yWG1fn5rA2nVmNs=
+	t=1791810500; cv=none; b=JCQWBAqFqhE7LjvEJNByaDqXIKWbnHj0vXg8DInRKLT9CZw97m/9594pO7vTryTt+rx/W5A35ZR6SZ2Rt/p/vIVSl+ZOg8/2rfKthgm3DWq43LG0pfgppAPWQ5TBG8aLzIvbQ/Iy+37v3gme7TOqmi4JOJcyN1bjs80VTiKJGlY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791807023; c=relaxed/simple;
-	bh=l6raZMAXhf9dMLYNhLhwY95pksikfmORW40GrE2iy34=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=nInVNdaoB5+ou5BrSIWJ/rC513dAXiyKAnLv43p4ymKXfP2xg/0hqDIAIPjqeA24nuMhZJQn5f4ALK9uawcb4NwVXxX9i4iB0BxJEe3LOT75SmYBAtEM6c6xbrrUEOfJ1HC7p1K+9b77Zt5DbPJgWb1ktKUXAzQ1enxsM7WKtis=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mZSClGga; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791810500; c=relaxed/simple;
+	bh=5OoO4u4wT2EspBgtGfHo4fnutiaRSS4knSYoOyJYjR4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=mkvihMeWph3PFjLOtxOHDt5ZPCU5cLKao7/YrRoRuXbKdkUhru2fRNIkHdt4eHLQ2NS57rogGVo8i7vZ9CQ0lPrbMrOksJofVCpgM5oCet6/7BVLGQc8hM6HqHrZ3z/rnbCpnSSH97qDMGvVXyzQqciY4TwlJkdykNNaxNuTGjE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VjXaAxUY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mZSClGga"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12F901F0089B;
-	Mon, 12 Oct 2026 12:10:18 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VjXaAxUY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83D6E1F0089B;
+	Mon, 12 Oct 2026 13:08:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791807018;
-	bh=anrg1c6253FnLZIpERC0khiiG86vNVw6etBg+OrCLc8=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=mZSClGgaM9kY1Is7etP7rlPP+pnJ++gzStyBSiAKSb3o2d7g6hYUPN8qzhmwWur0m
-	 NsAXQprs6JKO3MITKNcLWubZvuZ0M40zk9oJ4ML4II0ICaUAfw25ab5G4k8S/3Hjz1
-	 B0+6ogGRFDaKz/kGUrWFy/VU7jAMitI+kOwYNrVtwFPqMsLMwnJenRneOHrHm4I19f
-	 bLbAhsHIvhQVVGgeKq1/ySL5o+/wQnIE975nRdyC+SLHUikKHi5pjpasCEZ8FctnR3
-	 hcL7skuJ4q7q8Uh3GR2a7RQom7GiNdtJ/xupw6uqpYhODwy/QcatODAc3NA7Eyarqk
-	 9Hw+yiePDzBIg==
-Subject: Re: [PATCH net-next 1/2] net/mlx5e: Select DCBX HOST/AUTO from
- capability flags in setdcbx
-From: netdev-bot+sashiko@kernel.org
-To: tariqt@nvidia.com
-Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
- kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com, alazar@nvidia.com,
- cjubran@nvidia.com, dtatulea@nvidia.com, gal@nvidia.com, leon@kernel.org,
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, mbloch@nvidia.com,
- saeedm@nvidia.com
-Date: Mon, 12 Oct 2026 12:10:17 +0000
-Message-ID: <179180701752.434549.16734295951082648234@kernel.org>
-In-Reply-To: <20261011112900.802150-2-tariqt@nvidia.com>
-References: <20261011112900.802150-2-tariqt@nvidia.com>
-X-sashiko-severity: Medium
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	s=k20260515; t=1791810498;
+	bh=hPD4B6sRGtyUbN0DgtR7qqzDwJtgKxfCYn3LCYYPWBo=;
+	h=From:To:Cc:Subject:Date;
+	b=VjXaAxUYRaAMJ9UDZRIhSGKch2D3eK+W/4GnK3Abi9fGOVhoo5Vc7NrHGnBNKIx5I
+	 0ZaSDpw3JUhjSLhn4MGtuZLNlRUwRp9VGS9R/hHUJd3ALB9s9c4CDVK3mFXzfeBWBC
+	 JlbthD/kyLCYW8wTQKVUVTtj+Wxl9zsDFLMdX96jrP4wIspfP+XjizcsQ3gVMa+i8s
+	 U9MwWZx+/luOySXU6esCZWxXgr7fHC17Ct/RyMphKL8UZTV+zR67VCnj7ZJ+HFSOcr
+	 qWEt4kgz30LmeOO+9DXRaV4sT8NnyKPzGBxusQq1ffqym+Ve/J5A0GyUZx2W51q/0C
+	 OxOAQajio+HmQ==
+From: Leon Romanovsky <leon@kernel.org>
+To: Bjorn Helgaas <bhelgaas@google.com>,
+	Logan Gunthorpe <logang@deltatee.com>,
+	Leon Romanovsky <leon@kernel.org>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	"Joerg Roedel (AMD)" <joro@8bytes.org>,
+	Will Deacon <will@kernel.org>,
+	Robin Murphy <robin.murphy@arm.com>,
+	=?utf-8?q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+	=?utf-8?q?Thomas_Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>
+Cc: linux-pci@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org,
+	iommu@lists.linux.dev,
+	Tushar Dave <tdave@nvidia.com>,
+	linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org,
+	linux-rdma@vger.kernel.org,
+	kvm@vger.kernel.org,
+	Chaitanya Kulkarni <kch@nvidia.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jens Axboe <axboe@kernel.dk>,
+	Alex Williamson <alex@shazbot.org>,
+	Ankit Agrawal <ankita@nvidia.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>
+Subject: [PATCH v10 00/18] PCI/P2PDMA: Route peer-to-peer DMA by TLP class
+Date: Mon, 12 Oct 2026 16:07:37 +0300
+Message-ID: <20261012-fix-p2p-acs-v4-0-v10-0-6ffe7b7a4517@nvidia.com>
+X-Mailer: git-send-email 2.56.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+X-Change-ID: 20260821-fix-p2p-acs-v4-0-e72455e3a261
+X-Mailer: b4 0.15-dev-18f8f
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found 2 potential
-issue(s) to consider.
+PCI P2PDMA applies Request and Completion Redirect throughout both paths.
+This misclassifies asymmetric and nested switches, and reports one answer
+for every kind of TLP.
 
-Critical: 0 · High: 0 · Medium: 2 · Low: 0
+Three ACS controls act on TLP attributes the Requester chooses rather
+than on the topology: Translation Blocking and Direct Translated P2P act on
+a Request's Address Type, and Completion Redirect skips Completions carrying
+Relaxed Ordering.
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+Evaluate each direction at the path divergence, decide every class from the
+one walk, and treat a client with ATS enabled as translating unless its
+driver declares per-mapping ATS.
 
-- [Medium] mlx5e_dcbnl_setdcbx()
-  (drivers/net/ethernet/mellanox/mlx5/core/en_dcbnl.c) now returns…
-- [Medium] The patch reports firmware AUTO mode as CEE|IEEE|LLD_MANAGED
-  (0x0e), but only on the setdcbx HOST->AUTO transition path.
+This completes the P2PDMA side; dma-buf and mlx5 follow separately.
 
---
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+Changes in v10:
+- Fixed the Relaxed Ordering description: a Completion carries the
+  attribute of its Request (PCIe r7.0 sec 2.2.9.1).
+- Used the PCIe terms Requester and Completer for TLPs, ACS and ports;
+  client and provider remain for P2PDMA objects.
+- Rebased on pci/p2pdma, which includes the prerequisite P2PDMA fixes.
+- Added a topology example to the path divergence patch.
+- Removed a repeated sentence from the disable_acs_redir documentation.
+- Explained the path divergence in the documentation.
+- Link to v9: https://patch.msgid.link/20261001-fix-p2p-acs-v4-0-v9-0-1a8e0f50ddd9@nvidia.com
 
-net/mlx5e: Select DCBX HOST/AUTO from capability flags in setdcbx
+Changes in v9:
+- Removed dmabuf patches for now.
+- Removed mlx5 per-mapping ATS declaration for now; it comes back with
+  the dmabuf patches.
+- Link to v8: https://patch.msgid.link/20260928-fix-p2p-acs-v4-0-v8-0-404453b9c435@nvidia.com
 
-This commit changes mlx5e_dcbnl_setdcbx() so that the DCB_CAP_DCBX_HOST
-bit selects firmware HOST or AUTO DCBX mode. That merges the two old code
-paths into one. When it switches to firmware-controlled mode, it reports
-CEE, IEEE and LLD_MANAGED together because of a firmware limitation.
+Changes in v8:
+- Added extra Reviewed-by from Logan.
+- Added patches to take care of ATS per-device vs. per-mapping option
+- Link to v7: https://patch.msgid.link/20260920-fix-p2p-acs-v4-0-v7-0-ca0828ab697c@nvidia.com
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_dcbnl.c b/drivers/net/ethernet/mellanox/mlx5/core/en_dcbnl.c
-> index 741f75b5bfec..4eef929f5ae9 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_dcbnl.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_dcbnl.c
+Changes in v7:
+- Removed "Document pdev->p2pdma lifetime rules" patch, it gives nothing
+  after p2pmem fix.
+- Split dmabuf patch.
+- Tushar retested the series, so added his Tested-by.
+- Added Logan's ROB tags and fixed minor documentation issues pointed
+  by him.
+- Link to v6: https://lore.kernel.org/all/20260914-fix-p2p-acs-v4-0-v6-0-5ef07ec9ef06@nvidia.com/
 
-[ ... ]
+Changes in v6:
+- Changed DMABUF to use callbacks and not directly stored pointer.
+- Link to v5: https://patch.msgid.link/20260910-fix-p2p-acs-v4-0-v5-0-856087f63c0d@nvidia.com
 
-> @@ -453,32 +434,31 @@ static u8 mlx5e_dcbnl_getdcbx(struct net_device *dev)
->  
->  static u8 mlx5e_dcbnl_setdcbx(struct net_device *dev, u8 mode)
->  {
-> +	bool new_is_host = mode & DCB_CAP_DCBX_HOST;
->  	struct mlx5e_priv *priv = netdev_priv(dev);
->  	struct mlx5e_dcbx *dcbx = &priv->dcbx;
-> +	enum mlx5_dcbx_oper_mode target_mode;
->  
->  	if (mode & DCB_CAP_DCBX_LLD_MANAGED)
->  		return 1;
->  
-> -	if ((!mode) && MLX5_CAP_GEN(priv->mdev, dcbx)) {
-> -		if (dcbx->mode == MLX5E_DCBX_PARAM_VER_OPER_AUTO)
-> -			return 0;
-> -
-> -		/* set dcbx to fw controlled */
-> -		if (!mlx5e_dcbnl_set_dcbx_mode(priv, MLX5E_DCBX_PARAM_VER_OPER_AUTO)) {
-> -			dcbx->mode = MLX5E_DCBX_PARAM_VER_OPER_AUTO;
-> -			dcbx->cap &= ~DCB_CAP_DCBX_HOST;
-> -			return 0;
-> -		}
-> +	if (!MLX5_CAP_GEN(priv->mdev, dcbx))
-> +		return !new_is_host;
->  
-> -		return 1;
-> -	}
-> +	target_mode = new_is_host ? MLX5E_DCBX_PARAM_VER_OPER_HOST :
-> +				    MLX5E_DCBX_PARAM_VER_OPER_AUTO;
-> +	if (dcbx->mode == target_mode)
-> +		return 0;
+Changes in v5:
+- Rebase on the posted fixes.
+- Dropped tags from changed patches.
+- Remove Egress Control Vector interpretation and coverage.
+- Keep enabled Egress Control conservative as a Request redirect.
+- Use pci_dbg()/dev_dbg() for diagnostics and drop the "debug" prefix.
+- Removed code comments from "Document the pdev->p2pdma lifetime and RCU
+  rules" patch and reduced description to actual lifetime explanation.
+- Added note that Linux assumes that TLPs are in strict-ordering and
+  untranslated.
+- Added code to calculate p2p paths per-TLP type.
+- Converted mlx5 to use that new proposed API.
+- Link to https://patch.msgid.link/20260821-fix-p2p-acs-v4-0-v4-0-94426b96de73@nvidia.com
 
-[Severity: Medium]
-Do these two early returns lose the requested DCBX flags?
+Changes in v4:
+- Reject ACS Violations and unreadable routing state instead of treating
+  them as host-bridge redirects
+- Added Tested-by tags from Tushar Dave
+- Added support to asymmetric ACS routing
+- Limited redirect checks to the two ports at the path divergence
+- Added standalone ACS routing diagnostics for hardware retesting
+- Dropped " PCI: Account for Direct Translated P2P in ACS isolation checks" patch
+- Link to v3: https://patch.msgid.link/20260811-fix-p2p-acs-v3-0-efc488ee7c03@nvidia.com
 
-If the device lacks the dcbx HCA capability, the first check returns 0
-for any HOST request.
+Changes in v3:
+- Fixed pci_p2pdma_add_resource() error unwinding
+- Made pdev->p2pdma teardown wait unconditionally for RCU readers
+- Restricted pci_p2pmem_find_many() to pool-backed providers
+- Documented the pdev->p2pdma lifetime and RCU rules
+- Fixed calc_map_type_and_dist() handling of the verbose argument
+- Required the ACS port and target to share a bus before indexing the
+  Egress Control Vector
+- Gave pci_acs_enabled() and pci_acs_path_enabled() a scope, so the ACS
+  Direct Translated P2P rule no longer stops pci_enable_pasid() from
+  enabling PASID
+- Dropped "Report ACS ports when the paths share no upstream bridge":
+  the mapping type cannot change without a shared upstream bridge, so
+  the pci=disable_acs_redir= hint was not actionable there and the ACS
+  walk only cost config space reads
+- Folded the Request Redirect rule into pci_acs_rr_ineffective(), so
+  pci_acs_flags_enabled() and the Intel SPT PCH quirk share one copy
+- Renamed pci_acs_egress_ctrl_set() to pci_acs_egress_ctrl_is_set(), it
+  reads the bit rather than setting it
+- Reworded the blocked-path warning: ACS may also leave the direct route
+  indeterminate rather than blocked
+- Added KUnit coverage for the shared-bus guard, a device with no ACS
+  capability and an unreadable ACS Control register
+- Added the missing Fixes: tags, a second one on the
+  pci_p2pdma_add_resource() unwinding fix (the dangling devres action
+  dates to f58ef9d1d135) and one on the Egress Control isolation change
+- Link to v2: https://patch.msgid.link/20260806-fix-p2p-acs-v2-0-0cec14812965@nvidia.com
 
-If firmware is already in the target mode, the second check returns 0.
-One example is a host LLDP agent sending HOST|VER_IEEE (0x09) while the
-port is already in HOST mode.
+Changes in v2:
+- Added Logan's ROB tags
+- Added commas in Documentation patch
+- Link to v1: https://patch.msgid.link/20260802-fix-p2p-acs-v1-0-a7c5eb64fff6@nvidia.com
 
-Neither path reaches the "dcbx->cap = mode;" at the end of the function.
+---
+Leon Romanovsky (18):
+      PCI/P2PDMA: Document the TLP attribute assumptions
+      PCI/P2PDMA: Derive routing from directional ACS controls
+      PCI: Reject unreadable ACS controls in isolation checks
+      PCI/P2PDMA: Evaluate ACS controls at the path divergence
+      PCI/P2PDMA: Document directional ACS routing
+      PCI/P2PDMA: Collect the path's ACS controls before deciding
+      PCI/P2PDMA: Answer routing per TLP class
+      PCI/P2PDMA: Route Relaxed Ordering Completions directly
+      PCI/P2PDMA: Reject Translated Requests blocked by Translation Blocking
+      PCI/P2PDMA: Route Translated Requests under Direct Translated P2P
+      PCI/P2PDMA: Log detailed ACS routing diagnostics
+      PCI/P2PDMA: Add KUnit tests for the ACS routing decisions
+      PCI/P2PDMA: Test the ACS P2P routing walk
+      PCI: Add KUnit coverage for ACS isolation checks
+      PCI/P2PDMA: Document TLP-class routing
+      PCI/P2PDMA: Let a client declare that it selects ATS per mapping
+      PCI/P2PDMA: Evaluate the ATS path for clients with ATS enabled
+      PCI/P2PDMA: Test the routing of clients with ATS enabled
 
-Before this patch, both cases went through
-mlx5e_dcbnl_switch_to_host_mode(). That helper returned 0 when the cap was
-missing or the mode was already HOST, and the caller then did:
+ Documentation/admin-guide/kernel-parameters.txt |  11 +-
+ Documentation/driver-api/pci/p2pdma.rst         |  81 +++
+ drivers/pci/Kconfig                             |  15 +
+ drivers/pci/Makefile                            |   1 +
+ drivers/pci/p2pdma.c                            | 719 ++++++++++++++++++--
+ drivers/pci/pci.c                               |   7 +-
+ drivers/pci/pci.h                               |  56 ++
+ drivers/pci/pci_acs_test.c                      | 860 ++++++++++++++++++++++++
+ drivers/pci/quirks.c                            |   6 +-
+ include/linux/pci-p2pdma.h                      |  12 +-
+ 10 files changed, 1683 insertions(+), 85 deletions(-)
+---
+base-commit: 36038f0e8377ef316b723d0d85b1510bc64069ab
+change-id: 20260821-fix-p2p-acs-v4-0-e72455e3a261
 
-	dcbx->cap = mode;
-	return 0;
+Best regards,
+--  
+Leon Romanovsky <leonro@nvidia.com>
 
-Now dcbnl_setdcbx() reports success to userspace, but
-mlx5e_dcbnl_getdcbx() keeps returning the initial CEE|IEEE|HOST (0x0d).
-The same stale value goes into DCB_ATTR_DCBX in the IEEE/CEE get and
-notify paths, and into event.dcbx for dcb_app notifier events.
-
-fcoe_dcb_app_notification() in drivers/scsi/fcoe/fcoe.c consumes that
-value:
-
-	if (entry->dcbx & DCB_CAP_DCBX_VER_CEE)
-		prio = ffs(entry->app.priority) - 1;
-
-If VER_CEE is still set after userspace selected IEEE only, could FCoE
-read an IEEE priority as a CEE bitmap?
-
-The commit message only talks about folding the two code paths into one.
-Was this change in behaviour intended? It is still present at the end of
-the series.
-
->  
-> -	if (!(mode & DCB_CAP_DCBX_HOST))
-> +	if (mlx5e_dcbnl_set_dcbx_mode(priv, target_mode))
->  		return 1;
->  
-> -	if (mlx5e_dcbnl_switch_to_host_mode(netdev_priv(dev)))
-> -		return 1;
-> +	if (!new_is_host)
-> +		mode = DCB_CAP_DCBX_VER_CEE |
-> +		       DCB_CAP_DCBX_VER_IEEE |
-> +		       DCB_CAP_DCBX_LLD_MANAGED;
-
-[Severity: Medium]
-Does the reported AUTO state now depend on history rather than on the
-firmware state?
-
-This sets cap to CEE|IEEE|LLD_MANAGED (0x0e), but only after an actual
-HOST to AUTO transition. mlx5e_dcbnl_initialize() was not updated. When
-firmware is in a non-host mode at probe time, it still does:
-
-	priv->dcbx.cap = DCB_CAP_DCBX_VER_CEE |
-			 DCB_CAP_DCBX_VER_IEEE;
-	if (priv->dcbx.mode == MLX5E_DCBX_PARAM_VER_OPER_HOST)
-		priv->dcbx.cap |= DCB_CAP_DCBX_HOST;
-
-That gives 0x0c, without LLD_MANAGED. A later non-host setdcbx request
-then hits the "if (dcbx->mode == target_mode) return 0;" check above, so
-LLD_MANAGED is never added.
-
-So the same firmware state is reported as 0x0c after booting in AUTO, but
-as 0x0e after a runtime switch to AUTO. The difference shows up in:
-
-  - getdcbx
-  - DCB_CAP_ATTR_DCBX, since mlx5e_dcbnl_getcap() ORs in dcbx->cap
-  - DCB_ATTR_DCBX in the IEEE/CEE get and notify paths
-  - event.dcbx
-
-Before this patch, both paths reported 0x0c.
-
-Should mlx5e_dcbnl_initialize() also set LLD_MANAGED in the AUTO case?
-That would match "report CEE, IEEE and LLD_MANAGED together" from the
-commit message.
-
-There is a related problem in the same function. setdcbx still rejects
-LLD_MANAGED at the top even though it now reports it, which breaks a get
-then set round trip.
-
-The later patch in this series, "net/mlx5e: Add DCB_CAP_DCBX_LLD_MANAGED
-support in setdcbx", fixes that part by removing the check. The
-history-dependent reporting is still present at the end of the series.
-
-[ ... ]
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261011112900.802150-1-tariqt%40nvidia.com
