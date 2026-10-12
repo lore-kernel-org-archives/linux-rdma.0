@@ -1,86 +1,70 @@
-Received: from rcs.proxad.net (rcs.proxad.net [212.27.60.169])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26D223E51F5;
-	Mon, 12 Oct 2026 10:19:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.27.60.169
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BAA13CB8F1;
+	Mon, 12 Oct 2026 10:24:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791800408; cv=none; b=Emv28GzIkJ0CFj+J1+kWM3JJpDBO/EnOPZgoEj2eqNDQtRWgWWoi9ZK0fltycWmmQuAHCvPkGV6LUsavXiWRIYKvPjowdCgMU/CnyadRHuNvObuovtjIjrCSDlz44ruykltaXTS1NcquZjCGGlJegPbiNvR6RyNaXOZGNnBagfA=
+	t=1791800678; cv=none; b=Y5ZGjS9f45njREqq2+nsMzzmWsWopGa/6amLDE7elbpnUKxEwaaLnRW0+sNrpYcO6zPhtlSbUjh6+55ZVidAIQp1cjPqCWv5xXjQwXqdrCMJRn/WQW6cnMhcSJ+CFGLOkGMAjXzaXcQrgot8R6wnNQczNas1t76S3zZDCqAsrlg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791800408; c=relaxed/simple;
-	bh=U4s+GG5V2XJ4cj+9o4vFipLY9pxVY7PT0ptGOi9J/Q0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=UowxymMftkxoSsXOoZ60g9Dla11TbAguReUrnrkwHSw0aAeFixmFfpRTPPGDMY+oros2XxIkgpel6WYfUmzrQ8WGo59arZ25u7upteiud3gzUUKqEXcPQX8RqyiY06EJ41vk6DN1WLf7IyGZJaDiv9IM8TXrNDjFdRZ/BMLyqVs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=corp.free.fr; spf=pass smtp.mailfrom=corp.free.fr; dkim=pass (2048-bit key) header.d=corp.free.fr header.i=@corp.free.fr header.b=LL18k3/4; arc=none smtp.client-ip=212.27.60.169
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=corp.free.fr
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=corp.free.fr
+	s=arc-20240116; t=1791800678; c=relaxed/simple;
+	bh=Frc+ADQTxRwKDWaoqMQMlUJQ/gCXB8qyIs31/48aD70=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=QMucuOR2MMp9xGZZzhcXHGPV0U/FxRjQ0fiE+BbFxvy86IDoayYpvv9m2JNco5eICOw5MFadMzJAgc74Z/yMBk8q58yqGrGNdo/fJGMVVoCiq9e+/bQsfLuf68RbJ9mUDKoT1UHsMnTJaUcsjYlG0fee2AN0+OXF7KkAh44VMYM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GSBFVxer; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=corp.free.fr header.i=@corp.free.fr header.b="LL18k3/4"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=corp.free.fr; s=rcs;
-	t=1791800384; bh=U4s+GG5V2XJ4cj+9o4vFipLY9pxVY7PT0ptGOi9J/Q0=;
-	h=From:To:Cc:Subject:Date:From;
-	b=LL18k3/4nq0uytSQqdAtTeBOSiF5MdBVCl+tQdvqvokbNDYqYv51V2wljLeXjxogp
-	 B5BV5pmuV3QYz1sZJCRL0soyHNrjVTMEGfyrvk2+IdL5LOPyfLyR95xyDjHiacxLGB
-	 cVSchMX31cV3GqpPHS9s4Wx5jZm7ywuYHQqHKcI90KLfKl2PEzinUOki0MMn69+ZIv
-	 qHRaLsnPlk27vJMn9mS8oMIlfNri2NOBvFBoH5HnpHdvxsqLU02HbrOSiHs0F12X71
-	 jb6miPy++klQ6Lix8qul0FmRcJDPCjnkxbnyKRsCfVAcMSgWamcOSLzUh1256CNQtW
-	 rybg2oN69b7Nw==
-Received: from lnxos-dev.home (82-66-150-212.subs.proxad.net [82.66.150.212])
-	by rcs.proxad.net (Postfix) with ESMTPSA id 05C2444C12AC;
-	Mon, 12 Oct 2026 12:19:44 +0200 (CEST)
-From: Alexandre Cassen <acassen@corp.free.fr>
-To: Saeed Mahameed <saeedm@nvidia.com>,
-	Leon Romanovsky <leon@kernel.org>,
-	Tariq Toukan <tariqt@nvidia.com>,
-	Mark Bloch <mbloch@nvidia.com>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Moshe Shemesh <moshe@nvidia.com>,
-	Yevgeny Kliteynik <kliteyn@nvidia.com>,
-	Hamdan Agbariya <hamdani@nvidia.com>,
-	netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org
-Subject: [PATCH net v2 0/2] net/mlx5: HWS, fix modify header pattern compare
-Date: Mon, 12 Oct 2026 12:19:33 +0200
-Message-ID: <20261012101937.1335231-1-acassen@corp.free.fr>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GSBFVxer"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9106D1F0089C;
+	Mon, 12 Oct 2026 10:24:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791800669;
+	bh=80POjU5WP6ctS0DqN7hA/63JAQ8Agh1hTny2C1kJcvk=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=GSBFVxer3CLhhERLbqG92AhzyKE2zeFTYQ94NorWbPGdMvx/0WXKMZD9lNpjRsCkS
+	 iCjlY7YTwiIA+xX5g9jXGWDLZl9sEYaVaLz6F6fZWRHbm3CrZEagoZZIAbFiIXd2bc
+	 GsbnzMrNX55Xx8g76hHW4LCuQ3Pn1pZc923hfhsNq3v97VjvdvrYBd68tzwDDK+GeI
+	 f2Gm4x5Y/WeJtsuYvttVJxblzxcrPBQ8U8OYtbvAhg4+hukE8rmBQ0ltlRhfsmckUy
+	 5HOuGuGUzSQTGRez2h/z7NoBI1HK4wwpZT+9JHg4jiQVCVf50fOh6/fsH+9NkxKEiS
+	 6rQelr0goOaNQ==
+From: netdev-bot+sinfo@kernel.org
+To: Alexandre Cassen <acassen@corp.free.fr>
+Cc: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
+ Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
+ Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>,
+ Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>,
+ Paolo Abeni <pabeni@redhat.com>, Moshe Shemesh <moshe@nvidia.com>,
+ Yevgeny Kliteynik <kliteyn@nvidia.com>, Hamdan Agbariya <hamdani@nvidia.com>,
+ netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Subject: 
+ Re: [PATCH net v2 0/2] net/mlx5: HWS, fix modify header pattern compare
+Date: Mon, 12 Oct 2026 10:24:28 +0000
+Message-ID: <179180066813.2527009.4759083074035124601@kernel.org>
+In-Reply-To: <20261012101937.1335231-1-acassen@corp.free.fr>
+References: <20261012101937.1335231-1-acassen@corp.free.fr>
+Auto-Submitted: auto-generated
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-The fs_hws modify header pools and the HWS pattern cache decide whether
-two modify headers can share a pattern. Two bugs let different patterns
-compare equal:
+Hi!
 
-- On big-endian the HWS core comparison checks the data dword of each
-  action instead of its control dword.
-- The fs_hws pool match ignores the destination of copy and add_field
-  actions.
+This is an automated message. This series looks like a fix, but its
+commit messages seem to be missing some information:
 
-Patch 2 moves the pool match to the HWS core comparison that patch 1
-fixes.
+ - What hardware the change was tested on. For driver fixes please
+   mention the device (and if relevant firmware version) used for
+   testing, or say that the change was not tested on real hardware.
 
-v2:
-- Add patch 1 for the big-endian compare (Sashiko).
-- Reword patch 2 to stay true on big-endian.
+Please do not repost the series just to address the above. Instead,
+reply to this email with the missing information, so that reviewers
+can take it into account. If the series needs another revision for
+other reasons, please include the information in the commit messages
+then.
 
-v1: https://lore.kernel.org/netdev/20261010120147.135825-1-acassen@corp.free.fr/
-
-Alexandre Cassen (2):
-  net/mlx5: HWS, fix modify header pattern compare on big-endian
-  net/mlx5: HWS, fix modify header pool match for copy actions
-
- .../mlx5/core/steering/hws/fs_hws_pools.c         | 10 +++-------
- .../mellanox/mlx5/core/steering/hws/mlx5hws.h     | 15 +++++++++++++++
- .../mellanox/mlx5/core/steering/hws/pat_arg.c     | 12 ++++++------
- 3 files changed, 24 insertions(+), 13 deletions(-)
-
--- 
-2.43.0
-
+The evaluation is done by an LLM so it may be wrong, if you think
+that is the case please reply and explain.
