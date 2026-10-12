@@ -1,131 +1,175 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA5B93164D8;
-	Mon, 12 Oct 2026 06:33:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id ECD4C3B8105;
+	Mon, 12 Oct 2026 06:50:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791786823; cv=none; b=YS1zI6OvjMrEtMge5ESyBwYXvvAjIhH8ugXztx8z/46IhmzclaDC8bLzWqMq4o3HZk6hw4EYachcEVuNLs4SVNZ8XxWYPrE2AslmLLdo3BOWGQti+Tpj96ZCT6izN9gtzaMj+XdAm+gCKJAQLV2BQhGNZCWeLuqVQ3RrFHlE2AE=
+	t=1791787824; cv=none; b=oRCyJP45qLDC/ninBP1jsVylx6nLpHFKw+9Q4xAQ5v0Oe3lMgJQwyNlv4zt9APEBs/tLRTH3znBixntCaNoCr+lhuGvm5Jo9d7rAia9Dr/YRZDznsRfFQmu7p5GfG9pOvyj5LsbtxrEq9StoZEb70G7E3f3zxHZAcw+uxm8CQBE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791786823; c=relaxed/simple;
-	bh=3D4xF39AFDs8uTInc1bj+woOrOcBTjDl1DC/X52bylo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=usC5kvQy0YfHuNYCiGW2D52dbcIB8pQX2DzBtCoNZ6tqE8i+mS+e7E4+TLnn/y6ldsvxm2XWpQ/v7To/m8hFLD4Iyx5mjlzSCEWIJnwvHFJCeWAFxgdvrC5GNTlLdZfMVe0e8gv0ydS9Kph5kY2xd1CEnhxPmVUu6sWudxMl60w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ceMtcjgE; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791787824; c=relaxed/simple;
+	bh=egOGF2YMkY84SdQDfFHKr5RvMlJFcDVp/9ho6j2nLyM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=YC0R5QQ5TVfRH+gq6GEcldJCZgq9cww0c4FbzHq5pqBA67Uxukiw05lIoP2hGyUt6g4WDrYOW3eDDVEsWLPQYv7wsD8hrY/PC7jF4JgqZ/lrd6kqoW7pNj1ulRMZkWQZQGiQuXIAYu9Z9if1VK+GOjzj7mA/4Jx5xmp61TAoHGA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=VMT2kDNf; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ceMtcjgE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B65671F0089B;
-	Mon, 12 Oct 2026 06:33:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791786822;
-	bh=T2OeqgQ5o9uT/B7vBiaJV+HJMkcE2OLv6vufUzf7Vws=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=ceMtcjgEleJ/sJLvTFsZDWAXo++hahBVqOMJcrFi18pUeth1DWG7MlTSt3x0qC0Me
-	 lV7wKuAEpHr44biD8vek1EQqx/sZQNnQmaFxAFsvQD+fq2n6DY73hA9aSRn3ZXpEtd
-	 t1gatC1r6sHoyfgmiQt0sxnHEpBuXxMZIQxnwcpN44K7i1RHUExDVfbR8l7VIPwGdY
-	 xXzvn9fVlAjeNb2FqWcuG1++Gv5lZujJJc/uaooF/oNzjmY7PBYjyUfErBCeBbwb1Y
-	 Jn6Co5cKTUmnL5YesyUbE9gs87hvGA609XDbfOctlwWybMy3GZhjLI7FbLtsnwso2U
-	 mKt8+8jswPTSA==
-Date: Mon, 12 Oct 2026 09:33:37 +0300
-From: Leon Romanovsky <leon@kernel.org>
-To: Stefan Metzmacher <metze@samba.org>
-Cc: linux-rdma@vger.kernel.org,
-	Tatyana Nikolova <tatyana.e.nikolova@intel.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Mustafa Ismail <mustafa.ismail@intel.com>,
-	Shiraz Saleem <shiraz.saleem@intel.com>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] RDMA/irdma: always route IB_WR_REG_MR through the
- allocated PBL
-Message-ID: <20261012063337.GF27033@unreal>
-References: <20261007095312.1523211-1-metze@samba.org>
- <acccb494-988e-4b87-b40c-42421d2e31e5@samba.org>
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="VMT2kDNf"
+Received: from [10.26.7.43] (unknown [4.213.232.22])
+	by linux.microsoft.com (Postfix) with ESMTPSA id 858EC20B7166;
+	Sun, 11 Oct 2026 23:50:18 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 858EC20B7166
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1791787819;
+	bh=+9iUhCEphPPg92ggxJrYeydbG+8hPQiyIc2GjHpFHhk=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=VMT2kDNfdSpfat5+iShIN0Ec0JtqA/xMw+bZIn+9cvA5iQg5HzG+wMeLNBOwX1g/X
+	 0RG8g7HaaINYVaxxa1UBmq3fZZ7+YFKvkIKYwQ70TqWXPLpzC6d7uHbevsJTELBQot
+	 9bRkJ+wIJVmQw7F0CZXczCyQXvD/nGUIpQ2LVL28=
+Message-ID: <b884be07-3e76-4256-a8e6-70b8540ab492@linux.microsoft.com>
+Date: Mon, 12 Oct 2026 12:20:18 +0530
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <acccb494-988e-4b87-b40c-42421d2e31e5@samba.org>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next] net: mana: Add support to process throttled EQEs
+To: sashiko-reviews@lists.linux.dev
+Cc: linux-rdma@vger.kernel.org, linux-hyperv@vger.kernel.org,
+ weh@linux.microsoft.com
+References: <20261008083315.306076-1-sahilchandna@linux.microsoft.com>
+ <sashiko-outbox-165094@kernel.org>
+Content-Language: en-US
+From: Sahil Chandna <sahilchandna@linux.microsoft.com>
+In-Reply-To: <sashiko-outbox-165094@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Wed, Oct 07, 2026 at 12:26:25PM +0200, Stefan Metzmacher wrote:
-> Am 07.10.26 um 11:53 schrieb Stefan Metzmacher:
-> > irdma_alloc_mr() always allocates a PBL via irdma_get_pble(), but
-> > irdma_post_send()'s IB_WR_REG_MR handling only pointed the FAST_REGISTER
-> > WQE at that PBL (chunk_size != 0, first_pm_pbl_index) when
-> > iwmr->npages exceeded IRDMA_MIN_PAGES_PER_FMR (1) - leaving chunk_size
-> > at 0 for a single-page (npages == 1) registration, telling hardware to
-> > use direct/PBL-less addressing for a registration that was never
-> > allocated that way.
-> > 
-> > This reproduces as data corruption / an IOMMU IO_PAGE_FAULT when a
-> > peer later performs an RDMA WRITE/READ against such a single-page
-> > FRWR-registered MR, even though ib_map_mr_sg() itself reports success.
-> > 100% reproducible on iWARP, intermittent on RoCEv2, with fs/smb/smbdirect's
-> > own single-page memory registrations on an Intel E810-CQDA2 (irdma).
-> > 
-> > Intel's current out-of-tree irdma driver (2.6.96) never gates this on
-> > npages - it always sets chunk_size/first_pm_pbl_index based on the
-> > actual PBL level (PBLE_LEVEL_1 vs PBLE_LEVEL_2), matching what
-> > irdma_alloc_mr() actually allocated. Mirror that here instead of the
-> > npages-based heuristic.
-> > 
-> > Also drop the reg_addr_pa assignment. irdma_sc_mr_fast_register()
-> > packs reg_addr_pa into the FAST_REGISTER WQE's PBLADDR field, which
-> > hardware only consults when chunk_size == 0 (direct/PBL-less
-> > addressing); with chunk_size now always nonzero for this opcode, that
-> > field is never read for IB_WR_REG_MR and the assignment is dead code -
-> > Intel's driver never sets it for this path either (only the separate,
-> > non-FRWR irdma_sc_mr_reg_non_shared() path actually branches on
-> > chunk_size between reg_addr_pa and first_pm_pbl_index). Removing it is
-> > not required for correctness: *palloc->level1.addr is always a
-> > page-aligned address (low 12 bits zero), so it could never have
-> > collided with the first_pm_pbl_index bits sharing those same bit
-> > positions in the WQE word even if some path still read it.
-> > 
-> > This leaves one deliberate difference from irdma-2.6.96: that driver also
-> > ties local_fence to the WR's IB_SEND_FENCE flag
-> > (stag_info.local_fence = ib_wr->send_flags & IB_SEND_FENCE) rather than
-> > hardcoding it true for IB_WR_REG_MR. That is a separate, non-corruption
-> > behavioural change, so local_fence is left at true here.
+On 09-10-2026 14:03, sashiko-bot@kernel.org wrote:
+> Thank you for your contribution! Sashiko AI review found 1 potential issue(s) to consider:
+> - [High] mana: RDMA queue stalls due to dropped throttle events
+> --
 > 
-> I realized to late this was changed just recently in:
+> commit 49b4827fa426b6ae0b8759a5984d01f44b8db5e1
+> Author: Sahil Chandna <sahilchandna@linux.microsoft.com>
 > 
-> commit 3fb905f07ea45b31c8f67ba6e4668de46f527e65
-> Author:     Jacob Moroni <jmoroni@google.com>
-> AuthorDate: Tue Sep 1 16:00:14 2026 +0000
-> Commit:     Leon Romanovsky <leon@kernel.org>
-> CommitDate: Wed Sep 2 12:27:03 2026 -0400
+> net: mana: Add support to process throttled EQEs
 > 
->     RDMA/irdma: Enforce local fence for IB_WR_REG_MR
+> This commit adds support for processing throttled EQEs of type 4 when an
+> event queue nears full capacity. The driver advertises the
+> GDMA_DRV_CAP_FLAG_1_THROTTLED_EVENT_QUEUE capability and attempts to schedule
+> the CQs associated with a throttled EQE. CQs are tracked in a new child_cq
+> array initialized when creating a CQ.
 > 
-> I also noticed that these two from linux-rdma/for-next
-> are in conflict:
+>> diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+>> index ae0ed700b3b93..b8e5ad2c6d312 100644
+>> --- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
+>> +++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+>> @@ -747,6 +747,18 @@ void mana_gd_free_service_wq(struct gdma_context *gc)
+>>  	gc->service_wq = NULL;
+>>  }
+>>  
+>> +static void mana_gd_schedule_eq_cqs(struct gdma_queue *eq)
+>> +{
+>> +	struct gdma_queue *cq;
+>> +	u8 i;
+>> +
+>> +	for (i = 0; i < GDMA_EQ_MAX_CHILD_CQ; i++) {
+>> +		cq = rcu_dereference(eq->eq.child_cq[i]);
+>> +		if (cq && cq->cq.callback)
+>> +			cq->cq.callback(cq->cq.context, cq);
 > 
-> 4a93466061d38f159b857aad63a9cc3cd3affadb RDMA/irdma: Remove unused post_sq arguments
-> c470050f2a7a7748ce35367e828885a8e658d712 RDMA/irdma: Preserve fast-registration IOVA on 32-bit
+> [Severity: High]
+> When a GDMA_EQE_THROTTLE event is processed, this function attempts to notify
+> the CQs. Will RDMA CQs receive these notifications?
 > 
-> What's best way forward here, is this something that
-> would go via linux-rdma/for-rc or via linux-rdma/for-next?
+> RDMA CQs do not appear to be added to child_cq, which might cause their
+> notifications to be entirely dropped and result in RDMA queue stalls.
 > 
-> as we're at rc6 already waiting ~3 weeks before it hits upstream
-> is fine, I have it in my local test kernels anyway...
+>> +	}
+>> +}
+>> +
 > 
-> Should I resubmit a v2 with the commit message clarified
-> regarding "RDMA/irdma: Enforce local fence for IB_WR_REG_MR"
-> and should I base this on top of linux-rdma/for-rc or linux-rdma/for-next?
 
-After -rc4, almost everything goes into the -next branch. The only patches
-we still take into -rc are those that fix UAPI breakage, regressions
-(introduced in the current cycle, at least), kernel panics in non-debug
-builds, builds breakage, and other small issues that make you say, “Oh dear...” :).
+The issue for RDMA CQ handling were highlighted in internal AI reviews
+as well and I discussed this with Wei Hu from RDMA about this.
 
-Thanks
+Before the patch, all throttled EQEs were getting dropped, the patch
+aims to address this gap by handling the throttled EQE which were
+reproduced in internal testing.The RDMA side throttling is going to be
+handled separately by Wei.
 
+> [ ... ]
 > 
-> Thanks!
-> metze
+>> @@ -1063,17 +1080,41 @@ static void mana_gd_create_cq(const struct gdma_queue_spec *spec,
+>>  			      struct gdma_queue *queue)
+>>  {
+>>  	u32 log2_num_entries = ilog2(spec->queue_size / GDMA_CQE_SIZE);
+>> +	struct gdma_queue *parent;
+>> +	u8 i;
+>>  
+>>  	queue->head |= INITIALIZED_OWNER_BIT(log2_num_entries);
+>> -	queue->cq.parent = spec->cq.parent_eq;
+>> +	parent = spec->cq.parent_eq;
+>> +	queue->cq.parent = parent;
+>>  	queue->cq.context = spec->cq.context;
+>>  	queue->cq.callback = spec->cq.callback;
+>> +
+>> +	if (!parent)
+>> +		return;
+>> +
+>> +	/* For throttled EQE store the child CQ */
+>> +	for (i = 0; i < GDMA_EQ_MAX_CHILD_CQ; i++)
+>> +		if (!rcu_access_pointer(parent->eq.child_cq[i])) {
+>> +			rcu_assign_pointer(parent->eq.child_cq[i], queue);
+>> +			return;
+>> +		}
 > 
+> [Severity: High]
+> Does this logic handle RDMA CQs correctly?
+> 
+> RDMA CQs are created with a NULL parent_eq (via mana_ib_create_kernel_queue),
+> which causes this function to return early without populating the child_cq
+> array.
+> 
+> Additionally, if an EQ has more than GDMA_EQ_MAX_CHILD_CQ (which is 2) CQs
+> attached, which is common in RDMA workloads, this loop will silently return
+> without adding the additional CQs. Can this lead to lost completions?
+> 
+>>  }
+> 
+The handling of RDMA CQ and attaching to parent EQ will be done in
+separate series, as discussed.> [ ... ]
+> 
+>> diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+>> index c610fc1067e0d..03fe9395604d6 100644
+>> --- a/include/net/mana/gdma.h
+>> +++ b/include/net/mana/gdma.h
+>> @@ -776,7 +785,8 @@ enum {
+>>  	 GDMA_DRV_CAP_FLAG_1_HANDLE_STALL_SQ_RECOVERY | \
+>>  	 GDMA_DRV_CAP_FLAG_1_EQ_MSI_UNSHARE_MULTI_VPORT | \
+>>  	 GDMA_DRV_CAP_FLAG_1_DYN_INTERRUPT_MODERATION | \
+>> -	 GDMA_DRV_CAP_FLAG_1_NON_CONTIGUOUS_BUFFERS)
+>> +	 GDMA_DRV_CAP_FLAG_1_NON_CONTIGUOUS_BUFFERS | \
+>> +	 GDMA_DRV_CAP_FLAG_1_THROTTLED_EVENT_QUEUE)
+> 
+> [Severity: High]
+> Since this patch globally advertises throttling support, the hardware might
+> send throttle events on RDMA EQs when they are heavily loaded.
+> 
+The cap bit does not enable throttle events. The device generates
+THROTTLE EQEs for any EQ created with throttle_limit, whether or not the
+driver sets cap bits so the RDMA throttle would not be a consequence of
+this patch.
+
+> Given that RDMA EQs are initialized with a log2_throttle_limit in
+> mana_ib_create_eqs(), will enabling this capability cause RDMA workloads to
+> stall if their throttle events are dropped due to the missing child_cq mapping
+> in mana_gd_create_cq()?
+> Yes, it is possible but it is not tied to capability bits, and handling
+of RDMA throttled events is a planned task to be handled in separate
+series.
+
+Regards,
+Sahil
