@@ -1,41 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AC7539CD1F;
-	Mon, 12 Oct 2026 04:17:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 643FA3A1D02;
+	Mon, 12 Oct 2026 04:17:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791778670; cv=none; b=Txp6w1k8O3ArFUGl8Fm9vOwy9J5TUnrLPU2vgcI4bep1Lt+ciCSAXq+btBOeAB+4MSZMbURo3vWCnN5x2opB59tGa76QfmZzKciuCVF4H2utTv6JSOprS1h15qcBzzIi2cPfAS9gxw5l8KOJaWAc20pS/kVbZcbrkjKLSn8MDmE=
+	t=1791778675; cv=none; b=nU0L8NZBcXAY5Wh9c0y0VIwjg5scp3+8VKTpzApWU85SaUtoh5xfyaZygawalljNXAT+55R3iN2iujeWZXdKnBo7yH5WdGJuZNtuQEL4mU0Nn/EM/A+MkZhw2bBUke8P1QQ1M6Nlfk54nJtEkPLMCxYvdvucZ3mzo/gRGXbzYlc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791778670; c=relaxed/simple;
-	bh=x/0mpzGNEyDUMM2Z/07Q3LGWJAV+dIsqqkrD/7P1r2I=;
+	s=arc-20240116; t=1791778675; c=relaxed/simple;
+	bh=ubRW8ZjcpVAzfxMZu5PF2y+wMwQMGvAbUuCbysq+iS8=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=pRKWB2vH3d6CO+zEI+zLxXMaYlyxOvvyfWYZIGCKPKaJurlYHGaBLbij3ESd1n8DVZpfHTtEopEAezm6/OzqBHCRZzyKPb0dhOMqyMHQGNqKqbq1pDWTjTgLRVIUkbQUiId1q5RGW745ycBwaK1Rqep4kebkDjPrSmcpYU+z+/I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MaEFgTdv; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=S11kvzMKFEsMfNsivEgD1I2B3eIj3a2vHMwfkQUcqQA/YCkMOyWo3AapnxwMdqBtg94NVgyZyqP1vHCu1jLFjFQ8cDi0M3hlOuVZwE1lQVzOCkIu1pP0Vj6NQUA8SZe2/e0LOaG9EaObVxtMEUWWUrzwO8Hh2/hKFNvAtXZMCmc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cVzMHXqy; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MaEFgTdv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60B1B1F0089D;
-	Mon, 12 Oct 2026 04:17:48 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cVzMHXqy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63F441F0089B;
+	Mon, 12 Oct 2026 04:17:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791778668;
-	bh=3NDiEJWP1B/DEqfo4klFWw1eaIXyNKyTnkzt94wNK+c=;
+	s=k20260515; t=1791778669;
+	bh=YHoRLb9iqxerjC8rW1H47+58wAtLkdc4MBbuATQYxeo=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=MaEFgTdv8dKqjrqh6PjZXCOJXaAZ1/7XIxdUCGTHvNfFAqo44kvrFdqCiUesvjtaz
-	 psIXStYvF+7DjDLQj7tV43T9CWmhAynSUXLpstH+uyXAQt7kue7V2WxJoDwMBMaL5O
-	 lqBK9ZH3vUKHh452RdRPu2ASpDkGAF7AdU0xkVXow05bQGgFibrccRQMqbSz66Eb/O
-	 YhVb6XWE7XY7y2O57YJ38bUxVx6OUAHVj3QM0xQi1pUMO9kqNVhOHV3JIBwbZD+RN6
-	 G6rX4jWMYsrw4iKUoZvfr1bVWQY8FmNYahtJcVivCVcHxntzsaVuY91joORDuivtWk
-	 9F1LXCSlxJZ0Q==
-Subject: Re: [PATCH net-next v9 09/13] net/rds: hold a connection reference
- from struct rds_incoming
+	b=cVzMHXqyvgMq/O13p+7GjTeTelK0lZBkN8+T9Q1pnGOhZpFXXRf2xCUVUs4wqpPso
+	 094f3AHzDpjqEJvQT0DbfQoulkRiakcSpwiTfuIeoQlkfnBdski9hKp3K7LSimeYYv
+	 nFUfQ8vnrI3YEML/KkNttNo8LilFcK8OJRrn3ou0T5L0ACHbMewJd/Hpn073M/6MMl
+	 SCuUCR3sRWyjxJH+T5/YllYIrWgA7giB+NX+4rD30fTcdAg1X8UjRPWmsYAKT0JNOK
+	 s63Lr5gRL/LCTFRG3P+mS5f4zv5i2FaTTPVMge/RKGcCmz8V5GcWD6MiYQJXstQNDl
+	 iQ3Bd4z5FlD6Q==
+Subject: Re: [PATCH net-next v9 11/13] net/rds: hold connection references in
+ lookup, sockets and c_passive
 From: netdev-bot+sashiko@kernel.org
 To: achender@kernel.org
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
  edumazet@google.com, kuba@kernel.org, horms@kernel.org
-Date: Mon, 12 Oct 2026 04:17:47 +0000
-Message-ID: <179177866793.434549.6463697653331835975@kernel.org>
-In-Reply-To: <20261008031333.1142174-10-achender@kernel.org>
-References: <20261008031333.1142174-10-achender@kernel.org>
+Date: Mon, 12 Oct 2026 04:17:48 +0000
+Message-ID: <179177866895.434549.7210189401396244719@kernel.org>
+In-Reply-To: <20261008031333.1142174-12-achender@kernel.org>
+References: <20261008031333.1142174-12-achender@kernel.org>
 X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -52,47 +52,61 @@ you want to address the nit picks below when you respin.
 
 Low priority / nit picks for your consideration:
 
-- [Low] The commit fixes a real use-after-free.
+- [Low] The commit's attribution trailers contradict each other.
 
 --
 
-net/rds: hold a connection reference from struct rds_incoming
+net/rds: hold connection references in lookup, sockets and c_passive
 
-This commit makes every holder of rds_incoming->i_conn own a connection
-reference. It takes the reference at the six places where i_conn is
-assigned, and drops it from rds_inc_put() and from a new
-rds_message_free() helper. It fixes a use-after-free where an inc on a
-socket receive queue outlives the connection it points at, for example
-after a transport unload.
+This patch makes struct rds_connection pointers carry real references in
+rds_conn_lookup(), __rds_conn_create(), the rs->rs_conn sendmsg cache and
+parent->c_passive. It also serializes the rs_conn cache and the ToS
+ioctls under rs_lock, which closes a syzbot-reported KCSAN data race
+between concurrent rds_sendmsg() calls on the same socket.
 
-Closes: https://lore.kernel.org/netdev/20260720184955.3008978-1-nicoyip.dev@gmail.com/
+Closes: https://syzkaller.appspot.com/bug?extid=879c1877016972360186
 
-> This is not a stable candidate, and carries no Fixes: tag on purpose so
-> that it is not picked up without the patches it depends on: reaching the
-> use-after-free requires freeing a connection out from under a live
-> socket, which needs CAP_SYS_MODULE, and the fix depends on the
-> connection reference counting introduced earlier in this series.
+> Reported-by: syzbot+879c1877016972360186@syzkaller.appspotmail.com
+> Closes: https://syzkaller.appspot.com/bug?extid=879c1877016972360186
+> Signed-off-by: Sharath Srinivasan <sharath.srinivasan@oracle.com>
+> [achender: substantial reimplementation for net-next: upstream has no
+>  conn reaper, per-conn workers hold no references (destroy cancels
+>  them synchronously before the final put), and the sendmsg cache is
+>  serialized with rs_lock instead of UEK's socket flag; rewrite commit
+>  message]
+> Assisted-by: Claude-Code:claude-fable-5
+> Signed-off-by: Allison Henderson <achender@kernel.org>
 
 [Severity: Low]
-Does leaving out the Fixes: tag actually keep this patch out of stable?
+This isn't a bug, but do the attribution trailers match each other?
 
-AUTOSEL can pick a commit without a Fixes: tag. This one has a
-Reported-by:, a Closes:, a KASAN splat and a panic trace, so it looks
-like a likely AUTOSEL candidate.
+The From: author is Allison Henderson. The first Signed-off-by is
+Sharath Srinivasan's, though, and there is no Co-developed-by: tag for
+him.
 
-Documentation/process/stable-kernel-rules.rst has a tag for this case.
-It tells both AUTOSEL and the scripts that look for Fixes: tags to
-ignore a change:
+Documentation/process/submitting-patches.rst says the first SoB entry
+signals primary authorship. It also says each Co-developed-by: must be
+immediately followed by that co-author's SoB.
 
-    Cc: <stable+noautosel@kernel.org> # reason goes here, and must be present
+The "[achender: ...]" bracket note is the convention a handler uses when
+editing someone else's patch. Because of it, the chain reads as Sharath's
+patch carried by Allison.
 
-Could this patch keep the Fixes: tag and add that Cc line with the
-dependency explanation as the reason? That would keep the record of
-which commit introduced the bug and still keep the patch out of stable.
+The message also calls this a "substantial reimplementation" that is only
+"Based on the Oracle UEK commits". That suggests Sharath's bare SoB
+certifies code he did not write in this form.
 
-A later commit in this series, "net/rds: hold connection references in
-lookup, sockets and c_passive", gives the same reason for dropping
-Fixes:. Should the noautosel Cc be used there as well?
+Would it be better to pick one of these two layouts?
+
+  - Make Sharath the author and keep the bracket note.
+
+  - Keep Allison as the author, add "Co-developed-by: Sharath Srinivasan"
+    immediately before his Signed-off-by, and drop the bracket note.
+
+For comparison, "net/rds: split connection destroy into quiesce and
+kref-governed free" and "net/rds: wait for connections to be freed on
+transport unload" in the same series are authored by Sharath. They use
+this same trailer layout, and there it is consistent.
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261008031333.1142174-1-achender%40kernel.org
