@@ -1,177 +1,232 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 905904D37B3;
-	Mon, 12 Oct 2026 19:12:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4F9826D4C3;
+	Mon, 12 Oct 2026 21:00:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791832324; cv=none; b=SmJ4/klyXVJvnXRNACJv51OPrSHbPxyo7xhvDCPIUcO2n+CJbw/hEWpgAGm2xzkk+UtFFVcEggOh+JfjVW0kxbFFi0ANADDJi4Hvu80Wht6C6fc2wqJD8cFJr4t8pHSJn5GPxZcd0h1jopEa/h7BHOhISv0PYM+vAW34dhFkk0s=
+	t=1791838835; cv=none; b=kEclmx8ZXTrsumuvAf8LARilLIXt9e5/36CXxv4c+CLeszTHOK0egUcUeI6A/NchAYu1KWZoeo4R1EkpLvXQ4HhE+AvIwWJNuAUU9fooBU5bquOobvpKjamVSwTKYxPwJaFCDkrE7PiYSY2vlwhUFppYtUI3QwNmOvo22o7p30o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791832324; c=relaxed/simple;
-	bh=FdkP+D43EN+xQd/ndnjr780pUFvJoTrEDYoQqVAKW9Q=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=l0UQiJo/+lDQDa5CJ9dKoqj/m51mCTrh3Sx6jpn1CoJKCwTk1aBgCJTTPutRND9ZIt/o43Oc4InVsPyeofAztQJZD8ih39/qeGtvXFKngLN2FM19E10q0DeZ4N/KuJegboSEoC0SZnFkvlhTGVPQ7ZqQ19zsS8yKEjO5T9yEnv0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BEu0ArYB; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791838835; c=relaxed/simple;
+	bh=te27NsuNKUh72Po9/i4mVVC/0BxZ7RTEDm0ilKN37m0=;
+	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=gFhWvcI6L9JewhO3GpSJaucsK+IJyRhFXtfxabB+IzslL1u9iLAODUOyiKm/V7YDFH8EFgEMYPPYFH4yJF0w/PmTk15f+9KfTd1M2IKKfLJJ99aO2jiq4JJSt7g0eIMX8agTPQc2dhDOTRJshOAyI2wXjNY7ncBZbjoxOMwVqxQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=J4TFIM82; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BEu0ArYB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58B361F0089B;
-	Mon, 12 Oct 2026 19:11:30 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="J4TFIM82"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C67C41F0089B;
+	Mon, 12 Oct 2026 21:00:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791832322;
-	bh=t5mO4SpyqVviWjSaaEv8n4NUJ8+LaAHDu09XG7kSbFs=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=BEu0ArYB5XZKL/22X+idpyNhILy00Ml5Fj2jTZ7Fk/4tKlvNrtbcuHyIbatS1i6+H
-	 EgraXbynE/kQHml4oxd8zg6gA+C0hu9dN4/bgco2QE++oQB5bH8DxThhNACrQfpLo5
-	 XjczelQ46llI8hh5qdyeZlOGyGOojXJ0MYtBFM6yqvzpX+4jdT2meUTVQWDtflbCXM
-	 6iF5pmWBFtkh91Se1FhzLeFVS17tfaVz+ddcjoVeEnKq4qW/b4a4Az4vnWO1vg7GEy
-	 PxJnHj6TKtLcX2c2xZZNIY6SbIQi0/ch6peXKK7YGg1Kjv6Q5wlicS2sXtSXi+SohG
-	 UEkXkdb5KImtQ==
-Date: Mon, 12 Oct 2026 20:11:27 +0100
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-To: "David Hildenbrand (Arm)" <david@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, 
-	"Liam R. Howlett" <liam@infradead.org>, Vlastimil Babka <vbabka@kernel.org>, 
-	Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
-	Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>, 
-	Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, 
-	Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
-	Paul Moore <paul@paul-moore.com>, Stephen Smalley <stephen.smalley.work@gmail.com>, 
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
-	Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
-	Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>, 
-	Kumar Kartikeya Dwivedi <memxor@gmail.com>, Zi Yan <ziy@nvidia.com>, 
-	Baolin Wang <baolin.wang@linux.alibaba.com>, Nico Pache <nico.pache@linux.dev>, 
-	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
-	Lance Yang <lance.yang@linux.dev>, Usama Arif <usama.arif@linux.dev>, 
-	Kiryl Shutsemau <kas@kernel.org>, Doug Gilbert <dgilbert@interlog.com>, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, "Martin K. Petersen" <mkp@kernel.org>, 
-	Simona Vetter <simona@ffwll.ch>, Helge Deller <deller@gmx.de>, Sebastian Reichel <sre@kernel.org>, 
-	John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, 
-	Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
-	Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@kernel.org>, 
-	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, Arnaldo Carvalho de Melo <acme@kernel.org>, 
-	Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
-	Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, Juri Lelli <juri.lelli@redhat.com>, 
-	Vincent Guittot <vincent.guittot@linaro.org>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
-	Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
-	David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>, 
-	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, Nick Piggin <npiggin@gmail.com>, Arnd Bergmann <arnd@arndb.de>, 
-	Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
-	"Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan Kara <jack@suse.cz>, Marc Zyngier <maz@kernel.org>, 
-	Oliver Upton <oupton@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, 
-	Madhavan Srinivasan <maddy@linux.ibm.com>, Anup Patel <anup@brainfault.org>, Paul Walmsley <pjw@kernel.org>, 
-	Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
-	Christian Borntraeger <borntraeger@linux.ibm.com>, Janosch Frank <frankja@linux.ibm.com>, 
-	Claudio Imbrenda <imbrenda@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
-	Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Heiko Carstens <hca@linux.ibm.com>, 
-	Vasily Gorbik <gor@linux.ibm.com>, "David S. Miller" <davem@davemloft.net>, 
-	Andreas Larsson <andreas@gaisler.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
-	Christian Brauner <brauner@kernel.org>, Matthew Brost <matthew.brost@intel.com>, 
-	Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, Byungchul Park <byungchul@sk.com>, 
-	Gregory Price <gourry@gourry.net>, Ying Huang <ying.huang@linux.alibaba.com>, 
-	Alistair Popple <apopple@nvidia.com>, Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>, 
-	Kemeng Shi <shikemeng@huaweicloud.com>, Nhat Pham <nphamcs@gmail.com>, Baoquan He <baoquan.he@linux.dev>, 
-	Youngjun Park <youngjun.park@lge.com>, Johannes Weiner <hannes@cmpxchg.org>, 
-	Qi Zheng <qi.zheng@linux.dev>, Shakeel Butt <shakeel.butt@linux.dev>, 
-	Axel Rasmussen <axelrasmussen@google.com>, Yuanchu Xie <yuanchu@google.com>, Wei Xu <weixugc@google.com>, 
-	Chengming Zhou <chengming.zhou@linux.dev>, Michal Hocko <mhocko@kernel.org>, 
-	Miklos Szeredi <miklos@szeredi.hu>, Xu Xin <xu.xin@linux.dev>, linux-mm@kvack.org, 
-	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, 
-	linux-rdma@vger.kernel.org, selinux@vger.kernel.org, linux-sound@vger.kernel.org, 
-	bpf@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org, 
-	dri-devel@lists.freedesktop.org, linux-trace-kernel@vger.kernel.org, 
-	linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, 
-	kvm@vger.kernel.org, kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org, 
-	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, fuse-devel@lists.linux.dev, 
-	Ihor Solodrai <ihor.solodrai@linux.dev>, Bert Karwatzki <spasswolf@web.de>, 
-	Emil Tsalapatis <emil@etsalapatis.com>
-Subject: Re: [PATCH v5 13/38] bpf: arena: mark arena_map_mmap() mappings
- VM_MIXEDMAP
-Message-ID: <as0uGOcxjg74Xw7_@gremlin>
-References: <20261009-b4-mmap-prepare-vma-flag-sanify-v5-0-923b70125b1e@kernel.org>
- <20261009-b4-mmap-prepare-vma-flag-sanify-v5-13-923b70125b1e@kernel.org>
- <5b8ef0ce-7429-4d74-b4da-a0561c59b1e2@kernel.org>
- <as0Buhi_-VCC7xLZ@gremlin>
- <4124106e-c51e-4476-bd67-63e4641bf14a@kernel.org>
+	s=k20260515; t=1791838834;
+	bh=UwYN5wXLGK3YCUzPomG3PRuTVSWp5Pqf4mVm/nf8gus=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=J4TFIM82d1JJCSg0YiurgvQND22gT76+rxSAXrGLm+HMoaomEFX2NDQqAw/OB5GIA
+	 Vio9KUtIWXoZeRl2MUOiHn6hOgutT1RmMwNnLuVXbT2+IqB4fXAzv5/WDuzvcg/4IH
+	 MDdFIaKScrcFZyKOvKyCflyL5s1z9gYubF3V8ahPIu1vwhgk7+j75cRC/WsIrT1zdE
+	 g9gxAYF27E0OfYCF96P00/+oFLcop5RWJoGI/ktbZArEFJQXN1vX3bZoHSicHMCoN0
+	 61XFQb0rRPGQSKpYSO9Rf6m/0OHxkHO/vEUf6ef1d5eZoaDySTvFrk3rwaD6n8W87a
+	 UY/FXLux8xf0w==
+Subject: Re: [PATCH net 1/2] net/mlx5: HWS, fix reformat pool creation race
+From: netdev-bot+sashiko@kernel.org
+To: acassen@corp.free.fr
+Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
+ andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
+ kuba@kernel.org, pabeni@redhat.com, moshe@nvidia.com, kliteyn@nvidia.com,
+ netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Date: Mon, 12 Oct 2026 21:00:33 +0000
+Message-ID: <179183883330.434549.745280802261352249@kernel.org>
+In-Reply-To: <20261008204230.3222198-2-acassen@corp.free.fr>
+References: <20261008204230.3222198-2-acassen@corp.free.fr>
+X-sashiko-severity: Medium
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4124106e-c51e-4476-bd67-63e4641bf14a@kernel.org>
 
-On Mon, Oct 12, 2026 at 08:56:23PM +0200, David Hildenbrand (Arm) wrote:
-> On 10/12/26 17:55, Lorenzo Stoakes (ARM) wrote:
-> > On Mon, Oct 12, 2026 at 05:08:09PM +0200, David Hildenbrand (Arm) wrote:
-> >> On 10/9/26 20:04, Lorenzo Stoakes (ARM) wrote:
-> >
-> >>> diff --git a/kernel/bpf/arena.c b/kernel/bpf/arena.c
-> >>> index 7b6847200b43..b69fe5e34339 100644
-> >>> --- a/kernel/bpf/arena.c
-> >>> +++ b/kernel/bpf/arena.c
-> >>> @@ -620,8 +620,9 @@ static int arena_map_mmap(struct bpf_map *map, struct vm_area_struct *vma)
-> >>>  	 * clears VM_MAYEXEC. Set VM_DONTEXPAND to avoid potential change
-> >>>  	 * of user_vm_start. Set VM_DONTCOPY to prevent arena VMA from
-> >>>  	 * being copied into the child process on fork.
-> >>> +	 * This is a kernel page so set VM_MIXEDMAP.
-> >>>  	 */
-> >>> -	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTCOPY);
-> >>> +	vm_flags_set(vma, VM_MIXEDMAP | VM_DONTEXPAND | VM_DONTCOPY);
-> >>>  	vma->vm_ops = &arena_vm_ops;
-> >>>  	return 0;
-> >>>  }
-> >>>
-> >>
-> >> Historically, VM_MIXEDMAP really just means: can contain refcounted and
-> >> non-refcounted things. Everything with a struct page is refcounted.
-> >>
-> >> I think we are now changing the semantics to mean "maps kernel pages". I think
-> >
-> > Yes.
-> >
-> > It was sort of implicit before given insert_page() etc. but still really meaning
-> > that it _might_ be both.
->
-> Yeah, it's in the name. Mixed: pfn and/or ordinary.
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue(s) to consider.
 
-Well the name is confusing as a great many users never mix anything, and it's
-far from obvious you need to set one.
+Critical: 0 · High: 0 (1) · Medium: 1 (1) · Low: 0
 
-Anyway, one for later. Maybe a mask like VMA_NON_MM_MANAGED_MASK or something
-better than that...
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
->
-> >
-> >> this is fine, but we really have to update the documentation (and possibly
-> >> rename this thing to something more expressive?)
-> >
-> > Yeah I completely agree.
-> >
-> > I will rename it, but I think that's best for 7.5 obviously! :)
->
-> Yes.
->
-> VM_PFNMAP / VM_MIXEDMAP - These contain kernel-mapped data which cannot be
-> 			  reasonably reconstructed on page fault.
->
-> the description is already pretty clear. just not that kernel-mapped pages
-> *must* use one of these.
+- [Medium] The commit message names the unserialized trigger as "RDMA
+  flow actions on the FDB".
 
-I think mixed map could do with a rename because it implies it _is_ mixed rather
-than could be.
-
-But again one for the future!
-
->
-> (again, the ->fault thing returning allcoated kernel memory is nasty)
-
-Yeah added to my todo to fix that. Hateful.
+Pre-existing issues:
+- [High] In mlx5_cmd_hws_packet_reformat_dealloc()
+  (drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c), the…
+- [Medium] Baseline decision is false: this is resolved later in the
+  series.
 
 --
-Cheers, Lorenzo
+
+net/mlx5: HWS, fix reformat pool creation race
+
+This patch changes mlx5_fs_get_pr_encap_pool() to use xa_cmpxchg()
+instead of xa_insert(). When two callers race to create the first
+reformat pool of a given size, the loser now frees its own pool and
+returns the one already published, instead of failing with -EBUSY.
+
+> TC serializes these
+> allocations under encap_tbl_lock while RDMA flow actions on the FDB
+> don't.
+
+[Severity: Medium]
+Can the RDMA path actually reach mlx5_fs_get_pr_encap_pool()?
+
+The only RDMA caller of mlx5_packet_reformat_alloc() is the
+MLX5_IB_METHOD_FLOW_ACTION_CREATE_PACKET_REFORMAT handler in
+drivers/infiniband/hw/mlx5/fs.c. It validates the request first:
+
+	if (!mlx5_ib_flow_action_packet_reformat_valid(mdev, dv_prt, ft_type))
+		return -EOPNOTSUPP;
+
+mlx5_ib_flow_action_packet_reformat_valid() accepts encap types only for
+NIC_TX and decap types only for NIC_RX. It returns false for FDB.
+
+NIC_TX and NIC_RX map to the EGRESS and BYPASS namespaces, which use the
+fw cmds. HWS cmds are only installed on an FDB root:
+
+drivers/net/ethernet/mellanox/mlx5/core/fs_core.c:mlx5_flow_namespace_set_mode() {
+	if (root->table_type != FS_FT_FDB)
+		return -EOPNOTSUPP;
+	...
+	else if (mode == MLX5_FLOW_STEERING_MODE_HMFS)
+		cmds = mlx5_fs_cmd_get_hws_cmds();
+}
+
+The unserialized caller that does reach these pools seems to be the TC
+free path, mlx5e_encap_put()->mlx5e_encap_dealloc(). That call runs after
+encap_tbl_lock has been dropped:
+
+	mutex_unlock(&esw->offloads.encap_tbl_lock);
+
+	mlx5e_encap_dealloc(priv, e);
+
+That path only creates a pool because of the L2_TO_L3_TUNNEL lookup in
+mlx5_cmd_hws_packet_reformat_dealloc(), described below.
+
+Could the commit message name the concurrent creator that actually
+exists?
+
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c
+> index 5a172c572a68f..66edb42268cbd 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c
+
+[ ... ]
+
+> @@ -1242,13 +1242,14 @@ mlx5_fs_get_pr_encap_pool(struct mlx5_core_dev *dev, struct xarray *pr_pools,
+>  	err = mlx5_fs_hws_pr_pool_init(pr_pool, dev, size, reformat_type);
+>  	if (err)
+>  		goto free_pr_pool;
+> -	err = xa_insert(pr_pools, index, pr_pool, GFP_KERNEL);
+> -	if (err)
+> -		goto cleanup_pr_pool;
+> -	return pr_pool;
+> +	old = xa_cmpxchg(pr_pools, index, NULL, pr_pool, GFP_KERNEL);
+> +	if (!old)
+> +		return pr_pool;
+
+[Severity: High]
+This is a pre-existing issue and was not introduced by this patch, but
+does mlx5_cmd_hws_packet_reformat_dealloc() return L2_TO_L3_TUNNEL
+reformats to the wrong pool?
+
+The alloc side takes the bulk from the L2->L3 xarray:
+
+mlx5_cmd_hws_packet_reformat_alloc() {
+	case MLX5_REFORMAT_TYPE_L2_TO_L3_TUNNEL:
+		...
+		pr_pool = mlx5_fs_get_pr_encap_pool(dev, &hws_pool->el2tol3tnl_pools,
+						    MLX5HWS_ACTION_TYP_REFORMAT_L2_TO_TNL_L3,
+						    params->size);
+}
+
+The dealloc side looks it up in the L2->L2 xarray instead:
+
+mlx5_cmd_hws_packet_reformat_dealloc() {
+	case MLX5_REFORMAT_TYPE_L2_TO_L3_TUNNEL:
+		pr_pool = mlx5_fs_get_pr_encap_pool(dev, &hws_pool->el2tol2tnl_pools,
+						    MLX5HWS_ACTION_TYP_REFORMAT_L2_TO_TNL_L2,
+						    pr_data->data_size);
+}
+
+mlx5_fs_get_pr_encap_pool() creates and publishes a pool on a miss. So
+the free path can create an empty L2->L2 pool, or adopt an existing one,
+and release the bulk into it.
+
+mlx5_fs_pool_release_index() then updates that pool's available_units
+and used_units, and used_units can go negative. It also calls list_del()
+or list_add() on a bulk that is linked on the L3 pool's lists, while
+holding only the L2 pool's pool_lock.
+
+The bulk can end up on the L2 pool's unused list. Could a later
+VXLAN/NVGRE/L2-tunnel encap of the same header size then be served from
+it, and program an L2_TO_TNL_L3 hws_action in hardware?
+
+mlx5e_encap_put() calls mlx5e_encap_dealloc() outside encap_tbl_lock.
+Can this list manipulation also race with an allocation that holds only
+the L3 pool_lock?
+
+A single thread seems able to trigger this on an HMFS switchdev eswitch:
+
+1. Add and delete a TC MPLSoUDP encap rule.
+2. Add and delete a second MPLSoUDP rule with the same header size.
+3. Add a VXLAN encap rule with that header size.
+
+Should the dealloc case use el2tol3tnl_pools and
+MLX5HWS_ACTION_TYP_REFORMAT_L2_TO_TNL_L3? That change might also remove
+the unserialized pool creation this patch addresses.
+
+>  
+> -cleanup_pr_pool:
+>  	mlx5_fs_hws_pr_pool_cleanup(pr_pool);
+> +	kfree(pr_pool);
+> +	return xa_is_err(old) ? ERR_PTR(xa_err(old)) : old;
+> +
+>  free_pr_pool:
+>  	kfree(pr_pool);
+>  	return ERR_PTR(err);
+
+[Severity: Medium]
+This isn't a bug introduced by this patch, but the modify header pools in
+the same file have a similar create-on-miss race.
+
+mlx5_cmd_hws_modify_header_alloc() scans mh_pools without a lock and uses
+the running count as the new index:
+
+	xa_for_each(&hws_pool->mh_pools, i, pool) {
+		if (mlx5_fs_hws_mh_pool_match(pool, &pattern)) {
+			known_pattern = true;
+			break;
+		}
+		cnt++;
+	}
+
+mlx5_fs_create_mh_pool() still uses xa_insert(). Two concurrent first
+creators can therefore pick the same index, and the second one fails
+with -EBUSY.
+
+The error path can also destroy a pool that another caller has already
+found:
+
+destroy_pool:
+	if (!known_pattern)
+		mlx5_fs_destroy_mh_pool(pool, &hws_pool->mh_pools, cnt);
+
+The next patch in this series, "net/mlx5: HWS, fix modify header pool
+creation race", appears to fix this. It takes a new mh_pools_lock around
+the lookup and creation, and it removes the destroy_pool path.
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261008204230.3222198-1-acassen%40corp.free.fr
