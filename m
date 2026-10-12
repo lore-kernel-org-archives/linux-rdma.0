@@ -1,67 +1,33 @@
-Received: from BYAPR05CU005.outbound.protection.outlook.com (mail-westusazon11010017.outbound.protection.outlook.com [52.101.85.17])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35F254BF947;
-	Mon, 12 Oct 2026 18:04:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.85.17
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791828275; cv=fail; b=GhdeEcoArYv2copuvQI7hB3iYWg5IaLoKuPToCJGejUfmJtapDulqLBOfPOzQnCdNHIgQAyJf4m8KsJqoPldBX+dJvqJCkigYgxxt+AqOHBSHg5jlmuQrsi+CcrCOBemZc38t87tDr4mH/+X3aXdVOqPxdduts23w7aKCufHweA=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791828275; c=relaxed/simple;
-	bh=NTZtIOF7tlQXRZ9FXawlqbq2t/QZDWQ64U3iRHNbIFE=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=TzQJ+NFniUr1AbM7CyHGQjfPD+Ina0XNgO6CC51FrPnDrO0UUcMCzEvTNGjF4/WJ/mx/m1CXUTVuPpyOAmz9pZZx1dYef/YYm4i3iG24NTuejaKY7w81lCN3UfZK4rMFMYIqzBdMqOBW7sd1Bn1heQdZTb0wy1ZRB5XG/0p3Z8w=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=DdfHMd7E; arc=fail smtp.client-ip=52.101.85.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C23E64BF949;
+	Mon, 12 Oct 2026 18:07:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791828439; cv=none; b=ouZFhgnoIxCv6J0i0liRPaRJGiVI7sBuTj9xSwfjaD2gS/XpuKRG7s4IUE0QBfcHDDdzFsrSN132ZBB+mZwR3M8ersOwUVwzHTelSlVh1Vel8ZbsMMtZNvncW9gTjarmTQpzzY5Tq1WkdBa8l+nY78iF4ubXRu1tRHvrbd56bew=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791828439; c=relaxed/simple;
+	bh=UVXb20zARU7mExCFbWZKkVqMpDe490E7VM71fJSOZPw=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=MTnt8XlWpHpx/vih72z6gPfw50UPZ0VWreMfsoN/5RoDM8/eRviZ6kr4Vx8UVBQa+Xn1nEswg0cuCf2pfqvtU2ozvZYqE2iIKAE9YD9/Vu0gJy8Y7v9LEMNpib+hKavttpwnJpZFx2JgsX1/VE2+7Z/tNulRkpfbRq1QZQZP3d8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Wt6owd8B; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="DdfHMd7E"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=lR0FUbh6omI2SNecqEufeokF4idt2hyIGHx9RcAXcBxYipJlcPVg0k9mF2DqEk7r76zvzRCRrbMA6YVZta1awx9gceyArF/rV7q1jj2L8Emu0zv9SdyA2oSfBJ33Q0LKuk+9jcKHJCSQAoJX+zRp6E3ohjPj4NeXfR/p4D6acwhnEkWTLxu+K7xlG1J9zcqSQXvKk8xyfiXd+IOZR6f8foYhhpCU1q9kV7BjaYBvPA3GQqEg9yl5G484t2SPeDDa7YNS/LqLPVfEHcGJOgOET7zYumAViTOzT7ioWJmpfg7pvEqvt6UG7TVh298mQkcN0rVBJ+IqWKAdpnQMhQcbbA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=/Lm6vAm8+ntT6izqWMiYvnzJJdzXrnaCU2Hk36L3qtg=;
- b=IlB29vKbQG82h5KSPJsqdwH/srEQHVos5IpMWUOtCckms8SZpmoUNeIRY2kBDsGMDOlDSqif7+W5BP4gPUg9FOIEPNvbzlBk0ikPwXGtMEX4GAB2EiN/fWK5K8ZnB1QxoZuZ1YvW234Jd0BX1yqrZtZU+6VCcoU1bwE+kIZnkn3HpwjDCKKICYfXPDjB4vkoECjfmEMRH5J3brbcjV/4YOaJI/e6DIf6dZtqy737i2JMhqSAMyCkgwbXSTM18rN8rkRqHaZocZaz3xtLL+LoeixgpQxQGOboOIuE2VFs03ByfS381TaTH75KJQLse+Haphpiv6bjcX8LVuJsmj6Ycw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.161) smtp.rcpttodomain=corp.free.fr smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=/Lm6vAm8+ntT6izqWMiYvnzJJdzXrnaCU2Hk36L3qtg=;
- b=DdfHMd7ErXL7cPo7iSduVPH7dJvxh4Yec2l9BQgFpLoG3wK0IY4mzYOCf5/0fRgT6CZPldyMrN99CjtspZ0WXvgqTvbieO6KiltNG0yoctxqevk5ez/iEHw/RQqT+Yg+YY3mpucFZdrzmW6jLJY5dmo6XmmkdXmA2HcBwW2LGPtW4H8uqEc1yRDMVGmmHf3rgLCahlQ1QkjxUMlyNLWZAM+fO53ng1KXlGUYnDCMQRgD0tXe9VMmHJ9NX9yGO14UOQ0lgm+W2BTcm0Yv4x/YU7tfOoUUtEbzMmJ843+a3sDnCfPIFdXnKDSNmD40haGf/hlSrlbsXfQxY8J5GYTd/A==
-Received: from SJ0PR13CA0063.namprd13.prod.outlook.com (2603:10b6:a03:2c4::8)
- by DS0PR12MB7969.namprd12.prod.outlook.com (2603:10b6:8:146::19) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.472.15; Mon, 12 Oct
- 2026 18:04:24 +0000
-Received: from SJ1PEPF000037A6.namprd04.prod.outlook.com
- (2603:10b6:a03:2c4:cafe::2a) by SJ0PR13CA0063.outlook.office365.com
- (2603:10b6:a03:2c4::8) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.522.4 via Frontend Transport; Mon, 12
- Oct 2026 18:04:23 +0000
-X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
- is 216.228.117.161) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.161) by
- SJ1PEPF000037A6.mail.protection.outlook.com (10.167.244.138) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.522.6 via Frontend Transport; Mon, 12 Oct 2026 18:04:22 +0000
-Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
- (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Mon, 12 Oct
- 2026 11:03:58 -0700
-Received: from [10.221.200.227] (10.126.230.37) by rnnvmail201.nvidia.com
- (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Mon, 12 Oct
- 2026 11:03:54 -0700
-Message-ID: <8a7eb7f1-dcc8-4ff3-a515-fed37fc37c9b@nvidia.com>
-Date: Mon, 12 Oct 2026 21:03:51 +0300
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Wt6owd8B"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32BD51F0089B;
+	Mon, 12 Oct 2026 18:06:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791828437;
+	bh=DDDaNaIXKmjLMpGyOKitw9HvqeETc7OKRNfzQD54qxg=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=Wt6owd8Bq2u9/nEuC+sRUdT8+/OxfpX/2L+rcI0CI58dMdj5RepHEkZ+JK0a2NReh
+	 sfWZgwJnlIoxukhvfsVC549Mea8Lzn1FqlVFltYJjt8rHvk+/6/ZpWr6udcYD/Kvhv
+	 cYjJbTjIOah993HBTrzgv5z/AR+B5YNtKjygVS0MFHVStaBZhTHGGs3CePzg/YUyKR
+	 PxwC1y9KuoLdaWY3WCk7m3+ezYcwA/LnfPWK+S1wgKQ+eOE1YSCAXB3bijg6tQO5JH
+	 bHdtiENWAtXTXun/ecBlXYX2L4beb5ScOKLj6+Nr6PliXK0IY5395VSWd+QtTd+iS9
+	 TJQjIG75WdKXQ==
+Message-ID: <7554094f-d853-482f-ba82-3e2f7b1cf4a0@kernel.org>
+Date: Mon, 12 Oct 2026 20:06:41 +0200
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -69,194 +35,204 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net v2 2/2] net/mlx5: HWS, fix modify header pool creation
- race
-To: Alexandre Cassen <acassen@corp.free.fr>, Saeed Mahameed
-	<saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>, Tariq Toukan
-	<tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>
-CC: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
-	<davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski
-	<kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Yevgeny Kliteynik
-	<kliteyn@nvidia.com>, <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>
-References: <20261012100555.1317878-1-acassen@corp.free.fr>
- <20261012100555.1317878-3-acassen@corp.free.fr>
+Subject: Re: [PATCH v5 14/38] mm/vma: add vma[_flags]_is_mm_managed()
+ predicates
+To: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ "Liam R. Howlett" <liam@infradead.org>, Vlastimil Babka <vbabka@kernel.org>,
+ Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>,
+ Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>,
+ Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+ Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
+ Paul Moore <paul@paul-moore.com>,
+ Stephen Smalley <stephen.smalley.work@gmail.com>,
+ Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>,
+ Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>,
+ Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>,
+ Kumar Kartikeya Dwivedi <memxor@gmail.com>, Zi Yan <ziy@nvidia.com>,
+ Baolin Wang <baolin.wang@linux.alibaba.com>,
+ Nico Pache <nico.pache@linux.dev>, Ryan Roberts <ryan.roberts@arm.com>,
+ Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>,
+ Lance Yang <lance.yang@linux.dev>, Usama Arif <usama.arif@linux.dev>,
+ Kiryl Shutsemau <kas@kernel.org>, Doug Gilbert <dgilbert@interlog.com>,
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+ "Martin K. Petersen" <mkp@kernel.org>, Simona Vetter <simona@ffwll.ch>,
+ Helge Deller <deller@gmx.de>, Sebastian Reichel <sre@kernel.org>,
+ John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>,
+ Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>,
+ Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@kernel.org>,
+ Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+ Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+ Arnaldo Carvalho de Melo <acme@kernel.org>,
+ Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>,
+ Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>,
+ Juri Lelli <juri.lelli@redhat.com>,
+ Vincent Guittot <vincent.guittot@linaro.org>,
+ Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+ Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>,
+ David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>,
+ "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, Nick Piggin
+ <npiggin@gmail.com>, Arnd Bergmann <arnd@arndb.de>,
+ Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>,
+ "Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+ Marc Zyngier <maz@kernel.org>, Oliver Upton <oupton@kernel.org>,
+ Catalin Marinas <catalin.marinas@arm.com>,
+ Madhavan Srinivasan <maddy@linux.ibm.com>, Anup Patel <anup@brainfault.org>,
+ Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>,
+ Albert Ou <aou@eecs.berkeley.edu>,
+ Christian Borntraeger <borntraeger@linux.ibm.com>,
+ Janosch Frank <frankja@linux.ibm.com>,
+ Claudio Imbrenda <imbrenda@linux.ibm.com>,
+ Alexander Gordeev <agordeev@linux.ibm.com>,
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+ Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
+ "David S. Miller" <davem@davemloft.net>,
+ Andreas Larsson <andreas@gaisler.com>,
+ Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>,
+ Matthew Brost <matthew.brost@intel.com>,
+ Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>,
+ Byungchul Park <byungchul@sk.com>, Gregory Price <gourry@gourry.net>,
+ Ying Huang <ying.huang@linux.alibaba.com>,
+ Alistair Popple <apopple@nvidia.com>, Chris Li <chrisl@kernel.org>,
+ Kairui Song <kasong@tencent.com>, Kemeng Shi <shikemeng@huaweicloud.com>,
+ Nhat Pham <nphamcs@gmail.com>, Baoquan He <baoquan.he@linux.dev>,
+ Youngjun Park <youngjun.park@lge.com>, Johannes Weiner <hannes@cmpxchg.org>,
+ Qi Zheng <qi.zheng@linux.dev>, Shakeel Butt <shakeel.butt@linux.dev>,
+ Axel Rasmussen <axelrasmussen@google.com>, Yuanchu Xie <yuanchu@google.com>,
+ Wei Xu <weixugc@google.com>, Chengming Zhou <chengming.zhou@linux.dev>,
+ Michal Hocko <mhocko@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>,
+ Xu Xin <xu.xin@linux.dev>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+ linux-doc@vger.kernel.org, linux-usb@vger.kernel.org,
+ linux-rdma@vger.kernel.org, selinux@vger.kernel.org,
+ linux-sound@vger.kernel.org, bpf@vger.kernel.org,
+ linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, linux-trace-kernel@vger.kernel.org,
+ linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org,
+ kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org,
+ linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
+ fuse-devel@lists.linux.dev, Ihor Solodrai <ihor.solodrai@linux.dev>,
+ Bert Karwatzki <spasswolf@web.de>
+References: <20261009-b4-mmap-prepare-vma-flag-sanify-v5-0-923b70125b1e@kernel.org>
+ <20261009-b4-mmap-prepare-vma-flag-sanify-v5-14-923b70125b1e@kernel.org>
+From: "David Hildenbrand (Arm)" <david@kernel.org>
 Content-Language: en-US
-From: Moshe Shemesh <moshe@nvidia.com>
-In-Reply-To: <20261012100555.1317878-3-acassen@corp.free.fr>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Autocrypt: addr=david@kernel.org; keydata=
+ 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
+ qIws/H2t
+In-Reply-To: <20261009-b4-mmap-prepare-vma-flag-sanify-v5-14-923b70125b1e@kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: rnnvmail201.nvidia.com (10.129.68.8) To
- rnnvmail201.nvidia.com (10.129.68.8)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SJ1PEPF000037A6:EE_|DS0PR12MB7969:EE_
-X-MS-Office365-Filtering-Correlation-Id: 9e3c50f7-80c7-4486-eb34-08df288b3eb2
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|36860700016|376014|23010399003|82310400026|11063799006|261009223027099003|56012099006|4143699003|18002099003|22082099003|10067099003|41080700001|15866825006;
-X-Microsoft-Antispam-Message-Info:
-	9LwuKNT4e/rmCbN23XBiq2iaUKmevYCo5iuCW0W/hRwJiMuUJ53q9QPkcA1NVoXq6IdBpIWj+KRk+H+fsk6Nzr17LdNBNxma+UIVbEd9dRaACVhOcB4Ucnj18hAHwU7U+wgjD5Cj7Tp7PP1L9ZgnLz3QpVnI/pwDkrMJQVmjZdTKA2kj3+iGVadP6+3e0SACckzistly6rEQdKOQPqIjMIBvpEL9IPRlL3N2TvJNSjSNoIY+tXJn3dw5J7Uq17e7Zzm+TACUyAg65Cjw3UBH1uvhfk3aId+J48b7W+MOb0ei9C8y7stTKmMDpdNY1xqu/o44CFWtVh2O8j/7BYaBcn2BvdyML44TMCp5IK+UupVsK+ikwY7tQ4ZgOldLOAYyP+7f+oE6lzNkqgG9gLQkH2rpi31bKP89liFbPppkCkhYsVlNq5enX3PaJwIIGUmiTAzMzotIkFEtUKTNkTt7iqM46z8Ce8Y7InVqMGV95wjbLrQ+MCyz/95a2pDGv+IV2/LVV7+mY8sKNBXUNnz8i6Fcazgb7O5bX1i/kTv1Aas7G12mq/8Yf88pOO9j/js7nr/W39RzBdIvWnnNMybpMSljNrbQGLyv/vJ4vCqnZa5MEBDyweIHWfq83UpH8Pc0843h9R2pb05p+Vh1sm/nsIcv1Nt8bhtGC5IRdMRoLsD1AL8YXYsCOG108ME1yHresjMXZ3xuvH4zakh3AWvYI7Y8rkkCM9ImbFfjMERAL1ApDF6AWLZtCfusjIE7zIYMPl4HUXtPpaNzriB1GW3qxaJXSFqH4qby4Qil73w79c8=
-X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(36860700016)(376014)(23010399003)(82310400026)(11063799006)(261009223027099003)(56012099006)(4143699003)(18002099003)(22082099003)(10067099003)(41080700001)(15866825006);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	XuqLGyBNyviMK7v+Xx95WQiuFJZQy8FFRwMvxL4XjLNsg9UegpbXxEXFmik+OY1hZu0gRQ6T4gktVraG6ujoLOWwyRrrxvJcptpS3PTz4BVivuVfvbjESILItb1PaPLy+KmeGA9hWjBCP/DX7o/km4Med7BOnMG7z5PoxcPD+bSa12A5uiEPnBxwoCsXCcnLM7UlFFOSwy7tkTMKPo5wXj0TgQ01byb5Cfayx6/le6mXrQEtzxaIw8GEU25dVu0E4bGTUXYQIznQRQarpusZHduYG+5Jrt0dGf3DWWkso1Gi1IlK+6s/5UWgmgcVrHrXkZ82tX4lRIPR6agsHtuEM2tefUN2F+UWMbGfj0BI2s+7usVjEzc2O6VTNVhU9BRDMnNQe7dFWoT3dH5JFCiImKYwVC/XmwNSaAEgWOCHjLvcod6BC+y+gTikXrG2QVYd
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Oct 2026 18:04:22.6095
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 9e3c50f7-80c7-4486-eb34-08df288b3eb2
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	SJ1PEPF000037A6.namprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB7969
 
-
-
-On 10/12/2026 1:05 PM, Alexandre Cassen wrote:
+On 10/9/26 20:04, Lorenzo Stoakes (ARM) wrote:
+> Rather than referring to VMA flags with uncertain meaning, add a new
+> predicate that explicitly describes what absence of the VMA_PFNMAP_BIT and
+> VMA_MIXEDMAP_BIT flags means, and then refer to that function for
+> determining VMA mergeability.
 > 
-> mlx5_cmd_hws_modify_header_alloc() creates a pool at the index after
-> the last one if no pool matches the pattern. TC and CT allocate modify
-> headers concurrently, meaning two callers can take the same index and
-> the second call fails with -EBUSY.
+> If neither of these flags are set, that means the contents of the mapping
+> are managed by core mm.
 > 
-> Its error path also destroys the pool it just created although another
-> caller may already use it. Keep such a pool since cleanup releases it.
+> Otherwise they are instead owned by some other kernel component, usually a
+> driver: the memory may be MMIO, kernel-allocated pages or even ordinary
+> pages the driver maps itself, but core mm must not populate, reclaim,
+> migrate, copy-on-write or merge the range itself.
 > 
-> Pools now live until cleanup so the lookup needs no lock. A miss looks
-> again under a mutex before creating the pool.
+> We initially also treat VMA_IO_BIT as implying a mapping is not mm-managed,
+> as by implication it cannot be. (mlock() also sets VMA_IO_BIT transiently
+> on ordinary VMAs while locking them, which is addressed later in this
+> series.)
 > 
-> Tested for regressions on ConnectX-7 with firmware 28.48.1000.
+> However the intent is to in future remove this, as no mapping should be
+> marked as an I/O mapping without also being marked with VMA_PFNMAP_BIT.
 > 
-> Fixes: b36315ca69cb ("net/mlx5: fs, add HWS modify header API function")
-> Signed-off-by: Alexandre Cassen <acassen@corp.free.fr>
-
-Reviewed-by: Moshe Shemesh <moshe@nvidia.com>
-
-Thanks.
-
+> This forms the basis of further work intended to improve how we express VMA
+> properties such as this.
+> 
+> Also update the VMA userland tests to reflect the change.
+> 
+> No functional change intended.
+> 
+> Reviewed-by: Zi Yan <ziy@nvidia.com>
+> Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+> Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 > ---
->   .../mellanox/mlx5/core/steering/hws/fs_hws.c  | 53 +++++++++++--------
->   .../mellanox/mlx5/core/steering/hws/fs_hws.h  |  1 +
->   2 files changed, 33 insertions(+), 21 deletions(-)
+>  include/linux/mm.h              | 53 ++++++++++++++++++++++++++++++++++++++++-
+>  tools/testing/vma/include/dup.h | 29 +++++++++++++++++++++-
+>  2 files changed, 80 insertions(+), 2 deletions(-)
 > 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c
-> index 66edb42268cb..11cced847186 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c
-> @@ -63,6 +63,7 @@ static int mlx5_fs_init_hws_actions_pool(struct mlx5_core_dev *dev,
->          xa_init(&hws_pool->el2tol3tnl_pools);
->          xa_init(&hws_pool->el2tol2tnl_pools);
->          xa_init(&hws_pool->mh_pools);
-> +       mutex_init(&hws_pool->mh_pools_lock);
->          xa_init(&hws_pool->table_dests);
->          xa_init(&hws_pool->vport_dests);
->          xa_init(&hws_pool->vport_vhca_dests);
-> @@ -111,6 +112,7 @@ static void mlx5_fs_cleanup_hws_actions_pool(struct mlx5_fs_hws_context *fs_ctx)
->          xa_for_each(&hws_pool->mh_pools, i, pool)
->                  mlx5_fs_destroy_mh_pool(pool, &hws_pool->mh_pools, i);
->          xa_destroy(&hws_pool->mh_pools);
-> +       mutex_destroy(&hws_pool->mh_pools_lock);
->          xa_for_each(&hws_pool->el2tol2tnl_pools, i, pool)
->                  mlx5_fs_destroy_pr_pool(pool, &hws_pool->el2tol2tnl_pools, i);
->          xa_destroy(&hws_pool->el2tol2tnl_pools);
-> @@ -1457,6 +1459,23 @@ mlx5_fs_destroy_mh_pool(struct mlx5_fs_pool *pool, struct xarray *mh_pools,
->          kfree(pool);
->   }
-> 
-> +static struct mlx5_fs_pool *
-> +mlx5_fs_find_mh_pool(struct xarray *mh_pools,
-> +                    struct mlx5hws_action_mh_pattern *pattern,
-> +                    unsigned long *cnt)
-> +{
-> +       struct mlx5_fs_pool *pool;
-> +       unsigned long i;
-> +
-> +       *cnt = 0;
-> +       xa_for_each(mh_pools, i, pool) {
-> +               if (mlx5_fs_hws_mh_pool_match(pool, pattern))
-> +                       return pool;
-> +               (*cnt)++;
-> +       }
-> +       return NULL;
-> +}
-> +
->   static int mlx5_cmd_hws_modify_header_alloc(struct mlx5_flow_root_namespace *ns,
->                                              u8 namespace, u8 num_actions,
->                                              void *modify_actions,
-> @@ -1467,33 +1486,28 @@ static int mlx5_cmd_hws_modify_header_alloc(struct mlx5_flow_root_namespace *ns,
->          struct mlx5_fs_hws_mh *mh_data = NULL;
->          struct mlx5hws_action *hws_action;
->          struct mlx5_fs_pool *pool;
-> -       unsigned long i, cnt = 0;
-> -       bool known_pattern;
-> +       unsigned long cnt;
->          int err;
-> 
->          pattern.sz = MLX5_UN_SZ_BYTES(set_add_copy_action_in_auto) * num_actions;
->          pattern.data = modify_actions;
-> 
-> -       known_pattern = false;
-> -       xa_for_each(&hws_pool->mh_pools, i, pool) {
-> -               if (mlx5_fs_hws_mh_pool_match(pool, &pattern)) {
-> -                       known_pattern = true;
-> -                       break;
-> -               }
-> -               cnt++;
-> -       }
-> -
-> -       if (!known_pattern) {
-> -               pool = mlx5_fs_create_mh_pool(ns->dev, &pattern,
-> -                                             &hws_pool->mh_pools, cnt);
-> +       pool = mlx5_fs_find_mh_pool(&hws_pool->mh_pools, &pattern, &cnt);
-> +       if (!pool) {
-> +               mutex_lock(&hws_pool->mh_pools_lock);
-> +               pool = mlx5_fs_find_mh_pool(&hws_pool->mh_pools, &pattern,
-> +                                           &cnt);
-> +               if (!pool)
-> +                       pool = mlx5_fs_create_mh_pool(ns->dev, &pattern,
-> +                                                     &hws_pool->mh_pools, cnt);
-> +               mutex_unlock(&hws_pool->mh_pools_lock);
->                  if (IS_ERR(pool))
->                          return PTR_ERR(pool);
->          }
-> +
->          mh_data = mlx5_fs_hws_mh_pool_acquire_mh(pool);
-> -       if (IS_ERR(mh_data)) {
-> -               err = PTR_ERR(mh_data);
-> -               goto destroy_pool;
-> -       }
-> +       if (IS_ERR(mh_data))
-> +               return PTR_ERR(mh_data);
->          hws_action = mh_data->bulk->hws_action;
->          mh_data->data = kmemdup(pattern.data, pattern.sz, GFP_KERNEL);
->          if (!mh_data->data) {
-> @@ -1509,9 +1523,6 @@ static int mlx5_cmd_hws_modify_header_alloc(struct mlx5_flow_root_namespace *ns,
-> 
->   release_mh:
->          mlx5_fs_hws_mh_pool_release_mh(pool, mh_data);
-> -destroy_pool:
-> -       if (!known_pattern)
-> -               mlx5_fs_destroy_mh_pool(pool, &hws_pool->mh_pools, cnt);
->          return err;
->   }
-> 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.h b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.h
-> index 20cdacd8f12e..cf068fb5bdbf 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.h
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.h
-> @@ -19,6 +19,7 @@ struct mlx5_fs_hws_actions_pool {
->          struct xarray el2tol3tnl_pools;
->          struct xarray el2tol2tnl_pools;
->          struct xarray mh_pools;
-> +       struct mutex mh_pools_lock; /* serializes pool creation */
->          struct xarray table_dests;
->          struct xarray vport_vhca_dests;
->          struct xarray vport_dests;
-> --
-> 2.43.0
-> 
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index 97e1eb4fe3a4..83953757735a 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -1612,6 +1612,41 @@ static inline bool vma_is_shared_maywrite(const struct vm_area_struct *vma)
+>  	return is_shared_maywrite(&vma->flags);
+>  }
+>  
+> +/**
+> + * vma_flags_is_mm_managed() - Do the specified VMA flags indicate that the
+> + * contents of the VMA are managed by core mm?
+> + * @flags: The VMA flags to test.
+> + *
+> + * Such a mapping is one established by a simple mmap() or brk() with no driver
+> + * or other kernel component involved.
+> + *
+> + * They are rmappable, and core mm services rmap operations including reclaim,
+> + * as well as population, CoW and merge/split (if eligible).
 
+I assume ->fault returning some kernel allocations (VM_DONTEXPAND set but none
+of the others) will currently contradict to that. But hopefully we'll clean that
+up in the future (or improve the documentation to cover them as well).
+
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+
+-- 
+Cheers,
+
+David
