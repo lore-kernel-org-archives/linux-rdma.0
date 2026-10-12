@@ -1,62 +1,144 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from vps0.lunn.ch (vps0.lunn.ch [156.67.10.101])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D3F849A3D6
-	for <linux-rdma@vger.kernel.org>; Mon, 12 Oct 2026 15:16:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC80B49B1FF;
+	Mon, 12 Oct 2026 15:21:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=156.67.10.101
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791818211; cv=none; b=FJBtuqMEhXcKaxnm1s+b+4StVsD9yfL7l7uQw9yDMoml3DiHZNt0JAOzyziSACxyrb5mLuKLhBKYfkvTKgceirXhk+pbucx32EoobhPAudf940vVyNp7uueyDOyV9sFy0BDb1DQ+oHUAkE8tk+g+42A4SZfW0/Nauhlj/li53Rw=
+	t=1791818478; cv=none; b=PRNE+TQl4as+x7ZyGfuhtdqEsOXmZ3RdgmR/4CIJTUzX7pCCP5+tZP9mrto/cMrRLjzww5gpZizRVfPvE0V8hGfkHKj8NX3Vjhnm0qqlduikdGOa9DozaUKUwkQpKpZee7sKYIx/mzn5RSe/H9PfdFv4lQRsU2ap0/6gCRri97w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791818211; c=relaxed/simple;
-	bh=lhhudQwR9x8S8Z4R60Y7zpH1g85zL3GK0U70p4JB1sg=;
-	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=o8yIWHJYHsMS08vtAikVK2AeEgy7aNS8X8GcfZhgIqJSBzq1P3SIu2Ki7t94NnzZ/uauALJQKbyayq/sCgXo/reLCmSdTBOQifXmWXx+Zfma5nobBKSTk6jSxhlt0EzgaJ2/7bzLhSak2pgwf36eMXIUnB8tJFExVVtDxrbVaJ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Kg7QF8BU; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791818478; c=relaxed/simple;
+	bh=ycpCiI1Kso8pgVV7aTQnjkF2GotpSaIp+0Wlek1u+pM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=UWLsiFWIFN7EeK9+63uc+WaS9OV637DRPSqp9apX3jtndSNjoL9EbEENd3M4L+X5yR7TgAFg2LxIi10poNJiuUvXfvXkyhsoYmfSrh1Yjp3vJBnwm/KtEGMhAeJmED/tLZ3xsz636Sr0bEACewbMC4Axrx6MHGXoktldPuGu/G4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch; spf=pass smtp.mailfrom=lunn.ch; dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.b=xEy7UmDi; arc=none smtp.client-ip=156.67.10.101
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lunn.ch
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Kg7QF8BU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E80A1F0089B;
-	Mon, 12 Oct 2026 15:16:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791818210;
-	bh=lhhudQwR9x8S8Z4R60Y7zpH1g85zL3GK0U70p4JB1sg=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=Kg7QF8BU2T/k0GLrvd38fdMI8QeyGu9wyzn6QR/VRwzuNBSpuP740ykyO1rS+PYdn
-	 qLV2W7CxjVr7YpdMCk9Ey/486N1uDwyHuJ3fLfO3MCk/JIjc+QoR1uq1HiuvZLo8b9
-	 ZSwAN3FmZvwYB44se9KjBdvBfzcskW28s4s3+fK4AMS4RarkS+6OF7VdWdXbjyo+1p
-	 MFlMpv5VKbMIdb5Zw260Z9/uzIMe7NJvpaiYbZWLWz4bvHEp2D+F2UZ9floZ4MMRiM
-	 hRkTSzm0fr/Yqys2uuL796lKu801X1sIVOn6UbB8FhGOI5UPLy4baAqA6XLxdQrM1O
-	 VS5kGmKtF51GA==
-Message-ID: <sashiko-outbox-168322@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next] net/mlx5: Remove redundant memset after
- kvzalloc
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Sang-Heon Jeon" <ekffu200098@gmail.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261012150311.555104-1-ekffu200098@gmail.com>
-References: <20261012150311.555104-1-ekffu200098@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Mon, 12 Oct 2026 15:16:49 +0000
+	dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.b="xEy7UmDi"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=lunn.ch;
+	s=20171124; h=In-Reply-To:Content-Disposition:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:From:Sender:Reply-To:Subject:
+	Date:Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	Content-ID:Content-Description:Content-Disposition:In-Reply-To:References;
+	bh=Y30aZcmhfSW3cW3UZF1TKGwOZx6lNawDnr5gaKUlFb8=; b=xEy7UmDiK/3QlHWmawceDe/2Vv
+	6S8oMDVWiQ9TivuWl8SZFgRT61BPRUbQ1LR+gBZMI6MnHljzXOXKd+1r/9y9rBKgmntXhgnjCQUwe
+	e00S0PIkP8tn577CtBxNVB7ftVXT48xD2idN+8BbPStHlKY30QqfvFd9t04tMExcsOss=;
+Received: from andrew by vps0.lunn.ch with local (Exim 4.94.2)
+	(envelope-from <andrew@lunn.ch>)
+	id 1xGHpl-00ALtQ-R4; Mon, 12 Oct 2026 17:21:01 +0200
+Date: Mon, 12 Oct 2026 17:21:01 +0200
+From: Andrew Lunn <andrew@lunn.ch>
+To: Xin Tian <tianx@yunsilicon.com>
+Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
+	weihg@yunsilicon.com, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Subject: Re: [PATCH 02/15] yunsilicon: add the register HAL
+Message-ID: <d9d02f67-558f-426f-b3a4-b13bd0a95c0e@lunn.ch>
+References: <20261012114352.2471317-1-tianx@yunsilicon.com>
+ <20261012114354.2471317-3-tianx@yunsilicon.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261012114354.2471317-3-tianx@yunsilicon.com>
 
-> kvzalloc() returns zeroed memory, so the memset after the allocation in
-> mlx5e_post_meter_create_mtu_table() and macsec_fs_tx_create() is
-> redundant.
->=20
-> So remove the memset.
->=20
-> No functional change.
->=20
-> Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
+On Mon, Oct 12, 2026 at 07:43:55PM +0800, Xin Tian wrote:
+> Add the register access layer and the per-device register map: doorbell
+> and interrupt registers, the command queue pointers and the device
+> capability queries that the upper layers call.  The register map is
+> described by xsc_hal.h and implemented for the Andes device.
+> 
+> Signed-off-by: Xin Tian <tianx@yunsilicon.com>
+> ---
+>  .../net/ethernet/yunsilicon/xsc/pci/Makefile  |   2 +-
+>  .../yunsilicon/xsc/pci/hal/andes_impl.c       | 708 ++++++++++++++++++
+>  .../yunsilicon/xsc/pci/hal/andes_reg.h        |  43 ++
+>  .../ethernet/yunsilicon/xsc/pci/hal/xsc_hal.h |  85 +++
+>  .../net/ethernet/yunsilicon/xsc/pci/main.c    |   3 +
+>  5 files changed, 840 insertions(+), 1 deletion(-)
+>  create mode 100644 drivers/net/ethernet/yunsilicon/xsc/pci/hal/andes_impl.c
+>  create mode 100644 drivers/net/ethernet/yunsilicon/xsc/pci/hal/andes_reg.h
+>  create mode 100644 drivers/net/ethernet/yunsilicon/xsc/pci/hal/xsc_hal.h
+> 
+> diff --git a/drivers/net/ethernet/yunsilicon/xsc/pci/Makefile b/drivers/net/ethernet/yunsilicon/xsc/pci/Makefile
+> index c163aa950..81b65232e 100644
+> --- a/drivers/net/ethernet/yunsilicon/xsc/pci/Makefile
+> +++ b/drivers/net/ethernet/yunsilicon/xsc/pci/Makefile
+> @@ -6,4 +6,4 @@ ccflags-y += -I$(srctree)/drivers/net/ethernet/yunsilicon/xsc
+>  
+>  obj-$(CONFIG_YUNSILICON_XSC_PCI) += xsc_pci.o
+>  
+> -xsc_pci-y := main.o
+> +xsc_pci-y := main.o hal/andes_impl.o
+> diff --git a/drivers/net/ethernet/yunsilicon/xsc/pci/hal/andes_impl.c b/drivers/net/ethernet/yunsilicon/xsc/pci/hal/andes_impl.c
+> new file mode 100644
+> index 000000000..46fc045f9
+> --- /dev/null
+> +++ b/drivers/net/ethernet/yunsilicon/xsc/pci/hal/andes_impl.c
+> @@ -0,0 +1,708 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/* Copyright (C) 2024 - 2026, Shanghai Yunsilicon Technology Co., Ltd.
+> + * All rights reserved.
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/pci.h>
+> +#include "andes_reg.h"
+> +#include "common/xsc_core.h"
+> +#include "common/xsc_cmd.h"
+> +#include "common/xsc_hsi.h"
+> +#include "common/xsc_reg.h"
+> +#include "xsc_hal.h"
+> +
+> +/* message opcode */
+> +enum {
+> +	XSC_MSG_OPCODE_SEND		= 0,
+> +	XSC_MSG_OPCODE_RDMA_WRITE	= 1,
+> +	XSC_MSG_OPCODE_RDMA_READ	= 2,
+> +	XSC_MSG_OPCODE_MAD		= 3,
+> +	XSC_MSG_OPCODE_RDMA_ACK		= 4,
+> +	XSC_MSG_OPCODE_RDMA_ACK_READ	= 5,
+> +	XSC_MSG_OPCODE_RDMA_CNP		= 6,
+> +	XSC_MSG_OPCODE_RAW		= 7,
+> +	XSC_MSG_OPCODE_VIRTIO_NET	= 8,
+> +	XSC_MSG_OPCODE_VIRTIO_BLK	= 9,
+> +	XSC_MSG_OPCODE_RAW_TPE		= 10,
+> +	XSC_MSG_OPCODE_INIT_QP_REQ	= 11,
+> +	XSC_MSG_OPCODE_INIT_QP_RSP	= 12,
+> +	XSC_MSG_OPCODE_INIT_PATH_REQ	= 13,
+> +	XSC_MSG_OPCODE_INIT_PATH_RSP	= 14,
+> +
+> +	XSC_MSG_OPCODE_UNSUPPORT	= -1,
+> +};
+> +
+> +#define REG_ADDR(bp, offset)	((bp) + (offset))
+> +
+> +static void xsc_read32(void __iomem *bar, u32 off, void *data, int len)
+> +{
+> +	u32 val = readl(REG_ADDR(bar, off));
+> +
+> +	memcpy(data, &val, len);
 
-Sashiko has reviewed this patch and found no issues. It looks great!
+Why memcpy. Probably because the types are messed up.
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261012150311.5551=
-04-1-ekffu200098@gmail.com?part=3D1
+> +}
+> +
+> +static void xsc_write32(void __iomem *bar, u32 off, void *data)
+> +{
+> +	writel(*(u32 *)data, REG_ADDR(bar, off));
+> +}
 
+Please sort out your types. You should not be passing a void *. Pass
+u32 *. Casts are a red flag, they are generally not needed and
+normally indicate bad design.
+
+	Andrew
