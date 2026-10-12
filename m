@@ -1,70 +1,69 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37DAF30C165;
-	Mon, 12 Oct 2026 07:30:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78CDD3E024D;
+	Mon, 12 Oct 2026 07:53:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791790252; cv=none; b=G+t+tRrq2agqpEzssfvz4cPEoYRxsncYWm8Mb0g7y+Bq+laF3S6qxOWFQEXgl/u+HC5euv2XtB/q7YWLFstuRzYtj8FRZ8rxzK/Ls0EimaMPwqnPC/axoxaTZNZTgnXdWoKiKvv2/tYA1HQ2wg+C8DXaHw3dPLrjd6+g1x8/YXQ=
+	t=1791791623; cv=none; b=sCF77yath4/jJL/tbjopBrUa/q45lUBH6buT9tyX7Qi1tTln+oqJGrnZNe5+HGPSWtBo4GaRsIhJ/TeSMMgELmyAiSgpxbE9sJcu1WdKojZzy0sZ7HsS5VVl9ngfdE5P7qM4p10awl1O2jJjvq6zkTOucdYmXzVeg0MxBiNuCVk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791790252; c=relaxed/simple;
-	bh=8Nic7KkNK/jraCD1kbmgZjSMOsxJwVHdWGrriEu6jsE=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=jH0DxZmDrO3yxm8qaINerOKnzneruqnkqKWDSaOvF7DLVz34kPlWPpQTeH2RZtt7QdooLkSu+F6T10+fvzJrvNR1OOttNP9p41vRWqlw+3m//weKwrh1aWDQjkLCuaRKinv/iTz23m1xx7aK7ppEhqJZWYEkMGs1ZmofHf+BIOE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DuVU+rNv; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791791623; c=relaxed/simple;
+	bh=Mp3af3DUjSlGf+Yabe6tfJyxoYJfVX7iuIoKxqEbOVc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=T7EX9JFEF+G7KuqKro9AjrsTjmkHyMcX1F/c79Qf0UkxBp2nNyvJnhIyKkQwYEi7GY4baExzFqRbXDNxLOu38f91YXIIkpzBqXxdI6LcarJuSXAa6OOKQV4JcI+Yroh3Wa7qMrFtwkDYuKWL4+lLDYu//VAFBITUG1X8L8l1Zio=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Mo25ptoR; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DuVU+rNv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 458A11F0089B;
-	Mon, 12 Oct 2026 07:30:50 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Mo25ptoR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61F321F0089B;
+	Mon, 12 Oct 2026 07:53:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791790250;
-	bh=7YeyenG+qo9FfPzJ5fCyicXBqI24WShG/Wjla3YC59Y=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=DuVU+rNvWozMHOrudMudnsHOTx1oMdn2Ztc1eMw2JXUKXWHSdufh1ELMvfcqBAnjI
-	 wn4udI9NbvQFi83P+bkBz3gGMi1Oq8fdL1mENwUkUUhSTAZ/d9iyHVo60a+R0UeXBR
-	 0batRK0z7XHGjpb5nPuo6xXFmMR+sYOxdNRuDA+vYX3WcmzHaDo14BHOH4aThLJQbk
-	 +U7oo//1K26LUonxuexgZPHrMMqj2ZBSRHkm5cNXRlChYvpPl6mDTdbpI2HOIWH6+W
-	 lhP80enwGQQeId1xGLAYP79k8CrRtbM8UuHwpEiB4Kj5FQ6CgPYTXNL2xQ9AtLuAm8
-	 Qh2tfgMDccmcg==
+	s=k20260515; t=1791791622;
+	bh=b4yNuSLl8k5GH73j18Gm/oMFF2vw/gWuwsjeYE0/kyE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=Mo25ptoR2Uc/R/JX8KAD2Y9WXYivUPepbZB0wxkh/4KS7IBNgZoT2U+nNiLVQUCgC
+	 figB52VHKbJPP8RNFtUexVaRPugJ1PUZAtWa89pssDM1aQoSyZExZgwJ54hWtDUQty
+	 CJYNZJApDAfZY8ziAJ9tJZlpIxgW7AAyciZo5NOP0H6Bd9CXdCzeaycCLc6N60M+fJ
+	 WtONNyo2tkX1zM+5Mqvfbd+eemoMdaMREHhKfDRtejtUrsYRDuV7KXIryOx4MlUYTa
+	 pkHglHkCl1gkqmfRcNy8YxzkiouSm2HRInFIioKZ1LYOdumsJmcYUYKEhSniK4qJgF
+	 Dq7ElIff2q8pw==
+Date: Mon, 12 Oct 2026 10:53:37 +0300
 From: Leon Romanovsky <leon@kernel.org>
-To: Tariq Toukan <tariqt@mellanox.com>, 
- Saeed Mahameed <saeedm@mellanox.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
- Prathamesh Deshpande <prathameshdeshpande7@gmail.com>
-Cc: saeedm@nvidia.com, tariqt@nvidia.com
-In-Reply-To: <20261007234216.2765-1-prathameshdeshpande7@gmail.com>
-References: <20261007234216.2765-1-prathameshdeshpande7@gmail.com>
-Subject: Re: [PATCH rdma] RDMA/mlx5: Cancel deferred page-fault EQ work
- before teardown
-Message-Id: <179179024771.3817733.15753630766032234503.b4-ty@kernel.org>
-Date: Mon, 12 Oct 2026 03:30:47 -0400
+To: Prathamesh Deshpande <prathameshdeshpande7@gmail.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>,
+	Haggai Eran <haggaie@mellanox.com>, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH rdma] RDMA/mlx5: Cancel software CQ notifications before
+ teardown
+Message-ID: <20261012075337.GA219304@unreal>
+References: <20261008141209.6923-1-prathameshdeshpande7@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-18f8f
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261008141209.6923-1-prathameshdeshpande7@gmail.com>
 
-
-On Thu, 08 Oct 2026 00:42:11 +0100, Prathamesh Deshpande wrote:
-> Page-fault EQ work can remain queued after the notifier is disabled.
-> Destroying the EQ before cancelling that work can let the worker access
-> freed EQ memory.
+On Thu, Oct 08, 2026 at 03:12:02PM +0100, Prathamesh Deshpande wrote:
+> GSI completions queue notify_work to invoke the CQ completion handler.
+> CQ destruction drains hardware events and core polling, but does not
+> cancel this software notifier. Queued or running work can therefore
+> access a freed CQ, or restart polling after ib_free_cq() has drained it.
 > 
-> Cancel the deferred work before destroying the EQ.
+> Cancel notify_work in the pre-destroy callback, before core polling is
+> stopped and CQ memory is released. Skip user CQs, which do not initialize
+> this work item.
 > 
-> 
-> [...]
+> Fixes: 25361e02c448 ("IB/mlx5: Generate completions in software")
+> Signed-off-by: Prathamesh Deshpande <prathameshdeshpande7@gmail.com>
+> ---
+>  drivers/infiniband/hw/mlx5/cq.c | 3 +++
+>  1 file changed, 3 insertions(+)
 
-Applied, thanks!
+I applied the patch because the change is worthwhile, but the description is
+incorrect. GSI is handled internally by mlx5 CQs and QPs and is stopped
+before the CQ is destroyed.
 
-[1/1] RDMA/mlx5: Cancel deferred page-fault EQ work before teardown
-      https://git.kernel.org/rdma/rdma/c/aea64024ac37d2
-
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
-
+Thanks
