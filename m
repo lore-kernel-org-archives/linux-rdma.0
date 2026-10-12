@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1CFB49362B;
-	Mon, 12 Oct 2026 14:42:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11A2348F856;
+	Mon, 12 Oct 2026 14:42:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791816141; cv=none; b=m4Y7GWEjBigEcn9BOe7PPUtnI7kSOY4Bkmw+t52OmxtFJVzbaU8SzI6+vm257rArTeW8ZQA4UfvpfUB3GjHvbQlDBGBxgk6wM9Vgyagl/bWKZQiSjvnOWiiAzyKyiHfJOD/RW1TRXjdj7k4vdFxf2z7euKMrDFLormMuFv9rpSA=
+	t=1791816143; cv=none; b=rSKeSYXJ15NPCrgR+PuF/ILgpJ3MtwoO7YVlxBOIabv6/5QKsDhf5dsP8X/rbDGaV2nE2XLhFPngb8C2SkKyQsUh+wuSHAPh/6WLl6xq5YyVOBBLwz2MrZO1m4DvOmuZU4NmzaSbF1uUlDjtT73Wp+dGIJ849ThXtFQBFRCGlCY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791816141; c=relaxed/simple;
-	bh=KVM0UOsz3lnP/P8hPW5xi4RcWTRta/GqFVQB34QNQN4=;
+	s=arc-20240116; t=1791816143; c=relaxed/simple;
+	bh=1lQvQwvjWy67EpJChMqUQ8ieh9OoI2R7zYjYkx4oYpA=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=KzvD6OvPo1PLCpqOGCrFlOwtxpj+pkndqz0PEs1z6cembyOKg8qme97jag4OAvuGlprcR14MPYz0SjACeDa/oZBJpA7u8rfANJSBLpuerzXOrHsOtxMNGDd9Kha/jUv/dgw9glJDMurKIsH13bZmOs9+WEnnysLw4m9g6dZIRA0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JDVuJgwu; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=iOHTORBZdHRPiQBYJAY/OZ03uNw37yk7eeiWGQ+tIhX/PWHNhd1EgjZnbwu/LGpLCDAtbv99wt+hGSeTYoYSYo/6gUJY9BIsulKXG7bjr7kV67PqlAoTZzOrAmMbDUVqXUHWMpcW2tf5mPEymBZiPJ+1DS0c6gWIOG7oiZNqWTc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YG05CT7i; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JDVuJgwu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39DC91F0089B;
-	Mon, 12 Oct 2026 14:42:18 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YG05CT7i"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42D0D1F0089C;
+	Mon, 12 Oct 2026 14:42:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791816139;
-	bh=5dFzDnbDCnWU5n6vqYyXM/lXHbkM5jaAnlYNaSN2O9g=;
+	s=k20260515; t=1791816141;
+	bh=9kkg6vVzXjctboclnlhLJzLnBK/wncsMNmzmF3tNzJ0=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=JDVuJgwuCFHeG51yfl6MOzg5xu2MUQ+w16zTtFhh9FwSznk1d/jGjxbE2Xmac6R3j
-	 rq5cPx05vDprvqtlFqeoFRPFuWDSCT+4wqsx44x4TqhksIt32ltn6vnS3m/Jbl/580
-	 4C537DgR3SjaEkUj6lJUjLp2nGZTg2Uq42+txCnCzi4y56/nIAL06F10NtL0r92FlV
-	 nJIeH5xjNZB+42h5VhBX7ijQdQ9MZrzQQukZ8OYdfZitZS2br2g9cztyvcX6g4mb8y
-	 dqqKhzTpU6o6nxiBe+JJEgq71BXNbZwBvNQDBlithFDOxYvd5mLnTIENgR+6pUkFm/
-	 Tdb4JGkelE+7Q==
-Subject: Re: [PATCH net-next 09/10] net: devmem: add
- netdev_has_dmabuf_binding() helper
+	b=YG05CT7iL2YX+wrgdCg1eZO6LYDiLbUSmtURE6Ohc8zpBoUW2ZlltePUA8ohqtOm7
+	 oBrSy92Eny4V0Ek1C8qTvWX1vfjqLDPIktbADAsCvtOhbA9vf1UEV/CB6brCuVX7KR
+	 Pa+y4JxKUZqjMPSUHeboYdJcAnPJyN1hcIt0n57bTgA6c+ZqpHFxu75lqgStdV3rnN
+	 wXc5gIPNdIM3SvJXdqQO/M3WpFpY7ViGr5lMzH/nHvK2VIuWtv4+aNVlzheh8V5DZl
+	 VvZtj9eJuf+NHF9ctQgeCQTEEgmZJktJietnmyEM49snP1GA5wn4jxnwO5H8TPs7RF
+	 L/wdxxGUQIDqQ==
+Subject:
+ Re: [PATCH net-next 10/10] net/mlx5e: Enable the data direct netdev feature
 From: netdev-bot+sashiko@kernel.org
 To: tariqt@nvidia.com
 Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
@@ -40,10 +40,10 @@ Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
  saeedm@nvidia.com, shivajikant@google.com, horms@kernel.org, sdf@fomichev.me,
  sdf.kernel@gmail.com, witu@nvidia.com, yuehaibing@huawei.com,
  bobbyeshleman@gmail.com
-Date: Mon, 12 Oct 2026 14:42:17 +0000
-Message-ID: <179181613781.434549.18105765033301114179@kernel.org>
-In-Reply-To: <20261008132815.654147-10-tariqt@nvidia.com>
-References: <20261008132815.654147-10-tariqt@nvidia.com>
+Date: Mon, 12 Oct 2026 14:42:19 +0000
+Message-ID: <179181613986.434549.15185486433326152669@kernel.org>
+In-Reply-To: <20261008132815.654147-11-tariqt@nvidia.com>
+References: <20261008132815.654147-11-tariqt@nvidia.com>
 X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -57,7 +57,7 @@ MIME-Version: 1.0
 Thank you for your contribution! Sashiko AI review found 3 potential
 issue(s) to consider.
 
-Critical: 0 · High: 1 · Medium: 1 · Low: 1
+Critical: 0 · High: 2 · Medium: 1 · Low: 0
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -65,185 +65,192 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [High] netdev_has_dmabuf_binding() matches only on `dev ==
-  READ_ONCE(binding->dev)`.
-- [Medium] netdev_has_dmabuf_binding() compares the caller's net_device
-  pointer with binding->dev for every binding on…
-- [Low] The kernel-doc for netdev_has_dmabuf_binding() in
-  include/net/netmem.h says without qualification that 'A binding is…
+- [High] set_pflag_data_direct()
+  (drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c:2431) is meant…
+- [High] Before this commit, set_pflag_data_direct() always returned
+  -EOPNOTSUPP, so the body of mlx5e_data_direct_event() never ran.
+- [Medium] This commit makes mlx5e_data_direct_event() reachable, and
+  that handler throws away the return value of…
 
 --
 
-net: devmem: add netdev_has_dmabuf_binding() helper
+net/mlx5e: Enable the data direct netdev feature
 
-This adds netdev_has_dmabuf_binding(). It reports whether a devmem dmabuf
-binding exists for a given netdev, and can also filter on the DMA device
-the dmabuf was attached to. Bindings can outlive their xarray slot, so each
-one now stays on a new global live list until it is freed.
+This commit adds the setter for the mlx5e data_direct private flag, which
+turns the data direct feature on. It also refuses to change the flag while
+dmabufs are bound to the netdev.
 
-> diff --git a/include/net/netmem.h b/include/net/netmem.h
-> index 0cc8572f62caf..8bcf44f43d175 100644
-> --- a/include/net/netmem.h
-> +++ b/include/net/netmem.h
-> @@ -387,16 +387,39 @@ static inline unsigned long netmem_get_dma_addr(netmem_ref netmem)
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
+> index b3eced1dd43fd..8ab1150ce3f20 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
 
 [ ... ]
 
-> +/**
-> + * netdev_has_dmabuf_binding - is there a dmabuf binding for a
-> + * given @dev and @dma_dev
-> + *
-> + * @dev: netdev to check bindings
-> + * @dma_dev: dma device to check, when NULL it will not be checked
-> + *
-> + * A binding is reported until its last reference is dropped, which can be
-> + * long after the user unbound it: net_iovs of a TX binding can still be
-> + * queued in flight, with DMA mappings that are only valid for @dma_dev.
-
-[Severity: Low]
-Is this also true for RX bindings?
-
-netdev_has_dmabuf_binding() matches on binding->dev. For RX bindings,
-mp_dmabuf_devmem_uninstall() clears that field when the last bound queue
-goes away:
-
-net/core/devmem.c:mp_dmabuf_devmem_uninstall() {
-    ...
-			if (xa_empty(&binding->bound_rxqs)) {
-				mutex_lock(&binding->lock);
-				ASSERT_EXCLUSIVE_WRITER(binding->dev);
-				WRITE_ONCE(binding->dev, NULL);
-				mutex_unlock(&binding->lock);
-			}
-    ...
-}
-
-This can happen on netdev unregister through dev_memory_provider_uninstall().
-It can also happen on lease teardown through netif_rxq_cleanup_unlease().
-
-After that, the netlink socket, page pools or user-held devmem tokens can
-still hold references to the binding. Its sgt is also still mapped against
-attachment->dev. Even so, the helper no longer reports the binding for any
-netdev.
-
-The helper also walks RX bindings without checking binding->direction.
-
-Should the kernel-doc, and the commit message's "track bindings for their
-whole lifetime", say that this only applies to TX bindings?
-
-> + *
-> + * Return: true if a binding is found under @dev and possibly @dma_dev
-> + */
-> +bool netdev_has_dmabuf_binding(struct net_device *dev, struct device *dma_dev);
-
-[ ... ]
-
-> diff --git a/net/core/devmem.c b/net/core/devmem.c
-> index 07c62e2e3088c..173d66d1cb6e2 100644
-> --- a/net/core/devmem.c
-> +++ b/net/core/devmem.c
-
-[ ... ]
-
-> @@ -357,6 +368,25 @@ struct net_devmem_dmabuf_binding *net_devmem_lookup_dmabuf(u32 id)
->  	return binding;
->  }
+> @@ -2402,7 +2403,40 @@ static int set_pflag_tx_port_ts(struct net_device *netdev, bool enable)
 >  
-> +bool netdev_has_dmabuf_binding(struct net_device *dev, struct device *dma_dev)
-> +{
-> +	struct net_devmem_dmabuf_binding *binding;
-> +	bool found = false;
+>  static int set_pflag_data_direct(struct net_device *netdev, bool enable)
+>  {
+> -	return -EOPNOTSUPP;
+> +	struct mlx5e_priv *priv = netdev_priv(netdev);
+> +	struct mlx5_core_dev *mdev = priv->mdev;
+> +	struct mlx5e_params new_params;
 > +
-> +	spin_lock(&net_devmem_live_bindings_lock);
-> +	list_for_each_entry(binding, &net_devmem_live_bindings, live_list) {
-> +		if (dev == READ_ONCE(binding->dev) &&
-> +		    (!dma_dev || binding->attachment->dev == dma_dev)) {
+
+[ ... ]
+
+> +	/* Changing the flag reopens the channels with a different DMA device,
+> +	 * which would break any dmabuf currently bound to this netdev.
+> +	 */
+> +	if (netdev_has_dmabuf_binding(netdev, NULL)) {
+> +		netdev_err(netdev, "Can't change data_direct while dmabufs are bound\n");
+> +		return -EBUSY;
+> +	}
 
 [Severity: High]
-Can this miss RX bindings made on a leased queue?
+Does this check catch every memory provider that can be installed on an
+mlx5 RX queue?
 
-netdev_nl_bind_rx_doit() stores the netdev the user named by ifindex as
-binding->dev:
+netdev_has_dmabuf_binding() only walks net_devmem_live_bindings and
+matches on binding->dev:
 
-net/core/netdev-genl.c:netdev_nl_bind_rx_doit() {
+net/core/devmem.c:netdev_has_dmabuf_binding() {
     ...
-	binding = net_devmem_bind_dmabuf(netdev, NULL, dma_dev, DMA_FROM_DEVICE,
-					 dmabuf_fd, niov_shift, priv,
-					 info->extack);
+	list_for_each_entry(binding, &net_devmem_live_bindings, live_list) {
+		if (dev == READ_ONCE(binding->dev) &&
+		    (!dma_dev || binding->attachment->dev == dma_dev)) {
     ...
 }
 
-When that netdev is a virtual leasee such as netkit, the rest of the setup
-still points at the physical NIC:
+This seems to miss two cases.
 
-  - netdev_queue_get_dma_dev() follows the lease and returns the physical
-    queue's DMA device. The dmabuf is attached and mapped against it.
+The first is a devmem RX binding made through a leased queue. In
+netdev_nl_bind_rx_doit(), net_devmem_bind_dmabuf() is called with the
+leasee netdev, so binding->dev is the virtual device. The dma_dev still
+comes from mlx5e_queue_get_dma_dev() through the lease, and
+netif_mp_open_rxq() installs the provider on the physical mlx5 rxq.
 
-  - netif_mp_open_rxq() installs the memory provider on the physical RX
-    queue through __netif_get_rx_queue_lease(..., NETIF_VIRT_TO_PHYS).
+The second is io_uring zcrx. zcrx_register_netdev() does:
 
-The physical driver then fills its RX rings with net_iov DMA addresses
-that are only valid for that dma_dev. But
-netdev_has_dmabuf_binding(phys_netdev, ...) returns false, because
-binding->dev is the netkit device.
+	ifq->dev = netdev_queue_get_dma_dev(ifq->netdev, if_rxq, NETDEV_QUEUE_TYPE_RX);
 
-TX doesn't have this problem, because netdev_nl_bind_tx_doit() stores the
-physical bind_dev in binding->dev and the virtual device in vdev.
+It then maps its area for that device and installs io_uring_pp_zc_ops
+with netif_mp_open_rxq(). It never adds anything to
+net_devmem_live_bindings.
 
-The only caller in the series is set_pflag_data_direct() in
-drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c:
-
-    if (netdev_has_dmabuf_binding(netdev, NULL)) {
-
-For a leased RX binding this check doesn't fire, so
-mlx5e_safe_switch_params() goes ahead and reopens the channels. The queue
-still has its mp installed, so this code in mlx5e_open_channel():
+In both cases the flag change is accepted and mlx5e_safe_switch_params()
+reopens the channels. mlx5e_open_channel() then does:
 
 	data_direct = MLX5E_GET_PFLAG(params, MLX5E_PFLAG_DATA_DIRECT) &&
 		      netif_rxq_has_unreadable_mp(netdev, ix);
 
-would use the other DMA device with IOVAs that were mapped for the old one.
+That is true for any unreadable provider, so the RQ switches between the
+PF MTT UMR mkey and the data direct KSM crossing mkey. The page pool
+netmems still hold IOVAs mapped for the old DMA device, and
+mlx5e_alloc_rx_mpwqe() writes them into the KSM/MTT entries:
 
-Could that cause IOMMU faults? Or could RX DMA land wherever those IOVAs
-point in the other domain?
+	if (test_bit(MLX5E_RQ_STATE_DATA_DIRECT, &rq->state))
+		umr_wqe->inline_ksms[i] = (struct mlx5_ksm) {
+			.key = rq->mpwqe.ksm_child_mkey_be,
+			.va  = cpu_to_be64(addr),
 
-For RX bindings, should the lookup also match the physical device behind
-a lease?
+Could the NIC then DMA to IOVAs resolved through the other function's
+IOMMU domain? That would mean IOMMU faults, or writes into unrelated pages
+if the same IOVA happens to be mapped there.
+
+The commit message says "Do not allow state changes while dmabufs are
+still bound to the netdev". Should the setter also refuse the change when
+any RX queue has a memory provider installed? One way would be to check
+netif_rxq_has_unreadable_mp() for each queue below real_num_rx_queues.
+
+> +
+> +	new_params = priv->channels.params;
+> +	MLX5E_SET_PFLAG(&new_params, MLX5E_PFLAG_DATA_DIRECT, enable);
+> +
+> +	return mlx5e_safe_switch_params(priv, &new_params, NULL, NULL, true);
+
+[Severity: High]
+Before this patch, set_pflag_data_direct() always returned -EOPNOTSUPP,
+so the body of mlx5e_data_direct_event() never ran. Now that the flag can
+be set, what keeps the dmabuf invariant when the data direct PCI function
+unbinds?
+
+While the flag is set, mlx5e_queue_get_dma_dev() returns the data direct
+device:
+
+	dd_dev = mlx5_data_direct_get_dev(mdev->data_direct);
+	if (dd_dev)
+		pdev = &dd_dev->pdev->dev;
+
+So devmem bindings and zcrx areas created during that time are attached
+to, and mapped for, the data direct function.
+
+On sysfs unbind or hot-unplug the call chain is:
+
+mlx5_data_direct_remove()
+  mlx5_data_direct_dev_unreg()
+    mlx5_data_direct_do_unbind()
+      mlx5e_data_direct_event()
+        mlx5e_safe_switch_params()
+
+mlx5e_data_direct_event() clears the flag and reopens the channels. It
+does not call netdev_has_dmabuf_binding() or
+netif_rxq_has_unreadable_mp(), and it does not revoke anything:
+
+	MLX5E_SET_PFLAG(&new_params, MLX5E_PFLAG_DATA_DIRECT, false);
+	mlx5e_safe_switch_params(priv, &new_params, NULL, NULL, true);
+
+rxq->mp_params is left in place. Would the recreated PF RQs keep posting
+net_iovs whose DMA addresses come from the data direct function's IOMMU
+domain?
+
+After the notifier returns, mlx5_data_direct_remove() continues with:
+
+	mlx5_data_direct_dev_unreg(dev);
+	pci_disable_device(pdev);
+	kfree(dev->vuid);
+	kfree(dev);
+
+It does not wait for the outstanding attachments. Later, the deferred
+__net_devmem_dmabuf_binding_free() calls
+dma_buf_unmap_attachment_unlocked() on an attachment whose device is the
+removed function.
+
+An earlier commit in this series, "net/mlx5e: Recreate netdev channels on
+data direct device unbind", acknowledges the IOMMU faults and says a
+devmem revoke hook is needed. No later commit in the series adds one.
+Should the flag stay disabled until that revoke path exists?
 
 [Severity: Medium]
-For TX bindings, could this pointer comparison match a stale binding->dev?
+This patch also makes the error handling in mlx5e_data_direct_event()
+reachable. The handler ignores the return value of
+mlx5e_safe_switch_params() and returns NOTIFY_OK:
 
-net_devmem_bind_dmabuf() sets binding->dev = dev without taking a netdev
-reference, and netdev_nl_bind_tx_doit() doesn't take one either. The only
-later write to the field is WRITE_ONCE(binding->dev, NULL) in
-mp_dmabuf_devmem_uninstall(). That only runs for RX queues with an
-installed memory provider.
+	mlx5e_safe_switch_params(priv, &new_params, NULL, NULL, true);
+	netdev_info(priv->netdev,
+		    "data_direct device unbound, disabled data_direct\n");
 
-With this patch, TX bindings stay on net_devmem_live_bindings until their
-last percpu ref is dropped. That only happens once the owning netlink
-socket is closed and all in-flight skbs are freed.
+Suppose the interface is open and mlx5e_safe_switch_params() fails in
+kzalloc_obj() or mlx5e_open_channels(). priv->channels is then left
+unchanged. MLX5E_PFLAG_DATA_DIRECT stays set, and the old RQs/SQs keep
+their data direct state, their KSM crossing mkeys and their page pools
+mapped for the data direct device.
 
-If the netdev is unregistered and freed before then, the list entry keeps
-a dangling net_device pointer. An mlx5 driver rebind or a devlink reload
-could do that.
+mlx5_data_direct_remove() then goes on to pci_disable_device() and
+kfree(dev). Would the live queues still be routing DMA through a disabled
+PCI function at that point?
 
-If a new net_device is later allocated at the same address,
-netdev_has_dmabuf_binding(new_netdev, NULL) would return true for a
-binding that belongs to the old device. set_pflag_data_direct() would then
-keep returning -EBUSY for as long as the old netlink socket stays open.
+mlx5_data_direct_do_unbind() has also already done:
 
-The stale TX binding->dev was already there before this patch. What this
-patch adds is using it as a lookup key for the whole binding lifetime.
+	WRITE_ONCE(reg->dd.dev, NULL);
 
-> +			found = true;
-> +			break;
-> +		}
-> +	}
-> +	spin_unlock(&net_devmem_live_bindings_lock);
-> +
-> +	return found;
-> +}
-> +EXPORT_SYMBOL_GPL(netdev_has_dmabuf_binding);
+Because the flag is stale, mlx5e_queue_get_dma_dev() still takes the data
+direct branch. It returns NULL instead of falling back to ch->pdev, so new
+zero-copy bindings would fail until someone clears the flag by hand.
+
+On this forced path, should a failure take the affected channels down, or
+otherwise make sure the data direct path is gone, before PCI teardown
+continues?
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261008132815.654147-1-tariqt%40nvidia.com
