@@ -1,69 +1,101 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 744A2485CE4
-	for <linux-rdma@vger.kernel.org>; Mon, 12 Oct 2026 10:32:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E5DB348C7C;
+	Mon, 12 Oct 2026 10:40:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791801157; cv=none; b=GgmSx+hLcN6gLuxZux7qF2iDg/PXJ5ymC4LHC9tXfju0bva1hjSFR1RNL+1M9/YvfoeHxFKJEchRrGUzqZALqh+9gmh5GW7v6m/Rq/6O/S+jzJ2WXLCbBQ1zTZ9OGgxUDbNe7+HfhM2//DzYxeCrEXH51bpeqxrOAoyuXSOTdYw=
+	t=1791801643; cv=none; b=m6GSwdiBRx2J4pcGcaffch+AironYzY4e3TWyso0SiAaULwKa235YMJCHkbe1EKkLywTBFThMUmdTvpW0FX2WwkPQf7iFU/5ETyD5D26BIuIscrKM1ZXNi6j05gtpU1aoZAUHcBeoaT/hnTirKbzr4ADlQNVJKwyLrQF/++nxno=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791801157; c=relaxed/simple;
-	bh=1BAXS/xmbw2IsIzfgbjoOHUhELqzfdfWfeg2MSCkipU=;
-	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=d83/W6SDUHUXQfhYvWpUJ29/gfoMkf9fy/t2KIot3Oj1o9OJDdJx2dmNEHjAaIdYpqvNOmUQCBKY8nhv5praukcO7ydYs+yMU77/coRhw78J0wN4woVZ7TVfYNks0oQT1ESC2l/A0lTzlljeagdEACGRzde6g81Koe9h0eysHZM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mMZZ/S1B; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791801643; c=relaxed/simple;
+	bh=0lqlHCY1i9/hvpDM/SFAMnNmI36PW0atq9twP1Ql5UU=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=qsxptKN3xohcNP64E1j/SZDc7fKXHDG7Fbt0qWO1Ct5XgHrZsgOgGeZvHWWu5xMoqfQzti6IL5qRBk6xsQDiekUm0kiHe9xMnVoHumdpySJde/sk016bttKHUFLfeiyrGme1kI+Ere6g0MqvlnyOCUNjKCgQoniDCIE8yXhJpSg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HrZ+jots; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mMZZ/S1B"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C22121F0089C;
-	Mon, 12 Oct 2026 10:32:21 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HrZ+jots"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EED301F0089F;
+	Mon, 12 Oct 2026 10:40:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791801141;
-	bh=1BAXS/xmbw2IsIzfgbjoOHUhELqzfdfWfeg2MSCkipU=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=mMZZ/S1Bs5fFrBvxb7uzgvvnhCbXuX9yv8laEQO4PvIxsC6XvPrF9hes6Q2wJHEzX
-	 7k2Si7fqLxVJUYTottBZCoWeDaSW9nUCWoE68CKiZyCFU0p0Jiw7NGyBr9EuZOGwxJ
-	 J6V+hFFZdOvmG2yBWKAwKd4zClT0JVqHUVvXD7sWAUW4Gsr8E3POlyou16z1gi+tLl
-	 JxJLAEMsJq7TDH5tj0M7nRvV/zlQT7yuIFi3trq1ccrSLMvy19bMs2XAU6b92+y02k
-	 msFmU8egolhqk/BdDD2KSN1bUP6aBnWQtWQk3vzqUNqz3Iu8A5npdmzuuM4bwAWDIE
-	 XJhxu6QIMHWAg==
-Message-ID: <sashiko-outbox-167960@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net v2 2/2] net/mlx5: HWS, fix modify header pool match
- for copy actions
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Alexandre Cassen" <acassen@corp.free.fr>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261012101937.1335231-3-acassen@corp.free.fr>
-References: <20261012101937.1335231-1-acassen@corp.free.fr>
- <20261012101937.1335231-3-acassen@corp.free.fr>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Mon, 12 Oct 2026 10:32:21 +0000
+	s=k20260515; t=1791801642;
+	bh=0lqlHCY1i9/hvpDM/SFAMnNmI36PW0atq9twP1Ql5UU=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date;
+	b=HrZ+jotssrXgtMm9Lrf2S7dF6bwHiq+8xfu35AQgvaxE4bPrMAoDE3mfC489K01EI
+	 3qXYKxAAB20DNFQpVx5Ht06Dkkl3A4X0NDlzjalz2YghWjCFPOWIVZ5OhnPxRQVi05
+	 +5/rAKxPYK8LF3F+MiM693CZ3UtfqzLpa3DOyu9eHqg5N0rL80MaxaOg3NaUkAFl7M
+	 Zd8ZiwNhQj+eXG87WKpri264X9Nsuh0MTigI9mpqD1B4P67URIWjmQ+WTfjHDQzktI
+	 gqakU7RXHGxKymjvJZLJOwsLfe1SHTkH0favxB6VT4Qoc9BSrtEILhIuMTDa4dY/WR
+	 uSCBVpM+w8zmQ==
+Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
+	id 54EADA8936A; Mon, 12 Oct 2026 12:40:39 +0200 (CEST)
+From: Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@kernel.org>
+To: Tariq Toukan <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet
+ <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>,
+ netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>
+Cc: Alexei Starovoitov <ast@kernel.org>, bpf@vger.kernel.org, Carolina
+ Jubran <cjubran@nvidia.com>, Cosmin Ratiu <cratiu@nvidia.com>, Daniel
+ Borkmann <daniel@iogearbox.net>, Dragos Tatulea <dtatulea@nvidia.com>, Gal
+ Pressman <gal@nvidia.com>, Jesper Dangaard Brouer <hawk@kernel.org>, John
+ Fastabend <john.fastabend@gmail.com>, Kees Cook <kees@kernel.org>, Leon
+ Romanovsky <leon@kernel.org>, open list <linux-kernel@vger.kernel.org>,
+ linux-rdma@vger.kernel.org, Li RongQing <lirongqing@baidu.com>, Mark Bloch
+ <mbloch@nvidia.com>, Richard Cochran <richardcochran@gmail.com>, Saeed
+ Mahameed <saeedm@nvidia.com>, Shahar Shitrit <shshitrit@nvidia.com>,
+ Stanislav Fomichev <sdf@fomichev.me>, Tariq Toukan <tariqt@nvidia.com>,
+ Adrian Moreno <amorenoz@redhat.com>, Michal Schmidt <mschmidt@redhat.com>
+Subject: Re: [PATCH net-next 0/2] net/mlx5e: Batch RCU grace periods on
+ channel open and close
+In-Reply-To: <20261011133212.807979-1-tariqt@nvidia.com>
+References: <20261011133212.807979-1-tariqt@nvidia.com>
+X-Clacks-Overhead: GNU Terry Pratchett
+Date: Mon, 12 Oct 2026 12:40:39 +0200
+Message-ID: <87cxtfqk0o.fsf@toke.dk>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-> mlx5_fs_hws_mh_pool_match() compares a single dword of each action
-> since rules pass their values as arguments. Copy and add_field actions
-> keep their destination in the second dword and HWS reads them from the
-> pattern alone. Two modify headers whose copies differ only in
-> destination then share a pool and the second rule writes to the wrong
-> field.
->=20
-> Use the HWS core comparison that checks these actions in full.
->=20
-> Found while checking a Sashiko AI review report and confirmed against
-> the HWS pattern code. Not reproduced. No in-kernel user puts such
-> actions on the FDB but RDMA flow actions can.
->=20
-> Fixes: b36315ca69cb ("net/mlx5: fs, add HWS modify header API function")
-> Signed-off-by: Alexandre Cassen <acassen@corp.free.fr>
+Tariq Toukan <tariqt@nvidia.com> writes:
 
-Sashiko has reviewed this patch and found no issues. It looks great!
+> Hi,
+>
+> This series by Carolina reduces the time mlx5e spends waiting for RCU
+> grace periods when bringing an interface up or down with many channels.
+>
+> Today the channel open and close flows call synchronize_net() per
+> object. On close, RQ, ICOSQ, TX SQ and NAPI teardown each require a
+> grace period, so the number of waits scales with the number of channels.
+> TX SQ teardown adds a wait per traffic class, and XDP and QoS can add
+> more. On activation, mlx5e_activate_channels() triggers the ICOSQ of
+> every channel, and each trigger waits for its own grace period. With a
+> large channel count this makes link down and link up slow.
+>
+> Patch 1 batches the waits on channel close. Channel deactivate and close
+> are split into pre_sync and post_sync phases: the ENABLED state is first
+> cleared on all queues of all channels, a single grace period is awaited,
+> and only then does the teardown continue. NAPI instances are likewise
+> unlinked with __netif_napi_del_locked(), followed by one
+> synchronize_net() before the channels are freed. The existing per object
+> synchronize_net() calls are kept for single queue paths. The change
+> touches the regular channels as well as the PTP, QoS and XSK queues.
+>
+> Patch 2 does the same for the ICOSQ trigger on activation: all channel
+> ICOSQs are first marked as requiring locking, one grace period is
+> awaited, and then all of them are triggered. mlx5e_trigger_napi_icosq()
+> keeps its existing semantics for standalone callers.
+>
+> Results with 248 channels and rcu_normal=3D1:
+> - ip link set eth2 down: 10.183s before, 0.715s after.
+> - ip link set eth2 up: 3.095s before, 1.794s after.
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261012101937.1335=
-231-1-acassen@corp.free.fr?part=3D2
+Nice! Thanks for tackling this :)
 
+Don't know the driver well enough to comment on the details, but in
+principle, emphatically:
+
+Acked-by: Toke H=C3=B8iland-J=C3=B8rgensen <toke@kernel.org>
