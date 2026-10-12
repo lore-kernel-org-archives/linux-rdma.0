@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1313049A3D7;
-	Mon, 12 Oct 2026 13:09:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08B4D49AA54;
+	Mon, 12 Oct 2026 13:09:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791810542; cv=none; b=Fpz4LeMlhGHo57Q1zk+3WfsTLjH+TYYIXVoWzoyKcj3MqkSnmegY6Jzui3Jx74bKlgRF72DV40ubsRqObIko4G1z9rwlivdVm9rEbIRxOOHi75DV7kyxSeqMsYa1yI0Q/VBZDYaVx0DPBfoVXNnSoKkVcwUueSuPGxPpbN7t4M0=
+	t=1791810545; cv=none; b=jFm0AKyu5xcFkI8+7l0Pjh772JhIy5/eCzVQgbTwR1Miqc9ChiNEaJofooBWpumogyxkv6y3osXcnwzw0jBUhNXXBR6oVQFbNU4WQo5dC7AUE6oQ24g/0QAHKUdIPzv0yncPvtTxO6sgtI8X/MdPBgjWma+c8DSHqrUwwyvQCZY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791810542; c=relaxed/simple;
-	bh=0f7XSYrjrUdj8LdE2Fl0geMxWgPvR/PFiF+qjPcZw4Q=;
+	s=arc-20240116; t=1791810545; c=relaxed/simple;
+	bh=nodWnHGiIE9xoO76I7FXb5P0XxC3QcMAEc5wZrZkWEc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=PqgxcduAXgjrvnDyeeNrF2fxT15AnOn7UGbp62xNJd3kmbsK6a0Zp2vL+6EbrWd7kL16PQgZQqYikhwqXSzhj28RTj7NB52cqhSaaCwq7ODS+FlmHOTllVgck8LO+lOQa5cbA+sU1WN/9xxIG/Sh4Y9r5LWd6G0wQ0a+one28qQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UhXSHP2w; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=fpmuaAZMIgPqzA/t/V3mYV5svuyIM+AdzpzYoa5OhIQakGfCP6PPUOJ2+iu/M+CfR8hASXiPRF6ZI6LSYVOf1p/dk951lysf244t6vzg2LlyQnNc6MqrjpHHNVO3BOyhPmC1Qcohh+F0NAuZSm5XPt2cVQgF5061VLPeNxGLesU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=STkq1om1; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UhXSHP2w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFF1E1F0089B;
-	Mon, 12 Oct 2026 13:08:59 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="STkq1om1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 450FF1F0089B;
+	Mon, 12 Oct 2026 13:09:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791810540;
-	bh=FkI0Sm38hr2IGbN9M1tb+OJO1ncN4Oqfd4cquAWV9AI=;
+	s=k20260515; t=1791810543;
+	bh=2Raoc57OuCZB6wD4NONsNhUGHNAyla0jjOf2noTn3lc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=UhXSHP2wG3Yr2b7d3GfZXeVtsIFDC3yv1dzg2D4UiG9FTkUsm5VXac9U9Vty05MU0
-	 au8PEOdedFEgRqlTAy9ReAKAhT+VA5QmkR7q4421GdDef7yyWUY47rVGaHKNxQq/DK
-	 nE2mw9wsDpXN49d1XV0dlBVYb8LdULg49YpZw2a09BX6p9KXJJDOZc1kzlRyPullsh
-	 U4nVxhbQus1zZ2qi4txVPkE9C+3l/Ja/4nZzXI0cOvrW+Vvn5+JSCE3Eqe/7jjeOge
-	 WzlZZ/fbDgjKuhH6PY7iH1QG34ejHv3XLOHNuTloSnoeyOlC375kdWz5HhkaU6VxTZ
-	 WDPjicGqKopGw==
+	b=STkq1om1IcHH7KXYr1cFAw24Tn7m50AFysTqaJIH6GjQsgESIanscHwJOoQvGyL3o
+	 tsWNIXS80gu9tz2wnHYAgB+7GwhLIQXY8TXU5T5o1BmhQotqr1uglvYVY9EfW/0PLN
+	 3WlxN2ks+zMtvkXyAhzfs3z7ZcJ2ccGLpgTJeECKwqFZ9HNj2v0hwoJSg1LkaIuLaV
+	 cPHpXG8edaA4ogpSkB9Eb2mc1EeivcSjRAaL35xSXdf/XRZu02kL6WgDTLHQyl6z8T
+	 qmZ8oYogl42LsHZe8koyhCXo7b47QaNIr/SYdnCIRxl4wY7NH9dWsbd79ri7siQ4RI
+	 4RtSIbYtaI4hg==
 From: Leon Romanovsky <leon@kernel.org>
 To: Bjorn Helgaas <bhelgaas@google.com>,
 	Logan Gunthorpe <logang@deltatee.com>,
@@ -55,9 +55,9 @@ Cc: linux-pci@vger.kernel.org,
 	Shuah Khan <skhan@linuxfoundation.org>,
 	Randy Dunlap <rdunlap@infradead.org>,
 	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: [PATCH v10 13/18] PCI/P2PDMA: Test the ACS P2P routing walk
-Date: Mon, 12 Oct 2026 16:07:50 +0300
-Message-ID: <20261012-fix-p2p-acs-v4-0-v10-13-6ffe7b7a4517@nvidia.com>
+Subject: [PATCH v10 14/18] PCI: Add KUnit coverage for ACS isolation checks
+Date: Mon, 12 Oct 2026 16:07:51 +0300
+Message-ID: <20261012-fix-p2p-acs-v4-0-v10-14-6ffe7b7a4517@nvidia.com>
 X-Mailer: git-send-email 2.56.0
 In-Reply-To: <20261012-fix-p2p-acs-v4-0-v10-0-6ffe7b7a4517@nvidia.com>
 References: <20261012-fix-p2p-acs-v4-0-v10-0-6ffe7b7a4517@nvidia.com>
@@ -73,592 +73,211 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-calc_map_type_and_dist() decides which ports along a path carry the
-routing controls, and holds every class's answer in one cache entry.
-Neither depends on a single register, so a table of them cannot reach the
-walk itself.
+Direct Translated P2P does not weaken IOMMU isolation because a Translated
+Request carries an address supplied by the IOMMU. Config-space read
+failures, however, leave ACS state unknown and must not report isolation.
 
-Drive the walk over a fabricated fabric of two devices below a switch,
-with fake config space supplying the ACS Control registers. Cover the
-ports below the divergence, the three cases where two classes of one path
-disagree, and the packed cache, which the fabric has no provider state to
-exercise indirectly.
+Exercise both cases with fake config-space operations. Also cover missing
+and unrequested controls and a missing ACS capability.
 
 Tested-by: Tushar Dave <tdave@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/pci/p2pdma.c       |   9 +-
- drivers/pci/pci.h          |   9 +
- drivers/pci/pci_acs_test.c | 478 +++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 493 insertions(+), 3 deletions(-)
+ drivers/pci/pci.c          |   4 +-
+ drivers/pci/pci.h          |   1 +
+ drivers/pci/pci_acs_test.c | 138 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 142 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index 93735f110b14..102930b114c1 100644
---- a/drivers/pci/p2pdma.c
-+++ b/drivers/pci/p2pdma.c
-@@ -1011,7 +1011,7 @@ static unsigned long map_types_idx(struct pci_dev *client)
-  */
- static_assert(PCI_P2PDMA_MAP_THRU_HOST_BRIDGE < 16);
- 
--static unsigned long
-+VISIBLE_IF_KUNIT unsigned long
- pci_p2pdma_map_types_pack(const enum pci_p2pdma_map_type *type)
- {
- 	unsigned long val = 0;
-@@ -1022,12 +1022,14 @@ pci_p2pdma_map_types_pack(const enum pci_p2pdma_map_type *type)
- 
- 	return val;
- }
-+EXPORT_SYMBOL_IF_KUNIT(pci_p2pdma_map_types_pack);
- 
--static enum pci_p2pdma_map_type
-+VISIBLE_IF_KUNIT enum pci_p2pdma_map_type
- pci_p2pdma_map_types_unpack(unsigned long val, unsigned int tlp_flags)
- {
- 	return (val >> (tlp_flags * 4)) & 0xf;
- }
-+EXPORT_SYMBOL_IF_KUNIT(pci_p2pdma_map_types_unpack);
- 
- /*
-  * Calculate the P2PDMA mapping type and distance between two PCI devices.
-@@ -1076,7 +1078,7 @@ pci_p2pdma_map_types_unpack(unsigned long val, unsigned int tlp_flags)
-  * ports per above. If the device is not in the whitelist, return
-  * PCI_P2PDMA_MAP_NOT_SUPPORTED.
-  */
--static enum pci_p2pdma_map_type
-+VISIBLE_IF_KUNIT enum pci_p2pdma_map_type
- calc_map_type_and_dist(struct pci_dev *provider, struct pci_dev *client,
- 		int *dist, unsigned int tlp_flags, bool verbose)
- {
-@@ -1268,6 +1270,7 @@ calc_map_type_and_dist(struct pci_dev *provider, struct pci_dev *client,
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index f7d94ecf9157..4a9ab3882aac 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -3578,7 +3578,8 @@ void pci_configure_ari(struct pci_dev *dev)
  	}
- 	return map_type[tlp_flags];
  }
-+EXPORT_SYMBOL_IF_KUNIT(calc_map_type_and_dist);
+ 
+-static bool pci_acs_flags_enabled(struct pci_dev *pdev, u16 acs_flags)
++VISIBLE_IF_KUNIT
++bool pci_acs_flags_enabled(struct pci_dev *pdev, u16 acs_flags)
+ {
+ 	int pos;
+ 	u16 ctrl;
+@@ -3598,6 +3599,7 @@ static bool pci_acs_flags_enabled(struct pci_dev *pdev, u16 acs_flags)
+ 		return false;
+ 	return (ctrl & acs_flags) == acs_flags;
+ }
++EXPORT_SYMBOL_IF_KUNIT(pci_acs_flags_enabled);
  
  /**
-  * pci_p2pdma_distance_many - Determine the cumulative distance between
+  * pci_acs_enabled - test ACS against required flags for a given device
 diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
-index 302b79d3977f..b9b983ad6c34 100644
+index b9b983ad6c34..99852cf99732 100644
 --- a/drivers/pci/pci.h
 +++ b/drivers/pci/pci.h
-@@ -7,6 +7,7 @@
- #include <linux/align.h>
- #include <linux/bitfield.h>
- #include <linux/pci.h>
-+#include <linux/pci-p2pdma.h>
- #include <trace/events/pci.h>
+@@ -1129,6 +1129,7 @@ enum pci_acs_p2pdma_state {
+ };
  
- struct pcie_tlp_log;
-@@ -1132,6 +1133,14 @@ enum pci_acs_p2pdma_state pci_acs_p2pdma_request(u16 ctrl,
+ #if IS_ENABLED(CONFIG_KUNIT)
++bool pci_acs_flags_enabled(struct pci_dev *pdev, u16 acs_flags);
+ enum pci_acs_p2pdma_state pci_acs_p2pdma_request(u16 ctrl,
  						unsigned int tlp_flags);
  enum pci_acs_p2pdma_state pci_acs_p2pdma_completion(u16 ctrl,
- 						    unsigned int tlp_flags);
-+unsigned long pci_p2pdma_map_types_pack(const enum pci_p2pdma_map_type *type);
-+enum pci_p2pdma_map_type pci_p2pdma_map_types_unpack(unsigned long val,
-+						     unsigned int tlp_flags);
-+enum pci_p2pdma_map_type calc_map_type_and_dist(struct pci_dev *provider,
-+						struct pci_dev *client,
-+						int *dist,
-+						unsigned int tlp_flags,
-+						bool verbose);
- #endif
- 
- #ifdef CONFIG_PCI_QUIRKS
 diff --git a/drivers/pci/pci_acs_test.c b/drivers/pci/pci_acs_test.c
-index ce6b9375da36..7f4f9cc04bfb 100644
+index 7f4f9cc04bfb..6a2cd38d968f 100644
 --- a/drivers/pci/pci_acs_test.c
 +++ b/drivers/pci/pci_acs_test.c
-@@ -102,11 +102,489 @@ static void pci_acs_p2pdma_completion_test(struct kunit *test)
+@@ -102,6 +102,140 @@ static void pci_acs_p2pdma_completion_test(struct kunit *test)
  			c->expect);
  }
  
-+/*
-+ * Drive calc_map_type_and_dist() over a fabricated PCIe fabric matching the
-+ * canonical topology of two devices below one switch:
-+ *
-+ *   host bridge / root bus
-+ *     Root Port
-+ *       Switch Upstream Port
-+ *         Switch Downstream Port 0
-+ *           Nested Switch -- provider
-+ *         Switch Downstream Port 1
-+ *           Nested Switch -- client
-+ *
-+ * Fake config-space operations supply the ACS Control registers. This lets
-+ * the cases vary both divergence ports and controls below the divergence
-+ * without depending on real hardware.
-+ */
-+struct acs_port_cfg {
++/* Flags an IOMMU asks for; see REQ_ACS_FLAGS in drivers/iommu/iommu.c. */
++#define ACS_REQ_FLAGS	(PCI_ACS_SV | PCI_ACS_RR | PCI_ACS_CR | PCI_ACS_UF)
++#define ACS_ALL_CAPS	(PCI_ACS_SV | PCI_ACS_TB | PCI_ACS_RR | PCI_ACS_CR | \
++			 PCI_ACS_UF | PCI_ACS_DT)
++#define ACS_TEST_CAP	0x100
++
++struct acs_ctrl_cfg {
++	unsigned int devfn;
++	u16 cap;	/* Offset where the ACS capability responds */
 +	u16 ctrl;
 +	bool fail_read;
 +};
 +
-+struct acs_fabric {
-+	struct pci_dev *rootport;
-+	struct pci_dev *provider;
-+	struct pci_dev *client;
-+	struct pci_dev *dn0;	/* Downstream Port 0 (provider side) */
-+	struct pci_dev *dn1;	/* Downstream Port 1 (client side) */
-+	struct pci_dev *provider_leaf;
-+	struct pci_dev *client_leaf;
-+	struct acs_port_cfg dn0_cfg;
-+	struct acs_port_cfg dn1_cfg;
-+	struct acs_port_cfg provider_leaf_cfg;
-+	struct acs_port_cfg client_leaf_cfg;
-+	struct acs_port_cfg rootport_cfg;
-+};
-+
-+static int acs_port_read(struct pci_dev *port, struct acs_port_cfg *cfg,
++static int acs_ctrl_read(struct pci_bus *bus, unsigned int devfn,
 +			 int where, int size, u32 *val)
 +{
-+	if (port->acs_cap && size == 2 &&
-+	    where == port->acs_cap + PCI_ACS_CTRL) {
-+		if (cfg->fail_read)
-+			return PCIBIOS_DEVICE_NOT_FOUND;
-+		*val = cfg->ctrl;
-+	}
-+
-+	return PCIBIOS_SUCCESSFUL;
-+}
-+
-+static int acs_fabric_read(struct pci_bus *bus, unsigned int devfn,
-+			   int where, int size, u32 *val)
-+{
-+	struct acs_fabric *f = bus->sysdata;
++	struct acs_ctrl_cfg *cfg = bus->sysdata;
 +
 +	*val = 0;
-+	if (bus == f->rootport->bus && devfn == f->rootport->devfn)
-+		return acs_port_read(f->rootport, &f->rootport_cfg,
-+				     where, size, val);
-+	if (bus == f->dn0->bus && devfn == f->dn0->devfn)
-+		return acs_port_read(f->dn0, &f->dn0_cfg, where, size, val);
-+	if (bus == f->dn1->bus && devfn == f->dn1->devfn)
-+		return acs_port_read(f->dn1, &f->dn1_cfg, where, size, val);
-+	if (bus == f->provider_leaf->bus &&
-+	    devfn == f->provider_leaf->devfn)
-+		return acs_port_read(f->provider_leaf, &f->provider_leaf_cfg,
-+				     where, size, val);
-+	if (bus == f->client_leaf->bus && devfn == f->client_leaf->devfn)
-+		return acs_port_read(f->client_leaf, &f->client_leaf_cfg,
-+				     where, size, val);
++	if (cfg->fail_read)
++		return PCIBIOS_DEVICE_NOT_FOUND;
 +
++	if (devfn == cfg->devfn && size == 2 &&
++	    where == cfg->cap + PCI_ACS_CTRL)
++		*val = cfg->ctrl;
 +	return PCIBIOS_SUCCESSFUL;
 +}
 +
-+static int acs_fabric_write(struct pci_bus *bus, unsigned int devfn,
-+			    int where, int size, u32 val)
++static int acs_ctrl_write(struct pci_bus *bus, unsigned int devfn,
++			  int where, int size, u32 val)
 +{
 +	return PCIBIOS_SUCCESSFUL;
 +}
 +
-+static struct pci_ops acs_fabric_ops = {
-+	.read	= acs_fabric_read,
-+	.write	= acs_fabric_write,
++static struct pci_ops acs_ctrl_ops = {
++	.read	= acs_ctrl_read,
++	.write	= acs_ctrl_write,
 +};
 +
-+static struct pci_bus *acs_add_bus(struct kunit *test, struct pci_bus *parent,
-+				   struct pci_dev *self, u8 nr, void *sysdata)
++struct acs_isolation_case {
++	const char *desc;
++	u16 ctrl;
++	u16 req;
++	bool expect;
++};
++
++static const struct acs_isolation_case acs_isolation_cases[] = {
++	{ "all_enabled", ACS_REQ_FLAGS, ACS_REQ_FLAGS, true },
++	/* Translated Requests remain isolated by their IOMMU translation. */
++	{ "dt", ACS_REQ_FLAGS | PCI_ACS_DT, ACS_REQ_FLAGS, true },
++	{ "rr_not_enabled", PCI_ACS_SV | PCI_ACS_CR | PCI_ACS_UF,
++	  ACS_REQ_FLAGS, false },
++	{ "rr_not_required", PCI_ACS_SV | PCI_ACS_CR | PCI_ACS_UF,
++	  PCI_ACS_SV | PCI_ACS_CR | PCI_ACS_UF, true },
++};
++
++static void acs_isolation_desc(const struct acs_isolation_case *c, char *desc)
 +{
++	strscpy(desc, c->desc, KUNIT_PARAM_DESC_SIZE);
++}
++
++KUNIT_ARRAY_PARAM(acs_isolation, acs_isolation_cases, acs_isolation_desc);
++
++static void pci_acs_flags_enabled_test(struct kunit *test)
++{
++	const struct acs_isolation_case *c = test->param_value;
++	struct acs_ctrl_cfg cfg = {
++		.devfn = PCI_DEVFN(0, 0),
++		.cap = ACS_TEST_CAP,
++		.ctrl = c->ctrl,
++	};
 +	struct pci_bus *bus = kunit_kzalloc(test, sizeof(*bus), GFP_KERNEL);
++	struct pci_dev *pdev = kunit_kzalloc(test, sizeof(*pdev), GFP_KERNEL);
 +
 +	KUNIT_ASSERT_NOT_NULL(test, bus);
-+	bus->parent = parent;
-+	bus->self = self;
-+	bus->number = nr;
-+	bus->ops = &acs_fabric_ops;
-+	bus->sysdata = sysdata;
-+	INIT_LIST_HEAD(&bus->devices);
-+	return bus;
++	KUNIT_ASSERT_NOT_NULL(test, pdev);
++
++	bus->ops = &acs_ctrl_ops;
++	bus->sysdata = &cfg;
++
++	pdev->bus = bus;
++	pdev->devfn = cfg.devfn;
++	pdev->acs_cap = ACS_TEST_CAP;
++	pdev->acs_capabilities = ACS_ALL_CAPS;
++
++	KUNIT_EXPECT_EQ(test, pci_acs_flags_enabled(pdev, c->req), c->expect);
 +}
 +
-+static struct pci_dev *acs_add_dev(struct kunit *test, struct pci_bus *bus,
-+				   unsigned int devfn, int pcie_type)
++static bool acs_isolated(struct kunit *test, struct acs_ctrl_cfg *cfg,
++			 u16 acs_cap, u16 acs_flags)
 +{
-+	struct pci_dev *dev = kunit_kzalloc(test, sizeof(*dev), GFP_KERNEL);
++	struct pci_bus *bus = kunit_kzalloc(test, sizeof(*bus), GFP_KERNEL);
++	struct pci_dev *pdev = kunit_kzalloc(test, sizeof(*pdev), GFP_KERNEL);
 +
-+	KUNIT_ASSERT_NOT_NULL(test, dev);
-+	dev->bus = bus;
-+	dev->devfn = devfn;
-+	dev->pcie_cap = 0x40;
-+	dev->pcie_flags_reg = (pcie_type << 4) | 0x2;
-+	list_add_tail(&dev->bus_list, &bus->devices);
-+	return dev;
++	KUNIT_ASSERT_NOT_NULL(test, bus);
++	KUNIT_ASSERT_NOT_NULL(test, pdev);
++
++	bus->ops = &acs_ctrl_ops;
++	bus->sysdata = cfg;
++
++	pdev->bus = bus;
++	pdev->devfn = cfg->devfn;
++	pdev->acs_cap = acs_cap;
++	pdev->acs_capabilities = ACS_ALL_CAPS;
++
++	return pci_acs_flags_enabled(pdev, acs_flags);
 +}
 +
-+static void acs_build_fabric(struct kunit *test, struct acs_fabric *f)
++static void pci_acs_flags_no_cap_test(struct kunit *test)
 +{
-+	struct pci_bus *bus0, *bus1, *bus2, *bus3, *bus4, *bus5, *bus6;
-+	struct pci_bus *bus7, *bus8;
-+	struct pci_dev *swup, *provider_swup, *client_swup;
-+	struct pci_dev *rootport;
-+	struct pci_host_bridge *host;
-+
-+	host = kunit_kzalloc(test, sizeof(*host), GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_NULL(test, host);
-+
-+	bus0 = acs_add_bus(test, NULL, NULL, 0, f);
-+	/* The Root Port doubles as the whitelisted host-bridge device. */
-+	rootport = acs_add_dev(test, bus0, PCI_DEVFN(0, 0),
-+			       PCI_EXP_TYPE_ROOT_PORT);
-+	f->rootport = rootport;
-+	rootport->vendor = PCI_VENDOR_ID_GOOGLE;
-+	rootport->device = 0x1234;
-+	host->bus = bus0;
-+	bus0->bridge = &host->dev;
-+
-+	bus1 = acs_add_bus(test, bus0, rootport, 1, f);
-+	swup = acs_add_dev(test, bus1, PCI_DEVFN(0, 0),
-+			   PCI_EXP_TYPE_UPSTREAM);
-+
-+	bus2 = acs_add_bus(test, bus1, swup, 2, f);
-+	f->dn0 = acs_add_dev(test, bus2, PCI_DEVFN(0, 0),
-+			     PCI_EXP_TYPE_DOWNSTREAM);
-+	f->dn1 = acs_add_dev(test, bus2, PCI_DEVFN(1, 0),
-+			     PCI_EXP_TYPE_DOWNSTREAM);
-+
-+	bus3 = acs_add_bus(test, bus2, f->dn0, 3, f);
-+	provider_swup = acs_add_dev(test, bus3, PCI_DEVFN(0, 0),
-+				    PCI_EXP_TYPE_UPSTREAM);
-+	bus5 = acs_add_bus(test, bus3, provider_swup, 5, f);
-+	f->provider_leaf = acs_add_dev(test, bus5, PCI_DEVFN(0, 0),
-+				       PCI_EXP_TYPE_DOWNSTREAM);
-+	bus7 = acs_add_bus(test, bus5, f->provider_leaf, 7, f);
-+	f->provider = acs_add_dev(test, bus7, PCI_DEVFN(0, 0),
-+				  PCI_EXP_TYPE_ENDPOINT);
-+
-+	bus4 = acs_add_bus(test, bus2, f->dn1, 4, f);
-+	client_swup = acs_add_dev(test, bus4, PCI_DEVFN(0, 0),
-+				  PCI_EXP_TYPE_UPSTREAM);
-+	bus6 = acs_add_bus(test, bus4, client_swup, 6, f);
-+	f->client_leaf = acs_add_dev(test, bus6, PCI_DEVFN(0, 0),
-+				     PCI_EXP_TYPE_DOWNSTREAM);
-+	bus8 = acs_add_bus(test, bus6, f->client_leaf, 8, f);
-+	f->client = acs_add_dev(test, bus8, PCI_DEVFN(0, 0),
-+				PCI_EXP_TYPE_ENDPOINT);
-+}
-+
-+static enum pci_p2pdma_map_type acs_walk_map(struct acs_fabric *f,
-+					     unsigned int tlp_flags)
-+{
-+	int dist;
-+
-+	return calc_map_type_and_dist(f->provider, f->client, &dist, tlp_flags,
-+				      false);
-+}
-+
-+static void acs_walk_bus_addr_test(struct kunit *test)
-+{
-+	struct acs_fabric f = {};
-+
-+	acs_build_fabric(test, &f);
-+	KUNIT_EXPECT_EQ(test, acs_walk_map(&f, 0), PCI_P2PDMA_MAP_BUS_ADDR);
-+}
-+
-+static void acs_walk_request_redirect_test(struct kunit *test)
-+{
-+	struct acs_fabric f = {};
-+
-+	acs_build_fabric(test, &f);
-+	f.dn1->acs_cap = 0x100;
-+	f.dn1->acs_capabilities = PCI_ACS_RR;
-+	f.dn1_cfg.ctrl = PCI_ACS_RR;
-+
-+	KUNIT_EXPECT_EQ(test, acs_walk_map(&f, 0),
-+			PCI_P2PDMA_MAP_THRU_HOST_BRIDGE);
-+}
-+
-+static void acs_walk_completion_redirect_test(struct kunit *test)
-+{
-+	struct acs_fabric f = {};
-+
-+	acs_build_fabric(test, &f);
-+	f.dn0->acs_cap = 0x100;
-+	f.dn0->acs_capabilities = PCI_ACS_CR;
-+	f.dn0_cfg.ctrl = PCI_ACS_CR;
-+
-+	KUNIT_EXPECT_EQ(test, acs_walk_map(&f, 0),
-+			PCI_P2PDMA_MAP_THRU_HOST_BRIDGE);
-+}
-+
-+static void acs_walk_egress_control_test(struct kunit *test)
-+{
-+	struct acs_fabric f = {};
-+
-+	acs_build_fabric(test, &f);
-+	f.dn1->acs_cap = 0x100;
-+	f.dn1->acs_capabilities = PCI_ACS_EC;
-+	f.dn1_cfg.ctrl = PCI_ACS_EC;
-+
-+	KUNIT_EXPECT_EQ(test, acs_walk_map(&f, 0),
-+			PCI_P2PDMA_MAP_THRU_HOST_BRIDGE);
-+}
-+
-+static void acs_walk_asymmetric_direct_test(struct kunit *test)
-+{
-+	struct acs_fabric f = {};
-+
-+	acs_build_fabric(test, &f);
-+	/* These controls affect only the reverse transaction directions. */
-+	f.dn0->acs_cap = 0x100;
-+	f.dn0->acs_capabilities = PCI_ACS_RR | PCI_ACS_EC;
-+	f.dn0_cfg.ctrl = PCI_ACS_RR | PCI_ACS_EC;
-+	f.dn1->acs_cap = 0x100;
-+	f.dn1->acs_capabilities = PCI_ACS_CR;
-+	f.dn1_cfg.ctrl = PCI_ACS_CR;
-+
-+	KUNIT_EXPECT_EQ(test, acs_walk_map(&f, 0), PCI_P2PDMA_MAP_BUS_ADDR);
-+}
-+
-+static void acs_walk_nested_completion_redirect_test(struct kunit *test)
-+{
-+	struct acs_fabric f = {};
-+
-+	acs_build_fabric(test, &f);
-+	f.provider_leaf->acs_cap = 0x100;
-+	f.provider_leaf->acs_capabilities = PCI_ACS_CR;
-+	f.provider_leaf_cfg.ctrl = PCI_ACS_CR;
-+
-+	KUNIT_EXPECT_EQ(test, acs_walk_map(&f, 0), PCI_P2PDMA_MAP_BUS_ADDR);
-+}
-+
-+static void acs_walk_nested_request_redirect_test(struct kunit *test)
-+{
-+	struct acs_fabric f = {};
-+
-+	acs_build_fabric(test, &f);
-+	f.client_leaf->acs_cap = 0x100;
-+	f.client_leaf->acs_capabilities = PCI_ACS_RR;
-+	f.client_leaf_cfg.ctrl = PCI_ACS_RR;
-+
-+	KUNIT_EXPECT_EQ(test, acs_walk_map(&f, 0), PCI_P2PDMA_MAP_BUS_ADDR);
-+}
-+
-+static void acs_walk_translation_blocking_test(struct kunit *test)
-+{
-+	struct acs_fabric f = {};
-+
-+	acs_build_fabric(test, &f);
-+	f.client_leaf->acs_cap = 0x100;
-+	f.client_leaf->acs_capabilities = PCI_ACS_TB;
-+	f.client_leaf_cfg.ctrl = PCI_ACS_TB;
-+
-+	/* Untranslated Requests are unaffected by Translation Blocking. */
-+	KUNIT_EXPECT_EQ(test, acs_walk_map(&f, 0), PCI_P2PDMA_MAP_BUS_ADDR);
-+	KUNIT_EXPECT_EQ(test, acs_walk_map(&f, PCI_P2PDMA_TLP_TRANSLATED),
-+			PCI_P2PDMA_MAP_NOT_SUPPORTED);
-+}
-+
-+static void acs_walk_relaxed_completion_test(struct kunit *test)
-+{
-+	struct acs_fabric f = {};
-+
-+	acs_build_fabric(test, &f);
-+	f.dn0->acs_cap = 0x100;
-+	f.dn0->acs_capabilities = PCI_ACS_CR;
-+	f.dn0_cfg.ctrl = PCI_ACS_CR;
-+
-+	KUNIT_EXPECT_EQ(test, acs_walk_map(&f, 0),
-+			PCI_P2PDMA_MAP_THRU_HOST_BRIDGE);
-+	KUNIT_EXPECT_EQ(test, acs_walk_map(&f, PCI_P2PDMA_TLP_RELAXED_CPL),
-+			PCI_P2PDMA_MAP_BUS_ADDR);
-+}
-+
-+static void acs_walk_direct_translated_test(struct kunit *test)
-+{
-+	struct acs_fabric f = {};
-+
-+	acs_build_fabric(test, &f);
-+	f.dn1->acs_cap = 0x100;
-+	f.dn1->acs_capabilities = PCI_ACS_RR | PCI_ACS_DT;
-+	f.dn1_cfg.ctrl = PCI_ACS_RR | PCI_ACS_DT;
-+
-+	KUNIT_EXPECT_EQ(test, acs_walk_map(&f, 0),
-+			PCI_P2PDMA_MAP_THRU_HOST_BRIDGE);
-+	KUNIT_EXPECT_EQ(test, acs_walk_map(&f, PCI_P2PDMA_TLP_TRANSLATED),
-+			PCI_P2PDMA_MAP_BUS_ADDR);
-+}
-+
-+/*
-+ * The cache stores one packed value per client, so every class has to come
-+ * back out under the flags that selected it.
-+ */
-+static void acs_map_types_pack_test(struct kunit *test)
-+{
-+	static const enum pci_p2pdma_map_type type[PCI_P2PDMA_TLP_CLASSES] = {
-+		[0] = PCI_P2PDMA_MAP_THRU_HOST_BRIDGE,
-+		[PCI_P2PDMA_TLP_TRANSLATED] = PCI_P2PDMA_MAP_NOT_SUPPORTED,
-+		[PCI_P2PDMA_TLP_RELAXED_CPL] = PCI_P2PDMA_MAP_BUS_ADDR,
-+		[PCI_P2PDMA_TLP_TRANSLATED | PCI_P2PDMA_TLP_RELAXED_CPL] =
-+			PCI_P2PDMA_MAP_UNKNOWN,
++	struct acs_ctrl_cfg cfg = {
++		.devfn = PCI_DEVFN(0, 0),
++		.cap = 0,
++		.ctrl = ACS_REQ_FLAGS,
 +	};
-+	unsigned long packed = pci_p2pdma_map_types_pack(type);
-+	unsigned int flags;
 +
-+	for (flags = 0; flags < PCI_P2PDMA_TLP_CLASSES; flags++)
-+		KUNIT_EXPECT_EQ(test,
-+				pci_p2pdma_map_types_unpack(packed, flags),
-+				type[flags]);
-+
-+	/* An absent cache entry reads back as unknown in every class. */
-+	for (flags = 0; flags < PCI_P2PDMA_TLP_CLASSES; flags++)
-+		KUNIT_EXPECT_EQ(test, pci_p2pdma_map_types_unpack(0, flags),
-+				PCI_P2PDMA_MAP_UNKNOWN);
++	KUNIT_EXPECT_FALSE(test, acs_isolated(test, &cfg, 0, ACS_REQ_FLAGS));
 +}
 +
-+/*
-+ * The provider can be an ancestor of the client, which leaves no divergence
-+ * to evaluate. Translation Blocking still applies to every port the Request
-+ * passes on its way up.
-+ */
-+static void acs_walk_ancestor_provider_tb_test(struct kunit *test)
++static void pci_acs_flags_read_fails_test(struct kunit *test)
 +{
-+	struct acs_fabric f = {};
-+	int dist;
++	u16 no_rr = ACS_REQ_FLAGS & ~PCI_ACS_RR;
++	struct acs_ctrl_cfg cfg = {
++		.devfn = PCI_DEVFN(0, 0),
++		.cap = ACS_TEST_CAP,
++		.ctrl = ACS_REQ_FLAGS,
++	};
 +
-+	acs_build_fabric(test, &f);
-+	f.client_leaf->acs_cap = 0x100;
-+	f.client_leaf->acs_capabilities = PCI_ACS_TB;
-+	f.client_leaf_cfg.ctrl = PCI_ACS_TB;
++	KUNIT_EXPECT_TRUE(test, acs_isolated(test, &cfg, ACS_TEST_CAP, no_rr));
 +
-+	KUNIT_EXPECT_EQ(test,
-+			calc_map_type_and_dist(f.dn1, f.client, &dist, 0,
-+					       false),
-+			PCI_P2PDMA_MAP_BUS_ADDR);
-+	KUNIT_EXPECT_EQ(test,
-+			calc_map_type_and_dist(f.dn1, f.client, &dist,
-+					       PCI_P2PDMA_TLP_TRANSLATED,
-+					       false),
-+			PCI_P2PDMA_MAP_NOT_SUPPORTED);
++	cfg.fail_read = true;
++	KUNIT_EXPECT_FALSE(test, acs_isolated(test, &cfg, ACS_TEST_CAP, no_rr));
 +}
 +
-+/*
-+ * Without a common upstream bridge the Request still climbs towards the host
-+ * bridge, so Translation Blocking on the way withdraws the Translated classes
-+ * there too.
-+ */
-+static void acs_walk_no_common_bridge_tb_test(struct kunit *test)
-+{
-+	struct acs_fabric f = {}, g = {};
-+	int dist;
-+
-+	acs_build_fabric(test, &f);
-+	acs_build_fabric(test, &g);
-+	f.client_leaf->acs_cap = 0x100;
-+	f.client_leaf->acs_capabilities = PCI_ACS_TB;
-+	f.client_leaf_cfg.ctrl = PCI_ACS_TB;
-+
-+	KUNIT_EXPECT_EQ(test,
-+			calc_map_type_and_dist(g.provider, f.client, &dist, 0,
-+					       false),
-+			PCI_P2PDMA_MAP_THRU_HOST_BRIDGE);
-+	KUNIT_EXPECT_EQ(test,
-+			calc_map_type_and_dist(g.provider, f.client, &dist,
-+					       PCI_P2PDMA_TLP_TRANSLATED,
-+					       false),
-+			PCI_P2PDMA_MAP_NOT_SUPPORTED);
-+}
-+
-+/*
-+ * A Request between the client and itself never leaves the device, so no port
-+ * is in a position to inspect its Address Type. Translation Blocking directly
-+ * above the client must not withdraw the Translated classes.
-+ */
-+static void acs_walk_self_dma_tb_test(struct kunit *test)
-+{
-+	struct acs_fabric f = {};
-+	int dist;
-+
-+	acs_build_fabric(test, &f);
-+	f.client_leaf->acs_cap = 0x100;
-+	f.client_leaf->acs_capabilities = PCI_ACS_TB;
-+	f.client_leaf_cfg.ctrl = PCI_ACS_TB;
-+
-+	KUNIT_EXPECT_EQ(test,
-+			calc_map_type_and_dist(f.client, f.client, &dist, 0,
-+					       false),
-+			PCI_P2PDMA_MAP_BUS_ADDR);
-+	KUNIT_EXPECT_EQ(test,
-+			calc_map_type_and_dist(f.client, f.client, &dist,
-+					       PCI_P2PDMA_TLP_TRANSLATED,
-+					       false),
-+			PCI_P2PDMA_MAP_BUS_ADDR);
-+}
-+
-+/*
-+ * A direct route turns around at the divergence, so Translation Blocking above
-+ * it does not touch one. The host bridge route keeps climbing past that port,
-+ * and the Translated classes have to go without it.
-+ */
-+static void acs_walk_tb_above_divergence_test(struct kunit *test)
-+{
-+	struct acs_fabric f = {};
-+	int dist;
-+
-+	acs_build_fabric(test, &f);
-+	f.rootport->acs_cap = 0x100;
-+	f.rootport->acs_capabilities = PCI_ACS_TB;
-+	f.rootport_cfg.ctrl = PCI_ACS_TB;
-+
-+	/* Nothing redirects yet, so the Request never reaches the Root Port. */
-+	KUNIT_EXPECT_EQ(test,
-+			calc_map_type_and_dist(f.provider, f.client, &dist,
-+					       PCI_P2PDMA_TLP_TRANSLATED,
-+					       false),
-+			PCI_P2PDMA_MAP_BUS_ADDR);
-+
-+	/* Request Redirect sends it up past the Root Port instead. */
-+	f.dn1->acs_cap = 0x100;
-+	f.dn1->acs_capabilities = PCI_ACS_RR;
-+	f.dn1_cfg.ctrl = PCI_ACS_RR;
-+
-+	KUNIT_EXPECT_EQ(test,
-+			calc_map_type_and_dist(f.provider, f.client, &dist, 0,
-+					       false),
-+			PCI_P2PDMA_MAP_THRU_HOST_BRIDGE);
-+	KUNIT_EXPECT_EQ(test,
-+			calc_map_type_and_dist(f.provider, f.client, &dist,
-+					       PCI_P2PDMA_TLP_TRANSLATED,
-+					       false),
-+			PCI_P2PDMA_MAP_NOT_SUPPORTED);
-+}
-+
-+static void acs_walk_unreadable_control_test(struct kunit *test)
-+{
-+	struct acs_fabric f = {};
-+
-+	acs_build_fabric(test, &f);
-+	f.dn1->acs_cap = 0x100;
-+	f.dn1_cfg.fail_read = true;
-+
-+	KUNIT_EXPECT_EQ(test, acs_walk_map(&f, 0),
-+			PCI_P2PDMA_MAP_NOT_SUPPORTED);
-+}
-+
- static struct kunit_case pci_acs_test_cases[] = {
- 	KUNIT_CASE_PARAM(pci_acs_p2pdma_request_test,
+ /*
+  * Drive calc_map_type_and_dist() over a fabricated PCIe fabric matching the
+  * canonical topology of two devices below one switch:
+@@ -569,6 +703,10 @@ static struct kunit_case pci_acs_test_cases[] = {
  			 acs_request_gen_params),
  	KUNIT_CASE_PARAM(pci_acs_p2pdma_completion_test,
  			 acs_completion_gen_params),
-+	KUNIT_CASE(acs_walk_bus_addr_test),
-+	KUNIT_CASE(acs_walk_request_redirect_test),
-+	KUNIT_CASE(acs_walk_completion_redirect_test),
-+	KUNIT_CASE(acs_walk_egress_control_test),
-+	KUNIT_CASE(acs_walk_asymmetric_direct_test),
-+	KUNIT_CASE(acs_walk_nested_completion_redirect_test),
-+	KUNIT_CASE(acs_walk_nested_request_redirect_test),
-+	KUNIT_CASE(acs_walk_translation_blocking_test),
-+	KUNIT_CASE(acs_walk_ancestor_provider_tb_test),
-+	KUNIT_CASE(acs_walk_no_common_bridge_tb_test),
-+	KUNIT_CASE(acs_walk_self_dma_tb_test),
-+	KUNIT_CASE(acs_walk_relaxed_completion_test),
-+	KUNIT_CASE(acs_walk_direct_translated_test),
-+	KUNIT_CASE(acs_walk_tb_above_divergence_test),
-+	KUNIT_CASE(acs_walk_unreadable_control_test),
-+	KUNIT_CASE(acs_map_types_pack_test),
- 	{}
- };
- 
++	KUNIT_CASE_PARAM(pci_acs_flags_enabled_test,
++			 acs_isolation_gen_params),
++	KUNIT_CASE(pci_acs_flags_no_cap_test),
++	KUNIT_CASE(pci_acs_flags_read_fails_test),
+ 	KUNIT_CASE(acs_walk_bus_addr_test),
+ 	KUNIT_CASE(acs_walk_request_redirect_test),
+ 	KUNIT_CASE(acs_walk_completion_redirect_test),
 
 -- 
 2.55.0
