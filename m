@@ -1,43 +1,43 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0913336D51D;
-	Mon, 12 Oct 2026 13:15:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 244CB38330F;
+	Mon, 12 Oct 2026 13:16:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791810952; cv=none; b=MPJvlYG81u+PTFudUslg9tTZXmk8nv3f+Z3Y5RDnL+EYOQv8wHHA6PPCWbPKX+Ulhr4v4gJxSRDXwkFobPaqW9e/yyEBEozWBDa19PJLbbcwe3lyfNssTabyqNh86g1U4xgXs5YGnaK1d/0yy2HcZcEX2LNqc/RkOLhKxEtYb/E=
+	t=1791810993; cv=none; b=Pum5EQs5vsonYQ7edgDPJkL2cUZYRtBrbpq7GD9fspwAuIun96C4i+imuafZ7S5ITCXeG1zwimcjU95Yuc1J68ra5PvtcjwT0uyWf3HaZxa7xlgWrsE7O0VtYpKU/dU7tARrDDsNQnV/GUpspF1UyiKD4MRaY5WIRZXYMs1toVM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791810952; c=relaxed/simple;
-	bh=9K0G3pe7nJ1H/EdXv5+Mf0RJTwGuH5nexEMHdWSZqaY=;
+	s=arc-20240116; t=1791810993; c=relaxed/simple;
+	bh=J/yQSMr0uJe1VjnFyZcvAFAq45+EbCCZdoO6Rk+QZW0=;
 	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=j1cHT1gCPZRU4JmpN8UmOefM4ey8CrLdBOys6yJ4GVEtjVY9ibOJoDrqJR1gpaDP091/7uWo7MK+ycYTRqMgsDu0llNc1BX78Z36wOxF4HoyfZlgXpfUJwtujP8CNLgZmPkZNz9meARBnkOWgKFKkT4KGMr4U9NuWtawktNfC3w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ioTJi0Ic; arc=none smtp.client-ip=100.103.45.18
+	 Date; b=l2Zn+6xpFyKCKQIPkmcwHzHyTAuKZ1KRwEzGcV/AZXcwMJuAWjxuaQ/TQYxc9yeTtjh+Zv7VUoR5/zMNOtXNi+hDKSWDVUezAur5mZsvh4tdV8m/H/N3C3cZcdMwBLcV5E5JkfRKxSrZ5aZu1e2aj/cTt/SnTUV3ByIa4mXb3L0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=USLTIu8Y; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ioTJi0Ic"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 656A21F0089B;
-	Mon, 12 Oct 2026 13:15:50 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="USLTIu8Y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 528551F0089B;
+	Mon, 12 Oct 2026 13:16:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791810950;
-	bh=9K0G3pe7nJ1H/EdXv5+Mf0RJTwGuH5nexEMHdWSZqaY=;
+	s=k20260515; t=1791810991;
+	bh=J/yQSMr0uJe1VjnFyZcvAFAq45+EbCCZdoO6Rk+QZW0=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=ioTJi0Icn72IoFWqhyYezS2uydt/MVIY7c88Ve0sZ2AUqAj7aiGFa9u/DZ6uuN+5O
-	 dJTbcowmOysMrykfGRu/8RxBlxcu9A9j26FyYpSVrKDB2G8XnLRtddJsjLTVtX6r0f
-	 lWhzGyx/Z67BXBoBeXHFQwAV6eAXSQKrbBqCbTXecCS8FtShYkeK5KJOEqqWgA995X
-	 u+cZAf6FKE4Zdm0XFZJ4npQyd/V/+D02b+EgxjmldItR4NkFXiHXixl7/Zmy+/sNbE
-	 DKfrVyj/M3zfQGIlgMJJsjtKbuSTKEAFM7EIijePmz3v85P1f8Q4X9rtvk6lR3Xsab
-	 B87fBfxAygLAQ==
-Message-ID: <sashiko-outbox-168156@kernel.org>
+	b=USLTIu8Y5IsIfwzzjmhk0r/ZY0hkSga/trnJSFSVZC44YRjWVrBOnH+zNeTzWCINg
+	 rb2d6R5uvE/1HEmYoALENAkZ43CQ+6QAmy8UnN+gr9ov1t5FW/Y66Tplrc/Yk1aqpE
+	 NiUbbsEnAtbEth8zWzJMICY4OtYQhsgTuSQVBidC2WH/gRFXiwbwxb6Bl4aVZJfbbL
+	 lIzd8AMN9u+WfIZNvLayhKZ+zZULa7b/TrIi0l4x4UOlx0+8S7qfyVxA2PB6O+Xnpi
+	 ZpzsmZLBK9bf0/QPZdjjUNYy/7qwGgvobVTS5JshL+JCJB2FcHLMo2lNj/+JY/wR+P
+	 GLOrsZsqCeOKA==
+Message-ID: <sashiko-outbox-168157@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v10 05/18] PCI/P2PDMA: Document directional ACS routing
+Subject: Re: [PATCH v10 15/18] PCI/P2PDMA: Document TLP-class routing
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Leon Romanovsky" <leon@kernel.org>
-Cc: dri-devel@lists.freedesktop.org, kvm@vger.kernel.org, media-ci@linuxtv.org, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org
-In-Reply-To: <20261012-fix-p2p-acs-v4-0-v10-5-6ffe7b7a4517@nvidia.com>
+Cc: kvm@vger.kernel.org, linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org, media-ci@linuxtv.org, linux-pci@vger.kernel.org
+In-Reply-To: <20261012-fix-p2p-acs-v4-0-v10-15-6ffe7b7a4517@nvidia.com>
 References: <20261012-fix-p2p-acs-v4-0-v10-0-6ffe7b7a4517@nvidia.com>
- <20261012-fix-p2p-acs-v4-0-v10-5-6ffe7b7a4517@nvidia.com>
+ <20261012-fix-p2p-acs-v4-0-v10-15-6ffe7b7a4517@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Mon, 12 Oct 2026 13:15:50 +0000
+Date: Mon, 12 Oct 2026 13:16:30 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -46,16 +46,12 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 > From: Leon Romanovsky <leonro@nvidia.com>
 >=20
-> P2PDMA documentation describes ACS controls as path-wide, although Request
-> and Completion controls apply to different transaction directions and only
-> affect peer-versus-upstream decisions at the path divergence.
+> The P2PDMA documentation stated that the mapping result is not defined for
+> Relaxed Ordering or ATS-translated Requests. It now is.
 >=20
-> Document the client as the Requester and the provider as the Completer,
-> the divergence port checked for each TLP direction, and the conservative
-> handling of unreadable ACS state. Clarify which controls disable_acs_redir
-> changes.
+> Replace that paragraph with what the three TLP-sensitive ACS controls do
+> and the table of outcomes per class.
 >=20
-> Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
 > Tested-by: Tushar Dave <tdave@nvidia.com>
 > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 
@@ -63,5 +59,5 @@ Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261012-fix-p2p-ac=
-s-v4-0-v10-0-6ffe7b7a4517@nvidia.com?part=3D5
+s-v4-0-v10-0-6ffe7b7a4517@nvidia.com?part=3D15
 
