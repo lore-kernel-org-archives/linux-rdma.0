@@ -1,110 +1,110 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A834348C7C;
-	Mon, 12 Oct 2026 11:02:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56D0529BD8C
+	for <linux-rdma@vger.kernel.org>; Mon, 12 Oct 2026 11:29:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791802930; cv=none; b=RpEgxO8+f+Mhc9jRcHA0zM1vPLWEFQzfONlI9bGAiDJGp1jau9k8rg83AyFsoD/r1CaKNCr/LL210RCw3Sgs4MwtYBX3VXW/+Oq3XpVvYX5U2Gi+FgcO5CzlYnLe2ROs4INAtxGRt/Yj3NqB/LuZZNHLJJPiGy2JJK3FISFyEk4=
+	t=1791804587; cv=none; b=CHhmPGwFRoNURKJb0g2vu/phWB2pF1n/V+07cBhacU/zcRIos0F0/rpGV3lSk+83T94fDQMOamMUXsZfM6nYbUTlUQ4JcD9MFtwX49qAvNOr9CJGGP8qZm+v7q2Z08CxyWLoLVvWo2tg5+f1DUmN4kwlaPXgsN9Snnn6ewZ3hPM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791802930; c=relaxed/simple;
-	bh=aj+gYybFQdwaLzcOujCEl6Ayb88eLjuLhCdZZHUlOxE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=AlEfr70YbN7dYy3XSTgFaTV+vCxOsMYZFigqOzhbzyG9TrgyMbAiqy0MNFaO1jOwvSpRGjnOSGg2oEfEU6Cp1sVwYtALHO+Y5Xs0s1kqOjIU4g8BaV/LdXAigQRK3NWfI1ATViyARkryRfXYs4eWYVM9JORkzIL6/M2FeR1Ufaw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BtvBiCKV; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791804587; c=relaxed/simple;
+	bh=J6Jn1vaIa2biS/yjTA9If5soaex98HYclnXcMe6/eK4=;
+	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
+	 Date; b=tE2SNC9Pu/CGJdnQ5YSUZfAD++qe1G+EL6O52GSgmjyR9nFxJcuOHe4AYtSiOn1fch7UpIiqlG3yitveKU/bSct4zgTYK3gQTnDvyGQ1E/pNc6+2aRgWQAdprUO7U/R/V5xp6V3iKEzbZgxUmQ7exXl1EsPSxcjEWatNiI9ViIM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XOMXVdb3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BtvBiCKV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1728B1F0089B;
-	Mon, 12 Oct 2026 11:02:08 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XOMXVdb3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C46791F0089B;
+	Mon, 12 Oct 2026 11:29:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791802929;
-	bh=MAfYAMjPNeKmn70tZ8yJzw3w1YF8t8B5YaHyVdbC17s=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=BtvBiCKVAPhg4YheaU0NRTp6NmOfBz71i/2zIRP+ixQZlDRLqv9KZ2Et0goaQhFpF
-	 1adHNcrWs0a7uEmFieyjjaBhTuH/edNCuGf5KUXuHN+d31KNWCXCjrDUDy/uY8IDLj
-	 ao5nVaaGaM3ZuU2zQAZKdppFM3eRolLpwvA45qAEDycS2m7tXyRi46Kzr4N+vK83o0
-	 krr9G8jYOmbF3ozKel1ofXEIzfyqphTOx0GaT0Id1f0N61X9eRhy9mKzsF/zW5S4mF
-	 sUDGOczGxsWpKhIstJfvyoiyO8ynN0redIjjsgQeIiEyNg9T4Pyqk0CnbhM/lWgwV3
-	 vkCX5+ikp0/xg==
-Date: Mon, 12 Oct 2026 14:02:05 +0300
-From: Leon Romanovsky <leon@kernel.org>
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>,
-	Logan Gunthorpe <logang@deltatee.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	"Joerg Roedel (AMD)" <joro@8bytes.org>,
-	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
-	Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
-	Thomas =?iso-8859-1?Q?Hellstr=F6m?= <thomas.hellstrom@linux.intel.com>,
-	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org, iommu@lists.linux.dev,
-	Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
-	Chaitanya Kulkarni <kch@nvidia.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
-	Ankit Agrawal <ankita@nvidia.com>, Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: Re: [PATCH v9 01/18] PCI/P2PDMA: Document the TLP attribute
- assumptions
-Message-ID: <20261012110205.GD219304@unreal>
-References: <20261001-fix-p2p-acs-v4-0-v9-1-1a8e0f50ddd9@nvidia.com>
- <20261007201257.GA781492@bhelgaas>
+	s=k20260515; t=1791804586;
+	bh=0WXFous1SUPBvIMen+c3VXxqNjJmEfu/40IqetB3Jh8=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=XOMXVdb3/Nf+BQU0RZ8jPtXcJu9Sp2V1rnbbzKhQbpXgOHoqHLX6qAfP7XmCoFOLJ
+	 tf247nyM5CJkvl82KRmVlfMjGm8Ruu37fWBWivnrOzOROvu6XyJxqeSggJtg/R/FBs
+	 5Rle+1lNXv+a7y78MfLM1N2scCkpg/kjLqbpk0A4Rgx+lRDT7WzNg3qieSOvLpFkB7
+	 iAfdiRrwr2YKol8f4NFGeH3qvOJxpVqisrtBkcGWGTRWL7U5HVFQukaL2Ntuig4TJI
+	 ow504TF9Mre2xRjcGezv+2b20yPj0OuoNI8O3UWECBP4Rrttyo4P0827aCL9Uvv10W
+	 2KbnpuJwjNSjw==
+Message-ID: <sashiko-outbox-168016@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net-next 2/2] net/mlx5e: Add DCB_CAP_DCBX_LLD_MANAGED
+ support in setdcbx
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Tariq Toukan" <tariqt@nvidia.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261011112900.802150-3-tariqt@nvidia.com>
+References: <20261011112900.802150-1-tariqt@nvidia.com>
+ <20261011112900.802150-3-tariqt@nvidia.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Mon, 12 Oct 2026 11:29:45 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261007201257.GA781492@bhelgaas>
 
-On Wed, Oct 07, 2026 at 03:12:57PM -0500, Bjorn Helgaas wrote:
-> On Thu, Oct 01, 2026 at 02:55:09PM +0300, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro@nvidia.com>
-> > 
-> > P2PDMA selects a mapping without receiving the Request's ordering or
-> > Address Type attributes. Its ACS handles only strictly ordered Requests
-> > carrying an Untranslated address.
-> > 
-> > Document that the result is not defined for Relaxed Ordering or
-> > ATS-translated Requests because those TLP attributes can select different
-> > routes through the fabric.
-> > 
-> > Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
-> > Tested-by: Tushar Dave <tdave@nvidia.com>
-> > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
-> > ---
-> >  Documentation/driver-api/pci/p2pdma.rst | 7 +++++++
-> >  1 file changed, 7 insertions(+)
-> > 
-> > diff --git a/Documentation/driver-api/pci/p2pdma.rst b/Documentation/driver-api/pci/p2pdma.rst
-> > index 63cff9e4d2c9..80f8fec9b0e9 100644
-> > --- a/Documentation/driver-api/pci/p2pdma.rst
-> > +++ b/Documentation/driver-api/pci/p2pdma.rst
-> > @@ -15,6 +15,13 @@ then based on the ACS settings the transaction can route entirely within
-> >  the PCIe hierarchy and never reach the root port. The kernel will evaluate
-> >  the PCIe topology and always permit P2P in these well-defined cases.
-> >  
-> > +This evaluation assumes clients issue strictly ordered Requests carrying an
-> > +Untranslated address. Its result is not defined when clients use Relaxed
-> > +Ordering or issue ATS-translated Requests because those TLP attributes can
-> > +select different routes through the fabric. Unless ACS Translation Blocking
-> > +is enabled, a Port with ACS Direct Translated P2P enabled routes a
-> > +Translated Request directly to the peer regardless of the redirect controls.
-> 
-> This whole paragraph is removed later in the series, so kudos for
-> documenting the current state before it changes :)
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+s) to consider:
+- [Medium] net/mlx5e: DCBX capabilities update silently ignored and LLD_MAN=
+AGED missing on boot
+--
 
-This may be a leftover from the prerequisite fixes you merged. I'll keep it
-in the series for historical context. :)
+commit 64b98b95142563c858de976f308b2006891e9c00
+Author: Alexei Lazar <alazar@nvidia.com>
 
-> 
-> Unrelated to anything in this series, but this doc mentions
-> "p2p_provider", which doesn't exist.  Should it be "p2pdma_provider"?
+net/mlx5e: Add DCB_CAP_DCBX_LLD_MANAGED support in setdcbx
 
-Yes.
+Add support for DCB_CAP_DCBX_LLD_MANAGED, which indicates that DCBX
+negotiation is performed by the firmware/LLD agent rather than the host.
+When DCB_CAP_DCBX_LLD_MANAGED is requested, switch to
+firmware-controlled DCBX mode.
+
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_dcbnl.c b/drivers=
+/net/ethernet/mellanox/mlx5/core/en_dcbnl.c
+> index 4eef929f5ae9b..68deedb6f82ec 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_dcbnl.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_dcbnl.c
+> @@ -439,9 +439,6 @@ static u8 mlx5e_dcbnl_setdcbx(struct net_device *dev,=
+ u8 mode)
+>  	struct mlx5e_dcbx *dcbx =3D &priv->dcbx;
+>  	enum mlx5_dcbx_oper_mode target_mode;
+> =20
+> -	if (mode & DCB_CAP_DCBX_LLD_MANAGED)
+> -		return 1;
+> -
+
+[Severity: Medium]
+If a user issues a setdcbx request to modify capabilities (like CEE/IEEE)
+but keeps the same DCB_CAP_DCBX_HOST bit, target_mode won't change.  Will
+this cause the function to return 0 early and skip the dcbx->cap update?
+
+drivers/net/ethernet/mellanox/mlx5/core/en_dcbnl.c:mlx5e_dcbnl_setdcbx() {
+	target_mode =3D new_is_host ? MLX5E_DCBX_PARAM_VER_OPER_HOST :
+				    MLX5E_DCBX_PARAM_VER_OPER_AUTO;
+	if (dcbx->mode =3D=3D target_mode)
+		return 0;
+	...
+	dcbx->cap =3D mode;
+}
+
+This appears to be a functional regression introduced when the switch-to-ho=
+st
+and switch-to-auto logic was folded into one path.
+
+Additionally, since DCB_CAP_DCBX_LLD_MANAGED is now supported, does the
+initialization logic need to be updated to report it in AUTO mode on boot?
+
+drivers/net/ethernet/mellanox/mlx5/core/en_dcbnl.c:mlx5e_dcbnl_initialize()=
+ {
+	priv->dcbx.cap =3D DCB_CAP_DCBX_VER_CEE |
+			 DCB_CAP_DCBX_VER_IEEE;
+	if (priv->dcbx.mode =3D=3D MLX5E_DCBX_PARAM_VER_OPER_HOST)
+		priv->dcbx.cap |=3D DCB_CAP_DCBX_HOST;
+	...
+}
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261011112900.8021=
+50-1-tariqt@nvidia.com?part=3D2
