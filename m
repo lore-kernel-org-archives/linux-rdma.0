@@ -1,226 +1,197 @@
-Received: from mail-dl1-f47.google.com (mail-dl1-f47.google.com [74.125.82.47])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012009.outbound.protection.outlook.com [40.93.195.9])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2712A40BCA1
-	for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 09:18:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.47
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791883112; cv=none; b=Ez57MnJQqyv0e9xsLJUYuzmJn2x1Vv60n4B8s/XS4inJzt8GGC5YhgEFDsPkpDvDg2zUwrrGYxNvll9SGf0DMb+jc4NhLDblnv5pZRYK8X/V919uVnvY+wTUYStVyveoEntjaWmO+E9XaSD8BucSykEtLoEg2FMeG9tdWVlQaH0=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791883112; c=relaxed/simple;
-	bh=Qw8zae9NOxAk0It4XupnieJPLdroSQEYcZSuuA8SXV4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=XbLY4K/uTnQ16KyLyg3Ilo5tJQEuhPD0hSIDYe0ZTY7u/KIZG29A6yKC4Z0BCuNbdaV/nWB+kAXrsEgu6xJbCSws3+GoeEO0gfOOvng3nhD6CIqADL1Vo/YTqGgWgPr86tVg2OAcgC53Vbg5Idlf1beMOj1il5sk85rqdfvzyfc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hRSPCnVn; arc=none smtp.client-ip=74.125.82.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4866A349CFF
+	for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 09:50:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.195.9
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791885011; cv=fail; b=BxvamtDz/glDegOhpbSZOPfYv6sOEuC/0Qyx5jHXCZdMTPCwdFPgImxhRG+iAqUyEN05oJ6676vnQbiQBWiITdQXgTTbbaMuNpT6wL6VkSPo4y9dpENsbO+42ifJFkK3yPBmfTbQkQf0nrceov9JFkgaKI+LH3H61CMYGNnuX+k=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791885011; c=relaxed/simple;
+	bh=LILL3Og/6DGqgIKUHIDYdl998s/DxpleZuR9O3dlHUA=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=i3tQRnI1t/cUZNGeAiNVwDHVtHO3mJS2EtvmWPFvMhNqcU81mMUXr0CswTwbQDw5nnts+8HjhEpwl83kjA8us1j7oN/9GFO4dt3pi+GmEeDmFkcS064ZR8xpGDTvZUNBeXI+qtP7ylnHMaXOc94KpjqmON/2CC4siYbWWqVRvyM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=AQELAlN/; arc=fail smtp.client-ip=40.93.195.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hRSPCnVn"
-Received: by mail-dl1-f47.google.com with SMTP id a92af1059eb24-142eed7df08so230588c88.1
-        for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 02:18:28 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791883108; x=1792487908; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=XJeGv4gE+1nP/kqGfhMNUpT5saqR4ArNAelaYTNhWl0=;
-        b=hRSPCnVnM+EHmuYlE6ocgu8bFlYbbx0yCbV2F6dkIDyPBWkKHOffX8JJhRlcrv5N8+
-         2zga9kSqa1Os9SMjjI/Dp+IA5OU8ID7CsEDA5DIGR1cqp3Ou4cjHYvmb/4KLprqJfk82
-         B9RDQdRqMDQgjt/cSOBuD8LRNW4CR142xkWL9vYPOcPkhyX3tD9RwSt0X/ByxWVBH8q2
-         Ajc6u9oqWonfo4LMiWOElLSBqwdiZWVKGVGolb029gkYrKiKXEejg8a0VlJYe++z1ndE
-         go/l1R8QZjlfOsa6SV9emb7iPHXHaIgLoNeAG2WQOCn89P+jkXmDXXecrNYXIPovevrV
-         iBvQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791883108; x=1792487908;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=XJeGv4gE+1nP/kqGfhMNUpT5saqR4ArNAelaYTNhWl0=;
-        b=DA4LhB97vWwpB/cIFFPEr8YaTeQtjh3PwCLhRSTsaSJHTk4hWq9vFq2yWmpUFmcNkn
-         Os7gm6CkzturW/TZe78/mH3gGgq5qP+JMZOF2XjMew1gjgKFy/S+BP198pA5HcPIuUzS
-         Yjx++sUkO+NPhJ4UQUexzlPcZ/UpVH5ph/aFiACGE2kombLzXIj8cz2dupu7E4NZLcjY
-         YvDv83cWCuxFZe7JqeN+1s+H7YTgoVlIhYHqMgEwHC0sRkW1c7YUdUGI0lf7G0nfAM91
-         LeMBchQm4THtlkFgyJXJcxiCs1DWpoS7cDcnODU4IH515ThVxfcVxrspILykQH/FXO4C
-         Qvyw==
-X-Forwarded-Encrypted: i=1; AKwUvBw+HSzuiNgoVRUbTnM17FVUfV8F/fRy6iYqz7ZbLbosMm6/7pmVb5XolQ9LvFFn78i6ypFRtWkoR5fA@vger.kernel.org
-X-Gm-Message-State: AFq9FYJwyICmqG8Ug4T/MRc+9SShw8dI+lSnLPSITTJkJTAggQNK3fl8
-	RDumBa8SWAGLyEFITVxo2qQuTajpvY50sH16iHXadzsL5Z4SPgn8WnX/
-X-Gm-Gg: AYBFou0oQObLqhTgiXoW+1SO8H+lF8WPoRwmamR7FomLqVxYMPAtfpc9GeoSUCBT0Ap
-	xbbsAtpFJJw7weY+Lkt48pI5nQP6TeUnP7BL5sNWyOjjg1NthBTD+NhcEQlmzc6m0MchF9rySgp
-	J6PBFnFhy+dlT9DjpxBgobxJNAWD43sL5PQo3IhqMTMEVWlWERXGhH0ihSrewPiUPNGe6xQifj2
-	OExLV5TOjEsbjmb6wGJD/X3rFj5bdQrz3L++CROBvOsxOyV+NpUQVRBS14FHAdhe1M57YlSBvay
-	cq4wzM+l36PxXOYG9JyfD69Jt/T1fPMexF5mQIgOTgWcgvXA1uEmkw0/DreFIYeGhQhfB0dXJm/
-	LTzTgaWNtOw8b4zw10eprSUWexKqTLBVHVSECsH3FEHWRlwuH7HeacgXdfyu7YgW+UJHPaocu6d
-	otEefROkSgWSRtvj8emUSufa2+P7zvXO4KkYR17ecW0tgUVfXCW5HvB7PYLrKBxMZWQGOb1zwLP
-	xiIti+QIdK++WCk2KEikb/ji2JQ3oR3p73Km8R8cqbw0l9aph9+lDp4j7X6MzGcFUAhoNcrLj8=
-X-Received: by 2002:a05:7300:d40a:b0:359:8492:20f8 with SMTP id 5a478bee46e88-35984922315mr16399593eec.2.1791883107751;
-        Tue, 13 Oct 2026 02:18:27 -0700 (PDT)
-Received: from localhost.localdomain (45.78.65.84.16clouds.com. [45.78.65.84])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3537cb6a279sm41437975eec.30.2026.10.13.02.18.23
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 13 Oct 2026 02:18:26 -0700 (PDT)
-From: Chengfeng Ye <nicoyip.dev@gmail.com>
-To: alibuda@linux.alibaba.com,
-	dust.li@linux.alibaba.com,
-	sidraya@linux.ibm.com,
-	mjambigi@linux.ibm.com,
-	davem@davemloft.net,
-	edumazet@kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com
-Cc: tonylu@linux.alibaba.com,
-	guwen@linux.alibaba.com,
-	horms@kernel.org,
-	linux-rdma@vger.kernel.org,
-	linux-s390@vger.kernel.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: [PATCH net v3 3/3] net/smc: hold a link group reference for free work
-Date: Tue, 13 Oct 2026 17:17:16 +0800
-Message-ID: <20261013091716.1210420-4-nicoyip.dev@gmail.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20261013091716.1210420-1-nicoyip.dev@gmail.com>
-References: <20261013091716.1210420-1-nicoyip.dev@gmail.com>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="AQELAlN/"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=awoe6FpeQpguwM7wg/Zn7eI4YuVSuiM5kICinUVkfuY8XlGImYurOP5RAVRjVfsiveMraRHjq9XTwR32ZdackljDVgLQm7RRQcmTs5wjYWFoLZnFHTrRwZzxTiKJgwImscLNrGaXsy4figTJxnChvBDJTB1bDpiNs42a89WM6XOcfXznzVLu0S0tjoW95LUdRRtIWbADIC+qUjyd31CHVdzsS6bfRi9nyy3LRVv26vyQ7Ynh0EGFOeR/ozwO/YNdlIMrbLJoqIt4fhEQD8KAPS2zkcRhBxPg12DT54ExrjiouRX5UYYn8Bh80Wg+ksmmO8jq5qwjXT77FjWKbjnd4A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Nl2nco867Af2CNbiY9xn5FRNySjxSIB5R0uXjBVbRLc=;
+ b=Q/Ha/1HoTf3JyEHoXB+OjFced7J4Y3OzRJYFIm6IhQiHVodLRTk0T2uRq9XGZCCBcAh2eejtt2aKTjkEKthTxgiJ5odsTUQE8qKBFQZUxjFG/GfsC3ljcXgOEsE9VUfYA54ZDnBoLAUJwpqP7eZx/TeWhZLxqwQCpn77ayy25XwGfFZxNTTqKV2+zbE9OXbU14RqV0BsgSFUaqx2673uJ0BeHApG5dETAi8T7U6UED3LHj6le8Hflbp6oE5sZYCBJQ4kCBsY2mK3xnZ6DTNDi45bLknphNp6n7sQcWX38o3PSRxXXH55c75pCsa9j3g6t19Vm5oCNMK2E5q4SzcFuQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.161) smtp.rcpttodomain=cybernetics.com smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Nl2nco867Af2CNbiY9xn5FRNySjxSIB5R0uXjBVbRLc=;
+ b=AQELAlN/MBOfnFaRWAjmFFkRImh9WQak9FqpwkBjqn9llvWeBgHH+XK5xHdNtklbpF/aHF71nbMEPbvlozwAY0+jA2V5bx7XjrKnky0rbtMFqFam7I3Lvsa/mgsZv5gff5ft+7PEq0Ydz3o2j7j+j3IL6q1Vfnla7P/L4nTZcseHsjBk5x/6EbXXuJWvDpFFE1Gu8FSG+8jbNsNLaMgfnQcqWuo1C/5pYAQox6tWplIK0FRuhdKwoaxcFCsEqw2fzulHypsCzVvjRyZIMNXVbzEfBVTfGOpuKlS5Kbda3xSxnskkIalguVGL3phRGFZ2xpHUu6EkhC0v98Ne4DRUsg==
+Received: from SJ0PR03CA0291.namprd03.prod.outlook.com (2603:10b6:a03:39e::26)
+ by MN0PR12MB5881.namprd12.prod.outlook.com (2603:10b6:208:379::12) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.496.23; Tue, 13 Oct
+ 2026 09:50:05 +0000
+Received: from SJ5PEPF000001CF.namprd05.prod.outlook.com
+ (2603:10b6:a03:39e:cafe::6d) by SJ0PR03CA0291.outlook.office365.com
+ (2603:10b6:a03:39e::26) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.522.4 via Frontend Transport; Tue, 13
+ Oct 2026 09:50:05 +0000
+X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
+ is 216.228.117.161) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ SJ5PEPF000001CF.mail.protection.outlook.com (10.167.242.43) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.522.6 via Frontend Transport; Tue, 13 Oct 2026 09:50:05 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Tue, 13 Oct
+ 2026 02:49:53 -0700
+Received: from [10.221.200.227] (10.126.230.37) by rnnvmail201.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Tue, 13 Oct
+ 2026 02:49:51 -0700
+Message-ID: <6af095b1-4ca1-483e-94c4-50227507fa85@nvidia.com>
+Date: Tue, 13 Oct 2026 12:49:48 +0300
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: mlx5_ib fails probe with old firmware
+To: Tony Battersby <tonyb@cybernetics.com>, Leon Romanovsky <leon@kernel.org>
+CC: <linux-rdma@vger.kernel.org>
+References: <064dfa67-8fd4-40f0-b925-6d1e0cd42e6a@cybernetics.com>
+Content-Language: en-US
+From: Moshe Shemesh <moshe@nvidia.com>
+In-Reply-To: <064dfa67-8fd4-40f0-b925-6d1e0cd42e6a@cybernetics.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: rnnvmail202.nvidia.com (10.129.68.7) To
+ rnnvmail201.nvidia.com (10.129.68.8)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SJ5PEPF000001CF:EE_|MN0PR12MB5881:EE_
+X-MS-Office365-Filtering-Correlation-Id: b37213c7-650f-4972-4dc4-08df290f5c09
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|1800799024|23010399003|36860700016|82310400026|56012099006|11063799006|261009223027099003|10067099003|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	wS0J/T/zD0mI7QeS/A47oSG6EoT/M6smmR3DXB1zLaX47JdYJdern1vIa49D/0cy8uPh+qHz0ojUfH/NsgABVt0IsP1tmo3HGROKeRUpb882Fy26U2WsejoCFyIsyoZh3SUseo3dtL8z+Lrl5Dz5PI7Aj0QNIqFbn3MV4f+D4bhib5roVqgWrRexUhcUg7ePwVc7Nv2dvZZ1tLzzNzMi1EJN0cifJ6G452sLVABksEuiR0ZU8tS4fyZc7yfu+btR/OGUiKoM13izQzEcyPN06dAi9tnOp2OiiIPpGIqiP2TyTN+sDcbLkBakYxyVy++0gxCtSTNJVAbeHCQPYNdaf6y+VDR7WYBF2B+rVPP/nNMHt6+bvUS30/inBBWk0zLEMNW1RGmYuCbCLR19cE/iFYV4/nWBqgX3Z9y+EcnNa71O4vT7NEy50GtYeKo4GYo2UkA20aqxZ18Xz9NM/Jal/+wYLANUVoBZcHnAc9Oqoa0BUgsNzT0LRqa6iVNCShPsoyG/tiyFOodAbiTiQc08OGGQMupib/fClkyP6IWJZQ7Hu5DQW8yfuoq/u/xEn+XakfKSuak2XcJZYSzS7oBJNkAZSg4AI60EiZCzAFSsfm0Fm2ck/S5ZqWHtfvM+42mqRdzvWSqJWxxbX4YhrfKM5qxzAEBa95DCW4M1fNZNwXrUXD+1w4mhiCNWKq1/l5eEYEETNTtPb+b/gNNN6SkITA==
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(1800799024)(23010399003)(36860700016)(82310400026)(56012099006)(11063799006)(261009223027099003)(10067099003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	+127Zqo404DvOTiSpvpKNdDY9oPv0rGNwmj2vY6uJ+paTTRYe4OH+yLNCBHMXFn1cKnKKzPPJyZ+Ay8tWJNNK59i+1VaWo0YqmW9kFuTVQKFEfCklYoQyT63yjZQapyhgHNW43a8ZGNqiD5o2MaQvp2tWGNFY+jSrazjb4vUFS5wGwbtq5wZoZCbNgxoYl+sgfRCAD1xIHGl/+G/59uHdIiAeSCsxTYWwhBC+JRsFvkIi/1OUXqtRYQxh5eSxdwE9qvcTWQ3cDzwq3l4lTM6+tmgxiIPMYhyF1ouJ3xkirzd9+Obk62sc182J0yjKkKjubKHBWALUB/s9JiEuUpS3rXaUnsq3W5FFg3R+E6PX4riqmtvNmCb5Ft3sd0hisg9BcG8HsH2yduupOVqdz/BQLlvg/9FYju/tvL5oyJsMR3KxOR098TGVKDDcmCbk1wI
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Oct 2026 09:50:05.4889
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: b37213c7-650f-4972-4dc4-08df290f5c09
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	SJ5PEPF000001CF.namprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN0PR12MB5881
 
-__smc_lgr_terminate() cancels free_work asynchronously. If the callback
-has already started, it can still access the group after the terminator
-drops the last reference. The callback has to dereference the group to
-find its list lock and check freeing, so that check cannot protect its
-own access to the allocation. This lifetime gap was identified during
-code review of the scheduling and early-cleanup fixes.
 
-Take a group reference before mod_delayed_work(). Keep it when a new
-execution is queued, including when a previous callback is still running.
-If the work was already pending, release the extra reference because that
-pending execution already owns one. Release the queued reference when
-cancellation succeeds, or at every callback exit when it executes.
 
-Use the reference-aware cancellation helper for connection reuse,
-termination and cancellation of a rearmed instance by the free worker.
-The callback's reference keeps the group alive even after smc_lgr_free()
-drops the teardown owner's reference.
+On 10/9/2026 9:20 PM, Tony Battersby wrote:
+> I have a number of Mellanox infiniband adapters out in the field with
+> various firmware versions:
+> 
+> lspci
+> 01:00.0 Infiniband controller: Mellanox Technologies MT27600 [Connect-IB]
+> Subsystem: Mellanox Technologies Device 0018
+> 
+> lspci -n
+> 01:00.0 0207: 15b3:1011
+> Subsystem: 15b3:0018
+> 
+> Ones with old firmware don't work:
+> 
+> mlx5_core 0000:01:00.0: mlx5_pci_vsc_init:66:(pid 731): Failed to get valid vendor specific ID
+> mlx5_core 0000:01:00.0: firmware version: 10.10.5020
+> mlx5_core 0000:01:00.0: 63.008 Gb/s available PCIe bandwidth (8.0 GT/s PCIe x8 link)
+> mlx5_core 0000:01:00.0: mlx5_cmd_out_err:810:(pid 731): QUERY_ISSI(0x10a) op_mod(0x0) failed, status bad system state(0x4), syndrome (0x408b33), err(-5)
+> mlx5_core 0000:01:00.0: mlx5_core_set_issi:866:(pid 731): Query ISSI is not supported by FW, ISSI is 0
+> mlx5_core 0000:01:00.0: mlx5_init_clock:1040:(pid 731): invalid device_frequency_khz, aborting HW clock init
+> mlx5_core 0000:01:00.0: mlx5_cmd_out_err:810:(pid 731): QUERY_HCA_VPORT_CONTEXT(0x762) op_mod(0x0) failed, status bad operation(0x2), syndrome (0x3590f5), err(-22)
+> infiniband mlx5_0: Couldn't create per-port data
+> mlx5_ib.rdma: probe of mlx5_core.rdma.0 failed with error -12
+> 
+> Ones with new firmware do work:
+> 
+> mlx5_core 0000:01:00.0: firmware version: 10.12.780
+> mlx5_core 0000:01:00.0: 63.008 Gb/s available PCIe bandwidth (8.0 GT/s PCIe x8 link)
+> mlx5_core 0000:01:00.0: mlx5_init_clock:1614:(pid 755): invalid device_frequency_khz, aborting HW clock init
+> mlx5_core 0000:01:00.0: Flow counters bulk query buffer size increased, bulk_query_len(1)
+> mlx5_core 0000:01:00.0 mlx5_0: Port: 1 Link INIT
+> mlx5_core 0000:01:00.0 mlx5_0: Port: 1 Link ACTIVE
+> 
+> I can work around the problem with the following change:
+> 
+> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+> index a457647edacd..4fc903c2a0be 100644
+> --- a/drivers/infiniband/hw/mlx5/main.c
+> +++ b/drivers/infiniband/hw/mlx5/main.c
+> @@ -3611,7 +3611,7 @@ static int mlx5_port_immutable(struct ib_device *ibdev, u32 port_num,
+>   
+>                  err = mlx5_query_hca_vport_context(dev->mdev, 0, port_num, 0,
+>                                                     &rep);
+> -               if (err)
+> +               if (0 && err)
+>                          return err;
+>          }
+> 
+> This code was added in kernel 4.19 by commit b02289b3d60f ("RDMA:
+> Validate grh_required when handling AVs").
+> 
+> A similar problem was fixed in kernel 4.9 by commit f9c14e46748b
+> ("net/mlx5: Fix query ISSI flow"), which is a source of some of the
+> messages with the old firmware.
+> 
+> Can anyone suggest a proper fix for this issue?  I can upgrade the
+> firmware if necessary, but that would be less convenient than having a
+> fix for the driver.
 
-Keep cancellation asynchronous. Waiting for free_work from connection
-setup can deadlock: the free worker drains tx_wq, whose worker needs the
-socket lock held by setup.
+Hi Tony,
+Thanks for your report.
+Please try the following change:
+diff --git a/drivers/infiniband/hw/mlx5/main.c 
+b/drivers/infiniband/hw/mlx5/main.c
+index a457647edacd..632a45f663f6 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -3605,7 +3605,8 @@ static int mlx5_port_immutable(struct ib_device 
+*ibdev, u32 port_num,
+         if (err)
+                 return err;
 
-This builds on "net/smc: serialize link group free work scheduling" and
-"net/smc: serialize early link group cleanup with termination". Together
-they close admission before cancellation and give resource teardown a
-single owner; the work reference then protects callbacks that are already
-running when that owner cancels pending work.
+-       if (ll == IB_LINK_LAYER_INFINIBAND) {
++       if (ll == IB_LINK_LAYER_INFINIBAND &&
++           MLX5_CAP_GEN(dev->mdev, ib_virt)) {
+                 if (ibdev->type == RDMA_DEVICE_TYPE_SMI)
+                         port_num = smi_to_native_portnum(dev, port_num);
 
-Link: https://lore.kernel.org/r/179113886433.434549.10069135669585050618@kernel.org/
-Fixes: 13085e1b5cab ("net/smc: fix deadlock triggered by cancel_delayed_work_syn()")
-Cc: stable@vger.kernel.org
-Assisted-by: GPT-6.1-Sol
-Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
----
-New in v3:
-- Address the independent running-free_work lifetime issue reported against
-  both v2 patches by sashiko, with the complete reference protocol in this commit.
-- Cover new scheduling, rearming, all three cancellation sites and every
-  callback exit while retaining asynchronous cancellation.
 
-Review: https://lore.kernel.org/r/179113886433.434549.10069135669585050618@kernel.org/
-Review: https://lore.kernel.org/r/179113886579.434549.12546097168507601074@kernel.org/
-
- net/smc/smc_core.c | 32 +++++++++++++++++++++-----------
- 1 file changed, 21 insertions(+), 11 deletions(-)
-
-diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-index c1bb284c4233..9b54f873c6a9 100644
---- a/net/smc/smc_core.c
-+++ b/net/smc/smc_core.c
-@@ -89,14 +89,22 @@ static void smc_lgr_schedule_free_work(struct smc_link_group *lgr)
- 	 * otherwise there is a risk of out-of-sync link groups.
- 	 */
- 	if (!lgr->freeing) {
--		mod_delayed_work(system_percpu_wq, &lgr->free_work,
--				 (!lgr->is_smcd && lgr->role == SMC_CLNT) ?
--						SMC_LGR_FREE_DELAY_CLNT :
--						SMC_LGR_FREE_DELAY_SERV);
-+		smc_lgr_hold(lgr); /* released by the worker or cancellation */
-+		if (mod_delayed_work(system_percpu_wq, &lgr->free_work,
-+				     (!lgr->is_smcd && lgr->role == SMC_CLNT) ?
-+					     SMC_LGR_FREE_DELAY_CLNT :
-+					     SMC_LGR_FREE_DELAY_SERV))
-+			smc_lgr_put(lgr); /* pending work already owns a reference */
- 	}
- 	spin_unlock_bh(lgr_lock);
- }
- 
-+static void smc_lgr_cancel_free_work(struct smc_link_group *lgr)
-+{
-+	if (cancel_delayed_work(&lgr->free_work))
-+		smc_lgr_put(lgr); /* cancelled work will not release its reference */
-+}
-+
- /* Register connection's alert token in our lookup structure.
-  * To use rbtrees we have to implement our own insert core.
-  * Requires @conns_lock
-@@ -733,19 +741,19 @@ static void smc_lgr_free_work(struct work_struct *work)
- 	spin_lock_bh(lgr_lock);
- 	if (lgr->freeing) {
- 		spin_unlock_bh(lgr_lock);
--		return;
-+		goto out;
- 	}
- 	read_lock_bh(&lgr->conns_lock);
- 	conns = RB_EMPTY_ROOT(&lgr->conns_all);
- 	read_unlock_bh(&lgr->conns_lock);
- 	if (!conns) { /* number of lgr connections is no longer zero */
- 		spin_unlock_bh(lgr_lock);
--		return;
-+		goto out;
- 	}
- 	list_del_init(&lgr->list); /* remove from smc_lgr_list */
- 	lgr->freeing = 1; /* this instance does the freeing, no new schedule */
- 	spin_unlock_bh(lgr_lock);
--	cancel_delayed_work(&lgr->free_work);
-+	smc_lgr_cancel_free_work(lgr);
- 
- 	if (!lgr->is_smcd && !lgr->terminating)
- 		smc_llc_send_link_delete_all(lgr, true,
-@@ -755,6 +763,8 @@ static void smc_lgr_free_work(struct work_struct *work)
- 	if (!lgr->is_smcd)
- 		smcr_lgr_link_deactivate_all(lgr);
- 	smc_lgr_free(lgr);
-+out:
-+	smc_lgr_put(lgr); /* smc_lgr_hold in smc_lgr_schedule_free_work() */
- }
- 
- static void smc_lgr_terminate_work(struct work_struct *work)
-@@ -1576,8 +1586,8 @@ static void __smc_lgr_terminate(struct smc_link_group *lgr, bool soft)
- 
- 	if (lgr->terminating)
- 		return;	/* lgr already terminating */
--	/* cancel pending free_work */
--	cancel_delayed_work(&lgr->free_work);
-+	/* A running free_work holds its own link group reference. */
-+	smc_lgr_cancel_free_work(lgr);
- 	lgr->terminating = 1;
- 
- 	/* kill remaining link group connections */
-@@ -2029,8 +2039,8 @@ int smc_conn_create(struct smc_sock *smc, struct smc_init_info *ini)
- 			conn->lgr = lgr;
- 			rc = smc_lgr_register_conn(conn, false);
- 			write_unlock_bh(&lgr->conns_lock);
--			if (!rc && delayed_work_pending(&lgr->free_work))
--				cancel_delayed_work(&lgr->free_work);
-+			if (!rc)
-+				smc_lgr_cancel_free_work(lgr);
- 			break;
- 		}
- 		write_unlock_bh(&lgr->conns_lock);
--- 
-2.43.0
+> 
+> Thanks,
+> Tony Battersby
+> Cybernetics
+> 
+> 
 
