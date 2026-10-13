@@ -1,81 +1,134 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 949093A7586
-	for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 11:22:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45D60389104
+	for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 11:23:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791890538; cv=none; b=sm6xIyxQb5ZGypRa85oavdywUvwRJcm3u9REarZ2Bc/jFUAAcvjwCmju5LiMbQcQIW7kFr58OwewxqNXr+L+K8ptmlnF2q3qh+yCWkWA4Nb28Qdkdstoi3yR/DIz/jlG0qx2RJ0XetcNJtSTZ9MOsDqYKhiqTdGsXfabGPrs5dw=
+	t=1791890625; cv=none; b=a8pVdHXRYJ2qXi3a4a3cEdLeub0mFDDsMoOVPUEiARutEPEuu72rHMWLnEoB8hkVGdqMvjSOEVsKscPnk4IiFhkEKZtKzrN2K4WAQjFa0K8Xh3QCtxClFX/xxXLM+l0PFpqhLFPRy3Qkn1Wbv2V3cmth/4tv6vUNj38vRv00JOQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791890538; c=relaxed/simple;
-	bh=R131rufAONM4surqkfAa+Bd12Qn7qAvarz391xZxaKc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=mF13SFP10+xkL4bkDEyIOTpcf/A7azvUsDNk2xh7fbGlqAcy9BRAWdpMesfZD+NZSVkJnBAuALAKua6CUDcSR+g4qEfRUr+xkwa6H9GGo89rBWBzjRXYhOIbFVFET5fYKuIazp2MEF1+C69NsL/DEwBGMwrwfiOyMGtGJ0UPT8A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YLBn+aV9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791890625; c=relaxed/simple;
+	bh=OAiwtZU5lLsZFm4lU/ObgFuPYWMbbn0X6/o2OFhuq3w=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=C5YthYazlKfkTuTzHLAdY/RDW653ZlFw7ToR5NSpmdnWMz/ol2mUBf2m0ghISDwiPr/lxJrp+5xnF408cIV1tCOf7x6SArGkDWMmtDq4kYKfTnsLbOmfbGeB3ER+zRnFqb4BfBm5XWy6XAtnvZLjtIzbSnxpcRTAM3vWdBMIqkY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=bwNmBlFb; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=QR2ORACv; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YLBn+aV9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C3A61F000FF;
-	Tue, 13 Oct 2026 11:22:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791890536;
-	bh=qrQo9x/+DcsSaxQagqijvM4ATMrpD5zbhsiLTpHuHs4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=YLBn+aV9BjCsMDahy234put2xynT5bE/dTsb+EnHkE8NunFfKgUZHv46sVA+34TrP
-	 JpxBdMqxn1XsXq3K5u+Pm5/AkXXIgd7Vh+8/hfIyjt2Pg1sUiSU5HkiKt/5653zq5L
-	 M+n1HrMZHG5iqROOA4r8+UCf3HgIJNsaVBGBU2fij8HUtNFtMQL+unSqcfYjAr6GVd
-	 t3jY0ggY4YLvx5RqPeKwiOG40J0QpZuXEEBqqxIVEqUXGcZT2Q2Me8RXmN6kApLcaY
-	 TX9VAWX0fJauSv2KAoazMqNB+aXtIylGDXogq+R3tbpaWlBMXr38X7xub0CtsthNLg
-	 sVtVLh9bJ9Zqg==
-Date: Tue, 13 Oct 2026 14:22:11 +0300
-From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jacob Moroni <jmoroni@google.com>, tatyana.e.nikolova@intel.com,
-	linux-rdma@vger.kernel.org
-Subject: Re: [PATCH rdma-next] RDMA/irdma: Check MR contiguity before PBLE
- alloc
-Message-ID: <20261013112211.GM219304@unreal>
-References: <20261010194832.2415477-1-jmoroni@google.com>
- <20261012185010.GH14213@ziepe.ca>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="bwNmBlFb";
+	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="QR2ORACv"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1791890622;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=726Kbi3ZQ5SGlJ93iqUEhDyhLP3woij09STW5L6+pXY=;
+	b=bwNmBlFbm4jzsaIl6XB+Jelh9hEEWzaxo8eeN2chtEjDrBe8iGXua0brVrYM3gUZODPXPA
+	l3o3QR+wP3aVQLOStHULQ9s9Br4fu12TDW650bp0bxX6tBMlMJbnqwNjwnpfafZddgnPdz
+	hJbxHfv/kevG2/7F0zMHvx2QCBy2lk8=
+Received: from mail-wr1-f70.google.com (mail-wr1-f70.google.com
+ [209.85.221.70]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-171-YlqfDlf7MSaBqEIyIoKDuw-1; Tue, 13 Oct 2026 11:23:40 +0000
+X-MC-Unique: YlqfDlf7MSaBqEIyIoKDuw-1
+X-Mimecast-MFC-AGG-ID: YlqfDlf7MSaBqEIyIoKDuw_1791890620
+Received: by mail-wr1-f70.google.com with SMTP id ffacd0b85a97d-48c6a1d4034so2461483f8f.0
+        for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 04:23:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=redhat.com; s=google; t=1791890619; x=1792495419; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=726Kbi3ZQ5SGlJ93iqUEhDyhLP3woij09STW5L6+pXY=;
+        b=QR2ORACvR9y+CIO5JNS2+beERm9m8FGeT4srckIz60mYcffvL3yGUJYu5EfI46PafP
+         IiWhiV2I8GXhY54esUTRhTAOGabzj+GJ/h7V2SiE6fWslWPpQFJe0D8nWvpNz3Wwq51J
+         jJZt3uCUD3wpxZk5Lhyewgf4nriCMJivx4EQ1wRh5fcYtOMqHYCwRqt9tVwcUx5Sz6lA
+         56pWFv+fMaTp7cJ6viBR0yXdqULVP7njnGsrlNvHa3sgHBYYCgFyxMh5ezluA00DeacT
+         cxSLY61CN6PguHGr8LiB2UmG/ZcdfJkLi86XWWESEC++UOSoBkJhHd9x72DM4gVtserY
+         qHag==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791890619; x=1792495419;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=726Kbi3ZQ5SGlJ93iqUEhDyhLP3woij09STW5L6+pXY=;
+        b=MTwM3zGCrsaNmKPdYOfQmivfDshwDhHF0hbx36asqK+GiVZtnbVGV0LD8THejPSFzs
+         Q/VECke6Sm/pkYTeAEQMydi2KVA8xVGjQrXiZMsMKd1hcH0lP/KuexI0wH6lZcnyZcq2
+         FfW9pyz+tvp5yqCb5SqIx8UtwSEfX6wlelOPuOJ2pv9hl98IBcSfBlyCsuS7PwOWIZ+y
+         7UOKWv7+qqt1m4jrp+ya6neEcRUR9w7leUemiHeKLceqTzh2eDNZWPKL5ZtvL8YLP86v
+         KOAWM2bWcL1J1MNFKU021UEKauTrrZ23cMSHFEZ7QiPstfb2uWSN+GOt4qVHaj/GTxHy
+         ew8Q==
+X-Forwarded-Encrypted: i=1; AKwUvBw8XJKSQNJMZGcdYZeWppRQliArFZYXeMuw0l8FV1B+bjMALcshM0rutD5AlDJmpHFwd1eMIZVJSl+Z@vger.kernel.org
+X-Gm-Message-State: AFq9FYIW8qYFlXW2BXcP0QCQDAa10iFfsHR712gC6UmrihwdBi/hPEhn
+	m72RdDT2wrYJWAEAAYuikk4cBvik6ZecttBzRYg8k3bvCH2K2nAPgc43fd8ZzwoWXKA/H84CAPx
+	BAMMR4S/GAMZdgsWW5KP0kJPWVvuClF665y0/ivvSTUtCxE5B449+OM9Jxk/6auY=
+X-Gm-Gg: AYBFou0unMBs2n/6IJMmBIYlelZAYwRol4dk/+5TOUb+xF7TybB8f52oT391gPka7B8
+	FGKAl3usNgLlS5qTswOcARJuCqkM1MoJ+8Df0zzD3VJW7gnTeki6oDmSMihVljdWF9FwWj7FfMm
+	EgcHvwel/qlZjxe3Wr1dwzbpN8/RFoG8MftCOmtteWXqZeNQOqT5UZrxEWOY9y0adTjqTLHZKDb
+	gtCTYnS4CWZe9Sl/ExcJvY/nNf1UO+/sQ+MQ1aDdyt6UhueQqs8u0a3596C5EI8yP7ZtQhFQQRG
+	3B8DeHSSrXRgb4LPyHFWRC4t9WULkLsOHskd6xvvvlGjjvmlkrBmIY8RxN9w313Qe7ViqRsT6VM
+	8MCEqAwBwouRCpzVl5FrF2alq3RVcadLz9HdZykOaCI514WQHckn8ZdZFrvI3zHAarhWWwSEXlA
+	==
+X-Received: by 2002:a5d:5f87:0:b0:487:aff:9952 with SMTP id ffacd0b85a97d-48dbaadd0b4mr23455638f8f.16.1791890619503;
+        Tue, 13 Oct 2026 04:23:39 -0700 (PDT)
+X-Received: by 2002:a5d:5f87:0:b0:487:aff:9952 with SMTP id ffacd0b85a97d-48dbaadd0b4mr23455576f8f.16.1791890618944;
+        Tue, 13 Oct 2026 04:23:38 -0700 (PDT)
+Received: from [192.168.188.234] (ip232-47-231-195.pool-bba.aruba.it. [195.231.47.232])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48de0bc6b82sm4628216f8f.51.2026.10.13.04.23.37
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 13 Oct 2026 04:23:38 -0700 (PDT)
+Message-ID: <6bd52b02-e701-4589-824b-87c1475bc4cf@redhat.com>
+Date: Tue, 13 Oct 2026 13:23:36 +0200
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261012185010.GH14213@ziepe.ca>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net] net/mlx5: Attach late uplink netdev to loaded
+ representors
+To: Tariq Toukan <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
+ Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org
+Cc: Cosmin Ratiu <cratiu@nvidia.com>, Dragos Tatulea <dtatulea@nvidia.com>,
+ Gal Pressman <gal@nvidia.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+ Jianbo Liu <jianbol@nvidia.com>, Jiri Pirko <jiri@resnulli.us>,
+ Leon Romanovsky <leon@kernel.org>, open list <linux-kernel@vger.kernel.org>,
+ linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>,
+ Saeed Mahameed <saeedm@nvidia.com>, Shay Drori <shayd@nvidia.com>
+References: <20261006110219.257714-1-tariqt@nvidia.com>
+Content-Language: en-US
+From: Paolo Abeni <pabeni@redhat.com>
+In-Reply-To: <20261006110219.257714-1-tariqt@nvidia.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Mon, Oct 12, 2026 at 03:50:10PM -0300, Jason Gunthorpe wrote:
-> On Sat, Oct 10, 2026 at 07:48:32PM +0000, Jacob Moroni wrote:
-> > @@ -3487,6 +3442,8 @@ static struct irdma_mr *irdma_alloc_iwmr(struct ib_umem *region,
-> >  	pgsz_bitmap = (reg_type == IRDMA_MEMREG_TYPE_MEM) ?
-> >  		iwdev->rf->sc_dev.hw_attrs.page_size_cap : SZ_4K;
-> >  
-> > +	iwmr->is_contig = ib_umem_is_contiguous(region);
-> > +	/* Call best_pgsz after is_contiguous to restore correct umem->iova. */
-> >  	iwmr->page_size = ib_umem_find_best_pgsz(region, pgsz_bitmap, virt);
-> >  	if (unlikely(!iwmr->page_size)) {
-> >  		kfree(iwmr);
-> > @@ -3846,6 +3803,7 @@ static int irdma_rereg_mr_trans(struct irdma_mr *iwmr, u64 start, u64 len,
-> >  	iwmr->region = region;
-> >  	iwmr->ibmr.iova = virt;
-> >  	iwmr->ibmr.pd = pd;
-> > +	iwmr->is_contig = ib_umem_is_contiguous(region);
-> >  	iwmr->page_size = ib_umem_find_best_pgsz(region,
-> >  				iwdev->rf->sc_dev.hw_attrs.page_size_cap,
-> >  				virt);
+On 10/6/26 13:02, Tariq Toukan wrote:
+> From: Jianbo Liu <jianbol@nvidia.com>
 > 
-> You should not call ib_umem_find_best_pgsz() after
-> ib_umem_is_contiguous(), it is nonsense to compute a page_size once
-> the contiguous optimization is being used.
-
-ok, I dropped the patch from mu wip/leon-for-next branch for now.
-
-Thanks
-
+> mlx5e_vport_uplink_rep_load() returns success when the uplink netdev is
+> missing, so the ETH rep is marked loaded with a NULL netdev, the IB rep
+> copies that NULL association, and nothing repairs it later. Unbind
+> mlx5_core.eth.<N> in legacy mode, enter switchdev, bind it again, and
+> rdma link show still reports no netdev on the uplink port. The netdev
+> also keeps the NIC profile instead of the uplink rep profile.
 > 
-> Once you decide to use contiguous the start dma address should go
-> straight into the MR structure and just avoid all the pbl stuff.
+> Add an attach_uplink_netdev rep op, run from the existing reload-reps
+> work once mlx5_core_uplink_netdev_set() reports a netdev. ETH re-runs
+> the uplink load, switching profile and setting rpriv->netdev; IB redoes
+> ib_device_set_netdev(). Deferring to the work keeps the devlink lock
+> out of probe context.
 > 
-> Jason
+> Fixes: 6b4be64fd9fe ("net/mlx5e: Harden uplink netdev access against device unbind")
+> Signed-off-by: Jianbo Liu <jianbol@nvidia.com>
+> Reviewed-by: Shay Drori <shayd@nvidia.com>
+> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+The AI feedback looks relevant, also this looks quite too big/dangerous
+for net at this point of the cycle.
+
+/P
+
