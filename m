@@ -1,383 +1,373 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96A114EFFDF
-	for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 11:46:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20DAF4F3EA3
+	for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 11:46:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791891976; cv=none; b=UiNcguifzGFqMndH0R/wWV13kJrfM1bxFFAVzpIpHWEMiH6+ttbgjkiMXrEIN5MHdW6MzhlJQ99MLKLuR90YYZbSIa+KBMt01hzjRCfuScQPYjizv6oeIk/8goJ3W090Oue05WZUVvBp8a08A35AS0zs4AL21VykiU1s28a8o5I=
+	t=1791891976; cv=none; b=dfJdRK/Ob2eik2BK0ARqWgeygGVWOJgfNtVzc3pEZ9+q/HQ8lNziYYubYUPbjN8Fe/2tF+39Ns++q8XNubhsRABY//urfEqwlxNV9jTA+MqPVfqc3L5vM4mLllZmfLGpiKLNKW/MKh7PYOBXh1V4pJinlVjenu+1FyC3rO7T45M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1791891976; c=relaxed/simple;
-	bh=65oOXRKEkocaA8dOchZqwMcC+RgUscgRd9boP1VvMYs=;
+	bh=j/1jesqEh+icJ35iuYYWe4Zd4A3rXSHojbv8r47XCV0=;
 	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=m8E3QIKXPlackDK3MavnYjaiBJWt0HfDYKLOACZJVcFZzjJlYh7Y+7rKF0BrfTeXqjSUat+fZShnYchm2YQLJ1bvRP26PnZmgL/nV5VYl0kHIUi89/jaK2DxJqmMRWvcDnrIAup+nZEvwd1YSh8cY40r8Ag4p5uCIMQJj/w4XL0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FLjw8zFQ; arc=none smtp.client-ip=100.103.45.18
+	 Date; b=N/RLwcrtfR8/e8BTaPLMHb88TcHQKR8VMBcTaOvMm1WaBmlZZm3muIIrFzYalYay537SXiYBzQ4xC/YWF2Na1yaNmNVpgXkeq9CHl/Y9a+Yw1AhVs4LsUUrRHoQ4gZ9Yo+VeZtmvQeP1eLFD9laWDpbhFUHJk9H9BPxtPX/kvb0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MWC4QOS6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FLjw8zFQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C87C1F00899;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MWC4QOS6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8DF81F00893;
 	Tue, 13 Oct 2026 11:46:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791891974;
-	bh=t84gkbhe77sTJPIyFCNrGGvdaO5kKZk2HA7/KACJDio=;
+	s=k20260515; t=1791891975;
+	bh=29oPmVYibWsaIBXdva8/Fyo0BjT88vaXqBT8+EcKY7k=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=FLjw8zFQ2C7cGWomDCo62IZgQYcNEN0n5MLfNLruij373OoXdcGr0Gu/pjP2F6dZu
-	 eLemTk29u/tj7vTh0fE8bW430qUV1Ag3AhMiM7H8ZAvzh9UkISMFEmpYQnW66+ha6f
-	 PNQ0blhPDuDv3ZozGOvRhxo1cPbbHxsKAFXiq0HMqyRmfjcdLbRo15EjmCgPVZDfjD
-	 JuQnJilpq8LkUYCSb2zDOJrKg8y01Wetm2YJ5u6ZWHWTXb0TIgEqfuOkj7duLhIgXZ
-	 HQt4sORtDhPkCIEQTRqwu2kAMc/nJ+mRVWetHu1Jk4A1GgnEzm3awvM6pdQH99l01t
-	 I8OZHhqv7R7jA==
-Message-ID: <sashiko-outbox-169650@kernel.org>
+	b=MWC4QOS6ajg75+JqVlTAsDbO64UzvE9EwP8BAL/hILc9s3/7kwbiwx0cah9AqaGXR
+	 97KLaaoiYHdnBg6zY/992X9pOaZ3jDcn7ycFmuKpW/aLs5agTxE/egpzY5ZOw56z1S
+	 V5ifpphZTqZ1LPrB4v6xNkvdmpeJ99eLl8vM9Yz7N+C3qRW6ektBfXR7IJR07Lk5q7
+	 Is0b7crOdG0oKSMct1D+PimDGYsqusK8icmuAZe6wNBOUHWX714b55TJfYsrPbl5ci
+	 tpcIZEQGjAQ2TVLCb5VFK+qMim3tpp1roBU1Eo0hky9hYml26Wk/IJeg0QSl1w5qLr
+	 x/ANrISvfAsKw==
+Message-ID: <sashiko-outbox-169651@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH 02/15] yunsilicon: add the register HAL
+Subject: Re: [PATCH 13/15] yunsilicon: add the RDMA send path
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Xin Tian" <tianx@yunsilicon.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261012114354.2471317-3-tianx@yunsilicon.com>
+In-Reply-To: <20261012114423.2471317-14-tianx@yunsilicon.com>
 References: <20261012114352.2471317-1-tianx@yunsilicon.com>
- <20261012114354.2471317-3-tianx@yunsilicon.com>
+ <20261012114423.2471317-14-tianx@yunsilicon.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 13 Oct 2026 11:46:13 +0000
+Date: Tue, 13 Oct 2026 11:46:14 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-Thank you for your contribution! Sashiko AI review found 8 potential issue(=
-s) to consider:
-- [Critical] net: xsc_get_db_addr returns hardcoded physical address instea=
-d of PCI BAR
-- [High] net: global state corruption via shared static xsc_hw_reg structur=
-es
-- [High] net: endianness breakage from C bitfields mapped to hardware descr=
-iptors
-- [High] net: hardcoded 0xf clear of W1C interrupt register causes interrup=
-t storm
-- [High] net: silent fallback to 1GB page size for unhandled page shifts
-- [Medium] net: uninitialized stack padding leaked to hardware doorbell MMI=
-O registers
-- [Medium] net: stale in_line bit retained in recycled DMA data segments
-- [Medium] net: integer overflow in xsc_get_max_mr_size on 32-bit architect=
-ures
+Thank you for your contribution! Sashiko AI review found 18 potential issue=
+(s) to consider:
+- [Critical] rdma: inline data payload overwrites remote address segment in=
+ RDMA Read/Write
+- [Critical] rdma: hardware DMA buffer overflow due to overriding SGE lengt=
+h with maximum MTU
+- [High] rdma: silent drop of remaining WRs in chain on zero-length RDMA RE=
+AD
+- [High] rdma: stack use-after-free in xsc_ib_drain_rq_done and xsc_ib_drai=
+n_sq_done
+- [High] rdma: stack out-of-bounds read and kernel panic during UD QP drain
+- [High] rdma: unaligned 32-bit pointer assignment causes kernel panics
+- [High] rdma: uninitialized receive WQE segments leave hardware exposed to=
+ stale physical addresses
+- [High] rdma: early return in QP drain routines causes Use-After-Free by b=
+reaking synchronous drain contract
+- [High] rdma: set_data_inl_seg buffer overflow and RAddr segment corruption
+- [High] rdma/xsc: buffer overflow and data corruption in set_data_inl_seg =
+for multiple inline SGEs
+- [High] xsc: wild pointer dereference in xsc_ib_drain_sq() for UD QPs
+- [High] xsc: silent data loss when posting zero-length RDMA READ in a chain
+- [Medium] rdma: unaligned multi-byte memory accesses on stack array in xsc=
+_icrc_hdr
+- [Medium] rdma: read-modify-write on DMA memory and uninitialized WQE cont=
+rol fields
+- [Medium] rdma: xsc_icrc_hdr unconditionally adds UDP header size, breakin=
+g RoCEv1 packets
+- [Medium] rdma/xsc: QP drain routines deadlock on IB_POLL_DIRECT CQs
+- [Low] rdma: xsc_icrc_hdr returns negative error code for unsigned return =
+type
+- [Low] xsc: global namespace pollution by redefining struct rxe_bth
 --
 
-commit ab5e7ef7c47a715df12f926749f1e49fe112c55d
+commit fdfdd79a8a3fbba8cb02ffc2535c12c0197fac66
 Author: Xin Tian <tianx@yunsilicon.com>
-yunsilicon: add the register HAL
+Subject: yunsilicon: add the RDMA send path
 
-This commit adds the register access layer and per-device register map for
-doorbells, interrupts, and command queues. The implementation provides
-register offsets and configurations for the Andes device.
+This commit introduces the RDMA send path for the Yunsilicon XSC driver.=20
+It implements the work request processing for various operation types,=20
+QP1 MAD header construction, doorbell updates, and completion queue drains.
 
-diff --git a/drivers/net/ethernet/yunsilicon/xsc/pci/hal/andes_impl.c b/dri=
-vers/net/ethernet/yunsilicon/xsc/pci/hal/andes_impl.c
-new file mode 100644
-index 0000000000000..46fc045f92c02
---- /dev/null
-+++ b/drivers/net/ethernet/yunsilicon/xsc/pci/hal/andes_impl.c
-@@ -0,0 +1,708 @@
+> diff --git a/drivers/infiniband/hw/xsc/qp.c b/drivers/infiniband/hw/xsc/q=
+p.c
+> index 6a83adc9c833f..9c79e09a7fd1f 100644
+> --- a/drivers/infiniband/hw/xsc/qp.c
+> +++ b/drivers/infiniband/hw/xsc/qp.c
 [ ... ]
-> +static void andes_ring_rx_doorbell(struct xsc_hw_reg *regs,
-> +				   void __iomem *bar, u32 rqn, u32 next_pid)
+> +static int set_data_inl_seg(struct xsc_ib_qp *qp, const struct ib_send_w=
+r *wr, void *ctrl)
 > +{
-> +	union xsc_recv_doorbell {
-> +		struct{
-> +			u32  next_pid : 13;
-> +			u32 qp_id : 15;
-> +		};
-> +		u32 raw;
-> +	} db;
+> +	struct xsc_wqe_data_seg *data_seg;
+> +	unsigned int seg_index;
+> +	void *addr;
+> +	int len;
+> +	int i;
 > +
-> +	db.next_pid =3D next_pid;
-> +	db.qp_id =3D rqn;
+> +	for (i =3D 0, seg_index =3D 1; i < wr->num_sge; ++i, ++seg_index) {
+> +		if (likely(wr->sg_list[i].length)) {
+> +			addr =3D (void *)wr->sg_list[i].addr;
+> +			len  =3D wr->sg_list[i].length;
 > +
-> +	/* Make sure that descriptors are written before
-> +	 * updating doorbell record and ringing the doorbell
-> +	 */
-> +	wmb();
+> +			if (unlikely(len > qp->max_inline_data))
+> +				return -ENOMEM;
 > +
-> +	writel(db.raw, REG_ADDR(bar, regs->rx_db));
-
-[Severity: Medium]
-Does this leak uninitialized kernel stack memory to the hardware? The union
-instantiated on the stack is not fully zero-initialized before its raw 32-b=
-it
-value is written to MMIO, leaving padding bits uninitialized.
-
-[ ... ]
-> +static void andes_set_eq_ci(struct xsc_hw_reg *regs,
-> +			    void __iomem *bar, u32 eqn, u32 next_cid,
-> +			    u8 arm)
-> +{
-> +	union andes_eq_doorbell {
-> +		struct{
-> +			u32 eq_next_cid : 11;
-> +			u32 eq_id : 11;
-> +			u32 arm : 1;
-> +		};
-> +		u32 val;
-> +	} db;
-> +
-> +	db.eq_next_cid =3D next_cid;
-> +	db.eq_id =3D eqn;
-> +	db.arm =3D !!arm;
-> +
-> +	/* make sure val write to memory done */
-> +	wmb();
-> +	writel(db.val, REG_ADDR(bar, regs->event_db));
-
-[Severity: Medium]
-Could this leak uninitialized stack memory to the event doorbell register,
-similar to the rx doorbell above?
-
-[ ... ]
-> +static u8 andes_get_mr_page_mode(u8 page_shift)
-> +{
-> +enum {
-> +	XSC_PAGE_SHIFT_4K	=3D 12,
-> +	XSC_PAGE_SHIFT_64K	=3D 16,
-> +	XSC_PAGE_SHIFT_2M	=3D 21,
-> +	XSC_PAGE_SHIFT_1G	=3D 30,
-> +};
-> +
-> +enum {
-> +	XSC_PAGE_MODE_4K	=3D 0,
-> +	XSC_PAGE_MODE_64K	=3D 1,
-> +	XSC_PAGE_MODE_2M	=3D 2,
-> +	XSC_PAGE_MODE_1G	=3D 3,
-> +};
-> +
-> +	return (page_shift =3D=3D XSC_PAGE_SHIFT_4K ? XSC_PAGE_MODE_4K :
-> +		(page_shift =3D=3D XSC_PAGE_SHIFT_64K ? XSC_PAGE_MODE_64K :
-> +		(page_shift =3D=3D XSC_PAGE_SHIFT_2M ? XSC_PAGE_MODE_2M : XSC_PAGE_MOD=
-E_1G)));
-
-[Severity: High]
-Does this silently fall back to XSC_PAGE_MODE_1G for unhandled page shifts
-(such as 8K or 16K)? Could this cause out-of-bounds DMA accesses if the
-hardware incorrectly maps 8K/16K buffers as 1GB pages?
-
-[ ... ]
-> +struct andes_cqe {
-> +	union {
-> +		u8		msg_opcode;
-> +		struct {
-> +			u8		error_code:7;
-> +			u8		is_error:1;
-> +		};
-> +	};
-> +	__le32		qp_id:15;
-> +	u8		rsv1:1;
-> +	u8		se:1;
-> +	u8		has_pph:1;
-> +	u8		type:1;
-> +	u8		with_immdt:1;
-> +	u8		csum_err:4;
-> +	__le32		imm_data;
-> +	__le32		msg_len;
-> +	__le32		vni;
-> +	__le64		ts:48;
-> +	__le16		wqe_id;
-> +	__le16		rsv[3];
-> +	__le16		rsv2:15;
-> +	u8		owner:1;
-> +};
-> +
-> +static int andes_get_cqe_wqe_id(void *cqe)
-> +{
-> +	return ((struct andes_cqe *)cqe)->wqe_id;
-
-[Severity: High]
-Does mapping C bitfields directly to hardware descriptors break on big-endi=
-an
-systems? The compiler layout of bitfields is implementation-defined, which
-frequently results in reversed bit packing.
-
-Also, shouldn't le16_to_cpu() be used here when returning the __le16 wqe_id
-as a native integer to avoid returning out-of-bounds indices on big-endian
-architectures?
-
-[ ... ]
-> +static void andes_set_data_seg(void *data_seg, u32 length, u32 key, u64 =
-addr)
-> +{
-> +	struct andes_data_seg *seg =3D data_seg;
-> +
-> +	seg->length =3D length;
-> +	seg->key =3D key;
-> +	seg->addr =3D addr;
-
-[Severity: Medium]
-If a data segment descriptor is recycled from a ring buffer, does failing to
-explicitly clear the in_line bitfield here cause the hardware to misinterpr=
-et
-the address and key as inline data?
-
-[ ... ]
-> +struct andes_send_wqe_ctrl_seg {
-> +	__le32		msg_opcode:8;
-> +	__le32		with_immdt:1;
-> +	__le32		csum_en:2;
-> +	__le32		ds_data_num:5;
-> +	__le32		wqe_id:16;
-> +	__le32		msg_len;
-[ ... ]
-> +static void andes_set_wqe_id(void *cseg, u32 wqe_id)
-> +{
-> +	u16 _wqe_id =3D wqe_id;
-> +
-> +	((struct andes_send_wqe_ctrl_seg *)cseg)->wqe_id =3D cpu_to_le16(_wqe_i=
-d);
-
-[Severity: High]
-Is it safe to assign an explicitly byte-swapped value directly to a bitfiel=
-d?
-This could doubly corrupt the data on big-endian systems.
-
-[ ... ]
-> +static struct xsc_hw_reg andes_pf_regs =3D {
-> +	.req_pid_addr =3D HIF_CMDQM_HOST_REQ_PID_MEM_ADDR - 0xa0000000,
-> +	.req_cid_addr =3D HIF_CMDQM_HOST_REQ_CID_MEM_ADDR - 0xa0000000,
-[ ... ]
-> +static struct xsc_hw_reg andes_compressed_regs =3D {
-> +	.tx_db =3D TX_DB_FUNC_MEM_ADDR,
-> +	.rx_db =3D RX_DB_FUNC_MEM_ADDR,
-[ ... ]
-> +void xsc_init_hal(struct xsc_core_device *xdev, u32 device_id)
-> +{
-> +	switch (device_id) {
-> +	case XSC_MC_VF_DEV_ID:
-> +	case XSC_MF_HOST_VF_DEV_ID:
-> +	case XSC_MS_VF_DEV_ID:
-> +	case XSC_MV_HOST_VF_DEV_ID:
-> +		/* VFs expose the same BAR-relative window as a bar-compressed PF */
-> +		xdev->hal_regs =3D &andes_compressed_regs;
-> +		break;
-> +	default:
-> +		if (is_pf_bar_compressed(xdev))
-> +			xdev->hal_regs =3D &andes_compressed_regs;
-> +		else
-> +			xdev->hal_regs =3D &andes_pf_regs;
-
-[Severity: High]
-Could multiple devices probed at the same time overwrite each other's hardw=
-are
-capability offsets? It appears xdev->hal_regs is assigned to a globally sha=
-red
-static structure rather than allocating a separate configuration per-device.
-
-[ ... ]
-> +void xsc_set_mtt_info(struct xsc_core_device *xdev)
-> +{
-> +	struct xsc_hw_reg *regs =3D xdev->hal_regs;
-> +
-> +	regs->mpt_tbl_addr =3D xdev->caps.mpt_tbl_addr - 0xa0000000;
-> +	regs->mpt_tbl_depth =3D xdev->caps.mpt_tbl_depth;
-> +	regs->mpt_tbl_width =3D xdev->caps.mpt_tbl_width;
-> +	regs->mtt_inst_base_addr =3D xdev->caps.mtt_inst_base_addr - 0xa0000000;
-
-[Severity: High]
-Does this mutate the global shared static structure assigned during
-xsc_init_hal() with device-specific values?
-
-[ ... ]
-> +void xsc_get_db_addr(struct xsc_core_device *xdev,
-> +		     u64 *tx_db, u64 *rx_db, u64 *cq_db, u64 *cq_reg, u64 *eq_db)
-> +{
-> +	struct xsc_hw_reg *regs =3D xdev->hal_regs;
-> +
-> +	if (!xsc_core_is_pf(xdev) || is_pf_bar_compressed(xdev)) {
-[ ... ]
-> +	} else {
-> +		if (tx_db)
-> +			*tx_db =3D regs->tx_db + 0xa0000000;
-> +		if (rx_db)
-> +			*rx_db =3D regs->rx_db + 0xa0000000;
-> +		if (cq_db)
-> +			*cq_db =3D regs->complete_db + 0xa0000000;
-> +		if (cq_reg)
-> +			*cq_reg =3D regs->complete_reg + 0xa0000000;
-> +		if (eq_db)
-> +			*eq_db =3D regs->event_db + 0xa0000000;
+> +			data_seg =3D get_seg_wqe(ctrl, seg_index);
+> +			data_seg->in_line =3D 1;
+> +			data_seg->len =3D len;
+> +			memcpy(data_seg->in_line_data, addr, len);
+> +		}
 > +	}
+> +
+> +	return 0;
+> +}
 
 [Severity: Critical]
-Does adding a hardcoded offset of 0xa0000000 to the doorbell register offse=
-ts
-yield a valid physical address? PCI device BAR physical addresses are typic=
-ally
-dynamically assigned and should be retrieved via pci_resource_start().
-Returning a hardcoded physical address to upper layers could map arbitrary
-physical memory.
+By hardcoding seg_index =3D 1 here, does this overwrite the remote address=
+=20
+(RAddr) segment for RDMA Write and Read requests? xsc_ib_post_send appears=
+=20
+to place the RAddr at seg_index =3D 1 right before invoking this inline dat=
+a=20
+logic.
+
+Additionally, since seg_index is only incremented by 1 per SGE, what happen=
+s=20
+if an inline SGE is larger than 16 bytes? The memcpy will spill across=20
+multiple hardware WQE segments, but the loop will write the next SGE's data=
+=20
+at seg_index + 1, overwriting the tail of the previous SGE's payload.=20
+
+Finally, the bounds check len > qp->max_inline_data only checks each SGE=20
+individually. If wr->num_sge > 1, does the sum of the SGE lengths overflow=
+=20
+the pre-allocated WQE slot boundary and corrupt adjacent WQEs in the SQ=20
+ring buffer?
 
 [ ... ]
-> +int xsc_handle_cmdq_interrupt(struct xsc_core_device *xdev)
+> +static u32 xsc_icrc_hdr(struct xsc_ib_dev *dev, void *pkt, u32 size, u32=
+ *icrc)
 > +{
-> +	union interrupt_stat {
-> +		struct {
-> +			u32	hw_read_req_err:1;
-> +			u32	hw_write_req_err:1;
-> +			u32	req_pid_err:1;
-> +			u32	rsp_cid_err:1;
-> +		};
-> +		u32	raw;
-> +	} stat;
+> +	struct iphdr *ip4h =3D NULL;
+> +	struct ipv6hdr *ip6h =3D NULL;
+> +	struct udphdr *udph;
+> +	struct ib_unpacked_eth *eth;
+> +	struct rxe_bth *bth;
+> +	struct ib_unpacked_deth *deth;
+> +	struct ib_unpacked_vlan *vlan;
+> +	int crc;
+> +	int crc_field_len;
+> +	__be16 l3_type;
+> +	u8 *l3_start;
 > +
-> +	int err =3D 0;
-> +	int retry =3D 0;
+> +	int hdr_size;
 > +
-> +	xsc_read32(xdev->bar, xdev->hal_regs->interrupt_stat_addr, &stat.raw,
-> +		   sizeof(stat.raw));
-> +	while (stat.raw !=3D 0) {
-> +		err++;
-> +		if (stat.hw_read_req_err) {
-[ ... ]
-> +		} else {
-> +			stat.raw =3D 0;
-> +			pci_err(xdev->pdev, "ignore unknown interrupt!\n");
-> +		}
-> +	}
-> +
-> +	if (retry) {
-> +		if (xdev->cmd.retry_cnt >=3D XSC_CMD_MAX_RETRY_CNT) {
-> +			pci_warn(xdev->pdev, "err handler have retried for %d times, stop ret=
-ry\n",
-> +				 xdev->cmd.retry_cnt);
-> +			goto clear_err_int;
-> +		}
-> +		xsc_write32(xdev->bar, xdev->hal_regs->req_pid_addr,
-> +			    &xdev->cmd.cmd_pid);
-> +		xdev->cmd.retry_cnt++;
-> +	}
-> +
-> +clear_err_int:
-> +	if (err) {
-> +		stat.raw =3D 0xf;
-> +		xsc_write32(xdev->bar, xdev->hal_regs->interrupt_stat_addr, &stat.raw);
-
-[Severity: High]
-Will writing a hardcoded 0xf back to the hardware W1C register cause an
-interrupt storm if a higher-order bit (e.g., bit 4) was asserted, since the
-unknown bit would never be cleared?
-
-Also, could unconditionally writing 1s to bits 0-3 clear new legitimate
-interrupts that arrived after the initial read?
-
-[ ... ]
-> +u64 xsc_get_max_mr_size(struct xsc_core_device *xdev)
-> +{
-> +	u64 max_mpt_mr_size =3D xdev->caps.max_mr_size;
-> +	u64 max_mtt_mr_size =3D xdev->caps.max_mtt * PAGE_SIZE;
+> +	/* pseudo header buffer size is calculate using ipv6 header size since
+> +	 * it is bigger than ipv4
+> +	 */
+> +	u8 pshdr[sizeof(struct udphdr) +
+> +		sizeof(struct ipv6hdr) +
+> +		sizeof(*bth) + sizeof(*deth)];
 
 [Severity: Medium]
-Can this calculation overflow on 32-bit architectures where PAGE_SIZE is an
-unsigned long? Both operands to the multiplication are 32-bit integers befo=
-re
-the assignment to the 64-bit result, which could truncate the capacity befo=
-re
-the type conversion happens.
+Since pshdr is allocated as a byte array (u8) on the stack, it is only=20
+guaranteed to be 1-byte aligned. Does casting this buffer to struct iphdr *=
+=20
+and struct rxe_bth * and performing multi-byte writes trigger alignment=20
+traps on architectures with strict memory alignment requirements?
+
+[Severity: Low]
+This function internally uses struct rxe_bth and struct rxe_deth. Does=20
+using another software driver's prefix (rxe_) pollute the global structure=
+=20
+namespace and cause BTF deduplication conflicts? Should it use standard=20
+RDMA core structures like ib_unpacked_bth instead?
+
+> +
+> +	eth =3D pkt;
+> +
+> +	if (eth->type =3D=3D htons(ETH_P_8021Q)) {
+> +		vlan =3D (struct ib_unpacked_vlan *)(eth + 1);
+> +		l3_type =3D vlan->type;
+> +		l3_start =3D (u8 *)(vlan + 1);
+> +		size -=3D 4;
+> +	} else {
+> +		l3_type =3D eth->type;
+> +		l3_start =3D (u8 *)(eth + 1);
+> +	}
+> +
+> +	hdr_size =3D sizeof(struct udphdr) +
+> +		(l3_type =3D=3D htons(ETH_P_IP) ?
+> +		sizeof(struct iphdr) : sizeof(struct ipv6hdr));
+> +
+> +	crc_field_len =3D hdr_size + sizeof(*bth) + sizeof(*deth);
+> +
+> +	if (crc_field_len !=3D size) {
+> +		ibdev_err(&dev->ib_dev, "Unmatched hdr: expect %d actual %d\n",
+> +			  crc_field_len, size);
+> +		return -EINVAL;
+> +	}
+
+[Severity: Low]
+Does returning -EINVAL from a function returning u32 implicitly cast the=20
+error code to a large positive integer, making it difficult for callers=20
+to properly check for errors?
+
+[Severity: Medium]
+Does hdr_size unconditionally adding sizeof(struct udphdr) break support=20
+for RoCEv1 (IBoE) packets? For RoCEv1, there is no UDP header, meaning=20
+crc_field_len !=3D size will always evaluate to true, rejecting the packet.
+
+[ ... ]
+> +static void zero_send_ds(struct xsc_ib_qp *qp, int idx)
+> +{
+> +	void *seg;
+> +	int i;
+> +	int ds_num;
+> +	u64 *p;
+> +
+> +	ds_num =3D XSC_SEND_SEG_NUM << (qp->sq.wqe_shift - XSC_SEND_WQE_SHIFT);
+> +	seg =3D (void *)xsc_get_send_wqe(qp, idx);
+> +	for (i =3D 1; i < ds_num; i++) {
+> +		p =3D get_seg_wqe(seg, i);
+> +		p[0] =3D 0;
+> +		p[1] =3D 0;
+> +	}
+> +}
+
+[Severity: Medium]
+Since this loop explicitly starts at i =3D 1, the control segment (i =3D 0)=
+ is=20
+left uninitialized. Later in xsc_ib_post_send, the driver modifies bitfield=
+s=20
+(ctrl->se, ctrl->ce) on this uninitialized memory. Does this perform unsafe=
+=20
+read-modify-write operations on DMA-mapped memory and leave unassigned=20
+fields with stale values from previous work requests?
+
+[ ... ]
+> +		if (unlikely(wr->opcode =3D=3D IB_WR_RDMA_READ && msg_len =3D=3D 0)) {
+> +			ibdev_err(&dev->ib_dev, "rdma read, msg len should not be 0\n");
+> +			/* workaround, return success for posting zero-length read */
+> +			err =3D 0;
+> +			goto out;
+> +		}
+
+[Severity: High]
+Does this workaround silently drop the current work request and any remaini=
+ng=20
+linked work requests in the wr->next chain? By returning success without=20
+generating completion entries for the dropped WRs, ULPs will hang=20
+indefinitely waiting for them. Zero-length RDMA READs are explicitly valid=
+=20
+in the RDMA specification.
+
+[ ... ]
+> +			crc =3D xsc_crc32(dev, crc, mad_send_base + sg.length, ctrl->msg_len);
+> +			ctrl->msg_len +=3D sg.length;
+> +			seg_index++;
+> +
+> +			*(u32 *)&mad_send_base[ctrl->msg_len] =3D ~crc;
+
+[Severity: High]
+Since ctrl->msg_len might not be 4-byte aligned, will this direct pointer=20
+cast and assignment cause unaligned 32-bit writes? Architectures lacking=20
+hardware support for unaligned access will panic here. Should this use=20
+put_unaligned instead?
+
+[ ... ]
+> +		for (i =3D 0; i < wr->num_sge; ++i) {
+> +			if (unlikely(!wr->sg_list[i].length))
+> +				continue;
+> +			data_seg =3D get_seg_wqe(recv_head, i);
+> +			data_seg->in_line =3D 0;
+> +			WR_LE_64(data_seg->va, wr->sg_list[i].addr);
+> +			WR_LE_32(data_seg->mkey, wr->sg_list[i].lkey);
+> +			if (is_qp1(qp->xqp.qp_type))
+> +				WR_LE_32(data_seg->seg_len, xdev->caps.rx_pkt_len_max);
+> +			else
+> +				WR_LE_32(data_seg->seg_len, wr->sg_list[i].length);
+> +		}
+
+[Severity: High]
+If an SGE length is 0, the loop skips it via continue, failing to initializ=
+e=20
+the corresponding WQE segment. Because receive WQEs are reused from a ring=
+=20
+buffer without zeroing, does this leave stale memory keys and physical=20
+addresses for the hardware to process, potentially DMAing incoming data=20
+into arbitrary memory?
+
+[Severity: Critical]
+For QP1 (GSI), the driver unconditionally overrides the consumer-provided=20
+buffer length (wr->sg_list[i].length) with the global max packet length=20
+xdev->caps.rx_pkt_len_max. Does this instruct the hardware that it can DMA=
+=20
+data far beyond the actual bounds of the software-allocated scatter/gather=
+=20
+buffer, causing memory corruption?
+
+[ ... ]
+> +static void xsc_ib_drain_rq_done(struct ib_cq *cq, struct ib_wc *wc)
+> +{
+> +	struct xsc_ib_drain_cqe *cqe =3D container_of(wc->wr_cqe,
+> +						     struct xsc_ib_drain_cqe, cqe);
+> +	struct xsc_ib_dev *dev =3D to_xdev(cq->device);
+> +
+> +	complete(&cqe->done);
+> +	ibdev_dbg(&dev->ib_dev, "QP %d ib_drain_rq done!", cqe->qpn);
+> +}
+
+[Severity: High]
+Since cqe is allocated on the stack in xsc_ib_drain_rq, the moment=20
+complete(&cqe->done) is called, the blocked thread can wake up and destroy=
+=20
+the stack frame. Does the subsequent access to cqe->qpn dereference a=20
+potentially freed stack pointer, causing a use-after-free race? The same=20
+pattern is present in xsc_ib_drain_sq_done.
+
+[ ... ]
+> +void xsc_ib_drain_sq(struct ib_qp *qp)
+> +{
+[ ... ]
+> +	const struct ib_send_wr swr =3D {
+> +		.next =3D NULL,
+> +		{ .wr_cqe	=3D &sdrain.cqe, },
+> +		.opcode	=3D IB_WR_RDMA_WRITE,
+> +		.send_flags =3D IB_SEND_SIGNALED,
+> +	};
+[ ... ]
+> +	ret =3D xsc_ib_post_send(qp, &swr, &bad_swr);
+> +	if (ret) {
+> +		ibdev_err(&dev->ib_dev, "failed to drain send queue: %d\n", ret);
+> +		return;
+> +	}
+> +	xqp->post_send_invalid =3D true;
+> +
+> +	xcq->xcq.comp(&xcq->xcq);
+> +	wait_for_completion(&sdrain.done);
+> +}
+
+[Severity: High]
+For UD QPs, xsc_ib_post_send unconditionally forwards this dummy WR to=20
+build_qp1_send_v2. Because swr is allocated purely as a base struct=20
+ib_send_wr, when build_qp1_send_v2 casts it to struct ib_ud_wr and=20
+dereferences ud_wr(wr)->ah, won't this read out-of-bounds stack garbage=20
+and cause a kernel panic?
+
+[Severity: High]
+The RDMA API requires the drain functions to block until all in-flight WQEs=
+=20
+complete. By returning early when xsc_ib_post_send fails, does this break=20
+the synchronous drain contract, allowing the ULP to free memory while the=20
+hardware is still asynchronously processing in-flight WQEs?
+
+[Severity: Medium]
+If the CQ uses IB_POLL_DIRECT, there is no background task polling it. Will=
+=20
+wait_for_completion block indefinitely unless a concurrent thread happens t=
+o=20
+poll the CQ? The core RDMA layer fallback handles this by calling=20
+ib_process_cq_direct(cq, -1) in a loop. Additionally, unconditionally calli=
+ng=20
+xcq->xcq.comp(&xcq->xcq) will trigger a warning in ib_cq_completion_direct.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261012114352.2471=
-317-1-tianx@yunsilicon.com?part=3D2
+317-1-tianx@yunsilicon.com?part=3D13
