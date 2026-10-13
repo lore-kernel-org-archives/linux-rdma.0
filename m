@@ -1,40 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0076472061
-	for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 11:46:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AF594F30F8
+	for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 11:46:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791891974; cv=none; b=YClcvu1oS1s5pGxNqYKoCmXmaBhoscHJXtMY41TBk6BpyprgPHJKWj/b72ZOLppOwwYnSpA8/gAUgx5Ihbd0Uhjp7tO023EuPA0Dz/wNrCzdaKvQdO6obEOXJrVtlgHgHf4jW/M0AMepBLyKHP2jXVd8pmv5Mm/0+oPU6vIf04I=
+	t=1791891974; cv=none; b=ADzhI0cT5X82mxNtVPNNN7gvryXjqZlADM0OgBImBDFPDcmEGC3Urt3AGYCblVWZbuGL+DATK5vrX0X1aHuFpws23lzfJOowr6ZEW8ogaYVgl/UgsDzagSwGQgQa/wxgOWWvrt68NlRXAaJIvsYNE5z28mTc9FpIJqTbyqktLaw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1791891974; c=relaxed/simple;
-	bh=8zr60nnhEUWigPH7n5KfzpHp7dPMZrac5Ffl06ijTa8=;
+	bh=xgH5jSF5M9DZptDb3DFWn+ixUR8rX+ZPDjVLxJ9eRu0=;
 	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=jtcPbkiiqUoKCyRCEvpmckGtoi9MOc/CX1rZXDeoH2uSWE+PfYWkEP4t/CUi0ZXfl3heNGpPkb2HcA1gJNmFxUlqPniuyBWBzpmHWFEkQ282E/+6sWnQ59qXuJy9OR/Y/Gi3/EsfhQ9ydVUWarEYlwLxAFDfHCroM8cIH52pr10=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JaHcyKAf; arc=none smtp.client-ip=100.103.45.18
+	 Date; b=Rzm/pVYmqg4/c9YFwC3McA2LNwjcsWObJyRXyi3Jg1Qb4oKRjzHB6It9IQHUoV8ta+gkOy6eG2aaZVIFB66yk0Px4hfdoiv/0Ds0gnbp0RLvUyyPkMDyjBwaQudZYAHujafLQggwi8QNJt8AO50Rzl1q8WyI2vEbRc37jW7dYTE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FFj1wSly; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JaHcyKAf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7E7E1F00893;
-	Tue, 13 Oct 2026 11:46:12 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FFj1wSly"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D4FF1F0089A;
+	Tue, 13 Oct 2026 11:46:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791891972;
-	bh=74vgaOGH75tNviuH0hpI+Pd1nyDZd0SQR+Qk9ZSa7Jc=;
+	s=k20260515; t=1791891973;
+	bh=vIp+45hj61pZutvP3PwVcvAAXqtcn73op9HsOVpcTyI=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=JaHcyKAf+wSecI5qrC/LSf7AJ/6PjBSyvAvr9I93Wl5PSnIQlTEITIJ0HV3jGV/OG
-	 fAKsn/v/gxXNFPeGjLyiOy44MnxEM2nLpVe0GKgGAJzfuWHP9ZPEck/y1f2a/J8DEg
-	 alChwyaz/5OgoFOyA8rseMw78Oav+vXNyMSmx1NzN9W3SOTk60pRphO/5HXG16mkyf
-	 nY5Q6ptMm66w3NGUPbMvqIb5zvaFq2K6I7MYCXl9JyTEjxO/gbwetpQ2slHsQ27Sex
-	 llnNcCyjv3ZSmmpyIgl+tqtQ2aFKb2v/kSOGHaBv9+fjcE0DtXD1en9vbq2jOEhQP0
-	 oNB43V7M/r9MA==
-Message-ID: <sashiko-outbox-169647@kernel.org>
+	b=FFj1wSlyUKXgmKrCUftpjV43MAEyHuwyNt4NPIZlEngnhf3ud4v1U03ibqLXRPmqc
+	 d+W3dfscqzc8gEZPD0ZjgldNI83ZKvcvPNes3wWe2S5DhyAnWoeuLH5SxsZc7yZB6X
+	 l2HMfl5qjr4Xcw0uvg5j0+00ZE0/Yv+WkXb1HvguPDu8pXBp+meP2orshd0bD25zom
+	 vhNuQQvFhZFi14LN9XFMb8VzPMxPy5nGqzFSm9apeef8/LL88H3b2JFxTbpM/TE02j
+	 MIQCu+QxfZpRCKpoBC56xCF0sh7DYLaMHSOQfyjDmra3WzXYdims3jHS2A0e28eNy7
+	 Zj8fAsHgYzByA==
+Message-ID: <sashiko-outbox-169648@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH 12/15] yunsilicon: add RDMA QP verbs
+Subject: Re: [PATCH 11/15] yunsilicon: add RDMA CQ/SRQ/AH
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Xin Tian" <tianx@yunsilicon.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261012114421.2471317-13-tianx@yunsilicon.com>
+In-Reply-To: <20261012114418.2471317-12-tianx@yunsilicon.com>
 References: <20261012114352.2471317-1-tianx@yunsilicon.com>
- <20261012114421.2471317-13-tianx@yunsilicon.com>
+ <20261012114418.2471317-12-tianx@yunsilicon.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Date: Tue, 13 Oct 2026 11:46:12 +0000
@@ -44,370 +44,355 @@ List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-Thank you for your contribution! Sashiko AI review found 14 potential issue=
+Thank you for your contribution! Sashiko AI review found 13 potential issue=
 (s) to consider:
-- [Critical] rdma: integer overflow on queue sizes leads to OOB DMA
-- [High] rdma: uninitialized stack memory leaked to userspace in create_use=
-r_qp
-- [High] rdma: sleeping allocation with spinlocks held in xsc_ib_err_state_=
-qp
-- [High] rdma: UAF and HW resource leak on allocation failure in destroy_qp=
-_common
-- [High] rdma: UAF and HW resource leak on qp_node allocation failure in cr=
-eate_qp_common
-- [High] rdma: race condition adding QP node to SRQ list in create_qp_common
-- [High] rdma: double byteswap and endianness corruption of qp_access_flags
-- [High] infiniband/xsc: hardware DMA into stale memory due to uninitialize=
-d SGEs in xsc_ib_post_recv
-- [High] xsc: ABI breakage and OOB read in create_qp due to size_t and blin=
-d copy
-- [High] yunsilicon: dead code and missing error return in xsc_check_max_qp=
-_depth
-- [Medium] rdma: memory leak of mailbox in on error paths in create_qp_comm=
-on
-- [Medium] rdma: uninitialized stack memory copied to hardware context in x=
-sc_set_path
-- [Medium] rdma: undefined behavior due to negative shift in create_kernel_=
-qp
-- [Medium] rdma: passing struct size to sqd_event parameter in destroy_qp_c=
-ommon
+- [Critical] core: hardware DMA buffer overflow in QP1 (MAD) receive path
+- [High] locking: AB-BA deadlock between cq->lock and srq->lock
+- [High] mm: sleeping in atomic context due to GFP_KERNEL allocations under=
+ spinlocks
+- [High] mm: missing kcalloc NULL check in xsc_cache_srq_wr causes immediat=
+e panic
+- [High] core: dangling tail pointer leads to Use-After-Free list corruptio=
+n in SRQ cache
+- [High] locking: unprotected list modification on cross-CQ err_state_qp_li=
+st
+- [High] core: SRQ destruction UAF race with global ID reclamation
+- [High] core: skipping zero-length SGEs leaves uninitialized hardware WQE =
+gaps
+- [High] core: uninitialized cqe_sz variable breaks error CQ cleaning for u=
+serspace CQs
+- [High] rdma/xsc: memory leak and subsequent NULL dereference in xsc_post_=
+cache_wrs error path
+- [Medium] net: out-of-bounds read when parsing MAD headers from truncated =
+packets
+- [Medium] core: max_cqes truncation introduces non-power-of-two mask index=
+ing vulnerability
+- [Low] core: xsc_ib_query_ah drops cached RoCE destination MAC address
 --
 
-commit 624855b048b853b9911aa55007116f0a1e95d930
+commit 362ed58c2fd14cd6742383cf2e788372cccd3288
 Author: Xin Tian <tianx@yunsilicon.com>
-Subject: yunsilicon: add RDMA QP verbs
 
-This commit adds the queue pair control path: create, destroy, modify and
-query, for both kernel and user queue pairs, including the address path set=
-up
-for RoCE.
+yunsilicon: add RDMA CQ/SRQ/AH
 
-diff --git a/drivers/infiniband/hw/xsc/qp.c b/drivers/infiniband/hw/xsc/qp.c
-index 28c8a1246dfae..6a83adc9c833f 100644
---- a/drivers/infiniband/hw/xsc/qp.c
-+++ b/drivers/infiniband/hw/xsc/qp.c
-@@ -101,11 +101,11 @@ static int calc_sq_size(struct xsc_ib_dev *dev, struc=
-t ib_qp_init_attr *attr,
->  	qp->sq.wqe_cnt =3D roundup_pow_of_two(attr->cap.max_send_wr);
+Add the completion queues, shared receive queues and address handles: the
+create/destroy/query/modify verbs and the CQ poll and completion
+processing.
+
+The QP receive helper and error-state tracking are included here
+because the CQ and SRQ paths reference them.
+
+> diff --git a/drivers/infiniband/hw/xsc/ah.c b/drivers/infiniband/hw/xsc/a=
+h.c
+> --- /dev/null
+> +++ b/drivers/infiniband/hw/xsc/ah.c
+[ ... ]
+> @@ -112,23 +112,33 @@ int xsc_ib_query_ah(struct ib_ah *ibah, struct rdma=
+_ah_attr *ah_attr)
+>  {
+>  	struct xsc_ib_ah *ah =3D to_xah(ibah);
+>  	u32 tmp;
 > =20
->  	check_res =3D xsc_check_max_qp_depth(dev->xdev, &qp->sq.wqe_cnt, dev->x=
-dev->caps.max_wqes);
->  	if (check_res) {
->  		ibdev_err(&dev->ib_dev, "max_send_wr:%d exceed max sq depth\n",
->  			  attr->cap.max_send_wr);
->  		return -EINVAL;
->  	}
-
-[Severity: High]
-Does this error path ever execute?
-
-The helper xsc_check_max_qp_depth() unconditionally returns false while
-silently clamping the queue depth instead of indicating an error. This hides
-invalid user requests.=20
-
-Does clamping the queue depth break the power-of-two property if max_wqes is
-not a power of two? This could break the wrapping logic in the post_send and
-post_recv paths, potentially leading to memory corruption.
-
+>  	memset(ah_attr, 0, sizeof(*ah_attr));
+>  	ah_attr->type =3D ibah->type;
 [ ... ]
-
->  	err =3D ib_copy_from_udata(&ucmd, udata, sizeof(ucmd));
->  	if (err) {
->  		ibdev_err(&dev->ib_dev, "failed to copy from udata, err=3D%d\n", err);
->  		return err;
->  	}
-
-[Severity: High]
-Is there a risk of an out-of-bounds memory read here?
-
-This code reads sizeof(ucmd) bytes from userspace without verifying if
-udata->inlen is large enough. If a 32-bit application or an older tool
-passes a smaller struct, it might trigger an -EFAULT by crossing an unmapped
-page boundary, or read uninitialized memory into fields like dmabuf_sz.
-
-Also, does using size_t for dmabuf_sz in the xsc_ib_create_qp UAPI structure
-break layout compatibility between 32-bit userspace and 64-bit kernels?
-
-[ ... ]
-
->  	qp->sq.ds_cnt =3D ucmd.sq_wqe_count;
->  	qp->sq.wqe_cnt =3D ucmd.sq_wqe_count;
->  	qp->sq.wqe_shift =3D XSC_BASE_WQE_SHIFT;
->  	qp->rq.ds_cnt =3D ucmd.rq_wqe_count;
->  	qp->rq.wqe_cnt =3D ucmd.rq_wqe_count;
->  	qp->rq.wqe_shift =3D XSC_BASE_WQE_SHIFT;
-> =20
->  	qp->buf_size =3D (qp->sq.wqe_cnt << qp->sq.wqe_shift) + (qp->rq.wqe_cnt=
- << qp->rq.wqe_shift);
-
-[Severity: Critical]
-Can this lead to an integer overflow and out-of-bounds DMA?
-
-Unvalidated queue counts from userspace can overflow a 32-bit signed integer
-when calculating qp->buf_size, resulting in a small allocation. However, the
-hardware will receive the huge queue counts and expect a large ring buffer.
-This could potentially allow malicious userspace to trigger out-of-bounds D=
-MA
-across host physical memory.
-
-[ ... ]
-
->  	*inlen =3D sizeof(**in) + sizeof(*((*in)->req.pas)) * hw_npages;
->  	*in =3D xsc_vzalloc(*inlen);
->  	if (!*in) {
->  		err =3D -ENOMEM;
->  		goto err_umem;
->  	}
->  	xsc_ib_populate_pas(dev, qp->umem, page_shift, (*in)->req.pas, hw_npage=
-s, true);
->  	(*in)->req.pa_num =3D cpu_to_be16(hw_npages);
-> =20
->  	err =3D ib_copy_to_udata(udata, resp, sizeof(*resp));
->  	if (err) {
-
-[Severity: High]
-Does this leak uninitialized stack memory to userspace?
-
-The resp structure is declared on the stack in create_qp_common() without
-initialization, passed down to this function, and immediately copied to
-userspace before any of its fields are populated.
-
-[ ... ]
-
->  	sq_size =3D calc_sq_size(dev, init_attr, qp);
->  	if (sq_size < 0) {
->  		err =3D -EINVAL;
->  		ibdev_err(&dev->ib_dev, "err %d\n", err);
->  		return err;
->  	}
-> =20
->  	qp->rq.ds_cnt =3D qp->rq.wqe_cnt << (qp->rq.wqe_shift - XSC_BASE_WQE_SH=
-IFT);
-
-[Severity: Medium]
-Could this evaluate to a negative shift?
-
-If a QP is created without a receive queue, set_rq_size() sets wqe_shift to
-0. Since XSC_BASE_WQE_SHIFT is non-zero, this evaluates to a bitwise left
-shift by a negative amount, which is undefined behavior.
-
-[ ... ]
-
->  err_wrid:
->  	kfree(qp->sq.prev_ce_wqe);
->  	kfree(qp->sq.need_flush);
->  	kfree(qp->sq.wr_opcode);
->  	kfree(qp->sq.wqe_head);
->  	kfree(qp->sq.w_list);
->  	kfree(qp->sq.wrid);
->  	kfree(qp->sq.wr_data);
->  	kfree(qp->rq.wrid);
-> =20
->  err_buf:
->  	xsc_buf_free(dev->xdev, &qp->buf);
->  	return err;
-
-[Severity: Medium]
-Does this error path leak the mailbox *in structure?
-
-The memory is allocated with xsc_vzalloc() earlier in the function but does
-not appear to be freed before returning here.
-
-[ ... ]
-
->  	if (pd->uobject) {
->  		err =3D create_user_qp(dev, pd, qp, udata, &in, &resp, &inlen);
->  		if (err)
->  			ibdev_err(&dev->ib_dev, "failed to create user qp, err =3D %d\n", err=
-);
+>  	rdma_ah_set_static_rate(ah_attr, ah->av.stat_rate_sl >> 4);
+>  	if (ah_attr->type =3D=3D RDMA_AH_ATTR_TYPE_ROCE) {
+>  		rdma_ah_set_sl(ah_attr, (ah->av.stat_rate_sl >> 1) & 0x7);
 >  	} else {
->  		err =3D create_kernel_qp(dev, init_attr, qp, &in, &inlen);
+
+[Severity: Low]
+Does this code intentionally omit restoring the dmac field for RoCE
+connections? During xsc_ib_create_ah(), the destination MAC address is
+saved into ah->av.rmac, but the query path appears to leave it zeroed out
+here, which might cause the driver to report a zeroed MAC address.
+
+> diff --git a/drivers/infiniband/hw/xsc/cq.c b/drivers/infiniband/hw/xsc/c=
+q.c
+> --- /dev/null
+> +++ b/drivers/infiniband/hw/xsc/cq.c
+[ ... ]
+> @@ -201,15 +201,17 @@ static void xsc_handle_rdma_mad_resp_recv(struct xs=
+c_ib_cq *cq,
+>  	if (eth_type =3D=3D ETH_P_IP) {
+>  		pading_sz =3D sizeof(*grh) - sizeof(*ip4h);
+>  		memmove((u8 *)(grh + 1) - sizeof(*ip4h), ip4h, sizeof(*ip4h));
+>  		memset(grh, 0, pading_sz);
+>  	} else {
+>  		memmove(grh, ip6h, sizeof(*ip6h));
+>  	}
+>  	memmove(grh + 1, mad, sizeof(*mad));
+
+[Severity: Medium]
+Is it possible for memmove to read out of bounds here if an attacker or
+misconfigured node sends a truncated packet? There does not seem to be a
+check against the overall packet length (wc->byte_len) before copying
+sizeof(*mad) bytes.
+
+[ ... ]
+> @@ -375,14 +375,16 @@ int xsc_ib_create_cq(struct ib_cq *ibcq,
+>  	int irqn;
+>  	int err;
+>  	unsigned int eqn;
+> =20
+>  	entries =3D roundup_pow_of_two(entries);
+> =20
+>  	ibdev_dbg(&dev->ib_dev, "entries:%d, vector:%d, max_cqes:%d\n", entries=
+, vector,
+>  		  dev->xdev->caps.max_cqes);
+> =20
+>  	if (entries > dev->xdev->caps.max_cqes)
+>  		entries =3D dev->xdev->caps.max_cqes;
+
+[Severity: Medium]
+Could capping entries at max_cqes break the power-of-two invariant
+established just above it? If the hardware reports a max_cqes value that
+is not a power of two, the polling paths that use bitwise AND masking to
+calculate ring buffer indices might experience discontinuous indices and re=
+ad
+out of bounds.
+
+>  	cq =3D to_xcq(ibcq);
+>  	cq->ibcq.cqe =3D entries;
+[ ... ]
+>  	cq->create_flags =3D attr->flags;
+>  	cq->invalid =3D 0;
+> =20
+>  	if (udata) {
+>  		err =3D create_cq_user(dev, udata, NULL, cq, entries,
+>  				     &cqb, &cqe_size, &index, &inlen);
 >  		if (err)
->  			ibdev_err(&dev->ib_dev, "failed to create kernel qp, err =3D %d\n", e=
-rr);
->  		else
->  			qp->pa_lkey =3D to_xpd(pd)->pa_lkey;
+>  			goto err_create;
+>  	} else {
+>  		cqe_size =3D is_support_cqe64(dev->xdev) ?
+>  			sizeof(struct xsc_cqe64) : sizeof(struct xsc_cqe);
+>  		err =3D create_cq_kernel(dev, cq, entries, cqe_size, &cqb, &index, &in=
+len);
+>  		if (err)
+>  			goto err_create;
 >  	}
 > =20
->  	if (err)
->  		return err;
-
-[Severity: Medium]
-If create_user_qp() or create_kernel_qp() fails, does returning err here
-directly bypass the err_create label where the mailbox structure is supposed
-to be freed?
-
-[ ... ]
-
->  	if (!pd->uobject && init_attr->srq) {
->  		qp_node =3D kvzalloc_obj(*qp_node, GFP_KERNEL);
->  		if (!qp_node)
->  			goto err_create;
+>  	cq->cqe_size =3D cqe_size;
 
 [Severity: High]
-If kvzalloc_obj() fails here, err is 0, so the function will jump to
-err_create but return success to the caller.
+Does the userspace CQ creation path leave cq->xcq.cqe_sz uninitialized?
+create_cq_kernel() sets it internally, but create_cq_user() does not appear
+to. If it remains 0, the flush-cleanup routine __xsc_ib_cq_clean() might
+fail to step through the buffer array correctly when overwriting matching
+QP elements.
 
-Does this result in the hardware QP remaining active while the software
-buffers are freed? The QP might be left dangling in the CQ lists, which can
-lead to a use-after-free and a resource leak.
-
->  		qp_node->ibqp =3D &qp->ibqp;
->  		qp_node->qp_id =3D qp->xqp.qpn;
->  		ibdev_dbg(&dev->ib_dev, "qpn:%u add into srq_qp_list\n", qp_node->qp_i=
-d);
->  		list_add_tail(&qp_node->entry, &to_xsrq(init_attr->srq)->xsrq.srq_qp_l=
-ist);
+> diff --git a/drivers/infiniband/hw/xsc/qp.c b/drivers/infiniband/hw/xsc/q=
+p.c
+> --- /dev/null
+> +++ b/drivers/infiniband/hw/xsc/qp.c
+[ ... ]
+> @@ -100,18 +100,20 @@ int xsc_ib_err_state_qp(struct xsc_ib_dev *dev, str=
+uct xsc_ib_qp *qp,
+>  	if (cur_state !=3D XSC_QP_STATE_ERR && state =3D=3D XSC_QP_STATE_ERR &&
+>  	    !qp->has_trig_cq_comp_handle) {
+>  		if (!qp->ibqp.srq && qp->recv_cq) {
+>  			err_rq_node =3D kzalloc_obj(*err_rq_node, GFP_KERNEL);
 
 [Severity: High]
-Is there a race condition here?
+Can this allocation trigger a scheduling while atomic panic?
+xsc_ib_err_state_qp() is called from xsc_poll_one() during CQ polling,
+which holds cq->lock via spin_lock_irqsave. Calling kzalloc_obj with
+GFP_KERNEL under a spinlock might sleep.
 
-The QP node is being added to the SRQ tracking list without acquiring the
-xsrq->lock. Concurrent QP creations or destructions on the same SRQ might
-corrupt the linked list.
+>  			if (!err_rq_node)
+>  				return -ENOMEM;
+>  			err_rq_node->qp_id =3D qp->xqp.qpn;
+>  			err_rq_node->is_sq =3D false;
+>  			recv_xcq =3D to_xcq(qp->recv_cq);
+>  			list_add_tail(&err_rq_node->entry, &recv_xcq->err_state_qp_list);
+
+[Severity: High]
+Does this introduce unprotected list modifications? Since this is called
+synchronously while holding only the lock for the CQ currently being
+polled (e.g., the send CQ), modifying the receive CQ's err_state_qp_list
+appears to happen locklessly. This might corrupt the double-linked list
+if a concurrent polling thread traverses it.
 
 [ ... ]
-
->  static void destroy_qp_common(struct xsc_ib_dev *dev, struct xsc_ib_qp *=
-qp)
+> @@ -131,10 +131,11 @@ static int xsc_wq_overflow(struct xsc_ib_wq *wq, in=
+t nreq, struct xsc_ib_cq *cq)
 >  {
->  	struct xsc_ib_cq *send_cq =3D NULL;
->  	struct xsc_ib_cq *recv_cq =3D NULL;
->  	struct xsc_modify_qp_mbox_in *in;
->  	int err;
+>  	unsigned int cur;
 > =20
->  	in =3D kzalloc_obj(*in, GFP_KERNEL);
->  	if (!in)
->  		return;
+>  	cur =3D wq->head - wq->tail;
+>  	if (likely(cur + nreq < wq->max_post))
+>  		return 0;
+> =20
+>  	spin_lock(&cq->lock);
 
 [Severity: High]
-Does an early return here abort the cleanup and cause a use-after-free?
+Could this lead to a circular locking deadlock between cq->lock and
+srq->lock?
 
-If allocation fails, the QP destruction process ends prematurely, meaning t=
-he
-hardware QP is not destroyed and it remains on the CQ lists. Since the call=
-er
-returns 0 unconditionally, the RDMA subsystem will free the struct ib_qp,
-leaving dangling pointers behind.
+Path A acquires cq->lock first, then srq->lock:
+xsc_ib_poll_cq() -> acquires cq->lock
+   xsc_poll_one()
+      xsc_free_one_cache_srq_wr() -> acquires srq->lock
 
+Path B acquires srq->lock first, then cq->lock:
+xsc_ib_post_srq_recv() -> acquires srq->lock
+   xsc_post_cache_wrs()
+      xsc_ib_post_recv()
+         xsc_wq_overflow() -> acquires cq->lock
+
+This might trigger a hard kernel deadlock when receive operations coincide
+with polling.
+
+[ ... ]
+> @@ -186,13 +186,17 @@ int xsc_ib_post_recv(struct ib_qp *ibqp, const stru=
+ct ib_recv_wr *wr,
+>  		recv_head =3D get_recv_wqe(qp, idx);
 > =20
->  	if (qp->xqp.qp_type_internal =3D=3D XSC_QUEUE_TYPE_RAW ||
->  	    qp->xqp.qp_type_internal =3D=3D XSC_QUEUE_TYPE_RAW_TSO ||
->  	    qp->xqp.qp_type_internal =3D=3D XSC_QUEUE_TYPE_RAW_TX ||
->  	    qp->state !=3D IB_QPS_RESET)
->  		if (xsc_core_qp_modify(dev->xdev, to_xsc_state(qp->state),
->  				       XSC_QP_STATE_RST, in, sizeof(*in), &qp->xqp))
-
-[Severity: Medium]
-Is sizeof(*in) the correct argument for the sqd_event parameter in
-xsc_core_qp_modify()?
-
-Passing a structure size to a parameter intended as an event flag or boolean
-might be a type mismatch that corrupts hardware behavior.
-
-[ ... ]
-
->  static int __xsc_ib_modify_qp(struct ib_qp *ibqp,
->  			      const struct ib_qp_attr *attr, int attr_mask,
->  			      enum ib_qp_state cur_state, enum ib_qp_state new_state,
->  			      const struct xsc_ib_modify_qp *ucmd,
->  			      struct ib_udata *udata)
->  {
->  	struct xsc_ib_dev *dev =3D to_xdev(ibqp->device);
->  	struct xsc_ib_qp *qp =3D to_xqp(ibqp);
->  	struct xsc_ib_cq *send_cq, *recv_cq;
->  	struct xsc_qp_context *context;
->  	struct xsc_modify_qp_mbox_in *in;
->  	struct xsc_qp_path path;
-
-[ ... ]
-
->  	if (attr_mask & IB_QP_AV) {
->  		err =3D xsc_set_path(dev, &attr->ah_attr, &path,
->  				   attr_mask & IB_QP_PORT ? attr->port_num : qp->port,
->  				   attr_mask, 0, attr, qp);
->  		if (err)
->  			goto out;
-> =20
->  		context->src_udp_port =3D path.sport;
->  		context->dscp =3D path.ecn_dscp;
->  		context->hop_limit =3D path.hop_limit;
->  		context->ip_type =3D (path.af_type =3D=3D AF_INET ? 0 : 1);
->  		context->ip_type =3D cpu_to_be16(context->ip_type);
->  		memcpy(context->dip, path.dip, sizeof(context->dip));
->  		memcpy(context->sip, path.sip, sizeof(context->sip));
-
-[Severity: Medium]
-Could this copy uninitialized stack memory into the hardware context?
-
-The path structure is declared on the stack and passed to xsc_set_path().
-For IPv4, only 4 bytes of sip and dip are populated. Copying the full
-IPv6-sized array from path to context might leak uninitialized stack data to
-the device firmware.
-
-[ ... ]
-
->  	if (udata && udata->inlen && attr_mask & IB_QP_STATE && new_state =3D=
-=3D IB_QPS_RTR) {
->  		if (!ucmd->profile &&
->  		    xdev->rdma_proto_mode =3D=3D RDMA_PROTO_VEROCE) {
->  			context->swith_qp_type =3D 1;
->  			context->qp_access_flags |=3D QP_ACCESS_MODIFY_QP_TYPE;
->  			context->qp_access_flags =3D cpu_to_be32(context->qp_access_flags);
-
-[Severity: High]
-Does this corrupt the endianness of qp_access_flags?
-
-It looks like context->qp_access_flags was already converted to big-endian
-earlier via cpu_to_be32() in xsc_set_qp_access_flag(). Applying a bitwise OR
-directly to the big-endian variable and then byteswapping it a second time
-will corrupt the flag bits on little-endian architectures.
-
-[ ... ]
-
->  	if (!err && (attr_mask & IB_QP_STATE) && !udata) {
->  		get_cqs(qp->xqp.qp_type, qp->send_cq, qp->recv_cq, &send_cq, &recv_cq);
->  		xsc_ib_lock_cqs(send_cq, recv_cq);
->  		err =3D xsc_ib_err_state_qp(dev, qp, to_xsc_state(cur_state),
->  					  to_xsc_state(new_state));
->  		xsc_ib_unlock_cqs(send_cq, recv_cq);
-
-[Severity: High]
-Is there a sleeping allocation happening while holding spinlocks?
-
-xsc_ib_lock_cqs() acquires spinlocks and disables interrupts. Inside
-xsc_ib_err_state_qp(), memory is allocated using kzalloc_obj(..., GFP_KERNE=
-L),
-which can sleep and trigger a panic in an atomic context.
-
-[ ... ]
-
 >  		for (i =3D 0; i < wr->num_sge; ++i) {
 >  			if (unlikely(!wr->sg_list[i].length))
 >  				continue;
+
+[Severity: High]
+Does skipping zero-length SGEs here leave uninitialized gaps in the
+hardware WQE? By using continue, the data_seg at index i is skipped. If
+the hardware descriptor ring contains stale data from previous work
+requests, the NIC might execute the stale SGE and cause spurious DMA
+mapping faults.
+
 >  			data_seg =3D get_seg_wqe(recv_head, i);
 >  			data_seg->in_line =3D 0;
 >  			WR_LE_64(data_seg->va, wr->sg_list[i].addr);
 >  			WR_LE_32(data_seg->mkey, wr->sg_list[i].lkey);
 >  			if (is_qp1(qp->xqp.qp_type))
 >  				WR_LE_32(data_seg->seg_len, xdev->caps.rx_pkt_len_max);
+
+[Severity: Critical]
+Could instructing the hardware to use rx_pkt_len_max for QP1 packets
+cause a DMA buffer overflow? MAD receive buffers allocated by the IB core
+are typically only large enough for GRH + MAD (~300 bytes). If an incoming
+padded or malformed packet arrives, writing up to the port MTU size might
+corrupt remote kernel memory.
+
 >  			else
 >  				WR_LE_32(data_seg->seg_len, wr->sg_list[i].length);
 >  		}
 
+> diff --git a/drivers/infiniband/hw/xsc/srq.c b/drivers/infiniband/hw/xsc/=
+srq.c
+> --- /dev/null
+> +++ b/drivers/infiniband/hw/xsc/srq.c
+[ ... ]
+> @@ -51,11 +51,13 @@ void xsc_free_one_cache_srq_wr(struct xsc_ib_srq *srq=
+, struct xsc_ib_qp *qp, u64
+>  		if (tmp_wr->wr_id =3D=3D wr_id) {
+>  			if (prev_wr)
+>  				prev_wr->next =3D tmp_wr->next;
+>  			else
+>  				qp->srq_head_wr =3D tmp_wr->next;
+> =20
+>  			kfree(tmp_wr->sg_list);
+>  			kfree(tmp_wr);
+>  			break;
+>  		}
+
 [Severity: High]
-Can the hardware scatter incoming network data into stale memory addresses?
+If the item being freed is the tail of the list (tmp_wr =3D=3D qp->srq_tail=
+_wr),
+does qp->srq_tail_wr need to be updated? If it is left dangling, a
+subsequent call to xsc_post_cache_wrs() with init=3Dfalse might execute
+qp->srq_tail_wr->next =3D wr_head, leading to a use-after-free.
 
-When this loop skips 0-length SGEs or when wr->num_sge is less than the
-maximum permitted, it leaves trailing data segments in the Receive WQE
-uninitialized. Since the receive queue is a ring buffer, these slots might
-contain stale SGE data from previous work requests.
+[ ... ]
+> @@ -279,15 +279,16 @@ int xsc_ib_destroy_srq(struct ib_srq *srq, struct i=
+b_udata *udata)
+>  {
+>  	struct xsc_ib_srq *xsrq =3D to_xsrq(srq);
+>  	struct xsc_ib_dev *dev =3D to_xdev(srq->device);
+> =20
+>  	xsc_core_destroy_srq(dev->xdev, &xsrq->xsrq);
+>  	if (xsrq->create_type =3D=3D XSC_SRQ_USER) {
+>  		destroy_srq_user(xsrq, NULL);
+>  	} else {
+>  		xsc_destroy_cache_wr(xsrq);
+>  		destroy_srq_kernel(dev, xsrq);
+>  	}
 
-Without a control segment specifying the valid SGE count, the hardware could
-process these stale entries and write into memory that has already been fre=
-ed
-or reallocated.
+[Severity: High]
+Is there a race condition between releasing the SRQ ID globally and
+clearing its local data? xsc_core_destroy_srq() frees the ID for immediate
+reuse. If a concurrent thread creates an SRQ and reuses srqn before
+xsc_destroy_cache_wr() executes memset(&cache_wr[srqn], 0, ...), it might
+wipe out the newly allocated cache list of the new SRQ.
+
+[ ... ]
+> @@ -290,14 +290,17 @@ static int xsc_cache_srq_wr(struct xsc_ib_srq *srq,=
+ const struct ib_recv_wr *wr,
+>  {
+>  	int i, n;
+>  	int srqn =3D srq->xsrq.srqn;
+>  	struct xsc_srq_cache_wr *cache_wr =3D srq->xsrq.cache_wr;
+>  	struct ib_recv_wr *head_wr =3D NULL, *new_wr =3D NULL, *prev_wr =3D NUL=
+L;
+> =20
+>  	for (n =3D 0; wr; wr =3D wr->next, n++) {
+>  		new_wr =3D kcalloc(1, sizeof(struct ib_recv_wr), GFP_KERNEL);
+
+[Severity: High]
+Can these allocations trigger a scheduling while atomic panic?
+xsc_ib_post_srq_recv() acquires srq->lock with spin_lock_irqsave before
+calling xsc_cache_srq_wr(), meaning this kcalloc(..., GFP_KERNEL) happens
+with interrupts disabled.
+
+>  		if (prev_wr)
+>  			prev_wr->next =3D new_wr;
+>  		else
+>  			head_wr =3D new_wr;
+>  		new_wr->wr_id =3D wr->wr_id;
+>  		new_wr->sg_list =3D kcalloc(wr->num_sge, sizeof(struct ib_sge), GFP_KE=
+RNEL);
+
+[Severity: High]
+Are NULL checks missing for the kcalloc() returns? If either allocation
+fails, dereferencing new_wr->wr_id or passing new_wr->sg_list to memcpy()
+will cause a deterministic NULL pointer dereference.
+
+>  		for (i =3D 0; i < wr->num_sge; i++)
+>  			memcpy(&new_wr->sg_list[i], &wr->sg_list[i], sizeof(struct ib_sge));
+
+[ ... ]
+> @@ -355,14 +355,15 @@ void xsc_post_cache_wrs(struct xsc_ib_srq *srq, str=
+uct xsc_ib_qp *qp, int wr_num
+> =20
+>  	cache_wr[srqn].head_wr =3D qp->srq_tail_wr->next;
+>  	qp->srq_tail_wr->next =3D NULL;
+>  	tmp_wr =3D wr_head;
+>  	err =3D xsc_ib_post_recv(&qp->ibqp, tmp_wr, &bad_wr);
+>  	if (err) {
+>  		qp->srq_tail_wr->next =3D cache_wr[srqn].head_wr;
+>  		qp->srq_tail_wr =3D NULL;
+>  		for (; wr_head && (bad_wr->wr_id !=3D wr_head->wr_id); wr_head =3D wr_=
+head->next)
+>  			qp->srq_tail_wr =3D wr_head;
+> =20
+>  		if (!qp->srq_tail_wr) {
+>  			cache_wr[srqn].head_wr =3D wr_head;
+>  			qp->srq_head_wr =3D NULL;
+>  		} else {
+
+[Severity: High]
+Does this error path lead to memory leaks and a subsequent NULL pointer
+dereference? If xsc_ib_post_recv() fails on the very first element (e.g.,
+due to WQ overflow), qp->srq_tail_wr is left as NULL. The code then
+executes qp->srq_head_wr =3D NULL, orphaning all previously successfully
+posted Work Requests and leaking their memory.
+
+Additionally, because qp->srq_tail_wr is left as NULL, the next
+invocation of xsc_post_cache_wrs() with init =3D false will execute:
+
+qp->srq_tail_wr->next =3D wr_head;
+
+This will cause a deterministic NULL pointer dereference.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261012114352.2471=
-317-1-tianx@yunsilicon.com?part=3D12
+317-1-tianx@yunsilicon.com?part=3D11
