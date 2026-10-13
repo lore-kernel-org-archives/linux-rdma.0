@@ -1,204 +1,142 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A55874F053F
-	for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 11:46:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D9934D7D4D;
+	Tue, 13 Oct 2026 11:46:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791891976; cv=none; b=NB2fTRkvrSSydgYJED8ZIUZieCSzA1qZqRqFShng84S16IRLV/ZrAf6pyOo8ewaiXZgx2lVXxnUySuFEOwRWK3R9zJkmf25ExXu4ce6gxrnKCJDSgowlh9iVtqDqCu8rj2s5S/FNEr4QFuPAVIHsqAgHQNfdb+fWzA74QXDMcXw=
+	t=1791892015; cv=none; b=ZSlTsb2a4eWTRL0lOGXyAQLn5+BxjTCak8i7wB+RQTUnDU6XQBTpflXpHCcvTO7oB+Ydy6ydrAvnxre9BdpAze2X8yGRySyS1odVTCFenAWbxrA7BAXU6m6QQaJFjE9WKjClRb4GqsqwThF1J95esSXVBGD0sEGE82CD1mW6HSY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791891976; c=relaxed/simple;
-	bh=UkYfVhWeBINFBDsIQAX9EmPDaOky+PaVPamZbBa4+zI=;
-	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=mBQDe+a19lpBZb85DcBvIT76hF1TDZYQ5T4wB3NddgOyRsgzCWPI36pTesKs3McS56Cmb2CUJcBpde3JH9xUK/3zJiSgEP1D6HKN2xi+G3zS/JUChTAN00Hj4u1ojxGHtVNdmY/xbUb5EdBJLZ2olwMn5uVsc0vMOZmTwY/Bq5s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ImQ0CXmG; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791892015; c=relaxed/simple;
+	bh=o5iE1cDO1gBt+uh4eIByivuwm67StlAGtlYV2hAA2DM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=cTh8O7ZwzavUmyWDSCmfn9pNhWdKnYBenj1z0Mmmhlu/OFqED3sDlKy2V0gPQ7DsOnbSdk6gtYjls1TZBhHUMkS6u8A0RZ8Yl5nMuJeXcQZs9DYJp+G5oyT+4Dv52LJe3EPuoF0gD+HWKj7GI2vv8NU//O/2ww2+7jzALhilBwQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JsNwWiGG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ImQ0CXmG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6ED081F00898;
-	Tue, 13 Oct 2026 11:46:15 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JsNwWiGG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E65921F00898;
+	Tue, 13 Oct 2026 11:46:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791891975;
-	bh=jOBDtKGdL555aALxiXMIeCIopxknSkul29WEy4ro6YA=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=ImQ0CXmG5z7L525m1hT07F2Xt5x2ZJGH+bqmGU/ydLmvKuhX1eWmrgZDWLeuE+EDr
-	 /xx/DVYTMPoJ96as8seoMLIWkZ7l2llhDxfpT/OwsA3jbcdqqWdVHYOjbI/DEv3eeS
-	 2bbvLK9zLZh1MlfYnCiUasQixQBRpTRkstXpoGZjEaq6kPBJS3ZP89Vf7WDUZgd44S
-	 23aUlO+VBioZgWssFFwQlk/W7ur42E+y68I7nz/vCkOI5RU0cIUU/UBc6XUt6k01Ef
-	 hul5XshZJKHpG2iq5gUiSaWLO+UXk1qv3PwtRj0k1uheH7KC0DW68Ddk3fACgYdt7C
-	 X4DIN9sq0dOiA==
-Message-ID: <sashiko-outbox-169652@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH 14/15] yunsilicon: add RDMA counters and sysfs
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Xin Tian" <tianx@yunsilicon.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261012114425.2471317-15-tianx@yunsilicon.com>
-References: <20261012114352.2471317-1-tianx@yunsilicon.com>
- <20261012114425.2471317-15-tianx@yunsilicon.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Tue, 13 Oct 2026 11:46:15 +0000
+	s=k20260515; t=1791892013;
+	bh=1nnF4ZhcdJUlBWxekcjOronR2NcHp1dKz5EHoMfEfXk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=JsNwWiGGPLpQBTVRJ0pxyv5sreFzDIh4DL9er2BIPqypmeADQ3+kGufnoG9MayGsG
+	 Ow2kvpxaWsj31kCiNI6YI1xtxB6jAuvoFeSUehIJRSSr8PvPf39/J2JL8+Q8gZNKpw
+	 hpaiLridC4NDmbtWtYCSXMnVcXUvRVpYaXF7fuyaM4cd4pfx2vv7Fp6hIZ2715U51o
+	 41ifwXQLKGxBc/H0/rQD53V5RTXy4cc2VVaIpPP3J14KY9KrW96ntrahOMVdTN4KO/
+	 TSAFtr+2bjHgQH5lauCoZ5P/rczb+ytBLkrNPZZt6Dfwz5bTKu9NMmntqhvn+1eShm
+	 h0kZ4EeW1vuHA==
+Date: Tue, 13 Oct 2026 12:46:21 +0100
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+To: "David Hildenbrand (Arm)" <david@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, 
+	"Liam R. Howlett" <liam@infradead.org>, Vlastimil Babka <vbabka@kernel.org>, 
+	Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
+	Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>, 
+	Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, 
+	Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
+	Paul Moore <paul@paul-moore.com>, Stephen Smalley <stephen.smalley.work@gmail.com>, 
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
+	Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
+	Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>, 
+	Kumar Kartikeya Dwivedi <memxor@gmail.com>, Zi Yan <ziy@nvidia.com>, 
+	Baolin Wang <baolin.wang@linux.alibaba.com>, Nico Pache <nico.pache@linux.dev>, 
+	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
+	Lance Yang <lance.yang@linux.dev>, Usama Arif <usama.arif@linux.dev>, 
+	Kiryl Shutsemau <kas@kernel.org>, Doug Gilbert <dgilbert@interlog.com>, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, "Martin K. Petersen" <mkp@kernel.org>, 
+	Simona Vetter <simona@ffwll.ch>, Helge Deller <deller@gmx.de>, Sebastian Reichel <sre@kernel.org>, 
+	John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, 
+	Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
+	Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@kernel.org>, 
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, Arnaldo Carvalho de Melo <acme@kernel.org>, 
+	Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
+	Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, Juri Lelli <juri.lelli@redhat.com>, 
+	Vincent Guittot <vincent.guittot@linaro.org>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
+	Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
+	David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>, 
+	"Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, Nick Piggin <npiggin@gmail.com>, Arnd Bergmann <arnd@arndb.de>, 
+	Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
+	"Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan Kara <jack@suse.cz>, Marc Zyngier <maz@kernel.org>, 
+	Oliver Upton <oupton@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, 
+	Madhavan Srinivasan <maddy@linux.ibm.com>, Anup Patel <anup@brainfault.org>, Paul Walmsley <pjw@kernel.org>, 
+	Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
+	Christian Borntraeger <borntraeger@linux.ibm.com>, Janosch Frank <frankja@linux.ibm.com>, 
+	Claudio Imbrenda <imbrenda@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
+	Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Heiko Carstens <hca@linux.ibm.com>, 
+	Vasily Gorbik <gor@linux.ibm.com>, "David S. Miller" <davem@davemloft.net>, 
+	Andreas Larsson <andreas@gaisler.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Christian Brauner <brauner@kernel.org>, Matthew Brost <matthew.brost@intel.com>, 
+	Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, Byungchul Park <byungchul@sk.com>, 
+	Gregory Price <gourry@gourry.net>, Ying Huang <ying.huang@linux.alibaba.com>, 
+	Alistair Popple <apopple@nvidia.com>, Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>, 
+	Kemeng Shi <shikemeng@huaweicloud.com>, Nhat Pham <nphamcs@gmail.com>, Baoquan He <baoquan.he@linux.dev>, 
+	Youngjun Park <youngjun.park@lge.com>, Johannes Weiner <hannes@cmpxchg.org>, 
+	Qi Zheng <qi.zheng@linux.dev>, Shakeel Butt <shakeel.butt@linux.dev>, 
+	Axel Rasmussen <axelrasmussen@google.com>, Yuanchu Xie <yuanchu@google.com>, Wei Xu <weixugc@google.com>, 
+	Chengming Zhou <chengming.zhou@linux.dev>, Michal Hocko <mhocko@kernel.org>, 
+	Miklos Szeredi <miklos@szeredi.hu>, Xu Xin <xu.xin@linux.dev>, linux-mm@kvack.org, 
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, 
+	linux-rdma@vger.kernel.org, selinux@vger.kernel.org, linux-sound@vger.kernel.org, 
+	bpf@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org, 
+	dri-devel@lists.freedesktop.org, linux-trace-kernel@vger.kernel.org, 
+	linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, 
+	kvm@vger.kernel.org, kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org, 
+	linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, fuse-devel@lists.linux.dev, 
+	Ihor Solodrai <ihor.solodrai@linux.dev>, Bert Karwatzki <spasswolf@web.de>
+Subject: Re: [PATCH v5 35/38] mm: avoid use of VMA_SPECIAL_FLAGS in
+ migrate_vma_setup()
+Message-ID: <as4Z_ASrMbQ-eMTn@gremlin>
+References: <20261009-b4-mmap-prepare-vma-flag-sanify-v5-0-923b70125b1e@kernel.org>
+ <20261009-b4-mmap-prepare-vma-flag-sanify-v5-35-923b70125b1e@kernel.org>
+ <214514be-a935-485b-8925-07d84c1063f9@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <214514be-a935-485b-8925-07d84c1063f9@kernel.org>
 
-Thank you for your contribution! Sashiko AI review found 4 potential issue(=
-s) to consider:
-- [High] sysfs: kobject UAF via missing .release and synchronous kfree
-- [High] sysfs: global singleton g_global_cnt_interface corrupts multi-devi=
-ce state
-- [Medium] sysfs: counters_value_read breaks partial reads and ignores offs=
-et
-- [Medium] infiniband: sysfs attribute creation races with udev KOBJ_ADD
+On Mon, Oct 12, 2026 at 08:52:07PM +0200, David Hildenbrand (Arm) wrote:
+> On 10/9/26 20:04, Lorenzo Stoakes (ARM) wrote:
+
+> > diff --git a/mm/migrate_device.c b/mm/migrate_device.c
+> > index b9c453c28795..289d7b08ace4 100644
+> > --- a/mm/migrate_device.c
+> > +++ b/mm/migrate_device.c
+
+> >  int migrate_vma_setup(struct migrate_vma *args)
+> >  {
+> > +	const struct vm_area_struct *vma = args->vma;
+> >  	long nr_pages = (args->end - args->start) >> PAGE_SHIFT;
+> >
+> >  	args->start &= PAGE_MASK;
+> >  	args->end &= PAGE_MASK;
+> > -	if (!args->vma || vma_test_any_mask(args->vma, VMA_SPECIAL_FLAGS) ||
+> > -	    vma_is_dax(args->vma))
+> > +	if (!vma)
+> > +		return -EINVAL;
+> > +	if (!vma_is_mm_managed(vma) || vma_is_fixed_mapping(vma) ||
+> > +	    vma_is_dax(vma))
+>
+> Same here, with the droppable thing changed this would be
+>
+> !vma_is_mm_backed() || vma_is_dax(vma)
+>
+> I guess.
+
+I think we need a hugetlb carveout too (ugh), will update in v6!
+
+>
+> Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+
+Thanks!
+
 --
-
-commit e407716ecbb78f776fbe73fcb02888c7ab5c00c8
-Author: Xin Tian <tianx@yunsilicon.com>
-
-yunsilicon: add RDMA counters and sysfs
-
-This commit adds hardware counter reporting through the RDMA counter
-interface, global counter sysfs attributes, and hca_type/hw_rev sysfs
-attributes.
-
-> diff --git a/drivers/infiniband/hw/xsc/counters.c b/drivers/infiniband/hw=
-/xsc/counters.c
-> new file mode 100644
-> index 0000000000000..135df95954a75
-> --- /dev/null
-> +++ b/drivers/infiniband/hw/xsc/counters.c
-[ ... ]
-> +static ssize_t counters_value_read(struct file *file, struct kobject *ko=
-b,
-> +				   const struct bin_attribute *bin_attr,
-> +				   char *buf, loff_t loff, size_t size)
-> +{
-[ ... ]
-> +	if (bin_attr->size > size || bin_attr->size =3D=3D 0)
-> +		return 0;
-
-[Severity: Medium]
-Does this check incorrectly reject partial or offset-bounded reads?=20
-
-Since the sysfs core bounds the requested size to max_size - loff, a read
-with a non-zero offset or a user buffer smaller than bin_attr->size might
-immediately fail with an early EOF here.
-
-[ ... ]
-> +	mask =3D xsc_get_rdma_stat_mask(xdev, be16_to_cpu(stats_rdma.ver));
-> +	j =3D 0;
-> +	for (i =3D 0; i < desc_size; i++) {
-> +		if (!((1ULL << i) & mask))
-> +			continue;
-> +		tmp_value[j] =3D be64_to_cpu(*(u64 *)(stats + desc[i].offset));
-> +		j++;
-> +	}
-> +
-> +	memcpy(buf, tmp_value, bin_attr->size);
-> +
-> +	kfree(tmp_value);
-> +	return bin_attr->size;
-> +}
-
-[Severity: Medium]
-Could this ignore the requested offset during a read?
-
-The loff parameter is not used in the memcpy() call, so if a read succeeded
-at a non-zero offset, it would incorrectly copy from the beginning of
-tmp_value instead of applying the requested offset.
-
-[ ... ]
-> +static const struct kobj_type global_cnt_ktype =3D {
-> +	.sysfs_ops     =3D &global_cnt_sysfs_ops,
-> +	.default_groups =3D global_cnt_groups,
-> +};
-
-[Severity: High]
-Is this kobj_type missing the mandatory .release callback required for
-kobjects?=20
-
-Without it, the kobject container memory cannot be safely managed when the
-reference count reaches zero.
-
-> +
-> +static struct xsc_global_cnt_interface *g_global_cnt_interface;
-> +
-> +static int global_cnt_sysfs_init(struct ib_device *ib_dev, struct xsc_co=
-re_device *xdev)
-> +{
-[ ... ]
-> +	err =3D kobject_init_and_add(&tmp->kobj, &global_cnt_ktype,
-> +				   &ib_dev->dev.kobj, GLOBAL_COUNTERS_GROUP_NAME);
-> +	if (err)
-> +		goto error_return;
-> +
-> +	g_global_cnt_interface =3D tmp;
-> +	tmp->xdev =3D xdev;
-> +	return 0;
-
-[Severity: High]
-Does this blindly overwrite the global pointer g_global_cnt_interface for
-every initialized physical function?
-
-If the system contains multiple Yunsilicon network adapters, initializing t=
-he
-second one would overwrite the pointer. This would lose the previous device=
-'s
-state and permanently leak its memory and kobject. Furthermore, removing the
-first device would cause global_cnt_sysfs_fini() to mistakenly operate on t=
-he
-second device's state.
-
-[ ... ]
-> +static void global_cnt_sysfs_fini(struct xsc_core_device *xdev)
-> +{
-> +	if (!g_global_cnt_interface || !xdev || !xsc_core_is_pf(xdev) || xdev->=
-pf_id !=3D 0)
-> +		return;
-> +
-> +	kobject_put(&g_global_cnt_interface->kobj);
-> +	kfree(g_global_cnt_interface);
-> +	g_global_cnt_interface =3D NULL;
-> +}
-
-[Severity: High]
-Is it safe to synchronously free the kobject container memory here?
-
-Since kobject_put() merely decrements the reference count, the kobject and
-its sysfs representation could remain active if userspace still holds an
-open file descriptor. Calling kfree() immediately afterwards destroys the
-underlying memory prematurely, which might lead to a use-after-free crash
-when userspace subsequently accesses the sysfs files.
-
-> diff --git a/drivers/infiniband/hw/xsc/main.c b/drivers/infiniband/hw/xsc=
-/main.c
-> index 30927006bae2d..38c8b4f0690c2 100644
-> --- a/drivers/infiniband/hw/xsc/main.c
-> +++ b/drivers/infiniband/hw/xsc/main.c
-[ ... ]
-> @@ -745,7 +745,9 @@ static int init_one(struct xsc_core_device *xdev,
-> =20
->  	xsc_register_netdev_notifier(dev);
-> =20
-> +	xsc_counters_init(&dev->ib_dev, xdev);
-> =20
-> +	xsc_ib_sysfs_init(&dev->ib_dev, xdev);
-> =20
->  	return 0;
-
-[Severity: Medium]
-Does creating the sysfs attribute files here cause a race condition with
-udev?
-
-The driver registers the device earlier in init_one() by calling
-ib_register_device(), which triggers a KOBJ_ADD uevent. Adding the sysfs
-files after this registration means udev rules might execute before the
-attributes actually exist. Should the sysfs groups be assigned to the
-device's attribute groups (e.g., ib_dev->groups) prior to registration
-instead?
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261012114352.2471=
-317-1-tianx@yunsilicon.com?part=3D14
+Cheers, Lorenzo
