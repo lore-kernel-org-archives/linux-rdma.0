@@ -1,40 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1CA44F0533
-	for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 11:46:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A05884F30E5
+	for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 11:46:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791891969; cv=none; b=op2vG60DBSoSC7FvDvJHKx/VSZOFdtL94RTJJcSnL/9vFgrg8EXuzBqzUV/SpKT/e49bQ/84guSNwdbGY2oLJUiDikD3wG0oKw+E9yp/866T323uHn6la2F/fefrbwlRZWfLeHOkBa6plypbDhoDWUriGrTDMKahGbEP27OZkxE=
+	t=1791891969; cv=none; b=dSbdTD8SgBO/9HFsijcfbCjPbA8iVT51iu0rv2O8yiuT+nDSPQ9mH+8f+NLjuRKODStInWX+Fw456GctytEIZ+gfXAWva6fJriJTB4kLDydgJKBq93UF9P5ZjJecv+IYZW2oxu5b0SJWvK/NBB4ZlZ02QrMlQJ6n5yHOYB/t2fA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1791891969; c=relaxed/simple;
-	bh=ZyJbO78R5SZget9WhlmXbUhHKbMSMYYMiFZLe6uk0ec=;
+	bh=GstaRhF4xHedbsTuk725VmTvdBXcpYlnQOo4QFeNsNg=;
 	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=pfD47wa4NID0e2qq5RWy84UXOfcM2NPO74vFpTUbUZTKWTL+ZeK3YIXsABFvcHq3ONmRZwKIdM9uU+EMRKw32222i65bD8hCNFn7z5QTUnjF9mVjpbYvqj/rObO63jF0hCKe+Dl5NGc8zWk883PSy12LIRx1waUsYlYuvsZew8k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=f+Ef9vLn; arc=none smtp.client-ip=100.103.45.18
+	 Date; b=E0g+McZD5m0+fSeu4W0ldmpU5aELD1sdz8EWpsLX5MDArSKU+PxAnPg8R1jTWWnobOgaGZU8rq2mB1JFMO2/TtziXtU7a1R3GwYO3jpWCFaUjztEXDP9lGnNPZyNTLCVwlTbll2re4fuHi30AwYhJpR8SGTvnAvdwDE47ZflxS4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=b6tiA4qm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="f+Ef9vLn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 771D81F00893;
-	Tue, 13 Oct 2026 11:46:07 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="b6tiA4qm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D32C1F00898;
+	Tue, 13 Oct 2026 11:46:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791891967;
-	bh=ZyJbO78R5SZget9WhlmXbUhHKbMSMYYMiFZLe6uk0ec=;
+	s=k20260515; t=1791891968;
+	bh=GstaRhF4xHedbsTuk725VmTvdBXcpYlnQOo4QFeNsNg=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=f+Ef9vLnqYq2cWAKsWdKSz1NCJC9uyYJ8gJs6uEah08gtGFmIsghuiauHhDSRY+/j
-	 dREoAtQdhHKdKNSg4lxq6EmPI1+lhDXST/CFf6OgSeEFVT5hhZ6uKaaSIjif2SK+cu
-	 F5OV1jPR+k96NU1ucUIqUKEs5Sw4VxF9VONqgaUcEknbYldg/xJNLwgxWorQ+vrsvT
-	 vXK5fDxy7SdfNsyofhzLbKNTcLcfdKONCle15aLNTpsGgWNTKh2wWCMm6khP0g2bUp
-	 QbvzdVVq6FLW6Ln3pTa0HLuC05be15hQvpwwAudJXFrUKhK0jL2iBAwhYgcV9zGbrq
-	 ph6OrQEpFgo7w==
-Message-ID: <sashiko-outbox-169639@kernel.org>
+	b=b6tiA4qm9hcAeaRITosXUg+nYaaxAItDPcCEo9hA+m9HzwuwSBoveaP2xnswe1ucs
+	 wpKMbwYGp/qArTWS3lutB87qnJHhs4kiGJrP1RYBaicfsVCq04oSzS+W6s6nMix+ue
+	 kBicj4cXvS50p99WhrCqKsS/9C/GchrTMs9gFSpX8drigAU1oBd/Ebkqev8U13rhWi
+	 iEhph9KK78fOoy6Rf9Yxd2gCZRJTtGZptAIrOfguucOcZkn0OORb5lcHXTPxA35BAL
+	 4lC5NIVa4qqUh3gvTd+EpO1OQ0lm16z8QupniXAsYrdkr6FFtrdefn3SYA1j0ewuhv
+	 48GoI4qWSWnwQ==
+Message-ID: <sashiko-outbox-169640@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH 04/15] yunsilicon: add event queues, interrupts and the
+Subject: Re: [PATCH 07/15] yunsilicon: add ethernet TX path
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Xin Tian" <tianx@yunsilicon.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261012114359.2471317-5-tianx@yunsilicon.com>
+In-Reply-To: <20261012114408.2471317-8-tianx@yunsilicon.com>
 References: <20261012114352.2471317-1-tianx@yunsilicon.com>
- <20261012114359.2471317-5-tianx@yunsilicon.com>
+ <20261012114408.2471317-8-tianx@yunsilicon.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Date: Tue, 13 Oct 2026 11:46:07 +0000
@@ -44,132 +44,130 @@ List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-Thank you for your contribution! Sashiko AI review found 8 potential issue(=
-s) to consider:
-- [High] net: xsc: bitwise XOR logic error in next_eqe_sw() halts event que=
-ue processing
-- [High] net: xsc: skipping teardown when firmware is offline causes Use-Af=
-ter-Free and resource leaks
-- [High] net: xsc: spoofing device->numa_node during DMA allocation causes =
-data races
-- [High] yunsilicon: vmap() on dma_alloc_coherent() memory creates illegal =
-cache aliases
-- [Medium] net: xsc: multiple memory leaks and incorrect affinity setup in =
-cpumask management
-- [Medium] net: xsc: vunmap skipped on 32-bit architectures causes vmalloc =
-memory leak
-- [Medium] net: xsc: data race on link_event_handler can lead to NULL point=
-er dereference
-- [Medium] net: xsc: xsc_core_vector2eqn leaves irqn uninitialized when MSI=
--X is disabled
+Thank you for your contribution! Sashiko AI review found 12 potential issue=
+(s) to consider:
+- [Critical] net: stale wi->skb pointer causes infinite loop and double-fre=
+e on spurious CQE
+- [High] net: unpopped error CQE causes infinite NAPI polling loop
+- [High] net: inverted return logic in xsc_poll_tx_cq causes NAPI interrupt=
+ storms
+- [High] net: TX queue can permanently stall due to missing smp_mb() after =
+netif_tx_stop_queue
+- [High] net: NAPI instances are deleted without being disabled in xsc_eth_=
+open_channels error path
+- [High] net: NULL pointer dereference of aff_mask in xsc_channel_no_affini=
+ty_change
+- [High] yunsilicon: memory and DMA leak on TX queue teardown
+- [Medium] net: unconditional memory leak of mailbox buffer in xsc_eth_set_=
+cq
+- [Medium] net: SQ DB arrays leaked on error path in xsc_eth_open_qp_sq
+- [Medium] net: firmware teardown failures cause software memory leaks
+- [Medium] net: TX packets are double-counted on retry and miscounted on dr=
+op
+- [Medium] net: missing u64_stats_sync for 64-bit per-queue network statist=
+ics
 --
 
-Make it readable and polite without reproducing the patch diff context.
-
-[Severity: High]
-File: ..., Function: ..., Line: ...
-Your question here...
-
-Do not use '> diff' or any direct source recitation. Respond only with the =
-prose descriptions.commit a872f21fb08a814fac5b1a6b91049b643f0a1ed7
+commit 68f71bfadd8545a6a72866ea79110d42b134cfcb
 Author: Xin Tian <tianx@yunsilicon.com>
+Subject: yunsilicon: add ethernet TX path
 
-yunsilicon: add event queues, interrupts and the auxiliary bus
-
-This commit adds event queues, MSI-X vector handling, and auxiliary bus
-glue for the yunsilicon driver. It sets up the PCI core to request vectors,
-create completion queues, and publish auxiliary devices for the ethernet and
-RDMA drivers.
+This commit adds the transmit path for the yunsilicon ethernet driver.
+It introduces WQE construction, completion handling, and ndo_start_xmit.
 
 [Severity: High]
-In drivers/net/ethernet/yunsilicon/xsc/pci/eq.c, within the next_eqe_sw()
-function, the logic for advancing the consumer index performs a bitwise XOR
-against !!(eq->cons_index & eq->nent) with (eqe->owner_data & XSC_EQE_OWNER=
-).
-Because XSC_EQE_OWNER is BIT(7) (128), when the hardware sets the owner bit,
-this evaluates to 128 ^ 1, which equals 129. Since 129 is non-zero, it retu=
-rns
-NULL instead of the event queue entry. Will this cause the event queue to h=
-alt
-completely after exactly one cycle? Would it be better to normalize the left
-side to a boolean first?
+In drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_txrx.c, inside the
+xsc_poll_tx_cq function around line 62, the code detects an error CQE
+and returns false without calling xsc_cqwq_pop. Will this cause the NAPI
+polling loop to wedge permanently as subsequent polls re-fetch the exact
+same CQE? Additionally, the CQEs fetched inside the do-while loop around
+line 99 bypass the error check entirely, which might result in error
+CQEs being processed as successful completions.
 
 [Severity: High]
-In drivers/net/ethernet/yunsilicon/xsc/pci/eq.c, within xsc_destroy_unmap_e=
-q(),
-and in drivers/net/ethernet/yunsilicon/xsc/pci/pci_irq.c within both
-xsc_free_irq_vectors() and xsc_free_irq(), the functions check if the firmw=
-are
-is available and return early if it is not. By returning early, critical
-cleanup operations like free_irq(), pci_free_irq_vectors(), and
-xsc_buf_free() are skipped. Does skipping free_irq() leave the interrupt
-handler active to dereference the subsequently freed `eq` object, causing a
-Use-After-Free? Will this also leak PCI MSI-X allocations?
+Also in xsc_poll_tx_cq around line 99, the polling loop uses the condition
+++i <=3D napi_budget. If the budget is fully exhausted, the loop breaks with
+i equal to napi_budget + 1. The function then returns i =3D=3D napi_budget,
+which evaluates to false. Can this inverted return logic cause NAPI to
+prematurely end the polling cycle while the queue is still full, leading
+to interrupt storms?
 
-[Severity: Medium]
-In drivers/net/ethernet/yunsilicon/xsc/pci/pci_irq.c, the function
-set_comp_irq_affinity_hint() is called in a loop over the number of vectors.
-Inside this loop, it unconditionally allocates xdev->xps_cpumask using
-zalloc_cpumask_var(). Does this repeatedly overwrite the pointer and
-permanently leak memory on every iteration when CONFIG_CPUMASK_OFFSTACK=3Dy?
-Additionally, if the allocation fails, it returns without freeing eq->mask.
-Also, when setting the affinity hint, the code passes the newly allocated
-and empty eq->mask to irq_set_affinity_hint() instead of the populated
-xdev->xps_cpumask. Finally, if xsc_cmd_enable_msix() fails in
-xsc_irq_eq_create(), the error path jumps to err_free_irq_evnt, which skips
-clear_comp_irq_affinity_hints(). Will this leak all successfully allocated
-cpumasks?
-
-[Severity: Medium]
-In drivers/net/ethernet/yunsilicon/xsc/pci/alloc.c, within xsc_buf_free(),
-there is a check that only calls vunmap() if BITS_PER_LONG =3D=3D 64. Howev=
-er, in
-xsc_buf_alloc(), the memory is unconditionally mapped using vmap() when the
-requested size exceeds the direct mapping threshold. Will guarding the vunm=
-ap()
-with an architecture check permanently leak the mapping on 32-bit platforms
-every time a multi-page buffer is freed?
-
-[Severity: Medium]
-In drivers/net/ethernet/yunsilicon/xsc/pci/pci_irq.c, within xsc_event_work=
-(),
-the link event handler is checked for NULL before being called. However,
-xsc_irq_event_unregister() can concurrently set xdev->link_event_handler to
-NULL. Can the compiler issue two separate memory loads for the check and the
-call, leading to a NULL pointer dereference if the pointer is cleared betwe=
-en
-the two operations? Should this use READ_ONCE() to load the pointer into a
-local variable first?
+[Severity: Critical]
+Further down in xsc_poll_tx_cq around lines 84 and 96, napi_consume_skb
+frees the SKB but leaves the wi->skb pointer intact. If the cyclic buffer
+wraps around and a spurious CQE is fetched, this dangling pointer will
+falsely pass the !skb condition check, resulting in a double-free of the
+SKB and double DMA unmap. Furthermore, the handling for spurious CQEs uses
+continue to skip the rest of the loop without advancing sqcc and
+dma_fifo_cc. Does this result in an infinite loop by re-processing the
+same SW WQE?
 
 [Severity: High]
-In drivers/net/ethernet/yunsilicon/xsc/pci/alloc.c, the function
-xsc_dma_zalloc_coherent_node() calls set_dev_node() to temporarily modify
-the global device->numa_node field in order to force node-local DMA
-allocations. While this is protected locally by dev_res->alloc_mutex, other
-subsystems might call dev_to_node() concurrently. Can this data race cause
-other parallel threads to read the spoofed value and allocate memory on the
-wrong physical NUMA node?
+In drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_tx.c, within the
+xsc_txwqe_complete function around line 185, netif_tx_stop_queue is
+called if the queue lacks room. Should there be an smp_mb barrier and a
+space re-check immediately after stopping the queue? Without an explicit
+barrier, concurrent NAPI updates could race with the TX path, permanently
+stalling the TX queue.
 
 [Severity: Medium]
-In drivers/net/ethernet/yunsilicon/xsc/pci/pci_irq.c, the function
-xsc_core_vector2eqn() returns 0 (success) early if xdev->caps.msix_enable is
-false, without initializing the *irqn parameter. The caller, xsc_vector2eqn=
-(),
-passes this success along, which could lead to undefined behavior when it
-uses the uninitialized local variable. Should *irqn be initialized before
-returning on this path?
+In drivers/net/ethernet/yunsilicon/xsc/net/main.c, inside the
+xsc_eth_set_cq function around line 427, the mailbox buffer in is
+allocated with kvzalloc. On successful completion of xsc_core_eth_create_cq,
+the function returns 0 but skips freeing the buffer. Can we add a kvfree
+for the buffer on the success path to avoid permanently leaking this memory?
+
+[Severity: Medium]
+Similarly, in xsc_eth_open_qp_sq around lines 560 and 586, if a setup step
+like modify_in allocation fails, the error path jumps to
+err_sq_common_destroy. This path destroys the WQ and QP but does not call
+xsc_free_qp_sq_db. Does this leak the dma_fifo and wqe_info arrays
+allocated earlier in the function?
 
 [Severity: High]
-In drivers/net/ethernet/yunsilicon/xsc/pci/alloc.c, within xsc_buf_alloc(),
-memory allocated via dma_alloc_coherent() is converted to struct page point=
-ers
-using virt_to_page() or vmalloc_to_page(), and then remapped contiguously
-using vmap(..., PAGE_KERNEL). Because DMA coherent memory is not guaranteed
-to be backed by standard linear map pages, and applying PAGE_KERNEL to
-potentially uncached or write-combined memory creates conflicting cache
-aliases, is this architecturally illegal? Does this bypass DMA API safety
-constraints and risk memory corruption or kernel panics?
+When tearing down channels in xsc_eth_open_channels (error path around line
+639) and xsc_eth_close_channel (around line 605), netif_napi_del is
+called directly. Because napi_enable was already called, should
+napi_disable be executed prior to deletion to prevent a use-after-free if
+the NAPI instance is scheduled concurrently?
+
+[Severity: Medium]
+In xsc_eth_close_cq and xsc_eth_close_qp_sq around lines 349 and 492, the
+functions return early if xsc_core_eth_destroy_cq or
+xsc_core_eth_destroy_qp report a firmware error. Bypassing xsc_eth_free_cq
+and xsc_free_qp_sq on these errors appears to indefinitely leak the OS
+level queue memory if the firmware is unresponsive. Is it intentional to
+skip freeing software memory on a firmware timeout?
+
+[Severity: Medium]
+In xsc_eth_xmit_frame around lines 234 and 262, stats->packets is
+incremented preemptively. If the packet exceeds a single WQE and is passed
+to skb_linearize, a successful linearization jumps back to retry_send,
+causing the packet to be double-counted. If linearization fails and jumps
+to err_drop, the counter is not reverted. Should the statistics update be
+moved after we guarantee the packet will not be dropped or retried?
+
+[Severity: High]
+In drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_txrx.c, the function
+xsc_channel_no_affinity_change around line 23 directly dereferences
+c->aff_mask in cpumask_test_cpu. Since c->aff_mask is only assigned when
+xdev->caps.msix_enable is true, and irq_get_affinity_mask can return
+NULL, will this cause a NULL pointer dereference during NAPI polling on
+systems without MSI-X?
+
+[Severity: Medium]
+In xsc_eth_xmit_frame around line 290, 64-bit statistic counters like
+stats->bytes and stats->packets are updated directly. To prevent torn
+reads on 32-bit architectures, should these per-queue statistics be updated
+using the u64_stats_update_begin and u64_stats_update_end macros?
+
+[Severity: High]
+In xsc_free_qp_sq_db around line 436, the tracking arrays sq->db.wqe_info
+and sq->db.dma_fifo are freed. It appears the function does not drain and
+unmap active elements between sq->cc and sq->pc first. Can this lead to
+a silent leak of SKBs and DMA mappings when the interface is stopped or
+reconfigured while traffic is active?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261012114352.2471=
-317-1-tianx@yunsilicon.com?part=3D4
+317-1-tianx@yunsilicon.com?part=3D7
