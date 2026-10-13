@@ -1,166 +1,160 @@
-Received: from canpmsgout06.his.huawei.com (canpmsgout06.his.huawei.com [113.46.200.221])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mta0.migadu.com (out-237.mta0.migadu.com [91.218.175.237])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1C4B47208B;
-	Tue, 13 Oct 2026 03:11:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.221
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82858471CF8
+	for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 04:03:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.237
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791861086; cv=none; b=NBKzBRXO5wtw9/sfD/eXfVh5l56+U6ac7YvpM/oQIRnV+CC6uMsRM4EptUctLUG3Fc8B9GP2+DK9vm4gJ3pVfQTxXjUWA3wFqqRrc0czAaMuWTuJsXjncBiYghmX+r4eOYEospyCWmrboQGyZY01x9Gunygd5dzGhAw3MPng5Ak=
+	t=1791864194; cv=none; b=mvLQfTkq1R8xmjUTjDK0OHd+jIFh6tyT54Wzr2IW1LuLJ7nubiBxil+UmERMEccCOBFiD9+kJrWpyNlV56sD2s3nnEtORwwV339cQI7ZtFKZxjfc1i8LcTVXbgIp56PCVZFUO0sQm8E+TvfZohZezb+OElXZArj/IDDAhb64xow=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791861086; c=relaxed/simple;
-	bh=ARWsg5OJqiVDTR7iycF3Ayu4dgvlopAwbx13OiMNFUc=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=P9i2b3D1aqPEjn7qKA4UCshm/dA+t16QWm+7zWC3SgKqwF/H5a7XkV2UZ5YLIMyjx9nVQ0mKq/OBcjV21kR9f4ny5ItNR9T+7mhNh4zFVLu5AQxJasACc3ZVRLfakbdrtNDPQgthQgRZsX7MBS5tVyjd6/Z6QdEEpCRD8DiKzOw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=113.46.200.221
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.162.223])
-	by canpmsgout06.his.huawei.com (SkyGuard) with ESMTPS id 4j3fDm5WyXzRhQs;
-	Tue, 13 Oct 2026 10:59:04 +0800 (CST)
-Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id 69E5B40561;
-	Tue, 13 Oct 2026 11:11:18 +0800 (CST)
-Received: from [10.67.120.168] (10.67.120.168) by
- kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Tue, 13 Oct 2026 11:11:17 +0800
-Message-ID: <47c82da8-99cd-ec81-f264-d270fef057ee@hisilicon.com>
-Date: Tue, 13 Oct 2026 11:11:17 +0800
+	s=arc-20240116; t=1791864194; c=relaxed/simple;
+	bh=pRw3+DNz4FKZkULbMEuGqFvNWp9tZmYd8hyPp4BAQ6c=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=iKJu1UW+Dyn5JyD72oF6hxEJe54pVXzkNVW0bgn6BbeZx6QBeyZoqRivfHSMELwH7hQgazDxHFh7rlLWfBotUJ1YC1t86nqP8uTmn+a2kuwTRaIeOWZUMGgv99vrioGr45FXatsEmh2jkYpvgW1i7jDy/G+iRMPuCbC6u0xxrbI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=B7E24c3O; arc=none smtp.client-ip=91.218.175.237
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="B7E24c3O"
+X-Envelope-To: linux-rdma@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=pRw3+DNz4FKZkULbMEuGqFvNWp9tZmYd8hyPp4BAQ6c=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1791864188; v=1; x=1792468988;
+ b=B7E24c3OEUzIxtl6nemya7PChQAx1Mf1B5UQz6xGa1wORDSJfKLyHGD5CnLHQ7M5RK2qRW14
+ KSMSGRSmeSd9iLQvMmk+gtjzFBmAxhrbLuDN3Br3ayI6NKDfU6S7sJMbSfffTQobjHKBNFGexXM
+ JGCiCpNuIYO6qtCA52EPW8uA=
+X-Envelope-To: linux-rdma@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id 5736003ccde2858d;
+	Tue, 13 Oct 2026 04:03:08 +0000
+X-Mizu-Trace-ID: 5736003ccde2858d
+X-Migadu-Flow: FLOW_OUT
+Message-ID: <55731898-1cc7-4d6b-af6c-18f369aff79c@linux.dev>
+Date: Mon, 12 Oct 2026 21:03:01 -0700
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.15.1
-Subject: Re: [PATCH 03/15] yunsilicon: add the command queue
-Content-Language: en-US
-To: Xin Tian <tianx@yunsilicon.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Jason
- Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>
-CC: <weihg@yunsilicon.com>, <linux-kernel@vger.kernel.org>,
-	<netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>
-References: <20261012114352.2471317-1-tianx@yunsilicon.com>
- <20261012114356.2471317-4-tianx@yunsilicon.com>
-From: Junxian Huang <huangjunxian6@hisilicon.com>
-In-Reply-To: <20261012114356.2471317-4-tianx@yunsilicon.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: kwepems100002.china.huawei.com (7.221.188.206) To
- kwepemf100018.china.huawei.com (7.202.181.17)
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] RDMA/rxe: require ODP MR iova to equal the umem user
+ address
+To: hello messi <Hello_Messi_10@outlook.com>,
+ "zyjzyj2000@gmail.com" <zyjzyj2000@gmail.com>,
+ "yanjun.zhu@linux.dev" <yanjun.zhu@linux.dev>
+Cc: "jgg@ziepe.ca" <jgg@ziepe.ca>, "leon@kernel.org" <leon@kernel.org>,
+ "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+References: <SY7P300MB0292E9E08F0890A2C31CFD96DE972@SY7P300MB0292.AUSP300.PROD.OUTLOOK.COM>
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
+In-Reply-To: <SY7P300MB0292E9E08F0890A2C31CFD96DE972@SY7P300MB0292.AUSP300.PROD.OUTLOOK.COM>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
+在 2026/10/4 7:07, hello messi 写道:
+> Hello,
+> I found an out-of-bounds access in the RXE ODP MR path when an ODP 
+> memory region is registered with an IOVA that differs from the user 
+> virtual address used to create the underlying |ib_umem_odp|.
+> The issue was reproduced on Linux v7.2.8 with Soft-RoCE (|rxe0|).
+> *Environment*
 
+Please read the files in 
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/process
 
-On 2026/10/12 19:43, Xin Tian wrote:
-> Add the command queue that is shared by the ethernet and RDMA functions:
-> the request/response rings, the command work handling and the device
-> initialisation sequence that queries the HCA capabilities, the GUID and
-> the message opcode table.
+Thanks a lot.
+Yanjun Zhu
+
 > 
-> Signed-off-by: Xin Tian <tianx@yunsilicon.com>
-> ---
->  .../net/ethernet/yunsilicon/xsc/pci/Makefile  |    2 +-
->  .../net/ethernet/yunsilicon/xsc/pci/cmdq.c    | 1247 +++++++++++++++++
->  drivers/net/ethernet/yunsilicon/xsc/pci/hw.c  |  310 ++++
->  drivers/net/ethernet/yunsilicon/xsc/pci/hw.h  |   18 +
->  .../net/ethernet/yunsilicon/xsc/pci/main.c    |   55 +
->  5 files changed, 1631 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/net/ethernet/yunsilicon/xsc/pci/cmdq.c
->  create mode 100644 drivers/net/ethernet/yunsilicon/xsc/pci/hw.c
->  create mode 100644 drivers/net/ethernet/yunsilicon/xsc/pci/hw.h
+> |Kernel: Linux v7.2.8 RDMA device: Soft-RoCE (rxe0) 
+> CONFIG_INFINIBAND_ON_DEMAND_PAGING=y CONFIG_RDMA_RXE=m CONFIG_KASAN=y 
+> CONFIG_KASAN_GENERIC=y CONFIG_KASAN_INLINE=y CONFIG_DEBUG_INFO=y 
+> CONFIG_DEBUG_INFO_DWARF5=y |
 > 
-> diff --git a/drivers/net/ethernet/yunsilicon/xsc/pci/Makefile b/drivers/net/ethernet/yunsilicon/xsc/pci/Makefile
-> index 81b65232e..656cdffa1 100644
-> --- a/drivers/net/ethernet/yunsilicon/xsc/pci/Makefile
-> +++ b/drivers/net/ethernet/yunsilicon/xsc/pci/Makefile
-> @@ -6,4 +6,4 @@ ccflags-y += -I$(srctree)/drivers/net/ethernet/yunsilicon/xsc
->  
->  obj-$(CONFIG_YUNSILICON_XSC_PCI) += xsc_pci.o
->  
-> -xsc_pci-y := main.o hal/andes_impl.o
-> +xsc_pci-y := main.o cmdq.o hw.o hal/andes_impl.o
-> diff --git a/drivers/net/ethernet/yunsilicon/xsc/pci/cmdq.c b/drivers/net/ethernet/yunsilicon/xsc/pci/cmdq.c
-> new file mode 100644
-> index 000000000..48832b26d
-> --- /dev/null
-> +++ b/drivers/net/ethernet/yunsilicon/xsc/pci/cmdq.c
-> @@ -0,0 +1,1247 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * Copyright (c) 2021-2026, Shanghai Yunsilicon Technology Co., Ltd.
-> + * All rights reserved.
-> + * Copyright (c) 2013-2016, Mellanox Technologies. All rights reserved.
+> *Root cause*
+> |rxe_odp_mr_init_user()| accepts |start| and |iova| independently:
+> 
+> |umem_odp = ib_umem_odp_get(&rxe->ib_dev, start, length, access_flags,   
+>                          &rxe_mn_ops); ... mr->ibmr.length = length; mr- 
+>  >ibmr.iova = iova; |
+> 
+> The ODP page list is sized according to the UMEM user address range, 
+> while RXE calculates the page-list index from the MR IOVA:
+> 
+> |idx = (iova - ib_umem_start(umem_odp)) >> umem_odp->page_shift; |
+> 
+> There is no validation that the resulting index is within |umem_odp- 
+>  >map.pfn_list|.
+> |mr_check_range()| does not prevent this because it validates the IOVA 
+> against |mr->ibmr.iova| and |mr->ibmr.length|, rather than against the 
+> underlying UMEM user address range.
+> *Reproduction*
+> A minimal reproducer is attached as |poc.c|.
+> The reproducer creates a one-page ODP MR with a deliberately divergent IOVA:
+> 
+> |user VA      : 0x55b0f4fb2000 ODP IOVA     : 0x55b1f4fb2000 IOVA delta 
+>    : 0x100000000 ODP length   : 0x1000 expected idx : 0x100000 |
+> 
+> The resulting index is |0x100000|, while the one-page ODP |pfn_list| 
+> only contains the entry corresponding to the valid UMEM page.
+> The reproducer then submits an RC atomic-write operation using the MR 
+> rkey and the divergent IOVA, reaching:
+> 
+> |rxe_odp_do_atomic_write()  -> rxe_odp_iova_to_index()  -> umem_odp- 
+>  >map.pfn_list[index]  -> hmm_pfn_to_page()  -> kmap_local_page()  -> 
+> smp_store_release() |
+> 
+> The reproducer can be executed by an unprivileged user.
+> *KASAN/Oops*
+> The reproducer triggers:
+> 
+> |Oops: general protection fault, probably for non-canonical address ... 
+> KASAN: maybe wild-memory-access ... CPU: 3 UID: 0 PID: 13495 Comm: 
+> kworker/u514:1 Workqueue: rxe_wq do_work [rdma_rxe] RIP: 
+> 0010:rxe_odp_do_atomic_write+0x1ba/0x3e0 [rdma_rxe] |
+> 
+> Using |faddr2line|:
+> 
+> |rxe_odp_do_atomic_write+0x1ba/0x3e0: rxe_odp_do_atomic_write at /home/ 
+> kali/linux-7.2.8/drivers/infiniband/sw/rxe/rxe_odp.c:410 |
+> 
+> Line 410 is:
+> 
+> |smp_store_release(&va[page_offset >> 3], value); |
+> 
+> The atomic value supplied by the reproducer was:
+> 
+> |atomic value=0x4141414142424242 |
+> 
+> The same value was present in the kernel register state at the time of 
+> the fault.
+> This demonstrates an out-of-bounds ODP |pfn_list| access in the RXE 
+> atomic-write path. I have not assumed arbitrary kernel write or code 
+> execution from this crash; the demonstrated impact is a kernel memory- 
+> safety violation leading to a kernel fault.
+> *Proposed fix*
+> The existing ODP index calculation assumes that the MR IOVA and the UMEM 
+> user address refer to the same address range. The simplest fix is to 
+> reject an ODP MR when these addresses differ:
+> 
+> |diff --git a/drivers/infiniband/sw/rxe/rxe_odp.c b/drivers/infiniband/ 
+> sw/rxe/rxe_odp.c index ... --- a/drivers/infiniband/sw/rxe/rxe_odp.c +++ 
+> b/drivers/infiniband/sw/rxe/rxe_odp.c @@ -98,6 +98,9 @@ int 
+> rxe_odp_mr_init_user(struct rxe_dev *rxe, u64 start, u64 length,         
+>         /* Never reach here, for implicit ODP is not implemented. */| 
+> rxe_odp_do_atomic_op()|       } +       if (iova != start) +             
+>    return -EINVAL; +        umem_odp = ib_umem_odp_get(&rxe->ib_dev, 
+> start, length, access_flags,                                   
+> &rxe_mn_ops); |
+> 
+> This restores the invariant required by the existing ODP index 
+> calculation and prevents a divergent IOVA from producing an out-of-range 
+> |pfn_list| index.
+> Please consider applying an appropriate fix to current mainline and 
+> stable kernels as appropriate.
+> The reproducer is attached as |poc.c|, and the relevant KASAN/Oops 
+> output is attached as |kasan-oops.txt|.
+> Thanks,
+> hellomessi
+> 
 
-Why Mellanox?
-
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/errno.h>
-> +#include <linux/pci.h>
-> +#include <linux/dma-mapping.h>
-> +#include <linux/slab.h>
-> +#include <linux/delay.h>
-> +#include <linux/random.h>
-> +#include <linux/kthread.h>
-> +#include <linux/io-mapping.h>
-> +
-> +#include "common/xsc_cmd_api.h"
-> +#include "common/xsc_cmd.h"
-> +#include "common/xsc_core.h"
-> +#include "hal/xsc_hal.h"
-> +
-> +enum {
-> +	CMD_IF_REV = 3,
-> +};
-> +
-> +enum {
-> +	NUM_LONG_LISTS	  = 2,
-> +	NUM_MED_LISTS	  = 64,
-> +	LONG_LIST_SIZE	  = (2ULL * 1024 * 1024 * 1024 / PAGE_SIZE) * 8 + 16 +
-> +				XSC_CMD_DATA_BLOCK_SIZE,
-> +	MED_LIST_SIZE	  = 16 + XSC_CMD_DATA_BLOCK_SIZE,
-> +};
-> +
-> +enum {
-> +	XSC_CMD_DELIVERY_STAT_OK			= 0x0,
-> +	XSC_CMD_DELIVERY_STAT_SIGNAT_ERR		= 0x1,
-> +	XSC_CMD_DELIVERY_STAT_TOK_ERR			= 0x2,
-> +	XSC_CMD_DELIVERY_STAT_BAD_BLK_NUM_ERR		= 0x3,
-> +	XSC_CMD_DELIVERY_STAT_OUT_PTR_ALIGN_ERR		= 0x4,
-> +	XSC_CMD_DELIVERY_STAT_IN_PTR_ALIGN_ERR		= 0x5,
-> +	XSC_CMD_DELIVERY_STAT_FW_ERR			= 0x6,
-> +	XSC_CMD_DELIVERY_STAT_IN_LENGTH_ERR		= 0x7,
-> +	XSC_CMD_DELIVERY_STAT_OUT_LENGTH_ERR		= 0x8,
-> +	XSC_CMD_DELIVERY_STAT_RES_FLD_NOT_CLR_ERR	= 0x9,
-> +	XSC_CMD_DELIVERY_STAT_CMD_DESCR_ERR		= 0x10,
-> +};
-> +
-> +static struct xsc_cmd_work_ent *xsc_alloc_cmd(struct xsc_cmd *cmd,
-> +					      struct xsc_cmd_msg *in,
-> +					      struct xsc_rsp_msg *out)
-> +{
-> +	struct xsc_cmd_work_ent *ent;
-> +
-> +	ent = kzalloc_obj(*ent, GFP_KERNEL);
-> +	if (!ent)
-> +		return ERR_PTR(-ENOMEM);
-> +
-> +	ent->in		= in;
-> +	ent->out	= out;
-> +	ent->cmd	= cmd;
-> +
-> +	return ent;
-> +}
-> +
-> +static void xsc_free_cmd(struct xsc_cmd_work_ent *ent)
-> +{
-> +	kfree(ent);
-
-One line function is unnecessary.
-
-Junxian
-
-> +}
