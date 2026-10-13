@@ -1,187 +1,140 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 988CB4F30F8
-	for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 11:46:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 414C14F391F
+	for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 11:46:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791891972; cv=none; b=HTZ2qgQnYsdIHr7hRa6mANLUtXxt+PD6+646+LBMcm/ocqm8cNg0u47YP9oOuTF9x9HGf9VxB7LUBEMcKmGKfAVJdj/jc2nefAJVh9/exn477MzeXsy7JLQqVoS7tJknmfROyHOLYA/RTL1qaq4X6YZdZdkg9BSpTDib+wsy+1M=
+	t=1791891973; cv=none; b=WgfMLqHF7bFEuddJmqaDMgdL9n223VMJIwKMg/8EV5gzCSnuG/GktpD6iKB/rtMOmf3VG+/6ieALzGt9KXxGSx5DxHukE+PZxVI+9ncfuDMoP3I10RP9dyPHJ3Kgvmrza7xwmejkka3BWjJApvaxexpQbX3WoCJ4dP/wVtvamms=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791891972; c=relaxed/simple;
-	bh=5UBmLL+uTySeb1FpxxDkUAGgCNiZIKHqnyr16S+UJWc=;
+	s=arc-20240116; t=1791891973; c=relaxed/simple;
+	bh=pj51lxhh9851NWRpgQ3wm99bsi15F94RkbaZBAv7+tw=;
 	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=gvsP8pm1nwqZmmVXVhI2T/SEjnClS2CuWkFkooT9T0c+PCUFyksJAxnrHv/Rzb2OQDWd9mtJO4bVtTrTOis5KH/ulJ1IFihbbnfZrilyZ2mV+mdm2HIhpULLLnABESpHSf0x2uD0q9ooRRPj62W38105eKbH+GDEExbCeHMEFr0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NK7wZHMU; arc=none smtp.client-ip=100.103.45.18
+	 Date; b=lZeYcfjjN0reVaJxOBSShHlIjgUasQILTCL4wctdrC1EJgR2OP0ymKiHt+sQEBZaqrreHY4Kvz+ntR9Ug2oohEtk/ngH7MZxpFu2tLDm58wFU8uev6JijaSZy0l2AaW617Tr3/byiGudt+Vo3BI8WsUFjM+0wfIlqnm12ratzG8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=d45zwWSl; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NK7wZHMU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 552F01F00899;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="d45zwWSl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0963D1F000FF;
 	Tue, 13 Oct 2026 11:46:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791891971;
-	bh=5UBmLL+uTySeb1FpxxDkUAGgCNiZIKHqnyr16S+UJWc=;
+	s=k20260515; t=1791891972;
+	bh=pj51lxhh9851NWRpgQ3wm99bsi15F94RkbaZBAv7+tw=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=NK7wZHMUfgLFuoMKudyk2mqLqrP2Mjoc+OWonAuQRQ8ebvbp+hzbZ+4QwcXRPkO56
-	 LWrhtjyYTjKY9JAtcix0IvRenURVd4WKp1JhtQ72hevq6AmtRlM6mCD0rrLl+zz2LW
-	 ZKAV1TKUuw+UVvoJHoME52yGuKt6Y2pVRBLGSvADKJ4nooqDt213yL5kwvBfFFOO43
-	 I4teH/VzLfM1bbOs+PDxz2kNYfLaACXIgvGgPyKq17Ir10RhjCSYnmKR3CjhxABZuI
-	 Zsv4yjWPHdNejtE8Xc+HiYtZ36zknA15Siu3T7lVIp+8bqPp1eB02xVmGDiLjOKcXG
-	 MdEScYCtfOTyA==
-Message-ID: <sashiko-outbox-169645@kernel.org>
+	b=d45zwWSlsNlQ/uj8v73rhn1oeeUbWYFtXIIvA2g4pJRdLKPu5AvLGCxtO0kn7O3Vv
+	 aHHAhBG9bqqdMqwGOgmfhrPbHg2YbzXBO7bOIWYteNpg0qYVh7/0wZuuktEYOzgxfj
+	 w+CzWTfqR0H+FIVtlyWI9p3FgGZDAL3lTzOvwaR+9EdgcR6mQJDLxjaFwbMA+HQh0V
+	 mFnfnlrNc3vMq9MviTL0eB2JX4ZZIXAzvpRnXCVrAAXVxF/tedec7tqCrTgHL6T/F2
+	 rPgidsGGqV0zQyOGtDqBCFTM+KznFXQ0soA8IFRnVAiAS2+AB0X1NSdXeGj+r/MSSj
+	 b1S+VxcoI6iYA==
+Message-ID: <sashiko-outbox-169646@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH 06/15] yunsilicon: add ethernet netdev registration
+Subject: Re: [PATCH 01/15] yunsilicon: add PCI core driver skeleton
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Xin Tian" <tianx@yunsilicon.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261012114404.2471317-7-tianx@yunsilicon.com>
+In-Reply-To: <20261012114352.2471317-2-tianx@yunsilicon.com>
 References: <20261012114352.2471317-1-tianx@yunsilicon.com>
- <20261012114404.2471317-7-tianx@yunsilicon.com>
+ <20261012114352.2471317-2-tianx@yunsilicon.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 13 Oct 2026 11:46:10 +0000
+Date: Tue, 13 Oct 2026 11:46:11 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-Thank you for your contribution! Sashiko AI review found 10 potential issue=
-(s) to consider:
-- [High] net: Negative error code truncated to u8 falsely reports Link UP o=
-n firmware failure
-- [High] net: Out-of-bounds array write in XPS configuration when comp_vect=
-ors exceeds netdev queues
-- [High] yunsilicon: TOCTOU race on link_event_handler causing NULL pointer=
- dereference
-- [High] net: carrier state desync due to lockless adapter->opened race
-- [Medium] net: XPS cpumask accumulates CPUs across queue iterations breaki=
-ng 1-to-1 mapping
-- [Medium] net: Missing u64_stats_sync protection for 64-bit per-CPU statis=
-tics
-- [Medium] net: xsc_eth_open silently ignores xsc_set_port_admin_status fai=
-lure
-- [Medium] net: Race between xsc_eth_close and link event handler leaves ca=
-rrier ON while device closed
-- [Medium] net: Race condition in xsc_eth_open silently drops valid hardwar=
-e link events
-- [Low] net: Hardware-provided MAC address is not validated before assignme=
-nt
+Thank you for your contribution! Sashiko AI review found 5 potential issue(=
+s) to consider:
+- [High] mm: invalid kfree() on memory allocated with kvzalloc_obj()
+- [High] hw: endian-dependent C bitfields in hardware descriptors corrupt d=
+ata
+- [High] hw: native host-endian types used in hardware DMA structures
+- [High] hw: implicit compiler padding corrupts hardware command layouts
+- [Medium] pci: missing dma_set_mask() forces 32-bit streaming DMA fallback
 --
 
-commit a6ac5cd27a115b0dca9b12956a0808733a45d432
+commit 2f6b2de0263e58c06ddcb030ee0e72ee0f685f39
 Author: Xin Tian <tianx@yunsilicon.com>
-Subject: yunsilicon: add ethernet netdev registration
+Subject: yunsilicon: add PCI core driver skeleton
 
-This commit adds the ethernet auxiliary driver for Yunsilicon XSC devices. =
-It allocates the netdev, programs the MAC address and MTU, registers it, an=
-d implements the basic open and stop operations for port admin status and l=
-ink events.
-
-[Severity: Medium]
-In drivers/net/ethernet/yunsilicon/xsc/net/main.c at xsc_set_default_xps_cp=
-umasks (around line 155), cpumask_clear is executed exactly once before the=
- loop.
-
-Inside the loop, cpumask_set_cpu adds a CPU for the current queue index. Be=
-cause the shared mask is not cleared between iterations, CPUs accumulate ac=
-ross queues.
-
-Could this break the intended Transmit Packet Steering isolation by mapping=
- all traffic to the highest-indexed TX queue?
-
-[Severity: Low]
-Looking at drivers/net/ethernet/yunsilicon/xsc/net/main.c in xsc_eth_l2_add=
-r_init (around line 318), the hardware-provided MAC address is retrieved vi=
-a xsc_eth_get_mac.
-
-If the hardware returns success, the retrieved MAC is directly applied to t=
-he netdevice without validation.
-
-Should we check the address with is_valid_ether_addr to ensure the hardware=
- doesn't supply an all-zero or multicast MAC address before setting it?
+This commit adds the basic PCI core driver for the Yunsilicon XSC network
+device. It includes Kconfig, Makefiles, register definitions, and basic PCI
+probe/remove routines that enable the device and allocate the per-function
+resource structure.
 
 [Severity: High]
-In drivers/net/ethernet/yunsilicon/xsc/pci/vport.c at xsc_core_query_vport_=
-state (around line 28), the function returns a u8 status.
-
-When xsc_cmd_exec fails, it returns a standard negative integer error code =
-which is then truncated to a u8.
-
-Back in drivers/net/ethernet/yunsilicon/xsc/net/main.c at xsc_eth_get_link_=
-status (around line 105), this truncated non-zero value is evaluated as a s=
-uccessful Link UP state.
-
-Might this cause the driver to erroneously transition the carrier state to =
-UP during a mailbox timeout or hardware failure?
+In drivers/net/ethernet/yunsilicon/xsc/pci/main.c, inside xsc_dev_res_init()
+around line 105, xdev->dev_res is allocated using kvzalloc_obj(). However,
+in xsc_dev_res_cleanup() at line 118, the memory is freed using kfree()
+instead of kvfree(). Does this code potentially cause a kernel panic or SLUB
+corruption during driver unbind or probe failure? If kvmalloc() falls back =
+to
+a vmalloc address because physically contiguous memory is unavailable, call=
+ing
+kfree() on it violates the allocator API.
 
 [Severity: Medium]
-In drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_stats.h (around line 11)=
-, struct xsc_rq_stats and struct xsc_sq_stats store 64-bit packet and byte =
-counters as plain u64 fields.
-
-Since these counters are updated in the NAPI softirq path and read globally=
- without u64_stats_sync protection, will this result in torn reads on 32-bi=
-t platforms?
-
-[Severity: Medium]
-In drivers/net/ethernet/yunsilicon/xsc/net/main.c at xsc_eth_open (around l=
-ine 189), the driver sends a hardware mailbox command via xsc_set_port_admi=
-n_status to physically enable the port.
-
-The return value is discarded and the function unconditionally returns 0.
-
-If the hardware initialization fails, could the kernel network stack incorr=
-ectly consider the interface UP while the physical port remains down?
-
-[Severity: Medium]
-In drivers/net/ethernet/yunsilicon/xsc/net/main.c at xsc_eth_close (around =
-line 208), adapter->opened is set to false, followed by netif_carrier_off, =
-and finally xsc_irq_event_unregister.
-
-Is there a race condition where a concurrent link event handler passes the =
-opened check before it flips, waits out the carrier status change, and then=
- turns the carrier back ON just before the unregister step, leaving the car=
-rier ON while the device is closed?
-
-[Severity: Medium]
-Also in drivers/net/ethernet/yunsilicon/xsc/net/main.c at xsc_eth_open (aro=
-und line 182), the event handler is registered before the adapter->opened f=
-lag is set to true.
-
-If a hardware link state change triggers an interrupt in this exact window,=
- wouldn't the async event handler execute, check the flag, and return early=
-, thereby permanently dropping a valid hardware link event?
+In drivers/net/ethernet/yunsilicon/xsc/pci/main.c within xsc_set_dma_caps()
+at line 22, the code configures a 64-bit mask for coherent allocations via
+dma_set_coherent_mask(), but omits dma_set_mask() for the streaming DMA mas=
+k.
+Is the streaming DMA mask intentionally left at the 32-bit default? By not
+setting it, all network packet buffers mapped via dma_map_single() or
+dma_map_page() will be restricted to the lower 4GB of physical RAM. On 64-b=
+it
+systems with more than 4GB of RAM, this forces the networking stack to boun=
+ce
+all network traffic through the SWIOTLB, which can cause massive performance
+degradation and potential silent allocation failures if the SWIOTLB is
+exhausted.
 
 [Severity: High]
-In drivers/net/ethernet/yunsilicon/xsc/net/main.c at xsc_eth_build_nic_para=
-ms (around line 74), the raw hardware capability is stored without capping =
-it to the maximum channel size.
-
-Then in xsc_set_default_xps_cpumasks (around line 155), the loop iterates u=
-p to this uncapped limit when calling netif_set_xps_queue.
-
-If the hardware supports more completion vectors than allocated TX queues, =
-could this trigger an out-of-bounds array write in the network core?
-
-[Severity: High]
-In drivers/net/ethernet/yunsilicon/xsc/pci/pci_irq.c at xsc_event_work (aro=
-und line 309), the link_event_handler function pointer is checked and then =
-called.
-
-Concurrently, xsc_irq_event_unregister (around line 358) assigns NULL to th=
-e handler before flushing the workqueue.
-
-Since READ_ONCE is not used, is it possible for the compiler to emit multip=
-le memory loads, allowing the function pointer to become NULL between the c=
-heck and the call, leading to a panic?
+In drivers/net/ethernet/yunsilicon/xsc/common/xsc_core.h (for xsc_cqe at li=
+ne
+242, and xsc_send_wqe_ctrl_seg at line 99) and xsc_cmdq.h (for
+xsc_cmd_layout at line 113), hardware descriptors mapped to device DMA memo=
+ry
+define C bitfields using types like __le32 and u8. Will these hardware
+descriptor layouts break on big-endian architectures? The C standard dictat=
+es
+that bitfield packing order is implementation-defined. On little-endian
+systems, GCC packs bits from LSB to MSB, but on big-endian systems, from MSB
+to LSB. Furthermore, mixing types like u8 and __le32 in bitfields causes
+compiler-dependent alignment padding that bloats structural sizes. Compiling
+this driver on a big-endian system might result in malformed commands and
+silent data corruption. Fixed-size types with bitwise masks should likely be
+used instead.
 
 [Severity: High]
-In drivers/net/ethernet/yunsilicon/xsc/net/main.c, xsc_eth_link_event_handl=
-er (around line 138) performs a lockless read of adapter->opened.
+In drivers/net/ethernet/yunsilicon/xsc/common/xsc_cmd.h, several structures
+passed to or read from the hardware via DMA or mailbox commands define fiel=
+ds
+using native host types. For example, xsc_cq_context_ex uses u32 pa_num_ex
+at line 196, xsc_event_linkinfo uses u32 and u64 for linkspeed and supported
+at line 863, and xsc_hw_stats_rdma_pf uses u64 for statistics at line 927.
+Can this cause data corruption on big-endian hosts? Hardware devices operate
+with a fixed endianness, and using native host types will cause the CPU on
+big-endian hosts to read or write the bytes without swapping them, producing
+incorrect values. All fields in DMA-shared structures typically need explic=
+it
+__le32/__le64 or __be32/__be64 types.
 
-Because this races with both ndo_open and ndo_stop, is there a risk that va=
-lid link UP events are dropped during open, or stale carrier ON events are =
-applied after close, leading to a complete desync of the carrier state?
+[Severity: High]
+Also in drivers/net/ethernet/yunsilicon/xsc/common/xsc_cmd.h, missing packed
+attributes or explicit manual padding creates implicit holes in hardware
+command and configuration structures. For instance, in struct xsc_hca_cap,
+__be64 flags requires 8-byte alignment but follows u8 rsvd16[2], resulting =
+in
+6 bytes of implicit padding. In struct xsc_create_qp_request at line 313,
+__be64 pas[] forces 4 bytes of padding after u8 rsvd. In struct xsc_rss_attr
+at line 782, __be32 hash_tmpl forces 2 bytes of padding after __be16 rqn_nu=
+m.
+Does this implicit compiler padding misalign the hardware command layouts?
+This padding shifts all subsequent fields transmitted to and from the
+hardware, potentially corrupting the mailbox commands and breaking the ABI
+contract with the firmware.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261012114352.2471=
-317-1-tianx@yunsilicon.com?part=3D6
+317-1-tianx@yunsilicon.com?part=3D1
