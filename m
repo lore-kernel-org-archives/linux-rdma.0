@@ -1,998 +1,361 @@
-Received: from canpmsgout06.his.huawei.com (canpmsgout06.his.huawei.com [113.46.200.221])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D27694A99C4;
-	Tue, 13 Oct 2026 06:17:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.221
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D086E39FCAE;
+	Tue, 13 Oct 2026 08:03:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791872258; cv=none; b=niJkB/bnijfBLuyO55zStFFl3Q+ZC/IahQMZNki2Gi/obO/Pjyn0YIUHTmuww16ujL3y2GZqkRXf2rXdQvVY88ENZtajdFoCpUhapfG8jnI9A87IxDnjxgcmYEyd4UNKYZrYmu5uwFnbANq2U9lZl63hBT/qOxwfFP+3BaYrLLA=
+	t=1791878603; cv=none; b=AH6P7+DZNhmyZBRxowLD8kv0hA+JgU34FJi0QavkQbkVgsSEvOM19hsDjJvdTOSIi3ENhgt5SlHdrQ7WoKMhrjebz8sGydnmvd8ELZcIlI9ADdPHguwLuqSs1H/XIcpw/3z51OeH8fSjFnKml1Ts4b4IQLc/hzdMjTupJqMub8s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791872258; c=relaxed/simple;
-	bh=I8cLqMGuUKZCOKstXGA+eObh/2b9ETMjBg0YyW8CYVs=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=HGLy1uVsK4BMpH7DYQ4SxRaF4vSFsK7n6BhcEAqvtIVMqw1UwQwVyxAB9WBRzIFOpNcKcykAGEhn4xk/yi7p1c+wrRdzDgTUtWLt/hjkerwEny+DK6sXhviJFnPDqWTij5rgQe+PhasNiHhMArPUfrqsaJUq56IIn9a5ANLstEc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=113.46.200.221
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.162.144])
-	by canpmsgout06.his.huawei.com (SkyGuard) with ESMTPS id 4j3kMX0YrWzRhXM;
-	Tue, 13 Oct 2026 14:05:12 +0800 (CST)
-Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id C5BF040538;
-	Tue, 13 Oct 2026 14:17:25 +0800 (CST)
-Received: from [10.67.120.168] (10.67.120.168) by
- kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Tue, 13 Oct 2026 14:17:24 +0800
-Message-ID: <3cb7230e-079d-8d3b-5605-16149d2af01d@hisilicon.com>
-Date: Tue, 13 Oct 2026 14:17:24 +0800
+	s=arc-20240116; t=1791878603; c=relaxed/simple;
+	bh=uDVIqwl9wf7z4iefSNPp6KWVpjSEFle1efCgDktniEU=;
+	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=ckDaxxReMuMgp++A9tmTK4CLLFngxP/SSH8+LeI8POf7M2BOfb9P7FNr/jlBL+e2bisIV6h02r+MuvLd+Bp3JnnOjQzbTG/zo7zV7nweOPCRpkijPrgEBE8Sj9MzwKJZ7ejTKUxzQ0TSLrBc0e8Gy2XI/ZWo7U+ggQeklqgU6hM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=I57Xxjje; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="I57Xxjje"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E5661F000FF;
+	Tue, 13 Oct 2026 08:03:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791878601;
+	bh=AVOqioA6o42aiedEIoPlkGWPjIA7wN2/DbHfLFBLO00=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=I57XxjjeEsjvBQz9cLlsN5Q92ykjm0QfwSTOcCNErGR9uA3bbcxKMYD2TKlMdgoNF
+	 jHFgH8fUmwMO+pr1ES2UfBPv2B7lv16J9qlR3JDzlKwqvHz9XLr7ZOAr6UIYG8vBrj
+	 vJzhIN6Xnrff+7Oaas1vrDfR3Lrs4Pv5paBWlKF2UT9HWbGXUIaXGgEPmTad9uprgA
+	 h/GmXJKj8M8CfVtklDGVzm1Kp7O1xGfZ1TYgyeLWM2PQRlTpgSHmksp/jLV05W146d
+	 iYyWljQ+UJ2Xiegs2oYlhrxChCgvIriERpsOHAhncRl6gKYrJYnJjfrXgCHPTX/VWr
+	 j0CuW9L8eEBlw==
+Subject: Re: [PATCH net v9] net/smc: fix lgr/lnk lifetime vs diag reader race
+From: netdev-bot+sashiko@kernel.org
+To: mjambigi@linux.ibm.com
+Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
+ kuba@kernel.org, pabeni@redhat.com, alibuda@linux.alibaba.com,
+ dust.li@linux.alibaba.com, sidraya@linux.ibm.com, hidayath@linux.ibm.com,
+ pasic@linux.ibm.com, horms@kernel.org, tonylu@linux.alibaba.com,
+ guwen@linux.alibaba.com, stable@vger.kernel.org, netdev@vger.kernel.org,
+ linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
+Date: Tue, 13 Oct 2026 08:03:19 +0000
+Message-ID: <179187859972.434549.160211929714609734@kernel.org>
+In-Reply-To: <20261012080034.38770-1-mjambigi@linux.ibm.com>
+References: <20261012080034.38770-1-mjambigi@linux.ibm.com>
+X-sashiko-severity: Medium
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.15.1
-Subject: Re: [PATCH 09/15] yunsilicon: add RDMA device support
-Content-Language: en-US
-To: Xin Tian <tianx@yunsilicon.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Jason
- Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>
-CC: <weihg@yunsilicon.com>, <linux-kernel@vger.kernel.org>,
-	<netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>
-References: <20261012114352.2471317-1-tianx@yunsilicon.com>
- <20261012114412.2471317-10-tianx@yunsilicon.com>
-From: Junxian Huang <huangjunxian6@hisilicon.com>
-In-Reply-To: <20261012114412.2471317-10-tianx@yunsilicon.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: kwepems100001.china.huawei.com (7.221.188.238) To
- kwepemf100018.china.huawei.com (7.202.181.17)
 
+Thank you for your contribution! Sashiko AI review found 3 potential
+issue(s) to consider.
 
+Critical: 0 · High: 0 · Medium: 2 (2) · Low: 1
 
-On 2026/10/12 19:44, Xin Tian wrote:
-> Add the RDMA driver's uverbs ABI header (include/uapi/rdma/xsc-abi.h),
-> the ib_device scaffolding and device registration: query_device,
-> query_port, query_pkey, ucontext allocation and mmap, port attributes and
-> the netdev notifier that tracks the port state.
-> 
-> The driver reports RDMA_DRIVER_XSC, which is added to the rdma_driver_id
-> enum at the end so existing IDs are untouched.
-> 
-> Signed-off-by: Xin Tian <tianx@yunsilicon.com>
-> ---
->  drivers/infiniband/Kconfig                    |   1 +
->  drivers/infiniband/hw/Makefile                |   1 +
->  drivers/infiniband/hw/xsc/Kconfig             |  17 +
->  drivers/infiniband/hw/xsc/Makefile            |   9 +
->  drivers/infiniband/hw/xsc/main.c              | 797 ++++++++++++++++++
->  drivers/infiniband/hw/xsc/xsc_ib.h            | 542 ++++++++++++
->  .../net/ethernet/yunsilicon/xsc/common/cq.h   |  30 +
->  .../ethernet/yunsilicon/xsc/common/driver.h   |  95 +++
->  .../net/ethernet/yunsilicon/xsc/common/qp.h   | 104 +++
->  .../net/ethernet/yunsilicon/xsc/common/srq.h  |  54 ++
->  .../net/ethernet/yunsilicon/xsc/pci/Makefile  |   2 +-
->  .../net/ethernet/yunsilicon/xsc/pci/link.c    |  35 +
->  include/uapi/rdma/ib_user_ioctl_verbs.h       |   1 +
->  include/uapi/rdma/xsc-abi.h                   | 295 +++++++
->  14 files changed, 1982 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/infiniband/hw/xsc/Kconfig
->  create mode 100644 drivers/infiniband/hw/xsc/Makefile
->  create mode 100644 drivers/infiniband/hw/xsc/main.c
->  create mode 100644 drivers/infiniband/hw/xsc/xsc_ib.h
->  create mode 100644 drivers/net/ethernet/yunsilicon/xsc/common/cq.h
->  create mode 100644 drivers/net/ethernet/yunsilicon/xsc/common/driver.h
->  create mode 100644 drivers/net/ethernet/yunsilicon/xsc/common/qp.h
->  create mode 100644 drivers/net/ethernet/yunsilicon/xsc/common/srq.h
->  create mode 100644 drivers/net/ethernet/yunsilicon/xsc/pci/link.c
->  create mode 100644 include/uapi/rdma/xsc-abi.h
-> 
-> diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-> index 086195758..b3cc506db 100644
-> --- a/drivers/infiniband/Kconfig
-> +++ b/drivers/infiniband/Kconfig
-> @@ -100,6 +100,7 @@ source "drivers/infiniband/hw/ocrdma/Kconfig"
->  source "drivers/infiniband/hw/qedr/Kconfig"
->  source "drivers/infiniband/hw/usnic/Kconfig"
->  source "drivers/infiniband/hw/vmw_pvrdma/Kconfig"
-> +source "drivers/infiniband/hw/xsc/Kconfig"
->  source "drivers/infiniband/sw/rdmavt/Kconfig"
->  endif # !UML
->  source "drivers/infiniband/sw/rxe/Kconfig"
-> diff --git a/drivers/infiniband/hw/Makefile b/drivers/infiniband/hw/Makefile
-> index c42b22ac3..1bcd2d50a 100644
-> --- a/drivers/infiniband/hw/Makefile
-> +++ b/drivers/infiniband/hw/Makefile
-> @@ -16,3 +16,4 @@ obj-$(CONFIG_INFINIBAND_BNXT_RE)	+= bnxt_re/
->  obj-$(CONFIG_INFINIBAND_BNG_RE)		+= bng_re/
->  obj-$(CONFIG_INFINIBAND_ERDMA)		+= erdma/
->  obj-$(CONFIG_INFINIBAND_IONIC)		+= ionic/
-> +obj-$(CONFIG_INFINIBAND_XSC)	+= xsc/
-> diff --git a/drivers/infiniband/hw/xsc/Kconfig b/drivers/infiniband/hw/xsc/Kconfig
-> new file mode 100644
-> index 000000000..5cf46df2d
-> --- /dev/null
-> +++ b/drivers/infiniband/hw/xsc/Kconfig
-> @@ -0,0 +1,17 @@
-> +# SPDX-License-Identifier: GPL-2.0
-> +# Copyright (C) 2021 - 2026, Shanghai Yunsilicon Technology Co., Ltd.
-> +# All rights reserved.
-> +
-> +config INFINIBAND_XSC
-> +	tristate "Yunsilicon XSC RDMA driver"
-> +	depends on INFINIBAND && PCI && INET
-> +	depends on YUNSILICON_XSC_PCI && YUNSILICON_XSC_ETH
-> +	help
-> +	  This driver provides RDMA support for Yunsilicon XSC devices.
-> +	  It uses the auxiliary device published by the XSC PCI core and,
-> +	  for now, the netdev registered by the XSC ethernet driver to
-> +	  derive the port state and GID.  Because of that netdev
-> +	  dependency it also depends on YUNSILICON_XSC_ETH.
-> +
-> +	  To compile this driver as a module, choose M here. The module
-> +	  will be called xsc_ib.
-> diff --git a/drivers/infiniband/hw/xsc/Makefile b/drivers/infiniband/hw/xsc/Makefile
-> new file mode 100644
-> index 000000000..6c4ec1ca0
-> --- /dev/null
-> +++ b/drivers/infiniband/hw/xsc/Makefile
-> @@ -0,0 +1,9 @@
-> +# SPDX-License-Identifier: GPL-2.0
-> +# Copyright (C) 2021 - 2026, Shanghai Yunsilicon Technology Co., Ltd.
-> +# All rights reserved.
-> +
-> +ccflags-y := -I$(srctree)/drivers/net/ethernet/yunsilicon/xsc
-> +
-> +obj-$(CONFIG_INFINIBAND_XSC) += xsc_ib.o
-> +
-> +xsc_ib-y := main.o
-> diff --git a/drivers/infiniband/hw/xsc/main.c b/drivers/infiniband/hw/xsc/main.c
-> new file mode 100644
-> index 000000000..9d53a89be
-> --- /dev/null
-> +++ b/drivers/infiniband/hw/xsc/main.c
-> @@ -0,0 +1,797 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * Copyright (C) 2021 - 2026, Shanghai Yunsilicon Technology Co., Ltd.
-> + * All rights reserved.
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/auxiliary_bus.h>
-> +#include <linux/init.h>
-> +#include <linux/errno.h>
-> +#include <linux/pci.h>
-> +#include <linux/namei.h>
-> +#include <linux/kobject.h>
-> +#include <linux/kernfs.h>
-> +#include <linux/dma-mapping.h>
-> +#include <linux/slab.h>
-> +#include <linux/io-mapping.h>
-> +#include <linux/sched.h>
-> +#include <linux/netdevice.h>
-> +#include "common/xsc_core.h"
-> +#include "common/xsc_hsi.h"
-> +#include "common/xsc_cmd.h"
-> +#include "common/driver.h"
-> +
-> +#include <rdma/ib_user_verbs.h>
-> +#include <rdma/ib_smi.h>
-> +#include <rdma/ib_umem.h>
-> +
-> +#include <rdma/xsc-abi.h>
-> +#include "xsc_ib.h"
-> +
-> +#define DRIVER_NAME "xsc_ib"
-> +
-> +#define XSC_IB_GID_TBL_LEN	256
-> +#define XSC_IB_MAX_PKEYS	0x80
-> +
-> +MODULE_DESCRIPTION("Yunsilicon HCA IB driver");
-> +MODULE_LICENSE("GPL");
-> +
-> +static int xsc_ib_query_device(struct ib_device *ibdev,
-> +			       struct ib_device_attr *props,
-> +			       struct ib_udata *udata)
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-Are the comments in this function really needed? I think the codes
-are self-explainable enough.
+- [Medium] The patch adds `smc->sk.sk_prot->unhash(&smc->sk)` as the
+  first statement of smc_conn_kill() (net/smc/smc_core.c:1520), so it…
+- [Medium] The new sk_state-based guards in __smc_diag_dump()
+  (net/smc/smc_diag.c) change the sock_diag uAPI output for sockets…
+- [Low] __smc_diag_dump() (net/smc/smc_diag.c:161) now copies
+  link->ibname into smc_diag_linkinfo.ibname instead of…
 
-> +{
-> +	size_t udata_outlen = (udata) ? udata->outlen : 0;
-> +	struct xsc_ib_dev *dev = to_xdev(ibdev);
-> +	struct xsc_ib_query_device_resp resp;
-> +	union xsc_ib_fw_ver fw_ver;
-> +	int err = -ENOMEM;
-> +	size_t resp_len;
-> +	int max_rq_sg;
-> +	u64 max_tso;
-> +	u64 flags;
-> +
-> +	err = ib_is_udata_in_empty(udata);
-> +	if (err)
-> +		return err;
-> +
-> +	memset(&resp, 0, sizeof(resp));
-> +	memset(props, 0, sizeof(*props));
+Pre-existing issues:
+- [Medium] This problem wasn't introduced by this patch, but
+  smc_conn_free() (net/smc/smc_core.c:1279-1280) calls…
+- [Medium] This problem wasn't introduced by this patch, but
+  smc_diag_handler_dump() (net/smc/smc_diag.c:244) starts the dump…
 
-The core already handles the zeroing, no need to do this in driver.
+--
 
-> +
-> +	resp_len = sizeof(resp.comp_mask) + sizeof(resp.response_length);
-> +	/*check param*/
-> +	if (udata_outlen && udata_outlen < resp_len)
-> +		return -EINVAL;
-> +
-> +	resp.response_length = resp_len;
-> +
-> +	fw_ver.data = 0;
-> +	fw_ver.s.ver_major = dev->xdev->fw_version_major;
-> +	fw_ver.s.ver_minor = dev->xdev->fw_version_minor;
-> +	fw_ver.s.ver_patch = dev->xdev->fw_version_patch;
-> +	fw_ver.s.ver_tweak = dev->xdev->fw_version_tweak;
-> +	props->fw_ver = fw_ver.data;
-> +
-> +	props->device_cap_flags    = IB_DEVICE_CHANGE_PHY_PORT |
-> +		IB_DEVICE_PORT_ACTIVE_EVENT		|
-> +		IB_DEVICE_SYS_IMAGE_GUID		|
-> +		IB_DEVICE_RC_RNR_NAK_GEN;
-> +	props->kernel_cap_flags =  IBK_BLOCK_MULTICAST_LOOPBACK;
-> +	props->kernel_cap_flags |= IBK_LOCAL_DMA_LKEY;
-> +
-> +	flags = dev->xdev->caps.flags;
-> +	if (flags & XSC_DEV_CAP_FLAG_BAD_PKEY_CNTR)
-> +		props->device_cap_flags |= IB_DEVICE_BAD_PKEY_CNTR;
-> +	if (flags & XSC_DEV_CAP_FLAG_BAD_QKEY_CNTR)
-> +		props->device_cap_flags |= IB_DEVICE_BAD_QKEY_CNTR;
-> +	if (flags & XSC_DEV_CAP_FLAG_APM)
-> +		props->device_cap_flags |= IB_DEVICE_AUTO_PATH_MIG;
-> +	props->page_size_cap	   = dev->xdev->caps.min_page_sz;
-> +	props->max_mr_size	   = xsc_get_max_mr_size(dev->xdev);
-> +	props->max_qp		   = dev->xdev->caps.max_qp;
-> +	props->max_qp_wr	   = xsc_get_max_qp_depth(dev->xdev);
-> +	max_rq_sg = dev->xdev->caps.max_rq_desc_sz / sizeof(struct xsc_wqe_data_seg);
-> +
-> +	props->max_send_sge = dev->xdev->caps.send_ds_num - XSC_CTRL_SEG_NUM -
-> +		XSC_RADDR_SEG_NUM;
-> +	props->max_recv_sge = dev->xdev->caps.recv_ds_num;
-> +	props->max_sge_rd	   = 1;/*max sge per read wqe*/
-> +	props->max_cq		   = dev->xdev->caps.max_cq;
-> +	props->max_cqe		   = dev->xdev->caps.max_cqes;
-> +	props->max_mr		   = (1 << dev->xdev->caps.log_max_mkey) - 1;
-> +	props->max_pd		   = dev->xdev->caps.max_pd;
-> +	props->max_qp_rd_atom	   = dev->xdev->caps.max_ra_res_qp;
-> +	props->max_qp_init_rd_atom = dev->xdev->caps.max_ra_req_qp;
-> +	props->max_res_rd_atom	   = props->max_qp_rd_atom * props->max_qp;
-> +	props->max_srq		   =
-> +		dev->xdev->caps.log_max_srq ? (1 << dev->xdev->caps.log_max_srq) : 0;
-> +	props->max_srq_wr	   = dev->xdev->caps.max_srq_wqes - 1;
-> +	props->max_srq_sge	   = dev->xdev->caps.log_max_srq ? (max_rq_sg - 1) : 0;
-> +	props->local_ca_ack_delay  = dev->xdev->caps.local_ca_ack_delay;
-> +	props->atomic_cap	   = is_support_rdma_atomic(dev->xdev) ?
-> +		IB_ATOMIC_HCA : IB_ATOMIC_NONE;
-> +	props->masked_atomic_cap   = IB_ATOMIC_HCA;
-> +	props->max_mcast_grp	   =
-> +		dev->xdev->caps.log_max_mcg ? (1 << dev->xdev->caps.log_max_mcg) : 0;
-> +	props->max_mcast_qp_attach = dev->xdev->caps.max_qp_mcg;
-> +	props->max_total_mcast_qp_attach = props->max_mcast_qp_attach *
-> +					   props->max_mcast_grp;
-> +
-> +	props->sys_image_guid = dev->xdev->board_info->guid;
-> +	props->vendor_id = dev->xdev->pdev->vendor;
-> +	props->vendor_part_id = dev->xdev->pdev->device;
-> +	props->hw_ver = ((dev->xdev->chip_ver_l & 0xffff) << 16) |
-> +		(dev->xdev->hotfix_num & 0xffff);
-> +	props->max_pkeys = XSC_IB_MAX_PKEYS;
-> +	props->max_wq_type_rq = dev->xdev->caps.max_qp;
-> +	props->hca_core_clock = dev->xdev->caps.hca_core_clock * 1000; /* KHz */
-> +	props->rss_caps.max_rwq_indirection_tables =
-> +		dev->xdev->caps.max_rwq_indirection_tables;
-> +	props->rss_caps.max_rwq_indirection_table_size =
-> +		dev->xdev->caps.max_rwq_indirection_table_size;
-> +	props->rss_caps.supported_qpts = 1 << IB_QPT_RAW_PACKET;
-> +
-> +	/*response tso_caps extend param*/
-> +	if (offsetofend(typeof(resp), tso_caps) <= udata_outlen) {
-> +		max_tso = dev->xdev->caps.log_max_tso ? (1 << dev->xdev->caps.log_max_tso) : 0;
-> +		if (max_tso) {
-> +			resp.tso_caps.max_tso = max_tso;
-> +			resp.tso_caps.supported_qpts |= 1 << IB_QPT_RAW_PACKET;
-> +			resp.response_length += sizeof(resp.tso_caps);
-> +		}
-> +	}
-> +
-> +	/*response rss_caps extend param*/
-> +	if (offsetofend(typeof(resp), rss_caps) <= udata_outlen) {
-> +		resp.rss_caps.rx_hash_function = XSC_RX_HASH_FUNC_TOEPLITZ;
-> +		resp.rss_caps.rx_hash_fields_mask =
-> +			XSC_RX_HASH_SRC_IPV4 |
-> +			XSC_RX_HASH_DST_IPV4 |
-> +			XSC_RX_HASH_SRC_IPV6 |
-> +			XSC_RX_HASH_DST_IPV6 |
-> +			XSC_RX_HASH_SRC_PORT_TCP |
-> +			XSC_RX_HASH_DST_PORT_TCP |
-> +			XSC_RX_HASH_SRC_PORT_UDP |
-> +			XSC_RX_HASH_DST_PORT_UDP |
-> +			XSC_RX_HASH_INNER;
-> +		resp.response_length += sizeof(resp.rss_caps);
-> +	}
-> +
-> +	/*response packet pacing caps*/
-> +	if (offsetofend(typeof(resp), packet_pacing_caps) <= udata_outlen) {
-> +		resp.packet_pacing_caps.qp_rate_limit_max =
-> +			dev->xdev->caps.qp_rate_limit_max;
-> +		resp.packet_pacing_caps.qp_rate_limit_min =
-> +			dev->xdev->caps.qp_rate_limit_min;
-> +		resp.packet_pacing_caps.supported_qpts |= 1 << IB_QPT_RAW_PACKET;
-> +
-> +		resp.response_length += sizeof(resp.packet_pacing_caps);
-> +	}
-> +
-> +	/*copy response data to user*/
-> +	if (udata_outlen) {
-> +		err = ib_copy_to_udata(udata, &resp, resp.response_length);
-> +		if (err) {
-> +			ibdev_err(&dev->ib_dev, "copy response info to udata fail,err=%d\n", err);
-> +			return err;
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static void xsc_calc_link_info(struct xsc_core_device *xdev,
-> +			       struct ib_port_attr *props)
-> +{
-> +	switch (xsc_get_link_speed(xdev)) {
-> +	case MODULE_SPEED_10G:
-> +		props->active_speed = XSC_RDMA_LINK_SPEED_10GB;
-> +		props->active_width = 1;
-> +		break;
-> +	case MODULE_SPEED_25G:
-> +		props->active_speed = XSC_RDMA_LINK_SPEED_25GB;
-> +		props->active_width = 1;
-> +		break;
-> +	case MODULE_SPEED_40G_R4:
-> +		props->active_speed = XSC_RDMA_LINK_SPEED_10GB;
-> +		props->active_width = 2;
-> +		break;
-> +	case MODULE_SPEED_50G_R:
-> +		props->active_speed = XSC_RDMA_LINK_SPEED_50GB;
-> +		props->active_width = 1;
-> +		break;
-> +	case MODULE_SPEED_50G_R2:
-> +		props->active_speed = XSC_RDMA_LINK_SPEED_50GB;
-> +		props->active_width = 1;
-> +		break;
-> +	case MODULE_SPEED_100G_R2:
-> +		props->active_speed = XSC_RDMA_LINK_SPEED_25GB;
-> +		props->active_width = 2;
-> +		break;
-> +	case MODULE_SPEED_100G_R4:
-> +		props->active_speed = XSC_RDMA_LINK_SPEED_25GB;
-> +		props->active_width = 2;
-> +		break;
-> +	case MODULE_SPEED_200G_R4:
-> +		props->active_speed = XSC_RDMA_LINK_SPEED_50GB;
-> +		props->active_width = 2;
-> +		break;
-> +	case MODULE_SPEED_200G_R8:
-> +		props->active_speed = XSC_RDMA_LINK_SPEED_25GB;
-> +		props->active_width = 4;
-> +		break;
-> +	case MODULE_SPEED_400G_R8:
-> +		props->active_speed = XSC_RDMA_LINK_SPEED_50GB;
-> +		props->active_width = 4;
-> +		break;
-> +	case MODULE_SPEED_400G_R4:
-> +		props->active_speed = XSC_RDMA_LINK_SPEED_100GB;
-> +		props->active_width = 2;
-> +		break;
-> +	default:
-> +		props->active_speed = XSC_RDMA_LINK_SPEED_25GB;
-> +		props->active_width = 1;
-> +		break;
-> +	}
-> +}
-> +
-> +static enum rdma_link_layer xsc_ib_port_link_layer(struct ib_device *ibdev, u32 port)
-> +{
-> +	return IB_LINK_LAYER_ETHERNET;
-> +}
-> +
-> +int xsc_ib_query_port(struct ib_device *ibdev, u32 port,
-> +		      struct ib_port_attr *props)
-> +{
-> +	struct xsc_ib_dev *dev = to_xdev(ibdev);
-> +	struct net_device *ndev = dev->netdev;
-> +	struct xsc_core_device *xdev = dev->xdev;
-> +
-> +	if (port < 1 || port > xdev->caps.num_ports) {
-> +		ibdev_warn(&dev->ib_dev, "invalid port number %d\n", port);
-> +		return -EINVAL;
-> +	}
-> +
-> +	memset(props, 0, sizeof(*props));
-> +
-> +	if (netif_running(ndev) && netif_carrier_ok(ndev))
-> +		props->state = IB_PORT_ACTIVE;
-> +	else
-> +		props->state = IB_PORT_DOWN;
+net/smc: fix lgr/lnk lifetime vs diag reader race
 
-You can use ib_get_curr_port_state() instead of open-coding.
+This patch closes several windows where the SMC sock_diag dump can
+dereference freed conn/lgr/lnk state of a socket that is still hashed. It
+adds sk_state guards and acquire/release ordering in __smc_diag_dump(), and
+unhashes the socket before smc_conn_free() in the close paths and at the
+top of smc_conn_kill(). It also reports the cached link->ibname instead of
+link->smcibdev->ibdev->name.
 
-> +
-> +	props->max_mtu = is_support_8k_mtu(xdev) ? IB_MTU_8192 : IB_MTU_4096;
-> +	props->active_mtu = min(props->max_mtu, xsc_net_to_ib_mtu(ndev->mtu));
+> diff --git a/net/smc/smc_close.c b/net/smc/smc_close.c
+> index bb0313ef5f7c1..aa6363abdd747 100644
+> --- a/net/smc/smc_close.c
+> +++ b/net/smc/smc_close.c
 
-Similarly, use iboe_get_mtu().
+[ ... ]
 
-> +	props->gid_tbl_len = XSC_IB_GID_TBL_LEN;
-> +	props->port_cap_flags = IB_PORT_CM_SUP | IB_PORT_OTHER_LOCAL_CHANGES_SUP;
-> +	props->max_msg_sz = SZ_1G;
-> +	props->bad_pkey_cntr = 0;
-> +	props->qkey_viol_cntr = 0;
-> +	props->pkey_tbl_len = 1;
-> +	props->lid = 0;
-> +	props->sm_lid = 0;
-> +	props->lmc = 0;
-> +	props->max_vl_num = 0;
-> +	props->sm_sl = 0;
-> +	props->subnet_timeout = 0;
-> +	props->init_type_reply = 0;
-> +	if (!is_support_rdma(xdev)) {
-> +		props->active_width = 1;
-> +		props->active_speed = XSC_RDMA_LINK_SPEED_25GB;
-> +	} else {
-> +		xsc_calc_link_info(xdev, props);
-> +	}
-> +
-> +	props->phys_state = netif_carrier_ok(ndev) ? XSC_RDMA_PHY_STATE_LINK_UP :
-> +				XSC_RDMA_PHY_STATE_DISABLED;
-> +	return 0;
-> +}
-> +
-> +static int xsc_ib_query_pkey(struct ib_device *ibdev, u32 port, u16 index,
-> +			     u16 *pkey)
-> +{
-> +	*pkey = 0xffff;
-> +	return 0;
-> +}
-> +
-> +int xsc_ib_alloc_ucontext(struct ib_ucontext *uctx,
-> +			  struct ib_udata *udata)
-> +{
-> +	struct ib_device *ibdev = uctx->device;
-> +	struct xsc_ib_dev *dev = to_xdev(ibdev);
-> +	struct xsc_ib_alloc_ucontext_req req;
-> +	struct xsc_ib_alloc_ucontext_resp resp;
-> +	int err;
-> +
-> +	if (!dev->ib_active)
-> +		return -EAGAIN;
-> +
-> +	err = ib_copy_from_udata(&req, udata, sizeof(req));
-> +	if (err)
-> +		return err;
-> +
-> +	memset(&resp, 0, sizeof(resp));
-> +	resp.qp_tab_size      = dev->xdev->caps.max_qp;
-> +	resp.cache_line_size  = L1_CACHE_BYTES;
-> +	resp.max_sq_desc_sz = dev->xdev->caps.max_sq_desc_sz;
-> +	resp.max_rq_desc_sz = dev->xdev->caps.max_rq_desc_sz;
-> +	resp.max_send_wqebb = dev->xdev->caps.max_wqes;
-> +	resp.max_recv_wr = dev->xdev->caps.max_wqes;
-> +	xsc_get_db_addr(dev->xdev, &resp.qpm_tx_db, &resp.qpm_rx_db,
-> +			&resp.cqm_armdb, &resp.cqm_next_cid_reg, NULL);
-> +	resp.send_ds_num = dev->xdev->caps.send_ds_num;
-> +	resp.recv_ds_num = dev->xdev->caps.recv_ds_num;
-> +	resp.cmds_supp_uhw |= XSC_USER_CMDS_SUPP_UHW_QUERY_DEVICE;
-> +	resp.device_id = dev->xdev->pdev->device;
-> +
-> +	if (req.abi_ver >= ALLOC_UCONTEXT_VER_V1) {
-> +		xsc_get_multidb_info(dev->xdev, &resp.multidb_num, &resp.tx_multidb_base);
-> +		resp.rdma_proto_mode = dev->xdev->rdma_proto_mode;
-> +	}
-> +
-> +	if (is_support_cqe64(dev->xdev))
-> +		resp.hw_feature_flag |= XSC_HW_FEATURE_FLAG_SUPPORT_CQE64;
-> +
-> +	resp.num_ports = dev->xdev->caps.num_ports;
-> +
-> +	return ib_copy_to_udata(udata, &resp, min_t(int, udata->outlen, sizeof(resp)));
-> +}
-> +
-> +void xsc_ib_dealloc_ucontext(struct ib_ucontext *ibcontext)
-> +{
-> +}
-> +
-> +static int xsc_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vma)
-> +{
-> +	struct xsc_ib_dev *dev = to_xdev(ibcontext->device);
-> +	struct xsc_core_device *xdev = dev->xdev;
-> +	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
-> +	resource_size_t reg_base;
-> +	resource_size_t reg_size = vma->vm_end - vma->vm_start;
-> +	u64 tx_db = 0;
-> +	u64 rx_db = 0;
-> +	u64 cq_db = 0;
-> +	u64 cq_reg = 0;
-> +
-> +	xsc_get_db_addr(xdev, &tx_db, &rx_db, &cq_db, &cq_reg, NULL);
-> +	dev_dbg(&xdev->pdev->dev, "offset:0x%lx\n", offset);
-> +
-> +	if (offset == (tx_db & PAGE_MASK))
-> +		reg_base = pci_resource_start(xdev->pdev, xdev->bar_num) + (tx_db & PAGE_MASK);
-> +	else if (offset == (rx_db & PAGE_MASK))
-> +		reg_base = pci_resource_start(xdev->pdev, xdev->bar_num) + (rx_db & PAGE_MASK);
-> +	else if (offset == (cq_reg & PAGE_MASK))
-> +		reg_base = pci_resource_start(xdev->pdev, xdev->bar_num) + (cq_reg & PAGE_MASK);
-> +	else if (offset == (cq_db & PAGE_MASK))
-> +		reg_base = pci_resource_start(xdev->pdev, xdev->bar_num) + (cq_db & PAGE_MASK);
-> +	else if (offset == (QPM_TX_MDB_BASE_REG_ADDR & PAGE_MASK))
-> +		reg_base = pci_resource_start(xdev->pdev, xdev->bar_num) +
-> +			(QPM_TX_MDB_BASE_REG_ADDR & PAGE_MASK);
-> +	else if (offset == (xdev->caps.mdb_base & PAGE_MASK))
-> +		reg_base = pci_resource_start(xdev->pdev, xdev->bar_num) +
-> +			(xdev->caps.mdb_base & PAGE_MASK);
-> +	else
-> +		return -EINVAL;
-> +
-> +	dev_dbg(&xdev->pdev->dev, "regbase:0x%llx", reg_base);
-> +
-> +	reg_base = (xsc_core_is_pf(xdev) && !is_pf_bar_compressed(xdev)) ?
-> +		reg_base - 0xA0000000 : reg_base;
-> +
-> +	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-> +	return remap_pfn_range(vma, vma->vm_start, reg_base >> PAGE_SHIFT,
-> +			       reg_size, vma->vm_page_prot);
-> +}
-> +
-> +static int xsc_port_immutable(struct ib_device *ibdev, u32 port_num,
-> +			      struct ib_port_immutable *immutable)
-> +{
-> +	struct ib_port_attr attr;
-> +	int err;
-> +
-> +	err = ib_query_port(ibdev, port_num, &attr);
-> +	if (err)
-> +		return err;
-> +
-> +	immutable->pkey_tbl_len = attr.pkey_tbl_len;
-> +	immutable->gid_tbl_len = attr.gid_tbl_len;
-> +	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_ROCE |
-> +				    RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP;
-> +	immutable->max_mad_size = IB_MGMT_MAD_SIZE * 2;
-> +
-> +	return 0;
-> +}
-> +
-> +static struct net_device *xsc_get_netdev(struct ib_device *ibdev, u32 port_num)
+> @@ -433,6 +435,7 @@ static void smc_close_passive_work(struct work_struct *work)
+>  		sk->sk_state_change(sk);
+>  		if ((sk->sk_state == SMC_CLOSED) &&
+>  		    (sock_flag(sk, SOCK_DEAD) || !sk->sk_socket)) {
+> +			sk->sk_prot->unhash(sk);
+>  			smc_conn_free(conn);
 
-You should use ib_device_set_netdev() instead of implementing this op.
+[Severity: Medium]
+This isn't a bug introduced by this patch, but it came up while looking at
+the smc_conn_free() calls here. Can smc_conn_free() leak the smc_sock
+reference that a pending abort_work holds?
 
-> +{
-> +	struct xsc_ib_dev *xsc_ib_dev = to_xdev(ibdev);
-> +	struct net_device *dev = xsc_ib_dev->netdev;
-> +
-> +	if (dev)
-> +		dev_hold(dev);
-> +
-> +	return dev;
-> +}
-> +
-> +static void xsc_get_guid(const u8 *dev_addr, u8 *guid)
-> +{
-> +	u8 mac[ETH_ALEN];
-> +
-> +	/* MAC-48 to EUI-64 mapping */
-> +	memcpy(mac, dev_addr, ETH_ALEN);
-> +	guid[0] = mac[0] ^ 2;
-> +	guid[1] = mac[1];
-> +	guid[2] = mac[2];
-> +	guid[3] = 0xff;
-> +	guid[4] = 0xfe;
-> +	guid[5] = mac[3];
-> +	guid[6] = mac[4];
-> +	guid[7] = mac[5];
-> +}
-> +
-> +static void init_node_data(struct xsc_ib_dev *dev)
-> +{
-> +	strscpy(dev->ib_dev.node_desc, "xsc_node_desc",
-> +		sizeof(dev->ib_dev.node_desc));
-> +	xsc_get_guid(dev->netdev->dev_addr, (u8 *)&dev->ib_dev.node_guid);
-> +}
-> +
-> +static void xsc_ib_event(struct xsc_core_device *dev, void *context,
-> +			 enum xsc_dev_event event, unsigned long data)
-> +{
-> +	struct xsc_ib_dev *ibdev = (struct xsc_ib_dev *)context;
-> +	struct ib_event ibev;
-> +	u8 port = 0;
-> +
-> +	switch (event) {
-> +	case XSC_DEV_EVENT_SYS_ERROR:
-> +		ibdev->ib_active = false;
-> +		ibev.event = IB_EVENT_DEVICE_FATAL;
-> +		break;
-> +
-> +	case XSC_DEV_EVENT_PORT_UP:
-> +		ibev.event = IB_EVENT_PORT_ACTIVE;
-> +		port = *(u8 *)data;
-> +		break;
-> +
-> +	case XSC_DEV_EVENT_PORT_DOWN:
-> +		ibev.event = IB_EVENT_PORT_ERR;
-> +		port = *(u8 *)data;
-> +		break;
-> +
-> +	case XSC_DEV_EVENT_PORT_INITIALIZED:
-> +		/* not used by ULPs */
-> +		return;
-> +
-> +	case XSC_DEV_EVENT_LID_CHANGE:
-> +		ibev.event = IB_EVENT_LID_CHANGE;
-> +		port = *(u8 *)data;
-> +		break;
-> +
-> +	case XSC_DEV_EVENT_PKEY_CHANGE:
-> +		ibev.event = IB_EVENT_PKEY_CHANGE;
-> +		port = *(u8 *)data;
-> +		break;
-> +
-> +	case XSC_DEV_EVENT_GUID_CHANGE:
-> +		ibev.event = IB_EVENT_GID_CHANGE;
-> +		port = *(u8 *)data;
-> +		break;
-> +
-> +	case XSC_DEV_EVENT_CLIENT_REREG:
-> +		ibev.event = IB_EVENT_CLIENT_REREGISTER;
-> +		port = *(u8 *)data;
-> +		break;
-> +	}
-> +
-> +	ibev.device	      = &ibdev->ib_dev;
-> +	ibev.element.port_num = port;
-> +
-> +	if (ibdev->ib_active)
-> +		ib_dispatch_event(&ibev);
-> +}
-> +
-> +static void xsc_ib_get_dev_fw_str(struct ib_device *ibdev, char *str)
-> +{
-> +	struct xsc_core_device *dev = to_xdev(ibdev)->xdev;
-> +	u8 ver_major = dev->fw_version_major;
-> +	u8 ver_minor = dev->fw_version_minor;
-> +	u16 ver_patch = dev->fw_version_patch;
-> +	u32 ver_tweak = dev->fw_version_tweak;
-> +
-> +	if (ver_tweak == 0) {
-> +		snprintf(str, IB_FW_VERSION_NAME_MAX, "v%u.%u.%u",
-> +			 ver_major,  ver_minor, ver_patch);
-> +	} else {
-> +		snprintf(str, IB_FW_VERSION_NAME_MAX, "v%u.%u.%u+%u",
-> +			 ver_major, ver_minor, ver_patch, ver_tweak);
-> +	}
-> +}
-> +
-> +static void xsc_ib_disassociate_ucontext(struct ib_ucontext *ibcontext)
-> +{
-> +}
-> +
-> +static void xsc_ib_dev_setting(struct xsc_ib_dev *dev)
-> +{
-> +	dev->ib_dev.ops.owner		= THIS_MODULE;
-> +	dev->ib_dev.ops.uverbs_abi_ver	= XSC_IB_UVERBS_ABI_VERSION;
-> +	dev->ib_dev.ops.driver_id = RDMA_DRIVER_XSC;
-> +	dev->ib_dev.ops.disassociate_ucontext = xsc_ib_disassociate_ucontext;
-> +	dev->ib_dev.ops.query_device	= xsc_ib_query_device;
-> +	dev->ib_dev.ops.query_port	= xsc_ib_query_port;
-> +	dev->ib_dev.ops.query_pkey	= xsc_ib_query_pkey;
-> +
-> +	dev->ib_dev.ops.alloc_ucontext	= xsc_ib_alloc_ucontext;
-> +	dev->ib_dev.ops.dealloc_ucontext = xsc_ib_dealloc_ucontext;
-> +	dev->ib_dev.ops.mmap		= xsc_ib_mmap;
-> +
-> +
-> +	dev->ib_dev.ops.get_link_layer	= xsc_ib_port_link_layer;
-> +	dev->ib_dev.ops.get_netdev		= xsc_get_netdev;
-> +
-> +
-> +	dev->ib_dev.ops.get_port_immutable		= xsc_port_immutable;
-> +
-> +	dev->ib_dev.ops.get_dev_fw_str	= xsc_ib_get_dev_fw_str;
-> +
-> +	dev->ib_dev.ops INIT_RDMA_OBJ_SIZE(ib_ucontext, xsc_ib_ucontext, ibucontext);
-> +}
-> +
-> +static void xsc_get_port_state(struct net_device *ndev, enum xsc_dev_event *ev)
-> +{
-> +	*ev = XSC_DEV_EVENT_PORT_DOWN;
-> +	if (netif_running(ndev) && netif_carrier_ok(ndev))
-> +		*ev = XSC_DEV_EVENT_PORT_UP;
-> +}
-> +
-> +static int xsc_netdev_event(struct notifier_block *this, unsigned long event, void *ptr)
-> +{
-> +	struct xsc_ib_dev *ibdev = container_of(this, struct xsc_ib_dev, nb);
-> +	struct net_device *ndev = netdev_notifier_info_to_dev(ptr);
-> +	enum xsc_dev_event ev;
-> +	u8 port = 1;
-> +
-> +	if (ndev != ibdev->netdev)
-> +		goto done;
-> +
-> +	ibdev_dbg(&ibdev->ib_dev, "netdev notfiy event:%ld\n", event);
-> +	switch (event) {
-> +	case NETDEV_CHANGE:
-> +	case NETDEV_UP:
-> +	case NETDEV_DOWN:
-> +		xsc_get_port_state(ibdev->netdev, &ev);
-> +		xsc_ib_event(ibdev->xdev, ibdev, ev, (unsigned long)&port);
-> +		break;
-> +	default:
-> +		break;
-> +	}
-> +done:
-> +	return NOTIFY_DONE;
-> +}
-> +
-> +static int xsc_register_netdev_notifier(struct xsc_ib_dev *ibdev)
-> +{
-> +	ibdev->nb.notifier_call = xsc_netdev_event;
-> +	return register_netdevice_notifier(&ibdev->nb);
-ib_netdevice_event() already handles these events. You can also implement
-.report_port_event() if needed. Anyhow you probably don't need this
-notifier in driver.
+On SMC-R, smc_cdc_msg_validate() takes a reference for the work:
 
-> +}
-> +
-> +static int xsc_unregister_netdev_notifier(struct xsc_ib_dev *ibdev)
-> +{
-> +	return unregister_netdevice_notifier(&ibdev->nb);
-> +}
-> +
-> +static int init_one(struct xsc_core_device *xdev,
-> +		    struct xsc_ib_dev **ibdev)
-> +{
-> +	struct xsc_ib_dev *dev;
-> +	int err;
-> +
-> +	dev = (struct xsc_ib_dev *)ib_alloc_device(xsc_ib_dev, ib_dev);
-> +	if (!dev)
-> +		return -ENOMEM;
-> +
-> +	dev->xdev = xdev;
-> +	dev->netdev = xdev->netdev;
-> +	strscpy(dev->ib_dev.name, "xscale_%d", IB_DEVICE_NAME_MAX);
-> +
-> +	memcpy(dev->xdev->priv.ibdev_name, dev->ib_dev.name, IB_DEVICE_NAME_MAX);
-> +
-> +	if (!xdev->caps.msix_enable)
-> +		dev->num_comp_vectors = 1;
-> +	else
-> +		dev->num_comp_vectors = xdev->dev_res->eq_table.num_comp_vectors;
-> +
-> +	dev->ib_dev.node_type		= RDMA_NODE_IB_CA;
-> +	dev->ib_dev.local_dma_lkey	= 0xFF;
-> +	dev->num_ports		= xdev->caps.num_ports;
-> +	dev->ib_dev.phys_port_cnt     = dev->num_ports;
-> +	dev->ib_dev.num_comp_vectors	= dev->num_comp_vectors;
-> +	dev->ib_dev.dev.parent = &xdev->pdev->dev;
-> +	xsc_ib_dev_setting(dev);
-> +	dev->xdev->priv.cm_dscp = DSCP_PCP_UNSET;
-> +	dev->xdev->priv.cm_pcp = DSCP_PCP_UNSET;
-> +	dev->xdev->priv.force_pcp = DSCP_PCP_UNSET;
-> +	dev->xdev->priv.force_dscp = DSCP_PCP_UNSET;
-> +	dev->xdev->rdma_proto_mode = RDMA_PROTO_ROCEV2;
-> +	dev->xdev->cm_udp_dst_port = ROCE_V2_UDP_DPORT;
-> +	dev->xdev->veroce_udp_dst_port = VEROCE_UDP_DPORT;
-> +
-> +	dev->ib_dev.uverbs_cmd_mask	=
-> +		(1ull << IB_USER_VERBS_CMD_GET_CONTEXT)		|
-> +		(1ull << IB_USER_VERBS_CMD_QUERY_DEVICE)	|
-> +		(1ull << IB_USER_VERBS_CMD_QUERY_PORT)		|
-> +		(1ull << IB_USER_VERBS_CMD_ALLOC_PD)		|
-> +		(1ull << IB_USER_VERBS_CMD_DEALLOC_PD)		|
-> +		(1ull << IB_USER_VERBS_CMD_CREATE_AH)		|
-> +		(1ull << IB_USER_VERBS_CMD_DESTROY_AH)		|
-> +		(1ull << IB_USER_VERBS_CMD_REG_MR)		|
-> +		(1ull << IB_USER_VERBS_CMD_REREG_MR)		|
-> +		(1ull << IB_USER_VERBS_CMD_DEREG_MR)		|
-> +		(1ull << IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL)	|
-> +		(1ull << IB_USER_VERBS_CMD_CREATE_CQ)		|
-> +		(1ull << IB_USER_VERBS_CMD_RESIZE_CQ)		|
-> +		(1ull << IB_USER_VERBS_CMD_DESTROY_CQ)		|
-> +		(1ull << IB_USER_VERBS_CMD_CREATE_QP)		|
-> +		(1ull << IB_USER_VERBS_CMD_MODIFY_QP)		|
-> +		(1ull << IB_USER_VERBS_CMD_QUERY_QP)		|
-> +		(1ull << IB_USER_VERBS_CMD_DESTROY_QP)		|
-> +		(1ull << IB_USER_VERBS_CMD_ATTACH_MCAST)	|
-> +		(1ull << IB_USER_VERBS_CMD_DETACH_MCAST)	|
-> +		(1ull << IB_USER_VERBS_CMD_CREATE_SRQ)		|
-> +		(1ull << IB_USER_VERBS_CMD_MODIFY_SRQ)		|
-> +		(1ull << IB_USER_VERBS_CMD_QUERY_SRQ)		|
-> +		(1ull << IB_USER_VERBS_CMD_DESTROY_SRQ)		|
-> +		(1ull << IB_USER_VERBS_CMD_OPEN_QP);
-> +
-> +	init_node_data(dev);
-> +
-> +
-> +
+net/smc/smc_cdc.c:smc_cdc_msg_validate() {
+    ...
+		sock_hold(&smc->sk); /* sock_put in abort_work */
+		if (!queue_work(smc_close_wq, &conn->abort_work))
+			sock_put(&smc->sk);
+    ...
+}
+
+That reference is normally dropped at the end of smc_conn_abort_work():
+
+	sock_put(&smc->sk); /* sock_hold done by schedulers of abort_work */
+
+smc_conn_free() ignores the return value of the cancel:
+
+net/smc/smc_core.c:smc_conn_free() {
+    ...
+		if (current_work() != &conn->abort_work)
+			cancel_work_sync(&conn->abort_work);
+    ...
+}
+
+Suppose smc_conn_free() runs from __smc_release() or
+smc_close_passive_work() while abort_work is still pending. Then
+cancel_work_sync() returns true, and nothing drops the reference the work
+was holding.
+
+smc_close_cancel_work() handles the same pattern for close_work:
+
+	if (cancel_work_sync(&smc->conn.close_work))
+		sock_put(sk);
+
+Should smc_conn_free() do the same for abort_work?
+
+>  			if (smc->clcsock)
+>  				release_clcsock = true;
+> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+> index 9974149659c2f..663926465ba7f 100644
+> --- a/net/smc/smc_core.c
+> +++ b/net/smc/smc_core.c
+> @@ -1517,6 +1517,7 @@ static void smc_conn_kill(struct smc_connection *conn, bool soft)
+>  {
+>  	struct smc_sock *smc = container_of(conn, struct smc_sock, conn);
+>  
+> +	smc->sk.sk_prot->unhash(&smc->sk);
+
+[Severity: Medium]
+Does this hide sockets that stay open from sock_diag for the rest of their
+lifetime?
+
+The unhash runs for every SMC-R and SMC-D kill. Only the SMC-D dmb_nocopy
+smcd_buf_detach() further down needs it.
+
+smc_conn_kill() is called from __smc_lgr_terminate() for every connection
+of a terminating link group (link down, device removal, admin
+termination). It is also called from smc_conn_abort_work().
+
+For SMC_ACTIVE, SMC_APPCLOSEWAIT1 and SMC_APPCLOSEWAIT2,
+smc_close_active_abort() does not free the conn afterwards:
+
+net/smc/smc_close.c:smc_close_active_abort() {
+    ...
+	case SMC_ACTIVE:
+	case SMC_APPCLOSEWAIT1:
+	case SMC_APPCLOSEWAIT2:
+		sk->sk_state = SMC_PEERABORTWAIT;
+		smc_close_cancel_work(smc);
+		if (sk->sk_state != SMC_PEERABORTWAIT)
+			break;
+		sk->sk_state = SMC_CLOSED;
+		sock_put(sk); /* (postponed) passive closing */
+		break;
+    ...
+}
+
+The early "if (sk->sk_state != SMC_PEERABORTWAIT) break;" exits also leave
+the socket alive. The application keeps its fd until close().
+
+SMC sockets are hashed only once, in smc_sk_init(), so they never go back
+into the hash table.
+
+smc_unhash_sk() also calls sock_prot_inuse_add(..., -1). The inuse count in
+/proc/net/protocols then drops while the socket is still alive.
+
+On SMC-R this doesn't seem to add any safety:
+- smc_lgr_unregister_conn() clears alert_token_local
+- the conn keeps its lgr and link references until smc_conn_free()
+- the free inside smc_close_active_abort() now has its own unhash
+
+The v6 changelog says the per-site placement "avoids prematurely hiding
+live SMC_ACTIVE/APPCLOSEWAIT sockets from smcss". The commit message
+describes this hunk only as an SMC-D dmb_nocopy reorder.
+
+Would it be enough to move the unhash into the
+smc_ism_support_dmb_nocopy() branch, right before smcd_buf_detach()?
+
+>  	if (conn->lgr->is_smcd && conn->lgr->peer_shutdown)
+>  		conn->local_tx_ctrl.conn_state_flags.peer_conn_abort = 1;
+>  	else
+> diff --git a/net/smc/smc_diag.c b/net/smc/smc_diag.c
+> index bf0beaa23bdb6..36a3b8f31f28d 100644
+> --- a/net/smc/smc_diag.c
+> +++ b/net/smc/smc_diag.c
+> @@ -87,10 +87,11 @@ static int __smc_diag_dump(struct sock *sk, struct sk_buff *skb,
+>  
+>  	r = nlmsg_data(nlh);
+>  	smc_diag_msg_common_fill(r, sk);
+> -	r->diag_state = sk->sk_state;
+> +	r->diag_state = smp_load_acquire(&sk->sk_state);
+>  	if (smc->use_fallback)
+>  		r->diag_mode = SMC_DIAG_MODE_FALLBACK_TCP;
+> -	else if (smc_conn_lgr_valid(&smc->conn) && smc->conn.lgr->is_smcd)
+> +	else if (r->diag_state != SMC_INIT &&
+> +		 smc_conn_lgr_valid(&smc->conn) && smc->conn.lgr->is_smcd)
+>  		r->diag_mode = SMC_DIAG_MODE_SMCD;
+>  	else
+>  		r->diag_mode = SMC_DIAG_MODE_SMCR;
+> @@ -103,6 +104,9 @@ static int __smc_diag_dump(struct sock *sk, struct sk_buff *skb,
+>  	if (nla_put(skb, SMC_DIAG_FALLBACK, sizeof(fallback), &fallback) < 0)
+>  		goto errout;
+>  
+> +	if (r->diag_state == SMC_INIT || r->diag_state == SMC_CLOSED)
+> +		goto out;
 > +
 
-Too many blank lines.
+[Severity: Medium]
+Do these two sk_state checks change the sock_diag uAPI output for sockets
+whose connection is still live?
 
-> +	err = ib_register_device(&dev->ib_dev, dev->ib_dev.name,
-> +				 dev->xdev->device);
-> +	if (err)
-> +		goto err_free;
-> +
-> +	rdma_roce_rescan_device(&dev->ib_dev);
+With the diag_mode change, every non-fallback SMC-D socket in SMC_INIT now
+reports SMC_DIAG_MODE_SMCR. In include/uapi/linux/smc_diag.h, SMCR is 0
+and SMCD has its own value, so there is no "unknown" value to fall back on.
 
-This is already called in
-ib_register_device → ib_cache_setup_one → gid_table_setup_one
+SMC_INIT is not limited to the abort window:
+- smc_connect_ism() and smc_connect_rdma() run smc_conn_create(),
+  smc_buf_create(), smcd_buf_attach() and the whole CLC confirm exchange
+  while in SMC_INIT
+- on the server side the socket stays in SMC_INIT through
+  smc_listen_work() until smc_listen_out_connected()
 
-> +	dev->ib_active = true;
-> +	*ibdev = dev;
-> +
-> +	xsc_register_netdev_notifier(dev);
-> +
-> +
-> +
+During these windows the lgr, alert_token_local and the buffers are all
+valid, and the socket is hashed and visible to diag.
 
-Too many blank lines.
+The new goto out also skips SMC_DIAG_CONNINFO, SMC_DIAG_LGRINFO and
+SMC_DIAG_DMBINFO even when req->diag_ext asks for them. That bypasses the
+existing alert_token_local, smc_conn_lgr_valid(), list_empty(&lgr->list)
+and rmb_desc checks.
 
-> +	return 0;
-> +
-> +err_free:
-> +	ib_dealloc_device((struct ib_device *)dev);
-> +
-> +	return err;
-> +}
-> +
-> diff --git a/drivers/infiniband/hw/xsc/xsc_ib.h b/drivers/infiniband/hw/xsc/xsc_ib.h
-> new file mode 100644
-> index 000000000..a2ae382e2
-> --- /dev/null
-> +++ b/drivers/infiniband/hw/xsc/xsc_ib.h
-> @@ -0,0 +1,542 @@
-> +static inline void *xsc_ib_iova_to_virt(struct ib_device *ibdev, dma_addr_t iova)
-> +{
-> +	phys_addr_t phyaddr;
-> +	struct iommu_domain *domain;
-> +
-> +	domain = iommu_get_domain_for_dev(ibdev->dma_device);
-> +	if (likely(domain)) {
-> +		phyaddr = iommu_iova_to_phys(domain, iova);
-> +		phyaddr |= iova & (PAGE_SIZE - 1);
-> +	} else {
-> +		phyaddr = dma_to_phys(ibdev->dma_device, iova);
-> +	}
-> +
-> +	return phys_to_virt(phyaddr);
-> +}
-> +
-> +struct ib_mad_list_head {
+SMC_CLOSED doesn't mean the conn was freed either:
+- smc_close_active() reached through shutdown(SHUT_RDWR) sets SMC_CLOSED in
+  the APPCLOSEWAIT/APPFINCLOSEWAIT/PROCESSABORT cases without calling
+  smc_conn_free()
+- the SMC_ACTIVE branch of smc_close_active_abort() does the same
+- smc_close_passive_work() frees the conn only when SOCK_DEAD is set or
+  sk->sk_socket is NULL:
 
-Why are these ib_mad structures defined again in the driver's header?
+net/smc/smc_close.c:smc_close_passive_work() {
+    ...
+		if ((sk->sk_state == SMC_CLOSED) &&
+		    (sock_flag(sk, SOCK_DEAD) || !sk->sk_socket)) {
+    ...
+}
 
-Junxian
+These sockets keep their conn until close(), but now report no extension
+data.
 
-> +	struct list_head list;
-> +	struct ib_cqe cqe;
-> +	struct ib_mad_queue *mad_queue;
-> +};
-> +
-> +#define IB_MAD_SEND_REQ_MAX_SG 2
-> +struct ib_mad_send_wr_private {
-> +	struct ib_mad_list_head mad_list;
-> +	struct list_head agent_list;
-> +	struct ib_mad_agent_private *mad_agent_priv;
-> +	struct ib_mad_send_buf send_buf;
-> +	u64 header_mapping;
-> +	u64 payload_mapping;
-> +	struct ib_ud_wr send_wr;
-> +	struct ib_sge sg_list[IB_MAD_SEND_REQ_MAX_SG];
-> +	__be64 tid;
-> +	unsigned long timeout;
-> +	int max_retries;
-> +	int retries_left;
-> +	int retry;
-> +	int refcount;
-> +	enum ib_wc_status status;
-> +
-> +	/* RMPP control */
-> +	struct list_head rmpp_list;
-> +	struct ib_rmpp_segment *last_ack_seg;
-> +	struct ib_rmpp_segment *cur_seg;
-> +	int last_ack;
-> +	int seg_num;
-> +	int newwin;
-> +	int pad;
-> +};
-> +
-> +struct ib_mad_private_header {
-> +	struct ib_mad_list_head mad_list;
-> +	struct ib_mad_recv_wc recv_wc;
-> +	struct ib_wc wc;
-> +	u64 mapping;
-> +} __packed;
-> +
-> +struct ib_mad_private {
-> +	struct ib_mad_private_header header;
-> +	size_t mad_size;
-> +	struct ib_grh grh;
-> +	DECLARE_FLEX_ARRAY(u8, mad);
-> +} __packed;
-> +
-> +static inline void *xsc_ib_send_mad_sg_virt_addr(struct ib_device *ibdev,
-> +						 const struct ib_send_wr *wr,
-> +						 int sg)
-> +{
-> +	struct ib_mad_send_wr_private *mad_send_wr;
-> +	struct ib_mad_list_head *mad_list;
-> +	int iommu_state = xsc_ib_iommu_dma_map(ibdev);
-> +
-> +	/* direct dma mapping */
-> +	if (!iommu_state)
-> +		return phys_to_virt(dma_to_phys(ibdev->dma_device, wr->sg_list[sg].addr));
-> +
-> +	if (iommu_state == XSC_IB_IOMMU_MAP_NORMAL)
-> +		return xsc_ib_iova_to_virt(ibdev, wr->sg_list[sg].addr);
-> +
-> +	mad_list = container_of(wr->wr_cqe, struct ib_mad_list_head, cqe);
-> +	mad_send_wr = container_of(mad_list, struct ib_mad_send_wr_private,
-> +				   mad_list);
-> +
-> +	/* sg_list[0] */
-> +	if (sg == 0)
-> +		return mad_send_wr->send_buf.mad;
-> +
-> +	/* sg_list[1] */
-> +	if (mad_send_wr->send_buf.seg_count)
-> +		return ib_get_rmpp_segment(&mad_send_wr->send_buf,
-> +					   mad_send_wr->seg_num);
-> +	return mad_send_wr->send_buf.mad + mad_send_wr->send_buf.hdr_len;
-> +}
-> +
-> +static inline void *xsc_ib_recv_mad_sg_virt_addr(struct ib_device *ibdev,
-> +						 struct ib_wc *wc,
-> +						 u64 sg_addr)
-> +{
-> +	struct ib_mad_private_header *mad_priv_hdr;
-> +	struct ib_mad_private *recv;
-> +	struct ib_mad_list_head *mad_list;
-> +	int iommu_state = xsc_ib_iommu_dma_map(ibdev);
-> +
-> +	/* direct dma mapping */
-> +	if (!iommu_state)
-> +		return phys_to_virt(dma_to_phys(ibdev->dma_device, sg_addr));
-> +
-> +	if (iommu_state == XSC_IB_IOMMU_MAP_NORMAL)
-> +		return xsc_ib_iova_to_virt(ibdev, sg_addr);
-> +
-> +	mad_list = container_of(wc->wr_cqe, struct ib_mad_list_head, cqe);
-> +	mad_priv_hdr = container_of(mad_list, struct ib_mad_private_header, mad_list);
-> +	recv = container_of(mad_priv_hdr, struct ib_mad_private, header);
-> +	return &recv->grh;
-> +}
-> +
-> +struct xsc_ib_burst_info {
-> +	__u32       max_burst_sz;
-> +	__u16       typical_pkt_sz;
-> +	__u16       reserved;
-> +};
-> +
-> +struct xsc_ib_modify_qp {
-> +	__u32		reserved;
-> +	struct xsc_ib_burst_info  burst_info;
-> +	__u32		profile;
-> +};
-> +
-> +#endif /* XSC_IB_H */
+The commit message says:
+
+    As a side effect the diag_mode field is
+    reported as SMC_DIAG_MODE_SMCR for SMC-D sockets still in SMC_INIT; smcss
+    suppresses those rows before printing the mode string so there is no rendered
+    regression.
+
+That covers only one consumer, smcss. It also doesn't mention the dropped
+extensions for live SMC_CLOSED sockets.
+
+Is this change in uAPI output intended for sockets that still have a live
+connection?
+
+>  	if ((req->diag_ext & (1 << (SMC_DIAG_CONNINFO - 1))) &&
+>  	    smc->conn.alert_token_local) {
+
+[Severity: Medium]
+This is a pre-existing issue, not one introduced by this patch. Can
+req->diag_ext be read past the end of the request payload here?
+
+smc_diag_handler_dump() calls netlink_dump_start() without checking
+nlmsg_len(h) against sizeof(struct smc_diag_req). The only length check
+before that is in __sock_diag_cmd():
+
+net/core/sock_diag.c:__sock_diag_cmd() {
+    ...
+	if (nlmsg_len(nlh) < sizeof(*req))
+		return -EINVAL;
+    ...
+}
+
+That checks only the 2-byte struct sock_diag_req, but diag_ext is at
+payload offset 3.
+
+An unprivileged user can send a SOCK_DIAG_BY_FAMILY/NLM_F_DUMP request with
+nlmsg_len = NLMSG_HDRLEN + 2. This read then lands in uninitialized
+tailroom of the request skb.
+
+Whether CONNINFO, LGRINFO and DMBINFO appear in the reply would then reveal
+bits of that byte, and KMSAN would report uninit-value.
+
+inet_diag and unix_diag both check nlmsg_len against their full request
+struct. Should smc_diag_handler_dump() return -EINVAL when
+nlmsg_len(h) < sizeof(struct smc_diag_req)?
+
+[ ... ]
+
+> @@ -154,8 +158,7 @@ static int __smc_diag_dump(struct sock *sk, struct sk_buff *skb,
+>  			.lnk[0].link_id = link->link_id,
+>  		};
+>  
+> -		memcpy(linfo.lnk[0].ibname, link->smcibdev->ibdev->name,
+> -		       sizeof(link->smcibdev->ibdev->name));
+> +		memcpy(linfo.lnk[0].ibname, link->ibname, sizeof(link->ibname));
+
+[Severity: Low]
+Can this report a stale RDMA device name after the device is renamed?
+
+link->ibname is copied only once, when the link is initialized:
+
+net/smc/smc_core.c:smcr_copy_dev_info_to_link() {
+    ...
+	snprintf(link->ibname, sizeof(link->ibname), "%s",
+		 smcibdev->ibdev->name);
+    ...
+}
+
+ib_device_rename() updates ibdev->name and notifies clients through their
+->rename callback. smc_ib_client doesn't have one:
+
+static struct ib_client smc_ib_client = {
+	.name	= "smc_ib",
+	.add	= smc_ib_add_dev,
+	.remove = smc_ib_remove_dev,
+};
+
+If the device is renamed (for example with "rdma dev set ... name ...")
+while an SMC-R link is up, SMC_DIAG_LGRINFO would show the old name. The
+SMC device dump in smc_nl_handle_smcr_dev() would show the current
+ibdev->name. Before this patch, smc_diag reported the current name.
+
+The SMC genl link dump (smc_nl_fill_lgr_link()) and the tracepoints already
+use the cached name, so this follows an existing convention that goes stale
+in the same way.
+
+Would a full fix need a rename callback that refreshes link->ibname?
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261012080034.38770-1-mjambigi%40linux.ibm.com
