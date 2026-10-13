@@ -1,252 +1,420 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 241CA4F30FD
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A51D64F3902
 	for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 11:46:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791891970; cv=none; b=QrfPQIk/SwLkyM6EB3mEmQWWAH14cRwmxR0eynUcMt35T7GfsWpVHkzMmoCSgKaoK7KH9OYAhXblV8L5luo+rhJ1BY3e6QMXYiirwXbJflDVik/ckGfWq6X/OkzKeomK7nnCD7XyzQXJp1BmI6Qvpi8de2MXkka7nc0TA7scpZI=
+	t=1791891971; cv=none; b=OXzLP5e6D7P7W0MKq+RAJjnMSkkj1O6foAcpiu8SPW9w0pfK9JsZf9dUuS+aWhb6iWHBI7+0IdnjkVz/mR0tj3KAvCoAX4dSMiBJcGjRofmHWgO3ODaWyUwWZNyci4ZXyll5lkC5oU9IdVpzXSrZuJQrAwYiM41PRZCuxu8cflc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791891970; c=relaxed/simple;
-	bh=fd9+VNi36CZ3udysCe7gwuvkAI2rlzf3hXNdyphx+0Q=;
+	s=arc-20240116; t=1791891971; c=relaxed/simple;
+	bh=laLRWIlMrZxJmcy0a31Gl+ioS2R5XtYGEVcMGMUAKpk=;
 	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=DbZN0bvxvzWUQvMPOmqjSLMHUlH/sWhCXSW1QXtmhQND7fevkg8peyl5fyj5vxZxfSrcIsFgjQAFSkmiu3CCwJLl2DKpi3UVibed55RisUasK6nFv5us/n3lNXGSQLXb/gkZ9XCvmIiN+4ezZX+Mcj7IxyDBFbRGsOqXwi5kYb8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DPQklYEx; arc=none smtp.client-ip=100.103.45.18
+	 Date; b=B2oGJE+UNgsJFttkiY+Ld5IEZlpDS1tUWwAv2dP9NuFsKeuCTFO3UQ7RxJyhwGBZhkvKu6MCDjF+EcpCLfTYIsltxuDkJam4t3SCgP/V7NxODob6lO0VlDG3EUzK4GqYFbep2Z+lxH1rJ289458ptLd/yyOLmfhOoRnebTpRsmo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NTJGHfPu; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DPQklYEx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5D011F00899;
-	Tue, 13 Oct 2026 11:46:08 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NTJGHfPu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B1351F000FF;
+	Tue, 13 Oct 2026 11:46:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791891968;
-	bh=fd9+VNi36CZ3udysCe7gwuvkAI2rlzf3hXNdyphx+0Q=;
+	s=k20260515; t=1791891969;
+	bh=/dRYpeI2wvrneo73mCPpf/JD1gWmhbDnnBxFRwipu60=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=DPQklYExjd3j89hphIQMuJQ/na5dqzGfuZj4Szmo9w5QiKNWrUeW2bQYz9QkVWGxL
-	 banvWsE6VVk/ALd8dmTeTSv7AHbdl++S/Q6z3LBq4h+jq7K6sRqWIFvVHDE4yQ98P8
-	 vF5ifC18+qCofQWdvGL0IpEShnfEN74HRKrLU9SpeUk0aElTT4BPPCX/5jCoUDI/kL
-	 GyhkXRFm8wrtzq6hh5wC9Un6JmAJ/0Q0W7/TjVl6YeMhlqSaGv01z/3r+MCM477Ms3
-	 Qoa/qo8cLsnhCysHUF8/RhDPc/p2VUc9FTLLgoTnFQSTElQOKSVhWRsVzmrvaimuAc
-	 2jqlwsStvrHJQ==
-Message-ID: <sashiko-outbox-169641@kernel.org>
+	b=NTJGHfPug0447lCoAPPlA1/mXmh0clT7bU/hKcyBvvTnMNoA0P2FgqLmEM072S3DE
+	 LP4QJ6JR3kd/LtVG2gjMU1oOJGMyD+yajGdDzk7FMsbDvrGJrAwkvl7JlSQCq5EzgQ
+	 Xhjmtc8NTeMaJqGIjRQEkURij9gFhrmU3HCeMr4v/Z9qxDx6VsJ/0uJBU6BL5RZ/By
+	 5vAnKbQ7V/+UQyXnjp5nmapE8EkiQP6dcuwa3oxO1uhx7TuQUqVy/pfw4yGFwA/WAC
+	 aVYOX+NdNamWwILc8AXrIzwp5TzPQI9Sf7W8Q7JTk48CC35+ewMikHy9NGNYr5Ybaq
+	 KPdndnwEsD8ug==
+Message-ID: <sashiko-outbox-169642@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH 08/15] yunsilicon: add ethernet RX path and statistics
+Subject: Re: [PATCH 05/15] yunsilicon: add the CQ and QP resource pools
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Xin Tian" <tianx@yunsilicon.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261012114410.2471317-9-tianx@yunsilicon.com>
+In-Reply-To: <20261012114402.2471317-6-tianx@yunsilicon.com>
 References: <20261012114352.2471317-1-tianx@yunsilicon.com>
- <20261012114410.2471317-9-tianx@yunsilicon.com>
+ <20261012114402.2471317-6-tianx@yunsilicon.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 13 Oct 2026 11:46:08 +0000
+Date: Tue, 13 Oct 2026 11:46:09 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-Thank you for your contribution! Sashiko AI review found 16 potential issue=
-(s) to consider:
-- [High] net: memory and resource leak in xsc_eth_open_rss_qp_rqs error path
-- [High] net: out-of-bounds access in xsc_alloc_rx_wqes error path
-- [High] net: page pool leak due to missing skb_mark_for_recycle
-- [High] net: xsc_handle_csum reads out-of-bounds garbage due to missing he=
-adroom and PPH flag checks
-- [High] net: missing napi_disable() in xsc_eth_open_channels error path
-- [High] net: soft lockup in xsc_eth_napi_poll on RX buffer allocation fail=
-ure
-- [High] net: xsc: off-by-one in xsc_poll_tx_cq causes TX queue stalls
-- [High] net: missing DMA sync for PPH header in non-linear RX path
-- [High] net: xsc_handle_csum treats MAC header as PPH when PPH is absent
-- [High] net: memory and resource leak in xsc_eth_open_rss_qp_rqs error path
-- [Medium] net: missing u64_stats_sync for 64-bit network statistics
-- [Medium] net: memory leak in xsc_eth_close_qp_rq if hardware destruction =
-fails
-- [Medium] net: page leak in xsc_alloc_rx_wqes error path for multi-fragmen=
-t pages
-- [Medium] net: missing DMA sync for PPH header in xsc_handle_csum
-- [Medium] net: uninitialized rx headroom causes skb reallocation
-- [Medium] net: missing u64_stats_sync protection for 64-bit RX/TX statisti=
-cs
+Thank you for your contribution! Sashiko AI review found 8 potential issue(=
+s) to consider:
+- [High] networking-core: UAF in xsc_cq_completion due to missing RCU grace=
+ period
+- [High] networking-drivers: Race condition exposing uninitialized QP state=
+ and NULL callbacks
+- [High] networking-core: RCU Use-After-Free in xsc_cq_completion due to mi=
+ssing synchronize_rcu()
+- [High] Infinite loop in xsc_set_cq_buf_pa if max_cmd_in_len is small
+- [Medium] networking-drivers: Resource leak and synchronization bypass on =
+HW teardown error
+- [Medium] networking-drivers: Dead code and masked HW errors due to xsc_cm=
+d_exec status override
+- [Medium] networking-drivers: in_hdr->ver is unconditionally zeroed out in=
+ xsc_cmd_exec
+- [Low] networking-drivers: Endianness mismatch printing __be16 with %d
 --
 
-commit 4d5a3a720a692e412128ddb17b3a9264e7943e11
+commit 395a471908d4219d4c81557da37b36e1a6d0b7d1
 Author: Xin Tian <tianx@yunsilicon.com>
-Subject: yunsilicon: add ethernet RX path and statistics
 
-This commit adds the receive path for the yunsilicon driver, including page
-pool backed RX queues, NAPI polling, CQ processing, and RSS/checksum
-handling. It also introduces software statistics reporting via ndo_get_stat=
-s64.
+    yunsilicon: add the CQ and QP resource pools
+   =20
+    Add the core-side completion queue and queue pair pools: the CQ/QP
+    table management, the create/destroy/drain helpers and the EQ dispatch
+    of CQ completion, CQ error and QP events.
 
-[Severity: Medium]
-In drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_stats.c around line 31 in
-xsc_eth_fold_sw_stats64, and in drivers/net/ethernet/yunsilicon/xsc/net/xsc=
-_eth_rx.c
-around line 158 in xsc_complete_rx_cqe, is it safe to update and read the
-raw 64-bit counters without u64_stats_update_begin/end?
-
-The driver tracks RX/TX packets and bytes using 64-bit counters (struct
-xsc_rq_stats and struct xsc_sq_stats). These are updated in NAPI softirq
-context without sequence locks, and read concurrently from process context
-by ndo_get_stats64. On 32-bit systems, a 64-bit load/store is not atomic,
-which can cause readers to observe torn values. Can we wrap these 64-bit
-statistic updates and reads with the u64_stats_sync API to ensure correctne=
-ss
-across architectures?
-
-[Severity: High]
-In drivers/net/ethernet/yunsilicon/xsc/net/main.c around line 956 in
-xsc_eth_open_rss_qp_rqs, does the direct return of 'err' cause a memory
-and resource leak?
-
-The driver allocates software receive queues and their backing memory inside
-a loop. If the firmware command xsc_core_create_resource_common() fails for
-any queue, the code sets 'err =3D ret', continues the loop, and later execu=
-tes
-a direct 'return err;'. This direct return bypasses the err_create_rss_rqs
-and err_alloc_rqs cleanup labels entirely, permanently leaking all previous=
-ly
-allocated WQ controls, fragment arrays, DMA pages, and page pools across all
-channels.
+> diff --git a/drivers/net/ethernet/yunsilicon/xsc/pci/cq.c b/drivers/net/e=
+thernet/yunsilicon/xsc/pci/cq.c
+> new file mode 100644
+> index 0000000000000..39715682fecc3
+> --- /dev/null
+> +++ b/drivers/net/ethernet/yunsilicon/xsc/pci/cq.c
+[ ... ]
+> +static int xsc_set_cq_context(struct xsc_core_device *xdev,
+> +			      struct xsc_cq_context_ex *ctx_ex,
+> +			      u32 *pa_list_base, u32 *cqn)
+> +{
+> +	struct xsc_set_cq_context_mbox_in in;
+> +	struct xsc_set_cq_context_mbox_out out;
+> +	int err;
+> +
+> +	memset(&in, 0, sizeof(in));
+> +	memcpy(&in.ctx_ex, ctx_ex, sizeof(*ctx_ex));
+> +	in.hdr.opcode =3D cpu_to_be16(XSC_CMD_OP_SET_CQ_CONTEXT);
+> +	in.hdr.ver =3D cpu_to_be16(CMD_SET_CQ_CONTEXT_V1);
+> +
+> +	memset(&out, 0, sizeof(out));
+> +	err =3D xsc_cmd_exec(xdev, &in, sizeof(in), &out, sizeof(out));
 
 [Severity: Medium]
-In drivers/net/ethernet/yunsilicon/xsc/net/main.c around line 943 in
-xsc_eth_close_qp_rq, will a hardware destruction failure result in a
-permanent software resource leak?
+Does xsc_cmd_exec() preserve the version parameter set here? It looks like
+xsc_cmd_exec() might unconditionally zero out in_hdr->ver before dispatching
+the command to hardware, which would discard the CMD_SET_CQ_CONTEXT_V1 flag.
 
-The driver issues the firmware command xsc_core_eth_destroy_qp() to destroy
-the hardware queue. If this command fails, the function returns early,
-skipping the vital software cleanup routines xsc_eth_free_rx_wqe() and
-xsc_free_qp_rq(). Since the caller xsc_eth_close_channel() around line 1046
-ignores this return value and unconditionally zeroes out the queue structure
-pointers with memset, the dynamically allocated page pools, fragment arrays,
-and DMA lists are permanently orphaned.
-
-[Severity: High]
-In drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_rx.c around line 454 in
-the xsc_alloc_rx_wqes error path, does passing the unmasked index 'ix + i'
-cause an out-of-bounds array access?
-
-When allocating WQEs successfully, the driver correctly calculates the
-wrapped index using xsc_wq_cyc_ctr2ix(wq, ix + i). However, if an allocation
-fails, the err_free_wqes recovery path passes the raw, unmasked 'ix + i'
-directly to xsc_eth_dealloc_rx_wqe(). This function then passes the out-of-
-bounds index to get_frag() around line 313, which blindly shifts the
-unmasked value and accesses rq->wqe.frags, resulting in out-of-bounds
-kernel memory reads/writes.
-
-[Severity: High]
-In drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_rx.c around line 224 in
-xsc_skb_from_cqe_linear, is there a page pool leak due to the missing
-skb_mark_for_recycle() call?
-
-In both the linear and nonlinear RX paths, the driver allocates pages from a
-page_pool and attaches them to an SKB, but fails to call
-skb_mark_for_recycle(skb). Without setting the recycling flag, when the
-networking stack eventually frees the SKB, it will drop the page reference
-via the standard put_page() path instead of routing it to
-page_pool_recycle_direct(). This leaks the page pool's inflight counter and
-prevents proper page recycling.
+> +	if (err || out.hdr.status) {
+> +		pci_err(xdev->pdev, "failed to set cq context\n");
+> +		return -EIO;
+> +	}
+> +
+> +	*pa_list_base =3D be32_to_cpu(out.cq_pa_list_base);
+> +	*cqn =3D be32_to_cpu(out.cqn);
+> +	return 0;
+> +}
+> +
+> +static int xsc_set_cq_buf_pa(struct xsc_core_device *xdev,
+> +			     struct xsc_create_cq_ex_mbox_in *req,
+> +			     u32 pa_list_base, u32 cqn)
+> +{
+> +	struct xsc_set_cq_buf_pa_mbox_in *in;
+> +	struct xsc_set_cq_buf_pa_mbox_out out;
+> +	u32 pa_num_total =3D be32_to_cpu(req->ctx_ex.pa_num_ex);
+> +	u32 pa_num_max =3D (xdev->caps.max_cmd_in_len - sizeof(*in)) / sizeof(_=
+_be64);
+> +	u32 pa_num_left =3D pa_num_total;
+> +	u32 pa_num, copy_len;
+> +	int in_len, err;
+> +
+> +	while (pa_num_left) {
+> +		pa_num =3D min(pa_num_max, pa_num_left);
 
 [Severity: High]
-In drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_rx.c around line 82 in
-xsc_handle_csum, does the code read uninitialized out-of-bounds memory and
-incorrectly parse the MAC header?
+Could this result in an infinite loop if the hardware returns a capability
+where max_cmd_in_len is small (e.g., between 16 and 23)? pa_num_max would
+evaluate to 0, causing pa_num to be 0. The loop would never decrement
+pa_num_left and run infinitely. If max_cmd_in_len is < 16, the subtraction
+might underflow to a massive unsigned value. Does xsc_cmd_query_hca_cap()
+enforce a safe minimum bound?
 
-The function computes the hardware Packet Processing Header (PPH) address
-using page_address(dma_info->page) + offset_from. This calculation omits
-rq->buff.headroom, causing the pointer to reference uninitialized memory
-before the packet payload. Additionally, the function unconditionally casts
-the first bytes of this buffer to a PPH structure to read the error bitmap
-without checking if the CQE indicates a PPH is present (via
-XSC_CQE_HAS_PPH). If a packet lacks a PPH, this will read the Ethernet MAC
-header as if it were a PPH, which can trigger random drops or misinterpret
-the checksum offload status.
+> +		copy_len =3D pa_num * sizeof(__be64);
+> +		in_len =3D sizeof(*in) + copy_len;
+[ ... ]
+> +int xsc_core_create_cq(struct xsc_core_device *xdev, struct xsc_core_cq =
+*cq,
+> +		       struct xsc_create_cq_ex_mbox_in *in, int inlen)
+> +{
+> +	struct xsc_cq_table *table =3D &xdev->dev_res->cq_table;
+> +	struct xsc_create_cq_mbox_out out;
+> +	u32 pa_list_base =3D 0;
+> +	u32 cqn =3D 0;
+> +	int err;
+> +
+> +	if (inlen < xdev->caps.max_cmd_in_len) {
+> +		in->hdr.opcode =3D cpu_to_be16(XSC_CMD_OP_CREATE_CQ_EX);
+> +		memset(&out, 0, sizeof(out));
+> +		err =3D xsc_cmd_exec(xdev, in, inlen, &out, sizeof(out));
+> +		if (err)
+> +			return err;
+> +
+> +		if (out.hdr.status && out.hdr.status !=3D XSC_CMD_STATUS_NOT_SUPPORTED)
+> +			return xsc_cmd_status_to_err(&out.hdr);
+> +
+> +		if (out.hdr.status =3D=3D XSC_CMD_STATUS_NOT_SUPPORTED) {
+> +			err =3D xsc_create_cq_compat(xdev, in, &out);
 
 [Severity: Medium]
-In drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_rx.c around line 305 in
-xsc_put_rx_frag, can a partial allocation failure leak multi-fragment pages?
+Will this compatibility fallback ever be reached? If xsc_cmd_exec() sees th=
+at
+out_hdr->status is set, it might return -EIO directly, triggering the earli=
+er
+if (err) return err; block. This would make the check for
+XSC_CMD_STATUS_NOT_SUPPORTED dead code and mask the specific firmware error.
 
-The driver manually fragments a single allocated page across multiple WQEs,
-setting frag->last_in_page =3D 1 only on the final fragment of the page. The
-recycling function relies strictly on this flag to call
-page_pool_recycle_direct(). If an allocation fails midway in
-xsc_alloc_rx_wqes(), the rollback path deallocates the partially populated
-WQEs. If the rollback includes fragments of a page but does not reach the
-WQE containing last_in_page =3D=3D 1, the page is skipped and never recycle=
-d,
-permanently leaking the page reference.
-
-[Severity: High]
-In drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_rx.c around line 240 in
-xsc_skb_from_cqe_nonlinear, does advancing head_offset leave the PPH header
-unsynchronized for the CPU?
-
-When a packet has a PPH header, head_offset is advanced by XSC_PPH_HEAD_LEN
-before copying the header to the linear SKB buffer. As a result, both
-xsc_copy_skb_header() and xsc_add_skb_frag() entirely skip the first
-XSC_PPH_HEAD_LEN bytes when calling dma_sync_single_for_cpu(). Later,
-around line 81, xsc_handle_csum() reads the PPH from the very beginning of
-the DMA buffer. Since this memory was never synced for the CPU, non-cache-
-coherent architectures will read stale memory, potentially causing the PPH
-error bitmap check to fail.
-
-[Severity: High]
-In drivers/net/ethernet/yunsilicon/xsc/net/main.c around line 1051 in
-xsc_eth_close_channel, is there a use-after-free risk due to a missing
-napi_disable() in the error path?
-
-During xsc_eth_open_channels() around line 1100, NAPI instances are enabled
-for all channels. If a subsequent operation fails, the driver jumps to
-err_close_channel. However, xsc_eth_close_channel() only calls
-netif_napi_del() and entirely omits calling napi_disable(). Because
-netif_napi_del() unlinks the struct but does not stop or wait for active
-polling to complete, a concurrent xsc_eth_napi_poll() could run while the
-underlying channel structures and memory are being freed.
-
-[Severity: High]
-In drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_txrx.c around line 142 in
-xsc_eth_napi_poll, does an RX buffer allocation failure trigger an infinite
-NAPI poll loop?
-
-The driver attempts to replenish RX WQEs by calling rq->post_wqes(rq). If
-memory allocation fails (e.g., page pool exhaustion), this function sets the
-busy flag to true. Because busy is true, the NAPI poll routine
-unconditionally returns the full budget rather than the actual work_done.
-Returning the full budget signals to the networking core that the driver has
-exhausted its quota and still has more work to do, causing the kernel to
-immediately reschedule the NAPI poll, creating a 100 percent CPU soft lockup
-until memory becomes available.
-
-[Severity: High]
-In drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_txrx.c around line 110 in
-xsc_poll_tx_cq, does the loop condition cause premature NAPI termination and
-TX queue stalls?
-
-The do-while loop condition (++i <=3D napi_budget) allows the loop to execu=
-te
-napi_budget + 1 times when the TX queue has more completions than the
-budget. After processing napi_budget + 1 CQEs, the loop terminates with i
-equal to napi_budget + 1. The function then returns (i =3D=3D napi_budget),
-which evaluates to false. This incorrectly indicates to the caller that the
-TX budget was not exhausted. If RX polling also finishes within its budget,
-NAPI polling stops. Because there are still pending unpolled TX CQEs that
-will not trigger a new MSI-X interrupt, the TX queue can stall permanently.
+> +			if (err)
+> +				return err;
+> +		}
+[ ... ]
+> +int xsc_core_destroy_cq(struct xsc_core_device *xdev, struct xsc_core_cq=
+ *cq)
+> +{
+> +	struct xsc_cq_table *table =3D &xdev->dev_res->cq_table;
+> +	struct xsc_destroy_cq_mbox_in in;
+> +	struct xsc_destroy_cq_mbox_out out;
+> +	struct xsc_core_cq *tmp;
+> +	int err;
+> +
+> +	spin_lock_irq(&table->lock);
+> +	tmp =3D radix_tree_delete(&table->tree, cq->cqn);
+> +	spin_unlock_irq(&table->lock);
+> +	if (!tmp || tmp !=3D cq) {
+> +		pci_warn(xdev->pdev, "cq 0x%x not found in tree\n", cq->cqn);
+> +		return -EINVAL;
+> +	}
+> +
+> +	memset(&in, 0, sizeof(in));
+> +	memset(&out, 0, sizeof(out));
+> +	in.hdr.opcode =3D cpu_to_be16(XSC_CMD_OP_DESTROY_CQ);
+> +	in.cqn =3D cpu_to_be32(cq->cqn);
+> +
+> +	err =3D xsc_cmd_exec(xdev, &in, sizeof(in), &out, sizeof(out));
+> +	if (err)
+> +		return err;
+> +
+> +	if (out.hdr.status)
+> +		return xsc_cmd_status_to_err(&out.hdr);
 
 [Severity: Medium]
-In drivers/net/ethernet/yunsilicon/xsc/net/main.c during xsc_eth_alloc_rq,
-is rq->buff.headroom left uninitialized, causing SKB reallocation in the
-RX hot path?
+If the hardware command fails, returning early here skips the refcount
+decrement and the wait_for_completion() synchronization. Can this leak the
+resource if the base reference is never dropped, or cause a use-after-free
+for active concurrent event handlers if the caller frees the memory anyway?
 
-The driver defines rq->buff.headroom but never initializes it, leaving it
-at 0. Later, in drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_rx.c around
-line 207 in xsc_skb_from_cqe_linear, this results in skb_reserve(skb, 0).
-Creating linear SKBs with 0 headroom forces the network stack's core
-processing paths to reallocate the SKB header (via pskb_expand_head)
-whenever headers need to be prepended, causing significant performance
-degradation. The comment about the XDP frame data area suggests headroom
-was intended to be reserved but was forgotten.
+[Severity: High]
+Since the CQ is deleted from the RCU-protected radix tree above, shouldn't
+there be a synchronize_rcu() or kfree_rcu() wait before returning? Without
+an RCU grace period, concurrent lockless readers (like xsc_cq_completion)
+might access the CQ structure after the caller frees the memory.
+
+> +
+> +	if (atomic_dec_and_test(&cq->refcount))
+> +		complete(&cq->free);
+> +	wait_for_completion(&cq->free);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(xsc_core_destroy_cq);
+> diff --git a/drivers/net/ethernet/yunsilicon/xsc/pci/eq.c b/drivers/net/e=
+thernet/yunsilicon/xsc/pci/eq.c
+> index d273a42d6ffe7..ff4bcb42b33ff 100644
+> --- a/drivers/net/ethernet/yunsilicon/xsc/pci/eq.c
+> +++ b/drivers/net/ethernet/yunsilicon/xsc/pci/eq.c
+> @@ -53,16 +53,59 @@ static void eq_update_ci(struct xsc_eq *eq, int arm)
+> =20
+>  static void xsc_cq_completion(struct xsc_core_device *xdev, u32 cqn)
+>  {
+> +	struct xsc_cq_table *table =3D &xdev->dev_res->cq_table;
+> +	struct xsc_core_cq *cq;
+> +
+> +	rcu_read_lock();
+> +	cq =3D radix_tree_lookup(&table->tree, cqn);
+> +	if (likely(cq))
+> +		atomic_inc(&cq->refcount);
+
+[Severity: High]
+Is this lockless RCU lookup safe for an object being destroyed? The teardown
+path in xsc_core_destroy_cq() deletes the CQ from the tree without waiting
+for an RCU grace period. Additionally, shouldn't this use
+atomic_inc_not_zero() instead of atomic_inc() to avoid resurrecting an
+object that might already have its refcount at 0?
+
+> +	rcu_read_unlock();
+[ ... ]
+> +static void xsc_eq_cq_event(struct xsc_core_device *xdev,
+> +			    u32 cqn, int event_type)
+> +{
+> +	struct xsc_cq_table *table =3D &xdev->dev_res->cq_table;
+> +	struct xsc_core_cq *cq;
+> +
+> +	spin_lock(&table->lock);
+> +	cq =3D radix_tree_lookup(&table->tree, cqn);
+> +	if (likely(cq))
+> +		atomic_inc(&cq->refcount);
+> +	spin_unlock(&table->lock);
+> +
+> +	if (unlikely(!cq)) {
+> +		pci_err(xdev->pdev, "Async event for bogus CQ, cqn=3D%d\n",
+> +			cqn);
+> +		return;
+> +	}
+> +
+> +	cq->event(cq, event_type);
+
+[Severity: High]
+Is it possible for cq->event to be NULL here? The CQ is added to the global
+radix tree in xsc_core_create_cq() before the caller has a chance to
+initialize the cq->event callback. If an interrupt arrives immediately, this
+could cause a NULL pointer dereference.
+
+> +
+> +	if (atomic_dec_and_test(&cq->refcount))
+> +		complete(&cq->free);
+>  }
+> =20
+>  static int xsc_eq_int(struct xsc_core_device *xdev, struct xsc_eq *eq)
+[ ... ]
+> diff --git a/drivers/net/ethernet/yunsilicon/xsc/pci/qp.c b/drivers/net/e=
+thernet/yunsilicon/xsc/pci/qp.c
+> new file mode 100644
+> index 0000000000000..8ea57a09f6ceb
+> --- /dev/null
+> +++ b/drivers/net/ethernet/yunsilicon/xsc/pci/qp.c
+> @@ -0,0 +1,356 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/* Copyright (C) 2021-2026, Shanghai Yunsilicon Technology Co., Ltd.
+> + * All rights reserved.
+> + */
+> +
+> +#include <linux/gfp.h>
+> +#include <linux/time.h>
+> +#include <linux/export.h>
+> +#include <linux/kthread.h>
+> +
+> +#include "common/xsc_core.h"
+> +#include "common/xsc_cmd_api.h"
+> +#include "qp.h"
+> +
+> +int xsc_core_create_resource_common(struct xsc_core_device *xdev,
+> +				    struct xsc_core_qp *qp)
+> +{
+> +	struct xsc_qp_table *table =3D &xdev->dev_res->qp_table;
+> +	int err;
+> +
+> +	spin_lock_irq(&table->lock);
+> +	err =3D radix_tree_insert(&table->tree, qp->qpn, qp);
+> +	spin_unlock_irq(&table->lock);
+> +	if (err)
+> +		return err;
+> +
+> +	atomic_set(&qp->refcount, 1);
+> +	init_completion(&qp->free);
+
+[Severity: High]
+Should the refcount and completion be initialized before the QP is inserted
+into the radix tree? Once inserted, asynchronous event handlers like
+xsc_qp_event() can look up the QP. If an event fires immediately, the
+handler might execute atomic_inc(&qp->refcount) on uninitialized memory,
+which is then clobbered by atomic_set() here.
+
+> +	qp->pid =3D current->pid;
+> +
+> +	return 0;
+> +}
+[ ... ]
+> +void xsc_qp_event(struct xsc_core_device *xdev, u32 qpn, int event_type)
+> +{
+> +	struct xsc_qp_table *table =3D &xdev->dev_res->qp_table;
+> +	struct xsc_core_qp *qp;
+> +
+> +	spin_lock(&table->lock);
+> +
+> +	qp =3D radix_tree_lookup(&table->tree, qpn);
+> +	if (qp)
+> +		atomic_inc(&qp->refcount);
+> +
+> +	spin_unlock(&table->lock);
+> +
+> +	if (!qp) {
+> +		pci_err(xdev->pdev, "Async event for bogus QP 0x%x\n", qpn);
+> +		return;
+> +	}
+> +
+> +	qp->event(qp, event_type);
+
+[Severity: High]
+Can qp->event be NULL here? The QP is published to the radix tree before the
+caller initializes the qp->event function pointer. An early interrupt could
+trigger a NULL pointer dereference.
+
+> +
+> +	if (atomic_dec_and_test(&qp->refcount))
+> +		complete(&qp->free);
+> +}
+[ ... ]
+> +int xsc_core_eth_create_rss_qp_rqs(struct xsc_core_device *xdev,
+> +				   struct xsc_create_multiqp_mbox_in *in,
+> +				   int insize,
+> +				   u32 *p_qpn_base)
+> +{
+> +	struct xsc_create_multiqp_mbox_out out;
+> +	int err;
+> +
+> +	in->hdr.opcode =3D cpu_to_be16(XSC_CMD_OP_CREATE_MULTI_QP);
+> +	err =3D xsc_cmd_exec(xdev, in, insize, &out, sizeof(out));
+> +	if (err) {
+> +		pci_err(xdev->pdev,
+> +			"failed to create rss rq, qp_num=3D%d, type=3D%d, err=3D%d out.status=
+=3D%u\n",
+> +			in->qp_num, in->qp_type, err, out.hdr.status);
+
+[Severity: Low]
+Is it intentional to pass in->qp_num directly to %d? Since in->qp_num is a
+__be16 field, this will print garbled values on little-endian architectures
+unless converted with be16_to_cpu().
+
+> +		return err;
+> +	}
+[ ... ]
+> +int xsc_core_destroy_qp(struct xsc_core_device *xdev,
+> +			struct xsc_core_qp *qp)
+> +{
+> +	struct xsc_destroy_qp_mbox_in in;
+> +	struct xsc_destroy_qp_mbox_out out;
+> +	int err;
+> +
+> +	xsc_core_destroy_resource_common(xdev, qp);
+> +
+> +	memset(&in, 0, sizeof(in));
+> +	memset(&out, 0, sizeof(out));
+> +	in.hdr.opcode =3D cpu_to_be16(XSC_CMD_OP_DESTROY_QP);
+> +	in.qpn =3D cpu_to_be32(qp->qpn);
+> +
+> +	err =3D xsc_cmd_exec(xdev, &in, sizeof(in), &out, sizeof(out));
+> +	if (err)
+> +		return err;
+> +
+> +	if (out.hdr.status)
+> +		return xsc_cmd_status_to_err(&out.hdr);
+
+[Severity: Medium]
+Does returning early here skip decrementing the global active QP counter
+(atomic_dec(&xdev->num_qps))? In xsc_core_create_qp(), num_qps is increment=
+ed
+after resource creation, but a failure in the hardware destroy path seems
+to leak this counter.
+
+> +
+> +	atomic_dec(&xdev->num_qps);
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(xsc_core_destroy_qp);
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261012114352.2471=
-317-1-tianx@yunsilicon.com?part=3D8
+317-1-tianx@yunsilicon.com?part=3D5
