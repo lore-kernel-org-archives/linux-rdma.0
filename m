@@ -1,124 +1,162 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from TYPPR03CU001.outbound.protection.outlook.com (mail-japaneastazon11022131.outbound.protection.outlook.com [52.101.126.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5331A3BA239
-	for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 10:39:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791887976; cv=none; b=j9o/13i04niiMgtWdqqFkQe49aU0Qg9/0g7Fk2v534QekKQ/kivhgKx7NSEU+nCSemf3Uc5rbjxqMuWePvO5HClU6oU0LIeYYw+2qNv2qWes4V+ysy/QCpM44uuCoSonLoUCKJB6a9zmJcNpePiR6lLcMpBeNHrDG9m7q5tcRFA=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791887976; c=relaxed/simple;
-	bh=Yh5EoZ8L8sCNFwRaMZG6NLakXRXnXBmJAd8ORRiLTdE=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=QvihlXCkGuFqdX3aQm6cMBqBgmKczgAb9h/MH+743TKnkJMyJVKT2pXmnIEiG/8Ksq2m7H27XZelEgx6lIkHilihyByIQwNK0nxEbIoQa1S7mvnN7je2ev6IlJdLssnLLZIpKCZnRbaLrKAKxp62ws0kRimP9TWivAMOxgsZa2s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=g04r2blb; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=eDYDzxv4; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2007743304D;
+	Tue, 13 Oct 2026 10:39:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.126.131
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791887977; cv=fail; b=AUDPvXHk6B4pf6fbdnsxHIkdUdgPWcN+uT0Jg1uqs9UcHtVjuAyOCvMV8xL8d5iz6A8w9Cr7spl2jF2PDT0m7E2PKkig9FOTKWmOwR9YoMpmkVCFI8xN80ICJ2Fp9jYbSXFd343h3Z5wTQk03yJsBIFNELT9GYaVNnsiaOBkhuo=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791887977; c=relaxed/simple;
+	bh=rweMcaMtn18iGVifiVQmf3dFftPpbY+AQsqlrU5NXjA=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=FkF4qaJolVtrOgOtbhaB/zf20yrKyuF+Zcg6H4NKu7dUZ641JyO4Ce8RMK21XlrOJPZHP+Ia5P24RsuwjOVgD0+KMumAonHTAWgk6Isuowg46rLnAuxRWJmpWn9L+WumHlgFDQJr2Ij0nrBiVZAbybuM1nEI/8W2Qd97BmvCqBQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=microsoft.com; dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b=Up9ckJjs; arc=fail smtp.client-ip=52.101.126.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="g04r2blb";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="eDYDzxv4"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1791887974;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Stt8E8LEXRbDbMmCU9sSGK8Uotc3Frs9Dr0f6bzYxJg=;
-	b=g04r2blbgn6tTcoPBUQNZHcd3DjBvQyUtBhzT1hXmB+2tqXRulKQEsp0wer8VN+7wEmTk5
-	N394Ghi8/DXLvRAMV2OwFAUOZoyjn6IKKugisqAyj5op5CMfcPl+ZzYM2CfakIX99BQuC9
-	nK0c1UyeCROkrERrg+0e52XkaJmUNAI=
-Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
- [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-70-wEwYINJQPw2s4K3mZahHww-1; Tue, 13 Oct 2026 10:39:32 +0000
-X-MC-Unique: wEwYINJQPw2s4K3mZahHww-1
-X-Mimecast-MFC-AGG-ID: wEwYINJQPw2s4K3mZahHww_1791887972
-Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-4a0228f4a1bso16233405e9.1
-        for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 03:39:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1791887971; x=1792492771; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=Stt8E8LEXRbDbMmCU9sSGK8Uotc3Frs9Dr0f6bzYxJg=;
-        b=eDYDzxv4kagmAiuTE/aU+CgMN/ytg/sswQnMr8X5RY/ZrwRavOizhM4/DyUoYbTWeQ
-         DKs3920U6Ki2TD7RRRyLXQWbYcJldj0g3mKaPO9O4w2vXoTX5DWoAYmeyfj9OgPuEmYk
-         hMfg1E0lAP7N2Lf8lUyhyaUhXkjcNw5iam+KRhti6g4LZWGUrXZJ473+E3EWj51bBvmB
-         vxhWmo/fP4oDpw6oZdp4sBdHIqFPFI2TaJOYKJAe5dFQPRBleestD+YHTyvFSpQ0Q8q4
-         sYWrM7mZCGF/uPVL8THDIOluMGcsfdA/1U+LDRliC554y3KhywajIIvFXf9oPudp1BLJ
-         LhbQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791887971; x=1792492771;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=Stt8E8LEXRbDbMmCU9sSGK8Uotc3Frs9Dr0f6bzYxJg=;
-        b=Wb0IkwjZx5sIAxLmYyeAavJL5F3ONf0c2W9qeUj6W45hLcew+5vszuqsqjEhvZayc8
-         VRbNbctuOFV5La4IpoeYpmce1ljNsISEH4G2AMFVK+CauUzZc3er6X47s49Nf63rzGTx
-         3NuU+I7e708hMJfg1jTHxTj4TuYAbKSftMMSbFYJlHcUuKfvFbw73YbO+KhfSKKG9nRy
-         /P/GfaTukotlX0TKbIPcwJXb09l6gGxVQCmMbk2smurf0bEH40e9Y8u6bo5iPa3/HF5z
-         injGBkcxWa8UnurPSlxrij12yCke81MDMRt3sWHfV+MvzUFYQK3Jz/XXZ6M5uMuJDw+I
-         g7VA==
-X-Forwarded-Encrypted: i=1; AKwUvBxb68C5L1JjAHe/Uoz1Znk9LKkIeh6x3e94lMiRDvNo0Fnth+IODrsMUnI5GimeOZ/uLrAJxso2QCmW@vger.kernel.org
-X-Gm-Message-State: AFq9FYL9fgGSkZpL0pCec7BquuplRE9GuD3jOlagELGOkduAIMM0wzt9
-	GQM363d60IlUl5AOm97ZpUPLe658Yt74L+DCI+ZFG2wthHLklKSYrFZawo+/6+CXYWQPUcH76Wu
-	cx5FYXh/loo18Ux861Bngfyzc+dM96WCcjPWjj51hpoTHRKaNIUDsVdh4DTQV0Bo=
-X-Gm-Gg: AYBFou1pjLgBuJQso8SLAt6+cmWjStzs3saxSdZu3AOiCQxGY1iZfh+D8XvEg+nqdXy
-	PuQU2+lEf3bQ/tyV91xkHKKxGoHN/ybhPqerAitTLjzEYRcBiS4WDqMi20AN7X2NQe6GtAgUXWw
-	K1zDqvu05MutiIMsua1qqsCnagcrdgtRjL0Wc7eyUUHh1wJYbVDuYS+z+m+DEZh1x1DW+SE8Z2G
-	2m54LEaaQSQLhltyGFIxVxAQEvf2wHpYzF6yeKmVQ0v5hf/GR8upEePkHazmbGFhzXeAmjWj5Fo
-	9penUNlKxpAMX789O7e4oenHJsbFrun7zXd5VTtsdCL3P+pFM9lCghhD8xG2OXbzX3h1hoeZ9+t
-	+0Ua0iBGGYKpGL7c/6f8SfdgzQLTwN2PzaCcscFKfM0ackNZSarguvUh83ne3o6LZcdhvXxjrSg
-	==
-X-Received: by 2002:a05:600c:8105:b0:4a1:775b:5eb2 with SMTP id 5b1f17b1804b1-4a18e48362emr231673455e9.13.1791887971581;
-        Tue, 13 Oct 2026 03:39:31 -0700 (PDT)
-X-Received: by 2002:a05:600c:8105:b0:4a1:775b:5eb2 with SMTP id 5b1f17b1804b1-4a18e48362emr231673005e9.13.1791887971189;
-        Tue, 13 Oct 2026 03:39:31 -0700 (PDT)
-Received: from [192.168.188.234] (ip232-47-231-195.pool-bba.aruba.it. [195.231.47.232])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48de0967affsm3971206f8f.1.2026.10.13.03.39.30
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 13 Oct 2026 03:39:30 -0700 (PDT)
-Message-ID: <d19cbf9f-a5af-4fe5-9c20-eac1365afb92@redhat.com>
-Date: Tue, 13 Oct 2026 12:39:29 +0200
+	dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b="Up9ckJjs"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=hc6NKridivr5gLIOj7aMv3FE5afd48f9nUnF0WtoIw+BXFgoPoQ4OAM7k9DTUa1vlxsF+d2oY9hn1Et6VWtlvV6Scb25MERcvV+1zxd11Ea8qmsSpkTNwJdSDLQavzM6s8mCFMck6DH29/BSZT+atjxLUtsEnwYvnzsapOp6xxtifQ8czWLPeTUvFz83mSZnhWPGSPbEGaDgPxhTb7juYrVRE0z3//NUPI0l4graVQoM0cOnyZjcGrGZsL6t6FUCZCs+exJPpyJ+pYceuR1dfjUmmcL5pKInTa/ROvfeB/RDbOGMD0jNV1/ECJf7jmXZQUQgFA7KTcDH70kiJ7h3qg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001; h=From:Date:Subject:Message-ID:MIME-Version;
+ bh=rweMcaMtn18iGVifiVQmf3dFftPpbY+AQsqlrU5NXjA=;
+ b=HBzsWP1hYUBhHqJjonududUgmk+lVdR4V0xFwbs6kw9VYQpa/ji6sLpk5+hjGF/iZ1WCGBX0/EAB/fU1QaGI6qYueoWQqqX+YV4q905b7glNEeq/po/Z1TQhaMvHEQ2XzDouZwRqHRd6/yjWHZJoMRK/9pbCnilK84aYRCo/QTkJgfkXWOVDfJ+1+QKqWAfbY5UjDGihJAQjyFxtGmWPjXUuozHNUkQCrs9a/HBOis+ZrVY4zYZf1MobVvkdE9+MnWPoeFiNe8FfQJpMqAn3BmnQeqbLCmVMA2u28jQAbwjDqjasn9Nvqn4P4ZaoZIqXdInijPVLYTjTKxWhLKTG4w==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=microsoft.com; dmarc=pass action=none
+ header.from=microsoft.com; dkim=pass header.d=microsoft.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=rweMcaMtn18iGVifiVQmf3dFftPpbY+AQsqlrU5NXjA=;
+ b=Up9ckJjsgczOLP0vkF2elEduHgqvlI9POaKn8j9yzh1dJdHb6Otf7BudLkge9XzzVBjglCX2WJ6LEF78pF4xbZiw2Yh1Ps4S0hMpDCzEXbmCnBWdfGF5e2Kag/kUfXbMgQRkdS7rIToL8KQTPtFQMyioH/VkxZUWY10KC/hVn4I=
+Received: from SE3P153MB1848.APCP153.PROD.OUTLOOK.COM (2603:1096:101:340::5)
+ by SI3P153MB1696.APCP153.PROD.OUTLOOK.COM (2603:1096:4:2a0::11) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.546.5; Tue, 13 Oct
+ 2026 10:39:31 +0000
+Received: from SE3P153MB1848.APCP153.PROD.OUTLOOK.COM
+ ([fe80::8f4e:575a:4706:a56e]) by SE3P153MB1848.APCP153.PROD.OUTLOOK.COM
+ ([fe80::8f4e:575a:4706:a56e%6]) with mapi id 15.21.0546.001; Tue, 13 Oct 2026
+ 10:39:30 +0000
+From: Wei Hu <weh@microsoft.com>
+To: "sashiko-reviews@lists.linux.dev" <sashiko-reviews@lists.linux.dev>, Wei
+ Hu <weh@linux.microsoft.com>
+CC: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+	"linux-hyperv@vger.kernel.org" <linux-hyperv@vger.kernel.org>,
+	"bpf@vger.kernel.org" <bpf@vger.kernel.org>
+Subject: RE: [EXTERNAL] Re: [PATCH net-next v6 04/13] net: mana: swap queue
+ sets in mana_set_channels
+Thread-Topic: [EXTERNAL] Re: [PATCH net-next v6 04/13] net: mana: swap queue
+ sets in mana_set_channels
+Thread-Index: AQHdV/xUvLJRYL/He0yqK+zTehzW8rb22xYAgARwaJA=
+Date: Tue, 13 Oct 2026 10:39:30 +0000
+Message-ID:
+ <SE3P153MB184840021BF8046E71625838BB9E2@SE3P153MB1848.APCP153.PROD.OUTLOOK.COM>
+References: <cover.1790795005.git.weh@linux.microsoft.com>
+ <a4bef0e79343469ce47507a44d0094d63e7bc131.1790795005.git.weh@linux.microsoft.com>
+ <sashiko-outbox-166665@kernel.org>
+In-Reply-To: <sashiko-outbox-166665@kernel.org>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+msip_labels:
+ MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ActionId=ae56a50d-f3b1-4f7d-9f6c-103c550b43ed;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ContentBits=0;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Enabled=true;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Method=Standard;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Name=Internal;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SetDate=2026-10-13T10:29:31Z;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SiteId=72f988bf-86f1-41af-91ab-2d7cd011db47;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Tag=10,
+ 3, 0, 1;
+authentication-results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=microsoft.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: SE3P153MB1848:EE_|SI3P153MB1696:EE_
+x-ms-office365-filtering-correlation-id: 9af2be05-6e59-49a9-361f-08df2916437b
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam:
+ BCL:0;ARA:13230040|42112799006|1800799024|366016|376014|23010399003|6133799003|10067099003|18002099003|22082099003|7146999003|11063799006|4143699003|261009223027099003|38070700021|56012099006;
+x-microsoft-antispam-message-info:
+ ky78tdcUmAyTnVhm+efHM5aeuPYR4jLY/rdXHevndNvuc8oExBGVALMXoNYa1ZukXCOxQ/jyVF9GH0RkSgHDrZYJrc7NXg9UoBWjUTyemJvyEEKSWMP/tmNfezTs4tsXGvrNG8daY7vXWSCdxMtizwZUaNLbuIJTAwFB2MoGHj6ZOtGneStM9w/a2q/JXharXTTnb53N/uAKezRcXs6qEVdTatHRZzBy06iRDm9q4zaM0kyaav6qQjilcEoe/RKuzkv+zdt9w5e4Gs6NMCJmHlX/Mgbtby2QUYag5mQbVlfqK9h5mb70TlaH6pQ8OdjuhM2Cnu+nyGoUW5VF21QfDP4wA1zZzRwwh95ypwTX1+gySko+XzCvHvU2dDAqXIXHfzypZsov/9a6+Oh871Feph8cF266yyhZSJESUFdzk+JTMw7woRloEVb/Yt2opzb62HWdX2fn7LyAUh6pzuus8r2TGPNNgXFlyxZq3sLLpv1BJPQRC5Un5C5cuMEM5XRge3aH4TrQiW1lDJ/T78bOcxgPqvnwlafw5csoGEO9rK+uw1jmYWqhDgIChHlFXNw/HxBKxfy6ynEPf+SKEADj0S79xguMWRdZaWXsUyClqh+azEefv9RBCIbM6T1Y8nKb9MDXwUpfto1YasA0mbofJLwiFWFeVOs0+Roc9dvRhX/xv9rAlU9mXbZbRDLOutA9Mjp67MwSRjva867CnjECbePIlerEjhxKWK4tx0B52EU=
+x-forefront-antispam-report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SE3P153MB1848.APCP153.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(42112799006)(1800799024)(366016)(376014)(23010399003)(6133799003)(10067099003)(18002099003)(22082099003)(7146999003)(11063799006)(4143699003)(261009223027099003)(38070700021)(56012099006);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?us-ascii?Q?/zdLWlrhyY/pc+1S+lqRkzJuFGBUjPgdDcAwMl1Y8nuIJTPuazOt1mQRzNrv?=
+ =?us-ascii?Q?ZwMufbp88NpyicSLlgih2TNDgMSI5rvZ+lO12uXzxqxlDokjZcGyXRqrhr6l?=
+ =?us-ascii?Q?EcdbomvLocQX5LMNTLiVgbZ5PAoxxnBrmL9NauQwgem6l19yhJTedSXQvcUm?=
+ =?us-ascii?Q?Omy0rXdhyfaoeRU1jUf8MQboMBazNWfF7lG9MCBOJdbpaGC/2Fa8QwTr2/6y?=
+ =?us-ascii?Q?WYpjWFV5p60CD23S0xaEWH1z7jsT0lmMFp8PGY5DYmjEZv7qi+xK3CMlmdW+?=
+ =?us-ascii?Q?rk+rHbEVV9XRgEIx9R+6LVAl5zxqkFIQH/NCmt1QHIbsnzq1M8WXE42/lISz?=
+ =?us-ascii?Q?+EpbTaXYTebP0KosHMFibdJqzapC3hY4STrLwbsVil7iKCXla0oejjGog2Va?=
+ =?us-ascii?Q?neemUkXZ3mjGH/xGX5IRbkREYd3gORUgo6Fx6JJ5wgDz9D9ff5EC4RiUPCjj?=
+ =?us-ascii?Q?GWqYcP9rW2xl0vFQNAHei2jm/lY2TZEudV8vKH/qzxLO4GAUn30Eq2pFInMp?=
+ =?us-ascii?Q?M6SGCLZ9kSZ9GBJi9eMge/KQc5Xdf70srsCeLIVka7zFcwgBC9RNQvWTUYbr?=
+ =?us-ascii?Q?1qFlbI4vZJuzFOwr93BT32GwMpIa6BCAdQlSXbHzkCnKImhDJSeuNpEjOvYw?=
+ =?us-ascii?Q?hswXotM3csKTtWfsj+vkNUHEl/73YK+21qs6DVcacy6KNFOcWCsett4oAq4q?=
+ =?us-ascii?Q?hXYG/SYaXyl9ybaY9CG2pO9i1mWFHKtsCA63scYA7HTDeoBbK0PSytTp0HS/?=
+ =?us-ascii?Q?WYIIpiIwbIrVpJUsOxHTUO8JNHv8pz3TGPsXCarSzDLwMikyNpGFmuDVv1XV?=
+ =?us-ascii?Q?Hj0UBjBIfjjCNlyCDb7OaAzwa1C+2MFe0HF61Y8+5jPLU7ajHy3ybtxvH7LG?=
+ =?us-ascii?Q?INKeSpGTzUQX8VUMO8fitc8CdMl94PQv1el71DxPczHKd8H0j6hjZx0M/64B?=
+ =?us-ascii?Q?qHrfwWvqlvgrYbEwvPpt0D7dckBwyTAtDNlj7Jjv0D0tXTJqsH5UU1gtGguk?=
+ =?us-ascii?Q?s6VDwY5OG1SudhKbHsCVXpgnpzZquVqoT6aX4CkrLcUUrW9Mx68H2vwOBVAe?=
+ =?us-ascii?Q?8pE6GW093SmTNUMbtm28/aHUO+VbNCtBAGcNdZXFXD65/GemenRevTs1qdzU?=
+ =?us-ascii?Q?gfUMEVeybPstnOQW0pGwzIAQRR8jRIAWH1/hPlC++b8mk9HGlcLZo78xK13N?=
+ =?us-ascii?Q?My9UtkWa93lGhuaq8Q7pWd7t0cSjCQgLBsVqhIY1yTCc/q3GeI6OQJrVMNdP?=
+ =?us-ascii?Q?I3fe5piqg4J54sOgxwfgdcasRPTKfQgQEIcm3wL+GYsZSWIMFhSXCHerIvwF?=
+ =?us-ascii?Q?DwNA53mcyFAgqyDJo4dY0Vt3CT/KFCjGlXYtqREqW6qrGs+UhuRFixrUklRS?=
+ =?us-ascii?Q?UdttyZ7VsxZszn9UtsXTp54Y11VE76HVPmiJJjW0OzyCzbKmBRJEw+urtDFj?=
+ =?us-ascii?Q?oKlpWxFNgHA49cf5Wcf3LreUgvIQaIunMYFiLHijgN9pgIzeu6FUp/Onw2ev?=
+ =?us-ascii?Q?LaAxr5dZM2kTF234xdhSynsD4w+2GpDpTH1HzV3ZatIFoKyzc5CTtfVi9Ytb?=
+ =?us-ascii?Q?fHQasZVpds/2UCR5AvaIE8ncWgCgX37U1oJYrbQvdzEEdU5kx8Bdn0ZMoS7j?=
+ =?us-ascii?Q?P3UKus1Y/6hDCUNOiKB3xw99a4kJF38Clm0FIfXnINsMU1IwKHYRkShbGDQ6?=
+ =?us-ascii?Q?Rs0wXpD4KVKvNwaDsn6A2fjYQ6QHvcA9FIZT0RAyokGkGzGE?=
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net 0/2] net/mlx5: HWS, fix reformat release and meter
- offset
-To: Alexandre Cassen <acassen@corp.free.fr>,
- Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
- Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
- <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
- Jakub Kicinski <kuba@kernel.org>, Moshe Shemesh <moshe@nvidia.com>,
- Yevgeny Kliteynik <kliteyn@nvidia.com>, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org
-References: <20261007143830.1733583-1-acassen@corp.free.fr>
-Content-Language: en-US
-From: Paolo Abeni <pabeni@redhat.com>
-In-Reply-To: <20261007143830.1733583-1-acassen@corp.free.fr>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+X-OriginatorOrg: microsoft.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: SE3P153MB1848.APCP153.PROD.OUTLOOK.COM
+X-MS-Exchange-CrossTenant-Network-Message-Id: 9af2be05-6e59-49a9-361f-08df2916437b
+X-MS-Exchange-CrossTenant-originalarrivaltime: 13 Oct 2026 10:39:30.7652
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 72f988bf-86f1-41af-91ab-2d7cd011db47
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: hHD3ot1mv5SqBQVZco0FnEt5SNBib5MkhgNG+Fmi2ir4yy6olgPLtAFbtW1skImFzM8x7VBEYR5F92hZaHF+Ow==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SI3P153MB1696
 
-On 10/7/26 16:38, Alexandre Cassen wrote:
-> This series fixes two issues in fs_hws found while offloading one tc
-> rule with its own encap and meter:
-> 
-> - Releases L2 to L3 tunnel reformats to the pool they come from.
-> - Makes a rule select its flow meter within the whole ASO bulk.
-The actual impact is not clear to me, but given both looks broken
-from the beginning and Linus pressure for smaller RCs, I'm tempted
-to move this to net-next.
+Thanks for the review.
 
-If you disagree please scream it loud soon!
+> Should the update be wrapped in local_bh_disable() and local_bh_enable(),
+> or use the _irqsave variant?
+
+I do not think that change is required for the reported odd-seqcount
+deadlock on the configurations supported by MANA.
+
+On the v6 base, MICROSOFT_MANA depends on X86_64 or little-endian ARM64.
+The rebased v7 retains that PCI architecture restriction, and its upstream
+CDX transport separately requires 64BIT. Neither provides a supported
+32-bit MANA path.
+
+In include/linux/u64_stats_sync.h, struct u64_stats_sync has a seqcount
+only when BITS_PER_LONG =3D=3D 32. In the 64-bit implementation, the update
+helpers are empty, fetch_begin returns zero, and fetch_retry returns false.
+There is therefore no odd sequence value or retry spin through which the
+reported same-CPU writer-preemption deadlock can occur.
+
+The folding operation is serialized by RTNL and occurs after the retiring
+RX drain-stat writers have quiesced. I am leaving this unchanged in v7
+rather than adding BH/IRQ disabling to address the unsupported 32-bit
+scenario. This is not a claim that arbitrary 32-bit use of these helpers
+would be safe; the series does not add that support.
+
+Separately, the dashboard retains the pre-existing xdp_xmit writer concern
+also reported for patch 3. That unlocked increment already exists on the
+unmodified base. It is a real statistics race, recorded for a separate fix,
+and is not fixed by this revision.
 
 Thanks,
-
-Paolo
-
+Wei
