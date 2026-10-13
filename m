@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DCBD3F9F25;
-	Tue, 13 Oct 2026 14:25:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 624A24F93BC;
+	Tue, 13 Oct 2026 14:25:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791901554; cv=none; b=dTvXnISxLfXOCb+cHdnllnDG+jVkgIXL2bJGEomUQYZTAkQI307+N/IYS1c+5XxmQYuwJ19Q7nN6PzDEXWUAPOzTVUo6zfzrzu0DBmpQg10jzhyCSbuJTDU5ksGDwb/a7rvzdzRwk2iZUwlKvBFc6BCXRcT8AtOBD599NRDiXiw=
+	t=1791901558; cv=none; b=ZTsklmOBoiXuoxWES42elfdq/HTsA1giSmMu5wM72v+HK2yroAd4bwYbjMNVHFdEcCYHb9oPPpa00/p9kN8qZPrCGvDPxbqloEn4me+x+PaeoupkZIYxST+b/mHlZcNl0221ZZ9n2Q28yZhgvJonCW9Wf0ZrMI5qi/Q3GLi2K9w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791901554; c=relaxed/simple;
-	bh=6mortVpp57qdndoqZMS0hNEy1Ay/mHxN9cBSHOilErg=;
+	s=arc-20240116; t=1791901558; c=relaxed/simple;
+	bh=ydIDOdCqoMaT838buxImYNrNpIkaLuM3MREB/JTHIMs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=qIgpsIMfExRBSaKgvBMPjpaatcDiTzOMnEJjhqFNHMv8CZpLX9XQw8XaEyNYfMeeQGDJG8++8cPkyackuRWwPfyRA3Az/+tqmlDOLDJaUtRlko9Y1W+qy5D3bw1TPuD3A5KP9P4ymdUaBJWbZskV/XStX+VQ/YM3CoiUfzVSzSg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ATAwBctb; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=JiZ1uAYP3RacQemzNt4helD/nXE8w2ZtQm5i2khhsoEhp1GBsL0pt6PKFMbBAzk80k8x96GW9iMHOzrFQ9y5tkVTRbPPC5A5dWOLezBlYWtw5fmAaMKFdkulmdDCX8Xy2avxvVktrHPfwrIDpCBVTUwp1rTnxgyiKwNKPU1l5g4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AAYt5LV+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ATAwBctb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 599241F000FF;
-	Tue, 13 Oct 2026 14:25:52 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AAYt5LV+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D2771F000FF;
+	Tue, 13 Oct 2026 14:25:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791901553;
-	bh=TpcnwG46mQgClsSkImLydQ9tezOpX4iqCLAeVAC1GKg=;
+	s=k20260515; t=1791901557;
+	bh=SleO4Y4j4tArPmM5s91MwfFdTPepML+5PCBY+x0KZX4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=ATAwBctbMVpHZwGw4mZ1SP13cdJzqXTq8M751rUPZBmAGLksrpjru3kSLaeGls6C+
-	 YkFXWQ9gjByvOiPPkWAHJEQaXdaJf+uP/C4AvnFWViHP4hKizZoIZkgM5iwWf3ub8G
-	 C3zmqToOtZGmjvFOajkeMy3Gd2oLtpVHmkQVxhPTpWs8+SYOxd8PjjIC+i1XexMvbj
-	 aNJt7MvDZvhunobqg2f/hWrrUVzsbYFM9R+2SsqxjhaYJoJ3ctTI2h+r2Pn0ilM328
-	 4NgptRQjz26sygD2UepR7TDD5BM5qG52b5Q7I3+eW3BuDnZ4d2B+SOdi0hftsSW1QD
-	 lLBEnQf/KWJjA==
+	b=AAYt5LV+qO7FAM9XaLugcz0A+OLlFzejip8lAt3mZ9ZSwftiVuHIDLcOJ2AkQX2pA
+	 klaa9YmnP2srXG+E/rvxtQRPCCQkUocBN6EDoNJjZsxRHTChA5HZNZnDdRvGHTcnz7
+	 a/EqcF4MGr3+hWg3HiN0lv0dK33CQt11ekdR22eTb/970X5XtdMwHKrj12tJIz8U52
+	 yGKUyRlgdeGGO2Zd2a+NWC3N1itrHlXdElk6+LLGDd94Mtqyyjk8bLmBqo9Os36pBe
+	 E2UCy6+Q/pHDOqhpuLg4dAyyf8XFkq7o4ZPJLoBVXZttnV8gMTKpw3FBqPVAjC95vv
+	 eqXQ4t30kmKzQ==
 From: Leon Romanovsky <leon@kernel.org>
 To: Bjorn Helgaas <bhelgaas@google.com>,
 	Logan Gunthorpe <logang@deltatee.com>,
@@ -55,9 +55,9 @@ Cc: linux-pci@vger.kernel.org,
 	Shuah Khan <skhan@linuxfoundation.org>,
 	Randy Dunlap <rdunlap@infradead.org>,
 	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: [PATCH v11 05/19] PCI/P2PDMA: Evaluate ACS controls at the path divergence
-Date: Tue, 13 Oct 2026 17:25:13 +0300
-Message-ID: <20261013-fix-p2p-acs-v4-0-v11-5-72cf8c96e617@nvidia.com>
+Subject: [PATCH v11 06/19] PCI/P2PDMA: Document directional ACS routing
+Date: Tue, 13 Oct 2026 17:25:14 +0300
+Message-ID: <20261013-fix-p2p-acs-v4-0-v11-6-72cf8c96e617@nvidia.com>
 X-Mailer: git-send-email 2.56.0
 In-Reply-To: <20261013-fix-p2p-acs-v4-0-v11-0-72cf8c96e617@nvidia.com>
 References: <20261013-fix-p2p-acs-v4-0-v11-0-72cf8c96e617@nvidia.com>
@@ -73,326 +73,89 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-ACS redirect controls below the path divergence reject valid nested
-topologies, where traffic already has only an upstream route. Sibling
-functions can lack an internal peer route even with redirect controls
-clear, so ignoring their shared ports can incorrectly permit bus
-addressing.
+P2PDMA documentation describes ACS controls as path-wide, although Request
+and Completion controls apply to different transaction directions at the
+path divergence. Functions sharing one PCIe link may instead have no
+internal peer route even with redirect controls clear.
 
-Evaluate directional controls at the divergence and account separately for
-unsupported internal routes between functions sharing a PCIe link. Require
-usable Upstream Forwarding through their shared ports before considering
-the host-bridge route. Reject unreadable ACS controls.
+Document the Requester and Completer roles, the directional controls and
+the separate requirements for sibling functions. Explain that a missing
+internal route requires upstream forwarding and host-bridge support, and
+cannot be created by clearing redirect controls.
 
-Fixes: 52916982af48 ("PCI/P2PDMA: Support peer-to-peer memory")
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/pci/p2pdma.c       | 194 ++++++++++++++++++++++++++++++++++++---------
- include/linux/pci-p2pdma.h |   8 +-
- 2 files changed, 159 insertions(+), 43 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt | 11 ++++----
+ Documentation/driver-api/pci/p2pdma.rst         | 34 +++++++++++++++++++++++++
+ 2 files changed, 40 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index dbab955dcbdb..8ca0c9ba87c2 100644
---- a/drivers/pci/p2pdma.c
-+++ b/drivers/pci/p2pdma.c
-@@ -531,6 +531,7 @@ static u16 pci_acs_p2pdma_quirk_redirect(struct pci_dev *pdev, u16 ctrl)
- }
+diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
+index 68647ff4bdd2..8507ac79a919 100644
+--- a/Documentation/admin-guide/kernel-parameters.txt
++++ b/Documentation/admin-guide/kernel-parameters.txt
+@@ -5292,11 +5292,12 @@ Kernel parameters
+ 				Specify one or more PCI devices (in the format
+ 				specified above) separated by semicolons.
+ 				Each device specified will have the PCI ACS
+-				redirect capabilities forced off which will
+-				allow P2P traffic between devices through
+-				bridges without forcing it upstream. Note:
+-				this removes isolation between devices and
+-				may put more devices in an IOMMU group.
++				P2P Request Redirect, Completion Redirect, and
++				Egress Control features forced off. This may
++				allow P2P traffic through bridges that would
++				otherwise be redirected upstream. Note: this
++				removes isolation between devices and may
++				cause affected devices to share an IOMMU group.
+ 		config_acs=
+ 				Format:
+ 				<ACS flags>@<pci_dev>[; ...]
+diff --git a/Documentation/driver-api/pci/p2pdma.rst b/Documentation/driver-api/pci/p2pdma.rst
+index 80f8fec9b0e9..7b11d7d1fdc6 100644
+--- a/Documentation/driver-api/pci/p2pdma.rst
++++ b/Documentation/driver-api/pci/p2pdma.rst
+@@ -15,6 +15,40 @@ then based on the ACS settings the transaction can route entirely within
+ the PCIe hierarchy and never reach the root port. The kernel will evaluate
+ the PCIe topology and always permit P2P in these well-defined cases.
  
- enum pci_acs_p2pdma_state {
-+	PCI_ACS_P2PDMA_NOT_SUPPORTED,
- 	PCI_ACS_P2PDMA_DIRECT,
- 	PCI_ACS_P2PDMA_REDIRECT,
- };
-@@ -566,8 +567,8 @@ pci_acs_p2pdma_completion(u16 ctrl)
- /*
-  * Read @pdev's ACS Control register, with Request and Completion Redirect
-  * taken from its ACS quirk if it has one. A device with neither has no
-- * peer-to-peer controls at all, which routes the same as having them all
-- * clear. Returns false when the register is present but cannot be read, or
-+ * peer-to-peer controls at all. Whether functions can route internally is
-+ * checked separately. Returns false when the register cannot be read, or
-  * reads as all ones, which is what a device that does not answer returns;
-  * @ctrl is then meaningless.
-  */
-@@ -589,6 +590,65 @@ static bool pci_acs_p2pdma_ctrl(struct pci_dev *pdev, u16 *ctrl)
- 	return true;
- }
- 
-+static bool pci_acs_p2pdma_downstream_port(struct pci_dev *pdev)
-+{
-+	return pci_is_pcie(pdev) &&
-+		(pci_pcie_type(pdev) == PCI_EXP_TYPE_ROOT_PORT ||
-+		 pci_pcie_type(pdev) == PCI_EXP_TYPE_DOWNSTREAM);
-+}
++The client is the PCIe Requester and the provider is the Completer, whether
++the client reads or writes provider memory. For devices on separate links
++below the same Root Port, their paths first meet in a Switch, where they
++diverge.
++A Request enters that Switch through the Downstream Port above the
++Requester, the Requester-side port. If ACS P2P Request Redirect is enabled
++there, the Request is routed upstream; otherwise it is routed back
++downstream through the Downstream Port leading to the Completer, the
++Completer-side port. The path of Completions from a read likewise depends on
++ACS P2P Completion Redirect in the Completer-side port. An enabled Egress
++Control is conservatively treated as a Request redirect.
 +
-+/*
-+ * Only use this for functions sharing a PCIe link. An absent RR or CR
-+ * capability means that the corresponding internal peer route does not
-+ * exist, rather than that a programmable redirect is disabled. Likewise,
-+ * SR-IOV functions that support internal peer traffic must implement ACS.
-+ * Use each VF's own capability, not its PF's.
-+ */
-+static bool pci_acs_p2pdma_no_internal_route(struct pci_dev *pdev, u16 flag)
-+{
-+	if (pci_dev_specific_acs_enabled(pdev, flag) > 0)
-+		return true;
++Below the divergence, the route toward the other branch is already upstream,
++so those P2P redirect controls do not affect it. Redirect controls for the
++reverse transaction directions do not affect the mapping. P2P DMA is routed
++through the host bridge when either applicable port redirects. If an ACS
++Control register cannot be read, P2P DMA is rejected because the kernel cannot
++establish a usable route.
 +
-+	if (pdev->acs_cap)
-+		return !(pdev->acs_capabilities & flag);
++Functions sharing one PCIe link can instead route internally within their
++device. An ACS capability without Request or Completion Redirect support
++means that the corresponding internal route does not exist. Device-specific
++ACS quirks can report the same restriction for functions without ACS, and
++SR-IOV functions without ACS cannot support internal peer traffic. These
++restrictions apply only between functions sharing the link, including ARI
++functions and VFs; they do not redirect traffic to a separate device.
 +
-+	return pdev->is_physfn || pdev->is_virtfn;
-+}
++When traffic between sibling functions goes upstream, ACS Upstream Forwarding
++must be enabled, or provided by a device-specific quirk, at every shared
++Downstream and Root Port on the way to the host bridge. The topology walk
++rejects a host route without this forwarding support. The host bridge must
++also support P2P. Clearing redirect controls cannot create an internal route
++that the device does not support.
 +
-+/*
-+ * Traffic between functions on one link has the same ingress and egress
-+ * at every shared Downstream Port. ACS Upstream Forwarding must carry it
-+ * toward the host instead of back down that link. Missing UF support does
-+ * not establish a forwarding route, even though it satisfies an isolation
-+ * query. Return the first port that cannot establish this route.
-+ */
-+static struct pci_dev *
-+pci_acs_p2pdma_no_upstream_forwarding(struct pci_dev *common)
-+{
-+	struct pci_dev *pdev;
-+	u16 ctrl;
-+
-+	for (pdev = common; pdev; pdev = pci_upstream_bridge(pdev)) {
-+		if (!pci_acs_p2pdma_downstream_port(pdev))
-+			continue;
-+
-+		if (!pci_acs_p2pdma_ctrl(pdev, &ctrl))
-+			return pdev;
-+
-+		/*
-+		 * Include Root Ports here. The PCIe port type check excludes
-+		 * the legacy AMD southbridge quirk, which may sleep.
-+		 */
-+		if (pci_dev_specific_acs_enabled(pdev, PCI_ACS_UF) > 0)
-+			continue;
-+
-+		if (!(pdev->acs_cap && pdev->acs_capabilities & ctrl & PCI_ACS_UF))
-+			return pdev;
-+	}
-+
-+	return NULL;
-+}
-+
- static void seq_buf_print_bus_devfn(struct seq_buf *buf, struct pci_dev *pdev)
- {
- 	if (!buf)
-@@ -638,7 +698,7 @@ static void pci_p2pdma_warn_redir(struct pci_dev *client,
- 			 seq_buf_str(quirk_list));
- 	if (pci_p2pdma_end_list(acs_list))
- 		pci_warn(client,
--			 "to disable ACS redirect for this path, add the kernel parameter: pci=disable_acs_redir=%s\n",
-+			 "to disable ACS controls for this path, add the kernel parameter: pci=disable_acs_redir=%s\n",
- 			 seq_buf_str(acs_list));
- }
- 
-@@ -807,9 +867,10 @@ static unsigned long map_types_idx(struct pci_dev *client)
-  * If the two devices are the same PCI function, return
-  * PCI_P2PDMA_MAP_BUS_ADDR and a distance of 0.
-  *
-- * If they are two functions of the same device, return
-- * PCI_P2PDMA_MAP_BUS_ADDR and a distance of 2 (one hop up to the bridge,
-- * then one hop back down to another function of the same device).
-+ * If they are two functions of the same device, return a distance of 2.
-+ * A bus address requires an internal route between the functions. Otherwise,
-+ * Upstream Forwarding must carry the traffic through their shared ports
-+ * toward a supported host bridge.
-  *
-  * In the case where two devices are connected to the same PCIe switch,
-  * return a distance of 4. This corresponds to the following PCI tree:
-@@ -826,13 +887,14 @@ static unsigned long map_types_idx(struct pci_dev *client)
-  * then to Device B. The mapping type returned depends on the ACS
-  * redirection setting of the ports along the path.
-  *
-- * The client is the Requester and the provider the Completer. Check Request
-- * Redirect on the Requester's path and Completion Redirect for read
-- * Completions on the Completer's path.
-+ * The client is the Requester and the provider the Completer. At the path
-+ * divergence, check Request Redirect and Egress Control on the Requester-side
-+ * port, and Completion Redirect for read Completions on the Completer-side
-+ * port.
-  *
-- * If ACS redirect is set on any port in the path, traffic between the
-- * devices will go through the host bridge, so return
-- * PCI_P2PDMA_MAP_THRU_HOST_BRIDGE; otherwise return
-+ * If ACS redirects traffic at either divergence port, return
-+ * PCI_P2PDMA_MAP_THRU_HOST_BRIDGE. If the ACS Control register cannot be
-+ * read, return PCI_P2PDMA_MAP_NOT_SUPPORTED. Otherwise, return
-  * PCI_P2PDMA_MAP_BUS_ADDR.
-  *
-  * Any two devices that have a data path that goes through the host bridge
-@@ -846,10 +908,15 @@ calc_map_type_and_dist(struct pci_dev *provider, struct pci_dev *client,
- 		int *dist, bool verbose)
- {
- 	enum pci_p2pdma_map_type map_type = PCI_P2PDMA_MAP_THRU_HOST_BRIDGE;
-+	enum pci_acs_p2pdma_state state = PCI_ACS_P2PDMA_NOT_SUPPORTED;
- 	struct pci_dev *a = provider, *b = client, *bb;
-+	struct pci_dev *a_child = NULL, *b_child = NULL;
-+	struct pci_dev *acs_unreadable = NULL;
-+	struct pci_dev *uf_blocked = NULL;
- 	struct pci_p2pdma *p2pdma;
- 	struct seq_buf acs_list, quirk_list;
--	int acs_cnt = 0;
-+	bool req_upstream = false, cpl_upstream = false;
-+	int acs_redirect_cnt = 0;
- 	int dist_a = 0;
- 	int dist_b = 0;
- 	char buf[128], quirk_buf[64];
-@@ -865,57 +932,106 @@ calc_map_type_and_dist(struct pci_dev *provider, struct pci_dev *client,
- 	 */
- 	while (a) {
- 		dist_b = 0;
--
--		if (!pci_acs_p2pdma_ctrl(a, &ctrl) ||
--		    pci_acs_p2pdma_completion(ctrl) ==
--			    PCI_ACS_P2PDMA_REDIRECT) {
--			pci_p2pdma_list_redir(&acs_list, &quirk_list, a);
--			acs_cnt++;
--		}
--
-+		b_child = NULL;
- 		bb = b;
- 
- 		while (bb) {
- 			if (a == bb)
--				goto check_b_path_acs;
-+				goto check_paths_acs;
- 
-+			b_child = bb;
- 			bb = pci_upstream_bridge(bb);
- 			dist_b++;
- 		}
- 
-+		a_child = a;
- 		a = pci_upstream_bridge(a);
- 		dist_a++;
- 	}
- 
-+	/*
-+	 * The paths share no upstream bridge, so there is no direct path for
-+	 * ACS to gate: PCI_P2PDMA_MAP_BUS_ADDR is not reachable here and the
-+	 * request can only get to the peer through the host bridge.
-+	 */
- 	*dist = dist_a + dist_b;
- 	goto map_through_host_bridge;
- 
--check_b_path_acs:
--	bb = b;
--
--	while (bb) {
--		if (a == bb)
--			break;
-+check_paths_acs:
-+	*dist = dist_a + dist_b;
- 
--		if (!pci_acs_p2pdma_ctrl(bb, &ctrl) ||
--		    pci_acs_p2pdma_request(ctrl) ==
--			    PCI_ACS_P2PDMA_REDIRECT) {
--			pci_p2pdma_list_redir(&acs_list, &quirk_list, bb);
--			acs_cnt++;
-+	/*
-+	 * ACS P2P routing controls apply where a TLP can route toward the peer
-+	 * or upstream. Below that divergence, its only route toward the other
-+	 * branch is upstream, so redirect controls do not affect the path.
-+	 */
-+	if (a_child && b_child) {
-+		if (pci_acs_p2pdma_ctrl(a_child, &ctrl))
-+			state = pci_acs_p2pdma_completion(ctrl);
-+		if (state != PCI_ACS_P2PDMA_DIRECT) {
-+			pci_p2pdma_list_redir(&acs_list, &quirk_list, a_child);
-+			if (state == PCI_ACS_P2PDMA_REDIRECT)
-+				acs_redirect_cnt++;
-+			else if (!acs_unreadable)
-+				acs_unreadable = a_child;
- 		}
- 
--		bb = pci_upstream_bridge(bb);
-+		state = PCI_ACS_P2PDMA_NOT_SUPPORTED;
-+		if (pci_acs_p2pdma_ctrl(b_child, &ctrl))
-+			state = pci_acs_p2pdma_request(ctrl);
-+		if (state != PCI_ACS_P2PDMA_DIRECT) {
-+			pci_p2pdma_list_redir(&acs_list, &quirk_list, b_child);
-+			if (state == PCI_ACS_P2PDMA_REDIRECT)
-+				acs_redirect_cnt++;
-+			else if (!acs_unreadable)
-+				acs_unreadable = b_child;
-+		}
-+		/*
-+		 * Two children of one Downstream or Root Port share a link.
-+		 * Use topology rather than slot numbers or the multifunction
-+		 * bit, since ARI functions and VFs need not share those.
-+		 */
-+		if (pci_acs_p2pdma_downstream_port(a)) {
-+			req_upstream =
-+				pci_acs_p2pdma_no_internal_route(b_child, PCI_ACS_RR);
-+			cpl_upstream =
-+				pci_acs_p2pdma_no_internal_route(a_child, PCI_ACS_CR);
-+			uf_blocked = pci_acs_p2pdma_no_upstream_forwarding(a);
-+		}
- 	}
- 
--	*dist = dist_a + dist_b;
--
--	if (!acs_cnt) {
-+	/*
-+	 * Below a shared upstream bridge, a path whose divergence ports do not
-+	 * redirect routes the request directly.
-+	 */
-+	if (!acs_unreadable && !acs_redirect_cnt &&
-+	    !req_upstream && !cpl_upstream) {
- 		map_type = PCI_P2PDMA_MAP_BUS_ADDR;
- 		goto done;
- 	}
- 
--	if (verbose)
--		pci_p2pdma_warn_redir(client, provider, &acs_list, &quirk_list);
-+	if (verbose) {
-+		if (acs_unreadable)
-+			pci_warn(client, "ACS Control is unreadable for provider %s at %s\n",
-+				 pci_name(provider), pci_name(acs_unreadable));
-+		else if (uf_blocked)
-+			pci_warn(client,
-+				 "cannot forward peer-to-peer DMA for provider %s upstream at %s\n",
-+				 pci_name(provider), pci_name(uf_blocked));
-+		else if (req_upstream || cpl_upstream)
-+			pci_warn(client,
-+				 "peer-to-peer DMA with provider %s requires the host bridge; no internal route between functions\n",
-+				 pci_name(provider));
-+		else
-+			pci_p2pdma_warn_redir(client, provider, &acs_list,
-+					      &quirk_list);
-+	}
-+
-+	/* An unreadable control or unusable forwarding leaves no route. */
-+	if (acs_unreadable || uf_blocked) {
-+		map_type = PCI_P2PDMA_MAP_NOT_SUPPORTED;
-+		goto done;
-+	}
- 
- map_through_host_bridge:
- 	if (!cpu_supports_p2pdma() &&
-diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
-index 873de20a2247..dd17501ba1b6 100644
---- a/include/linux/pci-p2pdma.h
-+++ b/include/linux/pci-p2pdma.h
-@@ -42,10 +42,10 @@ enum pci_p2pdma_map_type {
- 	PCI_P2PDMA_MAP_NONE,
- 
- 	/*
--	 * PCI_P2PDMA_MAP_NOT_SUPPORTED: Indicates the transaction will
--	 * traverse the host bridge and the host bridge is not in the
--	 * allowlist. DMA Mapping routines should return an error when
--	 * this is returned.
-+	 * PCI_P2PDMA_MAP_NOT_SUPPORTED: Indicates no safe mapping is available,
-+	 * for example because ACS blocks the direct path or the required host
-+	 * bridge is not in the allowlist. DMA Mapping routines should return an
-+	 * error when this is returned.
- 	 */
- 	PCI_P2PDMA_MAP_NOT_SUPPORTED,
- 
+ This evaluation assumes clients issue strictly ordered Requests carrying an
+ Untranslated address. Its result is not defined when clients use Relaxed
+ Ordering or issue ATS-translated Requests because those TLP attributes can
 
 -- 
 2.55.0
