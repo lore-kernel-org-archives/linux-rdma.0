@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CAC5516172;
-	Tue, 13 Oct 2026 14:26:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA91F5172D9;
+	Tue, 13 Oct 2026 14:26:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791901601; cv=none; b=eLAX1UoHC2I0ejjg2d59y3CVnGDmSWT5i6mexdWqlRziMTs6T6OXYoohB6jHhAMg434Vbo6avtc/tLcH7g85cMiKM+8mk8w+LJ3l4FTzk6QgOTBpMy2CD6D6YlbTbGh+GbuNW6n8ZLusFPuRUTuuyKKodAqT6CWrnnswt8VnNYk=
+	t=1791901604; cv=none; b=rTQxnxc43Aun0RgyErl6Xu8bCPEJDA1qykwkuX7k6nGl3X6gzRP/0Dy1i8Jr/hwJw2FjYXOtlxKZt3FJyeKINrX8TaiLveosgTyrWVc5k2R87OWufQ7+QdM8LwfIk9KH1GnRfptnW/DtMyw93o8udLDJAQL6XlrRZo9fsm2KJZ0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791901601; c=relaxed/simple;
-	bh=eVgDhmktm2ID3yrO5hkWMRP5POsIIOJKQYn+KUzGGAU=;
+	s=arc-20240116; t=1791901604; c=relaxed/simple;
+	bh=z5qgsyfwEppvMh+L8jAPZNd/f5fLcIIC/ZbeSVdfHfg=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=pNRYscJg/QQE2cnwQYFYqu6aGaANM7UOX8iaKQmzeGv5MVw8KUKYXnLMr/KFchdVfYT2AlDuqkRJKXxfusHsjOGHVcfj+Zwz2BnWOAKjZ5gX8LFtcuhRtUwF3peaFH8HXYNugb0OAkwyM5809oxPNuHbyGj9XxKiyvX+WhWjYrc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hckA3dfL; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=CQRuml6gGHz2V3BSAu2+qn/ygmpmS9byVNexTyfnmqMLHKNfegpz54Bo1Fkxo3P6Bl+0m5aLqR77FCDZXp3xnEIb7PT6Ij/wUrBdDaa0dIo1rGhog+JT3spzUTLDW4P12SLJniuRrMfY9e9XNtqfeRcWdSsjjzfLj5Jju+P/s28=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SAALQ1RV; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hckA3dfL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8635F1F00893;
-	Tue, 13 Oct 2026 14:26:38 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SAALQ1RV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CC701F000FF;
+	Tue, 13 Oct 2026 14:26:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791901599;
-	bh=tRrrVZZV2OW/P/qYc4cTmGf7NKNnra7EkLMYeNbv9Js=;
+	s=k20260515; t=1791901602;
+	bh=lXnbDQMIe65nig4QUpHjAIbQDXx7h0WMsGKBGXtMSEs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=hckA3dfLdXXV3fuAlqrpyPpv7T5w4mBTuQASXZJl9GYFhxOD7Il4s3eTVUOiOJGV+
-	 ndUmeozd9UgjphNYwfy0XFxl7g4eTCnN9Kk2wB6YqwPYB3nQFgbAmqBxg7KNaShpH8
-	 0lrExvZxcpRqdrTmSqZnSniA8du0kNoKhnXTdRMwA20LxFk31v/gp1E7gYVRZf4Qon
-	 mlRjqKXiDlVkxhiuca0o5wMkwk6vT59Gv2ROPRH/dON2aqRVeQGyLN6ZqqW0Tt6uPp
-	 XCOOWz21o7skY9/L+NOCxCAU9sAbQZ65JaFI3V4Z44bWanNl+tyoigOxtNG/RX84kK
-	 oarHlcz+e6Bxg==
+	b=SAALQ1RVKKu5maDZbCWOW8DbI8mAIWVZH/j9mTMLBMc87yx1VnCxUrhSIWLRgfK94
+	 VHhuuCXBbicY8oZikShEmq4eww5aNmNnaasQEktDbvMNEdvCKHhq4Vq2qWXSDvIbbf
+	 Yb65CNlmsPcYYK1kDYyfyCi+zbpW1geECRpHJR29I/UGWSq9AVXKjD91lFak7Argvt
+	 8gXDJvXHk0+cRX+qyK1GoqdHbjsjn6xr+ImTnBjyldJjxoPc7J20OmeSe/Kz6Vd2MD
+	 FZ08rKAfBtSrqc+zoeahxl0WOhTllsanViB5/e3GUlsrOlmAshuhyvOrfVSqXwIsqi
+	 X6p8gfGrOTsjg==
 From: Leon Romanovsky <leon@kernel.org>
 To: Bjorn Helgaas <bhelgaas@google.com>,
 	Logan Gunthorpe <logang@deltatee.com>,
@@ -55,9 +55,9 @@ Cc: linux-pci@vger.kernel.org,
 	Shuah Khan <skhan@linuxfoundation.org>,
 	Randy Dunlap <rdunlap@infradead.org>,
 	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: [PATCH v11 13/19] PCI/P2PDMA: Add KUnit tests for the ACS routing decisions
-Date: Tue, 13 Oct 2026 17:25:21 +0300
-Message-ID: <20261013-fix-p2p-acs-v4-0-v11-13-72cf8c96e617@nvidia.com>
+Subject: [PATCH v11 18/19] PCI/P2PDMA: Evaluate the ATS path for clients with ATS enabled
+Date: Tue, 13 Oct 2026 17:25:26 +0300
+Message-ID: <20261013-fix-p2p-acs-v4-0-v11-18-72cf8c96e617@nvidia.com>
 X-Mailer: git-send-email 2.56.0
 In-Reply-To: <20261013-fix-p2p-acs-v4-0-v11-0-72cf8c96e617@nvidia.com>
 References: <20261013-fix-p2p-acs-v4-0-v11-0-72cf8c96e617@nvidia.com>
@@ -73,330 +73,205 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-pci_acs_p2pdma_request() and pci_acs_p2pdma_completion() turn an ACS
-Control register and a TLP class into a routing decision. Which bits apply
-to which direction and which class is easy to get wrong, and hardware that
-exposes a given combination may not be at hand.
+P2PDMA assumes every client issues Untranslated Requests. A device with
+ATS enabled may translate any address it is handed, including a bus
+address, and Translation Blocking can reject its Translated Requests on
+a route the Untranslated answer called usable.
 
-Drive both from a table of register values and classes, covering the
-redirect controls per direction and Translation Blocking, Direct Translated
-P2P and Relaxed Ordering. Direct Translated P2P gets a case with and
-without a redirect to override, since it changes nothing without one.
-Exposing the two helpers moves their state enum and the TLP flags into
-pci.h.
+Unless the client declared per-mapping ATS, take the Address Type from
+its ATS Enable bit. Never hand such a client bus addresses: only an IOVA
+survives translation, and whatever it issues untranslated goes through
+the host bridge, whose route must therefore be usable. Apply this after
+the topology-only cache, and in pci_p2pdma_distance_many() too, so that
+provider selection agrees with the mapping.
 
-Tested-by: Tushar Dave <tdave@nvidia.com>
+Reviewed-by: Thomas Hellström <thomas.hellstrom@linux.intel.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/pci/Kconfig        |  15 ++++++
- drivers/pci/Makefile       |   1 +
- drivers/pci/p2pdma.c       |  38 ++------------
- drivers/pci/pci.h          |  41 +++++++++++++++
- drivers/pci/pci_acs_test.c | 122 +++++++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 183 insertions(+), 34 deletions(-)
+ Documentation/driver-api/pci/p2pdma.rst |  8 +++
+ drivers/pci/p2pdma.c                    | 92 ++++++++++++++++++++++++++++++---
+ 2 files changed, 93 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
-index 0c7408509ba2..7a3eb5beb328 100644
---- a/drivers/pci/Kconfig
-+++ b/drivers/pci/Kconfig
-@@ -226,6 +226,21 @@ config PCI_P2PDMA
+diff --git a/Documentation/driver-api/pci/p2pdma.rst b/Documentation/driver-api/pci/p2pdma.rst
+index 05f896a0814b..c004b6dc028f 100644
+--- a/Documentation/driver-api/pci/p2pdma.rst
++++ b/Documentation/driver-api/pci/p2pdma.rst
+@@ -62,6 +62,14 @@ P2PDMA therefore decides each class of traffic separately, and
+ ``pci_p2pdma_map_type()`` answers for the one a DMA mapping is built for:
+ strictly ordered Requests carrying an Untranslated address.
  
- 	  If unsure, say N.
- 
-+config PCI_ACS_KUNIT_TEST
-+	tristate "KUnit tests for PCI ACS P2P routing" if !KUNIT_ALL_TESTS
-+	depends on PCI_P2PDMA && KUNIT
-+	default KUNIT_ALL_TESTS
-+	help
-+	  Enable KUnit tests for the PCI ACS peer-to-peer routing decision
-+	  logic, including direction-specific Request and Completion
-+	  controls that cannot all be exercised on typical peer-to-peer
-+	  hardware.
++The PCIe ATS Enable bit covers the whole device, and most devices translate
++any address they are handed once it is set. Unless a driver has declared with
++``pcim_p2pdma_set_ats_per_mapping()`` that its device chooses ATS per mapping,
++that bit decides which Address Type P2PDMA assumes, and a client with ATS
++enabled is never handed a bus address, which it would translate as though it
++were an IOVA. Its Translated Requests may still route directly, but anything
++it issues untranslated reaches the host bridge, so that route has to work too.
 +
-+	  For more information on KUnit and unit tests in general, refer to
-+	  the KUnit documentation in Documentation/dev-tools/kunit/.
-+
-+	  If unsure, say N.
-+
- config PCI_LABEL
- 	def_bool y if (DMI || ACPI)
- 	select NLS
-diff --git a/drivers/pci/Makefile b/drivers/pci/Makefile
-index 41ebc3b9a518..6305d128d3df 100644
---- a/drivers/pci/Makefile
-+++ b/drivers/pci/Makefile
-@@ -31,6 +31,7 @@ obj-$(CONFIG_PCI_STUB)		+= pci-stub.o
- obj-$(CONFIG_PCI_PF_STUB)	+= pci-pf-stub.o
- obj-$(CONFIG_PCI_ECAM)		+= ecam.o
- obj-$(CONFIG_PCI_P2PDMA)	+= p2pdma.o
-+obj-$(CONFIG_PCI_ACS_KUNIT_TEST) += pci_acs_test.o
- obj-$(CONFIG_XEN_PCIDEV_FRONTEND) += xen-pcifront.o
- obj-$(CONFIG_VGA_ARB)		+= vgaarb.o
- obj-$(CONFIG_PCI_DOE)		+= doe.o
+ The two directions are decided independently. Translation Blocking (TB),
+ Direct Translated P2P (DT), Request Redirect (RR) and Egress Control (EC) on
+ the Requester-side port decide the Request:
 diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index d9f6b05cb3c0..340f149a4d88 100644
+index 144314ab5fae..a81cd37a1834 100644
 --- a/drivers/pci/p2pdma.c
 +++ b/drivers/pci/p2pdma.c
-@@ -530,38 +530,6 @@ static u16 pci_acs_p2pdma_quirk_redirect(struct pci_dev *pdev, u16 ctrl)
- 	return ctrl;
+@@ -1448,6 +1448,59 @@ calc_map_type_and_dist(struct pci_dev *provider, struct pci_dev *client,
  }
+ EXPORT_SYMBOL_IF_KUNIT(calc_map_type_and_dist);
  
--/**
-- * enum pci_p2pdma_tlp_flags - Properties of the TLPs a client will issue
-- *
-- * These describe the traffic rather than the topology, and select which ACS
-- * controls apply along the peer-to-peer path. A value of 0 means strictly
-- * ordered Requests carrying an Untranslated address.
-- *
-- * @PCI_P2PDMA_TLP_TRANSLATED: Requests carry an ATS Translated address. PCIe
-- *	r7.0 sec 6.12.3 routes those to the peer regardless of ACS P2P Request
-- *	Redirect and ACS P2P Egress Control wherever ACS Direct Translated P2P
-- *	is enabled.
-- * @PCI_P2PDMA_TLP_RELAXED_CPL: Non-Posted Requests carry the Relaxed
-- *	Ordering attribute, and PCIe r7.0 sec 2.2.9.1 requires the Completer to
-- *	return it in their Completions. Sec 6.12.1.1 never redirects those, so
-- *	ACS P2P Completion Redirect does not gate the path.
-- */
--enum pci_p2pdma_tlp_flags {
--	PCI_P2PDMA_TLP_TRANSLATED	= 1 << 0,
--	PCI_P2PDMA_TLP_RELAXED_CPL	= 1 << 1,
--};
--
--/* Every combination of the flags above selects one routing class. */
--#define PCI_P2PDMA_TLP_CLASSES \
--	((PCI_P2PDMA_TLP_TRANSLATED | PCI_P2PDMA_TLP_RELAXED_CPL) + 1)
--
--enum pci_acs_p2pdma_state {
--	PCI_ACS_P2PDMA_NOT_SUPPORTED,
--	PCI_ACS_P2PDMA_DIRECT,
--	PCI_ACS_P2PDMA_REDIRECT,
--	PCI_ACS_P2PDMA_BLOCKED,
--};
--
- /*
-  * Decide how a peer-to-peer Request at an ACS-capable ingress port routes,
-  * from that port's ACS Control register and the Request's Address Type.
-@@ -571,7 +539,7 @@ enum pci_acs_p2pdma_state {
-  * selects are a direct route and an ACS Violation, and neither one lets peer
-  * bus addressing be assumed.
-  */
--static enum pci_acs_p2pdma_state
-+VISIBLE_IF_KUNIT enum pci_acs_p2pdma_state
- pci_acs_p2pdma_request(u16 ctrl, unsigned int tlp_flags)
- {
- 	if (tlp_flags & PCI_P2PDMA_TLP_TRANSLATED) {
-@@ -598,6 +566,7 @@ pci_acs_p2pdma_request(u16 ctrl, unsigned int tlp_flags)
- 	return ctrl & (PCI_ACS_RR | PCI_ACS_EC) ?
- 		PCI_ACS_P2PDMA_REDIRECT : PCI_ACS_P2PDMA_DIRECT;
- }
-+EXPORT_SYMBOL_IF_KUNIT(pci_acs_p2pdma_request);
- 
- /*
-  * Decide how a peer-to-peer Completion at an ACS-capable ingress port routes.
-@@ -605,7 +574,7 @@ pci_acs_p2pdma_request(u16 ctrl, unsigned int tlp_flags)
-  * affects a Completion, and that one leaves Completions carrying the Relaxed
-  * Ordering attribute alone.
-  */
--static enum pci_acs_p2pdma_state
-+VISIBLE_IF_KUNIT enum pci_acs_p2pdma_state
- pci_acs_p2pdma_completion(u16 ctrl, unsigned int tlp_flags)
- {
- 	if (tlp_flags & PCI_P2PDMA_TLP_RELAXED_CPL)
-@@ -614,6 +583,7 @@ pci_acs_p2pdma_completion(u16 ctrl, unsigned int tlp_flags)
- 	return ctrl & PCI_ACS_CR ? PCI_ACS_P2PDMA_REDIRECT :
- 				   PCI_ACS_P2PDMA_DIRECT;
- }
-+EXPORT_SYMBOL_IF_KUNIT(pci_acs_p2pdma_completion);
- 
- static const char *pci_acs_p2pdma_state_name(enum pci_acs_p2pdma_state state)
- {
-diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
-index ba3c3fddddc2..302b79d3977f 100644
---- a/drivers/pci/pci.h
-+++ b/drivers/pci/pci.h
-@@ -2,6 +2,7 @@
- #ifndef DRIVERS_PCI_H
- #define DRIVERS_PCI_H
- 
-+#include <kunit/visibility.h>
- #include <linux/bug.h>
- #include <linux/align.h>
- #include <linux/bitfield.h>
-@@ -1093,6 +1094,46 @@ resource_size_t pci_min_window_alignment(struct pci_bus *bus,
- 
- void pci_acs_init(struct pci_dev *dev);
- void pci_enable_acs(struct pci_dev *dev);
++static unsigned int pci_p2pdma_client_tlp_flags(struct pci_dev *client,
++						unsigned int tlp_flags)
++{
++	if (client->ats_enabled)
++		return tlp_flags | PCI_P2PDMA_TLP_TRANSLATED;
 +
-+/**
-+ * enum pci_p2pdma_tlp_flags - Properties of the TLPs a client will issue
-+ *
-+ * These describe the traffic rather than the topology, and select which ACS
-+ * controls apply along the peer-to-peer path. A value of 0 means strictly
-+ * ordered Requests carrying an Untranslated address.
-+ *
-+ * @PCI_P2PDMA_TLP_TRANSLATED: Requests carry an ATS Translated address. PCIe
-+ *	r7.0 sec 6.12.3 routes those to the peer regardless of ACS P2P Request
-+ *	Redirect and ACS P2P Egress Control wherever ACS Direct Translated P2P
-+ *	is enabled.
-+ * @PCI_P2PDMA_TLP_RELAXED_CPL: Non-Posted Requests carry the Relaxed
-+ *	Ordering attribute, and PCIe r7.0 sec 2.2.9.1 requires the Completer to
-+ *	return it in their Completions. Sec 6.12.1.1 never redirects those, so
-+ *	ACS P2P Completion Redirect does not gate the path.
-+ */
-+enum pci_p2pdma_tlp_flags {
-+	PCI_P2PDMA_TLP_TRANSLATED	= 1 << 0,
-+	PCI_P2PDMA_TLP_RELAXED_CPL	= 1 << 1,
-+};
++	return tlp_flags & ~PCI_P2PDMA_TLP_TRANSLATED;
++}
 +
-+/* Every combination of the flags above selects one routing class. */
-+#define PCI_P2PDMA_TLP_CLASSES \
-+	((PCI_P2PDMA_TLP_TRANSLATED | PCI_P2PDMA_TLP_RELAXED_CPL) + 1)
-+
-+enum pci_acs_p2pdma_state {
-+	PCI_ACS_P2PDMA_NOT_SUPPORTED,
-+	PCI_ACS_P2PDMA_DIRECT,
-+	PCI_ACS_P2PDMA_REDIRECT,
-+	PCI_ACS_P2PDMA_BLOCKED,
-+};
-+
-+#if IS_ENABLED(CONFIG_KUNIT)
-+enum pci_acs_p2pdma_state pci_acs_p2pdma_request(u16 ctrl,
-+						unsigned int tlp_flags);
-+enum pci_acs_p2pdma_state pci_acs_p2pdma_completion(u16 ctrl,
-+						    unsigned int tlp_flags);
-+#endif
-+
- #ifdef CONFIG_PCI_QUIRKS
- int pci_dev_specific_acs_enabled(struct pci_dev *dev, u16 acs_flags);
- int pci_dev_specific_enable_acs(struct pci_dev *dev);
-diff --git a/drivers/pci/pci_acs_test.c b/drivers/pci/pci_acs_test.c
-new file mode 100644
-index 000000000000..18bcc4b8e758
---- /dev/null
-+++ b/drivers/pci/pci_acs_test.c
-@@ -0,0 +1,122 @@
-+// SPDX-License-Identifier: GPL-2.0
 +/*
-+ * KUnit tests for PCI ACS peer-to-peer routing decisions.
++ * A client that translates every address it is handed cannot be handed a bus
++ * address, which it would translate as though it were an IOVA. Its Translated
++ * Requests may still route directly, but a Request it issues without a
++ * translation carries the IOVA to the host bridge, so that route has to work
++ * as well.
 + *
-+ * These exercise Request and Completion routing independently of the ACS
-+ * settings exposed by available PCIe hardware.
++ * Take the Address Type from @tlp_flags rather than reading the ATS Enable
++ * bit again, so the policy and the class it applies to always agree.
 + */
-+#include <kunit/test.h>
++static enum pci_p2pdma_map_type
++pci_p2pdma_client_map_type(struct pci_dev *provider, struct pci_dev *client,
++			   bool per_mapping, unsigned int tlp_flags,
++			   enum pci_p2pdma_map_type type)
++{
++	if (per_mapping || !(tlp_flags & PCI_P2PDMA_TLP_TRANSLATED) ||
++	    type != PCI_P2PDMA_MAP_BUS_ADDR)
++		return type;
 +
-+#include <linux/pci.h>
-+#include <linux/pci-p2pdma.h>
-+#include <linux/pci_regs.h>
++	pci_dbg(client,
++		"P2PDMA ACS: provider=%s bus address withheld; ATS is enabled for the whole client\n",
++		 pci_name(provider));
 +
-+#include "pci.h"
++	if (cpu_supports_p2pdma() ||
++	    host_bridge_whitelist(provider, client, false))
++		return PCI_P2PDMA_MAP_THRU_HOST_BRIDGE;
 +
-+struct acs_decision_case {
-+	const char *desc;
-+	u16 ctrl;
++	return PCI_P2PDMA_MAP_NOT_SUPPORTED;
++}
++
++/* Whether the driver of @client called pcim_p2pdma_set_ats_per_mapping(). */
++static bool pci_p2pdma_client_per_mapping(struct pci_dev *client)
++{
++	struct pci_p2pdma *p2pdma;
++	bool per_mapping;
++
++	rcu_read_lock();
++	p2pdma = rcu_dereference(client->p2pdma);
++	per_mapping = p2pdma && p2pdma->ats_per_mapping;
++	rcu_read_unlock();
++
++	return per_mapping;
++}
++
+ /**
+  * pci_p2pdma_distance_many - Determine the cumulative distance between
+  *	a p2pdma provider and the clients in use.
+@@ -1463,15 +1516,19 @@ EXPORT_SYMBOL_IF_KUNIT(calc_map_type_and_dist);
+  *
+  * "compatible" means the provider and the clients are either all behind
+  * the same PCI root port or the host bridges connected to each of the devices
+- * are listed in the 'pci_p2pdma_whitelist'.
++ * are listed in the 'pci_p2pdma_whitelist'. Each client is judged the way
++ * pci_p2pdma_map_type() maps it, so one with ATS enabled for the whole device
++ * also needs a host bridge that supports peer-to-peer DMA.
+  */
+ int pci_p2pdma_distance_many(struct pci_dev *provider, struct device **clients,
+ 			     int num_clients, bool verbose)
+ {
+-	enum pci_p2pdma_map_type map;
++	enum pci_p2pdma_map_type map, type;
+ 	bool not_supported = false;
+ 	struct pci_dev *pci_client;
 +	unsigned int tlp_flags;
-+	enum pci_acs_p2pdma_state expect;
-+};
-+
-+/* Shorthands to keep the tables below readable. */
-+#define ACS_DIRECT	PCI_ACS_P2PDMA_DIRECT
-+#define ACS_REDIR	PCI_ACS_P2PDMA_REDIRECT
-+#define ACS_RO		PCI_P2PDMA_TLP_RELAXED_CPL
-+#define ACS_AT		PCI_P2PDMA_TLP_TRANSLATED
-+#define ACS_BLOCK	PCI_ACS_P2PDMA_BLOCKED
-+
-+/* Request routing ignores Completion Redirect. */
-+static const struct acs_decision_case acs_request_cases[] = {
-+	{ "req/none", 0, 0, ACS_DIRECT },
-+	{ "req/rr", PCI_ACS_RR, 0, ACS_REDIR },
-+	{ "req/cr", PCI_ACS_CR, 0, ACS_DIRECT },
-+	{ "req/rr_cr", PCI_ACS_RR | PCI_ACS_CR, 0, ACS_REDIR },
-+	{ "req/ec", PCI_ACS_EC, 0, ACS_REDIR },
-+	{ "req/ec_cr", PCI_ACS_EC | PCI_ACS_CR, 0, ACS_REDIR },
-+
-+	/*
-+	 * Direct Translated P2P overrides the redirect controls, but only for
-+	 * a Request that actually carries a Translated address.
-+	 */
-+	{ "req/dt", PCI_ACS_DT, 0, ACS_DIRECT },
-+	{ "req/dt_rr", PCI_ACS_DT | PCI_ACS_RR, 0, ACS_REDIR },
-+	{ "req/at", 0, ACS_AT, ACS_DIRECT },
-+	{ "req/at_rr", PCI_ACS_RR, ACS_AT, ACS_REDIR },
-+	{ "req/at_dt", PCI_ACS_DT, ACS_AT, ACS_DIRECT },
-+	{ "req/at_dt_rr", PCI_ACS_DT | PCI_ACS_RR, ACS_AT, ACS_DIRECT },
-+	{ "req/at_dt_ec", PCI_ACS_DT | PCI_ACS_EC, ACS_AT, ACS_DIRECT },
-+
-+	/*
-+	 * Translation Blocking rejects a Translated address outright, and
-+	 * makes the port ignore Direct Translated P2P.
-+	 */
-+	{ "req/tb", PCI_ACS_TB, 0, ACS_DIRECT },
-+	{ "req/tb_rr", PCI_ACS_TB | PCI_ACS_RR, 0, ACS_REDIR },
-+	{ "req/at_tb", PCI_ACS_TB, ACS_AT, ACS_BLOCK },
-+	{ "req/at_tb_dt", PCI_ACS_TB | PCI_ACS_DT, ACS_AT, ACS_BLOCK },
-+};
-+
-+/* Completion routing depends only on Completion Redirect. */
-+static const struct acs_decision_case acs_completion_cases[] = {
-+	{ "cpl/none", 0, 0, ACS_DIRECT },
-+	{ "cpl/rr", PCI_ACS_RR, 0, ACS_DIRECT },
-+	{ "cpl/cr", PCI_ACS_CR, 0, ACS_REDIR },
-+	{ "cpl/rr_cr", PCI_ACS_RR | PCI_ACS_CR, 0, ACS_REDIR },
-+	{ "cpl/ec", PCI_ACS_EC, 0, ACS_DIRECT },
-+	{ "cpl/ec_cr", PCI_ACS_EC | PCI_ACS_CR, 0, ACS_REDIR },
-+
-+	/* Relaxed Ordering Completions are never redirected. */
-+	{ "cpl/ro", 0, ACS_RO, ACS_DIRECT },
-+	{ "cpl/ro_cr", PCI_ACS_CR, ACS_RO, ACS_DIRECT },
-+	{ "cpl/ro_rr_cr", PCI_ACS_RR | PCI_ACS_CR, ACS_RO, ACS_DIRECT },
-+};
-+
-+#undef ACS_DIRECT
-+#undef ACS_REDIR
-+#undef ACS_RO
-+#undef ACS_AT
-+#undef ACS_BLOCK
-+
-+static void acs_decision_desc(const struct acs_decision_case *c, char *desc)
-+{
-+	strscpy(desc, c->desc, KUNIT_PARAM_DESC_SIZE);
-+}
-+
-+KUNIT_ARRAY_PARAM(acs_request, acs_request_cases, acs_decision_desc);
-+KUNIT_ARRAY_PARAM(acs_completion, acs_completion_cases, acs_decision_desc);
-+
-+static void pci_acs_p2pdma_request_test(struct kunit *test)
-+{
-+	const struct acs_decision_case *c = test->param_value;
-+
-+	KUNIT_EXPECT_EQ(test, pci_acs_p2pdma_request(c->ctrl, c->tlp_flags),
-+			c->expect);
-+}
-+
-+static void pci_acs_p2pdma_completion_test(struct kunit *test)
-+{
-+	const struct acs_decision_case *c = test->param_value;
-+
-+	KUNIT_EXPECT_EQ(test, pci_acs_p2pdma_completion(c->ctrl, c->tlp_flags),
-+			c->expect);
-+}
-+
-+static struct kunit_case pci_acs_test_cases[] = {
-+	KUNIT_CASE_PARAM(pci_acs_p2pdma_request_test,
-+			 acs_request_gen_params),
-+	KUNIT_CASE_PARAM(pci_acs_p2pdma_completion_test,
-+			 acs_completion_gen_params),
-+	{}
-+};
-+
-+static struct kunit_suite pci_acs_test_suite = {
-+	.name = "pci_acs",
-+	.test_cases = pci_acs_test_cases,
-+};
-+kunit_test_suite(pci_acs_test_suite);
-+
-+MODULE_IMPORT_NS("EXPORTED_FOR_KUNIT_TESTING");
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("KUnit tests for PCI ACS peer-to-peer routing decisions");
+ 	int total_dist = 0;
++	bool per_mapping;
+ 	int i, distance;
+ 
+ 	if (num_clients == 0)
+@@ -1486,8 +1543,18 @@ int pci_p2pdma_distance_many(struct pci_dev *provider, struct device **clients,
+ 			return -1;
+ 		}
+ 
+-		map = calc_map_type_and_dist(provider, pci_client, &distance, 0,
+-					     verbose);
++		per_mapping = pci_p2pdma_client_per_mapping(pci_client);
++		tlp_flags = per_mapping ? 0 :
++			    pci_p2pdma_client_tlp_flags(pci_client, 0);
++		type = calc_map_type_and_dist(provider, pci_client, &distance,
++					      tlp_flags, verbose);
++		map = pci_p2pdma_client_map_type(provider, pci_client,
++						 per_mapping, tlp_flags, type);
++		if (verbose && map != type &&
++		    map == PCI_P2PDMA_MAP_NOT_SUPPORTED)
++			pci_warn(pci_client,
++				 "cannot be used for peer-to-peer DMA with %s: ATS is enabled for the whole device and the host bridge is not whitelisted\n",
++				 pci_name(provider));
+ 
+ 		pci_dev_put(pci_client);
+ 
+@@ -1794,6 +1861,11 @@ EXPORT_SYMBOL_GPL(pcim_p2pdma_set_ats_per_mapping);
+  * ACS routes a peer-to-peer transaction by the attributes its TLPs carry, so
+  * the answer depends on @tlp_flags. A caller that passes flags its traffic
+  * does not match gets a mapping the fabric will not deliver.
++ *
++ * Only a client whose driver called pcim_p2pdma_set_ats_per_mapping() takes
++ * the Address Type from @tlp_flags. For any other client its ATS Enable bit
++ * decides, and a client that translates every address it is handed never gets
++ * %PCI_P2PDMA_MAP_BUS_ADDR.
+  */
+ static enum pci_p2pdma_map_type
+ pci_p2pdma_map_type_tlp(struct p2pdma_provider *provider, struct device *dev,
+@@ -1805,6 +1877,7 @@ pci_p2pdma_map_type_tlp(struct p2pdma_provider *provider, struct device *dev,
+ 	struct pci_p2pdma *p2pdma;
+ 	struct pci_dev *client;
+ 	bool provider_state;
++	bool per_mapping;
+ 	int dist;
+ 
+ 	if (!pdev->p2pdma) {
+@@ -1822,6 +1895,9 @@ pci_p2pdma_map_type_tlp(struct p2pdma_provider *provider, struct device *dev,
+ 
+ 	client = to_pci_dev(dev);
+ 	cache_index = map_types_idx(client);
++	per_mapping = pci_p2pdma_client_per_mapping(client);
++	if (!per_mapping)
++		tlp_flags = pci_p2pdma_client_tlp_flags(client, tlp_flags);
+ 
+ 	rcu_read_lock();
+ 	p2pdma = rcu_dereference(pdev->p2pdma);
+@@ -1838,10 +1914,11 @@ pci_p2pdma_map_type_tlp(struct p2pdma_provider *provider, struct device *dev,
+ 		 pci_p2pdma_map_type_name(type), type, provider_state);
+ 
+ 	if (type == PCI_P2PDMA_MAP_UNKNOWN)
+-		return calc_map_type_and_dist(pdev, client, &dist, tlp_flags,
++		type = calc_map_type_and_dist(pdev, client, &dist, tlp_flags,
+ 					      true);
+ 
+-	return type;
++	return pci_p2pdma_client_map_type(pdev, client, per_mapping, tlp_flags,
++					  type);
+ }
+ 
+ /**
+@@ -1850,7 +1927,8 @@ pci_p2pdma_map_type_tlp(struct p2pdma_provider *provider, struct device *dev,
+  * @dev: Client device that initiates the transfer
+  *
+  * Same as pci_p2pdma_map_type_tlp() for a client issuing strictly ordered
+- * Requests that carry an Untranslated address.
++ * Requests. Their Address Type is Untranslated unless the client enables ATS
++ * for the whole device.
+  */
+ enum pci_p2pdma_map_type pci_p2pdma_map_type(struct p2pdma_provider *provider,
+ 					     struct device *dev)
 
 -- 
 2.55.0
