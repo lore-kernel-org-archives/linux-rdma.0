@@ -1,87 +1,86 @@
-Received: from mail-qk1-f225.google.com (mail-qk1-f225.google.com [209.85.222.225])
+Received: from mail-pj1-f100.google.com (mail-pj1-f100.google.com [209.85.216.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE7F63AAF76
-	for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 08:43:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.225
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87DB33905F0
+	for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 08:43:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.100
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791881022; cv=none; b=N6QbU1T1HaozYswSTHer7RhIw9tVtOlmKvn3RppMDbOKJIUjEAvEyyXtU00Ly6TMTVwt1KsM0GBfi3F1Jdokb9hCF/BEFD5hmEHI+FVEYMKO6mv1s7tbal31Q2PY7r8t9VyjHPvM0tDIJj5YfEpQ1vf8SORQCFHUd0Xv2AeUIpw=
+	t=1791881024; cv=none; b=IfmNAbGB3C1l7izNgDunPwLeUOC7ChahLL0sdpYc45VYNzGsu5SYYPn9d91EYbIMbSrHvwHse8LMEp20/lKo1U2HHCkRbiHyc3VvRyVBIgb6FyJyuUulQwDCPsqGlZOp9KQAP6AYslLtXUxIGNkZg8v9B1INQIF9AckPkxjd/BA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791881022; c=relaxed/simple;
-	bh=wKiZ/RCyo1VFZfv6tvxp9iEOL9Er+CgjVaYdD4Z1XiE=;
+	s=arc-20240116; t=1791881024; c=relaxed/simple;
+	bh=y3zAet3U8FrmV1lJqcbnornyQ8pV+g7xGYWQH5sgZrc=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=BZf2Mvcyqu7M2upMLDgZKdWwiRViKgDMcDu4SWZMkDMswFV7ejBpScEE/dVLgEQSX1utRpOug5IMfn8oFFETxTZuPAep+moFWNzIjhwZ/d90aKFFyP6X3IJavaZOcAzJavRBLNBDmY5v6qJE/8SM3WZcDB+CxoS13qMZPUvo3Io=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=N7m0+IvS; arc=none smtp.client-ip=209.85.222.225
+	 MIME-Version; b=kHG75h5IX9p8iJOU7i1UQUXai8bhfznNuYMBmg/KQkxCj5fkBJdtHba4/IrpTksKX2HsKN0LDf4bZPkrX+m79ARXH/4EDcgcbX6IJ7S05lnVAc2MStEtfzvJEePjvWQgy+SibLhIMCvBn3R5hrWtN8dLO6tj/kthBeb4hsq5Gqc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=hDg5s/1P; arc=none smtp.client-ip=209.85.216.100
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="N7m0+IvS"
-Received: by mail-qk1-f225.google.com with SMTP id af79cd13be357-93e027da22eso183498585a.0
-        for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 01:43:40 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="hDg5s/1P"
+Received: by mail-pj1-f100.google.com with SMTP id 98e67ed59e1d1-3ab4178ee33so1345573a91.3
+        for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 01:43:43 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791881019; x=1792485819;
+        d=1e100.net; s=20260707; t=1791881023; x=1792485823;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:dkim-signature:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=gfnO8pg542hJIiehOxpVwgv6diZ6xdftt6CjElXSOj4=;
-        b=KBVapu+bL/8QLOCSlQLmnyi3lASWwswJU0sOa7gzY4cxSfv0mBSie6fuzr1azpsQoi
-         2a/gDvMdoQohqe9c4XbmSdXq4js0eqHAuOcA5rXMrX9ECmIkwb49HZUdzQLbJnSj7tyt
-         tuSg5offINdIqg+5oP0zs/66tLdyEQQmyoFAwb6kafNiBxq2wpzov+DTe51zjhCDcN9P
-         40wAtC6iDCMGhH+d11KmHHujcLQGD1jQZ5u8PgjYyjyYK3HUpzCkuyIWD/9Zt28u1U87
-         G6jRLLJDRwvI7Sgvk6fnXdHVp2HYo/A7rIb7LmT0vcRiODtHoFZvtXZOS9dT4fa+FAb3
-         iMWg==
-X-Gm-Message-State: AFq9FYKcLgu5TDVNNOofVt/kSHZZBBoacABy4k5GLaaLvRuW/NmiUlh6
-	C8YiFZ0LglRDFzbM9mZXQ+bLe1waG54h7LiROdLK391qUP8jieauQCR4RjyDqJl1xc8tF139kCX
-	UGeoE1ZVRy3DbqTcIzu12O8pKbYrLfJ9sLwxd6vrxJfi5QjfIvHl8jNUVz6Jtfu8/rfmV+bmPCl
-	55dTcXxtnkoUC+WcjfMtgqsarXRa2FVoNHd6WSDcDak1fEi48rvjZg1KSId4Jq3sA1DBO7X662y
-	G5OaR+0zgjEcUCKJQ==
-X-Gm-Gg: AYBFou2GlQnhX/I/z9VlM+9KnBdUZK9z4473Nl249UgUwn8SaeMqqHo8peCtmApAY86
-	JXdBTSBN1JVHLHoPdeNBxSSmYzEwIxqh3dXEWVETQq5yFm+wuBOQIyHy7bstCCGZA1oaMh8n6MJ
-	wb9Qqzec6/Zo5oU/E38qlueDk3eGT4JfoqvPM3p/4qdwSgtlwaOaIf7ws2PhyRHIHivQ0DOih2n
-	CaiqJGNIB3TyvHSMjmqJQwCNCBHRhKXoYfIE1+e3X+FLndCB2lBkf01AvmEfQ5xKeavXSPbj6Dr
-	T/odzNFy8Qe0px9yqPdEDmT/yKQZTilZiNlyE9MZ8D8hC93EuMTuXKO1kVaH/S1zylSDcpmQhAs
-	odxD0ZlPBzq3mCI6wgyf0a0lyk1rnWm6UcUDhXQwNKo2Fw3wVzJZOxJ+POvdrP+hJjsO4dAAsLc
-	QxiDzPTw4nXzD63E6nEN4BpaOXf+bn6/34tS5iVvI=
-X-Received: by 2002:a05:620a:2b4e:b0:939:a003:7127 with SMTP id af79cd13be357-93ebd23f5c7mr1880737385a.52.1791881019436;
-        Tue, 13 Oct 2026 01:43:39 -0700 (PDT)
-Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-120.dlp.protect.broadcom.com. [144.49.247.120])
-        by smtp-relay.gmail.com with ESMTPS id af79cd13be357-93ef50b457esm49224085a.15.2026.10.13.01.43.39
+        bh=g9PvXdE5NldSkOE6MkjPWmqacMJ3HF25zbrjrKzhj+c=;
+        b=Ha29ry9MiuQuHnb2STaaWNMOXTg8i3xi0wPIWsm/lzyP6odgcGLbSL/mN4bb90lfb1
+         1MqmONvjMDYC0wTMWutYA2eGOLPjKyR/h7uKmgprJUZwShKR4Uc7USUAd+p4zypkbFRR
+         dimQF+mbn5Vee/AiZMZluQ3x+8v0F3FxoeLXZxsRAV8D0h38sb39LkL1DMDXuMu4YIKl
+         ecR+UospLv2OyguAF4hniZcErcBJUQ1Bz0v8/ZRgViNTY8CQ8sHbM3DctwWhRgEjD9sb
+         2KacOmLBUs2NRxZVm3tR4vKe421LZYw98UjHL5RWAtZ4LrdVGYgW6uwifPgedtNL6JrD
+         T86Q==
+X-Gm-Message-State: AFq9FYLcXba1yamyLXwwDquhG7WWAPQ0tdSCcOMF2aQYYEVB99PzWyJK
+	SnYRVAxYS/K0HH9KGMuZHnsXuL16N+fuSDV/LLZJDiyCvuwq/8jGCThkb611Ouas65xVQW/tPRy
+	3L5AIyee2G5L37m0H2rbXZmQKtEeENU7fnbqn7XORVjL6yH5OZBccZcCWuNSr9RLwkZ8XZJLrC/
+	7MqS0+ltlCm0mRTsPFQKNw6vwnqfhajKnWoK79jUiF6eEE7R2CjMK7N4PoVY6BgI2bvzP104Tpj
+	CTDB8gixzNVneOeLA==
+X-Gm-Gg: AYBFou2QiaBHH6bFT3gbV9Gmvn7Gs0aVYyK7o3DRTxPZGpwKrciMoALVQVzZ4USYEJp
+	E3c9NUr6K5XYHR8OaCS14touq2CfaECdiQf3HJ30LJBZU8gIWQRWipsYj71wZNuMOsqpVfqpmCC
+	N1G6CdeKZj4Oh7wYbaa1pPGNns8XnpPKEEvN3Bad2vldsPGZmtjUplB4jyWrmMgBN2VfYKJ5pKo
+	SUPHaSI3oYZfYBboci4LizAiqLrRwK/5lVOMjqSqsp9C4UQdgzEvimFnUXsYJIrIBVxrlzX9lcO
+	k+Y0ubESHep7odq+5Kxau2mTN7+YI1KXQf3j4ccQ6Rk/VO/igZ/QXozTklsyX0VMQ95LAdxHKob
+	JGtRQi7pfsueqjuAOvs9RMmGIHcDuaN4MorIvUNQVc3EgSgfWs/1aYDssGq3oaOowZifUu9iVCR
+	pirY27yAkfKtNQSfxMFjLDT+TKwotz20HU8aF4KGg=
+X-Received: by 2002:a17:90b:384a:b0:3ab:4f1:4f6c with SMTP id 98e67ed59e1d1-3ab3a90a038mr9206685a91.14.1791881022815;
+        Tue, 13 Oct 2026 01:43:42 -0700 (PDT)
+Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-125.dlp.protect.broadcom.com. [144.49.247.125])
+        by smtp-relay.gmail.com with ESMTPS id 98e67ed59e1d1-3ab369147b5sm6656448a91.0.2026.10.13.01.43.42
         for <linux-rdma@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 13 Oct 2026 01:43:39 -0700 (PDT)
+        Tue, 13 Oct 2026 01:43:42 -0700 (PDT)
 X-Relaying-Domain: broadcom.com
 X-CFilter-Loop: Reflected
-Received: by mail-dl1-f72.google.com with SMTP id a92af1059eb24-147be78cd56so10919740c88.1
-        for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 01:43:39 -0700 (PDT)
+Received: by mail-dy1-f199.google.com with SMTP id 5a478bee46e88-33713e5e6daso4294964eec.0
+        for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 01:43:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1791881018; x=1792485818; darn=vger.kernel.org;
+        d=broadcom.com; s=google; t=1791881021; x=1792485821; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=gfnO8pg542hJIiehOxpVwgv6diZ6xdftt6CjElXSOj4=;
-        b=N7m0+IvS6uDoEjDl583FOOPmNnTnbUsW/pcFDS5lpHFnvkeZiIWqwl2AQGPs1o8JTK
-         EVRlw7xzPzO8/hPktQ3rfbucgngvL8AsInXlP2rKf8wtafUZDBFIBlRCRKjV2dAS0hSi
-         yBrQF3xQFUyRb+ynhAfEuoq9W2jOFdxA3nPI4=
-X-Received: by 2002:a05:701b:2612:b0:143:868a:20c1 with SMTP id a92af1059eb24-16a65c0ad23mr13921693c88.46.1791881017971;
-        Tue, 13 Oct 2026 01:43:37 -0700 (PDT)
-X-Received: by 2002:a05:701b:2612:b0:143:868a:20c1 with SMTP id a92af1059eb24-16a65c0ad23mr13921659c88.46.1791881017219;
-        Tue, 13 Oct 2026 01:43:37 -0700 (PDT)
+        bh=g9PvXdE5NldSkOE6MkjPWmqacMJ3HF25zbrjrKzhj+c=;
+        b=hDg5s/1P0idn3T8ppbmq6AWa0va+9WGnzdn/0iSBA6Sd6rm5rqA7VSMe7O/8YD3KaE
+         s2xUBz/N7mZyIJJA5XYSSSlg5TiMt+FHZW+AwEk5Y4JPQuEohkS+HESqmIcWiwJ8EcSk
+         /HY95xb0iMhQNeA70+FCfQf3rfR+I6Crn6U/Y=
+X-Received: by 2002:a05:701b:2717:b0:16d:dd5c:4261 with SMTP id a92af1059eb24-16ddd5c42a5mr15515691c88.46.1791881021009;
+        Tue, 13 Oct 2026 01:43:41 -0700 (PDT)
+X-Received: by 2002:a05:701b:2717:b0:16d:dd5c:4261 with SMTP id a92af1059eb24-16ddd5c42a5mr15515663c88.46.1791881020339;
+        Tue, 13 Oct 2026 01:43:40 -0700 (PDT)
 Received: from dhcp-10-123-156-114.dhcp.broadcom.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1698de65af7sm40209556c88.0.2026.10.13.01.43.34
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1698de65af7sm40209556c88.0.2026.10.13.01.43.37
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 13 Oct 2026 01:43:36 -0700 (PDT)
+        Tue, 13 Oct 2026 01:43:39 -0700 (PDT)
 From: Selvin Xavier <selvin.xavier@broadcom.com>
 To: leon@kernel.org,
 	jgg@ziepe.ca
 Cc: linux-rdma@vger.kernel.org,
 	andrew.gospodarek@broadcom.com,
 	kalesh-anakkur.purayil@broadcom.com,
-	Abhishek Mohapatra <abhishek.mohapatra@broadcom.com>,
 	Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: [PATCH for-rc 1/2] RDMA/bnxt_re: Use kvzalloc for QP table allocation
-Date: Tue, 13 Oct 2026 07:04:26 -0700
-Message-Id: <20261013140427.256612-2-selvin.xavier@broadcom.com>
+Subject: [PATCH for-rc 2/2] RDMA/bnxt_re: Unpublish QP table before freeing it
+Date: Tue, 13 Oct 2026 07:04:27 -0700
+Message-Id: <20261013140427.256612-3-selvin.xavier@broadcom.com>
 X-Mailer: git-send-email 2.39.3
 In-Reply-To: <20261013140427.256612-1-selvin.xavier@broadcom.com>
 References: <20261013140427.256612-1-selvin.xavier@broadcom.com>
@@ -94,43 +93,56 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 
-From: Abhishek Mohapatra <abhishek.mohapatra@broadcom.com>
+bnxt_re_dev_uninit() frees the QP table before the RCFW channel is
+disabled, so the CREQ tasklet can still look up rcfw->qp_tbl while it
+is being freed.
 
-The QP table size depends on the firmware reported max_qp, so it can
-be large and a physically contiguous kzalloc may fail. Use kvzalloc_objs()
-and free it with kvfree().
+Clear rcfw->qp_tbl under tbl_lock before freeing it, and have the QP
+error notification handler bail out if the table is gone.
 
 Fixes: 82f1f575aa13 ("RDMA/bnxt_re: Fix allocation of QP table")
-Signed-off-by: Abhishek Mohapatra <abhishek.mohapatra@broadcom.com>
 Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
 ---
- drivers/infiniband/hw/bnxt_re/qplib_res.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/bnxt_re/qplib_rcfw.c |  4 ++++
+ drivers/infiniband/hw/bnxt_re/qplib_res.c  | 10 +++++++++-
+ 2 files changed, 13 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+index 9ee0d500436c..34d8aa12265d 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+@@ -638,6 +638,10 @@ static int bnxt_qplib_process_qp_event(struct bnxt_qplib_rcfw *rcfw,
+ 		err_event = (struct creq_qp_error_notification *)qp_event;
+ 		qp_id = le32_to_cpu(err_event->xid);
+ 		spin_lock(&rcfw->tbl_lock);
++		if (!rcfw->qp_tbl) {
++			spin_unlock(&rcfw->tbl_lock);
++			break;
++		}
+ 		tbl_indx = map_qp_id_to_tbl_indx(qp_id, rcfw);
+ 		qp = rcfw->qp_tbl[tbl_indx].qp_handle;
+ 		if (!qp) {
 diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.c b/drivers/infiniband/hw/bnxt_re/qplib_res.c
-index 756f8b5f042a..086cf9fe3920 100644
+index 086cf9fe3920..3faaec28201e 100644
 --- a/drivers/infiniband/hw/bnxt_re/qplib_res.c
 +++ b/drivers/infiniband/hw/bnxt_re/qplib_res.c
-@@ -909,7 +909,7 @@ int bnxt_qplib_init_res(struct bnxt_qplib_res *res)
+@@ -909,7 +909,15 @@ int bnxt_qplib_init_res(struct bnxt_qplib_res *res)
  
  void bnxt_qplib_free_res(struct bnxt_qplib_res *res)
  {
--	kfree(res->rcfw->qp_tbl);
-+	kvfree(res->rcfw->qp_tbl);
+-	kvfree(res->rcfw->qp_tbl);
++	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
++	struct bnxt_qplib_qp_node *qp_tbl;
++
++	/* The CREQ tasklet may still be running; unpublish the table first */
++	spin_lock_bh(&rcfw->tbl_lock);
++	qp_tbl = rcfw->qp_tbl;
++	rcfw->qp_tbl = NULL;
++	spin_unlock_bh(&rcfw->tbl_lock);
++	kvfree(qp_tbl);
  	bnxt_qplib_free_sgid_tbl(res, &res->sgid_tbl);
  	bnxt_qplib_free_pd_tbl(&res->pd_tbl);
  	bnxt_qplib_free_dpi_tbl(res, &res->dpi_tbl);
-@@ -926,8 +926,8 @@ int bnxt_qplib_alloc_res(struct bnxt_qplib_res *res, struct net_device *netdev)
- 
- 	/* Allocate one extra to hold the QP1 entries */
- 	rcfw->qp_tbl_size = max_t(u32, BNXT_RE_MAX_QPC_COUNT + 1, dev_attr->max_qp);
--	rcfw->qp_tbl = kzalloc_objs(struct bnxt_qplib_qp_node,
--				    rcfw->qp_tbl_size);
-+	rcfw->qp_tbl = kvzalloc_objs(struct bnxt_qplib_qp_node,
-+				     rcfw->qp_tbl_size);
- 	if (!rcfw->qp_tbl)
- 		return -ENOMEM;
- 
 -- 
 2.39.3
 
