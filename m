@@ -1,373 +1,252 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5332C3C7E13;
-	Tue, 13 Oct 2026 15:09:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2324D50AC3A;
+	Tue, 13 Oct 2026 15:09:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791904149; cv=none; b=ARzEMafnO+jMYF/RQRccHm7I6aA/fMd/FuGSp21UNrFQ9KFI0+5gGCH07ujpLyup9fVetdIP0qtxXeOkSLKD5ddtbPWFWmzgmGEY37Rs1VXYXZLEf573Z8szHf43//IJ/Pj8ADMnsUcJkPKVjc73q12TwsBhbSTMl/GuRad8cPA=
+	t=1791904167; cv=none; b=OHi8EYosKi3GJJNY5b4E7ZoVI5NDhjj4XmKNzGL3wa557ZrPqgem3PRkOpCTsag9/TqxnbkHpdu/D1EW4VOE0dvokaOIhc0+CaknNtKrb7ORTHLzHit9ZJ/1d1hWOUNQeww/9yH8fuLk1vS7b6pA/dKxALB55dE1pmBHbLNP7Bw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791904149; c=relaxed/simple;
-	bh=jsPV0JSIGSmCdmGYp+E4FmOl1B850oT6JaQHeCgb8+A=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=HSfUO/Dmi5If08jPcmNS7977cYncgl3t2x226ikSNRIdxu6W85Cypj9Zk2+kV8bQrkpgh3/WFxX/hmfRfjki/jxHP5Hs999s4SUeafCFkv7/iutiLlb1twnXVAcDT99R23RhQkvKoAWBj8M555unLDskB2rX1W8AwXsq/7ZU4Go=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=iTcC5Iw3; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	s=arc-20240116; t=1791904167; c=relaxed/simple;
+	bh=nvhkE4iVPWt6ZMbpDqr0VjZaPTTvkSGU9Bdm3A6LGuc=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=VoZRh+6kLnXboe4+terCzBihMXM07KpztGhN22qArlzEqWGmV9jANF65FYfe93eQsZt5j24OZ6LBqr80lcBD0EESjXFWOTFfBXGtMAOLhpecLDbvATzPWLctiUwIUM7CdkuZwp3JUOvsqRgaGUU5jU3HMewcGDKeif8EwQTz++w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ktqeL2zX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="iTcC5Iw3"
-Received: from [10.26.7.43] (unknown [4.213.232.22])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 8542120B7169;
-	Tue, 13 Oct 2026 08:08:58 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 8542120B7169
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1791904142;
-	bh=e7ew6NMtWrwcepLYlmJQ93zo9inrfT5l5nZou0ZT5RY=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=iTcC5Iw32vTmbNFHvf+WhuzXJCCLJNjAmxkKgrzfiakgKV6tC4zApuY5ii0iNko4I
-	 2OFi/NuJWKKZ2lpdy0Tty6jPIyoH+A5swfMfG0b+sgXnO3r+iq1h1uospeKogemBm9
-	 LTd996h1eKylLyQoy1dq6Wc1HT3pnrxfAuY1Dr68=
-Message-ID: <083267ab-5989-487f-86c7-7a4b4fe3a6dd@linux.microsoft.com>
-Date: Tue, 13 Oct 2026 20:38:59 +0530
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ktqeL2zX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A69E1F000FF;
+	Tue, 13 Oct 2026 15:08:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791904165;
+	bh=+lV50szqwhlOdZvvntvc8L71JtBIxPo0bLUpU4NKXmU=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc;
+	b=ktqeL2zXS70o90j0mLV87aoV59vXbCAA5RZbizjqijewnPcZxxXxcgaVuM/cJHeZD
+	 +77tfbvmmOOOQzog02DPrCynPFoOSlQGvX65HJWvxXvL3oMYLxXPhSoVSa+3ff8mi8
+	 87JKEIDRjPdM3T36BB+eyice44zILgmAzlQTVOqSI3Bo1nj6l5lq4S4VJC93zGxPJs
+	 eoBsrTqZ1+SgldZldpqy8abg87G9p6tBnin/ovgydcju28x8wXmBn0l0e8wHty3bI7
+	 KxAthEl6r5seQO0FEQzhLLhYkzrc37hYn3auAEejPtkuMirgsi05/hXcCmHwI0gDDI
+	 DwHa0lmyqP51w==
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Date: Tue, 13 Oct 2026 16:04:46 +0100
+Subject: [PATCH v6 06/39] mm/vma: tidy up map kernel pages enum values
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next] net: mana: Add support to process throttled EQEs
-To: netdev-bot+sashiko@kernel.org
-Cc: haiyangz@microsoft.com, wei.liu@kernel.org, decui@microsoft.com,
- andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
- kuba@kernel.org, pabeni@redhat.com, kotaranov@microsoft.com,
- horms@kernel.org, ernis@linux.microsoft.com, gargaditya@linux.microsoft.com,
- mawasthi@linux.microsoft.com, leitao@debian.org,
- linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
-References: <20261008083315.306076-1-sahilchandna@linux.microsoft.com>
- <179179616248.434549.2649767157991099688@kernel.org>
-Content-Language: en-US
-From: Sahil Chandna <sahilchandna@linux.microsoft.com>
-In-Reply-To: <179179616248.434549.2649767157991099688@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20261013-b4-mmap-prepare-vma-flag-sanify-v6-6-1aa3c9b139f9@kernel.org>
+References: <20261013-b4-mmap-prepare-vma-flag-sanify-v6-0-1aa3c9b139f9@kernel.org>
+In-Reply-To: <20261013-b4-mmap-prepare-vma-flag-sanify-v6-0-1aa3c9b139f9@kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>, 
+ "Liam R. Howlett" <liam@infradead.org>, Vlastimil Babka <vbabka@kernel.org>, 
+ Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
+ David Hildenbrand <david@kernel.org>, Mike Rapoport <rppt@kernel.org>, 
+ Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, 
+ Jonathan Corbet <corbet@lwn.net>, 
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+ Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, 
+ Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
+ Paul Moore <paul@paul-moore.com>, 
+ Stephen Smalley <stephen.smalley.work@gmail.com>, 
+ Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
+ Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
+ Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>, 
+ Kumar Kartikeya Dwivedi <memxor@gmail.com>, Zi Yan <ziy@nvidia.com>, 
+ Baolin Wang <baolin.wang@linux.alibaba.com>, 
+ Nico Pache <nico.pache@linux.dev>, Ryan Roberts <ryan.roberts@arm.com>, 
+ Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
+ Lance Yang <lance.yang@linux.dev>, Usama Arif <usama.arif@linux.dev>, 
+ Kiryl Shutsemau <kas@kernel.org>, Doug Gilbert <dgilbert@interlog.com>, 
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, 
+ "Martin K. Petersen" <mkp@kernel.org>, Simona Vetter <simona@ffwll.ch>, 
+ Helge Deller <deller@gmx.de>, Sebastian Reichel <sre@kernel.org>, 
+ John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, 
+ Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
+ Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@kernel.org>, 
+ Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+ Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
+ Arnaldo Carvalho de Melo <acme@kernel.org>, 
+ Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
+ Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, 
+ Juri Lelli <juri.lelli@redhat.com>, 
+ Vincent Guittot <vincent.guittot@linaro.org>, 
+ Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
+ Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
+ David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>, 
+ "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, 
+ Nick Piggin <npiggin@gmail.com>, Arnd Bergmann <arnd@arndb.de>, 
+ Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
+ "Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+ Marc Zyngier <maz@kernel.org>, Oliver Upton <oupton@kernel.org>, 
+ Catalin Marinas <catalin.marinas@arm.com>, 
+ Madhavan Srinivasan <maddy@linux.ibm.com>, Anup Patel <anup@brainfault.org>, 
+ Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, 
+ Albert Ou <aou@eecs.berkeley.edu>, 
+ Christian Borntraeger <borntraeger@linux.ibm.com>, 
+ Janosch Frank <frankja@linux.ibm.com>, 
+ Claudio Imbrenda <imbrenda@linux.ibm.com>, 
+ Alexander Gordeev <agordeev@linux.ibm.com>, 
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com>, 
+ Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
+ "David S. Miller" <davem@davemloft.net>, 
+ Andreas Larsson <andreas@gaisler.com>, 
+ Alexander Viro <viro@zeniv.linux.org.uk>, 
+ Christian Brauner <brauner@kernel.org>, 
+ Matthew Brost <matthew.brost@intel.com>, 
+ Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, 
+ Byungchul Park <byungchul@sk.com>, Gregory Price <gourry@gourry.net>, 
+ Ying Huang <ying.huang@linux.alibaba.com>, 
+ Alistair Popple <apopple@nvidia.com>, Chris Li <chrisl@kernel.org>, 
+ Kairui Song <kasong@tencent.com>, Kemeng Shi <shikemeng@huaweicloud.com>, 
+ Nhat Pham <nphamcs@gmail.com>, Baoquan He <baoquan.he@linux.dev>, 
+ Youngjun Park <youngjun.park@lge.com>, Johannes Weiner <hannes@cmpxchg.org>, 
+ Qi Zheng <qi.zheng@linux.dev>, Shakeel Butt <shakeel.butt@linux.dev>, 
+ Axel Rasmussen <axelrasmussen@google.com>, Yuanchu Xie <yuanchu@google.com>, 
+ Wei Xu <weixugc@google.com>, Chengming Zhou <chengming.zhou@linux.dev>, 
+ Michal Hocko <mhocko@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, 
+ Xu Xin <xu.xin@linux.dev>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, 
+ linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, 
+ linux-rdma@vger.kernel.org, selinux@vger.kernel.org, 
+ linux-sound@vger.kernel.org, bpf@vger.kernel.org, 
+ linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org, 
+ dri-devel@lists.freedesktop.org, linux-trace-kernel@vger.kernel.org, 
+ linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org, 
+ linux-fsdevel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+ kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org, 
+ kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org, 
+ linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, 
+ fuse-devel@lists.linux.dev, Ihor Solodrai <ihor.solodrai@linux.dev>, 
+ Bert Karwatzki <spasswolf@web.de>, "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+X-Mailer: b4 0.14.3
+X-Developer-Signature: v=1; a=openpgp-sha256; l=4144; i=ljs@kernel.org;
+ h=from:subject:message-id; bh=nvhkE4iVPWt6ZMbpDqr0VjZaPTTvkSGU9Bdm3A6LGuc=;
+ b=owGbwMvMwCV2fu7ZrsZH9SKMp9WSGLLOeRz/czLo4Yv3x6sv1ycktzhI6BvPSbA3Vt26R7t6U
+ 9h3++r3HaUsDGJcDLJiiizPv4jvDxIJm9d5wd8NZg4rE8gQBi5OAZjI3B0M/4s/fmjaVPJkAXMV
+ SytPWMj7OHntZu7UVjF+U9MT1TKtsgz/4wuqT0tnfZ6X1lgsOuH1seNX+dQSXLKMpls+vxFZtci
+ QBQA=
+X-Developer-Key: i=ljs@kernel.org; a=openpgp;
+ fpr=E7F417BF5214569E89D04F46CF9DCD8A81E27F14
 
-On 12-10-2026 14:39, netdev-bot+sashiko@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found 5 potential
-> issue(s) to consider.
-> 
-> Critical: 0 · High: 2 · Medium: 2 · Low: 1
-> 
-> If you believe none of the issues are legitimate, please reply to each
-> issue of Medium severity or higher and explain why the AI is wrong.
-> If any of them are legitimate and you plan to respin, please let patchwork
-> know by including "pw-bot: cr" as a separate line at the end of your reply
-> (one such reply per series is enough).
-> 
-> - [High] The throttle-EQE fix only reaches CQs that mana_gd_create_cq()
->   registered in parent->eq.child_cq[], but the patch asks for throttled…
-> - [High] During HWC teardown, the HWC CQ stays published in the HWC EQ's
->   RCU-protected child_cq[] after the state its callback uses has been…
-> - [Medium] The commit message presents the change as a fix: hardware
->   sends type-4 throttle EQEs, the driver drops them, and CQs stall.
-> - [Medium] mana_gd_destroy_cq() now calls synchronize_rcu() once for
->   every CQ that has a parent EQ.
-> - [Low] eq->eq.throttle_count is incremented with a plain '++' in hardirq
->   context (mana_gd_intr -> mana_gd_process_eqe).
-> 
-> --
-> 
-> net: mana: Add support to process throttled EQEs
-> 
-> This patch handles the type 4 throttle EQE. The hardware sends it in place
-> of per-CQ completion notifications when an EQ nears full. Each EQ records
-> up to two child CQs and schedules them when a throttle EQE arrives. The
-> patch also advertises a new driver capability bit and adds an ethtool -S
-> counter.
-> 
->> diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
->> index ae0ed700b3b93..b8e5ad2c6d312 100644
->> --- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
->> +++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
->> @@ -747,6 +747,18 @@ void mana_gd_free_service_wq(struct gdma_context *gc)
->>  	gc->service_wq = NULL;
->>  }
->>  
->> +static void mana_gd_schedule_eq_cqs(struct gdma_queue *eq)
->> +{
->> +	struct gdma_queue *cq;
->> +	u8 i;
->> +
->> +	for (i = 0; i < GDMA_EQ_MAX_CHILD_CQ; i++) {
->> +		cq = rcu_dereference(eq->eq.child_cq[i]);
->> +		if (cq && cq->cq.callback)
->> +			cq->cq.callback(cq->cq.context, cq);
->> +	}
->> +}
-> 
-> [Severity: High]
-> Can this path reach the HWC CQ callback after its state has been freed?
-> 
-> Before this patch, the only way to reach the HWC CQ callback was the
-> GDMA_EQE_COMPLETION case. That case is gated by gc->max_num_cqs and
-> gc->cq_table[]. The throttle path walks child_cq[] directly and skips
-> that gate.
-> 
-> mana_hwc_destroy_channel() tears things down in this order:
-> 
-> drivers/net/ethernet/microsoft/mana/hw_channel.c:mana_hwc_destroy_channel() {
->     ...
-> 	if (gc->max_num_cqs > 0) {
-> 		mana_smc_teardown_hwc(&gc->shm_channel, false);
-> 		gc->max_num_cqs = 0;
-> 	}
-> 
-> 	if (hwc->txq)
-> 		mana_hwc_destroy_wq(hwc, hwc->txq);
-> 
-> 	if (hwc->rxq)
-> 		mana_hwc_destroy_wq(hwc, hwc->rxq);
-> 
-> 	if (hwc->cq)
-> 		mana_hwc_destroy_cq(hwc->gdma_dev->gdma_context, hwc->cq);
->     ...
-> }
-> 
-> mana_hwc_destroy_cq() then frees comp_buf before the CQ is removed from
-> child_cq[]:
-> 
-> drivers/net/ethernet/microsoft/mana/hw_channel.c:mana_hwc_destroy_cq() {
-> 	kfree(hwc_cq->comp_buf);
-> 
-> 	if (hwc_cq->gdma_cq)
-> 		mana_gd_destroy_queue(gc, hwc_cq->gdma_cq);
->     ...
-> }
-> 
-> The HWC EQ interrupt is still registered at that point. Suppose a throttle
-> EQE arrives on the HWC EQ in this window:
-> 
-> mana_gd_intr()
->   mana_gd_process_eqe()
->     mana_gd_schedule_eq_cqs()
->       mana_hwc_comp_event()
->         mana_gd_poll_cq(q_self, hwc_cq->comp_buf, ...)
->         mana_hwc_rx_event_handler() / mana_hwc_tx_event_handler()
-> 
-> Wouldn't this write CQEs into the freed comp_buf, and then dereference the
-> freed hwc->rxq and hwc->txq?
-> 
-> A well-behaved device probably would not post a throttle EQE after SMC
-> teardown. In confidential VMs, though, the driver treats the host as
-> untrusted, and the max_num_cqs gate used to block this route.
-> 
-> Should the CQ be removed from child_cq[], followed by a grace period,
-> before the HWC teardown frees comp_buf, txq and rxq?
-> 
-I will fix this in v2.
->> +
->>  static void mana_gd_process_eqe(struct gdma_queue *eq)
->>  {
->>  	u32 head = eq->head % (eq->queue_size / GDMA_EQE_SIZE);
->> @@ -777,6 +789,11 @@ static void mana_gd_process_eqe(struct gdma_queue *eq)
->>  
->>  		break;
->>  
->> +	case GDMA_EQE_THROTTLE:
->> +		eq->eq.throttle_count++;
-> 
-> [Severity: Low]
-> This counter is incremented with a plain ++ in hardirq context, via
-> mana_gd_intr()->mana_gd_process_eqe(). mana_get_ethtool_stats() reads it
-> with a plain load in process context, with no shared lock:
-> 
-> 	apc->eth_stats.eq_throttle_events +=
-> 		apc->eqs[q].eq->eq.throttle_count;
-> 
-> The value can't tear because MANA only builds on 64-bit. Do these accesses
-> still need READ_ONCE()/WRITE_ONCE() annotations? Without them KCSAN will
-> report a data race, and the compiler is free to fuse or reload the
-> accesses.
-> 
->> +		mana_gd_schedule_eq_cqs(eq);
->> +		break;
->> +
-> 
-I will fix this in v2.
-> [ ... ]
-> 
->> @@ -1063,17 +1080,41 @@ static void mana_gd_create_cq(const struct gdma_queue_spec *spec,
->>  			      struct gdma_queue *queue)
->>  {
->>  	u32 log2_num_entries = ilog2(spec->queue_size / GDMA_CQE_SIZE);
->> +	struct gdma_queue *parent;
->> +	u8 i;
->>  
->>  	queue->head |= INITIALIZED_OWNER_BIT(log2_num_entries);
->> -	queue->cq.parent = spec->cq.parent_eq;
->> +	parent = spec->cq.parent_eq;
->> +	queue->cq.parent = parent;
->>  	queue->cq.context = spec->cq.context;
->>  	queue->cq.callback = spec->cq.callback;
->> +
->> +	if (!parent)
->> +		return;
->> +
->> +	/* For throttled EQE store the child CQ */
->> +	for (i = 0; i < GDMA_EQ_MAX_CHILD_CQ; i++)
->> +		if (!rcu_access_pointer(parent->eq.child_cq[i])) {
->> +			rcu_assign_pointer(parent->eq.child_cq[i], queue);
->> +			return;
->> +		}
->>  }
-> 
-> [Severity: High]
-> Does this registration cover every CQ the hardware can attach to an EQ?
-> 
-> The capability bit added to GDMA_DRV_CAP_FLAGS1 requests throttled EQEs
-> for the whole function. However, child_cq[] is only filled here. It is
-> only filled when spec->cq.parent_eq is set, and only for the first two
-> CQs.
-> 
-> The mana_ib CQs never go through this path. RNIC CQs are bound in
-> hardware to the mana_ib EQs:
-> 
-> drivers/infiniband/hw/mana/main.c:mana_ib_gd_create_cq() {
->     ...
-> 	req.eq_id = mdev->eqs[cq->comp_vector]->id;
->     ...
-> }
-> 
-> RSS and raw QP CQs are attached to the Ethernet per-vPort EQs:
-> 
-> drivers/infiniband/hw/mana/qp.c:mana_ib_create_qp_rss() {
->     ...
-> 	eq = &mpc->eqs[cq->comp_vector % mpc->num_queues];
-> 	cq_spec.attached_eq = eq->eq->id;
->     ...
-> }
-> 
-> mana_ib_create_qp_raw() does the same. Both kinds of CQ are published only
-> through gc->cq_table[]:
-> 
-> drivers/infiniband/hw/mana/cq.c:mana_ib_install_cq_cb() {
->     ...
-> 	gdma_cq->cq.callback = mana_ib_cq_handler;
-> 	gdma_cq->id = cq->queue.id;
-> 	gc->cq_table[cq->queue.id] = gdma_cq;
->     ...
-> }
-> 
-> Also, mana_ib_create_kernel_queue() builds its GDMA_CQ spec without
-> spec.cq.parent_eq, so mana_gd_create_cq() returns before reaching this
-> loop.
-> 
-> On an RDMA EQ, a throttle EQE would find every child_cq[] slot NULL and
-> only increment throttle_count. On an Ethernet EQ, the two slots already
-> hold the Ethernet TX and RX CQs, so the loop silently skips the RDMA CQ.
-> 
-> In both cases, wouldn't mana_ib_cq_handler() lose its only notification
-> and the CQ stall? That is the stall the commit message says this patch
-> fixes.
-> 
-> Would it work to dispatch to every CQ bound to the EQ, or to scope the
-> capability so it only covers EQs whose CQs are all tracked?
-> 
-This is similar to sashiko review comment, after discussing this
-internally we decided to handle rdma seperately.>>
->>  static void mana_gd_destroy_cq(struct gdma_context *gc,
->>  			       struct gdma_queue *queue)
->>  {
->> +	struct gdma_queue *parent = queue->cq.parent;
->>  	u32 id = queue->id;
->> +	u8 i;
->> +
->> +	if (parent) {
->> +		for (i = 0; i < GDMA_EQ_MAX_CHILD_CQ; i++) {
->> +			if (rcu_access_pointer(parent->eq.child_cq[i]) == queue)
->> +				RCU_INIT_POINTER(parent->eq.child_cq[i], NULL);
->> +		}
->> +
->> +		synchronize_rcu();
->> +	}
-> 
-> [Severity: Medium]
-> Does this add a full RCU grace period to every CQ destroy?
-> 
-> synchronize_rcu() runs whenever the CQ has a parent, even when the CQ was
-> never found in child_cq[]. mana_destroy_txq() and mana_destroy_rxq() loop
-> over apc->num_queues and, for each queue, reach:
-> 
-> mana_deinit_cq()
->   mana_gd_destroy_queue()
->     mana_gd_destroy_cq()
-> 
-> These loops run under the netdev instance lock and RTNL. Ifdown,
-> set_channels, ring size, MTU and XDP changes, and the reset/servicing
-> paths would all wait for 2 * num_queues back-to-back grace periods while
-> holding RTNL. With 64 queues that is 128 serialized grace periods.
-> 
-> Could all child slots be cleared first and synchronize_rcu() called once?
-> Alternatively, the free could be deferred with call_rcu() or kfree_rcu().
-> 
->>  
->>  	if (id >= gc->max_num_cqs)
->>  		return;
-> 
-> [ ... ]
-> 
-I will fix this in v2.
->> diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
->> index c610fc1067e0d..03fe9395604d6 100644
->> --- a/include/net/mana/gdma.h
->> +++ b/include/net/mana/gdma.h
-> 
-> [ ... ]
-> 
->> @@ -752,6 +758,9 @@ enum {
->>  /* Driver supports non-contiguous queue buffers */
->>  #define GDMA_DRV_CAP_FLAG_1_NON_CONTIGUOUS_BUFFERS BIT(30)
->>  
->> +/* Driver supports handling throttled EQEs */
->> +#define GDMA_DRV_CAP_FLAG_1_THROTTLED_EVENT_QUEUE BIT_ULL(32)
->> +
-> 
-> [Severity: Medium]
-> The commit message describes this as a fix:
-> 
->   The driver does not handle this event type, so
->   it falls through to the default case and is dropped. Any CQ whose
->   completion notification was replaced by the throttle EQE is then never
->   scheduled again and its queue stalls.
-> 
-> It doesn't mention that the patch also advertises a new capability bit to
-> the device. GDMA_DRV_CAP_FLAG_1_THROTTLED_EVENT_QUEUE is added to the
-> common GDMA_DRV_CAP_FLAGS1, which mana_gd_verify_vf_version() sends
-> unconditionally.
-> 
-> If the device only sends type 4 EQEs after the driver sets this bit, can
-> the described stall happen on current kernels at all? If not, this is a
-> feature opt-in rather than a fix.
-> 
-> If the stall can happen today, should the patch carry a Fixes: tag?
-> 
-> The commit message also doesn't mention the new eq_throttle_events
-> counter in ethtool -S. Could both changes be described in the commit
-> message?
-> 
->>  /* Capabilities in the PCI-only group below rely on dynamic MSI-X allocation
->>   * and on the servicing and reset paths reached through
->>   * mana_schedule_serv_work(). Transports that provide neither leave
->> @@ -776,7 +785,8 @@ enum {
->>  	 GDMA_DRV_CAP_FLAG_1_HANDLE_STALL_SQ_RECOVERY | \
->>  	 GDMA_DRV_CAP_FLAG_1_EQ_MSI_UNSHARE_MULTI_VPORT | \
->>  	 GDMA_DRV_CAP_FLAG_1_DYN_INTERRUPT_MODERATION | \
->> -	 GDMA_DRV_CAP_FLAG_1_NON_CONTIGUOUS_BUFFERS)
->> +	 GDMA_DRV_CAP_FLAG_1_NON_CONTIGUOUS_BUFFERS | \
->> +	 GDMA_DRV_CAP_FLAG_1_THROTTLED_EVENT_QUEUE)
->>  
->>  #define GDMA_DRV_CAP_FLAGS2 0
-> 
-I will fix this in v2.
+MMAP_MAP_KERNEL_PAGES is a mouthful, discard the MAP_ as that's implied by
+MMAP.
 
-pw-bot: cr
+Also while we're here delete useless comments for mmap actions whose names
+clearly indicate what they are for.
+
+Also update the userland VMA tests to reflect this change.
+
+No functional change intended.
+
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+---
+ include/linux/mm.h              | 2 +-
+ include/linux/mm_types.h        | 8 ++++----
+ mm/util.c                       | 8 ++++----
+ tools/testing/vma/include/dup.h | 8 ++++----
+ 4 files changed, 13 insertions(+), 13 deletions(-)
+
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 0c17f0932b76..a1f2d375cf7d 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -4623,7 +4623,7 @@ static inline void mmap_action_map_kernel_pages(struct vm_area_desc *desc,
+ {
+ 	struct mmap_action *action = &desc->action;
+ 
+-	action->type = MMAP_MAP_KERNEL_PAGES;
++	action->type = MMAP_KERNEL_PAGES;
+ 	action->map_kernel.start = start;
+ 	action->map_kernel.pages = pages;
+ 	action->map_kernel.nr_pages = nr_pages;
+diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
+index 5413bd10fff2..9ca2ea3664bc 100644
+--- a/include/linux/mm_types.h
++++ b/include/linux/mm_types.h
+@@ -815,11 +815,11 @@ struct pfnmap_track_ctx {
+ 
+ /* What action should be taken after an .mmap_prepare call is complete? */
+ enum mmap_action_type {
+-	MMAP_NOTHING,		/* Mapping is complete, no further action. */
+-	MMAP_REMAP_PFN,		/* Remap PFN range. */
+-	MMAP_IO_REMAP_PFN,	/* I/O remap PFN range. */
++	MMAP_NOTHING,
++	MMAP_REMAP_PFN,
++	MMAP_IO_REMAP_PFN,
+ 	MMAP_SIMPLE_IO_REMAP,	/* I/O remap with guardrails. */
+-	MMAP_MAP_KERNEL_PAGES,	/* Map kernel page range from array. */
++	MMAP_KERNEL_PAGES,	/* Map kernel page range from array. */
+ };
+ 
+ /*
+diff --git a/mm/util.c b/mm/util.c
+index d809e08c7b4d..1660910e2a22 100644
+--- a/mm/util.c
++++ b/mm/util.c
+@@ -1467,7 +1467,7 @@ int mmap_action_prepare(struct vm_area_desc *desc)
+ 		return io_remap_pfn_range_prepare(desc);
+ 	case MMAP_SIMPLE_IO_REMAP:
+ 		return simple_ioremap_prepare(desc);
+-	case MMAP_MAP_KERNEL_PAGES:
++	case MMAP_KERNEL_PAGES:
+ 		return map_kernel_pages_prepare(desc);
+ 	}
+ 
+@@ -1498,7 +1498,7 @@ int mmap_action_complete(struct vm_area_struct *vma,
+ 	case MMAP_REMAP_PFN:
+ 		err = remap_pfn_range_complete(vma, action);
+ 		break;
+-	case MMAP_MAP_KERNEL_PAGES:
++	case MMAP_KERNEL_PAGES:
+ 		err = map_kernel_pages_complete(vma, action);
+ 		break;
+ 	case MMAP_IO_REMAP_PFN:
+@@ -1521,7 +1521,7 @@ int mmap_action_prepare(struct vm_area_desc *desc)
+ 	case MMAP_REMAP_PFN:
+ 	case MMAP_IO_REMAP_PFN:
+ 	case MMAP_SIMPLE_IO_REMAP:
+-	case MMAP_MAP_KERNEL_PAGES:
++	case MMAP_KERNEL_PAGES:
+ 		WARN_ON_ONCE(1); /* nommu cannot handle these. */
+ 		break;
+ 	}
+@@ -1542,7 +1542,7 @@ int mmap_action_complete(struct vm_area_struct *vma,
+ 	case MMAP_REMAP_PFN:
+ 	case MMAP_IO_REMAP_PFN:
+ 	case MMAP_SIMPLE_IO_REMAP:
+-	case MMAP_MAP_KERNEL_PAGES:
++	case MMAP_KERNEL_PAGES:
+ 		WARN_ON_ONCE(1); /* nommu cannot handle this. */
+ 
+ 		err = -EINVAL;
+diff --git a/tools/testing/vma/include/dup.h b/tools/testing/vma/include/dup.h
+index 077df510a311..023ad6092e9c 100644
+--- a/tools/testing/vma/include/dup.h
++++ b/tools/testing/vma/include/dup.h
+@@ -454,11 +454,11 @@ static __always_inline bool vma_flags_empty(const vma_flags_t *flags)
+ 
+ /* What action should be taken after an .mmap_prepare call is complete? */
+ enum mmap_action_type {
+-	MMAP_NOTHING,		/* Mapping is complete, no further action. */
+-	MMAP_REMAP_PFN,		/* Remap PFN range. */
+-	MMAP_IO_REMAP_PFN,	/* I/O remap PFN range. */
++	MMAP_NOTHING,
++	MMAP_REMAP_PFN,
++	MMAP_IO_REMAP_PFN,
+ 	MMAP_SIMPLE_IO_REMAP,	/* I/O remap with guardrails. */
+-	MMAP_MAP_KERNEL_PAGES,	/* Map kernel page range from an array. */
++	MMAP_KERNEL_PAGES,	/* Map kernel page range from array. */
+ };
+ 
+ /*
+
+-- 
+2.55.0
 
