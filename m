@@ -1,361 +1,247 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D086E39FCAE;
-	Tue, 13 Oct 2026 08:03:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3B7403B0AC6;
+	Tue, 13 Oct 2026 08:06:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791878603; cv=none; b=AH6P7+DZNhmyZBRxowLD8kv0hA+JgU34FJi0QavkQbkVgsSEvOM19hsDjJvdTOSIi3ENhgt5SlHdrQ7WoKMhrjebz8sGydnmvd8ELZcIlI9ADdPHguwLuqSs1H/XIcpw/3z51OeH8fSjFnKml1Ts4b4IQLc/hzdMjTupJqMub8s=
+	t=1791878764; cv=none; b=OsxJdXgEU9d/nUrRBK/2ydQIi4zA1SvhAAr+sbTntBItqW4GgMe6rONAXc80iD4xzWE/m3Cg/6EhfKXkA0VWE1St0+8dfaSLZiUMyPurkdwv5lO65Tz5Qj1uk1DdpqsWcynpTK/dlbXGqFNjZpXehjc51+GB17y1TN7YQ47Ed8k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791878603; c=relaxed/simple;
-	bh=uDVIqwl9wf7z4iefSNPp6KWVpjSEFle1efCgDktniEU=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=ckDaxxReMuMgp++A9tmTK4CLLFngxP/SSH8+LeI8POf7M2BOfb9P7FNr/jlBL+e2bisIV6h02r+MuvLd+Bp3JnnOjQzbTG/zo7zV7nweOPCRpkijPrgEBE8Sj9MzwKJZ7ejTKUxzQ0TSLrBc0e8Gy2XI/ZWo7U+ggQeklqgU6hM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=I57Xxjje; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791878764; c=relaxed/simple;
+	bh=mpdYh+tMfrQ1XRC2lz2dt4s7u4bQYe2NihMnCI79/zQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=jzZ/jSdfx0r50TlwkwTaBG+8ZHw2wJPYhI37TNkISDGBoHZdFmDafO43yA6gAyKI9n5LnpieM4WPNQHfj2PZZLVuGfvdMiEFjp1K8BrLQvul6dppi9aKn0JOEz0ZiyrNO+8+uphcYzt3Oa7U9wFPLZL4BFqEV4t40bjvJ33z50s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=RaNb7UyT; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="I57Xxjje"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E5661F000FF;
-	Tue, 13 Oct 2026 08:03:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791878601;
-	bh=AVOqioA6o42aiedEIoPlkGWPjIA7wN2/DbHfLFBLO00=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=I57XxjjeEsjvBQz9cLlsN5Q92ykjm0QfwSTOcCNErGR9uA3bbcxKMYD2TKlMdgoNF
-	 jHFgH8fUmwMO+pr1ES2UfBPv2B7lv16J9qlR3JDzlKwqvHz9XLr7ZOAr6UIYG8vBrj
-	 vJzhIN6Xnrff+7Oaas1vrDfR3Lrs4Pv5paBWlKF2UT9HWbGXUIaXGgEPmTad9uprgA
-	 h/GmXJKj8M8CfVtklDGVzm1Kp7O1xGfZ1TYgyeLWM2PQRlTpgSHmksp/jLV05W146d
-	 iYyWljQ+UJ2Xiegs2oYlhrxChCgvIriERpsOHAhncRl6gKYrJYnJjfrXgCHPTX/VWr
-	 j0CuW9L8eEBlw==
-Subject: Re: [PATCH net v9] net/smc: fix lgr/lnk lifetime vs diag reader race
-From: netdev-bot+sashiko@kernel.org
-To: mjambigi@linux.ibm.com
-Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
- kuba@kernel.org, pabeni@redhat.com, alibuda@linux.alibaba.com,
- dust.li@linux.alibaba.com, sidraya@linux.ibm.com, hidayath@linux.ibm.com,
- pasic@linux.ibm.com, horms@kernel.org, tonylu@linux.alibaba.com,
- guwen@linux.alibaba.com, stable@vger.kernel.org, netdev@vger.kernel.org,
- linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
-Date: Tue, 13 Oct 2026 08:03:19 +0000
-Message-ID: <179187859972.434549.160211929714609734@kernel.org>
-In-Reply-To: <20261012080034.38770-1-mjambigi@linux.ibm.com>
-References: <20261012080034.38770-1-mjambigi@linux.ibm.com>
-X-sashiko-severity: Medium
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="RaNb7UyT"
+Received: from weh-cvm-dev-vm.y50bckvjo0hefgfnzfztsfttff.phxx.internal.cloudapp.net (unknown [20.169.55.37])
+	by linux.microsoft.com (Postfix) with ESMTPSA id 2721D20B7166;
+	Tue, 13 Oct 2026 01:05:58 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 2721D20B7166
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1791878759;
+	bh=ABqutO+AIeQsI2eTyNx05Yl1UwlANTFRncjxekxzhqQ=;
+	h=From:To:Cc:Subject:Date:From;
+	b=RaNb7UyTxchYv1OhVPxXmAhxGAqyML5QjHeigtEP34Cxlbgj/m1Dc5n2drAT496VP
+	 yqwiX2JP9Y7yxjMekREEPjqyjZEPy1z/rDAgm14vQ3OIXZBr6Bl8uFfWCDDgxVv6ia
+	 lflxrlH3s9JCmx5kwspMcWmVDBp4kD/0dhQK8fyQ=
+From: Wei Hu <weh@linux.microsoft.com>
+To: longli@kernel.org,
+	kotaranov@microsoft.com,
+	kuba@kernel.org,
+	davem@davemloft.net,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	andrew+netdev@lunn.ch,
+	jgg@ziepe.ca,
+	leon@kernel.org,
+	haiyangz@microsoft.com,
+	wei.liu@kernel.org,
+	decui@microsoft.com,
+	shradhagupta@linux.microsoft.com,
+	horms@kernel.org,
+	ernis@linux.microsoft.com,
+	stephen@networkplumber.org
+Cc: netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-hyperv@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	gargaditya@linux.microsoft.com,
+	kees+treewide@kernel.org,
+	kees@kernel.org,
+	mawasthi@linux.microsoft.com,
+	weh@microsoft.com,
+	edumazet@kernel.org
+Subject: [PATCH net-next v7 0/4] net: mana: concurrent HWC requests and dynamic queue depth
+Date: Tue, 13 Oct 2026 08:05:48 +0000
+Message-ID: <cover.1791561995.git.weh@linux.microsoft.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-
-Thank you for your contribution! Sashiko AI review found 3 potential
-issue(s) to consider.
-
-Critical: 0 · High: 0 · Medium: 2 (2) · Low: 1
-
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [Medium] The patch adds `smc->sk.sk_prot->unhash(&smc->sk)` as the
-  first statement of smc_conn_kill() (net/smc/smc_core.c:1520), so it…
-- [Medium] The new sk_state-based guards in __smc_diag_dump()
-  (net/smc/smc_diag.c) change the sock_diag uAPI output for sockets…
-- [Low] __smc_diag_dump() (net/smc/smc_diag.c:161) now copies
-  link->ibname into smc_diag_linkinfo.ibname instead of…
-
-Pre-existing issues:
-- [Medium] This problem wasn't introduced by this patch, but
-  smc_conn_free() (net/smc/smc_core.c:1279-1280) calls…
-- [Medium] This problem wasn't introduced by this patch, but
-  smc_diag_handler_dump() (net/smc/smc_diag.c:244) starts the dump…
-
---
-
-net/smc: fix lgr/lnk lifetime vs diag reader race
-
-This patch closes several windows where the SMC sock_diag dump can
-dereference freed conn/lgr/lnk state of a socket that is still hashed. It
-adds sk_state guards and acquire/release ordering in __smc_diag_dump(), and
-unhashes the socket before smc_conn_free() in the close paths and at the
-top of smc_conn_kill(). It also reports the cached link->ibname instead of
-link->smcibdev->ibdev->name.
-
-> diff --git a/net/smc/smc_close.c b/net/smc/smc_close.c
-> index bb0313ef5f7c1..aa6363abdd747 100644
-> --- a/net/smc/smc_close.c
-> +++ b/net/smc/smc_close.c
-
-[ ... ]
-
-> @@ -433,6 +435,7 @@ static void smc_close_passive_work(struct work_struct *work)
->  		sk->sk_state_change(sk);
->  		if ((sk->sk_state == SMC_CLOSED) &&
->  		    (sock_flag(sk, SOCK_DEAD) || !sk->sk_socket)) {
-> +			sk->sk_prot->unhash(sk);
->  			smc_conn_free(conn);
-
-[Severity: Medium]
-This isn't a bug introduced by this patch, but it came up while looking at
-the smc_conn_free() calls here. Can smc_conn_free() leak the smc_sock
-reference that a pending abort_work holds?
-
-On SMC-R, smc_cdc_msg_validate() takes a reference for the work:
-
-net/smc/smc_cdc.c:smc_cdc_msg_validate() {
-    ...
-		sock_hold(&smc->sk); /* sock_put in abort_work */
-		if (!queue_work(smc_close_wq, &conn->abort_work))
-			sock_put(&smc->sk);
-    ...
-}
-
-That reference is normally dropped at the end of smc_conn_abort_work():
-
-	sock_put(&smc->sk); /* sock_hold done by schedulers of abort_work */
-
-smc_conn_free() ignores the return value of the cancel:
-
-net/smc/smc_core.c:smc_conn_free() {
-    ...
-		if (current_work() != &conn->abort_work)
-			cancel_work_sync(&conn->abort_work);
-    ...
-}
-
-Suppose smc_conn_free() runs from __smc_release() or
-smc_close_passive_work() while abort_work is still pending. Then
-cancel_work_sync() returns true, and nothing drops the reference the work
-was holding.
-
-smc_close_cancel_work() handles the same pattern for close_work:
-
-	if (cancel_work_sync(&smc->conn.close_work))
-		sock_put(sk);
-
-Should smc_conn_free() do the same for abort_work?
-
->  			if (smc->clcsock)
->  				release_clcsock = true;
-> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-> index 9974149659c2f..663926465ba7f 100644
-> --- a/net/smc/smc_core.c
-> +++ b/net/smc/smc_core.c
-> @@ -1517,6 +1517,7 @@ static void smc_conn_kill(struct smc_connection *conn, bool soft)
->  {
->  	struct smc_sock *smc = container_of(conn, struct smc_sock, conn);
->  
-> +	smc->sk.sk_prot->unhash(&smc->sk);
-
-[Severity: Medium]
-Does this hide sockets that stay open from sock_diag for the rest of their
-lifetime?
-
-The unhash runs for every SMC-R and SMC-D kill. Only the SMC-D dmb_nocopy
-smcd_buf_detach() further down needs it.
-
-smc_conn_kill() is called from __smc_lgr_terminate() for every connection
-of a terminating link group (link down, device removal, admin
-termination). It is also called from smc_conn_abort_work().
-
-For SMC_ACTIVE, SMC_APPCLOSEWAIT1 and SMC_APPCLOSEWAIT2,
-smc_close_active_abort() does not free the conn afterwards:
-
-net/smc/smc_close.c:smc_close_active_abort() {
-    ...
-	case SMC_ACTIVE:
-	case SMC_APPCLOSEWAIT1:
-	case SMC_APPCLOSEWAIT2:
-		sk->sk_state = SMC_PEERABORTWAIT;
-		smc_close_cancel_work(smc);
-		if (sk->sk_state != SMC_PEERABORTWAIT)
-			break;
-		sk->sk_state = SMC_CLOSED;
-		sock_put(sk); /* (postponed) passive closing */
-		break;
-    ...
-}
-
-The early "if (sk->sk_state != SMC_PEERABORTWAIT) break;" exits also leave
-the socket alive. The application keeps its fd until close().
-
-SMC sockets are hashed only once, in smc_sk_init(), so they never go back
-into the hash table.
-
-smc_unhash_sk() also calls sock_prot_inuse_add(..., -1). The inuse count in
-/proc/net/protocols then drops while the socket is still alive.
-
-On SMC-R this doesn't seem to add any safety:
-- smc_lgr_unregister_conn() clears alert_token_local
-- the conn keeps its lgr and link references until smc_conn_free()
-- the free inside smc_close_active_abort() now has its own unhash
-
-The v6 changelog says the per-site placement "avoids prematurely hiding
-live SMC_ACTIVE/APPCLOSEWAIT sockets from smcss". The commit message
-describes this hunk only as an SMC-D dmb_nocopy reorder.
-
-Would it be enough to move the unhash into the
-smc_ism_support_dmb_nocopy() branch, right before smcd_buf_detach()?
-
->  	if (conn->lgr->is_smcd && conn->lgr->peer_shutdown)
->  		conn->local_tx_ctrl.conn_state_flags.peer_conn_abort = 1;
->  	else
-> diff --git a/net/smc/smc_diag.c b/net/smc/smc_diag.c
-> index bf0beaa23bdb6..36a3b8f31f28d 100644
-> --- a/net/smc/smc_diag.c
-> +++ b/net/smc/smc_diag.c
-> @@ -87,10 +87,11 @@ static int __smc_diag_dump(struct sock *sk, struct sk_buff *skb,
->  
->  	r = nlmsg_data(nlh);
->  	smc_diag_msg_common_fill(r, sk);
-> -	r->diag_state = sk->sk_state;
-> +	r->diag_state = smp_load_acquire(&sk->sk_state);
->  	if (smc->use_fallback)
->  		r->diag_mode = SMC_DIAG_MODE_FALLBACK_TCP;
-> -	else if (smc_conn_lgr_valid(&smc->conn) && smc->conn.lgr->is_smcd)
-> +	else if (r->diag_state != SMC_INIT &&
-> +		 smc_conn_lgr_valid(&smc->conn) && smc->conn.lgr->is_smcd)
->  		r->diag_mode = SMC_DIAG_MODE_SMCD;
->  	else
->  		r->diag_mode = SMC_DIAG_MODE_SMCR;
-> @@ -103,6 +104,9 @@ static int __smc_diag_dump(struct sock *sk, struct sk_buff *skb,
->  	if (nla_put(skb, SMC_DIAG_FALLBACK, sizeof(fallback), &fallback) < 0)
->  		goto errout;
->  
-> +	if (r->diag_state == SMC_INIT || r->diag_state == SMC_CLOSED)
-> +		goto out;
-> +
-
-[Severity: Medium]
-Do these two sk_state checks change the sock_diag uAPI output for sockets
-whose connection is still live?
-
-With the diag_mode change, every non-fallback SMC-D socket in SMC_INIT now
-reports SMC_DIAG_MODE_SMCR. In include/uapi/linux/smc_diag.h, SMCR is 0
-and SMCD has its own value, so there is no "unknown" value to fall back on.
-
-SMC_INIT is not limited to the abort window:
-- smc_connect_ism() and smc_connect_rdma() run smc_conn_create(),
-  smc_buf_create(), smcd_buf_attach() and the whole CLC confirm exchange
-  while in SMC_INIT
-- on the server side the socket stays in SMC_INIT through
-  smc_listen_work() until smc_listen_out_connected()
-
-During these windows the lgr, alert_token_local and the buffers are all
-valid, and the socket is hashed and visible to diag.
-
-The new goto out also skips SMC_DIAG_CONNINFO, SMC_DIAG_LGRINFO and
-SMC_DIAG_DMBINFO even when req->diag_ext asks for them. That bypasses the
-existing alert_token_local, smc_conn_lgr_valid(), list_empty(&lgr->list)
-and rmb_desc checks.
-
-SMC_CLOSED doesn't mean the conn was freed either:
-- smc_close_active() reached through shutdown(SHUT_RDWR) sets SMC_CLOSED in
-  the APPCLOSEWAIT/APPFINCLOSEWAIT/PROCESSABORT cases without calling
-  smc_conn_free()
-- the SMC_ACTIVE branch of smc_close_active_abort() does the same
-- smc_close_passive_work() frees the conn only when SOCK_DEAD is set or
-  sk->sk_socket is NULL:
-
-net/smc/smc_close.c:smc_close_passive_work() {
-    ...
-		if ((sk->sk_state == SMC_CLOSED) &&
-		    (sock_flag(sk, SOCK_DEAD) || !sk->sk_socket)) {
-    ...
-}
-
-These sockets keep their conn until close(), but now report no extension
-data.
-
-The commit message says:
-
-    As a side effect the diag_mode field is
-    reported as SMC_DIAG_MODE_SMCR for SMC-D sockets still in SMC_INIT; smcss
-    suppresses those rows before printing the mode string so there is no rendered
-    regression.
-
-That covers only one consumer, smcss. It also doesn't mention the dropped
-extensions for live SMC_CLOSED sockets.
-
-Is this change in uAPI output intended for sockets that still have a live
-connection?
-
->  	if ((req->diag_ext & (1 << (SMC_DIAG_CONNINFO - 1))) &&
->  	    smc->conn.alert_token_local) {
-
-[Severity: Medium]
-This is a pre-existing issue, not one introduced by this patch. Can
-req->diag_ext be read past the end of the request payload here?
-
-smc_diag_handler_dump() calls netlink_dump_start() without checking
-nlmsg_len(h) against sizeof(struct smc_diag_req). The only length check
-before that is in __sock_diag_cmd():
-
-net/core/sock_diag.c:__sock_diag_cmd() {
-    ...
-	if (nlmsg_len(nlh) < sizeof(*req))
-		return -EINVAL;
-    ...
-}
-
-That checks only the 2-byte struct sock_diag_req, but diag_ext is at
-payload offset 3.
-
-An unprivileged user can send a SOCK_DIAG_BY_FAMILY/NLM_F_DUMP request with
-nlmsg_len = NLMSG_HDRLEN + 2. This read then lands in uninitialized
-tailroom of the request skb.
-
-Whether CONNINFO, LGRINFO and DMBINFO appear in the reply would then reveal
-bits of that byte, and KMSAN would report uninit-value.
-
-inet_diag and unix_diag both check nlmsg_len against their full request
-struct. Should smc_diag_handler_dump() return -EINVAL when
-nlmsg_len(h) < sizeof(struct smc_diag_req)?
-
-[ ... ]
-
-> @@ -154,8 +158,7 @@ static int __smc_diag_dump(struct sock *sk, struct sk_buff *skb,
->  			.lnk[0].link_id = link->link_id,
->  		};
->  
-> -		memcpy(linfo.lnk[0].ibname, link->smcibdev->ibdev->name,
-> -		       sizeof(link->smcibdev->ibdev->name));
-> +		memcpy(linfo.lnk[0].ibname, link->ibname, sizeof(link->ibname));
-
-[Severity: Low]
-Can this report a stale RDMA device name after the device is renamed?
-
-link->ibname is copied only once, when the link is initialized:
-
-net/smc/smc_core.c:smcr_copy_dev_info_to_link() {
-    ...
-	snprintf(link->ibname, sizeof(link->ibname), "%s",
-		 smcibdev->ibdev->name);
-    ...
-}
-
-ib_device_rename() updates ibdev->name and notifies clients through their
-->rename callback. smc_ib_client doesn't have one:
-
-static struct ib_client smc_ib_client = {
-	.name	= "smc_ib",
-	.add	= smc_ib_add_dev,
-	.remove = smc_ib_remove_dev,
-};
-
-If the device is renamed (for example with "rdma dev set ... name ...")
-while an SMC-R link is up, SMC_DIAG_LGRINFO would show the old name. The
-SMC device dump in smc_nl_handle_smcr_dev() would show the current
-ibdev->name. Before this patch, smc_diag reported the current name.
-
-The SMC genl link dump (smc_nl_fill_lgr_link()) and the tracepoints already
-use the cached name, so this follows an existing convention that goes stale
-in the same way.
-
-Would a full fix need a rename callback that refreshes link->ibname?
-
+Content-Transfer-Encoding: 8bit
+
+This series picks up Long Li's v5 MANA Hardware Channel (HWC) work,
+addresses its review findings, and retains its four-patch feature lineage.
+Safety changes required by concurrency and repeated HWC reinitialization
+are folded into the patch which owns each behavior rather than posted as a
+separate fixes series.
+
+I have taken over follow-up upstreaming from Long. Long remains the author
+of every patch, his existing sign-off is preserved, and I added mine for
+the changes and submission custody.
+
+Patch 1 prepares HWC ownership for safe reinitialization. It serializes
+complete shared-memory transactions, tracks possible PF ownership,
+retains mappings after an unacknowledged destroy, fences the HWC EQ before
+releasing CQ state, and safely publishes and withdraws the HWC CQ table.
+
+Patch 2 gives each slot independent completion state, withdraws caller
+storage before sender return, handles the response-versus-timeout race,
+and prevents depth-one slot reuse after a genuine timeout.
+
+Patch 3 adds concurrent requests with bounded admission, serialized SQ
+posting, separate sender/response ownership, stale-response quarantine,
+coherent timeout updates, private setup publication, and sender draining.
+
+Patch 4 rebuilds the depth-one bootstrap queues at validated depths from 2
+through 128. It validates both reports, message limits and doorbells,
+keeps the untouched bootstrap channel for depth one or reports above 128,
+and restores fresh bootstrap queues after a failed rebuild only when
+teardown was acknowledged.
+
+Generic Ethernet/RDMA CQ callback refcounting and generic service-work
+versus device-lifecycle serialization are independent pre-existing work
+and are intentionally excluded. Malformed-RX handling, duplicate-success
+correlation, and broad device-controlled allocation/timeout policy caps
+also remain separate follow-ups.
+
+This series is independent of the separately posted queue-set v6 series.
+That series addresses the pre-existing generic Ethernet CQ reclamation
+gap discussed in the HWC v6 review. The CQ-publication hunks overlap;
+whichever series lands second will need reconciliation preserving both
+table-publication and individual-CQ lifetime guarantees.
+https://lore.kernel.org/all/cover.1790795005.git.weh@linux.microsoft.com/
+
+Changes in v7 (v6 -> v7):
+ - Rebase onto net-next d8674294aefef02266c4d47ad10131f1bffbe534,
+   following Simon Horman's request after the v6 CI application failure.
+ - Preserve the upstream GDMA core/PCI transport split and CDX support.
+   Initialize the HWC lifetime lock on both transport probe paths and
+   perform PCI recovery's timeout cancellation through a GDMA core helper
+   which protects the published HWC pointer across the module boundary.
+ - Retain the four-patch lineage and the v6 ownership, request, timeout,
+   publication, depth-validation and fallback policies.
+
+Rebase request:
+https://lore.kernel.org/all/20261009151906.GF83879@horms.kernel.org/
+
+Changes in v6 (v5 -> v6):
+ - Keep the four-patch v5 structure while folding review-required HWC
+   ownership, teardown, timeout, publication and fallback safety into
+   their owning feature patches.
+ - Serialize complete ESTABLISH_HWC and DESTROY_HWC shared-memory
+   transactions. Record possible PF ownership before MMIO submission and
+   clear it only after DESTROY_HWC is acknowledged.
+ - Retain PF-visible queues after an indeterminate destroy. Fence the
+   dedicated HWC EQ and withdraw its CQ from dispatch without freeing the
+   mappings, then retry teardown before assigning fresh queues.
+ - Destroy the HWC EQ before CQ and completion state. Release-publish the
+   CQ table and wait for IRQ-side RCU readers before freeing it, without
+   adding per-completion refcount operations.
+ - Withdraw the caller's response buffer before return and quarantine a
+   timed-out slot until its late response arrives or teardown cancels it.
+ - Return -EBUSY for healthy slot pressure and reserve -ETIMEDOUT for an
+   admitted request which receives no response.
+ - Publish slots under the inflight lock, protect response state with the
+   per-slot lock, and retain sender/response references until both sides
+   finish.
+ - Synchronize hwc_timeout updates and publish the HWC only after queues,
+   admission state, caller contexts and the direct EQ test are ready.
+ - Replace the goto-heavy request and channel-creation flows called out in
+   review with focused admission, submission, wait, build, validation,
+   rebuild and fallback helpers.
+ - Treat reported depth as a maximum: rebuild exactly for 2 through 128,
+   retain untouched bootstrap queues for 1 or above 128, and require the
+   rebuilt report to repeat the selected depth.
+ - Enforce directional request/response maxima against both the report
+   and allocated buffers. Rebuild only for exact 4096-byte reports while
+   permitting bootstrap operation for other nonzero maxima.
+ - Validate BAR page geometry and every stored doorbell. Invalidate the
+   old HWC doorbell before re-establishment and suppress MMIO while the
+   invalid sentinel is present, without adding full validation to each
+   data-path doorbell ring.
+ - Remove the proposed capability bit because driver-version
+   advertisement occurs after HWC establishment and cannot negotiate
+   creation-time behavior.
+ - Preserve current net-next behavior which always uses the
+   hardware-reported dest_vrq_id and dest_vrcq_id.
+
+Changes in v5 (v4 -> v5):
+ - Shortened comments and documented the existing error paths in patches
+   1 and 2.
+ - Rejected apparent success from a response accepted before request
+   submission.
+ - Guarded CQ unpublication when establishment failed before cq_table
+   allocation.
+ - Required successful retry teardown before creating fresh bootstrap
+   queues after an initial destroy failure.
+
+Changes in v4 (return to net-next after the v3 split):
+ - Reworked the feature series into four standalone patches for handover,
+   per-slot completion state, concurrency and dynamic depth.
+ - Added bounded admission, guarded sender accounting, timeout quarantine,
+   queue-depth bounds, message-buffer sizing and rebuild validation.
+ - Reset routing IDs for each establish and rejected a missing doorbell.
+
+Changes in v3 (v2 -> net v3, historical fixes-only posting):
+ - Split the combined series after maintainer feedback, posting fixes to
+   net and deferring concurrency and dynamic depth.
+ - Added response-buffer withdrawal and stale-response handling.
+ - Removed pcie_flr() teardown fallback and retained resources after an
+   unacknowledged destroy.
+
+Changes in v2 (v1 -> v2):
+ - Bounds-checked the SGE pointer derived from inline OOB size.
+ - Protected active-sender accounting and drained senders during
+   teardown and failure exits.
+ - Rebased on net-next e354f7d60f14.
+
+v1:
+ - Combined CQ-table lifetime, queue sizing, RX validation, teardown,
+   concurrent-request and dynamic-depth work in seven patches.
+
+Validation:
+ - Exact application and strict checkpatch for all four patches.
+ - Baseline and every intermediate commit built with GCC/Clang W=1,
+   including GDMA core, PCI, CDX COMPILE_TEST and RDMA target objects.
+ - Full baseline/release kernel and module builds on the new base.
+ - Sparse: no new diagnostics relative to baseline. Smatch remains
+   limited by identical baseline frontend and array-bound diagnostics;
+   it is not counted as a clean pass.
+ - Fresh baseline/release runs on two Azure MANA VMs: concurrent PD/MR
+   and native RNIC PD/CQ/MR resource controls, channel/MTU changes,
+   three PCI remove/rescan cycles per VM, and three samples each of
+   forward/reverse TCP and 64-byte UDP. No new kernel warning or
+   functional failure in these runs; safe kernels/configurations restored.
+ - These runs do not establish negotiated multi-request depth, connected
+   RDMA data-plane operation, CDX hardware support or fresh firmware-fault,
+   fallback, sanitizer/lockdep coverage. Prior v6 fault evidence is not
+   presented as fresh v7 execution.
+
+v6:
+https://lore.kernel.org/all/cover.1790665894.git.weh@linux.microsoft.com/
+v5:
+https://lore.kernel.org/all/20260908035201.402424-1-longli@microsoft.com/
+v4:
+https://lore.kernel.org/all/20260901200018.3194525-1-longli@microsoft.com/
+v3:
+https://lore.kernel.org/all/20260803234355.636038-1-longli@microsoft.com/
+v2:
+https://lore.kernel.org/all/20260721234339.1476932-1-longli@microsoft.com/
+v1:
+https://lore.kernel.org/all/20260715032942.3945317-1-longli@microsoft.com/
+
+Long Li (4):
+  net: mana: prepare HWC ownership for safe reinitialization
+  net: mana: give each HWC message slot its own completion state
+  net: mana: support concurrent HWC requests
+  net: mana: add dynamic HWC queue depth with reinit path
+
+ .../net/ethernet/microsoft/mana/gdma_cdx.c    |   1 +
+ .../net/ethernet/microsoft/mana/gdma_main.c   | 140 ++-
+ .../net/ethernet/microsoft/mana/gdma_pci.c    |  11 +-
+ .../net/ethernet/microsoft/mana/hw_channel.c  | 928 +++++++++++++++---
+ .../net/ethernet/microsoft/mana/shm_channel.c |  58 +-
+ include/net/mana/gdma.h                       |  16 +
+ include/net/mana/hw_channel.h                 |  56 +-
+ include/net/mana/shm_channel.h                |  10 +-
+ 8 files changed, 1019 insertions(+), 201 deletions(-)
+
+
+base-commit: d8674294aefef02266c4d47ad10131f1bffbe534
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261012080034.38770-1-mjambigi%40linux.ibm.com
+2.43.0
+
