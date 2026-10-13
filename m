@@ -1,147 +1,423 @@
-Received: from mail.cybernetics.com (mail.cybernetics.com [72.215.153.18])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EBD63BBFDE
-	for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 14:10:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=72.215.153.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9873D3FFFA1;
+	Tue, 13 Oct 2026 14:15:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791900625; cv=none; b=iNcY/zs3JiAC+llkSI18O78YBEvhNUJ/w237cDQNIbMfYooT6rapfEqkmWgRquVmVWAR6/mw3/JWLSbLjUXVs+BwtsHDC1WTRaTuXDOqJUluUjGxAQJOoH8sO7Bi8o/mISNfpcjwUWcqhS+3FdlfZtjWG758Nm/2FXSn9DUCzAM=
+	t=1791900929; cv=none; b=Y1SQjw1kdEAUPmpI1OC4Orz3uv2upJIZIMJYsa4ex6wLngvN9dMo60SD+xrMU5rGOqLnm3v6tluxlWNTUJlPm+XN7XL3IM3/bZeSaJE3CroUOgR1p09hUBiCtpdPgtHn5WzMJyqZZ3XZ6w+aQH5cjiBJgSM5qqyYi4Pq8gaB2HA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791900625; c=relaxed/simple;
-	bh=6RYH2wVTtK9L9KXdmeFSAdYjqDX4XhJuWqKmdRhbzOg=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=eMfgAuOuOpT7JepFwLNiPe67IIDHEcNUfZE7+hCdDMO4X26tHGxd2ZkWcOw16P3VvQFkvx15C9Ziv2EazaAfF2zTXoBAJDAmqc9KT+J+qcwFM4e4XlVA99xK46PiXDj4N8MDFhd1n5SqYV2DCgsqHCb7xfhJdwHtweGn2J/zg/g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=cybernetics.com; spf=pass smtp.mailfrom=cybernetics.com; dkim=pass (1024-bit key) header.d=cybernetics.com header.i=@cybernetics.com header.b=EL5XREj/; arc=none smtp.client-ip=72.215.153.18
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=cybernetics.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cybernetics.com
+	s=arc-20240116; t=1791900929; c=relaxed/simple;
+	bh=g8xnqbxcgFHOm2w0Ayu5ZMf5scGZskpwbKG9YPGubmI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=nN5NByZpWnZxR7b0UzyBcp2BQkutF3+rP8Wj34/baSZ1TQibGCFkopN1bmEOJP7cFsD1rvno6/Zbnr7M6StShgnyZR4uGHU1qzlxpUbdkvvmsfJmJZArvaB1bS+DkK8cTyjRnk3c4OHxial/tMiprx7zeGzB0U3qx9k+LhEgFac=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=NxPe+9lC; arc=none smtp.client-ip=148.163.156.1
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=cybernetics.com header.i=@cybernetics.com header.b="EL5XREj/"
-Received: from cybernetics.com ([10.10.4.126]) by mail.cybernetics.com with ESMTP id ah6tIWBWeA3YbvxZ; Tue, 13 Oct 2026 10:10:17 -0400 (EDT)
-X-Barracuda-Envelope-From: tonyb@cybernetics.com
-X-Barracuda-RBL-Trusted-Forwarder: 10.10.4.126
-X-ASG-Whitelist: Client
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=cybernetics.com; s=mail;
-	bh=1UAiOEx9QYQf3gCC5UcOrI+VQP7Hx4ffxhxAJXLxsFg=;
-	h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:References:Cc:To:
-	Content-Language:Subject:MIME-Version:Date:Message-ID; b=EL5XREj/zw1hGqtCx0sO
-	4sXjSSmP8pe6HlvZmE5YNO8DE54LeIRmlRhZo/a77BMdAJI1i9dPF9bOD4QtqF3xzujv+Exdjk0Xe
-	kTckNQVMEKSjLvF4coHvHeWTgfxUZXjOq84it/Gz3P9M9UtdCNo7BmfQMauEzc8jdUvnRJzjtE=
-Received: from [10.157.2.224] (HELO [192.168.200.1])
-  by cybernetics.com (CommuniGate SPEC SMTP 8.1.0)
-  with ESMTPS id 14988286; Tue, 13 Oct 2026 10:07:17 -0400
-Message-ID: <45f66939-7cf2-47c1-950e-df0fc8d554c9@cybernetics.com>
-X-Barracuda-RBL-Trusted-Forwarder: 10.157.2.224
-Date: Tue, 13 Oct 2026 10:07:17 -0400
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="NxPe+9lC"
+Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69D2FH4p1893236;
+	Tue, 13 Oct 2026 14:15:20 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:date:from:message-id:mime-version
+	:subject:to; s=pp1; bh=XcWWGH0FdqtSqubkCAUIbVTXVY9H7q3yf9Inl991+
+	d0=; b=NxPe+9lCcdtgLsnVH+PA7YSefhwJbaoM87voBzKDFK0aiy0D8ERAkH9sP
+	UK24IgRXiyIN0KS8OtsYjosy75gXKpukl7y8cPMuG7zlg0vipn+GFcPrRhajR+nJ
+	L8NB7gGtgoXQkWSIGCaPa8NHWuBB65zCK6gs08vl3e6bJkIfgTxj9k5Z/QNgvSpz
+	lTNQcKDFtetDWC2lWnYuBG2Zxs7+A//8mGlYmWbTzR5hauiCIt6AgksyLNcTZBya
+	pUmVAgNR/DpEWM89ZDf3kV8MF9YsptMR4KS0PC0v715hI8F+ERx0t2VGQc+0khXU
+	jqRBKj111hmbR7VHg/2yP/OcMP4ZQ==
+Received: from ppma11.dal12v.mail.ibm.com (db.9e.1632.ip4.static.sl-reverse.com [50.22.158.219])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4h7dv3ek02-1
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
+	Tue, 13 Oct 2026 14:15:19 +0000 (GMT)
+Received: from pps.filterd (ppma11.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma11.dal12v.mail.ibm.com (8.18.1.11/8.18.1.11) with ESMTP id 69DCPtAD2712831;
+	Tue, 13 Oct 2026 14:15:18 GMT
+Received: from smtprelay07.fra02v.mail.ibm.com ([9.218.2.229])
+	by ppma11.dal12v.mail.ibm.com (PPS) with ESMTPS id 4h82cyj063-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 13 Oct 2026 14:15:18 +0000 (GMT)
+Received: from smtpav02.fra02v.mail.ibm.com (smtpav02.fra02v.mail.ibm.com [10.20.54.101])
+	by smtprelay07.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 69DEFE3b37421550
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 13 Oct 2026 14:15:14 GMT
+Received: from smtpav02.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 4F12520040;
+	Tue, 13 Oct 2026 14:15:14 +0000 (GMT)
+Received: from smtpav02.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 024A92005A;
+	Tue, 13 Oct 2026 14:15:14 +0000 (GMT)
+Received: from tuxmaker.boeblingen.de.ibm.com (unknown [9.87.85.9])
+	by smtpav02.fra02v.mail.ibm.com (Postfix) with SMTP;
+	Tue, 13 Oct 2026 14:15:13 +0000 (GMT)
+Received: by tuxmaker.boeblingen.de.ibm.com (Postfix, from userid 56341)
+	id DE63C16131E; Tue, 13 Oct 2026 16:15:13 +0200 (CEST)
+From: Mahanta Jambigi <mjambigi@linux.ibm.com>
+To: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
+        kuba@kernel.org, pabeni@redhat.com, alibuda@linux.alibaba.com,
+        dust.li@linux.alibaba.com, sidraya@linux.ibm.com
+Cc: hidayath@linux.ibm.com, pasic@linux.ibm.com, horms@kernel.org,
+        tonylu@linux.alibaba.com, guwen@linux.alibaba.com,
+        stable@vger.kernel.org, netdev@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
+        Mahanta Jambigi <mjambigi@linux.ibm.com>
+Subject: [PATCH net v10] net/smc: fix lgr/lnk lifetime vs diag reader race
+Date: Tue, 13 Oct 2026 16:15:10 +0200
+Message-ID: <20261013141510.2621698-1-mjambigi@linux.ibm.com>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: mlx5_ib fails probe with old firmware
-Content-Language: en-US
-X-ASG-Orig-Subj: Re: mlx5_ib fails probe with old firmware
-To: Moshe Shemesh <moshe@nvidia.com>, Leon Romanovsky <leon@kernel.org>
-Cc: linux-rdma@vger.kernel.org
-References: <064dfa67-8fd4-40f0-b925-6d1e0cd42e6a@cybernetics.com>
- <6af095b1-4ca1-483e-94c4-50227507fa85@nvidia.com>
-From: Tony Battersby <tonyb@cybernetics.com>
-In-Reply-To: <6af095b1-4ca1-483e-94c4-50227507fa85@nvidia.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-Barracuda-Connect: UNKNOWN[10.10.4.126]
-X-Barracuda-Start-Time: 1791900617
-X-Barracuda-URL: https://10.10.4.122:443/cgi-mod/mark.cgi
-X-Barracuda-BRTS-Status: 0
-X-Virus-Scanned: by bsmtpd at cybernetics.com
-X-Barracuda-Scan-Msg-Size: 4001
-X-ASG-Debug-ID: 1791900617-1cf4391af94d49f0001-g2FmEp
+Content-Transfer-Encoding: quoted-printable
+X-TM-AS-GCONF: 00
+X-Proofpoint-Reinject: loops=2 maxloops=12
+X-Proofpoint-GUID: xc9MsDroqYftkGQoSsnkE3aRLWYx8P2Z
+X-Proofpoint-ORIG-GUID: fbsgvKfqtNjwiV20h_PpHESOcDnXSqKq
+X-Authority-Analysis: v=2.4 cv=aqInmiZV c=1 sm=1 tr=0 ts=6ace3cf7 cx=c_pps
+ a=aDMHemPKRhS1OARIsFnwRA==:117 a=aDMHemPKRhS1OARIsFnwRA==:17
+ a=660iZSQnnn4A:10 a=VkNPw1HP01LnGYTKEx00:22 a=RnoormkPH1_aCDwRdu11:22
+ a=U7nrCbtTmkRpXpFmAIza:22 a=VwQbUJbxAAAA:8 a=VnNF1IyMAAAA:8
+ a=wYuRLodk1VvsnMAQ6aUA:9
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMDEzMDA1NiBTYWx0ZWRfX2sVCPr6M3H4q
+ 5wmUdc3ZBiRSoQA+TnrIbUXi3W0LE2IlN8NzdOmrFr3ZEceuJ9pgPuoe0bZUZhgwlK/q8BNv2dU
+ 8LRE3cIeUX90KcyUxEfTodJblAgj8kQ=
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDEzMDA1NiBTYWx0ZWRfXzAoidTBZ25iu
+ hDhSxw0KY2cAvNlrGh255LLpagOyhtcEAZCN+9Wc0NFAwQtfUK4T2wPRBE/BMFOXlIea4fGmzjR
+ lZOAsL2/RHXOZnpXVEobzwxJhxilq+63X9olYdxO0cxUC5tNaiI/ad9hGdlZEgdw5mhKiw5x6/x
+ 83PlZYRwve6S+gk/Ls/peUHI5yQ+Jj/Teue0F9obn/qKIkSDJxHstvKBss4AFxlOuq0KvnVbAAl
+ uKovBMWbCKLKR4SD0ch3jWxYXgtsvYR406dy/sZjtDS6mELXhDD5wa90foT1OnzCWqrDzS4EQq+
+ c+qkBWgDO9EBhuItFVfEvmvKtZjhw2ILugcwVlHBvzD5td/rDHkz/YUv3K6L5OAcM547h2mil7R
+ 91z9TC51mYVCdAaWt+IV/pLhxArbeaBvpvfHCuMWJLYmeUb1FdJtZQhYbYmTaEsOiHZ4Yi2kwe2
+ 2XJko5SNYxFGmF0C7Wg==
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-10-13_01,2026-10-09_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ phishscore=0 clxscore=1015 spamscore=0 malwarescore=0 suspectscore=0
+ bulkscore=0 adultscore=0 impostorscore=0 priorityscore=1501
+ lowpriorityscore=0 classifier=typeunknown authscore=0 authtc= authcc=
+ route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2610080000
+ definitions=main-2610130056
 
-On 10/13/26 05:49, Moshe Shemesh wrote:
->
-> On 10/9/2026 9:20 PM, Tony Battersby wrote:
->> I have a number of Mellanox infiniband adapters out in the field with
->> various firmware versions:
->>
->> lspci
->> 01:00.0 Infiniband controller: Mellanox Technologies MT27600 [Connect-IB]
->> Subsystem: Mellanox Technologies Device 0018
->>
->> lspci -n
->> 01:00.0 0207: 15b3:1011
->> Subsystem: 15b3:0018
->>
->> Ones with old firmware don't work:
->>
->> mlx5_core 0000:01:00.0: mlx5_pci_vsc_init:66:(pid 731): Failed to get valid vendor specific ID
->> mlx5_core 0000:01:00.0: firmware version: 10.10.5020
->> mlx5_core 0000:01:00.0: 63.008 Gb/s available PCIe bandwidth (8.0 GT/s PCIe x8 link)
->> mlx5_core 0000:01:00.0: mlx5_cmd_out_err:810:(pid 731): QUERY_ISSI(0x10a) op_mod(0x0) failed, status bad system state(0x4), syndrome (0x408b33), err(-5)
->> mlx5_core 0000:01:00.0: mlx5_core_set_issi:866:(pid 731): Query ISSI is not supported by FW, ISSI is 0
->> mlx5_core 0000:01:00.0: mlx5_init_clock:1040:(pid 731): invalid device_frequency_khz, aborting HW clock init
->> mlx5_core 0000:01:00.0: mlx5_cmd_out_err:810:(pid 731): QUERY_HCA_VPORT_CONTEXT(0x762) op_mod(0x0) failed, status bad operation(0x2), syndrome (0x3590f5), err(-22)
->> infiniband mlx5_0: Couldn't create per-port data
->> mlx5_ib.rdma: probe of mlx5_core.rdma.0 failed with error -12
->>
->> Ones with new firmware do work:
->>
->> mlx5_core 0000:01:00.0: firmware version: 10.12.780
->> mlx5_core 0000:01:00.0: 63.008 Gb/s available PCIe bandwidth (8.0 GT/s PCIe x8 link)
->> mlx5_core 0000:01:00.0: mlx5_init_clock:1614:(pid 755): invalid device_frequency_khz, aborting HW clock init
->> mlx5_core 0000:01:00.0: Flow counters bulk query buffer size increased, bulk_query_len(1)
->> mlx5_core 0000:01:00.0 mlx5_0: Port: 1 Link INIT
->> mlx5_core 0000:01:00.0 mlx5_0: Port: 1 Link ACTIVE
->>
->> I can work around the problem with the following change:
->>
->> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
->> index a457647edacd..4fc903c2a0be 100644
->> --- a/drivers/infiniband/hw/mlx5/main.c
->> +++ b/drivers/infiniband/hw/mlx5/main.c
->> @@ -3611,7 +3611,7 @@ static int mlx5_port_immutable(struct ib_device *ibdev, u32 port_num,
->>   
->>                  err = mlx5_query_hca_vport_context(dev->mdev, 0, port_num, 0,
->>                                                     &rep);
->> -               if (err)
->> +               if (0 && err)
->>                          return err;
->>          }
->>
->> This code was added in kernel 4.19 by commit b02289b3d60f ("RDMA:
->> Validate grh_required when handling AVs").
->>
->> A similar problem was fixed in kernel 4.9 by commit f9c14e46748b
->> ("net/mlx5: Fix query ISSI flow"), which is a source of some of the
->> messages with the old firmware.
->>
->> Can anyone suggest a proper fix for this issue?  I can upgrade the
->> firmware if necessary, but that would be less convenient than having a
->> fix for the driver.
-> Hi Tony,
-> Thanks for your report.
-> Please try the following change:
-> diff --git a/drivers/infiniband/hw/mlx5/main.c 
-> b/drivers/infiniband/hw/mlx5/main.c
-> index a457647edacd..632a45f663f6 100644
-> --- a/drivers/infiniband/hw/mlx5/main.c
-> +++ b/drivers/infiniband/hw/mlx5/main.c
-> @@ -3605,7 +3605,8 @@ static int mlx5_port_immutable(struct ib_device 
-> *ibdev, u32 port_num,
->          if (err)
->                  return err;
->
-> -       if (ll == IB_LINK_LAYER_INFINIBAND) {
-> +       if (ll == IB_LINK_LAYER_INFINIBAND &&
-> +           MLX5_CAP_GEN(dev->mdev, ib_virt)) {
->                  if (ibdev->type == RDMA_DEVICE_TYPE_SMI)
->                          port_num = smi_to_native_portnum(dev, port_num);
->
->
->
-That does fix the problem with the old firmware.  However,
-the MLX5_CAP_GEN check triggers on both the old and new firmware (I
-added a printk to test). If that is intentional, then it looks good.
+The diag dump walks the socket hash table under a read_lock and dereferen=
+ces
+conn->lgr and conn->lnk. Four paths expose a window where a hashed socket=
+ has
+freed or partially freed conn/lgr/lnk state.
 
-Tested-by: Tony Battersby <tonyb@cybernetics.com>
+First, smc_conn_abort() calls smc_conn_free() during early handshake abor=
+ts
+while the socket is still hashed in SMC_INIT, synchronously freeing the l=
+gr on
+the smc_lgr_cleanup_early() path without holding the hash write_lock. A
+concurrent diag reader can load a non-NULL conn->lgr and dereference
+lgr->is_smcd after the kfree. Skip the connection, link group and DMB att=
+ributes
+in __smc_diag_dump() for sockets in SMC_INIT or SMC_CLOSED, and do not lo=
+ok at
+conn->lgr to determine diag_mode in SMC_INIT.
 
+This changes the sock_diag output for such sockets. SMC_DIAG_CONNINFO,
+SMC_DIAG_LGRINFO and SMC_DIAG_DMBINFO are no longer reported while a sock=
+et is
+in SMC_INIT or SMC_CLOSED, and diag_mode is SMC_DIAG_MODE_SMCR for a
+non-fallback SMC-D socket in SMC_INIT, as it already was before
+smc_conn_create() had run. smcss does not use these attributes for such s=
+ockets.
+Use smp_load_acquire() / smp_store_release() on sk_state to order these c=
+hecks
+on weakly ordered CPUs.
+
+Second, in smc_conn_kill() on SMC-D with dmb_nocopy, smcd_buf_detach() NU=
+LLs and
+frees conn->sndbuf_desc while the socket is still hashed. A concurrent di=
+ag
+reader entering the CONNINFO block can dereference the freed descriptor. =
+Unhash
+the socket right before smcd_buf_detach(). Other kill paths leave the soc=
+ket
+hashed, since it can stay open until close().
+
+Third, in the terminal teardown branches of smc_close_active_abort()
+(PEERCLOSEWAIT and PROCESSABORT groups) and in smc_close_passive_work(),
+smc_conn_free() drops lgr and lnk references while the socket is still ha=
+shed.
+Unhash immediately before each smc_conn_free() call at those two sites.
+
+Fourth, smc_listen_out_err() sets sk_state =3D SMC_CLOSED with a plain st=
+ore after
+smc_conn_abort() -> smc_conn_free() has already cleared alert_token_local=
+ under
+write_lock_bh(). On weakly ordered CPUs a concurrent diag reader using
+smp_load_acquire() on sk_state can observe SMC_CLOSED while the preceding=
+ store
+to alert_token_local has not yet become visible, causing it to dereferenc=
+e an
+lgr whose reference was already dropped. Use smp_store_release() to order=
+ the
+alert_token_local clear before the sk_state =3D SMC_CLOSED store.
+
+Additionally, in __smc_diag_dump(), use the cached link->ibname instead o=
+f
+link->smcibdev->ibdev->name to avoid racing with link clearing during SMC=
+-R link
+failover. Like the SMC netlink link dump and the tracepoints, this report=
+s the
+name at link creation time and does not follow a later ib_device_rename()=
+.
+
+Fixes: f16a7dd5cf27 ("smc: netlink interface for SMC sockets")
+Fixes: 9dbe086c69b8 ("net/smc: fix invalid link access in dumping SMC-R c=
+onnections")
+Fixes: ae2be35cbed2 ("net/smc: {at|de}tach sndbuf to peer DMB if supporte=
+d")
+Cc: stable@vger.kernel.org
+Reviewed-by: Hidayath Khan <hidayath@linux.ibm.com>
+Reviewed-by: Sidraya Jayagond <sidraya@linux.ibm.com>
+Signed-off-by: Mahanta Jambigi <mjambigi@linux.ibm.com>
+---
+Changes in v10:
+- smc_core.c: move the unhash out of the top of smc_conn_kill() into the
+  smc_ism_support_dmb_nocopy() branch, right before smcd_buf_detach(); th=
+e
+  other kill paths leave ACTIVE/APPCLOSEWAIT sockets open, so they must
+  stay visible to smcss and keep their inuse accounting
+- commit message: document the sock_diag output changes for sockets in
+  SMC_INIT and SMC_CLOSED (extension attributes omitted, diag_mode of
+  SMC-D in SMC_INIT) and that ibname is the name cached at link creation
+
+Changes in v9:
+- af_smc.c: change plain store in smc_listen_out_err() to
+  smp_store_release(&newsmcsk->sk_state, SMC_CLOSED) to order the
+  preceding alert_token_local clear (done under write_lock_bh() inside
+  smc_conn_free()) before the sk_state write; pairs with the
+  smp_load_acquire() in __smc_diag_dump() to close a use-after-free on
+  weakly ordered CPUs where a diag reader could observe SMC_CLOSED while
+  conn->lgr still appeared live
+
+Changes in v8:
+- smc_diag.c: use smp_load_acquire(&sk->sk_state) to prevent
+  speculative load reordering on weakly ordered CPUs (such as arm64)
+  during handshake abort fallback
+- af_smc.c: pair with smp_store_release(&sk->sk_state, SMC_ACTIVE)
+  when transitioning out of SMC_INIT
+- smc_diag.c: copy cached link->ibname instead of chasing
+  link->smcibdev->ibdev->name to prevent NULL pointer dereference / UAF
+  if __smcr_link_clear() zeroes the link during link failover
+
+Changes in v7:
+- no code changes; commit message only
+- document the SMC_CLOSED leg of the early-exit guard and the rationale
+  that smcss already skips CLOSED sockets on the userspace side; add
+  Fixes: ae2be35cbed2 for the smc_conn_kill() hunk since
+  smcd_buf_detach() was introduced by that commit
+
+Changes in v6:
+- smc_diag.c: inline sk->sk_state !=3D SMC_INIT into the else-if
+  condition so conn->lgr->is_smcd is never loaded for SMC_INIT sockets;
+  retain the SMC_INIT || SMC_CLOSED early-exit guard and out: label
+  from v5 to defensively skip the CONNINFO/LGRINFO/DMBINFO blocks for
+  sockets with no live connection
+- smc_close.c: remove the unconditional unhash from the top of
+  smc_close_active_abort(); place it scoped immediately before each of
+  the two smc_conn_free() calls in the PEERCLOSEWAIT and PROCESSABORT
+  branches, and before smc_conn_free() in smc_close_passive_work();
+  this avoids prematurely hiding live SMC_ACTIVE/APPCLOSEWAIT sockets
+  from smcss
+- smc_core.c: unhash at the top of smc_conn_kill(), before
+  smcd_buf_detach(), so the socket is off the hash table before
+  conn->sndbuf_desc is freed on the dmb_nocopy path
+
+Changes in v5:
+- guard conn/lgr/lnk blocks in __smc_diag_dump() with an
+  (SMC_INIT || SMC_CLOSED) state check placed after the
+  SMC_DIAG_FALLBACK nla_put; SMC_INIT can coexist with fallback
+  (smc_sendmsg() MSG_FASTOPEN path), so the guard must not suppress
+  the fallback reason
+
+Changes in v4:
+- dropped smc_conn_unhash() wrapper, conn->unhashed flag, and all
+  changes to af_smc.c, smc.h, smc_core.c and smc_core.h;
+  smc_unhash_sk() is already idempotent via sk_hashed(), so direct
+  calls at the two teardown sites in smc_close.c are sufficient
+- dropped the __smc_release() hunk: it needs no change since the
+  subsequent unhash there is already a safe no-op
+- fixed premature-unhash issue present in v3: smc_conn_free() must not
+  unhash because smc_conn_abort() calls it before
+  smc_switch_to_fallback() in both smc_listen_decline() and
+  smc_connect_rdma() error paths; unhashing there would make live
+  fallback sockets invisible to smcss
+- likewise, the ISM/RDMA retry loops call smc_conn_abort() on a failed
+  attempt and then smc_conn_create() on the next device; unhashing in
+  smc_conn_free() would permanently hide the established connection from
+  smc_diag since smc_conn_create() does not re-hash the socket
+
+Changes in v3:
+- redesigned as a single patch; dropped the lgr_lnk_lock spinlock
+  approach and the 2-patch split
+
+Changes in v2:
+- split into a 2-patch series; patch 1/2 adds per-connection
+  lgr_lnk_lock infrastructure to smc_core, patch 2/2 fixes the diag
+  dump path using it
+
+ net/smc/af_smc.c    | 10 +++++++---
+ net/smc/smc_close.c |  3 +++
+ net/smc/smc_core.c  |  4 +++-
+ net/smc/smc_diag.c  | 12 ++++++++----
+ 4 files changed, 19 insertions(+), 10 deletions(-)
+
+diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+index e9f93b3ab435..2f8308aa7daf 100644
+--- a/net/smc/af_smc.c
++++ b/net/smc/af_smc.c
+@@ -976,7 +976,7 @@ static int smc_connect_fallback(struct smc_sock *smc,=
+ int reason_code)
+ 	smc_copy_sock_settings_to_clc(smc);
+ 	smc->connect_nonblock =3D 0;
+ 	if (smc->sk.sk_state =3D=3D SMC_INIT)
+-		smc->sk.sk_state =3D SMC_ACTIVE;
++		smp_store_release(&smc->sk.sk_state, SMC_ACTIVE);
+ 	return 0;
+ }
+
+@@ -1381,7 +1381,7 @@ static int smc_connect_rdma(struct smc_sock *smc,
+ 	smc_copy_sock_settings_to_clc(smc);
+ 	smc->connect_nonblock =3D 0;
+ 	if (smc->sk.sk_state =3D=3D SMC_INIT)
+-		smc->sk.sk_state =3D SMC_ACTIVE;
++		smp_store_release(&smc->sk.sk_state, SMC_ACTIVE);
+
+ 	return 0;
+ connect_abort:
+@@ -1484,7 +1484,7 @@ static int smc_connect_ism(struct smc_sock *smc,
+ 	smc_copy_sock_settings_to_clc(smc);
+ 	smc->connect_nonblock =3D 0;
+ 	if (smc->sk.sk_state =3D=3D SMC_INIT)
+-		smc->sk.sk_state =3D SMC_ACTIVE;
++		smp_store_release(&smc->sk.sk_state, SMC_ACTIVE);
+
+ 	return 0;
+ connect_abort:
+@@ -1951,7 +1951,7 @@ static void smc_listen_out_connected(struct smc_soc=
+k *new_smc)
+ 	struct sock *newsmcsk =3D &new_smc->sk;
+
+ 	if (newsmcsk->sk_state =3D=3D SMC_INIT)
+-		newsmcsk->sk_state =3D SMC_ACTIVE;
++		smp_store_release(&newsmcsk->sk_state, SMC_ACTIVE);
+
+ 	smc_listen_out(new_smc);
+ }
+@@ -1965,7 +1965,7 @@ static void smc_listen_out_err(struct smc_sock *new=
+_smc)
+ 	this_cpu_inc(net->smc.smc_stats->srv_hshake_err_cnt);
+ 	if (newsmcsk->sk_state =3D=3D SMC_INIT)
+ 		sock_put(&new_smc->sk); /* passive closing */
+-	newsmcsk->sk_state =3D SMC_CLOSED;
++	smp_store_release(&newsmcsk->sk_state, SMC_CLOSED);
+
+ 	smc_listen_out(new_smc);
+ }
+diff --git a/net/smc/smc_close.c b/net/smc/smc_close.c
+index bb0313ef5f7c..aa6363abdd74 100644
+--- a/net/smc/smc_close.c
++++ b/net/smc/smc_close.c
+@@ -154,6 +154,7 @@ void smc_close_active_abort(struct smc_sock *smc)
+ 		if (sk->sk_state !=3D SMC_PEERABORTWAIT)
+ 			break;
+ 		sk->sk_state =3D SMC_CLOSED;
++		sk->sk_prot->unhash(sk);
+ 		smc_conn_free(&smc->conn);
+ 		release_clcsock =3D true;
+ 		sock_put(sk); /* passive closing */
+@@ -165,6 +166,7 @@ void smc_close_active_abort(struct smc_sock *smc)
+ 		if (sk->sk_state !=3D SMC_PEERABORTWAIT)
+ 			break;
+ 		sk->sk_state =3D SMC_CLOSED;
++		sk->sk_prot->unhash(sk);
+ 		smc_conn_free(&smc->conn);
+ 		release_clcsock =3D true;
+ 		break;
+@@ -433,6 +435,7 @@ static void smc_close_passive_work(struct work_struct=
+ *work)
+ 		sk->sk_state_change(sk);
+ 		if ((sk->sk_state =3D=3D SMC_CLOSED) &&
+ 		    (sock_flag(sk, SOCK_DEAD) || !sk->sk_socket)) {
++			sk->sk_prot->unhash(sk);
+ 			smc_conn_free(conn);
+ 			if (smc->clcsock)
+ 				release_clcsock =3D true;
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index 9974149659c2..663926465ba7 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -1530,8 +1530,10 @@ static void smc_conn_kill(struct smc_connection *c=
+onn, bool soft)
+ 			tasklet_kill(&conn->rx_tsklet);
+ 		else
+ 			tasklet_unlock_wait(&conn->rx_tsklet);
+-		if (smc_ism_support_dmb_nocopy(conn->lgr->smcd))
++		if (smc_ism_support_dmb_nocopy(conn->lgr->smcd)) {
++			smc->sk.sk_prot->unhash(&smc->sk);
+ 			smcd_buf_detach(conn);
++		}
+ 	} else {
+ 		smc_cdc_wait_pend_tx_wr(conn);
+ 	}
+diff --git a/net/smc/smc_diag.c b/net/smc/smc_diag.c
+index bf0beaa23bdb..36a3b8f31f28 100644
+--- a/net/smc/smc_diag.c
++++ b/net/smc/smc_diag.c
+@@ -87,10 +87,11 @@ static int __smc_diag_dump(struct sock *sk, struct sk=
+_buff *skb,
+
+ 	r =3D nlmsg_data(nlh);
+ 	smc_diag_msg_common_fill(r, sk);
+-	r->diag_state =3D sk->sk_state;
++	r->diag_state =3D smp_load_acquire(&sk->sk_state);
+ 	if (smc->use_fallback)
+ 		r->diag_mode =3D SMC_DIAG_MODE_FALLBACK_TCP;
+-	else if (smc_conn_lgr_valid(&smc->conn) && smc->conn.lgr->is_smcd)
++	else if (r->diag_state !=3D SMC_INIT &&
++		 smc_conn_lgr_valid(&smc->conn) && smc->conn.lgr->is_smcd)
+ 		r->diag_mode =3D SMC_DIAG_MODE_SMCD;
+ 	else
+ 		r->diag_mode =3D SMC_DIAG_MODE_SMCR;
+@@ -103,6 +104,9 @@ static int __smc_diag_dump(struct sock *sk, struct sk=
+_buff *skb,
+ 	if (nla_put(skb, SMC_DIAG_FALLBACK, sizeof(fallback), &fallback) < 0)
+ 		goto errout;
+
++	if (r->diag_state =3D=3D SMC_INIT || r->diag_state =3D=3D SMC_CLOSED)
++		goto out;
++
+ 	if ((req->diag_ext & (1 << (SMC_DIAG_CONNINFO - 1))) &&
+ 	    smc->conn.alert_token_local) {
+ 		struct smc_connection *conn =3D &smc->conn;
+@@ -154,8 +158,7 @@ static int __smc_diag_dump(struct sock *sk, struct sk=
+_buff *skb,
+ 			.lnk[0].link_id =3D link->link_id,
+ 		};
+
+-		memcpy(linfo.lnk[0].ibname, link->smcibdev->ibdev->name,
+-		       sizeof(link->smcibdev->ibdev->name));
++		memcpy(linfo.lnk[0].ibname, link->ibname, sizeof(link->ibname));
+ 		smc_gid_be16_convert(linfo.lnk[0].gid, link->gid);
+ 		smc_gid_be16_convert(linfo.lnk[0].peer_gid, link->peer_gid);
+
+@@ -185,6 +188,7 @@ static int __smc_diag_dump(struct sock *sk, struct sk=
+_buff *skb,
+ 			goto errout;
+ 	}
+
++out:
+ 	nlmsg_end(skb, nlh);
+ 	return 0;
+
+--=20
+2.50.1 (Apple Git-155)
