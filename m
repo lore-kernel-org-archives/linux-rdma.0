@@ -1,56 +1,56 @@
 Received: from mail-dy1-f199.google.com (mail-dy1-f199.google.com [74.125.82.199])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B68F65452B7
-	for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 17:39:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8DF556853B
+	for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 17:39:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.199
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791999598; cv=none; b=NGEll/tjabHlKnaSRLSDgLgf+dwh5ZrVjeOBU6g5sndZ5beQ4YI7SrAlBhYkdXWFySUvu22qcLEW3LtTz6Bep5+CKDSGyrz72QGBmnb49LXlDPS1UBwvO0AsjZsN9gUjv+bAPkQy+OznPipf002AjoAp0p9PjLsmi5U07pmuGSc=
+	t=1791999600; cv=none; b=eUQRhwF0pgKQVEikHrTZVTDtS19VDimqQ/R9btQsStYGZnYN1NZ0zV9EqjnqkkP18UiHPXngA3DT6UD5NgOX04lMXH2DKljSup3iDiAR64XfLP/y0y9Yv2FTdNKeUq0XF50KeX83DN0fhXt21Xop48VJef/Wci6u8S8h9tgt85A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791999598; c=relaxed/simple;
-	bh=fFD8oZtSK/knMuPdZN4DP0R67wo/lLsvLuNNvU+AmOQ=;
+	s=arc-20240116; t=1791999600; c=relaxed/simple;
+	bh=R94b81Il1DPRpiO9yIJavDxrrp2TKzmWXyXkrWre7b4=;
 	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=cU0vOzm6beu9e6oItTYmg+4fSeGN1VfrXP4cdU6ApQL1dezkHKRSmH4dNoDe71OopaxNncjb+gnzyWAYnYN5uWABLvPDNPQWTK/nzs1e7X3aDLdU30DYEO0+Ne8gXTcJdye3ifrvoAhNE9Y0FrBb+rCA5AppRsiTHN7ma1opfB4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--almasrymina.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=OB748H7d; arc=none smtp.client-ip=74.125.82.199
+	 To:Cc:Content-Type; b=kijRpfE/N7UCJrnHqb9KynjTBp+nAMxednb3aArSAoKpoCkihCeK5573IqlD//LUoSugdhl42gGFDvqP4ZlVVnyfKkXWsKDi7pK6n7zDwU1iKEat41FPnHmJ6xc+3JAJKY8rTXT2Gc6oN1JqJD700hzjfAYNkEvaaqRASb6hx3M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--almasrymina.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=KE1xMEB7; arc=none smtp.client-ip=74.125.82.199
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--almasrymina.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="OB748H7d"
-Received: by mail-dy1-f199.google.com with SMTP id 5a478bee46e88-357e2bc3b1bso7109790eec.0
-        for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 10:39:49 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="KE1xMEB7"
+Received: by mail-dy1-f199.google.com with SMTP id 5a478bee46e88-3580c07911eso11474053eec.0
+        for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 10:39:52 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1791999588; x=1792604388; darn=vger.kernel.org;
+        d=google.com; s=20251104; t=1791999592; x=1792604392; darn=vger.kernel.org;
         h=content-type:cc:to:from:subject:message-id:references:mime-version
          :in-reply-to:date:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=zX5Z3hRL45oldLQst4d/39m7wB0Hus3plFvx715Aac8=;
-        b=OB748H7d1PLBFq5zWSFtSdih0Y349Jxc52WViRdixelZWUdD535VlVNTdifv0uivq+
-         oOJ9lcnuuSzEGxgJRoOFqJ4iygeXGKSu8AK2aW0ZVV55Cc3om0mAmi88HxA7KKYlgNkL
-         ahi7FuImECjEI1eRd+QAYXdmfs6K7gRhz7hsDM6r7iB4cFBtOC3B2jkNsJzdjkq5ygzt
-         Ejz77cd4IeiLHHpKCTuI5YUE8z5jz9WrzIrHsf3IMN644l+O6TA6SmEPjfLoIhr5nYvr
-         ZAjy/htm3Gt3j8I4D6ZUkfYM4u38166w/yNWoDgsmcXyrwv/8zCpVkPXWNXHFWcXfmcj
-         R4QA==
+        bh=Y1WRn4NyJ2crY+vOKIR9nna7T2nc3BS4Nc6wM3wk19Y=;
+        b=KE1xMEB7tu5Pt5RvmHRdnNxiasHtw/7jthf/SdWjoTPib6n0uPMcanHgx6uYI8e1x6
+         pBZsO9wkJoAFzO9G1rh0oWNP1lRIDxoWqwEtOR19cX7mzQ+czfS5E8SF4VyuqEroz3bo
+         zEwYIR3aJMnvm+dxjWaaBCxBcJEu7AyeBtzykaxSjxtbrs0cnSFNqZ52GD3VKeaxLCD9
+         8tp5esazgszRC0wNFbqrhvRtE/Snj6vlEkZXsf3TRWNau27uyq7sBoKKqxypFI0C6EPs
+         RkOtcjz2EzP9U+4JQn/N1/I1Ib1/XGxrmDpBbQYGgwjBpQzLs09rbswII2ih7x6vcdLy
+         xTdA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791999588; x=1792604388;
+        d=1e100.net; s=20260707; t=1791999592; x=1792604392;
         h=content-type:cc:to:from:subject:message-id:references:mime-version
          :in-reply-to:date:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=zX5Z3hRL45oldLQst4d/39m7wB0Hus3plFvx715Aac8=;
-        b=JUmG52T9+URHyn91KFzNiN3R+7pZSGfFIkuDvsRlaef/uKVr69h2Giiu3itJRK1ypa
-         M4yMYGRXBVOMm/SHyo1A/Shh/nWGPDO7x0nsqQpaMweG9mc37aNwMtFqmEkE2YEN99lu
-         TJRFFvxBren/X+slWNWt/c1hvi4yoaSeYlUD55k5FYiLy2LniIuIlPI92Z6uX8+u0Naz
-         fmEna5vp7ocGdKORo2kwZ+hkbvzBabV6KAf+5U7AvOL8hndWweDDYUcUGG8PNmlLQkUc
-         808hsRWkT2o1rI2zVjWVnSTVO8An4Lq4p3luBw8TLRc4a+YJr6Ltt7zeXSEP2KisvtVs
-         3TMg==
-X-Forwarded-Encrypted: i=1; AKwUvBwuumfchbv9AmjxGlA30+GKIGXpas+3UNHMFc//MAtk7OR7j3MGsEZ7CYOcZev8qZ19Ukn1z80NHLSU@vger.kernel.org
-X-Gm-Message-State: AFq9FYK8SS4E9CjfmvxxPaBL/6wjaJ4h6mCHaVHRKuZg20U1TiN7jno9
-	2HlGChGp/lpOQsLOG6NoqGVRoj20BxCBQk34HpRwPV5I839CA3EFqnyBRkZkplle6YXu4yqDzID
-	JrjehThLAvKTu+hOWqTcqd3SsFQ==
-X-Received: from dygg27.prod.google.com ([2002:a05:693c:80db:b0:353:82df:8a9])
+        bh=Y1WRn4NyJ2crY+vOKIR9nna7T2nc3BS4Nc6wM3wk19Y=;
+        b=UMqG5tGyXuwoQKoT8wrAFmTSZZr4p6HUtgs5yGQuo7sKa725AADzV4sCZjaq+oJPaQ
+         LOeVdVdA4lg9E3WE9heCzI3WTklR0pb3aTLx4eyQvdF4tJjI8a/gkcbx++Gi4ruN5otj
+         qZ+ectpJfKhKgpfUAMjW4DbXx59n8ha6g0uLp7pDL9Sg4BapsSI++yyg3IOh+vZVeTBT
+         5WHHTWzcVOwZc8tRTL9PzyBPdHSbNT0Rwr+c1pGox8jZ5brxnGidhff8mfSq8VWxhDkv
+         26XiP3GEv2KE4Uhnm8OV0fgVdYuPTbjUiraS4AYZlK8FkX2mo7PsKJ2aUY9AVyyGRd3l
+         pkMQ==
+X-Forwarded-Encrypted: i=1; AKwUvBwO/Lub7vZjOvOwtGsBufky7p1/HZDiLD2oPN2ySWC1MH/StKwgl321GlWEfqB8wwz8YlDz+ya8vxcK@vger.kernel.org
+X-Gm-Message-State: AFq9FYIDQSkscjX752IT5Z6r91+pB1FF1a1tQMu03AwYuR+eEoGTj7fA
+	C/0fHkTzLWRc0yYPP/mE+wZIwPTUuvBsHZs/+2WM35vmqQ986msarL84npzv/xfJIQr90KFNI6m
+	4IaJxVnaJmdYyp58iR/VR7V/OLQ==
+X-Received: from dybmd47.prod.google.com ([2002:a05:7301:182f:b0:351:1933:2028])
  (user=almasrymina job=prod-delivery.src-stubby-dispatcher) by
- 2002:a05:7301:fc08:b0:351:4d2d:af26 with SMTP id 5a478bee46e88-3537ddd6633mr21037508eec.2.1791999587876;
- Wed, 14 Oct 2026 10:39:47 -0700 (PDT)
-Date: Wed, 14 Oct 2026 17:37:16 +0000
+ 2002:a05:7301:3a84:b0:351:985:e729 with SMTP id 5a478bee46e88-3537e01e8b6mr24400970eec.12.1791999591271;
+ Wed, 14 Oct 2026 10:39:51 -0700 (PDT)
+Date: Wed, 14 Oct 2026 17:37:19 +0000
 In-Reply-To: <20261014173945.373295-1-almasrymina@google.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -60,9 +60,8 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0
 References: <20261014173945.373295-1-almasrymina@google.com>
 X-Mailer: git-send-email 2.56.0.212.g129ede20d9-goog
-Message-ID: <20261014173945.373295-3-almasrymina@google.com>
-Subject: [PATCH net-next v3 2/6] net: skbuff: add napi_pp_get_page() and use
- it in tcp_recvmsg_dmabuf()
+Message-ID: <20261014173945.373295-6-almasrymina@google.com>
+Subject: [PATCH net-next v3 5/6] net: skbuff: use skb_frag_ref() in skb_try_coalesce()
 From: Mina Almasry <almasrymina@google.com>
 To: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
 	linux-rdma@vger.kernel.org, bpf@vger.kernel.org
@@ -79,117 +78,73 @@ Cc: Mina Almasry <almasrymina@google.com>, Ayush Sawal <ayush.sawal@chelsio.com>
 	Wang Zhan <wang.zhan@smartx.com>, Willem de Bruijn <willemb@google.com>
 Content-Type: text/plain; charset="UTF-8"
 
-While napi_pp_put_page() releases a page_pool pp_ref_count reference on
-a netmem, no symmetric helper existed to acquire one, forcing callers
-like tcp_recvmsg_dmabuf() to open-code atomic_long_inc() on
-niov->desc.pp_ref_count.
-
-Add napi_pp_get_page() to pair symmetrically with napi_pp_put_page(),
-and use WARN_ON_ONCE(!napi_pp_get_page(netmem)) in tcp_recvmsg_dmabuf()
-to match WARN_ON_ONCE(!napi_pp_put_page(netmem)) in
-tcp_release_user_frags().
+skb_pp_frag_ref() was introduced solely to work around skb_frag_ref()
+ignoring skb->pp_recycle and incrementing the non-pp backing refcount.
+Now that skb_frag_ref() handles both pp_recycle=1 and pp_recycle=0
+symmetrically, call skb_frag_ref() directly in skb_try_coalesce() and
+remove skb_pp_frag_ref().
 
 Assisted-by: LLM
 Signed-off-by: Mina Almasry <almasrymina@google.com>
 ---
- include/linux/skbuff_ref.h |  2 ++
- net/core/skbuff.c          | 31 +++++++++++++++++++++++++++++++
- net/ipv4/tcp.c             |  6 ++++--
- 3 files changed, 37 insertions(+), 2 deletions(-)
+ net/core/skbuff.c | 37 ++-----------------------------------
+ 1 file changed, 2 insertions(+), 35 deletions(-)
 
-diff --git a/include/linux/skbuff_ref.h b/include/linux/skbuff_ref.h
-index 05c8486bafac8..0441c220fdbdf 100644
---- a/include/linux/skbuff_ref.h
-+++ b/include/linux/skbuff_ref.h
-@@ -9,6 +9,8 @@
- 
- #include <linux/skbuff.h>
- 
-+bool napi_pp_get_page(netmem_ref netmem);
-+
- /**
-  * __skb_frag_ref - take an addition reference on a paged fragment.
-  * @frag: the paged fragment
 diff --git a/net/core/skbuff.c b/net/core/skbuff.c
-index 23a40e1ec2b15..76a42c60508d9 100644
+index 96088289c234d..90812e49dc8e1 100644
 --- a/net/core/skbuff.c
 +++ b/net/core/skbuff.c
-@@ -1026,6 +1026,15 @@ int skb_cow_data_for_xdp(struct page_pool *pool, struct sk_buff **pskb,
- EXPORT_SYMBOL(skb_cow_data_for_xdp);
- 
- #if IS_ENABLED(CONFIG_PAGE_POOL)
-+/**
-+ * napi_pp_put_page - release a page_pool reference on a netmem
-+ * @netmem: netmem to unreference
-+ *
-+ * Drops a page_pool reference (pp_ref_count) on @netmem if it belongs to a
-+ * page_pool. Counterpart to napi_pp_get_page().
-+ *
-+ * Return: true if @netmem belongs to a page_pool, false otherwise.
-+ */
- bool napi_pp_put_page(netmem_ref netmem)
- {
- 	netmem = netmem_compound_head(netmem);
-@@ -1038,6 +1047,28 @@ bool napi_pp_put_page(netmem_ref netmem)
- 	return true;
+@@ -1078,37 +1078,6 @@ static bool skb_pp_recycle(struct sk_buff *skb, void *data)
+ 	return napi_pp_put_page(page_to_netmem(virt_to_page(data)));
  }
- EXPORT_SYMBOL(napi_pp_put_page);
-+
-+/**
-+ * napi_pp_get_page - acquire a page_pool reference on a netmem
-+ * @netmem: netmem to reference
-+ *
-+ * Acquires a page_pool reference (pp_ref_count) on @netmem if it belongs to a
-+ * page_pool. Counterpart to napi_pp_put_page().
-+ *
-+ * Return: true if @netmem belongs to a page_pool, false otherwise.
-+ */
-+bool napi_pp_get_page(netmem_ref netmem)
-+{
-+	netmem = netmem_compound_head(netmem);
-+
-+	if (unlikely(!netmem_is_pp(netmem)))
-+		return false;
-+
-+	page_pool_ref_netmem(netmem);
-+
-+	return true;
-+}
-+EXPORT_SYMBOL(napi_pp_get_page);
- #endif
  
- static bool skb_pp_recycle(struct sk_buff *skb, void *data)
-diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
-index f4c9101e5996a..99d7237a623d8 100644
---- a/net/ipv4/tcp.c
-+++ b/net/ipv4/tcp.c
-@@ -254,6 +254,7 @@
- #include <linux/init.h>
- #include <linux/fs.h>
- #include <linux/skbuff.h>
-+#include <linux/skbuff_ref.h>
- #include <linux/splice.h>
- #include <linux/net.h>
- #include <linux/socket.h>
-@@ -2559,6 +2560,7 @@ static int tcp_recvmsg_dmabuf(struct sock *sk, const struct sk_buff *skb,
- 		 */
- 		for (i = 0; i < skb_shinfo(skb)->nr_frags; i++) {
- 			skb_frag_t *frag = &skb_shinfo(skb)->frags[i];
-+			netmem_ref netmem = skb_frag_netmem(frag);
- 			struct net_iov *niov;
- 			u64 frag_offset;
- 			int end;
-@@ -2612,8 +2614,8 @@ static int tcp_recvmsg_dmabuf(struct sock *sk, const struct sk_buff *skb,
- 				if (err)
- 					goto out;
+-/**
+- * skb_pp_frag_ref() - Increase fragment references of a page pool aware skb
+- * @skb:	page pool aware skb
+- *
+- * Increase the fragment reference count (pp_ref_count) of a skb. This is
+- * intended to gain fragment references only for page pool aware skbs,
+- * i.e. when skb->pp_recycle is true, and not for fragments in a
+- * non-pp-recycling skb. It has a fallback to increase references on normal
+- * pages, as page pool aware skbs may also have normal page fragments.
+- */
+-static int skb_pp_frag_ref(struct sk_buff *skb)
+-{
+-	struct skb_shared_info *shinfo;
+-	netmem_ref head_netmem;
+-	int i;
+-
+-	if (!skb->pp_recycle)
+-		return -EINVAL;
+-
+-	shinfo = skb_shinfo(skb);
+-
+-	for (i = 0; i < shinfo->nr_frags; i++) {
+-		head_netmem = netmem_compound_head(shinfo->frags[i].netmem);
+-		if (likely(netmem_is_pp(head_netmem)))
+-			page_pool_ref_netmem(head_netmem);
+-		else
+-			page_ref_inc(netmem_to_page(head_netmem));
+-	}
+-	return 0;
+-}
+-
+ static void skb_kfree_head(void *head)
+ {
+ 	kfree(head);
+@@ -6309,10 +6278,8 @@ bool skb_try_coalesce(struct sk_buff *to, struct sk_buff *from,
+ 	/* if the skb is not cloned this does nothing
+ 	 * since we set nr_frags to 0.
+ 	 */
+-	if (skb_pp_frag_ref(from)) {
+-		for (i = 0; i < from_shinfo->nr_frags; i++)
+-			get_netmem(skb_frag_netmem(&from_shinfo->frags[i]));
+-	}
++	for (i = 0; i < from_shinfo->nr_frags; i++)
++		skb_frag_ref(from, i);
  
--				atomic_long_inc(&niov->desc.pp_ref_count);
--				tcp_xa_pool.netmems[tcp_xa_pool.idx++] = skb_frag_netmem(frag);
-+				WARN_ON_ONCE(!napi_pp_get_page(netmem));
-+				tcp_xa_pool.netmems[tcp_xa_pool.idx++] = netmem;
- 
- 				sent += copy;
- 
+ 	to->truesize += delta;
+ 	to->len += len;
 -- 
 2.56.0.212.g129ede20d9-goog
 
