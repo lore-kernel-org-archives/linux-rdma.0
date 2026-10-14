@@ -1,242 +1,165 @@
-Received: from mail-ed1-f53.google.com (mail-ed1-f53.google.com [209.85.208.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EE5D4C7521
-	for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 22:05:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.53
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792015519; cv=pass; b=bAYy6kq0sgZ9LJI/p6IzLbm+nK8aqUEN4sfJhYvyk8zCX+rYFtva25NX/z40Z6It1HuHjLwSSFt3wZnzGRSlOaXnKJvqU+Qs0lWXQm/jxqFIGYNqteQcaFDoZsvZDnXM/J5gaV+BO0571Xj/NSHA5oQIHoq35RtgQQLfDsZjlL8=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792015519; c=relaxed/simple;
-	bh=QZdOOfmt8Jm5RLQIZramMvHmus/nQmnbFJOBNJAfNVQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=prnvTJoBEMRa8kSun297Nuq7kE/Ih8bOweeNRLzO3vOW4TR4rPzb/ZxstBUaiBWoiE1F6Ksjv2op32PIWO3+lT6OymnIZJhgDGDDIWm2kOfYWS+fi3ANNyAsaZFWbkkGYo/WmclWpAvMwr6Hr/bgjZA3RZD57M4Cbgsu7jFpLCc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=OQtAfgFu; arc=pass smtp.client-ip=209.85.208.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C10327FB1C;
+	Wed, 14 Oct 2026 22:21:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1792016479; cv=none; b=d8A8JKMpC2MNwxjXsYOaf4N5FeR5LdnpDBrYP1fdAi9VTCg50Umkl9NGd8d85wzM3yU4KNUkvNW3qTSkix1CHsyNT0c4zWRGDc6cwE0DgNscIrVeAcP31RegYC3UB2cnc65cvV6fY93Y6ELtx0D3/lrAHJMmfbsUDzPWZUFGDc0=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1792016479; c=relaxed/simple;
+	bh=pmO235+sOiP0U982ZnFLaKOB723M7EJvhoJ2eSf6MuU=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=LfAq+bNlem4UVgjkbCT8SmPM9NVBrYZ3/c8Z2c7Hq3ksKD5eEv3ZXK2+WHONFwYEyYECm6pi5J9dZ/sFOZcMEupDS8xMyuZR9m4849X6qBFerhR50IVrUoCcGX9d+A3wxa1kChqfvYi7qzngh6mNg31/yMfrIx0KysgtnvN0VMM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=tS/lgKFU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="OQtAfgFu"
-Received: by mail-ed1-f53.google.com with SMTP id 4fb4d7f45d1cf-6ae14cdc63aso401a12.1
-        for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 15:05:17 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1792015514; cv=none;
-        d=google.com; s=arc-20260327;
-        b=avI5bVKyPZCw+I3IgF+2W+8IRD6JEuAXMN27bHb/B7B1kllk7dyej8F4Kzoh4nAgR3
-         s7h957Rupjqm/zILAeJ+vOFXZ362P1F+jA5Vy5TIxYa2jngcS6l2r69gSVo1r8b+bb8G
-         9dJ+osi3lv5VfcmFu/lWDLKg8LYMmj7LdBufyMzhQ5l3IoHjQ+kY8QiYI4IUZZafQiHc
-         OF1dU6TLHAOOGaV8yJ/DkT/sH5UuwuG45XfYBmH6/sZZiJ4ahHBSC+I2aH9aDDNNfCBU
-         FVRhIuk0Jc3PsFwOnYOs+1xWsFMufyT/6NTEb0/sOiexyqtSgv4UqMg7UMohhlkC8Rk0
-         /H+g==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=zqIxtdg7oikaNaEElNQna4r57IwoPY41P2qZQ85S8yE=;
-        fh=s1PK0EWOTfYpL6snTZfDs7eNMrbG8jxdwX10GzcbEFA=;
-        b=V1ARAglGjepnhJbpPos2wlaIchEBk3Z9BeRWG/mu02h41bUWKszps9Lc42hKHLP072
-         DpiU7uBBMieuXBWH1FPYa4MYKQPTCyyaUAEH73b+46IOz56ClwvTyLTl1G6pss38TE5C
-         MsftuuQZW7vvKQqQyaw5Uf//5pI/4uqi9bZ0bqS5NutOwUM7vS4Hi338xRcxQJvEPknj
-         MgS4IXjNwMwy5kJa8As5ZjxjXZdp4MqlEWLMdHnKZQ5r6KYD/TSB3UVP42b/07bPK9Iw
-         XMu/5qyFSE8hu8WHfKnsQyM0qlMvS6Sziudo0rKXckhy4w7oduqZ8c3U6Kfdxw/Bl9Hz
-         hLRQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1792015514; x=1792620314; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=zqIxtdg7oikaNaEElNQna4r57IwoPY41P2qZQ85S8yE=;
-        b=OQtAfgFuI+aksZ26HjL7EshBs6MTo3digml8NK5k0ktcP2F2Z7bdmOveJXQwX3MS12
-         N7K8yKWa2lAdm9OgkkvtTc0qLTaKQTokxtRBQ+rV3wShdqK0Ym2o8N4XIBXcSLU2DVUh
-         seoUsXSR9IiRhL3VlsSLiC8yPL+sc9g1n5CsJF0U/oHbTadk80T/7Aq65Pv1nd7MOZHN
-         yCzioHbXOPo5/3v/5wfUDTV0f/nCArg4/WF7tDW+DAvdvx0tGknmCMJUSoI5YSPXMueF
-         smYcQJ+MaFMg9c0xxcuLVwNDsK7SdBXwEouF41mCLqD19hCjNvULw9+ymqY2BbRtZ53x
-         nCKQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792015514; x=1792620314;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=zqIxtdg7oikaNaEElNQna4r57IwoPY41P2qZQ85S8yE=;
-        b=LFw+R0VidHn/Vj2yB1jtSsiYjVA27KA+krApxAgXkgnxnQXiplQxxPaDYlG3j5vpOm
-         DEg3dkPNJ9WBU435rJ72Z8mafJo3fml/612W18H2RAe666nbQC7kX1YmuGFUniOhBmgw
-         Jf28JgXZv8XJz/NQObUU5xQ7h+H6ve+jStN/gZ6c7x5Zf2RnL3Pnc0LU7S42FmvvW+ZE
-         duZRGZdoMw28/6In3gbevl2eka1HQWBFK8G2ooxBVhkj09JL/GNkH/tZHjgGC3349lfD
-         zRrDdl4HLyRtTXKXsvvhF9H4qLY/ar8dsdznVpwvosQgrmcErvNqNjuIuyne/D96xkU6
-         2wzg==
-X-Forwarded-Encrypted: i=1; AKwUvBy+o+7Ujmw+64zwLPp+E/de1X4jRM97x07jREh4w1QTYiCFP//kG8IVfME6Q64Ut20Jc0lMdxTe5bFN@vger.kernel.org
-X-Gm-Message-State: AFq9FYI5rmLAyjDrTIXCMLWD20IRUvlQScvkhUitE1u6JZ2ZYWqfWl7w
-	piLtErUKwKs4FRJJ/x4eE29rWzb3D7tIL7/ADcQzU5KLZL/OFl7uCJef/QzNqxebnraUyv8D6Hc
-	QR2iyF2evxxrjYaiJgDSinXu3x65v/YJXf8k1CYQN
-X-Gm-Gg: AYBFou2bnGMViDIqglk0PBxO7NydmCoGg7r8OqBI8Ay8FH8rX5BXNZC4u9JzZHazEi7
-	xJ3Pob+Vt9hbrQznt0Q9y9NvxRqSk7CM3AkgIkNBeJnEovtxG2l8O8it5tkQ9vZ1X2+169BfFu9
-	4GjLet+qkQ6hGxTGH6M1NqL5EHQw8t+whCX7AqmCE2SrY3ytRwcbHl820DwN8IvD3CXUuWOW1kk
-	alGIhp2QPuDWVwRyh3+Z58Wjz+TpWYjTWOiMTWZUwkEUj9Hma1Y9qkkYgz+tYbDaiy2Mm6DnKrK
-	bEEv14gyTwj8wmwlcZ98/33idS42O+eJepjp090vkXsF4Y5LQWbRVA==
-X-Received: by 2002:a05:6402:22dc:b0:6aa:128c:36ad with SMTP id
- 4fb4d7f45d1cf-6b20aae61dcmr66690a12.10.1792015513640; Wed, 14 Oct 2026
- 15:05:13 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="tS/lgKFU"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 2E0F0C2BCC7;
+	Wed, 14 Oct 2026 22:21:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1792016479;
+	bh=pmO235+sOiP0U982ZnFLaKOB723M7EJvhoJ2eSf6MuU=;
+	h=From:Subject:Date:To:Cc:Reply-To:From;
+	b=tS/lgKFUV/bkU7syacqwOl7hWcRl10b8t90Qq+D4Uomop0JQnEiehyZ0T+IhNA5F9
+	 or356MSwLx3Coe6Pb6W/HlZlHhnGXIxcNgemFv4pjcjvw9tfyOCPV9iM5635x0jBi8
+	 +vhiwW690FofpQHDqWcgP/j8u5FhbSuEXhKdK6BGLnWLLh/IppFpanlzMR3WsfhFMH
+	 KRo5mxpgR3Yxv3ZraS/q3jojCWBVNCzpJb3ihAWUW/Crc8IKHTBhtWbTZsgCMzvqKZ
+	 eh6ApExqkqfMfQ5Cumxb3x95/ol8Y/E/I2YF4UOEeo8kt8YR9LIfT1fp5d71zC5taB
+	 TlCey6tasokNw==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18617CC6B2D;
+	Wed, 14 Oct 2026 22:21:19 +0000 (UTC)
+From: Eric Davis via B4 Relay <devnull+eric.davis.broadcom.com@kernel.org>
+Subject: [PATCH rdma-next 00/13] RDMA/core: Ultra Ethernet transport verbs
+Date: Wed, 14 Oct 2026 15:21:09 -0700
+Message-Id: <20261014-uet-ib-core-v1-0-a0e626117113@broadcom.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20261014173945.373295-1-almasrymina@google.com>
- <20261014173945.373295-4-almasrymina@google.com> <as_yg4hCCfpkukZB@devvm7509.cco0.facebook.com>
-In-Reply-To: <as_yg4hCCfpkukZB@devvm7509.cco0.facebook.com>
-From: Mina Almasry <almasrymina@google.com>
-Date: Wed, 14 Oct 2026 15:05:01 -0700
-X-Gm-Features: AclHuK-FIIYIfRHu7yhPBoI9CQSDVknHHqcppKY8ZRAq6RJPc2uOk0RIcUIsbQU
-Message-ID: <CAHS8izPDAjfRFCM2LrC7tzVQRkGCcn6zsghEvHJ9FJ1ET9odYg@mail.gmail.com>
-Subject: Re: [PATCH net-next v3 3/6] net: skbuff: replace skb_page_unref() and
- __skb_frag_unref() with skb_netmem_unref()
-To: Stanislav Fomichev <sdf.kernel@gmail.com>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-rdma@vger.kernel.org, bpf@vger.kernel.org, 
-	Ayush Sawal <ayush.sawal@chelsio.com>, Andrew Lunn <andrew+netdev@lunn.ch>, 
-	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, 
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Tariq Toukan <tariqt@nvidia.com>, 
-	Simon Horman <horms@kernel.org>, Steffen Klassert <steffen.klassert@secunet.com>, 
-	Herbert Xu <herbert@gondor.apana.org.au>, Neal Cardwell <ncardwell@google.com>, 
-	Kuniyuki Iwashima <kuniyu@google.com>, John Fastabend <john.fastabend@gmail.com>, 
-	Sabrina Dubroca <sd@queasysnail.net>, Eric Biggers <ebiggers@kernel.org>, Kees Cook <kees@kernel.org>, 
-	Aleksandr Loktionov <aleksandr.loktionov@intel.com>, Petr Machata <petrm@nvidia.com>, 
-	=?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig_=28The_Capable_Hub=29?= <u.kleine-koenig@baylibre.com>, 
-	Jakub Raczynski <j.raczynski@samsung.com>, Wang Zhan <wang.zhan@smartx.com>, 
-	Willem de Bruijn <willemb@google.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yWMwQqDMBAFf0X23AVdamn6K6UHTZ7tFhrLJoog/
+ ntTPQ7DzEoJpkh0q1YyzJp0jAWaU0X+1cUnWENhkloutRPHEzJrz340cLgK3LkZWrRCpfgaBl3
+ 2250sfDqOWDI9DpWm/g2f/zfath9o6aOHegAAAA==
+X-Change-ID: 20260929-uet-ib-core-d82e941f5e52
+To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ Eric Davis <eric.davis@broadcom.com>
+X-Mailer: b4 0.15.2
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1792016478; l=5120;
+ i=eric.davis@broadcom.com; s=20261014; h=from:subject:message-id;
+ bh=pmO235+sOiP0U982ZnFLaKOB723M7EJvhoJ2eSf6MuU=;
+ b=2j9T//Lxu1ZXKUViHBaBUNaBvHlbFtD1QtbApUyy+slaG1871meEFMzOJg0WNpE0jn5ub3jo8
+ 9dJPIy9CyNWAoU2Pdm3qTFsS6U8JKaqlT9vXVAioAGdWSysE6Z6mwah
+X-Developer-Key: i=eric.davis@broadcom.com; a=ed25519;
+ pk=uy3oCTOYBipIPjryXGMynBmtPvbO6qN2FOrduzpiI4A=
+X-Endpoint-Received: by B4 Relay for eric.davis@broadcom.com/20261014 with
+ auth_id=1186
+X-Original-From: Eric Davis <eric.davis@broadcom.com>
+Reply-To: eric.davis@broadcom.com
 
-On Wed, Oct 14, 2026 at 2:25=E2=80=AFPM Stanislav Fomichev <sdf.kernel@gmai=
-l.com> wrote:
->
-> On 10/14, Mina Almasry wrote:
-> > Unreferencing a page_pool fragment with recycle=3Dfalse decrements the
-> > non-pp backing refcount instead of pp_ref_count, underflowing the page
-> > refcount when the fragment was owned via page_pool (as on mlx4's RX
-> > error path). Having both skb_page_unref() and __skb_frag_unref(frag,
-> > recycle) made it easy for callers to pass hardcoded recycle=3Dfalse on
-> > SKB-owned fragments.
-> >
-> > Replace skb_page_unref() and __skb_frag_unref() with
-> > skb_netmem_unref(netmem, recycle), which dispatches to
-> > napi_pp_put_page() when recycle is true and put_netmem() otherwise:
-> >
-> > - Use skb_frag_unref(skb, ...) on SKB-owned fragments in mlx4, sky2,
-> >   tls_strp, and skb_shift() so unrefs always match skb->pp_recycle.
-> > - Use put_netmem() directly in tls_device's destroy_record(), which
-> >   releases raw non-pp page references outside an SKB.
-> >
-> > Found by code inspection and confirmed with the KUnit tests added later
-> > in this series; not observed in production. The mlx4, sky2, and TLS
-> > call-site changes are compile-tested only.
-> >
-> > Assisted-by: LLM
-> > Signed-off-by: Mina Almasry <almasrymina@google.com>
-> > ---
-> > v2:
-> > - Note how the issue was found and how the change was tested.
-> > - Link to v1: https://lore.kernel.org/netdev/20261010083935.3274178-4-a=
-lmasrymina@google.com/
-> > ---
-> >  drivers/net/ethernet/marvell/sky2.c        |  2 +-
-> >  drivers/net/ethernet/mellanox/mlx4/en_rx.c |  2 +-
-> >  include/linux/skbuff_ref.h                 | 34 +++++++++++-----------
-> >  net/core/skbuff.c                          |  7 +++--
-> >  net/ipv4/esp4.c                            |  4 +--
-> >  net/ipv6/esp6.c                            |  4 +--
-> >  net/tls/tls_device.c                       |  2 +-
-> >  net/tls/tls_strp.c                         |  2 +-
-> >  8 files changed, 29 insertions(+), 28 deletions(-)
-> >
-> > diff --git a/drivers/net/ethernet/marvell/sky2.c b/drivers/net/ethernet=
-/marvell/sky2.c
-> > index 30facdece3e29..1d42a82db8f2b 100644
->
-> [..]
->
-> > --- a/drivers/net/ethernet/marvell/sky2.c
-> > +++ b/drivers/net/ethernet/marvell/sky2.c
-> > @@ -2501,7 +2501,7 @@ static void skb_put_frags(struct sk_buff *skb, un=
-signed int hdr_space,
-> >
-> >               if (length =3D=3D 0) {
-> >                       /* don't need this page */
-> > -                     __skb_frag_unref(frag, false);
-> > +                     skb_frag_unref(skb, i);
-> >                       --skb_shinfo(skb)->nr_frags;
-> >               } else {
-> >                       size =3D min(length, (unsigned) PAGE_SIZE);
-> > diff --git a/drivers/net/ethernet/mellanox/mlx4/en_rx.c b/drivers/net/e=
-thernet/mellanox/mlx4/en_rx.c
-> > index 96f97fa0f5489..fe18606c2ab55 100644
-> > --- a/drivers/net/ethernet/mellanox/mlx4/en_rx.c
-> > +++ b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
-> > @@ -497,7 +497,7 @@ static int mlx4_en_complete_rx_desc(struct mlx4_en_=
-priv *priv,
-> >  fail:
-> >       while (nr > 0) {
-> >               nr--;
-> > -             __skb_frag_unref(skb_shinfo(skb)->frags + nr, false);
-> > +             skb_frag_unref(skb, nr);
-> >       }
-> >       return 0;
-> >  }
->
-> These do not support qops and don't advertise devmem tx, so they are not
-> going to deal with netmems anytime soon, why touch these?
->
+Ultra Ethernet defines a reliable unconnected transport. A queue pair
+sends to any peer in its job without a connection, incoming traffic is
+demultiplexed on a JobID rather than on a connection, and what a device
+orders is far weaker than IB or RoCE and varies between devices. None of
+that has a home in the current uverbs ABI.
 
-They're still using page-backed netmems that have 2 refcounts, and
-frag ref/unref needs to pick the right one. Before they were
-hardcoding false for the pp-recycle bit, so if a skb->pp_recycle=3D=3Dtrue
-here for any reason, this code would hit a ref imbalance. Now after
-this series both skb_frag_ref and skb_frag_unref do the right thing by
-checking skb->pp_recycle.
+This series adds the generic half. The objects, methods, and attributes
+any UET device implements. No driver is part of it, though two already
+exist against this ABI. A reference device model that implements all of
+it, and HPE's Slingshot driver implementing a large subset. That is the
+argument for ib_core carrying this. What is device specific should come
+from private interfaces per vendor.
 
-This has nothing to do with net-iovs or devmem.
+Patch 1 widens the uverbs object key. The two new core objects would
+otherwise leave drivers no free object keys.
 
-[...]
-> > diff --git a/net/tls/tls_device.c b/net/tls/tls_device.c
-> > index f11d0528fc431..b333a9a72cdae 100644
-> > --- a/net/tls/tls_device.c
-> > +++ b/net/tls/tls_device.c
-> > @@ -143,7 +143,7 @@ static void destroy_record(struct tls_record_info *=
-record)
-> >       int i;
-> >
-> >       for (i =3D 0; i < record->num_frags; i++)
-> > -             __skb_frag_unref(&record->frags[i], false);
-> > +             put_netmem(skb_frag_netmem(&record->frags[i]));
-> >       kfree(record);
-> >  }
-> >
-> > diff --git a/net/tls/tls_strp.c b/net/tls/tls_strp.c
-> > index 6cc222008d95c..53d3256d0114a 100644
-> > --- a/net/tls/tls_strp.c
-> > +++ b/net/tls/tls_strp.c
-> > @@ -197,7 +197,7 @@ static void tls_strp_flush_anchor_copy(struct tls_s=
-trparser *strp)
-> >       DEBUG_NET_WARN_ON_ONCE(atomic_read(&shinfo->dataref) !=3D 1);
-> >
-> >       for (i =3D 0; i < shinfo->nr_frags; i++)
-> > -             __skb_frag_unref(&shinfo->frags[i], false);
-> > +             skb_frag_unref(strp->anchor, i);
-> >       shinfo->nr_frags =3D 0;
-> >       if (strp->copy_mode) {
-> >               kfree_skb_list(shinfo->frag_list);
->
-> Idk this part, seems harmless.. But are you sure we can even reach xfrm
-> (supposedly that's how we get to esp4) with netmems?
+Patches 2-4 expose the transport. The two UET encapsulations as GID
+types, the capabilities and limits a device advertises, and IB_QPT_RU
+with its 32-bit queue pair number.
 
-Same, this is still using page-backed netmems, and hard-coding fales
-for the skb->pp_recycle bit. If anchor->pp_recycle=3D=3Dtrue ever here,
-this code would run into a ref imbalance and potentially crash. Now
-skb_frag_ref and skb_frag_unref are mirrors of each other and we don't
-have to prove beyond a doubt that dropping a non-pp ref is always the
-right thing to do here.
+Patch 5 widens address handles, which an unconnected peer needs since
+it is named by both a network address and a queue pair number.
 
---=20
-Thanks,
-Mina
+Patch 6 adds a query for what a queue pair type actually orders.
+
+Patch 7 adds jobs and job keys, the objects an unconnected transport
+demultiplexes and authorizes on. A job can be exported to a file
+descriptor, so an unprivileged process can join one set up for it.
+
+Patches 8-10 let a queue pair be created ready to send, since a
+transport with nothing to negotiate gains nothing from the modify
+sequence. Patch 8 is a no-functional-change refactor pulling the
+attribute copy out of modify_qp. Patch 9 lets create take those
+attributes. Patch 10 adds the attributes a reliable unconnected
+transport needs.
+
+Patches 11-13 cover memory registration with a job binding, a chosen
+key, derived regions, 64-bit keys for devices whose keys do not fit
+in 32 bits, and attaching a region to one queue pair so the network
+reaches it only over that QP.
+
+New attributes are optional, so existing userspace is unaffected and a
+device without a feature reports it absent rather than failing. The
+attributes that restrict access are sent mandatory by userspace, so a
+kernel that does not know one refuses the request rather than creating
+an object with less protection than was asked for.
+
+Tested against a reference device implementing the ABI, and against rxe
+to confirm nothing already upstream regressed. The userspace half is a
+matching rdma-core series.
+
+Signed-off-by: Eric Davis <eric.davis@broadcom.com>
+---
+Eric Davis (13):
+      RDMA/core: widen the uverbs object key
+      RDMA/core: add the UET GID types
+      RDMA/core: report the reliable unconnected device capabilities
+      RDMA/core: add the reliable unconnected queue pair type
+      RDMA/core: extended address handle attributes
+      RDMA/core: query the semantics a queue pair type guarantees
+      RDMA/core: job and job key objects
+      RDMA/uverbs: factor out the queue pair attribute copy
+      RDMA/core: create a queue pair ready to send
+      RDMA/core: queue pair attributes for unconnected transports
+      RDMA/core: extended memory registration
+      RDMA/core: 64-bit memory keys
+      RDMA/core: attach a memory region to a queue pair
+
+ drivers/infiniband/core/Makefile                  |   3 +-
+ drivers/infiniband/core/cache.c                   |  12 +-
+ drivers/infiniband/core/cma.c                     |   4 +
+ drivers/infiniband/core/device.c                  |  16 +-
+ drivers/infiniband/core/nldev.c                   |   4 +
+ drivers/infiniband/core/rdma_core.h               |   2 +
+ drivers/infiniband/core/restrack.c                |  17 +-
+ drivers/infiniband/core/roce_gid_mgmt.c           |   6 +-
+ drivers/infiniband/core/user_mad.c                |   4 +-
+ drivers/infiniband/core/uverbs.h                  |  16 +
+ drivers/infiniband/core/uverbs_cmd.c              | 261 ++++----
+ drivers/infiniband/core/uverbs_main.c             |   5 +
+ drivers/infiniband/core/uverbs_std_types.c        |  73 ++-
+ drivers/infiniband/core/uverbs_std_types_device.c |  73 ++-
+ drivers/infiniband/core/uverbs_std_types_job.c    | 763 ++++++++++++++++++++++
+ drivers/infiniband/core/uverbs_std_types_mr.c     | 222 ++++++-
+ drivers/infiniband/core/uverbs_std_types_qp.c     | 340 +++++++++-
+ drivers/infiniband/core/uverbs_uapi.c             |   2 +
+ drivers/infiniband/core/verbs.c                   | 109 +++-
+ include/rdma/ib_verbs.h                           | 242 ++++++-
+ include/rdma/restrack.h                           |   8 +
+ include/rdma/uverbs_ioctl.h                       |   4 +-
+ include/uapi/rdma/ib_user_ioctl_cmds.h            | 120 ++++
+ include/uapi/rdma/ib_user_ioctl_verbs.h           | 100 +++
+ include/uapi/rdma/ib_user_verbs.h                 |  25 +
+ 25 files changed, 2270 insertions(+), 161 deletions(-)
+---
+base-commit: d37e98844afea39a9614cac0de837701263c90f7
+change-id: 20260929-uet-ib-core-d82e941f5e52
+
+Best regards,
+--  
+Eric Davis <eric.davis@broadcom.com>
+
+
