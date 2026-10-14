@@ -1,75 +1,76 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95A053FE652
-	for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 19:34:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFAC33EF643;
+	Wed, 14 Oct 2026 20:06:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792006443; cv=none; b=sBs5OBQGTk+6ugJtLuy3uasyfmY+rWVl/G6r0JrWQvI/LgJvn0rIa7Shs+rbq2eE9QeuyMEhlzbhADjCEqlg00DQAtc9IuMMx1p8bod/ZUOTedc6VugbKWxvodGtep0afSr23aJT6UXLb/SbCpYcSmutiYDGoIp59Qu/gmj+fic=
+	t=1792008381; cv=none; b=Ec4DRHL05ar3Uo3qavMdw3gEd+WqJX/s97g32GZDz5ylj8ZBc3zjXcnVey+SA4iAyeFPuB8tfZkFSIBbvMNuKc2cegFTo2dkQS1ZIUzbEcRsvPTOHJgemBXOD/tkLxBXnwnXgDvzEwU9bh2geNGKGp+0gk/uh1hiQF0ZoPHGKDU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792006443; c=relaxed/simple;
-	bh=p3Tv1GZl/1Apf3jK/e6AN8+azKF5CvJLj4FClmFgTr8=;
-	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=YaRm+sMWBaHJ+Lc4RP5H6yLK4YI07tprZXZj7yaEPRvi7ghOUFTQWCGm0fxDBAzvuvkeZM1dq9gZSCiX8lCUS+h8c0S9dGgPaMIgCanE6Fm8UqYREoBY0Y58I1ESAbP/NioFk5jOE1ZnXpPCwDLKzZBZ8YnpIz/9l0h5ZqFYdDI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=f0tTW66j; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792008381; c=relaxed/simple;
+	bh=STt+qlQ21qsLZEFC4WMmETmXxDWpEPitn6cC3OXRWKQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=JIboj/ImHD4OcIiKeSNfJyU/P8hGMBBJyHVhbBSSY4VNpqus93Ou7b00f2PzZDgxhhF/8Ba24HBHypSVmF0gS2zlKCp2CjlM+sSU97Jdjqq/mTyOvOea2cQvBNQQCefahCIEJW52ZEEiq1tkOGDsComLF2UcmwF5zy6ioxtYqIw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UimVmlXi; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="f0tTW66j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E1801F000C5;
-	Wed, 14 Oct 2026 19:34:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UimVmlXi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F23E51F000C4;
+	Wed, 14 Oct 2026 20:06:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792006442;
-	bh=p3Tv1GZl/1Apf3jK/e6AN8+azKF5CvJLj4FClmFgTr8=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=f0tTW66j7DT0wFVC9ffxLXCNONAXHyPDbFL/CSHvemAgy1EQ33U0ySxOQGoMYvmnM
-	 NlvkxEVeXPbwAHZMIpRFwPqIf4mKpcNVr3qBVMbP6o88bcCvQ903Cw7TBGPGfU/nvj
-	 myJOGofPgg7XOLqpg+VROshLkCxLfscyc9FJPbNBP4GMuzbLJGXj/eIPayAhC4Fmxm
-	 CvyQiLzWBMYjbYb0D5Mv+swDvVWKpfORZ6/t7owxF7g6uV0crUqrFENYNu1Ph0uRBB
-	 nsBBSdjGuT4s+/jUWAHfBb+oeo6u6GQx7cowAfvj0oGvWsVJWlt3NY8lDyqKAYpAdd
-	 l3sifGFpeys7w==
-Message-ID: <sashiko-outbox-171794@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH 6.6.y 2/2] net/mlx5e: Pass netdev to
- mlx5e_destroy_netdev instead of priv
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Artem Dinaburg" <artem@trailofbits.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261014191738.24034-3-artem@trailofbits.com>
-References: <20261014191738.24034-1-artem@trailofbits.com>
- <20261014191738.24034-3-artem@trailofbits.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Wed, 14 Oct 2026 19:34:01 +0000
+	s=k20260515; t=1792008380;
+	bh=J74yMVdROHOSqDpQt8vzdEHyhc79HiSag/0ZDT/dVDY=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=UimVmlXi6yp/94y2kx8+9uB1XS4sKw3as8nM/huU5VvzIfpO6YQj+6B/3woC3x+bo
+	 Ia83E6ptRq9nK09Ko/BAX3FEKoa/QyxBRSogLPpNKX4yY8Iipqh/+raj6DPo//etlG
+	 nZlFs+4m7TVIRKP9ik9L32WGXvL/2eEPpx5Vsh1vRl5ONRXe7vuWNsVS2BvDA4L9JV
+	 xBYyx5X3Y8PBKWfhiJAvBwHNjNsElFDqKrGJnx1tvNrIzlEAFunLD5ackAoLgTholU
+	 8dFVU+1xGaRBSeyt+lV4BN1u2oUpiLZ4LnzQaopEz8AORu2Snv5R9sS/CWhwgIXomt
+	 CMX1cbJ/FGrHA==
+Date: Wed, 14 Oct 2026 13:06:18 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Nicolai Buchwitz <nb@tipi-net.de>
+Cc: "David S. Miller" <davem@davemloft.net>, Eric Dumazet
+ <edumazet@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman
+ <horms@kernel.org>, Oleksij Rempel <o.rempel@pengutronix.de>, Maxime
+ Chevallier <maxime.chevallier@bootlin.com>, Andrew Lunn
+ <andrew+netdev@lunn.ch>, Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+ Alexandre Torgue <alexandre.torgue@foss.st.com>, Jose Abreu
+ <Jose.Abreu@synopsys.com>, Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan
+ <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, Leon Romanovsky
+ <leon@kernel.org>, Dragos Tatulea <dtatulea@nvidia.com>, Alexei Lazar
+ <alazar@nvidia.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-stm32@st-md-mailman.stormreply.com,
+ linux-arm-kernel@lists.infradead.org, linux-rdma@vger.kernel.org
+Subject: Re: [PATCH net-next 0/3] net: use skb_share_check() in loopback
+ selftest hooks
+Message-ID: <20261014130618.4c50f817@kernel.org>
+In-Reply-To: <20261007-nb-net-selftest-shared-net-v1-0-458369bfa1ba@tipi-net.de>
+References: <20261007-nb-net-selftest-shared-net-v1-0-458369bfa1ba@tipi-net.de>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-> From: Saeed Mahameed <saeedm@nvidia.com>
->=20
-> [ Upstream commit 4ef8512e1427111f7ba92b4a847d181ff0aeec42 ]
->=20
-> mlx5e_priv is an unstable structure that can be memset(0) if profile
-> attaching fails.
->=20
-> Pass netdev to mlx5e_destroy_netdev() to guarantee it will work on a
-> valid netdev.
->=20
-> On mlx5e_remove: Check validity of priv->profile, before attempting
-> to cleanup any resources that might be not there.
->=20
-> This fixes a kernel oops in mlx5e_remove when switchdev mode fails due
-> to change profile failure.
-> [ ... ]
-> Reviewed-by: Tariq Toukan <tariqt@nvidia.com>
-> Link: https://patch.msgid.link/20260108212657.25090-4-saeed@kernel.org
-> Signed-off-by: Jakub Kicinski <kuba@kernel.org>
-> Assisted-by: LLM
-> Signed-off-by: Artem Dinaburg <artem@trailofbits.com>
+On Wed, 07 Oct 2026 20:29:21 +0200 Nicolai Buchwitz wrote:
+> The loopback selftest hooks can get a shared skb when another handler
+> is bound to the device. Linearizing a non-linear frame then hits
+> BUG_ON(skb_shared()) in pskb_expand_head().
+> 
+> Stumbled over this on RPi CM4 (bcmgenet, with jumbo series applied +
+> WIP selftest patches) with a packet socket open at the same time as
+> running ethtool -t.
+> 
+> stmmac and mlx5 seem to have the same pattern, xgbe already handles
+> shared skbs. Patches 2 and 3 are compile tested only.
+> 
+> As the impact is pretty limited and doesn't seem to bother anyone in
+> the wild, I've chosen net-next, but kept the Fixes tags. That matches
+> what Paolo suggested during the LPC track.
 
-Sashiko has reviewed this patch and found no issues. It looks great!
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261014191738.2403=
-4-1-artem@trailofbits.com?part=3D2
-
+Wonder if we should follow up and rename skb_unshare to skb_unclone_full
+or some such? The "share" in the name is quite confusing for people who
+haven't been around for 10+ years..
