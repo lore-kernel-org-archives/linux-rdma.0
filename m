@@ -1,87 +1,137 @@
-Received: from mail-pj1-f41.google.com (mail-pj1-f41.google.com [209.85.216.41])
+Received: from mail-pf1-f172.google.com (mail-pf1-f172.google.com [209.85.210.172])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CA98352C34
-	for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 06:12:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 118B9420463
+	for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 06:38:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791958352; cv=none; b=jug+VKu8Wfjjehl0HRyNq1xviXF5G6hTaewctLZrx4c5dqrpvyxIu2ftq68m+dvZMoMoR19fiu4r7Gv/4vqF1gimw18sabmDIad7SBVr3Xd+0WANvgzKvXgiPkBauQ3YZ2yrOAon3AKXRUnMWCAHpkOcru7rH39LwfGG1sEhJ7s=
+	t=1791959918; cv=none; b=swgzcuE8rhhG/ulRdTU6VgC8CSs+ebLu7qdt0FUCDwD6paaod+eoZ6apudpd7oGIRbFb9TQVczMe/kyGP2zzTIK6+dM/6QHZmyTLclSiEPFOGtUDN/UBL8ou7fzaOHXlWBbukX5mIM9efJIoZYggNZN5P8VbJmvsE1g9mr+qTa8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791958352; c=relaxed/simple;
-	bh=ZZ8YhT4vttbyAReWLwDYCcZjAsPCyQJ43qms/rc9dOc=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=jx96kazU7W3kOYTWXYsN/6QmIqBBWGyaPu3hYDIw22VTrhtth3TrFjGdlukOLRjBTPRiqRZ3muzXF7MSsutSMrlBHm/xJcfasSlDtG4HkvOjeheapa2emKGBR+IrJRKV4X+tQKpAddnmrkULQYpfzNicocmCfx+Z9tXooQxCPjk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=iIoTe7H6; arc=none smtp.client-ip=209.85.216.41
+	s=arc-20240116; t=1791959918; c=relaxed/simple;
+	bh=SKywH8MNPdivYCGdEihmGK/lbFOotmv3FlQiIRwxB38=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=LbcUNHhkHi7PL3KqyVRM7PrWZe+7GAypcZ08lLDFKczJOheqMFJe0czczJBlcywye8frE2KkP+oCrkd+vKPB2NnBh/lTneIAMkP3Rb6aiOux32QlPCf0XdMDc/msH8LTGfc/uYGEih8l9ioquFiU067tzriXKqFE6nMAxrtRQlE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FgVBtJ9j; arc=none smtp.client-ip=209.85.210.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="iIoTe7H6"
-Received: by mail-pj1-f41.google.com with SMTP id 98e67ed59e1d1-3ab450c0873so3113875a91.3
-        for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 23:12:31 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FgVBtJ9j"
+Received: by mail-pf1-f172.google.com with SMTP id d2e1a72fcca58-881269371acso2814720b3a.0
+        for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2026 23:38:36 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791958351; x=1792563151; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:mime-version:references
-         :in-reply-to:message-id:date:subject:cc:to:from:from:to:cc:subject
+        d=gmail.com; s=20251104; t=1791959916; x=1792564716; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=ZZ8YhT4vttbyAReWLwDYCcZjAsPCyQJ43qms/rc9dOc=;
-        b=iIoTe7H6VgKDcV2LZdG9OjmajV6SAJRxiL7dJG5U5TxMocbvVjrhJR5fn9JMHUTB0H
-         8namQtdnWK/sIHrfpaSJHw9nCHeAucd6RHYBXcVuxh2Mg87OXAEMcFPIdjPcjF+CA2+2
-         xbMO9K33WqQz+2skTzrlpNIL4MYIvZnzM8Q4I3qM7bzU5OTiU+c8+OEzJUr9BcknOxS0
-         lodKTX+mBpDan2FoS3LWR9xMqxKxwtd3i+zkhYFrqDf1NkIeTYkILD3pxxZJzUtGRgiV
-         G2JF3zFnjl46mhxJeVJtxVoY4n2Ud6z/1GgiR/l5ecL2t+1siAlwEGJ/imvRfvU49lwT
-         EVHQ==
+        bh=nNh/M3sOC7N/J+QZXKtdURAz2jbnsRv3OJdxTJpbjNA=;
+        b=FgVBtJ9jCXmdaP5e3WAWbfof7fN7N51BmddrCgDw7cFxTdijC0Q/XwO0C4D1dgXw9a
+         sd1t16LLhaNYYjcngY/Sx4+iiCxRvjToJ0zzj3ebYiVDPrqQgefXcolGWSh6bOs8du/c
+         JHNIphpyNCVF0AdepgS4yii2MW5R34qCAhUA3UARxpmXR5Bshc/yURzE9yIUiAu35g8k
+         PDzqeUuslZ5xM/twWMrmegNzdoTfEPeDLLMyFAaeeVmdCD57I79iZFRGkbfqJggSaAHR
+         g4yasJuzG8zk21NIePzy9ypVImvdZDBCAmaih7TRiWEchoDdRb04gzJ2a62ZeMPiyaPu
+         z5Nw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791958351; x=1792563151;
-        h=content-transfer-encoding:content-type:mime-version:references
-         :in-reply-to:message-id:date:subject:cc:to:from:x-gm-gg
+        d=1e100.net; s=20260707; t=1791959916; x=1792564716;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=ZZ8YhT4vttbyAReWLwDYCcZjAsPCyQJ43qms/rc9dOc=;
-        b=rNKpA5LGr8F5ATiqEgWpmH0wEY4l6BqbZBAJzzfP7a6Lm7i1qh6VlIsTSEx985FxsV
-         LuKf7+6WWslqnBhnKRlW988LEPXXQGtFn8/hOoQKngWgXzZ7f6Pq9WTTi4eALeyUau7p
-         IriTgYVOqx9FbfZRRUwyR9RyJwt8CNtJ6zCWk5Vu83HeS+JOM5wD7gznAknK0Ee5Kwih
-         HapM0wW8HZ36L7mA2aYdvi1/qgLc+N1q7+UvosuqLCOdxoaVT9ATgdKdXLYIPvJ4NFeu
-         sdI4+sdxxQH1Y/jXW5eGdfkZwWMJoP2DNHI/EEewiOfSUdbPiKlLQw19hNHkIQd9CIGl
-         d8PQ==
-X-Forwarded-Encrypted: i=1; AKwUvByzBeT2bhax3D44cTLhxdyrWa7kSIlA+e5ForSbI0rnDlwiDg/qcqzuY/lGY8mEt548ARcWTD5nposN@vger.kernel.org
-X-Gm-Message-State: AFq9FYKHXosKWRu2LpyTZYEpoPpl6qe9oMBtWv/BNPx1YK6Pz+YOvg1R
-	1bte1fUWhldjnT56R5zCVwhZyKkIAzvAc4Hs/ieRuEOhpv0oJ0yOAkWD
-X-Gm-Gg: AYBFou01F18cj8UsgYW3S5L77PFDSlkBPf+UPjGGzpE8/MXLXPsFdg6KO7wa3NvTiRE
-	07YqyCaFlFMK/Zkni9cSplwSXLIDSiUZV6IoiJ5oMf0yTNavcBLlBtI3dyQxQLczefeTof6L0RU
-	JIZ6IsW9mu889R2aET/AfGY43OJly+S1pbLUhs10H+JA0LChyo2LXlgNWaUP9Kl9zq59v0xMNlO
-	rzeXBx/iRlciA+lTTFwqGGDC221lNltmYRAmDwlXUlrEGJ5ZI0jlSvjvwwmdfeoTX/Dw7ebHpo8
-	9VLrwYGw7fkjN+qSDRyLGxD+THY87IllwZwYe2EcSym4Bfv34Bf+PMELim3mYRlw6dBY85BXjtd
-	2v7AEPHj/CsdTXphUEGNhouB5o3YBOUHwhgbVNmARY5LwrFJw90hcfo+P5UGNXVXNOAMG29Slbg
-	B63xT1n+cI68G3OUP/T8G585CdehzxBkk7uHTUhd5kqIN6e3ZWEYlj7m+Dg2Z0xMMMLPwTpAbL4
-	UC2FCoQZtNzgDqo6MkUQar73DvdR2S+HTWVUYbN7oM=
-X-Received: by 2002:a17:90b:1e41:b0:3a8:9b79:e6ea with SMTP id 98e67ed59e1d1-3ab3a96ffd7mr13125588a91.59.1791958350750;
-        Tue, 13 Oct 2026 23:12:30 -0700 (PDT)
-Received: from DESKTOP-0UATUKF.mioffice.cn ([43.224.245.249])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3ac5f04e324sm3094613a91.2.2026.10.13.23.12.27
+        bh=nNh/M3sOC7N/J+QZXKtdURAz2jbnsRv3OJdxTJpbjNA=;
+        b=UKSPkxuePp3WXE3lfGEcGM78Peat9TsbHNhSTbVWBLz3uIJH63LFogk+VKfrzr8ThE
+         kaxdziRTh2wVXkf48TrQixaXoMP+CWIUX5lfjb6VlQpPSoIrJcc6x03Z0c6vy+JrKHzn
+         ptkba8daz4sLszHI9B9nsEU15jqwyMipq0/0JtugQAmWOlSfj7UdKuLXZhTcKm6c1cxO
+         kctIy7mw8e1v1MIzN1QK3sAPFV/jU2lIOBW5C/gzO7tmZ/PD4vZrofn4NBHltjNeZyUW
+         Fg2QcXCAGosuVl9zyWj56YABoq+AkGgo8BWSHK+COHPcqgMcjfcXPkvrtpBUmlh6vnjU
+         FboA==
+X-Forwarded-Encrypted: i=1; AKwUvBwwc1jBSZde22KVrY6+4M2vaIA/GzfxGd1PSNAZ29pcyvt8u9sxOBg/r66BqLvWmF1uP2KUoXYv5IOi@vger.kernel.org
+X-Gm-Message-State: AFq9FYKyL2IW4VVdBG/h1wzAZ/YntjqKvQfYGZ6agkRD5UHjxfMBDgAL
+	4Q25TVkG3T6aPpfrKbIw5WNCrf0LqCxgbCVQyZx4rWyK5jL+Lj6bWxRe
+X-Gm-Gg: AYBFou3zMfe8X+IV1iE/hAhQi3F2XOXfYORhwl6mEgCHdJgBrZ5TLbdYxQuQvsg7LcP
+	LPPbaJ7B1cR7Of1mjIkyHMj3mKRZaPEXikfIcYJh/grGcHCjc7ruwf1ZdLCCbzG58zF2yGWo6RE
+	p/cP9kGVpwpNLP0QKWUrox8vj20XLjP23YX05IEBmBtlsT3E9q/pPwD3BH49+AAJJRQ0gPgXU5V
+	3oAyx6b5lqpN2t16gdoBRGeTTTmUVt57231IuAyXA2DRigT1kO4bZmabZi+hDB9zDIs13bjd9Vk
+	/Y/+162VxkmhsKmZbCFPMJegUbllWCYzFux2iQkiwNbeuqGUypCPqC36nLDeFEUXyplDKYzqXz/
+	RYVoyZhRqF7ENRQcEAYCwHftrVv8q1vjN064uz3iGPEXUn+FPeAKncHTxZQHX48V5OnnqkWy0tA
+	u9ayoKlrZQDuiGQnqHWDjN0sB5aI9GlKYFGF1YJlLqLaTsE+ym0gclB/FTCaW/YRXt/fXfT3w=
+X-Received: by 2002:a05:6a20:a120:b0:3d3:ad6e:9ce1 with SMTP id adf61e73a8af0-3e16bd54a69mr8958658637.15.1791959916302;
+        Tue, 13 Oct 2026 23:38:36 -0700 (PDT)
+Received: from gmail.com ([2a03:2880:7ff:4d::])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-89d802a4314sm701933b3a.11.2026.10.13.23.38.35
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 13 Oct 2026 23:12:30 -0700 (PDT)
-From: Dongliang Qin <cccccccccccc777777@gmail.com>
-To: Zhu Yanjun <zyjzyj2000@gmail.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>
-Cc: Dongliang Qin <cccccccccccc777777@gmail.com>,
-	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Bob Pearson <rpearsonhpe@gmail.com>,
-	stable@vger.kernel.org
-Subject: Re: [PATCH v2 0/4] RDMA/rxe: Fix MW/MR lifetime races
-Date: Wed, 14 Oct 2026 14:12:23 +0800
-Message-ID: <20261014061223.1547823-1-cccccccccccc777777@gmail.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260928171756.3254016-1-cccccccccccc777777@gmail.com>
-References: <20260928171756.3254016-1-cccccccccccc777777@gmail.com>
+        Tue, 13 Oct 2026 23:38:35 -0700 (PDT)
+Date: Tue, 13 Oct 2026 23:38:26 -0700
+From: Narcisa Vasile <narcisav.kernel@gmail.com>
+To: Tariq Toukan <tariqt@nvidia.com>
+Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
+	Paolo Abeni <pabeni@redhat.com>,
+	Akiva Goldberger <agoldberger@nvidia.com>,
+	Gal Pressman <gal@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
+	open list <linux-kernel@vger.kernel.org>,
+	linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>,
+	Moshe Shemesh <moshe@nvidia.com>,
+	Saeed Mahameed <saeedm@nvidia.com>
+Subject: Re: [PATCH net-next] net/mlx5: Add reset_prepare and reset_done
+ callbacks
+Message-ID: <as8jYneJ32Hl++uj@gmail.com>
+References: <20261011094809.790798-1-tariqt@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261011094809.790798-1-tariqt@nvidia.com>
 
-Any comments on this patch ?
+On Sun, Oct 11, 2026 at 12:48:09PM +0300, Tariq Toukan wrote:
+> From: Akiva Goldberger <agoldberger@nvidia.com>
+> 
+> Currently, the mlx5_core driver registers only the error_detected,
+> slot_reset and resume PCI error handlers. Add the reset_prepare and
+> reset_done callbacks, which are triggered by the PCI core before and
+> after a PCI reset, respectively. These callbacks let mlx5 quiesce and
+> restore device resources and commands around a PCI reset, so the driver
+> no longer relies on the reset happening while the device is otherwise
+> idle.
+> 
+> Additionally, add a device flag to indicate when a PCI reset is in
+> progress to serialize PCI reset flows with other reset flows, namely FW
+> reset. This flag also indicates to the reset_prepare and reset_done
+> callbacks when to do a full unload/reload of the driver. When the
+> callbacks are triggered by the hot-reset FW reset method, they leave the
+> teardown and reload to the FW reset.
+> 
+> Signed-off-by: Akiva Goldberger <agoldberger@nvidia.com>
+> Reviewed-by: Moshe Shemesh <moshe@nvidia.com>
+> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+> ---
+>  
+> +static void mlx5_pci_reset_prepare(struct pci_dev *pdev)
+> +{
+> +	mlx5_drain_health_wq(dev);
+> +	mlx5_unload_one(dev, false);
+> +	mlx5_pci_disable_device(dev);
+This disables bus-mastering, after which pci_save_state snapshots it in
+the disabled state. reset_done() re-enables it but the snapshot remains
+stale.
+
+If a FW error later triggers the sw recovery through mlx5_pci_slot_reset(),
+the stale snapshot is re-applied with pci_restore_state().
+Would this disable bus mastering again and block the driver recovery?
+Should pci_set_master(pdev); and pci_restore_state(pdev); be reordered
+in mlx5_pci_slot_reset()?
+> +}
+> +
+> +static void mlx5_pci_reset_done(struct pci_dev *pdev)
+> +{
+> +	err = mlx5_pci_enable_device(dev);
+> +	if (err) {
+> +		mlx5_core_err(dev, "%s: mlx5_pci_enable_device failed, err = %d\n",
+> +			      __func__, err);
+nit: mlx5_core_err already prints __func__
+> +		goto clear_pci_reset_flag;
+> +	}
