@@ -1,76 +1,123 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFAC33EF643;
-	Wed, 14 Oct 2026 20:06:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6DDB486650;
+	Wed, 14 Oct 2026 20:12:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792008381; cv=none; b=Ec4DRHL05ar3Uo3qavMdw3gEd+WqJX/s97g32GZDz5ylj8ZBc3zjXcnVey+SA4iAyeFPuB8tfZkFSIBbvMNuKc2cegFTo2dkQS1ZIUzbEcRsvPTOHJgemBXOD/tkLxBXnwnXgDvzEwU9bh2geNGKGp+0gk/uh1hiQF0ZoPHGKDU=
+	t=1792008780; cv=none; b=Ef1fVtJQjNOL9tMULUyefMbGO34oUO1bcP6neTGc/m0xAEHb/Ji/NY5V/bmFxUsAln2ZyHbMuJ46taLjGqcV6D23Ws/oCYwQWHhdocmtwusW6UygXDkbxVAZggcX/tKr5OhnIhJqKVsG367MGzqrgJPeXPqzGLLDkmUdVpjBiVM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792008381; c=relaxed/simple;
-	bh=STt+qlQ21qsLZEFC4WMmETmXxDWpEPitn6cC3OXRWKQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=JIboj/ImHD4OcIiKeSNfJyU/P8hGMBBJyHVhbBSSY4VNpqus93Ou7b00f2PzZDgxhhF/8Ba24HBHypSVmF0gS2zlKCp2CjlM+sSU97Jdjqq/mTyOvOea2cQvBNQQCefahCIEJW52ZEEiq1tkOGDsComLF2UcmwF5zy6ioxtYqIw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UimVmlXi; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792008780; c=relaxed/simple;
+	bh=me11QB/uJ9Wmp3JXTCpDOpGWZCIdCxfc1icbA6TR2nA=;
+	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
+	 Date; b=V72gIOtgl6ub8ZbNHnjcEZpz1BlxoytboPFxVc4KRAJrM0W8jPtjRpGmWb36tkZR2obRVBeI3J1NIvb/NTIkeIvesUtbvGLu8idLALd7Y+eqarg0Muj8d9gsfIYJdQwaueSzCl2Qa1JGrSVK9vj2lCig4h1vRJrDM5lWeuQQkw0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cQz497rJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UimVmlXi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F23E51F000C4;
-	Wed, 14 Oct 2026 20:06:19 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cQz497rJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B44E1F000C4;
+	Wed, 14 Oct 2026 20:12:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792008380;
-	bh=J74yMVdROHOSqDpQt8vzdEHyhc79HiSag/0ZDT/dVDY=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=UimVmlXi6yp/94y2kx8+9uB1XS4sKw3as8nM/huU5VvzIfpO6YQj+6B/3woC3x+bo
-	 Ia83E6ptRq9nK09Ko/BAX3FEKoa/QyxBRSogLPpNKX4yY8Iipqh/+raj6DPo//etlG
-	 nZlFs+4m7TVIRKP9ik9L32WGXvL/2eEPpx5Vsh1vRl5ONRXe7vuWNsVS2BvDA4L9JV
-	 xBYyx5X3Y8PBKWfhiJAvBwHNjNsElFDqKrGJnx1tvNrIzlEAFunLD5ackAoLgTholU
-	 8dFVU+1xGaRBSeyt+lV4BN1u2oUpiLZ4LnzQaopEz8AORu2Snv5R9sS/CWhwgIXomt
-	 CMX1cbJ/FGrHA==
-Date: Wed, 14 Oct 2026 13:06:18 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Nicolai Buchwitz <nb@tipi-net.de>
-Cc: "David S. Miller" <davem@davemloft.net>, Eric Dumazet
- <edumazet@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman
- <horms@kernel.org>, Oleksij Rempel <o.rempel@pengutronix.de>, Maxime
- Chevallier <maxime.chevallier@bootlin.com>, Andrew Lunn
- <andrew+netdev@lunn.ch>, Maxime Coquelin <mcoquelin.stm32@gmail.com>,
- Alexandre Torgue <alexandre.torgue@foss.st.com>, Jose Abreu
- <Jose.Abreu@synopsys.com>, Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan
- <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, Leon Romanovsky
- <leon@kernel.org>, Dragos Tatulea <dtatulea@nvidia.com>, Alexei Lazar
- <alazar@nvidia.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-stm32@st-md-mailman.stormreply.com,
- linux-arm-kernel@lists.infradead.org, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH net-next 0/3] net: use skb_share_check() in loopback
- selftest hooks
-Message-ID: <20261014130618.4c50f817@kernel.org>
-In-Reply-To: <20261007-nb-net-selftest-shared-net-v1-0-458369bfa1ba@tipi-net.de>
-References: <20261007-nb-net-selftest-shared-net-v1-0-458369bfa1ba@tipi-net.de>
+	s=k20260515; t=1792008774;
+	bh=ZfFRWgll+/u/em5LmBjfJ9L3IYMVEO+MC+mYeJebVQM=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=cQz497rJBk18tqtYLhCYA/JMrX4oriOxL8RwL1vHQA9VpMewqwCOgY/ogU/PynLHl
+	 tqir70SaDOxE1ekZChRZOjxShB/8ZX/OcZAs9kpYyXcVO0v/IZpvgsrXBrAWz5IUnK
+	 Kb2uuwD+DWT89f52s/ylchbDXkVjxvivOYZXZnD3Txbc66G976qX1syBzMuUanJwHP
+	 Qpr8paQ+LAksbc2szUqeUq9MOfCuEBV2hDv7qVrKNHFmmkhGbh/mtSLI+XLZ7UlSuT
+	 8ze31mDwAH5Z/c0bgDk+v/sdjLxKe/WBbLqDPxIm2CDQOxz/jvjbI4VNHGOiFVm8TD
+	 YmL4WlvmbyvUQ==
+Message-ID: <sashiko-outbox-171843@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net v7 1/4] net/smc: bound the wire-controlled producer
+ cursor to the RMB
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Bryam Vargas" <hexlabsecurity@proton.me>
+Cc: linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, "Heiko Carstens" <hca@linux.ibm.com>, "Vasily
+ Gorbik" <gor@linux.ibm.com>, "Alexander Gordeev" <agordeev@linux.ibm.com>, "Christian
+ Borntraeger" <borntraeger@linux.ibm.com>
+In-Reply-To: <20261013-b4-disp-f345196c-v7-1-ef3dddfbfa68@proton.me>
+References: <20261013-b4-disp-f345196c-v7-0-ef3dddfbfa68@proton.me>
+ <20261013-b4-disp-f345196c-v7-1-ef3dddfbfa68@proton.me>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Wed, 14 Oct 2026 20:12:53 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
-On Wed, 07 Oct 2026 20:29:21 +0200 Nicolai Buchwitz wrote:
-> The loopback selftest hooks can get a shared skb when another handler
-> is bound to the device. Linearizing a non-linear frame then hits
-> BUG_ON(skb_shared()) in pskb_expand_head().
-> 
-> Stumbled over this on RPi CM4 (bcmgenet, with jumbo series applied +
-> WIP selftest patches) with a packet socket open at the same time as
-> running ethtool -t.
-> 
-> stmmac and mlx5 seem to have the same pattern, xgbe already handles
-> shared skbs. Patches 2 and 3 are compile tested only.
-> 
-> As the impact is pretty limited and doesn't seem to bother anyone in
-> the wild, I've chosen net-next, but kept the Fixes tags. That matches
-> what Paolo suggested during the LPC track.
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+s) to consider:
+- [High] net/smc: NULL pointer dereference in SMC CDC receive path
+--
 
-Wonder if we should follow up and rename skb_unshare to skb_unclone_full
-or some such? The "share" in the name is quite confusing for people who
-haven't been around for 10+ years..
+commit a66b04c40aa7b03be8e0d1b68a8b99f2014ef1fb
+Author: Bryam Vargas <hexlabsecurity@proton.me>
+
+net/smc: bound the wire-controlled producer cursor to the RMB
+
+smcr_cdc_msg_to_host() and smcd_cdc_msg_to_host() import the peer's
+producer cursor from the wire into conn->local_rx_ctrl.prod without
+bounding it to the RMB. This patch bounds the producer cursor count
+to rmb_desc->len when it comes off the wire for both SMC-R and SMC-D.
+
+> diff --git a/net/smc/smc_cdc.h b/net/smc/smc_cdc.h
+> index 696cc11f2303b..4d630a3051184 100644
+> --- a/net/smc/smc_cdc.h
+> +++ b/net/smc/smc_cdc.h
+[ ... ]
+> @@ -246,8 +253,9 @@ static inline void smcr_cdc_msg_to_host(struct smc_ho=
+st_cdc_msg *local,
+>  	local->len =3D peer->len;
+>  	local->seqno =3D ntohs(peer->seqno);
+>  	local->token =3D ntohl(peer->token);
+> -	smc_cdc_cursor_to_host(&local->prod, &peer->prod, conn);
+> -	smc_cdc_cursor_to_host(&local->cons, &peer->cons, conn);
+> +	smc_cdc_cursor_to_host(&local->prod, &peer->prod, conn,
+> +			       conn->rmb_desc->len);
+
+[Severity: High]
+Is it possible for conn->rmb_desc to be NULL here?
+
+If an existing SMC-R link group is reused for a new connection,
+smc_conn_create() inserts the connection into the globally visible
+lgr->conns_all RB-tree via smc_lgr_register_conn(conn, true) before
+the rmb_desc buffer is allocated by smc_buf_create().
+
+Since the QP is already in RTS state, could a malicious remote peer sharing
+the link group predict the new connection's alert_token_local (which is a
+predictable atomic counter) and send a CDC message during this race window?
+
+If so, smc_cdc_rx_handler() would find the connection and call
+smcr_cdc_msg_to_host() without checking sk_state or if conn->rmb_desc is
+allocated, leading to a NULL pointer dereference. Note that bh_lock_sock()
+does not block softirqs from pre-empting or running concurrently with the
+process-context lock_sock() held during setup.
+
+> +	smc_cdc_cursor_to_host(&local->cons, &peer->cons, conn, 0);
+>  	local->prod_flags =3D peer->prod_flags;
+>  	local->conn_state_flags =3D peer->conn_state_flags;
+>  }
+> @@ -260,6 +268,9 @@ static inline void smcd_cdc_msg_to_host(struct smc_ho=
+st_cdc_msg *local,
+> =20
+>  	temp.wrap =3D peer->prod.wrap;
+>  	temp.count =3D peer->prod.count;
+> +	/* as in smc_cdc_cursor_to_host(): bound prod, not cons */
+> +	if (temp.count > conn->rmb_desc->len)
+> +		temp.count =3D conn->rmb_desc->len;
+
+[Severity: High]
+Would the same race window affect SMC-D connections in smcd_cdc_msg_to_host=
+(),
+triggering a NULL pointer dereference if a CDC message is received before
+the rmb_desc buffer is allocated?
+
+>  	smc_curs_copy(&local->prod, &temp, conn);
+> =20
+>  	temp.wrap =3D peer->cons.wrap;
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261013-b4-disp-f3=
+45196c-v7-0-ef3dddfbfa68@proton.me?part=3D1
