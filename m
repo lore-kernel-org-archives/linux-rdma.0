@@ -1,166 +1,199 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-dy1-f197.google.com (mail-dy1-f197.google.com [74.125.82.197])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5ECAD4E80DF
-	for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 16:39:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E5475650F2
+	for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 17:39:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.197
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791995977; cv=none; b=EhKevx4U21xwscxX7k5mn2YXdeJ05ggNslDRpwXqzbYSYM7p7Bhz+mPKMqkx9sXX8jodfTmZhzRXJ/l/et6ctiJQZfw+87ghZFUTbDTYt8ZGu0CyVij6tWreuJPxhNwuFzQtmr95C/P6a23VHXeFLygy40/aPKcv20FmqI0EiD8=
+	t=1791999591; cv=none; b=Y0SFvE4jNlwqZ9Fs7rV/lpxRbtrI3TncbyYjVkDl94L/GkLeQ492EGoS1NlYotGV9MB+yJMOX8OzQMBsk8TgwfQ6RdE0oIXAzPE6+9emOZAGVIESsMEbp3KPece49RoT3uKBpEno8n99z46vitEVm5MqLdCmhJTmET6mIXDyqyk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791995977; c=relaxed/simple;
-	bh=FpreTvCblzxHt+JtO/O43FEKGeEexXJJT3eJqYx61Po=;
-	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=JhtgGKvyIgMetXI/Dotce4/qb4601ubs9bJgJ62v21ENEY08YqSgjimu6DbakG8DPSJHPvsUE6Xy3K9fK7hK7zvgkUnxg5XV+ONNFzHBgbWkETiDznmMLylRe2VA6VHG1X2D7sHKmBpOz4gupQHnjWaLYa7ifVLK63B1qsAf+Lc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ny+SKQ6c; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791999591; c=relaxed/simple;
+	bh=hMv4iBxx6O92hM2zU/QK2E9aXxhMN43j6uu62715n2w=;
+	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
+	 To:Cc:Content-Type; b=thx9C0A1WmQM84XAu+NcD1gO3aRovwgAwWA86+cBSwZYzO2q9rjMCD/yes8y01ZBVMow1j31pXwoKdyegJ65Xx+PpbKvvbtcx0oy+6x/3/wtLMuYkcXJTjmnRaWOgE/16FIlklQfen9yBYxri5SUqtmYORA7owMAk2C2qBImlwY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--almasrymina.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=OXIK1prm; arc=none smtp.client-ip=74.125.82.197
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--almasrymina.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ny+SKQ6c"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C14211F000C4;
-	Wed, 14 Oct 2026 16:39:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791995975;
-	bh=aKhKcWPWyjOrIj7BKMRGvpBtRKIfisCvjQMJs6AXEc0=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=Ny+SKQ6cDL7HtkfnD74Xa8lH71N8f5FNM177Jj+3q20D4EuWfcbcbvX6YPi1vQchX
-	 bUcQKctnadG+aOPbl44DPFPiChcTj7rOSWC93q8L1LjHN2rwLdqw6Jy97ywbGtkn8K
-	 lFLwoG2DZz7q69sTE5ylj0uiJjsss6VABrlyhdTBcdfDD6VXTuTelpDaBvzzWxU3Vl
-	 tkXbQ/TyEzK1ZWiYp15qnZLAgE3JWxX44RXSlKN0BmKmzTwkM0UFJPP4K6Chd7p/YU
-	 Qz6KzTe0cOxYBusLdYZIkMC339Hmi8QLd5GNYXy7Cr6FzxDjje0C2NFS5476GeDB93
-	 IHxXBeSpDdujA==
-Message-ID: <sashiko-outbox-171546@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v2] RDMA/irdma: Check MR contiguity before
- PBLE alloc
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Jacob Moroni" <jmoroni@google.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261014162144.4053279-1-jmoroni@google.com>
-References: <20261014162144.4053279-1-jmoroni@google.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Wed, 14 Oct 2026 16:39:35 +0000
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="OXIK1prm"
+Received: by mail-dy1-f197.google.com with SMTP id 5a478bee46e88-35c5aef2a74so5199128eec.0
+        for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 10:39:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1791999587; x=1792604387; darn=vger.kernel.org;
+        h=content-type:cc:to:from:subject:message-id:references:mime-version
+         :in-reply-to:date:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=Vaok2tbucgl2o15VmieqJKPHfx1IFv9p7RTK/Waa/Yk=;
+        b=OXIK1prmxK7vgl1mwvSr1DnoC6m7Y4M05h1i8VlJsCGPzRq6dpRlDOue5Nhcay3UCm
+         jI4L/6VvO6V2oLYR8R8Qon3N/rB3iSk07IF2KknNQJJ+germB22r7svi8dwzjHRAQGZm
+         5O9ukzDQm00/1KuYisnGM6zX/r7Vd3/UH1h+rKSu1oVdLwyJCYv1kExo3CBh9hk5jZ6X
+         Kg82XDCvR8D9F+FFL+NXjdwyDNCno4Vl1CIoxbPRXBxt2E2Z8uh2WL3UrsqL51iM82go
+         VtwTKsVGUi5CMIeNtRsFSLNjYmE6RYZbaSOxHMXMpSQN4JkkXHcjX5HHEihMlHcg49Cq
+         aGJg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791999587; x=1792604387;
+        h=content-type:cc:to:from:subject:message-id:references:mime-version
+         :in-reply-to:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=Vaok2tbucgl2o15VmieqJKPHfx1IFv9p7RTK/Waa/Yk=;
+        b=LgdzJQu6e7GrWYmreyJsmPo8LDkBCa9E7zcXICCX93ORSlnS1L7a/ImR8gKe0DNP6t
+         emJqZy9GXvnw3WJpUoBfA9warYwSws1G1raQqFlujVEVRcSpRP3nMfZSbu4HcZGIFEtE
+         fAaxZ0pODR5PId4ByEyXxHQjB9v3+jPpQ4PIoKXKr+aEQyajb3Mct0br+ftGWRhTBi8b
+         rtQprTTDZ2U2Ipg6qGCUVr2rD2//IMnH3aIrWlFfOqopTGus24fRF/qnk+aoK63V9u5D
+         bGwuWbvt7RQdPfjUps+RIlLmtkbsFoQWFz+svhv6ju2ya3blCZfBomqM0hkoaKTLVEVE
+         2esg==
+X-Forwarded-Encrypted: i=1; AKwUvBxUtw9V1/As/zdAIhm2ER3qB5mqFByB6fkjNlsrLZG9e5aGn7hSthBB+8LCW3LcNbwS0xQcdJAHuG6w@vger.kernel.org
+X-Gm-Message-State: AFq9FYJw4iAgUHjyfh2SWqxzVyS+Aca6xTAiGeHq5s7JUShHhp5fDYDH
+	FSIbDsumtzf1orKrJbS1FAfB/jeLcuewrLJWNQP8vCS+72cAduYvSLhK2vHAdotuUOXa1oSwjpn
+	bBwliwQIGTWMsr7zX4QhTWtfLKw==
+X-Received: from dldz19-n2.prod.google.com ([2002:a05:701b:4193:20b0:17e:6ff3:49a4])
+ (user=almasrymina job=prod-delivery.src-stubby-dispatcher) by
+ 2002:a05:701b:2507:b0:16c:4eef:a526 with SMTP id a92af1059eb24-16c4eefb193mr22991853c88.15.1791999586939;
+ Wed, 14 Oct 2026 10:39:46 -0700 (PDT)
+Date: Wed, 14 Oct 2026 17:37:15 +0000
+In-Reply-To: <20261014173945.373295-1-almasrymina@google.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+References: <20261014173945.373295-1-almasrymina@google.com>
+X-Mailer: git-send-email 2.56.0.212.g129ede20d9-goog
+Message-ID: <20261014173945.373295-2-almasrymina@google.com>
+Subject: [PATCH net-next v3 1/6] netmem: rename __get/__put_netmem() to get/put_net_iov()
+From: Mina Almasry <almasrymina@google.com>
+To: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-rdma@vger.kernel.org, bpf@vger.kernel.org
+Cc: Mina Almasry <almasrymina@google.com>, Ayush Sawal <ayush.sawal@chelsio.com>, 
+	Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, 
+	Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+	Tariq Toukan <tariqt@nvidia.com>, Simon Horman <horms@kernel.org>, 
+	Steffen Klassert <steffen.klassert@secunet.com>, Herbert Xu <herbert@gondor.apana.org.au>, 
+	Neal Cardwell <ncardwell@google.com>, Kuniyuki Iwashima <kuniyu@google.com>, 
+	John Fastabend <john.fastabend@gmail.com>, Sabrina Dubroca <sd@queasysnail.net>, 
+	Eric Biggers <ebiggers@kernel.org>, Kees Cook <kees@kernel.org>, 
+	Aleksandr Loktionov <aleksandr.loktionov@intel.com>, Petr Machata <petrm@nvidia.com>, 
+	"=?UTF-8?q?Uwe=20Kleine-K=C3=B6nig=20=28The=20Capable=20Hub=29?=" <u.kleine-koenig@baylibre.com>, Jakub Raczynski <j.raczynski@samsung.com>, 
+	Wang Zhan <wang.zhan@smartx.com>, Willem de Bruijn <willemb@google.com>
+Content-Type: text/plain; charset="UTF-8"
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
-- [High] irdma: double free of PBLE on MR reregistration HW failure
---
+netmems carry both a non-pp backing refcount and a page_pool
+pp_ref_count. Make the non-pp layer explicit and symmetric across both
+netmem types: get/put_netmem() dispatches to get/put_page() for pages
+and get/put_net_iov() for net_iovs, always acquiring or releasing a
+non-pp reference regardless of page_pool membership.
 
-commit 448b999143bf40a6d4795a1e901ceab0ac8c8c2d
-Author: Jacob Moroni <jmoroni@google.com>
+Warn via DEBUG_NET_WARN_ON_ONCE() for net_iov types that do not support
+non-pp references.
 
-RDMA/irdma: Check MR contiguity before PBLE alloc
+Assisted-by: LLM
+Signed-off-by: Mina Almasry <almasrymina@google.com>
+---
+ include/net/netmem.h | 24 ++++++++++++++++++++----
+ net/core/skbuff.c    | 36 ++++++++++++++++++++++++++----------
+ 2 files changed, 46 insertions(+), 14 deletions(-)
 
-This commit checks if a memory region is contiguous before attempting to
-allocate PBLEs. This prevents unnecessary PBLE allocation failures from
-causing memory registration to fail when a direct mapping could have been
-used instead.
+diff --git a/include/net/netmem.h b/include/net/netmem.h
+index 0cc8572f62caf..697d50c51a5ee 100644
+--- a/include/net/netmem.h
++++ b/include/net/netmem.h
+@@ -399,21 +399,37 @@ static inline bool net_is_devmem_iov(const struct net_iov *niov)
+ }
+ #endif
+ 
+-void __get_netmem(netmem_ref netmem);
+-void __put_netmem(netmem_ref netmem);
++void get_net_iov(struct net_iov *niov);
++void put_net_iov(struct net_iov *niov);
+ 
++/**
++ * get_netmem - acquire a non-page_pool reference on a netmem
++ * @netmem: netmem to reference
++ *
++ * Acquires a non-pp backing reference (page._refcount via get_page() or
++ * binding->ref via get_net_iov()) regardless of page_pool membership.
++ * Counterpart to put_netmem().
++ */
+ static __always_inline void get_netmem(netmem_ref netmem)
+ {
+ 	if (netmem_is_net_iov(netmem))
+-		__get_netmem(netmem);
++		get_net_iov(netmem_to_net_iov(netmem));
+ 	else
+ 		get_page(netmem_to_page(netmem));
+ }
+ 
++/**
++ * put_netmem - release a non-page_pool reference on a netmem
++ * @netmem: netmem to unreference
++ *
++ * Drops a non-pp backing reference (page._refcount via put_page() or
++ * binding->ref via put_net_iov()) regardless of page_pool membership.
++ * Counterpart to get_netmem().
++ */
+ static __always_inline void put_netmem(netmem_ref netmem)
+ {
+ 	if (netmem_is_net_iov(netmem))
+-		__put_netmem(netmem);
++		put_net_iov(netmem_to_net_iov(netmem));
+ 	else
+ 		put_page(netmem_to_page(netmem));
+ }
+diff --git a/net/core/skbuff.c b/net/core/skbuff.c
+index b25d8e2c9aafe..23a40e1ec2b15 100644
+--- a/net/core/skbuff.c
++++ b/net/core/skbuff.c
+@@ -7555,23 +7555,39 @@ bool csum_and_copy_from_iter_full(void *addr, size_t bytes,
+ }
+ EXPORT_SYMBOL(csum_and_copy_from_iter_full);
+ 
+-void __get_netmem(netmem_ref netmem)
++/**
++ * get_net_iov - acquire a non-page_pool reference on a net_iov
++ * @niov: net_iov to reference
++ *
++ * Acquires a non-pp backing reference (binding->ref) on @niov regardless of
++ * page_pool membership, warning if @niov does not support non-pp references.
++ * Counterpart to put_net_iov().
++ */
++void get_net_iov(struct net_iov *niov)
+ {
+-	struct net_iov *niov = netmem_to_net_iov(netmem);
+-
+ 	if (net_is_devmem_iov(niov))
+-		net_devmem_get_net_iov(netmem_to_net_iov(netmem));
++		net_devmem_get_net_iov(niov);
++	else
++		DEBUG_NET_WARN_ON_ONCE(true);
+ }
+-EXPORT_SYMBOL(__get_netmem);
++EXPORT_SYMBOL(get_net_iov);
+ 
+-void __put_netmem(netmem_ref netmem)
++/**
++ * put_net_iov - release a non-page_pool reference on a net_iov
++ * @niov: net_iov to unreference
++ *
++ * Drops a non-pp backing reference (binding->ref) on @niov regardless of
++ * page_pool membership, warning if @niov does not support non-pp references.
++ * Counterpart to get_net_iov().
++ */
++void put_net_iov(struct net_iov *niov)
+ {
+-	struct net_iov *niov = netmem_to_net_iov(netmem);
+-
+ 	if (net_is_devmem_iov(niov))
+-		net_devmem_put_net_iov(netmem_to_net_iov(netmem));
++		net_devmem_put_net_iov(niov);
++	else
++		DEBUG_NET_WARN_ON_ONCE(true);
+ }
+-EXPORT_SYMBOL(__put_netmem);
++EXPORT_SYMBOL(put_net_iov);
+ 
+ struct vlan_type_depth __vlan_get_protocol_offset(const struct sk_buff *skb,
+ 						  __be16 type,
+-- 
+2.56.0.212.g129ede20d9-goog
 
-> diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/=
-irdma/verbs.c
-> index 71d7ae7baa478..f89c8516c57c0 100644
-> --- a/drivers/infiniband/hw/irdma/verbs.c
-> +++ b/drivers/infiniband/hw/irdma/verbs.c
-
-[ ... ]
-
-> @@ -3413,24 +3374,33 @@ static int irdma_reg_user_mr_type_mem(struct irdm=
-a_mr *iwmr, int access,
->  {
->  	struct irdma_device *iwdev =3D to_iwdev(iwmr->ibmr.device);
->  	struct irdma_pbl *iwpbl =3D &iwmr->iwpbl;
-> +	struct ib_umem *region =3D iwmr->region;
->  	u32 stag =3D 0;
-> -	u8 lvl;
->  	int err;
-> =20
-> -	lvl =3D iwmr->page_cnt !=3D 1 ? PBLE_LEVEL_1 | PBLE_LEVEL_2 : PBLE_LEVE=
-L_0;
->  	iwmr->access =3D access;
-> =20
-> -	err =3D irdma_setup_pbles(iwdev->rf, iwmr, lvl);
-> -	if (err)
-> -		return err;
-> -
-> -	if (lvl) {
-> -		err =3D irdma_check_mr_contiguous(&iwpbl->pble_alloc,
-> +	if (ib_umem_is_contiguous(region)) {
-> +		/* HW needs a valid page size even without PBLEs, so use 4K. It
-> +		 * behaves like a PBLE-backed region where the PBA must be page
-> +		 * aligned. HW takes the page offset from the lower 12 VA bits.
-> +		 */
-> +		iwmr->page_size =3D SZ_4K;
-> +		iwmr->pgaddrmem[0] =3D ALIGN_DOWN(ib_umem_start_dma_addr(region),
->  						iwmr->page_size);
-> -		if (err) {
-> -			irdma_free_pble(iwdev->rf->pble_rsrc, &iwpbl->pble_alloc);
-> -			iwpbl->pbl_allocated =3D false;
-> -		}
-> +	} else {
-> +		iwmr->page_size =3D ib_umem_find_best_pgsz(region,
-> +				iwdev->rf->sc_dev.hw_attrs.page_size_cap,
-> +				iwmr->ibmr.iova);
-> +		if (unlikely(!iwmr->page_size))
-> +			return -EOPNOTSUPP;
-> +
-> +		iwmr->page_cnt =3D ib_umem_num_dma_blocks(region,
-> +							iwmr->page_size);
-> +		err =3D irdma_setup_pbles(iwdev->rf, iwmr,
-> +					PBLE_LEVEL_1 | PBLE_LEVEL_2);
-> +		if (err)
-> +			return err;
->  	}
-> =20
->  	if (create_stag) {
->  		stag =3D irdma_create_stag(iwdev);
->  		if (!stag) {
->  			err =3D -ENOMEM;
->  			goto free_pble;
->  		}
-> =20
->  		iwmr->stag =3D stag;
->  		iwmr->ibmr.rkey =3D stag;
->  		iwmr->ibmr.lkey =3D stag;
->  	}
-> =20
->  	err =3D irdma_hwreg_mr(iwdev, iwmr, access);
->  	if (err)
->  		goto err_hwreg;
-> =20
->  	return 0;
-> =20
->  err_hwreg:
->  	if (stag)
->  		irdma_free_stag(iwdev, stag);
-> =20
->  free_pble:
->  	if (iwpbl->pble_alloc.level !=3D PBLE_LEVEL_0 && iwpbl->pbl_allocated)
->  		irdma_free_pble(iwdev->rf->pble_rsrc, &iwpbl->pble_alloc);
-
-[Severity: High]
-If irdma_hwreg_mr() fails during memory registration, the free_pble error
-path frees the PBLE allocator resources but does not clear
-iwpbl->pbl_allocated.
-
-When this occurs during MR reregistration in irdma_rereg_mr_trans(), the
-error propagates up to the RDMA core, which retains the original MR.
-
-Upon subsequent destruction of the MR in irdma_dereg_mr(), the driver
-checks this stale flag:
-
-	if (iwpbl->pbl_allocated)
-		irdma_free_pble(iwdev->rf->pble_rsrc, &iwpbl->pble_alloc);
-
-Could this double free corrupt the driver's internal memory management data
-structures (irdma_prm_return_pbles), leading to kernel memory corruption?
-
-> =20
->  	return err;
->  }
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261014162144.4053=
-279-1-jmoroni@google.com?part=3D1
