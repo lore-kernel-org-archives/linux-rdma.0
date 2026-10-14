@@ -1,134 +1,270 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f198.google.com (mail-qk1-f198.google.com [209.85.222.198])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F06A037207F;
-	Wed, 14 Oct 2026 14:50:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC66B4DA541
+	for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 16:21:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.198
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791989418; cv=none; b=eOqd3MOlc+Sex+kJWFgbT6lrHUSGMG2W0jIQ+XRfi+s+UaJXL9/CTeJHM23J/SrArpd6RRb0/sirwqxSYOp03l25Gn0ysqSMV8weqz1ukr8ZbFXf6qxu1Zr+C9m2LbZWfoDHLZdKUZfePbl8OiEtVSaLeULK1bwpNEMsPKyEPSk=
+	t=1791994911; cv=none; b=p0kps0Fqk5Ic5ma7U51CuLiOYAX0Z6VDQ3SGP+LLr19oiCbIccS+Xos7uCQuZtQIinOVPRhpxAzIWtjFrLIGJXlz6O9onbmr5aO4xzCbFFddC25kvSC9CACgbSgJMWEQBRx15umb9gq5rhduKTDYRnKaXEEXYc4ZKyn/ZNXeFB8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791989418; c=relaxed/simple;
-	bh=1ZGFJL3aWBxdpm2daJRhOsohwWnF9u/jnnIW8uUSFdI=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=XBIeaKuEJ5ed0tp3tPqnmwHoae2MxjP+LJ1lZqf43Y9y0N9GBiUK5+iapYakOZSR9ol1doqJPyQ8euaSj4xZTIKWibL6+RcDiKQY0DldxoA+mjfXERKbj1h/jW2xyip/xdFk4r2iyLviIf8GF5UhHNCNnkwmM+KDKhniyTMY3xo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BM+UwMfH; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791994911; c=relaxed/simple;
+	bh=YaV26/2g4MIbNy8OVOcQ3gSuLu4exvYPqBDzWFenlYE=;
+	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=oAScFr0fgDyY4fGKQEJ5fqja9M2r21jmJCWzqH+2/hYq4EU4UPKirBSmSWAelOMULLgRzRbZ9Dh0+jQTseMZp7fo1yYRZv+uYuOTCsIEhxRw1XvBTsvzXTPt35fpNHZFIBqVOnIur1VUDS1PE/CpR9+rC+KwjSbs8/LvLB7NMr8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=rWsiLygn; arc=none smtp.client-ip=209.85.222.198
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BM+UwMfH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01E491F000C5;
-	Wed, 14 Oct 2026 14:50:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791989414;
-	bh=NdWDzbW7Y26htAfpjZvTCflFdSCpG0s8lhU2ZneTFLQ=;
-	h=Date:From:To:Cc:In-Reply-To:References:Subject;
-	b=BM+UwMfHAZjW9N+hXqGXqJO9+J70Tu+8At5e5U9AabuLJPkoU+OY5Q1tGeuDSRar7
-	 h+ueY9Vo+zchRUUDgnBlJpJjetO+qPXf++oPOSRIyP/PLLyvuOMCgyJOlm++Hbpw60
-	 91hK/nZUCLHOb407EzR1u0TPmbD+57P+JLtsy0JLqNWJLg6hPEMYNaJhx/1+SxKz0d
-	 SO9dytJU49vKpXLjbMQzrDTGL+wUdcHlbtIZVVNCRud1aDPerhS0f2Ud7adqwIcLSQ
-	 +H4U30KC2ow3o0gXS5ee0f1ShRWTDgZpMUZXwUlPNsa0ImzI79zjWNk1pRc+3suPXr
-	 gOVfAi3aygJUg==
-Received: from stl-compute-04.internal (stl-compute-04.internal [10.204.2.64])
-	by mailfauth.stl.internal (Postfix) with ESMTP id 04A4D780043;
-	Wed, 14 Oct 2026 10:50:12 -0400 (EDT)
-Received: from stl-imap-11 ([10.204.2.102])
-  by stl-compute-04.internal (MEProxy); Wed, 14 Oct 2026 10:50:13 -0400
-X-ME-Sender: <xms:pJbParDoKmXnnnpeCXDM-T7ZQy3mvEAFl8leKVWTW8fxLoSHruK5UQ>
-    <xme:pJbPasUGIp5Y-WerYrbOqfCqOomhS8YNkL3QSuUtKHjrt1PtIhP5Tu_WX_moXYsdi
-    sbHexPhmB_BmED0e-qA-2512EZv-PGP1oM7DEoJZYvBXbW1hOGKzMw>
-X-ME-Proxy-Cause: dmFkZTEBp4CSFP+oEygyR/ha7jJPYfJMSPM5LgWWD6WbfqNZUsOvuFcngQ6E2/sdCMTQyy
-    HijyMuq/lh8owh49Uvpdcd1Ra8UygobWNKOnsEZkYTkmkHBveua5QlCVL0sCLNdxkZT+w3
-    DLhzUNIRhU4ZpiQON0x0kMLOeVf1NUWdQo8JyVcvXXYMchFoGUAJI+xNE/ThwwUpa6FP20
-    cODEKLQFrG3geSG9+uwSFuaKXh/2ud2Hqj5zJA8H7nV9YIwFspm4XSoh0NWLuXc9SN7nF+
-    M0GU0dQmTpL8asKz2BQ4XwgO2/Sbpm/VnJLXVHzZvHTjDZHcObiXGKyIKkXuB2XL3tAzYg
-    g5OGTBD8KSmGCXSDu0gnl3UHb3Lp0SpglQkUX+piCkkNEgINFXYTsBjDIeCtd2BdV9QJQ3
-    mTfP+iSHHMJzo+KhWjJukhVQ8api1RFiaA7pywTevfwudi7iFEWHwbF3fD5qNbbxrYH6AU
-    uYTVm5lCHKo9KUELmKH5bJ67yzCta8QTOKdU30qDP+TjTRIjQ+yKitK4LMuJrfSdbT2I9F
-    XD2Zr3H2f1O2VvIbU3//Z6dHBXNQw8Z3KtlE1yB8wGuWJDbUxnRMiVGCy3EYOa2136W6Bm
-    7OdRD5lAU7SoYDdBdbK4z9I3J6kegvsNGaHYnREsjFZCq7Mj6bavvPFXsDFw
-X-ME-Proxy: <xmx:pJbPansXMvJtbNWVaV-mNd-qlczn-gGt_SH9XPSu00VX_1SCUwMIlg>
-    <xmx:pJbPavaCY2nnNd54zW53nb1b3n4NiW-6Jz-Ae3Sgp4IwUoSeeyOUxQ>
-    <xmx:pJbPahNykOFC4DtN7tXyMI1gDyWwjUYT8QfRvRRh_Su1dkRJTn2MGA>
-    <xmx:pJbPakut9LU5_6VoGmrV77P8-_f8MaRAa1YriFmU-18E2Z6zPqispA>
-    <xmx:pJbPapJayEVieuXZFLVJRdxfrNSvTiCPGOlJqmlWP5cgxmEZki4NOH5n>
-Feedback-ID: i927946fb:Fastmail
-Received: by mailuser.stl.internal (Postfix, from userid 501)
-	id 90E9119C0067; Wed, 14 Oct 2026 10:50:12 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="rWsiLygn"
+Received: by mail-qk1-f198.google.com with SMTP id af79cd13be357-93ca9b53afaso1177099385a.0
+        for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 09:21:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1791994906; x=1792599706; darn=vger.kernel.org;
+        h=content-type:cc:to:from:subject:message-id:mime-version:date:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=MWltUAVwzuhWmwawPa9gIDNonJ5+TZ8HT4d8bCNfDmE=;
+        b=rWsiLygnq7J4NM7jE7foeLBGEOFkxLdQ0J0We5L30Jn2P8IbPcsV2HRdT6LEfBbIpT
+         aNCCDNA5gsk1tnuHYQ8SzP032DSQmne45qN49CV9FaQjV6N/iEB270GVMdnD4sjlJRrQ
+         /OQQeKk1zVW9Hy6N145+BPePKigYCrbAJAV3w4xwVSqXPlB1HiyXUmI2FDFPYhQVI3Wq
+         mI9WUywmv5lZItSBfHL7vBeVUL5SofZr1mN0X87RHleGP3PIJS+UK1tQTUCZB0ahwI1L
+         iWyjnaQlz/0XLuJweRumeFPti4KopT2yvxvTv2bu9XFR910IGqUY1n7Mo6vDwULv9+2+
+         Cw5g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791994906; x=1792599706;
+        h=content-type:cc:to:from:subject:message-id:mime-version:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=MWltUAVwzuhWmwawPa9gIDNonJ5+TZ8HT4d8bCNfDmE=;
+        b=vqcQ4xkLyYkH4ejvVrKsbwBKGKhutLw1xXwed+3XBR1a5g1K7yo4eKpzh9gEtYh3Ch
+         IxCaFaTrUMP4dqla6PXskgcwNR94JdmN0utmpkzlwZu42i6oaUbBPACNRwapgdQ9qblc
+         AChRq/dnxS5ynzagKMiN5Wo9wef2ZfjopwC6JfouDVDpX+WI0gvvGCVCaVVQXGqOc0eG
+         RCCxA7JY0bT4fyOeHTamVyM9yv1orRvnT3mUtx05n5h5ZgoE0SEZO1W5CJhFtKDbbYJ8
+         NYobz3nXyILY1TMEhoZ95ZUQukqoFGtat+JxBTbJIpQycMnRYK60vtPxSEhuHHdaj7eo
+         I3fQ==
+X-Gm-Message-State: AFq9FYJsCstAtC/mngfVfsnPl5G6574McYRc7tGj1iiJb53QhOe6rknC
+	nNlBE5ium2riZthcRXWrqZkl3PsNB6lroz7CSLj+eRiDclZ41K4a9RmqjTYacGQ5I5bxOtB3WBq
+	JUHoDi1i3gQ==
+X-Received: from qvbl16-n2.prod.google.com ([2002:a0c:e090:0:20b0:91b:64e7:a499])
+ (user=jmoroni job=prod-delivery.src-stubby-dispatcher) by 2002:a05:620a:1991:b0:93b:db80:e0cf
+ with SMTP id af79cd13be357-93ebd281acbmr2727152785a.60.1791994906140; Wed, 14
+ Oct 2026 09:21:46 -0700 (PDT)
+Date: Wed, 14 Oct 2026 16:21:44 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Date: Wed, 14 Oct 2026 17:49:53 +0300
-From: "Leon Romanovsky" <leon@kernel.org>
-To: "Bjorn Helgaas" <helgaas@kernel.org>
-Cc: "Bjorn Helgaas" <bhelgaas@google.com>,
- "Logan Gunthorpe" <logang@deltatee.com>,
- "Jason Gunthorpe" <jgg@ziepe.ca>, "Joerg Roedel" <joro@8bytes.org>,
- "Will Deacon" <will@kernel.org>, "Robin Murphy" <robin.murphy@arm.com>,
- =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
- =?UTF-8?Q?Thomas_Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
- linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-doc@vger.kernel.org, iommu@lists.linux.dev,
- "Tushar Dave" <tdave@nvidia.com>, linux-media@vger.kernel.org,
- dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
- linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
- "Chaitanya Kulkarni" <kch@nvidia.com>,
- "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
- "Jens Axboe" <axboe@kernel.dk>, "Alex Williamson" <alex@shazbot.org>,
- "Ankit Agrawal" <ankita@nvidia.com>, "Jonathan Corbet" <corbet@lwn.net>,
- "Shuah Khan" <skhan@linuxfoundation.org>,
- "Randy Dunlap" <rdunlap@infradead.org>,
- "Sumit Semwal" <sumit.semwal@linaro.org>
-Message-Id: <eb8e0edd-4c4d-402e-9875-bdbc6d191edf@app.fastmail.com>
-In-Reply-To: <20261014132353.GA1625948@bhelgaas>
-References: <20261014132353.GA1625948@bhelgaas>
-Subject: Re: [PATCH v11 00/19] PCI/P2PDMA: Route peer-to-peer DMA by TLP class
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.56.0.385.gd3acb90ef8-goog
+Message-ID: <20261014162144.4053279-1-jmoroni@google.com>
+Subject: [PATCH rdma-next v2] RDMA/irdma: Check MR contiguity before PBLE alloc
+From: Jacob Moroni <jmoroni@google.com>
+To: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, leon@kernel.org
+Cc: linux-rdma@vger.kernel.org, Jacob Moroni <jmoroni@google.com>
+Content-Type: text/plain; charset="UTF-8"
 
+The original logic would attempt to allocate PBLEs, then would
+check whether the region was contiguous _after_, and if so,
+would free the PBLEs and use a direct mapping instead.
 
+These unnecessary temporary PBLE allocations can technically
+fail (PBLEs are a finite resource), which can cause an MR
+registration failure even if the region is contiguous and
+should have succeeded.
 
-On Wed, Oct 14, 2026, at 16:23, Bjorn Helgaas wrote:
-> On Wed, Oct 14, 2026 at 09:53:47AM +0300, Leon Romanovsky wrote:
->> On Tue, Oct 13, 2026 at 05:25:08PM +0300, Leon Romanovsky wrote:
->> > PCI P2PDMA applies Request and Completion Redirect throughout both paths.
->> > This misclassifies asymmetric and nested switches, and reports one answer
->> > for every kind of TLP.
->> > 
->> > Three ACS controls act on TLP attributes the Requester chooses rather
->> > than on the topology: Translation Blocking and Direct Translated P2P act on
->> > a Request's Address Type, and Completion Redirect skips Completions carrying
->> > Relaxed Ordering.
->> > 
->> > Evaluate each direction at the path divergence, decide every class from the
->> > one walk, and treat a client with ATS enabled as translating unless its
->> > driver declares per-mapping ATS.
->> > 
->> > This completes the P2PDMA side; dma-buf and mlx5 follow separately.
->> > 
->> > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
->> > ---
->> > Changes in v11:
->> 
->> 
->> Bjorn,
->> 
->> Could you please save me from the AI-bot attack? Every rebase seems to
->> uncover another bizarre pre-existing issue. It never ends.
->
-> Can you elaborate?  I'm not sure what you'd like me to do here.  I
-> don't control the Sashiko reviews, and I thought Sashiko was recently
-> changed to put pre-existing issues in a database but not in the email
-> responses.
+Fix this by checking whether the region is contiguous before
+allocating any PBLEs. This also provides an opportunity to
+consolidate some of the rereg_mr logic and use the existing
+ib_umem_is_contiguous() helper.
 
-AI reviews are not deterministic and every resubmission gives us slightly different result, which is in this phase of submission is  full of hallucinated flows not applicable to the upstream.
+Tested on GEN3 HW with a test program that does an extensive
+sweep of MR size/alignment/hugepage combinations, but most
+importantly, first/last byte reachable and -1/+1 unreachable
+when using contig regions with both aligned and unaligned start
+addresses, plus a kprobe on irdma_get_pble() to ensure we're
+actually hitting the new path.
 
-In addition to upstream Sashiko, i run everything through local one with slightly better models which hallucinating even more.
+Ring MRs still have their own logic. That will be addressed next.
 
-I would ask you to merge the series so it gets real exposure in addition to my kunit and specific hw setup.
+Signed-off-by: Jacob Moroni <jmoroni@google.com>
+---
+Changes in v2:
+- Skip the ib_umem_find_best_pgsz() call if we already know the
+  region is contiguous (Jason)
+- Move MEM MR page size/PBLE handling into irdma_reg_user_mr_type_mem()
+  and drop the is_contig flag added in v1
+- Drop the now-unused pgaddrmem[0] store in irdma_setup_pbles()
+- Add test description
 
-Thanks 
+ drivers/infiniband/hw/irdma/verbs.c | 97 +++++++++--------------------
+ 1 file changed, 29 insertions(+), 68 deletions(-)
 
->
-> Bjorn
+diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
+index 71d7ae7baa47..f89c8516c57c 100644
+--- a/drivers/infiniband/hw/irdma/verbs.c
++++ b/drivers/infiniband/hw/irdma/verbs.c
+@@ -2917,42 +2917,6 @@ static bool irdma_check_mem_contiguous(u64 *arr, u32 npages, u32 pg_size)
+ 	return true;
+ }
+ 
+-/**
+- * irdma_check_mr_contiguous - check if MR is physically contiguous
+- * @palloc: pbl allocation struct
+- * @pg_size: page size
+- */
+-static bool irdma_check_mr_contiguous(struct irdma_pble_alloc *palloc,
+-				      u32 pg_size)
+-{
+-	struct irdma_pble_level2 *lvl2 = &palloc->level2;
+-	struct irdma_pble_info *leaf = lvl2->leaf;
+-	u64 *arr = NULL;
+-	u64 *start_addr = NULL;
+-	int i;
+-	bool ret;
+-
+-	if (palloc->level == PBLE_LEVEL_1) {
+-		arr = palloc->level1.addr;
+-		ret = irdma_check_mem_contiguous(arr, palloc->total_cnt,
+-						 pg_size);
+-		return ret;
+-	}
+-
+-	start_addr = leaf->addr;
+-
+-	for (i = 0; i < lvl2->leaf_cnt; i++, leaf++) {
+-		arr = leaf->addr;
+-		if ((*start_addr + ((u64)i * pg_size * PBLE_PER_PAGE)) != *arr)
+-			return false;
+-		ret = irdma_check_mem_contiguous(arr, leaf->cnt, pg_size);
+-		if (!ret)
+-			return false;
+-	}
+-
+-	return true;
+-}
+-
+ /**
+  * irdma_setup_pbles - copy user pg address to pble's
+  * @rf: RDMA PCI function
+@@ -2989,9 +2953,6 @@ static int irdma_setup_pbles(struct irdma_pci_f *rf, struct irdma_mr *iwmr,
+ 
+ 	irdma_copy_user_pgaddrs(iwmr, pbl, pbl_len, level);
+ 
+-	if (lvl)
+-		iwmr->pgaddrmem[0] = *pbl;
+-
+ 	return 0;
+ }
+ 
+@@ -3413,24 +3374,33 @@ static int irdma_reg_user_mr_type_mem(struct irdma_mr *iwmr, int access,
+ {
+ 	struct irdma_device *iwdev = to_iwdev(iwmr->ibmr.device);
+ 	struct irdma_pbl *iwpbl = &iwmr->iwpbl;
++	struct ib_umem *region = iwmr->region;
+ 	u32 stag = 0;
+-	u8 lvl;
+ 	int err;
+ 
+-	lvl = iwmr->page_cnt != 1 ? PBLE_LEVEL_1 | PBLE_LEVEL_2 : PBLE_LEVEL_0;
+ 	iwmr->access = access;
+ 
+-	err = irdma_setup_pbles(iwdev->rf, iwmr, lvl);
+-	if (err)
+-		return err;
+-
+-	if (lvl) {
+-		err = irdma_check_mr_contiguous(&iwpbl->pble_alloc,
++	if (ib_umem_is_contiguous(region)) {
++		/* HW needs a valid page size even without PBLEs, so use 4K. It
++		 * behaves like a PBLE-backed region where the PBA must be page
++		 * aligned. HW takes the page offset from the lower 12 VA bits.
++		 */
++		iwmr->page_size = SZ_4K;
++		iwmr->pgaddrmem[0] = ALIGN_DOWN(ib_umem_start_dma_addr(region),
+ 						iwmr->page_size);
+-		if (err) {
+-			irdma_free_pble(iwdev->rf->pble_rsrc, &iwpbl->pble_alloc);
+-			iwpbl->pbl_allocated = false;
+-		}
++	} else {
++		iwmr->page_size = ib_umem_find_best_pgsz(region,
++				iwdev->rf->sc_dev.hw_attrs.page_size_cap,
++				iwmr->ibmr.iova);
++		if (unlikely(!iwmr->page_size))
++			return -EOPNOTSUPP;
++
++		iwmr->page_cnt = ib_umem_num_dma_blocks(region,
++							iwmr->page_size);
++		err = irdma_setup_pbles(iwdev->rf, iwmr,
++					PBLE_LEVEL_1 | PBLE_LEVEL_2);
++		if (err)
++			return err;
+ 	}
+ 
+ 	if (create_stag) {
+@@ -3466,10 +3436,8 @@ static struct irdma_mr *irdma_alloc_iwmr(struct ib_umem *region,
+ 					 struct ib_pd *pd, u64 virt,
+ 					 enum irdma_memreg_type reg_type)
+ {
+-	struct irdma_device *iwdev = to_iwdev(pd->device);
+ 	struct irdma_pbl *iwpbl;
+ 	struct irdma_mr *iwmr;
+-	unsigned long pgsz_bitmap;
+ 
+ 	iwmr = kzalloc_obj(*iwmr);
+ 	if (!iwmr)
+@@ -3483,18 +3451,21 @@ static struct irdma_mr *irdma_alloc_iwmr(struct ib_umem *region,
+ 	iwmr->ibmr.device = pd->device;
+ 	iwmr->ibmr.iova = virt;
+ 	iwmr->type = reg_type;
++	iwmr->len = region->length;
++	iwpbl->user_base = virt;
+ 
+-	pgsz_bitmap = (reg_type == IRDMA_MEMREG_TYPE_MEM) ?
+-		iwdev->rf->sc_dev.hw_attrs.page_size_cap : SZ_4K;
++	/* Page size and count are calculated in irdma_reg_user_mr_type_mem()
++	 * for MEM type MRs.
++	 */
++	if (reg_type == IRDMA_MEMREG_TYPE_MEM)
++		return iwmr;
+ 
+-	iwmr->page_size = ib_umem_find_best_pgsz(region, pgsz_bitmap, virt);
++	iwmr->page_size = ib_umem_find_best_pgsz(region, SZ_4K, virt);
+ 	if (unlikely(!iwmr->page_size)) {
+ 		kfree(iwmr);
+ 		return ERR_PTR(-EOPNOTSUPP);
+ 	}
+ 
+-	iwmr->len = region->length;
+-	iwpbl->user_base = virt;
+ 	iwmr->page_cnt = ib_umem_num_dma_blocks(region, iwmr->page_size);
+ 
+ 	return iwmr;
+@@ -3833,7 +3804,6 @@ static int irdma_hwdereg_mr(struct ib_mr *ib_mr)
+ static int irdma_rereg_mr_trans(struct irdma_mr *iwmr, u64 start, u64 len,
+ 				u64 virt)
+ {
+-	struct irdma_device *iwdev = to_iwdev(iwmr->ibmr.device);
+ 	struct irdma_pbl *iwpbl = &iwmr->iwpbl;
+ 	struct ib_pd *pd = iwmr->ibmr.pd;
+ 	struct ib_umem *region;
+@@ -3846,17 +3816,8 @@ static int irdma_rereg_mr_trans(struct irdma_mr *iwmr, u64 start, u64 len,
+ 	iwmr->region = region;
+ 	iwmr->ibmr.iova = virt;
+ 	iwmr->ibmr.pd = pd;
+-	iwmr->page_size = ib_umem_find_best_pgsz(region,
+-				iwdev->rf->sc_dev.hw_attrs.page_size_cap,
+-				virt);
+-	if (unlikely(!iwmr->page_size)) {
+-		err = -EOPNOTSUPP;
+-		goto err;
+-	}
+-
+ 	iwmr->len = region->length;
+ 	iwpbl->user_base = virt;
+-	iwmr->page_cnt = ib_umem_num_dma_blocks(region, iwmr->page_size);
+ 
+ 	err = irdma_reg_user_mr_type_mem(iwmr, iwmr->access, false);
+ 	if (err)
+-- 
+2.56.0.385.gd3acb90ef8-goog
+
