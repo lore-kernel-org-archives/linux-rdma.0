@@ -1,270 +1,108 @@
-Received: from mail-qk1-f198.google.com (mail-qk1-f198.google.com [209.85.222.198])
+Received: from mail-oo1-f53.google.com (mail-oo1-f53.google.com [209.85.161.53])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC66B4DA541
-	for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 16:21:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.198
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791994911; cv=none; b=p0kps0Fqk5Ic5ma7U51CuLiOYAX0Z6VDQ3SGP+LLr19oiCbIccS+Xos7uCQuZtQIinOVPRhpxAzIWtjFrLIGJXlz6O9onbmr5aO4xzCbFFddC25kvSC9CACgbSgJMWEQBRx15umb9gq5rhduKTDYRnKaXEEXYc4ZKyn/ZNXeFB8=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791994911; c=relaxed/simple;
-	bh=YaV26/2g4MIbNy8OVOcQ3gSuLu4exvYPqBDzWFenlYE=;
-	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=oAScFr0fgDyY4fGKQEJ5fqja9M2r21jmJCWzqH+2/hYq4EU4UPKirBSmSWAelOMULLgRzRbZ9Dh0+jQTseMZp7fo1yYRZv+uYuOTCsIEhxRw1XvBTsvzXTPt35fpNHZFIBqVOnIur1VUDS1PE/CpR9+rC+KwjSbs8/LvLB7NMr8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=rWsiLygn; arc=none smtp.client-ip=209.85.222.198
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 752CE3DB63A
+	for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 16:21:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.161.53
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791994913; cv=pass; b=B+bAbLB6r9SbdAaZFWWRbkHHZEiuIXlYq3NsCqaxHFWtd+0tNhfjxV0Le90Eg7uDrHj8ASp98nrvBWxnxJ8jNYLIAPh2XEm2Pdx8/il8fQsP5u09WouODLLIMvvUQ39qMWjao9svsjhO0bENYHcntZQZm+hSApBuGgojDcp4M98=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791994913; c=relaxed/simple;
+	bh=Uo4nhhn4ccYLf8haAnQH3w6H3MFou4kEMXYGeM07i8k=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=OgVguhFPexuK0ZZivhA+xWYw835nNICJHZNkDbX+CnPXdkR/FoJVggVzbGpW6p6ag9UUyd9sSx0keJjbVGYN/KuZ5V+CYAj5fy4by5g8irK1bmkOEtrWsXOv0v84tJ2StxFTqLOG4LdGEh1Yo92uXh6K5wRRs2V4Eutkdy9l9CQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=bwsZ4mnJ; arc=pass smtp.client-ip=209.85.161.53
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="rWsiLygn"
-Received: by mail-qk1-f198.google.com with SMTP id af79cd13be357-93ca9b53afaso1177099385a.0
-        for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 09:21:47 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="bwsZ4mnJ"
+Received: by mail-oo1-f53.google.com with SMTP id 006d021491bc7-6cfed5dd083so837148eaf.1
+        for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 09:21:51 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1791994910; cv=none;
+        d=google.com; s=arc-20260327;
+        b=mSmQOd7GpxjgnuzV5s2EputgZexd/Mvkz0WoivCly9e8T92/Qqmojmp2VOLcoVccZN
+         snNoPQG3W2J1WNct9Z3NC2/PXN144MX/hCBMke04RgnhGOK/Ld8N4pcTuCRRinN3gGtI
+         /Kty29IcNkcSJCyS4E2Chjz1qUiaARU9t8GJvQZTP1FTGnA2nrKu67P2ItN2bNttBrv4
+         oAUkhWMICnLAAHhfstueCoawBX0bz1UTJlKDPpLtU/Q1jXLtI02u1nekmJe2wjVX/wbc
+         00a6QKOM2h7FW0ntHsocR63pUHBLNS/8Z/+n7QFxeVfJS/8jLPJMw0kNBpRnEPQhCsPY
+         MTDA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=Uo4nhhn4ccYLf8haAnQH3w6H3MFou4kEMXYGeM07i8k=;
+        fh=vIpiSaPgDQin/XV7hXXyUkkrjEUWW6lqsk+KTKnHGaw=;
+        b=m+DhryvhTiFeD1mqRllfyTz3jYULX/Y3FcXBDT5svS02Z2C4dcn5rnUwcm3oo+eGHI
+         YLO/YM2wtLSg50Wgxu9Dzl+t1opzgmIXh3vvrjVd3/ocubRCSvSZ4Mcom/mrGZkDZnv4
+         ekq9DFX6qklFHsLx/L85zkkW5g+vmgLQNqgtlRMb1qaovUWFboLVO0jEwqRzeJC80km2
+         x7kU4F4u5R6FDt2SPtqLSy3y17QwtuMse4Ksc9y91t+41uOu27yAFqzuQMDGWwYKqfiq
+         QDuxuA604xraRE/KTuaYvO4CAstWmY0TY6qyGDjzdJST+2zOZnkLzNVrY+f1qJULdhYt
+         J+8w==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1791994906; x=1792599706; darn=vger.kernel.org;
-        h=content-type:cc:to:from:subject:message-id:mime-version:date:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=MWltUAVwzuhWmwawPa9gIDNonJ5+TZ8HT4d8bCNfDmE=;
-        b=rWsiLygnq7J4NM7jE7foeLBGEOFkxLdQ0J0We5L30Jn2P8IbPcsV2HRdT6LEfBbIpT
-         aNCCDNA5gsk1tnuHYQ8SzP032DSQmne45qN49CV9FaQjV6N/iEB270GVMdnD4sjlJRrQ
-         /OQQeKk1zVW9Hy6N145+BPePKigYCrbAJAV3w4xwVSqXPlB1HiyXUmI2FDFPYhQVI3Wq
-         mI9WUywmv5lZItSBfHL7vBeVUL5SofZr1mN0X87RHleGP3PIJS+UK1tQTUCZB0ahwI1L
-         iWyjnaQlz/0XLuJweRumeFPti4KopT2yvxvTv2bu9XFR910IGqUY1n7Mo6vDwULv9+2+
-         Cw5g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791994906; x=1792599706;
-        h=content-type:cc:to:from:subject:message-id:mime-version:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+        d=google.com; s=20251104; t=1791994910; x=1792599710; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=MWltUAVwzuhWmwawPa9gIDNonJ5+TZ8HT4d8bCNfDmE=;
-        b=vqcQ4xkLyYkH4ejvVrKsbwBKGKhutLw1xXwed+3XBR1a5g1K7yo4eKpzh9gEtYh3Ch
-         IxCaFaTrUMP4dqla6PXskgcwNR94JdmN0utmpkzlwZu42i6oaUbBPACNRwapgdQ9qblc
-         AChRq/dnxS5ynzagKMiN5Wo9wef2ZfjopwC6JfouDVDpX+WI0gvvGCVCaVVQXGqOc0eG
-         RCCxA7JY0bT4fyOeHTamVyM9yv1orRvnT3mUtx05n5h5ZgoE0SEZO1W5CJhFtKDbbYJ8
-         NYobz3nXyILY1TMEhoZ95ZUQukqoFGtat+JxBTbJIpQycMnRYK60vtPxSEhuHHdaj7eo
-         I3fQ==
-X-Gm-Message-State: AFq9FYJsCstAtC/mngfVfsnPl5G6574McYRc7tGj1iiJb53QhOe6rknC
-	nNlBE5ium2riZthcRXWrqZkl3PsNB6lroz7CSLj+eRiDclZ41K4a9RmqjTYacGQ5I5bxOtB3WBq
-	JUHoDi1i3gQ==
-X-Received: from qvbl16-n2.prod.google.com ([2002:a0c:e090:0:20b0:91b:64e7:a499])
- (user=jmoroni job=prod-delivery.src-stubby-dispatcher) by 2002:a05:620a:1991:b0:93b:db80:e0cf
- with SMTP id af79cd13be357-93ebd281acbmr2727152785a.60.1791994906140; Wed, 14
- Oct 2026 09:21:46 -0700 (PDT)
-Date: Wed, 14 Oct 2026 16:21:44 +0000
+        bh=Uo4nhhn4ccYLf8haAnQH3w6H3MFou4kEMXYGeM07i8k=;
+        b=bwsZ4mnJzyet4YO7wkRWTZPh9+c001f2dgbNOYir3RES4MT3prvAD3kXdjye6Q1Q/a
+         nhqx6BykGbgDjwtst0yPo1HUTnNw0tTbToVh2VBBh21u7PwfJ8hmyYV6lMepigJm0c8Z
+         k7tQGw3iDw2uJgnSoopA5wEH27ScEYC/hsVeaibwJ/a/t4SGqJIBT5Z95Fk8m07eLIKa
+         qxl2npU7Vn+XaGKwlvUpN+Sh7cA4R8alXn0QK/P6Yeo5sE8S1xLpwfGbdk+RF046JayF
+         nnboXdl19Bxr8kZXW+Y/E3hi0XqQRdIGnpbTg4ut5Eib9pB1VMxx8/JmlQDwvN3XW09Y
+         vbUQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791994910; x=1792599710;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=Uo4nhhn4ccYLf8haAnQH3w6H3MFou4kEMXYGeM07i8k=;
+        b=s4bWRVsErZzsWNTyHtU6HphJ82NGcCZkPm8ov541c1cc/vp7Ib8F7oKuK0HJN2eTvM
+         g+b2kBWzSAA+MZoSw8jZ8T+pAdKVld7uFVc9vjWLnmn2E6+fX6lqmOrtFgVP5LUpMFdi
+         XBj4Q+abUr/w2xZTVmTn+Ewgv12wQGET3RXlTtpr+QlKVC+HWXtTnGVZB4V+4CDP9WFA
+         j0KOCelbid6Fk2VQzyMxeR/AT/UZQPt5GVVSPBOecNjgnfracnrdNhgRBMaXE3gC0RsK
+         e5aT7L9KAzTc2VP8KnIlc6AMAThLMU8ZW/PRAI8P4qhmDAZTCrxJnBbwsmyATh7l2eve
+         oUOg==
+X-Forwarded-Encrypted: i=1; AKwUvBy7D0eVfdS4KtIZDH73d+6db/TSP5O9BDYHo6g5FqS8qWili0AmFYFJUNc4+LKESokT1y/u2FP5eZNA@vger.kernel.org
+X-Gm-Message-State: AFq9FYIhDqklQ8/JR8WqZMLcNLhbq0JOkNHypxYgPrK6MGO4aMjhNSGI
+	AZDLpwV+YKNDocm4t6SH8hwpFvPrV8HVc4FeKaMqdx8stD22REYG8kRsNien8R8ZB12NYvKH7DB
+	LO/4a0/CtcRY9BP81HFOvNq3F3awsAWaZry9UoxD0
+X-Gm-Gg: AYBFou3MYBX68pD/v5yLLWZtezi1vOHhpjgbD6mifDelYQoMmppP7Yfra/fbEW2joVX
+	5PEjPpapK7h1xXPpZtp54BVrhp8lfY5bmVSSpOxSFgtuyMkpiDl1FvsM/bADjRupIZxo/legiQj
+	6djevj9K2JV/hapow1ij/KsAab1V5LH5Mm0UyfmqrM+92YSsg8vlJmxQFXLRPF3GI/8GkFDCi1e
+	Mia242+UeoPDbF8TXlN3o1WbmhvSp61qj4usINwBi/uS88xMeOsD6zhUEHSBDUzHJYpg5JpXgH8
+	wH72yp3vN12siHik6YHm0+lQ3jOO3bnErknnkQpSIdf0YCGZjvwxHmYimADjTgWbb62crs7dTlZ
+	Gh5YIQnyaNw7SvM9zmVGZp3DF
+X-Received: by 2002:a05:6820:4b89:b0:6b3:558f:706c with SMTP id
+ 006d021491bc7-6ef0eec88ddmr12134589eaf.30.1791994909586; Wed, 14 Oct 2026
+ 09:21:49 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-X-Mailer: git-send-email 2.56.0.385.gd3acb90ef8-goog
-Message-ID: <20261014162144.4053279-1-jmoroni@google.com>
-Subject: [PATCH rdma-next v2] RDMA/irdma: Check MR contiguity before PBLE alloc
+MIME-Version: 1.0
+References: <20261010194832.2415477-1-jmoroni@google.com> <20261012185010.GH14213@ziepe.ca>
+ <20261013112211.GM219304@unreal> <CAHYDg1ReKsz_RNB_k3nc+qDu2vjGz+OQfNQhthNzW7TvGMLc6Q@mail.gmail.com>
+ <20261013162947.GM14213@ziepe.ca>
+In-Reply-To: <20261013162947.GM14213@ziepe.ca>
 From: Jacob Moroni <jmoroni@google.com>
-To: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, leon@kernel.org
-Cc: linux-rdma@vger.kernel.org, Jacob Moroni <jmoroni@google.com>
+Date: Wed, 14 Oct 2026 12:21:37 -0400
+X-Gm-Features: AclHuK_XQGy2ssR-E5Ll67lkYRxtAB-OgAINdziVXLimOhu3gN3l4_kKRDNbigw
+Message-ID: <CAHYDg1R4ctNAXR8UB8cBEq=440syrSQS3gmsf9fqwzLqVs7c_A@mail.gmail.com>
+Subject: Re: [PATCH rdma-next] RDMA/irdma: Check MR contiguity before PBLE alloc
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>, tatyana.e.nikolova@intel.com, 
+	linux-rdma@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 
-The original logic would attempt to allocate PBLEs, then would
-check whether the region was contiguous _after_, and if so,
-would free the PBLEs and use a direct mapping instead.
+Yep, it still uses the lower page offset bits from the incoming VA as the page
+offset, similar to a PBLE-backed region, with bounds being properly checked
+as [VA, VA+len).
 
-These unnecessary temporary PBLE allocations can technically
-fail (PBLEs are a finite resource), which can cause an MR
-registration failure even if the region is contiguous and
-should have succeeded.
+I ran a test to confirm (nice to have in general) that start/end are accessible
+while -1/+1 outside fail, regardless of whether the region itself is aligned or
+not.
 
-Fix this by checking whether the region is contiguous before
-allocating any PBLEs. This also provides an opportunity to
-consolidate some of the rereg_mr logic and use the existing
-ib_umem_is_contiguous() helper.
-
-Tested on GEN3 HW with a test program that does an extensive
-sweep of MR size/alignment/hugepage combinations, but most
-importantly, first/last byte reachable and -1/+1 unreachable
-when using contig regions with both aligned and unaligned start
-addresses, plus a kprobe on irdma_get_pble() to ensure we're
-actually hitting the new path.
-
-Ring MRs still have their own logic. That will be addressed next.
-
-Signed-off-by: Jacob Moroni <jmoroni@google.com>
----
-Changes in v2:
-- Skip the ib_umem_find_best_pgsz() call if we already know the
-  region is contiguous (Jason)
-- Move MEM MR page size/PBLE handling into irdma_reg_user_mr_type_mem()
-  and drop the is_contig flag added in v1
-- Drop the now-unused pgaddrmem[0] store in irdma_setup_pbles()
-- Add test description
-
- drivers/infiniband/hw/irdma/verbs.c | 97 +++++++++--------------------
- 1 file changed, 29 insertions(+), 68 deletions(-)
-
-diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-index 71d7ae7baa47..f89c8516c57c 100644
---- a/drivers/infiniband/hw/irdma/verbs.c
-+++ b/drivers/infiniband/hw/irdma/verbs.c
-@@ -2917,42 +2917,6 @@ static bool irdma_check_mem_contiguous(u64 *arr, u32 npages, u32 pg_size)
- 	return true;
- }
- 
--/**
-- * irdma_check_mr_contiguous - check if MR is physically contiguous
-- * @palloc: pbl allocation struct
-- * @pg_size: page size
-- */
--static bool irdma_check_mr_contiguous(struct irdma_pble_alloc *palloc,
--				      u32 pg_size)
--{
--	struct irdma_pble_level2 *lvl2 = &palloc->level2;
--	struct irdma_pble_info *leaf = lvl2->leaf;
--	u64 *arr = NULL;
--	u64 *start_addr = NULL;
--	int i;
--	bool ret;
--
--	if (palloc->level == PBLE_LEVEL_1) {
--		arr = palloc->level1.addr;
--		ret = irdma_check_mem_contiguous(arr, palloc->total_cnt,
--						 pg_size);
--		return ret;
--	}
--
--	start_addr = leaf->addr;
--
--	for (i = 0; i < lvl2->leaf_cnt; i++, leaf++) {
--		arr = leaf->addr;
--		if ((*start_addr + ((u64)i * pg_size * PBLE_PER_PAGE)) != *arr)
--			return false;
--		ret = irdma_check_mem_contiguous(arr, leaf->cnt, pg_size);
--		if (!ret)
--			return false;
--	}
--
--	return true;
--}
--
- /**
-  * irdma_setup_pbles - copy user pg address to pble's
-  * @rf: RDMA PCI function
-@@ -2989,9 +2953,6 @@ static int irdma_setup_pbles(struct irdma_pci_f *rf, struct irdma_mr *iwmr,
- 
- 	irdma_copy_user_pgaddrs(iwmr, pbl, pbl_len, level);
- 
--	if (lvl)
--		iwmr->pgaddrmem[0] = *pbl;
--
- 	return 0;
- }
- 
-@@ -3413,24 +3374,33 @@ static int irdma_reg_user_mr_type_mem(struct irdma_mr *iwmr, int access,
- {
- 	struct irdma_device *iwdev = to_iwdev(iwmr->ibmr.device);
- 	struct irdma_pbl *iwpbl = &iwmr->iwpbl;
-+	struct ib_umem *region = iwmr->region;
- 	u32 stag = 0;
--	u8 lvl;
- 	int err;
- 
--	lvl = iwmr->page_cnt != 1 ? PBLE_LEVEL_1 | PBLE_LEVEL_2 : PBLE_LEVEL_0;
- 	iwmr->access = access;
- 
--	err = irdma_setup_pbles(iwdev->rf, iwmr, lvl);
--	if (err)
--		return err;
--
--	if (lvl) {
--		err = irdma_check_mr_contiguous(&iwpbl->pble_alloc,
-+	if (ib_umem_is_contiguous(region)) {
-+		/* HW needs a valid page size even without PBLEs, so use 4K. It
-+		 * behaves like a PBLE-backed region where the PBA must be page
-+		 * aligned. HW takes the page offset from the lower 12 VA bits.
-+		 */
-+		iwmr->page_size = SZ_4K;
-+		iwmr->pgaddrmem[0] = ALIGN_DOWN(ib_umem_start_dma_addr(region),
- 						iwmr->page_size);
--		if (err) {
--			irdma_free_pble(iwdev->rf->pble_rsrc, &iwpbl->pble_alloc);
--			iwpbl->pbl_allocated = false;
--		}
-+	} else {
-+		iwmr->page_size = ib_umem_find_best_pgsz(region,
-+				iwdev->rf->sc_dev.hw_attrs.page_size_cap,
-+				iwmr->ibmr.iova);
-+		if (unlikely(!iwmr->page_size))
-+			return -EOPNOTSUPP;
-+
-+		iwmr->page_cnt = ib_umem_num_dma_blocks(region,
-+							iwmr->page_size);
-+		err = irdma_setup_pbles(iwdev->rf, iwmr,
-+					PBLE_LEVEL_1 | PBLE_LEVEL_2);
-+		if (err)
-+			return err;
- 	}
- 
- 	if (create_stag) {
-@@ -3466,10 +3436,8 @@ static struct irdma_mr *irdma_alloc_iwmr(struct ib_umem *region,
- 					 struct ib_pd *pd, u64 virt,
- 					 enum irdma_memreg_type reg_type)
- {
--	struct irdma_device *iwdev = to_iwdev(pd->device);
- 	struct irdma_pbl *iwpbl;
- 	struct irdma_mr *iwmr;
--	unsigned long pgsz_bitmap;
- 
- 	iwmr = kzalloc_obj(*iwmr);
- 	if (!iwmr)
-@@ -3483,18 +3451,21 @@ static struct irdma_mr *irdma_alloc_iwmr(struct ib_umem *region,
- 	iwmr->ibmr.device = pd->device;
- 	iwmr->ibmr.iova = virt;
- 	iwmr->type = reg_type;
-+	iwmr->len = region->length;
-+	iwpbl->user_base = virt;
- 
--	pgsz_bitmap = (reg_type == IRDMA_MEMREG_TYPE_MEM) ?
--		iwdev->rf->sc_dev.hw_attrs.page_size_cap : SZ_4K;
-+	/* Page size and count are calculated in irdma_reg_user_mr_type_mem()
-+	 * for MEM type MRs.
-+	 */
-+	if (reg_type == IRDMA_MEMREG_TYPE_MEM)
-+		return iwmr;
- 
--	iwmr->page_size = ib_umem_find_best_pgsz(region, pgsz_bitmap, virt);
-+	iwmr->page_size = ib_umem_find_best_pgsz(region, SZ_4K, virt);
- 	if (unlikely(!iwmr->page_size)) {
- 		kfree(iwmr);
- 		return ERR_PTR(-EOPNOTSUPP);
- 	}
- 
--	iwmr->len = region->length;
--	iwpbl->user_base = virt;
- 	iwmr->page_cnt = ib_umem_num_dma_blocks(region, iwmr->page_size);
- 
- 	return iwmr;
-@@ -3833,7 +3804,6 @@ static int irdma_hwdereg_mr(struct ib_mr *ib_mr)
- static int irdma_rereg_mr_trans(struct irdma_mr *iwmr, u64 start, u64 len,
- 				u64 virt)
- {
--	struct irdma_device *iwdev = to_iwdev(iwmr->ibmr.device);
- 	struct irdma_pbl *iwpbl = &iwmr->iwpbl;
- 	struct ib_pd *pd = iwmr->ibmr.pd;
- 	struct ib_umem *region;
-@@ -3846,17 +3816,8 @@ static int irdma_rereg_mr_trans(struct irdma_mr *iwmr, u64 start, u64 len,
- 	iwmr->region = region;
- 	iwmr->ibmr.iova = virt;
- 	iwmr->ibmr.pd = pd;
--	iwmr->page_size = ib_umem_find_best_pgsz(region,
--				iwdev->rf->sc_dev.hw_attrs.page_size_cap,
--				virt);
--	if (unlikely(!iwmr->page_size)) {
--		err = -EOPNOTSUPP;
--		goto err;
--	}
--
- 	iwmr->len = region->length;
- 	iwpbl->user_base = virt;
--	iwmr->page_cnt = ib_umem_num_dma_blocks(region, iwmr->page_size);
- 
- 	err = irdma_reg_user_mr_type_mem(iwmr, iwmr->access, false);
- 	if (err)
--- 
-2.56.0.385.gd3acb90ef8-goog
-
+Thanks,
+Jake
