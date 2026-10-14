@@ -1,174 +1,134 @@
-Received: from CH1PR05CU001.outbound.protection.outlook.com (mail-northcentralusazon11010030.outbound.protection.outlook.com [52.101.193.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BCD753F6BC;
-	Wed, 14 Oct 2026 14:20:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.193.30
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791987656; cv=fail; b=j0/vBIbU+OYW431Kt8qYBEEynBWEipRcqD+6ld4d+E3HMv+F2cHUBW3DIPjLbwLLnHzfKev5BoRu8D7K0XiHUyx7X6zNjjkSOe4V4gS0+9EqF1+ZIHAuJiZNam3gAnmdjQERXNwh9Tu7BxhyEcz+CkttS6MTVcDJqsjb8Ub9Va4=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791987656; c=relaxed/simple;
-	bh=9NxqqY9q+oDcUfu3y5r35XsBIM9hqGEYkJBTFLOcNVk=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=WXvCim2UpY/UtyjEnHPKwmHQqUvLkbCJL2CK2GI+V/ip3OkWQ596o9/47dD6v5/2ZeIq6d+vxXakToQouOeFnOHSX0mvKYvCAYQ8VwIzkT3Tgrh1cST7/5h28IfCFKHtNey/Y4JCCVnd0YreRk5sBE+d0am3/i8QArZuPrSng7c=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=rNEnGFh0; arc=fail smtp.client-ip=52.101.193.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F06A037207F;
+	Wed, 14 Oct 2026 14:50:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791989418; cv=none; b=eOqd3MOlc+Sex+kJWFgbT6lrHUSGMG2W0jIQ+XRfi+s+UaJXL9/CTeJHM23J/SrArpd6RRb0/sirwqxSYOp03l25Gn0ysqSMV8weqz1ukr8ZbFXf6qxu1Zr+C9m2LbZWfoDHLZdKUZfePbl8OiEtVSaLeULK1bwpNEMsPKyEPSk=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791989418; c=relaxed/simple;
+	bh=1ZGFJL3aWBxdpm2daJRhOsohwWnF9u/jnnIW8uUSFdI=;
+	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
+	 Subject:Content-Type; b=XBIeaKuEJ5ed0tp3tPqnmwHoae2MxjP+LJ1lZqf43Y9y0N9GBiUK5+iapYakOZSR9ol1doqJPyQ8euaSj4xZTIKWibL6+RcDiKQY0DldxoA+mjfXERKbj1h/jW2xyip/xdFk4r2iyLviIf8GF5UhHNCNnkwmM+KDKhniyTMY3xo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BM+UwMfH; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="rNEnGFh0"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Pge8vTacVCXCU5TfIZDENFfEOBfTHnFL3oyD6JAMYk+umXeCavmy9CSK2PEOp11aogJlZXEKE+iqDv2NTSOZfHOiw0gnBg3JaI41tDRnTod0Eyfw8RW6j1wOcG1AvPTFJA00C1NPysXIso8F8IB0JfkfjLCvvoCVGaKGE5mY3f8ddHJAtRZ7HsEOyH1nc4sEUp7PMHSBGRzenQ3m3oP3v9vzzlaE9DBdcKi6ZA0/mzlAeDow02K3nXkpmicw4s4XLRSivrdaJ/dag60x10E6igPDj1SKc7BNvy6hQwa4fVraNAy/KrDE012zKTZTelGu6FvbPT2qpQ+sfdnVlT5a8w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=4w/VMVFQ7eNUqd3GNQhxyb86Bgb0rSQ6ozS2lqGZb8o=;
- b=rUsPHBGdOdzVyOcOlfPaFIIgx3qcxo15bimR0UJadyQIakpqDawgEBuGKgcpp5vRkmSTWpVGacwu30QTYDeKXv0oXNru87sIYU108xaRSjfoE970ubtTFJ/J6UQnM2/jWhoOKJxkqFZzIoFPMMDGJu4YFljV7Aji+atzGwd+dxhi1aXpMKhMCKAugeftCJiPqce+WPiC2qyXC2IghIFND019WXz0gVRmE3xjHkRTXWBtQDlWHW9xTapepMiRwIb9dwnyugg9JO98SxgRZWlZcUK/ScbYTFYFAnHiO73Y6PdSQUCiNjAD/CA+wWjGcIULCs4aKvJhehDPIBocploL/Q==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.160) smtp.rcpttodomain=gmail.com smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=4w/VMVFQ7eNUqd3GNQhxyb86Bgb0rSQ6ozS2lqGZb8o=;
- b=rNEnGFh08gjkPJYJLtwiKc0hvzu1SN2WRDw/z2hEUTbOsaXglwWNZb8rpTbmJ41c4aeqwjKtUp6Kn5GE2JG3akXvfBLSCYjgDtoUEro4gAm1qoFypcDkrvWWFs0JyZfbk+HHztiR+UcOQeFRFlQTy2ktytrBrsyYMW3NJnedasKX46rXzHXeM9KfwmPMKNhmnGIzWDom01vFz0Jqq8UkP1FCe+7HHCXARSCddaVjQhuk89vYyFweRxtyPhNJ2r/1sHfO3ppc6jGSxLxrJqDwEYtWLH4IE2VW1TMrw29tyjfdvg6jLiSnefmNIlhCUgfgTpbzTnqvDQdXUhz2hbdNsQ==
-Received: from BN0PR04CA0019.namprd04.prod.outlook.com (2603:10b6:408:ee::24)
- by SJ0PR12MB6989.namprd12.prod.outlook.com (2603:10b6:a03:448::16) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.451.19; Wed, 14 Oct
- 2026 14:20:48 +0000
-Received: from BL6PEPF0006C3DF.namprd02.prod.outlook.com
- (2603:10b6:408:ee:cafe::25) by BN0PR04CA0019.outlook.office365.com
- (2603:10b6:408:ee::24) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.496.5 via Frontend Transport; Wed, 14
- Oct 2026 14:20:48 +0000
-X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
- is 216.228.117.160) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.160) by
- BL6PEPF0006C3DF.mail.protection.outlook.com (10.167.249.234) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.522.6 via Frontend Transport; Wed, 14 Oct 2026 14:20:48 +0000
-Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
- (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Wed, 14 Oct
- 2026 07:20:21 -0700
-Received: from [10.80.21.140] (10.126.230.37) by rnnvmail201.nvidia.com
- (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Wed, 14 Oct
- 2026 07:20:16 -0700
-Message-ID: <eef39aa1-8e84-4a8c-abf6-81555a38e1e1@nvidia.com>
-Date: Wed, 14 Oct 2026 17:20:08 +0300
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BM+UwMfH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01E491F000C5;
+	Wed, 14 Oct 2026 14:50:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791989414;
+	bh=NdWDzbW7Y26htAfpjZvTCflFdSCpG0s8lhU2ZneTFLQ=;
+	h=Date:From:To:Cc:In-Reply-To:References:Subject;
+	b=BM+UwMfHAZjW9N+hXqGXqJO9+J70Tu+8At5e5U9AabuLJPkoU+OY5Q1tGeuDSRar7
+	 h+ueY9Vo+zchRUUDgnBlJpJjetO+qPXf++oPOSRIyP/PLLyvuOMCgyJOlm++Hbpw60
+	 91hK/nZUCLHOb407EzR1u0TPmbD+57P+JLtsy0JLqNWJLg6hPEMYNaJhx/1+SxKz0d
+	 SO9dytJU49vKpXLjbMQzrDTGL+wUdcHlbtIZVVNCRud1aDPerhS0f2Ud7adqwIcLSQ
+	 +H4U30KC2ow3o0gXS5ee0f1ShRWTDgZpMUZXwUlPNsa0ImzI79zjWNk1pRc+3suPXr
+	 gOVfAi3aygJUg==
+Received: from stl-compute-04.internal (stl-compute-04.internal [10.204.2.64])
+	by mailfauth.stl.internal (Postfix) with ESMTP id 04A4D780043;
+	Wed, 14 Oct 2026 10:50:12 -0400 (EDT)
+Received: from stl-imap-11 ([10.204.2.102])
+  by stl-compute-04.internal (MEProxy); Wed, 14 Oct 2026 10:50:13 -0400
+X-ME-Sender: <xms:pJbParDoKmXnnnpeCXDM-T7ZQy3mvEAFl8leKVWTW8fxLoSHruK5UQ>
+    <xme:pJbPasUGIp5Y-WerYrbOqfCqOomhS8YNkL3QSuUtKHjrt1PtIhP5Tu_WX_moXYsdi
+    sbHexPhmB_BmED0e-qA-2512EZv-PGP1oM7DEoJZYvBXbW1hOGKzMw>
+X-ME-Proxy-Cause: dmFkZTEBp4CSFP+oEygyR/ha7jJPYfJMSPM5LgWWD6WbfqNZUsOvuFcngQ6E2/sdCMTQyy
+    HijyMuq/lh8owh49Uvpdcd1Ra8UygobWNKOnsEZkYTkmkHBveua5QlCVL0sCLNdxkZT+w3
+    DLhzUNIRhU4ZpiQON0x0kMLOeVf1NUWdQo8JyVcvXXYMchFoGUAJI+xNE/ThwwUpa6FP20
+    cODEKLQFrG3geSG9+uwSFuaKXh/2ud2Hqj5zJA8H7nV9YIwFspm4XSoh0NWLuXc9SN7nF+
+    M0GU0dQmTpL8asKz2BQ4XwgO2/Sbpm/VnJLXVHzZvHTjDZHcObiXGKyIKkXuB2XL3tAzYg
+    g5OGTBD8KSmGCXSDu0gnl3UHb3Lp0SpglQkUX+piCkkNEgINFXYTsBjDIeCtd2BdV9QJQ3
+    mTfP+iSHHMJzo+KhWjJukhVQ8api1RFiaA7pywTevfwudi7iFEWHwbF3fD5qNbbxrYH6AU
+    uYTVm5lCHKo9KUELmKH5bJ67yzCta8QTOKdU30qDP+TjTRIjQ+yKitK4LMuJrfSdbT2I9F
+    XD2Zr3H2f1O2VvIbU3//Z6dHBXNQw8Z3KtlE1yB8wGuWJDbUxnRMiVGCy3EYOa2136W6Bm
+    7OdRD5lAU7SoYDdBdbK4z9I3J6kegvsNGaHYnREsjFZCq7Mj6bavvPFXsDFw
+X-ME-Proxy: <xmx:pJbPansXMvJtbNWVaV-mNd-qlczn-gGt_SH9XPSu00VX_1SCUwMIlg>
+    <xmx:pJbPavaCY2nnNd54zW53nb1b3n4NiW-6Jz-Ae3Sgp4IwUoSeeyOUxQ>
+    <xmx:pJbPahNykOFC4DtN7tXyMI1gDyWwjUYT8QfRvRRh_Su1dkRJTn2MGA>
+    <xmx:pJbPakut9LU5_6VoGmrV77P8-_f8MaRAa1YriFmU-18E2Z6zPqispA>
+    <xmx:pJbPapJayEVieuXZFLVJRdxfrNSvTiCPGOlJqmlWP5cgxmEZki4NOH5n>
+Feedback-ID: i927946fb:Fastmail
+Received: by mailuser.stl.internal (Postfix, from userid 501)
+	id 90E9119C0067; Wed, 14 Oct 2026 10:50:12 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next] net/mlx5: Add reset_prepare and reset_done
- callbacks
-To: Narcisa Vasile <narcisav.kernel@gmail.com>, Tariq Toukan
-	<tariqt@nvidia.com>
-CC: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
-	<davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski
-	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Akiva Goldberger <agoldberger@nvidia.com>, Gal Pressman <gal@nvidia.com>,
-	Leon Romanovsky <leon@kernel.org>, open list <linux-kernel@vger.kernel.org>,
-	<linux-rdma@vger.kernel.org>, Mark Bloch <mbloch@nvidia.com>, Saeed Mahameed
-	<saeedm@nvidia.com>
-References: <20261011094809.790798-1-tariqt@nvidia.com>
- <as8jYneJ32Hl++uj@gmail.com>
-Content-Language: en-US
-From: Moshe Shemesh <moshe@nvidia.com>
-In-Reply-To: <as8jYneJ32Hl++uj@gmail.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Date: Wed, 14 Oct 2026 17:49:53 +0300
+From: "Leon Romanovsky" <leon@kernel.org>
+To: "Bjorn Helgaas" <helgaas@kernel.org>
+Cc: "Bjorn Helgaas" <bhelgaas@google.com>,
+ "Logan Gunthorpe" <logang@deltatee.com>,
+ "Jason Gunthorpe" <jgg@ziepe.ca>, "Joerg Roedel" <joro@8bytes.org>,
+ "Will Deacon" <will@kernel.org>, "Robin Murphy" <robin.murphy@arm.com>,
+ =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+ =?UTF-8?Q?Thomas_Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
+ linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-doc@vger.kernel.org, iommu@lists.linux.dev,
+ "Tushar Dave" <tdave@nvidia.com>, linux-media@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+ linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
+ "Chaitanya Kulkarni" <kch@nvidia.com>,
+ "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+ "Jens Axboe" <axboe@kernel.dk>, "Alex Williamson" <alex@shazbot.org>,
+ "Ankit Agrawal" <ankita@nvidia.com>, "Jonathan Corbet" <corbet@lwn.net>,
+ "Shuah Khan" <skhan@linuxfoundation.org>,
+ "Randy Dunlap" <rdunlap@infradead.org>,
+ "Sumit Semwal" <sumit.semwal@linaro.org>
+Message-Id: <eb8e0edd-4c4d-402e-9875-bdbc6d191edf@app.fastmail.com>
+In-Reply-To: <20261014132353.GA1625948@bhelgaas>
+References: <20261014132353.GA1625948@bhelgaas>
+Subject: Re: [PATCH v11 00/19] PCI/P2PDMA: Route peer-to-peer DMA by TLP class
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: rnnvmail203.nvidia.com (10.129.68.9) To
- rnnvmail201.nvidia.com (10.129.68.8)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL6PEPF0006C3DF:EE_|SJ0PR12MB6989:EE_
-X-MS-Office365-Filtering-Correlation-Id: f0a5e266-03f2-4c74-fdb5-08df29fe5808
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|376014|36860700016|23010399003|7416014|82310400026|56012099006|10067099003|11063799006|6133799003|4143699003|18002099003|22082099003|3023799007;
-X-Microsoft-Antispam-Message-Info:
-	VFBDwDURVzAgL8eJzfFA3IOgv6Mx8kYbqdRIwxexM5kCvyPYWuUJZnJaGSiTWpUh0ZLITyF7yw5LvorcE4IA4ywOFVBOCAh/DDy5txwH8kQjvv30LVBsbalwmQK6rhegR3fdDKgANY1RPbKUYQr9AeIwGzwzSQTrGRYet1Dp+Sp9VUbzqjbH1lj4M8JQoPVZXhTVjftM/XHkT2wLv6kQCbIzvAVfIEhLANY98U4Xg2uLtOuxQkkWNEihz/2ASwEutCJKYs1gW0QYrgFkHLLEjXy6hMwdoROfPucYesB69Qem7kXIYQ+z8mG+ztt9PhbHm3cUwi3N4JfFevLl0Wv3d0uTDvJB6XAMUWWZim6NYGR3tJfjBoq3MwFWWhabB877hEYCcqUwecLyZmtdc6BIR+1VLmxoNp8rqd1+VixeRfziY5kfREBi0Rhq77zzmqNnmgbqoSGdGdf1i1SrOPSVFNEVCBTBkAw9dQn35QfMFXS7WJfnHRqz6/14gGi6Cn9TyW8aphtpngNgvgS8m/hrXnuIP0MsbD8dN236PPyiw/5w/Wd/+q1ZCwX18L3iCEA4o56mKraG/PAYLsiqY8sKyCR889cdDvUdCvdxlST7ObtyKXYnWTV/dMVH6OPyAyA+ULL6Yd9eltqgkHj4Z7fLqE5xV4c0o9mjjuXCTRf3Ig31obV5y6LU2KoWuLNFnlKE0rUhD3/NQ+IlDGo2vSs1Gw==
-X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(376014)(36860700016)(23010399003)(7416014)(82310400026)(56012099006)(10067099003)(11063799006)(6133799003)(4143699003)(18002099003)(22082099003)(3023799007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	/oG8aJCvyPXXg40DkEeB0oPBv02i9R/ZU+lt4Kcm9sqeEVT7cXfFQKUCGp10sYMqmphrtTt58455F5MnaXDGnR8hb0K327SxxBJossHQn+KmecpcHl/UhpE9xTvyMQ0htssMPL6Si+3azbXwByt3c/biJGXH+iFlgYTPKOeUdCNSjOy9ki8CJviOvbKInGX4znCtl3OpZMu0FL/W+0Sawgp5IFwOV5Uv4TYlcLc92cGmtEdwCcb440uBTGA0mIVBenEj03w87QmSHpCqKWci+rRCobxM2Bsu9oomtsRUa3Z/rMAoiEqm/5wQv50BdklF4/3yb8SNf5r3VmggiBc1TtvlqbdpD8zd/W/YIR+TcvN4prFpOLEcuIJA00HEbxM+tUOq/ej0eSZJ2zOX04lQRRV2dRVkhpg+vbGij3oSv11eWQ/i/QUggpUqn35vIfy6
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Oct 2026 14:20:48.3453
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: f0a5e266-03f2-4c74-fdb5-08df29fe5808
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	BL6PEPF0006C3DF.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR12MB6989
 
 
 
-On 10/14/2026 9:38 AM, Narcisa Vasile wrote:
-> On Sun, Oct 11, 2026 at 12:48:09PM +0300, Tariq Toukan wrote:
->> From: Akiva Goldberger <agoldberger@nvidia.com>
->>
->> Currently, the mlx5_core driver registers only the error_detected,
->> slot_reset and resume PCI error handlers. Add the reset_prepare and
->> reset_done callbacks, which are triggered by the PCI core before and
->> after a PCI reset, respectively. These callbacks let mlx5 quiesce and
->> restore device resources and commands around a PCI reset, so the driver
->> no longer relies on the reset happening while the device is otherwise
->> idle.
->>
->> Additionally, add a device flag to indicate when a PCI reset is in
->> progress to serialize PCI reset flows with other reset flows, namely FW
->> reset. This flag also indicates to the reset_prepare and reset_done
->> callbacks when to do a full unload/reload of the driver. When the
->> callbacks are triggered by the hot-reset FW reset method, they leave the
->> teardown and reload to the FW reset.
->>
->> Signed-off-by: Akiva Goldberger <agoldberger@nvidia.com>
->> Reviewed-by: Moshe Shemesh <moshe@nvidia.com>
->> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
->> ---
->>
->> +static void mlx5_pci_reset_prepare(struct pci_dev *pdev)
->> +{
->> +     mlx5_drain_health_wq(dev);
->> +     mlx5_unload_one(dev, false);
->> +     mlx5_pci_disable_device(dev);
-> This disables bus-mastering, after which pci_save_state snapshots it in
-> the disabled state. reset_done() re-enables it but the snapshot remains
-> stale.
-> 
+On Wed, Oct 14, 2026, at 16:23, Bjorn Helgaas wrote:
+> On Wed, Oct 14, 2026 at 09:53:47AM +0300, Leon Romanovsky wrote:
+>> On Tue, Oct 13, 2026 at 05:25:08PM +0300, Leon Romanovsky wrote:
+>> > PCI P2PDMA applies Request and Completion Redirect throughout both paths.
+>> > This misclassifies asymmetric and nested switches, and reports one answer
+>> > for every kind of TLP.
+>> > 
+>> > Three ACS controls act on TLP attributes the Requester chooses rather
+>> > than on the topology: Translation Blocking and Direct Translated P2P act on
+>> > a Request's Address Type, and Completion Redirect skips Completions carrying
+>> > Relaxed Ordering.
+>> > 
+>> > Evaluate each direction at the path divergence, decide every class from the
+>> > one walk, and treat a client with ATS enabled as translating unless its
+>> > driver declares per-mapping ATS.
+>> > 
+>> > This completes the P2PDMA side; dma-buf and mlx5 follow separately.
+>> > 
+>> > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+>> > ---
+>> > Changes in v11:
+>> 
+>> 
+>> Bjorn,
+>> 
+>> Could you please save me from the AI-bot attack? Every rebase seems to
+>> uncover another bizarre pre-existing issue. It never ends.
+>
+> Can you elaborate?  I'm not sure what you'd like me to do here.  I
+> don't control the Sashiko reviews, and I thought Sashiko was recently
+> changed to put pre-existing issues in a database but not in the email
+> responses.
 
-Good point, will send v2.
-Thanks.
+AI reviews are not deterministic and every resubmission gives us slightly different result, which is in this phase of submission is  full of hallucinated flows not applicable to the upstream.
 
-> If a FW error later triggers the sw recovery through mlx5_pci_slot_reset(),
-> the stale snapshot is re-applied with pci_restore_state().
-> Would this disable bus mastering again and block the driver recovery?
-> Should pci_set_master(pdev); and pci_restore_state(pdev); be reordered
-> in mlx5_pci_slot_reset()?
->> +}
->> +
->> +static void mlx5_pci_reset_done(struct pci_dev *pdev)
->> +{
->> +     err = mlx5_pci_enable_device(dev);
->> +     if (err) {
->> +             mlx5_core_err(dev, "%s: mlx5_pci_enable_device failed, err = %d\n",
->> +                           __func__, err);
-> nit: mlx5_core_err already prints __func__
->> +             goto clear_pci_reset_flag;
->> +     }
+In addition to upstream Sashiko, i run everything through local one with slightly better models which hallucinating even more.
 
+I would ask you to merge the series so it gets real exposure in addition to my kunit and specific hw setup.
+
+Thanks 
+
+>
+> Bjorn
