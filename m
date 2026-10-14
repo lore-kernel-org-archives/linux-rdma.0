@@ -1,183 +1,109 @@
-Received: from mail-pj2-f8.google.com (mail-pj2-f8.google.com [74.125.227.136])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AD01486420
-	for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 22:39:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.136
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4C0F4C77C6
+	for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 22:41:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792017598; cv=none; b=rRfL5CyzIl1T0d15TEmtPu268P0dsdQJ9qXiDjTuZxIT1nD9poW9SyfT5uwLy0KNyxHsEOzqbWCFadoW/eDVWTqTj2LxZ5Lp9dzLJNfkrVlxNCTru2eCEndB60O/9MAJZAh4FmolyXGYcsg7gK2Mxr4vNNOe4nj1kgd9Yj10LZ0=
+	t=1792017702; cv=none; b=ZUcadDmsQZq2t6rlhy1d4vchD0L9nX4RoKRvSC1Z15fWrnqXM3sikBiatXK1lUTGDFg+v6SSMU0beN44paFr3Z+IEY8Y8YC7Bs3ejF7CDGPTt0ljRBDv1n3sDLM8s+g5UhmCNncxW7aH5A+Sv3G8v/0DFJm3mZytLPVaZhWu+pc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792017598; c=relaxed/simple;
-	bh=F0/PSnK0UYXRQwLpNd8hP6ZKOte9su8aiS8d81Stb/A=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=KqVONtdZQQZAnsbHVJ662WyhfxEKU/GeATJTa8iUIwnkrPOLRcYkKvvqb2cGZ+QVbcfvKx8VMgvegRJyQC+7CadG+L8PJVhFMC+C+KIrTFF5Bx0E/XVJ0IAJZMplLeICigay3g5HqoTJVTbmGHGDjbS+NF5+5PrDNZqPBqidp3U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NkhdQU4B; arc=none smtp.client-ip=74.125.227.136
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1792017702; c=relaxed/simple;
+	bh=PJmCmns8krevdW2wcU4+edcGsxxMHIQoHW3GAFaiqIs=;
+	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
+	 Date; b=l8q2fGzCBRH6rib7dKeHZ97l8Ig8mH+Xq5QOXpc6XKrxa6FJOKh8u4nwf9mXGsO7NDn5MW6ruAZVQ485G/MO5AI6ziSnulG75M/4pCASmtTHV9JSyNUMxqDtY7dV1glB9EdXVso7KwhZ4BKtSKXv5QcAd3tKQt6GkP31NBcx9Lg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ei7KfVkK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NkhdQU4B"
-Received: by mail-pj2-f8.google.com with SMTP id d9443c01a7336-2e93d9c7973so1906315ad.1
-        for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 15:39:56 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792017596; x=1792622396; darn=vger.kernel.org;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :content-type:mime-version:references:message-id:subject:cc:to:from
-         :date:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=8UyEnW2lOZvazx37QD4Yu1Cl+1Ebx+89Hh4Lc5xhOSk=;
-        b=NkhdQU4BSUgrd2KnOU1fSeIT0KDZl28mboXqjG1uBLY1r1/+3yH48RMQtFwfO3ccOu
-         kj3/AqdjT5QjGvsRjfIbBomr8UxWGwGz1NA6TTeyYwvaXZ5gKS4TIS6/Ww793+AEYSZ/
-         YFKQ6a5nHBfZJNJsbyHDOWm6xRkUkMQk4nS/mGqf/qvzS2oFKnEH9lHtzEqoOv5emqVb
-         5pOP98lBwbxUcRZqjr1Bsxw9xiCn4ce5nP0OCv2QQRrtXgu32aEiMV0jlCuYfG+YTddN
-         arVRRi1wBLb5/4CcJhyIs2pHBu5S8vGcxrigYhpr2IygHIo3B/Sw2AdrXIaAGFg27kbh
-         QYgA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792017596; x=1792622396;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :content-type:mime-version:references:message-id:subject:cc:to:from
-         :date:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=8UyEnW2lOZvazx37QD4Yu1Cl+1Ebx+89Hh4Lc5xhOSk=;
-        b=ltOEdOmNoIKnS9aAHQjP1JI0qW5wxfFinke++l6dK2dfYtlORDnrI79e3MqWYGEmvO
-         YxaghSNw5BWd580djg2xdL7NFL1uLWnGr7OdMTsIuSqts9ESJEafy/ep8zYurx90f9ZK
-         eAZZC7oh2aqOubX5wW7nSEpE9Yd89lquViogO6Pd1yDVoBL2GZmvRUgAT28g1DZSMS5F
-         bXqssxOr9nYs0FAk8v3xylRJXDnNAdrvj6aiiu98KnzEyNxSnXxwi7aaV5oodJlkb9Ci
-         aGC32E5x9SVgp/waxQunv18goDi4+mpQB0DcxTvozBsdJSbFIGRpaxkzpwoXY5qPuj+E
-         uLlw==
-X-Forwarded-Encrypted: i=1; AKwUvBy+o6nbXZ74VqACfJ04um5ETd5mnigpbzDCxfh5LDEGPKQ+btFHxWz+UOvwR0cAVWGOKCdxAh/ONXpf@vger.kernel.org
-X-Gm-Message-State: AFq9FYJTKSbPKyThVOIz7MLAFp5ZbGA4gDm4ucyYWitS+F/+8AUQXJQW
-	t1vP2ZpZDQZ8nBB5DA1uCfgpF0PumPx3LgPCiW3R/fYqqQA0w5qN4BnP
-X-Gm-Gg: AYBFou3lGpfNAFOE8HBipoeaMUjhuJMtnT1mMe+t5wTe2MzZ7pYpgAgqsas2AkR53HH
-	rTHuhLDc5IBi46SCR2JMPG+IF/o7rSbAbQD4vQKiHvD/cbkxZMWRU8+T4Uh6K2X45H1qdfMNAqn
-	rtwWUknHz/VMQFm/zZqWmu/z3fL06qyZMWmFXZQxKWCp1ESOHqtmMhE1697BGGh2cmc7Bg/mdPe
-	8xHZ0CZmkPbuV8QT9h4tsXY3BIwxBfwz0Xkf0mW+rdajZjaJ+MV4DRsmYL2xDxlbaRRxo6XWwf4
-	7p+JBmzKr1vR9DbFw3SAaSCw531KfLHojT+ihI8V06iCfA6fdBmHgECpErF/XPXKwl8tPilJqEi
-	F/YPUM/X4bCOCZlEgmjNptlPHEPSk0GOwzxmEwnrYVSyecrFBudSvheSo5cBvCU/Bd2mhsodue2
-	G9dgcWSst1rS/BHhy9dEcjEAr7yUT0FmdRTKftDhST2CeXiJH1eu+OOOnW5+Qxzr6R
-X-Received: by 2002:a17:903:1b0c:b0:2e9:3dd0:c8d with SMTP id d9443c01a7336-2e93dd01892mr28961315ad.14.1792017595732;
-        Wed, 14 Oct 2026 15:39:55 -0700 (PDT)
-Received: from localhost ([2a03:2880:2ff:58::])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2e8483c3dfcsm72333795ad.24.2026.10.14.15.39.54
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 14 Oct 2026 15:39:55 -0700 (PDT)
-Date: Wed, 14 Oct 2026 15:39:47 -0700
-From: Stanislav Fomichev <sdf.kernel@gmail.com>
-To: Mina Almasry <almasrymina@google.com>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-rdma@vger.kernel.org, bpf@vger.kernel.org, Ayush Sawal <ayush.sawal@chelsio.com>, 
-	Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, 
-	Paolo Abeni <pabeni@redhat.com>, Tariq Toukan <tariqt@nvidia.com>, 
-	Simon Horman <horms@kernel.org>, Steffen Klassert <steffen.klassert@secunet.com>, 
-	Herbert Xu <herbert@gondor.apana.org.au>, Neal Cardwell <ncardwell@google.com>, 
-	Kuniyuki Iwashima <kuniyu@google.com>, John Fastabend <john.fastabend@gmail.com>, 
-	Sabrina Dubroca <sd@queasysnail.net>, Eric Biggers <ebiggers@kernel.org>, Kees Cook <kees@kernel.org>, 
-	Aleksandr Loktionov <aleksandr.loktionov@intel.com>, Petr Machata <petrm@nvidia.com>, 
-	Uwe =?utf-8?Q?Kleine-K=C3=B6nig_=28The_Capable_Hub=29?= <u.kleine-koenig@baylibre.com>, Jakub Raczynski <j.raczynski@samsung.com>, 
-	Wang Zhan <wang.zhan@smartx.com>, Willem de Bruijn <willemb@google.com>
-Subject: Re: [PATCH net-next v3 3/6] net: skbuff: replace skb_page_unref()
- and __skb_frag_unref() with skb_netmem_unref()
-Message-ID: <atAEVu_Hife2dWUz@devvm7509.cco0.facebook.com>
-References: <20261014173945.373295-1-almasrymina@google.com>
- <20261014173945.373295-4-almasrymina@google.com>
- <as_yg4hCCfpkukZB@devvm7509.cco0.facebook.com>
- <CAHS8izPDAjfRFCM2LrC7tzVQRkGCcn6zsghEvHJ9FJ1ET9odYg@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ei7KfVkK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47A6D1F000C5;
+	Wed, 14 Oct 2026 22:41:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792017700;
+	bh=qobFofQ+rJZ1mRAfJSKthcYr10jATy2ZYjeefkVl7Dk=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=ei7KfVkKVyOiez92DGuEGb+VswVmRIxGH2yPQn+O+UQUjF445nX7KozqzuXGzsuLp
+	 ucRdG1gYRNrge+YkqR4pUuTRdcTORo+UYAMut5harE9fk+aXw6xuEVBiSguevbCdBs
+	 aGbDvb+VEzhHzIcqLBw+2BIW0Hbcp3lUy0h2DcuPmIGQakmDYywxxj50jIUoIfAI59
+	 T4lDg/HrjfLByOduNCz4UhVE/w8dPP00wsszT69R9U6hP5QjdI3iSB7tcpv1v9TiJg
+	 Y6qOM9TrFoIuUelzAnklbPC3KZIAaTQT30mWYD/OFVzYREyxXNbY/dGOAR4xOhnsaO
+	 lbx2/Alc9MJGg==
+Message-ID: <sashiko-outbox-171988@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH rdma-next 10/13] RDMA/core: queue pair attributes for
+ unconnected transports
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Eric Davis" <eric.davis@broadcom.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261014-uet-ib-core-v1-10-a0e626117113@broadcom.com>
+References: <20261014-uet-ib-core-v1-0-a0e626117113@broadcom.com>
+ <20261014-uet-ib-core-v1-10-a0e626117113@broadcom.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Wed, 14 Oct 2026 22:41:39 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAHS8izPDAjfRFCM2LrC7tzVQRkGCcn6zsghEvHJ9FJ1ET9odYg@mail.gmail.com>
 
-On 10/14, Mina Almasry wrote:
-> On Wed, Oct 14, 2026 at 2:25 PM Stanislav Fomichev <sdf.kernel@gmail.com> wrote:
-> >
-> > On 10/14, Mina Almasry wrote:
-> > > Unreferencing a page_pool fragment with recycle=false decrements the
-> > > non-pp backing refcount instead of pp_ref_count, underflowing the page
-> > > refcount when the fragment was owned via page_pool (as on mlx4's RX
-> > > error path). Having both skb_page_unref() and __skb_frag_unref(frag,
-> > > recycle) made it easy for callers to pass hardcoded recycle=false on
-> > > SKB-owned fragments.
-> > >
-> > > Replace skb_page_unref() and __skb_frag_unref() with
-> > > skb_netmem_unref(netmem, recycle), which dispatches to
-> > > napi_pp_put_page() when recycle is true and put_netmem() otherwise:
-> > >
-> > > - Use skb_frag_unref(skb, ...) on SKB-owned fragments in mlx4, sky2,
-> > >   tls_strp, and skb_shift() so unrefs always match skb->pp_recycle.
-> > > - Use put_netmem() directly in tls_device's destroy_record(), which
-> > >   releases raw non-pp page references outside an SKB.
-> > >
-> > > Found by code inspection and confirmed with the KUnit tests added later
-> > > in this series; not observed in production. The mlx4, sky2, and TLS
-> > > call-site changes are compile-tested only.
-> > >
-> > > Assisted-by: LLM
-> > > Signed-off-by: Mina Almasry <almasrymina@google.com>
-> > > ---
-> > > v2:
-> > > - Note how the issue was found and how the change was tested.
-> > > - Link to v1: https://lore.kernel.org/netdev/20261010083935.3274178-4-almasrymina@google.com/
-> > > ---
-> > >  drivers/net/ethernet/marvell/sky2.c        |  2 +-
-> > >  drivers/net/ethernet/mellanox/mlx4/en_rx.c |  2 +-
-> > >  include/linux/skbuff_ref.h                 | 34 +++++++++++-----------
-> > >  net/core/skbuff.c                          |  7 +++--
-> > >  net/ipv4/esp4.c                            |  4 +--
-> > >  net/ipv6/esp6.c                            |  4 +--
-> > >  net/tls/tls_device.c                       |  2 +-
-> > >  net/tls/tls_strp.c                         |  2 +-
-> > >  8 files changed, 29 insertions(+), 28 deletions(-)
-> > >
-> > > diff --git a/drivers/net/ethernet/marvell/sky2.c b/drivers/net/ethernet/marvell/sky2.c
-> > > index 30facdece3e29..1d42a82db8f2b 100644
-> >
-> > [..]
-> >
-> > > --- a/drivers/net/ethernet/marvell/sky2.c
-> > > +++ b/drivers/net/ethernet/marvell/sky2.c
-> > > @@ -2501,7 +2501,7 @@ static void skb_put_frags(struct sk_buff *skb, unsigned int hdr_space,
-> > >
-> > >               if (length == 0) {
-> > >                       /* don't need this page */
-> > > -                     __skb_frag_unref(frag, false);
-> > > +                     skb_frag_unref(skb, i);
-> > >                       --skb_shinfo(skb)->nr_frags;
-> > >               } else {
-> > >                       size = min(length, (unsigned) PAGE_SIZE);
-> > > diff --git a/drivers/net/ethernet/mellanox/mlx4/en_rx.c b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
-> > > index 96f97fa0f5489..fe18606c2ab55 100644
-> > > --- a/drivers/net/ethernet/mellanox/mlx4/en_rx.c
-> > > +++ b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
-> > > @@ -497,7 +497,7 @@ static int mlx4_en_complete_rx_desc(struct mlx4_en_priv *priv,
-> > >  fail:
-> > >       while (nr > 0) {
-> > >               nr--;
-> > > -             __skb_frag_unref(skb_shinfo(skb)->frags + nr, false);
-> > > +             skb_frag_unref(skb, nr);
-> > >       }
-> > >       return 0;
-> > >  }
-> >
-> > These do not support qops and don't advertise devmem tx, so they are not
-> > going to deal with netmems anytime soon, why touch these?
-> >
-> 
-> They're still using page-backed netmems that have 2 refcounts, and
-> frag ref/unref needs to pick the right one. Before they were
-> hardcoding false for the pp-recycle bit, so if a skb->pp_recycle==true
-> here for any reason, this code would hit a ref imbalance. Now after
-> this series both skb_frag_ref and skb_frag_unref do the right thing by
-> checking skb->pp_recycle.
-> 
-> This has nothing to do with net-iovs or devmem.
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+s) to consider:
+- [Medium] RDMA: missing IB_QPT_RU state machine validation in qp_state_tab=
+le
+--
 
-Ack, I was a bit confused because I was assuming that these are not
-using pp at all, but looks like mlx4 does :-/ And I see you drop
-__skb_frag_unref so these have to be converted anyway...
-And I guess the same for __skb_frag_unref below.. Let me go through the
-rest of the patches and see if anything else catches my eye, thanks!
+commit e32578d06dac38500b6cb1196755de6b03c64308
+Author: Eric Davis <eric.davis@broadcom.com>
+Subject: RDMA/core: queue pair attributes for unconnected transports
+
+This commit adds creation attributes for queue pairs on unconnected transpo=
+rts.
+It introduces job keys to authorize actions, initiator identities, and
+semantics checks for ordering guarantees.
+
+> diff --git a/drivers/infiniband/core/uverbs_std_types_qp.c b/drivers/infi=
+niband/core/uverbs_std_types_qp.c
+> index c6225156fe30e..47ca994f9ac96 100644
+> --- a/drivers/infiniband/core/uverbs_std_types_qp.c
+> +++ b/drivers/infiniband/core/uverbs_std_types_qp.c
+[ ... ]
+> @@ -197,6 +331,7 @@ static int UVERBS_HANDLER(UVERBS_METHOD_QP_CREATE)(
+>  	case IB_UVERBS_QPT_UC:
+>  	case IB_UVERBS_QPT_UD:
+>  	case IB_UVERBS_QPT_XRC_INI:
+> +	case IB_UVERBS_QPT_RU:
+
+[Severity: Medium]
+Will this newly added transport fail state machine validation during creati=
+on?
+
+When UVERBS_METHOD_QP_CREATE() creates an IB_QPT_RU QP, the core immediately
+forces a transition from IB_QPS_RESET to IB_QPS_RTS via
+ib_modify_qp_with_udata():
+
+drivers/infiniband/core/uverbs_std_types_qp.c:
+UVERBS_HANDLER(UVERBS_METHOD_QP_CREATE)() {
+...
+	if (attr.qp_type =3D=3D IB_QPT_RU) {
+		qp_attr.qp_state =3D IB_QPS_RTS;
+		ret =3D ib_modify_qp_with_udata(qp, &qp_attr,
+					      qp_attr_mask | IB_QP_STATE,
+					      uverbs_get_cleared_udata(attrs));
+...
+}
+
+However, IB_QPT_RU appears to be missing from the qp_state_table in
+drivers/infiniband/core/verbs.c.
+
+When a driver invokes ib_modify_qp_is_ok(), the missing table entries mean
+the req_param and opt_param default to 0, and the transition is not marked
+as valid. Doesn't this cause ib_modify_qp_is_ok() to unconditionally return
+false and reject the QP modification for any driver attempting to support
+this new transport?
+
+>  	case IB_UVERBS_QPT_DRIVER:
+>  		if (uverbs_attr_is_valid(attrs,
+>  					 UVERBS_ATTR_CREATE_QP_XRCD_HANDLE) ||
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261014-uet-ib-cor=
+e-v1-0-a0e626117113@broadcom.com?part=3D10
