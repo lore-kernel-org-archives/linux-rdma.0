@@ -1,108 +1,166 @@
-Received: from mail-oo1-f53.google.com (mail-oo1-f53.google.com [209.85.161.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 752CE3DB63A
-	for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 16:21:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.161.53
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791994913; cv=pass; b=B+bAbLB6r9SbdAaZFWWRbkHHZEiuIXlYq3NsCqaxHFWtd+0tNhfjxV0Le90Eg7uDrHj8ASp98nrvBWxnxJ8jNYLIAPh2XEm2Pdx8/il8fQsP5u09WouODLLIMvvUQ39qMWjao9svsjhO0bENYHcntZQZm+hSApBuGgojDcp4M98=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791994913; c=relaxed/simple;
-	bh=Uo4nhhn4ccYLf8haAnQH3w6H3MFou4kEMXYGeM07i8k=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=OgVguhFPexuK0ZZivhA+xWYw835nNICJHZNkDbX+CnPXdkR/FoJVggVzbGpW6p6ag9UUyd9sSx0keJjbVGYN/KuZ5V+CYAj5fy4by5g8irK1bmkOEtrWsXOv0v84tJ2StxFTqLOG4LdGEh1Yo92uXh6K5wRRs2V4Eutkdy9l9CQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=bwsZ4mnJ; arc=pass smtp.client-ip=209.85.161.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5ECAD4E80DF
+	for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 16:39:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791995977; cv=none; b=EhKevx4U21xwscxX7k5mn2YXdeJ05ggNslDRpwXqzbYSYM7p7Bhz+mPKMqkx9sXX8jodfTmZhzRXJ/l/et6ctiJQZfw+87ghZFUTbDTYt8ZGu0CyVij6tWreuJPxhNwuFzQtmr95C/P6a23VHXeFLygy40/aPKcv20FmqI0EiD8=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791995977; c=relaxed/simple;
+	bh=FpreTvCblzxHt+JtO/O43FEKGeEexXJJT3eJqYx61Po=;
+	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
+	 Date; b=JhtgGKvyIgMetXI/Dotce4/qb4601ubs9bJgJ62v21ENEY08YqSgjimu6DbakG8DPSJHPvsUE6Xy3K9fK7hK7zvgkUnxg5XV+ONNFzHBgbWkETiDznmMLylRe2VA6VHG1X2D7sHKmBpOz4gupQHnjWaLYa7ifVLK63B1qsAf+Lc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ny+SKQ6c; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="bwsZ4mnJ"
-Received: by mail-oo1-f53.google.com with SMTP id 006d021491bc7-6cfed5dd083so837148eaf.1
-        for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 09:21:51 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791994910; cv=none;
-        d=google.com; s=arc-20260327;
-        b=mSmQOd7GpxjgnuzV5s2EputgZexd/Mvkz0WoivCly9e8T92/Qqmojmp2VOLcoVccZN
-         snNoPQG3W2J1WNct9Z3NC2/PXN144MX/hCBMke04RgnhGOK/Ld8N4pcTuCRRinN3gGtI
-         /Kty29IcNkcSJCyS4E2Chjz1qUiaARU9t8GJvQZTP1FTGnA2nrKu67P2ItN2bNttBrv4
-         oAUkhWMICnLAAHhfstueCoawBX0bz1UTJlKDPpLtU/Q1jXLtI02u1nekmJe2wjVX/wbc
-         00a6QKOM2h7FW0ntHsocR63pUHBLNS/8Z/+n7QFxeVfJS/8jLPJMw0kNBpRnEPQhCsPY
-         MTDA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=Uo4nhhn4ccYLf8haAnQH3w6H3MFou4kEMXYGeM07i8k=;
-        fh=vIpiSaPgDQin/XV7hXXyUkkrjEUWW6lqsk+KTKnHGaw=;
-        b=m+DhryvhTiFeD1mqRllfyTz3jYULX/Y3FcXBDT5svS02Z2C4dcn5rnUwcm3oo+eGHI
-         YLO/YM2wtLSg50Wgxu9Dzl+t1opzgmIXh3vvrjVd3/ocubRCSvSZ4Mcom/mrGZkDZnv4
-         ekq9DFX6qklFHsLx/L85zkkW5g+vmgLQNqgtlRMb1qaovUWFboLVO0jEwqRzeJC80km2
-         x7kU4F4u5R6FDt2SPtqLSy3y17QwtuMse4Ksc9y91t+41uOu27yAFqzuQMDGWwYKqfiq
-         QDuxuA604xraRE/KTuaYvO4CAstWmY0TY6qyGDjzdJST+2zOZnkLzNVrY+f1qJULdhYt
-         J+8w==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1791994910; x=1792599710; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=Uo4nhhn4ccYLf8haAnQH3w6H3MFou4kEMXYGeM07i8k=;
-        b=bwsZ4mnJzyet4YO7wkRWTZPh9+c001f2dgbNOYir3RES4MT3prvAD3kXdjye6Q1Q/a
-         nhqx6BykGbgDjwtst0yPo1HUTnNw0tTbToVh2VBBh21u7PwfJ8hmyYV6lMepigJm0c8Z
-         k7tQGw3iDw2uJgnSoopA5wEH27ScEYC/hsVeaibwJ/a/t4SGqJIBT5Z95Fk8m07eLIKa
-         qxl2npU7Vn+XaGKwlvUpN+Sh7cA4R8alXn0QK/P6Yeo5sE8S1xLpwfGbdk+RF046JayF
-         nnboXdl19Bxr8kZXW+Y/E3hi0XqQRdIGnpbTg4ut5Eib9pB1VMxx8/JmlQDwvN3XW09Y
-         vbUQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791994910; x=1792599710;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=Uo4nhhn4ccYLf8haAnQH3w6H3MFou4kEMXYGeM07i8k=;
-        b=s4bWRVsErZzsWNTyHtU6HphJ82NGcCZkPm8ov541c1cc/vp7Ib8F7oKuK0HJN2eTvM
-         g+b2kBWzSAA+MZoSw8jZ8T+pAdKVld7uFVc9vjWLnmn2E6+fX6lqmOrtFgVP5LUpMFdi
-         XBj4Q+abUr/w2xZTVmTn+Ewgv12wQGET3RXlTtpr+QlKVC+HWXtTnGVZB4V+4CDP9WFA
-         j0KOCelbid6Fk2VQzyMxeR/AT/UZQPt5GVVSPBOecNjgnfracnrdNhgRBMaXE3gC0RsK
-         e5aT7L9KAzTc2VP8KnIlc6AMAThLMU8ZW/PRAI8P4qhmDAZTCrxJnBbwsmyATh7l2eve
-         oUOg==
-X-Forwarded-Encrypted: i=1; AKwUvBy7D0eVfdS4KtIZDH73d+6db/TSP5O9BDYHo6g5FqS8qWili0AmFYFJUNc4+LKESokT1y/u2FP5eZNA@vger.kernel.org
-X-Gm-Message-State: AFq9FYIhDqklQ8/JR8WqZMLcNLhbq0JOkNHypxYgPrK6MGO4aMjhNSGI
-	AZDLpwV+YKNDocm4t6SH8hwpFvPrV8HVc4FeKaMqdx8stD22REYG8kRsNien8R8ZB12NYvKH7DB
-	LO/4a0/CtcRY9BP81HFOvNq3F3awsAWaZry9UoxD0
-X-Gm-Gg: AYBFou3MYBX68pD/v5yLLWZtezi1vOHhpjgbD6mifDelYQoMmppP7Yfra/fbEW2joVX
-	5PEjPpapK7h1xXPpZtp54BVrhp8lfY5bmVSSpOxSFgtuyMkpiDl1FvsM/bADjRupIZxo/legiQj
-	6djevj9K2JV/hapow1ij/KsAab1V5LH5Mm0UyfmqrM+92YSsg8vlJmxQFXLRPF3GI/8GkFDCi1e
-	Mia242+UeoPDbF8TXlN3o1WbmhvSp61qj4usINwBi/uS88xMeOsD6zhUEHSBDUzHJYpg5JpXgH8
-	wH72yp3vN12siHik6YHm0+lQ3jOO3bnErknnkQpSIdf0YCGZjvwxHmYimADjTgWbb62crs7dTlZ
-	Gh5YIQnyaNw7SvM9zmVGZp3DF
-X-Received: by 2002:a05:6820:4b89:b0:6b3:558f:706c with SMTP id
- 006d021491bc7-6ef0eec88ddmr12134589eaf.30.1791994909586; Wed, 14 Oct 2026
- 09:21:49 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ny+SKQ6c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C14211F000C4;
+	Wed, 14 Oct 2026 16:39:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791995975;
+	bh=aKhKcWPWyjOrIj7BKMRGvpBtRKIfisCvjQMJs6AXEc0=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=Ny+SKQ6cDL7HtkfnD74Xa8lH71N8f5FNM177Jj+3q20D4EuWfcbcbvX6YPi1vQchX
+	 bUcQKctnadG+aOPbl44DPFPiChcTj7rOSWC93q8L1LjHN2rwLdqw6Jy97ywbGtkn8K
+	 lFLwoG2DZz7q69sTE5ylj0uiJjsss6VABrlyhdTBcdfDD6VXTuTelpDaBvzzWxU3Vl
+	 tkXbQ/TyEzK1ZWiYp15qnZLAgE3JWxX44RXSlKN0BmKmzTwkM0UFJPP4K6Chd7p/YU
+	 Qz6KzTe0cOxYBusLdYZIkMC339Hmi8QLd5GNYXy7Cr6FzxDjje0C2NFS5476GeDB93
+	 IHxXBeSpDdujA==
+Message-ID: <sashiko-outbox-171546@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH rdma-next v2] RDMA/irdma: Check MR contiguity before
+ PBLE alloc
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Jacob Moroni" <jmoroni@google.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261014162144.4053279-1-jmoroni@google.com>
+References: <20261014162144.4053279-1-jmoroni@google.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Wed, 14 Oct 2026 16:39:35 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20261010194832.2415477-1-jmoroni@google.com> <20261012185010.GH14213@ziepe.ca>
- <20261013112211.GM219304@unreal> <CAHYDg1ReKsz_RNB_k3nc+qDu2vjGz+OQfNQhthNzW7TvGMLc6Q@mail.gmail.com>
- <20261013162947.GM14213@ziepe.ca>
-In-Reply-To: <20261013162947.GM14213@ziepe.ca>
-From: Jacob Moroni <jmoroni@google.com>
-Date: Wed, 14 Oct 2026 12:21:37 -0400
-X-Gm-Features: AclHuK_XQGy2ssR-E5Ll67lkYRxtAB-OgAINdziVXLimOhu3gN3l4_kKRDNbigw
-Message-ID: <CAHYDg1R4ctNAXR8UB8cBEq=440syrSQS3gmsf9fqwzLqVs7c_A@mail.gmail.com>
-Subject: Re: [PATCH rdma-next] RDMA/irdma: Check MR contiguity before PBLE alloc
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>, tatyana.e.nikolova@intel.com, 
-	linux-rdma@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
 
-Yep, it still uses the lower page offset bits from the incoming VA as the page
-offset, similar to a PBLE-backed region, with bounds being properly checked
-as [VA, VA+len).
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+s) to consider:
+- [High] irdma: double free of PBLE on MR reregistration HW failure
+--
 
-I ran a test to confirm (nice to have in general) that start/end are accessible
-while -1/+1 outside fail, regardless of whether the region itself is aligned or
-not.
+commit 448b999143bf40a6d4795a1e901ceab0ac8c8c2d
+Author: Jacob Moroni <jmoroni@google.com>
 
-Thanks,
-Jake
+RDMA/irdma: Check MR contiguity before PBLE alloc
+
+This commit checks if a memory region is contiguous before attempting to
+allocate PBLEs. This prevents unnecessary PBLE allocation failures from
+causing memory registration to fail when a direct mapping could have been
+used instead.
+
+> diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/=
+irdma/verbs.c
+> index 71d7ae7baa478..f89c8516c57c0 100644
+> --- a/drivers/infiniband/hw/irdma/verbs.c
+> +++ b/drivers/infiniband/hw/irdma/verbs.c
+
+[ ... ]
+
+> @@ -3413,24 +3374,33 @@ static int irdma_reg_user_mr_type_mem(struct irdm=
+a_mr *iwmr, int access,
+>  {
+>  	struct irdma_device *iwdev =3D to_iwdev(iwmr->ibmr.device);
+>  	struct irdma_pbl *iwpbl =3D &iwmr->iwpbl;
+> +	struct ib_umem *region =3D iwmr->region;
+>  	u32 stag =3D 0;
+> -	u8 lvl;
+>  	int err;
+> =20
+> -	lvl =3D iwmr->page_cnt !=3D 1 ? PBLE_LEVEL_1 | PBLE_LEVEL_2 : PBLE_LEVE=
+L_0;
+>  	iwmr->access =3D access;
+> =20
+> -	err =3D irdma_setup_pbles(iwdev->rf, iwmr, lvl);
+> -	if (err)
+> -		return err;
+> -
+> -	if (lvl) {
+> -		err =3D irdma_check_mr_contiguous(&iwpbl->pble_alloc,
+> +	if (ib_umem_is_contiguous(region)) {
+> +		/* HW needs a valid page size even without PBLEs, so use 4K. It
+> +		 * behaves like a PBLE-backed region where the PBA must be page
+> +		 * aligned. HW takes the page offset from the lower 12 VA bits.
+> +		 */
+> +		iwmr->page_size =3D SZ_4K;
+> +		iwmr->pgaddrmem[0] =3D ALIGN_DOWN(ib_umem_start_dma_addr(region),
+>  						iwmr->page_size);
+> -		if (err) {
+> -			irdma_free_pble(iwdev->rf->pble_rsrc, &iwpbl->pble_alloc);
+> -			iwpbl->pbl_allocated =3D false;
+> -		}
+> +	} else {
+> +		iwmr->page_size =3D ib_umem_find_best_pgsz(region,
+> +				iwdev->rf->sc_dev.hw_attrs.page_size_cap,
+> +				iwmr->ibmr.iova);
+> +		if (unlikely(!iwmr->page_size))
+> +			return -EOPNOTSUPP;
+> +
+> +		iwmr->page_cnt =3D ib_umem_num_dma_blocks(region,
+> +							iwmr->page_size);
+> +		err =3D irdma_setup_pbles(iwdev->rf, iwmr,
+> +					PBLE_LEVEL_1 | PBLE_LEVEL_2);
+> +		if (err)
+> +			return err;
+>  	}
+> =20
+>  	if (create_stag) {
+>  		stag =3D irdma_create_stag(iwdev);
+>  		if (!stag) {
+>  			err =3D -ENOMEM;
+>  			goto free_pble;
+>  		}
+> =20
+>  		iwmr->stag =3D stag;
+>  		iwmr->ibmr.rkey =3D stag;
+>  		iwmr->ibmr.lkey =3D stag;
+>  	}
+> =20
+>  	err =3D irdma_hwreg_mr(iwdev, iwmr, access);
+>  	if (err)
+>  		goto err_hwreg;
+> =20
+>  	return 0;
+> =20
+>  err_hwreg:
+>  	if (stag)
+>  		irdma_free_stag(iwdev, stag);
+> =20
+>  free_pble:
+>  	if (iwpbl->pble_alloc.level !=3D PBLE_LEVEL_0 && iwpbl->pbl_allocated)
+>  		irdma_free_pble(iwdev->rf->pble_rsrc, &iwpbl->pble_alloc);
+
+[Severity: High]
+If irdma_hwreg_mr() fails during memory registration, the free_pble error
+path frees the PBLE allocator resources but does not clear
+iwpbl->pbl_allocated.
+
+When this occurs during MR reregistration in irdma_rereg_mr_trans(), the
+error propagates up to the RDMA core, which retains the original MR.
+
+Upon subsequent destruction of the MR in irdma_dereg_mr(), the driver
+checks this stale flag:
+
+	if (iwpbl->pbl_allocated)
+		irdma_free_pble(iwdev->rf->pble_rsrc, &iwpbl->pble_alloc);
+
+Could this double free corrupt the driver's internal memory management data
+structures (irdma_prm_return_pbles), leading to kernel memory corruption?
+
+> =20
+>  	return err;
+>  }
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261014162144.4053=
+279-1-jmoroni@google.com?part=3D1
