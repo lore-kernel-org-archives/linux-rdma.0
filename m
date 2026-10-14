@@ -1,315 +1,269 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 72D7B5158A4;
-	Wed, 14 Oct 2026 13:43:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D1C7542EFD;
+	Wed, 14 Oct 2026 14:16:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791985408; cv=none; b=jY2dMqWGvjO4/OSdCm27l2vdiAaSiUgyfiwn37WaM8fiFDnxKwSK+yyWCPYbuz+jQcrxh2IQNKiu+k94dA/xqE6LoI40xGzqPv4iyRs0w1+B7//17bqAm+8ETcmCjKy6st8v6B13O50jd/88SOBXWGriWUgbxg6GZv8WdMr8yCs=
+	t=1791987403; cv=none; b=c00uPZU65HxwqX/mJU0yD9VSh8kUfh7PufZaFdVH5ihWZwjI9ZV3UY9LrZDedkQ93I5iC0IImby5hzpM++mfQ5muKIYwstLUWI5H20fp0G0443HApAINgnHOorqFo5bSL7Bqh5cIiO3EulVp+zXBvggPrKBtDabvmfm6hha7zjw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791985408; c=relaxed/simple;
-	bh=Z3J1JCN1E/KrXGWOCh8TnXpLHC4hDSH+EZBzi8fLHxU=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=cosVd7JJZvD83iB7lUa7filKBDN5UhH/hqNk8+5d5EabdyhwbO5Wpsp8NjyiqBy8pWzIhcU5xyWtyQuA91EIUy4NNSp4H2dTMqHTP+YVxsnZgnIK3YBWSQIY0/VTbvpOlPV083kO7+MdkKnAEAt4FiN1281gIh58NKYPVXpfKp8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=iWCt85OI; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	s=arc-20240116; t=1791987403; c=relaxed/simple;
+	bh=gwZwIDXWH6+oX/jdGf1vh+hw9D/uky5YsV+364tExaI=;
+	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=qiFqhkksOX1a6FdQY9pwymvmtcKE7ERhWhtp1AlguYqUL5TPqtJtFHM3RLclZIK9r363ToPoKx8eVa6aZODF43IY5BGU6r8QxA4Znw/x6nbkeC+Gs4Dveq9WqT0MhxDmLsYVO/phR2YHZsf7ETP+T6qGWCqd4yEfRjypviNslaY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iZeEocH4; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="iWCt85OI"
-Received: from kali.mshome.net (unknown [4.213.232.18])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 9433A20B7166;
-	Wed, 14 Oct 2026 06:43:11 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 9433A20B7166
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1791985396;
-	bh=bBhI9+7cimdAIYb3M5SIUEKugO422WVOkTtxhxLhiEU=;
-	h=From:To:Cc:Subject:Date:From;
-	b=iWCt85OIBLBWqOoqiyitse5lT0NrcBbpjTp5AQtREU4dfrscRzDdKSO1i7/4AQ6Fl
-	 aU8a4rBNNaSXcZLMcVSPKRsYfh0s1PoDp3Nj/8jAAPY7Sjjfgr+AiijuO6+m0+27BP
-	 BXp15yTu+ki3Bq3MeCSJXD+jjU4G1ZJhOz6XiwLw=
-From: Sahil Chandna <sahilchandna@linux.microsoft.com>
-To: haiyangz@microsoft.com,
-	wei.liu@kernel.org,
-	decui@microsoft.com,
-	andrew+netdev@lunn.ch,
-	davem@davemloft.net,
-	edumazet@kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	kotaranov@microsoft.com,
-	horms@kernel.org,
-	ernis@linux.microsoft.com,
-	gargaditya@linux.microsoft.com,
-	mawasthi@linux.microsoft.com,
-	leitao@debian.org,
-	linux-hyperv@vger.kernel.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-rdma@vger.kernel.org
-Cc: stable@vger.kernel.org
-Subject: [PATCH net v2] net: mana: Add support to process throttled EQEs
-Date: Wed, 14 Oct 2026 08:43:01 -0500
-Message-ID: <20261014134304.4177657-1-sahilchandna@linux.microsoft.com>
-X-Mailer: git-send-email 2.53.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iZeEocH4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 389FE1F000D4;
+	Wed, 14 Oct 2026 14:16:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791987400;
+	bh=K7vsT8RC9p9fOYHpYIE8xbjNZ8+LExI8FP2yP+i0sqk=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=iZeEocH4uZ82CarWi/H3zlsVTfh9SLIyBxISWf/oJAfSzIFitloOejriv3kVPpv/W
+	 Rin2xi2RavGiefLkeIiiTeJzmYC1dw4UeeIE40+Ndw53O2+6ym71Eack60QmUtXlXk
+	 /nW2VVcChMqzipvocV1WJo9kGUAs/o/EK/Ldx4JBrJYbEyoex2gEVl+hoHgvnGSiIr
+	 qPlo5L+YOtBiZffmASK/Sv1RtAkAAeZnKf/y8slsI3FO2QFzDf51YO9SEzf5nznK8V
+	 kweC7DXWyfl0+4qpoIKzBI/hx1OE4WqTbQ5FGRhQ8/NFN1vk/IYHE0oRay5hQlkrER
+	 Ud23X4Vj3vplA==
+Subject: Re: [PATCH net v10] net/smc: fix lgr/lnk lifetime vs diag reader race
+From: netdev-bot+sashiko@kernel.org
+To: mjambigi@linux.ibm.com
+Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
+ kuba@kernel.org, pabeni@redhat.com, alibuda@linux.alibaba.com,
+ dust.li@linux.alibaba.com, sidraya@linux.ibm.com, hidayath@linux.ibm.com,
+ pasic@linux.ibm.com, horms@kernel.org, tonylu@linux.alibaba.com,
+ guwen@linux.alibaba.com, stable@vger.kernel.org, netdev@vger.kernel.org,
+ linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
+Date: Wed, 14 Oct 2026 14:16:38 +0000
+Message-ID: <179198739873.434549.14480502288349527609@kernel.org>
+In-Reply-To: <20261013141510.2621698-1-mjambigi@linux.ibm.com>
+References: <20261013141510.2621698-1-mjambigi@linux.ibm.com>
+X-sashiko-severity: High
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-When an event queue nears full, the hardware coalesces the per-CQ
-GDMA_EQE_COMPLETION notifications into a single throttle EQE (type 4)
-that carries no cq_id. The driver does not handle this event type, so
-it falls through to the default case and is dropped. Any CQ whose
-completion notification was replaced by the throttle EQE can remain
-unserviced, causing its queue to stall.
-The issue was observed internally and following Tx stall logs were
-seen:
+Thank you for your contribution! Sashiko AI review found 3 potential
+issue(s) to consider.
 
-2026-10-03T05:29:01 hv_netvsc eth0: VF slot 0 removed
-2026-10-03T05:29:23 mana 7870:00:00.0 ens1: NETDEV WATCHDOG: CPU: 45:
-                    transmit queue 1 timed out 15133 ms
-2026-10-03T05:31:05 mana 7870:00:00.0: HWC: Request timed out: 60000 ms
-2026-10-03T05:31:05 mana 7870:00:00.0: Gf stats wk handler: gf stats
-query timed out.
-2026-10-03T05:31:21 ens1: NETDEV WATCHDOG: CPU: 20: transmit queue 0
-timed out 15859 ms
-2026-10-03T05:31:37 ens1: NETDEV WATCHDOG: CPU: 15: transmit queue 0
-timed out 31731 ms
-2026-10-03T05:31:53 ens1: NETDEV WATCHDOG: CPU: 21: transmit queue 0
-timed out 47603 ms
-2026-10-03T05:32:08 ens1: NETDEV WATCHDOG: CPU: 42: transmit queue 0
-timed out 62451 ms
+Critical: 0 · High: 1 (1) · Medium: 1 · Low: 1
 
-Add support to process the CQs which belong to a throttled EQE of type 4
-and advertise capability bit, also add a counter to store the throttled
-EQEs count.
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-Fixes: ca9c54d2d6a5 ("net: mana: Add a driver for Microsoft Azure Network Adapter (MANA)")
-Cc: stable@vger.kernel.org
-Signed-off-by: Sahil Chandna <sahilchandna@linux.microsoft.com>
----
-Changes in v2:
-- Use WRITE_ONCE() when clearing max_num_cqs and add RCU
-  grace period wait during HWC teardown.
-- Use synchronize_net() during CQ destroy only when the CQ was
-  attached to its parent EQ.
-- Use WRITE_ONCE() and READ_ONCE() for the throttle-event counter.
-- Add Fixes tag and net instead of net-next.
-- Fix commit message to describe capability bit and counter.
-Link to v1: https://lore.kernel.org/all/20261008083315.306076-1-sahilchandna@linux.microsoft.com/
+- [High] The fix still leaves a use-after-free between the diag reader
+  and the lgr.
+- [Medium] Switching to link->ibname removes the NULL dereference through
+  link->smcibdev->ibdev.
+- [Low] SMC_DIAG_LGRINFO now reports link->ibname, which
+  smcr_copy_dev_info_to_link() (smc_core.c:783-784) caches at link…
 
- .../net/ethernet/microsoft/mana/gdma_main.c   | 56 ++++++++++++++++++-
- .../net/ethernet/microsoft/mana/hw_channel.c  |  4 +-
- .../ethernet/microsoft/mana/mana_ethtool.c    |  9 +++
- include/net/mana/gdma.h                       | 12 +++-
- include/net/mana/mana.h                       |  1 +
- 5 files changed, 79 insertions(+), 3 deletions(-)
+Pre-existing issues:
+- [High] This problem wasn't introduced by this patch, but the teardown
+  sites it touches have a deadlock.
 
-diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-index ae0ed700b3b9..95ba6ba161ae 100644
---- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
-+++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-@@ -747,6 +747,27 @@ void mana_gd_free_service_wq(struct gdma_context *gc)
- 	gc->service_wq = NULL;
- }
-
-+static void mana_gd_schedule_eq_cqs(struct gdma_queue *eq)
-+{
-+	struct gdma_context *gc = eq->gdma_dev->gdma_context;
-+	struct gdma_queue *cq;
-+	u8 i;
-+
-+	for (i = 0; i < GDMA_EQ_MAX_CHILD_CQ; i++) {
-+		cq = rcu_dereference(eq->eq.child_cq[i]);
-+
-+		if (!cq)
-+			continue;
-+
-+		if (cq->id >= READ_ONCE(gc->max_num_cqs) ||
-+		    !gc->cq_table || gc->cq_table[cq->id] != cq)
-+			continue;
-+
-+		if (cq->cq.callback)
-+			cq->cq.callback(cq->cq.context, cq);
-+	}
-+}
-+
- static void mana_gd_process_eqe(struct gdma_queue *eq)
- {
- 	u32 head = eq->head % (eq->queue_size / GDMA_EQE_SIZE);
-@@ -777,6 +798,11 @@ static void mana_gd_process_eqe(struct gdma_queue *eq)
-
- 		break;
-
-+	case GDMA_EQE_THROTTLE:
-+		WRITE_ONCE(eq->eq.throttle_count, eq->eq.throttle_count + 1);
-+		mana_gd_schedule_eq_cqs(eq);
-+		break;
-+
- 	case GDMA_EQE_TEST_EVENT:
- 		gc->test_event_eq_id = eq->id;
- 		complete(&gc->eq_test_event);
-@@ -1063,17 +1089,45 @@ static void mana_gd_create_cq(const struct gdma_queue_spec *spec,
- 			      struct gdma_queue *queue)
- {
- 	u32 log2_num_entries = ilog2(spec->queue_size / GDMA_CQE_SIZE);
-+	struct gdma_queue *parent;
-+	u8 i;
-
- 	queue->head |= INITIALIZED_OWNER_BIT(log2_num_entries);
--	queue->cq.parent = spec->cq.parent_eq;
-+	parent = spec->cq.parent_eq;
-+	queue->cq.parent = parent;
- 	queue->cq.context = spec->cq.context;
- 	queue->cq.callback = spec->cq.callback;
-+
-+	if (!parent)
-+		return;
-+
-+	/* For throttled EQE store the child CQ */
-+	for (i = 0; i < GDMA_EQ_MAX_CHILD_CQ; i++)
-+		if (!rcu_access_pointer(parent->eq.child_cq[i])) {
-+			rcu_assign_pointer(parent->eq.child_cq[i], queue);
-+			return;
-+		}
- }
-
- static void mana_gd_destroy_cq(struct gdma_context *gc,
- 			       struct gdma_queue *queue)
- {
-+	struct gdma_queue *eq = queue->cq.parent;
-+	bool attached = false;
- 	u32 id = queue->id;
-+	u8 i;
-+
-+	if (eq) {
-+		for (i = 0; i < GDMA_EQ_MAX_CHILD_CQ; i++) {
-+			if (rcu_access_pointer(eq->eq.child_cq[i]) == queue) {
-+				RCU_INIT_POINTER(eq->eq.child_cq[i], NULL);
-+				attached = true;
-+			}
-+		}
-+
-+		if (attached)
-+			synchronize_net();
-+	}
-
- 	if (id >= gc->max_num_cqs)
- 		return;
-diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-index 3bca4b683134..ba42da821e12 100644
---- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
-+++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-@@ -820,9 +820,11 @@ void mana_hwc_destroy_channel(struct gdma_context *gc)
- 	 */
- 	if (gc->max_num_cqs > 0) {
- 		mana_smc_teardown_hwc(&gc->shm_channel, false);
--		gc->max_num_cqs = 0;
-+		WRITE_ONCE(gc->max_num_cqs, 0);
- 	}
-
-+	synchronize_rcu();
-+
- 	if (hwc->txq)
- 		mana_hwc_destroy_wq(hwc, hwc->txq);
-
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-index 33db79569d3b..bc1db86acf64 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-@@ -22,6 +22,8 @@ static const struct mana_stats_desc mana_eth_stats[] = {
- 				       tx_linear_pkt_cnt)},
- 	{"rx_cqe_unknown_type", offsetof(struct mana_ethtool_stats,
- 					rx_cqe_unknown_type)},
-+	{"eq_throttle_events", offsetof(struct mana_ethtool_stats,
-+					eq_throttle_events)},
- };
-
- static const struct mana_stats_desc mana_hc_stats[] = {
-@@ -250,6 +252,7 @@ static void mana_get_ethtool_stats(struct net_device *ndev,
- 	u64 short_pkt_fmt;
- 	u64 csum_partial;
- 	u64 mana_map_err;
-+	u64 throttle_events;
- 	int q, i = 0, j;
-
- 	if (!apc->port_is_up)
-@@ -261,6 +264,12 @@ static void mana_get_ethtool_stats(struct net_device *ndev,
- 	 */
- 	mana_query_phy_stats(apc);
-
-+	throttle_events = 0;
-+	for (q = 0; q < num_queues; q++)
-+		throttle_events += READ_ONCE(apc->eqs[q].eq->eq.throttle_count);
-+
-+	apc->eth_stats.eq_throttle_events = throttle_events;
-+
- 	for (q = 0; q < ARRAY_SIZE(mana_eth_stats); q++)
- 		data[i++] = *(u64 *)(eth_stats + mana_eth_stats[q].offset);
-
-diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
-index c610fc1067e0..03fe9395604d 100644
---- a/include/net/mana/gdma.h
-+++ b/include/net/mana/gdma.h
-@@ -58,6 +58,7 @@ enum gdma_work_request_flags {
-
- enum gdma_eqe_type {
- 	GDMA_EQE_COMPLETION		= 3,
-+	GDMA_EQE_THROTTLE		= 4,
- 	GDMA_EQE_TEST_EVENT		= 64,
- 	GDMA_EQE_HWC_INIT_EQ_ID_DB	= 129,
- 	GDMA_EQE_HWC_INIT_DATA		= 130,
-@@ -286,6 +287,7 @@ struct gdma_dev {
- #define GDMA_EQE_SIZE 16
- #define GDMA_MAX_SQE_SIZE 512
- #define GDMA_MAX_RQE_SIZE 256
-+#define GDMA_EQ_MAX_CHILD_CQ  2
-
- #define GDMA_COMP_DATA_SIZE 0x3C
-
-@@ -366,6 +368,10 @@ struct gdma_queue {
- 			unsigned int irq;
-
- 			u32 log2_throttle_limit;
-+
-+			u64 throttle_count;
-+
-+			struct gdma_queue __rcu *child_cq[GDMA_EQ_MAX_CHILD_CQ];
- 		} eq;
-
- 		struct {
-@@ -752,6 +758,9 @@ enum {
- /* Driver supports non-contiguous queue buffers */
- #define GDMA_DRV_CAP_FLAG_1_NON_CONTIGUOUS_BUFFERS BIT(30)
-
-+/* Driver supports handling throttled EQEs */
-+#define GDMA_DRV_CAP_FLAG_1_THROTTLED_EVENT_QUEUE BIT_ULL(32)
-+
- /* Capabilities in the PCI-only group below rely on dynamic MSI-X allocation
-  * and on the servicing and reset paths reached through
-  * mana_schedule_serv_work(). Transports that provide neither leave
-@@ -776,7 +785,8 @@ enum {
- 	 GDMA_DRV_CAP_FLAG_1_HANDLE_STALL_SQ_RECOVERY | \
- 	 GDMA_DRV_CAP_FLAG_1_EQ_MSI_UNSHARE_MULTI_VPORT | \
- 	 GDMA_DRV_CAP_FLAG_1_DYN_INTERRUPT_MODERATION | \
--	 GDMA_DRV_CAP_FLAG_1_NON_CONTIGUOUS_BUFFERS)
-+	 GDMA_DRV_CAP_FLAG_1_NON_CONTIGUOUS_BUFFERS | \
-+	 GDMA_DRV_CAP_FLAG_1_THROTTLED_EVENT_QUEUE)
-
- #define GDMA_DRV_CAP_FLAGS2 0
-
-diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
-index 8c3dc9d0b299..1d4be069f869 100644
---- a/include/net/mana/mana.h
-+++ b/include/net/mana/mana.h
-@@ -450,6 +450,7 @@ struct mana_ethtool_stats {
- 	u64 tx_cqe_unknown_type;
- 	u64 tx_linear_pkt_cnt;
- 	u64 rx_cqe_unknown_type;
-+	u64 eq_throttle_events;
- };
-
- struct mana_ethtool_hc_stats {
 --
-2.53.0
 
+net/smc: fix lgr/lnk lifetime vs diag reader race
+
+This patch tries to close races between the SMC sock_diag dump and the
+teardown of conn/lgr/lnk state. It skips the extension attributes for
+sockets in SMC_INIT or SMC_CLOSED and orders sk_state with acquire/release.
+It also unhashes the socket before several smc_conn_free() and
+smcd_buf_detach() calls, and uses the cached link->ibname in the LGRINFO
+dump.
+
+[ ... ]
+
+> diff --git a/net/smc/smc_close.c b/net/smc/smc_close.c
+> index bb0313ef5f7c1..aa6363abdd747 100644
+> --- a/net/smc/smc_close.c
+> +++ b/net/smc/smc_close.c
+
+[ ... ]
+
+> @@ -433,6 +435,7 @@ static void smc_close_passive_work(struct work_struct *work)
+>  		sk->sk_state_change(sk);
+>  		if ((sk->sk_state == SMC_CLOSED) &&
+>  		    (sock_flag(sk, SOCK_DEAD) || !sk->sk_socket)) {
+> +			sk->sk_prot->unhash(sk);
+>  			smc_conn_free(conn);
+
+[Severity: High]
+This is a pre-existing issue and was not introduced by this patch. Can this
+smc_conn_free() call deadlock against abort_work?
+
+smc_close_passive_work() holds lock_sock(sk) here. For SMC-R,
+smc_conn_free() then does:
+
+		if (current_work() != &conn->abort_work)
+			cancel_work_sync(&conn->abort_work);
+
+The connection is still registered at this point. A CDC message with
+failover_validation and a seqno ahead can make smc_cdc_msg_validate()
+queue abort_work on smc_close_wq, and it does this without the socket lock.
+smc_close_wq can run that work alongside close_work, and
+smc_conn_abort_work() starts with:
+
+	lock_sock(&smc->sk);
+	smc_conn_kill(conn, true);
+
+If abort_work is already running and blocked in lock_sock(), would this
+thread wait forever in cancel_work_sync() while it holds that same socket
+lock? The current_work() check only stops abort_work from cancelling
+itself.
+
+smc_close_active_abort() also reaches smc_conn_free() with the socket lock
+held.
+
+>  			if (smc->clcsock)
+>  				release_clcsock = true;
+
+[ ... ]
+
+> diff --git a/net/smc/smc_diag.c b/net/smc/smc_diag.c
+> index bf0beaa23bdb6..36a3b8f31f28d 100644
+> --- a/net/smc/smc_diag.c
+> +++ b/net/smc/smc_diag.c
+
+[ ... ]
+
+> @@ -103,6 +104,9 @@ static int __smc_diag_dump(struct sock *sk, struct sk_buff *skb,
+>  	if (nla_put(skb, SMC_DIAG_FALLBACK, sizeof(fallback), &fallback) < 0)
+>  		goto errout;
+>  
+> +	if (r->diag_state == SMC_INIT || r->diag_state == SMC_CLOSED)
+> +		goto out;
+> +
+>  	if ((req->diag_ext & (1 << (SMC_DIAG_CONNINFO - 1))) &&
+>  	    smc->conn.alert_token_local) {
+>  		struct smc_connection *conn = &smc->conn;
+
+[Severity: High]
+Does this guard miss a fallback socket in SMC_ACTIVE that still has a stale
+alert_token_local after its lgr reference was dropped?
+
+On the server side, the peer can answer with a CLC DECLINE that has the
+first contact bit set instead of a CONFIRM. smc_clc_wait_msg() then does:
+
+net/smc/smc_clc.c:smc_clc_wait_msg() {
+    ...
+		if ((dclc->hdr.typev2 & SMC_FIRST_CONTACT_MASK) &&
+		    smc->conn.lgr) {
+			smc->conn.lgr->sync_err = 1;
+			smc_lgr_terminate_sched(smc->conn.lgr);
+		}
+    ...
+}
+
+smc_lgr_terminate_sched() calls list_del_init(&lgr->list).
+
+The handshake then aborts through
+smc_listen_decline()->smc_conn_abort()->smc_conn_free(). At that point
+lgr->list is empty:
+
+	if (!list_empty(&lgr->list)) {
+		smc_buf_unuse(conn, lgr); /* allow buffer reuse */
+		smc_lgr_unregister_conn(conn);
+	}
+
+So the connection is not unregistered and alert_token_local stays
+non-zero, but smc_lgr_put() still drops the lgr reference. The socket then
+falls back, smc_listen_out_connected() stores SMC_ACTIVE, and the socket
+stays hashed.
+
+Later, terminate_work runs __smc_lgr_terminate():
+
+		lock_sock(&smc->sk);
+		smc_conn_kill(conn, soft);
+		release_sock(&smc->sk);
+	...
+	smc_lgr_cleanup(lgr);
+	smc_lgr_free(lgr);
+
+For SMC-R and non-nocopy SMC-D, smc_conn_kill() does not unhash the
+socket. Nothing on this path takes the smc hash write_lock either.
+
+A diag reader that already saw a non-zero alert_token_local holds only
+read_lock(&smc_hash->lock). Can it then read conn->sndbuf_desc->len and
+conn->rmb_desc->len after smc_lgr_free() has freed them? The same question
+applies to conn->lgr->is_smcd and lgr->list in the LGRINFO/DMBINFO
+conditions.
+
+On non-RT kernels the window is small, but on PREEMPT_RT the read_lock is
+preemptible.
+
+Would it work to unregister the connection, or clear alert_token_local, in
+smc_conn_free() even when lgr->list is empty? Another option is to skip
+the CONNINFO/LGRINFO/DMBINFO blocks when conn->freed is set.
+
+[ ... ]
+
+> @@ -154,8 +158,7 @@ static int __smc_diag_dump(struct sock *sk, struct sk_buff *skb,
+>  			.lnk[0].link_id = link->link_id,
+>  		};
+>  
+> -		memcpy(linfo.lnk[0].ibname, link->smcibdev->ibdev->name,
+> -		       sizeof(link->smcibdev->ibdev->name));
+> +		memcpy(linfo.lnk[0].ibname, link->ibname, sizeof(link->ibname));
+
+[Severity: Medium]
+The commit message says this change is meant "to avoid racing with link
+clearing during SMC-R link failover". It removes the NULL dereference
+through link->smcibdev->ibdev, but is the race itself still there?
+
+This block loads link = smc->conn.lnk with a plain load. It then copies
+ibport, link_id, ibname, gid and peer_gid while holding only
+read_lock(&smc_hash->lock).
+
+At the same time, smcr_link_down()->smc_switch_conns()->
+smc_switch_link_and_count() can run:
+
+	atomic_dec(&conn->lnk->conn_cnt);
+	smcr_link_put(conn->lnk);
+	conn->lnk = to_lnk;
+
+This runs under lgr->conns_lock and conn->send_lock, and the diag reader
+takes neither. smcr_link_clear() then does the final
+smcr_link_put()->__smcr_link_clear():
+
+	memset(lnk, 0, sizeof(struct smc_link));
+	lnk->state = SMC_LNK_UNUSED;
+
+smcr_link_init() can later reuse the slot. smc_cdc_msg_validate() also
+rewrites conn->lnk under send_lock.
+
+The link is embedded in lgr->lnk[], so this is not a use-after-free.
+However, could user space get an SMC_DIAG_LGRINFO record with an empty
+ibname, ibport 0, link_id 0 and all-zero GIDs, or a mix of two links?
+
+Would taking conn->send_lock around the conn->lnk load and the copy, or
+holding a link reference, give a consistent snapshot? If not, could the
+commit message say that only the NULL dereference is avoided?
+
+[Severity: Low]
+This isn't a bug, but link->ibname is only written by
+smcr_copy_dev_info_to_link() when the link is created. SMC_NLA_DEV_IB_NAME
+in smc_nl_handle_smcr_dev() and the pnet table still use the live
+smcibdev->ibdev->name.
+
+After an ib_device_rename(), the name in SMC_DIAG_LGRINFO will not match
+the SMC device dump or the pnet configuration. The commit message
+documents this, and it matches the existing SMC_NLA_LINK_IB_DEV link dump.
+
+>  		smc_gid_be16_convert(linfo.lnk[0].gid, link->gid);
+>  		smc_gid_be16_convert(linfo.lnk[0].peer_gid, link->peer_gid);
+
+[ ... ]
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261013141510.2621698-1-mjambigi%40linux.ibm.com
