@@ -1,269 +1,174 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from CH1PR05CU001.outbound.protection.outlook.com (mail-northcentralusazon11010030.outbound.protection.outlook.com [52.101.193.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D1C7542EFD;
-	Wed, 14 Oct 2026 14:16:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791987403; cv=none; b=c00uPZU65HxwqX/mJU0yD9VSh8kUfh7PufZaFdVH5ihWZwjI9ZV3UY9LrZDedkQ93I5iC0IImby5hzpM++mfQ5muKIYwstLUWI5H20fp0G0443HApAINgnHOorqFo5bSL7Bqh5cIiO3EulVp+zXBvggPrKBtDabvmfm6hha7zjw=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791987403; c=relaxed/simple;
-	bh=gwZwIDXWH6+oX/jdGf1vh+hw9D/uky5YsV+364tExaI=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=qiFqhkksOX1a6FdQY9pwymvmtcKE7ERhWhtp1AlguYqUL5TPqtJtFHM3RLclZIK9r363ToPoKx8eVa6aZODF43IY5BGU6r8QxA4Znw/x6nbkeC+Gs4Dveq9WqT0MhxDmLsYVO/phR2YHZsf7ETP+T6qGWCqd4yEfRjypviNslaY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iZeEocH4; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BCD753F6BC;
+	Wed, 14 Oct 2026 14:20:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.193.30
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791987656; cv=fail; b=j0/vBIbU+OYW431Kt8qYBEEynBWEipRcqD+6ld4d+E3HMv+F2cHUBW3DIPjLbwLLnHzfKev5BoRu8D7K0XiHUyx7X6zNjjkSOe4V4gS0+9EqF1+ZIHAuJiZNam3gAnmdjQERXNwh9Tu7BxhyEcz+CkttS6MTVcDJqsjb8Ub9Va4=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791987656; c=relaxed/simple;
+	bh=9NxqqY9q+oDcUfu3y5r35XsBIM9hqGEYkJBTFLOcNVk=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=WXvCim2UpY/UtyjEnHPKwmHQqUvLkbCJL2CK2GI+V/ip3OkWQ596o9/47dD6v5/2ZeIq6d+vxXakToQouOeFnOHSX0mvKYvCAYQ8VwIzkT3Tgrh1cST7/5h28IfCFKHtNey/Y4JCCVnd0YreRk5sBE+d0am3/i8QArZuPrSng7c=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=rNEnGFh0; arc=fail smtp.client-ip=52.101.193.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iZeEocH4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 389FE1F000D4;
-	Wed, 14 Oct 2026 14:16:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791987400;
-	bh=K7vsT8RC9p9fOYHpYIE8xbjNZ8+LExI8FP2yP+i0sqk=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=iZeEocH4uZ82CarWi/H3zlsVTfh9SLIyBxISWf/oJAfSzIFitloOejriv3kVPpv/W
-	 Rin2xi2RavGiefLkeIiiTeJzmYC1dw4UeeIE40+Ndw53O2+6ym71Eack60QmUtXlXk
-	 /nW2VVcChMqzipvocV1WJo9kGUAs/o/EK/Ldx4JBrJYbEyoex2gEVl+hoHgvnGSiIr
-	 qPlo5L+YOtBiZffmASK/Sv1RtAkAAeZnKf/y8slsI3FO2QFzDf51YO9SEzf5nznK8V
-	 kweC7DXWyfl0+4qpoIKzBI/hx1OE4WqTbQ5FGRhQ8/NFN1vk/IYHE0oRay5hQlkrER
-	 Ud23X4Vj3vplA==
-Subject: Re: [PATCH net v10] net/smc: fix lgr/lnk lifetime vs diag reader race
-From: netdev-bot+sashiko@kernel.org
-To: mjambigi@linux.ibm.com
-Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
- kuba@kernel.org, pabeni@redhat.com, alibuda@linux.alibaba.com,
- dust.li@linux.alibaba.com, sidraya@linux.ibm.com, hidayath@linux.ibm.com,
- pasic@linux.ibm.com, horms@kernel.org, tonylu@linux.alibaba.com,
- guwen@linux.alibaba.com, stable@vger.kernel.org, netdev@vger.kernel.org,
- linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
-Date: Wed, 14 Oct 2026 14:16:38 +0000
-Message-ID: <179198739873.434549.14480502288349527609@kernel.org>
-In-Reply-To: <20261013141510.2621698-1-mjambigi@linux.ibm.com>
-References: <20261013141510.2621698-1-mjambigi@linux.ibm.com>
-X-sashiko-severity: High
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="rNEnGFh0"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=Pge8vTacVCXCU5TfIZDENFfEOBfTHnFL3oyD6JAMYk+umXeCavmy9CSK2PEOp11aogJlZXEKE+iqDv2NTSOZfHOiw0gnBg3JaI41tDRnTod0Eyfw8RW6j1wOcG1AvPTFJA00C1NPysXIso8F8IB0JfkfjLCvvoCVGaKGE5mY3f8ddHJAtRZ7HsEOyH1nc4sEUp7PMHSBGRzenQ3m3oP3v9vzzlaE9DBdcKi6ZA0/mzlAeDow02K3nXkpmicw4s4XLRSivrdaJ/dag60x10E6igPDj1SKc7BNvy6hQwa4fVraNAy/KrDE012zKTZTelGu6FvbPT2qpQ+sfdnVlT5a8w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=4w/VMVFQ7eNUqd3GNQhxyb86Bgb0rSQ6ozS2lqGZb8o=;
+ b=rUsPHBGdOdzVyOcOlfPaFIIgx3qcxo15bimR0UJadyQIakpqDawgEBuGKgcpp5vRkmSTWpVGacwu30QTYDeKXv0oXNru87sIYU108xaRSjfoE970ubtTFJ/J6UQnM2/jWhoOKJxkqFZzIoFPMMDGJu4YFljV7Aji+atzGwd+dxhi1aXpMKhMCKAugeftCJiPqce+WPiC2qyXC2IghIFND019WXz0gVRmE3xjHkRTXWBtQDlWHW9xTapepMiRwIb9dwnyugg9JO98SxgRZWlZcUK/ScbYTFYFAnHiO73Y6PdSQUCiNjAD/CA+wWjGcIULCs4aKvJhehDPIBocploL/Q==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.160) smtp.rcpttodomain=gmail.com smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=4w/VMVFQ7eNUqd3GNQhxyb86Bgb0rSQ6ozS2lqGZb8o=;
+ b=rNEnGFh08gjkPJYJLtwiKc0hvzu1SN2WRDw/z2hEUTbOsaXglwWNZb8rpTbmJ41c4aeqwjKtUp6Kn5GE2JG3akXvfBLSCYjgDtoUEro4gAm1qoFypcDkrvWWFs0JyZfbk+HHztiR+UcOQeFRFlQTy2ktytrBrsyYMW3NJnedasKX46rXzHXeM9KfwmPMKNhmnGIzWDom01vFz0Jqq8UkP1FCe+7HHCXARSCddaVjQhuk89vYyFweRxtyPhNJ2r/1sHfO3ppc6jGSxLxrJqDwEYtWLH4IE2VW1TMrw29tyjfdvg6jLiSnefmNIlhCUgfgTpbzTnqvDQdXUhz2hbdNsQ==
+Received: from BN0PR04CA0019.namprd04.prod.outlook.com (2603:10b6:408:ee::24)
+ by SJ0PR12MB6989.namprd12.prod.outlook.com (2603:10b6:a03:448::16) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.451.19; Wed, 14 Oct
+ 2026 14:20:48 +0000
+Received: from BL6PEPF0006C3DF.namprd02.prod.outlook.com
+ (2603:10b6:408:ee:cafe::25) by BN0PR04CA0019.outlook.office365.com
+ (2603:10b6:408:ee::24) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.496.5 via Frontend Transport; Wed, 14
+ Oct 2026 14:20:48 +0000
+X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
+ is 216.228.117.160) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.160) by
+ BL6PEPF0006C3DF.mail.protection.outlook.com (10.167.249.234) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.522.6 via Frontend Transport; Wed, 14 Oct 2026 14:20:48 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
+ (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Wed, 14 Oct
+ 2026 07:20:21 -0700
+Received: from [10.80.21.140] (10.126.230.37) by rnnvmail201.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Wed, 14 Oct
+ 2026 07:20:16 -0700
+Message-ID: <eef39aa1-8e84-4a8c-abf6-81555a38e1e1@nvidia.com>
+Date: Wed, 14 Oct 2026 17:20:08 +0300
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next] net/mlx5: Add reset_prepare and reset_done
+ callbacks
+To: Narcisa Vasile <narcisav.kernel@gmail.com>, Tariq Toukan
+	<tariqt@nvidia.com>
+CC: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
+	<davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski
+	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Akiva Goldberger <agoldberger@nvidia.com>, Gal Pressman <gal@nvidia.com>,
+	Leon Romanovsky <leon@kernel.org>, open list <linux-kernel@vger.kernel.org>,
+	<linux-rdma@vger.kernel.org>, Mark Bloch <mbloch@nvidia.com>, Saeed Mahameed
+	<saeedm@nvidia.com>
+References: <20261011094809.790798-1-tariqt@nvidia.com>
+ <as8jYneJ32Hl++uj@gmail.com>
+Content-Language: en-US
+From: Moshe Shemesh <moshe@nvidia.com>
+In-Reply-To: <as8jYneJ32Hl++uj@gmail.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: rnnvmail203.nvidia.com (10.129.68.9) To
+ rnnvmail201.nvidia.com (10.129.68.8)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BL6PEPF0006C3DF:EE_|SJ0PR12MB6989:EE_
+X-MS-Office365-Filtering-Correlation-Id: f0a5e266-03f2-4c74-fdb5-08df29fe5808
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|376014|36860700016|23010399003|7416014|82310400026|56012099006|10067099003|11063799006|6133799003|4143699003|18002099003|22082099003|3023799007;
+X-Microsoft-Antispam-Message-Info:
+	VFBDwDURVzAgL8eJzfFA3IOgv6Mx8kYbqdRIwxexM5kCvyPYWuUJZnJaGSiTWpUh0ZLITyF7yw5LvorcE4IA4ywOFVBOCAh/DDy5txwH8kQjvv30LVBsbalwmQK6rhegR3fdDKgANY1RPbKUYQr9AeIwGzwzSQTrGRYet1Dp+Sp9VUbzqjbH1lj4M8JQoPVZXhTVjftM/XHkT2wLv6kQCbIzvAVfIEhLANY98U4Xg2uLtOuxQkkWNEihz/2ASwEutCJKYs1gW0QYrgFkHLLEjXy6hMwdoROfPucYesB69Qem7kXIYQ+z8mG+ztt9PhbHm3cUwi3N4JfFevLl0Wv3d0uTDvJB6XAMUWWZim6NYGR3tJfjBoq3MwFWWhabB877hEYCcqUwecLyZmtdc6BIR+1VLmxoNp8rqd1+VixeRfziY5kfREBi0Rhq77zzmqNnmgbqoSGdGdf1i1SrOPSVFNEVCBTBkAw9dQn35QfMFXS7WJfnHRqz6/14gGi6Cn9TyW8aphtpngNgvgS8m/hrXnuIP0MsbD8dN236PPyiw/5w/Wd/+q1ZCwX18L3iCEA4o56mKraG/PAYLsiqY8sKyCR889cdDvUdCvdxlST7ObtyKXYnWTV/dMVH6OPyAyA+ULL6Yd9eltqgkHj4Z7fLqE5xV4c0o9mjjuXCTRf3Ig31obV5y6LU2KoWuLNFnlKE0rUhD3/NQ+IlDGo2vSs1Gw==
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(376014)(36860700016)(23010399003)(7416014)(82310400026)(56012099006)(10067099003)(11063799006)(6133799003)(4143699003)(18002099003)(22082099003)(3023799007);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	/oG8aJCvyPXXg40DkEeB0oPBv02i9R/ZU+lt4Kcm9sqeEVT7cXfFQKUCGp10sYMqmphrtTt58455F5MnaXDGnR8hb0K327SxxBJossHQn+KmecpcHl/UhpE9xTvyMQ0htssMPL6Si+3azbXwByt3c/biJGXH+iFlgYTPKOeUdCNSjOy9ki8CJviOvbKInGX4znCtl3OpZMu0FL/W+0Sawgp5IFwOV5Uv4TYlcLc92cGmtEdwCcb440uBTGA0mIVBenEj03w87QmSHpCqKWci+rRCobxM2Bsu9oomtsRUa3Z/rMAoiEqm/5wQv50BdklF4/3yb8SNf5r3VmggiBc1TtvlqbdpD8zd/W/YIR+TcvN4prFpOLEcuIJA00HEbxM+tUOq/ej0eSZJ2zOX04lQRRV2dRVkhpg+vbGij3oSv11eWQ/i/QUggpUqn35vIfy6
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Oct 2026 14:20:48.3453
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: f0a5e266-03f2-4c74-fdb5-08df29fe5808
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BL6PEPF0006C3DF.namprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR12MB6989
 
-Thank you for your contribution! Sashiko AI review found 3 potential
-issue(s) to consider.
 
-Critical: 0 · High: 1 (1) · Medium: 1 · Low: 1
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+On 10/14/2026 9:38 AM, Narcisa Vasile wrote:
+> On Sun, Oct 11, 2026 at 12:48:09PM +0300, Tariq Toukan wrote:
+>> From: Akiva Goldberger <agoldberger@nvidia.com>
+>>
+>> Currently, the mlx5_core driver registers only the error_detected,
+>> slot_reset and resume PCI error handlers. Add the reset_prepare and
+>> reset_done callbacks, which are triggered by the PCI core before and
+>> after a PCI reset, respectively. These callbacks let mlx5 quiesce and
+>> restore device resources and commands around a PCI reset, so the driver
+>> no longer relies on the reset happening while the device is otherwise
+>> idle.
+>>
+>> Additionally, add a device flag to indicate when a PCI reset is in
+>> progress to serialize PCI reset flows with other reset flows, namely FW
+>> reset. This flag also indicates to the reset_prepare and reset_done
+>> callbacks when to do a full unload/reload of the driver. When the
+>> callbacks are triggered by the hot-reset FW reset method, they leave the
+>> teardown and reload to the FW reset.
+>>
+>> Signed-off-by: Akiva Goldberger <agoldberger@nvidia.com>
+>> Reviewed-by: Moshe Shemesh <moshe@nvidia.com>
+>> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+>> ---
+>>
+>> +static void mlx5_pci_reset_prepare(struct pci_dev *pdev)
+>> +{
+>> +     mlx5_drain_health_wq(dev);
+>> +     mlx5_unload_one(dev, false);
+>> +     mlx5_pci_disable_device(dev);
+> This disables bus-mastering, after which pci_save_state snapshots it in
+> the disabled state. reset_done() re-enables it but the snapshot remains
+> stale.
+> 
 
-- [High] The fix still leaves a use-after-free between the diag reader
-  and the lgr.
-- [Medium] Switching to link->ibname removes the NULL dereference through
-  link->smcibdev->ibdev.
-- [Low] SMC_DIAG_LGRINFO now reports link->ibname, which
-  smcr_copy_dev_info_to_link() (smc_core.c:783-784) caches at link…
+Good point, will send v2.
+Thanks.
 
-Pre-existing issues:
-- [High] This problem wasn't introduced by this patch, but the teardown
-  sites it touches have a deadlock.
+> If a FW error later triggers the sw recovery through mlx5_pci_slot_reset(),
+> the stale snapshot is re-applied with pci_restore_state().
+> Would this disable bus mastering again and block the driver recovery?
+> Should pci_set_master(pdev); and pci_restore_state(pdev); be reordered
+> in mlx5_pci_slot_reset()?
+>> +}
+>> +
+>> +static void mlx5_pci_reset_done(struct pci_dev *pdev)
+>> +{
+>> +     err = mlx5_pci_enable_device(dev);
+>> +     if (err) {
+>> +             mlx5_core_err(dev, "%s: mlx5_pci_enable_device failed, err = %d\n",
+>> +                           __func__, err);
+> nit: mlx5_core_err already prints __func__
+>> +             goto clear_pci_reset_flag;
+>> +     }
 
---
-
-net/smc: fix lgr/lnk lifetime vs diag reader race
-
-This patch tries to close races between the SMC sock_diag dump and the
-teardown of conn/lgr/lnk state. It skips the extension attributes for
-sockets in SMC_INIT or SMC_CLOSED and orders sk_state with acquire/release.
-It also unhashes the socket before several smc_conn_free() and
-smcd_buf_detach() calls, and uses the cached link->ibname in the LGRINFO
-dump.
-
-[ ... ]
-
-> diff --git a/net/smc/smc_close.c b/net/smc/smc_close.c
-> index bb0313ef5f7c1..aa6363abdd747 100644
-> --- a/net/smc/smc_close.c
-> +++ b/net/smc/smc_close.c
-
-[ ... ]
-
-> @@ -433,6 +435,7 @@ static void smc_close_passive_work(struct work_struct *work)
->  		sk->sk_state_change(sk);
->  		if ((sk->sk_state == SMC_CLOSED) &&
->  		    (sock_flag(sk, SOCK_DEAD) || !sk->sk_socket)) {
-> +			sk->sk_prot->unhash(sk);
->  			smc_conn_free(conn);
-
-[Severity: High]
-This is a pre-existing issue and was not introduced by this patch. Can this
-smc_conn_free() call deadlock against abort_work?
-
-smc_close_passive_work() holds lock_sock(sk) here. For SMC-R,
-smc_conn_free() then does:
-
-		if (current_work() != &conn->abort_work)
-			cancel_work_sync(&conn->abort_work);
-
-The connection is still registered at this point. A CDC message with
-failover_validation and a seqno ahead can make smc_cdc_msg_validate()
-queue abort_work on smc_close_wq, and it does this without the socket lock.
-smc_close_wq can run that work alongside close_work, and
-smc_conn_abort_work() starts with:
-
-	lock_sock(&smc->sk);
-	smc_conn_kill(conn, true);
-
-If abort_work is already running and blocked in lock_sock(), would this
-thread wait forever in cancel_work_sync() while it holds that same socket
-lock? The current_work() check only stops abort_work from cancelling
-itself.
-
-smc_close_active_abort() also reaches smc_conn_free() with the socket lock
-held.
-
->  			if (smc->clcsock)
->  				release_clcsock = true;
-
-[ ... ]
-
-> diff --git a/net/smc/smc_diag.c b/net/smc/smc_diag.c
-> index bf0beaa23bdb6..36a3b8f31f28d 100644
-> --- a/net/smc/smc_diag.c
-> +++ b/net/smc/smc_diag.c
-
-[ ... ]
-
-> @@ -103,6 +104,9 @@ static int __smc_diag_dump(struct sock *sk, struct sk_buff *skb,
->  	if (nla_put(skb, SMC_DIAG_FALLBACK, sizeof(fallback), &fallback) < 0)
->  		goto errout;
->  
-> +	if (r->diag_state == SMC_INIT || r->diag_state == SMC_CLOSED)
-> +		goto out;
-> +
->  	if ((req->diag_ext & (1 << (SMC_DIAG_CONNINFO - 1))) &&
->  	    smc->conn.alert_token_local) {
->  		struct smc_connection *conn = &smc->conn;
-
-[Severity: High]
-Does this guard miss a fallback socket in SMC_ACTIVE that still has a stale
-alert_token_local after its lgr reference was dropped?
-
-On the server side, the peer can answer with a CLC DECLINE that has the
-first contact bit set instead of a CONFIRM. smc_clc_wait_msg() then does:
-
-net/smc/smc_clc.c:smc_clc_wait_msg() {
-    ...
-		if ((dclc->hdr.typev2 & SMC_FIRST_CONTACT_MASK) &&
-		    smc->conn.lgr) {
-			smc->conn.lgr->sync_err = 1;
-			smc_lgr_terminate_sched(smc->conn.lgr);
-		}
-    ...
-}
-
-smc_lgr_terminate_sched() calls list_del_init(&lgr->list).
-
-The handshake then aborts through
-smc_listen_decline()->smc_conn_abort()->smc_conn_free(). At that point
-lgr->list is empty:
-
-	if (!list_empty(&lgr->list)) {
-		smc_buf_unuse(conn, lgr); /* allow buffer reuse */
-		smc_lgr_unregister_conn(conn);
-	}
-
-So the connection is not unregistered and alert_token_local stays
-non-zero, but smc_lgr_put() still drops the lgr reference. The socket then
-falls back, smc_listen_out_connected() stores SMC_ACTIVE, and the socket
-stays hashed.
-
-Later, terminate_work runs __smc_lgr_terminate():
-
-		lock_sock(&smc->sk);
-		smc_conn_kill(conn, soft);
-		release_sock(&smc->sk);
-	...
-	smc_lgr_cleanup(lgr);
-	smc_lgr_free(lgr);
-
-For SMC-R and non-nocopy SMC-D, smc_conn_kill() does not unhash the
-socket. Nothing on this path takes the smc hash write_lock either.
-
-A diag reader that already saw a non-zero alert_token_local holds only
-read_lock(&smc_hash->lock). Can it then read conn->sndbuf_desc->len and
-conn->rmb_desc->len after smc_lgr_free() has freed them? The same question
-applies to conn->lgr->is_smcd and lgr->list in the LGRINFO/DMBINFO
-conditions.
-
-On non-RT kernels the window is small, but on PREEMPT_RT the read_lock is
-preemptible.
-
-Would it work to unregister the connection, or clear alert_token_local, in
-smc_conn_free() even when lgr->list is empty? Another option is to skip
-the CONNINFO/LGRINFO/DMBINFO blocks when conn->freed is set.
-
-[ ... ]
-
-> @@ -154,8 +158,7 @@ static int __smc_diag_dump(struct sock *sk, struct sk_buff *skb,
->  			.lnk[0].link_id = link->link_id,
->  		};
->  
-> -		memcpy(linfo.lnk[0].ibname, link->smcibdev->ibdev->name,
-> -		       sizeof(link->smcibdev->ibdev->name));
-> +		memcpy(linfo.lnk[0].ibname, link->ibname, sizeof(link->ibname));
-
-[Severity: Medium]
-The commit message says this change is meant "to avoid racing with link
-clearing during SMC-R link failover". It removes the NULL dereference
-through link->smcibdev->ibdev, but is the race itself still there?
-
-This block loads link = smc->conn.lnk with a plain load. It then copies
-ibport, link_id, ibname, gid and peer_gid while holding only
-read_lock(&smc_hash->lock).
-
-At the same time, smcr_link_down()->smc_switch_conns()->
-smc_switch_link_and_count() can run:
-
-	atomic_dec(&conn->lnk->conn_cnt);
-	smcr_link_put(conn->lnk);
-	conn->lnk = to_lnk;
-
-This runs under lgr->conns_lock and conn->send_lock, and the diag reader
-takes neither. smcr_link_clear() then does the final
-smcr_link_put()->__smcr_link_clear():
-
-	memset(lnk, 0, sizeof(struct smc_link));
-	lnk->state = SMC_LNK_UNUSED;
-
-smcr_link_init() can later reuse the slot. smc_cdc_msg_validate() also
-rewrites conn->lnk under send_lock.
-
-The link is embedded in lgr->lnk[], so this is not a use-after-free.
-However, could user space get an SMC_DIAG_LGRINFO record with an empty
-ibname, ibport 0, link_id 0 and all-zero GIDs, or a mix of two links?
-
-Would taking conn->send_lock around the conn->lnk load and the copy, or
-holding a link reference, give a consistent snapshot? If not, could the
-commit message say that only the NULL dereference is avoided?
-
-[Severity: Low]
-This isn't a bug, but link->ibname is only written by
-smcr_copy_dev_info_to_link() when the link is created. SMC_NLA_DEV_IB_NAME
-in smc_nl_handle_smcr_dev() and the pnet table still use the live
-smcibdev->ibdev->name.
-
-After an ib_device_rename(), the name in SMC_DIAG_LGRINFO will not match
-the SMC device dump or the pnet configuration. The commit message
-documents this, and it matches the existing SMC_NLA_LINK_IB_DEV link dump.
-
->  		smc_gid_be16_convert(linfo.lnk[0].gid, link->gid);
->  		smc_gid_be16_convert(linfo.lnk[0].peer_gid, link->peer_gid);
-
-[ ... ]
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261013141510.2621698-1-mjambigi%40linux.ibm.com
