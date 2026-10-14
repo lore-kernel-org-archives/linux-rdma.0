@@ -1,43 +1,43 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0082262FD0
-	for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 22:36:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 622664AA1EB
+	for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 22:36:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792017380; cv=none; b=MWBGs+Sk+YueFw3+S1YdyVaiu9cVkrve906dJ/QP8VQ6rR1mH0HSSOmVZWWkELwUd95d6+DLTEk/uh0+DqTrp9tIKf0TisfWmOQwE9wj6Ou7WX6n9Wu42IudoT5w4568IREXG1jkQzrVjIU3LM0vlPYO6FHABxArjlqfnow9vyc=
+	t=1792017406; cv=none; b=mtcx9XaZD1v6Y/J1ialML5oRM9c0CDJ9aulp7s/93zGUV/pNkjSxVRtPkd+MItnN4IvQmrxdhiwO6sr/di4ipsizfgy62/IJVm7+neO+J6923Pa22yqr3xtpqrWNc9IzT9zdioRyf1n6jh5YM9AcMAT5YVu4YzPKeSwc+RAeLnU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792017380; c=relaxed/simple;
-	bh=EBl5UIZc3qlxZK0hiiyIFNrZeUtvLqUEi9Z3JxPkl7Q=;
+	s=arc-20240116; t=1792017406; c=relaxed/simple;
+	bh=lLgl8VbvZv0w1zAu/q+Mps2iywiMUJC+Yid/91gf+pg=;
 	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=cejFyPSiCIzMvARs5l1UgjzL3Gq+WTEWhEchsD7rO1PujqGnDLyEeAZrLrJiSWj15riGWJnyRdsiI4ZYbh5iUy96wg7hgtHtIXGKKvckL4oQLs2K2enkMUlUeieNaAwz3JKuXvNZLDP24tMU8O7gPFeuomwf6ctR2YKL6ORPNfw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jHd3y85+; arc=none smtp.client-ip=100.103.45.18
+	 Date; b=d8HR3uWtuvE06eGn53h6evNimxfUNV4JuxVpOuFn4aAN3mf2UrsskvzLkcQupCcQmDaFxnymvvp7fMa46KMZfvbo6X3F62LXhxhUCXc2X5mnSgvbgMq1rPErzAorqLp6DVdbY0v27Hs8u+wTkI4JeM+WnZYZ5jb7StZEKfpsz98=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RHO4GIAh; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jHd3y85+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FA751F000C4;
-	Wed, 14 Oct 2026 22:36:19 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RHO4GIAh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16BC81F000C4;
+	Wed, 14 Oct 2026 22:36:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792017379;
-	bh=EBl5UIZc3qlxZK0hiiyIFNrZeUtvLqUEi9Z3JxPkl7Q=;
+	s=k20260515; t=1792017405;
+	bh=lLgl8VbvZv0w1zAu/q+Mps2iywiMUJC+Yid/91gf+pg=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=jHd3y85+q5e6ohelUS3KCSK3SWLZ+ZL5/yWhDeRPAtmJomfWyhDS2ZJ/KYElDjksn
-	 mw5h90QuLhYH0ZJhc6YChKqPZaYBSX7TefNrZxPkEs9kn6+VyeZHaMFYjJdWiGAfAB
-	 EzG5wvhRC80y2Ectgue0IodUE6Az7p8zHj7Zjrd13gbZ2K4efc1EJiuQ4M+2m7LfgV
-	 8hriW1fgx5opDiL4kVcKd1Z1qhUJEWeUwjsxC7f2+uJDxPDBYV7EXN4zegbqmO3d5z
-	 c/ZWjLrK2FrIOvDt0BSGiDPXgKw3Sv76WC/eIgP+mHH7+aciYm4XJVvTDBeyjesqP0
-	 vDgvElGr/+XUg==
-Message-ID: <sashiko-outbox-171978@kernel.org>
+	b=RHO4GIAhsdwl5GNVx/ZqN2rZ2IjWBxboNSp6UJAjmP95WtdGjqkqlp0QHU+Nxu4Ib
+	 SDfPjBfvl2EAUfjPkcLgoeG4SahrP0uaOLMWkiqVYW1emaq84e7EW9o6qwYqUCG7aI
+	 lHST6mjzifJPS0GIQEZyZx28XH9u4B7LzmEV1SsGKa7DS+cZg7SXwPyGxaxuIngSSm
+	 EmlATkJ5Ek3eKT37tyS3l5wM9YYQirBx/Zy9dRgKNcnpACgEWoqvIbUqLoUSqL2Pqf
+	 fFYR5cWbMqz4wD8f3/UNovPw+fGylU7AagrVmZFACMGwCaEovi2yXcp+OKMsranXyK
+	 xiuWc+TPrNO5A==
+Message-ID: <sashiko-outbox-171979@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next 11/13] RDMA/core: extended memory registration
+Subject: Re: [PATCH rdma-next 07/13] RDMA/core: job and job key objects
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Eric Davis" <eric.davis@broadcom.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261014-uet-ib-core-v1-11-a0e626117113@broadcom.com>
+In-Reply-To: <20261014-uet-ib-core-v1-7-a0e626117113@broadcom.com>
 References: <20261014-uet-ib-core-v1-0-a0e626117113@broadcom.com>
- <20261014-uet-ib-core-v1-11-a0e626117113@broadcom.com>
+ <20261014-uet-ib-core-v1-7-a0e626117113@broadcom.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 14 Oct 2026 22:36:18 +0000
+Date: Wed, 14 Oct 2026 22:36:44 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -46,14 +46,13 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 > From: Eric Davis <eric.davis@broadcom.com>
 >=20
-> Memory registration for an unconnected transport may take more than an
-> address and an access mask. A job to bind the region to, a key the caller
-> chose, or a region carved out of another. None of it fits the write()
-> command, so add a device method that takes the wider set of attributes
-> and reach it when the ioctl carries any of these new fields.
+> An unconnected transport demultiplexes incoming traffic on a JobID rather
+> than on a connection. Add two objects for it: a job, which owns that ID
+> and a table of peer addresses, and a job key, which ties a job to a
+> protection domain and authorizes a queue pair to act within it.
 >=20
-> A region bound to a job holds a reference to its job key until it is
-> deregistered.
+> A job can be exported to a file descriptor and imported elsewhere, so an
+> unprivileged process can join a job that was set up for it.
 >=20
 > Signed-off-by: Eric Davis <eric.davis@broadcom.com>
 
@@ -61,5 +60,5 @@ Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261014-uet-ib-cor=
-e-v1-0-a0e626117113@broadcom.com?part=3D11
+e-v1-0-a0e626117113@broadcom.com?part=3D7
 
