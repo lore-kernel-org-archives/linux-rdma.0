@@ -1,122 +1,234 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 263324AB3C0
-	for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 22:34:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2945E4A6CFA
+	for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2026 22:35:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792017243; cv=none; b=FNpSKhcUFseFHQzEMcVJbWS1FbmlTnWCjVAe4gQ7A5Njb092bTxf4TjJUR7vhtA+sXqMSlLEHj/4sVWcnixl/T8hUWpQGeGjteiceBRrKwg5Z0j+gSlL33FC12nMUIQ0lgJQrSqq70vrV8re4kIvjFvjIeuiSKEsOhX7CbD7peI=
+	t=1792017340; cv=none; b=d4U6rwWVQcqQx0/0/iz3hCb8kSRtcokKHcpl4Ahe6ekaGylRenR+a4MtOZ8jH3DYLu1IkzrYGPWZZDBiYEsScTSqEB/lgVplekfYdi+x4ZKwNLou6YKdEwpgllUG8CY4jHlcYZCGdMVd3UR0fnlp3SLr7gO7pSKZzXeuhKc6rNo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792017243; c=relaxed/simple;
-	bh=zxE6cuXr2VUwpJWqBOYvTOsW7W71US2b9Kaq8E9rlBs=;
+	s=arc-20240116; t=1792017340; c=relaxed/simple;
+	bh=Ta/mvpiGZPwUDaR2GWZpQZ0NxRZtMYDoXECQBbSpOwg=;
 	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=hXUAlcsIBhJfh/F53J8wSx0VpKHFvvsGTuclv23XIPirVSv9PUGMZI/Cscp/NcNHI3PLeZBH8pbOaPLMuFVvw/Y9/BYTDrz8Pq6zimiKQPtDGM8cp09VcDKBtD7d05HOKSGh+syU1jYNN26CS92YA6tQs1BWr6pgAv+YO4NABW8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZCBcmfG5; arc=none smtp.client-ip=100.103.45.18
+	 Date; b=Xnpw5Gi8oACAnQJKgc/EK6FgOlDSygmsUzmVHZQDKsZaioNbYrpehpIRZkTXabhNeesvItlQ9JbDKGwro0qU6wzfCHGCH+mH3Y8rMoF3hILW13msRsbRuvU9/aoZadQ//W4efOkuyUfIrFG9uJFiA86Il2W1OqyDRIW4hf1/SIw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TRaRssjW; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZCBcmfG5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2BBC1F000C4;
-	Wed, 14 Oct 2026 22:34:01 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TRaRssjW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EED81F000C4;
+	Wed, 14 Oct 2026 22:35:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792017242;
-	bh=QA4FcZp9faacR3WgSzSfhoceDTPhsJ47EPpbCPKfLHo=;
+	s=k20260515; t=1792017338;
+	bh=/dIa592qPVsfWbmSFVaYkXgF3R7HcnGekOiSaD4t9mM=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=ZCBcmfG5nkV4LBUTrRve9ZXBIy9zeeUIV9Rfh9sNh6sb0Taq4EFbpaPDKgccjtQgY
-	 Dua+P/4koaBjY030pPxYCKMoB2JwMxtdffGhSrLF5UzI3zQkJ9qHVGhpzRzAaNA+iC
-	 kW4BgdGOKX11dT9nMctfeg9+kFbx+i0r1x1Ivx7AQHsMk5u1ejRImxUFHcij7ONEug
-	 dxs0H80AreSPS/8pDpVJmDZLnnwbwBQIND5DUVYnHwm6lVc4OFant1SqS2EY93KrYG
-	 G5Opb2uftaDM/6k3zyebkhwxwLf8vxHTpJ/HjR1u8b2WkAWV0cfPEtoqGNWb+Xleqi
-	 eayNUx60Thb8g==
-Message-ID: <sashiko-outbox-171975@kernel.org>
+	b=TRaRssjWGOxYU8ngeDWJoOMKTBK4cD3KFmUQ6pRhMgHwXo/J0UA4sK30O8Ghag6q3
+	 W4+z7NvhCZPsmm4pASs1+N5xwE8iyJTq2q8yJGaaJfizZCkA6sAd5qDRqJheeF6kjI
+	 +9FK6tuaiR43epAiWtQuofLX56pUWaRt+WHjC1WuvScGjQmyWuwcQneM6m0tM0FVjq
+	 ijZPm/VcPAYIFE5uCMNVyP2/vZzhSeITgzjFvPKFFo03WIvmMdiC0t6JVn8cUsqpaO
+	 tSEWXlEzk6B28tPNJmwf/he2Xx3FcSjLxifAlYL35X/UjveZrWt9NE1nKode4FnJFf
+	 ZuQRNDZgLBo3g==
+Message-ID: <sashiko-outbox-171976@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next 06/13] RDMA/core: query the semantics a queue
- pair type guarantees
+Subject: Re: [PATCH rdma-next 02/13] RDMA/core: add the UET GID types
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Eric Davis" <eric.davis@broadcom.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261014-uet-ib-core-v1-6-a0e626117113@broadcom.com>
+In-Reply-To: <20261014-uet-ib-core-v1-2-a0e626117113@broadcom.com>
 References: <20261014-uet-ib-core-v1-0-a0e626117113@broadcom.com>
- <20261014-uet-ib-core-v1-6-a0e626117113@broadcom.com>
+ <20261014-uet-ib-core-v1-2-a0e626117113@broadcom.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 14 Oct 2026 22:34:01 +0000
+Date: Wed, 14 Oct 2026 22:35:38 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+Thank you for your contribution! Sashiko AI review found 3 potential issue(=
 s) to consider:
-- [Medium] rdma: query_qp_semantics lacks MR attachment capability flag
+- [High] RDMA/core: Incomplete UET Address Handle initialization breaks inc=
+oming WC
+- [High] RDMA/cma: UET paths incorrectly classified as InfiniBand, dropping=
+ DMAC
+- [High] RDMA/cma: Missing netdev checks cause UET to fallback to InfiniBan=
+d logic
 --
 
-commit 5f36c96aa3fcf03ebbebf03d834b66a1b7642e0a
+commit 7479c85e5472864148025ac811bf445ba1cec04d
 Author: Eric Davis <eric.davis@broadcom.com>
 
-RDMA/core: query the semantics a queue pair type guarantees
+RDMA/core: add the UET GID types
 
-This commit adds a device method to report the guarantees of a queue pair
-type, such as operations ordering, largest packet size, and immediate data
-width.
+This commit introduces the UET GID types for UDP and IP encapsulations,
+allowing a port to hold both UET and RoCE GIDs. It also adds
+rdma_port_gids_from_netdev() to build the GID table from a netdev for
+UET ports similarly to how it is done for RoCE.
 
->     An unconnected transport orders far less than a connected one, and how
->     much varies by device. Add a device method that reports, for a queue =
-pair
->     type, which operations it orders against which, the largest packet it
->     puts on the wire, how wide an immediate it carries, and whether a mem=
-ory
->     region may be attached to a QP so it's only reachable over that QP.
+> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/ve=
+rbs.c
+> index edf62652f9d3e..24db88e6d3fa0 100644
+> --- a/drivers/infiniband/core/verbs.c
+> +++ b/drivers/infiniband/core/verbs.c
+> @@ -862,6 +862,10 @@ int ib_init_ah_attr_from_wc(struct ib_device *device=
+, u32 port_num,
+> =20
+>  	might_sleep();
+> =20
+> +	if (rdma_protocol_uet(device, port_num) &&
+> +	    !rdma_protocol_roce(device, port_num))
+> +		return -EPROTONOSUPPORT;
+> +
 
-[Severity: Medium]
-The commit message states that query_qp_semantics reports "whether a memory
-region may be attached to a QP so it's only reachable over that QP".
+[Severity: High]
+Does this explicitly fail Address Handle initialization for UET-only ports?
 
-Is this description accurate for this patch? I notice that a later commit
-reports this capability via query_device instead. Could the commit message
-be updated to reflect that the MR attachment capability is not included
-in query_qp_semantics?
+Returning -EPROTONOSUPPORT here blocks Address Handle creation for incoming
+packets on UET-only ports, preventing the host from responding to connectio=
+ns.
+
+Additionally, for dual-mode ports, this function extracts the IP network
+type and passes it to ib_network_to_gid_type(). Because ib_network_to_gid_t=
+ype()
+was not updated to handle UET, it unconditionally maps IPv4 and IPv6 to
+IB_GID_TYPE_ROCE_UDP_ENCAP:
+
+include/rdma/ib_verbs.h:ib_network_to_gid_type() {
+    if (network_type =3D=3D RDMA_NETWORK_IPV4 ||
+        network_type =3D=3D RDMA_NETWORK_IPV6)
+        return IB_GID_TYPE_ROCE_UDP_ENCAP;
+    ...
+}
+
+Could this cause incoming UET packets to be incorrectly mapped to a RoCEv2
+GID index, breaking the UET transport response?
+
+[ ... ]
 
 > diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index 68f7a271cf7a7..003b704244293 100644
+> index d6eaa3fee66e3..4e3a5c38cbe8b 100644
 > --- a/include/rdma/ib_verbs.h
 > +++ b/include/rdma/ib_verbs.h
-[ ... ]
-> @@ -2496,6 +2496,18 @@ struct ib_counters {
->  	atomic_t	usecnt;
+> @@ -145,6 +145,8 @@ enum ib_gid_type {
+>  	IB_GID_TYPE_IB =3D IB_UVERBS_GID_TYPE_IB,
+>  	IB_GID_TYPE_ROCE =3D IB_UVERBS_GID_TYPE_ROCE_V1,
+>  	IB_GID_TYPE_ROCE_UDP_ENCAP =3D IB_UVERBS_GID_TYPE_ROCE_V2,
+> +	IB_GID_TYPE_UET_UDP =3D IB_UVERBS_GID_TYPE_UET_UDP,
+> +	IB_GID_TYPE_UET_IP =3D IB_UVERBS_GID_TYPE_UET_IP,
+>  	IB_GID_TYPE_SIZE
 >  };
-> =20
-> +/* what a queue pair of a given type guarantees (query_qp_semantics) */
-> +struct ib_qp_semantics {
-> +	u32	comp_mask;		/* enum ib_uverbs_qp_semantics_mask */
-> +	u32	msg_order;		/* enum ib_uverbs_qp_msg_order */
-> +	u32	max_rdma_raw_size;
-> +	u32	max_rdma_war_size;
-> +	u32	max_rdma_waw_size;
-> +	u32	max_pdu;
-> +	u32	usage_flags;		/* enum ib_uverbs_qp_usage_flags */
-> +	u8	imm_data_size;		/* bits */
-> +};
 
-[Severity: Medium]
-Does struct ib_qp_semantics omit the MR attachment capability claimed by the
-commit message? There doesn't appear to be a field or flag here for it.
+[Severity: High]
+When these new GID types are passed to the Subnet Administrator (SA) layer,
+are they incorrectly classified as InfiniBand path records?
 
-> diff --git a/include/uapi/rdma/ib_user_ioctl_verbs.h b/include/uapi/rdma/=
-ib_user_ioctl_verbs.h
-> index 210f3f945bd73..3d05a6c7ca8f6 100644
-> --- a/include/uapi/rdma/ib_user_ioctl_verbs.h
-> +++ b/include/uapi/rdma/ib_user_ioctl_verbs.h
+In sa_conv_gid_to_pathrec_type() in include/rdma/ib_sa.h, there are no cases
+for the new UET GID types, causing them to fall through to the default case:
+
+include/rdma/ib_sa.h:sa_conv_gid_to_pathrec_type() {
+    ...
+    default:
+        return SA_PATH_REC_TYPE_IB;
+}
+
+Later, when CMA attempts to set the destination MAC address for the path re=
+cord,
+sa_path_set_dmac() checks if the path is RoCE:
+
+include/rdma/ib_sa.h:sa_path_set_dmac() {
+    if (sa_path_is_roce(rec))
+        memcpy(rec->roce.dmac, dmac, ETH_ALEN);
+    ...
+}
+
+Because the path is classified as IB rather than Ethernet/RoCE, this check
+fails. Will this silently discard the destination MAC address, causing outg=
+oing
+packets to be dropped due to an uninitialized MAC?
+
 [ ... ]
-> +enum ib_uverbs_qp_usage_flags {
-> +	/* immediate data consumes a posted receive */
-> +	IB_UVERBS_QP_USAGE_IMM_DATA_RQ	=3D 1 << 0,
-> +};
 
-[Severity: Medium]
-The usage flags enum only contains IB_UVERBS_QP_USAGE_IMM_DATA_RQ. Should
-there be a flag here indicating whether an MR can be attached, or is this
-omission expected since it's later reported via query_device?
+> @@ -3407,6 +3420,34 @@ static inline bool rdma_protocol_roce_eth_encap(co=
+nst struct ib_device *device,
+>  	       RDMA_CORE_CAP_PROT_ROCE;
+>  }
+> =20
+> +static inline bool rdma_protocol_uet(const struct ib_device *device,
+> +				     u32 port_num)
+> +{
+> +	return device->port_data[port_num].immutable.core_cap_flags &
+> +	       RDMA_CORE_CAP_PROT_UET;
+> +}
+> +
+> +static inline bool rdma_protocol_uet_udp(const struct ib_device *device,
+> +					 u32 port_num)
+> +{
+> +	return device->port_data[port_num].immutable.core_cap_flags &
+> +	       RDMA_CORE_CAP_PROT_UET_UDP;
+> +}
+> +
+> +static inline bool rdma_protocol_uet_ip(const struct ib_device *device,
+> +					u32 port_num)
+> +{
+> +	return device->port_data[port_num].immutable.core_cap_flags &
+> +	       RDMA_CORE_CAP_PROT_UET_IP;
+> +}
+> +
+> +static inline bool rdma_port_gids_from_netdev(const struct ib_device *de=
+vice,
+> +					      u32 port_num)
+> +{
+> +	return rdma_protocol_roce(device, port_num) ||
+> +	       rdma_protocol_uet(device, port_num);
+> +}
+> +
+
+[Severity: High]
+While this helper correctly abstracts the GID table logic for UET and RoCE,
+are there missing netdev checks in the CMA and Multicast layers that still
+explicitly check rdma_protocol_roce() instead of this new helper?
+
+In cma_ib_acquire_dev(), UET-only ports fail the RoCE check and fall into t=
+he
+else block intended for InfiniBand:
+
+drivers/infiniband/core/cma.c:cma_ib_acquire_dev() {
+    if (rdma_protocol_roce(req->device, req->port))
+        rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.src_addr, &g=
+id);
+    else
+        memcpy(&gid, dev_addr->src_dev_addr + rdma_addr_gid_offset(dev_addr=
+), sizeof(gid));
+    ...
+}
+
+Since Ethernet MAC addresses are only 6 bytes, does copying 16 bytes from
+dev_addr->src_dev_addr lead to an out-of-bounds read and a malformed GID?
+
+Similarly, in rdma_resolve_route(), UET fails the protocol checks and falls
+through to return -ENOSYS:
+
+drivers/infiniband/core/cma.c:rdma_resolve_route() {
+    ...
+    else if (rdma_protocol_roce(id->device, id->port_num)) {
+        ret =3D cma_resolve_iboe_route(id_priv);
+    ...
+}
+
+Finally, in ib_init_ah_from_mcmember(), UET ports fail the !rdma_protocol_r=
+oce
+check and return -EINVAL:
+
+drivers/infiniband/core/multicast.c:ib_init_ah_from_mcmember() {
+    ...
+    else if (!rdma_protocol_roce(device, port_num))
+        return -EINVAL;
+    ...
+}
+
+Will these missing updates break route resolution and multicast joins for U=
+ET
+devices?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261014-uet-ib-cor=
-e-v1-0-a0e626117113@broadcom.com?part=3D6
+e-v1-0-a0e626117113@broadcom.com?part=3D2
