@@ -1,156 +1,130 @@
-Received: from mail-dy1-f173.google.com (mail-dy1-f173.google.com [74.125.82.173])
+Received: from mail-pj2-f6.google.com (mail-pj2-f6.google.com [74.125.227.134])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C89D747CC91
-	for <linux-rdma@vger.kernel.org>; Thu, 15 Oct 2026 21:19:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.82.173
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792099171; cv=pass; b=tlxZ/3cy3a6NaYCPnEVOGEgiSlRhk+C+FX2YFDP3tH4zcNGhsFWAuzLh7jbgDN/HkamUPJzmrvbO7lZ+dQCv4RUr63FOGacaa5WyU+19wK6gsueFjbjkDZ6/fyyE1Hw8tHdxpXwMXByXrUGx77EtSFuoNO780qAwadZ9LPxf+dM=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792099171; c=relaxed/simple;
-	bh=Uz/5hctKvlaqdWO6KpHIaPRKCJnqvXCmJd5cUbHaT7I=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=PGFQHcz2eP5bwcVEZ35tyQN6UzxSQ6cKJwhW+JoG8k6mGXjCDb/AQpz9U9Mfstq32Y6Lu2gyI6XecJDGx7+vX3RC9kzXI7wprajb8AhlUHcIKELeKJV3wT6uEXgD8Aa8kfI/3dkU37sL2JJkHeUMvYIVE3LzRa3LZvpoAY2b+HI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=x6u.co; spf=pass smtp.mailfrom=x6u.co; dkim=pass (2048-bit key) header.d=x6u.co header.i=@x6u.co header.b=0LkLPT2h; arc=pass smtp.client-ip=74.125.82.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=x6u.co
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=x6u.co
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD61F4F68D2
+	for <linux-rdma@vger.kernel.org>; Thu, 15 Oct 2026 21:36:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.134
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1792100213; cv=none; b=MvLKgF9WiJAWCtSK7+UfyxEuw6CB99gpAuTNjeV4W0FU5yQCqmayqJWqnQUSdw/MxA8sUOpVMjU4ohUzbNcbaeiyo1b4G0UeqvcUt7Jtwbr+XivsSmzI9RyAcGTHOGSJ1+02q7XYwy2rxVL0Sv6hoswt9kEN4jaAQOgWGcIDVg8=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1792100213; c=relaxed/simple;
+	bh=/mThlAxqOQ/illGXXCKqwpofgrrCmo0z6UJR5iZDmek=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=VhpTln6h3IZFagBmZZuNCd6oHIRposx82B7A3VQb2QkxqPR3yWxsm97/+HGO4GmkBXWTV5+Z7SGISUmUIZ1VvPU6bgILc5BOa6RjdCnJjMLKFlMwYZ1v7o2aWU9gp3fv4ajqVp9hm4qeAoVMx9AchzWdKJJv2yugbbgJF8Nl8tA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=L5Gw+2rH; arc=none smtp.client-ip=74.125.227.134
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=x6u.co header.i=@x6u.co header.b="0LkLPT2h"
-Received: by mail-dy1-f173.google.com with SMTP id 5a478bee46e88-3282db206d3so808131eec.0
-        for <linux-rdma@vger.kernel.org>; Thu, 15 Oct 2026 14:19:24 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1792099164; cv=none;
-        d=google.com; s=arc-20260327;
-        b=mioZv56GHze+Z6117N9/pAkseKZUcpVCthhABNzRAgO8jDwqTzgiZ7nu1oWdAUFtNn
-         l9NHrj1V5UqTegfmj8T0wcamA5bxLJcztnv/iTE3P7bsNS2YZDFR3gGB+s3e2YqvRJSZ
-         yESQiSt7TAiqX1VqKYm/R6uvXOKEtcvw0vLkV0F0CnXZfZaC1rLaISu8CI0pfiTA4LnG
-         xVrTZDEie7iurCeyPSNAU5tbcPmD8ZXAaUHzL84RlDjIZ/VvxiK8nLYhi3MarYjrUow+
-         D1C9I3T8DI0SBmC+cDta6FEjomyk/u+fcroVFpwC5KP3fHnYGa0tArCIEUxkB3aaO8N7
-         YVOg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=WFhecx82FkxQ1C38UPIvum31gQyjmwYifrg5hB5ZM6E=;
-        fh=Fjjq3fn2EBZGWDcjiliJtsp9aa9LurXF2QHHutcMKj0=;
-        b=ZvSmLSsS4NDKVQC++5u1WwDDGeE1U8FKRAr6w0AEGCSkIZhhfe4I8G8Px3boashHUw
-         C/0XBvC8MIoFi9HW+pQtsKAOxmNkO7vRXhG9gbw22G3Lv2g9aMFUZnkys0xgxvut1jDS
-         zVReVUeB90BzdYuNUn84YaCap0esl92mxFNR+c7aUHSvJfry04fOocFZyWmgvK8gjL0H
-         ng0Bx+ju9mHDP7AbgbTHmdJVMHe1+rTNUqX58++ufCzsskIs1fgW6TQzPj3e1x1nlTq9
-         yuEVmqxYPTne8sdsE8DY5zsuWpCt5sgIt3iVFbP4kx3MgGto2hSmD0RGNhmBME7nG0/n
-         Hgbw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="L5Gw+2rH"
+Received: by mail-pj2-f6.google.com with SMTP id 98e67ed59e1d1-3964e7720afso2866025a91.1
+        for <linux-rdma@vger.kernel.org>; Thu, 15 Oct 2026 14:36:50 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=x6u.co; s=google; t=1792099164; x=1792703964; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+        d=gmail.com; s=20251104; t=1792100210; x=1792705010; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=WFhecx82FkxQ1C38UPIvum31gQyjmwYifrg5hB5ZM6E=;
-        b=0LkLPT2hrKkXY2CZBX5DPXvTJtNPaaYR2ncurNgOJ9XF5KdaPDw9in4Uoh20GkCY7U
-         56u7MXyHVdGIhKPze4p4NBjIwjcEoWNGrfDuzcdg6FXx+NjBDUfepT/Gafots4TNFFUQ
-         2k1/xJIma8uTtJ0hXZx+1I+omXPo7Y2Evb5t3h+YbHXUNCMMBstkDzc1ug7MTt4xPxFW
-         kPyz1gwhR8shckEdhlft0zgi1Tozd8JX0nlBfn4VahMg/lsX9JARgIgC6mrr3kB3XiqY
-         4YWPv0hSPiib7f8LLWOYP1ZmYtoub61GSWJavBywdDmKxNpRvvyHEHF1gbjQ20s0ZjQ7
-         8Q3g==
+        bh=TFWHGN7cklsMWKCyO/CrNxAqmD+l+5aS8n56/ZuYuKE=;
+        b=L5Gw+2rHfKE35YiYPy1ol+Mo3zNmcIrTcm+mx5+BQacp1HSFNELcpJ6qmDp0QHOg3n
+         eSTwG/f5uRWvuhiLEoPNh2WZHfLDYhdc00wODroEGA2Jc0PUIZSOtUVfQ3SU5Dd+N1b3
+         HfocrloFYZ3lGJ7lihdL3QuZoGxvCIZUeYtCKnnitqPWwkoC3y9LMKNscFi4lcdLoARf
+         dICo26do3vBcP09lvRkDSgOyDefSdm2vtCqzdztqSCrp4FhXpYa7AuOEDh/TM4RQHd2X
+         DWgUOL8szfRsiHPSZtukg6KSbYtG8pwMW6DMaZLbQdoHydZz3/N8YgC0ahh0Q0IejlQs
+         25Vw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792099164; x=1792703964;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
+        d=1e100.net; s=20260707; t=1792100210; x=1792705010;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=WFhecx82FkxQ1C38UPIvum31gQyjmwYifrg5hB5ZM6E=;
-        b=HAbsLUKz8lthARBObJsVcVa4QBjae+qaGWDMxPWYVbMj2BLznuhn++mlwlK0ulivdN
-         wT9/TRZ+bFyaeFa3d2oKEWW2h8samB8Hs0X42P29EQeXh0MeYnAHKhfz8zBmr8LjpkKm
-         Dv7a57Ta8XpG2oGAl+ptfAHP6bzxfDyx/vCKAMOXDA29nwAQR0a2PHp5dSk0Is+oTKTR
-         Y0XoTBOsJLhQUxFj4R2Kr/XKpxMdINHls7Zz3ofUSGSmiWmSZ3MhThH8Mxzya4Dn4nmv
-         p7vig15oeLwy/1KADbjLb8baJYFrk1qyssEbKqdRlDDTnv5fEsP/JAFUDX+/3ahUlfci
-         UAog==
-X-Forwarded-Encrypted: i=1; AKwUvBz2JQFh/AoIIwWJajl1fB9k67Ant6RRI0Uj9DSeatwxw5eVTl74CmPPdqiQ0p7Clzaqrpjf2oAodQG8@vger.kernel.org
-X-Gm-Message-State: AFq9FYL4nIxDu94V4LnTtTExLGlAp4E5n7xxvmQkP0Qpzgp1ndmeHU52
-	eLx9FzVy42Gr815W7mUZT4mohchD4hfYu1pIGTWYr0z74XeSJw5ggA5P9qOcwgMSAS87N8j+6sy
-	TSoxLxZPg+x7W+UGPzTR+3fNyqMpXU8UA+oVutU2b73I=
-X-Gm-Gg: AYBFou1i2EygbonRMRVl88scQlttO50GVHUN1dfdVdcE6mDV6y15SuO7MoHhKs0sy4r
-	5bIPhMD1uDAphVmTAJXHBf/PZ8K/d/5owFkzSfLuTBTgvprUzkZ1Ml26DQt3cvPB+bdBaDmOCOb
-	HuqA011tet52nTFi27vUo7Zg/CXUjQLVf5Kl/leBBtRqlEZytlA3x57H+okBo/Ef+IzAYikdqw2
-	JnnSRzjvJgcb9C+GZspbOW14WdzUyDk27aJDKkniFbhP6hO3/QeRENxZ9HFrklrLsHBEbKGmxaz
-	kU4tqV0ME/CLYDpLq/GyQFeDFhl6PL2fF6/ZjrKmlUCjYjxy0Qmyo0ooIWnIjc5d5rrfX+XqwPp
-	50EIBY2giyH6GTtucvzrYcLmYYL/3dG3knb/9LNVe0g==
-X-Received: by 2002:a05:693c:2503:b0:35e:5db8:2ef with SMTP id
- 5a478bee46e88-35e5dc756c3mr5975575eec.24.1792099163746; Thu, 15 Oct 2026
- 14:19:23 -0700 (PDT)
+        bh=TFWHGN7cklsMWKCyO/CrNxAqmD+l+5aS8n56/ZuYuKE=;
+        b=nM9jzM1e3zCgL1rN7L0/YOr1X9o1Mcm2kn8SDR9PFgSDBsQbWlCbzZqPoR8y3pkoB1
+         U9oLCPyN1dnJWVjKkXXzEi1xq415IJ13RhX60TibZyvcubWWvDoXfXdpLm4Tm/pQWj5D
+         rYpesljXYI0DTFNnoY5DghkD9jTSh3IdlcdbA6M9n1GcUWCoDFB0PyyvxhJ4asPLyNgo
+         +kQSzRrQPUMsHwj9ls3GugZRgDAzZnUqAaaMS6MMDAWHqp4Owe0SzId6P/9Hsp6zmJ+S
+         oxdILthmYew78TMeFuxa3CRcxVd264Q2iKvfHgaILaVIH+OaFQajWtbx/JbVi/sw3Ztk
+         c6iQ==
+X-Forwarded-Encrypted: i=1; AKwUvBwuQ+HoxqWwSxVGYEE5hZ4BYFCKmIG7pasWTVokt7/8LWdZT7CV882DNJ91EqQnQeU4mb+kKbX3h884@vger.kernel.org
+X-Gm-Message-State: AFq9FYIpIVUciIU545ppY+n9L7EJrplTQ+8SLq4LvFx3YM0hw+4VYo3/
+	yJ6I3V9LyFB30DmsdLPr8lxJY2CeuvKeAR4wLAz8ey/2KFtF2RCBvIDq
+X-Gm-Gg: AYBFou1ie8BVjsnYBZZRf5NLobWsN86x1fOfEjfxg6NKkaUXTgEQI1Bt4ZL1P5rrns3
+	lfkkknnxfjEs4SdzwJIZ2dYVNPwOhttS7Gx2x+OjjhOOB4QbpJiMEKRpLYGBgzMkK5cayzipiG9
+	eyVyoCnCARLnRBo06M/EgwI0Kful9BHLMTBbK9MwYeTvK0qPgBBRdFsjgjXMMyzEJewd1VjhECO
+	iiVFOXwCb8sKHevpZLOcnuzWVqnjco1D7x2D3NOfvz/RshsE/SAVRO0FaCn8tBkgjF7HoPVXUXx
+	uDQ4UoqSswZwoBIbPbZgw5WrBVtrCftb5lbeS4no404R20BGmKD5Ajo/5We7xeg02K5w/j3Fcsb
+	8FD7Nzxe+yfqJTYL9w4mtM60jYwD+aCpvgr5Y6e7PxiLxHlhpfN1m2psd6TfmVSPJFkcBEjqVHK
+	lIWVrEKGYtCA9HpO9UwbWzkamUAx9dkGPU4D7FS3uSl3WRkOEFg6e20qAjJwUjUFka
+X-Received: by 2002:a17:90b:48c5:b0:3a4:b418:94cf with SMTP id 98e67ed59e1d1-3ab3a7366bfmr18636143a91.14.1792100210060;
+        Thu, 15 Oct 2026 14:36:50 -0700 (PDT)
+Received: from localhost ([2a03:2880:2ff:46::])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3acd05fb680sm23372a91.2.2026.10.15.14.36.48
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 15 Oct 2026 14:36:49 -0700 (PDT)
+Date: Thu, 15 Oct 2026 14:36:38 -0700
+From: Stanislav Fomichev <sdf.kernel@gmail.com>
+To: Mina Almasry <almasrymina@google.com>
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-rdma@vger.kernel.org, bpf@vger.kernel.org, Ayush Sawal <ayush.sawal@chelsio.com>, 
+	Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, 
+	Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, 
+	Paolo Abeni <pabeni@redhat.com>, Tariq Toukan <tariqt@nvidia.com>, 
+	Simon Horman <horms@kernel.org>, Steffen Klassert <steffen.klassert@secunet.com>, 
+	Herbert Xu <herbert@gondor.apana.org.au>, Neal Cardwell <ncardwell@google.com>, 
+	Kuniyuki Iwashima <kuniyu@google.com>, John Fastabend <john.fastabend@gmail.com>, 
+	Sabrina Dubroca <sd@queasysnail.net>, Eric Biggers <ebiggers@kernel.org>, Kees Cook <kees@kernel.org>, 
+	Aleksandr Loktionov <aleksandr.loktionov@intel.com>, Petr Machata <petrm@nvidia.com>, 
+	Uwe =?utf-8?Q?Kleine-K=C3=B6nig_=28The_Capable_Hub=29?= <u.kleine-koenig@baylibre.com>, Jakub Raczynski <j.raczynski@samsung.com>, 
+	Wang Zhan <wang.zhan@smartx.com>, Willem de Bruijn <willemb@google.com>
+Subject: Re: [PATCH net-next v3 0/6] net: unify symmetric netmem and
+ page_pool refcounting
+Message-ID: <atFHX4ryLonqXpn4@devvm7509.cco0.facebook.com>
+References: <20261014173945.373295-1-almasrymina@google.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20261015011940.4122452-1-dhu@x6u.co> <20261015011940.4122452-5-dhu@x6u.co>
- <20261015181713.GB219304@unreal>
-In-Reply-To: <20261015181713.GB219304@unreal>
-From: David Hu <dhu@x6u.co>
-Date: Thu, 15 Oct 2026 17:19:12 -0400
-X-Gm-Features: AclHuK983uRNo0pxUvQDGtecJUcInNsMhMtPfO5CNth4ZI64eLju23gowvdoTn4
-Message-ID: <CABdL-LQK+hQkJkZVA8iwSVYTnBLtX7VYJ=VjhP534MR7d2ep5w@mail.gmail.com>
-Subject: Re: [PATCH rdma-next v2 4/6] RDMA/irdma: Split CQ setup to umode and kmode
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Tatyana Nikolova <tatyana.e.nikolova@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
-	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, jmoroni@google.com, 
-	eagleshaw@google.com, xuehaohu@google.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20261014173945.373295-1-almasrymina@google.com>
 
-On Thu, Oct 15, 2026 at 2:17=E2=80=AFPM Leon Romanovsky <leon@kernel.org> w=
-rote:
->
-> On Thu, Oct 15, 2026 at 01:19:38AM +0000, David Hu wrote:
-> > From: David Hu <xuehaohu@google.com>
-> > @@ -2624,6 +2624,126 @@ static inline int cq_validate_flags(u32 flags, =
-u8 hw_rev)
-> >       return flags & ~IB_UVERBS_CQ_FLAGS_TIMESTAMP_COMPLETION ? -EOPNOT=
-SUPP : 0;
-> >  }
-> >
-> > +static int irdma_setup_kmode_cq(struct irdma_device *iwdev,
-> > +                             struct irdma_cq *iwcq,
-> > +                             struct irdma_cq_init_info *info,
-> > +                             const struct ib_cq_init_attr *attr)
-> > +{
-> > +     struct irdma_cq_uk_init_info *ukinfo =3D &info->cq_uk_init_info;
-> > +     struct irdma_pci_f *rf =3D iwdev->rf;
-> > +     struct irdma_sc_dev *dev =3D &rf->sc_dev;
-> > +     int entries =3D attr->cqe;
-> > +     bool cqe_64byte_ena;
-> > +     u8 cqe_size;
-> > +     int rsize;
-> > +
-> > +     if (entries < 1 || entries > rf->max_cqe)
-> > +             return -EINVAL;
->
-> This if() is impossible.
+On 10/14, Mina Almasry wrote:
+> netmems (pages and net_iovs) have two independent refcounts: a non-pp
+> refcount (page._refcount or binding->ref) governing backing memory
+> lifetime, and pp_ref_count governing recycling within a page_pool while
+> page_pool holds a single backing non-pp reference. SKBs with
+> pp_recycle=1 own pp_ref_count references on page_pool fragments; SKBs
+> with pp_recycle=0 own non-pp references.
+> 
+> Core helpers currently mix these two refcounts asymmetrically:
+> skb_frag_ref() always increments the non-pp refcount via get_netmem(),
+> whereas skb_frag_unref() decrements pp_ref_count when skb->pp_recycle
+> is set. Any path that refs a fragment on a pp_recycle=1 SKB (or unrefs
+> with a hardcoded recycle=false) increments one counter and decrements
+> the other, leaking the backing memory while underflowing pp_ref_count
+> (e.g., IP-TFS [1], skb_split(), skb_shift(), and cloned SKB uncloning).
+> Unclear core APIs also led drivers and ULPs to open-code pp_ref_count
+> manipulations or add one-off helpers like skb_pp_frag_ref().
+> 
+> Unify fragment refcounting into symmetric pairs where each layer clearly
+> specifies which refcount it touches:
+> 
+> - Non-PP refcount: get/put_page(), get/put_net_iov(), get/put_netmem()
+> - PP refcount:     napi_pp_get/put_page()
+> - SKB netmem:      skb_netmem_ref/unref(netmem, recycle)
+> - SKB fragment:    skb_frag_ref/unref(skb, f)
+> 
+> Found by code inspection while reviewing [1] and confirmed with the KUnit
+> tests in patch 6; not observed in production. Driver and ULP call-site
+> changes are compile-tested only.
+> 
+> Link: https://lore.kernel.org/netdev/xfrm-iptfs-pp_ref_count-underflow-v4-1-912fa72106f0@secunet.com/ [1]
+> 
+> ---
+> v3:
+> - Linearize straddling output segments in skb_segment() when frag_list
+>   SKBs mix pp_recycle flags instead of clearing NETIF_F_SG, and add a
+>   KUnit regression test (Sashiko).
+> - Link to v2: https://lore.kernel.org/netdev/20261012082148.1698596-1-almasrymina@google.com/
 
-Hi Leon,
-
-Right. That is impossible following your series in [1]. I'll clean up
-the checks.
-
-[1] https://lore.kernel.org/all/20260213-refactor-umem-v1-0-f3be85847922@nv=
-idia.com/
-
-> > @@ -2689,109 +2806,12 @@ static int irdma_create_cq(struct ib_cq *ibcq,
-> >       info.type =3D IRDMA_CQ_TYPE_IWARP;
-> >       info.vsi =3D &iwdev->vsi;
-
-> > +     if (udata)
-> > +             err_code =3D irdma_setup_umode_cq(iwdev, iwcq, &info, uda=
-ta);
-> > +     else
-> > +             err_code =3D irdma_setup_kmode_cq(iwdev, iwcq, &info, att=
-r);
->
-> No, the idea was to actually implement and set ,crate_user_cq() callback
-> and clean as much as possible from existing .create_cq() callback.
-
-Thank you Leon for clarifying ! =E2=80=94 Will do. I will send out a v3 sho=
-rtly.
-
-Regards,
-David
+Acked-by: Stanislav Fomichev <sdf@fomichev.me>
