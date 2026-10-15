@@ -1,64 +1,86 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from esa.microchip.iphmx.com (esa.microchip.iphmx.com [68.232.154.123])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02EA04BA1D6
-	for <linux-rdma@vger.kernel.org>; Thu, 15 Oct 2026 10:47:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 841E5502576;
+	Thu, 15 Oct 2026 10:49:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=68.232.154.123
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792061244; cv=none; b=qzG6GAvepDqK/33qla0jBI2cWHhX5LC+uCTyvxyJ2KCd11D+Ry3p3n7FIkF09WJvUeU1ACJTMdr4HjAnUQJzzqNZkgXp+bTMFyNo8GeVamHL4uyEZclDvuN/BtlxXKR2gUHMFioa/aTs4Cn50ylQSjpg0lNi74swowsH4cbTzR0=
+	t=1792061398; cv=none; b=iG5ARMGjirBu7hNX66HIJ7ZnQksy5V1YNzYbp79MWLvX8io9DBtNKmqPlSXTrHt/xvOKyDL6eUmGYCA48ATTp1uRFHuJnG8IyU++F5RU4oH9QqWFr4JovZ4y+Za39wXGR82v8gYfzyUi8nyM6z5VLiJP7EZrx5FFLNjXKnqRt8k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792061244; c=relaxed/simple;
-	bh=nPsaE0cjJfQd8HQjP//fIhn7NdaBhnOE1vf8C6hDdHc=;
-	h=Message-ID:From:Subject:To:In-Reply-To:References:Content-Type:
-	 Date; b=LayJ4pwzywpGfndJggNoSbRAdOkryBPUBaZ5fzsPPLbIMsYwrHJUMHzu5rxPXuokgQAz9qznIG5NjNsI5O0s+4bTT+XwlGh0kgvjr7ut5vq1tJOEdwndEmOy1hn7Ku3znVBdBFqfrvPyFFYxUinI7YVmjduuhjmKAn8bW4QkhVI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Er6G3izw; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792061398; c=relaxed/simple;
+	bh=l8aVUq7TDzxK7o/5g8O49rOLFIqY4I+NPKBGy+ZUBpY=;
+	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=SBVxgVhzDB1uDgB8GcNEycNT80PFy7bnX3AladGw8p/vAX3Y9fv3cruKA4TLVwmdW/hLDE4hPkKUCrD/22TrBP8639pPNxJ2YMkz7PJVRX31eG9xbjr2zHlGW+f0sqsj+1omds9EJjeiRXRTV7uuAcbyrrWv3qrY4qGrBQBcvXg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microchip.com; spf=pass smtp.mailfrom=microchip.com; dkim=pass (2048-bit key) header.d=microchip.com header.i=@microchip.com header.b=qjrmJG+v; arc=none smtp.client-ip=68.232.154.123
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microchip.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=microchip.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Er6G3izw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B23701F000C5;
-	Thu, 15 Oct 2026 10:47:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792061243;
-	bh=nPsaE0cjJfQd8HQjP//fIhn7NdaBhnOE1vf8C6hDdHc=;
-	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
-	b=Er6G3izwabSvLPrpliK5BAPtmEVQ0DC5Om8ZTlQ1g3Qz9GlhivIXDkvCho/ozxE1V
-	 BUbZdky6CcJXHq8Wuqyh/bCQ+J4ZUXjeyCe6dHgonS1xCH7wxvqk84et4N2qPQ8bP4
-	 PMUIpykEhE2N5j62BEWrPlAmnQuN3hR+bJ/QCiICyVxOZYz19cTrFNJI3S7G+0wWRb
-	 iEMGAm49naWEEjSF8lNABmmhNH+jgabg6A/mAay79ULms5kXlQ02dXeKgdyAw+BWr1
-	 wXJ0ubK7E28S0Yo9VWp0bP4mazly2+/oiQT3io9h+QByA51jwopAB/SKl4gGK35GCy
-	 LTtOrsYw/UJEg==
-Message-ID: <sashiko-outbox-172678@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH] IB/rdmavt: Fix error unwind path for qp_priv_init() in
- rvt_create_qp()
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Serhat Kumral" <serhatkumral1@gmail.com>, linux-rdma@vger.kernel.org
-In-Reply-To: <20261015102518.15780-1-serhatkumral1@gmail.com>
-References: <20261015102518.15780-1-serhatkumral1@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Thu, 15 Oct 2026 10:47:23 +0000
+	dkim=pass (2048-bit key) header.d=microchip.com header.i=@microchip.com header.b="qjrmJG+v"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=microchip.com; i=@microchip.com; q=dns/txt; s=mchp;
+  t=1792061396; x=1823597396;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=l8aVUq7TDzxK7o/5g8O49rOLFIqY4I+NPKBGy+ZUBpY=;
+  b=qjrmJG+vGxVjjl/sFvQvvwd4R3VmtUD5ix9DAcQHfSLpHFb93cpyZIYa
+   I+M831tjhCyhtpkSKCffomGUaE1CNy2DpYfn40EEG8s60ZFaZcnjeqDRp
+   YNTBMJD1VJnXQ6cKZcl7xsxmPWkoAGy3EcLFc4ymichwqsAdh6spOE7/s
+   rPw6ZqouJ4/V2IwPjQUR99jgNtbKy2kmBI3eUy4DVJ8EybQ3Z4337mrZC
+   HZHnm9RWozQ0/8VJhkh6N1ZbxvVfVnOb0OU65GZAZcRw6pSWp83hjqgTb
+   5VMAWP1fP87G1K7cT4dCemMhosVHwXGEI6UmoK3N7fnJ0qJhgRu4vAsmp
+   w==;
+X-CSE-ConnectionGUID: zI5WEAn0QBGADsosev5ImQ==
+X-CSE-MsgGUID: sDRlxJcOQ5ap75mFo/rnnA==
+X-IronPort-AV: E=Sophos;i="6.27,159,1787036400"; 
+   d="scan'208";a="64135478"
+X-Amp-Result: SKIPPED(no attachment in message)
+Received: from unknown (HELO email.microchip.com) ([170.129.1.10])
+  by esa4.microchip.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES128-GCM-SHA256; 15 Oct 2026 03:49:49 -0700
+Received: from chn-vm-ex03.mchp-main.com (10.10.85.151) by
+ chn-vm-ex01.mchp-main.com (10.10.85.143) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.58; Thu, 15 Oct 2026 03:49:39 -0700
+Received: from DEN-DL-M70577.microsemi.net (10.10.85.11) by
+ chn-vm-ex03.mchp-main.com (10.10.85.151) with Microsoft SMTP Server id
+ 15.1.2507.58 via Frontend Transport; Thu, 15 Oct 2026 03:49:36 -0700
+Date: Thu, 15 Oct 2026 12:49:35 +0200
+From: Daniel Machon <daniel.machon@microchip.com>
+To: Tariq Toukan <tariqt@nvidia.com>
+CC: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
+	<davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski
+	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Arkadiusz Kubalewski <arkadiusz.kubalewski@intel.com>, Carolina Jubran
+	<cjubran@nvidia.com>, Gal Pressman <gal@nvidia.com>, Jiri Pirko
+	<jiri@nvidia.com>, Jiri Pirko <jiri@resnulli.us>, Leon Romanovsky
+	<leon@kernel.org>, open list <linux-kernel@vger.kernel.org>,
+	<linux-rdma@vger.kernel.org>, Mark Bloch <mbloch@nvidia.com>, Saeed Mahameed
+	<saeedm@nvidia.com>, Vadim Fedorenko <vadim.fedorenko@linux.dev>
+Subject: Re: [PATCH net] net/mlx5: DPLL, fix fractional frequency offset
+ scaling
+Message-ID: <20261015104935.7amgxizpsao4zbsl@DEN-DL-M70577.microsemi.net>
+References: <20261015074035.1092340-1-tariqt@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20261015074035.1092340-1-tariqt@nvidia.com>
 
-> If driver_f.qp_priv_init() fails, execution jumps to bail_rq_wq, which
-> bypasses bail_qpn. Because alloc_qpn() has already succeeded at this poin=
-t,
-> the allocated QP number is left unreleased.
->=20
-> Jump to bail_qpn instead to ensure the QPN is properly freed via
-> rvt_free_qpn().
->=20
-> Fixes: 5190f052a3654 ("IB/hfi1: Allow the driver to initialize QP priv st=
-ruct")
-> Assisted-by: LLM
-> Signed-off-by: Serhat Kumral <serhatkumral1@gmail.com>
+> From: Carolina Jubran <cjubran@nvidia.com>
+> 
+> The frequency_diff is reported by firmware in parts-per-trillion, which
+> is exactly what the DPLL core now expects from the ffo_get callback.
+> 
+> Commit bc443c253fcd ("dpll: expose fractional frequency offset in ppt")
+> switched the callback contract to ppt but assumed frequency_diff was in
+> ppm and scaled it by 1000000 to "convert" it. Since the value was
+> already ppt, this makes both exported attributes wrong.
+> 
+> Report frequency_diff as is and let the core divide it down for the
+> legacy ppm attribute.
 
-Sashiko has reviewed this patch and found no issues. It looks great!
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261015102518.1578=
-0-1-serhatkumral1@gmail.com?part=3D1
+Reviewed-by: Daniel Machon <daniel.machon@microchip.com>
 
