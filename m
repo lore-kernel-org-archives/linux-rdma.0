@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A42EF58E2BA;
-	Thu, 15 Oct 2026 20:37:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4345D58B6D7;
+	Thu, 15 Oct 2026 20:37:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792096669; cv=none; b=ulE0HjS5J8+6cbdLA9Ofl1aP3AGPhdG2mnWDCG9HDMoE5tVH412EorWKXNDh2FOplrH+aXvJBEkBdy1KxL1XQnQwO96rX25gUMWgMmJ1/FBs38dUvKCjKylaWaDV1efH3bmIKO5zbYlUoC3pwG1j49zKRsuwIOAJw5r2JBRVtHg=
+	t=1792096672; cv=none; b=uqswaTsj0xKvf1ESkq3dE7z2w+cl6QkVNBbw7muifbAtNxJNMjquvS4PBUnShkxG6twJxEVepNIEKlWtyeqf7wFf2P/g/PvfiRrg/pCnbgEh8mv/7krVEoG6BWAQw4MKKl5tRabbzWsIgiIGz2oFJ0uVnJMMeevjgAV2LXsaWY8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792096669; c=relaxed/simple;
-	bh=/9EOvdxzHRtiXIwvOcxYC554zJzwlbC2TwkzL4yMq0o=;
+	s=arc-20240116; t=1792096672; c=relaxed/simple;
+	bh=g8tiiAW5MHg4PJW6ZTdkPSj3y7sW7tn9a/3HGjXUjhI=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=SqCmPdCKy+PClJOtTKIn0qjBaB4FbxXR6y4xq1N7ivKFU5O0dAHtXInUrf8H1KNs2K6SfmwiALgB9hHodMgEENainEdZcEICr9YuZ6a8kJDowFdJ/jufC3zz96zHQzckg1il0cad5L4C+CyhK66UW+IzoPdxIwCNEUf0nqLuOAA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DbW8iILu; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=UID0hpImBoCxbtxdAvmY7mVG8KbY2MkNRAaJCO9QN6jy9TyYrxBxCCc654dZ5nQXGTzYKn/jqrg11O+Mxc9BBczOedc6v4tc86nUzt+tF6Z/qjzv89tFiVgWKTrgS7hk+EfCdHdC/MyiRqj5Kw2iOBED2jcGn1bCVTlq1i71qE8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=U00eo/dr; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DbW8iILu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27F561F000C4;
-	Thu, 15 Oct 2026 20:37:45 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="U00eo/dr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0338B1F000C7;
+	Thu, 15 Oct 2026 20:37:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792096666;
-	bh=z7ZmkhH9JYzNFrXILASZ7xZ3lAAHTbbGP6iDfmetY9o=;
+	s=k20260515; t=1792096664;
+	bh=IPcKGbXXpZt96HRSZUitEgyU01sKJ5kUO6vq6O/gjKY=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=DbW8iILuHxSVD5zmr/NhveSPXDVUwA68ISBGeKYyuwaupWmCpyLYmj1hkurU9E4+A
-	 L1259GhqyMKY56PzAHzlLnoLNzirv6bRiMnFXsgOPQN8L6ZlIL1qzBU7EBL0P0z0sd
-	 6nwPF6skttBewQOrtG4tsb6xmiBs4QnZvV+69SR/pos84ePCD1JCUlsj6dF1BRTIgR
-	 C7Heq4kuRwLnPSb9zzARNmFmHV4Ph9FzmoI3LdxMt8u/AnuVCdr1IttyU8eJ2j6ig4
-	 vzlpTZmHv3qxTvAd4dTVPk7WMFe26pq7CK4mOlu/y1/sgqp+EJQbRCcEbnnljTBp+q
-	 ITQNV/M5mzJsA==
-Subject: Re: [PATCH net-next v3 6/6] net: kunit: test netmem, page_pool, and
- skb frag refcounting
+	b=U00eo/drPeLtQSkFhXxvwj5+RVFaYPRfFc3gp9HqYjd5806izmcG5bWI6a/Pm7que
+	 Edfc/+7lwe6wEtY4it6T5y5rhzRZemQUAfnBrPWHQTLGRGGLelZRdPzp8AxsoOW/pT
+	 UO60ITIv6cvqrRT8UTii2pnqoFK+0jxLibB5eFEdh7jIpojNhh4LuqU1u7N/+roSOv
+	 sE/oshJLlMWMubBd9zGlzn5EpNns/ZUXvky4Zi/Tu5maOLo9MQzjDqX0sVQP5xZTo5
+	 Z9YcQ22L8tyHIaNYvl/WVOMB8pMzWMPMvLJSt+VfiMiyx5eI0O7kPM9KsG+FjJwr5I
+	 +mCZoC3TiLN8w==
+Subject: Re: [PATCH net-next v3 4/6] net: skbuff: replace __skb_frag_ref()
+ with symmetric skb_netmem_ref()
 From: netdev-bot+sashiko@kernel.org
 To: almasrymina@google.com
 Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
@@ -39,11 +39,11 @@ Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
  sd@queasysnail.net, ebiggers@kernel.org, kees@kernel.org,
  aleksandr.loktionov@intel.com, petrm@nvidia.com, u.kleine-koenig@baylibre.com,
  j.raczynski@samsung.com, wang.zhan@smartx.com, willemb@google.com
-Date: Thu, 15 Oct 2026 20:37:44 +0000
-Message-ID: <179209666474.434549.10472911839946149869@kernel.org>
-In-Reply-To: <20261014173945.373295-7-almasrymina@google.com>
-References: <20261014173945.373295-7-almasrymina@google.com>
-X-sashiko-severity: Low
+Date: Thu, 15 Oct 2026 20:37:42 +0000
+Message-ID: <179209666252.434549.1850964039919625643@kernel.org>
+In-Reply-To: <20261014173945.373295-5-almasrymina@google.com>
+References: <20261014173945.373295-5-almasrymina@google.com>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -53,95 +53,127 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+Thank you for your contribution! Sashiko AI review found 2 potential
+issue(s) to consider.
 
-Low priority / nit picks for your consideration:
+Critical: 0 · High: 0 · Medium: 1 · Low: 1
 
-- [Low] The new netmem refcount KUnit cases do not register deferred
-  cleanup (for example with kunit_add_action_or_reset()).
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [Medium] The commit fixes reachable page_pool refcount imbalances but
+  has no Fixes: tag, so the fix will not be picked up for stable.
+- [Low] In the new skb_segment() linearize branch, the bytes being
+  linearized are counted twice in nskb->truesize: 1) The code does…
 
 --
 
-net: kunit: test netmem, page_pool, and skb frag refcounting
+net: skbuff: replace __skb_frag_ref() with symmetric skb_netmem_ref()
 
-This commit adds KUnit cases to net/core/net_test.c. They check that page
-refcounts, devmem binding refs and pp_ref_count stay balanced for regular
-pages, page_pool pages and devmem net_iovs across many skb helpers. It
-also exports skb_shift() via EXPORT_SYMBOL_IF_KUNIT() so the test links
-when built as a module.
+This patch replaces __skb_frag_ref() with skb_netmem_ref(netmem, recycle).
+The new helper takes a pp_ref_count reference when recycle is set and the
+netmem is page_pool backed, so it mirrors skb_netmem_unref(). The patch
+also stops clearing skb->pp_recycle in skb_release_data() and propagates
+pp_recycle to the destination skb in the copy, split, shift and segment
+paths. It also linearizes skb_segment() output segments when frag_list
+skbs have different pp_recycle bits.
 
-> diff --git a/net/core/net_test.c b/net/core/net_test.c
-> index bc2ef7612e7df..2bb01430a89f7 100644
-> --- a/net/core/net_test.c
-> +++ b/net/core/net_test.c
-> @@ -457,10 +457,1231 @@ static void ip_tunnel_flags_test_run(struct kunit *test)
+Link: https://lore.kernel.org/netdev/xfrm-iptfs-pp_ref_count-underflow-v4-1-912fa72106f0@secunet.com/
+
+> Previously, __skb_frag_ref() and skb_frag_ref() unconditionally
+> incremented the non-pp backing refcount via get_netmem(), while
+> skb_frag_unref() decremented pp_ref_count whenever skb->pp_recycle was
+> set. Ref-ing a page_pool fragment into a pp_recycle=1 SKB (or clearing
+> pp_recycle=0 on an uncloned SKB while clones still held pp_recycle=1)
+> leaked the backing non-pp refcount and underflowed pp_ref_count across
+> IP-TFS, skb_split(), skb_shift(), and cloned unclone paths.
+
+[Severity: Medium]
+Should this patch have a Fixes: tag so stable picks it up?
+
+In the base tree, iptfs_skb_add_frags() takes a raw page reference on
+each frag it adds. The destination skb only needs to have the same
+pp_recycle as the walk, so it can be a pp_recycle=1 skb:
+
+    __skb_frag_ref(tofrag);  ->  get_netmem()  ->  get_page()
+
+Those references are later dropped through napi_pp_put_page(), which
+underflows pp_ref_count. The page can then go back to the pool while the
+source skb still points at it. That code came from:
+
+Fixes: 5f2b6a909574 ("xfrm: iptfs: add skb-fragment sharing code")
+
+The commit message also covers only one direction of the imbalance.
+The reverse case is reachable through skb_split() from batman-adv:
+
+batadv_frag_create()
+    skb_fragment allocated with dev_alloc_skb()   /* pp_recycle = 0 */
+    skb_split(skb, skb_fragment, skb->len - fragment_size)
+        skb_split_inside_header()    /* moves frags, takes no refs */
+
+If the forwarded RX skb has pp_recycle=1, its page_pool frags end up in a
+pp_recycle=0 skb. When skb_fragment is freed, put_page() runs on them and
+drops a page reference that page_pool owns.
+
+Both directions look like they can cause a use-after-free of the page,
+not just a refcount leak. Could the commit message describe the
+skb_split() case and its consequence more precisely?
+
+> diff --git a/net/core/skbuff.c b/net/core/skbuff.c
+> index 980bbe9166393..96088289c234d 100644
+> --- a/net/core/skbuff.c
+> +++ b/net/core/skbuff.c
 
 [ ... ]
 
-> +#ifdef CONFIG_INET
-> +static void netmem_ref_test_tcp_devmem_recv(struct kunit *test)
-> +{
-
-[ ... ]
-
-> +	pool = page_pool_create(&pp_params);
-> +	if (IS_ERR(pool)) {
-> +		sock->sk->sk_state = TCP_CLOSE;
-> +		sock_release(sock);
-> +		KUNIT_ASSERT_FALSE(test, IS_ERR(pool));
-> +	}
-> +
-> +	ret = percpu_ref_init(&binding.ref, dummy_percpu_ref_release,
-> +			      PERCPU_REF_INIT_ATOMIC, GFP_KERNEL);
-> +	if (ret) {
-> +		page_pool_destroy(pool);
-> +		sock->sk->sk_state = TCP_CLOSE;
-> +		sock_release(sock);
-> +		KUNIT_ASSERT_EQ(test, ret, 0);
-> +	}
-
-[ ... ]
-
-> +	/* 1. Receive via tcp_recvmsg_dmabuf -> SO_DEVMEM_DONTNEED release */
-> +	skb = alloc_skb(0, GFP_KERNEL);
-> +	KUNIT_ASSERT_NOT_NULL(test, skb);
-
-[ ... ]
-
-> +	ret = kernel_recvmsg(sock, &msg, &iov, 0, 64,
-> +			     MSG_SOCK_DEVMEM | MSG_DONTWAIT);
-> +	KUNIT_ASSERT_EQ(test, ret, 64);
+> @@ -5057,6 +5049,16 @@ struct sk_buff *skb_segment(struct sk_buff *head_skb,
+>  
+>  		while (pos < offset + len) {
+>  			if (i >= nfrags) {
+> +				if (skb_shinfo(nskb)->nr_frags &&
+> +				    nskb->pp_recycle != list_skb->pp_recycle) {
+> +					nskb->data_len = pos - offset - hsize;
+> +					nskb->len += nskb->data_len;
+> +					nskb->truesize += nskb->data_len;
+                                        ^^^^
 
 [Severity: Low]
+Are the linearized bytes counted twice in nskb->truesize here?
 
-If this KUNIT_ASSERT_EQ() fails, KUnit aborts the case and the teardown at
-the end of netmem_ref_test_tcp_devmem_recv() never runs. Does that leak
-the kernel TCP socket, the page_pool and the percpu_ref data?
+nskb was allocated with only hsize + doffset + headroom, so
+__skb_linearize() will usually need to grow the head:
 
-The page_pool_create() and percpu_ref_init() failure paths above call
-sock_release() and page_pool_destroy() before they assert. The later
-checks do not:
+__skb_linearize()
+    __pskb_pull_tail()
+        pskb_expand_head(skb, 0, eat + 128, ...)
 
-    KUNIT_ASSERT_NOT_NULL(test, skb);
-    ...
-    KUNIT_ASSERT_EQ(test, ret, 64);
+nskb->sk is NULL during segmentation, so pskb_expand_head() also adds the
+head growth to truesize:
 
-This applies to both the first and the second receive. On those paths the
-socket's receive queue or sk_user_frags may still point at the on-stack
-niov.
+	if (!skb->sk || skb->destructor == sock_edemux)
+		skb->truesize += size - osize;
 
-The other new cases follow the same pattern:
+If tailroom was already enough, the head was accounted at allocation time,
+so the explicit add over-counts in that case too.
 
-netmem_ref_test_page() leaks the page if alloc_skb() fails.
+hsize is reset after linearizing, so skip_fraglist only adds the remaining
+frag bytes. The final truesize then looks inflated by about the
+linearized byte count for each straddling segment.
 
-netmem_ref_test_pp_page() and netmem_ref_test_skb_segment() leak the
-pool, its pages, reg_page and the percpu_ref if any of their
-KUNIT_ASSERT_*() checks trip.
+Is the truesize update needed here? Would adjusting data_len and len be
+enough to keep the skb consistent for __pskb_pull_tail()?
 
-Could the teardown be registered with kunit_add_action_or_reset() so it
-also runs when an assertion fails?
+> +					if (__skb_linearize(nskb))
+> +						goto err;
+> +					hsize = pos - offset;
+> +					nskb_frag = skb_shinfo(nskb)->frags;
+> +				}
+>  				if (skb_orphan_frags(list_skb, GFP_ATOMIC) ||
+>  				    skb_zerocopy_clone(nskb, list_skb,
+>  						       GFP_ATOMIC))
 
 [ ... ]
 
