@@ -1,39 +1,39 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31318518143;
-	Thu, 15 Oct 2026 11:59:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CEAE518158;
+	Thu, 15 Oct 2026 11:59:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792065557; cv=none; b=s2ijUB+WmTLV2B3ZYHswR/yMvhoKWbmJsdTgYnF5al1iYKMnGucAmHqoRZwfkgsJd6d+P2zfeut5nt5Ef9TG7ke1hCj3u2HUwT5loN8M4H3viu1PcVus7R5NTCKiN/ZIrRRsI9lG22cuOzx9ZNG3uOskZudI64f3JyIqamdNRHc=
+	t=1792065560; cv=none; b=r0z7hbSp3B4Pi2s27QnGBdwikqjRlUi1j3cEknxKvhTY/Yd+UeJd+atMpgrhHn91rc9EePltZwrhBpXsPtiHNsSs1nPo8oiyLXi114Dbjhz30oxEi7bwVHKVFdpabIMfOq9Sn9XXJjBnDYGGbAES8eYqI10WiquQHf4fAGZz5XQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792065557; c=relaxed/simple;
-	bh=aol5ZbSv1D74lfXg742+T7Gf4SeaNYzgue/Whlmyb2Y=;
+	s=arc-20240116; t=1792065560; c=relaxed/simple;
+	bh=rSEOV8VRGcsUnyxvpDxWwUomyuCFT0NGj9X5osfyJkU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=D1ediv+FIBCjYGTQr2dvgKqERQY19mSfFdxsJZGfQpP2rV56807t/rUN43fFi/wLgiUNPfWrBVjHLwZ1k58IspDFJWDYfsPjEc5bV/NuvhiCxKjBfErZv8DfoixHGN085+TynftTTFs+qbAsDOFnkm38oH52m8x67yRwFvgYaeQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RJJUI5Ot; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=rAqdcFmzc8gJ+hKy3R+LAycozqnHUGHNEnAJLmJNRiuz1lsPdGHBnSELNqWvpbTUxdlALZ3yJKpHoQ2/jfhivySQSx77nIaVWgOfi2+vPNJouhUL+US9HRNYQDX+05Pt9H3IiLSqBSCTZ9WrpunY3tJu2Zy5XHCuhwXAxekhnlU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CN3ycaaZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RJJUI5Ot"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3915C1F000C4;
-	Thu, 15 Oct 2026 11:59:15 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CN3ycaaZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63F031F000C4;
+	Thu, 15 Oct 2026 11:59:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792065555;
-	bh=X+2TnBkHXEnhEtnSRl5t9hwQB5sORH7JscPpFWBGoeg=;
+	s=k20260515; t=1792065559;
+	bh=qP8/tIYa0gcosBQ9EKNrYiQBlTnxHfFXnZoV45ZKWsA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=RJJUI5Ot8QM+g9fuIvdaro7hLchztW2c3rKz8keMINiIBLkY5roBhD4xtHPdo3NMM
-	 tiq4vTAtFIQnZZrrD5xe09xEoeVjY3WTHxRxwkOqG4/FUcabRpPCwZ1/id5B1W5s3I
-	 ufGmJC5iEPIcsyuQ4f0oI0pvsLq+5XARVZhKAQelJ8hWT4fwTq5sQtgTh6lFAJ/t3D
-	 o0IBk2pI4FJbQOQH81VzP3oiWcCh+12exKoRpd9ylh/fr/JfBsGkIRKQC/3/ducxJE
-	 LM3Tc5f0NUAnBs0+iYk1y2mWvuutP0QnMG38K64Uy325z7jdspke2MwQX2sAeWmyqd
-	 IXMk6S2YuHAzA==
+	b=CN3ycaaZcoZHfbVaZTQYcetnYk7Eg6o9EM+setE+y4rs55G85nlEJXrq0bQb7Jh/A
+	 nWlw2htyzQ98PvDA5nnrbvyZcYwqilP2PzekVAcyV5JWyldXgxKbyw4m5jn23bQV2e
+	 3bEXeCyNLEZq156jT/JSCiKk60Mu6BNUVn8KnEP5BJVQReqj5ghMFm5NVxOgFMXK7U
+	 mI95vNP5E8EZfgJOIm9bHeAJw/2EPQB5K+z9W7XBpDiyYvXVNplqPy4Lpfu6UFdIHA
+	 2LLF9FWvlsEJmHEK7VaLowkzh6TOSAkHlcLs3TNEKbnsDCtrrQFeDGBPk4kV5BiFmL
+	 kb0vTYXE4M7lQ==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@ziepe.ca>,
 	Maor Gottlieb <maorg@mellanox.com>
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next 3/3] RDMA/core: Reject LAG selection when source MAC lookup fails
-Date: Thu, 15 Oct 2026 14:59:02 +0300
-Message-ID: <20261015-ib-core-fixes-v1-3-60f6da3ddec3@nvidia.com>
+Subject: [PATCH rdma-next 1/3] RDMA/core: Preserve the selected source GID on failed AH modification
+Date: Thu, 15 Oct 2026 14:59:00 +0300
+Message-ID: <20261015-ib-core-fixes-v1-1-60f6da3ddec3@nvidia.com>
 X-Mailer: git-send-email 2.56.0
 In-Reply-To: <20261015-ib-core-fixes-v1-0-60f6da3ddec3@nvidia.com>
 References: <20261015-ib-core-fixes-v1-0-60f6da3ddec3@nvidia.com>
@@ -49,63 +49,30 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-GID deletion can clear the source device association after LAG lookup
-retains the bonding master. Ignoring the resulting L2 lookup failure
-copies uninitialized source MAC bytes into the synthetic hash packet.
+When an address-handle modification fails, the core replaces its source-GID
+reference. The old address then loses the reference which keeps its source
+entry alive.
 
-Read the source MAC before allocating the packet and propagate lookup
-errors to the caller, so failed lookups cannot influence slave selection.
-
-Fixes: bd3920eac133 ("RDMA/core: Add LAG functionality")
+Fixes: 1a1f460ff151 ("RDMA: Hold the sgid_attr inside the struct ib_ah/qp")
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/lag.c | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ drivers/infiniband/core/verbs.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/lag.c b/drivers/infiniband/core/lag.c
-index 88aac911e8ee..651c868aa04e 100644
---- a/drivers/infiniband/core/lag.c
-+++ b/drivers/infiniband/core/lag.c
-@@ -19,6 +19,11 @@ static struct sk_buff *rdma_build_skb(struct net_device *netdev,
- 	u8 smac[ETH_ALEN];
- 	bool is_ipv4;
- 	int hdr_len;
-+	int ret;
-+
-+	ret = rdma_read_gid_l2_fields(ah_attr->grh.sgid_attr, NULL, smac);
-+	if (ret)
-+		return ERR_PTR(ret);
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index edf62652f9d3..7d52d3036208 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1011,7 +1011,8 @@ int rdma_modify_ah(struct ib_ah *ah, struct rdma_ah_attr *ah_attr)
+ 		ah->device->ops.modify_ah(ah, ah_attr) :
+ 		-EOPNOTSUPP;
  
- 	is_ipv4 = ipv6_addr_v4mapped((struct in6_addr *)ah_attr->grh.dgid.raw);
- 	hdr_len = ETH_HLEN + sizeof(struct udphdr) + LL_RESERVED_SPACE(netdev);
-@@ -26,7 +31,7 @@ static struct sk_buff *rdma_build_skb(struct net_device *netdev,
- 
- 	skb = alloc_skb(hdr_len, flags);
- 	if (!skb)
--		return NULL;
-+		return ERR_PTR(-ENOMEM);
- 
- 	skb->dev = netdev;
- 	skb_reserve(skb, hdr_len);
-@@ -70,7 +75,6 @@ static struct sk_buff *rdma_build_skb(struct net_device *netdev,
- 	skb_reset_mac_header(skb);
- 	eth = eth_hdr(skb);
- 	skb->protocol = eth->h_proto = htons(is_ipv4 ? ETH_P_IP : ETH_P_IPV6);
--	rdma_read_gid_l2_fields(ah_attr->grh.sgid_attr, NULL, smac);
- 	memcpy(eth->h_source, smac, ETH_ALEN);
- 	memcpy(eth->h_dest, ah_attr->roce.dmac, ETH_ALEN);
- 
-@@ -86,8 +90,8 @@ static struct net_device *rdma_get_xmit_slave_udp(struct ib_device *device,
- 	struct sk_buff *skb;
- 
- 	skb = rdma_build_skb(master, ah_attr, flags);
--	if (!skb)
--		return ERR_PTR(-ENOMEM);
-+	if (IS_ERR(skb))
-+		return ERR_CAST(skb);
- 
- 	rcu_read_lock();
- 	slave = netdev_get_xmit_slave(master, skb,
+-	ah->sgid_attr = rdma_update_sgid_attr(ah_attr, ah->sgid_attr);
++	if (!ret)
++		ah->sgid_attr = rdma_update_sgid_attr(ah_attr, ah->sgid_attr);
+ 	rdma_unfill_sgid_attr(ah_attr, old_sgid_attr);
+ 	return ret;
+ }
 
 -- 
 2.55.0
