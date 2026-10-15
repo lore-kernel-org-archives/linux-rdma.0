@@ -1,44 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 820E75221D1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D00375221D7
 	for <linux-rdma@vger.kernel.org>; Thu, 15 Oct 2026 12:48:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792068513; cv=none; b=OUy4euYJX1lYR03dsQwC99J/DcmtRj1ZzK3BfScJKA/5vTYUPi9adG46uNTqr92ggN5oYRUyIy701kpXOz0Ljaf3XQiJtFubMAmt8ymTGuaCWQhsZzr14qhC5mjLSLfAqlayYvBmNdCh0VQ45x3/cJN+I4k780cBpsuh4E/93Y8=
+	t=1792068513; cv=none; b=sn0FkSUBu2SsFKz5R1XQ62dyydbR7CrO/O3SvR7ueRqPN/Zq1LqyoNt1F2wwQ/zUQQrRieralp5KJX9B77j6oeT/OKCgchHQkDL3fE244CRU1kn3TYdvmvJJv1qOU3zkEcl9wZ3zdPwlOsf3SRz2688KZwKLGNGw4mFPULuYgWE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1792068513; c=relaxed/simple;
-	bh=XtzF1750cgjj+gCSUm3R9F/JVymSczq2qSCeAr/iYUc=;
+	bh=psfrRCAktmOlb77X9GwQc4DoJk87B0oKeKLo1gw/TrQ=;
 	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=j6OXDV8BbQwoxo/CLZkX2yx5zsPWEHe9ZHYnjXG64l5jwAQ4D4JDnf88pvXJqnVrUlXHB3PD1FJcOr0QeC8eHQCwUn2A+GYdJUN7Fd0dfRpDJMYWPaopmNpGgAl29juR3p93DoGQofX/xYFzeIJJxQG0C5RrrTodGt10sHC4sww=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XshQh556; arc=none smtp.client-ip=100.103.45.18
+	 Date; b=tio+IFcvjEN2LCU5Mpvrho8DZkFK+nhXWPDZ3Bzg9Aw7FZ9BOki5dYyO+YNddUUFbzpc9pPS6CUM9+sARyM7rxKCQrCbiamNbVPYjmGzqKCTNtDhegrbo1wbPQLOCJlxjcqoRePVPDUyeJLZvnEFWB/EEIESpO5OMltkCes5clU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nAq8TJeA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XshQh556"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 089EF1F000C6;
-	Thu, 15 Oct 2026 12:48:31 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nAq8TJeA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93A7F1F000C4;
+	Thu, 15 Oct 2026 12:48:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1792068512;
-	bh=DX6QZoDW9UQcAb8m9i8N/AIDg9Ff9Kf+QmEGO8UiPts=;
+	bh=psfrRCAktmOlb77X9GwQc4DoJk87B0oKeKLo1gw/TrQ=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=XshQh5561pPzY4s0odFWpWTFdSSg48PsX3MTkECbVlFs0iTqwAfceMXePuV/h5cHh
-	 /W+c0pH1/L5ffnEfEgoPy0SmESAdmiKRrxyO+rIGJZ9WP5gHU7DnNID8Lv5nH6IENv
-	 /+npXOR4paDnvUgLLDYR+cYRQMEUDToh+TBj2BvfZpGRwPkkdwWJYPmVy7rHK8+Odb
-	 CLaA8Pzepb8xEH/fV3swK/ac4Q3H0HIlsSyhJyjVixVgUiQYs5gu8udWvDd0zsaAXV
-	 Y0m3DJEpkm+8FAPsCe1fFkbveJdLseqfbuJfVpg/cOn0OjcO+JNgMboFQvcVjxi9L1
-	 3lIt8nHig9Ikg==
-Message-ID: <sashiko-outbox-172866@kernel.org>
+	b=nAq8TJeAdnSYo8pYDjQDsODATeA9UpfpGWqphDEItD2ZJjZ8rOtqWE4E1Yvi+1Y0A
+	 nAscUmeB6HaiyITNL5lt5w8Lu6GNRJjJSefU0CRy/RcEQWj/W/m9aUW22KTohjwDG+
+	 zwG+e8ph8v0s6EN/PpHw75cAHnTf+OlWHCtKLiCI20M8eEIPFTqFKqnhjH7uNYSu8G
+	 xPmPT5sGgRqBUkl8g9B02e1GrM15AGnAGL2nuMh5Spl+/9VFaS7ggaF2UTRUGMvGwn
+	 GeCzK01kC3iKRgcgD+2+aPDJZX2J7624imn2lI5HN0fnIQ9UBzk/FGUgzjMLtq5pwB
+	 sqdapsXBTD03A==
+Message-ID: <sashiko-outbox-172867@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net 1/3] net/mlx5e: Sync CQE moderation pflags with
- coalesce params
+Subject: Re: [PATCH net 3/3] net/mlx5e: Expose CQE moderation mode on
+ representors
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Tariq Toukan" <tariqt@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261014124704.1017782-2-tariqt@nvidia.com>
+In-Reply-To: <20261014124704.1017782-4-tariqt@nvidia.com>
 References: <20261014124704.1017782-1-tariqt@nvidia.com>
- <20261014124704.1017782-2-tariqt@nvidia.com>
+ <20261014124704.1017782-4-tariqt@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 15 Oct 2026 12:48:31 +0000
+Date: Thu, 15 Oct 2026 12:48:32 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -47,32 +47,16 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 > From: Yael Chemla <ychemla@nvidia.com>
 >=20
-> mlx5e_params keeps two representations of CQE moderation: the private
-> flags (MLX5E_PFLAG_RX_CQE_BASED_MODER, MLX5E_PFLAG_TX_CQE_BASED_MODER)
-> and the fields rx_moder_use_cqe_mode / tx_moder_use_cqe_mode, which are
-> used by ethtool get/set coalesce. Both are used by the driver (ethtool
-> get/set coalesce, channel open, moderation apply). When they disagree,
-> CQE moderation reported value is wrong.
+> commit bc541621f8ba ("net/mlx5e: Support ethtool cq mode") added
+> ETHTOOL_COALESCE_USE_CQE to the NIC ethtool ops but omitted it from
+> mlx5e_rep_ethtool_ops.supported_coalesce_params. The ethtool netlink
+> layer rejects any attempt to set cqe-mode-rx/tx on a representor
+> with EINVAL.
 >=20
-> Such an issue can be seen on channel attach or reopen:
-> mlx5e_build_nic_params() runs and sets rx_moder_use_cqe_mode and
-> tx_moder_use_cqe_mode from device capability but did not set the
-> corresponding pflags. So after attach/reopen, pflags could remain zero
-> while the fields reflected hardware configuration.
+> Add ETHTOOL_COALESCE_USE_CQE to mlx5e_rep_ethtool_ops.
+> mlx5e_ethtool_set_coalesce() already handles it correctly.
 >=20
-> Fix by syncing pflags in build_nic_params from the capability-derived
-> fields.
->=20
-> Reproducer:
->=20
->     ethtool --show-priv-flags eth2 | grep rx_cqe_moder
->       rx_cqe_moder       : off
->     ethtool --coalesce eth2 adaptive-tx off
->     ethtool --show-priv-flags eth2 | grep rx_cqe_moder
->       rx_cqe_moder       : on
->=20
-> Fixes: 445a25f6e1a2 ("net/mlx5e: Support updating coalescing configuratio=
-n without resetting channels")
+> Fixes: bc541621f8ba ("net/mlx5e: Support ethtool cq mode")
 > Signed-off-by: Yael Chemla <ychemla@nvidia.com>
 > Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
 > Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
@@ -81,5 +65,5 @@ Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261014124704.1017=
-782-1-tariqt@nvidia.com?part=3D1
+782-1-tariqt@nvidia.com?part=3D3
 
