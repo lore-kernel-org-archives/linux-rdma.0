@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BE9B49BD8A;
-	Thu, 15 Oct 2026 20:15:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51C7B4A5ED0;
+	Thu, 15 Oct 2026 20:15:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792095326; cv=none; b=EtAtgvdqcFFL/wwFsDjLNYtNmN725HbkuYdgpRXMjsFygVzsT3BpUEZvu7N9im5jBvViQSieQQum2zYXg+knNFp8Z9VYsGejrBSW1b83ZTR3+MREtT1tJY+QNgif75MJPJVUh3Pw+xwVA/hrMpfn+02MbiqT2wxFHv9wEIG2hgc=
+	t=1792095328; cv=none; b=SUyr0PWfVxrB1VcIlQL9daBUWnrbIOsTpLCRZrrTggE7DGBChXHcGIL5J/dk/dPL2guP8M3CBVqhC6p+a0+qYH6te2Ait3CBAnIOlSQj5ZTgJEjX6jXVS1gbwEJ5rEhFFcmAGkD2lrkSEaECQFszHjdm6i5E/3+sDAOweNXDa7s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792095326; c=relaxed/simple;
-	bh=ey04gfJGbAVXgslnspjApSQ1xcd4Bcxxhuwto2yM10s=;
+	s=arc-20240116; t=1792095328; c=relaxed/simple;
+	bh=o/6tC4Iti9jgkzvtQ+oMdQp9J3+vt+1OqpnJZGpvPv0=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=ozKzSMHVNQewaMle2gH8AyrJZctme9Ankz5rAFEDvmGbcMgilfxp28yikf2V+G9MOjEgUyr8eV0hTTnL2TLLdMzzvkdskxh6X3KAcCPeXb7u8bHDYK82C+d5i29j7DkyApasG33suyuu+Z6fAoin5VMdEgoaLv/X2qDBfIhsPSw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SKiQT30S; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=jB++1fwpJ4BDpXjySNu/tyyAnPtI/6kneEWQHxr9mfeMY7WVci9ONiEKQIdbOgHwAgKEHeZK4ShGoH/J00Atq/uDtPiv9Q9eBYeR7+w+YJiBa56B1IH53S9EKqb31isMY70vLnjSM2a47u1SyH+c1x9WR16X7z9QL0xkYikP1zk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BEJj5h5q; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SKiQT30S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C48D1F000C5;
-	Thu, 15 Oct 2026 20:15:23 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BEJj5h5q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E68BF1F000C6;
+	Thu, 15 Oct 2026 20:15:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792095324;
-	bh=cv5PwzXj7RudYzCjURYGyHpUsBCfIZE6LpWxucxV88M=;
+	s=k20260515; t=1792095326;
+	bh=HVseH2fe+YHS4QdNyOTjNRFrabGI0KhJiTZ4qqpyAPE=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=SKiQT30SsQ1suvXAJcBE6BoqY2cgiTNwstDEr9SQ5h9KPB+fVctEF6B79wGnkWa1f
-	 8jJTuQafcP6SkGvtP7v83mcfar+LyOAsNCcX88ZrmpF/8wU29CkGZgtjhdgMOCSMmM
-	 F/aEqd3XKZY3yxwCfQWpbtxoPfKeD/hJIYciaffWM6BtahOasbDZjXyuwoMMLFzyV6
-	 GAAdELJeYxFP6mtn9hWcQE1qA/iRvA0m22xOWdSYjW1Y3uGqYqeeRkqHnieK2EnUVx
-	 iFb/5sRnKQ17w44q3fJBfXo9qPx6ymXJCsjCZnqYt46skF9+vXY9a+hjOpl8FFjeHx
-	 BHNe+iwlxaO+Q==
-Subject: Re: [PATCH net v7 3/4] net/smc: bound the send length to the send
- buffer in smc_tx_sendmsg()
+	b=BEJj5h5q2+AZISYNE1EMj8hWcr2a71cLbzm+luRX+kBH5ZwxxMxAd6auOeB7kKLm2
+	 aHPRJX20MbJ9FvqgnQgUydmHRcj3L1tedG7ALGd9fdUugMwzPS2Ml38Uw9aBGNHdn+
+	 olvGVlhttfRU7N0EtNIvqSowu+9kjYUOQVvWwmBB1OMclji9JgUrxX4ERetM6RII11
+	 Xfwo3Do+7VAHHzp4KR0HUvjfxhCK+Hub/iWY2relq4a1KiaFtKEjBHQK5XU5az8F5q
+	 +XeMVmhanx6Vn/DNlCTTW73VzbkgIrZ1lrRB8YX57KcfHkU1K1hRGTJ0X6t8gNVOvV
+	 CIvGlKWmguMyw==
+Subject: Re: [PATCH net v7 4/4] net/smc: bound the link failover cursor
+ advance to the send buffer
 From: netdev-bot+sashiko@kernel.org
 To: hexlabsecurity@proton.me
 Cc: alibuda@linux.alibaba.com, kuba@kernel.org, pabeni@redhat.com,
@@ -38,10 +38,10 @@ Cc: alibuda@linux.alibaba.com, kuba@kernel.org, pabeni@redhat.com,
  guangguan.wang@linux.alibaba.com, ubraun@linux.ibm.com,
  linux-rdma@vger.kernel.org, raspl@linux.ibm.com, hidayath@linux.ibm.com,
  guwen@linux.alibaba.com
-Date: Thu, 15 Oct 2026 20:15:22 +0000
-Message-ID: <179209532279.434549.3831566859438447501@kernel.org>
-In-Reply-To: <20261013-b4-disp-f345196c-v7-3-ef3dddfbfa68@proton.me>
-References: <20261013-b4-disp-f345196c-v7-3-ef3dddfbfa68@proton.me>
+Date: Thu, 15 Oct 2026 20:15:24 +0000
+Message-ID: <179209532452.434549.6588379141939967966@kernel.org>
+In-Reply-To: <20261013-b4-disp-f345196c-v7-4-ef3dddfbfa68@proton.me>
+References: <20261013-b4-disp-f345196c-v7-4-ef3dddfbfa68@proton.me>
 X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -55,7 +55,7 @@ MIME-Version: 1.0
 Thank you for your contribution! Sashiko AI review found 2 potential
 issue(s) to consider.
 
-Critical: 0 · High: 1 (2) · Medium: 0 · Low: 1
+Critical: 0 · High: 1 (2) · Medium: 0 (2) · Low: 1
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -63,171 +63,227 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [High] smc: flow control bypass and data corruption on negative
-  sndbuf_space
-- [Low] The new comment in smc_tx_sendmsg() (net/smc/smc_tx.c:236-240)
-  says sndbuf_space 'can be out of range' because of late SMC-R…
+- [High] The fix stops a forged cursor from moving the RDMA source past
+  the send buffer, but the destination can still run past the peer's RMB…
+- [Low] After the patch, smc_switch_cursor() can leave local_tx_ctrl.prod
+  behind local_rx_ctrl.cons.
 
 Pre-existing issues:
-- [High] The clamp bounds the size of each copy, not the flow control.
-- [High] smc_switch_cursor() (net/smc/smc_core.c:1033) reads tx_curs_fin
-  and local_tx_ctrl_fin, rewrites tx_curs_sent, tx_curs_fin and…
+- [High] This problem wasn't introduced by this patch, but
+  smc_switch_cursor() reads and changes tx_curs_fin, local_tx_ctrl_fin…
+- [High] This problem wasn't introduced by this patch, but
+  smcr_tx_rdma_writes() (net/smc/smc_tx.c:421-422) sizes the first…
+- [Medium] This problem wasn't introduced by this patch, but the two
+  consumers of the peer's wire consumer cursor now treat it differently.
+- [Medium] This problem wasn't introduced by this patch, but
+  smc_curs_comp() (net/smc/smc_cdc.h) compares the u16 wrap fields as…
 
 --
 
-net/smc: bound the send length to the send buffer in smc_tx_sendmsg()
+net/smc: bound the link failover cursor advance to the send buffer
 
-The patch clamps writespace in smc_tx_sendmsg() to sndbuf_desc->len. It
-also maps negative values to len. This keeps the copy inside the send
-buffer when conn->sndbuf_space has been over-credited, either after an
-SMC-R link failover or through the SMC-D DMB merge path.
+This patch hardens smc_switch_cursor() against a forged peer consumer
+cursor during SMC-R link failover. The catch-up advance now runs only when
+cons.count is inside the peer RMB. It is also capped at the amount of data
+between tx_curs_sent and tx_curs_prep.
 
-> diff --git a/net/smc/smc_tx.c b/net/smc/smc_tx.c
-> index 3144b4b1fe290..58d9dfdcdf33e 100644
-> --- a/net/smc/smc_tx.c
-> +++ b/net/smc/smc_tx.c
-> @@ -233,6 +233,14 @@ int smc_tx_sendmsg(struct smc_sock *smc, struct msghdr *msg, size_t len)
->  		/* initialize variables for 1st iteration of subsequent loop */
->  		/* could be just 1 byte, even after smc_tx_wait above */
->  		writespace = atomic_read(&conn->sndbuf_space);
-> +		/* sndbuf_space can be out of range: late completions of an
-> +		 * old SMC-R link credit it again after a failover, and with
-> +		 * SMC-D DMB merge it follows the peer's consumer cursor.
+> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+> index 8829517299def..36aee89e5f5f7 100644
+> --- a/net/smc/smc_core.c
+> +++ b/net/smc/smc_core.c
+
+[ ... ]
+
+> @@ -1043,12 +1043,18 @@ static int smc_switch_cursor(struct smc_sock *smc, struct smc_cdc_tx_pend *pend,
+>  	/* set prod cursor to old state, enforce tx_rdma_writes() */
+>  	smc_curs_copy(&conn->local_tx_ctrl.prod, &fin, conn);
+>  	smc_curs_copy(&cons, &conn->local_rx_ctrl.cons, conn);
+> +	smc_curs_copy(&prep, &conn->tx_curs_prep, conn);
+>  
+> -	if (smc_curs_comp(conn->peer_rmbe_size, &cons, &fin) < 0) {
+> +	if (cons.count < conn->peer_rmbe_size &&
+
+[Severity: High]
+Does this fully close the destination side of the overrun that the commit
+message describes? The new cons.count check only decides whether the
+catch-up branch runs. The forged cursor is not rejected and stays in
+conn->local_rx_ctrl.cons.
+
+Right after the if-block, smc_switch_cursor() still does:
+
+	/* recalculate, value is used by tx_rdma_writes() */
+	atomic_set(&smc->conn.peer_rmbe_space, smc_write_space(conn));
+
+smc_write_space() computes the window from that same cursor:
+
+	space = buffer_len - smc_curs_diff(buffer_len, &cons, &prod);
+
+Take peer_rmbe_size = 16384, fin/prod = {wrap 2, count 1000} and a forged
+cons = {wrap 3, count 17000}. The branch is skipped because 17000 >= 16384.
+In smc_curs_diff() the wraps differ, so (size - old->count) is computed as
+unsigned and wraps around. The diff comes out as 384, which makes
+peer_rmbe_space 16000.
+
+smc_tx_rdma_writes() then sees prod.wrap != cons.wrap and takes the
+single-chunk path:
+
+		dst_len = len;
+
+This write starts at dst_off = prod.count = 1000, and nothing limits it to
+peer_rmbe_size - prod.count. Wouldn't that RDMA write cover bytes
+1000..17000 of a 16384 byte peer RMB?
+
+The receive path in smc_cdc_msg_recv_action() also credits
+peer_rmbe_space from the same cursor. smcr_cdc_msg_to_host() imports cons
+with max_count == 0:
+
+	smc_cdc_cursor_to_host(&local->cons, &peer->cons, conn, 0);
+
+So this looks reachable with or without failover.
+
+Would it be better to validate the consumer cursor once at import (count
+against peer_rmbe_size, plus a sane wrap delta)? Alternatively,
+peer_rmbe_space and dst_len could be clamped to the peer RMB. A check
+inside the catch-up branch alone doesn't seem to cover it.
+
+[Severity: Medium]
+This isn't a bug introduced by this patch, but the two users of the wire
+consumer cursor now handle it differently. smc_switch_cursor() bounds its
+use of local_rx_ctrl.cons. smc_cdc_msg_recv_action() in net/smc/smc_cdc.c
+still credits the window without a limit:
+
+	diff_cons = smc_curs_diff(conn->peer_rmbe_size, &cons_old,
+				  &conn->local_rx_ctrl.cons);
+	if (diff_cons) {
+		...
+		atomic_add(diff_cons, &conn->peer_rmbe_space);
+		/* guarantee 0 <= peer_rmbe_space <= peer_rmbe_size */
+
+A forged cons with the same wrap as prod and a large count pushes
+peer_rmbe_space above peer_rmbe_size. smc_tx_rdma_writes() then uses
+len = min(to_send, rmbespace). That can be larger than peer_rmbe_size when
+the sndbuf is bigger than the peer RMB.
+
+The second destination chunk in smcr_tx_rdma_writes() is then:
+
+		dst_off = 0; /* modulo offset in RMBE ring buffer */
+		dst_len = len - dst_len; /* remainder */
+
+Can that second chunk run past the end of the peer RMB? Should the
+receive path get the same bound as the failover path?
+
+> +	    smc_curs_comp(conn->peer_rmbe_size, &cons, &fin) < 0) {
+
+[Severity: Medium]
+This is a pre-existing issue, but smc_curs_comp() in net/smc/smc_cdc.h
+compares the u16 wrap fields as plain numbers:
+
+	if (old->wrap > new->wrap ||
+	    (old->wrap == new->wrap && old->count > new->count))
+		return -smc_curs_diff(size, new, old);
+	return smc_curs_diff(size, old, new);
+
+smc_cdc_cursor_to_host() and smc_curs_diff_large() handle the 65535 to 0
+wrap rollover explicitly, but smc_curs_comp() does not.
+
+Take peer_rmbe_size = 16384, fin = {wrap 65535, count 12288} and a
+legitimately advanced cons = {wrap 0, count 4096}. Here
+smc_curs_comp(P, &cons, &fin) returns +24576, so the catch-up is skipped
+even though cons is 8192 bytes ahead. smc_write_space() then returns
+16384 - 24576 = -8192.
+
+smc_tx_sndbuf_nonempty() then returns early:
+
+	if (unlikely(atomic_read(&conn->peer_rmbe_space) <= 0)) {
+
+If the peer has nothing left to consume, no new cons update arrives to
+reopen the window. Can the connection stall permanently if failover hits
+this window? Reaching it takes about 65536 wraps of the peer RMB before
+the failover.
+
+>  		/* cons cursor advanced more than fin, and prod was set
+> -		 * fin above, so now prod is smaller than cons. Fix that.
+> +		 * fin above, so now prod is smaller than cons. cons comes
+> +		 * off the wire: catch up only for a count inside the peer's
+> +		 * RMB and no further than the data in the send buffer.
+>  		 */
+> -		diff = smc_curs_diff(conn->peer_rmbe_size, &fin, &cons);
+> +		diff = min(smc_curs_diff(conn->peer_rmbe_size, &fin, &cons),
+> +			   smc_curs_diff(conn->sndbuf_desc->len,
+> +					 &conn->tx_curs_sent, &prep));
 
 [Severity: Low]
-This isn't a bug, but the new comment says sndbuf_space can be out of
-range. A few lines further down in the same loop, the existing comment
-still says the opposite:
+Two cases leave local_tx_ctrl.prod behind local_rx_ctrl.cons: the prep
+term of this min() wins, or the branch is skipped because
+cons.count >= peer_rmbe_size. The comment above still says the catch-up
+fixes prod < cons.
 
-net/smc/smc_tx.c:smc_tx_sendmsg() {
-    ...
-	atomic_sub(copylen, &conn->sndbuf_space);
-	/* guarantee 0 <= sndbuf_space <= sndbuf_desc->len */
-	smp_mb__after_atomic();
-    ...
-}
+smc_write_space() assumes prod >= cons. Suppose cons is one wrap ahead,
+for example cons = {w + 1, c} and prod = {w, p} with p > c. Then
+smc_curs_diff(buffer_len, &cons, &prod) is larger than buffer_len, and the
+returned space is c - p, which is negative. In the equal-wrap case
+smc_curs_diff() clamps to 0, so space is just peer_rmbe_size.
 
-The same "guarantee" comment also appears in the credit paths that the
-new comment names: smc_cdc_tx_handler(), smcd_cdc_msg_send() and the DMB
-merge branch of smc_cdc_msg_recv_action().
+A negative space breaks the "guarantee 0 <= peer_rmbe_space <=
+peer_rmbe_size" comments in smc_cdc.c and smc_tx.c. Sending on the
+connection also stops while peer_rmbe_space <= 0.
 
-The clamped subtraction doesn't bring the value back into that range. If
-sndbuf_space starts at 3 * len, subtracting copylen <= len leaves at
-least 2 * len. A negative value is mapped to len and then pushed further
-below zero.
+For a conforming peer neither the skip nor the cap should fire. So the
+effect seems limited to a stall of the misbehaving peer's own connection.
+Is this state intended, and should the comment be updated to match?
 
-Should those comments be updated or dropped so they don't contradict the
-new one?
-
-> +		 * Bound writespace, which sizes the copy; a negative value
-> +		 * would become huge in the size_t min_t() below.
-> +		 */
-> +		if (writespace < 0 || writespace > conn->sndbuf_desc->len)
-> +			writespace = conn->sndbuf_desc->len;
+>  		smc_curs_add(conn->sndbuf_desc->len,
+>  			     &conn->tx_curs_sent, diff);
 
 [Severity: High]
-Mapping a negative writespace to sndbuf_desc->len is new behaviour from
-this patch. It turns a negative sndbuf_space into a full-ring copy on
-every pass of the loop. Is that intended?
+This isn't a bug introduced by this patch, but the RDMA write takes its
+offsets from these cursors. Is the source side of smcr_tx_rdma_writes() in
+net/smc/smc_tx.c bounded for the second destination chunk?
 
-The gate at the top of the loop treats only zero as no space:
+		dst_off = 0; /* modulo offset in RMBE ring buffer */
+		dst_len = len - dst_len; /* remainder */
+		dst_len_sum += dst_len;
+		src_len = min_t(int, dst_len, conn->sndbuf_desc->len -
+				sent_count);
 
-	if (!atomic_read(&conn->sndbuf_space) || conn->urg_tx_pend) {
+This uses the original sent_count rather than the current src_off.
+smcd_tx_rdma_writes() uses src_off here:
 
-A negative sndbuf_space is non-zero, so it skips smc_tx_wait()
-entirely. The new check then sets writespace to sndbuf_desc->len, so
-copylen can be a whole ring.
+		src_len = min_t(int, dst_len, conn->sndbuf_desc->len - src_off);
 
-memcpy_from_msg() writes that at tx_curs_prep. It overwrites whatever
-is still unsent in [tx_curs_sent, tx_curs_prep), and whatever is still
-unconfirmed in [tx_curs_fin, tx_curs_sent) that an in-flight RDMA write
-may still be reading.
+A conforming peer doesn't seem able to reach this. The SMC-R sndbuf and
+RMB sizes are both 1 << (comp + 14), and tx_curs_sent and
+local_tx_ctrl.prod advance together. It does become reachable once the
+unbounded credit in smc_cdc_msg_recv_action() pushes peer_rmbe_space above
+peer_rmbe_size.
 
-The atomic_sub(copylen, &conn->sndbuf_space) afterwards pushes the
-value further below zero. This path can therefore never bring it back
-to zero. The loop keeps copying until the whole message is consumed,
-with no back-pressure. That lasts until CDC completions happen to
-credit sndbuf_space back above zero.
+Example: peer_rmbe_size = 16384, sndbuf_desc->len = 65536,
+prod.count = sent.count = 4096, a forged same-wrap cons with a large
+count, and to_send = 65536.
 
-smc_tx_wait(), smc_tx_should_cork() and smc_poll() use the same
-non-zero test. While the space is negative, a blocked writer would be
-woken, corking would still apply, and a poller would see EPOLLOUT.
+The first destination chunk has dst_len = 12288, and src_off becomes
+16384. The second has dst_len = 53248 and
+src_len = min(53248, 65536 - 4096) = 53248.
 
-The note below the --- line says 0 was avoided because the send loop
-would spin. That is true with the current !atomic_read() gate. Would it
-be better to make the gate treat sndbuf_space <= 0 as no space, along
-with the matching checks in smc_tx_wait(), smc_tx_should_cork() and
-smc_poll()? A negative value would then block the sender instead of
-letting it overwrite data the peer has not received.
+Wouldn't sge[0] then cover [16384, 69632)? That is 4096 bytes past the
+end of the 65536 byte sndbuf, and sndbuf [0, 4096) is never sent.
 
-Before this patch a negative value caused an out-of-bounds write. With
-it, the result is silent stream corruption that sendmsg() reports as
-success.
+For physically contiguous sndbufs without an IOMMU, could this send
+adjacent kernel memory to the peer?
 
-[Severity: High]
-This is a pre-existing issue, and this patch didn't introduce it. The
-clamp limits the size of each copy but doesn't fix the flow control.
-While sndbuf_space is over-credited, can smc_tx_sendmsg() still overwrite
-data in the send buffer that hasn't been sent or confirmed yet?
-
-The wait check at the top of the loop counts any non-zero value as free
-space:
-
-	if (!atomic_read(&conn->sndbuf_space) || conn->urg_tx_pend) {
-
-smc_tx_wait(), smc_tx_should_cork() and smc_poll() make the same check.
-Each pass then copies up to sndbuf_desc->len bytes at tx_curs_prep and
-subtracts only copylen. A value of 3 * len stays positive for two more
-passes. A negative value never reaches zero.
-
-That lets tx_curs_prep run more than a full ring past tx_curs_sent and
-tx_curs_fin. The copy then overwrites unsent bytes in
-[tx_curs_sent, tx_curs_prep), plus bytes in [tx_curs_fin, tx_curs_sent)
-that in-flight RDMA writes may still be reading.
-
-smc_tx_rdma_writes() then computes:
-
-	to_send = smc_curs_diff(conn->sndbuf_desc->len, &sent, &prep);
-
-That value is now larger than len, so the overwritten ring contents get
-sent. sendmsg() reports success, but the peer receives a corrupted
-stream.
-
-One trigger is a peer DELETE LINK while the old QP still works:
-
-smc_llc_process_cli_delete_link()
-  smc_switch_conns(lgr, lnk_del, false)
-
-A CDC completion still pending on the old link is later handled by
-smc_wr_tx_process_cqe()->smc_cdc_tx_handler() with a stale
-cdcpend->cursor. If tx_curs_fin is one wrap ahead, smc_curs_diff()
-returns nearly 2 * len and tx_curs_fin moves back. The next completion
-then credits the same bytes again.
-
-If corking with MSG_MORE or a full peer RMBE keeps tx_curs_sent from
-moving between passes, the overwrite is guaranteed.
-
-The note below the --- line already says that "send() can still
-overwrite data in the buffer that the peer has not received yet". Before
-this patch, the same over-credit caused an out-of-bounds write instead.
-Is a fix for the credit in smc_cdc_tx_handler() planned as a follow-up?
+>  		smc_curs_add(conn->sndbuf_desc->len,
 
 [Severity: High]
-This is also a pre-existing issue. What serializes smc_switch_cursor()
-against smc_cdc_tx_handler()?
+This is a pre-existing issue, but smc_switch_cursor() reads and updates
+tx_curs_fin, local_tx_ctrl_fin and sndbuf_space while holding only
+conn->send_lock. smc_switch_conns() takes that lock:
 
-smc_switch_conns() holds only conn->send_lock around the switch:
+			spin_lock_bh(&conn->send_lock);
+			smc_switch_link_and_count(conn, to_lnk);
+			rc = smc_switch_cursor(smc, pend, wr_buf);
 
-	spin_lock_bh(&conn->send_lock);
-	smc_switch_link_and_count(conn, to_lnk);
-	rc = smc_switch_cursor(smc, pend, wr_buf);
-	spin_unlock_bh(&conn->send_lock);
-
-smc_switch_cursor() rewrites tx_curs_sent, tx_curs_fin,
-local_tx_ctrl.prod and local_tx_ctrl_fin, and it adds to sndbuf_space.
-
-smc_cdc_tx_handler() runs from the send CQ tasklet. It does a non-atomic
-read, diff, add and copy while holding only bh_lock_sock():
+smc_cdc_tx_handler() updates the same fields from the send completion
+tasklet. It holds only bh_lock_sock() and never takes send_lock:
 
 	bh_lock_sock(&smc->sk);
 	if (!wc_status && sndbuf_desc) {
@@ -239,32 +295,35 @@ read, diff, add and copy while holding only bh_lock_sock():
 		...
 		smc_curs_copy(&conn->tx_curs_fin, &cdcpend->cursor, conn);
 
-Neither path takes the other's lock, and the tasklet can run on another
-CPU in the middle of the switch. One possible interleaving:
+smc_llc_delete_asym_link() calls smc_switch_conns() before it waits for
+pending sends on the old link, and the DELETE_LINK path does the same:
 
-CPU1 (smc_switch_cursor)
-  smc_curs_copy(&conn->tx_curs_sent, &conn->tx_curs_fin, conn);
-  smc_curs_copy(&fin, &conn->local_tx_ctrl_fin, conn);
+	lnk_new = smc_switch_conns(lgr, lnk_asym, false);
+	smc_wr_tx_wait_no_pending_sends(lnk_asym);
 
-CPU2 (smc_cdc_tx_handler)
-  atomic_add(diff, &cdcpend->conn->sndbuf_space);
-  smc_curs_copy(&conn->tx_curs_fin, &cdcpend->cursor, conn);
+So CDC sends already posted on the old link can complete on another CPU
+during the switch. One possible interleaving:
 
-CPU1 (smc_switch_cursor, diff computed from the older fin)
-  smc_curs_add(conn->sndbuf_desc->len, &conn->tx_curs_fin, diff);
-  atomic_add(diff, &conn->sndbuf_space);
+CPU0 smc_switch_cursor()
+  tx_curs_sent = tx_curs_fin = F0
+  fin = L0
+                          CPU1 smc_cdc_tx_handler()
+                            sndbuf_space += F1 - F0
+                            tx_curs_fin = F1
+CPU0
+  tx_curs_fin += diff    /* now F1 + diff */
+  sndbuf_space += diff
 
-Does this credit the same bytes twice and leave tx_curs_fin ahead of
-tx_curs_sent?
+Doesn't that leave sndbuf_space overcounted by F1 - F0? Also, an old-link
+completion that lands after the switch can move tx_curs_fin backwards, and
+later completions would then credit the same bytes again.
 
-The patch bounds only the local writespace snapshot. The shared
-sndbuf_space would stay inflated, so smc_tx_sendmsg() could still
-overwrite unsent data. On SMC-R an RDMA write may still be using that
-data. With SMC-D nocopy, the peer may still be reading it from its DMB.
+The earlier patch in this series, "net/smc: bound the send length to the
+send buffer in smc_tx_sendmsg()", clamps writespace to
+sndbuf_desc->len. That keeps the copy inside the buffer.
 
->  		/* not more than what user space asked for */
->  		copylen = min_t(size_t, send_remaining, writespace);
->  		/* determine start of sndbuf */
+Even so, can smc_tx_sendmsg() still overwrite unsent or unconfirmed data
+between the real tx_curs_fin and tx_curs_prep?
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261013-b4-disp-f345196c-v7-0-ef3dddfbfa68%40proton.me
