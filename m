@@ -1,106 +1,68 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 6770D4FDA60;
-	Thu, 15 Oct 2026 15:06:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64B4C53D0C5;
+	Thu, 15 Oct 2026 15:37:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792076798; cv=none; b=LngeJsd7YZPnon3PTRQ/pudVYOBk9WMNsdB+P3Vp+ln1IH9+1TYeyDPUE4KKnCoWtWGCyq0KY+anWvtWI6v36oaBjyq+RFTSyIE8QvA+DyV7GpvfqSO3BevZldipJ+XZgpvEWaNv5XimQb0HdNyovGzPctQBi8O6IyFASGKuv+M=
+	t=1792078652; cv=none; b=HuHgbP9ZyESSbEXctenRds0Gz0ZO+N+72AELsSnc6XdqclntIncbVc3iP25RtV9us2J66Q3a24p1u91kErlxqc5s9wmg1kPYko9fogUpzclys4pVu49JbVVljmfKq7rM3r1mkQyVqt+hfra0k2b25ls2TUY3xs3cdLB0InfriVQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792076798; c=relaxed/simple;
-	bh=Qy3XlC7H1RX5gRzf+kTtG4AQLQfNz26R9LxgVU51t6o=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=uaUByNfHLqB+e5vE7LAIqw5uPZTIz1P6ldveZ0DU+wRI/hI8+9WubVPgdgVO7hqYyF9nQHee8x6Cjy+Yfz0+EZrUW1nAiIGINMneywBuR2+RAKISHZDT3A5RZN865L/dZOioNlxYPnwxRf4A3JWqQHoJY8nOL3KU2t0dqFHlPNw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=YR9oiabI; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	s=arc-20240116; t=1792078652; c=relaxed/simple;
+	bh=zJFnMO5aEPQbkNeReQgzTu1ISriPMZG1XKCnKG0S6/Q=;
+	h=From:To:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=SqvL2ejNF+4vOB8wVeJsfiZxkaJpGX1/AZHJlgS4NJ/xNF5+yhB1/DX4d1YlPzKcJlhE1vPLORPqmhADrmtox+SxN/pd5ZC7PBlX/LsA6Anc9Ae89rpOOBsA0DN1q1n/Tzu5Y1ACWgscHxCSgWcp4wJDLutLtAesQVHAvt0RL/g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZMhpgi1Y; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="YR9oiabI"
-Received: by linux.microsoft.com (Postfix, from userid 1216)
-	id E98F520B7168; Thu, 15 Oct 2026 08:06:26 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com E98F520B7168
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1792076786;
-	bh=t9yJuPZYOp7kfNBAAUzqrGwuy5HDp7aYaQvrx20rA4E=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=YR9oiabIeBdQcgeISYzdhDrRZePemIBoXr1xdjINFrY5SqwpGZ0xtKHkYJiWL4poy
-	 zqfxhjvBUdDu70gaxQBdD0HQmB4kTDWe5oKV75MWjUWO2nwqTWETOqgla22xq2pFqF
-	 Vjw2nZ+/qsJ5eTOI4MNvEV9TqyLxMsHEjyCSdLcM=
-Date: Thu, 15 Oct 2026 11:06:26 -0400
-From: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
-To: sashiko-reviews@lists.linux.dev
-Cc: linux-hyperv@vger.kernel.org, linux-rdma@vger.kernel.org,
-	bpf@vger.kernel.org
-Subject: Re: [PATCH net-next v3] net: mana: add BQL support
-Message-ID: <atDr8rbZuz97xCTo@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
-References: <20261013214937.145312-1-hamzamahfooz@linux.microsoft.com>
- <sashiko-outbox-171939@kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZMhpgi1Y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DFD21F000C4;
+	Thu, 15 Oct 2026 15:37:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792078632;
+	bh=v9HA8npk3DDBxyDBQw3osB7GUwG6sfJNWfam+mOhkFs=;
+	h=From:To:In-Reply-To:References:Subject:Date;
+	b=ZMhpgi1YgLurlMY4mTMlnw87TiDoM3rcXkLF2d+4FZ3nAPAR579wCv+06wzRMpJ/5
+	 YXX2AM4zRDpO1u9J9zXwiv1Y0xYuGlIkh78eHfoxe2bHiyU1M5YlwtYguuNnKBlYzE
+	 bm5p2oY5ESEBwo5tSr8pLMrKEMCWruFBUEYb1QaVhE8vXvLwLm2HqAbnGFCdXHEQzl
+	 Ggq6wtYcsrojCL0Oac1Ji/XZZjqm86Mg8DW4m0cjFhAHFwZyP62ifd6X+nEYJWnMAu
+	 W8bMukOMperzAfliIPevIuWqfYwTP7V+HtSM+2Ui/prBDvmjwuJwyCN9MnM6571s+A
+	 bxvu8e2m7NZ4w==
+From: Leon Romanovsky <leon@kernel.org>
+To: yishaih@nvidia.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, 
+ Praveen Kumar Kannoju <praveen.kannoju@oracle.com>
+In-Reply-To: <20261014121344.100048-1-praveen.kannoju@oracle.com>
+References: <20261014121344.100048-1-praveen.kannoju@oracle.com>
+Subject: Re: [PATCH] IB/mlx4: Avoid requeueing executing CM timeout work
+Message-Id: <179207862986.254651.2841817114239793003.b4-ty@kernel.org>
+Date: Thu, 15 Oct 2026 11:37:09 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <sashiko-outbox-171939@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev-18f8f
 
-On Wed, Oct 14, 2026 at 09:49:54PM +0000, sashiko-bot@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found 1 potential issue(s) to consider:
-> - [High] mana: unratelimited netdev_warn in __mana_start_xmit causes log spam under XDP load
-> --
-> 
-> commit a6a9466a25f553494605c439f140071b9b0b7068
-> Author: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
-> 
-> net: mana: add BQL support
-> 
-> MANA doesn't support byte queue limits, so each TX queue can hold 256
-> WQEs by default, and up to 16384, of up to 64 KB TSO packets, before the
-> qdisc layer sees any backpressure. This adds latency to all the flows
-> sharing a queue, and defeats AQM qdiscs such as fq_codel. This patch
-> adds BQL support by reporting the bytes queued and completed to BQL,
-> except for XDP_TX and XDP_REDIRECT frames.
-> 
-> > diff --git a/drivers/net/ethernet/microsoft/mana/mana_bpf.c b/drivers/net/ethernet/microsoft/mana/mana_bpf.c
-> > index 484f061bc75e4..7c55f8724441d 100644
-> > --- a/drivers/net/ethernet/microsoft/mana/mana_bpf.c
-> > +++ b/drivers/net/ethernet/microsoft/mana/mana_bpf.c
-> > @@ -21,7 +21,7 @@ void mana_xdp_tx(struct sk_buff *skb, struct net_device *ndev)
-> >  	ndevtxq = netdev_get_tx_queue(ndev, txq_idx);
-> >  	__netif_tx_lock(ndevtxq, smp_processor_id());
-> >  
-> > -	rc = mana_start_xmit(skb, ndev);
-> > +	rc = __mana_start_xmit(skb, ndev, true);
-> 
-> [Severity: High]
-> Does this allow unratelimited log spam under heavy XDP load?
-> 
-> XDP traffic directly calls the transmit path here without checking or
-> honoring the stopped queue state. If the Send Queue fills up,
-> __mana_start_xmit() unconditionally calls mana_gd_post_work_request(),
-> which can return -ENOSPC.
-> 
-> When it fails, __mana_start_xmit() prints an unratelimited warning:
-> 
-> 	if (err) {
-> 		(void)skb_dequeue_tail(&txq->pending_skbs);
-> 		mana_unmap_skb(skb, apc);
-> 		netdev_warn(ndev, "Failed to post TX OOB: %d\n", err);
-> 		goto free_sgl_ptr;
-> 	}
-> 
-> If XDP blasts packets into a full queue, could this print for every dropped
-> packet and cause severe log spew?
-> 
 
-This issue predates this patch (it was actually introduced when XDP
-support was first added with commit ed5356b53f07 ("net: mana: Add XDP
-support")), so it should be fixed as a seperate patch directed at the
-net tree.
+On Wed, 14 Oct 2026 12:13:44 +0000, Praveen Kumar Kannoju wrote:
+> id->scheduled_delete is set by schedule_delayed() itself.  It is used
+> in two cases after the RTU timeout support was added:
+> 
+> * A new id_map_entry is created, and a 60-second RTU timeout is
+>   scheduled.
+> * DREQ or REJ is received for an existing entry, and the normal
+>   30-second teardown timeout is scheduled or adjusted.
+> 
+> [...]
 
-> >  	__netif_tx_unlock(ndevtxq);
-> 
-> [ ... ]
-> 
-> -- 
-> Sashiko AI review · https://sashiko.dev/#/patchset/20261013214937.145312-1-hamzamahfooz@linux.microsoft.com?part=1
+Applied, thanks!
+
+[1/1] IB/mlx4: Avoid requeueing executing CM timeout work
+      https://git.kernel.org/rdma/rdma/c/9bcf45bfcaf83a
+
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
+
