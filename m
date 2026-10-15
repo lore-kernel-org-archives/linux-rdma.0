@@ -1,38 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2BFF4A3F02;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2AD146C4C5;
 	Thu, 15 Oct 2026 11:53:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792065212; cv=none; b=Z3wLl6kNElYC4+buDLPbZlmRsd3eGi1mbjaMkLubkPLbkgy51j51RqG1SFVR+TbHnousbDy6x0ie0fmkLg9TALwKe7VgYuPOh0dxSiNvy1Xb2fQzQE+vTkvlAgyCDvv1DKIQkkr507iWnFtYT9DzTuZbFaEomZ1GAbnEx/NDN/c=
+	t=1792065212; cv=none; b=ry632iqa5iimJok/KF0ax6udLvO48jGTaLXcJgQlst0RNkccV1OanyxE2p5womz7vcm+vmfhk66bQuMqsMsqwH/vBGYcLAJYkP3QPOUkN5qGrOGR46ZrL7zkX9nsT/o0MpB/7rFn5cv6rGiJ01G5zfz1sgOpK5x371ZTIQIXxX4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1792065212; c=relaxed/simple;
-	bh=ogAfELoWRdI0PfAU9oY1PA87qQANTy9itKTyiOcA0Sw=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=rFzKvjb8UPfftYHlq+TPnCrF5uN74LVPM2BLIAVAIG6yrEwMCGf4aJmCsjvk0wWJVESMczPher6dJs22m5vtVf7l96rvxD7ftYsqvThmKcMytk+pctPmK9VvACN2ojRHg1rFTlY6LIKsINY+mxg7sQgyLJm1U2e3XUAQ5RTyRcc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jDh2xctB; arc=none smtp.client-ip=10.30.226.201
+	bh=ojTtm/s6ghvhqfVqGZpxsFVWWkyo0teHaxlRnB4svMw=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=q6A3uP84PRCktjxe8Fcz3CgoFY6wKouGvFuK8EleRmx8KGHMLsh7O2MJs+uTrf3AvF0uEFo+69DpSXO1+a+mn0xLdh6+RikvhUCirWLxxwPJFfJot4AvlAgwxAaQd7Jf1qgaSxwlEYGPqHS5Wq1rvvluWJQ0QG5N539M639ERLc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mjE832Lg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jDh2xctB"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 6325AC2BCFB;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mjE832Lg"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 51E8FC2BCF5;
 	Thu, 15 Oct 2026 11:53:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1792065212;
-	bh=ogAfELoWRdI0PfAU9oY1PA87qQANTy9itKTyiOcA0Sw=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-	b=jDh2xctBCNOyIdNsPTNZlgCbSOlBhmJp0equWIFAJrIvUChZq7P5NW1jg+T8GJ30t
-	 pUYfeOrR8GNxW+nZjKbvSJCMt6A14CjLUwJF1s/rjRYMkVzVG506A1wqDzQQ1UYy0b
-	 lWmuXzFFPWpE4MZoSM2cLLtH9wUqw7Dqcy8/5jE3HGEJUN8HfjY9+ysy+l4+y8AvCF
-	 LIfDPbpCdwTz1lrNpJKeQH0kAKaw7HEHi1DvUJm52lMFhZW0lv/GXur78pesgOqaXp
-	 yH8LdLVAxh0SPIG/gh5P6NPI+4vPxIpUkVUYK60ON/XbuUikWRfDgASUaV4avHVKlC
-	 wHuBHJTQYcLLw==
+	bh=ojTtm/s6ghvhqfVqGZpxsFVWWkyo0teHaxlRnB4svMw=;
+	h=From:Subject:Date:To:Cc:Reply-To:From;
+	b=mjE832LgwODzHsag+3+oSlyY/5zqpyppi+Cr7+PB3IcP8YSqpDEXQNf/Go9pnrWNJ
+	 /OIXONLTlIT450NpVVOuFqUTuDgECTnw2K+8Ls3sboNnOd38HoXqwX1k8FeUdqLG3U
+	 eZtuIIAivgexcNOKYkB5pW2BKUMqEK1eX7Hs09SwFMp8ryZTswfp/WQ0Hd9CogJ8Sv
+	 kvguWSj0Wkx4a87MHLQkGL8ayD+ojYVifONSEB03ThY6BmNKTMGIytF6Zgqv9UScT8
+	 5nOJFDmDFm9JZKcaTJ4e1cOdU7LpBI1EoUm5RJdSvkw/jFVqEyALkV66mA+j8Ln3k+
+	 DXnT0Lb9nEteA==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4211ECC6B3C;
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BF5ACC6B33;
 	Thu, 15 Oct 2026 11:53:32 +0000 (UTC)
 From: Bryam Vargas via B4 Relay <devnull+hexlabsecurity.proton.me@kernel.org>
-Date: Thu, 15 Oct 2026 06:53:31 -0500
-Subject: [PATCH net v5 1/2] net/smc: order the CDC receive path against RMB
- publication
+Subject: [PATCH net v5 0/2] net/smc: order the CDC receive path against
+ buffer publication
+Date: Thu, 15 Oct 2026 06:53:30 -0500
+Message-Id: <20261015-b4-disp-2a8d85ef-v5-0-6b795e8263c9@proton.me>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -41,9 +41,10 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20261015-b4-disp-2a8d85ef-v5-1-6b795e8263c9@proton.me>
-References: <20261015-b4-disp-2a8d85ef-v5-0-6b795e8263c9@proton.me>
-In-Reply-To: <20261015-b4-disp-2a8d85ef-v5-0-6b795e8263c9@proton.me>
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yWMzQrCMBAGX6V8ZxeS0GjwVcRDfra6HmLJtiKUv
+ rtRjzMws0G5CSvOw4bGL1F51g7+MCDfY70xSekMZ9zRGuspjVREZ3IxlOB5IncaQ8rRGrYRPZs
+ bT/L+LS+ovOD6l7qmB+flO8O+fwBr0whpeQAAAA==
+X-Change-ID: 20261015-b4-disp-2a8d85ef-2748bca10e1a
 To: Jakub Kicinski <kuba@kernel.org>, Dust Li <dust.li@linux.alibaba.com>, 
  Sidraya Jayagond <sidraya@linux.ibm.com>, 
  "David S. Miller" <davem@davemloft.net>, Paolo Abeni <pabeni@redhat.com>, 
@@ -56,11 +57,11 @@ Cc: Simon Horman <horms@kernel.org>, Wenjia Zhang <wenjia@linux.ibm.com>,
  Tony Lu <tonylu@linux.alibaba.com>, linux-rdma@vger.kernel.org, 
  Wen Gu <guwen@linux.alibaba.com>, linux-s390@vger.kernel.org
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1792065211; l=2567;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1792065211; l=4756;
  i=hexlabsecurity@proton.me; s=default; h=from:subject:message-id;
- bh=kHI7XJJXDLRn/IVI2eJi27K/PrutBbPvH2QzLorLnNQ=;
- b=lhNYkaeY++smtZE7MyF5+Dw8w8T9hdojbqE04iKZvw0WFI93sfcMsaHK0U+mMXCmQ2Jd3K1gf
- dvgUdqKGiHRC7qkbCtADeerab3D+D+WjXoPMxHPjkeLg8/H8skphmQQ
+ bh=ojTtm/s6ghvhqfVqGZpxsFVWWkyo0teHaxlRnB4svMw=;
+ b=5mPEIctDtJFLhlsm2cF1XuIpR/sLLdEmcojEZU0dDPbUQqwr2UFZxsJHTSX556dvjNZJdckwi
+ Li9k8jCumzKC5H8zD6DZk5i9vYJiZMocutX8FR5bur77tSwAyMPS1ea
 X-Developer-Key: i=hexlabsecurity@proton.me; a=ed25519;
  pk=xw1AhCtQdvuoQc+bOQIYy9o8G++cp4/VniI2G/tc3G8=
 X-Endpoint-Received: by B4 Relay for hexlabsecurity@proton.me/default with
@@ -68,68 +69,91 @@ X-Endpoint-Received: by B4 Relay for hexlabsecurity@proton.me/default with
 X-Original-From: Bryam Vargas <hexlabsecurity@proton.me>
 Reply-To: hexlabsecurity@proton.me
 
-From: Bryam Vargas <hexlabsecurity@proton.me>
+A CDC can reach a connection before its RMB, or its SMC-D nocopy send
+buffer, is set, and smc_cdc_msg_recv_action() then derefs a NULL
+pointer in softirq. For the SMC-R RMB (1/2) the CDC comes from a peer
+in the link group that predicts the next token. For the nocopy sndbuf
+(2/2, SMC-D loopback only) it comes from the old peer of a reused DMB.
+Each patch sets its pointer last with a release store, and the rx path
+drops the CDC (1/2) or skips the nocopy accounting (2/2) while the
+pointer is unset.
 
-smc_conn_create() adds an SMC-R connection to the token tree before
-smc_buf_create() sets conn->rmb_desc. Tokens come from one global
-counter, so a peer in the link group can predict the next one. A CDC
-with that token, arriving in the window, makes
-smc_cdc_msg_recv_action() dereference a NULL rmb_desc in softirq.
+1/2 goes back to 69cb7dc0218b (v4.18), 2/2 to cc0ab806fc52 (v6.10).
+2/2 relies on b395dd319cea ("net/smc: do not dereference an unset send
+buffer on the SMC-D teardown path"), already in 6.12.y, 6.18.y and
+7.2.y.
 
-Set rmb_desc with a release store after the receive fields that go
-with it, and drop a CDC in smc_cdc_rx_handler() while rmb_desc is
-unset. A conforming peer learns the token only from the CLC accept or
-confirm, sent after smc_buf_create(), so nothing it sends is dropped.
-The SMC-D receive tasklet needs no check: smc_ism_set_conn() publishes
-the connection under smcd->lock, which smcd_handle_irq() also takes.
+The old peer can also close the new connection or, once the sndbuf is
+attached, push the new connection's sndbuf_space past the sndbuf size,
+with or without this series; 3/4 of my v7 series [1] bounds the send()
+copy, not sndbuf_space. FWIW smc_conn_free() releasing the RMB before
+the connection leaves the token tree [2] is pre-existing too.
 
-Fixes: 69cb7dc0218b ("net/smc: add common buffer size in send and receive buffer descriptors")
-Closes: https://sashiko.dev/#/patchset/20261008-b4-disp-f7cd3d96-v6-0-fba616c0920c@proton.me?part=1
-Cc: stable@vger.kernel.org
-Signed-off-by: Bryam Vargas <hexlabsecurity@proton.me>
+1/2 conflicts in __smc_buf_create() with v7 2/4: keep v7's rmb_len
+assignment at the top of the is_rmb block, before the release store,
+and the tree is the same in either merge order.
+
+v7 1/4 adds an rmb_desc->len load in smcr_cdc_msg_to_host() that any CDC
+in 1/2's window reaches (by inspection), as Sashiko flagged [3]. In C,
+net already loads rmb_desc->len later in smc_cdc_msg_recv_action(), as I
+told Paolo [4], but in my x86 and s390x builds that load only runs when
+the cursor wraps differ. 1/2 drops the CDC before both loads.
+
+Tested with KASAN on x86 (v7.3-rc6, whose net/smc differs from net only
+by 64a6b36b0e18) and on s390x under QEMU (net). Unpatched, two cases
+with the cursor wraps apart reach their NULL loads: a CDC forged with
+the next token (1/2, over rxe), and the old peer's consumer update to
+a reused DMB (2/2). In the second, nothing is forged, but the old peer
+times its read off a test-only counter and the new connect() is starved
+of CPU. KASAN reports a null-ptr-deref on x86; on s390x, with the
+default lowcore, each load reads page 0 and nothing faults. With the
+series, and test-only delays holding the windows open, test-only probes
+see the CDC dropped and the update skip the accounting with the cursor
+wraps apart. With either NULL check removed they see the NULL load
+again, and with either store moved back they see a CDC handled before
+the fields that go with the pointer are set. On top of the v7 series and
+two other net fixes [5] [6], the patched runs read the same. The
+ordering was also checked against LKMM. Test patch and logs on request.
+
+v5:
+ - Split in two, one patch per Fixes: tag, and rebased on net, which
+   now has the SMC-D teardown fixes 36cdf5d48ca1 and b395dd319cea.
+ - Dropped the sndbuf_desc check on the consumer trigger, unneeded
+   after b395dd319cea, and the tasklet's rmb_desc acquire, as
+   smcd->lock orders that load (by inspection). The sndbuf_desc
+   acquire moved into the nocopy branch.
+ - Kept per-buffer checks: one readiness flag would drop a conforming
+   client's first CDC on SMC-D, and registering the connection later
+   would reorder the connect and listen paths.
+ - The Closes: tag now points at Sashiko's report [3], not at a review
+   of v2. Dropped the R-b tags from Dust Li and Sidraya Jayagond, since
+   the patch changed.
+v4: https://lore.kernel.org/all/20260728-b4-disp-52ee4e7d-v4-1-0dda94b0f397@proton.me/
+v3: https://lore.kernel.org/all/20260716-b4-disp-aa52955a-v3-1-03a4411a7549@proton.me/
+v2: https://lore.kernel.org/all/20260714-b4-disp-835288a6-v2-1-581555ef2145@proton.me/
+v1: https://lore.kernel.org/all/20260711-b4-disp-c36a9798-v1-1-340b0c6053fb@proton.me/
+
+[1] https://lore.kernel.org/all/20261013-b4-disp-f345196c-v7-0-ef3dddfbfa68@proton.me/
+[2] https://lore.kernel.org/all/20260729165306.BE7C21F000E9@smtp.kernel.org/
+[3] https://lore.kernel.org/all/sashiko-outbox-164917@kernel.org/
+[4] https://lore.kernel.org/all/20260728172552.69349-1-hexlabsecurity@proton.me/
+[5] https://lore.kernel.org/all/20261013-b4-disp-872a3689-v1-1-2a4c63b04761@proton.me/
+[6] https://lore.kernel.org/all/20261013-b4-disp-193a2a59-v1-1-ed88ac10a41c@proton.me/
+
 ---
- net/smc/smc_cdc.c  | 6 +++++-
- net/smc/smc_core.c | 3 ++-
- 2 files changed, 7 insertions(+), 2 deletions(-)
+Bryam Vargas (2):
+      net/smc: order the CDC receive path against RMB publication
+      net/smc: skip the DMB nocopy accounting until the send buffer is set
 
-diff --git a/net/smc/smc_cdc.c b/net/smc/smc_cdc.c
-index 32d6d03df321..7bf902ebd7ab 100644
---- a/net/smc/smc_cdc.c
-+++ b/net/smc/smc_cdc.c
-@@ -483,7 +483,11 @@ static void smc_cdc_rx_handler(struct ib_wc *wc, void *buf)
- 	lgr = smc_get_lgr(link);
- 	read_lock_bh(&lgr->conns_lock);
- 	conn = smc_lgr_find_conn(ntohl(cdc->token), lgr);
--	if (!conn || conn->out_of_sync) {
-+	/* The connection is in the token tree before __smc_buf_create()
-+	 * sets its RMB: drop a CDC that comes earlier. rmb_desc is never
-+	 * cleared, so the callees can load it plainly.
-+	 */
-+	if (!conn || conn->out_of_sync || !smp_load_acquire(&conn->rmb_desc)) {
- 		read_unlock_bh(&lgr->conns_lock);
- 		return;
- 	}
-diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-index 9974149659c2..26f19a00c159 100644
---- a/net/smc/smc_core.c
-+++ b/net/smc/smc_core.c
-@@ -2502,12 +2502,13 @@ static int __smc_buf_create(struct smc_sock *smc, bool is_smcd, bool is_rmb)
- 	}
- 
- 	if (is_rmb) {
--		conn->rmb_desc = buf_desc;
- 		conn->rmbe_size_comp = bufsize_comp;
- 		smc->sk.sk_rcvbuf = bufsize * 2;
- 		atomic_set(&conn->bytes_to_rcv, 0);
- 		conn->rmbe_update_limit =
- 			smc_rmb_wnd_update_limit(buf_desc->len);
-+		/* Set last; pairs with the acquire in smc_cdc_rx_handler() */
-+		smp_store_release(&conn->rmb_desc, buf_desc);
- 		if (is_smcd)
- 			smc_ism_set_conn(conn); /* map RMB/smcd_dev to conn */
- 	} else {
+ net/smc/smc_cdc.c  | 16 ++++++++++++++--
+ net/smc/smc_core.c | 10 ++++++----
+ 2 files changed, 20 insertions(+), 6 deletions(-)
+---
+base-commit: 513444cc62e231a11c9b15ea88de0890da9b2b4f
+change-id: 20261015-b4-disp-2a8d85ef-2748bca10e1a
 
--- 
-2.56.0
+Best regards,
+--  
+Bryam Vargas <hexlabsecurity@proton.me>
 
 
