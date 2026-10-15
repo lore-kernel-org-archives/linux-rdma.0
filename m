@@ -1,130 +1,132 @@
-Received: from mail-pj2-f6.google.com (mail-pj2-f6.google.com [74.125.227.134])
+Received: from mail-qt1-f182.google.com (mail-qt1-f182.google.com [209.85.160.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD61F4F68D2
-	for <linux-rdma@vger.kernel.org>; Thu, 15 Oct 2026 21:36:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.134
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B78B949B5DE
+	for <linux-rdma@vger.kernel.org>; Thu, 15 Oct 2026 22:54:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792100213; cv=none; b=MvLKgF9WiJAWCtSK7+UfyxEuw6CB99gpAuTNjeV4W0FU5yQCqmayqJWqnQUSdw/MxA8sUOpVMjU4ohUzbNcbaeiyo1b4G0UeqvcUt7Jtwbr+XivsSmzI9RyAcGTHOGSJ1+02q7XYwy2rxVL0Sv6hoswt9kEN4jaAQOgWGcIDVg8=
+	t=1792104872; cv=none; b=eWWyZqy+Gv5brovg65+kSgPVZlYv5Dke57tClSWtL19WUsCJXo5aY33HomyXIlexQu5jRHk0kF/3HxYCfszssYYJqD7wWYToLEMrLJ6dP4BM+xLdTb5eyuAa2dyxCUtVOKJBXYKrt5lLQA97oeWju3nZu6mblK0SjvnKdxIl0NQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792100213; c=relaxed/simple;
-	bh=/mThlAxqOQ/illGXXCKqwpofgrrCmo0z6UJR5iZDmek=;
+	s=arc-20240116; t=1792104872; c=relaxed/simple;
+	bh=lx6vLG67HDPtnRj90OjJRS6Cl5KXBnbsEtkIXD607PM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=VhpTln6h3IZFagBmZZuNCd6oHIRposx82B7A3VQb2QkxqPR3yWxsm97/+HGO4GmkBXWTV5+Z7SGISUmUIZ1VvPU6bgILc5BOa6RjdCnJjMLKFlMwYZ1v7o2aWU9gp3fv4ajqVp9hm4qeAoVMx9AchzWdKJJv2yugbbgJF8Nl8tA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=L5Gw+2rH; arc=none smtp.client-ip=74.125.227.134
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=Y9aksXC9gaZEJNe6dvs6I5BWIjdNETeuA+vpOEkqFO4l03XehLXm0lCscqGhGqW+AzPjKUYFz8iV1IG4ZqH8FarFT4HXydHhi39oiAsOOnxrmgKRZLXBAMQyuo5bRww59KGhX/v6AKXhQzQA0j/VqykSTy/HTdXE4Y7uWfZS6fo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=EMBNb3Xd; arc=none smtp.client-ip=209.85.160.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="L5Gw+2rH"
-Received: by mail-pj2-f6.google.com with SMTP id 98e67ed59e1d1-3964e7720afso2866025a91.1
-        for <linux-rdma@vger.kernel.org>; Thu, 15 Oct 2026 14:36:50 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="EMBNb3Xd"
+Received: by mail-qt1-f182.google.com with SMTP id d75a77b69052e-535f9de49fcso12774991cf.0
+        for <linux-rdma@vger.kernel.org>; Thu, 15 Oct 2026 15:54:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792100210; x=1792705010; darn=vger.kernel.org;
+        d=ziepe.ca; s=google; t=1792104869; x=1792709669; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:content-type:mime-version
          :references:message-id:subject:cc:to:from:date:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=TFWHGN7cklsMWKCyO/CrNxAqmD+l+5aS8n56/ZuYuKE=;
-        b=L5Gw+2rHfKE35YiYPy1ol+Mo3zNmcIrTcm+mx5+BQacp1HSFNELcpJ6qmDp0QHOg3n
-         eSTwG/f5uRWvuhiLEoPNh2WZHfLDYhdc00wODroEGA2Jc0PUIZSOtUVfQ3SU5Dd+N1b3
-         HfocrloFYZ3lGJ7lihdL3QuZoGxvCIZUeYtCKnnitqPWwkoC3y9LMKNscFi4lcdLoARf
-         dICo26do3vBcP09lvRkDSgOyDefSdm2vtCqzdztqSCrp4FhXpYa7AuOEDh/TM4RQHd2X
-         DWgUOL8szfRsiHPSZtukg6KSbYtG8pwMW6DMaZLbQdoHydZz3/N8YgC0ahh0Q0IejlQs
-         25Vw==
+        bh=w5g/qpIgvj6wMX7CCQKIX7PAX2lJ6Da0UK3Xl6Ms4Rk=;
+        b=EMBNb3XdsrG4v7GPEbcTvS4a6q4XOm3vxmwwwWzS9OArrzRNUlzLne/X9/iBZErxOu
+         IPZ9LsTQwbaAHMm0IzPdEUh9pH812q8G4rt+/qvE0u+zTeQzGcN6KTt0OndY0hIGM/O8
+         aThj/lFY4FRuxt6fLn7s47gvitXdAR09g2tJt1+NfrAazn2HfaND4P67FC0vS0ZlfuTU
+         JQjUmJR8DhJd2Jd+8VxiOvV0PN0aZH3FLX65KwABS4q+yRf9QaFMd8kx45Gn4XTU0Gka
+         tiFStXPD+T/34p3mPAZ0G37BTnAt3jcVHd9s+UIlrLStsQGLSD+lXHJWvV/Z0y5QWei0
+         rrfg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792100210; x=1792705010;
+        d=1e100.net; s=20260707; t=1792104869; x=1792709669;
         h=in-reply-to:content-disposition:content-type:mime-version
          :references:message-id:subject:cc:to:from:date:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=TFWHGN7cklsMWKCyO/CrNxAqmD+l+5aS8n56/ZuYuKE=;
-        b=nM9jzM1e3zCgL1rN7L0/YOr1X9o1Mcm2kn8SDR9PFgSDBsQbWlCbzZqPoR8y3pkoB1
-         U9oLCPyN1dnJWVjKkXXzEi1xq415IJ13RhX60TibZyvcubWWvDoXfXdpLm4Tm/pQWj5D
-         rYpesljXYI0DTFNnoY5DghkD9jTSh3IdlcdbA6M9n1GcUWCoDFB0PyyvxhJ4asPLyNgo
-         +kQSzRrQPUMsHwj9ls3GugZRgDAzZnUqAaaMS6MMDAWHqp4Owe0SzId6P/9Hsp6zmJ+S
-         oxdILthmYew78TMeFuxa3CRcxVd264Q2iKvfHgaILaVIH+OaFQajWtbx/JbVi/sw3Ztk
-         c6iQ==
-X-Forwarded-Encrypted: i=1; AKwUvBwuQ+HoxqWwSxVGYEE5hZ4BYFCKmIG7pasWTVokt7/8LWdZT7CV882DNJ91EqQnQeU4mb+kKbX3h884@vger.kernel.org
-X-Gm-Message-State: AFq9FYIpIVUciIU545ppY+n9L7EJrplTQ+8SLq4LvFx3YM0hw+4VYo3/
-	yJ6I3V9LyFB30DmsdLPr8lxJY2CeuvKeAR4wLAz8ey/2KFtF2RCBvIDq
-X-Gm-Gg: AYBFou1ie8BVjsnYBZZRf5NLobWsN86x1fOfEjfxg6NKkaUXTgEQI1Bt4ZL1P5rrns3
-	lfkkknnxfjEs4SdzwJIZ2dYVNPwOhttS7Gx2x+OjjhOOB4QbpJiMEKRpLYGBgzMkK5cayzipiG9
-	eyVyoCnCARLnRBo06M/EgwI0Kful9BHLMTBbK9MwYeTvK0qPgBBRdFsjgjXMMyzEJewd1VjhECO
-	iiVFOXwCb8sKHevpZLOcnuzWVqnjco1D7x2D3NOfvz/RshsE/SAVRO0FaCn8tBkgjF7HoPVXUXx
-	uDQ4UoqSswZwoBIbPbZgw5WrBVtrCftb5lbeS4no404R20BGmKD5Ajo/5We7xeg02K5w/j3Fcsb
-	8FD7Nzxe+yfqJTYL9w4mtM60jYwD+aCpvgr5Y6e7PxiLxHlhpfN1m2psd6TfmVSPJFkcBEjqVHK
-	lIWVrEKGYtCA9HpO9UwbWzkamUAx9dkGPU4D7FS3uSl3WRkOEFg6e20qAjJwUjUFka
-X-Received: by 2002:a17:90b:48c5:b0:3a4:b418:94cf with SMTP id 98e67ed59e1d1-3ab3a7366bfmr18636143a91.14.1792100210060;
-        Thu, 15 Oct 2026 14:36:50 -0700 (PDT)
-Received: from localhost ([2a03:2880:2ff:46::])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3acd05fb680sm23372a91.2.2026.10.15.14.36.48
+        bh=w5g/qpIgvj6wMX7CCQKIX7PAX2lJ6Da0UK3Xl6Ms4Rk=;
+        b=fXKHgsun5t8Hv3GIV1n9Dp51bqgSzWATBgtt8m64yd1PHmOnRb9Qs9LlQLPTU01L2y
+         hLi2gmejdNxJ896Rd1p8fJBriwKBOdDqaIJWoUnfvS8HPm/KHOCRg4e/SY9US5HYWase
+         GhEdYdZXVDleAHxRUmlAF3Jnjjk6SKZQ1uf5rpShY9TnjrEEUs225IF+yltjO/nswNNb
+         HeSjdM6DzxkstQ0cHi+9TGMdeuUD0HF+9r0AwDKjOK/BBNE2dPrQRT0PM0Cml26OqfVD
+         VY6xOmyH7db0TSswZOnaz04ICNQGPMXq2c/Nxabh9nKHt9sJadkeQbNmyqVU+6g+/vIp
+         cTDA==
+X-Forwarded-Encrypted: i=1; AKwUvBzRlsW23ZejO1NEgNI/ABTZocILJbyZnfUZluWi4mszX6D7e6pDHZ18iiCbuFkgiQWRDq9WMYIUBmma@vger.kernel.org
+X-Gm-Message-State: AFq9FYKpTVK9fINWTEd0lWyXwrF3ff3KB+IXkn9aWeyNpK22RVEsR0nZ
+	NevhLnKD0bBfHC7mv4XLIeNdwM/dMNnOe8LKRZBnBSGJvtA4F29oNl7aYCHPAuQ/mlM=
+X-Gm-Gg: AYBFou306AKIPdhy0bOjrvCCfMTvN24OXO5TrRjLF9DXswMwV67ebr1++95i1KzqCRJ
+	AvpMbDHT+Wv4TVUnSPKs7FAUi3PmwAudLhiRKQJK0WhfrQlMplSC/y2ONNfeMJc3KeKzI3bg1Jt
+	guXfmFY7jVSXo0wWSSfRg985WcR60q1utY64z70TzWREtJR8iQgZF1TlL3IjkXZtSuPjt6zP689
+	Ks48EI1B8pypaBGkOqa2pGL4DwnQwfcoy83SIXLniBHalU3W7qMJUmWp56R0s+7BfYPSwhuNNyx
+	+SOTvDuthXjhp8cQUYb2tfvH+Ov2iV6KdrJS1trLU67W8mleeh7/pVD2k+bkTnGDb3h/pDzzk2r
+	hyrgotIMsHzMqm8cxtegZCkz6xzmbE6aGqocn6NCmeHnOS02byYkDVnXTxnFHsbe+czr1g/P71v
+	3qQAosk4rCqNqBZhu6OSI5GPQr5pqmyvN2d3YvEy9hSOBmMUh2R2nQgnzkoEYO5mCJUFFz9hxkH
+	bxFk2iGRvxBOKvzZqroF7LGNRndFToZolCqgJMPOwTLy8aZ4oIp3JMh
+X-Received: by 2002:a05:622a:a16:b0:535:10be:7d5e with SMTP id d75a77b69052e-5359fb539bfmr310496441cf.46.1792104869371;
+        Thu, 15 Oct 2026 15:54:29 -0700 (PDT)
+Received: from ziepe.ca (hlfxns010zw-159-2-239-150.pppoe-dynamic.high-speed.ns.bellaliant.net. [159.2.239.150])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91bccc721a8sm5238476d6.12.2026.10.15.15.54.28
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 15 Oct 2026 14:36:49 -0700 (PDT)
-Date: Thu, 15 Oct 2026 14:36:38 -0700
-From: Stanislav Fomichev <sdf.kernel@gmail.com>
-To: Mina Almasry <almasrymina@google.com>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-rdma@vger.kernel.org, bpf@vger.kernel.org, Ayush Sawal <ayush.sawal@chelsio.com>, 
-	Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, 
-	Paolo Abeni <pabeni@redhat.com>, Tariq Toukan <tariqt@nvidia.com>, 
-	Simon Horman <horms@kernel.org>, Steffen Klassert <steffen.klassert@secunet.com>, 
-	Herbert Xu <herbert@gondor.apana.org.au>, Neal Cardwell <ncardwell@google.com>, 
-	Kuniyuki Iwashima <kuniyu@google.com>, John Fastabend <john.fastabend@gmail.com>, 
-	Sabrina Dubroca <sd@queasysnail.net>, Eric Biggers <ebiggers@kernel.org>, Kees Cook <kees@kernel.org>, 
-	Aleksandr Loktionov <aleksandr.loktionov@intel.com>, Petr Machata <petrm@nvidia.com>, 
-	Uwe =?utf-8?Q?Kleine-K=C3=B6nig_=28The_Capable_Hub=29?= <u.kleine-koenig@baylibre.com>, Jakub Raczynski <j.raczynski@samsung.com>, 
-	Wang Zhan <wang.zhan@smartx.com>, Willem de Bruijn <willemb@google.com>
-Subject: Re: [PATCH net-next v3 0/6] net: unify symmetric netmem and
- page_pool refcounting
-Message-ID: <atFHX4ryLonqXpn4@devvm7509.cco0.facebook.com>
-References: <20261014173945.373295-1-almasrymina@google.com>
+        Thu, 15 Oct 2026 15:54:28 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.97)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1xHULD-000000008uB-2yqn;
+	Thu, 15 Oct 2026 19:54:27 -0300
+Date: Thu, 15 Oct 2026 19:54:27 -0300
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Sean Hefty <shefty@nvidia.com>
+Cc: Eric Davis <eric.davis@broadcom.com>,
+	"sashiko-reviews@lists.linux.dev" <sashiko-reviews@lists.linux.dev>,
+	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+	Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH rdma-next 02/13] RDMA/core: add the UET GID types
+Message-ID: <20261015225427.GY14213@ziepe.ca>
+References: <20261014-uet-ib-core-v1-0-a0e626117113@broadcom.com>
+ <20261014-uet-ib-core-v1-2-a0e626117113@broadcom.com>
+ <sashiko-outbox-171976@kernel.org>
+ <CAMouMY+nCYZ1V_-0La4phKNkvYBke7Njhsr+HRwWkAfahgf3pg@mail.gmail.com>
+ <20261015173327.GU14213@ziepe.ca>
+ <DS6PR12MB53456734E5A7CFFCDD7FBCCC0CBD9C2@DS6PR12MB534567.namprd12.prod.outlook.com>
+ <20261015195408.GX14213@ziepe.ca>
+ <DS6PR12MB534567DB240CF76594BE5B5D0DBD9C2@DS6PR12MB534567.namprd12.prod.outlook.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261014173945.373295-1-almasrymina@google.com>
+In-Reply-To: <DS6PR12MB534567DB240CF76594BE5B5D0DBD9C2@DS6PR12MB534567.namprd12.prod.outlook.com>
 
-On 10/14, Mina Almasry wrote:
-> netmems (pages and net_iovs) have two independent refcounts: a non-pp
-> refcount (page._refcount or binding->ref) governing backing memory
-> lifetime, and pp_ref_count governing recycling within a page_pool while
-> page_pool holds a single backing non-pp reference. SKBs with
-> pp_recycle=1 own pp_ref_count references on page_pool fragments; SKBs
-> with pp_recycle=0 own non-pp references.
+On Thu, Oct 15, 2026 at 09:14:22PM +0000, Sean Hefty wrote:
+> > > > > > Could this cause incoming UET packets to be incorrectly mapped
+> > > > > > to a
+> > > > > > RoCEv2 GID index, breaking the UET transport response?
+> > > > >
+> > > > > On a port that runs both RoCE and UET the MAD traffic is RoCE, so
+> > > > > mapping it to RoCEv2 is correct.
+> > > >
+> > > > You will need seperate ROCE and UET ib_devices with the current
+> > > > state of affairs, we don't support multi-protocol today.
+> > >
+> > > UEC intentionally considered multi-protocol devices, with a vendor deciding
+> > whether it would need to provide separate SW devices.  E.g. using UET for
+> > MPI, but RoCE for storage.  Protocol selection is via GID, same as RoCEv1 vs
+> > v2.
+> > >
+> > > What blocks multi-protocol support?
+> > 
+> > Principally I don't think we have the APIs to discover and link the GUID to
+> > protocol to QP type appropriately..
 > 
-> Core helpers currently mix these two refcounts asymmetrically:
-> skb_frag_ref() always increments the non-pp refcount via get_netmem(),
-> whereas skb_frag_unref() decrements pp_ref_count when skb->pp_recycle
-> is set. Any path that refs a fragment on a pp_recycle=1 SKB (or unrefs
-> with a hardcoded recycle=false) increments one counter and decrements
-> the other, leaking the backing memory while underflowing pp_ref_count
-> (e.g., IP-TFS [1], skb_split(), skb_shift(), and cloned SKB uncloning).
-> Unclear core APIs also led drivers and ULPs to open-code pp_ref_count
-> manipulations or add one-off helpers like skb_pp_frag_ref().
+> I'm missing something regarding the GUID comment.
 > 
-> Unify fragment refcounting into symmetric pairs where each layer clearly
-> specifies which refcount it touches:
-> 
-> - Non-PP refcount: get/put_page(), get/put_net_iov(), get/put_netmem()
-> - PP refcount:     napi_pp_get/put_page()
-> - SKB netmem:      skb_netmem_ref/unref(netmem, recycle)
-> - SKB fragment:    skb_frag_ref/unref(skb, f)
-> 
-> Found by code inspection while reviewing [1] and confirmed with the KUnit
-> tests in patch 6; not observed in production. Driver and ULP call-site
-> changes are compile-tested only.
-> 
-> Link: https://lore.kernel.org/netdev/xfrm-iptfs-pp_ref_count-underflow-v4-1-912fa72106f0@secunet.com/ [1]
-> 
-> ---
-> v3:
-> - Linearize straddling output segments in skb_segment() when frag_list
->   SKBs mix pp_recycle flags instead of clearing NETIF_F_SG, and add a
->   KUnit regression test (Sashiko).
-> - Link to v2: https://lore.kernel.org/netdev/20261012082148.1698596-1-almasrymina@google.com/
+> The QP protocol comes from GID index, which is discoverable via
+> ibv_gid_entry::gid_type.  (UET QPs require the GID index on create.)
 
-Acked-by: Stanislav Fomichev <sdf@fomichev.me>
+Hmm, that's not the normal case, but I see what you are thinking
+
+> E.g. a dual RoCE + UET device would report node_type = UNSPECIFIED &
+> transport_type = UNSPECIFIED.  GID entries indicate supported
+> protocols.
+
+Ah, that would need some opt in scheme to get there, but I supppose it
+may not be so bad.
+
+I thought there were other issues like PDs not being entirely
+compatible, MRs, and so on?
+
+Jason
