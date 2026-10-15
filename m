@@ -1,79 +1,62 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CEAE518158;
-	Thu, 15 Oct 2026 11:59:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24CD044065D
+	for <linux-rdma@vger.kernel.org>; Thu, 15 Oct 2026 12:09:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792065560; cv=none; b=r0z7hbSp3B4Pi2s27QnGBdwikqjRlUi1j3cEknxKvhTY/Yd+UeJd+atMpgrhHn91rc9EePltZwrhBpXsPtiHNsSs1nPo8oiyLXi114Dbjhz30oxEi7bwVHKVFdpabIMfOq9Sn9XXJjBnDYGGbAES8eYqI10WiquQHf4fAGZz5XQ=
+	t=1792066185; cv=none; b=Cvpx0Zt4LcA876tHqoZgnYVc6jLPhfcRaEvFmf2tuGqX1Eo0twDe+yALf5vEE00nVt0+pBY9AiU7tngBexaSdTeQBZi/nX9NKgSi0MaWwu6YsmHY/bIvXnoaUjz6mVsnyssr2pHpFEXC4Z9RjktdamsS6zseAGo041aD416b+zQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792065560; c=relaxed/simple;
-	bh=rSEOV8VRGcsUnyxvpDxWwUomyuCFT0NGj9X5osfyJkU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=rAqdcFmzc8gJ+hKy3R+LAycozqnHUGHNEnAJLmJNRiuz1lsPdGHBnSELNqWvpbTUxdlALZ3yJKpHoQ2/jfhivySQSx77nIaVWgOfi2+vPNJouhUL+US9HRNYQDX+05Pt9H3IiLSqBSCTZ9WrpunY3tJu2Zy5XHCuhwXAxekhnlU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CN3ycaaZ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792066185; c=relaxed/simple;
+	bh=dgd5huWAcC/fa6q65WlXhsQ2nQDlm5BCx0KtVpuVl8M=;
+	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
+	 Date; b=pdyDGIBvbCgJLA26jVL9uSJuBfxy3CVdAio5iYuxOlsZTxZNNPv+NZncxhriC0MztHHGtXNfUnRhamWsfIAe8X5ZAjh0GBaxx1In9VVf/fErXAP8EKqr+oy1Z7myd0AI5xddEgYon+sUHD0l4BACRzAmFtgQ/YZiTmjboXTaZSQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EjVgeBX3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CN3ycaaZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63F031F000C4;
-	Thu, 15 Oct 2026 11:59:18 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EjVgeBX3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4FAA1F000C4;
+	Thu, 15 Oct 2026 12:09:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792065559;
-	bh=qP8/tIYa0gcosBQ9EKNrYiQBlTnxHfFXnZoV45ZKWsA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=CN3ycaaZcoZHfbVaZTQYcetnYk7Eg6o9EM+setE+y4rs55G85nlEJXrq0bQb7Jh/A
-	 nWlw2htyzQ98PvDA5nnrbvyZcYwqilP2PzekVAcyV5JWyldXgxKbyw4m5jn23bQV2e
-	 3bEXeCyNLEZq156jT/JSCiKk60Mu6BNUVn8KnEP5BJVQReqj5ghMFm5NVxOgFMXK7U
-	 mI95vNP5E8EZfgJOIm9bHeAJw/2EPQB5K+z9W7XBpDiyYvXVNplqPy4Lpfu6UFdIHA
-	 2LLF9FWvlsEJmHEK7VaLowkzh6TOSAkHlcLs3TNEKbnsDCtrrQFeDGBPk4kV5BiFmL
-	 kb0vTYXE4M7lQ==
-From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>,
-	Maor Gottlieb <maorg@mellanox.com>
-Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next 1/3] RDMA/core: Preserve the selected source GID on failed AH modification
-Date: Thu, 15 Oct 2026 14:59:00 +0300
-Message-ID: <20261015-ib-core-fixes-v1-1-60f6da3ddec3@nvidia.com>
-X-Mailer: git-send-email 2.56.0
-In-Reply-To: <20261015-ib-core-fixes-v1-0-60f6da3ddec3@nvidia.com>
+	s=k20260515; t=1792066183;
+	bh=dgd5huWAcC/fa6q65WlXhsQ2nQDlm5BCx0KtVpuVl8M=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=EjVgeBX3Cw5j+W8nqJhOnGcVk86zoSkrAuy2ewRJW9FqyYT6NXe80PvBD9emX4RiY
+	 bgro7ik0b+/EUU0MS7X6gJy/0gstzerTZfIP2tZiODpjdPbq97SDkjVTQf9a7zyG0F
+	 wrIbQKjAudpO6pqXa9mkh4NvkQpbYJvoxR4umkLg6DOVzug+JYSazwNTa9qQFX8sFP
+	 AzxWDnAr4gG+BmVq5gwiz3+U1HEqsxkhZVvrIONXbQ4+a6WP3uDhKVz+ajPEDsXasE
+	 byltxjLS9pMwZTDElGprkRZC8Z35ok9S/o1B8BMjDyfKfqcZXdlP6nOpZzxiqTCeGz
+	 yBah2kxjQsfnw==
+Message-ID: <sashiko-outbox-172783@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH rdma-next 2/3] RDMA/core: Free unpublished port
+ statistics after initial-read failure
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Leon Romanovsky" <leon@kernel.org>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261015-ib-core-fixes-v1-2-60f6da3ddec3@nvidia.com>
 References: <20261015-ib-core-fixes-v1-0-60f6da3ddec3@nvidia.com>
+ <20261015-ib-core-fixes-v1-2-60f6da3ddec3@nvidia.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Thu, 15 Oct 2026 12:09:43 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Mailer: b4 0.15-dev-18f8f
-Content-Transfer-Encoding: 8bit
 
-From: Leon Romanovsky <leonro@nvidia.com>
+> From: Leon Romanovsky <leonro@nvidia.com>
+>=20
+> An initial port counter read can fail after allocating its statistics
+> buffer and wrapper. Free these both allocations.
+>=20
+> Fixes: 467f432a521a ("RDMA/core: Split port and device counter sysfs attr=
+ibutes")
+> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 
-When an address-handle modification fails, the core replaces its source-GID
-reference. The old address then loses the reference which keeps its source
-entry alive.
+Sashiko has reviewed this patch and found no issues. It looks great!
 
-Fixes: 1a1f460ff151 ("RDMA: Hold the sgid_attr inside the struct ib_ah/qp")
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/core/verbs.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index edf62652f9d3..7d52d3036208 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -1011,7 +1011,8 @@ int rdma_modify_ah(struct ib_ah *ah, struct rdma_ah_attr *ah_attr)
- 		ah->device->ops.modify_ah(ah, ah_attr) :
- 		-EOPNOTSUPP;
- 
--	ah->sgid_attr = rdma_update_sgid_attr(ah_attr, ah->sgid_attr);
-+	if (!ret)
-+		ah->sgid_attr = rdma_update_sgid_attr(ah_attr, ah->sgid_attr);
- 	rdma_unfill_sgid_attr(ah_attr, old_sgid_attr);
- 	return ret;
- }
-
--- 
-2.55.0
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261015-ib-core-fi=
+xes-v1-0-60f6da3ddec3@nvidia.com?part=3D2
 
