@@ -1,342 +1,92 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from vtj.irix.systems (vtj.irix.systems [82.76.27.144])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F35F653F6AB;
-	Thu, 15 Oct 2026 18:17:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E58B542EEC;
+	Thu, 15 Oct 2026 18:22:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=82.76.27.144
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792088246; cv=none; b=iHRT6dN+bF6UkMdLkW6NR2wLz0oIRSoABVVVpQCEFmL+nKsxrPUaQ237hZWY0t3jODO3yATfruX1uq7P0nw06FEmqnxU0hZTI0KnGDh8LHCj4Rjh5toYDOmWItE1srcPOuCfsU9y3X4d8Xvzw456sC8/kJR/mYFyJT+W8pgpZ6U=
+	t=1792088553; cv=none; b=YTW8GN4R2AQAT8j/641SwJqYAd3J6VUJYgKaalb2eb/t39Hc/UX0cS/WtXNYsY55f0PlNrt0vpQlESd29UGXwKZCb+4i0EhZQbbSpjZjVDqgsT3i7dwDkGKmtazt/4ubVsaS4FilUOcwaKiXg6qCaUFUvlzwWzfxSTfXthouJ/U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792088246; c=relaxed/simple;
-	bh=94SFc2frJuu5i6d3yDnz3QPDROVTJfLGJVj9IL65e50=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=aFscnjPKXtpkTS0kTkKiOzZZFa2TGtIKVUHmPhHGv1LMNgZvC4x/yhQib3esOWjAWOd4KFgg3JbbZiKyDgZbVePkTGwUb0OMwTNmTak2G5SQNr3zmUo8UunPHf0K+IfR1PQKhO0HVTxt/GY2WnjOsx1XwwmVXUrbTWqj/MTqMOw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NQVI2esR; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792088553; c=relaxed/simple;
+	bh=xNpEhYZcq6qVSUBvPyydPbPL4dYdr3MofZpFtCsCi+o=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=WEflBsuEJcrDAnCYgmFkE0vc4lHaIsY5eVXWi2OUeKTT3ONPHrInShqdDh8fP06EbEFqxUMu/rDqEJr1AGZXbME5mlCJeuab+cruAyndf2RNsfaP2hX6mV/t7Lt8glz0J5RxXbp5quhUjfHP7wXRJuto69uE1w9UpoqcCVvQL7A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=andrei-z.com; spf=pass smtp.mailfrom=andrei-z.com; dkim=pass (2048-bit key) header.d=andrei-z.com header.i=@andrei-z.com header.b=S/GS98DG; arc=none smtp.client-ip=82.76.27.144
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=andrei-z.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=andrei-z.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NQVI2esR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 092DB1F000C6;
-	Thu, 15 Oct 2026 18:17:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792088237;
-	bh=k67o3OR1qMtQp5c2QUj18xunQff2y1QX0dForzdNANY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=NQVI2esRyplxegh7w+U/D07TXZY2j6qnYXn69NbdAFUsy239xoCHHhk851VjnBouq
-	 5IwoTBraI20cuJmgUDklTmwcPBA6SD47bPkDvwHdO/FAPkQJYkRCk/pjW2NEApZce4
-	 gLp2yc/RG7Yyt5YXdNHyS3JhSyxnBQpr7dVmDC3tgfT9e5sRvOvjT9rkK9/BGkyxIW
-	 HJkVsUVPQBbkR8LTTqr69bTrYipE85fx16BVcsr7m3Iw7dKF/eek8llC4iO3Qaop7j
-	 RecAYTD/3h553Bci0OEDOUN1YVRpO+57fkBO3hKDdim+JCKzZBmsHAipUhpYu4pcd6
-	 qK7GJtm9QsfQA==
-Date: Thu, 15 Oct 2026 21:17:13 +0300
-From: Leon Romanovsky <leon@kernel.org>
-To: David Hu <dhu@x6u.co>
-Cc: Tatyana Nikolova <tatyana.e.nikolova@intel.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org, jmoroni@google.com,
-	eagleshaw@google.com, xuehaohu@google.com
-Subject: Re: [PATCH rdma-next v2 4/6] RDMA/irdma: Split CQ setup to umode and
- kmode
-Message-ID: <20261015181713.GB219304@unreal>
-References: <20261015011940.4122452-1-dhu@x6u.co>
- <20261015011940.4122452-5-dhu@x6u.co>
+	dkim=pass (2048-bit key) header.d=andrei-z.com header.i=@andrei-z.com header.b="S/GS98DG"
+Received: from MAILGW-BIG.big.vtj.corp.irix.systems (localhost [127.0.0.1])
+	by vtj.irix.systems (Proxmox) with ESMTP id 88BA812301;
+	Thu, 15 Oct 2026 21:22:28 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=andrei-z.com; h=
+	cc:cc:content-transfer-encoding:content-type:content-type:date
+	:from:from:in-reply-to:message-id:mime-version:references
+	:reply-to:subject:subject:to:to; s=sig1; bh=xNpEhYZcq6qVSUBvPyyd
+	PbPL4dYdr3MofZpFtCsCi+o=; b=S/GS98DGCW1dxwnvTcBT/UzF6t/3JvbXcTWV
+	OfoD22QgCES3sp1x0dipC1WVgMOTfYA3+wNunZ/XKpn3tetnTudwmtuRkYZOSHIP
+	ynXVx2yR5SJLthOJDJv/2fWXezxuD25TRQL5/1ppOurRgcewKyxwlAyRZM0GmXPH
+	33CV67Z4piQvoK61IaVvAfrkzo0Y5+mPHqyVNaFeZIfFcVBYVGusBQcvosusY6IS
+	o2iioOxF9s0t11nqh8lurfEP3CGxciUAoF+iqdcJGYLVDBryZYIprsAluA6QOOFt
+	nilIUcUBe0wheFiMIvV3baSboUHynD5qXihEuAuo5VLHVVtC/A==
+Received: from VTJ-MX.corp.irix.systems (unknown [10.57.36.6])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by vtj.irix.systems (Proxmox) with ESMTPS id 0F8AB12300;
+	Thu, 15 Oct 2026 21:22:28 +0300 (EEST)
+Received: from [10.89.11.73] (10.57.8.14) by VTJ-MX.corp.irix.systems
+ (2a02:2f04:1:9c24::6) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Thu, 15 Oct
+ 2026 21:22:27 +0300
+From: Andrei-Alexandru Bleortu <me@andrei-z.com>
+To: Bart Van Assche <bvanassche@acm.org>
+CC: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Sagi
+ Grimberg <sagi@grimberg.me>, Max Gurtovoy <mgurtovoy@nvidia.com>, "Md. Haris
+ Iqbal" <haris.iqbal@ionos.com>, Jack Wang <jinpu.wang@ionos.com>,
+	<linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH RFC 2/3] RDMA/srp: Post command IUs inline
+Date: Thu, 15 Oct 2026 21:22:27 +0300
+Message-ID: <20261015212227.3338582-1-me@andrei-z.com>
+In-Reply-To: <fa01c872-9d1d-4b60-b994-08ba86a5ebaa@acm.org>
+References: <20261015125118.2966247-1-me@andrei-z.com>
+ <20261015125118.2966247-3-me@andrei-z.com>
+ <fa01c872-9d1d-4b60-b994-08ba86a5ebaa@acm.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261015011940.4122452-5-dhu@x6u.co>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: VTJ-MX.corp.irix.systems (2a02:2f04:1:9c24::6) To
+ VTJ-MX.corp.irix.systems (2a02:2f04:1:9c24::6)
 
-On Thu, Oct 15, 2026 at 01:19:38AM +0000, David Hu wrote:
-> From: David Hu <xuehaohu@google.com>
-> 
-> This split is similar to QP, and SRQ that is already present in existing
-> irdma driver. Only variable plumbing was done, while umode and kmode setup
-> logic is identical as before.
-> 
-> Signed-off-by: David Hu <xuehaohu@google.com>
-> ---
->  drivers/infiniband/hw/irdma/verbs.c | 232 +++++++++++++++-------------
->  1 file changed, 126 insertions(+), 106 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-> index ab25445f3828..7162b37fa6ff 100644
-> --- a/drivers/infiniband/hw/irdma/verbs.c
-> +++ b/drivers/infiniband/hw/irdma/verbs.c
-> @@ -2624,6 +2624,126 @@ static inline int cq_validate_flags(u32 flags, u8 hw_rev)
->  	return flags & ~IB_UVERBS_CQ_FLAGS_TIMESTAMP_COMPLETION ? -EOPNOTSUPP : 0;
->  }
->  
-> +static int irdma_setup_kmode_cq(struct irdma_device *iwdev,
-> +				struct irdma_cq *iwcq,
-> +				struct irdma_cq_init_info *info,
-> +				const struct ib_cq_init_attr *attr)
-> +{
-> +	struct irdma_cq_uk_init_info *ukinfo = &info->cq_uk_init_info;
-> +	struct irdma_pci_f *rf = iwdev->rf;
-> +	struct irdma_sc_dev *dev = &rf->sc_dev;
-> +	int entries = attr->cqe;
-> +	bool cqe_64byte_ena;
-> +	u8 cqe_size;
-> +	int rsize;
-> +
-> +	if (entries < 1 || entries > rf->max_cqe)
-> +		return -EINVAL;
+On 10/15/26 Bart Van Assche wrote:
+> A table like the above makes maintenance of the RDMA subsystem harder
+> than necessary. Shouldn't a mechanism be added for querying this
+> information from the RDMA adapter?
 
-This if() is impossible.
+Yes, the table should go. But a single value per device would not work
+for mlx5. There the limit depends on the QP: the send WQE must fit in
+max_wqe_sz_sq, and part of it is taken by segments whose size depends
+on the QP type and create flags. Only QP creation knows the real limit.
 
-> +
-> +	cqe_64byte_ena = dev->hw_attrs.uk_attrs.feature_flags & IRDMA_FEATURE_64_BYTE_CQE ?
-> +			 true : false;
-> +	cqe_size = cqe_64byte_ena ? 64 : 32;
-> +
-> +	entries += 2;
-> +	if (!cqe_64byte_ena && dev->hw_attrs.uk_attrs.hw_rev >= IRDMA_GEN_2)
-> +		entries *= 2;
-> +
-> +	if (entries & 1)
-> +		entries += 1; /* cq size must be an even number */
-> +
-> +	if (entries * cqe_size == IRDMA_HW_PAGE_SIZE)
-> +		entries += 2;
-> +
-> +	ukinfo->cq_size = entries;
-> +
-> +	if (cqe_64byte_ena)
-> +		rsize = ukinfo->cq_size * sizeof(struct irdma_extended_cqe);
-> +	else
-> +		rsize = ukinfo->cq_size * sizeof(struct irdma_cqe);
-> +	iwcq->kmem.size = ALIGN(round_up(rsize, 256), 256);
-> +	iwcq->kmem.va = dma_alloc_coherent(dev->hw->device,
-> +					   iwcq->kmem.size,
-> +					   &iwcq->kmem.pa, GFP_KERNEL);
-> +	if (!iwcq->kmem.va)
-> +		return -ENOMEM;
-> +
-> +	iwcq->kmem_shadow.size = ALIGN(IRDMA_SHADOW_AREA_SIZE << 3, 64);
-> +	iwcq->kmem_shadow.va = dma_alloc_coherent(dev->hw->device,
-> +						  iwcq->kmem_shadow.size,
-> +						  &iwcq->kmem_shadow.pa,
-> +						  GFP_KERNEL);
-> +	if (!iwcq->kmem_shadow.va)
-> +		return -ENOMEM;
-> +
-> +	info->shadow_area_pa = iwcq->kmem_shadow.pa;
-> +	ukinfo->shadow_area = iwcq->kmem_shadow.va;
-> +	ukinfo->cq_base = iwcq->kmem.va;
-> +	info->cq_base_pa = iwcq->kmem.pa;
-> +
-> +	return 0;
-> +}
-> +
-> +static int irdma_setup_umode_cq(struct irdma_device *iwdev,
-> +				struct irdma_cq *iwcq,
-> +				struct irdma_cq_init_info *info,
-> +				struct ib_udata *udata)
-> +{
-> +	struct irdma_create_cq_req req = {};
-> +	struct irdma_pci_f *rf = iwdev->rf;
-> +	struct irdma_ucontext *ucontext;
-> +	struct irdma_cq_mr *cqmr_shadow;
-> +	struct irdma_cq_mr *cqmr;
-> +	unsigned long flags;
-> +	int err_code;
-> +
-> +	iwcq->user_mode = true;
-> +	ucontext = rdma_udata_to_drv_context(udata, struct irdma_ucontext,
-> +					     ibucontext);
-> +	/* Even though the last member of struct irdma_create_cq_req
-> +	 * was always user_shadow_area, we need backwards compat with
-> +	 * the legacy i40iw struct i40iw_ucreate_cq which stopped
-> +	 * at user_cq_buffer.
-> +	 */
-> +	err_code = ib_copy_validate_udata_in(udata, req, user_cq_buf);
-> +	if (err_code)
-> +		return err_code;
-> +
-> +	spin_lock_irqsave(&ucontext->cq_reg_mem_list_lock, flags);
-> +	iwcq->iwpbl = irdma_get_pbl((unsigned long)req.user_cq_buf,
-> +				    &ucontext->cq_reg_mem_list);
-> +	spin_unlock_irqrestore(&ucontext->cq_reg_mem_list_lock, flags);
-> +	if (!iwcq->iwpbl)
-> +		return -EPROTO;
-> +
-> +	cqmr = &iwcq->iwpbl->cq_mr;
-> +
-> +	if (rf->sc_dev.hw_attrs.uk_attrs.feature_flags &
-> +	    IRDMA_FEATURE_CQ_RESIZE) {
-> +		spin_lock_irqsave(&ucontext->cq_reg_mem_list_lock, flags);
-> +		iwcq->iwpbl_shadow =
-> +			irdma_get_pbl((unsigned long)req.user_shadow_area,
-> +				      &ucontext->cq_reg_mem_list);
-> +		spin_unlock_irqrestore(&ucontext->cq_reg_mem_list_lock, flags);
-> +
-> +		if (!iwcq->iwpbl_shadow)
-> +			return -EPROTO;
-> +
-> +		cqmr_shadow = &iwcq->iwpbl_shadow->cq_mr;
-> +		info->shadow_area_pa = cqmr_shadow->cq_pbl.addr;
-> +	} else {
-> +		info->shadow_area_pa = cqmr->shadow;
-> +	}
-> +	if (iwcq->iwpbl->pbl_allocated) {
-> +		info->virtual_map = true;
-> +		info->pbl_chunk_size = 1;
-> +		info->first_pm_pbl_idx = cqmr->cq_pbl.idx;
-> +	} else {
-> +		info->cq_base_pa = cqmr->cq_pbl.addr;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  /**
->   * irdma_create_cq - create cq
->   * @ibcq: CQ allocated
-> @@ -2647,11 +2767,9 @@ static int irdma_create_cq(struct ib_cq *ibcq,
->  	struct irdma_cqp_request *cqp_request;
->  	struct cqp_cmds_info *cqp_info;
->  	struct irdma_cq_uk_init_info *ukinfo = &info.cq_uk_init_info;
-> -	unsigned long flags;
->  	int err_code;
->  	int entries = attr->cqe;
->  	bool cqe_64byte_ena;
-> -	u8 cqe_size;
->  
->  	err_code = cq_validate_flags(attr->flags, dev->hw_attrs.uk_attrs.hw_rev);
->  	if (err_code)
-> @@ -2679,7 +2797,6 @@ static int irdma_create_cq(struct ib_cq *ibcq,
->  	ukinfo->cq_id = cq_num;
->  	cqe_64byte_ena = dev->hw_attrs.uk_attrs.feature_flags & IRDMA_FEATURE_64_BYTE_CQE ?
->  			 true : false;
-> -	cqe_size = cqe_64byte_ena ? 64 : 32;
->  	ukinfo->avoid_mem_cflct = cqe_64byte_ena;
->  	iwcq->ibcq.cqe = info.cq_uk_init_info.cq_size;
->  	if (attr->comp_vector < rf->ceqs_count)
-> @@ -2689,109 +2806,12 @@ static int irdma_create_cq(struct ib_cq *ibcq,
->  	info.type = IRDMA_CQ_TYPE_IWARP;
->  	info.vsi = &iwdev->vsi;
->  
-> -	if (udata) {
-> -		struct irdma_ucontext *ucontext;
-> -		struct irdma_create_cq_req req = {};
-> -		struct irdma_cq_mr *cqmr;
-> -		struct irdma_cq_mr *cqmr_shadow;
-> -
-> -		iwcq->user_mode = true;
-> -		ucontext =
-> -			rdma_udata_to_drv_context(udata, struct irdma_ucontext,
-> -						  ibucontext);
-> -		/* Even though the last member of struct irdma_create_cq_req
-> -		 * was always user_shadow_area, we need backwards compat with
-> -		 * the legacy i40iw struct i40iw_ucreate_cq which stopped
-> -		 * at user_cq_buffer.
-> -		 */
-> -		err_code = ib_copy_validate_udata_in(udata, req, user_cq_buf);
-> -		if (err_code)
-> -			goto cq_free_rsrc;
-> -
-> -		spin_lock_irqsave(&ucontext->cq_reg_mem_list_lock, flags);
-> -		iwcq->iwpbl = irdma_get_pbl((unsigned long)req.user_cq_buf,
-> -					    &ucontext->cq_reg_mem_list);
-> -		spin_unlock_irqrestore(&ucontext->cq_reg_mem_list_lock, flags);
-> -		if (!iwcq->iwpbl) {
-> -			err_code = -EPROTO;
-> -			goto cq_free_rsrc;
-> -		}
-> -
-> -		cqmr = &iwcq->iwpbl->cq_mr;
-> -
-> -		if (rf->sc_dev.hw_attrs.uk_attrs.feature_flags &
-> -		    IRDMA_FEATURE_CQ_RESIZE) {
-> -			spin_lock_irqsave(&ucontext->cq_reg_mem_list_lock, flags);
-> -			iwcq->iwpbl_shadow = irdma_get_pbl(
-> -					(unsigned long)req.user_shadow_area,
-> -					&ucontext->cq_reg_mem_list);
-> -			spin_unlock_irqrestore(&ucontext->cq_reg_mem_list_lock, flags);
-> -
-> -			if (!iwcq->iwpbl_shadow) {
-> -				err_code = -EPROTO;
-> -				goto cq_free_rsrc;
-> -			}
-> -			cqmr_shadow = &iwcq->iwpbl_shadow->cq_mr;
-> -			info.shadow_area_pa = cqmr_shadow->cq_pbl.addr;
-> -		} else {
-> -			info.shadow_area_pa = cqmr->shadow;
-> -		}
-> -		if (iwcq->iwpbl->pbl_allocated) {
-> -			info.virtual_map = true;
-> -			info.pbl_chunk_size = 1;
-> -			info.first_pm_pbl_idx = cqmr->cq_pbl.idx;
-> -		} else {
-> -			info.cq_base_pa = cqmr->cq_pbl.addr;
-> -		}
-> -	} else {
-> -		/* Kmode allocations */
-> -		int rsize;
-> -
-> -		if (entries < 1 || entries > rf->max_cqe) {
-> -			err_code = -EINVAL;
-> -			goto cq_free_rsrc;
-> -		}
-> -
-> -		entries += 2;
-> -		if (!cqe_64byte_ena && dev->hw_attrs.uk_attrs.hw_rev >= IRDMA_GEN_2)
-> -			entries *= 2;
-> -
-> -		if (entries & 1)
-> -			entries += 1; /* cq size must be an even number */
-> -
-> -		if (entries * cqe_size == IRDMA_HW_PAGE_SIZE)
-> -			entries += 2;
-> -
-> -		ukinfo->cq_size = entries;
-> -
-> -		if (cqe_64byte_ena)
-> -			rsize = info.cq_uk_init_info.cq_size * sizeof(struct irdma_extended_cqe);
-> -		else
-> -			rsize = info.cq_uk_init_info.cq_size * sizeof(struct irdma_cqe);
-> -		iwcq->kmem.size = ALIGN(round_up(rsize, 256), 256);
-> -		iwcq->kmem.va = dma_alloc_coherent(dev->hw->device,
-> -						   iwcq->kmem.size,
-> -						   &iwcq->kmem.pa, GFP_KERNEL);
-> -		if (!iwcq->kmem.va) {
-> -			err_code = -ENOMEM;
-> -			goto cq_free_rsrc;
-> -		}
-> -
-> -		iwcq->kmem_shadow.size = ALIGN(IRDMA_SHADOW_AREA_SIZE << 3,
-> -					       64);
-> -		iwcq->kmem_shadow.va = dma_alloc_coherent(dev->hw->device,
-> -							  iwcq->kmem_shadow.size,
-> -							  &iwcq->kmem_shadow.pa,
-> -							  GFP_KERNEL);
-> -		if (!iwcq->kmem_shadow.va) {
-> -			err_code = -ENOMEM;
-> -			goto cq_free_rsrc;
-> -		}
-> -		info.shadow_area_pa = iwcq->kmem_shadow.pa;
-> -		ukinfo->shadow_area = iwcq->kmem_shadow.va;
-> -		ukinfo->cq_base = iwcq->kmem.va;
-> -		info.cq_base_pa = iwcq->kmem.pa;
-> -	}
-> +	if (udata)
-> +		err_code = irdma_setup_umode_cq(iwdev, iwcq, &info, udata);
-> +	else
-> +		err_code = irdma_setup_kmode_cq(iwdev, iwcq, &info, attr);
+> What changes in the RDMA core would be needed to eliminate this loop?
 
-No, the idea was to actually implement and set ,crate_user_cq() callback
-and clean as much as possible from existing .create_cq() callback.
+A new QP create flag. With it, the ULP asks for up to N bytes of inline
+data, and the driver gives as much as it can, up to N, instead of
+failing. The driver reports the amount in cap.max_inline_data, as mlx5,
+bnxt_re and rxe already do.
 
-Thanks
+The ULP still names N because inline data is not free on mlx5: it sets
+the size of every send queue slot, and so the send queue's memory.
 
-> +	if (err_code)
-> +		goto cq_free_rsrc;
->  
->  	info.shadow_read_threshold = min(info.cq_uk_init_info.cq_size / 2,
->  					 (u32)IRDMA_MAX_CQ_READ_THRESH);
-> -- 
-> 2.56.0.385.gd3acb90ef8-goog
-> 
-> 
+On a driver without the flag, creation can fail. The ULP then creates
+the QP once more without inline data. No table or loop is left, and it
+works for any QP type.
+
+If you, Jason and Leon are fine with this, I will send the core flag
+and the driver changes first, then a new version of the three ULP
+patches on top.
+
