@@ -1,44 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7D453B6C1C
-	for <linux-rdma@vger.kernel.org>; Thu, 15 Oct 2026 12:11:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DB88356747
+	for <linux-rdma@vger.kernel.org>; Thu, 15 Oct 2026 12:15:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792066275; cv=none; b=cdRhJPZ9H5O7XFw2oxcR9SnXLRbRfdgtalXf9VJPvRYECX+3oknj/hV/McgfBCJ2XDuDKunLAxSOcjzmc9XVj7/QMWT5sMF6e43KAh/YuLzt1S+GWn/fTZS/+8+LeEmwDZ5D8RrZDZZGj+dIKHh4ORlMMx22V/8LgIHWOyUxaIY=
+	t=1792066510; cv=none; b=HPG0E5S2JEueVap3WCF6tMfQmiPb8peLnyKQuur4ZlvozoN8e4CtMQDw6S5bptkh3AXmH7NOJld9x5P7jeg9f6QU6cF39EvaBG5Hb85zfoC1FOD/H7JyVwGjv6mMqEefr2jO0QFpUgxOwKaAHf+EKQ/ReTAU33tjmCjMN4+/DLI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792066275; c=relaxed/simple;
-	bh=lQ2HIl8WY3yXxgr8zvUCKR9bdhHYp7SwqeFcN4CKHPg=;
+	s=arc-20240116; t=1792066510; c=relaxed/simple;
+	bh=5lCmTcpL9YpQMCvVz8XyNe9afrFp2zrbtcV2zWTLM5w=;
 	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=PfmFgSOrpcBB8pLOKLu00P2BuGVqjs9dc1ElwJqVvF5RVNsZbzjL15S2om1aj6PAA9nPiCNgm2xfJh9mb+3DAg0Txowz1lKXFxFdUfJHtZrHlKtd5AwRtD7a7JEa01AjuCiC2RahRHw4t2Spo3Lzw9WtVVIPHht2vHn5X7nZ9Uw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=k0BPrS3D; arc=none smtp.client-ip=100.103.45.18
+	 Date; b=ZBf3V4JKvNK9EsSf/x0fXfFkFEGYb1L4kDV0bRqWRtEVHEi1lLNcgIFCbOtr1CZHi5mQNzQZse+mBQiIwB3Ni/s8APSXDJilEPHhEDJlBGQVsrl5fFRtwmkJeP1koIUhH4iVFYvlU56Z+TOsSx3pUm0nmI8y2NUVQel0RG/ZTew=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AKb6D4Zs; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="k0BPrS3D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 737391F000C4;
-	Thu, 15 Oct 2026 12:11:14 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AKb6D4Zs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D61721F000C4;
+	Thu, 15 Oct 2026 12:15:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792066274;
-	bh=X+DuTQFWKJf9o/KUGPZqM9i48NLaTVOwFzWQU7kh+rM=;
+	s=k20260515; t=1792066509;
+	bh=3ScARtzTJKXSFFm+H4VR+qAWtg7Eq+1avkK2z3NGS9Q=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=k0BPrS3DPLgP2rNgEb5IcLqpfkm1hPqMJzdWV/p30SmB6oLmMKYs80SZBPDarUNs1
-	 o6yZ+2b+DIL/YPkNCBdejievIT0qzL6wmf+Kozz74Iu6xHcy/xVTsqaYESx+Yh7Z9Z
-	 4pEQraZhMX2IjMbqopEnuObcFU81B/JpkJAOQsRNlPBHS0QKROQtVW0SBrNou2CUeY
-	 v8lNV/W68+7+lt0rPIhrR79MlUmpoklM7+3GByLrChA2LukbzCQn/AltHmyY0QLFj/
-	 xo7xng4XHL5osnMNLZZ6sxJB3Zt/JjtbILjwVwmMcC262ESq5JKHV9ghv0w2+a9rCk
-	 tUOMRAWLj+NTg==
-Message-ID: <sashiko-outbox-172785@kernel.org>
+	b=AKb6D4ZsJYqM0za1OdwVQb1Hh5jTfn8zIgEXeG3bP+C/d6iwhWx3EbZPYRf6ArN7o
+	 6MkyvBNAsbIQ6yi5c4nPyrnDuIWOT6YFdkvkR5piQsYbT6EsDlPTQmH5ZxIhQ6zRtk
+	 60R+SSJk62WXFyEIP7lb+oAACDZVBHyRlTRft4Bbc99UOgLryIiggoKQMDUThRLN39
+	 hIpb0Gqdn5oiOauB7cSnaZRtHYDXBrtlBh5RZQftgvEqclRVY6Iy7tSDvPuEltBHDm
+	 Fz+gYi32M2NSAyZpkFbdy+3pQOWH6msCQsi41vdeDyLvK5FAQR/pWpiPFthqpO9wqN
+	 QuMwQAeS7c3TQ==
+Message-ID: <sashiko-outbox-172788@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next 1/3] RDMA/core: Preserve the selected source
- GID on failed AH modification
+Subject: Re: [PATCH rdma-next 3/3] RDMA/core: Reject LAG selection when
+ source MAC lookup fails
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Leon Romanovsky" <leon@kernel.org>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261015-ib-core-fixes-v1-1-60f6da3ddec3@nvidia.com>
+In-Reply-To: <20261015-ib-core-fixes-v1-3-60f6da3ddec3@nvidia.com>
 References: <20261015-ib-core-fixes-v1-0-60f6da3ddec3@nvidia.com>
- <20261015-ib-core-fixes-v1-1-60f6da3ddec3@nvidia.com>
+ <20261015-ib-core-fixes-v1-3-60f6da3ddec3@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 15 Oct 2026 12:11:13 +0000
+Date: Thu, 15 Oct 2026 12:15:08 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -47,67 +47,64 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 Thank you for your contribution! Sashiko AI review found 1 potential issue(=
 s) to consider:
-- [High] rdma: memory leak and UAF due to missing sgid_attr refcount in rvt=
-_modify_ah()
+- [Medium] rdma: KMSAN uninit-value in rdma_build_skb due to partial header=
+ init
 --
 
-commit cfb0c41a87200fc5df90876398650807044c23ad
+commit fe2a587fde347fe9ebd760de282337658857e55d
 Author: Leon Romanovsky <leon@kernel.org>
 
-RDMA/core: Preserve the selected source GID on failed AH modification
+RDMA/core: Reject LAG selection when source MAC lookup fails
 
-When an address-handle modification fails, the core replaces its source-GID
-reference. This commit ensures the selected source GID is preserved by only
-updating ah->sgid_attr when the modification is successful.
+GID deletion can clear the source device association after LAG lookup
+retains the bonding master. Ignoring the resulting L2 lookup failure
+copies uninitialized source MAC bytes into the synthetic hash packet.
+This commit reads the source MAC before allocating the packet and
+propagates lookup errors to the caller.
 
-> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/ve=
-rbs.c
-> index edf62652f9d3e..7d52d30362087 100644
-> --- a/drivers/infiniband/core/verbs.c
-> +++ b/drivers/infiniband/core/verbs.c
-> @@ -1011,7 +1011,8 @@ int rdma_modify_ah(struct ib_ah *ah, struct rdma_ah=
-_attr *ah_attr)
->  		ah->device->ops.modify_ah(ah, ah_attr) :
->  		-EOPNOTSUPP;
+> diff --git a/drivers/infiniband/core/lag.c b/drivers/infiniband/core/lag.c
+> index 88aac911e8ee1..651c868aa04e5 100644
+> --- a/drivers/infiniband/core/lag.c
+> +++ b/drivers/infiniband/core/lag.c
+[ ... ]
+> @@ -26,7 +31,7 @@ static struct sk_buff *rdma_build_skb(struct net_device=
+ *netdev,
 > =20
-> -	ah->sgid_attr =3D rdma_update_sgid_attr(ah_attr, ah->sgid_attr);
-> +	if (!ret)
-> +		ah->sgid_attr =3D rdma_update_sgid_attr(ah_attr, ah->sgid_attr);
->  	rdma_unfill_sgid_attr(ah_attr, old_sgid_attr);
+>  	skb =3D alloc_skb(hdr_len, flags);
+>  	if (!skb)
+> -		return NULL;
+> +		return ERR_PTR(-ENOMEM);
 
-[Severity: High]
-Does this sequence expose a memory leak and use-after-free in providers
-that do a shallow copy of ah_attr?
+[Severity: Medium]
+Does this code expose uninitialized kernel memory to flow dissectors?
 
-For example, in drivers/infiniband/sw/rdmavt/ah.c:rvt_modify_ah(), the
-structure is shallowly copied:
+Since alloc_skb() leaves the data buffer uninitialized, bitfield assignments
+performed later in rdma_build_skb():
 
-	ah->attr =3D *ah_attr;
+	if (is_ipv4) {
+		skb_push(skb, sizeof(struct iphdr));
+		skb_reset_network_header(skb);
+		iph =3D ip_hdr(skb);
+		iph->frag_off =3D 0;
+		iph->version =3D 4;
+		iph->protocol =3D IPPROTO_UDP;
+		iph->ihl =3D 0x5;
 
-This causes a memory leak of the old sgid_attr reference because
-rdma_put_gid_attr() is not called on the old pointer, and it adopts the
-new sgid_attr without incrementing its refcount.
+compile down to read-modify-write instructions. These instructions will read
+uninitialized adjacent bits (such as the IPv6 priority field in the
+corresponding ipv6 branch) which immediately triggers KMSAN uninit-value
+warnings.
 
-When rdma_modify_ah() finishes, it calls rdma_unfill_sgid_attr() which
-drops the temporary refcount that rvt_modify_ah() copied but didn't pin.
-This leaves the driver's ah->attr exposed to a dangling pointer.
+Furthermore, fields like iph->tos, iph->ttl, and the UDP checksum remain
+completely uninitialized. When this SKB is passed to netdev_get_xmit_slave()
+and into __skb_flow_dissect(), a BPF flow dissector attached in the network
+namespace could read these uninitialized fields, potentially leaking kernel
+memory.
 
-Later, rvt_destroy_ah() will unconditionally call:
-
-	rdma_destroy_ah_attr(&ah->attr);
-
-This calls rdma_put_gid_attr() on the unheld pointer, resulting in a
-refcount underflow and use-after-free.
-
-This path is concretely reachable via the hfi1 provider (for instance,
-hfi1_modify_qp0_ah() uses rdma_modify_ah() with IB_AH_GRH enabled).=20
-
-Should providers like rdmavt be updated to use rdma_replace_ah_attr()
-to properly manage these refcounts?
-
->  	return ret;
->  }
+> =20
+>  	skb->dev =3D netdev;
+>  	skb_reserve(skb, hdr_len);
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261015-ib-core-fi=
-xes-v1-0-60f6da3ddec3@nvidia.com?part=3D1
+xes-v1-0-60f6da3ddec3@nvidia.com?part=3D3
