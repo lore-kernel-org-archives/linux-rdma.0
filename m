@@ -1,273 +1,165 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013024.outbound.protection.outlook.com [40.93.201.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA110490BEE;
-	Thu, 15 Oct 2026 20:47:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792097235; cv=none; b=Ehi/r5QZkdp48/44fvzwFlFtD4jKSYB7Pr6XsWajtu/RsQHnyR2/H+7GA9UhNG7vOH8sozmgEx6utiqGl7cm48oKOLSwGLRoyaW3OjvpTNgBOJkA/lz7t1yPbVXblK0DsnAi6q9dMU1WLPoPpLqD5JHXfESo2zLFrCzEu0LR9pc=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792097235; c=relaxed/simple;
-	bh=SOwvzms1rsGyiQI3eqHkAt6zPoztVZfMbwjbrBUJ4tg=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=Zdbw99QE6yp7KIe82NYHJ4dEubKQz68G4YsemBWk2pzGu3mBXcJb+71y6YuoNTBmzFHZgyaPAj2U+1KnwEgSVm44XcZc+Aj6AMJX7bqwTh17QZxEoK4Mcn3JHZp/L2XnHISq6Kwm8ic535caiLfehDKRUQavH+uNFm6HYWTJESo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=P8E+y0/H; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43D5553D0B7
+	for <linux-rdma@vger.kernel.org>; Thu, 15 Oct 2026 21:14:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.201.24
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1792098871; cv=fail; b=Ep3eWkwZIO51iIuYhAx50CCWVtOQB+6R6BgymGcTsQ4TqktXX7z3lI0fVcHtcQKmTMQmw+XCrQ7c2JGmq0X62IqICTHl74CL221z2SdGde36fugToDeseHbIK3YPUuLbEY69tcU852g26vyvoUs8qJh2GZ4lPz3OENJw8pd8bCM=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1792098871; c=relaxed/simple;
+	bh=MfVcGsVyi8XnBamYpui37RqCV44fpvwj/Xr+vjrBxOo=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=JD4Jq21aBrkL3mUw4ASxK6wfIi6xy2FpDEnnLVNc01caKKumvcuApz0Cja+VGUP35HnmtQDyFU1GHkEMvmis1O9yi8hnTN7ybRGyWxWlJYGvAltlaIlWw4tOWUIoketU73l2vqgc/iBqQgquFEhHApClmkhsb4LZ16yRsogu8tc=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=aXc+jGvw; arc=fail smtp.client-ip=40.93.201.24
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="P8E+y0/H"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 684DE1F000C4;
-	Thu, 15 Oct 2026 20:47:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792097232;
-	bh=/XdwB6j74nD/HIOa2tCFYC4UuA7YLzDfGeq9MCVTZPY=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=P8E+y0/HTRtjYtf5t02C0srTVymbz0FlJNy6DiBBQHcv8WwLjjliyDS+eWbI/x2UD
-	 4ozxN3iWvHfB9PB5X+FfeYBr0nBhYA7QxvKa0eQhZRybkPGT2JWpAgfUTZrzpZ2QpQ
-	 6mwrdO1LB3CE+WkKayaJTvBoQJxGbBZNz9Y8dIWB5wJHSkNdjWQxTdP5GLuEiuSiZX
-	 DqxvrmcRUGEmH8NyFHgDzCjjYV6ot9mRGyq+YUnJEcLqdPA18XVmgDDY+4d0zDrIxp
-	 Xl5P1mA9qROZILfb29EOK71ijopMUP7x3/g+ySW3vbc1iBvuzgDYdMI4iwrSnacReX
-	 Oi3e9b/FIcxmQ==
-Subject: Re: [PATCH net] net/smc: don't spin in smc_rx_recvmsg() while a pipe
- holds spliced data
-From: netdev-bot+sashiko@kernel.org
-To: hexlabsecurity@proton.me
-Cc: sidraya@linux.ibm.com, pabeni@redhat.com, davem@davemloft.net,
- mjambigi@linux.ibm.com, dust.li@linux.alibaba.com, edumazet@kernel.org,
- alibuda@linux.alibaba.com, kuba@kernel.org, guwen@linux.alibaba.com,
- linux-rdma@vger.kernel.org, raspl@linux.ibm.com, hidayath@linux.ibm.com,
- wenjia@linux.ibm.com, tonylu@linux.alibaba.com, linux-s390@vger.kernel.org,
- linux-kernel@vger.kernel.org, netdev@vger.kernel.org, ubraun@linux.ibm.com,
- horms@kernel.org
-Date: Thu, 15 Oct 2026 20:47:10 +0000
-Message-ID: <179209723095.434549.11206499945190748009@kernel.org>
-In-Reply-To: <20261013-b4-disp-193a2a59-v1-1-ed88ac10a41c@proton.me>
-References: <20261013-b4-disp-193a2a59-v1-1-ed88ac10a41c@proton.me>
-X-sashiko-severity: Medium
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="aXc+jGvw"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=oZfp5bgBiFVeCfrjSrsXrpjP9rHP3FeZLr4nj9WAYYljPctwQgcmVUNpJSvPeLGcSpfcA7lr2oiHUd9QNEcsOh5o488HM/6PGTO++YVFerlZAH489D/IzwxhDN92ma67TlRtOieMQpeM0Qmr4c1ulDgA4mV7P37O1DCRo8PxY5YG3rLrn+6sqIxbKv75dw1VrX3EL4ZQQog6343cCMlIsC5D0+pN1NvS+E581y9ZKF+eiKg8/Fvts7ORc80BOzbwmKoaTt5Fx8C8uKYwqGuK0Nlk6jPB0REZ/G4n7fRmFcwo0aY8F1mzgxvxAukFJKRRyFkNs+YHH+AgCrviAcG35w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=MfVcGsVyi8XnBamYpui37RqCV44fpvwj/Xr+vjrBxOo=;
+ b=t4r7+s+YAHwrGyOWZWZhw7PNDabk7d8BkJN/7ONVmN9rWAVgn0NDjGzyZCccPi6wiU+FfA3opjQ6bz9N+WmSVPLisjmCyGMVHTiTl+QDBWwfNiz+lYslaq+CmB2lMMAJmf1ufZtIaT5Gamt8XgXReBkDoVguofm2XOgg+T4jV1e1qJDDRG7GWUt87dnZ0vZsOKk/HCDNObf4iDhJemAPBZOV+DyRFep5/F9rXeTG49FSSlTTavYpfbTxV2d5wJJ1FkTXg5MV2SEqxkSeybuiJK0GHbWjjg6uCUBKqOnc26qDt9XfG37xSFUcI0QW0d/l4qDJFK6vG6J7DFZtzgMtTw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=MfVcGsVyi8XnBamYpui37RqCV44fpvwj/Xr+vjrBxOo=;
+ b=aXc+jGvwJdRI2qkPhAWfP5vfCB1qoUmlCc91MzxjF6ABYoFlHf1ObYVCmWIuSpcMiQ/maVZWnFKy5xReV08xiEVHP8eCvD1s8KwfCX9O/jx3rl4z00VkykrKa5gXcmBHHL6SttZED5I5I+3MJck8hEIKVSHvRw1sCKnzSCgkzq3BuBkATFhdoS0qOIG8ijGl59kVLbrIW6nbDz6JP/6rOlInmzzhQq+QiNOVltIz12AvZNCo6RtaAoFg6veQgcWeLFcXPKGcO95LBtIo8Rr/awNE37CkL1XuDks2bwE0Nyl3vhZopLMwF6KUZYFC2MqxBVDh6bH2ecLiRJfvpeme8w==
+Received: from DS6PR12MB534567.namprd12.prod.outlook.com (2603:10b6:8:498::17)
+ by SN7PR12MB6929.namprd12.prod.outlook.com (2603:10b6:806:263::11) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.522.12; Thu, 15 Oct
+ 2026 21:14:23 +0000
+Received: from DS6PR12MB534567.namprd12.prod.outlook.com
+ ([fe80::4b0a:a4e0:694f:c2de]) by DS6PR12MB534567.namprd12.prod.outlook.com
+ ([fe80::4b0a:a4e0:694f:c2de%5]) with mapi id 15.21.0522.013; Thu, 15 Oct 2026
+ 21:14:22 +0000
+From: Sean Hefty <shefty@nvidia.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>
+CC: Eric Davis <eric.davis@broadcom.com>, "sashiko-reviews@lists.linux.dev"
+	<sashiko-reviews@lists.linux.dev>, "linux-rdma@vger.kernel.org"
+	<linux-rdma@vger.kernel.org>, Leon Romanovsky <leon@kernel.org>
+Subject: RE: [PATCH rdma-next 02/13] RDMA/core: add the UET GID types
+Thread-Topic: [PATCH rdma-next 02/13] RDMA/core: add the UET GID types
+Thread-Index:
+ AQHdXCpo3QYvbgzNxkCV986BMmoEJ7b9oFYAgAEjKQCAABq+gIAABevQgAAhZACAAA9roA==
+Date: Thu, 15 Oct 2026 21:14:22 +0000
+Message-ID:
+ <DS6PR12MB534567DB240CF76594BE5B5D0DBD9C2@DS6PR12MB534567.namprd12.prod.outlook.com>
+References: <20261014-uet-ib-core-v1-0-a0e626117113@broadcom.com>
+ <20261014-uet-ib-core-v1-2-a0e626117113@broadcom.com>
+ <sashiko-outbox-171976@kernel.org>
+ <CAMouMY+nCYZ1V_-0La4phKNkvYBke7Njhsr+HRwWkAfahgf3pg@mail.gmail.com>
+ <20261015173327.GU14213@ziepe.ca>
+ <DS6PR12MB53456734E5A7CFFCDD7FBCCC0CBD9C2@DS6PR12MB534567.namprd12.prod.outlook.com>
+ <20261015195408.GX14213@ziepe.ca>
+In-Reply-To: <20261015195408.GX14213@ziepe.ca>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+authentication-results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: DS6PR12MB534567:EE_|SN7PR12MB6929:EE_
+x-ms-office365-filtering-correlation-id: 3d4dd247-2018-4641-8657-08df2b0148fb
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam:
+ BCL:0;ARA:13230040|376014|10070799003|23010399003|366016|1800799024|4143699003|38070700021|56012099006|11063799006|18002099003|22082099003|6133799003|10067099003|3023799007;
+x-microsoft-antispam-message-info:
+ 1du58QO52RgkN02qnUvkiW7jhUkgwrcvSV61JDVPgrutqhHlNZUWOjm+qXfHokGO9rOXG5EAkFFqrvYQ/iOAvhLd14OLAgNMPv7egTBXsiPBlGk2vnuEw74HzMUqcMTpLFwQIeM7ECDvPipEt9Cz2yXXFGmUKgv38z/YEHFPPKyg/tVxOjCdaiZQT1yIyBH06zOG0O+So2BBeLMdMo0j8npAne+poQ0ibczXJqnVFFHUq+Cv2Jl1JccUVNRDUGJliMFY+fBs//JevbF/k86l87Ixbt2L20KmGJTI0LIYz+EepkeKQhLOaBpUbLs9Yx1TCboDPu/UBNTj0pxVskxEiVUnkJYDBQhtOGlr0WfPFptEepeB3P6T7Mg6mrAjSxJdja2qYqCBS1u4xlrrEffLJvYEErRHaV/myi4VMvqBwoa5/IXczxwUBobb9ZPu8RbX3BxGxkd3LmZ4En2kwnPi1V2r6n9k02ppfwU+bp2lwJfbDKdSb0FkJrtLyqoR3uMa7+CnIVbr3XvhBlPSB+gbe5H5kPz0KrZFteiWaU24qRrV4MTbrO2AqP6HnSRBsufYsG8Nag+rvxQjyTrm7C68KMrQns/6y5ehltccRDPOuyXvZTq4v6cZI7D/g5aNbmK8sWNyO7YcuTeb78HEg8JjHHI/vtazqQ38Sztc7n71WCZ9xYJubSatJuOh/I2LIzpbrMOV19K7C+c3mE9lXJaInVZq3p+LojLPvIVguUucd9I=
+x-forefront-antispam-report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS6PR12MB534567.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(10070799003)(23010399003)(366016)(1800799024)(4143699003)(38070700021)(56012099006)(11063799006)(18002099003)(22082099003)(6133799003)(10067099003)(3023799007);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?utf-8?B?cGFLZXBWdS8wdnczNzYrbG5PUzNiTitCbnVaNTFobW94bDR0ZFltNlFiQWs2?=
+ =?utf-8?B?L1V0ZHBCTVVQV1RBWHdXczVWRTd3ZkUzekNLOHZxZWFkamRNQ0tkQU1xd3Yz?=
+ =?utf-8?B?aldubHhsOG9QVUprWGhuOHFhZVd4SC9KR1U0S0pzbStVZ2NZQzBTZGxrRlJu?=
+ =?utf-8?B?UGFBNUIzdmViMzFicm5aejlLY1hLRU5rYkdzRThySkk4bWV0c01LMEsxekhq?=
+ =?utf-8?B?VERNZ09rUHZmbU4wbk5Ba291VXdGaHZsSmdYdEFZUVQreUxGOTRyK25GZjE2?=
+ =?utf-8?B?L1VHU2xiY1k5N2xKZkxQNDlRRnNFR2ViWHRwZ3NabEk5bjRYUzh5LzYzT2pZ?=
+ =?utf-8?B?WVZpM2ZnMmpwa1V1M2MrbFRwUTdvQ0lWQUMvNzFsOTVranozdSthbzV3WC9q?=
+ =?utf-8?B?eTY4L0t0Zy9sWTZDckVmOFVWUm5DOWVhQmc0SHBOMUZ0ZWVmQWduU0JDOEZm?=
+ =?utf-8?B?VURoWW52RkN4MTVXQ0lEV2E0ek9jK3VNRzR4SEc3bk9RMlViVW5GRFRxMEVy?=
+ =?utf-8?B?OTFLYTdpNjRmVTdpeFBlaGxwMVAwZW5uRVBTTFFEMkhXWDUrSXE5bVhoUHN6?=
+ =?utf-8?B?TmtLVWkyRFZSVUMvQzluMUNFSDl6N2tjUkVYdHBybytKMkh5aGlIZ2tvRS84?=
+ =?utf-8?B?MDhCK1JtVGkxdFVFNEhSZmlqd3FZaFYrcldPTWFrOXdBZThoNnFUSGZTRWc2?=
+ =?utf-8?B?Z0tLQjJ6Q1lMWjRualFrWWJrbk5JSWFxaWhDN2M4NnhITEFGQlJ4THZqOEVG?=
+ =?utf-8?B?T2pTSVJIRzFXMm9UdVQ3bjVDYVY4aDJlY1g0ZUh1cXNxS1I0RWIwWnBCZ1p3?=
+ =?utf-8?B?NFVHN3YxZUNzeVp1TFVUdE9mUXJEc0J5NHZWVDBGMjg4cmVYTkxQRWZaNnRE?=
+ =?utf-8?B?d205WjBBczVpYVVkSGJ1VWZ2UFYxeTlxMEN3TVhrbURPd2p0MHpvc3lycmVS?=
+ =?utf-8?B?YTNaeE8xQTVncDlNbitQZkhnamxvcHNreUhsc05lR3hiTmw3V0xrTFhyZjFx?=
+ =?utf-8?B?TTllM2VUVjllWk4zdHQzVWprbVlzQURzMG1ndmJJQndNTlVkTG9JaWNsRVhq?=
+ =?utf-8?B?S3Fsc09OYzdmRzFaQ01tUGtWOHgvVmNwelhEWjVWWW5MQkNkN0piN1psVDAr?=
+ =?utf-8?B?YUtTQ3hoR01ncDJ3Rjd6SHpFdFU5TGg2aWk5dlplWXhOZk55VGNyLzJlRzc0?=
+ =?utf-8?B?aTAyNWYvSk15cG9jcExQTGtBbXNCaHVtcDFPNDNWa2hqMk9VSTVyRzlKMUVT?=
+ =?utf-8?B?RVVVYlBKTTZoK25pRGxEWGtaakZYSE5welByYUNkWktIWVFpNVlVRldSdWRE?=
+ =?utf-8?B?K2xma2lNNFdKSVVMNTFBK0VBeWhjUGVpWE1KSmwySWpERU12eFdYMXNmL2tm?=
+ =?utf-8?B?cUNlK1kvc3F3bWVTaFFMR09zNlpmWVFlSm05eXdQVTlIVk5ISXRXMm1wTFcw?=
+ =?utf-8?B?azBzQ0tWM2pwLzdicXhBZTZzSUFwbEhnWWswS2h4WHN6cUliWU1PeC9VQzdC?=
+ =?utf-8?B?c3FualZDL2lQUWpzd0h2d2JOdWdKRXlwUUN6Rk9HRTVTZDR1ZTVqWFlNOGts?=
+ =?utf-8?B?RXk3TFdiWUdMekhoSVU1YnluOUt2TUtvWi8yTzRkVHVFeXpjeURrRVp5M0Zj?=
+ =?utf-8?B?UG1VVlhOdHl1ekJwRzkyakRnQ2JiUDF1bmUycjBVOFMvejRUMUx3Y2UzUkYx?=
+ =?utf-8?B?TTdKNE05cnlnSWZZaUhiZS9HRHJJSUhjbWdnOU9aaUhFZmY5cVpFNjJZa3hv?=
+ =?utf-8?B?ZVBGcTkzZUZJaWVoSXptZjQ2cEVzMk1nRmFhMVQwYnI5M0Uwa0xjalorcVBE?=
+ =?utf-8?B?V0trQW1NZUxuRS81Nm9KVXhTb3NlTkFUZ0ZGb2NCUnZIN3dPUEJuV29vQ2w4?=
+ =?utf-8?B?MFFadlQyNmd3OUZ1VnBvZXhlUkFoTTV6NDNYcU1tbW1lWjZpT0xKaFdPYm9i?=
+ =?utf-8?B?L0NEU3QzWWY1bE5WTmNGeHNGd2J6ZXJZQjV3SGt3R2kwaTJ2TVYyUURUNkVq?=
+ =?utf-8?B?b092cWtTV2hrTHM4R0tBY3A3Ym9wN095bWJYOHF0UHNvRFk4am11VUJSL1RC?=
+ =?utf-8?B?cDcvUmdCOEZIQWlQOG5HS1VWRUlla21sMVhJUW1SQ3locXUvT1BHWERZNGJX?=
+ =?utf-8?B?ak85by83R2MzUFcxL2dlYmhBQ3NNKy8vTk5yRmxNakpPSXVYMjlrMkZhY1kr?=
+ =?utf-8?B?ZUoxTnZ4RWVVYjEvb2RvVXovYVpJaWw3R3d4dHI0dzlBMW83Mk94NzFKU1E5?=
+ =?utf-8?B?WGYwOS9iVzRiWnJldjNNRnVOR0tvWXJka0djbVBtY2hhV3U5TnRXcEkwbVpj?=
+ =?utf-8?B?aGpxbjZxd3VHNmx1OEpXcHo1SERSMkVnekpTRnhIUDdFbDJKa0Jwdz09?=
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: DS6PR12MB534567.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 3d4dd247-2018-4641-8657-08df2b0148fb
+X-MS-Exchange-CrossTenant-originalarrivaltime: 15 Oct 2026 21:14:22.8749
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: lCJEKiqWc1wzYW5l6Lk7bEcXsDzBSG0BKAiCTdtragdQkpSBO433GhknDxyf0Drvz68AmJM3pHDwlasngG/zIQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB6929
 
-Thank you for your contribution! Sashiko AI review found 2 potential
-issue(s) to consider.
-
-Critical: 0 · High: 0 · Medium: 1 (2) · Low: 1
-
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [Medium] smc_rx_wait_splice() sleeps until
-  !atomic_read(&conn->splice_pending).
-- [Low] The new smc_rx_wait_splice() (net/smc/smc_rx.c:294-303) sleeps on
-  sk_sleep(sk) via add_wait_queue()/sk_wait_event() but never sets or…
-
-Pre-existing issues:
-- [Medium] After this patch, a non-blocking recv() whose readable data
-  sits behind bytes still held in a pipe returns -EAGAIN.
-- [Medium] smc_rx_pipe_buf_release() advances the consumer cursor
-  (smc_rx_update_cons) under lock_sock, but decrements…
-
---
-
-net/smc: don't spin in smc_rx_recvmsg() while a pipe holds spliced data
-
-This patch changes smc_rx_recvmsg() so that, while spliced bytes are still
-held in a pipe, recvmsg() checks the timeout and pending signals before it
-waits. The wait moves to a new helper, smc_rx_wait_splice(), which ends when
-splice_pending drops to zero or the connection is killed, and no longer ends
-on RCV_SHUTDOWN. A zero-length read now returns 0 right away.
-
-> diff --git a/net/smc/smc_rx.c b/net/smc/smc_rx.c
-> index 197fddc6271f0..6f409bda4c37a 100644
-> --- a/net/smc/smc_rx.c
-> +++ b/net/smc/smc_rx.c
-> @@ -286,6 +286,22 @@ int smc_rx_wait(struct smc_sock *smc, long *timeo, size_t peeked,
->  	return rc;
->  }
->  
-> +/* Wait until the pipe releases the spliced data. Unlike smc_rx_wait(),
-> + * this does not end on shutdown or a socket error: the data to read is
-> + * already in the RMB. smc_conn_kill() wakes the socket, and the caller
-> + * checks conn->killed.
-> + */
-> +static void smc_rx_wait_splice(struct smc_sock *smc, long *timeo)
-> +{
-> +	DEFINE_WAIT_FUNC(wait, woken_wake_function);
-> +	struct smc_connection *conn = &smc->conn;
-> +	struct sock *sk = &smc->sk;
-> +
-> +	add_wait_queue(sk_sleep(sk), &wait);
-
-[Severity: Low]
-smc_rx_wait() sets SOCKWQ_ASYNC_WAITDATA around the same kind of sleep:
-
-	sk_set_bit(SOCKWQ_ASYNC_WAITDATA, sk);
-	add_wait_queue(sk_sleep(sk), &wait);
-	...
-	sk_clear_bit(SOCKWQ_ASYNC_WAITDATA, sk);
-
-Should smc_rx_wait_splice() do the same?
-
-The wake callback smc_rx_wake_up() calls
-sk_wake_async_rcu(sk, SOCK_WAKE_WAITD, POLL_IN). For SOCK_WAKE_WAITD,
-sock_wake_async() sends SIGIO only when SOCKWQ_ASYNC_WAITDATA is clear.
-
-Before this patch, a recvmsg() blocked behind spliced data waited in
-smc_rx_wait(..., smc_rx_data_available_and_no_splice_pend), which set the
-bit.
-
-Now take an O_ASYNC socket whose F_SETOWN owner is the reader. Each new
-peer data arrival during this wait sends SIGIO. The next loop pass sees
-splbytes != 0 and signal_pending(current), and returns -EINTR or
--ERESTARTSYS. A reader that used to keep sleeping is now interrupted.
-
-> +	sk_wait_event(sk, timeo, !atomic_read(&conn->splice_pending), &wait);
-
-[Severity: Medium]
-Can this wait miss the final wakeup on weakly ordered architectures?
-
-The only waker for this condition is smc_rx_pipe_buf_release(). It
-decrements splice_pending and wakes only after release_sock():
-
-net/smc/smc_rx.c:smc_rx_pipe_buf_release() {
-    ...
-	smc_rx_update_cons(smc, priv->len);
-	release_sock(sk);
-	if (atomic_sub_and_test(priv->len, &conn->splice_pending))
-		smc_rx_wake_up(sk);
-    ...
-}
-
-smc_rx_wake_up() goes through skwq_has_sleeper(), which does smp_mb() and
-then waitqueue_active(). The wq_has_sleeper() comment says this barrier has
-to pair with one on the waiting side.
-
-On the reader side, two steps sit between the list store in add_wait_queue()
-and the relaxed atomic_read(&conn->splice_pending) in sk_wait_event():
-
-- spin_unlock_irqrestore() on the wait queue lock
-- spin_lock_bh()/spin_unlock_bh() on sk_lock.slock inside release_sock()
-
-Neither is a full barrier. Under LKMM, an unlock and a lock on different
-locks don't order an earlier store before a later load. That leaves a
-store-buffering pattern:
-
-reader                                releaser
-add_wait_queue()
-  (store not yet visible)
-                                      atomic_sub_and_test() -> 0
-                                      smp_mb()
-                                      waitqueue_active() -> false
-atomic_read(&conn->splice_pending)
-  -> stale N
-wait_woken() sleeps
-
-Before this patch, the RCV_SHUTDOWN, peer close and abort states spun here,
-so they could not lose a wakeup. They now sleep in smc_rx_wait_splice() and
-depend on this single wakeup.
-
-Once the peer has shut down or closed, no more CDC traffic wakes
-sk_sleep(). A blocking recvmsg() without SO_RCVTIMEO could then sleep until
-a signal arrives, even though the data is already in the RMB. On x86 and
-s390 the lock acquire is a full barrier, so this would only show up on
-architectures like powerpc.
-
-The notes below the --- line already say "Under LKMM, today's order allows a
-lost wake even with the condition". The old smc_rx_wait() has the same gap,
-but this patch newly relies on it for the shutdown and abort states.
-
-Would an smp_mb() between add_wait_queue() and the condition read close
-this? Moving the splice_pending decrement and the wakeup under lock_sock()
-in smc_rx_pipe_buf_release() looks like another option.
-
-> +	remove_wait_queue(sk_sleep(sk), &wait);
-> +}
-> +
->  static int smc_rx_recv_urg(struct smc_sock *smc, struct msghdr *msg, int len,
->  			   int flags)
->  {
-> @@ -443,7 +459,24 @@ int smc_rx_recvmsg(struct smc_sock *smc, struct msghdr *msg,
->  		/* could be just 1 byte, even after waiting on data above */
->  		readable = smc_rx_data_available(conn, peeked_bytes);
->  		splbytes = atomic_read(&conn->splice_pending);
-
-[Severity: Medium]
-This is a pre-existing issue that this patch didn't introduce: can the
-splice path read a stale splbytes here?
-
-smc_rx_pipe_buf_release() moves the consumer cursor under lock_sock(), but
-it decrements splice_pending only after release_sock() (see the snippet
-above).
-
-The releasing pipe's mutex doesn't serialize a concurrent smc_splice_read()
-into a different pipe. In that window, the second splice can take
-lock_sock(), reach copy:, and read splbytes == N here. It then adds N to a
-cons that has already moved by N:
-
-	smc_curs_copy(&cons, &conn->local_tx_ctrl.cons, conn);
-	...
-	if (splbytes)
-		smc_curs_add(conn->rmb_desc->len, &cons, splbytes);
-
-That skips N bytes of valid stream data. It also splices N bytes from past
-the producer cursor into the second pipe.
-
-smcr_buf_unuse() and smc_buf_unuse() zero the RMBs. So this corrupts only
-the connection's own stream and doesn't expose another connection's data.
-The accesses stay inside the RMB.
-
-The notes below the --- line say a separate series moves the splice_pending
-decrement under lock_sock(). That looks like it would also close this
-window for the msg == NULL path.
-
-> -		if (!readable || (msg && splbytes)) {
-> +		if (msg && splbytes) {
-> +			/* a pipe still holds bytes ahead of these, and the
-> +			 * jumps to copy skip the timeout and signal checks;
-> +			 * a zero-length read returns 0 at once
-> +			 */
-> +			if (!read_remaining)
-> +				break;
-> +			if (!timeo || signal_pending(current)) {
-> +				if (!read_done)
-> +					read_done = timeo ?
-> +						    sock_intr_errno(timeo) :
-> +						    -EAGAIN;
-
-[Severity: Medium]
-This is a pre-existing issue rather than one added by this patch, but
-smc_poll() still disagrees with this -EAGAIN:
-
-net/smc/af_smc.c:smc_poll() {
-    ...
-			if (atomic_read(&smc->conn.bytes_to_rcv))
-				mask |= EPOLLIN | EPOLLRDNORM;
-			if (sk->sk_shutdown & RCV_SHUTDOWN)
-				mask |= EPOLLIN | EPOLLRDNORM | EPOLLRDHUP;
-    ...
-}
-
-bytes_to_rcv doesn't count spliced bytes, because smc_rx_recvmsg()
-subtracts copylen for them too. Suppose a pipe holds N bytes and the peer
-has sent M more behind them. Then bytes_to_rcv == M.
-
-poll(), select() and level-triggered epoll keep reporting EPOLLIN. Meanwhile
-every recv(MSG_DONTWAIT), and every recv() on an O_NONBLOCK socket, returns
--EAGAIN from this branch. An event-loop reader would busy-loop in userspace
-until the pipe is drained.
-
-Before this patch the same non-blocking recv() spun inside the kernel, so
-CPU use is no worse than before. The commit message doesn't mention that
-this case remains, though. Should smc_poll() also look at
-conn->splice_pending?
-
-[ ... ]
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261013-b4-disp-193a2a59-v1-1-ed88ac10a41c%40proton.me
+PiA+ID4gPiA+IENvdWxkIHRoaXMgY2F1c2UgaW5jb21pbmcgVUVUIHBhY2tldHMgdG8gYmUgaW5j
+b3JyZWN0bHkgbWFwcGVkDQo+ID4gPiA+ID4gdG8gYQ0KPiA+ID4gPiA+IFJvQ0V2MiBHSUQgaW5k
+ZXgsIGJyZWFraW5nIHRoZSBVRVQgdHJhbnNwb3J0IHJlc3BvbnNlPw0KPiA+ID4gPg0KPiA+ID4g
+PiBPbiBhIHBvcnQgdGhhdCBydW5zIGJvdGggUm9DRSBhbmQgVUVUIHRoZSBNQUQgdHJhZmZpYyBp
+cyBSb0NFLCBzbw0KPiA+ID4gPiBtYXBwaW5nIGl0IHRvIFJvQ0V2MiBpcyBjb3JyZWN0Lg0KPiA+
+ID4NCj4gPiA+IFlvdSB3aWxsIG5lZWQgc2VwZXJhdGUgUk9DRSBhbmQgVUVUIGliX2RldmljZXMg
+d2l0aCB0aGUgY3VycmVudA0KPiA+ID4gc3RhdGUgb2YgYWZmYWlycywgd2UgZG9uJ3Qgc3VwcG9y
+dCBtdWx0aS1wcm90b2NvbCB0b2RheS4NCj4gPg0KPiA+IFVFQyBpbnRlbnRpb25hbGx5IGNvbnNp
+ZGVyZWQgbXVsdGktcHJvdG9jb2wgZGV2aWNlcywgd2l0aCBhIHZlbmRvciBkZWNpZGluZw0KPiB3
+aGV0aGVyIGl0IHdvdWxkIG5lZWQgdG8gcHJvdmlkZSBzZXBhcmF0ZSBTVyBkZXZpY2VzLiAgRS5n
+LiB1c2luZyBVRVQgZm9yDQo+IE1QSSwgYnV0IFJvQ0UgZm9yIHN0b3JhZ2UuICBQcm90b2NvbCBz
+ZWxlY3Rpb24gaXMgdmlhIEdJRCwgc2FtZSBhcyBSb0NFdjEgdnMNCj4gdjIuDQo+ID4NCj4gPiBX
+aGF0IGJsb2NrcyBtdWx0aS1wcm90b2NvbCBzdXBwb3J0Pw0KPiANCj4gUHJpbmNpcGFsbHkgSSBk
+b24ndCB0aGluayB3ZSBoYXZlIHRoZSBBUElzIHRvIGRpc2NvdmVyIGFuZCBsaW5rIHRoZSBHVUlE
+IHRvDQo+IHByb3RvY29sIHRvIFFQIHR5cGUgYXBwcm9wcmlhdGVseS4uDQoNCkknbSBtaXNzaW5n
+IHNvbWV0aGluZyByZWdhcmRpbmcgdGhlIEdVSUQgY29tbWVudC4NCg0KVGhlIFFQIHByb3RvY29s
+IGNvbWVzIGZyb20gR0lEIGluZGV4LCB3aGljaCBpcyBkaXNjb3ZlcmFibGUgdmlhIGlidl9naWRf
+ZW50cnk6OmdpZF90eXBlLiAgKFVFVCBRUHMgcmVxdWlyZSB0aGUgR0lEIGluZGV4IG9uIGNyZWF0
+ZS4pDQoNCkUuZy4gYSBkdWFsIFJvQ0UgKyBVRVQgZGV2aWNlIHdvdWxkIHJlcG9ydCBub2RlX3R5
+cGUgPSBVTlNQRUNJRklFRCAmIHRyYW5zcG9ydF90eXBlID0gVU5TUEVDSUZJRUQuICBHSUQgZW50
+cmllcyBpbmRpY2F0ZSBzdXBwb3J0ZWQgcHJvdG9jb2xzLg0KDQpGb3IgY29tcGF0aWJpbGl0eSwg
+aXQgbWF5IGJlIHBvc3NpYmxlIGZvciBhIGRldmljZSB0byByZXBvcnQgbm9kZV90eXBlID0gQ0Eg
+JiB0cmFuc3BvcnRfdHlwZSA9IElCIGFuZCBleHBvc2UgVUVUIEdJRHMgb25seSB0aHJvdWdoIGli
+dl9xdWVyeV9naWRfZXgoKS4gIEkgaGF2ZW4ndCB0aG91Z2h0IHRoaXMgb3B0aW9uIGFsbCB0aGUg
+d2F5IHRocm91Z2guDQo=
