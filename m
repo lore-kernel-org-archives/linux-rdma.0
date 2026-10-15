@@ -1,39 +1,39 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA0E451AFD4;
-	Thu, 15 Oct 2026 11:59:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31318518143;
+	Thu, 15 Oct 2026 11:59:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792065553; cv=none; b=qSQU3mWooe9AqBxrB8xa9Gg1yoRzNrAKDm4Wa3o8mVzz7dtxCeItFsba00lbpILKmWv2Vf7O5TDWy42GYcyhQ39VsEzFgk8mARWsdjK/pT32lv13e1WCpRb5WvC7cnz1RyePHaV+OqYm7TGxjyMdIHDJmZaQm73G1jTt6vF8g6Y=
+	t=1792065557; cv=none; b=s2ijUB+WmTLV2B3ZYHswR/yMvhoKWbmJsdTgYnF5al1iYKMnGucAmHqoRZwfkgsJd6d+P2zfeut5nt5Ef9TG7ke1hCj3u2HUwT5loN8M4H3viu1PcVus7R5NTCKiN/ZIrRRsI9lG22cuOzx9ZNG3uOskZudI64f3JyIqamdNRHc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792065553; c=relaxed/simple;
-	bh=IvAfagLE/2HvxwOXAeMTmE3kmfX5bY3EKj7eSW5Ms+Q=;
+	s=arc-20240116; t=1792065557; c=relaxed/simple;
+	bh=aol5ZbSv1D74lfXg742+T7Gf4SeaNYzgue/Whlmyb2Y=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=u3bQGoxkmeOkf5YmEBSHBlHYBv1H+usSraRg/tBowDRjT/iNAQMK8VG8UP3Qf2xDCLSSSwKqfN2hCqkVhGTPYF3/wRgkMLXJ43drOiDKFGZtr703qU06fMK1dQhOBAsvKfGusakkRhiDMx0ffcTpz32rLWTPAjFn3p4FnJzKdQE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KkkPgVeQ; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=D1ediv+FIBCjYGTQr2dvgKqERQY19mSfFdxsJZGfQpP2rV56807t/rUN43fFi/wLgiUNPfWrBVjHLwZ1k58IspDFJWDYfsPjEc5bV/NuvhiCxKjBfErZv8DfoixHGN085+TynftTTFs+qbAsDOFnkm38oH52m8x67yRwFvgYaeQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RJJUI5Ot; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KkkPgVeQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F0061F000C4;
-	Thu, 15 Oct 2026 11:59:11 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RJJUI5Ot"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3915C1F000C4;
+	Thu, 15 Oct 2026 11:59:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792065552;
-	bh=54R/QTxbdRc0fzOcYRIHBCQQXPaQ6YtemGXEeDOpCss=;
+	s=k20260515; t=1792065555;
+	bh=X+2TnBkHXEnhEtnSRl5t9hwQB5sORH7JscPpFWBGoeg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=KkkPgVeQWo1G6VLpFw6lA9n7R6ho8jUWu4HsX57lWO2AYKuiReTEG0K1ZClGz9Q4v
-	 wf9QVy+oaiXBM18VkHF3M2ejNocqFlxG1U4/hQ5XmPSPlIsgo3mLCu/sJ0j72m1+jn
-	 /9tBhxr1JUn82BmwSPUHdqo5su6EG1vWElkS5d8eTMuovddPFAv8puwCedyHWE/LFZ
-	 cLyx5+JnZzS3JrWDJ19oBjYO0yePm/alK/pFSghrmwRwm1zfqPcA4D5zNQCNJ1cN2j
-	 LDDAUbvr5xoYQO1XCvSPY7h760Lq3vhqJuVsYdKqRlrmDDgkDRcvA+8wG8IjqdFRip
-	 4JuwKq+Fi2R3A==
+	b=RJJUI5Ot8QM+g9fuIvdaro7hLchztW2c3rKz8keMINiIBLkY5roBhD4xtHPdo3NMM
+	 tiq4vTAtFIQnZZrrD5xe09xEoeVjY3WTHxRxwkOqG4/FUcabRpPCwZ1/id5B1W5s3I
+	 ufGmJC5iEPIcsyuQ4f0oI0pvsLq+5XARVZhKAQelJ8hWT4fwTq5sQtgTh6lFAJ/t3D
+	 o0IBk2pI4FJbQOQH81VzP3oiWcCh+12exKoRpd9ylh/fr/JfBsGkIRKQC/3/ducxJE
+	 LM3Tc5f0NUAnBs0+iYk1y2mWvuutP0QnMG38K64Uy325z7jdspke2MwQX2sAeWmyqd
+	 IXMk6S2YuHAzA==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@ziepe.ca>,
 	Maor Gottlieb <maorg@mellanox.com>
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next 2/3] RDMA/core: Free unpublished port statistics after initial-read failure
-Date: Thu, 15 Oct 2026 14:59:01 +0300
-Message-ID: <20261015-ib-core-fixes-v1-2-60f6da3ddec3@nvidia.com>
+Subject: [PATCH rdma-next 3/3] RDMA/core: Reject LAG selection when source MAC lookup fails
+Date: Thu, 15 Oct 2026 14:59:02 +0300
+Message-ID: <20261015-ib-core-fixes-v1-3-60f6da3ddec3@nvidia.com>
 X-Mailer: git-send-email 2.56.0
 In-Reply-To: <20261015-ib-core-fixes-v1-0-60f6da3ddec3@nvidia.com>
 References: <20261015-ib-core-fixes-v1-0-60f6da3ddec3@nvidia.com>
@@ -49,42 +49,63 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-An initial port counter read can fail after allocating its statistics
-buffer and wrapper. Free these both allocations.
+GID deletion can clear the source device association after LAG lookup
+retains the bonding master. Ignoring the resulting L2 lookup failure
+copies uninitialized source MAC bytes into the synthetic hash packet.
 
-Fixes: 467f432a521a ("RDMA/core: Split port and device counter sysfs attributes")
+Read the source MAC before allocating the packet and propagate lookup
+errors to the caller, so failed lookups cannot influence slave selection.
+
+Fixes: bd3920eac133 ("RDMA/core: Add LAG functionality")
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/sysfs.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/lag.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 69df8b703cbd..4cd861b5d953 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -996,8 +996,8 @@ static int setup_hw_port_stats(struct ib_port *port,
- 					    data->stats->num_counters);
- 	if (ret != data->stats->num_counters) {
- 		if (WARN_ON(ret >= 0))
--			return -EINVAL;
--		return ret;
-+			ret = -EINVAL;
-+		goto err_free_data;
- 	}
- 
- 	data->stats->timestamp = jiffies;
-@@ -1031,6 +1031,11 @@ static int setup_hw_port_stats(struct ib_port *port,
- 
- 	port->hw_stats_data = data;
- 	return 0;
+diff --git a/drivers/infiniband/core/lag.c b/drivers/infiniband/core/lag.c
+index 88aac911e8ee..651c868aa04e 100644
+--- a/drivers/infiniband/core/lag.c
++++ b/drivers/infiniband/core/lag.c
+@@ -19,6 +19,11 @@ static struct sk_buff *rdma_build_skb(struct net_device *netdev,
+ 	u8 smac[ETH_ALEN];
+ 	bool is_ipv4;
+ 	int hdr_len;
++	int ret;
 +
-+err_free_data:
-+	rdma_free_hw_stats_struct(data->stats);
-+	kfree(data);
-+	return ret;
- }
++	ret = rdma_read_gid_l2_fields(ah_attr->grh.sgid_attr, NULL, smac);
++	if (ret)
++		return ERR_PTR(ret);
  
- struct rdma_hw_stats *ib_get_hw_stats_port(struct ib_device *ibdev,
+ 	is_ipv4 = ipv6_addr_v4mapped((struct in6_addr *)ah_attr->grh.dgid.raw);
+ 	hdr_len = ETH_HLEN + sizeof(struct udphdr) + LL_RESERVED_SPACE(netdev);
+@@ -26,7 +31,7 @@ static struct sk_buff *rdma_build_skb(struct net_device *netdev,
+ 
+ 	skb = alloc_skb(hdr_len, flags);
+ 	if (!skb)
+-		return NULL;
++		return ERR_PTR(-ENOMEM);
+ 
+ 	skb->dev = netdev;
+ 	skb_reserve(skb, hdr_len);
+@@ -70,7 +75,6 @@ static struct sk_buff *rdma_build_skb(struct net_device *netdev,
+ 	skb_reset_mac_header(skb);
+ 	eth = eth_hdr(skb);
+ 	skb->protocol = eth->h_proto = htons(is_ipv4 ? ETH_P_IP : ETH_P_IPV6);
+-	rdma_read_gid_l2_fields(ah_attr->grh.sgid_attr, NULL, smac);
+ 	memcpy(eth->h_source, smac, ETH_ALEN);
+ 	memcpy(eth->h_dest, ah_attr->roce.dmac, ETH_ALEN);
+ 
+@@ -86,8 +90,8 @@ static struct net_device *rdma_get_xmit_slave_udp(struct ib_device *device,
+ 	struct sk_buff *skb;
+ 
+ 	skb = rdma_build_skb(master, ah_attr, flags);
+-	if (!skb)
+-		return ERR_PTR(-ENOMEM);
++	if (IS_ERR(skb))
++		return ERR_CAST(skb);
+ 
+ 	rcu_read_lock();
+ 	slave = netdev_get_xmit_slave(master, skb,
 
 -- 
 2.55.0
