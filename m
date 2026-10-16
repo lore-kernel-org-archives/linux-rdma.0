@@ -1,81 +1,106 @@
-Received: from hr2.samba.org (hr2.samba.org [144.76.82.148])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E043937BE9E
-	for <linux-rdma@vger.kernel.org>; Fri, 16 Oct 2026 08:54:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=144.76.82.148
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5297A3BE162
+	for <linux-rdma@vger.kernel.org>; Fri, 16 Oct 2026 08:58:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792140895; cv=none; b=V04sU0AIq+rijlSj5mJdhbBR28zpJXhOj1hgaPGpEPXhkt0n8VrCNiePzLsZQaGt/8wDb5CHZS/v+q5YxMC5OW/hPclEtQvJKxdAlkMaP2GmS92BoQTerdQJc7WE+g+JwtyHCVOx3TTN83lwvZSOMMPdv1lAxBYRFAZTB7GXMv4=
+	t=1792141108; cv=none; b=rWYopp5rVK8jr9+487duUmuJ60S1Jf3EC7gX8rNmXZ814d3giSMldUX69FuSD4RMkbu84R0xA0ODThlu1WqjyNUZ7hbIieXKMwxi19PkrqTmSd8Aguub/o0sh+liU8jDYkENer4vU0sNvt/2aTBGBCKC4cvHZUN+aJ3kQ5tP0Pc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792140895; c=relaxed/simple;
-	bh=SetulTecVqHPKtZMgtmlckaTsO8vcfc0YZt8suuDKqM=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=q090ZIrDWbICsVU5yuDwf73Zha398ARWg6iwUprVnwBw+QP1WACGkur09aMXbaTnwd/JtkIn5Wr/WSI9MJbbomuUdUp4Rrhta0367P/S24XOMBPDQb7UuNdlwvslplYKPLD8t8oIU0+eJ966s5Wu6gQbqwAK9kdAjrE8TXgGUz0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=samba.org; spf=pass smtp.mailfrom=samba.org; dkim=pass (3072-bit key) header.d=samba.org header.i=@samba.org header.b=LAjMEUU/; arc=none smtp.client-ip=144.76.82.148
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=samba.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samba.org
+	s=arc-20240116; t=1792141108; c=relaxed/simple;
+	bh=MkYaFsmwEtQ6kM+6pD4PRt7QwWw5zCpaMJam0J3OTJU=;
+	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
+	 Date; b=gZjhTANgGAONThFnL4MhXrUQsI0Zu1h4BDD9LxqG+Fr8yOkZK6isYzmxr0wHOzn/cRlW/q80A5B6+VdXrwx+kZtwMK7VgOQtyxEvia+bGU3+VhfiO1diOsgfed52UrAqbys5jf0dCA4BebfDComjZpY997sjp3xsRe9Qg1UvAmk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dp8pFBK9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (3072-bit key) header.d=samba.org header.i=@samba.org header.b="LAjMEUU/"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=samba.org;
-	s=42; h=From:Cc:To:Date:Message-ID;
-	bh=ZaXYSs48hiDBET+dgSJgc18EP66GHmIw1k3iPy7rik0=; b=LAjMEUU/30aGGwAunyMTWikiiT
-	jaH0mjBw7+nHBMt+1tO3gU6gQYtBGYReIpme9EcNaUqD3YoLbKk2e2uKiRhDaKzVgVPvdGb5B8g0U
-	H108LeDllu+j9mz2nLG+BsoseNpsLWPOM4yl3jJZW8/R4H5B6EZqRSJCSHxgXF54oyNhV1zipZ3E5
-	/cIKBJuWQvXWcZ/AacwsEafF5VywX152rSDkyMD2izupdhd6h6m0KgKVOXnI+YyFTgyjMW7U/bXvX
-	DHC883mBIK0lOiI5kVgRT9ErNI/WgoAGxGqhj5OkQkeXj4KR3vTNSmEXqDfyD08ZxtSIomGcY/Mdj
-	7qWzZaIfahAwbYWFLVE4GunkewpJuzH5kpxflHJ9JXQ1K0Qs2LgkgyL9VHYJYEbyjFO59/HCFkJJr
-	dPEBbShhVw4TKFWIFysBWT5xYCNhJ9U9he0x35obz97PqXhrs/zgi+7UvJ+PjtPMjCpf1zhvib+Ca
-	T34VCADJ+2zaeIr5zA5DIHDx;
-Received: from [127.0.0.2] (localhost [127.0.0.1])
-	by hr2.samba.org with esmtpsa (TLS1.3:ECDHE_SECP256R1__ECDSA_SECP256R1_SHA256__CHACHA20_POLY1305:256)
-	(Exim)
-	id 1xHdi7-00000002YI8-3DEm;
-	Fri, 16 Oct 2026 08:54:44 +0000
-Message-ID: <5904f535-c9d2-4326-b149-91b72938173d@samba.org>
-Date: Fri, 16 Oct 2026 10:54:43 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dp8pFBK9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C760D1F000C4;
+	Fri, 16 Oct 2026 08:58:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792141106;
+	bh=i4RoaZoD1iUweN+rguKXraRD/SrLh6PzNct50jrlo6w=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=dp8pFBK9vA7pY4m57Yb0wcbvu+2dZDI5p/9zi3Efvp/kxZ2h8i4Fi1MXVUGlhKmiF
+	 uuvCeNKTeXzkUQ/4N+Kme1558EpWHdOgCoLNlTlAZVsICB+lmzo5oCRsP3JEhPGQ9Y
+	 CxE3d7Xn8P1tj49u3QH89GUx85GSgYFbek+V+M/VBJPwH7h2nVuPuA0MuScf/eQejz
+	 uR6k+D1a9/4wDq2aG5sycaxqpwNTwULVakTGZimHRLA9UVIVaoAcbMLa4CZ/9DwK/E
+	 evYEia762I4C5nz0X2f//ZE/eye6VdMQnGtpa5JP8y6euQoq/1DgDYH1ALw6MuDONb
+	 GLheIQxMaBftw==
+Message-ID: <sashiko-outbox-174038@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net] net/mlx5e: rep, Fix races between devcom PAIR event
+ and uplink close
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Tariq Toukan" <tariqt@nvidia.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261015085744.1109107-1-tariqt@nvidia.com>
+References: <20261015085744.1109107-1-tariqt@nvidia.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Fri, 16 Oct 2026 08:58:26 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] RDMA/irdma: Fix FRWR IRDMAQPSQ_PBLADDR field population
-To: Leon Romanovsky <leon@kernel.org>, tatyana.e.nikolova@intel.com,
- jgg@ziepe.ca, Jacob Moroni <jmoroni@google.com>
-Cc: linux-rdma@vger.kernel.org
-References: <20261015161756.3078300-1-jmoroni@google.com>
- <179208986858.417468.8994738327508258200.b4-ty@kernel.org>
-Content-Language: en-US
-From: Stefan Metzmacher <metze@samba.org>
-In-Reply-To: <179208986858.417468.8994738327508258200.b4-ty@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
 
-Am 15.10.26 um 20:44 schrieb Leon Romanovsky:
-> 
-> On Thu, 15 Oct 2026 16:17:55 +0000, Jacob Moroni wrote:
->> Previously, the IRDMAQPSQ_PBLADDR FRWR WQE field was being populated
->> using a mask that was right-shifted, whereas it should have been the
->> address being right-shifted.
->>
->> This ended up working fine in many cases because the lowermost 12 bits
->> are always zero (the addresses are page aligned) and the uppermost 12
->> bits are usually zero too, but it could break for DMA addresses that
->> are wider than 52 bits.
->>
->> [...]
-> 
-> Applied, thanks!
-> 
-> [1/1] RDMA/irdma: Fix FRWR IRDMAQPSQ_PBLADDR field population
->        https://git.kernel.org/rdma/rdma/c/59df57262e6fa9
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+s) to consider:
+- [High] net/mlx5e: bypassed devcom lock in stop path leaves UAF race unmit=
+igated
+--
 
-My initial tests with this resolved the smbdirect related
-data corruption.
+commit a1ed4eff90a08173eecbfbc7850c1594a36291d8
+Author: Shay Drory <shayd@nvidia.com>
 
-So it replaces this with success:
-https://lore.kernel.org/linux-rdma/20261012161135.494544-1-metze@samba.org/
+net/mlx5e: rep, Fix races between devcom PAIR event and uplink close
 
-Thanks!
-metze
+This commit attempts to fix a use-after-free race between the devcom PAIR
+event and uplink close by protecting the teardown path with the devcom read
+semaphore.
+
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/n=
+et/ethernet/mellanox/mlx5/core/en_rep.c
+> index 88a170e40bd93..7211faaffd8d3 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+> @@ -629,8 +629,12 @@ mlx5e_remove_sqs_fwd_rules(struct mlx5e_priv *priv)
+>  	struct mlx5_eswitch *esw =3D priv->mdev->priv.eswitch;
+>  	struct mlx5e_rep_priv *rpriv =3D priv->ppriv;
+>  	struct mlx5_eswitch_rep *rep =3D rpriv->rep;
+> +	bool devcom_locked;
+> =20
+> +	devcom_locked =3D mlx5_devcom_for_each_peer_begin(esw->devcom);
+>  	mlx5e_sqs2vport_stop(esw, rep);
+
+[Severity: High]
+If mlx5_devcom_for_each_peer_begin() returns false because the devcom is not
+yet marked ready, it drops the read semaphore before returning:
+
+drivers/net/ethernet/mellanox/mlx5/core/lib/devcom.c:
+mlx5_devcom_for_each_peer_begin() {
+	...
+	if (!READ_ONCE(comp->ready)) {
+		up_read(&comp->sem);
+		return false;
+	}
+	...
+}
+
+In that case, devcom_locked will be false, but mlx5e_sqs2vport_stop() is
+still executed without holding the devcom read semaphore.
+
+Does this leave the list modifications in mlx5e_sqs2vport_stop() unprotected
+against a concurrent devcom PAIR event, potentially leading to the same
+use-after-free regression on rep_sq objects that this patch was intended to
+resolve?
+
+> +	if (devcom_locked)
+> +		mlx5_devcom_for_each_peer_end(esw->devcom);
+>  }
+> =20
+>  static int
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261015085744.1109=
+107-1-tariqt@nvidia.com?part=3D1
