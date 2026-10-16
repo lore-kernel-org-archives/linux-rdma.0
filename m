@@ -1,43 +1,46 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07DBE47DFBF
-	for <linux-rdma@vger.kernel.org>; Fri, 16 Oct 2026 09:35:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08D5647CA7A;
+	Fri, 16 Oct 2026 11:53:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792143309; cv=none; b=C5aaApFy2gXL8V09yv3HwM/RNYKZJm+h5yzYxFX0Sgp+oW3eVIR+Rj8Edevm0JTSVmsbi/Lrzv3Eut2nkZHaVbRYDveUNlaTCe4gA2S7ptuRlgudMxW99rOjzmJts3hOQRGh7A3I5mMm9Emw7ItACilE1HfHGIp01RPRxVeeWV4=
+	t=1792151625; cv=none; b=R6oaCSn4unRIXbOC98DOKejDx35CbPldOEGdDNWiu43o7OwlwhtPPp9oCgmJ88iy3ODDa8zcJKlcbNaZ0j0xOwFlpW5KuHTaSFVTYscSrvKQa4dk2eiAsSMLTnph1i1VFteiadG5d7oTtLFV674+NBlw4GNHHnRVS0FzUPAREd0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792143309; c=relaxed/simple;
-	bh=0lZgiHtNGaP4+VfQSfRBG7VJk1kD4u/xMu+fWU9Jsfw=;
+	s=arc-20240116; t=1792151625; c=relaxed/simple;
+	bh=szZSVUYBtaeBY6CrbZlK5dN+KP9hQElYsClGbV6Nuhs=;
 	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=otPB7FoV59b1CsgX2ZNrafLYvqaJNICuV3Xq6DiMWCuyd28WrXNx5F+tycTNoBgk/lFZbwyVm/qBpa02FuKFFeEXYXPEKGsR2Uqz+MB+kfLZUPA0IaQDfX3C1oyD9VfX098R61tMlvLob26pNgPR5a8cUgzDS0YtUNWebFyYLDE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XOe7eNOr; arc=none smtp.client-ip=100.103.45.18
+	 Date; b=WcOR6Cu3SPPs4k0MG1D9W0XyOHSgKBVXSNtymqT2ImcnuIvgemLV5quIAfeQ6vS/8Sm++uTx96W7F99RhjSMImKgawJMh7ezKVMnO8Rl5Fs+0oLjvfa3mGEwo92kmfbZGhiriYgoFM08RSFvXY/FNADIRh1gdAPXRdTiB+3MZBo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PWU9g+RM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XOe7eNOr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 651691F000C4;
-	Fri, 16 Oct 2026 09:35:07 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PWU9g+RM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C2A31F000C4;
+	Fri, 16 Oct 2026 11:53:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792143307;
-	bh=NdDPW6hlkpQ79Yg6IoqKqf/z4UCiZGu3xOJybdg87Kk=;
+	s=k20260515; t=1792151623;
+	bh=AFHxka7zkAQl3KbRTbZHIQML/f/qvCWgQugX1KEAthE=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=XOe7eNOrUul+eP46+c6GlNtx7TFAUsmqbp2GjZm+JK69NarxvfSOiG0F4QI1VnsNQ
-	 kjjjU3lmp2lmOoReZVr2bXbDaFspvSGj5m+z60tXmeUdq3LY9njym71EoNbn3SoozW
-	 EUGgjUqjT5lSoM6TlB0rOmIFgbiF7UHgcOsG98Ue0dK5Hl66ApdkmoPrsbHKcIYNRZ
-	 QdoQUkcUMIpdvd0cksnjFtE2xfZEiLSrfERfBlpMMCn+gVL2AbthoKXeYnPHWZIJs3
-	 Fi6KWbY9g8PRC1IGcrkSoiAlmvVL47KJSpNploeZI2Ew2PDjnZVSninRVyF4d6syzl
-	 kXNoEqTMxwgaQ==
-Message-ID: <sashiko-outbox-174082@kernel.org>
+	b=PWU9g+RMJmLVNN97krMPH0rp9mma/EPVbG/Q8kWFjIeCY/WbMM8dRX2UCgXlzSOsJ
+	 SYxJM7323eTkGrFP0QqKSgy1q4iCxCxtLOxg7u9lWuarZol0tm1QIpMdcI0MrBjei7
+	 A4qPsBOfYIzTXj/vXcL0ETLoRFX7nnu36bi30R6nqgHu114eLqZfMnNhrga8iftO34
+	 QqxmLRxoFYa88MUzd9eSyVP8DRVABO+igDNCdqLimKGXupBdfy4AoaOhf5JRDoSg+b
+	 lIFGgvoIKPnx1Tks9ME5Cykwp7wTAgb9CasAQP48OZnwD9GK/E3Asu3ZKA5SLrOtjJ
+	 0fnKS0/wMRVlQ==
+Message-ID: <sashiko-outbox-174257@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net] net/mlx5: Fix lock dependency cycle on uplink
- unbind in switchdev mode
+Subject: Re: [PATCH net v5 2/2] net/smc: skip the DMB nocopy accounting
+ until the send buffer is set
 Reply-To: sashiko-reviews@lists.linux.dev
-To: "Tariq Toukan" <tariqt@nvidia.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261015093419.1150837-1-tariqt@nvidia.com>
-References: <20261015093419.1150837-1-tariqt@nvidia.com>
+To: "Bryam Vargas" <hexlabsecurity@proton.me>
+Cc: linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, "Heiko Carstens" <hca@linux.ibm.com>, "Vasily
+ Gorbik" <gor@linux.ibm.com>, "Alexander Gordeev" <agordeev@linux.ibm.com>, "Christian
+ Borntraeger" <borntraeger@linux.ibm.com>
+In-Reply-To: <20261015-b4-disp-2a8d85ef-v5-2-6b795e8263c9@proton.me>
+References: <20261015-b4-disp-2a8d85ef-v5-0-6b795e8263c9@proton.me>
+ <20261015-b4-disp-2a8d85ef-v5-2-6b795e8263c9@proton.me>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 16 Oct 2026 09:35:06 +0000
+Date: Fri, 16 Oct 2026 11:53:42 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -46,85 +49,86 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 Thank you for your contribution! Sashiko AI review found 1 potential issue(=
 s) to consider:
-- [High] net/mlx5: race condition in mlx5_eswitch_safe_aux_devs_remove() te=
-ardown
+- [High] net/smc: state corruption from reused DMB peer CDC messages
 --
 
-commit 2e432cf53969d688514fb1e87aa9e496706a3090
-Author: Shay Drory <shayd@nvidia.com>
+commit 9ad2bd35a07a32a00da8818fbbfd176e9bdd1557
+Author: Bryam Vargas <hexlabsecurity@proton.me>
 
-net/mlx5: Fix lock dependency cycle on uplink unbind in switchdev mode
+net/smc: skip the DMB nocopy accounting until the send buffer is set
 
-This commit addresses a lockdep cycle involving mode_lock, reps_lock, and
-rtnl_mutex. It resolves the cycle by setting the eswitch_operation_in_progr=
-ess
-flag, dropping the mode_lock before removing auxiliary devices, and retaking
-it afterward to keep mode_lock and reps_lock un-nested.
+This patch mitigates a null pointer dereference in smc-d dmb nocopy when an
+old peer reusing a dmb sends a cdc message before the new connection sets
+sndbuf_desc. It skips nocopy accounting while the send buffer is unset.
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b=
-/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-> index eb74b62601682..f934cb2b26b08 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> diff --git a/net/smc/smc_cdc.c b/net/smc/smc_cdc.c
+> index 7bf902ebd7ab6..d6825f48f5688 100644
+> --- a/net/smc/smc_cdc.c
+> +++ b/net/smc/smc_cdc.c
+> @@ -333,6 +333,7 @@ static void smc_cdc_msg_recv_action(struct smc_sock *=
+smc,
+>  	union smc_host_cursor cons_old, prod_old;
+>  	struct smc_connection *conn =3D &smc->conn;
+>  	int diff_cons, diff_prod, diff_tx;
+> +	struct smc_buf_desc *sndbuf_desc;
+> =20
+>  	smc_curs_copy(&prod_old, &conn->local_rx_ctrl.prod, conn);
+>  	smc_curs_copy(&cons_old, &conn->local_rx_ctrl.cons, conn);
+
+[Severity: High]
+Does this code unconditionally overwrite the new connection's receive contr=
+ol
+block with the old peer's cursors?
+
+Because the old peer of a reused dmb can still send cdc messages, and these
+messages lack sequence numbers or token fields, old updates are blindly
+processed.
+
+Looking right after this block in smc_cdc_msg_recv_action(),
+smc_cdc_msg_to_host() is called to update conn->local_rx_ctrl. Then
+diff_cons is calculated from the old cursors and added to
+conn->peer_rmbe_space.
+
+Could this regression corrupt the peer's receive window space by adding a
+bogus difference?
 
 [ ... ]
 
-> @@ -4455,9 +4476,19 @@ void mlx5_eswitch_safe_aux_devs_remove(struct mlx5=
-_core_dev *dev)
->  		}
->  	}
->  	if (hold_esw) {
-> +		/* Keep mode_lock and reps_lock unnested. The operation flag
-> +		 * excludes mode users while mode_lock is dropped before the
-> +		 * REPs removal takes reps_lock.
-> +		 */
-> +		esw->eswitch_operation_in_progress =3D true;
-> +		mlx5_esw_unlock(esw);
+> @@ -353,12 +354,19 @@ static void smc_cdc_msg_recv_action(struct smc_sock=
+ *smc,
+>  		 * peer RMB, then update tx_curs_fin and sndbuf_space
+>  		 * here since peer has already consumed the data.
+>  		 */
+> +		sndbuf_desc =3D NULL;
+>  		if (conn->lgr->is_smcd &&
+>  		    smc_ism_support_dmb_nocopy(conn->lgr->smcd)) {
+> +			/* NULL until smcd_buf_attach(), but the old peer of
+> +			 * a reused DMB can already signal us.
+> +			 */
+> +			sndbuf_desc =3D smp_load_acquire(&conn->sndbuf_desc);
+> +		}
+> +		if (sndbuf_desc) {
+>  			/* Calculate consumed data and
+>  			 * increment free send buffer space.
+>  			 */
+> -			diff_tx =3D smc_curs_diff(conn->sndbuf_desc->len,
+> +			diff_tx =3D smc_curs_diff(sndbuf_desc->len,
+>  						&conn->tx_curs_fin,
+>  						&conn->local_rx_ctrl.cons);
 
 [Severity: High]
-Does this safely prevent concurrent devlink commands from executing?
+If the old peer sends an update after the new connection has already set
+sndbuf_desc, is this check bypassed?
 
-This teardown path drops mode_lock and relies on eswitch_operation_in_progr=
-ess
-to prevent concurrent mode changes.
+If so, could diff_tx be calculated from the old peer's cursors and added
+to conn->sndbuf_space, corrupting the send buffer space?
 
-However, devlink callbacks like mlx5_devlink_switchdev_active_mode_change()
-do not seem to check this flag via mlx5_esw_try_lock(). Instead, they
-unconditionally acquire the lock:
-
-mlx5_devlink_switchdev_active_mode_change() {
-    down_write(&esw->mode_lock);
-    esw->offloads_inactive =3D !esw->offloads_inactive;
-    esw->eswitch_operation_in_progress =3D true;
-    up_write(&esw->mode_lock);
-   =20
-    ...
-   =20
-    down_write(&esw->mode_lock);
-    esw->eswitch_operation_in_progress =3D false;
-    up_write(&esw->mode_lock);
-}
-
-If a concurrent devlink command runs after mode_lock is dropped here, could
-it acquire the lock, unconditionally overwrite the flag, execute, and then
-clear the flag to false upon exit?
-
-If this happens, it would prematurely clear the flag while
-mlx5_core_reps_aux_devs_remove() is still actively tearing down the auxilia=
-ry
-devices, potentially exposing the un-nested lock region to other concurrent
-mode transitions or TC offloads.
-
->  		if (mlx5_eswitch_mode(dev) =3D=3D MLX5_ESWITCH_OFFLOADS)
->  			mlx5_core_reps_aux_devs_remove(dev);
-> -		mlx5_esw_release(dev);
-> +
-> +		down_write(&esw->mode_lock);
-> +		esw->eswitch_operation_in_progress =3D false;
-> +		mlx5_esw_unlock(esw);
->  	}
->  }
+Furthermore, looking at the end of smc_cdc_msg_recv_action(), diff_prod is
+calculated and added to conn->bytes_to_rcv, and the socket is woken up via
+sk_data_ready(). By avoiding the null pointer dereference, does this
+regression instead corrupt the available data size and trick the new
+connection into reading garbage data?
 
 --=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261015093419.1150=
-837-1-tariqt@nvidia.com?part=3D1
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261015-b4-disp-2a=
+8d85ef-v5-0-6b795e8263c9@proton.me?part=3D2
