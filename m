@@ -1,81 +1,74 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2C382253B0;
-	Fri, 16 Oct 2026 02:10:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A211B30EF91
+	for <linux-rdma@vger.kernel.org>; Fri, 16 Oct 2026 02:19:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792116607; cv=none; b=XBbD12iFNxyXq8psh1EPlfQoEQjGWP/TL2pH/oBPnPvGShHAb/KTJh2lb5WMmv0KNYSJmoLQ5OnHuJLGqr14AwVw5JA6kakzxgzBxNI658lcZ1sfEJTMQUqosvoTlGodBjtv0S0E1pOi6fBqgqx4Ey/vD79fTmdur0ayk+DO3Xw=
+	t=1792117193; cv=none; b=DCw1hIkGRFaM4RDc5ncaBojHNvXdMXTQIoQf4AFW6rfS9j8NJLPWX2CRsbFHRdPCo53hGyKvtEXbXm71mx8fGuATZrUTEOOViGVqS2cfy95pgTEeZL1jbEk9zvvTZ6lfudtwuER6D716g0GHCWK6nzhXrY3Eh8doaaFS/U9SzW8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792116607; c=relaxed/simple;
-	bh=8kkZFsuiz0auIp4TPMz2lTi1ked1gHc5TreNeKkusRg=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=mco8dEhLxVPTuvNKsbszY0W1XziN8YrG7Ux0zKe1AKVw4tTV7j4Rc9Eww4QLofeR/wP9yzZzVuNC+SR9R1UNeo2IGdjchvBeOylmW2RdYQzQqLadTU/vEf2YllbY8WG1Y7pc85jY5PJyG14h+n3KgGIaRWYAnlPkdv2gm5CRD34=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ntIiEnZp; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792117193; c=relaxed/simple;
+	bh=1b4+ssV2GUJmG6mvv6ajWogYwgjZhU6qgvZjlJ/8ZpU=;
+	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
+	 Date; b=ksrTVzyqwePjq6WZV7JWRxBM/JVYrkyMUa3SHwM/3bQP6uXxX+w9Ua1RH4bqoFposRyy2YGoyDsHT7e2SjbKFib/fwk01UTg5iGmGw5zf6l3fBeBc2qyunGfz19WjsL6zxd7RvtEPa2ZUD9h0lHty3tdPNfvOgFGUgCqX2Q4QjU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lg/NjMWr; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ntIiEnZp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8550A1F000C4;
-	Fri, 16 Oct 2026 02:10:06 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lg/NjMWr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 166FC1F000C4;
+	Fri, 16 Oct 2026 02:19:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792116606;
-	bh=ovnm/qowvJZT7R3W4KnHOmuenJoKcJJNqA48GQ0sZcQ=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=ntIiEnZpZw8bbP84KIMVBu18OYYHJmCe5aAgzUie5YLM6PRRvVIHD1huhqTfefaAb
-	 7SJ72QoGK+FBO8YHvvHKXCYLMwqldUX2VJhaS8aGStWzUcdu10ZGXM91bUQXoQOivk
-	 cLugOZY56FvwPA5j7fkZQY87/VDs1OVP7hKLf4zss6hPZGmlJCAg3tRsvBCfFYaBAw
-	 Mr1DmqVj+UOZR/0qQiy7URGdApnHTXbBYtxVVGwRwJnUpk+hk1c0hZK6q3JgvpCoVi
-	 DN2cNWLDqz0NegTYBgX6yX5Hk67jeTqb7s1QpG/031O12BrLT7ijBioIaSDY5D3FjF
-	 tAnUQdIzqCZ+g==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 774D73808209;
-	Fri, 16 Oct 2026 02:10:06 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=k20260515; t=1792117192;
+	bh=Tfu7t6TAcOFQSSLIICmpxKBkBG0RDOAbdIKg+cS/RY0=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=lg/NjMWrGKYCK4gSUcLnGGZNgBVHjRClvnzKYE4jKCJiYFvo/1pP+1mFKeLau7Zsi
+	 Mwyqxj29ymDdNBD9r6u6AKhCSyOeTguCMYHV3LT88Rr3qgvlWnPFZZ+tmNz0a85UIR
+	 kl57tRjeYeJQY1kkvNWfUUR//e0JbX9EPuLyDbiTEECFdMf8hwjxnrQVwftuoL6QzQ
+	 i+pyEL31r1ehOLAh2D5nzv2liOdrQ6WijVdo1g0v3n0HcvQcITHBA44ex2lv8fpph8
+	 NUVk3qRTUGc1Gqn9h7/OU59MOMHbDzuuQl7lvO6DljwnWevLzfWRHlfzD0sufx7tnX
+	 dxFksR5Fmnj/Q==
+Message-ID: <sashiko-outbox-173617@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH] RDMA/rxe: Clear pkt->qp before the early drop exits in
+ rxe_rcv()
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Zhiwei Zhang" <202275009@qq.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <tencent_1BF6EE2B5853D22DD4A2F3EBADE737905209@qq.com>
+References: <tencent_1BF6EE2B5853D22DD4A2F3EBADE737905209@qq.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Fri, 16 Oct 2026 02:19:51 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net v4] RDS/IB: validate receive fragment completions
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <179211660497.15365.17816447060855250887.git-patchwork-notify@kernel.org>
-Date: Fri, 16 Oct 2026 02:10:04 +0000
-References: <20261013025729.40815-1-shubham@octane.security>
-In-Reply-To: <20261013025729.40815-1-shubham@octane.security>
-To: Shubham Antil <shubham@octane.security>
-Cc: netdev@vger.kernel.org, achender@kernel.org, davem@davemloft.net,
- edumazet@google.com, kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
- andy.grover@oracle.com, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
- linux-kernel@vger.kernel.org, gio@octane.security, tjdqudcks0424@naver.com,
- robert@octane.security, paolo@octane.security, stable@vger.kernel.org
 
-Hello:
+> rxe_rcv() puts pkt->qp at its drop label, but leaves pkt->qp
+> uninitialized on the two paths that take an early goto:
+>=20
+> 	if (unlikely(skb->len < RXE_BTH_BYTES))
+> 		goto drop;
+>=20
+> 	if (rxe_chk_dgid(rxe, skb) < 0)
+> 		goto drop;
+>=20
+> 	pkt->opcode =3D bth_opcode(pkt);
+> 	pkt->psn =3D bth_psn(pkt);
+> 	pkt->qp =3D NULL;		<- too late for the gotos above
+> 	...
+> drop:
+> 	if (pkt->qp)
+> [ ... ]
+> built in the environment used to prepare this, and the reproducer is
+> left out of this message on purpose - both are available on request.
+>=20
+> Fixes: 8700e3e7c485 ("Soft RoCE driver")
+> Signed-off-by: Zhiwei Zhang <202275009@qq.com>
 
-This patch was applied to netdev/net.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
+Sashiko has reviewed this patch and found no issues. It looks great!
 
-On Tue, 13 Oct 2026 08:27:29 +0530 you wrote:
-> rds_ib_process_recv() accounts every receive fragment as contributing
-> min(i_recv_data_rem, RDS_FRAG_SIZE) bytes, regardless of the completion
-> length. When a completion is shorter than the header-declared amount,
-> receive accounting can advance beyond the payload supplied by the
-> completion.
-> 
-> Only an IB_WC_RECV completion has the buffer layout expected by this
-> receive path. Other successful completion opcodes must not be interpreted
-> as ordinary receive completions.
-> 
-> [...]
-
-Here is the summary with links:
-  - [net,v4] RDS/IB: validate receive fragment completions
-    https://git.kernel.org/netdev/net/c/65cf6863606b
-
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/tencent_1BF6EE2B585=
+3D22DD4A2F3EBADE737905209@qq.com?part=3D1
 
