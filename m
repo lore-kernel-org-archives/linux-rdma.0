@@ -1,29 +1,30 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 91EC1368D74;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 92B913E1D02;
 	Fri, 16 Oct 2026 15:38:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792165140; cv=none; b=i/FNEcbwTV6SFw5gTx9a/+trDAiVdyU2k/34ZCOUUk8MYdSydnE9rZo0e9Ks5LalSIDoyXPz+9h3gYd0uBcr1lMlFBKTmd4S77myZlZG419vVg0Z1oZOtBoUB9uib32nfG/6sF10UxqA0eb3IOVeDgkpwHg0AQaxuqC1ZlvLaPw=
+	t=1792165140; cv=none; b=ChXo4Rblp+1TyeJAym1bDW3APZA6LWchkqUcaqOedAhIMZAAwjFjE1s0JN4aD/kAiA3AWXCzfsLGjIMGt2+ypaTlc/mmh0AE/yIwEVtYOpM3vDV/ZOZxHXH+kA8rHxNGm1plq1w5LxxpIdGvmD8VjrdV7Q4d4gKoLqJgz2oDuOE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1792165140; c=relaxed/simple;
-	bh=kO/e4S78HzZGSW3Rby3HqiXJswAD10l/dj+A8hECeUo=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=UWOjbdYn+OqUMPOlqq6RFTk85F1f+elve9yExFJCDcLOCu7JCJ4qYJdStLgfJtvI6eXXUdnLPPNRRjWP3NR5QvsyfGUqxDL2h8LaQ+/pEv+sDk6TGbTchZx32l6JDnW51VH4D3Zr1SnxI4tVZ/G6qnnBAE/BQB16KPk3CSlvKq4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=fBYBOs2I; arc=none smtp.client-ip=13.77.154.182
+	bh=UuyJlHjph9dGQiYwEETWqAsro6FLgXFTxaNLVGp9UlU=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=hM2XHVffnvvdRMir0TTHLTQg/1JJ6TWnhu/A4J+jl3BbMigyVz6TqsoXOgBurSzW3OfrtR/1UNkWKLwFPYrdEcS4/VNB0Jo1SOs4Ek9z42VtxK5srCe92NfE4VTCi0JAHIb3OZ+UwiDIxsgV9mqmxZiriVBy6Ep2b9OMc786pYM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=geji3KyP; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="fBYBOs2I"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="geji3KyP"
 Received: from weh-cvm-dev-vm.y50bckvjo0hefgfnzfztsfttff.phxx.internal.cloudapp.net (unknown [20.169.55.37])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 79F9320B7167;
-	Fri, 16 Oct 2026 08:38:45 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 79F9320B7167
+	by linux.microsoft.com (Postfix) with ESMTPSA id C6FD920B716A;
+	Fri, 16 Oct 2026 08:38:51 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com C6FD920B716A
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1792165126;
-	bh=meBZp8XJ5Sc2EPVVaKAwsUCADdzsLD93FScM2Iwp+b4=;
-	h=From:To:Cc:Subject:Date:From;
-	b=fBYBOs2IYxdLCUXGsIuYkvtgThIv7bjt+zqRKSuq8JM52TKTzkIt3b4iysJsN7xly
-	 EjnFSi/Omt7XvgGnnRb8fc8V3dIk4CTOTPCSnAr1XFUHcVWmk6963xACVsZXK2spch
-	 Crrp+0JoksKcJs6CLI7XrT7Jt0UZGqPbPUoTAqDQ=
+	s=default; t=1792165132;
+	bh=40hqVfz7acWWLmCeaOjxsvF0jnH0G0DxHFt1XfRMj+0=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=geji3KyPQWWuE7YdkNJse3AIC4XroYsXpKFd/aL+Z0A2bH5hftlA7Kyr1A3Z8YNkc
+	 tk3Nfm88AdCYloTCYbfnwPFurlpKzAPa5OZy6pxdS2yXoGnCSzDv828S6/dp4jK92O
+	 Bfa0QnR29N8TqA9ko2xJXvFmWUFetGQsts7hcKnI=
 From: Wei Hu <weh@linux.microsoft.com>
 To: longli@kernel.org,
 	kotaranov@microsoft.com,
@@ -53,10 +54,12 @@ Cc: netdev@vger.kernel.org,
 	john.fastabend@gmail.com,
 	weh@microsoft.com,
 	edumazet@kernel.org
-Subject: [PATCH net-next v7 00/13] net: mana: reconfigure by replacing the queue set
-Date: Fri, 16 Oct 2026 15:38:33 +0000
-Message-ID: <cover.1791710735.git.weh@linux.microsoft.com>
+Subject: [PATCH net-next v7 03/13] net: mana: keep per-queue statistics in the port context
+Date: Fri, 16 Oct 2026 15:38:36 +0000
+Message-ID: <b27034466c0db8228409db5473e747db7c3177c5.1791710735.git.weh@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <cover.1791710735.git.weh@linux.microsoft.com>
+References: <cover.1791710735.git.weh@linux.microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -65,241 +68,428 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-I am carrying Long Li's queue-set reconfiguration series forward for this
-revision. Long remains the author of twelve patches, and Dipayaan Roy
-remains the author of the detach change. Their authorship and signoffs
-are retained; I have added my signoff for this revision.
+From: Long Li <longli@microsoft.com>
 
-Replace detach/attach reconfiguration with pre-allocation and queue-set
-replacement. Allocation failure leaves the running configuration intact.
-Publication failure attempts rollback; a failed rollback closes the port
-and holds carrier down until a successful reopen.
+Prepare port-lifetime RX/TX statistics before introducing live queue
+replacement. Allocate max_queues slots before netdev registration,
+unwind probe failures, and release them only after unregistering the
+netdev. Queue writers use pointers into these arrays.
 
-EQs and statistics belong to the port. Valid user-configured RSS tables
-survive queue rebuilds. Channel-count changes reuse surviving queues:
-reductions retire the tail and increases allocate only the added queues.
-Ring, MTU, private-flag and XDP layout changes still perform full rebuilds.
+Make ndo_get_stats64 and ethtool statistics independent of replaceable
+queue objects. Preserve counters while down, gating only the PHY
+query. Reserve zeroed retired-RX slots for the next patch; no second
+live queue generation or RX retirement handoff is enabled here.
 
-This series remains independent of the HWC concurrency/dynamic-depth
-series; it is not stacked on its feature commits. Their CQ-publication
-hunks overlap, so the later-applied series needs reconciliation preserving
-both table-publication and individual-CQ lifetime guarantees.
-https://lore.kernel.org/all/cover.1790665894.git.weh@linux.microsoft.com/
-
-Changes since v6:
-
-  - Rebase onto net-next d8674294aefef02266c4d47ad10131f1bffbe534
-    after Simon Horman reported that v6 did not apply and CI did not run.
-    Preserve upstream's GDMA core/PCI/CDX split, its separate PCI capability
-    group and the RX-headroom-aware full-page shortcut.
-  - Fix the DMA-region unwind required by repeated EQ-pool growth in
-    patch 2. Destroy a registration still owned by software if EQ creation
-    fails. A successful hardware creation invalidates that handle, so a
-    later EQ-test failure does not destroy transferred ownership twice.
-  - Make mana_detach() return void in patch 9 and remove unreachable
-    caller error branches. Preserve deallocation logging and ndo_stop's
-    required integer return.
-  - Keep the thirteen-patch layout, original authors and existing signoffs.
-
-Review notes:
-
-  - The reported /proc/net/dev stats UAF assumes unregister_netdevice()
-    defers its grace period. Its NULL-head path synchronously unlists and
-    synchronizes network readers, removes sysfs state, then synchronizes
-    again before returning, in both the old and new base.
-  - The two stats-folding deadlock reports require unsupported 32-bit
-    MANA. PCI and CDX both restrict support to 64-bit, where u64_stats_sync
-    has no sequence counter or reader retry loop.
-  - The xdp_xmit lost-increment race is real but already present on the
-    unmodified base. Moving the counter to port-owned storage does not
-    introduce it; keep that independent statistics fix separate.
-
-Rebase request:
-https://lore.kernel.org/all/20261010162855.GU83879@horms.kernel.org/
-EQ unwind / detach reviews:
-https://lore.kernel.org/all/sashiko-outbox-166658@kernel.org/
-https://lore.kernel.org/all/sashiko-outbox-166664@kernel.org/
-v6 review inventory:
-https://sashiko.dev/#/patchset/cover.1790795005.git.weh@linux.microsoft.com
-
-Changes since v5 (retained from v6):
-
-
-  - Rebase the independent queue-set series onto net-next base
-    47a1446725732cd3996edf607e8739334bbf4d78.
-  - Drain ALL old TX queues after closing the TX/XDP gate and waiting for
-    readers, but before publishing pointers, counts or RSS. A shared
-    120-second drain deadline rejects a replacement by resuming the old
-    configuration without reprogramming RSS or resetting the function.
-    Retirement does not use FLR. Ordinary mana_dealloc_queues() remains
-    byte-identical to this base: existing reset policy and independent
-    failed-FLR hardening are deliberately not changed.
-  - Complete the shared EQ/CQ lifetime prerequisite in patch 2. Initialize
-    EQ state before IRQ publication. After stopping a retiring CQ's NAPI
-    and work and tearing down its WQ object, flush its actual parent EQ
-    while the CQ callback is still published. Clear its table entry and
-    wait for RCU IRQ readers before freeing the CQ and callback owner.
-    Pair IRQ lookups with release publication at all CQ publishers;
-    Ethernet publication follows NAPI/DIM initialization. Matching HWC
-    and RDMA publication stores do not change their recovery policies.
-  - Move port-lifetime statistics preparation ahead of the first live
-    swap, now patch 3. Introduce RX retirement, writer handoff and folding
-    atomically with the first swap in patch 4, rather than relying on a
-    later patch to make intermediate statistics readers safe.
-  - Keep publication barriers consistent with open/attach. Latch forced
-    carrier shutdown regardless of the previous carrier state and clear
-    it only after successful reopen. Retain the rollback reader grace
-    period after restoring old pointers, before callers discard scratch
-    state.
-  - Join TX queue selection to the publication gate in patch 4. Acquire
-    port_is_up before count/RSS reads and snapshot real_num_tx_queues.
-    Retiring tail RQs can outlive a TX-count reduction; when a recorded
-    RX index no longer fits the live TX count, use the current RSS mapping
-    instead of returning that stale index.
-  - Clear DRV_XOFF on inactive allocated TX queues in patch 4's cold-path
-    restart helper, using netif_tx_start_queue() while preserving the
-    availability checks and wake behavior for active queues. Publication
-    stops all allocated queues, and the netdev watchdog scans allocated
-    num_tx_queues, not just real_num_tx_queues. Leaving the inactive tail
-    stopped after a channel shrink caused a watchdog timeout and recovery
-    on the previous release candidate.
-  - Keep old RX statistics retired until rollback steering restoration
-    succeeds. Restart DIM only for RXQs actually returning from retirement,
-    with NAPI disabled, work cancelled and DIM reinitialized; carried RXQs
-    and their counters are not reset.
-  - Reserve live MTU/XDP replacement with channel_changing under the
-    existing vport_mutex through queue, fail-close and scratch cleanup.
-    This excludes concurrent RDMA RAW-QP vport admission without changing
-    early validation, no-op or down-port paths.
-  - Correct the full-page RX shortcut description to include all existing
-    early-return conditions.
-
-Resource and control-path costs:
-
-Full rebuilds temporarily retain both sets of SQ/RQ/CQ objects, RX buffers
-and page pools. The port-owned EQ pool is shared, not doubled. Device
-resource limits can reject this temporary peak; no fixed hardware queue
-threshold is assumed. Allocation failure preserves the live configuration.
-The pre-publication TX drain can also reject a replacement without changing
-the live pointer/count/RSS configuration.
-
-CQ retirement adds parent-EQ marker operations and RCU reader waits on the
-control path; these are not free and no latency improvement is claimed.
-The IRQ lookup uses an acquire load, not a new per-packet lock. This series
-does not introduce a general recovery policy for failed hardware commands.
-
-Patch layout:
-  1:     Queue-set helpers, preserving ordinary deallocation policy.
-  2:     Shared EQ pool and EQ/CQ publication/retirement prerequisite.
-  3:     Port-lifetime statistics preparation.
-  4:     First live swap, nonreset drain, RX handoff and safe TX restart.
-  5-8:   Ring, private-flag, MTU and XDP reconfiguration.
-  9:     Remove the unreachable detach early return.
-  10-11: Release unused EQs and preserve user RSS tables.
-  12-13: Reuse queues across channel-count reductions and increases.
-
-Overlap with separately submitted net fixes:
-
-The XDP pre-allocation pointer fix is subsumed by patch 8's queue-set path,
-which leaves the live program unchanged during allocation:
-https://lore.kernel.org/all/20260904202640.3900685-1-longli@microsoft.com/
-
-The user-RSS-table fix overlaps patch 11. Keep the three-argument
-mana_rss_table_keep() and its queue-set callers in the overlapping blocks;
-the RTNL RSS requirement is shared with the standalone net submission:
-https://lore.kernel.org/all/20260905004401.3937066-1-longli@microsoft.com/
-
-Neither submission is resent as a standalone patch here. These merge
-notes do not prescribe changes to unrelated net-tree code.
-
-History:
-  v5: https://lore.kernel.org/all/20260909222416.884246-1-longli@microsoft.com/
-  v4: https://lore.kernel.org/all/20260908032843.397667-1-longli@microsoft.com/
-  v3: https://lore.kernel.org/all/20260901014442.2945689-1-longli@microsoft.com/
-  v2 repost:
-      https://lore.kernel.org/all/20260813050418.2906468-1-longli@microsoft.com/
-  v2 earlier posting:
-      https://lore.kernel.org/all/20260811063506.2428213-1-longli@microsoft.com/
-  Full-page RX predecessor (v12, not a queue-set v1):
-      https://lore.kernel.org/all/20260711041415.3008868-1-dipayanroy@linux.microsoft.com/
-
-The link labelled "v1" in the old queue-set covers actually points to the
-four-patch full-page RX v12 predecessor, not an earlier 13-patch queue-set
-posting.
-
-Testing:
-
-Source/static qualification completed:
-  - Baseline plus all thirteen commits: 28 fresh GCC/Clang W=1 target
-    builds and thirteen strict checkpatch/diff checks.
-  - Exact-source EQ-unwind regression: both compilers expose four v6
-    leaks; nine cases pass at fixed patch 2 and final v7.
-  - Full baseline/release kernels build with identical configurations.
-    Sparse retains a baseline warning; Smatch retains baseline frontend
-    failures/diagnostics and is not counted as a clean pass.
-
-Fresh runtime results:
-  - Stable baseline/release TCP and 64-byte UDP comparisons completed,
-    forward/reverse with three samples per workload. Supported PD/MR
-    and native PD/CQ/MR resource controls passed.
-  - VM5 completed 39 named cases across documented exact-release boots
-    and three original mixed-profile cycles, not a single-boot matrix.
-  - VM6's earlier run completed 34 cases and failed repeated cleanup.
-    A later exact-release run passed the four remaining XDP cases and
-    all three original mixed-profile cycles. The earlier failure is
-    retained, not relabeled as a complete matrix pass.
-  - Three PCI remove/rescan cycles per VM passed with concurrent
-    /proc/net/dev and four sysfs-stat readers, per-function resource
-    identity/count checks and health dwells.
-  - Both VMs were restored to their safe kernels and original controls,
-    including RSS keys, tables and default/user policy. Owned fixtures
-    and helpers were removed and reservations released.
-  - All thirteen mails also applied cleanly to net-next d0bd617658dd.
-
-A later unmodified net-next baseline also reproduced the TX-drain failure
-class, with a pending send and a matching owned TX_OKAY completion.
-DIM causality and a common root cause across runs remain unproven.
-That baseline-present issue is recorded for separate investigation, not
-silently treated as a passed test or a demonstrated v7 regression.
-No speculative driver workaround has been added.
-
-Prior v6 sanitizer/fault and CPU-accounting results are historical,
-not fresh v7 qualification. No fresh 32-bit, CDX hardware, full-locking
-or general firmware-failure recovery coverage is claimed.
-
-v6:
-https://lore.kernel.org/all/cover.1790795005.git.weh@linux.microsoft.com/
-
+Signed-off-by: Long Li <longli@microsoft.com>
 Signed-off-by: Wei Hu <weh@microsoft.com>
+---
+ .../net/ethernet/microsoft/mana/mana_bpf.c    |   4 +-
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 107 ++++++++++++++----
+ .../ethernet/microsoft/mana/mana_ethtool.c    |  48 ++++++--
+ include/net/mana/mana.h                       |  15 ++-
+ 4 files changed, 139 insertions(+), 35 deletions(-)
 
-Dipayaan Roy (1):
-  net: mana: do not bail out of mana_detach on dealloc failure
-
-Long Li (12):
-  net: mana: add queue-set allocation and teardown helpers
-  net: mana: share the EQ pool across a queue-set swap
-  net: mana: keep per-queue statistics in the port context
-  net: mana: swap queue sets in mana_set_channels
-  net: mana: swap queue sets in mana_set_ringparam
-  net: mana: swap queue sets in mana_set_priv_flags
-  net: mana: swap queue sets in mana_change_mtu
-  net: mana: swap queue sets in mana_xdp_set
-  net: mana: release EQs left idle by a channel-count reduction
-  net: mana: keep a user-configured RSS table across a queue rebuild
-  net: mana: keep the surviving queues when the channel count is reduced
-  net: mana: keep the existing queues when the channel count is raised
-
- drivers/infiniband/hw/mana/cq.c               |    3 +-
- .../net/ethernet/microsoft/mana/gdma_main.c   |   26 +-
- .../net/ethernet/microsoft/mana/hw_channel.c  |    3 +-
- .../net/ethernet/microsoft/mana/mana_bpf.c    |  108 +-
- drivers/net/ethernet/microsoft/mana/mana_en.c | 1341 +++++++++++++++--
- .../ethernet/microsoft/mana/mana_ethtool.c    |  313 ++--
- include/net/mana/gdma.h                       |    8 +-
- include/net/mana/mana.h                       |   99 +-
- 8 files changed, 1615 insertions(+), 286 deletions(-)
-
-
-base-commit: d8674294aefef02266c4d47ad10131f1bffbe534
+diff --git a/drivers/net/ethernet/microsoft/mana/mana_bpf.c b/drivers/net/ethernet/microsoft/mana/mana_bpf.c
+index ec708f3401a0..2008c1741654 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana_bpf.c
++++ b/drivers/net/ethernet/microsoft/mana/mana_bpf.c
+@@ -68,7 +68,7 @@ int mana_xdp_xmit(struct net_device *ndev, int n, struct xdp_frame **frames,
+ 		count++;
+ 	}
+ 
+-	tx_stats = &apc->tx_qp[q_idx]->txq.stats;
++	tx_stats = apc->tx_qp[q_idx]->txq.stats;
+ 
+ 	u64_stats_update_begin(&tx_stats->syncp);
+ 	tx_stats->xdp_xmit += count;
+@@ -95,7 +95,7 @@ u32 mana_run_xdp(struct net_device *ndev, struct mana_rxq *rxq,
+ 
+ 	act = bpf_prog_run_xdp(prog, xdp);
+ 
+-	rx_stats = &rxq->stats;
++	rx_stats = rxq->stats;
+ 
+ 	switch (act) {
+ 	case XDP_PASS:
+diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
+index 4b2c8039b8fa..744d5ebe8dbb 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana_en.c
++++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
+@@ -372,7 +372,7 @@ netdev_tx_t mana_start_xmit(struct sk_buff *skb, struct net_device *ndev)
+ 	txq = &apc->tx_qp[txq_idx]->txq;
+ 	gdma_sq = txq->gdma_sq;
+ 	cq = &apc->tx_qp[txq_idx]->tx_cq;
+-	tx_stats = &txq->stats;
++	tx_stats = txq->stats;
+ 
+ 	BUILD_BUG_ON(MAX_TX_WQE_SGL_ENTRIES != MANA_MAX_TX_WQE_SGL_ENTRIES);
+ 	if (MAX_SKB_FRAGS + 2 > MAX_TX_WQE_SGL_ENTRIES &&
+@@ -551,7 +551,7 @@ netdev_tx_t mana_start_xmit(struct sk_buff *skb, struct net_device *ndev)
+ 	/* Populated the packet and bytes counters based on post GSO packet
+ 	 * calculations
+ 	 */
+-	tx_stats = &txq->stats;
++	tx_stats = txq->stats;
+ 	u64_stats_update_begin(&tx_stats->syncp);
+ 	tx_stats->packets += num_gso_seg;
+ 	tx_stats->bytes += len + ((num_gso_seg - 1) * gso_hs);
+@@ -597,15 +597,15 @@ static void mana_get_stats64(struct net_device *ndev,
+ 			     struct rtnl_link_stats64 *st)
+ {
+ 	struct mana_port_context *apc = netdev_priv(ndev);
+-	unsigned int num_queues = apc->num_queues;
+ 	struct mana_stats_rx *rx_stats;
+ 	struct mana_stats_tx *tx_stats;
++	unsigned int num_queues;
+ 	unsigned int start;
+ 	u64 packets, bytes;
+ 	int q;
+ 
+-	if (!apc->port_is_up)
+-		return;
++	/* Report even while down; dev_get_stats() zeroes its output. */
++	num_queues = apc->max_queues;
+ 
+ 	netdev_stats_to_stats64(st, &ndev->stats);
+ 
+@@ -615,7 +615,18 @@ static void mana_get_stats64(struct net_device *ndev,
+ 	st->rx_missed_errors = apc->ac->hc_stats.hc_rx_discards_no_wqe;
+ 
+ 	for (q = 0; q < num_queues; q++) {
+-		rx_stats = &apc->rxqs[q]->stats;
++		rx_stats = &apc->rxq_stats[q];
++
++		do {
++			start = u64_stats_fetch_begin(&rx_stats->syncp);
++			packets = rx_stats->packets;
++			bytes = rx_stats->bytes;
++		} while (u64_stats_fetch_retry(&rx_stats->syncp, start));
++
++		st->rx_packets += packets;
++		st->rx_bytes += bytes;
++
++		rx_stats = &apc->rxq_stats_ret[q];
+ 
+ 		do {
+ 			start = u64_stats_fetch_begin(&rx_stats->syncp);
+@@ -628,7 +639,7 @@ static void mana_get_stats64(struct net_device *ndev,
+ 	}
+ 
+ 	for (q = 0; q < num_queues; q++) {
+-		tx_stats = &apc->tx_qp[q]->txq.stats;
++		tx_stats = &apc->txq_stats[q];
+ 
+ 		do {
+ 			start = u64_stats_fetch_begin(&tx_stats->syncp);
+@@ -1065,6 +1076,53 @@ static void mana_cleanup_port_context(struct mana_port_context *apc)
+ 	apc->rxqs = NULL;
+ }
+ 
++/* Port lifetime preserves counters across queue replacement. */
++static int mana_alloc_queue_stats(struct mana_port_context *apc)
++{
++	unsigned int i;
++
++	apc->rxq_stats = kcalloc(apc->max_queues, sizeof(*apc->rxq_stats),
++				 GFP_KERNEL);
++	if (!apc->rxq_stats)
++		return -ENOMEM;
++
++	apc->rxq_stats_ret = kcalloc(apc->max_queues,
++				     sizeof(*apc->rxq_stats_ret), GFP_KERNEL);
++	if (!apc->rxq_stats_ret)
++		goto free_rxq_stats;
++
++	apc->txq_stats = kcalloc(apc->max_queues, sizeof(*apc->txq_stats),
++				 GFP_KERNEL);
++	if (!apc->txq_stats)
++		goto free_rxq_stats_ret;
++
++	for (i = 0; i < apc->max_queues; i++) {
++		u64_stats_init(&apc->rxq_stats[i].syncp);
++		u64_stats_init(&apc->rxq_stats_ret[i].syncp);
++		u64_stats_init(&apc->txq_stats[i].syncp);
++	}
++
++	return 0;
++
++free_rxq_stats_ret:
++	kfree(apc->rxq_stats_ret);
++	apc->rxq_stats_ret = NULL;
++free_rxq_stats:
++	kfree(apc->rxq_stats);
++	apc->rxq_stats = NULL;
++	return -ENOMEM;
++}
++
++static void mana_free_queue_stats(struct mana_port_context *apc)
++{
++	kfree(apc->rxq_stats);
++	apc->rxq_stats = NULL;
++	kfree(apc->rxq_stats_ret);
++	apc->rxq_stats_ret = NULL;
++	kfree(apc->txq_stats);
++	apc->txq_stats = NULL;
++}
++
+ static void mana_cleanup_indir_table(struct mana_port_context *apc)
+ {
+ 	apc->indir_table_sz = 0;
+@@ -2170,7 +2228,7 @@ static void mana_rx_skb(void *buf_va, bool from_pool,
+ 			struct mana_rxcomp_oob *cqe, struct mana_rxq *rxq,
+ 			u32 pkt_len, u32 pkt_hash)
+ {
+-	struct mana_stats_rx *rx_stats = &rxq->stats;
++	struct mana_stats_rx *rx_stats = rxq->stats;
+ 	struct net_device *ndev = rxq->ndev;
+ 	u16 rxq_idx = rxq->rxq_idx;
+ 	struct napi_struct *napi;
+@@ -2403,6 +2461,7 @@ static void mana_process_rx_cqe(struct mana_rxq *rxq, struct mana_cq *cq,
+ 	struct net_device *ndev = rxq->ndev;
+ 	struct mana_recv_buf_oob *rxbuf_oob;
+ 	struct mana_port_context *apc;
++	struct mana_stats_rx *rx_stats;
+ 	struct device *dev = gc->dev;
+ 	bool coalesced_8 = false;
+ 	bool coalesced = false;
+@@ -2484,13 +2543,15 @@ static void mana_process_rx_cqe(struct mana_rxq *rxq, struct mana_cq *cq,
+ 	 * Coalesced CQEs have at least 2 packets, so index is pkt_i - 2.
+ 	 */
+ 	if (pkt_i > 1) {
+-		u64_stats_update_begin(&rxq->stats.syncp);
+-		rxq->stats.coalesced_cqe[pkt_i - 2]++;
+-		u64_stats_update_end(&rxq->stats.syncp);
++		rx_stats = rxq->stats;
++		u64_stats_update_begin(&rx_stats->syncp);
++		rx_stats->coalesced_cqe[pkt_i - 2]++;
++		u64_stats_update_end(&rx_stats->syncp);
+ 	} else if (!pkt_i && !pktlen) {
+-		u64_stats_update_begin(&rxq->stats.syncp);
+-		rxq->stats.pkt_len0_err++;
+-		u64_stats_update_end(&rxq->stats.syncp);
++		rx_stats = rxq->stats;
++		u64_stats_update_begin(&rx_stats->syncp);
++		rx_stats->pkt_len0_err++;
++		u64_stats_update_end(&rx_stats->syncp);
+ 		netdev_err_once(ndev,
+ 				"RX pkt len=0, rq=%u, cq=%u, rxobj=0x%llx\n",
+ 				rxq->gdma_id, cq->gdma_id, rxq->rxobj);
+@@ -2622,8 +2683,8 @@ static void mana_update_rx_dim(struct mana_cq *cq)
+ 	if (!smp_load_acquire(&apc->rx_dim_enabled))
+ 		return;
+ 
+-	dim_update_sample(READ_ONCE(cq->dim_event_ctr), rxq->stats.packets,
+-			  rxq->stats.bytes, &dim_sample);
++	dim_update_sample(READ_ONCE(cq->dim_event_ctr), rxq->stats->packets,
++			  rxq->stats->bytes, &dim_sample);
+ 	net_dim(&cq->dim, &dim_sample);
+ }
+ 
+@@ -2853,7 +2914,7 @@ static int mana_create_txq(struct mana_port_context *apc,
+ 		/* Create SQ */
+ 		txq = &apc->tx_qp[i]->txq;
+ 
+-		u64_stats_init(&txq->stats.syncp);
++		txq->stats = &apc->txq_stats[i];
+ 		txq->ndev = net;
+ 		txq->net_txq = netdev_get_tx_queue(net, i);
+ 		txq->vp_offset = apc->tx_vp_offset;
+@@ -3169,6 +3230,7 @@ static struct mana_rxq *mana_create_rxq(struct mana_port_context *apc,
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	rxq->ndev = ndev;
++	rxq->stats = &apc->rxq_stats[rxq_idx];
+ 	rxq->num_rx_buf = apc->rx_queue_size;
+ 	rxq->rxq_idx = rxq_idx;
+ 	rxq->rxobj = INVALID_MANA_HANDLE;
+@@ -3319,8 +3381,6 @@ static int mana_add_rx_queues(struct mana_port_context *apc,
+ 			goto out;
+ 		}
+ 
+-		u64_stats_init(&rxq->stats.syncp);
+-
+ 		apc->rxqs[i] = rxq;
+ 
+ 		mana_create_rxq_debugfs(apc, i);
+@@ -4119,6 +4179,10 @@ static int mana_probe_port(struct mana_context *ac, int port_idx,
+ 		apc->tx_dim_enabled = MANA_ADAPTIVE_TX_DEF;
+ 	}
+ 
++	err = mana_alloc_queue_stats(apc);
++	if (err)
++		goto free_net;
++
+ 	mutex_init(&apc->vport_mutex);
+ 	apc->vport_use_count = 0;
+ 
+@@ -4141,7 +4205,7 @@ static int mana_probe_port(struct mana_context *ac, int port_idx,
+ 
+ 	err = mana_init_port(ndev);
+ 	if (err)
+-		goto free_net;
++		goto free_stats;
+ 
+ 	err = mana_rss_table_alloc(apc);
+ 	if (err)
+@@ -4178,6 +4242,8 @@ static int mana_probe_port(struct mana_context *ac, int port_idx,
+ 	mana_cleanup_indir_table(apc);
+ reset_apc:
+ 	mana_cleanup_port_context(apc);
++free_stats:
++	mana_free_queue_stats(apc);
+ free_net:
+ 	*ndev_storage = NULL;
+ 	netdev_err(ndev, "Failed to probe vPort %d: %d\n", port_idx, err);
+@@ -4525,6 +4591,7 @@ void mana_remove(struct gdma_dev *gd, bool suspending)
+ 
+ 		unregister_netdevice(ndev);
+ 		mana_cleanup_indir_table(apc);
++		mana_free_queue_stats(apc);
+ 
+ 		/* Remove the port from reset walks before freeing its netdev.
+ 		 */
+diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
+index 33db79569d3b..43c5c3bf5c40 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
++++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
+@@ -242,6 +242,12 @@ static void mana_get_ethtool_stats(struct net_device *ndev,
+ 	u64 xdp_tx;
+ 	u64 pkt_len0_err;
+ 	u64 coalesced_cqe[MANA_CQE_COAL_PKTS_8 - 1];
++	u64 ret_coalesced_cqe[MANA_CQE_COAL_PKTS_8 - 1];
++	u64 ret_packets, ret_bytes;
++	u64 ret_xdp_redirect;
++	u64 ret_pkt_len0_err;
++	u64 ret_xdp_drop;
++	u64 ret_xdp_tx;
+ 	u64 tso_packets;
+ 	u64 tso_bytes;
+ 	u64 tso_inner_packets;
+@@ -252,14 +258,11 @@ static void mana_get_ethtool_stats(struct net_device *ndev,
+ 	u64 mana_map_err;
+ 	int q, i = 0, j;
+ 
+-	if (!apc->port_is_up)
+-		return;
+-
+-	/* We call this mana function to get the phy stats from GDMA and includes
+-	 * aggregate tx/rx drop counters, Per-TC(Traffic Channel) tx/rx and pause
+-	 * counters.
++	/* Counters outlive the queues, but suspend can destroy the HW channel
++	 * while the netdev remains registered. Gate only the PHY query.
+ 	 */
+-	mana_query_phy_stats(apc);
++	if (apc->port_is_up)
++		mana_query_phy_stats(apc);
+ 
+ 	for (q = 0; q < ARRAY_SIZE(mana_eth_stats); q++)
+ 		data[i++] = *(u64 *)(eth_stats + mana_eth_stats[q].offset);
+@@ -271,7 +274,7 @@ static void mana_get_ethtool_stats(struct net_device *ndev,
+ 		data[i++] = *(u64 *)(phy_stats + mana_phy_stats[q].offset);
+ 
+ 	for (q = 0; q < num_queues; q++) {
+-		rx_stats = &apc->rxqs[q]->stats;
++		rx_stats = &apc->rxq_stats[q];
+ 
+ 		do {
+ 			start = u64_stats_fetch_begin(&rx_stats->syncp);
+@@ -285,6 +288,33 @@ static void mana_get_ethtool_stats(struct net_device *ndev,
+ 				coalesced_cqe[j] = rx_stats->coalesced_cqe[j];
+ 		} while (u64_stats_fetch_retry(&rx_stats->syncp, start));
+ 
++		/* Snapshot separately so a retry cannot add retired counters
++		 * twice.
++		 */
++		rx_stats = &apc->rxq_stats_ret[q];
++
++		do {
++			start = u64_stats_fetch_begin(&rx_stats->syncp);
++			ret_packets = rx_stats->packets;
++			ret_bytes = rx_stats->bytes;
++			ret_xdp_drop = rx_stats->xdp_drop;
++			ret_xdp_tx = rx_stats->xdp_tx;
++			ret_xdp_redirect = rx_stats->xdp_redirect;
++			ret_pkt_len0_err = rx_stats->pkt_len0_err;
++			for (j = 0; j < MANA_CQE_COAL_PKTS_8 - 1; j++)
++				ret_coalesced_cqe[j] =
++					rx_stats->coalesced_cqe[j];
++		} while (u64_stats_fetch_retry(&rx_stats->syncp, start));
++
++		packets += ret_packets;
++		bytes += ret_bytes;
++		xdp_drop += ret_xdp_drop;
++		xdp_tx += ret_xdp_tx;
++		xdp_redirect += ret_xdp_redirect;
++		pkt_len0_err += ret_pkt_len0_err;
++		for (j = 0; j < MANA_CQE_COAL_PKTS_8 - 1; j++)
++			coalesced_cqe[j] += ret_coalesced_cqe[j];
++
+ 		data[i++] = packets;
+ 		data[i++] = bytes;
+ 		data[i++] = xdp_drop;
+@@ -296,7 +326,7 @@ static void mana_get_ethtool_stats(struct net_device *ndev,
+ 	}
+ 
+ 	for (q = 0; q < num_queues; q++) {
+-		tx_stats = &apc->tx_qp[q]->txq.stats;
++		tx_stats = &apc->txq_stats[q];
+ 
+ 		do {
+ 			start = u64_stats_fetch_begin(&tx_stats->syncp);
+diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
+index 12a65145cd3f..485a6c9342fc 100644
+--- a/include/net/mana/mana.h
++++ b/include/net/mana/mana.h
+@@ -102,7 +102,7 @@ struct mana_stats_rx {
+ 	u64 pkt_len0_err;
+ 	u64 coalesced_cqe[MANA_CQE_COAL_PKTS_8 - 1];
+ 	struct u64_stats_sync syncp;
+-};
++} ____cacheline_aligned_in_smp;
+ 
+ struct mana_stats_tx {
+ 	u64 packets;
+@@ -117,7 +117,7 @@ struct mana_stats_tx {
+ 	u64 csum_partial;
+ 	u64 mana_map_err;
+ 	struct u64_stats_sync syncp;
+-};
++} ____cacheline_aligned_in_smp;
+ 
+ struct mana_txq {
+ 	struct gdma_queue *gdma_sq;
+@@ -146,7 +146,7 @@ struct mana_txq {
+ 	/* Suppress completion wakeups on the replacement's netdev queue. */
+ 	bool retiring;
+ 
+-	struct mana_stats_tx stats;
++	struct mana_stats_tx *stats;
+ };
+ 
+ /* skb data and frags dma mappings */
+@@ -419,7 +419,7 @@ struct mana_rxq {
+ 
+ 	u32 buf_index;
+ 
+-	struct mana_stats_rx stats;
++	struct mana_stats_rx *stats;
+ 
+ 	struct bpf_prog __rcu *bpf_prog;
+ 	struct xdp_rxq_info xdp_rxq;
+@@ -617,6 +617,13 @@ struct mana_port_context {
+ 	unsigned int max_queues;
+ 	unsigned int num_queues;
+ 
++	/* Port-lifetime arrays with max_queues slots. Readers sum live and
++	 * retired RX counters.
++	 */
++	struct mana_stats_rx *rxq_stats;
++	struct mana_stats_rx *rxq_stats_ret;
++	struct mana_stats_tx *txq_stats;
++
+ 	unsigned int rx_queue_size;
+ 	unsigned int tx_queue_size;
+ 
 -- 
 2.43.0
+
