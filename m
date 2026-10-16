@@ -1,194 +1,130 @@
-Received: from hr2.samba.org (hr2.samba.org [144.76.82.148])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04E6E46A5F2;
-	Fri, 16 Oct 2026 09:25:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=144.76.82.148
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07DBE47DFBF
+	for <linux-rdma@vger.kernel.org>; Fri, 16 Oct 2026 09:35:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792142734; cv=none; b=hO0k/VpsLqZF+Q7wZx3Tt62utOEGyipejSnzsgJRQvdicCwcSAJFrkupzWFNGXJdljGX09t1AkP7MLrQSGejuv3cIcSoTjFydC32m2dGs/0F17Re0s+ep2ROUfq+jw5FYNYqzKF0r8gzj29ap04Cg/AcD9QcQFMN4vJ3hhf5WW8=
+	t=1792143309; cv=none; b=C5aaApFy2gXL8V09yv3HwM/RNYKZJm+h5yzYxFX0Sgp+oW3eVIR+Rj8Edevm0JTSVmsbi/Lrzv3Eut2nkZHaVbRYDveUNlaTCe4gA2S7ptuRlgudMxW99rOjzmJts3hOQRGh7A3I5mMm9Emw7ItACilE1HfHGIp01RPRxVeeWV4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792142734; c=relaxed/simple;
-	bh=CdGqR/CPgTmzueiHF/jTYAn2Xbt4dYm9NhCQwTt99mo=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=poallTJ4f58QpGzX6pCVJ9k8BYYFb7PwrXxnwdH6dPEFpaPV9mgrq4K7Cofl6kawrqi2+QIq1OO2xkBG76vw6nO3syqvCSZVYx3b5ktwOY7cghh/oOh0rFcwsZnT+RxcnSqJuKXV8b2Qqm1VtwmlOp8OvaO2qnmUpZninelnMek=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=samba.org; spf=pass smtp.mailfrom=samba.org; dkim=pass (3072-bit key) header.d=samba.org header.i=@samba.org header.b=eIuIMDVj; arc=none smtp.client-ip=144.76.82.148
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=samba.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samba.org
+	s=arc-20240116; t=1792143309; c=relaxed/simple;
+	bh=0lZgiHtNGaP4+VfQSfRBG7VJk1kD4u/xMu+fWU9Jsfw=;
+	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
+	 Date; b=otPB7FoV59b1CsgX2ZNrafLYvqaJNICuV3Xq6DiMWCuyd28WrXNx5F+tycTNoBgk/lFZbwyVm/qBpa02FuKFFeEXYXPEKGsR2Uqz+MB+kfLZUPA0IaQDfX3C1oyD9VfX098R61tMlvLob26pNgPR5a8cUgzDS0YtUNWebFyYLDE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XOe7eNOr; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (3072-bit key) header.d=samba.org header.i=@samba.org header.b="eIuIMDVj"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=samba.org;
-	s=42; h=From:Cc:To:Date:Message-ID;
-	bh=PDojlLCVuBUweMTHHqbhfCIgU/dCgFlQCc4LCljaO18=; b=eIuIMDVjH4CtokX230CGJ4NHsm
-	TcWEC9B58Z0t7sbtI50mMSVfirFgCflWMGKITkvSERg+nMTe9UMyo9+VrRHPN1qIqO/cvKAT+C9kS
-	wAE1LhErVQBbNquHUXKb/5X6Ca/u21QTKXIIj/SivYgv6CMu5xogyqFdwYjACqwIxP9YzK3OguHph
-	MAkPw8PqDTK305/yqnvp0oRZybb9yaE27cxD6IepnE0pIQmHMYXjQNdiJINRV+5gf4aaO0AqF1IV0
-	CNdQ7COmXZ29Bkfwlsh4p1LDbOdQS91FBKcBEuUc9cPXIAISAcQY/i/9eDuTQd4AIPz0MxFoABNpd
-	VThvFjV6F//uCFpeEVnHCKVeeHx4vVCoTPXmfMXlwivg6eXE9RO3g7Zq36ppXDySHQ2sMWpjUGYgO
-	ygkJwJwzWimNMckIWhrufvl7s1zdjFFX+ydlTbRDqNaRVaSs+HnkZs//J7AzqOt1Qw7LVq7iPfSlk
-	cecxSa/FUxLnMVqg8s6aFoxT;
-Received: from [127.0.0.2] (localhost [127.0.0.1])
-	by hr2.samba.org with esmtpsa (TLS1.3:ECDHE_SECP256R1__ECDSA_SECP256R1_SHA256__CHACHA20_POLY1305:256)
-	(Exim)
-	id 1xHeBq-00000002Ypa-3fKM;
-	Fri, 16 Oct 2026 09:25:27 +0000
-Message-ID: <473d9515-b951-4cff-a553-b8ed471d0112@samba.org>
-Date: Fri, 16 Oct 2026 11:25:26 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XOe7eNOr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 651691F000C4;
+	Fri, 16 Oct 2026 09:35:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792143307;
+	bh=NdDPW6hlkpQ79Yg6IoqKqf/z4UCiZGu3xOJybdg87Kk=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=XOe7eNOrUul+eP46+c6GlNtx7TFAUsmqbp2GjZm+JK69NarxvfSOiG0F4QI1VnsNQ
+	 kjjjU3lmp2lmOoReZVr2bXbDaFspvSGj5m+z60tXmeUdq3LY9njym71EoNbn3SoozW
+	 EUGgjUqjT5lSoM6TlB0rOmIFgbiF7UHgcOsG98Ue0dK5Hl66ApdkmoPrsbHKcIYNRZ
+	 QdoQUkcUMIpdvd0cksnjFtE2xfZEiLSrfERfBlpMMCn+gVL2AbthoKXeYnPHWZIJs3
+	 Fi6KWbY9g8PRC1IGcrkSoiAlmvVL47KJSpNploeZI2Ew2PDjnZVSninRVyF4d6syzl
+	 kXNoEqTMxwgaQ==
+Message-ID: <sashiko-outbox-174082@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net] net/mlx5: Fix lock dependency cycle on uplink
+ unbind in switchdev mode
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Tariq Toukan" <tariqt@nvidia.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261015093419.1150837-1-tariqt@nvidia.com>
+References: <20261015093419.1150837-1-tariqt@nvidia.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Fri, 16 Oct 2026 09:35:06 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH] RDMA/iwcm: allow aborting an active connect awaiting
- CONNECT_REPLY
-To: Bernard Metzler <bernard.metzler@linux.dev>,
- Leon Romanovsky <leon@kernel.org>, Yunseong Kim <yunseong.kim@est.tech>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Jacob Moroni <jmoroni@google.com>,
- Bart Van Assche <bvanassche@acm.org>, Namjae Jeon <linkinjeon@kernel.org>,
- Tom Talpey <tom@talpey.com>, Yunseong Kim <yunseong.kim@ericsson.com>,
- linux-cifs@vger.kernel.org, samba-technical@lists.samba.org,
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
-References: <20260805000159.321645-2-yunseong.kim@est.tech>
- <20260901124103.GL24140@unreal>
- <47142579-3af7-453b-875c-ff6d610f26a7@samba.org>
- <46f83a1c-02ed-4c64-9eeb-2fc435fdfb24@linux.dev>
-Content-Language: en-US
-From: Stefan Metzmacher <metze@samba.org>
-In-Reply-To: <46f83a1c-02ed-4c64-9eeb-2fc435fdfb24@linux.dev>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
 
-Am 03.09.26 um 12:42 schrieb Bernard Metzler:
-> On 01.09.2026 18:50, Stefan Metzmacher wrote:
->> Hi Leon,
->>
->>> On Wed, Aug 05, 2026 at 02:02:00AM +0200, Yunseong Kim wrote:
->>>> After a successful connect downcall, iw_cm_connect() returns with
->>>> IWCM_F_CONNECT_WAIT still set and the cm_id in IW_CM_STATE_CONN_SENT.
->>>> The only thing that clears the flag is the provider delivering
->>>> IW_CM_EVENT_CONNECT_REPLY (cm_conn_rep_handler()).  Until that event
->>>> arrives, iw_cm_disconnect() and destroy_cm_id() sleep uninterruptibly
->>>> in
->>>>
->>>>     wait_event(cm_id_priv->connect_wait,
->>>>            !test_bit(IWCM_F_CONNECT_WAIT, &cm_id_priv->flags));
->>>>
->>>> and both state machines treat IW_CM_STATE_CONN_SENT as BUG(), so the
->>>> API has no way to cancel a pending active connect.  If the provider
->>>> never generates the reply, because the peer died in the middle of
->>>> connection setup or because of a provider bug, every teardown path
->>>> (rdma_disconnect(), rdma_destroy_id()) blocks in D state forever and
->>>> the ULP cannot recover: there is no way to disconnect after
->>>> rdma_connect() was called without risking an unbounded hang.
->>>>
->>>> This class of problem is not theoretical.  The pending smbdirect
->>>> change "smb: smbdirect: bound the disconnect wait in destroy_sync" [1]
->>>> had to work around it on the ULP side:
->>>> smbdirect_socket_destroy_sync() waited unbounded for the socket to
->>>> reach SMBDIRECT_SOCKET_DISCONNECTED, a transition that depends on an
->>>> asynchronous RDMA CM disconnect event, and when the peer died abruptly
->>>> (a killed client, or Soft-RoCE/RXE where no graceful disconnect
->>>> completes) that event never arrived.  The destroy ran on the single
->>>> ksmbd-conn-release workqueue, every later connection release queued
->>>> behind it in D state, and the whole server wedged until hung_task
->>>> fired.  That change bounded the wait and drove the socket state
->>>> machine to DISCONNECTED locally on timeout; ULPs should not have to
->>>> resort to that, the CM should offer a teardown they can rely on.
->>>>
->>>> IWCM_F_CONNECT_WAIT currently guards two different windows:
->>>>
->>>>   * the connect/accept downcall into the provider being in progress;
->>>>     teardown must keep waiting for that, it is short and bounded;
->>>>
->>>>   * an issued active connect waiting for CONNECT_REPLY, which is
->>>>     potentially unbounded.
->>>>
->>>> Mark the second window with a new flag, IWCM_F_CONNECT_SENT: set by
->>>> iw_cm_connect() once the downcall has returned successfully, cleared
->>>> by cm_conn_rep_handler().  The teardown waits now complete when either
->>>> the downcall has finished (!IWCM_F_CONNECT_WAIT, as before) or the
->>>> pending-reply window has been entered (IWCM_F_CONNECT_SENT), and the
->>>> previously BUG() CONN_SENT cases become:
->>>>
->>>>   * iw_cm_disconnect(): return -ENOTCONN; there is no established
->>>>     connection to disconnect, aborting is the destroy path's job;
->>>>
->>>>   * destroy_cm_id(): abort the pending connect locally by moving to
->>>>     DESTROYING and putting the QP into error so the provider tears the
->>>>     connection attempt down.
->>>>
->>>> A CONNECT_REPLY that arrives after the abort is dropped: either
->>>> cm_work_handler() sees IWCM_F_DROP_EVENTS, or cm_conn_rep_handler()
->>>> now recognizes IW_CM_STATE_DESTROYING (the abort and the reply
->>>> serialize on cm_id_priv->lock) and frees the event without touching
->>>> the QP that destroy_cm_id() already released.  The cm_id memory stays
->>>> valid for such a late reply because the provider holds its own
->>>> reference (cm_id->add_ref) for as long as it can deliver events.
->>>>
->>>> The passive side has a sibling gap, where after a successful accept
->>>> downcall the flag stays set until the provider's ESTABLISHED event
->>>> arrives, which this patch deliberately does not change.
->>>>
->>>> [1] https://github.com/smfrench/smb3-kernel/commit/26d0f82a02c8a9c9c8cdfc138acb7ed0bf8e01a9
->>>>
->>>> Suggested-by: Stefan Metzmacher <metze@samba.org>
->>>> Signed-off-by: Yunseong Kim <yunseong.kim@est.tech>
->>>> ---
->>>>   drivers/infiniband/core/iwcm.c | 76 +++++++++++++++++++++++++++++-----
->>>>   drivers/infiniband/core/iwcm.h |  1 +
->>>>   2 files changed, 67 insertions(+), 10 deletions(-)
->>>
->>> I'm not sure what to do with this patch, as the iWARP folks have
->>> remained silent.
->>>
->>> Stefan,
->>>
->>> Do you still need this patch? Have you tested it?
->>
->> I'll test it soon.
->>
->> But the problem is real and I hit it very often in the past and the only option
->> was a reboot.
->>
->> I added Bernard explicitly...
->>
->> metze
->>
-> I follow Yunseong's and Stefan's argumentation.
-It actually still hangs in here:
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+s) to consider:
+- [High] net/mlx5: race condition in mlx5_eswitch_safe_aux_devs_remove() te=
+ardown
+--
 
-     For an active iWarp connect that is still waiting for the MPA reply
-     (e.g. the peer accepted the TCP connection, but never answers the
-     MPA request), irdma doesn't flush the marker before the pending
-     connect is aborted, which only happens in rdma_destroy_id().
-     smbdirect_socket_destroy_sync() calls ib_drain_qp() before that, so
-     it waits forever:
+commit 2e432cf53969d688514fb1e87aa9e496706a3090
+Author: Shay Drory <shayd@nvidia.com>
 
-       __ib_drain_sq+0x139/0x1b0 [ib_core]
-       ib_drain_sq+0x7f/0x90 [ib_core]
-       ib_drain_qp+0x16/0x40 [ib_core]
-       smbdirect_socket_destroy_sync+0x2bd/0xa90 [smbdirect]
-       smbdirect_socket_release+0x61/0xb0 [smbdirect]
-       smbd_get_connection+0x22c/0x280 [cifs]
+net/mlx5: Fix lock dependency cycle on uplink unbind in switchdev mode
 
+This commit addresses a lockdep cycle involving mode_lock, reps_lock, and
+rtnl_mutex. It resolves the cycle by setting the eswitch_operation_in_progr=
+ess
+flag, dropping the mode_lock before removing auxiliary devices, and retaking
+it afterward to keep mode_lock and reps_lock un-nested.
 
-Here's my work in progress branch to fix these problems:
-https://git.samba.org/?p=metze/linux/wip.git;a=shortlog;h=refs/heads/for-7.3/rdma-backport-testing
-There I'm able to eliminate all hangs I was able to reproduce with siw, rxe, iw_cxgb4, irdma, mlx5_ib.
-I tested the following situations:
-- server iptables drop (port 5445 and 4791)
-- server nc -lk 5445 (tcp connection accepted by no responses)
-- ip address del (on the client)
-- ip link down (on the client)
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b=
+/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> index eb74b62601682..f934cb2b26b08 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
 
-It likely takes a while until I rechecked all commits
-and submit them in small chunks, but it's good to see
-that it's possible to avoid deadlocks or very large timeouts.
+[ ... ]
 
-So at least that patch doesn't solve all problems.
+> @@ -4455,9 +4476,19 @@ void mlx5_eswitch_safe_aux_devs_remove(struct mlx5=
+_core_dev *dev)
+>  		}
+>  	}
+>  	if (hold_esw) {
+> +		/* Keep mode_lock and reps_lock unnested. The operation flag
+> +		 * excludes mode users while mode_lock is dropped before the
+> +		 * REPs removal takes reps_lock.
+> +		 */
+> +		esw->eswitch_operation_in_progress =3D true;
+> +		mlx5_esw_unlock(esw);
 
-metze
+[Severity: High]
+Does this safely prevent concurrent devlink commands from executing?
 
+This teardown path drops mode_lock and relies on eswitch_operation_in_progr=
+ess
+to prevent concurrent mode changes.
 
+However, devlink callbacks like mlx5_devlink_switchdev_active_mode_change()
+do not seem to check this flag via mlx5_esw_try_lock(). Instead, they
+unconditionally acquire the lock:
 
+mlx5_devlink_switchdev_active_mode_change() {
+    down_write(&esw->mode_lock);
+    esw->offloads_inactive =3D !esw->offloads_inactive;
+    esw->eswitch_operation_in_progress =3D true;
+    up_write(&esw->mode_lock);
+   =20
+    ...
+   =20
+    down_write(&esw->mode_lock);
+    esw->eswitch_operation_in_progress =3D false;
+    up_write(&esw->mode_lock);
+}
+
+If a concurrent devlink command runs after mode_lock is dropped here, could
+it acquire the lock, unconditionally overwrite the flag, execute, and then
+clear the flag to false upon exit?
+
+If this happens, it would prematurely clear the flag while
+mlx5_core_reps_aux_devs_remove() is still actively tearing down the auxilia=
+ry
+devices, potentially exposing the un-nested lock region to other concurrent
+mode transitions or TC offloads.
+
+>  		if (mlx5_eswitch_mode(dev) =3D=3D MLX5_ESWITCH_OFFLOADS)
+>  			mlx5_core_reps_aux_devs_remove(dev);
+> -		mlx5_esw_release(dev);
+> +
+> +		down_write(&esw->mode_lock);
+> +		esw->eswitch_operation_in_progress =3D false;
+> +		mlx5_esw_unlock(esw);
+>  	}
+>  }
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261015093419.1150=
+837-1-tariqt@nvidia.com?part=3D1
