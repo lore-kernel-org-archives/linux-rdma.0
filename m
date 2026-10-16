@@ -1,64 +1,64 @@
-Received: from mail-vk1-f173.google.com (mail-vk1-f173.google.com [209.85.221.173])
+Received: from mail-vk1-f179.google.com (mail-vk1-f179.google.com [209.85.221.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D6A9447239
-	for <linux-rdma@vger.kernel.org>; Fri, 16 Oct 2026 20:29:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 603F643B492
+	for <linux-rdma@vger.kernel.org>; Fri, 16 Oct 2026 20:29:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792182580; cv=none; b=EYimXlSZ/0RukTWha8172mjtedE4WzTxXRDuM6DJsk5KNf0nQieUqpgihg7Sp0Wcd+K3arGMZ64hVVob7xvnzXn9ermLKHHyANAY3cF5r/MQu0h3OyDsQmEQkSOyHLn9InKPWkm7nI9tsrMsG5bX+Y/UdmEhq8kLdxpoyMb+J2Q=
+	t=1792182582; cv=none; b=Gbb97kc477OWvWP3ZPDqA+LpqsA6VXXPO9NRO0Gm9y9Rim+S0TgrrgvSYJqgKP/UjICOXpO5PXYu5/wkK23MLBzqDxsKru4KNn0m3IvAICsAfUfhmSZi6CMgwqJAd5uHj2o7usp0EvIe5VM7u6KULLTW1hVB/DQZOj1fqIBQOXA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792182580; c=relaxed/simple;
-	bh=rIvIpPteAQqyktlVQXTcEWFq7uKDkaeyfC9U/aSI+I8=;
+	s=arc-20240116; t=1792182582; c=relaxed/simple;
+	bh=TlP0wOVMOXo/UIn1d4sHog6HFQRotbChqrMb0P8a9tM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=O2hek5GiyiMriIk4tUalaaNYsxQE3jntIibhnbDeTmwmnlN7nJv0xq65wZUiZrY7YFQv+EEDCczPWi5ySt2uB9aVUK2yMTuASrOgARE/ofb2hBA9QUdrxRdG7rik2b/vJD37NgG4tTZawHHNGn6ndrrBhg0+Rb6S3SblBZfwvec=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=x6u.co; spf=pass smtp.mailfrom=x6u.co; dkim=pass (2048-bit key) header.d=x6u.co header.i=@x6u.co header.b=QCXKt+qf; arc=none smtp.client-ip=209.85.221.173
+	 MIME-Version; b=m8aHz750p6OpERml2dtHAF6s55VI+xKIzNTDBTs6pGfenH2t2pPHzuPw87m6ynIq7B6L8glNXJ6JFF6qs1oiDwKScXBFM2JKtn5FDApucdW9bYLF7N+nvqINmHzi1OwAk5NLyHsvrFAZZMdHO6h2DtztdcSf9fj1BFDfO93cmc0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=x6u.co; spf=pass smtp.mailfrom=x6u.co; dkim=pass (2048-bit key) header.d=x6u.co header.i=@x6u.co header.b=msiVIqG/; arc=none smtp.client-ip=209.85.221.179
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=x6u.co
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=x6u.co
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=x6u.co header.i=@x6u.co header.b="QCXKt+qf"
-Received: by mail-vk1-f173.google.com with SMTP id 71dfb90a1353d-5ea63f01606so181933e0c.1
-        for <linux-rdma@vger.kernel.org>; Fri, 16 Oct 2026 13:29:35 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=x6u.co header.i=@x6u.co header.b="msiVIqG/"
+Received: by mail-vk1-f179.google.com with SMTP id 71dfb90a1353d-5d7daf06158so101022e0c.3
+        for <linux-rdma@vger.kernel.org>; Fri, 16 Oct 2026 13:29:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=x6u.co; s=google; t=1792182574; x=1792787374; darn=vger.kernel.org;
+        d=x6u.co; s=google; t=1792182577; x=1792787377; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=4+Xg4kCSvyEHmgKPh6OsSxZb9+Dx8EF4CgPvOIEBYZg=;
-        b=QCXKt+qfI0QDL1uVqpVXuOfYP4JBmyv9wV606O1iDCjec1UqMlVPfTwhWOv68KxU4J
-         TEv9j0gtTtK9lyNMhPflN7dKU6IXUO2+AnNAFF0ocqUzn9guH4w879WJyGBswm+kkiEC
-         wq42t65pIjrakxfPdVyJE2is/bfL8OCszmZgYt6RRgUnQoJrp9R4ifGUTYw2/pfnxfBu
-         wDB09QIWKkn/7oZy3P/di0HHU3OV+F9deik3LMCk+SLuC0Lua3JmALgv71TiKINOLzJG
-         opnAaG8nRn5V24aMwLXzuPILxnSmyOUMe1u2c74ghWocHGWFYpDbWzebtpN00VAayu+d
-         63NQ==
+        bh=fuCfj3iMbghDhwY21WNaRDWTcHAAIvp5T80dk46fqZs=;
+        b=msiVIqG/umHI0Bqg7AIioRoQYL3yxbHSvM5ltQumfwxVV3DEqCeg+DVYKYpoxNiWBH
+         MFvjPjHXyTq4pAj0b6gsvZW8/OhbeqkLZjBHe4JMseOlDUbkgKTSlf1ukJNgXFbzrc0q
+         AQbwjDhtEFcqm74LnA3gZtn0/o19wcAI88G5gVnmD2/QIPZB3VhkzFqVnX6Z6DLitqZF
+         J9piS6BuvtVVonbmjUr1dhvuPpEEA2f7k2wuZi27ZGpcGggdqapTceLI066KxPcEzBUH
+         kbVUPTw7GOEZsaiJWSkHOfp+jEfJirHzLv2Xz3iDS4wx3ydT0Cc55vlkmS3xwqQU9DAD
+         xQUw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792182574; x=1792787374;
+        d=1e100.net; s=20260707; t=1792182577; x=1792787377;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=4+Xg4kCSvyEHmgKPh6OsSxZb9+Dx8EF4CgPvOIEBYZg=;
-        b=NKFpzzMI2Y9Xc5m23bSj/egakjb5+oXw7W1V6pZK9oFRDYTCAQb6pspjLoCJzjkgp6
-         BDDu+Hn9jCGMNotiTpTjlZqHzTnqkNGDwifSd+uMue0SxMa/G7CrUki0iupoC3iwwFXf
-         AkRNKZByomMU/obqdXRVfD4xPguSAfHtF8erXfc38doL3+lc7BqIpaR0xJSbOwAXTP4z
-         EXKNIW5T4ki7u4/kwbTNBYiaWcYNQajSPjzAQqDKoz4zCd1ovqrXcSfLsTLD5M++yRZ+
-         0KPioHMKmDTNjH7lhlOf72DeISon8M8zyIvEHWaZFg6R/7dtRZE1eVVzII9/zeWC/beO
-         ANbQ==
-X-Gm-Message-State: AFq9FYIZYYnNfYD6omPyehNUuIefZ08Jo28TOGLvKcdD/wLmDSwyLOZB
-	7tODVb7150MjQS3TpoinRXyMWviKzEIC2ipcdhRg4GHR+B7UfoKPW6wwMoiQhzN+OLe4
-X-Gm-Gg: AYBFou08o+gA8Is1hLfewrzyiBSViFuyCbm/j2WUBHer0rfETUeIiPtc4HI8grxtS4o
-	46I/d5qNPC71XlU6IVMJXeIaUez7Of97LmvXt/4qxQPKqqOgC15H1jdUh3BLZITfPCPD7WC2Iv7
-	1Zy55bWAMFzQoi+TH7VauX6DxGUxQujgW9w9/iNWECGKCmNR0dD/jpyGAq+q9YYErpPWQKaiWT3
-	SAtaR/J7siT8cjN3LtDzeRtgvIjUYoq9jnLM5RB1nFz5uTUW9iHFCal5YyVvPrshpRG4fivUMHE
-	MrTJRDLlUV2eRR5Bk5jj2FAUi9Lu91Iabjkw7KlUL5R/ZJqRJb6McuSBWH/xlgGOADVjOq9X6eI
-	qo6pqKU9+TBbVKa1wsVl5O9ug4xW6HhmHGA81brmkpjILTunebTaYR4Docsc+cs4JP8w/0gALuQ
-	J/hAaMlzlXeUWhzb7bcY5JuyDEU+GllTTI603POvTtKt0HQ9ZEy3fq7CcuMw+QWZvCr0QqJr8tg
-	agFK3pLd8hQr/Z4N1z/Es1EfqCczGhj7w+NDl/eCelrSdOx0GzsjYmk3PrM+3Kk89new1oUTJ08
-	5pxluybmpRPnUwUaMvQIkQ==
-X-Received: by 2002:a05:6122:f05:b0:5e5:7ac3:c9d with SMTP id 71dfb90a1353d-5eaaa651fe4mr508869e0c.15.1792182574081;
-        Fri, 16 Oct 2026 13:29:34 -0700 (PDT)
+        bh=fuCfj3iMbghDhwY21WNaRDWTcHAAIvp5T80dk46fqZs=;
+        b=sO2Nrj+Mo31now4fXAb95RCy5C71F4fS1C01O1f6JSvK6vPKkrDS4ybxOmCNVQJH9H
+         dWdi2h6Gx/DstKj/BNij4drqb9qDOYpqfvRrAdNKtVQ3tc3DSFAA2sjZuBsFtHn3zbyX
+         1WEPFNs2FJym9SMdOdGE8BH9ljXpHB3nCNO23JZz0hp7G2Cri9GJX87wVq48TUEYFxWg
+         v/7iuv098wedmH2ZNungyEAobdNSqSR0UoTTSFU8OQecaMtsIrrdRTW6k7xCVXwRFZQh
+         5iLPis0ZeKufo8Bzq2g5sJCz9saRbMNeYDBMUSazsqUmBGvdsSUlp5EGH+YJM1sxty9N
+         dE1w==
+X-Gm-Message-State: AFq9FYIru4eKPgnQK829S6x/uxeV0FRvQFICaicjI0VIBQilciiHDKGC
+	jKfRal67pioeShBn2gi0RguN8x8zICZguaUMzBMD5XMN5ShRDGe6hIe4JHGxTR0Rtoj2
+X-Gm-Gg: AYBFou35G+9poXl84fpG9KqTkp0ftmxAhqjZrj9hKY0te1kBx4tO6QesOd7OTGqbUZz
+	6f4WKt8JCHPvMZU4CYTUs6DtWQONLMILzrO3NGuQXLBbvjtJgi4XUvbKgZp210UwuThGsjim2b5
+	wDlCighPSxlzou6jI8BQjEHeYgq/RJGXUVonE0rvWtmFdCwjk1xVUVCqa9krbW81fdHteWOUCCR
+	NB6fN61q4if38vpuTe8DwqSQlB9GUfWeAE2tEpvtMa7aF/6nRFwQuMJkaE2BV7DVRZkBaa0A2xY
+	NLr0/Ff8bva6DeTbRFAonaXm1rzFd3DTbiIEi5PI8xPAo0NMjNEiCogUt1NpqNNG46y2GhN/3tF
+	aAao11zrqCLXrloH0vEY3nDv9sLNvAxrsMOqP6sv+gAY/HtRky402SQk4zFsUYim9ISmkR6j6Bo
+	+d5gfxWXJhL8dBChX3SsPFI6/xC/sDK2oNqCyKw+J9Kztl+eEKrJiYlZoZ2BE/BJ0AVvq7JnaiM
+	GEmDhjH67uQm0fF5nFCUy5hru9vFGAIeogDyivElMhPpNR26ksm4J3XWEhs2EqUqZ0KrMr8Syyc
+	f7mZtvtSyBGoX0wWulN2
+X-Received: by 2002:a05:6122:c1c4:b0:5c9:a60b:e5c9 with SMTP id 71dfb90a1353d-5eaaa4181a4mr428285e0c.12.1792182577017;
+        Fri, 16 Oct 2026 13:29:37 -0700 (PDT)
 Received: from worldpeace10.c.googlers.com.com (119.20.221.35.bc.googleusercontent.com. [35.221.20.119])
-        by smtp.gmail.com with ESMTPSA id 71dfb90a1353d-5ea9b5201b1sm2588281e0c.12.2026.10.16.13.29.32
+        by smtp.gmail.com with ESMTPSA id 71dfb90a1353d-5ea9b5201b1sm2588281e0c.12.2026.10.16.13.29.35
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 16 Oct 2026 13:29:33 -0700 (PDT)
+        Fri, 16 Oct 2026 13:29:35 -0700 (PDT)
 From: David Hu <dhu@x6u.co>
 To: Mustafa Ismail <mustafa.ismail@intel.com>,
 	Shiraz Saleem <shiraz.saleem@intel.com>,
@@ -69,9 +69,9 @@ Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Przemek Kitszel <przemyslaw.kitszel@intel.com>,
 	David Hu <xuehaohu@google.com>
-Subject: [PATCH rdma-next v3 3/6] RDMA/irdma: Support UMEM attribute for QP creation
-Date: Fri, 16 Oct 2026 20:29:06 +0000
-Message-ID: <20261016202909.1289496-4-dhu@x6u.co>
+Subject: [PATCH rdma-next v3 4/6] RDMA/irdma: Split CQ setup to umode and kmode
+Date: Fri, 16 Oct 2026 20:29:07 +0000
+Message-ID: <20261016202909.1289496-5-dhu@x6u.co>
 X-Mailer: git-send-email 2.56.0.176.g3575e65682-goog
 In-Reply-To: <20261016202909.1289496-1-dhu@x6u.co>
 References: <20261016202909.1289496-1-dhu@x6u.co>
@@ -85,260 +85,493 @@ Content-Transfer-Encoding: 8bit
 
 From: David Hu <xuehaohu@google.com>
 
-Support the standard 1-step queue buffer creation model for QP by using
-`UVERBS_ATTR_CREATE_QP_BUF_UMEM` and `ib_umem_get_attr()`.
+Add user mode cq callback `irdma_create_user_cq()` to separate out user
+mode creation logic from kernel mode cq.
 
-Add `irdma_setup_q_pbl_from_umem()` to allocate the backing MR and program
-hardware pble directly from the pinned umem. Proper umem and pble cleanup
-is added to `irdma_free_qp_rsrc()` upon QP destruction.
-
-We retain backward compatibility for legacy 2-step registration if the
-UMEM attribute is not provided.
-
-`irdma_alloc_iwmr()` assumed there is always a valid PD, which is valid
-for regular MR, and QP. That is not the case for CQ. This modernization
-fixes `irdma_alloc_iwmr()` to take in an `ibdev` to avoid a potential
-NULL dereference.
-
-Note for MR teardown: This patch unifies the teardown of legacy 2-step
-queue MR and modern 1-step dummy MR via,
-
-`refcount_dec_and_test(&iwmr->user_ring_refs)`
-
-For legacy queue MR, ref count starts at 2 (one by queue, and one by
-`ib_mr`), it goes to 1 during queue teardown, while deferring memory
-teardown to `irdma_dereg_mr`.
-
-For 1-step dummy MR, ref count starts at 1, and teardown happens cleanly
-here.
-
-The teardown sequence (`ib_umem_release`, `irdma_free_pble`, `kfree`) is
-inlined in `utils.c` here because `irdma_free_iwmr` is statically scoped
-in `verbs.c`. Combining was considered, and we think it belongs to a
-future project.
+Original common setup logic is broken into shared helper routines, so
+duplicate code can be avoided. Core creation logic is preserved to be
+identical to original routine, however.
 
 Signed-off-by: David Hu <xuehaohu@google.com>
 ---
- drivers/infiniband/hw/irdma/utils.c |  12 ++-
- drivers/infiniband/hw/irdma/verbs.c | 130 ++++++++++++++++++++++++----
- 2 files changed, 124 insertions(+), 18 deletions(-)
+ drivers/infiniband/hw/irdma/verbs.c | 416 +++++++++++++++++-----------
+ 1 file changed, 252 insertions(+), 164 deletions(-)
 
-diff --git a/drivers/infiniband/hw/irdma/utils.c b/drivers/infiniband/hw/irdma/utils.c
-index 290ad02ed657..1e5694a4fd91 100644
---- a/drivers/infiniband/hw/irdma/utils.c
-+++ b/drivers/infiniband/hw/irdma/utils.c
-@@ -1170,9 +1170,15 @@ void irdma_free_qp_rsrc(struct irdma_qp *iwqp)
- 	kfree(iwqp->kqp.rq_wrid_mem);
- 
- 	if (iwqp->user_mode && iwqp->iwpbl) {
--		struct irdma_mr *iwmr = iwqp->iwpbl->iwmr;
--
--		refcount_dec(&iwmr->user_ring_refs);
-+		struct irdma_pbl *iwpbl = iwqp->iwpbl;
-+		struct irdma_mr *iwmr = iwpbl->iwmr;
-+
-+		if (iwmr && refcount_dec_and_test(&iwmr->user_ring_refs)) {
-+			ib_umem_release(iwmr->region);
-+			if (iwpbl->pbl_allocated)
-+				irdma_free_pble(rf->pble_rsrc, &iwpbl->pble_alloc);
-+			kfree(iwmr);
-+		}
- 	}
- }
- 
 diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-index b2ffdc8e3d67..ab25445f3828 100644
+index ab25445f3828..4b7e9c2d9cff 100644
 --- a/drivers/infiniband/hw/irdma/verbs.c
 +++ b/drivers/infiniband/hw/irdma/verbs.c
-@@ -18,6 +18,12 @@ static const struct uapi_definition irdma_uapi_defs[] = {
- 	{}
- };
- 
-+static struct irdma_pbl *irdma_setup_q_pbl_from_umem(struct irdma_device *iwdev,
-+						     struct ib_umem *region,
-+						     struct ib_pd *pd,
-+						     enum irdma_memreg_type reg_type,
-+						     struct irdma_mem_reg_req *req);
-+
- /**
-  * irdma_query_device - get device attributes
-  * @ibdev: device pointer from stack
-@@ -670,17 +676,6 @@ static int irdma_setup_umode_qp(struct irdma_ucontext *ucontext,
- 	iwqp->ctx_info.qp_compl_ctx = req->user_compl_ctx;
- 	iwqp->user_mode = 1;
- 
--	spin_lock_irqsave(&ucontext->qp_reg_mem_list_lock, flags);
--	iwqp->iwpbl = irdma_get_pbl((unsigned long)req->user_wqe_bufs,
--				    &ucontext->qp_reg_mem_list);
--	spin_unlock_irqrestore(&ucontext->qp_reg_mem_list_lock, flags);
--
--	if (!iwqp->iwpbl) {
--		ret = -ENODATA;
--		ibdev_dbg(&iwdev->ibdev, "VERBS: no pbl info\n");
--		return ret;
--	}
--
- 	if (!ucontext->use_raw_attrs) {
- 		/**
- 		 * Maintain backward compat with older ABI which passes sq and
-@@ -713,6 +708,52 @@ static int irdma_setup_umode_qp(struct irdma_ucontext *ucontext,
- 		ukinfo->rq_size = ukinfo->rq_depth >> ukinfo->rq_shift;
- 	}
- 
-+	if (attrs && uverbs_attr_is_valid(attrs, UVERBS_ATTR_CREATE_QP_BUF_UMEM)) {
-+		struct irdma_mem_reg_req qp_req = {};
-+		struct ib_umem *umem;
-+		u32 total;
-+
-+		/* Legacy context does not provide depth info */
-+		if (!ucontext->use_raw_attrs)
-+			return -EOPNOTSUPP;
-+
-+		qp_req.sq_pages = DIV_ROUND_UP(ukinfo->sq_depth * IRDMA_QP_WQE_MIN_SIZE,
-+					       IRDMA_HW_PAGE_SIZE);
-+		/* In case srq is used, this will be a single page */
-+		qp_req.rq_pages = DIV_ROUND_UP(ukinfo->rq_depth * IRDMA_QP_WQE_MIN_SIZE,
-+					       IRDMA_HW_PAGE_SIZE);
-+		total = qp_req.sq_pages + qp_req.rq_pages + IRDMA_SHADOW_PGCNT;
-+
-+		umem = ib_umem_get_attr(&iwdev->ibdev, attrs,
-+					UVERBS_ATTR_CREATE_QP_BUF_UMEM,
-+					total << IRDMA_HW_PAGE_SHIFT,
-+					IB_ACCESS_LOCAL_WRITE);
-+		if (IS_ERR(umem))
-+			return PTR_ERR(umem);
-+
-+		iwqp->iwpbl = irdma_setup_q_pbl_from_umem(iwdev, umem,
-+							  iwqp->ibqp.pd,
-+							  IRDMA_MEMREG_TYPE_QP,
-+							  &qp_req);
-+		if (IS_ERR(iwqp->iwpbl)) {
-+			ret = PTR_ERR(iwqp->iwpbl);
-+			iwqp->iwpbl = NULL;
-+			ib_umem_release(umem);
-+			return ret;
-+		}
-+	} else {
-+		spin_lock_irqsave(&ucontext->qp_reg_mem_list_lock, flags);
-+		iwqp->iwpbl = irdma_get_pbl((unsigned long)req->user_wqe_bufs,
-+					    &ucontext->qp_reg_mem_list);
-+		spin_unlock_irqrestore(&ucontext->qp_reg_mem_list_lock, flags);
-+
-+		if (!iwqp->iwpbl) {
-+			ret = -ENODATA;
-+			ibdev_dbg(&iwdev->ibdev, "VERBS: no pbl info\n");
-+			return ret;
-+		}
-+	}
-+
- 	irdma_setup_virt_qp(iwdev, iwqp, info);
- 
- 	return 0;
-@@ -3490,10 +3531,11 @@ static int irdma_reg_user_mr_type_mem(struct irdma_mr *iwmr, int access,
+@@ -2624,41 +2624,198 @@ static inline int cq_validate_flags(u32 flags, u8 hw_rev)
+ 	return flags & ~IB_UVERBS_CQ_FLAGS_TIMESTAMP_COMPLETION ? -EOPNOTSUPP : 0;
  }
  
- static struct irdma_mr *irdma_alloc_iwmr(struct ib_umem *region,
-+					 struct ib_device *ibdev,
- 					 struct ib_pd *pd, u64 virt,
- 					 enum irdma_memreg_type reg_type)
+-/**
+- * irdma_create_cq - create cq
+- * @ibcq: CQ allocated
+- * @attr: attributes for cq
+- * @attrs: uverbs attribute bundle
+- */
+-static int irdma_create_cq(struct ib_cq *ibcq,
+-			   const struct ib_cq_init_attr *attr,
+-			   struct uverbs_attr_bundle *attrs)
++static int __irdma_create_cq(struct irdma_device *iwdev,
++			     struct irdma_cq *iwcq,
++			     struct irdma_cq_init_info *info,
++			     struct ib_udata *udata)
  {
--	struct irdma_device *iwdev = to_iwdev(pd->device);
-+	struct irdma_device *iwdev = to_iwdev(ibdev);
- 	struct irdma_pbl *iwpbl;
- 	struct irdma_mr *iwmr;
- 	unsigned long pgsz_bitmap;
-@@ -3507,7 +3549,7 @@ static struct irdma_mr *irdma_alloc_iwmr(struct ib_umem *region,
- 	iwpbl->iwmr = iwmr;
- 	iwmr->region = region;
- 	iwmr->ibmr.pd = pd;
--	iwmr->ibmr.device = pd->device;
-+	iwmr->ibmr.device = ibdev;
- 	iwmr->ibmr.iova = virt;
- 	iwmr->type = reg_type;
- 
-@@ -3532,6 +3574,64 @@ static void irdma_free_iwmr(struct irdma_mr *iwmr)
- 	kfree(iwmr);
- }
- 
-+static struct irdma_pbl *irdma_setup_q_pbl_from_umem(struct irdma_device *iwdev,
-+						     struct ib_umem *region,
-+						     struct ib_pd *pd,
-+						     enum irdma_memreg_type reg_type,
-+						     struct irdma_mem_reg_req *req)
-+{
-+	struct irdma_pbl *iwpbl;
-+	struct irdma_mr *iwmr;
-+	u32 total;
-+	u8 lvl;
-+	int err;
+-#define IRDMA_CREATE_CQ_MIN_RESP_LEN offsetofend(struct irdma_create_cq_resp, cq_size)
+-	struct ib_udata *udata = &attrs->driver_udata;
+-	struct ib_device *ibdev = ibcq->device;
+-	struct irdma_device *iwdev = to_iwdev(ibdev);
+ 	struct irdma_pci_f *rf = iwdev->rf;
+-	struct irdma_cq *iwcq = to_iwcq(ibcq);
+-	u32 cq_num = 0;
+-	struct irdma_sc_cq *cq;
+-	struct irdma_sc_dev *dev = &rf->sc_dev;
+-	struct irdma_cq_init_info info = {};
+ 	struct irdma_cqp_request *cqp_request;
++	struct irdma_sc_cq *cq = &iwcq->sc_cq;
+ 	struct cqp_cmds_info *cqp_info;
+-	struct irdma_cq_uk_init_info *ukinfo = &info.cq_uk_init_info;
+-	unsigned long flags;
+ 	int err_code;
 +
-+	/* iWarp: Catch page not starting on OS page boundary */
-+	if (!rdma_protocol_roce(&iwdev->ibdev, 1) && ib_umem_offset(region))
-+		return ERR_PTR(-EINVAL);
++	info->shadow_read_threshold = min(info->cq_uk_init_info.cq_size / 2,
++					  (u32)IRDMA_MAX_CQ_READ_THRESH);
 +
-+	iwmr = irdma_alloc_iwmr(region, &iwdev->ibdev, pd, region->address, reg_type);
-+	if (IS_ERR(iwmr))
-+		return ERR_CAST(iwmr);
-+
-+	iwpbl = &iwmr->iwpbl;
-+
-+	switch (reg_type) {
-+	case IRDMA_MEMREG_TYPE_QP:
-+		total = req->sq_pages + req->rq_pages + IRDMA_SHADOW_PGCNT;
-+		lvl = (req->sq_pages + req->rq_pages) > 2 ? PBLE_LEVEL_1 : PBLE_LEVEL_0;
-+		break;
-+	case IRDMA_MEMREG_TYPE_CQ:
-+		total = req->cq_pages +
-+			((iwdev->rf->sc_dev.hw_attrs.uk_attrs.feature_flags &
-+			  IRDMA_FEATURE_CQ_RESIZE) ? 0 : IRDMA_SHADOW_PGCNT);
-+		lvl = req->cq_pages > 1 ? PBLE_LEVEL_1 : PBLE_LEVEL_0;
-+		break;
-+	case IRDMA_MEMREG_TYPE_SRQ:
-+		total = req->rq_pages + IRDMA_SHADOW_PGCNT;
-+		lvl = req->rq_pages > 1 ? PBLE_LEVEL_1 : PBLE_LEVEL_0;
-+		break;
-+	default:
-+		err = -EINVAL;
-+		goto err_free_mr;
++	if (irdma_sc_cq_init(cq, info)) {
++		ibdev_dbg(&iwdev->ibdev, "VERBS: init cq fail\n");
++		err_code = -EPROTO;
++		goto cq_free_rsrc;
 +	}
 +
-+	if (total > iwmr->page_cnt) {
-+		err = -EINVAL;
-+		goto err_free_mr;
++	cqp_request = irdma_alloc_and_get_cqp_request(&rf->cqp, true);
++	if (!cqp_request) {
++		err_code = -ENOMEM;
++		goto cq_free_rsrc;
 +	}
 +
-+	err = irdma_handle_q_mem(iwdev, req, iwpbl, lvl);
-+	if (err)
-+		goto err_free_mr;
++	cqp_info = &cqp_request->info;
++	cqp_info->cqp_cmd = IRDMA_OP_CQ_CREATE;
++	cqp_info->post_sq = 1;
++	cqp_info->in.u.cq_create.cq = cq;
++	cqp_info->in.u.cq_create.check_overflow = true;
++	cqp_info->in.u.cq_create.scratch = (uintptr_t)cqp_request;
++	err_code = irdma_handle_cqp_op(rf, cqp_request);
++	irdma_put_cqp_request(&rf->cqp, cqp_request);
++	if (err_code)
++		goto cq_free_rsrc;
 +
-+	return iwpbl;
++	if (udata) {
++		struct irdma_create_cq_resp resp = {};
 +
-+err_free_mr:
-+	irdma_free_iwmr(iwmr);
-+	return ERR_PTR(err);
++		resp.cq_id = info->cq_uk_init_info.cq_id;
++		resp.cq_size = info->cq_uk_init_info.cq_size;
++		err_code = ib_respond_udata(udata, resp);
++		if (err_code)
++			goto cq_destroy;
++	}
++
++	init_completion(&iwcq->free_cq);
++
++	/* Populate table entry after CQ is fully created. */
++	smp_store_release(&rf->cq_table[iwcq->cq_num], iwcq);
++
++	return 0;
++cq_destroy:
++	irdma_cq_wq_destroy(rf, cq);
++cq_free_rsrc:
++	irdma_cq_free_rsrc(rf, iwcq);
++
++	return err_code;
 +}
 +
- static int irdma_reg_user_mr_type_qp(struct irdma_mem_reg_req req,
- 				     struct ib_udata *udata,
- 				     struct irdma_mr *iwmr)
-@@ -3677,7 +3777,7 @@ static struct ib_mr *irdma_reg_user_mr(struct ib_pd *pd, u64 start, u64 len,
- 		return (struct ib_mr *)region;
- 	}
++static int irdma_setup_kmode_cq(struct irdma_device *iwdev,
++				struct irdma_cq *iwcq,
++				struct irdma_cq_init_info *info,
++				const struct ib_cq_init_attr *attr)
++{
++	struct irdma_cq_uk_init_info *ukinfo = &info->cq_uk_init_info;
++	struct irdma_pci_f *rf = iwdev->rf;
++	struct irdma_sc_dev *dev = &rf->sc_dev;
+ 	int entries = attr->cqe;
+ 	bool cqe_64byte_ena;
+ 	u8 cqe_size;
++	int rsize;
  
--	iwmr = irdma_alloc_iwmr(region, pd, virt, req.reg_type);
-+	iwmr = irdma_alloc_iwmr(region, pd->device, pd, virt, req.reg_type);
- 	if (IS_ERR(iwmr)) {
- 		ib_umem_release(region);
- 		return (struct ib_mr *)iwmr;
-@@ -3776,7 +3876,7 @@ static struct ib_mr *irdma_reg_user_mr_dmabuf(struct ib_pd *pd, u64 start,
- 		return ERR_CAST(umem_dmabuf);
- 	}
+-	err_code = cq_validate_flags(attr->flags, dev->hw_attrs.uk_attrs.hw_rev);
++	cqe_64byte_ena = dev->hw_attrs.uk_attrs.feature_flags & IRDMA_FEATURE_64_BYTE_CQE ?
++			 true : false;
++	cqe_size = cqe_64byte_ena ? 64 : 32;
++
++	entries += 2;
++	if (!cqe_64byte_ena && dev->hw_attrs.uk_attrs.hw_rev >= IRDMA_GEN_2)
++		entries *= 2;
++
++	if (entries & 1)
++		entries += 1; /* cq size must be an even number */
++
++	if (entries * cqe_size == IRDMA_HW_PAGE_SIZE)
++		entries += 2;
++
++	ukinfo->cq_size = entries;
++
++	if (cqe_64byte_ena)
++		rsize = ukinfo->cq_size * sizeof(struct irdma_extended_cqe);
++	else
++		rsize = ukinfo->cq_size * sizeof(struct irdma_cqe);
++	iwcq->kmem.size = ALIGN(round_up(rsize, 256), 256);
++	iwcq->kmem.va = dma_alloc_coherent(dev->hw->device,
++					   iwcq->kmem.size,
++					   &iwcq->kmem.pa, GFP_KERNEL);
++	if (!iwcq->kmem.va)
++		return -ENOMEM;
++
++	iwcq->kmem_shadow.size = ALIGN(IRDMA_SHADOW_AREA_SIZE << 3, 64);
++	iwcq->kmem_shadow.va = dma_alloc_coherent(dev->hw->device,
++						  iwcq->kmem_shadow.size,
++						  &iwcq->kmem_shadow.pa,
++						  GFP_KERNEL);
++	if (!iwcq->kmem_shadow.va)
++		return -ENOMEM;
++
++	info->shadow_area_pa = iwcq->kmem_shadow.pa;
++	ukinfo->shadow_area = iwcq->kmem_shadow.va;
++	ukinfo->cq_base = iwcq->kmem.va;
++	info->cq_base_pa = iwcq->kmem.pa;
++
++	return 0;
++}
++
++static int irdma_setup_umode_cq(struct irdma_device *iwdev,
++				struct irdma_cq *iwcq,
++				struct irdma_cq_init_info *info,
++				struct uverbs_attr_bundle *attrs)
++{
++	struct ib_udata *udata = &attrs->driver_udata;
++	struct irdma_create_cq_req req = {};
++	struct irdma_pci_f *rf = iwdev->rf;
++	struct irdma_ucontext *ucontext;
++	struct irdma_cq_mr *cqmr_shadow;
++	struct irdma_cq_mr *cqmr;
++	unsigned long flags;
++	int err_code;
++
++	iwcq->user_mode = true;
++	ucontext = rdma_udata_to_drv_context(udata, struct irdma_ucontext,
++					     ibucontext);
++	/* Even though the last member of struct irdma_create_cq_req
++	 * was always user_shadow_area, we need backwards compat with
++	 * the legacy i40iw struct i40iw_ucreate_cq which stopped
++	 * at user_cq_buffer.
++	 */
++	err_code = ib_copy_validate_udata_in(udata, req, user_cq_buf);
+ 	if (err_code)
+ 		return err_code;
  
--	iwmr = irdma_alloc_iwmr(&umem_dmabuf->umem, pd, virt, IRDMA_MEMREG_TYPE_MEM);
-+	iwmr = irdma_alloc_iwmr(&umem_dmabuf->umem, pd->device, pd, virt, IRDMA_MEMREG_TYPE_MEM);
- 	if (IS_ERR(iwmr)) {
- 		err = PTR_ERR(iwmr);
- 		goto err_release;
+-	if (udata && udata->outlen < IRDMA_CREATE_CQ_MIN_RESP_LEN)
+-		return -EINVAL;
++	spin_lock_irqsave(&ucontext->cq_reg_mem_list_lock, flags);
++	iwcq->iwpbl = irdma_get_pbl((unsigned long)req.user_cq_buf,
++				    &ucontext->cq_reg_mem_list);
++	spin_unlock_irqrestore(&ucontext->cq_reg_mem_list_lock, flags);
++	if (!iwcq->iwpbl)
++		return -EPROTO;
++
++	cqmr = &iwcq->iwpbl->cq_mr;
++
++	if (rf->sc_dev.hw_attrs.uk_attrs.feature_flags &
++	    IRDMA_FEATURE_CQ_RESIZE) {
++		spin_lock_irqsave(&ucontext->cq_reg_mem_list_lock, flags);
++		iwcq->iwpbl_shadow =
++			irdma_get_pbl((unsigned long)req.user_shadow_area,
++				      &ucontext->cq_reg_mem_list);
++		spin_unlock_irqrestore(&ucontext->cq_reg_mem_list_lock, flags);
++
++		if (!iwcq->iwpbl_shadow)
++			return -EPROTO;
++
++		cqmr_shadow = &iwcq->iwpbl_shadow->cq_mr;
++		info->shadow_area_pa = cqmr_shadow->cq_pbl.addr;
++	} else {
++		info->shadow_area_pa = cqmr->shadow;
++	}
++	if (iwcq->iwpbl->pbl_allocated) {
++		info->virtual_map = true;
++		info->pbl_chunk_size = 1;
++		info->first_pm_pbl_idx = cqmr->cq_pbl.idx;
++	} else {
++		info->cq_base_pa = cqmr->cq_pbl.addr;
++	}
++
++	return 0;
++}
++
++static int irdma_alloc_cq(struct irdma_device *iwdev,
++			  struct irdma_cq *iwcq,
++			  const struct ib_cq_init_attr *attr,
++			  struct irdma_cq_init_info *info)
++{
++	struct irdma_cq_uk_init_info *ukinfo = &info->cq_uk_init_info;
++	struct irdma_pci_f *rf = iwdev->rf;
++	struct irdma_sc_dev *dev = &rf->sc_dev;
++	int entries = attr->cqe;
++	struct irdma_sc_cq *cq;
++	bool cqe_64byte_ena;
++	u32 cq_num = 0;
++	int err_code;
+ 
+ 	err_code = irdma_alloc_rsrc(rf, rf->allocated_cqs, rf->max_cq, &cq_num,
+ 				    &rf->next_cq);
+@@ -2674,169 +2831,99 @@ static int irdma_create_cq(struct ib_cq *ibcq,
+ 	iwcq->cq_num = cq_num;
+ 	iwcq->iwpbl = NULL;
+ 	iwcq->iwpbl_shadow = NULL;
+-	info.dev = dev;
++	info->dev = dev;
+ 	ukinfo->cq_size = max(entries, 4);
+ 	ukinfo->cq_id = cq_num;
+ 	cqe_64byte_ena = dev->hw_attrs.uk_attrs.feature_flags & IRDMA_FEATURE_64_BYTE_CQE ?
+ 			 true : false;
+-	cqe_size = cqe_64byte_ena ? 64 : 32;
+ 	ukinfo->avoid_mem_cflct = cqe_64byte_ena;
+-	iwcq->ibcq.cqe = info.cq_uk_init_info.cq_size;
++	iwcq->ibcq.cqe = ukinfo->cq_size;
+ 	if (attr->comp_vector < rf->ceqs_count)
+-		info.ceq_id = attr->comp_vector;
+-	info.ceq_id_valid = true;
+-	info.ceqe_mask = 1;
+-	info.type = IRDMA_CQ_TYPE_IWARP;
+-	info.vsi = &iwdev->vsi;
+-
+-	if (udata) {
+-		struct irdma_ucontext *ucontext;
+-		struct irdma_create_cq_req req = {};
+-		struct irdma_cq_mr *cqmr;
+-		struct irdma_cq_mr *cqmr_shadow;
+-
+-		iwcq->user_mode = true;
+-		ucontext =
+-			rdma_udata_to_drv_context(udata, struct irdma_ucontext,
+-						  ibucontext);
+-		/* Even though the last member of struct irdma_create_cq_req
+-		 * was always user_shadow_area, we need backwards compat with
+-		 * the legacy i40iw struct i40iw_ucreate_cq which stopped
+-		 * at user_cq_buffer.
+-		 */
+-		err_code = ib_copy_validate_udata_in(udata, req, user_cq_buf);
+-		if (err_code)
+-			goto cq_free_rsrc;
+-
+-		spin_lock_irqsave(&ucontext->cq_reg_mem_list_lock, flags);
+-		iwcq->iwpbl = irdma_get_pbl((unsigned long)req.user_cq_buf,
+-					    &ucontext->cq_reg_mem_list);
+-		spin_unlock_irqrestore(&ucontext->cq_reg_mem_list_lock, flags);
+-		if (!iwcq->iwpbl) {
+-			err_code = -EPROTO;
+-			goto cq_free_rsrc;
+-		}
++		info->ceq_id = attr->comp_vector;
++	info->ceq_id_valid = true;
++	info->ceqe_mask = 1;
++	info->type = IRDMA_CQ_TYPE_IWARP;
++	info->vsi = &iwdev->vsi;
+ 
+-		cqmr = &iwcq->iwpbl->cq_mr;
+-
+-		if (rf->sc_dev.hw_attrs.uk_attrs.feature_flags &
+-		    IRDMA_FEATURE_CQ_RESIZE) {
+-			spin_lock_irqsave(&ucontext->cq_reg_mem_list_lock, flags);
+-			iwcq->iwpbl_shadow = irdma_get_pbl(
+-					(unsigned long)req.user_shadow_area,
+-					&ucontext->cq_reg_mem_list);
+-			spin_unlock_irqrestore(&ucontext->cq_reg_mem_list_lock, flags);
++	return 0;
++}
+ 
+-			if (!iwcq->iwpbl_shadow) {
+-				err_code = -EPROTO;
+-				goto cq_free_rsrc;
+-			}
+-			cqmr_shadow = &iwcq->iwpbl_shadow->cq_mr;
+-			info.shadow_area_pa = cqmr_shadow->cq_pbl.addr;
+-		} else {
+-			info.shadow_area_pa = cqmr->shadow;
+-		}
+-		if (iwcq->iwpbl->pbl_allocated) {
+-			info.virtual_map = true;
+-			info.pbl_chunk_size = 1;
+-			info.first_pm_pbl_idx = cqmr->cq_pbl.idx;
+-		} else {
+-			info.cq_base_pa = cqmr->cq_pbl.addr;
+-		}
+-	} else {
+-		/* Kmode allocations */
+-		int rsize;
++/**
++ * irdma_create_user_cq - create user cq
++ * @ibcq: CQ allocated
++ * @attr: attributes for cq
++ * @attrs: uverbs attribute bundle
++ */
++static int irdma_create_user_cq(struct ib_cq *ibcq,
++				const struct ib_cq_init_attr *attr,
++				struct uverbs_attr_bundle *attrs)
++{
++#define IRDMA_CREATE_CQ_MIN_RESP_LEN offsetofend(struct irdma_create_cq_resp, cq_size)
++	struct ib_udata *udata = &attrs->driver_udata;
++	struct ib_device *ibdev = ibcq->device;
++	struct irdma_device *iwdev = to_iwdev(ibdev);
++	struct irdma_pci_f *rf = iwdev->rf;
++	struct irdma_cq *iwcq = to_iwcq(ibcq);
++	struct irdma_sc_dev *dev = &rf->sc_dev;
++	struct irdma_cq_init_info info = {};
++	int err_code;
+ 
+-		if (entries < 1 || entries > rf->max_cqe) {
+-			err_code = -EINVAL;
+-			goto cq_free_rsrc;
+-		}
++	err_code = cq_validate_flags(attr->flags, dev->hw_attrs.uk_attrs.hw_rev);
++	if (err_code)
++		return err_code;
+ 
+-		entries += 2;
+-		if (!cqe_64byte_ena && dev->hw_attrs.uk_attrs.hw_rev >= IRDMA_GEN_2)
+-			entries *= 2;
++	if (udata->outlen < IRDMA_CREATE_CQ_MIN_RESP_LEN)
++		return -EINVAL;
+ 
+-		if (entries & 1)
+-			entries += 1; /* cq size must be an even number */
++	err_code = irdma_alloc_cq(iwdev, iwcq, attr, &info);
++	if (err_code)
++		return err_code;
+ 
+-		if (entries * cqe_size == IRDMA_HW_PAGE_SIZE)
+-			entries += 2;
++	err_code = irdma_setup_umode_cq(iwdev, iwcq, &info, attrs);
++	if (err_code)
++		goto cq_free_rsrc;
+ 
+-		ukinfo->cq_size = entries;
++	return __irdma_create_cq(iwdev, iwcq, &info, udata);
++cq_free_rsrc:
++	irdma_cq_free_rsrc(rf, iwcq);
+ 
+-		if (cqe_64byte_ena)
+-			rsize = info.cq_uk_init_info.cq_size * sizeof(struct irdma_extended_cqe);
+-		else
+-			rsize = info.cq_uk_init_info.cq_size * sizeof(struct irdma_cqe);
+-		iwcq->kmem.size = ALIGN(round_up(rsize, 256), 256);
+-		iwcq->kmem.va = dma_alloc_coherent(dev->hw->device,
+-						   iwcq->kmem.size,
+-						   &iwcq->kmem.pa, GFP_KERNEL);
+-		if (!iwcq->kmem.va) {
+-			err_code = -ENOMEM;
+-			goto cq_free_rsrc;
+-		}
++	return err_code;
++}
+ 
+-		iwcq->kmem_shadow.size = ALIGN(IRDMA_SHADOW_AREA_SIZE << 3,
+-					       64);
+-		iwcq->kmem_shadow.va = dma_alloc_coherent(dev->hw->device,
+-							  iwcq->kmem_shadow.size,
+-							  &iwcq->kmem_shadow.pa,
+-							  GFP_KERNEL);
+-		if (!iwcq->kmem_shadow.va) {
+-			err_code = -ENOMEM;
+-			goto cq_free_rsrc;
+-		}
+-		info.shadow_area_pa = iwcq->kmem_shadow.pa;
+-		ukinfo->shadow_area = iwcq->kmem_shadow.va;
+-		ukinfo->cq_base = iwcq->kmem.va;
+-		info.cq_base_pa = iwcq->kmem.pa;
+-	}
++/**
++ * irdma_create_cq - create kmode cq
++ * @ibcq: CQ allocated
++ * @attr: attributes for cq
++ * @attrs: uverbs attribute bundle
++ */
++static int irdma_create_cq(struct ib_cq *ibcq,
++			   const struct ib_cq_init_attr *attr,
++			   struct uverbs_attr_bundle *attrs)
++{
++	struct ib_device *ibdev = ibcq->device;
++	struct irdma_device *iwdev = to_iwdev(ibdev);
++	struct irdma_pci_f *rf = iwdev->rf;
++	struct irdma_cq *iwcq = to_iwcq(ibcq);
++	struct irdma_sc_dev *dev = &rf->sc_dev;
++	struct irdma_cq_init_info info = {};
++	int err_code;
+ 
+-	info.shadow_read_threshold = min(info.cq_uk_init_info.cq_size / 2,
+-					 (u32)IRDMA_MAX_CQ_READ_THRESH);
++	err_code = cq_validate_flags(attr->flags, dev->hw_attrs.uk_attrs.hw_rev);
++	if (err_code)
++		return err_code;
+ 
+-	if (irdma_sc_cq_init(cq, &info)) {
+-		ibdev_dbg(&iwdev->ibdev, "VERBS: init cq fail\n");
+-		err_code = -EPROTO;
+-		goto cq_free_rsrc;
+-	}
++	if (attr->cqe > rf->max_cqe)
++		return -EINVAL;
+ 
+-	cqp_request = irdma_alloc_and_get_cqp_request(&rf->cqp, true);
+-	if (!cqp_request) {
+-		err_code = -ENOMEM;
+-		goto cq_free_rsrc;
+-	}
++	err_code = irdma_alloc_cq(iwdev, iwcq, attr, &info);
++	if (err_code)
++		return err_code;
+ 
+-	cqp_info = &cqp_request->info;
+-	cqp_info->cqp_cmd = IRDMA_OP_CQ_CREATE;
+-	cqp_info->post_sq = 1;
+-	cqp_info->in.u.cq_create.cq = cq;
+-	cqp_info->in.u.cq_create.check_overflow = true;
+-	cqp_info->in.u.cq_create.scratch = (uintptr_t)cqp_request;
+-	err_code = irdma_handle_cqp_op(rf, cqp_request);
+-	irdma_put_cqp_request(&rf->cqp, cqp_request);
++	err_code = irdma_setup_kmode_cq(iwdev, iwcq, &info, attr);
+ 	if (err_code)
+ 		goto cq_free_rsrc;
+ 
+-	if (udata) {
+-		struct irdma_create_cq_resp resp = {};
+-
+-		resp.cq_id = info.cq_uk_init_info.cq_id;
+-		resp.cq_size = info.cq_uk_init_info.cq_size;
+-		err_code = ib_respond_udata(udata, resp);
+-		if (err_code)
+-			goto cq_destroy;
+-	}
+-
+-	init_completion(&iwcq->free_cq);
+-
+-	/* Populate table entry after CQ is fully created. */
+-	smp_store_release(&rf->cq_table[cq_num], iwcq);
+-
+-	return 0;
+-cq_destroy:
+-	irdma_cq_wq_destroy(rf, cq);
++	return __irdma_create_cq(iwdev, iwcq, &info, NULL);
+ cq_free_rsrc:
+ 	irdma_cq_free_rsrc(rf, iwcq);
+ 
+@@ -5666,6 +5753,7 @@ static const struct ib_device_ops irdma_dev_ops = {
+ 	.alloc_pd = irdma_alloc_pd,
+ 	.alloc_ucontext = irdma_alloc_ucontext,
+ 	.create_cq = irdma_create_cq,
++	.create_user_cq = irdma_create_user_cq,
+ 	.create_qp = irdma_create_qp,
+ 	.dealloc_driver = irdma_ib_dealloc_device,
+ 	.dealloc_mw = irdma_dealloc_mw,
 -- 
 2.56.0.176.g3575e65682-goog
 
