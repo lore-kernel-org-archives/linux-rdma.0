@@ -1,64 +1,64 @@
-Received: from mail-vk1-f179.google.com (mail-vk1-f179.google.com [209.85.221.179])
+Received: from mail-vk1-f173.google.com (mail-vk1-f173.google.com [209.85.221.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A22D3446073
-	for <linux-rdma@vger.kernel.org>; Fri, 16 Oct 2026 20:29:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D6A9447239
+	for <linux-rdma@vger.kernel.org>; Fri, 16 Oct 2026 20:29:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792182576; cv=none; b=jmt75ogKluS0z12bu9cMqrknNGOKZNS4/wedcwEJ0k7XrJs/eJbXeatj+dRdAdacMzEhEVBLT0/wNJKDRMmiFt7RP9AsyCdoEHTXuHyKwDHmcs9T6sVPvdK9c3jzvtxpLMmAQCk3FHdGjvfoJlhpyfEF2nxox0r6PhtyncxQutw=
+	t=1792182580; cv=none; b=EYimXlSZ/0RukTWha8172mjtedE4WzTxXRDuM6DJsk5KNf0nQieUqpgihg7Sp0Wcd+K3arGMZ64hVVob7xvnzXn9ermLKHHyANAY3cF5r/MQu0h3OyDsQmEQkSOyHLn9InKPWkm7nI9tsrMsG5bX+Y/UdmEhq8kLdxpoyMb+J2Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792182576; c=relaxed/simple;
-	bh=AwIYAUE+IDC9LiRwdBTT1Pd1UEL1hzxH1T8RDGwzeb8=;
+	s=arc-20240116; t=1792182580; c=relaxed/simple;
+	bh=rIvIpPteAQqyktlVQXTcEWFq7uKDkaeyfC9U/aSI+I8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=TTvwXXqgfhpgx5EI6jlsLDffYArm6+FsWUOQvKdzo2xojx4+qO5m7ADLjjqFxhEWCzTZ/2dSZDIHUuUbRaannIPhlxZmw37GmvAG8t0QxVCkwGRWFkc/z5IBzBptW66s256a0B8vIFN6ROC6fGpqrhJQNddNyrn3+kiBLPIZE5M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=x6u.co; spf=pass smtp.mailfrom=x6u.co; dkim=pass (2048-bit key) header.d=x6u.co header.i=@x6u.co header.b=X77FX8Ej; arc=none smtp.client-ip=209.85.221.179
+	 MIME-Version; b=O2hek5GiyiMriIk4tUalaaNYsxQE3jntIibhnbDeTmwmnlN7nJv0xq65wZUiZrY7YFQv+EEDCczPWi5ySt2uB9aVUK2yMTuASrOgARE/ofb2hBA9QUdrxRdG7rik2b/vJD37NgG4tTZawHHNGn6ndrrBhg0+Rb6S3SblBZfwvec=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=x6u.co; spf=pass smtp.mailfrom=x6u.co; dkim=pass (2048-bit key) header.d=x6u.co header.i=@x6u.co header.b=QCXKt+qf; arc=none smtp.client-ip=209.85.221.173
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=x6u.co
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=x6u.co
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=x6u.co header.i=@x6u.co header.b="X77FX8Ej"
-Received: by mail-vk1-f179.google.com with SMTP id 71dfb90a1353d-5e9616ae981so239253e0c.3
-        for <linux-rdma@vger.kernel.org>; Fri, 16 Oct 2026 13:29:32 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=x6u.co header.i=@x6u.co header.b="QCXKt+qf"
+Received: by mail-vk1-f173.google.com with SMTP id 71dfb90a1353d-5ea63f01606so181933e0c.1
+        for <linux-rdma@vger.kernel.org>; Fri, 16 Oct 2026 13:29:35 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=x6u.co; s=google; t=1792182571; x=1792787371; darn=vger.kernel.org;
+        d=x6u.co; s=google; t=1792182574; x=1792787374; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=3aYFM6YBCwEZLKr+JLdUZp7eLuz8AbhTnX/F18Towkk=;
-        b=X77FX8Ejh1vOxjlQuNlI3fQbkxbYLNNxs5haDUtYPRvqxw+z2FN/QekcbgbKMNTTZr
-         XSsDAv0ljCvnDLqZ2+YnRRLV7C77QHrmTiRvomUo//nI/jKOUNms4ioZ1qLpuFvuyzGF
-         OBtJZWgypEt9UhNpMx9LxaDHwk8MDbGfEW7Xg473l+csDZOVrpxZtP94sgVHIzA6p9xA
-         7a+W6ypJ7j7PBH82CFb4JTPTrPBuMzqxZnxe5dwTOA5B4C7cnEYkNSkkt53cWSNagD9x
-         4oQg02TrLTTZzQvT82VnZ2Qs6EWIZPmzCaVQ5QoySw+hmEj0C83jwyryjukmJVSnBzEr
-         hRrQ==
+        bh=4+Xg4kCSvyEHmgKPh6OsSxZb9+Dx8EF4CgPvOIEBYZg=;
+        b=QCXKt+qfI0QDL1uVqpVXuOfYP4JBmyv9wV606O1iDCjec1UqMlVPfTwhWOv68KxU4J
+         TEv9j0gtTtK9lyNMhPflN7dKU6IXUO2+AnNAFF0ocqUzn9guH4w879WJyGBswm+kkiEC
+         wq42t65pIjrakxfPdVyJE2is/bfL8OCszmZgYt6RRgUnQoJrp9R4ifGUTYw2/pfnxfBu
+         wDB09QIWKkn/7oZy3P/di0HHU3OV+F9deik3LMCk+SLuC0Lua3JmALgv71TiKINOLzJG
+         opnAaG8nRn5V24aMwLXzuPILxnSmyOUMe1u2c74ghWocHGWFYpDbWzebtpN00VAayu+d
+         63NQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792182571; x=1792787371;
+        d=1e100.net; s=20260707; t=1792182574; x=1792787374;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=3aYFM6YBCwEZLKr+JLdUZp7eLuz8AbhTnX/F18Towkk=;
-        b=j3PsreDVHRedS+c+tVYiq3w1C0Hp033W/Epyz9lw9kusPrYj5g7nX2Gim6y7kSHEfM
-         agX+pF2SYgGsKPqvi5YFgyrOsF62XN28XW4CPEvB0hO74iZKkuI5MHorSFWJqMg6zAbx
-         ZuHhpsubtEBLk1XP2uVydCWxkZu7P/VqA40AdwhlAJwSQYlEryDg5qDE5JTbJeivQ3tu
-         0dJXiu1P+ddhaXjKdf+ji3I/pdCRKjuu4x+z6aiAQVk28iFcIED9CYfnh+l7IrPDR/sW
-         YEis+AL0leUYkFRkVTvIPQ405yMXP/y+afYLMwNsQB0VUe5Nzvc90Xmh+N/LpMs38AFu
-         x0dw==
-X-Gm-Message-State: AFq9FYL9L9zN96/1uUAANUqwpJKnPY8HHBhegWc2d9sEyRw5quxiTGlX
-	ZcpnwVtCuAUSpjXZI0KVgYsrIjiEZBD4pVxbzCJawsnEyE0l/LvVuEUemjJQ3wIDf5kX
-X-Gm-Gg: AYBFou2k3E0YSBgOPrPl1wNuSc8NYLvK00I1Z8+4gTGCQlgI3PQw0o3cuarVTbY6DSE
-	T0RWa5LjjsaiRqeXGrGz3udulkvZ2YIQJ5PovTIH5ueT+3Nib0/bayqtU/+hhI77H8TXl0HVfup
-	Jh/FsbGzZEGnXg/Fj7BB2oCf1TE4Baguc6FR7KhBwN8Gz8nEZER8l9a2B0CbMs+d4AC8h60sO/P
-	y9J+qKKjdUX1f8oAeFVgR/CNIm/sHcruktLbg9yDkqXozStMNjg4o/hlXXjxb629dqSNfBniqT3
-	sT9NrYEpeIv+dBucJIxVvMeRZCPpqfyNlh5i6/s4W2lpu+ZkhFGOr1Pvs8koddn3bAk1DcbRXvI
-	/TKODLtcnMOJ8nr99NWdvC+Cx68JTsGG+CisIm6D2n9CBf0v3dwMm3/cDly8j1WNLUA9o/mg0b/
-	4QD4NUzb+/uei7OAI0vSiJkjSXjanvyxkIKdRVA/kFrJnYvn3JlFtIQReBmk7hA//TK/vdx0NU6
-	Pismqc4HZcm56ZKbsWLN2Te2eUZD6twUztdfXKI4LhCvytv2N9zx7xxjtowXN6e7XKpwLKcDXvC
-	ew80QwhYctuu8hWQYjq8mquresy0qTeGi5qqTsdmZIy1/ra52vG5Tpw6fyf8RNMo6Xc=
-X-Received: by 2002:a05:6122:4217:b0:5ea:9f07:5134 with SMTP id 71dfb90a1353d-5eaaa37e98dmr511145e0c.5.1792182571428;
-        Fri, 16 Oct 2026 13:29:31 -0700 (PDT)
+        bh=4+Xg4kCSvyEHmgKPh6OsSxZb9+Dx8EF4CgPvOIEBYZg=;
+        b=NKFpzzMI2Y9Xc5m23bSj/egakjb5+oXw7W1V6pZK9oFRDYTCAQb6pspjLoCJzjkgp6
+         BDDu+Hn9jCGMNotiTpTjlZqHzTnqkNGDwifSd+uMue0SxMa/G7CrUki0iupoC3iwwFXf
+         AkRNKZByomMU/obqdXRVfD4xPguSAfHtF8erXfc38doL3+lc7BqIpaR0xJSbOwAXTP4z
+         EXKNIW5T4ki7u4/kwbTNBYiaWcYNQajSPjzAQqDKoz4zCd1ovqrXcSfLsTLD5M++yRZ+
+         0KPioHMKmDTNjH7lhlOf72DeISon8M8zyIvEHWaZFg6R/7dtRZE1eVVzII9/zeWC/beO
+         ANbQ==
+X-Gm-Message-State: AFq9FYIZYYnNfYD6omPyehNUuIefZ08Jo28TOGLvKcdD/wLmDSwyLOZB
+	7tODVb7150MjQS3TpoinRXyMWviKzEIC2ipcdhRg4GHR+B7UfoKPW6wwMoiQhzN+OLe4
+X-Gm-Gg: AYBFou08o+gA8Is1hLfewrzyiBSViFuyCbm/j2WUBHer0rfETUeIiPtc4HI8grxtS4o
+	46I/d5qNPC71XlU6IVMJXeIaUez7Of97LmvXt/4qxQPKqqOgC15H1jdUh3BLZITfPCPD7WC2Iv7
+	1Zy55bWAMFzQoi+TH7VauX6DxGUxQujgW9w9/iNWECGKCmNR0dD/jpyGAq+q9YYErpPWQKaiWT3
+	SAtaR/J7siT8cjN3LtDzeRtgvIjUYoq9jnLM5RB1nFz5uTUW9iHFCal5YyVvPrshpRG4fivUMHE
+	MrTJRDLlUV2eRR5Bk5jj2FAUi9Lu91Iabjkw7KlUL5R/ZJqRJb6McuSBWH/xlgGOADVjOq9X6eI
+	qo6pqKU9+TBbVKa1wsVl5O9ug4xW6HhmHGA81brmkpjILTunebTaYR4Docsc+cs4JP8w/0gALuQ
+	J/hAaMlzlXeUWhzb7bcY5JuyDEU+GllTTI603POvTtKt0HQ9ZEy3fq7CcuMw+QWZvCr0QqJr8tg
+	agFK3pLd8hQr/Z4N1z/Es1EfqCczGhj7w+NDl/eCelrSdOx0GzsjYmk3PrM+3Kk89new1oUTJ08
+	5pxluybmpRPnUwUaMvQIkQ==
+X-Received: by 2002:a05:6122:f05:b0:5e5:7ac3:c9d with SMTP id 71dfb90a1353d-5eaaa651fe4mr508869e0c.15.1792182574081;
+        Fri, 16 Oct 2026 13:29:34 -0700 (PDT)
 Received: from worldpeace10.c.googlers.com.com (119.20.221.35.bc.googleusercontent.com. [35.221.20.119])
-        by smtp.gmail.com with ESMTPSA id 71dfb90a1353d-5ea9b5201b1sm2588281e0c.12.2026.10.16.13.29.30
+        by smtp.gmail.com with ESMTPSA id 71dfb90a1353d-5ea9b5201b1sm2588281e0c.12.2026.10.16.13.29.32
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 16 Oct 2026 13:29:30 -0700 (PDT)
+        Fri, 16 Oct 2026 13:29:33 -0700 (PDT)
 From: David Hu <dhu@x6u.co>
 To: Mustafa Ismail <mustafa.ismail@intel.com>,
 	Shiraz Saleem <shiraz.saleem@intel.com>,
@@ -69,9 +69,9 @@ Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Przemek Kitszel <przemyslaw.kitszel@intel.com>,
 	David Hu <xuehaohu@google.com>
-Subject: [PATCH rdma-next v3 2/6] RDMA/irdma: Register irdma UVERBS ioctl namespace
-Date: Fri, 16 Oct 2026 20:29:05 +0000
-Message-ID: <20261016202909.1289496-3-dhu@x6u.co>
+Subject: [PATCH rdma-next v3 3/6] RDMA/irdma: Support UMEM attribute for QP creation
+Date: Fri, 16 Oct 2026 20:29:06 +0000
+Message-ID: <20261016202909.1289496-4-dhu@x6u.co>
 X-Mailer: git-send-email 2.56.0.176.g3575e65682-goog
 In-Reply-To: <20261016202909.1289496-1-dhu@x6u.co>
 References: <20261016202909.1289496-1-dhu@x6u.co>
@@ -85,81 +85,260 @@ Content-Transfer-Encoding: 8bit
 
 From: David Hu <xuehaohu@google.com>
 
-An irdma UVERBS module is now created. An irdma specific shadow buf is
-defined for CQ, while QP and SRQ reuses core's uapi definitions. This
-works since core builds shared core ioctl parsing tree first, before adding
-driver specific `uapi_definition`.
+Support the standard 1-step queue buffer creation model for QP by using
+`UVERBS_ATTR_CREATE_QP_BUF_UMEM` and `ib_umem_get_attr()`.
 
-Destroy paths are automatically handled by core dispatchers, as objects
-are now registered in the parsing tree and no additional driver specifics
-are needed in destroy ioctls. Resize, Query, and Modify continue to go
-through write() cmds.
+Add `irdma_setup_q_pbl_from_umem()` to allocate the backing MR and program
+hardware pble directly from the pinned umem. Proper umem and pble cleanup
+is added to `irdma_free_qp_rsrc()` upon QP destruction.
+
+We retain backward compatibility for legacy 2-step registration if the
+UMEM attribute is not provided.
+
+`irdma_alloc_iwmr()` assumed there is always a valid PD, which is valid
+for regular MR, and QP. That is not the case for CQ. This modernization
+fixes `irdma_alloc_iwmr()` to take in an `ibdev` to avoid a potential
+NULL dereference.
+
+Note for MR teardown: This patch unifies the teardown of legacy 2-step
+queue MR and modern 1-step dummy MR via,
+
+`refcount_dec_and_test(&iwmr->user_ring_refs)`
+
+For legacy queue MR, ref count starts at 2 (one by queue, and one by
+`ib_mr`), it goes to 1 during queue teardown, while deferring memory
+teardown to `irdma_dereg_mr`.
+
+For 1-step dummy MR, ref count starts at 1, and teardown happens cleanly
+here.
+
+The teardown sequence (`ib_umem_release`, `irdma_free_pble`, `kfree`) is
+inlined in `utils.c` here because `irdma_free_iwmr` is statically scoped
+in `verbs.c`. Combining was considered, and we think it belongs to a
+future project.
 
 Signed-off-by: David Hu <xuehaohu@google.com>
 ---
- drivers/infiniband/hw/irdma/verbs.c | 18 ++++++++++++++++++
- include/uapi/rdma/irdma-abi.h       |  5 +++++
- 2 files changed, 23 insertions(+)
+ drivers/infiniband/hw/irdma/utils.c |  12 ++-
+ drivers/infiniband/hw/irdma/verbs.c | 130 ++++++++++++++++++++++++----
+ 2 files changed, 124 insertions(+), 18 deletions(-)
 
+diff --git a/drivers/infiniband/hw/irdma/utils.c b/drivers/infiniband/hw/irdma/utils.c
+index 290ad02ed657..1e5694a4fd91 100644
+--- a/drivers/infiniband/hw/irdma/utils.c
++++ b/drivers/infiniband/hw/irdma/utils.c
+@@ -1170,9 +1170,15 @@ void irdma_free_qp_rsrc(struct irdma_qp *iwqp)
+ 	kfree(iwqp->kqp.rq_wrid_mem);
+ 
+ 	if (iwqp->user_mode && iwqp->iwpbl) {
+-		struct irdma_mr *iwmr = iwqp->iwpbl->iwmr;
+-
+-		refcount_dec(&iwmr->user_ring_refs);
++		struct irdma_pbl *iwpbl = iwqp->iwpbl;
++		struct irdma_mr *iwmr = iwpbl->iwmr;
++
++		if (iwmr && refcount_dec_and_test(&iwmr->user_ring_refs)) {
++			ib_umem_release(iwmr->region);
++			if (iwpbl->pbl_allocated)
++				irdma_free_pble(rf->pble_rsrc, &iwpbl->pble_alloc);
++			kfree(iwmr);
++		}
+ 	}
+ }
+ 
 diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-index 10c790fdfc57..b2ffdc8e3d67 100644
+index b2ffdc8e3d67..ab25445f3828 100644
 --- a/drivers/infiniband/hw/irdma/verbs.c
 +++ b/drivers/infiniband/hw/irdma/verbs.c
-@@ -1,6 +1,22 @@
- // SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
- /* Copyright (c) 2015 - 2021 Intel Corporation */
- #include "main.h"
-+#include <rdma/uverbs_ioctl.h>
-+#define UVERBS_MODULE_NAME irdma
-+#include <rdma/uverbs_named_ioctl.h>
-+#include <rdma/ib_user_ioctl_cmds.h>
-+
-+ADD_UVERBS_ATTRIBUTES_SIMPLE(
-+	irdma_cq_attrs,
-+	UVERBS_OBJECT_CQ,
-+	UVERBS_METHOD_CQ_CREATE,
-+	UVERBS_ATTR_UMEM(IRDMA_IB_ATTR_CREATE_CQ_SHADOW_BUF_UMEM, UA_OPTIONAL)
-+);
-+
-+static const struct uapi_definition irdma_uapi_defs[] = {
-+	UAPI_DEF_CHAIN_OBJ_TREE(UVERBS_OBJECT_CQ, &irdma_cq_attrs),
-+	{}
-+};
- 
- /**
-  * irdma_query_device - get device attributes
-@@ -5629,6 +5645,8 @@ static void irdma_init_rdma_device(struct irdma_device *iwdev)
- 	iwdev->ibdev.phys_port_cnt = 1;
- 	iwdev->ibdev.num_comp_vectors = iwdev->rf->ceqs_count;
- 	iwdev->ibdev.dev.parent = &pcidev->dev;
-+	if (IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS))
-+		iwdev->ibdev.driver_def = irdma_uapi_defs;
- 	ib_set_device_ops(&iwdev->ibdev, &irdma_dev_ops);
- 	if (iwdev->rf->rdma_ver == IRDMA_GEN_1)
- 		ib_set_device_ops(&iwdev->ibdev, &irdma_gen1_dev_ops);
-diff --git a/include/uapi/rdma/irdma-abi.h b/include/uapi/rdma/irdma-abi.h
-index 38155affc8b4..a1a26529aa85 100644
---- a/include/uapi/rdma/irdma-abi.h
-+++ b/include/uapi/rdma/irdma-abi.h
-@@ -10,6 +10,7 @@
- #define IRDMA_ABI_H
- 
- #include <linux/types.h>
-+#include <rdma/ib_user_ioctl_cmds.h>
- 
- /* irdma must support legacy GEN_1 i40iw kernel
-  * and user-space whose last ABI ver is 5
-@@ -23,6 +24,10 @@ enum irdma_memreg_type {
- 	IRDMA_MEMREG_TYPE_SRQ  = 3,
+@@ -18,6 +18,12 @@ static const struct uapi_definition irdma_uapi_defs[] = {
+ 	{}
  };
  
-+enum irdma_ib_create_cq_attrs {
-+	IRDMA_IB_ATTR_CREATE_CQ_SHADOW_BUF_UMEM = UVERBS_ID_DRIVER_NS_WITH_UHW,
-+};
++static struct irdma_pbl *irdma_setup_q_pbl_from_umem(struct irdma_device *iwdev,
++						     struct ib_umem *region,
++						     struct ib_pd *pd,
++						     enum irdma_memreg_type reg_type,
++						     struct irdma_mem_reg_req *req);
 +
- enum {
- 	IRDMA_ALLOC_UCTX_USE_RAW_ATTR = 1 << 0,
- 	IRDMA_ALLOC_UCTX_MIN_HW_WQ_SIZE = 1 << 1,
+ /**
+  * irdma_query_device - get device attributes
+  * @ibdev: device pointer from stack
+@@ -670,17 +676,6 @@ static int irdma_setup_umode_qp(struct irdma_ucontext *ucontext,
+ 	iwqp->ctx_info.qp_compl_ctx = req->user_compl_ctx;
+ 	iwqp->user_mode = 1;
+ 
+-	spin_lock_irqsave(&ucontext->qp_reg_mem_list_lock, flags);
+-	iwqp->iwpbl = irdma_get_pbl((unsigned long)req->user_wqe_bufs,
+-				    &ucontext->qp_reg_mem_list);
+-	spin_unlock_irqrestore(&ucontext->qp_reg_mem_list_lock, flags);
+-
+-	if (!iwqp->iwpbl) {
+-		ret = -ENODATA;
+-		ibdev_dbg(&iwdev->ibdev, "VERBS: no pbl info\n");
+-		return ret;
+-	}
+-
+ 	if (!ucontext->use_raw_attrs) {
+ 		/**
+ 		 * Maintain backward compat with older ABI which passes sq and
+@@ -713,6 +708,52 @@ static int irdma_setup_umode_qp(struct irdma_ucontext *ucontext,
+ 		ukinfo->rq_size = ukinfo->rq_depth >> ukinfo->rq_shift;
+ 	}
+ 
++	if (attrs && uverbs_attr_is_valid(attrs, UVERBS_ATTR_CREATE_QP_BUF_UMEM)) {
++		struct irdma_mem_reg_req qp_req = {};
++		struct ib_umem *umem;
++		u32 total;
++
++		/* Legacy context does not provide depth info */
++		if (!ucontext->use_raw_attrs)
++			return -EOPNOTSUPP;
++
++		qp_req.sq_pages = DIV_ROUND_UP(ukinfo->sq_depth * IRDMA_QP_WQE_MIN_SIZE,
++					       IRDMA_HW_PAGE_SIZE);
++		/* In case srq is used, this will be a single page */
++		qp_req.rq_pages = DIV_ROUND_UP(ukinfo->rq_depth * IRDMA_QP_WQE_MIN_SIZE,
++					       IRDMA_HW_PAGE_SIZE);
++		total = qp_req.sq_pages + qp_req.rq_pages + IRDMA_SHADOW_PGCNT;
++
++		umem = ib_umem_get_attr(&iwdev->ibdev, attrs,
++					UVERBS_ATTR_CREATE_QP_BUF_UMEM,
++					total << IRDMA_HW_PAGE_SHIFT,
++					IB_ACCESS_LOCAL_WRITE);
++		if (IS_ERR(umem))
++			return PTR_ERR(umem);
++
++		iwqp->iwpbl = irdma_setup_q_pbl_from_umem(iwdev, umem,
++							  iwqp->ibqp.pd,
++							  IRDMA_MEMREG_TYPE_QP,
++							  &qp_req);
++		if (IS_ERR(iwqp->iwpbl)) {
++			ret = PTR_ERR(iwqp->iwpbl);
++			iwqp->iwpbl = NULL;
++			ib_umem_release(umem);
++			return ret;
++		}
++	} else {
++		spin_lock_irqsave(&ucontext->qp_reg_mem_list_lock, flags);
++		iwqp->iwpbl = irdma_get_pbl((unsigned long)req->user_wqe_bufs,
++					    &ucontext->qp_reg_mem_list);
++		spin_unlock_irqrestore(&ucontext->qp_reg_mem_list_lock, flags);
++
++		if (!iwqp->iwpbl) {
++			ret = -ENODATA;
++			ibdev_dbg(&iwdev->ibdev, "VERBS: no pbl info\n");
++			return ret;
++		}
++	}
++
+ 	irdma_setup_virt_qp(iwdev, iwqp, info);
+ 
+ 	return 0;
+@@ -3490,10 +3531,11 @@ static int irdma_reg_user_mr_type_mem(struct irdma_mr *iwmr, int access,
+ }
+ 
+ static struct irdma_mr *irdma_alloc_iwmr(struct ib_umem *region,
++					 struct ib_device *ibdev,
+ 					 struct ib_pd *pd, u64 virt,
+ 					 enum irdma_memreg_type reg_type)
+ {
+-	struct irdma_device *iwdev = to_iwdev(pd->device);
++	struct irdma_device *iwdev = to_iwdev(ibdev);
+ 	struct irdma_pbl *iwpbl;
+ 	struct irdma_mr *iwmr;
+ 	unsigned long pgsz_bitmap;
+@@ -3507,7 +3549,7 @@ static struct irdma_mr *irdma_alloc_iwmr(struct ib_umem *region,
+ 	iwpbl->iwmr = iwmr;
+ 	iwmr->region = region;
+ 	iwmr->ibmr.pd = pd;
+-	iwmr->ibmr.device = pd->device;
++	iwmr->ibmr.device = ibdev;
+ 	iwmr->ibmr.iova = virt;
+ 	iwmr->type = reg_type;
+ 
+@@ -3532,6 +3574,64 @@ static void irdma_free_iwmr(struct irdma_mr *iwmr)
+ 	kfree(iwmr);
+ }
+ 
++static struct irdma_pbl *irdma_setup_q_pbl_from_umem(struct irdma_device *iwdev,
++						     struct ib_umem *region,
++						     struct ib_pd *pd,
++						     enum irdma_memreg_type reg_type,
++						     struct irdma_mem_reg_req *req)
++{
++	struct irdma_pbl *iwpbl;
++	struct irdma_mr *iwmr;
++	u32 total;
++	u8 lvl;
++	int err;
++
++	/* iWarp: Catch page not starting on OS page boundary */
++	if (!rdma_protocol_roce(&iwdev->ibdev, 1) && ib_umem_offset(region))
++		return ERR_PTR(-EINVAL);
++
++	iwmr = irdma_alloc_iwmr(region, &iwdev->ibdev, pd, region->address, reg_type);
++	if (IS_ERR(iwmr))
++		return ERR_CAST(iwmr);
++
++	iwpbl = &iwmr->iwpbl;
++
++	switch (reg_type) {
++	case IRDMA_MEMREG_TYPE_QP:
++		total = req->sq_pages + req->rq_pages + IRDMA_SHADOW_PGCNT;
++		lvl = (req->sq_pages + req->rq_pages) > 2 ? PBLE_LEVEL_1 : PBLE_LEVEL_0;
++		break;
++	case IRDMA_MEMREG_TYPE_CQ:
++		total = req->cq_pages +
++			((iwdev->rf->sc_dev.hw_attrs.uk_attrs.feature_flags &
++			  IRDMA_FEATURE_CQ_RESIZE) ? 0 : IRDMA_SHADOW_PGCNT);
++		lvl = req->cq_pages > 1 ? PBLE_LEVEL_1 : PBLE_LEVEL_0;
++		break;
++	case IRDMA_MEMREG_TYPE_SRQ:
++		total = req->rq_pages + IRDMA_SHADOW_PGCNT;
++		lvl = req->rq_pages > 1 ? PBLE_LEVEL_1 : PBLE_LEVEL_0;
++		break;
++	default:
++		err = -EINVAL;
++		goto err_free_mr;
++	}
++
++	if (total > iwmr->page_cnt) {
++		err = -EINVAL;
++		goto err_free_mr;
++	}
++
++	err = irdma_handle_q_mem(iwdev, req, iwpbl, lvl);
++	if (err)
++		goto err_free_mr;
++
++	return iwpbl;
++
++err_free_mr:
++	irdma_free_iwmr(iwmr);
++	return ERR_PTR(err);
++}
++
+ static int irdma_reg_user_mr_type_qp(struct irdma_mem_reg_req req,
+ 				     struct ib_udata *udata,
+ 				     struct irdma_mr *iwmr)
+@@ -3677,7 +3777,7 @@ static struct ib_mr *irdma_reg_user_mr(struct ib_pd *pd, u64 start, u64 len,
+ 		return (struct ib_mr *)region;
+ 	}
+ 
+-	iwmr = irdma_alloc_iwmr(region, pd, virt, req.reg_type);
++	iwmr = irdma_alloc_iwmr(region, pd->device, pd, virt, req.reg_type);
+ 	if (IS_ERR(iwmr)) {
+ 		ib_umem_release(region);
+ 		return (struct ib_mr *)iwmr;
+@@ -3776,7 +3876,7 @@ static struct ib_mr *irdma_reg_user_mr_dmabuf(struct ib_pd *pd, u64 start,
+ 		return ERR_CAST(umem_dmabuf);
+ 	}
+ 
+-	iwmr = irdma_alloc_iwmr(&umem_dmabuf->umem, pd, virt, IRDMA_MEMREG_TYPE_MEM);
++	iwmr = irdma_alloc_iwmr(&umem_dmabuf->umem, pd->device, pd, virt, IRDMA_MEMREG_TYPE_MEM);
+ 	if (IS_ERR(iwmr)) {
+ 		err = PTR_ERR(iwmr);
+ 		goto err_release;
 -- 
 2.56.0.176.g3575e65682-goog
 
