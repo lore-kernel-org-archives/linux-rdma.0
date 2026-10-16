@@ -1,293 +1,196 @@
-Received: from mta0.migadu.com (out-68.mta0.migadu.com [91.218.175.68])
+Received: from mail-oi1-f199.google.com (mail-oi1-f199.google.com [209.85.167.199])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2459395D8E
-	for <linux-rdma@vger.kernel.org>; Fri, 16 Oct 2026 02:35:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.68
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E566B3939B3
+	for <linux-rdma@vger.kernel.org>; Fri, 16 Oct 2026 02:45:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.199
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792118154; cv=none; b=a/Yhshx1ptpISQn2L1L/MbatIVSICrj5amk0vmbgP7a1cU5vQM/KektmK29t0jb7KjIjjbF4MdvI3hO6TooS5ldFQLJs1Yd0prd6JGVatmPvHdRYkAp5ytVfLrsvANRomDittoQLZsX8ikNeFt/QHrUWIdzykGpOdiHNq+YVvyc=
+	t=1792118739; cv=none; b=O551azXocFBdd3ECSGMfYK9dYj6HKJ+iqHaxWH/BQsK7SVC7fw44w3UnOLyAT/Ht/paouGyhR72GtWg0TD+i8XCEcGjhOZLvJrCgGBYV3tKXrBSnXpROTysv8mjReXFO2xoxtYTjShfS9Wo93YDHj4lHWNUrKh9z3TsKN2H1pJY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792118154; c=relaxed/simple;
-	bh=S4NoMBi0G7N0mzREwUz3QrXUzhW9WoiBlKR+otTxqJ4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=X1RK8lrYACmrLypESbmQIQB/T9k1QNqq6xOcA4LnjGYS1d8BltXo99P+76wg4jJ4L2oWWbkJRQrTbK48ah7WOzuiPFoqc91jBRWjPp3nPMnsTdzRS3WXOjqiAC1nlvZebt1AGaCnuVmlfwp5+dBBzf9gzTYjlee1SAZEM3lAhOo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=QO2od4ns; arc=none smtp.client-ip=91.218.175.68
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="QO2od4ns"
-X-Envelope-To: linux-rdma@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=S4NoMBi0G7N0mzREwUz3QrXUzhW9WoiBlKR+otTxqJ4=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1792118150; v=1; x=1792722950;
- b=QO2od4nsPQwkePaARf0bViHk/0wcXKK5KXAThGnqeK+hCsTTLpmSWDCcmDArE0ma72IR9j1O
- ZT44uW+2o2p0FYpErFVJkn8wtRZy37EX4SrAC4Dz+vOplxDFAsHtEFBzc2nCLIXgo/SPTBoDXDo
- 9jFh1b9DtWkA3iQztaHFOcrY=
-X-Envelope-To: linux-rdma@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id cfb9d46c77c05127;
-	Fri, 16 Oct 2026 02:35:50 +0000
-X-Mizu-Trace-ID: cfb9d46c77c05127
-X-Migadu-Flow: FLOW_OUT
-Date: Fri, 16 Oct 2026 10:36:09 +0800
-From: Chenguang Zhao <chenguang.zhao@linux.dev>
-To: Tariq Toukan <tariqt@nvidia.com>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
-	Paolo Abeni <pabeni@redhat.com>, Cosmin Ratiu <cratiu@nvidia.com>,
-	Dragos Tatulea <dtatulea@nvidia.com>, Gal Pressman <gal@nvidia.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>, Jianbo Liu <jianbol@nvidia.com>,
-	Jiri Pirko <jiri@resnulli.us>, Leon Romanovsky <leon@kernel.org>,
-	open list <linux-kernel@vger.kernel.org>,
-	linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>,
-	Saeed Mahameed <saeedm@nvidia.com>, Shay Drori <shayd@nvidia.com>
-Subject: Re: [PATCH net] net/mlx5: Attach late uplink netdev to loaded
- representors
-Message-ID: <20261016023609.GA318264@pc>
-References: <20261006110219.257714-1-tariqt@nvidia.com>
+	s=arc-20240116; t=1792118739; c=relaxed/simple;
+	bh=QqmRt76cw0feAYYdqgTzhiJexD1f/46qnCyzzSgGQOY=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=TRGR2GpvFqZB82HN5zbmJj1FljOz3nS2aGCv+rzwDryC4luUqHTKlv/uX/uF2tlqT6+l74+fjms6qfiDoDXIQJdNd2USvzaI+lRADkR9CrdNjYaRWY2zgI5P+xMdBYwbgIspOPtWGYxX2OwyLiOt783fNdXi7QE5xEj5cv/JI6w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.167.199
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-oi1-f199.google.com with SMTP id 5614622812f47-4b2f2b8d88fso10084793b6e.2
+        for <linux-rdma@vger.kernel.org>; Thu, 15 Oct 2026 19:45:37 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792118737; x=1792723537;
+        h=content-type:to:from:subject:message-id:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=seQXTxHTBDCS8PCf+EWgSHwzgEZlNkH5MH0J2kC2r+M=;
+        b=OqB3qLUUnI332RcjmB1epm/C9wmENDoL4oHaDIcQCQF26TJYOVKQaxQTriz15yj1zM
+         vOXQGMVMlSUp2TqhJztNiXkHZxue4as2O1cbFGWUh4ouGBFwGkEZCwVzpyfutQAvWeHW
+         P8dQ6lEm4gCVDeYURAlkVJ0K9q9+t0K7sUGuHLJqDNViUKw3ar6/6t9iu2mdruxApxGd
+         G3qUxg1llvkPfRoKw6Ap9aKJpZ1g3t1RL3Ru9dQ/9QqfNWX6kA5+onq+msVlFMlSa7nO
+         +ZfcUZpIkAEYiUOiBawuvSpgZL4m2FnHwbO5gAhssB9eLJGm2GYM9w8QEn7hQyC9ySZ1
+         L7rA==
+X-Forwarded-Encrypted: i=1; AKwUvBwwNCTnswErSSiFSi7cE2tlnuKZB4D4ef3FihKUSRl8VTTWFE9Ki9WbowpPEP9Dm3pFUp06cBFl2sN1@vger.kernel.org
+X-Gm-Message-State: AFq9FYIGXw9QI9qBp1U6RuOQGxTMZaG4eBWq31oAu7kmq7r1dLPmY5ke
+	zVfCTY872XBNSoiFzKoSzoORus+Ofd7PE9Y+8x3sB697O+UFEvpPx8itdOfCEddR6criyj2y2MX
+	p0otGHaYIG+dw9yD4aw2JDJFd7bcwOxRM6L0zjkbX/ueA6hcx+UXqTuvLUsY=
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20261006110219.257714-1-tariqt@nvidia.com>
+X-Received: by 2002:a05:6808:4fdf:b0:4f5:6fff:3ac4 with SMTP id
+ 5614622812f47-50c516e42b7mr22514191b6e.41.1792118736843; Thu, 15 Oct 2026
+ 19:45:36 -0700 (PDT)
+Date: Thu, 15 Oct 2026 19:45:36 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6ad18fd0.7514cce4.1ece07.011f.GAE@google.com>
+Subject: [syzbot] [rds?] WARNING in __rds_conn_create (2)
+From: syzbot <syzbot+c3741bb338b5c6d6a4aa@syzkaller.appspotmail.com>
+To: achender@kernel.org, allison.henderson@oracle.com, davem@davemloft.net, 
+	edumazet@kernel.org, horms@kernel.org, kuba@kernel.org, 
+	linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, 
+	netdev@vger.kernel.org, pabeni@redhat.com, rds-devel@oss.oracle.com, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-On Tue, Oct 06, 2026 at 02:02:19PM +0300, Tariq Toukan wrote:
-> From: Jianbo Liu <jianbol@nvidia.com>
-> 
-> mlx5e_vport_uplink_rep_load() returns success when the uplink netdev is
-> missing, so the ETH rep is marked loaded with a NULL netdev, the IB rep
-> copies that NULL association, and nothing repairs it later. Unbind
-> mlx5_core.eth.<N> in legacy mode, enter switchdev, bind it again, and
-> rdma link show still reports no netdev on the uplink port. The netdev
-> also keeps the NIC profile instead of the uplink rep profile.
-> 
-> Add an attach_uplink_netdev rep op, run from the existing reload-reps
-> work once mlx5_core_uplink_netdev_set() reports a netdev. ETH re-runs
-> the uplink load, switching profile and setting rpriv->netdev; IB redoes
-> ib_device_set_netdev(). Deferring to the work keeps the devlink lock
-> out of probe context.
-> 
-> Fixes: 6b4be64fd9fe ("net/mlx5e: Harden uplink netdev access against device unbind")
-> Signed-off-by: Jianbo Liu <jianbol@nvidia.com>
-> Reviewed-by: Shay Drori <shayd@nvidia.com>
-> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
-> ---
->  drivers/infiniband/hw/mlx5/ib_rep.c           | 24 +++++++++++++
->  .../net/ethernet/mellanox/mlx5/core/en_rep.c  | 15 ++++++++
->  .../net/ethernet/mellanox/mlx5/core/eswitch.h |  3 ++
->  .../mellanox/mlx5/core/eswitch_offloads.c     | 35 +++++++++++++++++++
->  .../net/ethernet/mellanox/mlx5/core/main.c    |  3 ++
->  include/linux/mlx5/eswitch.h                  |  5 +++
->  6 files changed, 85 insertions(+)
-> 
-> diff --git a/drivers/infiniband/hw/mlx5/ib_rep.c b/drivers/infiniband/hw/mlx5/ib_rep.c
-> index 65d8767d1830..f9931a94157a 100644
-> --- a/drivers/infiniband/hw/mlx5/ib_rep.c
-> +++ b/drivers/infiniband/hw/mlx5/ib_rep.c
-> @@ -273,10 +273,34 @@ mlx5_ib_vport_rep_unload(struct mlx5_eswitch_rep *rep)
->  	}
->  }
->  
-> +static int
-> +mlx5_ib_vport_uplink_rep_attach_netdev(struct mlx5_core_dev *mdev,
-> +				       struct mlx5_eswitch_rep *rep)
-> +{
-> +	struct mlx5_ib_dev *dev = mlx5_ib_rep_to_dev(rep);
-> +	struct net_device *ndev;
-> +	int i;
-> +
-> +	/* Shared FDB slave uplinks share the master's IB device. */
-> +	if (!dev)
-> +		return 0;
-> +
-> +	ndev = mlx5_ib_get_rep_netdev(rep->esw, rep->vport);
-> +	if (!ndev)
-> +		return -ENODEV;
-> +
-> +	for (i = 0; i < dev->num_ports; i++)
-> +		if (dev->port[i].rep == rep)
-> +			return ib_device_set_netdev(&dev->ib_dev, ndev, i + 1);
-> +
-> +	return 0;
-> +}
-> +
->  static const struct mlx5_eswitch_rep_ops rep_ops = {
->  	.load = mlx5_ib_vport_rep_load,
->  	.unload = mlx5_ib_vport_rep_unload,
->  	.get_proto_dev = mlx5_ib_rep_to_dev,
-> +	.attach_uplink_netdev = mlx5_ib_vport_uplink_rep_attach_netdev,
->  };
->  
->  static void mlx5_ib_register_peer_vport_reps(struct mlx5_core_dev *mdev)
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-> index 88a170e40bd9..19812bf6a830 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-> @@ -1490,10 +1490,24 @@ mlx5e_vport_uplink_rep_load(struct mlx5_core_dev *dev, struct mlx5_eswitch_rep *
->  	rpriv->netdev = netdev;
->  	err = mlx5e_netdev_change_profile(netdev, dev,
->  					  &mlx5e_uplink_rep_profile, rpriv);
-> +	if (err)
-> +		rpriv->netdev = NULL;
->  	mlx5_uplink_netdev_put(dev, netdev);
->  	return err;
->  }
->  
-> +static int
-> +mlx5e_vport_uplink_rep_attach_netdev(struct mlx5_core_dev *dev,
-> +				     struct mlx5_eswitch_rep *rep)
-> +{
-> +	struct mlx5e_rep_priv *rpriv = mlx5e_rep_to_rep_priv(rep);
-> +
-> +	if (rpriv->netdev)
-> +		return 0;
-> +
-> +	return mlx5e_vport_uplink_rep_load(dev, rep);
-> +}
-> +
->  static void
->  mlx5e_vport_uplink_rep_unload(struct mlx5e_rep_priv *rpriv)
->  {
-> @@ -1741,6 +1755,7 @@ static const struct mlx5_eswitch_rep_ops rep_ops = {
->  	.unload = mlx5e_vport_rep_unload,
->  	.get_proto_dev = mlx5e_vport_rep_get_proto_dev,
->  	.event = mlx5e_vport_rep_event,
-> +	.attach_uplink_netdev = mlx5e_vport_uplink_rep_attach_netdev,
->  };
->  
->  static int mlx5e_rep_probe(struct auxiliary_device *adev,
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-> index 8b1f93b13ea9..3dd6931f13cd 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-> @@ -1012,6 +1012,7 @@ mlx5_esw_lag_demux_rule_create(struct mlx5_eswitch *esw, u16 vport_num,
->  			       struct mlx5_flow_table *lag_ft);
->  void mlx5_esw_reps_block(struct mlx5_eswitch *esw);
->  void mlx5_esw_reps_unblock(struct mlx5_eswitch *esw);
-> +void mlx5_esw_offloads_uplink_netdev_attach(struct mlx5_core_dev *dev);
->  #else  /* CONFIG_MLX5_ESWITCH */
->  /* eswitch API stubs */
->  static inline int  mlx5_eswitch_init(struct mlx5_core_dev *dev) { return 0; }
-> @@ -1098,6 +1099,8 @@ mlx5_esw_host_functions_enabled(const struct mlx5_core_dev *dev)
->  
->  static inline void mlx5_esw_reps_block(struct mlx5_eswitch *esw) {}
->  static inline void mlx5_esw_reps_unblock(struct mlx5_eswitch *esw) {}
-> +static inline void
-> +mlx5_esw_offloads_uplink_netdev_attach(struct mlx5_core_dev *dev) {}
->  
->  static inline bool
->  mlx5_esw_vport_vhca_id(struct mlx5_eswitch *esw, u16 vportn, u16 *vhca_id)
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-> index eb74b6260168..cf61bd76889c 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-> @@ -4842,6 +4842,29 @@ mlx5_eswitch_register_vport_reps_blocked(struct mlx5_eswitch *esw,
->  	}
->  }
->  
-> +static void mlx5_eswitch_attach_uplink_netdev(struct mlx5_eswitch *esw,
-> +					      struct mlx5_eswitch_rep *uplink)
-> +{
-> +	const struct mlx5_eswitch_rep_ops *ops;
-> +	int type;
-> +	int err;
-> +
-> +	for (type = 0; type < NUM_REP_TYPES; type++) {
-> +		if (atomic_read(&uplink->rep_data[type].state) != REP_LOADED)
-> +			continue;
-> +
-> +		ops = esw->offloads.rep_ops[type];
-> +		if (!ops || !ops->attach_uplink_netdev)
-> +			continue;
-> +
-> +		err = ops->attach_uplink_netdev(esw->dev, uplink);
-> +		if (err)
-> +			esw_warn(esw->dev,
-> +				 "Failed to attach uplink netdev to rep type %d, err(%d)\n",
-> +				 type, err);
-> +	}
-> +}
-> +
->  static void mlx5_eswitch_reload_reps_blocked(struct mlx5_eswitch *esw)
->  {
->  	struct mlx5_eswitch_rep *uplink;
-> @@ -4862,6 +4885,8 @@ static void mlx5_eswitch_reload_reps_blocked(struct mlx5_eswitch *esw)
->  		return;
->  	}
->  
-> +	mlx5_eswitch_attach_uplink_netdev(esw, uplink);
-> +
->  	if (mlx5_get_sd(esw->dev) && !mlx5_lag_is_active(esw->dev))
->  		return;
->  
-> @@ -4886,6 +4911,16 @@ static void mlx5_eswitch_reload_reps(struct mlx5_eswitch *esw)
->  	mlx5_esw_reps_unblock(esw);
->  }
->  
-> +void mlx5_esw_offloads_uplink_netdev_attach(struct mlx5_core_dev *dev)
-> +{
-> +	struct mlx5_eswitch *esw = dev->priv.eswitch;
-> +
-> +	if (!mlx5_esw_allowed(esw))
-> +		return;
-> +
-> +	mlx5_esw_add_work(esw, mlx5_eswitch_reload_reps, GFP_KERNEL);
-> +}
-> +
->  static void
->  mlx5_eswitch_register_vport_reps_locked(struct mlx5_eswitch *esw,
->  					const struct mlx5_eswitch_rep_ops *ops,
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-> index 5f28d906c35b..ab93c807b58c 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-> @@ -278,6 +278,9 @@ void mlx5_core_uplink_netdev_set(struct mlx5_core_dev *dev, struct net_device *n
->  	mlx5_blocking_notifier_call_chain(dev, MLX5_DRIVER_EVENT_UPLINK_NETDEV,
->  					  netdev);
->  	mutex_unlock(&dev->mlx5e_res.uplink_netdev_lock);
-> +
-> +	if (netdev)
-> +		mlx5_esw_offloads_uplink_netdev_attach(dev);
->  }
->  
->  void mlx5_core_uplink_netdev_event_replay(struct mlx5_core_dev *dev)
-> diff --git a/include/linux/mlx5/eswitch.h b/include/linux/mlx5/eswitch.h
-> index a0dd162baa78..e823fbe7ff40 100644
-> --- a/include/linux/mlx5/eswitch.h
-> +++ b/include/linux/mlx5/eswitch.h
-> @@ -43,6 +43,11 @@ struct mlx5_eswitch_rep_ops {
->  		     struct mlx5_eswitch_rep *rep,
->  		     enum mlx5_switchdev_event event,
->  		     void *data);
-> +	/* Attach an uplink netdev that showed up only after the uplink
-> +	 * representor was already loaded.
-> +	 */
-> +	int (*attach_uplink_netdev)(struct mlx5_core_dev *dev,
-> +				    struct mlx5_eswitch_rep *rep);
->  };
->  
->  struct mlx5_eswitch_rep_data {
-> 
-> base-commit: d5a007b9b457c915ab1a53227e8939e4018aa97a
-> -- 
-> 2.44.0
-> 
-Hi all,
+Hello,
 
-I’m wondering if we could add a check during mode configuration to
-disallow mode switching when the device is unbound.
+syzbot found the following issue on:
 
-Maybe we can call `mlx5_uplink_netdev_get()` within `mlx5_devlink_eswitch_mode_set()`
-to retrieve the netdev, and return `-ENODEV` if it comes back NULL.
+HEAD commit:    0fcb05b72344 Merge tag 'libcrypto-fixes-for-linus' of git:..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=11e64dd1580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=4ccb65e03706547e
+dashboard link: https://syzkaller.appspot.com/bug?extid=c3741bb338b5c6d6a4aa
+compiler:       Debian clang version 22.1.8 (1~deb13u4), Debian LLD 22.1.8
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=14ef43c9580000
 
-What do you think about this approach?
+Downloadable assets:
+disk image (non-bootable): https://storage.googleapis.com/syzbot-assets/d900f083ada3/non_bootable_disk-0fcb05b7.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/d63a4093e9d7/vmlinux-0fcb05b7.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/238bf14f8b3f/bzImage-0fcb05b7.xz
+mounted in repro: https://storage.googleapis.com/syzbot-assets/b883c5a2bb3e/mount_0.gz
+  fsck result: failed (log: https://syzkaller.appspot.com/x/fsck.log?x=13f70fd1580000)
 
-Thanks
-Chenguang
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+c3741bb338b5c6d6a4aa@syzkaller.appspotmail.com
+
+XFS (loop0): Quotacheck: Done.
+------------[ cut here ]------------
+raw_local_irq_restore() called with IRQs enabled
+WARNING: kernel/locking/irqflag-debug.c:10 at warn_bogus_irq_restore+0xc/0x20 kernel/locking/irqflag-debug.c:10, CPU#0: syz.0.18/5745
+Modules linked in:
+CPU: 0 UID: 0 PID: 5745 Comm: syz.0.18 Not tainted syzkaller #0 PREEMPT(full) 
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+RIP: 0010:warn_bogus_irq_restore+0xc/0x20 kernel/locking/irqflag-debug.c:10
+Code: cc cc cc cc cc cc cc cc cc cc cc cc cc cc 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 f3 0f 1e fa 90 48 8d 3d c4 18 93 05 <67> 48 0f b9 3a 90 e9 99 04 03 00 cc cc cc cc cc cc cc cc cc 90 90
+RSP: 0018:ffffc9000797f8c0 EFLAGS: 00010206
+RAX: 0000000000000202 RBX: 0000000000000287 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000004 RDI: ffffffff917dce80
+RBP: ffffc9000797fa40 R08: ffffffff914a10e3 R09: 1ffffffff229421c
+R10: dffffc0000000000 R11: fffffbfff229421d R12: ffffffff8b2acb15
+R13: ffff888051146318 R14: ffffffff914a10e0 R15: 0000000000000287
+FS:  00007f7afe2f56c0(0000) GS:ffff88808b0b4000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f7afd3ebc40 CR3: 000000004db87000 CR4: 0000000000352ef0
+Call Trace:
+ <TASK>
+ __raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:210 [inline]
+ _raw_spin_unlock_irqrestore+0x67/0x80 kernel/locking/spinlock.c:221
+ spin_unlock_irqrestore include/linux/spinlock.h:425 [inline]
+ __rds_conn_create+0x1de5/0x2290 net/rds/connection.c:364
+ rds_conn_create_outgoing+0x43/0x60 net/rds/connection.c:394
+ rds_sendmsg+0xfca/0x20e0 net/rds/send.c:1348
+ sock_sendmsg_nosec+0x13a/0x180 net/socket.c:800
+ __sock_sendmsg net/socket.c:815 [inline]
+ __sys_sendto+0x408/0x5a0 net/socket.c:2281
+ __do_sys_sendto net/socket.c:2288 [inline]
+ __se_sys_sendto net/socket.c:2284 [inline]
+ __x64_sys_sendto+0xde/0x100 net/socket.c:2284
+ do_syscall_x64 arch/x86/entry/syscall_64.c:61 [inline]
+ do_syscall_64+0x166/0x520 arch/x86/entry/syscall_64.c:84
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7f7afd39e559
+Code: ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 e8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f7afe2f5028 EFLAGS: 00000246 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: 00007f7afd625fa0 RCX: 00007f7afd39e559
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000004
+RBP: 00007f7afd4358b0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007f7afd626038 R14: 00007f7afd625fa0 R15: 00007ffd156f7018
+ </TASK>
+----------------
+Code disassembly (best guess):
+   0:	cc                   	int3
+   1:	cc                   	int3
+   2:	cc                   	int3
+   3:	cc                   	int3
+   4:	cc                   	int3
+   5:	cc                   	int3
+   6:	cc                   	int3
+   7:	cc                   	int3
+   8:	cc                   	int3
+   9:	cc                   	int3
+   a:	cc                   	int3
+   b:	cc                   	int3
+   c:	cc                   	int3
+   d:	cc                   	int3
+   e:	90                   	nop
+   f:	90                   	nop
+  10:	90                   	nop
+  11:	90                   	nop
+  12:	90                   	nop
+  13:	90                   	nop
+  14:	90                   	nop
+  15:	90                   	nop
+  16:	90                   	nop
+  17:	90                   	nop
+  18:	90                   	nop
+  19:	90                   	nop
+  1a:	90                   	nop
+  1b:	90                   	nop
+  1c:	90                   	nop
+  1d:	90                   	nop
+  1e:	f3 0f 1e fa          	endbr64
+  22:	90                   	nop
+  23:	48 8d 3d c4 18 93 05 	lea    0x59318c4(%rip),%rdi        # 0x59318ee
+* 2a:	67 48 0f b9 3a       	ud1    (%edx),%rdi <-- trapping instruction
+  2f:	90                   	nop
+  30:	e9 99 04 03 00       	jmp    0x304ce
+  35:	cc                   	int3
+  36:	cc                   	int3
+  37:	cc                   	int3
+  38:	cc                   	int3
+  39:	cc                   	int3
+  3a:	cc                   	int3
+  3b:	cc                   	int3
+  3c:	cc                   	int3
+  3d:	cc                   	int3
+  3e:	90                   	nop
+  3f:	90                   	nop
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
