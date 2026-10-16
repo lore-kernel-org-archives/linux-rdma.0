@@ -1,44 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD87E310779
-	for <linux-rdma@vger.kernel.org>; Fri, 16 Oct 2026 20:44:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 693C23909A8
+	for <linux-rdma@vger.kernel.org>; Fri, 16 Oct 2026 20:46:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792183491; cv=none; b=Q/cv1Fu/ZE8x3C+3TJyKIVag94ZnGTqTQB7kkGzkJ/D5S0B3Fz1dkj0g98pkn19g0nwIzzDrpfOplb+U8JXpai1R86f3QfNoQgwRYsIullBKKvPpar4dZtZDIzS1l1fNC9Krj6qxABa6l/J9JUyWsSe+x6Vf4NS3QcPYRKDm/nY=
+	t=1792183577; cv=none; b=SJ40H3YFl3KDHQ4IojzuNQBrOe5ob+vlySm51m8OvaPvLM6RyvEB7redo2g2UFmGDabGnQRcxvWVEK4tszC0RHDNTZy/DHB3bZeXlBi/AcxwtUVcjUrgpIxSb2aQTpFUuOH1hIDiLVHo71p7l5uiPIndsVLC7RwXe2rfxG55Oc0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792183491; c=relaxed/simple;
-	bh=pryuswcJbUSyNcmUXAO70h7KiOtZKCy+3mgHn8s50kY=;
+	s=arc-20240116; t=1792183577; c=relaxed/simple;
+	bh=mk7vSK46gj6yPa7UBEkItMbAXZ8LkaP8vKDJVB2xA1Q=;
 	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=KNty5yK73u4IFRMb4RIv4CIPEHjUXo0rniY9oINvKFSbcS+Gu5+osLYOoEnNK9uq6s0k1q2BhKD8ChfXJtvFx1htMvBW1F8PKeG+C9ybbAHcrsEZYxniHPBa1tE73g8hsaaII2geT/FJPBiKxc98Gi1Rcs3O7CB0hPa1YUccY/M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GSmcvgeW; arc=none smtp.client-ip=100.103.45.18
+	 Date; b=RRUD+r4g9kRIDFkBPMoEQe9vCK8dGdEV7b+olzHx+EByaZnzHOHedvsxjtAKRdvRbK6o/h74Fpsp4JcCCR9bmsvIYwxpEoEqo5v5mVMyrcOv2eJQ1n62efS2lR4XBW0MrHo+0kqVRSY60/c/faXPuEO0R/UzHm8lZfRgmdo5RUw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nSealeo8; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GSmcvgeW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F80D1F000C4;
-	Fri, 16 Oct 2026 20:44:50 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nSealeo8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0E981F000C4;
+	Fri, 16 Oct 2026 20:46:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792183490;
-	bh=a3jOpEzTfyr2l1s0QXl3myrihcMIPb8XbIVEbuoRv48=;
+	s=k20260515; t=1792183576;
+	bh=c6K6f4Nmd6bKVCSkenAaqiosIzapZgNwVMZpHPKxmU4=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=GSmcvgeWvcYIJfBuzL4Od2My7VcrMMEX50JWC6Epfm6NbDBZx94hMB7KfLRiHDlxc
-	 WDyexbI3Uz1G7XQOpBbfhK/tq5g41J801nV2kb6wpdz5g06ofBrGhY/k94iQHZfhD1
-	 m+V0s2Q3HXw2daz1A9LQ3fOxbjD21LxkFavw9CrKhpChISlFvOZxBRKTl3LJV5pGRq
-	 5OnNm/40CDNMTKwgWIb7L/qAwXN9iK8MPFpjI/3FbJeRo/tR9DVnpZqTLtKqaFPe/a
-	 6FPDWaQKlOUICHFGVJ9SwOTqT0BYEoXTB88MHAKx21Pm/pqHXOeoG6ZqV8GVDlOHiZ
-	 aiUmUoLvqim2g==
-Message-ID: <sashiko-outbox-174921@kernel.org>
+	b=nSealeo8A5FVqdcexcGo99C/zPrw07RJzFbcRUZ178A9a1H8Kl+pDgJqLVYvrL+oQ
+	 D2soyu6kPnmTIgneKtv1UGSC//Rs1q/2l9TRgd2Ai7+2ON2rfVaqLJU8EAWSArEeu7
+	 EgMSgFSzl79wuoGQzaPwp02xfHfgLzMHAdRRsVEuRfGJ6KTZwHPTurZWbZqbrpP9h8
+	 Ny5lHCZi5JmYmlOS/kKki7AA4YINVJAoyoO0WSPSZV8yFO8Y9kEABwcVsDNZmP0SJq
+	 4MJr5OPfs0eDV4mDwcrcxbL9IFsHx+jsuXIvHtYuWl61XffV/3lxFt2AqVLRh1Os3V
+	 9SBJRS3wWPxaw==
+Message-ID: <sashiko-outbox-174922@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v3 4/6] RDMA/irdma: Split CQ setup to umode
- and kmode
+Subject: Re: [PATCH rdma-next v3 3/6] RDMA/irdma: Support UMEM attribute for
+ QP creation
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "David Hu" <dhu@x6u.co>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261016202909.1289496-5-dhu@x6u.co>
+In-Reply-To: <20261016202909.1289496-4-dhu@x6u.co>
 References: <20261016202909.1289496-1-dhu@x6u.co>
- <20261016202909.1289496-5-dhu@x6u.co>
+ <20261016202909.1289496-4-dhu@x6u.co>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 16 Oct 2026 20:44:49 +0000
+Date: Fri, 16 Oct 2026 20:46:15 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -47,147 +47,173 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 Thank you for your contribution! Sashiko AI review found 1 potential issue(=
 s) to consider:
-- [High] RDMA/irdma: wrong CQ ID freed in irdma_cq_free_rsrc() on create er=
-ror
+- [Critical] RDMA/irdma: invalid sg_page() on dmabuf QP umem in irdma_copy_=
+user_pgaddrs()
 --
 
-commit eb0afaa9db2faa3b9d9fcbdc4f3146cc0d4e7d19
+commit 200a925805870f2d575192eafe96be3cef694b7d
 Author: David Hu <xuehaohu@google.com>
 
-RDMA/irdma: Split CQ setup to umode and kmode
+RDMA/irdma: Support UMEM attribute for QP creation
 
-This commit separates user-mode and kernel-mode CQ creation by adding the
-irdma_create_user_cq() callback and refactoring common setup logic into
-shared helper functions.
+This commit adds support for the 1-step queue buffer creation model for QPs
+via UVERBS_ATTR_CREATE_QP_BUF_UMEM and ib_umem_get_attr(), while retaining
+backward compatibility with the legacy 2-step MR registration model.
 
 > diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/=
 irdma/verbs.c
-> index ab25445f38282..4b7e9c2d9cff5 100644
+> index b2ffdc8e3d677..ab25445f38282 100644
 > --- a/drivers/infiniband/hw/irdma/verbs.c
 > +++ b/drivers/infiniband/hw/irdma/verbs.c
-> @@ -2624,41 +2624,198 @@ static inline int cq_validate_flags(u32 flags, u=
-8 hw_rev)
->  	return flags & ~IB_UVERBS_CQ_FLAGS_TIMESTAMP_COMPLETION ? -EOPNOTSUPP :=
- 0;
+[ ... ]
+> @@ -713,6 +708,52 @@ static int irdma_setup_umode_qp(struct irdma_ucontex=
+t *ucontext,
+>  		ukinfo->rq_size =3D ukinfo->rq_depth >> ukinfo->rq_shift;
+>  	}
+> =20
+> +	if (attrs && uverbs_attr_is_valid(attrs, UVERBS_ATTR_CREATE_QP_BUF_UMEM=
+)) {
+> +		struct irdma_mem_reg_req qp_req =3D {};
+> +		struct ib_umem *umem;
+> +		u32 total;
+> +
+> +		/* Legacy context does not provide depth info */
+> +		if (!ucontext->use_raw_attrs)
+> +			return -EOPNOTSUPP;
+> +
+> +		qp_req.sq_pages =3D DIV_ROUND_UP(ukinfo->sq_depth * IRDMA_QP_WQE_MIN_S=
+IZE,
+> +					       IRDMA_HW_PAGE_SIZE);
+> +		/* In case srq is used, this will be a single page */
+> +		qp_req.rq_pages =3D DIV_ROUND_UP(ukinfo->rq_depth * IRDMA_QP_WQE_MIN_S=
+IZE,
+> +					       IRDMA_HW_PAGE_SIZE);
+> +		total =3D qp_req.sq_pages + qp_req.rq_pages + IRDMA_SHADOW_PGCNT;
+> +
+> +		umem =3D ib_umem_get_attr(&iwdev->ibdev, attrs,
+> +					UVERBS_ATTR_CREATE_QP_BUF_UMEM,
+> +					total << IRDMA_HW_PAGE_SHIFT,
+> +					IB_ACCESS_LOCAL_WRITE);
+> +		if (IS_ERR(umem))
+> +			return PTR_ERR(umem);
+> +
+> +		iwqp->iwpbl =3D irdma_setup_q_pbl_from_umem(iwdev, umem,
+> +							  iwqp->ibqp.pd,
+> +							  IRDMA_MEMREG_TYPE_QP,
+> +							  &qp_req);
+[ ... ]
+> @@ -3532,6 +3574,64 @@ static void irdma_free_iwmr(struct irdma_mr *iwmr)
+>  	kfree(iwmr);
 >  }
 > =20
-> -/**
-> - * irdma_create_cq - create cq
-> - * @ibcq: CQ allocated
-> - * @attr: attributes for cq
-> - * @attrs: uverbs attribute bundle
-> - */
-> -static int irdma_create_cq(struct ib_cq *ibcq,
-> -			   const struct ib_cq_init_attr *attr,
-> -			   struct uverbs_attr_bundle *attrs)
-> +static int __irdma_create_cq(struct irdma_device *iwdev,
-> +			     struct irdma_cq *iwcq,
-> +			     struct irdma_cq_init_info *info,
-> +			     struct ib_udata *udata)
->  {
-[ ... ]
-> +	info->shadow_read_threshold =3D min(info->cq_uk_init_info.cq_size / 2,
-> +					  (u32)IRDMA_MAX_CQ_READ_THRESH);
+> +static struct irdma_pbl *irdma_setup_q_pbl_from_umem(struct irdma_device=
+ *iwdev,
+> +						     struct ib_umem *region,
+> +						     struct ib_pd *pd,
+> +						     enum irdma_memreg_type reg_type,
+> +						     struct irdma_mem_reg_req *req)
+> +{
+> +	struct irdma_pbl *iwpbl;
+> +	struct irdma_mr *iwmr;
+> +	u32 total;
+> +	u8 lvl;
+> +	int err;
 > +
-> +	if (irdma_sc_cq_init(cq, info)) {
-> +		ibdev_dbg(&iwdev->ibdev, "VERBS: init cq fail\n");
-> +		err_code =3D -EPROTO;
-> +		goto cq_free_rsrc;
-> +	}
+> +	/* iWarp: Catch page not starting on OS page boundary */
+> +	if (!rdma_protocol_roce(&iwdev->ibdev, 1) && ib_umem_offset(region))
+> +		return ERR_PTR(-EINVAL);
 
-[ ... ]
+[Severity: Critical]
+Can passing an IB_UVERBS_BUFFER_TYPE_DMABUF descriptor via
+UVERBS_ATTR_CREATE_QP_BUF_UMEM cause a NULL pointer dereference or write to
+the wrong page during iWARP connection establishment?
 
-> @@ -2674,169 +2831,99 @@ static int irdma_create_cq(struct ib_cq *ibcq,
->  	iwcq->cq_num =3D cq_num;
->  	iwcq->iwpbl =3D NULL;
->  	iwcq->iwpbl_shadow =3D NULL;
-> -	info.dev =3D dev;
-> +	info->dev =3D dev;
->  	ukinfo->cq_size =3D max(entries, 4);
->  	ukinfo->cq_id =3D cq_num;
-[ ... ]
-> +static int irdma_create_user_cq(struct ib_cq *ibcq,
-> +				const struct ib_cq_init_attr *attr,
-> +				struct uverbs_attr_bundle *attrs)
-> +{
-[ ... ]
-> +	err_code =3D irdma_alloc_cq(iwdev, iwcq, attr, &info);
-> +	if (err_code)
-> +		return err_code;
-> =20
-> -		if (entries * cqe_size =3D=3D IRDMA_HW_PAGE_SIZE)
-> -			entries +=3D 2;
-> +	err_code =3D irdma_setup_umode_cq(iwdev, iwcq, &info, attrs);
-> +	if (err_code)
-> +		goto cq_free_rsrc;
-> =20
-> -		ukinfo->cq_size =3D entries;
-> +	return __irdma_create_cq(iwdev, iwcq, &info, udata);
-> +cq_free_rsrc:
-> +	irdma_cq_free_rsrc(rf, iwcq);
-> =20
-> +	return err_code;
-> +}
-> =20
-> +/**
-> + * irdma_create_cq - create kmode cq
-> + * @ibcq: CQ allocated
-> + * @attr: attributes for cq
-> + * @attrs: uverbs attribute bundle
-> + */
-> +static int irdma_create_cq(struct ib_cq *ibcq,
-> +			   const struct ib_cq_init_attr *attr,
-> +			   struct uverbs_attr_bundle *attrs)
-> +{
-[ ... ]
-> +	err_code =3D irdma_alloc_cq(iwdev, iwcq, attr, &info);
-> +	if (err_code)
-> +		return err_code;
-> =20
-> +	err_code =3D irdma_setup_kmode_cq(iwdev, iwcq, &info, attr);
->  	if (err_code)
->  		goto cq_free_rsrc;
-> =20
-> +	return __irdma_create_cq(iwdev, iwcq, &info, NULL);
->  cq_free_rsrc:
->  	irdma_cq_free_rsrc(rf, iwcq);
+In irdma_setup_umode_qp(), ib_umem_get_attr() resolves the buffer descriptor
+through __ib_umem_get_desc_dir(), which accepts both IB_UVERBS_BUFFER_TYPE_=
+VA
+and IB_UVERBS_BUFFER_TYPE_DMABUF. Previously, IRDMA_MEMREG_TYPE_QP MRs could
+only be registered via irdma_reg_user_mr() -> ib_umem_get_va(), whereas
+irdma_reg_user_mr_dmabuf() hardcoded IRDMA_MEMREG_TYPE_MEM.
 
-[Severity: High]
-This problem wasn't introduced by this patch, but if irdma_setup_umode_cq()
-in irdma_create_user_cq(), irdma_setup_kmode_cq() in irdma_create_cq(), or
-the early PBLE bounds check in irdma_sc_cq_init() fails, does
-irdma_cq_free_rsrc() free the wrong CQ ID from rf->allocated_cqs?
+When irdma_setup_q_pbl_from_umem() calls irdma_handle_q_mem() ->
+irdma_setup_pbles() -> irdma_copy_user_pgaddrs(), the driver extracts the
+first SQ page from the scatterlist:
 
-In irdma_alloc_cq(), the allocated cq_num is saved in iwcq->cq_num and
-ukinfo->cq_id:
-
-	iwcq->cq_num =3D cq_num;
-	...
-	ukinfo->cq_id =3D cq_num;
-
-However, cq->cq_uk.cq_id is only populated later inside __irdma_create_cq()
-when irdma_sc_cq_init() calls irdma_uk_cq_init(&cq->cq_uk,
-&info->cq_uk_init_info).
-
-Before that happens, cq->cq_uk.cq_id is still 0, while irdma_cq_free_rsrc()
-frees cq->cq_uk.cq_id:
-
-drivers/infiniband/hw/irdma/verbs.c:irdma_cq_free_rsrc() {
-	...
-	irdma_free_rsrc(rf, rf->allocated_cqs, cq->cq_uk.cq_id);
+drivers/infiniband/hw/irdma/verbs.c:irdma_copy_user_pgaddrs() {
+	if (iwmr->type =3D=3D IRDMA_MEMREG_TYPE_QP)
+		iwpbl->qp_mr.sq_page =3D sg_page(region->sgt_append.sgt.sgl);
 }
 
-When one of these pre-init error paths jumps to cq_free_rsrc, wouldn't this
-leak iwcq->cq_num and clear reserved bit 0 (IRDMA_RSVD_CQ_ID_CQP) in
-rf->allocated_cqs instead?
+and irdma_setup_virt_qp() assigns iwqp->page =3D qpmr->sq_page, while
+iwqp->sc_qp.qp_uk.sq_base remains NULL for a user-mode QP.
 
+On an iWARP device, irdma_accept() and irdma_cm_event_connected() map
+iwqp->page to write the LSMM or RTT WQE:
+
+drivers/infiniband/hw/irdma/cm.c:irdma_accept() {
+	if (iwqp->page)
+		iwqp->sc_qp.qp_uk.sq_base =3D kmap_local_page(iwqp->page);
+
+	cm_node->lsmm_size =3D accept.size + conn_param->private_data_len;
+	irdma_sc_send_lsmm(&iwqp->sc_qp, iwqp->ietf_mem.va, cm_node->lsmm_size,
+			   ibmr->lkey);
+}
+
+drivers/infiniband/hw/irdma/cm.c:irdma_cm_event_connected() {
+	if (iwqp->page)
+		iwqp->sc_qp.qp_uk.sq_base =3D kmap_local_page(iwqp->page);
+	irdma_sc_send_rtt(&iwqp->sc_qp, read0);
+	if (iwqp->page)
+		kunmap_local(iwqp->sc_qp.qp_uk.sq_base);
+}
+
+With a dmabuf-backed ib_umem, calling sg_page() on the scatterlist breaks in
+two ways:
+
+1. When CONFIG_DMABUF_DEBUG is enabled (where dma_buf_wrap_sg_table() clears
+   page_link) or when the exporter does not populate struct page pointers
+   (such as uverbs_dmabuf or P2P/MMIO exporters), sg_page() returns NULL.
+   This leaves iwqp->page NULL, so irdma_accept() and
+   irdma_cm_event_connected() skip kmap_local_page() and pass a NULL
+   qp_uk->sq_base into irdma_sc_send_lsmm() / irdma_sc_send_rtt(), which
+   immediately dereferences qp_uk->sq_base->elem.
+
+2. Even when sg_page() is populated by a system-RAM exporter, if userspace
+   passes a non-zero page-aligned offset within a coalesced multi-page SG
+   entry, ib_umem_dmabuf_map_pages() advances sg_dma_address(sg) and
+   decrements sg_dma_len(sg) in place without updating sg->page_link:
+
+   drivers/infiniband/core/umem_dmabuf.c:ib_umem_dmabuf_map_pages() {
+		if (cur <=3D start && start < cur + sg_dma_len(sg)) {
+			unsigned long offset =3D start - cur;
+
+			umem_dmabuf->first_sg =3D sg;
+			umem_dmabuf->first_sg_offset =3D offset;
+			sg_dma_address(sg) +=3D offset;
+			sg_dma_len(sg) -=3D offset;
+			cur +=3D offset;
+		}
+   }
+
+   As a result, sg_page(region->sgt_append.sgt.sgl) points to the start of
+   that SG segment rather than the SQ page at the requested offset, causing
+   kmap_local_page(iwqp->page) to map and overwrite the wrong page.
+
+Should irdma_setup_q_pbl_from_umem() (or irdma_setup_umode_qp()) reject
+region->is_dmabuf, at least when !rdma_protocol_roce(&iwdev->ibdev, 1) (or
+unconditionally if dmabuf queue rings are not supported)?
+
+> +
+> +	iwmr =3D irdma_alloc_iwmr(region, &iwdev->ibdev, pd, region->address, r=
+eg_type);
+> +	if (IS_ERR(iwmr))
+> +		return ERR_CAST(iwmr);
 [ ... ]
 
->
-> --=20
-> 2.51.2
->
+=E0=A6=93=E0=A7=9F=E0=A6=BE=E0=A6=93! (Wait, let me make sure there is no e=
+xtra text at the end! Oh! Why did those characters appear? Let me remove th=
+at!)
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261016202909.1289=
-496-1-dhu@x6u.co?part=3D4
+496-1-dhu@x6u.co?part=3D3
