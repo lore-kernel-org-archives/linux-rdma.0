@@ -1,79 +1,129 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f198.google.com (mail-qk1-f198.google.com [209.85.222.198])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D86EB5349D6
-	for <linux-rdma@vger.kernel.org>; Fri, 16 Oct 2026 16:25:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F5A442AD83
+	for <linux-rdma@vger.kernel.org>; Fri, 16 Oct 2026 18:09:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.198
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792167921; cv=none; b=OA0NZLuPktEuTm3toCNYRKcH6pL14Hp7M5z0swUXZYmM1fsOwwrjxwg2RZWPXbK93ukc+6mKYa69bDGEbpWrD0li5JXMlm18q7IV9sCsYrbJnTShMQVUP5cPWV9Gx6MfUw0aaghZg3VpuvYta07MbXDpIw95WBJR5k3FUbDU20M=
+	t=1792174165; cv=none; b=CN1EKenxx7j9Utu4hFCob0bQ7/s9Xlod7ijxp4UZzghI1CvSNjM4yHqQPagjnpJP/0H7RKVlqf7sXcNN8McN7X3OmLrqEqjrzMh+z5IMmnFkbXzWWtcaVswybGYuyOVUJ4Dehu1Pw+VB/ykawruhoW6VaT8q0SgCDiwkgpHV5nA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792167921; c=relaxed/simple;
-	bh=XDkx3QY5nAsuZeGv6BbqXSEejTn0Ffny9Xr6q7G13/s=;
-	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=dI2nqAqrGB1JOSHStW2xZM3z4Byagi37W50LL0aBujVYLXJIOiWtsvAUijmInI4RfLnHmbBq97yNWFP+AMOB44/NUhlohcL0rAj3gcX4JKrv22JHhZW+q95fw7K4wL1EExV/VXuo3TIz4DOxEbl0bK8tsrMyRtCTU0ONBTf9UnU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=i9Jp7Yf9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792174165; c=relaxed/simple;
+	bh=CT+aP+Huhs19lopW7GVrHaBvhhJka4Am8V+Pr/EFfhA=;
+	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=M9vF5eU8C0KA7bx0WGg6GVTtOl31w+gX7yNiVHSGA39HwRCWpoySu/+HB5xDVzi/aR1DiPVIuL1W0ExAxUI5Fa0rdk9Ie4NU/ae4DbAjoeLUPFpbAsMyiRDDYsKQGCW4Ikt0T4efpSB2R+B1eo+afmziqUYW1YI95fiPylb/g5c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=AZ6Ay8Io; arc=none smtp.client-ip=209.85.222.198
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="i9Jp7Yf9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E02F1F000C5;
-	Fri, 16 Oct 2026 16:25:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792167918;
-	bh=ujJHxTOy0lmU5cd26txqU8r2ra6Uy/OtfzShHBw2Za4=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=i9Jp7Yf9tss2ouwrGPjA2B05H5qMbXzmXeI9a4IzAkv9sxd/3glSYplRS2d0jWYOJ
-	 FUTIZ873j1ZNRrg0ygfO0Gymo6169+W7RKVFREUCvxHJtJJ7pd48LwAkOi3/pm5qNz
-	 IV8oPOYWqZRpWZ/91bRDDRpKA88MEa4mVdwhJ4fd+Bp/ykBySspI37fwb4z0pquXR4
-	 YFDFseEn1dV4jsC2vIVrIeotMWRgbhY00CMH+lMT6rsJ/6nRgfS0Qw4/uPJThAwT91
-	 hNQR7PQoOR2ldH3hRQ5aBtMXRc8b7fU6nBe0wwclayNFS0nVZVK5zIxERAwage+2i2
-	 jv+C8KpOT0cCg==
-Message-ID: <sashiko-outbox-174636@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH] net/rds: ib: don't enable IRQs in rds_ib_conn_free()
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Nguyen Ngoc Thang" <ngocthang2710.1999@gmail.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261016161525.146537-1-ngocthang2710.1999@gmail.com>
-References: <20261016161525.146537-1-ngocthang2710.1999@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Fri, 16 Oct 2026 16:25:17 +0000
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="AZ6Ay8Io"
+Received: by mail-qk1-f198.google.com with SMTP id af79cd13be357-93c5ab5c136so36173585a.3
+        for <linux-rdma@vger.kernel.org>; Fri, 16 Oct 2026 11:09:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1792174159; x=1792778959; darn=vger.kernel.org;
+        h=content-type:cc:to:from:subject:message-id:mime-version:date:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=BnJ8yk4bRz6nTLNfVcOjbffzZYxPGW60EpbrIIckClI=;
+        b=AZ6Ay8IoFvcgoM+PBsR8cFSquJlPz3nZdT+BUVnNbQ4GF2YhzEiGvdE/KPyilk6fyX
+         22m8cnTLLrGLkhLFbk8ouPjozS6yCU0xbZU/jOS0al13Tuls0GWdVQDLszvi4rz/077F
+         sdfGqcZeY0h/yafoKbKahUWYuLFYf0OXrqIsNBebizGcEct9sg69wdEppxcB1lPlo5L7
+         vmvl47SGxDId3xjkCqxq0Bi50ExHBfxzyZu2euLmS8qx2Vk1il7tM8fHYBdfmwwZHAen
+         YBRBpLoFHxuKBsnywayxFfzLYzAZVe4++TwHQsx9IO6lauxnVzXMSCy2JIDFspmB15zW
+         TOkg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792174159; x=1792778959;
+        h=content-type:cc:to:from:subject:message-id:mime-version:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=BnJ8yk4bRz6nTLNfVcOjbffzZYxPGW60EpbrIIckClI=;
+        b=rIwDLomT1hkltLefHt4toFsZm3NKNrhGUHeWw6P8CgJp2hBtD7XWk+ImFFn3fN8C84
+         /hribasNggR3eML16+08uRcTv6eEn3CE5ZQYE+0lRj6mYgSn1D5yWPHqUEeaEFDhatow
+         ZmHWhesTasY51dgAK6UFeKgn5VfUvG3mk2MA4qYxGfp+hJt0BJtsisWHaQYrBHDiNriS
+         xelXSGhURmFWupVBywPTuEXGZotphqmRs5jOR68kKYjPO8HpFG+leD9iwotEOjBn/Du4
+         79+5Iig0WhW2eFKrAy2vpavl5o+x7QuHZXSdUDPfjBBGJGaD43oTgGXytg1zjaX5VMTY
+         n/Gg==
+X-Gm-Message-State: AFq9FYJLaYyRyIJfNeWNzcsNE1z5aQjgou1dIoJbfP4XJ02ufGQNQCG9
+	i7Dt6I6YNFX1HSoIvgECAAHti9PlFmLs9L4vjM6dHoAIu4n8w0wgFEJVltkhoZgiNtDbbnUFwk0
+	rH158dXBUfg==
+X-Received: from qkfw12.prod.google.com ([2002:ae9:e50c:0:b0:93f:130b:e0b])
+ (user=jmoroni job=prod-delivery.src-stubby-dispatcher) by 2002:a05:620a:1a08:b0:93e:5fff:db07
+ with SMTP id af79cd13be357-93f29d56d38mr103254085a.40.1792174158802; Fri, 16
+ Oct 2026 11:09:18 -0700 (PDT)
+Date: Fri, 16 Oct 2026 18:09:01 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.56.0.176.g3575e65682-goog
+Message-ID: <20261016180901.3292775-1-jmoroni@google.com>
+Subject: [PATCH] RDMA/irdma: Fix PBLE_LEVEL_2 FRWR generation
+From: Jacob Moroni <jmoroni@google.com>
+To: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, leon@kernel.org
+Cc: linux-rdma@vger.kernel.org, metze@samba.org, 
+	Jacob Moroni <jmoroni@google.com>
+Content-Type: text/plain; charset="UTF-8"
 
-> __rds_conn_create() calls trans->conn_free() with rds_conn_lock held
-> and IRQs disabled when it loses the race to insert a connection.
-> rds_ib_conn_free() takes the device list lock with spin_lock_irq() and
-> releases it with spin_unlock_irq(), so IRQs are turned on while
-> rds_conn_lock is still held:
->=20
->   raw_local_irq_restore() called with IRQs enabled
->   WARNING: kernel/locking/irqflag-debug.c:10 at warn_bogus_irq_restore+0x=
-c/0x20
->    _raw_spin_unlock_irqrestore+0x67/0x80
->    __rds_conn_create+0x1de5/0x2290
->    rds_conn_create_outgoing+0x43/0x60
->    rds_sendmsg+0xfca/0x20e0
->    __sys_sendto+0x408/0x5a0
->=20
-> It needs an RDS socket bound to an address on an RDMA device (e.g. rxe)
-> and two concurrent sendto() calls to the same new destination.
->=20
-> The TCP and loopback ->conn_free() callbacks already use irqsave, so
-> do the same here.
->=20
-> Fixes: 745cbccac3fe ("RDS: Rewrite connection cleanup, fixing oops on rmm=
-od")
-> Reported-by: syzbot+c3741bb338b5c6d6a4aa@syzkaller.appspotmail.com
-> Closes: https://syzkaller.appspot.com/bug?extid=3Dc3741bb338b5c6d6a4aa
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
+When an FRWR is posted with only 1 page mapped, it uses a
+direct mapping, with the page-aligned DMA address provided
+in the WQE (reg_addr_pa). This address is obtained by reading
+it from the PBLE that was previously populated during ib_map_mr_sg(),
+but it did not account for whether the original allocation was
+PBLE_LEVEL_1 or PBLE_LEVEL_2 and just assumed it was always level 1.
 
-Sashiko has reviewed this patch and found no issues.
+As a result, it would program incorrect addresses if the MR was
+originally allocated as PBLE_LEVEL_2.
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261016161525.1465=
-37-1-ngocthang2710.1999@gmail.com?part=3D1
+Additionally, multi-page PBLE_LEVEL_2 FRWRs were also broken
+because it was using the wrong chunk_size.
+
+Fix these issues by correctly populating the stag_info fields
+depending on whether it's a PBLE_LEVEL_1 or PBLE_LEVEL_2 MR and
+whether more than 1 page has been mapped or not.
+
+Tested with NFS over RDMA running various fio scenarios, with
+and without a modified kernel to force it to take the PBLE_LEVEL_2
+path.
+
+Fixes: 137d264c6f63 ("RDMA/irdma: Add 2 level PBLE support for FMR")
+Suggested-by: Stefan Metzmacher <metze@samba.org>
+Link: https://lore.kernel.org/linux-rdma/20261012161135.494544-1-metze@samba.org/
+Signed-off-by: Jacob Moroni <jmoroni@google.com>
+---
+ drivers/infiniband/hw/irdma/verbs.c | 20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
+index 71d7ae7baa47..2178fb344e4d 100644
+--- a/drivers/infiniband/hw/irdma/verbs.c
++++ b/drivers/infiniband/hw/irdma/verbs.c
+@@ -4286,11 +4286,23 @@ static int irdma_post_send(struct ib_qp *ibqp,
+ 			stag_info.wr_id = ib_wr->wr_id;
+ 			stag_info.va = iwmr->ibmr.iova;
+ 			stag_info.total_len = iwmr->ibmr.length;
+-			stag_info.reg_addr_pa = *palloc->level1.addr;
+-			stag_info.first_pm_pbl_index = palloc->level1.idx;
+ 			stag_info.local_fence = true;
+-			if (iwmr->npages > IRDMA_MIN_PAGES_PER_FMR)
+-				stag_info.chunk_size = 1;
++			if (iwmr->npages > IRDMA_MIN_PAGES_PER_FMR) {
++				if (palloc->level == PBLE_LEVEL_1) {
++					stag_info.first_pm_pbl_index =
++						palloc->level1.idx;
++					stag_info.chunk_size = 1;
++				} else {
++					stag_info.first_pm_pbl_index =
++						palloc->level2.root.idx;
++					stag_info.chunk_size = 3;
++				}
++			} else {
++				stag_info.reg_addr_pa =
++					(palloc->level == PBLE_LEVEL_1) ?
++					*palloc->level1.addr :
++					*palloc->level2.leaf->addr;
++			}
+ 			err = irdma_sc_mr_fast_register(&iwqp->sc_qp,
+ 							&stag_info);
+ 			break;
+-- 
+2.56.0.176.g3575e65682-goog
 
