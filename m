@@ -1,233 +1,160 @@
-Received: from TYDPR03CU002.outbound.protection.outlook.com (mail-japaneastazon11023074.outbound.protection.outlook.com [52.101.127.74])
+Received: from PH8PR06CU001.outbound.protection.outlook.com (mail-westus3azon11012032.outbound.protection.outlook.com [40.107.209.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40C254483AC;
-	Fri, 16 Oct 2026 08:30:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.127.74
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6B261D432D;
+	Fri, 16 Oct 2026 08:45:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.209.32
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792139435; cv=fail; b=id5S+B7S92QjeeCha8aOlP3kAXcRoYk/PgChMUxVE9eGCV8EQoxSp9jqB2ua77eeSweXn5lZwvQp1+uyyNkkIksHTpk9OQ17xdCu/QKUPyN5is3zRc4vM4FvN/FyAIjYimEZouf48HZXMNb19RvYx+hrxHH38djSPAc2udtW8Bs=
+	t=1792140302; cv=fail; b=ugqQ4nKA4Hn1DPVDvkGiWtVOmls0HX5PyvTXwDHMpmodxfj+n4HYk1yE9bE5iDrrH0frCS/OFqI//ezGVkcNXMgU9A4am0fu+SbDVKyONx5+iY0s1HxbzHGrBGKUY/29/punfa44GRBE0SriI7u16GGk18dI4Pufrf3GzO2GBdA=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792139435; c=relaxed/simple;
-	bh=RWgl7H5IH+EB9+MamVxamcEoaulq6I3/R5NTzRc8VAU=;
-	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=f8qyoBZTWXtfezmosCoePvDJ3pboFAnnbMF5vbiq+FfxXpQTHBZBHeb9hnjypRJlZwS2zJrthuoVl09ENVW8QtT9UaCQ0ksf6pQT9gFw10sYSJkx6jIHe8964AO+JhqU/ABfNmtrqah5veLGrdDV9NGBOP+O2UInyob/bM8YXJg=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=microsoft.com; dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b=G/J5GnR8; arc=fail smtp.client-ip=52.101.127.74
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=microsoft.com
+	s=arc-20240116; t=1792140302; c=relaxed/simple;
+	bh=swp+zYq+FFZZrnaX/+Bc9teWylFYrWnMLFHKtyMG7a0=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=m8DeIKKxFROnONGZ7CBoBm+GoQgCtFV66zcCla2KzQveM3eXFO5yf9bcErPDJjJQhca/JMf8HGyXjnYYnRa8/nWj4OkRpi3+Vy7nuFWiLlN/IitnoaZKACYU8qjaC+p9U2aqe2rNENAXPwy3Asynb3THobD2Sh2dRRnKt6xzL98=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=tTIH94ov; arc=fail smtp.client-ip=40.107.209.32
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b="G/J5GnR8"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="tTIH94ov"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=cb8qcw1ENqJ25x1lx7VD+b0NJ2g26Wuk6KzwBAaawBmwVsW9HQSs6EU9t7iZpmSwDd7nlQKzFKAjCKyuASQi4g2qAfPTS/qm/8W7urP+pVDIynGgyCxrbly7Pge9kPKnWhNZeb6PWCBFyyXBfngB62vWUM0ZpVPnnC332YVMYAt4XmJ1k3gbECboiOoC0qFbPyBMLE5TXXI2PIEkj8ighZB0Rlr+VMI888jWxPofYwfYu09Dmi+nTZDBuSs8eaYBiCghW1Wz4ctcwITSSQH0sbi6O8xIqsQJ+gvvtL4e4xy3vnmEHq6IxNo8+vsqaYiODcT0F58J5xolakt1ZbJNEw==
+ b=JYU/N/avYG2VUPmtMPELHI37CqWO7WPosmvjsv1jbE/myAgjY2AB6Fk9WNzVbkKkBVWrhaiPGtCh0te2ILXO8YJor+d1a67owk7nAtI6Z5VuXWFGDZu8bCff3Z0okaQ2S/Bjmih9lw0/PY/69w0c/6k2kjVtdDU/iJ9qNGuoAtdT+q70b2Cm0kQxIcevGTqY+HufxHImiuwlrwlwP5d944uHM0l0shm0xEVxRr/CLFceEy46C9jWhkVsIIGb59j7b3OZ3bXVqjUEFhYqNHu0KP5XWS6PS/oXwIbqCNYci5jXPCWLplSE6a2areWeYG1KiqIxkoQlEzRSDNMqvPTF6g==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001; h=From:Date:Subject:Message-ID:MIME-Version;
- bh=RWgl7H5IH+EB9+MamVxamcEoaulq6I3/R5NTzRc8VAU=;
- b=RCPEjfxi7ewWEF2WH8qg6iWb+IO3OUMUtSuWcKycaC9+XejC5oiHfFwr4H8v9+zfANqIcwol2usBZRbiE2nPGLrB7ylOzDw3/GSrkaYAFuEexhEzhI8CUSyKMXPnzjJhW68mkDfWi1VdbvPbwsaUJh4jm7hE734LHjnp9W6JoCGV+Q59xYa7CruKzOSHRoS2fXlkMu55R3Syymxq42mljsJGQL04jt2jzl6d+VyIObf2r4n6iNl+BS+8oQH6B9XpZ3WwtObHLDzdU9kY+rWZD7sjR0Z7yFYfPNkJpeudrNnIwZYb8EOdTmRLsKh2sjFExnV5iMH/Q/jnDRpJNqHG9A==
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=zTW90B2oQVIZnRsawTgBsRfe6Ewi+eja1Ik/dLeHtHI=;
+ b=m1mF4dczVPfnKs3UX/gxjifFnuihR8A+Z8HUEYU36iEU0TrGua7e43L01NNdKwAFJ8DoPDTrSoF3yKphUT8F5tGST9oYEjKqKYmJnTo8ny6d8LW8IfSfTXzxJXoXncYgkx3OHUkjtzFMhIIXdbZ+E8I1VKUpKSoYhFc6rQtZlGtX+/R/SdxuuyhxjpYy9y1p6pdrGOsMrMYghFleyudSoZFXYx+CcRtaAjfLSKzL/nRrgEqbMAciU74xu7YurfEC0y9mUMAkM1iNujAz4LiuHe439+sRjbi/3HnXVaSZOguWr+LAvMxZ1Wthl6ybuNlZY36CN1R7pkAXCWADbSsShA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=microsoft.com; dmarc=pass action=none
- header.from=microsoft.com; dkim=pass header.d=microsoft.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=RWgl7H5IH+EB9+MamVxamcEoaulq6I3/R5NTzRc8VAU=;
- b=G/J5GnR8usUoENOI9g7+KiI0ekLkK4bP3htaojwNxCkh6jnkgdzLMSVOOdPIKLpLfuMDOOfJcn1I/2daXjL28X9g5CoteVzvfmdtAef5d4KdEi0L3+BcDrljv9RPJ3u/yKoGFgeUkI8/Y1J0zWSbDK1it6zFomu/6DnD6lYgeL8=
-Received: from SE3P153MB1848.APCP153.PROD.OUTLOOK.COM (2603:1096:101:340::5)
- by TYNP153MB1769.APCP153.PROD.OUTLOOK.COM (2603:1096:405:3c8::12) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.546.11; Fri, 16 Oct
- 2026 08:30:25 +0000
-Received: from SE3P153MB1848.APCP153.PROD.OUTLOOK.COM
- ([fe80::8f4e:575a:4706:a56e]) by SE3P153MB1848.APCP153.PROD.OUTLOOK.COM
- ([fe80::8f4e:575a:4706:a56e%6]) with mapi id 15.21.0546.006; Fri, 16 Oct 2026
- 08:30:25 +0000
-From: Wei Hu <weh@microsoft.com>
-To: "netdev-bot+sashiko@kernel.org" <netdev-bot+sashiko@kernel.org>,
-	"weh@linux.microsoft.com" <weh@linux.microsoft.com>
-CC: "longli@kernel.org" <longli@kernel.org>, Konstantin Taranov
-	<kotaranov@microsoft.com>, "kuba@kernel.org" <kuba@kernel.org>,
-	"davem@davemloft.net" <davem@davemloft.net>, "pabeni@redhat.com"
-	<pabeni@redhat.com>, "edumazet@google.com" <edumazet@google.com>,
-	"andrew+netdev@lunn.ch" <andrew+netdev@lunn.ch>, "jgg@ziepe.ca"
-	<jgg@ziepe.ca>, "leon@kernel.org" <leon@kernel.org>, Haiyang Zhang
-	<haiyangz@microsoft.com>, "wei.liu@kernel.org" <wei.liu@kernel.org>, Dexuan
- Cui <DECUI@microsoft.com>, "shradhagupta@linux.microsoft.com"
-	<shradhagupta@linux.microsoft.com>, "horms@kernel.org" <horms@kernel.org>,
-	"ernis@linux.microsoft.com" <ernis@linux.microsoft.com>,
-	"stephen@networkplumber.org" <stephen@networkplumber.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-	"linux-hyperv@vger.kernel.org" <linux-hyperv@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"gargaditya@linux.microsoft.com" <gargaditya@linux.microsoft.com>,
-	"kees+treewide@kernel.org" <kees+treewide@kernel.org>, "kees@kernel.org"
-	<kees@kernel.org>, "mawasthi@linux.microsoft.com"
-	<mawasthi@linux.microsoft.com>, "edumazet@kernel.org" <edumazet@kernel.org>
-Subject: RE: [EXTERNAL] Re: [PATCH net-next v7 4/4] net: mana: add dynamic HWC
- queue depth with reinit path
-Thread-Topic: [EXTERNAL] Re: [PATCH net-next v7 4/4] net: mana: add dynamic
- HWC queue depth with reinit path
-Thread-Index: AQHdW7RDPuFatFhGZ0aVXFI+Ix2Q8Lb/2HMw
-Date: Fri, 16 Oct 2026 08:30:25 +0000
-Message-ID:
- <SE3P153MB184858FE7A2D085C8BE48742BB9B2@SE3P153MB1848.APCP153.PROD.OUTLOOK.COM>
-References: =?utf-8?q?=3Cdf59976f0f5e51ea5766451f02878bd04a4907cc=2E17915619?=
- =?utf-8?q?95=2Egit=2Eweh=40linux=2Emicrosoft=2Ecom=3E?=
- <179196575846.434549.7933818740976196422@kernel.org>
-In-Reply-To: <179196575846.434549.7933818740976196422@kernel.org>
-Accept-Language: en-US
+ bh=zTW90B2oQVIZnRsawTgBsRfe6Ewi+eja1Ik/dLeHtHI=;
+ b=tTIH94ovFaKodksGtwhrF7KcNT7RBrZ+AtMI7TCS4PjsiWEDn2yipqv166irEmuZevJlaSrZcVSDkqSbR2sNpDi/SHx9e2CJv+DywbypT2WV7GTOsewbFlZe7NvEzuNbPkTUM+cIL04vEbqVhI1B3U417mLZCQnJzaNUoNIGJzNZZ438W+JEZPqiEgDwvnUT7S+vUWrxjyfodW3X3CCbA5ghygAobbZ+EjYSMpogwZShnvjSBoiHe1lxDimARC+W6vC9rMNLt5jkyhjgTgg/ucQ+v45jayTVYOHhSWjNikmUnBjQ2cdTfOcRiXHSfmkf7+QOxdiJSAWa2to+SsbTOQ==
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from SAVPR12MB999143.namprd12.prod.outlook.com
+ (2603:10b6:806:4e5::21) by DM4PR12MB6208.namprd12.prod.outlook.com
+ (2603:10b6:8:a5::10) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.496.24; Fri, 16 Oct
+ 2026 08:44:57 +0000
+Received: from SAVPR12MB999143.namprd12.prod.outlook.com
+ ([fe80::219e:6553:2ec0:3761]) by SAVPR12MB999143.namprd12.prod.outlook.com
+ ([fe80::219e:6553:2ec0:3761%4]) with mapi id 15.21.0522.012; Fri, 16 Oct 2026
+ 08:44:51 +0000
+Message-ID: <b4005276-fb1d-4e4f-8f03-487f9e9bf9e5@nvidia.com>
+Date: Fri, 16 Oct 2026 16:44:42 +0800
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net] net/mlx5: Attach late uplink netdev to loaded
+ representors
+To: Chenguang Zhao <chenguang.zhao@linux.dev>,
+ Tariq Toukan <tariqt@nvidia.com>
+Cc: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
+ <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
+ Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
+ Paolo Abeni <pabeni@redhat.com>, Cosmin Ratiu <cratiu@nvidia.com>,
+ Dragos Tatulea <dtatulea@nvidia.com>, Gal Pressman <gal@nvidia.com>,
+ Jason Gunthorpe <jgg@ziepe.ca>, Jiri Pirko <jiri@resnulli.us>,
+ Leon Romanovsky <leon@kernel.org>, open list <linux-kernel@vger.kernel.org>,
+ linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>,
+ Saeed Mahameed <saeedm@nvidia.com>, Shay Drori <shayd@nvidia.com>
+References: <20261006110219.257714-1-tariqt@nvidia.com>
+ <20261016023609.GA318264@pc>
 Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-msip_labels:
- MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ActionId=57b3afe5-0bd7-4145-b61a-211d41b98c40;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ContentBits=0;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Enabled=true;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Method=Standard;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Name=Internal;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SetDate=2026-10-16T08:25:40Z;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SiteId=72f988bf-86f1-41af-91ab-2d7cd011db47;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Tag=10,
- 3, 0, 1;
-authentication-results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=microsoft.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: SE3P153MB1848:EE_|TYNP153MB1769:EE_
-x-ms-office365-filtering-correlation-id: 125e39f7-2aed-4c15-7da7-08df2b5fb9ec
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam:
- BCL:0;ARA:13230040|366016|42112799006|7416014|376014|23010399003|1800799024|6133799003|7053199004|10067099003|22082099003|18002099003|7146999003|11063799006|261009223027099003|38070700021|56012099006;
-x-microsoft-antispam-message-info:
- Mj1HT8SV5cq9SdJ2G0TewPLhyyW55rCyC8hMKhbWyBkgdgEniBgjceT5rIpjC1dbUfFyYpCu6Lx0PelKffEyhxTgH+9X+vNaQI/8FvTDFgnB0G2QER56NopYvCKWTx/fK1UrMSQIcr0H6J6ER2MsoskW+l2QBBtY81wMnQJi6wS9ipaQTRVPe9ok6PUBm8n2VCnsSnQpXOiLz/Z5StRe7L+gi2Quu4c75pZYBZF4Gz5d90BwThi1wKWijqzrS3+77PN2fU8CbVtQPjTVD6F8AlGM/l00t+lKMNNl5wfirWbYbH0bBfiwG2PAkHEowjivU5zwzDGtinS3o3aqnQa3kyM/CuhyfKHh1KCXmY5h+YNh4p5JdsfgVTOPDSV4eiHGkjNgK3ecRrf3ZTtyuHM2HR8x8Pi1bt6OlzXPCED1Q3lVSeaSBfAS2ENptl4SONZU0u98a/YpJ4vi2BrndPwQcQOrTLMw16kcxAhAROGyCtePw4sjVXemJHr8t7EpNZ5/kGjGVPxrutcMiMa+J4xpWgrQj9ARq4HBxFTWgqtNNgnTS6ccFLeVgI4FNdzGtmf8E2Wx6PsfAwit0DUqQ5czVRrcSqdtPlQgxpXWaolqKlspbPA2OHcYVdaxbdoFMX0HQAjqeeWsweIt6HGbxZQrjsEuqy1AULcbRyx6uZcwLV1SotcXtH1eGx6nDbJ0sfLfq99+ekBhF45g8Dliu6Xtznzg8Tfuhn4+tO1hjfPfXRs=
-x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SE3P153MB1848.APCP153.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(366016)(42112799006)(7416014)(376014)(23010399003)(1800799024)(6133799003)(7053199004)(10067099003)(22082099003)(18002099003)(7146999003)(11063799006)(261009223027099003)(38070700021)(56012099006);DIR:OUT;SFP:1102;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?us-ascii?Q?mHaiCkPA/ejfherAcZqXrc2H87uKqFjCls20iP90BfZrWDU0ufh6fjrIhOOb?=
- =?us-ascii?Q?x4TQU+rBTAlUnnGEzfxrVjLH719L8H1PwKOxdKDkLOzdiWi/0zrh3bQ6rFku?=
- =?us-ascii?Q?4g7r+4BGDKUAEXSCsPvkKoVm+m6rilRmpcQRNa1giN1923F6mU+qMEyHhgtW?=
- =?us-ascii?Q?zT01Ig7opIkS7w9dFJiEWceyRE67ZB/KVFwO3VJ1JuHvMirOxeX05a6cbSag?=
- =?us-ascii?Q?wdDk4dRyXuX2bycRhrun8e+BjWnAmwhaGTqBx/QdwPZGiVY89wW3AxDjTg+k?=
- =?us-ascii?Q?5SrvBo+eyWuCMFDZV4jCUVPVitV92hMAtjXDhbNSi8v1VK9PmePnCdjpksBQ?=
- =?us-ascii?Q?6/Pb4UDgMCgUq2yY1hLEommx+6Bs63cwO6G15zbA32CAO01O/4rEeGLFWxeJ?=
- =?us-ascii?Q?YqUqqpNJ8OngI3/qBeaXrl8e6yXNiKc0z4ln6cnWgg+ThobTFd7qjLMGluOi?=
- =?us-ascii?Q?+aCE/4/9S1Bwr8VGJcmIBxD2TqtYGofpzVPfhYLKv+8rqLHVAEopplpcAdpt?=
- =?us-ascii?Q?xaXqZwyqd67AbfekLsEyfAHWDwaGfGFFtn+C5wl7FHdh/0QrcNSgTdgZRm5T?=
- =?us-ascii?Q?6P5xrDCY41MgxqWVKxoXKX7X2109UkrrH1rOsflH3UnBUC+NzY4EBG+/V7oq?=
- =?us-ascii?Q?kx2XARNhj38UNIwaTB6ZqXVF1OtEOINP3oakH+5R8yMWlRudEsQGKxO4CaVb?=
- =?us-ascii?Q?gmep+N8KzKxcKhpsMt1A5TlGEj2fJHyIwDtUdUUDQ9+0Vn3fNBtBZe4SP2Fg?=
- =?us-ascii?Q?87S/3iq8O3oSmtWwj0eL2mxeZI1kM1zhl0lj4jTmZzzmKMPOikOI0YBFx3sh?=
- =?us-ascii?Q?CeR1X0iFmu8e4Mt+YUQYX3X2/3rigQKIpVwvU4Y2uQr0w44E+gzqLnKzIX3w?=
- =?us-ascii?Q?4QAIlMl2dxq7rBLPbL2QVV/Vs+wAJ71JZVsQWlKnB18hHh1o34WVQBDnpgGq?=
- =?us-ascii?Q?omZccYq1kw8PekUP40AEdKQvnTkk6ulhsPEnD3Q/79xzZ4BP8LSB6Q4HZpWr?=
- =?us-ascii?Q?MUDd8fMaeQoXKUxV25w+fbw4kv6abr4QFLTUleBu1wFQz8V6HIpvuoPGr4CJ?=
- =?us-ascii?Q?6qPLDRa1TFzYJbjGt6BPc6d96GAYSU9R8ZoAkZekeK+H5zjCw3Onf7sEwFQ5?=
- =?us-ascii?Q?yWrGxr0XOG0FBlvB9TqnEjmVzsuWX4ZczuJNyX/sLUoTPilHrPn+LYkZUMYB?=
- =?us-ascii?Q?zY2shcNkzhwJXwG77yFVVfjmVysv6vn5Mljg1MR/lIslOEsL0y+JLpYOYeco?=
- =?us-ascii?Q?Tl64wzlNQzqmBWf7r+KWaQrYWdIvGrMDp8iAFkAMBDKUvjSST2lZ22oPLjsb?=
- =?us-ascii?Q?MRoRh5HF42guoLyw1uGVscW4XDpfINN47w13bOY7iEy/2lNG+tr4AoqjlmzE?=
- =?us-ascii?Q?MLMzmOvQtZgKBXuJ6GWMHJL6Xh3QJPMFEDCpEsOO+7D72MnZizDv+7ZEzLk8?=
- =?us-ascii?Q?P0J77TCk0bFhmdlc7BolroSM36rf53argWA82ud6DtGFJtv+IzIH3xfXKt5t?=
- =?us-ascii?Q?aPBJNepfsMVzlc7wBZMl/flMHsukKHKo45G1M2u/lD7GmccLJwe+6Pvun2kX?=
- =?us-ascii?Q?T1gW4lMmjcEpgx+euwkAvwikNE9Z6wBJWD0BzP8VT61XA3Hpc80xcHRjlTkC?=
- =?us-ascii?Q?TkjbeSHx4/uEtoAWAALMmIJUNo6kzStreGhV6/GttKbgo+o/IWiRVpNXFtRi?=
- =?us-ascii?Q?wtqqxwjIzdXJCf2z+HbkcXxov97lRy5A/DdvJC+iL3RR00Ku?=
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+From: Jianbo Liu <jianbol@nvidia.com>
+In-Reply-To: <20261016023609.GA318264@pc>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: SI3PR01CA0012.apcprd01.prod.exchangelabs.com
+ (2603:1096:4:296::11) To SAVPR12MB999143.namprd12.prod.outlook.com
+ (2603:10b6:806:4e5::21)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-OriginatorOrg: microsoft.com
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SAVPR12MB999143:EE_|DM4PR12MB6208:EE_
+X-MS-Office365-Filtering-Correlation-Id: 4b053911-c464-4edc-74e0-08df2b61be35
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|23010399003|1800799024|376014|7416014|366016|6133799003|10067099003|22082099003|18002099003|11063799006|4143699003|56012099006|261009223027099003;
+X-Microsoft-Antispam-Message-Info:
+	tkNfUqBoWeUnK0zDrM4P1jj7eRkeRu4fsYeNemUGSmUXMazOAtylwIYn5enrKZe6N1deILPnY0yGI0Pa8OnvszJlETXzOPtAJ7DmfiyqYmiAHCAsTUau36ZzxzRX0PWG+IlYn3d/1EYVWBPTn08bTpbT8dfcURMzoytWG0GGvaQLEIiaNHhE6vzpyi2WcFKxd7IYAhn/lnwIIXG2a1L8SjbpV7mZMBr2b1fl3pT/R3r88eXqxA7j2dzWkA3vnZMWhZmN+K6btGvrf/KL0/gE+oO+QMT+d2slBKisZQ55yxmOEs7uoCIALKrcI050Ip5A4dajtPJ0pdwTa2szFxhk4BX+DQPhWvGL0lP4VvnQTcpG94GDPu0ZXFr22WseWLywiw9vWv7XKoM5GrlZI8yl6geB5vq1Ar+UoF7VAJmERNv4OkfvR7mg41Eao9CJ2KR2q5uSWyHv15Y42h50Sp+peMgd7Mzw7sxfWIog8Dl1mf2Pmcw3/RPiTDTilO57Xc/8Wb/mN0BKcbCQQJN8ooeFvmh8WphbJe0Dxl3uyxaGPcxEK5llRNkVyu2JbCcTEiyYbOLrHP9uBB+gszO92RmxvBrBw/WxafsFWbzym3LXKI1PoyPVap1ifIb8BpJeI7M9R84YUYOSc/vVNGKX7dO88NPPLCbirS8PeOqQkshNfJg=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SAVPR12MB999143.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(1800799024)(376014)(7416014)(366016)(6133799003)(10067099003)(22082099003)(18002099003)(11063799006)(4143699003)(56012099006)(261009223027099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?ZzkwbGpqNlN2SjlDazZ3UjRQaWNMY2lZNllHYU1ob0RDY2xpRXV5TEJwVjFq?=
+ =?utf-8?B?bnRwR3NZWG5HRXNCQWVCVWhuWnYxNnA0SDFVSVBUaEtiS1VJSG4yTVVZa05j?=
+ =?utf-8?B?M240R1hLSW0vcnk5UHZtOWJ3S2lHaUR5VmUyZEUwWks2WHZtdUo4ZUdBVGJN?=
+ =?utf-8?B?RkthMTcyd09DZWZQT1VBM01WR3E3UVk3Q01vT1pHUzJwYlRUYk5LM2lZOGE2?=
+ =?utf-8?B?RWRBWVo1U3Zxb011QWdMVG5MYVU4OSsrVFVFUUg2MWE3RU1WalB0Z0RBMmRO?=
+ =?utf-8?B?SzAyYTlJT1lyTzN0UDV6NWpuR1JaTWEwUjRZTUt1bGpaVGQrdmVJdGxDbG1z?=
+ =?utf-8?B?em01VXZPYUFBdmZMZ1MxSGE3TDZnSkVkQ28wTS9PVHhhTFFzVjNJRFk0dEFT?=
+ =?utf-8?B?V3VmY1UrV05kMzdEV29kVjNvWUsvRkNOTkpFQitDY0xYS1RGbFNJcGg0STUw?=
+ =?utf-8?B?bGo0VXpGV1JjYkQwZUNFZmoyMkhoU3AzTDkrMGxIK3pQTWIxWDNvTXhqckVq?=
+ =?utf-8?B?YVMyN2diU0VCL1hiR2FTam0xNWlvYytpRGZ4WG1EMUNQRlNNQ1hhT2RWYlFI?=
+ =?utf-8?B?RDA0VXpOSXMwcnBQSlAvUVhLRUx6MHhYQmMzcEJCeFZqcU4rWFdNYW96SU9O?=
+ =?utf-8?B?VVdENyt2N0VTQ0dEOHBLVDVCQUxWMTVUdGZKTm9RTjNrUzNENnpHcUtWSlR3?=
+ =?utf-8?B?TDBUTXBiUVMwRnllUHU0NmhGS25VYVNZN0dMMGVranNxTWpNeEQ4TkRVRjhl?=
+ =?utf-8?B?aVdrL0ozdWFIYW5MbDNmYWZNeW9IWWZ2WDVyNXIwVk1XbHJSTE9FdWRqMFl0?=
+ =?utf-8?B?QmZsV01JSFA0TEtEeG1RdnpYNnZEUyt6Qk5OVUFicEFlK3lYU1M3SzJ4Q0ZO?=
+ =?utf-8?B?MzdxU2UvNklxdkx1dU11cWVlVTAxY0R3MW9rTDNmYmcrRFk1dGRHMi85cm85?=
+ =?utf-8?B?NWxJNXhHcHhlc3lvS2sySWJRbjAyekhQVml4MnhiU2tkRDg4cnhDbCtDaEVL?=
+ =?utf-8?B?MUN5bGN2M05SQUpicTBIcUl0TlVNSHJvMFJ0MDdKU24wNEUreDNKR3pJMXVs?=
+ =?utf-8?B?aUtDNXVIZEFoOFpMNkFjdVFQNWZUaGp5dUJmalpCcGN6am04ZjBsUmdhbFlF?=
+ =?utf-8?B?R3Rtd21YRmppUWNDbElOVlZkNU1NdkpNcW1BQ3UrMVpSbnFjcVZ5RHB3RVFJ?=
+ =?utf-8?B?c3BoTzdrZS95TndaVXlmZ1V5SmozckdwNUp3MDk0RGJ2cGZHOFZINjd0L3ZR?=
+ =?utf-8?B?L3h4ejhPWGlpZlFiRXZrZ2Vya1VESUZPMlY4NG8ramNxOWVLdGc3cXJnRXl1?=
+ =?utf-8?B?enQxTk1CMXFBQkd2ZUQ0VWZjN2JlQmhSanBLdnF1cXpHbUVhK0xMUmR3cE5l?=
+ =?utf-8?B?MlFGQ1NrVlNmZlhtYmQxSWhrMUNFK3JBOHJXVFZUeC92dE5lYmJkY0owZzZv?=
+ =?utf-8?B?dk94bVR1SGdHdTVScXBlNWx6QVB5Z3kzMFFZME5lT1g0MDBKdkNQVDBYTXNz?=
+ =?utf-8?B?NlZWU241RjlJT1lTQmdhZHFxM3JQWk9jWDZsZkRxUDJ4ZTBidHhub2l6S2dj?=
+ =?utf-8?B?bGkxUmU5ZTNSVVJBU2VTQWpualdFcW5YL05DcEtZQy9kVS9lK3EzZUI4Y04y?=
+ =?utf-8?B?UG15OGhIZkhHTHpiazY0TWpua2FWNElDdGc5bzhrWThlTHpxbHZIY3c1dzQz?=
+ =?utf-8?B?VjJ3VUp0ekRhbnpvbnpwUXhpeXMrVkdwckx3YzdCN2lxMjNrU2dObE5uQTNq?=
+ =?utf-8?B?ZTVzYVdibnBkN2pJTzBuNlJiYy9OU01RV1JycjBGTWpObG9XeTFlQzBWZ3Rt?=
+ =?utf-8?B?OEFFTFo0N0p3ZWxsQ3RzcHlOemZkdHlpS0dTRU5MWUNXL0t6eldmMDNSNWlz?=
+ =?utf-8?B?eXNtb0lnd2RUMURmcXFOYWR3akhoWVM0SkQ0ZnNkelNPRXFQZnZScnRaNGRo?=
+ =?utf-8?B?anB0bVRQZTZxaVA2K0FoTDZKUC8zS3Z6MmlXRkwzYStscFVHSGp0RnNTZWhZ?=
+ =?utf-8?B?KzMybVY4VnFnVFZzb0svZ1pyUmEyV0l6UVMwMHM3NjNiWkdlbCtoNlRnU3ls?=
+ =?utf-8?B?ZlhhR2FLQldhb2dHd2xldEtpSW1hYThFZ2dnRnRDTDFPR2ZjREdRSHVRTXNW?=
+ =?utf-8?B?aGVOSW9ublM2WXNTdFRMY2xNcUxuRnlHejQzMk16Yy9rRTcyWFdVNjlTc1J4?=
+ =?utf-8?B?YUs4VWgzdlBJL0grTXNQaDg2V3loQVdGTmhiMTZ3K0l1WHN1R3E5bXFzbHZh?=
+ =?utf-8?B?TVE1R0RqcStrK01hOTdndHN4QzVnTjlEU1pwaWp2VDNQcGhzZ2VpTyszckJB?=
+ =?utf-8?B?amRrU0lVYW05Y3dDQkwxY1dFWDI3RUhrbUVKWXU0Tnp5c3FuRkhLZz09?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 4b053911-c464-4edc-74e0-08df2b61be35
+X-MS-Exchange-CrossTenant-AuthSource: SAVPR12MB999143.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: SE3P153MB1848.APCP153.PROD.OUTLOOK.COM
-X-MS-Exchange-CrossTenant-Network-Message-Id: 125e39f7-2aed-4c15-7da7-08df2b5fb9ec
-X-MS-Exchange-CrossTenant-originalarrivaltime: 16 Oct 2026 08:30:25.0854
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Oct 2026 08:44:51.4154
  (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 72f988bf-86f1-41af-91ab-2d7cd011db47
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: Xk03imQAy07TkpRCGu/QrucaJ+4ZDaShkLY/C8nXs/5zmfEQVPugoQJXq3HZqQAQCGWWlSEW/Smk+sp/GnyrNA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: TYNP153MB1769
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: wBrG/5JaPbWeHK3iMQVufjSwoiULGXZUDjJORrGzD6o1keMM7uzoQzjlFs2xKZshWopR5B6K7BMldyuik7ydfw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR12MB6208
 
-Thanks for the review. I have prepared a four-patch v8 based on net-next
-commit 05b5019b01fb, with the following dispositions.
 
-On Wed, 14 Oct 2026 08:15:58 +0000, netdev-bot+sashiko@kernel.org wrote:
 
-> The commit message says the effective limit is enforced on every request.
-> Should the in-tree producers be switched to that same limit?
+On 10/16/2026 10:36 AM, Chenguang Zhao wrote:
+[...]
+> I’m wondering if we could add a check during mode configuration to
+> disallow mode switching when the device is unbound.
+> 
+> Maybe we can call `mlx5_uplink_netdev_get()` within `mlx5_devlink_eswitch_mode_set()`
+> to retrieve the netdev, and return `-ENODEV` if it comes back NULL.
+> Hi Chenguang,
 
-Fixed in v8 patch 4. The admission path, GDMA queue-region size check and
-RDMA MR builder share min(negotiated TX limit, allocated SQ stride). RDMA
-CREATE and ADD_PAGES batches are sized from that budget, with
-header-plus-one-page checks before subtraction. The RX allocation stride is
-not rewritten, since RX indexing still depends on it. The GDMA queue-region
-helper retains its existing single-request rejection contract; only the
-existing RDMA MR path performs multi-message chunking.
+I don't think we should reject the mode change. A switchdev eswitch 
+without an uplink netdev is valid for our use cases.
 
-> This closes an existing hole. Could it be split into a separate fix with =
-a
-> Fixes: tag, so stable trees pick it up?
+The check is also racy, since eth can unbind right after it, and
+eth may simply not have probed yet when a script sets switchdev
+after mlx5_core probe.
 
-Agreed: checking the device-supplied doorbell also hardens the initial
-establishment, not just a rebuilt channel. The v8 commit message now says
-so explicitly. I am not labeling the whole dynamic-depth feature patch as a
-standalone stable fix. A minimal backport of initial doorbell
-validation/failure reporting belongs in a separately qualified net/stable
-follow-up; that routing work is deferred rather than dismissed.
-
-> No dynamic-depth capability bit exists in the tree. The only DYNAMIC flag=
- in
-> include/net/mana/gdma.h is GDMA_DRV_CAP_FLAG_1_DYNAMIC_IRQ_ALLOC_SUPPORT.
-> Also, "from v5" won't mean anything once this is in git history.
-
-Fixed in the v8 commit message. The references to a goto-heavy 'v5' and a
-nonexistent proposed capability bit are removed. The message explains the
-actual initial-report negotiation and driver-version ordering.
-Revision-to-revision notes belong in the cover/changelog, not as
-unexplained history in the commit.
-
-> Should the EQ test be part of the rebuild, so a failure there also falls
-> back to bootstrap? With the parent commit, the same PF would have run on =
-a
-> tested depth-one channel. Recovery retries would also go through the same
-> rebuild again.
-
-Fixed in v8 patch 4. Candidate functional testing is now inside the bounded
-rebuild decision, and fresh bootstrap fallback is also tested before
-publication. A failed candidate is not reused without acknowledged
-teardown, fallback is attempted at most once, and its own error is
-returned. The prior live timeout budget is restored before fallback so a
-failed candidate's one-millisecond reduction does not poison the retry;
-zero cancellation is never revived.
-
-> This isn't a bug, but is this comment accurate? mana_hwc_destroy_queues()
-> is also reached during runtime teardown:
-
-Fixed both comments. Queue destruction now states that setup is private
-while runtime teardown has unpublished the channel and drained senders.
-Partial initialization cleanup is assigned to the setup path rather than
-only mana_hwc_create_channel().
-
-> A later mana_gd_send_request() on that retained channel would compute
-> req_limit =3D min(0, ...) =3D 0 here. It would then return -EMSGSIZE and =
-log
-> an unratelimited dev_err() on every attempt. Before this patch it returne=
-d
-> -ENODEV, because channel_up is false.
-
-Fixed in v8 patch 4. The size preflight is performed before admission or
-caller-state publication, but a stopped channel takes -ENODEV precedence
-under the resource lock. A retained never-prepared context with zero
-negotiated limits therefore does not produce a bogus -EMSGSIZE or its
-size-error log.
-
-> Wouldn't wait_for_completion_timeout() run the full 60 seconds and return
-> -ETIMEDOUT, instead of failing fast with -EPROTO? On the rebuild path thi=
-s
-> can happen at each establish stage.
-
-Fixed in v8 patch 4. Invalid doorbell metadata latches -EPROTO and
-completes the initialization wait immediately; it does not depend on
-INIT_DONE or another EQ re-arm. Establishment resets the latch for its new
-generation and checks it before publishing the CQ table. Later apparently
-valid events cannot erase an already-recorded fatal initialization error.
-
-Regards,
-Wei
-
+Thanks,
+Jianbo
