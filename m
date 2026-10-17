@@ -1,31 +1,30 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2034B3DAAB6;
-	Sat, 17 Oct 2026 03:23:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C8422931F4;
+	Sat, 17 Oct 2026 03:23:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792207408; cv=none; b=AUwDNbngGCKbtUrJfNRndNM8G2/DMNOoz+YUadicV9EK28dgK3ksY2NyCkkQJKLjFzJpooQVF8ar8n9RkBokAx9n6hUbvtehPFri2TI2StyEaUQgUSRm4HlNCqologvmiblbMbF/vs0TnEuEcFVpJYOOxxu9da+GW8e8cTHz2Yo=
+	t=1792207440; cv=none; b=C+K5R+sNhICvcYOH873cHjqAXY7BXP2sRy/dk0zyAbjbzj/SV6VeOzp3jgtCcs1oClwtpQ3qseFONbK79GJNpJ9mxQbu5XFIeEvlldvy2JN2Aqat3DS2nqSilc2i6FGABwX3Gri6xQV9619z8z0uoKCao3VCM0ETBsdwVs8Wonw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792207408; c=relaxed/simple;
-	bh=9itCJJe/Iqwte3bBZu8vMlKjSQI4JtnK25hguIA+uwc=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=VIvIToSS4qvjru2CzqepIEIkrktrCcnwFYIKRVi8rsRsyN8KAQDBOp+yLd0r/dKIKUOk8AdhEyfd/Fo8Z6czRj2Q+3OQ2nWORaIDFlaeyLk+/dPgXhT/Cb5sQT2Zumdd1aoS5MYP8kifMx7q0Yj+rfDYu89Fyd8wc4fX77Knu6g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ooxycXAX; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792207440; c=relaxed/simple;
+	bh=iBiBVh5QrvHtU5Enr/Cua8MXpD8nAt99eDeqIdX+rtc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=d/d6YxYVwmM6YAFP/fBwFhDW3YFW1wlf/bWA0I6jideY1ZrASIptFb7JTl8rIBdMxqkFqjR5SlvrcsIP5Xo8muzhnpzWBx7PBLXv/bRH1UJXiu9Vv5FOiJK/J3kJzEXh5MtmIQGaVQ5BwapOwyz0NHkG78Pz+TPfN+e/f8UnG+4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NP8TfUDZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ooxycXAX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AAFA31F000C4;
-	Sat, 17 Oct 2026 03:23:26 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NP8TfUDZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8F4F1F000C4;
+	Sat, 17 Oct 2026 03:23:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792207407;
-	bh=r3VU4rpW4u46cPFMwYUXdLqDRIGWsWmLAYvUx+tx2i0=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=ooxycXAXhwana1Y3fZsRXt5YxaAnKD0uW9iQNV8Zo8UjbipgqDJM15zmAfaYFoo+7
-	 qXV5uwfQF1njQquGVUh8PZJwTVveqNe2/KV6d7497LytZbcG451c8nt0CeJ0yGue97
-	 1ulIJ04bcF9nJR2MMpPKzU+wjg+lHazpebGL9ayyps2Aclm4728feQrcX1pVokuDTz
-	 NOXBqtjlGFcd7yWwiwb2vs5Ezjz8eIKaEPvbltyxcWKlEf6UNY0uGASVrMiJuGUYWm
-	 gUAti9uMTPnA3roQk4xXFabUh6+98YHQZHsVx5eNcD6iwUGuyvvtFtO9Ie0P6/ie28
-	 zh3E2XFN5AxvA==
+	s=k20260515; t=1792207439;
+	bh=IUPaOfXSNH1I8mBSQOpbB/CrSbGJzOFXTtCcePYFWaM=;
+	h=From:To:Cc:Subject:Date;
+	b=NP8TfUDZsWvM5j8Xomp1eBHvMkYPTDbjoBov1yG6V9I7uh28vFHNUW/7UaERsEP+G
+	 sizz7gYAZcxNYa/qoRTDQlakoq55f7Qo43bASK7GZMFzW/V2MVhRwXCKM/772JdAjA
+	 41yrfDwg5WuOMxqIHQCSYh2hp+ZNnJXBk5cVDBchWV72Oq0yc4Vcxsfi5LORrN0v4m
+	 qfOXjV3GaqZSLNNOpBIkbBfnjmgAFFUZAK8WHcskB9Bcv89JKMee40Um6eLuEYRSlF
+	 Tpkm1HIZU5lxGpG5bHMNwhufkive2gBnZxCD/Hd62/btyRu+6/XyrdBPY2BIfOhzDz
+	 2yHw8md5XUqNQ==
 From: Allison Henderson <achender@kernel.org>
 To: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
@@ -34,12 +33,10 @@ To: netdev@vger.kernel.org,
 	kuba@kernel.org,
 	horms@kernel.org
 Cc: achender@kernel.org
-Subject: [PATCH net-next v10 13/13] net/rds: drop rds_conn_count in favor of t_conn_count
-Date: Fri, 16 Oct 2026 20:23:19 -0700
-Message-ID: <20261017032319.2563014-14-achender@kernel.org>
+Subject: [PATCH net-next v5 0/2] net/rds: scope-aware sendmsg connection cache
+Date: Fri, 16 Oct 2026 20:23:56 -0700
+Message-ID: <20261017032358.2563121-1-achender@kernel.org>
 X-Mailer: git-send-email 2.50.1
-In-Reply-To: <20261017032319.2563014-1-achender@kernel.org>
-References: <20261017032319.2563014-1-achender@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -48,95 +45,62 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The patch "net/rds: wait for connections to be freed on transport
-unload", earlier in this series, gave each transport its own
-connection count in t_conn_count, incremented and decremented at
-exactly the points where the global rds_conn_count is.  That leaves
-rds_conn_count with a single remaining consumer: the seed of the
-per-path workqueue names in __rds_conn_create().
+Hi all,
 
-Switch the name seed to t_conn_count, as UEK does, and remove
-rds_conn_count.  The numbering becomes per-transport instead of
-global, so connections of different transports can now receive the
-same seed; workqueue names carry no uniqueness requirement, and the
-seed was already reused as the count rose and fell.  Removing the
-counter also removes the rds_conn_lock round-trip that
-rds_conn_destroy_fini() took solely to decrement it.  (The free path
-still sleeps in destroy_workqueue(), so the last reference has to be
-dropped from process context as before; only that one lock goes.)
+This is v5 of the sendmsg connection-cache scope fix (v1 at [1], v2 at
+[2], v3 at [3], v4 at [4]), now against net-next as Jakub suggested:
+neither issue has been observed in the field, and both were found by
+inspection while reworking this cache for the connection-lifetime
+series.
 
-Based on the Oracle UEK commit "net/rds: Each RDS transport
-should keep its own connection count".
+  Patch 1 gives the connected peer's link-local scope its own field.
+  rds_connect() used to store it in rs_bound_scope_id, the scope of
+  the socket's own bound address, which a later bind() to a
+  non-link-local address resets to 0 and which a later connect()
+  pollutes for a globally bound socket.  A send without a destination
+  and getpeername() take the connected peer's scope from that field;
+  recvmsg() reports a link-local sender with the interface its
+  connection came in on.
 
-Assisted-by: Claude-Code:claude-fable-5
-Signed-off-by: Allison Henderson <achender@kernel.org>
----
- net/rds/connection.c | 13 +++----------
- 1 file changed, 3 insertions(+), 10 deletions(-)
+  Patch 2 compares c_dev_if with the request's scope in the cache-hit
+  test, so the cache uses the same key as rds_conn_lookup().
 
-diff --git a/net/rds/connection.c b/net/rds/connection.c
-index 7d03d53a3101..8c4df7d6b294 100644
---- a/net/rds/connection.c
-+++ b/net/rds/connection.c
-@@ -47,7 +47,6 @@
- 
- /* converting this to RCU is a chore for another day.. */
- static DEFINE_SPINLOCK(rds_conn_lock);
--static unsigned long rds_conn_count;
- /* woken whenever a transport's t_conn_count drops to zero */
- static DECLARE_WAIT_QUEUE_HEAD(rds_conn_freed_waitq);
- static struct hlist_head rds_conn_hash[RDS_CONNECTION_HASH_ENTRIES];
-@@ -338,12 +337,13 @@ static struct rds_connection *__rds_conn_create(struct net *net,
- 
- 	init_waitqueue_head(&conn->c_hs_waitq);
- 	for (i = 0; i < npaths; i++) {
-+		int seq = atomic_read(&trans->t_conn_count);
-+
- 		__rds_conn_path_init(conn, &conn->c_path[i],
- 				     is_outgoing);
- 		conn->c_path[i].cp_index = i;
- 		conn->c_path[i].cp_wq =
--			alloc_ordered_workqueue("krds_cp_wq#%lu/%d", 0,
--						rds_conn_count, i);
-+			alloc_ordered_workqueue("krds_cp_wq#%d/%d", 0, seq, i);
- 		if (!conn->c_path[i].cp_wq)
- 			conn->c_path[i].cp_wq = rds_wq;
- 	}
-@@ -412,7 +412,6 @@ static struct rds_connection *__rds_conn_create(struct net *net,
- 			rds_conn_get(conn);	/* caller */
- 			rcu_assign_pointer(parent->c_passive, conn);
- 			rds_cong_add_conn(conn);
--			rds_conn_count++;
- 			atomic_inc(&conn->c_trans->t_conn_count);
- 		}
- 	} else {
-@@ -435,7 +434,6 @@ static struct rds_connection *__rds_conn_create(struct net *net,
- 			rds_conn_get(conn);
- 			hlist_add_head_rcu(&conn->c_hash_node, head);
- 			rds_cong_add_conn(conn);
--			rds_conn_count++;
- 			atomic_inc(&conn->c_trans->t_conn_count);
- 		}
- 	}
-@@ -684,7 +682,6 @@ static void rds_conn_destroy_fini(struct kref *kref)
- 						   c_refcount);
- 	int npaths = (conn->c_trans->t_mp_capable ? RDS_MPATH_WORKERS : 1);
- 	struct rds_transport *trans = conn->c_trans;
--	unsigned long flags;
- 	int i;
- 
- 	for (i = 0; i < npaths; i++)
-@@ -693,10 +690,6 @@ static void rds_conn_destroy_fini(struct kref *kref)
- 	kfree(conn->c_path);
- 	kmem_cache_free(rds_conn_slab, conn);
- 
--	spin_lock_irqsave(&rds_conn_lock, flags);
--	rds_conn_count--;
--	spin_unlock_irqrestore(&rds_conn_lock, flags);
--
- 	/* only after everything the transport module owns has been
- 	 * freed above may its unload proceed
- 	 */
+Changes since v4 [4]:
+ - Patch 1: recvmsg() takes a link-local sender's scope from the
+   connection the message arrived on (c_dev_if) and reports 0 for any
+   other sender, instead of the socket's connected or bound scope - a
+   connected socket receives from any peer, so a per-socket scope was
+   wrong for every sender but the connected one and could send a
+   reply out the wrong link (review of v4).  getpeername() and
+   recvmsg() now agree for the connected peer.
+ - Retargeted at net-next.
+
+Changes since v3 [3]:
+ - Patch 1: a destination-less send falls back to the bound scope for a
+   non-link-local peer, so send() and sendto() to the connected peer
+   compute the same scope; getpeername() and recvmsg() report the
+   connected peer's scope instead of the bound scope.
+
+[1] https://lore.kernel.org/netdev/20260921215046.174745-1-achender@kernel.org/
+[2] https://lore.kernel.org/netdev/20260927062312.169097-1-achender@kernel.org/
+[3] https://lore.kernel.org/netdev/20261003163526.250805-1-achender@kernel.org/
+[4] https://lore.kernel.org/netdev/20261008031426.1142344-1-achender@kernel.org/
+
+Thank you,
+Allison
+
+
+Allison Henderson (2):
+  net/rds: keep the connected peer's scope id apart from the bound one
+  net/rds: include the scope id in the sendmsg connection cache check
+
+ net/rds/af_rds.c | 15 +++++++++------
+ net/rds/bind.c   |  4 ++--
+ net/rds/rds.h    |  2 ++
+ net/rds/recv.c   |  9 ++++++++-
+ net/rds/send.c   |  9 +++++++--
+ 5 files changed, 28 insertions(+), 11 deletions(-)
+
 -- 
 2.50.1
 
