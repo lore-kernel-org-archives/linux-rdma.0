@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECA563815DD;
-	Sat, 17 Oct 2026 03:23:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8F933BED2B;
+	Sat, 17 Oct 2026 03:23:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792207403; cv=none; b=BGErOHmG1gB2s28YNZiz1Js7XXGwq2dspjVFzYS5Z5/nIzy5B5c2OfSnolbGBM88oK7su03jFuY6MI89d/gzsEr8r1haz1piUXJDoDx3GSoHepC/yGBM1d7RNvel9hxTzgmGKYSFPRFSnxma2zXvocT2se8nSOqHWZ3xpCLp64Q=
+	t=1792207403; cv=none; b=W7eeWLJ7pmE4quMAsKYz10V/NoFcoYfgyBr06h7b5euHfveT7+IFTDNMsA1fFNGheeWxo6EIDYj/+H92KpGKsWkoWgvo5Jo1FNzqVQGXN5n/IWRJx9pxsuinGUsgLpZRPg2A6qit/sRR7gW/y364FsF7wXqEdUce2Ss3eeNoeyo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1792207403; c=relaxed/simple;
-	bh=gX97Vs8VrMpaz6yh4x0t2oDxbbkugncuVibsGgtFJW8=;
+	bh=/FVnoiWKD0xH9FLDJyyaK/faNvWdVKgwNVEf0YSDSm4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Mh+5xcnl9iV7EO+uC9Fe8ScNrGv7yZVrJIEeHPGA7UWF7xwmXK/mRsJFcJGRHQYEQR5ptLNxeePkQL7n/DRtMXtcSHEfthQ853fNxURgXFNh5maiq3qw4Up9Rlpe4OJtw0LDwB4rU91cDsF9axV0JmlgY2RenSwwM/ybACZcIiw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FQW52vYd; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=e5FTZ5U0ajVkj2K/nj9tuMgR9tgL+l9qn2OIgMtGEV2Tq78zeI8ppyg3VvcrMz5J3ZvGPlJpRL1IpzLLih1z2ylCH10LDnk0d1xWOYfrqEl4e2CuV7A4UW58W2OXptyikceuqzRubQf/xKRltEIxJAec9Ea9JSNjM8BiN2THYXM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Po7+mzXS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FQW52vYd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E0091F000C6;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Po7+mzXS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 072321F000C5;
 	Sat, 17 Oct 2026 03:23:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792207401;
-	bh=4qNDCDEa27gmEIUt+9nSSAEXdJoB2zfUw6kFGT1RUDY=;
+	s=k20260515; t=1792207402;
+	bh=hgdX+w9yTGLpsQ5BwhQugJOYci9/fr6FrEChUkAz0XA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=FQW52vYdHGHHx4ii0nfJXH0cVEx8NcOAwhBAtJJBcwl4i5TlolNJWAzYMPa2gQpMr
-	 Dyb8+2EVtLyq/K95485i8MgpRdH1ayFu6qD+umCz9aCfnVIrCcPHrcUNmKZARHsbBg
-	 o6N52OMPxrUgOgxdRvA+sV5vIa9y+AhGpwDCtBCqMb4Kmh8TKyfa4PfOtd1ZRFPVh/
-	 1LfT2jbmJqRXzMB6D8Zewt8zc1f0fNxx56AuvGXkW+mJNGq6/KgA/0tMKObGehgK7N
-	 bekERy2niaCgRtftFZAYjnt6BkVoulN73wfcnOY3uChgIvcEZf7s747ZsYntSAKeHJ
-	 I/6yunyV9RjXA==
+	b=Po7+mzXS7EtewQfez4YoEGWk8TUyblNnsiuLaUysVRWHD+k7aXjACptN/KHhr+rT5
+	 6Hpqrr5FnhNjaBSYVgllknt8VIlKOp7H/NSqcpHNeT4eWoETT84aa9gp2a6Dyr6cqY
+	 VPHBWGS69ltr5WqjzWKQoOzpOvg64fGD/ik4bkvlR/8pG6Yp+eORONVlgChmvXbprN
+	 j8Ty6N7hxVb5bGWfnd9fBvh4X4NiCPsgE43rLZ7DPYngIgJliJjpXKJYMbWZePLu8F
+	 x58ma2J+MIcUjCA76LZAhQoqDq4t6w/EC/LTpjwrHO8phW0i4nPcsE31hOpKA+h4Ma
+	 ZNRO7zJ/Ww4+A==
 From: Allison Henderson <achender@kernel.org>
 To: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
@@ -34,9 +34,9 @@ To: netdev@vger.kernel.org,
 	kuba@kernel.org,
 	horms@kernel.org
 Cc: achender@kernel.org
-Subject: [PATCH net-next v10 03/13] net/rds: ib: refuse to attach a connection to a device being removed
-Date: Fri, 16 Oct 2026 20:23:09 -0700
-Message-ID: <20261017032319.2563014-4-achender@kernel.org>
+Subject: [PATCH net-next v10 04/13] net/rds: guard every work-requeueing site with rds_destroy_pending()
+Date: Fri, 16 Oct 2026 20:23:10 -0700
+Message-ID: <20261017032319.2563014-5-achender@kernel.org>
 X-Mailer: git-send-email 2.50.1
 In-Reply-To: <20261017032319.2563014-1-achender@kernel.org>
 References: <20261017032319.2563014-1-achender@kernel.org>
@@ -48,175 +48,157 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-rds_ib_remove_one() drops every connection on the device's conn_list
-in rds_ib_dev_shutdown(), then clears the client data so that no new
-connect can find the device.  A connect that is already past
-rds_ib_get_client_data() when the walk runs is not covered by either:
-rds_ib_setup_qp() goes on to rds_ib_add_conn(), which moves the
-connection onto the conn_list the walk has just finished with, and
-builds a QP on a device that is on its way out.
+rds_conn_destroy() cancels the path works and then destroys the
+per-path workqueue.  The sites that can re-arm those works are
+supposed to test rds_destroy_pending() under rcu_read_lock() first,
+paired with the synchronize_rcu() in the destroy path, so that no new
+work can be queued once the cancellation has begun.
 
-On a hot removal the rdma_cm still catches that: its own client
-removal runs after RDS's and delivers RDMA_CM_EVENT_DEVICE_REMOVAL to
-the connection's id, whose drop shuts the connection down and returns
-it to ib_nodev_conns.  On module unload there is no such event - the
-device stays registered - and rds_destroy_pending() is already true,
-so every drop short of a destroy returns early.  Nothing drops that
-connection then: the device's shutdown walk is over, and the
-connection never returns to ib_nodev_conns, which is the only list the
-transport exit sweeps.  So it outlives the module, QP, device
-reference and all.  The trigger is unloading rds_rdma while a connect
-is in flight.
+Five arming sites never got that guard:
 
-Make rds_ib_dev_shutdown() mark the device as shutting down under
-rds_ibdev->spinlock before it walks conn_list, and have
-rds_ib_add_conn() refuse, under the same lock, to attach a connection
-to a device so marked.  Every connection is then either on the list
-when the walk drops it, or refused: the connect fails, the connection
-stays on ib_nodev_conns, and either its own drop or the exit sweep
-tears it down.  rds_ib_setup_qp() has not taken anything from the
-device at that point, so the failure needs no unwinding beyond the
-client-data reference it already releases - but on the unload path
-that release can now be the device's last: rds_ib_remove_one() has
-dropped its own references by then, and the refused connect, holding
-c_cm_lock, releases its reference only when the exit sweep's
-rds_conn_destroy() of that connection waits for the lock, after
-rds_ib_unregister_client()'s flush of rds_wq.  rds_ib_dev_free()
-would then run on rds_wq with no flush left before the module text
-goes away, so rds_ib_exit() flushes rds_wq once more after the sweep.
+  - rds_ib_send_cqe_handler() and rds_ib_send_add_credits() re-arm
+    cp_send_w when a send completion or a credit update clears
+    RDS_LL_SEND_FULL,
+  - rds_ib_recv_refill() re-arms cp_recv_w when the recv ring runs
+    low,
+  - rds_tcp_accept_one() kicks cp_recv_w on the freshly accepted
+    socket, and
+  - rds_sendmsg() arms cp_conn_w for a multipath connection whose
+    path 0 is not up yet.
 
-This covers the connect that attaches after rds_ib_dev_shutdown()'s
-walk.  Its twin - a connection still on conn_list when the exit sweep
-runs, because its shutdown work has not yet moved it back to
-ib_nodev_conns - is left for the unload wait later in the series,
-which re-sweeps that list until every connection is gone.
+A completion landing in the window between the cancel and
+destroy_workqueue() in rds_conn_path_destroy() would re-arm a work on
+a workqueue that is about to be destroyed: with delay 0 the work is
+queued directly on the freed workqueue, and with delay 1 the timer
+survives destroy_workqueue() unseen and fires afterwards, queueing
+from a timer_list that lives in the freed c_path array.  Today's
+destroy triggers keep these sites out of that window - an IB
+connection reaches rds_conn_destroy() only from the nodev list, with
+its QP and CQs already gone, the TCP accept work is flushed before
+any connection is destroyed, and a sending socket pins its netns and
+its transport module - so this is preparation: the following patch
+gives the predicate a per-connection term, and these are the sites
+that would otherwise miss it.
 
-This mirrors the UEK gate on the device removal flag in
-rds_ib_add_conn().
+Wrap all five sites in the same rcu_read_lock() +
+rds_destroy_pending() pattern the other arming sites already use.
 
-Fixes: fc19de38be92 ("RDS/IB: disconnect when IB devices are removed")
+The four self-requeues in rds_send_worker() and rds_recv_worker() are
+left alone on purpose: they run from inside the work item itself, and
+cancel_delayed_work_sync() disables the work for the duration of the
+cancel, so a requeue issued by the still-running callback is dropped
+and none can follow once the cancel has returned.
+
+With the predicate as it stands the guards cover the netns teardown and
+module unload cases; the following patch extends it to the destroy of a
+single connection.
+
 Assisted-by: Claude-Code:claude-fable-5
 Signed-off-by: Allison Henderson <achender@kernel.org>
 ---
- net/rds/ib.c      | 12 ++++++++++++
- net/rds/ib.h      |  7 ++++++-
- net/rds/ib_cm.c   |  4 +++-
- net/rds/ib_rdma.c | 17 +++++++++++++++--
- 4 files changed, 36 insertions(+), 4 deletions(-)
+ net/rds/ib_recv.c    |  6 +++++-
+ net/rds/ib_send.c    | 18 ++++++++++++++----
+ net/rds/send.c       | 11 ++++++++---
+ net/rds/tcp_listen.c | 10 +++++++---
+ 4 files changed, 34 insertions(+), 11 deletions(-)
 
-diff --git a/net/rds/ib.c b/net/rds/ib.c
-index 4ea9838d090c..8758ae4cef36 100644
---- a/net/rds/ib.c
-+++ b/net/rds/ib.c
-@@ -86,6 +86,11 @@ static void rds_ib_dev_shutdown(struct rds_ib_device *rds_ibdev)
- 	unsigned long flags;
+diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c
+index bd6cb3ffaa57..7d45808544a0 100644
+--- a/net/rds/ib_recv.c
++++ b/net/rds/ib_recv.c
+@@ -458,7 +458,11 @@ void rds_ib_recv_refill(struct rds_connection *conn, int prefill, gfp_t gfp)
+ 	    (must_wake ||
+ 	    (can_wait && rds_ib_ring_low(&ic->i_recv_ring)) ||
+ 	    rds_ib_ring_empty(&ic->i_recv_ring))) {
+-		queue_delayed_work(conn->c_path->cp_wq, &conn->c_recv_w, 1);
++		rcu_read_lock();
++		if (!rds_destroy_pending(conn))
++			queue_delayed_work(conn->c_path->cp_wq,
++					   &conn->c_recv_w, 1);
++		rcu_read_unlock();
+ 	}
+ 	if (can_wait)
+ 		cond_resched();
+diff --git a/net/rds/ib_send.c b/net/rds/ib_send.c
+index d6be95542119..bc411e96ad12 100644
+--- a/net/rds/ib_send.c
++++ b/net/rds/ib_send.c
+@@ -298,8 +298,13 @@ void rds_ib_send_cqe_handler(struct rds_ib_connection *ic, struct ib_wc *wc)
+ 	rds_ib_sub_signaled(ic, nr_sig);
  
- 	spin_lock_irqsave(&rds_ibdev->spinlock, flags);
-+	/* Close the device to new connections under the same lock that
-+	 * rds_ib_add_conn() attaches them under, so that every
-+	 * connection is either dropped by the walk below or refused.
-+	 */
-+	rds_ibdev->shutting_down = true;
- 	list_for_each_entry(ic, &rds_ibdev->conn_list, ib_node)
- 		rds_conn_path_drop(&ic->conn->c_path[0], true);
- 	spin_unlock_irqrestore(&rds_ibdev->spinlock, flags);
-@@ -539,6 +544,13 @@ void rds_ib_exit(void)
- #endif
- 	rds_ib_unregister_client();
- 	rds_ib_destroy_nodev_conns();
-+	/* A connect that was refused above may have held the last
-+	 * reference on its device, and dropped it - deferring
-+	 * rds_ib_dev_free() to rds_wq - only once the sweep had destroyed
-+	 * its connection, after rds_ib_unregister_client()'s flush.
-+	 * Drain rds_wq again before this module's text goes away.
-+	 */
-+	flush_workqueue(rds_wq);
- 	rds_ib_sysctl_exit();
- 	rds_ib_recv_exit();
- 	rds_trans_unregister(&rds_ib_transport);
-diff --git a/net/rds/ib.h b/net/rds/ib.h
-index 1901226368c9..d1a3d421d439 100644
---- a/net/rds/ib.h
-+++ b/net/rds/ib.h
-@@ -258,6 +258,10 @@ struct rds_ib_device {
- 	unsigned int		max_initiator_depth;
- 	unsigned int		max_responder_resources;
- 	spinlock_t		spinlock;	/* protect the above */
-+	/* set under spinlock by rds_ib_dev_shutdown(): the device is
-+	 * going away and no connection may attach to it any more
-+	 */
-+	bool			shutting_down;
- 	refcount_t		refcount;
- 	struct work_struct	free_work;
- 	int			*vector_load;
-@@ -384,7 +388,8 @@ void rds_ib_cm_connect_complete(struct rds_connection *conn,
- struct rds_ib_device *rds_ib_get_device(__be32 ipaddr);
- int rds_ib_update_ipaddr(struct rds_ib_device *rds_ibdev,
- 			 struct in6_addr *ipaddr);
--void rds_ib_add_conn(struct rds_ib_device *rds_ibdev, struct rds_connection *conn);
-+int rds_ib_add_conn(struct rds_ib_device *rds_ibdev,
-+		    struct rds_connection *conn);
- void rds_ib_remove_conn(struct rds_ib_device *rds_ibdev, struct rds_connection *conn);
- void rds_ib_destroy_nodev_conns(void);
- void rds_ib_mr_cqe_handler(struct rds_ib_connection *ic, struct ib_wc *wc);
-diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
-index 8b16bd7c40ce..82ecbb9a3da1 100644
---- a/net/rds/ib_cm.c
-+++ b/net/rds/ib_cm.c
-@@ -524,7 +524,9 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
- 	fr_queue_space = RDS_IB_DEFAULT_FR_WR;
- 
- 	/* add the conn now so that connection establishment has the dev */
--	rds_ib_add_conn(rds_ibdev, conn);
-+	ret = rds_ib_add_conn(rds_ibdev, conn);
-+	if (ret)
-+		goto out;
- 
- 	max_wrs = rds_ibdev->max_wrs < rds_ib_sysctl_max_send_wr + 1 ?
- 		rds_ibdev->max_wrs - 1 : rds_ib_sysctl_max_send_wr;
-diff --git a/net/rds/ib_rdma.c b/net/rds/ib_rdma.c
-index db7e92e7bd29..50c02f47cf68 100644
---- a/net/rds/ib_rdma.c
-+++ b/net/rds/ib_rdma.c
-@@ -119,7 +119,8 @@ int rds_ib_update_ipaddr(struct rds_ib_device *rds_ibdev,
- 	return 0;
- }
- 
--void rds_ib_add_conn(struct rds_ib_device *rds_ibdev, struct rds_connection *conn)
-+int rds_ib_add_conn(struct rds_ib_device *rds_ibdev,
-+		    struct rds_connection *conn)
- {
- 	struct rds_ib_connection *ic = conn->c_transport_data;
- 
-@@ -127,15 +128,27 @@ void rds_ib_add_conn(struct rds_ib_device *rds_ibdev, struct rds_connection *con
- 	spin_lock_irq(&ib_nodev_conns_lock);
- 	BUG_ON(list_empty(&ib_nodev_conns));
- 	BUG_ON(list_empty(&ic->ib_node));
--	list_del(&ic->ib_node);
- 
- 	spin_lock(&rds_ibdev->spinlock);
-+	/* rds_ib_dev_shutdown() has walked conn_list, or is about to
-+	 * with this lock held: a connection attached now would never be
-+	 * dropped by it, so leave the connection on the nodev list for
-+	 * the caller to fail and the transport exit to find.
-+	 */
-+	if (rds_ibdev->shutting_down) {
-+		spin_unlock(&rds_ibdev->spinlock);
-+		spin_unlock_irq(&ib_nodev_conns_lock);
-+		return -ENODEV;
+ 	if (test_and_clear_bit(RDS_LL_SEND_FULL, &conn->c_flags) ||
+-	    test_bit(0, &conn->c_map_queued))
+-		queue_delayed_work(conn->c_path->cp_wq, &conn->c_send_w, 0);
++	    test_bit(0, &conn->c_map_queued)) {
++		rcu_read_lock();
++		if (!rds_destroy_pending(conn))
++			queue_delayed_work(conn->c_path->cp_wq,
++					   &conn->c_send_w, 0);
++		rcu_read_unlock();
 +	}
-+	list_del(&ic->ib_node);
- 	list_add_tail(&ic->ib_node, &rds_ibdev->conn_list);
- 	spin_unlock(&rds_ibdev->spinlock);
- 	spin_unlock_irq(&ib_nodev_conns_lock);
  
- 	ic->rds_ibdev = rds_ibdev;
- 	refcount_inc(&rds_ibdev->refcount);
-+
-+	return 0;
- }
+ 	/* We expect errors as the qp is drained during shutdown */
+ 	if (wc->status != IB_WC_SUCCESS && rds_conn_up(conn)) {
+@@ -420,8 +425,13 @@ void rds_ib_send_add_credits(struct rds_connection *conn, unsigned int credits)
+ 			test_bit(RDS_LL_SEND_FULL, &conn->c_flags) ? ", ll_send_full" : "");
  
- void rds_ib_remove_conn(struct rds_ib_device *rds_ibdev, struct rds_connection *conn)
+ 	atomic_add(IB_SET_SEND_CREDITS(credits), &ic->i_credits);
+-	if (test_and_clear_bit(RDS_LL_SEND_FULL, &conn->c_flags))
+-		queue_delayed_work(conn->c_path->cp_wq, &conn->c_send_w, 0);
++	if (test_and_clear_bit(RDS_LL_SEND_FULL, &conn->c_flags)) {
++		rcu_read_lock();
++		if (!rds_destroy_pending(conn))
++			queue_delayed_work(conn->c_path->cp_wq,
++					   &conn->c_send_w, 0);
++		rcu_read_unlock();
++	}
+ 
+ 	WARN_ON(IB_GET_SEND_CREDITS(credits) >= 16384);
+ 
+diff --git a/net/rds/send.c b/net/rds/send.c
+index 1afa981e5c06..32c411d10e3e 100644
+--- a/net/rds/send.c
++++ b/net/rds/send.c
+@@ -1378,9 +1378,14 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
+ 		 * outstanding.
+ 		 */
+ 		if (!test_and_set_bit(RDS_RECONNECT_PENDING,
+-				      &conn->c_path[0].cp_flags))
+-			queue_delayed_work(conn->c_path[0].cp_wq,
+-					   &conn->c_path[0].cp_conn_w, 0);
++				      &conn->c_path[0].cp_flags)) {
++			rcu_read_lock();
++			if (!rds_destroy_pending(conn))
++				queue_delayed_work(conn->c_path[0].cp_wq,
++						   &conn->c_path[0].cp_conn_w,
++						   0);
++			rcu_read_unlock();
++		}
+ 		rds_send_ping(conn, 0);
+ 	}
+ 
+diff --git a/net/rds/tcp_listen.c b/net/rds/tcp_listen.c
+index 13fa60c1985b..8a0c54aced5e 100644
+--- a/net/rds/tcp_listen.c
++++ b/net/rds/tcp_listen.c
+@@ -316,10 +316,14 @@ int rds_tcp_accept_one(struct rds_tcp_net *rtn)
+ 	 */
+ 	if (READ_ONCE(sk->sk_state) == TCP_CLOSE_WAIT ||
+ 	    READ_ONCE(sk->sk_state) == TCP_LAST_ACK ||
+-	    READ_ONCE(sk->sk_state) == TCP_CLOSE)
++	    READ_ONCE(sk->sk_state) == TCP_CLOSE) {
+ 		rds_conn_path_drop(cp, 0);
+-	else
+-		queue_delayed_work(cp->cp_wq, &cp->cp_recv_w, 0);
++	} else {
++		rcu_read_lock();
++		if (!rds_destroy_pending(cp->cp_conn))
++			queue_delayed_work(cp->cp_wq, &cp->cp_recv_w, 0);
++		rcu_read_unlock();
++	}
+ 
+ 	sock_put(sk);
+ 
 -- 
 2.50.1
 
