@@ -1,122 +1,128 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f200.google.com (mail-pg1-f200.google.com [209.85.215.200])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E1BF3D88E0
-	for <linux-rdma@vger.kernel.org>; Sat, 17 Oct 2026 04:59:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92ADD3CB2FE
+	for <linux-rdma@vger.kernel.org>; Sat, 17 Oct 2026 05:29:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.200
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792213175; cv=none; b=ZVhyafj4TOa+KX95kAPWy7TcGJm439W7S81fis+HkfH1sCBJjTy3v5h0+W5QThrLkD5FPyUdK2JU4aI/QZVCWC7T3FEIshmrGVoxB8OLJLnvzcm6UIMy5hW7j0igaHBr43H2rTNUQIK//uMcvA6mdGEOA4LnX99TynkEFBHSw+E=
+	t=1792214942; cv=none; b=bEVg5Va2ahq/R3aDpcAMiCHl+NaADvH/kPW3DUclD4CCSAB2/GDZHM57lQQkKkjSZGtp6Qs30SopjDRxSSq1LSPbOAuqiGe3yBVinOCeE+2kAqbZmhNgraXoIy972z+MTSwVjsvhlI6Ijt2BZmkNmqQJxj9agV+u8N45pSvyisk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792213175; c=relaxed/simple;
-	bh=Wvw/2bHf1KgDxnfoU5OV5pNLLYg8ys38gccHOAl2Lus=;
-	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=kn9ko4T2CmzDDvRoBKo0azde6r0q0FteT/fM6bqkdoaQoikZ1tFtn/xQ27bJGK1fPRMUDEg9BPab53EgN+qHnUdm65KVLiy+9W69lsPSHMdThS08urLdZxInZGLwJm5mvOaxybM5rjnuUCa7k15dSNPmXW7tVXv9+oqJXRpYnls=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OnM9bRgr; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792214942; c=relaxed/simple;
+	bh=oNWX2LFWYbcmqin4NlTi4Bdax8CyD7L5Xu9sfGxAVDE=;
+	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=s7Oj9T2CkTbFxv3vS+ZQgBTNPH9Oe/4rRZW8Jf20avT7mOFxPIskqnfsdqr+y8Fle/p526UCuNX/Fo74eMT+KHIX8+UltO5s74Txca3NuvXvUFo4r7qJG+wf50WZwgJ9xt1dcZ7JN8KHpKYidjoZq1gH61co0ywORRt2Vb+HnrU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--sunnytiwari.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=hM79jg0g; arc=none smtp.client-ip=209.85.215.200
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--sunnytiwari.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OnM9bRgr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBA601F000C4;
-	Sat, 17 Oct 2026 04:59:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792213174;
-	bh=9SvfKss7xso6D0DoTWZESuozchWYCISkTUwk61xs46M=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=OnM9bRgrmwYJLiWmZ+FhftyLbRoN4q5bxivsWxW3bGiSlN5ady7+aW3IEZwu4YD4V
-	 pF6hC+22DUfrlmzevyNMrlJHcnLpUyH9Ob1CiNHVzdlFbxm9s7yCDKh2MtdUbgWYdO
-	 /DBzvgNp2JbW2Uhj61LOUm32q5e8U1f8K8nUwxq/2IUiBLaig867WyRkHN60XL1eqK
-	 6Y35zmA1pkrF+SjjK7WoP6zBM6rASLBzYNXLEZBIm4HKzDWDNhEVSoEtMFvBr6uBJN
-	 0ffUJoZWG0Xz1bbytOdvDdvpx8zOpYeo9nzHLQjvn4FYPbP9Sfa2ClFmga9BbpUtjP
-	 F5Dn12o6PqQjw==
-Message-ID: <sashiko-outbox-175297@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next v1 4/4] net/mlx5: HWS, Don't free the send ring
- CQ buffer if destroying the CQ fails
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Yuho Choi" <oss.patchbox@gmail.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261016045849.813696-10-oss.patchbox@gmail.com>
-References: <20261016045849.813696-6-oss.patchbox@gmail.com>
- <20261016045849.813696-10-oss.patchbox@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Sat, 17 Oct 2026 04:59:33 +0000
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="hM79jg0g"
+Received: by mail-pg1-f200.google.com with SMTP id 41be03b00d2f7-cc4ac5feaa4so331765a12.1
+        for <linux-rdma@vger.kernel.org>; Fri, 16 Oct 2026 22:29:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1792214941; x=1792819741; darn=vger.kernel.org;
+        h=content-type:cc:to:from:subject:message-id:mime-version:date:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=bhcQVbCqJBa3gmSsi15raWgfiXqRO7hRuPkXvqhFkXU=;
+        b=hM79jg0g6mjju6ShUWTYZXue2GokL6ksugEgQ6iIpz1RzO+VJ6oZn7fGZpigh0HgSr
+         5/ZZfmuEBCD/GEOTJbsaWbrPoIndAIldWxRZedo6XMMOZ/hk8RAgCkSJfwy3TOW8QJwA
+         EC7kVi+GaaRHiGTRGCwEOKqaNHY9sCMQf12BaSPqUEKPieVKzXzcDt0p0qLnr4TlVNkO
+         /jln4Irgpc4n8RDB/fAyQJ03Hxw4KALX9bZIfQQSzpotyvKgZ7q0lOlARERblElzwgVJ
+         OlUP0SCfdwfT40F/ApXUpmZQJrbo8XzhJnbRNv9lZzGagwFNHy+JTv5kv+FIaXuLJWF7
+         jdLg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792214941; x=1792819741;
+        h=content-type:cc:to:from:subject:message-id:mime-version:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=bhcQVbCqJBa3gmSsi15raWgfiXqRO7hRuPkXvqhFkXU=;
+        b=Iiril3ymr2e0uk4ArnQV8wi6e2DdOVSOgbFhDc5xUB15G4QVCN3KzqR5lDmz8bJ+1j
+         qcUaJNxy2rq8ldv6M1Ulo9gPt3BrpKMDFZnVGqmk3oh+ZcMgLxsm7RW14mKCCQQa+dqe
+         zMRVW9LWTW9ugU+NJHWh2Mh0NQGI3d2nRJXy54041hxMc5Lbs/Ft1aDNcgimAdUYb0i7
+         5de8VeSDEPzIT0MPmjyY3iChDioYwO+H4GebuH6eqNevdF7zFSIxWs026p7SvCV2yA9V
+         KBO0gc03As0LBLZ6nAVINhGtyPNkE+cwlM8XerPRz+NOf0jvx1yW3yAq+T3F+nkVOBLG
+         PHxg==
+X-Gm-Message-State: AFq9FYJmbVCZuoTRpPxgaZUSGTLPdKcpT/XeRe0I+pHWgeWLuaHh/Dr7
+	sg5nqFr1Ye+34WZ5AGXkaSc42AOwQX0C2JfX110SpTxal+kfjdZekan7xBLmnNzhcFZ9ySRpCzf
+	Ojiox4wMrI68+aYh3MzFEYIdOnw==
+X-Received: from pgni7-n2.prod.google.com ([2002:a05:6a02:6a47:20b0:cc7:e02f:b64f])
+ (user=sunnytiwari job=prod-delivery.src-stubby-dispatcher) by
+ 2002:a05:6a20:c5aa:b0:3e2:c3e:b237 with SMTP id adf61e73a8af0-3e225f917d0mr1284924637.28.1792214940518;
+ Fri, 16 Oct 2026 22:29:00 -0700 (PDT)
+Date: Sat, 17 Oct 2026 05:28:56 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.56.0.176.g3575e65682-goog
+Message-ID: <20261017052856.3570063-1-sunnytiwari@google.com>
+Subject: [PATCH] RDMA/irdma: Bound in-flight CQP ops across deferred completions
+From: Sunny Tiwari <sunnytiwari@google.com>
+To: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, leon@kernel.org
+Cc: linux-rdma@vger.kernel.org, jmoroni@google.com, 
+	Sunny Tiwari <sunnytiwari@google.com>
+Content-Type: text/plain; charset="UTF-8"
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
-- [High] mlx5: software UAF of embedded CQ struct when firmware destroy com=
-mand fails
---
+On IRDMA_GEN_3+ devices, CQP operations can complete in two stages:
+Stage-1 on the CCQ acknowledges receipt and moves an entry from
+cqp->ooo_avail to cqp->ooo_pnd, while Stage-2 signals final completion
+via an AEQ event or a subsequent CCQ CQE.
 
-commit 46458ea83b82e1a1672d9e95c03b0f4bac750b05
-Author: Yuho Choi <oss.patchbox@gmail.com>
+In irdma_sc_ccq_get_cqe_info(), Stage-1 processing advances
+cqp->sq_ring.tail so the SQ descriptor slot can be reused once consumed
+by hardware, whereas cqp->completed_ops is only incremented on Stage-2.
+Because irdma_cqp_ring_full() only checks cqp->sq_ring, a burst of
+backlogged commands in dev->cqp_cmd_head allows irdma_process_bh() to
+submit more concurrent in-flight CQP commands than the maximum supported
+limit (cqp->sq_size - 1) while earlier commands await Stage-2. This
+causes CQP completions to be lost and synchronous waiters to time out
+with -ETIMEDOUT (-110).
 
-net/mlx5: HWS, Don't free the send ring CQ buffer if destroying the CQ fails
+Fix this by:
+  - Updating irdma_cqp_ring_full() to bound total in-flight CQP
+    operations (cqp->requested_ops - cqp->completed_ops) to
+    (cqp->sq_size - 1).
+  - Calling irdma_process_bh() at the end of irdma_process_ae_def_cmpl()
+    so backlogged commands are drained after Stage-2 AEQ completions
+    increment cqp->completed_ops and free in-flight capacity.
 
-hws_send_ring_close_cq() ignores the result of mlx5_core_destroy_cq()
-and frees the CQ buffer and doorbell record with mlx5_wq_destroy()
-anyway. If DESTROY_CQ fails, the CQ may still exist in firmware and
-retain access to that memory after it has been returned to the
-allocator.
+Fixes: c7db0abe5f2b ("RDMA/irdma: Add GEN3 CQP support with deferred completions")
+Assisted-by: Gemini
+Signed-off-by: Sunny Tiwari <sunnytiwari@google.com>
+---
+ drivers/infiniband/hw/irdma/ctrl.c | 6 +++++-
+ drivers/infiniband/hw/irdma/hw.c   | 1 +
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/send.c =
-b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/send.c
-> index df3b93499eebb..21e2d0a26e88a 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/send.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/send.c
-> @@ -1005,7 +1005,9 @@ static int hws_send_ring_open_cq(struct mlx5_core_d=
-ev *mdev,
-> =20
->  static void hws_send_ring_close_cq(struct mlx5hws_send_ring_cq *cq)
->  {
-> -	mlx5_core_destroy_cq(cq->mdev, &cq->mcq);
-> +	/* A CQ that was not destroyed can still access its buffer, leak it */
-> +	if (mlx5_core_destroy_cq(cq->mdev, &cq->mcq))
-> +		return;
+diff --git a/drivers/infiniband/hw/irdma/ctrl.c b/drivers/infiniband/hw/irdma/ctrl.c
+index 335ae3c82e17..99fc9bf4face 100644
+--- a/drivers/infiniband/hw/irdma/ctrl.c
++++ b/drivers/infiniband/hw/irdma/ctrl.c
+@@ -5331,7 +5331,11 @@ int irdma_sc_static_hmc_pages_allocated(struct irdma_sc_cqp *cqp, u64 scratch,
+  */
+ static bool irdma_cqp_ring_full(struct irdma_sc_cqp *cqp)
+ {
+-	return IRDMA_RING_FULL_ERR(cqp->sq_ring);
++	u64 in_flight = cqp->requested_ops -
++			atomic64_read(&cqp->completed_ops);
++
++	return IRDMA_RING_FULL_ERR(cqp->sq_ring) ||
++	       in_flight >= (cqp->sq_size - 1);
+ }
+ 
+ /**
+diff --git a/drivers/infiniband/hw/irdma/hw.c b/drivers/infiniband/hw/irdma/hw.c
+index c345cc654256..f678ef8c1d24 100644
+--- a/drivers/infiniband/hw/irdma/hw.c
++++ b/drivers/infiniband/hw/irdma/hw.c
+@@ -265,6 +265,7 @@ static void irdma_process_ae_def_cmpl(struct irdma_pci_f *rf,
+ 		irdma_sc_cqp_def_cmpl_ae_handler(&rf->sc_dev, info, false,
+ 						 &scratch, &sw_def_info);
+ 	}
++	irdma_process_bh(&rf->sc_dev);
+ }
+ 
+ /**
+-- 
+2.56.0.176.g3575e65682-goog
 
-[Severity: High]
-Does returning early here expose the software CQ structure to a use-after-f=
-ree?
-
-When mlx5_core_destroy_cq() fails, it skips synchronization and completion
-wait for concurrent users of the software CQ:
-
-drivers/net/ethernet/mellanox/mlx5/core/cq.c:mlx5_core_destroy_cq() {
-	...
-	err =3D mlx5_cmd_exec_in(dev, destroy_cq, in);
-	if (err)
-		return err;
-
-	synchronize_irq(cq->irqn);
-	mlx5_cq_put(cq);
-	wait_for_completion(&cq->free);
-	...
-}
-
-Because hws_send_ring_close_cq() now returns without any indication of fail=
-ure,
-its caller (mlx5hws_send_queues_close()) will proceed to unconditionally fr=
-ee
-the array embedding the CQ structure:
-
-drivers/net/ethernet/mellanox/mlx5/core/steering/hws/send.c:mlx5hws_send_qu=
-eues_close() {
-	...
-	kfree(ctx->send_queue);
-	...
-}
-
-Since wait_for_completion() and synchronize_irq() were skipped, could an
-executing concurrent EQ interrupt handler or async event handler still hold
-a reference to mcq and access it after the send_queue array has been freed?
-
->  	mlx5_wq_destroy(&cq->wq_ctrl);
->  }
->
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261016045849.8136=
-96-6-oss.patchbox@gmail.com?part=3D4
