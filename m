@@ -1,44 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B484C346FBC
-	for <linux-rdma@vger.kernel.org>; Sat, 17 Oct 2026 06:52:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41D7135AC0C
+	for <linux-rdma@vger.kernel.org>; Sat, 17 Oct 2026 06:54:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792219943; cv=none; b=JT758v+8oSi6EbxQTvKW0eW6LfI/WAyjaIec/NcBupN+Ro2+gtSdPf1gZilkIsrECLdMgR9aRfnhEAJBxfA1UD3RVMlLrHN++F3TScky7XXH0GAxoKlDNhNm3f2znj8FYs6PxCzTJYyauc3U6ld6viBWppXhn0w24xEtc6W/4Fk=
+	t=1792220054; cv=none; b=SyWASQfzaCoayaH6u7TvaS0bA4Rc1nTXUX8VhG0LGYgV+3Ol5Yg1aYmdYDFJ2tH4YX3uV/37+4+BlwVX3D/TKrBfQ2xoOoncrPIEyV1ItdcKamU60A6T/QTjfoZfUX56aMu3IQCy28lyDFluvMp4hrfCRf/dnVsW31GmnpOJ2wI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792219943; c=relaxed/simple;
-	bh=Kybexu66lqI9YRIf7b+Zoa2dvGRGmZFqJ8SVbgdSrJw=;
+	s=arc-20240116; t=1792220054; c=relaxed/simple;
+	bh=YyIBSRpAEe6NURYL3WiBgxx4aYTZobNptzvSMAPOhCo=;
 	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=skV0tTsem7zkrm29nQ6dflhHTAE5yXK8DYxzvJU42hj3/K+ai6R4ryJskBsNfrGEo8AxdIe/iOINwnOCkvh8WocIjRYSEh/z52Fxp89V4tia+D+o4GF9KKJrid3/s60CSP6kk2jmgbzkjaIFBkRwxtKZgKnf8ahwAa0WiL4WmP8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QH7BQGr5; arc=none smtp.client-ip=100.103.45.18
+	 Date; b=Ba4eHJw1E4fJ5GBY9d/oIs3o+HkP7DhGOjMJPuZ9K4lkyPG11b/jht26WiVuvFml3eCKagilq+P+uYIjhA5JogSwN3rfSZ0EC6tINltmGtZtUIG+RSYH6zcvWG7plHZMkQdT+oySm+N44DCHVKXVnp88T5UNsuk4AL5aSqj3bHw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hnnzn71F; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QH7BQGr5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9B771F000C4;
-	Sat, 17 Oct 2026 06:52:21 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hnnzn71F"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A00681F000C4;
+	Sat, 17 Oct 2026 06:54:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792219942;
-	bh=Kybexu66lqI9YRIf7b+Zoa2dvGRGmZFqJ8SVbgdSrJw=;
+	s=k20260515; t=1792220052;
+	bh=YyIBSRpAEe6NURYL3WiBgxx4aYTZobNptzvSMAPOhCo=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=QH7BQGr5DjDygYFXH9QLsh+f2iFvZQCOqtzUwWUJKMCGLkdeQ8+NOZFRJInT4MTUt
-	 ZdM/ZhtCFGc4zJOEOo/8AgxuS7iK2acjqTe4zEvjIbCK7sLReBXeN4IERLEHMyE20f
-	 p+M8RLIxGC8pRpjTAbpkQ/g6g2BGzjfYl+aD/EEBu64IyEDra5Fqz6Qo5+KYkDdWVi
-	 /JQCZ5pCYVZ95N6+lL37qh4jeJlQKD3XfDclIsRMvWqfGZH+m9rq8mq9p81ssUoS88
-	 +LtzqlQkAjyg/OTt1O16OWNSEfSiFDoRHd3ZnKbRYAVf1x/oCp7GbuGGZuF/9Rn+pX
-	 OEgc7s8ZdJ3Fw==
-Message-ID: <sashiko-outbox-175353@kernel.org>
+	b=hnnzn71FBrgm15NuMcBr8UIYd+DPPSEBipIMb/jnfr2HNg+MK1ZBoT5Ojnq3WNqVH
+	 10Dt5WPdIEyYvVnI/EZFU6t+/fZEoFUY2B/i5H+Q98RGRzYHBRr2kFH5JryJp2nDJG
+	 Qux+ba25bLiozHJp5krVn72nDEiWEZHWiiNjDbuNCMy320s0p/inqoIH0bHf8mTvVP
+	 CEBWQ3DEc3bIu4yoo+DjN8xqkO7We7Hw2a9XuTve4f9m4f+y8Aht/lVQMLToO8wEtt
+	 Ob/KfXRF1YtAw2Tafda+p22Cpv6l6XzrHsef2gaCMnm0uAI8iXxe5LJogndIAifqVs
+	 MWNwfajmtfsdA==
+Message-ID: <sashiko-outbox-175354@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v5 02/10] RDMA/mana: Create and destroy kernel
- RC QPs
+Subject: Re: [PATCH rdma-next v5 03/10] net/mana: Extend GDMA encoding for
+ new RDMA WQEs
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Konstantin Taranov" <kotaranov@linux.microsoft.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261017064413.995985-3-kotaranov@linux.microsoft.com>
+In-Reply-To: <20261017064413.995985-4-kotaranov@linux.microsoft.com>
 References: <20261017064413.995985-1-kotaranov@linux.microsoft.com>
- <20261017064413.995985-3-kotaranov@linux.microsoft.com>
+ <20261017064413.995985-4-kotaranov@linux.microsoft.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Sat, 17 Oct 2026 06:52:21 +0000
+Date: Sat, 17 Oct 2026 06:54:12 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -47,8 +47,12 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 > From: Konstantin Taranov <kotaranov@microsoft.com>
 >=20
-> Implement kernel RC QP creation and destruction. This feature requires
-> extended-WQE and power-of-two-SQ support from the HW.
+> Extend mana_gd_post_work_request() to support extra-large OOB data and
+> fixed-size WQEs. These formats are supported only for power-of-two WQE
+> sizes.
+>=20
+> For fixed-size WQEs, use num_pad_sge to specify the padding size. Encode
+> the WQE header fields required by RC QPs based on the WR flags.
 >=20
 > Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
 
@@ -56,5 +60,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261017064413.9959=
-85-1-kotaranov@linux.microsoft.com?part=3D2
+85-1-kotaranov@linux.microsoft.com?part=3D3
 
