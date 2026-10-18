@@ -1,71 +1,71 @@
-Received: from mail-ed1-f54.google.com (mail-ed1-f54.google.com [209.85.208.54])
+Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com [209.85.208.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B62623B638
-	for <linux-rdma@vger.kernel.org>; Sun, 18 Oct 2026 02:25:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F06934040B
+	for <linux-rdma@vger.kernel.org>; Sun, 18 Oct 2026 02:38:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792290335; cv=none; b=Q20Sx7XizQxhuZvAtJ5BP1mVDiLjAciOt7dsWxdADpymkguyy1tT1oFeLWJc197hGjCKoLlCIetJCfczUTE9asYtKetKpvP+bszhsObEFrlepYkQ470R1C+k+OZEZAIhqaOTugQriVHLoPCVEn7BiwvnNNlqMezgIGy3aiiv0ag=
+	t=1792291097; cv=none; b=dJOII+6N8d0YuotXCQoipWcGbuvlnUVF6L3vTSUxwV3m8yLrrApRaY7QG2hBJZe2M7mvN1Q8ryxuzZEu/CdNYkx+9sxkwgwCTfqPoHYnx/aRvKFJnZn1VyYtkuRx2tsHErfnnp3qgzfo4RHkN8tftp+IAzgS9dgnz5xOptkFgbU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792290335; c=relaxed/simple;
-	bh=cOWgL4Y5aOSoL3opS9VqD9bwE2Ik8UunaS8+RLwbmv0=;
+	s=arc-20240116; t=1792291097; c=relaxed/simple;
+	bh=OprDKVD3dlInOK+EtkJkBGY3nlx9HocRm71U+En4ns4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Q+YWWe7y+jYBNiiLG6ffAqMBFYD7/ki6FeZ1hxq0RGFUZIfRStr1XENylWuFafBEyULq7EZ80QjRGxMCYpq2PulMa4izt9wjPzsZVVZdHKY7qpwZ6PDaKCvx3cULru77u02blCJotTRpSbYTI69JGMPU6YiI5adm0xX8CJe/PDs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de; spf=pass smtp.mailfrom=bairaktaris.de; dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b=sJbwSk21; arc=none smtp.client-ip=209.85.208.54
+	 MIME-Version; b=ZX8ebRiVISazO9MlxNb2L/6p1oOF4SnVupS59CwKc9w+442uuV4RN1P/PczYhEo6foAMxZHsW4cXtzU2yLP3YExjuGkGpRXcZve3ETOFBTQWtCvQUV8Kz2goWfI5OSm6xHoVGsDRs3/U5K8CfDdcnd+RzuoBooV9SbS3iyxsam8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de; spf=pass smtp.mailfrom=bairaktaris.de; dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b=cFtqatdM; arc=none smtp.client-ip=209.85.208.44
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bairaktaris.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b="sJbwSk21"
-Received: by mail-ed1-f54.google.com with SMTP id 4fb4d7f45d1cf-6b1cc392d8bso1130835a12.1
-        for <linux-rdma@vger.kernel.org>; Sat, 17 Oct 2026 19:25:33 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b="cFtqatdM"
+Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-6afbc363efeso1603967a12.3
+        for <linux-rdma@vger.kernel.org>; Sat, 17 Oct 2026 19:38:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bairaktaris.de; s=google; t=1792290332; x=1792895132; darn=vger.kernel.org;
+        d=bairaktaris.de; s=google; t=1792291094; x=1792895894; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=cOWgL4Y5aOSoL3opS9VqD9bwE2Ik8UunaS8+RLwbmv0=;
-        b=sJbwSk2180ZFZkpasPbMUs+VnMuDmisi/Ml/uMIqWgJu+Wy2c8tk0IPP8f1gNewA+9
-         7j4qFEMLErx/AMNezdDNt1ya079p74pP1J2G07FVj4DcMBu3XwhRcP/KVRuQY9N/X8zI
-         g3QUPlvDmAud0UDDID/3PKF3hyiMlNaFURBHy6HaQCah7yvngWZbyE8FWAZOz2EIZ6im
-         4Ztw1lG2LyAbP/lJW1CMRQa/j1l0sWkuM+ufTN7wTzXQoxvLfe7no1E6s+oAoor7hb48
-         dwwcD7adG3cEge0Ghw7bGupo+mxFmjjgLJHC5r5QdV9kGaSUvM0u0sObg0arJdHDXXcD
-         VfHg==
+        bh=uuVxX/jLPtohDOq387cSqeqHjD2U6i5S+xDw1QtsGiQ=;
+        b=cFtqatdMQKgmQSYSq39dS9PbMTjb/oOnEnOFu2GDA4z+ZyGbjIyySV5az4gfb4NtR9
+         AVD/yCtLpvN0/YjkCU76bBR4Pnsj+PgIlEzafq8WYIpazHeQh6l6rsLdenVSs2FMa2ja
+         5uhksrEELgmHbcewXdjdG3shuBifY6ia8hdn1DvWvYQvp3eaqb8Pck0qAPrhu7tFOfIa
+         9YsX4OvnDOxe9pDGLESLlwC3Tcxur2p9YkEXHh887S3AN10uKePWr1El2P6t3TQUIJf2
+         a9s+SJsSn8KYtnawo9kY5Ca0RkzAsPej6F8ZT513+kjcsYEmcE6zs2Si6xnd/tZUKuk3
+         oLkg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792290332; x=1792895132;
+        d=1e100.net; s=20260707; t=1792291094; x=1792895894;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=cOWgL4Y5aOSoL3opS9VqD9bwE2Ik8UunaS8+RLwbmv0=;
-        b=CYGIw8+PkGmH2Xrs9345TG56y+g/UTnT+clyR00CdTDTR0kYslseRQLGs7qwh49q2p
-         twYMgem+uBV8gsD4/L0sxbPYD/f1+UND1Flkg6kk4ahpYHMcz1EdECSR8zsSu/FTN5a2
-         81km92czVmvbicp8LNeMAU8zYueEYPBAbxJcG1mgUSbUGex2wolyXeMHIUf6PWa7ZUsY
-         NY77JeWSLAVgPa/WsiA0a/XIDWjcYbFn967bB+18Iw5qCxPBid4umi2vhvsd4PkT+eEN
-         we5gq5Kxe17TwDZKBWIkcRXXzJ2D0R9hb6zbx9vcLIps77qMrpVPFGYUL62yrdfbtKz3
-         z5xQ==
-X-Forwarded-Encrypted: i=1; AKwUvBwr3WW/uwinfDJYQ3AFuziSkApOi0yWT0P/vmfIX7j3ihnjw7FQ8Nnjv2GS9yFm2U2IGfmplW9xXsXu@vger.kernel.org
-X-Gm-Message-State: AFq9FYLX1vtV1r84khPvSxi+LuZQtS5rVDXn2evgq166OI+Sq4yFTIkT
-	BQGg3fBIFJ65D3dQVsXeig9npFzOU6jtIHk0IIzYF20Axpbd5jFl/uUAIelYGFkopQ==
-X-Gm-Gg: AYBFou0gDwjugXg0N8A4RFX5PbdX3QKm6o44UYoH9Tqjx/saV0Jk/HK7RteHWJwX7e+
-	pTsiV59NsEQmYRDSnzMd7u5bfzJowgb+8R1KQFl9LLyTL1t3ukDFicOo0aZ1J1Vqu8pHsqCUzWI
-	OEsgHmeDeySfU8I2eiMCjUsakA+QD1TYSuaPDC9Tj+2dFk0jOmt5u1Iwxv3Twl63JdWtwcEKDLa
-	TZp0YDrD/5wn5ANlnwYn8QjHynttegJ3TWkeiJKzKLH5PgxXl2XA/GKkUEibkk3fsnznD7lwU5I
-	2A9K6BaBwzE/9l6b286SdEZCaXG8oxZjYI+s3v0sRuubPlT5yKbaO7zBFoUFL84h6creK1aq5+8
-	hcfmqcr3TvWEb6a6wYoy7eLcuEjrbGs/mQZfzJWKTz1GKgnv55uacftMOFx0nHt6yACfIxhaqzb
-	8F9J8Z4VUz5SVv0M/reO6Uj2JZgFvLSG51AkFkPnvuFx9li/uItQ6wnVeAQMKRYC0gI+KGD4h5i
-	hID5H4ZNdGbls7z066lXKnK2BxTuehI6718ZpGSgsaLieECRDE2ekT9rg4WpL25lJWcO1VBVkzr
-	EDXwypzTHGYSfKRXf/6rQuYBECk9ZGkd92HnG9ysc/zIdgazeB00AuqL11Slb3cP8iebDEpVkXK
-	CrXsgEEnXD7svjXObE1vjoh0Q1zDBGmLNKS2lMoIMUep0gz3aDlVX1qNJXD0+QcrAXUjE2MAfri
-	nditru/QIUo7uiyKuQihP9S1HCUXS1EGFGT4Asb7akuAq8aqeNvW+2W38hxpJ8WA==
-X-Received: by 2002:a17:907:e849:b0:c40:4320:de2c with SMTP id a640c23a62f3a-c419e73e2a1mr277700866b.15.1792290331870;
-        Sat, 17 Oct 2026 19:25:31 -0700 (PDT)
-Received: from Desktop.fritz.box (p200300f247429d100000000000000a27.dip0.t-ipconnect.de. [2003:f2:4742:9d10::a27])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c40913c4c5dsm222994366b.39.2026.10.17.19.25.29
+        bh=uuVxX/jLPtohDOq387cSqeqHjD2U6i5S+xDw1QtsGiQ=;
+        b=Zt7cNswBq1eVJ2LK8sAeLmBMG51S2ALbmgfulPGmthZ/nFoPmiV1XXDnRXPVamiTQv
+         O0V4M+49mgDv/fK4hPg2Rq//gfqTdvTeGge0R2dd1ZMkX1qDL2CEhvrodaz8Er2GNQtx
+         70/X94lgUr0AiL5qMPkxXghIKpl5iGGyLDn44POXBH1xbU+f8E+9qfvjAknxM9XcVQeh
+         vWESzWA08HsyN7z9cz1LaRvX3NYH5jzIFAu8bENTpQfCC5NwFOS7+lwbWUO4wImrVaMt
+         gYkKq/QxH5vb6XdqUmtJVaLdnlrxIQD0F9tFYA8Y4VO2DIlAJpfLRi9m3Uf3OpezGX3d
+         +WuQ==
+X-Forwarded-Encrypted: i=1; AKwUvBylwI4053WKViaMIoS0UtnNIppFngW76YqXdd1qf74kMx6s2vjoSAx802H9cDo/hVsU/nesZuKWYmip@vger.kernel.org
+X-Gm-Message-State: AFq9FYKqng+/arMRmxOwZorD5WY8pnjd+Zsks2Tk5fk2RfWLYuWVTi/r
+	px7vKiYgwKvqHov9hAfBywZJsKVyF6D+Da+AfZqTBw566SoUx5uOfKGp6Bz4Kj5DIKTOwSy6DaD
+	iDw5GT3wFfXM=
+X-Gm-Gg: AYBFou194VI8U8CGH/6yd2+WOJK2FzgqEqynCgC2rxJTB6LuDb9GqdRfngG1T/bDpff
+	vvAyAlEywjH7RT45R3bMZ/WtVu4PKCDDorHhxTf+dmvJoQMld29OrOFRvGTJToVOlIA3NtC+aDs
+	m+RlD7GkrtOEgluMN63WSevqjS2TXhLf/A0xdhTdHPYjdm5h/zsXA71FOrFIkT4JSEHokt3i4Hh
+	Flz4lN1MYK419+01GHttNIs/pNxp1v1D+6D27AXkl7EXoUMXf3/VjY4AjGLonXwpekkigdqgl03
+	VVCYxMVlNZ41RGUecZ9L6UZyQrVV3yhQf/2r1RhJaFvhpzIT3fEI3fEaHZ2qJhOTB5eXR7VPEok
+	+imzT/jY7EZvsTSYAfwz8bknIlj3yb2vgX08UVEj2V9p85VjhVUROsECRbyroClj7UJHB4TQKfe
+	9PiBD089hWNyp/9pMI41G3Vr+c6aeB1p6bsKiGKcu2uZWEv9/YOlH4CJbl9GvvSVP6Ab+LJyzGW
+	hGV97KE93KdaSYb6elGcVckMjDcH5EDYXLPlBWFCkdbZOdN9M2x1bhw61SjYInEKbLBLHJe6jb4
+	vRAliuntOJsEKb+StnGEEGM9xIb3AZaFEBuOZgpTmBIalg073lnh3nHCbJBKBPr/cfpxt5JMfud
+	64aUbBGqqErNLeEcEx7mZV2MIvdMdeS52sy0Ty2q5x3BojzgxEZJUwDrCi6jshf09dnEGXom6Bf
+	yOxqw7yvity6/qwKGNWfI=
+X-Received: by 2002:a05:6402:2489:b0:6a9:850d:bb38 with SMTP id 4fb4d7f45d1cf-6b3a81766camr2392870a12.10.1792291094015;
+        Sat, 17 Oct 2026 19:38:14 -0700 (PDT)
+Received: from Desktop.fritz.box ([185.181.130.213])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6b38a1c80desm2356771a12.20.2026.10.17.19.38.08
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 17 Oct 2026 19:25:30 -0700 (PDT)
+        Sat, 17 Oct 2026 19:38:12 -0700 (PDT)
 From: Julius Bairaktaris <julius@bairaktaris.de>
-To: jianbol@nvidia.com
-Cc: pablo@netfilter.org,
-	fw@strlen.de,
+To: pablo@netfilter.org
+Cc: fw@strlen.de,
 	phil@nwl.cc,
 	netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org,
@@ -93,12 +93,12 @@ Cc: pablo@netfilter.org,
 	mbloch@nvidia.com,
 	linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH nf-next v3 1/3] net/mlx5e: Ignore FLOW_ACTION_PRIORITY on flowtable offload
-Date: Sun, 18 Oct 2026 04:25:27 +0200
-Message-ID: <20261018022527.4065122-1-julius@bairaktaris.de>
+Subject: Re: [PATCH nf-next v3 0/3] netfilter: flowtable: carry a priority into the offload
+Date: Sun, 18 Oct 2026 04:38:04 +0200
+Message-ID: <20261018023804.562323-1-julius@bairaktaris.de>
 X-Mailer: git-send-email 2.53.0
-In-Reply-To: <CAC1t37K0tEMzxmRhLeHnH-TPx61pZmCHt0xxTJ5Wq2Wxvzv8Jw@mail.gmail.com>
-References: <CAC1t37K0tEMzxmRhLeHnH-TPx61pZmCHt0xxTJ5Wq2Wxvzv8Jw@mail.gmail.com>
+In-Reply-To: <atQk1d8Tv03iPN7d@chamomile>
+References: <atQk1d8Tv03iPN7d@chamomile>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -107,12 +107,21 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi Jianbo,
+On Sun, Oct 18, 2026 at 03:45:57AM +0200, Pablo Neira Ayuso wrote:
+> I don't understand the "one flowtable per class".
 
-v4 is ready with your Reviewed-by on 1/3, the rename to
-skbedit_prio.c and the consequence line. Pablo asked to handle one
-series at a time, so I will post it once the fdb roaming series is
-merged.
+If the priority is a flowtable attribute, every flow in that flowtable
+gets the same one. To give sip 1:3 and https 1:5, you need two
+flowtables with the same devices. nf_tables rejects a device in two
+flowtables of one table (nft_register_flowtable_net_hooks() returns
+-EEXIST), so you also need two tables.
 
-Thanks,
+With the per-flow priority it is one flowtable and the rules that set
+the priority today:
+
+  udp dport 5060 meta priority set 1:3 flow add @ft
+  tcp dport 443 meta priority set 1:5 flow add @ft
+
+v4 waits until the fdb series is done.
+
 Julius
