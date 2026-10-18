@@ -1,48 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1721849F12B;
-	Sun, 18 Oct 2026 12:55:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C9DF45C6E3;
+	Sun, 18 Oct 2026 13:05:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792328125; cv=none; b=JaGXQXMfHTMa11CmsXSzXaw5vYzvpWmO5WPlCseMu4C/jRVFXZ1W3r81uibBXx5YfXuWRymKVkrtTMtaTGcu6nm1lQcplwlTic9Eq7SGup6oiCGL0xREMgWOn9LX/rldYStIOVJP1Fq50rzJ4AVy0F+3QhvOy5rWQB8wL4gGSF4=
+	t=1792328711; cv=none; b=aPaGph1yLSind3y7qpFIwPOXYPfpZqQXNjo3Uk8FL/V5rIsj2Dud3ShUcZWuyLopp8ke5xWEo+hFYuG8Ke+7DeyLyyPfpStkwrBDW3PT9Qsr6n1+w3t0G8kKoo4TFd0Qx9pr4kjLGH6VafksuFFs2fXujsh5a2fy/vDHGmFYTAk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792328125; c=relaxed/simple;
-	bh=680s3p/4km2avW6oqRYoU9OZh2xsbUZBPuIMcApqAqE=;
+	s=arc-20240116; t=1792328711; c=relaxed/simple;
+	bh=sENGOwAJCqT6NkjdKCKPlLQOBHkFOdI43uFiD73smrU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=lIdP9Yc3Mcj7Irc+832hWLRVVMchX9acn+XSbxODqSSfyi9k4vCaEYQiwLpdYaISKIIuo/95R2qa8fUjoacT1Eur7gUmNmTaZC8qtqx67T0RboMZ0NE8NO6R7Vs15cB9J//ljPTkvrDvtZQdYTBfaYARgAcc4UhZnoEGVbeopso=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iNPNue4I; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=qkrievx3915Lbncfh1MsrbT4RNtjU8B9z8Jl5ES652ygts8Iy3XsTPqXh7NxcnFE3dAC8BNjiOMkLkbCSkxO5+MQF+lkU5l3mLp3os0Fv/Sy4eRg4I9wOQrLEJ4sd/5SVRNE9hj1i6ffAvKfyP1G2Av5xV1u3FmSdchrTGHPkqw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=S9EWGus4; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iNPNue4I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FD331F000C6;
-	Sun, 18 Oct 2026 12:55:23 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="S9EWGus4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92CC61F000C5;
+	Sun, 18 Oct 2026 13:05:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792328124;
-	bh=tPZvxr18psUo+iJLn+gqHxeX1JtATabu4FfpskVFjaM=;
+	s=k20260515; t=1792328710;
+	bh=Sh8/PhhU0vlFc74QUMVLaV0stOvHDT3eeZpHAy0z+xg=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=iNPNue4I+2PgEGfVb9x0HKZWcr2XUgmQ4K7+eiu9Yz0Ia+N/UAz1y2pWPmhA6/V7/
-	 /z+K1Yk05twGPBwddFSIn/L3tJ2n3ww5Hsh09cF6lU6prZN+5Gf/nr1ACrOCDaC6E6
-	 iIBRfK5jHxpzTuICWJKKcVMbkQRC00tuO6R+YjJUevNi1isIAyOX1I/L8DSoyzzd5V
-	 Fe4QYvfnKUdbykXntvxulDygzMb0cMwNZuwzbUDVgitcNudvafrVWlWFj96b9z/05L
-	 ja1XhUYS2tEwqUvfDfrIxhVHbbChEaOhSO8OBwoITXrX/OBbziHPcRgsCEINci3rlI
-	 nb0yOInkUJPrQ==
-Date: Sun, 18 Oct 2026 15:55:20 +0300
+	b=S9EWGus4XCSTRp/H7+iwIEmfDVoc1sf6TiXJ3rlb4tLvBYvTpvW5jsHoa++FerNIt
+	 3l6Z3EioI2SwmSBf2rUJ5mDg4knUEhx9cUp6a3T5bhMYDgaZfjEIGj/EoMlfua9fB3
+	 bMEBGSVfdFMqCnk3Ih7njJH2Y9EOXU+HnWUlU9Qn94m//RKAw/zygC1sGa4R32nzKK
+	 SkojK3RYu8Aso6wO101z4lPUUuYi3dcRpv8cvqluBKPo7tAs+5w43+wl1TYN8KxBzw
+	 aupuGFtXG8pXVV5+oX+qhqBl5k+zD5AW8PcfVvbfQCKXAvBPJiUEK4VQgW5kEUKEVD
+	 YFfeExXTBjgQw==
+Date: Sun, 18 Oct 2026 16:05:06 +0300
 From: Leon Romanovsky <leon@kernel.org>
-To: Yuho Choi <oss.patchbox@gmail.com>
-Cc: Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>,
-	Mark Bloch <mbloch@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Ariel Levkovich <lariel@nvidia.com>,
-	Jianbo Liu <jianbol@nvidia.com>, Alex Vesker <valex@nvidia.com>,
-	Yevgeny Kliteynik <kliteyn@nvidia.com>,
-	Itamar Gozlan <igozlan@nvidia.com>, netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net-next v1 0/4] net/mlx5: Don't free CQs whose destroy
- failed
-Message-ID: <20261018125520.GE64621@unreal>
-References: <20261016045849.813696-6-oss.patchbox@gmail.com>
+To: Konstantin Taranov <kotaranov@linux.microsoft.com>
+Cc: kotaranov@microsoft.com, snsanghvi@microsoft.com, longli@microsoft.com,
+	jgg@ziepe.ca, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH rdma-next v5 00/10] RDMA/mana_ib: Add kernel RC and fast
+ registration support
+Message-ID: <20261018130506.GF64621@unreal>
+References: <20261017064413.995985-1-kotaranov@linux.microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -51,31 +44,26 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261016045849.813696-6-oss.patchbox@gmail.com>
+In-Reply-To: <20261017064413.995985-1-kotaranov@linux.microsoft.com>
 
-On Fri, Oct 16, 2026 at 12:57:45AM -0400, Yuho Choi wrote:
-> mlx5_core_destroy_cq() can fail
-
-No, it should not fail. If it does, the firmware is completely broken
-or some other catastrophic bug.
-
-> nd when it does the CQ may still exist in firmware with access to its buffer and doorbell record. It
-> also returns early in that case, without waiting for EQ handlers that
-> may already hold a reference to the CQ. The four helpers in this series
-> ignore that error and free the CQ buffer anyway, while their teardown
-> paths also free the object that embeds the struct mlx5_core_cq.
+On Fri, Oct 16, 2026 at 11:44:03PM -0700, Konstantin Taranov wrote:
+> From: Konstantin Taranov <kotaranov@microsoft.com>
 > 
-> Keep the buffer and the object that embeds the CQ when DESTROY_CQ
-> fails, as the regular mlx5_ib CQ destroy path does. The HWS send ring
-> CQs are polled and never armed, so the HWS patch keeps only their
-> buffer rather than passing the error up through the queue open and
-> close paths.
+> Add kernel RC QPs and fast-registration MRs to the MANA RDMA driver
+> for kernel consumers such as NVMe/RDMA and NFS/RDMA.
 > 
-> The issues were found with a static analysis tool from ongoing, not yet
-> published research, and confirmed by code inspection. None of them was
-> reproduced, so this targets net-next; I can resend for net if you
-> prefer.
+> Implement QP creation and state management, work request posting,
+> completion processing, error handling, and queue draining. Kernel RC
+> QPs require extended-WQE and power-of-two-SQ hardware support.
+> 
+> Tested with krping, NVMe/RDMA, and NFS/RDMA, including RC send and
+> receive error recovery with krping and NVMe/RDMA.
 
-Please drop this series. The flow is impossible in current HW implementation.
+I want to set expectations. This series has Sashiko comments, but you
+haven't responded to the previous comments, leaving us unsure whether
+they are valid or have been addressed in subsequent revisions. In
+addition, the series is too large to be considered for this cycle.
+
+Therefore, it will not be considered for this cycle.
 
 Thanks
