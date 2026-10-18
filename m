@@ -1,28 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D7A4375F96;
-	Sun, 18 Oct 2026 11:59:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17EE32E8DE3
+	for <linux-rdma@vger.kernel.org>; Sun, 18 Oct 2026 12:11:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792324791; cv=none; b=FafOCBAK8RR1TMRxhBAzTTvdD9HK9cZNLwUtYY2BJPwsOJZDtjteE3u4dGSKLsdT33ljCSnB4oJbwJigjAi0GJwqHhQsu0cZaKD2DIFkft8Z1yDz9JlUm7JIudlBYHJs91WJqKFS5IPUO5yFMo3//njXxK7zgrgh6gCJvc0Mob8=
+	t=1792325480; cv=none; b=jOtsnt0ftAmcAaxJJ7g2TC9OCt14LNECaHqy1RtVVISR6AowlWa1rHfhxwo+Y0QAkPVFF+bjT7ElA+sU4QvPQ2QQNpYlM2Woh0dyndibR13JwQe7pOlm4oSE+ou8ZVrYRpdA/TCaMl5YkwnC/4VmUvkiaZ/OTx5AC+dC3bSSzgg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792324791; c=relaxed/simple;
-	bh=9sT1efmub1RW1Gg0n0bv3/x9+e9w0l4WZqQwWFdMKnY=;
+	s=arc-20240116; t=1792325480; c=relaxed/simple;
+	bh=FY+trsvlOBu5gzoQJ/S7QIwenIw5zifSKNjzB6h7Dng=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=OtEdTdhdNF1gbNf1ul1zPYMlEVBGqw9npG0kSs7xAu54go7zIneeD5/6L8ZcbHpAyfIBV7Bg1Dv9aRMW8uT+wSgiakB9AVT1iVcYzDXnFTjDkqNWIqr4D2pUSuMSMJkdsAzztn9Vg3IzWOob/dQ/29S2poRaIKZVnhAeceAaHjs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CAE21F000C4;
-	Sun, 18 Oct 2026 11:59:49 +0000 (UTC)
-From: Leon Romanovsky <leonro@nvidia.com>
-To: Jason Gunthorpe <jgg@ziepe.ca>, Maor Gottlieb <maorg@mellanox.com>, 
- Leon Romanovsky <leon@kernel.org>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-In-Reply-To: <20261015-ib-core-fixes-v1-0-60f6da3ddec3@nvidia.com>
-References: <20261015-ib-core-fixes-v1-0-60f6da3ddec3@nvidia.com>
-Subject: Re: [PATCH rdma-next 0/3] Various core fixes spotted by LLMs
-Message-Id: <179232478713.19398.1144404660581532479.b4-ty@nvidia.com>
-Date: Sun, 18 Oct 2026 07:59:47 -0400
+	 MIME-Version:Content-Type; b=gAasU0fUisRpOVR1CA73oITj+mjsTo1BBVvgVz98TCcGhdZaipTvTE4v2xzUgOkHlzDS5zxhf9tuVMHWj1XgbyhNBlWvFptIm6aqedy5jGKf8tu1qcKL3fZv+YWvZ/cXVK4fzDDIL0b6mS8WqXrb0Cld3st25TblNd5a8GjU2ho=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UuGQlVcW; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UuGQlVcW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 053251F000C4;
+	Sun, 18 Oct 2026 12:11:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792325478;
+	bh=XJ3nA2sQ0pEl4Fb6BEOWqphahqYtSNIpJfB4HenpQSA=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=UuGQlVcW0fGpadoQsDL9UznNN1Agio6sP5HIU8cvvvLyWi3QTo/ER2wPJsx2E3p6z
+	 XVLjuKhHO5ovpp5NVza4TAXSaWJ0QJZfyKTjr3y6uHrONzn6pPL7Sc0jUoAJywxniy
+	 on6vqI2oUt6NWrW/dOK3ZMCqlIQMiiZkqdhQ9cZM8thtjzhA1uXaqbLhWltUKCk5/7
+	 LHM36cH0wvrf2G0uy3mzFcPLfbDuLbSSCxG36xivhuamw28qSHdc54cIo4oNSvj57+
+	 R73ScwngBrkvvg9caosvav8WTE7qXghce3G7MBcX0R9SgO+VOeeSC6l8o0N+cVfDIL
+	 X0kKRXlQ4hxKw==
+From: Leon Romanovsky <leon@kernel.org>
+To: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, 
+ Jacob Moroni <jmoroni@google.com>
+Cc: linux-rdma@vger.kernel.org, metze@samba.org
+In-Reply-To: <20261016180901.3292775-1-jmoroni@google.com>
+References: <20261016180901.3292775-1-jmoroni@google.com>
+Subject: Re: [PATCH] RDMA/irdma: Fix PBLE_LEVEL_2 FRWR generation
+Message-Id: <179232547578.20005.9821579536119545230.b4-ty@kernel.org>
+Date: Sun, 18 Oct 2026 08:11:15 -0400
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -34,19 +46,22 @@ Content-Transfer-Encoding: 7bit
 X-Mailer: b4 0.15-dev-18f8f
 
 
-On Thu, 15 Oct 2026 14:58:59 +0300, Leon Romanovsky wrote:
-> A batch of core fixes for various issues identified by LLMs.
+On Fri, 16 Oct 2026 18:09:01 +0000, Jacob Moroni wrote:
+> When an FRWR is posted with only 1 page mapped, it uses a
+> direct mapping, with the page-aligned DMA address provided
+> in the WQE (reg_addr_pa). This address is obtained by reading
+> it from the PBLE that was previously populated during ib_map_mr_sg(),
+> but it did not account for whether the original allocation was
+> PBLE_LEVEL_1 or PBLE_LEVEL_2 and just assumed it was always level 1.
+> 
+> [...]
 
 Applied, thanks!
 
-[1/3] RDMA/core: Preserve the selected source GID on failed AH modification
-      https://git.kernel.org/rdma/rdma/c/d01ee4c8419319
-[2/3] RDMA/core: Free unpublished port statistics after initial-read failure
-      https://git.kernel.org/rdma/rdma/c/d74bdcfa89fa45
-[3/3] RDMA/core: Reject LAG selection when source MAC lookup fails
-      https://git.kernel.org/rdma/rdma/c/fdfd099222d9de
+[1/1] RDMA/irdma: Fix PBLE_LEVEL_2 FRWR generation
+      https://git.kernel.org/rdma/rdma/c/9ffd2aa8b53b04
 
 Best regards,
 -- 
-Leon Romanovsky <leonro@nvidia.com>
+Leon Romanovsky <leon@kernel.org>
 
