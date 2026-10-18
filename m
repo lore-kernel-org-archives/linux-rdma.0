@@ -1,127 +1,202 @@
-Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com [209.85.208.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F06934040B
-	for <linux-rdma@vger.kernel.org>; Sun, 18 Oct 2026 02:38:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A6BF397B1C;
+	Sun, 18 Oct 2026 03:27:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792291097; cv=none; b=dJOII+6N8d0YuotXCQoipWcGbuvlnUVF6L3vTSUxwV3m8yLrrApRaY7QG2hBJZe2M7mvN1Q8ryxuzZEu/CdNYkx+9sxkwgwCTfqPoHYnx/aRvKFJnZn1VyYtkuRx2tsHErfnnp3qgzfo4RHkN8tftp+IAzgS9dgnz5xOptkFgbU=
+	t=1792294028; cv=none; b=CA/ucnkS7tjzP3/xP8VnAM4WNIGOBBjluEWY/2sQln2bggEY33tfPIVAcCTEy1Ge8CK2//ZBcgfzeSnHX2Kbb1LfOtLyBPZj/pt7UafROKIxH/mYb5ZupnR8mZR/iauAbFLvBHaAhJB5crLZwtNvBVf/Kw/WuG3BArk453dUF9E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792291097; c=relaxed/simple;
-	bh=OprDKVD3dlInOK+EtkJkBGY3nlx9HocRm71U+En4ns4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ZX8ebRiVISazO9MlxNb2L/6p1oOF4SnVupS59CwKc9w+442uuV4RN1P/PczYhEo6foAMxZHsW4cXtzU2yLP3YExjuGkGpRXcZve3ETOFBTQWtCvQUV8Kz2goWfI5OSm6xHoVGsDRs3/U5K8CfDdcnd+RzuoBooV9SbS3iyxsam8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de; spf=pass smtp.mailfrom=bairaktaris.de; dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b=cFtqatdM; arc=none smtp.client-ip=209.85.208.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bairaktaris.de
+	s=arc-20240116; t=1792294028; c=relaxed/simple;
+	bh=4qBW/eAhXI8S9EJJ+INb/Wstzy0FXar2ojgqHZFgLbo=;
+	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=r4SppcczQeW4vJ+j38bcGpG4r2MH7xtrnKaPuSd38NQAbzZWeTuLGnhFAMUrqbVlk0ek5X7prwG9G22OdjppOD8tdzSBsUAWlnlgjXvW33bJgZXgpgT8QYKMMIWLsYP8ZpU79qbcS70kVgqHa0rvyw1HYvdVVH16Lx3GRznkukQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iSjqTc20; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.b="cFtqatdM"
-Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-6afbc363efeso1603967a12.3
-        for <linux-rdma@vger.kernel.org>; Sat, 17 Oct 2026 19:38:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bairaktaris.de; s=google; t=1792291094; x=1792895894; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=uuVxX/jLPtohDOq387cSqeqHjD2U6i5S+xDw1QtsGiQ=;
-        b=cFtqatdMQKgmQSYSq39dS9PbMTjb/oOnEnOFu2GDA4z+ZyGbjIyySV5az4gfb4NtR9
-         AVD/yCtLpvN0/YjkCU76bBR4Pnsj+PgIlEzafq8WYIpazHeQh6l6rsLdenVSs2FMa2ja
-         5uhksrEELgmHbcewXdjdG3shuBifY6ia8hdn1DvWvYQvp3eaqb8Pck0qAPrhu7tFOfIa
-         9YsX4OvnDOxe9pDGLESLlwC3Tcxur2p9YkEXHh887S3AN10uKePWr1El2P6t3TQUIJf2
-         a9s+SJsSn8KYtnawo9kY5Ca0RkzAsPej6F8ZT513+kjcsYEmcE6zs2Si6xnd/tZUKuk3
-         oLkg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792291094; x=1792895894;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=uuVxX/jLPtohDOq387cSqeqHjD2U6i5S+xDw1QtsGiQ=;
-        b=Zt7cNswBq1eVJ2LK8sAeLmBMG51S2ALbmgfulPGmthZ/nFoPmiV1XXDnRXPVamiTQv
-         O0V4M+49mgDv/fK4hPg2Rq//gfqTdvTeGge0R2dd1ZMkX1qDL2CEhvrodaz8Er2GNQtx
-         70/X94lgUr0AiL5qMPkxXghIKpl5iGGyLDn44POXBH1xbU+f8E+9qfvjAknxM9XcVQeh
-         vWESzWA08HsyN7z9cz1LaRvX3NYH5jzIFAu8bENTpQfCC5NwFOS7+lwbWUO4wImrVaMt
-         gYkKq/QxH5vb6XdqUmtJVaLdnlrxIQD0F9tFYA8Y4VO2DIlAJpfLRi9m3Uf3OpezGX3d
-         +WuQ==
-X-Forwarded-Encrypted: i=1; AKwUvBylwI4053WKViaMIoS0UtnNIppFngW76YqXdd1qf74kMx6s2vjoSAx802H9cDo/hVsU/nesZuKWYmip@vger.kernel.org
-X-Gm-Message-State: AFq9FYKqng+/arMRmxOwZorD5WY8pnjd+Zsks2Tk5fk2RfWLYuWVTi/r
-	px7vKiYgwKvqHov9hAfBywZJsKVyF6D+Da+AfZqTBw566SoUx5uOfKGp6Bz4Kj5DIKTOwSy6DaD
-	iDw5GT3wFfXM=
-X-Gm-Gg: AYBFou194VI8U8CGH/6yd2+WOJK2FzgqEqynCgC2rxJTB6LuDb9GqdRfngG1T/bDpff
-	vvAyAlEywjH7RT45R3bMZ/WtVu4PKCDDorHhxTf+dmvJoQMld29OrOFRvGTJToVOlIA3NtC+aDs
-	m+RlD7GkrtOEgluMN63WSevqjS2TXhLf/A0xdhTdHPYjdm5h/zsXA71FOrFIkT4JSEHokt3i4Hh
-	Flz4lN1MYK419+01GHttNIs/pNxp1v1D+6D27AXkl7EXoUMXf3/VjY4AjGLonXwpekkigdqgl03
-	VVCYxMVlNZ41RGUecZ9L6UZyQrVV3yhQf/2r1RhJaFvhpzIT3fEI3fEaHZ2qJhOTB5eXR7VPEok
-	+imzT/jY7EZvsTSYAfwz8bknIlj3yb2vgX08UVEj2V9p85VjhVUROsECRbyroClj7UJHB4TQKfe
-	9PiBD089hWNyp/9pMI41G3Vr+c6aeB1p6bsKiGKcu2uZWEv9/YOlH4CJbl9GvvSVP6Ab+LJyzGW
-	hGV97KE93KdaSYb6elGcVckMjDcH5EDYXLPlBWFCkdbZOdN9M2x1bhw61SjYInEKbLBLHJe6jb4
-	vRAliuntOJsEKb+StnGEEGM9xIb3AZaFEBuOZgpTmBIalg073lnh3nHCbJBKBPr/cfpxt5JMfud
-	64aUbBGqqErNLeEcEx7mZV2MIvdMdeS52sy0Ty2q5x3BojzgxEZJUwDrCi6jshf09dnEGXom6Bf
-	yOxqw7yvity6/qwKGNWfI=
-X-Received: by 2002:a05:6402:2489:b0:6a9:850d:bb38 with SMTP id 4fb4d7f45d1cf-6b3a81766camr2392870a12.10.1792291094015;
-        Sat, 17 Oct 2026 19:38:14 -0700 (PDT)
-Received: from Desktop.fritz.box ([185.181.130.213])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6b38a1c80desm2356771a12.20.2026.10.17.19.38.08
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 17 Oct 2026 19:38:12 -0700 (PDT)
-From: Julius Bairaktaris <julius@bairaktaris.de>
-To: pablo@netfilter.org
-Cc: fw@strlen.de,
-	phil@nwl.cc,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	lorenzo@kernel.org,
-	nbd@nbd.name,
-	matthias.bgg@gmail.com,
-	angelogioacchino.delregno@collabora.com,
-	andrew+netdev@lunn.ch,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	horms@kernel.org,
-	corbet@lwn.net,
-	rdunlap@infradead.org,
-	skhan@linuxfoundation.org,
-	linux-doc@vger.kernel.org,
-	linux-kselftest@vger.kernel.org,
-	linux-mediatek@lists.infradead.org,
-	linux-arm-kernel@lists.infradead.org,
-	saeedm@nvidia.com,
-	leon@kernel.org,
-	tariqt@nvidia.com,
-	mbloch@nvidia.com,
-	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH nf-next v3 0/3] netfilter: flowtable: carry a priority into the offload
-Date: Sun, 18 Oct 2026 04:38:04 +0200
-Message-ID: <20261018023804.562323-1-julius@bairaktaris.de>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <atQk1d8Tv03iPN7d@chamomile>
-References: <atQk1d8Tv03iPN7d@chamomile>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iSjqTc20"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32E891F000C4;
+	Sun, 18 Oct 2026 03:27:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792294021;
+	bh=zmyBVvu4JiIs0y0s2xwxCb22u3J0cPb2ljZdZxuuBgo=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=iSjqTc20OpvEYtTiK7gXee4G38ZXQOlvS9HgrDiULki7FmUgJEuurCr7dbqQ7Tn+u
+	 jkhy8uhndc7br816/7aCsENrZC7q7JtlnkMZJfFecr/Zs4tYEyYpKCCPKdxhenQY9T
+	 tnN9w4SSqsKJJDPAyOjtdcsYuCga26VzECQhzGoMoNVP1+z0o5JKlrv4OCopwcVYOd
+	 QXw0QZPPVYJ1cSdtlHQ6ikiB2S/u4BhnfqXtLHbN2Qqi9T1FnEOhYBsR6PVrdTambi
+	 c9AXNNnqxHyik7dXtPC7r1j2nsPopI37l2Z+uu74jev2AMSxmULBAZHP1IaBaKrlrn
+	 CutSzP8QpmTUg==
+Subject: Re: [PATCH net-next v5 1/2] net/rds: keep the connected peer's scope
+ id apart from the bound one
+From: netdev-bot+sashiko@kernel.org
+To: achender@kernel.org
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
+ edumazet@google.com, kuba@kernel.org, horms@kernel.org
+Date: Sun, 18 Oct 2026 03:27:00 +0000
+Message-ID: <179229402073.3135.15507555061447027446@kernel.org>
+In-Reply-To: <20261017032358.2563121-2-achender@kernel.org>
+References: <20261017032358.2563121-2-achender@kernel.org>
+X-sashiko-severity: Medium
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-On Sun, Oct 18, 2026 at 03:45:57AM +0200, Pablo Neira Ayuso wrote:
-> I don't understand the "one flowtable per class".
+Thank you for your contribution! Sashiko AI review found 2 potential
+issue(s) to consider.
 
-If the priority is a flowtable attribute, every flow in that flowtable
-gets the same one. To give sip 1:3 and https 1:5, you need two
-flowtables with the same devices. nf_tables rejects a device in two
-flowtables of one table (nft_register_flowtable_net_hooks() returns
--EEXIST), so you also need two tables.
+Critical: 0 · High: 0 · Medium: 1 (1) · Low: 1
 
-With the per-flow priority it is one flowtable and the rules that set
-the priority today:
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-  udp dport 5060 meta priority set 1:3 flow add @ft
-  tcp dport 443 meta priority set 1:5 flow add @ft
+- [Medium] In rds_sendmsg() (net/rds/send.c), the rs_conn cache-hit test
+  at this commit compares only c_faddr and c_tos.
+- [Low] rds_recvmsg() (net/rds/recv.c:792-799) now reports a link-local
+  sender's sin6_scope_id as inc->i_conn->c_dev_if, with the comment 'A…
 
-v4 waits until the fdb series is done.
+Pre-existing issues:
+- [Medium] rds_sendmsg() (net/rds/send.c:1256-1264) reads the scope for a
+  send with no destination in one lock_sock() section and checks that…
 
-Julius
+--
+
+net/rds: keep the connected peer's scope id apart from the bound one
+
+This patch adds rs_conn_scope_id to struct rds_sock. With it,
+rds_connect() no longer stores a link-local peer's scope in
+rs_bound_scope_id. A send without a destination, getpeername() and the
+connected-socket check in rds_bind() now use the connected peer's scope,
+and recvmsg() takes a link-local sender's scope from the incoming
+connection's c_dev_if.
+
+[ ... ]
+
+> diff --git a/net/rds/recv.c b/net/rds/recv.c
+> index 6204e577a90ae..a036162539e5e 100644
+> --- a/net/rds/recv.c
+> +++ b/net/rds/recv.c
+> @@ -789,7 +789,14 @@ int rds_recvmsg(struct socket *sock, struct msghdr *msg, size_t size,
+>  				sin6->sin6_port = inc->i_hdr.h_sport;
+>  				sin6->sin6_addr = inc->i_saddr;
+>  				sin6->sin6_flowinfo = 0;
+> -				sin6->sin6_scope_id = rs->rs_bound_scope_id;
+> +				/* A link-local sender is reached through the
+> +				 * interface its connection came in on; any
+> +				 * other sender has no scope.
+> +				 */
+> +				sin6->sin6_scope_id =
+> +					(ipv6_addr_type(&inc->i_saddr) &
+> +					 IPV6_ADDR_LINKLOCAL) ?
+> +					inc->i_conn->c_dev_if : 0;
+
+[Severity: Low]
+Is c_dev_if always the interface the connection came in on? For RDS/TCP it
+is, because the accept path takes it from the accepted socket's
+sk_bound_dev_if. For RDS/IB it looks more like a guess.
+
+In rds_ib_cm_handle_connect(), when the peer address is link-local and our
+local address is global, the ifindex is looked up from our own address:
+
+net/rds/ib_cm.c:rds_ib_cm_handle_connect() {
+    ...
+	} else if (ipv6_addr_type(saddr6) & IPV6_ADDR_LINKLOCAL) {
+		/* Use our address to find the correct index. */
+		ifindex = __rds_find_ifindex(&init_net, daddr6);
+    ...
+}
+
+__rds_find_ifindex() returns the first netdev that carries that address.
+The comment above it says the incoming interface of an RDMA connect
+request cannot be determined.
+
+So on the IB transport, can recvmsg() on a globally bound socket return
+fe80::peer%ifX where ifX is not the peer's link?
+
+Replies sent through RDS still look fine. A sendto() to the reported
+address uses scope_id ifX, which matches the key of the incoming IB
+connection, so rds_conn_lookup() returns that same connection.
+
+What's left is that the new comment and the commit message describe
+c_dev_if as the arrival interface. That only holds for TCP. Could the
+comment say that for IB this is a best-effort guess?
+
+> diff --git a/net/rds/send.c b/net/rds/send.c
+> index 1afa981e5c06d..7b525a6f7eac2 100644
+> --- a/net/rds/send.c
+> +++ b/net/rds/send.c
+> @@ -1256,7 +1256,11 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
+>  		lock_sock(sk);
+>  		daddr = rs->rs_conn_addr;
+>  		dport = rs->rs_conn_port;
+> -		scope_id = rs->rs_bound_scope_id;
+> +		/* The connected peer's scope for a link-local peer, else
+> +		 * the bound scope, as an explicit send to that peer would
+> +		 * compute below.
+> +		 */
+> +		scope_id = rs->rs_conn_scope_id ?: rs->rs_bound_scope_id;
+>  		release_sock(sk);
+>  	}
+
+[Severity: Medium]
+At this commit, does the rs_conn cache in rds_sendmsg() respect this
+scope_id? Further down, the cache-hit test still compares only the peer
+address and tos:
+
+	if (rs->rs_conn && ipv6_addr_equal(&rs->rs_conn->c_faddr, &daddr) &&
+	    rs->rs_tos == rs->rs_conn->c_tos) {
+		conn = rs->rs_conn;
+
+rds_conn_lookup(), on the other hand, treats c_dev_if as part of a
+connection's identity.
+
+This patch also makes a new sequence possible on a socket bound to a
+global address:
+
+  connect(fe80::1%ifA)
+  send()
+  connect(fe80::1%ifB)
+  send()
+
+Before this patch, the second connect() failed with -EINVAL, because the
+first one had stored ifA in rs_bound_scope_id and rds_connect() compared
+against it. Now the second connect() succeeds, and the second send() seems
+to reuse the cached ifA connection instead of one for ifB.
+
+The next patch in the series, "net/rds: include the scope id in the
+sendmsg connection cache check", adds rs->rs_conn->c_dev_if == scope_id to
+the cache test, so the final tree is fine. Could that patch go before this
+one, so this intermediate commit doesn't send on the wrong interface?
+
+[Severity: Medium]
+This isn't a bug introduced by this patch, but the scope is read here in
+one lock_sock() section, and the bound check is done in a second one:
+
+	lock_sock(sk);
+	if (ipv6_addr_any(&rs->rs_bound_addr) || ipv6_addr_any(&daddr)) {
+	...
+	} else if (namelen != 0) {
+
+Could a concurrent bind() run between the two sections?
+
+Take a socket connected to a global peer. If rds_bind()->rds_add_bound()
+binds fe80::a%ifA after scope_id has already been read as 0, the send
+continues with scope_id 0 against a link-local bound address. The
+namelen == 0 path skips the scope reconciliation that sendto() gets.
+
+The result would be a connection with c_dev_if 0, which the TCP transport
+cannot bring up.
+
+The baseline had the same split, with scope_id = rs->rs_bound_scope_id
+read in the first section, so this patch changes neither the window nor
+the outcome.
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261017032358.2563121-1-achender%40kernel.org
