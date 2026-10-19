@@ -1,56 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792422324;
-	b=Hj3Fw9GxoerngWm0+wGOF9/2BuhxsApgq66ErVsdcEDGrx4aTgWI/l3hkEuc8E0g7Dsb
-	 gkynDPc0nZJQj2Q6mu0J2dEe/0YDjaeDWs3z/fkxt7v86S9faGHnLWSnQ9E64+eZO8GpT
-	 2wLKzDAuHyh7UNj5tWQaubFujxQ7EyE1eGqPWWpfweVTWiI6ORU5LSYO69yiCzsVBSUwe
-	 S/BLQ77kLJn7cZOI7z5XiR6tb/wB56JiGiXcUN7Z0+GyWNARO+pAHTKz3l6H6p6ZOWxr8
-	 oBCcMvzw3dWyLHxg9w9wbQ+M6T0z32GeLODtUo2aPDHm3mxFp+lj6sn/IkgKXfD/u8w==
+	t=1792422525;
+	b=AT0NmcP6Ui4zPXrEYF8utrzTThRqyjrZ7y0r6Tt4pYp+Hi622hU0oe1LLBoaUPyfsSSz
+	 CeizfcZY7JFDlZDrBNI4fObMrq+IUS32q/yshmZ71nRnvd7vT7w1htL9TECqUk8tsIO3c
+	 xi8gqtkapa0HR8ZKfCPvm6crcVnkGPWk6492npG4XJjLZfIVs2zx7ReH876kQAQzmsWh0
+	 eUv8jltP/YVVL7rrjHj6rR+g2uhmkl+L6DotQO2bleqbt4TQQrqvijeZUGWQTJtUctDQ3
+	 UYkWe+bHB4pZD7CZ5UCVUr4MREp6/AImJ07bO+DeosovWVH8Q/XvuSHchuLHPqurAVw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792422324;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792422525;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=O1cL3w38m0W5CfV/HTGX2lciE9L7Oh5ExaJQVHqC0zs=;
-	b=wswmCp2ABff+7XfvMdsFU2Bb++2lBWhayPkRKwaIzULEWZsqPTSdOj451BCT7Cx/DwJm
-	 01lWutYGNxO8RX1Hu8pxtVYtBy6Go8PkmMSUrn4CP/evYf92XSYJTw6SPtNrGPLhLMa97
-	 enMSZF2l5TomSGyYwzjb3xvHMVgjWtiY/wwqES6V1ErWLbs8ERiC3CyipEQCxsvcTdBHt
-	 oWrrYaXiXkEIJTaUXkxo9stukAXPcHwJPZ6QwJjgxRYLO/Z0KfgVOoukg/4KiOLP8kh8R
-	 aaVkL1Jadu/qvSFz/SFz2fy2fbUya0o27haoUF/Z6Lkk8DioQjlfUZ6uPkESaAVHFUw==
+	bh=uXfUL82pkmX2kLHkpR7FIbdmlkIkcFkrHgjPHkxNzlk=;
+	b=GsWZNeC1BsM6vgmBbENjq66bZpzxRMZEsiiflYpjJeDamqdu/eh5KBPOtfdRtGIpYDON
+	 CK55Vz6Yedgds9SmC4ueeb5YD48RwlEONktCxtc2ak6Niltg8+skzS3plBI0D3HoKPMFO
+	 7wUpJql+82vzSBrWORKFQgxzIEOVWBhpQ/O99xqkjLHMOz+wXEKEmfBR8gGmNdZFWsixC
+	 dkkYbz96HD0K3CvmpeXGA1EIa46MHZStJls7sxDf+lV21CYNhPRK7SfFrRQyfs6RdV7da
+	 DqP0OOjFGW8e71QgtGYvZZIubOi66IGSTguxOeSUWY2Z/hgIR5tnrXCl/B88k215C7g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Pd0WMaGs;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jjLQ3gEl;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 745416080A97
-	for <linux-rdma@vger.kernel.org>; Mon, 19 Oct 2026 15:05:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC9826086055
+	for <linux-rdma@vger.kernel.org>; Mon, 19 Oct 2026 15:08:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Pd0WMaGs
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 087181F000C4;
-	Mon, 19 Oct 2026 15:05:23 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jjLQ3gEl
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A89C01F000C4;
+	Mon, 19 Oct 2026 15:08:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792422324;
-	bh=O1cL3w38m0W5CfV/HTGX2lciE9L7Oh5ExaJQVHqC0zs=;
+	s=k20260515; t=1792422524;
+	bh=uXfUL82pkmX2kLHkpR7FIbdmlkIkcFkrHgjPHkxNzlk=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=Pd0WMaGsWLctvwum+l1n9YYfDXLLm/SqY+SEubVzBc6OIs4DllcKibi4ITkinA74c
-	 hU04SVeQZAc7z2/xrioSxBLW46wWi5tjaZXkfijcMXtVjiGdwh0zlAdpcTotUkO23K
-	 eVzdDcPdp4h4tNHGtoEtCIkJIV8IsXtf9UJwb1xQ0Df+rxFJh8WXBnHk5bToLFlDne
-	 bBxt03pjO7oaik68YX7AaNLgYOWN6QnuTWFD2YhrvW9aqfLJjckgumJ+gWQmw5uEaY
-	 aV/6b0RGykoGLlG4UoPAh1o058GqCV/6dQK1g3eF5bG+jPavenGEeOge3QjPvogRxp
-	 nrwRPZ9IK9hsA==
-Message-ID: <sashiko-outbox-177605@kernel.org>
+	b=jjLQ3gElRBb3iufkEJnTTIy9zZ/a8QgWCb9h8b36mnuf0ddh8xEa9u0Wy9FZmN2vQ
+	 a6xoECiEpfHNFxNDU727zaJ0M6rOG1xRViKtbktyu+tETYOwmAeX0SqPD9u8Xm1rwV
+	 vOvKmQn9CUBt2PNYHGfgUYZYhxvaCy6AnRREFbC7Kd7cc31Ky1JJB4+9KEX5u6kNdU
+	 e4TpyHmLvUfQDZdxSOHVa8yD4LKdb3xBSBf35ABNN1i5PIrOTZNRZG38WUaL9NBhau
+	 MZ+sw2m+8dKdh+rXRMnMWfevxGilg/442BHsqA8iIVR4V6WaCCdNK/BaRZoUQifAUL
+	 V5YJ5BvDpytIQ==
+Message-ID: <sashiko-outbox-177622@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH AUTOSEL 6.18-6.12] RDMA/efa: Add EFA 0xefa4 PCI ID
+Subject: Re: [PATCH AUTOSEL 6.18-6.1] RDMA/rxe: Check PDs for memory window
+ binds
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Sasha Levin" <sashal@kernel.org>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261019135441.1420968-330-sashal@kernel.org>
+In-Reply-To: <20261019135441.1420968-403-sashal@kernel.org>
 References: <20261019135441.1420968-1-sashal@kernel.org>
- <20261019135441.1420968-330-sashal@kernel.org>
+ <20261019135441.1420968-403-sashal@kernel.org>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Mon, 19 Oct 2026 15:05:23 +0000
+Date: Mon, 19 Oct 2026 15:08:44 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,125 +61,30 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-Thank you for your contribution! Sashiko AI review found 2 potential issue(=
-s) to consider:
-- [High] RDMA/efa: broken >=3D4GB MR registration on 0xefa4 in efa_register=
-_mr()
-- [High] RDMA/efa: missing AH cache in efa_com_create_ah() for 0xefa4 devic=
-es
---
+> From: Zhiwei Zhang <202275009@qq.com>
+>=20
+> [ Upstream commit fbbe1d5cd7d400a98afcf337969cfdb808cb198f ]
+>=20
+> The IBTA Software Transport Verbs specification requires the QP,
+> Memory Window and Memory Region for a Bind Memory Window operation
+> to belong to the same HCA and protection domain.
+>=20
+> rxe only checked the QP and MW protection domain for type 2 MWs.
+> Move the QP/MW PD check to the common bind path and also reject
+> binding an MW to an MR from a different PD.
+>=20
+> Invalid bind requests continue to fail with IB_WC_MW_BIND_ERR.
+>=20
+> Reviewed-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+> Signed-off-by: Zhiwei Zhang <202275009@qq.com>
+> Link: https://patch.msgid.link/tencent_FD4FB25AA4FFA845E63F5AC36CF4A46CDC=
+0A@qq.com
+> Signed-off-by: Leon Romanovsky <leon@kernel.org>
+> Signed-off-by: Sasha Levin <sashal@kernel.org>
 
-commit b286b983be1758d745ca136c6fbfaf1703d09edf
-Author: Anas Mousa <anasmous@amazon.com>
-
-RDMA/efa: Add EFA 0xefa4 PCI ID
-
-This commit adds the PCI device ID 0xefa4 (PCI_DEV_ID_EFA4_VF) to
-efa_pci_tbl so the EFA driver can bind to 0xefa4 devices.
-
-Link: https://patch.msgid.link/20260712134413.19226-3-mrgolin@amazon.com
-
-> diff --git a/drivers/infiniband/hw/efa/efa_main.c b/drivers/infiniband/hw=
-/efa/efa_main.c
-> index 6c415b9adb5fe..460d77d965057 100644
-> --- a/drivers/infiniband/hw/efa/efa_main.c
-> +++ b/drivers/infiniband/hw/efa/efa_main.c
-> @@ -17,12 +17,14 @@
->  #define PCI_DEV_ID_EFA1_VF 0xefa1
->  #define PCI_DEV_ID_EFA2_VF 0xefa2
->  #define PCI_DEV_ID_EFA3_VF 0xefa3
-> +#define PCI_DEV_ID_EFA4_VF 0xefa4
-> =20
->  static const struct pci_device_id efa_pci_tbl[] =3D {
->  	{ PCI_VDEVICE(AMAZON, PCI_DEV_ID_EFA0_VF) },
->  	{ PCI_VDEVICE(AMAZON, PCI_DEV_ID_EFA1_VF) },
->  	{ PCI_VDEVICE(AMAZON, PCI_DEV_ID_EFA2_VF) },
->  	{ PCI_VDEVICE(AMAZON, PCI_DEV_ID_EFA3_VF) },
-> +	{ PCI_VDEVICE(AMAZON, PCI_DEV_ID_EFA4_VF) },
-
-[Severity: High]
-Does enabling PCI_DEV_ID_EFA4_VF in efa_pci_tbl break memory region
-registration when a page size of 4GB or larger (page_shift >=3D 32) is
-selected on 0xefa4 devices?
-
-When 0xefa4 devices advertise >=3D 4GB page sizes in dev_attr.page_size_cap
-and a consumer registers a large memory region via efa_register_mr(), the
-64-bit unsigned long return value of ib_umem_find_best_pgsz() is stored in
-a 32-bit unsigned int pg_sz:
-
-drivers/infiniband/hw/efa/efa_verbs.c:efa_register_mr() {
-	unsigned int pg_sz;
-	...
-	pg_sz =3D ib_umem_find_best_pgsz(mr->umem,
-				       dev->dev_attr.page_size_cap,
-				       virt_addr);
-	if (!pg_sz) {
-		ibdev_dbg(&dev->ibdev, "Failed to find a suitable page size in page_size_=
-cap %#llx\n",
-			  dev->dev_attr.page_size_cap);
-		return -EOPNOTSUPP;
-	}
-
-	params.page_shift =3D order_base_2(pg_sz);
-}
-
-When ib_umem_find_best_pgsz() selects a power-of-two page size >=3D 4GB,
-assigning it to unsigned int pg_sz truncates the value to 0 and causes
-efa_register_mr() to fail with -EOPNOTSUPP.
-
-In addition, upstream commit 6a57af838b1a5 ("RDMA/efa: Add EFA 0xefa4 PCI
-ID") was submitted as patch 2/2 alongside commit 4266547bdce74 ("RDMA/efa:
-Extend page-shift field in MR registration"), which widens
-EFA_ADMIN_REG_MR_CMD_PHYS_PAGE_SIZE_SHIFT_MASK from GENMASK(4, 0) to
-GENMASK(5, 0) for >4GB page sizes. Without that companion commit,
-drivers/infiniband/hw/efa/efa_admin_cmds_defs.h still defines:
-
-#define EFA_ADMIN_REG_MR_CMD_PHYS_PAGE_SIZE_SHIFT_MASK      GENMASK(4, 0)
-
-So in efa_com_register_mr() in drivers/infiniband/hw/efa/efa_com_cmd.c:
-
-	EFA_SET(&mr_cmd.flags, EFA_ADMIN_REG_MR_CMD_PHYS_PAGE_SIZE_SHIFT,
-		params->page_shift);
-
-bit 5 of params->page_shift is masked off for any page_shift >=3D 32. Should
-pg_sz be an unsigned long and commit 4266547bdce74 be included as well?
-
-[Severity: High]
-Will creating multiple address handles to the same remote GID on the same
-PD fail on 0xefa4 hardware without the address handle cache commits?
-
-Upstream commits 97ba15272e8e ("RDMA/efa: Add initialization of AH cache
-rhashtable") and 234895fa8be0 ("RDMA/efa: Add AH cache handling on create
-and destroy AH") were merged right before commit 6a57af838b1a5 because new
-EFA devices do not support creating multiple address handles to the same
-remote on the same PD.
-
-Without those commits backported, calling efa_create_ah() ->
-efa_com_create_ah() for the same (pdn, dest_addr) pair unconditionally
-sends a new EFA_ADMIN_CREATE_AH command to the device instead of
-deduplicating and refcounting via efa_ah_cache_get():
-
-drivers/infiniband/hw/efa/efa_com_cmd.c:efa_com_create_ah() {
-	...
-	ah_cmd.aq_common_desc.opcode =3D EFA_ADMIN_CREATE_AH;
-
-	memcpy(ah_cmd.dest_addr, params->dest_addr, sizeof(ah_cmd.dest_addr));
-	ah_cmd.pd =3D params->pdn;
-
-	err =3D efa_com_cmd_exec(aq,
-			       (struct efa_admin_aq_entry *)&ah_cmd,
-			       sizeof(ah_cmd),
-			       (struct efa_admin_acq_entry *)&cmd_completion,
-			       sizeof(cmd_completion));
-}
-
-Should commits 97ba15272e8e and 234895fa8be0 also be backported before
-enabling PCI_DEV_ID_EFA4_VF?
-
->  	{ }
->  };
->
+Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261019135441.1420=
-968-330-sashal@kernel.org?part=3D1
+968-403-sashal@kernel.org?part=3D1
+
