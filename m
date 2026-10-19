@@ -1,180 +1,284 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D018E35E937
-	for <linux-rdma@vger.kernel.org>; Mon, 19 Oct 2026 02:56:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3686C37E5E1
+	for <linux-rdma@vger.kernel.org>; Mon, 19 Oct 2026 03:19:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792378618; cv=none; b=X9T/J+V0jdvW2GcTlCvx0MIrQpTKtPv/2ksZG/4Q8XnWOb7zXYVDUuaeqENbAFQXuYA6uhp1AG2Nuc4KDUr236VPXm3ebDvrOPbro7OKdU9mwYmaYLiuDnX25iizsqkoWPng5uXrCiMiUr+1Y0qLDmPFDpPCCU8nlDWO5vMgFhw=
+	t=1792379952; cv=none; b=cWkOudQePESltRDK5GW8AwAgvBwoD39uUfQzdxLQ52dRzK/PzxmYDJv3mtaifbHiyCXenIzXVz3d8vntwSUKYONX921JzyONvlfBjgJsCZs7jXGAP/CSYTZ3jJJsNYJyoV5G4OvZq3nhRpZl+jURdbj08KaDlwgWU2zbyKdUO4I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792378618; c=relaxed/simple;
-	bh=NidlYxmhPBdABDNMw6Dm/RtUXJn1lLaPLtD2hnJDvhE=;
-	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=XyntQHtBYzulmMGVnG6VUkxJUCiBD3gvpQkZ1/ToSGFdfLwDa7Iut0RiUP9Mev4hDnZciJ58gSCTpoxRvm8/qLOkDjHQ00zWsGKINUjD79GvRN0DnZTdgMwnrLVUIsDv6o13UcGRrkiohtGYLvi43yvcphDPsXkY/KI37SQW//A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=K4NhgpRA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792379952; c=relaxed/simple;
+	bh=5DDDsJZLvPsV6cgLeL1No0ZuzFP0tFIuwlubc3fYU5E=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=qpgbjKf/p2hx3c+pi9WsV71YAP11Bho9Zu11Rdlg5N3xUrB1CrezXbveT+mXM0m/1hlSBk/7U9p0CI6Tjx1du6n1LSAanAboD3WaVPGl1+3GllypZOlZ4bak+EG9JA88DcY+9u0JFyuTkYuXzEUnbdTfYfzA2b6Rm0QSHw6IyWs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=N38NOCU2; arc=none smtp.client-ip=192.198.163.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="K4NhgpRA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3619C1F000C4;
-	Mon, 19 Oct 2026 02:56:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792378617;
-	bh=k4RUaR6BR3ejFrqLILWQ7qXYxi8LKPIH4Hkzv3GCa5Q=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=K4NhgpRAczT8feqH9AyQj2UdI6Bf9u8NMg3+sdlhjxm7+COMlNYSHbNeDADQUY33Z
-	 GFtt7UirsqRPJO/Yfq1b2xLrqvMy+WE7G8roztGV43WmK2FGjf6yG9wAQ6qbRPU8CF
-	 gBNQY45JI3/PCUlCROvpCBhXwGROPmgYSdPQGWUjQVx7bTD/Ih9fQvHW57NYNE/kS6
-	 eUrznNnLPmljZLJoFoEw1IeF5ZGpIcEBdtgetpcGr1gy3C4iwkRhPGceTu9maQkMk/
-	 +/jG5V2Ue17I5nRWr4mYzo5F4YX1NRY3XeZmV01rZhyeksQamHZ+cRbQ61Xm+jQ7NC
-	 HvtHr/cZsQD+w==
-Message-ID: <sashiko-outbox-176553@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v2] RDMA/rxe: unpublish the per-net tunnel socket before
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Binbin Deng" <18983559317@163.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261019023717.455067-1-18983559317@163.com>
-References: <20261019023717.455067-1-18983559317@163.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Mon, 19 Oct 2026 02:56:56 +0000
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="N38NOCU2"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1792379950; x=1823915950;
+  h=date:from:to:cc:subject:message-id;
+  bh=5DDDsJZLvPsV6cgLeL1No0ZuzFP0tFIuwlubc3fYU5E=;
+  b=N38NOCU28EBB0QRqCSCATNiBKX+9w+hZozOc526wy98M863LinMrI2kX
+   6bMA6UJ34LW/Xsp0NE60T7ZbAuEcjo9jHcqogKnFWEVz3GeZDkLPg7xs/
+   HE4jts2RZbWH+mXFIB77GWdK8FSe+MX6gQ1l1u2UV0eEPAK5bW7zGmnZ9
+   870ugOUIOb8gz6BHL6VJ3qku3tiGh0hf26zt/jdHHs2dERmWp8LQHlUvV
+   Fv1qggVQz03EliFDpg+Vy3KrV+6ijTZt/UL61nsMtfl0rF0hwFrnf2Y2b
+   b/c7zeaTpyUB1KdmHbysFiDaUm27QyLYfvSGoGrWXkqq17wnQEPt1hOX4
+   A==;
+X-CSE-ConnectionGUID: XWCmd1BqRUOp2X2nmjzssA==
+X-CSE-MsgGUID: A8zWfGRiSZGpGwmj+EwBfQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11939"; a="1164178"
+X-IronPort-AV: E=Sophos;i="6.27,166,1787036400"; 
+   d="scan'208";a="1164178"
+Received: from fmviesa004.fm.intel.com ([10.60.135.144])
+  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Oct 2026 20:19:09 -0700
+X-CSE-ConnectionGUID: dSGsoEATRZC6ry5cz/9OKg==
+X-CSE-MsgGUID: Iq59pQ0lRfuZksnrSNE0qQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,166,1787036400"; 
+   d="scan'208";a="2421188"
+Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
+  by fmviesa004.fm.intel.com with ESMTP; 18 Oct 2026 20:19:07 -0700
+Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1xIdtw-00000000LBE-0mUL;
+	Mon, 19 Oct 2026 03:19:04 +0000
+Date: Mon, 19 Oct 2026 11:18:58 +0800
+From: kernel test robot <lkp@intel.com>
+To: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
+Subject: [rdma:hmm] BUILD SUCCESS
+ d1b2c2debc085a9e8e59178703a12db59e72ac33
+Message-ID: <202610191155.4sDCdqw7-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-Thank you for your contribution! Sashiko AI review found 2 potential issue(=
-s) to consider:
-- [Critical] RDMA/rxe: use-after-free in rxe_find_route6() due to unpinned =
-socket
-- [High] RDMA/rxe: unsynchronized sk_refcnt check and socket release in rxe=
-_sock_put()
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git hmm
+branch HEAD: d1b2c2debc085a9e8e59178703a12db59e72ac33  coco/tsm: Update maintainership
+
+elapsed time: 1297m
+
+configs tested: 207
+configs skipped: 8
+
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+tested configs:
+alpha                              allnoconfig    gcc-16.2.0
+alpha                             allyesconfig    gcc-16.2.0
+alpha                                defconfig    gcc-16.2.0
+arc                               allmodconfig    clang-24
+arc                                allnoconfig    gcc-16.2.0
+arc                               allyesconfig    clang-24
+arc                                  defconfig    gcc-16.2.0
+arc                   randconfig-1000-20261019    clang-21
+arc                   randconfig-1001-20261019    clang-21
+arm                                allnoconfig    gcc-16.2.0
+arm                               allyesconfig    clang-24
+arm                                  defconfig    gcc-16.2.0
+arm                       integrator_defconfig    gcc-16.2.0
+arm                           pxa3xx_defconfig    gcc-16.2.0
+arm                   randconfig-1000-20261019    clang-21
+arm                   randconfig-1001-20261019    clang-21
+arm                   randconfig-1002-20261019    clang-21
+arm                   randconfig-1003-20261019    clang-21
+arm                        spear13xx_defconfig    clang-24
+arm64                             allmodconfig    clang-24
+arm64                              allnoconfig    gcc-16.2.0
+arm64                                defconfig    gcc-16.2.0
+arm64                 randconfig-1000-20261019    clang-24
+arm64                 randconfig-1001-20261019    clang-24
+arm64                 randconfig-1002-20261019    clang-24
+arm64                 randconfig-1003-20261019    clang-24
+csky                              allmodconfig    gcc-16.2.0
+csky                               allnoconfig    gcc-16.2.0
+csky                                 defconfig    gcc-16.2.0
+csky                  randconfig-1000-20261019    clang-24
+csky                  randconfig-1001-20261019    clang-24
+hexagon                           allmodconfig    gcc-16.2.0
+hexagon                            allnoconfig    gcc-16.2.0
+hexagon                              defconfig    gcc-16.2.0
+hexagon               randconfig-1000-20261019    clang-24
+hexagon               randconfig-1001-20261019    clang-24
+i386                               allnoconfig    gcc-16.2.0
+i386        buildonly-randconfig-1000-20261018    clang-22
+i386        buildonly-randconfig-1000-20261019    clang-22
+i386        buildonly-randconfig-1001-20261018    clang-22
+i386        buildonly-randconfig-1001-20261019    clang-22
+i386        buildonly-randconfig-1002-20261018    clang-22
+i386        buildonly-randconfig-1002-20261019    clang-22
+i386        buildonly-randconfig-1003-20261018    clang-22
+i386        buildonly-randconfig-1003-20261019    clang-22
+i386        buildonly-randconfig-1004-20261018    clang-22
+i386        buildonly-randconfig-1004-20261019    clang-22
+i386        buildonly-randconfig-1005-20261018    clang-22
+i386        buildonly-randconfig-1005-20261019    clang-22
+i386                                 defconfig    gcc-16.2.0
+i386                  randconfig-1000-20261019    clang-22
+i386                  randconfig-1001-20261019    clang-22
+i386                  randconfig-1002-20261019    clang-22
+i386                  randconfig-1003-20261019    clang-22
+i386                  randconfig-1004-20261019    clang-22
+i386                  randconfig-1005-20261019    clang-22
+i386                  randconfig-1006-20261019    clang-22
+i386                  randconfig-1007-20261018    gcc-14
+i386                  randconfig-1008-20261018    gcc-14
+i386                  randconfig-1009-20261018    gcc-14
+i386                  randconfig-1010-20261018    gcc-14
+i386                  randconfig-1011-20261018    gcc-14
+i386                  randconfig-1012-20261018    gcc-14
+i386                  randconfig-1013-20261018    gcc-14
+loongarch                         allmodconfig    clang-24
+loongarch                          allnoconfig    gcc-16.2.0
+loongarch                            defconfig    clang-24
+loongarch                 loongson32_defconfig    clang-24
+loongarch             randconfig-1000-20261019    clang-24
+loongarch             randconfig-1001-20261019    clang-24
+m68k                              allmodconfig    gcc-16.2.0
+m68k                               allnoconfig    gcc-16.2.0
+m68k                              allyesconfig    clang-24
+m68k                                 defconfig    clang-24
+m68k                             mac_defconfig    gcc-16.2.0
+microblaze                         allnoconfig    gcc-16.2.0
+microblaze                        allyesconfig    gcc-16.2.0
+microblaze                           defconfig    clang-24
+mips                              allmodconfig    gcc-16.2.0
+mips                               allnoconfig    gcc-16.2.0
+mips                              allyesconfig    gcc-16.2.0
+mips                        rbtx49xx_defconfig    gcc-16.2.0
+nios2                             allmodconfig    clang-20
+nios2                              allnoconfig    clang-24
+nios2                                defconfig    clang-24
+nios2                 randconfig-1000-20261019    clang-24
+nios2                 randconfig-1001-20261019    clang-24
+openrisc                          allmodconfig    clang-20
+openrisc                           allnoconfig    clang-24
+openrisc                             defconfig    gcc-16.2.0
+parisc                            allmodconfig    gcc-16.2.0
+parisc                             allnoconfig    clang-24
+parisc                            allyesconfig    clang-17
+parisc                               defconfig    gcc-16.2.0
+parisc                randconfig-1000-20261018    clang-24
+parisc                randconfig-1000-20261019    gcc-8.5.0
+parisc                randconfig-1001-20261018    clang-24
+parisc                randconfig-1001-20261019    gcc-8.5.0
+parisc64                             defconfig    clang-24
+powerpc                           allmodconfig    gcc-16.2.0
+powerpc                            allnoconfig    clang-24
+powerpc                       cm5200_defconfig    clang-24
+powerpc               randconfig-1000-20261018    clang-24
+powerpc               randconfig-1000-20261019    gcc-8.5.0
+powerpc               randconfig-1001-20261018    clang-24
+powerpc               randconfig-1001-20261019    gcc-8.5.0
+powerpc                      tqm8548_defconfig    clang-24
+powerpc64             randconfig-1000-20261018    clang-24
+powerpc64             randconfig-1000-20261019    gcc-8.5.0
+powerpc64             randconfig-1001-20261018    clang-24
+powerpc64             randconfig-1001-20261019    gcc-8.5.0
+riscv                             allmodconfig    clang-24
+riscv                              allnoconfig    clang-24
+riscv                             allyesconfig    clang-24
+riscv                                defconfig    gcc-16.2.0
+riscv                 randconfig-1000-20261018    clang-17
+riscv                 randconfig-1000-20261019    gcc-11.5.0
+riscv                 randconfig-1001-20261018    clang-17
+riscv                 randconfig-1001-20261019    gcc-11.5.0
+s390                              allmodconfig    clang-17
+s390                               allnoconfig    clang-24
+s390                              allyesconfig    gcc-16.2.0
+s390                                 defconfig    gcc-16.2.0
+s390                  randconfig-1000-20261018    clang-17
+s390                  randconfig-1000-20261019    gcc-11.5.0
+s390                  randconfig-1001-20261018    clang-17
+s390                  randconfig-1001-20261019    gcc-11.5.0
+sh                                allmodconfig    gcc-16.2.0
+sh                                 allnoconfig    clang-24
+sh                                allyesconfig    clang-17
+sh                                   defconfig    gcc-14
+sh                           landisk_defconfig    clang-24
+sh                           r7785rp_defconfig    clang-24
+sh                    randconfig-1000-20261018    clang-17
+sh                    randconfig-1000-20261019    gcc-11.5.0
+sh                    randconfig-1001-20261018    clang-17
+sh                    randconfig-1001-20261019    gcc-11.5.0
+sh                           rsk7264_defconfig    gcc-16.2.0
+sh                         sh7757lcr_defconfig    clang-24
+sparc                              allnoconfig    clang-24
+sparc                                defconfig    gcc-16.2.0
+sparc                 randconfig-1000-20261019    clang-20
+sparc                 randconfig-1001-20261019    clang-20
+sparc                        sparc64_defconfig    gcc-16.2.0
+sparc64                           allmodconfig    clang-20
+sparc64                              defconfig    gcc-14
+sparc64               randconfig-1000-20261019    clang-20
+sparc64               randconfig-1001-20261019    clang-20
+um                                allmodconfig    clang-17
+um                                 allnoconfig    clang-24
+um                                allyesconfig    gcc-16.2.0
+um                                   defconfig    gcc-14
+um                              i386_defconfig    gcc-14
+um                    randconfig-1000-20261019    clang-20
+um                    randconfig-1001-20261019    clang-20
+um                            x86_64_defconfig    gcc-14
+x86_64                             allnoconfig    clang-24
+x86_64      buildonly-randconfig-1000-20261019    clang-22
+x86_64      buildonly-randconfig-1001-20261019    clang-22
+x86_64      buildonly-randconfig-1002-20261019    clang-22
+x86_64      buildonly-randconfig-1003-20261019    clang-22
+x86_64      buildonly-randconfig-1004-20261019    clang-22
+x86_64      buildonly-randconfig-1005-20261019    clang-22
+x86_64                               defconfig    gcc-14
+x86_64                                   kexec    clang-22
+x86_64                randconfig-1000-20261018    clang-22
+x86_64                randconfig-1000-20261019    clang-22
+x86_64                randconfig-1001-20261018    clang-22
+x86_64                randconfig-1001-20261019    clang-22
+x86_64                randconfig-1002-20261018    clang-22
+x86_64                randconfig-1002-20261019    clang-22
+x86_64                randconfig-1003-20261018    clang-22
+x86_64                randconfig-1003-20261019    clang-22
+x86_64                randconfig-1004-20261018    clang-22
+x86_64                randconfig-1004-20261019    clang-22
+x86_64                randconfig-1005-20261018    clang-22
+x86_64                randconfig-1005-20261019    clang-22
+x86_64                randconfig-1006-20261018    clang-22
+x86_64                randconfig-1006-20261019    clang-22
+x86_64                randconfig-1007-20261018    clang-22
+x86_64                randconfig-1007-20261019    clang-22
+x86_64                randconfig-1008-20261018    clang-22
+x86_64                randconfig-1008-20261019    clang-22
+x86_64                randconfig-1009-20261018    clang-22
+x86_64                randconfig-1009-20261019    clang-22
+x86_64                randconfig-1010-20261018    clang-22
+x86_64                randconfig-1010-20261019    clang-22
+x86_64                randconfig-1011-20261018    clang-22
+x86_64                randconfig-1011-20261019    clang-22
+x86_64                randconfig-1012-20261019    gcc-14
+x86_64                randconfig-1013-20261019    gcc-14
+x86_64                randconfig-1014-20261019    gcc-14
+x86_64                randconfig-1015-20261019    gcc-14
+x86_64                randconfig-1016-20261019    gcc-14
+x86_64                randconfig-1017-20261019    gcc-14
+x86_64                                rhel-9.4    clang-22
+x86_64                            rhel-9.4-bpf    gcc-14
+x86_64                           rhel-9.4-func    clang-22
+x86_64                     rhel-9.4-kselftests    clang-22
+x86_64                          rhel-9.4-kunit    gcc-14
+x86_64                            rhel-9.4-ltp    gcc-14
+x86_64                           rhel-9.4-rust    clang-22
+xtensa                             allnoconfig    clang-24
+xtensa                            allyesconfig    clang-20
+xtensa                randconfig-1000-20261019    clang-20
+xtensa                randconfig-1001-20261019    clang-20
+xtensa                          virt_defconfig    gcc-16.2.0
+
 --
-
-commit 860836b4fabbeecebc7b1940a3702993878d2022
-Author: Binbin Deng <18983559317@163.com>
-
-RDMA/rxe: unpublish the per-net tunnel socket before
-
-This commit moves the call to set_sk(net, NULL) before
-rxe_release_udp_tunnel(sk) in rxe_sock_put() to avoid a slab use-after-free=
- in
-ip6_route_output_flags() when a user removes an RXE device while RoCE v2 ov=
-er
-IPv6 traffic is active.
-
-> diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/=
-rxe/rxe_net.c
-> index 53daaf4c1eb2e..fc597e02c85ca 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_net.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_net.c
-> @@ -638,9 +638,8 @@ static void rxe_sock_put(struct sock *sk,
->  	if (refcount_read(&sk->sk_refcnt) > SK_REF_FOR_TUNNEL) {
->  		__sock_put(sk);
->  	} else {
-> +		set_sk(net, NULL);
-
-[Severity: Critical]
-Does calling set_sk(net, NULL) before rxe_release_udp_tunnel(sk) actually
-prevent the slab use-after-free in ip6_route_output_flags() reached from
-rxe_find_route6()?
-
-In drivers/infiniband/sw/rxe/rxe_ns.c, rxe_ns_pernet_sk6() drops
-rcu_read_unlock() before returning the raw sk pointer without acquiring a
-reference on sk:
-
-struct sock *rxe_ns_pernet_sk6(struct net *net)
-{
-	struct rxe_ns_sock *ns_sk =3D net_generic(net, rxe_pernet_id);
-	struct sock *sk;
-
-	rcu_read_lock();
-	sk =3D rcu_dereference(ns_sk->rxe_sk6);
-	rcu_read_unlock();
-
-	return sk;
-}
-
-And in drivers/infiniband/sw/rxe/rxe_net.c, rxe_find_route6() runs in
-preemptible workqueue context (rxe_sender() -> rxe_requester() ->
-rxe_prepare() -> rxe_find_route() -> rxe_find_route6()) outside any RCU
-read-side critical section:
-
-	ndst =3D ip6_dst_lookup_flow(net, rxe_ns_pernet_sk6(net), &fl6, NULL);
-
-If CPU 0 calls rxe_ns_pernet_sk6(net), obtains the non-NULL sk pointer, and
-calls rcu_read_unlock() just before CPU 1 calls set_sk(net, NULL) in
-rxe_sock_put(), the synchronize_rcu() inside rxe_ns_pernet_set_sk6() will n=
-ot
-wait for CPU 0 because CPU 0 is no longer in an RCU read-side critical
-section.
-
-CPU 1 can then run rxe_release_udp_tunnel(sk) -> udp_tunnel_sock_release(sk=
-) ->
-sock_release() -> sock_put(sk) -> sk_free(sk) -> call_rcu(&sk->sk_rcu,
-__sk_destruct). Because CPU 0 is outside rcu_read_lock() before
-ip6_route_output_flags() enters its internal RCU section (and again after
-ip6_route_output_flags() drops rcu_read_unlock() before xfrm_lookup_route()=
- ->
-xfrm_lookup_with_ifid()), __sk_destruct() can still free sk while CPU 0 is
-dereferencing sk->sk_bound_dev_if, inet6_sk(sk)->srcprefs, or
-sk->sk_policy[XFRM_POLICY_OUT].
-
->  		rxe_release_udp_tunnel(sk);
-> -		sk =3D NULL;
-> -		set_sk(net, sk);
->  	}
->  }
-
-[Severity: High]
-Could moving set_sk(net, NULL) before rxe_release_udp_tunnel(sk), combined
-with the unsynchronized sk->sk_refcnt check in rxe_sock_put(), also introdu=
-ce
-a race window with concurrent link operations or socket lookups?
-
-1. In rxe_sock_put(), set_sk(net, NULL) clears ns_sk->rxe_sk4 or
-ns_sk->rxe_sk6 and sleeps in synchronize_rcu() before rxe_release_udp_tunne=
-l()
-closes and unhashes the UDP tunnel socket bound to ROCE_V2_UDP_DPORT:
-
-	} else {
-		set_sk(net, NULL);
-		rxe_release_udp_tunnel(sk);
-	}
-
-Because nldev_newlink() -> rxe_newlink() -> rxe_net_init() does not seriali=
-ze
-with nldev_dellink() or rxe_notify(NETDEV_UNREGISTER), if rxe_net_ipv4_init=
-()
-or rxe_net_ipv6_init() runs while set_sk(net, NULL) is sleeping in
-synchronize_rcu():
-
-	sk =3D rxe_ns_pernet_sk4(net);
-	if (sk) {
-		sock_hold(sk);
-		return 0;
-	}
-
-	sock =3D rxe_setup_udp_tunnel(net, htons(ROCE_V2_UDP_DPORT), false);
-
-it will see a NULL per-net socket pointer and try to create a new UDP tunnel
-socket on ROCE_V2_UDP_DPORT while the old socket is still bound, failing wi=
-th
--EADDRINUSE.
-
-2. Furthermore, rxe_sock_put() checks refcount_read(&sk->sk_refcnt) >
-SK_REF_FOR_TUNNEL without lock serialization across rxe_net_del() callers
-(nldev_dellink() and rxe_notify(NETDEV_UNREGISTER)) or rxe_net_init(), and =
-the
-UDP tunnel socket is hashed in the global UDP tables where paths like
-udp_diag_dump_one() or udp4/6_lib_lookup() transiently increment sk->sk_ref=
-cnt
-via refcount_inc_not_zero(). If a transient reference is held when the last
-RXE device in the netns is removed, refcount_read(&sk->sk_refcnt) >
-SK_REF_FOR_TUNNEL evaluates to true, causing rxe_sock_put() to call
-__sock_put(sk) instead of releasing the tunnel and leaving a dangling socket
-with an unbalanced refcount published in the netns.
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261019023717.4550=
-67-1-18983559317@163.com?part=3D1
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
