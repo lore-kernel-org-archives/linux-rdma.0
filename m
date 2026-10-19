@@ -1,210 +1,92 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from outbound.baidu.com (mx22.baidu.com [220.181.50.185])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08DF8472540
-	for <linux-rdma@vger.kernel.org>; Mon, 19 Oct 2026 04:42:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A47B3DEAE3
+	for <linux-rdma@vger.kernel.org>; Mon, 19 Oct 2026 05:07:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.181.50.185
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792384958; cv=none; b=KcJ4+ipZKwlzk7A47Xsv41lsZW39+ATV4pEs+JJWwjl5WXssVojev/3I2XBr75ZUUBe0IE2FDQreQf/mF0/6daGmHiCW4DJWfPdDvDOlyj+aZfCDCQSSKNsuPyWOgpfZ+27qsQ+NlRgaczP99Axe0JYf8r3GwPe8tDbRFpfnYe8=
+	t=1792386455; cv=none; b=ZJ1nDgf04bFTPv7bNbci7HAd/j1tv/gc99yywZ08CtY4D484JM+qiqnygIwDJql6EGU09oXlicgS83km0kbUr/E+t9SZVmN+oQS4PFM0pfUWQ6fGZKjhVEUaA1BAVVuryTr6Ngs3DrMsgMoxoxgl2fh++frA99dIZlI7UTb5FoQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792384958; c=relaxed/simple;
-	bh=a6wAUq1VbxkfMmvCpVptKwn3Bvd+8nAunj+ikmHewb4=;
-	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=t/6F3iaB/sFnGvcCbVtOzWIAvpq2xeulZGENbsUF3hGciQnS9kA1+Vb/bsUq8Fs/Zk4hYfvtAAM/LHFEItEi1fWr/frnxmIScrthaoEk0qdorQskCPysUTk3XYg4B/EH00wli9EGGVWfMNsOwJRMtmRLH6XBOWgTrIOTcUS37no=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JhzVtQvf; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792386455; c=relaxed/simple;
+	bh=TXByOWQCV/7eMLylbB3vZyVyvnBxCGdpkEtiBJ8HIws=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=CFIgBrbZlwLYiyusCXd5yDc6RQC838pBbFeCxFZaIgZK+3EV69xps6sfae9OK8p6Dk5aqQmS5IxwGwXeuXYtmXPN45MNHq30hE445Y7veDjRmcqQPGQp8g4lMNU2ZtbOxjR3IoTv7kmxhq8GE1TE3bh5T0YTKF9ADmxI3PsBTCM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com; spf=pass smtp.mailfrom=baidu.com; dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b=GJM8b4tL; arc=none smtp.client-ip=220.181.50.185
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baidu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JhzVtQvf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03F881F000C4;
-	Mon, 19 Oct 2026 04:42:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792384947;
-	bh=e5oCCRVQbIUa5jtllThrHtTNeFlzuDBGnPGMVZl6r7g=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=JhzVtQvfyULcv75/FkVD4eGFQnqSxvzoM8HFyl84ccoyCv+iVUZlnZefiv++hvOUa
-	 ngFYg4tN0p04oatACwbpyeu2+jh0E5j4Sxo566uaAIW0tMAeSAqGpmgZfMeguw8bLq
-	 dtNwpB5YQqi9gc51RHj8vdMaQsqxCp/OSCxf8Zgh58I3jF6SmLwS2+nmMANDOrKphC
-	 A/JqDTLAF67BM1G0hWYb5GUwv9ICisZmTKKFFTzWvz5W2wZm661iG2NhSte47MrLlL
-	 bm18ofIHcxz/2baBOUR1WZBxd4vHoZ2j8fjqzfuKOTOw0G1KDm9JaUg0dBZQjvWbgd
-	 qBq4TurcEOCDA==
-Message-ID: <sashiko-outbox-176647@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v3] RDMA/rxe: Fix use-after-free of the per-net tunnel
- socket
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Binbin Deng" <18983559317@163.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261019043205.466134-1-18983559317@163.com>
-References: <20261019043205.466134-1-18983559317@163.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Mon, 19 Oct 2026 04:42:26 +0000
+	dkim=pass (2048-bit key) header.d=baidu.com header.i=@baidu.com header.b="GJM8b4tL"
+X-MD-Sfrom: lirongqing@baidu.com
+X-MD-SrcIP: 172.31.50.47
+From: lirongqing <lirongqing@baidu.com>
+To: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Eli
+ Cohen <eli@dev.mellanox.co.il>, Roland Dreier <roland@purestorage.com>,
+	<linux-rdma@vger.kernel.org>
+CC: Li RongQing <lirongqing@baidu.com>
+Subject: [PATCH v3] RDMA/mlx5: Fix CQ resize destination index mask
+Date: Mon, 19 Oct 2026 13:05:03 +0800
+Message-ID: <20261019050503.2313-1-lirongqing@baidu.com>
+X-Mailer: git-send-email 2.17.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain
+X-ClientProxiedBy: bjhj-exc7.internal.baidu.com (172.31.3.17) To
+ bjkjy-exc3.internal.baidu.com (172.31.50.47)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=baidu.com;
+	s=selector1; t=1792386311;
+	bh=aDfPN9ktqxgHZE9ycW2UF8f5j5mWePyVnripHfV0ctc=;
+	h=From:To:CC:Subject:Date:Message-ID:Content-Type;
+	b=GJM8b4tL9SleA0kZj9VGvoLV6bh52Z8KnKBO3+T+EWmK/ZdChmA/UAaaZ8tl+tP4G
+	 CPXB+2NNCCvt2vFV03V2pBl57kep1wa+Zx4+66rkSQ1j57UH6rPnGgSO2KeMrBULGL
+	 EJXSPHHZ71m/wjSh6QQRF+MD7P69vqJ6u3AhkrHl4FO0+FwI02iuzIIqqHWOMCkUja
+	 mJxah0uTXN3ap192X/Gd7Mb5nTNwAs1xMPkccAzy3m9GHhhrB6lS3gWYxLNBsei20N
+	 SC/HndPMhuppg3VIO4zV0pcGI+0NCkGqQLd/dcYe9s77EEfL1iEyXzbzyoj0G7UFxl
+	 +LNrmCoEwiBQA==
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
-- [High] RDMA/rxe: broken sk_refcnt check and reference leak in rxe_sock_pu=
-t()
---
+From: Li RongQing <lirongqing@baidu.com>
 
-commit 4fbcdc28fc0ebeebf87dd5a747900ac13874c9a3
-Author: Binbin Deng <18983559317@163.com>
+In copy_resize_cqes, the destination CQE index is computed as
+(i + 1) & cq->resize_buf->nent, but resize_buf->nent is produced by
+roundup_pow_of_two(), so it is a power of two with exactly one bit set.
+Masking with a single-bit value can only yield 0 or nent itself. The
+buffer has nent entries, so valid indices are 0 .. nent - 1 and nent is
+one past the last slot; whenever the masked result is nent the following
+memcpy writes one entry out of bounds.
 
-RDMA/rxe: Fix use-after-free of the per-net tunnel socket
+Use (nent - 1) as the wrap mask instead. For a power-of-two nent,
+(i + 1) & (nent - 1) is the correct modulo-nent reduction, keeping the
+index within [0, nent - 1]. This matches get_sw_cqe(), which addresses
+the CQ buffer via n & cq->ibcq.cqe, where cq->ibcq.cqe == entries - 1 is
+exactly the nent - 1 wrap mask.
 
-This patch fixes a use-after-free of the per-net UDP tunnel socket by
-clearing the per-net socket pointer before releasing the tunnel in
-rxe_sock_put(), and by taking a reference on sk->sk_refcnt under
-rcu_read_lock() in rxe_ns_pernet_sk4() and rxe_ns_pernet_sk6().
+Fixes: bde51583f49b ("IB/mlx5: Add support for resize CQ")
+Signed-off-by: Li RongQing <lirongqing@baidu.com>
+---
+Changes in v3:
+ Restore the v1 implementation, using (nent - 1) as the wrap mask.
 
-> diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/=
-rxe/rxe_net.c
-> index 53daaf4c1eb2e..ec98133a60055 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_net.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_net.c
-> @@ -135,13 +135,20 @@ static struct dst_entry *rxe_find_route6(struct rxe=
-_qp *qp,
->  {
->  	struct dst_entry *ndst;
->  	struct flowi6 fl6 =3D {};
-> +	struct sock *sk;
-> =20
->  	fl6.flowi6_oif =3D ndev->ifindex;
->  	memcpy(&fl6.saddr, saddr, sizeof(*saddr));
->  	memcpy(&fl6.daddr, daddr, sizeof(*daddr));
->  	fl6.flowi6_proto =3D IPPROTO_UDP;
-> =20
-> -	ndst =3D ip6_dst_lookup_flow(net, rxe_ns_pernet_sk6(net), &fl6, NULL);
-> +	/* keep the socket pinned while it is passed to the IPv6 routing
-> +	 * code which dereferences it outside of rcu_read_lock()
-> +	 */
-> +	sk =3D rxe_ns_pernet_sk6(net);
-> +	ndst =3D ip6_dst_lookup_flow(net, sk, &fl6, NULL);
-> +	if (sk)
-> +		sock_put(sk);
->  	if (IS_ERR(ndst)) {
->  		rxe_dbg_qp(qp, "no route to %pI6\n", daddr);
->  		return NULL;
-> @@ -638,9 +645,15 @@ static void rxe_sock_put(struct sock *sk,
->  	if (refcount_read(&sk->sk_refcnt) > SK_REF_FOR_TUNNEL) {
->  		__sock_put(sk);
->  	} else {
-> +		/*
-> +		 * Clear the per-net pointer before the socket is released:
-> +		 * rxe_ns_pernet_sk4/6() take a reference on the socket, but
-> +		 * new lookups must not find it once it is being released.
-> +		 */
-> +		set_sk(net, NULL);
->  		rxe_release_udp_tunnel(sk);
-> -		sk =3D NULL;
-> -		set_sk(net, sk);
-> +		/* drop the reference from rxe_ns_pernet_sk4/6() */
-> +		sock_put(sk);
->  	}
->  }
+Changes in v2:
+ Use modulo (%) instead of a bitmask to wrap the destination CQE index.
 
-[Severity: High]
-Does this change make the else branch in rxe_sock_put() unreachable and
-leak sk->sk_refcnt as well as the UDP tunnel sockets?
+ drivers/infiniband/hw/mlx5/cq.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-When the first RXE device in a network namespace creates a UDP tunnel
-socket via rxe_setup_udp_tunnel() in rxe_net_ipv4_init() or
-rxe_net_ipv6_init(), sk->sk_refcnt starts at 2 (SK_REF_FOR_TUNNEL). Each
-additional device in the namespace increments sk->sk_refcnt by 1 via
-rxe_ns_pernet_sk4() or rxe_ns_pernet_sk6().
+diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
+index dc457fa..3ade85d 100644
+--- a/drivers/infiniband/hw/mlx5/cq.c
++++ b/drivers/infiniband/hw/mlx5/cq.c
+@@ -1319,7 +1319,7 @@ static int copy_resize_cqes(struct mlx5_ib_cq *cq)
+ 
+ 	while (get_cqe_opcode(scqe64) != MLX5_CQE_RESIZE_CQ) {
+ 		dcqe = mlx5_frag_buf_get_wqe(&cq->resize_buf->fbc,
+-					     (i + 1) & cq->resize_buf->nent);
++					     (i + 1) & (cq->resize_buf->nent - 1));
+ 		dcqe64 = dsize == 64 ? dcqe : dcqe + 64;
+ 		sw_own = sw_ownership_bit(i + 1, cq->resize_buf->nent);
+ 		memcpy(dcqe, scqe, dsize);
+-- 
+2.9.4
 
-Both callers of rxe_sock_put() fetch sk via rxe_ns_pernet_sk4() or
-rxe_ns_pernet_sk6() right before calling rxe_sock_put():
-
-drivers/infiniband/sw/rxe/rxe_net.c:rxe_net_del() {
-	sk =3D rxe_ns_pernet_sk4(net);
-	if (sk)
-		rxe_sock_put(sk, rxe_ns_pernet_set_sk4, net);
-
-	sk =3D rxe_ns_pernet_sk6(net);
-	if (sk)
-		rxe_sock_put(sk, rxe_ns_pernet_set_sk6, net);
-}
-
-drivers/infiniband/sw/rxe/rxe_net.c:rxe_net_init() {
-    ...
-err_out:
-	/* If ipv6 error, release ipv4 resource */
-	sk =3D rxe_ns_pernet_sk4(net);
-	if (sk)
-		rxe_sock_put(sk, rxe_ns_pernet_set_sk4, net);
-    ...
-}
-
-Because rxe_ns_pernet_sk4() and rxe_ns_pernet_sk6() now increment
-sk->sk_refcnt with refcount_inc_not_zero(), refcount_read(&sk->sk_refcnt)
-upon entry to rxe_sock_put() is at least SK_REF_FOR_TUNNEL + 1 (3 when one
-device exists, or N + 2 for N > 1 devices).
-
-As a result, in rxe_sock_put():
-
-1. refcount_read(&sk->sk_refcnt) > SK_REF_FOR_TUNNEL is always true, so the
-   else branch (set_sk(net, NULL) and rxe_release_udp_tunnel(sk)) is never
-   reached when the last RXE device is deleted or when rxe_net_ipv6_init()
-   fails.
-
-2. The if branch calls __sock_put(sk) only once, which only drops the
-   temporary reference just acquired by the caller's rxe_ns_pernet_sk4() or
-   rxe_ns_pernet_sk6() call without dropping the per-device reference taken
-   in rxe_net_ipv4_init() or rxe_net_ipv6_init(). Each device addition and
-   removal cycle therefore leaks a reference on struct sock.
-
-3. In addition, because rxe_find_route6() also increments sk->sk_refcnt via
-   rxe_ns_pernet_sk6(net) and drops it with sock_put(sk), any concurrent
-   rxe_find_route6() in flight during rxe_net_del() of the last device will
-   elevate sk->sk_refcnt. Even if the threshold in rxe_sock_put() were
-   adjusted for the caller's getter reference, wouldn't a concurrent route
-   lookup cause rxe_sock_put() to take the if branch and skip releasing the
-   UDP tunnel, while rxe_find_route6()'s subsequent sock_put(sk) only
-   decrements sk->sk_refcnt without releasing the tunnel?
-
-[ ... ]
-
-> diff --git a/drivers/infiniband/sw/rxe/rxe_ns.c b/drivers/infiniband/sw/r=
-xe/rxe_ns.c
-> index 64621c89f8bf1..0a7d409c0f981 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_ns.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_ns.c
-> @@ -71,6 +71,12 @@ static struct pernet_operations rxe_net_ops =3D {
->  	.size =3D sizeof(struct rxe_ns_sock),
->  };
-> =20
-> +/*
-> + * Return the per-net tunnel socket with a reference taken, or NULL if
-> + * the namespace has no tunnel socket.  The reference is taken under
-> + * rcu_read_lock() so the socket cannot be freed while the pointer is
-> + * still published; the caller must sock_put() it.
-> + */
->  struct sock *rxe_ns_pernet_sk4(struct net *net)
->  {
->  	struct rxe_ns_sock *ns_sk =3D net_generic(net, rxe_pernet_id);
-> @@ -78,6 +84,8 @@ struct sock *rxe_ns_pernet_sk4(struct net *net)
-> =20
->  	rcu_read_lock();
->  	sk =3D rcu_dereference(ns_sk->rxe_sk4);
-> +	if (sk && !refcount_inc_not_zero(&sk->sk_refcnt))
-> +		sk =3D NULL;
->  	rcu_read_unlock();
-> =20
->  	return sk;
-> @@ -99,6 +107,8 @@ struct sock *rxe_ns_pernet_sk6(struct net *net)
-> =20
->  	rcu_read_lock();
->  	sk =3D rcu_dereference(ns_sk->rxe_sk6);
-> +	if (sk && !refcount_inc_not_zero(&sk->sk_refcnt))
-> +		sk =3D NULL;
->  	rcu_read_unlock();
-> =20
->  	return sk;
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261019043205.4661=
-34-1-18983559317@163.com?part=3D1
