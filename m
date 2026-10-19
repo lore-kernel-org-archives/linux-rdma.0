@@ -1,44 +1,48 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BB8461898E;
-	Mon, 19 Oct 2026 14:04:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE7E262767B;
+	Mon, 19 Oct 2026 14:04:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792418657; cv=none; b=nge1uFPkAMr3xeyFKtUCcCiRNH2xga1X4hOu4AcvpKiHftg1DVVYqUfmicnYpQvQ2yfopRAK51ifN2vQ8U1dxn/loDpETeGSWJzfbY2wq9tHKX52ptkL+sDFp/smaRSikgPciQZZI5KCeJKombrIKbo2A8B5GaFe3K3HtTJanTU=
+	t=1792418701; cv=none; b=nNLOqUZVxAJOACwlcs49AfwcRflGcZ2HOFSZ+mOdwhVZtdqlSEuYqb5KSDg8UM0DxcJXQ9gzW/3BoZNqYzWgKRZfbqnhs/l9eJGOnz65g2FIcFx3LYjpSWfKeGcweMTFF1J0l0om88rywYMEFqILLxt998FXAxQ4obqdRxV6qpo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792418657; c=relaxed/simple;
-	bh=NraNV6uZLErNz3sW5iSRQ/yLE+T+WB0nkIvhKHSHaGY=;
+	s=arc-20240116; t=1792418701; c=relaxed/simple;
+	bh=NF2ixWHRmZkuYK6TcV0TEf5jlgSxou9HK0WmZvoYRo0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=OJy/swGCngzQeFSYz5L16HcMeA7BOrmH1IrVA1Y4UPztaf5smKNK6RP+MQpNNTU0gQdme84CcQDqWvDUGgaKS/PP7Wwal9L19kKq76oyvgepn/AOnbQ6/1lLv7dZGCnGhiPBZA2LAD3k2WlqpR8usN2/0fQWAuLxV6BwdIcG2F0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PSaScUlN; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=jnQ5VcVr0TjNNDzEJ2DYm8GODygfxlT/ocaMJ+T9edzO+BumLR26bBAKh1G9h15WRenXsghxT7CZB3Ygkcz9xWR1YOlo+obwFNvHoYl8QwL3plV7CmzOi4eJhvK/N8YCzxxiwE1l4mlu8tq2sNUFPV20rPjDuMpRp1pV/yRh/UM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bQ3gz7Nh; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PSaScUlN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 420FC1F000C7;
-	Mon, 19 Oct 2026 14:04:14 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bQ3gz7Nh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5334F1F000C5;
+	Mon, 19 Oct 2026 14:04:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792418655;
-	bh=BnpElW4Dkaitp2Wcrqbr+EIvQ0lFsv0BF4gR/P3KqGo=;
+	s=k20260515; t=1792418697;
+	bh=lpE7in3SaLd94HfkNfamLWAv+AjYDt8XbPu4TGYZbaw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=PSaScUlNC0UtnCQeSNIMZXXqysyvCcjewVtzOD9yUCxDVbwRUxrZxkKuXbT5hM2mf
-	 ZdC+NHwnqizP84WZ4kiUVOZa4ZhDRI92bRTBUiVFUWGVDOLjwlE0hHCN5EOF/FOOFt
-	 /uFePqWzXrvJrVQQM9Kxikjy4lMUIXr27GYMQVsPIFmAeva6mG2V/nBP//KqOy8UIv
-	 bXMLFk8aLKlo5jA7BUe1OACEgxHq5yqYgT/Lc5WLKQTrZJln5PK6kDoZPoMy5cM2Ej
-	 4zJvY7cEWB/pLIln9iUQsQBsi2o3HeO4FAYdV69Vd08yyTg6hItDqrwQKHQrDLD04X
-	 smQc/yMNd697Q==
+	b=bQ3gz7NhsK+HjrzMu7EU4fJwsveEp3sbc25iExZCvs/YbzWxRgO/rg/Tg/rBFpeoj
+	 AWDDb+HOmLicEh+KwurBuQCBzjB3pK7fMOWBh8avCHJZpEd2EnBvuwWcSLltx0d9RN
+	 JPb4oneCjI43Yb7vbnTHSnLksJI7CHBGWmfOnATzK+GhNeNsip1mH2+MzislA7Re5r
+	 rCOhDiKfRE052exboIvaO7eaA8O/FO1aiV3rUjSV8EvQxk6b4NU7AdGHeaux+ebG6Q
+	 DDELjbvI3Z6DpPOU9Fe+TDu0Jjna/cr27NAe15BEXqc/xggkmmB5dnzKBbqsIC6d1P
+	 /rrL8hohm/O6Q==
 From: Sasha Levin <sashal@kernel.org>
 To: patches@lists.linux.dev,
 	stable@vger.kernel.org
-Cc: Zhiwei Zhang <202275009@qq.com>,
-	Zhu Yanjun <yanjun.zhu@linux.dev>,
-	Leon Romanovsky <leon@kernel.org>,
+Cc: =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>,
+	Allison Henderson <achender@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>,
 	Sasha Levin <sashal@kernel.org>,
-	zyjzyj2000@gmail.com,
+	davem@davemloft.net,
+	edumazet@kernel.org,
+	pabeni@redhat.com,
+	netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
+	rds-devel@oss.oracle.com,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.18-6.1] RDMA/rxe: Check PDs for memory window binds
-Date: Mon, 19 Oct 2026 09:51:34 -0400
-Message-ID: <20261019135441.1420968-403-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.18-5.10] net/rds: hold the socket while an rds_mr references it
+Date: Mon, 19 Oct 2026 09:52:03 -0400
+Message-ID: <20261019135441.1420968-432-sashal@kernel.org>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20261019135441.1420968-1-sashal@kernel.org>
 References: <20261019135441.1420968-1-sashal@kernel.org>
@@ -48,76 +52,128 @@ List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 X-stable: review
 X-Patchwork-Hint: Ignore
 X-stable-base: Linux 6.18.57
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Zhiwei Zhang <202275009@qq.com>
+From: Håkon Bugge <haakon.bugge@oracle.com>
 
-[ Upstream commit fbbe1d5cd7d400a98afcf337969cfdb808cb198f ]
+[ Upstream commit 9079adef042c1e7a6141dcdfd3041acd30607297 ]
 
-The IBTA Software Transport Verbs specification requires the QP,
-Memory Window and Memory Region for a Bind Memory Window operation
-to belong to the same HCA and protection domain.
+Each rds_mr stores a bare back pointer to the socket that created it
+(mr->r_sock) but takes no reference on it.  When the mr is destroyed it
+references the rs. Hence, provisions must be made to avoid the rs
+being destroyed before all mrs referencing it have been destroyed.
 
-rxe only checked the QP and MW protection domain for type 2 MWs.
-Move the QP/MW PD check to the common bind path and also reject
-binding an MW to an MR from a different PD.
+The MR itself is refcounted, and in-flight messages legitimately hold
+MR krefs that can outlive the socket: rds_release() drops the rb-tree
+references via rds_rdma_drop_keys(), but a send completion arriving
+afterwards drops the final message reference from the CQ handler and
+ends up in
 
-Invalid bind requests continue to fail with IB_WC_MW_BIND_ERR.
+  rds_message_purge()
+    __rds_put_mr_final()
+      rds_destroy_mr()   -> takes rs->rs_rdma_lock
 
-Reviewed-by: Zhu Yanjun <yanjun.zhu@linux.dev>
-Signed-off-by: Zhiwei Zhang <202275009@qq.com>
-Link: https://patch.msgid.link/tencent_FD4FB25AA4FFA845E63F5AC36CF4A46CDC0A@qq.com
-Signed-off-by: Leon Romanovsky <leon@kernel.org>
+dereferencing a socket that may already have been freed.
+
+Oracle UEK fixed the same use-after-free ("rds: Add proper refcnt when
+an RDS MR references an RDS Socket") after seeing crashes of the form:
+
+  PF: supervisor write access in kernel mode
+  _raw_spin_lock_irqsave+0x4a/0x6a
+  __rds_put_mr_final+0x2c/0xe0 [rds]
+  rds_message_purge+0x13c/0x150 [rds]
+  rds_message_put+0x39/0x54 [rds]
+  rds_ib_send_cqe_handler+0x147/0x3dd [rds_rdma]
+
+To fix this, take a socket reference when an MR is created and drop it
+when the final MR kref goes away.  The reference cycle is broken by
+rds_release(), which always runs rds_rdma_drop_keys() on close.  So the
+socket reference held by an MR never prevents release, it only delays
+sk_free() until the last MR user is done.
+
+The hold sits next to kref_init() at both allocation sites -
+__rds_rdma_map() and the on-demand-paging path in
+rds_cmsg_rdma_args() - so every MR owns exactly one socket reference
+from the moment it becomes kref-managed.  For that to work on the ODP
+path, its get_mr() error handling is converted from a bare kfree() to
+kref_put(..., __rds_put_mr_final), with r_trans_private cleared first
+since it holds an ERR_PTR there; both sites then tear down through
+the same path and a future error-path change cannot silently leak or
+double-drop the reference.
+
+Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
+[achender: port to net-next (sock_hold/sock_put in place of the UEK
+ rds_sock_addref/rds_sock_put helpers); also balance the reference on
+ the rds_cmsg_rdma_args() ODP path and unify its error path with
+ __rds_put_mr_final(); update commit message]
+Signed-off-by: Allison Henderson <achender@kernel.org>
+Link: https://patch.msgid.link/20260730041629.3512480-3-achender@kernel.org
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
 
 LLM Generated explanations, may be completely bogus:
 
-The local tree is **7.3.0-rc4**. This is a small, spec-required PD
-isolation check in Soft-RoCE bind, and the buggy path exists in this
-tree.
+This is a use-after-free in RDS MR teardown. The buggy path is in this
+5.10 tree, the fix is small, and it should be backported.
 
 ===============================================================
 PHASE 1: COMMIT MESSAGE FORENSICS
 ===============================================================
 
 Step 1.1: PARSE THE SUBJECT LINE
-Record: **[RDMA/rxe] [Check] Check PDs for memory window binds.**
-Completes IBTA C10-72 by validating that QP, MW, and MR share a
-protection domain on bind.
+Record: **[net/rds] [hold] hold the socket while an rds_mr references
+it**
+- Subsystem: `net/rds`
+- Action verb: “hold” (keep a missing reference so the socket outlives
+  the MR)
+- Claimed intent: an `rds_mr` keeps a counted socket reference for its
+  lifetime
 
 Step 1.2: PARSE ALL COMMIT MESSAGE TAGS
-Record:
-- **Reviewed-by:** Zhu Yanjun `<yanjun.zhu@linux.dev>`
-- **Signed-off-by:** Zhiwei Zhang `<202275009@qq.com>` (author)
-- **Link:** `https://patch.msgid.link/tencent_FD4FB25AA4FFA845E63F5AC36C
-  F4A46CDC0A@qq.com`
-- **Signed-off-by:** Leon Romanovsky `<leon@kernel.org>` (RDMA
-  maintainer)
-- No **Fixes:**, **Reported-by:**, **Tested-by:**, **Acked-by:**, **Cc:
-  stable**, or syzbot tags (absence of Fixes/Cc-stable is expected for
-  this review)
-- Pipeline SOBs ignored per instructions
+Record (from the candidate / merged `9079adef042c`):
+- **Fixes:** absent in the git commit. The v4 mailing-list post had
+  `Fixes: eff5f53bef75 ("RDS: RDMA support")`. Absence in git is
+  expected here and is not a negative.
+- **Reported-by:** none. The body cites an Oracle UEK production crash.
+- **Tested-by:** none
+- **Reviewed-by / Acked-by:** none on the commit
+- **Link:** `https://patch.msgid.link/20260730041629.3512480-3-
+  achender@kernel.org`
+- **Cc: stable:** absent (expected)
+- **Signed-off-by:** Håkon Bugge (Oracle, original); Allison Henderson
+  (RDS, port); Jakub Kicinski (net maintainer, merge)
+- Notable: Allison’s trailer says this is a UEK port
+  (`sock_hold`/`sock_put` instead of UEK
+  `rds_sock_addref`/`rds_sock_put`). This tree already has those helpers
+  as thin wrappers around `sock_hold`/`sock_put`.
 
 Step 1.3: ANALYZE THE COMMIT BODY TEXT
 Record:
-- **Bug:** IBTA Software Transport Verbs require QP, MW, and MR of a
-  Bind Memory Window to be on the same HCA and PD. rxe only compared QP
-  vs MW PD, and only for type 2 MWs. It never compared QP/MW vs MR PD.
-- **Symptom:** An invalid bind is accepted instead of completing with
-  `IB_WC_MW_BIND_ERR`. After bind, the MW can point at an MR from
-  another PD.
-- **Version info in message:** none
-- **Root cause (author):** type-2-only C10-72 check; missing MR PD check
+- **Bug:** `mr->r_sock` is a bare back-pointer. `rds_destroy_mr()` takes
+  `rs->rs_rdma_lock` after the socket may already be freed.
+- **Symptom:** kernel oops: `PF: supervisor write access` in
+  `_raw_spin_lock_irqsave` from `__rds_put_mr_final` ←
+  `rds_message_purge` ← `rds_message_put` ← `rds_ib_send_cqe_handler`.
+- **Root cause:** `rds_release()` drops rb-tree MR refs via
+  `rds_rdma_drop_keys()`, but in-flight send completions still hold MR
+  krefs. The CQ/tasklet path then destroys the MR against a freed
+  socket.
+- **Version info:** none beyond “Oracle UEK saw this.” The mechanism is
+  as old as RDS RDMA (2009).
+- **Fix:** `sock_hold()` at both MR alloc sites next to `kref_init()`;
+  `sock_put()` in `__rds_put_mr_final()`. Cycle is broken because
+  `rds_release()` always runs `rds_rdma_drop_keys()`, so the MR ref only
+  delays `sk_free()`, it does not block `release`.
 
 Step 1.4: DETECT HIDDEN BUG FIXES
-Record: Not disguised. It is an explicit spec/isolation check. The extra
-`rxe_mw_pd()` helper use is equivalent to `to_rpd(mw->ibmw.pd)` and is
-not a hidden refactor.
+Record: Not disguised. Explicit UAF fix with a crash stack. The ODP
+`kfree` → `kref_put` change is part of making the hold/put pairing
+correct on the error path.
 
 ===============================================================
 PHASE 2: DIFF ANALYSIS - LINE BY LINE
@@ -125,71 +181,85 @@ PHASE 2: DIFF ANALYSIS - LINE BY LINE
 
 Step 2.1: INVENTORY THE CHANGES
 Record:
-- File: `drivers/infiniband/sw/rxe/rxe_mw.c` — **+12 / -8** (net +4)
-- Function: `rxe_check_bind_mw()`
-- Scope: **single-file surgical fix**
+- `net/rds/rdma.c`: +13 / −1 (functional)
+- `net/rds/rds.h`: +4 / −1 (comment on `r_sock`)
+- **Functions:** `__rds_put_mr_final()`, `__rds_rdma_map()`,
+  `rds_cmsg_rdma_args()`
+- **Scope:** single-subsystem, surgical (~17 lines)
 
 Step 2.2: UNDERSTAND THE CODE FLOW CHANGE
 Record:
-- **Hunk 1 (type 2 block):** Before, C10-72 `qp->pd !=
-  to_rpd(mw->ibmw.pd)` ran only for `IB_MW_TYPE_2`. After, that check is
-  removed from the type-2-only block.
-- **Hunk 2 (common path):** After type-1/type-2 state checks, **all**
-  binds check `qp->pd != rxe_mw_pd(mw)` and fail with `-EINVAL`.
-- **Hunk 3 (when MR present):** Before, a non-NULL MR skipped any PD
-  comparison. After, `qp->pd != mr_pd(mr)` rejects a cross-PD MR. Zero-
-  length/NULL-MR unbind still returns 0 after the QP/MW PD check.
-- Path affected: BIND_MW work-request validation (`rxe_bind_mw` →
-  `rxe_check_bind_mw`). Failures still become `IB_WC_MW_BIND_ERR` in
-  `rxe_do_local_ops()`.
+- **`__rds_put_mr_final`:** after `rds_destroy_mr(mr)`, add
+  `sock_put(rds_rs_to_sk(mr->r_sock))` before `kfree(mr)`.
+- **`__rds_rdma_map`:** after `mr->r_sock = rs`, add `sock_hold()`. This
+  tree already `kref_put`s `mr` on every `out:` path (success and
+  error), so the hold is paired.
+- **ODP path in `rds_cmsg_rdma_args`:** `sock_hold()` next to
+  `kref_init()`. On `get_mr()` failure, clear `r_trans_private` (it is
+  an `ERR_PTR`) and `kref_put(..., __rds_put_mr_final)` instead of a
+  bare `kfree`, so `free_mr()` is not called with an error pointer and
+  the socket ref is dropped.
 
 Step 2.3: IDENTIFY THE BUG MECHANISM
-Record: **Logic / correctness + isolation (memory safety via missing PD
-check).**
-- Broken: `rxe_bind_mw()` looks up MW/MR by key in **device-global**
-  pools (`rxe_pool_get_index`), then `rxe_do_bind_mw()` attaches `mw->mr
-  = mr`. Remote access in `rxe_resp.c` uses `mw->mr` after
-  `rxe_lookup_mw()`, which checks MW PD vs QP PD but **not** the bound
-  MR’s PD. `lookup_mr()` does check `mr_pd(mr) != pd`, so the bind path
-  was the hole around that check.
-- Fix: enforce QP==MW PD for every MW type, and QP==MR PD whenever an MR
-  is bound.
+Record:
+- **Category:** use-after-free / missing reference count
+- **Mechanism:** MR outlives socket; destructor uses `rs->rs_rdma_lock`.
+  Fix is one `sock_hold` per kref-managed MR, one `sock_put` on final
+  kref.
 
 Step 2.4: ASSESS THE FIX QUALITY
-Record: **Obviously correct and minimal.** Same `-EINVAL` /
-`IB_WC_MW_BIND_ERR` policy as existing bind failures. Regression risk is
-**low**: only previously illegal cross-PD binds start failing.
-`rxe_mw_pd()` / `mr_pd()` already existed on the parent.
+Record:
+- Obviously correct: classic missing get/put; both alloc sites covered
+  (only two `kref_init` of `rds_mr` in `net/rds/`).
+- `__rds_rdma_map` already uses `kref_put` on `out:`; ODP error path is
+  converted to the same destructor.
+- Regression risk is low. `sock_put` from the send tasklet is already
+  done in `rds_message_purge()` for `rm->m_rs`. `rds_sock_destruct()` is
+  only a `WARN_ON` on an empty list.
+- No API or data-structure layout change beyond a comment.
 
 ===============================================================
 PHASE 3: GIT HISTORY INVESTIGATION
 ===============================================================
 
 Step 3.1: BLAME THE CHANGED LINES
-Record: Incomplete C10-72 check came from **`32a577b4c3a9d` (2021-06-07)
-“RDMA/rxe: Add support for bind MW work requests”**. Ancestor of
-**v5.14** (`git merge-base --is-ancestor` vs v5.13 failed, vs v5.14
-succeeded). Bug is long-standing.
+Record:
+- `mr->r_sock = rs` and `rds_destroy_mr()` using that pointer:
+  `eff5f53bef75` (“RDS: RDMA support”), 2009-02-26. Present in 5.10.
+- `__rds_put_mr_final` / `kref_init`: `e228a5d05e9ee` (2020-04-09), in
+  this tree.
+- ODP alloc in `rds_cmsg_rdma_args`: `2eafa1746f178` (2020-01-18), in
+  this tree.
 
 Step 3.2: FOLLOW THE FIXES: TAG
-Record: **No Fixes: tag.** Buggy commit identified by history as
-`32a577b4c3a9d`. That commit **is** an ancestor of this HEAD.
+Record: No `Fixes:` on the git commit. Mailing-list tag `eff5f53bef75`
+**is** an ancestor of HEAD (`git merge-base --is-ancestor` exit 0).
+Merged mainline SHA `9079adef042c` is **not** an ancestor of this tree
+(exit 1). No later sock-hold-on-MR commit exists in this tree.
 
 Step 3.3: CHECK FILE HISTORY FOR RELATED CHANGES
-Record: Recent `rxe_mw.c` work includes access-flag and error-path bind
-fixes (`425e1c9018fdf`, `5c719d7aef298`). Those do not replace this PD
-check. **Standalone**, not `patch X/Y`. No later commits on `rxe_mw.c`
-after this one on HEAD.
+Record:
+- `91a44b406bc1f` (“net: rds: fix MR cleanup on copy error”) is already
+  here; it only stops double-free of pages/sg on `put_user` failure. It
+  does not hold the socket.
+- `2fabef4f65b46` (“Fix MR reference counting problem”) is about
+  `rds_free_mr()` bypassing kref, not socket lifetime.
+- This patch is standalone vs those.
 
 Step 3.4: CHECK THE AUTHOR'S OTHER COMMITS
-Record: Zhiwei Zhang has **only this** rxe commit in this history.
-Reviewer Zhu Yanjun and applier Leon Romanovsky are established RDMA
-reviewers/maintainers.
+Record: Håkon Bugge has multiple RDS commits in this history. Allison
+Henderson is the RDS maintainer and ported the UEK fix. The original
+crash was seen in Oracle production.
 
 Step 3.5: CHECK FOR DEPENDENT/PREREQUISITE COMMITS
-Record: Parent already has `rxe_mw_pd()` and `mr_pd()` in `rxe_verbs.h`
-(`cdd0b85675aec` 2021, `1858d98b83940` 2020). **Applies standalone**
-against this tree’s rxe MW code.
+Record: Submitted as **v4 2/4**. Siblings:
+1. `d100966325f7` — don’t `unpin_user_pages_dirty_lock()` from atomic
+   context
+3. message leak in `rds_send_xmit()` drop path
+4. unpin MR pages with `unpin_user_pages_dirty_lock()`
+Those are separate bugs. This diff only needs `sock_hold`/`sock_put`,
+`kref_put`, and `__rds_put_mr_final`, all present here. **Can apply
+standalone.**
 
 ===============================================================
 PHASE 4: MAILING LIST AND EXTERNAL RESEARCH
@@ -197,124 +267,132 @@ PHASE 4: MAILING LIST AND EXTERNAL RESEARCH
 
 Step 4.1: FIND THE ORIGINAL PATCH DISCUSSION
 Record:
-- **v1:** https://patch.msgid.link/tencent_88CB6CA0A60CDD53B24EA5E3A865E
-  6FF5A0A@qq.com (2026-06-25)
-- **v2 (applied):** https://patch.msgid.link/tencent_FD4FB25AA4FFA845E63
-  F5AC36CF4A46CDC0A@qq.com (2026-06-26)
-- v1→v2: Zhu asked only that the MR-mismatch dbg string say `"attempt to
-  bind MW/QP to MR with different PD"` because QP/MW PD is already
-  checked. No NAK. v2 applied as-is.
-- Leon: “Applied, thanks!” → rdma git `f58ea84a3584d1`
+- `b4 dig -c 9079adef042c`: v4 2/4,
+  https://patch.msgid.link/20260730041629.3512480-3-achender@kernel.org
+- Revisions: v1 (2026-07-10), v2, v3 (ODP hold after successful
+  `get_mr`), v4 (hold next to `kref_init`, error path via
+  `__rds_put_mr_final`) — applied version is v4.
+- Cover letter: explicit UAF of the RDS socket through long-lived MR
+  refs; UEK port https://github.com/oracle/linux-uek/commit/94549e4732d8
+- No NAK found on this patch. Jakub applied the series to net-next on
+  2026-08-04 (`9079adef042c`).
+- v4 changelog: ODP ref moved next to `kref_init` so both alloc sites
+  share one ownership rule.
 
 Step 4.2: CHECK WHO REVIEWED THE PATCH
-Record: Recipients included **Leon Romanovsky**, **Jason Gunthorpe**,
-**Zhu Yanjun**, `linux-rdma@vger.kernel.org`. Maintainer-reviewed.
+Record (`b4 dig -w`): netdev, linux-rdma, Paolo Abeni, Eric Dumazet,
+Jakub Kicinski, Simon Horman, John Hubbard, Leon Romanovsky. Applied by
+the net maintainer. No NAK located.
 
 Step 4.3: SEARCH FOR THE BUG REPORT
-Record: No bugzilla/syzbot/user **Reported-by**. Issue is spec analysis
-(C10-72), not a crash report.
+Record: No syzbot/bugzilla link. Evidence is the UEK oops in the commit
+message, matching this tree’s call chain (`rds_ib_tasklet_fn_send` →
+`rds_ib_send_cqe_handler` → `rds_message_put` → `rds_message_purge` →
+`__rds_put_mr_final`).
 
 Step 4.4: CHECK FOR RELATED PATCHES AND SERIES
-Record: Single-patch series. v2 is the committed version.
+Record: 4 independent RDS bug-fix ports. This one does not need 1/3/4.
 
 Step 4.5: CHECK STABLE MAILING LIST HISTORY
-Record: **UNVERIFIED.** lore.kernel.org/stable returned Anubis bot-check
-(403/challenge). No evidence in the linux-rdma mbox of a stable
-nomination or of a reason to withhold it.
+Record: **UNVERIFIED** — `lore.kernel.org/stable` fetch returned 403. No
+local evidence this was rejected for 5.10.
 
 ===============================================================
 PHASE 5: CODE SEMANTIC ANALYSIS
 ===============================================================
 
 Step 5.1: IDENTIFY KEY FUNCTIONS IN THE DIFF
-Record: `rxe_check_bind_mw()` only. Callers/callees: `rxe_bind_mw()`,
-`rxe_do_bind_mw()`, `rxe_do_local_ops()`, `rxe_lookup_mw()`.
+Record: `__rds_put_mr_final`, `__rds_rdma_map`, `rds_cmsg_rdma_args`
+(plus `rds_destroy_mr` as callee).
 
 Step 5.2: TRACE CALLERS
 Record:
-- `rxe_bind_mw()` ← `rxe_do_local_ops()` on `IB_WR_BIND_MW`
-  (`rxe_req.c`)
-- Userspace QPs: `rxe_post_send()` only schedules `send_task`; WQEs
-  (including `mw_rkey`/`mr_lkey` in `include/uapi/rdma/rdma_user_rxe.h`)
-  are written by userspace into the SQ. **Unprivileged RDMA userspace
-  can post BIND_MW with arbitrary keys.**
+- `__rds_put_mr_final`: `kref_put` from `rds_rdma_drop_keys`,
+  `rds_free_mr`, `rds_rdma_unuse`, `rds_rdma_free_op` (ODP),
+  `rds_message_purge` (`op_rdma_mr` / atomic MR), and `__rds_rdma_map`
+  `out:`.
+- `__rds_rdma_map`: `rds_get_mr`, `rds_get_mr_for_dest`,
+  `rds_cmsg_rdma_map` (sendmsg cmsg). Userspace RDMA registration.
+- `rds_cmsg_rdma_args`: `rds_sendmsg` path for `RDS_CMSG_RDMA_ARGS`.
 
 Step 5.3: TRACE CALLEES
-Record: Debug prints and PD helpers only. No alloc/lock changes. Bind
-still runs under `spin_lock_bh(&mw->lock)`.
+Record: `rds_destroy_mr` → `spin_lock_irqsave(&rs->rs_rdma_lock)` (the
+UAF); `free_mr()`; `sock_hold`/`sock_put`.
 
 Step 5.4: FOLLOW THE CALL CHAIN
-Record: userspace BIND_MW → requester local op → `rxe_bind_mw` (global
-pool lookup by key) → `rxe_do_bind_mw` (`mw->mr = mr`) → later RDMA to
-MW rkey in `rxe_resp.c` uses `mw->mr` **without** `lookup_mr()`’s PD
-check. **Userspace-reachable isolation hole.**
+Record: Userspace maps an MR or sends RDMA, then closes the socket while
+a send is in flight. Completions run in `rds_ib_tasklet_fn_send`
+(softirq). Reachable from AF_RDS sockets with `CONFIG_RDS` +
+`CONFIG_RDS_RDMA` (InfiniBand). Typical Oracle RAC / IB RDS workload.
 
 Step 5.5: SEARCH FOR SIMILAR PATTERNS
-Record: `lookup_mr()` already requires `mr_pd(mr) == pd`.
-`rxe_lookup_mw()` already requires `rxe_mw_pd(mw) == pd`. Bind was the
-inconsistent path. No sibling rxe function needs the same change.
+Record: Only two `kref_init` sites for `struct rds_mr`. Both patched.
+`rds_cmsg_rdma_dest` only `kref_get`s an existing tree MR.
 
 ===============================================================
 PHASE 6: CROSS-REFERENCING AGAINST THE LOCAL TREE
 ===============================================================
 
 Step 6.1: DOES THE BUGGY CODE EXIST IN THIS TREE?
-Record: **Yes, in this 7.3 line.** `git describe HEAD` =
-`v7.3-rc4-27-gf0100363d8c37`; `make kernelversion` = `7.3.0-rc4`. MW
-bind exists since v5.14. Pre-fix `rxe_check_bind_mw` (parent of
-`fbbe1d5cd7d40`) had type-2-only QP/MW PD check and no MR PD check. This
-commit is an ancestor of HEAD (landed by v7.3-rc1; not in v7.2).
-Evaluating **this** checkout, the rxe MW bind code is present and the
-fix matches the local file (no later `rxe_mw.c` deltas).
+Record: **Yes.**
+- Tree: `pending-5.10`, `5.10.270` (`p-5.10-1-gce56b7a73b64b`)
+- `net/rds/rdma.c`: `mr->r_sock = rs` with no `sock_hold` (lines 243–246
+  and 735–738)
+- `__rds_put_mr_final` has no `sock_put` (115–121)
+- `rds_release()` still does `rds_rdma_drop_keys()` then `sock_put(sk)`
+  (`af_rds.c`)
+- Introduced 2009; ODP path 2020. Both in 5.10.
 
 Step 6.2: CHECK FOR BACKPORT COMPLICATIONS
-Record: **Clean apply** on this tree. Helpers and function layout match.
-`git diff fbbe1d5 HEAD -- drivers/infiniband/sw/rxe/rxe_mw.c` is empty.
+Record: **Minor context only.** Mainline uses `kzalloc_obj` /
+`kzalloc_objs`; this tree uses `kzalloc` / `kcalloc`. The hold/put lines
+sit on identical `kref_init` / `mr->r_sock` / ODP `get_mr` error code.
+Local ODP error uses `ret = IS_ERR(...)` then overwrites with
+`-EOPNOTSUPP`; the patch uses `PTR_ERR` then the same overwrite.
+Semantic apply is straightforward.
 
 Step 6.3: CHECK IF RELATED FIXES ARE ALREADY HERE
-Record: Access-check and error-path bind fixes are already here; they do
-**not** implement C10-72 for type 1 or MR PD. No alternate PD-bind fix.
+Record: No socket-hold-on-MR fix. `91a44b406bc1f` is a different MR
+cleanup bug.
 
 ===============================================================
 PHASE 7: SUBSYSTEM AND MAINTAINER CONTEXT
 ===============================================================
 
 Step 7.1: IDENTIFY THE SUBSYSTEM AND ITS CRITICALITY
-Record: **RDMA software RoCE (`drivers/infiniband/sw/rxe`)**,
-`CONFIG_RDMA_RXE`. **IMPORTANT** (not core mm/VFS): Soft-RoCE is a real
-verbs provider; PD is the IB isolation primitive. Not staging.
+Record: **net/rds** — IMPORTANT, not core. RDS over IB is production for
+Oracle RAC and similar clusters. UAF is still a kernel oops for those
+users.
 
 Step 7.2: ASSESS SUBSYSTEM ACTIVITY
-Record: Mature. MW bind from 2021; ongoing small correctness fixes. Not
-a brand-new subsystem on this branch.
+Record: Mature (2009). Occasional stable fixes in this tree
+(`91a44b406bc1f` in 2026). Not a new subsystem.
 
 ===============================================================
 PHASE 8: IMPACT AND RISK ASSESSMENT
 ===============================================================
 
 Step 8.1: DETERMINE WHO IS AFFECTED
-Record: **Config/driver-specific:** users of Soft-RoCE
-(`CONFIG_RDMA_RXE`) who use memory windows. Multi-PD or multi-process
-sharing one rxe device is the interesting case.
+Record: **config/driver-specific:** `CONFIG_RDS` + RDMA
+(`CONFIG_RDS_RDMA`). Not all 5.10 boxes, but all RDS/IB RDMA users who
+close a socket with in-flight MRs.
 
 Step 8.2: DETERMINE THE TRIGGER CONDITIONS
-Record: Post `IB_WR_BIND_MW` with MW/MR keys from another PD. Userspace
-can do that; keys are `index << 8 | u8` (`rxe_get_next_key()`). Trigger
-is **intentional/malicious or buggy app**, not every bind. Unprivileged
-verbs users **can** trigger it.
+Record: Map MR or send RDMA, close socket before CQ completion. Timing-
+dependent but realistic (UEK crash). Needs an RDS socket; typical RDS
+users are cluster services.
 
 Step 8.3: DETERMINE THE FAILURE MODE SEVERITY
-Record: **Not a crash.** Invalid bind **succeeds**, then RDMA through
-the MW rkey can touch another PD’s registered memory. **Severity: HIGH**
-(isolation/security), not panic/deadlock.
+Record: **Use-after-free → oops on spinlock of freed `rds_sock`.**
+Severity **CRITICAL/HIGH**. Same class as KASAN UAF; crash stack is
+real.
 
 Step 8.4: CALCULATE RISK-BENEFIT RATIO
 Record:
-- **Benefit: high** for rxe MW users — closes a PD bypass around
-  `lookup_mr()`.
-- **Risk: very low** — ~12 lines, validation-only, same error code, no
-  API/lock/structure change.
-- **Ratio:** favor applying.
+- **Benefit:** high for RDS/IB — prevents a known UAF oops.
+- **Risk:** low — ~17 lines, standard `sock_hold`/`sock_put`, both alloc
+  sites, error path unified.
+- **Ratio:** strongly favors backport.
 
 ===============================================================
 PHASE 9: FINAL SYNTHESIS
@@ -322,132 +400,159 @@ PHASE 9: FINAL SYNTHESIS
 
 Step 9.1: COMPILE THE EVIDENCE
 **FOR:**
-- Real IBTA C10-72 hole, not style
-- Userspace-reachable via mapped SQ BIND_MW + global key lookup
-- After bind, `mw->mr` is used without MR PD check → isolation bypass
-- Tiny, obviously correct; maintainer applied; one-line v2 log tweak
-  only
-- Helpers already in this tree; applies cleanly
-- Bug since v5.14 MW bind support
+- Real UAF with production oops (Oracle UEK).
+- Same call path exists in this 5.10 tree.
+- Bug dates to 2009 RDMA support; ODP path also here.
+- Small, obviously correct refcount fix; v4 review then net-maintainer
+  merge.
+- Standalone vs the rest of the series.
+- `__rds_rdma_map` already drops the MR via `kref_put` on all exits, so
+  the new hold is balanced.
 
 **AGAINST:**
-- No crash/syzbot/CVE/user report
-- rxe is not mlx5-class hardware; fewer production hosts
-- Could be framed as spec hardening
+- RDS/IB is not universal.
+- Patch was 2/4 of a series (siblings are independent).
+- Minor `kzalloc_obj` vs `kzalloc` context when applying.
 
 **UNRESOLVED:**
-- Whether stable@ already discussed this (lore/stable blocked)
-- No public reproducer beyond code-path analysis (verified in-tree)
+- Stable-list discussion (lore 403).
+- No public syzbot repro (crash is still documented).
 
 Step 9.2: APPLY THE STABLE RULES CHECKLIST
-1. Obviously correct and tested? **PASS** — reviewed, v2 applied by
-   Leon; logic matches existing checks
-2. Fixes a real bug that affects users? **PASS** — invalid binds
-   succeed; PD isolation not enforced on bind
-3. Important (crash/security/corruption/deadlock)? **PASS** — PD bypass
-   / unauthorized MR attach; HIGH isolation, not a panic
-4. Small and contained? **PASS** — one function, +12/-8
-5. No new features or APIs? **PASS**
-6. Can apply to the local tree? **PASS** — file and helpers match; no
-   rewrite needed
+1. Obviously correct and tested? **PASS** — hold at `kref_init`, put in
+   finalizer; merged to net-next; UEK precedent.
+2. Fixes a real bug that affects users? **PASS** — production oops.
+3. Important issue? **PASS** — UAF / kernel oops, HIGH/CRITICAL.
+4. Small and contained? **PASS** — 2 files, ~17 lines.
+5. No new features or APIs? **PASS**.
+6. Can apply to the local tree? **PASS** — buggy code present; minor
+   context only.
 
 Step 9.3: CHECK FOR EXCEPTION CATEGORIES
-Record: None (not a device ID, quirk, DT, build, or docs-only change).
-Qualifies as a normal bugfix.
+Record: Not a device-ID/quirk/DT/build/docs exception. Ordinary memory-
+safety fix.
 
 Step 9.4: MAKE YOUR DECISION
-This should be in this tree: it closes a long-standing Soft-RoCE bind
-isolation gap with a few lines of PD checks, no API change, and
-negligible regression risk. Missing crash reports does not make a
-skipped PD check “theoretical” when userspace supplies the keys and the
-data path then uses `mw->mr`.
+This 5.10 tree has the bare `r_sock` pointer, the CQ/tasklet free path,
+and no socket hold on MRs. The fix is the missing refcount. It should be
+backported.
+
+===============================================================
+What this solves for stable users
+===============================================================
+Closing an RDS socket while an RDMA MR is still referenced by an in-
+flight send can free `rds_sock` before `__rds_put_mr_final` →
+`rds_destroy_mr` takes `rs->rs_rdma_lock`. That is an oops. Holding the
+socket until the last MR kref drops keeps the lock valid;
+`rds_rdma_drop_keys()` in `rds_release()` still breaks the tree↔socket
+cycle.
+
+Risk vs benefit: high benefit for RDS/IB, low regression risk.
+`sock_put` from this tasklet is already used for `rm->m_rs`. Backport
+may need trivial context adjustment (`kzalloc` vs `kzalloc_obj`); no
+missing helpers or types.
 
 Verification:
-- [Phase 1] Tags: Reviewed-by Zhu Yanjun; SOB Zhiwei Zhang; Link msgid;
-  SOB Leon; no Fixes/Reported-by/syzbot
-- [Phase 1] Body: C10-72 QP/MW/MR same PD; type-2-only check;
-  `IB_WC_MW_BIND_ERR`
-- [Phase 2] Diff: `rxe_check_bind_mw` +12/-8; common QP/MW PD check; new
-  QP vs `mr_pd(mr)`
-- [Phase 2] Parent code: C10-72 only under `IB_MW_TYPE_2`; no MR PD
-  check
-- [Phase 2] `rxe_do_local_ops`: bind failure → `IB_WC_MW_BIND_ERR`
-  (verified `rxe_req.c`)
-- [Phase 3] `git describe HEAD` / `make kernelversion`: v7.3-rc4 /
-  7.3.0-rc4
-- [Phase 3] `git merge-base --is-ancestor fbbe1d5 HEAD` → yes; vs v7.2 →
-  no; vs v7.3-rc1 → yes
-- [Phase 3] Buggy intro `32a577b4c3a9d` is ancestor of v5.14, not v5.13
-- [Phase 3] Parent has `rxe_mw_pd` / `mr_pd` in `rxe_verbs.h`
-- [Phase 3] Author: only this rxe commit; not a series
-- [Phase 4] `b4 dig -c fbbe1d5`: v2 msgid tencent_FD4FB25…; v1
-  tencent_88CB6CA0…
-- [Phase 4] v1 review: Zhu requested dbg string only; Reviewed-by; no
-  NAK
-- [Phase 4] Leon applied to rdma tree; no stable nomination in that mbox
-- [Phase 4] lore.kernel.org WebFetch 403; stable/? search hit Anubis —
-  UNVERIFIED on stable@
-- [Phase 5] Call chain: user SQ BIND_MW → `rxe_bind_mw` global pool
-  lookup → `mw->mr` → `rxe_resp.c` uses `mw->mr` without `lookup_mr()`
-  PD check
-- [Phase 5] `lookup_mr()` already has `mr_pd(mr) != pd` (verified
-  `rxe_mr.c:713-716`)
-- [Phase 5] Userspace WQE fields `mr_lkey`/`mw_rkey` in
-  `rdma_user_rxe.h`; `rxe_post_send` does not copy/validate them for
-  user QPs
-- [Phase 6] `git diff fbbe1d5 HEAD -- rxe_mw.c` empty; clean on this
-  tree
-- [Phase 8] Keys: `index << 8 | rxe_get_next_key()` (8-bit key);
-  isolation severity HIGH
-- UNVERIFIED: stable@ history; no in-tree test/reproducer for cross-PD
-  bind
+- [Phase 1] Tags: Link msgid `20260730041629.3512480-3`; SOB Bugge /
+  Henderson / Kicinski; no Fixes in git; ML had `Fixes: eff5f53bef75`
+- [Phase 2] Diff: `sock_put` in `__rds_put_mr_final`; `sock_hold` in
+  `__rds_rdma_map` and ODP alloc; ODP error `kfree` → `kref_put` after
+  NULL-out of `ERR_PTR`
+- [Phase 2] Local `__rds_rdma_map` `out:` already `kref_put`s if `mr`
+  non-NULL (`rdma.c` 348–351)
+- [Phase 3] `git blame`: `r_sock` / `rds_destroy_mr` from `eff5f53bef75`
+  (2009); kref from `e228a5d05e9ee` (2020)
+- [Phase 3] `git merge-base --is-ancestor eff5f53bef75c0 HEAD` → 0;
+  `2eafa1746f178` → 0; `9079adef042c` → 1 (not in this tree)
+- [Phase 3] `git describe HEAD` / `make kernelversion`: pending-5.10,
+  5.10.270
+- [Phase 3] Only two `kref_init(&...r_kref)` sites in `net/rds/`
+- [Phase 4] `b4 dig -c 9079adef042c`: v4 2/4; recipients
+  netdev/rdma/Kicinski/Dumazet/Abeni/Horman
+- [Phase 4] `b4 dig -a`: v1→v4; v4 unifies ODP error path
+- [Phase 4] Cover letter: UEK UAF port; applied as `9079adef042c`
+- [Phase 4] UNVERIFIED: stable@ thread (403)
+- [Phase 5] Call chain confirmed: `rds_ib_tasklet_fn_send` →
+  `rds_ib_send_cqe_handler` → `rds_message_put` → `rds_message_purge` →
+  `__rds_put_mr_final`
+- [Phase 5] `rds_release` calls `rds_rdma_drop_keys` then `sock_put`
+  (`af_rds.c` 78, 89)
+- [Phase 6] Local `rdma.c` has no `sock_hold`/`sock_put`; comment still
+  says “back pointer”
+- [Phase 8] Failure mode: UAF oops on `rs_rdma_lock`, HIGH/CRITICAL
+- UNVERIFIED: whether an unprivileged process can open AF_RDS on a given
+  distro; crash still confirmed for RDS/IB users
 
 **YES**
 
- drivers/infiniband/sw/rxe/rxe_mw.c | 20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ net/rds/rdma.c | 14 +++++++++++++-
+ net/rds/rds.h  |  5 ++++-
+ 2 files changed, 17 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_mw.c b/drivers/infiniband/sw/rxe/rxe_mw.c
-index 379e65bfcd49a..bddb7a2578313 100644
---- a/drivers/infiniband/sw/rxe/rxe_mw.c
-+++ b/drivers/infiniband/sw/rxe/rxe_mw.c
-@@ -72,13 +72,6 @@ static int rxe_check_bind_mw(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
- 			return -EINVAL;
- 		}
+diff --git a/net/rds/rdma.c b/net/rds/rdma.c
+index 37695056756be..062c12d9318e9 100644
+--- a/net/rds/rdma.c
++++ b/net/rds/rdma.c
+@@ -117,6 +117,7 @@ void __rds_put_mr_final(struct kref *kref)
+ 	struct rds_mr *mr = container_of(kref, struct rds_mr, r_kref);
  
--		/* C10-72 */
--		if (unlikely(qp->pd != to_rpd(mw->ibmw.pd))) {
--			rxe_dbg_mw(mw,
--				"attempt to bind type 2 MW with qp with different PD\n");
--			return -EINVAL;
--		}
--
- 		/* o10-37.2.40 */
- 		if (unlikely(!mr || wqe->wr.wr.mw.length == 0)) {
- 			rxe_dbg_mw(mw,
-@@ -87,10 +80,21 @@ static int rxe_check_bind_mw(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
- 		}
- 	}
+ 	rds_destroy_mr(mr);
++	sock_put(rds_rs_to_sk(mr->r_sock));
+ 	kfree(mr);
+ }
  
--	/* remaining checks only apply to a nonzero MR */
-+	/* C10-72 */
-+	if (unlikely(qp->pd != rxe_mw_pd(mw))) {
-+		rxe_dbg_mw(mw, "attempt to bind MW with qp with different PD\n");
-+		return -EINVAL;
-+	}
-+
- 	if (!mr)
- 		return 0;
+@@ -243,7 +244,11 @@ static int __rds_rdma_map(struct rds_sock *rs, struct rds_get_mr_args *args,
+ 	kref_init(&mr->r_kref);
+ 	RB_CLEAR_NODE(&mr->r_rb_node);
+ 	mr->r_trans = rs->rs_transport;
++	/* The MR can outlive its socket: a socket reference is held
++	 * until the final kref is dropped in __rds_put_mr_final().
++	 */
+ 	mr->r_sock = rs;
++	sock_hold(rds_rs_to_sk(rs));
  
-+	/* remaining checks only apply to a nonzero MR */
-+	if (unlikely(qp->pd != mr_pd(mr))) {
-+		rxe_dbg_mw(mw, "attempt to bind MW/QP to MR with different PD\n");
-+		return -EINVAL;
-+	}
-+
- 	if (unlikely(mr->access & IB_ZERO_BASED)) {
- 		rxe_dbg_mw(mw, "attempt to bind MW to zero based MR\n");
- 		return -EINVAL;
+ 	if (args->flags & RDS_RDMA_USE_ONCE)
+ 		mr->r_use_once = 1;
+@@ -762,7 +767,12 @@ int rds_cmsg_rdma_args(struct rds_sock *rs, struct rds_message *rm,
+ 			RB_CLEAR_NODE(&local_odp_mr->r_rb_node);
+ 			kref_init(&local_odp_mr->r_kref);
+ 			local_odp_mr->r_trans = rs->rs_transport;
++			/* The MR can outlive its socket: a socket
++			 * reference is held until the final kref is
++			 * dropped in __rds_put_mr_final().
++			 */
+ 			local_odp_mr->r_sock = rs;
++			sock_hold(rds_rs_to_sk(rs));
+ 			local_odp_mr->r_trans_private =
+ 				rs->rs_transport->get_mr(
+ 					NULL, 0, rs, &local_odp_mr->r_key, NULL,
+@@ -771,7 +781,9 @@ int rds_cmsg_rdma_args(struct rds_sock *rs, struct rds_message *rm,
+ 				ret = PTR_ERR(local_odp_mr->r_trans_private);
+ 				rdsdebug("get_mr ret %d %p\"", ret,
+ 					 local_odp_mr->r_trans_private);
+-				kfree(local_odp_mr);
++				local_odp_mr->r_trans_private = NULL;
++				kref_put(&local_odp_mr->r_kref,
++					 __rds_put_mr_final);
+ 				ret = -EOPNOTSUPP;
+ 				goto out_pages;
+ 			}
+diff --git a/net/rds/rds.h b/net/rds/rds.h
+index a4816da162930..dcbc4610735d5 100644
+--- a/net/rds/rds.h
++++ b/net/rds/rds.h
+@@ -299,7 +299,10 @@ struct rds_mr {
+ 	unsigned int		r_invalidate:1;
+ 	unsigned int		r_write:1;
+ 
+-	struct rds_sock		*r_sock; /* back pointer to the socket that owns us */
++	struct rds_sock		*r_sock; /* socket that owns us; counted
++					  * reference, dropped by
++					  * __rds_put_mr_final()
++					  */
+ 	struct rds_transport	*r_trans;
+ 	void			*r_trans_private;
+ };
 -- 
 2.53.0
 
