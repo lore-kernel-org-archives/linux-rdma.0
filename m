@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AF2139B48D;
-	Mon, 19 Oct 2026 12:14:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF9F64E8E14;
+	Mon, 19 Oct 2026 12:14:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792412086; cv=none; b=MXKSkuwrfNo+wz3oirvpxYsGqaDZ9wmYI2ZVPgkRjpE0MCZovlhKEOG9oaSyiMId33Ik3XS9s5T0poWwERPGJfp5rxReDlsOxD33CiIDGHQ/fovOBS1lWeN5Vm+BnuhQsvmtMz58wL2NWRFzRWa6KrmsdnYBM0Rk5Ok5UcpXZeo=
+	t=1792412088; cv=none; b=q0JVyJUMvniEIF6XZBZcG4LgOL+vMt5VOV/j05PenF2jtfc1Wiv+hOlETD4uCOjdB+4bi5ldjU3DTud8BapB/hRjmueJGn/WsXLmRBq/3zxcUYeDbHSBxyfHwmvx97OqGAsobY4VAtCzY44++uHAuf4wiZnllLlRLOeyP8sWJBM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792412086; c=relaxed/simple;
-	bh=Bh72GdJy53aQCViXarW7NDjGQCbaprPPJWXKTIogq3w=;
+	s=arc-20240116; t=1792412088; c=relaxed/simple;
+	bh=BSwWM6nk7DbWd35aVGGbKQmA1GKDsr2fA5SkIsFb+HE=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=PZZnIzNQUSuJwlD8GDrBQ6g5YM7nkm/VdUwg1lHIa7wkfQfajjcMAR5hrF2VG0O18zPDEJBSd/5ji/JgOsO2VAgNm+GXJjY1sD7S2Um1JpbJUnJF4US8mZm3YY82dg+sNr6pcspHgPomQ3rfLAH33OEF+zFF6pFrOg2J/DIMKYE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AMKsmmrv; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=koXwNxM1tRnHfgE8VeYHtmFtWlWAllr8tJ+1IVXl4JyhkESR0xIvRLAnNl6OpiXTTqdzLy0j9LQhcb2lIcBpPW1Oa8iobWodCKrXSyFbFstPbrPA5XrTkcsGWG8RH5/iqdFc6EDKCsixdM/r9I+B9/kAqeEERFbOTDBFmBiW3SM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hox1yaR0; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AMKsmmrv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E505A1F000C4;
-	Mon, 19 Oct 2026 12:14:43 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hox1yaR0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A8AF1F000C5;
+	Mon, 19 Oct 2026 12:14:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792412084;
-	bh=xnQC9XucQfW5esGo46rmdChyfPts6Hpx8bW+w3bC1hs=;
+	s=k20260515; t=1792412086;
+	bh=euTmnjJJH55Slsz5ix2BxC7yGtPMw6Gg6ky+Uj/HNiw=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=AMKsmmrvzbNzg/g9VIIWuxq13N5MbAtm0tL2lgd/ypop7qpa5eCklTVtSYx36q+4v
-	 dRFEFubrbZ9iRZ1z2oVFxPIiNBVLIXEMX7XfJtfbQ0o9A71e4s/aU3p6/VvdYANY9I
-	 90ewplrgQKBk7JHNlsAufkMnUIKtrM282Ok4RKVKKavu1HGusF9BjaadU5i5IfOThF
-	 HJLj+68E8QDhI5ST4+g2HtUSyjE0DbxTo9V4WPgddxG4S0nGRsr/frWoHrG1bciz9N
-	 ZDwNZlt2HaMCIjRHFXD7ysdV7pz3PRz1Olf+CSbWOhnatyPsiLfikpItqzaYpQfxsa
-	 f2m1MnJUtGpUw==
-Subject: Re: [PATCH net v5 1/2] net/smc: order the CDC receive path against
- RMB publication
+	b=hox1yaR0J5Cj1OLYfJO/Tqm4WEXlRStY6vpfsuQPuXdTCbFEASbI8qSz1ISK7Dnly
+	 Knstx1yRS03wg5h9RNEfwPBRykNH9IVi2Mt9s/R7slxdoX2HMsTjN7PbwRYrx9bTkC
+	 xvp0+sVgkZrYa3bo1muDloN5C34R+PO1qbn9XIRo+bNJAoIO0/SyGHx2/c3/5vcT8x
+	 qM8lWiZL0pbX8uAgM6VGDlwYtGM+lb8ncwIDwGQWoJYZS7keZzFUSeBM8oehv3QBh8
+	 qFYGfXu0u3amqHkxVL80/mDKK97l/ondiU9BT4k4Q8Epxrne22lJ6hvd2hkYGFnYXn
+	 eEWtC8MiY1QeA==
+Subject: Re: [PATCH net v5 2/2] net/smc: skip the DMB nocopy accounting until
+ the send buffer is set
 From: netdev-bot+sashiko@kernel.org
 To: hexlabsecurity@proton.me
 Cc: kuba@kernel.org, dust.li@linux.alibaba.com, sidraya@linux.ibm.com,
@@ -37,11 +37,11 @@ Cc: kuba@kernel.org, dust.li@linux.alibaba.com, sidraya@linux.ibm.com,
  linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
  tonylu@linux.alibaba.com, linux-rdma@vger.kernel.org, guwen@linux.alibaba.com,
  linux-s390@vger.kernel.org
-Date: Mon, 19 Oct 2026 12:14:43 +0000
-Message-ID: <179241208347.3135.18021879529736748765@kernel.org>
-In-Reply-To: <20261015-b4-disp-2a8d85ef-v5-1-6b795e8263c9@proton.me>
-References: <20261015-b4-disp-2a8d85ef-v5-1-6b795e8263c9@proton.me>
-X-sashiko-severity: High
+Date: Mon, 19 Oct 2026 12:14:45 +0000
+Message-ID: <179241208501.3135.14193534440423847161@kernel.org>
+In-Reply-To: <20261015-b4-disp-2a8d85ef-v5-2-6b795e8263c9@proton.me>
+References: <20261015-b4-disp-2a8d85ef-v5-2-6b795e8263c9@proton.me>
+X-sashiko-severity: Critical
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -51,10 +51,10 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 1 potential
+Thank you for your contribution! Sashiko AI review found 2 potential
 issue(s) to consider.
 
-Critical: 0 · High: 1 (2) · Medium: 0 · Low: 0
+Critical: 1 · High: 1 · Medium: 0 · Low: 0
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -62,163 +62,162 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [High] The new `!smp_load_acquire(&conn->rmb_desc)` check in
-  smc_cdc_rx_handler() only tells NULL apart from non-NULL.
-
-Pre-existing issues:
-- [High] This problem wasn't introduced by this patch, but the teardown
-  ordering leaves the RMB reachable after release.
-- [High] This problem wasn't introduced by this patch, but the peer's
-  producer cursor is never bounds-checked before it indexes the RMB.
+- [Critical] The patch only skips the nocopy accounting while
+  conn->sndbuf_desc is NULL.
+- [High] A stale CDC from the old peer of a reused DMB that arrives
+  before attach used to oops whenever diff_cons != 0.
 
 --
 
-net/smc: order the CDC receive path against RMB publication
+net/smc: skip the DMB nocopy accounting until the send buffer is set
 
-This patch moves the conn->rmb_desc assignment in __smc_buf_create() after
-the other receive fields and makes it a release store. smc_cdc_rx_handler()
-now uses an acquire load and drops a CDC whose connection has no rmb_desc
-yet. The goal is to stop a CDC with a predicted token from reaching a NULL
-rmb_desc in softirq.
-
-Closes: https://sashiko.dev/#/patchset/20261008-b4-disp-f7cd3d96-v6-0-fba616c0920c@proton.me?part=1
+The patch changes smcd_buf_attach() so it publishes conn->sndbuf_desc with
+a release store after sndbuf_space has been set. smc_cdc_msg_recv_action()
+then skips the SMC-D DMB nocopy send buffer accounting while sndbuf_desc is
+still NULL. This avoids a NULL dereference when the old peer of a reused
+DMB signals the new connection before the attach.
 
 > diff --git a/net/smc/smc_cdc.c b/net/smc/smc_cdc.c
-> index 32d6d03df3214..7bf902ebd7ab6 100644
+> index 7bf902ebd7ab6..d6825f48f5688 100644
 > --- a/net/smc/smc_cdc.c
 > +++ b/net/smc/smc_cdc.c
-> @@ -483,7 +483,11 @@ static void smc_cdc_rx_handler(struct ib_wc *wc, void *buf)
->  	lgr = smc_get_lgr(link);
->  	read_lock_bh(&lgr->conns_lock);
->  	conn = smc_lgr_find_conn(ntohl(cdc->token), lgr);
-> -	if (!conn || conn->out_of_sync) {
-> +	/* The connection is in the token tree before __smc_buf_create()
-> +	 * sets its RMB: drop a CDC that comes earlier. rmb_desc is never
-> +	 * cleared, so the callees can load it plainly.
-> +	 */
-> +	if (!conn || conn->out_of_sync || !smp_load_acquire(&conn->rmb_desc)) {
-
-[Severity: High]
-Can a NULL check tell us that the current registration's RMB is ready?
-Nothing ever resets conn->rmb_desc to NULL. smc_buf_unuse() releases the
-RMB and leaves the pointer in place, and smc_conn_create() does not clear
-it either.
-
-On the SMC-R listen path, smc_listen_find_device() can try V2 and then
-fall back to V1 on the same conn:
-
-smc_find_rdma_v2_device_serv()
-  smc_listen_rdma_init()
-    smc_conn_create()        /* token registered */
-    smc_buf_create()         /* rmb_desc published */
-  smc_listen_rdma_reg()      /* fails */
-  smc_conn_abort()
-    smc_conn_free()
-      smc_buf_unuse()
-        smcr_buf_unuse()     /* frees or pools the RMB */
-
-smc_find_rdma_v1_device_serv()
-  smc_listen_rdma_init()
-    smc_conn_create()        /* new token, rmb_desc still stale */
-    smc_buf_create()
-
-smcr_buf_unuse() has two outcomes here. If smcr_link_reg_buf() set
-is_reg_err, it frees the descriptor through smc_buf_free(). If the peer
-failed CONFIRM_RKEY in smcr_lgr_reg_rmbs(), it zeroes the buffer and
-returns it to the pool with used=0.
-
-Suppose a CDC with the new token arrives before __smc_buf_create()
-publishes the new RMB. That is the same window the commit message
-describes. Wouldn't it pass the new check, since the stale pointer is
-non-NULL?
-
-smc_cdc_msg_recv_action() would then read conn->rmb_desc->len, and
-smc_cdc_handle_urg_data_arrival() would read conn->rmb_desc->cpu_addr. The
-descriptor behind them is either freed or owned by another connection.
-
-The stale pointer also matters if the V1 retry fails in
-__smc_buf_create(is_rmb). smc_conn_abort() then runs smc_buf_unuse() again:
-
-	if (conn->rmb_desc) {
-		bufsize = conn->rmb_desc->len;
-		if (!is_smcd) {
-			smcr_buf_unuse(conn->rmb_desc, true, lgr);
-
-Could this double free the descriptor or corrupt the rmbs list?
-
-Would it be better to reset conn->rmb_desc and conn->sndbuf_desc to NULL
-when the buffers are released, or before the conn is registered again?
-The follow-up patch "net/smc: skip the DMB nocopy accounting until the
-send buffer is set" doesn't appear to change this.
-
-[Severity: High]
-This isn't a bug introduced by this patch, but there is a related problem
-at teardown. The comment says rmb_desc is never cleared. That is true of
-the pointer value, but what about the lifetime of the object it points to?
-
-smc_conn_free() releases the buffers before the conn leaves the token
-tree:
-
-	if (!list_empty(&lgr->list)) {
-		smc_buf_unuse(conn, lgr); /* allow buffer reuse */
-		smc_lgr_unregister_conn(conn);
-	}
-
-For SMC-R, smcr_buf_unuse() frees the descriptor through smc_buf_free()
-when buf_desc->is_reg_err is set, for example after smcr_link_reg_buf()
-failed. Otherwise it zeroes the buffer and sets used=0, so
-smc_buf_get_slot() can hand it to another connection.
-
-smc_cdc_rx_handler() doesn't check conn->freed, and it drops conns_lock
-after sock_hold(). bh_lock_sock() doesn't wait for a lock_sock() owner,
-and smc_conn_free() only waits for pending TX WRs.
-
-Can a peer CDC that finds the conn before smc_lgr_unregister_conn() still
-run smc_cdc_msg_recv_action() and smc_cdc_handle_urg_data_arrival()? If
-so, they would read conn->rmb_desc->len and conn->rmb_desc->cpu_addr from
-a freed or reassigned descriptor. The new check would pass here too,
-since the stale pointer is non-NULL.
-
-[Severity: High]
-This is a pre-existing issue, but the new comment says the callees can
-load rmb_desc plainly once it is set. Is the peer's producer cursor ever
-checked against the RMB length?
-
-smc_cdc_cursor_to_host() only rejects cursors that move backwards:
-
-	temp.count = ntohl(net.count);
-	temp.wrap = ntohs(net.wrap);
-	if ((old.wrap > temp.wrap) && temp.wrap)
-		return;
-	if ((old.wrap == temp.wrap) &&
-	    (old.count > temp.count))
-		return;
-	smc_curs_copy(local, &temp, conn);
-
-smc_curs_diff() also doesn't cap its result at size, even though its
-comment says the difference cannot exceed size.
-
-So if prod_flags.urg_data_present is set and prod.count moves forward by
-any amount, smc_cdc_msg_recv_action() calls
-smc_cdc_handle_urg_data_arrival(), which does:
-
-	base = (char *)conn->rmb_desc->cpu_addr + conn->rx_off;
-	if (conn->urg_curs.count)
-		conn->urg_rx_byte = *(base + conn->urg_curs.count - 1);
-
-Could a peer-controlled urg_curs.count make this read up to about 4 GiB
-past the RMB in softirq? An unmapped address would oops. A byte read from
-a mapped address would be stored in conn->urg_rx_byte, and
-smc_rx_recv_urg() copies it to user space through memcpy_to_msg() on
-recv(MSG_OOB).
-
-The follow-up patch in the series doesn't touch this path either.
-
->  		read_unlock_bh(&lgr->conns_lock);
->  		return;
->  	}
 
 [ ... ]
+
+> @@ -353,12 +354,19 @@ static void smc_cdc_msg_recv_action(struct smc_sock *smc,
+>  		 * peer RMB, then update tx_curs_fin and sndbuf_space
+>  		 * here since peer has already consumed the data.
+>  		 */
+> +		sndbuf_desc = NULL;
+>  		if (conn->lgr->is_smcd &&
+>  		    smc_ism_support_dmb_nocopy(conn->lgr->smcd)) {
+> +			/* NULL until smcd_buf_attach(), but the old peer of
+> +			 * a reused DMB can already signal us.
+> +			 */
+> +			sndbuf_desc = smp_load_acquire(&conn->sndbuf_desc);
+> +		}
+> +		if (sndbuf_desc) {
+
+[Severity: High]
+With this gate, a stale CDC from the old peer that arrives before
+smcd_buf_attach() no longer oopses. It is now processed silently, and only
+the sndbuf part is skipped. Doesn't the rest of smc_cdc_msg_recv_action()
+still apply the old peer's state to the new connection?
+
+smc_cdc_msg_to_host() runs before the gate. It writes the old peer's
+prod/cons cursors and flags into conn->local_rx_ctrl:
+
+    smc_cdc_msg_to_host(&conn->local_rx_ctrl, cdc, conn);
+
+    diff_cons = smc_curs_diff(conn->peer_rmbe_size, &cons_old,
+                              &conn->local_rx_ctrl.cons);
+    if (diff_cons) {
+        ...
+        atomic_add(diff_cons, &conn->peer_rmbe_space);
+
+After that, diff_prod is added to bytes_to_rcv and sk_data_ready() is
+called. Can recvmsg() on the new socket then return whatever the old peer
+wrote into the reused DMB? Stale conn_state_flags could also abort or close
+the new connection.
+
+smcd_buf_attach() resets only sndbuf_space and sndbuf_desc. It never
+resyncs local_rx_ctrl.cons/prod or peer_rmbe_space, so the current peer's
+first consumer update is diffed against the stale cons_old.
+
+For example, say the stale cursor is {wrap=1, count=x>0}. The real peer
+then drains a full buffer and sends {wrap=1, count=0}. smc_curs_diff()
+returns 0, so the whole if (diff_cons) block is skipped. sndbuf_space is not
+credited, tx_curs_fin does not move, and smc_tx_sndbuf_nonfull() is not
+called.
+
+smcd_cdc_msg_send() also returns early for nocopy:
+
+    if (smc_ism_support_dmb_nocopy(conn->lgr->smcd))
+        ...
+        return 0;
+
+Is there any other path that recovers this credit? A sender that has
+filled the buffer could end up blocked forever.
+
+If the wraps differ instead, peer_rmbe_space is over-credited past
+peer_rmbe_size. Then this check further down in smc_cdc_msg_recv_action()
+can never be true:
+
+    if (diff_cons && conn->urg_tx_pend &&
+        atomic_read(&conn->peer_rmbe_space) == conn->peer_rmbe_size) {
+
+Would sendmsg() after MSG_OOB then block?
+
+This also seems to contradict the commit message:
+
+    "Before the attach the current peer has consumed nothing of ours, so
+    no update from it is lost."
+
+>  			/* Calculate consumed data and
+>  			 * increment free send buffer space.
+>  			 */
+> -			diff_tx = smc_curs_diff(conn->sndbuf_desc->len,
+> +			diff_tx = smc_curs_diff(sndbuf_desc->len,
+>  						&conn->tx_curs_fin,
+>  						&conn->local_rx_ctrl.cons);
+
+[Severity: Critical]
+This only covers the window before smcd_buf_attach(). After
+smp_store_release() publishes sndbuf_desc, can the old peer of the reused
+DMB still signal this connection and have its consumer cursor counted here
+as if the current peer had sent it?
+
+Nothing in smcd_buf_attach() filters CDCs from the old peer, which still
+holds the DMB token. smcd_cdc_rx_tsklet() reads whichever peer last wrote
+the DMB header. smcd_cdc_msg_to_host() then copies the cursors without the
+monotonicity check that smc_cdc_cursor_to_host() does for SMC-R.
+
+The new connection's tx_curs_fin starts at {0,0}. If the stale cons is
+{wrap!=0, count=c}, then diff_tx = len + c, and sndbuf_space becomes about
+2 * len + c. That breaks the invariant sndbuf_space <= sndbuf_desc->len.
+
+smc_tx_sendmsg() then uses that value:
+
+    copylen = min_t(size_t, send_remaining, writespace);
+    ...
+    chunk_len = min_t(size_t, copylen, conn->sndbuf_desc->len -
+                      tx_cnt_prep);
+    ...
+            chunk_len = copylen - chunk_len; /* remainder */
+            chunk_len_sum += chunk_len;
+            chunk_off = 0; /* modulo offset in send ring buffer */
+
+The second chunk is copied to offset 0 by memcpy_from_msg(), and nothing
+bounds it against sndbuf_desc->len. With prep at 0 that chunk is len + c
+bytes. Does that write c bytes of user data past the end of the peer's DMB
+folio? The folio is exactly the DMB size, so the extra bytes would land in
+the pages next to it.
+
+Smaller over-credits stay inside the buffer. They can still overwrite data
+the real peer has not consumed yet, and tx_curs_fin is overwritten with the
+foreign cursor.
+
+One way to get there: smc_release() calls smc_close_active_abort() when a
+non-blocking connect finishes during close. That sends no CDC to the peer.
+smc_conn_free()->smc_buf_unuse() then only zeroes the DMB and clears used,
+and the token stays registered. The peer is still active and still
+attached.
+
+__smc_buf_create() can then reuse the slot, and smc_ism_set_conn() maps it
+to the new connection. The old peer's next CDC follows this path:
+
+    smcd_cdc_msg_send()->dibs_lo_move_data()->handle_irq()
+        ->smcd_cdc_rx_tsklet()
+
+and is processed on the new connection. AF_SMC needs no privilege, so a
+local user who controls both ends and the timing could trigger this
+wherever loopback-ism is enabled.
+
+This post-attach path already existed before this patch. Since the commit
+message names "the old peer of a reused DMB can still signal us" as the
+root cause, would it be better to not reuse a DMB that a peer may still
+have attached, or to filter CDCs from the stale peer? Gating on
+sndbuf_desc only hides the NULL dereference.
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261015-b4-disp-2a8d85ef-v5-0-6b795e8263c9%40proton.me
