@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37F07501280;
-	Mon, 19 Oct 2026 13:54:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18691547044;
+	Mon, 19 Oct 2026 13:58:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792418097; cv=none; b=daB1e/70p1KhjGhIQALF7Fsik0Vcm9BChSW9aqiIbxuCaL6SJIxliL4tIVPeBArcMFWdU1BbB7GqvWpI+l7QjKdPR37PiErUDIaE2ExRtfYt5WQHxrwsD1YeKbuZwyD3imDMcgUyOUNMWT77qpxN+HLGA41aMcgXcB6ytxiu5MY=
+	t=1792418335; cv=none; b=nECTVgaTs1ZMFr+m6JYAbEsQyXo7gxOGQVdv9Jm23Axv6cjXPnNTUmEaZMMSXSg6BFaJs4+kzW3HxHkmu3SoJr3uNcGUE7EE8DLOjJOc6pKYg0ueJEaRS8Tq5NQZx019AQsU0dSbkhh/GqqGQGtve8qPK6A275Ad5MHDazXo2EY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792418097; c=relaxed/simple;
-	bh=4xpDEzR+herJSaTFJhvNkc7qSxNr1lO2IVupfeYRmQ8=;
+	s=arc-20240116; t=1792418335; c=relaxed/simple;
+	bh=z5+yV6p2UdHxc0LaFhndBT9wDeMvzRixGrSkw4u3g2Y=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=oJGp03CDA6KQndfRCgo+GOBjddYlTYMFEmwbI3Cxj892ciOYaCpPV5QHVczIRVOT6KRplOw8YlPIlmkL2uMV/8attU+aT30SoK6cKQ55oMaBuatxLssbCPxglCnwrjgemZGGEE2xFN5JhwrLolT/rTBKCIZcK9KV8XV5m6RSQVI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Kdnqzlks; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=KeSfGEF4sGHkYnlnmeLSqlj4DzxxTBc9eqy+9rwncRlG0die7/dVb491QSWInis6fWexWVGk/iPq8DnU1dPf6MnP+PBI8KgWAGSX9ILgjcXGE8nXL6Ok08VwJGH0sbmi4DE/ptHs8L1xQOTwZM0k9jN4sPzsqYMalC/nTEg43ms=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HVghDEdE; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Kdnqzlks"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E032E1F000CB;
-	Mon, 19 Oct 2026 13:54:52 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HVghDEdE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B44261F000C9;
+	Mon, 19 Oct 2026 13:58:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792418094;
-	bh=Y5SNz+ZXGnbVUXe0Sdp8UmdiSoEuaWhQmv+y0m0tAq4=;
+	s=k20260515; t=1792418332;
+	bh=cgxF869cyePwmld8Yhh0fz0txkbff9KE2BCTMD9tIWM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=Kdnqzlks9LYHhpvhl4oL+3GsStBQdzjLVPLpYKT4Gs1oDgAfSwRjihEGeDFjgzyQU
-	 E6DAaOxGZbk7so2az0RY/aZlXyKetJ/Tpoz7UKCbGa+rhV5prFEN0/B84AfFj2FVbg
-	 ObpsBNJYAu2cVnedOxghiFmQ8tuMIBx6rBY/80xA9IxJTay9R+b80zsZjbQqaT81x4
-	 tzf/4Qhe7sTfQglcfvgQMPAa7Ch2fV4xenAOvmVRbnWGhtxNOniOIYod1I3J36zbR/
-	 dvFhT2SZPJ+uZXsuetNurZI3BkR9c0aIwB1hNoA111Ow5AC5LjO1mPnCC+f09qG97r
-	 5Qv2NKyo+gkQA==
+	b=HVghDEdEOxFODcvF4BdWOjVQTJxJ0S5DDDByvECpNobjj6nBtvmy+P1Sc/M1F+TkM
+	 mC60hp+FsEMbcM9QR8CPa6FWXbJJJaw77Xgev6DzBgOP4n5InxYNBobpi0xfWrUCnC
+	 IoGEDbr4x8BPesr7HMSwlaqFAaBBsyItf9+0yNlIM/yeAmhcRYWFYIyhtnU+ioUUxs
+	 /85En3onz0ePxIBYsda26NVtfwVPtPmk8h/NeAI/qbFKusroIUujA+JWaNM6UKYLF2
+	 LomFUJEHpZZG3K727w+Hm2vZ3Y1e1NUjAwlEy0jsVhviXlRSL2E+x9PZDgOGf2ZGpU
+	 5iFNDvHp2CG6A==
 From: Sasha Levin <sashal@kernel.org>
 To: patches@lists.linux.dev,
 	stable@vger.kernel.org
@@ -39,9 +39,9 @@ Cc: Allison Henderson <achender@kernel.org>,
 	linux-rdma@vger.kernel.org,
 	rds-devel@oss.oracle.com,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.18-5.10] net/rds: don't use unpin_user_pages_dirty_lock() from atomic context
-Date: Mon, 19 Oct 2026 09:44:59 -0400
-Message-ID: <20261019135441.1420968-8-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.18-5.10] net/rds: unpin MR pages with unpin_user_pages_dirty_lock()
+Date: Mon, 19 Oct 2026 09:47:43 -0400
+Message-ID: <20261019135441.1420968-172-sashal@kernel.org>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20261019135441.1420968-1-sashal@kernel.org>
 References: <20261019135441.1420968-1-sashal@kernel.org>
@@ -59,588 +59,508 @@ Content-Transfer-Encoding: 8bit
 
 From: Allison Henderson <achender@kernel.org>
 
-[ Upstream commit d100966325f782aa7775e5f0e8fb04f66f56308e ]
+[ Upstream commit a507023e6ff1d0b4e7aac49b2f547fed0c21ea4e ]
 
-rds_rdma_free_op() and rds_atomic_free_op() are reached from the IB
-send completion path via
+The pages backing an RDS memory region are pinned in __rds_rdma_map()
+with rds_pin_pages(), which uses pin_user_pages_fast(): each page's
+refcount is biased by GUP_PIN_COUNTING_BIAS to account the pin.  The
+scatterlist is then handed to the IB transport, and the transport
+releases the pages in __rds_ib_teardown_mr() with
 
-  rds_ib_tasklet_fn_send()
-    rds_ib_send_cqe_handler()
-      rds_message_put()
-        rds_message_purge()
-          rds_rdma_free_op() / rds_atomic_free_op()
+	set_page_dirty(page);
+	put_page(page);
 
-which runs in tasklet (softirq) context.  Both functions unpin the
-user pages of the op with unpin_user_pages_dirty_lock(), which uses
-set_page_dirty_lock() and thus may take the folio lock and sleep.
-Sleeping in softirq context is not allowed and can deadlock or crash.
+put_page() drops a single reference instead of removing the pin bias,
+so every MR teardown permanently strands the remaining references and
+the pages are never freed - a userspace-triggerable memory leak of up
+to RDS_MAX_MSG_SIZE per RDS_GET_MR/RDS_GET_MR_FOR_DEST call.
 
-Dirtying the pages with the non-sleeping set_page_dirty() instead
-would just trade one bug for another, as pointed out during review:
-the pinned range can be file-backed.  rds_pin_pages() pins with
-FOLL_LONGTERM, which refuses fs-dax but takes the page-cache pages
-of a MAP_SHARED file mapping just fine, and RDS does not restrict
-what memory the caller registers as an RDMA destination.
+The conversion to the pin API updated the unpin sites in rdma.c but
+missed this one on the transport side.  Release the pages with
+unpin_user_pages_dirty_lock(), which removes the pin bias and also
+dirties the page under the folio lock, closing the truncation race
+that a bare set_page_dirty() leaves open.
 
-For a file-backed page, set_page_dirty() from a tasklet can take
-non-irq-safe filesystem locks (e.g. mapping->i_private_lock and
-inode->i_lock in block_dirty_folio()) and deadlock against the task
-it interrupted.  Without the folio lock, it races with truncation
-clearing folio->mapping, which is the race set_page_dirty_lock()
-exists to close.  The pre-pin_user_pages() version of this code
-dirtied pages that way from the tasklet, so that bug is older than
-the sleeping unpin.
-
-The page dirtying therefore has to move to process context, not
-merely avoid the folio lock.  When the final rds_message_put() runs
-in atomic context, rds_rdma_free_op() and rds_atomic_free_op() now
-leave the op's pages pinned and flag the op. Later, rds_message_put()
-hands the message to a work item that unpins the flagged ops' pages
-and frees the message from process context. Here,
-unpin_user_pages_dirty_lock() is safe outside the atomic context.
-Everything else keeps running in the caller's context exactly as
-before: the rest of the purge - the zerocopy completion, the socket
-put and the MR reference drops - as well as RDMA writes, whose pages
-the remote side only reads and which unpin without dirtying,
-everything on rds_tcp, and final puts that already happen in process
-context (socket close, connection teardown).
-
-Deferring only the unpin means the work item touches nothing but the
-pinned pages and the rds module's own memory: it cannot call back
-into a transport module, so it changes nothing about the transports'
-shutdown and unload ordering.  rds_exit() drains any pending unpin
-work via destroy_workqueue(rds_wq) before the module goes away.
-
-The Oracle UEK kernel avoids the sleeping unpin by calling
-set_page_dirty() directly from the tasklet, which is subject to the
-file-backed page problem above, so this deliberately does not follow
-UEK here.
+Dirtying under the folio lock can sleep, which is safe in every path
+that reaches __rds_ib_teardown_mr(): the registration-reuse path
+(rds_ib_map_frmr()) runs in syscall context, and the pool flush
+(rds_ib_unreg_frmr()) runs under pool->flush_lock, a mutex, and
+already sleeps in rds_ib_post_inv().  The WARN_ON that guarded the
+old irq-context set_page_dirty() case is dropped along with it.
 
 Signed-off-by: Allison Henderson <achender@kernel.org>
-Link: https://patch.msgid.link/20260730041629.3512480-2-achender@kernel.org
+Link: https://patch.msgid.link/20260730041629.3512480-5-achender@kernel.org
 Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
 
 LLM Generated explanations, may be completely bogus:
 
-This is a real sleep-in-softirq bug on the RDS IB completion path, and
-the buggy code is present in this 5.10.270 tree. The fix is self-
-contained and should be backported.
+The local tree is **5.10.270** (`pending-5.10`). The buggy RDS IB
+teardown path is present here, the pin API mismatch is real, and the fix
+applies cleanly.
 
-===============================================================
-PHASE 1: COMMIT MESSAGE FORENSICS
-===============================================================
+---
 
-Step 1.1: PARSE THE SUBJECT LINE
-Record: [net/rds] [don't use] don't call `unpin_user_pages_dirty_lock()`
-from atomic/softirq context. "don't use" is a prevent/avoid-style fix.
+## PHASE 1: COMMIT MESSAGE FORENSICS
 
-Step 1.2: PARSE ALL COMMIT MESSAGE TAGS
+**Step 1.1: PARSE THE SUBJECT LINE**
+
+Record: **[net/rds] [unpin] [release MR pages with the pin-API unpin
+helper instead of put_page()]**
+
+Subsystem prefix `net/rds`. Action verb is `unpin` (correctness of page
+release, not a feature). Claimed intent: MR pages pinned with
+`pin_user_pages_fast()` must be released with
+`unpin_user_pages_dirty_lock()`, not `put_page()`.
+
+**Step 1.2: PARSE ALL COMMIT MESSAGE TAGS**
+
+From the candidate message:
+- `Signed-off-by: Allison Henderson <achender@kernel.org>` (author;
+  Oracle RDS)
+- `Link:
+  https://patch.msgid.link/20260730041629.3512480-5-achender@kernel.org`
+- `Signed-off-by: Jakub Kicinski <kuba@kernel.org>` (netdev merge)
+- No `Reported-by`, `Tested-by`, `Reviewed-by`, `Acked-by`, `Cc: stable`
+  in the candidate text
+
+From the original lore submission (msgid
+`20260730041629.3512480-5-achender@kernel.org`), these additional tags
+were present and stripped by candidate prep:
+- `Fixes: 0d4597c8c5ab ("net/rds: Track user mapped pages through
+  special API")`
+- `Assisted-by: Claude-Code:claude-fable-5`
+
+Record: Author is the RDS contributor who submitted a 4-patch bug-fix
+series. Netdev maintainer merged it. Original submission carried a
+`Fixes:` tag pointing at the 2020 pin-API conversion. Absence of `Cc:
+stable` on the candidate is expected.
+
+**Step 1.3: ANALYZE THE COMMIT BODY TEXT**
+
 Record:
-- Signed-off-by: Allison Henderson `<achender@kernel.org>` (author;
-  ignore pipeline SOB)
-- Signed-off-by: Jakub Kicinski `<kuba@kernel.org>` (netdev maintainer)
-- Link: `https://patch.msgid.link/20260730041629.3512480-2-
-  achender@kernel.org`
-- No Reported-by, Tested-by, Reviewed-by, Acked-by, or Cc: stable in the
-  provided message
-- Mailing-list v4 **did** include `Fixes: 0d4597c8c5ab ("net/rds: Track
-  user mapped pages through special API")`; that tag is in this tree
-  (verified with `git merge-base --is-ancestor`)
-- Message-ID `-2` is patch 1/4 of `[PATCH net v4 0/4] net/rds: Bug fix
-  ports` (cover letter is `-1`)
-- Assisted-by Claude appears on the lore submission only
+- **Bug:** `__rds_rdma_map()` pins pages with `rds_pin_pages()` →
+  `pin_user_pages_fast()`. Teardown in `__rds_ib_teardown_mr()` does
+  `set_page_dirty()` + `put_page()`. `put_page()` drops one ref; a
+  FOLL_PIN pin adds `GUP_PIN_COUNTING_BIAS` (1024). Remaining refs are
+  stranded.
+- **Symptom:** Userspace-triggerable unreclaimable page leak, up to
+  `RDS_MAX_MSG_SIZE` (1 MiB) per `RDS_GET_MR` / `RDS_GET_MR_FOR_DEST`.
+  Same leak on every MR reuse/flush, not only the ioctl.
+- **Root cause:** Pin-API conversion updated `net/rds/rdma.c` unpin
+  sites and missed the IB transport teardown path.
+- **Secondary fix:** `unpin_user_pages_dirty_lock()` dirties under the
+  page/folio lock, closing the truncation race of bare
+  `set_page_dirty()`.
+- **Sleeping:** Author claims every caller of `__rds_ib_teardown_mr()`
+  is process context (syscall reuse path, or pool flush under
+  `flush_lock` mutex which already `wait_event`s in
+  `rds_ib_post_inv()`).
+- **Version info:** Bug introduced by the 2020 pin conversion
+  (`0d4597c8c5ab`).
 
-Step 1.3: ANALYZE THE COMMIT BODY TEXT
+**Step 1.4: DETECT HIDDEN BUG FIXES**
+
+Record: Not hidden. Explicit memory-leak fix with a clear pin vs put
+mismatch. Not cleanup/refactor.
+
+---
+
+## PHASE 2: DIFF ANALYSIS
+
+**Step 2.1: INVENTORY THE CHANGES**
+
 Record:
-- Bug: `rds_rdma_free_op()` / `rds_atomic_free_op()` run from the IB
-  send tasklet and call `unpin_user_pages_dirty_lock()`, which uses
-  `set_page_dirty_lock()` → `lock_page()`, which may sleep.
-- Symptom: sleep in softirq → deadlock or crash.
-- Switching to `set_page_dirty()` from the tasklet is also wrong for
-  file-backed pins (`FOLL_LONGTERM` MAP_SHARED): non-irq-safe fs locks
-  and truncation races.
-- Fix: if the final put is atomic and pages need dirtying, leave them
-  pinned, set `op_unpin_deferred`, and finish unpin+free on `rds_wq`.
-- Author notes this is older than the pin API (pre-pin code already
-  dirtied from the tasklet) and that UEK’s `set_page_dirty()`-from-
-  tasklet approach is intentionally not followed.
+- File: `net/rds/ib_rdma.c` only (−3 / +1)
+- Function: `__rds_ib_teardown_mr()`
+- Scope: single-file surgical fix
 
-Step 1.4: DETECT HIDDEN BUG FIXES
-Record: Not hidden. Explicit sleep-in-atomic / deadlock fix.
+**Step 2.2: UNDERSTAND THE CODE FLOW CHANGE**
 
-===============================================================
-PHASE 2: DIFF ANALYSIS - LINE BY LINE
-===============================================================
+Record: In the scatterlist-release loop, before: `WARN_ON(!page->mapping
+&& irqs_disabled()); set_page_dirty(page); put_page(page);`. After:
+`unpin_user_pages_dirty_lock(&page, 1, true);`. DMA unmap,
+`kfree(ibmr->sg)`, and pool accounting in `rds_ib_teardown_mr()` are
+unchanged. Normal teardown path, not an error-only path.
 
-Step 2.1: INVENTORY THE CHANGES
+**Step 2.3: IDENTIFY THE BUG MECHANISM**
+
 Record:
-- `net/rds/message.c`: add `rds_message_unpin_worker()`, defer `kfree`
-  from `rds_message_put()` when unpin was deferred
-- `net/rds/rdma.c`: split unpin helpers; `rds_rdma_free_op()` /
-  `rds_atomic_free_op()` unpin inline only when safe (`in_task()` or
-  RDMA write)
-- `net/rds/rds.h`: `m_unpin_work`, `op_unpin_deferred` bitfields, helper
-  prototypes
-- Scope: ~74 insertions / 11 deletions, three RDS files, surgical
+- **Category:** reference-counting / resource leak (FOLL_PIN bias not
+  removed), plus initialization/dirtying correctness
+  (`set_page_dirty_lock` vs `set_page_dirty`)
+- **Mechanism:** `pin_user_pages_fast()` sets `FOLL_PIN` and bumps
+  refcount by `GUP_PIN_COUNTING_BIAS`. `put_page()` subtracts 1, leaving
+  1023 refs. Pages never return to the allocator. `unpin_user_page()` /
+  `unpin_user_pages_dirty_lock()` call `put_compound_head(...,
+  FOLL_PIN)`, which multiplies refs by the bias (or uses
+  `hpage_pincount_sub`) and actually releases the pin.
 
-Step 2.2: UNDERSTAND THE CODE FLOW CHANGE
+**Step 2.4: ASSESS THE FIX QUALITY**
+
+Record: Obviously correct against the pin-API contract (`mm/gup.c`
+documents that FOLL_PIN pages must be released via `unpin_user_page()`).
+Same helper is already used in this tree in `net/rds/rdma.c` and
+`net/rds/info.c`. Minimal. Regression risk is sleep-in-atomic if
+teardown ever runs with IRQs off; verified callers already sleep
+(`wait_event` / `mutex_lock`). The dropped `WARN_ON` was a leftover from
+a 2015 `BUG_ON(irqs_disabled())` downgrade; current callers take a mutex
+or run in syscall context.
+
+---
+
+## PHASE 3: GIT HISTORY INVESTIGATION
+
+**Step 3.1: BLAME THE CHANGED LINES**
+
 Record:
-- Before: final `rds_message_put()` always purges and unpins (possibly
-  dirtying) in the caller’s context, including the send CQ tasklet.
-- After: purge still runs in the caller (zerocopy, sock_put, MR krefs).
-  Dirtying unpin is deferred to process context. RDMA writes still unpin
-  immediately (no dirty). Process-context final puts still unpin
-  immediately.
-- Error path `rds_cmsg_rdma_args()` → `rds_rdma_free_op()` is
-  sendmsg/process context, so `in_task()` is true and pages are not
-  leaked.
+- `set_page_dirty` + `put_page` in this function: `08b48a1ed84b19` (Andy
+  Grover, 2009) — originally paired with `get_user_pages`.
+- `WARN_ON(!page->mapping && irqs_disabled())`: `5c240fa2ab394a` (2015),
+  downgraded from `BUG_ON(irqs_disabled())` because that assertion fired
+  on “normal execution paths” (FMR-era). FMR support is already removed
+  in this tree (`07549ee21ce52`).
+- Pin conversion that made `put_page` wrong: `0d4597c8c5abd`
+  (2020-02-16), present in this tree.
 
-Step 2.3: IDENTIFY THE BUG MECHANISM
-Record: [Deadlock / sleep-in-atomic] `lock_page()` from tasklet/softirq.
-Workqueue deferral is the correct class of fix; dirtying cannot stay in
-the tasklet.
+**Step 3.2: FOLLOW THE FIXES: TAG**
 
-Step 2.4: ASSESS THE FIX QUALITY
-Record: v4 is the review-hardened design (v1 used `set_page_dirty()` in
-the tasklet; v2/v3 deferred the whole purge and needed extra IB-module
-flushes). Risk is the usual workqueue lifetime issues; mitigated because
-the worker only unpins pages and `kfree`s the message, and `rds_exit()`
-→ `rds_threads_exit()` → `destroy_workqueue(rds_wq)` drains it. Messages
-are `kzalloc`’d, so new flags/work_struct start zeroed.
+Record: `0d4597c8c5abdeeaf50774066c16683f30184dc8` (“net/rds: Track user
+mapped pages through special API”) converted `rds_pin_pages()` to
+`pin_user_pages_fast()` and updated unpin sites in `rdma.c` only
+(`rds_rdma_free_op`, `rds_atomic_free_op`, error paths). It did **not**
+touch `ib_rdma.c`. `git merge-base --is-ancestor 0d4597c8c5abd HEAD`
+succeeded — the buggy conversion is in this 5.10 tree. Intermediate
+related fix already here: `91a44b406bc1f` (“net: rds: fix MR cleanup on
+copy error”) — different bug (double-unpin on `put_user` failure), not a
+substitute for this leak.
 
-===============================================================
-PHASE 3: GIT HISTORY INVESTIGATION
-===============================================================
+**Step 3.3: CHECK FILE HISTORY FOR RELATED CHANGES**
 
-Step 3.1: BLAME THE CHANGED LINES
+Record: Recent `net/rds/ib_rdma.c` history is unrelated (laddr check,
+FRMR reject, null deref). This is standalone vs local history. Upstream
+it is v4 4/4 of Allison Henderson’s series; patches 1–3 fix different
+RDS bugs (sleeping unpin from tasklet in `rdma.c`, socket UAF via MR,
+send-path message leak) and are **not** prerequisites for this hunk.
+
+**Step 3.4: CHECK THE AUTHOR'S OTHER COMMITS**
+
+Record: Allison Henderson has many RDS commits in this tree (locking,
+shutdown, zerocopy). Oracle RDS maintainer-side contributor.
+`MAINTAINERS` lists Santosh Shilimkar; Allison is a long-time RDS
+author. Related contemporaneous work is the rest of the v4 series, not a
+dependency of this patch.
+
+**Step 3.5: CHECK FOR DEPENDENT/PREREQUISITE COMMITS**
+
+Record: Needs `unpin_user_pages_dirty_lock()` and
+`pin_user_pages_fast()` — both exist in 5.10 (`mm/gup.c`,
+`EXPORT_SYMBOL`). No new helper, no struct change. Can apply standalone.
+`git apply --check` succeeded (hunk offset +4 only).
+
+---
+
+## PHASE 4: MAILING LIST AND EXTERNAL RESEARCH
+
+**Step 4.1: FIND THE ORIGINAL PATCH DISCUSSION**
+
 Record:
-- Sleeping unpin: `0d4597c8c5abd` ("net/rds: Track user mapped pages
-  through special API", Leon Romanovsky, 2020) — **in this tree**
-- Call from tasklet: `rds_rdma_free_op` / `rds_message_put` date to
-  2009–2010 (Andy Grover)
-- Pre-pin code already dirtied from this path
+- Lore/thread via `b4 am` / `b4 mbox`: cover `https://patch.msgid.link/2
+  0260730041629.3512480-1-achender@kernel.org`
+- Patch: msgid `20260730041629.3512480-5-achender@kernel.org` (`[PATCH
+  net v4 4/4]`)
+- Openwall mirror: https://lists.openwall.net/netdev/2026/07/30/66
+- Revisions: v1–v3 were a 3-patch series; **this leak fix is new in
+  v4**. Applied version is v4.
+- Merged to `netdev/net-next.git` as `a507023e6ff1` (patchwork-bot,
+  2026-08-05)
+- Jakub Kicinski: not a NAK — he said he lacked confidence reviewing RDS
+  and queued the series for **-next** rather than `net`. Allison agreed
+  (Fixes tags, but “not simple bugs” / “really old bugs”).
+- No reviewer NAK, no request to drop patch 4, no flag that teardown can
+  sleep in IRQ on current code.
 
-Step 3.2: FOLLOW THE FIXES: TAG
-Record: `0d4597c8c5ab` is an ancestor of HEAD (`git merge-base --is-
-ancestor` exit 0). No later in-tree substitute for this unpin-from-
-tasklet bug. `338a3ba30c5ef` ("net:rds: Fix possible deadlock in
-rds_message_put") is a different lock-order bug in `recv.c`.
+**Step 4.2: CHECK WHO REVIEWED THE PATCH**
 
-Step 3.3: CHECK FILE HISTORY FOR RELATED CHANGES
-Record: Recent `net/rds/` work here is unrelated (zerocopy, MR cleanup,
-tcp corruption). This is standalone, not patch 2-of-N that needs earlier
-series members.
+Record: `b4` recipients: netdev, linux-rdma, Pabeni, Edumazet, Kicinski,
+Horms; Cc John Hubbard and Leon Romanovsky (original pin-API authors).
+No `Reviewed-by` landed. Kicinski merged without a deep RDS review.
+Technical correctness of this hunk does not depend on that: it matches
+the pin API the Cc list designed.
 
-Step 3.4: CHECK THE AUTHOR'S OTHER COMMITS
-Record: Allison Henderson is a long-time RDS contributor; this tree
-already has several of her RDS fixes. Author is the right subsystem
-person.
+**Step 4.3: SEARCH FOR THE BUG REPORT**
 
-Step 3.5: CHECK FOR DEPENDENT/PREREQUISITE COMMITS
-Record: Series mates (socket ref on MR, send_xmit leak, MR teardown
-unpin) are independent bugs. Needed APIs exist here: `in_task()`,
-`unpin_user_pages_dirty_lock()`, `rds_wq`, `pin_user_pages_fast()` +
-`FOLL_LONGTERM`. No missing helpers.
+Record: No syzbot/bugzilla. Bug is from code inspection / UEK porting.
+Trigger is real (`setsockopt(RDS_GET_MR)` / MR reuse), not theoretical.
+No user-count from public reports.
 
-===============================================================
-PHASE 4: MAILING LIST AND EXTERNAL RESEARCH
-===============================================================
+**Step 4.4: CHECK FOR RELATED PATCHES AND SERIES**
 
-Step 4.1: FIND THE ORIGINAL PATCH DISCUSSION
+Record: Standalone vs 1/4–3/4. Patch 1 is about `rds_rdma_free_op()`
+sleeping from the **send tasklet** — a different function already using
+`unpin_user_pages_dirty_lock()` in `rdma.c`. Backporting 4/4 does not
+require 1/4; it does not widen that tasklet bug.
+
+**Step 4.5: CHECK STABLE MAILING LIST HISTORY**
+
+Record: lore.kernel.org/stable search for this subject returned no
+discussion that this fix was rejected or already taken. UNVERIFIED that
+no private stable thread exists.
+
+---
+
+## PHASE 5: CODE SEMANTIC ANALYSIS
+
+**Step 5.1: KEY FUNCTIONS**
+
+Record: `__rds_ib_teardown_mr()` (changed); `rds_ib_teardown_mr()`
+(wrapper); `rds_ib_map_frmr()`, `rds_ib_unreg_frmr()` (callers).
+
+**Step 5.2: TRACE CALLERS**
+
 Record:
-- `b4 mbox` on msgid `20260730041629.3512480-2-achender@kernel.org`:
-  8-message thread
-- Lore/WebFetch of lore.kernel.org and patch.msgid.link returned 403;
-  discussion recovered via b4 + openwall
-- Revisions: v1 2026-07-11, v2 2026-07-25, v3 2026-07-26, v4 2026-07-29
-  (applied)
-- v1 NAK’d conceptually: `set_page_dirty()` from softirq can deadlock on
-  fs locks and race truncation
-- v3 extra `rds_ib_exit()` flushes dropped in v4 by deferring only unpin
-- Applied to netdev/net-next as `d100966325f7` (not this tree)
+- `rds_ib_map_frmr()` → `rds_ib_teardown_mr()` — reuse/remap. Called
+  from `rds_ib_reg_frmr()` → `rds_ib_get_mr()` → `__rds_rdma_map()` /
+  cmsg RDMA map. Syscall (`setsockopt` / `sendmsg`). Already
+  `wait_event`s in `rds_ib_post_reg_frmr()`.
+- `rds_ib_unreg_frmr()` → `__rds_ib_teardown_mr()` — only from
+  `rds_ib_flush_mr_pool()`, which takes `pool->flush_lock` (mutex).
+  Callers of flush: delayed work `rds_ib_mr_pool_flush_worker`,
+  `rds_ib_try_reuse_ibmr` (GFP_KERNEL alloc path), `rds_ib_free_mr` only
+  if `!in_interrupt()`, `rds_ib_flush_mrs()` (socket close /
+  `RDS_FREE_MR`), `rds_ib_destroy_mr_pool()`,
+  `rds_ib_conn_path_shutdown()` (already `wait_event_timeout`).
+  Interrupt `free_mr` queues `flush_worker` instead of flushing inline.
 
-Step 4.2: CHECK WHO REVIEWED THE PATCH
-Record: To/Cc included netdev, linux-rdma, Kicinski, Abeni, Dumazet,
-Horms. No subsystem Reviewed-by on v4. Kicinski: “I don't have much
-confidence in my ability to review this, so let's queue this for -next.”
-Author agreed they are old, non-simple bugs.
+**Step 5.3: TRACE CALLEES**
 
-Step 4.3: SEARCH FOR THE BUG REPORT
-Record: No syzbot/bugzilla in the thread. Motivation is code analysis +
-UEK carrying a related (weaker) fix. Oracle RDS/IB users are the
-affected population.
+Record: After the change, the loop calls `unpin_user_pages_dirty_lock()`
+→ `set_page_dirty_lock()` (can sleep) + `unpin_user_page()`. Previously
+`set_page_dirty()` + `put_page()`. DMA unmap stays first.
 
-Step 4.4: CHECK FOR RELATED PATCHES AND SERIES
-Record: 4-patch “Bug fix ports” series. This patch is 1/4 and does not
-depend on 2–4. Patch 4 is a separate pin-vs-put_page leak in
-`__rds_ib_teardown_mr()`.
+**Step 5.4: FOLLOW THE CALL CHAIN**
 
-Step 4.5: CHECK STABLE MAILING LIST HISTORY
-Record: No useful hit on lore.kernel.org/stable for this subject (search
-was noisy/unrelated). Originally aimed at `net` because of Fixes:; moved
-to net-next. Absence of stable-list discussion is not a NAK.
+Record: Reachable from userspace: `rds_setsockopt` → `RDS_GET_MR` /
+`RDS_GET_MR_FOR_DEST` → `rds_get_mr()` → `__rds_rdma_map()` →
+`rds_pin_pages()` → transport `get_mr`. Also RDMA cmsg on send. Requires
+`CONFIG_RDS=y/m`, `CONFIG_RDS_RDMA`, InfiniBand, and `can_do_mlock()`.
+Not universal, but a real syscall path. Unprivileged users typically
+need `RLIMIT_MEMLOCK`/CAP_IPC_LOCK to pin; RDS/IB cluster users have
+that.
 
-===============================================================
-PHASE 5: CODE SEMANTIC ANALYSIS
-===============================================================
+**Step 5.5: SEARCH FOR SIMILAR PATTERNS**
 
-Step 5.1: IDENTIFY KEY FUNCTIONS IN THE DIFF
-Record: `rds_message_unpin_worker` (new), `rds_message_put`,
-`rds_rdma_op_unpin_pages` (new), `rds_rdma_free_op`,
-`rds_atomic_op_unpin_page` (new), `rds_atomic_free_op`
+Record: Same missed-unpin class was why `rdma.c` was converted in 2020.
+Remaining `put_page` in `net/rds/message.c` is for message payload pages
+(`__free_page` / zerocopy), not FOLL_PIN MR pages. IB umem/qib/hfi1
+already use `unpin_user_pages_dirty_lock()`. This is the leftover RDS IB
+MR site.
 
-Step 5.2: TRACE CALLERS
+---
+
+## PHASE 6: CROSS-REFERENCING AGAINST THE LOCAL TREE
+
+**Step 6.1: DOES THE BUGGY CODE EXIST IN THIS TREE?**
+
+Record: Yes. `net/rds/ib_rdma.c` lines 253–260 still have `WARN_ON` +
+`set_page_dirty` + `put_page`. `rds_pin_pages()` already uses
+`pin_user_pages_fast()` (`net/rds/rdma.c:163`). `GUP_PIN_COUNTING_BIAS`
+is `(1U << 10)` in `include/linux/mm.h`. Bug present since this series
+branched (v5.10 includes `0d4597c8c5ab` from Feb 2020; v5.10 release is
+Dec 2020).
+
+**Step 6.2: CHECK FOR BACKPORT COMPLICATIONS**
+
+Record: **Clean apply** (`git apply --check`: hunk succeeded at offset
+4). Surrounding function matches the mainline hunk. 5.10’s
+`unpin_user_pages_dirty_lock()` uses `set_page_dirty_lock()`, not
+folios; the public API and sleep/lock properties match what the patch
+needs. Commit-message “folio lock” is mainline wording; behavior here is
+the page lock, which is correct for 5.10.
+
+**Step 6.3: CHECK IF RELATED FIXES ARE ALREADY HERE**
+
+Record: No equivalent unpin in `__rds_ib_teardown_mr()`. `91a44b406bc1f`
+is a different MR cleanup. `git log --grep='unpin MR pages' -- net/rds`
+is empty in this tree.
+
+---
+
+## PHASE 7: SUBSYSTEM AND MAINTAINER CONTEXT
+
+**Step 7.1: IDENTIFY THE SUBSYSTEM AND ITS CRITICALITY**
+
+Record: **net/rds** (Reliable Datagram Sockets), IB RDMA MR pool.
+Criticality: **IMPORTANT** for RDS/IB users (Oracle RAC-style clusters);
+**PERIPHERAL** for everyone else (`CONFIG_RDS_RDMA` + InfiniBand). Not
+core mm/VFS, but pinned-page leaks are mm-visible (unreclaimable pages).
+
+**Step 7.2: ASSESS SUBSYSTEM ACTIVITY**
+
+Record: Mature. The teardown loop dates to 2009; the pin mismatch has
+been wrong for the entire 5.10 lifetime. Low churn on `ib_rdma.c`
+relative to netdev core.
+
+---
+
+## PHASE 8: IMPACT AND RISK ASSESSMENT
+
+**Step 8.1: WHO IS AFFECTED**
+
+Record: Driver/config-specific: `CONFIG_RDS` + `CONFIG_RDS_RDMA` + IB
+hardware. TCP RDS (`CONFIG_RDS_TCP`) has no RDMA MRs and is unaffected.
+
+**Step 8.2: TRIGGER CONDITIONS**
+
+Record: Common for RDS RDMA: every MR map/reuse/teardown (`RDS_GET_MR`,
+RDMA cmsg, pool flush). Not a rare error path. Needs mlock capability.
+Not a timing race.
+
+**Step 8.3: FAILURE MODE SEVERITY**
+
+Record: Unreclaimable page leak (pin bias left behind). Repeated
+GET_MR/reuse can pin large amounts of RAM until OOM. **Severity: HIGH**
+(not a panic, but a userspace-triggerable leak of pinned pages; same
+class as other GUP pin leaks taken into stable). Secondary: dirty-
+without-lock truncation race on file-backed MRs (**MEDIUM** on that
+subset).
+
+**Step 8.4: RISK-BENEFIT RATIO**
+
 Record:
-- `rds_message_put()`: send.c, ib_send.c, ib_cm.c, message.c, loop.c,
-  connection.c
-- Confirmed atomic path: `rds_ib_tasklet_fn_send()` → `poll_scq()` →
-  `rds_ib_send_cqe_handler()` → `rds_message_put()` (`net/rds/ib_cm.c`,
-  `ib_send.c`)
-- `rds_rdma_free_op()`: `rds_message_purge()` and `rds_cmsg_rdma_args()`
-  error path (process context)
-- `rds_atomic_free_op()`: only `rds_message_purge()`
+- **Benefit:** High for RDS/IB; stops a leak that has existed for the
+  whole 5.10 life. Zero functional change for other configs.
+- **Risk:** Very low — one call-site, existing exported helper, callers
+  already sleepable. Does not add APIs or change userspace.
+- **Ratio:** Strongly favors backport.
 
-Step 5.3: TRACE CALLEES
-Record: `unpin_user_pages_dirty_lock()` → `set_page_dirty_lock()` →
-`lock_page()` (sleeping). Non-dirty path uses `unpin_user_pages()` only.
-Worker uses `queue_work(rds_wq)` / `kfree`.
+---
 
-Step 5.4: FOLLOW THE CALL CHAIN
-Record: Userspace `sendmsg` with `RDS_CMSG_RDMA_ARGS` / atomic cmsg → IB
-RDMA READ or atomic WR → CQ completion in tasklet → final put. Reachable
-from sockets if `CONFIG_RDS_RDMA`. Not a theoretical path.
+## PHASE 9: FINAL SYNTHESIS
 
-Step 5.5: SEARCH FOR SIMILAR PATTERNS
-Record: Local `__rds_ib_teardown_mr()` still does `set_page_dirty()` +
-`put_page()` (series patch 4). `rds_info.c` unpins from getsockopt
-(process context) — OK. Same class of bug is already treated as
-backport-worthy in this tree (`88fdf5948f538` Don't sleep inside
-`rds_ib_conn_path_shutdown`).
+**Step 9.1: COMPILE THE EVIDENCE**
 
-===============================================================
-PHASE 6: CROSS-REFERENCING AGAINST THE LOCAL TREE
-===============================================================
+**FOR:**
+- Real FOLL_PIN vs `put_page()` leak; verified in 5.10 `mm/gup.c` and
+  `net/rds/rdma.c`/`ib_rdma.c`
+- Userspace-reachable (`RDS_GET_MR` / RDMA map)
+- Fixes commit `0d4597c8c5ab` is in this tree
+- 1-file, 4-line change; `unpin_user_pages_dirty_lock()` already used
+  elsewhere in RDS here
+- Applies cleanly
+- Author is RDS; merged by netdev
+- Sleeping unpin is safe on verified 5.10 call chains
 
-Step 6.1: DOES THE BUGGY CODE EXIST IN THIS TREE?
-Record: Yes. This checkout is **5.10.270** (`pending-5.10`, `git
-describe` `p-5.10-1-gce56b7a73b64b`).
-- `net/rds/rdma.c:500` and `:517` call `unpin_user_pages_dirty_lock()`
-- `rds_ib_tasklet_fn_send` still a tasklet
-- `rds_pin_pages()` uses `FOLL_LONGTERM`
-- Introduced by `0d4597c8c5ab` (v5.7-era), present on this branch
+**AGAINST:**
+- RDS/IB is not a universal path
+- Kicinski did not deeply review and put the series in net-next
+- No public crash/syzbot report
+- Series mates 1–3 are separate bugs (not blockers)
 
-Step 6.2: CHECK FOR BACKPORT COMPLICATIONS
-Record: Semantic apply is straightforward. `rdma.c` / `rds.h` match the
-old side of the diff. `message.c` context after `rds_message_put()`
-still assigns `hdr->h_exthdr[0]` instead of `memset` of the ext header —
-**minor context conflict**, not a rework. `work_struct` / `queue_work` /
-`in_task()` are available (`rds.h` → `sock.h` → `netdevice.h` →
-`workqueue.h`; `hardirq.h` → `preempt.h`). `rds_wq` is destroyed on
-module exit.
+**UNRESOLVED:** No stable@ thread found; WebFetch to lore HTML returned
+403 (thread recovered via `b4` + openwall + curl).
 
-Step 6.3: CHECK IF RELATED FIXES ARE ALREADY HERE
-Record: No equivalent deferred-unpin fix. `338a3ba30c5ef` is a different
-deadlock.
+**Step 9.2: STABLE RULES CHECKLIST**
 
-===============================================================
-PHASE 7: SUBSYSTEM AND MAINTAINER CONTEXT
-===============================================================
-
-Step 7.1: IDENTIFY THE SUBSYSTEM AND ITS CRITICALITY
-Record: [net/rds] IMPORTANT for RDS-over-IB (Oracle RAC / HPC). Not core
-networking; production users of 5.10 LTS do run this.
-
-Step 7.2: ASSESS SUBSYSTEM ACTIVITY
-Record: Mature. Core free/put path has been stable for years; this is a
-long-standing latent bug, not churn on new code.
-
-===============================================================
-PHASE 8: IMPACT AND RISK ASSESSMENT
-===============================================================
-
-Step 8.1: DETERMINE WHO IS AFFECTED
-Record: Config-specific / driver-specific: `CONFIG_RDS` +
-`CONFIG_RDS_RDMA`, IB completions of RDMA READ / atomic ops against
-pinned user memory (including MAP_SHARED file pages).
-
-Step 8.2: DETERMINE THE TRIGGER CONDITIONS
-Record: Common on RDS RDMA READ completion. Timing-dependent on folio
-already locked (writeback). Unprivileged user with an RDS socket and
-registered memory can hit it. Not every boot.
-
-Step 8.3: DETERMINE THE FAILURE MODE SEVERITY
-Record: Sleep in softirq / `lock_page()` from tasklet → deadlock or
-crash. **CRITICAL**. File-backed `set_page_dirty()` alternative would
-also be CRITICAL (fs lock deadlock / mapping UAF).
-
-Step 8.4: CALCULATE RISK-BENEFIT RATIO
-Record:
-- Benefit: high for RDS/IB users (prevents deadlock/oops on a real
-  completion path)
-- Risk: low–medium (workqueue deferral, ~70 lines, one subsystem; worker
-  does not call into the IB module)
-- Ratio: benefit outweighs risk. Larger than a 5-line NULL check, but
-  the pattern is standard and v4 was specifically reduced to avoid
-  unload races.
-
-===============================================================
-PHASE 9: FINAL SYNTHESIS
-===============================================================
-
-Step 9.1: COMPILE THE EVIDENCE
-FOR:
-- Sleep in softirq is a real, important bug
-- Path exists on this 5.10 tree and is userspace-reachable via RDS RDMA
-- Fixes target `0d4597c8c5ab` is in the tree
-- Small, RDS-only, no new uAPI
-- Needed kernel APIs exist
-- v4 design addresses earlier review NAKs
-- `destroy_workqueue(rds_wq)` drains deferred work
-- RDS maintainer-authored; netdev applied it upstream
-
-AGAINST:
-- ~70 lines and a new work item (not a one-liner)
-- Queued to net-next; Kicinski was uneasy reviewing it
-- No syzbot/Tested-by on the committed message
-- Trivial `message.c` context tweak for `rds_message_populate_header()`
-
-UNRESOLVED:
-- Could not fetch lore.kernel.org in-browser (403); used b4 mbox instead
-- No evidence of a later revert or follow-up for `d100966325f7` (search
-  did not turn one up)
-
-Step 9.2: APPLY THE STABLE RULES CHECKLIST
-1. Obviously correct and tested? **PASS** — v4 is the review-fixed
-   design; mechanism matches the bug. (Confidence is “good”, not
-   “trivial one-liner”.)
-2. Fixes a real bug that affects users? **PASS**
-3. Important issue? **PASS** — deadlock/crash, CRITICAL
-4. Small and contained? **PASS** — 3 files, RDS only
+1. Obviously correct and tested? **PASS** — pin-API contract; same
+   helper already in-tree RDS; merged to net-next
+2. Fixes a real bug that affects users? **PASS** — pinned pages never
+   freed on MR teardown
+3. Important (crash/security/corruption/deadlock)? **PASS** —
+   unreclaimable leak on a hot RDS RDMA path, up to 1 MiB per map plus
+   reuse; eventual OOM
+4. Small and contained? **PASS** — one function, −3/+1
 5. No new features or APIs? **PASS**
-6. Can apply to the local tree? **PASS** — code present; at most a minor
-   context adjustment
+6. Can apply to the local tree? **PASS** — `git apply --check` clean;
+   helpers present
 
-Step 9.3: CHECK FOR EXCEPTION CATEGORIES
-Record: None (not a device ID/quirk/DT/build/docs exception). Qualifies
-as a normal important bugfix.
+**Step 9.3: EXCEPTION CATEGORIES**
 
-Step 9.4: MAKE YOUR DECISION
-This tree still unpins and dirties RDMA/atomic pages in the IB send
-tasklet. That can sleep. Deferring only that unpin onto existing
-`rds_wq` is the right fix here and does not need the rest of the v4
-series.
+Record: None. Ordinary bug fix (not ID/quirk/DT/build/docs).
 
-What it solves for 5.10 users: RDS-over-InfiniBand RDMA READ/atomic
-completion can call `lock_page()` in softirq, which can deadlock or
-crash. That is exactly the class of bug stable is for.
+**Step 9.4: DECISION**
 
-Risk vs benefit: contained RDS change, process-context unpin, workqueue
-drained on unload. Benefit is preventing a serious completion-path
-failure.
+This is a small, obviously correct leak fix for a bug that has been in
+this 5.10 tree since day one. It does not need the rest of the v4
+series. Benefit for RDS/IB users outweighs the low regression risk.
 
-Concerns: expect a small `message.c` context edit around
-`rds_message_populate_header()`; do not pull series patches 2–4 as
-prerequisites.
+---
 
-Verification:
-- [Phase 1] Tags: SOB Henderson/Kicinski; Link msgid; lore v4 had Fixes:
-  0d4597c8c5ab
-- [Phase 2] Diff: defer dirtying unpin via work item; RDMA write still
-  unpins in caller
-- [Phase 3] `git describe` / Makefile: 5.10.270; blame unpin lines →
-  0d4597c8c5ab; ancestor check exit 0
-- [Phase 3] `338a3ba30c5ef` is a different recv.c deadlock
-- [Phase 4] `b4 mbox`: 8 msgs, v1–v4, applied as d100966325f7; Kicinski
-  queued net-next
-- [Phase 4] WebFetch lore/msgid.link: 403; discussion from b4 + openwall
-- [Phase 5] Call chain verified in ib_cm.c / ib_send.c;
-  `set_page_dirty_lock()` uses `lock_page()` in mm/page-writeback.c
-- [Phase 5] Other `rds_rdma_free_op()` caller is process-context error
-  path in rdma.c:796
-- [Phase 6] Local rdma.c still has sleeping unpin; `in_task()` and
-  `rds_wq` exist; messages kzalloc’d
-- [Phase 6] Header context differs (`h_exthdr[0]` vs memset) — minor
-  backport
-- [Phase 8] Failure mode: sleep-in-softirq / deadlock, CRITICAL
-- UNVERIFIED: live lore HTML; no later revert found
+### What the commit solves for this tree
+
+`rds_pin_pages()` already pins with `pin_user_pages_fast()` (`FOLL_PIN`,
++1024 refs). IB teardown still `put_page()`s once, so every MR teardown
+permanently leaks those pages. Replacing that with
+`unpin_user_pages_dirty_lock()` restores the pin/unpin pairing and
+dirties under the page lock. That matters to 5.10 RDS-over-InfiniBand
+users (clusters using `RDS_GET_MR` / RDMA ops): memory is not optional
+reclaim, it is stuck until reboot.
+
+### Risk vs benefit
+
+Benefit is a real, repeating leak on a syscall-visible path. Risk is a
+one-line helper swap on paths that already take a mutex and
+`wait_event`. The patch applies without rework.
+
+---
+
+### Verification
+
+- [Phase 1] Parsed candidate tags: Allison Henderson SOB, msgid.link,
+  Kicinski SOB; lore copy also has `Fixes: 0d4597c8c5ab`
+- [Phase 2] Diff: `__rds_ib_teardown_mr()` in `net/rds/ib_rdma.c`,
+  replace WARN/`set_page_dirty`/`put_page` with
+  `unpin_user_pages_dirty_lock(&page, 1, true)`
+- [Phase 3] `git describe`/Makefile: local tree **5.10.270**, branch
+  `pending-5.10`
+- [Phase 3] `git blame`: put_page since 2009; WARN_ON from
+  `5c240fa2ab394a` (2015)
+- [Phase 3] `git show 0d4597c8c5abd`: pin conversion of `rdma.c` only;
+  `git merge-base --is-ancestor` → in HEAD
+- [Phase 3] `git show dbfe7d74376e1`: only `info.c`, not this leak
+- [Phase 3] Read `mm/gup.c`: `pin_user_pages_fast()` sets `FOLL_PIN`;
+  `unpin_user_pages_dirty_lock()` / `put_compound_head(..., FOLL_PIN)`
+  apply `GUP_PIN_COUNTING_BIAS` (1024)
+- [Phase 3] Read local `net/rds/rdma.c` `rds_pin_pages()` and
+  `ib_rdma.c` teardown: mismatch confirmed
+- [Phase 4] `b4 am`/`b4 mbox`: v4 4/4 series; merged as `a507023e6ff1`;
+  Kicinski queued for net-next; no NAK
+- [Phase 4] Openwall https://lists.openwall.net/netdev/2026/07/30/66
+  matches the diff
+- [Phase 4] lore HTML WebFetch: 403; thread recovered via b4
+- [Phase 5] Callers: `rds_ib_map_frmr` (syscall), `rds_ib_unreg_frmr`
+  via `rds_ib_flush_mr_pool` (mutex + workqueue); `rds_ib_free_mr`
+  defers flush when `in_interrupt()`
+- [Phase 5] `RDS_MAX_MSG_SIZE` = 1 MiB in `net/rds/rds.h`
+- [Phase 6] Buggy code present at `ib_rdma.c:258-260`; `git apply
+  --check` succeeded
+- [Phase 6] `unpin_user_pages_dirty_lock` already used in
+  `net/rds/rdma.c` and `net/rds/info.c`
+- [Phase 7] `MAINTAINERS`: RDS supported (Santosh Shilimkar / Oracle)
+- [Phase 8] Failure mode: unreclaimable FOLL_PIN leak, HIGH for RDS_RDMA
+- UNVERIFIED: no public syzbot/user report; no stable@ thread found
 
 **YES**
 
- net/rds/message.c | 26 +++++++++++++++++++++++++
- net/rds/rdma.c    | 49 ++++++++++++++++++++++++++++++++++++-----------
- net/rds/rds.h     | 10 ++++++++++
- 3 files changed, 74 insertions(+), 11 deletions(-)
+ net/rds/ib_rdma.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/net/rds/message.c b/net/rds/message.c
-index 19202aa33f6f4..bdd340f4cce65 100644
---- a/net/rds/message.c
-+++ b/net/rds/message.c
-@@ -180,6 +180,19 @@ static void rds_message_purge(struct rds_message *rm)
- 		kref_put(&rm->atomic.op_rdma_mr->r_kref, __rds_put_mr_final);
- }
+diff --git a/net/rds/ib_rdma.c b/net/rds/ib_rdma.c
+index 751755cd069e0..36fd8dedbce56 100644
+--- a/net/rds/ib_rdma.c
++++ b/net/rds/ib_rdma.c
+@@ -251,9 +251,7 @@ void __rds_ib_teardown_mr(struct rds_ib_mr *ibmr)
  
-+static void rds_message_unpin_worker(struct work_struct *work)
-+{
-+	struct rds_message *rm = container_of(work, struct rds_message,
-+					      m_unpin_work);
-+
-+	if (rm->rdma.op_unpin_deferred)
-+		rds_rdma_op_unpin_pages(&rm->rdma);
-+	if (rm->atomic.op_unpin_deferred)
-+		rds_atomic_op_unpin_page(&rm->atomic);
-+
-+	kfree(rm);
-+}
-+
- void rds_message_put(struct rds_message *rm)
- {
- 	rdsdebug("put rm %p ref %d\n", rm, refcount_read(&rm->m_refcount));
-@@ -187,8 +200,21 @@ void rds_message_put(struct rds_message *rm)
- 	if (refcount_dec_and_test(&rm->m_refcount)) {
- 		BUG_ON(!list_empty(&rm->m_sock_item));
- 		BUG_ON(!list_empty(&rm->m_conn_item));
-+
- 		rds_message_purge(rm);
+ 			/* FIXME we need a way to tell a r/w MR
+ 			 * from a r/o MR */
+-			WARN_ON(!page->mapping && irqs_disabled());
+-			set_page_dirty(page);
+-			put_page(page);
++			unpin_user_pages_dirty_lock(&page, 1, true);
+ 		}
+ 		kfree(ibmr->sg);
  
-+		/* A final put in atomic context cannot dirty the ops'
-+		 * user pages on unpin, so rds_rdma_free_op() and
-+		 * rds_atomic_free_op() deferred it.  Finish the unpin,
-+		 * and the free, from process context.
-+		 */
-+		if (rm->rdma.op_unpin_deferred ||
-+		    rm->atomic.op_unpin_deferred) {
-+			INIT_WORK(&rm->m_unpin_work, rds_message_unpin_worker);
-+			queue_work(rds_wq, &rm->m_unpin_work);
-+			return;
-+		}
-+
- 		kfree(rm);
- 	}
- }
-diff --git a/net/rds/rdma.c b/net/rds/rdma.c
-index 34d9333e4229f..37695056756be 100644
---- a/net/rds/rdma.c
-+++ b/net/rds/rdma.c
-@@ -483,22 +483,36 @@ void rds_rdma_unuse(struct rds_sock *rs, u32 r_key, int force)
- 		kref_put(&mr->r_kref, __rds_put_mr_final);
- }
- 
--void rds_rdma_free_op(struct rm_rdma_op *ro)
-+void rds_rdma_op_unpin_pages(struct rm_rdma_op *ro)
- {
- 	unsigned int i;
- 
-+	for (i = 0; i < ro->op_nents; i++) {
-+		struct page *page = sg_page(&ro->op_sg[i]);
-+
-+		/* Mark page dirty if it was possibly modified, which
-+		 * is the case for a RDMA_READ which copies from remote
-+		 * to local memory
-+		 */
-+		unpin_user_pages_dirty_lock(&page, 1, !ro->op_write);
-+	}
-+}
-+
-+void rds_rdma_free_op(struct rm_rdma_op *ro)
-+{
- 	if (ro->op_odp_mr) {
- 		kref_put(&ro->op_odp_mr->r_kref, __rds_put_mr_final);
-+	} else if (in_task() || ro->op_write) {
-+		/* An RDMA write's pages are only read by the remote
-+		 * side; unpinning without dirtying does not sleep.
-+		 */
-+		rds_rdma_op_unpin_pages(ro);
- 	} else {
--		for (i = 0; i < ro->op_nents; i++) {
--			struct page *page = sg_page(&ro->op_sg[i]);
--
--			/* Mark page dirty if it was possibly modified, which
--			 * is the case for a RDMA_READ which copies from remote
--			 * to local memory
--			 */
--			unpin_user_pages_dirty_lock(&page, 1, !ro->op_write);
--		}
-+		/* Dirtying the pages on unpin can sleep; leave them
-+		 * pinned and have rds_message_put() finish the unpin
-+		 * from process context.
-+		 */
-+		ro->op_unpin_deferred = 1;
- 	}
- 
- 	kfree(ro->op_notifier);
-@@ -507,7 +521,7 @@ void rds_rdma_free_op(struct rm_rdma_op *ro)
- 	ro->op_odp_mr = NULL;
- }
- 
--void rds_atomic_free_op(struct rm_atomic_op *ao)
-+void rds_atomic_op_unpin_page(struct rm_atomic_op *ao)
- {
- 	struct page *page = sg_page(ao->op_sg);
- 
-@@ -515,6 +529,19 @@ void rds_atomic_free_op(struct rm_atomic_op *ao)
- 	 * is the case for a RDMA_READ which copies from remote
- 	 * to local memory */
- 	unpin_user_pages_dirty_lock(&page, 1, true);
-+}
-+
-+void rds_atomic_free_op(struct rm_atomic_op *ao)
-+{
-+	if (in_task()) {
-+		rds_atomic_op_unpin_page(ao);
-+	} else {
-+		/* Dirtying the page on unpin can sleep; leave it
-+		 * pinned and have rds_message_put() finish the unpin
-+		 * from process context.
-+		 */
-+		ao->op_unpin_deferred = 1;
-+	}
- 
- 	kfree(ao->op_notifier);
- 	ao->op_notifier = NULL;
-diff --git a/net/rds/rds.h b/net/rds/rds.h
-index a029e5fcdea72..a4816da162930 100644
---- a/net/rds/rds.h
-+++ b/net/rds/rds.h
-@@ -424,6 +424,12 @@ struct rds_message {
- 
- 	void			*m_final_op;
- 
-+	/* Unpins the ops' user pages and frees the message from
-+	 * process context when the final put happens in atomic
-+	 * context: dirtying the pages on unpin can sleep.
-+	 */
-+	struct work_struct	m_unpin_work;
-+
- 	struct {
- 		struct rm_atomic_op {
- 			int			op_type;
-@@ -447,6 +453,7 @@ struct rds_message {
- 			unsigned int		op_mapped:1;
- 			unsigned int		op_silent:1;
- 			unsigned int		op_active:1;
-+			unsigned int		op_unpin_deferred:1;
- 			struct scatterlist	*op_sg;
- 			struct rds_notifier	*op_notifier;
- 
-@@ -462,6 +469,7 @@ struct rds_message {
- 			unsigned int		op_mapped:1;
- 			unsigned int		op_silent:1;
- 			unsigned int		op_active:1;
-+			unsigned int		op_unpin_deferred:1;
- 			unsigned int		op_bytes;
- 			unsigned int		op_nents;
- 			unsigned int		op_count;
-@@ -938,6 +946,8 @@ int rds_cmsg_rdma_map(struct rds_sock *rs, struct rds_message *rm,
- 			  struct cmsghdr *cmsg);
- void rds_rdma_free_op(struct rm_rdma_op *ro);
- void rds_atomic_free_op(struct rm_atomic_op *ao);
-+void rds_rdma_op_unpin_pages(struct rm_rdma_op *ro);
-+void rds_atomic_op_unpin_page(struct rm_atomic_op *ao);
- void rds_rdma_send_complete(struct rds_message *rm, int wc_status);
- void rds_atomic_send_complete(struct rds_message *rm, int wc_status);
- int rds_cmsg_atomic(struct rds_sock *rs, struct rds_message *rm,
 -- 
 2.53.0
 
