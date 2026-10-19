@@ -1,272 +1,489 @@
-Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.5])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 116A23A8756;
-	Mon, 19 Oct 2026 04:32:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92CB747F3C1
+	for <linux-rdma@vger.kernel.org>; Mon, 19 Oct 2026 04:35:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792384356; cv=none; b=fiTr1hjlE3ps8H+ulnpP4fAXP+ylI+ukCABlO6ktB1IMmWFU6DvihnYd4I4/ldZ2tWuVF4PWznu3AzTYIl+jPd/VuhpRvh8r/xg+1zcTSzDS23vcGTQX8cFOTz0riQKxT5IymF4DTJu09+hhfW/smhWNVztnfy/iKBdZWWvYflY=
+	t=1792384554; cv=none; b=HGar/uCNYi8gLxy5zoc+sa7ii37VFzWnkc6/tgLDSmHeErgiMuN2igLW/rtl3+/NckBve+lXDB+71Q8rQN1FYCfJ3H7yi+eKXbfAsAdAtr/how5A3mqgPby/hkWbm5lSHniWSGVMgwFnt7ftp3ofSIZPIXPL7Hs32VfDqpqJSBQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792384356; c=relaxed/simple;
-	bh=tCbT8qZv3KnB9a27lq/xJligLMw7fgL2mpBzU7PgkrU=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Z/NAyv0szHiRdPwqfv1o2a8QhBRIsrpSGctUeAfuYBqbfQKMMi2xQDF4dubiDkOGBx0/8pwD212ZDs3/z13apAxJxNvutMcNetTeolKK69NviU34L0PfeRoPFnwm+sFkx0BM87z12vjit3C/8A+Whb42O28KR+/JVR5NYSQByhs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=o+bRu9DI; arc=none smtp.client-ip=220.197.31.5
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+	s=arc-20240116; t=1792384554; c=relaxed/simple;
+	bh=lvu5ZjHrP/szEhDcCXmETt9Vo3Q5yyKdFftFu3BGnHI=;
+	h=Message-ID:From:Subject:To:In-Reply-To:References:Content-Type:
+	 Date; b=r+1fvvfd0WO08EGYy7ZeDpoggjTV/qo6+u3cb8xeniXpjkXFaNcGbtsCVelD66vJAxX23p9b2dWTavlXi1+GVhN/hdowCZ/3MrXTInwyGNWVP/F1bPL0W0vC/2LNJtNi+nGxDvimOlESzGnVgpAGZzZNREW9UXjx5aSvCN+lB5E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JCIoFxAK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="o+bRu9DI"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=5o
-	h545sb/eMSgu56KNqxAk9hRVcUgeao4mc8tHKFbhw=; b=o+bRu9DIJK5SQCIBml
-	DXbwF2qVNo9xgFzNTWiGnFxfHBP8aGkJdYcBoaSf3Jha+JgbzJFCULhvI+faWXI3
-	JCWH5l0guFeBFM4FhYtMFopEaBv8bqbqMcW9CgW4243FYq/6r1qIOhIRSmMbPldX
-	2gXwVhhx6i+to886I8BomFODs=
-Received: from colol4bi5.localdomain (unknown [])
-	by gzga-smtp-mtada-g0-1 (Coremail) with SMTP id _____wD3H19HndVqZpt1BA--.1993S2;
-	Mon, 19 Oct 2026 12:32:07 +0800 (CST)
-From: Binbin Deng <18983559317@163.com>
-To: zyjzyj2000@gmail.com,
-	jgg@ziepe.ca,
-	leon@kernel.org
-Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Binbin Deng <18983559317@163.com>
-Subject: [PATCH v3] RDMA/rxe: Fix use-after-free of the per-net tunnel socket
-Date: Mon, 19 Oct 2026 12:32:04 +0800
-Message-ID: <20261019043205.466134-1-18983559317@163.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JCIoFxAK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B26D91F000C4;
+	Mon, 19 Oct 2026 04:35:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792384546;
+	bh=yc8ZGBIkjC9CPG1S1DXZZVE1ZCitd6GvePsqYUvtBXM=;
+	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
+	b=JCIoFxAK4+qfn6WNUZt7ra8QqQZz+qqjq+xvhx/LkRtcPTlt5RifaotKIyLTYPqUc
+	 HeXJETRkrF2cPqDJpSXj55qvbjI5afUx1p1i5nTjFf89HUATYcVTAXDZ6lruRxbqYo
+	 ubzK/vo96t5ZigLYL+jDmDn4+l5tJkzDj11Exw89Ki+FsRAzILXZGLw8keRufDXHpK
+	 zApq1CC/Bczo5vkrkkW2Uc9G2nq2lU+IUu+PQxW4mvrP9UjFJmV+U8taBp6aD4zlBb
+	 DmHkyK30pHK2eBc+8yl8E53MCvkZJtnmfeo/JxfinRQHb7dzfju0ntF8ntQKqQ38Yv
+	 Du4i9HK4mPO0g==
+Message-ID: <sashiko-outbox-176639@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH 1/2] selftests/rdma: Introduce eBPF kernel and user dump
+ utilities for RXE
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Zhu Yanjun" <yanjun.zhu@linux.dev>, linux-rdma@vger.kernel.org
+In-Reply-To: <20261019041912.29488-2-yanjun.zhu@linux.dev>
+References: <20261019041912.29488-1-yanjun.zhu@linux.dev>
+ <20261019041912.29488-2-yanjun.zhu@linux.dev>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Mon, 19 Oct 2026 04:35:46 +0000
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:_____wD3H19HndVqZpt1BA--.1993S2
-X-Coremail-Antispam: 1Uf129KBjvJXoW3Jw1xJF13CF1DZrWDKF1xXwb_yoW3Zr47pr
-	WrKayYyrsrJr42vr43AF4jvr1Fv3Z3tFy3Gas7Kwnavan8uw43Xa47tryj9Fn5CrW8CF4U
-	XF1kJF1vkw4rZrJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07UwVysUUUUU=
-X-CM-SenderInfo: jprymmytvvmjmrxbiqqrwthudrp/xtbC+weIbGrVnUcUywAA3i
 
-KASAN reported a slab-use-after-free in ip6_route_output_flags()
-reached from rxe_find_route(): a user with CAP_NET_ADMIN can remove
-an RXE device with "rdma link del rxe0" while RoCE v2 over IPv6
-traffic keeps using the per-net tunnel socket for route lookups.
+Thank you for your contribution! Sashiko AI review found 6 potential issue(=
+s) to consider:
+- [Medium] selftests/rdma: packet length modulo mask in handle_netkit_ingre=
+ss()
+- [Medium] selftests/rdma: out-of-bounds read and NULL deref in print_bpf_o=
+utput()
+- [Medium] selftests/rdma: unpacked rxe_atmeth and 32-bit ntohl() on 64-bit=
+ fields
+- [Medium] selftests/rdma: wrong SEC(tcx/ingress) for bpf_program__attach_n=
+etkit()
+- [Medium] selftests/rdma: unchecked ring_buffer__new() and error handling =
+in main()
+- [Low] selftests/rdma: missing -I$(OUTPUT) for skel header in out-of-tree =
+build
+--
 
-BUG: KASAN: slab-use-after-free in ip6_route_output_flags+0x300/0x360
-Read of size 4 at addr ffff888115ddd794 by task kworker/u32:6/309
-Call Trace:
- <TASK>
- dump_stack_lvl+0x53/0x70
- print_report+0xd0/0x630
- ? __pfx__raw_spin_lock_irqsave+0x10/0x10
- ? ip6_route_output_flags+0x300/0x360
- kasan_report+0xce/0x100
- ? ip6_route_output_flags+0x300/0x360
- ip6_route_output_flags+0x300/0x360
- ip6_dst_lookup_tail.constprop.0+0x76c/0xcc0
- ? ct_nmi_exit+0xc3/0xf0
- ip6_dst_lookup_flow+0xf5/0x1e0
- ? __pfx_ip6_dst_lookup_flow+0x10/0x10
- rxe_find_route+0x426/0xa30
- ? __kasan_slab_alloc+0x6e/0x70
- ? __pfx_rxe_find_route+0x10/0x10
- ? kmem_cache_alloc_node_noprof+0x141/0x370
- ? kmalloc_reserve+0x103/0x2b0
- ? rxe_icrc_generate+0x229/0x330
- ? __pfx___alloc_skb+0x10/0x10
- rxe_prepare+0x9e8/0x18b0
- ? rxe_init_packet+0x3c7/0x4f0
- rxe_requester+0x1a0f/0x51f0
- ? rxe_completer+0x1de9/0x38c0
- ? __pfx_rxe_completer+0x10/0x10
- ? __queue_work+0x43e/0x11f0
- ? __pfx_rxe_requester+0x10/0x10
- ? irqentry_exit+0xd2/0x640
- ? _raw_spin_lock_irqsave+0x85/0xe0
- ? __pfx__raw_spin_lock_irqsave+0x10/0x10
- ? __pfx_rxe_sender+0x10/0x10
- rxe_sender+0xe/0x30
- do_work+0x144/0x470
- process_one_work+0x633/0x1030
- ? assign_work+0x11d/0x370
- worker_thread+0x45b/0xd10
- ? __pfx_worker_thread+0x10/0x10
- kthread+0x2c6/0x3b0
- ? recalc_sigpending+0x15c/0x1e0
- ? __pfx_kthread+0x10/0x10
- ret_from_fork+0x36e/0x5a0
- ? __pfx_ret_from_fork+0x10/0x10
- ? __switch_to+0x572/0xdd0
- ? __pfx_kthread+0x10/0x10
- ret_from_fork_asm+0x1a/0x30
- </TASK>
+commit 204669a3455849a1a36762bf8c4136de9ad033c1
+Author: Zhu Yanjun <yanjun.zhu@linux.dev>
 
-Allocated by task 146020:
- kasan_save_stack+0x33/0x60
- kasan_save_track+0x14/0x30
- __kasan_slab_alloc+0x6e/0x70
- kmem_cache_alloc_noprof+0x130/0x360
- sk_prot_alloc+0x56/0x210
+selftests/rdma: Introduce eBPF kernel and user dump utilities for RXE
 
-rxe_net_del() releases the tunnel socket before the device is torn
-down: nldev_dellink() calls .dellink before unregistering the
-device, and the NETDEV_UNREGISTER notifier calls rxe_net_del() right
-after queueing the unregistration, so the rxe_sender() workqueue can
-still perform route lookups while the socket is released.
+This commit adds eBPF kernel and user-space packet dump utilities to capture
+and parse Soft-RoCE (RXE) traffic over netkit devices in the RDMA selftests.
 
-Two gaps in the tunnel socket lifetime allow the use-after-free:
+> diff --git a/tools/testing/selftests/rdma/Makefile b/tools/testing/selfte=
+sts/rdma/Makefile
+> index a91c14c45006e..6e099cabf90b2 100644
+> --- a/tools/testing/selftests/rdma/Makefile
+> +++ b/tools/testing/selftests/rdma/Makefile
+> @@ -4,6 +4,27 @@ TEST_PROGS :=3D rxe_rping_between_netns.sh \
+>  		rxe_socket_with_netns.sh \
+>  		rxe_test_NETDEV_UNREGISTER.sh \
+>  		rxe_sent_rcvd_bytes.sh \
+> -		rxe_netns_names.sh
+> +		rxe_netns_names.sh \
+> +		rxe_pkg_netkit.sh
+> =20
+> +TEST_GEN_PROGS_EXTENDED :=3D rxe_netkit_dump
+>  include ../lib.mk
+> +
+> +CLANG	?=3D clang
+> +LLC	?=3D llc
+> +BPFTOOL	?=3D bpftool
+> +
+> +INCLUDES	:=3D -I../../../../usr/include -I../../../../include/uapi -I../=
+bpf
+> +CFLAGS		+=3D -g -Wall $(INCLUDES)
+> +LDFLAGS		+=3D -lbpf -lelf -lz
+> +
+> +$(OUTPUT)/rxe_netkit_dump: rxe_pkg_user_dump.c $(OUTPUT)/rxe_pkg_kernel.=
+skel.h
+> +	$(CC) $(CFLAGS) $< $(LDFLAGS) -o $@
+> +
+> +$(OUTPUT)/rxe_pkg_kernel_dump.o: rxe_pkg_kernel_dump.c
+> +	$(CLANG) -g -O2 -target bpf -D__TARGET_ARCH_x86 $(INCLUDES) -c $< -o $@
+> +
+> +$(OUTPUT)/rxe_pkg_kernel.skel.h: $(OUTPUT)/rxe_pkg_kernel_dump.o
+> +	$(BPFTOOL) gen skeleton $< > $@
 
-1. rxe_sock_put() released the socket with rxe_release_udp_tunnel()
-   before the per-net pointer was cleared, so route lookups could
-   fetch a socket that was already freed.
+[Severity: Low]
+Will out-of-tree selftest builds (with O=3D... or OUTPUT=3D...) fail to loc=
+ate
+rxe_pkg_kernel.skel.h when compiling rxe_pkg_user_dump.c?
 
-2. rxe_ns_pernet_sk4/6() return the raw socket pointer after
-   rcu_read_unlock(), without taking a reference.  Readers like
-   rxe_find_route6() dereference the pointer outside the RCU
-   read-side critical section, so the synchronize_rcu() in
-   rxe_ns_pernet_set_sk4/6() cannot protect a reader that already
-   fetched the pointer, and ip6_route_output_flags() or
-   xfrm_lookup_with_ifid() can still be using the socket while it
-   is freed.
+The rule generates $(OUTPUT)/rxe_pkg_kernel.skel.h, and rxe_pkg_user_dump.c
+includes it with #include "rxe_pkg_kernel.skel.h", but INCLUDES does not
+contain -I$(OUTPUT).
 
-Fix both gaps:
+Also, should the $(OUTPUT)/rxe_pkg_kernel_dump.o rule derive the target
+architecture instead of hardcoding -D__TARGET_ARCH_x86?
 
-- rxe_sock_put() clears the per-net pointer before it releases the
-  socket, so no new lookup can fetch a socket that is being
-  released;
+[ ... ]
 
-- rxe_ns_pernet_sk4/6() take a reference on the socket with
-  refcount_inc_not_zero() under rcu_read_lock(), and the callers
-  sock_put() it after use.  The reference that rxe_net_ipv4/6_init()
-  keeps now comes from the getter instead of an open-coded
-  sock_hold() on the raw pointer, and rxe_sock_put() drops the
-  getter's reference after the tunnel is released.  Since the
-  reference is taken inside the RCU read-side critical section, the
-  synchronize_rcu() after the pointer is cleared guarantees that
-  every reader has finished taking its reference before the last
-  reference is dropped, so the count never reaches zero while a
-  reader still holds the pointer.
+> diff --git a/tools/testing/selftests/rdma/rxe_pkg_kernel_dump.c b/tools/t=
+esting/selftests/rdma/rxe_pkg_kernel_dump.c
+> new file mode 100644
+> index 0000000000000..54dfc8028e904
+> --- /dev/null
+> +++ b/tools/testing/selftests/rdma/rxe_pkg_kernel_dump.c
+> @@ -0,0 +1,67 @@
+> +// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
+> +/*
+> + * Copyright (c) 2026 Zhu Yanjun <yanjun.zhu@linux.dev>
+> + */
+> +
+> +#include <linux/bpf.h>
+> +#include <bpf/bpf_helpers.h>
+> +#include <linux/if_ether.h>
+> +#include <linux/ip.h>
+> +#include <arpa/inet.h>
+> +
+> +struct {
+> +	__uint(type, BPF_MAP_TYPE_RINGBUF);
+> +	__uint(max_entries, 256 * 1024);/* Shared by all CPUs */
+> +} rb SEC(".maps");
+> +
+> +SEC("tcx/ingress")
+> +int handle_netkit_ingress(struct __sk_buff *skb)
 
-The remaining races on the tunnel socket lifetime (serialization of
-rxe_net_init() against rxe_net_del(), a second rxe_net_del() of one
-device from the NETDEV_UNREGISTER notifier, and the per-device
-reference accounting of shared sockets) already exist in the code
-this fixes and are left for a follow-up series.
+[Severity: Medium]
+Should handle_netkit_ingress() use SEC("netkit/primary") or SEC("netkit/pee=
+r")
+instead of SEC("tcx/ingress")?
 
-Fixes: f1327abd6abe ("RDMA/rxe: Support RDMA link creation and destruction per net namespace")
-Signed-off-by: Binbin Deng <18983559317@163.com>
----
- drivers/infiniband/sw/rxe/rxe_net.c | 29 ++++++++++++++++++++---------
- drivers/infiniband/sw/rxe/rxe_ns.c  | 10 ++++++++++
- 2 files changed, 30 insertions(+), 9 deletions(-)
+In main() in rxe_pkg_user_dump.c, the program is attached with
+bpf_program__attach_netkit(), which uses bpf_program__expected_attach_type(=
+).
+Because SEC("tcx/ingress") sets the expected attach type to BPF_TCX_INGRESS,
+the kernel link_create path dispatches to tcx_link_attach() rather than
+netkit_link_attach().
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-index 53daaf4c1eb2..ec98133a6005 100644
---- a/drivers/infiniband/sw/rxe/rxe_net.c
-+++ b/drivers/infiniband/sw/rxe/rxe_net.c
-@@ -135,13 +135,20 @@ static struct dst_entry *rxe_find_route6(struct rxe_qp *qp,
- {
- 	struct dst_entry *ndst;
- 	struct flowi6 fl6 = {};
-+	struct sock *sk;
- 
- 	fl6.flowi6_oif = ndev->ifindex;
- 	memcpy(&fl6.saddr, saddr, sizeof(*saddr));
- 	memcpy(&fl6.daddr, daddr, sizeof(*daddr));
- 	fl6.flowi6_proto = IPPROTO_UDP;
- 
--	ndst = ip6_dst_lookup_flow(net, rxe_ns_pernet_sk6(net), &fl6, NULL);
-+	/* keep the socket pinned while it is passed to the IPv6 routing
-+	 * code which dereferences it outside of rcu_read_lock()
-+	 */
-+	sk = rxe_ns_pernet_sk6(net);
-+	ndst = ip6_dst_lookup_flow(net, sk, &fl6, NULL);
-+	if (sk)
-+		sock_put(sk);
- 	if (IS_ERR(ndst)) {
- 		rxe_dbg_qp(qp, "no route to %pI6\n", daddr);
- 		return NULL;
-@@ -638,9 +645,15 @@ static void rxe_sock_put(struct sock *sk,
- 	if (refcount_read(&sk->sk_refcnt) > SK_REF_FOR_TUNNEL) {
- 		__sock_put(sk);
- 	} else {
-+		/*
-+		 * Clear the per-net pointer before the socket is released:
-+		 * rxe_ns_pernet_sk4/6() take a reference on the socket, but
-+		 * new lookups must not find it once it is being released.
-+		 */
-+		set_sk(net, NULL);
- 		rxe_release_udp_tunnel(sk);
--		sk = NULL;
--		set_sk(net, sk);
-+		/* drop the reference from rxe_ns_pernet_sk4/6() */
-+		sock_put(sk);
- 	}
- }
- 
-@@ -758,11 +771,10 @@ static int rxe_net_ipv4_init(struct net *net)
- 	struct sock *sk;
- 	struct socket *sock;
- 
-+	/* returns with a reference held for this device */
- 	sk = rxe_ns_pernet_sk4(net);
--	if (sk) {
--		sock_hold(sk);
-+	if (sk)
- 		return 0;
--	}
- 
- 	sock = rxe_setup_udp_tunnel(net, htons(ROCE_V2_UDP_DPORT), false);
- 	if (IS_ERR(sock)) {
-@@ -780,11 +792,10 @@ static int rxe_net_ipv6_init(struct net *net)
- 	struct sock *sk;
- 	struct socket *sock;
- 
-+	/* returns with a reference held for this device */
- 	sk = rxe_ns_pernet_sk6(net);
--	if (sk) {
--		sock_hold(sk);
-+	if (sk)
- 		return 0;
--	}
- 
- 	sock = rxe_setup_udp_tunnel(net, htons(ROCE_V2_UDP_DPORT), true);
- 	if (PTR_ERR(sock) == -EAFNOSUPPORT) {
-diff --git a/drivers/infiniband/sw/rxe/rxe_ns.c b/drivers/infiniband/sw/rxe/rxe_ns.c
-index 64621c89f8bf..0a7d409c0f98 100644
---- a/drivers/infiniband/sw/rxe/rxe_ns.c
-+++ b/drivers/infiniband/sw/rxe/rxe_ns.c
-@@ -71,6 +71,12 @@ static struct pernet_operations rxe_net_ops = {
- 	.size = sizeof(struct rxe_ns_sock),
- };
- 
-+/*
-+ * Return the per-net tunnel socket with a reference taken, or NULL if
-+ * the namespace has no tunnel socket.  The reference is taken under
-+ * rcu_read_lock() so the socket cannot be freed while the pointer is
-+ * still published; the caller must sock_put() it.
-+ */
- struct sock *rxe_ns_pernet_sk4(struct net *net)
- {
- 	struct rxe_ns_sock *ns_sk = net_generic(net, rxe_pernet_id);
-@@ -78,6 +84,8 @@ struct sock *rxe_ns_pernet_sk4(struct net *net)
- 
- 	rcu_read_lock();
- 	sk = rcu_dereference(ns_sk->rxe_sk4);
-+	if (sk && !refcount_inc_not_zero(&sk->sk_refcnt))
-+		sk = NULL;
- 	rcu_read_unlock();
- 
- 	return sk;
-@@ -99,6 +107,8 @@ struct sock *rxe_ns_pernet_sk6(struct net *net)
- 
- 	rcu_read_lock();
- 	sk = rcu_dereference(ns_sk->rxe_sk6);
-+	if (sk && !refcount_inc_not_zero(&sk->sk_refcnt))
-+		sk = NULL;
- 	rcu_read_unlock();
- 
- 	return sk;
+> +{
+> +	/* Get the header pointer of skb */
+> +	void *data_end =3D (void *)(long)skb->data_end;
+> +	void *data =3D (void *)(long)skb->data;
+> +
+> +	struct ethhdr *eth =3D data;
+> +
+> +	/* Verify the data */
+> +	if (data + sizeof(*eth) > data_end)
+> +		return BPF_OK;
+> +
+> +	/* Check if it is IP skb */
+> +	if (eth->h_proto =3D=3D htons(ETH_P_IP)) {
+> +		struct iphdr *iph =3D data + sizeof(*eth);
+> +
+> +		if ((void *)iph + sizeof(*iph) <=3D data_end) {
+> +			bpf_printk("Got IP packet from netkit ingress, %d\n", skb->len);
+> +
+> +			__u32 len =3D skb->len & 0x1FF;
+> +
+> +			if (len =3D=3D 0) {
+> +				bpf_printk("len is 0\n");
+> +				return BPF_OK;
+> +			}
+> +
+> +			void *reserve =3D bpf_ringbuf_reserve(&rb, 512, 0);
+> +
+> +			if (!reserve) {
+> +				bpf_printk("bpf_ringbuf_reserve fails\n");
+> +				return BPF_OK;
+> +			}
+> +
+> +			if (bpf_skb_load_bytes(skb, 0, reserve, len) < 0) {
+> +				bpf_ringbuf_discard(reserve, 0);
+> +				bpf_printk("bpf_skb_load_bytes fails\n");
+> +				return BPF_OK;
+> +			}
+> +
+> +			bpf_ringbuf_submit(reserve, 0);
+> +		}
+> +	}
 
+[Severity: Medium]
+Does masking skb->len with 0x1FF in handle_netkit_ingress() truncate larger
+packets and leave part of the ring buffer record uninitialized?
+
+Using skb->len & 0x1FF computes skb->len modulo 512 rather than clamping the
+length to 512. Any packet whose length is a multiple of 512 bytes results in
+len =3D=3D 0 and is skipped, while packets larger than 512 bytes (such as a
+520-byte or 1082-byte RDMA frame) only copy the remainder (8 or 58 bytes).
+
+In addition, bpf_ringbuf_reserve(&rb, 512, 0) always reserves and submits a
+512-byte record to userspace, but bpf_skb_load_bytes() only writes len byte=
+s,
+leaving the trailing 512 - len bytes of reserve uninitialized.
+
+[ ... ]
+
+> diff --git a/tools/testing/selftests/rdma/rxe_pkg_user_dump.c b/tools/tes=
+ting/selftests/rdma/rxe_pkg_user_dump.c
+> new file mode 100644
+> index 0000000000000..39747ae1e06a3
+> --- /dev/null
+> +++ b/tools/testing/selftests/rdma/rxe_pkg_user_dump.c
+
+[ ... ]
+
+> +/***********************************************************************=
+*******
+> + * Atomic Extended Transport Header
+> + ***********************************************************************=
+*******/
+> +struct rxe_atmeth {
+> +	__be64			va;
+> +	__be32			rkey;
+> +	__be64			swap_add;
+> +	__be64			comp;
+> +} __packed;
+
+[Severity: Medium]
+Is __packed defined in this userspace program?
+
+Because __packed is a kernel macro not provided by the included userspace
+headers, this definition declares a global variable named __packed of type
+struct rxe_atmeth rather than applying __attribute__((packed)). On 64-bit
+architectures, 4 bytes of padding are inserted after rkey, shifting swap_add
+and comp by 4 bytes and changing RXE_ATMETH_BYTES from 28 to 32.
+
+[ ... ]
+
+> +static inline void print_reth(struct rxe_reth *reth)
+> +{
+> +	printf("struct rxe_reth {\n");
+> +	printf("\t__be64		va;\n");
+> +	printf("\t__be32		rkey;\n");
+> +	printf("\t__be32		len;\n");
+> +	printf("};\n");
+> +}
+> +
+> +#define AETH_MSN_MASK		(0x00ffffff)
+> +
+> +static inline u32 aeth_msn(struct rxe_aeth *aeth)
+> +{
+> +	return AETH_MSN_MASK & ntohl(aeth->smsn);
+> +}
+> +
+> +static inline void print_aeth(struct rxe_aeth *aeth)
+> +{
+> +	printf("struct rxe_aeth {\n");
+> +	printf("\t___be32		smsn; 0x%x\n", aeth_msn(aeth));
+> +	printf("};\n");
+> +}
+> +
+> +static inline u64 atmeth_va(struct rxe_atmeth *atmeth)
+> +{
+> +	return ntohl(atmeth->va);
+> +}
+> +
+> +static inline u32 atmeth_rkey(struct rxe_atmeth *atmeth)
+> +{
+> +	return ntohl(atmeth->rkey);
+> +}
+> +
+> +static inline u64 atmeth_swap_add(struct rxe_atmeth *atmeth)
+> +{
+> +	return ntohl(atmeth->swap_add);
+> +}
+> +
+> +static inline u64 atmeth_comp(struct rxe_atmeth *atmeth)
+> +{
+> +	return ntohl(atmeth->comp);
+> +}
+> +
+> +static inline void print_atmeth(struct rxe_atmeth *atmeth)
+> +{
+> +	printf("struct rxe_atmeth {\n");
+> +	printf("\t__be64		va;       0x%llx\n", atmeth_va(atmeth));
+> +	printf("\t__be32		rkey;     0x%x\n", atmeth_rkey(atmeth));
+> +	printf("\t__be64		swap_add; 0x%llx\n", atmeth_swap_add(atmeth));
+> +	printf("\t__be64		comp;     0x%llx\n", atmeth_comp(atmeth));
+> +	printf("} __packed;\n");
+> +}
+> +
+> +static inline u64 atmack_orig(struct rxe_atmack *atmack)
+> +{
+> +	return ntohl(atmack->orig);
+> +}
+
+[Severity: Medium]
+Don't atmeth_va(), atmeth_swap_add(), atmeth_comp(), and atmack_orig()
+truncate 64-bit fields by passing __be64 values to 32-bit ntohl() instead of
+be64toh() or __be64_to_cpu()?
+
+[ ... ]
+
+> +static inline __be32 immdt_imm(struct rxe_immdt *immdt)
+> +{
+> +	return immdt->imm;
+> +}
+> +
+> +static inline void print_immdt(struct rxe_immdt *immdt)
+> +{
+> +	printf("struct rxe_immdt {\n");
+> +	printf("\t__be32		imm; 0x%x\n", immdt_imm(immdt));
+> +	printf("};\n");
+> +}
+
+[Severity: Medium]
+Should immdt_imm() also convert immdt->imm with ntohl() to match the other
+header helpers?
+
+[ ... ]
+
+> +static void print_bpf_output(void *data, __u32 size)
+> +{
+> +	struct iphdr *iph =3D (struct iphdr *)data;
+> +	struct udphdr *udp_hdr;
+> +	struct rxe_bth *bth;
+> +
+> +	print_ipaddr(iph);
+> +	udp_hdr =3D (struct udphdr *)(data + sizeof(struct iphdr));
+> +
+> +	printf("udp hdr:\n");
+> +	print_udphdr(udp_hdr);
+> +	bth =3D (struct rxe_bth *)(data + sizeof(struct iphdr) + sizeof(struct =
+udphdr));
+> +
+> +	printf("%s\n", rxe_opcode[bth->opcode].name);
+> +	print_bth(bth);
+> +
+> +	for (int i =3D RXE_BTH + 1; i < NUM_HDR_TYPES; i++) {
+> +		int offset =3D rxe_opcode[bth->opcode].offset[i];
+> +
+> +		if (offset) {
+> +			char *cur_p =3D (char *)bth + offset;
+> +
+> +			switch (i) {
+
+[ ... ]
+
+> +			case	RXE_PAYLOAD:
+> +				printf("RXE_PAYLOAD\n");
+> +				int len =3D ntohs(udp_hdr->len) - rxe_opcode[bth->opcode].length;
+> +
+> +				for (int j =3D 0; j < len; j++) {
+> +					if (isprint(cur_p[j]))
+> +						printf("%c", cur_p[j]);
+> +					else
+> +						printf("%02x", cur_p[j]);
+> +				}
+> +				printf("\n");
+> +				break;
+> +			default:
+> +				break;
+> +			}
+> +		}
+> +	}
+> +
+> +	printf("\n");
+> +}
+
+[Severity: Medium]
+Can print_bpf_output() dereference a NULL opcode name or read past the end =
+of
+the ring buffer sample?
+
+First, neither handle_netkit_ingress() nor print_bpf_output() verifies that
+iph->protocol =3D=3D IPPROTO_UDP, that the UDP destination port is 4791 (Ro=
+CEv2),
+or that size covers the headers. Because only 58 of the 256 entries in
+rxe_opcode[] are populated, non-RoCEv2 IPv4 packets (such as TCP or ICMP
+during rping setup) or unpopulated opcodes have rxe_opcode[bth->opcode].name
+=3D=3D NULL, which crashes when passed to printf("%s\n", ...).
+
+Second, in the RXE_PAYLOAD case:
+
+	int len =3D ntohs(udp_hdr->len) - rxe_opcode[bth->opcode].length;
+
+this calculation does not subtract sizeof(struct udphdr), BTH padding, or t=
+he
+4-byte ICRC, and does not clamp len against size. When ntohs(udp_hdr->len)
+exceeds the 512-byte ring buffer record, the loop reads cur_p[j] past the e=
+nd
+of the buffer.
+
+Third, cur_p is a signed char pointer on x86_64, so bytes >=3D 0x80 pass
+negative values to isprint() and sign-extend in printf("%02x", cur_p[j]).
+Also, print_reth() above prints the field names of struct rxe_reth without
+printing the values of va, rkey, and len.
+
+> +
+> +static int handle_event(void *ctx, void *data, unsigned long data_sz)
+> +{
+> +	print_bpf_output(data+sizeof(struct ethhdr),
+> +			 data_sz-sizeof(struct ethhdr));
+> +	return 0;
+> +}
+> +
+> +int main(void)
+> +{
+> +	struct rxe_pkg_kernel_dump *skel;
+> +	int err;
+> +	struct ring_buffer *ringbuf =3D NULL;
+> +	struct rlimit rlim =3D { .rlim_cur =3D RLIM_INFINITY, .rlim_max =3D RLI=
+M_INFINITY };
+> +
+> +	if (setrlimit(RLIMIT_MEMLOCK, &rlim)) {
+> +		perror("setrlimit failed");
+> +		return 1;
+> +	}
+> +
+> +	skel =3D rxe_pkg_kernel_dump__open_and_load();
+> +	if (!skel) {
+> +		fprintf(stderr, "Failed to open and load BPF skeleton\n");
+> +		return 1;
+> +	}
+> +
+> +	int ifindex =3D if_nametoindex("nk1");
+> +
+> +	if (ifindex =3D=3D 0) {
+> +		perror("if_nametoindex nk1 failed");
+> +		return 1;
+> +	}
+> +
+> +	skel->links.handle_netkit_ingress =3D bpf_program__attach_netkit(
+> +		skel->progs.handle_netkit_ingress, ifindex, NULL);
+> +
+> +	if (!skel->links.handle_netkit_ingress) {
+> +		fprintf(stderr, "Failed to attach to netkit nk1\n");
+> +		goto cleanup;
+> +	}
+> +
+> +	err =3D rxe_pkg_kernel_dump__attach(skel);
+> +	if (err) {
+> +		fprintf(stderr, "Failed to attach BPF skeleton\n");
+> +		goto cleanup;
+> +	}
+> +
+> +	ringbuf =3D ring_buffer__new(bpf_map__fd(skel->maps.rb),
+> +				   handle_event, NULL, NULL);
+> +
+> +	while (1) {
+> +		err =3D ring_buffer__poll(ringbuf, 100 /* timeout */);
+> +		if (err < 0 && err !=3D -EINTR) {
+> +			fprintf(stderr, "poll error\n");
+> +			break;
+> +		}
+> +	}
+> +
+> +cleanup:
+> +	ring_buffer__free(ringbuf);
+> +	rxe_pkg_kernel_dump__destroy(skel);
+> +	return 0;
+> +}
+
+[Severity: Medium]
+What happens in main() if ring_buffer__new() returns NULL?
+
+ringbuf is passed directly to ring_buffer__poll(ringbuf, 100) without a NULL
+check, which dereferences rb->epoll_fd and crashes.
+
+Also, if if_nametoindex("nk1") fails, main() returns 1 without calling
+rxe_pkg_kernel_dump__destroy(skel), whereas the later error paths that jump=
+ to
+cleanup return 0 instead of a non-zero exit code. Finally, since
+handle_netkit_ingress is already attached via bpf_program__attach_netkit(),=
+ is
+the subsequent call to rxe_pkg_kernel_dump__attach(skel) needed?
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261019041912.2948=
+8-1-yanjun.zhu@linux.dev?part=3D1
