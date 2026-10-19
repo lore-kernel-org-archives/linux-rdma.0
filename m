@@ -1,327 +1,224 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53C864F30FF
-	for <linux-rdma@vger.kernel.org>; Mon, 19 Oct 2026 12:04:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AF2139B48D;
+	Mon, 19 Oct 2026 12:14:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792411442; cv=none; b=T0XPcLMFJhEmrBsvmsJHk3N5IToMa5CzOSs0teAR00TwUpQjJuWAvqU9Ioi7Aq1Xw0hmxBK9vELEykqtYYi/QppB/GIRbbcPFTwwBUpfJvEtlsHAfqJyIXEEx/Q4+1tLnnlRfT93FQgzlSR6tClVjLqfxQAnzvcC91efU1bJ8go=
+	t=1792412086; cv=none; b=MXKSkuwrfNo+wz3oirvpxYsGqaDZ9wmYI2ZVPgkRjpE0MCZovlhKEOG9oaSyiMId33Ik3XS9s5T0poWwERPGJfp5rxReDlsOxD33CiIDGHQ/fovOBS1lWeN5Vm+BnuhQsvmtMz58wL2NWRFzRWa6KrmsdnYBM0Rk5Ok5UcpXZeo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792411442; c=relaxed/simple;
-	bh=zrrG3NtHLXe2KPZsNVSF6yHCuYP0Jm17b2M9hoVlIiE=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=ojHaAaJClTucHvfxOSuS466Y04+GTlJG+Kb+ECCEIF9Ywho4qlt6kGfI2fmd6/37OZIRbHzY7xVhBwUvIndM2N8ZSNJ7JX8XF267lD6eFxv9c4YUD/wZSi0Jvugv3Qcc69dKZ9YORe+7nhStyg5/pBWzsDHyELzW84odC1amtlY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=MN9IpYG+; arc=none smtp.client-ip=192.198.163.13
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1792412086; c=relaxed/simple;
+	bh=Bh72GdJy53aQCViXarW7NDjGQCbaprPPJWXKTIogq3w=;
+	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=PZZnIzNQUSuJwlD8GDrBQ6g5YM7nkm/VdUwg1lHIa7wkfQfajjcMAR5hrF2VG0O18zPDEJBSd/5ji/JgOsO2VAgNm+GXJjY1sD7S2Um1JpbJUnJF4US8mZm3YY82dg+sNr6pcspHgPomQ3rfLAH33OEF+zFF6pFrOg2J/DIMKYE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AMKsmmrv; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="MN9IpYG+"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1792411441; x=1823947441;
-  h=date:from:to:cc:subject:message-id;
-  bh=zrrG3NtHLXe2KPZsNVSF6yHCuYP0Jm17b2M9hoVlIiE=;
-  b=MN9IpYG+cD1ECce7BECam1qaL+LLIFRgQRM4aZNDKUhZO4VuxojI3g5e
-   9pmMWmJRsSB84ODeZ1OgCGGwtp83GFFdF0fOf78HlCvUJiy75dn1idtd6
-   co5H0F/MaillGORrfQyY9euG+evRxYAUBehZKqMHhGz5bQdzxKeonN1Nu
-   TN/KtQ2WUhKDjVV7G6q5KeAhudyT2qKOu58UKEaYaBX1LK8j7go7vA5V4
-   ofvUV/QIv/516Z2y7yLDmk4udbchqA7ebtxDUZXBtDsTm1fPe+7FsQr7i
-   610rHL+hnAl+E/qy16+7rgauoA3stdgA7DgXvfVSXgODGr5QqzulcybI2
-   A==;
-X-CSE-ConnectionGUID: tsulN8fQS3Gzb9w2LBKiWg==
-X-CSE-MsgGUID: BN68V2g9T+yWcWtpwwOX1Q==
-X-IronPort-AV: E=McAfee;i="6800,10657,11939"; a="1076748"
-X-IronPort-AV: E=Sophos;i="6.27,167,1787036400"; 
-   d="scan'208";a="1076748"
-Received: from fmviesa013.fm.intel.com ([10.60.135.153])
-  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Oct 2026 05:03:57 -0700
-X-CSE-ConnectionGUID: MdPX8A7VQeKADypx33OT4g==
-X-CSE-MsgGUID: EfMWb+5wQzKdMHC/bROyZw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,167,1787036400"; 
-   d="scan'208";a="4304933"
-Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
-  by fmviesa013.fm.intel.com with ESMTP; 19 Oct 2026 05:03:55 -0700
-Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1xIm5o-00000000LeM-0o2a;
-	Mon, 19 Oct 2026 12:03:52 +0000
-Date: Mon, 19 Oct 2026 20:02:43 +0800
-From: kernel test robot <lkp@intel.com>
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>,
- Jason Gunthorpe <jgg+lists@ziepe.ca>, linux-rdma@vger.kernel.org
-Subject: [rdma:for-next] BUILD SUCCESS
- 7d7214b39b14c9763c14445b139f63369063b65e
-Message-ID: <202610192040.OywOtteA-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AMKsmmrv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E505A1F000C4;
+	Mon, 19 Oct 2026 12:14:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792412084;
+	bh=xnQC9XucQfW5esGo46rmdChyfPts6Hpx8bW+w3bC1hs=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=AMKsmmrvzbNzg/g9VIIWuxq13N5MbAtm0tL2lgd/ypop7qpa5eCklTVtSYx36q+4v
+	 dRFEFubrbZ9iRZ1z2oVFxPIiNBVLIXEMX7XfJtfbQ0o9A71e4s/aU3p6/VvdYANY9I
+	 90ewplrgQKBk7JHNlsAufkMnUIKtrM282Ok4RKVKKavu1HGusF9BjaadU5i5IfOThF
+	 HJLj+68E8QDhI5ST4+g2HtUSyjE0DbxTo9V4WPgddxG4S0nGRsr/frWoHrG1bciz9N
+	 ZDwNZlt2HaMCIjRHFXD7ysdV7pz3PRz1Olf+CSbWOhnatyPsiLfikpItqzaYpQfxsa
+	 f2m1MnJUtGpUw==
+Subject: Re: [PATCH net v5 1/2] net/smc: order the CDC receive path against
+ RMB publication
+From: netdev-bot+sashiko@kernel.org
+To: hexlabsecurity@proton.me
+Cc: kuba@kernel.org, dust.li@linux.alibaba.com, sidraya@linux.ibm.com,
+ davem@davemloft.net, pabeni@redhat.com, alibuda@linux.alibaba.com,
+ mjambigi@linux.ibm.com, edumazet@kernel.org, horms@kernel.org,
+ wenjia@linux.ibm.com, ubraun@linux.ibm.com, hwippel@linux.ibm.com,
+ linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+ tonylu@linux.alibaba.com, linux-rdma@vger.kernel.org, guwen@linux.alibaba.com,
+ linux-s390@vger.kernel.org
+Date: Mon, 19 Oct 2026 12:14:43 +0000
+Message-ID: <179241208347.3135.18021879529736748765@kernel.org>
+In-Reply-To: <20261015-b4-disp-2a8d85ef-v5-1-6b795e8263c9@proton.me>
+References: <20261015-b4-disp-2a8d85ef-v5-1-6b795e8263c9@proton.me>
+X-sashiko-severity: High
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git for-next
-branch HEAD: 7d7214b39b14c9763c14445b139f63369063b65e  RDMA/rxe: Clear pkt->qp before the early drop exits in rxe_rcv()
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue(s) to consider.
 
-elapsed time: 1403m
+Critical: 0 · High: 1 (2) · Medium: 0 · Low: 0
 
-configs tested: 249
-configs skipped: 6
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+- [High] The new `!smp_load_acquire(&conn->rmb_desc)` check in
+  smc_cdc_rx_handler() only tells NULL apart from non-NULL.
 
-tested configs:
-alpha                              allnoconfig    gcc-16.2.0
-alpha                             allyesconfig    gcc-16.2.0
-alpha                                defconfig    gcc-16.2.0
-alpha                randconfig-r2201-20261018    gcc-15.3.0 smatch
-arc                               allmodconfig    clang-24
-arc                                allnoconfig    gcc-16.2.0
-arc                               allyesconfig    gcc-16.2.0
-arc                                  defconfig    gcc-16.2.0
-arc                   randconfig-1000-20261019    clang-21
-arc                   randconfig-1001-20261019    clang-21
-arc                   randconfig-2000-20261018    gcc-8.5.0
-arc                   randconfig-2001-20261018    gcc-10.5.0
-arc                  randconfig-r2308-20261019    gcc-16.2.0 sparse
-arm                                allnoconfig    gcc-16.2.0
-arm                               allyesconfig    clang-24
-arm                                  defconfig    gcc-16.2.0
-arm                       jornada720_defconfig    clang-24
-arm                           pxa3xx_defconfig    clang-24
-arm                   randconfig-1000-20261019    clang-21
-arm                   randconfig-1001-20261019    clang-21
-arm                   randconfig-1002-20261019    clang-21
-arm                   randconfig-1003-20261019    clang-21
-arm                   randconfig-2000-20261018    clang-24
-arm                   randconfig-2001-20261018    clang-17
-arm                          socfpga_defconfig    clang-24
-arm                        spear13xx_defconfig    clang-24
-arm64                              allnoconfig    gcc-16.2.0
-arm64                                defconfig    gcc-16.2.0
-arm64                 randconfig-1000-20261019    clang-24
-arm64                 randconfig-1001-20261019    clang-24
-arm64                 randconfig-1002-20261019    clang-24
-arm64                 randconfig-1003-20261019    clang-24
-arm64                 randconfig-2000-20261018    gcc-11.5.0
-arm64                 randconfig-2001-20261018    gcc-13.5.0
-arm64                randconfig-r2110-20261018    clang-24   cocci
-arm64                randconfig-r2202-20261019    gcc-15.3.0 smatch
-csky                              allmodconfig    gcc-16.2.0
-csky                               allnoconfig    gcc-16.2.0
-csky                                 defconfig    gcc-16.2.0
-csky                  randconfig-1000-20261019    clang-24
-csky                  randconfig-1001-20261019    clang-24
-csky                  randconfig-2000-20261018    gcc-12.5.0
-csky                  randconfig-2001-20261018    gcc-14.4.0
-csky                 randconfig-r2102-20261018    gcc-16.2.0 cocci
-hexagon                           allmodconfig    gcc-16.2.0
-hexagon                            allnoconfig    gcc-16.2.0
-hexagon                              defconfig    gcc-16.2.0
-hexagon               randconfig-1000-20261019    clang-24
-hexagon               randconfig-1001-20261019    clang-24
-hexagon               randconfig-2000-20261018    clang-24
-hexagon               randconfig-2001-20261018    clang-24
-hexagon              randconfig-r2111-20261018    clang-24   cocci
-i386                              alldefconfig    clang-24
-i386                              allmodconfig    clang-22
-i386                               allnoconfig    gcc-16.2.0
-i386                              allyesconfig    clang-22
-i386        buildonly-randconfig-1000-20261019    clang-22
-i386        buildonly-randconfig-1001-20261019    clang-22
-i386        buildonly-randconfig-1002-20261019    clang-22
-i386        buildonly-randconfig-1003-20261019    clang-22
-i386        buildonly-randconfig-1004-20261019    clang-22
-i386        buildonly-randconfig-1005-20261019    clang-22
-i386                                 defconfig    gcc-16.2.0
-i386                  randconfig-1000-20261019    clang-22
-i386                  randconfig-1001-20261019    clang-22
-i386                  randconfig-1002-20261019    clang-22
-i386                  randconfig-1003-20261019    clang-22
-i386                  randconfig-1004-20261019    clang-22
-i386                  randconfig-1005-20261019    clang-22
-i386                  randconfig-1006-20261019    clang-22
-i386                  randconfig-1007-20261019    gcc-14
-i386                  randconfig-1008-20261019    gcc-14
-i386                  randconfig-1009-20261019    gcc-14
-i386                  randconfig-1010-20261019    gcc-14
-i386                  randconfig-1011-20261019    gcc-14
-i386                  randconfig-1012-20261019    gcc-14
-i386                  randconfig-1013-20261019    gcc-14
-i386                  randconfig-2000-20261018    clang-22
-i386                  randconfig-2001-20261018    gcc-14
-i386                  randconfig-2100-20261018    clang-22   cocci
-i386                  randconfig-2101-20261018    gcc-14     cocci
-i386                  randconfig-2102-20261018    clang-22   cocci
-i386                  randconfig-2103-20261018    gcc-14     cocci
-i386                  randconfig-2104-20261018    gcc-14     cocci
-i386                  randconfig-2105-20261018    gcc-14     cocci
-i386                 randconfig-r2103-20261018    gcc-14     cocci
-i386                 randconfig-r2108-20261018    gcc-14     cocci
-i386                 randconfig-r2305-20261019    clang-22   sparse
-loongarch                          allnoconfig    gcc-16.2.0
-loongarch                            defconfig    clang-24
-loongarch                 loongson32_defconfig    clang-24
-loongarch             randconfig-1000-20261019    clang-24
-loongarch             randconfig-1001-20261019    clang-24
-loongarch             randconfig-2000-20261018    clang-24
-loongarch             randconfig-2001-20261018    clang-24
-loongarch            randconfig-r2311-20261019    gcc-16.2.0 sparse
-m68k                              allmodconfig    gcc-16.2.0
-m68k                               allnoconfig    gcc-16.2.0
-m68k                              allyesconfig    clang-24
-m68k                                 defconfig    clang-24
-m68k                 randconfig-r2301-20261019    gcc-8.5.0  sparse
-microblaze                         allnoconfig    gcc-16.2.0
-microblaze                        allyesconfig    gcc-16.2.0
-microblaze                           defconfig    clang-24
-mips                              allmodconfig    gcc-16.2.0
-mips                               allnoconfig    gcc-16.2.0
-mips                              allyesconfig    gcc-16.2.0
-mips                            ip27_defconfig    clang-24
-mips                      loongson2k_defconfig    clang-24
-mips                 randconfig-r2100-20261018    clang-24   cocci
-mips                 randconfig-r2106-20261018    gcc-8.5.0  cocci
-mips                 randconfig-r2200-20261019    gcc-11.5.0 smatch
-nios2                             allmodconfig    clang-20
-nios2                              allnoconfig    clang-24
-nios2                                defconfig    clang-24
-nios2                 randconfig-1000-20261019    clang-24
-nios2                 randconfig-1001-20261019    clang-24
-nios2                 randconfig-2000-20261018    gcc-11.5.0
-nios2                 randconfig-2001-20261018    gcc-10.5.0
-openrisc                          allmodconfig    clang-20
-openrisc                           allnoconfig    clang-24
-openrisc                             defconfig    gcc-16.2.0
-openrisc             randconfig-r2300-20261019    gcc-12.5.0 sparse
-parisc                            allmodconfig    gcc-16.2.0
-parisc                             allnoconfig    clang-24
-parisc                            allyesconfig    clang-17
-parisc                               defconfig    gcc-16.2.0
-parisc                randconfig-1000-20261019    gcc-8.5.0
-parisc                randconfig-1001-20261019    gcc-8.5.0
-parisc                randconfig-2000-20261018    gcc-14.4.0
-parisc                randconfig-2001-20261018    gcc-12.5.0
-parisc               randconfig-r2109-20261018    gcc-8.5.0  cocci
-parisc               randconfig-r2306-20261019    gcc-8.5.0  sparse
-parisc64                             defconfig    clang-24
-powerpc                           allmodconfig    gcc-16.2.0
-powerpc                            allnoconfig    clang-24
-powerpc                       cm5200_defconfig    clang-24
-powerpc               randconfig-1000-20261019    gcc-8.5.0
-powerpc               randconfig-1001-20261019    gcc-8.5.0
-powerpc               randconfig-2000-20261018    gcc-9.5.0
-powerpc               randconfig-2001-20261018    gcc-8.5.0
-powerpc              randconfig-r2104-20261018    clang-24   cocci
-powerpc                      tqm8548_defconfig    clang-24
-powerpc64             randconfig-1000-20261019    gcc-8.5.0
-powerpc64             randconfig-1001-20261019    gcc-8.5.0
-powerpc64             randconfig-2000-20261018    gcc-11.5.0
-powerpc64             randconfig-2001-20261018    gcc-10.5.0
-riscv                              allnoconfig    clang-24
-riscv                             allyesconfig    clang-24
-riscv                                defconfig    gcc-16.2.0
-riscv                 randconfig-1000-20261019    gcc-11.5.0
-riscv                 randconfig-1001-20261019    gcc-11.5.0
-riscv                 randconfig-2000-20261018    clang-17
-riscv                 randconfig-2001-20261018    gcc-15.3.0
-s390                              allmodconfig    clang-17
-s390                               allnoconfig    clang-24
-s390                              allyesconfig    gcc-16.2.0
-s390                                 defconfig    gcc-16.2.0
-s390                  randconfig-1000-20261019    gcc-11.5.0
-s390                  randconfig-1001-20261019    gcc-11.5.0
-s390                  randconfig-2000-20261018    clang-24
-s390                  randconfig-2001-20261018    clang-24
-s390                 randconfig-r2107-20261018    gcc-15.3.0 cocci
-s390                 randconfig-r2302-20261019    clang-22   sparse
-s390                 randconfig-r2310-20261019    gcc-13.5.0 sparse
-sh                                allmodconfig    gcc-16.2.0
-sh                                 allnoconfig    clang-24
-sh                                allyesconfig    clang-17
-sh                                   defconfig    gcc-14
-sh                           landisk_defconfig    clang-24
-sh                             migor_defconfig    clang-24
-sh                           r7785rp_defconfig    clang-24
-sh                    randconfig-1000-20261019    gcc-11.5.0
-sh                    randconfig-1001-20261019    gcc-11.5.0
-sh                    randconfig-2000-20261018    gcc-12.5.0
-sh                    randconfig-2001-20261018    gcc-10.5.0
-sh                         sh7757lcr_defconfig    clang-24
-sparc                              allnoconfig    clang-24
-sparc                                defconfig    gcc-16.2.0
-sparc                 randconfig-1000-20261019    clang-20
-sparc                 randconfig-1001-20261019    clang-20
-sparc                 randconfig-2000-20261019    gcc-16.2.0
-sparc                 randconfig-2001-20261019    gcc-11.5.0
-sparc64                           allmodconfig    clang-20
-sparc64                              defconfig    gcc-14
-sparc64               randconfig-1000-20261019    clang-20
-sparc64               randconfig-1001-20261019    clang-20
-sparc64               randconfig-2000-20261019    gcc-8.5.0
-sparc64               randconfig-2001-20261019    clang-24
-sparc64              randconfig-r2105-20261018    gcc-8.5.0  cocci
-um                                allmodconfig    clang-17
-um                                 allnoconfig    clang-24
-um                                allyesconfig    gcc-16.2.0
-um                                   defconfig    gcc-14
-um                              i386_defconfig    gcc-14
-um                    randconfig-1000-20261019    clang-20
-um                    randconfig-1001-20261019    clang-20
-um                    randconfig-2000-20261019    gcc-12
-um                    randconfig-2001-20261019    gcc-12
-um                   randconfig-r2101-20261018    gcc-14     cocci
-um                   randconfig-r2303-20261019    clang-20   sparse
-um                            x86_64_defconfig    gcc-14
-x86_64                            allmodconfig    clang-22
-x86_64                             allnoconfig    clang-24
-x86_64                            allyesconfig    clang-22
-x86_64      buildonly-randconfig-1000-20261019    clang-22
-x86_64      buildonly-randconfig-1001-20261019    clang-22
-x86_64      buildonly-randconfig-1002-20261019    clang-22
-x86_64      buildonly-randconfig-1003-20261019    clang-22
-x86_64      buildonly-randconfig-1004-20261019    clang-22
-x86_64      buildonly-randconfig-1005-20261019    clang-22
-x86_64                               defconfig    gcc-14
-x86_64                                   kexec    clang-22
-x86_64                randconfig-1000-20261019    clang-22
-x86_64                randconfig-1001-20261019    clang-22
-x86_64                randconfig-1002-20261019    clang-22
-x86_64                randconfig-1003-20261019    clang-22
-x86_64                randconfig-1004-20261019    clang-22
-x86_64                randconfig-1005-20261019    clang-22
-x86_64                randconfig-1006-20261019    clang-22
-x86_64                randconfig-1007-20261019    clang-22
-x86_64                randconfig-1008-20261019    clang-22
-x86_64                randconfig-1009-20261019    clang-22
-x86_64                randconfig-1010-20261019    clang-22
-x86_64                randconfig-1011-20261019    clang-22
-x86_64                randconfig-1012-20261019    gcc-14
-x86_64                randconfig-1013-20261019    gcc-14
-x86_64                randconfig-1014-20261019    gcc-14
-x86_64                randconfig-1015-20261019    gcc-14
-x86_64                randconfig-1016-20261019    gcc-14
-x86_64                randconfig-1017-20261019    gcc-14
-x86_64                randconfig-2000-20261018    clang-22
-x86_64                randconfig-2001-20261018    gcc-14
-x86_64                randconfig-2200-20261018    gcc-14     smatch
-x86_64                                rhel-9.4    clang-22
-x86_64                            rhel-9.4-bpf    gcc-14
-x86_64                           rhel-9.4-func    clang-22
-x86_64                     rhel-9.4-kselftests    clang-22
-x86_64                          rhel-9.4-kunit    gcc-14
-x86_64                            rhel-9.4-ltp    gcc-14
-x86_64                           rhel-9.4-rust    clang-22
-xtensa                             allnoconfig    clang-24
-xtensa                            allyesconfig    clang-20
-xtensa                randconfig-1000-20261019    clang-20
-xtensa                randconfig-1001-20261019    clang-20
-xtensa                randconfig-2000-20261019    gcc-15.3.0
-xtensa                randconfig-2001-20261019    gcc-8.5.0
-xtensa               randconfig-r2307-20261019    gcc-10.5.0 sparse
-xtensa                          virt_defconfig    clang-24
+Pre-existing issues:
+- [High] This problem wasn't introduced by this patch, but the teardown
+  ordering leaves the RMB reachable after release.
+- [High] This problem wasn't introduced by this patch, but the peer's
+  producer cursor is never bounds-checked before it indexes the RMB.
 
 --
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+
+net/smc: order the CDC receive path against RMB publication
+
+This patch moves the conn->rmb_desc assignment in __smc_buf_create() after
+the other receive fields and makes it a release store. smc_cdc_rx_handler()
+now uses an acquire load and drops a CDC whose connection has no rmb_desc
+yet. The goal is to stop a CDC with a predicted token from reaching a NULL
+rmb_desc in softirq.
+
+Closes: https://sashiko.dev/#/patchset/20261008-b4-disp-f7cd3d96-v6-0-fba616c0920c@proton.me?part=1
+
+> diff --git a/net/smc/smc_cdc.c b/net/smc/smc_cdc.c
+> index 32d6d03df3214..7bf902ebd7ab6 100644
+> --- a/net/smc/smc_cdc.c
+> +++ b/net/smc/smc_cdc.c
+> @@ -483,7 +483,11 @@ static void smc_cdc_rx_handler(struct ib_wc *wc, void *buf)
+>  	lgr = smc_get_lgr(link);
+>  	read_lock_bh(&lgr->conns_lock);
+>  	conn = smc_lgr_find_conn(ntohl(cdc->token), lgr);
+> -	if (!conn || conn->out_of_sync) {
+> +	/* The connection is in the token tree before __smc_buf_create()
+> +	 * sets its RMB: drop a CDC that comes earlier. rmb_desc is never
+> +	 * cleared, so the callees can load it plainly.
+> +	 */
+> +	if (!conn || conn->out_of_sync || !smp_load_acquire(&conn->rmb_desc)) {
+
+[Severity: High]
+Can a NULL check tell us that the current registration's RMB is ready?
+Nothing ever resets conn->rmb_desc to NULL. smc_buf_unuse() releases the
+RMB and leaves the pointer in place, and smc_conn_create() does not clear
+it either.
+
+On the SMC-R listen path, smc_listen_find_device() can try V2 and then
+fall back to V1 on the same conn:
+
+smc_find_rdma_v2_device_serv()
+  smc_listen_rdma_init()
+    smc_conn_create()        /* token registered */
+    smc_buf_create()         /* rmb_desc published */
+  smc_listen_rdma_reg()      /* fails */
+  smc_conn_abort()
+    smc_conn_free()
+      smc_buf_unuse()
+        smcr_buf_unuse()     /* frees or pools the RMB */
+
+smc_find_rdma_v1_device_serv()
+  smc_listen_rdma_init()
+    smc_conn_create()        /* new token, rmb_desc still stale */
+    smc_buf_create()
+
+smcr_buf_unuse() has two outcomes here. If smcr_link_reg_buf() set
+is_reg_err, it frees the descriptor through smc_buf_free(). If the peer
+failed CONFIRM_RKEY in smcr_lgr_reg_rmbs(), it zeroes the buffer and
+returns it to the pool with used=0.
+
+Suppose a CDC with the new token arrives before __smc_buf_create()
+publishes the new RMB. That is the same window the commit message
+describes. Wouldn't it pass the new check, since the stale pointer is
+non-NULL?
+
+smc_cdc_msg_recv_action() would then read conn->rmb_desc->len, and
+smc_cdc_handle_urg_data_arrival() would read conn->rmb_desc->cpu_addr. The
+descriptor behind them is either freed or owned by another connection.
+
+The stale pointer also matters if the V1 retry fails in
+__smc_buf_create(is_rmb). smc_conn_abort() then runs smc_buf_unuse() again:
+
+	if (conn->rmb_desc) {
+		bufsize = conn->rmb_desc->len;
+		if (!is_smcd) {
+			smcr_buf_unuse(conn->rmb_desc, true, lgr);
+
+Could this double free the descriptor or corrupt the rmbs list?
+
+Would it be better to reset conn->rmb_desc and conn->sndbuf_desc to NULL
+when the buffers are released, or before the conn is registered again?
+The follow-up patch "net/smc: skip the DMB nocopy accounting until the
+send buffer is set" doesn't appear to change this.
+
+[Severity: High]
+This isn't a bug introduced by this patch, but there is a related problem
+at teardown. The comment says rmb_desc is never cleared. That is true of
+the pointer value, but what about the lifetime of the object it points to?
+
+smc_conn_free() releases the buffers before the conn leaves the token
+tree:
+
+	if (!list_empty(&lgr->list)) {
+		smc_buf_unuse(conn, lgr); /* allow buffer reuse */
+		smc_lgr_unregister_conn(conn);
+	}
+
+For SMC-R, smcr_buf_unuse() frees the descriptor through smc_buf_free()
+when buf_desc->is_reg_err is set, for example after smcr_link_reg_buf()
+failed. Otherwise it zeroes the buffer and sets used=0, so
+smc_buf_get_slot() can hand it to another connection.
+
+smc_cdc_rx_handler() doesn't check conn->freed, and it drops conns_lock
+after sock_hold(). bh_lock_sock() doesn't wait for a lock_sock() owner,
+and smc_conn_free() only waits for pending TX WRs.
+
+Can a peer CDC that finds the conn before smc_lgr_unregister_conn() still
+run smc_cdc_msg_recv_action() and smc_cdc_handle_urg_data_arrival()? If
+so, they would read conn->rmb_desc->len and conn->rmb_desc->cpu_addr from
+a freed or reassigned descriptor. The new check would pass here too,
+since the stale pointer is non-NULL.
+
+[Severity: High]
+This is a pre-existing issue, but the new comment says the callees can
+load rmb_desc plainly once it is set. Is the peer's producer cursor ever
+checked against the RMB length?
+
+smc_cdc_cursor_to_host() only rejects cursors that move backwards:
+
+	temp.count = ntohl(net.count);
+	temp.wrap = ntohs(net.wrap);
+	if ((old.wrap > temp.wrap) && temp.wrap)
+		return;
+	if ((old.wrap == temp.wrap) &&
+	    (old.count > temp.count))
+		return;
+	smc_curs_copy(local, &temp, conn);
+
+smc_curs_diff() also doesn't cap its result at size, even though its
+comment says the difference cannot exceed size.
+
+So if prod_flags.urg_data_present is set and prod.count moves forward by
+any amount, smc_cdc_msg_recv_action() calls
+smc_cdc_handle_urg_data_arrival(), which does:
+
+	base = (char *)conn->rmb_desc->cpu_addr + conn->rx_off;
+	if (conn->urg_curs.count)
+		conn->urg_rx_byte = *(base + conn->urg_curs.count - 1);
+
+Could a peer-controlled urg_curs.count make this read up to about 4 GiB
+past the RMB in softirq? An unmapped address would oops. A byte read from
+a mapped address would be stored in conn->urg_rx_byte, and
+smc_rx_recv_urg() copies it to user space through memcpy_to_msg() on
+recv(MSG_OOB).
+
+The follow-up patch in the series doesn't touch this path either.
+
+>  		read_unlock_bh(&lgr->conns_lock);
+>  		return;
+>  	}
+
+[ ... ]
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261015-b4-disp-2a8d85ef-v5-0-6b795e8263c9%40proton.me
