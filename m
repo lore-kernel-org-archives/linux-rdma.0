@@ -1,223 +1,134 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mx1.secunet.com (mx1.secunet.com [62.96.220.36])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF9F64E8E14;
-	Mon, 19 Oct 2026 12:14:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBF604F4CFC;
+	Mon, 19 Oct 2026 12:35:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.96.220.36
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792412088; cv=none; b=q0JVyJUMvniEIF6XZBZcG4LgOL+vMt5VOV/j05PenF2jtfc1Wiv+hOlETD4uCOjdB+4bi5ldjU3DTud8BapB/hRjmueJGn/WsXLmRBq/3zxcUYeDbHSBxyfHwmvx97OqGAsobY4VAtCzY44++uHAuf4wiZnllLlRLOeyP8sWJBM=
+	t=1792413356; cv=none; b=EMtNqOF0QiKyBvQV/JC8m1w5hhfZHG1D/VlfAQN+UFSnzgdT9acvuM/NsyPtMK9XdId8Fzn5V22LiWhoEWoT8EB+Wa8/F/aog/kPPyDisOHPXGKaRoyDtqfG9KOX4JO9uCmX7EJ+GyM3UMsYHzbBKHs8e8ZGqFnwWoQU5JDTTKc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792412088; c=relaxed/simple;
-	bh=BSwWM6nk7DbWd35aVGGbKQmA1GKDsr2fA5SkIsFb+HE=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=koXwNxM1tRnHfgE8VeYHtmFtWlWAllr8tJ+1IVXl4JyhkESR0xIvRLAnNl6OpiXTTqdzLy0j9LQhcb2lIcBpPW1Oa8iobWodCKrXSyFbFstPbrPA5XrTkcsGWG8RH5/iqdFc6EDKCsixdM/r9I+B9/kAqeEERFbOTDBFmBiW3SM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hox1yaR0; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792413356; c=relaxed/simple;
+	bh=DG8qOUM3s2Jq4j/7qWK7+ZrC2H8JkYbWV7LSbwzpcS0=;
+	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=gR8RC+hCMaQ+Z/gWgYxI2S2jXt/hyaUpmCTN8GfCWCKVklw4g34WwcvuFwl5pdPRGFql/7Ztx4kwADaDAk5ar7g921UZbSHbh3snkMHP/wCAzHgIGO2QQhF5OiUuYw0tM5g8EEwu2CRFiW/zOGm+vH2rx2Xkr9MMan56YC51bRM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=secunet.com; spf=pass smtp.mailfrom=secunet.com; dkim=pass (2048-bit key) header.d=secunet.com header.i=@secunet.com header.b=kkTbXb2k; arc=none smtp.client-ip=62.96.220.36
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=secunet.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=secunet.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hox1yaR0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A8AF1F000C5;
-	Mon, 19 Oct 2026 12:14:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792412086;
-	bh=euTmnjJJH55Slsz5ix2BxC7yGtPMw6Gg6ky+Uj/HNiw=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=hox1yaR0J5Cj1OLYfJO/Tqm4WEXlRStY6vpfsuQPuXdTCbFEASbI8qSz1ISK7Dnly
-	 Knstx1yRS03wg5h9RNEfwPBRykNH9IVi2Mt9s/R7slxdoX2HMsTjN7PbwRYrx9bTkC
-	 xvp0+sVgkZrYa3bo1muDloN5C34R+PO1qbn9XIRo+bNJAoIO0/SyGHx2/c3/5vcT8x
-	 qM8lWiZL0pbX8uAgM6VGDlwYtGM+lb8ncwIDwGQWoJYZS7keZzFUSeBM8oehv3QBh8
-	 qFYGfXu0u3amqHkxVL80/mDKK97l/ondiU9BT4k4Q8Epxrne22lJ6hvd2hkYGFnYXn
-	 eEWtC8MiY1QeA==
-Subject: Re: [PATCH net v5 2/2] net/smc: skip the DMB nocopy accounting until
- the send buffer is set
-From: netdev-bot+sashiko@kernel.org
-To: hexlabsecurity@proton.me
-Cc: kuba@kernel.org, dust.li@linux.alibaba.com, sidraya@linux.ibm.com,
- davem@davemloft.net, pabeni@redhat.com, alibuda@linux.alibaba.com,
- mjambigi@linux.ibm.com, edumazet@kernel.org, horms@kernel.org,
- wenjia@linux.ibm.com, ubraun@linux.ibm.com, hwippel@linux.ibm.com,
- linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
- tonylu@linux.alibaba.com, linux-rdma@vger.kernel.org, guwen@linux.alibaba.com,
- linux-s390@vger.kernel.org
-Date: Mon, 19 Oct 2026 12:14:45 +0000
-Message-ID: <179241208501.3135.14193534440423847161@kernel.org>
-In-Reply-To: <20261015-b4-disp-2a8d85ef-v5-2-6b795e8263c9@proton.me>
-References: <20261015-b4-disp-2a8d85ef-v5-2-6b795e8263c9@proton.me>
-X-sashiko-severity: Critical
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (2048-bit key) header.d=secunet.com header.i=@secunet.com header.b="kkTbXb2k"
+Received: from localhost (localhost [127.0.0.1])
+	by mx1.secunet.com (Postfix) with ESMTP id 572C52068C;
+	Mon, 19 Oct 2026 14:35:36 +0200 (CEST)
+X-Virus-Scanned: by secunet
+Received: from mx1.secunet.com ([127.0.0.1])
+ by localhost (mx1.secunet.com [127.0.0.1]) (amavisd-new, port 10024)
+ with ESMTP id X4cdWsqtRB0w; Mon, 19 Oct 2026 14:35:35 +0200 (CEST)
+Received: from EXCH-02.secunet.de (rl2.secunet.de [10.32.0.232])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mx1.secunet.com (Postfix) with ESMTPS id 48B33207BB;
+	Mon, 19 Oct 2026 14:35:35 +0200 (CEST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mx1.secunet.com 48B33207BB
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=secunet.com;
+	s=202301; t=1792413335;
+	bh=qJbBG8sntIX/S4wxb2GyFknVKn1OGpfR83ukZlTz9Bg=;
+	h=Date:From:To:CC:Subject:Reply-To:References:In-Reply-To:From;
+	b=kkTbXb2kjSD/XdxMPgl+OnJdQS50tNn1ncFgxwR4sLNEGGzPS7opJ+Xyxvp0h7Jom
+	 Jr9nJH/M/LG4BBB6Grpg2qlylojdARBck7OmprLW7bC3tXWJJh9aJwkeKtd68LVyv6
+	 RutbKHly2ZsGco+hie7bq/ZieIFUPGsEPbkwIEoFH4ze0jAPzX2QCk9Lo+J7K64MUu
+	 /CZ2Oucc4n8RonBtofyoEFkV/8v53pe721merZjwJIj8IvBHNyaDQg7xO8Q/BDZPgy
+	 XEVTZq/fDSd4EkKS4r7ct1S7DyFCouPsxS4qT3xCQXVzbnbQ76R8D9lCNwREdmJyKp
+	 qzJYacTMAMGUg==
+Received: from moon.secunet.de (172.18.149.1) by EXCH-02.secunet.de
+ (10.32.0.172) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Mon, 19 Oct
+ 2026 14:35:34 +0200
+Date: Mon, 19 Oct 2026 14:35:25 +0200
+From: Antony Antony <antony.antony@secunet.com>
+To: Mina Almasry <almasrymina@google.com>
+CC: <netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-rdma@vger.kernel.org>, <bpf@vger.kernel.org>, Ayush Sawal
+	<ayush.sawal@chelsio.com>, Andrew Lunn <andrew+netdev@lunn.ch>, "David S.
+ Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, Jakub
+ Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Tariq Toukan
+	<tariqt@nvidia.com>, Simon Horman <horms@kernel.org>, Steffen Klassert
+	<steffen.klassert@secunet.com>, Herbert Xu <herbert@gondor.apana.org.au>,
+	Neal Cardwell <ncardwell@google.com>, Kuniyuki Iwashima <kuniyu@google.com>,
+	John Fastabend <john.fastabend@gmail.com>, Sabrina Dubroca
+	<sd@queasysnail.net>, Eric Biggers <ebiggers@kernel.org>, Kees Cook
+	<kees@kernel.org>, Aleksandr Loktionov <aleksandr.loktionov@intel.com>, Petr
+ Machata <petrm@nvidia.com>, Uwe
+ =?iso-8859-1?Q?Kleine-K=F6nig_=28The_Capable_Hub=29?=
+	<u.kleine-koenig@baylibre.com>, Jakub Raczynski <j.raczynski@samsung.com>,
+	Wang Zhan <wang.zhan@smartx.com>, Willem de Bruijn <willemb@google.com>,
+	Antony Antony <antony.antony@secunet.com>, Stanislav Fomichev
+	<sdf@fomichev.me>, Daniel Borkmann <daniel@iogearbox.net>, Alexei Starovoitov
+	<ast@kernel.org>, Jesper Dangaard Brouer <hawk@kernel.org>
+Subject: Re: [PATCH net-next v3 4/6] net: skbuff: replace __skb_frag_ref()
+ with symmetric skb_netmem_ref()
+Message-ID: <atYOjaLywUNzjijW@moon.secunet.de>
+Reply-To: <antony.antony@secunet.com>
+References: <20261014173945.373295-1-almasrymina@google.com>
+ <20261014173945.373295-5-almasrymina@google.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20261014173945.373295-5-almasrymina@google.com>
+Precedence: first-class
+Priority: normal
+Organization: secunet
+X-ClientProxiedBy: EXCH-02.secunet.de (10.32.0.172) To EXCH-02.secunet.de
+ (10.32.0.172)
 
-Thank you for your contribution! Sashiko AI review found 2 potential
-issue(s) to consider.
+On Wed, Oct 14, 2026 at 17:37:18 +0000, Mina Almasry wrote:
+> Previously, __skb_frag_ref() and skb_frag_ref() unconditionally
+> incremented the non-pp backing refcount via get_netmem(), while
+> skb_frag_unref() decremented pp_ref_count whenever skb->pp_recycle was
+> set. Ref-ing a page_pool fragment into a pp_recycle=1 SKB (or clearing
+> pp_recycle=0 on an uncloned SKB while clones still held pp_recycle=1)
+> leaked the backing non-pp refcount and underflowed pp_ref_count across
+> IP-TFS, skb_split(), skb_shift(), and cloned unclone paths.
+> 
+> Replace __skb_frag_ref() with skb_netmem_ref(netmem, recycle) as the
+> exact counterpart to skb_netmem_unref(netmem, recycle):
+> 
+> - Keep skb->pp_recycle intact in skb_release_data() so uncloning paths
+>   (pskb_expand_head() and pskb_carve_inside_{header,nonlinear}()) keep
+>   trading pp_ref_count references symmetrically across clones.
+> - Propagate pp_recycle and call skb_frag_ref() on the destination SKB in
+>   __pskb_copy_fclone(), skb_zerocopy(), skb_split(), skb_shift(), and
+>   skb_segment().
+> - Linearize an output segment's existing frags in skb_segment() before
+>   attaching frags from a frag_list SKB with a different pp_recycle bit,
+>   since each output segment carries a single pp_recycle bit.
+> - Use skb_frag_ref() in xfrm_iptfs, chcr_ktls, and cassini, and call
+>   get_netmem() directly in veth and tls_device_fallback where callers
+>   explicitly take a raw non-pp reference.
+> 
+> Found by code inspection while reviewing the IP-TFS pp_ref_count fix [1]
+> and confirmed with the KUnit tests added later in this series; not
+> observed in production. The xfrm_iptfs, chcr_ktls, cassini, veth, and
+> tls_device_fallback changes are compile-tested only.
+> 
+> Link: https://lore.kernel.org/netdev/xfrm-iptfs-pp_ref_count-underflow-v4-1-912fa72106f0@secunet.com/ [1]
+> Cc: Antony Antony <antony.antony@secunet.com>
+> Cc: Stanislav Fomichev <sdf@fomichev.me>
+> Cc: Daniel Borkmann <daniel@iogearbox.net>
+> Cc: Alexei Starovoitov <ast@kernel.org>
+> Cc: Jesper Dangaard Brouer <hawk@kernel.org>
+> Cc: bpf@vger.kernel.org
+> Assisted-by: LLM
+> Signed-off-by: Mina Almasry <almasrymina@google.com>
 
-Critical: 1 · High: 1 · Medium: 0 · Low: 0
+Tested-by: Antony Antony <antony.antony@secunet.com>
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+I tested for IP-TFS virtio. 
 
-- [Critical] The patch only skips the nocopy accounting while
-  conn->sndbuf_desc is NULL.
-- [High] A stale CDC from the old peer of a reused DMB that arrives
-  before attach used to oops whenever diff_cons != 0.
-
---
-
-net/smc: skip the DMB nocopy accounting until the send buffer is set
-
-The patch changes smcd_buf_attach() so it publishes conn->sndbuf_desc with
-a release store after sndbuf_space has been set. smc_cdc_msg_recv_action()
-then skips the SMC-D DMB nocopy send buffer accounting while sndbuf_desc is
-still NULL. This avoids a NULL dereference when the old peer of a reused
-DMB signals the new connection before the attach.
-
-> diff --git a/net/smc/smc_cdc.c b/net/smc/smc_cdc.c
-> index 7bf902ebd7ab6..d6825f48f5688 100644
-> --- a/net/smc/smc_cdc.c
-> +++ b/net/smc/smc_cdc.c
-
-[ ... ]
-
-> @@ -353,12 +354,19 @@ static void smc_cdc_msg_recv_action(struct smc_sock *smc,
->  		 * peer RMB, then update tx_curs_fin and sndbuf_space
->  		 * here since peer has already consumed the data.
->  		 */
-> +		sndbuf_desc = NULL;
->  		if (conn->lgr->is_smcd &&
->  		    smc_ism_support_dmb_nocopy(conn->lgr->smcd)) {
-> +			/* NULL until smcd_buf_attach(), but the old peer of
-> +			 * a reused DMB can already signal us.
-> +			 */
-> +			sndbuf_desc = smp_load_acquire(&conn->sndbuf_desc);
-> +		}
-> +		if (sndbuf_desc) {
-
-[Severity: High]
-With this gate, a stale CDC from the old peer that arrives before
-smcd_buf_attach() no longer oopses. It is now processed silently, and only
-the sndbuf part is skipped. Doesn't the rest of smc_cdc_msg_recv_action()
-still apply the old peer's state to the new connection?
-
-smc_cdc_msg_to_host() runs before the gate. It writes the old peer's
-prod/cons cursors and flags into conn->local_rx_ctrl:
-
-    smc_cdc_msg_to_host(&conn->local_rx_ctrl, cdc, conn);
-
-    diff_cons = smc_curs_diff(conn->peer_rmbe_size, &cons_old,
-                              &conn->local_rx_ctrl.cons);
-    if (diff_cons) {
-        ...
-        atomic_add(diff_cons, &conn->peer_rmbe_space);
-
-After that, diff_prod is added to bytes_to_rcv and sk_data_ready() is
-called. Can recvmsg() on the new socket then return whatever the old peer
-wrote into the reused DMB? Stale conn_state_flags could also abort or close
-the new connection.
-
-smcd_buf_attach() resets only sndbuf_space and sndbuf_desc. It never
-resyncs local_rx_ctrl.cons/prod or peer_rmbe_space, so the current peer's
-first consumer update is diffed against the stale cons_old.
-
-For example, say the stale cursor is {wrap=1, count=x>0}. The real peer
-then drains a full buffer and sends {wrap=1, count=0}. smc_curs_diff()
-returns 0, so the whole if (diff_cons) block is skipped. sndbuf_space is not
-credited, tx_curs_fin does not move, and smc_tx_sndbuf_nonfull() is not
-called.
-
-smcd_cdc_msg_send() also returns early for nocopy:
-
-    if (smc_ism_support_dmb_nocopy(conn->lgr->smcd))
-        ...
-        return 0;
-
-Is there any other path that recovers this credit? A sender that has
-filled the buffer could end up blocked forever.
-
-If the wraps differ instead, peer_rmbe_space is over-credited past
-peer_rmbe_size. Then this check further down in smc_cdc_msg_recv_action()
-can never be true:
-
-    if (diff_cons && conn->urg_tx_pend &&
-        atomic_read(&conn->peer_rmbe_space) == conn->peer_rmbe_size) {
-
-Would sendmsg() after MSG_OOB then block?
-
-This also seems to contradict the commit message:
-
-    "Before the attach the current peer has consumed nothing of ours, so
-    no update from it is lost."
-
->  			/* Calculate consumed data and
->  			 * increment free send buffer space.
->  			 */
-> -			diff_tx = smc_curs_diff(conn->sndbuf_desc->len,
-> +			diff_tx = smc_curs_diff(sndbuf_desc->len,
->  						&conn->tx_curs_fin,
->  						&conn->local_rx_ctrl.cons);
-
-[Severity: Critical]
-This only covers the window before smcd_buf_attach(). After
-smp_store_release() publishes sndbuf_desc, can the old peer of the reused
-DMB still signal this connection and have its consumer cursor counted here
-as if the current peer had sent it?
-
-Nothing in smcd_buf_attach() filters CDCs from the old peer, which still
-holds the DMB token. smcd_cdc_rx_tsklet() reads whichever peer last wrote
-the DMB header. smcd_cdc_msg_to_host() then copies the cursors without the
-monotonicity check that smc_cdc_cursor_to_host() does for SMC-R.
-
-The new connection's tx_curs_fin starts at {0,0}. If the stale cons is
-{wrap!=0, count=c}, then diff_tx = len + c, and sndbuf_space becomes about
-2 * len + c. That breaks the invariant sndbuf_space <= sndbuf_desc->len.
-
-smc_tx_sendmsg() then uses that value:
-
-    copylen = min_t(size_t, send_remaining, writespace);
-    ...
-    chunk_len = min_t(size_t, copylen, conn->sndbuf_desc->len -
-                      tx_cnt_prep);
-    ...
-            chunk_len = copylen - chunk_len; /* remainder */
-            chunk_len_sum += chunk_len;
-            chunk_off = 0; /* modulo offset in send ring buffer */
-
-The second chunk is copied to offset 0 by memcpy_from_msg(), and nothing
-bounds it against sndbuf_desc->len. With prep at 0 that chunk is len + c
-bytes. Does that write c bytes of user data past the end of the peer's DMB
-folio? The folio is exactly the DMB size, so the extra bytes would land in
-the pages next to it.
-
-Smaller over-credits stay inside the buffer. They can still overwrite data
-the real peer has not consumed yet, and tx_curs_fin is overwritten with the
-foreign cursor.
-
-One way to get there: smc_release() calls smc_close_active_abort() when a
-non-blocking connect finishes during close. That sends no CDC to the peer.
-smc_conn_free()->smc_buf_unuse() then only zeroes the DMB and clears used,
-and the token stays registered. The peer is still active and still
-attached.
-
-__smc_buf_create() can then reuse the slot, and smc_ism_set_conn() maps it
-to the new connection. The old peer's next CDC follows this path:
-
-    smcd_cdc_msg_send()->dibs_lo_move_data()->handle_irq()
-        ->smcd_cdc_rx_tsklet()
-
-and is processed on the new connection. AF_SMC needs no privilege, so a
-local user who controls both ends and the timing could trigger this
-wherever loopback-ism is enabled.
-
-This post-attach path already existed before this patch. Since the commit
-message names "the old peer of a reused DMB can still signal us" as the
-root cause, would it be better to not reuse a DMB that a peer may still
-have attached, or to filter CDCs from the stale peer? Gating on
-sndbuf_desc only hides the NULL dereference.
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261015-b4-disp-2a8d85ef-v5-0-6b795e8263c9%40proton.me
+Steffen, if this patch is applied, the following will become redundant:
+https://patchwork.kernel.org/project/netdevbpf/patch/xfrm-iptfs-pp_ref_count-underflow-v5-1-c25508ec9160@secunet.com/
+-antony
