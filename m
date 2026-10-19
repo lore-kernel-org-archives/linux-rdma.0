@@ -1,67 +1,76 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=82.76.27.144
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792437527;
-	b=qPY/y/Zpu4nvvNWC+7TD55OSYBJrN0KbTVYuMnqhI6Wy/B7RqnhG5gFHedLzR/uG3r4+
-	 mLPCkODX0uuDFEjfH2NPaUyExTGEI9demq5ZlSGEhLTxTlhC/1M+L6GOzCdcRWvavk5X2
-	 wijxw7dZymxutPL7lLlQzlW2M7u9Cfhv3vsG5ycxdc/shDip+Yw3rf0yFHD/AznRjInkQ
-	 D0WJeuY5FjZR5MlWV7IYCR1Yjttk5JynvFGtV8IIoOm2QIXbkgQr9lRzwm/hoAwJEs1QX
-	 y4J9x7Ad5uvtlX8eKy+wbm6q0AMMH4CHn99qBJwqJQ7FkrkcpZCiOjNjXebe/Lu3+dg==
+	t=1792440755;
+	b=5QPWc56URe4Bz2gh014TJPWM+BqC2SqZG8JsZKfvpmGFAExNaVweQWT/mnVWZ966mXvj
+	 wrJzHtRvqFy7xZRSZGK6plVOfxuTr9qoKTQnxvRReLSqT7fBVJj7i0u+1khgJxYPJMzGn
+	 9Zc7BbL52pBF63jdFVquZP2jfyHnJgrWqMNOUd5B2JRM6blYLJSs93YghCObRdbcnnzme
+	 BfB4+ypxKJCPomTPNvZvEglZAA/mITu01H7aTU9Y0E5k3FosT8Z+G6MrSkuqctVr8NHkY
+	 2SFRDYIl8Qiqn/n5cSpoJe823E+yZcQwjZTdvZYNzZ8fZR/A/5yp6MeKGpkfBVwus3Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792437527;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=77mlLPeWieg1gPE9ZVsd30acJWkC/9GBsg5MHF+AKxs=;
-	b=A55zkVs25sZqZCxY6eud3xELUsoY74BJM0G3mON6OC8ZLt/oRvvX3wJx5KdZ/49KgiZX
-	 ubjq59zQYWvkw9lCfqXEq3PytS37+LRNmj1OcR1g0o8wKRubEPGc9+pxJsEdReqM9iFvZ
-	 wqY00t/TDlFP6VODevTCBR/DUGZVO7WzlV2dqJ+plB526Tquok5yxuBnoOBG+bYEf+2Uu
-	 3EqytGXOe6j/24HjWIkQqvG4fY0EYDqaBkiIgtIq7w91mARyrgTqswC3+WDliId9yRft3
-	 kweomInmyCP5948sm84mwJzsIRCTHaEaYfhnvtXjtRQjfyXQpDMRd7iseI9Fg49EmEw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792440755;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:From:To:CC:
+	 Subject:Date:Message-ID:In-Reply-To:References:MIME-Version:
+	 Content-Type:Content-Transfer-Encoding:X-Originating-IP:
+	 X-ClientProxiedBy;
+	bh=ITKID4j8TgDVznTDt1fwfhzQj8gSfNUjv1loj3KnXbU=;
+	b=IY5A7ILRkQMW9KTHkhzP8UsaTo2+JGwz/XL0gu/Q7G6nl4eqa3nZpVQka/Cd/XPm2vkJ
+	 d+OExvdvuk55OGVNWtbCkj7+o+9+qMMU+QHzaKyxXga4RW1SqapxxwWQ8qbiiCBm2Bn0q
+	 WPrzzYqRW9OZQBLJEwPqkBi9Bpqvzg6NW7zWNlS9CdXfujyUhC4F+f7SaN3TIHz/E6DFe
+	 7+oqPSJSy8Hr0DpqTi/zyNNZbdMn/tHpT9vHPKGGmdoUhiE4Br4g885kAcfh4rSoJDx9N
+	 XvEqo+lCVkB+pZB4sRUXwtptuXiOnbGT2jUx24JouHyvVKhJ24bFsdDmu1T0cu2IB3g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Sc8vkZXo;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=andrei-z.com;
+	spf=pass smtp.mailfrom=andrei-z.com;
+	dkim=pass header.d=andrei-z.com header.i=@andrei-z.com header.a=rsa-sha256 header.s=sig1 header.b="fcoT5/MX";
+	arc=none smtp.remote-ip=82.76.27.144
+Received: from vtj.irix.systems (vtj.irix.systems [82.76.27.144])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50686606A31D;
-	Mon, 19 Oct 2026 19:18:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCF26606A31B;
+	Mon, 19 Oct 2026 20:12:34 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BCF26606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=andrei-z.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=andrei-z.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Sc8vkZXo
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC4E51F000C5;
-	Mon, 19 Oct 2026 19:18:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792437526;
-	bh=77mlLPeWieg1gPE9ZVsd30acJWkC/9GBsg5MHF+AKxs=;
-	h=Date:From:To:Cc:Subject:In-Reply-To;
-	b=Sc8vkZXorvzEGiY+LTRN6fEVRb6T2XdkonoSOpCOZ99dDlclFWXdAjTQzLo55Kja+
-	 932j/jmJktfh0c/WttptWZOh5I9zbZL57LJ/70JPW6RB9MAy/sJj7hrADPlbGFd+D8
-	 eeSXvklCAyOzanZ3JWVuxsfOFe18y4ZQJtWe2Pkd4cLoJef/pF3++QAjondU+Pdn9g
-	 dujZFbDGxAIYKSZ9tTyMkY+vBOiUJxYTllh9R09mMFN190XHAqxSyvINACudxH1uSo
-	 CbXmLOyhnCQ002lb5K0f1ajSB/A+r6h/S2iZC53DsHfbZRjmNvpVAZomX+VyY6SRgO
-	 gqeNX1nCz852w==
-Date: Mon, 19 Oct 2026 14:18:45 -0500
-From: Bjorn Helgaas <helgaas@kernel.org>
+	dkim=pass (2048-bit key, unprotected) header.d=andrei-z.com header.i=@andrei-z.com header.a=rsa-sha256 header.s=sig1 header.b=fcoT5/MX
+Received: from MAILGW-HP.hp.vtj.corp.irix.systems (localhost [127.0.0.1])
+	by vtj.irix.systems (Proxmox) with ESMTP id D991975B4;
+	Mon, 19 Oct 2026 23:12:26 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=andrei-z.com; h=
+	cc:cc:content-transfer-encoding:content-type:content-type:date
+	:from:from:in-reply-to:message-id:mime-version:references
+	:reply-to:subject:subject:to:to; s=sig1; bh=ITKID4j8TgDVznTDt1fw
+	fhzQj8gSfNUjv1loj3KnXbU=; b=fcoT5/MX6d/UCCPfWG+cVebnYEbR2anMKwdC
+	Q8ISp3JlwyWb2gwdWCXmdo+kUd2dtF42jBk4JLZupYso4WJCsCZeSQkWs4WpqQ2v
+	od/KvvV72k1P+3fV1ILymDZ7FOT8itWtin6EwP6mOxsHqXRKT/UfkvvgDQ/y/zj1
+	+BNnCB/8S3AP1bDOd7C5bcswlbpCUFwDdH8E647rQR3GSAI2nqd7YEZxOKdUJHBl
+	qR2m97ohVGf1MZLAKq6j4FEHURnbawhpv18p5FhUszjQa2TpWhZ8+FLsx11nlOsn
+	+lqfBbrTH27GGLC1uMY296efjCj0ywvMMOAncfb+Fc/Z3sSvPw==
+Received: from VTJ-MX.corp.irix.systems (unknown [IPv6:2a02:2f04:1:9c24::6])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by vtj.irix.systems (Proxmox) with ESMTPS id 9D7E6765C;
+	Mon, 19 Oct 2026 23:12:26 +0300 (EEST)
+Received: from [10.89.11.73] (10.57.8.14) by VTJ-MX.corp.irix.systems
+ (2a02:2f04:1:9c24::6) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Mon, 19 Oct
+ 2026 23:12:25 +0300
+From: Andrei-Alexandru Bleortu <me@andrei-z.com>
 To: Leon Romanovsky <leon@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>,
-	Logan Gunthorpe <logang@deltatee.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>, Joerg Roedel <joro@8bytes.org>,
-	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
-	Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>,
-	Thomas =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
-	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org, iommu@lists.linux.dev,
-	Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
-	Chaitanya Kulkarni <kch@nvidia.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
-	Ankit Agrawal <ankita@nvidia.com>, Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: Re: [PATCH v11 00/19] PCI/P2PDMA: Route peer-to-peer DMA by TLP class
-Message-ID: <20261019191845.GA2219127@bhelgaas>
+CC: Bart Van Assche <bvanassche@acm.org>, Jason Gunthorpe <jgg@ziepe.ca>, Sagi
+ Grimberg <sagi@grimberg.me>, Max Gurtovoy <mgurtovoy@nvidia.com>, "Md. Haris
+ Iqbal" <haris.iqbal@ionos.com>, Jack Wang <jinpu.wang@ionos.com>,
+	<linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH RFC 2/3] RDMA/srp: Post command IUs inline
+Date: Mon, 19 Oct 2026 23:12:25 +0300
+Message-ID: <20261019231225.386811-1-me@andrei-z.com>
+In-Reply-To: <20261018100501.GA41539@unreal>
+References: <20261015125118.2966247-1-me@andrei-z.com>
+ <20261015125118.2966247-3-me@andrei-z.com>
+ <fa01c872-9d1d-4b60-b994-08ba86a5ebaa@acm.org>
+ <20261015212227.3338582-1-me@andrei-z.com>
+ <20261018100501.GA41539@unreal>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -71,54 +80,15 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261019183537.GI64621@unreal>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: VTJ-MX.corp.irix.systems (2a02:2f04:1:9c24::6) To
+ VTJ-MX.corp.irix.systems (2a02:2f04:1:9c24::6)
 
-On Mon, Oct 19, 2026 at 09:35:37PM +0300, Leon Romanovsky wrote:
-> On Wed, Oct 14, 2026 at 05:49:53PM +0300, Leon Romanovsky wrote:
-> > On Wed, Oct 14, 2026, at 16:23, Bjorn Helgaas wrote:
-> > > On Wed, Oct 14, 2026 at 09:53:47AM +0300, Leon Romanovsky wrote:
-> > >> On Tue, Oct 13, 2026 at 05:25:08PM +0300, Leon Romanovsky wrote:
-> > >> > PCI P2PDMA applies Request and Completion Redirect throughout both paths.
-> > >> > This misclassifies asymmetric and nested switches, and reports one answer
-> > >> > for every kind of TLP.
-> > >> > 
-> > >> > Three ACS controls act on TLP attributes the Requester chooses rather
-> > >> > than on the topology: Translation Blocking and Direct Translated P2P act on
-> > >> > a Request's Address Type, and Completion Redirect skips Completions carrying
-> > >> > Relaxed Ordering.
-> > >> > 
-> > >> > Evaluate each direction at the path divergence, decide every class from the
-> > >> > one walk, and treat a client with ATS enabled as translating unless its
-> > >> > driver declares per-mapping ATS.
-> > >> > 
-> > >> > This completes the P2PDMA side; dma-buf and mlx5 follow separately.
-> > >> > 
-> > >> > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
-> > >> > ---
-> > >> > Changes in v11:
-> > >> 
-> > >> 
-> > >> Bjorn,
-> > >> 
-> > >> Could you please save me from the AI-bot attack? Every rebase seems to
-> > >> uncover another bizarre pre-existing issue. It never ends.
-> > >
-> > > Can you elaborate?  I'm not sure what you'd like me to do here.  I
-> > > don't control the Sashiko reviews, and I thought Sashiko was recently
-> > > changed to put pre-existing issues in a database but not in the email
-> > > responses.
-> > 
-> > AI reviews are not deterministic and every resubmission gives us slightly different result, which is in this phase of submission is  full of hallucinated flows not applicable to the upstream.
-> > 
-> > In addition to upstream Sashiko, i run everything through local one with slightly better models which hallucinating even more.
-> > 
-> > I would ask you to merge the series so it gets real exposure in addition to my kunit and specific hw setup.
-> 
-> Bjorn,
-> 
-> We're in the merge window now, so I don't expect such a large series to be
-> merged. What about the next cycle? Should I send v12 after -rc1, or wait?
+On Sun, Oct 18, 2026, Leon Romanovsky wrote:
+> As for your question, we need to hear from someone in the ULP community
+> that this series is important to them.
 
-After -rc1 would be good.
+Fair enough. I will leave the series unless someone using iSER, SRP
+or RNBD says the latency matters to them.
+
