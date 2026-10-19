@@ -1,162 +1,264 @@
-Received: from TYPPR03CU001.outbound.protection.outlook.com (mail-japaneastazon11022085.outbound.protection.outlook.com [52.101.126.85])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD2334CDA37;
-	Mon, 19 Oct 2026 10:13:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.126.85
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792404820; cv=fail; b=ll3fFrLKRuklAdUE4Cyvl/0MIFVzAndWDoE37anqV5XC7MP7eMw6ZS3obDO5IrvOdNtsKDRZbFhcBMoA+aWmJ/9LV204iO7EgEFK1eaiDUog9OtOWtoFSgo5g+bHoICoAsLCTylg7Fd80A/L5v7ddUD7AaHTYpJjJp8OeyIjBCg=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792404820; c=relaxed/simple;
-	bh=h3gVRyxkPQOp5CqpcJtdgXjUv27OZQ5nYBktB501rvQ=;
-	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=LYDk3Q/8A1WZCL3eu8x+msbDmLlS7mQ8UoCAHSDrpOTFRa1O5jp0SRhWZ7gqoabV0/zXDd8XUYXnszG0SMvKqtco1HRNfNQG1dnjfG/hF+OkuLtBzOrCike8eC0gOhzl1nVRaYBmM2dlY2ufs/0r41xIoYx5ASWXUMIbzyPRetY=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=microsoft.com; dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b=D9bBWEXw; arc=fail smtp.client-ip=52.101.126.85
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=microsoft.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 049934E06C0;
+	Mon, 19 Oct 2026 11:07:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1792408080; cv=none; b=eSsA6U7xH/SlXe+k2YduxeBwl4tpXjbK+1+F5yhJpFhvjre1mr97WZn9/g6lFpBl0Dai4M3+4OLaX8WjNyDtVVzn62lQwuoZdoa3c0AeGbx6METB41kGpnljGvSE8dddZ9Y8BvazflnCZzuKcz5lIYGsFXvA5bPTKK9nOFMVtg8=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1792408080; c=relaxed/simple;
+	bh=/SMkyG4D1nKZK3teIM2FvdGn4vPQTljQ7eBlBJplf2M=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=UgJoXyW4Vbr/4QTEE8YtpArPAhscS3KHXZk4yAfzBL/DWe/0akvdVoY8qpUDAJ7vyZXl7+xRQDFD1FBTrRTqF4UTk8t+9RoKfBKA97cOJpIuw8vl7D99x9Jh8tqdNdgIjIB0n0zFWC8DHnBrkrT6gFoJFwt4199RMJuG3KrOOvc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=e3GUQeO3; arc=none smtp.client-ip=148.163.156.1
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b="D9bBWEXw"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=pgjQiGBIEgTva90n1NC7iA+DBxPqKgjJ7oIAakyK06UUgDUrKzjh+NaX9AFuSfruuPnHEnN1gFcP+ATbtSkxVhUTVWn9Nx5S066WG7o/LNwYhvKqsYS7Qn+sRQqKkjrjh3vqVxiIHbLiMKDujp5q3vVAUJkhNljqasuKYpHY2N6d8WkYDh59pm7AMpRuzznN2Me5toWbZHjuafcf/pB8FnNUCqEQyLxnpm+b1NP4JdUniBRv3PA0Th9SnbCYzeIqPRf4IrwxPk5aqObc+IArNdDkKc6gHWKUr6szbMaX6jSX7VuNn/J6VlvoO/K9W8HhuTQMd5MgPKbQK2kcEJ/rrQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001; h=From:Date:Subject:Message-ID:MIME-Version;
- bh=h3gVRyxkPQOp5CqpcJtdgXjUv27OZQ5nYBktB501rvQ=;
- b=GTbzPARuykZxGR4N8TaSIsyyJoskYLcHRPeqIFJZ/7/MkIcmJE9Vc6PkfsUBSFT/KQdA2sojY7ZWyAvOUq6fr1oKAO4PclNB+YiskHRf7Znmj4Gpb/mQx2Gldmgb9BumiNjyOR2vqHnp9SVg2r+rx/26iNzYgyZxX1NLfuGxlCk1yLRclzynfzzn0bVOkeHA/AKOAVQUDJ/lLbYkcETNdiveNiMWkGS5CWQNapdtsZLOPzidAr4ibZ+r+kFV+iG7YAwa57eR6WjsdB/S+ijsaQwmSzV+80tTuS+IVYg3RspkzqxPC6ravEfjPYscXfBnhKIG2MYkNXEClY8hOs6lpQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=microsoft.com; dmarc=pass action=none
- header.from=microsoft.com; dkim=pass header.d=microsoft.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=h3gVRyxkPQOp5CqpcJtdgXjUv27OZQ5nYBktB501rvQ=;
- b=D9bBWEXwYWXkMi/8/e2ZW/QeCZ56Mq9UZ6mCTH2DGbk67InxgT4rnQ4hi57j8nE2TtbtiWWWsHSFIYPohClxqzbmVE98yyzQ8rYTPJ04s8fsYzmX4jtRIdLNETD1/qLOYkWF3VTEvttq8uhLUVfcH3yrxDtO2RIu0NEOYmBWUF4=
-Received: from SE3P153MB1848.APCP153.PROD.OUTLOOK.COM (2603:1096:101:340::5)
- by SEZP153MB0791.APCP153.PROD.OUTLOOK.COM (2603:1096:101:a6::13) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.569.0; Mon, 19 Oct
- 2026 10:13:32 +0000
-Received: from SE3P153MB1848.APCP153.PROD.OUTLOOK.COM
- ([fe80::8f4e:575a:4706:a56e]) by SE3P153MB1848.APCP153.PROD.OUTLOOK.COM
- ([fe80::8f4e:575a:4706:a56e%6]) with mapi id 15.21.0569.000; Mon, 19 Oct 2026
- 10:13:31 +0000
-From: Wei Hu <weh@microsoft.com>
-To: "sashiko-reviews@lists.linux.dev" <sashiko-reviews@lists.linux.dev>, Wei
- Hu <weh@linux.microsoft.com>
-CC: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-	"linux-hyperv@vger.kernel.org" <linux-hyperv@vger.kernel.org>,
-	"kuba@kernel.org" <kuba@kernel.org>, "netdev@vger.kernel.org"
-	<netdev@vger.kernel.org>
-Subject: RE: [EXTERNAL] Re: [PATCH net-next v8 1/4] net: mana: prepare HWC
- ownership for safe reinitialization
-Thread-Topic: [EXTERNAL] Re: [PATCH net-next v8 1/4] net: mana: prepare HWC
- ownership for safe reinitialization
-Thread-Index: AQHdXWbLNk6ewlhwnUS+aa2fSPI+VLcBpSeAgAL522A=
-Date: Mon, 19 Oct 2026 10:13:31 +0000
-Message-ID:
- <SE3P153MB18484659AA1DDB56695CF21EBB982@SE3P153MB1848.APCP153.PROD.OUTLOOK.COM>
-References: <cover.1791998462.git.weh@linux.microsoft.com>
- <64987f49ea13b5ccdc9ef95f4a9baf23a479edc3.1791998462.git.weh@linux.microsoft.com>
- <sashiko-outbox-175499@kernel.org>
-In-Reply-To: <sashiko-outbox-175499@kernel.org>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-msip_labels:
- MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ActionId=7dad0630-2d5a-422a-a578-db5a56cf7494;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ContentBits=0;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Enabled=true;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Method=Standard;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Name=Internal;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SetDate=2026-10-19T09:33:32Z;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SiteId=72f988bf-86f1-41af-91ab-2d7cd011db47;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Tag=10,
- 3, 0, 1;
-authentication-results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=microsoft.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: SE3P153MB1848:EE_|SEZP153MB0791:EE_
-x-ms-office365-filtering-correlation-id: 272cd593-a0aa-45f8-e66c-08df2dc9a05f
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam:
- BCL:0;ARA:13230040|23010399003|42112799006|366016|1800799024|376014|38070700021|11063799006|4143699003|56012099006|10067099003|7146999003|22082099003|18002099003;
-x-microsoft-antispam-message-info:
- fMrxL1rbP7Ah+tznyYL/NrF08ZOHp8lXsjyqUcXBgzYp3CnuMd8HQjr973jiHjYfkbUBCYA0BzNtAdluGcgcXh5JJcQ0xcVn9D0+HWp2YPlopcUXBA2iSwKcXmDQUPraRNf7sCEDnQ0LFV4yl6nhLyBZAwooGRbUYN4U8o0FM51MmXpps2wU6DhhNvN7VGt7zJxVYeyG56FypN1gRHXDKT9RiEX2EEva+7Z47DGaP9TpJmoM+DNiIg7RS1EaDS8HMysh1XobhgqTE8gBkMibQEKXZfDB8wqQOKKeVtaGvyl0WK3x+jXE8cCQ8jhck8Vbo/c7NRywUqYWKh5nopbNR97IzpPc4y0cS0WpkQvzq+M2ujJwxA09zQjb6VNDXGM8SwaBbfXY1R7eqWuMbBv7R4t4b8+Uu9DItP6a7FXzuyZ3cElbaV8TXlAQDmlzDN60lWm00Hil0XojCfTs5sHQq1jZdn8wLvZlKhubpNJxGCoFxwGxw50q1U9mfAb5TyEo9s/H8DWzb/Tll5X5bCLSY4JK/gj4NqHVxIrOtQLDiPsIeVMmNj1izMAr4+XbGaZide5KjUMvXDr5zlSNVY+t2YomIQCSRY8MwDCJ8tObsh00zLUUELZiQskFOjUrS2ZqYKeaO0MPZDXYm4xsMdHCLqS7X1FHLD2ShlqTTBWCJiHkAYhbkgaVMWaD8Ywp1PL6J4RyYUmMxQesEhdLXhCpxusgNxcLIjQDsrtTpBZQ0L0=
-x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SE3P153MB1848.APCP153.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(42112799006)(366016)(1800799024)(376014)(38070700021)(11063799006)(4143699003)(56012099006)(10067099003)(7146999003)(22082099003)(18002099003);DIR:OUT;SFP:1102;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?us-ascii?Q?9cU8OogkFHTTLNIrLvXapJamdgLpCIc6Lmz0a9Sa5y2BvTynHTjw9cGh4fzu?=
- =?us-ascii?Q?6VWJ54dGmNXxtZNjKL5fGc/vzZsjPAslcdid2q4oGmSSRPZyz+aWkLeol+9R?=
- =?us-ascii?Q?V9cexp4s3yeq3Pcw8xu+GTaH1Y1fHEOmZ0HaQhSGAhV72KB9PrMkDSS9SEWb?=
- =?us-ascii?Q?8cqy2IeOreUEuBQWwtXTgVxbXKUw8//ixZcDc7jZ6Vg1+hhnvTIhpPvab8/+?=
- =?us-ascii?Q?Yct7jtmovlu/NPqiXzScx26e9xxBne9RqEBicmUT5kfNEthDCxTvnfWJEdrx?=
- =?us-ascii?Q?MtE0Cm99wnG4r57XFISkRWBKY9OHC1/aEOwIAbXrNwa4Y8ZbyaiFm3z3M92Y?=
- =?us-ascii?Q?lrkXrU2C1EVCQ2NpbJ0Ur8mOao/jMAiR7dL+yWxndjs/QHQXga9f3skQX8yN?=
- =?us-ascii?Q?EJPWXmI7RE98SxxLE51jdy/4pC1swwSR5BzLqiT9XMAJ+/7P7Y2PFRvDCWul?=
- =?us-ascii?Q?CGcfNSSH1bRxumZbnj/maGnpN1aGeBsZysFBe6zumLRBmPQBzUdy1tKKW7i0?=
- =?us-ascii?Q?2LtGwsgc+AYspSEjFM2GM4TgBQeM3wNE8NKZnFPIoFIenv/NXTOQ6ejQ6eWH?=
- =?us-ascii?Q?qtjdGpU2hh500y9mzFMyYyHb0pha3fWNBoTehZx+A2xl6aDI8tqyWn1+rXeD?=
- =?us-ascii?Q?YuwUb2PesGVcEwqzglwaljmeKxC8LK18IRCkrUKnmNeqYG/uLKzMXRVGjXg+?=
- =?us-ascii?Q?OJK2B4Gs/KKX/Wp+f75tLGr1OsT39f4TekmKpHgxd5ziKPyT5DOVLI+Kkzck?=
- =?us-ascii?Q?oJpqegpUNpdRpQEQiolNwY+kZDzp64jvUOqaj+3bnFZPKVRcn1muj2H9Qk9x?=
- =?us-ascii?Q?1DMj4r1ie2m9RwG/5ZuoeQbKpBXhAdXfuW3NKHCV2DkdYQainqeaSdJJM96N?=
- =?us-ascii?Q?jPMclsQmLZZFttlQAjkBl+BroPtf2Cfy1zov5+amHXCnBxqjnUfZHPxSYOvo?=
- =?us-ascii?Q?f0W73hvyiVdNpFTEIBbAmBXw6/6aU+K1XS6eTfTyc4/si01hMC9toBNxrXDv?=
- =?us-ascii?Q?1A1DwqHY3/XXcY+bAXKNCsP2VCTsLGQQmAryaeUAmFQkZzSAj/DiTakMJbxA?=
- =?us-ascii?Q?9ulIaLvw3rZrS/6XichYDvmWrxYNSoqUtDWudt3vLXXec3viGS0oLTU1vIUY?=
- =?us-ascii?Q?K2woSQP9yFrJ9h2oVYiovBB69I619jXGLVteBgw+BomQh28t3MLveAUlFamo?=
- =?us-ascii?Q?IbUi27CHgUonHKcwNoYkn9zbVSFtj+2qh01attD4ZVJcetRNO3aMC/GDHxef?=
- =?us-ascii?Q?FdNDlsDOslyfLAtT2kTi57LNTC9Dqc1ZqYrGEGX3KVfgTWeKJpO6jUdHOc2e?=
- =?us-ascii?Q?gQzUFx/NvPfQ30ppyq1KgGcHJAstElNB1XNOZrEF8iNddCVUSJr1vIcgMOsS?=
- =?us-ascii?Q?WZSpUVuSXkYAKop4YPScYrp3wnaPSseeKDYCff3ZzWs8KtLkBTZYE0F+0WFw?=
- =?us-ascii?Q?+Wis15sdKUa1BpEsUIorIpTAUpVP5Ivvplk1jhZwGhBiaP4rvkYPoRMfehqA?=
- =?us-ascii?Q?2Mfn0aJ1aP+0sOMO88bKHHlkTFrDcH3ENIV5XxGm6uCnIal3m0rU73oO7chG?=
- =?us-ascii?Q?TAdQGTBLvu/r9UTivAFxowWoHNnBDx+uzkmBr+mQWAYl1oujCTD+c2DkxePk?=
- =?us-ascii?Q?5uc1mwfnf63v0dqSWKVBXNU1Amj54EnjaMwjNlZ9Zf68FDmNLv+TETT1WYa6?=
- =?us-ascii?Q?AEfXur01Y8vlpNrNq3Jmsb/tZr0MZh5mddRW5oD1LlbMfUm2?=
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="e3GUQeO3"
+Received: from pps.filterd (m0360083.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69J8iEFb3449572;
+	Mon, 19 Oct 2026 11:07:49 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=pp1; bh=hZ/LEv
+	O2H3SoNtJ0eyRB0NbxK/vVC0zH6TQEI3gnGpo=; b=e3GUQeO3GvcztIELCDMX39
+	A44lq4+1LoAp21YrzdsgKEcopCPzZmrlnbYqgfFdhwwhD3V9ncySTVNJcJ4t/E4B
+	WhJoCNaP7geKF+m3eT16l9oorwvUEHfiQAox6fErvPYN2tMpW1AW/T+tDetTZJjn
+	TLud21AjnRDu50lBal51o8bK6tGw3nRWlsrz2fcay89j3xeIgTU5bkEdT9QFiW9D
+	eNT7dMz4nJ3zMN2JVXJfpa/Ic/ZhsyRUL9i2gGNQ5pIjugn2Z6lIqYkMwautLx4E
+	cTS9Xc3TqwHViOXTh9n9lEjEEmrGaQtYOK8k3wvVuHM5bh4iBcFn1BjhoMZi87LA
+	==
+Received: from ppma11.dal12v.mail.ibm.com (db.9e.1632.ip4.static.sl-reverse.com [50.22.158.219])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4hc0h5ashf-1
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
+	Mon, 19 Oct 2026 11:07:48 +0000 (GMT)
+Received: from pps.filterd (ppma11.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma11.dal12v.mail.ibm.com (8.18.1.11/8.18.1.11) with ESMTP id 69J8Yqlf3891077;
+	Mon, 19 Oct 2026 11:07:47 GMT
+Received: from smtprelay01.wdc07v.mail.ibm.com ([172.16.1.68])
+	by ppma11.dal12v.mail.ibm.com (PPS) with ESMTPS id 4hcp1yd4g6-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 19 Oct 2026 11:07:47 +0000 (GMT)
+Received: from smtpav03.wdc07v.mail.ibm.com (smtpav03.wdc07v.mail.ibm.com [10.39.53.230])
+	by smtprelay01.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 69JB7jOc32768468
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 19 Oct 2026 11:07:45 GMT
+Received: from smtpav03.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id B2C0E58062;
+	Mon, 19 Oct 2026 11:07:45 +0000 (GMT)
+Received: from smtpav03.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id A7D325805D;
+	Mon, 19 Oct 2026 11:07:38 +0000 (GMT)
+Received: from [9.124.218.162] (unknown [9.124.218.162])
+	by smtpav03.wdc07v.mail.ibm.com (Postfix) with ESMTP;
+	Mon, 19 Oct 2026 11:07:38 +0000 (GMT)
+Message-ID: <2b6f56ed-60ed-4d27-884d-849e85afbce4@linux.ibm.com>
+Date: Mon, 19 Oct 2026 16:37:36 +0530
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-OriginatorOrg: microsoft.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: SE3P153MB1848.APCP153.PROD.OUTLOOK.COM
-X-MS-Exchange-CrossTenant-Network-Message-Id: 272cd593-a0aa-45f8-e66c-08df2dc9a05f
-X-MS-Exchange-CrossTenant-originalarrivaltime: 19 Oct 2026 10:13:31.2018
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 72f988bf-86f1-41af-91ab-2d7cd011db47
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: IgpKMSeuCfPc4xd/OX/bH6WiX7ay2nJyTexyRJIaWgNlkYjGMU/OcwGd0G/LbeAHNRHkZYN4ZeXb1MfTD4Qqfg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SEZP153MB0791
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net v11] net/smc: fix lgr/lnk lifetime vs diag reader race
+To: netdev-bot+sashiko@kernel.org
+Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
+        kuba@kernel.org, pabeni@redhat.com, alibuda@linux.alibaba.com,
+        dust.li@linux.alibaba.com, sidraya@linux.ibm.com,
+        hidayath@linux.ibm.com, pasic@linux.ibm.com, horms@kernel.org,
+        tonylu@linux.alibaba.com, guwen@linux.alibaba.com,
+        stable@vger.kernel.org, netdev@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
+References: <20261015081349.1252391-1-mjambigi@linux.ibm.com>
+ <179240154272.3135.17238777571997282600@kernel.org>
+Content-Language: en-US
+From: Mahanta Jambigi <mjambigi@linux.ibm.com>
+In-Reply-To: <179240154272.3135.17238777571997282600@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-Reinject: loops=2 maxloops=12
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMDE5MDA0MiBTYWx0ZWRfXwtbhrS7sdGqy
+ JS1b91ug51NZYawPj63J1OFFZKbC5QUVFPBctO9fwTtyHEtyXXdrquLQ2RrLbe28Lf/ORq5atB8
+ STszhqpJk1ONeUf5tjwZLi8nj4A9h80=
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDE5MDA0MiBTYWx0ZWRfX+ogCRlDiaJ0h
+ JahbmWrIzJn9WbnOfQNDEmtoeG/KcRoDOmqHSOKCNVhioOQ6feTx7mm8R5xUObxevHuGMlzsxu/
+ /b0WZMjN0clU6Kr3+zKMSAdFpTdkaKVy+Mqyv/FjsGX8KqJrsD5t7FGa005nGccZx/ZSTwCBW7n
+ 1zVZLAnWYDS9/kBIT+crElirNMRHvUj6T0W0/ZDi/m6TcB+tz6XvMWMFg9ttiYH499Oar/AEt83
+ zUIK2Noa6t8VWsq+WiIzbdhAwa6qR4HoaBW+2uiESHspURhH9FRl17EdmsLyLIm6uXzJvbgIDBm
+ hnIZY1nP1GCf4SfJf7Iw1Bi8WZvutDnWwJu5yJCYsWp47wKeIEDUKFqLY5rNAfFE7WKu3gViUpB
+ GQrRsMp3ae84bmtbN9rFCtmqt4Jlgvf8vOei14xbfwNkSIbyDO7zTrqVNniiWWF5c5UjSR0KiTV
+ iRfiUuvQWugyqZw3eNA==
+X-Proofpoint-ORIG-GUID: 6ubn6E29sA47hik5LBFOuDTQAKx4w7av
+X-Proofpoint-GUID: 6lbzOTIPmfaRT5WewsmbvjFpwvEQxI3G
+X-Authority-Analysis: v=2.4 cv=KujYSmWN c=1 sm=1 tr=0 ts=6ad5fa04 cx=c_pps
+ a=aDMHemPKRhS1OARIsFnwRA==:117 a=aDMHemPKRhS1OARIsFnwRA==:17
+ a=IkcTkHD0fZMA:10 a=660iZSQnnn4A:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=RnoormkPH1_aCDwRdu11:22 a=iQ6ETzBq9ecOQQE5vZCe:22 a=VwQbUJbxAAAA:8
+ a=Q6kW5ydU2YLVSL4rxhwA:9 a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-10-19_03,2026-10-14_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ adultscore=0 impostorscore=0 suspectscore=0 priorityscore=1501 malwarescore=0
+ clxscore=1015 lowpriorityscore=0 spamscore=0 phishscore=0 bulkscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2610080000 definitions=main-2610190042
 
-On Sat, Oct 17, 2026 at 12:06:45PM +0000, sashiko-bot@kernel.org wrote:
-> Does this sequence still leave a use-after-free regression for Ethernet a=
-nd
-> RDMA queues during teardown?
-
-Thanks for the report. This is a pre-existing individual-CQ lifetime
-issue, rather than a regression introduced by this HWC series.
-
-mana_gd_destroy_cq() clears the slot, but mana_gd_destroy_queue() can free
-the CQ while an EQ reader still holds its pointer. The later EQ-side RCU
-grace period does not protect the earlier CQ free.
-
-I checked unmodified net-next at 98c2ad4f5d80 on October 17. Its MANA
-Ethernet, RDMA and header subtrees are identical to the series base,
-05b5019b01fb. The Ethernet CQ reader/teardown ordering is also already
-present at upstream commit 02fed6d92bad ("net: mana: add msix index sharing
-between EQs"), from December 2023, well before this series.
-
-The HWC-specific teardown addressed by this patch is different: after
-acknowledged HWC teardown, it unpublishes the CQ table and waits for
-existing IRQ-side RCU readers before freeing the HWC queues. Individual
-Ethernet and RDMA CQ lifetime handling remains separate, as stated in the
-patch description.
-
-I agree that the reported issue should be addressed in a separate fix to
-the existing per-CQ teardown paths, independently of this HWC series.
-
-Thanks,
-Wei
 
 
+On 19/10/26 2:49 pm, netdev-bot+sashiko@kernel.org wrote:
+> Thank you for your contribution! Sashiko AI review found 1 potential
+> issue(s) to consider.
+> 
+> Critical: 1 · High: 0 · Medium: 0 · Low: 0
+> 
+> If you believe none of the issues are legitimate, please reply to each
+> issue of Medium severity or higher and explain why the AI is wrong.
+> If any of them are legitimate and you plan to respin, please let patchwork
+> know by including "pw-bot: cr" as a separate line at the end of your reply
+> (one such reply per series is enough).
+> 
+> - [Critical] The patch makes smc_conn_free() call
+>   smc_lgr_unregister_conn() unconditionally.
+> 
+> --
+> 
+> net/smc: fix lgr/lnk lifetime vs diag reader race
+> 
+> This patch closes races between the SMC sock_diag dump and teardown of
+> conn/lgr/lnk state. It unhashes sockets before smc_conn_free() and
+> smcd_buf_detach(), orders sk_state with acquire/release, skips the
+> extension attributes for sockets in SMC_INIT/SMC_CLOSED, and uses the
+> cached link->ibname. It also makes smc_conn_free() always call
+> smc_lgr_unregister_conn().
+> 
+>> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+>> index 9974149659c2..6735f185cf48 100644
+>> --- a/net/smc/smc_core.c
+>> +++ b/net/smc/smc_core.c
+>> @@ -1279,10 +1279,9 @@ void smc_conn_free(struct smc_connection *conn)
+>>  		if (current_work() != &conn->abort_work)
+>>  			cancel_work_sync(&conn->abort_work);
+>>  	}
+>> -	if (!list_empty(&lgr->list)) {
+>> +	if (!list_empty(&lgr->list))
+>>  		smc_buf_unuse(conn, lgr); /* allow buffer reuse */
+>> -		smc_lgr_unregister_conn(conn);
+>> -	}
+>> +	smc_lgr_unregister_conn(conn);
+>>  
+>>  	if (!lgr->conns_num)
+>>  		smc_lgr_schedule_free_work(lgr);
+> 
+> [Severity: Critical]
+> Now that the unregister is unconditional, can lgr->free_work get re-armed
+> on a link group that is already being torn down? If so, the lgr could be
+> freed while that timer is still pending.
+> 
+> smc_lgr_cleanup_early() unlinks the lgr but never sets lgr->freeing:
+> 
+> smc_lgr_cleanup_early() {
+>     ...
+> 	if (!list_empty(&lgr->list))
+> 		list_del_init(&lgr->list);
+> 	spin_unlock_bh(lgr_lock);
+> 	__smc_lgr_terminate(lgr, true);
+> }
+> 
+> smc_lgr_schedule_free_work() checks only lgr->freeing, not
+> lgr->terminating:
+> 
+> 	if (!lgr->freeing) {
+> 		mod_delayed_work(system_percpu_wq, &lgr->free_work, ...
+> 
+> __smc_lgr_terminate() cancels free_work once, before a loop that sleeps
+> in lock_sock(). After the loop it calls smc_lgr_free(), and nothing on
+> that path cancels free_work again:
+> 
+> __smc_lgr_terminate() {
+>     ...
+> 	cancel_delayed_work(&lgr->free_work);
+> 	lgr->terminating = 1;
+> 	...
+> 		lock_sock(&smc->sk);
+> 		smc_conn_kill(conn, soft);
+> 	...
+> 	smc_lgr_cleanup(lgr);
+> 	smc_lgr_free(lgr);
+> }
+> 
+> One possible sequence on an SMC-D server:
+> 
+> - Conn X creates a first-contact lgr L. smc_listen_work() releases
+>   smc_server_lgr_pending for SMC-D right after sending ACCEPT.
+> 
+> - Conn Y joins L. smc_conn_create() has no conns_num limit for SMC-D.
+> 
+> - X's CONFIRM fails:
+>   smc_listen_decline(X) -> smc_conn_abort() -> smc_conn_free(X), while
+>   L is still listed. Then smc_lgr_cleanup_early(L) runs list_del_init()
+>   and __smc_lgr_terminate(L) cancels free_work, sets terminating = 1 and
+>   blocks in lock_sock(Y). Y's listen worker holds that lock while it
+>   waits for its own CONFIRM.
+> 
+> - Y's CONFIRM also fails:
+>   smc_listen_decline(Y) -> smc_conn_abort() -> smc_conn_free(Y). The
+>   lgr list is now empty, but with this change smc_lgr_unregister_conn(Y)
+>   still runs. conns_num drops to 0, freeing is 0, so
+>   smc_lgr_schedule_free_work() arms free_work with
+>   SMC_LGR_FREE_DELAY_SERV.
+> 
+> - X's worker resumes, the loop ends, and smc_lgr_free(L) ->
+>   smc_lgr_put() -> __smc_lgr_free() -> kfree(L) runs while free_work is
+>   still pending.
+> 
+> Would the timer then fire on freed memory? If L were still alive at that
+> point, smc_lgr_free_work() would see freeing == 0 and an empty conns_all
+> and call smc_lgr_free() a second time.
+> 
+> Before this patch, smc_conn_free(Y) skipped smc_lgr_unregister_conn() when
+> the lgr list was empty, so conns_num stayed at 1 and free_work was not
+> re-armed.
+> 
+> The peer decides whether and when each CONFIRM fails, and with
+> loopback-ism the client can be a local unprivileged user.
+> 
+> Should smc_lgr_cleanup_early() set lgr->freeing like the other unlink
+> paths do? Alternatively, smc_lgr_schedule_free_work() could also check
+> lgr->terminating.
+> 
+> [ ... ]
+> 
+
+You are correct. v11 introduced unconditional smc_lgr_unregister_conn()
+which correctly fixes the alert_token_local UAF, but left
+smc_lgr_schedule_free_work() with only the !lgr->freeing check. On the
+smc_lgr_cleanup_early() path, __smc_lgr_terminate() sets terminating=1
+and cancels free_work without setting freeing=1, so a concurrent
+smc_conn_free() decrementing conns_num to 0 would re-arm free_work. The
+subsequent kfree(lgr) inside __smc_lgr_terminate() → smc_lgr_free()
+leaves the re-armed work pointing at freed memory.
+
+Fixed in v12 by adding !lgr->terminating to the guard in
+smc_lgr_schedule_free_work():
+
+-	if (!lgr->freeing) {
++	if (!lgr->freeing && !lgr->terminating) {
+
+This is safe: on the smc_lgr_cleanup_early() path __smc_lgr_terminate()
+walks the full conns_all tree, kills every connection via
+smc_conn_kill(), and then calls smc_lgr_free() unconditionally — it does
+not rely on free_work to complete the teardown. Blocking the re-arm when
+terminating=1 just prevents the UAF; the LGR is still freed by
+__smc_lgr_terminate() itself.
+
+On all other teardown paths (smc_lgr_terminate_sched,
+smc_smcd_terminate, smc_smcd_terminate_all, smc_smcr_terminate_all)
+freeing=1 is set before __smc_lgr_terminate() or terminate_work is
+scheduled, so !lgr->freeing already blocked smc_lgr_schedule_free_work()
+there — the !lgr->terminating addition changes nothing for those paths.
+
+pw-bot: cr
