@@ -1,70 +1,97 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo1-f42.google.com (mail-oo1-f42.google.com [209.85.161.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F29C725B0AC
-	for <linux-rdma@vger.kernel.org>; Mon, 19 Oct 2026 13:36:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792417012; cv=none; b=l+wszwYOnZ3WzAdt4DFdi9YADCendQjQlpP1SQO2I3hD6vVzVD9SUpHw3NIzIJNQ5IgnPfoLUJ3zByPLBt7pcjLHN5imL/5HdkkakNzXoHFYjR7ZUvB0tRxgbOTZk4ShXxUOKcSN+RpufbtDdR0rNHToeMZtencOL8McHoDWWmw=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792417012; c=relaxed/simple;
-	bh=7b4y6UH8vY8E//4ACENVxo3BbFxCb7tW3G1sSkLYAv4=;
-	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
-	 Date; b=JvpAWG63zvLj2SRdPvBjmyWdRBUfczQ1muZ4mcCL8aOB8UkZJLUjFy6wM/hwOnHJYx1fWEPcBh+3oYxtobdQSuaqDbchiePMAKOigtVEeK32vg31phXrziQFRBSTXk8ZazQx+m3Tu1XYJ15MO//v4CVISuuFzCt7Yul7xqBq4kA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Qa9xkmvE; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E7A84F649A
+	for <linux-rdma@vger.kernel.org>; Mon, 19 Oct 2026 13:44:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.161.42
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1792417477; cv=pass; b=s9hFOqOg8/T7vEWoPnqbPpvyz+41TFR1vCo7DdtERV2jypUcFBuKz70XYcFvlsqT5+3Li104LRiZgKWO7IBlgQ8Is4lAvs8CY5jj/WIpvt3/lunwr/iWUTM/Gc93wx7yvGZ3vZoHyOirdBL1XDLWWltHPfAHxUiahClpaY7wwxA=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1792417477; c=relaxed/simple;
+	bh=i2B+NxU0CZTK0xwM8OLVyFfmzdA22KKzORXTSg+xy+M=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=SKGkA9VRa1GFGc6XoZHwB2m0Ly9zYKG+z2gkipMIR0OJfGlqdrRJMi3p0MdA6cMd8h/IE0KGn6JiwtwGVsoqGW65EzZM0sa3ATcqF9GiCetRCldWtBgPh31bXfvfwL0a+oROOA/Xkpk4FKFuPIu2q6e0pEH/A8XRZjkTkDhltbk=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=ExeJGAPW; arc=pass smtp.client-ip=209.85.161.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Qa9xkmvE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B886F1F000C5;
-	Mon, 19 Oct 2026 13:36:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792417011;
-	bh=7b4y6UH8vY8E//4ACENVxo3BbFxCb7tW3G1sSkLYAv4=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=Qa9xkmvEOulqnrBAAKlegTPJX4h2uMZ0b8TrSubm3T9cNPdYr2DbQGWb/SCa7VkCW
-	 mRIko4O6vSJGv4qRfml9z7yhf6+sUZNxniCBpCoKIHxEsitrNt3CthXfEUX7eWnvnC
-	 JbGbkMi9TQZ36ohPQyFbdzmRxNeTiGUQd9WUjyx2cZVkn9kpy8Jw4KSmxvB4zUs3Ep
-	 4s4AuZT9c+gJoaKywfP+trlU7SIuOfdWIETonrtSzWoYfdRw9pn+8yQSH6EQT/o/Yo
-	 AIxKBYQx2MKvYB5Uzde0jzWvil/UjyHtgKKsQ+rqY8+v9wCKfChJqyAKJBHnG5z67A
-	 Q7zj3xbE+n0gQ==
-Message-ID: <sashiko-outbox-177172@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net v3 2/2] net/mlx5: HWS, fix modify header pool match
- for copy actions
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Alexandre Cassen" <acassen@corp.free.fr>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261019133159.1742411-3-acassen@corp.free.fr>
-References: <20261019133159.1742411-1-acassen@corp.free.fr>
- <20261019133159.1742411-3-acassen@corp.free.fr>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Mon, 19 Oct 2026 13:36:51 +0000
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="ExeJGAPW"
+Received: by mail-oo1-f42.google.com with SMTP id 006d021491bc7-702fd86d674so1289481eaf.2
+        for <linux-rdma@vger.kernel.org>; Mon, 19 Oct 2026 06:44:36 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1792417475; cv=none;
+        d=google.com; s=arc-20260327;
+        b=WRgzqgKdypV/FUJE4G4gkMVr7CP/6j0mwGHbxEP9GLXEEq8JQKYa4SaGHMC1fak+58
+         4b61iLgV9c3keTzJXuJCDM6LdYzAmdrDDDfe0/3dQdao1jwossK8e/zv4GNlsWbgWdzb
+         +k3NHCMCqni5ld9W2LChotP64X1etrs4tC0j89pb30ym9bhirisq698Cha3NhAFUAXxn
+         IH+MZv74S0r7Dc0WNI1ePkookEzk/XOdfmNA6rlgzGzlC55wMRUR664BhxzUPGuH1/s6
+         DKgS0Kiiwwdrn3X4fi6pTTGmbYvXWaoIIhyWXdM2+NIYUDVCmKtDebb5m3hAR0iBlJPN
+         fAvg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=i2B+NxU0CZTK0xwM8OLVyFfmzdA22KKzORXTSg+xy+M=;
+        fh=nZv0WCVTmVUeucdg9XClmXopSkhhMeJ6XCv6qKtnJ+s=;
+        b=oUIutQDAHx9KvjUszIwN8um+X6b6/X4ijmGbBDpnrBFG7DBGE3zGBEuuLHEyS6oujA
+         /+8nsKX+vJ1Y9Aec8loEnmYYNoezTkPBTbiEhpThfa2IdK4YstIwNbYdcmCOkq5x35LI
+         +/RL4yfq/4E+IkaqzPyKIjvarMnZncItDoMXM30mLZkaJEuNXzvY8M8N3RNm4nE+BSx/
+         JZB4Ill8FBaVkbwqOlMegHCuIGyBw0TehwlCDcRIYVhvByPRIUeIoO6n0esgUEsUEPJ1
+         F54PF4bQmxzgNX3Xiwlrz+2GNrfUH3y6e0QOAwsFI4LhjjVAe9le4tn4L/QDHTOvDALx
+         BpSQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1792417475; x=1793022275; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=i2B+NxU0CZTK0xwM8OLVyFfmzdA22KKzORXTSg+xy+M=;
+        b=ExeJGAPWsWRCHqM9WyrNcP0oyezbKExyS64KjjRIUbLg61c4+dQt8lM1K7BGDyo+V1
+         TuhG4l3eqRWHq/DDAer46z0FrvD+5n+sMmBLr3xcX/NapCYrlWITADQopJpMW/55sH5n
+         AQoWdwYu06+4Pnthy9GJudS3wHC6UX8um5vbjHolA0M9iltrxEl82Rjfjz+95dINsBFC
+         r3O+lsdLD7haciZlhzfZJSWxAeCUkF2xMdijK53VLyWCxkX4ZqJ1RiCXC323XbsYxg2X
+         Ayt7KCl0FLUJCFgjzTkA/gouS1LGjU1tjrS39LQljzTimQGc1Uz3NKnhwCS3ChAkJBjI
+         iFdg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792417475; x=1793022275;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=i2B+NxU0CZTK0xwM8OLVyFfmzdA22KKzORXTSg+xy+M=;
+        b=rwfD8h+hkcLtI1D6MOHKvn2Fb1o5FVoS4f90jChivGvv2n5r7L9OE5K4v6/NQbPBuK
+         DSbideJx3Gmi9ztmu49EYTH2YAu98TXqnrtCaJeLv8Mna4beWlIYN0Ig5Fb6yF2PaCST
+         K2rUByvZnMDKn969cSZBq4Xrl6W61uv2DwW6YWwDss8sltn1vqok0jSff0A9Rtoa2OIJ
+         lXmlDT22bEXkNnPlpM86WPEupatzk7lxAAEFoE/Oy8r3dlKuB7i6K1atuqK9smVihgCO
+         MPXME6G+/E/n1VCAcfCgPSrSjXM2G5lHiTUVIIQYdxlqBTOTnsM8WvdmwZhyIaxPY6/X
+         6lzA==
+X-Forwarded-Encrypted: i=1; AKwUvBzUaerLqnpohMcjX6fLdARYpUgUg7mfs8Ylxx4yB3LIY0A5tL+/OpgllK7aobrLF+MjJ9D/fPgI9M6F@vger.kernel.org
+X-Gm-Message-State: AFq9FYKf8pZ+5ES69UaoMXhpHFJuGGdVSmdxRw3O/zE52UB78XyHv/vZ
+	mT1cw+H32j62ceqqiKEHmqIOAt06yE+NMeNBzwOibDfViVJhb70ujj8cBAttYIxb/ufZ+l0wxn8
+	eFWWHXX1DhrfjD7cYy3Gm6ktcZm8oAjsYMOumSXNW
+X-Gm-Gg: AYBFou2BzABMqgG8IavN3TjEOpJecBV8uErUomR53b2dgn91vWJ9q2D4Bn/hQN8Iynv
+	2eHD9wYCm+EyjP0q3DBR+yCpAqmj5e65CzHDn622IweoL0ZZTmk2+660P39mFRC7sAJ0kW4vFlS
+	KjytWTJr+3rF2XSDhJLxEOny+de9idpuzmA0+nrDLlTOYulv6E6cOt7QWN6fBS0dgCfSMAvvxx8
+	jC/yrB7GGPyAmnyDrzkr3m8Pc70MjMCuVShRcbzHliyzBOLVAfjURTt6/NDEqW02ZXyAMwx4bxO
+	UF2iFUlNILGaBDQOq9sTK4cBbiWB789nB1xz9VExQOefKPhg4UNUmW9lazf9mqBZ0PO9VIyAJ6X
+	qSwhq8QsJew/UHRWn/Ygm6KMg
+X-Received: by 2002:a05:6820:1887:b0:6f5:467a:aebf with SMTP id
+ 006d021491bc7-70352a740cemr5304207eaf.1.1792417474385; Mon, 19 Oct 2026
+ 06:44:34 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <20261017052856.3570063-1-sunnytiwari@google.com>
+In-Reply-To: <20261017052856.3570063-1-sunnytiwari@google.com>
+From: Jacob Moroni <jmoroni@google.com>
+Date: Mon, 19 Oct 2026 09:44:22 -0400
+X-Gm-Features: AclHuK8CLfS2jb-qgjiUfTLjbar3Vvg_fq27zoTaqj2ZFVJNnyD_OfeIfTfIoqo
+Message-ID: <CAHYDg1R=GKp6DRXBTcsD46pLmahnVhGAoKEYgzfskoo68iLcBA@mail.gmail.com>
+Subject: Re: [PATCH] RDMA/irdma: Bound in-flight CQP ops across deferred completions
+To: Sunny Tiwari <sunnytiwari@google.com>
+Cc: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, leon@kernel.org, 
+	linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-> mlx5_fs_hws_mh_pool_match() compares a single dword of each action
-> since rules pass their values as arguments. Copy and add_field actions
-> keep their destination in the second dword and HWS reads them from the
-> pattern alone. Two modify headers whose copies differ only in
-> destination then share a pool and the second rule writes to the wrong
-> field.
->=20
-> Use the HWS core comparison that checks these actions in full.
->=20
-> Found while checking a Sashiko AI review report and confirmed against
-> the HWS pattern code. Not reproduced. No in-kernel user puts such
-> actions on the FDB but RDMA flow actions can. Tested for regressions on
-> ConnectX-7 with firmware 28.48.1000 on a little-endian host.
->=20
-> Fixes: b36315ca69cb ("net/mlx5: fs, add HWS modify header API function")
-> Signed-off-by: Alexandre Cassen <acassen@corp.free.fr>
-
-Sashiko has reviewed this patch and found no issues.
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261019133159.1742=
-411-1-acassen@corp.free.fr?part=3D2
-
+Reviewed-by: Jacob Moroni <jmoroni@google.com>
