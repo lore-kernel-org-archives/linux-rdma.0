@@ -1,45 +1,45 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5752D4A4828;
-	Mon, 19 Oct 2026 09:00:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91E1F39099C;
+	Mon, 19 Oct 2026 09:19:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792400434; cv=none; b=jVn4YnG4qx52MybJVQ4eCUFX7UOFfqOaHxhcu095jX2spcf1z3fSUpGvQLpDPcN7XQQKxyr89ozAiKYfJOL8uet7a/10GMSMvzXWR4C/yTdIn8yyBP3iopbolnbAAOXMXH1r8BjgyqC3mZMAZchq3vonMn81ZGC18MBl4ItVDRU=
+	t=1792401545; cv=none; b=rRrsz6xYo7lDdhdv+cNAEJkkwIjfXxkIqPzvBxLsrG6e5bcjeKWGC/Jb4NGZ58TrljkVWEF9wfwmoEZQ2frQquNdMeEaRvJoy+pFbumg1KdVaAQHODlpEIZW1Shyid9mYCoPNxzcj0XsiTfeO8e48L79GKh+8pIKNspjV3AJJSg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792400434; c=relaxed/simple;
-	bh=BAwzcRi7vSkEAOcUWAZNU6P64l/jjXjj5WuPW4v82Mw=;
+	s=arc-20240116; t=1792401545; c=relaxed/simple;
+	bh=+7YEmMh9hqu9EFqnLCRSsNJtJX3xTYVHHsuMazPAaZM=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=IZibU26ApsyCgkfIwGRl73nYw+/FCcGmKGJCUia5yQ2QtruT1so5tH5BaD7Qx6Bh2alnNwL2SV8BCf76ZAF4QJcCDiq46N4RAPa8Pzk3FxIJsd0QUpkMSgG4l6yAwUgqdh3T6zTqrFcCvA8rdcOmQFbyLjWhLYOmblmZj5L8+oM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XbF2sNAd; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=DFDgADhB8QLJ1Ka3z9RL4ZrR6zxQBBzr1jVA5vqA8KEb8x0yzsmWlkfIREEACAm1HHB1FXthl+7jlkWj5lDvlP35YhI3QYMQ8j9fHVfEqgj1KiSrJ431nGQ5+qE3Zw06rri3w9YoSFJmDoaqGiacONFq7gnRjRAeOO7CiOaGx68=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=i19dov7+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XbF2sNAd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 190DE1F000C4;
-	Mon, 19 Oct 2026 09:00:32 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="i19dov7+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 350161F000C5;
+	Mon, 19 Oct 2026 09:19:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792400432;
-	bh=3hSYYZxfXUj4tub1+H+H+fSNPGf3qpxBoVbL6tLJEdA=;
+	s=k20260515; t=1792401544;
+	bh=oN70H5R9ldPbMGdAr2ddG48R+ac02LOo0uRx3leltQU=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=XbF2sNAdqr+c1OO5LrHqGA/JGS94z54W5+wyvYxuEfitleJKGbEzhIXg7w3cHW9yJ
-	 8+vBXnwzz2OBn8h0Cl69pJ0PkMHfU7miZ6TkZP+1UzP/8+71jA4mEFafwFSdnQE+/0
-	 3kTIekOGem/vZ9GsmwmQeS3yCY6fbEnGK7bsvq8znJnP0MYgD2nmxvrQ2C9t51PWDk
-	 PJcJh9A5sIg+1okdfxjdnCD38va0sbny13hzT3dgmdI5BMOsMUDwTkUYjBjyRs6ZmG
-	 M7izDwiyFpuC5Z9c0bDkhlfAPzdKf18nZgBJnursvCDCXqbzww1pP9D79rxJiMF+0v
-	 Dwfc2EL7jsnaQ==
-Subject: Re: [PATCH net] net/mlx5e: rep, Fix races between devcom PAIR event
- and uplink close
+	b=i19dov7+vGYjSHrO6jpb2nbQ4GIXDtxmwgJ1eZLG+iurtBU/w2rpNV3RI8TxKuEOq
+	 rLAlAq9YQYe6dTie7MA8+ojwz534boCl+tizXrN95A0aV7vH7x6L4gi0xBSjbh7iZc
+	 qDNAVSE95znBlVeZANVjVkm8JhNr0TAyQnAjlVh2z3HkAB8FR3bQFl20/qg6Lgc8t2
+	 ENodISmPYwI/7bxlKDed0gJL9f5n48EiGZGnBU5z5mRQzMwv0HTwVYVA11wVesAjjv
+	 UlRaka7UNppXEO8yC5iYmjlkru7U+aGc1YrYII3mV7sEyPeSUrSBbPy2Hlmt0eMvu8
+	 Ei4Owapx6kabQ==
+Subject: Re: [PATCH net v11] net/smc: fix lgr/lnk lifetime vs diag reader race
 From: netdev-bot+sashiko@kernel.org
-To: tariqt@nvidia.com
-Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
- kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com, gal@nvidia.com,
- leon@kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
- mbloch@nvidia.com, moshe@nvidia.com, roid@nvidia.com, saeedm@nvidia.com,
- shayd@nvidia.com
-Date: Mon, 19 Oct 2026 09:00:31 +0000
-Message-ID: <179240043161.3135.7551017781405209816@kernel.org>
-In-Reply-To: <20261015085744.1109107-1-tariqt@nvidia.com>
-References: <20261015085744.1109107-1-tariqt@nvidia.com>
-X-sashiko-severity: High
+To: mjambigi@linux.ibm.com
+Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
+ kuba@kernel.org, pabeni@redhat.com, alibuda@linux.alibaba.com,
+ dust.li@linux.alibaba.com, sidraya@linux.ibm.com, hidayath@linux.ibm.com,
+ pasic@linux.ibm.com, horms@kernel.org, tonylu@linux.alibaba.com,
+ guwen@linux.alibaba.com, stable@vger.kernel.org, netdev@vger.kernel.org,
+ linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
+Date: Mon, 19 Oct 2026 09:19:02 +0000
+Message-ID: <179240154272.3135.17238777571997282600@kernel.org>
+In-Reply-To: <20261015081349.1252391-1-mjambigi@linux.ibm.com>
+References: <20261015081349.1252391-1-mjambigi@linux.ibm.com>
+X-sashiko-severity: Critical
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -49,10 +49,10 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 2 potential
+Thank you for your contribution! Sashiko AI review found 1 potential
 issue(s) to consider.
 
-Critical: 0 · High: 2 · Medium: 0 · Low: 0
+Critical: 1 · High: 0 · Medium: 0 · Low: 0
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -60,161 +60,116 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [High] The fix is incomplete.
-- [High] The patch adds a lockless load and dereference of esw->devcom to
-  every rep channel deactivation.
+- [Critical] The patch makes smc_conn_free() call
+  smc_lgr_unregister_conn() unconditionally.
 
 --
 
-net/mlx5e: rep, Fix races between devcom PAIR event and uplink close
+net/smc: fix lgr/lnk lifetime vs diag reader race
 
-This commit wraps mlx5e_sqs2vport_stop() in mlx5e_remove_sqs_fwd_rules()
-with mlx5_devcom_for_each_peer_begin()/end(). The goal is to serialize
-rep_sq and sq_peer teardown against the devcom ESW_OFFLOADS PAIR/UNPAIR
-event handler, which follows the pattern already used on the add side.
+This patch closes races between the SMC sock_diag dump and teardown of
+conn/lgr/lnk state. It unhashes sockets before smc_conn_free() and
+smcd_buf_detach(), orders sk_state with acquire/release, skips the
+extension attributes for sockets in SMC_INIT/SMC_CLOSED, and uses the
+cached link->ibname. It also makes smc_conn_free() always call
+smc_lgr_unregister_conn().
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-> index 88a170e40bd9..7211faaffd8d 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-> @@ -629,8 +629,12 @@ mlx5e_remove_sqs_fwd_rules(struct mlx5e_priv *priv)
->  	struct mlx5_eswitch *esw = priv->mdev->priv.eswitch;
->  	struct mlx5e_rep_priv *rpriv = priv->ppriv;
->  	struct mlx5_eswitch_rep *rep = rpriv->rep;
-> +	bool devcom_locked;
+> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+> index 9974149659c2..6735f185cf48 100644
+> --- a/net/smc/smc_core.c
+> +++ b/net/smc/smc_core.c
+> @@ -1279,10 +1279,9 @@ void smc_conn_free(struct smc_connection *conn)
+>  		if (current_work() != &conn->abort_work)
+>  			cancel_work_sync(&conn->abort_work);
+>  	}
+> -	if (!list_empty(&lgr->list)) {
+> +	if (!list_empty(&lgr->list))
+>  		smc_buf_unuse(conn, lgr); /* allow buffer reuse */
+> -		smc_lgr_unregister_conn(conn);
+> -	}
+> +	smc_lgr_unregister_conn(conn);
 >  
-> +	devcom_locked = mlx5_devcom_for_each_peer_begin(esw->devcom);
+>  	if (!lgr->conns_num)
+>  		smc_lgr_schedule_free_work(lgr);
 
-[Severity: High]
-Before this patch, the stop path never touched esw->devcom. Now every rep
-channel deactivation loads and dereferences it with no lock held, and does
-so before the esw->mode check in mlx5e_sqs2vport_stop(). Can esw->devcom
-be freed while this runs?
+[Severity: Critical]
+Now that the unregister is unconditional, can lgr->free_work get re-armed
+on a link group that is already being torn down? If so, the lgr could be
+freed while that timer is still pending.
 
-esw_offloads_disable() cleans up devcom before it unloads the reps:
+smc_lgr_cleanup_early() unlinks the lgr but never sets lgr->freeing:
 
-	mlx5_esw_offloads_devcom_cleanup(esw);
-	mlx5_eswitch_disable_pf_vf_vports(esw);
-	mlx5_esw_offloads_rep_unload(esw, MLX5_VPORT_UPLINK);
-
-mlx5_esw_offloads_devcom_cleanup() frees the devcom before it clears the
-pointer:
-
-	mlx5_devcom_unregister_component(esw->devcom);
-	xa_destroy(&esw->paired);
-	xa_destroy(&esw->fdb_table.offloads.peer_miss_rules);
-	esw->devcom = NULL;
-
-The free happens in mlx5_devcom_unregister_component()->
-devcom_free_comp_dev(), which does kfree(devcom) and then
-kref_put(&comp->ref, mlx5_devcom_comp_release). That also frees comp if
-this was the last member.
-
-One possible interleaving:
-
-CPU0 (ip link set <rep> down)
-mlx5e_rep_deactivate_channels()->mlx5e_remove_sqs_fwd_rules()
-  mlx5_devcom_for_each_peer_begin(esw->devcom)   /* loads P */
-
-CPU1 (devlink eswitch mode set legacy)
-mlx5_devlink_eswitch_mode_set()->mlx5_eswitch_disable_locked()
-  ->esw_offloads_disable()->mlx5_esw_offloads_devcom_cleanup()
-    kfree(P), possibly frees P->comp as well
-
-CPU0
-  comp = devcom->comp;
-  down_read(&comp->sem);
-
-The ndo_stop path holds rtnl, the netdev lock and priv->state_lock. The
-devlink mode set path holds the devlink lock and reps_lock. Nothing
-appears to serialize the two.
-
-Could this become a use-after-free on the comp_dev and on comp->sem? The
-start path already has a similar unsynchronized use of esw->devcom, but
-this patch adds a new one on the close path.
-
->  	mlx5e_sqs2vport_stop(esw, rep);
-> +	if (devcom_locked)
-> +		mlx5_devcom_for_each_peer_end(esw->devcom);
->  }
-
-[Severity: High]
-Does this fully close the race with the PAIR event?
-mlx5_devcom_for_each_peer_begin() drops the semaphore and returns false
-when the component is not ready:
-
-lib/devcom.c:mlx5_devcom_for_each_peer_begin() {
-	...
-	down_read(&comp->sem);
-	if (!READ_ONCE(comp->ready)) {
-		up_read(&comp->sem);
-		return false;
-	}
-	...
+smc_lgr_cleanup_early() {
+    ...
+	if (!list_empty(&lgr->list))
+		list_del_init(&lgr->list);
+	spin_unlock_bh(lgr_lock);
+	__smc_lgr_terminate(lgr, true);
 }
 
-In that case mlx5e_sqs2vport_stop() still runs, with no devcom exclusion.
-It calls list_del() and kfree() on each rep_sq, kfree() on each sq_peer,
-and xa_destroy(&rep_sq->sq_peer).
+smc_lgr_schedule_free_work() checks only lgr->freeing, not
+lgr->terminating:
 
-The PAIR handler, though, does all of its rep work while ready is still
-false. mlx5_esw_offloads_devcom_event() sets ready only at the end:
+	if (!lgr->freeing) {
+		mod_delayed_work(system_percpu_wq, &lgr->free_work, ...
 
-	err = mlx5_esw_offloads_pair(esw, peer_esw);
+__smc_lgr_terminate() cancels free_work once, before a loop that sleeps
+in lock_sock(). After the loop it calls smc_lgr_free(), and nothing on
+that path cancels free_work again:
+
+__smc_lgr_terminate() {
+    ...
+	cancel_delayed_work(&lgr->free_work);
+	lgr->terminating = 1;
 	...
-	err = mlx5_esw_offloads_pair(peer_esw, esw);
+		lock_sock(&smc->sk);
+		smc_conn_kill(conn, soft);
 	...
-	mlx5_devcom_comp_set_ready(esw->devcom, true);
+	smc_lgr_cleanup(lgr);
+	smc_lgr_free(lgr);
+}
 
-UNPAIR sets ready back to false once the last peer is gone. With two
-ports, every first PAIR and every re-pair therefore runs with ready set
-to false.
+One possible sequence on an SMC-D server:
 
-One possible interleaving:
+- Conn X creates a first-contact lgr L. smc_listen_work() releases
+  smc_server_lgr_pending for SMC-D right after sending ACCEPT.
 
-CPU0 (ip link set <rep> down on eswitch A)
-mlx5e_rep_close()->mlx5e_close_locked()->mlx5e_deactivate_priv_channels()
-  ->mlx5e_rep_deactivate_channels()->mlx5e_remove_sqs_fwd_rules()
-    mlx5_devcom_for_each_peer_begin() returns false
-    mlx5e_sqs2vport_stop()
-      list_del(&rep_sq->list);
-      kfree(rep_sq);
+- Conn Y joins L. smc_conn_create() has no conns_num limit for SMC-D.
 
-CPU1 (peer eswitch B entering switchdev)
-mlx5_devcom_send_event(PAIR), which takes comp->sem for write
-  ->mlx5_esw_offloads_devcom_event()->mlx5_esw_offloads_pair()
-    ->mlx5e_vport_rep_event_pair()
-      list_for_each_entry(rep_sq, &rpriv->vport_sqs_list, list) {
-          sq_peer = xa_load(&rep_sq->sq_peer, i);
-          ...
-          err = xa_insert(&rep_sq->sq_peer, i, sq_peer, GFP_KERNEL);
+- X's CONFIRM fails:
+  smc_listen_decline(X) -> smc_conn_abort() -> smc_conn_free(X), while
+  L is still listed. Then smc_lgr_cleanup_early(L) runs list_del_init()
+  and __smc_lgr_terminate(L) cancels free_work, sets terminating = 1 and
+  blocks in lock_sock(Y). Y's listen worker holds that lock while it
+  waits for its own CONFIRM.
 
-Can CPU1 then walk a freed rep_sq, or call xa_insert() on an xarray that
-has already been destroyed?
+- Y's CONFIRM also fails:
+  smc_listen_decline(Y) -> smc_conn_abort() -> smc_conn_free(Y). The
+  lgr list is now empty, but with this change smc_lgr_unregister_conn(Y)
+  still runs. conns_num drops to 0, freeing is 0, so
+  smc_lgr_schedule_free_work() arms free_work with
+  SMC_LGR_FREE_DELAY_SERV.
 
-If the insert lands between the xa_for_each() and the xa_destroy() in
-mlx5e_sqs2vport_stop(), the sq_peer and its peer FDB send-to-vport rule
-look like they would be leaked.
+- X's worker resumes, the loop ends, and smc_lgr_free(L) ->
+  smc_lgr_put() -> __smc_lgr_free() -> kfree(L) runs while free_work is
+  still pending.
 
-The commit message says:
+Would the timer then fire on freed memory? If L were still alive at that
+point, smc_lgr_free_work() would see freeing == 0 and an empty conns_all
+and call smc_lgr_free() a second time.
 
-  "The add side (mlx5e_sqs2vport_start) already guards the peer-rule work
-  with mlx5_devcom_for_each_peer_begin(), i.e. the devcom read semaphore,
-  which excludes the write-side event."
+Before this patch, smc_conn_free(Y) skipped smc_lgr_unregister_conn() when
+the lgr list was empty, so conns_num stayed at 1 and free_work was not
+re-armed.
 
-mlx5e_sqs2vport_start() uses the same ready-gated check:
+The peer decides whether and when each CONFIRM fails, and with
+loopback-ism the client can be a local unprivileged user.
 
-	if (mlx5_devcom_comp_is_ready(esw->devcom) &&
-	    mlx5_devcom_for_each_peer_begin(esw->devcom))
-		devcom_locked = true;
+Should smc_lgr_cleanup_early() set lgr->freeing like the other unlink
+paths do? Alternatively, smc_lgr_schedule_free_work() could also check
+lgr->terminating.
 
-As a result, its list_add() into rpriv->vport_sqs_list can also run while
-a first-time PAIR is walking the list.
-
-Would both the start and stop paths need exclusion that does not depend
-on comp->ready? One option is to hold comp->sem for read whenever
-esw->devcom is non-NULL, which would need a new devcom helper. Another is
-a lock that the event handler also takes.
+[ ... ]
 
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261015085744.1109107-1-tariqt%40nvidia.com
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261015081349.1252391-1-mjambigi%40linux.ibm.com
