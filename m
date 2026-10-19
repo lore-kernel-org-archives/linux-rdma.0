@@ -1,67 +1,69 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792430405;
-	b=VXZDgoAhJe4kAiXSvMEvwdyohpImFXVij1XSX62+VxhNBfHUZlxTh7ityCO1OWi6RibO
-	 TJ0nC4zMlLFTnWOpnwdj/EZVD4V8lbDRMzV9Yf4zc24caSrYMWSVd3KS3ek0T9nYzyAmq
-	 U9+T47luevDckfqL+pQxf/sKic+h6fRIdoEGRBVMvoEJBfIdO83vJDd4wZhydTyNDUSHP
-	 9p9UWz8XaVvMp2CU+FZZrsZYr5US6tcl7nhvPs0m8qQ9YmcowXtLDu3REFu0wyd7VFtLK
-	 JlG6VqH24ne/T8sRxCtjFtfnPZ6hdrEV/zAPW+EhaxggVKKCoNrId2fZGAnjbz8ykdw==
+	t=1792434941;
+	b=mOFnWqaCv3cU96APX2vi9c5REkEzHdAYkAs6y3i1KnLr3TKtz1VH2JjwbjIzRcLR1qsS
+	 7RS4/g1+X7nYuLvBf6TdsmpK6SNlNn7kJE4RsmhJggizrANQoq5b1Nz7pDGiTrKfw6UJm
+	 KXR07TJ5Bv+jgFQBgC/+eGplBvKCOZJdacxwUtze62R49gbH5Wcf4LYTTKD4ffOsSwqeF
+	 1dvfjcNidzeJvMG5n9iYrB1rW0CYpVBQXAWB6V5iOpD+y68tAgd3r2OKOSBeQiccoGHJz
+	 nfub0YbwA8/cK4w3fCMAwYdofTY7kkJBnXrjq15XZCL86356owE6yMt78xf/5+AeKwA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792430405;
-	h=DMARC-Filter:DKIM-Signature:Received:X-MC-Unique:
-	 X-Mimecast-MFC-AGG-ID:Received:Received:Message-ID:Date:MIME-Version:
-	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding:X-Scanned-By;
-	bh=NZLIGIiPN0hTXUeW4qoosN9u/LtYMyrcbQzE3iavz+s=;
-	b=lnD3kVr1np4J3ssogXwhGK3ViFBH8JwRg/Zh6fc9GytW6bUbuCUXB/u4ZWFV2J5QV3g7
-	 3Yn/6Qy1d3BPotYTdUIfNBhzVEsnzsAk7+c/Joa6MnDbIUYwY5JZLrOywDW3h58rP7iwL
-	 2T8RGHZ81SXqidc+axu2ysTOsokXQk+V6h3oPZ3RuB3QZ0qAy8DuIQCFxXvP+WRQYLZyJ
-	 A2xwOAQu2maFYKlyKeyMNJYHTi2u0+t2oXChb2hzNDZkRcioeV7pToeLdN3Pxxxg1qzzz
-	 qkQVngZQckvb3qnmPPklCdytVXwy4ZJ1ZaJr5Ry8Q0+3c6COd47hhuE4Y9thRGdokxA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792434941;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=n32poB4tkKKa1H8C9bhY2dZAW0+q+igXltm4JEhLcqw=;
+	b=Vo3SOAilZvIqg84UJcgD5JLmUmoDjZms/msU1VkXAS/mlFSq4eOQ/GofhpWNtIcKlcKT
+	 4oKwYz28gcHdKlkGlhhB9OvvpsMKzkTFpKZXc9XKM9Gt6sp+IEH0Wi13m399BrAIGjz29
+	 6ae2drMHzsE0rxR1qV9eU3O7rUTrZezSsPlB3G2xqNw+roccWr/t5/t/8OSnG3Zef+XTr
+	 2ZqQmDN+GqE856iWT0yuQOCvXdSnzZ0W/0ci9xtFtz+wbp5HxaJPe6SF1PGagHPM82g3q
+	 XArcP6LvVVeD6bFFyuvWuw+d+3EHqZt4XUQ6I6srKQi3Z9D/Uv7MW3idjEsSAv4xwQA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=redhat.com;
-	spf=pass smtp.mailfrom=redhat.com;
-	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b="foeSi/Mj";
-	arc=none smtp.remote-ip=170.10.129.124
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="WF/haCzz";
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 178E7606A31B
-	for <linux-rdma@vger.kernel.org>; Mon, 19 Oct 2026 17:20:04 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 178E7606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E89AB606A31B;
+	Mon, 19 Oct 2026 18:35:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=foeSi/Mj
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1792430404;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=NZLIGIiPN0hTXUeW4qoosN9u/LtYMyrcbQzE3iavz+s=;
-	b=foeSi/MjvpmnyyF54mdZ9svtNAraVYhqJerI+imQvixWURmoiHUnAhIl+EXKwPoI3Cz+fa
-	nFzI1nSUhTs7a+82vQwZQ0Vy6JXWjl/p8h09tjTe5kRa2L0q6KfNNT5a5tP3mk3hO0iRRv
-	1GIJ/tHyt0ILGDcKA6MvI5bDeszTqYQ=
-Received: from mx-prod-mc-03.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-161-0lDsr6cSNI2FmoY6_iU2LA-1; Mon,
- 19 Oct 2026 17:20:00 +0000
-X-MC-Unique: 0lDsr6cSNI2FmoY6_iU2LA-1
-X-Mimecast-MFC-AGG-ID: 0lDsr6cSNI2FmoY6_iU2LA_1792430398
-Received: from mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.93])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-03.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 49DA71955F7E;
-	Mon, 19 Oct 2026 17:19:57 +0000 (UTC)
-Received: from [100.91.101.41] (headnet04.pony-001.prod.iad2.dc.redhat.com [10.2.32.116])
-	by mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id 9995F180057F;
-	Mon, 19 Oct 2026 17:19:52 +0000 (UTC)
-Message-ID: <98c195a3-9cf4-4d4f-80c2-5186055454fe@redhat.com>
-Date: Mon, 19 Oct 2026 19:19:51 +0200
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WF/haCzz
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 111A91F000C4;
+	Mon, 19 Oct 2026 18:35:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792434940;
+	bh=n32poB4tkKKa1H8C9bhY2dZAW0+q+igXltm4JEhLcqw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=WF/haCzzvQJPPUWBj50CMBjC9jE8aMytYuSftFLlIRaLScaIBZDKoWDLcaFTUeGEV
+	 byMWI9zl0IMmBs2kznsH6KszESmy5Ku3CiNrSTFKMxRE5ZYt8DWF6wx7l+W1MTbgh/
+	 rgCknL4xvUV3nKHSke3FicCrirp+WspbboJtB1+Lna8TM/2KW/p42LTcaiSac1x9Z6
+	 ihKcDophwBMK2dSGA2wfIJ9rFX6a2DpIqH9R9lMqcWsPa9aKhZakK4XMMVbOE9qwJs
+	 1hTpeRS2qHQ4ucPyhETyPMF7fIBtrFACCSFbc78XmFJYmRs4c1MQ3xMvfCffqrUioZ
+	 JuyVU8tQ0aM/Q==
+Date: Mon, 19 Oct 2026 21:35:37 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>,
+	Logan Gunthorpe <logang@deltatee.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>, Joerg Roedel <joro@8bytes.org>,
+	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
+	Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+	Thomas =?iso-8859-1?Q?Hellstr=F6m?= <thomas.hellstrom@linux.intel.com>,
+	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org, iommu@lists.linux.dev,
+	Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
+	Chaitanya Kulkarni <kch@nvidia.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
+	Ankit Agrawal <ankita@nvidia.com>, Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>
+Subject: Re: [PATCH v11 00/19] PCI/P2PDMA: Route peer-to-peer DMA by TLP class
+Message-ID: <20261019183537.GI64621@unreal>
+References: <20261014132353.GA1625948@bhelgaas>
+ <eb8e0edd-4c4d-402e-9875-bdbc6d191edf@app.fastmail.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -71,52 +73,62 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net] net/mlx5: DPLL, fix fractional frequency offset
- scaling
-To: Tariq Toukan <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
- Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
- Paolo Abeni <pabeni@redhat.com>
-Cc: Arkadiusz Kubalewski <arkadiusz.kubalewski@intel.com>,
- Carolina Jubran <cjubran@nvidia.com>, Gal Pressman <gal@nvidia.com>,
- Jiri Pirko <jiri@nvidia.com>, Jiri Pirko <jiri@resnulli.us>,
- Leon Romanovsky <leon@kernel.org>, open list <linux-kernel@vger.kernel.org>,
- linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>,
- Saeed Mahameed <saeedm@nvidia.com>,
- Vadim Fedorenko <vadim.fedorenko@linux.dev>
-References: <20261015074035.1092340-1-tariqt@nvidia.com>
-Content-Language: en-US
-From: Ivan Vecera <ivecera@redhat.com>
-In-Reply-To: <20261015074035.1092340-1-tariqt@nvidia.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.93
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <eb8e0edd-4c4d-402e-9875-bdbc6d191edf@app.fastmail.com>
 
-On 10/15/26 09:40, Tariq Toukan wrote:
-> From: Carolina Jubran <cjubran@nvidia.com>
+On Wed, Oct 14, 2026 at 05:49:53PM +0300, Leon Romanovsky wrote:
 > 
-> The frequency_diff is reported by firmware in parts-per-trillion, which
-> is exactly what the DPLL core now expects from the ffo_get callback.
 > 
-> Commit bc443c253fcd ("dpll: expose fractional frequency offset in ppt")
-> switched the callback contract to ppt but assumed frequency_diff was in
-> ppm and scaled it by 1000000 to "convert" it. Since the value was
-> already ppt, this makes both exported attributes wrong.
+> On Wed, Oct 14, 2026, at 16:23, Bjorn Helgaas wrote:
+> > On Wed, Oct 14, 2026 at 09:53:47AM +0300, Leon Romanovsky wrote:
+> >> On Tue, Oct 13, 2026 at 05:25:08PM +0300, Leon Romanovsky wrote:
+> >> > PCI P2PDMA applies Request and Completion Redirect throughout both paths.
+> >> > This misclassifies asymmetric and nested switches, and reports one answer
+> >> > for every kind of TLP.
+> >> > 
+> >> > Three ACS controls act on TLP attributes the Requester chooses rather
+> >> > than on the topology: Translation Blocking and Direct Translated P2P act on
+> >> > a Request's Address Type, and Completion Redirect skips Completions carrying
+> >> > Relaxed Ordering.
+> >> > 
+> >> > Evaluate each direction at the path divergence, decide every class from the
+> >> > one walk, and treat a client with ATS enabled as translating unless its
+> >> > driver declares per-mapping ATS.
+> >> > 
+> >> > This completes the P2PDMA side; dma-buf and mlx5 follow separately.
+> >> > 
+> >> > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+> >> > ---
+> >> > Changes in v11:
+> >> 
+> >> 
+> >> Bjorn,
+> >> 
+> >> Could you please save me from the AI-bot attack? Every rebase seems to
+> >> uncover another bizarre pre-existing issue. It never ends.
+> >
+> > Can you elaborate?  I'm not sure what you'd like me to do here.  I
+> > don't control the Sashiko reviews, and I thought Sashiko was recently
+> > changed to put pre-existing issues in a database but not in the email
+> > responses.
 > 
-> Report frequency_diff as is and let the core divide it down for the
-> legacy ppm attribute.
+> AI reviews are not deterministic and every resubmission gives us slightly different result, which is in this phase of submission is  full of hallucinated flows not applicable to the upstream.
 > 
-> Fixes: f035dca34ede ("net/mlx5: DPLL, Implement fractional frequency offset get pin op")
-> Signed-off-by: Carolina Jubran <cjubran@nvidia.com>
-> Reviewed-by: Jiri Pirko <jiri@nvidia.com>
-> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
-> ---
-It’s a pity we didn’t implement FFO in ppt units right from the start... We
-wouldn’t have to carry a duplicate attribute in ppm units now for the sake of
-backward compatibility.
+> In addition to upstream Sashiko, i run everything through local one with slightly better models which hallucinating even more.
+> 
+> I would ask you to merge the series so it gets real exposure in addition to my kunit and specific hw setup.
 
-Anyway...
+Bjorn,
 
-Reviewed-by: Ivan Vecera <ivecera@redhat.com>
+We're in the merge window now, so I don't expect such a large series to be
+merged. What about the next cycle? Should I send v12 after -rc1, or wait?
 
+Thanks
+
+> 
+> Thanks 
+> 
+> >
+> > Bjorn
+> 
