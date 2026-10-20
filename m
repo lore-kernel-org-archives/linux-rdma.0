@@ -1,78 +1,62 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1792465417;
-	b=gHRe9pyQi2VuG2+q0ozEuAvC5VnhQlLQnSOic9jxS/GMvuuPQxfsOuNnPjRxVLFfEuUL
-	 afPIj/7ehdgtoQ12rkNk6tEgVoaqtq9ot91tkycu64BFOuxVncmUOUPfJN5lfTLdYP7nd
-	 774ddu+DQWWKwP8HRYCwzpROzsvJLQ2uRNp7tbLPa35QKG18Jl4fOY7c27iOSK1KCjJ7r
-	 hrmAwOt7zM3Uab2Bf8yt6N94dls/f1TjCS3d74OZ6wb8/8sfA4mGFk0VMR3upbWn+LrOq
-	 JD+SAve8kulBQBpfWo+vyf1wnQgS2GJsBDvh7h4SAKERLmKy06MThOTJ07wCwhDe5vA==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792465417;
-	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
-	 Content-Type:Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
-	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
-	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=iBZ+lfvZ3QPQhTZVZeUkb78SoKV0ifrsfGO8/uH2U98=;
-	b=dE9GQHYBqbF7iNIBgpWDEkIKcEwnmOABjzRYGtXbW6cuQZaauG49Zr2l1i80LhesRp2A
-	 C0kPQG/LYZttKp0yYSN9JAhnXnG1EH6rkggSxbS0LZju5+Oe0jcXpaCjEeo7fAbFP+vb0
-	 9ataYl5EJt81BXprIviARhxmFioS9v5HO2yO0tT2SshJyHuecfI5l/Z7sPMBQYGWImDQX
-	 4eLCu0b5iIYJEICylI25bLj0eTKuhHXGc4l3A3/s5TDKw5OBaLVDHVUIsu8xiqcRvJ7gj
-	 0Qehj6/+SI1VByCSQhAH+7T46zp/ALeTc4Is23MKnm6OtXHGIPZ8nCC5liOgFuOp+hw==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kYINeVv4;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4889606A31B;
-	Tue, 20 Oct 2026 03:03:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1792470649;
+	b=ecDM6WE4He8N3D8NK7Zsd6tOqOA2gQILPSJaCtWwQhggKPYrwYgkYmFrhGt6n7F+8hRa
+	 EJOzEg5pW1U7kiite0J1O+k+TPHBvMQhnGNdfApA3XXL2YmT4d6NXofF0L7m9TI/39oK0
+	 xsLdBQs5bYixcDgfT08lCqIDnAwPj3uyTR61t3a+spkSGpKPVP/KOLlIUZqzJGgb444zD
+	 sCmkri0CyUhvLZBNMz9vj3ejRv5ZW7HFSS8apf5rlH9Dm2azfzic0izmUIBI5ReqIt07G
+	 x1iROypn9ou4lBJeEsRIbooT2CXGbVWAb606F2DssMuAkNhwFhPr5g6eksHU6BDRomQ==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792470649;
+	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:In-Reply-To:References:Content-Type:
+	 MIME-Version:Content-Transfer-Encoding:X-Spam-Status:
+	 X-Spam-Checker-Version;
+	bh=Zk31WB9hWO6u3WrXVB/NaCBT17Dt1bBOz+6YIxm/s7Q=;
+	b=qNM0hmaUH3eDwlsdan77BVH/kZ+lgwrZmOyM9/sWrAlSict9Dlx90CxCI69Q8mm/BlCD
+	 mH0HYs41t0niJKwwpC4/we3C7YrosQm5lljidNft/E/st7vNg37Z+/jauSOCJmn/5kZHL
+	 JKvv7L6TQKScL0wy2ofz2t0bax2en/g/wzkbyUODlNsLXTadCCmhaxybTt8kycuN9V872
+	 hWYP5kPzRcp2JVF2Wg00KVlVQhJ92b30pY8Uzo+nGSBUI98QY/gQ2fvizqUaA3rFIqHqU
+	 LNmKqRXw4lwiBudNgnv1xxMUYT/a+/9mVE2gj3T0MHvgYDe+IvGkVSptpN8Lh9Ozb8A==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=linux.microsoft.com;
+	spf=pass smtp.mailfrom=linux.microsoft.com;
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=IgKhvKyx;
+	arc=none smtp.remote-ip=13.77.154.182
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 81502606A322;
+	Tue, 20 Oct 2026 04:30:49 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 81502606A322
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kYINeVv4
-Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
-ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
-	t=1792465416;
-	b=jCYDXyldMbCj3oOOP0fJGlVSKl3hFJ7ZZ2CkSuGBrCTe3BRPp5o/1ECWLKh+omFNyzL/
-	 RJa9mC42Fh4rk32UjKMhLJ0z62jqXg7DqdzSw7fGbSnj7TEXRDqmreNZgvxFWXwe/ZTk1
-	 rLBXF7P54WUYG8+bEq2gwSGL9tuUREep8b4k/Ade3SzVEjDPt9hcpJLbf+2HT9d9UEmZz
-	 dwc4nmpTUwR8opkAyd6n0pnqH415HJk9AZh6OFpJWsXDUpknVnkDtdkNWX8y03L2B5lc0
-	 Hio0kewwJb0Sb/uJplv1teaInChxeUoWHjb2yd7bKI1aGuCp6DqHSW4q5k0NsU3In3Q==
-ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
-	c=relaxed/relaxed; t=1792465416;
-	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
-	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
-	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
-	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=iBZ+lfvZ3QPQhTZVZeUkb78SoKV0ifrsfGO8/uH2U98=;
-	b=jD4nWmxR/4hbAMqH1Gs98kLL+jhpjszSICHtVH/5j3r2yPExACN0w70l8KN0LZw4qu4a
-	 Yup4o6HO2RErLF+wLHThUkaK7TLt1MR/JMTmvBr8Dp7IIEIV8aj2iDly1JcvWY1TQLEHS
-	 qnV4Z3/4PYLZ5lpbpZ8zKVGwbscqAoZ2FSEoa1ND0VQL5pKr13OYZwmW2wO8xxAioEQor
-	 AO3DGruyry5Uj7uvJ46nScSjEzy/ZTZddqoeSsOTpvkupujkxu+iY/zU2okY+o1NZUDEx
-	 jNR1kwyqu7NzhqhrEAcE7tbIRHurL9viJWnGLizgV5KGg3ODTZwAUOzjrkPHDsgXKRw==
-ARC-Authentication-Results: i=1; smtp.kernel.org; 
-	arc=none smtp.remote-ip=100.80.115.77
-Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
-	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id B7CE61F000C7;
-	Tue, 20 Oct 2026 03:03:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792465416;
-	bh=iBZ+lfvZ3QPQhTZVZeUkb78SoKV0ifrsfGO8/uH2U98=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
-	b=kYINeVv4qVUAsUjP8awmXYbW78O9fsmQU6YqFF2VJO1YiBL+Q4tydIvCaJtrcazaG
-	 IMb6KJ8dfldlP8o8RXbFh7+N75boicerwOMCeZTGVCUm1Wow8/zsdTVl/31JKbeeri
-	 CgLYoyYP3S5LwuBX6pq4H5TzMk65u7E/vLm/AHrR8YzrZudwR+CV21x4x//7lH7RXs
-	 2evghPzTUnnUJAsHhMPuuCozsWyWnvmhCCU8WL8zx7e8cG93gI2irbAVhXG30MWc1A
-	 C6YptJBFhmOqzkqqcj//4YpFqwcYpVGOiV2a0OUNld9Bn9QhkrA9Y6PoySvcCpUxEi
-	 hCZltAIfrBapA==
-Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id 1B513406F6;
-	Tue, 20 Oct 2026 03:03:35 +0000 (UTC)
-From: Eric Davis via B4 Relay <devnull+eric.davis.broadcom.com@kernel.org>
-Date: Mon, 19 Oct 2026 20:03:28 -0700
-Subject: [PATCH rdma-next v2 01/13] RDMA/core: widen the uverbs object key
+	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=IgKhvKyx
+Received: from weh-cvm-dev-vm.y50bckvjo0hefgfnzfztsfttff.phxx.internal.cloudapp.net (unknown [20.169.55.37])
+	by linux.microsoft.com (Postfix) with ESMTPSA id DA91320B716C;
+	Mon, 19 Oct 2026 21:30:41 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com DA91320B716C
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1792470642;
+	bh=Zk31WB9hWO6u3WrXVB/NaCBT17Dt1bBOz+6YIxm/s7Q=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=IgKhvKyxc5KLCUSw7mgVUncddKva54C4YGP7Dn6+XzJycpo2iJCJDezXQruS5pb15
+	 7Y5DFZTbecNVQpUjn5KTn6OczPjo1nIVbWaKkV7CBfg6GxktMZY0CS0codeVcDLiJW
+	 +wqX2jPNAJf9DMcZEsYRUCNKhZV5xkWZtUhnf5MU=
+From: Wei Hu <weh@linux.microsoft.com>
+To: sashiko-reviews@lists.linux.dev
+Cc: linux-rdma@vger.kernel.org,
+	linux-hyperv@vger.kernel.org,
+	bpf@vger.kernel.org,
+	netdev@vger.kernel.org,
+	weh@microsoft.com,
+	kuba@kernel.org
+Subject: Re: [PATCH net-next v7 03/13] net: mana: keep per-queue statistics in the port context
+Date: Tue, 20 Oct 2026 04:30:39 +0000
+Message-ID: <qset-v7-sashiko-03-v8-plan.20261018.weh@linux.microsoft.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <sashiko-outbox-175603@kernel.org>
+References: <cover.1791710735.git.weh@linux.microsoft.com> <b27034466c0db8228409db5473e747db7c3177c5.1791710735.git.weh@linux.microsoft.com> <sashiko-outbox-175603@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -82,52 +66,26 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <20261019-uet-ib-core-v2-1-8bd654f25370@broadcom.com>
-References: <20261019-uet-ib-core-v2-0-8bd654f25370@broadcom.com>
-In-Reply-To: <20261019-uet-ib-core-v2-0-8bd654f25370@broadcom.com>
-To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
- Eric Davis <eric.davis@broadcom.com>
-X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1792465414; l=803;
- i=eric.davis@broadcom.com; s=20261014; h=from:subject:message-id;
- bh=1sjWpbXcpF/RMAH3lqB9kxQ2MgDBM9KHKD16FP2T8gE=;
- b=wwGhebSzQGEJE3rwfJx9Gj++6Gy6KRldlGwu3ycsbFzFf3tE84Gxk6SNLmRHoXLXlFcaS8Y0M
- vxizmp1bZJWAdPL8ynl7VaEqoz21FEP7LTZbVggRThMoX2nn+7FoizB
-X-Developer-Key: i=eric.davis@broadcom.com; a=ed25519;
- pk=uy3oCTOYBipIPjryXGMynBmtPvbO6qN2FOrduzpiI4A=
-X-Endpoint-Received: by B4 Relay for eric.davis@broadcom.com/20261014 with
- auth_id=1186
-X-Original-From: Eric Davis <eric.davis@broadcom.com>
-Reply-To: eric.davis@broadcom.com
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-From: Eric Davis <eric.davis@broadcom.com>
+Hi,
 
-Three more core objects would leave drivers nine object keys, and mlx5
-alone uses ten. Add a bit to the object key.
+> In mana_remove(), unregister_netdevice() unlists the device but does not
+> synchronously wait for existing RCU grace periods to finish.
 
-Signed-off-by: Eric Davis <eric.davis@broadcom.com>
----
- include/rdma/uverbs_ioctl.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I will leave this ordering unchanged in v8. The premise does not match
+the unregister path in the target tree.
 
-diff --git a/include/rdma/uverbs_ioctl.h b/include/rdma/uverbs_ioctl.h
-index 1aaaadb8daf6..f4d93bc3625a 100644
---- a/include/rdma/uverbs_ioctl.h
-+++ b/include/rdma/uverbs_ioctl.h
-@@ -144,7 +144,7 @@ enum uapi_radix_data {
- 		UVERBS_API_METHOD_KEY_BITS + UVERBS_API_METHOD_KEY_SHIFT - 1,
- 		UVERBS_API_METHOD_KEY_SHIFT),
- 
--	UVERBS_API_OBJ_KEY_BITS = 5,
-+	UVERBS_API_OBJ_KEY_BITS = 6,
- 	UVERBS_API_OBJ_KEY_SHIFT =
- 		UVERBS_API_METHOD_KEY_BITS + UVERBS_API_METHOD_KEY_SHIFT,
- 	UVERBS_API_OBJ_KEY_NUM_CORE = 20,
+unregister_netdevice() uses the NULL-head path, which performs unregister
+work immediately. Before returning, that path unlists the device and
+calls synchronize_net(), removes its sysfs exposure, and performs another
+network grace period. mana_free_queue_stats() runs after that call.
 
--- 
-2.56.0
+Some final netdev processing is deferred to netdev_run_todo(), but the
+grace periods relevant to the identified proc/sysfs readers are not all
+deferred until rtnl_unlock(). The same ordering is present in the v6
+counterpart and both upstream bases. The reported reader/free interleaving
+therefore does not establish a UAF requiring a statistics-lifetime change.
 
-
+Thanks,
+Wei
