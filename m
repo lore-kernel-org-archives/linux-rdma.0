@@ -1,100 +1,101 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.46
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.201.40
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1792477047;
-	b=J+tRI1EsIjvtCl8mxJ/VcL5Zf8BF8G8Jh8IZRxJU2GY5aZwRHNveQkKRvGygppmTMlJ+
-	 GUzr22SrlQ7CP9Z60nAOzZlie1mxCzpwjEYoCsdOXWi9wY+93ID/6gCnoFdIVhk84qARs
-	 b7b3XWzM3aMT0OmrrxSIwPs/yTnhReuqeXHD5e08wu0yU5d9yazXxXKFZlCMeKAVlVLhp
-	 JHQVXroKnAhOCMgR8S7mF9N8r4+abpiOJOoC+amVt0svKUQv8CBnzwu1qyu+xVL4LUYJX
-	 hK5cM4wCNbYbQkI+VrjC5c2CXZ10IQG3J56pqSN8TTEzUbluDbp+VS4h+5guP46k5eQ==
+	t=1792478006;
+	b=PXO6U+kkxbRxyC1zz/zjBgEgiSLiemayq7ARilU3vU0szr+E9j2K7ox0bosIruyjWCEz
+	 htN67MB2WdATUJQw4htEQicHzMsSUq3V1m4Uqixm+mbHhPomAwwS6CFcGGOWlunjo36pG
+	 qF6YT9/2+K+lfZD9W5zHxostbuuVwhQWe09eMq965kf/QKoObdul4YN5n3chJTFbnS6j4
+	 nkwXC3Jgfo8P9/L/Z+6aK2LirNZm0wR+3aw1iGeNDl9DFfCZJQbbtrgRC8fd9jE8Yzfyc
+	 B4iK6OAzQkbT9b3L/Qx47/w0hvzG8MlTO4Gs9J9vtKU2k4qsPMdTOtE3rbOEccvD6WQ==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792477047;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=BrmzMw6cqUI5ufvqtaTGz6/71SoGnJjwK4qz0ikJtRw=;
-	b=tEAT9c/A7YXTeuL/KuSBRrdOL5AkVcsW+R0kzoHWPL0pYKVwdVxH5klhDnHmArEV9xB/
-	 BEMvEOWTDUPSW1sYgRi8Yk86OWDRVNixd7ZXIyzRXbcLz5zfY3xd+7FGkSeacqILjgsmm
-	 9fR71NzhiZT3RdCqf/B54eLhmcbVcjgfa12Yzjq+c3M0Q+Ee4JF6GvNatXW9/zSP3VkWc
-	 D4f/FVheI+wcDwXSsXE9s7k1Gj1++KIXaY7UfqiaYI/JL3wOs4Smxybq3A+h/RbUnjeSV
-	 M+VSTYUGxpgYtUduXJgB7IjnVoLOf0m0H/NkguAglzc+w+nTj9yrIcUUMmSFar7bBEg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792478006;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
+	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding:X-ClientProxiedBy:MIME-Version:
+	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
+	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
+	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
+	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
+	 X-MS-Exchange-CrossTenant-UserPrincipalName:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=XGEnG6SK7p+aoZFFS5/l/2WDyW89SuHgKkeTRJz7IF8=;
+	b=OsNX+5FRoHQjERycj3jJ+PVs2Fj9XGl+BtoasB+xai2yTdttyKxkOGUiuHLo4V18AR/9
+	 nuqVNGiJT7+BVhCVWBjaLCuiwYU3TIFHNLZ/4LIIsVCPqIkV/IeqDSmVpjHHa/EB/To9r
+	 RLpH/6EgrAJN9XvwnTeTLe/8vIgBweFJH3QR+8mI7QU9ygkoIw0gi51YIuBOQSWLtcNNR
+	 06HsYmzh9qP89mceVmwBE1hKFB6O9aJRYR9CFnaFYHLBgLF6MTBr0tjiGDqeJDB7HbjHA
+	 waA+pUKuoErB0hUdtwXez48q5HARZqSIVr3e0X6pYsxKzwlHgp5444BuWIrXT8WB+Kg==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=cloud.ionos.com;
-	spf=pass smtp.mailfrom=ionos.com;
-	dkim=pass header.d=cloud.ionos.com header.i=@cloud.ionos.com header.a=rsa-sha256 header.s=google header.b=eH6K7l8I;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.46
-Received: from mail-ed1-f46.google.com (mail-ed1-f46.google.com [209.85.208.46])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=pass header.from=nvidia.com;
+	spf=fail smtp.mailfrom=nvidia.com;
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=Iv6ZsOMu;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.201.40
+Received: from CH4PR04CU002.outbound.protection.outlook.com (mail-northcentralusazon11013040.outbound.protection.outlook.com [40.107.201.40])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89FA1606A31B
-	for <linux-rdma@vger.kernel.org>; Tue, 20 Oct 2026 06:17:26 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 89FA1606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cloud.ionos.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ionos.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04303606A31B;
+	Tue, 20 Oct 2026 06:33:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 04303606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.a=rsa-sha256 header.s=google header.b=eH6K7l8I
-Received: by mail-ed1-f46.google.com with SMTP id 4fb4d7f45d1cf-6afdd46afe0so516114a12.2
-        for <linux-rdma@vger.kernel.org>; Mon, 19 Oct 2026 23:17:26 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1792477045; cv=none;
-        d=google.com; s=arc-20260327;
-        b=p4FRVqkjObZnIFVRthgbwPnAbPLFsOekcdzO+0828MYIMsw1dBjkubS+jEjOQ2FlKQ
-         RFqNEaszoEZX1wUZhwlaeCgJ0TwNgAJSK14DM8qFvNd7L3eXpL4EZWyH+u55dOwdukN9
-         10Sq1orGSHVG4b/scKI+voWwCOihxB4Tbsg7WR4+vLngIfCaZ2mbiMlLrtOhtidswcaS
-         +zisobCt+LRTQulD761/Uc5OsXhI5jRIQxCNguPvf9xRnQd4RY8yQsXnOgx8SGK3UUlV
-         o3N9mE75Pskmru4r7mQTgyZIgEK/Elhc+riApvBCzygqq7RK70j06+ZP7TnVoadMR/wt
-         tPPA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=BrmzMw6cqUI5ufvqtaTGz6/71SoGnJjwK4qz0ikJtRw=;
-        fh=owXy62yG23FCCpq8RFKdRJPRqYm4vW9LLchUx1waa2E=;
-        b=VrXowaRYwh4a73U7z9Tdd9aAftZ8LGsLxmsUyDpOasyV0HJu56YwxubsTsk1YFKolN
-         sM/2704A+oy+PbvtCWinYwtg+wYp3QpiZu+9+/7RfLXgSD7Co1aq4bu9UUbzTLruLQ8h
-         uobaZ4HqxQebjy3B/4MNB7sietgtRrjlIUhJdjGnO+/m6fVAM50O8MEijsHRQM6egA0C
-         ti+uX2mx53HCxY2838Ek2CwQA21li/LKxMOjLYfXuXqGomtiOhG3tCCEPRX8j1T6t/kW
-         xTbRRnrG2VQreEHfGhb4YoTzWWhd2GSkM9afWAxB6UoWLG5T1S5A7VhLuDNoZZoSPDQY
-         b2iA==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloud.ionos.com; s=google; t=1792477045; x=1793081845; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=BrmzMw6cqUI5ufvqtaTGz6/71SoGnJjwK4qz0ikJtRw=;
-        b=eH6K7l8I3SY1r0RnHc7tAKBD3ywEGoX7EBEJve7cuUHOPVmc3sXZm7N1TZ93YJsy9o
-         k2P6itpQ2i+6XFewnrnvprehWmwJedqIdhIcPvtF2Oj9KdWI4QgF6hoAMOS6kFM5qkkd
-         AgsdsXlcFFHL4GgTe/pdnm8Gh11Lvh9fT8yl8I91xjC5lwIRFIhzAOoSvJ1Aj9UTmRro
-         TX0DlVJdCx7M0YpaBsfYIEdXZ0cS2BHffn5UUJM2byfTb+2z8hrqKlfCAS/Rf/qUSQhs
-         k64K5QihWxTl8YgyPvesTCzjsa5NtyhKeVaq790YzJtV+Utwzkeb6Y/anYAThukiSTrx
-         dPmg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792477045; x=1793081845;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=BrmzMw6cqUI5ufvqtaTGz6/71SoGnJjwK4qz0ikJtRw=;
-        b=G8Uk3iR+p2fhS3ptMqnuhAAtMNmLCUnFeLz/QogBFhNw83Jo1BZb0G8+hDWk56ijwL
-         RtdF9nC6MA0PXMnVuWUC3GOD+74nkpD4PV7mG+DAb9YtutZ0VcVcgPqnvpIhym98JhHp
-         hppMsnrW0W1XGH7y4YKVHKKV6lUNRSKoex4McXDDZJVVlfC0Frsdk3cLhYCGQR6jsVRf
-         T/hRMSIuSJv4/n0mcFusgTFMIKq7hKpTLfDucG4A2aTZ1ZpPqCw7tgc3wFI/kCBFyo+n
-         uXv1WnMcm4hVgu59E5PUmzsRMsFn99/D/xeVXOCmhS7kDQ2McfjJA5//EN0V6RUqrTu2
-         Rauw==
-X-Forwarded-Encrypted: i=1; AKwUvBzDQ+P/4rc7XJyUFa2ZQsdi0dch0Wa4m4DmBggjV4gG3dnh2jo34kI8464a0N6VgsSTfSnKZzBrmjp9@vger.kernel.org
-X-Gm-Message-State: AFq9FYJC+A9TJ0ghmY5Egujw1FgU+jQNLVcO+fS9rsS+4LUL1i1g9idU
-	ooXdxCpl32F3FhqrVlz7HO1bKEiC45yfgJRpjiXtHmV4s8y6g3toYURHM0rbVSJ3MMSdb5tVIx+
-	cu0k9dTZlpchgqAH59Ui1QFjF7ug2TzyZW4HIqmlwYA==
-X-Gm-Gg: AYBFou3roTWJVKplUurewofXxJE9b7dz2OXaRMO4e010bKeeZ54o/pDG6MZT1cCVBAG
-	I4tD4IwcHW+QwsYkiKcfZvbBg8fGA6chp5dOfURNkpygnjAC9CQITvvBgERyK3sVFOKyUDAj8sX
-	sOq6AGUAQxU1NIkl8vi9ipj7VRo5R8cciV/cKf+JRjX/FVw4xuquWeiqH8FGxsB1CqzuvMojUAJ
-	5WtpeaU53bMy6u3TKWkqLJuh7f7F9/qNJ7SRTiUrpYq74AZ+9raFAGtH83EcniQEMfHzJg4QxDf
-	lGU7FDB+OGvI2KL/ZF5uME8CP+Jg/PzUzdCs7lOjNZXduDGKmMpesijmKFShlcxSfQUBJvEk4wc
-	dMJlAE3szVDDQ
-X-Received: by 2002:a17:907:6e87:b0:c40:b180:db3b with SMTP id
- a640c23a62f3a-c419e03afcbmr741266766b.3.1792477044765; Mon, 19 Oct 2026
- 23:17:24 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=Iv6ZsOMu
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=TKsMaQ2ppTeJyBdAIb/NXItspdGfttusJwUElmbykS7/XdAeg+m0/qgmegIOiQdsE09afcVvxzLCZJLD643qS3VjQfk7ckcsoXrLYm3hEvfbbb4WiFc83GZG5yiGicaH3d4XAXAljV4ej0cFoH1x13LVXHipU/iqaAkdsMinWy0rNLYKPNUORF2MIel98nN+kfnuKOj6w9KFeY8FVmb2mByUzn59OY7TXv6cYEdlNykDRHkjYcGD+6QUMRFehlcgLo29rKmxZ6USTmCT42nC8RJQB4lcmuI7PolIBfe6R1vpd6YDFRpH/O3rj2S6EhrWNkQheeVlow/v8+F08hoduQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=XGEnG6SK7p+aoZFFS5/l/2WDyW89SuHgKkeTRJz7IF8=;
+ b=oCM7PtTyavQp6UqwCRJyJwSBH78n15YfO0vwxZwXK0I3ZSTl1q/RWMxQL3QKZPtH7iAiUWd0fZB0Ym2lcMm5RINhhmTF8tQeMlrEjVAanLr6vaWURnBsFY63iUGKdoYhQ+2N71HuYDngeGUPUdb2IVhP5BBJ75uHxQF8pJ8cNDUC7GpiQUb9pisPVKPHRyAPNNxM1cUqyZaz8tyJrDLaqjXNSQtl3bwbhs1qBmRNF2lo+Qj8w8wr+R7kdQLY7lpb3mBLT8/j8/2ysvGypq3GlawIiHuZUL8fApVEcV6sDEa7ofXboFQvlF9aC5meVlfPF3i9HbBHYycN4PKQ7xeVpA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=XGEnG6SK7p+aoZFFS5/l/2WDyW89SuHgKkeTRJz7IF8=;
+ b=Iv6ZsOMu2K4+kP3KWuBCXrnqnE2j00q1sb1YQFnTkWrsJOebuNo5g5vbqehHO6qafPuvvYpabu4w/OChsPWb6njErv3A4aTlfgtSUT62Bn+0Z966w2f696yPdlKe5mo8gmvzPAW84RxNNOx2pCoe/HHEm05P1/JQPBM+i4V2bhrzuG8mqTgxOtluFHQpc4CtXrlGHRGPwpYlw0o8NTex3H/89krG4ATRZ564ozaYRoQcVGVtqRGw6sTDsQS3wg6+vwalQVB+Hn4p/U+agvKS/joAl22smWxWAXoFjekZpb5o/3f42RkMtynHgf3DU9fR6DUtX5jE5ZuJZyP+hUo7vA==
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from IA4PR12MB932075.namprd12.prod.outlook.com
+ (2603:10b6:207:12d::15) by MW4PR12MB7189.namprd12.prod.outlook.com
+ (2603:10b6:303:224::20) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.522.19; Tue, 20 Oct
+ 2026 06:33:22 +0000
+Received: from IA4PR12MB932075.namprd12.prod.outlook.com
+ ([fe80::5a6f:1f74:6ccb:cf2f]) by IA4PR12MB932075.namprd12.prod.outlook.com
+ ([fe80::5a6f:1f74:6ccb:cf2f%5]) with mapi id 15.21.0546.012; Tue, 20 Oct 2026
+ 06:33:22 +0000
+Message-ID: <12f872fe-abeb-433e-8221-ceba1427f371@nvidia.com>
+Date: Tue, 20 Oct 2026 09:33:16 +0300
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net 0/3] net/mlx5e: Fix CQE moderation mode reporting and
+ control
+To: Tariq Toukan <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
+ Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
+ Paolo Abeni <pabeni@redhat.com>
+Cc: Dragos Tatulea <dtatulea@nvidia.com>, Gal Pressman <gal@nvidia.com>,
+ Joe Damato <joe@dama.to>, Leon Romanovsky <leon@kernel.org>,
+ open list <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org,
+ Mark Bloch <mbloch@nvidia.com>, "Nabil S. Alramli" <dev@nalramli.com>,
+ Rahul Rameshbabu <rrameshbabu@nvidia.com>, Saeed Mahameed
+ <saeedm@nvidia.com>, Yael Chemla <ychemla@nvidia.com>
+References: <20261014124704.1017782-1-tariqt@nvidia.com>
+Content-Language: en-US
+From: Tariq Toukan <tariqt@nvidia.com>
+In-Reply-To: <20261014124704.1017782-1-tariqt@nvidia.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: TL0P290CA0011.ISRP290.PROD.OUTLOOK.COM
+ (2603:1096:950:5::13) To IA4PR12MB932075.namprd12.prod.outlook.com
+ (2603:10b6:207:12d::15)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -104,236 +105,117 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261015125118.2966247-1-me@andrei-z.com> <20261015125118.2966247-4-me@andrei-z.com>
-In-Reply-To: <20261015125118.2966247-4-me@andrei-z.com>
-From: Jinpu Wang <jinpu.wang@cloud.ionos.com>
-Date: Tue, 20 Oct 2026 08:17:10 +0200
-X-Gm-Features: AclHuK8yK-clpjX1OPiZivKHfrRa7B-1lxRg4XY5MMZMZt_hU0VbFUFNU3sACZ4
-Message-ID: <CAMGffE=qjNDYdwx1PYgK1K87A4NhJ=cuR+kkUhdYH81gSGb-nQ@mail.gmail.com>
-Subject: Re: [PATCH RFC 3/3] RDMA/rtrs: Post client read requests inline
-To: Andrei-Alexandru Bleortu <me@andrei-z.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Sagi Grimberg <sagi@grimberg.me>, 
-	Max Gurtovoy <mgurtovoy@nvidia.com>, Bart Van Assche <bvanassche@acm.org>, 
-	"Md. Haris Iqbal" <haris.iqbal@ionos.com>, linux-rdma@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: IA4PR12MB932075:EE_|MW4PR12MB7189:EE_
+X-MS-Office365-Filtering-Correlation-Id: dd24c330-9114-4de2-bf8a-08df2e740970
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|7416014|376014|23010399003|366016|1800799024|261009223027099003|10067099003|56012099006|6133799003|22082099003|18002099003|11063799006;
+X-Microsoft-Antispam-Message-Info:
+	8PuIP+h7vusrmkCTYxoYk3HDhMJ62Vtgd11Cn/WoXG9iwa590eY93xzqOTcXUYI0+PCMhOFR5zgUoJoUkpuKq7UCHM9yR0e+q+KgQci2ewnTUGBLaT5FBH7fRwvku4qvBkAYB7t4s7Zy40D66E5zkNlCS5lEicpwhJbpjJvT1FW9PJkDoACIPGMFWybDCnYuLws3gttCkPUQyXOxMeqaNhzH/Qi1tLFq+aYhwGXn1XumzTv/0Yv8WGMAkqVXgm9AamJlnThwsHBZcbofAd7zeLNeSLngMDZ9qUhhRNnGN3+PQH8GeIf4mnLtw/2nWz7Vtb7qXRDEFSe3bWV4NZ5gKsSuhqLUxEqt+N5/noJBNedtMsg23L6R5mpSRebuaSCed/L3w2VqywJfOSgW2DslIgStEiDFCLXF8qkTx+yutxpqPaq7G4/5jySyzlG2AWXsAkw4IpPVUU3oNlJrP7Abm1QCFsQ1iwZKfbcH2A1ltVjOMP7uzE/O7FFeZG6KmGoUxoC/r3H/LML7atLkDbnb+6dwXG0hnRAn9UNZ7YKqYaay4nVU7eAg+g/+MTI7XW7bNpyTz2lnCOzKgJtjHneVcxHYhB2ALsV+Eig7JS8a0NCX3DWVNiZsNlM4CkGVnfahzmVBBg7GKGkCBZ93MU593VfY6OpvFJDqzR+44LUEyH8=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:IA4PR12MB932075.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(23010399003)(366016)(1800799024)(261009223027099003)(10067099003)(56012099006)(6133799003)(22082099003)(18002099003)(11063799006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?czV3WUcyWjZsZlhGZXVDdVd6WkllY2FuTUdOYU9xZ2UvU29vZ1J4Zk12eTlL?=
+ =?utf-8?B?K0laRjliTWZCRXRwaXg1LzFYbEVIZEpuTDQ5Q2hLWno4MU1kVzZnUFQva1Nr?=
+ =?utf-8?B?WFhUS3FYV256TXMyWW83SW9kV01nY0NQdjRTclp3YTJaSndiYlY5Mkc1SEJN?=
+ =?utf-8?B?VThzMk0zQmcxVmdCMTM1Z0NGUXR3TENsSU9ZSFNuTm9PWExKSjFSRksyN0o5?=
+ =?utf-8?B?V2s2M3BrZ3VubHVDZlV0SDVacE5zMHRVdWtRRkxXTk9TTC8wMHZLTmpxQ3M1?=
+ =?utf-8?B?WitRQTdlSGptb1hqOU9PSjNUV3FLbmFXY2ZoM2hJNC9ja0NvNXhqcGxDQmRv?=
+ =?utf-8?B?cHI4d2huSGpuOThRTlBpZkVUbTV0UnFCTlNHeFQvOEtmbnhld0NmVW5JWkcx?=
+ =?utf-8?B?Rmh2Y2xtVGkreFhDN2VNUnJMN2ZYWjk2bm1FNXlmS2Q2d0FDK1Z5NlRzKzhY?=
+ =?utf-8?B?ZVAwYkVyalRRcTA5V2gwb0IyUW5HYWl0WjduMkNxVTVKNnRndlZXZThnYVRj?=
+ =?utf-8?B?bmc2SEZaNlpJUEdOT3N3T2dDOFhyWVhSaGYxcWVlOGJ2N2VoVFNJNDV4WDIv?=
+ =?utf-8?B?Qzd5SGVNeFJOVlBMUjcvY0lWa1FEUVBNUmRpdUpnKzNiek5hQkwwM3c4MUpu?=
+ =?utf-8?B?dmZmdytXS3RFdDEvMGtDMDhmbWd2R3Z0WkJLdmpnbW5PSTRsb3VxLzRtTDJW?=
+ =?utf-8?B?bmdiUkV3ZTE0MU9LYnhyVHE3RXM4NFQyMXlVaVpSaC8xZVZiQWhUQmRGZ3Ji?=
+ =?utf-8?B?R3pkMGJNdXBISTR5Q21aODA4SHRNZGxCSFZOVjZUdjRVVCtIVXVIeHBTM1Zz?=
+ =?utf-8?B?MEdhODBDVmFWZHFKOGxQMUZqMFcyb013dFZoSElhdDVHU08yNWtWWlhFTmZs?=
+ =?utf-8?B?eGgxcmlNSzBBUUVrVG5PTU9OS2JVbUp0eUZqMjNuY1hqVklaNFZFdFZLSHo4?=
+ =?utf-8?B?V3dXUk9jb25ZdGRNTzJaM3hGUmVWMzRUSDFwdGhxWGFueGZvTHFyY0k1cm56?=
+ =?utf-8?B?dGI4TzRReUdsTWZOWUorL21Xdm1WYll3NHlBYVFTc3J6cW9mamVudlhqRDc3?=
+ =?utf-8?B?L0dPRGVXQVpPZDBWamF6ZFdKNEVJcUVaL2wwM2ZoanRHS2FYQnozU21yVkJW?=
+ =?utf-8?B?Nk53WkZDMG5ZaE1pWld3UWJ4ZFdnNDk0S29Ka0hjbzZvTHFxVUVUaW4yWXdN?=
+ =?utf-8?B?dWNXc3dDSDgxbGFnZzhqYkp1ZHJSMDBqZ05SSHBHQ2xQZDd5aC9naldWZUE3?=
+ =?utf-8?B?NjZPNk93MDQ3UTh3cUJiT25kTWlMWVhWRDRQNENKdmM1cnNOSG0wK1RRZWJB?=
+ =?utf-8?B?QmRaVnd0TFloSlI1S0FibzhLdVB3NTI0Yno2aEdaNytMVElHVjJFWDVYMFF3?=
+ =?utf-8?B?VGN2Vm9ERjJ6K3R0L1JNV3NuMzdkT1F6OWJySWZ1UzJHcVJjcnNuQkZLaU8r?=
+ =?utf-8?B?aVV6eUQrN0xVcEVkclBreXlXSmNyaU9pUTBUVXZBRDR5NEp6ME0yN0NianlV?=
+ =?utf-8?B?dmcwQjdPaTZnVXlZcmJFN25DS24wTzhab3QzNWFmU1pDSnZBaGhpOWM0c0ZZ?=
+ =?utf-8?B?WmM4ZW1hZGo0V1lRckhUVkdwRFR2a2IwYnJyd3UyVTluL3l1L2xLQmQrS3lt?=
+ =?utf-8?B?Wm1IUmxpWGhWU0hzZGVrNHVhWHI0V3RvM05USXQvK0ZJZ3l1ZXUxa1BTZzQx?=
+ =?utf-8?B?TStNRDJCS2gwOU9iSWVvbmxUakJaMTZSUG9IVTNZeU5yZXhWQmo0MmZhWWlx?=
+ =?utf-8?B?Tmc4a1Q1YWVxeHFGOFNmc01kbmtkRXFIeXRORTZadmlxVkFSaENtalVvNk43?=
+ =?utf-8?B?cFl3R2RZeWM5STNOaUNMTEp5R0JiV3VXMGExaEhPb1lUeS9EemdSR212SUpU?=
+ =?utf-8?B?VkpXY0RGNUEyaTJhV0I3VXVQOENVTGhjTXRCN05TRG9Va0NrOCtVNmRrMTlC?=
+ =?utf-8?B?ekp0cE41S0dGRGxNUlpLRzY1V01GN0FJRWJLenp0Mm8wZlBpcU9qY1lUSENK?=
+ =?utf-8?B?dm5uTEJ6MW1oeWdpUnYwcGpnM2xsc2s3WnZheXd5MDlQdWZrQkQxSXlRZFZK?=
+ =?utf-8?B?a1dFZGN1MFJkRTVPcnNHU2U2UjBFUjZXN0pSSE5FdHo4NFpLUHZ6U0JhdGV4?=
+ =?utf-8?B?b2U4N2JiY2gwL08weVptVWFVYko0QUdGWEk5amw0bUdCa1RNOUJxNk5RQ2Fr?=
+ =?utf-8?B?MjRlelRKZFVwRUMxYjJBQ3EzNDAxQlNlaDZTL1BtT2lZcjVCQ251LzJmY2Fk?=
+ =?utf-8?B?dTMvNmZyMEN6cDMzOE1iRjhWOWNHNzM4L2dXclBxWTREemNOcmRYS25OTnhv?=
+ =?utf-8?B?NzVtTDdWNzhkdWRDUGJYR09Ja0toK0x3MzNta2dHamFnTzRaQ2M1QT09?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: dd24c330-9114-4de2-bf8a-08df2e740970
+X-MS-Exchange-CrossTenant-AuthSource: IA4PR12MB932075.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Oct 2026 06:33:22.1001
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: l+tcG755N56ODYA2bsGMiYZlr+iu3hy7JpM/rI6LVD95MHujxmpMN2GXZhtEszpkNT0veMFXceMnxw1u82MqQA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR12MB7189
 
-Hi Andrei,
 
-The change looks fine to me, and I did some testing on it. However,
-the data doesn't seem to show any clear performance gain from posting
-inline requests.
 
-Best regards,
+On 14/10/2026 15:47, Tariq Toukan wrote:
+> Hi,
+> 
+> This series by Yael fixes inconsistencies in how mlx5e reports and
+> configures the CQE moderation mode through ethtool.
+> 
+> mlx5e_params keeps two representations of CQE moderation: the private
+> flags (MLX5E_PFLAG_RX_CQE_BASED_MODER, MLX5E_PFLAG_TX_CQE_BASED_MODER)
+> and the fields rx_moder_use_cqe_mode / tx_moder_use_cqe_mode. Ethtool
+> get/set coalesce uses the fields, while the priv-flags path uses the
+> pflags. When the two disagree, the reported CQE moderation state is
+> wrong. In addition, commit bc541621f8ba ("net/mlx5e: Support ethtool cq
+> mode") added ETHTOOL_COALESCE_USE_CQE to the NIC ethtool ops but not to
+> the representor ones.
+> 
+> Patch 1 syncs the pflags with the capability-derived fields in
+> mlx5e_build_nic_params(), so that after channel attach or reopen the
+> private flags no longer remain zero while the fields reflect the
+> hardware configuration.
+> 
+> Patch 2 fixes the opposite direction. set_pflag_cqe_based_moder() now
+> also updates rx_moder_use_cqe_mode / tx_moder_use_cqe_mode, and resets
+> the RX/TX CQ moderation to the defaults of the new period mode, so that
+> ethtool -c no longer reports a stale CQE mode or stale rx-usecs after
+> toggling the priv flag.
+> 
+> Patch 3 adds ETHTOOL_COALESCE_USE_CQE to mlx5e_rep_ethtool_ops, so that
+> setting cqe-mode-rx/tx on a representor is no longer rejected with
+> EINVAL.
+> 
+> Regards,
+> Tariq
+> 
+> Yael Chemla (3):
+>    net/mlx5e: Sync CQE moderation pflags with coalesce params
+>    net/mlx5e: Sync CQE moderation params with pflags in
+>      set_pflag_cqe_based_moder
+>    net/mlx5e: Expose CQE moderation mode on representors
+> 
+>   drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c | 8 ++++++++
+>   drivers/net/ethernet/mellanox/mlx5/core/en_main.c    | 4 ++++
+>   drivers/net/ethernet/mellanox/mlx5/core/en_rep.c     | 3 ++-
+>   3 files changed, 14 insertions(+), 1 deletion(-)
+> 
+> 
+> base-commit: af32da41b0327b9c6a37856ba82b6760d6c8d10e
 
-Jinpu
-
-On Thu, Oct 15, 2026 at 2:51=E2=80=AFPM Andrei-Alexandru Bleortu
-<me@andrei-z.com> wrote:
->
-> The RTRS client sends a read request as an RDMA Write with Immediate of
-> a small message: the user message, the RTRS header and one memory
-> descriptor, about 60 bytes for RNBD. The message is posted by reference
-> and the QP asks for no inline data, so the HCA has to DMA-read it from
-> host memory before sending. That read is on the latency path of every
-> read.
->
-> Let rtrs_cq_qp_create() take the amount of inline data to ask for.
-> The client asks for RTRS_CLT_MAX_INLINE_DATA, enough for a read
-> request with one descriptor and up to 64 bytes of user message, and
-> the server asks for none. If the device refuses, the QP is created
-> without inline data. The client posts a read request with
-> IB_SEND_INLINE when it fits in the inline size the device granted.
-> Write requests, whose message travels behind the data in the same
-> WR, are not changed.
->
-> Providers copy inline data from sg_list[].addr as a kernel virtual
-> address, so the inline path puts req->iu->buf in the on-stack SGE.
->
-> Assisted-by: LLM
-> Signed-off-by: Andrei-Alexandru Bleortu <me@andrei-z.com>
-> ---
->  drivers/infiniband/ulp/rtrs/rtrs-clt.c | 17 +++++++++++++++--
->  drivers/infiniband/ulp/rtrs/rtrs-pri.h | 10 +++++++++-
->  drivers/infiniband/ulp/rtrs/rtrs-srv.c |  2 +-
->  drivers/infiniband/ulp/rtrs/rtrs.c     | 22 +++++++++++++++++-----
->  4 files changed, 42 insertions(+), 9 deletions(-)
->
-> diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/=
-ulp/rtrs/rtrs-clt.c
-> index bf3a0377da3f..4a552e0459b2 100644
-> --- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> @@ -489,6 +489,17 @@ static int rtrs_post_send_rdma(struct rtrs_clt_con *=
-con,
->                                       req->iu->dma_addr,
->                                       req->sg_size, DMA_TO_DEVICE);
->
-> +       /*
-> +        * Post the request inline if it fits in the granted inline size,=
- so
-> +        * the HCA does not have to DMA-read it from host memory.  The CP=
-U
-> +        * copies inline data from a kernel virtual address, so put
-> +        * req->iu->buf in the SGE.
-> +        */
-> +       if (req->sg_size <=3D con->c.max_inline_data) {
-> +               sge.addr =3D (uintptr_t)req->iu->buf;
-> +               flags |=3D IB_SEND_INLINE;
-> +       }
-> +
->         return rtrs_iu_post_rdma_write_imm(&con->c, req->iu, &sge, 1,
->                                             rbuf->rkey, rbuf->addr + off,
->                                             imm, flags, wr, NULL);
-> @@ -1714,11 +1725,13 @@ static int create_con_cq_qp(struct rtrs_clt_con *=
-con)
->         if (con->c.cid >=3D clt_path->s.irq_con_num)
->                 err =3D rtrs_cq_qp_create(&clt_path->s, &con->c, max_send=
-_sge,
->                                         cq_vector, cq_num, max_send_wr,
-> -                                       max_recv_wr, IB_POLL_DIRECT);
-> +                                       max_recv_wr, RTRS_CLT_MAX_INLINE_=
-DATA,
-> +                                       IB_POLL_DIRECT);
->         else
->                 err =3D rtrs_cq_qp_create(&clt_path->s, &con->c, max_send=
-_sge,
->                                         cq_vector, cq_num, max_send_wr,
-> -                                       max_recv_wr, IB_POLL_SOFTIRQ);
-> +                                       max_recv_wr, RTRS_CLT_MAX_INLINE_=
-DATA,
-> +                                       IB_POLL_SOFTIRQ);
->         /*
->          * In case of error we do not bother to clean previous allocation=
-s,
->          * since destroy_con_cq_qp() must be called.
-> diff --git a/drivers/infiniband/ulp/rtrs/rtrs-pri.h b/drivers/infiniband/=
-ulp/rtrs/rtrs-pri.h
-> index 59529d593869..bcba80d3c214 100644
-> --- a/drivers/infiniband/ulp/rtrs/rtrs-pri.h
-> +++ b/drivers/infiniband/ulp/rtrs/rtrs-pri.h
-> @@ -97,6 +97,7 @@ struct rtrs_con {
->         int                     nr_cqe;
->         atomic_t                wr_cnt;
->         atomic_t                sq_wr_avail;
-> +       u32                     max_inline_data;
->  };
->
->  struct rtrs_path {
-> @@ -286,6 +287,13 @@ struct rtrs_msg_rdma_read {
->         struct rtrs_sg_desc    desc[];
->  };
->
-> +/*
-> + * Inline data the client asks for on its QPs: enough for a read request
-> + * with one memory descriptor and a user message of up to 64 bytes.
-> + */
-> +#define RTRS_CLT_MAX_INLINE_DATA (sizeof(struct rtrs_msg_rdma_read) + \
-> +                                 sizeof(struct rtrs_sg_desc) + 64)
-> +
->  /**
->   * struct rtrs_msg_rdma_write - Message transferred to server with RDMA-=
-Write
->   * @type:              always @RTRS_MSG_WRITE
-> @@ -325,7 +333,7 @@ int rtrs_post_recv_empty(struct rtrs_con *con, struct=
- ib_cqe *cqe);
->  int rtrs_cq_qp_create(struct rtrs_path *path, struct rtrs_con *con,
->                       u32 max_send_sge, int cq_vector, int nr_cqe,
->                       u32 max_send_wr, u32 max_recv_wr,
-> -                     enum ib_poll_context poll_ctx);
-> +                     u32 max_inline_data, enum ib_poll_context poll_ctx)=
-;
->  void rtrs_cq_qp_destroy(struct rtrs_con *con);
->
->  void rtrs_init_hb(struct rtrs_path *path, struct ib_cqe *cqe,
-> diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/=
-ulp/rtrs/rtrs-srv.c
-> index 5314599d29fe..30fa4c7f64dc 100644
-> --- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-> +++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-> @@ -1759,7 +1759,7 @@ static int create_con(struct rtrs_srv_path *srv_pat=
-h,
->
->         /* TODO: SOFTIRQ can be faster, but be careful with softirq conte=
-xt */
->         err =3D rtrs_cq_qp_create(&srv_path->s, &con->c, 1, cq_vector, cq=
-_num,
-> -                                max_send_wr, max_recv_wr,
-> +                                max_send_wr, max_recv_wr, 0,
->                                  IB_POLL_WORKQUEUE);
->         if (err) {
->                 rtrs_err(s, "rtrs_cq_qp_create(), err: %pe\n", ERR_PTR(er=
-r));
-> diff --git a/drivers/infiniband/ulp/rtrs/rtrs.c b/drivers/infiniband/ulp/=
-rtrs/rtrs.c
-> index a642626e0ecb..08b8b1abb1d3 100644
-> --- a/drivers/infiniband/ulp/rtrs/rtrs.c
-> +++ b/drivers/infiniband/ulp/rtrs/rtrs.c
-> @@ -253,9 +253,10 @@ static int create_cq(struct rtrs_con *con, int cq_ve=
-ctor, int nr_cqe,
->  }
->
->  static int create_qp(struct rtrs_con *con, struct ib_pd *pd,
-> -                    u32 max_send_wr, u32 max_recv_wr, u32 max_sge)
-> +                    u32 max_send_wr, u32 max_recv_wr, u32 max_sge,
-> +                    u32 max_inline_data)
->  {
-> -       struct ib_qp_init_attr init_attr =3D {};
-> +       struct ib_qp_init_attr init_attr =3D {}, attr;
->         struct rdma_cm_id *cm_id =3D con->cm_id;
->         int ret;
->
-> @@ -271,13 +272,24 @@ static int create_qp(struct rtrs_con *con, struct i=
-b_pd *pd,
->         init_attr.recv_cq =3D con->cq;
->         init_attr.sq_sig_type =3D IB_SIGNAL_REQ_WR;
->
-> -       ret =3D rdma_create_qp(cm_id, pd, &init_attr);
-> +       /*
-> +        * If the device cannot provide the requested inline data, create=
- the
-> +        * QP without it.
-> +        */
-> +       attr =3D init_attr;
-> +       attr.cap.max_inline_data =3D max_inline_data;
-> +       ret =3D rdma_create_qp(cm_id, pd, &attr);
-> +       if (ret && max_inline_data) {
-> +               attr =3D init_attr;
-> +               ret =3D rdma_create_qp(cm_id, pd, &attr);
-> +       }
->         if (ret) {
->                 rtrs_err(con->path, "Creating QP failed, err: %pe\n",
->                          ERR_PTR(ret));
->                 return ret;
->         }
->         con->qp =3D cm_id->qp;
-> +       con->max_inline_data =3D attr.cap.max_inline_data;
->
->         return ret;
->  }
-> @@ -296,7 +308,7 @@ static void destroy_cq(struct rtrs_con *con)
->  int rtrs_cq_qp_create(struct rtrs_path *path, struct rtrs_con *con,
->                        u32 max_send_sge, int cq_vector, int nr_cqe,
->                        u32 max_send_wr, u32 max_recv_wr,
-> -                      enum ib_poll_context poll_ctx)
-> +                      u32 max_inline_data, enum ib_poll_context poll_ctx=
-)
->  {
->         int err;
->
-> @@ -305,7 +317,7 @@ int rtrs_cq_qp_create(struct rtrs_path *path, struct =
-rtrs_con *con,
->                 return err;
->
->         err =3D create_qp(con, path->dev->ib_pd, max_send_wr, max_recv_wr=
-,
-> -                       max_send_sge);
-> +                       max_send_sge, max_inline_data);
->         if (err) {
->                 destroy_cq(con);
->                 return err;
-> --
-> 2.56.0
->
->
+pw-bot: cr
