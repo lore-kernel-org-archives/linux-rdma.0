@@ -1,44 +1,44 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1792456098;
-	b=qR6i4Ps6vndR4XujD2So6zB2JNBqUYjDJtqtE+8WLn9v+PW9si+hR8WLveFn8c14+pjV
-	 Y2m8IAh9yEIGplCkzDUrsQdUdhZA83kp1yGqCyZJ6mugututCqY4nkx0eVWO2PyWBj+tB
-	 TU2d8esKHnFlkYIMYdwSaPFmcDQvaReeYFsq0h+eJb96Q1vfQlwHdCduBk0bfq3q0MRo9
-	 LcWHT29N9Gp7yIdh1AKKaIAFahQHRLdI7or0LlUpSLiqBUXALDWi30JA+hEBs/CFnaU61
-	 3w52iSAivqJPw8QMk6siY5QxgYbVOdvRe2HChUm97MGPcHX9UyY8zb8bs3MIfeHraIw==
+	b=NYCYkAu2GkwR75+lELkaAzTqSbIsOFBaV9hiK6rMCXHTi+kGv3sj6uo6bidd50vrjHUB
+	 xCoNU+9Bs+eyQMSTLHmZBl0VAg1WcO0AkHHzI6VnZbYVcSsKEByRcN09uO2+F1vKt4kzV
+	 txI35/rwZyBAL8ixIcVF0gx+njB17uRb/RXnorRDnHk65uY9iNws6Eq+n+hTg7qQp4Kzy
+	 0tup4K3dSR/f+4GBTnm8pF+vexKC65O/nlPdhFIe7pcI/sB2lwZn7ac6UX5hfNEKUymHF
+	 2hG2EnVA/TH5s9ycbt6OGrUpk7qC8TwUNJrJrXL5vRWONVowx0toRgH0h/M9BOvf9nA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1792456098;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=ULtxg0Fk0whulWZSHTNN5DQiIhcB0QibJjb6BHCTOMs=;
-	b=nK3uFfC8eHuS30B4Z/BBe5O46YaE6qlS0nLphV39pGlJkG7l/TXI17J8KhNL3ZDOo6FF
-	 cTrprNt6u27yKp92TuIR4b9oQjPDQH1uN3fjAK+9bBY0zEaFc0Abg1dcYtWkLX89RYQAv
-	 3GGgpuKP5jgh0nm/jtvJbdHJt9YUYjUoI99WcMOGu/YBO8J1qHq8E1U2afHa4r3F7VLgI
-	 rh6pcj26JmRykjqbrszcneL2luncE2O7qZNeTj8QaQ5hGIjxy8X6RGt7jEni8srZxchpm
-	 CG73ja7SvYsya4gx/Stmn2oX0+Hwpeq+T5WasRpEy3Gh98BZuMTtwQigr0f2WdSTNZw==
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=s+ea9LKm3dup9mnLZmTgtBMVlSm3XwpNGYhLXRG8Rj8=;
+	b=Nk9fuoOvA0xd1jESFeTigtXDxiJO4ClBbkhZv3/Z6Oxpf4FWCleiyRs65YnXUWhdBWgr
+	 9Nw9MybpRRzC4AwI2+eCcIDWirZl7OIh2cPAfbzLElmR/qYERBfA5WjzwDniM8/pO8Vrf
+	 A89QwwLT2uS4qQM5nh0tM+3aul8DqNdNoSd5ipJUSd4KXKVxuGKLC1BT+RDD7zCD2md+6
+	 DSDKK5K43TkitEwT9M/Lzw9Wi6oICvnBIYAVCxDvh1kTb98OcqiY9ypclfmHnMKXnjuxP
+	 /yPJf90dyiheh4gsApGIvWBJZZAJoTi2CPRiHKeeY+cu8nB337oOg8+Qad02e7oQBYw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DMyLsdqx;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=az0VvUGO;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2C51606A31B;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3567606A319;
 	Tue, 20 Oct 2026 00:28:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DMyLsdqx
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 746D51F000C8;
-	Tue, 20 Oct 2026 00:28:17 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=az0VvUGO
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3C5B1F000C4;
+	Tue, 20 Oct 2026 00:28:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1792456097;
-	bh=ULtxg0Fk0whulWZSHTNN5DQiIhcB0QibJjb6BHCTOMs=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=DMyLsdqxxxggacI8ZuSNLwCfUPMnLZFFNfybdB4lPYeBi6/UM0XwKQ8gTwJN1o4lU
-	 DH7ClSCrPo4V+R4pANvHEjYglQ/5L+tR3h9DUNPl3dTVKkAlf1NDH2KmoS/6ZDM6VT
-	 Ea6UVP4JLGIRhtWYpfMxgLMvBRgwAOGOv2Hr025/OG6Si97du3lCHKwvAVJ0c0WW5Q
-	 q/WWoeN4L8/KykiH30W4x6UMsbG1VoefqhnnIax6bUBn9XigY+yi2ubI2OdWCzM4Dg
-	 JDtSM/Z7lwQQ3q320yoVvzSx9iC8a/IS/J3VtwEJU+bgn4yGGvPz4u54mEymEC+EU4
-	 SFTdivULfa6/g==
+	bh=s+ea9LKm3dup9mnLZmTgtBMVlSm3XwpNGYhLXRG8Rj8=;
+	h=From:To:Cc:Subject:Date;
+	b=az0VvUGONRy1PdhwusOQwBqH3GPkngdh7Pv1Dc5TEjSIXCMDQCjCfn9iFHLXiQg8u
+	 oCYiBzXWB18PW+D4Kn3TsPNqQO42PtRa6f9WOLORGInJb2jzTXoVr+CizDV+l3eAlG
+	 z9SX9o0Nre2c5Tr8Czh08yBp4Cwz3q3jNsPdABadkLuRzCx2CtM0YElU6IdGsLnIni
+	 PxBUAVx4WuGhHm53kJxzCttA6c+W2AXmX3qULlqBpsYMcNhTD3LrKybJr7YqrSnixD
+	 ja0B84QgDT2LP66cW3+6Oam/BZ0GT+M/p4CxBlNYe4o8u0fvO3tJCv3hQl9JqQa0ne
+	 OnugevaafHZLw==
 From: Allison Henderson <achender@kernel.org>
 To: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
@@ -47,12 +47,10 @@ To: netdev@vger.kernel.org,
 	kuba@kernel.org,
 	horms@kernel.org
 Cc: achender@kernel.org
-Subject: [PATCH net-next v6 1/2] net/rds: include the scope id in the sendmsg connection cache check
-Date: Mon, 19 Oct 2026 17:28:15 -0700
-Message-ID: <20261020002816.3087414-2-achender@kernel.org>
+Subject: [PATCH net-next v6 0/2] net/rds: scope-aware sendmsg connection cache
+Date: Mon, 19 Oct 2026 17:28:14 -0700
+Message-ID: <20261020002816.3087414-1-achender@kernel.org>
 X-Mailer: git-send-email 2.50.1
-In-Reply-To: <20261020002816.3087414-1-achender@kernel.org>
-References: <20261020002816.3087414-1-achender@kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -64,51 +62,73 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-rds_sendmsg() reuses the connection cached in rs->rs_conn when its
-peer address and ToS match the request.  The interface index is part
-of a connection's identity as well: rds_conn_create_outgoing() passes
-the request's scope_id down as dev_if, and rds_conn_lookup() compares
-c_dev_if, so sends to the same link-local address through two
-interfaces are two different connections.  The cache-hit test never
-looked at it.
+Hi all,
 
-A socket bound to a non-link-local address has rs_bound_scope_id 0,
-and the scope check at the top of rds_sendmsg() accepts any non-zero
-destination scope for such a socket.  So after a send to fe80::x%ifA,
-a send to fe80::x%ifB hits the cached ifA connection and the datagram
-leaves through ifA, to whichever peer answers to that address there.
+This is v6 of the sendmsg connection-cache scope fix (v1 at [1], v2 at
+[2], v3 at [3], v4 at [4], v5 at [5]), against net-next as Jakub
+suggested: neither issue has been observed in the field, and both were
+found by inspection while reworking this cache for the
+connection-lifetime series.
 
-Compare c_dev_if with the request's scope_id in the cache test, so
-that such a send takes the lookup path and finds, or creates, the ifB
-connection - the same key the lookup uses.  A send without a
-destination takes its scope from the socket, and the connection it
-created was keyed on that same scope, so the comparison holds for it
-too; the next patch gives that send the connected peer's own scope.
+  Patch 1 compares c_dev_if with the request's scope in the cache-hit
+  test, so the cache uses the same key as rds_conn_lookup().
 
-Found by inspection while reworking this cache for the connection
-lifetime series on net-next; not observed in the field.
+  Patch 2 gives the connected peer's link-local scope its own field.
+  rds_connect() used to store it in rs_bound_scope_id, the scope of
+  the socket's own bound address, which a later bind() to a
+  non-link-local address resets to 0 and which a later connect()
+  pollutes for a globally bound socket.  A send without a destination
+  and getpeername() take the connected peer's scope from that field;
+  recvmsg() reports a link-local sender with the interface recorded
+  on its connection.
 
-Fixes: 1e2b44e78eea ("rds: Enable RDS IPv6 support")
-Assisted-by: Claude-Code:claude-fable-5
-Signed-off-by: Allison Henderson <achender@kernel.org>
----
- net/rds/send.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Changes since v5 [5]:
+ - Swapped the two patches.  The scope-field patch lets a globally
+   bound socket connect() to the same link-local peer through a second
+   interface, and without the cache check in place first the next
+   send() would reuse the first interface's connection, so the series
+   is now bisectable (review of v5).
+ - recvmsg() comment and changelog no longer describe c_dev_if as the
+   arrival interface: that holds for TCP, while the IB passive side
+   resolves it from the local address (review of v5).
+ - No code change beyond the comment.
 
-diff --git a/net/rds/send.c b/net/rds/send.c
-index 1afa981e5c06..38b9cc9e0d20 100644
---- a/net/rds/send.c
-+++ b/net/rds/send.c
-@@ -1342,7 +1342,8 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
- 	/* rds_conn_create has a spinlock that runs with IRQ off.
- 	 * Caching the conn in the socket helps a lot. */
- 	if (rs->rs_conn && ipv6_addr_equal(&rs->rs_conn->c_faddr, &daddr) &&
--	    rs->rs_tos == rs->rs_conn->c_tos) {
-+	    rs->rs_tos == rs->rs_conn->c_tos &&
-+	    rs->rs_conn->c_dev_if == scope_id) {
- 		conn = rs->rs_conn;
- 	} else {
- 		conn = rds_conn_create_outgoing(sock_net(sock->sk),
+Changes since v4 [4]:
+ - recvmsg() takes a link-local sender's scope from the connection the
+   message arrived on (c_dev_if) and reports 0 for any other sender,
+   instead of the socket's connected or bound scope - a connected
+   socket receives from any peer, so a per-socket scope was wrong for
+   every sender but the connected one and could send a reply out the
+   wrong link (review of v4).  getpeername() and recvmsg() now agree
+   for the connected peer.
+ - Retargeted at net-next.
+
+Changes since v3 [3]:
+ - A destination-less send falls back to the bound scope for a
+   non-link-local peer, so send() and sendto() to the connected peer
+   compute the same scope; getpeername() and recvmsg() report the
+   connected peer's scope instead of the bound scope.
+
+[1] https://lore.kernel.org/netdev/20260921215046.174745-1-achender@kernel.org/
+[2] https://lore.kernel.org/netdev/20260927062312.169097-1-achender@kernel.org/
+[3] https://lore.kernel.org/netdev/20261003163526.250805-1-achender@kernel.org/
+[4] https://lore.kernel.org/netdev/20261008031426.1142344-1-achender@kernel.org/
+[5] https://lore.kernel.org/netdev/20261017032358.2563121-1-achender@kernel.org/
+
+Thank you,
+Allison
+
+Allison Henderson (2):
+  net/rds: include the scope id in the sendmsg connection cache check
+  net/rds: keep the connected peer's scope id apart from the bound one
+
+ net/rds/af_rds.c | 15 +++++++++------
+ net/rds/bind.c   |  4 ++--
+ net/rds/rds.h    |  2 ++
+ net/rds/recv.c   | 11 ++++++++++-
+ net/rds/send.c   |  9 +++++++--
+ 5 files changed, 30 insertions(+), 11 deletions(-)
+
 -- 
 2.50.1
 
