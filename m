@@ -1,55 +1,65 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792514936;
-	b=xLtFXf5jG+ePqCjWIU4cTflfY0GpdBRwJKmV3WgZFWP2vLJw4ZaBTQsg6k/r3dqWnhnh
-	 NawrUJZGxhkZOhjHj9WeJPvW0f2xFeaGgcVkxAOwvrgZDpuMMxwxrnHC9QgABUiTFxOy1
-	 oDhg2esp6aATrWCNysWHfuaeJzm8Vlsen9wBgscX37ZGJqtZ/VDPx/NchKUwZeeIxqGxv
-	 7AQ7WAsBGH90FziBGAM7O3KX9P4JW7aUQYty5VEWnTgflNWiWforpfPdpXlqhW1nlOOnn
-	 DQJOS7osrhr7BjAjYZ4XAOWtJz1Awj0+TmnIRqLAQKOhKtZg7FCyhBjiTx2ggYJ2frg==
+	t=1792524512;
+	b=OtmnMXXpNTyvNlOD06idvOllDT/SiPWC1v6d3pKhpVEbZNEbXSwnhfKeu8IXab6MCrzD
+	 5CJbLgpnEMOvwXmx+55xLb5ErkRZKeDemVz4k1v3Syxqmn6Dzwwkm4eZoPAgJP5jogYvn
+	 LLpKDz98xcIh1A09PyMcgB7/V3jAxWEdwVNgVyAUMmk4lNn5P4BzalziWzVKezLwWGiyQ
+	 zT7bMURUs1V+TSF3UKg+s45YuUXoi6HKN/jjT7D4cvgVyHsCqR59dQdTRBbbT/ptQy2Ft
+	 u9ElQJptGlTSfDb/lhWmiqc9p8avH0wEdHMicGTb99/gWwWZSBIy7DILvIWtt6ZcJOA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792514936;
-	h=Received:Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 X-sashiko-severity:Content-Type:Content-Transfer-Encoding:
-	 MIME-Version;
-	bh=dEPBoh5eatFrlNajXHLKC32XKu7ihCvs7f0OiCqPty8=;
-	b=gAXNwn2PhzxwCcBJEaEQxli4AN0Y0PWQa8ivSNo+Le2+a1/TvEYQGEf1yrTkqzthK9GW
-	 /GWyJEX//zPYEtTleLZ7X+47s4q6QpOIYHpKG3/v/wjDvnwFBkMBFmtk57ygtjZdSgGKo
-	 puxweaeFaGMBZDeCzFm4AQXHl5IjGKiJe1QVPNG1dY8r0ml9NuPMjAsYzosFcVsSa3k+Z
-	 sYs+TIb7c0yjjpucOedZhkSAsMP2apOGQPgnPR0+d58tEHsrHJiqW1mYc7MFsO1n9Gnak
-	 wKUAnZvIh5LDb4JCUVYJU09mVHv0yaNikin4MrPGVWIixj6dmlcLe9YuTcZUsml+H+g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792524512;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 In-Reply-To:References:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=glN78Ha6iYAaTjSlQ7NRgUJI7MtKCh5ZiX7TaERIYRI=;
+	b=3FNbwLt/0u4VWlqAzJQKo4U8PTlAWklVY0dnwjPjyT50xTmPNajV1HmOi+lHQ7rL8s7n
+	 Q18qt7lND8xSqstpHgcImvAEoeg/Cr/VG8z1DnoXrBVH9XBXuKY3GmBLDeAYw6H6GutKV
+	 xDb7V9xogP8gSzBG4KpJPXPe6C4Su40FNdaM4FqyKTGfTd2d0V32n7rF/ba2xwbhCkD7N
+	 iwHAdkzjpGai8+VRePVfrpTm4zT7FbqEGPhg4ICUzLVM3J3WnXFO6r4svzc84tJtWUA+m
+	 Ar/5QSJtaMK09fBnm7mPGTyh71sjWgJb6P/bYTIKUE+29hnV9YXZeZLQ6CqMgu9ukjQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PjwUbFlG;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E4F6606D54E;
-	Tue, 20 Oct 2026 16:48:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F68C1F0157E;
-	Tue, 20 Oct 2026 16:48:54 +0000 (UTC)
-Subject: Re: [PATCH net-next v7 11/13] net: mana: keep a user-configured RSS
- table across a queue rebuild
-From: netdev-bot+sashiko@kernel.org
-To: weh@linux.microsoft.com
-Cc: longli@kernel.org, kotaranov@microsoft.com, kuba@kernel.org,
- davem@davemloft.net, pabeni@redhat.com, edumazet@google.com,
- andrew+netdev@lunn.ch, jgg@ziepe.ca, leon@kernel.org, haiyangz@microsoft.com,
- wei.liu@kernel.org, decui@microsoft.com, shradhagupta@linux.microsoft.com,
- horms@kernel.org, ernis@linux.microsoft.com, stephen@networkplumber.org,
- netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
- linux-hyperv@vger.kernel.org, linux-kernel@vger.kernel.org,
- bpf@vger.kernel.org, sdf@fomichev.me, daniel@iogearbox.net, hawk@kernel.org,
- ast@kernel.org, john.fastabend@gmail.com, weh@microsoft.com,
- edumazet@kernel.org
-Date: Tue, 20 Oct 2026 16:48:23 +0000
-Message-ID: <179251490382.3135.11269934246103660165@kernel.org>
-In-Reply-To: =?utf-8?q?=3Ce3a74aa4b30eb004c9a9f16168b734c563f27a15=2E1791710?=
- =?utf-8?q?735=2Egit=2Eweh=40linux=2Emicrosoft=2Ecom=3E?=
-References: =?utf-8?q?=3Ce3a74aa4b30eb004c9a9f16168b734c563f27a15=2E17917107?=
- =?utf-8?q?35=2Egit=2Eweh=40linux=2Emicrosoft=2Ecom=3E?=
-X-sashiko-severity: Medium
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29EB4606A319;
+	Tue, 20 Oct 2026 19:28:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PjwUbFlG
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02AAB1F000C9;
+	Tue, 20 Oct 2026 19:28:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792524511;
+	bh=glN78Ha6iYAaTjSlQ7NRgUJI7MtKCh5ZiX7TaERIYRI=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=PjwUbFlG6w1Q03uPZWbI8v+utMR7Yli9F7whhmM4fI6a2zideqpDg/eGl6hRu8/hh
+	 YF30sYMULcuiXPUccsBtKcanqmVT5iC+vG4uNx8opy/wqB10cn/Kt52pZoohJRrUVn
+	 qI/mk0siz/w/IILrQqePAdpN1A7Gv6QJIaTRwZyHyIqtsMjYtp4Xl0ToOalD/vzimw
+	 xOGwEFJvyAa5UZw1JSl7wVtHd9Qq3ElEiuD5gW9SPPBipNroPo1Cz/LkqcF57nSO/+
+	 DTg5YHRw8vi8eswAYjp9IiYq4mgFFg5N4mOXx2dpBq4/hjIQnO99EyqnnuGMj+lt8I
+	 gln9uT27gbrRg==
+Date: Tue, 20 Oct 2026 12:28:30 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: netdev-bot+sinfo@kernel.org
+Cc: hexlabsecurity@proton.me, "D. Wythe" <alibuda@linux.alibaba.com>, Paolo
+ Abeni <pabeni@redhat.com>, Eric Dumazet <edumazet@kernel.org>, Dust Li
+ <dust.li@linux.alibaba.com>, Mahanta Jambigi <mjambigi@linux.ibm.com>,
+ Sidraya Jayagond <sidraya@linux.ibm.com>, "David S. Miller"
+ <davem@davemloft.net>, netdev@vger.kernel.org, Simon Horman
+ <horms@kernel.org>, linux-kernel@vger.kernel.org, Wenjia Zhang
+ <wenjia@linux.ibm.com>, Tony Lu <tonylu@linux.alibaba.com>,
+ linux-s390@vger.kernel.org, Guangguan Wang
+ <guangguan.wang@linux.alibaba.com>, Ursula Braun <ubraun@linux.ibm.com>,
+ linux-rdma@vger.kernel.org, Stefan Raspl <raspl@linux.ibm.com>, Hidayath
+ Khan <hidayath@linux.ibm.com>, Wen Gu <guwen@linux.alibaba.com>
+Subject: Re: [PATCH net v7 0/4] net/smc: bound wire-controlled CDC cursors
+ against the local buffers
+Message-ID: <20261020122830.5ddd0997@kernel.org>
+In-Reply-To: <179192256949.160550.18282620239378164781@kernel.org>
+References: <20261013-b4-disp-f345196c-v7-0-ef3dddfbfa68@proton.me>
+	<179192256949.160550.18282620239378164781@kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,183 +69,15 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Thank you for your contribution! Sashiko AI review found 4 potential
-issue(s) to consider.
+On Tue, 13 Oct 2026 20:16:09 +0000 netdev-bot+sinfo@kernel.org wrote:
+>  - How the issue was discovered, e.g. hit in production, hit during
+>    development, syzbot report, manual code inspection, LLM or static
+>    analysis tool scan.
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 3
-
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [Medium] In mana_alloc_queues()
-  (drivers/net/ethernet/microsoft/mana/mana_en.c:3961-3963),…
-- [Low] The publish-time loss notification added by this patch can never
-  fire.
-- [Low] Before this patch, mana_alloc_queues() and mana_alloc_qset()
-  called mana_rss_table_init() unconditionally.
-- [Low] The patch deletes the comment `/* Vport identity and port debugfs
-  outlive queue sets.
-
---
-
-net: mana: keep a user-configured RSS table across a queue rebuild
-
-This commit keeps a user-configured RSS indirection table across queue
-rebuilds when every entry is valid for the new queue count. Otherwise it
-regenerates the driver default table. A lost user table is reported
-through ethtool_rxfh_indir_lost() after a queue set is published, and
-RSS setters now require RTNL.
-
-> Preserve a user RSS table whenever all entries fit the requested queue
-> count. Regenerate driver defaults. On growth, a retained user table does
-> not steer RSS traffic to the added queues until the user updates it.
-
-[Severity: Low]
-This isn't a bug, but before this patch mana_alloc_queues() and
-mana_alloc_qset() both called mana_rss_table_init() unconditionally.
-That dropped a user "ethtool -X" table on every rebuild (down/up,
-reset/resume, MTU, ring, priv-flag and XDP changes), while the core's
-rss_indir_user_size stayed set.
-
-Since this fixes a bug users can see, should the commit message say so
-and carry a Fixes: tag?
-
-The message also doesn't mention that adding ETHTOOL_OP_NEEDS_RTNL_RSS is
-part of the fix. It doesn't mention the dependency on the earlier
-queue-set swap patches either.
-
-> diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-> index 2aa18cb10d902..7cf7ce9bfa28c 100644
-> --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-> +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-
-[ ... ]
-
-> @@ -3936,7 +3958,9 @@ int mana_alloc_queues(struct net_device *ndev)
->  		goto destroy_rxq;
->  	}
->  
-> -	mana_rss_table_init(apc);
-> +	/* Loss notification needs a netdev instance lock we may lack. */
-> +	if (!mana_rss_table_keep(apc, apc->num_queues, &indir_lost))
-> +		mana_rss_table_init(apc);
-
-[Severity: Medium]
-When mana_rss_table_keep() sets indir_lost here, the value is thrown away
-and ethtool_rxfh_indir_lost() is never called. Doesn't that leave
-dev->ethtool->rss_indir_user_size set? If so, netif_is_rxfh_configured()
-keeps returning true for what is now the driver default table.
-
-This looks like the one loss path that can actually be reached. On reset
-or resume, mana_attach()->mana_init_port() queries the vPort again and
-clamps the queue count:
-
-	if (apc->num_queues > apc->max_queues)
-		apc->num_queues = apc->max_queues;
-
-On resume, gc->max_num_queues_vport is also recomputed in
-mana_gd_setup()->mana_gd_query_max_resources() from num_online_cpus()
-and the MSI-X count. If the port was down during the reset, the same loss
-happens later in mana_open()->mana_alloc_queues(), which also drops
-indir_lost.
-
-The kernel-doc for ethtool_rxfh_indir_lost() describes this exact case
-("typically after a HW fault recovery that reduced the maximum queue
-count"). The helper also clears the configured state, not just sends a
-notification:
-
-	dev->ethtool->rss_indir_user_size = 0;
-	ethtool_rss_notify(dev, ETHTOOL_MSG_RSS_NTF, 0);
-
-With the configured flag left set, ethtool_get_max_rxfh_channel() reads
-the regenerated default table, and that table spans every queue.
-ethtool_check_max_channel() would then reject every later channel
-reduction with -EINVAL until the user runs "ethtool -X <dev> default".
-Later rebuilds would also accept the defaults as a user table in
-mana_rss_table_keep(), and no ETHTOOL_MSG_RSS_NTF is ever sent.
-
-The comment is right that the netdev instance lock may not be held here.
-mana_per_port_queue_reset_work_handler() holds only RTNL, and the resume
-loop in mana_probe() drops netdev_lock() just before mana_attach().
-
-Could mana_alloc_queues()/mana_attach() return or record the lost state
-instead? Callers could then call ethtool_rxfh_indir_lost() under RTNL
-plus netdev_lock(), as mlx5e_attach_netdev() does. mana_open() already
-holds both locks and could report the loss directly.
-
-The commit message says this path "replaces invalid tables silently". It
-doesn't mention that the core's configured state is left stale. The
-indir_lost value still appears to be dropped at this call site at the end
-of the series.
-
->  
->  	err = mana_config_rss(apc, TRI_STATE_TRUE, true, true);
->  	if (err) {
-> @@ -4094,9 +4118,10 @@ static void mana_qset_snapshot(const struct mana_port_context *ctx,
->  	out->priv_flags		= ctx->priv_flags;
->  	out->mtu		= ctx->configured_mtu;
->  	out->bpf_prog		= ctx->bpf_prog;
-> +
-> +	out->rxfh_indir_lost	= false;
->  }
->  
-> -/* Vport identity and port debugfs outlive queue sets. */
->  static void mana_qset_install(struct mana_port_context *ctx,
->  			      const struct mana_qset *qset)
-
-[Severity: Low]
-This isn't a bug, but was this comment meant to be removed? The change
-looks unrelated to keeping the RSS table, and the commit message doesn't
-mention it.
-
-The comment explains why mana_qset_install() leaves port_handle, the MAC
-address and mana_port_debugfs alone. The function still works that way,
-and the comment isn't added back later in the series.
-
-[ ... ]
-
-> @@ -4432,6 +4463,10 @@ int mana_publish_qset(struct mana_port_context *apc, struct mana_qset *newq,
->  	WRITE_ONCE(apc->port_is_up, true);
->  	mana_start_txqs(apc);
->  
-> +	/* Report a lost user table only after successful publication. */
-> +	if (newq->rxfh_indir_lost)
-> +		ethtool_rxfh_indir_lost(ndev);
-
-[Severity: Low]
-Can newq->rxfh_indir_lost ever be true here?
-
-mana_change_mtu(), mana_set_ringparam(), mana_set_priv_flags() and
-mana_xdp_set() all rebuild at the current num_queues. At that count the
-live table is already valid: mana_set_rxfh() rejects entries >=
-num_queues, and mana_alloc_queues() regenerates invalid tables.
-
-mana_set_channels() is the only path that changes the count. Both the
-netlink and ioctl set-channels handlers call ethtool_check_max_channel()
-before the driver runs:
-
-	max_rxfh_in_use = ethtool_get_max_rxfh_channel(dev);
-	if (channels.combined_count + channels.rx_count <= max_rxfh_in_use) {
-
-That check rejects any count that would invalidate a user-configured
-table. So it seems mana_rss_table_keep() can never report a loss on the
-swap path. The same is true for mana_split_qset() and mana_grow_qset()
-later in the series.
-
-If that's right, the rxfh_indir_lost field and this call cover a case
-that can't happen. Meanwhile the loss that can happen, in
-mana_alloc_queues(), is never reported. Should the commit message
-sentence "Report table loss only after successful queue-set publication"
-be reworded, or this code dropped?
-
->  
->  	return 0;
->  
->  rollback:
-
+Please reply to outstanding AI feedback, when you repost please make
+sure this is answered in the cover letter
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/cover.1791710735.git.weh%40linux.microsoft.com
+pw-bot: cr
