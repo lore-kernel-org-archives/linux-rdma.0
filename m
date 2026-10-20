@@ -1,34 +1,34 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792514840;
-	b=11qoCKYhN6k3dQ2GNI5kdGUCClpJKCS1ZcpvgVGAVkE8vQNqwcQPsIIm4drFs9a0TqyA
-	 hdwYq6lV6b2josCbRJKAk4320YEcqWE2sTI4u8KTm2WxdhVAAaDO5A+XwNN9G3qAGptiO
-	 csSPjc3Jb+vYzbT5n2pKmhlWpweQtSLEMU73g+8GfwALvHYERjOIcvaJB6zAK+6+HP+Y3
-	 Rotjy9xFL0w8lsGaTk9+7Pt/zhh5j/hC+t5jBW92un13/xt4RMj1+ivtaiPV0+BIWrqc0
-	 OPEU2xY1XgwQfg/5/zWgtVzE7lnOGo0382Sxp8COCYUp/zy73a9gNp0+18YSf4JkEAA==
+	t=1792514872;
+	b=HSQLtX4lmDuf6esyHkW4fK8Hd1S2c3ad6IRyA8dUe+2Yx6u7kr5EQ1chEyexetK+vTPS
+	 wKoqa5Xj/gomgyECRr0iSI+QGFPkCi3HpVgTdI8J3in/7vqd333WofRgJb9ja/8X1hp4n
+	 Z5o1QGGs3T1arp0O18VSPS6FDB7VJC5WCxVOrOBvB/ZRFFF287krNtXEMQyL0QTmxxkl+
+	 ThzoHXXzLgHPtla505RFmiDiOp1WZcssfgHR94m9DGeygg+oSETX+ZpFBooyTvvb3Vi4E
+	 DP3W5CG0gTsJtXC+3PVAto+l4zUCXQ0CDvdYDJvbtxd5nD4fgkjByPasIqDPWX8n8/w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792514840;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792514872;
 	h=Received:Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
 	 X-sashiko-severity:Content-Type:Content-Transfer-Encoding:
 	 MIME-Version;
-	bh=n+oKGk1imSqXHlpcQPQgdWOn1hEEDsQt0rvGO+83lJA=;
-	b=cpIvgSnAr9j+m5VKsxaoJa57KaLp664NTBch3waYNG7GVJo+3mUhG6KgE1sbc/8Y3Drj
-	 Eparvv9/5URO1zSiwJDss3dGLEfcebQ9Kfr368cuLXH6lcdybR1EffRHv6P6XyyuoLH6E
-	 smL4pg/0N+z1BxGydZ7Zfj/FaLawpEwDAIf4SsMqRMf0fsyV8i0VTqI4oO84Z66Lvr1ln
-	 eYJBQmmjEUouARuu0eXvvQOkBOn2W1bAhLx30BY5QgW6yITD5VjgKjjgbAd+KPoxAJ3oW
-	 WMIzp0MywUXegTsSwigwpc15acoLYQLA0V6XkCzBdJOEPYScjXiGpzfqKm9OOK6Rr4Q==
+	bh=IO+RdfSgg+iO9BLu43VpKXaQsv4LWOE8tdPSlKLB4S8=;
+	b=Nt+xhZ/DRGVAfLz+8Pu9LjifyP3qQN2FnbKMbyfaZDh2yuZ5ZWbuJUfgHbQXLeTyTmn7
+	 aeUkSB1wfncPWdRxCOvbiRVkReKpgCT30TmeK6rC8LMqV0/WufSgKp2WVtyNrLNpQJvuQ
+	 cNhPEA2ZpGOyaYJVSApvZ7UghwToxQCLvROd437ciUpv0RgpPXzuPlbPh89g27ZW7wHFR
+	 v8BIvPw8IN0JKec4fOcBVKXqacvPIe7wG1lekk5WgXoJvEM6WfRIFOWU1UiBGOpVCRLeI
+	 ADjebK8O0n4yusFPPrv3jINVw30RFfz/qgy+IP2lD92P4ZR8dBUQE121z+FThPXmJqA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B00E606A325;
-	Tue, 20 Oct 2026 16:47:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 552A91F000CB;
-	Tue, 20 Oct 2026 16:47:18 +0000 (UTC)
-Subject: Re: [PATCH net-next v7 03/13] net: mana: keep per-queue statistics in
- the port context
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8795606D54D;
+	Tue, 20 Oct 2026 16:47:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BF5F1F000CB;
+	Tue, 20 Oct 2026 16:47:50 +0000 (UTC)
+Subject:
+ Re: [PATCH net-next v7 04/13] net: mana: swap queue sets in mana_set_channels
 From: netdev-bot+sashiko@kernel.org
 To: weh@linux.microsoft.com
 Cc: longli@kernel.org, kotaranov@microsoft.com, kuba@kernel.org,
@@ -41,13 +41,13 @@ Cc: longli@kernel.org, kotaranov@microsoft.com, kuba@kernel.org,
  bpf@vger.kernel.org, sdf@fomichev.me, daniel@iogearbox.net, hawk@kernel.org,
  ast@kernel.org, john.fastabend@gmail.com, weh@microsoft.com,
  edumazet@kernel.org
-Date: Tue, 20 Oct 2026 16:46:47 +0000
-Message-ID: <179251480798.3135.10568539204327471791@kernel.org>
-In-Reply-To: =?utf-8?q?=3Cb27034466c0db8228409db5473e747db7c3177c5=2E1791710?=
+Date: Tue, 20 Oct 2026 16:47:19 +0000
+Message-ID: <179251483988.3135.18174536583131851095@kernel.org>
+In-Reply-To: =?utf-8?q?=3Cec57f3853ef344a7d5ec8907ba530313b0163bae=2E1791710?=
  =?utf-8?q?735=2Egit=2Eweh=40linux=2Emicrosoft=2Ecom=3E?=
-References: =?utf-8?q?=3Cb27034466c0db8228409db5473e747db7c3177c5=2E17917107?=
+References: =?utf-8?q?=3Cec57f3853ef344a7d5ec8907ba530313b0163bae=2E17917107?=
  =?utf-8?q?35=2Egit=2Eweh=40linux=2Emicrosoft=2Ecom=3E?=
-X-sashiko-severity: Medium
+X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -60,168 +60,143 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 2 potential
-issue(s) to consider.
+Thank you for your contribution! Sashiko AI review found more severe
+issue(s) in other patches of this series. This mail is only an FYI, in case
+you want to address the nit picks below when you respin.
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 1 (1)
+Low priority / nit picks for your consideration:
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [Medium] mana_get_stats64()
-  (drivers/net/ethernet/microsoft/mana/mana_en.c:608) bounds its RX/TX…
-- [Low] Commit message / metadata concern for commit "net: mana: keep
-  per-queue statistics in the port context".
+- [Low] Old RX queues are marked retiring before the TX drain wait, while
+  RSS still sends all RX traffic to them.
 
 Pre-existing issues:
-- [Low] This problem wasn't introduced by this patch, but mana_xdp_xmit()
-  (drivers/net/ethernet/microsoft/mana/mana_bpf.c:74) updates…
+- [Low] Concern: the live replacement path throws away a user-configured
+  RSS indirection table without calling ethtool_rxfh_indir_lost().
+- [Low] Concern: the 120 s TX drain in mana_publish_qset(), with all
+  queues stopped and carrier on, lets dev_watchdog (watchdog_timeo =…
 
 --
 
-net: mana: keep per-queue statistics in the port context
+net: mana: swap queue sets in mana_set_channels
 
-This commit moves the per-queue RX/TX statistics out of the mana_rxq and
-mana_txq objects and into port-lifetime arrays sized by max_queues. The
-arrays are allocated at probe and freed after the netdev is unregistered.
-ndo_get_stats64 and the ethtool stats now read from these arrays and keep
-reporting while the port is down.
-
-> Prepare port-lifetime RX/TX statistics before introducing live queue
-> replacement. Allocate max_queues slots before netdev registration,
-
-[ ... ]
-
-> Make ndo_get_stats64 and ethtool statistics independent of replaceable
-> queue objects. Preserve counters while down, gating only the PHY
-> query.
-
-[Severity: Low]
-The message presents this as preparation for live queue replacement. Does
-it also change behaviour that users can already see today?
-
-Before this patch the RX/TX counters lived in mana_rxq and mana_txq. Those
-are freed and reallocated on every mana_detach()/mana_attach(): ifdown/ifup,
-MTU change, ethtool -L/-G, XDP install/remove, TX timeout reset and
-suspend/resume. So the counters were reset each time. mana_get_stats64()
-also returned early when !port_is_up.
-
-After this patch the counters persist across all of those paths, and
-mana_get_stats64() sums over max_queues instead of num_queues.
-
-"Preserve counters while down" does hint at this. Could the message state
-the change for the existing paths more explicitly?
-
-Documentation/networking/statistics.rst asks for statistics to persist
-across down/up. Would it make sense to split that part out as a separate
-fix with a Fixes: tag?
-
-> diff --git a/drivers/net/ethernet/microsoft/mana/mana_bpf.c b/drivers/net/ethernet/microsoft/mana/mana_bpf.c
-> index ec708f3401a05..2008c17416543 100644
-> --- a/drivers/net/ethernet/microsoft/mana/mana_bpf.c
-> +++ b/drivers/net/ethernet/microsoft/mana/mana_bpf.c
-> @@ -68,7 +68,7 @@ int mana_xdp_xmit(struct net_device *ndev, int n, struct xdp_frame **frames,
->  		count++;
->  	}
->  
-> -	tx_stats = &apc->tx_qp[q_idx]->txq.stats;
-> +	tx_stats = apc->tx_qp[q_idx]->txq.stats;
->  
->  	u64_stats_update_begin(&tx_stats->syncp);
->  	tx_stats->xdp_xmit += count;
-
-[Severity: Low]
-This isn't a bug introduced by this patch, but can two CPUs update the
-same xdp_xmit counter at the same time here?
-
-mana_xdp_xmit() picks the slot with:
-
-	q_idx = smp_processor_id() % ndev->real_num_tx_queues;
-
-mana_xdp_tx() holds the TX queue lock only around mana_start_xmit():
-
-	__netif_tx_lock(ndevtxq, smp_processor_id());
-	rc = mana_start_xmit(skb, ndev);
-	__netif_tx_unlock(ndevtxq);
-
-So the xdp_xmit update after the loop runs without that lock.
-
-Devmap bulk queues are per-CPU (bq_enqueue() in kernel/bpf/devmap.c). With
-more CPUs than TX queues, two CPUs can flush to the same q_idx and run the
-+= on the same counter concurrently. Doesn't that break the u64_stats rule
-that writers of a given syncp must be mutually exclusive?
-
-MANA depends on X86_64 || ARM64, so the seqcount compiles away and the only
-effect is lost xdp_xmit counts. The baseline code has the same pattern,
-and it is still there at the end of the series.
-
-[ ... ]
+This commit changes mana_set_channels() to build a replacement queue set
+first, quiesce TX, drain the old TX queues for up to 120 seconds and then
+publish the new set, with a rollback path, instead of doing a
+detach/attach cycle. It adds per-RXQ drain_stats and a retiring flag, so
+that retiring RX queues stop writing the shared per-index counters; the
+private counters are folded into rxq_stats_ret[] later. It also gates
+mana_select_queue() on port_is_up and keeps carrier off after a failed
+rollback.
 
 > diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-> index 4b2c8039b8fa3..744d5ebe8dbbb 100644
+> index 744d5ebe8dbbb..c80a06ffbe508 100644
 > --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
 > +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
 
 [ ... ]
 
-> @@ -597,15 +597,15 @@ static void mana_get_stats64(struct net_device *ndev,
->  			     struct rtnl_link_stats64 *st)
->  {
->  	struct mana_port_context *apc = netdev_priv(ndev);
-> -	unsigned int num_queues = apc->num_queues;
->  	struct mana_stats_rx *rx_stats;
->  	struct mana_stats_tx *tx_stats;
-> +	unsigned int num_queues;
->  	unsigned int start;
->  	u64 packets, bytes;
->  	int q;
->  
-> -	if (!apc->port_is_up)
-> -		return;
-> +	/* Report even while down; dev_get_stats() zeroes its output. */
-> +	num_queues = apc->max_queues;
+> @@ -4053,9 +4155,305 @@ int mana_alloc_qset(struct mana_port_context *apc,
 
-[Severity: Medium]
-Is apc->max_queues stable enough to use as the bound here?
+[ ... ]
 
-mana_alloc_queue_stats() sizes rxq_stats, rxq_stats_ret and txq_stats from
-apc->max_queues at probe time, and that capacity is not stored anywhere
-else.
+> +int mana_publish_qset(struct mana_port_context *apc, struct mana_qset *newq,
+> +		      struct mana_qset *out_old)
+> +{
+> +	struct net_device *ndev = apc->ndev;
+> +	int err;
+> +
+> +	ASSERT_RTNL();
 
-mana_init_port() runs again on every mana_attach(), including the resume
-path in mana_probe(), and it can lower max_queues:
+[ ... ]
 
-	max_queues = min_t(u32, max_txq, max_rxq);
-	if (apc->max_queues > max_queues)
-		apc->max_queues = max_queues;
-	if (apc->max_queues > gc->max_num_queues_vport)
-		apc->max_queues = gc->max_num_queues_vport;
+> +	netif_tx_disable(ndev);
+> +
+> +	mana_qset_snapshot(apc, out_old);
+> +
+> +	/* Mark before the grace period so old completions cannot wake the
+> +	 * replacement's stopped queue.
+> +	 */
+> +	mana_qset_set_retiring(out_old, newq, true);
 
-On resume, mana_gd_query_max_resources() recomputes the limits from:
+[Severity: Low]
+Can this freeze the visible RX counters for the whole TX drain wait?
 
-	gc->max_num_queues = num_online_cpus();
+This call sets rxq->retiring on the old RX queues before synchronize_net()
+and mana_wait_qset_txqs(), and that wait can last up to 120 seconds. RSS
+still sends all RX traffic to these old queues during the wait.
 
-So fewer online CPUs, or a smaller vPort max_txq/max_rxq, can shrink
-max_queues, for example from 16 to 8. Slots 8..15 still hold accumulated
-counts, but this loop stops summing them. The rtnl_link_stats64 RX/TX
-totals would then go backwards, against the persistence rule in
-Documentation/networking/statistics.rst.
+Once retiring is set, mana_rxq_stats() picks the private counters:
 
-Indexing stays in bounds because max_queues only shrinks after probe.
+    return READ_ONCE(rxq->retiring) ? &rxq->drain_stats : rxq->stats;
 
-Would it be better to record the allocated slot count separately, or to
-fold the excluded slots into a lifetime aggregate?
+>From then on, updates from mana_rx_skb(), mana_run_xdp() and
+mana_process_rx_cqe() go into rxq->drain_stats. mana_get_stats64() and the
+ethtool stats code read only rxq_stats[] and rxq_stats_ret[]. The counters
+users see therefore stop moving until mana_fold_qset_rx_stats() or
+mana_destroy_rxq() folds them in later.
 
-There is a related effect. mana_get_ethtool_stats(), along with the
-sset_count and strings callbacks, still iterates over apc->num_queues.
-After ethtool -L reduces the channel count, the ip -s link totals include
-slots in [num_queues, max_queues) that ethtool -S never shows. The
-per-queue values then no longer add up to the totals. Is that intended?
+mana_update_rx_dim() also returns early for retiring RX queues, so adaptive
+RX moderation stops for the same window.
 
-This code is still the same at the end of the series.
+The window is usually a few milliseconds, but it reaches 120 seconds on the
+drain timeout path. The same pattern stays in place for full rebuilds and
+for the retiring tail in channel reductions later in the series.
+
+The early marking only seems needed for the TX wakeup race. Could the RX
+retiring flag be set later, just before mana_config_rss() steers traffic to
+the replacement queues, while the TX retiring flag stays where it is?
+
+> +
+> +	/* Drain TX/XDP readers past the gate and polls missing retiring. */
+> +	synchronize_net();
+> +
+> +	err = mana_wait_qset_txqs(apc);
+> +	if (err)
+> +		goto resume_old;
+
+[Severity: Low]
+This isn't a bug introduced by this patch, but while mana_wait_qset_txqs()
+waits up to 120 seconds with every TX queue stopped and carrier still on,
+dev_watchdog (watchdog_timeo is 15*HZ) can call mana_tx_timeout(). That
+queues queue_reset_work, which then runs after mana_publish_qset() returns.
+
+The baseline path had the same window. mana_detach() called
+netif_tx_disable(), and mana_dealloc_queues() then waited up to 120 seconds
+under RTNL with carrier on.
+
+On the drain timeout path here, the reset only runs after newq has been
+freed, so it does not invalidate the replacement queues. In effect it is
+the existing recovery for TX queues that really are stuck.
+
+Is that interaction intended for the new publish path?
+
+[ ... ]
+
+> diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
+> index 43c5c3bf5c408..913349edfe13c 100644
+> --- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
+> +++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
+
+[ ... ]
+
+> +	err = mana_alloc_qset(apc, scratch, new_count, apc->rx_queue_size,
+> +			      apc->tx_queue_size, apc->priv_flags, &newq);
+> +	if (err)
+> +		goto free_scratch;
+
+[Severity: Low]
+This is a pre-existing issue, not one introduced by this patch.
+mana_alloc_qset() always resets the replacement set's indirection table
+with mana_rss_table_init(scratch). A live set_channels therefore discards
+a user-configured RSS indirection table without calling
+ethtool_rxfh_indir_lost().
+
+The baseline mana_alloc_queues() did the same on every detach/attach.
+
+A later patch in the series fixes this ("net: mana: keep a user-configured
+RSS table across a queue rebuild"). It adds mana_rss_table_keep() to the
+split, grow and full-rebuild allocators and calls ethtool_rxfh_indir_lost()
+after a successful publish.
 
 [ ... ]
 
