@@ -1,79 +1,78 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1792465419;
-	b=heoxqyXW2lhwGjgFhnM6WMQhOScIsLhtk8AjMC+awZMX96waIVMBaMPsWJdKkfWxajRF
-	 xeWUkN8a/qvxV2aB7BckE1+ZD2FJVWygE5Ydzr9BoR9WivyAhWKOXAEDjyUfr9RYRTZuK
-	 dmfKl9CHsXsdnGaY2aGMsvOIoce6uXxlXc2bHnn2k632w0inhiClLkwPZKF76VPvu69Xa
-	 e6Fq2ET9mXbVdAUGFKGIw6eSJjVAq2+Kj5wX8A6iUdcK/L5rYJTquyGfL2cVuuUDikMK+
-	 aRG2WkuB6FYLJDcJjJlmISCa5yNcu09NGL78pjhHFP2FcHmrsIge0+W9d9CKF6HkdKQ==
+	t=1792465422;
+	b=YeDzSzsEYfPMjtOZOlHSEdBrlI1MrwY76G50WFmWll5qmnoRQ41hGMfH4RV/WPZPvpgw
+	 yKAUR4hjDkKQSSgN2fRsKs/Res+toyKHdH8Ag/69yinJ686F3qVy4E9QMnLHsqaMXeCTi
+	 X4pETJftf/Zsdvr8nRWgbtA4He8jNVEo/hhXn6sslMKiOSgHDQKZujDzeSArcn9Wqz+Jc
+	 QqwFbL57755wRyQtKCLFGqNDV8tztN+FiDvzi57drsarnJCK5vYJWja1AYI7PlKJM56Z2
+	 fB1rBqgyvAzm7q4egzoZfWcxnZFEmu3bih4wtHI/n+Aby8e+T88megsVl1H2qXO6c5w==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792465419;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792465422;
 	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
 	 Content-Type:Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=ughVORsfRMZKu0smitOz9pt0otYMPVZ88l8CsB8SFK0=;
-	b=C/GGgjjUPS37I/VvpjwyajAiWZdA/e9r5ux2INcZzXWq9fV/1g/iJ/OC0vC0PMntcZ8h
-	 8JPxQstS9HjnrxSHEeVO892jx7NM2EqNRdP7qyXQx9IXxTNyLqNPUDvBxWhUZwa2Cw3RK
-	 +SN+OVznEHH0Zk1RFxOJ3AvTJ0KKkzR8gH1h3ZkldcjMkmdGYZw/u3O7JUKGHR3X69JJs
-	 ElVbfCHw+OnR1xrgAOHhY4FQJtCChfijvMXmvXzx479tyzEOJ9R+0hQbjfANMrGrVy54X
-	 ZUIsilyVBwiNtTyGBsRzXLAk1v3z/QAxD3TrrlqoG/d9Ksz30lFOjGePEdto7qzeK4w==
+	bh=kdCBOPXST9r65KAY8iqNprOoqRgeHQECmd8ItaDmlrU=;
+	b=UzMZED2klpguSBBp/FsKjoLR5J6S2gKYhZu5Edam0kw+Uysle9h6e52LsIHTA2/GvYGD
+	 pkoA9TGN5MI0hpgss/yPRvNjZF5lCjN42MPoXK+R8SO7zazu+colU5mSD5dwswDIz4I/0
+	 du87SbBkg+sXzhPG+olAvR41H1zyznF9YWTOLzcPqNnPjWvtWwTvjn1qLv9Tf5g2gQd0X
+	 p9R7792o3qf357w83xTcnroV25byEQDwu0iBeLkbph6rpMZhd3ipHkZHWvat/2h+4geOY
+	 thbVE14kSbbWTBBdQ9jm/gWQUkhv9vEDPZ1qmaaokDL2utoPYuMODxdqUP+wZ63pa1w==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IkKgRFct;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="N139W8F/";
 	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47E6F606A338;
-	Tue, 20 Oct 2026 03:03:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54418606A333;
+	Tue, 20 Oct 2026 03:03:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IkKgRFct
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=N139W8F/
 Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
 ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
-	t=1792465419;
-	b=z54MR7hsNnBC1/qYiby5hD4Xyw/NYjEpN3+2Q7fNo83hImkfg5QGvClWZrqox347b3FH
-	 3QIZdfRv/VaVGp4GO8pA3gLiuuQBLTWKkyWzkmbzXE96j/0d4RvsWGLtHbH5HNj8pdeYA
-	 0fuRmhtB7HCd2TGx2sOKWgBb8BeqenPe7c7c1fUQZlcbU5/bNN//+8ZOyz2D9jb4FRsCB
-	 hEYvBPviHE6OJbM4svthfq2TfdegHk8hXirfKgR9TXEXZ3zwSUAfOe7Rn/f6KPkaD859d
-	 jmyRajuTqxDOA1a4wlKv1U7KXgF64G7wN2rHnbiQhxw7nnPPwKmKdIh/H+cTO6FWX7w==
+	t=1792465421;
+	b=ogkuHEmakFfIoSciSNd9wXf+0ewq3luoN1SxpMep2yAAKe2uq+aVf6LzTjVsJ5lSyCcY
+	 OMFu3fpJWGiIQLJBuzm90vwCPPXlVklz9f/l7ykr3x7ZY76/NmJARGMIBA996Ve/7L4ah
+	 a6e5OQ6RngCJGLrJDWRW9B0HePCFFI3dtrB8vHt5xWlKdtd/ROYbZArav/8rqvKgd2e4d
+	 vXS3VKHVPFbDGMCGV9dz7mGHli9pqDj17ekWI2BdYL/V/u0KvOYBHanOvXFLp5vb3rSQy
+	 zErxCOIj2UfnFmTd9ybYfZYcOed+uqTS2uRpdkz0z3LMt/Ns9XEpQTXn9O2cibQE+yQ==
 ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
-	c=relaxed/relaxed; t=1792465419;
+	c=relaxed/relaxed; t=1792465421;
 	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
 	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=ughVORsfRMZKu0smitOz9pt0otYMPVZ88l8CsB8SFK0=;
-	b=Wh/OopggE/d/acGo1JNi4YFxOmhfUqwupP8YlM3xJU+XmDHsmIJ7/TPT5MfdYtv386KK
-	 4Y+OUssHTWoUpy0FMAY92vFG8qWQDQKANCmoiEt3MmDg8874CiwSUvwpX2HoYaj95XBgk
-	 lbDwP2uBCR5niCnn97UtIQD/EAWwmn7+TCUNgieaxVNlZANXBWUJqO4+CbAmmhwKggoq/
-	 zaOPjoVcAIdpO2B+r2W1+BAfdRn4wVjyEbRZJuf3ahu5gkK3QK1C1jZE0jv5Ndni1mF8h
-	 cq9ykOkpxzGcLwZqLWUUsvGyzx55HpvjcXeUqa9PvIXS3b4R1deEy3VosGY9xlLPTZg==
+	bh=kdCBOPXST9r65KAY8iqNprOoqRgeHQECmd8ItaDmlrU=;
+	b=WBII5myFmZ1Th/IqD2YIep9UAZpYDVBzgHcI7rruGuKx3q4vUH56Q68/Ypwva+nq6Xzt
+	 Dqio/gZNWrRzALx1CnhtJzk3pgyTk9Xm6dFdZCzIFVz8HmU7P8KJ8VdJHzQGWdVAF/3hM
+	 Nf+8lp/TSUA88URIrauRn9R3geERF4h1IrKdlkqzvhf6V7ufFaDv/Zlp8glYEVVwvPYtA
+	 pc4OzZITPmOOqquRsWbpfSGfqLmv66/vNPa9aaklhNsaxk9wd95IoeLtl+/FdYceb5rAj
+	 Sj86/R8TeLfVe/w2HHoHEpLD5ZX39B+UtO+POx3Q1pur3NnMnywnqh7wL6q/R6gkVKA==
 ARC-Authentication-Results: i=1; smtp.kernel.org; 
 	arc=none smtp.remote-ip=100.80.115.77
 Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id D2FD51F000CA;
-	Tue, 20 Oct 2026 03:03:36 +0000 (UTC)
+	by smtp.kernel.org (Postfix) with ESMTPS id 749B21F000C5;
+	Tue, 20 Oct 2026 03:03:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792465419;
-	bh=ughVORsfRMZKu0smitOz9pt0otYMPVZ88l8CsB8SFK0=;
+	s=k20260515; t=1792465421;
+	bh=kdCBOPXST9r65KAY8iqNprOoqRgeHQECmd8ItaDmlrU=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
-	b=IkKgRFctXVIxgVkDeR6/KdULqjfHzlUu1QhMSiT7AgX5kSuoWmOSgsKhJPvOaJAgk
-	 714vV6uy/rll05FsTLMbFYlw6ltB4AdnH9dT/7r1Gf5P96cKtkPv7HMtWLcbVpN++K
-	 ZxyM8ZJuvv6XCRQk4+YdIzYoCPZbdLlxb95XBOGUtVgm84F1EzQpSXlot4bgnF5wFs
-	 KW4veGoFoTeb3sb6rMGVD1dHW/vrswCgyI7tMwM5PGX1n6/jiJr/JgIcL5DnTPBiMH
-	 M8S/6wFF65cZjIno/87mPZELRzfMzOphni3ERHoStpKFsEBM6kOi2JcY56iLkHZTOH
-	 14CFlg9JRQjAQ==
+	b=N139W8F/xpHUwob6CrOPrAERwLh29+gy1NCIsIHI69BLAp5Qu6uIdFgWuiiW19iVh
+	 Gp6yuzjDFYD36akue7iId5HzEGrwgj4FZRPHaCgzbasWYgPGhs/6EO1urMSfo0x8r5
+	 tJjoQllmBLBiENJwJgLbqFsnFJAgrHMMK2pOBsgmpakMozVdWtXb/qXq1nOF2jLjjD
+	 sYw4AyHIHzfW0LsJajQU5RALCqhj8USb2Y6fantH6cYejReZj2auI4sPn4YhrOECko
+	 NYfpk4BrDbDkFIC/1TRqibpyJZXI1V1H2SrjEqrb//929umhPlfCqEOKb/wtuZIB3w
+	 b0eZmhESl4Q+g==
 Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id 3454A4070F;
+	by lkml.kernel.org (Postfix) with ESMTP id 404804071A;
 	Tue, 20 Oct 2026 03:03:35 +0000 (UTC)
 From: Eric Davis via B4 Relay <devnull+eric.davis.broadcom.com@kernel.org>
-Date: Mon, 19 Oct 2026 20:03:32 -0700
-Subject: [PATCH rdma-next v2 05/13] RDMA/core: extended address handle
- attributes
+Date: Mon, 19 Oct 2026 20:03:34 -0700
+Subject: [PATCH rdma-next v2 07/13] RDMA/core: job and job key objects
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -84,18 +83,18 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Message-Id: <20261019-uet-ib-core-v2-5-8bd654f25370@broadcom.com>
+Message-Id: <20261019-uet-ib-core-v2-7-8bd654f25370@broadcom.com>
 References: <20261019-uet-ib-core-v2-0-8bd654f25370@broadcom.com>
 In-Reply-To: <20261019-uet-ib-core-v2-0-8bd654f25370@broadcom.com>
 To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>
 Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
  Eric Davis <eric.davis@broadcom.com>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1792465414; l=16360;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1792465414; l=33135;
  i=eric.davis@broadcom.com; s=20261014; h=from:subject:message-id;
- bh=+RAZArxkOHHyIz1RZJtl6WeQSvKnoLFdcl5bSdlpZos=;
- b=bP73Sq9nzVbVziSfsJSNIbfHfHDgRQar1/A+k2vKbQ/v3Ty9SYDsSMohxquGsStGE71zfENNj
- AsQIlv4UkNqB6xj8z51CtX2snbfvSZamCl7/LZKaJwM95GJGh5eU1Nv
+ bh=u5WfjngtmENSbmo1VoUVkU0b79vi2ksDA5BOjClhuHE=;
+ b=oVDqxm6kmEHtubyDmrxOn11HpuadA1NJ4ID9pYLSC83C5xPG9vV03FB2iu2O2IMRFMzzkqLW7
+ vOqNf8hQvvlBXpzGiv6wWGDwKxcuRSx8PQYG+H37hjARJX92VXYjFmS
 X-Developer-Key: i=eric.davis@broadcom.com; a=ed25519;
  pk=uy3oCTOYBipIPjryXGMynBmtPvbO6qN2FOrduzpiI4A=
 X-Endpoint-Received: by B4 Relay for eric.davis@broadcom.com/20261014 with
@@ -106,456 +105,1050 @@ Content-Transfer-Encoding: 7bit
 
 From: Eric Davis <eric.davis@broadcom.com>
 
-An unconnected transport over UET resolves a peer by both its network
-address and its queue pair number. The write() create-AH command has no
-room for additional attributes. Add rdma_ah_attr_ex to carry new
-attributes, reach it through rdma_ah_init_attr, and add an ioctl method
-that supports it.
+An unconnected transport demultiplexes incoming traffic on a JobID rather
+than on a connection. Add two objects for it: a job, which owns that ID
+and a table of peer addresses, and a job key, which ties a job to a
+protection domain and authorizes a queue pair to act within it.
 
-rdma_create_user_ah() now takes the init attributes rather than the
-address alone, so callers pass the wider set.
+A job can be exported to a file descriptor and imported elsewhere, so an
+unprivileged process can join a job that was set up for it.
 
 Signed-off-by: Eric Davis <eric.davis@broadcom.com>
 ---
- drivers/infiniband/core/user_mad.c         |  4 +-
- drivers/infiniband/core/uverbs.h           |  3 ++
- drivers/infiniband/core/uverbs_cmd.c       | 60 +++++++++++++++----------
- drivers/infiniband/core/uverbs_std_types.c | 70 +++++++++++++++++++++++++++++-
- drivers/infiniband/core/verbs.c            | 43 ++++++++++--------
- include/rdma/ib_verbs.h                    | 20 +++++++--
- include/uapi/rdma/ib_user_ioctl_cmds.h     |  7 +++
- include/uapi/rdma/ib_user_ioctl_verbs.h    |  9 ++++
- 8 files changed, 169 insertions(+), 47 deletions(-)
+ drivers/infiniband/core/Makefile               |   3 +-
+ drivers/infiniband/core/device.c               |  10 +
+ drivers/infiniband/core/nldev.c                |   2 +
+ drivers/infiniband/core/rdma_core.h            |   2 +
+ drivers/infiniband/core/restrack.c             |   4 +
+ drivers/infiniband/core/uverbs.h               |   6 +
+ drivers/infiniband/core/uverbs_std_types_job.c | 628 +++++++++++++++++++++++++
+ drivers/infiniband/core/uverbs_uapi.c          |   2 +
+ drivers/infiniband/core/verbs.c                |  37 ++
+ include/rdma/ib_verbs.h                        |  67 +++
+ include/rdma/restrack.h                        |   8 +
+ include/rdma/uverbs_ioctl.h                    |   2 +-
+ include/uapi/rdma/ib_user_ioctl_cmds.h         |  77 +++
+ 13 files changed, 846 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index c3ef9f85c7eb..05e2898f0a6a 100644
---- a/drivers/infiniband/core/user_mad.c
-+++ b/drivers/infiniband/core/user_mad.c
-@@ -512,6 +512,7 @@ static ssize_t ib_umad_write(struct file *filp, const char __user *buf,
- 	struct ib_umad_packet *packet;
- 	struct ib_mad_agent *agent;
- 	struct rdma_ah_attr ah_attr;
-+	struct rdma_ah_init_attr init_attr = {};
- 	struct ib_ah *ah;
- 	__be64 *tid;
- 	int ret, hdr_len, copy_offset, rmpp_active;
-@@ -569,7 +570,8 @@ static ssize_t ib_umad_write(struct file *filp, const char __user *buf,
- 		rdma_ah_set_dgid_raw(&ah_attr, packet->mad.hdr.gid);
- 	}
+diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
+index 47ef6b0afd29..f169c1bfa8b8 100644
+--- a/drivers/infiniband/core/Makefile
++++ b/drivers/infiniband/core/Makefile
+@@ -47,7 +47,8 @@ ib_uverbs-y :=			uverbs_main.o uverbs_cmd.o uverbs_marshall.o \
+ 				uverbs_std_types_async_fd.o \
+ 				uverbs_std_types_srq.o \
+ 				uverbs_std_types_wq.o \
+-				uverbs_std_types_qp.o
++				uverbs_std_types_qp.o \
++				uverbs_std_types_job.o
  
--	ah = rdma_create_user_ah(agent->qp->pd, &ah_attr, NULL);
-+	init_attr.ah_attr = &ah_attr;
-+	ah = rdma_create_user_ah(agent->qp->pd, &init_attr, NULL);
- 	if (IS_ERR(ah)) {
- 		ret = PTR_ERR(ah);
- 		goto err_up;
+ ib_uverbs_support-y :=		rdma_core.o \
+ 				ucaps.o \
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 8b1563de4726..cf2a59afcf76 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -2915,6 +2915,14 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
+ 	SET_DEVICE_OP(dev_ops, counter_unbind_qp);
+ 	SET_DEVICE_OP(dev_ops, counter_update_stats);
+ 	SET_DEVICE_OP(dev_ops, create_ah);
++	SET_DEVICE_OP(dev_ops, alloc_job);
++	SET_DEVICE_OP(dev_ops, dealloc_job);
++	SET_DEVICE_OP(dev_ops, query_job);
++	SET_DEVICE_OP(dev_ops, job_addr_insert);
++	SET_DEVICE_OP(dev_ops, job_addr_remove);
++	SET_DEVICE_OP(dev_ops, job_addr_query);
++	SET_DEVICE_OP(dev_ops, create_jkey);
++	SET_DEVICE_OP(dev_ops, destroy_jkey);
+ 	SET_DEVICE_OP(dev_ops, create_counters);
+ 	SET_DEVICE_OP(dev_ops, create_cq);
+ 	SET_DEVICE_OP(dev_ops, create_comp_cntr);
+@@ -3031,6 +3039,8 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
+ 
+ 	SET_OBJ_SIZE(dev_ops, ib_ah);
+ 	SET_OBJ_SIZE(dev_ops, ib_counters);
++	SET_OBJ_SIZE(dev_ops, ib_job);
++	SET_OBJ_SIZE(dev_ops, ib_jkey);
+ 	SET_OBJ_SIZE(dev_ops, ib_cq);
+ 	SET_OBJ_SIZE(dev_ops, ib_comp_cntr);
+ 	SET_OBJ_SIZE(dev_ops, ib_dmah);
+diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+index 91b7be84b15f..5313eb4849c7 100644
+--- a/drivers/infiniband/core/nldev.c
++++ b/drivers/infiniband/core/nldev.c
+@@ -454,6 +454,8 @@ static int fill_res_info(struct sk_buff *msg, struct ib_device *device,
+ 		[RDMA_RESTRACK_CTX] = "ctx",
+ 		[RDMA_RESTRACK_SRQ] = "srq",
+ 		[RDMA_RESTRACK_COMP_CNTR] = "comp_cntr",
++		[RDMA_RESTRACK_JOB] = "job",
++		[RDMA_RESTRACK_JKEY] = "jkey",
+ 	};
+ 
+ 	struct ib_comp_cntr_caps comp_cntr_caps = {};
+diff --git a/drivers/infiniband/core/rdma_core.h b/drivers/infiniband/core/rdma_core.h
+index 9de14e625dd3..523a6f7d4439 100644
+--- a/drivers/infiniband/core/rdma_core.h
++++ b/drivers/infiniband/core/rdma_core.h
+@@ -164,6 +164,8 @@ void uverbs_user_mmap_disassociate(struct ib_uverbs_file *ufile);
+ 
+ extern const struct uapi_definition uverbs_def_obj_async_fd[];
+ extern const struct uapi_definition uverbs_def_obj_counters[];
++extern const struct uapi_definition uverbs_def_obj_job[];
++extern const struct uapi_definition uverbs_def_obj_jkey[];
+ extern const struct uapi_definition uverbs_def_obj_comp_cntr[];
+ extern const struct uapi_definition uverbs_def_obj_cq[];
+ extern const struct uapi_definition uverbs_def_obj_device[];
+diff --git a/drivers/infiniband/core/restrack.c b/drivers/infiniband/core/restrack.c
+index ddb09b17b733..53217f0ad4c8 100644
+--- a/drivers/infiniband/core/restrack.c
++++ b/drivers/infiniband/core/restrack.c
+@@ -106,6 +106,10 @@ static struct ib_device *res_to_dev(struct rdma_restrack_entry *res)
+ 		return container_of(res, struct ib_dmah, res)->device;
+ 	case RDMA_RESTRACK_COMP_CNTR:
+ 		return container_of(res, struct ib_comp_cntr, res)->device;
++	case RDMA_RESTRACK_JOB:
++		return container_of(res, struct ib_job, res)->device;
++	case RDMA_RESTRACK_JKEY:
++		return container_of(res, struct ib_jkey, res)->device;
+ 	default:
+ 		WARN_ONCE(true, "Wrong resource tracking type %u\n", res->type);
+ 		return NULL;
 diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index 728e09b41992..6aaac1c309f0 100644
+index 6aaac1c309f0..6bc7cc6621cb 100644
 --- a/drivers/infiniband/core/uverbs.h
 +++ b/drivers/infiniband/core/uverbs.h
-@@ -236,6 +236,9 @@ int ib_uverbs_dealloc_xrcd(struct ib_uobject *uobject, struct ib_xrcd *xrcd,
- int uverbs_dealloc_mw(struct ib_mw *mw);
- void ib_uverbs_detach_umcast(struct ib_qp *qp,
- 			     struct ib_uqp_object *uobj);
-+int copy_ah_attr_from_uverbs_ah(struct ib_device *dev,
-+				struct rdma_ah_attr *rdma_attr,
-+				const struct ib_uverbs_ah_attr *uverb_attr);
+@@ -183,6 +183,12 @@ struct ib_uxrcd_object {
+ 	atomic_t		refcnt;
+ };
  
- struct bundle_alloc_head {
- 	struct_group_tagged(bundle_alloc_head_hdr, hdr,
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index e4fdfa0d9548..cca386b2c3f0 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1746,6 +1746,37 @@ static int modify_qp_mask(enum ib_qp_type qp_type, int mask)
- 	}
- }
- 
-+/* The ib_uverbs_ah_attr counterpart of copy_ah_attr_from_uverbs() below,
-+ * which takes the modify QP layout. This one also rejects an invalid port.
++struct ib_ujob_object {
++	struct ib_uobject	uobject;
++	/* job keys created through this handle */
++	atomic_t		refcnt;
++};
++
+ struct ib_usrq_object {
+ 	struct ib_uevent_object	uevent;
+ 	struct ib_uxrcd_object *uxrcd;
+diff --git a/drivers/infiniband/core/uverbs_std_types_job.c b/drivers/infiniband/core/uverbs_std_types_job.c
+new file mode 100644
+index 000000000000..20acb2aa9871
+--- /dev/null
++++ b/drivers/infiniband/core/uverbs_std_types_job.c
+@@ -0,0 +1,628 @@
++// SPDX-License-Identifier: GPL-2.0-only OR Linux-OpenIB
++
++/*
++ * Copyright (c) 2026 Broadcom. All rights reserved. The term Broadcom
++ * refers to Broadcom Inc. and/or its subsidiaries.
 + */
-+int copy_ah_attr_from_uverbs_ah(struct ib_device *dev,
-+				struct rdma_ah_attr *rdma_attr,
-+				const struct ib_uverbs_ah_attr *uverb_attr)
++
++/*
++ * The job object of a reliable unordered transport.
++ */
++
++#include <linux/file.h>
++
++#include <rdma/ib_marshall.h>
++#include <rdma/uverbs_std_types.h>
++
++#include "rdma_core.h"
++#include "restrack.h"
++#include "uverbs.h"
++
++static void ib_job_release(struct kref *ref)
 +{
-+	if (!rdma_is_port_valid(dev, uverb_attr->port_num))
++	struct ib_job *job = container_of(ref, struct ib_job, ref);
++
++	rdma_restrack_del(&job->res);
++	job->device->ops.dealloc_job(job);
++	kfree(job);
++}
++
++/* An exported job. The descriptor belongs to the context that exported it,
++ * so it stops naming the job once that context is closed or the device is
++ * removed. A context that imported the job holds its own reference.
++ */
++struct ib_ujob_fd_object {
++	struct ib_uobject	uobject;
++	/* serializes an import against the descriptor's destroy */
++	spinlock_t		lock;
++	struct ib_job		*job;
++};
++
++static const struct file_operations ib_job_fops = {
++	.owner = THIS_MODULE,
++	.release = uverbs_uobject_fd_release,
++};
++
++static void uverbs_job_fd_destroy_uobj(struct ib_uobject *uobj,
++				       enum rdma_remove_reason why)
++{
++	struct ib_ujob_fd_object *ujf =
++		container_of(uobj, struct ib_ujob_fd_object, uobject);
++	struct ib_job *job;
++
++	spin_lock(&ujf->lock);
++	job = ujf->job;
++	ujf->job = NULL;
++	spin_unlock(&ujf->lock);
++
++	if (job)
++		kref_put(&job->ref, ib_job_release);
++}
++
++/* Take a reference on the job an exported descriptor names */
++static int ib_job_get_from_fd(int fd, struct ib_device *ib_dev,
++			      struct ib_job **job)
++{
++	CLASS(fd, f)(fd);
++	struct ib_ujob_fd_object *ujf;
++	int ret = 0;
++
++	if (fd_empty(f))
++		return -EBADF;
++
++	/* refuse anything that is not an exported job */
++	if (fd_file(f)->f_op != &ib_job_fops)
 +		return -EINVAL;
 +
-+	rdma_attr->type = rdma_ah_find_type(dev, uverb_attr->port_num);
-+	rdma_ah_set_make_grd(rdma_attr, false);
-+	rdma_ah_set_dlid(rdma_attr, uverb_attr->dlid);
-+	rdma_ah_set_sl(rdma_attr, uverb_attr->sl);
-+	rdma_ah_set_path_bits(rdma_attr, uverb_attr->src_path_bits);
-+	rdma_ah_set_static_rate(rdma_attr, uverb_attr->static_rate);
-+	rdma_ah_set_port_num(rdma_attr, uverb_attr->port_num);
++	ujf = container_of((struct ib_uobject *)fd_file(f)->private_data,
++			   struct ib_ujob_fd_object, uobject);
 +
-+	if (uverb_attr->is_global) {
-+		rdma_ah_set_grh(rdma_attr, NULL, uverb_attr->grh.flow_label,
-+				uverb_attr->grh.sgid_index,
-+				uverb_attr->grh.hop_limit,
-+				uverb_attr->grh.traffic_class);
-+		rdma_ah_set_dgid_raw(rdma_attr, uverb_attr->grh.dgid);
-+	} else {
-+		rdma_ah_set_ah_flags(rdma_attr, 0);
-+	}
++	spin_lock(&ujf->lock);
++	*job = ujf->job;
++	if (!*job)
++		ret = -EIO;
++	/* a handle names a job on the device it was allocated on */
++	else if ((*job)->device != ib_dev)
++		ret = -EINVAL;
++	/* an imported job holds one reference */
++	else
++		kref_get(&(*job)->ref);
++	spin_unlock(&ujf->lock);
++
++	return ret;
++}
++
++static int UVERBS_HANDLER(UVERBS_METHOD_JOB_EXPORT)(
++	struct uverbs_attr_bundle *attrs)
++{
++	struct ib_job *job =
++		uverbs_attr_get_obj(attrs, UVERBS_ATTR_EXPORT_JOB_HANDLE);
++	struct ib_uobject *uobj =
++		uverbs_attr_get_uobject(attrs, UVERBS_ATTR_EXPORT_JOB_FD);
++	struct ib_ujob_fd_object *ujf =
++		container_of(uobj, struct ib_ujob_fd_object, uobject);
++
++	spin_lock_init(&ujf->lock);
++
++	/* an exported job is a descriptor holding one reference */
++	kref_get(&job->ref);
++	ujf->job = job;
++	uverbs_finalize_uobj_create(attrs, UVERBS_ATTR_EXPORT_JOB_FD);
 +
 +	return 0;
 +}
 +
- static void copy_ah_attr_from_uverbs(struct ib_device *dev,
- 				     struct rdma_ah_attr *rdma_attr,
- 				     struct ib_uverbs_qp_dest *uverb_attr)
-@@ -2435,6 +2466,7 @@ static int ib_uverbs_create_ah(struct uverbs_attr_bundle *attrs)
- 	struct ib_pd			*pd;
- 	struct ib_ah			*ah;
- 	struct rdma_ah_attr		attr = {};
-+	struct rdma_ah_init_attr	init_attr = {};
- 	int ret;
- 	struct ib_device *ib_dev;
- 
-@@ -2446,36 +2478,18 @@ static int ib_uverbs_create_ah(struct uverbs_attr_bundle *attrs)
- 	if (IS_ERR(uobj))
- 		return PTR_ERR(uobj);
- 
--	if (!rdma_is_port_valid(ib_dev, cmd.attr.port_num)) {
--		ret = -EINVAL;
--		goto err;
--	}
--
- 	pd = uobj_get_obj_read(pd, UVERBS_OBJECT_PD, cmd.pd_handle, attrs);
- 	if (IS_ERR(pd)) {
- 		ret = PTR_ERR(pd);
- 		goto err;
- 	}
- 
--	attr.type = rdma_ah_find_type(ib_dev, cmd.attr.port_num);
--	rdma_ah_set_make_grd(&attr, false);
--	rdma_ah_set_dlid(&attr, cmd.attr.dlid);
--	rdma_ah_set_sl(&attr, cmd.attr.sl);
--	rdma_ah_set_path_bits(&attr, cmd.attr.src_path_bits);
--	rdma_ah_set_static_rate(&attr, cmd.attr.static_rate);
--	rdma_ah_set_port_num(&attr, cmd.attr.port_num);
--
--	if (cmd.attr.is_global) {
--		rdma_ah_set_grh(&attr, NULL, cmd.attr.grh.flow_label,
--				cmd.attr.grh.sgid_index,
--				cmd.attr.grh.hop_limit,
--				cmd.attr.grh.traffic_class);
--		rdma_ah_set_dgid_raw(&attr, cmd.attr.grh.dgid);
--	} else {
--		rdma_ah_set_ah_flags(&attr, 0);
--	}
-+	ret = copy_ah_attr_from_uverbs_ah(ib_dev, &attr, &cmd.attr);
-+	if (ret)
-+		goto err_put;
- 
--	ah = rdma_create_user_ah(pd, &attr, &attrs->driver_udata);
-+	init_attr.ah_attr = &attr;
-+	ah = rdma_create_user_ah(pd, &init_attr, &attrs->driver_udata);
- 	if (IS_ERR(ah)) {
- 		ret = PTR_ERR(ah);
- 		goto err_put;
-diff --git a/drivers/infiniband/core/uverbs_std_types.c b/drivers/infiniband/core/uverbs_std_types.c
-index e160786e1df1..27cc1d162293 100644
---- a/drivers/infiniband/core/uverbs_std_types.c
-+++ b/drivers/infiniband/core/uverbs_std_types.c
-@@ -184,6 +184,73 @@ DECLARE_UVERBS_NAMED_OBJECT(UVERBS_OBJECT_MW,
- 			    UVERBS_TYPE_ALLOC_IDR(uverbs_free_mw),
- 			    &UVERBS_METHOD(UVERBS_METHOD_MW_DESTROY));
- 
-+/* Creating an address handle is still a write() command whose request
-+ * struct cannot grow. A transport (reliable unconnected) that resolves a
-+ * peer using both transport and network addresses requires additional
-+ * fields in the address handle. Here the address handle create command is
-+ * made available as an ioctl method, where additional attributes can be
-+ * carried.
-+ */
-+static int UVERBS_HANDLER(UVERBS_METHOD_AH_EX_CREATE)(
++static int UVERBS_HANDLER(UVERBS_METHOD_JOB_IMPORT)(
 +	struct uverbs_attr_bundle *attrs)
 +{
-+	struct ib_uobject *uobj = uverbs_attr_get_uobject(
-+		attrs, UVERBS_ATTR_CREATE_AH_EX_HANDLE);
-+	struct ib_pd *pd =
-+		uverbs_attr_get_obj(attrs, UVERBS_ATTR_CREATE_AH_EX_PD_HANDLE);
++	struct ib_uobject *uobj =
++		uverbs_attr_get_uobject(attrs, UVERBS_ATTR_IMPORT_JOB_HANDLE);
 +	struct ib_device *ib_dev = attrs->context->device;
-+	struct ib_uverbs_ah_attr_ex uah;
-+	struct rdma_ah_init_attr init_attr = {};
-+	struct rdma_ah_attr_ex attr = {};
-+	struct ib_ah *ah;
-+	int ret;
++	struct ib_job *job;
++	int fd, ret;
 +
-+	/* Only a reliable unconnected device has a use for the extended
-+	 * attributes.
-+	 */
-+	if (!(ib_dev->attrs.device_cap_flags & IB_DEVICE_RU))
-+		return -EOPNOTSUPP;
-+
-+	ret = uverbs_copy_from_or_zero(&uah, attrs,
-+				       UVERBS_ATTR_CREATE_AH_EX_AH_ATTR_EX);
++	ret = uverbs_get_raw_fd(&fd, attrs, UVERBS_ATTR_IMPORT_JOB_FD);
 +	if (ret)
 +		return ret;
 +
-+	ret = copy_ah_attr_from_uverbs_ah(ib_dev, &attr.ah_attr, &uah.ah_attr);
++	ret = ib_job_get_from_fd(fd, ib_dev, &job);
 +	if (ret)
 +		return ret;
 +
-+	attr.remote_qpn = uah.remote_qpn;
-+
-+	init_attr.ah_attr = &attr.ah_attr;
-+	init_attr.ah_attr_ex = &attr;
-+
-+	ah = rdma_create_user_ah(pd, &init_attr, &attrs->driver_udata);
-+	if (IS_ERR(ah))
-+		return PTR_ERR(ah);
-+
-+	ah->uobject = uobj;
-+	uobj->object = ah;
++	uobj->object = job;
 +
 +	return 0;
++}
++
++static int uverbs_free_job(struct ib_uobject *uobject,
++			   enum rdma_remove_reason why,
++			   struct uverbs_attr_bundle *attrs)
++{
++	struct ib_ujob_object *ujob =
++		container_of(uobject, struct ib_ujob_object, uobject);
++	struct ib_job *job = uobject->object;
++
++	/* don't free if there are still references to this job */
++	if (atomic_read(&ujob->refcnt))
++		return -EBUSY;
++
++	kref_put(&job->ref, ib_job_release);
++
++	return 0;
++}
++
++static int UVERBS_HANDLER(UVERBS_METHOD_JOB_ALLOC)(
++	struct uverbs_attr_bundle *attrs)
++{
++	struct ib_uobject *uobj =
++		uverbs_attr_get_uobject(attrs, UVERBS_ATTR_ALLOC_JOB_HANDLE);
++	struct ib_device *ib_dev = attrs->context->device;
++	struct ib_job_attr attr = {};
++	struct ib_job *job;
++	int ret;
++
++	if (!ib_dev->ops.alloc_job)
++		return -EOPNOTSUPP;
++
++	/* A JobID names a domain across the fabric rather than anything
++	 * local to this process, so claiming one is an administrative act.
++	 */
++	if (!rdma_uattrs_has_raw_cap(attrs))
++		return -EPERM;
++
++	ret = uverbs_copy_from(&attr.job_id, attrs, UVERBS_ATTR_ALLOC_JOB_ID);
++	if (ret)
++		return ret;
++
++	ret = uverbs_copy_from(&attr.max_addr_entries, attrs,
++			       UVERBS_ATTR_ALLOC_JOB_MAX_ADDR_ENTRIES);
++	if (ret)
++		return ret;
++
++	/* The rest are optional and an absent attribute reads as -ENOENT
++	 * which IS_UVERBS_COPY_ERR() checks.
++	 */
++	ret = uverbs_copy_from(&attr.port_num, attrs,
++			       UVERBS_ATTR_ALLOC_JOB_PORT_NUM);
++	if (IS_UVERBS_COPY_ERR(ret))
++		return ret;
++
++	ret = uverbs_copy_from(&attr.sgid_index, attrs,
++			       UVERBS_ATTR_ALLOC_JOB_SGID_INDEX);
++	if (IS_UVERBS_COPY_ERR(ret))
++		return ret;
++
++	/* the table is sized once, every index is checked against it */
++	if (!attr.max_addr_entries ||
++	    attr.max_addr_entries > ib_dev->attrs.max_addr_entries)
++		return -EINVAL;
++
++	/* the port carries the job's traffic, so it has to be one we have */
++	if (!attr.port_num)
++		attr.port_num = rdma_start_port(ib_dev);
++	if (!rdma_is_port_valid(ib_dev, attr.port_num))
++		return -EINVAL;
++
++	if (attr.sgid_index >=
++	    ib_dev->port_data[attr.port_num].immutable.gid_tbl_len)
++		return -EINVAL;
++
++	job = rdma_zalloc_drv_obj(ib_dev, ib_job);
++	if (!job)
++		return -ENOMEM;
++
++	job->device = ib_dev;
++	job->job_id = attr.job_id;
++	job->max_addr_entries = attr.max_addr_entries;
++	kref_init(&job->ref);
++	uobj->object = job;
++
++	rdma_restrack_new(&job->res, RDMA_RESTRACK_JOB);
++	rdma_restrack_set_name(&job->res, NULL);
++
++	ret = ib_dev->ops.alloc_job(job, &attr, attrs);
++	if (ret)
++		goto err_free;
++
++	rdma_restrack_add(&job->res);
++
++	return 0;
++
++err_free:
++	rdma_restrack_put(&job->res);
++	kfree(job);
++	return ret;
++}
++
++static int UVERBS_HANDLER(UVERBS_METHOD_JOB_QUERY)(
++	struct uverbs_attr_bundle *attrs)
++{
++	struct ib_job *job =
++		uverbs_attr_get_obj(attrs, UVERBS_ATTR_QUERY_JOB_HANDLE);
++	struct ib_job_attr attr = {};
++	int ret;
++
++	if (!job->device->ops.query_job)
++		return -EOPNOTSUPP;
++
++	ret = job->device->ops.query_job(job, &attr);
++	if (ret)
++		return ret;
++
++	ret = uverbs_copy_to(attrs, UVERBS_ATTR_QUERY_JOB_ID, &attr.job_id,
++			     sizeof(attr.job_id));
++	if (ret)
++		return ret;
++
++	ret = uverbs_copy_to(attrs, UVERBS_ATTR_QUERY_JOB_MAX_ADDR_ENTRIES,
++			     &attr.max_addr_entries,
++			     sizeof(attr.max_addr_entries));
++	if (ret)
++		return ret;
++
++	ret = uverbs_copy_to(attrs, UVERBS_ATTR_QUERY_JOB_PORT_NUM,
++			     &attr.port_num, sizeof(attr.port_num));
++	if (ret)
++		return ret;
++
++	return uverbs_copy_to(attrs, UVERBS_ATTR_QUERY_JOB_SGID_INDEX,
++			      &attr.sgid_index, sizeof(attr.sgid_index));
++}
++
++static int UVERBS_HANDLER(UVERBS_METHOD_JOB_ADDR_INSERT)(
++	struct uverbs_attr_bundle *attrs)
++{
++	struct ib_job *job = uverbs_attr_get_obj(
++		attrs, UVERBS_ATTR_JOB_ADDR_INSERT_HANDLE);
++	struct ib_uverbs_ah_attr_ex uah;
++	struct rdma_ah_attr_ex ah_attr = {};
++	u32 index;
++	int ret;
++
++	if (!job->device->ops.job_addr_insert)
++		return -EOPNOTSUPP;
++
++	/* An address table entry names a peer on the fabric for every process
++	 * in the job, so writing one redirects their traffic. An address
++	 * handle, by contrast, serves only the process that made it.
++	 */
++	if (!rdma_uattrs_has_raw_cap(attrs))
++		return -EPERM;
++
++	ret = uverbs_copy_from(&index, attrs,
++			       UVERBS_ATTR_JOB_ADDR_INSERT_INDEX);
++	if (ret)
++		return ret;
++
++	ret = uverbs_copy_from_or_zero(&uah, attrs,
++				       UVERBS_ATTR_JOB_ADDR_INSERT_AH_ATTR_EX);
++	if (ret)
++		return ret;
++
++	if (index >= job->max_addr_entries)
++		return -EINVAL;
++
++	ret = copy_ah_attr_from_uverbs_ah(job->device, &ah_attr.ah_attr,
++					  &uah.ah_attr);
++	if (ret)
++		return ret;
++
++	ah_attr.remote_qpn = uah.remote_qpn;
++
++	return rdma_job_addr_insert(job, index, &ah_attr);
++}
++
++static int UVERBS_HANDLER(UVERBS_METHOD_JOB_ADDR_REMOVE)(
++	struct uverbs_attr_bundle *attrs)
++{
++	struct ib_job *job = uverbs_attr_get_obj(
++		attrs, UVERBS_ATTR_JOB_ADDR_REMOVE_HANDLE);
++	u32 index;
++	int ret;
++
++	if (!job->device->ops.job_addr_remove)
++		return -EOPNOTSUPP;
++
++	if (!rdma_uattrs_has_raw_cap(attrs))
++		return -EPERM;
++
++	ret = uverbs_copy_from(&index, attrs,
++			       UVERBS_ATTR_JOB_ADDR_REMOVE_INDEX);
++	if (ret)
++		return ret;
++
++	if (index >= job->max_addr_entries)
++		return -EINVAL;
++
++	return job->device->ops.job_addr_remove(job, index);
++}
++
++static int UVERBS_HANDLER(UVERBS_METHOD_JOB_ADDR_QUERY)(
++	struct uverbs_attr_bundle *attrs)
++{
++	struct ib_job *job = uverbs_attr_get_obj(
++		attrs, UVERBS_ATTR_JOB_ADDR_QUERY_HANDLE);
++	struct ib_uverbs_ah_attr_ex uah = {};
++	struct rdma_ah_attr_ex ah_attr = {};
++	u32 index;
++	int ret;
++
++	if (!job->device->ops.job_addr_query)
++		return -EOPNOTSUPP;
++
++	ret = uverbs_copy_from(&index, attrs,
++			       UVERBS_ATTR_JOB_ADDR_QUERY_INDEX);
++	if (ret)
++		return ret;
++
++	if (index >= job->max_addr_entries)
++		return -EINVAL;
++
++	ret = job->device->ops.job_addr_query(job, index, &ah_attr);
++	if (ret)
++		return ret;
++
++	ib_copy_ah_attr_to_user(job->device, &uah.ah_attr, &ah_attr.ah_attr);
++	uah.remote_qpn = ah_attr.remote_qpn;
++
++	return uverbs_copy_to_struct_or_zero(
++		attrs, UVERBS_ATTR_JOB_ADDR_QUERY_AH_ATTR_EX, &uah, sizeof(uah));
 +}
 +
 +DECLARE_UVERBS_NAMED_METHOD(
-+	UVERBS_METHOD_AH_EX_CREATE,
-+	UVERBS_ATTR_IDR(UVERBS_ATTR_CREATE_AH_EX_HANDLE,
-+			UVERBS_OBJECT_AH,
++	UVERBS_METHOD_JOB_ADDR_INSERT,
++	UVERBS_ATTR_IDR(UVERBS_ATTR_JOB_ADDR_INSERT_HANDLE,
++			UVERBS_OBJECT_JOB,
++			UVERBS_ACCESS_READ,
++			UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_JOB_ADDR_INSERT_INDEX,
++			   UVERBS_ATTR_TYPE(u32),
++			   UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_JOB_ADDR_INSERT_AH_ATTR_EX,
++			   UVERBS_ATTR_STRUCT(struct ib_uverbs_ah_attr_ex,
++					      remote_qpn),
++			   UA_MANDATORY));
++
++DECLARE_UVERBS_NAMED_METHOD(
++	UVERBS_METHOD_JOB_ADDR_REMOVE,
++	UVERBS_ATTR_IDR(UVERBS_ATTR_JOB_ADDR_REMOVE_HANDLE,
++			UVERBS_OBJECT_JOB,
++			UVERBS_ACCESS_READ,
++			UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_JOB_ADDR_REMOVE_INDEX,
++			   UVERBS_ATTR_TYPE(u32),
++			   UA_MANDATORY));
++
++DECLARE_UVERBS_NAMED_METHOD(
++	UVERBS_METHOD_JOB_ADDR_QUERY,
++	UVERBS_ATTR_IDR(UVERBS_ATTR_JOB_ADDR_QUERY_HANDLE,
++			UVERBS_OBJECT_JOB,
++			UVERBS_ACCESS_READ,
++			UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_JOB_ADDR_QUERY_INDEX,
++			   UVERBS_ATTR_TYPE(u32),
++			   UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_JOB_ADDR_QUERY_AH_ATTR_EX,
++			    UVERBS_ATTR_STRUCT(struct ib_uverbs_ah_attr_ex,
++					       remote_qpn),
++			    UA_MANDATORY));
++
++DECLARE_UVERBS_NAMED_METHOD(
++	UVERBS_METHOD_JOB_ALLOC,
++	UVERBS_ATTR_IDR(UVERBS_ATTR_ALLOC_JOB_HANDLE,
++			UVERBS_OBJECT_JOB,
 +			UVERBS_ACCESS_NEW,
 +			UA_MANDATORY),
-+	UVERBS_ATTR_IDR(UVERBS_ATTR_CREATE_AH_EX_PD_HANDLE,
++	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_ALLOC_JOB_ID,
++			   UVERBS_ATTR_TYPE(u32),
++			   UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_ALLOC_JOB_MAX_ADDR_ENTRIES,
++			   UVERBS_ATTR_TYPE(u32),
++			   UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_ALLOC_JOB_PORT_NUM,
++			   UVERBS_ATTR_TYPE(u32),
++			   UA_OPTIONAL),
++	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_ALLOC_JOB_SGID_INDEX,
++			   UVERBS_ATTR_TYPE(u8),
++			   UA_OPTIONAL),
++	UVERBS_ATTR_UHW());
++
++DECLARE_UVERBS_NAMED_METHOD(
++	UVERBS_METHOD_JOB_EXPORT,
++	UVERBS_ATTR_IDR(UVERBS_ATTR_EXPORT_JOB_HANDLE,
++			UVERBS_OBJECT_JOB,
++			UVERBS_ACCESS_READ,
++			UA_MANDATORY),
++	UVERBS_ATTR_FD(UVERBS_ATTR_EXPORT_JOB_FD,
++		       UVERBS_OBJECT_JOB_FD,
++		       UVERBS_ACCESS_NEW,
++		       UA_MANDATORY));
++
++DECLARE_UVERBS_NAMED_METHOD(
++	UVERBS_METHOD_JOB_IMPORT,
++	UVERBS_ATTR_IDR(UVERBS_ATTR_IMPORT_JOB_HANDLE,
++			UVERBS_OBJECT_JOB,
++			UVERBS_ACCESS_NEW,
++			UA_MANDATORY),
++	UVERBS_ATTR_RAW_FD(UVERBS_ATTR_IMPORT_JOB_FD,
++			   UA_MANDATORY));
++
++DECLARE_UVERBS_NAMED_METHOD_DESTROY(
++	UVERBS_METHOD_JOB_DEALLOC,
++	UVERBS_ATTR_IDR(UVERBS_ATTR_DEALLOC_JOB_HANDLE,
++			UVERBS_OBJECT_JOB,
++			UVERBS_ACCESS_DESTROY,
++			UA_MANDATORY));
++
++DECLARE_UVERBS_NAMED_METHOD(
++	UVERBS_METHOD_JOB_QUERY,
++	UVERBS_ATTR_IDR(UVERBS_ATTR_QUERY_JOB_HANDLE,
++			UVERBS_OBJECT_JOB,
++			UVERBS_ACCESS_READ,
++			UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_QUERY_JOB_ID,
++			    UVERBS_ATTR_TYPE(u32),
++			    UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_QUERY_JOB_MAX_ADDR_ENTRIES,
++			    UVERBS_ATTR_TYPE(u32),
++			    UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_QUERY_JOB_PORT_NUM,
++			    UVERBS_ATTR_TYPE(u32),
++			    UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_QUERY_JOB_SGID_INDEX,
++			    UVERBS_ATTR_TYPE(u8),
++			    UA_MANDATORY));
++
++DECLARE_UVERBS_NAMED_OBJECT(UVERBS_OBJECT_JOB,
++			    UVERBS_TYPE_ALLOC_IDR_SZ(
++				    sizeof(struct ib_ujob_object),
++				    uverbs_free_job),
++			    &UVERBS_METHOD(UVERBS_METHOD_JOB_ALLOC),
++			    &UVERBS_METHOD(UVERBS_METHOD_JOB_DEALLOC),
++			    &UVERBS_METHOD(UVERBS_METHOD_JOB_QUERY),
++			    &UVERBS_METHOD(UVERBS_METHOD_JOB_ADDR_INSERT),
++			    &UVERBS_METHOD(UVERBS_METHOD_JOB_ADDR_REMOVE),
++			    &UVERBS_METHOD(UVERBS_METHOD_JOB_ADDR_QUERY),
++			    &UVERBS_METHOD(UVERBS_METHOD_JOB_EXPORT),
++			    &UVERBS_METHOD(UVERBS_METHOD_JOB_IMPORT));
++
++DECLARE_UVERBS_NAMED_OBJECT(UVERBS_OBJECT_JOB_FD,
++			    UVERBS_TYPE_ALLOC_FD(
++				    sizeof(struct ib_ujob_fd_object),
++				    uverbs_job_fd_destroy_uobj,
++				    &ib_job_fops, "[ib_job]", O_RDWR));
++
++const struct uapi_definition uverbs_def_obj_job[] = {
++	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(UVERBS_OBJECT_JOB,
++				      UAPI_DEF_OBJ_NEEDS_FN(dealloc_job)),
++	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(UVERBS_OBJECT_JOB_FD,
++				      UAPI_DEF_OBJ_NEEDS_FN(dealloc_job)),
++	{}
++};
++
++/* drop what JKEY_CREATE took on the key's job and PD */
++static void ib_jkey_put_refs(struct ib_jkey *jkey)
++{
++	atomic_dec(&jkey->pd->usecnt);
++	atomic_dec(&container_of(jkey->job_uobject, struct ib_ujob_object,
++				 uobject)->refcnt);
++	kref_put(&jkey->job->ref, ib_job_release);
++}
++
++static int uverbs_free_jkey(struct ib_uobject *uobject,
++			    enum rdma_remove_reason why,
++			    struct uverbs_attr_bundle *attrs)
++{
++	struct ib_jkey *jkey = uobject->object;
++	int ret;
++
++	/* queue pairs created with this key still hold it */
++	if (atomic_read(&jkey->usecnt))
++		return -EBUSY;
++
++	rdma_restrack_begin_del(&jkey->res);
++
++	ret = jkey->device->ops.destroy_jkey(jkey, attrs);
++	if (ret) {
++		rdma_restrack_abort_del(&jkey->res);
++		return ret;
++	}
++
++	rdma_restrack_commit_del(&jkey->res);
++
++	ib_jkey_put_refs(jkey);
++	kfree(jkey);
++
++	return 0;
++}
++
++static int UVERBS_HANDLER(UVERBS_METHOD_JKEY_CREATE)(
++	struct uverbs_attr_bundle *attrs)
++{
++	struct ib_uobject *uobj =
++		uverbs_attr_get_uobject(attrs, UVERBS_ATTR_CREATE_JKEY_HANDLE);
++	struct ib_uobject *job_uobj = uverbs_attr_get_uobject(
++		attrs, UVERBS_ATTR_CREATE_JKEY_JOB_HANDLE);
++	struct ib_pd *pd =
++		uverbs_attr_get_obj(attrs, UVERBS_ATTR_CREATE_JKEY_PD_HANDLE);
++	struct ib_job *job;
++	struct ib_device *ib_dev = attrs->context->device;
++	struct ib_jkey *jkey;
++	int ret;
++
++	if (!ib_dev->ops.create_jkey)
++		return -EOPNOTSUPP;
++
++	job = job_uobj->object;
++
++	jkey = rdma_zalloc_drv_obj(ib_dev, ib_jkey);
++	if (!jkey)
++		return -ENOMEM;
++
++	jkey->device = ib_dev;
++	jkey->uobject = uobj;
++	jkey->job = job;
++	jkey->job_uobject = job_uobj;
++	jkey->pd = pd;
++	atomic_set(&jkey->usecnt, 0);
++	uobj->object = jkey;
++
++	rdma_restrack_new(&jkey->res, RDMA_RESTRACK_JKEY);
++	rdma_restrack_set_name(&jkey->res, NULL);
++
++	ret = ib_dev->ops.create_jkey(jkey, attrs);
++	if (ret) {
++		rdma_restrack_put(&jkey->res);
++		kfree(jkey);
++		return ret;
++	}
++
++	rdma_restrack_add(&jkey->res);
++
++	/* the job and PD cannot be freed while this key references them */
++	kref_get(&job->ref);
++	atomic_inc(&container_of(job_uobj, struct ib_ujob_object,
++				 uobject)->refcnt);
++	atomic_inc(&pd->usecnt);
++	uverbs_finalize_uobj_create(attrs, UVERBS_ATTR_CREATE_JKEY_HANDLE);
++
++	return uverbs_copy_to(attrs, UVERBS_ATTR_CREATE_JKEY_JKEY, &jkey->jkey,
++			      sizeof(jkey->jkey));
++}
++
++DECLARE_UVERBS_NAMED_METHOD(
++	UVERBS_METHOD_JKEY_CREATE,
++	UVERBS_ATTR_IDR(UVERBS_ATTR_CREATE_JKEY_HANDLE,
++			UVERBS_OBJECT_JKEY,
++			UVERBS_ACCESS_NEW,
++			UA_MANDATORY),
++	UVERBS_ATTR_IDR(UVERBS_ATTR_CREATE_JKEY_JOB_HANDLE,
++			UVERBS_OBJECT_JOB,
++			UVERBS_ACCESS_READ,
++			UA_MANDATORY),
++	UVERBS_ATTR_IDR(UVERBS_ATTR_CREATE_JKEY_PD_HANDLE,
 +			UVERBS_OBJECT_PD,
 +			UVERBS_ACCESS_READ,
 +			UA_MANDATORY),
-+	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_CREATE_AH_EX_AH_ATTR_EX,
-+			   UVERBS_ATTR_STRUCT(struct ib_uverbs_ah_attr_ex,
-+					      remote_qpn),
-+			   UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_CREATE_JKEY_JKEY,
++			    UVERBS_ATTR_TYPE(u32),
++			    UA_MANDATORY),
 +	UVERBS_ATTR_UHW());
 +
- DECLARE_UVERBS_NAMED_METHOD_DESTROY(
- 	UVERBS_METHOD_AH_DESTROY,
- 	UVERBS_ATTR_IDR(UVERBS_ATTR_DESTROY_AH_HANDLE,
-@@ -193,7 +260,8 @@ DECLARE_UVERBS_NAMED_METHOD_DESTROY(
- 
- DECLARE_UVERBS_NAMED_OBJECT(UVERBS_OBJECT_AH,
- 			    UVERBS_TYPE_ALLOC_IDR(uverbs_free_ah),
--			    &UVERBS_METHOD(UVERBS_METHOD_AH_DESTROY));
-+			    &UVERBS_METHOD(UVERBS_METHOD_AH_DESTROY),
-+			    &UVERBS_METHOD(UVERBS_METHOD_AH_EX_CREATE));
- 
- DECLARE_UVERBS_NAMED_METHOD_DESTROY(
- 	UVERBS_METHOD_FLOW_DESTROY,
++DECLARE_UVERBS_NAMED_METHOD_DESTROY(
++	UVERBS_METHOD_JKEY_DESTROY,
++	UVERBS_ATTR_IDR(UVERBS_ATTR_DESTROY_JKEY_HANDLE,
++			UVERBS_OBJECT_JKEY,
++			UVERBS_ACCESS_DESTROY,
++			UA_MANDATORY));
++
++DECLARE_UVERBS_NAMED_OBJECT(UVERBS_OBJECT_JKEY,
++			    UVERBS_TYPE_ALLOC_IDR(uverbs_free_jkey),
++			    &UVERBS_METHOD(UVERBS_METHOD_JKEY_CREATE),
++			    &UVERBS_METHOD(UVERBS_METHOD_JKEY_DESTROY));
++
++const struct uapi_definition uverbs_def_obj_jkey[] = {
++	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(UVERBS_OBJECT_JKEY,
++				      UAPI_DEF_OBJ_NEEDS_FN(destroy_jkey)),
++	{}
++};
+diff --git a/drivers/infiniband/core/uverbs_uapi.c b/drivers/infiniband/core/uverbs_uapi.c
+index b67db3790f03..ee84be3061ea 100644
+--- a/drivers/infiniband/core/uverbs_uapi.c
++++ b/drivers/infiniband/core/uverbs_uapi.c
+@@ -636,6 +636,8 @@ static const struct uapi_definition uverbs_core_api[] = {
+ 	UAPI_DEF_CHAIN(uverbs_def_obj_dmah),
+ 	UAPI_DEF_CHAIN(uverbs_def_obj_flow_action),
+ 	UAPI_DEF_CHAIN(uverbs_def_obj_intf),
++	UAPI_DEF_CHAIN(uverbs_def_obj_job),
++	UAPI_DEF_CHAIN(uverbs_def_obj_jkey),
+ 	UAPI_DEF_CHAIN(uverbs_def_obj_mr),
+ 	UAPI_DEF_CHAIN(uverbs_def_obj_qp),
+ 	UAPI_DEF_CHAIN(uverbs_def_obj_srq),
 diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 1299125752d8..2d04ffd13ad3 100644
+index 2d04ffd13ad3..467a872ca395 100644
 --- a/drivers/infiniband/core/verbs.c
 +++ b/drivers/infiniband/core/verbs.c
-@@ -561,24 +561,23 @@ rdma_update_sgid_attr(struct rdma_ah_attr *ah_attr,
+@@ -690,6 +690,43 @@ struct ib_ah *rdma_create_user_ah(struct ib_pd *pd,
  }
+ EXPORT_SYMBOL(rdma_create_user_ah);
  
- static struct ib_ah *_rdma_create_ah(struct ib_pd *pd,
--				     struct rdma_ah_attr *ah_attr,
--				     u32 flags,
--				     struct ib_udata *udata,
--				     struct net_device *xmit_slave)
-+				     struct rdma_ah_init_attr *init_attr,
-+				     struct ib_udata *udata)
- {
--	struct rdma_ah_init_attr init_attr = {};
-+	struct rdma_ah_attr *ah_attr = init_attr->ah_attr;
- 	struct ib_device *device = pd->device;
- 	struct ib_ah *ah;
- 	int ret;
- 
--	might_sleep_if(flags & RDMA_CREATE_AH_SLEEPABLE);
-+	might_sleep_if(init_attr->flags & RDMA_CREATE_AH_SLEEPABLE);
- 
- 	if (!udata && !device->ops.create_ah)
- 		return ERR_PTR(-EOPNOTSUPP);
- 
- 	ah = rdma_zalloc_drv_obj_gfp(
- 		device, ib_ah,
--		(flags & RDMA_CREATE_AH_SLEEPABLE) ? GFP_KERNEL : GFP_ATOMIC);
-+		(init_attr->flags & RDMA_CREATE_AH_SLEEPABLE) ? GFP_KERNEL :
-+								GFP_ATOMIC);
- 	if (!ah)
- 		return ERR_PTR(-ENOMEM);
- 
-@@ -586,14 +585,12 @@ static struct ib_ah *_rdma_create_ah(struct ib_pd *pd,
- 	ah->pd = pd;
- 	ah->type = ah_attr->type;
- 	ah->sgid_attr = rdma_update_sgid_attr(ah_attr, NULL);
--	init_attr.ah_attr = ah_attr;
--	init_attr.flags = flags;
--	init_attr.xmit_slave = xmit_slave;
- 
- 	if (udata)
--		ret = device->ops.create_user_ah(ah, &init_attr, udata);
-+		ret = device->ops.create_user_ah(ah, init_attr, udata);
- 	else
--		ret = device->ops.create_ah(ah, &init_attr, NULL);
-+		ret = device->ops.create_ah(ah, init_attr, NULL);
-+
- 	if (ret) {
- 		if (ah->sgid_attr)
- 			rdma_put_gid_attr(ah->sgid_attr);
-@@ -619,6 +616,7 @@ static struct ib_ah *_rdma_create_ah(struct ib_pd *pd,
- struct ib_ah *rdma_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
- 			     u32 flags)
- {
-+	struct rdma_ah_init_attr init_attr = {};
- 	const struct ib_gid_attr *old_sgid_attr;
- 	struct net_device *slave;
- 	struct ib_ah *ah;
-@@ -634,7 +632,12 @@ struct ib_ah *rdma_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
- 		rdma_unfill_sgid_attr(ah_attr, old_sgid_attr);
- 		return ERR_CAST(slave);
- 	}
--	ah = _rdma_create_ah(pd, ah_attr, flags, NULL, slave);
-+
-+	init_attr.ah_attr = ah_attr;
-+	init_attr.flags = flags;
-+	init_attr.xmit_slave = slave;
-+
-+	ah = _rdma_create_ah(pd, &init_attr, NULL);
- 	rdma_lag_put_ah_roce_slave(slave);
- 	rdma_unfill_sgid_attr(ah_attr, old_sgid_attr);
- 	return ah;
-@@ -646,18 +649,21 @@ EXPORT_SYMBOL(rdma_create_ah);
-  * given address vector.
-  * It resolves destination mac address for ah attribute of RoCE type.
-  * @pd: The protection domain associated with the address handle.
-- * @ah_attr: The attributes of the address vector.
-+ * @init_attr: The address vector, and for an extended handle the
-+ *             attributes beyond it.
-  * @udata: pointer to user's input output buffer information need by
-  *         provider driver.
-  *
-- * It returns 0 on success and returns appropriate error code on error.
-  * The address handle is used to reference a local or global destination
-  * in all UD QP post sends.
++/**
++ * rdma_job_addr_insert - Insert a peer into a job's address table
++ * @job: The job.
++ * @index: The entry in the job's address table.
++ * @ah_attr: The peer's address and queue pair.
 + *
-+ * Return: the address handle, or an ERR_PTR on error.
-  */
- struct ib_ah *rdma_create_user_ah(struct ib_pd *pd,
--				  struct rdma_ah_attr *ah_attr,
-+				  struct rdma_ah_init_attr *init_attr,
- 				  struct ib_udata *udata)
- {
-+	struct rdma_ah_attr *ah_attr = init_attr->ah_attr;
- 	const struct ib_gid_attr *old_sgid_attr;
- 	struct ib_ah *ah;
- 	int err;
-@@ -674,8 +680,9 @@ struct ib_ah *rdma_create_user_ah(struct ib_pd *pd,
- 		}
- 	}
- 
--	ah = _rdma_create_ah(pd, ah_attr, RDMA_CREATE_AH_SLEEPABLE,
--			     udata, NULL);
-+	init_attr->flags |= RDMA_CREATE_AH_SLEEPABLE;
++ * The address is resolved as rdma_create_user_ah() resolves an address
++ * handle's: the source GID attribute is filled in, and for an Ethernet
++ * address so is the destination MAC.
++ *
++ * Return: 0 on success, or a negative errno.
++ */
++int rdma_job_addr_insert(struct ib_job *job, u32 index,
++			 struct rdma_ah_attr_ex *ah_attr)
++{
++	struct rdma_ah_attr *attr = &ah_attr->ah_attr;
++	const struct ib_gid_attr *old_sgid_attr;
++	int ret;
 +
-+	ah = _rdma_create_ah(pd, init_attr, udata);
- 
- out:
- 	rdma_unfill_sgid_attr(ah_attr, old_sgid_attr);
++	ret = rdma_fill_sgid_attr(job->device, attr, &old_sgid_attr);
++	if (ret)
++		return ret;
++
++	if (attr->type == RDMA_AH_ATTR_TYPE_ROCE) {
++		ret = ib_resolve_eth_dmac(job->device, attr);
++		if (ret)
++			goto out;
++	}
++
++	ret = job->device->ops.job_addr_insert(job, index, ah_attr);
++
++out:
++	rdma_unfill_sgid_attr(attr, old_sgid_attr);
++	return ret;
++}
++EXPORT_SYMBOL(rdma_job_addr_insert);
++
+ int ib_get_rdma_header_version(const union rdma_network_hdr *hdr)
+ {
+ 	const struct iphdr *ip4h = (struct iphdr *)&hdr->roce4grh;
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 8d74ed4fc581..68f7a271cf7a 100644
+index 003b70424429..61a7ab60da65 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -974,10 +974,14 @@ struct ib_mr_status {
-  */
- __attribute_const__ enum ib_rate mult_to_ib_rate(int mult);
- 
-+struct rdma_ah_attr_ex;
-+
- struct rdma_ah_init_attr {
- 	struct rdma_ah_attr *ah_attr;
- 	u32 flags;
- 	struct net_device *xmit_slave;
-+	/* set to name a peer by both transport+network addresses */
-+	struct rdma_ah_attr_ex *ah_attr_ex;
+@@ -2496,6 +2496,41 @@ struct ib_counters {
+ 	atomic_t	usecnt;
  };
  
- enum rdma_ah_attr_type {
-@@ -1016,6 +1020,11 @@ struct rdma_ah_attr {
- 	};
- };
- 
-+struct rdma_ah_attr_ex {
-+	struct rdma_ah_attr	ah_attr;
-+	u32			remote_qpn;
++struct ib_job_attr {
++	u32			job_id;
++	u32			max_addr_entries;
++	u32			port_num;
++	u8			sgid_index;
 +};
 +
- enum ib_wc_status {
- 	IB_WC_SUCCESS,
- 	IB_WC_LOC_LEN_ERR,
-@@ -3893,16 +3902,18 @@ struct ib_ah *rdma_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
-  * rdma_create_user_ah - Creates an address handle for the given address vector.
-  * It resolves destination mac address for ah attribute of RoCE type.
-  * @pd: The protection domain associated with the address handle.
-- * @ah_attr: The attributes of the address vector.
-+ * @init_attr: The address vector, and for an extended handle the
-+ *             attributes beyond it.
-  * @udata: pointer to user's input output buffer information need by
-  *         provider driver.
-  *
-- * It returns 0 on success and returns appropriate error code on error.
-  * The address handle is used to reference a local or global destination
-  * in all UD QP post sends.
-+ *
-+ * Return: the address handle, or an ERR_PTR on error.
-  */
++/* A job is a receive-side demultiplexing domain of an unconnected transport.
++ * A JobID names it on the wire, memory regions bind to it, and job keys
++ * authorize queue pairs within it.
++ */
++struct ib_job {
++	struct ib_device	*device;
++	/* exports, job keys, regions, and queue pairs referencing this job */
++	struct kref		ref;
++	u32			job_id;
++	/* entries in the address table, every index is below it */
++	u32			max_addr_entries;
++	struct rdma_restrack_entry res;
++};
++
++/* A job key ties a job to a PD and authorizes a queue pair to act within a
++ * job. It holds a reference to its job and PD.
++ */
++struct ib_jkey {
++	struct ib_device	*device;
++	struct ib_uobject	*uobject;
++	struct ib_job		*job;
++	struct ib_uobject	*job_uobject;
++	struct ib_pd		*pd;
++	u32			jkey;
++	atomic_t		usecnt;
++	struct rdma_restrack_entry res;
++};
++
+ /* what a queue pair of a given type guarantees (query_qp_semantics) */
+ struct ib_qp_semantics {
+ 	u32	comp_mask;		/* enum ib_uverbs_qp_semantics_mask */
+@@ -2830,6 +2865,20 @@ struct ib_device_ops {
+ 	struct ib_mr *(*reg_dm_mr)(struct ib_pd *pd, struct ib_dm *dm,
+ 				   struct ib_dm_mr_attr *attr,
+ 				   struct uverbs_attr_bundle *attrs);
++	/* job_addr_* may run concurrently on one job; the driver serializes */
++	int (*alloc_job)(struct ib_job *job, struct ib_job_attr *attr,
++			 struct uverbs_attr_bundle *attrs);
++	void (*dealloc_job)(struct ib_job *job);
++	int (*query_job)(struct ib_job *job, struct ib_job_attr *attr);
++	int (*job_addr_insert)(struct ib_job *job, u32 index,
++			       struct rdma_ah_attr_ex *ah_attr);
++	int (*job_addr_remove)(struct ib_job *job, u32 index);
++	int (*job_addr_query)(struct ib_job *job, u32 index,
++			      struct rdma_ah_attr_ex *ah_attr);
++	int (*create_jkey)(struct ib_jkey *jkey,
++			   struct uverbs_attr_bundle *attrs);
++	int (*destroy_jkey)(struct ib_jkey *jkey,
++			    struct uverbs_attr_bundle *attrs);
+ 	int (*create_counters)(struct ib_counters *counters,
+ 			       struct uverbs_attr_bundle *attrs);
+ 	int (*destroy_counters)(struct ib_counters *counters);
+@@ -2983,6 +3032,8 @@ struct ib_device_ops {
+ 
+ 	DECLARE_RDMA_OBJ_SIZE(ib_ah);
+ 	DECLARE_RDMA_OBJ_SIZE(ib_counters);
++	DECLARE_RDMA_OBJ_SIZE(ib_job);
++	DECLARE_RDMA_OBJ_SIZE(ib_jkey);
+ 	DECLARE_RDMA_OBJ_SIZE(ib_cq);
+ 	DECLARE_RDMA_OBJ_SIZE(ib_comp_cntr);
+ 	DECLARE_RDMA_OBJ_SIZE(ib_dmah);
+@@ -3930,6 +3981,22 @@ struct ib_ah *rdma_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
  struct ib_ah *rdma_create_user_ah(struct ib_pd *pd,
--				  struct rdma_ah_attr *ah_attr,
-+				  struct rdma_ah_init_attr *init_attr,
+ 				  struct rdma_ah_init_attr *init_attr,
  				  struct ib_udata *udata);
++
++/**
++ * rdma_job_addr_insert - Insert a peer into a job's address table
++ * @job: The job.
++ * @index: The entry in the job's address table.
++ * @ah_attr: The peer's address and queue pair.
++ *
++ * The address is resolved as rdma_create_user_ah() resolves an address
++ * handle's: the source GID attribute is filled in, and for an Ethernet
++ * address so is the destination MAC.
++ *
++ * Return: 0 on success, or a negative errno.
++ */
++int rdma_job_addr_insert(struct ib_job *job, u32 index,
++			 struct rdma_ah_attr_ex *ah_attr);
++
  /**
   * ib_get_gids_from_rdma_hdr - Get sgid and dgid from GRH or IPv4 header
-@@ -4981,7 +4992,8 @@ static inline struct ib_global_route
- 	return &attr->grh;
- }
- 
--static inline void rdma_ah_set_dgid_raw(struct rdma_ah_attr *attr, void *dgid)
-+static inline void rdma_ah_set_dgid_raw(struct rdma_ah_attr *attr,
-+					const void *dgid)
- {
- 	struct ib_global_route *grh = rdma_ah_retrieve_grh(attr);
- 
+  *   work completion.
+diff --git a/include/rdma/restrack.h b/include/rdma/restrack.h
+index 47fec3083d28..a7d53540da67 100644
+--- a/include/rdma/restrack.h
++++ b/include/rdma/restrack.h
+@@ -64,6 +64,14 @@ enum rdma_restrack_type {
+ 	 * @RDMA_RESTRACK_COMP_CNTR: Completion Counter
+ 	 */
+ 	RDMA_RESTRACK_COMP_CNTR,
++	/**
++	 * @RDMA_RESTRACK_JOB: Transport job
++	 */
++	RDMA_RESTRACK_JOB,
++	/**
++	 * @RDMA_RESTRACK_JKEY: Job key
++	 */
++	RDMA_RESTRACK_JKEY,
+ 	/**
+ 	 * @RDMA_RESTRACK_MAX: Last entry, used for array dclarations
+ 	 */
+diff --git a/include/rdma/uverbs_ioctl.h b/include/rdma/uverbs_ioctl.h
+index f4d93bc3625a..96cfe0ba7bd1 100644
+--- a/include/rdma/uverbs_ioctl.h
++++ b/include/rdma/uverbs_ioctl.h
+@@ -147,7 +147,7 @@ enum uapi_radix_data {
+ 	UVERBS_API_OBJ_KEY_BITS = 6,
+ 	UVERBS_API_OBJ_KEY_SHIFT =
+ 		UVERBS_API_METHOD_KEY_BITS + UVERBS_API_METHOD_KEY_SHIFT,
+-	UVERBS_API_OBJ_KEY_NUM_CORE = 20,
++	UVERBS_API_OBJ_KEY_NUM_CORE = 23,
+ 	UVERBS_API_OBJ_KEY_NUM_DRIVER =
+ 		(1 << UVERBS_API_OBJ_KEY_BITS) - UVERBS_API_OBJ_KEY_NUM_CORE,
+ 	UVERBS_API_OBJ_KEY_MASK = GENMASK(31, UVERBS_API_OBJ_KEY_SHIFT),
 diff --git a/include/uapi/rdma/ib_user_ioctl_cmds.h b/include/uapi/rdma/ib_user_ioctl_cmds.h
-index 816b3107464f..40fcd4bd1b5e 100644
+index fb746257eb2c..70de1e4001c3 100644
 --- a/include/uapi/rdma/ib_user_ioctl_cmds.h
 +++ b/include/uapi/rdma/ib_user_ioctl_cmds.h
-@@ -410,6 +410,13 @@ enum uverbs_attrs_xrcd_destroy_ids {
- 
- enum uverbs_methods_ah {
- 	UVERBS_METHOD_AH_DESTROY,
-+	UVERBS_METHOD_AH_EX_CREATE,
-+};
-+
-+enum uverbs_attrs_create_ah_ex_cmd_attr_ids {
-+	UVERBS_ATTR_CREATE_AH_EX_HANDLE,
-+	UVERBS_ATTR_CREATE_AH_EX_PD_HANDLE,
-+	UVERBS_ATTR_CREATE_AH_EX_AH_ATTR_EX,
+@@ -58,6 +58,9 @@ enum uverbs_default_objects {
+ 	UVERBS_OBJECT_DMAH,
+ 	UVERBS_OBJECT_DMABUF,
+ 	UVERBS_OBJECT_COMP_CNTR,
++	UVERBS_OBJECT_JOB,
++	UVERBS_OBJECT_JKEY,
++	UVERBS_OBJECT_JOB_FD,
  };
  
- enum uverbs_attrs_ah_destroy_ids {
-diff --git a/include/uapi/rdma/ib_user_ioctl_verbs.h b/include/uapi/rdma/ib_user_ioctl_verbs.h
-index b6d46115f799..210f3f945bd7 100644
---- a/include/uapi/rdma/ib_user_ioctl_verbs.h
-+++ b/include/uapi/rdma/ib_user_ioctl_verbs.h
-@@ -318,6 +318,15 @@ struct ib_uverbs_buffer_desc {
- #define IB_UVERBS_QPN_UET_RESERVED_MASK		0x7f000000
- #define IB_UVERBS_QPN_UET_ABSOLUTE_ADDR_BIT	0x80000000
+ enum {
+@@ -495,4 +498,78 @@ enum uverbs_attrs_read_comp_cntr_cmd_attr_ids {
+ 	UVERBS_ATTR_READ_COMP_CNTR_RESP_VALUE,
+ };
  
-+/* An address handle that names a peer using both transport+network addresses.
-+ * Used for reliable unconnected QPs in both work request address handles and
-+ * a Job address table.
-+ */
-+struct ib_uverbs_ah_attr_ex {
-+	struct ib_uverbs_ah_attr ah_attr;
-+	__u32 remote_qpn;
++enum uverbs_methods_job {
++	UVERBS_METHOD_JOB_ALLOC,
++	UVERBS_METHOD_JOB_DEALLOC,
++	UVERBS_METHOD_JOB_QUERY,
++	UVERBS_METHOD_JOB_ADDR_INSERT,
++	UVERBS_METHOD_JOB_ADDR_REMOVE,
++	UVERBS_METHOD_JOB_ADDR_QUERY,
++	UVERBS_METHOD_JOB_EXPORT,
++	UVERBS_METHOD_JOB_IMPORT,
 +};
 +
- enum ib_uverbs_comp_cntr_entry {
- 	IB_UVERBS_COMP_CNTR_ENTRY_COMP,
- 	IB_UVERBS_COMP_CNTR_ENTRY_ERR,
++enum uverbs_attrs_alloc_job_cmd_attr_ids {
++	UVERBS_ATTR_ALLOC_JOB_HANDLE,
++	UVERBS_ATTR_ALLOC_JOB_ID,
++	UVERBS_ATTR_ALLOC_JOB_MAX_ADDR_ENTRIES,
++	UVERBS_ATTR_ALLOC_JOB_PORT_NUM,
++	UVERBS_ATTR_ALLOC_JOB_SGID_INDEX,
++};
++
++enum uverbs_attrs_dealloc_job_cmd_attr_ids {
++	UVERBS_ATTR_DEALLOC_JOB_HANDLE,
++};
++
++enum uverbs_attrs_query_job_cmd_attr_ids {
++	UVERBS_ATTR_QUERY_JOB_HANDLE,
++	UVERBS_ATTR_QUERY_JOB_ID,
++	UVERBS_ATTR_QUERY_JOB_MAX_ADDR_ENTRIES,
++	UVERBS_ATTR_QUERY_JOB_PORT_NUM,
++	UVERBS_ATTR_QUERY_JOB_SGID_INDEX,
++};
++
++enum uverbs_attrs_job_addr_insert_cmd_attr_ids {
++	UVERBS_ATTR_JOB_ADDR_INSERT_HANDLE,
++	UVERBS_ATTR_JOB_ADDR_INSERT_INDEX,
++	UVERBS_ATTR_JOB_ADDR_INSERT_AH_ATTR_EX,
++};
++
++enum uverbs_attrs_job_addr_remove_cmd_attr_ids {
++	UVERBS_ATTR_JOB_ADDR_REMOVE_HANDLE,
++	UVERBS_ATTR_JOB_ADDR_REMOVE_INDEX,
++};
++
++enum uverbs_attrs_job_addr_query_cmd_attr_ids {
++	UVERBS_ATTR_JOB_ADDR_QUERY_HANDLE,
++	UVERBS_ATTR_JOB_ADDR_QUERY_INDEX,
++	UVERBS_ATTR_JOB_ADDR_QUERY_AH_ATTR_EX,
++};
++
++enum uverbs_attrs_export_job_cmd_attr_ids {
++	UVERBS_ATTR_EXPORT_JOB_HANDLE,
++	UVERBS_ATTR_EXPORT_JOB_FD,
++};
++
++enum uverbs_attrs_import_job_cmd_attr_ids {
++	UVERBS_ATTR_IMPORT_JOB_HANDLE,
++	UVERBS_ATTR_IMPORT_JOB_FD,
++};
++
++enum uverbs_methods_jkey {
++	UVERBS_METHOD_JKEY_CREATE,
++	UVERBS_METHOD_JKEY_DESTROY,
++};
++
++enum uverbs_attrs_create_jkey_cmd_attr_ids {
++	UVERBS_ATTR_CREATE_JKEY_HANDLE,
++	UVERBS_ATTR_CREATE_JKEY_JOB_HANDLE,
++	UVERBS_ATTR_CREATE_JKEY_PD_HANDLE,
++	UVERBS_ATTR_CREATE_JKEY_JKEY,
++};
++
++enum uverbs_attrs_destroy_jkey_cmd_attr_ids {
++	UVERBS_ATTR_DESTROY_JKEY_HANDLE,
++};
++
+ #endif
 
 -- 
 2.56.0
