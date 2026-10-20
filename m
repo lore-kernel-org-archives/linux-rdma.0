@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792530046;
-	b=4NnwORzSQd92kqLsAvP5HaCf6JXT0bFsR1nhP75AE9h8GZnX1OU/8tNAUJcTYtYGdbJC
-	 g7ZGanWeQGCjRBdhWBe1CcLYAauztt6Rbh/jgeRZHFvgUCZ6V2qJWN3dV2kphu8kNmmTa
-	 JuGYmVbnqGY2J9tTij4PY8SpUdG3/diZEfo9w8A7ulma7IlHjsjutqHXAZrZzBOkM71VM
-	 9/kcUEdpXmkIB/GoNSIjVKo3P/a5RwerEw3hsU7O3X1+wS2z3vy5cE00uXt0DqCtwfzIW
-	 IQkJUgBgN7GOI57p7VaprsoKMkQ3mKnXMyy1q2WBd3liofch84e59LdxBruiBHuDXFw==
+	t=1792530608;
+	b=pq1CW6voYX1KJtUvwYfEFKFnnvDWRnYOv5efFs5r+WbHUtswm6P7druB7MFSU65LrDfM
+	 OFs7tM4iBJ10h+HXVeO5fS1ou2zSL9B7DAH506TfmIn8WFpFQeKi6XkcZ3Ks9BfDzn5/D
+	 oo+2/MmQTzS0RIc6ty1iP/KUlmcZ5i2NAbv8I7YlKae3BKj/YZY8VRdeas+NwDvYqwHFU
+	 2Q+NJ459jEBSdnFTvDsWFpjo0gsSYR5W8cnKso6OpbEgmCRHxJwu5TkwaRBaPIqqkOtTv
+	 /nzfQ+HHLf3m9feYeYygz2MB46ZFLNtzlnzYnLLjwwy8ES/rcE+2NqQklb2BZtt8DOw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792530046;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792530608;
 	h=Received:DKIM-Signature:Received:Content-Type:MIME-Version:
 	 Content-Transfer-Encoding:Subject:From:Message-Id:Date:References:
 	 In-Reply-To:To:Cc;
-	bh=s7LHFRSXHic5XGEInYp0jAmgGHudXLNGKJjFiKqPrq4=;
-	b=x+8OXnHWdA2SCN9KDQAKJt0MMJL10iH/H1v1ek83/wgaBfgexB7ZRr9AOzjh5Loz3lma
-	 ULtYYSYsuO5pwFoPjEZ3xQ8EDPUN8Y+O7Kb2I2HTfiQZIK6DhBfUAgZw+hdxfCbsmkm4N
-	 3UwdiBe+CwTnoOYORS7eNDJIVaCoiefCTRfs/APEjb+YmVoz35G37gxKXJx8rkBa0plEi
-	 /AhxxFzyL8eY9KxU8Yzsab9VaFfVqhwFL7lqs24MRcgeP/k0ij9kml6SI3fku3+tfKlNp
-	 vCAYjcmTEHHUTGm00CUkkTHPy5KZlqrNV/QSCwQKunK6FJpjwevclBW+JBLy/4XowIA==
+	bh=X0xBekH/PJ9gQjFX/Kapq3ypB5InSYa5yUK78tk9vTA=;
+	b=tjliTORrR0PhT671F9/EicoWvsOzT6gw4acCtKRkqwkL7hafvAEvwhi9UWGYftaTnbcj
+	 dPbet9y8imj6Yu8AdBYNGT8nSljSck97avl7wPXN2OznYayBUugvhLEz4wXLahxsueck0
+	 jxdxZhHnDl6zvRpMx8Kb1qla+bIU72AYLFskrJrq/vlpDvUFx1gta3RdrMEW5BOM0cksf
+	 0dj5F7G2OUwu5fBanqW1OLfZ6ANpXjnAPTNiilJ8mXUoibvthk9Q5jMHncTKLcrW/erDi
+	 V9AK5t0Q/zMfB8dUI1DgRgKINSjMpG6OCvKi91aJ9LZ+PSoI6Aljm0iN74oJhZbDz3g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=KQci7tJF;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dPNQa97D;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A2E7606A326;
-	Tue, 20 Oct 2026 21:00:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D9E9606A31A;
+	Tue, 20 Oct 2026 21:10:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=KQci7tJF
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42BAF1F000CA;
-	Tue, 20 Oct 2026 21:00:46 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dPNQa97D
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05F7A1F000C9;
+	Tue, 20 Oct 2026 21:10:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792530046;
-	bh=s7LHFRSXHic5XGEInYp0jAmgGHudXLNGKJjFiKqPrq4=;
+	s=k20260515; t=1792530608;
+	bh=X0xBekH/PJ9gQjFX/Kapq3ypB5InSYa5yUK78tk9vTA=;
 	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=KQci7tJF+IYLQv12efD+MqxN8J1OOwJGnXlOocHPZKc29bqs7Rn4uxmeGPDrGl9/K
-	 DlZh+oY49USpQZHxL+KjFEv0OW74s+5g6WrN4Umesz8ZSy4kJ9elFqSZiEMHh9kWav
-	 cW5alHMgELP+qd4Mj0p1uOEq+HRuwVz7Fu6mmpjK8oo/udT3qTqa3lWAJSP6l6NSuA
-	 cqQOtolImM7THpRhx7QSnEtpo7lCBakPYqUOtiVqaERF/8ITWp+Sdb+HOO0PPGlWHO
-	 weVCueq+jZPslSqNq3gslFD+60qceaw0ggnoYot0rsoW8NUlJNaaAUwhpHsjhyVO50
-	 Zc2yMZPTVRHfQ==
+	b=dPNQa97DtfrVj0XNh52qGlFnxb165lQIMi8qaWHuZ5vLFIcyEHJMPVaikmpc/wZCb
+	 Xaohi6BIwGUG4RsPo18DP0Tz7DLVoUNngGBUGFLb5nSV2dY9DWp4N4+kO735Q0DfNU
+	 vTYhNvnfCHTTAQbsS1Yo2rcm0j9oGy1XuqOFeYPno+Jx/hoYGkWfPrWtq9cREd0EIB
+	 IebA9nfD+l+iT1x9qhcPahxgZV4MOjCkTcupxybJMtnxCaXCmUeA5MI4mWff39U5aN
+	 u/6a0tcxUoOSfIe06cvgNQv3j6FhKPupn1iOwAFc3Q2W99iH5atZzsDfriyzaHJhJP
+	 iTQyBlQgNIBFQ==
 Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 3A3B93809A09;
-	Tue, 20 Oct 2026 21:00:46 +0000 (UTC)
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id F16363809A09;
+	Tue, 20 Oct 2026 21:10:07 +0000 (UTC)
 Content-Type: text/plain; charset="utf-8"
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -54,49 +54,45 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next v3] net: mana: add BQL support
+Subject: Re: [PATCH] net/rds: ib: don't enable IRQs in rds_ib_conn_free()
 From: patchwork-bot+netdevbpf@kernel.org
 Message-Id: 
- <179253004477.208021.12583295837722282628.git-patchwork-notify@kernel.org>
-Date: Tue, 20 Oct 2026 21:00:44 +0000
-References: <20261013214937.145312-1-hamzamahfooz@linux.microsoft.com>
-In-Reply-To: <20261013214937.145312-1-hamzamahfooz@linux.microsoft.com>
-To: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
-Cc: netdev@vger.kernel.org, haiyangz@microsoft.com, wei.liu@kernel.org,
- decui@microsoft.com, andrew+netdev@lunn.ch, davem@davemloft.net,
- edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com,
- kotaranov@microsoft.com, horms@kernel.org, ast@kernel.org,
- daniel@iogearbox.net, hawk@kernel.org, john.fastabend@gmail.com,
- sdf@fomichev.me, linux-hyperv@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-rdma@vger.kernel.org, bpf@vger.kernel.org
+ <179253060652.212662.1082879291044254668.git-patchwork-notify@kernel.org>
+Date: Tue, 20 Oct 2026 21:10:06 +0000
+References: <20261016161525.146537-1-ngocthang2710.1999@gmail.com>
+In-Reply-To: <20261016161525.146537-1-ngocthang2710.1999@gmail.com>
+To: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
+Cc: achender@kernel.org, davem@davemloft.net, edumazet@google.com,
+ kuba@kernel.org, pabeni@redhat.com, horms@kernel.org, netdev@vger.kernel.org,
+ linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
+ linux-kernel@vger.kernel.org,
+ syzbot+c3741bb338b5c6d6a4aa@syzkaller.appspotmail.com, stable@vger.kernel.org
 
 Hello:
 
 This patch was applied to netdev/net-next.git (main)
 by Jakub Kicinski <kuba@kernel.org>:
 
-On Tue, 13 Oct 2026 17:49:37 -0400 you wrote:
-> MANA doesn't support byte queue limits, so each TX queue can hold 256
-> WQEs by default, and up to 16384, of up to 64 KB TSO packets, before the
-> qdisc layer sees any backpressure. This adds latency to all the flows
-> sharing a queue, and defeats AQM qdiscs such as fq_codel, which rely on
-> BQL to keep the driver queues short.
+On Fri, 16 Oct 2026 23:15:25 +0700 you wrote:
+> __rds_conn_create() calls trans->conn_free() with rds_conn_lock held
+> and IRQs disabled when it loses the race to insert a connection.
+> rds_ib_conn_free() takes the device list lock with spin_lock_irq() and
+> releases it with spin_unlock_irq(), so IRQs are turned on while
+> rds_conn_lock is still held:
 > 
-> Report the bytes queued and completed to BQL, except for the XDP_TX and
-> XDP_REDIRECT frames. These share the SQs, but bypass the qdisc and are
-> sent even when the queue is stopped, so BQL can't hold them back.
-> Counting them would let sustained XDP traffic keep the queue stopped,
-> starving the stack, and the TX watchdog would then either fire while the
-> completions still arrive, or, if the XDP sends refreshed trans_start,
-> not fire when the completions stop. The XDP SKBs are marked in their
-> skb->cb, next to the WQE size, so that their completions are skipped as
-> well.
+>   raw_local_irq_restore() called with IRQs enabled
+>   WARNING: kernel/locking/irqflag-debug.c:10 at warn_bogus_irq_restore+0xc/0x20
+>    _raw_spin_unlock_irqrestore+0x67/0x80
+>    __rds_conn_create+0x1de5/0x2290
+>    rds_conn_create_outgoing+0x43/0x60
+>    rds_sendmsg+0xfca/0x20e0
+>    __sys_sendto+0x408/0x5a0
 > 
 > [...]
 
 Here is the summary with links:
-  - [net-next,v3] net: mana: add BQL support
-    https://git.kernel.org/netdev/net-next/c/799cdeaa5c39
+  - net/rds: ib: don't enable IRQs in rds_ib_conn_free()
+    https://git.kernel.org/netdev/net-next/c/f6fa1d60ec3c
 
 You are awesome, thank you!
 -- 
