@@ -1,79 +1,79 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1792465418;
-	b=LaUQk/gtI5VcLCPl4t/a1aq5X6j2cyT/8tcWr5xLOIO6WAuMYkL3uWgEWJXGKEEcUZIB
-	 bDduT8iKhesBPgY/UxZQ63cA4v7KO2lCe82KXU0R1YwnBZAJkI6xX1z24enAzn5nzWiWO
-	 hkuHJOYJosX3eScuhgAL+GK4bsgMac7Gi5JHOA1NzuOpkoPAS3OAC06XsLsWrgRuLOept
-	 eaL9GrsZefrXIzUdIvUjl8HtdBox952uSRof6oKZff74M1AebtPuHpnIQRfY0LoBYxcm1
-	 UQcTMYP0QPUYLh/EIO5z1PbZNt49bujCF5w4IJ+Ob39Tcp+wNFXCY5bvm72PXG2ISLw==
+	t=1792465419;
+	b=heoxqyXW2lhwGjgFhnM6WMQhOScIsLhtk8AjMC+awZMX96waIVMBaMPsWJdKkfWxajRF
+	 xeWUkN8a/qvxV2aB7BckE1+ZD2FJVWygE5Ydzr9BoR9WivyAhWKOXAEDjyUfr9RYRTZuK
+	 dmfKl9CHsXsdnGaY2aGMsvOIoce6uXxlXc2bHnn2k632w0inhiClLkwPZKF76VPvu69Xa
+	 e6Fq2ET9mXbVdAUGFKGIw6eSJjVAq2+Kj5wX8A6iUdcK/L5rYJTquyGfL2cVuuUDikMK+
+	 aRG2WkuB6FYLJDcJjJlmISCa5yNcu09NGL78pjhHFP2FcHmrsIge0+W9d9CKF6HkdKQ==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792465418;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792465419;
 	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
 	 Content-Type:Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=TPZVw1w4jUSInIuUyA3OktbSalsTbqfnem1lwCiQNVk=;
-	b=jzxxsCx6Rngk+vPHlHhNLuivIPQQ7OEdiuU6Up1zheUyfrbQXxBTX1oaq2jlSxVZQ+iJ
-	 mkt92c0rclUlraXnj1V6M3yBZPpOc/+g2oyO612sqRlSJ0TpowfwBTzPOyonJalpyfPEP
-	 VtqXT633gI3hJtpTK+3wbS9iMy83Oh949JEliulRF1L4T8rqE4EzhNA9xKrhkJdQ9v34/
-	 Wbzlu9E4lG/gj2rq7lEbrrBf2jri3AGp1wIXx5p8TmZ54puVFbbnUhRBqKCoWJWEkukQP
-	 qOPHyUlbRUbEuwKx+z2yxhMTQ4N64k4Zh1gIlMSJ+Yl8gQYP3foDAfnwZBPDx3xetWQ==
+	bh=ughVORsfRMZKu0smitOz9pt0otYMPVZ88l8CsB8SFK0=;
+	b=C/GGgjjUPS37I/VvpjwyajAiWZdA/e9r5ux2INcZzXWq9fV/1g/iJ/OC0vC0PMntcZ8h
+	 8JPxQstS9HjnrxSHEeVO892jx7NM2EqNRdP7qyXQx9IXxTNyLqNPUDvBxWhUZwa2Cw3RK
+	 +SN+OVznEHH0Zk1RFxOJ3AvTJ0KKkzR8gH1h3ZkldcjMkmdGYZw/u3O7JUKGHR3X69JJs
+	 ElVbfCHw+OnR1xrgAOHhY4FQJtCChfijvMXmvXzx479tyzEOJ9R+0hQbjfANMrGrVy54X
+	 ZUIsilyVBwiNtTyGBsRzXLAk1v3z/QAxD3TrrlqoG/d9Ksz30lFOjGePEdto7qzeK4w==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RDeu1d67;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IkKgRFct;
 	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51ABA606A33B;
-	Tue, 20 Oct 2026 03:03:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47E6F606A338;
+	Tue, 20 Oct 2026 03:03:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RDeu1d67
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IkKgRFct
 Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
 ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
-	t=1792465418;
-	b=QQCXWA+fp5B6QSg6MRtpWHM/tbqs8s0riVsXocpRIwr+xIDt7y8uMUlmZtwk4GaOUToh
-	 mIFrcDia6GkrMKKOh9s0gf7z3UjUPFeL/dfpsfa0ZAgOdpDLWWeh1e516wY7LBygUgeYf
-	 z1bohua/AvKfuAnv07NDjTKuyZEYZb1otVB3/n8cgf8d6vYIn68TZy29h/oIeql39WPrH
-	 51gWD845ICAE4g5Dw3JzqmaVe+ldop6d7UcvyYWrsYFUubI5bYzkkRFzCYHDJaTKc/MjG
-	 /NNCB6guDkqSLrYPGTY7pZrS/LQnNwXAQG0eLAktJEpZTmyg7WNfX1M5MTPopu7l8yA==
+	t=1792465419;
+	b=z54MR7hsNnBC1/qYiby5hD4Xyw/NYjEpN3+2Q7fNo83hImkfg5QGvClWZrqox347b3FH
+	 3QIZdfRv/VaVGp4GO8pA3gLiuuQBLTWKkyWzkmbzXE96j/0d4RvsWGLtHbH5HNj8pdeYA
+	 0fuRmhtB7HCd2TGx2sOKWgBb8BeqenPe7c7c1fUQZlcbU5/bNN//+8ZOyz2D9jb4FRsCB
+	 hEYvBPviHE6OJbM4svthfq2TfdegHk8hXirfKgR9TXEXZ3zwSUAfOe7Rn/f6KPkaD859d
+	 jmyRajuTqxDOA1a4wlKv1U7KXgF64G7wN2rHnbiQhxw7nnPPwKmKdIh/H+cTO6FWX7w==
 ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
-	c=relaxed/relaxed; t=1792465418;
+	c=relaxed/relaxed; t=1792465419;
 	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
 	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=TPZVw1w4jUSInIuUyA3OktbSalsTbqfnem1lwCiQNVk=;
-	b=l/UXleJxBOa8BwwLwLUd8K+xW/KWqp/qLGcWM2UpEaUHjoK0tvc81s17cs2o5nf4H8bM
-	 5ygYMqbAPjqixFbdW0rnAtWaatf0XbVMD/svF85/3OMX3xrT8k81EhBS7oIVb8/XHrg/S
-	 t+edfc3GvrxstFiA+8615oqXhq6sse5J/8queKkEYkiL09ckzRvGHdrmiZLMSTomLdNQR
-	 ckMLDOMxJGS6Dhgg6tJLRx3bpR70qDDrMIG9E2IQzrif8Arj7Sh1ABrE7h4c5WvHmOH32
-	 x46wy+X/3QfP5Jpt+yuc0O1/nM4J6l6UVKYCe2bkbv0TbYkC2AQA8FlwAW9jq0f/qzA==
+	bh=ughVORsfRMZKu0smitOz9pt0otYMPVZ88l8CsB8SFK0=;
+	b=Wh/OopggE/d/acGo1JNi4YFxOmhfUqwupP8YlM3xJU+XmDHsmIJ7/TPT5MfdYtv386KK
+	 4Y+OUssHTWoUpy0FMAY92vFG8qWQDQKANCmoiEt3MmDg8874CiwSUvwpX2HoYaj95XBgk
+	 lbDwP2uBCR5niCnn97UtIQD/EAWwmn7+TCUNgieaxVNlZANXBWUJqO4+CbAmmhwKggoq/
+	 zaOPjoVcAIdpO2B+r2W1+BAfdRn4wVjyEbRZJuf3ahu5gkK3QK1C1jZE0jv5Ndni1mF8h
+	 cq9ykOkpxzGcLwZqLWUUsvGyzx55HpvjcXeUqa9PvIXS3b4R1deEy3VosGY9xlLPTZg==
 ARC-Authentication-Results: i=1; smtp.kernel.org; 
 	arc=none smtp.remote-ip=100.80.115.77
 Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id D583D1F000CB;
+	by smtp.kernel.org (Postfix) with ESMTPS id D2FD51F000CA;
 	Tue, 20 Oct 2026 03:03:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792465417;
-	bh=TPZVw1w4jUSInIuUyA3OktbSalsTbqfnem1lwCiQNVk=;
+	s=k20260515; t=1792465419;
+	bh=ughVORsfRMZKu0smitOz9pt0otYMPVZ88l8CsB8SFK0=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
-	b=RDeu1d67iTnXkDE/I8vrHHaBgkDw31v78X7SSMExL1ioG0tGkvSQ79Vtol5m9nyLx
-	 0EQWgzQs4gxLs4Pbbt+bZhkoH8Gvoy8alJZJkUWv2aztPEia7c128v4H3i5Bg4XUwG
-	 eklZRKUELOExsO0otxO9ZWbHibSVIxIMmNo9iHckkQB50Y8CbcAcEJxQkdVJvAcRhJ
-	 46Tb9SA8xerSIeVWlAZ7+FC8PoTX+/I8cgiwSrJPWFTY3Pes8PzQ+cGzZAGI/j4Fca
-	 DiWdV1Q4duboPxpVViLg9OAjLyUymGJaNW9+QpJNSol6YfFs9nTiUrIhh329nBG7iJ
-	 Bmacv4A6VoOWg==
+	b=IkKgRFctXVIxgVkDeR6/KdULqjfHzlUu1QhMSiT7AgX5kSuoWmOSgsKhJPvOaJAgk
+	 714vV6uy/rll05FsTLMbFYlw6ltB4AdnH9dT/7r1Gf5P96cKtkPv7HMtWLcbVpN++K
+	 ZxyM8ZJuvv6XCRQk4+YdIzYoCPZbdLlxb95XBOGUtVgm84F1EzQpSXlot4bgnF5wFs
+	 KW4veGoFoTeb3sb6rMGVD1dHW/vrswCgyI7tMwM5PGX1n6/jiJr/JgIcL5DnTPBiMH
+	 M8S/6wFF65cZjIno/87mPZELRzfMzOphni3ERHoStpKFsEBM6kOi2JcY56iLkHZTOH
+	 14CFlg9JRQjAQ==
 Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id 3A7C340714;
+	by lkml.kernel.org (Postfix) with ESMTP id 3454A4070F;
 	Tue, 20 Oct 2026 03:03:35 +0000 (UTC)
 From: Eric Davis via B4 Relay <devnull+eric.davis.broadcom.com@kernel.org>
-Date: Mon, 19 Oct 2026 20:03:33 -0700
-Subject: [PATCH rdma-next v2 06/13] RDMA/core: query the semantics a queue
- pair type guarantees
+Date: Mon, 19 Oct 2026 20:03:32 -0700
+Subject: [PATCH rdma-next v2 05/13] RDMA/core: extended address handle
+ attributes
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -84,18 +84,18 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Message-Id: <20261019-uet-ib-core-v2-6-8bd654f25370@broadcom.com>
+Message-Id: <20261019-uet-ib-core-v2-5-8bd654f25370@broadcom.com>
 References: <20261019-uet-ib-core-v2-0-8bd654f25370@broadcom.com>
 In-Reply-To: <20261019-uet-ib-core-v2-0-8bd654f25370@broadcom.com>
 To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>
 Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
  Eric Davis <eric.davis@broadcom.com>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1792465414; l=9543;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1792465414; l=16360;
  i=eric.davis@broadcom.com; s=20261014; h=from:subject:message-id;
- bh=yk/xZEz4l9zOb4cXnyRsbn6fVawWYgk8s38FjSlbsvA=;
- b=Mot/6Ld7vc4MeogBTITBXX5YYF3Aoc1Rg8erogs+do0N9hMymi33JqecGkPLctNpjvPHCqjbi
- xNMe3FFJM7CCYHVhv0F53WMz4iXRjCjUHmq0lHELMLquCwYep9plZfF
+ bh=+RAZArxkOHHyIz1RZJtl6WeQSvKnoLFdcl5bSdlpZos=;
+ b=bP73Sq9nzVbVziSfsJSNIbfHfHDgRQar1/A+k2vKbQ/v3Ty9SYDsSMohxquGsStGE71zfENNj
+ AsQIlv4UkNqB6xj8z51CtX2snbfvSZamCl7/LZKaJwM95GJGh5eU1Nv
 X-Developer-Key: i=eric.davis@broadcom.com; a=ed25519;
  pk=uy3oCTOYBipIPjryXGMynBmtPvbO6qN2FOrduzpiI4A=
 X-Endpoint-Received: by B4 Relay for eric.davis@broadcom.com/20261014 with
@@ -106,249 +106,451 @@ Content-Transfer-Encoding: 7bit
 
 From: Eric Davis <eric.davis@broadcom.com>
 
-An unconnected transport orders far less than a connected one, and how
-much varies by device. Add a device method that reports, for a queue pair
-type, which operations it orders against which, the largest packet it
-puts on the wire, and how wide an immediate it carries.
+An unconnected transport over UET resolves a peer by both its network
+address and its queue pair number. The write() create-AH command has no
+room for additional attributes. Add rdma_ah_attr_ex to carry new
+attributes, reach it through rdma_ah_init_attr, and add an ioctl method
+that supports it.
+
+rdma_create_user_ah() now takes the init attributes rather than the
+address alone, so callers pass the wider set.
 
 Signed-off-by: Eric Davis <eric.davis@broadcom.com>
 ---
- drivers/infiniband/core/device.c                  |  1 +
- drivers/infiniband/core/uverbs_std_types_device.c | 73 ++++++++++++++++++++++-
- include/rdma/ib_verbs.h                           | 15 +++++
- include/uapi/rdma/ib_user_ioctl_cmds.h            |  6 ++
- include/uapi/rdma/ib_user_ioctl_verbs.h           | 63 +++++++++++++++++++
- 5 files changed, 157 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/user_mad.c         |  4 +-
+ drivers/infiniband/core/uverbs.h           |  3 ++
+ drivers/infiniband/core/uverbs_cmd.c       | 60 +++++++++++++++----------
+ drivers/infiniband/core/uverbs_std_types.c | 70 +++++++++++++++++++++++++++++-
+ drivers/infiniband/core/verbs.c            | 43 ++++++++++--------
+ include/rdma/ib_verbs.h                    | 20 +++++++--
+ include/uapi/rdma/ib_user_ioctl_cmds.h     |  7 +++
+ include/uapi/rdma/ib_user_ioctl_verbs.h    |  9 ++++
+ 8 files changed, 169 insertions(+), 47 deletions(-)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 7c65a9373701..8b1563de4726 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -3011,6 +3011,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
- 	SET_DEVICE_OP(dev_ops, query_port);
- 	SET_DEVICE_OP(dev_ops, query_port_speed);
- 	SET_DEVICE_OP(dev_ops, query_qp);
-+	SET_DEVICE_OP(dev_ops, query_qp_semantics);
- 	SET_DEVICE_OP(dev_ops, query_srq);
- 	SET_DEVICE_OP(dev_ops, query_ucontext);
- 	SET_DEVICE_OP(dev_ops, rdma_netdev_get_params);
-diff --git a/drivers/infiniband/core/uverbs_std_types_device.c b/drivers/infiniband/core/uverbs_std_types_device.c
-index db65032e80b4..997fc82f9010 100644
---- a/drivers/infiniband/core/uverbs_std_types_device.c
-+++ b/drivers/infiniband/core/uverbs_std_types_device.c
-@@ -591,6 +591,76 @@ DECLARE_UVERBS_NAMED_METHOD(
- 			    UVERBS_ATTR_TYPE(u32),
- 			    UA_OPTIONAL));
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index c3ef9f85c7eb..05e2898f0a6a 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -512,6 +512,7 @@ static ssize_t ib_umad_write(struct file *filp, const char __user *buf,
+ 	struct ib_umad_packet *packet;
+ 	struct ib_mad_agent *agent;
+ 	struct rdma_ah_attr ah_attr;
++	struct rdma_ah_init_attr init_attr = {};
+ 	struct ib_ah *ah;
+ 	__be64 *tid;
+ 	int ret, hdr_len, copy_offset, rmpp_active;
+@@ -569,7 +570,8 @@ static ssize_t ib_umad_write(struct file *filp, const char __user *buf,
+ 		rdma_ah_set_dgid_raw(&ah_attr, packet->mad.hdr.gid);
+ 	}
  
-+/* What a QP type guarantees on this device. Which operations it orders
-+ * against, how large a packet it puts on the wire, how wide an immediate it
-+ * carries.
+-	ah = rdma_create_user_ah(agent->qp->pd, &ah_attr, NULL);
++	init_attr.ah_attr = &ah_attr;
++	ah = rdma_create_user_ah(agent->qp->pd, &init_attr, NULL);
+ 	if (IS_ERR(ah)) {
+ 		ret = PTR_ERR(ah);
+ 		goto err_up;
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index 728e09b41992..6aaac1c309f0 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -236,6 +236,9 @@ int ib_uverbs_dealloc_xrcd(struct ib_uobject *uobject, struct ib_xrcd *xrcd,
+ int uverbs_dealloc_mw(struct ib_mw *mw);
+ void ib_uverbs_detach_umcast(struct ib_qp *qp,
+ 			     struct ib_uqp_object *uobj);
++int copy_ah_attr_from_uverbs_ah(struct ib_device *dev,
++				struct rdma_ah_attr *rdma_attr,
++				const struct ib_uverbs_ah_attr *uverb_attr);
+ 
+ struct bundle_alloc_head {
+ 	struct_group_tagged(bundle_alloc_head_hdr, hdr,
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index e4fdfa0d9548..cca386b2c3f0 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1746,6 +1746,37 @@ static int modify_qp_mask(enum ib_qp_type qp_type, int mask)
+ 	}
+ }
+ 
++/* The ib_uverbs_ah_attr counterpart of copy_ah_attr_from_uverbs() below,
++ * which takes the modify QP layout. This one also rejects an invalid port.
 + */
-+static int UVERBS_HANDLER(UVERBS_METHOD_QUERY_QP_SEMANTICS)(
-+	struct uverbs_attr_bundle *attrs)
++int copy_ah_attr_from_uverbs_ah(struct ib_device *dev,
++				struct rdma_ah_attr *rdma_attr,
++				const struct ib_uverbs_ah_attr *uverb_attr)
 +{
-+	struct ib_uverbs_qp_semantics resp = {};
-+	struct ib_qp_semantics sem = {};
-+	struct ib_ucontext *ucontext;
-+	struct ib_device *ib_dev;
-+	enum ib_qp_type qp_type;
-+	int ret;
-+
-+	ucontext = ib_uverbs_get_ucontext(attrs);
-+	if (IS_ERR(ucontext))
-+		return PTR_ERR(ucontext);
-+	ib_dev = ucontext->device;
-+
-+	if (!ib_dev->ops.query_qp_semantics)
-+		return -EOPNOTSUPP;
-+
-+	ret = uverbs_get_const(&qp_type, attrs,
-+			       UVERBS_ATTR_QUERY_QP_SEMANTICS_QP_TYPE);
-+	if (ret)
-+		return ret;
-+
-+	/* only the types userspace can create */
-+	switch (qp_type) {
-+	case IB_UVERBS_QPT_RC:
-+	case IB_UVERBS_QPT_UC:
-+	case IB_UVERBS_QPT_UD:
-+	case IB_UVERBS_QPT_RAW_PACKET:
-+	case IB_UVERBS_QPT_XRC_INI:
-+	case IB_UVERBS_QPT_XRC_TGT:
-+	case IB_UVERBS_QPT_RU:
-+	case IB_UVERBS_QPT_DRIVER:
-+		break;
-+	default:
++	if (!rdma_is_port_valid(dev, uverb_attr->port_num))
 +		return -EINVAL;
++
++	rdma_attr->type = rdma_ah_find_type(dev, uverb_attr->port_num);
++	rdma_ah_set_make_grd(rdma_attr, false);
++	rdma_ah_set_dlid(rdma_attr, uverb_attr->dlid);
++	rdma_ah_set_sl(rdma_attr, uverb_attr->sl);
++	rdma_ah_set_path_bits(rdma_attr, uverb_attr->src_path_bits);
++	rdma_ah_set_static_rate(rdma_attr, uverb_attr->static_rate);
++	rdma_ah_set_port_num(rdma_attr, uverb_attr->port_num);
++
++	if (uverb_attr->is_global) {
++		rdma_ah_set_grh(rdma_attr, NULL, uverb_attr->grh.flow_label,
++				uverb_attr->grh.sgid_index,
++				uverb_attr->grh.hop_limit,
++				uverb_attr->grh.traffic_class);
++		rdma_ah_set_dgid_raw(rdma_attr, uverb_attr->grh.dgid);
++	} else {
++		rdma_ah_set_ah_flags(rdma_attr, 0);
 +	}
 +
-+	ret = ib_dev->ops.query_qp_semantics(ib_dev, qp_type, &sem);
++	return 0;
++}
++
+ static void copy_ah_attr_from_uverbs(struct ib_device *dev,
+ 				     struct rdma_ah_attr *rdma_attr,
+ 				     struct ib_uverbs_qp_dest *uverb_attr)
+@@ -2435,6 +2466,7 @@ static int ib_uverbs_create_ah(struct uverbs_attr_bundle *attrs)
+ 	struct ib_pd			*pd;
+ 	struct ib_ah			*ah;
+ 	struct rdma_ah_attr		attr = {};
++	struct rdma_ah_init_attr	init_attr = {};
+ 	int ret;
+ 	struct ib_device *ib_dev;
+ 
+@@ -2446,36 +2478,18 @@ static int ib_uverbs_create_ah(struct uverbs_attr_bundle *attrs)
+ 	if (IS_ERR(uobj))
+ 		return PTR_ERR(uobj);
+ 
+-	if (!rdma_is_port_valid(ib_dev, cmd.attr.port_num)) {
+-		ret = -EINVAL;
+-		goto err;
+-	}
+-
+ 	pd = uobj_get_obj_read(pd, UVERBS_OBJECT_PD, cmd.pd_handle, attrs);
+ 	if (IS_ERR(pd)) {
+ 		ret = PTR_ERR(pd);
+ 		goto err;
+ 	}
+ 
+-	attr.type = rdma_ah_find_type(ib_dev, cmd.attr.port_num);
+-	rdma_ah_set_make_grd(&attr, false);
+-	rdma_ah_set_dlid(&attr, cmd.attr.dlid);
+-	rdma_ah_set_sl(&attr, cmd.attr.sl);
+-	rdma_ah_set_path_bits(&attr, cmd.attr.src_path_bits);
+-	rdma_ah_set_static_rate(&attr, cmd.attr.static_rate);
+-	rdma_ah_set_port_num(&attr, cmd.attr.port_num);
+-
+-	if (cmd.attr.is_global) {
+-		rdma_ah_set_grh(&attr, NULL, cmd.attr.grh.flow_label,
+-				cmd.attr.grh.sgid_index,
+-				cmd.attr.grh.hop_limit,
+-				cmd.attr.grh.traffic_class);
+-		rdma_ah_set_dgid_raw(&attr, cmd.attr.grh.dgid);
+-	} else {
+-		rdma_ah_set_ah_flags(&attr, 0);
+-	}
++	ret = copy_ah_attr_from_uverbs_ah(ib_dev, &attr, &cmd.attr);
++	if (ret)
++		goto err_put;
+ 
+-	ah = rdma_create_user_ah(pd, &attr, &attrs->driver_udata);
++	init_attr.ah_attr = &attr;
++	ah = rdma_create_user_ah(pd, &init_attr, &attrs->driver_udata);
+ 	if (IS_ERR(ah)) {
+ 		ret = PTR_ERR(ah);
+ 		goto err_put;
+diff --git a/drivers/infiniband/core/uverbs_std_types.c b/drivers/infiniband/core/uverbs_std_types.c
+index e160786e1df1..27cc1d162293 100644
+--- a/drivers/infiniband/core/uverbs_std_types.c
++++ b/drivers/infiniband/core/uverbs_std_types.c
+@@ -184,6 +184,73 @@ DECLARE_UVERBS_NAMED_OBJECT(UVERBS_OBJECT_MW,
+ 			    UVERBS_TYPE_ALLOC_IDR(uverbs_free_mw),
+ 			    &UVERBS_METHOD(UVERBS_METHOD_MW_DESTROY));
+ 
++/* Creating an address handle is still a write() command whose request
++ * struct cannot grow. A transport (reliable unconnected) that resolves a
++ * peer using both transport and network addresses requires additional
++ * fields in the address handle. Here the address handle create command is
++ * made available as an ioctl method, where additional attributes can be
++ * carried.
++ */
++static int UVERBS_HANDLER(UVERBS_METHOD_AH_EX_CREATE)(
++	struct uverbs_attr_bundle *attrs)
++{
++	struct ib_uobject *uobj = uverbs_attr_get_uobject(
++		attrs, UVERBS_ATTR_CREATE_AH_EX_HANDLE);
++	struct ib_pd *pd =
++		uverbs_attr_get_obj(attrs, UVERBS_ATTR_CREATE_AH_EX_PD_HANDLE);
++	struct ib_device *ib_dev = attrs->context->device;
++	struct ib_uverbs_ah_attr_ex uah;
++	struct rdma_ah_init_attr init_attr = {};
++	struct rdma_ah_attr_ex attr = {};
++	struct ib_ah *ah;
++	int ret;
++
++	/* Only a reliable unconnected device has a use for the extended
++	 * attributes.
++	 */
++	if (!(ib_dev->attrs.device_cap_flags & IB_DEVICE_RU))
++		return -EOPNOTSUPP;
++
++	ret = uverbs_copy_from_or_zero(&uah, attrs,
++				       UVERBS_ATTR_CREATE_AH_EX_AH_ATTR_EX);
 +	if (ret)
 +		return ret;
 +
-+	resp.comp_mask = sem.comp_mask;
-+	resp.msg_order = sem.msg_order;
-+	resp.max_rdma_raw_size = sem.max_rdma_raw_size;
-+	resp.max_rdma_war_size = sem.max_rdma_war_size;
-+	resp.max_rdma_waw_size = sem.max_rdma_waw_size;
-+	resp.max_pdu = sem.max_pdu;
-+	resp.usage_flags = sem.usage_flags;
-+	resp.imm_data_size = sem.imm_data_size;
++	ret = copy_ah_attr_from_uverbs_ah(ib_dev, &attr.ah_attr, &uah.ah_attr);
++	if (ret)
++		return ret;
 +
-+	return uverbs_copy_to_struct_or_zero(
-+		attrs, UVERBS_ATTR_QUERY_QP_SEMANTICS_RESP, &resp,
-+		sizeof(resp));
++	attr.remote_qpn = uah.remote_qpn;
++
++	init_attr.ah_attr = &attr.ah_attr;
++	init_attr.ah_attr_ex = &attr;
++
++	ah = rdma_create_user_ah(pd, &init_attr, &attrs->driver_udata);
++	if (IS_ERR(ah))
++		return PTR_ERR(ah);
++
++	ah->uobject = uobj;
++	uobj->object = ah;
++
++	return 0;
 +}
 +
 +DECLARE_UVERBS_NAMED_METHOD(
-+	UVERBS_METHOD_QUERY_QP_SEMANTICS,
-+	UVERBS_ATTR_CONST_IN(UVERBS_ATTR_QUERY_QP_SEMANTICS_QP_TYPE,
-+			     enum ib_uverbs_qp_type,
-+			     UA_MANDATORY),
-+	UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_QUERY_QP_SEMANTICS_RESP,
-+			    UVERBS_ATTR_STRUCT(struct ib_uverbs_qp_semantics,
-+					       imm_data_size),
-+			    UA_MANDATORY));
++	UVERBS_METHOD_AH_EX_CREATE,
++	UVERBS_ATTR_IDR(UVERBS_ATTR_CREATE_AH_EX_HANDLE,
++			UVERBS_OBJECT_AH,
++			UVERBS_ACCESS_NEW,
++			UA_MANDATORY),
++	UVERBS_ATTR_IDR(UVERBS_ATTR_CREATE_AH_EX_PD_HANDLE,
++			UVERBS_OBJECT_PD,
++			UVERBS_ACCESS_READ,
++			UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_CREATE_AH_EX_AH_ATTR_EX,
++			   UVERBS_ATTR_STRUCT(struct ib_uverbs_ah_attr_ex,
++					      remote_qpn),
++			   UA_MANDATORY),
++	UVERBS_ATTR_UHW());
 +
- DECLARE_UVERBS_GLOBAL_METHODS(UVERBS_OBJECT_DEVICE,
- 			      &UVERBS_METHOD(UVERBS_METHOD_GET_CONTEXT),
- 			      &UVERBS_METHOD(UVERBS_METHOD_INVOKE_WRITE),
-@@ -600,7 +670,8 @@ DECLARE_UVERBS_GLOBAL_METHODS(UVERBS_OBJECT_DEVICE,
- 			      &UVERBS_METHOD(UVERBS_METHOD_QUERY_CONTEXT),
- 			      &UVERBS_METHOD(UVERBS_METHOD_QUERY_GID_TABLE),
- 			      &UVERBS_METHOD(UVERBS_METHOD_QUERY_GID_ENTRY),
--			      &UVERBS_METHOD(UVERBS_METHOD_QUERY_COMP_CNTR_CAPS));
-+			      &UVERBS_METHOD(UVERBS_METHOD_QUERY_COMP_CNTR_CAPS),
-+			      &UVERBS_METHOD(UVERBS_METHOD_QUERY_QP_SEMANTICS));
+ DECLARE_UVERBS_NAMED_METHOD_DESTROY(
+ 	UVERBS_METHOD_AH_DESTROY,
+ 	UVERBS_ATTR_IDR(UVERBS_ATTR_DESTROY_AH_HANDLE,
+@@ -193,7 +260,8 @@ DECLARE_UVERBS_NAMED_METHOD_DESTROY(
  
- const struct uapi_definition uverbs_def_obj_device[] = {
- 	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(UVERBS_OBJECT_DEVICE),
+ DECLARE_UVERBS_NAMED_OBJECT(UVERBS_OBJECT_AH,
+ 			    UVERBS_TYPE_ALLOC_IDR(uverbs_free_ah),
+-			    &UVERBS_METHOD(UVERBS_METHOD_AH_DESTROY));
++			    &UVERBS_METHOD(UVERBS_METHOD_AH_DESTROY),
++			    &UVERBS_METHOD(UVERBS_METHOD_AH_EX_CREATE));
+ 
+ DECLARE_UVERBS_NAMED_METHOD_DESTROY(
+ 	UVERBS_METHOD_FLOW_DESTROY,
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 1299125752d8..2d04ffd13ad3 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -561,24 +561,23 @@ rdma_update_sgid_attr(struct rdma_ah_attr *ah_attr,
+ }
+ 
+ static struct ib_ah *_rdma_create_ah(struct ib_pd *pd,
+-				     struct rdma_ah_attr *ah_attr,
+-				     u32 flags,
+-				     struct ib_udata *udata,
+-				     struct net_device *xmit_slave)
++				     struct rdma_ah_init_attr *init_attr,
++				     struct ib_udata *udata)
+ {
+-	struct rdma_ah_init_attr init_attr = {};
++	struct rdma_ah_attr *ah_attr = init_attr->ah_attr;
+ 	struct ib_device *device = pd->device;
+ 	struct ib_ah *ah;
+ 	int ret;
+ 
+-	might_sleep_if(flags & RDMA_CREATE_AH_SLEEPABLE);
++	might_sleep_if(init_attr->flags & RDMA_CREATE_AH_SLEEPABLE);
+ 
+ 	if (!udata && !device->ops.create_ah)
+ 		return ERR_PTR(-EOPNOTSUPP);
+ 
+ 	ah = rdma_zalloc_drv_obj_gfp(
+ 		device, ib_ah,
+-		(flags & RDMA_CREATE_AH_SLEEPABLE) ? GFP_KERNEL : GFP_ATOMIC);
++		(init_attr->flags & RDMA_CREATE_AH_SLEEPABLE) ? GFP_KERNEL :
++								GFP_ATOMIC);
+ 	if (!ah)
+ 		return ERR_PTR(-ENOMEM);
+ 
+@@ -586,14 +585,12 @@ static struct ib_ah *_rdma_create_ah(struct ib_pd *pd,
+ 	ah->pd = pd;
+ 	ah->type = ah_attr->type;
+ 	ah->sgid_attr = rdma_update_sgid_attr(ah_attr, NULL);
+-	init_attr.ah_attr = ah_attr;
+-	init_attr.flags = flags;
+-	init_attr.xmit_slave = xmit_slave;
+ 
+ 	if (udata)
+-		ret = device->ops.create_user_ah(ah, &init_attr, udata);
++		ret = device->ops.create_user_ah(ah, init_attr, udata);
+ 	else
+-		ret = device->ops.create_ah(ah, &init_attr, NULL);
++		ret = device->ops.create_ah(ah, init_attr, NULL);
++
+ 	if (ret) {
+ 		if (ah->sgid_attr)
+ 			rdma_put_gid_attr(ah->sgid_attr);
+@@ -619,6 +616,7 @@ static struct ib_ah *_rdma_create_ah(struct ib_pd *pd,
+ struct ib_ah *rdma_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
+ 			     u32 flags)
+ {
++	struct rdma_ah_init_attr init_attr = {};
+ 	const struct ib_gid_attr *old_sgid_attr;
+ 	struct net_device *slave;
+ 	struct ib_ah *ah;
+@@ -634,7 +632,12 @@ struct ib_ah *rdma_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
+ 		rdma_unfill_sgid_attr(ah_attr, old_sgid_attr);
+ 		return ERR_CAST(slave);
+ 	}
+-	ah = _rdma_create_ah(pd, ah_attr, flags, NULL, slave);
++
++	init_attr.ah_attr = ah_attr;
++	init_attr.flags = flags;
++	init_attr.xmit_slave = slave;
++
++	ah = _rdma_create_ah(pd, &init_attr, NULL);
+ 	rdma_lag_put_ah_roce_slave(slave);
+ 	rdma_unfill_sgid_attr(ah_attr, old_sgid_attr);
+ 	return ah;
+@@ -646,18 +649,21 @@ EXPORT_SYMBOL(rdma_create_ah);
+  * given address vector.
+  * It resolves destination mac address for ah attribute of RoCE type.
+  * @pd: The protection domain associated with the address handle.
+- * @ah_attr: The attributes of the address vector.
++ * @init_attr: The address vector, and for an extended handle the
++ *             attributes beyond it.
+  * @udata: pointer to user's input output buffer information need by
+  *         provider driver.
+  *
+- * It returns 0 on success and returns appropriate error code on error.
+  * The address handle is used to reference a local or global destination
+  * in all UD QP post sends.
++ *
++ * Return: the address handle, or an ERR_PTR on error.
+  */
+ struct ib_ah *rdma_create_user_ah(struct ib_pd *pd,
+-				  struct rdma_ah_attr *ah_attr,
++				  struct rdma_ah_init_attr *init_attr,
+ 				  struct ib_udata *udata)
+ {
++	struct rdma_ah_attr *ah_attr = init_attr->ah_attr;
+ 	const struct ib_gid_attr *old_sgid_attr;
+ 	struct ib_ah *ah;
+ 	int err;
+@@ -674,8 +680,9 @@ struct ib_ah *rdma_create_user_ah(struct ib_pd *pd,
+ 		}
+ 	}
+ 
+-	ah = _rdma_create_ah(pd, ah_attr, RDMA_CREATE_AH_SLEEPABLE,
+-			     udata, NULL);
++	init_attr->flags |= RDMA_CREATE_AH_SLEEPABLE;
++
++	ah = _rdma_create_ah(pd, init_attr, udata);
+ 
+ out:
+ 	rdma_unfill_sgid_attr(ah_attr, old_sgid_attr);
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 68f7a271cf7a..003b70424429 100644
+index 8d74ed4fc581..68f7a271cf7a 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -2496,6 +2496,18 @@ struct ib_counters {
- 	atomic_t	usecnt;
+@@ -974,10 +974,14 @@ struct ib_mr_status {
+  */
+ __attribute_const__ enum ib_rate mult_to_ib_rate(int mult);
+ 
++struct rdma_ah_attr_ex;
++
+ struct rdma_ah_init_attr {
+ 	struct rdma_ah_attr *ah_attr;
+ 	u32 flags;
+ 	struct net_device *xmit_slave;
++	/* set to name a peer by both transport+network addresses */
++	struct rdma_ah_attr_ex *ah_attr_ex;
  };
  
-+/* what a queue pair of a given type guarantees (query_qp_semantics) */
-+struct ib_qp_semantics {
-+	u32	comp_mask;		/* enum ib_uverbs_qp_semantics_mask */
-+	u32	msg_order;		/* enum ib_uverbs_qp_msg_order */
-+	u32	max_rdma_raw_size;
-+	u32	max_rdma_war_size;
-+	u32	max_rdma_waw_size;
-+	u32	max_pdu;
-+	u32	usage_flags;		/* enum ib_uverbs_qp_usage_flags */
-+	u8	imm_data_size;		/* bits */
+ enum rdma_ah_attr_type {
+@@ -1016,6 +1020,11 @@ struct rdma_ah_attr {
+ 	};
+ };
+ 
++struct rdma_ah_attr_ex {
++	struct rdma_ah_attr	ah_attr;
++	u32			remote_qpn;
 +};
 +
- struct ib_counters_read_attr {
- 	u64	*counters_buff;
- 	u32	ncounters;
-@@ -2751,6 +2763,9 @@ struct ib_device_ops {
- 				       int mr_access_flags, struct ib_pd *pd,
- 				       struct ib_udata *udata);
- 	int (*dereg_mr)(struct ib_mr *mr, struct ib_udata *udata);
-+	int (*query_qp_semantics)(struct ib_device *device,
-+				  enum ib_qp_type qp_type,
-+				  struct ib_qp_semantics *sem);
- 	struct ib_mr *(*alloc_mr)(struct ib_pd *pd, enum ib_mr_type mr_type,
- 				  u32 max_num_sg);
- 	struct ib_mr *(*alloc_mr_integrity)(struct ib_pd *pd,
+ enum ib_wc_status {
+ 	IB_WC_SUCCESS,
+ 	IB_WC_LOC_LEN_ERR,
+@@ -3893,16 +3902,18 @@ struct ib_ah *rdma_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
+  * rdma_create_user_ah - Creates an address handle for the given address vector.
+  * It resolves destination mac address for ah attribute of RoCE type.
+  * @pd: The protection domain associated with the address handle.
+- * @ah_attr: The attributes of the address vector.
++ * @init_attr: The address vector, and for an extended handle the
++ *             attributes beyond it.
+  * @udata: pointer to user's input output buffer information need by
+  *         provider driver.
+  *
+- * It returns 0 on success and returns appropriate error code on error.
+  * The address handle is used to reference a local or global destination
+  * in all UD QP post sends.
++ *
++ * Return: the address handle, or an ERR_PTR on error.
+  */
+ struct ib_ah *rdma_create_user_ah(struct ib_pd *pd,
+-				  struct rdma_ah_attr *ah_attr,
++				  struct rdma_ah_init_attr *init_attr,
+ 				  struct ib_udata *udata);
+ /**
+  * ib_get_gids_from_rdma_hdr - Get sgid and dgid from GRH or IPv4 header
+@@ -4981,7 +4992,8 @@ static inline struct ib_global_route
+ 	return &attr->grh;
+ }
+ 
+-static inline void rdma_ah_set_dgid_raw(struct rdma_ah_attr *attr, void *dgid)
++static inline void rdma_ah_set_dgid_raw(struct rdma_ah_attr *attr,
++					const void *dgid)
+ {
+ 	struct ib_global_route *grh = rdma_ah_retrieve_grh(attr);
+ 
 diff --git a/include/uapi/rdma/ib_user_ioctl_cmds.h b/include/uapi/rdma/ib_user_ioctl_cmds.h
-index 40fcd4bd1b5e..fb746257eb2c 100644
+index 816b3107464f..40fcd4bd1b5e 100644
 --- a/include/uapi/rdma/ib_user_ioctl_cmds.h
 +++ b/include/uapi/rdma/ib_user_ioctl_cmds.h
-@@ -77,6 +77,12 @@ enum uverbs_methods_device {
- 	UVERBS_METHOD_QUERY_GID_ENTRY,
- 	UVERBS_METHOD_QUERY_PORT_SPEED,
- 	UVERBS_METHOD_QUERY_COMP_CNTR_CAPS,
-+	UVERBS_METHOD_QUERY_QP_SEMANTICS,
+@@ -410,6 +410,13 @@ enum uverbs_attrs_xrcd_destroy_ids {
+ 
+ enum uverbs_methods_ah {
+ 	UVERBS_METHOD_AH_DESTROY,
++	UVERBS_METHOD_AH_EX_CREATE,
 +};
 +
-+enum uverbs_attrs_query_qp_semantics_attr_ids {
-+	UVERBS_ATTR_QUERY_QP_SEMANTICS_QP_TYPE,
-+	UVERBS_ATTR_QUERY_QP_SEMANTICS_RESP,
++enum uverbs_attrs_create_ah_ex_cmd_attr_ids {
++	UVERBS_ATTR_CREATE_AH_EX_HANDLE,
++	UVERBS_ATTR_CREATE_AH_EX_PD_HANDLE,
++	UVERBS_ATTR_CREATE_AH_EX_AH_ATTR_EX,
  };
  
- enum uverbs_attrs_invoke_write_cmd_attr_ids {
+ enum uverbs_attrs_ah_destroy_ids {
 diff --git a/include/uapi/rdma/ib_user_ioctl_verbs.h b/include/uapi/rdma/ib_user_ioctl_verbs.h
-index 210f3f945bd7..3d05a6c7ca8f 100644
+index b6d46115f799..210f3f945bd7 100644
 --- a/include/uapi/rdma/ib_user_ioctl_verbs.h
 +++ b/include/uapi/rdma/ib_user_ioctl_verbs.h
-@@ -318,6 +318,50 @@ struct ib_uverbs_buffer_desc {
+@@ -318,6 +318,15 @@ struct ib_uverbs_buffer_desc {
  #define IB_UVERBS_QPN_UET_RESERVED_MASK		0x7f000000
  #define IB_UVERBS_QPN_UET_ABSOLUTE_ADDR_BIT	0x80000000
  
-+enum ib_uverbs_qp_semantics_mask {
-+	IB_UVERBS_QP_SEMANTICS_MASK_MSG_ORDER	= 1 << 0,
-+	IB_UVERBS_QP_SEMANTICS_MASK_RAW		= 1 << 1,
-+	IB_UVERBS_QP_SEMANTICS_MASK_WAR		= 1 << 2,
-+	IB_UVERBS_QP_SEMANTICS_MASK_WAW		= 1 << 3,
-+	IB_UVERBS_QP_SEMANTICS_MASK_PDU		= 1 << 4,
-+	IB_UVERBS_QP_SEMANTICS_MASK_IMM		= 1 << 5,
-+	IB_UVERBS_QP_SEMANTICS_MASK_USAGE	= 1 << 6,
-+};
-+
-+/* Ordering guarantees between operations on one QP. "X after Y" means an
-+ * X may not pass a Y posted before it. A bit that is clear means the pair
-+ * does not order that combination, and an application that needs it must
-+ * wait for the earlier completion.
++/* An address handle that names a peer using both transport+network addresses.
++ * Used for reliable unconnected QPs in both work request address handles and
++ * a Job address table.
 + */
-+enum ib_uverbs_qp_msg_order {
-+	/* atomic after atomic */
-+	IB_UVERBS_QP_ORDER_ATOMIC_RAR	= 1 << 0,
-+	IB_UVERBS_QP_ORDER_ATOMIC_RAW	= 1 << 1,
-+	IB_UVERBS_QP_ORDER_ATOMIC_WAR	= 1 << 2,
-+	IB_UVERBS_QP_ORDER_ATOMIC_WAW	= 1 << 3,
-+	/* rma after rma */
-+	IB_UVERBS_QP_ORDER_RDMA_RAR	= 1 << 4,
-+	IB_UVERBS_QP_ORDER_RDMA_RAW	= 1 << 5,
-+	IB_UVERBS_QP_ORDER_RDMA_WAR	= 1 << 6,
-+	IB_UVERBS_QP_ORDER_RDMA_WAW	= 1 << 7,
-+	/* send against atomic and rma */
-+	IB_UVERBS_QP_ORDER_RAS		= 1 << 8,
-+	IB_UVERBS_QP_ORDER_SAR		= 1 << 9,
-+	IB_UVERBS_QP_ORDER_SAS		= 1 << 10,
-+	IB_UVERBS_QP_ORDER_SAW		= 1 << 11,
-+	IB_UVERBS_QP_ORDER_WAS		= 1 << 12,
-+	/* rma and atomic, either kind, against each other */
-+	IB_UVERBS_QP_ORDER_RAR		= 1 << 13,
-+	IB_UVERBS_QP_ORDER_RAW		= 1 << 14,
-+	IB_UVERBS_QP_ORDER_WAR		= 1 << 15,
-+	IB_UVERBS_QP_ORDER_WAW		= 1 << 16,
-+};
-+
-+enum ib_uverbs_qp_usage_flags {
-+	/* immediate data consumes a posted receive */
-+	IB_UVERBS_QP_USAGE_IMM_DATA_RQ	= 1 << 0,
-+};
-+
- /* An address handle that names a peer using both transport+network addresses.
-  * Used for reliable unconnected QPs in both work request address handles and
-  * a Job address table.
-@@ -327,6 +371,25 @@ struct ib_uverbs_ah_attr_ex {
- 	__u32 remote_qpn;
- };
- 
-+struct ib_uverbs_qp_semantics {
-+	__u32 comp_mask;		/* enum ib_uverbs_qp_semantics_mask */
-+	__u32 msg_order;		/* enum ib_uverbs_qp_msg_order */
-+	/*
-+	 * Data ordering: the largest transfer, in bytes, for which the target
-+	 * memory reflects the order of the pair under its RDMA_ and plain
-+	 * msg_order bits. 0 if not provided, and those bits are then clear.
-+	 * There is no read-after-read size, as two reads leave memory
-+	 * unchanged.
-+	 */
-+	__u32 max_rdma_raw_size;	/* read after write */
-+	__u32 max_rdma_war_size;	/* write after read */
-+	__u32 max_rdma_waw_size;	/* write after write */
-+	__u32 max_pdu;			/* largest packet, bytes */
-+	__u32 usage_flags;		/* enum ib_uverbs_qp_usage_flags */
-+	__u8  imm_data_size;		/* widest immediate, in bits */
-+	__u8  reserved[3];
++struct ib_uverbs_ah_attr_ex {
++	struct ib_uverbs_ah_attr ah_attr;
++	__u32 remote_qpn;
 +};
 +
  enum ib_uverbs_comp_cntr_entry {
