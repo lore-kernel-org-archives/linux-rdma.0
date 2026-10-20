@@ -1,101 +1,44 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.201.65
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1792478113;
-	b=H8JqQ/ELIRJnJlsPbwcmjrUjOkVaX4psRDuDPmkytpJyMgFhfg+RrL8ohnCU/oHL2+5c
-	 HsRzrD124A2oVAVIMcUGTaelzi13dKTdiUv2CYIcuMksF/v36Y/MJZtgDuKPpSJWL24m9
-	 Kh4B9hpbZ2dIoRh5v3Nv7NhH0LblOdISYdCpmV/ZBPrlvNxsqsy06u/pEeEBlMeBYtEa1
-	 ORT0k/dM0eTl25IcJkEl8Yu7ROnbrfeHCaAC0OiMvq0kLjNMey0R1MKOvQwrOENlHrRYk
-	 0u2HZz5Wf8TDkLsMGLYOhEa3F3TB1N8jbVRduiEyN+PIdTsPgRwKdOe4WRww1SIWSfQ==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792478113;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
-	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding:X-ClientProxiedBy:MIME-Version:
-	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
-	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
-	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
-	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
-	 X-MS-Exchange-CrossTenant-UserPrincipalName:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=AuQRKovlQQMN0wjdkOq5tJ5j5EGeFsv4vCHPbAr2Ydc=;
-	b=AeLgCUD+90U603YWW/AJAF13C3hjSNJV43AxsXcuY0DglcIyugbTnN6NnMuvaRKXIDcI
-	 u6E9g8bzAZER/AsR7sXT3p71dzdNPOSIsmk4aRu53sOTdXVHNlEoSTV1pb3Bp49eq4P0R
-	 Bm4VtpVrpCdd15AMbuSBfit1PHLFxWjq6saMX0+yKdlQBDE/oYswHSaYpSnsLH8gZ5IyZ
-	 ByRZR7qlGcYGVXfjiHqzfdby/gIF7JST7MuZFrM2pMNoAAB51pecpTcols3VOfrVBRakt
-	 nbooMNh5lMGYkGYoK1j4bPUc8F/J5aZOChIy47wyL9no0YwKRyfrELbwDy6xq0YhH/w==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=nvidia.com;
-	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b="e+uj32L/";
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.201.65
-Received: from CH4PR04CU002.outbound.protection.outlook.com (mail-northcentralusazon11013065.outbound.protection.outlook.com [40.107.201.65])
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1792479554;
+	b=wP1fr5n+lqJf+H+04raSeKFj0fT92Kvaa7596bf+zXqPNHn4/hEMxA7OLLQRfM7hhrUA
+	 UKI8OCeTQkckXL3sBszRukSzSxuuS/lN5N5KY6ue9xcDVB89chmGIeljnvGG1rsLr84CS
+	 QEeugu+6wzrcPmOFr+aQXOZRhPr8fbf4tLFRjLYrWHtSQgC9t5xSZS+ZwThY3cUkvk4Tb
+	 bcB75LLWIChYBAq8ZxMiasW3p78FAOEdsqd+yJkljWBgbBljC3Td9jzjIxLDTojMC48yW
+	 J8FAk3FEpTqCl8XW/7mT6b8RhmZoOYWV9sRegLYduMi00CWKMtkHkgJNMegVi7NFaZA==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792479554;
+	h=Received:Message-ID:From:Subject:Reply-To:To:Cc:In-Reply-To:
+	 References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=QuEsDR7RHYH3nA6kHKamgCn2oIruoqZ330sAtiBO7VY=;
+	b=ia5Tv5c84/0/i2pf9rnjdnh1RKBF18tetJzUI0cgvOEmPP4HcUEiiPCuKrsdqfXh+IqR
+	 gyhpZ8utJMIM2cRe5bJNaP/JMf+EPHCOpcf6z2MIkty98hfNaSTDRk3/aaIIdQo8gLU1Q
+	 fLuhAHbqvDyGBuyuTgpoF/WoG7Pjvnv1p/6m1weloMUadiVYqswMcZ+DLM7wQN9+gKWUE
+	 An+53pNiPxUAol42TikbhMabknERpcWZ2Yj+Ec6yTOhM5G1xePixELF/+KJUhKy9LUAe5
+	 NFTGp5Y4IPOwaYAhvTBossUWDNQ5l3FjmZYFxdUfs7wUHxo8EFo3Bp89NU0ifoyTojA==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86E5B606A31D;
-	Tue, 20 Oct 2026 06:35:12 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 86E5B606A31D
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=e+uj32L/
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=j5QKPLip81LmB2Cd17SVu3nBTm3SRDsruCrxnJOP52F2HBfeC9ln+jGqR55pKdkWuP6gbzb3+6ojY94NZYYazhkZxR1+2gU7CDG2znoZ43IfRwNN732sj6WG0zMWyFA+twZc7/uDbLfqPsb8qrdWlIOWZsD6HqQU43DrTKhp2XESxuxB3kJp084JVG48g6vMr0/G8gyWnMGi70cGEPSwJh02uvxAMQYjhXI56G3/PyeDhVSEFsjVcIgUUK2Et6xZ9eYKkafd38vgCvAh47NDgzEOjuKSrEEf2NOd8OLjhzvbnNnQ2V03n2ZQ4ohc6Tbt0p6Bnqx93iYLiw+DRfiOiA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=AuQRKovlQQMN0wjdkOq5tJ5j5EGeFsv4vCHPbAr2Ydc=;
- b=LHhICDL0lJMx8sXf0OMCL6LOTItotavULgAamRxH7itY6MN/HM4GwxlqPgp3d24RmKnWr5QCKhYI2w7uTr7eRcfRtGazdG/BtpcaTmmOi3Py4EBr1jzesJ8Op2mgQLv+QWc5BhJ9br8mVqRcoCuou8C4KxK7OPVnHXkAbKGMitTidv6rXSNKWmoJzCOrXGSQqTVKD2ZLLR33PYjzyfnX/Z+NoOd/z9YTV8zYAhR3mEw+lxfCb0G1w1HESXZOSV1vmB+uu43+/oWYqkEpn8BKrbP3mspZz46JToeS9lWiwBcx9cTPGL+qFX+pHp3n1KEVzWQtfHs/0xGF/EDVuOiUVw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=AuQRKovlQQMN0wjdkOq5tJ5j5EGeFsv4vCHPbAr2Ydc=;
- b=e+uj32L/41h23FRHvMdhcLvsO+fQgbdY4HpBsIJs5hicI+VvTlt8K1Xj2D6McjJ2SW86y4zgKYZ5TChGi5STDlK7vAsn+oY31jWytJ96yFKYZb1zEtbGFDv/HxdfWoDYMwk7xKXxi5X2rKnxSLBph+H5S9er980sVasLdEZ0lDVLbpmW/SIEl67eZs7sIJzUxk5L/cENaViY76XnQ4uXN99KisHW1QWG5iaJqHFg9Tbi+XcA/gy8RThcNtjzXzg4Zyam531aiIqzvVcAoM+Y1hgOcYzATq4IkKP9fia1qiSTS2uh2SJFpNWB179glfo/qKDbflTCXhJniXSYB//K0g==
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from IA4PR12MB932075.namprd12.prod.outlook.com
- (2603:10b6:207:12d::15) by MW4PR12MB7189.namprd12.prod.outlook.com
- (2603:10b6:303:224::20) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.522.19; Tue, 20 Oct
- 2026 06:35:08 +0000
-Received: from IA4PR12MB932075.namprd12.prod.outlook.com
- ([fe80::5a6f:1f74:6ccb:cf2f]) by IA4PR12MB932075.namprd12.prod.outlook.com
- ([fe80::5a6f:1f74:6ccb:cf2f%5]) with mapi id 15.21.0546.012; Tue, 20 Oct 2026
- 06:35:08 +0000
-Message-ID: <84200f4f-6d39-4941-95fb-675bc8d8ae83@nvidia.com>
-Date: Tue, 20 Oct 2026 09:35:03 +0300
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next v1 0/4] net/mlx5: Don't free CQs whose destroy
- failed
-To: Leon Romanovsky <leon@kernel.org>, Yuho Choi <oss.patchbox@gmail.com>
-Cc: Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>,
- Mark Bloch <mbloch@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Ariel Levkovich <lariel@nvidia.com>, Jianbo Liu <jianbol@nvidia.com>,
- Alex Vesker <valex@nvidia.com>, Yevgeny Kliteynik <kliteyn@nvidia.com>,
- Itamar Gozlan <igozlan@nvidia.com>, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20261016045849.813696-6-oss.patchbox@gmail.com>
- <20261018125520.GE64621@unreal>
-Content-Language: en-US
-From: Tariq Toukan <tariqt@nvidia.com>
-In-Reply-To: <20261018125520.GE64621@unreal>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: TL0P290CA0012.ISRP290.PROD.OUTLOOK.COM
- (2603:1096:950:5::12) To IA4PR12MB932075.namprd12.prod.outlook.com
- (2603:10b6:207:12d::15)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 257A7606A33A;
+	Tue, 20 Oct 2026 06:59:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C2B81F000C4;
+	Tue, 20 Oct 2026 06:59:13 +0000 (UTC)
+Message-ID: <sashiko-outbox-178444@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH iwl-net 1/3] ice: avoid RTNL deadlock when notifying the
+ RDMA auxiliary driver
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Petr Oros" <poros@redhat.com>
+Cc: linux-rdma@vger.kernel.org, intel-wired-lan@lists.osuosl.org, linux-rt-devel@lists.linux.dev, linux-kernel@vger.kernel.org
+In-Reply-To: <20261019065301.3983537-2-poros@redhat.com>
+References: <20261019065301.3983537-1-poros@redhat.com>
+ <20261019065301.3983537-2-poros@redhat.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Tue, 20 Oct 2026 06:58:42 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -104,100 +47,261 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: IA4PR12MB932075:EE_|MW4PR12MB7189:EE_
-X-MS-Office365-Filtering-Correlation-Id: 9d6b0259-6012-4914-bd1c-08df2e7448bd
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|7416014|376014|23010399003|366016|1800799024|10067099003|56012099006|22082099003|18002099003|11063799006|4143699003;
-X-Microsoft-Antispam-Message-Info:
-	282Eybf09eLgYFIAzmKWeaOKlUPo7FHR37phvT5NVYz6J8mn248zBP5v7y+AXytSzn5kSaQqeLk24l43B6JjsH3xVbdItK1OrvBczuOX88mO67wWTfPIR2rIeVFeXz/zW55OzxCt78cJZRg+cCwNYfi3RRMeAqzywOTP8fwQjAzf5HuFeVtGg53a8SvDztsLDn5yTLK4VK/iOxOeT4X1vw9flEuApldWYrif0QomQ2iVjC/nsZUskydVBooNgSGd1ynNF6BoE9s2kDjvIdCNbAgWBDVwuOg7ooX50E/ekJPwvf2VZQp1hOMPpoJIYj7osSAkXXpf21FC+kezg05AaOfxoo460TOfGn0IhHhI2NBCNmnhLjilBvd50UC33irZv8rWdMGLJsxKEg+IIQEqFaFjv6rgQRpFioOswCwyxKdgDZ2kXu5vZkLFtFCgTc5AW3SRhFzwsKdSPVst3iBZiMgIBEV3U4A1mPGR8TKXU4jNiDJUq3HjRwOjdTXI0CI5kOjh/YjgICokW7qK48UzJG+CgY9MO2gT4IYXCjPg+KhWbS5ZmcexoERYSjDk8qliUkvu/vdOnnogqiaA5tt1RJnPm3oNdnkOwviIZRzVrFDk8NGGANTS9YBp+E6n7EdAocagtBZcy7Ba5YfYO8UtuUOUXcZ9TQeu2yoi1JhkrT0=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:IA4PR12MB932075.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(23010399003)(366016)(1800799024)(10067099003)(56012099006)(22082099003)(18002099003)(11063799006)(4143699003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?M2k3ZnBkMHlmWGJZTEZwZXRyRjZRclNkN2pwUWZ6aFZMSG9YMnJ0UXEwNlB6?=
- =?utf-8?B?TUJkYy9aUktpSVFyYmJSWklwc1ZubHpUa056Q1dsck0xZEJDZ09UWHIxZGNo?=
- =?utf-8?B?NzFyeFRXeWwxaVozQjBMcDNrZ2hnemVVcEE0N1FwUUVucDdBeFlQcGgySCtS?=
- =?utf-8?B?WWVvYUE5QzdKWnRYSUI4MDQxaCtQSHpCcXFqREFtOTMrTU1pUXk0bUFVOUI1?=
- =?utf-8?B?RWl0WVZtdFJaUTJ2OWl2VDZjSXNobGpSWUY1dVhXVjRBWnp3UnVyL20rRnBp?=
- =?utf-8?B?eTBodEsxWXZybFBHZmxWYU42aDdkYXBGdW80djdVU0NTT2xkcE14ZWdGNmJv?=
- =?utf-8?B?VUxCRSt1SjAraW1UeXdQSk5Fb0dGZnVhTXZsdExtcUlQL1VkUHM0dExqY3Iw?=
- =?utf-8?B?TVBDa0oxVi92Tzc1eVkxNktRNGdISTFXd0d5TEtYNXJjb0IwZXlscEFlT2Jy?=
- =?utf-8?B?Sm1KaDhvSkFROVM3eTJnbGF5MEZVZ29NT0V5WHVRZEdWYnRvUUQ2UEd6cU9T?=
- =?utf-8?B?R01tMjNVUmJQTk5uM2g2NHcvTEJmM2Q4Sk9nYkFvL1VXVEo1bVZOc29Qc25q?=
- =?utf-8?B?YzMvU1l5TDJMR2FqcHhKNnRKdHVpMEJqNDBqa3BHOWxHMlRUdEVNSi82SFhW?=
- =?utf-8?B?VVJOTDAxY2pUQjEzekZ2RUplVE5GOGpRb2VIU2hMWE0yYzVaTCs0YVl4Sitz?=
- =?utf-8?B?eVBOQmVMclN2U0Rydi8zYW81MzRrbExxR296TURsTnZiV2tnelNFYzBUM3VM?=
- =?utf-8?B?bzhTYU9nU0hyTmtpcHljazMydlg3YStwN0gwQzZIMEcwVkZhVDNHWDFQVHBQ?=
- =?utf-8?B?TGtsTHRTLzBObFEwb1NYUGdtNUh5RXB2OHMvZldXREp0MGFVRzRRZWhMaWVQ?=
- =?utf-8?B?V2lNOGdzVFZwd3ZLWVRuWFNicE51OC9JN2FSTTNVUDNtZjZNRlkvY0JMNU9r?=
- =?utf-8?B?NHNuUjhsQjNMT080aWNmSy9wdk9KemQzOGdBOXBydVExamp5UnV3NnBPb2V1?=
- =?utf-8?B?NGtrcm82Uml1MFk2dnBKZG1JQ0ZrS09kSVA2cU1LdDFVWUtkbWREMEFVeUZl?=
- =?utf-8?B?emVkUXVwcDU3RitZNFNnd3B3Rng4bjlibVNsYWV4RHgwbkE3b0NJLzY0akta?=
- =?utf-8?B?aDhoSGU0RUZiUVpvZVF5aGZnb0JkMXFlcWIzb1FSY1RNc0dPdWpVaTRtNmRq?=
- =?utf-8?B?Mm5pRTJRYUI1SXRZTHVCMDR5Wkc3M1dDdmg1VGRXYUdmQUdGd0JsVFlkQjhW?=
- =?utf-8?B?MnJKWGRMUFdpTjVmVlB2L3pQYVcxekE2eG9COTJqNUUyMGNjZ2FRS3Q5VnZp?=
- =?utf-8?B?aXl0alo5SG54d2JDNjZlNS9OSzdacFJOTGdGYmp4aWY5SFdhcjlhZ0FnZkN2?=
- =?utf-8?B?UTJsWGRVQStYM0lKUVhlQVNlSjV6WDhrSzdJMU9jb2lDTndrSytBdFFlWDk5?=
- =?utf-8?B?eEFmYTdqUFJVWVZWT2ZoRnR4bE8rOSttM0ZqbUtpVVFzUmpIOUFvVW9nSTlP?=
- =?utf-8?B?RVFpTEw3NDJyQWY0T0FxcFNNd0NLUklUYk01Qnl4NzZwYU15dzllcDFJRXJq?=
- =?utf-8?B?S04xSzBHaHNEWW8xZXZDb25ZSVZzRzhnWWVXT0YvSGxVUThWTlVIdmlJdXdP?=
- =?utf-8?B?VEVTWHBaZ2dBZlA3RWt2b3g4L3VqeG56SE4wUGQ1eVl2MWpPZzdDSnF2Tnd5?=
- =?utf-8?B?R09hRzAxOVBQZG1pZGdMWTJhTitvM1gvVkI2S3ZIY2trZDU2am9UVjdISzZG?=
- =?utf-8?B?NGgvRjB1TlVXc2lEUXd1Ylo3NXlaZWRIYlFlSEhEMzIrd3Zuem9TNE82dm1z?=
- =?utf-8?B?WC9aTGkzTEFVY01JWlJPR3JBRTRPOTQ2bTZWMVM0M25LZEZ5QzJKU01pamRB?=
- =?utf-8?B?S1VnOUJjTVJCdE5HM2djRklQajlJNmtMWHQ3MElPYWFrQkF0bHhVWnVKbkJy?=
- =?utf-8?B?bDNnbXc5d1RsT3hQQmxUSnl1Rk5nZjR6WDhyMzJUUWl5RU9kRHl5WDZoNWE2?=
- =?utf-8?B?MEpYekprNnNlaWw2bndnMDRsQkJiL0xCcDI0VjZGUmpmRE1BNXdkOFBMU3NE?=
- =?utf-8?B?MThIcktIbVNmZ01jWFc2OVpQUXpVamtua1V2RU42aGdwdjBHSGcyR2NXbFAv?=
- =?utf-8?B?bVBCUTBuQWJmYjU2b0tHSUIvL2ZPSHpYZmlxYmVVazhZRUoyWUlsdmNpREZQ?=
- =?utf-8?B?RTFKMTVnRUNPQXk5T3VsL1c3SUhQemtoM0I3bThCV0VPQVhBU2xaRDBzRUdI?=
- =?utf-8?B?WlVKUkE2Z0xDLzJNVmd5cnpwNEgwN0dwZEpNc2JIYUptbjVmK1ZSeDhjN1cr?=
- =?utf-8?B?cnhrRnd6TXVkMjU3THM0UWJZZU11SlBocTFnLytMdUp5ZU9mZDhpQT09?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 9d6b0259-6012-4914-bd1c-08df2e7448bd
-X-MS-Exchange-CrossTenant-AuthSource: IA4PR12MB932075.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Oct 2026 06:35:08.2299
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: SDivNgP0yKjZhbfxyMnc+OMGPufFLCQDHbvkSA9/vItjbPIh0K8/ih542sEgb34YcW9eCB9r70kxt3JDyFE3kg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR12MB7189
 
+Thank you for your contribution! Sashiko AI review found 3 potential issue(=
+s) to consider:
+- [High] ice: dropping AFTER_TC_CHANGE in ice_send_event_to_aux() wedges RD=
+MA QPs
+- [High] ice: incomplete rollback on -EBUSY in ice_pf_dcb_cfg() and callers
+- [Medium] ice: unsynchronized oicr_err_reg RMW in ice_service_task() races=
+ with IRQ
+--
 
+commit a8b3bc9a99973600d50df0cc57d6ed5765f24c84
+Author: Petr Oros <poros@redhat.com>
 
-On 18/10/2026 15:55, Leon Romanovsky wrote:
-> On Fri, Oct 16, 2026 at 12:57:45AM -0400, Yuho Choi wrote:
->> mlx5_core_destroy_cq() can fail
-> 
-> No, it should not fail. If it does, the firmware is completely broken
-> or some other catastrophic bug.
-> 
->> nd when it does the CQ may still exist in firmware with access to its buffer and doorbell record. It
->> also returns early in that case, without waiting for EQ handlers that
->> may already hold a reference to the CQ. The four helpers in this series
->> ignore that error and free the CQ buffer anyway, while their teardown
->> paths also free the object that embeds the struct mlx5_core_cq.
->>
->> Keep the buffer and the object that embeds the CQ when DESTROY_CQ
->> fails, as the regular mlx5_ib CQ destroy path does. The HWS send ring
->> CQs are polled and never armed, so the HWS patch keeps only their
->> buffer rather than passing the error up through the queue open and
->> close paths.
->>
->> The issues were found with a static analysis tool from ongoing, not yet
->> published research, and confirmed by code inspection. None of them was
->> reproduced, so this targets net-next; I can resend for net if you
->> prefer.
-> 
-> Please drop this series. The flow is impossible in current HW implementation.
-> 
-> Thanks
+ice: avoid RTNL deadlock when notifying the RDMA auxiliary driver
 
-pw-bot: cr
+This commit switches ice_send_event_to_aux() from device_lock() to
+device_trylock() to avoid an ABBA deadlock between the auxiliary device
+lock and rtnl_lock during RDMA auxiliary device probing. When the lock is
+contended, ice_pf_dcb_cfg() aborts with -EBUSY before changing traffic
+classes, and ice_service_task() re-arms pending error and MTU change bits.
 
+> diff --git a/drivers/net/ethernet/intel/ice/ice_dcb_lib.c b/drivers/net/e=
+thernet/intel/ice/ice_dcb_lib.c
+> index 0bc6dd3756879..2022b46c990cb 100644
+> --- a/drivers/net/ethernet/intel/ice/ice_dcb_lib.c
+> +++ b/drivers/net/ethernet/intel/ice/ice_dcb_lib.c
+> @@ -355,8 +355,10 @@ int ice_pf_dcb_cfg(struct ice_pf *pf, struct ice_dcb=
+x_cfg *new_cfg, bool locked)
+>  	struct iidc_rdma_event *event;
+>  	int ret =3D ICE_DCB_NO_HW_CHG;
+>  	struct ice_vsi *pf_vsi;
+> +	bool dcb_ena;
+> =20
+>  	curr_cfg =3D &pf->hw.port_info->qos_cfg.local_dcbx_cfg;
+> +	dcb_ena =3D test_bit(ICE_FLAG_DCB_ENA, pf->flags);
+> =20
+>  	/* FW does not care if change happened */
+>  	if (!pf->hw.port_info->qos_cfg.is_sw_lldp)
+> @@ -406,7 +408,12 @@ int ice_pf_dcb_cfg(struct ice_pf *pf, struct ice_dcb=
+x_cfg *new_cfg, bool locked)
+>  	}
+> =20
+>  	set_bit(IIDC_RDMA_EVENT_BEFORE_TC_CHANGE, event->type);
+> -	ice_send_event_to_aux(pf, event);
+> +	if (!ice_send_event_to_aux(pf, event)) {
+> +		assign_bit(ICE_FLAG_DCB_ENA, pf->flags, dcb_ena);
+> +		kfree(event);
+> +		ret =3D -EBUSY;
+> +		goto free_cfg;
+> +	}
+
+[Severity: High]
+When ice_send_event_to_aux() returns false here, does aborting with -EBUSY
+leave earlier state changes in ice_pf_dcb_cfg() and its callers
+unreverted?
+
+Earlier in ice_pf_dcb_cfg(), when ice_dcb_get_num_tc(new_cfg) > 1, the
+devlink rate tree is torn down before reaching ice_send_event_to_aux():
+
+drivers/net/ethernet/intel/ice/ice_dcb_lib.c:ice_pf_dcb_cfg()
+	if (ice_dcb_get_num_tc(new_cfg) > 1) {
+		...
+		ice_tear_down_devlink_rate_tree(pf);
+
+		set_bit(ICE_FLAG_DCB_ENA, pf->flags);
+	}
+
+Taking the goto free_cfg path restores ICE_FLAG_DCB_ENA, but leaves the VF
+devlink rate tree destroyed.
+
+In addition, several callers mutate DCB state before calling
+ice_pf_dcb_cfg() and do not roll it back or propagate -EBUSY:
+
+1. In drivers/net/ethernet/intel/ice/ice_dcb_nl.c, ice_dcbnl_setapp()
+registers the app via dcb_ieee_setapp(), sets new_cfg->dscp_mapped,
+calls ice_aq_set_pfc_mode() to switch hardware to DSCP-based PFC, and
+appends to new_cfg->app[], then overwrites the -EBUSY return with
+ICE_DCB_NO_HW_CHG:
+
+	ret =3D ice_pf_dcb_cfg(pf, new_cfg, true);
+	/* return of zero indicates new cfg applied */
+	if (ret =3D=3D ICE_DCB_HW_CHG_RST)
+		ice_dcbnl_devreset(netdev);
+	else
+		ret =3D ICE_DCB_NO_HW_CHG;
+
+A subsequent retry of ice_dcbnl_setapp() for the same DSCP value will then
+fail with -EINVAL because test_and_set_bit(app->protocol,
+new_cfg->dscp_mapped) sees the bit already set. ice_dcbnl_cee_set_all()
+similarly masks -EBUSY with ICE_DCB_NO_HW_CHG.
+
+2. In drivers/net/ethernet/intel/ice/ice_dcb_lib.c, both
+ice_dcb_sw_dflt_cfg() and ice_dcb_init_cfg() zero
+pi->qos_cfg.local_dcbx_cfg with memset() before calling ice_pf_dcb_cfg().
+If ice_pf_dcb_cfg() aborts at goto free_cfg before memcpy(curr_cfg,
+new_cfg, ...), local_dcbx_cfg remains zeroed out while the hardware
+retains the previous configuration.
+
+3. In drivers/net/ethernet/intel/ice/ice_dcb_nl.c, ice_dcbnl_setets(),
+ice_dcbnl_setpfc(), and ice_dcbnl_delapp() modify
+pf->hw.port_info->qos_cfg.desired_dcbx_cfg in-place before calling
+ice_pf_dcb_cfg() without restoring it on failure.
+
+>  	kfree(event);
+> =20
+>  	/* avoid race conditions by holding the lock while disabling and
+> diff --git a/drivers/net/ethernet/intel/ice/ice_idc.c b/drivers/net/ether=
+net/intel/ice/ice_idc.c
+> index 102d63c3018b1..7fd35ce966ea6 100644
+> --- a/drivers/net/ethernet/intel/ice/ice_idc.c
+> +++ b/drivers/net/ethernet/intel/ice/ice_idc.c
+> @@ -34,30 +34,42 @@ ice_get_auxiliary_drv(struct iidc_rdma_core_dev_info =
+*cdev)
+>   * ice_send_event_to_aux - send event to RDMA AUX driver
+>   * @pf: pointer to PF struct
+>   * @event: event struct
+> + *
+> + * Return: false when the auxiliary device lock was contended.
+>   */
+> -void ice_send_event_to_aux(struct ice_pf *pf, struct iidc_rdma_event *ev=
+ent)
+> +bool ice_send_event_to_aux(struct ice_pf *pf, struct iidc_rdma_event *ev=
+ent)
+>  {
+>  	struct iidc_rdma_core_auxiliary_drv *iadrv;
+>  	struct iidc_rdma_core_dev_info *cdev;
+> +	bool sent =3D true;
+> =20
+>  	if (WARN_ON_ONCE(!in_task()))
+> -		return;
+> +		return true;
+> =20
+>  	cdev =3D pf->cdev_info;
+>  	if (!cdev)
+> -		return;
+> +		return true;
+> =20
+>  	mutex_lock(&pf->adev_mutex);
+>  	if (!cdev->adev)
+>  		goto finish;
+> =20
+> -	device_lock(&cdev->adev->dev);
+> +	if (!device_trylock(&cdev->adev->dev)) {
+> +		dev_dbg(ice_pf_to_dev(pf),
+> +			"auxiliary device busy, dropped RDMA event 0x%lx\n",
+> +			*event->type);
+> +		sent =3D false;
+> +		goto finish;
+> +	}
+
+[Severity: High]
+Can dropping IIDC_RDMA_EVENT_AFTER_TC_CHANGE here leave RDMA QPs
+permanently suspended or initialized with stale QoS parameters?
+
+In ice_pf_dcb_cfg(), IIDC_RDMA_EVENT_BEFORE_TC_CHANGE is delivered first,
+and ice_send_event_to_aux() immediately releases device_unlock(&cdev->adev-=
+>dev).
+In the RDMA auxiliary driver, icrdma_iidc_event_handler() handles
+BEFORE_TC_CHANGE by calling icrdma_prep_tc_change(), which sets
+iwdev->vsi.tc_change_pending =3D true, suspends all QPs via
+irdma_sc_suspend_resume_qps(&iwdev->vsi, IRDMA_OP_SUSPEND), and resets the
+work scheduler tree via irdma_ws_reset(&iwdev->vsi).
+
+After reconfiguring the VSI and hardware, ice_pf_dcb_cfg() calls
+ice_pf_dcb_recfg(), which sends IIDC_RDMA_EVENT_AFTER_TC_CHANGE and
+ignores the return value:
+
+drivers/net/ethernet/intel/ice/ice_dcb_lib.c:ice_pf_dcb_recfg()
+		set_bit(IIDC_RDMA_EVENT_AFTER_TC_CHANGE, event->type);
+		ice_send_event_to_aux(pf, event);
+		kfree(event);
+
+If cdev->adev->dev is contended when AFTER_TC_CHANGE is sent (for example,
+by a concurrent sysfs or driver-core operation taking device_lock() on
+cdev->adev->dev), ice_send_event_to_aux() drops the event. Because only
+the AFTER_TC_CHANGE path in icrdma_iidc_event_handler() ->
+irdma_change_l2params() clears vsi->tc_change_pending =3D false and calls
+irdma_sc_suspend_resume_qps(vsi, IRDMA_OP_RESUME):
+
+drivers/infiniband/hw/irdma/icrdma_if.c:icrdma_iidc_event_handler()
+	} else if (*event->type & BIT(IIDC_RDMA_EVENT_BEFORE_TC_CHANGE)) {
+		if (iwdev->vsi.tc_change_pending)
+			return;
+
+		icrdma_prep_tc_change(iwdev);
+	} else if (*event->type & BIT(IIDC_RDMA_EVENT_AFTER_TC_CHANGE)) {
+		...
+		if (!iwdev->vsi.tc_change_pending)
+			return;
+		...
+		irdma_change_l2params(&iwdev->vsi, &l2params);
+
+dropping AFTER_TC_CHANGE leaves iwdev->vsi.tc_change_pending stuck true,
+all existing QPs suspended, new QP work-scheduler additions rejected with
+-EBUSY in irdma_ws_add(), and later BEFORE_TC_CHANGE events returning
+early because tc_change_pending is already set.
+
+Similarly, if icrdma_probe() starts right after BEFORE_TC_CHANGE ran (when
+adev->dev.driver was still NULL) or concurrently with
+ice_dcb_process_lldp_set_mib_change() -> ice_pf_dcb_recfg(), icrdma_probe()
+can read idc_priv->qos_info before ice_setup_dcb_qos_info() updates it,
+block on rtnl_lock() in irdma_ib_register_device() while holding
+device_lock(&adev->dev), cause ice_pf_dcb_recfg() to drop AFTER_TC_CHANGE,
+and finish probing with stale TC/QoS parameters.
+
+[ ... ]
+
+> diff --git a/drivers/net/ethernet/intel/ice/ice_main.c b/drivers/net/ethe=
+rnet/intel/ice/ice_main.c
+> index c26cef0214552..595a2099c9564 100644
+> --- a/drivers/net/ethernet/intel/ice/ice_main.c
+> +++ b/drivers/net/ethernet/intel/ice/ice_main.c
+> @@ -2385,11 +2385,16 @@ static void ice_service_task(struct work_struct *=
+work)
+>  		struct iidc_rdma_event *event;
+> =20
+>  		event =3D kzalloc_obj(*event);
+> -		if (event) {
+> +		if (!event) {
+> +			set_bit(ICE_AUX_ERR_PENDING, pf->state);
+> +		} else {
+>  			set_bit(IIDC_RDMA_EVENT_CRIT_ERR, event->type);
+>  			/* report the entire OICR value to AUX driver */
+>  			swap(event->reg, pf->oicr_err_reg);
+> -			ice_send_event_to_aux(pf, event);
+> +			if (!ice_send_event_to_aux(pf, event)) {
+> +				pf->oicr_err_reg |=3D event->reg;
+> +				set_bit(ICE_AUX_ERR_PENDING, pf->state);
+> +			}
+
+[Severity: Medium]
+Can the read-modify-write on pf->oicr_err_reg here race with
+ice_misc_intr() and lose newly reported OICR error bits?
+
+pf->oicr_err_reg is a plain u32 updated by the hardirq handler
+ice_misc_intr():
+
+drivers/net/ethernet/intel/ice/ice_main.c:ice_misc_intr()
+	if (oicr & ICE_AUX_CRIT_ERR) {
+		pf->oicr_err_reg |=3D oicr;
+		set_bit(ICE_AUX_ERR_PENDING, pf->state);
+		ena_mask &=3D ~ICE_AUX_CRIT_ERR;
+	}
+
+In ice_service_task(), pf->oicr_err_reg |=3D event->reg runs in process
+context with interrupts enabled. If ice_misc_intr() fires between the load
+and store of pf->oicr_err_reg, the store from ice_service_task() will
+overwrite the bits just recorded by the interrupt handler.
+
+>  			kfree(event);
+>  		}
+>  	}
+
+[ ... ]
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261019065301.3983=
+537-1-poros@redhat.com?part=3D1
