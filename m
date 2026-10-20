@@ -1,34 +1,34 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792514872;
-	b=HSQLtX4lmDuf6esyHkW4fK8Hd1S2c3ad6IRyA8dUe+2Yx6u7kr5EQ1chEyexetK+vTPS
-	 wKoqa5Xj/gomgyECRr0iSI+QGFPkCi3HpVgTdI8J3in/7vqd333WofRgJb9ja/8X1hp4n
-	 Z5o1QGGs3T1arp0O18VSPS6FDB7VJC5WCxVOrOBvB/ZRFFF287krNtXEMQyL0QTmxxkl+
-	 ThzoHXXzLgHPtla505RFmiDiOp1WZcssfgHR94m9DGeygg+oSETX+ZpFBooyTvvb3Vi4E
-	 DP3W5CG0gTsJtXC+3PVAto+l4zUCXQ0CDvdYDJvbtxd5nD4fgkjByPasIqDPWX8n8/w==
+	t=1792514904;
+	b=TZIWW+Nhw5wVfbeu0UXpsA5Yn2eG5YmDQ8yt2UnC30eFsGrGIoJZBD7UGt8oUF6bdx9b
+	 VpsFp5bnyolhngR8Q0ZgLLG8S6yzx8gZyLZfmrt/lQxqzuaVpCg65kyVDWecLf5JR6+xF
+	 nVx5CWEhwoN3TS2fkSEFTONVHWrFfGouU7qo0WonYmhxos6llnVYL/uSghE9mC3WSn1EP
+	 WTH68h1zMlirSHQSHadYsl962hLY8dh/CrslbL5XAG36t+/MfWrVKVo0HnxHI+dM2nUcS
+	 lZGN0l6+t+HTG5evBpdbBJpenVg5xKMaAsUK11AOqQMVgG4ieMZv9G9U6SC17G9MU7A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792514872;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792514904;
 	h=Received:Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
 	 X-sashiko-severity:Content-Type:Content-Transfer-Encoding:
 	 MIME-Version;
-	bh=IO+RdfSgg+iO9BLu43VpKXaQsv4LWOE8tdPSlKLB4S8=;
-	b=Nt+xhZ/DRGVAfLz+8Pu9LjifyP3qQN2FnbKMbyfaZDh2yuZ5ZWbuJUfgHbQXLeTyTmn7
-	 aeUkSB1wfncPWdRxCOvbiRVkReKpgCT30TmeK6rC8LMqV0/WufSgKp2WVtyNrLNpQJvuQ
-	 cNhPEA2ZpGOyaYJVSApvZ7UghwToxQCLvROd437ciUpv0RgpPXzuPlbPh89g27ZW7wHFR
-	 v8BIvPw8IN0JKec4fOcBVKXqacvPIe7wG1lekk5WgXoJvEM6WfRIFOWU1UiBGOpVCRLeI
-	 ADjebK8O0n4yusFPPrv3jINVw30RFfz/qgy+IP2lD92P4ZR8dBUQE121z+FThPXmJqA==
+	bh=1illLIaBDeFU2zbxmo9prlGBOHfd+GAU8SDqkYsZmfU=;
+	b=3SUWr/+FW4hC5IemJ4sZE2jzVU/W/J/HQFTXFJ52ei16KEbJZh+rFbOD7r87zZVlfrOf
+	 7Uf/SUXL1Pg0f5GgyWV20V0hfeUXwEAqFW/MsWZ0mkJO0KwYh35GNi1wrFdGrS92lwJc3
+	 YgrixkoMso2LWorQh/wLERT6xdy9f73cDCfPQeAjbs+14IKmc/MrCnHkZjO7Jk3T5fcNX
+	 2uMfXFkpbVxWew4oV4xcUXUJFXvCyf/DicogyUcLObWlIkvEfGgbUaO0z4cjcZkP9FWZ3
+	 SzLrH165aHIBExEyVR4uXcrWq2JcezvOBjVoMg3WQL1/z88MlEjZAcuPZK8WbavL4Bg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8795606D54D;
-	Tue, 20 Oct 2026 16:47:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BF5F1F000CB;
-	Tue, 20 Oct 2026 16:47:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4B9E606D574;
+	Tue, 20 Oct 2026 16:48:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27D921F000C9;
+	Tue, 20 Oct 2026 16:48:22 +0000 (UTC)
 Subject:
- Re: [PATCH net-next v7 04/13] net: mana: swap queue sets in mana_set_channels
+ Re: [PATCH net-next v7 07/13] net: mana: swap queue sets in mana_change_mtu
 From: netdev-bot+sashiko@kernel.org
 To: weh@linux.microsoft.com
 Cc: longli@kernel.org, kotaranov@microsoft.com, kuba@kernel.org,
@@ -41,13 +41,13 @@ Cc: longli@kernel.org, kotaranov@microsoft.com, kuba@kernel.org,
  bpf@vger.kernel.org, sdf@fomichev.me, daniel@iogearbox.net, hawk@kernel.org,
  ast@kernel.org, john.fastabend@gmail.com, weh@microsoft.com,
  edumazet@kernel.org
-Date: Tue, 20 Oct 2026 16:47:19 +0000
-Message-ID: <179251483988.3135.18174536583131851095@kernel.org>
-In-Reply-To: =?utf-8?q?=3Cec57f3853ef344a7d5ec8907ba530313b0163bae=2E1791710?=
+Date: Tue, 20 Oct 2026 16:47:51 +0000
+Message-ID: <179251487177.3135.3241052074893563065@kernel.org>
+In-Reply-To: =?utf-8?q?=3C87e016ed7479a33be87128b01bb07d2e1807c87d=2E1791710?=
  =?utf-8?q?735=2Egit=2Eweh=40linux=2Emicrosoft=2Ecom=3E?=
-References: =?utf-8?q?=3Cec57f3853ef344a7d5ec8907ba530313b0163bae=2E17917107?=
+References: =?utf-8?q?=3C87e016ed7479a33be87128b01bb07d2e1807c87d=2E17917107?=
  =?utf-8?q?35=2Egit=2Eweh=40linux=2Emicrosoft=2Ecom=3E?=
-X-sashiko-severity: Low
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -60,143 +60,129 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue(s) to consider.
 
-Low priority / nit picks for your consideration:
+Critical: 0 · High: 0 · Medium: 1 · Low: 0
 
-- [Low] Old RX queues are marked retiring before the TX drain wait, while
-  RSS still sends all RX traffic to them.
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-Pre-existing issues:
-- [Low] Concern: the live replacement path throws away a user-configured
-  RSS indirection table without calling ethtool_rxfh_indir_lost().
-- [Low] Concern: the 120 s TX drain in mana_publish_qset(), with all
-  queues stopped and carrier on, lets dev_watchdog (watchdog_timeo =…
+- [Medium] mana_change_mtu() adds a new use of the boolean
+  channel_changing as an ad-hoc lock.
 
 --
 
-net: mana: swap queue sets in mana_set_channels
+net: mana: swap queue sets in mana_change_mtu
 
-This commit changes mana_set_channels() to build a replacement queue set
-first, quiesce TX, drain the old TX queues for up to 120 seconds and then
-publish the new set, with a rollback path, instead of doing a
-detach/attach cycle. It adds per-RXQ drain_stats and a retiring flag, so
-that retiring RX queues stop writing the shared per-index counters; the
-private counters are folded into rxq_stats_ret[] later. It also gates
-mana_select_queue() on port_is_up and keeps carrier off after a failed
-rollback.
+With this patch, mana_change_mtu() builds a full replacement queue set
+sized for the new MTU and swaps it in. It no longer does a detach and
+attach. The MTU is carried in the queue set as configured_mtu, and
+ndev->mtu is published only after RSS configuration succeeds.
 
 > diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-> index 744d5ebe8dbbb..c80a06ffbe508 100644
+> index c80a06ffbe508..c1ff4d9b8d45f 100644
 > --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
 > +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
+> @@ -956,32 +956,52 @@ int mana_pre_alloc_rxbufs(struct mana_port_context *mpc, int new_mtu, int num_qu
+>  static int mana_change_mtu(struct net_device *ndev, int new_mtu)
+>  {
 
 [ ... ]
 
-> @@ -4053,9 +4155,305 @@ int mana_alloc_qset(struct mana_port_context *apc,
-
-[ ... ]
-
-> +int mana_publish_qset(struct mana_port_context *apc, struct mana_qset *newq,
-> +		      struct mana_qset *out_old)
-> +{
-> +	struct net_device *ndev = apc->ndev;
-> +	int err;
+> +	/* Fail-close may release the Ethernet vport reference. */
+> +	mutex_lock(&mpc->vport_mutex);
+> +	if (mpc->channel_changing) {
+> +		mutex_unlock(&mpc->vport_mutex);
+> +		return -EBUSY;
+> +	}
+> +	mpc->channel_changing = true;
+> +	mutex_unlock(&mpc->vport_mutex);
 > +
-> +	ASSERT_RTNL();
-
-[ ... ]
-
-> +	netif_tx_disable(ndev);
-> +
-> +	mana_qset_snapshot(apc, out_old);
-> +
-> +	/* Mark before the grace period so old completions cannot wake the
-> +	 * replacement's stopped queue.
-> +	 */
-> +	mana_qset_set_retiring(out_old, newq, true);
-
-[Severity: Low]
-Can this freeze the visible RX counters for the whole TX drain wait?
-
-This call sets rxq->retiring on the old RX queues before synchronize_net()
-and mana_wait_qset_txqs(), and that wait can last up to 120 seconds. RSS
-still sends all RX traffic to these old queues during the wait.
-
-Once retiring is set, mana_rxq_stats() picks the private counters:
-
-    return READ_ONCE(rxq->retiring) ? &rxq->drain_stats : rxq->stats;
-
->From then on, updates from mana_rx_skb(), mana_run_xdp() and
-mana_process_rx_cqe() go into rxq->drain_stats. mana_get_stats64() and the
-ethtool stats code read only rxq_stats[] and rxq_stats_ret[]. The counters
-users see therefore stop moving until mana_fold_qset_rx_stats() or
-mana_destroy_rxq() folds them in later.
-
-mana_update_rx_dim() also returns early for retiring RX queues, so adaptive
-RX moderation stops for the same window.
-
-The window is usually a few milliseconds, but it reaches 120 seconds on the
-drain timeout path. The same pattern stays in place for full rebuilds and
-for the retiring tail in channel reductions later in the series.
-
-The early marking only seems needed for the TX wakeup race. Could the RX
-retiring flag be set later, just before mana_config_rss() steers traffic to
-the replacement queues, while the TX retiring flag stays where it is?
-
-> +
-> +	/* Drain TX/XDP readers past the gate and polls missing retiring. */
-> +	synchronize_net();
-> +
-> +	err = mana_wait_qset_txqs(apc);
-> +	if (err)
-> +		goto resume_old;
-
-[Severity: Low]
-This isn't a bug introduced by this patch, but while mana_wait_qset_txqs()
-waits up to 120 seconds with every TX queue stopped and carrier still on,
-dev_watchdog (watchdog_timeo is 15*HZ) can call mana_tx_timeout(). That
-queues queue_reset_work, which then runs after mana_publish_qset() returns.
-
-The baseline path had the same window. mana_detach() called
-netif_tx_disable(), and mana_dealloc_queues() then waited up to 120 seconds
-under RTNL with carrier on.
-
-On the drain timeout path here, the reset only runs after newq has been
-freed, so it does not invalidate the replacement queues. In effect it is
-the existing recovery for TX queues that really are stuck.
-
-Is that interaction intended for the new publish path?
-
-[ ... ]
-
-> diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-> index 43c5c3bf5c408..913349edfe13c 100644
-> --- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-> +++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-
-[ ... ]
-
-> +	err = mana_alloc_qset(apc, scratch, new_count, apc->rx_queue_size,
-> +			      apc->tx_queue_size, apc->priv_flags, &newq);
+> +	scratch = mana_qset_scratch_alloc(mpc);
+> +	if (!scratch) {
+> +		err = -ENOMEM;
+> +		goto clear_flag;
+>  	}
+>  
+> -	WRITE_ONCE(ndev->mtu, new_mtu);
+> +	err = mana_alloc_qset(mpc, scratch, mpc->num_queues,
+> +			      mpc->rx_queue_size, mpc->tx_queue_size,
+> +			      mpc->priv_flags, new_mtu, &newq);
 > +	if (err)
 > +		goto free_scratch;
+>  
+> -	err = mana_attach(ndev);
+> +	err = mana_publish_qset(mpc, &newq, &oldq);
+>  	if (err) {
+> -		netdev_err(ndev, "mana_attach failed: %d\n", err);
+> -		WRITE_ONCE(ndev->mtu, old_mtu);
+> +		mana_free_qset(scratch, &newq);
+> +		goto free_scratch;
+>  	}
+>  
+> -out:
+> -	mana_pre_dealloc_rxbufs(mpc);
+> +	mana_free_qset(scratch, &oldq);
+> +
+> +free_scratch:
+> +	mana_publish_close_if_needed(mpc);
+> +	mana_qset_scratch_free(scratch);
+> +clear_flag:
+> +	mutex_lock(&mpc->vport_mutex);
+> +	mpc->channel_changing = false;
+> +	mutex_unlock(&mpc->vport_mutex);
+>  	return err;
+>  }
 
-[Severity: Low]
-This is a pre-existing issue, not one introduced by this patch.
-mana_alloc_qset() always resets the replacement set's indirection table
-with mana_rss_table_init(scratch). A live set_channels therefore discards
-a user-configured RSS indirection table without calling
-ethtool_rxfh_indir_lost().
+[Severity: Medium]
+Here, channel_changing seems to act as a lock around a code section rather
+than as a record of object state. Is that the intent?
 
-The baseline mana_alloc_queues() did the same on every detach/attach.
+The flag is set under vport_mutex, and then the mutex is dropped. The whole
+sleeping replacement runs after that: mana_qset_scratch_alloc(),
+mana_alloc_qset(), mana_publish_qset(), mana_free_qset(),
+mana_publish_close_if_needed() and mana_qset_scratch_free(). The flag is
+cleared again at clear_flag.
 
-A later patch in the series fixes this ("net: mana: keep a user-configured
-RSS table across a queue rebuild"). It adds mana_rss_table_keep() to the
-split, grow and full-rebuild allocators and calls ethtool_rxfh_indir_lost()
-after a successful publish.
+The only reader is on the RDMA side, and it fails instead of waiting:
+
+mana_cfg_vport() {
+    ...
+	mutex_lock(&apc->vport_mutex);
+	if (apc->vport_use_count > 0 ||
+	    (check_channel_changing && apc->channel_changing)) {
+		mutex_unlock(&apc->vport_mutex);
+		return -EBUSY;
+	}
+    ...
+}
+
+As a result, RAW-QP creation gets a transient -EBUSY during any MTU change
+on a running port. Lockdep also cannot see this exclusion.
+
+vport_mutex probably can't just be held across the region, because the
+fail-close path takes it itself:
+
+mana_publish_close_if_needed()
+  -> mana_dealloc_queues()
+    -> mana_destroy_vport()
+      -> mana_uncfg_vport()
+        -> mutex_lock(&apc->vport_mutex)
+
+Can the -EBUSY check at the top of mana_change_mtu() ever trigger? Every
+writer of channel_changing holds RTNL for its whole region, and RDMA only
+reads the flag. The writers are mana_change_mtu(), the queue reset work,
+the set_channels, set_ringparam and set_priv_flags handlers, and the XDP
+setup path.
+
+The same pattern already exists in the queue reset work,
+mana_set_channels() and mana_set_priv_flags(). This patch extends it to
+the MTU path, and it is still there at the end of the series. Could a real
+lock, or some way for RDMA admission to wait, be used here?
 
 [ ... ]
 
