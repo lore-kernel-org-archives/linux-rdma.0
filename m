@@ -1,55 +1,43 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792514904;
-	b=TZIWW+Nhw5wVfbeu0UXpsA5Yn2eG5YmDQ8yt2UnC30eFsGrGIoJZBD7UGt8oUF6bdx9b
-	 VpsFp5bnyolhngR8Q0ZgLLG8S6yzx8gZyLZfmrt/lQxqzuaVpCg65kyVDWecLf5JR6+xF
-	 nVx5CWEhwoN3TS2fkSEFTONVHWrFfGouU7qo0WonYmhxos6llnVYL/uSghE9mC3WSn1EP
-	 WTH68h1zMlirSHQSHadYsl962hLY8dh/CrslbL5XAG36t+/MfWrVKVo0HnxHI+dM2nUcS
-	 lZGN0l6+t+HTG5evBpdbBJpenVg5xKMaAsUK11AOqQMVgG4ieMZv9G9U6SC17G9MU7A==
+	t=1792514932;
+	b=DRahWcVHuSpH1XH5DlBEVv61Nh4SjupPc/ENICT03LWPDovPWYPqhOIxR1VRBD808XC/
+	 NouMdbu10qoPijy3qDNBRTGrqCLOW7FRq1A4OqDnDoKqYFrAJ7E6S3ojPI1FehEghLq5H
+	 W2YfZek3BIexoRxqiCqPvPdxCx/OJHK2XssBYThreeMsgRrrdbJdwcmqwSDdN4qsYjn95
+	 IzZxQzqUSpe9RUgIrIwT2Tpzl9FYzEo4AWNAeJCqWszRpl2I83c8wUP24gYUef09nyVkU
+	 H+KCbgRhPd/ox05U9uZqleCOm8HwzgXQem+HjNcrzecvAzoeHbGv8OnGIqqmzeBU4Nw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792514904;
-	h=Received:Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 X-sashiko-severity:Content-Type:Content-Transfer-Encoding:
-	 MIME-Version;
-	bh=1illLIaBDeFU2zbxmo9prlGBOHfd+GAU8SDqkYsZmfU=;
-	b=3SUWr/+FW4hC5IemJ4sZE2jzVU/W/J/HQFTXFJ52ei16KEbJZh+rFbOD7r87zZVlfrOf
-	 7Uf/SUXL1Pg0f5GgyWV20V0hfeUXwEAqFW/MsWZ0mkJO0KwYh35GNi1wrFdGrS92lwJc3
-	 YgrixkoMso2LWorQh/wLERT6xdy9f73cDCfPQeAjbs+14IKmc/MrCnHkZjO7Jk3T5fcNX
-	 2uMfXFkpbVxWew4oV4xcUXUJFXvCyf/DicogyUcLObWlIkvEfGgbUaO0z4cjcZkP9FWZ3
-	 SzLrH165aHIBExEyVR4uXcrWq2JcezvOBjVoMg3WQL1/z88MlEjZAcuPZK8WbavL4Bg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792514932;
+	h=Received:Message-ID:From:Subject:Reply-To:To:Cc:In-Reply-To:
+	 References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=vi80vlxEw2kM2Cbp1sHg5Yc6c83kCLFWxyhTouS3h1w=;
+	b=0mTdponJpxG9LPSYWeCodLXv3nfz6pzBF1dUrtBtqN3hLizhnQwUaGZqyPDHF7Q+rZ0Z
+	 cp3QoEKp2cQ9Thsd9/CiNig7ekqKMUQJhRg+qImVOEYpwAL5nZGFeRteGpWyzHAgVFugU
+	 x4MQn7XwdipOU7RDg4UO1DNBwNzrXmPNylbHbwaoaYk0FHF5PayinvixKQzJoHf8dx+ix
+	 u/eUFMzygaGWqYSX+3f+E/6mVrZazOD5GNlp0da6c87KJMM0rGs0ZeU/Cua3bTBVRJrw1
+	 t8EsyDvsMIBY983TNUZvTRazGCm4psfikuv15XvX+Gus6qR1EV1sd8iLMgXOw2SKKVw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4B9E606D574;
-	Tue, 20 Oct 2026 16:48:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27D921F000C9;
-	Tue, 20 Oct 2026 16:48:22 +0000 (UTC)
-Subject:
- Re: [PATCH net-next v7 07/13] net: mana: swap queue sets in mana_change_mtu
-From: netdev-bot+sashiko@kernel.org
-To: weh@linux.microsoft.com
-Cc: longli@kernel.org, kotaranov@microsoft.com, kuba@kernel.org,
- davem@davemloft.net, pabeni@redhat.com, edumazet@google.com,
- andrew+netdev@lunn.ch, jgg@ziepe.ca, leon@kernel.org, haiyangz@microsoft.com,
- wei.liu@kernel.org, decui@microsoft.com, shradhagupta@linux.microsoft.com,
- horms@kernel.org, ernis@linux.microsoft.com, stephen@networkplumber.org,
- netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
- linux-hyperv@vger.kernel.org, linux-kernel@vger.kernel.org,
- bpf@vger.kernel.org, sdf@fomichev.me, daniel@iogearbox.net, hawk@kernel.org,
- ast@kernel.org, john.fastabend@gmail.com, weh@microsoft.com,
- edumazet@kernel.org
-Date: Tue, 20 Oct 2026 16:47:51 +0000
-Message-ID: <179251487177.3135.3241052074893563065@kernel.org>
-In-Reply-To: =?utf-8?q?=3C87e016ed7479a33be87128b01bb07d2e1807c87d=2E1791710?=
- =?utf-8?q?735=2Egit=2Eweh=40linux=2Emicrosoft=2Ecom=3E?=
-References: =?utf-8?q?=3C87e016ed7479a33be87128b01bb07d2e1807c87d=2E17917107?=
- =?utf-8?q?35=2Egit=2Eweh=40linux=2Emicrosoft=2Ecom=3E?=
-X-sashiko-severity: Medium
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7102606A324
+	for <linux-rdma@vger.kernel.org>; Tue, 20 Oct 2026 16:48:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 737961F01805;
+	Tue, 20 Oct 2026 16:48:51 +0000 (UTC)
+Message-ID: <sashiko-outbox-179377@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net] net/mlx4: always create the eth and ib auxiliary
+ devices
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Peter Morrow" <pdmorrow@gmail.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261020164239.3808903-1-pdmorrow@gmail.com>
+References: <20261020164239.3808903-1-pdmorrow@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Tue, 20 Oct 2026 16:48:21 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -58,133 +46,41 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue(s) to consider.
+> Since commit 7d22b1cb9d84 ("mlx4: Connect the infiniband part to the
+> auxiliary bus"), mlx4_core creates the "ib" auxiliary device only for
+> an IB port or a device that advertises IBoE. Before it, each mlx4
+> interface was offered every device and decided in its own add callback.
+> mlx4_ib_add() accepted Ethernet ports without IBoE and registered them
+> for raw packet QPs only.
+>=20
+> ConnectX-3 VFs on Azure have an Ethernet port and no IBoE, so since
+> v6.6 they get no RDMA device. DPDK's mlx4 PMD, which needs only raw
+> packet QPs, then cannot open them:
+>=20
+>   net_mlx4: cannot access device, is mlx4_ib loaded?
+>=20
+> Restore the old behaviour by creating both auxiliary devices for every
+> device and letting mlx4_en and mlx4_ib decide in probe, as their add
+> callbacks did. mlx4_ib_probe() returns -ENODEV when there are no usable
+> ports, and mlx4_en_probe() binds a device without Ethernet ports but
+> creates no netdevs, as mlx4_en_add() did.
+>=20
+> Tested on 6.12.111 on an Azure VM with two ConnectX-3 VFs: each gets an
+> eth and an ib auxiliary device, and DPDK attaches both VFs and passes
+> traffic through them.
+>=20
+> Fixes: 7d22b1cb9d84 ("mlx4: Connect the infiniband part to the auxiliary =
+bus")
+> Closes: https://lore.kernel.org/r/20261014133951.3219055-1-pdmorrow@gmail=
+.com
+> Suggested-by: Leon Romanovsky <leon@kernel.org>
+> Assisted-by: LLM
+> Signed-off-by: Peter Morrow <pdmorrow@gmail.com>
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 0
+Sashiko has reviewed this patch and found no issues.
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261020164239.3808=
+903-1-pdmorrow@gmail.com?part=3D1
 
-- [Medium] mana_change_mtu() adds a new use of the boolean
-  channel_changing as an ad-hoc lock.
-
---
-
-net: mana: swap queue sets in mana_change_mtu
-
-With this patch, mana_change_mtu() builds a full replacement queue set
-sized for the new MTU and swaps it in. It no longer does a detach and
-attach. The MTU is carried in the queue set as configured_mtu, and
-ndev->mtu is published only after RSS configuration succeeds.
-
-> diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-> index c80a06ffbe508..c1ff4d9b8d45f 100644
-> --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-> +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-> @@ -956,32 +956,52 @@ int mana_pre_alloc_rxbufs(struct mana_port_context *mpc, int new_mtu, int num_qu
->  static int mana_change_mtu(struct net_device *ndev, int new_mtu)
->  {
-
-[ ... ]
-
-> +	/* Fail-close may release the Ethernet vport reference. */
-> +	mutex_lock(&mpc->vport_mutex);
-> +	if (mpc->channel_changing) {
-> +		mutex_unlock(&mpc->vport_mutex);
-> +		return -EBUSY;
-> +	}
-> +	mpc->channel_changing = true;
-> +	mutex_unlock(&mpc->vport_mutex);
-> +
-> +	scratch = mana_qset_scratch_alloc(mpc);
-> +	if (!scratch) {
-> +		err = -ENOMEM;
-> +		goto clear_flag;
->  	}
->  
-> -	WRITE_ONCE(ndev->mtu, new_mtu);
-> +	err = mana_alloc_qset(mpc, scratch, mpc->num_queues,
-> +			      mpc->rx_queue_size, mpc->tx_queue_size,
-> +			      mpc->priv_flags, new_mtu, &newq);
-> +	if (err)
-> +		goto free_scratch;
->  
-> -	err = mana_attach(ndev);
-> +	err = mana_publish_qset(mpc, &newq, &oldq);
->  	if (err) {
-> -		netdev_err(ndev, "mana_attach failed: %d\n", err);
-> -		WRITE_ONCE(ndev->mtu, old_mtu);
-> +		mana_free_qset(scratch, &newq);
-> +		goto free_scratch;
->  	}
->  
-> -out:
-> -	mana_pre_dealloc_rxbufs(mpc);
-> +	mana_free_qset(scratch, &oldq);
-> +
-> +free_scratch:
-> +	mana_publish_close_if_needed(mpc);
-> +	mana_qset_scratch_free(scratch);
-> +clear_flag:
-> +	mutex_lock(&mpc->vport_mutex);
-> +	mpc->channel_changing = false;
-> +	mutex_unlock(&mpc->vport_mutex);
->  	return err;
->  }
-
-[Severity: Medium]
-Here, channel_changing seems to act as a lock around a code section rather
-than as a record of object state. Is that the intent?
-
-The flag is set under vport_mutex, and then the mutex is dropped. The whole
-sleeping replacement runs after that: mana_qset_scratch_alloc(),
-mana_alloc_qset(), mana_publish_qset(), mana_free_qset(),
-mana_publish_close_if_needed() and mana_qset_scratch_free(). The flag is
-cleared again at clear_flag.
-
-The only reader is on the RDMA side, and it fails instead of waiting:
-
-mana_cfg_vport() {
-    ...
-	mutex_lock(&apc->vport_mutex);
-	if (apc->vport_use_count > 0 ||
-	    (check_channel_changing && apc->channel_changing)) {
-		mutex_unlock(&apc->vport_mutex);
-		return -EBUSY;
-	}
-    ...
-}
-
-As a result, RAW-QP creation gets a transient -EBUSY during any MTU change
-on a running port. Lockdep also cannot see this exclusion.
-
-vport_mutex probably can't just be held across the region, because the
-fail-close path takes it itself:
-
-mana_publish_close_if_needed()
-  -> mana_dealloc_queues()
-    -> mana_destroy_vport()
-      -> mana_uncfg_vport()
-        -> mutex_lock(&apc->vport_mutex)
-
-Can the -EBUSY check at the top of mana_change_mtu() ever trigger? Every
-writer of channel_changing holds RTNL for its whole region, and RDMA only
-reads the flag. The writers are mana_change_mtu(), the queue reset work,
-the set_channels, set_ringparam and set_priv_flags handlers, and the XDP
-setup path.
-
-The same pattern already exists in the queue reset work,
-mana_set_channels() and mana_set_priv_flags(). This patch extends it to
-the MTU path, and it is still there at the end of the series. Could a real
-lock, or some way for RDMA admission to wait, be used here?
-
-[ ... ]
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/cover.1791710735.git.weh%40linux.microsoft.com
