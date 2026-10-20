@@ -1,56 +1,59 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792456329;
-	b=ktuwl43lj5nADwWDFqVMFZiDfAquf4VBZiTujrTQrJOITcQ4G4vI0SpdmYQIYN1PRdwl
-	 2aCzqGDx71HnqM4LtmmNjdpaXeYNXoVbswBm7wj/ct8sJdMR/WppuKuWd2HKEuZgE3NDW
-	 SCQaUVR6kpF56IKJ5E5UINvMqnqjgsC6ord1P2CSeD9bZvvQGVHieNQMymyhZIn1nHV/e
-	 EyIwLAD14DJaqe1oDbzo0dC+Os+UgNfw/C6DfZUhBJ+L9mpK6yDuZaOO/MdtadfBjC+iE
-	 m8f9mUly5wrIE4ERAn3zFlCMtIgTHUKY11ckgAW5z3h8GDOwE1M84R3Z3kyf8+YBmhQ==
+	t=1792459256;
+	b=YKYWYWkir1EJfxJ2MKmg2USU6oXVq5/UnbEGKMeootGWQvDCuR6oA8/+iWCX8AYvRGE/
+	 /IK2c4pbozj6xQzPzR9/7kjR1mJxMbX4rWRwr7SMTccCntAtM5KvFMRvlmR7OSi4lYFTR
+	 6anhM5u6nsnpsVnMK7zcJiaWtzzwXRGnCNYeOqHpTdCslzrdJRSjA3PqzqUvxqNB+gA43
+	 JB2o1B4V4zS1pBJtv9NqAaQ56kbhPC2v7a9Nku+31X8smvwBGBhnG0r8OS9EV06cJAw46
+	 3QCT/xtVCgvRPdKYVEZoTMLBHlObZ1/2p3uTkA8WoEhGxQUIAWsgSxS8vmSidldhsJw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792456329;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=QJ8h/oVErMzM0vSYkQhGGuLaSUk++WV/immKq+7D79o=;
-	b=XMHmWyHyzuu3bCl+Nzm9iGi540gZodoti4v7cWOlHQRbvu3Qx6n14+IFHn0R2UZ3DC26
-	 Ko72cr7arqsVeR7PYAWs7rklGwMiJkQJr7kP8yCkzMDCtcwIwEAx5EE5aa6pr+J8zV/T/
-	 fokjT2+hnVqCL5SrDXQcKVdAG8oDg6ygv4fLqx5CeTmdm52K1CfstUNN3IH9j42AKjdrc
-	 TJ8+3R6TLJi129QywTdMZU+X8eftQrWqvMd7ALVFDQlL77r4i6oEsiNMGiZgO0+ffqh6q
-	 PUurrmVRaISbU1Xx7Nmiq5Z6o6vlNIcXsr1zgXAcNV4HjK4iU6bcaqPk+y61kxdIv1A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792459256;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 In-Reply-To:References:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=rhYKI/4A+OzeChjsjjcXtlKpKqYRA62r9ajrnd4AZRo=;
+	b=MNQTBanKXmp5Nq8Dlj9AJ+Lm4NPc69TFHMdtZR68Jd0NYYYmffddPmPmOjnndWInjcon
+	 hDmjIIYDOh/7gH+aQ3eLW1ETCY0bq+eA5JJe+uAV56qhZrHyk5CDlqNhrBLb2yNN4al4l
+	 ppcnzOSF2/7gx/yv5Fv9pR1DYux+6Cz/hZ9z+wRxEUh/tYqiCbqwK9KFc3DYM+/wkXyCh
+	 HAV23389K+EztR1ONwqv2mfiknR+eqNGE2x4mMdyDPXBzgI3D1OhLEaiKtxFtH/QhsDW9
+	 vO64VYVgxsaW42UhDsPsp4oflQNzksil/Lq06OtiaMlVK/84kkB+eqWzK9+UIqYrkDw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NkV+W5Dm;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PAgK6rs+;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E2AA606A31D
-	for <linux-rdma@vger.kernel.org>; Tue, 20 Oct 2026 00:32:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 259B6606A319;
+	Tue, 20 Oct 2026 01:20:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NkV+W5Dm
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD8FC1F000C5;
-	Tue, 20 Oct 2026 00:32:08 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PAgK6rs+
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F3E51F000C4;
+	Tue, 20 Oct 2026 01:20:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792456329;
-	bh=QJ8h/oVErMzM0vSYkQhGGuLaSUk++WV/immKq+7D79o=;
-	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
-	b=NkV+W5DmXFi4ej5rqbFMUtEJW7veOJq8KdX2CxtZByoJQfJBb/lvlAjAixT4+VwiT
-	 lHJrcqL+sky2eSD/A1rZ0/bUoZfgL7C6jkQI0+7KIkmZCLCTW428z6WB6wLl0BlrvY
-	 cSrycHA7kE2+XdARV2CDWRyqJ6qICeTm3T/AL2a36ZsCpEdUi/nckwBnUfTehTKTfr
-	 DSzIh0HxWKWSf1qrAtzkAafv0/JSIkk/ceTwBx6IgeamFOcdClihvllVNfMHr/tzzb
-	 vwJCwZkD1mlIE5rrjTSXuwbu23HUgz9oxHjqhlT4XuU8YkHGoTnlm+zfwInYgJlA5E
-	 CHeX/ejGI13Hw==
-Message-ID: <sashiko-outbox-178387@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next v6 2/2] net/rds: keep the connected peer's
- scope id apart from the bound one
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Allison Henderson" <achender@kernel.org>, linux-rdma@vger.kernel.org
-In-Reply-To: <20261020002816.3087414-3-achender@kernel.org>
-References: <20261020002816.3087414-1-achender@kernel.org>
- <20261020002816.3087414-3-achender@kernel.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Tue, 20 Oct 2026 00:32:08 +0000
+	s=k20260515; t=1792459256;
+	bh=rhYKI/4A+OzeChjsjjcXtlKpKqYRA62r9ajrnd4AZRo=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=PAgK6rs+MsoTXvVPfRI9A5YBKFLYe6zC7y1MeHw8VVRJ+IDqIf3oP2fX0DXYAHhik
+	 vE9ywrMb24IxGFHVQklP2ioCDCZvrazNNBsYGKY0a3t3yAXpxGevj3drmrGgDdnSpq
+	 u0rC7lyBok4UucxRb6M08Owy6MbTz+wvnLneTUJbn9EUAtQ4FIugtxvhPESBoPTYwE
+	 C8wQgLkG1AvZkB9h+WXz7BcKBV4JZHihFazcMDEWVbIAPZ9YICjw2O9AAeK8XtOUrH
+	 vDhjTMFT9CwcCAQvIbkfdd9zd0vku86xpxaIVWMK/efqtAAJxnfgznCJSlhi0KAAMC
+	 oRtZLzjXh7YdA==
+Date: Mon, 19 Oct 2026 18:20:54 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: netdev-bot+sashiko@kernel.org
+Cc: tariqt@nvidia.com, andrew+netdev@lunn.ch, davem@davemloft.net,
+ edumazet@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com,
+ alazar@nvidia.com, cjubran@nvidia.com, dtatulea@nvidia.com, gal@nvidia.com,
+ leon@kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+ mbloch@nvidia.com, saeedm@nvidia.com
+Subject: Re: [PATCH net-next 1/2] net/mlx5e: Select DCBX HOST/AUTO from
+ capability flags in setdcbx
+Message-ID: <20261019182054.7ea49d39@kernel.org>
+In-Reply-To: <179180701752.434549.16734295951082648234@kernel.org>
+References: <20261011112900.802150-2-tariqt@nvidia.com>
+	<179180701752.434549.16734295951082648234@kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,32 +62,18 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-> rds_connect() has nowhere to keep the scope of a link-local peer, so
-> it stores it in rs_bound_scope_id, the scope of the socket's own
-> bound address, for rds_bind() to check a later link-local bind
-> against.  That field is then also what a send without a destination
-> uses as the request's scope, what getpeername() and recvmsg() report
-> as the peer's scope, and what a later bind() overwrites:
-> rds_add_bound() stores the bound address's scope unconditionally,
-> which for a non-link-local address is 0.
->=20
-> So after connect(fe80::x%ifA) followed by bind(global), a send() with
-> no destination asks for fe80::x with scope 0.  rds_conn_lookup() keys
-> on the interface, so that finds or creates a connection with c_dev_if
-> 0, which the TCP transport then tries to connect through
-> sin6_scope_id 0 and tcp_v6_connect() rejects for a link-local peer:
-> the connected socket's data is queued on a connection that can never
-> [ ... ]
-> observed in the field.
->=20
-> Fixes: 1e2b44e78eea ("rds: Enable RDS IPv6 support")
-> Assisted-by: Claude-Code:claude-fable-5
-> Signed-off-by: Allison Henderson <achender@kernel.org>
+On Mon, 12 Oct 2026 12:10:17 +0000 netdev-bot+sashiko@kernel.org wrote:
+> - [Medium] mlx5e_dcbnl_setdcbx()
+>   (drivers/net/ethernet/mellanox/mlx5/core/en_dcbnl.c) now returns=E2=80=
+=A6
+> - [Medium] The patch reports firmware AUTO mode as CEE|IEEE|LLD_MANAGED
+>   (0x0e), but only on the setdcbx HOST->AUTO transition path.
 
-Sashiko has reviewed this patch and found no issues.
-
+These look at the very least plausible, I'm assuming the lack of
+dismissal/response means v2 is coming.
 --=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261020002816.3087=
-414-2-achender@kernel.org?part=3D2
-
+pw-bot: cr
