@@ -1,100 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.45
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792514591;
-	b=gZWqgUNeqEpAGX7fwNsZGRl8P//dK7HdHNomvLXgng4Fn/ZAqf457R+1VG2Wxfmf7oJ4
-	 6aq09IrrE4IknYYADJmtbSCztVZ8gyex5rFtRXu17wnf3MLZ/3oJM+L1wWgg5p32l8xXF
-	 MGVBXTj8dbsNph1Y5kECS9BGVxG+i3SGXhN3QGXPoBPKzoyclE7si/M0Y7v4e/kL1zsXP
-	 jXHQu8f7vLJuUjaWeELDIdHmvLX6O/kMGG/d71yfs6EINQUBd38h8sIjoyHHz9xXK3J09
-	 hoaRczNdNh8T1DBnDcZkOcW/c8kxKfg183k5W5d90I1l+hdgRl71+scMrKC1YAuH4ZQ==
+	t=1792514776;
+	b=Knt26+/y59pQt1m4qw803/G0XF8QCayhY7hYkICFlpahYrzyNbjm9plwXO19fSPEI2jg
+	 MxtPLg98vjShF5//L9W8ouUfc0D/0UlJqSg524WM7bnUXnxRjyjxauBpV/vIe1xma3b66
+	 iKaU8qBIqYG5YjMt7WoJBnVPNd0ugDAL2Ni/oKw/tsV3+XfpYe6AH4uL/IWyThHEvTV6K
+	 Rty91g793txnl5t9U2DU6GxQCimMsRgc99vpPVxv1K5EUXrO08klwwyzlm+tT3reW2VKw
+	 VAOVzDIAtGCrHf9cCoBeBW57IwM/kXtMXj1YDXeh2LxxUUXCZJZQ58zEJTkizlmxNkg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792514591;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=CdlYPARhuT5EgLufL/ZQ6dU/20tseBOVd7fjLCxWlSo=;
-	b=Oe8v3Iw00c+4ylQUPNWhWC3UXQ5vFP0iv/0y4fNVvpsstP+O0PY58CF7jsK4zg4CP/Ke
-	 W91oY7OkqE89nmiXSULrVILM0Esa6w6zlwwflNroOHlhshNpKmJUV49vbD7SD3qWjRIvI
-	 mjx3UWNJufYbpr3JEuYsKpjC/UvHDyhX9LfHwa8xIksRHo9kMvurNTU9yBkAXCvcOjSe4
-	 Cq+zxxMNzxvMKshC3g2E4ZWkrDgCpul4Ru+6Po3WgfaXQwPyu/p8YDaXpql0/3zYg/kF0
-	 tjQ9qbolmjIXogKTWkilr1SfKkoZflfZoA3J5Nu8LcrM9ZfyjXep+Kg93N3Kf1yKKnw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792514776;
+	h=Received:Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
+	 X-sashiko-severity:Content-Type:Content-Transfer-Encoding:
+	 MIME-Version;
+	bh=8/gOIm3nGzAJjdD/EAnNE2wG5YiggBqsPEfb1AbQ2W4=;
+	b=SyevzEPHyDhroFyHVVpZ3oTwqigTxVbFfcGXzl7pexeDswCfV3ZbhlI94okkfyW3BRnO
+	 FL4I2LU9Ni2Ind1c3hmkHeOrntq/fEFzEO0bV2G/Kp75Z88AHR52/lRUBVywF13ms/9mR
+	 qCG3CgS7n7Uga/5cIwPWNutDbZ7sKCJgY+CRziRJf3dkFAXR1MKlumi5d6P/ZNAZIiBhx
+	 4CbmQd+mo6yDAokLvxcxqrMyncX5KeD2DXRVdgqXkMxW9baYbyNiF+b3RMnZLWk2Oofte
+	 nzBRclD8Sx5jLpDRXkVuEIWkn1zp/0H6CnqNtqLFs7WCaH5TQkzFaHaL5sln/Hyfjtg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=p10U2UEo;
-	arc=none smtp.remote-ip=209.85.128.45
-Received: from mail-wm1-f45.google.com (mail-wm1-f45.google.com [209.85.128.45])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 650C860A2604
-	for <linux-rdma@vger.kernel.org>; Tue, 20 Oct 2026 16:43:10 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 650C860A2604
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=p10U2UEo
-Received: by mail-wm1-f45.google.com with SMTP id 5b1f17b1804b1-4a16af2a232so24056975e9.1
-        for <linux-rdma@vger.kernel.org>; Tue, 20 Oct 2026 09:43:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792514589; x=1793119389; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=CdlYPARhuT5EgLufL/ZQ6dU/20tseBOVd7fjLCxWlSo=;
-        b=p10U2UEopDR0Q/Yj8jDVPbCso9MIg9ixUZiZzxfdCSAisf/I/blQW1TgxbbPL0VOLq
-         R47u8hZFr5snKKUmwksv1uvElX2vsoAik6jLR7tNX4qWTm2rdPCadETL+3ufuFnxbegj
-         yR1FRzFy9sluZ7gA3+va6d5yxbXdBI6KZzNjBJd/VX2fq5JBcX3UpoxT8lwSJ9zjrm9Y
-         L/7FR4TnzkWqTYuT2jP8fQXlxU3cXhfOYJBWds/snZB/WfjMjc3NxEFbzOHzFYuu+7u4
-         kutmn7XgWl/H8tDTNAu0m7FEkhfi8jNE+xaYIRUJvMXpojOwP2iaTkBS8BabWkM3/3sk
-         2MGw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792514589; x=1793119389;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=CdlYPARhuT5EgLufL/ZQ6dU/20tseBOVd7fjLCxWlSo=;
-        b=HmcpMv13xj+d+ZrJJN+2/sFSSSXKZ1Hdxoe4dJcQzGflCFPIJbtQLFSxP4Mduc3G+J
-         QG236zMCjz1DzxMkl4IaU6AgKfNOd7v8QHPmvr97U3jGNpNQG/29CMUevoKe1+70Nkpp
-         bAm4PkTLBAWPgaShwqZssQBcfom8jce3zAUaFiu2g4YGuWSD5TmZJAyS+sRfMplvQmQw
-         /gDzmdkqHSRm+L7MX3RF85zZtOYGcC1JzB+Zbcpm2fLCU/lPww3wKLJZm6WRcthG04A7
-         Ivbb1uHvSvr9ipBQdlRvrmNGacwgvBUi/LHUO+CxTagkqmUZiSm44h4JAofFXjwPW2pK
-         1MLg==
-X-Forwarded-Encrypted: i=1; AKwUvByTMmvtNgCW5JKESVrID0xdV3aX/+jHBGlD7rDi9xli9PGCv+YOV+oftTx+TC1Wk6GsI8NeUGOP5Xix@vger.kernel.org
-X-Gm-Message-State: AFq9FYL0W9ybWsGeDT88AODpVc0op2almGyfr4L4snV3B1SbmKawil0P
-	7Gek1105blsRmc6EjuCx5uHimA0FzFMj3OAMRqgFvz6QByYnGq1CuUQ4
-X-Gm-Gg: AYBFou3ZPHf9gsrBfe33cxj7FUUcrz3DgDsPxj+AryOdF8Mv2c/GVpJ8vFWwdE2Iauu
-	UYT6mZvlshQ2VIMTBbt0bVVEK+UZFDyfWGDTh3sDVvH3NH7Xz5g+hupuQVV1aE7LC31i+PdTVLT
-	RxZBXzYRw/Cu9CpwAZzpPTjGP45eg/ZpP+0rwkz63NvrvWGYIFRnBmT/KYwnKkdk+TJW0c+etxQ
-	OxU89dfwtGD7o7M+xua/z5xswVtqU84ClQpYXkAS/0jkCswtA3qdtLzJfVZfF3ZNN4r7y5ifuVA
-	Ntitst9gHJPfaavZD86dQclfqTOvQQgvFkTrT+G87FzKH6j4mekqt9LvhzP6mK2qfp8oNoFanwc
-	swO0+UQKSo4eoSS4fxfAQBHWoG5wh0BbM6BYzOSWtMxGCDEU/zme4qqKwz4qGOu/LU2bSsuJlHj
-	P87gTIWEihBG9i+uIU/TQN+kDDw/3itAxhll3g8vMdKs9LThq1c4n92blLrzBH6fuXhGiI3lvgQ
-	ET+G649sUc0R5rONWZFiFwYxNkAkO2dLZcYzMnVaaJIDCgZIzMO5VB+Nl9mVhVdoPv5S0oWrE5J
-	1jj1aThKY1FswVxNjYNg5zVpLggEFqjBKDqJW52+9DCWPXMg2UiDGEBzsBX+eXYAyGuPgF9i
-X-Received: by 2002:a05:600c:46cf:b0:4a1:f8cb:7d70 with SMTP id 5b1f17b1804b1-4a1f8cb7ecemr44109325e9.24.1792514588519;
-        Tue, 20 Oct 2026 09:43:08 -0700 (PDT)
-Received: from p15v.lan ([217.169.3.90])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a1fb864dacsm8742505e9.12.2026.10.20.09.43.07
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 20 Oct 2026 09:43:08 -0700 (PDT)
-From: Peter Morrow <pdmorrow@gmail.com>
-To: Tariq Toukan <tariqt@nvidia.com>
-Cc: Leon Romanovsky <leon@kernel.org>,
-	Petr Pavlu <petr.pavlu@suse.com>,
-	Yishai Hadas <yishaih@nvidia.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Eric Dumazet <edumazet@google.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S . Miller" <davem@davemloft.net>,
-	netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	regressions@lists.linux.dev,
-	Peter Morrow <pdmorrow@gmail.com>
-Subject: [PATCH net] net/mlx4: always create the eth and ib auxiliary devices
-Date: Tue, 20 Oct 2026 17:42:39 +0100
-Message-ID: <20261020164239.3808903-1-pdmorrow@gmail.com>
-X-Mailer: git-send-email 2.47.3
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 005BF60A3811;
+	Tue, 20 Oct 2026 16:46:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55E1D1F000C9;
+	Tue, 20 Oct 2026 16:46:14 +0000 (UTC)
+Subject: Re: [PATCH net-next v7 01/13] net: mana: add queue-set allocation and
+ teardown helpers
+From: netdev-bot+sashiko@kernel.org
+To: weh@linux.microsoft.com
+Cc: longli@kernel.org, kotaranov@microsoft.com, kuba@kernel.org,
+ davem@davemloft.net, pabeni@redhat.com, edumazet@google.com,
+ andrew+netdev@lunn.ch, jgg@ziepe.ca, leon@kernel.org, haiyangz@microsoft.com,
+ wei.liu@kernel.org, decui@microsoft.com, shradhagupta@linux.microsoft.com,
+ horms@kernel.org, ernis@linux.microsoft.com, stephen@networkplumber.org,
+ netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-hyperv@vger.kernel.org, linux-kernel@vger.kernel.org,
+ bpf@vger.kernel.org, sdf@fomichev.me, daniel@iogearbox.net, hawk@kernel.org,
+ ast@kernel.org, john.fastabend@gmail.com, weh@microsoft.com,
+ edumazet@kernel.org
+Date: Tue, 20 Oct 2026 16:45:43 +0000
+Message-ID: <179251474395.3135.5673130274434349982@kernel.org>
+In-Reply-To: =?utf-8?q?=3C05911ee531022aa0103a35b45a70995aad74dc71=2E1791710?=
+ =?utf-8?q?735=2Egit=2Eweh=40linux=2Emicrosoft=2Ecom=3E?=
+References: =?utf-8?q?=3C05911ee531022aa0103a35b45a70995aad74dc71=2E17917107?=
+ =?utf-8?q?35=2Egit=2Eweh=40linux=2Emicrosoft=2Ecom=3E?=
+X-sashiko-severity: Low
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -104,70 +59,224 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-Since commit 7d22b1cb9d84 ("mlx4: Connect the infiniband part to the
-auxiliary bus"), mlx4_core creates the "ib" auxiliary device only for
-an IB port or a device that advertises IBoE. Before it, each mlx4
-interface was offered every device and decided in its own add callback.
-mlx4_ib_add() accepted Ethernet ports without IBoE and registered them
-for raw packet QPs only.
+Thank you for your contribution! Sashiko AI review found more severe
+issue(s) in other patches of this series. This mail is only an FYI, in case
+you want to address the nit picks below when you respin.
 
-ConnectX-3 VFs on Azure have an Ethernet port and no IBoE, so since
-v6.6 they get no RDMA device. DPDK's mlx4 PMD, which needs only raw
-packet QPs, then cannot open them:
+Low priority / nit picks for your consideration:
 
-  net_mlx4: cannot access device, is mlx4_ib loaded?
+- [Low] The commit message presents the patch as uncalled helper
+  infrastructure ('These helpers have no live replacement callers yet').
+- [Low] mana_qset_scratch_alloc() clears scratch->rxbufs_pre, das_pre and
+  rxbpre_total, with the comment 'Do not consume the live set's pre-…
+- [Low] struct mana_qset does not carry mana_eqs_debugfs, and
+  mana_qset_scratch_alloc() sets scratch->mana_eqs_debugfs = NULL.
+- [Low] mana_qset_scratch_alloc() copies the whole live port context
+  (`*scratch = *apc`) without holding any lock.
 
-Restore the old behaviour by creating both auxiliary devices for every
-device and letting mlx4_en and mlx4_ib decide in probe, as their add
-callbacks did. mlx4_ib_probe() returns -ENODEV when there are no usable
-ports, and mlx4_en_probe() binds a device without Ethernet ports but
-creates no netdevs, as mlx4_en_add() did.
+--
 
-Tested on 6.12.111 on an Azure VM with two ConnectX-3 VFs: each gets an
-eth and an ib auxiliary device, and DPDK attaches both VFs and passes
-traffic through them.
+net: mana: add queue-set allocation and teardown helpers
 
-Fixes: 7d22b1cb9d84 ("mlx4: Connect the infiniband part to the auxiliary bus")
-Closes: https://lore.kernel.org/r/20261014133951.3219055-1-pdmorrow@gmail.com
-Suggested-by: Leon Romanovsky <leon@kernel.org>
-Assisted-by: LLM
-Signed-off-by: Peter Morrow <pdmorrow@gmail.com>
----
- drivers/net/ethernet/mellanox/mlx4/intf.c | 15 ++-------------
- 1 file changed, 2 insertions(+), 13 deletions(-)
+This commit adds mana_qset_scratch_alloc(), mana_alloc_qset() and
+mana_free_qset(), which build and tear down a queue set on a scratch copy
+of the port context, along with XDP program peek and release helpers. It
+also adds a txq->retiring flag checked in mana_poll_tx_cq(), changes how
+mana_create_page_pool() sizes the pool, and clears ac->ports[i] in
+mana_remove().
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/intf.c b/drivers/net/ethernet/mellanox/mlx4/intf.c
-index 82e467c..31860b4 100644
---- a/drivers/net/ethernet/mellanox/mlx4/intf.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/intf.c
-@@ -43,23 +43,12 @@ static DEFINE_IDA(mlx4_adev_ida);
- 
- static bool is_eth_supported(struct mlx4_dev *dev)
- {
--	for (int port = 1; port <= dev->caps.num_ports; port++)
--		if (dev->caps.port_type[port] == MLX4_PORT_TYPE_ETH)
--			return true;
--
--	return false;
-+	return true;
- }
- 
- static bool is_ib_supported(struct mlx4_dev *dev)
- {
--	for (int port = 1; port <= dev->caps.num_ports; port++)
--		if (dev->caps.port_type[port] == MLX4_PORT_TYPE_IB)
--			return true;
--
--	if (dev->caps.flags & MLX4_DEV_CAP_FLAG_IBOE)
--		return true;
--
--	return false;
-+	return true;
- }
- 
- static const struct mlx4_adev_device {
+> Leave ordinary mana_dealloc_queues() byte-identical to the pinned
+> base. Do not introduce reset generations, sibling-port rebuilds, or
+> an incomplete independent failed-FLR TX-buffer policy change.
+
+[ ... ]
+
+> adds that nonresetting pre-publication wait. These helpers have no
+> live replacement callers yet.
+
+[Severity: Low]
+
+The message presents the patch as helper code with no callers yet. The
+patch also changes three live paths, and the message mentions none of
+them.
+
+mana_poll_tx_cq() now checks txq->retiring in the TX completion path:
+
+    if (txq_stopped && !READ_ONCE(txq->retiring) && apc->port_is_up &&
+        avail_space >= MAX_TX_WQE_SIZE) {
+
+mana_create_page_pool() now sizes the pool from rxq->num_rx_buf rather
+than netdev_priv(rxq->ndev)->rx_queue_size:
+
+    pprm.pool_size = rxq->num_rx_buf / rxq->frag_count + 1;
+
+mana_remove() now clears the port slot before free_netdev():
+
+    /* Remove the port from reset walks before freeing its netdev.
+     */
+    ac->ports[i] = NULL;
+
+None of these seem to change runtime behaviour at this commit. Only the
+uncalled mana_free_qset() sets retiring, and for every current caller
+mana_create_rxq() sets num_rx_buf to apc->rx_queue_size.
+
+The mana_remove() comment mentions reset walks. There doesn't seem to be
+any reset walk over ac->ports[], either in this tree or later in the
+series. The remaining readers are:
+
+  - mana_link_change_work(), which is already disabled and NULL-checks
+    the slot
+  - probe and remove
+  - mana_get_primary_netdev(), which RDMA uses and which has no NULL
+    check:
+
+    ndev = netdev_master_upper_dev_get_rcu(ac->ports[port_index]);
+
+RDMA is removed earlier through remove_adev(). Still, the message doesn't
+say how clearing ports[i] interacts with this reader.
+
+Could the mana_remove() change go into a separate patch with its own
+rationale, or be dropped?
+
+Could the message also describe what the patch does? Right now it refers
+to "the pinned base" and lists things the patch does not do.
+
+This isn't a bug, but the patch also adds an unrelated blank line in
+struct mana_context.
+
+> diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
+> index 489558176a5de..7586972e78e09 100644
+> --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
+> +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
+
+[ ... ]
+
+> +/* Copy the vport identity without borrowing the live queues. */
+> +struct mana_port_context *mana_qset_scratch_alloc(struct mana_port_context *apc)
+> +{
+> +	struct mana_port_context *scratch;
+> +
+> +	scratch = kvzalloc_obj(*scratch, GFP_KERNEL);
+> +	if (!scratch)
+> +		return NULL;
+> +
+> +	*scratch = *apc;
+
+[Severity: Low]
+
+Is it safe to copy the whole live port context here without holding a
+lock?
+
+The copy includes:
+
+  - the initialized vport_mutex
+  - the queue_reset_work work_struct, which may be linked into a workqueue
+  - fields written concurrently, such as eth_stats (written from NAPI in
+    mana_poll_tx_cq()) and vport_use_count
+
+Later in the series, the reconfiguration callers set channel_changing,
+drop vport_mutex, and then call mana_qset_scratch_alloc(). Meanwhile
+mana_cfg_vport() and mana_uncfg_vport() can take apc->vport_mutex from the
+RDMA driver without RTNL. That looks like a data race KCSAN could report.
+
+No current helper locks scratch->vport_mutex, queues
+scratch->queue_reset_work or reads scratch->eth_stats. Any later code that
+did would be working on a copied mutex or work item.
+
+Would it be better to copy only the identity fields the queue helpers
+need?
+
+> +
+> +	scratch->eqs		= NULL;
+> +	scratch->tx_qp		= NULL;
+> +	scratch->rxqs		= NULL;
+> +	scratch->indir_table	= NULL;
+> +	scratch->rxobj_table	= NULL;
+> +	scratch->default_rxobj	= INVALID_MANA_HANDLE;
+> +	scratch->mana_eqs_debugfs = NULL;
+> +
+> +	/* Do not consume the live set's pre-allocated RX buffers. */
+> +	scratch->rxbufs_pre	= NULL;
+> +	scratch->das_pre	= NULL;
+> +	scratch->rxbpre_total	= 0;
+
+[Severity: Low]
+
+Do these assignments have any effect? The RX fill path never reads the
+scratch context. mana_fill_rx_oob() and mana_get_rxbuf_pre() both get the
+port context from the netdev:
+
+mana_fill_rx_oob():
+    struct mana_port_context *mpc = netdev_priv(rxq->ndev);
+    ...
+    if (mpc->rxbufs_pre)
+
+mana_get_rxbuf_pre():
+    mpc = netdev_priv(ndev);
+
+rxq->ndev is the live netdev. So if the live apc had pre-allocated
+buffers, building a replacement set on the scratch would still take them,
+or fail with -ENOMEM on a size mismatch.
+
+mana_alloc_qset() has no callers at this commit. Later in the series,
+mana_pre_alloc_rxbufs() is only called from
+mana_per_port_queue_reset_work_handler(). That handler allocates and
+frees the buffers inside one rtnl_lock() section. So the live
+apc->rxbufs_pre appears to always be NULL when a replacement set is
+built.
+
+Should these lines and the comment be dropped, or should the fill path use
+the context that owns the queue?
+
+> +
+> +	/* Suppress debugfs names that would collide with the live set. */
+> +	scratch->mana_port_debugfs = ERR_PTR(-ENODEV);
+> +
+> +	return scratch;
+> +}
+
+[ ... ]
+
+> +	/* Fence RQs before unmapping, but teardown proceeds on errors. */
+> +	mana_fence_rqs(scratch);
+> +
+> +	mana_destroy_rxqs(scratch);
+> +
+> +	mana_chn_xdp_release(retiring_prog, retiring_queues);
+> +
+> +	mana_destroy_txq(scratch);
+> +	mana_destroy_eq(scratch);
+
+[Severity: Low]
+
+Can this leave the live EQ debugfs files pointing at freed memory?
+
+struct mana_qset doesn't carry mana_eqs_debugfs, and
+mana_qset_scratch_alloc() sets scratch->mana_eqs_debugfs to NULL. Suppose
+mana_free_qset() retires a set whose EQs were created on the live apc.
+mana_destroy_eq(scratch) then removes only the scratch's own dentry:
+
+    debugfs_remove_recursive(apc->mana_eqs_debugfs);
+
+That dentry is NULL or an ERR_PTR here. mana_destroy_eq() then frees the
+EQs. The EQs/eqN head, tail, irq and eq_dump files that
+mana_create_eq_debugfs() created on the live port would still exist.
+
+Nothing reaches this at this commit. Later in the series, "net: mana:
+share the EQ pool across a queue-set swap" makes mana_alloc_qset() borrow
+apc->eqs and drops mana_destroy_eq() from mana_free_qset(). "net: mana:
+release EQs left idle by a channel-count reduction" then stores per-EQ
+dentries in apc->eqs[], so the final code no longer reaches this path.
+
+> +	mana_cleanup_indir_table(scratch);
+> +	kfree(scratch->rxqs);
+> +	scratch->rxqs = NULL;
+> +
+> +	memset(qset, 0, sizeof(*qset));
+> +}
+
+[ ... ]
+
 -- 
-2.47.3
-
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/cover.1791710735.git.weh%40linux.microsoft.com
