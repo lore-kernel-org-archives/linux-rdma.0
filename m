@@ -1,83 +1,97 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.219.51
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.229.8
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792532922;
-	b=CLC8i9tOa7KG8w2KItvSzhSZfTkctg6BXTTfvI0tiIudhRI9ocgyIEu6ApqwHQj4am2E
-	 X1WeYwe9YmnPEpuSRmy60GTzcyu6WT4Lxh1UcFLoAMlrd0IM7XgDqbzqRjFkt1TlLoY2P
-	 Wr9BYyld/JylmB/Xkd/EKvj4EtCsgN+uLgOf+Vw6S12G/xcqcRsC2AFh0J5c97GRf8Xr0
-	 bDzXEX2oZUW+8nCCH5IfSDiJg9ZraAmAJ25eaNgDO50ytSCbwSkeLsJTp7ZJoF7pBpc2/
-	 kJSyy6bChkiEZreH1rXs/92XbM7vE2Qdb1kP2w8sfr4cW4ipR3/yuYJVWt+HgLgKWMg==
+	t=1792533481;
+	b=GPdcFa9pRUr3a+by/mqh8bQk/dHlUqQSDZiqzXnosI6BH6Nxi8nj1aF31cWoORazr17N
+	 eMI51RgguqrbinmlglhDjv3dIcC/wVB6ByFIji5FVNfVoorEa8FzG5PW4jQgbhx/Tuk7M
+	 txO/zYM7YBO0pzCu91TLE5Y4xZovLddDecFCftX9OekOdXbaZjrhXD1KVcp7yQfOVxS9T
+	 +hSnByECV8uHj+eQ+n+BnLLt7Ju17L+Afuri7woWuuxLZyEVUOrahnHJotaHf/6OgWVD1
+	 wWHG312QselR807gE6R5eQloJIfrrr/IhgOKkbpnLcwFRqVQb8iMNFVwqwWBAi9YNIg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792532922;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792533481;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 MIME-Version:Content-Type:Content-Transfer-Encoding:Subject:From:To:
-	 Cc:In-Reply-To:References:Date:Message-Id:X-Mailer;
-	bh=lwH5lbGW7Jp7v2pgahH/8u5d5Q1US/ZAJYtMLpAtA4s=;
-	b=W8DW0MbhAvW9nDmbDMcGEbd3UFdTkTRRlq8po3GKMz61wRetPG0nY2y+iNFehBtad6G0
-	 R7+vRvQ7z9ni/A0i5Nb5x2uYsw0s/nogtEOtdfrfejsRe/nh90lFG/Pa+RWzP9Agiz69K
-	 jDBQmMvePCv4uy0Ap/5a1soc1iqztPM5XprsFn4ruEX/HIEv5AdbbxcRLsXN3kJaO2BsC
-	 fAkWg7BUCBB2ereQ8kGuK1jRbHZNhKrctK+RTNpAz0mUchSfp40nhX7SFQ7L1bLhQ4C0i
-	 evBSb9gqqNX7vH+GSbem8b/fK879bAVB0ojisMP/I545aYiEJwmS0A4f0emAGkwyI5w==
+	 Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To;
+	bh=hYnXTzJewxVnTsYQsR0lTJu5zv/qnETwI2MNTZueBaE=;
+	b=FNDtTxdVEVoXftzVmEPtuiHavRYBbisT1QCUvU8MVdRsq432TRHNLCvUm610C8Qc6gIS
+	 feuzSiUbXYG90F3ZJCKhzKUk83+a+fZHW9thYnTAYN7rjPmr0p790f0p80nrrNbNRKy01
+	 XQxN5J46iv2FuDboo+s2GMR0qVtsNBj1J6tB0Nl363ReskwteLSDVsv35Ok/oF2QkmQ0Y
+	 ZqXPTH2nb6037Q6sYToH+2UJ47jC5mJVI1Rc+PMa4WPeF5/vIVWUuIWxMVvz2KjmCXC6O
+	 gV1pwA6NBE8VtSee8en10eZ2q0Bi758jp2PgLOh3mutP//D91arvWOjjSmKQEgvUWEA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=gourry.net;
-	spf=pass smtp.mailfrom=gourry.net;
-	dkim=pass header.d=gourry.net header.i=@gourry.net header.a=rsa-sha256 header.s=google header.b=Vnm419Qa;
-	arc=none smtp.remote-ip=209.85.219.51
-Received: from mail-qv1-f51.google.com (mail-qv1-f51.google.com [209.85.219.51])
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=J+M8k3LW;
+	arc=none smtp.remote-ip=74.125.229.8
+Received: from mail-dy2-f8.google.com (mail-dy2-f8.google.com [74.125.229.8])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92CF1606A31A
-	for <linux-rdma@vger.kernel.org>; Tue, 20 Oct 2026 21:48:41 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 92CF1606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19AE0606A31B
+	for <linux-rdma@vger.kernel.org>; Tue, 20 Oct 2026 21:57:59 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 19AE0606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gourry.net header.i=@gourry.net header.a=rsa-sha256 header.s=google header.b=Vnm419Qa
-Received: by mail-qv1-f51.google.com with SMTP id 6a1803df08f44-917d595138fso958986d6.3
-        for <linux-rdma@vger.kernel.org>; Tue, 20 Oct 2026 14:48:41 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=J+M8k3LW
+Received: by mail-dy2-f8.google.com with SMTP id 5a478bee46e88-33baa8eb238so13194eec.0
+        for <linux-rdma@vger.kernel.org>; Tue, 20 Oct 2026 14:57:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1792532920; x=1793137720; darn=vger.kernel.org;
-        h=message-id:date:references:in-reply-to:cc:to:from:subject
-         :content-transfer-encoding:content-type:mime-version:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=lwH5lbGW7Jp7v2pgahH/8u5d5Q1US/ZAJYtMLpAtA4s=;
-        b=Vnm419Qa/kjE27NqFknpFQG1AEpyq49ddgDDuGG4m4PuK8jB4BIucxesyWwSf4SEa0
-         uSz2H8eWQ3QAQVj6mvZloHz1ezWLtzmCORiSuo4nvX/Y89/2PHrTr2TW0P6Tm5o1c13y
-         kFggrh0Im+PIpGTSB7fqkFQNt8NQtpgWN8Og3tQl5MkWnwnj8MF/yt/hQt64q5Q4ESGC
-         hfbLwpJB1hqraCnMet5mFnXiToBilJJr7Z42YzL3pjg2EM6cMOlxUZWGIUnaMwpSxLeW
-         e0X1EurcmLyvexnjMFYKgO/omwKsQow1isD1OoopS7BI9x0SWOD2yG9zXJviPhqLpw95
-         dF7A==
+        d=gmail.com; s=20251104; t=1792533479; x=1793138279; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=hYnXTzJewxVnTsYQsR0lTJu5zv/qnETwI2MNTZueBaE=;
+        b=J+M8k3LW1y1p2rAPNOoanZEOm8pIOU1+hFBlot9nZuGIe4j/NEAa3FoXR4K0fIC/Ww
+         nMySMKfpE2Akc8lwd9+qGjYpg65pMLQArQFxr4tam3HsNsKTXdlfbPjO2xBVcl2cHAk5
+         5zHbTyv+gliwodCFR7WwgWQY720cCKozaMjhp6H0kmml3W2bYWCO0bmj2aC2HDVJlTv4
+         qR0UCKjB/bpPAJupIljMfGC8oih7hHdEW9uM09884Y/2Qa0kNX/x6LnMQp+92vf8im2B
+         qGwF2UGwdNw88cc+T6dT47t7P8G/p9wcCyLXIZf8fox/xEFre6sXoE5mS4Iui8gmh8xT
+         z51g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792532920; x=1793137720;
-        h=message-id:date:references:in-reply-to:cc:to:from:subject
-         :content-transfer-encoding:content-type:mime-version:x-gm-gg
+        d=1e100.net; s=20260707; t=1792533479; x=1793138279;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=lwH5lbGW7Jp7v2pgahH/8u5d5Q1US/ZAJYtMLpAtA4s=;
-        b=mWxmazfq2HhnWzaYDPqsEoaZ3VPpeWyG2qDNduNpANrJxdRzVvEM534kFKS1q7I8U+
-         tLlcR1zLPEF2jGzA4YQQndUGDxavlNW9xjvvBKBavmSr3Ut3vZ4BXVqzFYDS1OJd+dh/
-         Md9yVix1NzwphIkSyvILeAtIPlIlD+XEXUl/7ElkRDxY416BtmXSeo4CaM06J7xtkLeY
-         Ny+uA9FoCRwcB3NUEPhp1JQJaRzkn1h4a3CL7rVZUwOKNIUAR0KTARcuLJjeLX/KvkL6
-         wEHb5ookWZLqAl0o5/J411wYGNmfcIskGP+UFN46MNLYBBinebjUbXFAbQKTzVLCcZ3u
-         8v1Q==
-X-Forwarded-Encrypted: i=1; AKwUvBwGJr90UyHfUoG/fqsKqK5WuRqrJuoyw8K73KJxVAS/ce6Lk3cWQabN37gjgpyWXjG03QfRqoIF4yDV@vger.kernel.org
-X-Gm-Message-State: AFq9FYLxOdh6G21+3it2GUBqVv/Qj3ggQylJQwxj1Nnr1fvAifAQueB2
-	s8azxHAM3QIq62M/v2QVWpQ6g1pBum7+L4+yLyAwX1sbXa7hMqiioBrsbfvweX2+y74=
-X-Gm-Gg: AYBFou1pVrQ8M3Ri5jOCV+reOpduiCyonp+9mjO0zQHlM91CBWQxtqU4VbDhgMrLgrm
-	Us4pIiq1BG86PvANHhWjBPJ+5hjGdjvWBkduEy3Y9OAlyY/i1FStmrTKFvTUj/xubMGc/RtD/BQ
-	DNaRgob8kNz5H93qPp/hSMIS1uTCDDtbEcD/n0az3v1StkIFqB/cuHEKSC3SkJ1C+hmWlvg7Jdp
-	9mQvGVHfEz7psBOBd6XNTarfH8F8ssUbuxXWKhlrPzF6Bo83rZY0BIsXXwHKIBb9sucgrrQDboh
-	7kIIUV4Paq2B2rB0smwCnl0QZg6k6Er5fwsHcOf32OaDVKS+/hl4Kfnv4DU/Ns8KCk8ep6ZOuFZ
-	hsJ6ze6//osUUq27keSWhfdbIpx0Hr4XhwzFYUGj9pzaORIfmOP8EnssGL77UJoKakeb3fWTH/q
-	8kSf70bRlwMPg4vm3Hl4xJLm6nz8lH32lvOdA0Ew1CpcbXzNfXh7wTI03ovWyFIErdc2LD8ZBv0
-	ld5C+mvBnYyFFuCwbZWqYpPj9sJE4UmeWrOdvLwGNkwww==
-X-Received: by 2002:a05:6214:3c86:b0:91b:5d3a:5105 with SMTP id 6a1803df08f44-91c12f580cemr1790346d6.51.1792532920531;
-        Tue, 20 Oct 2026 14:48:40 -0700 (PDT)
-Received: from [192.168.86.58] (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91c10bc99a7sm8625276d6.22.2026.10.20.14.48.35
+        bh=hYnXTzJewxVnTsYQsR0lTJu5zv/qnETwI2MNTZueBaE=;
+        b=iChnQSPWLkb5ZfjuI+7yzFuN9IocPWjR+Fq7HQGa4aWgL/Cm5WTHVOUSwBDY+uNng+
+         zikVIG/JfBFITRlXgej7Ha+MifDw7cXa5HDyk4P8yz2okZQiyAlWydP+Bpe5ibvLprtC
+         0nyLhINKw2SMZXV9HzC5SrM4yfkSXAHhVgHJJ+vTX/uNcEMwPrrkT5mMyTs3pZLwq7qI
+         J+hTJGVD7Y2T9n2xg33dJX45L345CH/R5+gzNd4Ww0Q1+KxkOaCsuRO9tH63BOR1VjnV
+         usLiDXd0qDu7d7FMsipsQAUcMM3jaiWUM7JvWySIk0UtTOK3SAtFZ3jrCAI91WZQsgu2
+         6ciQ==
+X-Forwarded-Encrypted: i=1; AKwUvBwfgbAhNFX7DkVd4XqHtJVyn+Ab8DPGZ20TqJby77eV+R1sYgAhgSGOmUVDeo3phXtuh5+VhGYQZ3bB@vger.kernel.org
+X-Gm-Message-State: AFq9FYIaZRHxvJXHh4xcEc/nh187LUVvW79D0zVkRy7Fop0kHFcVd43N
+	tgOWAGvtlWeDJ8nmFcIt9HSQNQDclCYzyVgKkXxLxx+oFotL7WnR2kV6
+X-Gm-Gg: AYBFou26ktMz1FjJ6IbMqpeTBiLfIkUS0Cbe/mLCLLedcaiUf3WUmLJRqVsKWB3jIVF
+	n1JRrAN0l+VYoBJusJdG5/IE1fugYCwhi0JXI0SwZ4jyKKujmV48+KmgV7pPUQl+8yZ7stSxQ/1
+	GMryBLLxKfXykgDgmlT4E5K1mJ8+PvSECYgz5kgAyvhStmoDVV6iA4BV6ZNOis3iEDF6YW+NV7I
+	oVpgabe9mWXnf7QfHxatSMgs5Cit5dh6OfV9v1d6Ul+fuXCEc2g12trlVl2d+wFky2lgHFtbF2O
+	sKfINQiUr3hAEbcWVDHultpYd6Jdj4kkEKZRd22qtzHvTSVaaSEx1zy4gBahx3d2381ZFD40m/O
+	gx5i0QcH4agNEpW9Y0+/JUA+d3+cJLDwIIPlFTBiE+0GTqFlEP9s8KWK0JJKkzPgIB2IfJhktq4
+	ypAKtfsLI8wqrL5mXsM0JD71a1Mcg5SscEV0uvUSQprsMlYnZQaDIo5kp/OG5KXz2jLXNtXeSYY
+	m9YiQLwOMAbWMvpSy0mSGbGbCSt3RwfftPVNZ450O/CtbixBw==
+X-Received: by 2002:a05:7022:7e84:b0:143:4450:e1e6 with SMTP id a92af1059eb24-190a7660d75mr193063c88.35.1792533478955;
+        Tue, 20 Oct 2026 14:57:58 -0700 (PDT)
+Received: from localhost ([2a03:2880:9ff:70::])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1903bb7f098sm1857639c88.12.2026.10.20.14.57.58
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 20 Oct 2026 14:48:37 -0700 (PDT)
+        Tue, 20 Oct 2026 14:57:58 -0700 (PDT)
+Date: Tue, 20 Oct 2026 14:57:33 -0700
+From: Stanislav Fomichev <sdf.kernel@gmail.com>
+To: Tariq Toukan <tariqt@nvidia.com>
+Cc: Andrew Lunn <andrew+netdev@lunn.ch>, 
+	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, 
+	Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>, 
+	Carolina Jubran <cjubran@nvidia.com>, Cosmin Ratiu <cratiu@nvidia.com>, 
+	Dragos Tatulea <dtatulea@nvidia.com>, Gal Pressman <gal@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
+	open list <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>, 
+	Saeed Mahameed <saeedm@nvidia.com>
+Subject: Re: [PATCH net] net/mlx5e: Stop asserting for RTNL when closing
+ channels
+Message-ID: <atfjx6iJJiqAq3Io@devvm16445.scu0.facebook.com>
+References: <20261020153659.3440902-1-tariqt@nvidia.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -87,112 +101,35 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH v6 07/39] mm: assert mmap lock held, use new flags API
- in vm_insert_page[s]
-From: "Gregory Price (Meta)" <gourry@gourry.net>
-To: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, 
- "Liam R. Howlett" <liam@infradead.org>, Vlastimil Babka <vbabka@kernel.org>, 
- Jann Horn <jannh@google.com>, Pedro Falcato <pfalcato@suse.de>, 
- David Hildenbrand <david@kernel.org>, Mike Rapoport <rppt@kernel.org>, 
- Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, 
- Jonathan Corbet <corbet@lwn.net>, 
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
- Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, 
- Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
- Paul Moore <paul@paul-moore.com>, 
- Stephen Smalley <stephen.smalley.work@gmail.com>, 
- Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
- Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
- Andrii Nakryiko <andrii@kernel.org>, Eduard Zingerman <eddyz87@gmail.com>, 
- Kumar Kartikeya Dwivedi <memxor@gmail.com>, Zi Yan <ziy@nvidia.com>, 
- Baolin Wang <baolin.wang@linux.alibaba.com>, 
- Nico Pache <nico.pache@linux.dev>, Ryan Roberts <ryan.roberts@arm.com>, 
- Dev Jain <dev.jain@arm.com>, Barry Song <baohua@kernel.org>, 
- Lance Yang <lance.yang@linux.dev>, Usama Arif <usama.arif@linux.dev>, 
- Kiryl Shutsemau <kas@kernel.org>, Doug Gilbert <dgilbert@interlog.com>, 
- "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, 
- "Martin K. Petersen" <mkp@kernel.org>, Simona Vetter <simona@ffwll.ch>, 
- Helge Deller <deller@gmx.de>, Sebastian Reichel <sre@kernel.org>, 
- John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, 
- Masami Hiramatsu <mhiramat@kernel.org>, Oleg Nesterov <oleg@redhat.com>, 
- Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@kernel.org>, 
- Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
- Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
- Arnaldo Carvalho de Melo <acme@kernel.org>, 
- Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
- Rik van Riel <riel@surriel.com>, Harry Yoo <harry@kernel.org>, 
- Juri Lelli <juri.lelli@redhat.com>, 
- Vincent Guittot <vincent.guittot@linaro.org>, 
- Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
- Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
- David Airlie <airlied@gmail.com>, Will Deacon <will@kernel.org>, 
- "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>, 
- Nick Piggin <npiggin@gmail.com>, Arnd Bergmann <arnd@arndb.de>, 
- Muchun Song <muchun.song@linux.dev>, Oscar Salvador <osalvador@suse.de>, 
- "Matthew Wilcox (Oracle)" <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
- Marc Zyngier <maz@kernel.org>, Oliver Upton <oupton@kernel.org>, 
- Catalin Marinas <catalin.marinas@arm.com>, 
- Madhavan Srinivasan <maddy@linux.ibm.com>, Anup Patel <anup@brainfault.org>, 
- Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, 
- Albert Ou <aou@eecs.berkeley.edu>, 
- Christian Borntraeger <borntraeger@linux.ibm.com>, 
- Janosch Frank <frankja@linux.ibm.com>, 
- Claudio Imbrenda <imbrenda@linux.ibm.com>, 
- Alexander Gordeev <agordeev@linux.ibm.com>, 
- Gerald Schaefer <gerald.schaefer@linux.ibm.com>, 
- Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
- "David S. Miller" <davem@davemloft.net>, 
- Andreas Larsson <andreas@gaisler.com>, 
- Alexander Viro <viro@zeniv.linux.org.uk>, 
- Christian Brauner <brauner@kernel.org>, 
- Matthew Brost <matthew.brost@intel.com>, 
- Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>, 
- Byungchul Park <byungchul@sk.com>, Gregory Price <gourry@gourry.net>, 
- Ying Huang <ying.huang@linux.alibaba.com>, 
- Alistair Popple <apopple@nvidia.com>, Chris Li <chrisl@kernel.org>, 
- Kairui Song <kasong@tencent.com>, Kemeng Shi <shikemeng@huaweicloud.com>, 
- Nhat Pham <nphamcs@gmail.com>, Baoquan He <baoquan.he@linux.dev>, 
- Youngjun Park <youngjun.park@lge.com>, Johannes Weiner <hannes@cmpxchg.org>, 
- Qi Zheng <qi.zheng@linux.dev>, Shakeel Butt <shakeel.butt@linux.dev>, 
- Axel Rasmussen <axelrasmussen@google.com>, Yuanchu Xie <yuanchu@google.com>, 
- Wei Xu <weixugc@google.com>, Chengming Zhou <chengming.zhou@linux.dev>, 
- Michal Hocko <mhocko@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, 
- Xu Xin <xu.xin@linux.dev>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, 
- linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, 
- linux-rdma@vger.kernel.org, selinux@vger.kernel.org, 
- linux-sound@vger.kernel.org, bpf@vger.kernel.org, 
- linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org, 
- dri-devel@lists.freedesktop.org, linux-trace-kernel@vger.kernel.org, 
- linux-perf-users@vger.kernel.org, linux-arch@vger.kernel.org, 
- linux-fsdevel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
- kvmarm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org, 
- kvm-riscv@lists.infradead.org, linux-riscv@lists.infradead.org, 
- linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, 
- fuse-devel@lists.linux.dev, Ihor Solodrai <ihor.solodrai@linux.dev>, 
- Bert Karwatzki <spasswolf@web.de>
-In-Reply-To: <20261013-b4-mmap-prepare-vma-flag-sanify-v6-7-1aa3c9b139f9@kernel.org>
-References: <20261013-b4-mmap-prepare-vma-flag-sanify-v6-0-1aa3c9b139f9@kernel.org>
- <20261013-b4-mmap-prepare-vma-flag-sanify-v6-7-1aa3c9b139f9@kernel.org>
-Date: Tue, 20 Oct 2026 17:48:32 -0400
-Message-Id: <179253291264.1207257.80392040365771672.b4-reply@b4>
-X-Mailer: b4 0.17-dev
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20261020153659.3440902-1-tariqt@nvidia.com>
 
-On 2026-10-13 16:04 +0100, Lorenzo Stoakes (ARM) wrote:
-> The existing logic asserts that an mmap write lock is held, bizarrely, by
-> asserting that an mmap_read_trylock() fails (which is not the same thing).
+On 10/20, Tariq Toukan wrote:
+> From: Cosmin Ratiu <cratiu@nvidia.com>
 > 
-> Assert the mmap write lock here and switch to using the new VMA flags API
-> while here.
+> mlx5e_close_channels() has an ASSERT_RTNL() from the time when RTNL was
+> required for closing channels.
+> But the driver has been switched to using the netdev lock a while back,
+> and this fired from a flow which was forgotten during the conversion:
 > 
-> Note that the vma_start_write() is explicitly broken out from
-> vm_flags_set() here in order to use vma_set_flags() safely.
+> mlx5e_tx_timeout_work()
+>   -> mlx5e_reporter_tx_timeout()
+>   -> mlx5e_health_report()
+>   -> mlx5e_tx_reporter_timeout_recover()
+>   -> mlx5e_safe_reopen_channels()
+>   -> mlx5e_safe_switch_params()
+>   -> mlx5e_close_channels()
 > 
-> Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+> The RTNL is not acquired here, but the netdev lock is, and it is enough.
+> 
+> Rather than switching to netdev_assert_locked(), simply drop the assert.
+> Upper layers (networking core, ethtool core) provide locking and lower
+> layers (NAPI helpers) assert that the netdev lock is held.
+> 
+> Fixes: 8f7b00307bf1 ("net/mlx5e: Convert mlx5 netdevs to instance locking")
+> Signed-off-by: Cosmin Ratiu <cratiu@nvidia.com>
+> Reviewed-by: Carolina Jubran <cjubran@nvidia.com>
+> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 
-Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
-
--- 
-Gregory Price (Meta) <gourry@gourry.net>
+Acked-by: Stanislav Fomichev <sdf@fomichev.me>
