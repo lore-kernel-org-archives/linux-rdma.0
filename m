@@ -1,74 +1,49 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=82.76.27.144
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792499991;
-	b=QfZk4+NL4krFoAjR/uBCOnNy7avlPN2E4KCZpdGHk90c30JN8e6K6R+T0zHKPzPPbelO
-	 eN0wxIGDxB9GZSebekDogevlEmkeeoFobyNr17yKiPFZx2OrLi/nrgcYanZTYdrnHq4jy
-	 WuP+MgLDJxggnfVcA3de43nwxt54frqSabYq6gT/83ouTOF24L2+RxN0h58TupmmhQRBz
-	 p6Bxz5PU7UZuAHQTP/qM+bFPBzYP7YLmbf1Pl2S5l6PSTqYT8NJIORmh+VWilcY70T9PL
-	 zUf2lfbUXsPKnCJ8hoab/++IXNZSr9c4Ueb265GreyRx0U0PEgCaWirr0GDX4gd25sQ==
+	t=1792502406;
+	b=MK2GKYNbHHxdfSE3r1bppKPb+UWWIGevexlpjy7FlfYgtTwJIVvcbV1l+1DKxIn1mKA0
+	 qkJR80Wd2w1RUhdhnTM4SVqpNEqrlWE4sZQBgeIhFhb8WomASZotNs6VYgvZ99OZG8cLJ
+	 V1Phk1FbrGOhbX8MHu0xslIYAcq8mobGMbTGGpeEl6i2pUCubJz4miFLiWBz7QYijIfda
+	 +6bCsL81t8twrdy7wf3JpoaDkk2jfFx8BOwgWlzWL+AMv55SpVlNbgFi9VNgk3+UALD+t
+	 +DRPOnxCamg/P8c4/7YwJtltRerWhFhQozfeoE0xziTFxVmmNZCo84TZI6mWRvCHRYg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792499991;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:From:To:CC:
-	 Subject:Date:Message-ID:In-Reply-To:References:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding:X-Originating-IP:
-	 X-ClientProxiedBy;
-	bh=99Rn/UZ1H9MbzGEXcXS/NYd0KredJZ+AqYa9UlDNkl4=;
-	b=rAB3nyOP6/SXM/HTjIUX5xj3oxteEfcqIUezbZHny03KXhlV9nggNab+/2jsKJnbCiVT
-	 DP+52EOm331A8nucDegJkn24ZkrfDn7Rr4qXy5kKzsyjNTAdh1rjt8JPy+9dde6RimIn5
-	 D/caHPYmgpJJnIltj83jQR+ONCfO6tcUNja4rppw3YpkQnL613ZmR09z4MwSwBpTH/ch6
-	 k8US/loLAXLRlGr7x93dx16f75KFnCRMJIKm9bIkL+nYYNkEbKkieRRhZv3sFyBXVC+fY
-	 QisdmEvqU69Pu8JSxmZG8FDtTQFm3qxH5UFkews9bKt3Mef/sKX0goBOKE5un0vUH2g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792502406;
+	h=Received:DKIM-Signature:Received:Content-Type:MIME-Version:
+	 Content-Transfer-Encoding:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc;
+	bh=//l75mDkUGX/oYCveaouVsCzegcFG2T6MkUG/0+hS48=;
+	b=RuzYtAVVqCVJOihENnc5NIl1QPoOi1uyuOG6KeYc8NQ7LMJW0NAADmmT4/f+1kHTHDDr
+	 dMNqbcC3+2Cv7JGCLDQZsBHhRJaUetLd1yZ2rubuEmmARs4kFkEdiPWrnZRCvlo7hrnwe
+	 lvK4YaWj82cn6Re5K3+JUKkXUbIfwuZsjSjqq6/w2AWDWovqKuhVWuscyWhSKQXtnbaVY
+	 icQu1ugK1qw1YR+fZLENg6+d7yULumqMgHbVbsPF0vA1+hmzDWQ3wmA4Tze6ojdODHLim
+	 JLFc93zNLwkUgjIfyVYLdsmIvmFdAlaC3+jSrCVe93lP9iZPZbuULYm8cgTrCob304g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=andrei-z.com;
-	spf=pass smtp.mailfrom=andrei-z.com;
-	dkim=pass header.d=andrei-z.com header.i=@andrei-z.com header.a=rsa-sha256 header.s=sig1 header.b=Jur1rxuw;
-	arc=none smtp.remote-ip=82.76.27.144
-Received: from vtj.irix.systems (vtj.irix.systems [82.76.27.144])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lgYUh57J;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78F76606A31E;
-	Tue, 20 Oct 2026 12:39:50 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 78F76606A31E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=andrei-z.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=andrei-z.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 403D3606A319;
+	Tue, 20 Oct 2026 13:20:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=andrei-z.com header.i=@andrei-z.com header.a=rsa-sha256 header.s=sig1 header.b=Jur1rxuw
-Received: from MAILGW-HP.hp.vtj.corp.irix.systems (localhost [127.0.0.1])
-	by vtj.irix.systems (Proxmox) with ESMTP id 8221013CE8;
-	Tue, 20 Oct 2026 15:39:47 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=andrei-z.com; h=
-	cc:cc:content-transfer-encoding:content-type:content-type:date
-	:from:from:in-reply-to:message-id:mime-version:references
-	:reply-to:subject:subject:to:to; s=sig1; bh=99Rn/UZ1H9MbzGEXcXS/
-	NYd0KredJZ+AqYa9UlDNkl4=; b=Jur1rxuw7ZoSUr5QzCGDJtcmybHMgFIclklY
-	47BolaC3w5bG3R7PL4hw3tPaUlTwrTOI0w6kPwvmwRGIbFUg2v7yMGY4QKjBejiB
-	6b7rEbpja4wLd6cmddx1ItNnnJCVRLZdwd0xWT6HpyhPoHkaQUgJ+NvlhRcqOvY5
-	3ams9kW3EgV5nbFPhjX4nwQ5pnLAMXOJtynu9Q3NUbJXvY7ICngblMHu7Sm9dH31
-	c9RfFiNny0eNuq3puzSTu6Q9hhGcqJssG/6JDYWGZgRsdLFsDgDVxLQGhGKyuM4e
-	GELmwSXkSJ59TMfFLpBpmGxZkQHT/9qz5Gxa86w8xSEPU3h0gg==
-Received: from VTJ-MX.corp.irix.systems (unknown [IPv6:2a02:2f04:1:9c24::6])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by vtj.irix.systems (Proxmox) with ESMTPS id 0885513D28;
-	Tue, 20 Oct 2026 15:39:47 +0300 (EEST)
-Received: from [10.89.11.73] (10.57.8.14) by VTJ-MX.corp.irix.systems
- (2a02:2f04:1:9c24::6) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Tue, 20 Oct
- 2026 15:39:46 +0300
-From: Andrei-Alexandru Bleortu <me@andrei-z.com>
-To: Jinpu Wang <jinpu.wang@cloud.ionos.com>
-CC: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Sagi
- Grimberg <sagi@grimberg.me>, Max Gurtovoy <mgurtovoy@nvidia.com>, Bart Van
- Assche <bvanassche@acm.org>, "Md. Haris Iqbal" <haris.iqbal@ionos.com>,
-	<linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH RFC 3/3] RDMA/rtrs: Post client read requests inline
-Date: Tue, 20 Oct 2026 15:39:38 +0300
-Message-ID: <20261020153938.1445837-1-me@andrei-z.com>
-In-Reply-To: <CAMGffE=qjNDYdwx1PYgK1K87A4NhJ=cuR+kkUhdYH81gSGb-nQ@mail.gmail.com>
-References: <20261015125118.2966247-1-me@andrei-z.com>
- <20261015125118.2966247-4-me@andrei-z.com>
- <CAMGffE=qjNDYdwx1PYgK1K87A4NhJ=cuR+kkUhdYH81gSGb-nQ@mail.gmail.com>
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lgYUh57J
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF7F51F000C6;
+	Tue, 20 Oct 2026 13:20:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792502405;
+	bh=//l75mDkUGX/oYCveaouVsCzegcFG2T6MkUG/0+hS48=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=lgYUh57JuaKuD5gRSGEzJKqeo4LWW6FufjozqIRigsKoxHbHs/zHhH002zlJR2aHh
+	 0s13AtucPcvCfabVv8jwj5hBa54R4pzQei+VVTOa4NH00TreAi0Z6rWq5Hn4EvLHMR
+	 Af63L4TmiJhTNcJ7GE5wcIJCODwI5UPg1DCnu/ZNpomPBb9hcEgSgyriJ1QoBitVaW
+	 YxslTW0Fsb+Mb1qWP8Yc+1Co0i3AL1CFRJ7zTsB/CS6HvxIqoe8+FVSxAcsAidNZN1
+	 lVhw61Dj3JXJX+KVzWzAUaN2tBr/ady9A/AL1rCBXYAdPGeg+CrCqpN4Na1A4etu3g
+	 CsoyKUoPIvRDg==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id B43C83808209;
+	Tue, 20 Oct 2026 13:20:05 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -78,24 +53,48 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: VTJ-MX.corp.irix.systems (2a02:2f04:1:9c24::6) To
- VTJ-MX.corp.irix.systems (2a02:2f04:1:9c24::6)
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net] net/mlx5: DPLL,
+ fix fractional frequency offset scaling
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <179250240453.3733082.6292944364676588556.git-patchwork-notify@kernel.org>
+Date: Tue, 20 Oct 2026 13:20:04 +0000
+References: <20261015074035.1092340-1-tariqt@nvidia.com>
+In-Reply-To: <20261015074035.1092340-1-tariqt@nvidia.com>
+To: Tariq Toukan <tariqt@nvidia.com>
+Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
+ kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com,
+ arkadiusz.kubalewski@intel.com, cjubran@nvidia.com, gal@nvidia.com,
+ jiri@nvidia.com, jiri@resnulli.us, leon@kernel.org,
+ linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, mbloch@nvidia.com,
+ saeedm@nvidia.com, vadim.fedorenko@linux.dev
 
-On Tue, Oct 20, 2026, Jinpu Wang wrote:
-> The change looks fine to me, and I did some testing on it. However,
-> the data doesn't seem to show any clear performance gain from posting
-> inline requests.
+Hello:
 
-Thanks for testing it.
+This patch was applied to netdev/net.git (main)
+by Paolo Abeni <pabeni@redhat.com>:
 
-That matches what I measured. The gain only showed with one I/O in
-flight against a memory-backed device (4 KB random reads to null_blk,
-ConnectX-6 Dx over RoCE): fio's mean completion latency went from 20.1
-to 19.7 us, under 2 %, and it took 15 paired rounds to resolve. With
-more I/O in flight or a real drive it would be lost in the noise.
+On Thu, 15 Oct 2026 10:40:35 +0300 you wrote:
+> From: Carolina Jubran <cjubran@nvidia.com>
+> 
+> The frequency_diff is reported by firmware in parts-per-trillion, which
+> is exactly what the DPLL core now expects from the ffo_get callback.
+> 
+> Commit bc443c253fcd ("dpll: expose fractional frequency offset in ppt")
+> switched the callback contract to ppt but assumed frequency_diff was in
+> ppm and scaled it by 1000000 to "convert" it. Since the value was
+> already ppt, this makes both exported attributes wrong.
+> 
+> [...]
 
-As I wrote to Leon, I'll leave the series unless someone finds that
-latency matters to them.
+Here is the summary with links:
+  - [net] net/mlx5: DPLL, fix fractional frequency offset scaling
+    https://git.kernel.org/netdev/net/c/0edb8222b852
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
