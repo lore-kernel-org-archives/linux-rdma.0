@@ -1,99 +1,100 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.46
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1792513398;
-	b=w7J8t0iQZ8lILbwnFYsEnviXaDjkvDgkldF8N3ONKzpE/aqm78U+HeQQcFZdjrAj/ZE/
-	 1acI+TjXh4y93hDZxfuK+rpr0aBSkzAAdGEwPS8etnYmNyQsUmJxoVOfBDCvpJ3P2Kv0s
-	 bG+9eSrABjS+lqaI5QJOJiVjU72wkov4jJWPfPBT2FOs7RP0SMv2sy4ssZes4X8vm71jZ
-	 Z4WkAhPaMRmoOCuExETuACnWOVj5waRy0wHm1/hc/27kkejObLGJIrmFRyP4S9xBdIEeT
-	 zlktAcIQouL8D/RN1xhsfkLSfCVbeCdxdyAc8xa4T7ZYVmGXt8wo0dVn6LBN0iZkOdg==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792513398;
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.45
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1792514591;
+	b=gZWqgUNeqEpAGX7fwNsZGRl8P//dK7HdHNomvLXgng4Fn/ZAqf457R+1VG2Wxfmf7oJ4
+	 6aq09IrrE4IknYYADJmtbSCztVZ8gyex5rFtRXu17wnf3MLZ/3oJM+L1wWgg5p32l8xXF
+	 MGVBXTj8dbsNph1Y5kECS9BGVxG+i3SGXhN3QGXPoBPKzoyclE7si/M0Y7v4e/kL1zsXP
+	 jXHQu8f7vLJuUjaWeELDIdHmvLX6O/kMGG/d71yfs6EINQUBd38h8sIjoyHHz9xXK3J09
+	 hoaRczNdNh8T1DBnDcZkOcW/c8kxKfg183k5W5d90I1l+hdgRl71+scMrKC1YAuH4ZQ==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792514591;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=0jCj2axNyxSFURiXpH7V4N8DE8GNJe9dPnJmhT9P0cA=;
-	b=ba2MPMmY/D/9+Z4HMFO2twC2LK1/AtPGlkOQMrDTclyVtoe1/fQ+IJ947s04+z0w6dUq
-	 /OWqYjW9Okq04i34YQ5p9jVSHC83+/BT+eQOdqC0Y2rhFMbP7APyR/Sl3X87RUgqhNs6r
-	 zJ9NR6ObAWFzz0QrI9ppQFGRhsIFWj4hpXJ9CBsUeGAuSU6muGHkvSJg95ZzYtVLqNm5K
-	 Rn3RiHiYIdHTRY32qvMgcy6RUIJ4PwsiISTQxNS1TJwwIpd85ililBQ11nUJiEAOn9PNp
-	 +er60gtH4kxeebefAaN0WnlmV3MdndpbYFcu+yr1p8QDg+6c0emB+Aus8d+wpUcbAVA==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=google.com;
-	spf=pass smtp.mailfrom=google.com;
-	dkim=pass header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20251104 header.b=Xua+F94x;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.46
-Received: from mail-ed1-f46.google.com (mail-ed1-f46.google.com [209.85.208.46])
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=CdlYPARhuT5EgLufL/ZQ6dU/20tseBOVd7fjLCxWlSo=;
+	b=Oe8v3Iw00c+4ylQUPNWhWC3UXQ5vFP0iv/0y4fNVvpsstP+O0PY58CF7jsK4zg4CP/Ke
+	 W91oY7OkqE89nmiXSULrVILM0Esa6w6zlwwflNroOHlhshNpKmJUV49vbD7SD3qWjRIvI
+	 mjx3UWNJufYbpr3JEuYsKpjC/UvHDyhX9LfHwa8xIksRHo9kMvurNTU9yBkAXCvcOjSe4
+	 Cq+zxxMNzxvMKshC3g2E4ZWkrDgCpul4Ru+6Po3WgfaXQwPyu/p8YDaXpql0/3zYg/kF0
+	 tjQ9qbolmjIXogKTWkilr1SfKkoZflfZoA3J5Nu8LcrM9ZfyjXep+Kg93N3Kf1yKKnw==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=p10U2UEo;
+	arc=none smtp.remote-ip=209.85.128.45
+Received: from mail-wm1-f45.google.com (mail-wm1-f45.google.com [209.85.128.45])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEDAC606A31E
-	for <linux-rdma@vger.kernel.org>; Tue, 20 Oct 2026 16:23:17 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DEDAC606A31E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 650C860A2604
+	for <linux-rdma@vger.kernel.org>; Tue, 20 Oct 2026 16:43:10 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 650C860A2604
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20251104 header.b=Xua+F94x
-Received: by mail-ed1-f46.google.com with SMTP id 4fb4d7f45d1cf-6b1b12de661so14909a12.0
-        for <linux-rdma@vger.kernel.org>; Tue, 20 Oct 2026 09:23:17 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1792513396; cv=none;
-        d=google.com; s=arc-20260327;
-        b=ITCSyg3LbpOSle/1OqkSlU4w9/fou9wOH9HyHpNEEQWtRcJr8di33EPS5iZtvXcDHe
-         t4hARqgc+g2W9M6TA4RvGr7DtAArZJ+iu/Z6jDNkb/AApm2StML58sYtnWqpcEvjQDV4
-         hP6ZVnwR7f+NNXI2/lTm6muGoA0k0aIultVlxJ4Qr1PokuBQcDGJgA1JjvM4Adv/UlAT
-         MHNZqY/8mWMqqeNuBlSiSm6iSEJWT75hQcSPRWrBjmpj0y0d5Kl8CIAgQWNEnmRdI5BA
-         EVxFw84TAD+l02MiWOuRS7Wa+knvMkbHBChVxgB0bgKdBUmJZXOg5bNH0oKfwi/LkdDM
-         2uEw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=0jCj2axNyxSFURiXpH7V4N8DE8GNJe9dPnJmhT9P0cA=;
-        fh=+H58cC6q24JbQmYLjY/yxr37WO0YlirUSZpE2mRcQW0=;
-        b=NzRU1mKROy6YmBczeoeQquLe231Okt4Kdug9kL2NaNf3h2M5MZpIwEBgErOonAAI/u
-         e4Sqh8rt5IFpGaCoUvUVmUy1AW8vEZJmzwGv19O5+xYwZASAXNRQGmeUiWaIevb4Aigo
-         PlABTdCcOs82538mzV0LMd3+4qVJQYdvBUeFpcidT958NzqGXeM73LdBG7EdWeLAu2vH
-         xO+ZyQvQS1wEAY6m05F9ki7TjerJKxE0Vm5y9kQDRwrVcbgntB73PqzUhXqNY8T3mVKb
-         AT9yIdmsuD6UBGACjROrFfMsAv0AZmhb67usTk+uG/m/JtGzx9QyvKRL9jXiGw0ew3kr
-         r2pA==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=p10U2UEo
+Received: by mail-wm1-f45.google.com with SMTP id 5b1f17b1804b1-4a16af2a232so24056975e9.1
+        for <linux-rdma@vger.kernel.org>; Tue, 20 Oct 2026 09:43:10 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1792513396; x=1793118196; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=0jCj2axNyxSFURiXpH7V4N8DE8GNJe9dPnJmhT9P0cA=;
-        b=Xua+F94xPs4SLRFvPHZvf8ENdD6xQkEFYVjamT9EZRzYSfJtvS7XDtwmZyz1gTEJ0Z
-         /WkxlqQ5rxEvkZKLXwDC4ALxhuuf3lvKENwOAe2FrlDflythScAJ0Tn5Atp7/sUdwsFJ
-         E5biZmC8UmGgW0KNyTHjULGeLnoa0QbAm6UUD7R5xj70LVhv4dsixEwE51Pjds0Owm/s
-         yh4EPRS7zc5XwowJlsvmHsNHogBe1Cs3eCTy7l+wjYHJVHHx8KQKzvWnrNZKclhTNIQm
-         ckqTqXGWGJiMJjLhtJ75lQ1ZbkeOSru9OrP82Q8PUanZ2j0r8yLVhiS2BLjqoKfeus8q
-         kXmQ==
+        d=gmail.com; s=20251104; t=1792514589; x=1793119389; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=CdlYPARhuT5EgLufL/ZQ6dU/20tseBOVd7fjLCxWlSo=;
+        b=p10U2UEopDR0Q/Yj8jDVPbCso9MIg9ixUZiZzxfdCSAisf/I/blQW1TgxbbPL0VOLq
+         R47u8hZFr5snKKUmwksv1uvElX2vsoAik6jLR7tNX4qWTm2rdPCadETL+3ufuFnxbegj
+         yR1FRzFy9sluZ7gA3+va6d5yxbXdBI6KZzNjBJd/VX2fq5JBcX3UpoxT8lwSJ9zjrm9Y
+         L/7FR4TnzkWqTYuT2jP8fQXlxU3cXhfOYJBWds/snZB/WfjMjc3NxEFbzOHzFYuu+7u4
+         kutmn7XgWl/H8tDTNAu0m7FEkhfi8jNE+xaYIRUJvMXpojOwP2iaTkBS8BabWkM3/3sk
+         2MGw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792513396; x=1793118196;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=0jCj2axNyxSFURiXpH7V4N8DE8GNJe9dPnJmhT9P0cA=;
-        b=GquMk2/rQ6fOD7RzH4Ry8sRALw1UUb/FFQAvFYNW8r2emlMmHO+sRBqYwCEs4WDJv3
-         JgzouTYXQj2s86slt8m5sE0yHOJWZrMPOne0NWArxMPyTTpVnMIzngsHAlgCQuV4m8Yu
-         qC3qNMZ3HV3t/6Iz6w9u/SLfzCadsWgAHoMzdGYyuPf3O3NvjwHqe+vbWDpitlLi5DhK
-         lLzee7rJ50/XenGtiIrOwK7N0o0TRHebongVlRlqtFSmhwtDmNO8+otJgl3h0w4t4mqk
-         vIIdwC6ZtHx5NOhrrwVKLPKQUcERpxzeQVuWpWl7Iaf+DEePifPEqZRFEHm8cIxSCOfN
-         q3CQ==
-X-Forwarded-Encrypted: i=1; AKwUvBxQMiPg20dVNGl8cx5Vx6iulB9uY3HQnz1VgIW0gVt74lZJBnPiLpIQ0A6VWNqFu4kpvW3SF4cEhzIH@vger.kernel.org
-X-Gm-Message-State: AFq9FYIbvlDFtgOz0OCYIe2EgJXNWaEPMJbAqqWXwFARoi3cboaJguyk
-	RLAbhZ0D6oYZBYminEiAzZ/W9qShLWj7Wwg3B0EuRcj3aGMdQhUUhezKkR1hBw4nXWvaFVvJZgV
-	bGo5VuA2lFOWvBXlW64aevszEqu0Fv4vsDluTD3kH
-X-Gm-Gg: AYBFou2e1Sg3JDLWYZPpCUsmteCcL5hfB+JPon2Jswe5nTa5xi2U1fIzAcLCZ3xELaB
-	QnrouPSJd3ZrkbojZUEe1+kt1sGnLrUBV9+LyB/geeAWzMU5EuW4DkuMpWJQTTB1Cf7I2kksm3v
-	g63NOLXWKjd2HtIzcPpeOpagSZsMYlHMnqflbaO7OManWd/IQMtUzkleWxSsjVHr2ifE9hT99KP
-	b39BPEqtKA5fDjlxCb+aJY5HvHRHOVKV0cw39yiMvD88JTY0PVHi9cG7DLDP5FX0b9qyHBtoBDS
-	D0vF40XUBKHCFROcqIdVOd+OZcPK3I/atHJSZJv6FO3a2Ck8vqfH
-X-Received: by 2002:a05:6402:a593:10b0:6aa:babf:adeb with SMTP id
- 4fb4d7f45d1cf-6b3e59e5999mr68410a12.4.1792513395686; Tue, 20 Oct 2026
- 09:23:15 -0700 (PDT)
+        d=1e100.net; s=20260707; t=1792514589; x=1793119389;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=CdlYPARhuT5EgLufL/ZQ6dU/20tseBOVd7fjLCxWlSo=;
+        b=HmcpMv13xj+d+ZrJJN+2/sFSSSXKZ1Hdxoe4dJcQzGflCFPIJbtQLFSxP4Mduc3G+J
+         QG236zMCjz1DzxMkl4IaU6AgKfNOd7v8QHPmvr97U3jGNpNQG/29CMUevoKe1+70Nkpp
+         bAm4PkTLBAWPgaShwqZssQBcfom8jce3zAUaFiu2g4YGuWSD5TmZJAyS+sRfMplvQmQw
+         /gDzmdkqHSRm+L7MX3RF85zZtOYGcC1JzB+Zbcpm2fLCU/lPww3wKLJZm6WRcthG04A7
+         Ivbb1uHvSvr9ipBQdlRvrmNGacwgvBUi/LHUO+CxTagkqmUZiSm44h4JAofFXjwPW2pK
+         1MLg==
+X-Forwarded-Encrypted: i=1; AKwUvByTMmvtNgCW5JKESVrID0xdV3aX/+jHBGlD7rDi9xli9PGCv+YOV+oftTx+TC1Wk6GsI8NeUGOP5Xix@vger.kernel.org
+X-Gm-Message-State: AFq9FYL0W9ybWsGeDT88AODpVc0op2almGyfr4L4snV3B1SbmKawil0P
+	7Gek1105blsRmc6EjuCx5uHimA0FzFMj3OAMRqgFvz6QByYnGq1CuUQ4
+X-Gm-Gg: AYBFou3ZPHf9gsrBfe33cxj7FUUcrz3DgDsPxj+AryOdF8Mv2c/GVpJ8vFWwdE2Iauu
+	UYT6mZvlshQ2VIMTBbt0bVVEK+UZFDyfWGDTh3sDVvH3NH7Xz5g+hupuQVV1aE7LC31i+PdTVLT
+	RxZBXzYRw/Cu9CpwAZzpPTjGP45eg/ZpP+0rwkz63NvrvWGYIFRnBmT/KYwnKkdk+TJW0c+etxQ
+	OxU89dfwtGD7o7M+xua/z5xswVtqU84ClQpYXkAS/0jkCswtA3qdtLzJfVZfF3ZNN4r7y5ifuVA
+	Ntitst9gHJPfaavZD86dQclfqTOvQQgvFkTrT+G87FzKH6j4mekqt9LvhzP6mK2qfp8oNoFanwc
+	swO0+UQKSo4eoSS4fxfAQBHWoG5wh0BbM6BYzOSWtMxGCDEU/zme4qqKwz4qGOu/LU2bSsuJlHj
+	P87gTIWEihBG9i+uIU/TQN+kDDw/3itAxhll3g8vMdKs9LThq1c4n92blLrzBH6fuXhGiI3lvgQ
+	ET+G649sUc0R5rONWZFiFwYxNkAkO2dLZcYzMnVaaJIDCgZIzMO5VB+Nl9mVhVdoPv5S0oWrE5J
+	1jj1aThKY1FswVxNjYNg5zVpLggEFqjBKDqJW52+9DCWPXMg2UiDGEBzsBX+eXYAyGuPgF9i
+X-Received: by 2002:a05:600c:46cf:b0:4a1:f8cb:7d70 with SMTP id 5b1f17b1804b1-4a1f8cb7ecemr44109325e9.24.1792514588519;
+        Tue, 20 Oct 2026 09:43:08 -0700 (PDT)
+Received: from p15v.lan ([217.169.3.90])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a1fb864dacsm8742505e9.12.2026.10.20.09.43.07
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 20 Oct 2026 09:43:08 -0700 (PDT)
+From: Peter Morrow <pdmorrow@gmail.com>
+To: Tariq Toukan <tariqt@nvidia.com>
+Cc: Leon Romanovsky <leon@kernel.org>,
+	Petr Pavlu <petr.pavlu@suse.com>,
+	Yishai Hadas <yishaih@nvidia.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Eric Dumazet <edumazet@google.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S . Miller" <davem@davemloft.net>,
+	netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	regressions@lists.linux.dev,
+	Peter Morrow <pdmorrow@gmail.com>
+Subject: [PATCH net] net/mlx4: always create the eth and ib auxiliary devices
+Date: Tue, 20 Oct 2026 17:42:39 +0100
+Message-ID: <20261020164239.3808903-1-pdmorrow@gmail.com>
+X-Mailer: git-send-email 2.47.3
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -103,75 +104,70 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261014173945.373295-1-almasrymina@google.com> <179249101026.3632927.6502845375265155678.git-patchwork-notify@kernel.org>
-In-Reply-To: <179249101026.3632927.6502845375265155678.git-patchwork-notify@kernel.org>
-From: Mina Almasry <almasrymina@google.com>
-Date: Tue, 20 Oct 2026 09:23:03 -0700
-X-Gm-Features: AclHuK98NB_XkoOPCMHRm8iUlfrFJ_YYRk69JLvIRXvJ8G4hhuCyWlkE4iWtFOw
-Message-ID: <CAHS8izMRSU3AyVf+sP5uXShiSKuLumZwT=fsgW+bhJz47UoPRQ@mail.gmail.com>
-Subject: Re: [PATCH net-next v3 0/6] net: unify symmetric netmem and page_pool refcounting
-To: patchwork-bot+netdevbpf@kernel.org
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-rdma@vger.kernel.org, bpf@vger.kernel.org, ayush.sawal@chelsio.com, 
-	andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org, 
-	kuba@kernel.org, pabeni@redhat.com, tariqt@nvidia.com, horms@kernel.org, 
-	steffen.klassert@secunet.com, herbert@gondor.apana.org.au, 
-	ncardwell@google.com, kuniyu@google.com, john.fastabend@gmail.com, 
-	sd@queasysnail.net, ebiggers@kernel.org, kees@kernel.org, 
-	aleksandr.loktionov@intel.com, petrm@nvidia.com, u.kleine-koenig@baylibre.com, 
-	j.raczynski@samsung.com, wang.zhan@smartx.com, willemb@google.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Tue, Oct 20, 2026 at 3:10=E2=80=AFAM <patchwork-bot+netdevbpf@kernel.org=
-> wrote:
->
-> Hello:
->
-> This series was applied to netdev/net-next.git (main)
-> by Paolo Abeni <pabeni@redhat.com>:
->
-> On Wed, 14 Oct 2026 17:37:14 +0000 you wrote:
-> > netmems (pages and net_iovs) have two independent refcounts: a non-pp
-> > refcount (page._refcount or binding->ref) governing backing memory
-> > lifetime, and pp_ref_count governing recycling within a page_pool while
-> > page_pool holds a single backing non-pp reference. SKBs with
-> > pp_recycle=3D1 own pp_ref_count references on page_pool fragments; SKBs
-> > with pp_recycle=3D0 own non-pp references.
-> >
-> > [...]
->
-> Here is the summary with links:
->   - [net-next,v3,1/6] netmem: rename __get/__put_netmem() to get/put_net_=
-iov()
->     https://git.kernel.org/netdev/net-next/c/a868720467d9
->   - [net-next,v3,2/6] net: skbuff: add napi_pp_get_page() and use it in t=
-cp_recvmsg_dmabuf()
->     https://git.kernel.org/netdev/net-next/c/729a47b803b5
->   - [net-next,v3,3/6] net: skbuff: replace skb_page_unref() and __skb_fra=
-g_unref() with skb_netmem_unref()
->     https://git.kernel.org/netdev/net-next/c/4d688084070e
->   - [net-next,v3,4/6] net: skbuff: replace __skb_frag_ref() with symmetri=
-c skb_netmem_ref()
->     https://git.kernel.org/netdev/net-next/c/1f6f88105e1d
->   - [net-next,v3,5/6] net: skbuff: use skb_frag_ref() in skb_try_coalesce=
-()
->     https://git.kernel.org/netdev/net-next/c/447f58db3505
->   - [net-next,v3,6/6] net: kunit: test netmem, page_pool, and skb frag re=
-fcounting
->     https://git.kernel.org/netdev/net-next/c/2285346afc99
->
-> You are awesome, thank you!
-> --
-> Deet-doot-dot, I am a bot.
-> https://korg.docs.kernel.org/patchwork/pwbot.html
->
+Since commit 7d22b1cb9d84 ("mlx4: Connect the infiniband part to the
+auxiliary bus"), mlx4_core creates the "ib" auxiliary device only for
+an IB port or a device that advertises IBoE. Before it, each mlx4
+interface was offered every device and decided in its own add callback.
+mlx4_ib_add() accepted Ethernet ports without IBoE and registered them
+for raw packet QPs only.
 
-This is awesome. For years the skb refcounting annoyed the hell out of
-me. I couldn't fix it on my own; there were too many edge cases I
-didn't thoroughly understand and could break. LLMs made this possible.
-Thanks!
+ConnectX-3 VFs on Azure have an Ethernet port and no IBoE, so since
+v6.6 they get no RDMA device. DPDK's mlx4 PMD, which needs only raw
+packet QPs, then cannot open them:
 
---
-Thanks,
-Mina
+  net_mlx4: cannot access device, is mlx4_ib loaded?
+
+Restore the old behaviour by creating both auxiliary devices for every
+device and letting mlx4_en and mlx4_ib decide in probe, as their add
+callbacks did. mlx4_ib_probe() returns -ENODEV when there are no usable
+ports, and mlx4_en_probe() binds a device without Ethernet ports but
+creates no netdevs, as mlx4_en_add() did.
+
+Tested on 6.12.111 on an Azure VM with two ConnectX-3 VFs: each gets an
+eth and an ib auxiliary device, and DPDK attaches both VFs and passes
+traffic through them.
+
+Fixes: 7d22b1cb9d84 ("mlx4: Connect the infiniband part to the auxiliary bus")
+Closes: https://lore.kernel.org/r/20261014133951.3219055-1-pdmorrow@gmail.com
+Suggested-by: Leon Romanovsky <leon@kernel.org>
+Assisted-by: LLM
+Signed-off-by: Peter Morrow <pdmorrow@gmail.com>
+---
+ drivers/net/ethernet/mellanox/mlx4/intf.c | 15 ++-------------
+ 1 file changed, 2 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx4/intf.c b/drivers/net/ethernet/mellanox/mlx4/intf.c
+index 82e467c..31860b4 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/intf.c
++++ b/drivers/net/ethernet/mellanox/mlx4/intf.c
+@@ -43,23 +43,12 @@ static DEFINE_IDA(mlx4_adev_ida);
+ 
+ static bool is_eth_supported(struct mlx4_dev *dev)
+ {
+-	for (int port = 1; port <= dev->caps.num_ports; port++)
+-		if (dev->caps.port_type[port] == MLX4_PORT_TYPE_ETH)
+-			return true;
+-
+-	return false;
++	return true;
+ }
+ 
+ static bool is_ib_supported(struct mlx4_dev *dev)
+ {
+-	for (int port = 1; port <= dev->caps.num_ports; port++)
+-		if (dev->caps.port_type[port] == MLX4_PORT_TYPE_IB)
+-			return true;
+-
+-	if (dev->caps.flags & MLX4_DEV_CAP_FLAG_IBOE)
+-		return true;
+-
+-	return false;
++	return true;
+ }
+ 
+ static const struct mlx4_adev_device {
+-- 
+2.47.3
+
