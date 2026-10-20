@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792456328;
-	b=3vaTWf3iRdLGedB9gqolJmIvZAZxRkc9so601+Ed5OVJFfnrSCEHGch3nFIARAbgNEPg
-	 TDNpg3TT4AnfVRG2E1Hzf//opyzRC3pd/Vjb1vacOKemcgHi9fD7Q4v0QMnzBjQ+krOlX
-	 MeAZxl7MtiFsFJBFbZAuAiQIQYUBhT5SKARKriiiYFsbnmdSQDa5hiHedRplUurQ72CgL
-	 85MRjk2RYi7D8gE0oM90NoTTsxOqREN25FVyQOH3eGw5Arq+SH24JxIBnJS/bpMUyB2pj
-	 yxtBpEXzTunstmdXPZ33GXFLlF3Bb0bSFT17AuuhIUDqsM2q8bOBwFRrtokpAJzLBCg==
+	t=1792456329;
+	b=ktuwl43lj5nADwWDFqVMFZiDfAquf4VBZiTujrTQrJOITcQ4G4vI0SpdmYQIYN1PRdwl
+	 2aCzqGDx71HnqM4LtmmNjdpaXeYNXoVbswBm7wj/ct8sJdMR/WppuKuWd2HKEuZgE3NDW
+	 SCQaUVR6kpF56IKJ5E5UINvMqnqjgsC6ord1P2CSeD9bZvvQGVHieNQMymyhZIn1nHV/e
+	 EyIwLAD14DJaqe1oDbzo0dC+Os+UgNfw/C6DfZUhBJ+L9mpK6yDuZaOO/MdtadfBjC+iE
+	 m8f9mUly5wrIE4ERAn3zFlCMtIgTHUKY11ckgAW5z3h8GDOwE1M84R3Z3kyf8+YBmhQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792456328;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792456329;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=CrW2kxDiqvezrFrbNEcWq5vbSl6RWAC/9EXQWYm+sCY=;
-	b=iu2MM7zDnAqUhd7uHgN9G6LA0d/RrVtqhP+sUIJSLpZK9xE64gEQlkfkFjgQwAz+jhmV
-	 fIw4NlLxgIc4H9DdY+R9wOQppgmvf5lh1JaoRXRS3hh1wT8KQEdwbzLgCnebXn4WN325w
-	 9dlw4eumLUZlKM3uYdukJ9piAlM1QqhBUzexs02aN4YjI9BRV2cPcdPMA0nV0jAJTCQdt
-	 QyTcX5+wAT2RSiF4yIIEW5nwwRx/hEpDlnXqgaIDhbBGy7M4ylwhk1k3nwh0NpNCdHD2L
-	 KUNJNH+CsUgblvrp3IU40JJweaVpQe/LAu8VnNYxQJopdWvsH1MQlnpe3Zf/l1HR5lw==
+	bh=QJ8h/oVErMzM0vSYkQhGGuLaSUk++WV/immKq+7D79o=;
+	b=XMHmWyHyzuu3bCl+Nzm9iGi540gZodoti4v7cWOlHQRbvu3Qx6n14+IFHn0R2UZ3DC26
+	 Ko72cr7arqsVeR7PYAWs7rklGwMiJkQJr7kP8yCkzMDCtcwIwEAx5EE5aa6pr+J8zV/T/
+	 fokjT2+hnVqCL5SrDXQcKVdAG8oDg6ygv4fLqx5CeTmdm52K1CfstUNN3IH9j42AKjdrc
+	 TJ8+3R6TLJi129QywTdMZU+X8eftQrWqvMd7ALVFDQlL77r4i6oEsiNMGiZgO0+ffqh6q
+	 PUurrmVRaISbU1Xx7Nmiq5Z6o6vlNIcXsr1zgXAcNV4HjK4iU6bcaqPk+y61kxdIv1A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=acVxT87R;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NkV+W5Dm;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A154D606A319
-	for <linux-rdma@vger.kernel.org>; Tue, 20 Oct 2026 00:32:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E2AA606A31D
+	for <linux-rdma@vger.kernel.org>; Tue, 20 Oct 2026 00:32:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=acVxT87R
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 351F21F000C4;
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NkV+W5Dm
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD8FC1F000C5;
 	Tue, 20 Oct 2026 00:32:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792456328;
-	bh=CrW2kxDiqvezrFrbNEcWq5vbSl6RWAC/9EXQWYm+sCY=;
+	s=k20260515; t=1792456329;
+	bh=QJ8h/oVErMzM0vSYkQhGGuLaSUk++WV/immKq+7D79o=;
 	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
-	b=acVxT87R/cgjI0qsqZa2XCXGxzShUXDXRW0chbY4wlVI/pvOITqTo2lAWAaqBriUD
-	 5curHoPUmjriiQewP/WfkJJW0GSWGZEbKypXh4uo6fTf2/Q11YWLxxWzurDnj8Aiku
-	 uC9TpXjbhdkO7oykZ1eRLI1GYcS9BpXqv1uge66sRSNzqDyT7Q/rBzpvec53tNhELq
-	 kRWYo+WHpSIaE5NWMwehWffqBGDSJreN/XOrk+YwR4bjAR3drM6ak3yT1aXzOs+h4M
-	 aoG8ZDfUZ/UUqUNcZsaRqKzGsdAL9kIVN1QPlOpmlU+VA0zT3epVURQQzIEQzK3XRS
-	 gUboabdSrYmcA==
-Message-ID: <sashiko-outbox-178386@kernel.org>
+	b=NkV+W5DmXFi4ej5rqbFMUtEJW7veOJq8KdX2CxtZByoJQfJBb/lvlAjAixT4+VwiT
+	 lHJrcqL+sky2eSD/A1rZ0/bUoZfgL7C6jkQI0+7KIkmZCLCTW428z6WB6wLl0BlrvY
+	 cSrycHA7kE2+XdARV2CDWRyqJ6qICeTm3T/AL2a36ZsCpEdUi/nckwBnUfTehTKTfr
+	 DSzIh0HxWKWSf1qrAtzkAafv0/JSIkk/ceTwBx6IgeamFOcdClihvllVNfMHr/tzzb
+	 vwJCwZkD1mlIE5rrjTSXuwbu23HUgz9oxHjqhlT4XuU8YkHGoTnlm+zfwInYgJlA5E
+	 CHeX/ejGI13Hw==
+Message-ID: <sashiko-outbox-178387@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next v6 1/2] net/rds: include the scope id in the
- sendmsg connection cache check
+Subject: Re: [PATCH net-next v6 2/2] net/rds: keep the connected peer's
+ scope id apart from the bound one
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Allison Henderson" <achender@kernel.org>, linux-rdma@vger.kernel.org
-In-Reply-To: <20261020002816.3087414-2-achender@kernel.org>
+In-Reply-To: <20261020002816.3087414-3-achender@kernel.org>
 References: <20261020002816.3087414-1-achender@kernel.org>
- <20261020002816.3087414-2-achender@kernel.org>
+ <20261020002816.3087414-3-achender@kernel.org>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 20 Oct 2026 00:32:07 +0000
+Date: Tue, 20 Oct 2026 00:32:08 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,29 +60,23 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> rds_sendmsg() reuses the connection cached in rs->rs_conn when its
-> peer address and ToS match the request.  The interface index is part
-> of a connection's identity as well: rds_conn_create_outgoing() passes
-> the request's scope_id down as dev_if, and rds_conn_lookup() compares
-> c_dev_if, so sends to the same link-local address through two
-> interfaces are two different connections.  The cache-hit test never
-> looked at it.
+> rds_connect() has nowhere to keep the scope of a link-local peer, so
+> it stores it in rs_bound_scope_id, the scope of the socket's own
+> bound address, for rds_bind() to check a later link-local bind
+> against.  That field is then also what a send without a destination
+> uses as the request's scope, what getpeername() and recvmsg() report
+> as the peer's scope, and what a later bind() overwrites:
+> rds_add_bound() stores the bound address's scope unconditionally,
+> which for a non-link-local address is 0.
 >=20
-> A socket bound to a non-link-local address has rs_bound_scope_id 0,
-> and the scope check at the top of rds_sendmsg() accepts any non-zero
-> destination scope for such a socket.  So after a send to fe80::x%ifA,
-> a send to fe80::x%ifB hits the cached ifA connection and the datagram
-> leaves through ifA, to whichever peer answers to that address there.
->=20
-> Compare c_dev_if with the request's scope_id in the cache test, so
-> that such a send takes the lookup path and finds, or creates, the ifB
-> connection - the same key the lookup uses.  A send without a
-> destination takes its scope from the socket, and the connection it
-> created was keyed on that same scope, so the comparison holds for it
-> too; the next patch gives that send the connected peer's own scope.
->=20
-> Found by inspection while reworking this cache for the connection
-> lifetime series on net-next; not observed in the field.
+> So after connect(fe80::x%ifA) followed by bind(global), a send() with
+> no destination asks for fe80::x with scope 0.  rds_conn_lookup() keys
+> on the interface, so that finds or creates a connection with c_dev_if
+> 0, which the TCP transport then tries to connect through
+> sin6_scope_id 0 and tcp_v6_connect() rejects for a link-local peer:
+> the connected socket's data is queued on a connection that can never
+> [ ... ]
+> observed in the field.
 >=20
 > Fixes: 1e2b44e78eea ("rds: Enable RDS IPv6 support")
 > Assisted-by: Claude-Code:claude-fable-5
@@ -92,5 +86,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261020002816.3087=
-414-2-achender@kernel.org?part=3D1
+414-2-achender@kernel.org?part=3D2
 
