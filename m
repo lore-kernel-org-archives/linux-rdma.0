@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792470649;
-	b=FYtbxGdRGc1VrBj9lDcou459fV0Q20ZFaQzcqr+1ldN1lw7TrvqbndLBNQxA8SZRIbCl
-	 qxtUWkvwnmA2Sg5dxgCimGNXROdB1wSJCywmABFrz0eBZO1P/K9zGhxTI5KXnDo4DclO5
-	 udt0S8Y2Cnqzgeqv4l+rMbi0USCNu2vFEbFgMzaROWJusDR3GdCvmJqjpXxvg8Ghu1CXl
-	 xbVsrKPDx4KY+yTN+85ZYeGbb05gdRWCOfiGSIE+OMO0mrTL4MzLDMj8xQxS23V08G4lg
-	 t8R6X2W4Itc+k8aY0/GDZODojc10pbfmQnRDJeF/cMq0+bRYpyo78034WtYhs6rvQqw==
+	t=1792470654;
+	b=ZWDpx8YfOTORgHNQlqenKOXwJbWiM6hhzw02UtrkDUfbfvMlXpEERAcFTX1KyCCzjWem
+	 NsWwLXf3vIMoo+8Gk3qf+QvAWalVs+k0i6tfnQjthWVC8ICGK373e/0kNeZyCZffpXIqF
+	 gdXPYHVhA/WjdTk1dqFYvI5lRekExTKKiQnBSMV3NkLvIW/b4hL8k2VVcYRmLxvMdysO3
+	 DlPJWxWzdzbV6Lmbfab38/UDH+BcMOXCqU4mp8GeBwsTg7jcqFGmkrl940IInNAuIRmUA
+	 HFpnC2lU1/p1eArkJ1gGrvezk6cUEJnvvrtfh5EMfbgtdrqiyEy0lYDpNLZ1u9q9spA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792470649;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792470654;
 	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:In-Reply-To:References:Content-Type:
 	 MIME-Version:Content-Transfer-Encoding:X-Spam-Status:
 	 X-Spam-Checker-Version;
-	bh=6DcGGOOFdce5ERyHzgW3XUEmRU7KpMeHrpytV7uK3CA=;
-	b=WetTRKpso9GQ8MEIHY8TSdYQeOpd5NK5EYAwbDQD0gYEsACXilZS+CEI7Sq7cEauzwXT
-	 38k424Eybo29z5gOPrmtzJOON2o09NatO9bZS0uZCN8MCeZ2uR9+d8RX7SkOVy06wTQ/L
-	 xH3yaXsI0zxdrbMWhZLGXNyyYqhOBZAWSOS/cbWwaVS49+6gsgPegflWAbd4gicCJE2Qp
-	 +64n7fHH5S7NHVr3iGCgFbICyny59isMpn/fCrx8nYImUxXQth/2+HB4uhcwsZocESg1V
-	 UOif0Lfsx8cCbgPvayYqothEjLsKGxQTXBtIJ61iCb87nrkLzURTTL5T1ydnIhxJbgA==
+	bh=3UvhX2apNd/qnNqj12GKek217Nsl8pRDNQhnNCUM2Fg=;
+	b=HxP0I4msK9bZsLPMyigowQfm5hpO+Nh8bp16BnV2x0UySscsfAZpOGpqmnxia9BLcQN6
+	 lGs3YujrsppIyp56rU7COjcu6Un5yvGPMzTPtLMoDRiT+QnnyXjSpQUTG+jHWfFp2OP4o
+	 buxzuMjrd4MNOrJmOv6lBq538P5wevNvwdxw9D2i9L0kh+4tzGSHqMpSVAEzVaZM0hsNH
+	 emvd1xCtL3ZtXqlJTMplVwYQpYyCd8rnyek80P4SHBkdyWgfvoalcLddLxn9AT2JOrwj0
+	 2oBWJclqPtrVJ43xiVQW3e1OuAAL6GX4MIaoxa2lrzZ4mtWFyxS3uPc3peSTS+EsDFw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linux.microsoft.com;
 	spf=pass smtp.mailfrom=linux.microsoft.com;
-	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=CS0kzJ6V;
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=G2VokJw8;
 	arc=none smtp.remote-ip=13.77.154.182
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D1C33606A31A;
-	Tue, 20 Oct 2026 04:30:48 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D1C33606A31A
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 517E8606A33B;
+	Tue, 20 Oct 2026 04:30:54 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 517E8606A33B
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=CS0kzJ6V
+	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=G2VokJw8
 Received: from weh-cvm-dev-vm.y50bckvjo0hefgfnzfztsfttff.phxx.internal.cloudapp.net (unknown [20.169.55.37])
-	by linux.microsoft.com (Postfix) with ESMTPSA id E211520B7168;
-	Mon, 19 Oct 2026 21:30:40 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com E211520B7168
+	by linux.microsoft.com (Postfix) with ESMTPSA id BB7BD20B7185;
+	Mon, 19 Oct 2026 21:30:45 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com BB7BD20B7185
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1792470641;
-	bh=6DcGGOOFdce5ERyHzgW3XUEmRU7KpMeHrpytV7uK3CA=;
+	s=default; t=1792470646;
+	bh=3UvhX2apNd/qnNqj12GKek217Nsl8pRDNQhnNCUM2Fg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=CS0kzJ6V5exZC/Oxw4HGYd9bVsqvkL/H90ftXt8pcPBtqIQ/M8Qx/lifmZM9Qdi/q
-	 xxwLBbuH0aNiFGPq/S6kd98PZOel5zGnpeo6z/GqHRhatqm9oOKRMqBRZRpB7uWQIY
-	 TKAgolw/uS086DhAngF5p05mv7pACCn6hSsEgEyU=
+	b=G2VokJw80Albs9KNiIGir3mmnO7536BzfkYg+6PbLtj7RYQYNC99u5FU7wEzQ6GQW
+	 j77lUEQrFvGV6NjND+Zp0Q1iqwbKhVQgS2nD1WChXRoFLMCE+H/Xeyb60p5hWdANHb
+	 jADk2CtzZHjJvp15s0UEEydqJ4qXQHpdUd4WpAek=
 From: Wei Hu <weh@linux.microsoft.com>
 To: sashiko-reviews@lists.linux.dev
 Cc: linux-rdma@vger.kernel.org,
@@ -50,12 +50,12 @@ Cc: linux-rdma@vger.kernel.org,
 	netdev@vger.kernel.org,
 	weh@microsoft.com,
 	kuba@kernel.org
-Subject: Re: [PATCH net-next v7 02/13] net: mana: share the EQ pool across a queue-set swap
-Date: Tue, 20 Oct 2026 04:30:38 +0000
-Message-ID: <qset-v7-sashiko-02-v8-plan.20261018.weh@linux.microsoft.com>
+Subject: Re: [PATCH net-next v7 07/13] net: mana: swap queue sets in mana_change_mtu
+Date: Tue, 20 Oct 2026 04:30:42 +0000
+Message-ID: <qset-v7-sashiko-07-v8-plan.20261018.weh@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <sashiko-outbox-175602@kernel.org>
-References: <cover.1791710735.git.weh@linux.microsoft.com> <9b7e62cc70138f8940a32869da44c1260748be14.1791710735.git.weh@linux.microsoft.com> <sashiko-outbox-175602@kernel.org>
+In-Reply-To: <sashiko-outbox-175607@kernel.org>
+References: <cover.1791710735.git.weh@linux.microsoft.com> <87e016ed7479a33be87128b01bb07d2e1807c87d.1791710735.git.weh@linux.microsoft.com> <sashiko-outbox-175607@kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -70,55 +70,24 @@ Content-Transfer-Encoding: 8bit
 
 Hi,
 
-> Should mana_ib_remove_cq_cb() use cmpxchg() and synchronize_rcu() for
-> teardown, similar to what was added for Ethernet CQs in
-> mana_gd_destroy_cq()?
+> Does this stats update in mana_xdp_xmit() lack mutual exclusion when
+> racing with other CPUs?
 
-I will leave the RDMA teardown path unchanged in v8. The callback-wrapper
-lifetime issue is real, but mana_ib_remove_cq_cb() and mana_ib_destroy_cq()
-already have this ordering in both unmodified upstream bases used for v6
-and v7. The acquire/release publication change does not introduce that
-reader/free race or resolve it. An independent RDMA lifetime fix should
-cover the hardware CQ and pending events as well as the software readers;
-I am not including that separate change in this queue-set revision.
+I will leave this counter update unchanged in v8. This is the same
+baseline lost-update issue reported on patch 4: CPUs can share a queue,
+and the aggregate xdp_xmit update is outside the per-frame send lock.
+That exclusion gap predates this series in both upstream bases.
 
-> Can gc->cq_table be NULL when this acquire load executes?
+The seqcount-corruption/infinite-loop consequence requires the 32-bit
+u64_stats_sync implementation. Supported PCI MANA configurations are
+X86_64 or ARM64, and CDX requires 64BIT; their implementation has no
+sequence counter or fetch retry loop. The lost increments are real, but
+the more severe claimed consequence does not follow on those builds.
 
-I will also leave this initialization path unchanged in v8. There is a
-window after max_num_cqs is populated and before cq_table is allocated.
-A spurious or premature completion in that window could hit the missing
-table-root check. That window and the unguarded lookup already exist in
-both upstream bases, before this series.
-
-For normal HWC startup, WQEs are posted only after channel establishment
-returns and the CQ table is installed. I have not identified a normal
-completion producer in the window described here. This is a conditional
-hardware-protocol hardening issue, not a demonstrated new startup failure
-caused by the publication change.
-
-> Could this sequential mana_gd_test_eq() call lead to an unbounded RTNL
-> stall if an EQ stops delivering interrupts?
-
-I will address the additional per-CQ timeout amplification in v8. These
-extra waits are introduced by the queue-set series and are already in v6.
-
-The correction will stop the retiring WQs, keep their CQ callbacks alive,
-and issue all required parent-EQ markers before waiting. Per-EQ
-completions will allow one shared 30-second completion budget per RX or TX
-cleanup batch. CQ withdrawal and the existing RCU reader wait remain
-after the batch, including the partial-allocation cleanup paths.
-
-One detail of the reported bound needs qualification: each TX/RX pair has
-its own parent EQ. One stalled parent normally adds two CQ waits, about
-60 seconds. The 128 * 30-second case requires all 64 parents to stall
-while the hardware channel remains responsive. The cumulative delay is
-finite, but it is still a real problem introduced by these extra waits.
-
-The correction bounds the added CQ-marker completion waits, not all RTNL
-hold time. Existing per-EQ destruction waits and hardware-channel request
-time remain separate. It also preserves the existing best-effort cleanup
-policy after a failed marker, rather than claiming new hardware recovery
-guarantees.
+Also, the submitted patch 7 does not modify mana_bpf.c. The quoted
+counter-pointer conversion belongs to an earlier patch in the series.
+Neither that conversion nor this MTU change introduces the existing
+writer-exclusion gap. I am keeping the independent counter fix out of v8.
 
 Thanks,
 Wei
