@@ -1,56 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792484210;
-	b=ESJm4ftrDBgpoRAEyHyuiJzF/KiVa3KB1MF7CaAtw6sgSOrgpdurEtfPdK5ZagI/WMN7
-	 910Xp8cmTmoSNQrMkNYBQV7dqv/G2b90WcaRIT1wPDLTcEyis9rLCmslJeNdZvZQpSOis
-	 sdTh+CdcdgufsCUDr207HbETKmz3A+AgT5Mig8nRJas/9qgjS69kqLCEHyDOde2laFn7b
-	 ldtYZWDCzShJqQ1XdrT6kY27NwUPPYdSClvsC87W8AhuxrP+GDLiObHfod/iethwD4MGA
-	 Xtu2dz4EwohAZFTugyipG6X8dRVqRxR9hE8il2yypnAoFdVcTVvZ+UjB8EPqxZjA2/Q==
+	t=1792484387;
+	b=ZPrua7I0w0qcGxeHtgoWhKcWr1VcLj4rtY+JALtR0fe/VqnqRym7+UwntTDvHYMvapOr
+	 0l1DqR/8Vw+qTKLN8kNvLtNnn25McAHP6L42FECOHkO316Lkm7d+MuN+UEWuMEBsRjaTw
+	 37xW4wAZdgojn9Dc4qlqcn0QHTgQlHx63A80V4fU40E4n/x8YZl19XGNUgG99d1mSPQ0k
+	 WGZXsJIqn1Vkn+br6QbV3IfSJUBmv4wL0iVh6xLdS8S7mR6d+TXhVVyZLnOc8IkGiLbpn
+	 xrZV8nuc6DSU40E+uyhIa2b4pUYPmrq7W96ZsdLcGVum+sqUSghd5zyVqbIcvhbZ2FQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792484210;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792484387;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=J8kiEbM8nvVifEG/jD7fS48TlKJ+i76fF14/V3zdmtk=;
-	b=Zsz0B1Oi9oeIAeWgBRshR+6RfTV9cNL8EhosvLgJbadndMzWKMJElARj1yTQcBTnp1s6
-	 qch5d3RdIoiQW44PcFDfqJSjrBGJ80XJhUSp/UV/V02k+FO5Lwb7C6AHHtlqfHvSox+YB
-	 XspA8/LhfoDOHOqawVZle0NchelP8313lxLW3yldt+ypqxCbXSIaVI7oWGzoiI1fC0ehQ
-	 YSZh9VpBllZw+Qbrrjfi3+QGzyeOG9J8lJebcArk4/6DcxV6OpSrE3z9j+OWFVFJaSDKs
-	 mPuwZOvDfMmLcnvu3w6mK6I8P2s1rvaKDdv1Q1z4ymz+OfD3piHj+Ojr6/fZoLI1Xrg==
+	bh=V557Bp3ORxIr8GmF6VDHajWXFInIGiqaktiS59kVVeY=;
+	b=oJKJ5+GcyicL2FdkQDS/OulTANF1e1SyOHU/aG/SgsD+lMy3/9a/cDadHIDyfSyKwo53
+	 HqIgqNcYZ/KTboM4Ch4MJz4ZqCx3NtQXztJTleXbaG2TaLQB5/b15t/EoHYCu9eVeevE0
+	 7hfBpLlxtnjBXmN6OEr0oO3ZXlBh1n7/Mw6nmxEoyYRDMiSmqxdnJbkMoTd/lJO2RZJlM
+	 Ntu9f0rgOcqkIZ0HE1P5GsfMBUGx6ECtk2lzjiW3No6eZyuZdyG+GkYkfj1iY1HeyQSbH
+	 hpIq7KOICkW9l8T2bzpZbQnys/IHI4M8SJSWWAnITMNk+3GcAfYdkgN3lmH29wZdMJQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cZ9sxeCj;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Yrvwsn3O;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59D39606A31B
-	for <linux-rdma@vger.kernel.org>; Tue, 20 Oct 2026 08:16:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 172E0606A319
+	for <linux-rdma@vger.kernel.org>; Tue, 20 Oct 2026 08:19:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cZ9sxeCj
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D26751F000C5;
-	Tue, 20 Oct 2026 08:16:49 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Yrvwsn3O
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 817CE1F000C4;
+	Tue, 20 Oct 2026 08:19:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792484210;
-	bh=J8kiEbM8nvVifEG/jD7fS48TlKJ+i76fF14/V3zdmtk=;
+	s=k20260515; t=1792484386;
+	bh=V557Bp3ORxIr8GmF6VDHajWXFInIGiqaktiS59kVVeY=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=cZ9sxeCjtVqHsjr3Qrr9LKVNgN8Q9X9cBIwLA2wd4Z09VHVhiKCOB2c3LaBCTidIt
-	 9sHj6N9p91Asi8ThgnOuZfYVLeiV7BUrd8OKvxaQ/Mozei0IpuDCFrgcbZHYdJCcki
-	 k4WU42AgIUjcx+by+NC5ByoBHmgw7uP2//pGyxG9S09VUEDn0GXUV0AqLHbaRW3SlA
-	 0Yx9m9lPrzW9XdWeUQcZTSog6M6lBTFTH1x6QFU17RpKvHFUntAlYdu/FmpCf9yJPA
-	 B5TO9RiPtgU/xAld2Nm5zN2l24fjUmURIxlJgbbAyhtGZcvFW4BAIjWTyN1mDym+P6
-	 sXx+qOrJys4aQ==
-Message-ID: <sashiko-outbox-178508@kernel.org>
+	b=Yrvwsn3O6OvfPlv/3XlsxeRmAfMWR6Z1Ta5vAumrMUaTurZRcFjD32nsw/xl3VLU6
+	 fGPOpldO+h37nG/xD+67tbSNVG3OK8TLp3JsJxUWpWuxnN9jk+Oeyy0fKHxvh0iuJA
+	 LtrJoXdUiQwAlV9UkuYw4WPEVnTxmSXCo8MrOVXWUqlRO2Khgtc+CW1f84HHNvijje
+	 ZalhOJBhCNVvSJdEmJf5GHolNKl3zzpKLM26hkY37L63kGlIE6AajFxI27/Rtr7Vom
+	 cGUFVYcGWHdx2iKy4m4n4cZ7CYwV6GTqAU1tpgMTRaeYpYEhqBtYsvm5EeZTilzlNX
+	 08mdSJ3lP1xDA==
+Message-ID: <sashiko-outbox-178520@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v2 02/13] RDMA/core: add the UET GID types
+Subject: Re: [PATCH rdma-next v2 03/13] RDMA/core: report the reliable
+ unconnected device capabilities
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Eric Davis" <eric.davis@broadcom.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261019-uet-ib-core-v2-2-8bd654f25370@broadcom.com>
+In-Reply-To: <20261019-uet-ib-core-v2-3-8bd654f25370@broadcom.com>
 References: <20261019-uet-ib-core-v2-0-8bd654f25370@broadcom.com>
- <20261019-uet-ib-core-v2-2-8bd654f25370@broadcom.com>
+ <20261019-uet-ib-core-v2-3-8bd654f25370@broadcom.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 20 Oct 2026 08:16:49 +0000
+Date: Tue, 20 Oct 2026 08:19:46 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -62,14 +63,13 @@ Precedence: list
 
 > From: Eric Davis <eric.davis@broadcom.com>
 >=20
-> Ultra Ethernet runs over two encapsulations: UDP and IP. Each becomes
-> a new GID type. A port can then hold both UET and RoCE GIDs, with the
-> transport following from the GID a queue pair is given, the driver
-> enforces that.
+> Add the capability bits a device uses to advertise reliable unconnected
+> support alongside additional features. The transport itself, 64-bit
+> immediate data, 64-bit memory keys, caller-chosen keys, and the four
+> memory region access restrictions.
 >=20
-> These UET ports build their GID table from a netdev, as RoCE does. Added
-> rdma_port_gids_from_netdev() and use it where the code tested for RoCE
-> alone.
+> Report the job, job key, and address table limits through the extended
+> query_device response so userspace can size against them.
 >=20
 > Signed-off-by: Eric Davis <eric.davis@broadcom.com>
 
@@ -77,5 +77,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261019-uet-ib-cor=
-e-v2-0-8bd654f25370@broadcom.com?part=3D2
+e-v2-0-8bd654f25370@broadcom.com?part=3D3
 
