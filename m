@@ -1,56 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792542207;
-	b=LdyE49R65l1YHF/sTW71Ty2Z+4FKun3rrwjR4JqquyxZp4+SW9+VNhxDsVPuJyaV36SP
-	 zcKIwBsCUT+b+PcOamnySb++dAJJoX4UUu6HjCKjQrijzhkFfFLMXMYpiZ4wPcYmIFFXu
-	 HCf8nDwVHJNNiAc8VDuDBkDde3YNYjBFQFdak/ATxbC01DK1w4Dw+ooQKhdLAV+L9loTn
-	 920P6KQUsejJRN0ayd5hyjDaCflwXfhqwshzwRAyjJkK0JPmVw0zcKkrxG6nwv0jUC22U
-	 6EiSphwYZaEXVUHQjUcAuLCIFN7WojcJWT7AbolsMndodgvdaKOS2c6vtYVgAWKCdHw==
+	t=1792542607;
+	b=Ty5c9KmOUK1xhbPRBiy88qgVL4lFYD041qortwbMnRVGCX09GZUy6W1ll8prdMSjrDmB
+	 is782XTO4/WXRvmyzGBuUuSzhbB8yawM6chvJOtl/1eNCQ+rk/+A3rhVwGM67FjQiwH7p
+	 7QXvrJgJojggRBor6rPJ2z+FzW9otBD6Qd38q1vCD6HC5cYlHiauLMkm/qXv+cGXWdZc+
+	 ZEIhL0pNTnYK0aaANshXcdHbp8OTGX1KeOuSPuFDDEfSMW7CfE799aadErMPwG+epZZt4
+	 nbEA5TgFPD9HLO4nO0BzSXWU0F0Gu18QcwMw5zD33QX/3UozkKmlg4LdCstHuFL/NLA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792542207;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=lrFJc4rz699fN3rUmp45jsAkSM2tjOCS7q31OfOP720=;
-	b=EIeEQ0MVJTVXdZbmn/9SsNlVzKjuW6mtYRp85pvIIi868T76VGKLsoZWkaMeimnaiVe/
-	 tD9emVVjEgX8tOLqEDT8iQC73pURhJ5XyYMuAtrsryaC3TR7QrBkehf1WB2aMmyeiq0iU
-	 uxGcszd5c+k89lvY1LRJpm3u0SR7T+q9oOGb5pFpDaS7m2dno3smZSmvE/HfbBDaZGdWC
-	 4dDqFgb1m4j7KMWVElMsPbjxXN0octsA4inCw83CACbhoNi8/1IGh2BCP2HqHWBhVzlC8
-	 8qL6uaCC6VAAlGFwYA7rJoNAqcvkGXtewoOZw4+EcUCweRzi1vjBJbqOdYd7RICigIA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792542607;
+	h=Received:DKIM-Signature:Received:Content-Type:MIME-Version:
+	 Content-Transfer-Encoding:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc;
+	bh=LKjCAiH5qiP3wJKkZahsAhQ/3u7L0s1+MefSYyAuKeA=;
+	b=TsE7mghCUlr5zKmxjG/HDEFh82Y3NV28tfMPOOnDOzt1AfZg6Or1M5VCETEiGzEkkBtu
+	 3TrOjInrBGQDE0EDqVu7QONndkkEGbmWyWOk9T9VmgaoZivmMW16xw32nQB7lAHGpjaFb
+	 KXfIWp0O90Uw9CPavJaZG7w7RATzmLcnzx/V+U2FLNM1/3x0DGN7loxJUJ2w/tPPhEyKK
+	 LQv6Zs8Y797HcYsxbCSVnvRK5O1sJjym0TI3RmkFQKA+isPnz07/7XNBbV7FdW04mvySU
+	 2DYuuyLTN0EBnkSgJR/nXVsS1UJygRukz+cWEfReF8ptLfGitJBx8DI1WM6dxJpiD+Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BnjUOcW9;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aW1VVzET;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03896606A319
-	for <linux-rdma@vger.kernel.org>; Wed, 21 Oct 2026 00:23:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED297606A31C;
+	Wed, 21 Oct 2026 00:30:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BnjUOcW9
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78E571F000C9;
-	Wed, 21 Oct 2026 00:23:26 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aW1VVzET
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 824AA1F000C9;
+	Wed, 21 Oct 2026 00:30:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792542206;
-	bh=lrFJc4rz699fN3rUmp45jsAkSM2tjOCS7q31OfOP720=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=BnjUOcW94n01m8ky9Klr0l1ujYz0l8KXtEluH1KRdqL1m0ICj+sznVS2EWLv2CYvs
-	 4PL+8lZvqLAUDmmIvsRNDeAKmQP+27IgRQK7Bd65FbIg4OefkvR/nhO2x5A3nJvdRq
-	 frq/1fsHECg+jyRjbQ+aXLAVgTKKXGvUAPFoy8qO0B6r5/4obofUaw0SL5en7BMBbQ
-	 XsjJFeEiOOPrgKhzW0iMvBKVd0O8LGZG3hOgiHApsQyVfCRPM6jlG06t/7vIlFDtFo
-	 eEpuFzBain/6k/v+TLJpCXJtdgGKPI9vWID7ltb03rXT9zPkugKUWzPLhiabq0dnne
-	 yQj3ccRLUv2Yg==
-Message-ID: <sashiko-outbox-179634@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v2] RDMA/srpt: bound the indirect descriptor table and
- widen the counters
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Yehyeong Lee" <yhlee@isslab.korea.ac.kr>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261021001854.2343027-1-yhlee@isslab.korea.ac.kr>
-References: <20261021001854.2343027-1-yhlee@isslab.korea.ac.kr>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Wed, 21 Oct 2026 00:23:25 +0000
+	s=k20260515; t=1792542606;
+	bh=LKjCAiH5qiP3wJKkZahsAhQ/3u7L0s1+MefSYyAuKeA=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=aW1VVzETW4tqKrP8ybUBa9+EpBv5C689mcPLyhd13+KDZPyPrJaWhmeC9HYkRICMv
+	 GYRXOprxcJu0pRVgMCgfunWxAkTy42dhzBIa+Gq7JiKEdDWGSndJEMWo2hKuWD5pjH
+	 GkLoK+LBJLyp4vYQf1BmbxGDtH/XE8K3Y9kYJuIMf4bEmpt2Ikn837lqA4CT4dQ8/d
+	 xlFZ0iEmcHpDKTJWFQvhL4rT9oXO0EWVU0qFbFE5Lxwvo8ZedChd9MPFf4Nqlj/R2I
+	 UrCQaBjyN9gwc0S1C/EFr0a7noe8C382sCfbVkN6Sw1FNrw2AWtkmZmS9Nb4vYF304
+	 pF7Qg2Q434H+A==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 773883809A0C;
+	Wed, 21 Oct 2026 00:30:06 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,32 +52,49 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net] net/smc: queue the copied chunk when smc_tx_sendmsg()
+ faults
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <179254260529.285569.7327576902059914467.git-patchwork-notify@kernel.org>
+Date: Wed, 21 Oct 2026 00:30:05 +0000
+References: <20261013-b4-disp-872a3689-v1-1-2a4c63b04761@proton.me>
+In-Reply-To: <20261013-b4-disp-872a3689-v1-1-2a4c63b04761@proton.me>
+To: Bryam Vargas <hexlabsecurity@proton.me>
+Cc: kuba@kernel.org, dust.li@linux.alibaba.com, pabeni@redhat.com,
+ edumazet@kernel.org, mjambigi@linux.ibm.com, davem@davemloft.net,
+ sidraya@linux.ibm.com, alibuda@linux.alibaba.com, netdev@vger.kernel.org,
+ ubraun@linux.ibm.com, linux-s390@vger.kernel.org, guwen@linux.alibaba.com,
+ horms@kernel.org, linux-rdma@vger.kernel.org, hidayath@linux.ibm.com,
+ tonylu@linux.alibaba.com, linux-kernel@vger.kernel.org, wenjia@linux.ibm.com
 
-> srpt_get_desc_tbl() bounds the number of indirect data buffer descriptors
-> by the two counts the initiator put in the SRP_CMD, and both are u8, so it
-> admits an nbufs of up to 510:
->=20
-> 	if (nbufs >
-> 	    (srp_cmd->data_out_desc_cnt + srp_cmd->data_in_desc_cnt)) {
-> 		...
-> 		return -EINVAL;
-> 	}
->=20
-> Nothing checks that the header and those nbufs entries are inside the
-> information unit that was received.  srpt_alloc_rw_ctxs() walks
-> idb->desc_list for nbufs entries ending at
->=20
-> 	sizeof(struct srp_cmd) + (srp_cmd->add_cdb_len & ~3) +
-> [ ... ]
-> that fit the IU are accepted with every context freed again.
->=20
-> Fixes: a42d985bd5b2 ("ib_srpt: Initial SRP Target merge for v3.3-rc1")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+Hello:
 
-Sashiko has reviewed this patch and found no issues.
+This patch was applied to netdev/net.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261021001854.2343=
-027-1-yhlee@isslab.korea.ac.kr?part=3D1
+On Tue, 13 Oct 2026 15:45:01 -0500 you wrote:
+> From: Bryam Vargas <hexlabsecurity@proton.me>
+> 
+> When a send wraps the end of the send buffer, smc_tx_sendmsg() copies
+> the data in two chunks. If memcpy_from_msg() faults on the second one,
+> smc_tx_sendmsg() returns send_done, which already counts the first
+> chunk, but leaves tx_curs_prep and sndbuf_space as they were. send()
+> reports bytes the peer never receives, and the next send() overwrites
+> them. Any caller can hit this on its own stream with a buffer whose
+> tail is unreadable.
+> 
+> [...]
+
+Here is the summary with links:
+  - [net] net/smc: queue the copied chunk when smc_tx_sendmsg() faults
+    https://git.kernel.org/netdev/net/c/c0703534b223
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
