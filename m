@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792569630;
-	b=moepxgGCsknfiHqxJJcI3ueIFusGNQttNYJtorA7sInPE3aqhZ1NePps8X8P6hmjTbwf
-	 s8ij1rh+RC8O1vHKOAz16cSWe9RKE1HFXz0iUkOJevfzwvS69d1KAflxnZvdEWfo4x/iL
-	 KRYdAnGmWEGpDBx2G9eQ+fSUOKdb0kCQFGBX4GtSKv5Eepi6Isa6kPjTW1s14wF3n8B8V
-	 vuvo25Uuv8gOSBNioyOm4ebUWOGN3eSA2H8cOWugfXpm+fGvNlE65UqlgNSHcoL9k4Thb
-	 EgaQwJ9L7/jvyN9a8wMnHKaDKvhvThPWqY0vSwbQ248HUYMxLNCUB9tYG4/UYheEuYw==
+	t=1792569631;
+	b=4KJdBp4idKmcq2HVB3L/DkuZ+Gu0kvk2OGfRpe6tLZHH2jLCh2V3hA9YqPCunLaQjJwn
+	 28pK3bqcwLiNAzC/IQlip2I55l5jOIx9FI2hMK0tiNZYBqOm7DfGUUKYCJIi1AOh91R3P
+	 PuiJVxW7JVwr6Rfzq4ge9Y0yNl6+StZeK8gxaAO3PkyO6THZFtEHR8NPIIpFsooItoOBs
+	 b5kMTSAU2swNl8Hfv7JmKJaORg1/UlQSV5X7elz4n9qqFb1Os+cd/mfSWFQyeOrAQeU6z
+	 VvccDMtT/OApWwUv7QIzMSdh/Rj1uHo4NdAebScjqScR1vL2i9ERk0Gj66oJTl1KJiQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792569630;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792569631;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=8Sy/wgJrPuaYnCGLsqZ7ULCpnWsvJtqeLqW19YJscE0=;
-	b=zvtA49VH89siH0OCdiQ86ruffm5ldBvrac00c+XOvAsgEw0UY6RqBGrLIVa3BX4no0Pt
-	 yPkwz7gfKQifzGUY1CGNRgwhaCCUDVUxGUKilBhUw4VLSe5U+dINtgHI5BQnSsOpXerju
-	 RrFF2J5ctdDzSpXkpvLgWQhSACowEFSN1tF4Z+emwCEF++d37wpuADT4RiQJ9tVWXr/xN
-	 m0IqstXoIfUvLiID8VEXSHMCJN7fXdrZU/gu2VtMQs7YXhkF7JBcDy61BbsHfmER92Q2O
-	 SQORPmuIITaG5i/9sWG+QpNqskALHOtyEhzUF2Qitz4eXjxDUVnDnsv2mTJyZF8KqUg==
+	bh=1fSMItJbTefUsUVIncg6iidmYagVcdtDG4M+mORsQ24=;
+	b=sFmTcILX+6GflalLTGqvXnWBgZCAeLmnKla8injkD2EOZ/BTw5LH1maCklI0d7+LYmJe
+	 eLeC345R8fPCl+NQF9BDttt5TBXQU0l/Us7aqMBuytSA0AssOLoGtHQENDFfDa1KUlnlh
+	 3LWo/7RIVRsC+w73Nq5jt1GrerHWprTYceBtQm+3FKV7P+vvft/6Zdq6jtKlH1CSCJFca
+	 gUYOwGXY0Wgn+gXd9tmNjLFqdsX6J39G2c2SpH9ebZd4WHfZWTMWjRZW3mM2z+C2K2nAm
+	 wGN4mWBjJFOlpvc0Y9aVQ6H4vZQxfGX86BDrruxLyF/IjfQ+ZHReTlzyOEHIQNnddnQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fGaUCRhx;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DWs564f5;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90D3B606A31A
-	for <linux-rdma@vger.kernel.org>; Wed, 21 Oct 2026 08:00:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DAC8606A31A
+	for <linux-rdma@vger.kernel.org>; Wed, 21 Oct 2026 08:00:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fGaUCRhx
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37A351F000CA;
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DWs564f5
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 005171F000C9;
 	Wed, 21 Oct 2026 08:00:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792569630;
-	bh=8Sy/wgJrPuaYnCGLsqZ7ULCpnWsvJtqeLqW19YJscE0=;
+	s=k20260515; t=1792569631;
+	bh=1fSMItJbTefUsUVIncg6iidmYagVcdtDG4M+mORsQ24=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=fGaUCRhxSyRTDTkOwqo72ufAyU7/LLWiFNfb1q5Aut45Ye7IkJbnJ6nsqUgbTg7xd
-	 hcEs716d+OEQZTmRNs82nfoLx0ka643CrS5aa+v4z6fHcfDy/9XqxoSrCRPgwtp4jt
-	 Oy+QlmqQg1ekszsZfjZTFhY1BgTEybmEhvQCRSuJZkjOjDqReSBy1bImfp1pfJ8Bdo
-	 oVuKBy5FhNJtcQLuQEoHXZ7TYHDx4J2gkXrbA/JCAa3I+xN1AUEK/qxM9hn7FaWmTn
-	 PDxiLHoiWcKn949PElctbq/VIzGyqAwnTxY0/Z0XgZQIju52+5IfG+fn2Q/8db7yCM
-	 UPolirf9pen4g==
-Message-ID: <sashiko-outbox-179934@kernel.org>
+	b=DWs564f5FSkVR0oS85AEP+RLaXVCWvzAWnW/ZG4YEwMdSK2auu5bulLSXFqsR6h5l
+	 m7mAym9agkg0FEdvnL4k6xyeNC6+QYPEuipozaiK7gsh5ahq8s+2vfwhkkUkqHCk8x
+	 0P30qX++3AvC5wB2lgbsyRoRugB5SMhI08Mc9lrN8SmNgN+CgfZFWTUqVguTBm1uw4
+	 PEtc81Pgh60/iTfLusvlAyONylAa+QTOdjjfdDr4AWkKKr8/GxhqoxOYWfe01kGa0U
+	 bYvWLrZOTsBzMAFUd2bjMW0SxReXFbhduRLVtB1QspBNNsTB1UX28QfZhQkI76+yTo
+	 rUKPhJYQuQ3dA==
+Message-ID: <sashiko-outbox-179935@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net 2/3] net/mlx5: HWS, Fix heap buffer overflow in
- insert header action
+Subject: Re: [PATCH net 3/3] net/mlx5: DR, Fix out-of-bounds write when sync
+ to HW fails
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Tariq Toukan" <tariqt@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261021074949.3471704-3-tariqt@nvidia.com>
+In-Reply-To: <20261021074949.3471704-4-tariqt@nvidia.com>
 References: <20261021074949.3471704-1-tariqt@nvidia.com>
- <20261021074949.3471704-3-tariqt@nvidia.com>
+ <20261021074949.3471704-4-tariqt@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 21 Oct 2026 08:00:29 +0000
+Date: Wed, 21 Oct 2026 08:00:30 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -63,21 +63,36 @@ Precedence: list
 
 > From: Yevgeny Kliteynik <kliteyn@nvidia.com>
 >=20
-> hws_action_create_generic() allocates only a single action struct,
-> but the loop writes to action[i] for each of the num_of_hdrs entries.
-> When num_of_hdrs > 1 this overflows the allocated buffer.
+> mlx5dr_icm_free_chunk() moves a freed chunk to the "hot" chunks array by
+> writing it to hot_chunks_arr and, once the accumulated hot memory
+> crosses a threshold, triggers a sync to HW that flushes the array.  The
+> array is large enough to hold the chunks of a single accumulation cycle,
+> and relies on the sync path to flush it.
 >=20
-> Use hws_action_create_generic_bulk() to allocate the right number
-> of actions.
+> However, if sync to HW fails, hot chunks array is not cleared, and every
+> subsequent mlx5dr_icm_free_chunk will write past the end of
+> hot_chunks_arr, resulting in an out-of-bounds write and kernel heap
+> corruption.
 >=20
-> Fixes: 504e536d9010 ("net/mlx5: HWS, added actions handling")
+> A failed sync to HW also means it is no longer safe to recycle ICM: a
+> chunk's memory may only be returned to the buddy allocator (and thus be
+> reused) after a sync has confirmed that HW no longer references it.
+>=20
+> Fix both problems by putting the pool into an error state when a sync to
+> HW fails - mlx5dr_icm_free_chunk() stops queuing freed chunks, so it
+> never writes past hot_chunks_arr. The chunk's ICM memory is not returned
+> to the buddy allocator (HW may still reference it); the segment is left
+> reserved and is reclaimed when the pool is destroyed.
+>=20
+> Fixes: 4519fc45beeb ("net/mlx5: DR, Keep track of hot ICM chunks in an ar=
+ray instead of list")
 > Signed-off-by: Yevgeny Kliteynik <kliteyn@nvidia.com>
-> Reviewed-by: Itamar Gozlan <igozlan@nvidia.com>
+> Reviewed-by: Alex Vesker <valex@nvidia.com>
 > Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 
 Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261021074949.3471=
-704-1-tariqt@nvidia.com?part=3D2
+704-1-tariqt@nvidia.com?part=3D3
 
