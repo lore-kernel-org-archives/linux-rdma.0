@@ -1,49 +1,60 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792542607;
-	b=Ty5c9KmOUK1xhbPRBiy88qgVL4lFYD041qortwbMnRVGCX09GZUy6W1ll8prdMSjrDmB
-	 is782XTO4/WXRvmyzGBuUuSzhbB8yawM6chvJOtl/1eNCQ+rk/+A3rhVwGM67FjQiwH7p
-	 7QXvrJgJojggRBor6rPJ2z+FzW9otBD6Qd38q1vCD6HC5cYlHiauLMkm/qXv+cGXWdZc+
-	 ZEIhL0pNTnYK0aaANshXcdHbp8OTGX1KeOuSPuFDDEfSMW7CfE799aadErMPwG+epZZt4
-	 nbEA5TgFPD9HLO4nO0BzSXWU0F0Gu18QcwMw5zD33QX/3UozkKmlg4LdCstHuFL/NLA==
+	t=1792543200;
+	b=jDXb8pEfMC6oLHNunVX9muSpze+yvsFbLoLTZsqEqeyCyiYBrN5QU6y+gzd287DXfp9o
+	 BZDUxjwYiRhCt8nb2rrQSgMtXBNOSYj9WtL4zKkWpikMXiotgDO+9Z44p2m7KJLZgB2UV
+	 V9vVbaJK5qZNCMSCoyPUV5O+Xxp7AM6XbuZiRz+27WG17Z40xrIHVhbaWhh6czoSDsZT9
+	 aZ67+Idqj/YWka1RioE2aVtbd1KpLO6D/TMqodpD6c2dF7t0nxIiLV3y8NbQC2yRUm8AT
+	 h28+WlDNhcgvfgm0qPpnKZsMw09EbUXt+LV7cHWyGkgeeGIptbY8NMdmqk24An/e4DA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792542607;
-	h=Received:DKIM-Signature:Received:Content-Type:MIME-Version:
-	 Content-Transfer-Encoding:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc;
-	bh=LKjCAiH5qiP3wJKkZahsAhQ/3u7L0s1+MefSYyAuKeA=;
-	b=TsE7mghCUlr5zKmxjG/HDEFh82Y3NV28tfMPOOnDOzt1AfZg6Or1M5VCETEiGzEkkBtu
-	 3TrOjInrBGQDE0EDqVu7QONndkkEGbmWyWOk9T9VmgaoZivmMW16xw32nQB7lAHGpjaFb
-	 KXfIWp0O90Uw9CPavJaZG7w7RATzmLcnzx/V+U2FLNM1/3x0DGN7loxJUJ2w/tPPhEyKK
-	 LQv6Zs8Y797HcYsxbCSVnvRK5O1sJjym0TI3RmkFQKA+isPnz07/7XNBbV7FdW04mvySU
-	 2DYuuyLTN0EBnkSgJR/nXVsS1UJygRukz+cWEfReF8ptLfGitJBx8DI1WM6dxJpiD+Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792543200;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 In-Reply-To:References:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=5XczBISy9Plu4tToBmWZIMbL1M66Nrl1Ew2vxOyeA7Y=;
+	b=qmFfppdJ/Oavz45i6MJpKpYbbra3SgLfuQbHxc+wrG17DRJoNkYgA6Hv+WdwDk4Isk0A
+	 6sRLOz79dJ9coHvUDcpvDp2VDh3WGbIK1bmZ4Gei9e7vzQg5HpJ+z+QrJOIzGrLPF2S1N
+	 Z5lNnESC976bd8AOGiAPL+1mxuszlk78v9f1LblACaovcBQURdM5aQThs3GyopPMO+NHX
+	 gOuBmDOiZKalNl4RYlI8vsnH6+Je63VC44VxUFCDnq8nHaT6Xj3KMHqoUHfCA3Ydna4jL
+	 cMWAVb2V4jZrP4lQ0DANmnvsypMkiPxBEI89CdumpYHk00bMThKI1plZrYKahM6hwEg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aW1VVzET;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kBkFdLlA;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED297606A31C;
-	Wed, 21 Oct 2026 00:30:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 109F7606A321;
+	Wed, 21 Oct 2026 00:39:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aW1VVzET
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 824AA1F000C9;
-	Wed, 21 Oct 2026 00:30:06 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kBkFdLlA
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EDA61F000CB;
+	Wed, 21 Oct 2026 00:39:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792542606;
-	bh=LKjCAiH5qiP3wJKkZahsAhQ/3u7L0s1+MefSYyAuKeA=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=aW1VVzETW4tqKrP8ybUBa9+EpBv5C689mcPLyhd13+KDZPyPrJaWhmeC9HYkRICMv
-	 GYRXOprxcJu0pRVgMCgfunWxAkTy42dhzBIa+Gq7JiKEdDWGSndJEMWo2hKuWD5pjH
-	 GkLoK+LBJLyp4vYQf1BmbxGDtH/XE8K3Y9kYJuIMf4bEmpt2Ikn837lqA4CT4dQ8/d
-	 xlFZ0iEmcHpDKTJWFQvhL4rT9oXO0EWVU0qFbFE5Lxwvo8ZedChd9MPFf4Nqlj/R2I
-	 UrCQaBjyN9gwc0S1C/EFr0a7noe8C382sCfbVkN6Sw1FNrw2AWtkmZmS9Nb4vYF304
-	 pF7Qg2Q434H+A==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 773883809A0C;
-	Wed, 21 Oct 2026 00:30:06 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=k20260515; t=1792543199;
+	bh=5XczBISy9Plu4tToBmWZIMbL1M66Nrl1Ew2vxOyeA7Y=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=kBkFdLlATgM85ug8lkBWCZ/nFQeE10a7ZE6mq+CkFQHVxsy9eNXu7BKWd9vKwnZ3Q
+	 bnrTGP+FzArWdcvChcZb6MRQ9tIKOw9jZA6rCIBhAuIJu70t+Pj73zlalcUkuB3oI7
+	 RfRdgi2uqXi+BAsA8vG+FxGaX60SlpGIY6gxk5fYYsyXoqJo9k2IOk4ZZ2Qj2/5yKQ
+	 oRD1aCDdnoFZtLmT0Q6lIoj7lsSQYcPRvZuVrrS2rtsuVnLrus7c9nssie/OE08Tzv
+	 3+dhZVG6zcGTA2ASvCjmZus7NFVfg0G2U5DiTIe5fP4Xho/uKro5gYssR0nwr2kXw3
+	 0a8Qbtm4v0Ebw==
+Date: Tue, 20 Oct 2026 17:39:58 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Sahil Chandna <sahilchandna@linux.microsoft.com>
+Cc: haiyangz@microsoft.com, wei.liu@kernel.org, decui@microsoft.com,
+ andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
+ pabeni@redhat.com, kotaranov@microsoft.com, horms@kernel.org,
+ ernis@linux.microsoft.com, gargaditya@linux.microsoft.com,
+ mawasthi@linux.microsoft.com, leitao@debian.org,
+ linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+ stable@vger.kernel.org
+Subject: Re: [PATCH net v2] net: mana: Add support to process throttled EQEs
+Message-ID: <20261020173958.3262308d@kernel.org>
+In-Reply-To: <20261014134304.4177657-1-sahilchandna@linux.microsoft.com>
+References: <20261014134304.4177657-1-sahilchandna@linux.microsoft.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -53,48 +64,19 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net] net/smc: queue the copied chunk when smc_tx_sendmsg()
- faults
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <179254260529.285569.7327576902059914467.git-patchwork-notify@kernel.org>
-Date: Wed, 21 Oct 2026 00:30:05 +0000
-References: <20261013-b4-disp-872a3689-v1-1-2a4c63b04761@proton.me>
-In-Reply-To: <20261013-b4-disp-872a3689-v1-1-2a4c63b04761@proton.me>
-To: Bryam Vargas <hexlabsecurity@proton.me>
-Cc: kuba@kernel.org, dust.li@linux.alibaba.com, pabeni@redhat.com,
- edumazet@kernel.org, mjambigi@linux.ibm.com, davem@davemloft.net,
- sidraya@linux.ibm.com, alibuda@linux.alibaba.com, netdev@vger.kernel.org,
- ubraun@linux.ibm.com, linux-s390@vger.kernel.org, guwen@linux.alibaba.com,
- horms@kernel.org, linux-rdma@vger.kernel.org, hidayath@linux.ibm.com,
- tonylu@linux.alibaba.com, linux-kernel@vger.kernel.org, wenjia@linux.ibm.com
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Hello:
+On Wed, 14 Oct 2026 08:43:01 -0500 Sahil Chandna wrote:
+> When an event queue nears full, the hardware coalesces the per-CQ
+> GDMA_EQE_COMPLETION notifications into a single throttle EQE (type 4)
+> that carries no cq_id. The driver does not handle this event type, so
+> it falls through to the default case and is dropped. Any CQ whose
+> completion notification was replaced by the throttle EQE can remain
+> unserviced, causing its queue to stall.
+> The issue was observed internally and following Tx stall logs were
+> seen:
 
-This patch was applied to netdev/net.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
-
-On Tue, 13 Oct 2026 15:45:01 -0500 you wrote:
-> From: Bryam Vargas <hexlabsecurity@proton.me>
-> 
-> When a send wraps the end of the send buffer, smc_tx_sendmsg() copies
-> the data in two chunks. If memcpy_from_msg() faults on the second one,
-> smc_tx_sendmsg() returns send_done, which already counts the first
-> chunk, but leaves tx_curs_prep and sndbuf_space as they were. send()
-> reports bytes the peer never receives, and the next send() overwrites
-> them. Any caller can hit this on its own stream with a buffer whose
-> tail is unreadable.
-> 
-> [...]
-
-Here is the summary with links:
-  - [net] net/smc: queue the copied chunk when smc_tx_sendmsg() faults
-    https://git.kernel.org/netdev/net/c/c0703534b223
-
-You are awesome, thank you!
+Does not apply, please rebase & repost.
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+pw-bot: cr
