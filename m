@@ -1,56 +1,63 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.34
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792613002;
-	b=kqm26iAWggmi/eTWM7bq9Y6ww1rl24JAxob0NIjhCNPTwib0PGFF6fT1n52GagOQCWVc
-	 QUXAuhqcNU6WDSWxIU8N5gEMzQw/x3AdsBzoMix9Dtt1i7cOUlpgdU4pUcOz9Nja7iTR+
-	 JygWhx/jQ76gL3UxQUK6u2RTVdPtZOv2IpjGs+UeL0MS0epd9XqsbqaH1wQYe6FdU38jy
-	 x+JfIsqIcNhULKmcNa1duRmKRWWq1SU9vaziQFUcalOGE+U3yq5HqArWeMHDEYIvlFBPs
-	 GJ0OZpCsXIbrHVVGIF5jh6xFtpJkg3Slpdro6ACj2ZjSb60su/pzmtRTKdVnET4DJ3g==
+	t=1792614690;
+	b=Q8tj9Cal8rPFHt5wUikFjwf3srzxzYLKGdI6ubjptsLIj0ZpAHwpYu0oOK2AjYHcWkAu
+	 pHYcG2aQZmN3Azl+A1BeYLkeSgcI+ncC9YIk1i8bbXFXn8KNwYq7Tifraxp2ayMwEUB14
+	 MxgbtjFCYHewV6n/nyismsz0tkl8jc33yWSmvu50rFxK7ZhpjnN2dl8eNz/Nc5WsAtRtL
+	 U5oGt3wvJy142FPkO4ejtHn/2W1dXbg3SZO9R7XbO76AVTuosSPyp4dcg8YFRrC9sfrZi
+	 9DS7E4vLPOlHjv6fM9zNeypvG/EyXDkgX9JmZsRrqiOQqWZZLJ2zQERNQKyoezqceMw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792613002;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=5zUMpCoqfKa6msbUC9aAPoNiiG+uaJDo5hhzqIA6Mkg=;
-	b=zRVidh7t2vmoKG3TsVqNKlw6qD0MbCQYswKlEaV4nNbFRLuuN1ShUYG4X9k7E6D65OOK
-	 Aq9F29XR9V3gHPIC5jBA7RseduArczBgg3zgzpfjX29TXh5/Y4P20Na/Qyksa0I+6789q
-	 PTuyhqjQBpZ3JlmKuTSVIE8N42btrT4ky4OIhh+BkdOHQPGmbpRtP9EHUkxiU0QRRcGu5
-	 X17zA+G0zaQbLQB2SCRe4MjLE4m2onw9Y3WkSTOP7eiWoU8hoiaLN8/rNhA3ijhEWhHzN
-	 Z+/cJMyFpK5+G5OAJ2vXzza5Orr7dJANSFEQqgA6rtVj9aGJ+DvJN823XAFaSmNG3EQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792614690;
+	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
+	 X-Mizu-Trace-ID:X-Migadu-Flow:From:To:Subject:Date:Message-ID:
+	 X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=KxwBrwp4beob4QtDN6Vgdq08lcQBA4NIn9MwR8QBPkU=;
+	b=GyrtC67Rcz9KIHzpnHWMwBpBkcRgRhv1IPt/Lsi9EPFIupDoCbLZ74r1bhQ9MJTz4JAt
+	 wsE4bqMy2jFZHUUJz9NgjsobWFBHZZ63PpdSMB+6TVD4fT7KbuNX3NUlFocIEV8pwpEuP
+	 hV1+jdOnBPxd64RvA4xalPHdWcL6I3BQU2k39SXpN8UuQegijaTaKyaC4/SPRJBygHgXD
+	 attwUb+CslSrrV7Xg1HVbWyDVzEl9/rYRFE5FOIY/MJzLVh2JhNnpRs4xQR23RkjFiioI
+	 iHccmp51jZX61JPKMVmaX23iqj67/qYw2r3lV+Yl70/97c6juquq+f0lXYrft5zPN9A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IxrPF1zD;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=linux.dev;
+	spf=pass smtp.mailfrom=linux.dev;
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=q7dvXRnT;
+	arc=none smtp.remote-ip=91.218.175.34
+Received: from mta0.migadu.com (out-34.mta0.migadu.com [91.218.175.34])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85A63606A31D
-	for <linux-rdma@vger.kernel.org>; Wed, 21 Oct 2026 20:03:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AF49606A31A
+	for <linux-rdma@vger.kernel.org>; Wed, 21 Oct 2026 20:31:29 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8AF49606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IxrPF1zD
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C43E1F000C2;
-	Wed, 21 Oct 2026 20:03:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792613002;
-	bh=5zUMpCoqfKa6msbUC9aAPoNiiG+uaJDo5hhzqIA6Mkg=;
-	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
-	b=IxrPF1zDE8fcmxiUbas15w7Xz+MmzRnJivbknqi/pMHutNAiPCfE2KtLegcvS6cRh
-	 qdcW5ma+SO9qGXNb4J2gnqHPHHhB/bVa9nq0bm+uORJzYNRIgdEe6tRRGGWxqBrMwi
-	 zDBYp7ms5kFHlKEX063pWZ3HUaeC3KTPdXXZe//gts22shFr0EY8GVRR4eHI6xq3Z9
-	 y0YKujPvVUZHld30RPzB6PUVaGZnu+6OfnYr5ks+eSDURg/dCpM0dsW6Fo+4x8/ahT
-	 QgFDd3B8fFWDwSzTg8xBUyLefZZGElN2MMLsTZGurDwzE5j82RQsc0KiTM6FFbdYj1
-	 v3h1qi5bmRf/A==
-Message-ID: <sashiko-outbox-180620@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net 2/2] net/rds: do not initialize transports after
- rds_init() failed
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Allison Henderson" <achender@kernel.org>, linux-rdma@vger.kernel.org
-In-Reply-To: <20261021195837.142802-3-achender@kernel.org>
-References: <20261021195837.142802-1-achender@kernel.org>
- <20261021195837.142802-3-achender@kernel.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Wed, 21 Oct 2026 20:03:21 +0000
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=q7dvXRnT
+X-Envelope-To: linux-rdma@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=n8p1HmjNMWhlzUdbwb8q/SiUw9ZRnxHT690PoGANNvo=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1792614687; v=1; x=1793219487;
+ b=q7dvXRnTpcx35Pk/LLSxdbWhdDlN4uQokwO4JyHfS6AN6NnPVbhdXgGLvRNS/uR5u9+zW09t
+ 8XCXYGdSmoN0hlQeAVA+MOwVyJr4mXN8rHTofWpuEqi11LNLPm/5uCS2GOyM9AiDJ8eKC0qwTVK
+ yfxvbOsRSueXg6bvmaSIVUbk=
+X-Envelope-To: linux-rdma@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id 2cd00a1c9ad92a45;
+	Wed, 21 Oct 2026 20:31:27 +0000
+X-Mizu-Trace-ID: 2cd00a1c9ad92a45
+X-Migadu-Flow: FLOW_OUT
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
+To: jgg@ziepe.ca,
+	leon@kernel.org,
+	shuah@kernel.org,
+	zyjzyj2000@gmail.com,
+	linux-rdma@vger.kernel.org,
+	linux-kselftest@vger.kernel.org,
+	yanjun.zhu@linux.dev
+Subject: [PATCH v3 0/2] selftests/rdma: Add an eBPF-based testcase using netkit for RXE
+Date: Wed, 21 Oct 2026 13:31:13 -0700
+Message-ID: <20261021203115.54560-1-yanjun.zhu@linux.dev>
+X-Mailer: git-send-email 2.53.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,35 +66,70 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-> rds, rds_rdma and rds_tcp each have their own module_init().  When they
-> are built in, those run in link order, so rds_init() goes first, but
-> do_initcalls() does not stop when it fails.  The transports then
-> initialize against a core that has already been torn down: rds_wq has
-> been destroyed, yet rds_ib_dev_put(), rds_ib_unregister_client() and
-> rds_tcp_accept_work() still queue onto or flush it, and
-> rds_trans_register() hands the transports to a core whose socket
-> family may never have been registered.
->=20
-> This was seen with CONFIG_SYSCTL=3Dn, where rds_sysctl_init() failed and
-> rds_ib_init()'s error path then flushed the freed rds_wq [1], but any
-> rds_init() failure after rds_threads_init() has the same effect.
->=20
-> Record whether rds_init() succeeded and have rds_rdma_init() and
-> rds_tcp_init() bail out with -ENODEV otherwise.  Modular builds are
-> unaffected: the transports need symbols exported by rds.ko, so they
-> cannot be loaded unless rds_init() succeeded.
->=20
-> [1] https://lore.kernel.org/oe-lkp/202610190310.9737b2e3-lkp@intel.com
-> Fixes: 55b7ed0b582f ("RDS: Common RDMA transport code")
-> Fixes: 70041088e3b9 ("RDS: Add TCP transport to RDS")
-> Suggested-by: Oleg Nesterov <oleg@redhat.com>
-> Assisted-by: LLM
-> Signed-off-by: Allison Henderson <achender@kernel.org>
+Add a new self-test case to verify RXE (Soft-RoCE) traffic using
+netkit virtual interfaces and an eBPF tcx ingress program to dump
+and parse RDMA transport headers (BTH, etc.).
 
-Sashiko has reviewed this patch and found no issues.
+The test results:
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261021195837.1428=
-02-1-achender@kernel.org?part=3D2
+# make -C tools/testing/selftests/ TARGETS=rdma run_tests
+make: Entering directory '/root/linux/tools/testing/selftests'
+clang -g -O2 -target bpf -D__TARGET_ARCH_x86 -I../../../../usr/include -I../../../../include/uapi -I../bpf -I/root/linux/tools/testing/selftests/rdma -c rxe_pkg_kernel_dump.c -o /root/linux/tools/testing/selftests/rdma/rxe_pkg_kernel_dump.o
+bpftool gen skeleton /root/linux/tools/testing/selftests/rdma/rxe_pkg_kernel_dump.o > /root/linux/tools/testing/selftests/rdma/rxe_pkg_kernel.skel.h
+gcc -D_GNU_SOURCE= -I/root/linux/tools/testing/selftests/../../../tools/testing/selftests  -g -Wall -I../../../../usr/include -I../../../../include/uapi -I../bpf -I/root/linux/tools/testing/selftests/rdma rxe_pkg_user_dump.c  -lbpf -lelf -lz -o /root/linux/tools/testing/selftests/rdma/rxe_netkit_dump
+# timeout set to 45
+# selftests: rdma: rxe_rping_between_netns.sh
+# client DISCONNECT EVENT...
+ok 1 selftests: rdma: rxe_rping_between_netns.sh
+# timeout set to 45
+# selftests: rdma: rxe_ipv6.sh
+ok 2 selftests: rdma: rxe_ipv6.sh
+# timeout set to 45
+# selftests: rdma: rxe_socket_with_netns.sh
+ok 3 selftests: rdma: rxe_socket_with_netns.sh
+# timeout set to 45
+# selftests: rdma: rxe_test_NETDEV_UNREGISTER.sh
+ok 4 selftests: rdma: rxe_test_NETDEV_UNREGISTER.sh
+# timeout set to 45
+# selftests: rdma: rxe_sent_rcvd_bytes.sh
+# server DISCONNECT EVENT...
+# wait for RDMA_READ_ADV state 10
+# client DISCONNECT EVENT...
+ok 5 selftests: rdma: rxe_sent_rcvd_bytes.sh
+# timeout set to 45
+# selftests: rdma: rxe_netns_names.sh
+# 1..0 # SKIP rdma netns exclusive mode is not supported
+ok 6 selftests: rdma: rxe_netns_names.sh # SKIP
+# timeout set to 45
+# selftests: rdma: rxe_pkg_netkit.sh
+# server DISCONNECT EVENT...
+# wait for RDMA_READ_ADV state 10
+# ./rxe_pkg_netkit.sh: line 28:  9866 Killed                  "$CUR_WD/rxe_netkit_dump"
+ok 7 selftests: rdma: rxe_pkg_netkit.sh
+make: Leaving directory '/root/linux/tools/testing/selftests'
+
+---
+V2 - > V3: Fix errs in user space application
+V1 - > V2: Fix problems from sashiko
+---
+
+Zhu Yanjun (2):
+  selftests/rdma: Introduce eBPF kernel and user dump utilities for RXE
+  selftests/rdma: Add netkit-based automated test script for RXE
+
+ tools/testing/selftests/rdma/Makefile         |   23 +-
+ tools/testing/selftests/rdma/config           |    3 +
+ .../selftests/rdma/rxe_pkg_kernel_dump.c      |   62 +
+ .../testing/selftests/rdma/rxe_pkg_netkit.sh  |   63 +
+ .../selftests/rdma/rxe_pkg_user_dump.c        | 1275 +++++++++++++++++
+ 5 files changed, 1425 insertions(+), 1 deletion(-)
+ create mode 100644 tools/testing/selftests/rdma/rxe_pkg_kernel_dump.c
+ create mode 100755 tools/testing/selftests/rdma/rxe_pkg_netkit.sh
+ create mode 100644 tools/testing/selftests/rdma/rxe_pkg_user_dump.c
+
+-- 
+2.54.0
 
