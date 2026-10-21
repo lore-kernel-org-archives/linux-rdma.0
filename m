@@ -1,74 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=205.220.165.32
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792599421;
-	b=fK3d53hMD04PCrxlSa4U7thjSBcUGIfJESXYTVHoZEfjNQzyOUgZuSl6KA/gONRBBLrx
-	 bmJNP3wRA3KtsHKZEv0L1/lhSiZuPqMgcH9w6m4GAqXO4bskpnvKjUFqt9i23t5zaKaDJ
-	 B5RFoV4p1qFpcWLR1tFyf7LasG5uDv96q0ohSighNnQGVc4eiLqH6zs3NmnTRTSYHQ0Me
-	 7KfQA9gM+3Hz7O4okXROnSwz3qnx36opT/lTx6fackdtLl2ePY8l9twpEKNdCL8BlGcVY
-	 YgEM8imfNk3GlcU2gTYDCJVbY6r7qAPWGJjoWL96U+8mAfvDNiR8VfF/Nmffb5hVPuQ==
+	t=1792600154;
+	b=GvJRu/mzgFN90lWrcQeOrN5wP2c2BsD3Yta/QDGeLEeIOCUg0itqy2/NV79omyEar4Zw
+	 lNKpGWQ5x71EPI83yVMDixlYLuhyJ8cfUsenw7qjXWayvoeA2nWtGHKoeRFzci8nCzPqp
+	 juoYC8T/1Rc0Wpy6EO1k3uVaOe38Qc3/ahXv93IF6GiDXVtsZcLW9bZBGg//J/JiGlje8
+	 mDOpDFXx9lkyTqaNjkXfDMIaM5wAfkdtepza81fIks2i/BKJ6UQnrGPhzwa5K+0TPr8r4
+	 KnB28bjeRWGjXINeX7kxUFFZX6nuuUQODlljyN3cmjvU82v/7f5p8g6b4voS73r4hoQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792599421;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:From:
-	 To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding:X-Proofpoint-Reinject:
-	 X-Proofpoint-Virus-Version:X-Proofpoint-Spam-Details:
-	 X-Authority-Analysis:X-Proofpoint-Spam-Details-Enc:
-	 X-Proofpoint-Spam-Info:X-Proofpoint-GUID:X-Proofpoint-ORIG-GUID;
-	bh=ZgPm3j48OhkmU0/nOyw0pk18bjZECBcGo+qJzz6e7t4=;
-	b=s+ElR2G4+AJAGMkAys95fkG5DLus+ckrR/nXyyDZBtyR19gLBkcd7fQpjemqJOfAkyrY
-	 IoHQeTZjQp3AoeWK3cBT3duO1GGMDKXoi4s4X9c+Nt/5yQWTlYnKltiQifl3GWolLicNv
-	 9nDgc7ZzY9Nf7uRhWzpm68mjwBqBi1cdpIf5etdpuaKGJh1xiaz6zqhk4idB6waS+JMPl
-	 P7DczJMS3MdvGWFPMmxOCu0obs+gVZB2UaVQXF59V6zYe/IH6QDrNQV+KRfwPamWP1uSm
-	 +WVMpvOvaTqw928ttyZKx7Js6BpOZKGSy7Qegs+2lAutvoTA0Xqs33VhrMNqH/8a8zw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792600154;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=pOdyWnp26lTeMn7XpNShbbPVgIhhnwT+JSNvy5412a0=;
+	b=uom4B+nbquVVwtfTtOGS6dyAilvyZqAUFaVm737DU/3Gu4T2GYRPE+r3BtgEs2F+MvUZ
+	 ypB6MYXFJXt5NhmbG2Oo3s/qk0pk20bMq23/bqISxpSsHyseCzT0/W9unnXYW9lkm0btL
+	 1WV1XwqtJd15Le0RjxYxuuDCmVwR61wrbN/QjrsrZR4dAm2JQN+SuFZ9SupgHOuPLEArR
+	 HdufSAkNtm/Sq2Kj8Xn+bihw+WIvbBImv5xhH4f8vfxqopxr2GWeCjfBKIDhHrrOjOsJL
+	 kILjDkdocjPlxuedX++Ua/DxeQxo9fwGfI5RVJSPwnWTYjjmDJn+WyqPDTQrt2vS4MA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=oracle.com;
-	spf=pass smtp.mailfrom=oracle.com;
-	dkim=pass header.d=oracle.com header.i=@oracle.com header.a=rsa-sha256 header.s=corp-2025-04-25 header.b=mA17eidJ;
-	arc=none smtp.remote-ip=205.220.165.32
-Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DNjL11G1;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 995A6606BF24;
-	Wed, 21 Oct 2026 16:17:00 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 995A6606BF24
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3ED8F606A31A
+	for <linux-rdma@vger.kernel.org>; Wed, 21 Oct 2026 16:29:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=oracle.com header.i=@oracle.com header.a=rsa-sha256 header.s=corp-2025-04-25 header.b=mA17eidJ
-Received: from pps.filterd (m0333521.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69LDNh9n3856767;
-	Wed, 21 Oct 2026 16:16:55 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=cc
-	:content-transfer-encoding:content-type:date:from:message-id
-	:mime-version:subject:to; s=corp-2025-04-25; bh=ZgPm3j48OhkmU0/n
-	Oyw0pk18bjZECBcGo+qJzz6e7t4=; b=mA17eidJFaH1GaZ3EOjbraIZRCCfqjEe
-	ZeSvQ6DnVLzalafbxiC5fOwBQZw457/oAkrYsgd1YMPLV7wG/xkLQhQZqU2XslB4
-	7RXe0eZaII5e6JC/UdfGV1jAlMtUuo8dV2bXR2RlVsnTnEe/jFSM51bGj4gG6Gfh
-	p/9uT0aTh1ynW0d0YDlgLqzKSzXU5a0IsoXgcwC8nqo2oq91jd+PReZqxQqQu415
-	9VbgTwLtt0z+Apz1N8VaUXZLW6+NBQThGgR2bk5TpMbTlPOeaYO52PV4fnI/OWr3
-	9jHjNBRAQAilSpAJ4WrGVEotiP/vM6rOtNumxCpESwsjajpf9v4Fdg==
-Received: from iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta01.appoci.oracle.com [130.35.100.223])
-	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 4hdw4gau8h-1
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=OK);
-	Wed, 21 Oct 2026 16:16:54 +0000 (GMT)
-Received: from pps.filterd (iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
-	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (8.18.1.11/8.18.1.11) with ESMTP id 69LFSwUa1109771;
-	Wed, 21 Oct 2026 16:16:53 GMT
-Received: from lab61.no.oracle.com (lab61.no.oracle.com [10.172.144.82])
-	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTP id 4heyqgtfed-1;
-	Wed, 21 Oct 2026 16:16:53 +0000 (GMT)
-From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>
-To: Abhijit Gangurde <abhijit.gangurde@amd.com>,
-        Allen Hubbe <allen.hubbe@amd.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Leon Romanovsky <leon@kernel.org>, Andrew Boyer <andrew.boyer@amd.com>
-Cc: stable@vger.kernel.org, Keith Lucas <keith.lucas@oracle.com>,
-        =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH for-next] RDMA/ionic: Fix GSI QP ID release
-Date: Wed, 21 Oct 2026 18:16:49 +0200
-Message-ID: <20261021161651.4020222-1-haakon.bugge@oracle.com>
-X-Mailer: git-send-email 2.43.5
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DNjL11G1
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2FBB1F000C1;
+	Wed, 21 Oct 2026 16:29:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792600154;
+	bh=pOdyWnp26lTeMn7XpNShbbPVgIhhnwT+JSNvy5412a0=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=DNjL11G1+3RRIPNXfHbk3VXFxUT3WnlYoRJlEeRuUKy3+B+gmPve2Z6ix9foSx+9W
+	 EmuDspfzxBzzulpE5E1sLz9Xzv1+eBQPJuEAFFdsG3ZmuZDpIWblfckEHlQOAb0gDN
+	 40RpcuKGoPujH68md2M5Wsk2arIoIatAv07ZlGnJClCaqT/Ie2NNaBv1VeSpW2Q6cL
+	 7qsmUKBigUIeFffEHTFpaOPyPy9KkwGI9jWDz4KNhrKqlSl2vC6A4KZgOnnfQ1YDaa
+	 LUMWqp8HL1eQEGWaC3Wvps0U5p4j5kJhmesTceFTsjb9fP7Vgvcsw/BCSAGAGday+G
+	 huE4/tYr6vbjg==
+Message-ID: <sashiko-outbox-180464@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH for-next] RDMA/ionic: Fix GSI QP ID release
+Reply-To: sashiko-reviews@lists.linux.dev
+To: =?utf-8?b?SMOla29uIEJ1Z2dl?= <haakon.bugge@oracle.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261021161651.4020222-1-haakon.bugge@oracle.com>
+References: <20261021161651.4020222-1-haakon.bugge@oracle.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Wed, 21 Oct 2026 16:29:13 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -77,100 +58,140 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-Proofpoint-Reinject: loops=2 maxloops=12
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-10-21_04,2026-10-21_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0
- mlxlogscore=999 phishscore=0 bulkscore=0 lowpriorityscore=0 mlxscore=0
- suspectscore=0 spamscore=0 malwarescore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.22.0-2610190000 definitions=main-2610210064
-X-Authority-Analysis: v=2.4 cv=LPPz05W9 c=1 sm=1 tr=0 ts=6ad8e576 b=1 cx=c_pps
- a=zPCbziy225d3KhSqZt3L1A==:117 a=zPCbziy225d3KhSqZt3L1A==:17
- a=IkcTkHD0fZMA:10 a=660iZSQnnn4A:10 a=M51BFTxLslgA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=jiCTI4zE5U7BLdzWsZGv:22 a=x0eKOSpe3m1H3M0S9YoZ:22
- a=VwQbUJbxAAAA:8 a=yPCof4ZbAAAA:8 a=sG8J6-wLveFn0xi-oGcA:9 a=3ZKOabzyN94A:10
- a=QEXdDO2ut3YA:10 a=5yU3S35YU4bGjq-dph-N:22 a=Bho9c0fBagfJEIQBS7DQ:22 cc=ntf
- awl=host:12107
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDIxMDA2NCBTYWx0ZWRfX3MsJ2goid2Ad
- sZk//upQ8Ih9ar4+/hSvgED1DwUw9z4dWd2XzV09uqNiq+uRjuMIaBsqjjZbuPC66YGgehKCEoY
- 3+fypZJiWBgoHq4ugKIowsdv6bqcyE7Dra2NNgW1G9OyFbiYD+eYDz6U/r1E+sV7s7MJ2vtKmBr
- ryt8arfD8gQQWJ8WBOviGxNBQVoaa7WGalQxAks7FVrF1iXREZhf/kqjKcACg5B/MeNdopdobI6
- WUy45RqKuUEtUxfPHx+Wlnd3vN9woktOcwCT4oTEidYNekT1zxFAKvFct07MM8QAvK1pWrE1iIy
- Lq+3h0SThuqRHVXgvmY9TLH6xzuwv02fEefs5VrnpAA3meQhDOS/M0whWXYVzW0t53SlV2kYNly
- OSK1m7I409sZMwOLMdAWE8rZCTXQDycrAuzhlDMmawaO0XW9SOYcckfaFyZkdXcVb5PBqj7qIVI
- 5fkkS2tKDRLmKEJWjzk12Dfx/D9dcWQfwkk4uX8Y=
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMDIxMDA2NCBTYWx0ZWRfX9sKdFjVMMY1H
- CCbgmC9F6UDt5W2DrnPyLSn+hZ2uPFu7kEhfltVC0x7VjcXK8DoPl18uLvRqZN0lr0DwNRGKzNl
- cwD0QahVKQXmSb5SHjnsPdF+eYGoGQDYUi6XLsasRAfB6hOS2qmE
-X-Proofpoint-GUID: NcVV2mGxfSVJkl1d9mDU-cDuWqjLoVt2
-X-Proofpoint-ORIG-GUID: NcVV2mGxfSVJkl1d9mDU-cDuWqjLoVt2
 
-QPID allocation differs between ordinary QPs and GSI QPs. If GSI QP
-creation fails after allocating its QPID, or is destroyed, we see in
-the log (trimmed for brevity):
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+s) to consider:
+- [High] RDMA/ionic: QPID 1 collision and wrong IDA free in ionic_destroy_q=
+p()
+--
 
-kernel: ida_free called for id=32 which is not allocated.
-kernel: WARNING: CPU: 47 PID: 6673 at lib/idr.c:527 ida_free+0xde/0x140
-kernel: CPU: 47 UID: 0 PID: 6673 Comm: modprobe Not tainted 6.12.0+ #18
-kernel: RIP: 0010:ida_free+0xde/0x140
-kernel: Call Trace:
-kernel: <TASK>
-kernel: ionic_create_qp+0x4f5/0xbe0 [ionic_rdma]
-kernel: create_qp+0x19a/0x290 [ib_core]
-kernel: ib_create_qp_kernel+0x3a/0xe0 [ib_core]
-kernel: create_mad_qp+0x8e/0xd6 [ib_core]
-kernel: ib_mad_port_open+0x268/0x3f2 [ib_core]
+commit edc58ccd1d5e8131fe43b51993df0ab60279d823
+Author: H=C3=A5kon Bugge <haakon.bugge@oracle.com>
 
-GSI QPs reserve allocator ID IB_QPT_GSI directly, whereas ordinary QPs
-encode the allocated ID in the QPID. Calling ionic_put_qpid() for a
-GSI QP incorrectly applies the ordinary QPID conversion and releases
-an unallocated ID.
+RDMA/ionic: Fix GSI QP ID release
 
-Release IB_QPT_GSI directly in both the creation error path and the
-destruction path.
+This commit changes the error path in ionic_create_qp() and the cleanup path
+in ionic_destroy_qp() to release IB_QPT_GSI directly into dev->inuse_qpid
+instead of calling ionic_put_qpid() when freeing a GSI QP.
 
-Fixes: e8521822c733 ("RDMA/ionic: Register device ops for control path")
-Cc: <stable@vger.kernel.org>
-Reported-by: Keith Lucas <keith.lucas@oracle.com>
-Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
-Tested-by: Keith Lucas <keith.lucas@oracle.com>
----
- drivers/infiniband/hw/ionic/ionic_controlpath.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+> diff --git a/drivers/infiniband/hw/ionic/ionic_controlpath.c b/drivers/in=
+finiband/hw/ionic/ionic_controlpath.c
+> index 18ad967812f50..47904c5b9ce19 100644
+> --- a/drivers/infiniband/hw/ionic/ionic_controlpath.c
+> +++ b/drivers/infiniband/hw/ionic/ionic_controlpath.c
+> @@ -2544,7 +2544,11 @@ int ionic_create_qp(struct ib_qp *ibqp, struct ib_=
+qp_init_attr *attr,
+>  err_ahid:
+>  	kfree(qp->hdr);
+>  err_ah_alloc:
+> -	ionic_put_qpid(dev, qp->qpid);
+> +	if (attr->qp_type =3D=3D IB_QPT_GSI)
+> +		ionic_resid_put(&dev->inuse_qpid, IB_QPT_GSI);
+> +	else
+> +		ionic_put_qpid(dev, qp->qpid);
+> +
+>  	return rc;
+>  }
+> =20
+> @@ -2858,7 +2862,10 @@ int ionic_destroy_qp(struct ib_qp *ibqp, struct ib=
+_udata *udata)
+>  		ionic_put_ahid(dev, qp->ahid);
+>  		kfree(qp->hdr);
+>  	}
+> -	ionic_put_qpid(dev, qp->qpid);
+> +	if (qp->qpid =3D=3D IB_QPT_GSI)
+> +		ionic_resid_put(&dev->inuse_qpid, IB_QPT_GSI);
+> +	else
+> +		ionic_put_qpid(dev, qp->qpid);
+> =20
+>  	return 0;
+>  }
 
-diff --git a/drivers/infiniband/hw/ionic/ionic_controlpath.c b/drivers/infiniband/hw/ionic/ionic_controlpath.c
-index a70ef59a8064e..cd623f1de38a3 100644
---- a/drivers/infiniband/hw/ionic/ionic_controlpath.c
-+++ b/drivers/infiniband/hw/ionic/ionic_controlpath.c
-@@ -2450,7 +2450,11 @@ int ionic_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attr,
- err_ahid:
- 	kfree(qp->hdr);
- err_ah_alloc:
--	ionic_put_qpid(dev, qp->qpid);
-+	if (attr->qp_type == IB_QPT_GSI)
-+		ionic_resid_put(&dev->inuse_qpid, IB_QPT_GSI);
-+	else
-+		ionic_put_qpid(dev, qp->qpid);
-+
- 	return rc;
- }
- 
-@@ -2762,7 +2766,10 @@ int ionic_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
- 		ionic_put_ahid(dev, qp->ahid);
- 		kfree(qp->hdr);
- 	}
--	ionic_put_qpid(dev, qp->qpid);
-+	if (qp->qpid == IB_QPT_GSI)
-+		ionic_resid_put(&dev->inuse_qpid, IB_QPT_GSI);
-+	else
-+		ionic_put_qpid(dev, qp->qpid);
- 
- 	return 0;
- }
--- 
-2.43.5
+[Severity: High]
+Does releasing raw IB_QPT_GSI (bitid 1) in dev->inuse_qpid and checking
+qp->qpid =3D=3D IB_QPT_GSI in ionic_destroy_qp() leave the GSI bitid unrese=
+rved
+and cause ordinary QPs on udma 1 to collide with QPID 1 when
+dev->lif_cfg.udma_qgrp_shift =3D=3D 0?
 
+The IDA allocator dev->inuse_qpid tracks bit indices (bitid), which
+ionic_get_qpid() and ionic_put_qpid() convert to and from queue IDs (qpid)
+using ionic_bitid_to_qid() and ionic_qid_to_bitid().
+
+In the configuration from the commit message where ionic_put_qpid(dev, 1)
+passes id=3D32 to ida_free() (dev->lif_cfg.udma_qgrp_shift =3D=3D 0 and
+dev->half_qpid_udma_shift =3D=3D 5), ionic_qid_to_bitid(IB_QPT_GSI, 0, 5) i=
+s 32,
+and its inverse ionic_bitid_to_qid(32, 0, 5) is 1 (IB_QPT_GSI). Meanwhile,
+bitid 1 maps to qpid 2 on udma 0.
+
+In drivers/infiniband/hw/ionic/ionic_controlpath.c, ionic_get_gsi_qpid()
+reserves raw bitid 1 instead of the bitid corresponding to IB_QPT_GSI:
+
+	rc =3D ionic_resid_get_shared(&dev->inuse_qpid, IB_QPT_GSI, IB_QPT_GSI + 1=
+);
+	if (rc < 0)
+		return rc;
+
+	*qpid =3D IB_QPT_GSI;
+
+And in ionic_get_qpid(), the reserved QPID check only skips bitids 0 and 1
+when base =3D=3D 0 (udma_ix =3D=3D 0):
+
+		size =3D dev->lif_cfg.qp_count / dev->lif_cfg.udma_count;
+		base =3D size * udma_ix;
+		bound =3D base + size;
+
+		/* skip reserved SMI and GSI qpids in group zero */
+		if (!base)
+			base =3D 2;
+
+		rc =3D ionic_resid_get_shared(&dev->inuse_qpid, base, bound);
+		if (rc >=3D 0) {
+			*qpid =3D ionic_bitid_to_qid(rc,
+						   dev->lif_cfg.udma_qgrp_shift,
+						   dev->half_qpid_udma_shift);
+
+When dev->lif_cfg.udma_qgrp_shift =3D=3D 0 and an ordinary QP is allocated =
+on
+udma_ix =3D=3D 1 (base =3D=3D 32), bitid 32 is not reserved in dev->inuse_q=
+pid, so
+ionic_get_qpid() allocates bitid 32 and sets *qpid =3D 1 (IB_QPT_GSI).
+
+If GSI QP creation failed earlier so no GSI QP exists, that ordinary QP is
+created with qp->qpid =3D=3D 1 backed by bitid 32. When that ordinary QP is=
+ later
+destroyed, wouldn't ionic_destroy_qp() see qp->qpid =3D=3D IB_QPT_GSI and c=
+all
+ionic_resid_put(&dev->inuse_qpid, IB_QPT_GSI), freeing unallocated bitid 1
+(triggering the ida_free() warning for id=3D1) and leaking bitid 32?
+
+Also, if the GSI QP is active at QPID 1 when an ordinary QP on udma_ix =3D=
+=3D 1
+is assigned qp->qpid =3D=3D 1 in ionic_create_qp():
+
+	entry =3D xa_store_irq(&dev->qp_tbl, qp->qpid, qp, GFP_KERNEL);
+	if (entry) {
+		if (!xa_is_err(entry))
+			rc =3D -EINVAL;
+		else
+			rc =3D xa_err(entry);
+
+		goto err_qp_cmd;
+	}
+
+can xa_store_irq() overwrite the active GSI QP in dev->qp_tbl[1] with the n=
+ew
+qp and jump to err_qp_cmd, destroying QPID 1 in firmware via
+ionic_destroy_qp_cmd(dev, 1) and leaving a dangling pointer to the freed
+ordinary qp in dev->qp_tbl[1]?
+
+Would it make more sense for ionic_get_gsi_qpid() to reserve
+ionic_qid_to_bitid(IB_QPT_GSI, dev->lif_cfg.udma_qgrp_shift,
+dev->half_qpid_udma_shift) in dev->inuse_qpid (and for ionic_get_qpid() to
+only skip bitid 0 on udma 0 when udma_qgrp_shift =3D=3D 0), so that
+ionic_put_qpid(dev, qp->qpid) works uniformly for both GSI and ordinary QPs?
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261021161651.4020=
+222-1-haakon.bugge@oracle.com?part=3D1
