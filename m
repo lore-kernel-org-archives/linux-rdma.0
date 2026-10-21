@@ -1,107 +1,87 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.176
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.219.52
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792602808;
-	b=LGsfptCnKWDtSCGkGk/M+S8+p2jd+NCeY2FZS35m+CmnjB9z2RdgAgOITApASHwa2nCv
-	 gxUX5JEnu3C+1zdPaR9GYhyzKGQ10f+WIhJj24IaOaUdu4CVG4F04dqPJcKwxwN5IEBXQ
-	 9yB5mrFXZtFjAVuu06Mghfy28jafikPK+Unvlvp1XFKF0ElHJ67dlB0CCVDC+34K9h2bY
-	 6ecgrhQuePPuH0Trr1DZx3d82noJqYi5UKarFKfkdAccaHkQRgX0G42f+eMxMv8o4h+sm
-	 UP2aLDqEVB7kOKWqlIB728uJcqsYHXzE43CqfZ8/AJIMzpcHFsfLTNhKXcrwMIwnMbQ==
+	t=1792604293;
+	b=zUOSUlVOJiWJ3IBcDVw63SusZE4c3EVB1TwNj/BeMXdvGfRi7NGVYUZmdmWFTxDOE0H3
+	 RTbGLop32R6Qe6qFhrFcPraE/llB42OnL5lIe7mU63Shm5eK1cEEOM/I8VDxErhx9b7tI
+	 4Zjxek12MnVT0CrrqGvXfmLC01E76fIbXjn0jHWKI5ISxJx8Yttefs9xrc6ltUvMJUM4v
+	 IrVT9+HGbClYSe6YLpFmZ8Bn681rbZqIdsBX0lro2/NCV8Ctw6m3mrcbjBlrmu/YAZjVQ
+	 YC3NuYVtDMlJP0KoVgbRlKzugW5N6KhtCXnpbPOKj5UkK48dVxN5KYDoBSS12En12dQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792602808;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792604293;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=TFjFXEQ8daX1SDzZ+zKTu3JqP3e56krBVno7avFksg8=;
-	b=TIHy4GkJEY41CZDmnk+Vsj22CIMAj3qrrc60wtnrwpNHfVzcOZNerjoJmsUK9icIL9Rt
-	 HzqkEkfWpEBf0UurD0B15m0cjKQiaLIbb+DUzDo8aQz+fFw7G2jMDP/nFNcV1oOCKzkhR
-	 ATnderrmGPCHha+BA87xECDYOvLqJeyDDu3Y/9s63wvmW6feBOgEfG+0Lb2I0/GikEavS
-	 XaD/4KzxrZxNoc9z+7YVy5hqHRDx/hDCW/bZNCOvMpXykmSXC8qUdC1TtsIIlAjj6Ly3P
-	 a80AVsjUNrxmMrRBs4ENGA7SSAnEwSQzs5iBokZSTNoR74YtvGeI9ioaHLiU04/7Agw==
+	 From:Date:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 Message-Id:X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer:
+	 X-Developer-Signature:X-Developer-Key;
+	bh=ZpL07KDDvB0JLojCSM2iYx41Asq0nHhWJ0VD/dVjgwU=;
+	b=Ac7R4rBKQUrNp4h8oFjv12aWQnPo74XRJ/nfdxaRHk5qkN5cn7o93U9lg26DdqBTwe4l
+	 nL54mcgQDnc3OlqkE6pM/sH95CbMswjB2y0aA3QDSWEr98rz2aaw4D/Me0w9YyOVVL0ue
+	 lQX4vaPrDg133KP6u4Um+zvDFOiX3LLLLlW7ZOghEYIN04OfpNPR4nRCshQK+aWqrLOj7
+	 9dzV92Jir2rQr26AskfYTLYb7NaMukZ78fjjScH0fIBHRjbTmb/AUghJss0DzfUVRqMOe
+	 JzMSQF4S1oN/qOf1UVFH5U/iBQw8LtLDYHbWXbz9d4coyHjbgjmncJHlKgpu7sSexXQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=soWqeg8C;
-	arc=none smtp.remote-ip=74.125.82.176
-Received: from mail-dy1-f176.google.com (mail-dy1-f176.google.com [74.125.82.176])
+	dmarc=none header.from=toxicpanda.com;
+	spf=pass smtp.mailfrom=toxicpanda.com;
+	dkim=pass header.d=toxicpanda.com header.i=@toxicpanda.com header.a=rsa-sha256 header.s=google header.b=mMiOgPrg;
+	arc=none smtp.remote-ip=209.85.219.52
+Received: from mail-qv1-f52.google.com (mail-qv1-f52.google.com [209.85.219.52])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88135606A328
-	for <linux-rdma@vger.kernel.org>; Wed, 21 Oct 2026 17:13:28 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 88135606A328
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32791606A31B
+	for <linux-rdma@vger.kernel.org>; Wed, 21 Oct 2026 17:38:11 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 32791606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=toxicpanda.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=toxicpanda.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=soWqeg8C
-Received: by mail-dy1-f176.google.com with SMTP id 5a478bee46e88-36681e85e87so1929378eec.1
-        for <linux-rdma@vger.kernel.org>; Wed, 21 Oct 2026 10:13:28 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=toxicpanda.com header.i=@toxicpanda.com header.a=rsa-sha256 header.s=google header.b=mMiOgPrg
+Received: by mail-qv1-f52.google.com with SMTP id 6a1803df08f44-91b9e758c50so1271756d6.1
+        for <linux-rdma@vger.kernel.org>; Wed, 21 Oct 2026 10:38:11 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792602808; x=1793207608; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=TFjFXEQ8daX1SDzZ+zKTu3JqP3e56krBVno7avFksg8=;
-        b=soWqeg8ClTWjGsUdU6T/pu3svwM0Pfxg2zZh/n9lNcDLCmLtKefWVOKifpL0zHAq1Q
-         D6LtACxIh9ec8/1K2mp5qmfBvdxKMULxhe/jNV/dPtt5jFHja1SYX0/Qk340szBict3V
-         QuZ38mRsn87CyEawQEZkkBVayuKUAZhkj9wst3LID72z3mWvw7f1HlpsHuR4B29d+rrF
-         xNjBWHfVxPKiYyPiUwPc9mgdKoaBp28JqcNrF0lORvsQqW6BEXnCaE6rPU0vEBprTg33
-         XKoK9jeF5X1sV46+j/eReNTBzPEMozvHY6FOKd82RD7CTFY/OSL1i7R6qF84ZAZO5HpP
-         YEGQ==
+        d=toxicpanda.com; s=google; t=1792604291; x=1793209091; darn=vger.kernel.org;
+        h=cc:to:message-id:content-transfer-encoding:content-type
+         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=ZpL07KDDvB0JLojCSM2iYx41Asq0nHhWJ0VD/dVjgwU=;
+        b=mMiOgPrgNzqKNXmYt8A83QEFWXZOMSxa18d4faFbG7kl3lGzDx/C71M0pWmnWIYuzg
+         a7Zpc+eHncuWDIJKhjdz7xlpwBKCm8lXGEFOUio2lhgwW/pIL9sSGkHErWdyttr3f5eY
+         wXSAKCMLO6SXGO/F8kNtreUlCIonTxXIyxoESqR4EGuLg3Sh9IwCu/gh+PGClITYNQHe
+         sB05LRiQ3IYBrl8jlDVADHq04tWSHo4X2PTxCQ5BMPHomjDt9lkDAgkMbdGqNE3umb/a
+         BeVC77pIT/PXcxLzhyj6oLfgdBHBJG4XtAXZawY9Ui9dxU8L2MX8H6W6NuquZPuLbiST
+         cyhQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792602808; x=1793207608;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=TFjFXEQ8daX1SDzZ+zKTu3JqP3e56krBVno7avFksg8=;
-        b=B7rYXxYBj9XNkBx88lOrKhiUftvFS6h9kGhuSffgsjCLp7CkqztqtJlctYmYAWZpX7
-         xgHhHaOq/SbDjLM6oWvDPh75BKG9/UqONBwFmu4oXL936eQgUcEZzQtpVLQHpeQlggoo
-         UNRKKaOx2nDzolOkmqY+A6viFPL22HmV+ek0W8PGZfNnB0vCTyqKZuho26bXQZvTZFGo
-         eE3nm6OCcwJ6BBK44YhS/h9IN41jRzcGnxUcAY2qI+Um+i56+Oka0eet1Z127bBCXsfC
-         wf7+NZNxslHzdnJdyd5j7da9JjFl0w9+dfj8Y+EMpK2hHrx0sTzZyiwRQvDQ1+iEQQLl
-         6srA==
-X-Forwarded-Encrypted: i=1; AKwUvBwCo0BjnvcvuGTYu8yQwqUEhdK5IHgyj/H4plupwyPF819bdxI8Fobs6tsIlbDotobO49Tehm7RlbT5@vger.kernel.org
-X-Gm-Message-State: AFq9FYKuE7aNsfDBqSmrNdbMzTTn6gluWvIASqWlOv5zWPem/BmPxEtz
-	8IzYuEKpTRWqL8MxR1ZaGFSo6gsowFmsIBNfot0ScyNsO3JS6gJ85yaB
-X-Gm-Gg: AYBFou0DgFD6mR/n5YqfnR1LFeQxro/7t7yuh4ukokdUobN3Kq0Fybum5pKUD00UuTF
-	LR/atbKHj5PRbqJOQKxWj0oBl4iWGsUD7xGifTemNjE2kzK8YUCeTJVWgrB3j4NtlsCchdIxIV4
-	9X/FaB3SimH6XnT7UtQue0L/Rx+mtFdB66w4bELpLoPj8p5rMGg+zH2nhzuKcs6lA+dPX2ZjV2b
-	3TrLuectj45FDPnFHmjtPSr/Ic+ZhsmIniDKy9EiIHjDsk4Uz0ESwSnkLzo9h4US+95JgR/SVtM
-	V5Nt9+HgZi5/34Ex/E42IGkPmq6pdTcR0vWLOChQFJL+j0ywaSndUYMpJ6kWi5CNHEwtBPR/2m7
-	nKGZTpbj41rqxp4zW1SHCNFyBrM9nMy9/BH7eOzF5D2SpUd9kGGlT+c2u+hw9c9QlbtrmSosL6L
-	85yZF4M7lMp4n/kV5L3J7i9r2g74birZCLkgv5lZfsWnqpykPG28XEHPEhKiPUAQg3BHxOj7vhv
-	b085nqTOnf9VjCzMBilM/y0hWEB96pr5jcSanoW+hmXp9MsNvN783LhFYz/vkIsMWofNU8KaMlV
-	JmSqWEivEGdFDTGYr76J6VKiqrAdUQ==
-X-Received: by 2002:a05:693c:60cf:b0:353:8205:8558 with SMTP id 5a478bee46e88-3674b82ad86mr4897440eec.5.1792602807507;
-        Wed, 21 Oct 2026 10:13:27 -0700 (PDT)
-Received: from Terra.tail0ac356.ts.net ([198.176.50.208])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3674198f1d8sm12947635eec.24.2026.10.21.10.13.21
+        d=1e100.net; s=20260707; t=1792604291; x=1793209091;
+        h=cc:to:message-id:content-transfer-encoding:content-type
+         :mime-version:subject:date:from:x-gm-gg:x-gm-message-state:from:to
+         :cc:subject:date:message-id:reply-to:content-type;
+        bh=ZpL07KDDvB0JLojCSM2iYx41Asq0nHhWJ0VD/dVjgwU=;
+        b=bncs+/4uk+aSNUgYuaFRFLZt8vxqna7o8FKQ/miXukS3xU44dY+h+Z1XjbBksj8/sl
+         Y7eBd9kv2di7p7AGDunDpMnnxoPEWg/AX0KW0FPRNCTCSkBDQdP3Sy5nncv0drwRdY6R
+         dz1DSWbLLEC/Ayg/geQHhal3zyPvGwpcVLH6X9KDSmxkRGiL6yRU7IINiWVRx18y9wEm
+         Rw5nFtQzjeWlpzkllAM+lWNqRtkGEizBJKPsOzqPSNrPePzMWzI4kuj6x7icxdSUuD0E
+         uVlwAqSTEoNO01acDgnZDH8jvS5wE66f/E4/MJV2BwpFMA3b7GNdJapjiRnVnhxuLXt0
+         bGAQ==
+X-Forwarded-Encrypted: i=1; AKwUvBxJn7YClCMngXws4jXwrM8wQKE3KRzm/9JJRzrDmBNatvj8IUVIl5qOJa59geX+cK8bELHNqgzr7IUO@vger.kernel.org
+X-Gm-Message-State: AFq9FYJxNgDCuEYKuIhhtxv4Xc3vYj10Azjbl1BVUj17z7MOTptiu4Gf
+	ltBDy27mj4EdOprJvHaf5akU80D2vPnup6ZSWF37LqFdUA2nHn3BiOQUQ4/9ZVJAETo=
+X-Gm-Gg: AYBFou16T9QRd9Kp4NALlpYcz8huSR/s/uSCLVbavpnwmxm0oWF/RVSoWxcFB6LanEA
+	t0qVmhIJznp05GcEaZxPjqMR4BlOI6SrrNDYWTnYjgGv33BOutn4k/74mOfibC9kgWv4bRcnf+K
+	bb4LXWGibUbiT13um51UbcOpJTyyykDwUPo9u6/zUOwBErfkQa5anu/luko2XWPcAn3Wch1Vcmt
+	j7Eto39wz2Fsn6StlAWbzPkvWpFcWvvQ3Jh+EGWRocd5Mz83FFswrH49H5RZgOYPT2KJ9A4YF/f
+	W8kYMrLoXETPGpqFzB6aY3hWD9wXjZwawHHJClQH3/VSzLkGSEPDfBBk33JTN+u+w3mP+lexB/+
+	fVidfkq5a9lxCLRR3BAtm9egooNM7bNuDswczavgq8dCiIofZPHijVt9BTNnz+cRbLxoPfQ2wQY
+	2RWe6lsXOkB+7CHKW1M0OwY1WGPELfh7dZHmdW1Af9ZEDp1Q6iQ7mzpVgjXYDA1er18kyNbI6G8
+	fBB+pAkBhKlPSpjmO4/b2pEeVYZAivffHsFYXU3D8qi3v9EjBOmMbjGwz1ERfAxknABvzZo1Rh2
+	KNZUKAmjQOLHkBmB4g==
+X-Received: by 2002:ad4:5d6c:0:b0:914:40f4:d4b9 with SMTP id 6a1803df08f44-91c23247957mr871416d6.12.1792604290972;
+        Wed, 21 Oct 2026 10:38:10 -0700 (PDT)
+Received: from toxicpanda.com ([153.61.196.250])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91c18d79a36sm15125286d6.44.2026.10.21.10.38.06
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 21 Oct 2026 10:13:26 -0700 (PDT)
-From: Weiming Shi <bestswngs@gmail.com>
-To: "D. Wythe" <alibuda@linux.alibaba.com>,
-	Dust Li <dust.li@linux.alibaba.com>,
-	Sidraya Jayagond <sidraya@linux.ibm.com>,
-	Mahanta Jambigi <mjambigi@linux.ibm.com>,
-	Tony Lu <tonylu@linux.alibaba.com>,
-	Wen Gu <guwen@linux.alibaba.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>
-Cc: Ursula Braun <ubraun@linux.ibm.com>,
-	Karsten Graul <kgraul@linux.ibm.com>,
-	linux-rdma@vger.kernel.org,
-	linux-s390@vger.kernel.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Xiang Mei <xmei5@asu.edu>,
-	Weiming Shi <bestswngs@gmail.com>,
-	stable@vger.kernel.org
-Subject: [PATCH] net/smc: reject CDC messages after connection teardown
-Date: Wed, 21 Oct 2026 10:12:57 -0700
-Message-ID: <20261021171256.166870-2-bestswngs@gmail.com>
-X-Mailer: git-send-email 2.56.0
+        Wed, 21 Oct 2026 10:38:07 -0700 (PDT)
+From: Josef Bacik <josef@toxicpanda.com>
+Date: Wed, 21 Oct 2026 17:37:24 +0000
+Subject: [PATCH net] net/mlx5e: Fix stalled channels with threaded NAPI
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -111,73 +91,104 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20261021-b4-mlx5e-threaded-napi-stall-v1-1-d719c17b3ec4@toxicpanda.com>
+X-B4-Tracking: v=1; b=H4sIAFP42GoC/3WNQQ7CIBBFr9LM2omFYEm8inExwCgYxAaoadL07
+ oKuXb6Xn/c3KJwDFzgPG2R+hxJeqYE4DGA9pTtjcI1BjnISoxRoFD7jemKsPjM5dphoDlgqxYj
+ ajSSU1ZNWDlpiznwL6zd/gcQVrj9ZFvNgW3u4zwwVRpMpWd9Vx+PfE9j3DzT0O9m2AAAA
+X-Change-ID: 20261021-b4-mlx5e-threaded-napi-stall-7d0a14c7674d
+To: Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>, 
+ Mark Bloch <mbloch@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
+ Andrew Lunn <andrew+netdev@lunn.ch>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, 
+ Josef Bacik <josef@toxicpanda.com>
+X-Mailer: b4 0.15.2
+X-Developer-Signature: v=1; a=openssh-sha256; t=1792604274; l=3889;
+ i=josef@toxicpanda.com; h=from:subject:message-id;
+ bh=qElMGrxeAGeukURkquwi/PR2v1Qn9tNPTt6tEdR0tHI=;
+ b=U1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAgUBr36M/n0nWN0DNbnxwzIiCZez6MG
+ JiruuNaSCI/zXsAAAAGcGF0YXR0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5AAAA
+ QC0vkVXx9j9CX12TOZHH20weU7r3Ab2olSeV8e7W0srpTDnyOKmO9p1mltiRKVxjHlIzAgkO0aH
+ zT4FoaFoKKgQ=
+X-Developer-Key: i=josef@toxicpanda.com; a=openssh;
+ fpr=SHA256:C8kOX2QUJCMqnCX+KEeoqRAjLo9L+ELOSH2NSAJHqGA
 
-smc_cdc_rx_handler() drops the link group's connection lock after looking
-up a connection. Concurrent close(2) can then set conn->freed and release a
-registration-failed receive buffer before the receive handler obtains the
-socket lock. The handler subsequently dereferences the released descriptor.
+With threaded NAPI an mlx5e channel can stop receiving when a burst of
+traffic ends. It stays dead for minutes on an idle machine, while the
+connections hashed to it time out.
 
-KASAN reports:
+When mlx5e_napi_poll() has more to do, it checks that it runs on a CPU of
+its interrupt's affinity mask. If it does not, it takes the affinity to
+have been changed: it completes the NAPI after at most budget - 1 packets
+and arms the CQs, so that the next interrupt moves the poll to the new CPU.
 
-  BUG: KASAN: slab-use-after-free in smc_cdc_msg_recv (net/smc/smc_cdc.c:376 net/smc/smc_cdc.c:431)
-  Read of size 4 at addr ffff8881064a4720 by task kworker/u48:2/233
-  Workqueue: rxe_wq do_work
-  Call Trace:
-   <IRQ>
-   smc_cdc_msg_recv (net/smc/smc_cdc.c:376 net/smc/smc_cdc.c:431)
-   smc_cdc_rx_handler (net/smc/smc_cdc.c:503)
-   smc_wr_rx_tasklet_fn (net/smc/smc_wr.c:445 net/smc/smc_wr.c:459 net/smc/smc_wr.c:498)
-   tasklet_action_common (kernel/softirq.c:961)
-   handle_softirqs (kernel/softirq.c:645)
-   do_softirq (kernel/softirq.c:546 (discriminator 19) kernel/softirq.c:533 (discriminator 19))
-   </IRQ>
+A NAPI thread runs wherever the scheduler puts it, so with threaded NAPI a
+busy queue takes this path at nearly every poll. That costs an interrupt
+for every 64 packets. Worse, it counts on an interrupt for the CQEs that
+are still in the CQ when it is armed, and none comes: the next event is
+raised by the next new completion. While packets keep arriving this goes
+unnoticed. When a flood stops, what is in the CQ stays there, and is worked
+off one poll of 64 packets per new arrival. If the RQ has run dry as well,
+arrivals are dropped (rx_out_of_buffer) and bring no completion either.
 
-  Freed by task 209:
-   __kasan_slab_free (mm/kasan/common.c:285)
-   kfree (./include/linux/kasan.h:235 mm/slub.c:2748
-          mm/slub.c:6508 mm/slub.c:6801)
-   smc_conn_free (net/smc/smc_core.c:1244 net/smc/smc_core.c:1283)
-   __smc_release (net/smc/af_smc.c:322)
-   smc_release (net/smc/af_smc.c:361)
-   __sock_release (net/socket.c:735)
-   sock_close (net/socket.c:1526 (discriminator 1))
-   __fput (fs/file_table.c:512)
-   fput_close_sync (fs/file_table.c:617)
-   __do_sys_close (fs/open.c:1560)
+Seen on a 50 Gbit/s port (firmware 22.47.1088) with 63 channels, threaded
+NAPI and rx-usecs 64: a CPU-bound task bound to each of the 128 CPUs and
+32 Gbit/s of UDP in 8 flows for 7 seconds, then both stopped. After the
+second round one channel had 0 polls and 0 events for 150 seconds on an
+idle machine, while TCP connections hashed to it timed out and
+rx_out_of_buffer counted their SYNs. Later arrivals took it 16 polls and
+1018 packets further, it stood still again for 14 seconds, and another 93
+polls and 5917 packets emptied it. In a longer test 22 of 48 iperf3 runs
+failed with "unable to connect stream: Connection timed out", with no ping
+to the same address lost.
 
-  The buggy address is located 32 bytes inside of
-   freed 128-byte region [ffff8881064a4700, ffff8881064a4780)
-  Kernel panic - not syncing: KASAN: panic_on_warn set ...
+i40e and iavf force an interrupt at this point, and mlx5e does for XSK.
+Doing that here would cure the stall and keep the interrupt per 64 packets.
 
-Both smc_conn_free() and CDC message processing run under the socket lock.
-Check conn->freed after acquiring that lock. Discard messages which passed
-the lookup before teardown. This keeps the existing lock order and prevents
-access to receive buffers released by smc_conn_free().
+Fix by going on polling when the NAPI is threaded. With that, 8 of 8
+rounds leave every channel alive, ch_aff_change stays 0, rx_out_of_buffer
+does not move once the flood is over, none of the 48 runs fails, and the
+interrupts taken during the flood halve.
 
-Fixes: a6920d1d130c ("net/smc: handle unregistered buffers")
-Cc: stable@vger.kernel.org
-Reported-by: Xiang Mei <xmei5@asu.edu>
+Fixes: 29863d41bb6e ("net: implement threaded-able napi poll loop support")
 Assisted-by: LLM
-Signed-off-by: Weiming Shi <bestswngs@gmail.com>
+Signed-off-by: Josef Bacik <josef@toxicpanda.com>
 ---
- net/smc/smc_cdc.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+I hit this while comparing threaded NAPI with softirq on two bare metal
+machines.  The runs in the changelog are from a 7.3-rc5 based kernel, with
+and without this change.  The patch applies to net unchanged, there I've
+only compiled it.
 
-diff --git a/net/smc/smc_cdc.c b/net/smc/smc_cdc.c
-index 32d6d03df321..499a2473b79b 100644
---- a/net/smc/smc_cdc.c
-+++ b/net/smc/smc_cdc.c
-@@ -428,7 +428,8 @@ static void smc_cdc_msg_recv(struct smc_sock *smc, struct smc_cdc_msg *cdc)
- {
- 	sock_hold(&smc->sk);
- 	bh_lock_sock(&smc->sk);
--	smc_cdc_msg_recv_action(smc, cdc);
-+	if (!smc->conn.freed)
-+		smc_cdc_msg_recv_action(smc, cdc);
- 	bh_unlock_sock(&smc->sk);
- 	sock_put(&smc->sk); /* no free sk in softirq-context */
- }
--- 
-2.56.0
+I don't have the PRM, so "arming the CQ raises no event for the CQEs that
+are already there" is what the counters showed and not something I checked
+against the documentation.
+---
+ drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c
+index 185105606469..3142e90e68ce 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c
+@@ -207,7 +207,14 @@ int mlx5e_napi_poll(struct napi_struct *napi, int budget)
+ 				rq);
+ 
+ 	if (busy) {
+-		if (likely(mlx5e_channel_no_affinity_change(c))) {
++		/* A NAPI thread runs where the scheduler puts it, which says
++		 * nothing about the affinity of the interrupt. Completing here
++		 * would leave the CQEs that are pending to the next interrupt,
++		 * and arming the CQs raises none for those, only for a new
++		 * completion.
++		 */
++		if (likely(mlx5e_channel_no_affinity_change(c)) ||
++		    test_bit(NAPI_STATE_THREADED, &napi->state)) {
+ 			work_done = budget;
+ 			goto out;
+ 		}
+
+---
+base-commit: abeacca61eea4f6803df4a595b656ea45c2d3249
+change-id: 20261021-b4-mlx5e-threaded-napi-stall-7d0a14c7674d
 
