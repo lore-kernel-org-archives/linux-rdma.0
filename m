@@ -1,83 +1,117 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.222.175
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792578647;
-	b=xbfu/aZnNGOi8ToknMBUBbtplEbyafaoVe4xzuJHvCJBjk9rpdGAM+nwQyfUzSCQgsgE
-	 6abbeniOrFX58f+7v3XrdLJ7fM2b9kQRzrtSBJqlnA4L1SCQjE/pEOlmEL5Cg7RPlP2fG
-	 w19KWvAx09QcBDspya7mRmN1FNIZNf/aVk7+IBdMHflYzcmpgSJdm1gJ8HvUTdsOmFirU
-	 y264MECLe7HKvSUp9E//XGT04L3M+3N39U7xq7vVCpm8slsfOBE+vwwbwQ5QzBjRUG7ol
-	 nUyjl92lJQHaaONSrhxJmIc02xrbej2wx2MEbOBSsin56Q7pYQ+yhrwxPZOsDUrZg1A==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792578647;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Mime-Version:Content-Transfer-Encoding:Content-Type:Date:Message-Id:
-	 Cc:Subject:From:To:X-Mailer:References:In-Reply-To;
-	bh=y2MXVuSopof1u2e0UlPr5RPihuMcVA09Qb/rkeKWPFM=;
-	b=RQ0nBwB9LDVQJrmj52pYeqvcv3vUoZbyHhfFVmu6aJvVexSa7xyKNYDaQ85e7yrkxZ5z
-	 04M4RLeaF8+DWuOMbL4MaUQEWih9e0vnFcPjH8J+/c8mD3qvEL6KF74tjrDFHmkeiNq+K
-	 OHPvZZqkkQmY8fYW563GZmdeIKX12+cnznbZ7cvIEirDyAQJoDbZYyB7ggJyGCwb9seoR
-	 EbxwNsOGFYOWK2+9bJsP9D3GLEdJhX5US+ivs07FAS7ySzyEzQ9X82zId2CBHrTDRC2nq
-	 LeCxQhSRRi2fhocWSevGphvjk6Kp9GAguEdvMVxCU1A//dHM3uOB+3SdWA7cp2N7n4w==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=NiN47LXO;
-	arc=none smtp.remote-ip=209.85.222.175
-Received: from mail-qk1-f175.google.com (mail-qk1-f175.google.com [209.85.222.175])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.198.39
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1792580208;
+	b=XjHqLItyotlbYMLfVD+1yAopneyxniW8vo1Qa3iiOVXO0EiJHwW5gbgIHZFq5TvkxHy4
+	 SDjXYSgZHQAQfuncOEx6D5+qlkWRDIPhUDOLnHi3SJDH2eH2kCfmIpdjJRKuH8XEmINqQ
+	 2FQr2GC4/rbO45R7U93zfCbMUhtJZ6fnXN2X2dOZkTdzXLyj7Uooma5cZGhChfiLYbR01
+	 NynAvuGnEl1pXOabR6zTfM6FRno6kKHyU2ynWLd5GOjZDT2yrRAO6UJvy70cLffOi7gCp
+	 rXR47HRUPlRbsKWlo1wEdMyqS1ald5BBUMuo0JeVy5ecwIBP5UAUtWf99FhyKmnKTnA==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792580208;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:
+	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
+	 Received:Received:From:To:CC:Subject:Date:Message-ID:X-Mailer:
+	 MIME-Version:Content-Transfer-Encoding:Content-Type:
+	 X-NV-OnPremToCloud:X-EOPAttributedMessage:X-MS-PublicTrafficType:
+	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
+	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
+	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
+	 X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-Id:
+	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=0tjw/5RZr7ify1QWeoYC0RvJKyRuydJPn1PAr10/sC8=;
+	b=5avcdiwFVG1t7HOncyVDKCY4S/Nd1XdE+KlS769GKcnCxZV78/SZ6ccxHa/k21yAM8kj
+	 ZHQCCREvTxMjPSgQIt+7XR3KaOt0rvTDt9B7+AeAqFquOYxFgnvMDLo68mz4lJi6qh8J7
+	 h7iZmjUlLlpVCzQx9BK0Xg/DB8OO+8R1hl2ZNHy5hvAo5arJrRHFmSqoLTHTd7rGlI77k
+	 GI7CBc0oMd1T0gSTb01tk1rlwjFXnqcYVkrUSRush7zHbPNJhRqOx/1805DEsu8hsaggL
+	 XiBN/oWTiSSMu/O87Jdvz58U27DgHyUnXv4CSDTbeIfOGocWT+ylm+wylv7AvGK/nyA==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=nvidia.com;
+	spf=fail smtp.mailfrom=nvidia.com;
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=RE6sd2Lw;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.198.39
+Received: from CY7PR03CU001.outbound.protection.outlook.com (mail-westcentralusazon11010039.outbound.protection.outlook.com [40.93.198.39])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92309606A31B
-	for <linux-rdma@vger.kernel.org>; Wed, 21 Oct 2026 10:30:46 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 92309606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3D21606A319;
+	Wed, 21 Oct 2026 10:56:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D3D21606A319
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=NiN47LXO
-Received: by mail-qk1-f175.google.com with SMTP id af79cd13be357-93f20b304c0so64859785a.3
-        for <linux-rdma@vger.kernel.org>; Wed, 21 Oct 2026 03:30:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792578645; x=1793183445; darn=vger.kernel.org;
-        h=in-reply-to:references:to:from:subject:cc:message-id:date
-         :content-type:content-transfer-encoding:mime-version:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=y2MXVuSopof1u2e0UlPr5RPihuMcVA09Qb/rkeKWPFM=;
-        b=NiN47LXO04v4hyKr+QhytOE2XBZual7D7I4CjlAT49XnuIDnsILBroE+wzeG3RgHkf
-         aKpPZ6tOC2iWHiRrGVpHjfOW9OWSe1El/yQ1bVWHaF68SnV7s2Tbz+Q9dGKuyBiCOOUI
-         k1EfZRvJ+fJtsb8u7/K2kBo5MwX+4RKW+usn0kgiAOynxgT2NrGxhYERUWSTH2ttDANg
-         pDNURVRkiKuubm2NanbZUE9zrgUoHUuCGWQL9bFZ3usxAgFGpoOnRfkifri2ViO14ywh
-         Y8TVetp1OAUKuKxNbhcnCBmJFMoKFV6xHqdMK+03JZDA4b8Y1M1/rnfANyYCFSwODd15
-         +htg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792578645; x=1793183445;
-        h=in-reply-to:references:to:from:subject:cc:message-id:date
-         :content-type:content-transfer-encoding:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=y2MXVuSopof1u2e0UlPr5RPihuMcVA09Qb/rkeKWPFM=;
-        b=jaFuC6HV5qagyIfXYFMn0V07T+WKQXFL+GCSW/z7yIfN0sucF+Nds1DJqzhsmSypjH
-         UwV0b4PUDYQYy/etX8IbPHMr6rsUL9Nmw+UDYhsEwNBxMi45ZcnxeQIDbYtFCL6uaCUP
-         WiMnESLmgriPYKhsyYYLyGbRMum4dMm2I7TIaGt24nfVUh60Q57+K0TSnjxiq8CE/uvf
-         +EDXx8SDFvkhlIFCwNKTemF99h9MvmBCWbmY1pQofdID+EIn8ab5R/XNIa5C+vdSJ27N
-         MWTlFWs5/tJ7M3nrrwjAUe8xzxQF+6HSKB3dTvHMjJGNkWs/Oa64A+07ghswU071JlQ4
-         pLuw==
-X-Forwarded-Encrypted: i=1; AKwUvBxW9ttyZTuBbbFmUteubEDrDx3+fvZGU2tObksDKwYmR83hfK/wOwdZdNNIEbxqOjCVjMrIhpcCyWnC@vger.kernel.org
-X-Gm-Message-State: AFq9FYK+g9BWdxuuq1ZkH7f5qc+4Xuh0wpHl2bSAF7NpkZuKRzv9xsyn
-	Y1/KMBlWC+e1/I2y0fgI842zNK4ZbSxtmh2gGMoH7BNztMdABLZhKXv+
-X-Gm-Gg: AYBFou1YNcayYrJAxo0ytbIaXHGm/gqARyKmzfb5QfADhybRruTWaOky9RQoap12KBr
-	BNbiiVBbMNkSUq8WCDT9YbDWRA8tpvtcssvzfmL4O6yiVdbw8etUTgaRMTRXzjLTxu7UKWVujHs
-	ZklnokfZMUI8u5RAWNxhbykRJFmQsw7uPDLIEzTG3VR38ZxyTTF6g8PpWkSYAhjlWG/QUtY1eHS
-	4G589Nwhk98HiNFW5Fuw1HgiYNZ9V4GExG/TkVb9lyj4GB3OHdjKsgLeZITrBz2wLJIZu/Q6iqi
-	3PyXTBvqrUBguWBrVtlSkN1BSMNxKS2hYoX8WXHU0FemaYDjExp77i3hNpQhsDCJSXSFezWbw/Z
-	VzVasmRNmEx/INbxHYc/KQThmSkCRlL8eyvrVvqop2fC1x6O+2hMlMBTF5W/z5S6z4D5DEd4SuO
-	SDftBoKzYsLiiQUIK408EnftQnBp+BRVtV3Tyw92ECMtxx6JvR9Zm4ajaLNH2bYa0iskCRgannn
-	wPfGZsLPQc6GG1jlM/lTABuN6U/EVk9HGwH2NjXuzmxqJ1Q0uMWRm+ZGwcz
-X-Received: by 2002:a05:620a:29d6:b0:93c:635e:6f3e with SMTP id af79cd13be357-93f57f1d225mr356392385a.35.1792578645233;
-        Wed, 21 Oct 2026 03:30:45 -0700 (PDT)
-Received: from localhost ([2600:4040:9399:4000:e553:72e5:7d37:c7ef])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-93f56d9af50sm215318985a.8.2026.10.21.03.30.43
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 21 Oct 2026 03:30:44 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=RE6sd2Lw
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=VRLPyoyNBnKSitl6y0LPlG+VGsXAZQxUBfj2/QVZm1meqjSEcPYDhkQAI3gCAU7Q4lGcbSdsp6eZoYGMN87jOkVz59egG7zx7lfciqeMIGOpJjqAPTgFSr6oE+Dc7wvY7UaoX7RnO/Imm/CV4ZjUMPTAWgHrWg8+lkDQQmEND7N5NS0I+SK5+/E/hVrRGpoYWuVvheKaxKdUHlfbxZ8qdAcs3eF4a97AIm9NUeHT8WmP/tgonNuoKUpOaILsSQGvLiEUyMk/+ro44O74hxWnJXGVqaeSLQUpG75duLqtPKAh3rsoLXmfKDshAFgVQmBvsHZ253hfctJuZO2Za3wG5A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=0tjw/5RZr7ify1QWeoYC0RvJKyRuydJPn1PAr10/sC8=;
+ b=ITe0iw19Q4xrL7eNJxqpBaAc+x5Oh/n1Esb/KmO8zU59OlpSAaLIuOKvzVzoYsgjTA/Ha6lvA4P8eo1bx3WC/PM5V8nmdX6ynZF/3EeJrg+OASuvSxTXTIsw/8HD0PKtgewMaN+d3Yu28sGYdUkxVZtueC3ag7rew+PkXx/tsQIN4nBgYDF9wJ0+PBL+KSODgYlUSMVKBBcup4ISJQODSDD8eb+3XjBn5Cnb72cu8GeJkTaWM6SpIhK+Rek0Y8xGVGrIRgRPYAj6Jkywc3ETf+8rCzaeAiv9yA4gX1TfURtwf7YL4DIBAyTa4on9gfIGozn13N6HxNufLDQ7hbi3PA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.160) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=0tjw/5RZr7ify1QWeoYC0RvJKyRuydJPn1PAr10/sC8=;
+ b=RE6sd2LwVGhO1t7Y3JhHhO2qvgLVYBTBFpcNgIn/Ef1Y/wVrKAEHQiJ6B2GLu4sBB6pqlAM754ASzLP5wW6T/tTRbD/lkEj166LMtBTQ4PrBiGjWEnJrCb4Q8uTZcq/QlKIM0jzjGXKkb5gAeBwWUx4q2E+sXjv9X3S6t3VojK/XWUAG2UCUdawVevLwl1+ip9uILOBBdjPBIhOBDEvB4sucq2kpmEHJEZfB1OwIwJN5BGzu8hHdoBUpcNG4MgYecKsJBNkYmNz1xDCp0Y6hB/nZthkKpmPb7A9ZwRIBba5epg/W6oNgOoe9THI0Tk+gM9LaHp2DG2Ude3WUfBtiJw==
+Received: from BN9PR03CA0642.namprd03.prod.outlook.com (2603:10b6:408:13b::17)
+ by SJ2PR12MB9137.namprd12.prod.outlook.com (2603:10b6:a03:562::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.522.19; Wed, 21 Oct
+ 2026 10:56:42 +0000
+Received: from BN6PEPF00000075.namprd03.prod.outlook.com
+ (2603:10b6:408:13b:cafe::2) by BN9PR03CA0642.outlook.office365.com
+ (2603:10b6:408:13b::17) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.522.19 via Frontend Transport; Wed,
+ 21 Oct 2026 10:56:42 +0000
+X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
+ is 216.228.117.160) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.160) by
+ BN6PEPF00000075.mail.protection.outlook.com (10.167.248.202) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.546.15 via Frontend Transport; Wed, 21 Oct 2026 10:56:41 +0000
+Received: from rnnvmail205.nvidia.com (10.129.68.10) by mail.nvidia.com
+ (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Wed, 21 Oct
+ 2026 03:56:22 -0700
+Received: from rnnvmail202.nvidia.com (10.129.68.7) by rnnvmail205.nvidia.com
+ (10.129.68.10) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Wed, 21 Oct
+ 2026 03:56:22 -0700
+Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.7)
+ with Microsoft SMTP Server id 15.2.2562.49 via Frontend Transport; Wed, 21
+ Oct 2026 03:56:16 -0700
+From: Tariq Toukan <tariqt@nvidia.com>
+To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
+	<davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski
+	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>
+CC: Carolina Jubran <cjubran@nvidia.com>, Cosmin Ratiu <cratiu@nvidia.com>,
+	Gal Pressman <gal@nvidia.com>, Kees Cook <kees@kernel.org>, Leon Romanovsky
+	<leon@kernel.org>, open list <linux-kernel@vger.kernel.org>,
+	<linux-rdma@vger.kernel.org>, Mark Bloch <markb@mellanox.com>, Mark Bloch
+	<mbloch@nvidia.com>, Moshe Shemesh <moshe@mellanox.com>, Patrisious Haddad
+	<phaddad@nvidia.com>, Richard Cochran <richardcochran@gmail.com>, "Saeed
+ Mahameed" <saeedm@mellanox.com>, Saeed Mahameed <saeedm@nvidia.com>, "Shahar
+ Shitrit" <shshitrit@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>, "Thomas
+ Gleixner" <tglx@kernel.org>
+Subject: [PATCH net] net/mlx5: Use only loaded devices for PTP clock operations
+Date: Wed, 21 Oct 2026 13:56:00 +0300
+Message-ID: <20261021105600.3481485-1-tariqt@nvidia.com>
+X-Mailer: git-send-email 2.44.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -86,153 +120,555 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
-Date: Wed, 21 Oct 2026 06:30:42 -0400
-Message-Id: <DMAG3G194BUB.JJKBBQWZCU5C@gmail.com>
-Cc: "Boris Pismenny" <borisp@nvidia.com>, "Cosmin Ratiu"
- <cratiu@nvidia.com>, "Daniel Zahka" <daniel.zahka@gmail.com>, "Dragos
- Tatulea" <dtatulea@nvidia.com>, "Gal Pressman" <gal@nvidia.com>, "Leon
- Romanovsky" <leon@kernel.org>, "open list" <linux-kernel@vger.kernel.org>,
- <linux-rdma@vger.kernel.org>, "Mark Bloch" <mbloch@nvidia.com>, "Raed
- Salem" <raeds@nvidia.com>, "Rahul Rameshbabu" <rrameshbabu@nvidia.com>,
- "Saeed Mahameed" <saeedm@nvidia.com>
-Subject: Re: [PATCH net V2] net/mlx5e: SHAMPO: Do not merge PSP packets
-From: "Daniel Zahka" <daniel.zahka@gmail.com>
-To: "Tariq Toukan" <tariqt@nvidia.com>, "Andrew Lunn"
- <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, "Eric
- Dumazet" <edumazet@kernel.org>, "Jakub Kicinski" <kuba@kernel.org>,
- <netdev@vger.kernel.org>, "Paolo Abeni" <pabeni@redhat.com>
-X-Mailer: aerc 0.21.0-threadmapfix
-References: <20261021062805.3466208-1-tariqt@nvidia.com>
-In-Reply-To: <20261021062805.3466208-1-tariqt@nvidia.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BN6PEPF00000075:EE_|SJ2PR12MB9137:EE_
+X-MS-Office365-Filtering-Correlation-Id: 9fa99d5d-0a67-47e3-bd6a-08df2f61fd5c
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|36860700016|376014|82310400026|7416014|23010399003|1800799024|261009223027099003|10067099003|56012099006|18002099003|11063799006;
+X-Microsoft-Antispam-Message-Info:
+	7AnvtwABeY/zlekhroq10hh8XgtscaO93/sXQ4BKE0PzmiNfAyCpvwHvxIIyM6EcG67ChDF9fmi1T7lPaBaB0sF2WxzXCuCCEn8kDK9vg2l5IvDGfhAaTiKR6Uv26uYk4FSSOw1lrtUMKSxJTqpMOfq09sDJsawDoiGPwqIv8tR3D8Sh6hPlBpfNZFMIPrL9s/kQK76mJluaMDULkrYzXjXn6Onnd/UTbdOuC99n5OFjh4syt5u5KS5l1Q9VOxPUSZW5feIwdctES2lAqNqSf65+mq2OVCf0wSjCzR2JugWBpFQq87YdQ9GPcbxsJO7Qy8m6OGI72/VAsA2+Jl8DwqlJwksLan6aJkoWCNIJgqU7MYMAlqYIr0wdmojDoaropLabzw06DDz2z/HcBEKlp+vDK+aNBWIua4hNtW7So48i6z1umTDC+Ij6UMAEiKbA3hnT/mAKh7kTYPGiTxDpwkiAdnFmtsfKjn8bIpiJPG73gGSfIGXM5+28VkMxCXzszq0B0frI2awcSNBrU9YHqOBWHNVj7xb5AEJK7/f0I4zpDnuhmkOaBDpjcUDAhOLCylc34rMdv5m0krvJwylXQx3IaikIBbPyRNGAdmGDfXPUFurwy2dOFwIMM0zdpntdKuN+sdr5OCRnrc9JTkSegCw3qo3nSOIa4jWJCKilVKnc5+b4e1EPJStvNeG2Goju8KkkXnDumKHbr8eKrWQqhg==
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(376014)(82310400026)(7416014)(23010399003)(1800799024)(261009223027099003)(10067099003)(56012099006)(18002099003)(11063799006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	bPEtkBQ47Hbl+s/s/UbNcB5xCCjm0nfSI8tXkDRj7orE4pILSUzAdqj1yJZKigQrGeV5V0MAn/zurkdUlCYS9EqH+SD1lAz7BRDe0OGmDEZuM8xQIA++3ad4pg2tpltHpQkaO9WD4eWQtyU+862Z8UgrcsXzBf5Vz3KNMrLyh9ecnxBHZyCQbswEx1GYrmHCBbL0CGNsd5Yx9at2IBcYwfrj5CNYK8kOgGGYIikF/PI0Zi0+Vp621XllZEbCpws/EIjpQEFHG72zzabT7xkndcINxMNMsDe5u6qh6ONfg14e6rXPN5Ep74CKAsx0/Z1FQdzR5pWRHZUQomyTGHYDdRQ2xAZ3ROw4hql0/Xa3AVg/i483kMM1Q2D//hSnw0a3JpqzB8CqUSM1GH6gQ9K2mJE0VuoEz1R1VJFFlRixlJv9UasMRCrzXVjLqGmnYi0c
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Oct 2026 10:56:41.7162
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 9fa99d5d-0a67-47e3-bd6a-08df2f61fd5c
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BN6PEPF00000075.namprd03.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR12MB9137
 
-On Wed Oct 21, 2026 at 2:28 AM EDT, Tariq Toukan wrote:
-> From: Cosmin Ratiu <cratiu@nvidia.com>
->
-> PSP packets are UDP-encapsulated, and enabling HW GRO (SHAMPO in mlx5)
-> makes it possible to merge those packets in a silly way:
-> IP|UDP|PSP1|payload1|PSP2|payload2|...
->
-> That happens because the HW GRO machinery doesn't know about PSP and
-> considers it part of the UDP payload.
->
-> Reject merging when the incoming CQE has PSP marker or the pending skb
-> has the PSP extension.
->
-> Fixes: 29d7f433fcec ("net/mlx5e: Add Rx data path offload")
-> Signed-off-by: Cosmin Ratiu <cratiu@nvidia.com>
-> Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
-> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
-> ---
->  .../ethernet/mellanox/mlx5/core/en_accel/en_accel.h |  6 ++++++
->  .../ethernet/mellanox/mlx5/core/en_accel/psp_rxtx.h | 13 +++++++++++++
->  drivers/net/ethernet/mellanox/mlx5/core/en_rx.c     |  6 ++++--
->  3 files changed, 23 insertions(+), 2 deletions(-)
->
-> V2:
-> - Separated from the patchset.
-> - Moved the PSP merge check into a helper in psp_rxtx.h, with a stub
->   returning true when CONFIG_MLX5_EN_PSP is off, and an en_accel.h
->   wrapper, replacing the #ifdef in en_rx.c.
-> - Also reject merging when the pending skb already has the PSP
->   extension, not only when the incoming CQE has the PSP marker.
-> - Fixed the commit message diagram and capitalized SHAMPO in the
->   subject.
->
-> V1:
-> https://lore.kernel.org/all/20260917175433.4090878-8-tariqt@nvidia.com/
->
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/en_accel.h =
-b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/en_accel.h
-> index 3f212e46fc2f..5a340f1435e6 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/en_accel.h
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/en_accel.h
-> @@ -218,6 +218,12 @@ static inline void mlx5e_accel_tx_finish(struct mlx5=
-e_txqsq *sq,
->  #endif
->  }
-> =20
-> +static inline bool
-> +mlx5e_accel_shampo_can_merge(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe=
-)
-> +{
-> +	return mlx5e_psp_shampo_can_merge(rq->hw_gro_data->skb, cqe);
-> +}
-> +
->  static inline int mlx5e_accel_init_rx(struct mlx5e_priv *priv)
->  {
->  	return mlx5e_ktls_init_rx(priv);
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp_rxtx.h =
-b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp_rxtx.h
-> index 2b080c39cc37..9fd1ee789de0 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp_rxtx.h
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp_rxtx.h
-> @@ -85,6 +85,13 @@ static inline bool mlx5e_psp_is_rx_flow(struct mlx5_cq=
-e64 *cqe)
->  	return MLX5_PSP_METADATA_MARKER(be32_to_cpu(cqe->ft_metadata));
->  }
-> =20
-> +static inline bool
-> +mlx5e_psp_shampo_can_merge(struct sk_buff *skb, struct mlx5_cqe64 *cqe)
-> +{
-> +	/* PSP packets cannot be merged. */
-> +	return !skb_ext_exist(skb, SKB_EXT_PSP) && !mlx5e_psp_is_rx_flow(cqe);
-> +}
-> +
->  bool mlx5e_psp_offload_handle_rx_skb(struct net_device *netdev, struct s=
-k_buff *skb,
->  				     struct mlx5_cqe64 *cqe);
->  #else
-> @@ -110,6 +117,12 @@ static inline bool mlx5e_psp_is_rx_flow(struct mlx5_=
-cqe64 *cqe)
->  	return false;
->  }
-> =20
-> +static inline bool
-> +mlx5e_psp_shampo_can_merge(struct sk_buff *skb, struct mlx5_cqe64 *cqe)
-> +{
-> +	return true;
-> +}
-> +
->  static inline bool mlx5e_psp_offload_handle_rx_skb(struct net_device *ne=
-tdev,
->  						   struct sk_buff *skb,
->  						   struct mlx5_cqe64 *cqe)
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/ne=
-t/ethernet/mellanox/mlx5/core/en_rx.c
-> index 903af3b3e779..d49f26323b1e 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-> @@ -49,6 +49,7 @@
->  #include "en_rep.h"
->  #include "en/rep/tc.h"
->  #include "ipoib/ipoib.h"
-> +#include "en_accel/en_accel.h"
->  #include "en_accel/ipsec.h"
->  #include "en_accel/macsec.h"
->  #include "en_accel/psp_rxtx.h"
-> @@ -2268,8 +2269,9 @@ static void mlx5e_handle_rx_cqe_mpwrq_shampo(struct=
- mlx5e_rq *rq, struct mlx5_cq
->  	}
-> =20
->  	if (*skb &&
-> -	    !(match && mlx5e_hw_gro_skb_has_enough_space(*skb, data_bcnt,
-> -							 page_size))) {
-> +	    !(match &&
-> +	      mlx5e_hw_gro_skb_has_enough_space(*skb, data_bcnt, page_size) &&
-> +	      mlx5e_accel_shampo_can_merge(rq, cqe))) {
+From: Carolina Jubran <cjubran@nvidia.com>
 
-nit: we already have the skb from the line above, why go back to the rq
-just to find the same skb again?
+The PTP periodic worker and PTP operations access PCI registers through
+the function backing the PTP clock. The PTP clock remains registered
+when a PCI function is suspended, so these paths can still access the
+function after it has been unloaded.
 
->  		match =3D false;
->  		mlx5e_shampo_flush_skb(rq, cqe, match);
->  	}
->
-> base-commit: b6ef0d965fe8ce0ee4b4dcb58b3511f83003e42d
+To fix that, serialize clock hardware access with the clock mutex for
+all clocks and fail callbacks with -EAGAIN when there is no loaded
+function to service the clock. Additionally, tie the worker's lifetime
+to load/unload and use the devcom lock to synchronize with peer
+loads/unloads.
 
-Makes sense to me:
+Fixes: 8fc3e29be924 ("net/mlx5: Fix crash upon suspend/resume")
+Signed-off-by: Carolina Jubran <cjubran@nvidia.com>
+Reviewed-by: Cosmin Ratiu <cratiu@nvidia.com>
+Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+---
+ .../ethernet/mellanox/mlx5/core/lib/clock.c   | 248 +++++++++++++-----
+ .../ethernet/mellanox/mlx5/core/lib/clock.h   |   2 +
+ 2 files changed, 185 insertions(+), 65 deletions(-)
 
-Reviewed-by: Daniel Zahka <daniel.zahka@gmail.com>
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/clock.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/clock.c
+index 5df786133e4b..c3e53d219496 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lib/clock.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/clock.c
+@@ -80,6 +80,7 @@ enum {
+ };
+ 
+ struct mlx5_clock_dev_state {
++	bool loaded;
+ 	struct mlx5_core_dev *mdev;
+ 	struct mlx5_devcom_comp_dev *compdev;
+ 	struct mlx5_nb pps_nb;
+@@ -89,7 +90,7 @@ struct mlx5_clock_dev_state {
+ struct mlx5_clock_priv {
+ 	struct mlx5_clock clock;
+ 	struct mlx5_core_dev *mdev;
+-	struct mutex lock; /* protect mdev and used in PTP callbacks */
++	struct mutex lock; /* protect mdev and serialize hardware callbacks */
+ 	struct mlx5_core_dev *event_mdev;
+ };
+ 
+@@ -100,9 +101,6 @@ static struct mlx5_clock_priv *clock_priv(struct mlx5_clock *clock)
+ 
+ static void mlx5_clock_lockdep_assert(struct mlx5_clock *clock)
+ {
+-	if (!clock->shared)
+-		return;
+-
+ 	lockdep_assert(lockdep_is_held(&clock_priv(clock)->lock));
+ }
+ 
+@@ -115,20 +113,24 @@ static struct mlx5_core_dev *mlx5_clock_mdev_get(struct mlx5_clock *clock)
+ 
+ static void mlx5_clock_lock(struct mlx5_clock *clock)
+ {
+-	if (!clock->shared)
+-		return;
+-
+ 	mutex_lock(&clock_priv(clock)->lock);
+ }
+ 
+ static void mlx5_clock_unlock(struct mlx5_clock *clock)
+ {
+-	if (!clock->shared)
+-		return;
+-
+ 	mutex_unlock(&clock_priv(clock)->lock);
+ }
+ 
++static struct mlx5_core_dev *
++mlx5_clock_active_mdev_get(struct mlx5_clock *clock)
++{
++	struct mlx5_clock_priv *cpriv = clock_priv(clock);
++
++	mlx5_clock_lockdep_assert(clock);
++
++	return cpriv->mdev->clock_state->loaded ? cpriv->mdev : NULL;
++}
++
+ static bool mlx5_real_time_mode(struct mlx5_core_dev *mdev)
+ {
+ 	return (mlx5_is_real_time_rq(mdev) || mlx5_is_real_time_sq(mdev));
+@@ -333,7 +335,11 @@ static int mlx5_ptp_getcrosststamp(struct ptp_clock_info *ptp,
+ 	int err;
+ 
+ 	mlx5_clock_lock(clock);
+-	mdev = mlx5_clock_mdev_get(clock);
++	mdev = mlx5_clock_active_mdev_get(clock);
++	if (!mdev) {
++		err = -EAGAIN;
++		goto unlock;
++	}
+ 
+ 	if (!mlx5_is_ptm_source_time_available(mdev)) {
+ 		err = -EBUSY;
+@@ -359,7 +365,11 @@ static int mlx5_ptp_getcrosscycles(struct ptp_clock_info *ptp,
+ 	int err;
+ 
+ 	mlx5_clock_lock(clock);
+-	mdev = mlx5_clock_mdev_get(clock);
++	mdev = mlx5_clock_active_mdev_get(clock);
++	if (!mdev) {
++		err = -EAGAIN;
++		goto unlock;
++	}
+ 
+ 	if (!mlx5_is_ptm_source_time_available(mdev)) {
+ 		err = -EBUSY;
+@@ -411,6 +421,12 @@ static u64 read_internal_timer(struct cyclecounter *cc)
+ 	return mlx5_read_time(mdev, NULL, false) & cc->mask;
+ }
+ 
++static void mlx5_timer_snapshot(struct mlx5_timer *timer)
++{
++	timer->saved_phc_ns = timer->tc.nsec;
++	timer->saved_boot_ns = ktime_get_boottime_ns();
++}
++
+ static void mlx5_update_clock_info_page(struct mlx5_core_dev *mdev)
+ {
+ 	struct mlx5_ib_clock_info *clock_info = mdev->clock_info;
+@@ -418,6 +434,9 @@ static void mlx5_update_clock_info_page(struct mlx5_core_dev *mdev)
+ 	struct mlx5_timer *timer;
+ 	u32 sign;
+ 
++	timer = &clock->timer;
++	mlx5_timer_snapshot(timer);
++
+ 	if (!clock_info)
+ 		return;
+ 
+@@ -425,7 +444,6 @@ static void mlx5_update_clock_info_page(struct mlx5_core_dev *mdev)
+ 	smp_store_mb(clock_info->sign,
+ 		     sign | MLX5_IB_CLOCK_INFO_KERNEL_UPDATING);
+ 
+-	timer = &clock->timer;
+ 	clock_info->cycles = timer->tc.cycle_last;
+ 	clock_info->mult   = timer->cycles.mult;
+ 	clock_info->nsec   = timer->tc.nsec;
+@@ -471,10 +489,9 @@ static long mlx5_timestamp_overflow(struct ptp_clock_info *ptp_info)
+ 
+ 	clock = container_of(ptp_info, struct mlx5_clock, ptp_info);
+ 	mlx5_clock_lock(clock);
+-	mdev = mlx5_clock_mdev_get(clock);
++	mdev = mlx5_clock_active_mdev_get(clock);
+ 	timer = &clock->timer;
+-
+-	if (mdev->state == MLX5_DEVICE_STATE_INTERNAL_ERROR)
++	if (!mdev || mdev->state == MLX5_DEVICE_STATE_INTERNAL_ERROR)
+ 		goto out;
+ 
+ 	write_seqlock_irqsave(&clock->lock, flags);
+@@ -531,8 +548,13 @@ static int mlx5_ptp_settime(struct ptp_clock_info *ptp, const struct timespec64
+ 	int err;
+ 
+ 	mlx5_clock_lock(clock);
+-	mdev = mlx5_clock_mdev_get(clock);
++	mdev = mlx5_clock_active_mdev_get(clock);
++	if (!mdev) {
++		err = -EAGAIN;
++		goto unlock;
++	}
+ 	err = mlx5_clock_settime(mdev, clock, ts);
++unlock:
+ 	mlx5_clock_unlock(clock);
+ 
+ 	return err;
+@@ -550,26 +572,40 @@ struct timespec64 mlx5_ptp_gettimex_real_time(struct mlx5_core_dev *mdev,
+ 	return ts;
+ }
+ 
+-static int mlx5_ptp_gettimex(struct ptp_clock_info *ptp, struct timespec64 *ts,
+-			     struct ptp_system_timestamp *sts)
++static void mlx5_clock_gettimex(struct mlx5_core_dev *mdev,
++				struct mlx5_clock *clock, struct timespec64 *ts,
++				struct ptp_system_timestamp *sts)
+ {
+-	struct mlx5_clock *clock = container_of(ptp, struct mlx5_clock, ptp_info);
+-	struct mlx5_core_dev *mdev;
+ 	u64 cycles, ns;
+ 
+-	mlx5_clock_lock(clock);
+-	mdev = mlx5_clock_mdev_get(clock);
+ 	if (mlx5_real_time_mode(mdev)) {
+ 		*ts = mlx5_ptp_gettimex_real_time(mdev, sts);
+-		goto out;
++		return;
+ 	}
+ 
+ 	cycles = mlx5_read_time(mdev, sts, false);
+ 	ns = mlx5_timecounter_cyc2time(clock, cycles);
+ 	*ts = ns_to_timespec64(ns);
+-out:
++}
++
++static int mlx5_ptp_gettimex(struct ptp_clock_info *ptp, struct timespec64 *ts,
++			     struct ptp_system_timestamp *sts)
++{
++	struct mlx5_clock *clock =
++		container_of(ptp, struct mlx5_clock, ptp_info);
++	struct mlx5_core_dev *mdev;
++	int err = 0;
++
++	mlx5_clock_lock(clock);
++	mdev = mlx5_clock_active_mdev_get(clock);
++	if (!mdev) {
++		err = -EAGAIN;
++		goto unlock;
++	}
++	mlx5_clock_gettimex(mdev, clock, ts, sts);
++unlock:
+ 	mlx5_clock_unlock(clock);
+-	return 0;
++	return err;
+ }
+ 
+ static int mlx5_ptp_getcyclesx(struct ptp_clock_info *ptp,
+@@ -580,14 +616,20 @@ static int mlx5_ptp_getcyclesx(struct ptp_clock_info *ptp,
+ 						ptp_info);
+ 	struct mlx5_core_dev *mdev;
+ 	u64 cycles;
++	int err = 0;
+ 
+ 	mlx5_clock_lock(clock);
+-	mdev = mlx5_clock_mdev_get(clock);
++	mdev = mlx5_clock_active_mdev_get(clock);
++	if (!mdev) {
++		err = -EAGAIN;
++		goto unlock;
++	}
+ 
+ 	cycles = mlx5_read_time(mdev, sts, false);
+ 	*ts = ns_to_timespec64(cycles);
++unlock:
+ 	mlx5_clock_unlock(clock);
+-	return 0;
++	return err;
+ }
+ 
+ static int mlx5_ptp_adjtime_real_time(struct mlx5_core_dev *mdev, s64 delta)
+@@ -620,7 +662,11 @@ static int mlx5_ptp_adjtime(struct ptp_clock_info *ptp, s64 delta)
+ 	int err = 0;
+ 
+ 	mlx5_clock_lock(clock);
+-	mdev = mlx5_clock_mdev_get(clock);
++	mdev = mlx5_clock_active_mdev_get(clock);
++	if (!mdev) {
++		err = -EAGAIN;
++		goto unlock;
++	}
+ 
+ 	if (mlx5_modify_mtutc_allowed(mdev)) {
+ 		err = mlx5_ptp_adjtime_real_time(mdev, delta);
+@@ -630,6 +676,7 @@ static int mlx5_ptp_adjtime(struct ptp_clock_info *ptp, s64 delta)
+ 	}
+ 
+ 	write_seqlock_irqsave(&clock->lock, flags);
++	timecounter_read(&timer->tc);
+ 	timecounter_adjtime(&timer->tc, delta);
+ 	mlx5_update_clock_info_page(mdev);
+ 	write_sequnlock_irqrestore(&clock->lock, flags);
+@@ -646,8 +693,13 @@ static int mlx5_ptp_adjphase(struct ptp_clock_info *ptp, s32 delta)
+ 	int err;
+ 
+ 	mlx5_clock_lock(clock);
+-	mdev = mlx5_clock_mdev_get(clock);
++	mdev = mlx5_clock_active_mdev_get(clock);
++	if (!mdev) {
++		err = -EAGAIN;
++		goto unlock;
++	}
+ 	err = mlx5_ptp_adjtime_real_time(mdev, delta);
++unlock:
+ 	mlx5_clock_unlock(clock);
+ 
+ 	return err;
+@@ -683,7 +735,11 @@ static int mlx5_ptp_adjfine(struct ptp_clock_info *ptp, long scaled_ppm)
+ 	u32 mult;
+ 
+ 	mlx5_clock_lock(clock);
+-	mdev = mlx5_clock_mdev_get(clock);
++	mdev = mlx5_clock_active_mdev_get(clock);
++	if (!mdev) {
++		err = -EAGAIN;
++		goto unlock;
++	}
+ 
+ 	if (mlx5_modify_mtutc_allowed(mdev)) {
+ 		err = mlx5_ptp_freq_adj_real_time(mdev, scaled_ppm);
+@@ -744,7 +800,11 @@ static int mlx5_extts_configure(struct ptp_clock_info *ptp,
+ 	}
+ 
+ 	mlx5_clock_lock(clock);
+-	mdev = mlx5_clock_mdev_get(clock);
++	mdev = mlx5_clock_active_mdev_get(clock);
++	if (!mdev) {
++		err = -EAGAIN;
++		goto unlock;
++	}
+ 
+ 	if (!MLX5_PPS_CAP(mdev)) {
+ 		err = -EOPNOTSUPP;
+@@ -917,7 +977,11 @@ static int mlx5_perout_configure(struct ptp_clock_info *ptp,
+ 		return -EBUSY;
+ 
+ 	mlx5_clock_lock(clock);
+-	mdev = mlx5_clock_mdev_get(clock);
++	mdev = mlx5_clock_active_mdev_get(clock);
++	if (!mdev) {
++		err = -EAGAIN;
++		goto unlock;
++	}
+ 	rt_mode = mlx5_real_time_mode(mdev);
+ 
+ 	if (!MLX5_PPS_CAP(mdev)) {
+@@ -1151,7 +1215,7 @@ static u64 perout_conf_next_event_timer(struct mlx5_core_dev *mdev,
+ 	struct timespec64 ts;
+ 	s64 target_ns;
+ 
+-	mlx5_ptp_gettimex(&clock->ptp_info, &ts, NULL);
++	mlx5_clock_gettimex(mdev, clock, &ts, NULL);
+ 	ts_next_sec(&ts);
+ 	target_ns = timespec64_to_ns(&ts);
+ 
+@@ -1222,8 +1286,8 @@ static void mlx5_timecounter_init(struct mlx5_core_dev *mdev)
+ 	timer->nominal_c_mult = timer->cycles.mult;
+ 	timer->cycles.mask = CLOCKSOURCE_MASK(41);
+ 
+-	timecounter_init(&timer->tc, &timer->cycles,
+-			 ktime_to_ns(ktime_get_real()));
++	timecounter_init(&timer->tc, &timer->cycles, ktime_get_real_ns());
++	mlx5_timer_snapshot(timer);
+ }
+ 
+ static void mlx5_init_overflow_period(struct mlx5_core_dev *mdev)
+@@ -1381,9 +1445,6 @@ static void mlx5_init_clock_dev(struct mlx5_core_dev *mdev)
+ 			       clock->ptp);
+ 		clock->ptp = NULL;
+ 	}
+-
+-	if (clock->ptp)
+-		ptp_schedule_worker(clock->ptp, 0);
+ }
+ 
+ static void mlx5_destroy_clock_dev(struct mlx5_core_dev *mdev)
+@@ -1530,22 +1591,53 @@ static void mlx5_clock_arm_pps_in_event(struct mlx5_clock *clock,
+ 		    !clock->pps_info.pin_armed[i])
+ 			continue;
+ 
+-		if (new_mdev) {
++		if (new_mdev)
+ 			mlx5_set_mtppse(new_mdev, i, 0, MLX5_EVENT_MODE_REPETETIVE);
+-			cpriv->event_mdev = new_mdev;
+-		} else {
+-			cpriv->event_mdev = NULL;
+-		}
+ 
+ 		if (old_mdev)
+ 			mlx5_set_mtppse(old_mdev, i, 0, MLX5_EVENT_MODE_DISABLE);
+ 	}
++	cpriv->event_mdev = new_mdev;
++}
++
++static void mlx5_set_timecounter(struct mlx5_core_dev *mdev, u64 ns)
++{
++	struct mlx5_clock *clock = mdev->clock;
++	struct mlx5_timer *timer;
++	unsigned long flags;
++
++	timer = &clock->timer;
++	mlx5_clock_lockdep_assert(clock);
++
++	write_seqlock_irqsave(&clock->lock, flags);
++	timecounter_init(&timer->tc, &timer->cycles, ns);
++	mlx5_update_clock_info_page(mdev);
++	write_sequnlock_irqrestore(&clock->lock, flags);
++}
++
++static void mlx5_save_timecounter(struct mlx5_core_dev *mdev)
++{
++	struct mlx5_clock *clock = mdev->clock;
++	struct mlx5_timer *timer;
++	unsigned long flags;
++
++	timer = &clock->timer;
++	mlx5_clock_lockdep_assert(clock);
++
++	if (mdev->state == MLX5_DEVICE_STATE_INTERNAL_ERROR)
++		return;
++
++	write_seqlock_irqsave(&clock->lock, flags);
++	timecounter_read(&timer->tc);
++	mlx5_update_clock_info_page(mdev);
++	write_sequnlock_irqrestore(&clock->lock, flags);
+ }
+ 
+ void mlx5_clock_load(struct mlx5_core_dev *mdev)
+ {
+ 	struct mlx5_clock *clock = mdev->clock;
+ 	struct mlx5_clock_priv *cpriv;
++	bool start;
+ 
+ 	if (!MLX5_CAP_GEN(mdev, device_frequency_khz))
+ 		return;
+@@ -1554,18 +1646,32 @@ void mlx5_clock_load(struct mlx5_core_dev *mdev)
+ 	MLX5_NB_INIT(&mdev->clock_state->pps_nb, mlx5_pps_event, PPS_EVENT);
+ 	mlx5_eq_notifier_register(mdev, &mdev->clock_state->pps_nb);
+ 
+-	if (!clock->shared) {
+-		mlx5_clock_arm_pps_in_event(clock, mdev, NULL);
+-		return;
+-	}
+-
+ 	cpriv = clock_priv(clock);
+-	mlx5_devcom_comp_lock(mdev->clock_state->compdev);
++	if (clock->shared)
++		mlx5_devcom_comp_lock(mdev->clock_state->compdev);
+ 	mlx5_clock_lock(clock);
+-	if (mdev == cpriv->mdev && mdev != cpriv->event_mdev)
++	start = !cpriv->mdev->clock_state->loaded;
++	mdev->clock_state->loaded = true;
++	if (start) {
++		struct mlx5_timer *timer = &clock->timer;
++		u64 ns;
++
++		cpriv->mdev = mdev;
++		if (mlx5_real_time_mode(mdev))
++			ns = mlx5_read_time(mdev, NULL, true);
++		else
++			ns = timer->saved_phc_ns +
++			     ktime_get_boottime_ns() - timer->saved_boot_ns;
++
++		mlx5_set_timecounter(mdev, ns);
+ 		mlx5_clock_arm_pps_in_event(clock, mdev, cpriv->event_mdev);
++	}
+ 	mlx5_clock_unlock(clock);
+-	mlx5_devcom_comp_unlock(mdev->clock_state->compdev);
++
++	if (start && clock->ptp)
++		ptp_schedule_worker(clock->ptp, 0);
++	if (clock->shared)
++		mlx5_devcom_comp_unlock(mdev->clock_state->compdev);
+ }
+ 
+ void mlx5_clock_unload(struct mlx5_core_dev *mdev)
+@@ -1573,30 +1679,42 @@ void mlx5_clock_unload(struct mlx5_core_dev *mdev)
+ 	struct mlx5_core_dev *peer_dev, *next = NULL;
+ 	struct mlx5_clock *clock = mdev->clock;
+ 	struct mlx5_devcom_comp_dev *pos;
++	struct mlx5_clock_priv *cpriv;
++	bool stop;
+ 
+ 	if (!MLX5_CAP_GEN(mdev, device_frequency_khz))
+ 		return;
+ 
+-	if (!clock->shared) {
+-		mlx5_clock_arm_pps_in_event(clock, NULL, mdev);
+-		goto out;
+-	}
+-
+-	mlx5_devcom_comp_lock(mdev->clock_state->compdev);
+-	mlx5_devcom_for_each_peer_entry(mdev->clock_state->compdev, peer_dev, pos) {
+-		if (peer_dev->clock && peer_dev != mdev) {
+-			next = peer_dev;
+-			break;
++	if (clock->shared) {
++		mlx5_devcom_comp_lock(mdev->clock_state->compdev);
++		mlx5_devcom_for_each_peer_entry(mdev->clock_state->compdev,
++						peer_dev, pos) {
++			if (peer_dev->clock == clock &&
++			    peer_dev->clock_state->loaded) {
++				next = peer_dev;
++				break;
++			}
+ 		}
+ 	}
+ 
+ 	mlx5_clock_lock(clock);
+-	if (mdev == clock_priv(clock)->event_mdev)
++	cpriv = clock_priv(clock);
++	mdev->clock_state->loaded = false;
++	if (mdev == cpriv->mdev && next)
++		cpriv->mdev = next;
++	if (mdev == cpriv->event_mdev)
+ 		mlx5_clock_arm_pps_in_event(clock, next, mdev);
++	stop = !cpriv->mdev->clock_state->loaded;
++	if (!mlx5_real_time_mode(cpriv->mdev))
++		mlx5_save_timecounter(cpriv->mdev);
+ 	mlx5_clock_unlock(clock);
+-	mlx5_devcom_comp_unlock(mdev->clock_state->compdev);
+ 
+-out:
++	/* Keep devcom locked to prevent a peer from restarting the worker. */
++	if (stop && clock->ptp)
++		ptp_cancel_worker_sync(clock->ptp);
++	if (clock->shared)
++		mlx5_devcom_comp_unlock(mdev->clock_state->compdev);
++
+ 	mlx5_eq_notifier_unregister(mdev, &mdev->clock_state->pps_nb);
+ 	cancel_work_sync(&mdev->clock_state->out_work);
+ }
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/clock.h b/drivers/net/ethernet/mellanox/mlx5/core/lib/clock.h
+index aff3aed62c74..86ae447a23ed 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lib/clock.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/clock.h
+@@ -50,6 +50,8 @@ struct mlx5_timer {
+ 	struct timecounter         tc;
+ 	u32                        nominal_c_mult;
+ 	unsigned long              overflow_period;
++	u64                        saved_phc_ns;
++	u64                        saved_boot_ns;
+ };
+ 
+ struct mlx5_clock {
+
+base-commit: b6ef0d965fe8ce0ee4b4dcb58b3511f83003e42d
+-- 
+2.44.0
+
