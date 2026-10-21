@@ -1,107 +1,74 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=205.220.165.32
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792593230;
-	b=dNcQLUx8urS1vIeOBoYJdjtmSbfFAXyzO4nIrBma13NNhg0wbj88zKp9ibq7Gm1xF4ZG
-	 VltwCrV4x4C8Z/VGVzgs9nXR/Ffk95SoMQw8J6GvMXcdemYjoX6lqkSy3ISlNA04mp/sn
-	 btlYw112YYzfJHCqPSw1I9VCw/IaYFpqy/MAKHnGhO27tgtpv7YkY4VPOo3U7jbKd28ME
-	 Tvdv5c6+CMUltAzpskXVrOPLTxzHw4rFIDMaeExFaQx8AbQ4ED1P+2njY3DOP1M+cqKlf
-	 4//NeTBuHSKWtANJ09g6LBUJ2U7JO9IgnKO/M/g3E8H0aLdV+4gpHVjGqX+Y+n+iLsw==
+	t=1792599421;
+	b=fK3d53hMD04PCrxlSa4U7thjSBcUGIfJESXYTVHoZEfjNQzyOUgZuSl6KA/gONRBBLrx
+	 bmJNP3wRA3KtsHKZEv0L1/lhSiZuPqMgcH9w6m4GAqXO4bskpnvKjUFqt9i23t5zaKaDJ
+	 B5RFoV4p1qFpcWLR1tFyf7LasG5uDv96q0ohSighNnQGVc4eiLqH6zs3NmnTRTSYHQ0Me
+	 7KfQA9gM+3Hz7O4okXROnSwz3qnx36opT/lTx6fackdtLl2ePY8l9twpEKNdCL8BlGcVY
+	 YgEM8imfNk3GlcU2gTYDCJVbY6r7qAPWGJjoWL96U+8mAfvDNiR8VfF/Nmffb5hVPuQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792593230;
-	h=DMARC-Filter:DKIM-Signature:Received:X-MC-Unique:
-	 X-Mimecast-MFC-AGG-ID:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 X-Received:Received:Message-ID:Date:MIME-Version:User-Agent:Subject:
-	 To:References:Content-Language:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=pYNpcLyFz6HUlSTmqyPZEPX0/mcE5+MbBWGYVNQFy8I=;
-	b=ZsaZ9UNCLnULSCqwoTYCQuS4/bzkFU9GdZJkeD3NR3hqJ9xqfZaPlNGXOfSV2OxNpj+p
-	 nLapjDWOH2g6NSXNyM9uwvijqln9fBidW9himXNxqYr6CyeU359VzJO4CZV7L9Y2XtT7I
-	 w8fFO3DJ1NRVE947CVuH7zkXF6s5H0XxKjj1mgP9K4NwAO4prBJkCd65LtkMEsOcIKLPm
-	 e/CkC2M5OM6Sb+uIQkx3yJW98iEVSpHuaT7itBHjgN84wL3i0MP0jNCFtco8a9H4eJz/f
-	 yA5Y0dmN1KiQD7s1W7bGRabXhTvqjyXn05n4UudHtYQf3sGv4/UbNOaei2lwIvZi0PA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792599421;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:From:
+	 To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding:X-Proofpoint-Reinject:
+	 X-Proofpoint-Virus-Version:X-Proofpoint-Spam-Details:
+	 X-Authority-Analysis:X-Proofpoint-Spam-Details-Enc:
+	 X-Proofpoint-Spam-Info:X-Proofpoint-GUID:X-Proofpoint-ORIG-GUID;
+	bh=ZgPm3j48OhkmU0/nOyw0pk18bjZECBcGo+qJzz6e7t4=;
+	b=s+ElR2G4+AJAGMkAys95fkG5DLus+ckrR/nXyyDZBtyR19gLBkcd7fQpjemqJOfAkyrY
+	 IoHQeTZjQp3AoeWK3cBT3duO1GGMDKXoi4s4X9c+Nt/5yQWTlYnKltiQifl3GWolLicNv
+	 9nDgc7ZzY9Nf7uRhWzpm68mjwBqBi1cdpIf5etdpuaKGJh1xiaz6zqhk4idB6waS+JMPl
+	 P7DczJMS3MdvGWFPMmxOCu0obs+gVZB2UaVQXF59V6zYe/IH6QDrNQV+KRfwPamWP1uSm
+	 +WVMpvOvaTqw928ttyZKx7Js6BpOZKGSy7Qegs+2lAutvoTA0Xqs33VhrMNqH/8a8zw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=redhat.com;
-	spf=pass smtp.mailfrom=redhat.com;
-	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=LoG5PtMp;
-	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=Uplxl6Wi;
-	arc=none smtp.remote-ip=170.10.129.124
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	dmarc=pass header.from=oracle.com;
+	spf=pass smtp.mailfrom=oracle.com;
+	dkim=pass header.d=oracle.com header.i=@oracle.com header.a=rsa-sha256 header.s=corp-2025-04-25 header.b=mA17eidJ;
+	arc=none smtp.remote-ip=205.220.165.32
+Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 647B4606A31F
-	for <linux-rdma@vger.kernel.org>; Wed, 21 Oct 2026 14:33:49 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 647B4606A31F
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 995A6606BF24;
+	Wed, 21 Oct 2026 16:17:00 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 995A6606BF24
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=LoG5PtMp;
-	dkim=pass (2048-bit key, unprotected) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=Uplxl6Wi
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1792593228;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=pYNpcLyFz6HUlSTmqyPZEPX0/mcE5+MbBWGYVNQFy8I=;
-	b=LoG5PtMputVemm+hCBiWsniIaJGDOBRgOGQG2Ae+1mriSzTO2/uMEX/TgEthSgMlOIc28T
-	0OKf8CbpMxGI+FZw2xAvSAyQHvvcpLS+BMEkiOTZ0DYLglfFe/orm/ih/PKXl3x8a6H7TS
-	JEqF4cnefJ96QKAV7fh2WoZxUteIMfU=
-Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
- [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-619-IyiwUtwjOOmd8Ltj0fuhZQ-1; Wed, 21 Oct 2026 14:33:47 +0000
-X-MC-Unique: IyiwUtwjOOmd8Ltj0fuhZQ-1
-X-Mimecast-MFC-AGG-ID: IyiwUtwjOOmd8Ltj0fuhZQ_1792593226
-Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-4a0228f4a1bso4930385e9.1
-        for <linux-rdma@vger.kernel.org>; Wed, 21 Oct 2026 07:33:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1792593226; x=1793198026; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:to:subject:user-agent:mime-version:date
-         :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=pYNpcLyFz6HUlSTmqyPZEPX0/mcE5+MbBWGYVNQFy8I=;
-        b=Uplxl6WiSzZ4xZ9Jrr3fa+o0Ztzz+0+srDLs+CN4ZfYpoEesfRqGme7g70hOC55gJS
-         mAnZqFQrxmfdIfmWPyP+OCwS7Yp6NQn5XtHG3H1Yp92Ad9CdXTWlKU3UBVPc6aA1wbbb
-         dIkYwiO6KQaQoznBDeinAHy8pSMwrnKjakETHhyzoeeYyKHNhJU0nYVs9EKIZWOhfx18
-         bChFw530D16twjouZ56kS/qmVXRnNJadZD8eD/VoI7WyAJQYGtyc2wnVNyTW/iDmgLNE
-         wmq6HBc43qX/EaY1pMB1J6PecCTbPlJ+qiG4Sj4OCj7WnAzkaJZjEEWju6KSUoRCNh5o
-         VrTQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792593226; x=1793198026;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:to:subject:user-agent:mime-version:date
-         :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=pYNpcLyFz6HUlSTmqyPZEPX0/mcE5+MbBWGYVNQFy8I=;
-        b=e/UmxrrTpbGCXqKJ7EjtFWykp1ZLfPyC4136CcWufgta9eBxS2FzrG8D9LUt+RdlQY
-         zE8ORwpKEd+xJIlTN8CgybdSwG/2ZWFwsNOi4W5ADKr7d8w0oUEX4IwWlYnlWPCvbOq8
-         xVnO8MAWRbwICaXqHUWdCQ2mAQgdvHvymX0qJO2Bi4JoXzPcLD0z0UtqAqxlH2hQkV2A
-         Kgqt/F47pimt+Ay3CcIHDtXL6je5ok+XkKAYCGPb1odRW1aDCRewBWPKuiHhR5IL2XkY
-         8BoMwSGQ4G43wzElTWlFbGubgmfB6lokeTlDEzibP3yIgeZYL1mLr4CKKrNDzXSbT5ZD
-         RQcQ==
-X-Forwarded-Encrypted: i=1; AKwUvBzqd5GEz0WX1HuU+BpCwrExBMKPDxVC8Er/SBDrt5q7qNIbIEgPZ+bvxBsWUlWY31gQbkTHmaRCMD0S@vger.kernel.org
-X-Gm-Message-State: AFq9FYLMn1MjHMS42Ca105FnID5BOM2WePVyxS5MHRugBO84ibnvYAF/
-	nlhVdDYeCbD6lKBe2kwEBBx+HE2KTUjPbn6XXBQiUGhoi3qW1huRfANebizDyllC1WUXQGbMGxm
-	FCeLcizq7LDv/L042JunWnX+hLh6QrL5rJP0+/yvAk2cPFDlcINz+/IlGVJNEx1U=
-X-Gm-Gg: AYBFou0BIT0dnV4WW12V/50Pi+zGItbfnQ3UDmslvQuxFqI1tkbOzuWttokGXa31ODw
-	/jBw+wejnOcqMHhybVIlGEgOjv4eZ6pQLyNONtTg1lXxufxCT2yUzYPBcOyvQJLjXYV7CHG4TRJ
-	YIVsFu/D1m4OmGyIw8Tw0kRJw7uB9CfmGsOcrhmojS07iMHO2wRJe/bRk9ZAr3XUJCDdnnNEY8n
-	Moe7lq6o8w/wRtn6Hpos3C5HI85Qn8Nr8jYUFW4ZutTHypTbN4K7XIMjMqL9XdtNz9dcGH+z/9G
-	Ax6e1/ygCUgT1UhTTutXWndQUwka3DQaaQZuIuzEnf1O0DHnVYZVsdqvwZqFkHE/pmCljXHm5F/
-	wnaOzCWw/B2tIg4/6EpWqZ5lyCknlfojn3hvhJmHX1x2djJwBA2iVUZZbMzeVabRJ8iBl2ZmpFg
-	==
-X-Received: by 2002:a05:600d:82c1:b0:4a1:cdab:f5c4 with SMTP id 5b1f17b1804b1-4a1fdd24674mr47196525e9.5.1792593225724;
-        Wed, 21 Oct 2026 07:33:45 -0700 (PDT)
-X-Received: by 2002:a05:600d:82c1:b0:4a1:cdab:f5c4 with SMTP id 5b1f17b1804b1-4a1fdd24674mr47196105e9.5.1792593225200;
-        Wed, 21 Oct 2026 07:33:45 -0700 (PDT)
-Received: from [192.168.188.234] (ip232-47-231-195.pool-bba.aruba.it. [195.231.47.232])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48e2581fa7fsm5484387f8f.17.2026.10.21.07.33.44
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 21 Oct 2026 07:33:44 -0700 (PDT)
-Message-ID: <bcc5e8c7-21fc-4b63-a954-d737a37e9571@redhat.com>
-Date: Wed, 21 Oct 2026 16:33:43 +0200
+	dkim=pass (2048-bit key, unprotected) header.d=oracle.com header.i=@oracle.com header.a=rsa-sha256 header.s=corp-2025-04-25 header.b=mA17eidJ
+Received: from pps.filterd (m0333521.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69LDNh9n3856767;
+	Wed, 21 Oct 2026 16:16:55 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=cc
+	:content-transfer-encoding:content-type:date:from:message-id
+	:mime-version:subject:to; s=corp-2025-04-25; bh=ZgPm3j48OhkmU0/n
+	Oyw0pk18bjZECBcGo+qJzz6e7t4=; b=mA17eidJFaH1GaZ3EOjbraIZRCCfqjEe
+	ZeSvQ6DnVLzalafbxiC5fOwBQZw457/oAkrYsgd1YMPLV7wG/xkLQhQZqU2XslB4
+	7RXe0eZaII5e6JC/UdfGV1jAlMtUuo8dV2bXR2RlVsnTnEe/jFSM51bGj4gG6Gfh
+	p/9uT0aTh1ynW0d0YDlgLqzKSzXU5a0IsoXgcwC8nqo2oq91jd+PReZqxQqQu415
+	9VbgTwLtt0z+Apz1N8VaUXZLW6+NBQThGgR2bk5TpMbTlPOeaYO52PV4fnI/OWr3
+	9jHjNBRAQAilSpAJ4WrGVEotiP/vM6rOtNumxCpESwsjajpf9v4Fdg==
+Received: from iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta01.appoci.oracle.com [130.35.100.223])
+	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 4hdw4gau8h-1
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=OK);
+	Wed, 21 Oct 2026 16:16:54 +0000 (GMT)
+Received: from pps.filterd (iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
+	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (8.18.1.11/8.18.1.11) with ESMTP id 69LFSwUa1109771;
+	Wed, 21 Oct 2026 16:16:53 GMT
+Received: from lab61.no.oracle.com (lab61.no.oracle.com [10.172.144.82])
+	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTP id 4heyqgtfed-1;
+	Wed, 21 Oct 2026 16:16:53 +0000 (GMT)
+From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>
+To: Abhijit Gangurde <abhijit.gangurde@amd.com>,
+        Allen Hubbe <allen.hubbe@amd.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leon@kernel.org>, Andrew Boyer <andrew.boyer@amd.com>
+Cc: stable@vger.kernel.org, Keith Lucas <keith.lucas@oracle.com>,
+        =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH for-next] RDMA/ionic: Fix GSI QP ID release
+Date: Wed, 21 Oct 2026 18:16:49 +0200
+Message-ID: <20261021161651.4020222-1-haakon.bugge@oracle.com>
+X-Mailer: git-send-email 2.43.5
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -111,158 +78,99 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next v10 00/13] net/rds: make connection lifetime
- reference-counted
-To: Allison Henderson <achender@kernel.org>, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org, edumazet@google.com, kuba@kernel.org,
- horms@kernel.org
-References: <20261017032319.2563014-1-achender@kernel.org>
-Content-Language: en-US
-From: Paolo Abeni <pabeni@redhat.com>
-In-Reply-To: <20261017032319.2563014-1-achender@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-Reinject: loops=2 maxloops=12
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
+ definitions=2026-10-21_04,2026-10-21_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0
+ mlxlogscore=999 phishscore=0 bulkscore=0 lowpriorityscore=0 mlxscore=0
+ suspectscore=0 spamscore=0 malwarescore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.22.0-2610190000 definitions=main-2610210064
+X-Authority-Analysis: v=2.4 cv=LPPz05W9 c=1 sm=1 tr=0 ts=6ad8e576 b=1 cx=c_pps
+ a=zPCbziy225d3KhSqZt3L1A==:117 a=zPCbziy225d3KhSqZt3L1A==:17
+ a=IkcTkHD0fZMA:10 a=660iZSQnnn4A:10 a=M51BFTxLslgA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=jiCTI4zE5U7BLdzWsZGv:22 a=x0eKOSpe3m1H3M0S9YoZ:22
+ a=VwQbUJbxAAAA:8 a=yPCof4ZbAAAA:8 a=sG8J6-wLveFn0xi-oGcA:9 a=3ZKOabzyN94A:10
+ a=QEXdDO2ut3YA:10 a=5yU3S35YU4bGjq-dph-N:22 a=Bho9c0fBagfJEIQBS7DQ:22 cc=ntf
+ awl=host:12107
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDIxMDA2NCBTYWx0ZWRfX3MsJ2goid2Ad
+ sZk//upQ8Ih9ar4+/hSvgED1DwUw9z4dWd2XzV09uqNiq+uRjuMIaBsqjjZbuPC66YGgehKCEoY
+ 3+fypZJiWBgoHq4ugKIowsdv6bqcyE7Dra2NNgW1G9OyFbiYD+eYDz6U/r1E+sV7s7MJ2vtKmBr
+ ryt8arfD8gQQWJ8WBOviGxNBQVoaa7WGalQxAks7FVrF1iXREZhf/kqjKcACg5B/MeNdopdobI6
+ WUy45RqKuUEtUxfPHx+Wlnd3vN9woktOcwCT4oTEidYNekT1zxFAKvFct07MM8QAvK1pWrE1iIy
+ Lq+3h0SThuqRHVXgvmY9TLH6xzuwv02fEefs5VrnpAA3meQhDOS/M0whWXYVzW0t53SlV2kYNly
+ OSK1m7I409sZMwOLMdAWE8rZCTXQDycrAuzhlDMmawaO0XW9SOYcckfaFyZkdXcVb5PBqj7qIVI
+ 5fkkS2tKDRLmKEJWjzk12Dfx/D9dcWQfwkk4uX8Y=
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMDIxMDA2NCBTYWx0ZWRfX9sKdFjVMMY1H
+ CCbgmC9F6UDt5W2DrnPyLSn+hZ2uPFu7kEhfltVC0x7VjcXK8DoPl18uLvRqZN0lr0DwNRGKzNl
+ cwD0QahVKQXmSb5SHjnsPdF+eYGoGQDYUi6XLsasRAfB6hOS2qmE
+X-Proofpoint-GUID: NcVV2mGxfSVJkl1d9mDU-cDuWqjLoVt2
+X-Proofpoint-ORIG-GUID: NcVV2mGxfSVJkl1d9mDU-cDuWqjLoVt2
 
-On 10/17/26 05:23, Allison Henderson wrote:
-> Hi all,
-> 
-> This is v10 of the connection-lifetime set (v1 at [1], v2 at [2],
-> v3 at [3], v4 at [6], v5 at [7], v6 at [8], v7 at [9], v8 at [10],
-> v9 at [11]), following
-> "net/rds: own the fastpath locks across connection teardown", which is
-> in net-next.  It is targeted at net-next: although the series fixes
-> real use-after-frees (one syzbot report and one report from Chengfeng
-> Ye below), it does so by reworking connection lifetime rather than
-> patching the individual crash sites, and that rework is too invasive
-> for net.
-> 
-> rds_conn_destroy() frees the connection, its paths and its workqueues
-> on the spot, relying on the documented assumption that "no one else is
-> referencing the connection".  That assumption stopped being true a
-> long time ago: connections are destroyed on netns teardown and on a
-> protocol-version mismatch as well as on rmmod, while pointers to them
-> still live in socket rs_conn caches, congestion-map conn lists, CM
-> callbacks and workers, and - for as long as an application leaves data
-> unread - in every rds_incoming sitting on a receive queue.  No single
-> Fixes: commit covers the rot, so the series carries Reported-by tags
-> where there are concrete reports instead.
-> 
-> Patches 6, 9, 8 and 13 are ports of the connection kref work Sharath
-> Srinivasan did for Oracle UEK, adapted to the upstream code; patch 3
-> mirrors UEK's device-removal gate in rds_ib_add_conn().
-> 
-> The series has been validated with the RDS selftests over loopback-TCP
-> and RXE-RDMA, plus churn tests that delete network namespaces and
-> unload the modules under live rds-stress traffic.
-> 
->    Patch 1 fixes rds_ib_conn_free() re-enabling interrupts under
->    a caller's irqsave lock.  syzbot has since reported this one, and
->    Nguyen Ngoc Thang has posted the same fix for net [12]; it stays here
->    so the series applies today, and can be dropped once his lands.
-> 
->    Patch 2 makes the passive-connection exits of __rds_conn_create()
->    undo conn_alloc() the same way the lost-race exit does, through one
->    helper (a refactor: the passive twin only exists for IB, so nothing
->    leaked there).  Both are first in the series because the
->    reference-counted teardown calls conn_free() from more places.
-> 
->    Patch 3 has rds_ib_dev_shutdown() mark a device as shutting down
->    under the lock rds_ib_add_conn() attaches under, and makes
->    rds_ib_add_conn() refuse a marked device: a connect that was past
->    rds_ib_get_client_data() when the device's connections were dropped
->    could attach to it afterwards and, on module unload, never be torn
->    down.
->    Based on UEK commit:
->       8d0639e6ba2c ("net/rds: Clean up ib_nodev_conns list handling")
->       https://github.com/oracle/linux-uek/commit/8d0639e6ba2c
-> 
->    Patch 4 guards the five work-arming sites that never tested
->    rds_destroy_pending(): two IB completion paths, the IB recv refill,
->    the TCP accept kick and the multipath reconnect in sendmsg.
-> 
->    Patch 5 gives the connection its own destroy-in-progress marker.
->    One destroy caller does escape the old predicate - unloading the core
->    module runs the loopback pernet exit for every live namespace, where
->    check_net() is still true and the loop transport's unloading flag is
->    not yet set - though nothing can queue work at that point today.  The
->    later patches need the precise answer: the passive-twin creation must
->    refuse a parent whose destroy has begun, and sendmsg must drop a
->    cached connection whose destroy has.
->    Based on UEK commits:
->       e2f5005adf63 net/rds: Add krefs to struct rds_connection
->       https://github.com/oracle/linux-uek/commit/e2f5005adf63
-> 
->       6c53ef92f46e net/rds: Merge uses of conn->c_destroy_in_prog & RDS_DESTROY_PENDING
->       https://github.com/oracle/linux-uek/commit/6c53ef92f46e
-> 
->    Patch 6 splits rds_conn_destroy() into a synchronous quiesce and a
->    kref-governed free.
->    Based on UEK commits:
->       2c8569e4c880 ("net/rds: Add krefs to struct rds_connection").
->       https://github.com/oracle/linux-uek/commit/2c8569e4c880
-> 
->    Patch 7 unlinks each transport node before its destroy, so a
->    free deferred past the teardown loop cannot write into the loop's
->    stack-local list head.  IB marks a gathered node as claimed by the
->    sweep, since its connect and shutdown paths move the node too; for
->    IB this also closes an existing corruption of the nodev list on
->    module unload, through the stale spliced head.
-> 
->    Patch 8 makes each transport's exit path wait for its connections to
->    actually be freed before the module goes away.  It comes after the
->    unlink patch now, so that the IB resweep only ever finds claimed
->    nodes.  The wait is
->    unbounded and warns every ten seconds: a connection reference can be
->    held for an application-controlled time (unread data), so a timeout
->    would only move the use-after-free from freed memory to unloaded
->    module text.  rmmod blocking while data is queued and unread is the
->    historical RDS contract.  For IB the wait re-sweeps the nodev list,
->    since device connections migrate to it asynchronously.
->    Based on UEK commits:
->       ece4b4e39afa ("net/rds: wait_event_timeout until zero connections during rmmod")
->       https://github.com/oracle/linux-uek/commit/ece4b4e39afa
-> 
->       905ec90e6166 ("net/rds: Each RDS transport should keep its own connection count")
->       https://github.com/oracle/linux-uek/commit/905ec90e6166
-> 
->    Patch 9 makes struct rds_incoming hold a reference on i_conn, the
->    fix for the KASAN use-after-free Chengfeng Ye reported [4].
->    Based on UEK commits:
->        99b9a3715419 ("net/rds: fix crash by expanding kref coverage to rds_incoming.i_conn").
->        https://github.com/oracle/linux-uek/commit/99b9a3715419
-> 
->    Patch 10 has the quiesce purge cp_send_queue under cp_lock, as every
->    adder to that queue holds it, and clear RDS_MSG_ON_CONN as it does
->    so, the way rds_send_drop_to() expects.  No sender can be in flight
->    at any of today's destroy triggers (netns teardown, module unload),
->    so this is hygiene rather than a race fix; the old BUG_ON() on a
->    socket-owned message becomes a WARN_ON_ONCE().
-> 
->    Patch 11 hands out real references everywhere a connection pointer
->    previously escaped bare, RCU-annotates parent->c_passive, refuses to
->    revive a passive connection whose destroy has begun, and serializes
->    the SIOCRDSSETTOS check with the rs_conn cache.
->    Based on UEK commits:
->       2c8569e4c880 ("net/rds: Add krefs to struct rds_connection")
->       https://github.com/oracle/linux-uek/commit/2c8569e4c880
-> 
->       0e9e3a72b7f7 ("net/rds: rds_sendmsg must use rs_conn only when not being destroyed").
->       https://github.com/oracle/linux-uek/commit/0e9e3a72b7f7
-> 
->    Patch 12 pins the connection across the RDMA-CM event handler and,
->    on both the passive and the active side, declines to set up a QP for
->    a connection whose destroy has already begun.
-> 
->    Patch 13 drops the now-unused global rds_conn_count.
->    Based on UEK commits:
->       905ec90e6166 ("net/rds: Each RDS transport should keep its own connection count").
->       https://github.com/oracle/linux-uek/commit/905ec90e6166
-Does not apply cleanly to net-next. The mentioned base commit is not
-in net-next nor in net.
+QPID allocation differs between ordinary QPs and GSI QPs. If GSI QP
+creation fails after allocating its QPID, or is destroyed, we see in
+the log (trimmed for brevity):
 
-You have to rebase on the target tree and resend. Please note that
-net-next is currently closed for the merge window.
+kernel: ida_free called for id=32 which is not allocated.
+kernel: WARNING: CPU: 47 PID: 6673 at lib/idr.c:527 ida_free+0xde/0x140
+kernel: CPU: 47 UID: 0 PID: 6673 Comm: modprobe Not tainted 6.12.0+ #18
+kernel: RIP: 0010:ida_free+0xde/0x140
+kernel: Call Trace:
+kernel: <TASK>
+kernel: ionic_create_qp+0x4f5/0xbe0 [ionic_rdma]
+kernel: create_qp+0x19a/0x290 [ib_core]
+kernel: ib_create_qp_kernel+0x3a/0xe0 [ib_core]
+kernel: create_mad_qp+0x8e/0xd6 [ib_core]
+kernel: ib_mad_port_open+0x268/0x3f2 [ib_core]
 
-/P
+GSI QPs reserve allocator ID IB_QPT_GSI directly, whereas ordinary QPs
+encode the allocated ID in the QPID. Calling ionic_put_qpid() for a
+GSI QP incorrectly applies the ordinary QPID conversion and releases
+an unallocated ID.
+
+Release IB_QPT_GSI directly in both the creation error path and the
+destruction path.
+
+Fixes: e8521822c733 ("RDMA/ionic: Register device ops for control path")
+Cc: <stable@vger.kernel.org>
+Reported-by: Keith Lucas <keith.lucas@oracle.com>
+Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
+Tested-by: Keith Lucas <keith.lucas@oracle.com>
+---
+ drivers/infiniband/hw/ionic/ionic_controlpath.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/hw/ionic/ionic_controlpath.c b/drivers/infiniband/hw/ionic/ionic_controlpath.c
+index a70ef59a8064e..cd623f1de38a3 100644
+--- a/drivers/infiniband/hw/ionic/ionic_controlpath.c
++++ b/drivers/infiniband/hw/ionic/ionic_controlpath.c
+@@ -2450,7 +2450,11 @@ int ionic_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attr,
+ err_ahid:
+ 	kfree(qp->hdr);
+ err_ah_alloc:
+-	ionic_put_qpid(dev, qp->qpid);
++	if (attr->qp_type == IB_QPT_GSI)
++		ionic_resid_put(&dev->inuse_qpid, IB_QPT_GSI);
++	else
++		ionic_put_qpid(dev, qp->qpid);
++
+ 	return rc;
+ }
+ 
+@@ -2762,7 +2766,10 @@ int ionic_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
+ 		ionic_put_ahid(dev, qp->ahid);
+ 		kfree(qp->hdr);
+ 	}
+-	ionic_put_qpid(dev, qp->qpid);
++	if (qp->qpid == IB_QPT_GSI)
++		ionic_resid_put(&dev->inuse_qpid, IB_QPT_GSI);
++	else
++		ionic_put_qpid(dev, qp->qpid);
+ 
+ 	return 0;
+ }
+-- 
+2.43.5
 
