@@ -1,57 +1,82 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792680236;
-	b=WpPVZ6SPfqSlUyAPBJwalWK5lSwW9o0gT6b53ycfd6xQkCSM+c+LU9pfAGREzocnUw3B
-	 uIz8R2wsZnyLfKWYkypBazb7zaxOi5SVKbD+ZM32+x3EOqkBkQJlUTwuwX8DV+1ovnvk4
-	 /gN6jbhHpvIHcylN8ftPHDKYWzfrrJY/bxiqkomm9NaRxjPTeIJ5jr/JR1yN0GXuCyOs3
-	 9++E3KQOhFay0iomj8cXAyRlhjgAroM3w3RCzKVC/GoDC0gJNeDcZH8MuiHBRxLU1s4mw
-	 ZQYuhOysBc1bb8YmFg3okMgbCPufG68KC4M1Pt1kWBJnhKkydhLeIFIsibYXvJU6skA==
+	t=1792680257;
+	b=KqEQKKzaI/v+pEO2g1lFUOpYih7PrueiCapuR6I1ra7BrWkS6S9yT5bRhQQuzOM7w8o0
+	 htjfVliuAlDBgnF2Tqv6nhZ8E0IyjFS73ogQrLB7twhiyfdnZJK5DB+yKol0uDuX1zn9d
+	 qXht6oXjz149n4xRcsaLmASZcIZjdTvkdRkPle8c7vmSbY8FDQj5tSSJ7aE0vQeY5cYlt
+	 Yhoq95fWp4QtmYrDSSVXr2Dm3NFgJcPyszO1cd30pFo5+7pVIAJf4LcGJ8NkEE+NR7oqy
+	 P/5bY77HJThH2mRRzvx+Jj/n9e52BTC44TUSsyDYfS/AdCiVFAySH1ZS7Z45qdBvKbA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792680236;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=BQsy3r3WKo3jGro5VkyV3UwpETRe+1KXYudA4iozJMQ=;
-	b=lRfuf7y5Wh8E8cVEjFmAHdVYyK/uHSm/EKiyOVr08xQKcckWDcSztDu4YfkC0aj//tc/
-	 SQA867oc+xd5UtlCASfeg6Tlk8fApWe/28JMOjnwBRfGtKNCCvI2fxKIwyabE6YF3HAHK
-	 eEHxQ32gegrzoKHGVeW4OtDvMji6O6R9Th+EsvJiOqH6N0TWXWrovXebulJechORiUrEA
-	 asuoLSVmzoK/YbytRx9jE4i9lw036Md/2u069uAuBiYwm6whHx4PO3OLMLbbeAu47o8M9
-	 so6VotTsrC+KRJz/Bop17SbCUv2JTtdp4X8v9z+pj7Opb6XK2dF4DL1J0xdr9nR1eBA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792680257;
+	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:In-Reply-To:References:Content-Type:
+	 MIME-Version:Content-Transfer-Encoding:X-Spam-Status:
+	 X-Spam-Checker-Version;
+	bh=iuty2+xJIN5LQRJAknFt1dp6ncxxbQEVN7EXoGwFcHA=;
+	b=4kjyo1524wFyy4wISovYK5oHEXCB+Ke9v/Q6xif8NZFuHUJ4X/+VOITewmONVdEBJs27
+	 OBUsOM6R0Mf4kt2jfXZq7p1rywynGmIQlpkuziAGtSp8c7VboKI6eF7SzfPIq4zEuO6rh
+	 zNGao5KFAJ0N6aExT22579dOPhNkFYlct8zDUvAmNrNUQU0j+HmX2oYMBytu3215RhyZC
+	 MvU6kS4O1EttgzfviANsX94Ez0AXYPX2aCJedP858SU+fpc/toCCwIIX2Yme4g5k6E9xD
+	 VqTqq9Yu7nXKcv5iphWDfmhoFRqMPWnzHAPco2olccZf0nrAy+SeBbQWKDB7rmtsfdQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=HhuGGKIr;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 600B9606A319
-	for <linux-rdma@vger.kernel.org>; Thu, 22 Oct 2026 14:43:56 +0000 (UTC)
+	dmarc=pass header.from=linux.microsoft.com;
+	spf=pass smtp.mailfrom=linux.microsoft.com;
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b="KxDDgiy/";
+	arc=none smtp.remote-ip=13.77.154.182
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 97DC7606A319;
+	Thu, 22 Oct 2026 14:44:16 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 97DC7606A319
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=HhuGGKIr
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 287F61F000C2;
-	Thu, 22 Oct 2026 14:43:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792680236;
-	bh=BQsy3r3WKo3jGro5VkyV3UwpETRe+1KXYudA4iozJMQ=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=HhuGGKIrBzWQEzmszJ9Imz/UT8ipXP2lkkfBDo1BnexYD0vowA06zBEw9Jh8/cLdD
-	 Ry904FxqEuxOVYHqSNIhjCOloKz5arQ5BdeQMWOpJnrlGS1YCykTsTUjz0HW3AGRJW
-	 fZ3gHHx9xBnZG5Wbbm03FScZC/1QK2SWjXViuGZEZal57S30oKiFBoMgdl91LbtsPA
-	 jPkorLOGAE/ZFinhWPCnVOIJEP0liFTVMKnU3x3SITKxoYjeTGaypxRBBkyymvKsjj
-	 tWz3NPiMJkSK7th1mvJ1zv0ScvMMs6HUyrJBhCnkxqhKMQMolySiBL/yTSdIBHE9Rq
-	 JeANwk/g8MWHw==
-Message-ID: <sashiko-outbox-181649@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v3 2/2] RDMA/srpt: widen the indirect RDMA context
- counters
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Yehyeong Lee" <yhlee@isslab.korea.ac.kr>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261022143901.2991062-3-yhlee@isslab.korea.ac.kr>
-References: <20261022143901.2991062-1-yhlee@isslab.korea.ac.kr>
- <20261022143901.2991062-3-yhlee@isslab.korea.ac.kr>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Thu, 22 Oct 2026 14:43:55 +0000
+	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=KxDDgiy/
+Received: from weh-cvm-dev-vm.y50bckvjo0hefgfnzfztsfttff.phxx.internal.cloudapp.net (unknown [20.169.55.37])
+	by linux.microsoft.com (Postfix) with ESMTPSA id DAE3A20B7166;
+	Thu, 22 Oct 2026 07:44:06 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com DAE3A20B7166
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1792680248;
+	bh=iuty2+xJIN5LQRJAknFt1dp6ncxxbQEVN7EXoGwFcHA=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=KxDDgiy/cYWjkLNWJ9JEAY1Ny7IPFhlVNFlgJSp+bI+0oTmJfyWFLoWHMcZyd1VwU
+	 3PDN+Wdpp2eD7rw2K2Y6wNHr3m4wPux7vAL9dRVMvro7hUYrcp/CmyNzoEqDk9PCof
+	 2wp4p6Ta/+DGOvaYOLb87x2u1HsJM2M7zPFJcjPo=
+From: Wei Hu <weh@linux.microsoft.com>
+To: netdev-bot+sashiko@kernel.org
+Cc: longli@kernel.org,
+	kotaranov@microsoft.com,
+	kuba@kernel.org,
+	davem@davemloft.net,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	andrew+netdev@lunn.ch,
+	jgg@ziepe.ca,
+	leon@kernel.org,
+	haiyangz@microsoft.com,
+	wei.liu@kernel.org,
+	decui@microsoft.com,
+	shradhagupta@linux.microsoft.com,
+	horms@kernel.org,
+	ernis@linux.microsoft.com,
+	stephen@networkplumber.org,
+	netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-hyperv@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	gargaditya@linux.microsoft.com,
+	kees+treewide@kernel.org,
+	kees@kernel.org,
+	mawasthi@linux.microsoft.com,
+	weh@microsoft.com,
+	edumazet@kernel.org
+Subject: Re: [PATCH net-next v8 1/4] net: mana: prepare HWC ownership for safe reinitialization
+Date: Thu, 22 Oct 2026 14:44:07 +0000
+Message-ID: <hwc-v9-v8-review-20261022-patch1-42c4b3b89bc66ef97a25@linux.microsoft.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <179250338816.3135.13276488357316939732@kernel.org>
+References: <64987f49ea13b5ccdc9ef95f4a9baf23a479edc3.1791998462.git.weh@linux.microsoft.com>  <179250338816.3135.13276488357316939732@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,35 +85,20 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
 
-> srpt_send_ioctx::n_rdma and ::n_rw_ctx are u8, and neither of the values
-> stored in them is bounded by 255.
->=20
-> n_rw_ctx counts the INDIRECT descriptors a command carries, and the count
-> guard in srpt_get_desc_tbl() admits data_out_desc_cnt plus
-> data_in_desc_cnt, so up to 510. At 256 descriptors n_rw_ctx wraps to
-> zero, and srpt_release_cmd() frees the contexts only when it is non-zero,
-> so every scatterlist and RDMA context the command allocated leaks.
->=20
-> n_rdma is not a descriptor count at all. It is the sum of the
-> rdma_rw_ctx_init() return values, which is the number of work requests
-> each context needs, accumulated by ioctx->n_rdma +=3D ret. A handful of
-> descriptors for large transfers can pass 255 on their own, with no
-> unusual descriptor count involved. A wrapped n_rdma is then handed to
-> atomic_sub_return(ioctx->n_rdma, &ch->sq_wr_avail) and tested by
-> WARN_ON(ioctx->n_rdma <=3D 0), so the send queue work request accounting
-> drifts too.
->=20
-> Make both counters int, the type the values they accumulate already have.
->=20
-> Fixes: b99f8e4d7bcd ("IB/srpt: convert to the generic RDMA READ/WRITE API=
-")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
-
-Sashiko has reviewed this patch and found no issues.
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261022143901.2991=
-062-1-yhlee@isslab.korea.ac.kr?part=3D2
-
+Thanks for the review.=0D
+=0D
+On Tue, 20 Oct 2026 13:36:28 +0000, netdev-bot+sashiko@kernel.org wrote:=0D
+=0D
+> This is a pre-existing issue and was not introduced by this patch. This=0D
+> hunk now documents mana_gd_process_eqe() as an RCU-protected lockless=0D
+> reader of gc->cq_table, though. Do the Ethernet and RDMA writers of the=0D
+> same slots follow that model?=0D
+=0D
+The individual Ethernet and RDMA CQ publication/lifetime issues are=0D
+pre-existing. We will address separately.=0D
+=0D
+Regards,=0D
+Wei=0D
