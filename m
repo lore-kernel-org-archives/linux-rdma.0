@@ -1,61 +1,98 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.215.169
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792678389;
-	b=hhO5JHZYZavBs9d8YMv8Sy/WC8Kg2YCV+86CyGkPFTCc2mHtoLJZXXeexicGcIwADh0H
-	 lVYlKToPv7y11d6yShvp64mECewvXz8OgMTdexXpSTfRBmr8zUjqBQLveABzIRIJ/S1KL
-	 v6sy1VlNUdML2gP9EIL0NJssX5ChxlPRnyc2Bsbu/Y+v1lsmXW9loRwkr0qVI1Ay5+naj
-	 ixZSlwTk6sdaVlAlZETYo49lpsEfqAdBlIkRVm8ZsVWnsCG4W+amWDcO0smq76RvZoNwM
-	 f1cXZRrBghDff+DjwM0Y9Bo7lMs7yfRweoD4/KgfRkm9u8OJMamMDHq0jYt5NGHM7sg==
+	t=1792679994;
+	b=y2jnWjYLZ2xAh7Im2pU6OsYcuYjjuCaQK2yT8GNABmOUVKbUg4ULvnfrKKgxQnXmWgao
+	 r29M8EFUsHSlYz+Krm3XvPptA1FxZdTg/p+zZOU15nBaB2cJ19D7BMXyKPuAQ05l+XhcV
+	 MsLDQWudEwufErwXak8RTsXOO2CEx1nXVyRL3RIYEDWgf4hXO8YNTmT5WXqETvp/fLrr6
+	 AO8n3sJzHgNZVPzENHIo0OOp2yvpR36FVHYX2HM9/ltuDZfAS9tbYAdKbHo9bUqG5+h1p
+	 ebXXBO0WfXtRMLoG3zVOsIR8q5JRLaVWgEJskypha4rt2yjm/ktJeJXMmury/fbZqEw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792678389;
-	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
-	 In-Reply-To:References:X-sashiko-severity:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=lVyCsAyW+f6wFm05LptcX8c53okKTmSAzUoLzdTwIEs=;
-	b=wJUVwb65GyzNBnmIgsZHTSC0188HScAi2H3c6aHGDhYK7rWSyq1coxDQd+yJW1LsMmf2
-	 128UGxAErh/Zw69lnkMaaMhsEReZQM+uMnVl/M/+MJ8ICl2e3CkQWFYAcgZC9cAPRedGc
-	 uqW0LVT9x1zirm2KttV54xPy3huamSHge0BV9jqjikR5nvI3WKoQMHWTfmf3vPJeQJfud
-	 EBToCuG1kQx0tgzy2AF4MYRS3vpZaJkdLTS1myLurF2hry/+mOoavWDxrixJrryxc02eD
-	 MT4LU5O8QRzYNHV4y2s5wUhJJu6X3iUdvSlkCQeoDw4PZtl1oLT3FIfsWWuSBK3FB2w==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792679994;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=6GGMKrOc7lyQki5JLMpUTllqUsowmWvQtYFIkrSVo20=;
+	b=vQC3rXiCsUrMb0UMbPrNY+6B3IhWN/V+ZT5jI+oXBlwtcPKLKLc7XcY0PvZsEdbKHSNM
+	 T0YkAb3XoZLQ7Jr1OuoyB5CBqD9lcfdFb2HoNw7cnbRtLXf/0tNmDTtUwGU5qG9VPXBYV
+	 0PUfc4kS/wcH+eqMe6V3NMJ0QqbdO3TXtwGQfTe3f+13vakxTQFd251gyILP8obWFB9m8
+	 KVpl84EyYtIt+pm9noy4mGWNX2O2YTOkPzxzfTLV2Njzu0lWXL4gjop6cWoPkLi2spURc
+	 54XyoRiZTe+3gaDry2qPSKzG8hgd+WH2/fKPVx5QtXyrbkIvXQo/iF+hznKA+wwSC3w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GAkbFUMH;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=fail header.from=isslab.korea.ac.kr;
+	spf=none smtp.mailfrom=isslab.korea.ac.kr;
+	dkim=pass header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.a=rsa-sha256 header.s=20251104 header.b=Dse13JcB;
+	arc=none smtp.remote-ip=209.85.215.169
+Received: from mail-pg1-f169.google.com (mail-pg1-f169.google.com [209.85.215.169])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6F76606A327;
-	Thu, 22 Oct 2026 14:13:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A1A4606A326
+	for <linux-rdma@vger.kernel.org>; Thu, 22 Oct 2026 14:39:53 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0A1A4606A326
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=isslab.korea.ac.kr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GAkbFUMH
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CEC21F000C1;
-	Thu, 22 Oct 2026 14:13:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792678388;
-	bh=lVyCsAyW+f6wFm05LptcX8c53okKTmSAzUoLzdTwIEs=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=GAkbFUMHDzBKKbZkl3JMrYDZPR48XXJ7UUtT+UPPVA2uV+e+/Bb2HtlZP788n+FkH
-	 ZMCCmB7P83Rnq5jHIygQZX/3sc84m8JA3yUPhoOMVVZOjr6jH3P+mKP7DGrQS/f5Tc
-	 9n6bCpAiVJS84gXn3ReeSTa6C3CSBlrRDSieHtbCAc1yxtgIsQlFN5XnECNWJV6aZo
-	 YCKLb7UyAUaRU03heJdoNcQVaunmPK1D9FqJziOtIoQVyS3lobaFqh1COvt6RL39OZ
-	 pqT/zkr/kc4//vhqFCevmGdd8WrsWKwVYyUuAA2oIgVN225O3Jti6BCvh9bqk1uhE6
-	 iYAEOnOxddusQ==
-Subject: Re: [PATCH net v12] net/smc: fix lgr/lnk lifetime vs diag reader race
-From: netdev-bot+sashiko@kernel.org
-To: mjambigi@linux.ibm.com
-Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
- kuba@kernel.org, pabeni@redhat.com, alibuda@linux.alibaba.com,
- dust.li@linux.alibaba.com, sidraya@linux.ibm.com, hidayath@linux.ibm.com,
- pasic@linux.ibm.com, horms@kernel.org, tonylu@linux.alibaba.com,
- guwen@linux.alibaba.com, stable@vger.kernel.org, netdev@vger.kernel.org,
- linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
-Date: Thu, 22 Oct 2026 14:13:06 +0000
-Message-ID: <179267838686.3135.11610279010793695525@kernel.org>
-In-Reply-To: <20261019111008.3367567-1-mjambigi@linux.ibm.com>
-References: <20261019111008.3367567-1-mjambigi@linux.ibm.com>
-X-sashiko-severity: High
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (2048-bit key, unprotected) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.a=rsa-sha256 header.s=20251104 header.b=Dse13JcB
+Received: by mail-pg1-f169.google.com with SMTP id 41be03b00d2f7-cc147d86bebso692336a12.0
+        for <linux-rdma@vger.kernel.org>; Thu, 22 Oct 2026 07:39:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=isslab-korea-ac-kr.20251104.gappssmtp.com; s=20251104; t=1792679993; x=1793284793; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=6GGMKrOc7lyQki5JLMpUTllqUsowmWvQtYFIkrSVo20=;
+        b=Dse13JcB9u4hnKJMQtNhuSb+IAz6YYm5Qcm2vC1EUxNv+T8Vf9yExs7BtXGV02trFQ
+         txCGCc+ZsYhPBbVR4Mep6WexjupniMiyBlAiA6QU1f9TJUAWhxpiBLmQR20d9PDltiuD
+         NoyJQ+LjUl2eoyd75/moNl1OzD5qUl0BpASS/p0CO7n3heYY3/cnRqbYDUmtsFrexA9/
+         CcYChIx+XsAbdfvfvjn3drpIEEM0uRDB0Xg0Z5reraROiUScEgx/e2pf/LiBSlFL8lDy
+         gJLSDgCbn5Ao/sx13KFWa0BBk+fpUYkuF1q2DG/9XKM7eWOQp0uN7lWatu2bjO9cA57J
+         Q9sQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792679993; x=1793284793;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=6GGMKrOc7lyQki5JLMpUTllqUsowmWvQtYFIkrSVo20=;
+        b=ewPYXjuaSrYEMndtPIvwaReUtY+Ii0KIU3YzHHSsO4XFhj91dOjVTcedKpvXYMvufw
+         RAZD79eGTIzioxGOJGYeoJoNbxTZYaiQSmKzeBm5Ryh5ULi7mT5x6wEjEUy93hJbSuV/
+         kVkeBZdHHmWOipsGkyx89ZItOrAt2SO512GxQXEpbM0pY46tOmACX4FXzDPtgA4Hp0WR
+         GZX0UHAQsfUBLaEEENnKZN3OxBaptY72c/Q5N7jZiGJ2zQy0rFo3E8KRawctRJiy4Cx0
+         J+h7T65eUmFVUhaypYrGwg+9yUC8zLbwC+fQuL3zIfsNMKKs8dtfAChxQszn9dCxkHog
+         wcug==
+X-Forwarded-Encrypted: i=1; AKwUvBw10Ysu/GJ4WqUTv0bbV1qsBRbCkfh8TwBiiBwOXDEMF1bDhzI7hq4FmLNhWSRGZrxAWI4jAVNfXASk@vger.kernel.org
+X-Gm-Message-State: AFq9FYKVt/Pagvq3tn15FyBkj7fxJ/pNU9ZFZPOz0Ch4KZ5g2vVYpEkR
+	iCehc4Y1h7jpNKR9sJ/RqlXtbiIvAKm5yo2k5hfIXZWJioapNCBRxs8XEx6XqkCwHWQ=
+X-Gm-Gg: AYBFou32SwJ4tSvzB9HhZ5IUVwyp+/TWDbyFxAKN9wQjbJ62s0K/TI3qqvfbj0Kn8T4
+	nzQ/wXgjG03PUkfmmIFrQEBaYyV2clyDz/4I1VOHVMNr57mIgiTFubNtQylDNEtxEiaaLeSX40G
+	IdzswUij2cw5/0TPMDrKZr4hQ/Snsl6e+Bd6QbZVKXDU/YXCAwKX+a0m+BQHFOo0es7YeE3dkFg
+	iPtmek0iJk1+PA9HBZTMRQbVT6GXboVOzusFI+KNB3733d6N89LXBvGw3tyoSSjqrHNWZRxYBUD
+	I4UJixSukrBTJK8u9YD8ZXA15xRuAccK68DJptszpDYoOQicxilg0rJX48kWfLZGmKqCkmT8o4o
+	71cw7HQn8W+mB2umFxINi8gH8UZV3jrgX1FfLkhn71/Qsn3ic5mzAB9PO3FwYIJIN/O5sco0wmb
+	u1rBfL+iBhFW+fokt6tpEzm17H3YKEq1zbU5agS5ycMUHvdA1MqG3Cb0SvpxzoQrdq/DuVBxuTE
+	feKhQrPaUJYthlyVb6qT1kpWDcYLphRprEGzWzYI4PLGtAbiSnEXpYWS7MRbzMavqebLV+qsqbH
+	Tf8=
+X-Received: by 2002:a17:90b:590e:b0:39e:6c68:fd91 with SMTP id 98e67ed59e1d1-3ada6cb4b5emr1409865a91.38.1792679993350;
+        Thu, 22 Oct 2026 07:39:53 -0700 (PDT)
+Received: from localhost.localdomain ([2406:5900:1044:110c:13e0:b266:5a7d:e119])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3ada4887669sm4719043a91.2.2026.10.22.07.39.50
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 22 Oct 2026 07:39:53 -0700 (PDT)
+From: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+To: Bart Van Assche <bvanassche@acm.org>
+Cc: Leon Romanovsky <leon@kernel.org>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	linux-rdma@vger.kernel.org,
+	target-devel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org,
+	yhlee@isslab.korea.ac.kr
+Subject: [PATCH v3 1/2] RDMA/srpt: bound the indirect descriptor table to the IU
+Date: Thu, 22 Oct 2026 23:39:00 +0900
+Message-ID: <20261022143901.2991062-2-yhlee@isslab.korea.ac.kr>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20261022143901.2991062-1-yhlee@isslab.korea.ac.kr>
+References: <20261022143901.2991062-1-yhlee@isslab.korea.ac.kr>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -65,239 +102,122 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found 3 potential
-issue(s) to consider.
+srpt_get_desc_tbl() takes the number of INDIRECT descriptors from
+idb->table_desc.len, which the initiator controls, and checks it only
+against data_out_desc_cnt + data_in_desc_cnt, two more initiator fields.
+Both are u8, so the pair admits up to 510 descriptors, and nothing
+compares the table against the receive IU it has to live in.
+srpt_alloc_rw_ctxs() then walks idb->desc_list for that many entries.
 
-Critical: 0 · High: 1 · Medium: 0 · Low: 2
+With the default srp_max_req_size of 8276 the table fits as long as the
+additional CDB is short, but ADDITIONAL CDB LENGTH is an initiator field
+too, and at its maximum of 252 bytes 510 descriptors end at
+48 + 252 + 20 + 510 * 16 = 8480, which is past the end of the object:
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+  BUG: KASAN: slab-out-of-bounds in srpt_alloc_rw_ctxs+0x64c/0x820
+  Read of size 4 at addr ffff888002d3a05c by task kunit_try_catch/44
 
-- [High] The v12 `!lgr->terminating` guard in
-  smc_lgr_schedule_free_work() (net/smc/smc_core.c) does not close the…
-- [Low] The commit message says "Other kill paths leave the socket
-  hashed, since it can stay open until close()".
-- [Low] The commit message's 'Fifth' paragraph gets the mechanism of its
-  own example wrong.
+  CPU: 0 UID: 0 PID: 44 Comm: kunit_try_catch Tainted: G                 N  7.3.0-dirty #1 PREEMPT(lazy)
+  Tainted: [N]=TEST
+  Call Trace:
+   <TASK>
+   dump_stack_lvl+0x3f/0x50
+   print_report+0xcd/0x620
+   ? alloc_pages_node_noprof+0xa2/0x140
+   ? srpt_alloc_rw_ctxs+0x64c/0x820
+   kasan_report+0xde/0x110
+   ? srpt_alloc_rw_ctxs+0x64c/0x820
+   srpt_alloc_rw_ctxs+0x64c/0x820
+   srpt_test_run.constprop.0+0x13b/0xc50
+   ? __pfx_srpt_test_run.constprop.0+0x10/0x10
+   ? pick_task_fair+0x126/0x1950
+   ? update_curr.constprop.0+0x4a/0x390
+   ? __set_cpus_allowed_ptr+0x181/0x240
+   ? __pfx_read_tsc+0x10/0x10
+   ? ktime_get_ts64+0x192/0x250
+   kunit_try_run_case+0x1ca/0x4b0
+   ? __pfx_kunit_try_run_case+0x10/0x10
+   ? kthread_affine_node+0x247/0x360
+   ? __pfx_kthread_affine_node+0x10/0x10
+   ? __pfx_kunit_try_run_case+0x10/0x10
+   ? __pfx_kunit_generic_run_threadfn_adapter+0x10/0x10
+   kunit_generic_run_threadfn_adapter+0x7b/0xe0
+   kthread+0x36a/0x4f0
+   ? __pfx_kthread+0x10/0x10
+   ret_from_fork+0x34d/0x620
+   ? __pfx_ret_from_fork+0x10/0x10
+   ? __switch_to+0x22/0xde0
+   ? __pfx_kthread+0x10/0x10
+   ret_from_fork_asm+0x19/0x30
+   </TASK>
 
---
+  Allocated by task 44:
+   kasan_save_stack+0x33/0x60
+   kasan_save_track+0x14/0x30
+   __kasan_slab_alloc+0x6e/0x70
+   kmem_cache_alloc_noprof+0x11d/0x2f0
+   srpt_test_ctx_init.constprop.0+0x481/0xfa0
+   srpt_test_run.constprop.0+0xf4/0xc50
+   kunit_try_run_case+0x1ca/0x4b0
+   kunit_generic_run_threadfn_adapter+0x7b/0xe0
+   kthread+0x36a/0x4f0
+   ret_from_fork+0x34d/0x620
+   ret_from_fork_asm+0x19/0x30
 
-net/smc: fix lgr/lnk lifetime vs diag reader race
+  The buggy address belongs to the object at ffff888002d38000
+   which belongs to the cache srpt-kunit-iu of size 8276
+  The buggy address is located 8 bytes to the right of
+   allocated 8276-byte region [ffff888002d38000, ffff888002d3a054)
 
-This patch closes several windows where the SMC sock_diag dump can
-dereference conn/lgr/lnk state that has already been freed. It skips the
-CONNINFO/LGRINFO/DMBINFO attributes for SMC_INIT and SMC_CLOSED sockets,
-orders sk_state with acquire/release, unhashes sockets before teardown in
-several paths, and copies the cached link->ibname. It also unregisters
-connections unconditionally in smc_conn_free() and stops arming free_work
-on a terminating link group.
+The KUnit harness that forces this is not part of this patch.
 
-> Fifth, on the smc_lgr_cleanup_early() path (e.g. server CLC decline with
-> SYNCERR) __smc_lgr_terminate() sets terminating=1 and unlinks the LGR
-> without setting freeing=1.
+Compare the count against the room the IU actually leaves for the table.
+recv_ioctx->byte_len is signed, so a byte_len too small to cover even the
+descriptor header yields a negative room and the same test refuses it.
 
-[Severity: Low]
-Is the SYNCERR example here accurate? On the server, smc_clc_wait_msg()
-handles a DECLINE that carries SMC_FIRST_CONTACT_MASK like this
-(smc_clc_send_decline() sets that mask for SMC_CLC_DECL_SYNCERR):
+The header itself is always inside the buffer. The largest offset
+srpt_get_desc_buf() can return is 48 + 252 and the header is 20 bytes, so
+it ends at 320, while srp_max_req_size is at least MIN_MAX_REQ_SIZE,
+which is 996. Only the table needs bounding, so one test placed after the
+existing count check is enough.
 
-net/smc/smc_clc.c:smc_clc_wait_msg() {
-    ...
-		if ((dclc->hdr.typev2 & SMC_FIRST_CONTACT_MASK) &&
-		    smc->conn.lgr) {
-			smc->conn.lgr->sync_err = 1;
-			smc_lgr_terminate_sched(smc->conn.lgr);
-		}
-    ...
-}
+Fixes: a42d985bd5b2 ("ib_srpt: Initial SRP Target merge for v3.3-rc1")
+Cc: stable@vger.kernel.org
+Signed-off-by: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+---
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-smc_lgr_terminate_sched() then unlinks the LGR itself and sets freeing:
-
-net/smc/smc_core.c:smc_lgr_terminate_sched() {
-    ...
-	list_del_init(&lgr->list);
-	lgr->freeing = 1;
-    ...
-}
-
-All of this happens before smc_listen_decline()->smc_conn_abort()->
-smc_conn_free(). Also, smc_conn_abort() calls smc_conn_free() before it
-calls smc_lgr_cleanup_early():
-
-	smc_conn_free(conn);
-	if (local_first && lgr_valid)
-		smc_lgr_cleanup_early(lgr);
-
-So in this example smc_lgr_terminate_sched() unlinks the LGR with freeing
-== 1, and the new !lgr->terminating check has no effect.
-
-The skipped smc_lgr_unregister_conn() that leaves alert_token_local
-non-zero does look real on this path. However, it is caused by the
-terminate_sched unlink, not by smc_lgr_cleanup_early(). The problem is
-only in the cited example and its freeing claim.
-
-Could this paragraph name smc_lgr_terminate_sched() for the SYNCERR case,
-or use a different example for the smc_lgr_cleanup_early() path?
-
-> diff --git a/net/smc/smc_close.c b/net/smc/smc_close.c
-> index bb0313ef5f7c1..aa6363abdd747 100644
-> --- a/net/smc/smc_close.c
-> +++ b/net/smc/smc_close.c
-> @@ -154,6 +154,7 @@ void smc_close_active_abort(struct smc_sock *smc)
->  		if (sk->sk_state != SMC_PEERABORTWAIT)
->  			break;
->  		sk->sk_state = SMC_CLOSED;
-> +		sk->sk_prot->unhash(sk);
->  		smc_conn_free(&smc->conn);
->  		release_clcsock = true;
->  		sock_put(sk); /* passive closing */
-> @@ -165,6 +166,7 @@ void smc_close_active_abort(struct smc_sock *smc)
->  		if (sk->sk_state != SMC_PEERABORTWAIT)
->  			break;
->  		sk->sk_state = SMC_CLOSED;
-> +		sk->sk_prot->unhash(sk);
->  		smc_conn_free(&smc->conn);
->  		release_clcsock = true;
->  		break;
-
-[Severity: Low]
-The commit message says:
-
-  Other kill paths leave the socket hashed, since it can stay open until
-  close().
-
-Does that match the code? Every smc_conn_kill() ends in
-smc_close_active_abort(). These new unhash calls run in its
-PEERCLOSEWAIT1/PEERCLOSEWAIT2/PEERFINCLOSEWAIT branch and its
-PROCESSABORT/APPFINCLOSEWAIT branch.
-
-Sockets whose fd is still open can be in those states:
-
-  smc_close_shutdown_write()          ACTIVE -> SMC_PEERCLOSEWAIT1
-  smc_close_passive_work()            -> SMC_APPFINCLOSEWAIT
-                                      ("just shutdown, but not yet
-                                       closed locally")
-  smc_close_passive_abort_received()  -> SMC_PROCESSABORT
-
-When the link group terminates through __smc_lgr_terminate()->
-smc_conn_kill()->smc_close_active_abort(), these open sockets are removed
-from the SMC hash, and sock_prot_inuse is decremented before close().
-
-smc_close_active_abort() also sets SOCK_DEAD unconditionally. That means
-the SOCK_DEAD-gated unhash added to smc_close_passive_work() can fire for
-sockets whose fd is still open.
-
-The dmb_nocopy unhash in smc_conn_kill() has a similar effect. It hides
-ACTIVE/APPCLOSEWAIT sockets that stay open, but only on loopback-ism
-devices.
-
-The v10 changelog gives the opposite reasoning for the other paths ("they
-must stay visible to smcss and keep their inuse accounting"). Could the
-commit message say that killed sockets in these states are unhashed
-before close()? Could it also say that visibility to smcss now depends on
-the close state and the device type?
-
-[ ... ]
-
-> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-> index 9974149659c2f..9d8165d1b40c5 100644
-> --- a/net/smc/smc_core.c
-> +++ b/net/smc/smc_core.c
-> @@ -84,7 +84,7 @@ static void smc_lgr_schedule_free_work(struct smc_link_group *lgr)
->  	 * creation. For client use a somewhat higher removal delay time,
->  	 * otherwise there is a risk of out-of-sync link groups.
->  	 */
-> -	if (!lgr->freeing) {
-> +	if (!lgr->freeing && !lgr->terminating) {
->  		mod_delayed_work(system_percpu_wq, &lgr->free_work,
->  				 (!lgr->is_smcd && lgr->role == SMC_CLNT) ?
->  						SMC_LGR_FREE_DELAY_CLNT :
-
-[Severity: High]
-Does this check fully stop free_work from being re-armed on a
-terminating link group? The flag check and mod_delayed_work() are not
-done under any lock that __smc_lgr_terminate() also takes. On the other
-side, the cancel happens before the flag store:
-
-net/smc/smc_core.c:__smc_lgr_terminate() {
-	if (lgr->terminating)
-		return;	/* lgr already terminating */
-	/* cancel free_work sync, will terminate when lgr->freeing is set */
-	cancel_delayed_work(&lgr->free_work);
-	lgr->terminating = 1;
-    ...
-}
-
-smc_lgr_cleanup_early() never sets lgr->freeing, so on that path
-terminating is the only thing protecting free_work.
-
-On an SMC-D server, smc_listen_work() drops smc_server_lgr_pending right
-after sending the ACCEPT:
-
-	/* SMC-D does not need this lock any more */
-	if (ini->is_smcd)
-		mutex_unlock(&smc_server_lgr_pending);
-
-So a second connection B can join the LGR of first-contact connection A.
-Can the following interleaving happen?
-
-CPU1 (connection A, CONFIRM wait failed)
-smc_listen_decline()
-  smc_conn_abort(A, 1)
-    smc_conn_free(A)
-      smc_lgr_unregister_conn()        /* conns_num 1 */
-
-CPU2 (connection B)
-smc_conn_free(B)
-  smc_lgr_unregister_conn()            /* conns_num 0 */
-  smc_lgr_schedule_free_work()
-    if (!lgr->freeing && !lgr->terminating)   /* passes */
-
-CPU1
-    smc_lgr_cleanup_early()
-      list_del_init(&lgr->list)
-      __smc_lgr_terminate()
-        cancel_delayed_work()          /* nothing pending yet */
-        lgr->terminating = 1
-        /* conns_all is empty, B is not waited for */
-        smc_lgr_cleanup()
-        smc_lgr_free()                 /* drops base reference */
-
-CPU2
-    mod_delayed_work(..., &lgr->free_work, ...)
-  smc_lgr_put()                        /* last reference */
-    __smc_lgr_free()
-      kfree(lgr)
-
-__smc_lgr_free() does not cancel free_work again. The timer would then
-fire on freed memory after SMC_LGR_FREE_DELAY_SERV. The same window
-exists if CPU2's check lands between the cancel and the terminating
-store.
-
-Before this patch the race could happen through B passing the
-!list_empty(&lgr->list) check. With smc_lgr_unregister_conn() now called
-unconditionally in smc_conn_free(), conns_num can reach 0 at any point up
-to the terminating store.
-
-Another question: terminating:1 is written without lgr_lock, and
-freeing:1 is written under lgr_lock. Both share a bitfield byte with
-sync_err:1. Can concurrent read-modify-writes lose one of the flags this
-check relies on?
-
-The comment in __smc_lgr_terminate() says "cancel free_work sync, will
-terminate when lgr->freeing is set". However, the code uses a non-sync
-cancel, and this path never sets freeing.
-
-Would one of these work instead? Either publish terminating before the
-cancel, under a lock that smc_lgr_schedule_free_work() also holds across
-its check and mod_delayed_work(). Or do a cancel_delayed_work_sync() of
-free_work before the final kfree(lgr) in __smc_lgr_free().
-
-[ ... ]
-
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 7197d95f2216b..97758082f71d2 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -1117,6 +1117,8 @@ static int srpt_get_desc_tbl(struct srpt_recv_ioctx *recv_ioctx,
+ 		struct srp_indirect_buf *idb = srpt_get_desc_buf(srp_cmd);
+ 		int nbufs = be32_to_cpu(idb->table_desc.len) /
+ 				sizeof(struct srp_direct_buf);
++		int desc_off = (u8 *)idb - (u8 *)srp_cmd;
++		int room;
+ 
+ 		if (nbufs >
+ 		    (srp_cmd->data_out_desc_cnt + srp_cmd->data_in_desc_cnt)) {
+@@ -1128,6 +1130,14 @@ static int srpt_get_desc_tbl(struct srpt_recv_ioctx *recv_ioctx,
+ 			return -EINVAL;
+ 		}
+ 
++		room = (recv_ioctx->byte_len - desc_off - (int)sizeof(*idb)) /
++			(int)sizeof(struct srp_direct_buf);
++		if (nbufs > room) {
++			pr_err("received SRP_CMD with %d descriptors but room for %d in the IU\n",
++			       nbufs, room);
++			return -EINVAL;
++		}
++
+ 		*data_len = be32_to_cpu(idb->len);
+ 		return srpt_alloc_rw_ctxs(ioctx, idb->desc_list, nbufs,
+ 				sg, sg_cnt);
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261019111008.3367567-1-mjambigi%40linux.ibm.com
+2.43.0
+
