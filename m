@@ -1,97 +1,61 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.201.0
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1792677211;
-	b=XylBByIGc1w2rCM3A6VIMEpZOoZCSM2mMb4Q4ntV+7IkVOc2WzLaAcnlWfYKlq1f215c
-	 DFa3zLdc3do5gd1gji3+P8HfVQv/MKwZo5OgF+KmbdYhfD7z2XztE293TfcwmNKmnxWyd
-	 kri3CBustlMih7A3p6VMaa5PtnpHxlkMmRYabaCSdBn0OXYvT0dq5AJ6YQfrMyFUUsKIZ
-	 +S6Bst1v8x1vdSA7VrUD//y4bycG5MNP118I8EWGnGQaBtyqt9VGYVx+N9/D060Pv5MAy
-	 0qsnlUX5IdDpT6t4gpknHuEjmLHC6ybvapRuWf43qBx3SDGCf++T4T5vZKIfwNWt2PQ==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792677211;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
-	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding:X-ClientProxiedBy:MIME-Version:
-	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
-	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
-	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
-	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
-	 X-MS-Exchange-CrossTenant-UserPrincipalName:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=ec01Jgm6Gss+TXuLAb5SkaFD7+Er9y0XiDzrqSLudUs=;
-	b=Yi/E5aTH06qM6qjlDarLoYZ+mncvhuK/2uXxBXcu8yn329Ntg04HUkXAap2+yEnlGyNs
-	 sU6u887JrAeu7KuL7WetuVjesy9P1obt2ldIJlJDJr4CDRLlMfZyS5534/+2F+ekEZSWi
-	 3nGV78d/Ut7z83CMnN3JveiqZfGiMd1lAzWvpSaOjK+OzBjOXC5eMq3M3B6bagg8FIGe+
-	 ihdxUayxUZwPNBIxTvF8vfy5Tk5Xl+9aenh+2eNK9vswvuz8gZBVMVRvuzn85eAgScRz+
-	 ShUAXPLkd0IQOtSA30txu4GyNcEsoYBUCnGePYCailNq5T+CyFPICYynx7Q5PNXpYPw==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=nvidia.com;
-	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b="i/yLjJtD";
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.201.0
-Received: from CH4PR04CU002.outbound.protection.outlook.com (mail-northcentralusazon11013000.outbound.protection.outlook.com [40.107.201.0])
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1792678389;
+	b=hhO5JHZYZavBs9d8YMv8Sy/WC8Kg2YCV+86CyGkPFTCc2mHtoLJZXXeexicGcIwADh0H
+	 lVYlKToPv7y11d6yShvp64mECewvXz8OgMTdexXpSTfRBmr8zUjqBQLveABzIRIJ/S1KL
+	 v6sy1VlNUdML2gP9EIL0NJssX5ChxlPRnyc2Bsbu/Y+v1lsmXW9loRwkr0qVI1Ay5+naj
+	 ixZSlwTk6sdaVlAlZETYo49lpsEfqAdBlIkRVm8ZsVWnsCG4W+amWDcO0smq76RvZoNwM
+	 f1cXZRrBghDff+DjwM0Y9Bo7lMs7yfRweoD4/KgfRkm9u8OJMamMDHq0jYt5NGHM7sg==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792678389;
+	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
+	 In-Reply-To:References:X-sashiko-severity:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=lVyCsAyW+f6wFm05LptcX8c53okKTmSAzUoLzdTwIEs=;
+	b=wJUVwb65GyzNBnmIgsZHTSC0188HScAi2H3c6aHGDhYK7rWSyq1coxDQd+yJW1LsMmf2
+	 128UGxAErh/Zw69lnkMaaMhsEReZQM+uMnVl/M/+MJ8ICl2e3CkQWFYAcgZC9cAPRedGc
+	 uqW0LVT9x1zirm2KttV54xPy3huamSHge0BV9jqjikR5nvI3WKoQMHWTfmf3vPJeQJfud
+	 EBToCuG1kQx0tgzy2AF4MYRS3vpZaJkdLTS1myLurF2hry/+mOoavWDxrixJrryxc02eD
+	 MT4LU5O8QRzYNHV4y2s5wUhJJu6X3iUdvSlkCQeoDw4PZtl1oLT3FIfsWWuSBK3FB2w==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GAkbFUMH;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D71A606A33E;
-	Thu, 22 Oct 2026 13:53:30 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7D71A606A33E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6F76606A327;
+	Thu, 22 Oct 2026 14:13:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=i/yLjJtD
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Q8OcbIlNPV8V49LbiFF85G4qVZHYctShIqtQhvewgduuCJiM6Adnf9kcBiFzWFrXNAMyK2CkliAv8u52VcdZb6Ho1BjnGGxJG791Tvub6323ADzceiAhNt2Ez3FkDd8VQifU6JrxHaU6O29SOTMv6T1SrD4+eVP4nR2dHF9f9ZpLKQRa908k/q83OQ9/nbtFJdcdrwBKq1aS9whWoxAhoxbdSGDl3wDXkxQDAUBSaGqKBrZSAW2NWRDUx4nyDE0EY1LByXdmLQxuysopg8VRc4/PB5FqL04zh0EhoD5Oh9sE6S/5B3o/JdW27r+8+bRULqqKI/hDQrycMB/jy1f1Gw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=ec01Jgm6Gss+TXuLAb5SkaFD7+Er9y0XiDzrqSLudUs=;
- b=ROYKoQbm+xNFCKMIZtBqo+KA3UtcgFO5ud4BU8qxMkd385n154Z5OrV3a2zxHCQjVdVlUDxlgfdzX14rl6Y2i1hFZryiV6RtEJSJMiSJlWHyS4hs0/Nu50Zj3U17fwfjtTt3WFzgsJTmqkgtDVgJqM4sqPohOjMAgWLjscBaf68rO3KJ37etlxur1VU17ZDo14DA2FzJC6x/ArubqWxn02xGN5aHE+tvycyBn0qcTgfcVso1b8dmeFUijNQTJtnIYezes1L913HExPNkyyc39HXTy267W9Bq9KY4/QeCaqmiWv9jMl5UFGwTmtmefrAbg3kEu8a2VQF+VorFhywefw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=ec01Jgm6Gss+TXuLAb5SkaFD7+Er9y0XiDzrqSLudUs=;
- b=i/yLjJtDFJAPnJF77gDpFIkimRGY9HsT6SvJ7Krc+5+iSU/Adq+TvmaB4lC/VeYvl+q1nzJGIo24lep15kgq7sEhl1qgUIkVqBlx16O2xaneXiA7BlnjOqUTu7si9TGRh3jdMvPhE6pGezEb/1D90GRikeWbzSzxOtz98qLiWY9uGMHgXNpVf0hDeI6BjDSath+AJNDQunPX/8w010XoHdBeRudV6OdIIZXSDvoMPbdtARHSIlg/Ge9Zm0/Oza4kqgNO2hxqReDBbVOdiKO+hUHGbYqWx8Ti3L4H2Kh039V5P09MyIKnXusqeGyGiKdZ8HXOmo2Phew3VQq651NfZQ==
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from IA4PR12MB932075.namprd12.prod.outlook.com
- (2603:10b6:207:12d::15) by MW3PR12MB4492.namprd12.prod.outlook.com
- (2603:10b6:303:57::10) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.546.15; Thu, 22 Oct
- 2026 13:51:24 +0000
-Received: from IA4PR12MB932075.namprd12.prod.outlook.com
- ([fe80::5a6f:1f74:6ccb:cf2f]) by IA4PR12MB932075.namprd12.prod.outlook.com
- ([fe80::5a6f:1f74:6ccb:cf2f%5]) with mapi id 15.21.0546.016; Thu, 22 Oct 2026
- 13:51:24 +0000
-Message-ID: <bf7ecec5-8bf4-47b0-bbf5-6dc8fa4e64d4@nvidia.com>
-Date: Thu, 22 Oct 2026 16:51:19 +0300
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net] net/mlx5e: Fix stalled channels with threaded NAPI
-To: Josef Bacik <josef@toxicpanda.com>
-Cc: Saeed Mahameed <saeedm@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
- Leon Romanovsky <leon@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>,
- Jakub Kicinski <kuba@kernel.org>, =?UTF-8?B?QmrDtnJuIFTDtnBlbA==?=
- <bjorn@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-References: <20261021-b4-mlx5e-threaded-napi-stall-v1-1-d719c17b3ec4@toxicpanda.com>
- <cd140948-317a-49d8-885e-0ded451195c6@nvidia.com>
- <17926738093796.1.mlx5e-threaded-napi-stall@toxicpanda.com>
-Content-Language: en-US
-From: Tariq Toukan <tariqt@nvidia.com>
-In-Reply-To: <17926738093796.1.mlx5e-threaded-napi-stall@toxicpanda.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: FR4P281CA0088.DEUP281.PROD.OUTLOOK.COM
- (2603:10a6:d10:cd::19) To IA4PR12MB932075.namprd12.prod.outlook.com
- (2603:10b6:207:12d::15)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GAkbFUMH
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CEC21F000C1;
+	Thu, 22 Oct 2026 14:13:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792678388;
+	bh=lVyCsAyW+f6wFm05LptcX8c53okKTmSAzUoLzdTwIEs=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=GAkbFUMHDzBKKbZkl3JMrYDZPR48XXJ7UUtT+UPPVA2uV+e+/Bb2HtlZP788n+FkH
+	 ZMCCmB7P83Rnq5jHIygQZX/3sc84m8JA3yUPhoOMVVZOjr6jH3P+mKP7DGrQS/f5Tc
+	 9n6bCpAiVJS84gXn3ReeSTa6C3CSBlrRDSieHtbCAc1yxtgIsQlFN5XnECNWJV6aZo
+	 YCKLb7UyAUaRU03heJdoNcQVaunmPK1D9FqJziOtIoQVyS3lobaFqh1COvt6RL39OZ
+	 pqT/zkr/kc4//vhqFCevmGdd8WrsWKwVYyUuAA2oIgVN225O3Jti6BCvh9bqk1uhE6
+	 iYAEOnOxddusQ==
+Subject: Re: [PATCH net v12] net/smc: fix lgr/lnk lifetime vs diag reader race
+From: netdev-bot+sashiko@kernel.org
+To: mjambigi@linux.ibm.com
+Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
+ kuba@kernel.org, pabeni@redhat.com, alibuda@linux.alibaba.com,
+ dust.li@linux.alibaba.com, sidraya@linux.ibm.com, hidayath@linux.ibm.com,
+ pasic@linux.ibm.com, horms@kernel.org, tonylu@linux.alibaba.com,
+ guwen@linux.alibaba.com, stable@vger.kernel.org, netdev@vger.kernel.org,
+ linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
+Date: Thu, 22 Oct 2026 14:13:06 +0000
+Message-ID: <179267838686.3135.11610279010793695525@kernel.org>
+In-Reply-To: <20261019111008.3367567-1-mjambigi@linux.ibm.com>
+References: <20261019111008.3367567-1-mjambigi@linux.ibm.com>
+X-sashiko-severity: High
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -101,137 +65,239 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: IA4PR12MB932075:EE_|MW3PR12MB4492:EE_
-X-MS-Office365-Filtering-Correlation-Id: 8a8be122-b17a-4eb2-ae86-08df30438f82
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|366016|23010399003|376014|1800799024|18002099003|22082099003|5023799004|4143699003|11063799006|261021123027099003|261009223027099003|261021121427099003|10067099003|56012099006;
-X-Microsoft-Antispam-Message-Info:
-	DIxxaNiwPS2H9Y3bvBrn0mHCHQHwodV+ML2lJE5IUJuenJtlrdhFP7SQHlQxTYja+uh240GNl8Z551Y8L3xynOepAD3aKRgwmnCrkPHzIIeY0YtraHlD/N5WWh/PEH0uRp6bc2/hivBwm34mhU5uKGt1i+vkifOQclk337T9XJBI8lV+vuFS5wMsj/joH2w6Y3Hc/iSn6IkdDzparzU+E+LrMRlvta+BiuQnsO6qplDlJM0DRFdzMKlHmoV8C+8RM0A7/g38xOj9aA+mR8uLcxjsW2hCsGnxbW4pC1woXDHjhtWwoSuYAjcfB7yGEvnmRXXLJ+1Z8vmU9QYOHj9xJHNtUIvLUfjvp9wYGlDO1xp92kiQeswDb6m+/JTTgU2JU2joYIg3n8pG0n5wxVokY/Bv+Hov9iWFKJWMJf+pi1QFi7sTT6UHvMNHvoU3udq/qG4tIvbDfG4pQMzT0XnxjH4qltw6N4bB3hCdtlnsqJMxLkXBWgQ0MEJwOg1J8EMqyYgojmbSLsY/Hn7T78VNLfWhyC4mf8xBqV20zA/0JwZ+lgoQ1KlPJ7dupMA843NebH5hZq0ajyg9xAeMnMZ+MLEoybaunSWUnODaQr28BrtV5Ik1VKcN/ONAVZYqBwTNXoTuETxtmZyGl8CA0BA6P6fc7I2ngtWq1toGU7PmXH8=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:IA4PR12MB932075.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(23010399003)(376014)(1800799024)(18002099003)(22082099003)(5023799004)(4143699003)(11063799006)(261021123027099003)(261009223027099003)(261021121427099003)(10067099003)(56012099006);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?YmJ0RWdVWE4vM2twbDU2M0RXUk14ck40ODUzelI2bzZCNjdXQ01sbWlXOGN2?=
- =?utf-8?B?czl3Q1VTQmlkQzNuaXBCaTdPVVB6Zkp2MXJkZlhITWJQTTdUM1l6SjlyR1d2?=
- =?utf-8?B?Sm1TQVUrSE4reWpieHRBdGZENHhtanpZRU40cTJ4OFlOVkMvODBSaGQyOGtM?=
- =?utf-8?B?M1paN2xvT21na3hsN0Zkc2pob3I0Z0tPNk40aE0vL1o4VmdITW1OS0NYazBX?=
- =?utf-8?B?bUl3T09BRVVwbms1cERlNlBZVno5TzZhTXJVb0wvcmFLUkRRRnIzNDUzOUh4?=
- =?utf-8?B?MHdLdkhON3dROTkvU0RUL1Z3K1VIOUxyN1FqUzRNWTFKYkoyb0Rvc2RSTXcy?=
- =?utf-8?B?UkEyL3grQ0hkN1RXSzFXUm5MTks3a3lKMERlREtONTBCLzR5VjVzTzErRGhS?=
- =?utf-8?B?bW92eTlzcVAydENqd3BOdElzUEZPOUJtbVNzL3EwUFJRTzZqOTFTeDZMbmFB?=
- =?utf-8?B?WUVIUEttbXFnNmRpczVRR3FuOTZIOHNmMVgxOHV6OEN1V0tERFJPSGxCbnNx?=
- =?utf-8?B?T1ZOM3ZjajJiaUJneFFOWHJZSHN3YjF5eFNkKzFnOGUwa1ZNMWxoSmdONDJO?=
- =?utf-8?B?Yk5XU05aVWcyNUZCMEswd1VNQVF6TVFZOFk4VG5MbXJJUkd4OXVGcjE4Wndr?=
- =?utf-8?B?dUxBazhhMnVEMmp3UVlHNFpTWmdWanRRR1BscjdIcEtkeVAyRFh6YVo5M2Zo?=
- =?utf-8?B?TitQa3RjVVpJejkzZkxLRW1zdERxM2NOM0hjV003Z0lUTWNySkg1ZmNYc2J4?=
- =?utf-8?B?Q1BVZ1NueE16UG9XZDlQMWM0U2huWERScGpudTNSdWhJNjVrM1dhS0tQK3BF?=
- =?utf-8?B?ZDhyUzhzaVVmK1BjTEhIb2liY0s2TWljejJpOS9keFp5cXBwVlhlQnJYT2FF?=
- =?utf-8?B?eDRIYmVxYkxUaFdJSmNzemdnOWlUaTF1dkdtYmkyQUpSNWRjRXN1Z3pJUC9L?=
- =?utf-8?B?dkFQaS9vUHRVWXZQbHcyT0hJelozbFozRGQrak5yMFY1NTVJL2pjVXBLUFpM?=
- =?utf-8?B?UFEzc1ZGYkhVZzhZQmJqZ1NzSkNYYmpzOGROV000SVNmMmEvRGNMZjlqTE0r?=
- =?utf-8?B?Q1JmQWEwV01ZejFuS1kzL0czM1E2UEMwS0tQVVhuWU4vMVBqdFBFV21HWHdM?=
- =?utf-8?B?elc2U1ZudG1GNU5nam9wWXV4M1o4Yk5tME11d3dkUDNLMWdhK2VwQytBTWQy?=
- =?utf-8?B?dXBaamtVM0VTMENuUDMzVlRRblpIT1RMeW5GTVJkRHFVT281OTYySi9OUWpy?=
- =?utf-8?B?c2x2YzB1ZlpIcDVwOUh3WVR6Vmx3NDM1M285cllOTWVxVzUxSEJFeEtWZ0tS?=
- =?utf-8?B?MTRtWHp3S3lXR3Qyckl2TjhSNzk0a3lZczI5aVQ1YVdvNWtiSjRiWDFZcFdo?=
- =?utf-8?B?MFJnalNsR2t3V2J2ZlRmenFHMFFWUHgyRnBsdVN1OTVIdDQ3bkQwME50dUNM?=
- =?utf-8?B?dEpzbGJBZHBwdmFnQ3dlQVVBWHhCUFNIbERuZ2ZTdkQzY25aMVRBSzYxUkpW?=
- =?utf-8?B?N2NaOGNhaktmUy9PYVhURXloZmlFOG43aDYvL2pWVkhiOEJEeDR6Q3JxSHIr?=
- =?utf-8?B?akd1ZUFoZXpBTEdLNlhlMEhrWEdtTXRCZWR3ZkVka3g1cGVXejZLSW9TWXR4?=
- =?utf-8?B?WHYwNlRXeWNjRmNHcmE5MEt0YkdZMjk5bVhZUTBBczg3RWFLQlhUSGxvS3lw?=
- =?utf-8?B?S1hOMkNPL1MxcFYrZUNIaU9jUlhQTTRjSDljVThGY2FkZ1E0OGIydWJvRjhI?=
- =?utf-8?B?NkhzK04vMlRQZTdxZFM5eFgrYUtDL2tSV2xMZktPM1laeGxCRnVOc3hkaVF0?=
- =?utf-8?B?Vk1SeTNwQ1JGOUU0YXVUNFFwOHR5YW9HcHk1Rm1qZmJiK2M0Z3A0aTlCNWFP?=
- =?utf-8?B?N0V3WGgrTkYvam0wWi90bjFIL2FjME4xdWVqd21BNDZUMzFpdmYwekJaN0Jj?=
- =?utf-8?B?T21jWWVkYTJRMEZlTno2bVNCeTlzMkRLWWtmOWlOdVFMUDJkYStHdWYzbkZP?=
- =?utf-8?B?Z3BPa0MrTHBGZG5NbXN4VU51VURYdXB6a2RvVlV6RE1Ba2xIbGN3Q0RXZmxJ?=
- =?utf-8?B?TGVOazZ2cklXNGRWV3NuWG0ySDVpazlBb3lxdFFHNHd4bmVpRWZlS2grR0lm?=
- =?utf-8?B?bkZ5em1ZUkUxMm15UDZhajNKcnZtVjQxL2JxM3FFUHNCNDFlc3pWZlFHNW5t?=
- =?utf-8?B?R1IxdlBEckw0cjltTm42bGZ6d1B5SVkvcml5M1ZvVzNxa1pWVmQ2RXh5dS8z?=
- =?utf-8?B?NDdnVXVVSDNQYTl5RktvVVNpN0lkVzJTckxOQWFKL0o5cDc5ZXBLL0ErR2hO?=
- =?utf-8?B?SDcyOE9uVy93MFdOdEgyZlhzRmh2ZHRVMDV6MG54cGhsQWZwUjMrUT09?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 8a8be122-b17a-4eb2-ae86-08df30438f82
-X-MS-Exchange-CrossTenant-AuthSource: IA4PR12MB932075.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Oct 2026 13:51:24.0112
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: r+SpLos+hfzGERSTIRXQZIUxiH32BWRNZrFP50wPHWQmVgvnT2yYffRrbmCa5FNn6lnwxq/fWfYPSuO6RDlybA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW3PR12MB4492
 
+Thank you for your contribution! Sashiko AI review found 3 potential
+issue(s) to consider.
 
+Critical: 0 · High: 1 · Medium: 0 · Low: 2
 
-On 22/10/2026 15:56, Josef Bacik wrote:
-> On Thu, Oct 22, 2026 at 02:38:41PM +0300, Tariq Toukan wrote:
->> The arm doorbell carries the consumer counter, and the device tracks the
->> last index it reported an event for. Arming while CQEs posted after the
->> last event are still unconsumed generates an event right away.
->>
->> The affinity path depends on exactly that, since commit a8c2eb15797a
->> ("net/mlx5e: Stop NAPI when irq balancer changes affinity").
->>
->> Event moderation can delay that event, but not drop it.
->>
->> So the root analysis doesn't match the mlx5 device behavior.
-> 
-> The CQ has a backlog much deeper than one poll, about 6900 CQEs in the
-> run in the changelog.  The thread polls 64, is off the IRQ's CPU,
-> completes and arms.  There are CQEs posted after the last event, so the
-> event comes right away, and the device now remembers the current
-> producer index.  The thread polls another 64, completes and arms again.
-> If nothing has arrived in between there is no CQE posted after the last
-> event, only older ones that are still unconsumed, so there is no event.
-> The rest of the backlog waits for the next arrival.
-> 
-> That matches the counters of the stalled channel.  It had 0 polls and 0
-> events for 150 seconds.  New connections then gave it 16 events, 16
-> polls and 1018 packets, so one poll of 64 per event.  It was armed the
-> whole time, it just took a new completion to get an event.  Then nothing
-> for 14 seconds, then 93 polls and 5917 packets, and it was empty.
-> 
-> Is that how the device behaves, no event on arm when everything that is
-> unconsumed was posted before the last event?  That part is my reading of
-> your description, I haven't got a way to check it.
-> 
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-I have to soften my previous reply: the immediate-event guarantee I 
-quoted covers CQEs posted after the last event, so it does not rule out 
-your scenario, where the leftover backlog was all reported by that 
-event. Your reading is consistent with the documentation and with your 
-counters.
+- [High] The v12 `!lgr->terminating` guard in
+  smc_lgr_schedule_free_work() (net/smc/smc_core.c) does not close the…
+- [Low] The commit message says "Other kill paths leave the socket
+  hashed, since it can stay open until close()".
+- [Low] The commit message's 'Fifth' paragraph gets the mechanism of its
+  own example wrong.
 
-I'm checking the exact behavior with our HW architects and will update 
-here, hopefully within a few days.
+--
 
->> Is it a degradation? Did you have any "good"/working version?
-> 
-> I don't know.  I've only run threaded NAPI on these machines on the
-> 7.3-rc5 based kernel, I have no older kernel that I know to be good.
-> 
->> If arming really doesn't raise an event here, softirq NAPI would stall
->> the same way when the IRQ affinity changes under load, for example by
->> irqbalance.
->> Was it seen there too? I believe not, so it must be something else
->> causing the stall...
-> 
-> I haven't seen it there, and I haven't tried changing the affinity under
-> load.  If the above is right I wouldn't expect it.  With softirq the
-> path is taken once, that arm raises the event, the interrupt lands on
-> the new CPU, and from then on the check passes and the poll goes on
-> until the CQ is empty without arming again.  A NAPI thread takes the
-> path at every poll, so it needs a second event for a backlog that the
-> first one already covered.
-> 
-> I'll fix the changelog and the comment in v2 once I know I've got the
-> device's side of it right, and move the check into
-> mlx5e_channel_no_affinity_change() as Jakub asked.
-> 
-> Thanks,
-> Josef
+net/smc: fix lgr/lnk lifetime vs diag reader race
 
+This patch closes several windows where the SMC sock_diag dump can
+dereference conn/lgr/lnk state that has already been freed. It skips the
+CONNINFO/LGRINFO/DMBINFO attributes for SMC_INIT and SMC_CLOSED sockets,
+orders sk_state with acquire/release, unhashes sockets before teardown in
+several paths, and copies the cached link->ibname. It also unregisters
+connections unconditionally in smc_conn_free() and stops arming free_work
+on a terminating link group.
+
+> Fifth, on the smc_lgr_cleanup_early() path (e.g. server CLC decline with
+> SYNCERR) __smc_lgr_terminate() sets terminating=1 and unlinks the LGR
+> without setting freeing=1.
+
+[Severity: Low]
+Is the SYNCERR example here accurate? On the server, smc_clc_wait_msg()
+handles a DECLINE that carries SMC_FIRST_CONTACT_MASK like this
+(smc_clc_send_decline() sets that mask for SMC_CLC_DECL_SYNCERR):
+
+net/smc/smc_clc.c:smc_clc_wait_msg() {
+    ...
+		if ((dclc->hdr.typev2 & SMC_FIRST_CONTACT_MASK) &&
+		    smc->conn.lgr) {
+			smc->conn.lgr->sync_err = 1;
+			smc_lgr_terminate_sched(smc->conn.lgr);
+		}
+    ...
+}
+
+smc_lgr_terminate_sched() then unlinks the LGR itself and sets freeing:
+
+net/smc/smc_core.c:smc_lgr_terminate_sched() {
+    ...
+	list_del_init(&lgr->list);
+	lgr->freeing = 1;
+    ...
+}
+
+All of this happens before smc_listen_decline()->smc_conn_abort()->
+smc_conn_free(). Also, smc_conn_abort() calls smc_conn_free() before it
+calls smc_lgr_cleanup_early():
+
+	smc_conn_free(conn);
+	if (local_first && lgr_valid)
+		smc_lgr_cleanup_early(lgr);
+
+So in this example smc_lgr_terminate_sched() unlinks the LGR with freeing
+== 1, and the new !lgr->terminating check has no effect.
+
+The skipped smc_lgr_unregister_conn() that leaves alert_token_local
+non-zero does look real on this path. However, it is caused by the
+terminate_sched unlink, not by smc_lgr_cleanup_early(). The problem is
+only in the cited example and its freeing claim.
+
+Could this paragraph name smc_lgr_terminate_sched() for the SYNCERR case,
+or use a different example for the smc_lgr_cleanup_early() path?
+
+> diff --git a/net/smc/smc_close.c b/net/smc/smc_close.c
+> index bb0313ef5f7c1..aa6363abdd747 100644
+> --- a/net/smc/smc_close.c
+> +++ b/net/smc/smc_close.c
+> @@ -154,6 +154,7 @@ void smc_close_active_abort(struct smc_sock *smc)
+>  		if (sk->sk_state != SMC_PEERABORTWAIT)
+>  			break;
+>  		sk->sk_state = SMC_CLOSED;
+> +		sk->sk_prot->unhash(sk);
+>  		smc_conn_free(&smc->conn);
+>  		release_clcsock = true;
+>  		sock_put(sk); /* passive closing */
+> @@ -165,6 +166,7 @@ void smc_close_active_abort(struct smc_sock *smc)
+>  		if (sk->sk_state != SMC_PEERABORTWAIT)
+>  			break;
+>  		sk->sk_state = SMC_CLOSED;
+> +		sk->sk_prot->unhash(sk);
+>  		smc_conn_free(&smc->conn);
+>  		release_clcsock = true;
+>  		break;
+
+[Severity: Low]
+The commit message says:
+
+  Other kill paths leave the socket hashed, since it can stay open until
+  close().
+
+Does that match the code? Every smc_conn_kill() ends in
+smc_close_active_abort(). These new unhash calls run in its
+PEERCLOSEWAIT1/PEERCLOSEWAIT2/PEERFINCLOSEWAIT branch and its
+PROCESSABORT/APPFINCLOSEWAIT branch.
+
+Sockets whose fd is still open can be in those states:
+
+  smc_close_shutdown_write()          ACTIVE -> SMC_PEERCLOSEWAIT1
+  smc_close_passive_work()            -> SMC_APPFINCLOSEWAIT
+                                      ("just shutdown, but not yet
+                                       closed locally")
+  smc_close_passive_abort_received()  -> SMC_PROCESSABORT
+
+When the link group terminates through __smc_lgr_terminate()->
+smc_conn_kill()->smc_close_active_abort(), these open sockets are removed
+from the SMC hash, and sock_prot_inuse is decremented before close().
+
+smc_close_active_abort() also sets SOCK_DEAD unconditionally. That means
+the SOCK_DEAD-gated unhash added to smc_close_passive_work() can fire for
+sockets whose fd is still open.
+
+The dmb_nocopy unhash in smc_conn_kill() has a similar effect. It hides
+ACTIVE/APPCLOSEWAIT sockets that stay open, but only on loopback-ism
+devices.
+
+The v10 changelog gives the opposite reasoning for the other paths ("they
+must stay visible to smcss and keep their inuse accounting"). Could the
+commit message say that killed sockets in these states are unhashed
+before close()? Could it also say that visibility to smcss now depends on
+the close state and the device type?
+
+[ ... ]
+
+> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+> index 9974149659c2f..9d8165d1b40c5 100644
+> --- a/net/smc/smc_core.c
+> +++ b/net/smc/smc_core.c
+> @@ -84,7 +84,7 @@ static void smc_lgr_schedule_free_work(struct smc_link_group *lgr)
+>  	 * creation. For client use a somewhat higher removal delay time,
+>  	 * otherwise there is a risk of out-of-sync link groups.
+>  	 */
+> -	if (!lgr->freeing) {
+> +	if (!lgr->freeing && !lgr->terminating) {
+>  		mod_delayed_work(system_percpu_wq, &lgr->free_work,
+>  				 (!lgr->is_smcd && lgr->role == SMC_CLNT) ?
+>  						SMC_LGR_FREE_DELAY_CLNT :
+
+[Severity: High]
+Does this check fully stop free_work from being re-armed on a
+terminating link group? The flag check and mod_delayed_work() are not
+done under any lock that __smc_lgr_terminate() also takes. On the other
+side, the cancel happens before the flag store:
+
+net/smc/smc_core.c:__smc_lgr_terminate() {
+	if (lgr->terminating)
+		return;	/* lgr already terminating */
+	/* cancel free_work sync, will terminate when lgr->freeing is set */
+	cancel_delayed_work(&lgr->free_work);
+	lgr->terminating = 1;
+    ...
+}
+
+smc_lgr_cleanup_early() never sets lgr->freeing, so on that path
+terminating is the only thing protecting free_work.
+
+On an SMC-D server, smc_listen_work() drops smc_server_lgr_pending right
+after sending the ACCEPT:
+
+	/* SMC-D does not need this lock any more */
+	if (ini->is_smcd)
+		mutex_unlock(&smc_server_lgr_pending);
+
+So a second connection B can join the LGR of first-contact connection A.
+Can the following interleaving happen?
+
+CPU1 (connection A, CONFIRM wait failed)
+smc_listen_decline()
+  smc_conn_abort(A, 1)
+    smc_conn_free(A)
+      smc_lgr_unregister_conn()        /* conns_num 1 */
+
+CPU2 (connection B)
+smc_conn_free(B)
+  smc_lgr_unregister_conn()            /* conns_num 0 */
+  smc_lgr_schedule_free_work()
+    if (!lgr->freeing && !lgr->terminating)   /* passes */
+
+CPU1
+    smc_lgr_cleanup_early()
+      list_del_init(&lgr->list)
+      __smc_lgr_terminate()
+        cancel_delayed_work()          /* nothing pending yet */
+        lgr->terminating = 1
+        /* conns_all is empty, B is not waited for */
+        smc_lgr_cleanup()
+        smc_lgr_free()                 /* drops base reference */
+
+CPU2
+    mod_delayed_work(..., &lgr->free_work, ...)
+  smc_lgr_put()                        /* last reference */
+    __smc_lgr_free()
+      kfree(lgr)
+
+__smc_lgr_free() does not cancel free_work again. The timer would then
+fire on freed memory after SMC_LGR_FREE_DELAY_SERV. The same window
+exists if CPU2's check lands between the cancel and the terminating
+store.
+
+Before this patch the race could happen through B passing the
+!list_empty(&lgr->list) check. With smc_lgr_unregister_conn() now called
+unconditionally in smc_conn_free(), conns_num can reach 0 at any point up
+to the terminating store.
+
+Another question: terminating:1 is written without lgr_lock, and
+freeing:1 is written under lgr_lock. Both share a bitfield byte with
+sync_err:1. Can concurrent read-modify-writes lose one of the flags this
+check relies on?
+
+The comment in __smc_lgr_terminate() says "cancel free_work sync, will
+terminate when lgr->freeing is set". However, the code uses a non-sync
+cancel, and this path never sets freeing.
+
+Would one of these work instead? Either publish terminating before the
+cancel, under a lock that smc_lgr_schedule_free_work() also holds across
+its check and mod_delayed_work(). Or do a cancel_delayed_work_sync() of
+free_work before the final kfree(lgr) in __smc_lgr_free().
+
+[ ... ]
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261019111008.3367567-1-mjambigi%40linux.ibm.com
