@@ -1,76 +1,62 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792672401;
-	b=pWuCM16DN+w7X1sP5dtiQUtWjTSsCaFvRgK1WB2TUvTDfN1MVYq14QSd81OCXxCQ9Oj2
-	 KLdnPMgoaHD4gYnB790BeEtO41TMjfiKBPlMrOrtQlie8QPtwqDDfpytojaBZ8RBy+xjE
-	 2AM1e9gk6hd1zm0kW0c21jQutdkXxBoSgzxm0DMtN83O9NoGSoIViMFaVSBmgs4vpa4dE
-	 pZBJDKc+9UGCmQNk8+nJshi0ANZ6uVUorvZmTxaa/lcIpk3Z2Xtn8wrcpFGh7LDMnD1E8
-	 D2qvFQfOu9so8GSpLWbvqxVOTpbWqQ190thjmeqwAqJxxKzFRXap7KTvBxFnmCrN4gA==
+	t=1792673275;
+	b=LQMqQWbbUYcmacHJOtfAzRJp/MfDo44NVZyF6wZVg6qlk5SRwwkbVI3kVLUd2BDm/x3I
+	 aBewX0mMeSO1B84AukcbvDNkPXCyRStqE48HYSbcteRtBYBeR1U3MqK3HcvAA8BEe6tSa
+	 +UEw06+Junt2SV1nLmEanDhLoRCeNHrzPXwUp7BTpULf1kCK02xWpm7cVheG1N0/vJN4Z
+	 D1n098mXUATH409s03JR7sef9MVt2dDO94Eh4fFm/059Ypvrh9jGEVRdm44iWN23Rg+HI
+	 mY1sJ2TDOghWSe5lR+RE57DfpSQzJtycYH//c4GakvCOLMRJZworcEBsnd4v6agLo2g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792672401;
-	h=DMARC-Filter:DKIM-Signature:Received:X-MC-Unique:
-	 X-Mimecast-MFC-AGG-ID:Received:Received:Received:Date:From:To:Cc:
-	 Subject:Message-ID:References:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To:X-Scanned-By;
-	bh=ORzLwHM8BGYbMikpTiVo/3MerTLh128qa09MowVExQQ=;
-	b=Zqyds8ye8BGjj1DZVAdkIGxcOBM5ctbqm3vSNGgV1eNv76mlvac3aUjiwtGu89JkOsmk
-	 kSHz33+j21PQebEy8dD5n1tFTLeTzMeW3jqIOptAPEdeMlxxNnxSAMFGr7QzmFaDyAESV
-	 7IQpHGtdrtcrHoV0TDyX7H+kC47UIg2Nqgtc4Fog6YVWajzt4G5gS6vS3DtCmR3bFcJVB
-	 blIdsgFn+zkqKfSsNm33rbLS2YZJNrYSi5hcc/bfc7jiVSWNb9ZDyofLxvUDZj4lZz8Rf
-	 b9bucAT9tWyV8VO7/rgBoOdizorJ5yclYI97PbaTd5U1T0fEfsOzasJMeaHKNll2AIA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792673275;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
+	 In-Reply-To:References:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=H44omwwK3lb/BN9U2vv/UuziAk2eqYKNvI4mmjizaks=;
+	b=xUnTPdv/FLMsqovsgBVZRc5E++Y5g/40n6IQLdINH7hNcZqoDD30bwzqAqcrzeiY7oc1
+	 /MPvX1c6NbS58OuaziMcvJNpizd0NcXNCr3+4zCVA/lu3FoWu2AUpqrJjT0rUu0TfXvQy
+	 Y/Y+euXyqKKueEdoZOTkItQfTpOHOMoyzqFQqRHBtGTDQU+XaT8wu97XGs1BrgSTi2pEa
+	 OAJ2/7hQxZHnh8F1gJCHQ95vBcx24Q52cviMKhNW/rHVEEN2cnVVhAnKgjhS0MXRxLcdn
+	 K35D0YS4CEmWEDs/NDAYTp9kD85YzUGjFmKxQNUDOu5B/XAGtsJLu2Qctt5CN6C0t5w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=redhat.com;
-	spf=pass smtp.mailfrom=redhat.com;
-	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=EE8kwfZJ;
-	arc=none smtp.remote-ip=170.10.133.124
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=f9rG4GGq;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61E95606A325
-	for <linux-rdma@vger.kernel.org>; Thu, 22 Oct 2026 12:33:21 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 61E95606A325
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85DA3606A319;
+	Thu, 22 Oct 2026 12:47:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=EE8kwfZJ
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1792672400;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=ORzLwHM8BGYbMikpTiVo/3MerTLh128qa09MowVExQQ=;
-	b=EE8kwfZJyI/Lt5kHS1D8ovz8ZYHFen76OjNUf0pK55pdhEh8/867+xYTIJsv43RT5glBST
-	ABNrvxjzyLjXIzKl0aTsZxJ1MsgL/6tcYSGVfQeFNNiEMyMjHXDYL324jrMP0Fzd6IPjx7
-	AS9cn1QQusUwdlfuzV1XdNoXL3tHwTI=
-Received: from mx-prod-mc-08.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-35-165-154-97.us-west-2.compute.amazonaws.com [35.165.154.97]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-344-fU_oay6oNrCdi7x5QJoKOQ-1; Thu,
- 22 Oct 2026 08:33:17 -0400
-X-MC-Unique: fU_oay6oNrCdi7x5QJoKOQ-1
-X-Mimecast-MFC-AGG-ID: fU_oay6oNrCdi7x5QJoKOQ_1792672396
-Received: from mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.93])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-08.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id C969718011D4;
-	Thu, 22 Oct 2026 12:33:15 +0000 (UTC)
-Received: from onestero-thinkpadp1gen7.tpbc.csb (headnet04.pony-001.prod.iad2.dc.redhat.com [10.2.32.116])
-	by mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with SMTP id 4EE071800347;
-	Thu, 22 Oct 2026 12:33:13 +0000 (UTC)
-Received: by onestero-thinkpadp1gen7.tpbc.csb (nbSMTP-1.00) for uid 13628
-	oleg@redhat.com; Thu, 22 Oct 2026 14:33:15 +0200 (CEST)
-Date: Thu, 22 Oct 2026 14:33:11 +0200
-From: Oleg Nesterov <oleg@redhat.com>
-To: Allison Henderson <achender@kernel.org>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
-	edumazet@google.com, kuba@kernel.org, horms@kernel.org,
-	joel.granados@kernel.org
-Subject: Re: [PATCH net 1/2] net/rds: do not fail init when CONFIG_SYSCTL=n
-Message-ID: <atoCh3jw_1noK2Nr@redhat.com>
-References: <20261021195837.142802-1-achender@kernel.org>
- <20261021195837.142802-2-achender@kernel.org>
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=f9rG4GGq
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 433C51F000C1;
+	Thu, 22 Oct 2026 12:47:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792673275;
+	bh=H44omwwK3lb/BN9U2vv/UuziAk2eqYKNvI4mmjizaks=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=f9rG4GGqxaNQOUF0C72yOLZ5gj+TZEtxbIq0Vcy8I+Zn5ZChbInjMqU66I/1tpdqQ
+	 ewlaNmIVgbDNT+BEDLNyXdZpxE0QKeqQAgJxfyu3hRn/jba5W2rDKOf26aIaLjF1zl
+	 O7Om5hrlXkiLNhTsJFW6lcczXxEyN5kTBbjoZBBwDzlmagIi3MjIJKlDsWQ/26O7vt
+	 mnsA581LNLrKdjFKLSrGNemYJBKybzq+iUBPBdDoQ+gckhNclfnRnJjJcqG5PJDSrg
+	 +C7gFlbesKX/aPtGDg4f08sfdxSOENZfhdVqX+emNz+ZIuYUgFIvvI0TIT8zoNhD+P
+	 zZef+SpjBLZJw==
+From: Chuck Lever <cel@kernel.org>
+To: Jeff Layton <jlayton@kernel.org>,
+	NeilBrown <neil@brown.name>,
+	Olga Kornievskaia <okorniev@redhat.com>,
+	Dai Ngo <Dai.Ngo@oracle.com>,
+	Tom Talpey <tom@talpey.com>,
+	Hyunsol Mun <muumthf@gmail.com>
+Cc: linux-nfs@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	bobtobabz@gmail.com,
+	stable@vger.kernel.org
+Subject: Re: [PATCH] svcrdma: silently discard undersized messages
+Date: Thu, 22 Oct 2026 08:47:50 -0400
+Message-ID: <179267326422.2409795.16633003264114396479.b4-ty@b4>
+X-Mailer: git-send-email 2.54.0
+In-Reply-To: <20261022034629.430954-1-muumthf@gmail.com>
+References: <20261022034629.430954-1-muumthf@gmail.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -80,25 +66,27 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261021195837.142802-2-achender@kernel.org>
-X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.93
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 
-On 10/21, Allison Henderson wrote:
->
-> Only treat the NULL return as a failure when sysctl support is actually
-> compiled in.  The exit paths need no change: unregister_net_sysctl_table()
-> is an empty stub with CONFIG_SYSCTL=n and already tolerates a NULL header
-> otherwise.
+On Thu, 22 Oct 2026 12:46:29 +0900, Hyunsol Mun wrote:
+> RFC 8166 requires an RPC-over-RDMA message shorter than the 28-byte
+> minimum header to be silently discarded because its XID cannot be
+> trusted.
+> 
+> svc_rdma_xdr_decode_req() instead returns -EINVAL when the fixed header
+> cannot be decoded. svc_rdma_recvfrom() turns that into an RDMA_ERROR,
+> whose encoder copies the first two words from rc_recv_buf without
+> checking rc_byte_len. A zero- to seven-byte SEND can therefore return
+> up to eight bytes that were not supplied by the peer.
+> 
+> [...]
 
-FWIW,
+Applied to nfsd-testing, thanks!
 
-Acked-by: Oleg Nesterov <oleg@redhat.com>
+[1/1] svcrdma: silently discard undersized messages
+      commit: 667147c17f15824c00a5b2fcfdb66283c3f4cad6
 
-
-I'll rebase my changes which move all the sysctl related code in net/rds
-under ifdef(CONFIG_SYSCTL) on top and send the patch(es) for review.
-
-Oleg.
+--
+Chuck Lever
 
