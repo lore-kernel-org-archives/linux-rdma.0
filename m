@@ -1,55 +1,53 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792641257;
-	b=ysc9pol088CRH5hzE0Q05rIXcqyBfBl8HKlqyxuzKkEAINVuJv1P4OQVztCu5gghdzxL
-	 4aZ/dplFG9FfUzTl5KxW0aMYHSHr0Woxffio2tasydHzg91W9WsGd2+N2YIZelP30E6TW
-	 Oz2mw6JR30CKI4dv/FUh4DqWxKpix6uQzhHxEdZS/FZbSbNHCRLzZlVHuePGoptO5MCDK
-	 X0ZhiuHPfDO+0I6vYD2VFQoNOoda2xSDpuIvz4j9S8CV6mDJgHUkO7t7wRHvQYyMLFkuV
-	 DNu57KxxIqaJ1PsWIdKL469oL43vKd4b9ZJbtGMwHiKni08de/t6GX/dgqrZwLQY4iw==
+	t=1792653780;
+	b=gAkt4p8i5uAyrqGy7jtEzfM8yZsB8PW9pwSkhqACnTKU4YAKWqSqwn8Ve/Ifi2M5Ne2f
+	 wBh2MnmvN7wp178Wu4Ban09tyQ30jXVcZQItEmnLM4xINrm6My59viVlKdJx/pvzwhTDs
+	 ztQanYQ9do9hVrs2uDI2ch2Qs+fAWhvQ2z6eulH2sN2b3sVzF4aWLmXedNSbdUQ9uVaww
+	 0L/Jw6N8t5+YW8N5uEdoPludo7jUZr3RbuZQDVOowCz4z5AW5vfsKqhKMDS5cvM6ei+ed
+	 BtadXecBr44sSd5/55i5+UJSXNzmhlOxWghjAfzQMNY1kcQNZN3OichBUqbDJgEgMXg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792641257;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=B4uExw/zE5ZcFN2DSN98CrixIJD2y0y1e6TuKcKJPkg=;
-	b=4v8jzVkI90/QV5c2hosLP4NlQ+Y2UAa+oaOK3SHf3bBzkPV0NEA9svMBVK2U1vNC0Oil
-	 /wDjSFCEXJrajIJ66JJgGUx6fTFpm5XUEaU1p0Zt9kIAXMOmoCfbPw9Jg/yHjKl8PB9AR
-	 T4h3dXJMJGJKPobEzUTFGP1KdpaHGwejOujQER4w7uKE2rvWl+enzd2eOpLEcSzvk260d
-	 UXmVK7qChlnsicnxNElEbhVRFvgcu9SaESW7wQrv1CNq+ZLsP4zFBoWy1V2gfAqApZRXd
-	 ZaKiCBBxHM8n1XwIpoAFXERaKh7yL6DIQyuEY3Uk/q/F720PSBGOHRtzoE0iCGYlC+g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792653780;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=PW5neJ7JMxScbtg4OaowkQDxwAtD/GfPxcBg2b3OZkA=;
+	b=Q66nkAulzJrZrOWcLRqcOShGacWAoM2PA+JtkE0o5uj4CCJAFY80AANQllBx3uAMnE+Q
+	 AUJdj6UwPBqwuQ+sZ98RvwA3kkh6KVwCAHH9nWJHK0n+7p9d7EcLMl+s1SOPBNcRP8aAj
+	 ZkimRiLlH7+RHrAyc20/IqDUikInbAoShLUIQav6560JXU2zFcZIaffRe4ciI1u1nLKG4
+	 Acax6b8NnnrQStQ/lfP1z9+848KvQ3JiRRvkJC16nXANDLxR5Hsxt2LyPxzaOOWaJF/7T
+	 9ra235BRI39/UmMwQZOSWcGfXy0YO+l6MUdPBBvXVdTiJzfCLyDz0UrUcLfutT8vWBQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nO9MdmUy;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GYYXx3FH;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3913606A31A
-	for <linux-rdma@vger.kernel.org>; Thu, 22 Oct 2026 03:54:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 161AF606A31B;
+	Thu, 22 Oct 2026 07:23:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nO9MdmUy
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41F151F000C1;
-	Thu, 22 Oct 2026 03:54:16 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GYYXx3FH
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 597601F000C1;
+	Thu, 22 Oct 2026 07:22:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792641256;
-	bh=B4uExw/zE5ZcFN2DSN98CrixIJD2y0y1e6TuKcKJPkg=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=nO9MdmUyCj9gDR27DHkGopelUtyfRsHYW239VACb5xNSv9TiP57UAZKS6RiWLI0Sh
-	 ziSLswDwAJtvkuy/DLDrxB6nDduJYjl1EfDVDh7Hf/QZPym7uD3tCMOlk3RJ9cAwW6
-	 kgs9cDHCvssEk2AP5xgJFJ/gnZi4DuCyWIJxnVaRp7b0ogQjXYPfkrDUTmbeij+cI3
-	 XEsboUq1VxcQOz2sNCc27XZsG2291nqniTNxeMyZxt41EWgmj09jMJWASxWrdurHQS
-	 7EW9VqZi0r0AxrA7GsqEeUAMGe9RL//CzHrJOsFJS3fGkn88VmI73he214zuiAK2fy
-	 6VagZFAO+78IQ==
-Message-ID: <sashiko-outbox-180982@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH] svcrdma: silently discard undersized messages
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Hyunsol Mun" <muumthf@gmail.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261022034629.430954-1-muumthf@gmail.com>
-References: <20261022034629.430954-1-muumthf@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Thu, 22 Oct 2026 03:54:15 +0000
+	s=k20260515; t=1792653779;
+	bh=PW5neJ7JMxScbtg4OaowkQDxwAtD/GfPxcBg2b3OZkA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=GYYXx3FHcklShDfkx6667nxK913Fg6GQf7tja4PqlZNxuYe6SRNnuiPl/w5URpHqw
+	 lUxLIXF1EBVypfo3J8lZCHZPXuvPwyiua4s+6rKyV2Viz/ASGQPNrGJiKT1sJOai0U
+	 CLBWPX3G5NTzOKGmd5Ca5tGQQ/zc73REa3xNt7t0o4JhOmD2vUOIzKw4uZ5ZcmjTkA
+	 OvHlB0kxUcJRygcoaqtTV8Tz2yNklyMajNG8LW+hJuhHJPqs7TZy5ySoyNT/fs+4mE
+	 8X0WOq7aMBlG3c4jFGa7z2JrIulEbHzMU/hcFiQLY6Tzp1jCCV7+q6KbRj9hgZaBEF
+	 SOy9MssAuf77g==
+Date: Thu, 22 Oct 2026 09:22:54 +0200
+From: Joel Granados <joel.granados@kernel.org>
+To: Allison Henderson <achender@kernel.org>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com, 
+	edumazet@google.com, kuba@kernel.org, horms@kernel.org, oleg@redhat.com
+Subject: Re: [PATCH net 1/2] net/rds: do not fail init when CONFIG_SYSCTL=n
+Message-ID: <atm5EFVaz2USohS_@hobbes>
+References: <20261021195837.142802-1-achender@kernel.org>
+ <20261021195837.142802-2-achender@kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -58,32 +56,137 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="lgjygsa544j27wnn"
+Content-Disposition: inline
+In-Reply-To: <20261021195837.142802-2-achender@kernel.org>
 
-> RFC 8166 requires an RPC-over-RDMA message shorter than the 28-byte
-> minimum header to be silently discarded because its XID cannot be
-> trusted.
+
+--lgjygsa544j27wnn
+Content-Type: text/plain; protected-headers=v1; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Subject: Re: [PATCH net 1/2] net/rds: do not fail init when CONFIG_SYSCTL=n
+MIME-Version: 1.0
+
+On Wed, Oct 21, 2026 at 12:58:36PM -0700, Allison Henderson wrote:
+> With CONFIG_SYSCTL=3Dn, register_net_sysctl() and register_net_sysctl_sz()
+> are inline stubs that return NULL.  rds_sysctl_init(),
+> rds_ib_sysctl_init() and rds_tcp_init_net() all treat that NULL as
+> -ENOMEM, so RDS refuses to initialize at all even though every tunable
+> has a sane compiled-in default.
 >=20
-> svc_rdma_xdr_decode_req() instead returns -EINVAL when the fixed header
-> cannot be decoded. svc_rdma_recvfrom() turns that into an RDMA_ERROR,
-> whose encoder copies the first two words from rc_recv_buf without
-> checking rc_byte_len. A zero- to seven-byte SEND can therefore return
-> up to eight bytes that were not supplied by the peer.
+> When RDS is built in, that is worse than a missing feature: the failed
+> rds_init() destroys rds_wq, but the rds_rdma initcall still runs, and
+> when rds_ib_sysctl_init() fails the same way, the error path in
+> rds_ib_init() flushes the already freed workqueue:
 >=20
-> Check the complete minimum header length before parsing and use the
-> decoder's existing silent-drop return for undersized input. This keeps
-> the error encoder from reading beyond the received message and follows
-> the protocol requirement.
+>   BUG: KASAN: slab-use-after-free in touch_wq_lockdep_map
+>   ...
+>    __flush_workqueue
+>    rds_ib_init
+>    rds_rdma_init
+>   ...
+>   Allocated by task 1:
+>    alloc_workqueue_noprof
+>    rds_threads_init
+>    rds_init
+>   ...
+>   Freed by task 0:
+>    kfree
+>    rcu_do_batch
 >=20
-> [ ... ]
+> Only treat the NULL return as a failure when sysctl support is actually
+> compiled in.  The exit paths need no change: unregister_net_sysctl_table()
+> is an empty stub with CONFIG_SYSCTL=3Dn and already tolerates a NULL head=
+er
+> otherwise.
 >=20
-> Fixes: f3ea53fb3bc3 ("svcrdma: Use correct XID in error replies")
-> Cc: stable@vger.kernel.org
+> The underlying problem of built-in transports initializing after
+> rds_init() has failed is independent of sysctl and is addressed
+> separately.
+>=20
+> Reported-by: kernel test robot <yi1.lai@intel.com>
+> Closes: https://lore.kernel.org/oe-lkp/202610190310.9737b2e3-lkp@intel.com
+> Fixes: 3e5048495c85 ("RDS: sysctls")
+> Fixes: e6babe4cc4ce ("RDS/IB: Stats and sysctls")
+> Fixes: c6a58ffed536 ("RDS: TCP: Add sysctl tunables for sndbuf/rcvbuf on =
+rds-tcp socket")
+> Suggested-by: Joel Granados <joel.granados@kernel.org>
 > Assisted-by: LLM
-> Signed-off-by: Hyunsol Mun <muumthf@gmail.com>
+> Signed-off-by: Allison Henderson <achender@kernel.org>
+> ---
+>  net/rds/ib_sysctl.c | 2 +-
+>  net/rds/sysctl.c    | 2 +-
+>  net/rds/tcp.c       | 2 +-
+>  3 files changed, 3 insertions(+), 3 deletions(-)
+>=20
+> diff --git a/net/rds/ib_sysctl.c b/net/rds/ib_sysctl.c
+> index 2af678e71e3c..bc97a3eecad6 100644
+> --- a/net/rds/ib_sysctl.c
+> +++ b/net/rds/ib_sysctl.c
+> @@ -114,7 +114,7 @@ void rds_ib_sysctl_exit(void)
+>  int rds_ib_sysctl_init(void)
+>  {
+>  	rds_ib_sysctl_hdr =3D register_net_sysctl(&init_net, "net/rds/ib", rds_=
+ib_sysctl_table);
+> -	if (!rds_ib_sysctl_hdr)
+> +	if (!rds_ib_sysctl_hdr && IS_ENABLED(CONFIG_SYSCTL))
+>  		return -ENOMEM;
+>  	return 0;
+>  }
+> diff --git a/net/rds/sysctl.c b/net/rds/sysctl.c
+> index 025f518a4349..968d6279bbd3 100644
+> --- a/net/rds/sysctl.c
+> +++ b/net/rds/sysctl.c
+> @@ -103,7 +103,7 @@ int rds_sysctl_init(void)
+> =20
+>  	rds_sysctl_reg_table =3D
+>  		register_net_sysctl(&init_net, "net/rds", rds_sysctl_rds_table);
+> -	if (!rds_sysctl_reg_table)
+> +	if (!rds_sysctl_reg_table && IS_ENABLED(CONFIG_SYSCTL))
+>  		return -ENOMEM;
+>  	return 0;
+>  }
+> diff --git a/net/rds/tcp.c b/net/rds/tcp.c
+> index 774a71f88d37..34815b4f658b 100644
+> --- a/net/rds/tcp.c
+> +++ b/net/rds/tcp.c
+> @@ -637,7 +637,7 @@ static __net_init int rds_tcp_init_net(struct net *ne=
+t)
+>  	tbl[RDS_TCP_RCVBUF].data =3D &rtn->rcvbuf_size;
+>  	rtn->rds_tcp_sysctl =3D register_net_sysctl_sz(net, "net/rds/tcp", tbl,
+>  						     ARRAY_SIZE(rds_tcp_sysctl_table));
+> -	if (!rtn->rds_tcp_sysctl) {
+> +	if (!rtn->rds_tcp_sysctl && IS_ENABLED(CONFIG_SYSCTL)) {
+>  		pr_warn("could not register sysctl\n");
+>  		err =3D -ENOMEM;
+>  		goto fail;
+> --=20
+> 2.50.1
+>=20
 
-Sashiko has reviewed this patch and found no issues.
+This LGTM
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261022034629.4309=
-54-1-muumthf@gmail.com?part=3D1
+Reviewed-by: Joel Granados <joel.granados@kernel.org>
 
+--lgjygsa544j27wnn
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAABCgAdFiEErkcJVyXmMSXOyyeQupfNUreWQU8FAmrZucYACgkQupfNUreW
+QU9mdgv/Zv1clsJ61kjW2j5pVJXo8dLSowVRYq9YSV7mjHRR/Hf1krRQvxnJaRXC
+Nhranb4rDeMd1+D5AXvzk1a3fM9YQbuXgnQ10hMFxZp9IrkI4l7ThcaRh12kAp0G
+dIaj4C19p6Lmrn0KXmklxN3Ik5Nk8ATdS7p+X+EmkXAwUy+zUd+gxa5lwI7cKbsh
+/fCwdUjsqPJz0mCaSYAIFUccAsSviZsFjj00ysf/mQ9HQbm0Hl1zys5GBp1OsyVG
+Okr5pracCX4YN1wwjkGMDf5BARfkpvzPkx36Gx/rfAGL1XkQI0IF1V85Ov4nGGmc
+HPsT6AkGPZgdIEEA+NltLQ42dvDQ5uHm0jGh71g0qqhxFVNYQ3vzgDOOogH9VZhH
+w6jOuqUbazMFOMRhRPrWPYcmQzJ0vnjUnv6vELeT7HGZM3bJ8+f3OqP+kSaDHNUe
+/S9reU1gVPYSwj3Acb1pBzTzRHsLcMcFd+HI5seh/aiQErJU/WUNLJy7eNDvpfl7
+H3dG+eHf
+=GTvb
+-----END PGP SIGNATURE-----
+
+--lgjygsa544j27wnn--
