@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792680257;
-	b=KqEQKKzaI/v+pEO2g1lFUOpYih7PrueiCapuR6I1ra7BrWkS6S9yT5bRhQQuzOM7w8o0
-	 htjfVliuAlDBgnF2Tqv6nhZ8E0IyjFS73ogQrLB7twhiyfdnZJK5DB+yKol0uDuX1zn9d
-	 qXht6oXjz149n4xRcsaLmASZcIZjdTvkdRkPle8c7vmSbY8FDQj5tSSJ7aE0vQeY5cYlt
-	 Yhoq95fWp4QtmYrDSSVXr2Dm3NFgJcPyszO1cd30pFo5+7pVIAJf4LcGJ8NkEE+NR7oqy
-	 P/5bY77HJThH2mRRzvx+Jj/n9e52BTC44TUSsyDYfS/AdCiVFAySH1ZS7Z45qdBvKbA==
+	t=1792680261;
+	b=b7+na9I3UKW9FHfjKhAt46Wr0jDFW0mKUuVJtz9Fzw1Gd0nOtbjAbhbOQM71RNRqfaRj
+	 /HiSMrPom5/m8j67Qa0v0ZNYEnG0llckHYZvDtqRMK8tV33SU25CXmKIQlS0BEgHQBJjM
+	 b7kytvU7NZg7YlFaEiW+30Fv9td33WC0+MzATdeUq6XxPWEZYTTf5dFbi9gpr3aS5g/5J
+	 uc4YxQpGzUu6d6LZQ6s2J8ag3OO7wU7xvqVm2nVkOdX8/BlpQtOLbW4bFBImi7UE+ZvYH
+	 D3lQHfy/LqWacGLIWsdH3LNg4DT3oSVgOhFKnHPn8KY3iclajG6kS+rbrtntu195Vnw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792680257;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792680261;
 	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:In-Reply-To:References:Content-Type:
 	 MIME-Version:Content-Transfer-Encoding:X-Spam-Status:
 	 X-Spam-Checker-Version;
-	bh=iuty2+xJIN5LQRJAknFt1dp6ncxxbQEVN7EXoGwFcHA=;
-	b=4kjyo1524wFyy4wISovYK5oHEXCB+Ke9v/Q6xif8NZFuHUJ4X/+VOITewmONVdEBJs27
-	 OBUsOM6R0Mf4kt2jfXZq7p1rywynGmIQlpkuziAGtSp8c7VboKI6eF7SzfPIq4zEuO6rh
-	 zNGao5KFAJ0N6aExT22579dOPhNkFYlct8zDUvAmNrNUQU0j+HmX2oYMBytu3215RhyZC
-	 MvU6kS4O1EttgzfviANsX94Ez0AXYPX2aCJedP858SU+fpc/toCCwIIX2Yme4g5k6E9xD
-	 VqTqq9Yu7nXKcv5iphWDfmhoFRqMPWnzHAPco2olccZf0nrAy+SeBbQWKDB7rmtsfdQ==
+	bh=2G/tkT9b682VBEXOE4r7jWgUbyMAXcNgbFTNw9JLs5c=;
+	b=mBg6zv0ujcEc3qam4iZyB4w/HakrisxesQZ92Mm4FZ6l4pfPpAgRSdUcIO9IB5P9K3pW
+	 PZ11kzsTZA2rxwuZxD9V1+F0136uAJ8LNuEtxcvLTGp+DdBQa1+k/HDKJbkEfHUtn4l1D
+	 jhPBzu2hgilA0FNpSBasXxEf9JPPbFV58wsgZGQSrrNoFIj8yRG/L3npojfYA5u+n8XYW
+	 BmQEXynsp50qvMg3WzAFsXMpVYV/5TBnERj5Rb16cjxehUw1V6uiV73grd1OFYC7ag0DR
+	 bo7HCyUzyb+IRV5Yku9sVlNeXxlLDWRi+4D6NNrJOhYjmAuoWGOVAnaU+hWnQV7Xpqg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linux.microsoft.com;
 	spf=pass smtp.mailfrom=linux.microsoft.com;
-	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b="KxDDgiy/";
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=Jk603uyp;
 	arc=none smtp.remote-ip=13.77.154.182
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 97DC7606A319;
-	Thu, 22 Oct 2026 14:44:16 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 97DC7606A319
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B859A606A33F;
+	Thu, 22 Oct 2026 14:44:20 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B859A606A33F
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=KxDDgiy/
+	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=Jk603uyp
 Received: from weh-cvm-dev-vm.y50bckvjo0hefgfnzfztsfttff.phxx.internal.cloudapp.net (unknown [20.169.55.37])
-	by linux.microsoft.com (Postfix) with ESMTPSA id DAE3A20B7166;
-	Thu, 22 Oct 2026 07:44:06 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com DAE3A20B7166
+	by linux.microsoft.com (Postfix) with ESMTPSA id 382C220B7167;
+	Thu, 22 Oct 2026 07:44:11 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 382C220B7167
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1792680248;
-	bh=iuty2+xJIN5LQRJAknFt1dp6ncxxbQEVN7EXoGwFcHA=;
+	s=default; t=1792680252;
+	bh=2G/tkT9b682VBEXOE4r7jWgUbyMAXcNgbFTNw9JLs5c=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=KxDDgiy/cYWjkLNWJ9JEAY1Ny7IPFhlVNFlgJSp+bI+0oTmJfyWFLoWHMcZyd1VwU
-	 3PDN+Wdpp2eD7rw2K2Y6wNHr3m4wPux7vAL9dRVMvro7hUYrcp/CmyNzoEqDk9PCof
-	 2wp4p6Ta/+DGOvaYOLb87x2u1HsJM2M7zPFJcjPo=
+	b=Jk603uypHxVp7JE/awAWc6xwGFQD5OwIBxSBC7toug/eo8qvauKAOXu5cXzI+w790
+	 lm0xfwYW16LZbzwE4nUyy9n83nRuBExcrlmK4FK1ijz4lo9h8yyHMhPip1dhXINO0j
+	 apeML4PteM0tmwS/XepwvDAmBVZjRsnv4sHqyNtY=
 From: Wei Hu <weh@linux.microsoft.com>
 To: netdev-bot+sashiko@kernel.org
 Cc: longli@kernel.org,
@@ -70,12 +70,12 @@ Cc: longli@kernel.org,
 	mawasthi@linux.microsoft.com,
 	weh@microsoft.com,
 	edumazet@kernel.org
-Subject: Re: [PATCH net-next v8 1/4] net: mana: prepare HWC ownership for safe reinitialization
-Date: Thu, 22 Oct 2026 14:44:07 +0000
-Message-ID: <hwc-v9-v8-review-20261022-patch1-42c4b3b89bc66ef97a25@linux.microsoft.com>
+Subject: Re: [PATCH net-next v8 4/4] net: mana: add dynamic HWC queue depth with reinit path
+Date: Thu, 22 Oct 2026 14:44:10 +0000
+Message-ID: <hwc-v9-v8-review-20261022-patch4-545e64b8e0aba06c648a@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <179250338816.3135.13276488357316939732@kernel.org>
-References: <64987f49ea13b5ccdc9ef95f4a9baf23a479edc3.1791998462.git.weh@linux.microsoft.com>  <179250338816.3135.13276488357316939732@kernel.org>
+In-Reply-To: <179250339474.3135.8335532818248262678@kernel.org>
+References: <877e674c0255820b0517f863e535615b4028a48a.1791998462.git.weh@linux.microsoft.com>  <179250339474.3135.8335532818248262678@kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -90,15 +90,13 @@ Content-Transfer-Encoding: quoted-printable
 
 Thanks for the review.=0D
 =0D
-On Tue, 20 Oct 2026 13:36:28 +0000, netdev-bot+sashiko@kernel.org wrote:=0D
+On Tue, 20 Oct 2026 13:36:34 +0000, netdev-bot+sashiko@kernel.org wrote:=0D
 =0D
-> This is a pre-existing issue and was not introduced by this patch. This=0D
-> hunk now documents mana_gd_process_eqe() as an RCU-protected lockless=0D
-> reader of gc->cq_table, though. Do the Ethernet and RDMA writers of the=0D
-> same slots follow that model?=0D
+> How does the PF learn the size of the rebuilt rings?=0D
 =0D
-The individual Ethernet and RDMA CQ publication/lifetime issues are=0D
-pre-existing. We will address separately.=0D
+The PF specifies the HWC queue depth and corresponding ring sizes. It=0D
+reports the required depth via HWC_INIT_DATA_QUEUE_DEPTH, and the VF=0D
+rebuilds the rings to implement that PF requirement.=0D
 =0D
 Regards,=0D
 Wei=0D
