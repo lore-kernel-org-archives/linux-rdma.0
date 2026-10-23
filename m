@@ -1,98 +1,63 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.43
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792749732;
-	b=NEu73gIBApwbxgw4d9X6H0aAbVoQb/QUys9ReWL2LHtpHj11rWo5tofCpXIjCJxJ1418
-	 Nhn5WFNWiZhY6FIXOkRevvBDfXr6p/ehN++i1zvatQbefFAUspJDPHbBn1vyXPWPa4qS7
-	 NKdwrjn06Xe08DP3n8JKZikoqoN7aUOyFkBh1W9vwu6Qgj/FP8ldzz1yQqZY1Pzmp9IAZ
-	 2q9kyf0w03TZ02nvUuX6b1ZFLB2WfXC+C9JyuvH6Rz3fI8wr4RS7TZB0ZMtC3OIJGYxRF
-	 I4WPCsXca4BWnaCrEV3wCz2/Rh/nVGxWeSWDu8fLI4Jh6YgAOvpRVMsY7esxVW+IVjA==
+	t=1792752758;
+	b=lSSjcOc7EFzjlE1O0nVxaBuZUPNx2Vw5VYCqJYDzl1uH4KSzAiRKbrnAnsBVlhkEtK29
+	 6rE+i8GKukK2gYFIkw3g/8MNuLVp4yGxwfuxfNa/dJdJugjaxr+qG8gp3VsyCc/fztXZZ
+	 NtprPSuOOnkAFexbhj/gBDBuRBWJC0v4xxGQpQLUIzb9gXoLpOt6Jfw93vBmZTDTr6JHj
+	 HtCUm9SWs3R4fpvVW4mqmRcsWEguk7MabV557qnPhiyXtLXQqlpNmUNy/I2LaJXivSNDU
+	 XOEEmyfESp/2Rxt1Ne5ZxXj4r1EuBZjfXRaZFSIWcNXloXQoDmeAq6UA8X68OeKzREA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792749732;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=NSR56nnQnUR0d6l59Po8MuoMPblQ7AEGRUC1M2Gh/5A=;
-	b=ubCf7tIcZGmhUAgSZQZRxCcxIiYBkYm7G2IqLS03zXFnkrlWX0REfDeEj/Crp7HSCEMf
-	 +7INsA1pGeL0KCuD9tZNz1l3xhE/n1dSLcw3+w8NQMfL09xfbK6Hv8co6iWK9FzzITOzr
-	 HXpX3MLrTaM2eYgV8oKYxrjuIXPRXeeHTUy89YWORzur1I8si+zR28x8I/8SiEN5E1xyJ
-	 iSVBDhVXWXSG8XpIAjrAsl0exRcpghjo8S7FBH4LvRll1EX1iuHnufuKl7T26vgqV1pma
-	 xroEmW9IX9TwRAGMflKvQr0gCZSJ871ujtM0j/RJtBqh4VR0EplEY+i1+wPslu6DvVw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792752758;
+	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
+	 In-Reply-To:References:X-sashiko-severity:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=pEJooFGfISpLe3pbAp7u2DszuMvLOiZLqcHdt+Lue3o=;
+	b=NbYZyYNusZayAMOS1BQ3cyVF1it/35PjaO2rWRrDwM2zlPclECTEXOAr8GbTg2+2U4lc
+	 rw9hb/SdyAWL4MT2iAPAl+GSqgrlKXQndN3T8e2tbtDZuyBlXbgxwgQWFn7K7Smi6adN3
+	 0uUFUl4zwCGrlo1vIqLiDhAszPSw48Wphu0DYV3dhs1GvKVzCAJm9mTnMsVG6k5//rPB8
+	 5afyUI8Xv3C3iQHQOmz2UihN12tfBG100ZWDDMT09Zor3shgBErAneNWEsjEDs3lZTVym
+	 cgFOtngGFZYQygbqQlGyhFI5ouIKEGTu1qimqHEBY1Mh9zYHrdW7muWo0arRkFtt9TA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b="e/VonHDs";
-	arc=none smtp.remote-ip=209.85.221.43
-Received: from mail-wr1-f43.google.com (mail-wr1-f43.google.com [209.85.221.43])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XEJsW5wz;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 653C3606A31A
-	for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2026 10:02:12 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 653C3606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0651606A31B;
+	Fri, 23 Oct 2026 10:52:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=e/VonHDs
-Received: by mail-wr1-f43.google.com with SMTP id ffacd0b85a97d-48e20ed3b9dso568583f8f.2
-        for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2026 03:02:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792749731; x=1793354531; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=NSR56nnQnUR0d6l59Po8MuoMPblQ7AEGRUC1M2Gh/5A=;
-        b=e/VonHDsRcN+yoJTQWlImqGswC0azS4maOfw8sqzWjYxI6m5YuadKrBI3wsSM3Kdol
-         f33SjPRNQxiHbtG11cEW+zNdfA23IggN6VxfY3En5xqzUkNQjoLBFnxZrKC5c9d1F1V7
-         86QW95Gbn9QaUG9ctmVajG+TWYF6O4wMl4E9wCXtM/ggiJy83O1M7KoOCEEZhmH6ktC8
-         cKid5ORUaDulA4AP9ZuFDgZETyGdnxoMqBJ3o8/L/4TBRe0qbsDDA4MdnpjVbKJXg6rQ
-         mYLzpj+FHbvk7j4suWqlh0SE8DUiQ6SOGeFjx11DANc0OWJsFUa+XYK05vE848HgShw5
-         xciA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792749731; x=1793354531;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=NSR56nnQnUR0d6l59Po8MuoMPblQ7AEGRUC1M2Gh/5A=;
-        b=gcA6h21ViiQOzVQXKMv7PO2+2WVR80ZoMKSVTpcCz6xgz8X47b2idMsCr2MJHzsU4F
-         qq1v6s242a73oSaYqy5+GEb+9MiyK5CAJmgUeTxGsOo4LwBoHssmt11YaaE5TE+4rFNU
-         4CuBxYFSu9VFKxCMLC09oQ85eF3ndH/C/Su8GnJwzQzwmwJlRxJ9tAtQ7zCGe+fzenyP
-         ESnDC3rRsh9NwbzT8wEc3g/YIoUzy4xGLTs6BBVkMHdJZpDOQBi3U5TTkWLR1/pJuDCe
-         72yFM+CiPmHiKRkCsdf9m+iqy6s4QVFSs1qS5QsuSaaiKnwtiTvd4J05kAGCfGcm4JE9
-         0L/Q==
-X-Forwarded-Encrypted: i=1; AKwUvBw+/5y5qGnaorpMP5rpvT+M53lTi26yTgOB91qy16NxNMvCexMGxotc63GS/It7ZWye8g9Kc7DDdLpM@vger.kernel.org
-X-Gm-Message-State: AFq9FYJt8cU+lC4gJ6teXpFyt9JDW4cyj6Vt0aFJhKaGz0hM+nQ/W7Bh
-	Eu/MsJcNrMLPG33h/J4sQLG82xA9M3XUzuaO5k7xvKuYVDk3frDoPNS2
-X-Gm-Gg: AYBFou2VO5sozbEoH5OiCTlsVbqQJSJklpasWucyoXz77hIdW/dRKgSitDCGPm1H46F
-	UB01wsMsebUKcJbVhfKWGRn9Apn6WYrdkNPX0ZXP2E7RILS0n5ee4nj9UYWCyfgyjAHWhsBvvz3
-	0Z6QmHI4RO8lxv7MqCZZaKm4/m/oPaZxGId+oJ7OIbDc3My+mO8u7z1t7iXP0sgdp5k6BaXn/g2
-	wTFPA6UCQEp6bx/pJNhgkUf6VGGVQSb2kjdWYx2caOjukMZVN+yAv1czvt9V0mNy9IiaSx64sTr
-	94nGgD4Z6PL6gsoRt/DzQhHmXapdJr+fSLiQ2/ytnsvpELpd/1FsBPCswR1mG553l+3svlnXZ8F
-	IOLbbs/2Qumhi0Raf/sNPwCAA+lllqqPaoBfci5SVTSgnTLmozmzKGUyVwU+7cth5elce0bQasl
-	BWlwUoMBwWp+db6ZxOvcW0A0lBxJQYQrVTnW1CSLBjQv6KqE6haGiaY5c0UR4pGwWcwy+qm5NHP
-	tDkdTpuGes37RDEpXWSrjM3ydPJgG/QDCLTEdJD5/jm6/kQLG1SoAFJDg==
-X-Received: by 2002:adf:e805:0:b0:48d:f996:1814 with SMTP id ffacd0b85a97d-48e385c0cf9mr1868754f8f.57.1792749730555;
-        Fri, 23 Oct 2026 03:02:10 -0700 (PDT)
-Received: from localhost ([205.147.201.218])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48e38062dc6sm3902320f8f.55.2026.10.23.03.02.09
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 23 Oct 2026 03:02:09 -0700 (PDT)
-From: Eduard Zateev <hackerowskiy@gmail.com>
-To: achender@kernel.org
-Cc: davem@davemloft.net,
-	edumazet@kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	horms@kernel.org,
-	netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	rds-devel@oss.oracle.com,
-	linux-kernel@vger.kernel.org,
-	Eduard Zateev <hackerowskiy@gmail.com>,
-	syzbot+221e213bf17f17e0d6cd@syzkaller.appspotmail.com
-Subject: [PATCH] net/rds: hold IB device reference through deferred cleanup
-Date: Fri, 23 Oct 2026 12:02:06 +0200
-Message-ID: <20261023100206.126692-1-hackerowskiy@gmail.com>
-X-Mailer: git-send-email 2.55.0
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XEJsW5wz
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E1091F01828;
+	Fri, 23 Oct 2026 10:52:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792752757;
+	bh=pEJooFGfISpLe3pbAp7u2DszuMvLOiZLqcHdt+Lue3o=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=XEJsW5wzXREGE1XDKsZwfAuDE5lTmyOAnhOEXS0SlI9W/C1gPPWcfBsKVetVHKwbp
+	 7skX65XDxjW0wdUX3k1nfuJjG3nTKWKrc/3DGDBHuNjBiHkD/wACbv+yJJHI4q5qSH
+	 rTnrMls4nQ0XTylH+RMDxAktMZbLPTp+n4+qzw6ia1EEqFiCO66zQuwEInn5Z4o1kK
+	 Wnjw9m3nipJ0jeRbmrKnMMLS8yIIhs/tV8YBMqoSSt0e22nHKFHEf7YUhGW3w+eUiD
+	 yIh0+nfr1xBFnGi88OIoyWzK9tZ1V0dzlxcBs9aIZGeo4TPHx6KTQ7q0X/1nEH2TL9
+	 rwKUGiD/qfd7w==
+Subject: Re: [PATCH net 2/3] net/mlx5: HWS, Fix heap buffer overflow in insert
+ header action
+From: netdev-bot+sashiko@kernel.org
+To: tariqt@nvidia.com
+Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
+ kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com,
+ acassen@corp.free.fr, valex@nvidia.com, erezsh@nvidia.com, gal@nvidia.com,
+ igozlan@nvidia.com, kees@kernel.org, kees+treewide@kernel.org,
+ leon@kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+ mbloch@nvidia.com, moshe@nvidia.com, prathameshdeshpande7@gmail.com,
+ saeedm@nvidia.com, william@theesfeld.net, kliteyn@nvidia.com
+Date: Fri, 23 Oct 2026 10:52:35 +0000
+Message-ID: <179275275576.3134.7528632839557500568@kernel.org>
+In-Reply-To: <20261021074949.3471704-3-tariqt@nvidia.com>
+References: <20261021074949.3471704-3-tariqt@nvidia.com>
+X-sashiko-severity: Low
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -102,53 +67,109 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-RDS device teardown queues rds_ib_dev_free() on rds_wq. Hold a
-reference to the underlying IB device until deferred cleanup releases
-its resources. This prevents device removal from freeing it while the
-work is running.
+Thank you for your contribution! Sashiko AI review found more severe
+issue(s) in other patches of this series. This mail is only an FYI, in case
+you want to address the nit picks below when you respin.
 
-Reported-by: syzbot+221e213bf17f17e0d6cd@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=221e213bf17f17e0d6cd
-Signed-off-by: Eduard Zateev <hackerowskiy@gmail.com>
----
- net/rds/ib.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+Low priority / nit picks for your consideration:
 
-diff --git a/net/rds/ib.c b/net/rds/ib.c
-index 786f39169bc..597872e4fe9 100644
---- a/net/rds/ib.c
-+++ b/net/rds/ib.c
-@@ -115,6 +115,7 @@ static void rds_ib_dev_free(struct work_struct *work)
- 
- 	kfree(rds_ibdev->vector_load);
- 
-+	ib_device_put(rds_ibdev->dev);
- 	kfree(rds_ibdev);
- }
- 
-@@ -142,6 +143,12 @@ static int rds_ib_add_one(struct ib_device *device)
- 				 ibdev_to_node(device));
- 	if (!rds_ibdev)
- 		return -ENOMEM;
-+	/* Keep the device registered until the deferred cleanup completes. */
-+	if (!ib_device_try_get(device)) {
-+		kfree(rds_ibdev);
-+		return -ENODEV;
-+	}
-+	rds_ibdev->dev = device;
- 
- 	spin_lock_init(&rds_ibdev->spinlock);
- 	refcount_set(&rds_ibdev->refcount, 1);
-@@ -180,7 +187,6 @@ static int rds_ib_add_one(struct ib_device *device)
- 		goto put_dev;
- 	}
- 
--	rds_ibdev->dev = device;
- 	rds_ibdev->pd = ib_alloc_pd(device, 0);
- 	if (IS_ERR(rds_ibdev->pd)) {
- 		ret = PTR_ERR(rds_ibdev->pd);
+- [Low] Concern: the commit message calls this a 'heap buffer overflow'
+  and carries a Fixes: tag, but the overflow is not reachable today.
+
+Pre-existing issues:
+- [Medium] mlx5hws_action_create_insert_header()
+  (drivers/net/ethernet/mellanox/mlx5/core/steering/hws/action.c:1464)…
+
+--
+
+net/mlx5: HWS, Fix heap buffer overflow in insert header action
+
+This commit changes mlx5hws_action_create_insert_header() to use
+hws_action_create_generic_bulk() instead of hws_action_create_generic(),
+so it allocates num_of_hdrs action structs instead of one. It also
+returns NULL early when num_of_hdrs is zero.
+
+> hws_action_create_generic() allocates only a single action struct,
+> but the loop writes to action[i] for each of the num_of_hdrs entries.
+> When num_of_hdrs > 1 this overflows the allocated buffer.
+
+[Severity: Low]
+This isn't a bug, but could the commit message say that the overflow
+can't be hit today?
+
+The only in-tree caller, mlx5_fs_insert_hdr_bulk_action_create() in
+fs_hws_pools.c, always passes num_of_hdrs = 1:
+
+	return mlx5hws_action_create_insert_header(ctx, 1, &insert_hdr,
+						   log_bulk_size, flags);
+
+The HWS symbols are not exported, so nothing else can reach the
+num_of_hdrs > 1 case. The description above is accurate as written. A
+note that the overflow can't currently be triggered would help when
+reviewing the Fixes: tag for stable.
+
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/action.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/action.c
+> index 23e86f2920228..9caaa34074dbb 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/action.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/action.c
+> @@ -1473,7 +1473,12 @@ mlx5hws_action_create_insert_header(struct mlx5hws_context *ctx,
+>  	int ret;
+>  	int i;
+>  
+> -	action = hws_action_create_generic(ctx, flags, MLX5HWS_ACTION_TYP_INSERT_HEADER);
+> +	if (!num_of_hdrs)
+> +		return NULL;
+> +
+> +	action = hws_action_create_generic_bulk(ctx, flags,
+> +						MLX5HWS_ACTION_TYP_INSERT_HEADER,
+> +						num_of_hdrs);
+>  	if (!action)
+>  		return NULL;
+>  
+
+[Severity: Medium]
+This is a pre-existing issue and was not introduced by this patch. The
+zero check and bulk allocation here now match
+mlx5hws_action_create_reformat(). Should that function's SHARED flag
+check be copied here as well?
+
+mlx5hws_action_create_reformat() rejects this combination:
+
+	if ((flags & MLX5HWS_ACTION_FLAG_SHARED) && (log_bulk_size || num_of_hdrs > 1)) {
+		mlx5hws_err(ctx, "Reformat flags don't fit HWS (flags: 0x%x)\n", flags);
+		goto free_action;
+	}
+
+mlx5hws_action_create_insert_header() has no such check.
+
+Both constructors call hws_action_handle_insert_with_ptr(). That function
+sets max_sz to the largest hdrs[i].sz, but passes only the first header's
+buffer:
+
+	ret = mlx5hws_arg_create(action->ctx,
+				 hdrs->data,
+				 max_sz,
+				 log_bulk_sz,
+				 action->flags & MLX5HWS_ACTION_FLAG_SHARED,
+				 &arg_id);
+
+With MLX5HWS_ACTION_FLAG_SHARED set, max_sz bytes are copied from that
+single pointer into the send queue WQEs:
+
+  mlx5hws_arg_create()
+    mlx5hws_arg_write_inline_arg_data()
+      mlx5hws_arg_write()
+        memcpy(wqe_arg, arg_data, MLX5HWS_ARG_DATA_SIZE);
+
+Take a caller that passes MLX5HWS_ACTION_FLAG_SHARED, num_of_hdrs > 1,
+and a hdrs[0].hdr.sz smaller than a later header's size. Would this read
+past the end of hdrs[0].hdr.data and pass those heap bytes to the device?
+Headers 1..n would also silently get header 0's data.
+
+The only caller today passes num_of_hdrs = 1 and does not set
+MLX5HWS_ACTION_FLAG_SHARED, so this can't be triggered yet. Before this
+patch, the same over-read sat behind the action[] overflow.
+
 -- 
-2.55.0
-
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261021074949.3471704-1-tariqt%40nvidia.com
