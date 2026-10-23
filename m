@@ -1,57 +1,82 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=148.163.158.5
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792759784;
-	b=eOirksrcu/leUPJJjuXx6vkylbUJAcgaHzCPnNWMEIg6AnUt5uilBxmJh+3APsKTWfFQ
-	 ApVM0uxo/OcTZfLQV6FN2mrzjiVxI0bpHkQubA5V/k35FUr4r9JeHNx0kx6HaiWEk9nfZ
-	 dblubqG1tPUsremshG++MsCocotnc39RNhv83+Srwc5mG7dlM4TF57aXnbfr8GpaBvqiA
-	 rIvx20Eawg5GayAoFY5/+2G0LKOoU3Gto2OK6ET4trefqd5I4Bz1/dfy+IrlItKLHg2vR
-	 sj80NBlOgarSyivUglge7v8ffKdKaY7zDe4G0vddpj/ed9sL1srddnS2rq4StBeKptg==
+	t=1792763808;
+	b=hxVQZ2UzN2DDPfqdiedz4ibSNU3wjG+K8tx9138w4j6ixbZYpgC3fEhtgpKgNdiolhRn
+	 xTGhPA5pI5S+6kAsttBTnTzJy4psV9SGHJr8hKNl71nzcIMsDhZiRnYkiHO7r5s4oqKq+
+	 3Pvi+Zz/rvaHDQ3vR5IaCAkzbvqUgBZ2Rr3JBnH2qRmdktg2cBCWbi+T+fkCJOxj+llpp
+	 wIO+VhAt5Hp4gnV9y/9hKM5pnWgL3UGxvZvoW+sysx1uv6cdyjLaumpd+Rxcbey9kzV+8
+	 oPRQ3iApH0nR5an14z9Bs8p/N/x8L+5iT5KZ3PBvNJU9WpFCn5ikII0HixpZxjidlbg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792759784;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=5V3W832Qmx7cBwQoM6fHGJyvI4fkaKqdTNe+U/16MZo=;
-	b=AJpbipJCEVr9QpgM4ZO/+N08KhhfL7+Kk3ApE+ekgl3QYzC14hG2z2nutraEzUnT8oOz
-	 ticOXywirRF5QnM5lunq4yVbURg82bFyWSwVROz9yFDp7ngfJorhmlUf3KgQRYotEI/NE
-	 R+csAIBkLZIqjZQOW0LdnZ4iyfRDInjcEf/nOy6y4rVCHlbIxID7OZHa0S47uLkbNme3z
-	 LofXaJgTWGMkPp4agdTLADS+rEIHVFEbJ3QA/Ag0IWZeu0vqMz1rGGGNAotYXAuOFJLbZ
-	 SC1ZnCSkDOaXg+EIfE+EWWnPu4eXB+tj5zSIg7c/BYawTIoeOhwiQwCEOWxdMFsDeyA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792763808;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:
+	 Received:Received:Received:Received:Message-ID:Date:MIME-Version:
+	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding:X-TM-AS-GCONF:
+	 X-Proofpoint-Reinject:X-Authority-Analysis:X-Proofpoint-ORIG-GUID:
+	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-Spam-Info:
+	 X-Proofpoint-GUID:X-Proofpoint-Virus-Version:
+	 X-Proofpoint-Spam-Details;
+	bh=1EjqEPgguT3TOPa/YTqb2hSy/Ffheovv8t9rHxhQQs0=;
+	b=UbHp/PKqE4QB5U1Frknjgmvw7OTwCKqNnevYIeMhiZNPTmSQWnewKAHZHC01Ewkg/eoE
+	 ac6/I7cdFd9gE78FxAcNh9XKJ8zc2Fa+BBuSqy94K0QuKiVqADR69V87xSjxza+YqQbBJ
+	 XKaKJVGqobD3b5Gz6qruA3UA3K6qsRuQ7fCOH76wdez/KMbLuawmnnu8f5cNtJp4S+apQ
+	 2LiGegCPqyu0fiUP66JbjT4qqTbc3u4Far9qg6mV4QHasDmgNQssm+KFcXkU+tYbixrYg
+	 MdQH8dqwQhPJn7mDcTD7IMbmq4VRE5vRIvoI+hUGJ/dHXVuoc+KM6lk8IiPC3qTbtfw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fEeGP2Yc;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=linux.ibm.com;
+	spf=pass smtp.mailfrom=linux.ibm.com;
+	dkim=pass header.d=ibm.com header.i=@ibm.com header.a=rsa-sha256 header.s=pp1 header.b=tUFQLtnl;
+	arc=none smtp.remote-ip=148.163.158.5
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F0D9606A31A
-	for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2026 12:49:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4ED74606A31A;
+	Fri, 23 Oct 2026 13:56:48 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4ED74606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fEeGP2Yc
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98C9F1F01825;
-	Fri, 23 Oct 2026 12:49:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792759783;
-	bh=5V3W832Qmx7cBwQoM6fHGJyvI4fkaKqdTNe+U/16MZo=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=fEeGP2YcT+M74gpHg7/Fp9uHVJaf6oqRP7obvyRetTL4IsyL4sXM16SOVEq9ZhRwy
-	 nmFLSn5ylG7PDUgigw+xCQ6OJQ2o2YFJHXr8J3n/0TSVbUjFZTpHte3rrbkgnUMhS7
-	 xnYatlNXnfmC4V0/v4cmNg143/lHThlYMzAvkXyg6vpmNtuiCKTdo76LXUJ/PLhsPO
-	 O7Yjg/nh1hwOrNglBJq2EeBJmY8V1GQPcyXBE+kvZHTefIK5O7mFvOpyaOZOQlwY1/
-	 5vpWlsuAVpsG6qEcgwx8GciobbLTkaMiGupc3HnHAQe3evlAQepCBtVaJlWO2wY/pg
-	 LuVZ2UWD20XJQ==
-Message-ID: <sashiko-outbox-182795@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH 3/3] xprtrdma: Wake connect worker on device removal
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Li Xiasong" <lixiasong1@huawei.com>
-Cc: linux-rdma@vger.kernel.org, "Chuck Lever" <cel@kernel.org>, "Jeff Layton" <jlayton@kernel.org>, "Anna
- Schumaker" <anna@kernel.org>
-In-Reply-To: <20261023125033.528835-4-lixiasong1@huawei.com>
-References: <20261023125033.528835-1-lixiasong1@huawei.com>
- <20261023125033.528835-4-lixiasong1@huawei.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Fri, 23 Oct 2026 12:49:40 +0000
+	dkim=pass (2048-bit key, unprotected) header.d=ibm.com header.i=@ibm.com header.a=rsa-sha256 header.s=pp1 header.b=tUFQLtnl
+Received: from pps.filterd (m0356516.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69NAEDfB2540741;
+	Fri, 23 Oct 2026 13:56:40 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=pp1; bh=1EjqEP
+	gguT3TOPa/YTqb2hSy/Ffheovv8t9rHxhQQs0=; b=tUFQLtnl1Y+w9j/uCoZMYd
+	Wcl1WHNiRtxs7tlKYkZftGgkXySFywpUtk1sLGK2BVcPO4PU9E5y1HZ4eDX1oGRX
+	UnVhuECMMotjKGfeRuNTGonWny/3SxSV/3+pKvZcVYmWag7NlyIMDCmFiY0Jm1+C
+	msqbZ+G1o3HFZH5OoRFFdSbzdVsqWei+kxvqrkgbdrpX/xoJDCPu5EqIM9iekYAE
+	GNogTA4ajUyVUQMe0OBaTwRnrHiFGW2UqsI8eitiFS28yUk4zlZKlzSPMxucT1+J
+	bnM3zOxQ8FevU/Y/2aSLCmunVPaX3oV4ilJcMX+3AbbPHXvQpdlvTfnKZ5qPY9Xw
+	==
+Received: from ppma12.dal12v.mail.ibm.com (dc.9e.1632.ip4.static.sl-reverse.com [50.22.158.220])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4hdw5b4yem-1
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
+	Fri, 23 Oct 2026 13:56:39 +0000 (GMT)
+Received: from pps.filterd (ppma12.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma12.dal12v.mail.ibm.com (8.18.1.11/8.18.1.11) with ESMTP id 69NAK0YI1967011;
+	Fri, 23 Oct 2026 13:56:39 GMT
+Received: from smtprelay02.dal12v.mail.ibm.com ([172.16.1.4])
+	by ppma12.dal12v.mail.ibm.com (PPS) with ESMTPS id 4hfj1x5ddb-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 23 Oct 2026 13:56:39 +0000 (GMT)
+Received: from smtpav05.wdc07v.mail.ibm.com (smtpav05.wdc07v.mail.ibm.com [10.39.53.232])
+	by smtprelay02.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 69NDubWL852612
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 23 Oct 2026 13:56:38 GMT
+Received: from smtpav05.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id D550E58065;
+	Fri, 23 Oct 2026 13:56:37 +0000 (GMT)
+Received: from smtpav05.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id AB3F658043;
+	Fri, 23 Oct 2026 13:56:29 +0000 (GMT)
+Received: from [9.39.18.113] (unknown [9.39.18.113])
+	by smtpav05.wdc07v.mail.ibm.com (Postfix) with ESMTP;
+	Fri, 23 Oct 2026 13:56:29 +0000 (GMT)
+Message-ID: <c905dac5-78e1-4576-b4f4-6aa29d2861e8@linux.ibm.com>
+Date: Fri, 23 Oct 2026 19:26:27 +0530
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,254 +85,125 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net v12] net/smc: fix lgr/lnk lifetime vs diag reader race
+To: netdev-bot+sashiko@kernel.org
+Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
+        kuba@kernel.org, pabeni@redhat.com, alibuda@linux.alibaba.com,
+        dust.li@linux.alibaba.com, sidraya@linux.ibm.com,
+        hidayath@linux.ibm.com, pasic@linux.ibm.com, horms@kernel.org,
+        tonylu@linux.alibaba.com, guwen@linux.alibaba.com,
+        stable@vger.kernel.org, netdev@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
+References: <20261019111008.3367567-1-mjambigi@linux.ibm.com>
+ <179267838686.3135.11610279010793695525@kernel.org>
+Content-Language: en-US
+From: Mahanta Jambigi <mjambigi@linux.ibm.com>
+In-Reply-To: <179267838686.3135.11610279010793695525@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-Reinject: loops=2 maxloops=12
+X-Authority-Analysis: v=2.4 cv=X63Hu2Te c=1 sm=1 tr=0 ts=6adb6798 cx=c_pps
+ a=bLidbwmWQ0KltjZqbj+ezA==:117 a=bLidbwmWQ0KltjZqbj+ezA==:17
+ a=IkcTkHD0fZMA:10 a=660iZSQnnn4A:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=RnoormkPH1_aCDwRdu11:22 a=Y2IxJ9c9Rs8Kov3niI8_:22 a=VwQbUJbxAAAA:8
+ a=ATHYEBQc5O03oyGe7xYA:9 a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
+X-Proofpoint-ORIG-GUID: MqmWyBpqaOpOhVz6xjPCW7I95VWcrEzd
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDIzMDA1MyBTYWx0ZWRfX+eK9ZjVJbBOD
+ r66JRGrj49zz3H/vlWThbidmnZw5Eq7dghmgwn6NIytuRPYn9l3gkA3ukEuQ9ohsqoElNBt030X
+ 2NZaFmj89v6iGURelAFePXWcGQ+VIWt/vwLLp4aioR0LeRkmExkm37Xq9SgeNY1cs8MWco9txs2
+ xxsS3gvoRZtad0O+Z3FLG4d0dEte9SRYcWWD6bSHeMGmE7CuFxXo8QDbTf8SAiXWy1NdoncPxOS
+ nfRp6ULIpmvbYM6SOGn2Tl504exASwH76P1qc+5C1pNXxJu9gs1plzbWNP6coQGb4g0z7sSCBOX
+ ZyDx6U71pSVo9s+bHMsHj17dVksf6j4lJFDCO5lXNjeFSW7UEDuS8q2kd55adf/MRzUetWawgow
+ va3a+ASoGr4z/No4h6amW6BU9czkRVmo/L9lTe9b5zVohVjuIhrmd301zV3PmXC091MVWH5o/w5
+ 49t6iv4QO0sVJw/poNQ==
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMDIzMDA1MyBTYWx0ZWRfX+sIuuYZzg9kf
+ 8cVxG0W5dPcihDPFJUQtjCzTrG6veM8n9qIs+5gVvpwnKjB+uKDz2HGaE60R91QfdqUWcpMVQcd
+ wbBawM85ckKT8FK0gz09wdAb+qJtT0Y=
+X-Proofpoint-GUID: OfVQhbiETCXAFHKq0TMMkj0V-8k41Q0O
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
+ definitions=2026-10-23_03,2026-10-21_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ priorityscore=1501 phishscore=0 bulkscore=0 adultscore=0 malwarescore=0
+ clxscore=1015 spamscore=0 impostorscore=0 lowpriorityscore=0 suspectscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2610190000 definitions=main-2610230053
 
-Thank you for your contribution! Sashiko AI review found 3 potential issue(=
-s) to consider:
-- [Critical] xprtrdma: use-after-free of ep in rpcrdma_cm_event_handler() o=
-n teardown
-- [High] xprtrdma: ep kref leak and removal hang on UNREACHABLE or REJECTED=
- event
-- [High] xprtrdma: use-after-free or spurious disconnect of re_xprt on ESTA=
-BLISHED
---
 
-commit ab99aeccfc2a88d68d44010bf5a53935dda9cc76
-Author: Li Xiasong <lixiasong1@huawei.com>
 
-xprtrdma: Wake connect worker on device removal
+On 22/10/26 7:43 pm, netdev-bot+sashiko@kernel.org wrote:
+> Thank you for your contribution! Sashiko AI review found 3 potential
+> issue(s) to consider.
+> 
+> Critical: 0 · High: 1 · Medium: 0 · Low: 2
+> 
+> If you believe none of the issues are legitimate, please reply to each
+> issue of Medium severity or higher and explain why the AI is wrong.
+> If any of them are legitimate and you plan to respin, please let patchwork
+> know by including "pw-bot: cr" as a separate line at the end of your reply
+> (one such reply per series is enough).
+> 
+> - [High] The v12 `!lgr->terminating` guard in
+>   smc_lgr_schedule_free_work() (net/smc/smc_core.c) does not close the…
+> - [Low] The commit message says "Other kill paths leave the socket
+>   hashed, since it can stay open until close()".
+> - [Low] The commit message's 'Fifth' paragraph gets the mechanism of its
+>   own example wrong.
+> 
+> --
+> 
+> net/smc: fix lgr/lnk lifetime vs diag reader race
+> 
+> This patch closes several windows where the SMC sock_diag dump can
+> dereference conn/lgr/lnk state that has already been freed. It skips the
+> CONNINFO/LGRINFO/DMBINFO attributes for SMC_INIT and SMC_CLOSED sockets,
+> orders sk_state with acquire/release, unhashes sockets before teardown in
+> several paths, and copies the cached link->ibname. It also unregisters
+> connections unconditionally in smc_conn_free() and stops arming free_work
+> on a terminating link group.
+> 
+>> Fifth, on the smc_lgr_cleanup_early() path (e.g. server CLC decline with
+>> SYNCERR) __smc_lgr_terminate() sets terminating=1 and unlinks the LGR
+>> without setting freeing=1.
+> 
+> [Severity: Low]
+> Is the SYNCERR example here accurate?On the server, smc_clc_wait_msg()
 
-This commit updates rpcrdma_cm_event_handler() and rpcrdma_ep_removal_done()
-to use atomic state transitions on ep->re_connect_status so that device
-removal wakes the connect worker when not yet established and the endpoint
-reference taken on RDMA_CM_EVENT_ESTABLISHED is released once on state
-change.
+No. On the server, smc_clc_wait_msg() calls smc_lgr_terminate_sched()
+for a first-contact DECLINE, which unlinks the LGR and sets freeing
+before smc_conn_abort() runs. The skipped unregister comes from there,
+not from smc_lgr_cleanup_early().
 
-> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-> index 9b00e71c80a7a..ff65bb9e28ff6 100644
-> --- a/net/sunrpc/xprtrdma/verbs.c
-> +++ b/net/sunrpc/xprtrdma/verbs.c
-> @@ -229,6 +229,7 @@ static int
->  rpcrdma_cm_event_handler(struct rdma_cm_id *id, struct rdma_cm_event *ev=
-ent)
->  {
->  	struct rpcrdma_ep *ep =3D id->context;
-> +	int status;
-> =20
->  	might_sleep();
-> =20
-> @@ -251,16 +252,21 @@ rpcrdma_cm_event_handler(struct rdma_cm_id *id, str=
-uct rdma_cm_event *event)
->  		case 0:
->  			goto wake_connect_worker;
->  		case 1:
-> -			/* The later DISCONNECTED event balances the
-> -			 * ESTABLISHED get; do not put here.
-> -			 */
->  			rpcrdma_force_disconnect(ep);
-> -			return 0;
-> +			return rpcrdma_ep_put(ep);
->  		}
->  		return 0;
->  	case RDMA_CM_EVENT_ESTABLISHED:
->  		rpcrdma_ep_get(ep);
-> -		ep->re_connect_status =3D 1;
-> +		switch (cmpxchg(&ep->re_connect_status, 0, 1)) {
-> +		case 0:
-> +			break;
-> +		case -ENODEV:
-> +			rpcrdma_force_disconnect(ep);
-> +			return rpcrdma_ep_put(ep);
+v13 drops the smc_conn_free() change, so that paragraph is gone. The
+SYNCERR case is covered in smc_diag.c instead: a fallback socket is a
+plain TCP socket with no SMC connection state, so the CONNINFO/LGRINFO/
+DMBINFO blocks are skipped when use_fallback is set.
 
-[Severity: High]
-Can calling rpcrdma_force_disconnect(ep) here cause a use-after-free on
-ep->re_xprt or a spurious disconnect on a subsequent connection attempt?
+> [Severity: Low]
+> The commit message says:
+> 
+>   Other kill paths leave the socket hashed, since it can stay open until
+>   close().
+> 
+> Does that match the code? Every smc_conn_kill() ends in
 
-When ep->re_connect_status transitions from 0 to -ENODEV in
-RDMA_CM_EVENT_ADDR_CHANGE or rpcrdma_ep_removal_done(), the endpoint was
-not yet established and ep->re_connect_wait is woken so that
-rpcrdma_xprt_connect() returns -ENODEV to xprt_rdma_connect_worker():
+No. Every smc_conn_kill() ends in smc_close_active_abort(), so killed
+sockets in the PEERCLOSEWAIT, PROCESSABORT and APPFINCLOSEWAIT states
+are unhashed before close(). I removed the sentence, and the commit
+message now says that smcss visibility depends on the close state and,
+for SMC-D, on the device type.
 
-net/sunrpc/xprtrdma/transport.c:xprt_rdma_connect_worker() {
-	...
-	rc =3D rpcrdma_xprt_connect(r_xprt);
-	xprt_clear_connecting(xprt);
-	if (!rc) {
-		...
-	} else
-		rpcrdma_xprt_disconnect(r_xprt);
-	xprt_unlock_connect(xprt, r_xprt);
-}
+> [Severity: High]
+> Does this check fully stop free_work from being re-armed on a
+> terminating link group? The flag check and mod_delayed_work() are not
 
-If RDMA_CM_EVENT_ESTABLISHED races with that teardown and takes a temporary
-reference via rpcrdma_ep_get(ep) before rpcrdma_xprt_disconnect() calls
-rpcrdma_ep_put(ep), rpcrdma_xprt_disconnect() sees a non-zero kref, clears
-r_xprt->rx_ep =3D NULL, and returns:
+No. v13 drops the !lgr->terminating check and the unconditional
+unregister from v11, so smc_core.c is back to the v10 change only.
 
-net/sunrpc/xprtrdma/verbs.c:rpcrdma_xprt_disconnect() {
-	...
-	if (rpcrdma_ep_put(ep))
-		rdma_destroy_id(id);
+The free_work window you describe is independent of the diag reader race
+this patch fixes. I'd like to keep it out of this patch.
 
-	r_xprt->rx_ep =3D NULL;
-}
-
-Once xprt_rdma_connect_worker() finishes, a concurrent xprt_rdma_destroy()
-can complete cancel_delayed_work_sync(&r_xprt->rx_connect_worker), observe
-r_xprt->rx_ep =3D=3D NULL, and free xprt via xprt_free(xprt) (or if not
-destroyed, a new connection attempt can start on xprt) before
-RDMA_CM_EVENT_ESTABLISHED executes rpcrdma_force_disconnect(ep) ->
-xprt_force_disconnect(ep->re_xprt).
-
-> +		default:
-> +			return rpcrdma_ep_put(ep);
-> +		}
->  		rpcrdma_update_cm_private(ep, &event->param.conn);
->  		trace_xprtrdma_inline_thresh(ep);
->  		wake_up_all(&ep->re_connect_wait);
-> @@ -279,9 +285,11 @@ rpcrdma_cm_event_handler(struct rdma_cm_id *id, stru=
-ct rdma_cm_event *event)
->  		wake_up_all(&ep->re_connect_wait);
->  		return 0;
->  	case RDMA_CM_EVENT_DISCONNECTED:
-> -		ep->re_connect_status =3D -ECONNABORTED;
-> +		status =3D xchg(&ep->re_connect_status, -ECONNABORTED);
->  		rpcrdma_force_disconnect(ep);
-> -		return rpcrdma_ep_put(ep);
-> +		if (status =3D=3D 1)
-> +			return rpcrdma_ep_put(ep);
-> +		return 0;
-
-[Severity: High]
-What happens if RDMA_CM_EVENT_UNREACHABLE or RDMA_CM_EVENT_REJECTED arrives
-after RDMA_CM_EVENT_ESTABLISHED has already set ep->re_connect_status to 1?
-
-In rpcrdma_cm_event_handler(), RDMA_CM_EVENT_CONNECT_ERROR,
-RDMA_CM_EVENT_UNREACHABLE, and RDMA_CM_EVENT_REJECTED still overwrite
-ep->re_connect_status unconditionally without checking whether the previous
-value was 1:
-
-net/sunrpc/xprtrdma/verbs.c:rpcrdma_cm_event_handler() {
-	...
-	case RDMA_CM_EVENT_CONNECT_ERROR:
-		ep->re_connect_status =3D -ENOTCONN;
-		goto wake_connect_worker;
-	case RDMA_CM_EVENT_UNREACHABLE:
-		ep->re_connect_status =3D -ENETUNREACH;
-		goto wake_connect_worker;
-	case RDMA_CM_EVENT_REJECTED:
-		ep->re_connect_status =3D -ECONNREFUSED;
-		if (event->status =3D=3D IB_CM_REJ_STALE_CONN)
-			ep->re_connect_status =3D -ENOTCONN;
-wake_connect_worker:
-		wake_up_all(&ep->re_connect_wait);
-		return 0;
-}
-
-In RDMA CMA, both events can be delivered on a client CM ID after
-RDMA_CM_EVENT_ESTABLISHED:
-
-1. On RoCE, rdma_resolve_route() inserts id_priv into id_table via
-   cma_add_id_to_tree(), where it remains in state RDMA_CM_CONNECT until
-   _destroy_id(). On a NETEVENT_NEIGH_UPDATE event,
-   cma_netevent_callback() queues id_priv->id.net_work and
-   cma_netevent_work_handler() delivers RDMA_CM_EVENT_UNREACHABLE unless
-   the state is RDMA_CM_DESTROYING or RDMA_CM_DEVICE_REMOVAL.
-
-2. On IB/RoCE, after cma_ib_handler() processes IB_CM_REP_RECEIVED via
-   cma_rep_recv() -> ib_send_cm_rtu() and delivers
-   RDMA_CM_EVENT_ESTABLISHED, cm_rej_handler() still accepts a peer REJ MAD
-   while in IB_CM_ESTABLISHED (with lap_state =3D=3D IB_CM_LAP_UNINIT) or
-   IB_CM_DREQ_SENT, and cma_ib_handler() delivers RDMA_CM_EVENT_REJECTED.
-
-If either event overwrites ep->re_connect_status from 1 to a negative
-errno, neither that event nor a subsequent RDMA_CM_EVENT_DISCONNECTED,
-RDMA_CM_EVENT_ADDR_CHANGE, or rpcrdma_ep_removal_done() will observe
-status =3D=3D 1.
-
-Wouldn't that skip rpcrdma_ep_put(ep) (and skip rpcrdma_force_disconnect(ep)
-in RDMA_CM_EVENT_ADDR_CHANGE and rpcrdma_ep_removal_done()), leaking
-ep->re_kref and causing rpcrdma_remove_one() to hang indefinitely at
-wait_for_completion(&rd->rd_done)?
-
->  	default:
->  		break;
->  	}
-> @@ -294,7 +302,18 @@ static void rpcrdma_ep_removal_done(struct rpcrdma_n=
-otification *rn)
->  	struct rpcrdma_ep *ep =3D container_of(rn, struct rpcrdma_ep, re_rn);
-> =20
->  	trace_xprtrdma_device_removal(ep->re_id);
-> -	xprt_force_disconnect(ep->re_xprt);
-> +	switch (xchg(&ep->re_connect_status, -ENODEV)) {
-> +	case 0:
-> +		wake_up_all(&ep->re_connect_wait);
-> +		break;
-> +	case 1:
-> +		rpcrdma_force_disconnect(ep);
-> +		/* DEVICE_REMOVAL prevents a later DISCONNECTED event. */
-> +		rpcrdma_ep_put(ep);
-> +		break;
-> +	default:
-> +		break;
-> +	}
->  }
-
-[Severity: Critical]
-Does dropping the ESTABLISHED reference in RDMA_CM_EVENT_ADDR_CHANGE and
-rpcrdma_ep_removal_done() (or waking the connect worker on case 0 while CM
-events can still fire) allow ep to be freed while rpcrdma_cm_event_handler()
-is still using id->context?
-
-In rpcrdma_xprt_disconnect(), rpcrdma_ep_put(ep) is called before
-rdma_destroy_id(id):
-
-net/sunrpc/xprtrdma/verbs.c:rpcrdma_xprt_disconnect() {
-	...
-	id =3D ep->re_id;
-	rc =3D rdma_disconnect(id);
-	trace_xprtrdma_disconnect(r_xprt, rc);
-
-	rpcrdma_xprt_drain(r_xprt);
-	rpcrdma_reps_unmap(r_xprt);
-	rpcrdma_sendctxs_destroy(r_xprt);
-	rpcrdma_reqs_reset(r_xprt);
-	rpcrdma_mrs_destroy(r_xprt);
-
-	if (rpcrdma_ep_put(ep))
-		rdma_destroy_id(id);
-}
-
-When rpcrdma_ep_put(ep) drops the last reference on ep->re_kref,
-rpcrdma_ep_destroy() runs immediately and calls kfree(ep) before
-rdma_destroy_id(id) acquires id_priv->handler_mutex to synchronize with
-rpcrdma_cm_event_handler().
-
-Prior to this change, commit af9b65b29af3 ("xprtrdma: Fix ep kref imbalance
-on ADDR_CHANGE") kept the ESTABLISHED reference on RDMA_CM_EVENT_ADDR_CHANGE
-until RDMA_CM_EVENT_DISCONNECTED arrived. Neither RDMA_CM_EVENT_ADDR_CHANGE
-nor rpcrdma_ep_removal_done() stops further CM events from firing on id:
-
-1. RDMA_CM_EVENT_ADDR_CHANGE leaves id_priv->state as RDMA_CM_CONNECT.
-
-2. During device removal, disable_device() invokes ib_client->remove
-   callbacks in reverse registration order. Because rpcrdma_ib_client is
-   registered after cma_client, rpcrdma_remove_one() runs and waits in
-   wait_for_completion(&rd->rd_done) before cma_remove_one() ->
-   cma_process_remove() transitions id_priv->state to
-   RDMA_CM_DEVICE_REMOVAL.
-
-Once RDMA_CM_EVENT_ADDR_CHANGE or rpcrdma_ep_removal_done() drops the
-ESTABLISHED reference (or wakes the connect worker from case 0 while a
-connection attempt is still in flight), rpcrdma_xprt_disconnect() calls
-rdma_disconnect(id) (which triggers RDMA_CM_EVENT_DISCONNECTED), drains the
-QP, and drops the final ep->re_kref reference in rpcrdma_ep_put(ep),
-freeing ep before rdma_destroy_id(id) is reached.
-
-Won't a concurrent rpcrdma_cm_event_handler() invocation (such as
-RDMA_CM_EVENT_DISCONNECTED triggered by rdma_disconnect(id), or a racing
-RDMA_CM_EVENT_ESTABLISHED on the case 0 path) then dereference id->context
-after ep has already been freed?
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261023125033.5288=
-35-1-lixiasong1@huawei.com?part=3D3
+pw-bot: cr
