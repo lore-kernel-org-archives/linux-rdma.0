@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792799747;
-	b=KPgHXwFBLVpDPTBJUAHJeGkZCw9JsY8NVW2mhH6CNc3ZIUjVl1/GW4EyU6IU0yY2vuDi
-	 nX0G6QhF+IQnYWMOUjC+5ZJbdXcO9WjGOqQPbc0OYAY5zmcLUcayFKJMHw89DpbwzpSwi
-	 FZtCQ9x80VPqOH/iJMW/bzBAbjaBNoCosrgDy6sCvk9Vk6bi/3QgtyOSmggwJ8zHYZD+R
-	 Kgpk4wdCsgIL2uINu16tQ0MDqD4s1HtsGBfdbinUPEQfhgEjMmhpp4D99pqPs+a6XXQQo
-	 suMJXZdyZUzZAQAFFWqfmNa8bfje06T0SUv9QHBqGLjKPCSXA0S6cpkKU1XLf42Cs+Q==
+	t=1792799748;
+	b=ZOu08Dpi6G/p3lA3/WlR99SxPkJLYyVKX8p1f0CRBy9Xjy4GjjhMg1ctfDnN7z0FoZgs
+	 tT9wpM//4M/4XMv/7xe9ZX7iqAEx89A1cni583DkGARggb9DA1FtjFYjEGJyRAD5Q293Z
+	 Gna9UM9dUyOmPhl+MXzZepsBAderyerf6QiDLE2YiiUdv8OfIp5H9A9xYIvFbP2ebl3Si
+	 DPYSsN++a7FXFzrxMEV6IRN66lx/xTRhXDjdLjJ3yT+iLUaVLL/+ejSchG8lfP7XKmrxZ
+	 1duF+4BLsv8QlLcBeLgnpD5dCF5W1AubdsCrpsLmINLaxSf73euCyxwq+t6huUj/A7w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792799747;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792799748;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=wSZZtyh7t0U0uX5zfdMGAc2GKTTtKQzvW6JzK+wtn+8=;
-	b=aR9mgHfb5+3RqYYJVeVKWDvyBAU81vZ9CAOiw6bRcA+rFEG4HAoPTYbDx7n+NLfXrxB7
-	 ATA8hjX9s0XTSktqjZRm+oz5UwATRupUoYPtU4MQlw28AVnxqrsT0bQ8Pcoy+e+6HuTgG
-	 HssfWyUQMkOzWKib+VHIekqgA9UOauAKULqDlN0ctbhpNqDCvOmVDEyfLUrDzv5rNKTMQ
-	 xqAVnOSL5MrblTETCQ1LjI8u65D9Ytq8booKJghb/mzqMRcTli93b2XI8BmuwOpGDVcuu
-	 0RkoryznBrJGvMc89FmPQUsPD0mnsIJ4PGHw6xldV/gaKLnUoQ78WPi5WU8tpxle1eQ==
+	bh=tgOSRsFRy4yBFYkq0A/GJJi2TZTxbokD0oQCAU3dcIo=;
+	b=nIZcoLARxS52vmZfaUJmVK040a0Eita+vwoTHb6whTEKmi6YTRyCb+IYJ5bxwRfYa/9/
+	 xcQt9DFcAWPFlvFzH3lFoJJMPcHYAWMblmN8d5uOoeKKkdKOHeEjUJ6nKmXuOxDMyTdpD
+	 ZJOxsfyeg/6v9qAXCBDLx4VSSnWp9y5gXwKxg0C8cbx2A8Oe6By+6zL9OjQJTc3IzYsjj
+	 Lf7KKDiufDO3EdQbCZ5WYVGxOpaMlyVgknDIDihzgaw3bPxBAxnmnj4uvwIvySW1cz9kL
+	 zolmkrgzk8prh0l2uFZSnhwr0iypkIu6N2rGDbgvzYIkd/DRt6uMNU9nTTlaAU3gCRw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OLywMNse;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RzS6ZEQs;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E3E8606A31D
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8FC4606A324
 	for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2026 23:55:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OLywMNse
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C3E91F01829;
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RzS6ZEQs
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7B9A1F01829;
 	Fri, 23 Oct 2026 23:55:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1792799747;
-	bh=wSZZtyh7t0U0uX5zfdMGAc2GKTTtKQzvW6JzK+wtn+8=;
+	bh=tgOSRsFRy4yBFYkq0A/GJJi2TZTxbokD0oQCAU3dcIo=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=OLywMNseP7gIQQlBACKeXhHgtXv3QaPKdTMI0vcY3CM29efVi1/uiJZlCEb+UAsq7
-	 yzdF+EWnmeA6XwqztYjyYlt6GQ0Lvn5B07Qb678J8FZNWOUtEEBDJ7b8qfw2pbRvgs
-	 lngcFcXf0bQyNKZOSFOwu/KVSbv1l6nstPb82dTMy5oqWhw434f3uVqT9bMr+fC86K
-	 JpYPQgeHj2rkZlvjk0KFF94b1W/u582v5Mp3HAZ3CBEmzwcw6osE5xbDPXJyL4jks5
-	 gsKPrzV3dIGt/GdaLZtjP7Y0+1DzGhwGSLp9lrqjkGNVgMYtQNhwQCOVhdpTcB1Z1I
-	 npJRUcrOUC93Q==
-Message-ID: <sashiko-outbox-183441@kernel.org>
+	b=RzS6ZEQsYFw3mMqc/at8y4hF29cO7aLzjr4GvQrKDQcqvKza8Gr1c+W8GO/nWOYa5
+	 pVJ2Dlyj7inO++c7YI52sdOv5hQj4HAnY48/hv+5NqcWqYfT1ok8pKTN1ZHtNoFu+m
+	 I75uL0+TxXYvPujCCe/69YpAvGjvsisAB9H9zKVVcDXgZjYPdn2k+2SqxHMjm9pohd
+	 /kUcNpYvXlyOaF6w5DXsc8OE+32AytA/DuSX7oQYBEg4Scx0evJ9LRcxidAjby+AyC
+	 /zmv6h8yRSNnaGs+jk7fa9wIed/hzSGVr1UMRrtxS5u9dhC6hSUjjPbpAcd/nUyqd5
+	 h8KRuWksN5dMA==
+Message-ID: <sashiko-outbox-183442@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net v3 3/4] psp: support ipv6 extension headers in
- psp_dev_encapsulate()
+Subject: Re: [PATCH net v3 4/4] selftests: drv-net: psp: test ipv6 tcp
+ socket with extension headers
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Todd Freed" <toddfreed@meta.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261023234640.1459291-4-toddfreed@meta.com>
+In-Reply-To: <20261023234640.1459291-5-toddfreed@meta.com>
 References: <20261023234640.1459291-1-toddfreed@meta.com>
- <20261023234640.1459291-4-toddfreed@meta.com>
+ <20261023234640.1459291-5-toddfreed@meta.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 23 Oct 2026 23:55:46 +0000
+Date: Fri, 23 Oct 2026 23:55:47 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,40 +61,31 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> psp_dev_encapsulate() inserts the udp and psp headers and rewrites the
-> l3 next header to udp.
+> send on a psp tcp socket in three phases, and after each, check that the
+> data was sent, counted in the device's tx-packets, and received by the
+> peer. phases:
 >=20
-> if the packet is an ipv6 packet with extension headers, the transport
-> header comes after them, so rewriting the next header of the ipv6 fixed
-> header produces a malformed packet.
+>  1/ no socket options.
 >=20
-> a psp tcp socket emits such packets if certain socket options are set on
-> it (e.g. IPV6_DSTOPTS). with mlx5, these packets also go out
-> unencrypted.
+>  2/ an extension header set on the socket.
 >=20
-> fix by walking the extension header chain to rewrite the nexthdr on the
-> last one in the chain instead. the walk also rejects packets with
-> extension headers that aren't supported in transport mode,
+>  3/ option removed.
 >=20
-> - NEXTHDR_FRAGMENT. this could work, but udp+psp would need to come
->   before it, which is different than how the other option types are
->   handled. for now, keep fragments unsupported for transport mode.
+> the test has a variant for each supported extension header type. for
+> the routing header, the test enables seg6_enabled on the peer, which
+> otherwise drops packets with a segment routing header.
 >=20
-> - NEXTHDR_AUTH. changing what follows would break the AH ICV. Also, AH
->   adds little incremental value when used with psp, whose ICV already
->   authenticates the payload. AH remains unsupported for psp transport
->   mode.
+> a software filter on the peer also counts udp packets from the socket's
+> [ ... ]
+>     tcpdump -i <dev> -nn -A 'ip6 and src host <sender> and not tcp'
 >=20
-> note that the stack doesn't fragment ipv6 tcp packets, so a psp socket
-> won't be able to exercise the tx fragment path.
+>   shows them as udp, with the test's payload readable
 >=20
-> Suggested-by: Daniel Zahka <daniel.zahka@gmail.com>
-> Fixes: fc724515741a ("psp: provide encapsulation helper for drivers")
 > Signed-off-by: Todd Freed <toddfreed@meta.com>
 
 Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261023234640.1459=
-291-1-toddfreed@meta.com?part=3D3
+291-1-toddfreed@meta.com?part=3D4
 
