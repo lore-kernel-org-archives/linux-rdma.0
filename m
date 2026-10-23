@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792783924;
-	b=EHxu8K9l6VSKKBgzo8Kbr+IBNjTGYae7N4qEOALrG8I8/Mx+mZDwAltSLHuy6cKKhTMf
-	 uxsdi6wZdR6clOlEB8jfsdlnl/kCFkiH5GKIlcXcpId22sfjV/hNeAEfqv2d7BqbIMei+
-	 2yzHS7gGgqd0Yz1A2MSEKa6YJqHXp2oosx0RYj23wP6lX7uM8mpYN5UuzxZz+UNmr7Crb
-	 E5wXcDlg6qeAMQE50vHIUx7RYbDzWxDSnrOp1oMT4UjbTYW9vgojYc1T3XA6/wm7aGtJc
-	 nYBeyEQmHGCxOMw2ImkZthQKZsgY5ncFdg0xWIXvF00TFHJ5p34cpAiNnTNZhLi9slw==
+	t=1792783926;
+	b=vP1OTsaXhjwnPLs/12+xDTGTF4IGzmsubgW2Y+gUlb6s+Q47Mv9Yxk131Tdu5v2IjGnw
+	 CYb1CRHi3C2KZPm8dK85dZrx0WjY7EK1w1YhG9hOWFcfaPGzj9q2oRypg9Mz0GZMuTbsv
+	 RkQMpDI7nFfXM0tMRun2IlUDoQgbRVwQgqgNen+2Tj6PWHRJ/pFMgFdUCoP7I+w3pVJQo
+	 ylcTtseKi438JoT3eSYgljMOw+z6dh+thVliLG7SiVBh0YVFZUteR2+sZR7qqbE/mPEab
+	 v5LTOww6Diabvi5tl1QhkivH0FUsNr+2PZRVCVOJS+7R7/F+6o7fXBk2Do9LXN0TjGg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792783924;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792783926;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=/PA6dS6FVTk8uCRYEXqlR4w3GUUhUJAhjYTB+eMKIrs=;
-	b=dkXg80mEuljIylQNMxnwEMtwLf4Pi8X8a+ZiO3nAMi3cNKqhWQY2RQ6FSJrm4DSm50MV
-	 3RxWlplWb0kvV4YP4DEciYuR/LxvTL1HKdr+VOvkCGGmmbjyzlwb9wOKFCrq1x5b4Erzv
-	 SaPSZcw/etN+iSwnvN8HckzD7s71iyEgnlKTHN3HG84hV8O29dq+iGjq9gxqP3b3mNpzE
-	 ACCzM8BpOOwLmZUcDo+HPpNGkL4EvDc8iKl+eYBoBxBye5t2Z4YGPjQwzymczNV0nae6r
-	 D6uuffA5FvcDqdpKkRiYtIeLpQijUV0iFRVc8YqcGRnfKWtcvZ8PqBNoxepT0lppe8g==
+	bh=K0h2RPvLu19xMok53kpbRFz17ViZnHdTQ/uB739akYw=;
+	b=QlB9Uis5lQMdt556gVu1+UTjPQiNBvSBt6OYG9JmTJFGKdLTvu3U2yuRw8X6GkejCqta
+	 2uOZHREAPXuig7QcErF3Z2pp+5L9riEiYFWTcWbM4OGOv8L5V5lbL5pxOMVGuGmCJB4KE
+	 h7FIvNijwfDY+LocJBN2bJO5cv3r/BdiRgqFNBkbLjnARYnJXnN7KKEzWSzbgz9GvzphW
+	 +4Z5Ja7VcHzZruQHMKwHZ3946kffIuiofh4bemZbXDXeAlMkRsEvVqr7TgmCJi/aHIt03
+	 X2lBXc2pPfHS8xHJFNBqTNTQcTqum8ZUPAOAuLD3UkRQU6m0ErzQukVyGhLHsd7XdyA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ULylYsue;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=M8HlQn0W;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46D2F606A31A;
-	Fri, 23 Oct 2026 19:32:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C8B3606A320;
+	Fri, 23 Oct 2026 19:32:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ULylYsue
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B580B1F01825;
-	Fri, 23 Oct 2026 19:32:03 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=M8HlQn0W
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE9821F01828;
+	Fri, 23 Oct 2026 19:32:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792783923;
-	bh=/PA6dS6FVTk8uCRYEXqlR4w3GUUhUJAhjYTB+eMKIrs=;
+	s=k20260515; t=1792783925;
+	bh=K0h2RPvLu19xMok53kpbRFz17ViZnHdTQ/uB739akYw=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=ULylYsuegCnl0tuyU/spZZcgQAR2N2uMk3K6Ij0bnBbEY3bVizZxPg8qZvfmSqYZK
-	 nPTXp+aLyMPOa6yMK0EEWJUnrAps/YRxBoXtdmTPEoGJ2Jdudj/QTMelSmu8980HoX
-	 VtZq3j5s5/gYIgSvE2KtX5KwdeEivXik5ka9BezZUUPoz5jH0FvHQ/BeUTRkzq7NY1
-	 ei907VFZd2A7JCWZFO5U0kqEeL1dDnVqkOytJUmQXlTkWJZWeSW2PWgG0V68Ui3Vja
-	 JMDDkYmb7ebZrSizvw7klJ2NmEZ1cx+jBnoESVOiuWt1q7yrLf/z6T37x1o7VIYMLI
-	 no8103LT2f6YA==
-Message-ID: <sashiko-outbox-183120@kernel.org>
+	b=M8HlQn0WhRQ1FZ+LWxxWIqdIext+G6rE1Yf9QRUmCaWFpD3cfvpqz7Tv7vuV9dWzJ
+	 lUmuasLrK3XVDM9d9JYuN1mk2mRAF81sF/I4lWEvncYgHFsZV88fFbi09FHFNZw9+l
+	 VgPsalJbVTjKCMrBnzRsqa0vMz1hWzK77DZ5a0STluY1hRnvYbL5bDfgAvFMXeXmt1
+	 2EHs104nEeR2pK/HRGxOIeJRGk/Afh6egS+N5H58awsjYPp3hUe1smpfVuLfV5awtU
+	 jp0LxXV47Xv6sR3G28leAmRredf2CIrg1l0g2lH9QWaKtyYkc0Hb7uJt9W0J0MBzhR
+	 WLQQy+tt9nPwQ==
+Message-ID: <sashiko-outbox-183123@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net V2 1/4] {RDMA,net}/mlx5: cache and use TX-enabled
- aggregate speed for vports
+Subject: Re: [PATCH net V2 4/4] net/mlx5: Lag, save and restore vport
+ max_tx_speed across LAG
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Tariq Toukan" <tariqt@nvidia.com>
 Cc: linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org
-In-Reply-To: <20261022193053.3815866-2-tariqt@nvidia.com>
+In-Reply-To: <20261022193053.3815866-5-tariqt@nvidia.com>
 References: <20261022193053.3815866-1-tariqt@nvidia.com>
- <20261022193053.3815866-2-tariqt@nvidia.com>
+ <20261022193053.3815866-5-tariqt@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 23 Oct 2026 19:32:03 +0000
+Date: Fri, 23 Oct 2026 19:32:05 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,119 +61,289 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+Thank you for your contribution! Sashiko AI review found 3 potential issue(=
 s) to consider:
-- [Medium] net/mlx5: lag: missing agg_speed_mbps reset on MPESW and mode-ch=
-ange teardown
+- [High] net/mlx5: broken LAG state check in mlx5_esw_vport_save_max_tx_spe=
+ed()
+- [Medium] net/mlx5: unreset aggregate speed in mlx5_lag_reset_vports_speed=
+()
+- [Medium] net/mlx5: single-PF PCIe bandwidth clamp in mlx5_lag_get_restore=
+_speed()
 --
 
-commit ce16ef57f040ab430add649db26c3f383cbab840
+commit a16b0bd296f6ec7da26bed226c7219e07a503e4a
 Author: Or Har-Toov <ohartoov@nvidia.com>
 
-{RDMA,net}/mlx5: cache and use TX-enabled aggregate speed for vports
+net/mlx5: Lag, save and restore vport max_tx_speed across LAG
 
-This commit caches the calculated operational TX-enabled aggregate speed in
-struct mlx5_lag and exposes mlx5_lag_query_aggregated_speed() to query it
-instead of the bond speed. It also resets the cached speed to SPEED_UNKNOWN
-via mlx5_lag_reset_agg_speed() when resetting vports speed.
+This commit saves each vport's max_tx_speed when enabled so the original
+rate limit can be restored on lag teardown even if the link is down. If the
+rate was not saved, teardown falls back to a link-derived speed.
+
+Link: https://lore.kernel.org/all/20260915015118.875210-1-kuba@kernel.org/
+
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/=
+net/ethernet/mellanox/mlx5/core/eswitch.c
+> index fc197d1dc9dfe..7cf9c15ec65d2 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+> @@ -935,6 +935,27 @@ static void esw_vport_cleanup(struct mlx5_eswitch *e=
+sw, struct mlx5_vport *vport
+>  	esw_vport_cleanup_acl(esw, vport);
+>  }
+> =20
+> +static void mlx5_esw_vport_save_max_tx_speed(struct mlx5_eswitch *esw,
+> +					     struct mlx5_vport *vport)
+> +{
+> +	u16 op_mod =3D MLX5_VPORT_STATE_OP_MOD_ESW_VPORT;
+> +	int ret;
+> +
+> +	if (!MLX5_CAP_ESW(esw->dev, esw_vport_state_max_tx_speed) ||
+> +	    vport->vport =3D=3D MLX5_VPORT_UPLINK || vport->max_tx_speed)
+> +		return;
+> +
+> +	if (mlx5_lag_is_active(esw->dev) && !vport->agg_max_tx_speed)
+> +		return;
+> +
+> +	ret =3D mlx5_query_vport_max_tx_speed(esw->dev, op_mod, vport->vport,
+> +					    true, &vport->max_tx_speed, NULL);
+
+[Severity: High]
+Does the check on mlx5_lag_is_active(esw->dev) and !vport->agg_max_tx_speed
+in mlx5_esw_vport_save_max_tx_speed() match how vport->agg_max_tx_speed is
+maintained across the driver?
+
+In drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c,
+mlx5_lag_modify_device_vports_speed() sets vport->agg_max_tx_speed =3D speed
+on every vport and leaves it non-zero after programming firmware:
+
+mlx5_lag_modify_device_vports_speed() {
+    ...
+		vport->agg_max_tx_speed =3D speed;
+
+		if (!vport->enabled)
+			continue;
+
+		ret =3D mlx5_modify_vport_max_tx_speed(mdev, op_mod,
+						     vport->vport, true, speed);
+    ...
+}
+
+Similarly, mlx5_esw_vport_set_max_tx_speed() in
+drivers/net/ethernet/mellanox/mlx5/core/eswitch.c writes
+vport->agg_max_tx_speed to firmware on vport enable without clearing
+vport->agg_max_tx_speed. As a result, while lag is active, vports whose
+firmware has already been overwritten with the aggregate speed still have a
+non-zero vport->agg_max_tx_speed.
+
+Meanwhile, mlx5_lag_is_active() in
+drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c returns true when Socket
+Direct shared fdb is active, even when no lag bond is active and
+vport->agg_max_tx_speed is 0:
+
+drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c:mlx5_lag_is_active() {
+    ...
+	res  =3D ldev && (__mlx5_lag_is_active(ldev) ||
+			__mlx5_lag_is_sd_active(ldev, dev));
+    ...
+}
+
+When switching a Socket Direct device to switchdev mode via
+mlx5_sd_eswitch_mode_set() -> mlx5_sd_activate_shared_fdb() ->
+mlx5_lag_shared_fdb_create() in
+drivers/net/ethernet/mellanox/mlx5/core/lag/shared_fdb.c,
+pf->sd_fdb_active is set to true without calling
+mlx5_lag_set_vports_agg_speed():
+
+mlx5_lag_shared_fdb_create() {
+    ...
+		mlx5_lag_for_each(i, 0, ldev, filter) {
+			pf =3D mlx5_lag_pf(ldev, i);
+			pf->sd_fdb_active =3D true;
+		}
+    ...
+	if (filter =3D=3D MLX5_LAG_FILTER_PORTS || filter =3D=3D MLX5_LAG_FILTER_A=
+LL)
+		mlx5_lag_set_vports_agg_speed(ldev);
+}
+
+The same state (mlx5_lag_is_active(esw->dev) returning true while
+vport->agg_max_tx_speed is 0 and firmware still holds the pre-lag speed) al=
+so
+occurs during lag activation in mlx5_lag_shared_fdb_create() when ldev->lock
+is dropped inside mlx5_lag_reload_ib_reps_from_locked() before
+mlx5_lag_set_vports_agg_speed() runs, if mlx5_lag_update_agg_speed() fails,
+or when creating adjacent vports via mlx5_esw_adj_vport_create().
+
+If a vport is enabled in any of those states (or if the initial
+mlx5_query_vport_max_tx_speed() call fails), vport->max_tx_speed remains 0.
+Once lag applies the aggregate speed to firmware (setting
+vport->agg_max_tx_speed !=3D 0) and that vport is later disabled and
+re-enabled while lag is active, won't mlx5_esw_vport_save_max_tx_speed() see
+vport->max_tx_speed =3D=3D 0 and vport->agg_max_tx_speed !=3D 0, query firm=
+ware,
+and overwrite vport->max_tx_speed with the active lag aggregate rate?
+
+[ ... ]
 
 > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c b/drivers/=
 net/ethernet/mellanox/mlx5/core/lag/lag.c
-> index 4e173b08cb37a..57755ceab8a75 100644
+> index afe0b9909f2dc..3e623c96b2a1d 100644
 > --- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
 > +++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+> @@ -1712,11 +1712,37 @@ void mlx5_lag_set_vports_agg_speed(struct mlx5_la=
+g *ldev)
+>  	}
+>  }
+> =20
+> +static int mlx5_lag_get_restore_speed(struct mlx5_core_dev *mdev,
+> +				      struct mlx5_vport *vport, u32 *speed)
+> +{
+> +	u32 pci_bw;
+> +
+> +	if (vport->max_tx_speed) {
+> +		*speed =3D vport->max_tx_speed;
+> +		return 0;
+> +	}
+> +
+> +	*speed =3D 0;
+> +	mlx5_port_oper_linkspeed(mdev, speed);
+> +	if (!*speed && mlx5_port_max_linkspeed(mdev, speed))
+> +		return -ENODATA;
+> +
+> +	pci_bw =3D pcie_bandwidth_mbps(mdev->pdev);
+> +	if (pci_bw)
+> +		*speed =3D min(*speed, pci_bw);
+> +	*speed /=3D MLX5_MAX_TX_SPEED_UNIT;
+> +	return 0;
+> +}
 
-[ ... ]
+[Severity: Medium]
+On Socket Direct devices where a single physical port spans multiple pcie
+functions in the same group (port->group_id), calling
+pcie_bandwidth_mbps(mdev->pdev) in mlx5_lag_get_restore_speed() only checks
+a single function's pcie bandwidth.
 
-> @@ -1594,6 +1625,7 @@ void mlx5_lag_reset_vports_speed(struct mlx5_lag *l=
-dev)
+Earlier in drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c,
+mlx5_lag_port_pcie_bw() sums the bandwidth across all member functions in
+the Socket Direct group:
+
+drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c:mlx5_lag_port_pcie_bw() {
+    ...
+	if (!port->group_id)
+		return mlx5_lag_dev_pcie_bw(port->dev, bw);
+
+	*bw =3D 0;
+	mlx5_lag_for_each(idx, 0, ldev, port->group_id) {
+		member =3D mlx5_lag_pf(ldev, idx);
+		if (!member)
+			continue;
+
+		err =3D mlx5_lag_dev_pcie_bw(member->dev, &member_bw);
+    ...
+}
+
+Should mlx5_lag_get_restore_speed() use mlx5_lag_port_pcie_bw() instead of
+pcie_bandwidth_mbps(mdev->pdev) so that Socket Direct ports are not clamped
+to a single function's pcie bandwidth on fallback restore?
+
+> +
+>  void mlx5_lag_reset_vports_speed(struct mlx5_lag *ldev)
+>  {
+> +	u16 op_mod =3D MLX5_VPORT_STATE_OP_MOD_ESW_VPORT;
+>  	struct mlx5_core_dev *mdev;
+> +	struct mlx5_eswitch *esw;
+> +	struct mlx5_vport *vport;
+>  	struct lag_func *pf;
+> -	u32 speed;
+> +	u32 restore_speed;
+> +	unsigned long i;
 >  	int pf_idx;
 >  	int ret;
 > =20
-> +	mlx5_lag_reset_agg_speed(ldev);
->  	mlx5_ldev_for_each(pf_idx, 0, ldev) {
->  		pf =3D mlx5_lag_pf(ldev, pf_idx);
->  		if (!pf)
+> @@ -1728,17 +1754,39 @@ void mlx5_lag_reset_vports_speed(struct mlx5_lag =
+*ldev)
+>  		mdev =3D pf->dev;
+>  		if (!mdev)
+>  			continue;
+> -
+> -		ret =3D mlx5_port_oper_linkspeed(mdev, &speed);
+> -		if (ret) {
+> -			mlx5_core_dbg(mdev,
+> -				      "Failed to reset vports speed for device %s. Oper speed is not=
+ available (err=3D%d)\n",
+> -				      dev_name(mdev->device), ret);
+> +		esw =3D mdev->priv.eswitch;
+> +		if (!esw || !MLX5_CAP_ESW(mdev, esw_vport_state_max_tx_speed))
+>  			continue;
+> -		}
+> =20
+> -		speed =3D speed / MLX5_MAX_TX_SPEED_UNIT;
+> -		mlx5_lag_modify_device_vports_speed(mdev, speed);
+> +		mutex_lock(&esw->state_lock);
+> +		mlx5_esw_for_each_vport(esw, i, vport) {
+> +			if (!vport || vport->vport =3D=3D MLX5_VPORT_UPLINK)
+> +				continue;
+> +
+> +			if (!vport->enabled) {
+> +				vport->agg_max_tx_speed =3D vport->max_tx_speed;
+> +				continue;
+> +			}
+> +
+> +			if (mlx5_lag_get_restore_speed(mdev, vport,
+> +						       &restore_speed)) {
+> +				vport->agg_max_tx_speed =3D 0;
+> +				continue;
+> +			}
+> +
+> +			ret =3D mlx5_modify_vport_max_tx_speed(mdev, op_mod,
+> +							     vport->vport,
+> +							     true,
+> +							     restore_speed);
+> +			if (ret) {
+> +				mlx5_core_dbg(mdev,
+> +					      "Failed to restore vport %d max tx speed, err=3D%d\n",
+> +					      vport->vport, ret);
+> +				continue;
+> +			}
+> +			vport->agg_max_tx_speed =3D 0;
+> +		}
+> +		mutex_unlock(&esw->state_lock);
+>  	}
+>  }
+>  #endif
 
 [Severity: Medium]
-Does calling mlx5_lag_reset_agg_speed() only from
-mlx5_lag_reset_vports_speed() miss resetting ldev->agg_speed_mbps (and vport
-speeds) when LAG is torn down via MPESW disable or mode changes?
+What happens in mlx5_lag_reset_vports_speed() if a vport was enabled while
+lag was active (so firmware was programmed with the aggregate speed), its
+baseline vport->max_tx_speed was not saved (remaining 0), and the vport is
+then disabled before lag teardown?
 
-Currently, mlx5_lag_reset_vports_speed() is only called from mlx5_do_bond()
-when mlx5_lag_should_disable_lag() returns true:
+When mlx5_lag_reset_vports_speed() runs, the !vport->enabled branch sets
+vport->agg_max_tx_speed =3D vport->max_tx_speed (0) instead of computing a
+fallback speed via mlx5_lag_get_restore_speed(). When that vport is later
+re-enabled after lag teardown in mlx5_esw_vport_enable():
 
-drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c:mlx5_do_bond() {
-	...
-	} else if (mlx5_lag_should_disable_lag(ldev, do_bond)) {
-		mlx5_lag_reset_vports_speed(ldev);
-		mlx5_disable_lag(ldev);
-	}
+drivers/net/ethernet/mellanox/mlx5/core/eswitch.c:mlx5_esw_vport_enable() {
+    ...
+	mlx5_esw_vport_save_max_tx_speed(esw, vport);
+	if (vport->agg_max_tx_speed)
+		mlx5_esw_vport_set_max_tx_speed(esw, vport);
+    ...
 }
 
-where mlx5_lag_should_disable_lag() checks:
+mlx5_esw_vport_save_max_tx_speed() sees vport->max_tx_speed =3D=3D 0 and
+!mlx5_lag_is_active(esw->dev), queries firmware (which still holds the
+unrestored lag aggregate speed), and saves the aggregate speed into
+vport->max_tx_speed, while skipping mlx5_esw_vport_set_max_tx_speed()
+because vport->agg_max_tx_speed is 0.
 
-	return !do_bond && __mlx5_lag_is_active(ldev) &&
-	       ldev->mode !=3D MLX5_LAG_MODE_MPESW;
-
-When MPESW LAG is enabled via mlx5_lag_enable_mpesw() ->
-mlx5_lag_shared_fdb_create(), mlx5_lag_set_vports_agg_speed() populates
-ldev->agg_speed_mbps (and mlx5_mpesw_speed_update_work() updates it).
-However, when MPESW is torn down via mlx5_lag_disable_mpesw():
-
-drivers/net/ethernet/mellanox/mlx5/core/lag/mpesw.c:mlx5_lag_disable_mpesw(=
-) {
-	if (ldev->mode !=3D MLX5_LAG_MODE_MPESW)
-		return;
-
-	mlx5_mpesw_metadata_cleanup(ldev);
-	mlx5_lag_shared_fdb_destroy(ldev, MLX5_LAG_FILTER_ALL);
-	if (mlx5_lag_has_sd_group(ldev))
-		mlx5_mpesw_restore_sd_fdb(ldev);
-}
-
-neither mlx5_lag_reset_vports_speed() nor mlx5_lag_reset_agg_speed() is
-called, and mlx5_lag_should_disable_lag() explicitly excludes
-MLX5_LAG_MODE_MPESW.
-
-Similarly, during eswitch mode or SR-IOV changes, mlx5_lag_disable_change()
-disables an active LAG directly without calling
-mlx5_lag_reset_vports_speed() or mlx5_lag_reset_agg_speed():
-
-drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c:mlx5_lag_disable_change()=
- {
-	...
-	ldev->mode_changes_in_progress++;
-	if (__mlx5_lag_is_active(ldev)) {
-		if (ldev->mode =3D=3D MLX5_LAG_MODE_MPESW)
-			mlx5_lag_disable_mpesw(ldev);
-		else
-			mlx5_disable_lag(ldev);
-	}
-}
-
-Because mlx5_disable_lag() -> mlx5_deactivate_lag() clears ldev->mode to
-MLX5_LAG_MODE_NONE, when mlx5_lag_enable_change() later runs mlx5_do_bond(),
-__mlx5_lag_is_active(ldev) is already false. If do_bond is false (for
-example, if mlx5_lag_check_prereq(ldev) is now false after a mode change or
-if the bond was removed during the transition), mlx5_lag_should_disable_lag=
-()
-evaluates to false and the reset never runs.
-
-Wouldn't this leave a stale speed in ldev->agg_speed_mbps (and stale vport
-rate limits) after teardown, causing mlx5_lag_query_aggregated_speed() to
-return the old speed instead of -ENODATA, and in the subsequent patch
-("{RDMA,net}/mlx5: notify IB uplink on LAG aggregate speed change") causing
-mlx5_lag_update_agg_speed() to compare against the stale old_speed and
-suppress IB_EVENT_DEVICE_SPEED_CHANGE if LAG is re-activated at the same
-aggregate speed?
-
-[ ... ]
-
->
->
->
+Also, for an enabled vport, if mlx5_modify_vport_max_tx_speed() fails in
+mlx5_lag_reset_vports_speed(), the error path continues before updating
+vport->agg_max_tx_speed. Won't that leave the stale lag aggregate rate in
+vport->agg_max_tx_speed, causing a subsequent disable and re-enable of the
+vport outside of lag to replay the old lag aggregate speed into firmware?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261022193053.3815=
-866-1-tariqt@nvidia.com?part=3D1
+866-1-tariqt@nvidia.com?part=3D4
