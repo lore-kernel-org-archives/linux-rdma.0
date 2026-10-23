@@ -1,61 +1,115 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.174
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792768000;
-	b=4MBEUpCDomh+Ts6aa7J01xOROSAhrhw/Pp/kzrGGn/79cVCJRVgW19ybs4K6gx2rdus6
-	 myDldwRblWNuCV5FaI+b2RPQ4f8Hf+RwJmUPktd/e5Ki1wfRDtO5SlRHZQamjm5Drz5Al
-	 5BBmGxIu5ECuWeB1NLZvNRn0n5uUZVDKAWy/zcIS6hvMQVIB3otyVxHcBGUMbIr+7HR4E
-	 hDuseFj2mMG3o8ulCg02m2fW3LcCyj6y5grlxArbzSnvcWbnLVeuzme0Hl4tihWym6tyC
-	 5GpNrExl/GkRlcJEmz2aMPYG368dFoU7Wk2PWGdCOZ0DjZdMfCorv8kYhAnkgPJvPHA==
+	t=1792771157;
+	b=Qoksp/9L/T8AN+88og724UOejTnZvvKMz1bovmeqmlh+jwn5S3/6GHy9TBklayUu2qau
+	 UvoLAGAkDrGmD5d1m9rM0FqSDkdJn922Fe1hb1UR3i3SuS+WGBayv45qg0C5Xb86Dw65s
+	 /zkpAPlBNxgqp1xDaKYfHdW7RLj1FiXK6uQFl+YpfrS7v4ad9EFmVlRc6Tw0wFT5+K6mc
+	 nAIkIHe3KhgRGe9BlXno5dXciW95h4PcsLR27fL/DSgc7d2D1Dj7kS0RMgYczZ03OXtxf
+	 7orMaQ6mDpXbS1Dk3Aa5ICG3QX6biAwTAnMIH08FmUz88xxZEAsP+0dn0m3h8fjkelA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792768000;
-	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
-	 In-Reply-To:References:Auto-Submitted:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=Z9zRtXHe/J1k/4/9wAeq1n+PwAt+ioXmV3zyjSNrjDw=;
-	b=I+fqG4mAsrSSg+5WnfQZyZqsOljN0Z9m0FzBmiH+VjCULxZQSGQMX6Oa1WPoizsWWQTH
-	 IF9un6pDvcpkNSsQPo4Cns8C4876Zprt+6ChEL7HnzkJRUzTj6UkDyYN68atfpswS3qXb
-	 357xTCFsWMQjXBuXJiBCVKtfVbEsYTHz1KMcZZ5Qsh9Bq4WOe6Q/PwfjRiYaLWiSqS72J
-	 YF8Gnb82GSaDVSqxhlOklgtE69sBfh/XRvsQWk5JmMoiPSZ4zgdm+jYoqJlIEQw4Li8WH
-	 8JY4/BrM+heZDEuRLoGyOoC358wiqUp/MZXoWWnraICQ42zL91tJm2G/QjfWjbNgWsg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792771157;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Received:Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To;
+	bh=qfip9nPMyQ6NKHGpF7rQvQFL04olz8IZl5yoz+w1jok=;
+	b=H7S+CFTdE8zd7TQTTf8Y/Mq7py2g1FWEQFPnYv6pm8Hjv7mfGYGMX+YbNmBTj7WApWVG
+	 5ueIwYu0fy/Lf3utdqZgNRYQNDbEb93nuJXLKxMeI/vPYSuiW9hfcWrEGwGYLLc50d3VC
+	 sdkKxHLNbTGKoxK0P3FV1ttqpRmFxu/d6q8cke4UfhzsLRdKGc2tpiMRItK1R9slyQbyM
+	 NXESNxU4puKzxYqI1jmJUqoM8+TeRjLaOJfFR/xfxuNv/YperSWghhS6D6Q4pqxabT7Xv
+	 DKtReba2830vxnSad3lli9zllxFrrKRX5jtOji1dErA/IPTZrwGFXVVV9xzGvdRE1vg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DJKHN1CD;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=none header.from=ziepe.ca;
+	spf=pass smtp.mailfrom=ziepe.ca;
+	dkim=pass header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=pOV9sna9;
+	arc=none smtp.remote-ip=209.85.160.174
+Received: from mail-qt1-f174.google.com (mail-qt1-f174.google.com [209.85.160.174])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 569D3606A31A;
-	Fri, 23 Oct 2026 15:06:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 724E9606A321
+	for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2026 15:59:16 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 724E9606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DJKHN1CD
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 249CF1F01825;
-	Fri, 23 Oct 2026 15:06:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792768000;
-	bh=Z9zRtXHe/J1k/4/9wAeq1n+PwAt+ioXmV3zyjSNrjDw=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=DJKHN1CDtPZBtm+nMPaUGIERmWxvOmBpCMRcjfNGJH8XXrcSZxSFFcbMgy4t08NVW
-	 nf5PfwWNU7fXFOt9Ah4kxWesyCPy9IWWcR8o/Av0xE4ZfOAgkUeIEET03I7H9cduBb
-	 3r6TiqJbeoFpXIYqeyzBSWMXyWPpZmIQW/ZbzgKADAjlYX9p9N0gYFi99x7uXQyhXL
-	 9gfFIs+awS4TVmsmj6HsCqwQrgLCTCta8COkrcqFNA25wL+DQh2NJpLNCvQgW3n9Ex
-	 r+VHZxUf+XBjn94STxXVC7pImGduNgjPrp3AppvjTXeubDHJ1joOoL/8z9BY0OP3K1
-	 qGPbiiSe5nrdA==
-From: netdev-bot+sinfo@kernel.org
-To: Mahanta Jambigi <mjambigi@linux.ibm.com>
-Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
- kuba@kernel.org, pabeni@redhat.com, alibuda@linux.alibaba.com,
- dust.li@linux.alibaba.com, sidraya@linux.ibm.com, hidayath@linux.ibm.com,
- pasic@linux.ibm.com, horms@kernel.org, tonylu@linux.alibaba.com,
- guwen@linux.alibaba.com, stable@vger.kernel.org, netdev@vger.kernel.org,
- linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH net v13] net/smc: fix lgr/lnk lifetime vs diag reader race
-Date: Fri, 23 Oct 2026 15:06:38 +0000
-Message-ID: <179276799858.3327.5559074809059802819@kernel.org>
-In-Reply-To: <20261023150317.1163397-1-mjambigi@linux.ibm.com>
-References: <20261023150317.1163397-1-mjambigi@linux.ibm.com>
-Auto-Submitted: auto-generated
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	dkim=pass (2048-bit key, unprotected) header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=pOV9sna9
+Received: by mail-qt1-f174.google.com with SMTP id d75a77b69052e-5365d26ccbdso11362631cf.0
+        for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2026 08:59:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1792771155; x=1793375955; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=qfip9nPMyQ6NKHGpF7rQvQFL04olz8IZl5yoz+w1jok=;
+        b=pOV9sna9TZaCqywtdDI8h+mSGdu3kY7TvcG6DQSaz/wzZ4RWxvzzkBqqhU+wauIVz0
+         y7gqDg4Pv98+G/EoG0dUf5Bpk4Cl0e0UZ7LUISdotu9Tsw4EOlJNa9g21e1C+Zf9KMZH
+         gYHQI9+v1MeGOmU6kjTdceiCLbZqOiGD/vZZ2gPbf7Lfpg+R46vh7tpjBVmQ5GGunmYC
+         VtuXQ6ZEps4zStuYQLp7cEl/vePQpZ5aYQvoiujxoHTHp/fCRUKvmNk27XK19PLiHYCI
+         JYluupC4j0EMlwXjgXHC4TBCzVFNeQ1eRj7qeCWp0ln6/w6oJwD1gZkKqq5ddT+khVyu
+         ejmA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792771155; x=1793375955;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=qfip9nPMyQ6NKHGpF7rQvQFL04olz8IZl5yoz+w1jok=;
+        b=BmEw3FcSK8N8sJaDXABXTvAS4wW5Py1mG6v0dbdzaTYnspRhOAwaBBEbor2mKpiHrB
+         7a+fqkne3m1QTsz/ER2DKQnFJHNRD8YyHLqiDCQzMmAgDRXW2GVjydMQL6obSoB1HDCi
+         7gTD8k0mazM7jKTsEetR90/5gvV2Gfi25cgUjhHQ4Zd8qRTNX0LRPIFtGWgeaVRfUJLT
+         tSgUxF1zt4yQKQznr1y8MWatZDoXE+8gFCc+2v4B9LsWGAECiR9EueaCl0ciJuQhJNXB
+         62Yx+uTAvEtZwSk5C/iz6b6XWLf4zP9Le6dMCGKnElbYnGoFkeGXoK85x63tOSDhVo4S
+         tdXw==
+X-Forwarded-Encrypted: i=1; AKwUvBzz8hztqdiEVRPD+IkphDGnIUlJ5qVNzhhv18dSgLXnZ+SS7+usKDkgjIRZ9zMkbI6etcWosFOVoAAQ@vger.kernel.org
+X-Gm-Message-State: AFq9FYLwj+p7y/zVclQbq+QMi4kqqVsP8SalG+o6YCQ0taNTFxOXCNwa
+	RXr0FqgwMLv3mxYrXqFhTcpZ2UStSxWWIst9mNeL2a3XjXZWbZyVlzGAv4/G/HaCoDU=
+X-Gm-Gg: AYBFou0+ayNtBR8FO6SysDCfnNn5r1Q6zAPIWpeaoabIL82G0bRje7FZmGa4cUVRv0u
+	I2HLSQBe5TXj/YmfSmRfovx6cKJxcvu8TdHYsmXOAotKYcoTHqwBcHjIc2fJTE15c5Gxws41u+k
+	T9DQFXU2nZhSEMDXn4XdTDLOotHCqI6D0p9Ia0sBvlkife+QRvFaLK+sbwizplaBUNWo8YZgQ9Q
+	lcQV89XDii2b4aonF8FZ0jD+/Q5W5khpvh7sYdSY53i3lcmbjuDofpOICJ6yYfKkVBRiftOCRJ7
+	yFOMG0yuOmS+ievxyp1kkzP0QcmyZbi140gRn8AtLUkgDwma4ugluMG1Qr0ybl4FmPp2NnEaVfA
+	nQY5UMj/VXZ3oT2u2app3LnJS38tx1iVQUgnhVE2KNARTPmHeLBBPyFn6rfWJF0cug1bAT+dEaG
+	iOEvR5olwh7Z8Fs2SniZRv6CikAoWHP2hpEBt4l6NJMyAP75DMPSZQ3zKPR5RQSlaxhQMXrraMf
+	TS2V/rvjh56cwHydkpBclJDsqVUijPBljD2DsgCN3P15tzC4t4vHGCpKxMoKf3Gkm/0PpoWwOmu
+	oujn08guoDLt+RZlNTNSYG0SejJ7Jz0VYISA4Q==
+X-Received: by 2002:a05:622a:a0e:b0:535:859c:b6ff with SMTP id d75a77b69052e-536c24e2452mr39136051cf.20.1792771155235;
+        Fri, 23 Oct 2026 08:59:15 -0700 (PDT)
+Received: from ziepe.ca (hlfxns010zw-159-2-239-150.pppoe-dynamic.high-speed.ns.bellaliant.net. [159.2.239.150])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-53836c78f67sm656181cf.27.2026.10.23.08.59.14
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 23 Oct 2026 08:59:14 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.97)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1xKHfm-0000000Go19-0EMi;
+	Fri, 23 Oct 2026 12:59:14 -0300
+Date: Fri, 23 Oct 2026 12:59:14 -0300
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
+	Logan Gunthorpe <logang@deltatee.com>,
+	"Joerg Roedel (AMD)" <joro@8bytes.org>,
+	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
+	Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>,
+	Thomas =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
+	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org, iommu@lists.linux.dev,
+	Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
+	Chaitanya Kulkarni <kch@nvidia.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
+	Ankit Agrawal <ankita@nvidia.com>, Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>
+Subject: Re: [PATCH v9 02/18] PCI/P2PDMA: Derive routing from directional ACS
+ controls
+Message-ID: <20261023155914.GK3977851@ziepe.ca>
+References: <20261007063227.GC7822@unreal>
+ <20261007204045.GA783967@bhelgaas>
+ <20261009174301.GC11438@unreal>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -65,25 +119,51 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261009174301.GC11438@unreal>
 
-Hi!
+On Fri, Oct 09, 2026 at 08:43:01PM +0300, Leon Romanovsky wrote:
+> On Wed, Oct 07, 2026 at 03:40:45PM -0500, Bjorn Helgaas wrote:
+> > On Wed, Oct 07, 2026 at 09:32:27AM +0300, Leon Romanovsky wrote:
+> > > On Tue, Oct 06, 2026 at 03:49:47PM -0500, Bjorn Helgaas wrote:
+> > > > On Thu, Oct 01, 2026 at 02:55:10PM +0300, Leon Romanovsky wrote:
+> > > > > From: Leon Romanovsky <leonro@nvidia.com>
+> > > > > 
+> > > > > pci_bridge_has_acs_redir() treats Request and Completion Redirect as
+> > > > > interchangeable. On asymmetric fabrics, a control for only the reverse TLP
+> > > > > direction can unnecessarily force P2PDMA through the host bridge.
+> > > > 
+> > > > Does "the reverse TLP direction" refer to Completions?
+> > > 
+> > > In general, the P2P code treats TLPs flowing from device A to device B the
+> > > same as TLPs flowing from device B to device A.
+> > > 
+> > > However, in the context of this commit message, yes: completions flow in the
+> > > opposite direction from the device's perspective.
+> > 
+> > And I guess asymmetric fabrics must mean fabrics where Request
+> > Redirect and Completion Redirect are not set the same way?
+> 
+> Yes, in some of our systems, deviceA to deviceB is going through
+> different route than deviceB to deviceA.
 
-This is an automated message. This series looks like a fix, but its
-commit messages seem to be missing some information:
+It is a little more subtle, I think practical systems try very hard to
+avoid that since many host bridges do not like seeing only half of an
+exchange.
 
- - How the issue was discovered, e.g. hit in production, hit during
-   development, syzbot report, manual code inspection, LLM or static
-   analysis tool scan.
+What we end up with is Relaxed Ordering and Strict Ordering take
+different flows in the fabric.
 
- - Whether the issue was actually triggered, or is only theoretical
-   (e.g. found by code inspection). If it was triggered please include
-   the symptoms, like the stack trace or error messages.
+> > But I asked about ordering because it sounds like this patch expects
+> > to encounter asymmetric fabrics where Request Redirect and Completion
+> > Redirect may not be set the same way, and the spec implies that
+> > asymmetry may result in ordering violations.
+> 
+> My guess is that the hardware and system architects have ensured this
+> doesn't happen. At least, I haven't received any complaints about this
+> series during internal testing.
 
-Please do not repost the series just to address the above. Instead,
-reply to this email with the missing information, so that reviewers
-can take it into account. If the series needs another revision for
-other reasons, please include the information in the commit messages
-then.
+Yes, the ACS combination is selected to avoid ordering issues
 
-The evaluation is done by an LLM so it may be wrong, if you think
-that is the case please reply and explain.
+Jason
