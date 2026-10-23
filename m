@@ -1,114 +1,89 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.174
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.225.139
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792782058;
-	b=DlzjT5h+pMKGn+VQPRSA6D7aXQqVCWaCJXMfrvMyhtimaFhrBlsubk0sFvTpPs33oDpF
-	 quhRS0jHOepneyrNKG1LwAS8ryV8SHqapSb4ryxUamGuni5Fx45y5FOSJVYVw3DBb5S7e
-	 WJnwjHvt53OyYKuhfz2Wy3ZNrJcAKqoSTiW9wjiwFhp94PtbNl2AYQw2Ojl5ETNRvHcFf
-	 MTf6uD0oyD0qCxhrOSDjS7LWU4K2AYg77HPUbtMc4FttyXaM7Sm467LqcBFse5PdDje0X
-	 pasigO5LbNVqt2gZAdG+664F8WA/nkHElYv012Hlw6/EooZ5iLQUoV7S0EvT9SqnlqQ==
+	t=1792783516;
+	b=t0ONOMWaHIkkIK48F6V7C5a+qee4H7VI+ZmJa/BmmKD3isZ46b3iygQosP8S3ypn0LXy
+	 6/wFio2XoL0ceC1BkYy2NGTJFvtcCKlCANiHHAgZ6AdUZZSvEys7AKrs+ed5EUQNq30by
+	 Rcxq4K045WMLXISb2PRwDlw1SJkPi0bP26AgpUUMqri7Becm+N+HX9G9i5dxxKuEmwQYj
+	 SxLlko8b+4oKNxWEi9aqx3vA9z1OluJ0hfMy2lA8jZALs7uoJd5OCIixJILrEte9iJu6H
+	 tfjCag9i/lBt8hca6AFFX29g0BPtMBvPGyxwR7BRtCfD7mdtDzPElCyxOO6ZjCDiuAQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792782058;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792783516;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Received:Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To;
-	bh=5tf4s8d8+MZT/ng3kYJALwtT1EAbBRaxelT7QvlTQng=;
-	b=L5W2zrbVL2QT3V3LF6RTMnRmIyD11rlJR6B6ScejRJF/DuLbJVMuu4pWVu0usXJZbTXt
-	 ijBTrrPVcF8RC8wxHXcAmpuh+K2xz/u5AcFbO9PjZpXVWvXZ7KSF2DD1NAfJP88Z7dDtX
-	 Xkuwkg6wTY/Ia8zw1UyNrs77kzanHjLsFYzuM7ZjsAq9JCHInITt/8034AePGh0oM2NYJ
-	 F2UjDVAsVRZe3PyGUDqeQ/2LmAk5SSMfsSrwXMu+SaDnKG7vJIrDrbW9D91wZUSCNQ7lH
-	 iGwoLdy2XVkELvP7xsXjNU9m2z/J+YSxbYOuNMyroVXlt7CUosS7fTVtH0i5wnLd0Aw==
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=oGW63mO5SvhKxHF/FfNpWKu1NPhp9bwy3WqXJsLfK7o=;
+	b=S+hCzHgZ1rFvvfDQC7tS1r5ofyjvCnSrngzE5QsovlJWWVJ8TqxyTcSnkLSKpRV3v4fa
+	 nCmLOQfxKT4djll5nX9CHdIlylNJSV6OQg1/LIMsyGczNPX00vUM0Lpz44ieThyPPhsx/
+	 5CXe8MmGcA5ReN8ER14ObxdMs6+sfIUgUYQxhHKIS567jtkJwsBM5jQU9QXo8ONLqWOub
+	 8Jr0WsA7y9UwA1iDGy2caQpNEP7DFNkG5Fu6IIwuVDhKwtsuZaoTYCgzOzSxMDmGHntCX
+	 eEXFTXUV1ogf/wDWYpAs6iIlbsO6fN2sa3thZrd6Mm/XEJqMomjTE0oJqqAQJI76ZeQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=ziepe.ca;
-	spf=pass smtp.mailfrom=ziepe.ca;
-	dkim=pass header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=bzc4Cg9j;
-	arc=none smtp.remote-ip=209.85.160.174
-Received: from mail-qt1-f174.google.com (mail-qt1-f174.google.com [209.85.160.174])
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=bCPSuJt8;
+	arc=none smtp.remote-ip=74.125.225.139
+Received: from mail-wm2-f11.google.com (mail-wm2-f11.google.com [74.125.225.139])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E797C606A324
-	for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2026 19:00:39 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E797C606A324
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEA0F606A31B
+	for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2026 19:25:15 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BEA0F606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=bzc4Cg9j
-Received: by mail-qt1-f174.google.com with SMTP id d75a77b69052e-53669f7b518so11399641cf.2
-        for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2026 12:00:39 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=bCPSuJt8
+Received: by mail-wm2-f11.google.com with SMTP id 5b1f17b1804b1-49814d35686so804805e9.0
+        for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2026 12:25:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1792782039; x=1793386839; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=5tf4s8d8+MZT/ng3kYJALwtT1EAbBRaxelT7QvlTQng=;
-        b=bzc4Cg9jHc+EwZ+EF2GHA00SaE7XNzyRJ2jPm8VaHgqzKDLrehIHY+5e8wqB1yH17y
-         sndSYk22aMmceP9P1fMLTu0Z4V8EzlM2RGsFmTw4gK3j741dLn2NCvrwBRx9Zs2Y9Nrl
-         IH1Flz0MwkfAlUgvicHD3GXb1HCVFF/PCxVAEn/OVSguv9eR9Zs++ljRZWXpHTqI+xAr
-         rfcFCA7qmIwN9IxX9GeYG2HRZ3YRwMSM0MH1BmgGZbTGcamONR+rAGI29PTmp5avInXD
-         sAUAnL9pEXhpYTml9nJyCuJ6EjWQTeYXwbhCn5SvYnMgGcHEU9aguEL9UamXbiSuNSk7
-         hQSA==
+        d=gmail.com; s=20251104; t=1792783514; x=1793388314; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=oGW63mO5SvhKxHF/FfNpWKu1NPhp9bwy3WqXJsLfK7o=;
+        b=bCPSuJt8o7R3/iFQ8u1K/2H091zqiwd6etYriejb2OE3nLVFjN7PWBCbErrdJh5DpM
+         IFXrUgAJKVOp3eKoI61FP3JV0HHGAJuzlqphz9IOxKVQ/DuREA7m09SWrG4sbkRqluzY
+         M6QQw40fPN/UbFsN9ML1iQtqJFWo8HczLgWACvcdJLMD9F9BEjwxfkMMG6SR139fkCiT
+         oFp6jIjph8Ipue0WkkTu8pmlcqEUv+urVWnWq0ByBYauJu0XMz8mh6mydZTbcZHIXH5e
+         6586wBPdPkWNXUcUVkDeenf6nkyjMLs5mLqK0UbkKqovfvjcN7VF10Gbgetivimk5qZ+
+         8dWw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792782039; x=1793386839;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=5tf4s8d8+MZT/ng3kYJALwtT1EAbBRaxelT7QvlTQng=;
-        b=kZ5VvqECwhMlhOc0IVHmePx0JZEbtqke6ZM3ijlLO+L8/JOj9Xn1ks5dEQPBuNeV8a
-         PsuhIQd6RZSKVeqr2xkaZ2+wpjnHaVIJ5xRv7klYH1JGJHEAJ3Yyik3nsYJ8k6ic4hYX
-         G1/iZvPdqm5y0KFOvb42IgpxTAuQyqQLkq9OANj7hsqfSyJUeqNGeWekZASxFm1/cdDl
-         EbqzM4LW/DSaZSm4yuNBoJMZY5Wi9bsFJMN/zPGysTldeQVoDkcc9733TFiiCTrz8sGq
-         piyyAb0IbmTaMbj41wC0Dgpcy1HYxXiQcZ+GHjwsMQ8AWceiYiqclUckk9OFGcHvPAVY
-         7D/w==
-X-Forwarded-Encrypted: i=1; AKwUvBxGtSCbKIIr7pNbrUkWOCzp+I3S1Sl605c7LKA37SOgGti9aDTHGrkdh7FSjtHO//L0em/InhByd9MN@vger.kernel.org
-X-Gm-Message-State: AFq9FYJ8O/oS0Jc3b67TxX4ejS435X8EbAy1r6H+TQpfHePCYg/WoQdy
-	zmtJQzLYR5z8WoIJgwnmpBv7tk1SqJVLrJp2hFmPQzggBZCLo0sHDa/BR1ICpGch10A=
-X-Gm-Gg: AYBFou1xmPxcYd2HNydwPlhQPu/iHIe3bnQpdG6bq1WUmOGnbTTI24XVlolztobhk9X
-	r1hqUfH9jxDo1E0chxcli114gY/THhDsO+8co18C/hA6IElYfZgRpO+QSYMvCSucV+VvZV6/RxQ
-	qqzf3I+DoMB891ngBIqWovhzYgcKbj4Ow4OXU+KCsC5z6hVr1OnJIQxa49HTj9q8KjSjNi+bhuC
-	IYV/H03rQjfShJQMnrXscz0lc+bxWLxrOqEHrz3Jep3/CpcPV5U3Q+rX40ACiA6Kuab5nDCq5Fg
-	P6y+Ai3ysil2wkMdj6E5/TnMZ+FFUVVWXEaZPq1E++n88jh965VWtkikogiA3akjR49PxWRgf3L
-	53L8f+Db7xqv02rP6Xqb7Ejkjrcpdy/1wXS3sB+ltXYo91M9zYhOBcixwl8WNEc5oxE2F87AIeA
-	p49W6C0u+/VZxkzr0t2Fd9eJvSETmQbHnueokoBKJlLqYXYJLuCeIr8Au6b22Y2sNxpH1T54z98
-	eDuobSE71mPPSoqaQoONHjhnaDw4uYlysAfpfZinee/0mhwLAF7gdi33JFNWueWe+LA+Ki+VuBR
-	JK2mdhx3wpqZ8Vyu2eJyNmU0JLq+cR82m4NboQ==
-X-Received: by 2002:ac8:5d8e:0:b0:535:a5f9:7520 with SMTP id d75a77b69052e-536c26e2168mr47897061cf.63.1792782038589;
-        Fri, 23 Oct 2026 12:00:38 -0700 (PDT)
-Received: from ziepe.ca (hlfxns010zw-159-2-239-150.pppoe-dynamic.high-speed.ns.bellaliant.net. [159.2.239.150])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-53839709ed6sm1185741cf.16.2026.10.23.12.00.37
+        d=1e100.net; s=20260707; t=1792783514; x=1793388314;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=oGW63mO5SvhKxHF/FfNpWKu1NPhp9bwy3WqXJsLfK7o=;
+        b=VTjY56aR/xghh5iTbmt9GPFLMywOhGJrfVt0dH+SZ2XvCuAZmf+kxJPmpWBnWZ0uE8
+         qIQr4TDYOwRRVeDuqQTd1i0efQ5/lW/N9/vWJA06eX+eY/It+WPDWqXzcMfCR/YxR9Bk
+         AIDb6HNe0XhX9MvOUoURHUnbGQ5qNXdyUZ9IbVKGQT165XtF/gXYAKLHc5BKC8LCXCbC
+         YTAio9DIZ7thhh480rzT0LYjMK7/fN/lVjD2wCIAW2+3bCFVNyr9kO4EyWPLfYQCiDHF
+         a9L5Qr0CRSBv2xG8GdY3ssjBPwe6yXJmxvr5oa5SXL4ETKqbFbmgf/8wYvwCP6VKoZCO
+         87iw==
+X-Gm-Message-State: AFq9FYKK2GCwhd9ARg3HYqt2efxn5r/hxHThqgTO4K2SLgvdr+wUVjes
+	o6+PUS/dleZkfTriAnBnzY+rTyf0+U0ZzPKqc6HB0DXUbz34fm+fwZBy8ZYWDL5D
+X-Gm-Gg: AYBFou2WOSah5zUTjqdBNfV6u52qiZbabFKcFwM8LP2T2ehWyzZWi9oZqaK/sFysnbn
+	a2esBWHQG9Skc79A4PZ144c5vaJtk3oHwrX7zsb56nZeufEfun6XjykLK2rM4Tu7cpNx9CVv2Rh
+	2pnvQsGC7xMDjgUNSU02ccAcuzfUg3lI3bZtCZm6ccHygaiMxvKon5iEn5TiGfLBMi8wcdtMjwM
+	NihkiCJPpoSfCYI16dM4DcmXQchCqXuTk5OObE1j60P60N29HQyuvuLj0Z/nhQufJykDXFLRID6
+	BJAk6Hrr4K4RJY5GTg2hZCtl2hpQL1O0Ak8rr1/6q88Aox+h1KMYzTEB5/P7XQ9EOrkUlwqr6BB
+	Rfodk2jF/EsSjKRky8ov3WBg4KGo8SS5V4Gw/hzW8N/RMxm7yhfgKyxPpQIQT9KskaaxFscXfqz
+	nOggtlvcgN0w3Zu4moB+CWTdrFrR2MHP51nZProbYHC32yejeygCOaIFKmToNYyevRSXbXmRwSW
+	SVhMVD2nLJ7BAryq46GS/Uv+L+OYY1CrcnrSGfk1zuipAnV4SqfLsi2BjXvbECQLXGYZ0o=
+X-Received: by 2002:a05:600c:1389:b0:4a1:c6f5:2450 with SMTP id 5b1f17b1804b1-4a211cac456mr52662775e9.17.1792783513937;
+        Fri, 23 Oct 2026 12:25:13 -0700 (PDT)
+Received: from serhat-ubuntu.home ([212.253.207.33])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a35a0aa097sm3720225e9.3.2026.10.23.12.25.11
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 23 Oct 2026 12:00:37 -0700 (PDT)
-Received: from jgg by wakko with local (Exim 4.97)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1xKKVI-0000000GxzN-4BG5;
-	Fri, 23 Oct 2026 16:00:36 -0300
-Date: Fri, 23 Oct 2026 16:00:36 -0300
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Leon Romanovsky <leon@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
-	Logan Gunthorpe <logang@deltatee.com>,
-	"Joerg Roedel (AMD)" <joro@8bytes.org>,
-	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
-	Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>,
-	Thomas =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
-	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org, iommu@lists.linux.dev,
-	Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
-	Chaitanya Kulkarni <kch@nvidia.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
-	Ankit Agrawal <ankita@nvidia.com>, Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: Re: [PATCH v9 02/18] PCI/P2PDMA: Derive routing from directional ACS
- controls
-Message-ID: <20261023190036.GL3977851@ziepe.ca>
-References: <20261023155914.GK3977851@ziepe.ca>
- <20261023182715.GA2798722@bhelgaas>
+        Fri, 23 Oct 2026 12:25:13 -0700 (PDT)
+From: Serhat Kumral <serhatkumral1@gmail.com>
+To: jgg@ziepe.ca,
+	leon@kernel.org
+Cc: linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Serhat Kumral <serhatkumral1@gmail.com>
+Subject: [PATCH] RDMA/mthca: Fix off-by-one in mthca_map_user_db()
+Date: Fri, 23 Oct 2026 22:23:48 +0300
+Message-ID: <20261023192348.11070-1-serhatkumral1@gmail.com>
+X-Mailer: git-send-email 2.53.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -118,34 +93,32 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261023182715.GA2798722@bhelgaas>
+Content-Transfer-Encoding: 8bit
 
-On Fri, Oct 23, 2026 at 01:27:15PM -0500, Bjorn Helgaas wrote:
+db_tab->page[] has uarc_size / MTHCA_ICM_PAGE_SIZE elements, so valid
+doorbell indices are in the range [0, uarc_size / 8 - 1]. Allowing
+index == uarc_size / 8 results in an out-of-bounds access at
+db_tab->page[npages]. Use '>=' instead of '>' in the bounds check.
 
-> > Yes, the ACS combination is selected to avoid ordering issues
-> 
-> Does a user have any way to know whether the configuration is safe?
+Fixes: 56483ec1b702 ("[PATCH] IB uverbs: add mthca user doorbell record support")
+Signed-off-by: Serhat Kumral <serhatkumral1@gmail.com>
+---
+ drivers/infiniband/hw/mthca/mthca_memfree.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-No, unfortunately in PCIe so much is really difficult when it comes to
-deployment :(
+diff --git a/drivers/infiniband/hw/mthca/mthca_memfree.c b/drivers/infiniband/hw/mthca/mthca_memfree.c
+index 9c5eb03f354d..39d82dc73807 100644
+--- a/drivers/infiniband/hw/mthca/mthca_memfree.c
++++ b/drivers/infiniband/hw/mthca/mthca_memfree.c
+@@ -453,7 +453,7 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mthca_uar *uar,
+ 	if (!mthca_is_memfree(dev))
+ 		return 0;
+ 
+-	if (index < 0 || index > dev->uar_table.uarc_size / 8)
++	if (index < 0 || index >= dev->uar_table.uarc_size / 8)
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&db_tab->mutex);
+-- 
+2.53.0
 
-> I'm wondering whether users might use "pci=config_acs=" to configure
-> ACS so things appear to work as they prefer but may not provide the
-> ordering guarantees drivers depend on.
-
-I imagine that could happen, but on most practical systems the root
-complex will blow up if you do asymmetric routing so there is an early
-indication.
-
-I know this because I've help debug such configurations at
-customers. Some servers helpfully MCE if you do this. Lovely.
-
-> If that's a possibility, do we have any notes in dmesg that we are
-> depending on fabric behavior that the OS can't discover and verify?
-
-Maybe, it could be interesting if the P2P logic found asymetric paths
-it refuses to permit it.
-
-Jason
