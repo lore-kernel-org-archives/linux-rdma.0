@@ -1,89 +1,73 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.225.139
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792783516;
-	b=t0ONOMWaHIkkIK48F6V7C5a+qee4H7VI+ZmJa/BmmKD3isZ46b3iygQosP8S3ypn0LXy
-	 6/wFio2XoL0ceC1BkYy2NGTJFvtcCKlCANiHHAgZ6AdUZZSvEys7AKrs+ed5EUQNq30by
-	 Rcxq4K045WMLXISb2PRwDlw1SJkPi0bP26AgpUUMqri7Becm+N+HX9G9i5dxxKuEmwQYj
-	 SxLlko8b+4oKNxWEi9aqx3vA9z1OluJ0hfMy2lA8jZALs7uoJd5OCIixJILrEte9iJu6H
-	 tfjCag9i/lBt8hca6AFFX29g0BPtMBvPGyxwR7BRtCfD7mdtDzPElCyxOO6ZjCDiuAQ==
+	t=1792783710;
+	b=fsNoXlblVHTzi4WCiGyaYzZjbOzf3PvbTbBv+NDkaSvWMMha8qOUxTqafK60Wp9irOBL
+	 cEMTa9mjd1+CBjr2321bcajSse/yiI7DUCSY9yomxVto+eM71NfzqqwSshzU8WkxbUHmz
+	 111Uci27OQ7UxFCFDN9o7YRz1aEF/kS3LMcnIIWm5X8Vgqwo3nsqG5b4HErWq31x3zfmF
+	 8lseo43llBNqIMkMa/K+H+FYRxS2jbfzokMVUyn8A0Q1YFVAW79pm68Z9SKkZu6yJTW2+
+	 S4k8KPytPIIH3iaNvaN8jaK9stTDd6R7xJ6j8re4obQCHUcjdbVDycmj1qucGC0gldA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792783516;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
-	bh=oGW63mO5SvhKxHF/FfNpWKu1NPhp9bwy3WqXJsLfK7o=;
-	b=S+hCzHgZ1rFvvfDQC7tS1r5ofyjvCnSrngzE5QsovlJWWVJ8TqxyTcSnkLSKpRV3v4fa
-	 nCmLOQfxKT4djll5nX9CHdIlylNJSV6OQg1/LIMsyGczNPX00vUM0Lpz44ieThyPPhsx/
-	 5CXe8MmGcA5ReN8ER14ObxdMs6+sfIUgUYQxhHKIS567jtkJwsBM5jQU9QXo8ONLqWOub
-	 8Jr0WsA7y9UwA1iDGy2caQpNEP7DFNkG5Fu6IIwuVDhKwtsuZaoTYCgzOzSxMDmGHntCX
-	 eEXFTXUV1ogf/wDWYpAs6iIlbsO6fN2sa3thZrd6Mm/XEJqMomjTE0oJqqAQJI76ZeQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792783710;
+	h=Received:DKIM-Signature:Received:Received:X-ME-Sender:
+	 X-ME-Proxy-Cause:X-ME-Proxy:Feedback-ID:Received:X-Mailer:
+	 MIME-Version:X-ThreadId:Date:From:To:Cc:Message-Id:In-Reply-To:
+	 References:Subject:Content-Type:Content-Transfer-Encoding;
+	bh=YucjGLPVfjFQRU45mLqNxfKpDbA20oUVWgMR9JAb1tE=;
+	b=VtDfGkg99gr9CitWv9s2ubsISAAGJm0BIKQd0SdAQS4qEy/cIde1YUIGGCq8PbfCl4ff
+	 0jNokitFGZpGtnPc03GFpWG6I/MB1DNKAvTd66F8QDa8BQ2uSFPrgdtE7j4ANwdYQ8XOU
+	 LhVvGFe5IMvssPpVOzXACHy4k/XaS1YmFfZOAlzAQs8gExlYbGRB7G2+fLUdeIpRMKOoW
+	 AG0XDxanMVVbQFxAZ2hr5WZGhLR1UA49QaXaDZVt6KsdQyg6/wP8VaoqHn8gyu14i4Dfq
+	 Qi0oyHbzCLs05WNE6/+MUfcvUBblDiR/4kCj4OTrUS15ZEZoI0HjFNlVfY55OOMjZ8A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=bCPSuJt8;
-	arc=none smtp.remote-ip=74.125.225.139
-Received: from mail-wm2-f11.google.com (mail-wm2-f11.google.com [74.125.225.139])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="Fv/EWdvS";
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEA0F606A31B
-	for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2026 19:25:15 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BEA0F606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 464E9606A31B
+	for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2026 19:28:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=bCPSuJt8
-Received: by mail-wm2-f11.google.com with SMTP id 5b1f17b1804b1-49814d35686so804805e9.0
-        for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2026 12:25:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792783514; x=1793388314; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=oGW63mO5SvhKxHF/FfNpWKu1NPhp9bwy3WqXJsLfK7o=;
-        b=bCPSuJt8o7R3/iFQ8u1K/2H091zqiwd6etYriejb2OE3nLVFjN7PWBCbErrdJh5DpM
-         IFXrUgAJKVOp3eKoI61FP3JV0HHGAJuzlqphz9IOxKVQ/DuREA7m09SWrG4sbkRqluzY
-         M6QQw40fPN/UbFsN9ML1iQtqJFWo8HczLgWACvcdJLMD9F9BEjwxfkMMG6SR139fkCiT
-         oFp6jIjph8Ipue0WkkTu8pmlcqEUv+urVWnWq0ByBYauJu0XMz8mh6mydZTbcZHIXH5e
-         6586wBPdPkWNXUcUVkDeenf6nkyjMLs5mLqK0UbkKqovfvjcN7VF10Gbgetivimk5qZ+
-         8dWw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792783514; x=1793388314;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=oGW63mO5SvhKxHF/FfNpWKu1NPhp9bwy3WqXJsLfK7o=;
-        b=VTjY56aR/xghh5iTbmt9GPFLMywOhGJrfVt0dH+SZ2XvCuAZmf+kxJPmpWBnWZ0uE8
-         qIQr4TDYOwRRVeDuqQTd1i0efQ5/lW/N9/vWJA06eX+eY/It+WPDWqXzcMfCR/YxR9Bk
-         AIDb6HNe0XhX9MvOUoURHUnbGQ5qNXdyUZ9IbVKGQT165XtF/gXYAKLHc5BKC8LCXCbC
-         YTAio9DIZ7thhh480rzT0LYjMK7/fN/lVjD2wCIAW2+3bCFVNyr9kO4EyWPLfYQCiDHF
-         a9L5Qr0CRSBv2xG8GdY3ssjBPwe6yXJmxvr5oa5SXL4ETKqbFbmgf/8wYvwCP6VKoZCO
-         87iw==
-X-Gm-Message-State: AFq9FYKK2GCwhd9ARg3HYqt2efxn5r/hxHThqgTO4K2SLgvdr+wUVjes
-	o6+PUS/dleZkfTriAnBnzY+rTyf0+U0ZzPKqc6HB0DXUbz34fm+fwZBy8ZYWDL5D
-X-Gm-Gg: AYBFou2WOSah5zUTjqdBNfV6u52qiZbabFKcFwM8LP2T2ehWyzZWi9oZqaK/sFysnbn
-	a2esBWHQG9Skc79A4PZ144c5vaJtk3oHwrX7zsb56nZeufEfun6XjykLK2rM4Tu7cpNx9CVv2Rh
-	2pnvQsGC7xMDjgUNSU02ccAcuzfUg3lI3bZtCZm6ccHygaiMxvKon5iEn5TiGfLBMi8wcdtMjwM
-	NihkiCJPpoSfCYI16dM4DcmXQchCqXuTk5OObE1j60P60N29HQyuvuLj0Z/nhQufJykDXFLRID6
-	BJAk6Hrr4K4RJY5GTg2hZCtl2hpQL1O0Ak8rr1/6q88Aox+h1KMYzTEB5/P7XQ9EOrkUlwqr6BB
-	Rfodk2jF/EsSjKRky8ov3WBg4KGo8SS5V4Gw/hzW8N/RMxm7yhfgKyxPpQIQT9KskaaxFscXfqz
-	nOggtlvcgN0w3Zu4moB+CWTdrFrR2MHP51nZProbYHC32yejeygCOaIFKmToNYyevRSXbXmRwSW
-	SVhMVD2nLJ7BAryq46GS/Uv+L+OYY1CrcnrSGfk1zuipAnV4SqfLsi2BjXvbECQLXGYZ0o=
-X-Received: by 2002:a05:600c:1389:b0:4a1:c6f5:2450 with SMTP id 5b1f17b1804b1-4a211cac456mr52662775e9.17.1792783513937;
-        Fri, 23 Oct 2026 12:25:13 -0700 (PDT)
-Received: from serhat-ubuntu.home ([212.253.207.33])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a35a0aa097sm3720225e9.3.2026.10.23.12.25.11
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 23 Oct 2026 12:25:13 -0700 (PDT)
-From: Serhat Kumral <serhatkumral1@gmail.com>
-To: jgg@ziepe.ca,
-	leon@kernel.org
-Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Serhat Kumral <serhatkumral1@gmail.com>
-Subject: [PATCH] RDMA/mthca: Fix off-by-one in mthca_map_user_db()
-Date: Fri, 23 Oct 2026 22:23:48 +0300
-Message-ID: <20261023192348.11070-1-serhatkumral1@gmail.com>
-X-Mailer: git-send-email 2.53.0
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Fv/EWdvS
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AECC1F01825;
+	Fri, 23 Oct 2026 19:28:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792783709;
+	bh=YucjGLPVfjFQRU45mLqNxfKpDbA20oUVWgMR9JAb1tE=;
+	h=Date:From:To:Cc:In-Reply-To:References:Subject;
+	b=Fv/EWdvSoEHNA+oPFuDoUMSYCe/A8jE5QeZcHfUOWCxMkIAgMdWDJIGlFJtIfSwOw
+	 rBS8oHlXekVuB2T2zyfoPwEe+cnk9rrbLXIeNfvmoEy38Ot6muKE+JnKgkpB8pZ5fD
+	 jiOknz2jijQokVCSH+vd4J5r/PSmHKxrKcqep6E+wFRooJ+oTXwr0Im5tXszgaLinw
+	 5zjz/rkfd/lnjwqTydtVVu8rldQmAlZgWOuWlrFe9dPpH4kPXZaXp3WWUtkAX7iTew
+	 Ky1C1FdKLFdA/xUbYh1gEZmJHm2uz8ZjKo4FdCbtzmhix7dgxntIGk0e2vNVnGy0zd
+	 43/vicoHOyypw==
+Received: from phl-compute-10.internal (phl-compute-10.internal [10.202.2.50])
+	by mailfauth.phl.internal (Postfix) with ESMTP id B42DFF40067;
+	Fri, 23 Oct 2026 15:28:28 -0400 (EDT)
+Received: from phl-imap-15 ([10.202.2.104])
+  by phl-compute-10.internal (MEProxy); Fri, 23 Oct 2026 15:28:28 -0400
+X-ME-Sender: <xms:XLXbamPKaYrOct-oPCf8AdL6uUqpW8LZ1opzc5t0nxMUPIOGMmaJsQ>
+    <xme:XLXbavzxskPNp8AoNDVeQCKeCKvV_N65gYgVSIbwlBw_GoGPuR4p2Jhap7VbGz9aQ
+    s3zd7Vx5_JFlcFKI9fGfCMbWAn7Pgr7TxaO2MsyPOrxtlMVMzoQcI4>
+X-ME-Proxy-Cause: dmFkZTG2L7w9+ScBpps3pcT0gwT0auqlzz1dl7rMhFhKSOXbas2lU+Y26mDIzeydpBNhn4
+    JwRaDiu+jXZdhEQHtqEqxEAulDYDADlNfr46ksPsTKfZaJYnC30pv68fkfNcX2aH1I4Bjp
+    pK7GorRcJPYVu5g7KXJXZvHOa9F9rQTBuqEmGaPo/7/lxPG6TwTeGgP6/OQC1xe6MVru3w
+    FSrSOXcMkT0AbUAb0HxM2FJuE3YYtx7Q5+WgF9hoX0IDgUR0pJsHYaSkzn5/1mmnsq/WrB
+    yGvHSzv9klKbKfXL4fKD9b8m1cgUp9/FC2Ud0wsPvF6FbJpf9PMXGjIhyIwNn6O2t4DQfm
+    7WAvklUskMvjTvsoiaQimItyQpq4pw+uQYCsIGKDHGgQv0OTBwlhs4eRI7l7LXwxJMJxzq
+    uHLU97pljr0/np0wxzeux4NtwEHjo0Ukj1/1v78iQfTSksbfJ4irljXzNLO6dePTXWbC7I
+    7PnG7QVH5Yb9Ey3BggdiEoPyvMUoUrms2tKzafuvyADkwa5ugsfnIMezIH+hQAFrDk6IRV
+    Ty/sO5BhRquQL3rIa5RaLAKlMYgApwCwIykUsRSJx2vXoOYTSaC22SLkRwEdSTjhEJMmG6
+    pwB5PHwsVQih0034lMqN+Ai6EWY/wE+oJRAvLOSnnO585GhkIJnODMIkSv8A
+X-ME-Proxy: <xmx:XLXbahfaBil3GIisT2k61LJkr5GORrfY_vMLFVWYeZcAKHorhXXg6A>
+    <xmx:XLXbarkF8N8mO-13B8YvVMQNxBgXSPXY8Xg-zOSOB_DIWVegzSDsRA>
+    <xmx:XLXbau82nvWdN0mHDqyyMsfSKZWOLxRy4pcPZ_RlrNl7gLXReI3ryw>
+    <xmx:XLXbapEyQScfJc7xAAlMzKDHdL6aScjLrfym051jJNLr9pLg_esnVw>
+    <xmx:XLXbaqJto1JIcjYjnFHJDRl6pOex_IipizShwDEzc5o5uKJDgg5AWL0v>
+Feedback-ID: ifa6e4810:Fastmail
+Received: by mailuser.phl.internal (Postfix, from userid 501)
+	id 95437782738; Fri, 23 Oct 2026 15:28:28 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -93,32 +77,47 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-ThreadId: A6RPtEbxHI2V
+Date: Fri, 23 Oct 2026 15:28:08 -0400
+From: "Chuck Lever" <cel@kernel.org>
+To: "Li Xiasong" <lixiasong1@huawei.com>
+Cc: "Jeff Layton" <jlayton@kernel.org>, NeilBrown <neil@brown.name>,
+ "Olga Kornievskaia" <okorniev@redhat.com>, "Dai Ngo" <Dai.Ngo@oracle.com>,
+ "Tom Talpey" <tom@talpey.com>, "Trond Myklebust" <trondmy@kernel.org>,
+ "Anna Schumaker" <anna@kernel.org>, linux-nfs@vger.kernel.org,
+ linux-rdma@vger.kernel.org, stable@vger.kernel.org, yuehaibing@huawei.com,
+ zhangchangzhong@huawei.com, weiyongjun1@huawei.com
+Message-Id: <bd63c152-702b-4043-a4f2-092593c0dc1a@slotpi15m67>
+In-Reply-To: <20261023125033.528835-2-lixiasong1@huawei.com>
+References: <20261023125033.528835-1-lixiasong1@huawei.com>
+ <20261023125033.528835-2-lixiasong1@huawei.com>
+Subject: Re: [PATCH 1/3] rpcrdma: Serialize notification registration with device
+ removal
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-db_tab->page[] has uarc_size / MTHCA_ICM_PAGE_SIZE elements, so valid
-doorbell indices are in the range [0, uarc_size / 8 - 1]. Allowing
-index == uarc_size / 8 results in an out-of-bounds access at
-db_tab->page[npages]. Use '>=' instead of '>' in the bounds check.
+On 10/23/26 8:50 AM, Li Xiasong wrote:
+> Use a module-wide mutex to protect the client-data lookup, removal-state
+> check, notification publication and reference acquisition against the
+> transition to REMOVING.
 
-Fixes: 56483ec1b702 ("[PATCH] IB uverbs: add mthca user doorbell record support")
-Signed-off-by: Serhat Kumral <serhatkumral1@gmail.com>
----
- drivers/infiniband/hw/mthca/mthca_memfree.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I thought a mutex might be a little heavy-weight, but registration and
+unregistration happen once per connection, and NVMe has used a mutex
+for this purpose since 2016 without complaints.
 
-diff --git a/drivers/infiniband/hw/mthca/mthca_memfree.c b/drivers/infiniband/hw/mthca/mthca_memfree.c
-index 9c5eb03f354d..39d82dc73807 100644
---- a/drivers/infiniband/hw/mthca/mthca_memfree.c
-+++ b/drivers/infiniband/hw/mthca/mthca_memfree.c
-@@ -453,7 +453,7 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mthca_uar *uar,
- 	if (!mthca_is_memfree(dev))
- 		return 0;
- 
--	if (index < 0 || index > dev->uar_table.uarc_size / 8)
-+	if (index < 0 || index >= dev->uar_table.uarc_size / 8)
- 		return -EINVAL;
- 
- 	mutex_lock(&db_tab->mutex);
+
+> +	mutex_lock(&rpcrdma_device_mutex);
+> +	rd = rpcrdma_get_client_data(device);
+
+The kernel-doc comments for rpcrdma_rn_register() and
+rpcrdma_rn_unregister() should now carry a "Context:" section
+noting that both take rpcrdma_device_mutex and may sleep. The
+unregister path is reached from rpcrdma_ep_destroy(), which can run
+from the CM event handler, so callers need to be able to see that
+requirement without reading the function body.
+
+Otherwise this one looks good to me.
+
+
 -- 
-2.53.0
-
+Chuck Lever (Come to NFS bake-a-thon! https://nfsv4bat.org)
