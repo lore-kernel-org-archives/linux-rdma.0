@@ -1,91 +1,91 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.215.226
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.100
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792720516;
-	b=xAtj9Z3hIZvImPsRCgUv1XN3CE1QoyZ7jYz8VtmAeRcts1y8KNkAScbttZwJEa8JYIQa
-	 uvToimAxWJ+PbQC1/BWFDza7rkOEOMRXGpeEPHQqDdim8ff9vkfnCuDmxZRFXXTL+Kko9
-	 4olwmu4ZSdnvRJxwIr3YulyN1QCbm+r5bqd1K/qRa0M/S7Lk7yUI+cwQHDT462fYMp7Ld
-	 Rj5VfH8yxZvADqsH12VAZni81KuP7OFdDSrmTQGm5/46Cxc1QE0W8TRciKH01rxUybVeU
-	 3ZAQXpRzJnL7dwAcac+z7QYDqettsJzHo/dlG0cQ9QXin1eaNoIGQvBv6cyRp58WHRw==
+	t=1792720849;
+	b=XtFKE1vBE8h3XMkr8wTty1PD2X96aQUUFdM9EOh9Mxa6fEv3aAzsS/L5BueYqahRr2Cp
+	 Ps4sxsMoR+FDYbakoi2eayEU4wBo8zlr199LgMd27RBS1tNFwVtn7qqzChZlZWyY+kAO0
+	 9QAzKSlIsKWCeJjW1jRVy4xQ+xisdlp3m1O6nvpqfS8jLMb4rpVjM2NnCWyO5/lQCUnVc
+	 aCzoe07mVWugZXTfomLvYUy672FCwXo67BLacWOVLJ6Go/nqTdB/iZz1K4/0fxG1Gm/2Y
+	 08MNMEd/m0hgC+OHhkKJdZUZFl1YH9fFA6qy5OBQ6xeL8ku+0Qaq6bWR3J15fDLEX2g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792720516;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792720849;
 	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Gm-Message-State:
 	 X-Gm-Gg:X-Received:Received:X-Relaying-Domain:X-CFilter-Loop:Received:
 	 DKIM-Signature:X-Received:X-Received:MIME-Version:References:
 	 In-Reply-To:From:Date:X-Gm-Features:Message-ID:Subject:To:Cc:
 	 X-DetectorID-Processed:Content-Type;
-	bh=sa+exv+ohcP7wufsLJqwQ9b+tVwHXGHKXXfxd3It2C8=;
-	b=43iWQHu7XwqhSE7yFf1BVygQkVnCiaNb8eZZucgOOPPbOU+ghHaA+pIH+O6oj0K8nMHR
-	 F2rn863Se+hct11a+X7oSZ/yZ9h8Egr9exmcX2S/pXgYbT1I2jFv+vKhwIhqMOERW9057
-	 iV3YU8ewaz9kmkggH7t29hnzr39cn0Wq1KyB1/CZm/JGN4aqN5m1NBpXUwaooxyR5PDs9
-	 wpGxTrONnPP8f6T88K6Hb9SIU+gZimHByciInIhB8DopoOCENGJj6/zX+sttU8F0YQuV0
-	 US/DsASRbrAV3GL1nAgmDbrA9REHvPFmweQRGNBvu05szYsqx3W844Ees3ACvR2lHtg==
+	bh=uZoCYHAN3w97tS0aaeyh2ldYsCerk63zCgDji17Gyqs=;
+	b=44aniCz6v+A7QdW+GvWcmYecY7Ci621c4ch5WL5oDfB3DZcsIrfkKYvW68/y2133yAle
+	 rfzoK4UPJv8Mo5ePA4N6iKFQUwdEx/5ihsgvuLjar5ZH+r6Q9x3RQ59CUyRzPADfyxKbe
+	 gqiCjd/qaBf70ragQaZPIKcSlkCNgHiYyqszcmmeQFhVMjYQ9X+4yL0ZUR/Wc0E+jgkP1
+	 A/v2AIIzsLO54s8E0j1SZb1Q9ZEnHfPVeSYiGI1DT0+G1SAJRMjPm6OFMIkV3rqYEUzSR
+	 fbscRQ7g2T3cVCbODmMQFyoqvtQMPeoz3t8xOdQSN0PtLVHNJ4m5iebYYfQcWfpRRJA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=broadcom.com;
 	spf=fail smtp.mailfrom=broadcom.com;
-	dkim=pass header.d=broadcom.com header.i=@broadcom.com header.a=rsa-sha256 header.s=google header.b=DbsWpjeM;
-	arc=none smtp.remote-ip=209.85.215.226
-Received: from mail-pg1-f226.google.com (mail-pg1-f226.google.com [209.85.215.226])
+	dkim=pass header.d=broadcom.com header.i=@broadcom.com header.a=rsa-sha256 header.s=google header.b=ezmhofpY;
+	arc=none smtp.remote-ip=209.85.216.100
+Received: from mail-pj1-f100.google.com (mail-pj1-f100.google.com [209.85.216.100])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C94E606A31B
-	for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2026 01:55:16 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7C94E606A31B
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85A94606A324
+	for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2026 02:00:48 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 85A94606A324
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=broadcom.com header.i=@broadcom.com header.a=rsa-sha256 header.s=google header.b=DbsWpjeM
-Received: by mail-pg1-f226.google.com with SMTP id 41be03b00d2f7-cc1c9879395so150196a12.1
-        for <linux-rdma@vger.kernel.org>; Thu, 22 Oct 2026 18:55:16 -0700 (PDT)
+	dkim=pass (1024-bit key, unprotected) header.d=broadcom.com header.i=@broadcom.com header.a=rsa-sha256 header.s=google header.b=ezmhofpY
+Received: by mail-pj1-f100.google.com with SMTP id 98e67ed59e1d1-3ab41538192so299302a91.0
+        for <linux-rdma@vger.kernel.org>; Thu, 22 Oct 2026 19:00:48 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792720516; x=1793325316;
+        d=1e100.net; s=20260707; t=1792720848; x=1793325648;
         h=content-type:cc:to:subject:message-id:date:from:in-reply-to
          :references:mime-version:dkim-signature:x-gm-gg:x-gm-message-state
          :from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=sa+exv+ohcP7wufsLJqwQ9b+tVwHXGHKXXfxd3It2C8=;
-        b=PqtPtkNNxT+lgduKPSu1Hm38xDpbxOwuStaqf8IXwzux0BIVZEFvlJv6lRltrDMMfU
-         jOGzzuA6aUn6f5Rdgee2cj+Uk8IRo3VnXPTZxlOaMgRtbTQYEwl05yjLdfK94xaP73Oh
-         Gkn/urwgEoo1VtYTKMb2wCm5GO+dxnKi7m4l5Kqx8auhi7a+ZA8+AZIcVflZRzwg5H2a
-         YB+iYZEGscZkFe/B+2IFW4Ey9DrOmROS3+flgfRWSGh6I9hE2sxsbilGegMqtmNjylp7
-         fds6Fo3EVM/RmK54Kw4shx4mfRA1LIcxmjIWMiT/x1LcsLuIOorfzZXae5Cvrp0llppm
-         nLVw==
-X-Gm-Message-State: AFq9FYIv8f5Wu+ZXPCAu+1w8dMiol6ZnhGDcod1wYJMXHSEJ4CsY9OW8
-	++xdyff08Y65MvIk+fiK/mQvslI5fP/OUtw+jitk9kf9bJza+SAlOUrWOqCi/CVt8c6HKJS1wzm
-	3ag+O56IXqv8+ocCS25Q63ctbWmhk4EW57M6/CNTOXMOZbBooIq3+WVVN/KTw8wlsh+VY/ttgPk
-	Y2krkj530MApGRIvWg9VNLWrDhD1jWmw19+lMsq6GrhlbupQXjTGG9F/bZRHUtI6G/J/I+4Ijq+
-	KCtUOev4k280Q==
-X-Gm-Gg: AYBFou1vZqqEfwc3YgGFpOO5cuyBQ7PgucImZbyMbhBL9/JHutvlpigTN7SbIenprIf
-	56b8BkdV74iCF5mSk5L8NAGPc0HZas3coaEe57MZChw3o4IGc4bFNA5KXifoM7ZzYSiSxevMDwC
-	DG9C52Rh5+60hljp+eBiuueeoyu6SN0WugbsULtqy0EXprPGTT7+uNj4l96j7dsmlPwjHPFaUTC
-	N8uABYZ2zI71jyKWlfUXhliqPT7nLsMEATv62OR5A3lHk9g5gJudYbPc/U/hFMem4AwQGwkFc38
-	vnxVvbqNu48OggqQJ845KlOYfq/Gud3XScxOsAmKakY0bksVBTsMpowrkQp1/UBIdKmP7VPL0dA
-	vuu1A7fpxQg3pg/YcrLuG4ZvaS1B6FFcvCCcNysdZaq0aiuXZ7N4s28EHb7F9e2q7llsdHRl1b7
-	3xktVV1GYxO+Enq6rwu7WQcwnNEJ18e9UvrMo=
-X-Received: by 2002:a17:90b:530f:b0:39e:59a0:46b5 with SMTP id 98e67ed59e1d1-3adce03c2e8mr593546a91.24.1792720515762;
-        Thu, 22 Oct 2026 18:55:15 -0700 (PDT)
+        bh=uZoCYHAN3w97tS0aaeyh2ldYsCerk63zCgDji17Gyqs=;
+        b=NynMmpihngBHhwx8GshTPyJJOeewfk3Zh8WZf6ED8lmHK+b7rP6+ngmCYEFXjA58M7
+         chSZzG3l9k+ACnQ5mj7QPm3p2cG7Y3dZtUdFmv4heo+4jJttKafZsWuTg9Ct/TUjvmTo
+         62mXhbhLlGIWhBIprV8YFpF6STHtns8eduI+pr2AGW+5Mv3KOi850ftkBKGIrv9RYqkq
+         Emcb7/5bQDFYXOYzCSHn0qundqSbDLnHqgUWAmApFjWwoTcOISq0djeegHLqCsAt+b5D
+         VfBMbDdfXVxILN+pzXPQp+mW/v9wjexICyAPOvk/3r+4b3VE5YkpXFuY6xeLuMnlMfPg
+         4EJw==
+X-Gm-Message-State: AFq9FYJC2HgQDZR32uAWBTwBIy/nHY9Hokt3fdcjEUKul5wMC42/vIRd
+	TcPCc1sizQC3NbaKKXce0cQH9OAvUOLLF5brTU/mmBlza23mBkjtFQnzLKJkLChnxVlQxCxKKwB
+	bmNqgWiIslXOhk2Pj5MQK7vtHHWv6yK3hQabhH7uAJAQQkvvBea8RfU1hghk/E9aCu6B7tbJ2Ou
+	mQ9evv4mHNUodK8bfsjdRAP3I/X8boJehVyTO7JFrkDq2oWwSeCbO8XRMBVPJ+tpetF+MYqfIZR
+	DGr/UoUmD5q2w==
+X-Gm-Gg: AYBFou2bJk/GTZQNT1G7GGzhwU5hFqIM+lo7k2LA/8ktO1NiprZue7V5vYM4iNPA4oy
+	8gHQ9NuMn1KaqUOrJeoUAl+9XtadV3QC2I0q8YC/EIPGoCkNQG+rvN30j0AB0WsRT3q26lDRIcE
+	haMWQvwFWNj5A54XNwoEPyerGsjK93hiXO683KUWWJdwDMPrv5ohaAr23/AODWEwISPMJTl7o0k
+	yUf56kWt2Y0NVM5KAjErhRns2iSc2xYX+CELcxYCDf45zzgj8nG5yNNagB+nbqOtUrPeAAAhO5m
+	hCk/rvxnwJGxuKwL8Icl2P0yVz9BTKS5FkOl9EYJal+j7N2VSraVXVqnzlVmstQRntyPQSSU8Zj
+	3wnbDaK5cpPN/kfwI8RcGwk+E6mAP1LrJxGSh3Ip7W6sfzN78VwMPQXZCRGmsiZ52hNLb70vZfS
+	sUVwtT/e6iKTGvH1feA3UfKzCNRaHT4jYBQsM=
+X-Received: by 2002:a17:90b:5863:b0:3ac:9f24:44df with SMTP id 98e67ed59e1d1-3adcdc89a0amr631928a91.2.1792720847612;
+        Thu, 22 Oct 2026 19:00:47 -0700 (PDT)
 Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-120.dlp.protect.broadcom.com. [144.49.247.120])
-        by smtp-relay.gmail.com with ESMTPS id 98e67ed59e1d1-3adcb0ac6c1sm728808a91.3.2026.10.22.18.55.14
+        by smtp-relay.gmail.com with ESMTPS id 98e67ed59e1d1-3adcb1c92fdsm738305a91.6.2026.10.22.19.00.47
         for <linux-rdma@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 22 Oct 2026 18:55:15 -0700 (PDT)
+        Thu, 22 Oct 2026 19:00:47 -0700 (PDT)
 X-Relaying-Domain: broadcom.com
 X-CFilter-Loop: Reflected
-Received: by mail-ej1-f71.google.com with SMTP id a640c23a62f3a-c3a4da6437bso34072466b.1
-        for <linux-rdma@vger.kernel.org>; Thu, 22 Oct 2026 18:55:13 -0700 (PDT)
+Received: by mail-ej1-f69.google.com with SMTP id a640c23a62f3a-c42f98f351eso45920466b.0
+        for <linux-rdma@vger.kernel.org>; Thu, 22 Oct 2026 19:00:46 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1792720513; x=1793325313; darn=vger.kernel.org;
+        d=broadcom.com; s=google; t=1792720845; x=1793325645; darn=vger.kernel.org;
         h=content-type:cc:to:subject:message-id:date:from:in-reply-to
          :references:mime-version:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=sa+exv+ohcP7wufsLJqwQ9b+tVwHXGHKXXfxd3It2C8=;
-        b=DbsWpjeMaf5FAx6w9a8bjxJR7sh7XgNIgj3RW20GSitIVMBvh0V3pcDOPuhBj99S/s
-         DtmLRt6bfkSWdqyiTylyNBCnsDwyRATD+Js+roJo9+Ofp2PNMVy6FuAstcV7YV8WQ5SH
-         A1rJDClZojtAn5moHiWCZ5yZvURBYRNApoeOw=
-X-Received: by 2002:a17:907:3cc5:b0:c46:8b9a:39ae with SMTP id a640c23a62f3a-c46a92620camr120915266b.28.1792720512865;
-        Thu, 22 Oct 2026 18:55:12 -0700 (PDT)
-X-Received: by 2002:a17:907:3cc5:b0:c46:8b9a:39ae with SMTP id
- a640c23a62f3a-c46a92620camr120913966b.28.1792720512467; Thu, 22 Oct 2026
- 18:55:12 -0700 (PDT)
+        bh=uZoCYHAN3w97tS0aaeyh2ldYsCerk63zCgDji17Gyqs=;
+        b=ezmhofpYgEDaii+pZLacbxMm+sdBxOtPCHPFUbLBL/GILgsAMwziID83yKui4Na4UG
+         LnXQE8Tj0BfffzhyEaaqCcfgineslLoIFkT0LaYlE94RJSrm81I6GbFYlkitei72uOb3
+         vMLbpQjoa5v9WIrf6e31Hh5p0mQkhLRvSwGhQ=
+X-Received: by 2002:a17:907:e849:b0:c31:b89b:213b with SMTP id a640c23a62f3a-c46a900e861mr145167766b.18.1792720845475;
+        Thu, 22 Oct 2026 19:00:45 -0700 (PDT)
+X-Received: by 2002:a17:907:e849:b0:c31:b89b:213b with SMTP id
+ a640c23a62f3a-c46a900e861mr145165066b.18.1792720844926; Thu, 22 Oct 2026
+ 19:00:44 -0700 (PDT)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -96,50 +96,61 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 References: <20261019-uet-ib-core-v2-0-8bd654f25370@broadcom.com>
- <20261019-uet-ib-core-v2-10-8bd654f25370@broadcom.com> <sashiko-outbox-178770@kernel.org>
-In-Reply-To: <sashiko-outbox-178770@kernel.org>
+ <20261019-uet-ib-core-v2-13-8bd654f25370@broadcom.com> <sashiko-outbox-178828@kernel.org>
+In-Reply-To: <sashiko-outbox-178828@kernel.org>
 From: Eric Davis <eric.davis@broadcom.com>
-Date: Thu, 22 Oct 2026 18:54:43 -0700
-X-Gm-Features: AclHuK-JmIGVVq5OqCm7xVb3e8MKVPTKOFU1seTU_5CNa3RHWxeP0p6V8FbIjeg
-Message-ID: <CAMouMY+p54wjF0rinQtf0ULRNE_09_+BZEVQhgaiA-2Y21UMHA@mail.gmail.com>
-Subject: Re: [PATCH rdma-next v2 10/13] RDMA/core: queue pair attributes for
- unconnected transports
+Date: Thu, 22 Oct 2026 19:00:17 -0700
+X-Gm-Features: AclHuK9fznijRHes4Zh9iwpBLWhIkHKYzo9AQrVm3xUgoviC6U7EHKyLOM83TkY
+Message-ID: <CAMouMY+J=pi6bGtRfHqwrHyFm70E5zvC27mhC4WW-bifa56iFQ@mail.gmail.com>
+Subject: Re: [PATCH rdma-next v2 13/13] RDMA/core: attach a memory region to a
+ queue pair
 To: sashiko-reviews@lists.linux.dev, Jason Gunthorpe <jgg@ziepe.ca>, 
 	Leon Romanovsky <leon@kernel.org>
 Cc: linux-rdma@vger.kernel.org
 X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-	boundary="0000000000005ed1dc065e7845e7"
+	boundary="000000000000315072065e785949"
 
---0000000000005ed1dc065e7845e7
+--000000000000315072065e785949
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Oct 20, 2026 at 2:53=E2=80=AFAM <sashiko-bot@kernel.org> wrote:
-> Should create_qp_opt_attrs() return -EOPNOTSUPP whenever attr->qp_type =
-=3D=3D
-> IB_QPT_RU and !(device->attrs.device_cap_flags & IB_DEVICE_RU)?
+On Tue, Oct 20, 2026 at 3:21=E2=80=AFAM <sashiko-bot@kernel.org> wrote:
+> Can this sequence in ib_destroy_qp_user() cause a use-after-free write to
+> mr->attached_qp or a race on mr->usecnt?
 
-Yeah. Folding the two conditions into one test lets an RU create with
-no optional attributes through on a device without RU. v3 will refuse that
-with -EOPNOTSUPP before any attribute is looked at, so the source QPN
-checks can no longer be skipped either.
+The first part is real and will be fixed in v3. A relaxed atomic_dec() can
+become visible before the store to mr->attached_qp, and a concurrent
+uverbs_free_mr() can then free the region under it.
 
-> Should the checks and assignments on the fields of usem in
-> create_qp_opt_attrs() be gated by their corresponding bits in
-> usem.comp_mask?
+> Should mr->usecnt be decremented before clearing mr->attached_qp
 
-Agreed. v3 will check and copy only the fields comp_mask selects, so an
-unselected field reaches neither the range checks nor the driver.
+No, that opens the same window from the other side. Once usecnt is
+zero, uverbs_free_mr() can free the region before mr->attached_qp is
+cleared. v3 will keep the order and make the decrement a release, with
+smp_mb__before_atomic(), so the cleared pointer is visible before the
+count can read zero. uverbs_free_mr() frees only after it reads usecnt,
+so that side is ordered by the control dependency.
+
+> Once mr->attached_qp is cleared to NULL, another thread can attach
+> and detach the MR on a second QP [...] and then call uverbs_free_mr()
+> or ib_uverbs_rereg_mr() before the first thread runs
+> atomic_dec(&mr->usecnt)
+
+This cannot happen. Attach and detach take the MR handle with
+UVERBS_ACCESS_READ, and destroy and rereg need it exclusively, so
+neither can run while a detach is between clearing the pointer and
+dropping the count. A concurrent destroy gets -EBUSY from the uobject
+lock.
 
 > --
 > Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261019-uet-ib-c=
-ore-v2-0-8bd654f25370@broadcom.com?part=3D10
+ore-v2-0-8bd654f25370@broadcom.com?part=3D13
 
 Thanks,
 - eric
 
---0000000000005ed1dc065e7845e7
+--000000000000315072065e785949
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -232,13 +243,13 @@ ZMEsct9jQXibihTD7z9wLTIkXqOHumCc6f53zhsQCRofr8m7Tm0YrckGCHd0BowU12A6oVax5xEQ
 6j1hyszkhFPrlLKAlaFU7VuIwlcjKvN9XYrmOfXfTnYoVV6f1IDwhgbtJNlKnJksqoCzfsbAVd0e
 usA704DOznTCfAYJqjGCAlcwggJTAgEBMGIwUjELMAkGA1UEBhMCQkUxGTAXBgNVBAoTEEdsb2Jh
 bFNpZ24gbnYtc2ExKDAmBgNVBAMTH0dsb2JhbFNpZ24gR0NDIFI2IFNNSU1FIENBIDIwMjMCDFfq
-Ldxf930IzIe8izANBglghkgBZQMEAgEFAKCBxzAvBgkqhkiG9w0BCQQxIgQgAVLymRqEGVgyF2Tz
-KWSO+ZlUACTA3ZJPQzBhKkhBX60wGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0B
-CQUxDxcNMjYxMDIzMDE1NTEzWjBcBgkqhkiG9w0BCQ8xTzBNMAsGCWCGSAFlAwQBKjALBglghkgB
+Ldxf930IzIe8izANBglghkgBZQMEAgEFAKCBxzAvBgkqhkiG9w0BCQQxIgQgEflJHMb1VId9HhxT
+FGu9j/sackU1obwuzA0BiwaLhg4wGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0B
+CQUxDxcNMjYxMDIzMDIwMDQ1WjBcBgkqhkiG9w0BCQ8xTzBNMAsGCWCGSAFlAwQBKjALBglghkgB
 ZQMEARYwCwYJYIZIAWUDBAECMAoGCCqGSIb3DQMHMAsGCSqGSIb3DQEBBzALBglghkgBZQMEAgEw
-DQYJKoZIhvcNAQEBBQAEggEA0w81dPItXT0uG7Gl1VNkNM4Cgn0rgefbC5MZ83o0WTs0njcJXCD7
-+OzGvpqXfjTuAeLdWc+mTFfsATa82/tMZCqBJQEQUAWEJ7hvIZBsAAPSFKZPxpamhyD1uDlR9QZf
-T5fwcvRPNxB4XUpQXbza3A0YOmk8xBY5MFtmdkPluyj0jaSTZdpjbq4Kv3fZxDEmgI1cvSEIDP3Q
-5FUXyS+pehMqJLpInxj+HrBBolagF2n+th/BCY+qzzvZOb4bjPYCyZxiPV3GcwN3vT5iVtAdtXS5
-7TeD2Sxi2LaS9NltxEq0t62XLjs459w5JUHGZm6NbFSJBvPF75Vv4hCGqa8pRQ==
---0000000000005ed1dc065e7845e7--
+DQYJKoZIhvcNAQEBBQAEggEAxu8xJL2rBvZ1XKyY5IaeNnn7TfOXWc4HfuZMB7K3/G85+F0BlXoP
+pvI4NzK3BmcimEksi5sYxVUA/6bYD7YOHKyjiZYEdUBIq+RTcnJyw6beNqzIFhQw5pn4IMV6HDAs
+NqR4gUXvknhIGHpsDg8CmJhVs/ExQIq3/8WV9b3MQrycDQ3UgbTKBqe8hgT4UkqUzxwwofe4KJdx
+IbySyca8MiSJL3T6fEC8pegsQgeSMsH6Lma+hDQICHBfq/SHWvPAZmTNN/7lAgunA+wstXv13yv2
+SjKB/He304ZgXQgLGHOczHeSB8QGIY5tLI3k8sbcjrQhQgzrUprcrdCGYl+xGQ==
+--000000000000315072065e785949--
