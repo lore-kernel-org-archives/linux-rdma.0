@@ -1,60 +1,82 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=148.163.156.1
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792774599;
-	b=We/rRTx2dJaDyF/6rZSZs2k4LscCOR5YV5F2NHKPFVb/v3/UM9QJM8iXbPBoN4SneCnD
-	 WyfROPTRmC+VTjpDt0TflkIXazLuTGyYi2Esx2UIk2exPAYd32Q8CiWUuwrOLL1qNFGbC
-	 DLabcAwaTCvkW+vz/m9rrT5WsSJk7IgZiUmtBIfT8XmD5N+WCF8W1DJf7yauCv/MOT7nd
-	 tXD59Y5lEEdLmBLTIaIWzo+yMVzYhHpiyB2uhMSjv9G3YQ95eWg79F3kz03c78vTvrRtb
-	 /1Ka7oF23f14wvNfUQ8r3vQiWcMe1cgyIyScn2AhOLN0gyUF0UFOGlukj69FgmmHaUg==
+	t=1792775921;
+	b=stOCSYe4PtL284Utd4F719k+M2J5RvEOa/EFPucQDMxeLttQ+TL2GKmS+oNE07AjZ9bc
+	 UQHBoqG3HJo7sCEU3jpb+zto0QvfJiktLIkqqyMB8uqSGK6hI8XEQOT3Sq/J8CMYoWieP
+	 Nc6dsis8LUXVyHoRziQIm5EBcucJ1dxOiVBVK51C3rvOtZPdUdgq+vlH50WBtDjAm/CRk
+	 TWK8pc6MhTeMUVi1l4BSBRLyPRDQJU7E43qyBgrU0YS8YMuYXtHPVLbTEKzQe68w4gRGu
+	 X2xMV8m6DUaOdx9jzGZwDVU2POmgAb7TM+FBlCHfbKImOL6MfFRXt+gPgyJVkOBtXLQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792774599;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=DkY0yffP/TSTVVFtKZfn1AXeb2RPVc818IaAsv/BfEs=;
-	b=1A6a7Bb+H1ddt8VTXGfRV63KATFBUot50BpDqn1Hyjh/tktR2cevP3GFR3umfDeRcMCu
-	 dbIgw9t8YLhmWsMDMt8e3dDLXGgUE1degLg0zwXqCAibtoArTaxOjbcNm0bpoXcGatN+J
-	 03pwZn195CVQV0vtHyfx3b+eOlqRiiU605DRzhrylTpL4YeX5nI5scTIBTlW5Mntg5Xu6
-	 k4SzPcgjPsvOljGRUCAXJQzmZ+JHUG84brCyDgwFH6OmH44++jzk2yr3nbM3WYu1fe46l
-	 8q2aTX16u8HfPQcGz776kJSmCdKx9WmNXiSVtr6hSVyjwH0ZhvegO0Udo+PMq195CiQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792775921;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:
+	 Received:Received:Received:Received:Message-ID:Date:MIME-Version:
+	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding:X-TM-AS-GCONF:
+	 X-Proofpoint-Reinject:X-Proofpoint-GUID:X-Proofpoint-Spam-Info:
+	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-ORIG-GUID:
+	 X-Authority-Analysis:X-Proofpoint-Virus-Version:
+	 X-Proofpoint-Spam-Details;
+	bh=+PpTXqmlLnD1gkK9da5UA4ivV9Yaq55UolUi13Wutkg=;
+	b=bmWYUbWaw1n6Daz5T1XMrlF4eKV3l0iYhvZHIvbA3Pl7XNOMX1Pv3pWoARUnP2ySOPvp
+	 Lki9f/3dWed+vdAar3J52zXYKYnvnS7BvXRsIyuteFMse/5aBiPuzb3kjW/lvpHk2WSVl
+	 9OSFgc6xapxoB8PrN0R/asdhOwf6bdS8LrS/d3xjBxY9SAIfU3U2ZJSuEp9ugmj7vUbRY
+	 dei4XLdhlkafKGVWVOreT9GM7sQ4aPJ2F6SMFg9SSJBi0usTT6LGx1RPDgdLbLdYhuYDw
+	 jYaqSiADmcQ784JVooVO5/fpaf5WdOFT1z2mcHhtr+a85cqotAnpx/TVT4W2KqEWdxg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=LNna1yQH;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=linux.ibm.com;
+	spf=pass smtp.mailfrom=linux.ibm.com;
+	dkim=pass header.d=ibm.com header.i=@ibm.com header.a=rsa-sha256 header.s=pp1 header.b="AoFg/Mh0";
+	arc=none smtp.remote-ip=148.163.156.1
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FBB1606A31A;
-	Fri, 23 Oct 2026 16:56:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CED0360A2608;
+	Fri, 23 Oct 2026 17:18:40 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CED0360A2608
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=LNna1yQH
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C02DF1F01825;
-	Fri, 23 Oct 2026 16:56:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792774599;
-	bh=DkY0yffP/TSTVVFtKZfn1AXeb2RPVc818IaAsv/BfEs=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=LNna1yQHt4VZX8cxTfQj8ZaOWEXdZp0vQ+cbohnGbonBduOWUn65kqoCJR5bp919d
-	 pDvKZPnbiXdXFs93JzXv9LAVVBTkXOQy1PHOObyZfKztlnuWVEw8qTeU3caa9gVnJl
-	 h6st0qqbBRxKMg3yB1FIeahXtYQhVIOJ4AtAi6XFHHthbBfLcLEwIkW1pL7uNUv75Q
-	 kMr6pYpYPx1yMEfR7dPlAHS1q7xQQ4ByEty+XUkUfOW1HHeUorhisw4cFbBme9v9OK
-	 T43yZMr5Ct2uU0QeOoOizatpKYAa8lp/YTZrIU3Kb9SJYat2zB+TIRSITQ3+Abb7Pj
-	 zwmoUmraOolyw==
-Date: Fri, 23 Oct 2026 17:56:34 +0100
-From: Simon Horman <horms@kernel.org>
-To: Peter Morrow <pdmorrow@gmail.com>
-Cc: Tariq Toukan <tariqt@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
-	Petr Pavlu <petr.pavlu@suse.com>, Yishai Hadas <yishaih@nvidia.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Eric Dumazet <edumazet@google.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S . Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org, regressions@lists.linux.dev
-Subject: Re: [PATCH net] net/mlx4: always create the eth and ib auxiliary
- devices
-Message-ID: <20261023165634.GA888721@horms.kernel.org>
-References: <20261020164239.3808903-1-pdmorrow@gmail.com>
- <20261022101915.GD708417@horms.kernel.org>
- <CAFcZKTyrRKS+A1cb4ZrjgbEwJpEHMVNCW=Bx+emzrBdC8H-mug@mail.gmail.com>
+	dkim=pass (2048-bit key, unprotected) header.d=ibm.com header.i=@ibm.com header.a=rsa-sha256 header.s=pp1 header.b=AoFg/Mh0
+Received: from pps.filterd (m0360083.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69NGoToR3668699;
+	Fri, 23 Oct 2026 17:18:24 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=pp1; bh=+PpTXq
+	mlLnD1gkK9da5UA4ivV9Yaq55UolUi13Wutkg=; b=AoFg/Mh0pNfHGvARrKU9rN
+	REmBY0KHAOdJTdNcXPEetMTT9VflTtuAt7wqK+D3l6CWUqZyP9hU4P9MGw8JFH9L
+	sAIq1HFCp0sIMO+qAU/2/F4ZZnRiHJdamDI0HwmA4C06KWpHDYqVIghSf/5fwljy
+	grzFO5BPje6MHOdncbAIKMydAtG6Jb/Pp692LkeVo77WMbykkZH6iT3gPvYryy9V
+	V1gJX0JpkI4+JgiE5TBVTx0V6FTT5KawcxFqKGUfUpEhF2S50EvqPCu5tTGIamL+
+	btL7N8p00+kskZtZbjjpZPqWcT0ADLuwbaGxxHd8/dz2iUkFWWlbc2+V6sHRmjmA
+	==
+Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4hdw596ke0-1
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
+	Fri, 23 Oct 2026 17:18:23 +0000 (GMT)
+Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma13.dal12v.mail.ibm.com (8.18.1.11/8.18.1.11) with ESMTP id 69NE64fV1018552;
+	Fri, 23 Oct 2026 17:18:23 GMT
+Received: from smtprelay02.wdc07v.mail.ibm.com ([172.16.1.69])
+	by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 4hg5exsn5u-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 23 Oct 2026 17:18:22 +0000 (GMT)
+Received: from smtpav02.wdc07v.mail.ibm.com (smtpav02.wdc07v.mail.ibm.com [10.39.53.229])
+	by smtprelay02.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 69NHIL5o15008382
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 23 Oct 2026 17:18:21 GMT
+Received: from smtpav02.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 213B758059;
+	Fri, 23 Oct 2026 17:18:21 +0000 (GMT)
+Received: from smtpav02.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 86F6C5805B;
+	Fri, 23 Oct 2026 17:18:13 +0000 (GMT)
+Received: from [9.124.220.1] (unknown [9.124.220.1])
+	by smtpav02.wdc07v.mail.ibm.com (Postfix) with ESMTP;
+	Fri, 23 Oct 2026 17:18:13 +0000 (GMT)
+Message-ID: <498db6da-c461-4bba-a2aa-2415e99aeb97@linux.ibm.com>
+Date: Fri, 23 Oct 2026 22:48:11 +0530
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -64,32 +86,77 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAFcZKTyrRKS+A1cb4ZrjgbEwJpEHMVNCW=Bx+emzrBdC8H-mug@mail.gmail.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net v13] net/smc: fix lgr/lnk lifetime vs diag reader race
+To: netdev-bot+sinfo@kernel.org
+Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
+        kuba@kernel.org, pabeni@redhat.com, alibuda@linux.alibaba.com,
+        dust.li@linux.alibaba.com, sidraya@linux.ibm.com,
+        hidayath@linux.ibm.com, pasic@linux.ibm.com, horms@kernel.org,
+        tonylu@linux.alibaba.com, guwen@linux.alibaba.com,
+        stable@vger.kernel.org, netdev@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
+References: <20261023150317.1163397-1-mjambigi@linux.ibm.com>
+ <179276799858.3327.5559074809059802819@kernel.org>
+Content-Language: en-US
+From: Mahanta Jambigi <mjambigi@linux.ibm.com>
+In-Reply-To: <179276799858.3327.5559074809059802819@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-Reinject: loops=2 maxloops=12
+X-Proofpoint-GUID: 9_nVIsYayCM8tqTaQpAz10y9qEi_Oj3z
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMDIzMDA2NyBTYWx0ZWRfX4gNvBXi7Rv7z
+ KsycYt2DKAE+PIzvggabMavLgIJfL99QbfgGOb41VwU4G+ztlHtG2BOXWvDK8UgL0XvgWakRGzj
+ zTiWcvkIGat5FvDhH9GynEvRlHJQidg=
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDIzMDA2NyBTYWx0ZWRfX0mU0URRhcLQy
+ EpNvllxGNODaJx26ZnEPr7CSjLdLB1osXDCEedneduhAl1Ae50ZpBc4uqu6F8P+kDO33er3bsvn
+ 5amuDZmiTG4+nkG6RntAjkQnmrMjwL3Juhly/dNLYcyDKZwVdXxE/9KoCVnwD8zmvB6atEs5LRW
+ GxRaE9O2rzPVwBcF8uchyHVCGZO8EWxa+vU0gIinwdKPuuFuA9gUXmL7B5h9y/B4pApCaLPBpLV
+ wpok8foBxHg2k27wFgND6SY8j/4Ulk3DLkHLR3NTdDHwcy5BSXpl1U1ZFzxZLjNf6/mndNj8/f/
+ SBpJAi07MkemnikS5qGOagreskCEnGxS3NrdaoLOVNGzAXyzuSQaB7+t/Rx/kcDD5lngYKl8qxf
+ F77AovduAdS8GTVuSmNpLi5l3lI83U6b4gqa/mDwj+omSAAAvW5yZa35WrhFoqH51+FZyKBvoNr
+ 74py7VFjJjAx+ItC2PA==
+X-Proofpoint-ORIG-GUID: xcgnfAcm4n7m6sQxpLMWvQpIQzoJl6Ih
+X-Authority-Analysis: v=2.4 cv=Ob4NnRTY c=1 sm=1 tr=0 ts=6adb96e0 cx=c_pps
+ a=AfN7/Ok6k8XGzOShvHwTGQ==:117 a=AfN7/Ok6k8XGzOShvHwTGQ==:17
+ a=IkcTkHD0fZMA:10 a=660iZSQnnn4A:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=RnoormkPH1_aCDwRdu11:22 a=iQ6ETzBq9ecOQQE5vZCe:22 a=VwQbUJbxAAAA:8
+ a=8WImSUdLa4LpenjYlHkA:9 a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
+ definitions=2026-10-23_04,2026-10-21_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ bulkscore=0 adultscore=0 phishscore=0 spamscore=0 suspectscore=0
+ lowpriorityscore=0 clxscore=1015 impostorscore=0 priorityscore=1501
+ malwarescore=0 classifier=typeunknown authscore=0 authtc= authcc=
+ route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2610190000
+ definitions=main-2610230067
 
-On Fri, Oct 23, 2026 at 03:08:23PM +0100, Peter Morrow wrote:
-> On Thu, 22 Oct 2026 at 11:19, Simon Horman <horms@kernel.org> wrote:
-> >
-> > Thanks, this looks good to me.
-> > And I think the minimal approach taken here is appropriate for net.
-> >
-> > Reviewed-by: Simon Horman <horms@kernel.org>
-> >
-> > I do, however, wonder if a follow-up is warranted.
-> > It seems to me that the is_supported callback could
-> > be removed entirely. Leaving either:
-> > 1. struct mlx4_adev_device with a single member, .suffix
-> > 2. mlx4_adev_devices as an array of of strings
-> >
-> > To explore this idea a little further I tried coding-up approach 2.
-> > Which lead to the following (compile tested only):
-> [...]
+
+
+On 23/10/26 8:36 pm, netdev-bot+sinfo@kernel.org wrote:
+> Hi!
 > 
-> Thanks Simon. Agreed, a cleanup here would be nice. I'm happy to test
-> and send your suggested patch to net-next once/if the reviewed change is
-> merged, unless you'd like to send it yourself.
+> This is an automated message. This series looks like a fix, but its
+> commit messages seem to be missing some information:
+> 
+>  - How the issue was discovered, e.g. hit in production, hit during
+>    development, syzbot report, manual code inspection, LLM or static
+>    analysis tool scan.
 
-Thanks Peter,
+The issue was found by manual code inspection while reviewing the diag
+dump path in net/smc/smc_diag.c.
 
-If you could handle preparing and posting a formal patch I'd be most grateful.
+> 
+>  - Whether the issue was actually triggered, or is only theoretical
+>    (e.g. found by code inspection). If it was triggered please include
+>    the symptoms, like the stack trace or error messages.
+The races are theoretical — none of the three windows were triggered in
+practice. The smc_conn_kill() / smcd_buf_detach() race requires an
+active smcss poll to coincide with an SMC-D lgr termination on the
+dmb_nocopy path; the smc_close_active_abort() and
+smc_close_passive_work() races require a concurrent diag dump during the
+narrow teardown window between sk_state = SMC_CLOSED and
+smc_conn_free(). No stack trace or error message is available since the
+bugs were not hit in a running system.
