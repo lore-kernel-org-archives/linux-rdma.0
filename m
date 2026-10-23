@@ -1,62 +1,48 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.125.188.250
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792787157;
-	b=XJFHqSmGTFRmG33A7H3/ZQHuhwgAKUlsrKbaDrQA2W+VMB6VbD7sAhO0roELfHcNQmYR
-	 SpXRX6ZIxTBIkvTtw8P02pDyN0fsZ265HIwiyMWTcT35XeYGaUyPvI0eQ08Ulp7Q3MKZx
-	 6mXNB2p/AMnTaqBpW9ZE+2AjPPXdG6HGusJN8pr9ha8u/zIheyxH8IAZI74VKuzT/npPo
-	 YwnPmjIkFAKYUzdapu6SMg3jL1I6W3Kv00AJ2pNXtOMRszRYQ45xKZgpzgQ+C93nP+2u8
-	 fsbmWjBtLKJnQI7lKFUPRA+Xh75jiMQbd//+UIWZcNLT5Jn8rdDe4MsZT5Rq1W4yrOA==
+	t=1792791007;
+	b=bZv8Yi3L+zZ9HHll6nXTG6mWyY/Lf6a83FWIXPIp+T2GJrumsKXPFbf+JXiKbfBp+VHn
+	 pRfjHwPQ01cpkRn1BR4VyCeDVUnT2VZHr5EDc9qYuQbqeDop+3DfcUg+p517TiNfIb/4E
+	 6uJ1c/xo/6YNXms7B9wTqCTqPn0K+prNeZEXPfsrvLj0mLO2gzxD7BQ6Dy2mCnIU40X7P
+	 IkY4C/F3dnxhVXlEkl9ypmX9TfA6RZQhlVSlh5BIxVkjW2k8ZgDjhJx17yjxAYrX0UzPU
+	 iFNLiKhk0RlYyXePDM6WznxsncLDUaCVGpmxsoT1MhanXy2gxhNq53T0/sxtAwidDEw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792787157;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Content-Type:
-	 MIME-Version:Content-Transfer-Encoding:X-Launchpad-Message-Rationale:
-	 X-Launchpad-Message-For:X-Launchpad-Notification-Type:
-	 X-Launchpad-Archive:X-Launchpad-Build-State:
-	 X-Launchpad-Build-Component:X-Launchpad-Build-Arch:
-	 X-Creator-Recipient:X-Launchpad-PPA:To:From:Subject:Message-Id:Date:
-	 Reply-To:Sender:Errors-To:Precedence:X-Generated-By:X-Launchpad-Hash;
-	bh=GzISC/85s3B2fOOSh1kPe9JamkYWw0WpHwXulm+Lcyg=;
-	b=nPX1t+Ct6GEH78CYZhaKmUJC+WAe0X6NqayGQ7Wtw48noKIhHg+81mIYllW+2mNhhjtq
-	 IU17EUNv66a48ZsiYnlinyh34s2p9qtCletzEQLlJSzjaV7adrXnVM7SUerZmX6pifJfU
-	 6Y3dRNW7eFOT/q1fAz/RE6OAxqdo3UrcP/H06hSiYQwp0VAPq9XJrW9h8FtmWxJqlbVjE
-	 MzStbTtKwfHkLZVKyA5VULEETr7VJ5Tg9GGRqVY30TSHBqw0299Xaq+9VAg4LAtbfmlTn
-	 xFzznrnUg0bmGC+qZTqflz+X8ANIhZXQyfXZLHbDl9Kj5CssuKZa3F+WINWrBQo6y+w==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792791007;
+	h=Received:DKIM-Signature:Received:Content-Type:MIME-Version:
+	 Content-Transfer-Encoding:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc;
+	bh=w1NTQGAFkLyljwKnxC/RywEhW5IGslkSpTWudefCZiw=;
+	b=Lo05LFyHscg/p9js3rKIVc5PlZNMzFDUdSY2WBeUMjeO7UUAIa1nNtc8w9Ku672Mh1hP
+	 wcmQpDnoXqN0eGS5SDRiP9n8cAdYXAg++iqlbQOy3+ES0yHU9zg4vPeFw8+SciwHfDoWh
+	 QzO9fLqP24DCqjk414bBEfNqV/yWP4F34qnRdQSmoi2qFN2Yu4cvMeDsa58UjT8oAZ6Y/
+	 81UopgjuTwGBa5WvKPlNGazJjT2ysWgKPNNCAaprXeUkDnOuAOCsu9oDEIQW9cISD8tWj
+	 4jz4cbg36OGR5qrivwuhWijyGHMEkbi/YJ4ivi8dsM7E4Lopfa4bNMvhrvhGHmgTtvQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=launchpad.net;
-	spf=pass smtp.mailfrom=launchpad.net;
-	dkim=pass header.d=launchpad.net header.i=@launchpad.net header.a=rsa-sha256 header.s=20210803 header.b=A1roqKe5;
-	arc=none smtp.remote-ip=185.125.188.250
-Received: from smtp-relay-services-0.canonical.com (smtp-relay-services-0.canonical.com [185.125.188.250])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fCky4xFm;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A2D4606A31B
-	for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2026 20:25:56 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7A2D4606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=launchpad.net
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42831606A325;
+	Fri, 23 Oct 2026 21:30:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=launchpad.net header.i=@launchpad.net header.a=rsa-sha256 header.s=20210803 header.b=A1roqKe5
-Received: from juju-98d295-prod-launchpad-51.localdomain (unknown [10.131.215.15])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-relay-services-0.canonical.com (Postfix) with ESMTPSA id 770C53F48A
-	for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2026 20:25:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=launchpad.net;
-	s=20210803; t=1792787154;
-	bh=GzISC/85s3B2fOOSh1kPe9JamkYWw0WpHwXulm+Lcyg=;
-	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date:
-	 Reply-To;
-	b=A1roqKe5UnKdp8BWeoBK3ywCdtTJdHjNL8HlRP5EmDkgbVdwScfwA7/SvHWgYwdxw
-	 CLABa1v9BOtE+E1DM9gPOOV1D5v8NNB1AsOUy9c85NhPG2+2InpLBCs5Cguj2Vl+Ds
-	 97ApScWW07hTKwXPE54PnmboohCNvF8oWOBAWI2vJZkUHCPM5qCA1kbpy1NyUC+B+N
-	 B9jAPEXrhv0AL1EESHRkVno7BizOYwPh+0F3LmNarQVVmn1Cyx2okWJYAIB3ckh4zq
-	 fKSZyBnuswQ9IWuRPYm0gyPswyHjwu/XbhBfFZXCuuJe2ChXOoS6aVcvdppSMqV5+2
-	 OtdPWf66tHsPQ==
-Received: from [10.131.215.15] (localhost [127.0.0.1])
-	by juju-98d295-prod-launchpad-51.localdomain (Postfix) with ESMTP id 432CDBD8BB
-	for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2026 20:25:54 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fCky4xFm
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7F2A1F01825;
+	Fri, 23 Oct 2026 21:30:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792791006;
+	bh=w1NTQGAFkLyljwKnxC/RywEhW5IGslkSpTWudefCZiw=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=fCky4xFmMMLpCDaa+uPWBzHv3RKnphUrOrIIGdsxTluGY9JOPaYw4mD9DL02bZ9IW
+	 ELxp2wxrxct3SGwIRWHXdzawUds+ZWh/aG2i8MAO6KhvR7UzOUroVZUyIGav/997pj
+	 wa4uMrJmjHUD/jOksQHqAjJMM1f+D71onWn8pmaQZp1t3s6Wuko47YIUwfoA7e9EhG
+	 MAVOqNcG5tI/HKp1PejMDeW7qGB+NXcwMTet/xEPjKUgYl+XPTXAizbQuQcB+Y6aDa
+	 oRBVxg0M434ZxWgPx+XmJ+i1hLDXJ1/bLGXyrgHQEPa0xqV7huexr5PrZ/YT8k9ULl
+	 CaagYJlizFd5A==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id BE5BE391B157;
+	Fri, 23 Oct 2026 21:30:06 +0000 (UTC)
 Content-Type: text/plain; charset="utf-8"
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -67,54 +53,46 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-Launchpad-Message-Rationale: Creator @linux-rdma
-X-Launchpad-Message-For: linux-rdma
-X-Launchpad-Notification-Type: package-build-status
-X-Launchpad-Archive: ~linux-rdma/ubuntu/rdma-core-daily
-X-Launchpad-Build-State: FAILEDTOBUILD
-X-Launchpad-Build-Component: main
-X-Launchpad-Build-Arch: armhf
-X-Creator-Recipient: linux-rdma@vger.kernel.org
-X-Launchpad-PPA: linux-rdma-rdma-core-daily
-To: Linux RDMA <linux-rdma@vger.kernel.org>
-From: Launchpad Buildd System <noreply@launchpad.net>
-Subject: [Build #33867986] armhf build of rdma-core 66.0~202610231640+git8009440e9~ubuntu18.04.1 in ubuntu bionic RELEASE [~linux-rdma/ubuntu/rdma-core-daily]
-Message-Id: <179278715409.1684904.1383919666626839754.launchpad@juju-98d295-prod-launchpad-51>
-Date: Fri, 23 Oct 2026 20:25:54 -0000
-Reply-To: Launchpad Buildd System <noreply@launchpad.net>
-Sender: noreply@launchpad.net
-Errors-To: noreply@launchpad.net
-Precedence: bulk
-X-Generated-By: Launchpad (canonical.com); Revision="8aad169d2e22e99bfd86998a2cf0f0a07502f5e7"; Instance="launchpad-buildd-manager"
-X-Launchpad-Hash: f15a87703b03caa1f007a2a0c32342ced4e1d85d
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net V2] net/mlx5e: SHAMPO: Do not merge PSP packets
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <179279100557.1280672.16030816624562750403.git-patchwork-notify@kernel.org>
+Date: Fri, 23 Oct 2026 21:30:05 +0000
+References: <20261021062805.3466208-1-tariqt@nvidia.com>
+In-Reply-To: <20261021062805.3466208-1-tariqt@nvidia.com>
+To: Tariq Toukan <tariqt@nvidia.com>
+Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
+ kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com,
+ borisp@nvidia.com, cratiu@nvidia.com, daniel.zahka@gmail.com,
+ dtatulea@nvidia.com, gal@nvidia.com, leon@kernel.org,
+ linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, mbloch@nvidia.com,
+ raeds@nvidia.com, rrameshbabu@nvidia.com, saeedm@nvidia.com
 
+Hello:
 
- * Source Package: rdma-core
- * Version: 66.0~202610231640+git8009440e9~ubuntu18.04.1
- * Architecture: armhf
- * Archive: ~linux-rdma/ubuntu/rdma-core-daily
- * Component: main
- * State: Failed to build
- * Duration: 18 minutes
- * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-d=
-aily/+build/33867986/+files/buildlog_ubuntu-bionic-armhf.rdma-core_66.0~202=
-610231640+git8009440e9~ubuntu18.04.1_BUILDING.txt.gz
- * Builder: https://launchpad.net/builders/bos03-arm64-034
- * Source: not available
+This patch was applied to netdev/net.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
 
+On Wed, 21 Oct 2026 09:28:05 +0300 you wrote:
+> From: Cosmin Ratiu <cratiu@nvidia.com>
+> 
+> PSP packets are UDP-encapsulated, and enabling HW GRO (SHAMPO in mlx5)
+> makes it possible to merge those packets in a silly way:
+> IP|UDP|PSP1|payload1|PSP2|payload2|...
+> 
+> That happens because the HW GRO machinery doesn't know about PSP and
+> considers it part of the UDP payload.
+> 
+> [...]
 
+Here is the summary with links:
+  - [net,V2] net/mlx5e: SHAMPO: Do not merge PSP packets
+    https://git.kernel.org/netdev/net/c/46bd2bf65b93
 
-If you want further information about this situation, feel free to
-contact us by asking a question on Launchpad
-(https://answers.launchpad.net/launchpad/+addquestion).
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
---=20
-armhf build of rdma-core 66.0~202610231640+git8009440e9~ubuntu18.04.1 in ub=
-untu bionic RELEASE
-https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+build/33=
-867986
-
-You are receiving this email because you created this version of this
-package.
 
