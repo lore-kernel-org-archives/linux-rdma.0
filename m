@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792791007;
-	b=bZv8Yi3L+zZ9HHll6nXTG6mWyY/Lf6a83FWIXPIp+T2GJrumsKXPFbf+JXiKbfBp+VHn
-	 pRfjHwPQ01cpkRn1BR4VyCeDVUnT2VZHr5EDc9qYuQbqeDop+3DfcUg+p517TiNfIb/4E
-	 6uJ1c/xo/6YNXms7B9wTqCTqPn0K+prNeZEXPfsrvLj0mLO2gzxD7BQ6Dy2mCnIU40X7P
-	 IkY4C/F3dnxhVXlEkl9ypmX9TfA6RZQhlVSlh5BIxVkjW2k8ZgDjhJx17yjxAYrX0UzPU
-	 iFNLiKhk0RlYyXePDM6WznxsncLDUaCVGpmxsoT1MhanXy2gxhNq53T0/sxtAwidDEw==
+	t=1792791606;
+	b=srTo+xck6HewAGp9mvysn5RKfw9jF/hMJGknNWVCm7pdXCiO4KzSYpppfmP/Uk4QVnqs
+	 Fuj1412LCkhm3JYTX7wMb7tmGdjqoy6WX7K2wjttmZ6ye6ufcPbx5/5F9l1wVfVcpFxkg
+	 PsxncgFBI5lTESMMv5DCynJiZw/F6Xf2i7E+7ll5kZbd3IKztShneBZxxy5k471+nYa21
+	 XfRvHbD9f5ia8qxIBM400tSKlSG+ZIcGASn/JZ79K9mCKaAmTyhLPXPLUiH31nqbL2Srz
+	 2BSmEu5ETEs7oNhVg/V+KyFNXpyDKgx7LuhV+EWtGKiyYe5AMpTDOfqBC10GMZ0ucSA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792791007;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792791606;
 	h=Received:DKIM-Signature:Received:Content-Type:MIME-Version:
 	 Content-Transfer-Encoding:Subject:From:Message-Id:Date:References:
 	 In-Reply-To:To:Cc;
-	bh=w1NTQGAFkLyljwKnxC/RywEhW5IGslkSpTWudefCZiw=;
-	b=Lo05LFyHscg/p9js3rKIVc5PlZNMzFDUdSY2WBeUMjeO7UUAIa1nNtc8w9Ku672Mh1hP
-	 wcmQpDnoXqN0eGS5SDRiP9n8cAdYXAg++iqlbQOy3+ES0yHU9zg4vPeFw8+SciwHfDoWh
-	 QzO9fLqP24DCqjk414bBEfNqV/yWP4F34qnRdQSmoi2qFN2Yu4cvMeDsa58UjT8oAZ6Y/
-	 81UopgjuTwGBa5WvKPlNGazJjT2ysWgKPNNCAaprXeUkDnOuAOCsu9oDEIQW9cISD8tWj
-	 4jz4cbg36OGR5qrivwuhWijyGHMEkbi/YJ4ivi8dsM7E4Lopfa4bNMvhrvhGHmgTtvQ==
+	bh=QvlxtsCfPvmf5mgtr+jVheio9NbYCsNvVal8cUWDtMA=;
+	b=gcUzP9iM4G7YPJYEgOZjUt23pYF1HWsYfCU6gGhfa7jLnVoCc6eas1o/wQySVgxWhwPJ
+	 bJyKbxCK5fj8sSVwej0YVGl/ZIcxYl1zrVlJ0loOmosM31YPqlhr6delgPL3doV8E7Tqc
+	 bQPv1kVXZ918BTCYRy9vRjaPypTU3flJi3cO1rpx+QME1kOAJMAaSnVzJsY3YCbc/z7R6
+	 E/q/A727xbGS/GMiOivrVzz+jjAbCGcnPfmdOTu8O0gow28g8DGdT0OQY9wraVQl339UJ
+	 3vFItLQFps5tT81IId+oLIu81OiTG5BQo0T/uAr7hrU3l3tVt4CYHTKBERmRiqxvhmg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fCky4xFm;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ZIHweqFn;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42831606A325;
-	Fri, 23 Oct 2026 21:30:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0383E606A31D;
+	Fri, 23 Oct 2026 21:40:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fCky4xFm
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7F2A1F01825;
-	Fri, 23 Oct 2026 21:30:06 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ZIHweqFn
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9D151F01825;
+	Fri, 23 Oct 2026 21:40:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792791006;
-	bh=w1NTQGAFkLyljwKnxC/RywEhW5IGslkSpTWudefCZiw=;
+	s=k20260515; t=1792791605;
+	bh=QvlxtsCfPvmf5mgtr+jVheio9NbYCsNvVal8cUWDtMA=;
 	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=fCky4xFmMMLpCDaa+uPWBzHv3RKnphUrOrIIGdsxTluGY9JOPaYw4mD9DL02bZ9IW
-	 ELxp2wxrxct3SGwIRWHXdzawUds+ZWh/aG2i8MAO6KhvR7UzOUroVZUyIGav/997pj
-	 wa4uMrJmjHUD/jOksQHqAjJMM1f+D71onWn8pmaQZp1t3s6Wuko47YIUwfoA7e9EhG
-	 MAVOqNcG5tI/HKp1PejMDeW7qGB+NXcwMTet/xEPjKUgYl+XPTXAizbQuQcB+Y6aDa
-	 oRBVxg0M434ZxWgPx+XmJ+i1hLDXJ1/bLGXyrgHQEPa0xqV7huexr5PrZ/YT8k9ULl
-	 CaagYJlizFd5A==
+	b=ZIHweqFnOpO02JONhCQ5DYo6lUpYkg36EHRNipWkY33nvKU7zdfP4388aIldtmU3x
+	 w3jNSzjeE9DVAfNzmZrgRJDbdMl1WEHr5e/wdm05y6p28P0G2SOLz2jipz1D9aeRSi
+	 whNCC77rBldKABjommfSDcE5U7GWIi0gl5/kgrJG6K6Fr5edPtDPBvKK86NnNki1tj
+	 krtExb8eU8HZLV38VHLpIqKhUW2MpCZ9GpwkWD+Cj9vz9KXc/OIeiYfCTQmpsbT3/A
+	 se278PEW4SNyTw4cU8MF+FCgquZND7JwhK8j4jGEnEhFf5QGhVU8D+l7ZM/Ac6HYpF
+	 wPR6lMUX8u3Hw==
 Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id BE5BE391B157;
-	Fri, 23 Oct 2026 21:30:06 +0000 (UTC)
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id BE578391B158;
+	Fri, 23 Oct 2026 21:40:05 +0000 (UTC)
 Content-Type: text/plain; charset="utf-8"
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -54,41 +54,42 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net V2] net/mlx5e: SHAMPO: Do not merge PSP packets
+Subject: Re: [PATCH net] net/mlx5e: IPsec,
+ Fix out-of-bounds comparison of neighbour keys
 From: patchwork-bot+netdevbpf@kernel.org
 Message-Id: 
- <179279100557.1280672.16030816624562750403.git-patchwork-notify@kernel.org>
-Date: Fri, 23 Oct 2026 21:30:05 +0000
-References: <20261021062805.3466208-1-tariqt@nvidia.com>
-In-Reply-To: <20261021062805.3466208-1-tariqt@nvidia.com>
+ <179279160457.1284438.12304936750048300423.git-patchwork-notify@kernel.org>
+Date: Fri, 23 Oct 2026 21:40:04 +0000
+References: <20261021064231.3466989-1-tariqt@nvidia.com>
+In-Reply-To: <20261021064231.3466989-1-tariqt@nvidia.com>
 To: Tariq Toukan <tariqt@nvidia.com>
 Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
  kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com,
- borisp@nvidia.com, cratiu@nvidia.com, daniel.zahka@gmail.com,
- dtatulea@nvidia.com, gal@nvidia.com, leon@kernel.org,
+ borisp@nvidia.com, fmancera@suse.de, gal@nvidia.com, jianbol@nvidia.com,
+ kees@kernel.org, leon@kernel.org, leonro@nvidia.com,
  linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, mbloch@nvidia.com,
- raeds@nvidia.com, rrameshbabu@nvidia.com, saeedm@nvidia.com
+ prathameshdeshpande7@gmail.com, saeedm@nvidia.com, horms@kernel.org,
+ sridhar.samudrala@intel.com, ychemla@nvidia.com
 
 Hello:
 
 This patch was applied to netdev/net.git (main)
 by Jakub Kicinski <kuba@kernel.org>:
 
-On Wed, 21 Oct 2026 09:28:05 +0300 you wrote:
-> From: Cosmin Ratiu <cratiu@nvidia.com>
+On Wed, 21 Oct 2026 09:42:31 +0300 you wrote:
+> From: Gal Pressman <gal@nvidia.com>
 > 
-> PSP packets are UDP-encapsulated, and enabling HW GRO (SHAMPO in mlx5)
-> makes it possible to merge those packets in a silly way:
-> IP|UDP|PSP1|payload1|PSP2|payload2|...
-> 
-> That happens because the HW GRO machinery doesn't know about PSP and
-> considers it part of the UDP payload.
+> mlx5e_ipsec_netevent_event() keeps the L2 headers of offloaded tunnel
+> mode SAs up to date: on every neighbour change it looks for SAs whose
+> endpoint matches the neighbour's address. The compare width, 4 bytes for
+> IPv4 or 16 for IPv6, is chosen from the SA's address family, with no
+> check that the neighbour is of the same family.
 > 
 > [...]
 
 Here is the summary with links:
-  - [net,V2] net/mlx5e: SHAMPO: Do not merge PSP packets
-    https://git.kernel.org/netdev/net/c/46bd2bf65b93
+  - [net] net/mlx5e: IPsec, Fix out-of-bounds comparison of neighbour keys
+    https://git.kernel.org/netdev/net/c/520631554a68
 
 You are awesome, thank you!
 -- 
