@@ -1,79 +1,49 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=68.232.154.123
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792754568;
-	b=OaIbpgd9q2xE+Y8QOIPDuaFCP2s43G7STm2rDaZTJRSVmE5X8vxi7ZxUgMyMIQPpRuAW
-	 szNV6jcmMk/2UCQwONF23YAwjsLEI5Tdd4rEtK/54b9OWbqJ2dddhDnunm6oAkHb/cwGS
-	 rCwVip4Xok270YaHzbIDCtJzKteI4KX6/1GGc3XHIT4K8BleMOtxBNMBqshVOOJee2O/O
-	 GOrijyTZpsEwYWAes2KSaxMhOCm3TTdw7P/pkr+9ZCmW9VU74mVX61WuAiLzFM8rVQOx4
-	 7Z5akPFF0vpx5kSPdWt7j40yAJgw110eLTaizIRto2BjseT2/A/RRAZWc+LcgZvUXnw==
+	t=1792755568;
+	b=PEI4nPdqGsMr21MdMCGwHEt+FweVP/UhXddVKik/4JT/xvNP9NvIL3I3jcf9lFt11FZU
+	 XyiyGD5KtN9lCVTn3ccGxiVtC+FcjDOyl8q07fCEEDnha++dPUl7vaqSLBzsmrvDF01ej
+	 acd0KgFcpmUiavh9JLm3EH7YiSt75Y0dzZhPd0RSVkaKslZtqwQSNigeBSD7p0lnZ10pH
+	 i9S1qlIVNJSXBbQW6/6nXLK2C7IrkQh9vQleQOSVSB7n7D2Bh/vkCzeH1lSqQXLbCVSUp
+	 Zizu4F2LUWkEpsVFLJKC3XU7Mw9QRDu8EwQQ6GxTcRaPjsz4yyvCHvQ0WLvpuq97MQw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792754568;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-Amp-Result:Received:Received:Received:Date:From:To:CC:
-	 Subject:Message-ID:References:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To;
-	bh=G5CSIxobeZsdLounHb4GkpO0AIF+/+Z89dEuK4yoslo=;
-	b=lJvb2G5eJFo9ryiwq/mAtpiiT5djExx63ASdOA6yy5VWHjT1N2HWMTmzlxUXIBAOW36m
-	 xakR3S0HLy9QGG/7gOZbBoTfR+uiss9/DrDrzG4vj2PoqRM3yj6fxRIxM7KETOJx6Fi3A
-	 4UCKevyV7ZmB32lBXVovPlI+njKabPoNmV4KWHFdYGn9GD0gPrMOO/vo7lAiOtNbGfPk3
-	 tdv+xSp2yqW8Lu16Ad6qixU8JCwGZwym8OHRhCtULkeoYGpUPT1f6KIKpaA/Tgex8p2gt
-	 fR1MdDquoIbbYfMJknwLBWmje+8fsTsye9c6kt9rOXDh2IrTqkhDPP20gJposSccTxQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792755568;
+	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:Message-ID:Date:
+	 MIME-Version:User-Agent:Subject:To:Cc:References:Content-Language:
+	 From:In-Reply-To:Content-Type:Content-Transfer-Encoding:X-Spam-Status:
+	 X-Spam-Checker-Version;
+	bh=vymAhzImNpIaaRDSE6vVjtEbhGC/HWEOd5Jc5ou0oRM=;
+	b=GAeSMM6UOXqkylxBFypYLDHmKrMyDNiVBk+BYvnaaLhMGqFF1CvoE6U/MKg5RXLgvkXT
+	 IYqAxRka7rL+XWgHpAkLJo7upnxu5UaoiQi+28sE3TaeImFSbaZl+pHz5/iMf+nj2aNwQ
+	 /vY25CoQQBfRcCiCNM9JFNs1N33i5P++xoIQ7tHIeCxYxCF3ly+tv3ftclL1rBKFrTJd8
+	 A3iinSLb8FQ/sz3aeATVlPUJbyfxjZWB463t1jGfnH+XfBezn9DgT/gY/UctGzSwzEulp
+	 h38yIVEJVlryY7lc3AoUM5PPTKaguU85m7VhIigxLQDokRzpL2UYHyQJq18jzjecVxQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=microchip.com;
-	spf=pass smtp.mailfrom=microchip.com;
-	dkim=pass header.d=microchip.com header.i=@microchip.com header.a=rsa-sha256 header.s=mchp header.b=rqZvcWTE;
-	arc=none smtp.remote-ip=68.232.154.123
-Received: from esa.microchip.iphmx.com (esa.microchip.iphmx.com [68.232.154.123])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2430606A31E;
-	Fri, 23 Oct 2026 11:22:47 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B2430606A31E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microchip.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=microchip.com
+	dmarc=pass header.from=linux.microsoft.com;
+	spf=pass smtp.mailfrom=linux.microsoft.com;
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=HZf8n3AI;
+	arc=none smtp.remote-ip=13.77.154.182
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3336B606A31B;
+	Fri, 23 Oct 2026 11:39:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3336B606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=microchip.com header.i=@microchip.com header.a=rsa-sha256 header.s=mchp header.b=rqZvcWTE
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=microchip.com; i=@microchip.com; q=dns/txt; s=mchp;
-  t=1792754574; x=1824290574;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=+qda/jg1Jhs1LNJh2oS73NxCLupuDNJ0kTc0oDSTNUM=;
-  b=rqZvcWTE9iD6ePSB+KCrAa4xNdvaoEuVKbxyijq3eSWj2rd/iWlfTY3o
-   H8le9KkGUHoRcMUR3KjjmOEyn83qO81GfUqiGyKTPrzHTbQVuaFceRTC1
-   ICt9paGzdO2SAM8qFZ9o5iW7bRXpzD2dJcQeMwb6MRZxTCD0hhKfun/F4
-   wIJyaaQzAXOtyrVTrdtDcN7pJwLrR+36xpEIGur5w0u+djx5JCpHXa5PU
-   q0vh5meBBYzlmGLRV2fdSWqt/sHGP33NkUCJ2tqpO5mkjv50kOaBGTQh+
-   cWzTAKfkTPa3OkdUEoaSJwRO5JNU9bp4o9FmjQ9NfFa3q19ynNtILXi13
-   w==;
-X-CSE-ConnectionGUID: a4/kPmM6QOinwLLFglvc3Q==
-X-CSE-MsgGUID: R9hzWZuySOOj5jixmaLaOQ==
-X-IronPort-AV: E=Sophos;i="6.27,174,1787036400"; 
-   d="scan'208";a="65727433"
-X-Amp-Result: SKIPPED(no attachment in message)
-Received: from unknown (HELO email.microchip.com) ([170.129.1.10])
-  by esa2.microchip.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES128-GCM-SHA256; 23 Oct 2026 04:22:53 -0700
-Received: from chn-vm-ex02.mchp-main.com (10.10.87.72) by
- chn-vm-ex02.mchp-main.com (10.10.87.72) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.58; Fri, 23 Oct 2026 04:22:46 -0700
-Received: from DEN-DL-M70577 (10.10.85.11) by chn-vm-ex02.mchp-main.com
- (10.10.85.144) with Microsoft SMTP Server id 15.1.2507.58 via Frontend
- Transport; Fri, 23 Oct 2026 04:22:44 -0700
-Date: Fri, 23 Oct 2026 13:22:43 +0200
-From: Daniel Machon <daniel.machon@microchip.com>
-To: Peter Morrow <pdmorrow@gmail.com>
-CC: Tariq Toukan <tariqt@nvidia.com>, Leon Romanovsky <leon@kernel.org>, Petr
- Pavlu <petr.pavlu@suse.com>, Yishai Hadas <yishaih@nvidia.com>, Jakub
- Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Eric Dumazet
-	<edumazet@google.com>, Andrew Lunn <andrew+netdev@lunn.ch>, "David S .
- Miller" <davem@davemloft.net>, <netdev@vger.kernel.org>,
-	<linux-rdma@vger.kernel.org>, <regressions@lists.linux.dev>
-Subject: Re: [PATCH net] net/mlx4: always create the eth and ib auxiliary
- devices
-Message-ID: <20261023112243.bpowvi6tdcguoie3@DEN-DL-M70577>
-References: <20261020164239.3808903-1-pdmorrow@gmail.com>
+	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=HZf8n3AI
+Received: from [10.26.7.43] (unknown [4.213.232.17])
+	by linux.microsoft.com (Postfix) with ESMTPSA id C7B1D20B7166;
+	Fri, 23 Oct 2026 04:39:08 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com C7B1D20B7166
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1792755553;
+	bh=vymAhzImNpIaaRDSE6vVjtEbhGC/HWEOd5Jc5ou0oRM=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=HZf8n3AI3ZnnksEkPTQnGbZXYh1kJnOmV1BzgOcquy7RV/ZqhdKeFcDL/+gd6ovZg
+	 NJszsCGR7sSsoxxXetM9o0ZfNDMZdEYcilkvrrD1hKAKKMis4Xa3XMs8tPXlOcneVj
+	 G4Id0Npr62RFpA4vphfAuXaJWRjVgnTL/6Cj+oMQ=
+Message-ID: <466dfe8c-1071-4b80-8425-fcd52b9289ad@linux.microsoft.com>
+Date: Fri, 23 Oct 2026 17:09:14 +0530
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -83,37 +53,197 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20261020164239.3808903-1-pdmorrow@gmail.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net v3] net: mana: Add support to process throttled EQEs
+To: Haiyang Zhang <haiyangz@microsoft.com>,
+ "wei.liu@kernel.org" <wei.liu@kernel.org>, Dexuan Cui <DECUI@microsoft.com>,
+ "andrew+netdev@lunn.ch" <andrew+netdev@lunn.ch>,
+ "davem@davemloft.net" <davem@davemloft.net>,
+ "edumazet@kernel.org" <edumazet@kernel.org>,
+ "kuba@kernel.org" <kuba@kernel.org>, "pabeni@redhat.com"
+ <pabeni@redhat.com>, Konstantin Taranov <kotaranov@microsoft.com>,
+ "horms@kernel.org" <horms@kernel.org>,
+ "ernis@linux.microsoft.com" <ernis@linux.microsoft.com>,
+ "gargaditya@linux.microsoft.com" <gargaditya@linux.microsoft.com>,
+ "mawasthi@linux.microsoft.com" <mawasthi@linux.microsoft.com>,
+ "leitao@debian.org" <leitao@debian.org>,
+ "linux-hyperv@vger.kernel.org" <linux-hyperv@vger.kernel.org>,
+ "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+ "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+ "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Cc: "stable@vger.kernel.org" <stable@vger.kernel.org>
+References: <20261022145428.323576-1-sahilchandna@linux.microsoft.com>
+ <LV5PR21MB47047DE99D8622E45CB41ECBCA652@LV5PR21MB4704.namprd21.prod.outlook.com>
+Content-Language: en-US
+From: Sahil Chandna <sahilchandna@linux.microsoft.com>
+In-Reply-To: <LV5PR21MB47047DE99D8622E45CB41ECBCA652@LV5PR21MB4704.namprd21.prod.outlook.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-> Since commit 7d22b1cb9d84 ("mlx4: Connect the infiniband part to the
-> auxiliary bus"), mlx4_core creates the "ib" auxiliary device only for
-> an IB port or a device that advertises IBoE. Before it, each mlx4
-> interface was offered every device and decided in its own add callback.
-> mlx4_ib_add() accepted Ethernet ports without IBoE and registered them
-> for raw packet QPs only.
+On 23-10-2026 01:12, Haiyang Zhang wrote:
 > 
-> ConnectX-3 VFs on Azure have an Ethernet port and no IBoE, so since
-> v6.6 they get no RDMA device. DPDK's mlx4 PMD, which needs only raw
-> packet QPs, then cannot open them:
 > 
->   net_mlx4: cannot access device, is mlx4_ib loaded?
+>> -----Original Message-----
+>> From: Sahil Chandna <sahilchandna@linux.microsoft.com>
+>> Sent: Thursday, October 22, 2026 10:54 AM
+>> To: Haiyang Zhang <haiyangz@microsoft.com>; wei.liu@kernel.org; Dexuan Cui
+>> <DECUI@microsoft.com>; andrew+netdev@lunn.ch; davem@davemloft.net;
+>> edumazet@kernel.org; kuba@kernel.org; pabeni@redhat.com; Konstantin
+>> Taranov <kotaranov@microsoft.com>; horms@kernel.org;
+>> ernis@linux.microsoft.com; gargaditya@linux.microsoft.com;
+>> mawasthi@linux.microsoft.com; leitao@debian.org; linux-
+>> hyperv@vger.kernel.org; netdev@vger.kernel.org; linux-
+>> kernel@vger.kernel.org; linux-rdma@vger.kernel.org
+>> Cc: stable@vger.kernel.org
+>> Subject: [PATCH net v3] net: mana: Add support to process throttled EQEs
+>>
+>> When an event queue nears full, the hardware coalesces the per-CQ
+>> GDMA_EQE_COMPLETION notifications into a single throttle EQE (type 4)
+>> that carries no cq_id. The driver does not handle this event type, so
+>> it falls through to the default case and is dropped. Any CQ whose
+>> completion notification was replaced by the throttle EQE can remain
+>> unserviced, causing its queue to stall.
+>> The issue was observed internally and following Tx stall logs were
+>> seen:
+>>
+>> 2026-10-03T05:29:01 hv_netvsc eth0: VF slot 0 removed
+>> 2026-10-03T05:29:23 mana 7870:00:00.0 ens1: NETDEV WATCHDOG: CPU: 45:
+>>                     transmit queue 1 timed out 15133 ms
+>> 2026-10-03T05:31:05 mana 7870:00:00.0: HWC: Request timed out: 60000 ms
+>> 2026-10-03T05:31:05 mana 7870:00:00.0: Gf stats wk handler: gf stats
+>> query timed out.
+>> 2026-10-03T05:31:21 ens1: NETDEV WATCHDOG: CPU: 20: transmit queue 0
+>> timed out 15859 ms
+>> 2026-10-03T05:31:37 ens1: NETDEV WATCHDOG: CPU: 15: transmit queue 0
+>> timed out 31731 ms
+>> 2026-10-03T05:31:53 ens1: NETDEV WATCHDOG: CPU: 21: transmit queue 0
+>> timed out 47603 ms
+>> 2026-10-03T05:32:08 ens1: NETDEV WATCHDOG: CPU: 42: transmit queue 0
+>> timed out 62451 ms
+>>
+>> Add support to process the CQs which belong to a throttled EQE of type 4
+>> advertise the capability bit, also add a counter to store the throttled
+>> EQEs count.
+>>
+>> Fixes: ca9c54d2d6a5 ("net: mana: Add a driver for Microsoft Azure Network
+>> Adapter (MANA)")
+>> Cc: stable@vger.kernel.org
+>> Signed-off-by: Sahil Chandna <sahilchandna@linux.microsoft.com>
+>> ---
+>> Changes in v3:
+>> - Resolve race for cq in mana_gd_destroy_cq and irq handler using cq.
+>> - Rebase to net branch
+>> Link to v2:
+>> https://lore.ker/
+>> nel.org%2Fall%2F20261014134304.4177657-1-
+>> sahilchandna%40linux.microsoft.com%2F&data=05%7C02%7Chaiyangz%40microsoft.
+>> com%7C534992a49c0340631e2f08df304e3c73%7C72f988bf86f141af91ab2d7cd011db47%
+>> 7C1%7C0%7C639282784768349454%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRyd
+>> WUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C
+>> 0%7C%7C%7C&sdata=w2NpUCx%2FCNtqeFQSR0fIMOYnbHLP7XsFl90sL%2F%2F7Y0g%3D&rese
+>> rved=0
+>>
+>> Changes in v2:
+>> - Use WRITE_ONCE() when clearing max_num_cqs and add RCU
+>>   grace period wait during HWC teardown.
+>> - Use synchronize_net() during CQ destroy only when the CQ was
+>>   attached to its parent EQ.
+>> - Use WRITE_ONCE() and READ_ONCE() for the throttle-event counter.
+>> - Add Fixes tag and net instead of net-next.
+>> - Fix commit message to describe capability bit and counter.
+>> Link to v1:
+>> https://lore.ker/
+>> nel.org%2Fall%2F20261008083315.306076-1-
+>> sahilchandna%40linux.microsoft.com%2F&data=05%7C02%7Chaiyangz%40microsoft.
+>> com%7C534992a49c0340631e2f08df304e3c73%7C72f988bf86f141af91ab2d7cd011db47%
+>> 7C1%7C0%7C639282784768392174%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRyd
+>> WUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C
+>> 0%7C%7C%7C&sdata=oj6Ei41iOntNjgoAWNaLSZdvptpbZSkkZMOCa6c2PDw%3D&reserved=0
+>>
+>>  .../net/ethernet/microsoft/mana/gdma_main.c   | 62 +++++++++++++++++--
+>>  .../net/ethernet/microsoft/mana/hw_channel.c  |  6 +-
+>>  .../ethernet/microsoft/mana/mana_ethtool.c    |  9 +++
+>>  include/net/mana/gdma.h                       | 12 +++-
+>>  include/net/mana/mana.h                       |  1 +
+>>  5 files changed, 81 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c
+>> b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+>> index 8e9bfc1d6a2a..d74ed00bb783 100644
+>> --- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
+>> +++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+>> @@ -904,6 +904,27 @@ ssize_t mana_gd_read_ring(struct gdma_queue *q, char
+>> __user *buf,
+>>       return copied;
+>>  }
+>>
+>> +static void mana_gd_schedule_eq_cqs(struct gdma_queue *eq)
+>> +{
+>> +     struct gdma_context *gc = eq->gdma_dev->gdma_context;
+>> +     struct gdma_queue *cq;
+>> +     u8 i;
+>> +
+>> +     for (i = 0; i < GDMA_EQ_MAX_CHILD_CQ; i++) {
+>> +             cq = rcu_dereference(eq->eq.child_cq[i]);
+>> +
+>> +             if (!cq)
+>> +                     continue;
+>> +
+>> +             if (cq->id >= READ_ONCE(gc->max_num_cqs) ||
+>> +                 !gc->cq_table || gc->cq_table[cq->id] != cq)
+>> +                     continue;
+>> +
+>> +             if (cq->cq.callback)
+>> +                     cq->cq.callback(cq->cq.context, cq);
+>> +     }
+>> +}
+>> +
+>>  static void mana_gd_process_eqe(struct gdma_queue *eq)
+>>  {
+>>       u32 head = eq->head % (eq->queue_size / GDMA_EQE_SIZE);
+>> @@ -934,6 +955,11 @@ static void mana_gd_process_eqe(struct gdma_queue
+>> *eq)
+>>
+>>               break;
+>>
+>> +     case GDMA_EQE_THROTTLE:
+>> +             WRITE_ONCE(eq->eq.throttle_count, eq->eq.throttle_count + 1);
+> Please use u64_stats_update_begin / end() for stats, which is the standard
+> way -- see other stats code in this driver.
 > 
-> Restore the old behaviour by creating both auxiliary devices for every
-> device and letting mlx4_en and mlx4_ib decide in probe, as their add
-> callbacks did. mlx4_ib_probe() returns -ENODEV when there are no usable
-> ports, and mlx4_en_probe() binds a device without Ethernet ports but
-> creates no netdevs, as mlx4_en_add() did.
+Ack, will update it in v4.>> +             mana_gd_schedule_eq_cqs(eq);
+>> +             break;
+>> +
+>>       case GDMA_EQE_TEST_EVENT:
+>>               gc->test_event_eq_id = eq->id;
+>>               complete(&gc->eq_test_event);
+> [...]
 > 
-> Tested on 6.12.111 on an Azure VM with two ConnectX-3 VFs: each gets an
-> eth and an ib auxiliary device, and DPDK attaches both VFs and passes
-> traffic through them.
 > 
-> Fixes: 7d22b1cb9d84 ("mlx4: Connect the infiniband part to the auxiliary bus")
-> Closes: https://lore.kernel.org/r/20261014133951.3219055-1-pdmorrow@gmail.com
-> Suggested-by: Leon Romanovsky <leon@kernel.org>
-> Assisted-by: LLM
-> Signed-off-by: Peter Morrow <pdmorrow@gmail.com>
+>> @@ -250,6 +252,7 @@ static void mana_get_ethtool_stats(struct net_device
+>> *ndev,
+>>       u64 short_pkt_fmt;
+>>       u64 csum_partial;
+>>       u64 mana_map_err;
+>> +     u64 throttle_events;
+>>       int q, i = 0, j;
+>>
+>>       if (!apc->port_is_up)
+>> @@ -261,6 +264,12 @@ static void mana_get_ethtool_stats(struct net_device
+>> *ndev,
+>>        */
+>>       mana_query_phy_stats(apc);
+>>
+>> +     throttle_events = 0;
+>> +     for (q = 0; q < num_queues; q++)
+>> +             throttle_events += READ_ONCE(apc->eqs[q].eq-
+>>> eq.throttle_count);
+> 
+> Since you already have per queue throttle_count, please output them for
+> each EQ.
+> 
+> Thanks,
+> - Haiyang
+Ack, i will drop accumulated throttle count and report per EQ in v4.
 
-Reviewed-by: Daniel Machon <daniel.machon@microchip.com>
+The patch needs rebase again for net branch, i will rebase in v4.
