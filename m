@@ -1,75 +1,74 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=170.10.133.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792856473;
-	b=zrg0MXFIo0jUq4mp6oayjc8jkZk4yf9IGTRKZQnxNe/rxG/kCFHy25aDi21Sk+t68evy
-	 lvMzQQw6WJkWoWZyd/xnTbegPUsGwyR9Rr55QQxrT/WyaA4yVBexbyZiJIWmHj20Gayxr
-	 ickHnwManLmQFnWaFHE0pyCa4obFAglUnLSduF1G3ocbBgeosQGry9lMMYk/Q3tC6wtG3
-	 oWBJXylMvLMNQM9ej0x6uP7026Es+73f8++9BUozcaMLBevGQ9f0Q8lE9gw/qLI3JYncM
-	 2JtQ83QS8Bz1WlqlzFuqADm2qIfTTWtiMGDBBFRNrlayyJHDJZRp4R+Fiq/dcWeo/qg==
+	t=1792856476;
+	b=I6g7IgJayNxlg9h7t8/50u1qtQygpCTSpPAYG0vz74z5AxjOSabxwjRuuYf35DNqjo6d
+	 F1kc26znXLzD7lOhcQ22YqFOgid+zmoabLtNp//sCukisvHJhG1x0uCdp12ezZ+Re8hv6
+	 5qk0stQoMd3mD1OUYC21UmZzDvXUsCP/0fqb8rfCtIG8gV1dKq1SIxZZfSEuH5NBp3RCi
+	 GedYru884RewzXCMkisGzhTL1YfshC+ZxvyPDOl9mw6YvWfOjjj0mQhJq6QHCtVfbwwTk
+	 SDW0tKag3DryA8rOp9+3mcBVtotUNDHGRsJQKelT7lFPzU2wP0W+ghp+cKsNr4ZiwpA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792856473;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792856476;
 	h=DMARC-Filter:DKIM-Signature:Received:X-MC-Unique:
 	 X-Mimecast-MFC-AGG-ID:Received:Received:Received:Date:From:To:Cc:
 	 Subject:Message-ID:MIME-Version:Content-Type:Content-Disposition:
 	 In-Reply-To:X-Scanned-By;
-	bh=aoHivYOiQdbOaZPXvgh0dS7cHVXJqr9Y39hFc8Y7tCE=;
-	b=lrE7olYYfj4m2orGmw/eefoGvC3Jw2C95rvpSotg8d8wtl5qVmjbumMX9h/GPBU+p0tE
-	 zw06eYd7BE8Zc085Jq/Q8gDt6CSam6eeSc4S9pKyIDH44jcPO74jDJC8PbKZenbOhhU+a
-	 IN/7uH7vcVGAF9CHST67WtPT2KNoxMDykXy1vdn2knHgDYPZ23M6ogUUfJOYwypE7ckjQ
-	 fBqr1j5DwUkKMqs8bS8OT1gS3ZC1dbZoCuUcJRloif4vR9GVRcvROyGcgaJlLh5ow+WTv
-	 bxeiUzGF7acnaXXrLP/fbSohrowoJmMSbKmfzdkiXnB4n6s4wLmHck3u/FGWGkiCY2A==
+	bh=XYJ1aweQMbcRyljqpWl8FVZYxGmybu8MN0szrcmcXEk=;
+	b=XR8ynQkLEIe9aw9lZfkrZqHbanhGcWqs2OsUo4vbx+9wZ8lsh7to1bft0LI7ceuPOLX1
+	 zWKv6GzkZR8hGtnm1OBz2J8FF0Ai8ou+HfHN6wAKino3cP5eepyZJI22Lctr2vC0Xp+PU
+	 oHX0toRYgZoa/3Kz8Dl/jP4RCMqigQCY9oPjZ2qAmiMnv4TMhOIb+hxXvxBe1a8Ui2sop
+	 JLV+0gSiQtT0265w742GUxXq5MY/AyCWHQNfqPXT0M6hEJHpstSDT3aC5NCTy19UGHx3+
+	 2QGO5K3O/x370iWoRQKWIW4va8DgwCvW8CLB12tu47QDFh3CZ2ZJu2TJcBp8tLoZqIQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=redhat.com;
 	spf=pass smtp.mailfrom=redhat.com;
-	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=aYyMAYSZ;
+	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=CSzLuXL5;
 	arc=none smtp.remote-ip=170.10.133.124
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90F37606A335
-	for <linux-rdma@vger.kernel.org>; Sat, 24 Oct 2026 15:41:12 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 90F37606A335
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B74FB606A322
+	for <linux-rdma@vger.kernel.org>; Sat, 24 Oct 2026 15:41:15 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B74FB606A322
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=aYyMAYSZ
+	dkim=pass (1024-bit key, unprotected) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=CSzLuXL5
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1792856471;
+	s=mimecast20190719; t=1792856475;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to; bh=aoHivYOiQdbOaZPXvgh0dS7cHVXJqr9Y39hFc8Y7tCE=;
-	b=aYyMAYSZ9ry7Ve5+gwdjENF1kVycsdDvLQazZpIRTmz4bvfWgNwiP1n0QrXyeRGr7MeA2M
-	1xc44kpYsvRj2GM6iL/GONsxCrl/Rssl1posUxrXrYSNsa1atLkjstkmvFlOkSIyFCpvKG
-	WTL+3p/bwg1ul7bJjw9mwxLX0+KzaJs=
+	 in-reply-to:in-reply-to; bh=XYJ1aweQMbcRyljqpWl8FVZYxGmybu8MN0szrcmcXEk=;
+	b=CSzLuXL5gJID4e9DrNLsg2tNqQ/qlnlxTdZkK72jQffDkT7B+NaN4C9wsuFvvkeGobZOXW
+	Y5GDFS+461D13/34SA9WOYAEeIWvAYzOglNyv4bb+skWU12jpwBAOotR4gLq1Csytiqcwu
+	+Rcx+O5bXGbsIEt17Kt7W636ruonmB0=
 Received: from mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com
  (ec2-35-165-154-97.us-west-2.compute.amazonaws.com [35.165.154.97]) by
  relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-588-K2Ty4MCmMQaT-UimSTAjnw-1; Sat,
- 24 Oct 2026 11:41:00 -0400
-X-MC-Unique: K2Ty4MCmMQaT-UimSTAjnw-1
-X-Mimecast-MFC-AGG-ID: K2Ty4MCmMQaT-UimSTAjnw_1792856459
-Received: from mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.12])
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-264-Li08pFrkNfGMK8xBU30H-A-1; Sat,
+ 24 Oct 2026 11:41:11 -0400
+X-MC-Unique: Li08pFrkNfGMK8xBU30H-A-1
+X-Mimecast-MFC-AGG-ID: Li08pFrkNfGMK8xBU30H-A_1792856470
+Received: from mx-prod-int-10.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-10.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.95])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 80AB31800578;
-	Sat, 24 Oct 2026 15:40:59 +0000 (UTC)
+	by mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 087DF1800597;
+	Sat, 24 Oct 2026 15:41:10 +0000 (UTC)
 Received: from onestero-thinkpadp1gen7.tpbc.csb (headnet04.pony-001.prod.iad2.dc.redhat.com [10.2.32.116])
-	by mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with SMTP id 6549C1956087;
-	Sat, 24 Oct 2026 15:40:57 +0000 (UTC)
+	by mx-prod-int-10.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with SMTP id CFB167E0;
+	Sat, 24 Oct 2026 15:41:07 +0000 (UTC)
 Received: by onestero-thinkpadp1gen7.tpbc.csb (nbSMTP-1.00) for uid 13628
-	oleg@redhat.com; Sat, 24 Oct 2026 17:40:59 +0200 (CEST)
-Date: Sat, 24 Oct 2026 17:40:56 +0200
+	oleg@redhat.com; Sat, 24 Oct 2026 17:41:09 +0200 (CEST)
+Date: Sat, 24 Oct 2026 17:41:06 +0200
 From: Oleg Nesterov <oleg@redhat.com>
 To: Allison Henderson <achender@kernel.org>,
 	Joel Granados <joel.granados@kernel.org>
 Cc: pabeni@redhat.com, edumazet@google.com, kuba@kernel.org,
 	horms@kernel.org, netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org
-Subject: [PATCH 2/5] net/rds/ib_sysctl.c: move sysctl-only code under
- CONFIG_SYSCTL
-Message-ID: <atzRiBWrLVTMSrpn@redhat.com>
+Subject: [PATCH 5/5] net/rds: remove dead sysctl declarations
+Message-ID: <atzRktas9C-LDkV5@redhat.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -82,88 +81,50 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <atzRTslzb6CAKPKX@redhat.com>
-X-Scanned-By: MIMEDefang 3.0 on 10.30.177.12
+X-Scanned-By: MIMEDefang 3.6 on 10.30.177.95
 
-Collect all code used only when CONFIG_SYSCTL=y into a single block and
-wrap it in #ifdef CONFIG_SYSCTL. rds_ib_sysctl_init() no longer needs the
-IS_ENABLED() check.
-
-Add the corresponding init/exit stubs for the CONFIG_SYSCTL=n case.
+Several sysctl variables are declared in ib.h and rds.h but are never
+defined or used; git-grep finds nothing.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 ---
- net/rds/ib_sysctl.c | 33 +++++++++++++++++++++++----------
- 1 file changed, 23 insertions(+), 10 deletions(-)
+ net/rds/ib.h  | 1 -
+ net/rds/rds.h | 5 -----
+ 2 files changed, 6 deletions(-)
 
-diff --git a/net/rds/ib_sysctl.c b/net/rds/ib_sysctl.c
-index bc97a3eecad6..0b336ff03ae9 100644
---- a/net/rds/ib_sysctl.c
-+++ b/net/rds/ib_sysctl.c
-@@ -36,19 +36,10 @@
+diff --git a/net/rds/ib.h b/net/rds/ib.h
+index 1901226368c9..a7f0005c5a0f 100644
+--- a/net/rds/ib.h
++++ b/net/rds/ib.h
+@@ -448,7 +448,6 @@ void rds_ib_sysctl_exit(void);
+ extern unsigned long rds_ib_sysctl_max_send_wr;
+ extern unsigned long rds_ib_sysctl_max_recv_wr;
+ extern unsigned long rds_ib_sysctl_max_unsig_wrs;
+-extern unsigned long rds_ib_sysctl_max_unsig_bytes;
+ extern unsigned long rds_ib_sysctl_max_recv_allocation;
+ extern unsigned int rds_ib_sysctl_flow_control;
  
- #include "ib.h"
+diff --git a/net/rds/rds.h b/net/rds/rds.h
+index b7ef7c8b1e03..17d5eb6069f6 100644
+--- a/net/rds/rds.h
++++ b/net/rds/rds.h
+@@ -1025,16 +1025,11 @@ void rds_stats_info_copy(struct rds_info_iterator *iter,
+ /* sysctl.c */
+ int rds_sysctl_init(void);
+ void rds_sysctl_exit(void);
+-extern unsigned long rds_sysctl_sndbuf_min;
+-extern unsigned long rds_sysctl_sndbuf_default;
+-extern unsigned long rds_sysctl_sndbuf_max;
+ extern unsigned long rds_sysctl_reconnect_min_jiffies;
+ extern unsigned long rds_sysctl_reconnect_max_jiffies;
+ extern unsigned int  rds_sysctl_max_unacked_packets;
+ extern unsigned int  rds_sysctl_max_unacked_bytes;
+ extern unsigned int  rds_sysctl_ping_enable;
+-extern unsigned long rds_sysctl_trace_flags;
+-extern unsigned int  rds_sysctl_trace_level;
  
--static struct ctl_table_header *rds_ib_sysctl_hdr;
--
- unsigned long rds_ib_sysctl_max_send_wr = RDS_IB_DEFAULT_SEND_WR;
- unsigned long rds_ib_sysctl_max_recv_wr = RDS_IB_DEFAULT_RECV_WR;
- unsigned long rds_ib_sysctl_max_recv_allocation = (128 * 1024 * 1024) / RDS_FRAG_SIZE;
--static unsigned long rds_ib_sysctl_max_wr_min = 1;
--/* hardware will fail CQ creation long before this */
--static unsigned long rds_ib_sysctl_max_wr_max = (u32)~0;
--
- unsigned long rds_ib_sysctl_max_unsig_wrs = 16;
--static unsigned long rds_ib_sysctl_max_unsig_wr_min = 1;
--static unsigned long rds_ib_sysctl_max_unsig_wr_max = 64;
--
- /*
-  * This sysctl does nothing.
-  *
-@@ -61,6 +52,14 @@ static unsigned long rds_ib_sysctl_max_unsig_wr_max = 64;
-  */
- unsigned int rds_ib_sysctl_flow_control = 0;
- 
-+#ifdef CONFIG_SYSCTL
-+static unsigned long rds_ib_sysctl_max_wr_min = 1;
-+/* hardware will fail CQ creation long before this */
-+static unsigned long rds_ib_sysctl_max_wr_max = (u32)~0;
-+
-+static unsigned long rds_ib_sysctl_max_unsig_wr_min = 1;
-+static unsigned long rds_ib_sysctl_max_unsig_wr_max = 64;
-+
- static struct ctl_table rds_ib_sysctl_table[] = {
- 	{
- 		.procname       = "max_send_wr",
-@@ -105,6 +104,8 @@ static struct ctl_table rds_ib_sysctl_table[] = {
- 	},
- };
- 
-+static struct ctl_table_header *rds_ib_sysctl_hdr;
-+
- void rds_ib_sysctl_exit(void)
- {
- 	if (rds_ib_sysctl_hdr)
-@@ -114,7 +115,19 @@ void rds_ib_sysctl_exit(void)
- int rds_ib_sysctl_init(void)
- {
- 	rds_ib_sysctl_hdr = register_net_sysctl(&init_net, "net/rds/ib", rds_ib_sysctl_table);
--	if (!rds_ib_sysctl_hdr && IS_ENABLED(CONFIG_SYSCTL))
-+	if (!rds_ib_sysctl_hdr)
- 		return -ENOMEM;
- 	return 0;
- }
-+
-+#else
-+
-+int rds_ib_sysctl_init(void)
-+{
-+	return 0;
-+}
-+
-+void rds_ib_sysctl_exit(void)
-+{
-+}
-+#endif
+ /* threads.c */
+ int rds_threads_init(void);
 -- 
 2.55.0
 
