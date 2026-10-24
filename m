@@ -1,98 +1,95 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.177
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.53
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792858894;
-	b=NA2YEPIEKQ6TkOk8Pdupvp8CmZTAtb7B2FiUudhqE8BQOamjjqRV7pbWRsHu85h2nghW
-	 FtP29HylKV+FeCGuT/h/nduCNWCQDxbTs+NPsBOBt33cTWsHOhu310v/V3MpjsoDqVl/t
-	 Yozc67n7gSIu7PC+vP2Mmp/JeBKuT65DRwRYUtkQQtRq5VSZ1uPK0WXpxyGnGrbv8zUoj
-	 dMnLFlL/kNBrMYPi+j1aOG7w/bRH0yhbOcB52dApcYBKDYiGDgbyYtq9JuzQyjClI1xlH
-	 3MQ9CliXY6uozy/fxgAGxzDWm6tEj/Zu8rC3VKwmecnXn3whf3XyRaKj2PTfGWmVdLw==
+	t=1792859349;
+	b=AvFNEUCCmO/xE7gU9DkiRlufhuS6xrVvf/drWCQso+yPNU4nzLl2u0dpol06oWnf+2ea
+	 baMb4u7C/+3zyXyWcdVATgvyLPCWmRvivQA2hQdiWZAbxL2mzu2MFua1Zp8rc0feQKyk0
+	 vAgM7lPo03rlMxjhl83+d3TLUq/8Y8TBCfVube8bZdkAURO7RsxSEZv+3NGd66aQMfsCP
+	 NOSjYpkkRtaluVas0RZG4G6uIHhvTSXrt3GMEoE3ZOe6n+qM3//1qaqGnypvCkbhtwKPe
+	 TvKXxqnrM7fDCCWq12/6rA8JoK+w9RSxcA/SV5nF0NS3E2yjoLU6Hmu23vF39qP0iWA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792858894;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792859349;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=F6yz0j17ZlA2N3jpWRgDpMHKo6hhIh1hOz7KuS7dRpI=;
-	b=iGJYbo8Y7L8G8/Z/sAwA+29FU+qHx9bpzFLKQYDSddPS5qZipUkf4T/MovQndq3t3+B/
-	 E5oX57G2QOtSkp0jXnNbl3UKLpYYSWRlP31UFGSgyoD/uECql5QNSXsWmeUUbtzb9odPY
-	 bcCpJr53ictPss/SAQ0UVDKHjoU4Lck3EWgnvp/so5E8ZqQO8HTPlxkMFc1c0UaDSvz/+
-	 0IeL8ZYadcREYcaWjpurBH6+7Lfe3oIfSzMc/L0lipaGB+wWRa1CzaWIugChF0kJ8E/Iu
-	 ZLHzTUBzDzH0B4nq8g5xZBNLrqsYo3YpT7KnNw8/ixmalHt5flQ8TjlCq6StsyAXibw==
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=llsgWckxU6HrF1Oq7gERdngWWd2BM5NRfeUcsEwDim4=;
+	b=gmlEMm8Vn18+Y+ng18qc7duPfHy62QxDx05j8ZFZ8rG/47qSo5OFw6N+hxCpB9OaqGAn
+	 CU9VjucNCatgxDKdUNmFeObG7u+mUUCNdybdp9UVbHThJPDHAGaB6oh8DWLnnTBb4VXzv
+	 uyQWTYSx1w67WBavu5hICn1VGo0Vr9nJONj5boZ7ZfaD2s56po8CMfuTfMOgE05QPsCgD
+	 I+/mMw/CXuDCkxJ12mERXyuihJDTlO8CSdRFqNfM928reyFUuzqvvboYjdiBt3GhxyCHt
+	 N0oxGBdJ1h2I5u3+fHcqXRYGdeetsvUSkAaOFpLc9lmWtSB+GXj6QiWd//YMONW5kTg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=BXiZ4od0;
-	arc=none smtp.remote-ip=74.125.82.177
-Received: from mail-dy1-f177.google.com (mail-dy1-f177.google.com [74.125.82.177])
+	dmarc=fail header.from=isslab.korea.ac.kr;
+	spf=none smtp.mailfrom=isslab.korea.ac.kr;
+	dkim=pass header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.a=rsa-sha256 header.s=20251104 header.b=Nmqafhes;
+	arc=none smtp.remote-ip=74.125.82.53
+Received: from mail-dl1-f53.google.com (mail-dl1-f53.google.com [74.125.82.53])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7A7D606A31B
-	for <linux-rdma@vger.kernel.org>; Sat, 24 Oct 2026 16:21:33 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A7A7D606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DBD8606A31A
+	for <linux-rdma@vger.kernel.org>; Sat, 24 Oct 2026 16:29:08 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6DBD8606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=isslab.korea.ac.kr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=BXiZ4od0
-Received: by mail-dy1-f177.google.com with SMTP id 5a478bee46e88-35943f55c06so2303586eec.0
-        for <linux-rdma@vger.kernel.org>; Sat, 24 Oct 2026 09:21:33 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.a=rsa-sha256 header.s=20251104 header.b=Nmqafhes
+Received: by mail-dl1-f53.google.com with SMTP id a92af1059eb24-15943c9c005so2432384c88.1
+        for <linux-rdma@vger.kernel.org>; Sat, 24 Oct 2026 09:29:08 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792858893; x=1793463693; darn=vger.kernel.org;
-        h=mime-version:content-transfer-encoding:content-type:message-id:date
-         :subject:cc:to:from:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=F6yz0j17ZlA2N3jpWRgDpMHKo6hhIh1hOz7KuS7dRpI=;
-        b=BXiZ4od0QPRwbJ1HEHXEZYLtBvs7l27b1YDBlLvDljIyAU63OB2ocpUGaqbitr2UE8
-         U9e0mn5TdgBq7v01NRToS0bUYeZ3PR3hro5KVsLTqXLkuMfKNDMLsfC5VCIXUVxpacZE
-         9PzBO2uJItxIj8DK0OUoHfDnoCp6yABJB9gzY+MA0D+HUlLt1hHSk9AafZcJYU3oRQGo
-         YMaDEe7nTEcdJ7kVLy6iwzRB5F/wq+tlPyySqeVVfjk3SK72yGCggtnuaG7vlqNCkwd2
-         31YuO5ewL3hZuVXK8W+asKZG8KXhBVQETyfuXpXib73rIXukDf7u3E3lCfBWljhb6hfG
-         kRBQ==
+        d=isslab-korea-ac-kr.20251104.gappssmtp.com; s=20251104; t=1792859347; x=1793464147; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=llsgWckxU6HrF1Oq7gERdngWWd2BM5NRfeUcsEwDim4=;
+        b=NmqafheshdwPak0EWBNwAofN8AZNgmQptxYh3iGuiskd4q9UV02Q5UGh/oeX7f6FAP
+         hsww53lS37P3JAtMBHk1Ke30ZUyjQ970syUPgtgen7abOm3OdBvvHzNhQeSS8thBBjN2
+         SC3HNizvps20P1by+xoZcccTn9VK6mlBWX86kM9SgLixrnZqkm2a15VPLsC1r5akYpOd
+         GbFtf6SAKcIIaCFJLHlyrXE7eppDpukU3KNhEmWL7AFobu0iXnIDJT2TSN8h/2LThiu3
+         chbxN23xEius6S8t10nOzv38wj/umbcr/Gbh4ewd8+Qxc1HolXYT5oZhHgwwouOLAZCq
+         SWFg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792858893; x=1793463693;
-        h=mime-version:content-transfer-encoding:content-type:message-id:date
-         :subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=F6yz0j17ZlA2N3jpWRgDpMHKo6hhIh1hOz7KuS7dRpI=;
-        b=YqgeCQw2JJ8hHfEqjkmwOdXg77naD+Iiw1oDjy97tmaW6+WGEc4IFhgwgs1TRzvJW+
-         2EC5mbQNx2FIAeSigh9XVwymgyDDlS2ad4YNiDOTCveEdnmPN2FslF3al9Ya7ejjVyVZ
-         jMakiDu4zq1pR6wh/8xxmWSIU2zlAqqiDQTYuPKo9Ay8ANs3WFKj8gXL3sJ8oODKShMm
-         OKfS4a7IwY+QFkyepV2w11IQ7nVjbJSx4k07NY1O6VSUAlQVas/FdRWfkFOg0ZAjwh8f
-         nyZ0rEkKA4y1mu8f9qtaIMX0/dbv5wWtEAKjtH/I0EbcFamcp2dS9l1ISOvuSNqdXmNV
-         XXFg==
-X-Forwarded-Encrypted: i=1; AKwUvBzvv5LCxGMc9DZjvT+Se+PMhibNFYJTcyk9rYecBP+v7IdoH62wYnhfc+qO9PsOjzhKtT1oJZSXS66k@vger.kernel.org
-X-Gm-Message-State: AFq9FYJUIhie11yp5VjCXlaxl0ZWLFOGJN7YblcXNp7PTqnoCO7aO/wV
-	ZruSdf27ShHc+QhZZUbfESuD3+GZjrJeaz1fvKgivaeZRqpXKim9G5ur
-X-Gm-Gg: AYBFou2NGEOCF7VCOqFVDsdYUGN1hpDoGqCa4nwPhHiFYt29Lrt+87K3bDh+RRreFAm
-	/0wc0S61mF1oPoHh0D/Jm8OiI2s8LXOq6db/9yM48SCbG6alNoxDiQ9JR9RlxL+GY6TJnzLfBGu
-	PIPfPmBMFoE0VcllWd2VQ5460j6oxjoFyVCDslWxcoO2ctZGPIC5gnnW6JMY5ayf7IVyJCiFLUb
-	2/rO74Y/dsJRdJhH4uPa85H+Dq+xs+R7wHvRIVUe3LWqwW+BeOTih/dShsVrfQ0v2lHvYVuFz/w
-	XQWuR8OyJuFscborrxeppeYaarfLfY5+/xtW82JKnbF+HEz7KcZzxU9z+oEPKOr9rOtKKz3uUM3
-	WhBWHGgAcrRYCXkiYEAtaQ1UpZ5CeWVPQuT2PhbrCzMmJPMu96EIcTp/qHYDUaF23bfwhGoWx8D
-	XzRYbRimccMyWOfGPaVYj8dqfRePjyeUudhUNtajU7TLU7VhOxnZxYpF+AXHJbybIRf7PngwU9o
-	TJuBRsDpXgd9RJsGmizkGp4sCRAYdiwEj/OGloCPpIH6rV26y1H3P0hhK/mPpLbJPWuneuXC6NZ
-	WnAG6AAMx4U4NVsIrlSshpdc5q3rBWlVnDqD+AjcUtI8HHCDCL1UsYUx4na6AT7r0FuLEIugn3p
-	ElYll8ty1WcXY6l+dxwBjXDM6I1hkatgNyKVPEhHvcw==
-X-Received: by 2002:a05:693c:6395:10b0:359:3991:ce1a with SMTP id 5a478bee46e88-369e84dd2demr3177495eec.16.1792858892703;
-        Sat, 24 Oct 2026 09:21:32 -0700 (PDT)
-Received: from 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa ([2804:7f0:b101:277b:c08d:c9f9:7c08:79c4])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-369e8ec4d73sm11664942eec.22.2026.10.24.09.21.29
+        d=1e100.net; s=20260707; t=1792859347; x=1793464147;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=llsgWckxU6HrF1Oq7gERdngWWd2BM5NRfeUcsEwDim4=;
+        b=Qxgvkll5r7/7mbraDasvXj76zwQm4Jn08rtJHysd7jL+iq39n0sJT1C7fAVFiPXilW
+         qBafEM4TX242s4epgPJmkTVDW3eE+yYYhGmr/twxCbE7TiITxiet44LyhMR53dzFPOSi
+         wAvOP8u/ApUCSI1ce+9mtbdHwxxP2vgkOr4kRg3Dxzpl3qcHXLHMReRnpwfkA0nryFi/
+         iIbXhBiZR3K1OYg9RwaCQxr2H1F/2lbYfQ0MZKBd13OHwEqFsEhaT2VddukLC66BBNRU
+         00seAG4JVOODJdRfGf2QL39h2zQG8ujEOMyUyvWjl5OvSF4Z/MqH8l77V6gjfJOD9QBo
+         aQgA==
+X-Forwarded-Encrypted: i=1; AKwUvByD1TOnpO9QTrAVp4qNVMb9ucNoU+lNX4W3GjNB8EyrNEIgpWrWmPHCSEclldwiJnwk03YbuNHwZmA7@vger.kernel.org
+X-Gm-Message-State: AFq9FYKalbHvKEpb4AIplRl34NRRon8o6PupfeCiRuedRjYtFw7pcFpr
+	Bq+no8sLpQwgxvK2CU+3cIQIPmE5sMXKv+Glb0c9q9o2/pCR6EHt+lHPZelTb6vvp10=
+X-Gm-Gg: AYBFou0gDA/Oa948APXFz+dFYsPM9bk3g1Q0GG2GjfWzkjEedFhc1R4LfjviRLfFvdm
+	nfKijpk3xK9i4WG9c3GtJFbOoyiGpkL3jXmlwrfcThbT2ceqieWftTpwKPX8hWECI8DfrddQ9Ua
+	mbQ1nntw/K9Sa1lvB3nK1S9rgFAo5nVuQHEOZOtaEnxgLaeTxlob7F5W0PkFMQFA4k6tSRbHTAZ
+	9Y6MH8Lq7wIqnpHei/KY6Dl5Ukac6ChENemSTlm+et6glYdXhrIBIDGz89vPVR6IywYhSiSUPYI
+	qUUcvhbVvnbUqIUH9GKLcKC4dP/2AaCFmxdPCssOJx8JdNShRz99oZ8gzc169BFZpldIKX5OiR6
+	tLaGva29Te9qt8J42Sy66JpvVRwM364WDAM66GfkeOt/ZJLu+1gp4kGFXZ6sUxLvlNSPJu5cmJr
+	Eb1eAhCKP+CSPS9JlUhoiWEvjvYgmDd68krugPscXEDxjpjHNGqa1eKb8Z688qLxyVd2e5gBnEA
+	hxv56hXi8Mh9qHzD186z//0b4RXgTSaIXY/wi8c0LSPZCt0dWD1R3wQH8qTBVEMKvrVEY4Qp6oc
+	XBvklMS5kZKXo6igsbQOBw06bFmtP9oYToyK9vBHrpWl5BhKSicet1cld+phJTZ8
+X-Received: by 2002:a05:7022:220f:b0:14c:aaa0:941c with SMTP id a92af1059eb24-1993fba154cmr5334530c88.35.1792859347154;
+        Sat, 24 Oct 2026 09:29:07 -0700 (PDT)
+Received: from localhost.localdomain ([2406:5900:1044:110c:dba3:be57:a674:a67f])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-19a3736d16fsm7192350c88.12.2026.10.24.09.29.04
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 24 Oct 2026 09:21:32 -0700 (PDT)
-From: Joas Antonio dos Santos <joasantonio108@gmail.com>
-To: Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>,
- Leon Romanovsky <leon@kernel.org>, Mark Bloch <mbloch@nvidia.com>
-Cc: Boris Pismenny <borisp@nvidia.com>, Sabrina Dubroca <sd@queasysnail.net>,
- Andrew Lunn <andrew+netdev@lunn.ch>, David S. Miller <davem@davemloft.net>,
- Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH net] net/mlx5e: macsec: free SC lookup entries after an RCU
- grace period
-Date: Sat, 24 Oct 2026 13:21:28 -0300
-Message-ID: <179285888829.90275.17386097105525068016@gmail.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+        Sat, 24 Oct 2026 09:29:06 -0700 (PDT)
+From: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+To: Bart Van Assche <bvanassche@acm.org>
+Cc: Leon Romanovsky <leon@kernel.org>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	linux-rdma@vger.kernel.org,
+	target-devel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org,
+	yhlee@isslab.korea.ac.kr
+Subject: [PATCH v4 0/2] RDMA/srpt: fix the indirect descriptor table bound and the context counters
+Date: Sun, 25 Oct 2026 01:28:50 +0900
+Message-ID: <20261024162852.3528224-1-yhlee@isslab.korea.ac.kr>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -102,67 +99,52 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-macsec_del_rxsc_ctx() removes rx_sc->sc_xarray_element from
-macsec->sc_xarray with xa_erase() and frees it with kfree() right away.
-mlx5e_macsec_offload_handle_rx_skb() looks the element up with
-xa_load() under rcu_read_lock() and then dereferences ->rx_sc, so an RX
-completion that loaded the element just before xa_erase() reads freed
-memory. rx_sc itself is already freed with kfree_rcu_mightsleep(); only
-the element pointing to it was missed.
+Both changes are needed, and they fix different things.
 
-macsec_fs_id_del() has the same problem on the TX side: it removes
-fs_id_found from the SCI rhashtable and frees it with kfree(), while
-mlx5e_macsec_handle_tx_skb() and mlx5e_macsec_tx_build_eseg() read it
-through mlx5_macsec_fs_get_fs_id_from_hashtable(), which uses
-rhashtable_lookup() under rcu_read_lock().
+A 510 entry table fits in the default 8276 byte IU when the additional CDB
+is empty, so the bound accepts it and the counters then have to hold it.
+With only the bound, a conforming command carrying 256 or more descriptors
+still wraps n_rw_ctx and leaks every context it allocated. With only the
+wider counters, a command that sets ADDITIONAL CDB LENGTH to its maximum
+still walks a descriptor table that runs past the receive buffer.
 
-Free both with kvfree_rcu_mightsleep(). Both run in process context
-from the macsec offload ops, outside any spinlock, so sleeping is fine.
+The two defects also come from different commits, which is why they are
+split here.
 
-The sc_xarray_element issue was pointed out during review of
-"net/mlx5e: macsec: fix use-after-free of metadata_dst on RX SC delete"
-and left for a follow-up; this is that follow-up.
+Changes since v3, both from the review of 1/2.
 
-Fixes: b7c9400cbc48 ("net/mlx5e: Implement MACsec Rx data path using MACsec skb_metadata_dst")
-Signed-off-by: Joas Antonio dos Santos <joasantonio108@gmail.com>
-Assisted-by: Yaga Agent HackerSec Claude:claude-opus-5-5
----
-Testing: compile-tested only (arm64, W=1, CONFIG_MLX5_MACSEC=y, no new
-warnings). I do not have MACsec-capable ConnectX hardware, so this was
-not run on a real device and I have no reproducer against the driver
-itself. The free-while-reader-holds-RCU pattern was reproduced with a
-standalone test module under KASAN (slab-use-after-free on kmalloc-16),
-and the same module showed no reports after switching to
-kvfree_rcu_mightsleep().
+desc_off is a uintptr_t subtraction now, as Bart asked.
 
- drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c | 2 +-
- drivers/net/ethernet/mellanox/mlx5/core/lib/macsec_fs.c   | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+The room check is gone. It divided the bytes left after the header by the
+descriptor size, and the division truncates toward zero, so a byte_len one
+to fifteen bytes short of the header gave room zero rather than negative.
+A table_desc.len below one descriptor gives nbufs zero at the same time, so
+nbufs > room was false and a truncated request was accepted. That is
+Sashiko's [Medium], and the v3 commit message claimed the opposite. v4
+compares the span the table occupies against byte_len directly, which needs
+no division and no sign, and the wrong paragraph is gone.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c
-index 38a3415ac..fb9126f6b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c
-@@ -839,7 +839,7 @@ static void macsec_del_rxsc_ctx(struct mlx5e_macsec *macsec, struct mlx5e_macsec
- 	list_del_rcu(&rx_sc->rx_sc_list_element);
- 	xa_erase(&macsec->sc_xarray, rx_sc->sc_xarray_element->fs_id);
- 	dst_release(&rx_sc->md_dst->dst);
--	kfree(rx_sc->sc_xarray_element);
-+	kvfree_rcu_mightsleep(rx_sc->sc_xarray_element);
- 	kfree_rcu_mightsleep(rx_sc);
- }
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/macsec_fs.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/macsec_fs.c
-index efc516749..910fafe40 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lib/macsec_fs.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/macsec_fs.c
-@@ -684,7 +684,7 @@ static void macsec_fs_id_del(struct list_head *macsec_devices_list, u32 fs_id,
- 
- 	xa_erase(fs_id_xa, fs_id);
- 
--	kfree(fs_id_found);
-+	kvfree_rcu_mightsleep(fs_id_found);
- 
- 	if (macsec_fs_is_macsec_device_empty(macsec_device)) {
- 		list_del(&macsec_device->macsec_devices_list_entry);
+2/2 is unchanged. Bart asked why int rather than an unsigned type. The
+values are counts and never negative, so unsigned fits, but
+rdma_rw_ctx_init() returns int and the WARN_ON(ioctx->n_rdma <= 0) in
+srpt_rdma_read_done() is a signed test, so int leaves the surrounding code
+alone. I am happy to make both unsigned int and turn that test into == 0
+instead.
+
+Link: https://lore.kernel.org/linux-rdma/20261022143901.2991062-1-yhlee@isslab.korea.ac.kr
+
+Yehyeong Lee (2):
+  RDMA/srpt: bound the indirect descriptor table to the IU
+  RDMA/srpt: widen the indirect RDMA context counters
+
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 11 ++++++++++-
+ drivers/infiniband/ulp/srpt/ib_srpt.h |  4 ++--
+ 2 files changed, 12 insertions(+), 3 deletions(-)
+
+
+base-commit: 5b0764a53235d3c77e1ed674e836e1b3fe1a4b1f
+-- 
+2.43.0
+
