@@ -1,54 +1,66 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.13
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=160.30.148.34
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792812725;
-	b=quqWSNwpyvXPe+W2dkassMma1eW42HXIWvXPKuVUDAftHeiWtdp4ADcSKxCSzQTSMkPL
-	 lTgxzfCIFVbDibwyF+Kx5b4PIrRY7XAQ7BVHHudJmUTr6d3WPNfzMD8SfZB0H3UqOzUFZ
-	 i9as9Fow+eEmSISiQfRUHFj7rG00FkfA7/knbC8nRvuecPLZMLWmnF/EOnstIsM1wScZx
-	 2d4RTXr/kf36jzRapefC8a/szztgCtNch0/3psq8NNiExTGlaDzEFeTKrcX5yL+OQDlPX
-	 +Hw3UA1NJViafJIDhKwdcyypEfMlrfcz6pj4yu1vJug4wADCHzIFj59zP94jdH3Kxfg==
+	t=1792826762;
+	b=zldfYzGDh9Q1fAzzTkw1mbJLcWU5WYirRn18kGByrhYcbntsshGc6WvgAQRVpX+fE+HZ
+	 MAsHI22irLViHYTkuK28248d7EhDFW56TZF67B9XJ/I11JTfu4PqmNU/dxCDrSH09R7lr
+	 jR3dKb2rluQq4CqD7gQt/m0HcmdwMzxA7/zTEdtTleeILLVxEqnjAYWYG1LbA6uh1rNRo
+	 h7WYuacqr7ytgmPO/QmHcwE5GBRLWd0nO39x/4jeg5NY9W0T70YMLQoJdSZQdtzHhkHT6
+	 R7zlKUSMK/udYmc7ELVN5MMy4fCy58LUhwgddQIr179IPoEvG56vzVGPjIDc21XxZOw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792812725;
-	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
-	 X-Mizu-Trace-ID:X-Migadu-Flow:Message-ID:Date:MIME-Version:User-Agent:
-	 Subject:To:References:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=TRDvZq2SHT+aDt9EJj+nR03z379cD3vR6Hr6yZB6kOw=;
-	b=e8zk6QIorm46gN7IUrm+lZ7R9DHuft9aP1kOEsXKXjd16Fiexz1RLxTUE+jUf4PGGgKI
-	 8EiO2yTHFvsteRAopWt44uiy3H9/pnqQlSxnm6N/U05M2YG6AD+vVh9xn6T7ltmAJCxWz
-	 O2p5/KX3uPEiyKUc3b1uvadLd5A4K32yz9WhRTTnSjhXMRfg7KblJ9FtRnKDHwuyr8eC9
-	 Go899vwaWozdgs7WQIQLfdMxI8Yx9awgA+HguIy0lpf+MQrV/0/41iknWNUEjXZD52pOF
-	 cIVvJR+TEFg3/DPSmU7YvcRenuWWoc4mCb+VZBVMmmGSoBjeThNA1UKXP8J5F9wCiyw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792826762;
+	h=DMARC-Filter:Received:Received:Received:X-Zmail-TransId:
+	 X-Zmail-LocalSMTP:X-Zmail-RealSender:From:To:Cc:Subject:Date:
+	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+	 X-ZMAIL-USEORIGINALEMLTOOUTBOUND:Content-Transfer-Encoding:X-MAIL:
+	 X-TLS:X-ENVELOPE-SENDER:X-SOURCE-IP:X-CLEAN:
+	 X-Fangmail-Anti-Spam-Filtered:X-Fangmail-MID-QID;
+	bh=8OX2L3KNr6+/ZONd4VIawy1koiNom/7rML5csNyPw8Q=;
+	b=0HPVgVQ0tTWSd+TBn8G/dLdF/XRlQM3UspvBqyFllwv0NVqkjS71fXIZhaza8M2R0YFx
+	 UOKIvy77OIEs5u/vY22Z4xjkjvJLk9nSntqca5LZH1ajdu0HTW3MtaiU/Gotmj78Vxn3t
+	 TMub49OfXGNBJXmTDFob8WGV9AYqPcpxRPW+uWRKyWtJfXLaUnN8zS1ljWNLA1Mb0FRbP
+	 tdLbrWwwx/dhpMsweWuS6NtZYgyWMDzbSKXRRJGVal5kzpY0J30UBUNEBsXBCnL8EbNIg
+	 vUe+HDmQWMeZm34Vnirx9ET4QyEgR0/IhDEDkwnfKy7rJsj3IjYMZXmKQSGjf7kOIKA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.dev;
-	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=NvooyQwj;
-	arc=none smtp.remote-ip=91.218.175.13
-Received: from mta0.migadu.com (out-13.mta0.migadu.com [91.218.175.13])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=pass header.from=zte.com.cn;
+	spf=pass smtp.mailfrom=zte.com.cn;
+	arc=none smtp.remote-ip=160.30.148.34
+Received: from mxhk.zte.com.cn (mxhk.zte.com.cn [160.30.148.34])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36D1D606A31B
-	for <linux-rdma@vger.kernel.org>; Sat, 24 Oct 2026 03:32:02 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 36D1D606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=NvooyQwj
-X-Envelope-To: linux-rdma@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=qpsR5uNxn2W8gPQgV5MSbXHu1Mv18oSF9sQu+dRz/54=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1792812721; v=1; x=1793417521;
- b=NvooyQwje/UxBd91HWR/lP9HoazFTS37n2Yp4l9I+g2LU2D+ElLonblKGpC1pIGbbakcEcOm
- YKjO965SULozUJb7r1bb3JG5zuq18lWVRMXef90SJWicU5pGTs6myLSRYmPQtwUwAKEbULdv/Nz
- tTg0o2eow0utClftEarJGfCU=
-X-Envelope-To: linux-rdma@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id 18b050aee73788f3;
-	Sat, 24 Oct 2026 03:32:00 +0000
-X-Mizu-Trace-ID: 18b050aee73788f3
-X-Migadu-Flow: FLOW_OUT
-Message-ID: <5da8af66-b180-4bea-8851-273b669f1a3c@linux.dev>
-Date: Fri, 23 Oct 2026 20:31:54 -0700
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A6FF606A31D;
+	Sat, 24 Oct 2026 07:26:01 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6A6FF606A31D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zte.com.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zte.com.cn
+Received: from mse-fl2.zte.com.cn (unknown [10.5.228.133])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange x25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mxhk.zte.com.cn (FangMail) with ESMTPS id 4jBWdY19dqz5B109;
+	Sat, 24 Oct 2026 15:25:53 +0800 (CST)
+Received: from szxl2zmapp07.zte.com.cn ([10.1.32.52])
+	by mse-fl2.zte.com.cn with SMTP id 69O7PkIS094826;
+	Sat, 24 Oct 2026 15:25:46 +0800 (+08)
+	(envelope-from zhang.yanze@zte.com.cn)
+Received: from localhost.localdomain (unknown [192.168.6.15])
+	by smtp (Zmail) with SMTP;
+	Sat, 24 Oct 2026 15:25:48 +0800
+X-Zmail-TransId: 3e816adc5d7b026-b7ba1
+X-Zmail-LocalSMTP: 1
+X-Zmail-RealSender: zhang.yanze@zte.com.cn
+From: Yanze Zhang <zhang.yanze@zte.com.cn>
+To: jgg@ziepe.ca, leon@kernel.org, julianbraha@gmail.com,
+        huangjunxian6@hisilicon.com, yanjun.zhu@linux.dev, lkp@intel.com
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+        wei.quan@zte.com.cn, han.junyang@zte.com.cn, ran.ming@zte.com.cn,
+        han.chengfei@zte.com.cn, zhang.yanze@zte.com.cn
+Subject: [PATCH 5/7] RDMA/zrdma: Add device probe and remove logic
+Date: Sat, 24 Oct 2026 15:15:37 +0800
+Message-ID: <20261024071539.2182864-6-zhang.yanze@zte.com.cn>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20261024071539.2182864-1-zhang.yanze@zte.com.cn>
+References: <20261024071539.2182864-1-zhang.yanze@zte.com.cn>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -58,129 +70,326 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [syzbot] [rdma?] WARNING in __rxe_cleanup
-To: syzbot <syzbot+fef38133c495aeb48297@syzkaller.appspotmail.com>,
- jgg@ziepe.ca, leon@kernel.org, linux-kernel@vger.kernel.org,
- linux-rdma@vger.kernel.org, syzkaller-bugs@googlegroups.com,
- zyjzyj2000@gmail.com, "yanjun.zhu@linux.dev" <yanjun.zhu@linux.dev>
-References: <6adb54ac.d1cee5ca.8df35.0007.GAE@google.com>
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
-In-Reply-To: <6adb54ac.d1cee5ca.8df35.0007.GAE@google.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+X-ZMAIL-USEORIGINALEMLTOOUTBOUND: 1
 Content-Transfer-Encoding: 8bit
+X-MAIL:mse-fl2.zte.com.cn 69O7PkIS094826
+X-TLS: YES
+X-ENVELOPE-SENDER: zhang.yanze@zte.com.cn
+X-SOURCE-IP: 10.5.228.133 unknown Sat, 24 Oct 2026 15:25:53 +0800
+X-CLEAN: YES
+X-Fangmail-Anti-Spam-Filtered: true
+X-Fangmail-MID-QID: 6ADC5D81.000/4jBWdY19dqz5B109
 
-在 2026/10/23 5:35, syzbot 写道:
-> Hello,
-> 
-> syzbot found the following issue on:
-> 
-> HEAD commit:    c03c1a14507d Linux 7.3
-> git tree:       upstream
-> console output: https://syzkaller.appspot.com/x/log.txt?x=1796a621580000
-> kernel config:  https://syzkaller.appspot.com/x/.config?x=c4b098695335c89f
-> dashboard link: https://syzkaller.appspot.com/bug?extid=fef38133c495aeb48297
-> compiler:       Debian clang version 22.1.8 (1~deb13u4), Debian LLD 22.1.8
-> 
-> Unfortunately, I don't have any reproducer for this issue yet.
-> 
-> Downloadable assets:
-> disk image: https://storage.googleapis.com/syzbot-assets/c9d4a36731a6/disk-c03c1a14.raw.xz
-> vmlinux: https://storage.googleapis.com/syzbot-assets/3c00e4e185bb/vmlinux-c03c1a14.xz
-> kernel image: https://storage.googleapis.com/syzbot-assets/1f95d3156291/bzImage-c03c1a14.xz
-> 
-> IMPORTANT: if you fix the issue, please add the following tag to the commit:
-> Reported-by: syzbot+fef38133c495aeb48297@syzkaller.appspotmail.com
-> 
-> ------------[ cut here ]------------
-> !ret
-> WARNING: drivers/infiniband/sw/rxe/rxe_pool.c:212 at __rxe_cleanup+0x311/0x350 drivers/infiniband/sw/rxe/rxe_pool.c:212, CPU#0: kworker/u8:9/3389
-> Modules linked in:
-> CPU: 0 UID: 0 PID: 3389 Comm: kworker/u8:9 Tainted: G             L      syzkaller #0 PREEMPT(full)
-> Tainted: [L]=SOFTLOCKUP
-> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 08/26/2026
-> Workqueue: krds_cp_wq#0/0 rds_shutdown_worker
-> RIP: 0010:__rxe_cleanup+0x311/0x350 drivers/infiniband/sw/rxe/rxe_pool.c:212
+Implement the auxiliary bus probe and remove functions, including device
+initialization, hardware resource setup, and IB device registration.
+This replaces the stub probe from the initial skeleton patch.
 
-Hi,
+Signed-off-by: Yanze Zhang <zhang.yanze@zte.com.cn>
+---
+ drivers/infiniband/hw/zrdma/zrdma_main.c | 294 +++++++++++++++++++++++
+ 1 file changed, 294 insertions(+)
+ create mode 100644 drivers/infiniband/hw/zrdma/zrdma_main.c
 
-Looking at the stack trace and rxe_pool.c:212:
-
-203     if (sleepable) {
-204         if (!completion_done(&elem->complete)) {
-205             ret = wait_for_completion_timeout(&elem->complete,
-206                     msecs_to_jiffies(50000));
-207
-208             /* Shouldn't happen. There are still references to
-209              * the object but, rather than deadlock, free the
-210              * object or pass back to rdma-core.
-211              */
-212             if (WARN_ON(!ret))
-213                 err = -ETIMEDOUT;
-214         }
-215     }
-
-The WARNING triggers because __rxe_cleanup() timed out waiting 50s for 
-the QP reference count to drop to zero during destruction.
-
-This indicates an unreleased QP reference leak on the upper layer side 
-(RDS) during connection teardown (rds_shutdown_worker -> 
-rds_ib_conn_path_shutdown).
-
-While RXE forces object cleanup after 50 seconds to prevent a deadlock, 
-the root cause lies in net/rds failing to drop all held QP references 
-prior to calling rdma_destroy_qp(). This needs to be addressed on the 
-RDS layer.
-
-Thanks.
-
-Yanjun Zhu
-
-> Code: f7 be 03 00 00 00 e8 7e 15 e8 fb 40 84 ed 0f 85 26 fe ff ff e9 5b fe ff ff e8 5b 89 cf f8 90 0f 0b 90 eb 09 e8 50 89 cf f8 90 <0f> 0b 90 41 be 92 ff ff ff e9 47 ff ff ff 44 89 f1 80 e1 07 80 c1
-> RSP: 0018:ffffc9000f2ff6d0 EFLAGS: 00010293
-> RAX: ffffffff88f888b0 RBX: ffff88807f162250 RCX: ffff888034160000
-> RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
-> RBP: 0000000000000001 R08: ffffffff917a757f R09: 1ffffffff22f4eaf
-> R10: dffffc0000000000 R11: fffffbfff22f4eb0 R12: ffff88807e7615a0
-> R13: 00000000ffffffff R14: 0000000000000000 R15: 0000000000000000
-> FS:  0000000000000000(0000) GS:ffff888123abf000(0000) knlGS:0000000000000000
-> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> CR2: 00007ffd5380382c CR3: 000000003558f000 CR4: 0000000000350ef0
-> Call Trace:
->   <TASK>
->   rxe_destroy_qp+0x74/0x270 drivers/infiniband/sw/rxe/rxe_verbs.c:661
->   ib_destroy_qp_user+0x354/0x5a0 drivers/infiniband/core/verbs.c:2182
->   ib_destroy_qp include/rdma/ib_verbs.h:4103 [inline]
->   rdma_destroy_qp+0xd0/0x250 drivers/infiniband/core/cma.c:1170
->   rds_ib_conn_path_shutdown+0x9bd/0x1820 net/rds/ib_cm.c:1113
->   rds_conn_shutdown+0x477/0xb20 net/rds/connection.c:440
->   process_one_work kernel/workqueue.c:3396 [inline]
->   process_scheduled_works+0xc3d/0x1630 kernel/workqueue.c:3479
->   worker_thread+0xa47/0xfb0 kernel/workqueue.c:3560
->   kthread+0x38b/0x480 kernel/kthread.c:436
->   ret_from_fork+0x514/0xb70 arch/x86/kernel/process.c:158
->   ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
->   </TASK>
-> 
-> 
-> ---
-> This report is generated by a bot. It may contain errors.
-> See https://goo.gl/tpsmEJ for more information about syzbot.
-> syzbot engineers can be reached at syzkaller@googlegroups.com.
-> 
-> syzbot will keep track of this issue. See:
-> https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-> 
-> If the report is already addressed, let syzbot know by replying with:
-> #syz fix: exact-commit-title
-> 
-> If you want to overwrite report's subsystems, reply with:
-> #syz set subsystems: new-subsystem
-> (See the list of subsystem names on the web dashboard)
-> 
-> If the report is a duplicate of another one, reply with:
-> #syz dup: exact-subject-of-another-report
-> 
-> If you want to undo deduplication, reply with:
-> #syz undup
+diff --git a/drivers/infiniband/hw/zrdma/zrdma_main.c b/drivers/infiniband/hw/zrdma/zrdma_main.c
+new file mode 100644
+index 000000000000..5127e56fd164
+--- /dev/null
++++ b/drivers/infiniband/hw/zrdma/zrdma_main.c
+@@ -0,0 +1,294 @@
++// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
++/*
++ * ZTE DingHai Rdma driver
++ * Copyright (c) 2022-2026, ZTE Corporation
++ */
++
++#include <linux/module.h>
++#include <linux/auxiliary_bus.h>
++#include <linux/types.h>
++#include <linux/netdevice.h>
++#include <linux/workqueue.h>
++#include <rdma/ib_verbs.h>
++
++#include "zrdma_main.h"
++
++MODULE_ALIAS("zrdma");
++MODULE_AUTHOR("Yanze Zhang <zhang.yanze@zte.com.cn>");
++MODULE_DESCRIPTION("ZTE Ethernet Protocol Driver for RDMA");
++MODULE_LICENSE("Dual BSD/GPL");
++
++LIST_HEAD(zxdh_handlers);
++DEFINE_SPINLOCK(zxdh_handler_lock);
++
++static struct mutex rdma_name_lock;
++static struct list_head zxdh_rdma_list;
++
++static void zxdh_add_handler(struct zxdh_handler *hdl)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&zxdh_handler_lock, flags);
++	list_add(&hdl->list, &zxdh_handlers);
++	spin_unlock_irqrestore(&zxdh_handler_lock, flags);
++}
++
++void zxdh_del_handler(struct zxdh_handler *hdl)
++{
++	unsigned long flags;
++
++	if (!hdl)
++		return;
++
++	spin_lock_irqsave(&zxdh_handler_lock, flags);
++	list_del(&hdl->list);
++	spin_unlock_irqrestore(&zxdh_handler_lock, flags);
++}
++
++int zxdh_get_del_rdma_name(const char *sbdf, char *name, size_t name_len)
++{
++	struct zxdh_rdma_node *pos, *tmp;
++	u8 len = 0;
++
++	if (!sbdf || !name || !name_len)
++		return -EINVAL;
++
++	if (name_len > IB_DEVICE_NAME_MAX) {
++		pr_err("zrdma: name buffer too large\n");
++		return -EINVAL;
++	}
++
++	mutex_lock(&rdma_name_lock);
++	list_for_each_entry_safe(pos, tmp, &zxdh_rdma_list, list) {
++		len = strlen(pos->sbdf);
++		if (strlen(sbdf) == len) {
++			if (strncasecmp(sbdf, pos->sbdf, len) == 0) {
++				snprintf(name, name_len, "%s", pos->name);
++				list_del(&pos->list);
++				kfree(pos);
++				mutex_unlock(&rdma_name_lock);
++				return 0;
++			}
++		}
++	}
++	mutex_unlock(&rdma_name_lock);
++	return -ENOENT;
++}
++
++/* Must be called after zxdh_get_common_func_num_max(). */
++static void zxdh_get_net_irq_cap(struct zxdh_pci_f *rf)
++{
++	if (rf->common_func_num_max > ZXDH_FUNC_IRQ_FREE &&
++	    rf->common_func_num_max != 0xFF)
++		rf->net_irq_cap = true;
++}
++
++static void zxdh_get_common_func_num_max(struct zxdh_pci_f *rf)
++{
++	int num_max;
++
++	if (rf->gen_ops.zxdh_common_func) {
++		num_max = rf->gen_ops.zxdh_common_func(NULL, NULL,
++						       ZXDH_FUNC_NUM_REQUIRE);
++		if (num_max >= 0 && num_max != 0xFF) {
++			rf->common_func_num_max = num_max;
++			return;
++		}
++	}
++	rf->common_func_num_max = -1;
++}
++
++static void zxdh_fill_device_info(struct zxdh_device *zdev,
++				  struct zxdh_rdma_core_dev *zdev_info)
++{
++	struct zxdh_pci_f *rf = zdev->rf;
++
++	rf->ftype = ZXDH_FUNC_TYPE(zdev_info->vport_id);
++	rf->pf_id = ZXDH_PF_ID(zdev_info->vport_id);
++	rf->sc_dev.ep_id = ZXDH_EP_ID(zdev_info->vport_id);
++	rf->ep_id = rf->sc_dev.ep_id;
++	rf->sc_dev.driver_load = true;
++
++	rf->zdev_info = zdev_info;
++	rf->pcidev = zdev_info->pdev;
++
++	rf->msix_count = zdev_info->msix_count;
++	rf->msix_entries = zdev_info->msix_entries;
++	if (rf->msix_count)
++		rf->sc_dev.max_ceqs = (rf->msix_count - 1);
++	else
++		rf->sc_dev.max_ceqs = 0;
++	rf->rdma_ver = ZXDH_GEN_2;
++	rf->rst_to = ZXDH_RST_TIMEOUT_HZ;
++	rf->qp_index = 0;
++	rf->gen_ops.zxdh_common_func = NULL;
++	rf->net_irq_cap = false;
++	rf->dh_dev = NULL;
++	rf->drv_np_cap =
++		(bool)FIELD_GET(ZXDH_RDMA_COMM_FUNC, zdev_info->ver.support);
++	if (rf->drv_np_cap == ZXDH_RDMA_COMMON_FUNC_CAP) {
++		if (zdev_info->ops && zdev_info->ops->zxdh_common_func)
++			rf->gen_ops.zxdh_common_func =
++				zdev_info->ops->zxdh_common_func;
++	}
++
++	zxdh_get_common_func_num_max(rf);
++	zxdh_get_net_irq_cap(rf);
++
++	rf->zdev = zdev;
++
++	atomic_set(&zdev->tx_port_affinity, 0);
++	atomic_set(&zdev->sport_counter, 0);
++
++	INIT_LIST_HEAD(&zdev->ah_list);
++	mutex_init(&zdev->ah_list_lock);
++	zdev->init_state = INITIAL_STATE;
++	zdev->roce_mode = true;
++}
++
++static int zxdh_probe(struct auxiliary_device *aux_dev,
++		      const struct auxiliary_device_id *id)
++{
++	struct zxdh_auxiliary_dev *zxdh_adev =
++		container_of(aux_dev, struct zxdh_auxiliary_dev, adev);
++	struct zxdh_handler *hdl;
++	struct zxdh_device *zdev;
++	struct zxdh_pci_f *rf;
++	struct net_device *netdev;
++	int err;
++
++	if (!zxdh_adev->rdma_ops || !zxdh_adev->rdma_ops->get_rdma_netdev) {
++		pr_err("zrdma: rdma_ops or get_rdma_netdev is NULL\n");
++		return -EINVAL;
++	}
++
++	netdev = zxdh_adev->rdma_ops->get_rdma_netdev(zxdh_adev->parent);
++	if (!netdev) {
++		pr_err("zrdma: failed to get netdev\n");
++		return -ENODEV;
++	}
++
++	zdev = ib_alloc_device(zxdh_device, ibdev);
++	if (!zdev)
++		return -ENOMEM;
++
++	zdev->zxdh_adev = zxdh_adev;
++	zdev->netdev = netdev;
++
++	zdev->rf = kzalloc_obj(*zdev->rf);
++	if (!zdev->rf) {
++		ib_dealloc_device(&zdev->ibdev);
++		return -ENOMEM;
++	}
++
++	zxdh_fill_device_info(zdev, zxdh_adev->zxdh_info);
++
++	hdl = kzalloc_obj(*hdl);
++	if (!hdl) {
++		ib_dealloc_device(&zdev->ibdev);
++		return -ENOMEM;
++	}
++
++	hdl->zdev = zdev;
++	zdev->hdl = hdl;
++	zdev->netdev_speed = SPEED_UNKNOWN;
++
++	rf = zdev->rf;
++	err = zxdh_ctrl_init_hw(rf);
++	if (err)
++		goto err_ctrl_init;
++
++	err = zxdh_ib_register_device(zdev);
++	if (err)
++		goto err_ib_reg;
++
++	/* Publish the handler only after the device is registered, so a
++	 * failed probe cannot leave a freed handler on the global list.
++	 */
++	zxdh_add_handler(hdl);
++
++	dev_set_drvdata(&aux_dev->dev, zdev);
++
++	return 0;
++
++err_ib_reg:
++err_ctrl_init:
++	ib_dealloc_device(&zdev->ibdev);
++
++	return err;
++}
++
++static void zxdh_remove(struct auxiliary_device *aux_dev)
++{
++	struct zxdh_device *zdev = dev_get_drvdata(&aux_dev->dev);
++	struct zxdh_handler *hdl;
++
++	if (!zdev) {
++		dev_err(&aux_dev->dev, "%s: zdev is NULL\n", __func__);
++		return;
++	}
++
++	/* Detach the handler before ib_unregister_device() so it is not
++	 * visible to new callers during unregister.
++	 */
++	hdl = zdev->hdl;
++	zdev->hdl = NULL;
++	zxdh_del_handler(hdl);
++	kfree(hdl);
++
++	/* No 'get' on the ib_device, so the _and_put variant would
++	 * underflow ib_device.refcount; see cover letter.
++	 */
++	ib_unregister_device(&zdev->ibdev);
++}
++
++static const struct auxiliary_device_id zxdh_auxiliary_id_table[] = {
++	{
++		.name = ZXDH_PF_NAME "." ZXDH_RDMA_DEV_NAME,
++	},
++	{},
++};
++
++MODULE_DEVICE_TABLE(auxiliary, zxdh_auxiliary_id_table);
++
++static struct auxiliary_driver zxdh_auxiliary_drv = {
++	.name = ZXDH_RDMA_DEV_NAME,
++	.id_table = zxdh_auxiliary_id_table,
++	.probe = zxdh_probe,
++	.remove = zxdh_remove,
++};
++
++static int __init zrdma_module_init(void)
++{
++	int ret;
++
++	INIT_LIST_HEAD(&zxdh_rdma_list);
++	mutex_init(&rdma_name_lock);
++
++	ret = auxiliary_driver_register(&zxdh_auxiliary_drv);
++	if (ret) {
++		pr_err("zrdma: failed to register auxiliary driver\n");
++		return ret;
++	}
++
++	return 0;
++}
++
++static void __exit zrdma_module_exit(void)
++{
++	struct zxdh_rdma_node *pos, *tmp;
++
++	auxiliary_driver_unregister(&zxdh_auxiliary_drv);
++
++	mutex_lock(&rdma_name_lock);
++	list_for_each_entry_safe(pos, tmp, &zxdh_rdma_list, list) {
++		list_del(&pos->list);
++		kfree(pos);
++	}
++	mutex_unlock(&rdma_name_lock);
++
++	mutex_destroy(&rdma_name_lock);
++}
++
++module_init(zrdma_module_init);
++module_exit(zrdma_module_exit);
+-- 
+2.27.0
 
