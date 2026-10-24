@@ -1,66 +1,83 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=199.89.1.16
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792864972;
-	b=SDTC76V8blqvfYG314+QXqOpv6js/U4uvuG0WOaehECpTUKOQYGJMPc3e7rwY8UsHi2F
-	 s1E2m0sHahqimMjzRlmECiGgNcSl9Wc3q+CaAQH0k6uhHDnsEd5ZUUlF3hBl9PVZ3RLSx
-	 llyRbOTumg1z8k5k654yduEoHky47MFbize0XZUvMKhV28svpaWUISRPeBZub5T5tsd6J
-	 /P4TYjB1SjGnSAoIqMnBtPoB1r0HMdy94LwOuOH4LAD0vR8BfkxnCTS4yTLIaIWtsRF0L
-	 Et3FZ3ZWwXE/y273OD3+7fdCcKSK8J8HBgjSrmzrSWQTddmszA1SzvPmlC/HEFLPHwg==
+	t=1792866823;
+	b=MX7as4W1g2/8yV/AYTnf2SRgfhbaLqNrFfHG4co5l7wIiDdNcwbTD4Td7ZWQ07KFd70Y
+	 ZEMRQ81Xpts73t6LmjJ2fifLZeQH8RKl5YRFJpeEJxDG/POwPaGN4e1nlsuSzD2dttFk9
+	 dg2Dqc/HooRx2KKIE7aOiWpO9FafxSw+6fIH2jyTExiw35vXeLjoCTc0taFPn/gdH6b3Y
+	 dyIi2F3+LXW1re6MHKkirjVle1dZbFu8AsT9C4K/rLQw4RHc23EZ/VZBAQ8kaW11ouHSf
+	 zu3/OVBgZaVKzqm+Zhh7GObk1jUfoV/ejI7oxawDq1djmJ7uM7zyX2hsI2XjqOuM+Jg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792864972;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Virus-Scanned:Received:
-	 Received:Message-ID:Date:MIME-Version:User-Agent:Subject:To:Cc:
-	 References:Content-Language:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=eIeVJTLozSdLbIKTdmQoMBob0wlVQZIBGS5B40KWhyU=;
-	b=pIeGfXR2ygqGnLMhuesASThmpgSlZnpUwClho0DYgUX67c8TQCfSbVWlF66TrrGvK60h
-	 aHBnLFZSvdPJBTn+oE2joCHwoZbpyAYcP4aKzErmEIpyEjBaEaH1DGV1VCS+QLqzqw8ZR
-	 SBLuWi5ZkQOVYF95ATybylzLQCb161Bcd33m/Uijq4qkAc+lu+6VaC2YBIUPaey4NCvsD
-	 ot4BGvPGumrXFaxM+5Lh5fOug58YpWocLJ+jvxcejKKRwq0z6jXvMplpb0xaWDbboAzj0
-	 hAiJf+UgKLfqvE1Uf5DOQz7OPdQOsInXe9MgH1islA0i5lraup0lMq1OW+1CluDgfqg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792866823;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
+	 Cc:Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To;
+	bh=MpDSBIRCj1QunKXvcZFAv0RRVDRwfRhTAxxqEdIKKTM=;
+	b=WaH3q5jLZd8hyUMAOzTEtsL6hM6OcQfnNdgM6eAqniYlWkDvaiUPorIPBrc5I95X9Q7R
+	 Y4mU7DzGDGOBOhIJzZVdpxJg2qqrxuae97LHI8Tekr/NdHdGBJ/36GuMYaAUBCof9LIUj
+	 hPJqRMq8yxtWeU/+8xFx0u8A9nceWZeuawXoALNh/MMrtlwRIlWrLaA6nC3kOjcCWnJX7
+	 /Hv+VuBjRzXrnVe8OAuQRYdMy7NdABLevfZantXvZQWNGCZvUpaLsVxvbtwymqabNUEC+
+	 K4fbMDRe7iCBYBmggEF5mfqjspdK1SvmddzWkDMLu0nLIKuZaCOpBpK1N3Rzu6nI/tQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=acm.org;
-	spf=pass smtp.mailfrom=acm.org;
-	dkim=pass header.d=acm.org header.i=@acm.org header.a=rsa-sha256 header.s=mr01 header.b=IRccZDxo;
-	arc=none smtp.remote-ip=199.89.1.16
-Received: from 013.lax.mailroute.net (013.lax.mailroute.net [199.89.1.16])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=ArfG7QyV;
+	arc=none smtp.remote-ip=192.198.163.18
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4034F606A31A;
-	Sat, 24 Oct 2026 18:02:52 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4034F606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=acm.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=acm.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1684D606A31B;
+	Sat, 24 Oct 2026 18:33:39 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1684D606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=acm.org header.i=@acm.org header.a=rsa-sha256 header.s=mr01 header.b=IRccZDxo
-Received: from localhost (localhost [127.0.0.1])
-	by 013.lax.mailroute.net (Postfix) with ESMTP id 4jBnmW5x6Zzlfvps;
-	Sat, 24 Oct 2026 18:02:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acm.org; h=
-	content-transfer-encoding:content-type:content-type:in-reply-to
-	:from:from:content-language:references:subject:subject
-	:user-agent:mime-version:date:date:message-id:received:received;
-	 s=mr01; t=1792864969; x=1795456970; bh=eIeVJTLozSdLbIKTdmQoMBob
-	0wlVQZIBGS5B40KWhyU=; b=IRccZDxowA4GvZGH14ueAYLz8AJ+ye9v8IXWvq8+
-	s2Ms7MOTVIJDBz8Lqyex5Daz4zM2rKTGPnT2EgZaWZMEbhKh9X2Z0JlcI9jpEda7
-	3UnZ4mWn7XhqluMKncDVgWmujOFlbtL8m8Iiga2kSJn6BYYRwhFV5/fZj+De+yJK
-	+Z4TpESdHOMijUavC+vY1Lxb9IfugeULK5ZQWj/6z3FIkGToqJkDV/Kj80b/QNoO
-	vQTzLpGvgT+OmSAZyUu/8XeJZSyJnIq5LrwAgviHEY6ufNgENwwbryrLAxVJfg+e
-	3VZgoTOEo8U/4euXH0IS4j9nfhk2GEf5hLZ25SN6UasU9g==
-X-Virus-Scanned: by MailRoute
-Received: from 013.lax.mailroute.net ([127.0.0.1])
- by localhost (013.lax [127.0.0.1]) (mroute_mailscanner, port 10029) with LMTP
- id fZcaJXGGZAEK; Sat, 24 Oct 2026 18:02:49 +0000 (UTC)
-Received: from [192.168.51.14] (c-24-6-239-25.hsd1.ca.comcast.net [24.6.239.25])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: bvanassche@acm.org)
-	by 013.lax.mailroute.net (Postfix) with ESMTPSA id 4jBnmT0TQYzlfvpN;
-	Sat, 24 Oct 2026 18:02:48 +0000 (UTC)
-Message-ID: <75465b8f-1109-4a83-84ab-f4b464f187e3@acm.org>
-Date: Sat, 24 Oct 2026 11:02:48 -0700
+	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=ArfG7QyV
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1792866820; x=1824402820;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=RquEUI+yYXMUfYVUXUPoh6ukcS/r+3U9HE1c0P1RnRQ=;
+  b=ArfG7QyVUkEHAjvEbpZxzJ5kWuqNUtpP3IPTmOz5uqII40u3aSk83rbU
+   yY1mLgc+hKahwl1aorYFmMZfdkdomP5lYG4fGr84uUnK0dirdhp6qTzhx
+   8e+khwJrpDLNNosTK7eWvzIeF6nftaLspKWSSEJxQqRhmssh6i+mzAtwA
+   AQogvZR2T9TofqsMojrZ96FgQ6uAw60GwcpavpECs6JG/Yu2kZlO/0z9U
+   os7GDFFdlUAzPEdWYkkYQsM0oMoMz/SfNpv7pg8b3g2oaHoGKo0p/zGwe
+   wdh2wQcsAtECqA2AmNI9F7a5BEqVTFCGqEGL+S+L3JtnJxIgSI70T85/B
+   w==;
+X-CSE-ConnectionGUID: USLQv6ApTf+TqVctFTdNtg==
+X-CSE-MsgGUID: wemrWVsqQ1GkUVevKDL4kA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11945"; a="1625489"
+X-IronPort-AV: E=Sophos;i="6.27,176,1787036400"; 
+   d="scan'208";a="1625489"
+Received: from orviesa003.jf.intel.com ([10.64.159.143])
+  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Oct 2026 11:33:39 -0700
+X-CSE-ConnectionGUID: qnH8VoBaTs+N4wLT7/cAfQ==
+X-CSE-MsgGUID: Ro3hdMygQkaZzG5VZqku6g==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,176,1787036400"; 
+   d="scan'208";a="3833734"
+Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
+  by orviesa003.jf.intel.com with ESMTP; 24 Oct 2026 11:33:36 -0700
+Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1xKgYe-00000000U98-3O8J;
+	Sat, 24 Oct 2026 18:33:32 +0000
+Date: Sun, 25 Oct 2026 02:33:09 +0800
+From: kernel test robot <lkp@intel.com>
+To: Yanze Zhang <zhang.yanze@zte.com.cn>, jgg@ziepe.ca, leon@kernel.org,
+	julianbraha@gmail.com, huangjunxian6@hisilicon.com,
+	yanjun.zhu@linux.dev, lkp@intel.com
+Cc: oe-kbuild-all@lists.linux.dev, linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org, wei.quan@zte.com.cn,
+	han.junyang@zte.com.cn, ran.ming@zte.com.cn,
+	han.chengfei@zte.com.cn, zhang.yanze@zte.com.cn
+Subject: Re: [PATCH 2/7] RDMA/zrdma: Add core data structures and ABI
+ definitions
+Message-ID: <202610250256.rhuaT37h-lkp@intel.com>
+References: <20261024071539.2182864-3-zhang.yanze@zte.com.cn>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -70,21 +87,45 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 2/2] RDMA/srpt: widen the indirect RDMA context
- counters
-To: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
-Cc: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>,
- linux-rdma@vger.kernel.org, target-devel@vger.kernel.org,
- linux-kernel@vger.kernel.org, stable@vger.kernel.org
-References: <20261024162852.3528224-1-yhlee@isslab.korea.ac.kr>
- <20261024162852.3528224-3-yhlee@isslab.korea.ac.kr>
-Content-Language: en-US
-From: Bart Van Assche <bvanassche@acm.org>
-In-Reply-To: <20261024162852.3528224-3-yhlee@isslab.korea.ac.kr>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261024071539.2182864-3-zhang.yanze@zte.com.cn>
 
-On 10/24/26 9:28 AM, Yehyeong Lee wrote:
-> Make both counters int, the type the values they accumulate already have.
-Reviewed-by: Bart Van Assche <bvanassche@acm.org>
+Hi Yanze,
+
+kernel test robot noticed the following build errors:
+
+[auto build test ERROR on rdma/for-next]
+[also build test ERROR on linus/master v7.3 next-20261023]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
+
+url:    https://github.com/intel-lab-lkp/linux/commits/Yanze-Zhang/RDMA-zrdma-Add-build-infrastructure-and-module-skeleton/20261024-151533
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git for-next
+patch link:    https://lore.kernel.org/r/20261024071539.2182864-3-zhang.yanze%40zte.com.cn
+patch subject: [PATCH 2/7] RDMA/zrdma: Add core data structures and ABI definitions
+config: x86_64-rhel-9.4-kselftests (https://download.01.org/0day-ci/archive/20261025/202610250256.rhuaT37h-lkp@intel.com/config)
+compiler: gcc-14 (Debian 14.2.0-19) 14.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20261025/202610250256.rhuaT37h-lkp@intel.com/reproduce)
+
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202610250256.rhuaT37h-lkp@intel.com/
+
+All errors (new ones prefixed by >>):
+
+>> error: include/uapi/rdma/zrdma_abi.h: missing "WITH Linux-syscall-note" for SPDX-License-Identifier
+   make[3]: *** [scripts/Makefile.headersinst:63: usr/include/rdma/zrdma_abi.h] Error 1
+   make[3]: Target '__headers' not remade because of errors.
+   make[2]: *** [Makefile:1523: headers] Error 2
+   make[2]: Target 'prepare' not remade because of errors.
+   make[1]: *** [Makefile:248: __sub-make] Error 2
+   make[1]: Target 'prepare' not remade because of errors.
+   make: *** [Makefile:248: __sub-make] Error 2
+   make: Target 'prepare' not remade because of errors.
+
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
