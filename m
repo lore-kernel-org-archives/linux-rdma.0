@@ -1,74 +1,95 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.181
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792856478;
-	b=NpGAa2Oh6KVtwndQSUyhotTJfzIuGy7gh363mt3Wkj8RWizF9sEwvrQ7W2B3nhNf+63N
-	 6nAAk/pTtXQgfRs2LZ4DCciNRdFplWGf6cFKxcro94R6lQ+wTQjSbeUywF66qUULrCOvK
-	 8JMvjQVLF1M/xl741q/4jnSA9/SOJviY7jmRo8U8qU8uhHmpqkd1U4uoyG3pDjY/dLGW4
-	 qJG68z2U1820+bbd7Il07GjU5x1xMNCpRhexA4G1UClnXAfLQcUKIkEQgz1ojpjxKuVx+
-	 HE7xoL4dAEWW3A+NJshWLw/XuqhEg6H3tNZS4ZdtsZNtJXLHJYtiOr+dL5FiOpuaomQ==
+	t=1792857363;
+	b=4PQgrgdhsd1+o7Hfs/zM3iLjeUDMqNFh4hI75k0gdd3yhhdEOnhNi/1tysJ0U1u9Fmc6
+	 FtOFMcifYMzDq3Kgcia9/LQE0Pakbg3Iqv1rDtmkAzmH/13tzxRa9Le1+apPfiQIPwlXN
+	 aoqbfPeuWwnOu0B+VnCIWgbNYNuhrSrA3JwFzCqw5g+lccmhraZsrtW0PF6eL72Iy4AfA
+	 srWQ8fi8KiOoY5+aDwdBDBaDCHCpAkcjuqIt2WWR6KGoPGT/gG/DCQ6k0obA3Wcrpe+h2
+	 gmMt+bT0v8rsdzzzHxaO3Sk0P7jN2OuJNS1z/mZ8Ql0E/kg4cGq9VFQo1InTxi5Uh9g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792856478;
-	h=DMARC-Filter:DKIM-Signature:Received:X-MC-Unique:
-	 X-Mimecast-MFC-AGG-ID:Received:Received:Received:Date:From:To:Cc:
-	 Subject:Message-ID:MIME-Version:Content-Type:Content-Disposition:
-	 In-Reply-To:X-Scanned-By;
-	bh=6zgk7UdDlYMy8H3W0+vsTfOJUe/2ciaeMTnMfHY6ayg=;
-	b=yXbYF6HL9GlOYbl1VXbs2Sova6n7Qv/+TAr+DRwR8D7Un++Xw9MmNcJWuxMR9egYjaHW
-	 gC4d7IziDanTiwP+LEicFs69SORbg0sWieniVVnxMY4QCdStINgUtSgxo58zSswh+N2rV
-	 9ouiav0saMzVb6iH0gnqbz2TnhMMVafm962pP5GtaUeGSZ6QI8D5Ro4OsYpFqvZ14li/9
-	 UEEfqnksnIo16wZTyk+fOhgxaKR2ZRBIWllanayX72saxeozEOEcObGECdUt4+RLmIPag
-	 4Vu0ZFzBcf+9H5SWhnb6vAPPVYz+rSddLlVr0vAiUAgqjGRyM4uaJF8BJnfpIxhQytA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792857363;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=xwpMYDYcOgRgHbSKUixXR2QDd4uBp9abfLMB5Scqs14=;
+	b=cHf7ZqWeX1tQ3WrEdQIzuRceyvruaxNH4ir8Yx/8qHM2FaWm1fKizkvyUekvw1CxKPlx
+	 m3KAhkGoGTKAmpH+JLZ92kEBApwC2kStIlJTlnyqO+EgyDmnufKq5LN1lEi4HyRAyzHax
+	 G0dspvYpvYol4gR0jcWAke59SyfeUBQ+BfWtU1wbj+GxKeVIr9gU//txQFAdiaT44Myid
+	 20pjsDvnvJLa7H9M3jqQYd/v6FudDh/BnXtP5G4Eq0P3aklNwA69kbPC70H8AIQ7sK9WJ
+	 /I7znS3p11fQANeWLwRbVXyllhY0f+wzM7hHsGfJ/c0crHzwRrQEDPB7wNryDPW05KQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=redhat.com;
-	spf=pass smtp.mailfrom=redhat.com;
-	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=Z1f3idAB;
-	arc=none smtp.remote-ip=170.10.133.124
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=fail header.from=isslab.korea.ac.kr;
+	spf=none smtp.mailfrom=isslab.korea.ac.kr;
+	dkim=pass header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.a=rsa-sha256 header.s=20251104 header.b=iIJNe01a;
+	arc=none smtp.remote-ip=74.125.82.181
+Received: from mail-dy1-f181.google.com (mail-dy1-f181.google.com [74.125.82.181])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34093606A31A
-	for <linux-rdma@vger.kernel.org>; Sat, 24 Oct 2026 15:41:18 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 34093606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95846606A31D
+	for <linux-rdma@vger.kernel.org>; Sat, 24 Oct 2026 15:56:02 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 95846606A31D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=isslab.korea.ac.kr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=Z1f3idAB
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1792856477;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to; bh=6zgk7UdDlYMy8H3W0+vsTfOJUe/2ciaeMTnMfHY6ayg=;
-	b=Z1f3idAB9oCHLC+ddaP1i7dCqZ2usHeD069g/ED5wYE03PYX61yraBAqYKSjzHzivzqIPN
-	nCumPXmolrCpPuio8nNr4TpYvQscx0nuPVMKs1J3/3d1oSgDj+xNMxKwDMwbesGUsUKrff
-	LXjpLaOjvQnH8E0VMO4ZA2oVR5XTcvI=
-Received: from mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-35-165-154-97.us-west-2.compute.amazonaws.com [35.165.154.97]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-298-pwniv8GbM6a06qULngbciQ-1; Sat,
- 24 Oct 2026 11:41:07 -0400
-X-MC-Unique: pwniv8GbM6a06qULngbciQ-1
-X-Mimecast-MFC-AGG-ID: pwniv8GbM6a06qULngbciQ_1792856466
-Received: from mx-prod-int-10.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-10.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.95])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 63D90180057E;
-	Sat, 24 Oct 2026 15:41:06 +0000 (UTC)
-Received: from onestero-thinkpadp1gen7.tpbc.csb (headnet04.pony-001.prod.iad2.dc.redhat.com [10.2.32.116])
-	by mx-prod-int-10.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with SMTP id 4C13541B;
-	Sat, 24 Oct 2026 15:41:04 +0000 (UTC)
-Received: by onestero-thinkpadp1gen7.tpbc.csb (nbSMTP-1.00) for uid 13628
-	oleg@redhat.com; Sat, 24 Oct 2026 17:41:06 +0200 (CEST)
-Date: Sat, 24 Oct 2026 17:41:03 +0200
-From: Oleg Nesterov <oleg@redhat.com>
-To: Allison Henderson <achender@kernel.org>,
-	Joel Granados <joel.granados@kernel.org>
-Cc: pabeni@redhat.com, edumazet@google.com, kuba@kernel.org,
-	horms@kernel.org, netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org
-Subject: [PATCH 4/5] net/rds/tcp.c: move sysctl-only code under CONFIG_SYSCTL
-Message-ID: <atzRj8MBpUEPWcHh@redhat.com>
+	dkim=pass (2048-bit key, unprotected) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.a=rsa-sha256 header.s=20251104 header.b=iIJNe01a
+Received: by mail-dy1-f181.google.com with SMTP id 5a478bee46e88-35c76e9614aso2766239eec.0
+        for <linux-rdma@vger.kernel.org>; Sat, 24 Oct 2026 08:56:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=isslab-korea-ac-kr.20251104.gappssmtp.com; s=20251104; t=1792857361; x=1793462161; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=xwpMYDYcOgRgHbSKUixXR2QDd4uBp9abfLMB5Scqs14=;
+        b=iIJNe01aE7cAImpH3BDqEPFBUyCMjosDYRuFKuqUo19KbM3T325lRYH7QmpcZtH5hL
+         iOlqpcMwnghpKm1YJIkZRX9Nrki2724SJhri66r4fv+c6rfgvLPH+DoQK6dVsS1VtVdg
+         lfSmRzH4+2bSCgDd8VjzbCheYEXcFZFlFZlh2W8aCqbTBY+BBq5hWvEundD1xEoKU1np
+         PNJvhyVMrM4PMyENq/P4Ub4fEN+KrLVWM008BZ5xHKIsVIpPBVTLqOZ7kwllBAUQ/OFU
+         VlfPJzYs5lA/ndpxFjeXgj2mcs7gx45PFvk/Fqx1z+PaxHRCq4DKcDnvMQnW5KgEOAXR
+         RrqA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792857361; x=1793462161;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=xwpMYDYcOgRgHbSKUixXR2QDd4uBp9abfLMB5Scqs14=;
+        b=2Kuhb3/RqnyUGy5k0pVqCRiOSbSQ9F4CvCd0DFhK2sJwD0QMgKQkekErdy6/qMOsye
+         ElprWJOiRPPx8g0g8sL3W3gs/pOflLQlM9TKZkYKVbnFvHh9nRQtCj9aoVE5rRiN9JZ1
+         iyQlBxQoiM3OnQvkmD4wUsbZkQKheAUDfZg8OPgNcazCk0cR4rK8XHjEp+z1gN7tqf3X
+         7ij+JHAdrqv/b3RrOp4W/yvN2BBcUlOAoeje5za4CXUa9cvqDHx32f0gOxgmls93xvDU
+         crHTcuslrmYz/Y3MwBZctUlPLvlO1x9HGkGUen2MAWSGFXzHbL6MJt8QEgznUVhITzUB
+         Fhag==
+X-Forwarded-Encrypted: i=1; AKwUvBy99CDFgsNJ/eXDnQlnZXOlGCsIcv75Os63IEgeq3YS2GXeDmagdF6IqKqfBT6jZvicnJrLT5uwirpB@vger.kernel.org
+X-Gm-Message-State: AFq9FYLkwJKJegd+lrjdNFUgYgJsg0+GsyQx3t50JjSIORz7ClDOZyVW
+	aCbYfoTsdxcxlHmGnveULcUcomTHodgeKl58Y9m8MTWns9QGGP5fWIzDktqvblBxbzQ=
+X-Gm-Gg: AYBFou3HgDaR5blNOoG/HvpjUQZOMpw8/OC2IoMcUAvUSB/WwuzQsDUdlPyCwBBl6La
+	mOonBnnY4cJmS4tojgVc0yLXALnF5QpOEOjqtTtjtq2ac0eD0ubuKFL8wCa/L1jt0uoMGP2fRc4
+	KaQoV1TgGrh/Jpb2qK6g3zThJsnQmZxOsjcc6aBg+03oIFrvJPlFUD1qw3y0bBtPEXLisiDAcG9
+	oLj8s7acv0yQnvhBl0Hf4/rNK1fUZEZHNMvfPakNgUmeQfxkvFoXgd2m/Lpe5a2J/0Q2gt4XPJU
+	Iwp9pf8ohrOB1b6Zrq5OtTHnjB63mwF3XrjOfMAIEG4yU/0A9cjpxiMathPQRRsOupRUMvSxPei
+	8U+advH5Myb0sjD1tnyzTpXVEbAEWfTqk76yp8zScEigNB3w17OGeYLQumi0CAJcNCaTme58HOl
+	khwIQx7slVrgX4awf+bXXKEqtlklJdJlIvBDCjNZ+D/R7yQkZlQ9gkrKElLzevdFbCJyinKirTB
+	uiCQPtndVDC9tMA5eC9nzcqLi/5+6g/HqpbRmweavGcaLNixnGHhNEDyHiitrF33XfVuI90dA8/
+	JI0HM7rfTTbKrQnI36wHIrdxHw9R6tKszcbkWK7DIEFK67QjEb6M6cmkibnCG5Jl
+X-Received: by 2002:a05:7301:a2d:b0:368:6e2a:af3b with SMTP id 5a478bee46e88-369e84ba94cmr3652224eec.16.1792857361288;
+        Sat, 24 Oct 2026 08:56:01 -0700 (PDT)
+Received: from localhost.localdomain ([2406:5900:1044:110c:dba3:be57:a674:a67f])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-369e8d812d6sm8641532eec.10.2026.10.24.08.55.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 24 Oct 2026 08:56:00 -0700 (PDT)
+From: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+To: Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>
+Cc: Sean Hefty <shefty@nvidia.com>,
+	Vlad Dumitrescu <vdumitrescu@nvidia.com>,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org,
+	yhlee@isslab.korea.ac.kr
+Subject: [PATCH] IB/cm: hold a cm_id reference across the send error callback
+Date: Sun, 25 Oct 2026 00:55:07 +0900
+Message-ID: <20261024155507.3418345-1-yhlee@isslab.korea.ac.kr>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -78,214 +99,163 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <atzRTslzb6CAKPKX@redhat.com>
-X-Scanned-By: MIMEDefang 3.6 on 10.30.177.95
+Content-Transfer-Encoding: 8bit
 
-Collect all code used only when CONFIG_SYSCTL=y into a single block and
-wrap it in #ifdef CONFIG_SYSCTL. rds_tcp_init_net_sysctl no longer needs
-the IS_ENABLED() check.
+cm_process_send_error() lets cm_free_priv_msg() release the reference the
+message held on the cm_id and then keeps using cm_id_priv, dropping
+cm_id_priv->lock and calling the consumer's cm_handler() callback. If that
+was the last reference, a concurrent ib_destroy_cm_id() takes the count to
+zero and returns while the callback is still running, so the consumer frees
+its context underneath it. For an RDMA CM consumer that context is the
+rdma_id_private which _destroy_id() kfree()s once ib_destroy_cm_id() has
+returned, and the callback reads it through cm_id->context before any state
+check.
 
-Add the corresponding init/exit stubs for the CONFIG_SYSCTL=n case.
+Reaching this needs a send that expects a response, so a REQ, REP, DREQ or
+SIDR_REQ, to complete with a real error rather than a flush, and the
+consumer to destroy the id while that error is being processed.
 
-Also #ifdef the rds_tcp_sysctl and ctl_table fields in struct rds_tcp_net.
+The report below comes from an out-of-tree KUnit test. The race is a few
+instructions wide, so the test blocks after the spin_unlock_irq() until the
+racing destroy has finished and KASAN can observe the access. The cm_kt_
+frames stand in for a consumer and its destroy path, and the test is not
+part of this patch.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+  BUG: KASAN: slab-use-after-free in cm_kt_handler+0xaa/0xd0
+  Read of size 4 at addr ffff8880029582c0 by task kunit_try_catch/39
+
+  CPU: 0 UID: 0 PID: 39 Comm: kunit_try_catch Tainted: G                 N   7.3.0-07363-g734bef548a96-dirty #1 PREEMPT(full)
+  Tainted: [N]=TEST
+  Call Trace:
+   <TASK>
+   print_report+0xcd/0x620
+   ? cm_kt_handler+0xaa/0xd0
+   ? __virt_addr_valid+0x208/0x3f0
+   ? cm_kt_handler+0xaa/0xd0
+   kasan_report+0xfb/0x130
+   ? cm_kt_handler+0xaa/0xd0
+   cm_kt_handler+0xaa/0xd0
+   cm_process_send_error+0x2d9/0x560
+   ? __pfx_cm_process_send_error+0x10/0x10
+   ? __lock_acquire+0x57d/0x24a0
+   ? trace_hardirqs_on+0x17/0x100
+   cm_kt_destroy_returns_during_callback+0x1e8/0x700
+   ? __pfx_cm_kt_destroy_returns_during_callback+0x10/0x10
+   ? kunit_try_run_case+0x1a4/0x4c0
+   ? lock_release+0xc3/0x250
+   ? lockdep_hardirqs_on_prepare+0xd5/0x180
+   ? ktime_get_ts64+0x1e5/0x2e0
+   ? trace_hardirqs_on+0x17/0x100
+   ? __pfx_read_tsc+0x10/0x10
+   ? ktime_get_ts64+0x242/0x2e0
+   ? __init_swait_queue_head+0xca/0x150
+   kunit_try_run_case+0x1ca/0x4c0
+   ? __pfx_kunit_try_run_case+0x10/0x10
+   ? lock_release+0xc3/0x250
+   ? lockdep_hardirqs_on_prepare+0xd5/0x180
+   ? _raw_spin_unlock_irqrestore+0x3f/0x50
+   ? trace_hardirqs_on+0x17/0x100
+   ? __pfx_kunit_try_run_case+0x10/0x10
+   ? __pfx_kunit_generic_run_threadfn_adapter+0x10/0x10
+   kunit_generic_run_threadfn_adapter+0x7b/0xe0
+   kthread+0x3aa/0x550
+   ? _raw_spin_unlock_irq+0x23/0x40
+   ? __pfx_kthread+0x10/0x10
+   ret_from_fork+0x493/0x940
+   ? __pfx_ret_from_fork+0x10/0x10
+   ? __switch_to+0x22/0xdb0
+   ? __pfx_kthread+0x10/0x10
+   ret_from_fork_asm+0x19/0x30
+   </TASK>
+
+  Allocated by task 39:
+   kasan_save_stack+0x33/0x60
+   kasan_save_track+0x14/0x30
+   __kasan_kmalloc+0x8f/0xa0
+   __kmalloc_cache_noprof+0x201/0x4a0
+   cm_kt_make_id.constprop.0+0xa0/0x470
+   cm_kt_destroy_returns_during_callback+0x84/0x700
+   kunit_try_run_case+0x1ca/0x4c0
+   kunit_generic_run_threadfn_adapter+0x7b/0xe0
+   kthread+0x3aa/0x550
+   ret_from_fork+0x493/0x940
+   ret_from_fork_asm+0x19/0x30
+
+  Freed by task 40:
+   kasan_save_stack+0x33/0x60
+   kasan_save_track+0x14/0x30
+   kasan_save_free_info+0x3b/0x60
+   __kasan_slab_free+0x43/0x70
+   kfree+0x119/0x490
+   cm_kt_destroyer+0x31/0x50
+   kthread+0x3aa/0x550
+   ret_from_fork+0x493/0x940
+   ret_from_fork_asm+0x19/0x30
+
+  The buggy address belongs to the object at ffff8880029582c0
+   which belongs to the cache kmalloc-8 of size 8
+  The buggy address is located 0 bytes inside of
+   freed 8-byte region [ffff8880029582c0, ffff8880029582c8)
+
+  The buggy address belongs to the physical page:
+  page: refcount:0 mapcount:0 mapping:0000000000000000 index:0xffff888002958900 pfn:0x2958
+  flags: 0x4000000000000200(workingset|zone=1)
+  page_type: f5(slab)
+  raw: 4000000000000200 ffff888001041500 ffff888001040348 ffff888001040348
+  raw: ffff888002958900 0000000000800048 00000000f5000000 0000000000000000
+  page dumped because: kasan: bad access detected
+
+  Memory state around the buggy address:
+   ffff888002958180: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+   ffff888002958200: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+  >ffff888002958280: fc fc fc fc 00 fc fc fc fa fc fc fc 00 fc fc fc
+                                             ^
+   ffff888002958300: 02 fc fc fc 02 fc fc fc 02 fc fc fc 02 fc fc fc
+   ffff888002958380: 02 fc fc fc 02 fc fc fc 02 fc fc fc 02 fc fc fc
+
+This reference used to be released after the callback, which kept the cm_id
+alive for its duration. Restore that ordering and drop it on every return
+path.
+
+Fixes: c1cf6d9f743aa ("IB/cm: Call the correct message free functions in cm_send_handler()")
+Cc: stable@vger.kernel.org
+Signed-off-by: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
 ---
- net/rds/tcp.c | 139 ++++++++++++++++++++++++++------------------------
- net/rds/tcp.h |   2 +
- 2 files changed, 74 insertions(+), 67 deletions(-)
+ drivers/infiniband/core/cm.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/net/rds/tcp.c b/net/rds/tcp.c
-index d6c542371611..9f18c4f4a406 100644
---- a/net/rds/tcp.c
-+++ b/net/rds/tcp.c
-@@ -53,13 +53,71 @@ static atomic_t rds_tcp_unloading = ATOMIC_INIT(0);
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 1a2c2775b14d5..67efb70ba58d1 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -3768,6 +3768,13 @@ static void cm_process_send_error(struct cm_id_private *cm_id_priv,
+ 		cm_deref_id(cm_id_priv);
+ 		return;
+ 	}
++
++	/*
++	 * cm_free_priv_msg() drops the reference the message held, so hold one
++	 * across the callback below or a concurrent ib_destroy_cm_id() can free
++	 * the id underneath it.
++	 */
++	refcount_inc(&cm_id_priv->refcount);
+ 	cm_free_priv_msg(msg);
  
- static struct kmem_cache *rds_tcp_conn_slab;
+ 	if (state != cm_id_priv->id.state || wc_status == IB_WC_SUCCESS ||
+@@ -3802,11 +3809,13 @@ static void cm_process_send_error(struct cm_id_private *cm_id_priv,
  
-+#ifdef CONFIG_SYSCTL
-+static int rds_tcp_min_sndbuf = SOCK_MIN_SNDBUF;
-+static int rds_tcp_min_rcvbuf = SOCK_MIN_RCVBUF;
-+
-+/* when sysctl is used to modify some kernel socket parameters,this
-+ * function  resets the RDS connections in that netns  so that we can
-+ * restart with new parameters.  The assumption is that such reset
-+ * events are few and far-between.
-+ */
-+static void rds_tcp_sysctl_reset(struct net *net)
-+{
-+	struct rds_tcp_connection *tc, *_tc;
-+
-+	spin_lock_irq(&rds_tcp_conn_lock);
-+	list_for_each_entry_safe(tc, _tc, &rds_tcp_conn_list, t_tcp_node) {
-+		struct net *c_net = read_pnet(&tc->t_cpath->cp_conn->c_net);
-+
-+		if (net != c_net || !tc->t_sock)
-+			continue;
-+
-+		/* reconnect with new parameters */
-+		rds_conn_path_drop(tc->t_cpath, false);
-+	}
-+	spin_unlock_irq(&rds_tcp_conn_lock);
-+}
-+
-+static int rds_tcp_skbuf_handler(struct rds_tcp_net *rtn,
-+				 const struct ctl_table *ctl, int write,
-+				 void *buffer, size_t *lenp, loff_t *fpos)
-+{
-+	int err;
-+
-+	err = proc_dointvec_minmax(ctl, write, buffer, lenp, fpos);
-+	if (err < 0) {
-+		pr_warn("Invalid input. Must be >= %d\n",
-+			*(int *)(ctl->extra1));
-+		return err;
-+	}
-+
-+	if (write && rtn->rds_tcp_listen_sock && rtn->rds_tcp_listen_sock->sk) {
-+		struct net *net = sock_net(rtn->rds_tcp_listen_sock->sk);
-+
-+		rds_tcp_sysctl_reset(net);
-+	}
-+
-+	return 0;
-+}
-+
- static int rds_tcp_sndbuf_handler(const struct ctl_table *ctl, int write,
--				  void *buffer, size_t *lenp, loff_t *fpos);
-+				  void *buffer, size_t *lenp, loff_t *fpos)
-+{
-+	struct rds_tcp_net *rtn = container_of(ctl->data, struct rds_tcp_net,
-+					       sndbuf_size);
-+
-+	return rds_tcp_skbuf_handler(rtn, ctl, write, buffer, lenp, fpos);
-+}
-+
- static int rds_tcp_rcvbuf_handler(const struct ctl_table *ctl, int write,
--				  void *buffer, size_t *lenp, loff_t *fpos);
-+				  void *buffer, size_t *lenp, loff_t *fpos)
-+{
-+	struct rds_tcp_net *rtn = container_of(ctl->data, struct rds_tcp_net,
-+					       rcvbuf_size);
- 
--static int rds_tcp_min_sndbuf = SOCK_MIN_SNDBUF;
--static int rds_tcp_min_rcvbuf = SOCK_MIN_RCVBUF;
-+	return rds_tcp_skbuf_handler(rtn, ctl, write, buffer, lenp, fpos);
-+}
- 
- static struct ctl_table rds_tcp_sysctl_table[] = {
- #define	RDS_TCP_SNDBUF	0
-@@ -105,7 +163,7 @@ static __net_init int rds_tcp_init_net_sysctl(struct net *net)
- 	tbl[RDS_TCP_RCVBUF].data = &rtn->rcvbuf_size;
- 	rtn->rds_tcp_sysctl = register_net_sysctl_sz(net, "net/rds/tcp", tbl,
- 						     ARRAY_SIZE(rds_tcp_sysctl_table));
--	if (!rtn->rds_tcp_sysctl && IS_ENABLED(CONFIG_SYSCTL)) {
-+	if (!rtn->rds_tcp_sysctl) {
- 		pr_warn("could not register sysctl\n");
- 		if (net != &init_net)
- 			kfree(tbl);
-@@ -127,6 +185,15 @@ static void __net_exit rds_tcp_exit_net_sysctl(struct net *net)
- 	if (net != &init_net)
- 		kfree(rtn->ctl_table);
- }
-+#else
-+static inline int rds_tcp_init_net_sysctl(struct net *net)
-+{
-+	return 0;
-+}
-+static inline void rds_tcp_exit_net_sysctl(struct net *net)
-+{
-+}
-+#endif
- 
- u32 rds_tcp_write_seq(struct rds_tcp_connection *tc)
- {
-@@ -744,68 +811,6 @@ void *rds_tcp_listen_sock_def_readable(struct net *net)
- 	return lsock->sk->sk_user_data;
+ 	/* No other events can occur on the cm_id at this point. */
+ 	ret = cm_id_priv->id.cm_handler(&cm_id_priv->id, &cm_event);
++	cm_deref_id(cm_id_priv);
+ 	if (ret)
+ 		ib_destroy_cm_id(&cm_id_priv->id);
+ 	return;
+ out_unlock:
+ 	spin_unlock_irq(&cm_id_priv->lock);
++	cm_deref_id(cm_id_priv);
  }
  
--/* when sysctl is used to modify some kernel socket parameters,this
-- * function  resets the RDS connections in that netns  so that we can
-- * restart with new parameters.  The assumption is that such reset
-- * events are few and far-between.
-- */
--static void rds_tcp_sysctl_reset(struct net *net)
--{
--	struct rds_tcp_connection *tc, *_tc;
--
--	spin_lock_irq(&rds_tcp_conn_lock);
--	list_for_each_entry_safe(tc, _tc, &rds_tcp_conn_list, t_tcp_node) {
--		struct net *c_net = read_pnet(&tc->t_cpath->cp_conn->c_net);
--
--		if (net != c_net || !tc->t_sock)
--			continue;
--
--		/* reconnect with new parameters */
--		rds_conn_path_drop(tc->t_cpath, false);
--	}
--	spin_unlock_irq(&rds_tcp_conn_lock);
--}
--
--static int rds_tcp_skbuf_handler(struct rds_tcp_net *rtn,
--				 const struct ctl_table *ctl, int write,
--				 void *buffer, size_t *lenp, loff_t *fpos)
--{
--	int err;
--
--	err = proc_dointvec_minmax(ctl, write, buffer, lenp, fpos);
--	if (err < 0) {
--		pr_warn("Invalid input. Must be >= %d\n",
--			*(int *)(ctl->extra1));
--		return err;
--	}
--
--	if (write && rtn->rds_tcp_listen_sock && rtn->rds_tcp_listen_sock->sk) {
--		struct net *net = sock_net(rtn->rds_tcp_listen_sock->sk);
--
--		rds_tcp_sysctl_reset(net);
--	}
--
--	return 0;
--}
--
--static int rds_tcp_sndbuf_handler(const struct ctl_table *ctl, int write,
--				  void *buffer, size_t *lenp, loff_t *fpos)
--{
--	struct rds_tcp_net *rtn = container_of(ctl->data, struct rds_tcp_net,
--					       sndbuf_size);
--
--	return rds_tcp_skbuf_handler(rtn, ctl, write, buffer, lenp, fpos);
--}
--
--static int rds_tcp_rcvbuf_handler(const struct ctl_table *ctl, int write,
--				  void *buffer, size_t *lenp, loff_t *fpos)
--{
--	struct rds_tcp_net *rtn = container_of(ctl->data, struct rds_tcp_net,
--					       rcvbuf_size);
--
--	return rds_tcp_skbuf_handler(rtn, ctl, write, buffer, lenp, fpos);
--}
--
- static void rds_tcp_exit(void)
- {
- 	rds_tcp_set_unloading();
-diff --git a/net/rds/tcp.h b/net/rds/tcp.h
-index 39c86347188c..12b58d76c089 100644
---- a/net/rds/tcp.h
-+++ b/net/rds/tcp.h
-@@ -13,8 +13,10 @@ struct rds_tcp_net {
- 	struct socket		*rds_tcp_listen_sock;
- 	struct socket		*rds_tcp_accepted_sock;
- 	struct work_struct	rds_tcp_accept_w;
-+#ifdef CONFIG_SYSCTL
- 	struct ctl_table_header	*rds_tcp_sysctl;
- 	const struct ctl_table	*ctl_table;
-+#endif
- 	int			sndbuf_size;
- 	int			rcvbuf_size;
- };
+ static void cm_send_handler(struct ib_mad_agent *mad_agent,
 -- 
-2.55.0
+2.43.0
 
