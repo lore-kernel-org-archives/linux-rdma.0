@@ -1,84 +1,83 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.171
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.52
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792859352;
-	b=R+tXFKmYmndlfIWMpiD9tf9wL6psQJyaJR+5+CHQTiaPYbfr+VlGgD6CAcyWmWzWPjJL
-	 GHkFYNji+9IiqxQQJ0RGYNq4Ms2spDMhUNSazLpTmJT7Y2cVtP5R3P/ZyUPPS9KeoQzCZ
-	 YAqLs95qFDQbiSzzE1VEsTd/QQBg9ghR5BHqk3OHl7D4dCI1vMQsuryXZP9WdfOTie5kj
-	 1hJrH2svSaJvkCGHrL+h0eYPB0X7FjEEPlqlu3FcR8u1TqiW89XZxvcjjXXtUEB0eTeh7
-	 BhEqAh2QfGTlTP8BPbSoyK7qR0oJCbe3qS6DUiWUqzN7eanr+QHRHB84tZmoaJuV+kQ==
+	t=1792859355;
+	b=5QIzKhvtLRHorKwnnQyaUjjARxBnSEdHLJAK8BMUGbJxoFOfxl6pe6Dz64HOA9UHK8zl
+	 BFT6tt84MLCdFJeQfPGAH97BP6dTt1BO9jfoYBj0SLwneoODCJ4bTcjO63xetDR0EI8DF
+	 eYA10fEJNy3Drj+cA1cm4FV0FwfpNrvjA9Bq8UDcLepVh5npfUaBUp6HkvQPXLCl2a/wn
+	 zqXlgbUxleDuy31dwzL7k04KVFic7LGGdYLTWxT5+799oyqplqm+ypGgoWqAejqgm1NS7
+	 t7CtQn675OL8U+tBbsHNVuiXeQejExB+wwC/6C2uIU1vWoNYIHOv/ltLKoynnOMwNWg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792859352;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792859355;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
 	 MIME-Version:Content-Transfer-Encoding;
-	bh=wD5HFmyo5C/86og7luOdITnA/REDozwGyCESntnCzBg=;
-	b=bv0zp7fbQnsbm6wNg1agR5yOujrpaIZZbZWa9Pyar2CWUf18ocUZl0N5sjOu0vnUR9Tu
-	 4ftOHCpWQ9TJg1PkfOUrY1nj9kgi2/6h4tXCuUVyIy579SnOhVmx8k3F/fc4LmG0utQYR
-	 +MuJ2ShVherIj6GTBYPjXivfh/NvqftMpytpaDLaZFUVQQwWFb5fudxGx8IBn/4g1dqI1
-	 8TJ6xNdoawTo5fTIa7FQtSv4I8Ouwnwn8eQ5KqPqYGE31QtjecBWz8eZLSprLIYnkbBxn
-	 6dXeP+85VYDU8xuvAtuAT6JjyKBLoLXGSzVSXr+L9Ztw7VcjTve5+HENZRAIg6uo2uQ==
+	bh=3Zr+9PKhsHKitydNq+F1H4SskHdpJTPHa4hy7WVcL7w=;
+	b=TCLyEWqVMV34SIDroV5/F+PzWuNCLUaxP6ha+cnEl4YmQjj6PP3ON2Bdm9f5Lg8vCnRJ
+	 axZcrbDMfEgzdC7WFpE5DNVK0ZDBu84vOlFxeasZ3wEt+tr/EFNGHOzbBPCqxyM3NTupK
+	 OcB87Dmk+BxHQYIO2VPwBA+6won+gI1EydX96L7f1Ind4cd8CYIU275wGelSUALQsvgrR
+	 AouIelMZ37cpFyU0z5ozeVI8nhvykOSaJgJHvOyD2XuMMucECzY4RjT0YXGOPjx++vUtG
+	 1+xqZ/TvrtEUttfqFBbf5u0rUnY7ycQ2D0JC6qyvjYsX7AXc0Dqcd9sREE12C10LRNA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=fail header.from=isslab.korea.ac.kr;
 	spf=none smtp.mailfrom=isslab.korea.ac.kr;
-	dkim=pass header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.a=rsa-sha256 header.s=20251104 header.b=ceH85emB;
-	arc=none smtp.remote-ip=74.125.82.171
-Received: from mail-dy1-f171.google.com (mail-dy1-f171.google.com [74.125.82.171])
+	dkim=pass header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.a=rsa-sha256 header.s=20251104 header.b="LH36/ts3";
+	arc=none smtp.remote-ip=74.125.82.52
+Received: from mail-dl1-f52.google.com (mail-dl1-f52.google.com [74.125.82.52])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AD5F606A333
-	for <linux-rdma@vger.kernel.org>; Sat, 24 Oct 2026 16:29:11 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7AD5F606A333
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3C2E606A321
+	for <linux-rdma@vger.kernel.org>; Sat, 24 Oct 2026 16:29:14 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C3C2E606A321
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=isslab.korea.ac.kr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.a=rsa-sha256 header.s=20251104 header.b=ceH85emB
-Received: by mail-dy1-f171.google.com with SMTP id 5a478bee46e88-35f1f76ea84so3009233eec.1
-        for <linux-rdma@vger.kernel.org>; Sat, 24 Oct 2026 09:29:11 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.a=rsa-sha256 header.s=20251104 header.b=LH36/ts3
+Received: by mail-dl1-f52.google.com with SMTP id a92af1059eb24-15ea896ddc8so2973752c88.0
+        for <linux-rdma@vger.kernel.org>; Sat, 24 Oct 2026 09:29:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=isslab-korea-ac-kr.20251104.gappssmtp.com; s=20251104; t=1792859351; x=1793464151; darn=vger.kernel.org;
+        d=isslab-korea-ac-kr.20251104.gappssmtp.com; s=20251104; t=1792859354; x=1793464154; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=wD5HFmyo5C/86og7luOdITnA/REDozwGyCESntnCzBg=;
-        b=ceH85emBaB8Vvp9FWcfVPOzFqyhZAy8apUxp0dsiUCHGszhG9mvsvXGfrw1oZXG5fL
-         2pqCnA+0jbqEoOshBECqoSQ9hY8QqWjlivGdDH8tieZZVG22b6VBUM7xR6ayeg+N4EsD
-         BPhmsyX+DgN4zM0Kfd9vaJHDoO9NDt+K8zJ5TS4Hq2sJ/DkowuJMB4bpw+1X91LUX3di
-         TczARTEfraLeFluqo5eTXT8dSzNogusSG6TSuDI9njMZecCZ3B35kvfJ0ddZYr2HGz/d
-         qIcQF/h0bDnAq2DORZUDzEzpgnLAheNF1j130Ob6d9+ncDH8ZCWTccyVZ7rX5GVrcL1A
-         tTYA==
+        bh=3Zr+9PKhsHKitydNq+F1H4SskHdpJTPHa4hy7WVcL7w=;
+        b=LH36/ts36VlL5kZOCkNevpeH7jEyoxgAu8xvN/bAgfRdim+a2kdIfL1nWOf/dFJ1ZZ
+         1hLqzHMtWIAZMKvHs1gvc6kfz7ThZNY3lkvtPthr/PURraZcwhjQvZWIpe1fLnqzQIF+
+         vJ5FWwUNyxGyxGksDwlU0+YpQYHsn7DV8XCB434XPNWO77QF976M2e7Ti7ck/+k0w3ve
+         4L/yq8bW/w8tqGbPYgpjhC2km+tedrMJAxuXmileVgCXpg1NmVL4Sl2P6f33n6DWrAJb
+         CmKy6Fva4Fd4cMWf1FPNaKusD+r4PdJW73bycrt3bLM0MyyrbNsL7QvrEoPMOMruP/A5
+         r21g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792859351; x=1793464151;
+        d=1e100.net; s=20260707; t=1792859354; x=1793464154;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=wD5HFmyo5C/86og7luOdITnA/REDozwGyCESntnCzBg=;
-        b=v9VHvDQ0mKSrtLuhw7p3xcLo3wjEY+mPjbTtqCMLgseWHhqVjw64L87nfbXNd+MHdY
-         WG2Mt2ThqY8Ch9yd4rm+CjMCgJkVQ2FefqPpGwmacf18Vyw+dXjOGFXRq+4jPkPvTFWQ
-         B2pSHH31BLAAl33UiGuc1Of73C1Chyya2hOBH7RK3Xy1uzSMXp4wanEE1qnUPb2DT9iW
-         6ouYAWqPbtkzbAV/90zFVfDBR7H9faxYYq4u/SjmAcMr3nLdzk7/S4rZzR25LUde4I7Z
-         cvI5mv3Jn1VrbThHhX+grpyXTtUwb6NzAXcEMNOnkR149CD9iNyOnwPcZ85f3bAt6j0f
-         irUQ==
-X-Forwarded-Encrypted: i=1; AKwUvBxgATftxdEI65Mkvpra8QDSGER+R0e3Fj/O9Xxr92Blqit9HChCj53FV8OXLPYekPtAt1mzBA9PXIqA@vger.kernel.org
-X-Gm-Message-State: AFq9FYKSNCP7zkqsQjqN5ar43XQJjjZebE+BSqDrSKst8GbuafRGO3q8
-	XqNYvKg/5LU2nqj+U2QdP0oZ0SBjSrStphQO69Bv/UJJO16uWyTYQ6Ti6N0Lke4eZVrgJQGUaSf
-	C/i56
-X-Gm-Gg: AYBFou3bfK+k0LMZyoBiIkqSpCbRgTu0hFqw2VamL3rEpbkoMaii+bBt+mFJushWr+o
-	d4KltYsQaLBjakd2ygWBY2+yc0D6QrJqx0uInpGYxz/BexcUypOY4HYmVWNj2vemZRN7kszp1L1
-	7FOJcEKA5klHyrCmCd7vMro87GYKIUQH3YBgjvlC4/vNkHSLkeBjI8nCPtW5kFq5SVmSgP8WIHb
-	rZSG9e8TuuMbwGnYz27JCzfYISE1q35xMvlFTNdbvkVd33lx5j7tfPlXy/7r99AqaK4OyBytrbX
-	V5JD5DE8lSfECnhStZpaloTfHLtgmexfinmiV/WYUGhNZztKchn4ABlqezVQCXEb2szax4uqmnb
-	Zga2ZQuUfY/jVDxJpnjE91up9+iTXWrdo7le/BgS3StU/rvrQdRMUgzK9K4SoBqak07RiMcDzRH
-	u5QMobKleF0AYV1b3ne96rbmvZHEzkzpW9IdFxI9AntSFt25ftALGrZqE0K2f7v5YP3nESjpPrP
-	KfuXn8fR3eSYtqAhltsnrFXJt8WW7dl3qhcbJ9QyhcRRgwNlpAISBk1o2t6ljoUOip9wLeKela9
-	TUBY4fQBPCe6hIpUA0OZQvRlwGfEG1fcnUKEKElW18uzl3TnyLBuGp3iX1i/3x6R
-X-Received: by 2002:a05:701b:2419:b0:163:c5eb:d42f with SMTP id a92af1059eb24-199291058eemr2654183c88.5.1792859350550;
-        Sat, 24 Oct 2026 09:29:10 -0700 (PDT)
+        bh=3Zr+9PKhsHKitydNq+F1H4SskHdpJTPHa4hy7WVcL7w=;
+        b=kEjJF4yTf7iPQvDutHvwdVOzOClhINC0OhPevsN9NoqysiNYGLtgNv3wSzSNOTAwTv
+         k41upp8BeraXd4bpms14oP57TieHbw+3wK1Ud8rOk2QGE3TxMqFPUDkign7EvvP4KjaF
+         2ZnPzba1SXHwG3SlBIcn53G9G+2elZXu+X2WXHIlURkI66H1D9+qxWa+eqfh54F1ucxd
+         hdwI+U+C2uaAH+zRqS6vbRvWnktko3ThB8aS8VQc6fSdi26hfvGsaBnEe2h1xalAQymn
+         nF8rWASw7cW3gA5YZCOilrKO6FNgztnrRZPDk20NMymoiwHvNdVWVKWnL2jq+/D7N2Dr
+         MNsA==
+X-Forwarded-Encrypted: i=1; AKwUvBxnyBOX2TqpmyI/GIelgJLsJHqvqFiuHfEuyj+nGevhX7KOkYeMaLDTrd6+HuuWBnAF31s5Lz9RGBk7@vger.kernel.org
+X-Gm-Message-State: AFq9FYIUR4QFn/Ay73ZiWoVGy5NBDw5XUf1gFnfFSOF7wA6rSkzQ63qa
+	SoH6oKNP5ZP8IDVdhSlTztbxtEzqzkLATvC+Tr8gEaQBXolKc8eStkCQyEUWXFqi2rk=
+X-Gm-Gg: AYBFou3ItLrX7OVQ2idbGvFiKT7q4MlrlrGSD/h1aTwClweoFdM4ATkPhzVUJ50V1x+
+	7TeMURML5rQbd0i5256DznJYMjufEqYRzE6wRFk8bE9olCqPreve2fufg0as2fMvJaEoXXQvwLT
+	v4ulhKnUEyU4eKnq3wyvgfssrWGDztPKQ2FePPzOA2uDsb94EV5F8hn3TWABZkDA4lwm+BwEVR6
+	XkMl7Yt3Z7fM9E3K8LeA7o5TeEyQkX8krXSlVXFLuzCTdGpxnWMYw7hkXyvTrS30DXcfJklejun
+	jZHgfRJekA/KoZS8JuWzcQDEVDBsNog+m+ZWkAQZ2nbIxDdg1r/MKGD6GkeG5/D3HqwjuHaYE9H
+	WBfvf4eIYooUkBfJjb0yYkI09EWzRpctDxflC4ntOBxDity6kc7Auey/hZOLWJF7LqvcV/L3zWK
+	6jr4zfHTRcJrxm3caLnZsXG3ZFxx89/2uj+uuLqrWlacsm0Josm03mr6RRLnyPFzJEOy6G938Mq
+	GCvHA6THgitb5ul+rkEb8lcRCM5ZEofGwOQPkkqsk6E/WNh1+zuwHc2NmpVsj3YYP58wJRZ4d3Z
+	kmVOnxLV8QHCiT9UxMVdsOcUwBCKv7qEdvZ5H+w/NKx4ps7f0Hxc/ddJa4AbfLkf
+X-Received: by 2002:a05:7022:7f14:b0:150:c9c5:1ce4 with SMTP id a92af1059eb24-19928f1541dmr3135285c88.6.1792859353934;
+        Sat, 24 Oct 2026 09:29:13 -0700 (PDT)
 Received: from localhost.localdomain ([2406:5900:1044:110c:dba3:be57:a674:a67f])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-19a3736d16fsm7192350c88.12.2026.10.24.09.29.07
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-19a3736d16fsm7192350c88.12.2026.10.24.09.29.10
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 24 Oct 2026 09:29:10 -0700 (PDT)
+        Sat, 24 Oct 2026 09:29:13 -0700 (PDT)
 From: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
 To: Bart Van Assche <bvanassche@acm.org>
 Cc: Leon Romanovsky <leon@kernel.org>,
@@ -88,9 +87,9 @@ Cc: Leon Romanovsky <leon@kernel.org>,
 	linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org,
 	yhlee@isslab.korea.ac.kr
-Subject: [PATCH v4 1/2] RDMA/srpt: bound the indirect descriptor table to the IU
-Date: Sun, 25 Oct 2026 01:28:51 +0900
-Message-ID: <20261024162852.3528224-2-yhlee@isslab.korea.ac.kr>
+Subject: [PATCH v4 2/2] RDMA/srpt: widen the indirect RDMA context counters
+Date: Sun, 25 Oct 2026 01:28:52 +0900
+Message-ID: <20261024162852.3528224-3-yhlee@isslab.korea.ac.kr>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261024162852.3528224-1-yhlee@isslab.korea.ac.kr>
 References: <20261024162852.3528224-1-yhlee@isslab.korea.ac.kr>
@@ -105,124 +104,62 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-srpt_get_desc_tbl() takes the number of INDIRECT descriptors from
-idb->table_desc.len, which the initiator controls, and checks it only
-against data_out_desc_cnt + data_in_desc_cnt, two more initiator fields.
-Both are u8, so the pair admits up to 510 descriptors, and nothing
-compares the table against the receive IU it has to live in.
-srpt_alloc_rw_ctxs() then walks idb->desc_list for that many entries.
+srpt_send_ioctx::n_rdma and ::n_rw_ctx are u8, and neither of the values
+stored in them is bounded by 255.
 
-With the default srp_max_req_size of 8276 the table fits as long as the
-additional CDB is short, but ADDITIONAL CDB LENGTH is an initiator field
-too, and at its maximum of 252 bytes 510 descriptors end at
-48 + 252 + 20 + 510 * 16 = 8480, which is past the end of the object:
+n_rw_ctx counts the INDIRECT descriptors a command carries, and the count
+guard in srpt_get_desc_tbl() admits data_out_desc_cnt plus
+data_in_desc_cnt, so up to 510. At 256 descriptors n_rw_ctx wraps to
+zero, and srpt_release_cmd() frees the contexts only when it is non-zero,
+so every scatterlist and RDMA context the command allocated leaks.
 
-  BUG: KASAN: slab-out-of-bounds in srpt_alloc_rw_ctxs+0x660/0x860
-  Read of size 4 at addr ffff888002d6a05c by task kunit_try_catch/43
+n_rdma is not a descriptor count at all. It is the sum of the
+rdma_rw_ctx_init() return values, which is the number of work requests
+each context needs, accumulated by ioctx->n_rdma += ret. A handful of
+descriptors for large transfers can pass 255 on their own, with no
+unusual descriptor count involved. A wrapped n_rdma is then handed to
+atomic_sub_return(ioctx->n_rdma, &ch->sq_wr_avail) and tested by
+WARN_ON(ioctx->n_rdma <= 0), so the send queue work request accounting
+drifts too.
 
-  CPU: 0 UID: 0 PID: 43 Comm: kunit_try_catch Tainted: G                 N   7.3.0-11999-g5b0764a53235-dirty #1 PREEMPT(lazy)
-  Tainted: [N]=TEST
-  Call Trace:
-   <TASK>
-   dump_stack_lvl+0x3f/0x50
-   print_report+0xcd/0x620
-   ? alloc_pages_node_noprof+0xa2/0x140
-   ? srpt_alloc_rw_ctxs+0x660/0x860
-   kasan_report+0xde/0x110
-   ? srpt_alloc_rw_ctxs+0x660/0x860
-   srpt_alloc_rw_ctxs+0x660/0x860
-   ? __dequeue_entity+0xb12/0x1ba0
-   srpt_test_run.constprop.0+0x135/0xc50
-   ? __pfx_srpt_test_run.constprop.0+0x10/0x10
-   ? pick_task_fair+0x126/0x1950
-   ? update_curr.constprop.0+0x4a/0x390
-   ? __set_cpus_allowed_ptr+0x181/0x240
-   ? __pfx_read_tsc+0x10/0x10
-   ? ktime_get_ts64+0x192/0x250
-   kunit_try_run_case+0x1ca/0x4b0
-   ? __pfx_kunit_try_run_case+0x10/0x10
-   ? kthread_affine_node+0x24b/0x370
-   ? __pfx_kthread_affine_node+0x10/0x10
-   ? __pfx_kunit_try_run_case+0x10/0x10
-   ? __pfx_kunit_generic_run_threadfn_adapter+0x10/0x10
-   kunit_generic_run_threadfn_adapter+0x7b/0xe0
-   kthread+0x36e/0x500
-   ? __pfx_kthread+0x10/0x10
-   ret_from_fork+0x34d/0x620
-   ? __pfx_ret_from_fork+0x10/0x10
-   ? __switch_to+0x22/0xdd0
-   ? __pfx_kthread+0x10/0x10
-   ret_from_fork_asm+0x19/0x30
-   </TASK>
+Make both counters int, the type the values they accumulate already have.
 
-  Allocated by task 43:
-   kasan_save_stack+0x33/0x60
-   kasan_save_track+0x14/0x30
-   __kasan_slab_alloc+0x6e/0x70
-   kmem_cache_alloc_noprof+0xfc/0x2b0
-   srpt_test_ctx_init.constprop.0+0x481/0xfa0
-   srpt_test_run.constprop.0+0xf1/0xc50
-   kunit_try_run_case+0x1ca/0x4b0
-   kunit_generic_run_threadfn_adapter+0x7b/0xe0
-   kthread+0x36e/0x500
-   ret_from_fork+0x34d/0x620
-   ret_from_fork_asm+0x19/0x30
-
-  The buggy address belongs to the object at ffff888002d68000
-   which belongs to the cache srpt-kunit-iu of size 8276
-  The buggy address is located 8 bytes to the right of
-   allocated 8276-byte region [ffff888002d68000, ffff888002d6a054)
-
-The KUnit harness that forces this is not part of this patch.
-
-Compare the span the table occupies, which is the table offset plus the
-descriptor header plus nbufs descriptors, against byte_len directly. A
-short IU that cannot hold even the header is refused, and so is a
-table_desc.len below one descriptor, with no division and no dependence on
-a sign. nbufs is at most 510 once the existing count check has passed, so
-the multiplication cannot overflow.
-
-The header always lies inside the allocated buffer, since the largest
-offset srpt_get_desc_buf() can return is 48 + 252 and the header is 20
-bytes, so it ends at 320 while srp_max_req_size is at least
-MIN_MAX_REQ_SIZE, which is 996. It does not always lie inside the bytes the
-initiator actually sent, which is why the span starts at the table offset
-and covers the header as well.
-
-Fixes: a42d985bd5b2 ("ib_srpt: Initial SRP Target merge for v3.3-rc1")
+Fixes: b99f8e4d7bcd ("IB/srpt: convert to the generic RDMA READ/WRITE API")
 Cc: stable@vger.kernel.org
 Signed-off-by: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 2 +-
+ drivers/infiniband/ulp/srpt/ib_srpt.h | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 43c3ff1ad8e7e..21264264356a2 100644
+index 21264264356a2..17d77818c2bc3 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -1117,6 +1117,7 @@ static int srpt_get_desc_tbl(struct srpt_recv_ioctx *recv_ioctx,
- 		struct srp_indirect_buf *idb = srpt_get_desc_buf(srp_cmd);
- 		int nbufs = be32_to_cpu(idb->table_desc.len) /
- 				sizeof(struct srp_direct_buf);
-+		size_t desc_off = (uintptr_t)idb - (uintptr_t)srp_cmd;
+@@ -959,7 +959,7 @@ static int srpt_alloc_rw_ctxs(struct srpt_send_ioctx *ioctx,
+ 	struct srpt_rdma_ch *ch = ioctx->ch;
+ 	struct scatterlist *prev = NULL;
+ 	unsigned prev_nents;
+-	u8 n_rdma, n_rw_ctx;
++	int n_rdma, n_rw_ctx;
+ 	int ret, i;
  
- 		if (nbufs >
- 		    (srp_cmd->data_out_desc_cnt + srp_cmd->data_in_desc_cnt)) {
-@@ -1128,6 +1129,14 @@ static int srpt_get_desc_tbl(struct srpt_recv_ioctx *recv_ioctx,
- 			return -EINVAL;
- 		}
- 
-+		if (desc_off + sizeof(*idb) +
-+		    (size_t)nbufs * sizeof(struct srp_direct_buf) >
-+		    (size_t)recv_ioctx->byte_len) {
-+			pr_err("received SRP_CMD indirect table (%d descriptors) that does not fit the %d-byte IU\n",
-+			       nbufs, recv_ioctx->byte_len);
-+			return -EINVAL;
-+		}
-+
- 		*data_len = be32_to_cpu(idb->len);
- 		return srpt_alloc_rw_ctxs(ioctx, idb->desc_list, nbufs,
- 				sg, sg_cnt);
+ 	if (nbufs == 1) {
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
+index 506c11b843593..d9061aa65c1a8 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.h
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
+@@ -223,8 +223,8 @@ struct srpt_send_ioctx {
+ 	struct ib_cqe		rdma_cqe;
+ 	enum srpt_command_state	state;
+ 	struct se_cmd		cmd;
+-	u8			n_rdma;
+-	u8			n_rw_ctx;
++	int			n_rdma;
++	int			n_rw_ctx;
+ 	bool			queue_status_only;
+ 	u8			sense_data[TRANSPORT_SENSE_BUFFER];
+ };
 -- 
 2.43.0
 
