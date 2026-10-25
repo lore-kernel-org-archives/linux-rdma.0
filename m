@@ -1,90 +1,73 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.214.170
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792900993;
-	b=1tmix3z4pyJp9apU9VDDuqjW8X9kcJg/vXDitxsk5YrV7bb40La4aAm1C2PcCXYfsPQn
-	 l4cU8ULKXhcBW7/MyMz1dIYWNkeRtxurshtBRl6XZa0pzWsvPglmEwOZUucHWzo1LhV/D
-	 eK9fYBM6i66Hse7yLGztA6IWTMvSs1++M946YcJxfxmgf9KZo9LPF3SOpZnc2UUbcQGS7
-	 oIghF/jS4GcdAGMDWqWKPj1TzaAKS1uzpGk3ykp65/JDI4/a/HbhprPDKCxp+nlAxGR9Q
-	 tXA8dzJgeKLHdtp28XDxaj3obGNuvnPOLIaCEyclbkjypNUcxBCoihZu0XYVVushYVg==
+	t=1792913338;
+	b=ljZ7fjkfNaVByrRApserBhkfOULxjrCDn75IT8jzuxZJcPU/qL3Sna7ETvSXLGKGs0pJ
+	 T75YwEB2Cq6bIlbAh3XEOGrYW1q4jW1ESwlwv/8L6JblJOJFrwniXJV9jNXPHWAMZy5yS
+	 KBmspbfr3GKwDwmKDcQ2f6SOKp2tOxC8MAZIhd1tR0y3HhXMqbEaT/0xIBthc39KkYdqZ
+	 Kb0E10JJfPn9JOuQ7kXjpsS8yuOHBKKuyoayriRUuymcm0j3z8lVOfdfq4Vn0sD/EAx61
+	 W51y6nRHnxS6LrTCoo9p/E/8VESfDhpHTkxkYBy8kRh6yzxV1obz2IvzykKhGZRp86Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792900993;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=bXXWN0U2LwSgs5yFSiYomIOkF6F+3ijFGiBpJE+lZgY=;
-	b=zTl8nprv87lc3IBWaVMcj8xALnZSyo71Asy5ccko9E4sSfn2CZs1/uz+F6A37AvBe5m0
-	 M+ggvoK1UyaZrHF1zFzbCffNsM8AhpgVR01cfR6hw1iNX0irjJB5rMuk657GX7qWWezWy
-	 pC0Q//HQGxui0+IDh2vjH1TkJnskcFVhCrsoV4bJXshyBD5c6elekxxZthltSrsqyxIwV
-	 L2WoAtvCBx31nMySxiMGWhf2H1EOar3SIAKNco9TQWji9Sq8IfxlTHR5YAVmxb68DlDHx
-	 GYeHeyN9mabWckVIZ+3spmVpwaHAWmpnWbsLN1VyoT6UStbw25XLA58yH8WDqS2wXaw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792913338;
+	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding:
+	 X-Spam-Status:X-Spam-Checker-Version;
+	bh=XXMvtFSdUEGKs/5q/+ure9deVaQh3l258VCaXu3OrvE=;
+	b=r7nRDrf8GnnHG6AQH9MaLsIvOBqtlYJtcDZLXl0Hoinpk5US06hNsAoR0CHrMKC0K3B5
+	 1LygDA4uNKjJChwWRCTxfUIqJTmw47XR90B7jyf8Qgmxr4tnSPU77HhFfHSBhhS2T/M0z
+	 AWQpVGglzp0f1GNam3/KeGR1oc1JzyZCygQkw//VmlIAoT7aRUdjd0XuTiYMsKdP/mFBs
+	 gKUoYjdTFA3j6IWms8Jsuy8u+62KfjYFuNf8KeR0SyiuNgRgg2o/NWK9fd5yD5kQcF1vM
+	 DVbLsP3z04eCJQYDZjK+W4g/hUULwWcDs4SzbqQa70R2ONJavRELBWVSqjsfjMbK+MA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=DNKNW9T7;
-	arc=none smtp.remote-ip=209.85.214.170
-Received: from mail-pl1-f170.google.com (mail-pl1-f170.google.com [209.85.214.170])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2BE8606A321
-	for <linux-rdma@vger.kernel.org>; Sun, 25 Oct 2026 04:03:12 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E2BE8606A321
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	dmarc=pass header.from=linux.microsoft.com;
+	spf=pass smtp.mailfrom=linux.microsoft.com;
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=Xr+2Y3Zw;
+	arc=none smtp.remote-ip=13.77.154.182
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 63CE0606A31D;
+	Sun, 25 Oct 2026 07:28:58 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 63CE0606A31D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=DNKNW9T7
-Received: by mail-pl1-f170.google.com with SMTP id d9443c01a7336-2e8ad5b2f61so3064455ad.2
-        for <linux-rdma@vger.kernel.org>; Sat, 24 Oct 2026 21:03:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792900992; x=1793505792; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:mime-version:message-id:date
-         :subject:cc:to:from:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=bXXWN0U2LwSgs5yFSiYomIOkF6F+3ijFGiBpJE+lZgY=;
-        b=DNKNW9T7kGfS78TEh9BVgxXbbjDsK7FmBqAhYSl/KQ+eTH7raGVvtdvg1NUc98VoRU
-         K+t6Nc6VFF63JU0nm30Oaoo7PWDuZqaJa/VGdjf1oEl1vKQws6xUEHvpigr1aU8XJKW9
-         ARzBEbRowo/1PB62yadC/gAYjKkjUksvUtAWL5KNMcmW0it4u1TdjgS9IKYCVSUT/B4B
-         5LmSmhiSWh9nYee/Q8xH/mbjnKv05BsnHAXumcfsZ1MU10WIv7HErjsSADO0LjhEhqVG
-         kuOy2JsugMVzT+/xQMFxDhtCn1QSY8Ludbs8xew8apip8FeKjXp7edLasQnaxkyYNus2
-         mgQw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792900992; x=1793505792;
-        h=content-transfer-encoding:content-type:mime-version:message-id:date
-         :subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=bXXWN0U2LwSgs5yFSiYomIOkF6F+3ijFGiBpJE+lZgY=;
-        b=GUaAptATeytCBUoomj38xayOwjKnKJ/zY7UE5nfY/123lqVynXiy9CW5hWAM0aHx4E
-         /WjKRG7hfVx7BUexHxOaIQbWvykEpzzKE7U/1FTfSxCwxpaef+Uxzu5RNXMGASOdYxbK
-         L6glL8AtqS8H/XFNsp58oquu0rVp0xK+4k0JeTYixFNXSfyiHAPcuAP4WBKk0DRMyrby
-         PT1N+a+7Jj/wCfNVWF6RSEfC0fWj3jnZ/G4Dk66YCYnYBypziAd9n8v5yzfEDdZKcU5y
-         lGcxyNh1z4fl2S4l+vJwATw628pBssb5ITBtqFgfb5Z+8sssVNN+m+uYOuay4FVGpJGC
-         l9yw==
-X-Forwarded-Encrypted: i=1; AKwUvBx3yBE7cg5+euSte2HmMlJWQB3M1/X6xO6Ce8e/TPigjcIAxwgGsc8ewCg9gzluFncadF8vDNohonj/@vger.kernel.org
-X-Gm-Message-State: AFq9FYITyUCknUNjAWXjrS8jrwxuTDHMLPldHdMCylTkZB8/5QUpvJgW
-	4Sxi7yzX4zNMj6u/GrzOcd+1qHWR+ff7KSEmCpyz8hMBx8G7sLYiDwTuG/1ueXhdte8=
-X-Gm-Gg: AYBFou31P29kYuhDUhIJjYEFj2JqaV6xTZalxqX1sqRx51DC8N6D0M3PbLphDJ9n1w7
-	r6DDNC5YYgOXwGlxaMy9cf6jEpFWSJdbeUrnwkdmXDtpCM4jEfSnbrdCri9Vhc8Lws6bGEqOeJT
-	ZW4A2x7a5D8mQ44NdVNv+0jhmria3vuJofim9FGxbdLqCtW56HPNUfnwKFZfGSwyP739hwEZKwj
-	5cX/ugJ3O9Gb+/TcM3KbHU67omVVGUx0KMLhH7KBXBSzL7fV+Luf/ZOKkMnvWvhw4nMHpH9MA5i
-	Pj9S5bn66icvyAWzNi4YZBRcWiiNQ1VMy3eqUiQ8+sC+EBTQA5ij/XNo8fFINRKYxJRRPoFMrvl
-	6ge8Hpqw2zMVdWvRB8Bdwsk0CVjTaXsK5jcuH+6IcdxmSSQf7A5k+9/OxIMOA2H8o1FFcYslGTT
-	RY82XDe/gUmKNRScbIqT2sxmuNy+/e7W4gIWLCrEXE72adFuMi+mc0sZ+IBHxj0J3tIQRsKDQZt
-	GOKaQpbAWUfk6LgwXFW6G1jzoiMC7i5cf5+TA4BTEPS6FGg5n8hEMg91b6GNGr/3Gju3ysU/zov
-	YM4b
-X-Received: by 2002:a17:90b:3c0d:b0:3ac:a7ee:6785 with SMTP id 98e67ed59e1d1-3ade9b35f05mr4994498a91.1.1792900992309;
-        Sat, 24 Oct 2026 21:03:12 -0700 (PDT)
-Received: from melokc-laptop ([101.90.152.206])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3adeb82761esm2921587a91.0.2026.10.24.21.03.01
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 24 Oct 2026 21:03:10 -0700 (PDT)
-From: Anfernee Cao <anferneemelokc5@gmail.com>
-To: D. Wythe <alibuda@linux.alibaba.com>, Dust Li <dust.li@linux.alibaba.com>, Sidraya Jayagond <sidraya@linux.ibm.com>, Mahanta Jambigi <mjambigi@linux.ibm.com>
-Cc: Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Subject: [PATCH] net/smc: fix possible recursive locking in
- __smc_lgr_terminate()
-Date: Sun, 25 Oct 2026 11:53:35 +0800
-Message-ID: <179290097759.51540.15412712294727302463@gmail.com>
+	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=Xr+2Y3Zw
+Received: from kali.mshome.net (unknown [4.213.232.20])
+	by linux.microsoft.com (Postfix) with ESMTPSA id C1FB520B7166;
+	Sun, 25 Oct 2026 00:28:36 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com C1FB520B7166
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1792913322;
+	bh=XXMvtFSdUEGKs/5q/+ure9deVaQh3l258VCaXu3OrvE=;
+	h=From:To:Cc:Subject:Date:From;
+	b=Xr+2Y3ZwicqDZ44huF2KOxEFTUEyf+8oEmbSKzkYePzPW30itQP7l+INQrkDnmFjM
+	 ILb7LMzmBikQapVxUT97X6ItsqaJKEGATeRGTwDE1xIz+BkOHaw5lXtz+J98qpnQb2
+	 658OodSdmQk3jNWpjGnpQmrfRVuOyzrl1wb+j9zo=
+From: Sahil Chandna <sahilchandna@linux.microsoft.com>
+To: haiyangz@microsoft.com,
+	wei.liu@kernel.org,
+	decui@microsoft.com,
+	andrew+netdev@lunn.ch,
+	davem@davemloft.net,
+	edumazet@kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	weh@microsoft.com,
+	kotaranov@microsoft.com,
+	horms@kernel.org,
+	ernis@linux.microsoft.com,
+	gargaditya@linux.microsoft.com,
+	mawasthi@linux.microsoft.com,
+	sahilchandna@linux.microsoft.com,
+	kees+treewide@kernel.org,
+	schakrabarti@linux.microsoft.com,
+	linux-hyperv@vger.kernel.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org
+Cc: stable@vger.kernel.org
+Subject: [PATCH net] net: mana: Avoid waiting on dead HWC after device reset
+Date: Sun, 25 Oct 2026 02:28:36 -0500
+Message-ID: <20261025072838.1991785-1-sahilchandna@linux.microsoft.com>
+X-Mailer: git-send-email 2.53.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -94,51 +77,310 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 8bit
 
-syzbot reports a possible recursive locking in the SMC listen path:
+After device reset is issued due to TX drain timeout in
+mana_dealloc_queues(), hardware channel (HWC) state is non-functional.
+However, the driver continues to issue HWC commands (mana_disable_vport_rx,
+mana_fence_rqs, mana_destroy_wq_obj) which will each wait for a
+completion that never arrives.
 
-  WARNING: possible recursive locking detected
-    kworker/0:2 is trying to acquire lock: sk_lock-AF_SMC
-      at __smc_lgr_terminate() (net/smc/smc_core.c:1580)
-    but task is already holding lock: sk_lock-AF_SMC
-      at smc_listen_work() (net/smc/af_smc.c:2463)
+The first such command (MANA_CONFIG_VPORT_RX) blocks for the full
+hwc_timeout (60s as set by the firmware on the tested system), after
+which the timeout is reduced to 1ms for subsequent commands. This
+causes the calling thread to hold the RTNL lock for over 180 seconds
+(120s TX drain + 60s HWC timeout), triggering hung task warnings and
+blocking all other networking operations on the system.
 
-smc_listen_work() holds new_smc->sk while calling
-smc_listen_decline() -> smc_conn_abort() -> smc_lgr_cleanup_early().
-smc_conn_free() unregisters new_smc from lgr->conns_all before the
-early cleanup, so __smc_lgr_terminate() walks the remaining
-connections and locks another socket, not the one already held.
+Fix this by:
+1. Replacing the sleep-based TX drain with a CQE polling approach:
+   disable NAPI per queue, do a final synchronous poll to collect
+   any remaining completions, free uncompleted SKBs, and reset the
+   device only if sends remain unacknowledged. The device is reset
+   at most once per call, and not at all if an earlier reset already
+   marked the HWC dead. This eliminates the 120s sleep entirely.
+2. Setting hwc_dead flag after a successful device reset.
+3. Checking hwc_timeout and hwc_dead flag in mana_hwc_send_request()
+   before posting the WQE and returning -ETIMEDOUT immediately
+   without submitting commands to hardware that cannot respond.
+4. Skipping mana_fence_rqs() and the SHM channel teardown handshake
+   once hwc_dead is set.
 
-All sockets use the same sk_lock class, so lockdep cannot tell the
-two instances apart and reports a possible recursive acquisition.
-Annotate the per-connection lock as a nested acquisition, as
-smc_listen_out() already does for the listener socket.
-
-Reported-by: syzbot+7ea1f5efd5de7e24f1de@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=7ea1f5efd5de7e24f1de
-Fixes: 2c7f14ed9c19 ("net/smc: fix LGR and link use-after-free issue")
-Cc: stable@vger.kernel.org # v6.13+
-Signed-off-by: Anfernee Cao <anferneemelokc5@gmail.com>
+Fixes: a7dfeda6fdec ("net: mana: Fix MANA VF unload when hardware is unresponsive")
+Cc: stable@vger.kernel.org
+Signed-off-by: Dipayaan Roy <dipayanroy@linux.microsoft.com>
+Signed-off-by: Sahil Chandna <sahilchandna@linux.microsoft.com>
 ---
- net/smc/smc_core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .../net/ethernet/microsoft/mana/gdma_main.c   |   4 +-
+ .../net/ethernet/microsoft/mana/gdma_pci.c    |   2 +-
+ .../net/ethernet/microsoft/mana/hw_channel.c  |  32 ++++--
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 102 +++++++++++++-----
+ include/net/mana/hw_channel.h                 |   1 +
+ 5 files changed, 107 insertions(+), 34 deletions(-)
 
-diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-index 9974149659c2..5911368ae520 100644
---- a/net/smc/smc_core.c
-+++ b/net/smc/smc_core.c
-@@ -1577,7 +1577,7 @@ static void __smc_lgr_terminate(struct smc_link_group *lgr, bool soft)
- 		smc = container_of(conn, struct smc_sock, conn);
- 		sock_hold(&smc->sk); /* sock_put below */
- 		read_unlock_bh(&lgr->conns_lock);
--		lock_sock(&smc->sk);
-+		lock_sock_nested(&smc->sk, SINGLE_DEPTH_NESTING);
- 		smc_conn_kill(conn, soft);
- 		release_sock(&smc->sk);
- 		sock_put(&smc->sk); /* sock_hold above */
--- 
-2.54.0.windows.1
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+index 8c915e008784..b249752ce828 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
++++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+@@ -153,7 +153,9 @@ bool mana_need_log(struct gdma_context *gc, int err)
+ 		return true;
 
+ 	hwc = gc->hwc.driver_data;
+-	if (hwc && hwc->hwc_timeout == 0)
++	if (hwc &&
++	    (READ_ONCE(hwc->hwc_timeout) == 0 ||
++	     READ_ONCE(hwc->hwc_dead)))
+ 		return false;
+
+ 	return true;
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma_pci.c b/drivers/net/ethernet/microsoft/mana/gdma_pci.c
+index ed8925296c8a..3995e4ab4c96 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma_pci.c
++++ b/drivers/net/ethernet/microsoft/mana/gdma_pci.c
+@@ -102,7 +102,7 @@ static void mana_serv_reset(struct pci_dev *pdev)
+ 	}
+
+ 	/* HWC is not responding in this case, so don't wait */
+-	hwc->hwc_timeout = 0;
++	WRITE_ONCE(hwc->hwc_timeout, 0);
+
+ 	dev_info(&pdev->dev, "MANA reset cycle start\n");
+
+diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
+index 3bca4b683134..c9337f49fbe1 100644
+--- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
++++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
+@@ -192,7 +192,7 @@ static void mana_hwc_init_event_handler(void *ctx, struct gdma_queue *q_self,
+
+ 		switch (type) {
+ 		case HWC_DATA_CFG_HWC_TIMEOUT:
+-			hwc->hwc_timeout = val;
++			WRITE_ONCE(hwc->hwc_timeout, val);
+ 			break;
+
+ 		case HWC_DATA_HW_LINK_CONNECT:
+@@ -819,7 +819,12 @@ void mana_hwc_destroy_channel(struct gdma_context *gc)
+ 	 * non-zero, the HWC worked and we should tear down the HWC here.
+ 	 */
+ 	if (gc->max_num_cqs > 0) {
+-		mana_smc_teardown_hwc(&gc->shm_channel, false);
++		if (READ_ONCE(hwc->hwc_dead))
++			dev_warn(hwc->dev,
++				 "HWC unavailable, skip SHM teardown handshake\n");
++		else
++			mana_smc_teardown_hwc(&gc->shm_channel, false);
++
+ 		gc->max_num_cqs = 0;
+ 	}
+
+@@ -862,6 +867,7 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
+ 	u32 dest_vrcq;
+ 	u32 dest_vrq;
+ 	u32 command;
++	u32 timeout = 0;
+ 	u16 msg_id;
+ 	int err;
+
+@@ -897,6 +903,17 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
+ 	dest_vrq = hwc->dest_vrq_id;
+ 	dest_vrcq = hwc->dest_vrcq_id;
+
++	/* If the HWC is unavailable (e.g. hwc_timeout was set to 0 or
++	 * hwc_dead set after device reset), do not post the WQE: the
++	 * hardware cannot respond, so fail fast instead of waiting out
++	 * the full timeout.
++	 */
++	timeout = READ_ONCE(hwc->hwc_timeout);
++	if (timeout == 0 || READ_ONCE(hwc->hwc_dead)) {
++		err = -ETIMEDOUT;
++		goto out;
++	}
++
+ 	err = mana_hwc_post_tx_wqe(txq, tx_wr, dest_vrq, dest_vrcq, false);
+ 	if (err) {
+ 		dev_err(hwc->dev, "HWC: Failed to post send WQE: %d\n", err);
+@@ -904,14 +921,13 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
+ 	}
+
+ 	if (!wait_for_completion_timeout(&ctx->comp_event,
+-					 (msecs_to_jiffies(hwc->hwc_timeout)))) {
+-		if (hwc->hwc_timeout != 0)
+-			dev_err(hwc->dev, "Command 0x%x timed out: %u ms\n",
+-				command, hwc->hwc_timeout);
++					 (msecs_to_jiffies(timeout)))) {
++		dev_err(hwc->dev, "Command 0x%x timed out: %u ms\n",
++			command, timeout);
+
+ 		/* Reduce further waiting if HWC no response */
+-		if (hwc->hwc_timeout > 1)
+-			hwc->hwc_timeout = 1;
++		if (READ_ONCE(hwc->hwc_timeout) > 1)
++			WRITE_ONCE(hwc->hwc_timeout, 1);
+
+ 		err = -ETIMEDOUT;
+ 		goto out;
+diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
+index 6b7c027e497e..00885d21a9af 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana_en.c
++++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
+@@ -3753,16 +3753,19 @@ int mana_attach(struct net_device *ndev)
+ static int mana_dealloc_queues(struct net_device *ndev)
+ {
+ 	struct mana_port_context *apc = netdev_priv(ndev);
+-	unsigned long timeout = jiffies + 120 * HZ;
+ 	struct gdma_dev *gd = apc->ac->gdma_dev;
++	struct hw_channel_context *hwc;
++	bool trigger_flr = false;
++	int flr_pending, i, err;
+ 	struct mana_txq *txq;
+ 	struct sk_buff *skb;
+-	int i, err;
+-	u32 tsleep;
++	u32 flr_txq_id = 0;
+
+ 	if (apc->port_is_up)
+ 		return -EINVAL;
+
++	hwc = gd->gdma_context->hwc.driver_data;
++
+ 	if (apc->rxqs)
+ 		mana_chn_setxdp(apc, NULL);
+
+@@ -3774,42 +3777,92 @@ static int mana_dealloc_queues(struct net_device *ndev)
+ 	 * a txq because it may not timely see apc->port_is_up being cleared
+ 	 * to false, but it doesn't matter since mana_start_xmit() drops any
+ 	 * new packets due to apc->port_is_up being false.
+-	 *
+-	 * Drain all the in-flight TX packets.
+-	 * A timeout of 120 seconds for all the queues is used.
+-	 * This will break the while loop when h/w is not responding.
+-	 * This value of 120 has been decided here considering max
+-	 * number of queues.
++	 * Drain the in-flight TX completions for each queue. TX is already
++	 * stopped, so pending_sends can no longer grow. For each queue,
++	 * disable NAPI so it cannot run at the same time as this drain,
++	 * then process all completions still in the CQ. If some are still
++	 * missing after that, the hardware is not responding: reset device
++	 * and stop waiting on the now-unavailable HWC.
+ 	 */
+
+ 	if (apc->tx_qp) {
+ 		for (i = 0; i < apc->num_queues; i++) {
++			struct mana_cq *tx_cq;
++			struct napi_struct *napi;
++			int pending;
++
++			if (!apc->tx_qp[i])
++				continue;
++
++			tx_cq = &apc->tx_qp[i]->tx_cq;
+ 			txq = &apc->tx_qp[i]->txq;
+-			tsleep = 1000;
+-			while (atomic_read(&txq->pending_sends) > 0 &&
+-			       time_before(jiffies, timeout)) {
+-				usleep_range(tsleep, tsleep + 1000);
+-				tsleep <<= 1;
++			napi = &tx_cq->napi;
++
++			if (txq->napi_initialized) {
++				/* Stop the NAPI poll so it cannot run
++				 * concurrently with the synchronous drain.
++				 */
++				napi_synchronize(napi);
++				napi_disable_locked(napi);
++				cancel_work_sync(&tx_cq->dim.work);
++
++				/* Reap all TX completions currently in the CQ.
++				 * A zero budget frees skbs via the non-NAPI
++				 * path, which is required outside softirq.
++				 */
++				tx_cq->budget = 0;
++				do {
++					tx_cq->work_done = 0;
++					mana_poll_tx_cq(tx_cq);
++				} while (tx_cq->work_done);
+ 			}
+-			if (atomic_read(&txq->pending_sends)) {
+-				err = mana_gd_dev_reset(gd->gdma_context);
+-				if (err) {
+-					netdev_err(ndev, "device reset failed %d with %d pkts pending in txq %u\n",
+-						   err,
+-					    atomic_read(&txq->pending_sends),
+-					    txq->gdma_txq_id);
+-				}
+-				break;
++
++			pending = atomic_read(&txq->pending_sends);
++			if (!trigger_flr && pending > 0) {
++				trigger_flr = true;
++				flr_txq_id = txq->gdma_txq_id;
++				flr_pending = pending;
+ 			}
+ 		}
+
++		if (trigger_flr && !(hwc && hwc->hwc_dead)) {
++			/* Completions never arrived: the device is
++			 * unresponsive. Issue device reset and
++			 * mark the HWC dead so subsequent HWC commands
++			 * fail fast instead of each waiting the full
++			 * hwc_timeout.
++			 */
++			err = mana_gd_dev_reset(gd->gdma_context);
++			if (err)
++				netdev_err(ndev, "device reset failed %d with %d pkts pending in txq %u\n",
++					   err,
++					   flr_pending,
++					   flr_txq_id);
++			else if (hwc)
++				WRITE_ONCE(hwc->hwc_dead, true);
++		}
++
+ 		for (i = 0; i < apc->num_queues; i++) {
++			struct napi_struct *napi;
++			struct mana_cq *tx_cq;
++
++			if (!apc->tx_qp[i])
++				continue;
++
++			tx_cq = &apc->tx_qp[i]->tx_cq;
++			napi = &tx_cq->napi;
++
+ 			txq = &apc->tx_qp[i]->txq;
+ 			while ((skb = skb_dequeue(&txq->pending_skbs))) {
+ 				mana_unmap_skb(skb, apc);
+ 				dev_kfree_skb_any(skb);
+ 			}
+ 			atomic_set(&txq->pending_sends, 0);
++
++			if (txq->napi_initialized) {
++				netif_napi_del_locked(napi);
++				txq->napi_initialized = false;
++			}
+ 		}
+ 	}
+
+@@ -3822,7 +3875,8 @@ static int mana_dealloc_queues(struct net_device *ndev)
+ 	if (err && mana_en_need_log(apc, err))
+ 		netdev_err(ndev, "Failed to disable vPort: %d\n", err);
+
+-	mana_fence_rqs(apc);
++	if (!(hwc && hwc->hwc_dead))
++		mana_fence_rqs(apc);
+
+ 	/* Even in err case, still need to cleanup the vPort */
+ 	mana_destroy_rxqs(apc);
+diff --git a/include/net/mana/hw_channel.h b/include/net/mana/hw_channel.h
+index 1ab2d66c891e..0bc222c32244 100644
+--- a/include/net/mana/hw_channel.h
++++ b/include/net/mana/hw_channel.h
+@@ -179,6 +179,7 @@ struct hw_channel_context {
+ 	struct gdma_dev *gdma_dev;
+ 	struct device *dev;
+
++	bool hwc_dead;
+ 	u16 num_inflight_msg;
+ 	u32 max_req_msg_size;
+
+--
+2.53.0
 
