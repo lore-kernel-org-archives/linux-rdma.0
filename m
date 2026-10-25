@@ -1,159 +1,95 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.126.140
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1792915621;
-	b=j3vl/eLuIKqTpp31Vy+vCXWdohBHYLaijrIYtARzt+qGK4dXrVznZ2+E/hfaWsmaPWpO
-	 Dr3oqZEqT6uwq7eFwP0n8q45v6oeDwziQ4wxvJboLIzCg8hr0bHZW1KNEql85LxyQT8Wj
-	 6lW8bN9YLBWCymDgMuDX6P9uFMb2STV2wx4n8NL5XEEZf5fGQE4Xxz6RPySVa++n8YXSt
-	 kjh4WhrahXt4kCDH/DLJLEvL9cho3sN6wwr49Ba0fRa9yABO/TEvMvIS1iozeFYWsKT3D
-	 fJhj0l2uZdO11EkzW3ZTIGUNNSVktGU6Ifmt1fqigtJICuzpWIxbZs/qtJoVcDyNHtA==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792915621;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:From:To:CC:Subject:
-	 Thread-Topic:Thread-Index:Date:Message-ID:References:In-Reply-To:
-	 Accept-Language:Content-Language:X-MS-Has-Attach:X-MS-TNEF-Correlator:
-	 msip_labels:x-ms-publictraffictype:x-ms-traffictypediagnostic:
-	 x-ms-office365-filtering-correlation-id:x-ms-exchange-senderadcheck:
-	 x-ms-exchange-antispam-relay:x-microsoft-antispam:
-	 x-microsoft-antispam-message-info:x-forefront-antispam-report:
-	 x-ms-exchange-antispam-messagedata-chunkcount:
-	 x-ms-exchange-antispam-messagedata-0:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-AuthAs:X-MS-Exchange-CrossTenant-AuthSource:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-originalarrivaltime:
-	 X-MS-Exchange-CrossTenant-fromentityheader:
-	 X-MS-Exchange-CrossTenant-id:X-MS-Exchange-CrossTenant-mailboxtype:
-	 X-MS-Exchange-CrossTenant-userprincipalname:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=oNgs3xFVZSXJ/HSQ5Lm/k1wn9RWcbuKoP4lPyQszH00=;
-	b=hChrfp152Bhlzw8jGv/BHbaq98ed7S9RrgZ/4wRmpmHFYnZ9zIwqx9YSYvyJakJdQION
-	 zt5T9tK4j1cGZ9Dn9D/GwSCp8TKoJTGuQda8GkQnkV9am0T6cmk1zumg5MoZZ19kZNusR
-	 SeZNJCvS8dJfm701HnEV2Wtyq7iLILHj07w7VCfi8godts7V1lWFIVoDPagCiyGBhNnSb
-	 u0g5tfGBKQQ/MqdL7K2/YO0USVD6UYe1u3eh680sDe6iN3vGgh8WUKWcSH+7spJYxjq/j
-	 W3koppginnwS3VqhzJIJqPc/OWsTmkLPQHaW/urBfIOjVnibM+Sn2KGkCRb8jmXOngw==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=microsoft.com;
-	spf=pass smtp.mailfrom=microsoft.com;
-	dkim=pass header.d=microsoft.com header.i=@microsoft.com header.a=rsa-sha256 header.s=selector2 header.b="Obpn/J3G";
-	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.126.140
-Received: from TYPPR03CU001.outbound.protection.outlook.com (mail-japaneastazon11022140.outbound.protection.outlook.com [52.101.126.140])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.46
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1792928530;
+	b=MsyXrN6cP6fVjKxGBgjgrl8mT4kc381GJ2KWCNwJeieKw5jUBqEV0qv+tAzCzQEfo3gb
+	 62zUmIO3dH+/hLG/LZT9KgmUFBwl889009tuiU2mEgbInnQDriHNQIvQap+51HM12qNCj
+	 bCaYZ/ajDEO98CTwYOV6rTFoJXHvaWGDetCIYkzxtciKr29XCP8lx4gYJ21bRiWZHpHtv
+	 fJKDEHNx9Q9ZOMK8DzDC6NGxmq2f70F2LLrr1knl8yub9A1D45vWsi/TdVVsV4pIGdn6D
+	 +RVRS2pktWKpnvRUKnyVg6goUqahAYRHxoCMMoEip2bd6WJ4T41U8St+1+RoIEAdPEA==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792928530;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=u35B5SQb1qcpvcXotkj445EdYHZUkvnUz67+RJDCzCc=;
+	b=QrjMZ6n9TCXxxfDLVBFYJIC4IGW8BOQRRnhF35nzmeXVotKynxhtapOoBzfeausFWxGW
+	 bi7VAGA21+h10ieALmIvSCmuZ4iwpQ4o5soUn1OFzH9jPyR5XRzKuUHyB1Nn0dcqI111K
+	 F3/LWaU6cJ8lkdnRI+lA4eg2d4FEIc0oBXwbGffwB4aLI1l6RI76m0HY5VLxxIPi43FAC
+	 qISysfj3qUQHMg8YfBMFPRYOVpwCsAraFuXZ/h+4d6NNPYrH8WfFOY4o1XE+B18vj/o+e
+	 +VLjfqrsleEJHcQc04aAYXspyu3fz14lWyeg3qGG9tvhvmlOOuofD8Rjh0pnZy4Snig==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=fail header.from=isslab.korea.ac.kr;
+	spf=none smtp.mailfrom=isslab.korea.ac.kr;
+	dkim=pass header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.a=rsa-sha256 header.s=20251104 header.b=l2rtSSMW;
+	arc=none smtp.remote-ip=209.85.216.46
+Received: from mail-pj1-f46.google.com (mail-pj1-f46.google.com [209.85.216.46])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1EA3606A31A;
-	Sun, 25 Oct 2026 08:07:00 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F1EA3606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=microsoft.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 238C5606A31B
+	for <linux-rdma@vger.kernel.org>; Sun, 25 Oct 2026 11:42:08 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 238C5606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=isslab.korea.ac.kr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=microsoft.com header.i=@microsoft.com header.a=rsa-sha256 header.s=selector2 header.b=Obpn/J3G
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=RyObsITt1UOEt7zSc0StqRobPabjC99dsm9I4duXWp3s822lw5cuNjRkQ3tMta3pg3oV1mbpOtVr59UnpymzR+SFfuMLYSoMrOFVcj1JL5PbCgl3OExj7j68PfxiwwyjWgp4n4wRfF0XUf8MFuAzWxccIkxFI/U9jKvyueQjZhNB7CqjO+dkAtkjXt/998KhuU6L+dDjh+YBVhgRAQzhqkn4dnRZK8EcTS4+6RZSr8ebgBULq44bJci/K/rVxfhrnjgwSpR8rJv6tCj/SnNkWEJN1I0o4qIEAJQ/gR5xe1mzA5eHvUSmuUhOqjt38soHBt3P8IGzWtAe2bkM5vNfWA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001; h=From:Date:Subject:Message-ID:MIME-Version;
- bh=oNgs3xFVZSXJ/HSQ5Lm/k1wn9RWcbuKoP4lPyQszH00=;
- b=DR1u2Cj9VFgtZlocu6w+2CZZ70azUwwon1d0fHyCQtFJE0dZAVp+EIK/gjP7XrR4Q+JlNm6hdL/34Vj1IDO/4WKTCO4lq3IMEFwN+9uVG3db4LwJ5B3ajAnX9cTaHaQkxDQye/44+8yyIDiAGeOQ0GYa/YjBwk1y/+mKEUJrnmLHSthEuHLQrJH6Q1JjsR7o41dBuIAaYXe8jx0XVpi9e0Fv7++SdH/b5/MosTxHOn+/NGqJPp8Hyh/TPA5GXbHiWGg6s1vkLvM0nxdMcG1bHXeva4l0sF15xF3tARq8HvJ9qju4kx4qs1XJjoOOMSDDL3KBeXkfMeSRj0KNz9kN0w==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=microsoft.com; dmarc=pass action=none
- header.from=microsoft.com; dkim=pass header.d=microsoft.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=oNgs3xFVZSXJ/HSQ5Lm/k1wn9RWcbuKoP4lPyQszH00=;
- b=Obpn/J3GLZfI/MNpO0YfOz1rUamU3z49YPfnMrWHQfR72KTjv/NsIk2z8etTo0RdNjX1Csrco9/Wuphde4P4lYXO5AD/LCq7+x1V9k6kCZSA0vumYiDDLVzywuVGZMPmXQb9HdJjUGGSjy2uS6n65MD7UpMel2UX+ZRFJUf7QSk=
-Received: from SE3P153MB1848.APCP153.PROD.OUTLOOK.COM (2603:1096:101:340::5)
- by OSNP153MB1908.APCP153.PROD.OUTLOOK.COM (2603:1096:604:48d::13) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.569.6; Sun, 25 Oct
- 2026 08:06:41 +0000
-Received: from SE3P153MB1848.APCP153.PROD.OUTLOOK.COM
- ([fe80::8f4e:575a:4706:a56e]) by SE3P153MB1848.APCP153.PROD.OUTLOOK.COM
- ([fe80::8f4e:575a:4706:a56e%6]) with mapi id 15.21.0569.005; Sun, 25 Oct 2026
- 08:06:40 +0000
-From: Wei Hu <weh@microsoft.com>
-To: Jakub Kicinski <kuba@kernel.org>, Wei Hu <weh@linux.microsoft.com>
-CC: "longli@kernel.org" <longli@kernel.org>, Konstantin Taranov
-	<kotaranov@microsoft.com>, "davem@davemloft.net" <davem@davemloft.net>,
-	"pabeni@redhat.com" <pabeni@redhat.com>, "edumazet@google.com"
-	<edumazet@google.com>, "andrew+netdev@lunn.ch" <andrew+netdev@lunn.ch>,
-	"jgg@ziepe.ca" <jgg@ziepe.ca>, "leon@kernel.org" <leon@kernel.org>, Haiyang
- Zhang <haiyangz@microsoft.com>, "wei.liu@kernel.org" <wei.liu@kernel.org>,
-	Dexuan Cui <DECUI@microsoft.com>, "shradhagupta@linux.microsoft.com"
-	<shradhagupta@linux.microsoft.com>, "horms@kernel.org" <horms@kernel.org>,
-	"ernis@linux.microsoft.com" <ernis@linux.microsoft.com>,
-	"stephen@networkplumber.org" <stephen@networkplumber.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-	"linux-hyperv@vger.kernel.org" <linux-hyperv@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"gargaditya@linux.microsoft.com" <gargaditya@linux.microsoft.com>,
-	"kees+treewide@kernel.org" <kees+treewide@kernel.org>, "kees@kernel.org"
-	<kees@kernel.org>, "mawasthi@linux.microsoft.com"
-	<mawasthi@linux.microsoft.com>, "edumazet@kernel.org" <edumazet@kernel.org>
-Subject: RE: [EXTERNAL] Re: [PATCH net-next v9 0/4] net: mana: concurrent HWC
- requests and dynamic queue depth
-Thread-Topic: [EXTERNAL] Re: [PATCH net-next v9 0/4] net: mana: concurrent HWC
- requests and dynamic queue depth
-Thread-Index: AQHdYjZ69ITXb+UaP0Kf7P3v63MjTLcJriyAgAQ8bAA=
-Date: Sun, 25 Oct 2026 08:06:39 +0000
-Message-ID:
- <SE3P153MB18485CA69CAEED7FB2CE4D65BB622@SE3P153MB1848.APCP153.PROD.OUTLOOK.COM>
-References: <cover.1792679388.git.weh@linux.microsoft.com>
- <20261022082333.5a259426@kernel.org>
-In-Reply-To: <20261022082333.5a259426@kernel.org>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-msip_labels:
- MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ActionId=196c947c-02b3-46d3-aced-af6aa686eaba;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ContentBits=0;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Enabled=true;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Method=Standard;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Name=Internal;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SetDate=2026-10-25T08:04:51Z;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SiteId=72f988bf-86f1-41af-91ab-2d7cd011db47;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Tag=10,
- 3, 0, 1;
-authentication-results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=microsoft.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: SE3P153MB1848:EE_|OSNP153MB1908:EE_
-x-ms-office365-filtering-correlation-id: 57e25de5-c5a7-413e-b2c8-08df326ee62a
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam:
- BCL:0;ARA:13230040|366016|42112799006|376014|7416014|23010399003|1800799024|38070700021|11063799006|4143699003|56012099006|22082099003|18002099003|10067099003|7146999003|261021133027099003|261021130227099003|261021123027099003|261021121427099003|261021135927099003|261022105027099003|261022075727099003|261022113327099003|261022115727099003|261009223027099003|4133799003;
-x-microsoft-antispam-message-info:
- NkbhQZQK3HisJ5wWp2sbO12koBL/Q5wNnFXSDlUKfhF6ndUlZuhAFBYbA7Y+OpMB11x9B7hBczcRGV4Nuz9Ex3y80bZm1UE6rXpWPETlnswhfXvSMiKRHcwdyOS6IX2VUgbtf1Y7e80G16vebDnY0aFKbYnYre+gi3r8QItOfcIuQPlmT/ZfWiI4KVuFNstI13N3H9zYAd+Lmqw4SXpD8CT1l/Fkbg7hjjkaJVb3qBB5L5VMp6cCMentB/RVVut1k0rUei+Guh0QIUe1N4GVHoe4KjA5HnaesDvYijH82SLfVZIwUKESWVA2eX6emW9jbfgHDOT3toi0rBXsJYAolReCFKKUM5HX4HUVb+8EVTVy5k1COH3ckhJ19Xs8L3ZlwNMSwIOfzLFqOJtW/m1VtwrWGlMwtCcqX/qiMOf+D5Y9Ox9kg4F6zAqIwxAE8z/E0B4/GkDat517vUfrVA91jzmGyMLTU4KvdFi1p2sr/mbEC8ihGMvs9Q3aKXfzBYc2Yo9ctNbTWvTHXe2N4N5KI9IhNmXQ+EWX6ZtT7Nz7wXt7/oiI8OzLasRQwbN12Njvc5TTUfwGyLQQwQvkGygmo8uwLPCwDPkNQX+qWuUF0ieDoy/l+u9z7oYGR5VTvHS5iKWcnCATbg9MIgvcvzuM73/Q0iMbnU7mrCtPzn7YhX8/AS7syUk0puwJpNDqlSyvtul7b6flCIxYOCikuSe1++j8rpIjvB8SsPLsKRywmEo=
-x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SE3P153MB1848.APCP153.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(366016)(42112799006)(376014)(7416014)(23010399003)(1800799024)(38070700021)(11063799006)(4143699003)(56012099006)(22082099003)(18002099003)(10067099003)(7146999003)(261021133027099003)(261021130227099003)(261021123027099003)(261021121427099003)(261021135927099003)(261022105027099003)(261022075727099003)(261022113327099003)(261022115727099003)(261009223027099003)(4133799003);DIR:OUT;SFP:1102;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?us-ascii?Q?+2Oo6XRgi0nuI0yS+ZdXoaScdTQFVg9tmW7+iY1cTpg4T7y234kmwytlW3zJ?=
- =?us-ascii?Q?Qh8QtQIXd7rgLajZ/AOCzcl+0B1ZL5JVbTang5oAVjd69Mj9rXua+Nz88ZrK?=
- =?us-ascii?Q?tX4j/cGKAwqUPW9D7lwVI1MCzAo8trkBf948OBhdRxji7J8VjNYpScJGHT0w?=
- =?us-ascii?Q?D0uosC8mlovHyUm6GpAma1QUQ7tASZPuABS3yQfKDQ8zwNZsvqGJL98Fq8Ii?=
- =?us-ascii?Q?XF2aFSnylrxMw8Qf927RnOtoOEdMvOILFHDks8icZBD1ffkFmN/9hdrufDRN?=
- =?us-ascii?Q?XK264DKLRWaDp1oHTkWpr24iiP135EIi37xg/xf2jqiqECiNZeDjTPJzZ/jz?=
- =?us-ascii?Q?GRRalzHm9eG10I3zL1ms7CPGCqwp9YuV2b0oiSRjRwJYOMoeXftShcAkarY1?=
- =?us-ascii?Q?Vgy7LUenuxnLGcv5DFHAHew8C+8nPRioSJ9zPP2VmNKqzoy0jz/8x0UtMV6F?=
- =?us-ascii?Q?4cBE+fP0MPMhfSEEClhGnZ7DTboHhd6Cao+8++UFzX1pilYpOQps9JSMvMud?=
- =?us-ascii?Q?CprsDXbv1szs7Hxc7m7xH61H/OyPeB8ZBE3H839dQXlxW4skfs1mWxZAxKJA?=
- =?us-ascii?Q?CN+e9mHT1igZaw1L7yRdxNsD5Nhh2S4yFTWvCLeW6ynp43BeVJ9KznMWu6wN?=
- =?us-ascii?Q?vBkBKtIZYFiKRDp8Vu3SsFLAlcJ8Y0Fw5CalV+2pxEzpPvmw+w04xJlgYCN7?=
- =?us-ascii?Q?7rDcpQZ4JSsg2WG7UjWfDmyUFeQXxnQz+ffBONbb1hhqBYtk0l8JstjY1XzH?=
- =?us-ascii?Q?sTCEm9P54iGws8MWKUueb5pc435VJ9eRY3xiU9TnXJ0f2+JOnzpNdCo8DL9B?=
- =?us-ascii?Q?ivok8sfusBEJGQREbDIRNfGXnsPUJtwTxfhCgOdnpDRuj6sKwQnyf1DAXuUI?=
- =?us-ascii?Q?7vWsN03JQCvXwjQikPdw9258HjSKysWzMROn3zzp7P2w/rUrWk4Rg/pc6gpM?=
- =?us-ascii?Q?Mf97XsihWSkwQKP6+WUz1W6lIw1WnHPCradX8ZjWg5GjjD1U5fzQEihHqKOP?=
- =?us-ascii?Q?YqAVY3QTZNWFi+qPBhCkgeP2f5/beUVHhcFqTIgGxeiFey5IJVjHD3Y6ypIM?=
- =?us-ascii?Q?S3PlVbJUTuHYLDM6we9tNOvvUtp2FumC8eK0SohaBbPisMK+N0aTQICxeHqc?=
- =?us-ascii?Q?HF0fZ19z5mNQrREGhjKd0TE0NRpfBfSBdFcLNXo+JIJqA0JU2vYuJ/S3w7Fu?=
- =?us-ascii?Q?pHDG3v3EK5Fr/Gwzb95w8Qe7dBhyGmsGnQneD8liiKs5j8BRJ6qR4wXsgv8m?=
- =?us-ascii?Q?PE3wF5IK22U9Adiz7Pm0ZpEfqprnl/+PvIdFbJmw6AYM/wEE2yYIHzEDNjVs?=
- =?us-ascii?Q?8bEXFWlY/UX86o7MRaVLjLOC+J33YA/LRNlK4R8nxfdVWb9cmgt34jeblRp2?=
- =?us-ascii?Q?AmIKtIhy2Xm4d31m1sxx73KEmX0Oix5MOeiNz1dMWHk61FfLuLRvdDnVVYPQ?=
- =?us-ascii?Q?+EIoENby9SvJQQQPgLphQtzoaIt7ShdMUnnecFGhE3EHDgJnkPvC0zVwG2Vh?=
- =?us-ascii?Q?zgLahAjH6ZIr3ZQfjFhH7DaAIe7Z9QjSuToq11sObcJWMzloGe5ysQIDwdYg?=
- =?us-ascii?Q?sZ3bTszrQvYDebTBXkXRwXo7UCsUR9afxaEHWF+2EJgltiQOtsu01gfJluuH?=
- =?us-ascii?Q?6OQxn0VnylFdORXQOfW8ui7I7aTUU+YpyqSuvjJxxT9IgocamdKrrbSEIBnk?=
- =?us-ascii?Q?qZDyCsqCiB/aTWjdMdXaQXdMD0slXKLopTIQiXJ//368jSI4?=
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+	dkim=pass (2048-bit key, unprotected) header.d=isslab-korea-ac-kr.20251104.gappssmtp.com header.i=@isslab-korea-ac-kr.20251104.gappssmtp.com header.a=rsa-sha256 header.s=20251104 header.b=l2rtSSMW
+Received: by mail-pj1-f46.google.com with SMTP id 98e67ed59e1d1-3ac91ac8924so1126263a91.1
+        for <linux-rdma@vger.kernel.org>; Sun, 25 Oct 2026 04:42:08 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=isslab-korea-ac-kr.20251104.gappssmtp.com; s=20251104; t=1792928528; x=1793533328; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=u35B5SQb1qcpvcXotkj445EdYHZUkvnUz67+RJDCzCc=;
+        b=l2rtSSMWaXnDzMXaCquNqLjnA7MzOiVWZPMTnCWT5DmKjf8LN/ohPo1IZwJwiRF/m1
+         8tC7ZSdnjZV/D0YsrpbbK5RM/rvT6yrUdRWLPnPUma8fJnBzM9GvfuXDEbKQCiVH1y/2
+         ZUSdOhu73mInLfAc6sgqNGIJ/rp5IlRDgW1PruH7bZKRbH+KA4NoEnnUMFnxVxR9rRTi
+         cdSqYmbAyKuDW9i4zYPod7VTGNm6jb8S12XOPRN8QCuEuPAlUIasn3Oo2x+iGV5rY8pa
+         rbOEeh8owVfz5U74G9r31hk8psv6H8K76AxlBrUXCqhss1EH7EK5p/SL+JDc/nIW8Qfz
+         OwfA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792928528; x=1793533328;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=u35B5SQb1qcpvcXotkj445EdYHZUkvnUz67+RJDCzCc=;
+        b=s2u+ZT3fRB9TS+lulatoLCURWso4k18JuIUZXQqnD2AOZCE6hlWiMD9ucSUpQm7IH1
+         gWtZqJhUX9cr07EohAjl0DlT/JxqX6yBsUoaqVZ5oR71FnWp0+k0qPxrtCfkLTjXCg9e
+         2u9Ea2dkCTK+zgd5VzDpMlD3a2LkdmE2F/mcN+WvFBdl0RYjqjqMRTMl8NQZEwPs+RVi
+         PKeRCn5WPlqXPKICktRO34Jmx/eYsVd1dGeFI6z7pfsDHnyTj6sBG8JQ4abzjpDVzQj7
+         bROGCt4SGBEDtlrPxwDJVIHeuAmc2pWpPABfg2Ksuf2q+YZq7ykMdaB01IN5MRwfrzQD
+         Hflw==
+X-Forwarded-Encrypted: i=1; AKwUvBwugYUw8baWL+yOTPF3+DK8iLzxlBEBqWYqOCTDhvqUUNw2RRNfI9s1BrJYlrRFnogWyxDmRG+WqGpd@vger.kernel.org
+X-Gm-Message-State: AFq9FYJtprY5bXIsOvJAS5HUrcj0mXDuYjQCki264dn179O7galtzD5V
+	tQJuuPztIKeFfm3ASylM1E/AlsOcXpFAScKdmOT/iZEE0tyC4I3S2ElkgukXB/Ra65jVOEqrDb9
+	6wt/G
+X-Gm-Gg: AYBFou2ADxYxwg2cChHCS/S3xw5zmaORCYK5If60oxpeelMQF3oobD9riEkBiJ9MQxv
+	iwIHm3YbozaOpx0HtIXDY2P+MsOwNgKflbnuhmJyJYg0z5IpH/xbGnOQ16grkzWlYpSoOGnPyTb
+	5oO554qT49wE+PiJBJAmXDR2LlOJit3MU+Pf7l1tBMG9odxTjp0k1u97fYQwf1ZZXRVez5N8I5i
+	2cekLYmBU4yymLT/kEEIzTBJIUpP+vsxBL3fcoZwWHsfB7E05H+skAURx2cvkagyNM2271ppzJ8
+	W0/i9ow0O0y6MP9k51OB3/jXPRhn+ynLOmWchrMu1MTplXdeILsgSpdPJF7czPjyXMCtWQpdIyb
+	6agFrQOPIt0fhPTKsoHsKOMVEKBpnkA5jpMW2giHezfQdxJnweM+anYfKnQAp+Yh0gGwKi6pKVv
+	msmWmpFctBtdRalEhc1qf1JRlZjzZgxKX4KKZb4QGF1afPKF8NHPrsAI6SvvB9eGNYT20z0VZaG
+	5BEKQ91ABFdr/BXj5dCgQlGFsXnacpJWQZv2ww2LWBdzsPdJyn5k2CVfRLSEkXcFdaaXz+27pHd
+	aop9FjKb14bxMloDXzKPz0kcGwd5oeZq8nWslShG2lqRF9uhthcU2FNN0t/bPAp6
+X-Received: by 2002:a17:90b:5686:b0:3ac:9ed8:f310 with SMTP id 98e67ed59e1d1-3adeae64a6cmr3750286a91.49.1792928528101;
+        Sun, 25 Oct 2026 04:42:08 -0700 (PDT)
+Received: from yhlee-960QFG.Davolink ([2406:5900:1044:110c:dba3:be57:a674:a67f])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3adeba32e38sm5219705a91.2.2026.10.25.04.42.05
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 25 Oct 2026 04:42:07 -0700 (PDT)
+From: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+To: Bart Van Assche <bvanassche@acm.org>
+Cc: Leon Romanovsky <leon@kernel.org>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org,
+	yhlee@isslab.korea.ac.kr
+Subject: [PATCH 0/2] RDMA/srp: bound the receive IU the target asks for
+Date: Sun, 25 Oct 2026 20:41:53 +0900
+Message-ID: <20261025114155.4007867-1-yhlee@isslab.korea.ac.kr>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -163,62 +99,67 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-OriginatorOrg: microsoft.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: SE3P153MB1848.APCP153.PROD.OUTLOOK.COM
-X-MS-Exchange-CrossTenant-Network-Message-Id: 57e25de5-c5a7-413e-b2c8-08df326ee62a
-X-MS-Exchange-CrossTenant-originalarrivaltime: 25 Oct 2026 08:06:39.9152
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 72f988bf-86f1-41af-91ab-2d7cd011db47
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: dbCEhKZNckgt+eGicxNC5Ymd7lLOhClZQdGfLaSyMD4X+VIrXLtA6XSPwjLCFRL1AK0uAF9zU+UgNwei6YfUfA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: OSNP153MB1908
+Content-Transfer-Encoding: 8bit
+
+The target decides how large the initiator's receive buffers are, and the
+initiator never checks the answer.
+
+srp_cm_rep_handler() takes max_ti_iu_len out of the SRP_LOGIN_RSP and
+srp_alloc_iu_bufs() sizes every receive IU with it. Across the whole file
+that value is only ever assigned, handed to kzalloc() and passed to two
+dma_sync calls. It is never compared against anything. Meanwhile the
+initiator parses a 36 byte header out of those buffers, and
+srp_process_rsp() does so without looking at how many bytes arrived, unlike
+srp_process_cred_req() and srp_process_aer_req() which both refuse a short
+message.
+
+The two patches close different halves of that, so they are separate.
+
+The first refuses a login that cannot work. A report below 36 gives
+undersized buffers, and a report of zero is worse, because kzalloc()
+answers it with ZERO_SIZE_PTR and on a virtually mapped transport
+ib_dma_map_single() returns that pointer without looking at the length,
+while ib_dma_mapping_error() calls it a success. The buffer then reaches
+the receive path and the read of the opcode in srp_recv_done() is already
+out of bounds.
+
+The second refuses a truncated response, which is also what makes the
+initiator stop parsing whatever an earlier response left in the reused IU.
+
+Both have been exercised against an out of tree KUnit test on x86_64 with
+KASAN, one boot per case. On the unpatched arm a target reporting 33 gets
+33 byte IUs and srp_process_rsp() reads four bytes at offset 32:
+
+  BUG: KASAN: slab-out-of-bounds in srp_process_rsp+0x757/0xbe0
+  Read of size 4 at addr ffff88800243f120 by task kunit_try_catch/42
+   srp_process_rsp+0x757/0xbe0
+  Allocated by task 42:
+   srp_alloc_iu.constprop.0+0x69/0x5c0
+   srp_cm_rep_handler+0xc2e/0x1bb0
+  The buggy address belongs to the object at ffff88800243f100
+   which belongs to the cache kmalloc-64 of size 64
+  The buggy address is located 32 bytes inside of
+   allocated 33-byte region [ffff88800243f100, ffff88800243f121)
+
+A report of zero logs in on the unpatched arm with the receive IUs pointing
+at ZERO_SIZE_PTR and four receive work requests posted against them, and is
+refused with -ECONNRESET afterwards. A target reporting 64 logs in and
+completes a full response identically either way. The test is not part of
+these patches.
+
+This is an out of bounds read, and on a virtually mapped transport a
+read of a wild address. Neither patch is about a write or a use after
+free.
+
+Yehyeong Lee (2):
+  RDMA/srp: refuse a target that cannot receive an SRP_RSP
+  RDMA/srp: drop a truncated SRP_RSP
+
+ drivers/infiniband/ulp/srp/ib_srp.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
 
+base-commit: 330517c63aa9b48227b6ab45f01003effac77ae4
+-- 
+2.43.0
 
-> -----Original Message-----
-> From: Jakub Kicinski <kuba@kernel.org>
-> Sent: Thursday, October 22, 2026 11:24 PM
-> On Thu, 22 Oct 2026 15:02:58 +0000 Wei Hu wrote:
-> > This four-patch series adds concurrent HWC request ownership and
-> > PF-directed HWC queue depth to MANA. It starts with depth-one
-> > bootstrap queues and keeps setup private until the final channel is tes=
-ted.
->=20
-> ## Form letter - net-next-closed
->=20
-> The merge window for Linux v7.4 has begun, and the net-next tree is now
-> closed for new drivers, features, code refactoring and optimizations. We =
-are
-> currently accepting bug fixes only.
->=20
-> Please repost when net-next reopens. There is some uncertainty about how
-> long this merge window will last, so please check
-> https://nam06.safelinks.protection.outlook.com/?url=3Dhttps%3A%2F%2Fnetd
-> ev.bots.linux.dev%2Fnet-
-> next.html&data=3D05%7C02%7Cweh%40microsoft.com%7Ceb8ac39a1dbf47c
-> ecda508df3050713b%7C72f988bf86f141af91ab2d7cd011db47%7C1%7C0
-> %7C639282794239267419%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1
-> hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIl
-> dUIjoyfQ%3D%3D%7C0%7C%7C%7C&sdata=3DAdSsI%2FNVIHHStOBVRcxQq3
-> 8jIHAjzyhTnv4WkMhe5WE%3D&reserved=3D0
-> before reposting. net-next _may_ reopen on Nov 2nd.
->=20
-> See:
-> https://nam06.safelinks.protection.outlook.com/?url=3Dhttps%3A%2F%2Fww
-> w.kernel.org%2Fdoc%2Fhtml%2Fnext%2Fprocess%2Fmaintainer-
-> netdev.html%23development-
-> cycle&data=3D05%7C02%7Cweh%40microsoft.com%7Ceb8ac39a1dbf47cecda
-> 508df3050713b%7C72f988bf86f141af91ab2d7cd011db47%7C1%7C0%7C
-> 639282794239291497%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGk
-> iOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIj
-> oyfQ%3D%3D%7C0%7C%7C%7C&sdata=3DJs%2FXqxP9IwDMjeCLcc8%2F4XIVt
-> A0s20vgCp4oFJ%2FdApY%3D&reserved=3D0
-> --
-> pw-bot: defer
-> pv-bot: closed
-
-Thanks. I will repost when net-next reopens.
-
-Wei
