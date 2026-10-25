@@ -1,60 +1,58 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792952867;
-	b=lNnlZj0n7gfhH52GdIOpISB8WVKUa7HEyvvz2ISHymQA3i/frX+30hR2zuzYZdGR/57g
-	 7C/4TM+t1O14VlwH2ZR6G8FkzWpCx+gvRE140P0T9AVE3LWzggZ1QDeRId0KpIvHChKfl
-	 5oeHwiusuM9YSLlbmd7vy/7mwqnM39Vv64T7K+AJrTr9Lqb+kdgWvkOIWz0vmvAmFF06+
-	 4E4P7UNRgT3vxv6LU2fYYYhYtNRugx4uzQR+h/jlIe39gFFKzqWTy5M4dqBPQfz613wrf
-	 kCuRpImY+tj+C+5QfsPJVhmLO+s+oKzoUzp+cewi6UcyO395bjQH8IBKqqU6bSIrqtg==
+	t=1792954167;
+	b=jHZUgBtj55nN4BL6RTD0BGfFDyzPDciFLdIm0gFDo4XJ1q/kUtMVIxYvwQXFsooXIUZf
+	 rYXPzsIg6//+oj996KBBegscQyb1UWSCH96450GP0ZM232l+ZNyUvtv8N0k5RP6ayv32A
+	 xNL5cmzEYAt6Q4An0we5B8rNDMWJStYPpEZo4ybDYI+E+ex7rGSSAmkwnYk9fIOmKjYdP
+	 l8TJyeQ7bezI7IAA7WSEX4rV+dd3lQ2YPZGSPVRB1OThLU9maEefyHQ3Qy1FsjOJDwnrT
+	 huSi4AHexq/9F2tu3H3kSbjbKlp1tz0pIb2mpxVtUhHmi7CBzGbh3HhYLtZMyZD4jWA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792952867;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792954167;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=Mh5dFoOMS3PFvBK0c6CVtn5720vChxrpeNVPd+FGBTw=;
-	b=h5LWmxmZ7YqjB4PjYscEDZH+U7Rpb7AZEF9S8Un29ReOUkpoxw0ynnnAKl/W6XYcrPx1
-	 w03RX8kjMV1qPL1DY63AHuKNO+g4QREZF3rJeCrBtwFfbEZm7AEx6pofP4fo3L/TCgnJh
-	 X6vlN+3xj8/3MKZ5CDjxO3eH8qfbH5yMiG2JNjZ3mNrPGSQDgrJDbb3v4xVMVvpyr//qt
-	 huT1A87nvh2jwBOKJIPO0sG0kpMVWn+mNY2cG9QqJI8t8Hr6vZnb4PIK8e4wviT1OpgiJ
-	 RwqjkCUCN5Ya96ER+TN7780EfCRSN9pQNY5Nrc0MmdN6zHAQNHs8Aw6LCB086ytGNhQ==
+	bh=M1EYkJThVb8wjj8i/+8/sHy3gmrgSu5C1nsMxL532Tg=;
+	b=xdc4M/4h7OEqaQSSOrkWWRf96YJvDSUNXN06V0tBjyC3pLn088OIitSnhQF+YYerWMm0
+	 mjYKbd/sBjMy3aZIXwjrl6wTwe2+KbST51BdBEjImoCD6Ie61+L2IYhtsbqf4crYjGUmz
+	 ApyssTIXYTojK6J9UmOF7G3tSvqLcX8ZEZzRokBOaERij7RvFoudGAE3hd800KGhxaZ18
+	 UMqTB9VYAsSOkdzwMHRM1UNflt2SpgppS4ZWP20MpGbJI4HXS0bWxeNv55dr+GhTrzV3S
+	 YbwA7RfiwIZZzQlqMjh7lVA7w+XJZ6LeRKRebxn7xTy8G7hSAJRTgjFQ8NQJuJBNOdQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PqfjWbHb;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="fVj0DRC/";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A6C9606A31A;
-	Sun, 25 Oct 2026 18:27:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFDC3606A31B;
+	Sun, 25 Oct 2026 18:49:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PqfjWbHb
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B2F41F01825;
-	Sun, 25 Oct 2026 18:27:46 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fVj0DRC/
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DEAF1F01825;
+	Sun, 25 Oct 2026 18:49:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792952867;
-	bh=Mh5dFoOMS3PFvBK0c6CVtn5720vChxrpeNVPd+FGBTw=;
+	s=k20260515; t=1792954166;
+	bh=M1EYkJThVb8wjj8i/+8/sHy3gmrgSu5C1nsMxL532Tg=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=PqfjWbHbp7LQUfC2jTCzoRsSeoj7+ifstqWaZaHf/+8weXcVAiJ4VFoabyKPPIVYW
-	 cscO90qDX/JqMl7Q2al3fURaXwW9kPEeh+4rusMim8eHv/JmV8qpzXtNhEOKkYX+jv
-	 5lDA82BIhjiRtZGoOzcLoWHenFSOXX7UqxOtRRjIVLF36XuEJ7e8pQQuagKneF235c
-	 bbbTxq/HC5ZPP02BbTMP6U+SrL0yreb4l5FZC6ByayyDKsRgvAcUv7tApD5Z/SuxO5
-	 9BpTSPYESiaGyqnJJbDxUx3NOlRNBZltBSS4eIRDInxuKVOokG2U3J6CzUvL5md1vv
-	 UK3JuzYMVnHyw==
-Subject: Re: [PATCH] net/smc: reject CDC messages after connection teardown
+	b=fVj0DRC/tzuIgNxzI2lqtpDjW7ewxWgaY2iSl3bJPdmbJBI+sKgVzBJGEp3j/ZPLt
+	 WXFo8sREHPRdex9xcZk5K7bM3Er+V8uVOXDmBohouMyq+a/5j5c+rV2NvOvuB/UzLo
+	 SKeGMdKlpVWjfcJu2/dhbph0rfDVASrTKp7iYCez+VFdWMw8BSqp54dSfjV+lsFdeN
+	 X6y/ffdkEi2LPEtA6RAeJ9cRpJh/HMwi/qX9KqLhUmKuetolDgHtyvooiECVId7AZr
+	 BAxtVC670uh6LxkPO8F5LpdyY4nC0slpqJjYh1DL0NLApFsZJNtJxig9obYnkf1AV6
+	 XTaZhz8q044Zg==
+Subject: Re: [PATCH net] net/mlx5e: Fix stalled channels with threaded NAPI
 From: netdev-bot+sashiko@kernel.org
-To: bestswngs@gmail.com
-Cc: alibuda@linux.alibaba.com, dust.li@linux.alibaba.com,
- sidraya@linux.ibm.com, mjambigi@linux.ibm.com, tonylu@linux.alibaba.com,
- guwen@linux.alibaba.com, davem@davemloft.net, edumazet@google.com,
- kuba@kernel.org, pabeni@redhat.com, horms@kernel.org, ubraun@linux.ibm.com,
- kgraul@linux.ibm.com, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org, xmei5@asu.edu,
- stable@vger.kernel.org
-Date: Sun, 25 Oct 2026 18:27:45 +0000
-Message-ID: <179295286564.3134.7940509551259167742@kernel.org>
-In-Reply-To: <20261021171256.166870-2-bestswngs@gmail.com>
-References: <20261021171256.166870-2-bestswngs@gmail.com>
-X-sashiko-severity: High
+To: josef@toxicpanda.com
+Cc: saeedm@nvidia.com, tariqt@nvidia.com, mbloch@nvidia.com, leon@kernel.org,
+ andrew+netdev@lunn.ch, netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+ kuba@kernel.org
+Date: Sun, 25 Oct 2026 18:49:25 +0000
+Message-ID: <179295416566.3134.16050727697220664295@kernel.org>
+In-Reply-To:
+ <20261021-b4-mlx5e-threaded-napi-stall-v1-1-d719c17b3ec4@toxicpanda.com>
+References:
+ <20261021-b4-mlx5e-threaded-napi-stall-v1-1-d719c17b3ec4@toxicpanda.com>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -67,10 +65,10 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 1 potential
+Thank you for your contribution! Sashiko AI review found 2 potential
 issue(s) to consider.
 
-Critical: 0 · High: 1 · Medium: 0 (2) · Low: 0
+Critical: 0 · High: 0 · Medium: 1 · Low: 1
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -78,169 +76,126 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [High] The fix is incomplete, so the use-after-free it targets can
-  still happen.
-
-Pre-existing issues:
-- [Medium] This problem wasn't introduced by this patch, but
-  smc_cdc_rx_handler() has a second post-lookup branch that the new…
-- [Medium] This problem wasn't introduced by this patch, but
-  smc_conn_free() (net/smc/smc_core.c:1279-1280) calls…
+- [Medium] The new predicate in mlx5e_napi_poll() (en_txrx.c:216-217)
+  uses NAPI_STATE_THREADED, which records the configured mode.
+- [Low] The opposite transition has a smaller problem.
 
 --
 
-net/smc: reject CDC messages after connection teardown
+net/mlx5e: Fix stalled channels with threaded NAPI
 
-This patch adds a conn->freed check in smc_cdc_msg_recv() after
-bh_lock_sock(). The goal is to discard CDC messages that passed the
-connection lookup before close(2) tore the connection down. That avoids a
-use-after-free of a registration-failed RMB descriptor released by
-smc_conn_free().
+With this patch, mlx5e_napi_poll() keeps polling when the NAPI is in
+threaded mode, instead of taking the affinity-change path. The changelog
+says that path completes the NAPI and arms the CQs while CQEs are still
+pending, and this can leave a channel stalled after a burst of traffic
+ends.
 
-> diff --git a/net/smc/smc_cdc.c b/net/smc/smc_cdc.c
-> index 32d6d03df3214..499a2473b79b4 100644
-> --- a/net/smc/smc_cdc.c
-> +++ b/net/smc/smc_cdc.c
-> @@ -428,7 +428,8 @@ static void smc_cdc_msg_recv(struct smc_sock *smc, struct smc_cdc_msg *cdc)
->  {
->  	sock_hold(&smc->sk);
->  	bh_lock_sock(&smc->sk);
-> -	smc_cdc_msg_recv_action(smc, cdc);
-> +	if (!smc->conn.freed)
-> +		smc_cdc_msg_recv_action(smc, cdc);
-
-[Severity: High]
-Does this check serialize against smc_conn_free()?
-
-bh_lock_sock() only takes sk->sk_lock.slock. The close path calls
-smc_conn_free() while it owns the socket through lock_sock().
-lock_sock_nested() sets sk_lock.owned and then drops slock, or it takes
-the cmpxchg fast path. Either way, the owner does not hold slock while
-smc_conn_free() runs, and smc_conn_free() never takes slock itself.
-
-The sock_owned_by_user() branch already in smc_cdc_msg_recv_action() also
-shows that this tasklet is expected to run while a process owns the socket.
-
-On SMC-R, could this sequence still happen?
-
-CPU0 (smc_wr_rx tasklet)
-smc_cdc_rx_handler()
-  smc_lgr_find_conn()
-  read_unlock_bh(&lgr->conns_lock)
-  smc_cdc_msg_recv()
-    bh_lock_sock()          /* slock is free */
-    if (!smc->conn.freed)   /* sees 0 */
-      smc_cdc_msg_recv_action()
-
-CPU1 (close, owns the socket via lock_sock())
-smc_release()->__smc_release()->smc_conn_free()
-  conn->freed = 1;
-  smc_cdc_wait_pend_tx_wr()        /* only waits for TX */
-  cancel_work_sync(&conn->abort_work)
-  smc_buf_unuse()->smcr_buf_unuse()->smc_buf_free()
-    /* is_reg_err rmb_desc is kfree()d */
-
-CPU0
-smc_cdc_msg_recv_action()
-  smc_curs_diff(conn->rmb_desc->len, ...)
-
-That last read is the same one shown in the KASAN report. If urgent data is
-present, smc_cdc_handle_urg_data_arrival() also reads
-conn->rmb_desc->cpu_addr.
-
-smc_lgr_unregister_conn() takes write_lock_bh(&lgr->conns_lock). However,
-it runs after smc_buf_unuse() and only waits for the lookup section. The
-tasklet's sock_hold() keeps the smc_sock alive, but it does not protect
-rmb_desc.
-
-On SMC-D, tasklet_kill(&conn->rx_tsklet) in smc_conn_free() drains RX
-processing. There does not seem to be an equivalent on SMC-R.
-
-conn->freed is also written and read without a shared lock, and without
-READ_ONCE()/WRITE_ONCE().
-
-The commit message says:
-
-    Both smc_conn_free() and CDC message processing run under the socket lock.
-
-Is that accurate, given that the two sides use different parts of the
-socket lock?
-
-One option is for smc_conn_free() on SMC-R to set conn->freed under
-bh_lock_sock() / spin_lock_bh(&sk->sk_lock.slock) before it releases any
-buffers. A tasklet that already saw freed == 0 would then finish first.
-Another option is to wait for in-flight RX processing before rmb_desc is
-freed. Would either of these work?
-
->  	bh_unlock_sock(&smc->sk);
->  	sock_put(&smc->sk); /* no free sk in softirq-context */
->  }
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c
+> index 1851056064698..3142e90e68cee 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c
+> @@ -207,7 +207,14 @@ int mlx5e_napi_poll(struct napi_struct *napi, int budget)
+>  				rq);
+>  
+>  	if (busy) {
+> -		if (likely(mlx5e_channel_no_affinity_change(c))) {
+> +		/* A NAPI thread runs where the scheduler puts it, which says
+> +		 * nothing about the affinity of the interrupt. Completing here
+> +		 * would leave the CQEs that are pending to the next interrupt,
+> +		 * and arming the CQs raises none for those, only for a new
+> +		 * completion.
+> +		 */
+> +		if (likely(mlx5e_channel_no_affinity_change(c)) ||
+> +		    test_bit(NAPI_STATE_THREADED, &napi->state)) {
 
 [Severity: Medium]
-This is a pre-existing issue and was not introduced by this patch.
-smc_cdc_rx_handler() has a second path after the lookup that the new check
-does not cover:
 
-net/smc/smc_cdc.c:smc_cdc_rx_handler() {
+NAPI_STATE_THREADED records the configured mode. It does not say whether
+the current poll is running in the NAPI kthread. Can a kthread poll still
+see this bit clear?
+
+When threaded mode is disabled, napi_set_threaded() calls
+napi_stop_kthread(). That function clears THREADED while the kthread
+still owns the NAPI, and only waits for SCHED_THREADED afterwards:
+
+net/core/dev.c:napi_stop_kthread() {
     ...
-	sock_hold(&smc->sk);
-	read_unlock_bh(&lgr->conns_lock);
+		if ((val & NAPIF_STATE_SCHED_THREADED) ||
+		    !(val & NAPIF_STATE_SCHED)) {
+			new = val & (~(NAPIF_STATE_THREADED |
+				       NAPIF_STATE_THREADED_BUSY_POLL));
+    ...
+	/* Once STATE_THREADED is unset, wait for SCHED_THREADED to be unset by
+	 * the kthread.
+	 */
+	while (true) {
+		if (!test_bit(NAPI_STATE_SCHED_THREADED, &napi->state))
+			break;
 
-	if (cdc->prod_flags.failover_validation) {
-		smc_cdc_msg_validate(smc, cdc, link);
-		goto out;
+		msleep(20);
 	}
     ...
 }
 
-smc_cdc_msg_validate() runs without the socket lock and without a
-conn->freed check. If the seqno sent by the peer makes diff < 0, it does
-this:
+During that window, napi_threaded_poll_loop() keeps calling __napi_poll()
+as long as repoll is set, and it never looks at THREADED.
 
-	conn->lnk = link;
-	spin_unlock_bh(&conn->send_lock);
-	sock_hold(&smc->sk); /* sock_put in abort_work */
-	if (!queue_work(smc_close_wq, &conn->abort_work))
+Suppose a busy mlx5e poll runs in the kthread on a CPU outside
+c->aff_mask, which the changelog describes as the usual case. It would
+then fall through to the affinity-change branch:
 
-Suppose the lookup lands while smc_conn_free() is inside smc_buf_unuse().
-That is after cancel_work_sync(&conn->abort_work) and before
-smc_lgr_unregister_conn(), and smc_buf_unuse() can sleep in the LLC
-delete-rkey flow. Can abort_work then be queued after it was already
-cancelled?
+	ch_stats->aff_change++;
+	aff_change = true;
+	if (work_done == budget)
+		work_done--;
 
-If so, smc_conn_abort_work()->smc_conn_kill() reads conn->lgr->is_smcd with
-no freed check. By then smc_conn_free() has dropped the connection's lgr
-and link references through smc_lgr_put() and smcr_link_put(), and
-conn->lgr is never cleared. Could this be a use-after-free of the link
-group if the link group is torn down at the same time?
+napi_complete_done() then clears SCHED and SCHED_THREADED. The CQs are
+armed with CQEs still pending, and no interrupt is forced.
 
-The conn->lnk = link assignment also takes no reference with
-smcr_link_hold(). Could it race with smcr_link_put(conn->lnk) in
-smc_conn_free() and drop the reference on the wrong link?
+Isn't that the same state the changelog blames for the stall? If traffic
+stops right then and the RQ is dry, the channel could stall the same way.
 
-The commit message says "Discard messages which passed the lookup before
-teardown", but only the smc_cdc_msg_recv() path does that.
+Would NAPI_STATE_SCHED_THREADED be a better test here? It marks that the
+kthread owns the current poll.
 
-[Severity: Medium]
-This is also a pre-existing issue and was not introduced by this patch.
-smc_conn_free() ignores the return value of cancel_work_sync():
+[Severity: Low]
 
-net/smc/smc_core.c:smc_conn_free() {
+The opposite transition seems to have a smaller problem. When threaded
+mode is enabled, napi_set_threaded() sets THREADED right away, even if
+the NAPI is being polled in softirq at that moment:
+
+net/core/dev.c:napi_set_threaded() {
     ...
-		smc_cdc_wait_pend_tx_wr(conn);
-		if (current_work() != &conn->abort_work)
-			cancel_work_sync(&conn->abort_work);
+	/* Setting/unsetting threaded mode on a napi might not immediately
+	 * take effect, if the current napi instance is actively being
+	 * polled. In this case, the switch between threaded mode and
+	 * softirq mode will happen in the next round of napi_schedule().
+    ...
+		napi_set_threaded_state(napi, threaded);
     ...
 }
 
-smc_cdc_msg_validate() calls sock_hold() before it queues abort_work. The
-only matching sock_put() is in smc_conn_abort_work():
+____napi_schedule() checks THREADED only at schedule time. A NAPI that is
+already on a softirq poll_list therefore keeps being repolled by
+net_rx_action() with THREADED set.
 
-	sock_put(&smc->sk); /* sock_hold done by schedulers of abort_work */
+Suppose the IRQ affinity changes around the same time, so the softirq
+poll runs on a CPU outside c->aff_mask. The new test is then true, so
+mlx5e_napi_poll() returns budget and the NAPI is repolled on the same
+CPU.
 
-If abort_work is still pending when smc_conn_free() cancels it, the callback
-never runs. Does that leak the smc_sock reference taken in
-smc_cdc_msg_validate(), so the socket is never freed?
+That skips the complete-and-arm step. That step would move the poll to
+the IRQ's new CPU, and the next schedule would hand the NAPI to the
+kthread.
+
+Does NAPI processing then stay on the old CPU, with the switch to
+threaded mode put off until the queue goes idle? Testing
+NAPI_STATE_SCHED_THREADED instead of NAPI_STATE_THREADED looks like it
+would cover this case as well.
+
+>  			work_done = budget;
+>  			goto out;
+>  		}
 
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261021171256.166870-2-bestswngs%40gmail.com
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261021-b4-mlx5e-threaded-napi-stall-v1-1-d719c17b3ec4%40toxicpanda.com
