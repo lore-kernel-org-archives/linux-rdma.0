@@ -1,57 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792893507;
-	b=1m1UbrStljuQJAjgViBKuHebFYzcjlEsw1dpH/JDxIq+KcxZAnGw5hilAzNjICny8LLt
-	 5YKJHL72CkxiA/bG4A9ci9s6V//KXOUL+pH6DptxTl1nlbCuzuIdHm11/evr4dLDU+TN7
-	 gBf4NpYJfo+ToIEB+B9smsMkrusjW9Y8DIvl3MTptbxLSNn9BW6ArtvXZpCj+5uvz5hAU
-	 rs4iPlxjd19JPvr4T0fBKlkmAUHblhpFc5ATOGbsQPOaFbDbW4Vj5nSRsHCV/+srUHsWI
-	 FE8PuiFDrPMmxFZviLGyE/m0nUtiLKjwyfE61OmdOstwjcLVRlSYmim0Syh1GrhEhcA==
+	t=1792893538;
+	b=hGEwKZpwmU/FdE5rPhV3rOyNeCFgC9EWw+9ti2Ornro3syvxlyUtwL2KrMQw3hzNokBs
+	 pMRrJ6KO1DECLvrmvVo2B6k5NOQjJpVJv4xXWEiXrMfFK48VwuqQ4UTK4PKp7lOvOLgMn
+	 VVUwZ/BXIlX7VnkLyw5rrMtJ3k9zdYnGh3XQu70nStC8ePszKBdmOKkC5SLYP2hjTBAHj
+	 nR+qY/B+ftRQW8R+sknQQDjw2m00y8IA2HoBJb2CgHoIMuj34uqnyxxr5mdwDqAMaI2Kx
+	 Q7W/Q7H32A4jJ+mCH/lApPxprQTOU7y0axQFUjeIbrIGueexLnaNc8wHFYlSgjYmJ+g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792893507;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792893538;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=5jz6WKd/i6bnrMQJ2hEQzzW6vx0AJHimdZs1HuvQ4B8=;
-	b=Az5kxOSO63zBT8//uQAVgmdmulxAGGGDatHCJ5eVqCftnn4c3IRTBFpNbvMrHcy4lE/m
-	 QyMg5xwLY1IFZtEgFNzNYTTw+CisZITA/9iKizZLDD3keK55Ca2Pe6T9T3FFf50BAlEAW
-	 Ww1k3UZH22mP4a4nat/vsrpoW+lVhJD5Vmp+CtjAS2ciQ2asejk0qX1yTwLgxEYT0B+Oz
-	 2piFr8a+xZiUtN4nB3CawLNAkYYi3DKvyIbn0ZogQSZ0WzCoy8uzV+raWnCdzEeJBTu+u
-	 9mBy+iQGPz5Pfz7Jqj7a9lmw8S3oIN55/kzp1RIoO92oC2VhPid8N2pl77509c5JWGw==
+	bh=UOuKnNrxCYDoTnewNzAmCRN7Mdk6NhglfhFG7gSMrUk=;
+	b=1ImbyZyf5X9j632aBgB2gknaRt2bFN3ltzOBic91uzx/isMpw2DCA51uo/Fi5symEI9L
+	 NorXjDe8BUUCuFTgj5FcU4y9k0xelZKzdUDiF1keg4Lx4f7gy8KjI78CpqblMhNosR45A
+	 XnvNYrJkKt+K0o3q84fhLjnaIhZcNKxGNtIyMfWE7w5s7azyYh73oQZtsDDtlGNEX8jwx
+	 6lRs38XWIqqYnwg2sRTiqyqNbQBn5MfwuczqHBF84aVzT+0XbrSbqXJuHvGU0mk5q9mjg
+	 UJ7ooqckADDl53VoHX8ST4QoIAYAPL0JNrxUz/ICY7c+IGj3+PMQkoItKFB60RvjqtA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OhFUaVIX;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DhHiXay7;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 935D9606A31A
-	for <linux-rdma@vger.kernel.org>; Sun, 25 Oct 2026 01:58:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25D24606A31B
+	for <linux-rdma@vger.kernel.org>; Sun, 25 Oct 2026 01:58:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OhFUaVIX
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 053D21F01825;
-	Sun, 25 Oct 2026 01:58:26 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DhHiXay7
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5F261F01825;
+	Sun, 25 Oct 2026 01:58:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792893507;
-	bh=5jz6WKd/i6bnrMQJ2hEQzzW6vx0AJHimdZs1HuvQ4B8=;
+	s=k20260515; t=1792893537;
+	bh=UOuKnNrxCYDoTnewNzAmCRN7Mdk6NhglfhFG7gSMrUk=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=OhFUaVIXelJIprDPDBj0ODFTzznERoObXP0ypmoLF6c6o7TzQcZwAYTwy3SfN/3AO
-	 iLd35Y/FTORwS9BuNCyY5NQ/8Tdfo3NyFBtuJDpa4DtgA3LfPjZdurLSzVgZI94tEY
-	 zsUIeBUx5dNO4FO97twII7rYDylqsbOFmaVIKstIxZ+O3HuQ7clVDPFY3iOjRkNLLH
-	 HQAGkqsUiMTcqYzOocLzUf0FlDtL/q0EluFpA6W7+xnuFWScrfsc7dVu1lY8cyn0t+
-	 d7h38G1esrs76dOtrNRGpX8xa/nQ/hxomnyi7Y0q+Bo6ZdFrjHllWa7kM/d+a5lhfa
-	 /QxxDZfuMN51g==
-Message-ID: <sashiko-outbox-183972@kernel.org>
+	b=DhHiXay7MEUn44shfma84MPC/rytwLewpb0N7wFSvIn749wa4SReiVVtD3TSSUQIA
+	 Vnk69rB77ZvlIZeNNDasEo/C2CadYKwKvwHp+P08F3zfDD0gsler53lnaFBU64vt/z
+	 8XpX4Bb6D+4Sq08U7M+pLsdlS6zGXpfB87J00XVR2kuSTZqct46+a+Lx2+YjbycP/h
+	 qqnrxPGFw6VLGjYf7egZJ7AQnJiYhimE9fDzkAm0bUyul840ltV5ZYlIIz5golyrcN
+	 ioXd3N3BZ/3C6xpMu2AivzifsdfVBk9TPQMENd9NXhnZE93IXGc37Kz9HfgS8JF9Eq
+	 SDeWrnsZTFjxQ==
+Message-ID: <sashiko-outbox-183973@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v5 3/3] RDMA/srpt: widen the indirect RDMA context
- counters
+Subject: Re: [PATCH v5 2/3] RDMA/srpt: reject zero-length buffer descriptors
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Yehyeong Lee" <yhlee@isslab.korea.ac.kr>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261025013748.3755639-4-yhlee@isslab.korea.ac.kr>
+In-Reply-To: <20261025013748.3755639-3-yhlee@isslab.korea.ac.kr>
 References: <20261025013748.3755639-1-yhlee@isslab.korea.ac.kr>
- <20261025013748.3755639-4-yhlee@isslab.korea.ac.kr>
+ <20261025013748.3755639-3-yhlee@isslab.korea.ac.kr>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Sun, 25 Oct 2026 01:58:26 +0000
+Date: Sun, 25 Oct 2026 01:58:57 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,35 +60,34 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> srpt_send_ioctx::n_rdma and ::n_rw_ctx are u8, and neither of the values
-> stored in them is bounded by 255.
+> srpt_alloc_rw_ctxs() takes each buffer descriptor length straight from the
+> wire and hands it to target_alloc_sgl(), which has no length check of its
+> own.
 >=20
-> n_rw_ctx counts the INDIRECT descriptors a command carries, and the count
-> guard in srpt_get_desc_tbl() admits data_out_desc_cnt plus
-> data_in_desc_cnt, so up to 510. At 256 descriptors n_rw_ctx wraps to
-> zero, and srpt_release_cmd() frees the contexts only when it is non-zero,
-> so every scatterlist and RDMA context the command allocated leaks.
+> For the single descriptor of a DIRECT request, and for the last descriptor
+> of an INDIRECT table, chainable is false, so a zero length makes
+> sgl_alloc_order() compute nalloc zero. kmalloc_objs() answers that with
+> ZERO_SIZE_PTR, which is not NULL, so the allocation looks like it
+> succeeded and sg_init_table(sgl, 0) runs. That reaches sg_init_marker(),
+> which does sg_mark_end(&sgl[nents - 1]) with nents unsigned, so the index
+> is 4294967295 rather than minus one and the read modify write of page_link
+> lands far outside any allocation.
 >=20
-> n_rdma is not a descriptor count at all. It is the sum of the
-> rdma_rw_ctx_init() return values, which is the number of work requests
-> each context needs, accumulated by ioctx->n_rdma +=3D ret. A handful of
-> descriptors for large transfers can pass 255 on their own, with no
-> unusual descriptor count involved. A wrapped n_rdma is then handed to
-> atomic_sub_return(ioctx->n_rdma, &ch->sq_wr_avail) and tested by
-> WARN_ON(ioctx->n_rdma <=3D 0), so the send queue work request accounting
-> drifts too.
->=20
-> Make both counters int, the type the values they accumulate already have.
+>   Oops: general protection fault, probably for non-canonical address 0xdf=
+fffc03fffffffe: 0000 [#1] KASAN PTI
+>   KASAN: probably user-memory-access in range [0x0000001ffffffff0-0x00000=
+01ffffffff7]
+> [ ... ]
+> been allocated yet.
 >=20
 > Fixes: b99f8e4d7bcd ("IB/srpt: convert to the generic RDMA READ/WRITE API=
 ")
 > Cc: stable@vger.kernel.org
-> Reviewed-by: Bart Van Assche <bvanassche@acm.org>
 > Signed-off-by: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
 
 Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261025013748.3755=
-639-1-yhlee@isslab.korea.ac.kr?part=3D3
+639-1-yhlee@isslab.korea.ac.kr?part=3D2
 
