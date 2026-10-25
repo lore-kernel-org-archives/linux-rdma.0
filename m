@@ -1,57 +1,66 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=199.89.1.16
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792929567;
-	b=WDbG1WGyCfVKAXnf38BClZpQA60m5HXZEKPj71Q0TOfoGhUPEaX80lAJuhwFKWugU2od
-	 PnIQIuP0uLQd9ep+TS/NnQQMUPL2HQOeDttVVfCkEmYpdooMe8REMW7E+nQw9E4KFp1lL
-	 whEKAq19HYw8kV8uqBTntvwfitvmnznSVdlJitgRf41MDBVcAGQQJXCikY6j/uvSMQSo5
-	 g+aqhwWItevAbJmbQqfgqgbXjSv9VSKZNhctSqQTJMwyRJEI5ehniANPormTocZoII5p8
-	 9jWv5RP7gwwjnWBEnmJop8c4iNtIducPKgBQyZa9gu1VNErdfa0OCVt6IqAkkSF6ntQ==
+	t=1792937906;
+	b=24ZHgLoYzW2ygwzBrWPINiS9yrsw7CJp37DGn2j8JNBk/VoZAebqyqpW+1xLKoH/BDDz
+	 2/707g5FMhFYlpDKmuotNolT2boH6G97RBMXU7QsEKDNX6pLmRRPyTjATDuirhlUF08vQ
+	 WXqjN0X2x/mztJePu4NcSpkjzi4jU3KiXA1K24lTGbQmHWXRnhTxwrgXpR6yQdFdhkuo5
+	 QuIp73eiP6xw1D1Ze9/gLA6xAxTXIGlSGfiM/2ejiaju9JjOJQzoN8w13pUGKbrm/UUov
+	 2O2vJ8P2tMMe6GkBEQy59BxzpwwSls8z+8rablIaZPAzxpR6xVBv5Z1ztZqA1MBxusg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792929567;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=Erc+ZGrxH0i24aCGh5xLKb7j3oxCPK1bFcBbkVeaLKs=;
-	b=pXv+pCPtASVCAOZrDq0mBUZybArErQIQ5zsXL3FlCpPp6/KnATFQBZ9pFnHs8ZbqvgX1
-	 5V7WQ+s6+Z0wCOvq2hpIcFyWR+WHZgapUHfOJuq/5hN/karQnh8ugZfeX9WwcMlBRPZM7
-	 aivo6SyuBuFnEFye1jMCeemAcmDYrc04AqG4epaS5QT1TSloVy/5e32/oiMm3lGvEX7PF
-	 36fl1ylUPeD8SFkk1DkVGplh3ECTo1e7VPea6Kkc/TuZa8f5RzseqZlI6fE/jqiym5miK
-	 eE3q/gubjAlF0HV1Q4aToK0N29uDuUwbSCMXHVS4bTS4iKnKm2PzDgPLZhvOfp1jqOA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792937906;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Virus-Scanned:Received:
+	 Received:Message-ID:Date:MIME-Version:User-Agent:Subject:To:Cc:
+	 References:Content-Language:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=1jP9LR4qPl3i+2W7AG1phxkIUNhYD6OyLXs6hxnZ+u0=;
+	b=YVXFQlj5bhDnRcFKvielnDpgmuVA5qTz3vHTlq780RCuHDSbmDQ17ZFsdQxlhKccA1vd
+	 bIE2jxkUAURAi0SVAEFP12+sTW5kx6Qezpp/TV2DlrBpoQPcN34L6Zz0onllynLzoZNks
+	 ccGe822n+7glu6MbRxNyaYOkU7dyh0etlIkp/EWYU/xFgvhqg/kBWW57dzdc0YHCQ7VkB
+	 c8h0fACm2CAs2Kd5/fP5823FyZFAzcX8NSZfuFUn/+p5WnMxYv7MtmMYxjThCwtWuzGPq
+	 RLbM/X8H2i5p/fLuyHKwe5BXFpqCmrOaqQhunr/Qqym356uMFQrq5cy9FiRxq8WKJUA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TXHe4b+Q;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=acm.org;
+	spf=pass smtp.mailfrom=acm.org;
+	dkim=pass header.d=acm.org header.i=@acm.org header.a=rsa-sha256 header.s=mr01 header.b=PBypsm2a;
+	arc=none smtp.remote-ip=199.89.1.16
+Received: from 013.lax.mailroute.net (013.lax.mailroute.net [199.89.1.16])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49005606A31A
-	for <linux-rdma@vger.kernel.org>; Sun, 25 Oct 2026 11:59:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57506606A31A;
+	Sun, 25 Oct 2026 14:18:26 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 57506606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=acm.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=acm.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TXHe4b+Q
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB28C1F01825;
-	Sun, 25 Oct 2026 11:59:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792929566;
-	bh=Erc+ZGrxH0i24aCGh5xLKb7j3oxCPK1bFcBbkVeaLKs=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=TXHe4b+QlAFTqQ971GIvgv3WwKKT/11UQ8uWqz4vm5x39p+lVMmz4SdyN7Qi8CoI1
-	 ujFw4PN2qjXXmJ/39oYgTZXWHeczOEowpD/T9+P+yXqMJL7p5nqBmzAWJG3q/rzld3
-	 +rNufM1P79L3ZYZX9xpdEJkh4q1a9WdMsrrSiCBHieDSzgDS07eQjP3W6oCwH+31nQ
-	 NK9YsHTGX1EwLP6W09PRL3zbrrzhFDX12qVWIykjw/a5pjASCmJBY/HvcF5huEnDmX
-	 fcZhUvqetLa+YLrlpCDWn09wkiXd2d31dVYtaM0XHDN10yjgoKmm5Y34pcQ0Ia+4o9
-	 bG1RCkELqmlCQ==
-Message-ID: <sashiko-outbox-184200@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH 1/2] RDMA/srp: refuse a target that cannot receive an
- SRP_RSP
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Yehyeong Lee" <yhlee@isslab.korea.ac.kr>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261025114155.4007867-2-yhlee@isslab.korea.ac.kr>
-References: <20261025114155.4007867-1-yhlee@isslab.korea.ac.kr>
- <20261025114155.4007867-2-yhlee@isslab.korea.ac.kr>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Sun, 25 Oct 2026 11:59:26 +0000
+	dkim=pass (2048-bit key, unprotected) header.d=acm.org header.i=@acm.org header.a=rsa-sha256 header.s=mr01 header.b=PBypsm2a
+Received: from localhost (localhost [127.0.0.1])
+	by 013.lax.mailroute.net (Postfix) with ESMTP id 4jCJkz2xhBzlfvps;
+	Sun, 25 Oct 2026 14:18:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acm.org; h=
+	content-transfer-encoding:content-type:content-type:in-reply-to
+	:from:from:content-language:references:subject:subject
+	:user-agent:mime-version:date:date:message-id:received:received;
+	 s=mr01; t=1792937896; x=1795529897; bh=1jP9LR4qPl3i+2W7AG1phxkI
+	UNhYD6OyLXs6hxnZ+u0=; b=PBypsm2aE4uyXUYFQ1Lu+zEFaRKe9hwPzl8huodj
+	MQ/JfZnUNnHtT+jpvMmZ+4Hx+W+bpmvrvtm5z16slnOOwL5Rq9OoA24v6g9r37dS
+	JEepcJK7gT/LIy4y0cbLJylPY49M2ax8BJAVA4/8W6QvUM/fT7iveuoOIUTFmM2i
+	Y+NQmV1d3YVq7f25HIWq0DVq6JEgvEQyEMKhT6kaiWu1sQdPFsMpdy0XCzayZJnN
+	sK4SkB1TZ4AZvSeB53sjB5jT9kxzNJMrNAEJW+SnGyavfTWmsFiIAYEBTAZTtgdH
+	vubRHnDwQcFIalsUhaKN/nZgMED1e4rvNr9q6RRF0nhXmg==
+X-Virus-Scanned: by MailRoute
+Received: from 013.lax.mailroute.net ([127.0.0.1])
+ by localhost (013.lax [127.0.0.1]) (mroute_mailscanner, port 10029) with LMTP
+ id egaML7tfjA0s; Sun, 25 Oct 2026 14:18:16 +0000 (UTC)
+Received: from [192.168.51.14] (c-24-6-239-25.hsd1.ca.comcast.net [24.6.239.25])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: bvanassche@acm.org)
+	by 013.lax.mailroute.net (Postfix) with ESMTPSA id 4jCJkv73kBzlfvpN;
+	Sun, 25 Oct 2026 14:18:15 +0000 (UTC)
+Message-ID: <1197df7c-f083-4b25-abfa-41cb4954a2cb@acm.org>
+Date: Sun, 25 Oct 2026 07:18:15 -0700
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,32 +69,57 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 1/2] RDMA/srp: refuse a target that cannot receive an
+ SRP_RSP
+To: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+Cc: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>,
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+ stable@vger.kernel.org
+References: <20261025114155.4007867-1-yhlee@isslab.korea.ac.kr>
+ <20261025114155.4007867-2-yhlee@isslab.korea.ac.kr>
+Content-Language: en-US
+From: Bart Van Assche <bvanassche@acm.org>
+In-Reply-To: <20261025114155.4007867-2-yhlee@isslab.korea.ac.kr>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> srp_cm_rep_handler() takes max_ti_iu_len straight from the target's
-> SRP_LOGIN_RSP and srp_alloc_iu_bufs() then sizes every receive IU with it,
-> so the target alone decides how large the initiator's receive buffers are.
-> Nothing enforces a lower bound.
->=20
-> The initiator parses a 36 byte header out of those buffers. A target that
-> reports a smaller max_ti_iu_len gets undersized buffers, and the header
-> reads in srp_process_rsp() then run past the allocation. A report of zero
-> is worse, because kzalloc() answers it with ZERO_SIZE_PTR, and on a
-> transport that maps addresses virtually ib_dma_map_single() returns that
-> pointer without looking at the length and ib_dma_mapping_error() reports
-> success, so the buffer reaches srp_recv_done() and the read of the opcode
-> is already out of bounds.
->=20
->   BUG: KASAN: slab-out-of-bounds in srp_process_rsp+0x757/0xbe0
-> [ ... ]
-> cannot speak the protocol, so nothing that works today is turned away.
->=20
-> Fixes: aef9ec39c47f ("IB: Add SCSI RDMA Protocol (SRP) initiator")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
 
-Sashiko has reviewed this patch and found no issues.
+On 10/25/26 4:41 AM, Yehyeong Lee wrote:
+> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+> index 5811f02df9805..a85d28b95306a 100644
+> --- a/drivers/infiniband/ulp/srp/ib_srp.c
+> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
+> @@ -2379,6 +2379,13 @@ static void srp_cm_rep_handler(struct ib_cm_id *cm_id,
+>   
+>   	if (lrsp->opcode == SRP_LOGIN_RSP) {
+>   		ch->max_ti_iu_len = be32_to_cpu(lrsp->max_ti_iu_len);
+> +		if (ch->max_ti_iu_len < sizeof(struct srp_rsp)) {
+> +			shost_printk(KERN_ERR, target->scsi_host, PFX
+> +				     "Target reported max_ti_iu_len %u, too small for a %zu byte SRP_RSP\n",
+> +				     ch->max_ti_iu_len, sizeof(struct srp_rsp));
+> +			ret = -ECONNRESET;
+> +			goto error;
+> +		}
+>   		ch->req_lim       = be32_to_cpu(lrsp->req_lim_delta);
+>   		ch->use_imm_data  = srp_use_imm_data &&
+>   			(lrsp->rsp_flags & SRP_LOGIN_RSP_IMMED_SUPP);
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261025114155.4007=
-867-1-yhlee@isslab.korea.ac.kr?part=3D1
+Is this change perhaps incomplete? When reconnecting. 
+srp_cm_rep_handler() only allocates the receive buffers when ch->rx_ring
+== NULL. srp_rport_reconnect() calls srp_create_ch_ib() and the latter
+function keeps rx_ring, but ch->max_ti_iu_len is overwritten from each
+new SRP_LOGIN_RSP. If a target reports a larger value on reconnect,
+srp_recv_done() calls ib_dma_sync_single_for_{cpu,device}(dev, iu->dma,
+ch->max_ti_iu_len, ...) past the mapped length. That breaks the DMA API
+rules. The HCA itself can't overrun, because srp_post_recv() uses
+iu-> size. Since the series is about bounding the receive IU size,
+please make one of these additional changes:
+* use iu->size in the two sync calls in srp_recv_done(), or
+* on reconnect, refuse (or reallocate for) a max_ti_iu_len larger than 
+the existing rx_ring[0]->size.
 
+Thanks,
+
+Bart.
