@@ -1,66 +1,66 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=199.89.1.16
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=199.89.1.14
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792937906;
-	b=24ZHgLoYzW2ygwzBrWPINiS9yrsw7CJp37DGn2j8JNBk/VoZAebqyqpW+1xLKoH/BDDz
-	 2/707g5FMhFYlpDKmuotNolT2boH6G97RBMXU7QsEKDNX6pLmRRPyTjATDuirhlUF08vQ
-	 WXqjN0X2x/mztJePu4NcSpkjzi4jU3KiXA1K24lTGbQmHWXRnhTxwrgXpR6yQdFdhkuo5
-	 QuIp73eiP6xw1D1Ze9/gLA6xAxTXIGlSGfiM/2ejiaju9JjOJQzoN8w13pUGKbrm/UUov
-	 2O2vJ8P2tMMe6GkBEQy59BxzpwwSls8z+8rablIaZPAzxpR6xVBv5Z1ztZqA1MBxusg==
+	t=1792938053;
+	b=OMbxJmYH1h5Dxv/zScdaR4APbZ4OnYJSd8gDOg1Q+R4/WbdplgahfnVxHz3t7LuxE0Fw
+	 adbKT41l46Xa4fJ4Ir5hCDc9STAobASKZA87h3JkcP8yYTBPx3cQvY0EF/4qtNjFck2mS
+	 zdMyAnS/YynUd/2urt9k57dAD3Dvv+MVSfbJGc5dF/StbwXAKr5ikfhjqrB/OuxHaRR0D
+	 KOBwrDpWZ0JR1ssp5vN9mQ9zwV9r9EKUMrO0cdEwvHIBB42ZddehG/hYLJTV6KwqfwXvp
+	 cOkuy2/hkzlMCc7I3TPr/okHztaGIBOT9j73/e/BaLa6gElfK1wMvBeowfZdPjRPMmg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792937906;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792938053;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Virus-Scanned:Received:
 	 Received:Message-ID:Date:MIME-Version:User-Agent:Subject:To:Cc:
 	 References:Content-Language:From:In-Reply-To:Content-Type:
 	 Content-Transfer-Encoding;
-	bh=1jP9LR4qPl3i+2W7AG1phxkIUNhYD6OyLXs6hxnZ+u0=;
-	b=YVXFQlj5bhDnRcFKvielnDpgmuVA5qTz3vHTlq780RCuHDSbmDQ17ZFsdQxlhKccA1vd
-	 bIE2jxkUAURAi0SVAEFP12+sTW5kx6Qezpp/TV2DlrBpoQPcN34L6Zz0onllynLzoZNks
-	 ccGe822n+7glu6MbRxNyaYOkU7dyh0etlIkp/EWYU/xFgvhqg/kBWW57dzdc0YHCQ7VkB
-	 c8h0fACm2CAs2Kd5/fP5823FyZFAzcX8NSZfuFUn/+p5WnMxYv7MtmMYxjThCwtWuzGPq
-	 RLbM/X8H2i5p/fLuyHKwe5BXFpqCmrOaqQhunr/Qqym356uMFQrq5cy9FiRxq8WKJUA==
+	bh=RN69ObHxi3X/sOau5NnEyuslwHR1tK+r4/i/ywS22wU=;
+	b=OGGsYlssHgYnhdrERTO+UFs4qaF6oPyZNOLls9ulBogoq/cqgtV9IbTSeQNIoh1QB1Ts
+	 3MtCyXQZI02CE1fXhOR2mnmsolu7kOJulrJBgYnuJhwT2wfelnAVNZ1YcbY0MtYQUDSgi
+	 ZtUHCTxsKDfK7FhxN0lxGigD0Y2YXAKfAmi41d7kXHiCMiO3tzHlTVWIW0uK9kGFNic+Y
+	 4uIRglO0Q2DD0gFJ2wF4mQXoZMYwtvAqsXvWzB0afUaPTaq32dbTiAq0exI9pEeEANfic
+	 chrs2p4ExR0Dh+81g+1eevJZJd6rBWohnNOaexk174+CjzgKOa6H+8QoN7MkUVapkfw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=acm.org;
 	spf=pass smtp.mailfrom=acm.org;
-	dkim=pass header.d=acm.org header.i=@acm.org header.a=rsa-sha256 header.s=mr01 header.b=PBypsm2a;
-	arc=none smtp.remote-ip=199.89.1.16
-Received: from 013.lax.mailroute.net (013.lax.mailroute.net [199.89.1.16])
+	dkim=pass header.d=acm.org header.i=@acm.org header.a=rsa-sha256 header.s=mr01 header.b=oJYdYZQQ;
+	arc=none smtp.remote-ip=199.89.1.14
+Received: from 011.lax.mailroute.net (011.lax.mailroute.net [199.89.1.14])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57506606A31A;
-	Sun, 25 Oct 2026 14:18:26 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 57506606A31A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A6C5606A31A;
+	Sun, 25 Oct 2026 14:20:53 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2A6C5606A31A
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=acm.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=acm.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=acm.org header.i=@acm.org header.a=rsa-sha256 header.s=mr01 header.b=PBypsm2a
+	dkim=pass (2048-bit key, unprotected) header.d=acm.org header.i=@acm.org header.a=rsa-sha256 header.s=mr01 header.b=oJYdYZQQ
 Received: from localhost (localhost [127.0.0.1])
-	by 013.lax.mailroute.net (Postfix) with ESMTP id 4jCJkz2xhBzlfvps;
-	Sun, 25 Oct 2026 14:18:19 +0000 (UTC)
+	by 011.lax.mailroute.net (Postfix) with ESMTP id 4jCJnp2pn2z1XM30g;
+	Sun, 25 Oct 2026 14:20:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acm.org; h=
 	content-transfer-encoding:content-type:content-type:in-reply-to
 	:from:from:content-language:references:subject:subject
 	:user-agent:mime-version:date:date:message-id:received:received;
-	 s=mr01; t=1792937896; x=1795529897; bh=1jP9LR4qPl3i+2W7AG1phxkI
-	UNhYD6OyLXs6hxnZ+u0=; b=PBypsm2aE4uyXUYFQ1Lu+zEFaRKe9hwPzl8huodj
-	MQ/JfZnUNnHtT+jpvMmZ+4Hx+W+bpmvrvtm5z16slnOOwL5Rq9OoA24v6g9r37dS
-	JEepcJK7gT/LIy4y0cbLJylPY49M2ax8BJAVA4/8W6QvUM/fT7iveuoOIUTFmM2i
-	Y+NQmV1d3YVq7f25HIWq0DVq6JEgvEQyEMKhT6kaiWu1sQdPFsMpdy0XCzayZJnN
-	sK4SkB1TZ4AZvSeB53sjB5jT9kxzNJMrNAEJW+SnGyavfTWmsFiIAYEBTAZTtgdH
-	vubRHnDwQcFIalsUhaKN/nZgMED1e4rvNr9q6RRF0nhXmg==
+	 s=mr01; t=1792938043; x=1795530044; bh=RN69ObHxi3X/sOau5NnEyusl
+	wHR1tK+r4/i/ywS22wU=; b=oJYdYZQQw1LjVm2zakRcbjLrC6mnVfjOumC94Gfg
+	sXUM8pufKmvr37drSBh6foA/Y07q4rdapoEgQnnxG4U+iLlL5bdup/QMn8u/6sEy
+	4HAKx5OezzjJWkFpAUf03P5027q2zK4y16r8/hMnV6u4dpJDAkgFt4lLY/UO/xnQ
+	m/JV58lyBn6LyUfbZ5+PQzIe0yRJ5ybxr1y+zfOnfwcw9jo30McRNL/lb7z7Lnqo
+	hhw195k8OahcZ5J/Fsk5kqu3kgve2u2BTK98C1s5SlHrar2HMt7NEA5JQLHD9MXf
+	TlOebnJIMf6zXtG6rz6HTWSRpkQDki7D7QD8oFK05KMRAQ==
 X-Virus-Scanned: by MailRoute
-Received: from 013.lax.mailroute.net ([127.0.0.1])
- by localhost (013.lax [127.0.0.1]) (mroute_mailscanner, port 10029) with LMTP
- id egaML7tfjA0s; Sun, 25 Oct 2026 14:18:16 +0000 (UTC)
+Received: from 011.lax.mailroute.net ([127.0.0.1])
+ by localhost (011.lax [127.0.0.1]) (mroute_mailscanner, port 10029) with LMTP
+ id KQ_r8W8dzc0n; Sun, 25 Oct 2026 14:20:43 +0000 (UTC)
 Received: from [192.168.51.14] (c-24-6-239-25.hsd1.ca.comcast.net [24.6.239.25])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
 	(Authenticated sender: bvanassche@acm.org)
-	by 013.lax.mailroute.net (Postfix) with ESMTPSA id 4jCJkv73kBzlfvpN;
-	Sun, 25 Oct 2026 14:18:15 +0000 (UTC)
-Message-ID: <1197df7c-f083-4b25-abfa-41cb4954a2cb@acm.org>
-Date: Sun, 25 Oct 2026 07:18:15 -0700
+	by 011.lax.mailroute.net (Postfix) with ESMTPSA id 4jCJnl2qvjz1XM4Tl;
+	Sun, 25 Oct 2026 14:20:43 +0000 (UTC)
+Message-ID: <7b6a0aba-9068-4ff0-8e4f-76f05ee25bfd@acm.org>
+Date: Sun, 25 Oct 2026 07:20:42 -0700
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -71,54 +71,40 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/2] RDMA/srp: refuse a target that cannot receive an
- SRP_RSP
+Subject: Re: [PATCH 2/2] RDMA/srp: drop a truncated SRP_RSP
 To: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
 Cc: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>,
  linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
  stable@vger.kernel.org
 References: <20261025114155.4007867-1-yhlee@isslab.korea.ac.kr>
- <20261025114155.4007867-2-yhlee@isslab.korea.ac.kr>
+ <20261025114155.4007867-3-yhlee@isslab.korea.ac.kr>
 Content-Language: en-US
 From: Bart Van Assche <bvanassche@acm.org>
-In-Reply-To: <20261025114155.4007867-2-yhlee@isslab.korea.ac.kr>
+In-Reply-To: <20261025114155.4007867-3-yhlee@isslab.korea.ac.kr>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-
 On 10/25/26 4:41 AM, Yehyeong Lee wrote:
 > diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-> index 5811f02df9805..a85d28b95306a 100644
+> index a85d28b95306a..d891029087b7e 100644
 > --- a/drivers/infiniband/ulp/srp/ib_srp.c
 > +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-> @@ -2379,6 +2379,13 @@ static void srp_cm_rep_handler(struct ib_cm_id *cm_id,
+> @@ -1946,6 +1946,12 @@ static void srp_process_rsp(struct srp_rdma_ch *ch, struct srp_rsp *rsp,
+>   	struct scsi_cmnd *scmnd;
+>   	unsigned long flags;
 >   
->   	if (lrsp->opcode == SRP_LOGIN_RSP) {
->   		ch->max_ti_iu_len = be32_to_cpu(lrsp->max_ti_iu_len);
-> +		if (ch->max_ti_iu_len < sizeof(struct srp_rsp)) {
-> +			shost_printk(KERN_ERR, target->scsi_host, PFX
-> +				     "Target reported max_ti_iu_len %u, too small for a %zu byte SRP_RSP\n",
-> +				     ch->max_ti_iu_len, sizeof(struct srp_rsp));
-> +			ret = -ECONNRESET;
-> +			goto error;
-> +		}
->   		ch->req_lim       = be32_to_cpu(lrsp->req_lim_delta);
->   		ch->use_imm_data  = srp_use_imm_data &&
->   			(lrsp->rsp_flags & SRP_LOGIN_RSP_IMMED_SUPP);
+> +	if (byte_len < sizeof(*rsp)) {
+> +		shost_printk(KERN_ERR, target->scsi_host, PFX
+> +			     "dropping truncated SRP_RSP (%u bytes)\n", byte_len);
+> +		return;
+> +	}
+> +
+>   	if (unlikely(rsp->tag & SRP_TAG_TSK_MGMT)) {
+>   		spin_lock_irqsave(&ch->lock, flags);
+>   		ch->req_lim += be32_to_cpu(rsp->req_lim_delta);
 
-Is this change perhaps incomplete? When reconnecting. 
-srp_cm_rep_handler() only allocates the receive buffers when ch->rx_ring
-== NULL. srp_rport_reconnect() calls srp_create_ch_ib() and the latter
-function keeps rx_ring, but ch->max_ti_iu_len is overwritten from each
-new SRP_LOGIN_RSP. If a target reports a larger value on reconnect,
-srp_recv_done() calls ib_dma_sync_single_for_{cpu,device}(dev, iu->dma,
-ch->max_ti_iu_len, ...) past the mapped length. That breaks the DMA API
-rules. The HCA itself can't overrun, because srp_post_recv() uses
-iu-> size. Since the series is about bounding the receive IU size,
-please make one of these additional changes:
-* use iu->size in the two sync calls in srp_recv_done(), or
-* on reconnect, refuse (or reallocate for) a max_ti_iu_len larger than 
-the existing rx_ring[0]->size.
+Dropping a response causes its req_lim_delta credit to be lost. I'm
+afraid this will cause trouble.
 
 Thanks,
 
