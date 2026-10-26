@@ -1,57 +1,58 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793005240;
-	b=Btoj90fA5unnvoTm8uysZ6N6yTfvQly2ZS7fsfHXJYIKLYyOFFo+8hnucgnMb9JeKNsx
-	 DGN+YoLAa68F61AWlpP1pyo9FVxVCGhhG7UeVHDSW/w2EyhDlu31NeDLFY+DJPGlfa2DH
-	 9GJ7SLSaNGPkOOts8JzBGPUhROXqviSykqBrdztocu+7oBjhPdIxhMUX05asYWzZqrhtQ
-	 LxpY0gjPWc1SDiAjbZO0xEzAWohC280T0X2w/wWeqXQ3XJzmrQTa9yl/6rp99Ut9MXmI4
-	 yuPmucA1ct4f1ebnQKPrCHpkuz54hphAJdU1NLisFiL6y5+SGs7JoITMDBjcAMz5YWg==
+	t=1793005534;
+	b=IddZyp4OLxFpxPoZG+1KPOYRaH3LXhRP4Ad+50+naYtzp1WZDAkHS3Ighnc8BWCn/4Gn
+	 HFO9Pkn2VPmpc4h0+yXDPGEq+ki3nze3q28rUrUhP19vT5eZNjWevhiTLexrViPBuJbOt
+	 RwAXXi4vZTic4miIwYGICgrDCldnVVXAB4GJol/gCqpemfe+hgHznh1bUUq8klGme+h6S
+	 huML2MViRsHSm3OyZo+bHFZV73EtZUgzOXHHd1Zn8CpiSkneqx3/smF/1tXBCrKhwQFug
+	 oP+lRWVjE5VFiaTGiAKzFbaXPBDqKRREP6LAeYjpKI6wlldvpcEsQldtN7usaV2YesQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793005240;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793005534;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=VZLzhZBfWdEmy0rPaFvStLluO/IOoFIzPBcHrCh7dRk=;
-	b=m2fa6waN/G8zZQdN1E5Zonw8iQ2GtsaLAsO9FrBWESPPDb2sHNL00BQLTrJTFwV++xnc
-	 7wvtuU6/0tqO2ELXc1soneYhVXlMDg+YGqQV0FOsUUVu5k4Vkr+yIV/HXwnD+EMiIznvV
-	 3IgqnFUeIz5ljOF86eLNTCWhEBw4c7j1QXOfxcrC9jcGhHBqfIsJEExzR8tg6f/MbVL9K
-	 fH8lcdrka7JT2iiAh0gJXlhfio7YEu0NblatppfQ4PuockUchYP9d917rWmP09wJjIHDc
-	 it63kGmFCl4prA9YTaFHq60cTqsdpm3OQ8E3i9WIXYEhVUY0dA3QTx7CmMzdu7Ue7fQ==
+	bh=3yYbPE6D4JL/XroeSAEPcSo8C2bZR/FW1yLd5fOFH7o=;
+	b=TxLAScSramzaJKrDwFgjG8A2xzfsVohaZxvlpm9elW6PaQ0Zst+8EvEEYti9likMDm8R
+	 aO1Na0DBEYAeGJ2B3nNFb9uy3Pqm0zX4eROlCGpRl+6J2XN+TYuuWG2vs+cBmmzhTmNrB
+	 bKL/Idzx9Lp9r/ogjMhaD8bLX+ZMmKtvP5lxwsOZ04qu0gwYI8g3A6qf/fFpOd8WC4+sk
+	 AGPgZj9bfK4d1PpYLDTwPJsWXtUCF+R+EqHIlHgOHQt2bIKK3VTEr/Iti4C2PoZ1Jjzyq
+	 VgPCRk5mveoSL4BZGUeLfi/KqWjIAf7ZSkRuaUbycbLUt7OnishqmsjdzVUKkSTiTVQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OKPnGn7c;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=oA32Y+BQ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BDE1606A31B
-	for <linux-rdma@vger.kernel.org>; Mon, 26 Oct 2026 09:00:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47667606A31A
+	for <linux-rdma@vger.kernel.org>; Mon, 26 Oct 2026 09:05:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OKPnGn7c
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7C1E1F01825;
-	Mon, 26 Oct 2026 09:00:39 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=oA32Y+BQ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C95561F01825;
+	Mon, 26 Oct 2026 09:05:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793005240;
-	bh=VZLzhZBfWdEmy0rPaFvStLluO/IOoFIzPBcHrCh7dRk=;
+	s=k20260515; t=1793005533;
+	bh=3yYbPE6D4JL/XroeSAEPcSo8C2bZR/FW1yLd5fOFH7o=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=OKPnGn7cE+VdeXYTd6Yggcub0CfLzNXFHeqHOylElOnojvugc/XYj9wyUwjGf9fp6
-	 2aXDbiJqYk9DzuwlMqF+Gz7QjYpa1g5WRriBNczHtVTd4oamZOiTHRbI1wOsKQrINd
-	 2rz+YbIc6YoYieLAM6B7DD4MyroPBDCEYrxqmprHCywch6Sz1TU22gRpBQFZisJMco
-	 NPtUpvKuCE0pKoKLaAPZGyi/JgSyE/AaSzwEyDzDVkTQBzncxJ8+CSbKMVdF00Pc4a
-	 D17t2xiAw8Zd3NJOTLDrTh/OVhqiFxcczecCrYMdm7bzenyERTKx2bmzjUmv5/Yocj
-	 Xi6xRK+98oqFA==
-Message-ID: <sashiko-outbox-184720@kernel.org>
+	b=oA32Y+BQ4xXRgzh+GwygbTZzLPW3Xk+MWyAY6GnCsaXDRlnV6AybvTEIlN9nMVZi0
+	 DROzR/3eRFlxJw+ZwSQPiAsrvgr4dmlJPQXF/mg7R8fbTynVyOjRSDWY9ZQUWkYsAr
+	 gEpx+gQHcfwNg20iD1+JczfBKbZu9+PQsOHfI5Zfk5wpJjZPbFm04P5xx6QRd2SphZ
+	 3lJiNg0sD7X1CQvYWhyFGdY53deV0apAcUaFrGumNcLG2DGD1urkkwob8j5tK1VEot
+	 nfiIIaTmd31NsScNVivG0ghvJLrcGfHY/JpTjUUd5t7v6iwg3SxU7Fta5TzfAhEwfU
+	 N4nhoUoFje+Xg==
+Message-ID: <sashiko-outbox-184728@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v2 RESEND 1/2] RDMA/srp: refuse a target that cannot
- receive an SRP_RSP
+Subject: Re: [PATCH v2 1/2] RDMA/srp: refuse a target that cannot receive an
+ SRP_RSP
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Yehyeong Lee" <yhlee@isslab.korea.ac.kr>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261026055430.406487-2-yhlee@isslab.korea.ac.kr>
-References: <20261026055430.406487-1-yhlee@isslab.korea.ac.kr>
- <20261026055430.406487-2-yhlee@isslab.korea.ac.kr>
+In-Reply-To: <20261026052030.296361-2-yhlee@isslab.korea.ac.kr>
+References: <20261025114155.4007867-1-yhlee@isslab.korea.ac.kr>
+ <20261026052030.296361-1-yhlee@isslab.korea.ac.kr>
+ <20261026052030.296361-2-yhlee@isslab.korea.ac.kr>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Mon, 26 Oct 2026 09:00:39 +0000
+Date: Mon, 26 Oct 2026 09:05:33 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -86,6 +87,6 @@ Precedence: list
 Sashiko has reviewed this patch and found no issues.
 
 --=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261026055430.4064=
-87-1-yhlee@isslab.korea.ac.kr?part=3D1
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261026052030.2963=
+61-1-yhlee@isslab.korea.ac.kr?part=3D1
 
