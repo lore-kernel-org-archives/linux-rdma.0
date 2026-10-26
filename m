@@ -1,57 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793002435;
-	b=O/mti31XVm7eIjITKGz+B7vx30GfHRgML1jYwBH+J5X2GCvnNgRBT20ANLICmhqR9F4y
-	 pNq2rK4mYqwIucW9qIwZiX3vRxYEu6w39yLDwN5VOYCQfpyJdnjVqJDgLmFMPeFFkBeFS
-	 orx5TpKwI+++j9xj3OP6mGhBIzr4TCDGOODNpPXLSe4J+b6BtZUBUCZjU5EaTBCEfGNdW
-	 902lF604XLF8S1nXW0nG++v6lcIbxsYwv99hCiMTNIvCtJLyIkGUSPUl0BjaHI5wj+UUS
-	 SGGVVTOyj2kjZoWbzpPtEs4miznO7jz92DDHEdjeDcwy5GLlEfhecGhMDByEMOzq8JA==
+	t=1793002688;
+	b=Vewa97iiOOYs201gI7PemB9ENhc9sZ1IozcRxNg81wELBJ5qeR5e1CI6iJJPjqMpWv65
+	 qLAyifFTsAe+AzMl9KUpN5FsH0bt9xsEWz9Un7+3Uni7B1TJ+NDh/T76B0I6A35k+BwGn
+	 hR3/zmtNn0WcS2DklTBMO9GD0nxfzWKpSJOt82d1DF/GeYDe8wn1uwVi+Fo1VJ7XCof+7
+	 qbwkY1uaBDwVoLDi38zu5D5nZMu8k59Qh+29bRaE4qazdUMF+pLrutVgR6yN2Qdbpy+9q
+	 AZDTT5Yh92TrVXiTc2NpVwn+zZHnBMYT2wj7MM1gadHqcVHhVpph7BwPqWa93KThJ/w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793002435;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793002688;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=6qY3Qgk7my0g4iH715Nd0mYjh5xVH50JbhboZ/6rvAU=;
-	b=AhqxI4v6GnJ9bGxF2XTR49Y80dHDia6QNp0Au3fdZ3pmWp7sND8PgumqVx4z07f/P0V3
-	 wKd/RjrXYiStwbGC7QqwLI2DvyY3DWKaaBxooAy1tcZkUmMlhW0EsedFphQZeihH9rmvE
-	 l6Kk9KSxvWhPfgLeMBOAIkAxGgs7VJMcjElUea7fYcraCne8KA0YjpbzZrR8s3jg3ASxb
-	 nNjsjAUrL0IX4McbVm/6mNK2eVuNR4QJJkV3hQOH5saNH6wQz8RjnpYDhNzl43hEwOvBI
-	 MUgL1wqj6fovS5pekI3ixkaVLmS9URYFjF0AsgvuTmiimlkfsSnsFaefYVRAJNhS6/Q==
+	bh=gx4K3wKYbWqzXsAmQl+300TW1XUuiW6o6P202YOx+VE=;
+	b=1kHaTscjAmnQZ7JrmiFJJkKWcE0/2RYfLnslIgca1A55TwqGlLMUZTL2IALlho874Xc2
+	 11qceoR+oIU9AgND1Gs+9ziDJL5D3qXGvulHPUr35fOUDNEOZPcF5JczNF13nkjQzPqFM
+	 nIDLLAQDOfMkYnermNeRGh6dK3G/GFpCeiObtaKITY8mFC4i64vJeUfcoYzJGSXMHQcfH
+	 pF52JXhHKFDFOjUG40CZ39os9fJz1jC8sCkCECycdFnrplt9nX0PF7MkaIw/7vWm2fbng
+	 F6aJTnE9gMc2gFG0VCVTeAfNGh1/xsjdzRskfB1u84o6UCCotsZad3ajcDS5ffIS0tA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hBFlGCVO;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="EYKzK8/c";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A468D606A320
-	for <linux-rdma@vger.kernel.org>; Mon, 26 Oct 2026 08:13:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4962E606A31A
+	for <linux-rdma@vger.kernel.org>; Mon, 26 Oct 2026 08:18:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hBFlGCVO
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 228CC1F01825;
-	Mon, 26 Oct 2026 08:13:55 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EYKzK8/c
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B46D01F01825;
+	Mon, 26 Oct 2026 08:18:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793002435;
-	bh=6qY3Qgk7my0g4iH715Nd0mYjh5xVH50JbhboZ/6rvAU=;
+	s=k20260515; t=1793002687;
+	bh=gx4K3wKYbWqzXsAmQl+300TW1XUuiW6o6P202YOx+VE=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=hBFlGCVOK2bQvmEH0pGltygGEcQ+N2PVZUvCf6ctW6S6Um6UDlTy3wXGt1h9jznHc
-	 IuvP3V5zLloPJOSDpyrgjTo+dSoKV40SP570jfnGIG+OE1j0XWDP/TjBECrCyMB+H5
-	 3AvxcIptCNYIcOysw4L86cH1WMngTNzJQvlm0T+jr/bZZB9+Psexhx+h2vHQLV1pp6
-	 izMT/TsDa4sIbQzOrrBuoHgpNcePuGCuTCnCmJObsysUsWMSel2+OMp10DLrrNEx4G
-	 LIyef6Ntdo5C8TY79sRBopFJhM9hqt5LvL5rCzDNlDvUuBMq5B/Mkgdwf70RcbS485
-	 uUjpUFfLqEA2A==
-Message-ID: <sashiko-outbox-184671@kernel.org>
+	b=EYKzK8/cogdtSywfB3RMujFtTXrIINc60NnHSGhzUKFg5ovlQ0qWJVLE0CupS3fZq
+	 MKEVYBXJOH/rY5y4xCC1ByQCge4pamwz/I1xmLu13yXlbQH15D58X665ZZzH3cfzib
+	 zjBN5zajN8xg42hn5YRMtL88J6Nnji6XDey8z+OlbWOXSVO4sZ6J1OWNKHVD/iW4o+
+	 n3S/pKHerNHQHsKuwWSuy7GgJse6SFwSJp63ynA/H1aq/biXz4p8oXnM6lSjCvomoh
+	 qR2i8dEsaDOvTsNQJh7KF1dEpUL4aJjFHPx+X11OLUxstnJb5LVcPx1BVsoX1LfyND
+	 wJ4EfVgWWX3Mg==
+Message-ID: <sashiko-outbox-184672@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH 11/26] drm/vmwgfx: Use match_mapping instead of dummy
- calls
+Subject: Re: [PATCH 12/26] accel/habanalabs: Use the SGT_P2P mapping type
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Alistair Popple" <apopple@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261026053623.202642-12-apopple@nvidia.com>
+In-Reply-To: <20261026053623.202642-13-apopple@nvidia.com>
 References: <20261026053623.202642-1-apopple@nvidia.com>
- <20261026053623.202642-12-apopple@nvidia.com>
+ <20261026053623.202642-13-apopple@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Mon, 26 Oct 2026 08:13:54 +0000
+Date: Mon, 26 Oct 2026 08:18:07 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -63,15 +62,17 @@ Precedence: list
 
 > From: Jason Gunthorpe <jgg@nvidia.com>
 >=20
-> vmwgfx is creating a DMA-buf that cannot be attached by providing
-> always fail functions for dma_buf_ops.
+> habana has special code to check pci_p2pdma_distance() and rejects any
+> importer that cannot do P2P DMA to its MMIO.
 >=20
-> The attach/detach callbacks are already optional inside DMA-buf, but
-> dma_buf_export() is checking for non-null map/unmap callbacks.
+> Convert this directly to a SGT_P2P match which does the same check
+> inside the matching logic.
 >=20
-> Instead use the mapping type interface and provide an always fail
-> match_mapping(). Remove the unused SGT and attach/detach functions, they
-> can never be called if match_mapping() fails.
+> Someday this should be converted to use dma_buf_phys_vec_to_sgt() which
+> does the P2P checking correctly, for both direct and IOMMU based cases,
+> instead of this hack.
+>=20
+> Remove the now empty attach function.
 >=20
 > Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 
@@ -79,5 +80,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261026053623.2026=
-42-1-apopple@nvidia.com?part=3D11
+42-1-apopple@nvidia.com?part=3D12
 
