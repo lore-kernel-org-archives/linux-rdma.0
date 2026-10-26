@@ -1,66 +1,57 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=199.89.1.16
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793034981;
-	b=mnsrTu45v1yDhwNUnvVsygQlhc5mnpkRD6FMB5VFqkJE16aveFglLzFA+mVKZNERXcKT
-	 tznJUCEiroWt0JUu4aB7R81q+32e7BxSbGuqrP64J+YeUvfS2DttheXVOPfE4Q6cobhLe
-	 nuMUft9nXMe8FNj7+oHVLBR2R7lYAbgGXU+OyB6Eq8C5MPKD/eVlB8D1qUcgOfz5ngN3E
-	 WdhLbAf6xK6KsuuzhjxZWFB9lLr/x+2ug/qTz9SLx80GR16SdajfEPpTo+8g8kOU/9lAI
-	 mUkPanYsjuq0se1nG9XarI+fhUFwrDfYOfkLyl4kBARvX1LufKUP8qEKat0njFbfp9w==
+	t=1793044724;
+	b=LOJrGqGsep5S3eGJREE9u48ahV67VPfDcMquQ5fue/RZDXNByuKowrok+32DtblPUWuw
+	 fdkJIm1DfkoFn/tZOTRNU6ETeVS9XhhpZBmMoJH1120Hlw+Kdm7eN3TUs5cJ+VQnwM99j
+	 S3BJtM1x04DvJm8YEhnuD7d7bp6/XY63shJeTu2gXk2ojuub51ZmCc+NEEL5tJA4wF4bG
+	 xdZNwXlGUGTbmwYi82XL8Wq0gKZPIXdbkdbLEfsTAqiQC1rM6BgDimwrLYxLBLsW/14Vu
+	 nmE60wHdsLUHPpxmahuD4K0iqf64e4OGCWkeY/kvM0T7BNqzyQk/4BLYI5HqiTbJsLg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793034981;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Virus-Scanned:Received:
-	 Received:Message-ID:Date:MIME-Version:User-Agent:Subject:To:Cc:
-	 References:Content-Language:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=1yPaRggC/WPyL34G0gaaj0Ytwub5nQfzFnrlcpIIAmk=;
-	b=B+56Y9cLtUgEAEkr8Ks243QvKb/fStYBXFEgvMiUthHwX6rMJkE7Ggau38lNuhqH2iK5
-	 IxGpatPYFHh5GYHbia59NSr0sguYAjkvNPBxh/3W4Haq0vR06fldHlZI+WZRiO9fafbjG
-	 MWOtH35zBxBh8a/KsKdIbuP5DFrGm1wrPFzI5AzhTkhtQQ05yoV54cik4VldS/IYBfKEK
-	 QO+9bs5n3viupmS/mIDpmu4OYAj8Kdd8yIauO+9MBdNgC7su9sXGvpgwLaUcAvCWhSQ4i
-	 xXJdX2R/Uw+AChHdG8ZbhdN+wadEGb/hCpvc845wa5eQ4J8ObGiCjkihoxYivli9zIA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793044724;
+	h=Received:DKIM-Signature:Message-ID:Subject:From:To:Cc:Date:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:
+	 User-Agent:MIME-Version;
+	bh=7gXPuKPbe2d9wp4E3pTUVsY6Y2MD/gSJpN8xN6R9Sfg=;
+	b=p62hS2BYy1HkjMS93Ie5lACQ6UU5kg6J3+v44f61P/T2QcX1cxKoY+fntiApqO3xJ6G/
+	 QtNI+sOTTIBVIcsGKcLQ1qH5gnAzXHVTE6B9SAtes5OGRPFWEw4qBFzpM7p0Mvp0MaTtc
+	 1GamzjGVhiH+LIWU4Md7OS4vfcSdSTpCkbyBkXNPWAXywJVGM455kJnotAIsaKr1Yc26A
+	 lfGIobp615bip6CjXSd7P9MMnAYvIZE22MkcXGKGUEyOwU6/S1Mq/93J9A7FRgEGSZWzP
+	 nqqktYDHxlRxAPM4mzaIGHGN7F4jnjAIyEUUW2p/17NTNMt6git48ShxdAw5oAZ90Tw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=acm.org;
-	spf=pass smtp.mailfrom=acm.org;
-	dkim=pass header.d=acm.org header.i=@acm.org header.a=rsa-sha256 header.s=mr01 header.b=vrrntPUQ;
-	arc=none smtp.remote-ip=199.89.1.16
-Received: from 013.lax.mailroute.net (013.lax.mailroute.net [199.89.1.16])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="Gh/8p4P6";
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63D89606A31A;
-	Mon, 26 Oct 2026 17:16:21 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 63D89606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=acm.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=acm.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6B6F606A31D;
+	Mon, 26 Oct 2026 19:58:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=acm.org header.i=@acm.org header.a=rsa-sha256 header.s=mr01 header.b=vrrntPUQ
-Received: from localhost (localhost [127.0.0.1])
-	by 013.lax.mailroute.net (Postfix) with ESMTP id 4jD0dw65X2zlfvpW;
-	Mon, 26 Oct 2026 17:16:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acm.org; h=
-	content-transfer-encoding:content-type:content-type:in-reply-to
-	:from:from:content-language:references:subject:subject
-	:user-agent:mime-version:date:date:message-id:received:received;
-	 s=mr01; t=1793034978; x=1795626979; bh=1yPaRggC/WPyL34G0gaaj0Yt
-	wub5nQfzFnrlcpIIAmk=; b=vrrntPUQAYnjLfIV8MNX+WV+Z2q6gX5JwcjZdZlv
-	xIh3UkxAZ3pxBLDutIk1IzNCjXarXFfLG641GVmE8/f2nx5/CimBFKHcQVoxJuBI
-	r/fdSnLzU8lluh+Y6dthmbXjg80GYPkIX6lBZpLzULo7b9AVw1wATG/bk88sZ5VS
-	gz9l8ferGneJMze5QrgzHdEc4rvCj/niwKnWUXTaziVYDI54wgor7ihlioLVm6PB
-	tIp9UwXL0MKlIKTH70hHhazSd3EOfDiJi0YqzH/6/hTACx6eULr+M+IAvAZvEonH
-	MAYBdfXSnrbs/vqTol0v2xdfJPiDX1EJ4AhATT2fwoXMHQ==
-X-Virus-Scanned: by MailRoute
-Received: from 013.lax.mailroute.net ([127.0.0.1])
- by localhost (013.lax [127.0.0.1]) (mroute_mailscanner, port 10029) with LMTP
- id Q5Yc1tKok9sB; Mon, 26 Oct 2026 17:16:18 +0000 (UTC)
-Received: from [100.80.231.125] (unknown [104.135.182.41])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: bvanassche@acm.org)
-	by 013.lax.mailroute.net (Postfix) with ESMTPSA id 4jD0dt3PN2zlfvpT;
-	Mon, 26 Oct 2026 17:16:18 +0000 (UTC)
-Message-ID: <418587e0-f727-4089-bc98-faaeb88ec308@acm.org>
-Date: Mon, 26 Oct 2026 10:16:17 -0700
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Gh/8p4P6
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C9BD1F031E0;
+	Mon, 26 Oct 2026 19:58:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793044723;
+	bh=7gXPuKPbe2d9wp4E3pTUVsY6Y2MD/gSJpN8xN6R9Sfg=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=Gh/8p4P6MdMkozfF9bcxdgxaWSiWbhpVZ4aTAxO64vLlj+8zpi5JwfqB8fCiXKs3c
+	 FlVInkCS0YR/Z5dq5dBxSUASbzZ4u9IQmcel5GPWzTtpiZpUeMlJHr9SHpHcu3zny9
+	 GXtrFMSCqm0jQzkIdFkXtSylsGtwpm8RKErLUXogSHH9ol6N2+QkkO55lJyHYJVrgC
+	 r0tP6y/TCiwm2fABY1F7UjRlvFO8u0UxV/cAVK08Kh1ehPbC+yoYSWUssZ/xbAaDr2
+	 XX5KqkZUt8OCp2S0ao3XgCxMwPdl5auOMsTF9e07+GfCZSfZLQbdGOLtY+EHRA5/T4
+	 Msr43iblfdzKA==
+Message-ID: <24c5adf57ed323848b1a1ddf38a21fe3ac296755.camel@kernel.org>
+Subject: Re: [PATCH 0/5] net/rds: move sysctl-only code under CONFIG_SYSCTL
+From: Allison Henderson <achender@kernel.org>
+To: Oleg Nesterov <oleg@redhat.com>, Joel Granados <joel.granados@kernel.org>
+Cc: pabeni@redhat.com, edumazet@google.com, kuba@kernel.org,
+ horms@kernel.org,  netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Date: Mon, 26 Oct 2026 12:58:42 -0700
+In-Reply-To: <atzRTslzb6CAKPKX@redhat.com>
+References: <atzRTslzb6CAKPKX@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.52.3-0ubuntu1.1 
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -70,27 +61,56 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 RESEND 0/2] RDMA/srp: bound the receive IU the target
- asks for
-To: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
-Cc: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
- stable@vger.kernel.org
-References: <20261026055430.406487-1-yhlee@isslab.korea.ac.kr>
-Content-Language: en-US
-From: Bart Van Assche <bvanassche@acm.org>
-In-Reply-To: <20261026055430.406487-1-yhlee@isslab.korea.ac.kr>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
 
-On 10/25/26 10:54 PM, Yehyeong Lee wrote:
-> Resending as a standalone thread; the v2 I sent earlier went out
-> In-Reply-To v1 by mistake. No code changes. Apologies for the noise.
+On Sat, 2026-10-24 at 17:39 +0200, Oleg Nesterov wrote:
+> On top of
+>=20
+> 	[PATCH net 0/2] net/rds: fix init failures leaving built-in transports o=
+n a dead core
+> 	https://lore.kernel.org/all/20261021195837.142802-1-achender@kernel.org/
+>=20
+> Allison, Joel, I am sending this mostly to "complete" the previous discus=
+sions.
+> I won't argue if you think these cleanups do not make a lot of sense.
+>=20
+> And of course, I can't test them. I just verified that the kernel with
+> CONFIG_RDS CONFIG_RDS_RDMA CONFIG_RDS_TCP CONFIG_RDS_DEBUG builds with
+> or without CONFIG_SYSCTL.
+>=20
+> However, I decided to abuse sashiko.dev and sent the cumulative "not
+> for inclusion" patch, sashiko didn't find any problem:
+>=20
+> 	[PATCH] net/rds: move the sysctl code under ifdef(SYSCTL)
+> 	https://sashiko.dev/#/patchset/atyHdPlxALv0Nnyj%40redhat.com
+>=20
+> Oleg.
+>=20
 
-We are in the middle of the merge window so this is not the best time to
-post or resend patches. Please repost after the merge window has closed.
+Hi Oleg,
 
-Thanks,
+Thanks for following up on this.  I think the cleanups are worth
+taking.  I applied the set plus the two net fixes, and ran it
+through the selftests with both config settings, and things look
+like they came up clean.  So you can apply my tags to the set:
 
-Bart.
+Reviewed-by: Allison Henderson <achender@kernel.org>
+Tested-by: Allison Henderson <achender@kernel.org>
+
+These are cleanups, so they should go to net-next, which is closed
+until the 9th.  Everything except 5/5 also sits on top of the
+earlier net fix, so once that lands and net-next is open again,
+please resend as [PATCH net-next], and it should apply cleanly.
+
+Thanks for working on this!
+Allison
+
+>  net/rds/ib.h        |   1 -
+>  net/rds/ib_sysctl.c |  33 +++++---
+>  net/rds/rds.h       |   5 --
+>  net/rds/sysctl.c    |  26 ++++--
+>  net/rds/tcp.c       | 230 ++++++++++++++++++++++++++++------------------=
+------
+>  net/rds/tcp.h       |   2 +
+>  6 files changed, 168 insertions(+), 129 deletions(-)
+>=20
+
