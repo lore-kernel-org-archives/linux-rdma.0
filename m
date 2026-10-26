@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792998053;
-	b=FVqqW+Tqy9pvbi3nwGut/kgVAR+QFG+yp89+8p1NRXseUu17FCv3xKlzL+DlCXs5pOsy
-	 STPzM+dk/5zoJt5cRcqb3LVdOUe5NqSD2ezzSkcVYJR0f8aZ5X9QWXug1euP1Sk2lJnaj
-	 RmUucYQuwKFQ6N163pEaGxZ0kqWiu7urPpr4nxkpAYm1Baf3NjQAqo1J6SLiXde+TmF/k
-	 cVf3vk1gEq5bF8dS5HaTY2Iii5MmiZQkpavbnJB1xUasArbZnlOZO667aArn3jGp7M+3W
-	 4F77LDv4lro9VIjmIHP3v6J8yYXxwEkzNfIUaOqiO7TFPogCLYqlDMUs3Ysj/bX4P6A==
+	t=1792998285;
+	b=x2jYd5xO+IdD2KManKDcuu8YoJVO/XhvAmpVqQj1yoKR0unV5GxEGf9uP8QMETbSafNv
+	 tMLXZEy0xubSHVdLWaUCZRdvGeSKiXe50uLQAc5uvHsl7XPZyCmBan/z9EdOkdckrzRDr
+	 kVNC0I1ldAe/axTY9UGwf10bxZWpmXcK1Wmq5k6j5vQuWg5+neT3GQuu0Omo7iDWY10Zb
+	 oU9udgmLnP2pfzA+j9DanNBhVvVCWugGCADer2s4UESIsvqrB4fF1Bt5zGan5y8LO2onZ
+	 rl/mS7hZwaGvm4BwLlPzLkHtQdAM4vf0UTl3R3hCrMIh1J4VwIEpYSiR+UdPrzRTnyA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792998053;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792998285;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=FsmZT+gCQl0KmxVyeZ7wpCtc98JDJcAt+HKP8P+hBS8=;
-	b=t8LHVOVi3qjnsX6pCmhVWTYI62GqYTvcQ+CzWAB7uwWtfKo2D/JOQsg98044M5Xk+BKW
-	 rdLe09lHcsLoOXBi+/NDbBGMLMn1VNgl5qyjOJRo7COcRXhE2vX01S0MRHBJ13CCRqv5j
-	 K2yrpJ06vRj7qbms4lMSLCoxELJ4UGcyCEY/jiKx+aYgAAyK2D5opEVhiQaerFcBlp18a
-	 JcES6rDBpUJ8i4LhDnjBc1xFmkKRIuSGTlWKP1aZ56KkZ4qgDHQy0fdI35SQGgZF3dEmC
-	 VTf5fUP0mC+GXhETdAx7g8AsLNZ2ydC0vvZtAvIU5gDmXL3A9qggMSpA7iaV6NOsAyQ==
+	bh=cIu56JP7Aj9CxFCfQlheY5xUX22Av+N1RbAZKWhhqy0=;
+	b=jenere9ZrEE3qWtB6RuO/0VFzLV74U95elg00gYiI9MGz3EwQCDOXD0voZ0y8c+OcSai
+	 jWhTCm7eCijB/oJnDe1tiNyfgysD8y4R5iisYp3Yg7W0ezBoQDTMju/4foA64it3HXan+
+	 iVjj3s8h+tF4WTGAZ2ssFm6YQE40sAsHq6u+kmHyQxKd9y4S7EhWKBV7c5DakAw+dcJkw
+	 xQd14iVtqA7i9p0GoDvlEMUIL+WRtFdoLLXpBIZLvrqeEUjIXPReZh8hEg0zl5MzzxeJB
+	 iAuhF+faxF+m/Gz7emgUXm8UM3ef1jSbSufw4XRHsJJpdzpA04OQlcG6Y+BxK2KiY0Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PRfsaeMI;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bwNXXWIp;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25586606A31A
-	for <linux-rdma@vger.kernel.org>; Mon, 26 Oct 2026 07:00:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4125E606A31A
+	for <linux-rdma@vger.kernel.org>; Mon, 26 Oct 2026 07:04:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PRfsaeMI
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 883AD1F01825;
-	Mon, 26 Oct 2026 07:00:52 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bwNXXWIp
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8B801F01825;
+	Mon, 26 Oct 2026 07:04:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792998052;
-	bh=FsmZT+gCQl0KmxVyeZ7wpCtc98JDJcAt+HKP8P+hBS8=;
+	s=k20260515; t=1792998285;
+	bh=cIu56JP7Aj9CxFCfQlheY5xUX22Av+N1RbAZKWhhqy0=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=PRfsaeMIgORHbcTyctRFZ9felJkoRwEYqSmnibyedbSk0rb5H6ezhduHxSCQd5RRS
-	 trLgciDbXdxotsXVwXpOnGjwrqN4AtTw5QsfYoi1XG4IYjInQ6c8gOLpzRDVCc7S5R
-	 72BaSa9raBx2Zat7Ui/VncF3OacEkUEWJivne0J6HOuqseUV9+5nrNqc34J7nDRnox
-	 a8Q8xN8k1WkStAgPfT5j2GehuhojTjX0zqiynH5JAvl3wCLTZaAPjXeUuvf8aanurA
-	 oObAERJpsd3Zy46Zkz2MCqLQxiJnQl4WuJgYkK6XlZItsMH0frheevSUku2HDejShr
-	 1AtqxO8d5aBlw==
-Message-ID: <sashiko-outbox-184644@kernel.org>
+	b=bwNXXWIpHpQ+HhKUhbEByw+Zdp5enHMFxzma8McSzFkKH19Ri3RcrtnQ8aTktkPow
+	 LWxV+07O5kgFTEGj9sv5lGZXFIwt73Hw7Qf1e/qp+T2IG2E1Bvf5g9+KNjoU3rkWnT
+	 VCIELYHh37DnNEmGaOr8IXDQt6RfJVw0Sb7trY/Bjv15ZgTyZS7cMvwtzHgbID74Lr
+	 LgAx8SMQRBblRBqQB+ctiWhHH6MLenGQN5lNdYTMQzit1WtQFB4zoaIEATP0a99NDv
+	 zdDFSrHl7b1KtTx8ikw27g6FYic48IZHdzUklbyTIxxqbGOj2vEO50y2rxwez9JbeI
+	 w9Wj+2QJSWg+w==
+Message-ID: <sashiko-outbox-184648@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH 01/26] dma-buf: Introduce DMA-buf mapping types
+Subject: Re: [PATCH 02/26] dma-buf: Add the SGT DMA mapping type
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Alistair Popple" <apopple@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261026053623.202642-2-apopple@nvidia.com>
+In-Reply-To: <20261026053623.202642-3-apopple@nvidia.com>
 References: <20261026053623.202642-1-apopple@nvidia.com>
- <20261026053623.202642-2-apopple@nvidia.com>
+ <20261026053623.202642-3-apopple@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Mon, 26 Oct 2026 07:00:52 +0000
+Date: Mon, 26 Oct 2026 07:04:44 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -62,29 +62,23 @@ Precedence: list
 
 > From: Jason Gunthorpe <jgg@nvidia.com>
 >=20
-> DMA-buf mapping types allow the importer and exporter to negotiate the
-> format of the map/unmap to be used during the attachment.
+> The SGT (Scatter Gather Table) DMA mapping type represents the existing
+> sg_table/scatterlist based DMA mapping. It provides a sg_table based
+> map/unmap interface that exactly matches how things work today.
 >=20
-> Currently DMA-buf only supports struct scatterlist as the attachment map
-> operation.  This is not sufficient for all use cases as dma_addr_t is a
-> very specific and limited type.
+> dma_buf_sgt_exp_compat_match will be used in the next patch to
+> transparently wrap an unaware exporter with a mapping type.
 >=20
-> With mapping types the importing driver can declare what it supports. For
-> example:
+> The SGT type handles the allow_peer2peer flag directly through matching
+> logic. The importer indicates if it is willing to accept peer2peer and the
+> exporter indicates if it requires peer2peer. A required peer2peer exporter
+> will not match to an importer that does not accept peer2peer.
 >=20
-> 	struct dma_buf_mapping_match imp_match[] =3D {
-> 		DMA_BUF_IMAPPING_MY_DRIVER(dev, ...),
-> 		DMA_BUF_IMAPPING_SGT(dev, false),
-> [ ... ]
->   attach->matches instead of stopping at the first match, so that the
->   exporter can choose among the mutually acceptable types later, at pin or
->   map time, rather than the core fixing one type at attach. - apopple ]
-> Co-developed-by: Alistair Popple <apopple@nvidia.com>
-> Signed-off-by: Alistair Popple <apopple@nvidia.com>
+> Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 
 Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261026053623.2026=
-42-1-apopple@nvidia.com?part=3D1
+42-1-apopple@nvidia.com?part=3D2
 
