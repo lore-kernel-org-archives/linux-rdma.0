@@ -1,56 +1,107 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793052392;
-	b=Va+YljZYQQR6hluUMgjIzp9oYgDJhJornSWf6cS0MWIpBIZJiyR8NaubqAljiaFXvVtR
-	 K3ETlDrN02021vF5zrJzgSYzGd5keuBjKbW2zUYsigUSO8vdCmv3lNAJOlcbZms19A9Qw
-	 0jfF7aLUIIrIaRaM/itanQ509R2volU28IOhYyfJxwW21rHvFV7SwqfC0k3aYcI/bhF8h
-	 e8z2TdntpUYhwsnyIiVExCzWoV+R3EcPTSiA7Rw9CIAEACPjvZ94oIl0ySf/4yvg79ejz
-	 P9hrQDUN3GVHYdUTSP4P9OmQAumjY58SLW7qw+5nIzYyeZLfxIi1o9/Rf1TR3ZtG+HQ==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793052392;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=wAWEYmXq/B3CptQjEKEGd9irezeKlziTRgHOySV2wcs=;
-	b=hX6mW8aMxIOJtThXpJO7tcsUB5BUcrWor7gB14cckUcTrcvvfzjVBtqNpJoErXAItjcd
-	 Mpe/nqV8SrVV22hdR36k1gBGR6vlmgtAOy7p+xjOz+SP10X/hymPu0IaAw98mhDjEWUoP
-	 JBsG8RPmhPRIslJTx3x4Hs7FA+wHCRdhPMTbvQcd62qgf7TPzKprN6NnkXWgJrBUGuN82
-	 PIXZLeM6w1Hy9juYqddxm5+Y6302SFj63bQJyrDMJ9Wd8bvZHZ0rnE0I2Qvn8rUYZJjRL
-	 dkOp5mKVX86akqjiCbBKxNWeIV+HwEWwlSj5ijYGTg6+QcMyD8b5/gLouXBoJ5tjLBw==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nYjRZQ7n;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=67.231.145.42
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1793052628;
+	b=NoGRSWj0h4pk++dG2UhjOYj/+OOX/Zr6XXl50gxPBmeXswbBF0Bq1oj665LoOdSDvFVO
+	 c627Q8iowblZbW/R7ixmgk/QWEkiSBp34pPuTUbI7k4taE6e6u/XKGwtW8vl65BuPxQF2
+	 ivY8dFZVA2VGtEGkCR6OQb+BWDV9cfdHb4yIBxewqrvcFA+4zbOwxr8e7a8/DqIkbFKNe
+	 9Y3ZTrhQdC1AgUwFTH7HzUKd3HtYEyqftynsoOQ9UCML8BPWGUBME5GWEsbAhW+oc9q29
+	 IP3MZwSgo/r2PoIcM86v4kV2Kn1h1CjMml//ZQnbfQIE8M9I96Hs07LpFcGoJ/ZOqBw==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793052628;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
+	 X-Google-DKIM-Signature:X-Forwarded-Encrypted:X-Gm-Message-State:
+	 X-Gm-Gg:X-Received:X-Received:MIME-Version:References:In-Reply-To:
+	 From:Date:X-Gm-Features:Message-ID:Subject:To:Cc:Content-Type:
+	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-Spam-Info:
+	 X-Proofpoint-ORIG-GUID:X-Proofpoint-GUID:X-Authority-Analysis:
+	 X-Proofpoint-Virus-Version;
+	bh=Jf+loG0vAvnxt28Kqn9IrWU5X0/8DtmZggaMgC0lLF8=;
+	b=167j7w3cHkaXjl5ONgRgzETdaXlZ+2InmP19OYe1Ba97a1T8YIxTOHTpGhXaZX7Jzjyi
+	 k37Lt8KTPnfsi6KVYSqx/DnbUKi/TmAjWSmlEtW7jTOH+PDM/1FalQom80Mp77NFt0QnU
+	 aUpKhPlYfrY8ta0CHF9AhqlJ2VggKYN8KT4k4cXAfJmWNb/37StzZbhh2lNUnPBbmc3ay
+	 DYq7SwxVeaWn4oQZ4InXUWrjaB2gjww+nYaXkdxLYCZudpD1qKyZDFy6sUFiTJW3Vv1JB
+	 fNL0miNcUV1gbOdQ83HtQQKz7OzoVySkPFXumTYqO53BAl5cjuvoePl7d3jJd/FHFJw==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=meta.com;
+	spf=pass smtp.mailfrom=meta.com;
+	dkim=pass header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=dZ9tR9L1;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=67.231.145.42
+Received: from mx0a-00082601.pphosted.com (mx0a-00082601.pphosted.com [67.231.145.42])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C04BD606A31F
-	for <linux-rdma@vger.kernel.org>; Mon, 26 Oct 2026 22:06:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47CAE606A32A
+	for <linux-rdma@vger.kernel.org>; Mon, 26 Oct 2026 22:10:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 47CAE606A32A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nYjRZQ7n
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3AFE21F01825;
-	Mon, 26 Oct 2026 22:06:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793052391;
-	bh=wAWEYmXq/B3CptQjEKEGd9irezeKlziTRgHOySV2wcs=;
-	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
-	b=nYjRZQ7nLUoo2vo6+vXEQMz2EB/C71csG2SiKycK9UzuBmdBpADfMzBx8W3fgpJWe
-	 Cv4UT+UM9Xg321hy6DmL7VEo1MHR/UFbL1s2woYmJXE6uuPYdJ+WziQabtbpv3efE1
-	 Mx06N0FESYBbjNrYMtYcH1lTpMD7gwxjsz79yOVvF3WErhiZeonIMY5xIC42TlyOGf
-	 6vcCSw+Un2EP9X0k1A/aXhgjwOvDPb3M9V8ZO3lFmicliLSHCsbKpH6jKejYulDmIK
-	 8v6rBFBohzBAC1WucYWiPSUTmWgx7iJCoShXS0i6+VKg+k6HkQERYCTQlPvVi9/Dzd
-	 sCXi+wB2vn53A==
-Message-ID: <sashiko-outbox-185780@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v4 2/2] selftests/rdma: Add netkit-based automated test
- script for RXE
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Zhu Yanjun" <yanjun.zhu@linux.dev>, linux-rdma@vger.kernel.org
-In-Reply-To: <20261026215236.60054-3-yanjun.zhu@linux.dev>
-References: <20261026215236.60054-1-yanjun.zhu@linux.dev>
- <20261026215236.60054-3-yanjun.zhu@linux.dev>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Mon, 26 Oct 2026 22:06:30 +0000
+	dkim=pass (2048-bit key, unprotected) header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=dZ9tR9L1
+Received: from pps.filterd (m0044010.ppops.net [127.0.0.1])
+	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69QIn0mR3656484
+	for <linux-rdma@vger.kernel.org>; Mon, 26 Oct 2026 15:10:27 -0700
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
+	:content-type:date:from:in-reply-to:message-id:mime-version
+	:references:subject:to; s=pps82601-s2048-2026-q3; bh=Jf+loG0vAvn
+	xt28Kqn9IrWU5X0/8DtmZggaMgC0lLF8=; b=dZ9tR9L1/IcxcsH4mEsKPx0GW5e
+	UTGvTAWR0q1qhi/B1g7OHS+XHoohqe5XI+h4y/PThlpFE9BsEbWgJiN7eBQlxbFk
+	c+8mY+yz8bMouKprc8O3DjrQU3Akz4oTvZpi4r2DjPk2vqEtNi0gM420ieQ5TBGQ
+	OLZnhdv/E4lSiGhyExxYkBHSxocmkny3xTMO6kroAjj09D91kBCL+7qodbBM+UfB
+	Z/cMVDLbA4rw5O2SP6MupF/qOmMi4axMzQQM+aUiaVU2MBQB2wI3Po4/YvMr8hp2
+	zb5Z2ASgUu/S8qEr+ZMjM3GYoWb0Wyrhh5iLDNjyCR15YzzgAKPjekwpR9Q==
+Received: from mail-pf1-f199.google.com (mail-pf1-f199.google.com [209.85.210.199])
+	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4hgr03p9pb-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-rdma@vger.kernel.org>; Mon, 26 Oct 2026 15:10:27 -0700 (PDT)
+Received: by mail-pf1-f199.google.com with SMTP id d2e1a72fcca58-8862ed0539dso4090037b3a.0
+        for <linux-rdma@vger.kernel.org>; Mon, 26 Oct 2026 15:10:27 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1793052627; cv=none;
+        d=google.com; s=arc-20260327;
+        b=rHF2tE9GNlBZ57soY3as8Q1WSlVydetsuq5dnJSvmqSRP1/yyDOO4OHocE3DYF5pNb
+         TVMsD/hOpgOycSuQBtIhP0TXkHA0zlSwzAGSvRzRT3EQJ/AvrgMc8I59XBP239kZ9U6F
+         QczKRXwrUOiBO5OQiezdUE15uLA8mrSlepGWXDCT7sZFJgLU8fm1jjilKoMWJIaekPaZ
+         uPiY2sKDAzkDryISp3MfIKRwfSlvj1HPTNKnTgZRFOzVD5we6CYV2gvn+eob0T0ZnnUp
+         IEm5wGjzd0O6Y+2twMK0JtbuDHiaXIoppkfGLfRM+zzVe66Yo7N4HKagMvhUZvAl1JeX
+         Z2EQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version;
+        bh=Jf+loG0vAvnxt28Kqn9IrWU5X0/8DtmZggaMgC0lLF8=;
+        fh=tOySnwy2ltZ0PsCkyIoLTM1YWLXqywztYR2nGGPuMas=;
+        b=IlvKITxvAJmPxQA9Jftsm/grte74D6iagqh+DJ3JH2IYUZb8EBi3p4KS8FkxFGvNvo
+         8DnpR0NKqseJqW0PjVVr/1YK9SpgWQrVqpfIRa2CM2YFmG6i3ZpLaAiyDQuUlBLv/gXr
+         Mg3mC8WvdOswyF2s8iI1DotNtVk1L8fVHSMvdylIcUWSQhmVA38dyYtQTcfKdOYWmIeO
+         bzsqgc6UAcc/6V9RssEecAdFH86K3YJudWKAgIGdoqD701Vf3RRLVea4pji/jgbNOX1p
+         l8cFbl/gC4UwXMNivICI6Uk0tgnkgOxEgIgc+UpCd+sqsJvCDtGwP7BecCTph8On8c35
+         HmkA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793052627; x=1793657427;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=Jf+loG0vAvnxt28Kqn9IrWU5X0/8DtmZggaMgC0lLF8=;
+        b=rTPMLBKURi1Ac6wd0jS0UgwA9ggNyoG/iNPgDKoP1P18+0H3GiheqcgfTcYj/ZeWez
+         /WFPLynWBAsyx/kcibl8HUksM8nF2jtXUZkdcIu76eIie51EBLOdQbRqxaJe7O43cMP8
+         Gcir/TorOOJgXM1kMU7bIylx6mBuqQCsrDg6o9HwiDf5qdy4yS9Ecfa9dtTdAomGbf2L
+         Dtu0PRqIbwbG+YQG3eI80194JgQzYS/iC0xS0gZN7BdAzL3xlbwa9at9oLAZBoWzAj7I
+         il/xy+/3aAQLXHS4KxE+g6AkJ6UI9d8wAov4YSVU416Y2Z+wSN6sBgrA0IJLp3d5kgT/
+         uyZA==
+X-Forwarded-Encrypted: i=1; AKwUvBzrqxZ2zp/suuSpn2ZmOcLC30gPSYZ1TPSEmAzkoYXSD5T028ctCAn9sv6TXRycCIxAVGAVUQZQeOXL@vger.kernel.org
+X-Gm-Message-State: AFq9FYJjxr7MhYCEeMU++nI68G4LagKITRHUHqLWQ4wijYVsFdTAykj0
+	KPbXY3BvkTy4TpdzHeqkz7xgwSme4ziJ5ttKHCLROlg7eYzTNX9zRluBTvhdAc3TyRnHpeJH9r6
+	HOR2s9+kwCztftRwECmo9tWoogizjPUN8TXPmMP3Nx1FcZtV12S2yGLYRSiJ51++XcHSjzcqEEA
+	wu59NhDxigRhzkjgDzkrPZCYpoYvjBcuGnh0Ux
+X-Gm-Gg: AYBFou0cNllPr1DajcrO40wezDPS7C4QHGIF5luRLMIIbDdfqgJwhcTvkNx8cGCS+8U
+	ciMqJ99TvPueW+/0TGu6uGUIELDDGhsjMhj/d3vx73B5FIl4JhziVs3zuWaqIjyp1jfyylMxFu7
+	1xa0e1NAB+5vs5AIbJTm7mvu8txaP2IZPOwCkN1nnNN8RH/Nsg/8gtE9HT7aQ8ZSQJSKYKp/0Gj
+	SDrl27iChejzwwLykGsfvoNTn4rwBJGeoft9i70lBuFAG7i5TA=
+X-Received: by 2002:a05:6a00:a211:b0:887:3fca:835d with SMTP id d2e1a72fcca58-8a36772cabemr7073925b3a.29.1793052622066;
+        Mon, 26 Oct 2026 15:10:22 -0700 (PDT)
+X-Received: by 2002:a05:6a00:a211:b0:887:3fca:835d with SMTP id
+ d2e1a72fcca58-8a36772cabemr7073902b3a.29.1793052621627; Mon, 26 Oct 2026
+ 15:10:21 -0700 (PDT)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,177 +110,54 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+References: <20261023234640.1459291-5-toddfreed@meta.com> <179288570316.3134.17338958323067090592@kernel.org>
+In-Reply-To: <179288570316.3134.17338958323067090592@kernel.org>
+From: Todd Bert Freed <toddfreed@meta.com>
+Date: Mon, 26 Oct 2026 15:10:10 -0700
+X-Gm-Features: AclHuK_YNIc8WR5zn4HQHJZd6E-TfuSZHowIMObN80et51S8RIsFb5U_2Jx7cYA
+Message-ID: <CADh2yMxPi+eNkQSVo5hUr=pNsnG21ZLjYf=GMFPS5eOtyedrAg@mail.gmail.com>
+Subject: Re: [PATCH net v3 4/4] selftests: drv-net: psp: test ipv6 tcp socket
+ with extension headers
+To: netdev-bot+sashiko@kernel.org
+Cc: netdev@vger.kernel.org, borisp@nvidia.com, saeedm@nvidia.com,
+        leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
+        andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
+        kuba@kernel.org, pabeni@redhat.com, daniel.zahka@gmail.com,
+        willemdebruijn.kernel@gmail.com, horms@kernel.org, shuah@kernel.org,
+        cratiu@nvidia.com, raeds@nvidia.com, rrameshbabu@nvidia.com,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-kselftest@vger.kernel.org, bjorn@kernel.org, dtatulea@nvidia.com
+Content-Type: text/plain; charset="UTF-8"
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDI2MDA4OCBTYWx0ZWRfX6m6iViHCN1Te
+ sYdK8oHWZBlyYLtGeHo8UQlx8HVCMVqYxUfD/j5Bia4trvj5NcqtqF0pHj0ZOFg2TqgOdb7i7er
+ C+EIUEAMjDjq5ckDDGVlo0QnN8GB5A/nmYmSH1sauYapRiHSi+HkAoslIJPV9xPOnRg1lUlBpLz
+ /7CQ8USyDpHQZ7bK0GMxmPcbeg8TG4oYTpvFJbZ7dtZwAGOkN/Jo5OxGY06HZdwpe1IOZYEKwnK
+ +wJnK59cuixg9wIf4fFjHO9Jy83bJ4LSMMR5td7CLX4CxJ0NmEB6xXQ7z4AuXHfoE0wb7IWTVX9
+ OORRDjkIcP15iDzp9OvJcoWNos3JYsj2s8OD7ehoG1trojWDgHgNT0YyGCzndhGh2NNifHegt08
+ 3tfPHCzN1sgJcXey8Vle0HBbXGtSg/hSzGh1Ov+IS5KeCtQH4LCxWoKm0U99vZZh9JY8gdEfK2g
+ tlejM/1xaUtU+cXcR2g==
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMDI2MDA4OCBTYWx0ZWRfX5iqC00LQKT2Y
+ qOCtHvGhkZp5uxMJbt4Z9wV1d6OTO4U9VMSHS4wpUMacv3ZHJEiXbUc8/Zwn6B71BbhixHfNjMK
+ +iygXpcvcgTIsUmvFv/Kyoy5jBsVeoY=
+X-Proofpoint-ORIG-GUID: eHsoxCblt3cnxfp3Ul70utPhry5kvOAx
+X-Proofpoint-GUID: eHsoxCblt3cnxfp3Ul70utPhry5kvOAx
+X-Authority-Analysis: v=2.4 cv=DLUacCNb c=1 sm=1 tr=0 ts=6adfcfd3 cx=c_pps
+ a=WW5sKcV1LcKqjgzy2JUPuA==:117 a=IkcTkHD0fZMA:10 a=660iZSQnnn4A:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22 a=8elwO82fXORLTBIkMd32:22
+ a=wrF_2KVHrNPQTX-trsUA:9 a=QEXdDO2ut3YA:10 a=OpyuDcXvxspvyRM73sMx:22
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
+ definitions=2026-10-26_04,2026-10-21_02,2025-10-01_01
 
-Thank you for your contribution! Sashiko AI review found 4 potential issue(=
-s) to consider:
-- [Medium] selftests/rdma: stdout redirected to /dev/null and rxe_netkit_du=
-mp unverified
-- [Medium] selftests/rdma: rping server and rxe0 leaked in cleanup() of rxe=
-_pkg_netkit.sh
-- [Medium] selftests/rdma: unchecked /sys/kernel/debug/tracing/trace access=
- under set -e
-- [Medium] selftests/rdma: cleanup() trap on INT/TERM does not exit and dis=
-ables set -e
---
+> [Severity: Medium]
+> Can this skip path end up reported as a failure?
+>
+> Could the remote filter be installed before _make_psp_conn() is called?
+> Another option would be to finish the key exchange before any early exit.
 
-commit 113f4f28482f12566dde8a87cffb811f524f479c
-Author: Zhu Yanjun <yanjun.zhu@linux.dev>
+This is a good suggestion. I'll apply it to v4 if it makes sense (though it may
+no longer be relevant based on the other changes I'll be making in v4 due
+to the other finding.
 
-selftests/rdma: Add netkit-based automated test script for RXE
-
-This commit adds the rxe_pkg_netkit.sh selftest script to automate function=
-al
-and tracing tests for the rxe driver over netkit interfaces using an isolat=
-ed
-network namespace and rping.
-
-> diff --git a/tools/testing/selftests/rdma/rxe_pkg_netkit.sh b/tools/testi=
-ng/selftests/rdma/rxe_pkg_netkit.sh
-> new file mode 100755
-> index 0000000000000..181e2d85eed76
-> --- /dev/null
-> +++ b/tools/testing/selftests/rdma/rxe_pkg_netkit.sh
-> @@ -0,0 +1,81 @@
-> +#!/bin/sh
-> +# SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
-> +# Copyright (c) 2026 Zhu Yanjun <yanjun.zhu@linux.dev>
-
-[ ... ]
-
-> +exec > /dev/null
-> +
-> +set -e
-> +
-> +CUR_WD=3D"$(dirname "$0")"
-> +[ "$CUR_WD" =3D "." ] && CUR_WD=3D"$(pwd)"
-> +
-> +cleanup() {
-> +    set +e
-> +    [ -n "$DUMP_PID" ] && kill -9 "$DUMP_PID" 2>/dev/null
-> +    unset DUMP_PID
-> +
-> +    rdma link del rxe1 2>/dev/null
-> +    ip link del nk0 2>/dev/null
-> +    ip netns delete ns0 2>/dev/null
-> +}
-> +
-> +trap cleanup EXIT INT TERM
-
-[Severity: Medium]
-When rxe_pkg_netkit.sh receives an interrupt or termination signal via the
-INT or TERM trap, cleanup() runs set +e, tears down the test devices and ns0
-namespace, and then returns without exiting the shell.
-
-In standard sh, returning from an INT or TERM trap handler resumes execution
-at the command following the interrupted one. Will this cause the remainder
-of the script to continue running with set -e disabled against already
-deleted devices and namespaces, before running cleanup() a second time on
-EXIT?
-
-> +
-> +# Clear tracing buffer
-> +echo > /sys/kernel/debug/tracing/trace
-
-[Severity: Medium]
-What happens if /sys/kernel/debug/tracing/trace is not available on the test
-system, for instance when tracing is not enabled in the kernel, debugfs is
-not mounted, or tracefs is mounted standalone at /sys/kernel/tracing?
-
-Because set -e is active here and there is no prerequisite check for
-/sys/kernel/debug/tracing/trace, this redirection will abort the test with a
-failure exit code of 1 instead of skipping with exit code 4. Additionally,
-truncating /sys/kernel/debug/tracing/trace clears the host's global trace
-buffer rather than using an isolated trace instance. Should the script check
-that the trace file is accessible (and skip if not) before writing to it?
-
-> +
-> +# Create network namespace and netkit peer links
-> +ip netns add ns0
-> +ip link add nk0 type netkit mode l2 peer name nk1
-> +ip link set nk0 up
-> +ip link set nk1 up
-> +
-> +# Configure namespace interface
-> +ip link set nk1 netns ns0
-> +ip netns exec ns0 ip addr add 10.0.0.1/24 dev nk1
-> +ip netns exec ns0 ip link set nk1 up
-> +
-> +# Configure host interface
-> +ip addr add 10.0.0.2/24 dev nk0
-> +
-> +# Start dump utility in background
-> +"$CUR_WD/rxe_netkit_dump" &
-> +DUMP_PID=3D$!
-> +
-> +# Add RXE links over netkit devices
-> +ip netns exec ns0 rdma link add rxe0 type rxe netdev nk1
-> +rdma link add rxe1 type rxe netdev nk0
-> +
-> +# Start rping server in namespace
-> +ip netns exec ns0 rping -s -a 10.0.0.1 -C 3 &
-> +
-> +# Add wait time
-> +sleep 1
-> +
-> +# Run rping client on host
-> +rping -c -a 10.0.0.1 -C 3
-> +
-> +# Tear down RDMA links and netkit devices
-> +ip netns exec ns0 rdma link del rxe0
-
-[Severity: Medium]
-Does cleanup() leak the background rping -s server process and the rxe0 link
-inside ns0 if rping -c fails or the script exits early?
-
-When ip netns exec ns0 rping -s -a 10.0.0.1 -C 3 & is started in the
-background, its process id is not saved, and cleanup() neither kills that
-server process nor runs ip netns exec ns0 rdma link del rxe0:
-
-cleanup() {
-    set +e
-    [ -n "$DUMP_PID" ] && kill -9 "$DUMP_PID" 2>/dev/null
-    unset DUMP_PID
-
-    rdma link del rxe1 2>/dev/null
-    ip link del nk0 2>/dev/null
-    ip netns delete ns0 2>/dev/null
-}
-
-Because ip netns delete ns0 only unmounts the namespace bind mount without
-terminating processes running inside it, an early exit leaves the rping -s
-process running in the background holding rxe0, the ns0 namespace, and
-inherited file descriptors open (which can also cause the kselftest runner =
-to
-hang waiting for file descriptors to close). Even on the normal path,
-ip netns exec ns0 rdma link del rxe0 runs immediately after rping -c finish=
-es
-without waiting for the background rping -s server to finish tearing down i=
-ts
-resources and exit.
-
-> +rdma link del rxe1
-> +ip link del nk0
-> +ip netns delete ns0
-> +
-> +# Display kernel trace output
-> +cat /sys/kernel/debug/tracing/trace
-
-[Severity: Medium]
-Earlier in the script, stdout is redirected for the entire process and its
-children:
-
-exec > /dev/null
-
-Because of this redirection, both the output of "$CUR_WD/rxe_netkit_dump" &
-and the final cat /sys/kernel/debug/tracing/trace at the end of the script
-are discarded to /dev/null and never inspected.
-
-Furthermore, "$CUR_WD/rxe_netkit_dump" & is launched asynchronously without
-checking whether the binary exists, waiting for it to finish loading and
-attaching its program to nk0 before traffic starts, or checking its exit
-status and captured packet output. Can this cause the test to silently pass
-even when rxe_netkit_dump fails to start, attach, or capture any packets?
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261026215236.6005=
-4-1-yanjun.zhu@linux.dev?part=3D2
+-Todd
