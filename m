@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793046733;
-	b=ubUA4jqJfp8hp8lMjY8Nirmtxg5bLZK/iDIJsjtSwcorV+0tQkeNZfQLeTeEIYTImSfG
-	 mVyU6oe6O2OBZsbXIn8oPFnPeQ35wxvCUvCfv3jwEtWNObxTSg/KGcu1t1Sjjg9tAi1JQ
-	 fl1C++UQM/9/ApjtD7ocy16niHyjzf6VimZQTVg/Au40wDuJW3nminC40Ag5Mw4jCF24Z
-	 yFi4akkhPigdQSFyVKcO6pIFGLkyfiNGL4FhN5WS0cQ4qPooxIGMInzkE0f64y+gxHXvg
-	 xZrbHqwcx6X/hjTtYtTSG4tqXoTMQRGHhcCbsVLGEXL6SGpPEv3rvoy8FtDSn5Ul7Lg==
+	t=1793046735;
+	b=u0iJgzn95PKV/xxetxaa2uy3boTILqN3NY/dFN+q6vb9Y/CHThV5tamvKt38XAMQdqhB
+	 q/145LeZeKrboTF75yIhctHEQX6IIbw6rBfR/h/6bIPnJbv+arGaSbGtU3Dew2LJhh/BZ
+	 LOdOBBoTc4bfGEBq6jlYE2R9FoXCoUTNGdNIIbwq+cKqliZVC06T7JRZ12TdOxnXBZj5O
+	 i20y7PDpWVsp9kF/gs/f6DI9QNvD5sfet9roH8Cl6u5a15ssxF7+fe7h3GGEEvE8gbVTG
+	 7WUrLAJsWX8AFLVoOdNJ/IML/S0dTQFwRqIbXbkERuT+RB5GmvBPJmW/XTjDTv6zkLw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793046733;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793046735;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=WLSSNphe2t25gveuhQlDdNE5rvwvF50Zw1dxiVqEoXc=;
-	b=mXndlytUsNMSmE/QpUBpYC2ZRpKdivTXHaaZSn/UFTPcudCM3QBG/nhvTIowZFyCllIi
-	 KzqosmLukg2Oq6hfIw1zCfbGIjFNn21Cbd1nDaEfWHpU1IQq5T5eM7EYEr1lgvetcqZIm
-	 6ZHAmf5GHB2MjGYFtY15vP7Fue9pJpDuyaIUiifmZKZVo+A8A2a64r2DzbgSm1JYZ4De6
-	 GNixwB8ap+jDnTNg/4d4AcFMp7nFW/tClCDl0hvmzIEGr807kFdjLrfBv3qufmxyaZOMw
-	 Zw9Od2tOMdJ4QPwhBIqrejGjSCPEM57sZtaxerE6OUv7U5ydgBvYDVix4569iSHYe3g==
+	bh=R3ND/zRroCPy3olb6Q5mBbP8BOpmU+o557H0KoMUBFE=;
+	b=er6K+aOV/aifz4RWYuPL6v0aTy5ynRLeK3o3/qic36wAWnwn06qIoQ00RoOj7Ff1AL0O
+	 3R3C0wNZvdFD92BvvjodSVN5EIvHPg9WNTVXkWIflxhy4Hdbh9U91j1yO9nMhIaeReaMS
+	 yHkkZmIScbKHQc64m05kLK1nBJcPyX/AKAzy9fWD6L26OpF+B/jsM+9DVkCgaror4E8px
+	 da8tmaOfx/IOo2XRHfdF9lsAxXyZH07hO2n9hCrPiR/33+uCd/eOJ7p0JrAAgpMryiauf
+	 1k2yER3gBLLvbVMS0cUjY/vyua4WA4zn/2FRO3TNlBToh9oEEXh0ld4ubqyeOM2W8PQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NlJm4Ssb;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="UNS/KxAg";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8314F606A325;
-	Mon, 26 Oct 2026 20:32:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49D94606A31F;
+	Mon, 26 Oct 2026 20:32:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NlJm4Ssb
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A1C71F01825;
-	Mon, 26 Oct 2026 20:32:12 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UNS/KxAg
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F05151F01825;
+	Mon, 26 Oct 2026 20:32:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793046733;
-	bh=WLSSNphe2t25gveuhQlDdNE5rvwvF50Zw1dxiVqEoXc=;
+	s=k20260515; t=1793046735;
+	bh=R3ND/zRroCPy3olb6Q5mBbP8BOpmU+o557H0KoMUBFE=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=NlJm4SsbnT2kYHfVsAjuTwIhlcJuf8HmYODezDTZ4SxaYuxCOD2yvPsaCRqIg1Ngw
-	 p9qvUFOu4NhHnpH8xCZNevt6UJBjy//5kFuy9VXLLMZYGbexQwA4oRP80VylLjt6qT
-	 ZBVd5U59ephkf44s8ZOc49vvB0HdEgsGXQsu3SySQkcFZE55pSPEjGU3xgptrfQIpS
-	 diDGoXeTF3vyqsqpoUvOeRd842+zfprSLsKJ04G7RINGdUakh5hCgW8myCKOIe0Aak
-	 seXt+lLZU0wzgH0ClLNgkcqTbDKyd3G6bMV1rJAeZq0ZZutIs/rwDBvJA54uWkNXA9
-	 g17TRina2ajPw==
-Subject: Re: [PATCH net V2 3/4] {RDMA,net}/mlx5: notify IB uplink on LAG
- aggregate speed change
+	b=UNS/KxAgupqUJ4yjVXmq7zY+x5+VP+M+1x1VJdK8Q7GTv1EFMfrbX0nO0sDiewmqL
+	 eywPtgTvEz4kEFhXapxBjzv5pVKTmbVJoSfbJy1KobGP7zRJzsPB9EtWWnHXiMFD/V
+	 Z50tQZHzrv9f9b2S8YTiTzjXyk/6Fu8ciRlwg/Wt0LtM2Y6lHOa6/jBc6LgxpREP8A
+	 TGj6HGjaDRMxCmMoqHFQrAXGdM8EUtzsIiRDoUz5qNaWXvYhrFX5DTas4CVl+OurJx
+	 DuitGxMxixlkiNZvObuAVoaLqindJIUNjkD6jk0sh51rS+fjPOSGQnCfHGxpCAudOW
+	 UJspPqxNIz3Wg==
+Subject: Re: [PATCH net V2 4/4] net/mlx5: Lag, save and restore vport
+ max_tx_speed across LAG
 From: netdev-bot+sashiko@kernel.org
 To: tariqt@nvidia.com
 Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
@@ -51,10 +51,10 @@ Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
  leon@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
  linux-rdma@vger.kernel.org, msanalla@nvidia.com, mbloch@nvidia.com,
  ohartoov@nvidia.com, saeedm@nvidia.com, shayd@nvidia.com
-Date: Mon, 26 Oct 2026 20:32:11 +0000
-Message-ID: <179304673172.3134.1508256184291095453@kernel.org>
-In-Reply-To: <20261022193053.3815866-4-tariqt@nvidia.com>
-References: <20261022193053.3815866-4-tariqt@nvidia.com>
+Date: Mon, 26 Oct 2026 20:32:13 +0000
+Message-ID: <179304673356.3134.5707726348290129321@kernel.org>
+In-Reply-To: <20261022193053.3815866-5-tariqt@nvidia.com>
+References: <20261022193053.3815866-5-tariqt@nvidia.com>
 X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -68,10 +68,10 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 3 potential
+Thank you for your contribution! Sashiko AI review found 7 potential
 issue(s) to consider.
 
-Critical: 0 · High: 2 · Medium: 1 · Low: 0
+Critical: 0 · High: 1 · Medium: 5 · Low: 1
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -79,274 +79,349 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [High] The fix does not reach the IB uplink device in non-shared-FDB
-  switchdev (SRIOV) LAG, although the commit message says it fixes the…
-- [High] Use-after-free of struct ib_device through async event work
-  queued by the new MLX5_DRIVER_EVENT_LAG_SPEED_CHANGE handler.
-- [Medium] net/mlx5: LAG speed change notified before updating eswitch
-  vport speeds
+- [High] mlx5_esw_vport_save_max_tx_speed() (eswitch.c:948) treats a non-
+  zero agg_max_tx_speed during an active LAG as meaning the aggregate is…
+- [Medium] The new restore logic only runs on one LAG teardown path.
+- [Medium] vport->max_tx_speed is read from FW only once per mlx5_vport
+  object, because of the `|| vport->max_tx_speed) return;` early return…
+- [Medium] In mlx5_lag_reset_vports_speed(), when
+  mlx5_modify_vport_max_tx_speed() fails for an enabled vport, the loop…
+- [Medium] mlx5_lag_reset_vports_speed() records agg_max_tx_speed = 0 in
+  two cases where FW still holds the LAG aggregate.
+- [Medium] The save gate in mlx5_esw_vport_save_max_tx_speed() uses
+  mlx5_lag_is_active(), which reads ldev->mode under lag_lock.
+- [Low] The fallback in mlx5_lag_get_restore_speed() clamps with the raw
+  per-device pcie_bandwidth_mbps(mdev->pdev).
 
 --
 
-{RDMA,net}/mlx5: notify IB uplink on LAG aggregate speed change
+net/mlx5: Lag, save and restore vport max_tx_speed across LAG
 
-This patch raises IB_EVENT_DEVICE_SPEED_CHANGE on the IB uplink device
-when the cached LAG aggregate speed changes. mlx5_lag_update_agg_speed()
-now calls a new helper, mlx5_lag_notify_speed_change(). The helper sends
-MLX5_DRIVER_EVENT_LAG_SPEED_CHANGE on the P1 PF's lag_nh chain, and
-lag_event() in mlx5_ib turns it into an IB async event.
+This commit reads each vport's max_tx_speed from FW when the vport is
+enabled. At LAG teardown it writes that saved value back per vport,
+instead of writing the oper link speed. If nothing was saved, it falls
+back to a link-derived speed clamped by PCIe bandwidth, and disabled
+vports get their saved value as agg_max_tx_speed for the next enable.
 
-> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-> index 6594d38cf1993..cfa7c7ba2b737 100644
-> --- a/drivers/infiniband/hw/mlx5/main.c
-> +++ b/drivers/infiniband/hw/mlx5/main.c
-> @@ -3690,6 +3690,16 @@ static int lag_event(struct notifier_block *nb, unsigned long event, void *data)
->  			rdma_roce_rescan_port(ibdev, portnum + 1);
->  		}
->  		break;
-> +	case MLX5_DRIVER_EVENT_LAG_SPEED_CHANGE: {
-> +		struct ib_event speed_event = {};
-> +
-> +		if (!dev->ib_active)
-> +			break;
-> +		speed_event.device = ibdev;
-> +		speed_event.event = IB_EVENT_DEVICE_SPEED_CHANGE;
-> +		ib_dispatch_event(&speed_event);
+Link: https://lore.kernel.org/all/20260915015118.875210-1-kuba@kernel.org/
 
-[Severity: High]
-Can the work queued here outlive the ib_device?
-
-ib_dispatch_event() copies the event, including the raw ibdev pointer,
-into an ib_update_work and queues it on ib_wq. It takes no reference on
-the device. Nothing synchronizes the dev->ib_active check with
-__mlx5_ib_remove():
-
-__mlx5_ib_remove() {
-	dev->ib_active = false;
-
-	/* Number of stages to cleanup */
-	while (stage) {
-		stage--;
-		if (profile->stage[stage].cleanup)
-			profile->stage[stage].cleanup(dev);
-	}
-
-	kfree(dev->port);
-	ib_dealloc_device(&dev->ib_dev);
-}
-
-The stages are cleaned up in reverse order. In pf_profile and
-raw_eth_profile, MLX5_IB_STAGE_IB_REG comes after MLX5_IB_STAGE_ROCE.
-That means ib_unregister_device() runs first, including its last
-flush_workqueue(ib_wq) in ib_cache_cleanup_one(). Only after that does
-mlx5_eth_lag_cleanup()->mlx5e_lag_event_unregister() run.
-
-One possible ordering:
-
-CPU1 (bond work or mlx5_mpesw_speed_update_work, holding ldev->lock)
-mlx5_lag_update_agg_speed()
-  mlx5_lag_notify_speed_change()
-    blocking_notifier_call_chain()      /* down_read(&lag_nh.rwsem) */
-      lag_event()
-        sees dev->ib_active == true
-        <preempted>
-
-CPU2 (rmmod mlx5_ib or auxiliary unbind)
-__mlx5_ib_remove()
-  dev->ib_active = false;
-  mlx5_ib_stage_ib_reg_cleanup()
-    ib_unregister_device()              /* last ib_wq flush */
-  mlx5_eth_lag_cleanup()
-    mlx5e_lag_event_unregister()
-      blocking_notifier_chain_unregister()   /* waits on rwsem */
-
-CPU1
-        ib_dispatch_event()
-          queue_work(ib_wq, &work->work);
-    up_read(&lag_nh.rwsem)
-
-CPU2
-  ib_dealloc_device()
-    ... ib_device_release()
-      kfree_rcu(dev, rcu_head);
-
-ib_wq worker
-ib_generic_event_task()
-  ib_dispatch_event_clients()
-    down_read(&event->device->event_handler_rwsem);   /* freed */
-
-The commit message says:
-
-    blocking_notifier_chain_unregister() in mlx5_eth_lag_cleanup() takes the
-    write side and cannot return until any in-flight callback has completed,
-    so no event can be dispatched to a freed device after unregistration.
-
-The rwsem waits for lag_event() to return. Does it also wait for the
-ib_wq work that lag_event() queued? Nothing seems to flush ib_wq after
-mlx5e_lag_event_unregister().
-
-The existing mlx5_ib_event path seems to avoid this, because its
-DEVICE_NOTIFIER stage is torn down before IB_REG. The last patch in this
-series doesn't appear to change this path.
-
-> +		break;
-> +	}
->  	default:
->  		return NOTIFY_DONE;
->  	}
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
-> index 05e6d0aa31fcf..afe0b9909f2dc 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
-> @@ -1540,8 +1540,24 @@ static int mlx5_lag_get_devices_oper_speed(struct mlx5_lag *ldev,
->  	return 0;
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+> index fc197d1dc9dfe..7cf9c15ec65d2 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+> @@ -935,6 +935,27 @@ static void esw_vport_cleanup(struct mlx5_eswitch *esw, struct mlx5_vport *vport
+>  	esw_vport_cleanup_acl(esw, vport);
 >  }
 >  
-> +void mlx5_lag_notify_speed_change(struct mlx5_lag *ldev)
+> +static void mlx5_esw_vport_save_max_tx_speed(struct mlx5_eswitch *esw,
+> +					     struct mlx5_vport *vport)
 > +{
-> +	struct lag_func *pf;
-> +	int idx;
+> +	u16 op_mod = MLX5_VPORT_STATE_OP_MOD_ESW_VPORT;
+> +	int ret;
 > +
-> +	idx = mlx5_lag_get_dev_index_by_seq(ldev, MLX5_LAG_P1);
-> +	if (idx < 0)
+> +	if (!MLX5_CAP_ESW(esw->dev, esw_vport_state_max_tx_speed) ||
+> +	    vport->vport == MLX5_VPORT_UPLINK || vport->max_tx_speed)
 > +		return;
-> +	pf = mlx5_lag_pf(ldev, idx);
-> +	if (!pf)
-> +		return;
-> +	blocking_notifier_call_chain(&pf->dev->priv.lag_nh,
-> +				     MLX5_DRIVER_EVENT_LAG_SPEED_CHANGE, NULL);
 
 [Severity: Medium]
-Is the event sent before the vports it describes have been updated?
+Once vport->max_tx_speed is non-zero, this returns early. Nothing in the
+patch ever sets it back to 0. Can the saved value go stale?
 
-mlx5_lag_set_vports_agg_speed() calls mlx5_lag_update_agg_speed()
-first. Only after that does it walk the PFs and push the new
-max_tx_speed to each eswitch vport with MODIFY_VPORT_STATE:
+The mlx5_vport objects are allocated once, in mlx5_esw_vports_init()
+from mlx5_init_once(). They survive devlink reload, fw_activate, sync
+reset and health recovery, because mlx5_load_one_devl_locked() only
+runs mlx5_function_setup() and mlx5_load().
 
-mlx5_lag_set_vports_agg_speed() {
-	if (mlx5_lag_update_agg_speed(ldev))
-		return;
-	...
-	mlx5_ldev_for_each(pf_idx, 0, ldev) {
-		...
-		mlx5_lag_modify_device_vports_speed(mdev, speed);
-	}
-}
+After such a reset, FW may recompute its per-vport default (the lower
+of port speed and PCIe bandwidth). If the PCIe link or port speed has
+changed, mlx5_lag_get_restore_speed() still uses the old saved value at
+the next teardown.
 
-With this patch, mlx5_lag_update_agg_speed() calls
-mlx5_lag_notify_speed_change() as soon as agg_speed_mbps is written.
-So lag_event() queues IB_EVENT_DEVICE_SPEED_CHANGE on ib_wq while the
-FW vport state still holds the old speed. This applies to
-mlx5_do_bond(), mlx5_mpesw_speed_update_work() and
-mlx5_lag_shared_fdb_create(), which all go through
-mlx5_lag_set_vports_agg_speed().
+For disabled vports, the old value is copied into agg_max_tx_speed.
+Since that field is never cleared, mlx5_esw_vport_enable() writes it on
+every later enable, even when no LAG is configured.
 
-On the switchdev representor ib_device, only the uplink port reads the
-cached aggregate. The VF/SF representor ports on the same ib_device
-query FW instead:
+Should max_tx_speed be reset on reload/reset, or read again from FW
+when no LAG is active?
 
-mlx5_ib_query_port_speed_rep() {
-	if (rep->vport == MLX5_VPORT_UPLINK) {
-		if (mlx5_lag_is_sriov(mdev))
-			return mlx5_ib_query_port_speed_from_bond(...);
-		...
-	}
-
-	op_mod = MLX5_VPORT_STATE_OP_MOD_ESW_VPORT;
-	return mlx5_ib_query_port_speed_from_vport(dev->mdev, op_mod,
-						   rep->vport, ...);
-}
-
-A consumer could handle the event and query ports 2..N before the
-mlx5_lag_modify_device_vports_speed() loop has finished. It would then
-read a stale max_tx_speed. I couldn't find anything that raises a
-second IB_EVENT_DEVICE_SPEED_CHANGE on the representor ib_device once
-the loop completes. In that case the stale value would be all the
-consumer ever sees for that change.
-
-The commit message says:
-
-    That cache is where the IB layer now takes the effective speed
-    from, so a consumer that queries after receiving the event is
-    guaranteed to read the new value.
-
-That holds for the uplink port. Does it hold for the other
-representor ports on the same device?
-
-Could the notification be sent from mlx5_lag_set_vports_agg_speed()
-after the vport loop, instead of from mlx5_lag_update_agg_speed()? Or
-is there a reason the event has to be raised before the vports are
-updated? Any callers of mlx5_lag_update_agg_speed() outside
-mlx5_lag_set_vports_agg_speed(), such as RoCE LAG, would presumably
-still need their own notification.
+> +
+> +	if (mlx5_lag_is_active(esw->dev) && !vport->agg_max_tx_speed)
+> +		return;
 
 [Severity: High]
-Does this event reach the IB uplink device in switchdev (SRIOV) LAG
-when shared FDB is not used? That is the case when
-mlx5_lag_shared_fdb_supported() returns false and mlx5_do_bond() takes
-the mlx5_activate_lag(..., MLX5_LAG_MODE_SRIOV, false) branch.
+This check reads a non-zero agg_max_tx_speed during an active LAG as
+"the aggregate is pending and FW still holds the original". Is that
+always the case?
 
-The event only goes to P1's lag_nh. mlx5_eth_lag_init() registers
-lag_events only if LAG is already active when the IB device
-initializes:
+mlx5_lag_modify_device_vports_speed() sets agg_max_tx_speed for every
+vport. For enabled vports it also writes the aggregate to FW right away:
 
-mlx5_eth_lag_init() {
-	...
-	ns = mlx5_get_flow_namespace(mdev, MLX5_FLOW_NAMESPACE_LAG);
-	if (!ns || !mlx5_lag_is_active(mdev))
-		return 0;
-	...
-	mlx5e_lag_event_register(dev);
-	...
-}
+    vport->agg_max_tx_speed = speed;
 
-IB reps are loaded when switchdev mode is enabled, which is before the
-bond forms. The non-shared-FDB branch of mlx5_do_bond() doesn't reload
-or rescan the IB devices. Only the RoCE LAG and shared FDB paths do:
+    if (!vport->enabled)
+        continue;
 
-mlx5_do_bond() {
-	...
-		if (!shared_fdb)
-			mlx5_lag_set_vports_agg_speed(ldev);
-	} else if (mlx5_lag_should_modify_lag(ldev, do_bond)) {
-		mlx5_modify_lag(ldev, &tracker);
-		mlx5_lag_set_vports_agg_speed(ldev);
-	...
-}
+    ret = mlx5_modify_vport_max_tx_speed(mdev, op_mod, vport->vport, true, speed);
 
-mlx5_create_lag() also reinitializes the chain when LAG is activated,
-which drops any earlier subscriber:
+Nothing clears agg_max_tx_speed once it has been applied.
+mlx5_esw_vport_disable() doesn't touch agg_max_tx_speed or
+max_tx_speed either.
 
-	BLOCKING_INIT_NOTIFIER_HEAD(&dev0->priv.lag_nh);
+So take a vport with max_tx_speed == 0 while FW already holds the
+aggregate. That state is reachable in two ways:
 
-Without shared FDB, mlx5_ib_vport_rep_load() also leaves lag_master
-pointing at the PF itself. So each PF's uplink IB device has
-ibdev->mdev set to its own PF. A P2 uplink device would subscribe to
-P2's lag_nh, if it subscribed at all, so an event sent only to P1 could
-not reach it.
+- An earlier save query failed (only logged at debug level).
+- The vport was enabled while mlx5_lag_is_active() was true and
+  agg_max_tx_speed was 0, so the save was skipped. One example is an
+  SD-only shared FDB: __mlx5_lag_is_sd_active() makes
+  mlx5_lag_is_active() return true, but no aggregate is applied. A
+  later aggregate, for example from MPESW enable, then lands on the
+  enabled vport.
 
-These uplink devices still report the cached aggregate, because
-mlx5_ib_query_port_speed_rep() doesn't check for shared FDB:
+If that vport is disabled and re-enabled while the LAG is still active,
+this check passes. The query then stores the FW aggregate in
+vport->max_tx_speed.
 
-	if (rep->vport == MLX5_VPORT_UPLINK) {
-		if (mlx5_lag_is_sriov(mdev))
-			return mlx5_ib_query_port_speed_from_bond(dev,
-								  port_num,
-								  speed);
+At teardown, mlx5_lag_get_restore_speed() returns that value and the
+aggregate is written back. Because max_tx_speed is never reset, every
+later LAG cycle restores the same wrong baseline.
 
-In this setup, wouldn't the uplink IB device still get only the
-immediate physical-port event, possibly before agg_speed_mbps is
-updated, and nothing once the aggregate settles? That is the behavior
-the commit message says it fixes:
+That seems to contradict the commit message:
 
-    The uplink vport is deliberately skipped when pushing the aggregate
-    speed, so the IB uplink device never gets a second event once the
-    aggregate has settled.
+    If the max_tx_speed of a vport could not be saved, it stays zero and
+    mlx5_lag_get_restore_speed() falls back to a link-derived speed at
+    teardown.
 
-Could the notification go through a chain on each PF that every mlx5_ib
-device is always subscribed to, instead of only P1's lag_nh? The later
-patch in this series, "net/mlx5: Lag, save and restore vport
-max_tx_speed across LAG", doesn't appear to touch the notification path.
+Is a separate marker needed here, one that can tell "aggregate pending"
+apart from "aggregate applied"?
+
+[Severity: Medium]
+Does mlx5_lag_is_active() stay consistent with agg_max_tx_speed here?
+
+mlx5_lag_is_active() reads ldev->mode under lag_lock. ldev->mode is
+written under ldev->lock only, in mlx5_activate_lag() and
+mlx5_deactivate_lag(). agg_max_tx_speed and the FW aggregate are
+written in a separate esw->state_lock section.
+
+On activation, mlx5_do_bond()->mlx5_lag_shared_fdb_create() sets the
+mode and drops ldev->lock for rep rescans and reloads. Only after that
+does it call mlx5_lag_set_vports_agg_speed().
+
+A vport can be enabled in that window. One way is mlx5_eswitch_enable()
+when the FDB already exists: toggle_lag is false, so
+mlx5_lag_disable_change() doesn't serialize it. SF/ECPF function
+changes are another way. Such a vport sees an active LAG with
+agg_max_tx_speed == 0. It skips the save even though FW still holds the
+original, and then receives the aggregate.
+
+On teardown, mlx5_do_bond() does:
+
+    mlx5_lag_reset_vports_speed(ldev);
+    mlx5_disable_lag(ldev);
+
+The mode is still set after mlx5_lag_reset_vports_speed() drops
+state_lock. A vport enabled in that window also skips the save.
+
+Either way, the vport ends up with max_tx_speed == 0 while FW holds the
+aggregate. Isn't that the precondition for the saved-baseline problem
+described above?
+
+> +
+> +	ret = mlx5_query_vport_max_tx_speed(esw->dev, op_mod, vport->vport,
+> +					    true, &vport->max_tx_speed, NULL);
+> +	if (ret)
+> +		mlx5_core_dbg(esw->dev,
+> +			      "Failed to save vport %d max tx speed, err=%d\n",
+> +			      vport->vport, ret);
+> +}
+
+[ ... ]
+
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+> index afe0b9909f2dc..3e623c96b2a1d 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+> @@ -1712,11 +1712,37 @@ void mlx5_lag_set_vports_agg_speed(struct mlx5_lag *ldev)
+>  	}
+>  }
+>  
+> +static int mlx5_lag_get_restore_speed(struct mlx5_core_dev *mdev,
+> +				      struct mlx5_vport *vport, u32 *speed)
+> +{
+> +	u32 pci_bw;
+> +
+> +	if (vport->max_tx_speed) {
+> +		*speed = vport->max_tx_speed;
+> +		return 0;
+> +	}
+> +
+> +	*speed = 0;
+> +	mlx5_port_oper_linkspeed(mdev, speed);
+> +	if (!*speed && mlx5_port_max_linkspeed(mdev, speed))
+> +		return -ENODATA;
+> +
+> +	pci_bw = pcie_bandwidth_mbps(mdev->pdev);
+> +	if (pci_bw)
+> +		*speed = min(*speed, pci_bw);
+
+[Severity: Low]
+This might not be an issue, but the fallback clamps with the per-device
+pcie_bandwidth_mbps(mdev->pdev). The aggregate path uses
+mlx5_lag_port_pcie_bw() instead, which sums bandwidth across
+Socket-Direct group members and treats RC_END as unlimited.
+
+The restore value is per vport, and the FW default is described as
+coming from the endpoint's own link status. So the per-device clamp may
+be intended. For RC_END, pcie_bandwidth_mbps() returns 0 and the
+if (pci_bw) check skips the clamp.
+
+Could a short comment explain why the per-device value is used here
+rather than the SD-aware helper?
+
+> +	*speed /= MLX5_MAX_TX_SPEED_UNIT;
+> +	return 0;
+> +}
+
+[ ... ]
+
+> @@ -1728,17 +1754,39 @@ void mlx5_lag_reset_vports_speed(struct mlx5_lag *ldev)
+>  		mdev = pf->dev;
+>  		if (!mdev)
+>  			continue;
+> -
+> -		ret = mlx5_port_oper_linkspeed(mdev, &speed);
+> -		if (ret) {
+> -			mlx5_core_dbg(mdev,
+> -				      "Failed to reset vports speed for device %s. Oper speed is not available (err=%d)\n",
+> -				      dev_name(mdev->device), ret);
+> +		esw = mdev->priv.eswitch;
+> +		if (!esw || !MLX5_CAP_ESW(mdev, esw_vport_state_max_tx_speed))
+>  			continue;
+> -		}
+>  
+> -		speed = speed / MLX5_MAX_TX_SPEED_UNIT;
+> -		mlx5_lag_modify_device_vports_speed(mdev, speed);
+> +		mutex_lock(&esw->state_lock);
+> +		mlx5_esw_for_each_vport(esw, i, vport) {
+
+[Severity: Medium]
+mlx5_lag_reset_vports_speed() is only called from the
+mlx5_lag_should_disable_lag() branch of mlx5_do_bond(). That predicate
+excludes MPESW:
+
+    return !do_bond && __mlx5_lag_is_active(ldev) &&
+           ldev->mode != MLX5_LAG_MODE_MPESW;
+
+Should the other teardown paths restore vport speeds as well?
+
+mlx5_lag_disable_change() goes straight to mlx5_lag_disable_mpesw() or
+mlx5_disable_lag(). It is called from mlx5_eswitch_enable(),
+mlx5_eswitch_disable() and the devlink eswitch mode change.
+
+Explicit MPESW disable goes through
+mlx5_mpesw_work()->mlx5_lag_disable_mpesw()->mlx5_lag_shared_fdb_destroy(),
+and doesn't restore either.
+
+The aggregate is still applied when these LAGs come up, through
+mlx5_lag_shared_fdb_create()->mlx5_lag_set_vports_agg_speed() and
+mlx5_mpesw_speed_update_work().
+
+After those teardowns, FW and agg_max_tx_speed both still hold the
+aggregate. mlx5_esw_vport_enable() writes it again on every later
+enable.
+
+With the new save step, a vport whose max_tx_speed is still 0 then
+reads the leftover aggregate from FW and keeps it as its saved
+original. Every later mlx5_do_bond() teardown then restores the
+aggregate.
+
+The missing restore calls on these paths were already there before
+this patch. But the commit message says the saved value is restored
+"at teardown", and the interaction with the new save step is new.
+
+> +			if (!vport || vport->vport == MLX5_VPORT_UPLINK)
+> +				continue;
+> +
+> +			if (!vport->enabled) {
+> +				vport->agg_max_tx_speed = vport->max_tx_speed;
+> +				continue;
+> +			}
+> +
+> +			if (mlx5_lag_get_restore_speed(mdev, vport,
+> +						       &restore_speed)) {
+> +				vport->agg_max_tx_speed = 0;
+> +				continue;
+> +			}
+
+[Severity: Medium]
+Both of these branches set agg_max_tx_speed to 0 without writing FW.
+Could FW still hold the aggregate in either case?
+
+For a disabled vport with max_tx_speed == 0, the pending restore is
+dropped. That vport may have been enabled partway through the LAG
+without a saved value (the mlx5_lag_is_active() check skipped the save,
+or the query failed). It then received the aggregate and was disabled
+before teardown.
+
+The patch already assumes FW keeps max_tx_speed across a vport disable.
+That is why disabled vports get a replay value.
+
+For an enabled vport, mlx5_lag_get_restore_speed() returns -ENODATA
+when nothing was saved and the PTYS query fails.
+
+In both cases, the next mlx5_esw_vport_enable() after the LAG is gone
+sees max_tx_speed == 0 and an inactive LAG. It queries FW and saves the
+leftover aggregate as the original.
+
+Before this patch, disabled vports got agg_max_tx_speed set to the oper
+speed, so re-enabling them corrected FW.
+
+The commit message covers "a vport disabled for the entire LAG period".
+Does the same reasoning hold for a vport that was disabled partway
+through the LAG?
+
+> +
+> +			ret = mlx5_modify_vport_max_tx_speed(mdev, op_mod,
+> +							     vport->vport,
+> +							     true,
+> +							     restore_speed);
+> +			if (ret) {
+> +				mlx5_core_dbg(mdev,
+> +					      "Failed to restore vport %d max tx speed, err=%d\n",
+> +					      vport->vport, ret);
+> +				continue;
+> +			}
+
+[Severity: Medium]
+If mlx5_modify_vport_max_tx_speed() fails here, agg_max_tx_speed keeps
+the LAG aggregate. Is that intended?
+
+Before, mlx5_lag_modify_device_vports_speed() set agg_max_tx_speed to
+the teardown speed before trying the FW write. A later enable would
+then retry with a non-LAG value.
+
+Now, on a later enable with no LAG active, mlx5_esw_vport_enable()
+runs:
+
+    if (vport->agg_max_tx_speed)
+        mlx5_esw_vport_set_max_tx_speed(esw, vport);
+
+which writes the stale aggregate to FW again. If max_tx_speed is still
+0, the save step runs first and records the aggregate still in FW as
+the baseline.
+
+That looks like the state the commit message says is fixed:
+
+    leaving the aggregate in FW and in agg_max_tx_speed
+
+Would setting vport->agg_max_tx_speed = restore_speed in this failure
+branch let the next enable retry the restore?
+
+> +			vport->agg_max_tx_speed = 0;
+> +		}
+> +		mutex_unlock(&esw->state_lock);
+
+[ ... ]
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261022193053.3815866-1-tariqt%40nvidia.com
