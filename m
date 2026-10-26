@@ -1,59 +1,58 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.215.58.83
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792982944;
-	b=Yz4yxiMXHhaPT9DozxTnj1RBTJhv7zgIypL+ZQc4DEzddurGnPSMOUnjC9dBOoYjxNfv
-	 OT1QrYpokCM0PbplhScr0ckTE+mA03mXKjEBF4JHZ+Gi2gh313WChkCHu3j+IHOlViiJw
-	 VsXhsPz8rBsDrqzbleVzB9OaDlg0e1gdn9Rz0QmTFinky6LcWiyEgSq1UJTnjwx6tY3it
-	 k+Rj+iWlHOFG4bg/wrqks5UrRvgv/nXiuBaXqbvxkEu48vr795lU5SBnWnhHcPwfkJ9SJ
-	 ur78GrZECWjiJ5hsMn4SH5SWcl6eaU7wbjEozq3c3Pyxid0g7asEl0NQCuFLgdFNPQg==
+	t=1792987407;
+	b=Q3eTRTzXX6P52Ov2a4reIEr+1M2LGnA6kxN3MzxW35LI2m7tKilFTe6b1dNf+ZKRcE7M
+	 h+itOagY0tZDPyaJ7ytouvUSX+iPyMByeJtIvzyIAqGEBqH2FWblyhuZKJ2V0NmCbuZs+
+	 qoJidxkQn2BjieMdDIQ0JThhpXB8xvI3y+/zcwv6US29gojIt8CnIrRLi3gB46SfcesfX
+	 WLeSL3wyLAvYmFoIgnQdPTmmVmGRYnpxFRmWNZaK7WpALue+tnV0tNT6GdLktOtFLAEZM
+	 O9B8MfFAm1cE2w4s0BwOX9hGsEb72L4/PKV2IUE8M5joeXSCCSgwb5jtoGAHrY/K4UA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792982944;
-	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
-	 X-Mizu-Trace-ID:X-Migadu-Flow:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=QoMN9IuoMoRHGY91ipX/fPql2/FDyo785asdqTToyvk=;
-	b=TsJK/mc7x3UyxjO+X1kuEzDUXcpscCO6EVXBOsawJpG6U8LBO1ImS8sGOULmz/SElPBy
-	 Sydd/4EDdBRAV/cwdT7izhG10u13kfd+hFRFb97pi7Whb7i4fipK1BZVXRrCOVbXDoCB/
-	 zuOwmsqCEQJ12MDbmxsXwUKFNVYR2SLr+apcpV7Yr4wmv712nMn85mhnd+kqYru5bZm7y
-	 BfC931GDx7tB1d1T6fHwLaBKq4oU8QbXrrF2OhTLuMfKn3CxNR5v6suXZE65gXNpnjtCv
-	 gGxTxM9oOEfWkugXkP/PyVCpinmZ4lNr5bhSGZeL44WaIvMScdi1JF7tZla2Ei7wIHg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792987407;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=UZp1COSWoy3dkBmZ5MRFM90yfnQonoRTNPpwCNCjHug=;
+	b=aOKV5FkTDbZbzsiVQvrclyI/vgBAXlZ41Rohe68f8Ge3XYBw/QC3PDnDDwWsOjrJc6AM
+	 X9iUXBagT2Kdcc8Gi/FnVKf4aEqApHR+mvwLD5nEDDafdDyEh/N8bcHvN0pI1VTRNnzBQ
+	 mmqYm1AGSHbRT9tcqpsXypdcwgYNg4/L5KQPy4Fd63aNvbUiiZEeNlkhULLsTQHGjPby/
+	 mWsoJYSGdLukA/umbUALQ9/HaIhzzrHNQAMmhZZefB6w2h2IIED3xAwQRW0djnlW+v44B
+	 18Xn7S4UpVQk6UC8RodjHZ+KCn7Ee9Lk90rYekOsp2ZGlpR01U/1+H1LVm8jRSxH29A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.dev;
-	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=SiwXqmHb;
-	arc=none smtp.remote-ip=95.215.58.83
-Received: from mta1.migadu.com (out-83.mta1.migadu.com [95.215.58.83])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DfhiwTzG;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D684606A31A
-	for <linux-rdma@vger.kernel.org>; Mon, 26 Oct 2026 02:49:01 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4D684606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7072B606A31A;
+	Mon, 26 Oct 2026 04:03:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=SiwXqmHb
-X-Envelope-To: linux-rdma@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=jdRN6MFYj2YmCSPub8P43JPTJWPrmm0ezeN7UlTo9nU=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1792982940; v=1; x=1793587740;
- b=SiwXqmHbi65DNkwwTjRhyM6I0cf8U2pHI0z3sKlege9VRk7dGsCpjiFCHsKNi56JsIGrCEFq
- QjTEpy9XjBygk5vpewtFb/uZge3opXg0VpkYG83yVVH76VurYndIhXHDIXIBb4RZ1Ov5rAY52rG
- OVsg92/8WqJaebd8ExTg3EsM=
-X-Envelope-To: linux-rdma@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id 7a9d9d49db9a7899;
-	Mon, 26 Oct 2026 02:49:00 +0000
-X-Mizu-Trace-ID: 7a9d9d49db9a7899
-X-Migadu-Flow: FLOW_OUT
-Date: Mon, 26 Oct 2026 10:49:35 +0800
-From: Chenguang Zhao <chenguang.zhao@linux.dev>
-To: Serhat Kumral <serhatkumral1@gmail.com>
-Cc: jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] RDMA/mthca: Fix off-by-one in mthca_map_user_db()
-Message-ID: <20261026024935.GA151928@pc>
-References: <20261023192348.11070-1-serhatkumral1@gmail.com>
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DfhiwTzG
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F6FA1F01828;
+	Mon, 26 Oct 2026 04:03:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792987407;
+	bh=UZp1COSWoy3dkBmZ5MRFM90yfnQonoRTNPpwCNCjHug=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=DfhiwTzGhrkrmFd8KTV214mmP5j7/awrNrnh+nOWI5SIKKr9L0eiTrE/8oWbe/s6N
+	 RjrsPFDleF4hAK8spNotN8YbI3F4uVgik+cONew5J1dIItQ+/g/t54D26/7juBw7hU
+	 g+bYWGdlHwnpHeN+yVC1ZWYsZdPimPa8wvqRowhlIWhLMBJYgE22dAIY04SvE1mmSf
+	 cdcnKR0qDJ0p8nZW0ahn2PRF5ZGx7i+y+opHRWHrgw3wzSdFcIIK+LhGMVNiEin8Ls
+	 HYrVBXTv17jvboZU8LI1kO08lHkMtRBs8i7Me1wv7Ki1/m7F+Vpylz1D95TkI1JihD
+	 2atJr1OiXhkJw==
+Message-ID: <sashiko-outbox-184612@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH] net/smc: fix possible recursive locking in
+ __smc_lgr_terminate()
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Anfernee Cao" <anferneemelokc5@gmail.com>
+Cc: linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, "Heiko Carstens" <hca@linux.ibm.com>, "Vasily
+ Gorbik" <gor@linux.ibm.com>, "Alexander Gordeev" <agordeev@linux.ibm.com>, "Christian
+ Borntraeger" <borntraeger@linux.ibm.com>
+In-Reply-To: <179290097759.51540.15412712294727302463@gmail.com>
+References: <179290097759.51540.15412712294727302463@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Mon, 26 Oct 2026 04:03:26 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -62,42 +61,149 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261023192348.11070-1-serhatkumral1@gmail.com>
 
-On Fri, Oct 23, 2026 at 10:23:48PM +0300, Serhat Kumral wrote:
-> db_tab->page[] has uarc_size / MTHCA_ICM_PAGE_SIZE elements, so valid
-> doorbell indices are in the range [0, uarc_size / 8 - 1]. Allowing
-> index == uarc_size / 8 results in an out-of-bounds access at
-> db_tab->page[npages]. Use '>=' instead of '>' in the bounds check.
-> 
-> Fixes: 56483ec1b702 ("[PATCH] IB uverbs: add mthca user doorbell record support")
-> Signed-off-by: Serhat Kumral <serhatkumral1@gmail.com>
-> ---
->  drivers/infiniband/hw/mthca/mthca_memfree.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/hw/mthca/mthca_memfree.c b/drivers/infiniband/hw/mthca/mthca_memfree.c
-> index 9c5eb03f354d..39d82dc73807 100644
-> --- a/drivers/infiniband/hw/mthca/mthca_memfree.c
-> +++ b/drivers/infiniband/hw/mthca/mthca_memfree.c
-> @@ -453,7 +453,7 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mthca_uar *uar,
->  	if (!mthca_is_memfree(dev))
->  		return 0;
->  
-> -	if (index < 0 || index > dev->uar_table.uarc_size / 8)
-> +	if (index < 0 || index >= dev->uar_table.uarc_size / 8)
->  		return -EINVAL;
->  
->  	mutex_lock(&db_tab->mutex);
-> -- 
-> 2.53.0
-> 
+Thank you for your contribution! Sashiko AI review found 2 potential issue(=
+s) to consider:
+- [High] net/smc: self-deadlock in __smc_lgr_terminate() masked by lock_soc=
+k_nested()
+- [Medium] net/smc: lockdep subclass inversion and unannotated relock in sm=
+c_conn_kill()
+--
 
-LGTM
-Reviewed-by: Chenguang Zhao <zhaochenguang@kylinos.cn>
+commit 7303e5e7071cf52d837c7140d6a0e1615372a594
+Author: Anfernee Cao <anferneemelokc5@gmail.com>
 
-Thanks
-Chenguang
+net/smc: fix possible recursive locking in __smc_lgr_terminate()
+
+This commit replaces lock_sock() with lock_sock_nested() in
+__smc_lgr_terminate() to suppress a lockdep recursive locking warning when
+smc_listen_work() aborts a connection and cleans up the link group early.
+
+> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+> index 6021322253e93..64c5ee592e641 100644
+> --- a/net/smc/smc_core.c
+> +++ b/net/smc/smc_core.c
+> @@ -1579,7 +1579,7 @@ static void __smc_lgr_terminate(struct smc_link_gro=
+up *lgr, bool soft)
+>  		smc =3D container_of(conn, struct smc_sock, conn);
+>  		sock_hold(&smc->sk); /* sock_put below */
+>  		read_unlock_bh(&lgr->conns_lock);
+> -		lock_sock(&smc->sk);
+> +		lock_sock_nested(&smc->sk, SINGLE_DEPTH_NESTING);
+
+[Severity: High]
+Can this mask a real self-deadlock on new_smc->sk rather than a false
+positive?
+
+The commit description assumes smc_conn_free() always unregisters new_smc
+from lgr->conns_all before smc_conn_abort() calls smc_lgr_cleanup_early().
+However, in net/smc/smc_core.c, smc_conn_free() only unregisters the
+connection if lgr->list is non-empty:
+
+net/smc/smc_core.c:smc_conn_free() {
+	...
+	if (!list_empty(&lgr->list)) {
+		smc_buf_unuse(conn, lgr); /* allow buffer reuse */
+		smc_lgr_unregister_conn(conn);
+	}
+	...
+}
+
+When smc_listen_work() in net/smc/af_smc.c holds lock_sock(&new_smc->sk) and
+waits for a confirm message via smc_clc_wait_msg(), a peer decline message
+with the first-contact flag set causes smc_clc_wait_msg() in
+net/smc/smc_clc.c to schedule link group termination before returning:
+
+net/smc/smc_clc.c:smc_clc_wait_msg() {
+	...
+		if ((dclc->hdr.typev2 & SMC_FIRST_CONTACT_MASK) &&
+		    smc->conn.lgr) {
+			smc->conn.lgr->sync_err =3D 1;
+			smc_lgr_terminate_sched(smc->conn.lgr);
+		}
+	...
+}
+
+smc_lgr_terminate_sched() runs list_del_init(&lgr->list) and queues
+lgr->terminate_work asynchronously while lgr->terminating is still 0.
+
+When smc_listen_work() then calls
+smc_listen_decline() -> smc_conn_abort() -> smc_conn_free(),
+list_empty(&lgr->list) is already true, so smc_lgr_unregister_conn(conn) is
+skipped and new_smc->conn remains in lgr->conns_all:
+
+net/smc/af_smc.c:smc_conn_abort() {
+	...
+	smc_conn_free(conn);
+	if (local_first && lgr_valid)
+		smc_lgr_cleanup_early(lgr);
+}
+
+If smc_lgr_cleanup_early() -> __smc_lgr_terminate() runs before
+lgr->terminate_work sets lgr->terminating, rb_first(&lgr->conns_all) returns
+new_smc->conn itself. Using lock_sock_nested() here hides the recursive lock
+acquisition from lockdep by assigning subclass 1 while the current task
+already holds &new_smc->sk at subclass 0, causing the worker to hang in
+__lock_sock(). The same sequence also applies to client first-contact setup
+in smc_connect_rdma() and smc_connect_ism().
+
+>  		smc_conn_kill(conn, soft);
+
+[Severity: Medium]
+Even when __smc_lgr_terminate() locks a different socket on the link group,
+does using subclass 1 here invert the existing lockdep subclass hierarchy a=
+nd
+leave unannotated relocks inside smc_conn_kill()?
+
+In net/smc/af_smc.c, smc_release() locks listening sockets with subclass 1
+before smc_close_active() -> smc_close_cleanup_listen() ->
+smc_close_non_accepted() locks child sockets at subclass 0:
+
+net/smc/af_smc.c:smc_release() {
+	...
+	if (sk->sk_state =3D=3D SMC_LISTEN)
+		/* smc_close_non_accepted() is called and acquires
+		 * sock lock for child sockets again
+		 */
+		lock_sock_nested(sk, SINGLE_DEPTH_NESTING);
+	else
+		lock_sock(sk);
+	...
+}
+
+Locking a connection socket with subclass 1 in __smc_lgr_terminate() while
+smc_listen_work() holds new_smc->sk at subclass 0 establishes the reverse
+0 -> 1 ordering.
+
+In addition, smc_conn_kill() calls smc_close_active_abort() in
+net/smc/smc_close.c, which drops the socket lock and re-acquires it at
+subclass 0 via smc_close_cancel_work() and when releasing clcsock:
+
+net/smc/smc_close.c:smc_close_cancel_work() {
+	struct sock *sk =3D &smc->sk;
+
+	release_sock(sk);
+	if (cancel_work_sync(&smc->conn.close_work))
+		sock_put(sk);
+	if (cancel_delayed_work_sync(&smc->conn.tx_work))
+		sock_put(sk);
+	lock_sock(sk);
+}
+
+net/smc/smc_close.c:smc_close_active_abort() {
+	...
+	if (release_clcsock) {
+		release_sock(sk);
+		smc_clcsock_release(smc);
+		lock_sock(sk);
+	}
+	...
+}
+
+Wouldn't those plain lock_sock(sk) calls still trigger the recursive locking
+warning against new_smc->sk when killing another active connection in the
+link group?
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/179290097759.51540.=
+15412712294727302463@gmail.com?part=3D1
