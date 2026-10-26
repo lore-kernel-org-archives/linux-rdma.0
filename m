@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793002339;
-	b=igdeH1i0wQsfK1LlaN74Xt0msNvQwjwKMG+4Gm9LOZkp9ZsidI0RfVsy1OwHmW85Vd3U
-	 dglbnUciOgvTCDKwy8kS2AJrJ/oWAMlL4rcntpnWJcmA5yPj4YSh7p8HBNabax8+G3pZS
-	 JyiGo5c4fbFMQ4o+bkUGferthlzsSnF8urSA4c9nMGKtHI7wgbOELGX9/dCmK0r2dkNrb
-	 sPQOD2ZfenOyevfF/6/Wp+jpIJrIbodVX0be5Vn/JUrMShFliK7TmnsjJxO0bFahJhcUU
-	 WrbKKRmz5E1mYhMWNmWcmhXz8e2jgVi0/yQZZ/C2yiwrpDgTG6BrCfqJepNeQrnqDuQ==
+	t=1793002435;
+	b=O/mti31XVm7eIjITKGz+B7vx30GfHRgML1jYwBH+J5X2GCvnNgRBT20ANLICmhqR9F4y
+	 pNq2rK4mYqwIucW9qIwZiX3vRxYEu6w39yLDwN5VOYCQfpyJdnjVqJDgLmFMPeFFkBeFS
+	 orx5TpKwI+++j9xj3OP6mGhBIzr4TCDGOODNpPXLSe4J+b6BtZUBUCZjU5EaTBCEfGNdW
+	 902lF604XLF8S1nXW0nG++v6lcIbxsYwv99hCiMTNIvCtJLyIkGUSPUl0BjaHI5wj+UUS
+	 SGGVVTOyj2kjZoWbzpPtEs4miznO7jz92DDHEdjeDcwy5GLlEfhecGhMDByEMOzq8JA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793002339;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793002435;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=FiS8Epo0rObpZyHAu5JfbbeuR5WfAg7bSlhY8G6HyMw=;
-	b=jy6UvjjGTUxwIn4JMmexlJV5VJO5pa1FGn+zouFTeq4OfAUfIt4EjLiOvrooKhchFOwk
-	 mERoYrflQumDVC2wFKKmkVg2xUC4UPnBT4Crp89yYUigTgF+wdpFJVqY1Sqcwqh6xXVYR
-	 4/KewvY8Gv9+Q34phDd+y3tOC1qkG6mMvkdh2XEbIgi6EZiScGj8e2Q5HEG1kgky+vlIN
-	 XQQxVqcoAE+Puqk7A024xprAwDrnbcnL9oyy8WwoLj0rsGq8esqlO7gws0Op76hriOk9z
-	 jhkvArxhKNusjeGvxh0YI71fUfnBJPBvXKZccY4Bqpcb8CJ7Ty2Nu5uSFHVOKZc7P6g==
+	bh=6qY3Qgk7my0g4iH715Nd0mYjh5xVH50JbhboZ/6rvAU=;
+	b=AhqxI4v6GnJ9bGxF2XTR49Y80dHDia6QNp0Au3fdZ3pmWp7sND8PgumqVx4z07f/P0V3
+	 wKd/RjrXYiStwbGC7QqwLI2DvyY3DWKaaBxooAy1tcZkUmMlhW0EsedFphQZeihH9rmvE
+	 l6Kk9KSxvWhPfgLeMBOAIkAxGgs7VJMcjElUea7fYcraCne8KA0YjpbzZrR8s3jg3ASxb
+	 nNjsjAUrL0IX4McbVm/6mNK2eVuNR4QJJkV3hQOH5saNH6wQz8RjnpYDhNzl43hEwOvBI
+	 MUgL1wqj6fovS5pekI3ixkaVLmS9URYFjF0AsgvuTmiimlkfsSnsFaefYVRAJNhS6/Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FaOA2+yV;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hBFlGCVO;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D63F606A31B
-	for <linux-rdma@vger.kernel.org>; Mon, 26 Oct 2026 08:12:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A468D606A320
+	for <linux-rdma@vger.kernel.org>; Mon, 26 Oct 2026 08:13:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FaOA2+yV
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5D2C1F01825;
-	Mon, 26 Oct 2026 08:12:18 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hBFlGCVO
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 228CC1F01825;
+	Mon, 26 Oct 2026 08:13:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793002338;
-	bh=FiS8Epo0rObpZyHAu5JfbbeuR5WfAg7bSlhY8G6HyMw=;
+	s=k20260515; t=1793002435;
+	bh=6qY3Qgk7my0g4iH715Nd0mYjh5xVH50JbhboZ/6rvAU=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=FaOA2+yVBeYd563AYpSLFl5oPwr10RiTzX/Sd34ebeolXOkH98kV0J7sU3aBUd4uG
-	 WBtkz6270YCBe44wJGNyD9771R4dDqAk9DTHe0V5sfJ3ciwctpO9M1jG+iRVnflrFO
-	 EFIjANixr2CnqVhsW83jyccel/sVgyxfsPlLofPGhbac1Yf9rvqYbwU3M/znS9uwhM
-	 vnSqC5qrMbCzvugcyNcs3i3RAIRvT0l3GQskBAe+UU7ddcJF003nbSChxp32GBbwqE
-	 a0vwwc8BuD9vCZckFd4MV1Pb/umdB+XuOqAbDNHkPHI2A9S8xo0gY3RKDBOzT20guH
-	 DwotEGVwj8Xiw==
-Message-ID: <sashiko-outbox-184670@kernel.org>
+	b=hBFlGCVOK2bQvmEH0pGltygGEcQ+N2PVZUvCf6ctW6S6Um6UDlTy3wXGt1h9jznHc
+	 IuvP3V5zLloPJOSDpyrgjTo+dSoKV40SP570jfnGIG+OE1j0XWDP/TjBECrCyMB+H5
+	 3AvxcIptCNYIcOysw4L86cH1WMngTNzJQvlm0T+jr/bZZB9+Psexhx+h2vHQLV1pp6
+	 izMT/TsDa4sIbQzOrrBuoHgpNcePuGCuTCnCmJObsysUsWMSel2+OMp10DLrrNEx4G
+	 LIyef6Ntdo5C8TY79sRBopFJhM9hqt5LvL5rCzDNlDvUuBMq5B/Mkgdwf70RcbS485
+	 uUjpUFfLqEA2A==
+Message-ID: <sashiko-outbox-184671@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH 10/26] dma-buf: Convert all the simple exporters to use
- SGT mapping type
+Subject: Re: [PATCH 11/26] drm/vmwgfx: Use match_mapping instead of dummy
+ calls
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Alistair Popple" <apopple@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261026053623.202642-11-apopple@nvidia.com>
+In-Reply-To: <20261026053623.202642-12-apopple@nvidia.com>
 References: <20261026053623.202642-1-apopple@nvidia.com>
- <20261026053623.202642-11-apopple@nvidia.com>
+ <20261026053623.202642-12-apopple@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Mon, 26 Oct 2026 08:12:18 +0000
+Date: Mon, 26 Oct 2026 08:13:54 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -63,25 +63,21 @@ Precedence: list
 
 > From: Jason Gunthorpe <jgg@nvidia.com>
 >=20
-> Update the exporters to use a SGT mapping type and the new style mapping
-> type API. None of these exporters do anything with attach->peer2peer or
-> importer_ops->allow_peer2peer and they all follow the same pattern.
+> vmwgfx is creating a DMA-buf that cannot be attached by providing
+> always fail functions for dma_buf_ops.
 >=20
-> Change all the places that need to get the SGT's DMA device for DMA API
-> use to use dma_buf_sgt_dma_device().
+> The attach/detach callbacks are already optional inside DMA-buf, but
+> dma_buf_export() is checking for non-null map/unmap callbacks.
 >=20
-> This is all a mechanical change of moving the map_dma_buf/unmap_dma_buf
-> into DMA_BUF_SIMPLE_SGT_EXP_MATCH() arguments and switching
-> attach->dev to dma_buf_sgt_dma_device(attach).
+> Instead use the mapping type interface and provide an always fail
+> match_mapping(). Remove the unused SGT and attach/detach functions, they
+> can never be called if match_mapping() fails.
 >=20
 > Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
-> [ added converters for newly added amdxdna, panfrost and panthor exporter=
-s - apopple ]
-> Signed-off-by: Alistair Popple <apopple@nvidia.com>
 
 Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261026053623.2026=
-42-1-apopple@nvidia.com?part=3D10
+42-1-apopple@nvidia.com?part=3D11
 
