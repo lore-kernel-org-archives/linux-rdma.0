@@ -1,64 +1,87 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.44
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793004628;
-	b=kO9eR/MFOFoWRXUVExmfbQLrlefD6yxtNGd4nmtQnSkNISy0VO5wS3hm52i9pzwmYiPJ
-	 QzxE8C4ausn8TnzjxXulD2G8pHgLO4U4u4Wyxx3e1BjYG6aRai27P1Ikkh9YtHyKOX0Lv
-	 B98IqzEklpiVju+CbHnCTllooh3z9KMBqiPqeWE/WOmaO4D6giiOJgobjrwgf8zEAIh6D
-	 IN0NfK0k2SU/0r3uJsMNWu4jXE2n2N0NAg5jd7PFbOZrczI6z76+kLT37z/eUBs5MNfI1
-	 HtIxdi9LUyjqnIi0jvp4CIvxINF19h2ft9qVAmLvgvAJpt9c0f7flwwGafSAlZADIkQ==
+	t=1793004927;
+	b=iMy7WPlkoLG6UzjQxv/8Dcs8z4YF2vTBF0Nngn1cxZptl8AitaP3Fz75NRRG+Db0Jh3R
+	 wybOXHSHksC304ipXz6PVbneY6N3iKNnxWfuPRXkvP7RhQJ2tn4AcltO6uLfltpRqIXjk
+	 8UMjVY9ptjleD5rRgPFT4Iqyqsp1CAAZd3PR/XnagUICJgIte83TIZRoscZk86k1b7Az+
+	 eZB0xdUQFI8CAmv/4G2wu1ayhBu6LgMG5MlBUF6QxW2yzHG/E+F6eTTj5lBsTLMgQL+S7
+	 8w8ht0lEVtwizwTpFWJcoYUuIOnSlgv+GxjkXVfEavDxChUjmRvlajdH6Ks0s4tNmXA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793004628;
-	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
-	 In-Reply-To:References:Auto-Submitted:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=URC7r36kokGjXCV5G6Ei8oKV54JoMbconYpCKkPt2AY=;
-	b=db1gn0PX5W60ryENuYSZgm3FO/zmb427K4oeiteMsEQK+IQKlTHnWUaAh2XWUkR2pewT
-	 uoiMEIiuYy9H9ARAnCO/VQnCPj+5+QheUbP48kgIPAWsNqq4cAqqgfs6048w2D5nLCyh1
-	 Y4Cp4gEPfrCtuVEZoIcjMElCpxVKdKJk4yiexyNYErXDOh+i6x1VnUjswN8OsP6Tc6WL7
-	 dIeEFMNT+YdjJz60mCPDUSc0aKn9qjGaIyGXJj9ont8juWg6JpMkIsXEO5jL42GIhmbNl
-	 3lrC6XHudaOHinGMyt6fkaL4//RnWap/bOlum9LdrK0ddgLBpbU7/7dVyS/A5fZgc6g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793004927;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Message-ID:Date:MIME-Version:User-Agent:Subject:To:Cc:References:
+	 Content-Language:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=7uWmG7opjqY1CLT2aRtMPjlXwAFlsI+vF8Hp0fkUZZI=;
+	b=YjOWxGuk2r2TCwZmjiqy0HfAHzfhAgvgJ7sCFTA5FbqZHGkCsn0oGafOYss5x4eDhCEd
+	 597yQlzeJyah8Hm3+PezKk+OI6MvmSMIlQYQmmuyfwOGC7mnfRXskSM4g3Eta9Mjfw6Xt
+	 w9uUc5Yp2Ko6gLM1hZYpcQfVXsC/jkIvTJDBXRd7s8GDXx6tYzlobrp5jQWbEqG+fto8f
+	 rhz8zVL001y2uOGNt0681R7pvGCDvC2DU8DqRH/6xj4MHQsfSWYY5RqiMFd3Km/JOR09a
+	 R6oD8ngl7dUfRV+bZEc3pkP4+U6CK1RZ947DAXeSbrkCrJeD9x3fce/x4KOViDv3qUw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=E1jm0Cc2;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=CqfNjM+8;
+	arc=none smtp.remote-ip=209.85.221.44
+Received: from mail-wr1-f44.google.com (mail-wr1-f44.google.com [209.85.221.44])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4B74606A31A;
-	Mon, 26 Oct 2026 08:50:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF949606A31F
+	for <linux-rdma@vger.kernel.org>; Mon, 26 Oct 2026 08:55:26 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DF949606A31F
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=E1jm0Cc2
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6CCB1F01825;
-	Mon, 26 Oct 2026 08:50:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793004627;
-	bh=URC7r36kokGjXCV5G6Ei8oKV54JoMbconYpCKkPt2AY=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=E1jm0Cc25sYmSkB9DibXJ/s350fBwygID0LtwH1PlTxiuiX0+NS+J8ysVRodHS3oj
-	 /YdXu/XAb361q+/OivW/0Ii31cBDExdH+fFDV7deVK9OCpRKx3KBvpAJmNPYPe+DI6
-	 j9BTAaaZhOPOs45MMXKncGimzgAMCkmkGoAXcGbCEl7olxUjUaniHJdyuCk0IHF1zo
-	 xPd5I+6giTyxBcxFO7OjkhDqwgs8sGr3mamcTlizofj0ecUwv9TdgcLsL//y0WJeFG
-	 0H6n6O+uFjII0DwrKa0gUm+Ezi72TOFO073aYeXUyZl1AwG6u2aBjO6DWA7WhPoOaF
-	 FePbV+AWswPnA==
-From: netdev-bot+sinfo@kernel.org
-To: Tariq Toukan <tariqt@nvidia.com>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
- Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
- Paolo Abeni <pabeni@redhat.com>, Cosmin Ratiu <cratiu@nvidia.com>,
- Dragos Tatulea <dtatulea@nvidia.com>, Gal Pressman <gal@nvidia.com>,
- Leon Romanovsky <leon@kernel.org>, open list <linux-kernel@vger.kernel.org>,
- linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>,
- Saeed Mahameed <saeedm@nvidia.com>, Simon Horman <horms@kernel.org>
-Subject: 
- Re: [PATCH net] net/mlx5: Only set num_doorbells on a fully initialized SF
-Date: Mon, 26 Oct 2026 08:50:26 +0000
-Message-ID: <179300462647.3327.12553481287889944518@kernel.org>
-In-Reply-To: <20261026084503.4122732-1-tariqt@nvidia.com>
-References: <20261026084503.4122732-1-tariqt@nvidia.com>
-Auto-Submitted: auto-generated
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=CqfNjM+8
+Received: by mail-wr1-f44.google.com with SMTP id ffacd0b85a97d-48e20edd106so2361059f8f.1
+        for <linux-rdma@vger.kernel.org>; Mon, 26 Oct 2026 01:55:26 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1793004925; x=1793609725; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=7uWmG7opjqY1CLT2aRtMPjlXwAFlsI+vF8Hp0fkUZZI=;
+        b=CqfNjM+8C89bgkGlsM4+XoeauRFaGUstDgQmv4Dji7ej8YT+OQ8qiXadrk7QpMoJMz
+         9TQ68alGc7yI51WQJEpyAfPH+ve+64y9D5tkWt8yqjMJnrDpropJ4SMFgDXTH3rMGXsc
+         BTucVGdZncp8jIrbuyGAQXTLAZxGXQbu0LyQ0HW5ChyjbXxtKbYnV8Xi1uqK79wywByL
+         d6+vF7ey7tf/XBXevxDakMwrIBIeQjPV4QyA/x3bxo1MDu0dizScD72tkq8F48kSIUpE
+         9EQTHut+PAi5ZKFiFr2nkULCLCo9soJFS0AqSiwft0OSg1eDxLUvtBQkyg38qOAdgtBo
+         AoWQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793004925; x=1793609725;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=7uWmG7opjqY1CLT2aRtMPjlXwAFlsI+vF8Hp0fkUZZI=;
+        b=d/ht/GfOk3dFrP3u07dFQogvBWM3VX+6NpaP1rvnKS8+5SG5PjH8uV2ot5zCerwoMs
+         aK07/Ou80dAsxzL+a+weV9ZJrRFUB3wKVwyve6W1bYQBTGGyywPHANwquobw911i3gyJ
+         6DZTOOSVXYxGemfhONBdHy6Uf05sJ6p6CVggHv3ae4Q7aPWVwLfnlM+uG9PRJuwPnAMC
+         xgCetNOZDNnotWjcGYF1NXV0era5sIrOB3eNfWRkTbj+TQmz3d91KboaNvTq8nuBegds
+         5UhudfmeJN4OAzPehP6bQR/IdiyragV6l3bAb4xUcvqHcVmOX2FlyOb4FlRluS84yH2w
+         h2gA==
+X-Forwarded-Encrypted: i=1; AKwUvBx2ItyDp3OEzVsIfZZ9Obuwtr6kEo1IC0FO6UoSeoSX+VZt2tS0U6fzLsPFEGG+vMMkHX3Yu8mCUVeO@vger.kernel.org
+X-Gm-Message-State: AFq9FYL9h2o/tdaFL26oU+zQoVr/xx79PInULfKKYvzHpNIyhSrM9V9d
+	S5E2JNIMGfK1k9hMutlale6WOyNSdBm0uEDY7F7ggEt9Di8T8PYKEgWs
+X-Gm-Gg: AYBFou1hqlLUtQ/FzeQIgIQ1ArCI5dnfLJmlcZww6FmoVL+ZgUh5knKbdkKckQ11q4o
+	z+2mTTrYocz1Xm05QKef/RhCIifvoJ9bUPbW3FMnwRlYxNOM33DTcXZsDVLqGoV9RLVsNIr8XRi
+	npRPTIqnJy1nEcVAk/Ia58ov/vIEHrDS/rKxx227IFHa8ImTNSALVIJ76MhcYgIFUYZYhhzN3fO
+	RYvbbWJeBWuxqEFyZLwuNzp2kDGmz6HPj9esAG8RwgVwrdlugSV9Y9B3tCBZeC4YA2RH1pIkvoF
+	M0P93nm8jvYWLoliCpZofs177YO4Q/7pdk4iSCmJKATqVNOXfAlm9JPl2Ys8Fiy0vuimEhf73os
+	WQS1QynMx3z9SZ5mC5gB2bgoqlMOb65WkfjgbV3oKgvADFFGjVc3ABuy0St9bPcCYB5syGahX0s
+	z2JBc/Zkl4ili6Pd7gHrfG4RT/IHU6sAMKEbAGACqoN3DmXwBdgUI3t/eCo/f8HlvhBuSL8uYig
+	w2AoLk9B+Gt+uy0L/TA6qKjLk5Dl/Fd1VGL8wLOmldb18ynRgM+rQV5AxUwrKhhvKqmwk3g
+X-Received: by 2002:a05:6000:4908:b0:48d:cb76:548f with SMTP id ffacd0b85a97d-48e3eb92448mr11162750f8f.38.1793004925077;
+        Mon, 26 Oct 2026 01:55:25 -0700 (PDT)
+Received: from [192.168.1.22] ([83.231.69.9])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48e3ecd37f4sm17884912f8f.44.2026.10.26.01.55.24
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 26 Oct 2026 01:55:24 -0700 (PDT)
+Message-ID: <f2dfd241-a664-46b7-881d-13c3b974b557@gmail.com>
+Date: Mon, 26 Oct 2026 09:55:23 +0100
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -68,29 +91,35 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] RDMA/uverbs: Don't return the shared zero page from
+ rdma_umap_fault()
+To: Zi Yan <ziy@nvidia.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+ Leon Romanovsky <leon@kernel.org>
+Cc: linux-mm@kvack.org, Lorenzo Stoakes <ljs@kernel.org>,
+ Lance Yang <lance.yang@linux.dev>, Kiryl Shutsemau <kas@kernel.org>,
+ "David Hildenbrand (Arm)" <david@kernel.org>, linux-rdma@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+References: <20261025-fix-rdma_umap_fault-zero-page-v1-1-186255624f1f@nvidia.com>
+Content-Language: en-US
+From: "Jose A. Perez de Azpillaga" <azpijr@gmail.com>
+In-Reply-To: <20261025-fix-rdma_umap_fault-zero-page-v1-1-186255624f1f@nvidia.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Hi!
+On 10/26/26 3:04 AM, Zi Yan wrote:
+> After disassociation, rdma_umap_fault() returns the shared zero page from
+> ->fault for VMAs without VM_WRITE and VM_MAYWRITE. Such VMAs come from
+> rdma_user_mmap_io() in drivers that clear VM_MAYWRITE and they are shared
+> VM_PFNMAP. A page returned from ->fault is mapped as a normal page and goes
+> through rmap code. Two issues:
 
-This is an automated message. This series looks like a fix, but its
-commit messages seem to be missing some information:
+[snip]
 
- - How the issue was discovered, e.g. hit in production, hit during
-   development, syzbot report, manual code inspection, LLM or static
-   analysis tool scan.
+the code LGTM so:
 
- - Whether the issue was actually triggered, or is only theoretical
-   (e.g. found by code inspection). If it was triggered please include
-   the symptoms, like the stack trace or error messages.
+Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
 
- - What hardware the change was tested on. For driver fixes please
-   mention the device (and if relevant firmware version) used for
-   testing, or say that the change was not tested on real hardware.
-
-Please do not repost the series just to address the above. Instead,
-reply to this email with the missing information, so that reviewers
-can take it into account. If the series needs another revision for
-other reasons, please include the information in the commit messages
-then.
-
-The evaluation is done by an LLM so it may be wrong, if you think
-that is the case please reply and explain.
+-- 
+cheers,
+jose a. p-a
