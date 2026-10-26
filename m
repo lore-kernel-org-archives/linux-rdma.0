@@ -1,20 +1,20 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.196.68
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.201.43
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1792993000;
-	b=2oWAOKxGlcv/D1UM1v8ENHAl96wEaAdBKEW08lajowdJ/Dg/46cN9Wk35HzX/A+j2RrA
-	 BJRg1i/xzmUJIyqilZ52LJf1+ysw0GuFDw/F/N1dcOEedkCFYMq9rtTIPizb9WJhUUQcd
-	 /cGbx1NBYWdTL9y2dz3lI7XgJHBu30tDcarjF12o6o+xRezcmXwyvbFqQw0SatGc6S4G3
-	 1PA09JTFDg6gSj0E9SczvfVj+0U0/QzTQbJyXr6UjTPpyFV24zSfe8dR1jj8B3Id0DaPY
-	 cubGtE/dPOqt31xXCyK6N9ALoIOYUUUPy9L3v7gZugfHEHyjdWeVpPO5HtPa+9T/klw==
+	t=1792993004;
+	b=1h7lhPqyC1N0cVXhWCSwnt9YoHu406HQDRv/nrWN1ooLwTnG0tTEI57jmF2IJ3WAeQNx
+	 Na/Isbma7V1VhH7akZR4/Mge8/0MQMOUw/4HUVDFvWkIcVtr4W9O2ypDfYRDVkOI7TdDO
+	 yUxCwQ/Yw9K3vvFttS4NAkPe2QjgTgpkiQO5/obLISBOgfSXi63u1f7yD5zP0rtoIqTXq
+	 htFeBY4u0GMA/bE7hkFmZiQBaoN/axfwcX/Kz7g3nFCbc/evMVqewfN934Wi5w25j9rj0
+	 WX8orAWCre9BHLYsOX4G0ha2h9tQA5+RUPer+9Q6ROFkDfnMOIRbdU/+t241+dDJKFw==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792993000;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792993004;
 	h=DMARC-Filter:DKIM-Signature:Received:Received:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:Content-Type:Content-Transfer-Encoding:
-	 X-ClientProxiedBy:MIME-Version:X-MS-PublicTrafficType:
-	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
-	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
-	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
-	 X-Forefront-Antispam-Report:
+	 Date:Message-ID:X-Mailer:In-Reply-To:References:
+	 Content-Transfer-Encoding:Content-Type:X-ClientProxiedBy:MIME-Version:
+	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
+	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
+	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
+	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
 	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
 	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
 	 X-MS-Exchange-CrossTenant-Network-Message-Id:
@@ -24,54 +24,54 @@ ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
 	 X-MS-Exchange-CrossTenant-UserPrincipalName:
 	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=8OVkV8I2MZf0TdEBouUn2k1PN90Izil9T6fyUblmp5c=;
-	b=V4fRJbej9TFpO/MazaL7vkTubXdLmHP3thxQ4ng3IpOiHeMm07Jl9Y1xffud+xoatx16
-	 9/tk+pufuvSAPMvYstwtcaJZ6GJXL3dXIhWRCKxhnCKRFUkYkzne0L/Nix3znBcuTDwu7
-	 +YoS4YU1xe2Wa3lvCAoJJVpRhMEte2DDVWQtiWZkGqj4TvoC65itXAqu7saSyfyTrfCWu
-	 RLHnPL/8gZ47ZsngE+rNJmZulZMzyj2OpTiEWQjGKl8v0/ItgdY69Y2tNQgQQA6h2FVGY
-	 JUSM+cQtScKAfiyX7TdlCijO+lIO9eKMM0GZT4BoOl9Wq32Oj8Q13obRWd9P7e2eNzg==
+	bh=eNAdjfyEatk7nsGpmjY9cim8uI6gSEgRJ+DC63x0cSc=;
+	b=RcpBWzgX+hMy7dwM4A3rkxSuRqGrJ4MNS3V8g3qbjy7hibwb1SgoJS8LO9nmRFWs9JS8
+	 3SEQRh1/5QvRy65ytd9cfZ1o6XTO2+O0xSxyqHW18pokrOfOa+jc0ewh3IQUWpjRdB4Nk
+	 tj6YPVvxAgcfsajCzS15J8Xg2Qdo8Ch7EdxaqbtFehOX9Mq+mFA8SU4z5MkCUGZC36Q3D
+	 cErAm9KGLF/KGJm7aFT9kpA8ks/Sj0M8Ad2AbzhoVg5aMNThE9GryrWIW4CaRcof1SaQF
+	 mY8bhkCXj3OA3A6L7iF7G1bDi8ZcpBVuSWNCuA/8R7mAgs5fS9K9T6oRreftoL8Vmmg==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=nvidia.com;
 	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=M4pMUC8a;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.196.68
-Received: from SA9PR02CU001.outbound.protection.outlook.com (mail-southcentralusazon11013068.outbound.protection.outlook.com [40.93.196.68])
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=qHuAR03M;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.201.43
+Received: from CH4PR04CU002.outbound.protection.outlook.com (mail-northcentralusazon11013043.outbound.protection.outlook.com [40.107.201.43])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4F76606A31B;
-	Mon, 26 Oct 2026 05:36:39 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A4F76606A31B
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E629606A31A;
+	Mon, 26 Oct 2026 05:36:43 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2E629606A31A
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=M4pMUC8a
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=qHuAR03M
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=K48VwyYnvXz/Jg/mr5JFFlzrK5V37J8l6OHzVhPQ0pSEp8rQM8sKDj8BwivFllQLN+z4ZkV2bCCBNz7e6Szp7cBAOTgujfexBgeyxsy+9pWKwc9CbHXnx9CPG08AQJyTGJM5plfYMO/GHlBNNdlAG4pPWWu4WO/EcHn++Aq8opMPVXuNW8wop+/O5d7+QB78kiacfH1VDqUgtPasp+o8SC2wfu/P3E2e5bOtzv0YCBIcZeQxCo7zHLyHGCpNwsTRnTkZLRo9fc8bMDV/QLQkXmNm8vtuAos/6VuIYTaUiQ36JCLo6jyNjo0cuzDGy+s5q3bHqyWlB9lax232TDbWNA==
+ b=PxWn/5SY5EQjEF2RdToza6bL2V7cg/ChSZFQq+nco2e3hHeQTK+fNXoQMGe9fVOIG2v4GjTMNoRBTL75zT/W982oc6K8OX42+jxN+guaC2/6o8Ip0ARHkj86ajobzaKRIeQgQr5S3Icy1KNJ3paARmmC7QLOyDMa5p6JAKjA1qHLR516SEiieUaDrtu6ko2WszgIdIMHjJyvNss2XwRhu9D8qjzqmBLVDdA4sm/+yfnXYUnoRTrr/o0cWdGoNj0E+sUcH/ZxsoQ85ra+UIvI3oOsG0TAKKteNNnBLuw2u/4ThW//TA7VQxpi4Gj57NJ7IgAOcdOofJqjKJNZf51pfQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=8OVkV8I2MZf0TdEBouUn2k1PN90Izil9T6fyUblmp5c=;
- b=r+NfFbFNxIkEsgYke1bGTKYZU7+AakUFIv0SVPH1zw+qdT7gU4NowXjN93eIfvB6x3yBPZkO1TQXxRkDNqJLVd8o7wNorNoUzkSI8QWQkw8DfdojONSbKH4YKvTNt2TCTGaDvoajpFAU21Y/B+6LKNuzJ4JKDVcIKpWLlMHi/rWOIQRrU27uIt+4LLnF0XUbJhEoEb9uc3DedP8NTedtb7QonefL8hgmAbl1KOqEVK3PqNmtMtxyxQ4vGO1Wy2mEJuCVd+mb8iztUUrXDZP2EK8Ioy7rye8f4Db5PXSCrDLz6FVG91eOTi77nPw/hwMH5PUE1Oqhv05IM85Vz2hY4w==
+ bh=eNAdjfyEatk7nsGpmjY9cim8uI6gSEgRJ+DC63x0cSc=;
+ b=uRHYnoJrczLf7psieX9Uyh1zjlxIF1JMkSK36X1i04OZdtMjiVQfqWxgM0fd8nzoygKmoN2VaOjNOeZLDvzduvG8U+S1B7L/ContpHR/+hT7nqTVev3QCKWeOc23aRNvJFqEUEhN5fe/nncVGovBTdrGmJwBdQaqJ76jgt3BvGwXMc1fU+SexkZa05ARm6gMROmKaJbI+6jECUWOWkpSoKL5Jxi1bInvCwMC3y2jWva1MtthulSGPvqPFClRFtERz1I1g76mfqzvWtheQpphe5I/Ft6QyHKj9yDOb65/mUnD1yy4FHFzmeqHl5O4VvtITtWid38OrEBvathwtfZAdw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=8OVkV8I2MZf0TdEBouUn2k1PN90Izil9T6fyUblmp5c=;
- b=M4pMUC8aq2CHortKrM71P6jbm3BSaijXNj4JdUOufKAR4jKy000wmQIJZe8lZZZzbJxJz89sZxlNHjkWHW7zNdlTly3fGSHO3E5jPyJN5zvorUGpNdqGL0yAHyPdDXlxuUu8BF0RChAhmoy8BfqX5Jqc4U6kUwHM2saOMcSxdDHswLi6r+ljgupGNVjpL9gZCRr1OaU+eCaVPRUAb/CIn9kEc5u+Bxh4LGIRmC64USUBeLzijIhzc/EOj24LkY0cu7IR6Q4fugMLM+Ic/9J9mNUItA0Kw85+XyoKI8wuRaxrnY/zHJtZUg0OFPpc9PiJC3oh7xVxGRgPaqmGYJxFbQ==
+ bh=eNAdjfyEatk7nsGpmjY9cim8uI6gSEgRJ+DC63x0cSc=;
+ b=qHuAR03MmXljPPMDLCMa5acfmY3O49xyx4f05VZansqsVpSBwPOO+V3D68JnvcwJs7pgNzDScu+1LDpUsAU1KICmBbMOt6l7eEJUXQ+DPX5C5RUedakoj1baH+R30K/aw/6F0fM2AMOwdyhAzs9z9xolhtUyysuAPGq7SqOn+kfiRqocTea+jszJ0uEhZbajrxQ3VR20kuRu+1blPCIIVTI75bZQ0abF4/vDnA7UCngMLHfFjI3CekZSUQ/wHg6LHVp3bBw/EG9itWSDVIpCkrBWY9GhqrNuTKwkscIp0JCfqsg0jXs6ju4JVy5u+Tq6Bbcxh+VZdQcfw2CEpVgqsA==
 Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=nvidia.com;
 Received: from SA3PR12MB598757.namprd12.prod.outlook.com
- (2603:10b6:806:52d::14) by DS7PR12MB8347.namprd12.prod.outlook.com
- (2603:10b6:8:e5::19) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.546.19; Mon, 26 Oct
- 2026 05:36:34 +0000
+ (2603:10b6:806:52d::14) by SA0PR12MB4496.namprd12.prod.outlook.com
+ (2603:10b6:806:9b::14) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.546.22; Mon, 26 Oct
+ 2026 05:36:39 +0000
 Received: from SA3PR12MB598757.namprd12.prod.outlook.com
  ([fe80::e206:100:5946:a777]) by SA3PR12MB598757.namprd12.prod.outlook.com
  ([fe80::e206:100:5946:a777%5]) with mapi id 15.21.0546.021; Mon, 26 Oct 2026
- 05:36:34 +0000
+ 05:36:39 +0000
 From: Alistair Popple <apopple@nvidia.com>
 To: dri-devel@lists.freedesktop.org,
 	christian.koenig@amd.com,
@@ -100,14 +100,16 @@ Cc: Alistair Popple <apopple@nvidia.com>,
 	zhipingz@meta.com,
 	treding@nvidia.com,
 	jhubbard@nvidia.com
-Subject: [PATCH 00/26] DMA-buf mapping types
-Date: Mon, 26 Oct 2026 16:35:51 +1100
-Message-ID: <20261026053623.202642-1-apopple@nvidia.com>
+Subject: [PATCH 01/26] dma-buf: Introduce DMA-buf mapping types
+Date: Mon, 26 Oct 2026 16:35:52 +1100
+Message-ID: <20261026053623.202642-2-apopple@nvidia.com>
 X-Mailer: git-send-email 2.54.0
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20261026053623.202642-1-apopple@nvidia.com>
+References: <20261026053623.202642-1-apopple@nvidia.com>
 Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: SY6PR01CA0160.ausprd01.prod.outlook.com
- (2603:10c6:10:1ba::15) To SA3PR12MB598757.namprd12.prod.outlook.com
+Content-Type: text/plain
+X-ClientProxiedBy: SY6PR01CA0126.ausprd01.prod.outlook.com
+ (2603:10c6:10:1b8::19) To SA3PR12MB598757.namprd12.prod.outlook.com
  (2603:10b6:806:52d::14)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -119,298 +121,356 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA3PR12MB598757:EE_|DS7PR12MB8347:EE_
-X-MS-Office365-Filtering-Correlation-Id: 1a5e2b35-dba9-4655-1853-08df332318df
+X-MS-TrafficTypeDiagnostic: SA3PR12MB598757:EE_|SA0PR12MB4496:EE_
+X-MS-Office365-Filtering-Correlation-Id: 7f9faa1d-ad55-4c77-7f37-08df33231bd8
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|7416014|376014|1800799024|366016|3023799007|18002099003|10067099003|56012099006|11063799006|261009221227099003|261009220027099003|261009221727099003|261009223327099003|261009223027099003|261022075727099003|261021121427099003|261021123027099003|261022113327099003|261022105027099003;
+	BCL:0;ARA:13230040|366016|23010399003|1800799024|7416014|376014|261009223027099003|261022113327099003|261022075727099003|261021121427099003|261022105027099003|10067099003|56012099006|3023799007|6133799003|22082099003|18002099003|11063799006;
 X-Microsoft-Antispam-Message-Info:
-	OzPdmTe7DTizLAXQkML88+Xhy7PElpcIv0LI4ZH68IZ5hmHUSJyzFF6EdEjIQAF1hq/Lxwip4M9ryN0osnIOIG5zRDUPBOWiFfxsVZlt+2MflM65IFe0thOs3Ol0P48/RSdcAw61gQ57O5vfYpcYnDiwbbXi5QWja3erOIOgISTLNcmJP0umQDOH6aG8ky3HCB/90JcZQ9F8EOVuMlrnopeFrYEkJ3J80144FdbRU0fB1X8D8PxTnU7+8B0zoCQxSvzlRhsksnMH8NjOie/O6sYvkykkcIWfjbUIF8D8dP9lH2PlKgwwzr7/r9qqru5fSVZFAIMrTcL3DNrUhGCUMyhMPOMlic9k0GtCC/yjMsgrBqjazg8k39KmF3kimf65PHUGXANcjnUeeeL0HziO+8UwRTNaBqvyB+03se4/MpinVzE9I6VuIYtQz1Q3um4YXdYTEcdyV18D9karHEUf0A0OMY5VkpwSBd3LA+D5n4W0qPKB0JG5Q7o1zRCzAtaNfovXiGl+dbsZ1EJ8qfSFeT25doPDsCEEuQlPgvPw+HpJLB2Cv2H5mUrEsQaYkaFYfSAWhfJmWhXBRR+ZDxVJ7Sh3OA1ScN2Pjf1wKxddY/VRyxl1lMORVQYQ1XlKjGvSMKlccrHWl+0gRPxsLlskesXYzTj1Xx8vAmseqnFWUbc=
+	cai0XVimyOfOCxDHfd42hjMWDI5LC0Mlcblrxpp75nqFbW09RML2O5vHxcFyKRHov3Si/2cEI3kJ49JlysgZGtzedOwy9g30a7tjYqdrb66++kiVwIIz+RDU6iNQ0BWlrLwD+rug1suyPoLgHr/0mpuh6q3OnNZOANAMziEo8rBV6wfEEaCH/+Als9Lg6HQG8VSLQFDxtl5wUmPUHacYgUdPX+H9SzqF+SS6iGKfIs/WPHsor6+Nazu5YZNToFTFNExBxTe4gsluRQfrOMTai+fI3Smgi9F2k/5P8/NjWu+aDSLdcO+H/2ZwegWH86i7eVnBroaARCddnriUDpUL7+i8CLeqreI5XOBqBoe61eGceX0gGTUrET/IhBOvhQVTygBscqz38zeRu9uDAag1iXR7VfRXYrQW3YhSZ7gbEU6w9/ntS53A46l2HlfosF1HL3HTtKTaAO/tODNjGlBTYTcJBLeqJ3Tzsa+LQBCxltvDOZ/MaE8LLjuYtRnekIL+c88Istmy4NacvjfKYlhjWP54HIUDbHFMaDV/uf6YXacxyfXK4pSpUDgBUvMg38Xd0tmH/BJvEWrA8mDJBlxfm0LGyOvcUcFYNTe8DVZ3dDmTUxNlxMOPpQ2hFwabjXMEn/BliqW5HVvCHVub8MyYw+Wb41F9A9nlgfRqpBMFaJo=
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA3PR12MB598757.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(7416014)(376014)(1800799024)(366016)(3023799007)(18002099003)(10067099003)(56012099006)(11063799006)(261009221227099003)(261009220027099003)(261009221727099003)(261009223327099003)(261009223027099003)(261022075727099003)(261021121427099003)(261021123027099003)(261022113327099003)(261022105027099003);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA3PR12MB598757.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(23010399003)(1800799024)(7416014)(376014)(261009223027099003)(261022113327099003)(261022075727099003)(261021121427099003)(261022105027099003)(10067099003)(56012099006)(3023799007)(6133799003)(22082099003)(18002099003)(11063799006);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?SlZqZlNZMktHeG1SNEpydkIrUmI3c0U1elBjdkl6dmZ2ZXJDeWZJdWlkRW9q?=
- =?utf-8?B?V2g5MFIwV1BFNlhlckM0RXk2Q2JQM01lZWszdDZrcVJKQkJ0MmxNS1krTkRt?=
- =?utf-8?B?RmxhTXhNSGlXU1IvRXVvRENjZ01xZG40K1NhR1VyZUFnME9lQVB1eUQvVXU1?=
- =?utf-8?B?YzJQNE05RHNlS0Q3SW9jMjZlb0N4Q2RWRzZUT3VkaVhCMThKd0hOQlhBQURB?=
- =?utf-8?B?cjRhc1BoUUgvN3FBOXFHV0JNMml1NmFiT1JuQXg2eGo5a3djT0dQNGR1VGZy?=
- =?utf-8?B?SFZoS0cyRUNqbjRObm5FcjdyMWtOaDRjV25YOWhwdi9GdVJBcEI1MUhVY3RG?=
- =?utf-8?B?TFNNdmREMUZiRytjb29uWFVzQmxhejFIdXVYZjhCNnFyam5RNlFrUFJmc0lq?=
- =?utf-8?B?WkhBeWtWOUpXYXVGdFFvNVZyU2FXVjFGb2QrYVZsWDdhVVdrQ21oeXJHRnVG?=
- =?utf-8?B?bzNDekFZZjQyM3pTNGdaTER0bTlSNVNzMDV5WVM5YzFIRjkyVzZ6MHJWdnhT?=
- =?utf-8?B?N0N1eE9wb0psVkt2akdXcy83THNKS0R3MTg5cGZyNmd4U0tLQlZxaWh2OW03?=
- =?utf-8?B?bkxMeUpCZmpQNk9YSnplNlFoN1VocTBhNUpFUlpiZmI0TmpEOERaSnMyb3N0?=
- =?utf-8?B?ZEIxa2dyQm9zUkRZTzg4Tk1aeVUxcUxMMEVPTlJIVFZoTFRlRDRDZ09kdzhj?=
- =?utf-8?B?ME1zK1Izem9EZ1BidENWTjFVZkY4eUpSRWY4My9wemFGb2xLWjJnWVF3NjdF?=
- =?utf-8?B?S05CRTVUdDRsNjlNR3kzZlpjNG1pNWdvZmZtb0U0WUlrUkM1b2dVVnZnT0lz?=
- =?utf-8?B?RmQ2L21FZThmbmdKWmxReXJJdjRXclZlRGtmNWE4Y3NFTS9yUzFjNWRDVjhl?=
- =?utf-8?B?SlhyRXAxL2VqanFzai9xUDBmQU9aYUluUHhCb2dNdkEyK2llL0djYk9xRnRo?=
- =?utf-8?B?anVuZHVKSVpjczEycHNrV1N3Ymt1UUdvTlVWa29tOVdPSEdPY01FRnB6QzdY?=
- =?utf-8?B?bkVBU0JxUm9XSHdLMGJLNzE4VFBmV0VVNW8zZjZZaDBVa3hqMTMzT1lnZFkz?=
- =?utf-8?B?eVFYb1J0b3ZLTyt5emxYTGVESnB3TnVYMktuSXpzNlFmalhPTm5ldWo2NlRT?=
- =?utf-8?B?NStOcHl6UFpON1g3TG5TeUpQVEpXeThpQU42M2ZBSSt2VnFPVVZuLzAxejBn?=
- =?utf-8?B?clBJTFB6cVhxNC8rUGQ1amVkTjQ3b0F6YXdTcTZRZkpHSEhERE5ydmUxOVdJ?=
- =?utf-8?B?SVdIZ2ZjcTNQUXA5aVBLRU9BOWVXNCtpTGhGZjc2a1MzRndIQUdYSjNLRDJ1?=
- =?utf-8?B?MFQ2d3liVjNGRkdJZHA0d1dKN0ZsRkFhamVsakZpelZ6OWdkZno4YktCSS9E?=
- =?utf-8?B?R3hxaUlXMVZMbmtSWmJUUDFVUVVVOHRWeDN1bXRQcisxY0RQc0crT002Tm1J?=
- =?utf-8?B?ZEc1aEJNSlJZZWZHK3VoUElQOVZTa0Q0RGtBQVFuYWhBWXhqT0xQK2kwbE1B?=
- =?utf-8?B?c21ucHp2RysxV0JzbHZSVlV3L3B6TnpTdzFzVDh5RXo2MEJLSE5DU0ltYVVn?=
- =?utf-8?B?dXVnaVlidVBZc0tia2w2NHNWNmhpWlArdDZtK3UvNWdRSVh0LzVZMXlacUpE?=
- =?utf-8?B?dmUxL1FOOTA2Tk1oQnIwTENJREtmc2VvT3YrMk5mSjdMWWNZVWVOdFpZZFdG?=
- =?utf-8?B?bDdldkViQTBzWDJsYnRycUpqWFMxRWZoZ1JLQ1lxQ3VpYkF2V1Fxd3Rvclda?=
- =?utf-8?B?K1E5NW44QWd6RWg1UncyT05ndE5XUlZ0MFc0MTlJa3NHYzRSK2p1QzJjdnQ5?=
- =?utf-8?B?OFl5U0NlM05yVlJHTjRtai9JYWZrTVJhb2FROUxWTmczRFU4WExLcDgyM0xP?=
- =?utf-8?B?TGZRVVFmMnNZSWVXWWgxZ3lUUHE2eEJHRCttdFRKc1pTamNJWjREYzlPS1RF?=
- =?utf-8?B?dzU1cGIzdGMzTWd5c2xFR3hkakNjUzU3VjR1WlBWMU1jSXdDQ25YaUlDMjAx?=
- =?utf-8?B?Y3lhVVZndk9FRE1lT3IrVy9hWVB0QlVWemFSTW1xSU0wUjhSdE9LeXlxVGNz?=
- =?utf-8?B?eVgxejE2VVFuWFJzSU0wNWo3dGg0T0NUUGRXR0ltYkJNK2c4YUJoSU4yL2RB?=
- =?utf-8?B?UVN4dk11SThFTDc4ZmRNMW15YW1QalFEM016blo3NUZBNWJDM1V1WUlDZ3pY?=
- =?utf-8?B?clFVVmxrc3ZDN2ZuOG1pY1UvMTlSZ1dpZnlhSlk5djlUcXFtamdMRmhaTytu?=
- =?utf-8?B?QzFOYjA3QkZDUUNZMTFDbDFWUWZvU3oxTkJiTlVqNjFpT0hEVm0xZGhMTExW?=
- =?utf-8?B?T2VYV2dwVmppWERSK3gxbVhRVGRVVGFrajJweHJ1Q3VqN0NISjNQQT09?=
+	=?us-ascii?Q?R+wm2Apm7uXh5YS3h1J+zIgZ9zbnFsVlMY8H8UKpCSTFfoH0lOl3UBaRPrrG?=
+ =?us-ascii?Q?GxmkDOhX/Q0+3fJz/JAH7WiM+37fwWF4oWV0JqvkIvwtJ8y05Y6JhAqTczPo?=
+ =?us-ascii?Q?+hUmLDiRkYK3vyCTmmzz+Bq7mQSnchEoB9MGzwIO5jHxlgFB9YZm7XJo2QnX?=
+ =?us-ascii?Q?gswr8cuT3s0b4qsV2mWwdknwYB7lh/4qQZIAu6D5qGwe6V7kP3LCWGqQjBqH?=
+ =?us-ascii?Q?Nc3DbWbRmpwc/t3NZ2oBMRTnwtCjDmWdzYeBGBTtNG3ItkxG3g3E88eFYJhL?=
+ =?us-ascii?Q?llz989B90uHojZYn3i+2+R5/cP0erasCouMBV7gsFA9oGyW8VHT1ywEfgqW7?=
+ =?us-ascii?Q?0FYK73TKz0bs652wc5XUip+to+EMSyFkp+u1dHSD6BMMc68jgf4kkWYM5S2B?=
+ =?us-ascii?Q?jaVJAjx9iz9IDB1FIdRxDgSMx7DmiLB1P9o6154mAU490A75DbbqqkrmBnzl?=
+ =?us-ascii?Q?z/WMAumhcKrA1/wQfiWy9ivKwMizMaKex5IO100rpKE2VsMxZgGz1VokE7lB?=
+ =?us-ascii?Q?h7DUadzZ/zwLlNeVJoeJ1Vfv8z+sJaqXBXyYfDl6Z1JOk4Ji4MmaQCgNW4KX?=
+ =?us-ascii?Q?sSQsJKAVAaDQhwvUJtW3kK+uMKhHGWqKqswQioGOOLJwlGjvdC6c26Yz9szn?=
+ =?us-ascii?Q?CUikDpPS69pWzXJdwg6KSqA419z16ypkxvVUrBqoSM1Wnvp9QN4JqAXx+PfO?=
+ =?us-ascii?Q?yDOpRiuxExJwnU+HK3mno9lFZl5tK/eTo9ZDGgTBHkmhqRq2YmqidkPNabgT?=
+ =?us-ascii?Q?ty3LLx2fef+K8NuiCd5/aclwLB/V77Ni7Mdnk7gw7HPEvsXt92sWSpAtiKVW?=
+ =?us-ascii?Q?A9JpgmEX4C/3Do1H4oMq28yMu1iocgo+HW4CJ6ma113oICaHLggsQy7DIadh?=
+ =?us-ascii?Q?rOoeZ/+7z88jeYEJgYJN7KkfV7VCainbYvyXsQANm88SyveCSTc65EtaTd3L?=
+ =?us-ascii?Q?OQLxJfuFwsQcMCHEjvawPXJe7XE5j3kJ72IudES3baNiMpbzK1V1M7KoEF+3?=
+ =?us-ascii?Q?ycxn9V6z8NJCwe/EuaxqSmip97HmT+n9cqjEGrVpAuGjxDI9j4cE0Ng0kEpG?=
+ =?us-ascii?Q?wgxtgLp/AaGjxBWFf774+wUWYAjGfeXCt+NSqHEW1Mtt5e9Fa2cUZQzbMUs1?=
+ =?us-ascii?Q?IzU+MGr981vQA3TBLsE5568JNZW//eBkdjWrdqLmp6tsy+SMJnZruvu2aHGw?=
+ =?us-ascii?Q?WZxrIvzsW2aVKjNvEalG13e1ExFBrUD5BIm11Jke74X9ZRfIJiyhW5z4mvYx?=
+ =?us-ascii?Q?7wdpisOQ4GwOAwIRxBiHbubiN+bKoK5M372m0krsyas0mZ2fCceBa8s4caCt?=
+ =?us-ascii?Q?3T4a8tVVVUE0EjqfsAHjsvrMUfkNpZxLdQGhZlJarBqS1mrKAdwYRualzaHL?=
+ =?us-ascii?Q?MkKuZqeIXwmqdtRYJL7dnazydupFGNi9cN+IgL7f/FaJ3FC06pfLnSUPf1Cv?=
+ =?us-ascii?Q?IwWCpiyvQBN4AM9xk5lplLGoQZLbxoW7ktv2oh8nyLG5R+N+oj6fRc8w20xW?=
+ =?us-ascii?Q?M/EyjbR/FP4mNhz1uXZgd79rTmhbiybH6VQyDh8V+fMUz6jldEHmRssQfW4q?=
+ =?us-ascii?Q?koV83DHWPZQCz2LENitnSxgk914WjclYnwr/seejxOwKaFP1rxBq/9yrbto1?=
+ =?us-ascii?Q?2EcQ19iXuEw6MUG4ccjKBiDtL+DLpQETKJDQJ2EAnVXsZMZjHRlAi2/I5Kqx?=
+ =?us-ascii?Q?/B0iv3VZLA7q5RNNVURXBkFEDeh0gfsyQlsGLElRhsEvAS0RJpPfp97rtYRg?=
+ =?us-ascii?Q?W6/vmF5ASg=3D=3D?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 1a5e2b35-dba9-4655-1853-08df332318df
+X-MS-Exchange-CrossTenant-Network-Message-Id: 7f9faa1d-ad55-4c77-7f37-08df33231bd8
 X-MS-Exchange-CrossTenant-AuthSource: SA3PR12MB598757.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Oct 2026 05:36:34.4867
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Oct 2026 05:36:39.4618
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: rGALX2o2uoE8QzGjv15Pvw8ade9CcrhSyuUVtZAIs1MDcYIopsa4oMI0n61/KRPme9Llh9wogNAZrB1bcqxAig==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR12MB8347
+X-MS-Exchange-CrossTenant-UserPrincipalName: tv7DofqYpK1deGYb+TtKExxAjqHWCpi0X5dZE2Qg/4G24kSAVq9wCiNbOVQWnwHslC38SBZr7T1LsigPHty5eg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA0PR12MB4496
 
-This is the next version of Jason's DMA-buf mapping types series [1]. It keeps
-the framework and the SGT conversions from the RFC but defers the final mapping
-type selection until the first pin/map of the buffer.
+From: Jason Gunthorpe <jgg@nvidia.com>
 
-At pin/map the exporter chooses one of the types matched, taking the other
-attachments and the buffer's placement into account. That choice is held by the
-core until the exporter explicitly invalidates the attachment. This ensures
-unmap/remap cannot cause buffer movement and ping/pong.
+DMA-buf mapping types allow the importer and exporter to negotiate the
+format of the map/unmap to be used during the attachment.
 
-Future work will build on top of this series to add an iommufd importer type
-per the plan in [2], separate out PCIe P2P as its own mapping type and convert
-XGMI to an exclusive mapping type.
+Currently DMA-buf only supports struct scatterlist as the attachment map
+operation.  This is not sufficient for all use cases as dma_addr_t is a
+very specific and limited type.
 
-Why mapping types
------------------
+With mapping types the importing driver can declare what it supports. For
+example:
 
-Since its introduction, DMA-buf has only supported using scatterlist for
-the exporter and importer to exchange address information.  This is not
-sufficient for all use cases as dma_addr_t is a very specific and limited
-type that should not be abused for things unrelated to the DMA API.
+	struct dma_buf_mapping_match imp_match[] = {
+		DMA_BUF_IMAPPING_MY_DRIVER(dev, ...),
+		DMA_BUF_IMAPPING_SGT(dev, false),
+	};
+	attach = dma_buf_mapping_attach(dmabuf, imp_match, ...)
 
-There are several motivations for addressing this now:
- 1) VFIO to IOMMUFD and KVM requires a physical address, not a dma_addr_t
-    scatterlist, it cannot be represented in the scatterlist structure
- 2) xe vGPU requires the host driver to accept a DMABUF from VFIO of its
-    own VF and convert it into an internal VRAM address on the PF
- 3) We are starting to look at replacement datastructures for
-    scatterlist
- 4) Ideas around UALink/etc are suggesting not using the DMA API
- 5) Private interconnects, such as XGMI, are forced to work around this using
-    driver-specific hacks.
+And the exporting driver can declare what it supports:
 
-None of these can be achieved using scatterlist. This series introduces a
-"mapping type" mechanism allowing dma-buf to negotiate compatibility between
-different types and support alternate mapping options. See the description of
-patch 1 for more details.
+int exporter_match_mapping(struct dma_buf_match_args *args)
+{
+	struct dma_buf_mapping_match exp_match[] = {
+		DMA_BUF_EMAPPING_MY_DRIVER(my_ops, dev, ...),
+		DMA_BUF_EMAPPING_SGT(sgt_ops, dev, false),
+		DMA_BUF_EMAPPING_PAL(PAL_ops),
+	};
+	return dma_buf_match_mapping(args, exp_match, ...);
+}
 
-Selecting mapping type
-----------------------
+During dma_buf_mapping_attach() the core code records every mutually
+acceptable (exporter entry, importer entry) pair in attach->matches, a
+small fixed-size array in the attachment, in the exporter's order of
+preference. The first entry is the default and is what attach->map_type
+holds; later patches let the exporter choose a different entry of the set
+at pin or map time, when the buffer's placement and the other attachments
+are known. Importers and exporters that list a single type see exactly one
+entry.
 
-Importers and exporters list possible mapping types with the exporter
-responsible for selecting the final type at pin/map time under the dma_resv
-lock. A matching phase at attachment time eliminates types which statically
-cannot be supported for a given exporter/importer.
+Add the basic types:
 
-This was done in response to review comments on the RFC. Karl found that the
-RFC's match callback ran on an uninitialised attachment [3]. Christian noted
-that the final decision has to be made under the dma_resv lock before a
-mapping is created, not at attach [4], and Thomas proposed the three steps
-followed here: agree the possible types at attach, select at map, hold the
-selection until invalidate_mappings() [5]. Christian also noted that remaps
-must not change type or placement as that makes buffers ping/pong [6].
+struct dma_buf_mapping_type
+   Type tag and ops for each mapping type.
 
-The dma-buf core enforces that last point by calling select_mapping() only on
-the first pin/map after attach or after an invalidate. The pin/map type can
-therefore only change once the exporter has explicitly invalidated the mapping.
+struct dma_buf_mapping_match
+   Entry in a list of importer or exporter match specifications.
+   The match specification can be extended by the mapping type with
+   unique data.
 
-Jason noted that some hardware, mlx5 for example, cannot change path once it
-has mapped [7]. A pinned importer is covered, since its type is fixed at pin.
-An unpinned importer has no way yet to narrow its own set after an invalidate.
-This could be resolved if required by introducing a pin operation done under the
-dma_resv lock for the mapping selection after attach.
+dma_buf_match_mapping() / struct dma_buf_match_args
+   Helper to do the matching. Called by the exporting driver
+   via a dma_buf_ops callback.
 
-Future work
------------
+struct dma_buf_mapping_exp_ops
+   Base type for the per-mapping type exporter provided functions. This
+   would be the map/unmap callbacks. Each mapping type can provide its own
+   functions for map/unmap type operations with optimal type signatures.
 
-This series stops at the SGT type so that the framework and the
-attach/pin/map contract can be reviewed on their own. I already have
-proof-of-concept conversions of both PCIe P2P (building on Thomas's work [8])
-and XGMI to separate mapping types. If those would be helpful for reviewing
-this series let me know and I will post them.
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+[ dma_buf_match_mapping() records the whole match set in
+  attach->matches instead of stopping at the first match, so that the
+  exporter can choose among the mutually acceptable types later, at pin or
+  map time, rather than the core fixing one type at attach. - apopple ]
+Co-developed-by: Alistair Popple <apopple@nvidia.com>
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+---
+ drivers/dma-buf/dma-buf-mapping.c | 62 +++++++++++++++++++++++++
+ include/linux/dma-buf-mapping.h   | 76 +++++++++++++++++++++++++++++++
+ include/linux/dma-buf.h           | 31 +++++++++++++
+ 3 files changed, 169 insertions(+)
 
-Alternatively this series could be split up with patches 1-8 & 25-26 adding the
-general framework and the rest adding the conversions later.
-
-Further work, per [2], is an iommufd importer type to replace the private
-vfio/iommufd interface and allow other DMA-bufs to be imported into iommufd.
-
-Testing
--------
-
-- KUnit dma-buf-mapping suite (patches 25 and 26).
-- Compile-tested with a config enabling all converted drivers.
-
-Changes since RFC v1 [1]
-------------------------
-
-- Dropped the PAL type and its vfio/iommufd users (RFC 21-25).
-- Rebased onto v7.3-rc5: move_notify is now invalidate_mappings,
-  CONFIG_DMABUF_MOVE_NOTIFY is gone, new amdxdna/panfrost/panthor
-  exporters converted, kzalloc_obj().
-- Patch 1 records the whole match set in a fixed-size array in the
-  attachment; patch 3 initialises the attachment before match_mapping()
-  (Karl); patch 15 holds a pci_dev reference instead of asserting the resv
-  lock (Baolu).
-- New patches 5, 6 and 7: exporter selection at pin/map with core-enforced
-  stickiness, match set queries, and dma_buf_mapping_map()/unmap().
-- xe and amdgpu conversions written against the final API; amdgpu's XGMI
-  override rewrites the recorded match set entry.
-- New patch 26 with KUnit tests for the selection contract.
-
-[1] https://lore.kernel.org/all/0-v1-b5cab63049c0+191af-dmabuf_map_type_jgg@nvidia.com/
-[2] https://lore.kernel.org/all/20260422150000.GK3199414@nvidia.com/
-[3] https://lore.kernel.org/all/20261016202653.97339-1-kmehltretter@gmail.com/
-[4] https://lore.kernel.org/all/d08a26ed-ded7-4447-bf7b-88597ee7df0e@amd.com/
-[5] https://lore.kernel.org/all/8d4cb20b70ac4c3f36d8d631769757158af2ac8e.camel@linux.intel.com/
-[6] https://lore.kernel.org/all/7b4dc988-5dbd-40e4-b17a-47b6eaf4bf81@amd.com/
-[7] https://lore.kernel.org/all/20261022115239.GY3008132@nvidia.com/
-[8] https://gitlab.freedesktop.org/thomash/xe-vibe/-/commit/7452df0fc858a7dc5ccac0e2037852cb7ab64d61
-
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Christian König <christian.koenig@amd.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
-Cc: Simona Vetter <simona.vetter@ffwll.ch>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
-Cc: Dongwon Kim <dongwon.kim@intel.com>
-Cc: Leon Romanovsky <leonro@nvidia.com>
-Cc: Kevin Tian <kevin.tian@intel.com>
-Cc: Xu Yilun <yilun.xu@linux.intel.com>
-Cc: Karl Mehltretter <kmehltretter@gmail.com>
-Cc: Baolu Lu <baolu.lu@linux.intel.com>
-Cc: Felix Kuehling <felix.kuehling@amd.com>
-Cc: Alex Deucher <alexander.deucher@amd.com>
-Cc: dri-devel@lists.freedesktop.org
-Cc: intel-xe@lists.freedesktop.org
-Cc: amd-gfx@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org
-Cc: linaro-mm-sig@lists.linaro.org
-Cc: linux-rdma@vger.kernel.org
-Cc: iommu@lists.linux.dev
-Cc: Alexey Kardashevskiy <aik@amd.com>
-Cc: zhipingz@meta.com
-Cc: treding@nvidia.com
-Cc: jhubbard@nvidia.com
-
-Alistair Popple (4):
-  dma-buf: Let the exporter select mapping type at pin/map
-  dma-buf: Add match set queries for exporter placement decisions
-  dma-buf: Add dma_buf_mapping_map() returning a type-tagged mapping
-  dma-buf: Add kunit tests for mapping type selection
-
-Jason Gunthorpe (22):
-  dma-buf: Introduce DMA-buf mapping types
-  dma-buf: Add the SGT DMA mapping type
-  dma-buf: Add dma_buf_mapping_attach()
-  dma-buf: Route SGT related actions through attach->map_type
-  dma-buf: Allow single exporter drivers to avoid the match_mapping
-    function
-  drm: Check the SGT ops for drm_gem_map_dma_buf()
-  dma-buf: Convert all the simple exporters to use SGT mapping type
-  drm/vmwgfx: Use match_mapping instead of dummy calls
-  accel/habanalabs: Use the SGT_P2P mapping type
-  drm/xe/dma-buf: Use the SGT mapping type
-  drm/amdgpu: Use the SGT mapping type
-  vfio/pci: Change the DMA-buf exporter to use mapping_type
-  RDMA/uverbs: Use the SGT_P2P mapping type
-  dma-buf: Update dma_buf_phys_vec_to_sgt() to use the SGT mapping type
-  iio: buffer: convert to use the SGT mapping type
-  functionfs: convert to use the SGT mapping type
-  dma-buf: Remove unused SGT stuff from the common structures
-  treewide: Rename dma_buf_map_attachment(_unlocked) to dma_buf_sgt_
-  treewide: Rename dma_buf_unmap_attachment(_unlocked) to dma_buf_sgt_*
-  treewide: Rename dma_buf_attach() to dma_buf_sgt_attach()
-  treewide: Rename dma_buf_dynamic_attach() to
-    dma_buf_sgt_dynamic_attach()
-  dma-buf: Add kunit tests for mapping type
-
- Documentation/gpu/todo.rst                    |   2 +-
- drivers/accel/amdxdna/amdxdna_cbuf.c          |   8 +-
- drivers/accel/amdxdna/amdxdna_gem.c           |  14 +-
- drivers/accel/amdxdna/amdxdna_ubuf.c          |   8 +-
- drivers/accel/habanalabs/common/memory.c      |  54 +-
- drivers/accel/ivpu/ivpu_gem.c                 |  10 +-
- drivers/accel/ivpu/ivpu_gem_userptr.c         |  11 +-
- drivers/accel/qaic/qaic_data.c                |   8 +-
- drivers/dma-buf/Makefile                      |   1 +
- drivers/dma-buf/dma-buf-mapping.c             | 259 ++++++-
- drivers/dma-buf/dma-buf.c                     | 317 ++++++---
- drivers/dma-buf/heaps/cma_heap.c              |  12 +-
- drivers/dma-buf/heaps/system_heap.c           |  13 +-
- drivers/dma-buf/st-dma-mapping.c              | 662 ++++++++++++++++++
- drivers/dma-buf/udmabuf.c                     |   8 +-
- drivers/gpu/drm/amd/amdgpu/amdgpu_dma_buf.c   | 141 ++--
- drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c       |   6 +-
- drivers/gpu/drm/armada/armada_gem.c           |  33 +-
- drivers/gpu/drm/drm_gem_shmem_helper.c        |   2 +-
- drivers/gpu/drm/drm_prime.c                   |  31 +-
- drivers/gpu/drm/i915/gem/i915_gem_dmabuf.c    |  18 +-
- drivers/gpu/drm/i915/gem/i915_gem_object.c    |   2 +-
- .../drm/i915/gem/selftests/i915_gem_dmabuf.c  |   8 +-
- .../gpu/drm/i915/gem/selftests/mock_dmabuf.c  |   8 +-
- drivers/gpu/drm/msm/msm_gem_prime.c           |   7 +-
- drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c     |  11 +-
- drivers/gpu/drm/panfrost/panfrost_gem.c       |  13 +-
- drivers/gpu/drm/panthor/panthor_gem.c         |  11 +-
- drivers/gpu/drm/tegra/gem.c                   |  33 +-
- drivers/gpu/drm/virtio/virtgpu_prime.c        |  23 +-
- drivers/gpu/drm/vmwgfx/vmwgfx_prime.c         |  32 +-
- drivers/gpu/drm/xe/xe_bo.c                    |  18 +-
- drivers/gpu/drm/xe/xe_dma_buf.c               |  64 +-
- drivers/iio/industrialio-buffer.c             |  15 +-
- drivers/infiniband/core/umem_dmabuf.c         |  15 +-
- .../infiniband/core/uverbs_std_types_dmabuf.c |  30 +-
- drivers/iommu/iommufd/pages.c                 |   5 +-
- drivers/iommu/iommufd/selftest.c              |  18 +-
- .../media/common/videobuf2/videobuf2-core.c   |   2 +-
- .../common/videobuf2/videobuf2-dma-contig.c   |  26 +-
- .../media/common/videobuf2/videobuf2-dma-sg.c |  21 +-
- .../common/videobuf2/videobuf2-vmalloc.c      |  13 +-
- .../platform/nvidia/tegra-vde/dmabuf-cache.c  |   9 +-
- drivers/misc/fastrpc.c                        |  21 +-
- drivers/tee/tee_heap.c                        |  13 +-
- drivers/usb/gadget/function/f_fs.c            |  11 +-
- drivers/vfio/pci/vfio_pci_dmabuf.c            |  25 +-
- drivers/xen/gntdev-dmabuf.c                   |  29 +-
- include/linux/dma-buf-mapping.h               | 370 ++++++++++
- include/linux/dma-buf.h                       | 227 +++---
- include/trace/events/dma_buf.h                |   2 +-
- io_uring/zcrx.c                               |   9 +-
- net/core/devmem.c                             |  14 +-
- samples/vfio-mdev/mbochs.c                    |  10 +-
- sound/soc/fsl/fsl_asrc_m2m.c                  |  12 +-
- 55 files changed, 2163 insertions(+), 582 deletions(-)
- create mode 100644 drivers/dma-buf/st-dma-mapping.c
-
-
-base-commit: 72d3fcf802c45d00b300f25b848a93c3a2bd7c7e
+diff --git a/drivers/dma-buf/dma-buf-mapping.c b/drivers/dma-buf/dma-buf-mapping.c
+index 833be519e1e6..616ab057fb28 100644
+--- a/drivers/dma-buf/dma-buf-mapping.c
++++ b/drivers/dma-buf/dma-buf-mapping.c
+@@ -5,6 +5,7 @@
+  */
+ #include <linux/dma-buf-mapping.h>
+ #include <linux/dma-resv.h>
++#include <linux/dma-buf.h>
+ #include <linux/overflow.h>
+ #include <linux/align.h>
+ 
+@@ -257,3 +258,64 @@ void dma_buf_free_sgt(struct dma_buf_attachment *attach, struct sg_table *sgt,
+ 
+ }
+ EXPORT_SYMBOL_NS_GPL(dma_buf_free_sgt, "DMA_BUF");
++
++/**
++ * dma_buf_match_mapping - Record the mapping types agreed upon by exporter
++ *                         and importer
++ * @args: Match arguments from attach
++ * @exp: Array of mapping types supported by the exporter, in priority order
++ * @exp_len: Number of entries in @exp
++ *
++ * Walk the exporter's list in order and, for each entry, find the first
++ * importer entry of the same type that the type's match() callback accepts.
++ * Every such pair is recorded in @args->attach->matches, so the match set
++ * preserves the exporter's priority. The first entry becomes the default in
++ * @args->attach->map_type.
++ *
++ * Because the exporter list is walked in order, the exporter controls the
++ * priority of mapping types.
++ *
++ * Returns: 0 if at least one type matched, -EINVAL if none did, -E2BIG if
++ * more than DMA_BUF_MAX_MATCHES types matched, or the error a match() callback
++ * aborted the search with.
++ */
++int dma_buf_match_mapping(struct dma_buf_match_args *args,
++			  const struct dma_buf_mapping_match *exp,
++			  size_t exp_len)
++{
++	const struct dma_buf_mapping_match *exp_end = exp + exp_len;
++	const struct dma_buf_mapping_match *imp_end =
++		args->imp_matches + args->imp_len;
++	struct dma_buf_attachment *attach = args->attach;
++	unsigned int nr = 0;
++	int ret;
++
++	for (; exp != exp_end; exp++) {
++		const struct dma_buf_mapping_match *imp = args->imp_matches;
++
++		for (; imp != imp_end; imp++) {
++			if (exp->type != imp->type)
++				continue;
++			if (exp->type->match) {
++				ret = exp->type->match(args->dmabuf, exp, imp);
++				if (ret == -EOPNOTSUPP)
++					continue;
++				if (ret != 0)
++					return ret;
++			}
++			if (nr == ARRAY_SIZE(attach->matches))
++				return -E2BIG;
++			exp->type->finish_match(args, exp, imp);
++			attach->matches[nr++] = attach->map_type;
++			break;
++		}
++	}
++
++	if (!nr)
++		return -EINVAL;
++
++	attach->nr_matches = nr;
++	attach->map_type = attach->matches[0];
++	return 0;
++}
++EXPORT_SYMBOL_NS_GPL(dma_buf_match_mapping, "DMA_BUF");
+diff --git a/include/linux/dma-buf-mapping.h b/include/linux/dma-buf-mapping.h
+index 09bde3f748e4..03a03624166b 100644
+--- a/include/linux/dma-buf-mapping.h
++++ b/include/linux/dma-buf-mapping.h
+@@ -7,6 +7,77 @@
+ #define __DMA_BUF_MAPPING_H__
+ #include <linux/dma-buf.h>
+ 
++struct device;
++struct dma_buf;
++struct dma_buf_attachment;
++struct dma_buf_mapping_exp_ops;
++
++/* Type tag for all mapping operations */
++struct dma_buf_mapping_exp_ops {};
++
++/*
++ * Internal struct to pass arguments from the attach function to the matching
++ * function
++ */
++struct dma_buf_match_args {
++	struct dma_buf *dmabuf;
++	struct dma_buf_attachment *attach;
++	const struct dma_buf_mapping_match *imp_matches;
++	size_t imp_len;
++};
++
++/**
++ * struct dma_buf_mapping_type - Operations for a DMA-buf mapping type
++ *
++ * Each mapping type provides a singleton instance of this struct to describe
++ * the mapping type and its operations.
++ */
++struct dma_buf_mapping_type {
++	/**
++	 * @name: Human-readable name for this mapping type, used in debugfs
++	 *        output
++	 */
++	const char *name;
++
++	/**
++	 * @match:
++	 *
++	 * Called during attach from dma_buf_match_mapping(). &exp and &imp are
++	 * single items from the importer and exporter mapping match lists.
++	 * Both will have the same instance of this struct as their type member.
++	 *
++	 * It determines if the exporter/importer are compatible.
++	 *
++	 * Returns: 0 on success
++	 *   -EOPNOTSUPP means ignore the failure and continue
++	 *   Everything else aborts the search and returns the -errno
++	 */
++	int (*match)(struct dma_buf *dmabuf,
++		     const struct dma_buf_mapping_match *exp,
++		     const struct dma_buf_mapping_match *imp);
++
++	/**
++	 * @finish_match:
++	 *
++	 * Called by dma_buf_match_mapping() after a successful match to store
++	 * the negotiated result in @args->attach. The matched @exp and @imp
++	 * entries are provided so the callback can copy type-specific data into
++	 * the attachment.
++	 */
++	void (*finish_match)(struct dma_buf_match_args *args,
++			     const struct dma_buf_mapping_match *exp,
++			     const struct dma_buf_mapping_match *imp);
++
++	/**
++	 * @debugfs_dump:
++	 *
++	 * Optional callback to write mapping-type-specific diagnostic
++	 * information about @attach to the debugfs seq_file @s.
++	 */
++	void (*debugfs_dump)(struct seq_file *s,
++			     struct dma_buf_attachment *attach);
++};
++
+ struct sg_table *dma_buf_phys_vec_to_sgt(struct dma_buf_attachment *attach,
+ 					 struct p2pdma_provider *provider,
+ 					 struct phys_vec *phys_vec,
+@@ -14,4 +85,9 @@ struct sg_table *dma_buf_phys_vec_to_sgt(struct dma_buf_attachment *attach,
+ 					 enum dma_data_direction dir);
+ void dma_buf_free_sgt(struct dma_buf_attachment *attach, struct sg_table *sgt,
+ 		      enum dma_data_direction dir);
++
++int dma_buf_match_mapping(struct dma_buf_match_args *args,
++			  const struct dma_buf_mapping_match *exp_mappings,
++			  size_t exp_len);
++
+ #endif
+diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+index d15b2b31d3c9..a749562c1728 100644
+--- a/include/linux/dma-buf.h
++++ b/include/linux/dma-buf.h
+@@ -27,6 +27,28 @@
+ struct device;
+ struct dma_buf;
+ struct dma_buf_attachment;
++struct dma_buf_mapping_type;
++struct dma_buf_mapping_exp_ops;
++
++/*
++ * Upper bound on the number of mapping types an attachment can record as
++ * mutually acceptable. An exporter offering more compatible types than this
++ * to one importer fails the attach with -E2BIG.
++ */
++#define DMA_BUF_MAX_MATCHES 4
++
++/*
++ * Match items are generated by the importer using the DMA_BUF_IMAPPING_*() and
++ * the exporter using the DMA_BUF_EMAPPING_*() functions. Each mapping type
++ * defines its own signature with its own data to make the match and attachment.
++ */
++struct dma_buf_mapping_match {
++	const struct dma_buf_mapping_type *type;
++	const struct dma_buf_mapping_exp_ops *exp_ops;
++	union {
++		/* Each mapping_type has unique match parameters here */
++	};
++};
+ 
+ /**
+  * struct dma_buf_ops - operations possible on struct dma_buf
+@@ -472,6 +494,12 @@ struct dma_buf_attach_ops {
+  * @importer_ops: importer operations for this attachment, if provided
+  * dma_buf_map/unmap_attachment() must be called with the dma_resv lock held.
+  * @importer_priv: importer specific attachment data.
++ * @map_type: The match this attachment is mapped with. Until the exporter
++ *            selects otherwise it holds the exporter's default, the first
++ *            entry of @matches.
++ * @matches: The match set negotiated at attach time: every mapping type both
++ *           sides accept, in the exporter's order of preference.
++ * @nr_matches: Number of valid entries in @matches.
+  *
+  * This structure holds the attachment information between the dma_buf buffer
+  * and its user device(s). The list contains one attachment struct per device
+@@ -490,6 +518,9 @@ struct dma_buf_attachment {
+ 	const struct dma_buf_attach_ops *importer_ops;
+ 	void *importer_priv;
+ 	void *priv;
++	struct dma_buf_mapping_match map_type;
++	struct dma_buf_mapping_match matches[DMA_BUF_MAX_MATCHES];
++	unsigned int nr_matches;
+ };
+ 
+ /**
 -- 
 2.54.0
 
