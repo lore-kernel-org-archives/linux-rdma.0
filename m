@@ -1,56 +1,59 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.215.58.83
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792981229;
-	b=j1tT2b+f2d3BGgQnoRkB+18E2x0tpCHO95QC4KOBoP6li/So05fJCOQE1jCF3vfDCrDn
-	 zbUxopmx7aaTb5SCkm5z34NgaCoCtiBWYF5p2OinF17HFzUcLVz5ZMulH07bg8jYGm9LH
-	 dMlr7TlDP8Kg4v/JX8OEnX1Syf+ZZKXgLZeHQgGatPaUW7+c3Z9V92FJhzTZRl8HzRPdJ
-	 efmnhKR3LJ1ZGhsm2iZy2QjGmElhpAOVdVJJP/0Zx78IoTHINm7I+byQxCUW7c1UuQO9M
-	 1FvaCdFngY8YVmuQrf17C80Mm0/XDClvzM/QSvgUuTTPtyP2m7LetmcHQA7IzkUiM1g==
+	t=1792982944;
+	b=Yz4yxiMXHhaPT9DozxTnj1RBTJhv7zgIypL+ZQc4DEzddurGnPSMOUnjC9dBOoYjxNfv
+	 OT1QrYpokCM0PbplhScr0ckTE+mA03mXKjEBF4JHZ+Gi2gh313WChkCHu3j+IHOlViiJw
+	 VsXhsPz8rBsDrqzbleVzB9OaDlg0e1gdn9Rz0QmTFinky6LcWiyEgSq1UJTnjwx6tY3it
+	 k+Rj+iWlHOFG4bg/wrqks5UrRvgv/nXiuBaXqbvxkEu48vr795lU5SBnWnhHcPwfkJ9SJ
+	 ur78GrZECWjiJ5hsMn4SH5SWcl6eaU7wbjEozq3c3Pyxid0g7asEl0NQCuFLgdFNPQg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792981229;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=haLXzM0ke6R+wmsJQ7Of1dImWzpo1cfeJdFwqrxPad0=;
-	b=dzEcGgZ3xWJT9F6pu1s/Ht+vrLXawDpaDOucM6emG4M4wXFgz4cxrT9VIv+LGl64FZb3
-	 qZbWh+eCXGBCX1FFW89y1RIlzBHF4YVjQHdmF7fgDl4efpC2gbnMXlGmSOjJ1K2bTDGfU
-	 rYAb0b3LgiwIgCLB+96+IZy81W2fNuXzGcC+Kj9D3g33POrUh4tOd7O6/QMogqOVe8Q0E
-	 zsLhQPV5050QXhI21OpxBUtNYFzo8mftdxARX//v/gxIqOW+6TBZxUmOqrVI6YDpu7BhR
-	 N+FG9NQlviXKDPd3I4VESasMMoxLTQ+oHyMmUDsl7iAhpzG4PoW3xeJojbPAvqbrszA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792982944;
+	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
+	 X-Mizu-Trace-ID:X-Migadu-Flow:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=QoMN9IuoMoRHGY91ipX/fPql2/FDyo785asdqTToyvk=;
+	b=TsJK/mc7x3UyxjO+X1kuEzDUXcpscCO6EVXBOsawJpG6U8LBO1ImS8sGOULmz/SElPBy
+	 Sydd/4EDdBRAV/cwdT7izhG10u13kfd+hFRFb97pi7Whb7i4fipK1BZVXRrCOVbXDoCB/
+	 zuOwmsqCEQJ12MDbmxsXwUKFNVYR2SLr+apcpV7Yr4wmv712nMn85mhnd+kqYru5bZm7y
+	 BfC931GDx7tB1d1T6fHwLaBKq4oU8QbXrrF2OhTLuMfKn3CxNR5v6suXZE65gXNpnjtCv
+	 gGxTxM9oOEfWkugXkP/PyVCpinmZ4lNr5bhSGZeL44WaIvMScdi1JF7tZla2Ei7wIHg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EOaiGWij;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=linux.dev;
+	spf=pass smtp.mailfrom=linux.dev;
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=SiwXqmHb;
+	arc=none smtp.remote-ip=95.215.58.83
+Received: from mta1.migadu.com (out-83.mta1.migadu.com [95.215.58.83])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70C8E606A31A
-	for <linux-rdma@vger.kernel.org>; Mon, 26 Oct 2026 02:20:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D684606A31A
+	for <linux-rdma@vger.kernel.org>; Mon, 26 Oct 2026 02:49:01 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4D684606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EOaiGWij
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31ABD1F031E4;
-	Mon, 26 Oct 2026 02:20:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792981229;
-	bh=haLXzM0ke6R+wmsJQ7Of1dImWzpo1cfeJdFwqrxPad0=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=EOaiGWijAIrYlRtYlxXuBUP4oh+LGjPv0udBTCTN2DtXSfvLs4Qo6+MH6VHToW4ot
-	 QxrlYejKGewy/9Wg1y49JwAOr3dnlfQp6IdJb8JCd0GXeTklwajWGJC1cUh/uNKww9
-	 GCpSMj5Dn/tEKF7D0506DvlWym1fOcrJqYyGE4DBz6hCnGwfed6tFzQX3+SMhKxdgA
-	 A2MwzuhaFgrz45Ue/Msl8LBpHswPbJnzZHjklPukqoO2JxO4P9+wArquXNOMZGyduC
-	 5VDXwzWFXD8UyNm2g6ofwT45sLVb+3CxolXHQj4lU7SeQlOPA1buV1aBF+uYLqSNoQ
-	 VXQ5ebLgTTznQ==
-Message-ID: <sashiko-outbox-184597@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH] RDMA/uverbs: Don't return the shared zero page from
- rdma_umap_fault()
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Zi Yan" <ziy@nvidia.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261025-fix-rdma_umap_fault-zero-page-v1-1-186255624f1f@nvidia.com>
-References: <20261025-fix-rdma_umap_fault-zero-page-v1-1-186255624f1f@nvidia.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Mon, 26 Oct 2026 02:20:28 +0000
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=SiwXqmHb
+X-Envelope-To: linux-rdma@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=jdRN6MFYj2YmCSPub8P43JPTJWPrmm0ezeN7UlTo9nU=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1792982940; v=1; x=1793587740;
+ b=SiwXqmHbi65DNkwwTjRhyM6I0cf8U2pHI0z3sKlege9VRk7dGsCpjiFCHsKNi56JsIGrCEFq
+ QjTEpy9XjBygk5vpewtFb/uZge3opXg0VpkYG83yVVH76VurYndIhXHDIXIBb4RZ1Ov5rAY52rG
+ OVsg92/8WqJaebd8ExTg3EsM=
+X-Envelope-To: linux-rdma@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id 7a9d9d49db9a7899;
+	Mon, 26 Oct 2026 02:49:00 +0000
+X-Mizu-Trace-ID: 7a9d9d49db9a7899
+X-Migadu-Flow: FLOW_OUT
+Date: Mon, 26 Oct 2026 10:49:35 +0800
+From: Chenguang Zhao <chenguang.zhao@linux.dev>
+To: Serhat Kumral <serhatkumral1@gmail.com>
+Cc: jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] RDMA/mthca: Fix off-by-one in mthca_map_user_db()
+Message-ID: <20261026024935.GA151928@pc>
+References: <20261023192348.11070-1-serhatkumral1@gmail.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,40 +62,42 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261023192348.11070-1-serhatkumral1@gmail.com>
 
-> After disassociation, rdma_umap_fault() returns the shared zero page from
-> ->fault for VMAs without VM_WRITE and VM_MAYWRITE. Such VMAs come from
-> rdma_user_mmap_io() in drivers that clear VM_MAYWRITE and they are shared
-> VM_PFNMAP. A page returned from ->fault is mapped as a normal page and go=
-es
-> through rmap code. Two issues:
->=20
-> 1. shared zero page causes VM_WARN_ONs in rmap code,
->=20
-> 2. normal pages in shared VM_PFNMAP VMAs cause accounting leak on arch
->    without pte_special(), namely the page refcount, mapcount, and vm stats
->    are never dropped.
->=20
-> Map ufile->disassociate_page for VMAs without VM_WRITE and VM_MAYWRITE,
-> with vmf_insert_pfn(). The page lives until ib_uverbs_release_file(), whi=
-ch
-> cannot run while a VMA holds a reference to the file.
->=20
-> Writable VMAs keep returning disassociate_page in vmf->page, thus its
-> accounting leak on arch without pte_special() needs a separate fix.
->=20
-> Userspace can see two differences after the patch. A mapping without
-> VM_WRITE and VM_MAYWRITE now reads what was written through writable
-> mappings of the same uverbs file instead of zeroes; after disassociation
-> both are dummy data. The first fault now allocates the page and fails with
-> VM_FAULT_SIGBUS if the allocation fails, as a write fault already does.
->=20
-> Fixes: 67f269b37f9b ("RDMA/ucontext: Fix regression with disassociate")
-> Signed-off-by: Zi Yan <ziy@nvidia.com>
+On Fri, Oct 23, 2026 at 10:23:48PM +0300, Serhat Kumral wrote:
+> db_tab->page[] has uarc_size / MTHCA_ICM_PAGE_SIZE elements, so valid
+> doorbell indices are in the range [0, uarc_size / 8 - 1]. Allowing
+> index == uarc_size / 8 results in an out-of-bounds access at
+> db_tab->page[npages]. Use '>=' instead of '>' in the bounds check.
+> 
+> Fixes: 56483ec1b702 ("[PATCH] IB uverbs: add mthca user doorbell record support")
+> Signed-off-by: Serhat Kumral <serhatkumral1@gmail.com>
+> ---
+>  drivers/infiniband/hw/mthca/mthca_memfree.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/infiniband/hw/mthca/mthca_memfree.c b/drivers/infiniband/hw/mthca/mthca_memfree.c
+> index 9c5eb03f354d..39d82dc73807 100644
+> --- a/drivers/infiniband/hw/mthca/mthca_memfree.c
+> +++ b/drivers/infiniband/hw/mthca/mthca_memfree.c
+> @@ -453,7 +453,7 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mthca_uar *uar,
+>  	if (!mthca_is_memfree(dev))
+>  		return 0;
+>  
+> -	if (index < 0 || index > dev->uar_table.uarc_size / 8)
+> +	if (index < 0 || index >= dev->uar_table.uarc_size / 8)
+>  		return -EINVAL;
+>  
+>  	mutex_lock(&db_tab->mutex);
+> -- 
+> 2.53.0
+> 
 
-Sashiko has reviewed this patch and found no issues.
+LGTM
+Reviewed-by: Chenguang Zhao <zhaochenguang@kylinos.cn>
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261025-fix-rdma_u=
-map_fault-zero-page-v1-1-186255624f1f@nvidia.com?part=3D1
-
+Thanks
+Chenguang
