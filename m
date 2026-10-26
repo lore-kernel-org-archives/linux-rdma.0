@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792978758;
-	b=4kcetripm9Gnqg69AC0MyxEp/1Gk+d6oFaBZ/NEXZMUuscGA/v9r0PeXOemroaBEmNYc
-	 KPHFlt955XE/7MhZqDhhNT8UHkza3e1gw8JoOF7ukR4eN2/ldIKOStCJ3LB86mfwJ+ZEl
-	 cyOWmYY5K/xexHp199smdBKtPxRZTi/Pm4SvWjR9aOPKDKGUzl7JkogmHt/SR/R3Mf9sa
-	 L3af/w89HTBr266kHcPth2NPo37/LfxBfPz2Pp//F3JpinojmyF/hOggj0SsjR5hmZj2s
-	 Vt+MgWw2ucJpSeT7kApeKVEpev1FKqxJnyOigGNwzIJrKFvPOGUTum2tYazO5j+5Dxw==
+	t=1792979021;
+	b=0vA73VLdB+ByGAwWciHxFXV8JlsgsK+xiqwgbdqrcUBoLHcYjeiKESKPiDxKJEIIv7V0
+	 d06Lwue9s/fu8H8yu4zhpinbEdHk1W7KvRyvZuAuYbkRc6JQNo6u3ysgjZZCD1J+3kjcz
+	 G1vNHvnO5dplNaqC0nD2kw/cwMSv1IS06UwEGlSlUxolfPhyChOdyKFVwIISneX2tJ56F
+	 X76FP3qui8Y6mEqYrBAa2uYvVCC4C7x2jEfVx30vBYwruRa1Tiu75IBX+4rhiD8wagpZ3
+	 dyLnOXWdLGJwLaE3zJsWLmhMX34Qt7bdzka9vaZv4zcScd6L9dXpNGvs20+9409zpXw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792978758;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792979021;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=mVslZ/Q/is1aLTlwJ+dtrXXyj4lChGTmZusMdhAwZgc=;
-	b=hl2d9qtTeO+9BregrYOP9DBgMlZdXNICotrULAjQurCvBpEeLvo3zdRyPIJoapxkp9N7
-	 vgf88v545yC5MoaujpT8TjQIf65YLmNE8MYkwt9SfWrz75z8lmez0v6cYdiBZNFr9JIoP
-	 SIkj+6OJD/BdF/iQcEaFj0B+0VoMJvznvi+oSbByZlwmSKUTb7Kd+dQAFdVHfa7DpcyI6
-	 /iEgZ2TJWPtFNxDhQccvY09+iufbhr6wP3qQIM3M4GNz1TmcBY56w30qA4EZJ2yU1bLMt
-	 dNzl2tX19RQs9D1z2mWU0+DTyz74FIcM/iKlrvKLvW8Ms3wTs4LdX1hH//WPNIOm0Fg==
+	bh=Y8fSSJUXs47/cZtz9/dGylI/jg2mBnYBYef0O/gcIY8=;
+	b=zJboV10Ib7q2GBDU/sOZALlz6yEk0kLVUMhbfJ8InEuMH/KA48EbHZCMPvGL478ZsIMt
+	 LQ5unoP9cATY5SI4rwgVQ/taGrFcQlkaQoXwH74qXl+Iu5G6Fp0Qaidd81g0TIarjdh9p
+	 /OOgb5iqLrom/w15t/QUQ+2JtsOu7ZWZAjydJkiSupolwATWa5BxxTata4Ok2m05ExWO9
+	 gBVbNNn8i6CWPwFA+BAE9zsZO3WZWnGUrJNhnb1oKEWe8ZfsO/MdvPBJJqPfIyOqqiw6V
+	 NZUL4ZrnfG0tk//rI6nJ9Q5/FTplGwJyUD2PQzD1qKFsVW30dHafFe9wSGzjtHowndw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mu0Pz+W+;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Q6+GlMJJ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84983606A31A
-	for <linux-rdma@vger.kernel.org>; Mon, 26 Oct 2026 01:39:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72B8D606A31A
+	for <linux-rdma@vger.kernel.org>; Mon, 26 Oct 2026 01:43:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mu0Pz+W+
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 164FE1F01825;
-	Mon, 26 Oct 2026 01:39:18 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Q6+GlMJJ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 217351F01825;
+	Mon, 26 Oct 2026 01:43:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792978758;
-	bh=mVslZ/Q/is1aLTlwJ+dtrXXyj4lChGTmZusMdhAwZgc=;
+	s=k20260515; t=1792979021;
+	bh=Y8fSSJUXs47/cZtz9/dGylI/jg2mBnYBYef0O/gcIY8=;
 	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
-	b=mu0Pz+W+BJjRjkWZQeShmMFwwPukOiXF48foL2lqL9IByos6zg5ZwZGKPd94H5OGj
-	 PTqe+R2D9+G0e1QoYMwRWvwylug/rFhzu7Qh8BnbhEltrmDo3LxmlqxaFt00aqMY6I
-	 r1xk0IPef4UUQKeKi6nYxNC/NzodVqLfw0lhUd1HNQinsfUV0bV3iuljZFCQ6UIWW0
-	 SOAL0LHEU0fFSKj2TeIGtotpsif0YR9tVDDHbcrqMLbV4s9ufgFPFPry77dVz6WYIb
-	 YINnVQ/cDnSY1sA8uDrXAhij7DPSk4+w/I00OmuDOfv6j1jhsxfmxgyrNsPotqsAsR
-	 stpuTdvULI86w==
-Message-ID: <sashiko-outbox-184584@kernel.org>
+	b=Q6+GlMJJxhFT30nS2MzcqXJzZEZQjpuAcoLHoZE/LIAO3d9TzWkKBEQoPGETRip6R
+	 8B3j37VUWDaRVW56rDNxODjTAMgK1nt35t5DUdNbh24zMMhy7IH9T09bBlLyqMuqW8
+	 zmlkbDISR8qq9HUecyQLMPuEsAx4XAXbmHgKho+V0ryRzYeHVyaj0mJ/XwDd6PYKIY
+	 imKWdiAqG24NcHa16N1SwzSw24Q6IR5aiG56ef0Eq4txgs4z3ztfYkzIjtLKKrn5Wj
+	 Kn56b0y4PE5n62oa4IgADTyK46xfJXVAwL/6mz21nBV9TGp/YzEq1QD2D38x60bg1T
+	 Z/Zwrp/qpHJkg==
+Message-ID: <sashiko-outbox-184588@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v6 2/2] RDMA/rxe: copy send WQE to kernel buffer in
- completer path
+Subject: Re: [PATCH v6 1/2] RDMA/rxe: copy send WQE to kernel buffer before
+ processing
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Tristan Madani" <tristmd@gmail.com>, linux-rdma@vger.kernel.org
-In-Reply-To: <20261026001405.1698455-3-tristan@talencesecurity.com>
+In-Reply-To: <20261026001405.1698455-2-tristan@talencesecurity.com>
 References: <20261026001405.1698455-1-tristan@talencesecurity.com>
- <20261026001405.1698455-3-tristan@talencesecurity.com>
+ <20261026001405.1698455-2-tristan@talencesecurity.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Mon, 26 Oct 2026 01:39:17 +0000
+Date: Mon, 26 Oct 2026 01:43:40 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,256 +60,346 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-Thank you for your contribution! Sashiko AI review found 5 potential issue(=
+Thank you for your contribution! Sashiko AI review found 6 potential issue(=
 s) to consider:
-- [Critical] RDMA/rxe: missing dma.cur_sge bounds check in get_wqe() allows=
- OOB read
-- [High] RDMA/rxe: wrong opcode bound in get_wqe() breaks IB_WR_REG_MR and =
-wedges SQ
-- [High] RDMA/rxe: stale comp_wqe and unshared DMA state in get_wqe() break=
- READ retry
-- [High] RDMA/rxe: TOCTOU races on wqe->state and shared wqe pointer in get=
-_wqe()
-- [High] RDMA/rxe: field-spanning memcpy() in get_wqe() triggers FORTIFY_SO=
-URCE warn
+- [Critical] RDMA/rxe: out-of-bounds read from qp->req.send_wqe in finish_p=
+acket()
+- [High] RDMA/rxe: req_next_wqe() rejects IB_WR_REG_MR and wedges send queue
+- [High] RDMA/rxe: field-spanning memcpy() into send_wqe.wqe in req_next_wq=
+e()
+- [High] RDMA/rxe: missing dma.resid writeback in rxe_req_writeback_wqe() b=
+reaks IB_WR_FLUSH
+- [High] RDMA/rxe: clamping num_sge in req_next_wqe() bypasses rxe_requeste=
+r() check
+- [High] RDMA/rxe: out-of-bounds SGE walk in req_retry() and shared state r=
+ead in req_next_wqe()
 --
 
-commit 85eed619ea208c64c4708d3eee07f43c50d2a7e2
+commit cba7cc46eb582b40f6f5480cd729885e3630e9ad
 Author: Tristan Madani <tristmd@gmail.com>
 
-RDMA/rxe: copy send WQE to kernel buffer in completer path
+RDMA/rxe: copy send WQE to kernel buffer before processing
 
-This commit copies send WQEs from the shared queue to a completer-private
-kernel buffer in get_wqe() and sanitizes fields before processing
-completions. It also writes back completion status and rd_atomic state
-before advancing the consumer index.
+This commit copies send WQEs from the userspace-mapped send queue into a
+kernel-private buffer in req_next_wqe() before processing, sanitizes opcode
+and num_sge fields on the local copy, and writes updated WQE state fields
+back to the shared queue.
 
-> diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw=
-/rxe/rxe_comp.c
-> index 1390e861bd1d7..6e72cfeb10ec8 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_comp.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_comp.c
-> @@ -137,22 +137,76 @@ void rxe_comp_queue_pkt(struct rxe_qp *qp, struct s=
-k_buff *skb)
->  	rxe_sched_task(&qp->send_task);
+> diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/=
+rxe/rxe_req.c
+> index 4f353abd76f55..9df1776ee9ad7 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_req.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_req.c
+> @@ -161,6 +161,26 @@ static void req_check_sq_drain_done(struct rxe_qp *q=
+p)
+>  	spin_unlock_irqrestore(&qp->state_lock, flags);
 >  }
 > =20
-> +/* Write back completer WQE fields to shared memory */
-> +static void rxe_comp_writeback_wqe(struct rxe_qp *qp)
+> +/* Write back requester WQE fields to shared memory using targeted
+> + * stores so the completer and userspace observe consistent state.
+> + */
+> +static void rxe_req_writeback_wqe(struct rxe_qp *qp)
 > +{
-> +	struct rxe_send_wqe *shared =3D qp->comp.shared_wqe;
-> +	struct rxe_send_wqe *local =3D &qp->comp.comp_wqe.wqe;
+> +	struct rxe_send_wqe *shared =3D qp->req.shared_wqe;
+> +	struct rxe_send_wqe *local =3D &qp->req.send_wqe.wqe;
 > +
-> +	if (!qp->comp.comp_wqe_valid || !shared)
+> +	if (!qp->req.send_wqe_valid || !shared)
 > +		return;
 > +
 > +	WRITE_ONCE(shared->status, local->status);
+> +	WRITE_ONCE(shared->first_psn, local->first_psn);
+> +	WRITE_ONCE(shared->last_psn, local->last_psn);
+> +	WRITE_ONCE(shared->mask, local->mask);
 > +	WRITE_ONCE(shared->has_rd_atomic, local->has_rd_atomic);
+> +	/* State must be last so the completer sees prior updates */
+> +	smp_store_release(&shared->state, local->state);
 > +}
-> +
->  static inline enum comp_state get_wqe(struct rxe_qp *qp,
->  				      struct rxe_pkt_info *pkt,
->  				      struct rxe_send_wqe **wqe_p)
->  {
->  	struct rxe_send_wqe *wqe;
-> +	u32 state;
-> =20
->  	/* we come here whether or not we found a response packet to see if
->  	 * there are any posted WQEs
->  	 */
->  	wqe =3D queue_head(qp->sq.queue, QUEUE_TYPE_FROM_CLIENT);
-> -	*wqe_p =3D wqe;
-> =20
->  	/* no WQE or requester has not started it yet */
-> -	if (!wqe || wqe->state =3D=3D wqe_state_posted)
-> +	if (!wqe) {
-> +		*wqe_p =3D NULL;
-> +		return pkt ? COMPST_DONE : COMPST_EXIT;
-> +	}
-> +
-> +	/* Pairs with smp_store_release() in rxe_req_writeback_wqe() */
-> +	state =3D smp_load_acquire(&wqe->state);
-> +	if (state =3D=3D wqe_state_posted) {
-> +		*wqe_p =3D wqe;
->  		return pkt ? COMPST_DONE : COMPST_EXIT;
-> +	}
-> +
-> +	/* Reuse existing local copy if still processing same WQE
-> +	 * with unchanged state (preserves DMA progress for multi-packet ops)
-> +	 */
-> +	if (qp->comp.comp_wqe_valid && qp->comp.shared_wqe =3D=3D wqe &&
-> +	    qp->comp.comp_wqe.wqe.state =3D=3D state) {
-> +		wqe =3D &qp->comp.comp_wqe.wqe;
-> +		*wqe_p =3D wqe;
-> +		goto check_state;
-> +	}
 
 [Severity: High]
-How does this reuse check interact with retries of partially completed
-multi-packet RDMA READs?
+Should rxe_req_writeback_wqe() also write local->dma.resid back to
+shared->dma.resid so that IB_WR_FLUSH requests with a non-zero flush length
+can complete?
 
-During a multi-packet RDMA READ response, do_read() calls copy_data() on
-&wqe->dma, which updates dma.resid, dma.cur_sge, and dma.sge_offset only in
-qp->comp.comp_wqe.wqe. Because rxe_comp_writeback_wqe() only writes back
-status and has_rd_atomic inside do_complete(), qp->comp.shared_wqe->dma in
-qp->sq.queue is never updated as packets arrive.
+When rxe_requester() processes an IB_WR_FLUSH WQE, init_req_packet() writes
+wqe->dma.resid into the RETH header and finish_packet() then zeroes
+wqe->dma.resid on the local copy:
 
-If a timeout or NAK triggers a retry, req_retry() in
-drivers/infiniband/sw/rxe/rxe_req.c reads wqe->dma.resid from the shared WQE
-in qp->sq.queue:
-
-	if (mask & WR_READ_MASK) {
-		npsn =3D (wqe->dma.length - wqe->dma.resid) /
-			qp->mtu;
-		wqe->iova +=3D npsn * qp->mtu;
+drivers/infiniband/sw/rxe/rxe_req.c:finish_packet() {
+	...
+	} else if (pkt->mask & RXE_FLUSH_MASK) {
+		/* oA19-2: shall have no payload. */
+		wqe->dma.resid =3D 0;
 	}
+}
 
-Since shared_wqe->dma.resid was never decremented, npsn is 0, wqe->iova is
-not advanced, and rxe_requester() re-requests the entire read from offset 0
-with new first_psn and last_psn values while setting shared_wqe->state back
-to wqe_state_pending.
+Because update_state() -> rxe_req_writeback_wqe() does not write dma.resid
+back to qp->req.shared_wqe, shared->dma.resid in qp->sq.queue remains at its
+original non-zero length (including when the completer later copies the WQE
+in commit "RDMA/rxe: copy send WQE to kernel buffer in completer path").
 
-In addition, qp->comp.comp_wqe_valid is not invalidated on retry. When the
-retried read response arrives, get_wqe() sees:
+When the responder replies with a zero-payload
+IB_OPCODE_RC_RDMA_READ_RESPONSE_ONLY packet, rxe_completer() -> do_read()
+calls copy_data() with payload_size(pkt) =3D=3D 0, which returns immediately
+without modifying wqe->dma.resid, and then checks:
 
-	qp->comp.comp_wqe_valid && qp->comp.shared_wqe =3D=3D wqe &&
-	qp->comp.comp_wqe.wqe.state =3D=3D state
+drivers/infiniband/sw/rxe/rxe_comp.c:do_read() {
+	...
+	if (wqe->dma.resid =3D=3D 0 && (pkt->mask & RXE_END_MASK))
+		return COMPST_COMP_ACK;
 
-(both wqe_state_pending) and reuses the pre-retry qp->comp.comp_wqe.wqe with
-the stale first_psn and last_psn. Doesn't check_ack() then fail the PSN
-comparison against wqe->first_psn and return COMPST_ERROR, moving the QP to
-IB_QPS_ERR?
+	return COMPST_UPDATE_COMP;
+}
+
+With wqe->dma.resid still non-zero in the shared queue, do_read() returns
+COMPST_UPDATE_COMP instead of COMPST_COMP_ACK, leaving the IB_WR_FLUSH WQE
+uncompleted and hanging the send queue.
 
 > +
-> +	/* Copy shared WQE to kernel-private buffer. Use max_inline
-> +	 * as copy size since it covers both SGEs and inline data,
-> +	 * which share the flex array.
+>  static struct rxe_send_wqe *__req_next_wqe(struct rxe_qp *qp)
+>  {
+>  	struct rxe_queue *q =3D qp->sq.queue;
+> @@ -193,6 +213,29 @@ static struct rxe_send_wqe *req_next_wqe(struct rxe_=
+qp *qp)
+>  	}
+>  	spin_unlock_irqrestore(&qp->state_lock, flags);
+> =20
+> +	/* Reuse the existing kernel-private copy if still valid */
+> +	if (qp->req.send_wqe_valid && qp->req.shared_wqe =3D=3D wqe)
+> +		return &qp->req.send_wqe.wqe;
+> +
+> +	/* Copy WQE from userspace-mapped shared queue to kernel-private
+> +	 * buffer. Use max_inline as copy size since it covers both SGEs
+> +	 * and inline data, which share the flex array.
 > +	 */
-> +	qp->comp.shared_wqe =3D wqe;
-> +	memcpy(&qp->comp.comp_wqe.wqe, wqe,
+> +	memcpy(&qp->req.send_wqe.wqe, wqe,
 > +	       sizeof(*wqe) + qp->sq.max_inline);
-> +	qp->comp.comp_wqe_valid =3D true;
 
 [Severity: High]
-Are there remaining TOCTOU windows on wqe->state and the shared wqe pointer
-in get_wqe()?
+Will passing &qp->req.send_wqe.wqe as the destination to memcpy() trigger a
+CONFIG_FORTIFY_SOURCE field-spanning write warning whenever
+qp->sq.max_inline > 0?
 
-1. When state =3D=3D wqe_state_posted above, get_wqe() sets *wqe_p =3D wqe
-(pointing directly to the uncopied, unsanitized shared queue element) and
-returns COMPST_EXIT when pkt is NULL. In rxe_completer():
-
-	case COMPST_EXIT:
-		if (qp->comp.timeout_retry && wqe) {
-			state =3D COMPST_ERROR_RETRY;
-			break;
-		}
-		...
-	case COMPST_ERROR_RETRY:
-		/* there is nothing to retry in this case */
-		if (!wqe || (wqe->state =3D=3D wqe_state_posted))
-			goto exit;
-
-If wqe->state in shared memory changes after get_wqe() read it (for example,
-via concurrent userspace modification of the mmap'd send queue) and
-qp->comp.retry_cnt =3D=3D 0, COMPST_ERROR_RETRY transitions to COMPST_ERROR=
- and
-calls do_complete(qp, wqe) directly on the uncopied shared WQE. Should
-*wqe_p be set to NULL when state =3D=3D wqe_state_posted?
-
-2. When state !=3D wqe_state_posted, memcpy() overwrites
-qp->comp.comp_wqe.wqe.state with a second read from shared memory rather
-than preserving the local state variable loaded via smp_load_acquire(). If
-userspace mutates wqe->state in shared memory between smp_load_acquire() and
-memcpy(), check_state can observe wqe_state_posted or wqe_state_error (with
-wqe->status =3D=3D IB_WC_SUCCESS, triggering WARN_ON_ONCE in COMPST_ERROR).=
- Also,
-across multi-packet responses, userspace can flip shared_wqe->state in the
-mmap'd ring to make qp->comp.comp_wqe.wqe.state =3D=3D state false and force
-get_wqe() to overwrite comp_wqe mid-operation.
-
-[Severity: High]
-Also, in struct rxe_comp_info in drivers/infiniband/sw/rxe/rxe_verbs.h,
-comp_wqe is defined as:
+In struct rxe_req_info (drivers/infiniband/sw/rxe/rxe_verbs.h), send_wqe is
+defined as:
 
 	struct {
 		struct rxe_send_wqe	wqe;
 		struct ib_sge		sge[RXE_MAX_SGE];
-	} comp_wqe;
+	} send_wqe;
 
-Because memcpy() here (and in req_next_wqe() in
-drivers/infiniband/sw/rxe/rxe_req.c from the previous patch) passes the inn=
-er
-member &qp->comp.comp_wqe.wqe instead of the outer struct &qp->comp.comp_wq=
-e,
-__member_size(&qp->comp.comp_wqe.wqe) is sizeof(struct rxe_send_wqe). Will
-copying sizeof(*wqe) + qp->sq.max_inline bytes trigger a
-CONFIG_FORTIFY_SOURCE field-spanning write warning whenever
-qp->sq.max_inline > 0?
+Because .wqe is the inner struct member rather than the enclosing
+&qp->req.send_wqe container, __member_size(&qp->req.send_wqe.wqe) evaluates
+to sizeof(struct rxe_send_wqe). For any QP with qp->sq.max_inline > 0,
+sizeof(*wqe) + qp->sq.max_inline exceeds sizeof(struct rxe_send_wqe) and
+spans across .wqe into .sge, triggering fortify_memcpy_chk(). Should the
+destination be &qp->req.send_wqe instead, matching the receive-side copies?
+
+> +	qp->req.shared_wqe =3D wqe;
+> +	qp->req.send_wqe_valid =3D true;
+> +
+> +	wqe =3D &qp->req.send_wqe.wqe;
+
+[Severity: Critical]
+Can copying only sizeof(*wqe) + qp->sq.max_inline bytes into
+qp->req.send_wqe cause finish_packet() to read out of bounds past
+qp->req.send_wqe.sge into struct rxe_qp and adjacent kernel heap memory on =
+an
+IB_WR_ATOMIC_WRITE request?
+
+For a user RC QP (qp->is_user =3D=3D true), WQEs are read directly from the
+mmap'd send queue ring without going through validate_send_wr(). In
+rxe_requester(), payload for RXE_ATOMIC_WRITE_MASK is taken from the
+user-controlled wqe->dma.resid and capped only at mtu (up to 4096 bytes):
+
+drivers/infiniband/sw/rxe/rxe_req.c:rxe_requester() {
+	...
+	mtu =3D get_mtu(qp);
+	payload =3D (mask & (RXE_WRITE_OR_SEND_MASK | RXE_ATOMIC_WRITE_MASK)) ?
+			wqe->dma.resid : 0;
+	if (payload > mtu) {
+		...
+		payload =3D mtu;
+	}
+}
+
+Then finish_packet() copies payload bytes directly from wqe->dma.atomic_wr
+into the packet payload:
+
+drivers/infiniband/sw/rxe/rxe_req.c:finish_packet() {
+	...
+	if (pkt->mask & RXE_ATOMIC_WRITE_MASK) {
+		memcpy(payload_addr(pkt), wqe->dma.atomic_wr, payload);
+		wqe->dma.resid -=3D payload;
+	}
+}
+
+Because wqe now points to &qp->req.send_wqe.wqe inside struct rxe_qp, where
+only qp->sq.max_inline bytes were copied and sge[RXE_MAX_SGE] is 512 bytes,=
+ a
+user WQE with wr.opcode =3D IB_WR_ATOMIC_WRITE, dma.num_sge =3D 0, and
+dma.resid =3D 4096 causes finish_packet() to copy up to 3584 bytes past
+qp->req.send_wqe into the transmitted network packet (or uninitialized bytes
+from qp->req.send_wqe.sge when payload > qp->sq.max_inline).
 
 > +
 > +	/* Sanitize attacker-controlled fields from the copy */
-> +	if (unlikely(qp->comp.comp_wqe.wqe.wr.opcode > IB_WR_ATOMIC_WRITE)) {
-> +		qp->comp.comp_wqe_valid =3D false;
-> +		*wqe_p =3D NULL;
-> +		return pkt ? COMPST_DONE : COMPST_EXIT;
+> +	if (unlikely(wqe->wr.opcode > IB_WR_ATOMIC_WRITE)) {
+> +		qp->req.send_wqe_valid =3D false;
+> +		return NULL;
 > +	}
 
 [Severity: High]
-Won't checking wr.opcode > IB_WR_ATOMIC_WRITE reject kernel-issued
-IB_WR_REG_MR work requests and wedge the send queue?
+Doesn't rejecting wqe->wr.opcode > IB_WR_ATOMIC_WRITE here break fast memory
+registration (IB_WR_REG_MR) for kernel ULPs and permanently wedge the send
+queue whenever an opcode above IB_WR_ATOMIC_WRITE is encountered?
 
-In include/rdma/ib_verbs.h, enum ib_wr_opcode defines:
+In include/rdma/ib_verbs.h, IB_WR_ATOMIC_WRITE is 15 while the kernel-only
+IB_WR_REG_MR opcode is 0x20 (32):
 
+include/rdma/ib_verbs.h:enum ib_wr_opcode {
+	...
 	IB_WR_FLUSH =3D IB_UVERBS_WR_FLUSH,
 	IB_WR_ATOMIC_WRITE =3D IB_UVERBS_WR_ATOMIC_WRITE,
 
 	/* These are kernel only and can not be issued by userspace */
 	IB_WR_REG_MR =3D 0x20,
+};
 
-IB_WR_ATOMIC_WRITE is 15, while IB_WR_REG_MR is 0x20 (32), which is why
-wr_opcode_mask() in drivers/infiniband/sw/rxe/rxe_loc.h checks
-opcode > IB_WR_REG_MR and wr_to_wc_opcode() in
-drivers/infiniband/sw/rxe/rxe_comp.c handles IB_WR_REG_MR. Checking
-wr.opcode > IB_WR_ATOMIC_WRITE here (as well as in req_next_wqe() in
-drivers/infiniband/sw/rxe/rxe_req.c) rejects every IB_WR_REG_MR WQE posted =
-by
-kernel ULPs.
+Because req_next_wqe() runs for both user and kernel QPs, any IB_WR_REG_MR
+WQE posted by a kernel ULP matches wqe->wr.opcode > IB_WR_ATOMIC_WRITE,
+making the IB_WR_REG_MR handling in rxe_do_local_ops() -> rxe_reg_fast_mr()
+unreachable.
 
-Furthermore, when this check triggers in get_wqe(), it sets *wqe_p =3D NULL=
- and
-returns COMPST_DONE or COMPST_EXIT without advancing the SQ consumer index =
-or
-transitioning to COMPST_ERROR. Because the WQE remains at the head of
-qp->sq.queue forever (and COMPST_EXIT sees wqe =3D=3D NULL, skipping
-COMPST_ERROR_RETRY and calling reset_retry_timer(qp)), doesn't this
-permanently wedge the send queue and re-arm retrans_timer in an infinite lo=
-op?
+In addition, when req_next_wqe() returns NULL on this check, rxe_requester()
+takes the !wqe path:
 
-> +	if (qp->comp.comp_wqe.wqe.dma.num_sge > qp->sq.max_sge)
-> +		qp->comp.comp_wqe.wqe.dma.num_sge =3D qp->sq.max_sge;
-
-[Severity: Critical]
-Does get_wqe() also need to validate dma.cur_sge from the copied WQE?
-
-In a user QP, shared_wqe->dma.cur_sge resides in the userspace-mapped send
-queue buffer and can be modified by userspace before get_wqe() copies the W=
-QE.
-While dma.num_sge is clamped to qp->sq.max_sge here, dma.cur_sge is left
-unchecked. When an RDMA READ or ATOMIC response arrives, do_read() or
-do_atomic() passes &wqe->dma to copy_data() in
-drivers/infiniband/sw/rxe/rxe_mr.c:
-
-	struct rxe_sge		*sge	=3D &dma->sge[dma->cur_sge];
-	u32			offset	=3D dma->sge_offset;
-	u32			resid	=3D dma->resid;
+drivers/infiniband/sw/rxe/rxe_req.c:rxe_requester() {
 	...
-	if (sge->length && (offset < sge->length)) {
-		mr =3D lookup_mr(pd, access, sge->lkey, RXE_LOOKUP_LOCAL);
+	wqe =3D req_next_wqe(qp);
+	if (unlikely(!wqe))
+		goto exit;
+}
 
-Can an out-of-bounds dma.cur_sge index past qp->comp.comp_wqe.sge[RXE_MAX_S=
-GE]
-and read arbitrary kernel memory in copy_data()?
+That exits with -EAGAIN without setting wqe->status =3D IB_WC_LOC_QP_OP_ERR,
+without advancing qp->req.wqe_index, and without calling rxe_qp_error(qp),
+leaving the rejected WQE at the head of the send queue indefinitely. Note
+that wr_opcode_mask() in drivers/infiniband/sw/rxe/rxe_loc.h already bounds
+checks opcode < 0 || opcode > IB_WR_REG_MR and returns 0 so that
+rxe_requester() fails invalid opcodes via next_opcode() -> goto err.
+
+> +	if (wqe->dma.num_sge > qp->sq.max_sge)
+> +		wqe->dma.num_sge =3D qp->sq.max_sge;
+
+[Severity: High]
+If req_next_wqe() silently clamps wqe->dma.num_sge to qp->sq.max_sge on the
+local copy, doesn't that bypass the error check in rxe_requester() and allow
+malformed WQEs to be processed with an unclamped num_sge in shared memory?
+
+In rxe_requester(), commit 126c757e4cd4 ("RDMA/rxe: Validate num_sge/cur_sge
+before indexing wqe->dma.sge[]") added:
+
+drivers/infiniband/sw/rxe/rxe_req.c:rxe_requester() {
+	...
+	if (unlikely(wqe->dma.num_sge > qp->sq.max_sge ||
+		     (wqe->dma.resid &&
+		      wqe->dma.cur_sge >=3D qp->sq.max_sge))) {
+		rxe_dbg_qp(qp, "invalid num_sge/cur_sge in send wqe\n");
+		wqe->status =3D IB_WC_LOC_QP_OP_ERR;
+		goto err;
+	}
+}
+
+Because req_next_wqe() clamps wqe->dma.num_sge before returning wqe to
+rxe_requester(), the wqe->dma.num_sge > qp->sq.max_sge check in
+rxe_requester() becomes unreachable dead code. Instead of failing the WQE
+with IB_WC_LOC_QP_OP_ERR and moving the QP to error state, rxe_requester()
+transmits the WQE with a truncated SGE list and transitions shared->state to
+wqe_state_processing / wqe_state_pending while shared->dma.num_sge in
+qp->sq.queue remains unclamped.
+
+> +
+>  	wqe->mask =3D wr_opcode_mask(wqe->wr.opcode, qp);
+>  	return wqe;
+>  }
+
+[ ... ]
+
+> @@ -702,6 +753,7 @@ int rxe_requester(struct rxe_qp *qp)
+>  	if (unlikely(qp->req.need_retry && !qp->req.wait_for_rnr_timer)) {
+>  		req_retry(qp);
+>  		qp->req.need_retry =3D 0;
+> +		qp->req.send_wqe_valid =3D false;
+>  	}
+
+[Severity: High]
+Can req_retry() still walk out of bounds past the end of qp->sq.queue->buf
+when operating on the shared WQE in userspace-mapped memory?
+
+When a retry occurs on an in-flight SEND or RDMA WRITE WQE, req_retry()
+accesses the shared WQE directly via queue_addr_from_index(qp->sq.queue,
+wqe_index) and calls retry_first_write_send() -> advance_dma_data(&wqe->dma,
+to_send):
+
+drivers/infiniband/sw/rxe/rxe_req.c:req_retry() {
+	...
+		if (first) {
+			first =3D 0;
+
+			if (mask & WR_WRITE_OR_SEND_MASK) {
+				npsn =3D (qp->comp.psn - wqe->first_psn) &
+					BTH_PSN_MASK;
+				retry_first_write_send(qp, wqe, npsn);
+			}
+}
+
+drivers/infiniband/sw/rxe/rxe_mr.c:advance_dma_data() {
+	...
+	while (length) {
+		unsigned int bytes;
+
+		if (offset >=3D sge->length) {
+			sge++;
+			dma->cur_sge++;
+			offset =3D 0;
+			if (dma->cur_sge >=3D dma->num_sge)
+				return -ENOSPC;
+		}
+}
+
+Because req_next_wqe() only clamped dma.num_sge on the local copy (preventi=
+ng
+rxe_requester() from failing a WQE posted with dma.num_sge > qp->sq.max_sge)
+or if userspace modifies the shared WQE before a retry, wqe->dma.num_sge in
+qp->sq.queue->buf is unbounded in req_retry(). If the trailing SGEs have
+sge->length =3D=3D 0 (and retry_first_write_send() also ignores the -ENOSPC
+return value across its npsn loop), sge++ walks past the WQE SGE array and
+off the end of the vmalloc_user() send queue buffer. (The completer path had
+a similar exposure prior to follow-up commit "RDMA/rxe: copy send WQE to
+kernel buffer in completer path", whereas req_retry() continues to operate
+directly on the shared queue.)
+
+Also, in req_next_wqe(), the IB_QPS_SQD check reads wqe->state from the
+shared userspace buffer before checking qp->req.send_wqe_valid:
+
+drivers/infiniband/sw/rxe/rxe_req.c:req_next_wqe() {
+	...
+	spin_lock_irqsave(&qp->state_lock, flags);
+	if (unlikely((qp_state(qp) =3D=3D IB_QPS_SQD) &&
+		     (wqe->state !=3D wqe_state_processing))) {
+		spin_unlock_irqrestore(&qp->state_lock, flags);
+		return NULL;
+	}
+	spin_unlock_irqrestore(&qp->state_lock, flags);
+
+	/* Reuse the existing kernel-private copy if still valid */
+	if (qp->req.send_wqe_valid && qp->req.shared_wqe =3D=3D wqe)
+		return &qp->req.send_wqe.wqe;
+}
+
+Could userspace modify wqe->state in the shared buffer to stall an
+in-progress multi-packet WQE during SQD or bypass SQD by writing
+wqe_state_processing to a newly posted WQE?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261026001405.1698=
-455-1-tristan@talencesecurity.com?part=3D2
+455-1-tristan@talencesecurity.com?part=3D1
