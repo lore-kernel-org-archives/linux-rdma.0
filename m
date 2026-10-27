@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793068100;
-	b=v5GDaPE3UqRxzIYSl+NjKbkGetI9cn7vmPJ7x/WsVIFUZBlrMzVwjUyvVG5LXVPBoDOR
-	 rRIkNsGKP9M1km2VuBcIf/JXiwPsxcA3UNbnExpaoatOCJK5AOiDjNc2N8n3JdgzBWLi/
-	 vk5cCxWItB4viXWh6YNXxtxRGXo6c1KNdjYqPRyI6wSsiH542IxnQSzv8qKoaPZGHCrFt
-	 0wtWlcOFHNYVurAoHIo1wU442UzdOFcIWkF5aRy7X9QqDvjm3aA0Gqj95jotVfSdPCtja
-	 bAKNWUz7FG5L0+nmQwU3BeUXVX4HY4UIZRWNMVup7hpPSNXnBJ21N+3WNAdT4SHXjVQ==
+	t=1793068222;
+	b=rOEED32blao+8DXQ24ToNUZo4ied0JjEuA7w1aWpn4CwFV9B9w8R0XAO2lXn15bXa5eQ
+	 Kz1PVOOMBH9NSB0OWV4aBYek+TWilEMXhvm/9I2jMD9/VesP4q46vFh/rthuV1fPDaKG0
+	 JRXrVJhoGu9I0i2VWeTlD9nJ6QDY6eFB4ZpNsyWhwevjd3a5ge0PQNyscw5wekoWEUd/6
+	 Rz0IB6U8jTIN2qv7DS7YgRy3jOAsq1AvVRyzMgMyuVE77uvFY6OqSnc6ZIkhxGJTY/t61
+	 LJIshgsZmAZ5hB/RfchyQuqoEl9yshJfV/dqC84/397hxZFc5P17Kwu2YSR4E4LTzDg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793068100;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793068222;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=bEAiBipa8jU82pSRH8jXGFpz9N0n7pgT41JnCn+/IIA=;
-	b=yNQ5eXu/JAZjHwD7jJhq8Zmy8Inv75J+boMqDuJZ0+7w5xq5KvVwgyPUynEOk7kcaS6v
-	 ipxGNp+fp0l8+1xw7HdE7l+/dN1GY4HqLxVMHps4u46ATC05kWZgwQzvrbgUqJ3vxG7F/
-	 vz/0rFyECnlYmZeTsoOHh/5lhCN4arFDI8BWDfGRfZcaLeE1/iZApKOexZoNHvIFhiJUl
-	 bTldtNY92nFxknPls0RrmgIT0f59XbnueiPuodMnh7QEbY9muNL9H9u5ywYXo9sQwKd5a
-	 LShmEzoCc4nNbaKKRLoM3qCIc4X9GKEEXbMB6tT/6iB0id2VftcL7qZ2oxe9kXYAtBA==
+	bh=0cCyZNLFNGFTSRPmEDuInKKv2TJ9GxuS0fl3jePR86Y=;
+	b=itR349rzxIHQmMw4dNZW1di2BEIJSTUIp+l61i+ZOGbLB9PiUWjnCN+mzfusv1st47Vr
+	 2WFuSjKNoCGfLPYk6I3fa4OM8WtBjLUhDSCbhceZvqUGcAxpN+3UJB0RqXawvDEKfm4ze
+	 GKYBqG1uz15/Qn/X9xmG78xlFZnHtpgluCTq7jC/YskYLO1SEA4ZI3IADHPcHnDhIoMTf
+	 lcFP2Fk1Ie7O/CxTbOami/W5irlWQjhPvT79AodvMPwUmY9x2jOE4f13gV4y5mMqgmJek
+	 bblVFgUfuG1ioFSAqMZTqqP5s7QmCy1N7pTwJJO8qF9t5FuGBVmifYD+9r4vec/oCaA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ciykqybk;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DHMuaWSP;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E847F606A31D
-	for <linux-rdma@vger.kernel.org>; Tue, 27 Oct 2026 02:28:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBAC1606A31D
+	for <linux-rdma@vger.kernel.org>; Tue, 27 Oct 2026 02:30:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ciykqybk
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 605E01F01825;
-	Tue, 27 Oct 2026 02:28:19 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DHMuaWSP
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 496B31F01828;
+	Tue, 27 Oct 2026 02:30:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793068099;
-	bh=bEAiBipa8jU82pSRH8jXGFpz9N0n7pgT41JnCn+/IIA=;
+	s=k20260515; t=1793068221;
+	bh=0cCyZNLFNGFTSRPmEDuInKKv2TJ9GxuS0fl3jePR86Y=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=ciykqybkIPOjPOccmqGt+GRekcYRQn/quHMbjTFKzyDqgP2Ei1EQw9HcFl1mJ0ONF
-	 QhyJtz3G0KCNRzyWBCrLZ5l2xKRFAvXX8UFMoncp1B/gO5lya46wj6s69AFNkH1Jbf
-	 NSWk6dZ7+Bp5yJkyWR2CvsQbNtQ3UvnFOKSvUIJZUX0j+ifT2Kd+xhBiz3O0lMwijF
-	 sbLcRyr9777q3h+O5SysGoPigJoUXhYae1sic61ZrW7hPojoH+lpFJp6MlB+r8/xhY
-	 XhvZJ98R2TyKsZHjJfgkGuhsja2WKLk4XFY02bkLv3hJB83J+jwCypg0GC5axedi5r
-	 zGZG5+9/QAc1g==
-Message-ID: <sashiko-outbox-186019@kernel.org>
+	b=DHMuaWSPDEusZgIGpaeEMkPCuHSh/+HrkGrnjXnTS0sn6xpadjHJ/HDB3YPjejfwp
+	 a8ewsz6W9SH+cK8uLDAK6pY5qqVsztZV+yYtJDCBAF3GERUKF1uh5KCTeCCQTUruAw
+	 n6Ldsp3VgmT5sCsFt44TcODchuGfA4t5Pqq8MpTikMGVBSntZpivqiQiZHMau8k5rO
+	 7dIJX4TDWdoIgWCfADyE95ArsC7+2uYu1CtSuh3rKlxDWnVac6JZLuci39r+skpbZJ
+	 J7+4Im96GuzYI/JvbWIYAiPKo0MEalQYQTgSg1xexUlpg9aNPvQa8S0n2mtjCzgrlQ
+	 nJdp0pAWnq+7w==
+Message-ID: <sashiko-outbox-186021@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma v7 2/7] RDMA/zrdma: Add core data structures and
- ABI definitions
+Subject: Re: [PATCH rdma v7 1/7] RDMA/zrdma: Add build infrastructure and
+ module skeleton
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Yanze Zhang" <zhang.yanze@zte.com.cn>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261027021119.2325798-3-zhang.yanze@zte.com.cn>
+In-Reply-To: <20261027021119.2325798-2-zhang.yanze@zte.com.cn>
 References: <20261027021119.2325798-1-zhang.yanze@zte.com.cn>
- <20261027021119.2325798-3-zhang.yanze@zte.com.cn>
+ <20261027021119.2325798-2-zhang.yanze@zte.com.cn>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 27 Oct 2026 02:28:18 +0000
+Date: Tue, 27 Oct 2026 02:30:20 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,13 +61,15 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> Add fundamental data structures, hardware control structures, and
-> user-space ABI definitions required by the driver. These headers
-> provide the type definitions for the subsequent implementation patches.
+> Add MAINTAINERS entry, Kconfig, and Makefile entries for the ZTE DingHai
+> RDMA driver. Include a minimal module skeleton with auxiliary driver
+> registration structure to ensure the build system works and the module
+> can be loaded.
 >=20
-> The UAPI header is installed to userspace, so it carries the
-> Linux-syscall-note SPDX tag that headers_install requires for a
-> GPL-licensed UAPI header.
+> The driver depends on DINGHAI because it binds to the auxiliary device
+> that the DingHai PF driver will create. The DINGHAI symbol itself is
+> already present in the rdma/for-next baseline this series is based on,
+> so the dependency resolves.
 >=20
 > Signed-off-by: Yanze Zhang <zhang.yanze@zte.com.cn>
 
@@ -75,5 +77,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261027021119.2325=
-798-1-zhang.yanze@zte.com.cn?part=3D2
+798-1-zhang.yanze@zte.com.cn?part=3D1
 
