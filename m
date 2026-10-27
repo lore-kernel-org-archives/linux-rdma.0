@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793068430;
-	b=WybcSZr92tA8W8R5N0nViEL1hbk/33RqFtAMLSdse1PlBv0lfX5Y/NVf8mIuFuslcoGQ
-	 Baopg715sKSULuAdExmCGzHPimacWoSl2SwNUkdp8/XRomLpoPCaw/5dn6Jb3Pki2o3ov
-	 MI7/AoLVF4ArXLsD6Ahv5HNuRh23c2epCanjHWqydT45uByNwV/VpVBxC9MaCE0NXEtCT
-	 1bvHQi+7wu69EiC8eQqVqwXUXpGkJDEWXKeOhx2vlult+rZ4+jTxi2rauqMoyh3+L2xdL
-	 7VNpzso/5xPfLcdtdEu2PRBBehuyukopxPVd/0kVWZlFN2mqytKz4DjW8OtMmROhqkw==
+	t=1793068436;
+	b=SutMwBFoV2rNDNv/OnYcgPAn2antZlcngrLT37bfcVYBJn3Nvo80IhfNdJi88S8S44c/
+	 KliwytwaGcuOEiCYA6R/lWiGlzSEipQ5x4QajvsWw3w59DETeVsLxoF8A/DQRjKzQGkpa
+	 SxsIze4rzoKlKQHuod5FSZ5AH4nlXv6Td+uuk1W2FK0M+wd4hH9h6R+GZ97IDEJdzKF1B
+	 hxFcVoKU/VEV8gE3GsKKlj5LArdPrIWqY+qTfB/ArYv90XtP0bWxqr1JO97QTwm38BDml
+	 KI+3rQgIYYJ4dkevvLjhMKLaa9H+qiaDX9V8TLSH7UkiVIp4y6NOyv2wdar8ngijvog==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793068430;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793068436;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=QcyDTcBYepouHcMJ/BglDrUpJfPUc7Jg8wsmAgfQ6eo=;
-	b=ySoBWB2ktFYHTKKqoA5EV2NR+Pogpm8M5QEmCnQzWJUJcRY7ABi+plhRDuEzqR0dKfgK
-	 vQLUjWKTuihvOpjMywX+MtLielfHE9/lwLwPWKspQuQ0yWh3VULhMQ+kELlv+aLT/owcf
-	 RwJDmSE2H5A3v9gbEejQpQlQJQ0B590T+kIiaOCInuyg1JyNOr2VVJmQhfSGXnkUyWbQ3
-	 Nlagm704KvJAVWbbgW5ni2LgNBWRfpq7yCLDh1i2x3t4q6FcRDF5UYa7hrjmcxNDzOwr4
-	 iYq3TZJ/mz6RRBkWxVgxnDWM/jPl7s8WLw4J1mUJKZFXfAlvQafWExoD0RySBgbkpeA==
+	bh=4b+t6BUzPROpnYm4LeCyGHbBXsxEE5A6v3JAThHh5PA=;
+	b=Z7SCFQqHTS+W7QoJgjEZXGGV7IsjrgZTITXvuK767Lpco6+7g4K6WKUXGBk6aENCPWUi
+	 47LiaQ3C8PQvkIivYT4YzAGSUUW5UaJP8SKmtFuXF7P0fxdcc10iPkzNyFdOR/dooUjsb
+	 XEhQvH41+IKvYU9h8WYSpx56JlU7e6aFc1eNIaGzREzGQSaUTz42AeBmdJ2yQK9PwnDcC
+	 NINt0Ge9OuyFTrRPi6XAwjCVlnvJLk809bIESwBBOMXuF/5XGTXLOX2md9g94QA1Z6KXu
+	 ZjxGcI914yVe+SDBGREPatrM7zB7BQqKKQZoOaxEegL88Q6sJQJwlBe21lbwrOvBWdA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=leegTTfw;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iva0p9wp;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37ABA606A31B
-	for <linux-rdma@vger.kernel.org>; Tue, 27 Oct 2026 02:33:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED77C606A31A
+	for <linux-rdma@vger.kernel.org>; Tue, 27 Oct 2026 02:33:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=leegTTfw
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACD521F01825;
-	Tue, 27 Oct 2026 02:33:49 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iva0p9wp
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54DCE1F01825;
+	Tue, 27 Oct 2026 02:33:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793068429;
-	bh=QcyDTcBYepouHcMJ/BglDrUpJfPUc7Jg8wsmAgfQ6eo=;
+	s=k20260515; t=1793068435;
+	bh=4b+t6BUzPROpnYm4LeCyGHbBXsxEE5A6v3JAThHh5PA=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=leegTTfwV2TbWJv0EebC9Idx6WyV3KYKECKr/U2wv7LzetxMqEF84NoG9wfA0w2u8
-	 nfe3hRtKpT78WGK3s3hn+Lhhv4fdKkOQfiilzlGdeWpSgNfNzenYfBYdXYwkKys7XG
-	 +vWyh5ZzQYWuxBZwvKPBg7RjyKUbq4x5CPCC+5uDuomch55HXdElOYYGiuZKOQqIMN
-	 QjQsMDYql5wfYqU8/hTrvJfZVseL4HyUkvo2V5iyiMG6ye0fCZvgZtiSDIhyprhfzi
-	 pbAguUnxIuMfcw/3AHrC+uPWOgyq/hrYBwQH+SLN/KgqU3nP7OoHr0Jf7sZ+GdrcSr
-	 XKB6xuPaQH/kQ==
-Message-ID: <sashiko-outbox-186023@kernel.org>
+	b=iva0p9wp/5KRzEiej99ra0RnZLGPDfdP38DJ+MrEqAXdaxfbK2WM7xMQ4g9legVU8
+	 b8UNoSV9DdZxe+Koe+fqkJ07uYB2Gl3ubYd3M8i9lL58gz2IMTtFPO+h7wG7nRs56/
+	 jrqTZX50SPut2vS6Er5FFbE1fSFY6324edYsHOeWcLGUYAW73jKAsnX25jRPA1TxmN
+	 cjBmthavXuGIdnDQpv43NS8w72Qja2tcOBZOBnX7LuRjgF8jzzAUb47KhcqJIw3sTz
+	 GQlgo0pLeQupIDkd6rFJZV+sWhPCWwGse0LxbRGLxAu5XsmIGZf2YZ5EmEXRHiXUrf
+	 CuwFNY9mzC4Hg==
+Message-ID: <sashiko-outbox-186024@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma v7 7/7] RDMA/zrdma: Implement device and port query
- operations
+Subject: Re: [PATCH rdma v7 4/7] RDMA/zrdma: Add hardware resource
+ initialization and verbs skeleton
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Yanze Zhang" <zhang.yanze@zte.com.cn>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261027021119.2325798-8-zhang.yanze@zte.com.cn>
+In-Reply-To: <20261027021119.2325798-5-zhang.yanze@zte.com.cn>
 References: <20261027021119.2325798-1-zhang.yanze@zte.com.cn>
- <20261027021119.2325798-8-zhang.yanze@zte.com.cn>
+ <20261027021119.2325798-5-zhang.yanze@zte.com.cn>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 27 Oct 2026 02:33:49 +0000
+Date: Tue, 27 Oct 2026 02:33:54 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -63,95 +63,92 @@ Precedence: list
 
 Thank you for your contribution! Sashiko AI review found 1 potential issue(=
 s) to consider:
-- [High] RDMA/zrdma: broken conditional RTNL locking in zxdh_get_drvinfo()
+- [High] RDMA/zrdma: double free of rf->qp_cnt_8k_idxs in zxdh_initialize_h=
+w_rsrc()
 --
 
-commit f5a32e13f5abe916870114665b95d03769a17e3b
+commit 3b69f0f7bdc773fc9fcdb598091be138d4e8e28a
 Author: Yanze Zhang <zhang.yanze@zte.com.cn>
 
-RDMA/zrdma: Implement device and port query operations
+RDMA/zrdma: Add hardware resource initialization and verbs skeleton
 
-This commit implements RDMA device and port query callbacks, including devi=
-ce
-attributes, port attributes, PKey, link layer, port immutable data, and
-firmware version string extraction for the zrdma driver.
+This patch adds hardware resource initialization logic and a minimal verbs
+layer skeleton, including device registration and initial ib_device_ops.
 
-> diff --git a/drivers/infiniband/hw/zrdma/zrdma_verbs.c b/drivers/infiniba=
-nd/hw/zrdma/zrdma_verbs.c
-> index abac97e694138..ceaad155fc5ae 100644
-> --- a/drivers/infiniband/hw/zrdma/zrdma_verbs.c
-> +++ b/drivers/infiniband/hw/zrdma/zrdma_verbs.c
+> diff --git a/drivers/infiniband/hw/zrdma/zrdma_hw.c b/drivers/infiniband/=
+hw/zrdma/zrdma_hw.c
+> new file mode 100644
+> index 0000000000000..068d9aea7c711
+> --- /dev/null
+> +++ b/drivers/infiniband/hw/zrdma/zrdma_hw.c
 
 [ ... ]
 
-> @@ -352,6 +354,252 @@ static int zxdh_mmap(struct ib_ucontext *context, s=
-truct vm_area_struct *vma)
->  	return ret;
->  }
-> =20
-> +/* Fetch the driver info for @zdev->netdev, or for its first lower device
-> + * when it is a bond. The lower device list is protected by rtnl_lock, a=
-nd
-> + * the core may call this from a netdev notifier that already holds the
-> + * lock, so it is only taken when it is not held already.
-> + */
-> +static bool zxdh_get_drvinfo(struct zxdh_device *zdev,
-> +			     struct ethtool_drvinfo *info)
+> +static int zxdh_initialize_hw_rsrc(struct zxdh_pci_f *rf)
 > +{
-> +	struct net_device *slave =3D NULL, *dev;
-> +	struct list_head *iter;
-> +	bool locked;
-> +	bool ret =3D true;
+> +	u32 rsrc_size;
+> +	int ret;
 > +
-> +	memset(info, 0, sizeof(*info));
+> +	rf->max_cqe =3D ZXDH_MAX_CQE;
+> +	rf->max_qp =3D ZXDH_MAX_QP;
+> +	rf->max_mr =3D ZXDH_MAX_MR;
+> +	rf->max_cq =3D ZXDH_MAX_CQ;
+> +	rf->max_srq =3D ZXDH_MAX_SRQ;
+> +	rf->max_pd =3D ZXDH_MAX_PD;
+> +	rf->max_ah =3D ZXDH_MAX_AH;
+> +	rf->max_mcg =3D ZXDH_MAX_MCG;
+> +	rf->max_pri =3D ZXDH_MAX_USER_PRIORITY;
+> +	rf->max_8k_idx =3D ZXDH_MAX_8K_IDX;
 > +
-> +	locked =3D !rtnl_is_locked();
-> +	if (locked)
-> +		rtnl_lock();
+> +	rf->qp_cnt_8k_idxs =3D vzalloc(rf->max_8k_idx * sizeof(u32));
+> +	if (!rf->qp_cnt_8k_idxs) {
+> +		ret =3D -ENOMEM;
+> +		goto mem_8k_qp_cnt_vmalloc_fail;
+> +	}
 > +
-> +	if (zdev->netdev->priv_flags & IFF_BONDING)
-> +		netdev_for_each_lower_dev(zdev->netdev, slave, iter)
-> +			break;
+> +	rsrc_size =3D zxdh_calc_mem_rsrc_size(rf);
+> +	rf->mem_rsrc =3D vzalloc(rsrc_size);
+> +	if (!rf->mem_rsrc) {
+> +		ret =3D -ENOMEM;
+> +		goto mem_rsrc_vmalloc_fail;
+> +	}
 > +
-> +	dev =3D slave ? slave : zdev->netdev;
-> +	if (dev->ethtool_ops && dev->ethtool_ops->get_drvinfo)
-> +		dev->ethtool_ops->get_drvinfo(dev, info);
-> +	else
-> +		ret =3D false;
+> +	zxdh_set_hw_rsrc(rf);
 > +
-> +	if (locked)
-> +		rtnl_unlock();
+> +	set_bit(0, rf->allocated_mrs);
+> +	set_bit(1, rf->allocated_mrs);
+> +	set_bit(0, rf->allocated_pds);
+> +	set_bit(0, rf->allocated_qps);
+> +	set_bit(0, rf->allocated_ahs);
+> +	set_bit(0, rf->allocated_mcgs);
+> +
+> +	return 0;
+> +
+> +mem_rsrc_vmalloc_fail:
+> +	vfree(rf->qp_cnt_8k_idxs);
+> +mem_8k_qp_cnt_vmalloc_fail:
+> +	return ret;
+> +}
 
 [Severity: High]
-Can this conditional locking in zxdh_get_drvinfo() cause an unlocked
-traversal of zdev->netdev->adj_list.lower and a use-after-free on slave when
-another task holds rtnl_mutex?
+Can this cause a double free of rf->qp_cnt_8k_idxs if allocating
+rf->mem_rsrc fails?
 
-In net/core/rtnetlink.c, rtnl_is_locked() checks whether any task on any cpu
-currently holds rtnl_mutex, rather than whether current owns it:
+In zxdh_initialize_hw_rsrc(), if vzalloc() succeeds for rf->qp_cnt_8k_idxs
+but fails for rf->mem_rsrc, the mem_rsrc_vmalloc_fail error path calls
+vfree(rf->qp_cnt_8k_idxs) without clearing rf->qp_cnt_8k_idxs to NULL.
 
-int rtnl_is_locked(void)
-{
-	return mutex_is_locked(&rtnl_mutex);
-}
+In the follow-up commit ("RDMA/zrdma: Add device probe and remove logic"),
+zxdh_probe() calls zxdh_ctrl_init_hw() -> zxdh_initialize_hw_rsrc(). On
+failure, zxdh_probe() jumps to err_dealloc and calls
+ib_dealloc_device(&zdev->ibdev), which invokes the .dealloc_driver callback
+zxdh_ib_dealloc_device(). Because rf->qp_cnt_8k_idxs is still non-NULL,
+zxdh_ib_dealloc_device() calls kvfree(zdev->rf->qp_cnt_8k_idxs) on the
+dangling pointer and frees it a second time.
 
-When zxdh_get_drvinfo() is called through zxdh_query_device() or
-zxdh_get_dev_fw_str() while another task on another cpu holds rtnl_mutex
-(for example, while unlinking a bonding lower device via
-netdev_upper_dev_unlink() or unregistering a slave net_device),
-rtnl_is_locked() returns true.
-
-As a result, zxdh_get_drvinfo() skips rtnl_lock() and calls
-netdev_for_each_lower_dev() -> netdev_lower_get_next() and
-dev->ethtool_ops->get_drvinfo(dev, info) without holding rtnl_mutex, racing
-directly with the task modifying the lower device list or tearing down the
-slave device.
-
-Since zxdh_get_drvinfo() is only called from process context through
-zxdh_query_device() and zxdh_get_dev_fw_str(), neither of which holds
-rtnl_mutex, should zxdh_get_drvinfo() unconditionally call rtnl_lock() and
-rtnl_unlock()?
+Should rf->qp_cnt_8k_idxs be set to NULL after vfree(), or should freeing it
+be left solely to zxdh_ib_dealloc_device()?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261027021119.2325=
-798-1-zhang.yanze@zte.com.cn?part=3D7
+798-1-zhang.yanze@zte.com.cn?part=3D4
