@@ -1,61 +1,111 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793111167;
-	b=5tx28PMCcNlFtNzUoMuRMxhh0HEX/4tR6DzMvdtqhUz/2ohxZqw72EzS597hDmlQGvY1
-	 LczUIkt1aLV/Q9SY3Jbz9Fuaz7+h8hBXRg6xsHbLoTb+o1xp9U8PiFwypL3WSha87MgsB
-	 sQ2AvR+vIRq/pHQdOT8FwlfP0G9HLvdHouH8hpgzf+FGJ8q79OpS5Zg55TWH3AwQCAWWi
-	 FPozWxgGkPvVjSUYzOZbGx6Y+1OWM3wcOLrm3o0p+1dk/R3b/B6hoxnmGw9NRBPqcm0M8
-	 dHkMtALumX5alSmE2IqeOlPdGNxP6yDPKMXirmRti33vkngjf2sY61la0dt44dsxTLg==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793111167;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=z27crQTjHzX0wxvWS41zGiz/0QWCCGhHzWTW1/KXN7I=;
-	b=cR3uCIzqy2uC5DbgbDnMT4x/SwQnPH6ngM3BVoDofTTcY5mNgNoriCfCxQtj9BAOxHSf
-	 7D+HRft9aSZgHQ5ViUlOmtrte/WVuwjElNkPt5N9D6E3V6lfIYs6u5CJcZ6fYVI8kbLBs
-	 NkL6Q4+SBe2uR12R7HNMlJuscG+XB20NKPhjH2Mh8F+jqtUQjWhKSVUSJLXggLsPzO4sD
-	 XRQTtRsKbKsr39nSjRJI2GTy7+ooBXECid1qkzI/gjSKOtmsT7UOkRzgCu89AoRtWAA7M
-	 xWZda/o/0UroVvMKl9bqWw2WBc0l7adH222gZWiFLkiZoC1Sv8WKYADC1xzTkaVfDJA==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JMtpTDrF;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.198.52
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1793111335;
+	b=ybVUHqOyR4BE+Nur1ofWOkSwDXvN+gZG0uAr6QmHv61bsNBTp9Tb4WLmTb5xnDSlY3Pg
+	 Hpj7b7z6Tlcf1Pui19v6xXD8ZIiu2LMyFb35zcQCjfYspA1TXj5klZWJm7FLgbr/Hl39w
+	 W86Z1y6gWiuzVz7ygPlYQ/Q1xTN0y9BVYXyvcxkUUyM6xlJUGGPzvqM7hO9nq97+BSsXy
+	 2OqqBCnlXZLMdBGy3nscFXkiekPW92g1OuAyCJi/lfTYOzBeSY6rM14lXx6bnc4YJ1Kqh
+	 9TyWgP/PSD4wmj81RWdSYp3CmByuMTRMJVUX0xK4zqyZSsXb4a4JvtxbXn7LXr8/vzA==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793111335;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
+	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding:X-ClientProxiedBy:MIME-Version:
+	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
+	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
+	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
+	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
+	 X-MS-Exchange-CrossTenant-UserPrincipalName:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=/0s5ggbh7kqVYkzzWQnKGKbjmpSckG6UuNoEWgWsFDA=;
+	b=SVzMVoJREUxhmPJi0Sy8k5lwSIBBwRLWytwT03lYBOyNSihnS74EZa/Q5w6pWQXbZrR7
+	 KAY3MbOU4ZxM+Xoc1MI+n229artjrFh5q7vUGgk7UPRU0LIohzvfu6SsfMw6ufJ7zdE+y
+	 jhPT9qra8rWVUhOZdPQxhj0bZ/D+Wj/UDMPagNThTPvID4qoZEziUFAf83WBc/caHTf7d
+	 i0UkyM4El7IreVHFWUZrX8SfRNXmA/voYuTatKKmNGXhHc2sOF08gdmNuoK67g9y1+uXc
+	 DgcUknmoY8kb8uldSkpzNmt7cBtqKOywz8j+dvuNu6M+Mn5LeEK3knci8sr8dRyKA3Q==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=amd.com;
+	spf=fail smtp.mailfrom=amd.com;
+	dkim=pass header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=oggH1X6d;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.198.52
+Received: from CY7PR03CU001.outbound.protection.outlook.com (mail-westcentralusazon11010052.outbound.protection.outlook.com [40.93.198.52])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51BD3606A31A;
-	Tue, 27 Oct 2026 14:26:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F340606A31B;
+	Tue, 27 Oct 2026 14:28:54 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1F340606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JMtpTDrF
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5896A1F01825;
-	Tue, 27 Oct 2026 14:26:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793111166;
-	bh=z27crQTjHzX0wxvWS41zGiz/0QWCCGhHzWTW1/KXN7I=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=JMtpTDrF7fiu7lDnMsUp94Cm+JN1Fy3FyhF04TMzNSoaY3KCMum3ks0k+Z8LNcD1+
-	 LytnrXmA0L6MKn1657mK5HoWy+CeAHoIuVcict2nwF+WSUNB/1hEwuz1BwtTU6EOo9
-	 U4b5LoIsFZBBtrGpFMo/8dYLjeMEbcY2DGWANS34JtaU9hhXNbXHXhliMU6ghaGFtx
-	 fRwNuUm1l508qzA3qxRkfekH6d5IHKKdfrVapJg8ZQ/Jt4HQcsX8Z0n/qXJENzBPnR
-	 Qbky46Y0NvH+kZTCVozpfldbogvBRwhkDkCA9Zw8NJeHhOqh95K1BxP1teF8yHore6
-	 Aq5IpExvqeVFQ==
-Date: Tue, 27 Oct 2026 14:26:01 +0000
-From: Simon Horman <horms@kernel.org>
-To: Joas Antonio dos Santos <joasantonio108@gmail.com>
-Cc: Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>,
-	Leon Romanovsky <leon@kernel.org>, Mark Bloch <mbloch@nvidia.com>,
-	Boris Pismenny <borisp@nvidia.com>,
-	Sabrina Dubroca <sd@queasysnail.net>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net] net/mlx5e: macsec: free SC lookup entries after an
- RCU grace period
-Message-ID: <20261027142601.GM257209@horms.kernel.org>
-References: <179285888829.90275.17386097105525068016@gmail.com>
+	dkim=pass (1024-bit key, unprotected) header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=oggH1X6d
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=RvS1098xGgtxuKFNljYEcunvXDHeGbTKZlCNXA7kk3iFibBvZGBPF94iH2dRIOZfXUVscApC3lkxafFxDf4loc4KG24sxO6rMlVjHjeLvnwb0WVbQBzB82lJUMa8erJP+TwCDAQzddohv51xonSfn9B/8MP73mKgO0/PtQ0Hq07E0hAqVCIBrtXZph0CMCjNlbvbwwIyJ4nx3sUZFqtxk0e/k0l7yWTKcwc4Hxy7CGahAgC4dvmQADnDLd9j/Jsw2SutSa92vRTqB7CSxHTngSNNHHdoHsKssbaYzv3XGp4Ie2F17tyh4gkFkOO1uskUrZZ3qrBHEJ/XJJPer5cu6w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=/0s5ggbh7kqVYkzzWQnKGKbjmpSckG6UuNoEWgWsFDA=;
+ b=oTb2WP47YlPB2SMSQN2XIQpPYPjSW/3DF/U8BrK1DZWHHgXXuXHm6GPFHP8Vu8/FZBrmxyGWSzg7ntq9KtyoGHt3LGXeAnEAHiQHZfbNjdhM/dv5RHfZuik6wUAU+DIwK54Szy3cUD4C7EaFJW6vDsNPxt7rVO1sJXFADDTPwlkkwxpAyuNreyDaZ2cKFJPDoies8AL39mnhftInzq961xSw8NOp3bN/5J/glEhcM6wzEN3J1AppL46ARa1VsW3kWts6vhc9GDuaRNPVDeaNn3GMOVRo2iIGu8B131spbFx6csJ094hUQ2ws7aefhfBsVwhkrkXxdtEBB332A9R+PQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=/0s5ggbh7kqVYkzzWQnKGKbjmpSckG6UuNoEWgWsFDA=;
+ b=oggH1X6dUSIjzc3xIvBizwSW8fs7mmjK610F+pt5c8XXBJGHZq6MwSM3/QEzlbyWGlT34FAS9yhsyGO9OXu0mI8YInBTMkc9Llx7AjzLNVYHiM83jvxI9Pzeqliu4q8X07brb68MYsP3XFBBhAPc09mdX6NhbcQcrZED8e0cneY=
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from PH7PR12MB5685.namprd12.prod.outlook.com (2603:10b6:510:13c::22)
+ by SA1PR12MB9004.namprd12.prod.outlook.com (2603:10b6:806:388::7) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.546.22; Tue, 27 Oct
+ 2026 14:28:51 +0000
+Received: from PH7PR12MB5685.namprd12.prod.outlook.com
+ ([fe80::ce69:cfae:774d:a65c]) by PH7PR12MB5685.namprd12.prod.outlook.com
+ ([fe80::ce69:cfae:774d:a65c%3]) with mapi id 15.21.0546.021; Tue, 27 Oct 2026
+ 14:28:51 +0000
+Message-ID: <7193d384-5e28-4f85-8004-1dc9318d5c1c@amd.com>
+Date: Tue, 27 Oct 2026 15:28:44 +0100
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 23/26] treewide: Rename dma_buf_attach() to
+ dma_buf_sgt_attach()
+To: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Alistair Popple <apopple@nvidia.com>, dri-devel@lists.freedesktop.org,
+ sumit.semwal@linaro.org, =?UTF-8?Q?Thomas_Hellstr=C3=B6m?=
+ <thomas.hellstrom@linux.intel.com>, Simona Vetter <simona.vetter@ffwll.ch>,
+ Matthew Brost <matthew.brost@intel.com>,
+ Vivek Kasireddy <vivek.kasireddy@intel.com>,
+ Dongwon Kim <dongwon.kim@intel.com>, Leon Romanovsky <leonro@nvidia.com>,
+ Kevin Tian <kevin.tian@intel.com>, Xu Yilun <yilun.xu@linux.intel.com>,
+ Karl Mehltretter <kmehltretter@gmail.com>,
+ Baolu Lu <baolu.lu@linux.intel.com>, Felix Kuehling
+ <felix.kuehling@amd.com>, Alex Deucher <alexander.deucher@amd.com>,
+ intel-xe@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
+ linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+ linux-rdma@vger.kernel.org, iommu@lists.linux.dev,
+ Alexey Kardashevskiy <aik@amd.com>, zhipingz@meta.com, treding@nvidia.com,
+ jhubbard@nvidia.com
+References: <20261026053623.202642-1-apopple@nvidia.com>
+ <20261026053623.202642-24-apopple@nvidia.com>
+ <27307d58-9ca9-4624-a564-6e35fb4befb5@amd.com>
+ <20261027123859.GE1671235@nvidia.com>
+ <3a09ef96-45a6-486f-b482-fd34c27415af@amd.com>
+ <20261027140831.GA2338330@nvidia.com>
+Content-Language: en-US
+From: =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>
+In-Reply-To: <20261027140831.GA2338330@nvidia.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: FR0P281CA0259.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:d10:b5::18) To PH7PR12MB5685.namprd12.prod.outlook.com
+ (2603:10b6:510:13c::22)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -65,104 +115,112 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <179285888829.90275.17386097105525068016@gmail.com>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH7PR12MB5685:EE_|SA1PR12MB9004:EE_
+X-MS-Office365-Filtering-Correlation-Id: 906e6d36-975b-4a41-1e42-08df34369ef9
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|23010399003|376014|7416014|1800799024|366016|22082099003|6133799003|18002099003|261026140227099003|56012099006|5023799004|4143699003|11063799006|10067099003|261021121427099003|261022105027099003|261026121527099003;
+X-Microsoft-Antispam-Message-Info:
+	I65T/2MOCmjWRc3O9jztwZha6yx/JBupsKA4lVWLA6JL+Om3OzPAvjQVHvLc2k2Qfs2PKNAlfK5S5yM/POdKpqwUKahTtccqXzv/HbnLVw54WijNDUbVLywngjgoRQ1dCZNpKgoPj5fc0aVBDuV2ftTpygUzmK87W1AIXzOYMcI4DJ7F/ZKypqxJuNPZajJGXipN2bwGIUeLRobFw8AMIBxpl/PSAaB8WgPSqyR9hoYkKgwtwplTcCGgz9gAK1tpKEQAwkNMDhWOuAX64avK+QGjnhQE9LDrFYEaZKK1Jm0jg9GfspUgYws83JOJcZLFMg0uokonME2697RLmoeVvux4fL/ksFCEF5E5JtLMqwSbXBW3qZHrTXlSyc4iJRqYYrJkoK3qoHqK3A0s8RzZi+gwAZK9e+QGfu+Mtv012vrwEr1ERmo5XFDpL+eA9Hw2Z3U8K3d2Gfx0s6tANX9ArRZOqnjl+t/vcPYn9ZXAb4D80ChOkevQ1fZsnh9NbSFr3jk4iJS42Pe8WcJh8b14KwcN1hfM4Vea8aVsJbMb4r/533H7kyVeBtP1+1t9dTUZewSDYe1riGr7/PqqTWAinX3tUNfG1ukWzJ+hK0IlauBQII5KJnXvBEkOXhex1qPSATmoB5wT3HZMjBmPOJJbHAbiMPUn2CkHPQqaqnR+pds=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR12MB5685.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(376014)(7416014)(1800799024)(366016)(22082099003)(6133799003)(18002099003)(261026140227099003)(56012099006)(5023799004)(4143699003)(11063799006)(10067099003)(261021121427099003)(261022105027099003)(261026121527099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?dWV4aTBJczBCemt3Rll3b2hMYUZuMXJOa0tnL1JqcEtqTVNhSXp6Si8xWU1j?=
+ =?utf-8?B?WG5iZjN5cnFOWVU5K3UyL3dMNU5wUXlyR3ExUEtWR2lZZzFobEFHNkk2dUQv?=
+ =?utf-8?B?ejhGNU1ySGtSeVBSQVhlSXBWRU5NdG9EbGpsRzR1MmhrY3gvNmlOa1MwTFRz?=
+ =?utf-8?B?K2J4V010b2Q1bzY4WHNHUUlEVGN6MnRsUWpBUGV3dXBEWGN3Z1Y4SzR1NzVv?=
+ =?utf-8?B?UWRIYnhTcGNtMHNzZmJkTVhpdUZ0WHEwUTZNcXRjTUlFa0EydmdDZ2x1QllG?=
+ =?utf-8?B?L1ZsTFBnd09SMzU5SnV6d1pGZnlBT2hhRkVZeGYvK280VU80RHZnYnJSUldG?=
+ =?utf-8?B?SEJMQVozRURSQ2xmK0F6S3kxNFk3M214M2I4NENwV2w2enRtU3BEQTVud1Zz?=
+ =?utf-8?B?czNJd0xLaXpnbGdEWlE5UjNjQ0lkbDBqcDcwbmRHdGFNVEtIWlFncElEaXJX?=
+ =?utf-8?B?aTVYeEJGeEJLdTdPUXc1blY2aUVWZy80T3ZOTFVVTEdRa0NXRFlJTnhFaXF6?=
+ =?utf-8?B?emJ6TXlDWTBrUndkUDM3dHlMeTlZZlFaMlBGUWtyb1B5aERubVN4bXdPamZN?=
+ =?utf-8?B?MWhyMDIvNytQUW1zQkRyQ3pESldqVEFKbWxUbWNwZ1VlMXRDaHRtUlEzVmhK?=
+ =?utf-8?B?MEpESU1rMlJkSmh4SFducHI2clNtTU96TDhvbGZmSW81T2NSclE5cWxTaFNH?=
+ =?utf-8?B?UFhJaWU0ZXBmMWd5LzdTUWs0NGFUa3ZOVEtXTGJVcFFkRjNTNm1hUFNxU1FH?=
+ =?utf-8?B?TCtNSzNnU0NsVjR3UjFYT1FmVkVxbGVNTEZQYlhMS1d5RGNNYjBqSDMvQmkr?=
+ =?utf-8?B?UW93OHhwUEMxNXVUVmQvSXM4NEFSamUyR0RQSHFvR2tTZXBpVUlLMVQvc2E1?=
+ =?utf-8?B?RS9yeWJRRTNzaFp0VUU5TStaUXM2ZDg5eVNJd1BnR3VCWnFwc0lGVDd4aklm?=
+ =?utf-8?B?MzRka0RwWDduVEZURllvdmdpamxWOUJiQk5rWm5IeWlab04xaVhRaXcrNE5r?=
+ =?utf-8?B?bWw1Zi9pSHl0YlBFek0rOCtaZFNXU0poTG1xSVVvcEpncWNuTDJzRWREd1JF?=
+ =?utf-8?B?b3FzNVh0UDFicUw5c2V3YkgyckNheHRHbCtjSkhhYWhSMEVjdmxqYTBpcFE5?=
+ =?utf-8?B?RTZJT2NkRUtYb2JyWWtFaDRDU2NhcEJORTl3TDFrQ3ZFQU1LcGlxTUtVRUNu?=
+ =?utf-8?B?U1BLekM0dVc4WGQyQ1A5NWoxejV2eU1QcXBUU1QrMGpsb2ZPaW9mY1hKZkFC?=
+ =?utf-8?B?UldWTDJwa3I1NjdEdnhLd0k5Zy9kWGF6dUFvd2txL1RRalBMRTdxNlkrLzls?=
+ =?utf-8?B?T2Q4SGR6bzArRjFZb2M5VTJrRFdNdkd5aTNoZWhYYTZzVHdLL0JWcmV4TFIz?=
+ =?utf-8?B?MFFKK2wvOTFsMGcxZ0tNVm1hamNMTHUvV2QvMWFDWi8xell5N0M1L29Gd2Ru?=
+ =?utf-8?B?MVJ4MFQ1L091UHFBMVREOFl5cyswQ1pYbzJnNWNtQk4vWDJDdkkybzgzUHdU?=
+ =?utf-8?B?OUo4akZwRjFWR01mTERadGFZMzBJdUNVWW0xQUlBaXJIWEYyYy9YUlFlYjU3?=
+ =?utf-8?B?bjJkQTNiQnpodjFuUFB6TW9WVkxVOUtTb0RPbkZSNGFwRnpHNTFIOVFkRlU1?=
+ =?utf-8?B?Zmh2WE5YYVhwTWRJdSt5QmhhZDhWL2R1RmVBQmxkNlVVZWJXQVVKbDQvZ1lT?=
+ =?utf-8?B?UEFiS1lESEdrelZyWlN3RzBjMFZBU3oyQkhmdmc3QUtQOUhuaWUza0grNm12?=
+ =?utf-8?B?TTVsYmRpREorK01Id0ZsZjB3bmxudURxMThwU1RocXQ0Q2lwSHVwMTE3SVpH?=
+ =?utf-8?B?NXJDd2NWVVo4c3RpTUx2UU1UVTBJOFJKYytITzJUcGR1MWFudVViNmVNWXQv?=
+ =?utf-8?B?TW5DQ0lETDkrbkl5MXdSQlZnekZPVTdOQ3E5Q1psOWFTaFZ6WDVkUEJXN3Zn?=
+ =?utf-8?B?Q2t3VUIzVlFxeEpRMnl6eDBqaGplbEdqWklNSzJhN1A5QjJqNXhoWEcxUDdY?=
+ =?utf-8?B?b1IrUnBBdm5TR042azZXb3RiQWpBallZUDVMWnNtT2ozT2xDM1BFRjVUeHVG?=
+ =?utf-8?B?SGpMVWxveUFCc1NCRWpRcEV1WGtCQ2hDRnVjTzV6UG5sbThBY09OQ2Q4TVZq?=
+ =?utf-8?B?RzhCLzlLVzZ1Qllpb1AxZFNnTEZhd0d1UVpyMmZWdmszbGtOc2J2T3BWZi94?=
+ =?utf-8?B?U3VMNmRyQ0xwK01WK091aHJFM3IzUTIyMTE1UDZNWHcwNmQvbTRyN2NsS3VW?=
+ =?utf-8?B?WUEvdVdkNUtja1paUkZFQksvSSttRkNJQ01mN0xROXRyUks2N0VRTy9nR2Vv?=
+ =?utf-8?Q?VziHOssc67S1jq/lZg?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 906e6d36-975b-4a41-1e42-08df34369ef9
+X-MS-Exchange-CrossTenant-AuthSource: PH7PR12MB5685.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 27 Oct 2026 14:28:51.1215
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: gH8+G0QTjhwAoELk7ZqOvuIniw7Ge3TmTRcp9HiXWWXRTt394/bkEWyFZuJUs0C3
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR12MB9004
 
-On Sat, Oct 24, 2026 at 01:21:28PM -0300, Joas Antonio dos Santos wrote:
-> macsec_del_rxsc_ctx() removes rx_sc->sc_xarray_element from
-> macsec->sc_xarray with xa_erase() and frees it with kfree() right away.
-> mlx5e_macsec_offload_handle_rx_skb() looks the element up with
-> xa_load() under rcu_read_lock() and then dereferences ->rx_sc, so an RX
-> completion that loaded the element just before xa_erase() reads freed
-> memory. rx_sc itself is already freed with kfree_rcu_mightsleep(); only
-> the element pointing to it was missed.
+On 10/27/26 15:08, Jason Gunthorpe wrote:
+> On Tue, Oct 27, 2026 at 02:17:16PM +0100, Christian König wrote:
+>> On 10/27/26 13:38, Jason Gunthorpe wrote:
+>>> On Tue, Oct 27, 2026 at 01:07:36PM +0100, Christian König wrote:
+>>>> On 10/26/26 06:36, Alistair Popple wrote:
+>>>>> From: Jason Gunthorpe <jgg@nvidia.com>
+>>>>>
+>>>>> This attach function always creates a SGT mapping type importer.
+>>>>
+>>>> Yeah that is a clear NO-GO. The attachment should be the same for
+>>>> the new interface as well.
+>>>
+>>> Not sure I understand this comment...
+>>>
+>>> This was intended as a helper so that existing drivers can run through
+>>> the sgt based mapping type flow without having to open code it. It is
+>>> hardwired to only do sgt like this. If you want to use more than sgt
+>>> as your mapping type don't use this function
+>>>
+>>> The point was to create a clear distinction in the API names when
+>>> things were in a SGT-only flow vs using the newer negotiable flow.
+>>
+>> Well that is my point, the dma_buf_attach() or rather
+>> dynamic_attach() function should still be part of the new flow.
 > 
-> macsec_fs_id_del() has the same problem on the TX side: it removes
-> fs_id_found from the SCI rhashtable and frees it with kfree(), while
-> mlx5e_macsec_handle_tx_skb() and mlx5e_macsec_tx_build_eseg() read it
-> through mlx5_macsec_fs_get_fs_id_from_hashtable(), which uses
-> rhashtable_lookup() under rcu_read_lock().
+> It is, this is just a helper wrapper effectively to run the flow
+> exactly as it is right now wired to only do sgt.
 > 
-> Free both with kvfree_rcu_mightsleep(). Both run in process context
-> from the macsec offload ops, outside any spinlock, so sleeping is fine.
+> Unless you want to see that open coded in ever driver using the more
+> general functions, I'm not sure I see the alternative?
+
+I still don't see what you mean.
+
+If a driver can only deal with sgt then it won't implement the dma_buf_attach_ops->supported_mapping_types (or whatever we name that).
+
+So if either dma_buf_attach_ops is NULL or dma_buf_attach_ops->supported_mapping_types is NULL then we only match to the sgt export.
+
+What I want to avoid is to get just another dma_buf_attach() variant since we already added a parameter structure here.
+
+Regards,
+Christian.
+
 > 
-> The sc_xarray_element issue was pointed out during review of
-> "net/mlx5e: macsec: fix use-after-free of metadata_dst on RX SC delete"
-> and left for a follow-up; this is that follow-up.
-> 
-> Fixes: b7c9400cbc48 ("net/mlx5e: Implement MACsec Rx data path using MACsec skb_metadata_dst")
-> Signed-off-by: Joas Antonio dos Santos <joasantonio108@gmail.com>
-> Assisted-by: Yaga Agent HackerSec Claude:claude-opus-5-5
-> ---
-> Testing: compile-tested only (arm64, W=1, CONFIG_MLX5_MACSEC=y, no new
-> warnings). I do not have MACsec-capable ConnectX hardware, so this was
-> not run on a real device and I have no reproducer against the driver
-> itself. The free-while-reader-holds-RCU pattern was reproduced with a
-> standalone test module under KASAN (slab-use-after-free on kmalloc-16),
-> and the same module showed no reports after switching to
-> kvfree_rcu_mightsleep().
-> 
->  drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c | 2 +-
->  drivers/net/ethernet/mellanox/mlx5/core/lib/macsec_fs.c   | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c
-> index 38a3415ac..fb9126f6b 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c
-> @@ -839,7 +839,7 @@ static void macsec_del_rxsc_ctx(struct mlx5e_macsec *macsec, struct mlx5e_macsec
->  	list_del_rcu(&rx_sc->rx_sc_list_element);
->  	xa_erase(&macsec->sc_xarray, rx_sc->sc_xarray_element->fs_id);
->  	dst_release(&rx_sc->md_dst->dst);
-> -	kfree(rx_sc->sc_xarray_element);
-> +	kvfree_rcu_mightsleep(rx_sc->sc_xarray_element);
->  	kfree_rcu_mightsleep(rx_sc);
->  }
->  
+> Jason
 
-Hi Joas,
-
-This patch does not apply because the problem in macsec_del_rxsc_ctx() has
-already been addressed by ad17ad50b8dc ("net: mlx5e: Fix use-after-free of
-the MACsec xarray entry on RX SC deletion") using kfree_rcu.
-
-I would suggest taking that approach in macsec_fs_id_del() too
-unless there is a reason to use mightsleep.
-
-Quoting the documentation of kfree_rcu_mightsleep():
-
-/**
- * kfree_rcu_mightsleep() - kfree an object after a grace period.
- * @ptr: pointer to kfree for single-argument invocations.
- *
- * When it comes to head-less variant, only one argument
- * is passed and that is just a pointer which has to be
- * freed after a grace period. Therefore the semantic is
- *
- *     kfree_rcu_mightsleep(ptr);
- *
- * where @ptr is the pointer to be freed by kvfree().
- *
- * Please note, head-less way of freeing is permitted to
- * use from a context that has to follow might_sleep()
- * annotation. Otherwise, please switch and embed the
- * rcu_head structure within the type of @ptr.
- */
-
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/macsec_fs.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/macsec_fs.c
-> index efc516749..910fafe40 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/lib/macsec_fs.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/macsec_fs.c
-> @@ -684,7 +684,7 @@ static void macsec_fs_id_del(struct list_head *macsec_devices_list, u32 fs_id,
->  
->  	xa_erase(fs_id_xa, fs_id);
->  
-> -	kfree(fs_id_found);
-> +	kvfree_rcu_mightsleep(fs_id_found);
->  
->  	if (macsec_fs_is_macsec_device_empty(macsec_device)) {
->  		list_del(&macsec_device->macsec_devices_list_entry);
-
--- 
-pw-bot: changes-requested
