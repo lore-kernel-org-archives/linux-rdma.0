@@ -1,104 +1,64 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.46
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=160.30.148.35
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793067370;
-	b=G7Fm7sDhpmQ8kvtQuXewZsGFn4XScQ9McoRrjF4Cev12MhW/lZLm3U6wGG+67q6n4fIK
-	 r1OfJqrAjVTMWbBKVvTtryveeFgbYntIT8IZG5CReyrz/qJpVESWwcy5iHc+zxuxbabLX
-	 2ydnd+HcesFD/NyJmBaRzhJ5lkTTWyuM4np4z8DGkC/WeeCUdLjOJnvtp3jlmPBzVfVqi
-	 aWuRRmTlUnSHc7/R7qve4HxWzAdLGMy1MMES/2UMtw5/qVSUOcbtMpYUoY922taTD+au+
-	 YamE4ZIo9QHuClGHk5ooyf9C8SGW9139txVcfWUxPDEF/JdfRbZdz9qOgNFQSfvXoiw==
+	t=1793067760;
+	b=EqEicuV2wwGeZkFt4nyTYbT4vxkQ+vFR+iQkHNmaQQOnlso7xbj8NUPl+o9SCXMtp/uC
+	 JRTwkqWqkOeCuKLcuQKHsAgRyJn6D/suLh5HX2AiznX6O4Wjl9sNOzHcX5EscsdN7dgHD
+	 3Cb3XRFakwTD9768a3fCpssfSvacQYNuZxKQlpuToderw0jcoIuKr3xtzANTHxbfmtt+u
+	 ydtVLKZ8pUjSe1FqB8/dQFpABqhkSv8vLwcBnHSkSOvML+MD4VCoLcGCyGj1Vv8cZ8whC
+	 loVo+zL8XqP3ZE5F3MRgqAr5z1GZyRsJU7wGwnbZK0NJM9O9neTBK0mL6A7j4LgeXpw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793067370;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To;
-	bh=213hVxaY8zz7NJ3gzXzSYUeeO0Hb0kJ1MH6CZUy6aio=;
-	b=mPPc4nZQeLpsUl9zbs3VUkuGuos0hvKdRyYA1Q2VKthbdWOHKxBc5ItGxkSLlrQto4Ky
-	 nOQxwu0lRlubdSjNKoyEgVKh2y9sAKrU274jIM+iB1h3iOr6l+EB+H7pd52fm3ksStukX
-	 w7MPxIKZ1rlrk/QsaGSaIBzHsh2wzpmYZKJT8kXsM2etSvqsseN9PK8L9Bh6kZAtkJQPo
-	 eBuPtIhsILrMjholw1zr67BSnktgtilV8WXab1ECUzPxUaXtfFSy8duLD/Yzd4tj1Z0+F
-	 KV51NG3thUE1q+wpVmI0xUGG9o7GWCy2L/8t3tjF7h9gDGyBsGYzZfh3JkBhUms9NNA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793067760;
+	h=DMARC-Filter:Received:Received:Received:X-Zmail-TransId:
+	 X-Zmail-LocalSMTP:X-Zmail-RealSender:From:To:Cc:Subject:Date:
+	 Message-ID:X-Mailer:MIME-Version:X-ZMAIL-USEORIGINALEMLTOOUTBOUND:
+	 Content-Transfer-Encoding:X-MAIL:X-TLS:X-ENVELOPE-SENDER:X-SOURCE-IP:
+	 X-CLEAN:X-Fangmail-Anti-Spam-Filtered:X-Fangmail-MID-QID;
+	bh=T0u94vcyD+ewFknAQgXlOm/PXX1jnvOMryNcKljn7qk=;
+	b=pkmEY1ENwf9QFgb0BQ0+fya9apZ6QE6yqUNe9wBrzPhB/Byy0VU8JNNpVPzjF3qiHGbF
+	 5n96kAo/GckdcjUU4LkdShTkYzkYJsLHa8BrHyMfZg9/5yiR7xelPILO2FvSdog272o1a
+	 0Aea0VKVaXatUpwKHWuzQWErC8JiPeqBLUD3vHpkH5q71EcvJOknKhnEPA5osabsdtBxc
+	 Wcv5wXCshPMYePiyBD+G2Oi3crX4gz+oAs516Vqlhn5IN7YPfv4lU8hVKZxxxUGpbAnvg
+	 +PkiWzLzkVIOpyGNXmolltWSRB/WDBnYBC200m6s4HhnH1EZ4NJUzvon7X23Ux3UVwg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=TtZulEcb;
-	arc=none smtp.remote-ip=209.85.221.46
-Received: from mail-wr1-f46.google.com (mail-wr1-f46.google.com [209.85.221.46])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=pass header.from=zte.com.cn;
+	spf=pass smtp.mailfrom=zte.com.cn;
+	arc=none smtp.remote-ip=160.30.148.35
+Received: from mxhk.zte.com.cn (mxhk.zte.com.cn [160.30.148.35])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99F17606A31A
-	for <linux-rdma@vger.kernel.org>; Tue, 27 Oct 2026 02:16:09 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 99F17606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=TtZulEcb
-Received: by mail-wr1-f46.google.com with SMTP id ffacd0b85a97d-48e00eee27dso2272824f8f.0
-        for <linux-rdma@vger.kernel.org>; Mon, 26 Oct 2026 19:16:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1793067368; x=1793672168; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=213hVxaY8zz7NJ3gzXzSYUeeO0Hb0kJ1MH6CZUy6aio=;
-        b=TtZulEcbNFyPlav19CVn8JOkrTSk7zs5dARKhv/oeoNxPjJo58m0J8bDm9HAf9vao/
-         8uZSan2SUjjiCCDBxLRs8IF5s57PpOn73FCF22A5kq4GpKRfcSDCmUa/Ydya2gdhjRpl
-         Ez7bf27k4X4CIx8vN52T+Hib0PJbfYbJXIa1FWytTOLGP7IJp5CmR55JW9w2yJeqbhtQ
-         HCDFHOFmOq9K+fvXfhW+tkfafj5ok0zg3TAabBQASrvYyWvCy59VBXNfNj4CLRe2fzP6
-         s4M63mxt1ERrLwgQCvR4oWTyymbUt6Fyyoe6QR7IkJ80D4GR6dzBQcz1zrFf+yNjvahP
-         S5Cg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793067368; x=1793672168;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=213hVxaY8zz7NJ3gzXzSYUeeO0Hb0kJ1MH6CZUy6aio=;
-        b=hob/NpGLWGw68VpinfmSbDon70Mo2kH+ss09x1SwKxzoxooRxce8YoL0nEvSrD8apz
-         +iNOza5UvwWid7c+WdUXaCrPQVaAA2Td9DxjBxdn2r67wvth0EUaHz2UUaPkqUtldjxL
-         DeWRQ0Qn5X2tgCaKlaqo8f05NbSQGlAoxe+RSSoXiwO3CHVYrj98qNo0k+UN2Lb+DIJE
-         +ID/EwF/WTdQ6/iunDZatYpl9UJp70JDKqN1a4a8Y2iAVPjEndd9HhsDsUBk+0/jhO2u
-         EjQq7qlab7GD7DvD9pT1mnFmE02ecn0FwxAwCzdq3gUB16fDB6URpeGUbGB/qC7yrFjG
-         fmCA==
-X-Forwarded-Encrypted: i=1; AKwUvBw53YbEjZY7VLWCVkGgRKmMVxrrekDbiHGHIkKZ7QDemhrQaKDIqTL9050+R7FhqdqEY0SNOHgeq6Rv@vger.kernel.org
-X-Gm-Message-State: AFq9FYLdkpbah59ZlvbMvRiMBcUht5U4UeWMZ2+nnHFO7nPBBR5lI21t
-	6e05GibHhHgxU0KksweFIxPdk3RVQpt5pZUwV9u7hKbBSafEp0G4Bh0z
-X-Gm-Gg: AYBFou3UzRTl5JxpQAeVnfkTNkpBpkZj/Vvf2JtQgCRQlIicG/TlnBQxUyKhGnz9VSF
-	h+4wpX4YkvdHnv/MB9KLuiRn6l6Fbc68sThtijY0h4zgef09Y9SGbSHJgrllf70tKJp9sphMXJS
-	TKDkVHWqCaOjjmuvaI5YXNte5MXgJXSElDWvNw1sdhb9GWFN2akyJTjJdHpUXJu3V6hMIgg/qbZ
-	7SZlq0FeXshPmDYe8v9898M63ehVQo0aoZMPHOPRlNUo/lk1Z70huYVORPCg4YRCr3FN6LzaYqD
-	lX1IpPVqs7f5g3OfSgjNSBD0SrhT/fTeGh7UuYLB0z1aAN/W1M0DRq6IBLY6U01bHn7ORznU6b0
-	1u344Mi+iHUju18d3lUbUH/aZPccgDZ5lTs1Ar80X6Akz2Znj9pSOEEKTtsL0cmKhl6JKxOmC61
-	GR0zIH9QoHv+4Vvkrk4p3GJawk4hwEuIbxgzYzKHorgmpON0lh8ZENYu5tRd9/adwBk4rc33qIF
-	+F38IlvcDudL4s6M3BG3Fcds+VWb7x1HkApp9NLaDk55i6dm4PlQ4as+X8Zj8XDir/zQlF1Vw6y
-	Pxe/guaus3hUQ8xMnDzSi0L8gdkC76IeJm1uUosoVcWLR6tdossUt77NHXL2FYzS9l8lMwLupJy
-	KkKQFMN34NINVeBN5SAgBJ2Jlb/db0U5vSTAY+ayl
-X-Received: by 2002:a5d:6406:0:b0:48e:202:6718 with SMTP id ffacd0b85a97d-48e3eb8bbe9mr13317253f8f.25.1793067367758;
-        Mon, 26 Oct 2026 19:16:07 -0700 (PDT)
-Received: from MacBook-Pro-von-Karl.localdomain (dynamic-095-117-118-122.95.117.pool.telefonica.de. [95.117.118.122])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48e3ebc3dcbsm19591505f8f.14.2026.10.26.19.16.05
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 26 Oct 2026 19:16:07 -0700 (PDT)
-Date: Tue, 27 Oct 2026 03:15:34 +0100
-From: Karl Mehltretter <kmehltretter@gmail.com>
-To: Alistair Popple <apopple@nvidia.com>
-Cc: dri-devel@lists.freedesktop.org, christian.koenig@amd.com, 
-	sumit.semwal@linaro.org, jgg@nvidia.com, 
-	Thomas =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>, Simona Vetter <simona.vetter@ffwll.ch>, 
-	Matthew Brost <matthew.brost@intel.com>, Vivek Kasireddy <vivek.kasireddy@intel.com>, 
-	Dongwon Kim <dongwon.kim@intel.com>, Leon Romanovsky <leonro@nvidia.com>, 
-	Kevin Tian <kevin.tian@intel.com>, Xu Yilun <yilun.xu@linux.intel.com>, 
-	Baolu Lu <baolu.lu@linux.intel.com>, Felix Kuehling <felix.kuehling@amd.com>, 
-	Alex Deucher <alexander.deucher@amd.com>, intel-xe@lists.freedesktop.org, amd-gfx@lists.freedesktop.org, 
-	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org, linux-rdma@vger.kernel.org, 
-	iommu@lists.linux.dev, Alexey Kardashevskiy <aik@amd.com>, zhipingz@meta.com, 
-	treding@nvidia.com, jhubbard@nvidia.com
-Subject: Re: [PATCH 23/26] treewide: Rename dma_buf_attach() to
- dma_buf_sgt_attach()
-Message-ID: <auAIO0y09SXk34CN@gmail.com>
-References: <20261026053623.202642-1-apopple@nvidia.com>
- <20261026053623.202642-24-apopple@nvidia.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E807606A31E;
+	Tue, 27 Oct 2026 02:22:39 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7E807606A31E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zte.com.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zte.com.cn
+Received: from mse-fl2.zte.com.cn (unknown [10.5.228.133])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange x25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mxhk.zte.com.cn (FangMail) with ESMTPS id 4jDDmG0QXkz8XrrJ;
+	Tue, 27 Oct 2026 10:22:38 +0800 (CST)
+Received: from szxl2zmapp06.zte.com.cn ([10.1.32.108])
+	by mse-fl2.zte.com.cn with SMTP id 69R2MQ7L099617;
+	Tue, 27 Oct 2026 10:22:26 +0800 (+08)
+	(envelope-from zhang.yanze@zte.com.cn)
+Received: from localhost.localdomain (unknown [192.168.6.15])
+	by smtp (Zmail) with SMTP;
+	Tue, 27 Oct 2026 10:22:27 +0800
+X-Zmail-TransId: 3e816ae00aa0027-4bd54
+X-Zmail-LocalSMTP: 1
+X-Zmail-RealSender: zhang.yanze@zte.com.cn
+From: Yanze Zhang <zhang.yanze@zte.com.cn>
+To: jgg@ziepe.ca, leon@kernel.org, julianbraha@gmail.com,
+        huangjunxian6@hisilicon.com, yanjun.zhu@linux.dev
+Cc: Markus.Elfring@web.de, lkp@intel.com, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org, wei.quan@zte.com.cn,
+        han.junyang@zte.com.cn, ran.ming@zte.com.cn, han.chengfei@zte.com.cn,
+        zhang.yanze@zte.com.cn
+Subject: [PATCH rdma v7 0/7] Add ZTE DingHai Ethernet Protocol Driver for RDMA
+Date: Tue, 27 Oct 2026 10:11:12 +0800
+Message-ID: <20261027021119.2325798-1-zhang.yanze@zte.com.cn>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -108,36 +68,167 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261026053623.202642-24-apopple@nvidia.com>
+X-ZMAIL-USEORIGINALEMLTOOUTBOUND: 1
+Content-Transfer-Encoding: 8bit
+X-MAIL:mse-fl2.zte.com.cn 69R2MQ7L099617
+X-TLS: YES
+X-ENVELOPE-SENDER: zhang.yanze@zte.com.cn
+X-SOURCE-IP: 10.5.228.133 unknown Tue, 27 Oct 2026 10:22:38 +0800
+X-CLEAN: YES
+X-Fangmail-Anti-Spam-Filtered: true
+X-Fangmail-MID-QID: 6AE00AEE.000/4jDDmG0QXkz8XrrJ
 
-On Mon, Oct 26, 2026 at 04:36:14PM +0100, Alistair Popple wrote:
+Hi,
 
-Testing the series on a Jetson Nano exposed this path. A 3 MiB system-heap
-buffer was imported into Tegra DRM and scanned out over HDMI. With
-CONFIG_DMABUF_DEBUG=y the PRIME import succeeded, but scanout immediately
-produced display SMMU faults starting at 0x300000.
+This is v7 of the ZTE DingHai (ZXDH) RDMA driver, providing RoCEv2
+support for ZTE DingHai network adapters.
 
-Tracing the fault led here:
+The DingHai Ethernet PF driver this RDMA driver attaches to is being
+merged through net-next. The first batch, which introduces the DINGHAI
+Kconfig symbol and the "dinghai10e" PF driver, is already in net-next
+[1]; the second batch is still under review [2]. The auxiliary device
+that this driver binds to is created by a patch that is still being
+prepared and has not been posted yet; this series is therefore posted
+for review ahead of that patch, and the driver will not probe on the
+upstream baseline until it lands. This series is based on an
+rdma/for-next baseline that already contains the first batch, so
+"depends on DINGHAI" resolves. The driver registers as an auxiliary
+driver and matches the auxiliary device by name only, so it cannot bind
+to an unrelated PCI function.
 
-> @@ -475,7 +475,7 @@ static struct tegra_bo *tegra_bo_import(struct drm_device *drm,
->  	 * domain, map it first to the DRM device to get an sgt.
->  	 */
->  	if (tegra->domain) {
-> -		attach = dma_buf_attach(buf, drm->dev);
-> +		attach = dma_buf_sgt_attach(buf, drm->dev);
+v7 folds the review feedback on v6 [3] back into the patch that
+introduced the affected code. Each change below was verified against
+the reported issue before being applied:
 
-tegra_bo_import() passes the attachment SGT to iommu_map_sgtable(), which
-uses sg_phys() and sg->length. The SGT mapping contract only guarantees the
-DMA address and length fields. The debug wrapper clears the page-side fields,
-so iommu_map_sgtable() maps zero bytes. 
+ - Patch 2/7: tag the UAPI header with the Linux-syscall-note SPDX
+   identifier, which is required for a header that is installed to
+   userspace.
+ - Patch 3/7: pass the name buffer length to zxdh_get_del_rdma_name()
+   and use guard(spinlock_irqsave) in zxdh_free_rsrc(); zxdh_alloc_rsrc()
+   keeps the explicit lock because of its multiple early exits.
+ - Patch 4/7: keep zrdma_main.c in place. v6 removed it in the middle
+   of the series, which broke both bisection and the build of that
+   single commit; the probe implementation now modifies the file
+   instead.
+ - Patch 5/7: install the device ops right after ib_alloc_device(), so
+   the dealloc_driver hook is in place before any resource is taken.
+   The hook releases the pci function, the handler and the resource
+   bitmaps, and it only destroys the ah_list_lock when it was actually
+   initialised.
+ - Patch 6/7: report the SRQ doorbell offset like the SQ and CQ
+   doorbells, and extend the SRQ mapping so that it covers the whole
+   doorbell area on 16K and 64K page systems. The size handed to
+   userspace is the very same length that is registered, otherwise
+   rdma_user_mmap_entry_get() rejects the mmap.
+ - Patch 7/7: accept a NULL udata in query_device(), which is how the
+   core calls it during registration; report the number of send and
+   receive SGEs; parse the firmware version as unsigned values and
+   keep the "N/A" placeholder when no version can be extracted; read
+   the driver info with rtnl held, taking the lock only when the
+   caller does not hold it already; take the port speed from
+   ib_get_eth_speed() instead of caching a value that goes stale on a
+   link change; fill in the immutable port information directly, so
+   that it does not depend on the port query being run while the
+   device is still being registered; pass the port number to
+   rdma_protocol_roce() instead of hard coding it; drop the query_gid
+   callback, as the RoCE GID cache is owned by the core.
 
-Tegra only treats negative returns as errors and keeps the reserved
-IOVA, which scanout then faults on.
+In short, v7 additionally fixes:
 
-This page-side use predates the series, so the fault is not itself a v2
-regression. Is dma_buf_sgt_attach() valid for this call site, or does Tegra
-need a page/physical mapping type first?
+ - The UAPI SPDX identifier, which headers_install rejected because the
+   header is installed to userspace.
+ - The probe error paths, which leaked the pci function, the handler and
+   the hardware resource buffers because dealloc_driver was not
+   registered early enough.
+ - The deletion of zrdma_main.c in the middle of the series, which broke
+   both bisection and the build of that single commit.
+ - The NULL dereference of udata in query_device(), which
+   ib_register_device() passes as NULL.
+ - The missing max_send_sge and max_recv_sge, the SRQ doorbell page
+   offset on 16K and 64K page systems, and the misuse of
+   rtnl_trylock() in get_drvinfo().
+ - The immutable port information, which was taken from the port query
+   while the device was still being registered.
 
-Karl
+rmmod stress-testing also found a refcount_underflow in
+ib_device.refcount: ib_unregister_device_and_put() performs an extra
+put, but the auxiliary-bus probe path never takes a 'get'. The driver
+uses plain ib_unregister_device(); ib_dealloc_device() still runs
+.dealloc_driver via the normal refcount-release path. The issue was
+reproduced before the fix, and the fix was verified with repeated
+load/unload cycles on v6. v7 keeps the very same plain
+ib_unregister_device() path, so the fix itself is unchanged.
+
+Testing in this version focuses on the review fixes: the driver
+builds, probes on DingHai hardware, and 'rdma link' / 'ibv_devinfo'
+enumerate the device. The hardware testing was done with a PF driver
+that already creates the auxiliary device, because the baseline that
+this series is based on only has the first batch, which does not create
+it yet. The build was tested with CONFIG_DINGHAI=y, because the Kconfig
+now depends on it, and every commit of the series was built on its own
+to make sure that the series stays bisectable. Perftest (QP/CQ/MR
+creation and the data path) is covered by the parallel network driver
+series, so we did not want to hold these review fixes on it. Functional
+verbs testing will be reported once both series are merged.
+
+Two items raised in review are deliberately left out because they
+need input we do not have yet:
+
+ - The common_func() opcode for the IRQ capability query: needs
+   confirmation against the firmware interface document; the current
+   opcode works on the tested firmware.
+ - The shutdown-vs-quiesce semantics and the doorbell isolation
+   mechanism: these need the hardware team's confirmation.
+
+Two other points are noted for completeness. An __iomem annotation on
+mem_rsrc is moot, since it is plain vzalloc'd memory rather than a BAR
+mapping. Replacing the resource bitmaps with XArray/IDA is a cleanup
+that does not change behaviour and will follow separately. Neither of
+them affects probe/remove or the verbs that are implemented here.
+
+[1] https://lore.kernel.org/netdev/178598040988.599522.8462097247667886071.git-patchwork-notify@kernel.org/
+[2] https://lore.kernel.org/netdev/20261014151200489685SCIlolykW0NGfL5EtQ@zte.com.cn/
+[3] https://lore.kernel.org/linux-rdma/20261024071539.2182864-1-zhang.yanze@zte.com.cn/
+
+Yanze Zhang (7):
+  RDMA/zrdma: Add build infrastructure and module skeleton
+  RDMA/zrdma: Add core data structures and ABI definitions
+  RDMA/zrdma: Add internal headers and hardware register definitions
+  RDMA/zrdma: Add hardware resource initialization and verbs skeleton
+  RDMA/zrdma: Add device probe and remove logic
+  RDMA/zrdma: Implement context, PD, and mmap operations
+  RDMA/zrdma: Implement device and port query operations
+
+ MAINTAINERS                               |   6 +
+ drivers/infiniband/Kconfig                |   1 +
+ drivers/infiniband/hw/Makefile            |   1 +
+ drivers/infiniband/hw/zrdma/Kconfig       |  11 +
+ drivers/infiniband/hw/zrdma/Makefile      |   7 +
+ drivers/infiniband/hw/zrdma/zrdma_ctrl.h  |  22 +
+ drivers/infiniband/hw/zrdma/zrdma_defs.h  |  19 +
+ drivers/infiniband/hw/zrdma/zrdma_hw.c    | 118 ++++
+ drivers/infiniband/hw/zrdma/zrdma_hw.h    |  21 +
+ drivers/infiniband/hw/zrdma/zrdma_main.c  | 305 ++++++++++
+ drivers/infiniband/hw/zrdma/zrdma_main.h  | 216 +++++++
+ drivers/infiniband/hw/zrdma/zrdma_type.h  |  86 +++
+ drivers/infiniband/hw/zrdma/zrdma_verbs.c | 697 ++++++++++++++++++++++
+ drivers/infiniband/hw/zrdma/zrdma_verbs.h | 134 +++++
+ include/uapi/rdma/ib_user_ioctl_verbs.h   |   1 +
+ include/uapi/rdma/zrdma_abi.h             |  80 +++
+ 16 files changed, 1725 insertions(+)
+ create mode 100644 drivers/infiniband/hw/zrdma/Kconfig
+ create mode 100644 drivers/infiniband/hw/zrdma/Makefile
+ create mode 100644 drivers/infiniband/hw/zrdma/zrdma_ctrl.h
+ create mode 100644 drivers/infiniband/hw/zrdma/zrdma_defs.h
+ create mode 100644 drivers/infiniband/hw/zrdma/zrdma_hw.c
+ create mode 100644 drivers/infiniband/hw/zrdma/zrdma_hw.h
+ create mode 100644 drivers/infiniband/hw/zrdma/zrdma_main.c
+ create mode 100644 drivers/infiniband/hw/zrdma/zrdma_main.h
+ create mode 100644 drivers/infiniband/hw/zrdma/zrdma_type.h
+ create mode 100644 drivers/infiniband/hw/zrdma/zrdma_verbs.c
+ create mode 100644 drivers/infiniband/hw/zrdma/zrdma_verbs.h
+ create mode 100644 include/uapi/rdma/zrdma_abi.h
+
+-- 
+2.27.0
+
