@@ -1,63 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793097031;
-	b=GmJnN2t7HsNmaVCZ1wmMjMBo4f4Lph1xC2JxUI9uzgyyaki9D3IENoU8vky+7UE2PHfw
-	 ScvnRuDMJMIb4RJw7rTT8H4IwLfVKavb7p+1WSbcT8gaXX79+KBJ7JR2kDuD/J1pKxmwi
-	 ohnVoKXzr2g7AZrKqtyct3iLQPYewewo10qbuDRtmFRZkgfvtpbIyaR3yrXK1j7Ri+JA8
-	 eGKohAR4wK3dw2aOIk9tmep4LTRIWTucTJnsNBd7EtE11SySYIkVeo70Nt3NpJPLYcq9l
-	 zyCxTr8lxR7KN5TQ6I4GVIGUPjCQNRTrSZEAec/EnxpwKRnP7RptMv2M+t2stB8nRtg==
+	t=1793097608;
+	b=4Re2ZMPCzDKpXJvWPi0hAencezj8Tk2U+oa09/fmDzr0nmNjpqlkn5PD+zbSG16BU8XU
+	 PbmcQ1vGNqvRTqY0E15KwsGa+RRu9+b6RC2V3gtgHgiuVPMmJaMGRKKufKMBroNq1M9TT
+	 P7BtHvi5RRxLfIyZrVzdRj8jgGgFCBivL/SQXXbI36do5ItMmjPE2fWjS9NK7rua7IW04
+	 dWasnTDj/sz6GT5Yo5VL8dYwfyHCaCDQgm3ZhPQFDqTcbotba8HawAqCAptnyfJIDNHMA
+	 SDM/5S6zw2LtDXUIGWWhoM3eTzljJEUYWF+XRr2mnPKOYHWRXuiFX64GKcKGdD2KQ/g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793097031;
-	h=Received:DKIM-Signature:From:To:Cc:Subject:In-Reply-To:References:
-	 Date:Message-ID:MIME-Version:Content-Type;
-	bh=atsgBdyBqegGK3OVxmB2Ib4i2Mom+Mos8vzmgTui5jE=;
-	b=2jljJjTqSrx3jhHursNnQx1LhaeGPgoFqQ1PmD12mxdwou3GdLqiyWPHoVnbVTmgjbCF
-	 jsT4X/p8v8ZA+eatRZAaY8XN7q2uN+ASTaGg3xS3GSHFkCjVfJmdksezXopCHvr0IQ/hP
-	 DaJSZ8sFsm/Rkrz31uTW/M8mrco0cfWOPT4mXZBHWuysP+9WNj5U2HQSN6R/E5OMlkDJG
-	 4lF4MYN9iN7ZO3Kn/dl+Is7VU0zumZICDzbpa9XvSqNBI8r8kL+MfYgmWKUa33pbE+hcS
-	 kZHdV0TMyTk6qCsmilox34nTLlrDChQBaBxp3Ii5QnaggA0a7adfypXPBLuzJ31MZ1g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793097608;
+	h=Received:DKIM-Signature:Received:Content-Type:MIME-Version:
+	 Content-Transfer-Encoding:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc;
+	bh=GuGgE8OKtJwoAitwY4DD0ELaMDg6PGFPllXF4+JMIEM=;
+	b=q3MnP4JL8WhIf3xArVHvIYSc8uYDlfbXGcYzgFGjkEI1InE1yZ4tH297XBqnawPHvFEF
+	 ywKnt0EVxL7O8DPLSIrwuGi1p5v/MRFD4L2HolvCgyP4PEKmRc1cEh9dR8aSavHAZJejq
+	 AQww7h6/ywzrw2S2wXxunfR204fpfwbCqTsNVTxqW2FnTz5rofojXVqLYhi/sQRhEhnHa
+	 iPsQffPsPesfqcuXwjdS5nUQnVgukknf2F8hS+nWQihoOSB8yUNAf2vM/UrrPdTtDXPT0
+	 Qf7JPyebiLSzwpQ87fOesqtBcxu3WsGsHAgoN00VB8K6xsEW9aG8qD5eMHYqaVgigrQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ibEQ5JRM;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IcaPz4Zv;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBD8E606A31D;
-	Tue, 27 Oct 2026 10:30:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE58D606A31A;
+	Tue, 27 Oct 2026 10:40:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ibEQ5JRM
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAA5C1F01825;
-	Tue, 27 Oct 2026 10:30:29 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IcaPz4Zv
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E44B1F01825;
+	Tue, 27 Oct 2026 10:40:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793097030;
-	bh=atsgBdyBqegGK3OVxmB2Ib4i2Mom+Mos8vzmgTui5jE=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date;
-	b=ibEQ5JRM+nfVFJq71Qq0Afypd9bmp6lFF7bzm1lzHy8GqnPTZ5RWE0cE93UKnrNPO
-	 tzFqXukA/l1OZRRAbQ/1pnPIUl5Y1u4nGSWS1flr8p/+1Ui9tDabfwD9jnDyOxyhLR
-	 k/ALoULdgPTNgeyhhnotKEXWx5FgiiyTZ2yaeJq/yO9fJsb7/z99pNo+8BgC9nKE6d
-	 VyDf6gCz/7l68rlWVLMLB/V2a2ZZNU2CrFXmzyB11Egpnq6Z4NrKzrgOY9h3ZABeYU
-	 GFLIUyncemQuAtiKBGs68MTnobMNsY5X/WNKqtWQ8PECCsfqXEDWZXqCq86lTxuUxA
-	 afsj8Y2pq3oQQ==
-From: =?utf-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn@kernel.org>
-To: Jakub Kicinski <kuba@kernel.org>, Todd Bert Freed <toddfreed@meta.com>
-Cc: netdev-bot+sashiko@kernel.org, netdev@vger.kernel.org,
- borisp@nvidia.com, saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com,
- mbloch@nvidia.com, andrew+netdev@lunn.ch, davem@davemloft.net,
- edumazet@kernel.org, pabeni@redhat.com, daniel.zahka@gmail.com,
- willemdebruijn.kernel@gmail.com, horms@kernel.org, shuah@kernel.org,
- cratiu@nvidia.com, raeds@nvidia.com, rrameshbabu@nvidia.com,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-kselftest@vger.kernel.org, dtatulea@nvidia.com
-Subject: Re: [PATCH net v3 2/4] psp: support ipv6 extension headers in
- psp_dev_rcv() decap
-In-Reply-To: <20261026175805.6d4dcae5@kernel.org>
-References: <20261023234640.1459291-3-toddfreed@meta.com>
- <179288570143.3134.8925369868949382653@kernel.org>
- <CADh2yMyYS-PWP4912En9D6B9up6Kz-hnCthNkWot+e7N8-q7ZA@mail.gmail.com>
- <20261026175805.6d4dcae5@kernel.org>
-Date: Tue, 27 Oct 2026 11:30:26 +0100
-Message-ID: <874ie75tbx.fsf@all.your.base.are.belong.to.us>
+	s=k20260515; t=1793097607;
+	bh=GuGgE8OKtJwoAitwY4DD0ELaMDg6PGFPllXF4+JMIEM=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=IcaPz4ZvjFKpqFzQXEKc+RJvHPcrk4QFFmYHigqPle8EU3LugD8/nQwNhnZ8uCmGI
+	 GOgLtG7lxV9v4y9SDE1dJiEp9fZ5lJAHpsDiDN1YJ9jMC47PDPbQ9mB1f/o13q7Cl3
+	 oJt6orM4CuDRotWB2p0HIYv3bH9Re0/ys/wF8sYVG7coTLT7qSCbxqndYsys3BGzMo
+	 ElDnOf/K/tsWPx+riRNxuhxSjYyAjg5+FlBlQddRCzVQPBeSDmjH3MvlMo7BAP9f4H
+	 coEmjWatB/F0Rz17bW+Wrggy8joatN1SAwK/0IHw2mL2ZeD7D9cjfl4s2mfBXqtMr0
+	 rs7dee0iubtoA==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 445853AA8FFF;
+	Tue, 27 Oct 2026 10:40:07 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -67,29 +53,46 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 0/2] net/rds: fix init failures leaving built-in
+ transports on a dead core
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <179309760607.3719222.9152357183301590944.git-patchwork-notify@kernel.org>
+Date: Tue, 27 Oct 2026 10:40:06 +0000
+References: <20261021195837.142802-1-achender@kernel.org>
+In-Reply-To: <20261021195837.142802-1-achender@kernel.org>
+To: Allison Henderson <achender@kernel.org>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
+ edumazet@google.com, kuba@kernel.org, horms@kernel.org, oleg@redhat.com,
+ joel.granados@kernel.org
 
-Jakub Kicinski <kuba@kernel.org> writes:
+Hello:
 
-> On Mon, 26 Oct 2026 15:05:42 -0700 Todd Bert Freed wrote:
->> > The PSP ICV doesn't cover the outer IPv6 header or its extension headers.
->> > An on-path attacker could take a captured PSP packet, insert one of these
->> > headers, and set saddr to an address they control. This assumes the
->> > device authenticates such packets, which this patch's premise implies.
->> >
->> > Several of those handlers reply with an ICMPv6 error that quotes the
->> > packet. With default sysctls, this happens for an unrecognized routing
->> > header type (type 0, for example) with segments_left != 0:
->> >
->> > Before this patch, all of these packets were dropped at the is_udp check.
->> > Forwarding the decrypted skb itself looks blocked by
->> > sk_validate_xmit_skb() ("unencrypted skb with no associated socket -
->> > dropping"). That leaves the ICMP error path as the open channel.  
->> 
->> Agree with this finding.
->
-> If we're leaking cleartext in ICMP responses that's also a problem
-> for TLS offload. We should fix that, based on skb->decrypt. right?
+This series was applied to netdev/net.git (main)
+by Paolo Abeni <pabeni@redhat.com>:
 
-Ugh, interesting. Drop ICMP (no, on v6...), or just include up to, but
-not including transport headers?
+On Wed, 21 Oct 2026 12:58:35 -0700 you wrote:
+> The kernel test robot hit a slab-use-after-free on rds_wq at boot with
+> CONFIG_SYSCTL=n and RDS, RDS_RDMA and RDS_TCP built in [1].  Two
+> separate bugs are involved.
+> 
+> With CONFIG_SYSCTL=n, register_net_sysctl() is a stub that returns
+> NULL, and RDS treats that as -ENOMEM, so rds_init() fails even though
+> every tunable has a usable default.  Patch 1 only treats NULL as a
+> failure when sysctl support is built in.
+> 
+> [...]
+
+Here is the summary with links:
+  - [net,1/2] net/rds: do not fail init when CONFIG_SYSCTL=n
+    https://git.kernel.org/netdev/net/c/fbea154a8664
+  - [net,2/2] net/rds: do not initialize transports after rds_init() failed
+    https://git.kernel.org/netdev/net/c/ffbbc315b8b8
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
