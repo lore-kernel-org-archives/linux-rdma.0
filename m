@@ -1,63 +1,104 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.46
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793062687;
-	b=2fU0sbn+juATTNDOzT0Pmue2nrMRKUh5+SeLRfRVS6N3VfwF0lcADWch3/vuBxJUhLf1
-	 42LByctwZPDooRrcP+DjK4I3qbD2dhbfGjO53crlM/wWV8sxfu4HHQ8sYJBxdusmKn4/Z
-	 GHglw9+daeSpCQXjeu39WdL5VtJOxQmNsK/lF3tulcpy6AdhMSWWftPay0K1/DsO2+qow
-	 1ywY3ZE6WkuZEAToz7G67WCskjNDCxmIMw06gPCZvYeWNShCQIZcM1h0NRbfm6BWYFGnV
-	 wIUuw5Ab+KTMKO277Ac3pahZXxmv/8wJvPy6OlpxG1FtgYdERZZQlTBGPxroZdT3Z6Q==
+	t=1793067370;
+	b=G7Fm7sDhpmQ8kvtQuXewZsGFn4XScQ9McoRrjF4Cev12MhW/lZLm3U6wGG+67q6n4fIK
+	 r1OfJqrAjVTMWbBKVvTtryveeFgbYntIT8IZG5CReyrz/qJpVESWwcy5iHc+zxuxbabLX
+	 2ydnd+HcesFD/NyJmBaRzhJ5lkTTWyuM4np4z8DGkC/WeeCUdLjOJnvtp3jlmPBzVfVqi
+	 aWuRRmTlUnSHc7/R7qve4HxWzAdLGMy1MMES/2UMtw5/qVSUOcbtMpYUoY922taTD+au+
+	 YamE4ZIo9QHuClGHk5ooyf9C8SGW9139txVcfWUxPDEF/JdfRbZdz9qOgNFQSfvXoiw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793062687;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 In-Reply-To:References:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=sUEwDKmhUCK72nyNcfOYNUcMipaRMF0mJ0oZfnfboSs=;
-	b=OrdCRh1n1EhFNKjryEt7/UAwDX774HHAyqeUPVjmrY4b8OBt+eMJgY3TCUha861RQ20J
-	 7J/kZzMkGTSK4RPBW27l8+SBXo5PqoWrIhMPKo3UMRkoJUEVLaxJLhz0TahbGoFtQJgRO
-	 F4cp10IZzscWadXJgELTHJsuLfliwC++9tesRc0wNeHU9udCIJDSfPmR8v0prD4TrB0EJ
-	 sARqjPeORQdQRUpiNZzjMNP6SMYZLtx0yhWmC7aThp0Zh+8WvxWjBbwP5YThaahVsWFWg
-	 bmsr1f0cva3/cMeg0VBKapp1ma83sPrBjMnrADKxhBrZsjioCHbkYWzU9o5NiNdIzaw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793067370;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To;
+	bh=213hVxaY8zz7NJ3gzXzSYUeeO0Hb0kJ1MH6CZUy6aio=;
+	b=mPPc4nZQeLpsUl9zbs3VUkuGuos0hvKdRyYA1Q2VKthbdWOHKxBc5ItGxkSLlrQto4Ky
+	 nOQxwu0lRlubdSjNKoyEgVKh2y9sAKrU274jIM+iB1h3iOr6l+EB+H7pd52fm3ksStukX
+	 w7MPxIKZ1rlrk/QsaGSaIBzHsh2wzpmYZKJT8kXsM2etSvqsseN9PK8L9Bh6kZAtkJQPo
+	 eBuPtIhsILrMjholw1zr67BSnktgtilV8WXab1ECUzPxUaXtfFSy8duLD/Yzd4tj1Z0+F
+	 KV51NG3thUE1q+wpVmI0xUGG9o7GWCy2L/8t3tjF7h9gDGyBsGYzZfh3JkBhUms9NNA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QnK5Angs;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=TtZulEcb;
+	arc=none smtp.remote-ip=209.85.221.46
+Received: from mail-wr1-f46.google.com (mail-wr1-f46.google.com [209.85.221.46])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69B59606A31A;
-	Tue, 27 Oct 2026 00:58:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99F17606A31A
+	for <linux-rdma@vger.kernel.org>; Tue, 27 Oct 2026 02:16:09 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 99F17606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QnK5Angs
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3ADF31F01825;
-	Tue, 27 Oct 2026 00:58:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793062686;
-	bh=sUEwDKmhUCK72nyNcfOYNUcMipaRMF0mJ0oZfnfboSs=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=QnK5AngslxK4SxemRGecOkdXVnJ9wn73lyJr7uILSfTFni5Wc9opi+Aa0Fy8tIDCn
-	 PaKwQy0Mv7wBKxZMH8Rb6hvW6Ol3JRJKH11j1RZuxoiQ3u6RAb3KcB+ZVw3tUMl7UK
-	 VXGoVp6CFCwvAa7SRH+Hml9lACCG5v0asZVcfHFlA+p17Ih6GJvlvmmOQnhvbkg0Ab
-	 a1zImvVSuIbcpV0Au4n3THn+o3eCdrAJWfWX2c7NSf5h2SvfNSVBWMQXMguN/Vh6nV
-	 CUNE10oSAThlY5bFvrTYgwlIsNdCpZu7FMp+xwWJr7uuB0m9mYwtu/w7gAlSYGcVx2
-	 iMRtb34HOtBpQ==
-Date: Mon, 26 Oct 2026 17:58:05 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Todd Bert Freed <toddfreed@meta.com>
-Cc: netdev-bot+sashiko@kernel.org, netdev@vger.kernel.org,
- borisp@nvidia.com, saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com,
- mbloch@nvidia.com, andrew+netdev@lunn.ch, davem@davemloft.net,
- edumazet@kernel.org, pabeni@redhat.com, daniel.zahka@gmail.com,
- willemdebruijn.kernel@gmail.com, horms@kernel.org, shuah@kernel.org,
- cratiu@nvidia.com, raeds@nvidia.com, rrameshbabu@nvidia.com,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-kselftest@vger.kernel.org, bjorn@kernel.org, dtatulea@nvidia.com
-Subject: Re: [PATCH net v3 2/4] psp: support ipv6 extension headers in
- psp_dev_rcv() decap
-Message-ID: <20261026175805.6d4dcae5@kernel.org>
-In-Reply-To: <CADh2yMyYS-PWP4912En9D6B9up6Kz-hnCthNkWot+e7N8-q7ZA@mail.gmail.com>
-References: <20261023234640.1459291-3-toddfreed@meta.com>
-	<179288570143.3134.8925369868949382653@kernel.org>
-	<CADh2yMyYS-PWP4912En9D6B9up6Kz-hnCthNkWot+e7N8-q7ZA@mail.gmail.com>
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=TtZulEcb
+Received: by mail-wr1-f46.google.com with SMTP id ffacd0b85a97d-48e00eee27dso2272824f8f.0
+        for <linux-rdma@vger.kernel.org>; Mon, 26 Oct 2026 19:16:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1793067368; x=1793672168; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=213hVxaY8zz7NJ3gzXzSYUeeO0Hb0kJ1MH6CZUy6aio=;
+        b=TtZulEcbNFyPlav19CVn8JOkrTSk7zs5dARKhv/oeoNxPjJo58m0J8bDm9HAf9vao/
+         8uZSan2SUjjiCCDBxLRs8IF5s57PpOn73FCF22A5kq4GpKRfcSDCmUa/Ydya2gdhjRpl
+         Ez7bf27k4X4CIx8vN52T+Hib0PJbfYbJXIa1FWytTOLGP7IJp5CmR55JW9w2yJeqbhtQ
+         HCDFHOFmOq9K+fvXfhW+tkfafj5ok0zg3TAabBQASrvYyWvCy59VBXNfNj4CLRe2fzP6
+         s4M63mxt1ERrLwgQCvR4oWTyymbUt6Fyyoe6QR7IkJ80D4GR6dzBQcz1zrFf+yNjvahP
+         S5Cg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793067368; x=1793672168;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=213hVxaY8zz7NJ3gzXzSYUeeO0Hb0kJ1MH6CZUy6aio=;
+        b=hob/NpGLWGw68VpinfmSbDon70Mo2kH+ss09x1SwKxzoxooRxce8YoL0nEvSrD8apz
+         +iNOza5UvwWid7c+WdUXaCrPQVaAA2Td9DxjBxdn2r67wvth0EUaHz2UUaPkqUtldjxL
+         DeWRQ0Qn5X2tgCaKlaqo8f05NbSQGlAoxe+RSSoXiwO3CHVYrj98qNo0k+UN2Lb+DIJE
+         +ID/EwF/WTdQ6/iunDZatYpl9UJp70JDKqN1a4a8Y2iAVPjEndd9HhsDsUBk+0/jhO2u
+         EjQq7qlab7GD7DvD9pT1mnFmE02ecn0FwxAwCzdq3gUB16fDB6URpeGUbGB/qC7yrFjG
+         fmCA==
+X-Forwarded-Encrypted: i=1; AKwUvBw53YbEjZY7VLWCVkGgRKmMVxrrekDbiHGHIkKZ7QDemhrQaKDIqTL9050+R7FhqdqEY0SNOHgeq6Rv@vger.kernel.org
+X-Gm-Message-State: AFq9FYLdkpbah59ZlvbMvRiMBcUht5U4UeWMZ2+nnHFO7nPBBR5lI21t
+	6e05GibHhHgxU0KksweFIxPdk3RVQpt5pZUwV9u7hKbBSafEp0G4Bh0z
+X-Gm-Gg: AYBFou3UzRTl5JxpQAeVnfkTNkpBpkZj/Vvf2JtQgCRQlIicG/TlnBQxUyKhGnz9VSF
+	h+4wpX4YkvdHnv/MB9KLuiRn6l6Fbc68sThtijY0h4zgef09Y9SGbSHJgrllf70tKJp9sphMXJS
+	TKDkVHWqCaOjjmuvaI5YXNte5MXgJXSElDWvNw1sdhb9GWFN2akyJTjJdHpUXJu3V6hMIgg/qbZ
+	7SZlq0FeXshPmDYe8v9898M63ehVQo0aoZMPHOPRlNUo/lk1Z70huYVORPCg4YRCr3FN6LzaYqD
+	lX1IpPVqs7f5g3OfSgjNSBD0SrhT/fTeGh7UuYLB0z1aAN/W1M0DRq6IBLY6U01bHn7ORznU6b0
+	1u344Mi+iHUju18d3lUbUH/aZPccgDZ5lTs1Ar80X6Akz2Znj9pSOEEKTtsL0cmKhl6JKxOmC61
+	GR0zIH9QoHv+4Vvkrk4p3GJawk4hwEuIbxgzYzKHorgmpON0lh8ZENYu5tRd9/adwBk4rc33qIF
+	+F38IlvcDudL4s6M3BG3Fcds+VWb7x1HkApp9NLaDk55i6dm4PlQ4as+X8Zj8XDir/zQlF1Vw6y
+	Pxe/guaus3hUQ8xMnDzSi0L8gdkC76IeJm1uUosoVcWLR6tdossUt77NHXL2FYzS9l8lMwLupJy
+	KkKQFMN34NINVeBN5SAgBJ2Jlb/db0U5vSTAY+ayl
+X-Received: by 2002:a5d:6406:0:b0:48e:202:6718 with SMTP id ffacd0b85a97d-48e3eb8bbe9mr13317253f8f.25.1793067367758;
+        Mon, 26 Oct 2026 19:16:07 -0700 (PDT)
+Received: from MacBook-Pro-von-Karl.localdomain (dynamic-095-117-118-122.95.117.pool.telefonica.de. [95.117.118.122])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48e3ebc3dcbsm19591505f8f.14.2026.10.26.19.16.05
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 26 Oct 2026 19:16:07 -0700 (PDT)
+Date: Tue, 27 Oct 2026 03:15:34 +0100
+From: Karl Mehltretter <kmehltretter@gmail.com>
+To: Alistair Popple <apopple@nvidia.com>
+Cc: dri-devel@lists.freedesktop.org, christian.koenig@amd.com, 
+	sumit.semwal@linaro.org, jgg@nvidia.com, 
+	Thomas =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>, Simona Vetter <simona.vetter@ffwll.ch>, 
+	Matthew Brost <matthew.brost@intel.com>, Vivek Kasireddy <vivek.kasireddy@intel.com>, 
+	Dongwon Kim <dongwon.kim@intel.com>, Leon Romanovsky <leonro@nvidia.com>, 
+	Kevin Tian <kevin.tian@intel.com>, Xu Yilun <yilun.xu@linux.intel.com>, 
+	Baolu Lu <baolu.lu@linux.intel.com>, Felix Kuehling <felix.kuehling@amd.com>, 
+	Alex Deucher <alexander.deucher@amd.com>, intel-xe@lists.freedesktop.org, amd-gfx@lists.freedesktop.org, 
+	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org, linux-rdma@vger.kernel.org, 
+	iommu@lists.linux.dev, Alexey Kardashevskiy <aik@amd.com>, zhipingz@meta.com, 
+	treding@nvidia.com, jhubbard@nvidia.com
+Subject: Re: [PATCH 23/26] treewide: Rename dma_buf_attach() to
+ dma_buf_sgt_attach()
+Message-ID: <auAIO0y09SXk34CN@gmail.com>
+References: <20261026053623.202642-1-apopple@nvidia.com>
+ <20261026053623.202642-24-apopple@nvidia.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -67,28 +108,36 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261026053623.202642-24-apopple@nvidia.com>
 
-On Mon, 26 Oct 2026 15:05:42 -0700 Todd Bert Freed wrote:
-> > The PSP ICV doesn't cover the outer IPv6 header or its extension headers.
-> > An on-path attacker could take a captured PSP packet, insert one of these
-> > headers, and set saddr to an address they control. This assumes the
-> > device authenticates such packets, which this patch's premise implies.
-> >
-> > Several of those handlers reply with an ICMPv6 error that quotes the
-> > packet. With default sysctls, this happens for an unrecognized routing
-> > header type (type 0, for example) with segments_left != 0:
-> >
-> > Before this patch, all of these packets were dropped at the is_udp check.
-> > Forwarding the decrypted skb itself looks blocked by
-> > sk_validate_xmit_skb() ("unencrypted skb with no associated socket -
-> > dropping"). That leaves the ICMP error path as the open channel.  
-> 
-> Agree with this finding.
+On Mon, Oct 26, 2026 at 04:36:14PM +0100, Alistair Popple wrote:
 
-If we're leaking cleartext in ICMP responses that's also a problem
-for TLS offload. We should fix that, based on skb->decrypt. right?
+Testing the series on a Jetson Nano exposed this path. A 3 MiB system-heap
+buffer was imported into Tegra DRM and scanned out over HDMI. With
+CONFIG_DMABUF_DEBUG=y the PRIME import succeeded, but scanout immediately
+produced display SMMU faults starting at 0x300000.
 
-BTW I haven't looked closely but is there no existing helper that
-would give you the ability to walk the extension headers?
+Tracing the fault led here:
+
+> @@ -475,7 +475,7 @@ static struct tegra_bo *tegra_bo_import(struct drm_device *drm,
+>  	 * domain, map it first to the DRM device to get an sgt.
+>  	 */
+>  	if (tegra->domain) {
+> -		attach = dma_buf_attach(buf, drm->dev);
+> +		attach = dma_buf_sgt_attach(buf, drm->dev);
+
+tegra_bo_import() passes the attachment SGT to iommu_map_sgtable(), which
+uses sg_phys() and sg->length. The SGT mapping contract only guarantees the
+DMA address and length fields. The debug wrapper clears the page-side fields,
+so iommu_map_sgtable() maps zero bytes. 
+
+Tegra only treats negative returns as errors and keeps the reserved
+IOVA, which scanout then faults on.
+
+This page-side use predates the series, so the fault is not itself a v2
+regression. Is dma_buf_sgt_attach() valid for this call site, or does Tegra
+need a page/physical mapping type first?
+
+Karl
