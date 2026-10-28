@@ -1,91 +1,56 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.222.170
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793165948;
-	b=oLlPqJEUfOTkgxLXFZeeY2rwd2tuyTUVLw+0/TsGTDsxnnOVkgFH9Dy5EdvvUHTy20sT
-	 qajzpdryKIzuilVH/hv7e+PBj7zzfSwCRvZ2hN2+UwHZICpDJPPrvsnLv8DWkwtJUxiHR
-	 Q/eIxIIuvlgh7k4GCFEYjLsR9wueV2XdBbT9RwC9YqIcdNazIqcCOv7+xCaPdPvvWY59M
-	 p5OnTjfyJYsQ4JeLMBIVUxGONpSqJ6mSfGqaKDmo6eUurjTR7CAxQOx/v0XbkvOKdKLaf
-	 6QSMOvFFkAfoDP3yzTQZvnnZzmU+jdbzD0M4Gd1oEdq10vg5Fn3B80877gDppmZg+VQ==
+	t=1793166818;
+	b=4hWax8UkguI1rBWLPVVaONj+xw4XJwYIW2dyISlabU2Ds/j8sts0XNv9uxQzD6tAYH4O
+	 nvDX7NNGuBV5O2dF1P5Aw9ZzMOlVIK+k1h5AxeTbrX2GZhvVvCcucG1+81Pz8lxTgzJYO
+	 bDVNhs4X4Lx0TBw421hq8VAOjYoEuW2gedlwjnYe9Xaq0BiuY9kNOCPpXf4QCx2LW7z8M
+	 ADAM5A0ErSSR4mnJ9V98jBTsZWSUWvrIb1OOkxHO0IlTk7bj0oxe6BPY/Sz7Im95wnwQ5
+	 IQ+s+BULvluwww4y9HjEti/CZjAYrpmffcF+9Ivhyy8gOIiRfaf5TSGNfp8rbufLY6w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793165948;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=+/9DI4ghtrUoPJ7/JxQAUc3C0bE7cOUVGnHSlKrNsLo=;
-	b=h/WKVlMmNjWSW88U6ELSitaiayBhEClWeqFh0zPdifrPXfm2gFh+pOOUf8LKmhtG/G1g
-	 hERjNx3JMzMtVSIZKIDjxJV6j1PBG26la5KRUVRTvU49IphvjwDEJ3IpAVSmqL15XkmQB
-	 RJ9UPWYIqL3BXOm41uHDeq2LngJL9GCQ7rrfJyOXqC+1LfhRsVhOKb+hgYPgPk7seg+jB
-	 9NDck60QOZvWXUmhRUzJxEBZQx8EHCrsA8V6fROuO5meRRUYSZsE4H7gx9IYtXynACCmI
-	 TM87JtmSmKBXI76JUOwiSuhf8/chqoRi0OReiRjE/KzE8AcXk8JJB8AyxRttCWSdq6g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793166818;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=BsLt1EPEEaqFaSgA0npJ6ZrvbI2wkE13bMuA21eEQkM=;
+	b=oZeqbGHWKW/GE9WAG9ZBDtwCkrSjS8c5gWBJmjdQaBrbi9qWAIz/R9SzILYQSk2Q7cKB
+	 fm5tLTFCgWJorQxsw/8RsUHEwriALOYvBEQRhVjtsJYsSeKd2hXzh0+CYnmEwyOqB2hjK
+	 2TWqF0uzonrRF11lzGtDXS+xBmoKTGpz8XTmFnTThvhMopcSKzRyMiYGS6LYgI8nR8/li
+	 NV8z1eJ4mUQy2hzA6o7uN6MsqeTBpnjXjtC+Lk2cNDBv3fVMx23iZd3tjwH0UudAO1lbt
+	 +Svnkcbk0rhPVTPL4pj4QltQky7CJxSAHPSLiIyWl6nAPDZeI6MzaFgnauEG9UgqScQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=CHt77ZqI;
-	arc=none smtp.remote-ip=209.85.222.170
-Received: from mail-qk1-f170.google.com (mail-qk1-f170.google.com [209.85.222.170])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OAmAHjNL;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F920606A31A
-	for <linux-rdma@vger.kernel.org>; Wed, 28 Oct 2026 05:39:07 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1F920606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2964A606A31A
+	for <linux-rdma@vger.kernel.org>; Wed, 28 Oct 2026 05:53:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=CHt77ZqI
-Received: by mail-qk1-f170.google.com with SMTP id af79cd13be357-93f3c89594cso34991785a.2
-        for <linux-rdma@vger.kernel.org>; Tue, 27 Oct 2026 22:39:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793165947; x=1793770747; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=+/9DI4ghtrUoPJ7/JxQAUc3C0bE7cOUVGnHSlKrNsLo=;
-        b=CHt77ZqIXKGtXe78zBpuAK6JNgcHAAqO0PYcQJ9q4Ah2ZCdyVRc1wZ9TcimrEUKpYd
-         1kH7Hqy61+deaOxPNEEOhwxEqtWvgUtGXaN+FsxVGJGs9NRh+lZQb5HU3VI4JYj9Kqdw
-         MWvRBmh/3DAnStFHZuenQ62Euf01ZnppjcfAVTXI/fahGGpjE7h3KAtEqtw8zEa/DEn0
-         EHZLIbQ3IZnGcCBjKGm96r4Ue5H447Eo4oAtZXkz3Fdt91rbSnYDRvxMkEGNs5n2tIg/
-         71jajOnAVnmZy1Aj585nTfKTLtm/TawJExoBhtnsmzAd6Cl9H/rTs493RvRXmTIx3/IX
-         6jrg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793165947; x=1793770747;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=+/9DI4ghtrUoPJ7/JxQAUc3C0bE7cOUVGnHSlKrNsLo=;
-        b=FlqdQ7HITioylioCZ6in4drFgeQjeYsR3HuKjvgTAVNuv2jJR/iTZBNGZJ0Gnt/qA7
-         6wgIXuWwBaKcH5WAalWVqIAHMkkxmLWr2/qPWdLvEqpvFUXKt4CjkocsYx8GhUA1sMWU
-         iRFOrf3zfxax5m5nDaMG2kR2LLFNHA07bZf8KTxLpAKJBH4aIlIUvLW4JYZcd8M6LzBl
-         QDkwTaMBxd1WJ00nr4PhINjAfugcj58MNBnw8UFbxTHRV0Yr4maPZqGdAuSqebry2irj
-         Qfrq6RzZgNNLGkGDMOr4vABrn846qWnadmzkE6mzekfDiNWP9GEav+pT06OdA8P1lPFi
-         eQFQ==
-X-Forwarded-Encrypted: i=1; AKwUvBzSguTx5QQ4zgtXdXDcrOXGAH0ht4vR02ZkezOtrxLxaMe8vLrAJ3AZ0SVMaWOE/ApRkqy2mtyWm92G@vger.kernel.org
-X-Gm-Message-State: AFq9FYKyMaqdUMaFqWl20EzXfJ7OJ+oQoCyIwiht1vM5QV07SWiiHt9S
-	gYthI4nXmIO1IWjZ+v+pdS4jpqFkfv9kwaL8mNPZF/6bAmDWzaEE6RCL
-X-Gm-Gg: AYBFou0U2uoV2WqLCJ2EfHLLPRGe9xNVgczz9URj+0cuvtIL5w3JEiQCnlNIX3rM0YH
-	5F/yVXdXnOSDtnFrvYYiy4nrdPXm04+L0WcKBhDtAox5Sy2IQWeaFWK1hgnRCkZVkRXQNtcLPIm
-	5bJIKv7eK8x8Ri+FkV/ZmOkReKXPdCjRWLbupiohEqtDPkrKXr0RuMo0DyifUJEBC5o5bNKlYRb
-	wlyGysWDA/Ek5JnZEzbt9DQ96t1cQ5AKrwdmKFlhfFxCVOMEz6z/eipmH1mTlo4SdKQd07nENPI
-	3Gum5X6QhRDXwP+diOshaCo1sWx3p1uz7/mGX3QV6K3Mm5V/24TPqZ/+g/E6eBBni3lDCaXNOiB
-	as+E4DGIkdjH02aDX0t5EovTvZMYX0Prqf+HTPQf8IHBs+Njy/QXbe5waUc/fY0lvQPXqcpzHzB
-	xaDchQwVXOpaRJVmt/HVnqIG/Xp6I5ToHCRHTA8NbVgUiknXLoXaorHA2aobtzgis88No8VQhPS
-	jCstnozr2GEMgpWmyzIY5cLsB64wgK+MPCuqLjU5Ir1W57yai6NabVzjrAGaFNspHfVrK/V67Lr
-	BiyX7C4CJ+QfQVSUeqEOwskai0kPeY9nbGvyxibEpF+0XQta7qFF
-X-Received: by 2002:a05:620a:3190:b0:93f:24e6:403e with SMTP id af79cd13be357-94408a96046mr167512085a.54.1793165946991;
-        Tue, 27 Oct 2026 22:39:06 -0700 (PDT)
-Received: from i4-gl-tmk5904.ad.psu.edu ([130.203.156.186])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-940f0a912d5sm1169781885a.40.2026.10.27.22.39.06
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 27 Oct 2026 22:39:06 -0700 (PDT)
-From: Yuho Choi <oss.patchbox@gmail.com>
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>,
-	Yishai Hadas <yishaih@nvidia.com>,
-	linux-rdma@vger.kernel.org
-Subject: RDMA/mlx5: question about a failed destroy in the SRQ create error path
-Date: Wed, 28 Oct 2026 01:38:57 -0400
-Message-ID: <20261028053903.209809-2-oss.patchbox@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OAmAHjNL
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AD0E1F01825;
+	Wed, 28 Oct 2026 05:53:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793166817;
+	bh=BsLt1EPEEaqFaSgA0npJ6ZrvbI2wkE13bMuA21eEQkM=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=OAmAHjNLpo5bpm6eS/St7z0RZdeLGSTrhTuIA9yqh384b0jlxKECTnhJZn8RnwxcA
+	 lu7HZIyB13dWyklGEOhCynwaKqcR6zfj/E7YMzCnrHQSZWUcLpq2g5RR5cE+sqAMrB
+	 4w6enkBt4cG0Tl92akic+s79u+DtFdLsOu/JyE2P5GNHLb8r6Xg9dMG9CaKP2DAfFc
+	 ouTtvGBky6fGrYePb5xQLgaJ7M4sSZnMrZlLDVZ0T3vk9vuOJHFqvdPsyhcEscybMf
+	 744q4vm4liua7gqikYB1coopV1cdQo4gYEUXisDojvyHFY7Xr5ZZhIVGhrDLOc2iu6
+	 54EfG4XlA8Cmg==
+Message-ID: <sashiko-outbox-187545@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: RDMA/mlx5: question about a failed destroy in the SRQ create
+ error path
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Yuho Choi" <oss.patchbox@gmail.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261028053903.209809-2-oss.patchbox@gmail.com>
+References: <20261028053903.209809-2-oss.patchbox@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Wed, 28 Oct 2026 05:53:37 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -94,113 +59,121 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-Hi Leon,
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+s) to consider:
+- [High] RDMA/mlx5: untrack on SRQ destroy failure in mlx5_ib_create_srq() =
+leaks state
+--
 
-I have a question about the error path of mlx5_ib_create_srq() (rdma
-for-next, c3e8e9451e6f) and would appreciate your view. When copying
-the response to user space fails, the result of the destroy is not
-checked:
+commit f69cb08a14ff31d19dd980f3ad4d401e7db6be8d
+Author: Yuho Choi <oss.patchbox@gmail.com>
 
-	err_core:
-		mlx5_cmd_destroy_srq(dev, &srq->msrq);
+RDMA/mlx5: question about a failed destroy in the SRQ create error path
 
-	err_usr_kern_srq:
-		if (udata)
-			destroy_srq_user(ib_srq->pd, srq, udata);
+This commit proposes untracking a newly created firmware SRQ and leaking its
+user buffer and doorbell record when ib_respond_udata() fails in
+mlx5_ib_create_srq() and the subsequent mlx5_cmd_destroy_srq() call fails.
 
-If I read it correctly, a failed destroy here would leave the firmware
-SRQ using the SRQ buffer and doorbell record that are then released.
-Since fd89099d635e ("RDMA/mlx5: Issue FW command to destroy SRQ on
-reentry") the SRQ would also be back in dev->srq_table after the core
-frees the ib_srq, so SRQ events and ODP page faults (odp_get_rsc())
-could find freed memory.
+> diff --git a/drivers/infiniband/hw/mlx5/srq.c b/drivers/infiniband/hw/mlx=
+5/srq.c
+> index 6a4a937d97ce9..ab67ccd9bb845 100644
+> --- a/drivers/infiniband/hw/mlx5/srq.c
+> +++ b/drivers/infiniband/hw/mlx5/srq.c
+> @@ -310,7 +310,15 @@ int mlx5_ib_create_srq(struct ib_srq *ib_srq,
+>  	return 0;
+> =20
+>  err_core:
+> -	mlx5_cmd_destroy_srq(dev, &srq->msrq);
+> +	/*
+> +	 * Only user SRQs get here. If a DEVX object still uses the SRQ, the
+> +	 * firmware may refuse to destroy it; leak the buffer and doorbell
+> +	 * record rather than free pages the device can still access.
+> +	 */
+> +	if (mlx5_cmd_destroy_srq(dev, &srq->msrq)) {
+> +		mlx5_cmd_untrack_srq(dev, &srq->msrq);
+> +		return err;
+> +	}
 
-Thanks for explaining in [1] that DESTROY of kernel-owned objects does
-not fail on working firmware. I wondered whether user SRQs might be
-different, since they carry the uid of their context and a DEVX QP of
-the same uid can use them, which 43d781b9fa56 ("RDMA: Allow fail of
-destroy CQ") mentions as a reason for destroy to fail. For example,
-could user space create such a DEVX QP on the new SRQ number (probing
-for it) while the response copy is held up, say on a FUSE-backed
-buffer, and then let the copy fail? I could not tell from the tree
-whether the firmware would refuse the destroy in that case, so I may
-well be missing something.
+[Severity: High]
+If mlx5_cmd_destroy_srq() fails here and mlx5_ib_create_srq() untracks the
+SRQ and returns err without calling destroy_srq_user(), doesn't that orphan
+the live firmware SRQ without any kernel handle to retry destroying it once
+the dependent DEVX object is cleaned up, blocking destruction of its parent
+objects and leaving a dangling entry on context->db_page_list?
 
-If this is a real problem, would something like the untested diff below
-be acceptable? It keeps the memory and drops the table entry, at the
-cost of leaking the SRQ. If you prefer, such SRQs could instead be kept
-on the ucontext and destroyed again from mlx5_ib_dealloc_ucontext(),
-which avoids the leak.
+When mlx5_cmd_create_srq() creates the firmware SRQ in mlx5_ib_create_srq(),
+the hardware resource is bound to in.pd, in.cqn (either the user CQ or the
+device-global kernel CQ dev->devr.c0 for IB_SRQT_BASIC), and in.xrcd (either
+the user XRCD or dev->devr.xrcdn0).
 
-This was found with a static analysis tool from ongoing, not yet
-published research, and confirmed by code inspection. It has not been
-reproduced, and I used an LLM to help with the analysis and this mail.
+When mlx5_ib_create_srq() returns an error to ib_create_srq_user(), the RDMA
+core assumes the hardware SRQ was destroyed, decrements usecnt on the parent
+objects, and frees srq:
 
-[1] https://lore.kernel.org/r/20261016045849.813696-6-oss.patchbox@gmail.com
+drivers/infiniband/core/verbs.c:ib_create_srq_user() {
+	ret =3D pd->device->ops.create_srq(srq, srq_init_attr, udata);
+	if (ret) {
+		rdma_restrack_put(&srq->res);
+		atomic_dec(&pd->usecnt);
+		if (srq->srq_type =3D=3D IB_SRQT_XRC && srq->ext.xrc.xrcd)
+			atomic_dec(&srq->ext.xrc.xrcd->usecnt);
+		if (ib_srq_has_cq(srq->srq_type))
+			atomic_dec(&srq->ext.cq->usecnt);
+		kfree(srq);
+		return ERR_PTR(ret);
+	}
+}
 
-Thanks,
-Yuho
+Because the ib_uobject was never initialized with the SRQ and
+mlx5_cmd_untrack_srq() removed srq->msrq from dev->srq_table, nothing in the
+kernel will ever re-issue the firmware destroy command for srq->msrq.srqn,
+even after the dependent DEVX object is destroyed.
 
-diff --git a/drivers/infiniband/hw/mlx5/srq.c b/drivers/infiniband/hw/mlx5/srq.c
-index 6a4a937d97ce..96ea15ba0487 100644
---- a/drivers/infiniband/hw/mlx5/srq.c
-+++ b/drivers/infiniband/hw/mlx5/srq.c
-@@ -310,7 +310,15 @@ int mlx5_ib_create_srq(struct ib_srq *ib_srq,
- 	return 0;
+As a result, the firmware SRQ stays bound to its PD, CQ, and XRCD forever.
+When the user closes the file descriptor, uverbs_destroy_ufile_hw() will try
+to destroy those parent objects after cleaning up DEVX objects, which will
+fail in firmware and trigger the cleanup warning and forced teardown:
 
- err_core:
--	mlx5_cmd_destroy_srq(dev, &srq->msrq);
-+	/*
-+	 * Only user SRQs get here. If a DEVX object still uses the SRQ, the
-+	 * firmware may refuse to destroy it; leak the buffer and doorbell
-+	 * record rather than free pages the device can still access.
-+	 */
-+	if (mlx5_cmd_destroy_srq(dev, &srq->msrq)) {
-+		mlx5_cmd_untrack_srq(dev, &srq->msrq);
-+		return err;
-+	}
+drivers/infiniband/core/uverbs_main.c:uverbs_destroy_ufile_hw() {
+	while (!list_empty(&ufile->uobjects) &&
+	       !__uverbs_cleanup_ufile(ufile, reason)) {
+	}
 
- err_usr_kern_srq:
- 	if (udata)
-diff --git a/drivers/infiniband/hw/mlx5/srq.h b/drivers/infiniband/hw/mlx5/srq.h
-index a7e3dc5564ac..4cd63e8d8579 100644
---- a/drivers/infiniband/hw/mlx5/srq.h
-+++ b/drivers/infiniband/hw/mlx5/srq.h
-@@ -58,6 +58,7 @@ struct mlx5_srq_table {
- int mlx5_cmd_create_srq(struct mlx5_ib_dev *dev, struct mlx5_core_srq *srq,
- 			struct mlx5_srq_attr *in);
- int mlx5_cmd_destroy_srq(struct mlx5_ib_dev *dev, struct mlx5_core_srq *srq);
-+void mlx5_cmd_untrack_srq(struct mlx5_ib_dev *dev, struct mlx5_core_srq *srq);
- int mlx5_cmd_query_srq(struct mlx5_ib_dev *dev, struct mlx5_core_srq *srq,
- 		       struct mlx5_srq_attr *out);
- int mlx5_cmd_arm_srq(struct mlx5_ib_dev *dev, struct mlx5_core_srq *srq,
-diff --git a/drivers/infiniband/hw/mlx5/srq_cmd.c b/drivers/infiniband/hw/mlx5/srq_cmd.c
-index c1a088120915..c97e22946ef3 100644
---- a/drivers/infiniband/hw/mlx5/srq_cmd.c
-+++ b/drivers/infiniband/hw/mlx5/srq_cmd.c
-@@ -697,6 +697,22 @@ int mlx5_cmd_destroy_srq(struct mlx5_ib_dev *dev, struct mlx5_core_srq *srq)
- 	return 0;
- }
+	if (WARN_ON(!list_empty(&ufile->uobjects)))
+		__uverbs_cleanup_ufile(ufile, RDMA_REMOVE_DRIVER_FAILURE);
+}
 
-+/*
-+ * For an SRQ whose destroy failed in the error flow of its creation: the
-+ * firmware object stays, but the caller is about to free @srq, which
-+ * mlx5_cmd_destroy_srq() put back into the table. Remove it and wait for
-+ * concurrent lookups to drop their references.
-+ */
-+void mlx5_cmd_untrack_srq(struct mlx5_ib_dev *dev, struct mlx5_core_srq *srq)
-+{
-+	struct mlx5_srq_table *table = &dev->srq_table;
-+
-+	xa_cmpxchg_irq(&table->array, srq->srqn, srq, NULL, 0);
-+
-+	mlx5_core_res_put(&srq->common);
-+	wait_for_completion(&srq->common.free);
-+}
-+
- int mlx5_cmd_query_srq(struct mlx5_ib_dev *dev, struct mlx5_core_srq *srq,
- 		       struct mlx5_srq_attr *out)
- {
+For IB_SRQT_BASIC SRQs, the orphaned firmware SRQ also remains bound to
+dev->devr.c0 and dev->devr.xrcdn0, causing ib_destroy_cq(devr->c0) to fail
+during device teardown in mlx5_ib_dev_res_cleanup().
+
+In addition, skipping destroy_srq_user() skips mlx5_ib_db_unmap_user() and
+ib_umem_release(srq->umem). During create_srq_user(),
+mlx5_ib_db_map_user_desc() allocates a struct mlx5_ib_user_db_page, grabs
+current->mm, and links page->list onto &context->db_page_list:
+
+drivers/infiniband/hw/mlx5/doorbell.c:mlx5_ib_db_map_user_desc() {
+	page->umem =3D umem;
+	if (page->desc.type =3D=3D IB_UVERBS_BUFFER_TYPE_VA) {
+		mmgrab(current->mm);
+		page->mm =3D current->mm;
+	}
+	list_add(&page->list, &context->db_page_list);
+
+found:
+	db->dma =3D sg_dma_address(page->umem->sgt_append.sgt.sgl) +
+		  (desc->addr & ~PAGE_MASK);
+	db->u.user_page =3D page;
+	++page->refcnt;
+}
+
+Because mlx5_ib_dealloc_ucontext() does not drain context->db_page_list,
+skipping mlx5_ib_db_unmap_user() leaves page->list linked to
+context->db_page_list after ufile_destroy_ucontext() frees context, while
+permanently leaking srq->umem, page->umem, pinned user pages, and the
+mmgrab(current->mm) reference.
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261028053903.2098=
+09-2-oss.patchbox@gmail.com?part=3D1
