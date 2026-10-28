@@ -1,95 +1,95 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.100
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.222.228
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793168006;
-	b=s0OMdpq5hPTQ/a/qRX5I6Tf1bhSk65lyMTO/UmQmyhcdc4dfwM75WLpTk+wAT5QEJrMP
-	 +55ZomVaJ+oiLvJL/+AF92FnKID2x2gEmMOnZnTSCS2h0pFQrMKg441T/dyoXt2yGVgTZ
-	 lRJawTq40GaV1qLv4FqT6TOoyZ2VyAfzRfVbXjy8h79uOt1jPlTPSAK9aVrg2aJvbARd0
-	 wcE1h1xbUgHqqgvyEswCNuZcaZbkorFNDo4JNLhAN7009YP7BQZFh0lXRUgyOP+yCwBgc
-	 4rIwOJrKA7CfW2PthKPxdfrfMzAYKdqm1J3ewb+oNNfVulfBvbvh/E69aiCzr23/dCQ==
+	t=1793168009;
+	b=1DmebGNLBa5roJO/unzGWRtSjRfX52DNqFhiXKVZf55k0EsT2QFij2HMN+dU3ZcJH9ku
+	 Kh/GAzxbZ0Ry+3Feh0+x9KdHbiQOQ3p8NXSuJ7b15a2Wq3VlPG1Cy+KU4CjIJtRp0Nd8E
+	 SZef4DBLdn4XAgitpiapMyYJz4f0KUKbHq9uJRknQMnsQgxNbe1Ib3P6TRkJlEfYXlvDB
+	 acirGFl0IrJyqhJdv7i1rGYuQc5i01KM7t5MIqiFMynlty4smxCzhUgkU99dqoiEnGOjW
+	 jMnpLfKvnhwuDm1f6Ctp1qAyPn0RdOcg2LHX8oR/ephrPusDDW4b7ZZdY8iP01miz6A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793168006;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793168009;
 	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Gm-Message-State:
 	 X-Gm-Gg:X-Received:Received:X-Relaying-Domain:X-CFilter-Loop:Received:
 	 DKIM-Signature:X-Received:X-Received:Received:From:To:Cc:Subject:Date:
 	 Message-Id:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-DetectorID-Processed;
-	bh=dwW/aaZyKP6c8E6pqwqU1HuwGgTb3fA2eKNIwYo0OWE=;
-	b=A83AgSo8ykLABjDOOIYbTyCmMCUN6F6PmRmTaf7hOlzpTotndfPFuho/Urttip1GNTpt
-	 QVPT+li0K7efo2cx8Dg9KU3dDA5wkAifQVd7dr7h0XFiS4xluk7nzq3GFz9tD5I+shpEP
-	 bL1MRQNXjW+8sGvXpL/5mXrIlmytck8YLQXp7kWq9V4EKaHVyVb6JqQ1TgJzDcbUrJF7z
-	 T/n3F+8/tyBuvNXOiDlfqfDphk0H/oXRvNPd6TcfDHk4gIsCctDZu0pyrmdIxYQ1awBxF
-	 rlEJP8J1VSVeiBP0Bhl1ayHVdYRMyKIKIYy7sJR2LozhphqJP9oM2iu/N4GFA+9tLkQ==
+	bh=xYIiK5ZXRF7pK6Ro8izazwBOsNaYTbsQwxGS7I8jAvs=;
+	b=SR3zi2PqmoFjYvJGnCG4uRNQPFrC0BkXWfy9/wez0a6c/OMn0G3KmNnTBCxRovr6rA5O
+	 wXXjP9OEtINHu2s/H6cBy9Qe50ipYSI5Wbvk7NY6QACZ9cqvCvrWiqmQgVpyTMmBCP8pC
+	 gpegzAxchaLcSrwg9UBtCGhp/lnoTfxszaTIRnYsjtZj9Af3sj4e//X4ENP280IzY1kWE
+	 KApnhCwtooe9YTQce1reQueUKmrCGUQD6QVv5ME/bcjyLhm913Q2rolI3cGIdrItMpY6l
+	 QnbOcNEPGmt4bRXWf93dG64fUy1OhsWFbPTEQBfZ86hSj7pm2DF34DMcayS2aOluCrQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=broadcom.com;
 	spf=fail smtp.mailfrom=broadcom.com;
-	dkim=pass header.d=broadcom.com header.i=@broadcom.com header.a=rsa-sha256 header.s=google header.b=FojfghBC;
-	arc=none smtp.remote-ip=209.85.216.100
-Received: from mail-pj1-f100.google.com (mail-pj1-f100.google.com [209.85.216.100])
+	dkim=pass header.d=broadcom.com header.i=@broadcom.com header.a=rsa-sha256 header.s=google header.b=caGizmQz;
+	arc=none smtp.remote-ip=209.85.222.228
+Received: from mail-qk1-f228.google.com (mail-qk1-f228.google.com [209.85.222.228])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EFA5606A31A
-	for <linux-rdma@vger.kernel.org>; Wed, 28 Oct 2026 06:13:26 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5EFA5606A31A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B780606A31D
+	for <linux-rdma@vger.kernel.org>; Wed, 28 Oct 2026 06:13:29 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4B780606A31D
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=broadcom.com header.i=@broadcom.com header.a=rsa-sha256 header.s=google header.b=FojfghBC
-Received: by mail-pj1-f100.google.com with SMTP id 98e67ed59e1d1-3acb512a7a0so392546a91.1
-        for <linux-rdma@vger.kernel.org>; Tue, 27 Oct 2026 23:13:26 -0700 (PDT)
+	dkim=pass (1024-bit key, unprotected) header.d=broadcom.com header.i=@broadcom.com header.a=rsa-sha256 header.s=google header.b=caGizmQz
+Received: by mail-qk1-f228.google.com with SMTP id af79cd13be357-93f2049ea7aso35463885a.2
+        for <linux-rdma@vger.kernel.org>; Tue, 27 Oct 2026 23:13:29 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793168005; x=1793772805;
+        d=1e100.net; s=20260707; t=1793168008; x=1793772808;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:dkim-signature:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=dwW/aaZyKP6c8E6pqwqU1HuwGgTb3fA2eKNIwYo0OWE=;
-        b=IF7IvdIk7KXItaovkfvz9lfsHvj+EKaPgK3Rw0ndP85vHZJ7MxhhPpBg8Gfgum8m3/
-         XdcbJBaRC/4bOer8KR7gk5lxp3hXNlua69aceXmQ+tO8VSNLJ7UTQHwbjDg5xNWjMHiB
-         3mIlSVg7PWYwJmE6WYnNgA0QMv1NsvwxlXAlygMWwk+DHBtp0Z4vVPyRzdm3tOXx0E4Y
-         +BWYjTI3WmcnM3zPBiMMiZhv27l1lzTfYn1mGfmH9Nfsy4mSpC8qxobUbbU/HcO0gEGb
-         WcRRmY2xMpb3i+SBDbTEonLd4L39n8Di2MQJzgbwz8E3MU6zoUQZwN3chD8F9UdhCVAQ
-         77ag==
-X-Gm-Message-State: AFq9FYLMz4Y4JtrtsNYojMNq764O8o10M34aG1Dbxzd4/yOMtk7zH98s
-	aAv4h0W+mkiQe9orgzWIZzjXURQotFVSaM3+TUpDdpWETIo60TKDYiLByjIwG+BQQVhev4uh1Kv
-	ldViNcNRMhNOdLs29NTboPVp9pr8cA81qsYtkqF1FCXccc+0Hwmgc6gYx4m2Mvkicv6W7sZjpFg
-	X+LR7lUlpVG+xkdSTglj6bf5frWI7UhTWLVjx/V8TeWiEsx8bvn37/Ps8jyaKu0iBZ3K+rTC7qV
-	0V1vodFpBoozxNsKw==
-X-Gm-Gg: AYBFou0YTeyJUpWuSpbJ8axn8UIbN0PZuX2B86f3kkiaXPreHo4+KzqbbRNhldsg7Zv
-	c90Xc+U3tWu5f8vegtszILXkkI/FBV9iq3i4Vc7epIl+g5fK6IviUyRba5QYUUzlSqtd1oq4EP8
-	fGsBjQVZ63oh5OgM2yE86ZIi0UYHOhgKljQnOy+OPWTWO9aQwc3cUnzlYeCXlThB5heINB7A57U
-	GfKiovQGIJZTpdGMqs0UDocYDLIJflDBqvYStjWzzqtjvB0lRBK4B+u5RyPaP2sD3+F1WbUJG1Z
-	u7vTU/xNijnZwCMwa8h3wsdt38NsdbeQKmi2zDHotq6TZuQ97lMUrMfzwNHxf8LdDtmeSake35y
-	6ygj/bfRuqmSrkwq+ZahNI1DxgdhwgmlK/4REiId1xHdgORbGPbTtS72i3Snfl2HoH1q9F3YDI7
-	jnJgxmqaDq12agtB34a6Q+nIsIXS3QRfZCXr8g
-X-Received: by 2002:a17:90b:3c0d:b0:3a7:ecab:c4c7 with SMTP id 98e67ed59e1d1-3ae581d6ca9mr1133549a91.34.1793168005537;
-        Tue, 27 Oct 2026 23:13:25 -0700 (PDT)
+        bh=xYIiK5ZXRF7pK6Ro8izazwBOsNaYTbsQwxGS7I8jAvs=;
+        b=n4ZiQuSrpV5b2p4y2Ljbv2h5HtpHCpj+HeFzmvr4vWXRf0cVUhBuaTXR9ZPTttPAaV
+         QYsH30H7eSkYcIP2/nZNi9EjwMZu070dKap34gTPTe8g8OYASBTNXprD1gZfijnB6mnY
+         b8rIgAVf4jJIHtlVj4/TPsACUCNP5WZ6phQn5FL6FYo3w5KV/QUA7wpXrPdCaPa11cw6
+         WWOzw64E3q7EpYIEdX25vJhd4QnKxpOs0wA+RUHM/SDqr8EUf+eGz1TOsu153KrDjrRY
+         gUmvrHops7pUciXFg486oYCNamBsQzZNJQvVGFMIxjW+IIdbXQ/VumUPzW6MDUyB6TbR
+         rUTQ==
+X-Gm-Message-State: AFq9FYK8LJKbwZdJnR7kMGD2mKAiuWReJmNZT4y7jNMY+fL3ym4kMWQm
+	NJe7TbXsib9OmDeSBQcG8pcX3oDw5GvV/yajZnOtMrESCVJF8aNCMUGW8vVGQVfhPrpSoces3f6
+	moYaokyUWmNffaOb78/NHuEhjfoVjuIA5OalYxO02FEKkVTdeU0iQ/+fgTzSz89UjItzAwXBoxU
+	UtUdI8hCK+W1HDQlBuBfKgVdMFOWwfYq/trjXFFLkfZLwx5kXMIMCWNczxDZYb5hpygbrjLYO29
+	risagctZyPRZwZrSA==
+X-Gm-Gg: AYBFou1uhN4V2KI42AMWWjRSOB4Eft78TsTaZsx4wr/PE54BeCV+mr3b1d8ZaTKs9Vj
+	9vBCgy/mf8zhD8/pn3O0xKzYzgign04Jh2rMJ1flJazbiI78BWIS1a/nr0q93vmOLvU2MDDtABh
+	ZfhM924LRXLxz671brT4qHSdUv2URkII7mReAWEVTvss8HeHPfAoFeXdOTkNGUmyrDpg6g1ynsz
+	RRVMzsf8b+gK+7UFIjxxW9RJNkbxOEK/pd0J4OcEdXV+uXkqKHvqrtkIareGC6SEyYlKcMOrKlj
+	uN01GpCttzWchh081v8FzCqhQWL15gFJXNtESBKXp+PvcIa8VyreD0HVHnRbIMMDa/y3l5a1yP3
+	lSlrZIw3fv9hfKBn6SG8CyMBaKe8vYW+XhtudL08m2HP3u8vZehZXP8zQLa3O3p1mdIwa0kypgr
+	qjDLhB3MBEgphrNDKUoV3nRExxxStXqwys1lU6
+X-Received: by 2002:a05:620a:2629:b0:93e:c12c:9b77 with SMTP id af79cd13be357-94408d68de4mr169866585a.82.1793168008183;
+        Tue, 27 Oct 2026 23:13:28 -0700 (PDT)
 Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-23.dlp.protect.broadcom.com. [144.49.247.23])
-        by smtp-relay.gmail.com with ESMTPS id 98e67ed59e1d1-3ae5ab93b50sm836826a91.4.2026.10.27.23.13.25
+        by smtp-relay.gmail.com with ESMTPS id af79cd13be357-940f0677243sm175912885a.9.2026.10.27.23.13.27
         for <linux-rdma@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 27 Oct 2026 23:13:25 -0700 (PDT)
+        Tue, 27 Oct 2026 23:13:28 -0700 (PDT)
 X-Relaying-Domain: broadcom.com
 X-CFilter-Loop: Reflected
-Received: by mail-pf1-f200.google.com with SMTP id d2e1a72fcca58-89f71ac2e2fso612104b3a.3
-        for <linux-rdma@vger.kernel.org>; Tue, 27 Oct 2026 23:13:24 -0700 (PDT)
+Received: by mail-pf1-f197.google.com with SMTP id d2e1a72fcca58-88c768886a6so516981b3a.2
+        for <linux-rdma@vger.kernel.org>; Tue, 27 Oct 2026 23:13:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1793168004; x=1793772804; darn=vger.kernel.org;
+        d=broadcom.com; s=google; t=1793168007; x=1793772807; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=dwW/aaZyKP6c8E6pqwqU1HuwGgTb3fA2eKNIwYo0OWE=;
-        b=FojfghBCWEmo9O8iWEewxILhpql06vM7JHJjJ1dFkHd2sgWvZUpPrkt9ykYhyDdi9+
-         xDVIW1IqR1Hwf51kPRteUtC9tVlB+hkH5o4MqUpb5SyZYNYvH97j/o0uCqBQuoHUbbxJ
-         TTkP48nnALUVMOxrPiZpfdlSqOFWOAkqR+e2c=
-X-Received: by 2002:a05:6a21:4014:b0:3e2:aab8:4ec5 with SMTP id adf61e73a8af0-3e90244273dmr1069446637.66.1793168004028;
-        Tue, 27 Oct 2026 23:13:24 -0700 (PDT)
-X-Received: by 2002:a05:6a21:4014:b0:3e2:aab8:4ec5 with SMTP id adf61e73a8af0-3e90244273dmr1069435637.66.1793168003612;
-        Tue, 27 Oct 2026 23:13:23 -0700 (PDT)
+        bh=xYIiK5ZXRF7pK6Ro8izazwBOsNaYTbsQwxGS7I8jAvs=;
+        b=caGizmQzn0DEyn3iUL+czo9Iaf0WPldowxe57YKnsoWOlzaY6XCUhSyVn9M13/ZRQ+
+         iHqS2AdaYep4f2wCOEEarb2oZaIHzGrJq3hHTF4RFJ394AtBQ6Lz4XXdMRUp7sgtdbB3
+         F9RW9kz7MPCWcJCxHeag5HJ5ryNAkWX+cfaoU=
+X-Received: by 2002:a05:6a00:92a1:b0:869:9298:ba50 with SMTP id d2e1a72fcca58-8a6e1b55086mr1217807b3a.0.1793168006912;
+        Tue, 27 Oct 2026 23:13:26 -0700 (PDT)
+X-Received: by 2002:a05:6a00:92a1:b0:869:9298:ba50 with SMTP id d2e1a72fcca58-8a6e1b55086mr1217790b3a.0.1793168006425;
+        Tue, 27 Oct 2026 23:13:26 -0700 (PDT)
 Received: from dhcp-10-123-156-114.dhcp.broadcom.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8a75cf8fab6sm171717b3a.13.2026.10.27.23.13.21
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8a75cf8fab6sm171717b3a.13.2026.10.27.23.13.23
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 27 Oct 2026 23:13:23 -0700 (PDT)
+        Tue, 27 Oct 2026 23:13:25 -0700 (PDT)
 From: Selvin Xavier <selvin.xavier@broadcom.com>
 To: leon@kernel.org,
 	jgg@ziepe.ca
@@ -97,9 +97,9 @@ Cc: linux-rdma@vger.kernel.org,
 	andrew.gospodarek@broadcom.com,
 	kalesh-anakkur.purayil@broadcom.com,
 	Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: [PATCH for-rc 1/7] RDMA/bnxt_re: Clear stale RCFW resp pointer when wait ends
-Date: Wed, 28 Oct 2026 04:33:58 -0700
-Message-Id: <20261028113404.33289-2-selvin.xavier@broadcom.com>
+Subject: [PATCH for-rc 2/7] RDMA/bnxt_re: Honor a completion that races with a wait timeout
+Date: Wed, 28 Oct 2026 04:33:59 -0700
+Message-Id: <20261028113404.33289-3-selvin.xavier@broadcom.com>
 X-Mailer: git-send-email 2.39.3
 In-Reply-To: <20261028113404.33289-1-selvin.xavier@broadcom.com>
 References: <20261028113404.33289-1-selvin.xavier@broadcom.com>
@@ -115,93 +115,109 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 
-If the wait ends with ERR_DEVICE_DETACHED, bnxt_qplib_map_rc() returns 0
-for destroy-type opcodes, so the caller sees a synthetic success without
-a CREQ. is_waiter_alive and resp are left set, resp keeps pointing at
-the caller's stack, and a late CREQ is copied into a dead frame.
+If the wait helper gives up (timeout or firmware stall) and the CREQ
+tasklet processes the command before the waiter takes hwq->lock, the
+response is already copied into the caller's buffer and is_in_used is
+clear. The waiter still returns -ETIMEDOUT and may set
+FIRMWARE_STALL_DETECTED, and for CREATE_AH the handler skips
+destroy_timedout_ah() because the waiter was alive, so the AH leaks in
+firmware.
 
-After the wait, take hwq->lock and, if the slot still holds this
-command's response buffer, clear is_waiter_alive and resp. This also
-covers the timeout case, where it is only defensive since is_waiter_alive
-was already cleared there. Return success without checking evnt->status
-when the slot still holds the buffer, since no completion was processed.
+Under the lock, if the slot no longer holds this command's response
+buffer, a completion was delivered. Use its status instead of failing.
 
-Also reset the slot in the completion handler, in the same critical
-section that clears is_in_used, so that a second CREQ for the same cookie
-cannot be copied into the caller's buffer. With this, resp == evnt under
-the lock means no completion was processed.
+To keep that check valid, never reuse a cookie slot that is still in
+use: __send_message() returns -EAGAIN and __send_message_no_waiter()
+drops the internal command.
 
-Clear crsqe->resp when __send_message_no_waiter() takes a slot as well, so
-a stale waiter can never match an internal command's slot by its own
-response buffer pointer.
+A slot stays in use only while its completion is outstanding. If that
+completion never arrives, the cause is a PCI error or firmware still
+processing the command, so there is no point in posting more commands.
+Continuing to return -EAGAIN until firmware completes the command in
+order is intended; otherwise recovery is initiated.
 
-Fixes: 3022cc151197 ("RDMA/bnxt_re: Avoid the command wait if firmware is inactive")
+An internal destroy_ah dropped for the same reason leaks the AH in
+firmware; this is accepted and the comment in
+bnxt_qplib_service_creq() is updated to say so.
+
 Fixes: 691eb7c6110f ("RDMA/bnxt_re: handle command completions after driver detect a timedout")
 Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
 ---
- drivers/infiniband/hw/bnxt_re/qplib_rcfw.c | 26 ++++++++++++++--------
- 1 file changed, 17 insertions(+), 9 deletions(-)
+ drivers/infiniband/hw/bnxt_re/qplib_rcfw.c | 31 ++++++++++++++++++----
+ 1 file changed, 26 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
-index 34d8aa12265d..707687a8f301 100644
+index 707687a8f301..167626246800 100644
 --- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
 +++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
-@@ -255,6 +255,7 @@ static void __send_message_no_waiter(struct bnxt_qplib_rcfw *rcfw,
- 	 */
- 	crsqe->is_internal_cmd = true;
- 	crsqe->is_waiter_alive = false;
-+	crsqe->resp = NULL;
- 	crsqe->is_in_used = true;
- 	crsqe->req_size = __get_cmdq_base_cmd_size(msg->req, msg->req_sz);
+@@ -223,7 +223,7 @@ static int __block_for_resp(struct bnxt_qplib_rcfw *rcfw, u16 cookie)
+  * Current design of this function is -
+  * user must hold the completion queue hwq->lock.
+  * user must have used existing completion and free the resources.
+- * this function will not check queue full condition.
++ * the command is dropped if the cookie slot is in use or the queue is full.
+  * this function will explicitly set is_waiter_alive=false.
+  * current use case is - send destroy_ah if create_ah is return
+  * after waiter of create_ah is lost. It can be extended for other
+@@ -245,9 +245,17 @@ static void __send_message_no_waiter(struct bnxt_qplib_rcfw *rcfw,
+ 	u8 *preq;
  
-@@ -487,6 +488,7 @@ static int __bnxt_qplib_rcfw_send_message(struct bnxt_qplib_rcfw *rcfw,
- {
- 	struct creq_qp_event *evnt = (struct creq_qp_event *)msg->resp;
- 	struct bnxt_qplib_crsqe *crsqe;
-+	bool pending;
- 	u16 cookie;
- 	int rc;
- 	u8 opcode;
-@@ -511,15 +513,21 @@ static int __bnxt_qplib_rcfw_send_message(struct bnxt_qplib_rcfw *rcfw,
- 	else
- 		rc = __poll_for_resp(rcfw, cookie);
+ 	cookie = cmdq->seq_num & RCFW_MAX_COOKIE_VALUE;
+-	__set_cmdq_base_cookie(msg->req, msg->req_sz, cpu_to_le16(cookie));
+ 	crsqe = &rcfw->crsqe_tbl[cookie];
  
--	if (rc) {
--		spin_lock_bh(&rcfw->cmdq.hwq.lock);
--		crsqe = &rcfw->crsqe_tbl[cookie];
-+	spin_lock_bh(&rcfw->cmdq.hwq.lock);
-+	crsqe = &rcfw->crsqe_tbl[cookie];
-+	pending = false;
-+	if (crsqe->resp == evnt) {
-+		pending = true;
- 		crsqe->is_waiter_alive = false;
--		if (rc == -ENODEV)
--			set_bit(FIRMWARE_STALL_DETECTED, &rcfw->cmdq.flags);
--		spin_unlock_bh(&rcfw->cmdq.hwq.lock);
--		return -ETIMEDOUT;
-+		crsqe->resp = NULL;
++	if (crsqe->is_in_used ||
++	    bnxt_qplib_get_cmd_slots(msg->req) >= HWQ_FREE_SLOTS(hwq)) {
++		dev_warn_ratelimited(&rcfw->pdev->dev,
++				     "CMDQ cookie %#x busy or CMDQ full, dropping internal command\n",
++				     cookie);
++		return;
++	}
++	__set_cmdq_base_cookie(msg->req, msg->req_sz, cpu_to_le16(cookie));
++
+ 	/* Set cmd_size in terms of 16B slots in req. */
+ 	bsize = bnxt_qplib_set_cmd_slots(msg->req);
+ 	/* GET_CMD_SIZE would return number of slots in either case of tlv
+@@ -314,6 +322,12 @@ static int __send_message(struct bnxt_qplib_rcfw *rcfw,
+ 		spin_unlock_bh(&hwq->lock);
+ 		return -EAGAIN;
  	}
-+	if (rc == -ENODEV)
-+		set_bit(FIRMWARE_STALL_DETECTED, &rcfw->cmdq.flags);
-+	spin_unlock_bh(&rcfw->cmdq.hwq.lock);
-+	if (rc)
-+		return -ETIMEDOUT;
-+	if (pending)
-+		return 0;
- 
- 	if (evnt->status) {
- 		/* failed with status */
-@@ -703,8 +711,8 @@ static int bnxt_qplib_process_qp_event(struct bnxt_qplib_rcfw *rcfw,
- 		is_waiter_alive = crsqe->is_waiter_alive;
- 
- 		crsqe->req_size = 0;
--		if (!is_waiter_alive)
--			crsqe->resp = NULL;
-+		crsqe->resp = NULL;
-+		crsqe->is_waiter_alive = false;
- 
- 		crsqe->is_in_used = false;
- 
++	if (crsqe->is_in_used) {
++		dev_info_ratelimited(&pdev->dev,
++				     "CMDQ cookie %#x still in use\n", cookie);
++		spin_unlock_bh(&hwq->lock);
++		return -EAGAIN;
++	}
+ 	if (msg->block)
+ 		cookie |= RCFW_CMD_IS_BLOCKING;
+ 	__set_cmdq_base_cookie(msg->req, msg->req_sz, cpu_to_le16(cookie));
+@@ -520,6 +534,11 @@ static int __bnxt_qplib_rcfw_send_message(struct bnxt_qplib_rcfw *rcfw,
+ 		pending = true;
+ 		crsqe->is_waiter_alive = false;
+ 		crsqe->resp = NULL;
++	} else if (rc) {
++		/* The completion was processed after the wait gave up but
++		 * before the lock was taken. The response is valid.
++		 */
++		rc = 0;
+ 	}
+ 	if (rc == -ENODEV)
+ 		set_bit(FIRMWARE_STALL_DETECTED, &rcfw->cmdq.flags);
+@@ -726,9 +745,11 @@ static int bnxt_qplib_process_qp_event(struct bnxt_qplib_rcfw *rcfw,
+ 		 * so let's destroy the same address vector since it is
+ 		 * no more used in stack. We don't care about completion
+ 		 * in __send_message_no_waiter.
+-		 * If destroy_ah is failued by firmware, there will be AH
+-		 * resource leak and relatively not critical +  unlikely
+-		 * scenario. Current design is not to handle such case.
++		 * If destroy_ah is failed by firmware, or is dropped locally
++		 * because the cookie slot is in use or the CMDQ is full,
++		 * there will be AH resource leak and relatively not
++		 * critical + unlikely scenario. Current design is not to
++		 * handle such case.
+ 		 */
+ 		if (!is_waiter_alive && !qp_event->status &&
+ 		    qp_event->event == CREQ_QP_EVENT_EVENT_CREATE_AH)
 -- 
 2.39.3
 
