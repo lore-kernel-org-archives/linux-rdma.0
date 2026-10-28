@@ -1,97 +1,82 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.201.24
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793168979;
-	b=2MebyE38ExIqWBUsjr2y5M+SL8hmLEVn2RcLG/dJwKNGPuuUIbkkx1Y96uEstgAJs9Vk
-	 AvRvLxt0BHQleHN24sEFKUkUNCdZ38csouj6vi1DZeS2ncDiGL6SrkcWQocaH33d4ej8M
-	 y14Xush4RmALU/hfZNKP3G9ktTiUilK1PTSQ9hjAoBY4PF/MlU87Kys+JMHWVg9e+tKUN
-	 UCpLbhc3mZGv6gww38rzCpFeb/7tv/W4HhcehDNohcg9d5R3XtbuiejEyER3wEvzLVhs0
-	 bRopysXtqOxrz3f7ETcsp0Zuzcs+/fnKO9G2cAajc0exE7Tnshq28+p8aFqHG+7SsZA==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793168979;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
-	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding:X-ClientProxiedBy:MIME-Version:
-	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
-	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
-	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
-	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
-	 X-MS-Exchange-CrossTenant-UserPrincipalName:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=95e2H3OptDVVd2ueHsy8IuYGHX9GeUhuA5+AEsURBkA=;
-	b=JuIJgNZonQBhNcNj5JBRtwld7wUsY1J8wrarIqQygcmbjJ9oDVzitZOvbT0pIjDpdSP2
-	 Vw71N+X0lgYktid6D0OMH7asXziJg831NiBp5Jea3uZfD6EUtyWndBE6iFVM10bmuZ+V2
-	 i3LVMn+fyRLupS3A3TV3wLSYDDsaM6+orpJnJ26beRaqqD62Di9uWdv4y/3XpQPq/ruPp
-	 SIrUCu330lfIjC28Ckgdy9DvmMxrxCEXXC9ps1CiSrvhyoVx4fI5HpxJRVBaZrHjmPo38
-	 NAMd7Aq7T445px7GRPBhNF34PaWJor282O+y2Tn6mnQSMwZM2kxCrU/yw8F6wBDotoQ==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=nvidia.com;
-	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=mxI5SP5g;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.201.24
-Received: from CH4PR04CU002.outbound.protection.outlook.com (mail-northcentralusazon11013024.outbound.protection.outlook.com [40.107.201.24])
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=148.163.156.1
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1793169607;
+	b=yxr7631q3TH1C0N1JxGjldsj70EDUhgOquok/ndkps0S0KpvQfM4+BWiAZg3Mm0yve66
+	 eZWmVbBb7rUCyJmZjx2Blh6ihoyCFo/au8rk8+rNvHyQdQB7ZW9GpxgsSzLGEnSnRw00O
+	 IJsipwCVbLkF7QbkpM1lfAg5a8vvd4mL1pOBimcs5O+PZR8iYkuujkq/1r+/XwH5oEkDb
+	 VLxRK+ddSqrYTFC1m3JqEurJ/AJz/m+H5aHu9CUkjYLfI02pckMrbiFvKehu04L0yDkUQ
+	 0reX85tKqTDmjyvdC++EhM7V2ZstN3inqCJBhosCnIfcITDD+YCh1xwlYvoHfFlXAlA==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793169607;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:
+	 Received:Received:Received:Received:Message-ID:Date:MIME-Version:
+	 User-Agent:Subject:To:References:Content-Language:Cc:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding:X-TM-AS-GCONF:
+	 X-Proofpoint-Reinject:X-Authority-Analysis:
+	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-GUID:
+	 X-Proofpoint-Spam-Info:X-Proofpoint-ORIG-GUID:
+	 X-Proofpoint-Virus-Version:X-Proofpoint-Spam-Details;
+	bh=VRMp0VSYcpSQF97GiENk7UaqrDcmf17j4ys0PVfumL8=;
+	b=A3ckM/7v1557RI8RI/zYz6VzCYcmhhyiJt+gTCx9mElBfaHZt7Kl8UPY3sp5+18o/7GT
+	 8tERv0wHPIMHEisM8xIrIqID+dHJYucqkw/4hT1cWPxcsrYqDJiTTlivdnoII3rtoFvp1
+	 EVTDrn1y4Yle3/hoiFRXYBwYM00Y76rFHhUBgCJBPHcqdWCuiw3C857V/ruA5F54fbLlk
+	 ccbMpFN/XWhDD853JWDAUIjSL+L1FW7fgGSWg6cl75eDSaOB6PggBw13/Ke+GKN5CnFhb
+	 EcCvK97MfbFK/sOEATAvwc9hdEgcWG0Tm5au3lLhoM6PX2RLaXhfgBKwzWNg8nCcu3w==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=linux.ibm.com;
+	spf=pass smtp.mailfrom=linux.ibm.com;
+	dkim=pass header.d=ibm.com header.i=@ibm.com header.a=rsa-sha256 header.s=pp1 header.b=jRKoeBzF;
+	arc=none smtp.remote-ip=148.163.156.1
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87887606A31A;
-	Wed, 28 Oct 2026 06:29:37 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 87887606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47273606A31A;
+	Wed, 28 Oct 2026 06:40:07 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 47273606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=mxI5SP5g
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=fX9ODAWnmWu0pacYnovTnlZC703EQhgp7oFvPYCuZc1/Hw2zSKCjUE2YHks7RvAEDE443IseImT8GHB+1OLqX+MQa7OjwHnslLEEia/BN16T7gE/CS+LU0bLfCpq5AtSV5orWeK+el2Zze42916dWIejmbAhRczqIE0LgOXpH2JPgAx0qz8mHQrFP9fB5lUSnD9a4QupCrIQ1GvtDPO6GdfaCuBwnpgNMKaZTeL3AOAKlezXIghoFqRDyYmIM3F4GUy+tEhguIKw4fkmGCUDiRLsrQYSA7oof0oomKR8OpBuz/Q5QcapUGomLX61KDxGcbX5cUATHcvmqQDISGtBMA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=95e2H3OptDVVd2ueHsy8IuYGHX9GeUhuA5+AEsURBkA=;
- b=E2g/JYGVxzdri+oVW+Embt/JD1Y+35yYU/6AJxJriHJYqcfHBJ58knXAjc6OqgMIR9Uhm0HJcgI1oaWTyGgADCHDk6jM3GblSEqBdhHGUAa+0l/ulrJg3TZwr21UKOswcnUvCEgdnr/fYaSXfTqNVzWb9VNdVs6y9+pmYg2VGlA1hIY3L5cBHfk3RmfiondfJMMFkSqmrXLWckfcY5nFzeN2GTTB61OLrTixAKipUbftZJf/huqQAHHdzPBU9IFS1F01DP/BWZS0WcvTS53BuEIWENGuM/LaUa61EEDIEEWd9vv/Lsg1F2eUekAwo8ZVzEp3gSfA2ZJHUoPYRDoMzg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=95e2H3OptDVVd2ueHsy8IuYGHX9GeUhuA5+AEsURBkA=;
- b=mxI5SP5gKzXsId3KYf92DITxL6R/kU8zvJ7+TIvJHp1S7f1AXnTpWxgTCgYtoFdalf11YmSDQ9wrF/hi2jJJwLssy2a8LikNcjctWZEsAx1NR+0AgfgASI41Wr2qPYtLV7GbXcuiKCS0Qqycj04X+G1LxZLv8UdJI/q63Wcq4+RtvOH28jYqAqnNSswiK2Zq2+l/+nDQm6t4Sfdr7JuQInSGcFC28QpHX0uHr3GIsErSRm6Do9jUhFecLp7EiHZ9MWm6cZZkswi03VSGD80+rtITbtuk6Jd07J08zxXRsHNI6qqEqZdW4FgA/v/YImcibZjdKDPyLuh4FYkRicXVug==
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from DM4PR12MB9734.namprd12.prod.outlook.com (2603:10b6:8:225::23)
- by PH7PR12MB5952.namprd12.prod.outlook.com (2603:10b6:510:1db::6) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.546.21; Wed, 28 Oct
- 2026 06:29:34 +0000
-Received: from DM4PR12MB9734.namprd12.prod.outlook.com
- ([fe80::ba44:51c5:b641:2917]) by DM4PR12MB9734.namprd12.prod.outlook.com
- ([fe80::ba44:51c5:b641:2917%4]) with mapi id 15.21.0546.021; Wed, 28 Oct 2026
- 06:29:33 +0000
-Message-ID: <0e7a46e2-982f-46c0-9d77-b986e249e252@nvidia.com>
-Date: Wed, 28 Oct 2026 08:29:27 +0200
-User-Agent: Mozilla Thunderbird Beta
-Subject: Re: [PATCH v1] net/mlx5: Use generic power management
-To: netdev-bot+sashiko@kernel.org, vaibhavgupta40@gmail.com
-Cc: helgaas@kernel.org, bhelgaas@google.com, bjorn@helgaas.com,
- saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
- andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
- kuba@kernel.org, pabeni@redhat.com, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20261017194104.2684-1-vaibhavgupta40@gmail.com>
- <179235249198.3135.3606400485703838782@kernel.org>
-Content-Language: en-US
-From: Carolina Jubran <cjubran@nvidia.com>
-In-Reply-To: <179235249198.3135.3606400485703838782@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: FR2P281CA0130.DEUP281.PROD.OUTLOOK.COM
- (2603:10a6:d10:9e::11) To DM4PR12MB9734.namprd12.prod.outlook.com
- (2603:10b6:8:225::23)
+	dkim=pass (2048-bit key, unprotected) header.d=ibm.com header.i=@ibm.com header.a=rsa-sha256 header.s=pp1 header.b=jRKoeBzF
+Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69S4i8ZY287718;
+	Wed, 28 Oct 2026 06:39:57 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=pp1; bh=VRMp0V
+	SYcpSQF97GiENk7UaqrDcmf17j4ys0PVfumL8=; b=jRKoeBzFv05HveINtC1jJf
+	z7Tm5NMYmY+SRfV0T/eS9eR973efIjzQnfSE5Pb74vVmqEBaO94/qAEkkTGI6Jav
+	xljPAAk/79W8U9gVvuYDyezUmUGLgw09QI6dQFCadxCXAYCSZOKTLU90eo9bSu99
+	euXLOkgAYnr63j9wffV4gvPRVMV4cCQ7aHkHRn5mVT/IOVF2tCGWT0HKViXWBf3/
+	l3qfvd+RsdX25ZSH261PE9hSQEWkglupJSuXI0Q7Xi7qEMDrTVwSD8db1HU/sKn2
+	ug1yyEO5hW0PcH5+pSwxvXMIqgmGFcuwXAdxPdQRUE+UWiDcpw6Ds0XkpB/8x/4w
+	==
+Received: from ppma21.wdc07v.mail.ibm.com (5b.69.3da9.ip4.static.sl-reverse.com [169.61.105.91])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4hgmd73bet-1
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
+	Wed, 28 Oct 2026 06:39:56 +0000 (GMT)
+Received: from pps.filterd (ppma21.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma21.wdc07v.mail.ibm.com (8.18.1.11/8.18.1.11) with ESMTP id 69S4Z08K973667;
+	Wed, 28 Oct 2026 06:39:55 GMT
+Received: from smtprelay03.wdc07v.mail.ibm.com ([172.16.1.70])
+	by ppma21.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4hjtnnbwqk-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 28 Oct 2026 06:39:55 +0000 (GMT)
+Received: from smtpav02.wdc07v.mail.ibm.com (smtpav02.wdc07v.mail.ibm.com [10.39.53.229])
+	by smtprelay03.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 69S6d6pZ22872576
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 28 Oct 2026 06:39:06 GMT
+Received: from smtpav02.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 3696558058;
+	Wed, 28 Oct 2026 06:39:54 +0000 (GMT)
+Received: from smtpav02.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 46B5C5805C;
+	Wed, 28 Oct 2026 06:39:46 +0000 (GMT)
+Received: from [9.123.14.188] (unknown [9.123.14.188])
+	by smtpav02.wdc07v.mail.ibm.com (Postfix) with ESMTP;
+	Wed, 28 Oct 2026 06:39:45 +0000 (GMT)
+Message-ID: <3190b92c-2fdc-41da-b0e2-b8a6945bef64@linux.ibm.com>
+Date: Wed, 28 Oct 2026 12:09:44 +0530
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -101,180 +86,276 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM4PR12MB9734:EE_|PH7PR12MB5952:EE_
-X-MS-Office365-Filtering-Correlation-Id: 97945fa6-e6e5-4cc3-7241-08df34bcd478
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|366016|7416014|376014|1800799024|23010399003|18002099003|22082099003|261026140227099003|11063799006|5023799004|56012099006|10067099003|261026121527099003|261022105027099003|261021121427099003|261021123027099003|261022075727099003|261009223027099003|4143699003;
-X-Microsoft-Antispam-Message-Info:
-	qkEadi74SyVUrW69E5MrjCyjFf2XYo9qEdrmYeIhdNrMP1F0zbB0RBkM2+BwrslXJbVwQp1KtbO8eITygc9BAPOqVwjLi1FyVNCC8fXlwc2Tt6luE4Ml00B8iaQnbXm4GKs1Jvp87jJBBqE+ypYQP7b9OOFvIpuDkG7mx0wQiZXOyOYw8kiuL8P788qNEDxc0+ycaGpSnOoPXN3jpdTIjeUAzwwBWayycf9tiuX4KwTnvSifP8h1uZCxJPbMJSlbqe7mTU68N74GOkBPStACB+xL3m8iRQRwmGdLmuFMEbbJHO4MIRLocUYOO4l8DMTDFLn23RwaFFM1fx7EXoH1SlU2LISTx4AfpsVd+ehhoJoYD7afMlQSWSNxjrqgBP15KQOZtY3pNmm890nnnKzZK5bLeP6gOJNHVy9nBuXnFxEQO0+IjGXTnwDFLlFeCoptQSz1pORaJbl2TC49Lf9L29UHjJpwaL1hADksIE9nrHDVTSUh78vS9tJa0T6osNUv9NZhGpctjsQ5Je5UXiLMWvvgHFwAOBHQno+qR+OopLiHFlkVFEwMRNI08cPyOuqfIWBRhsRWQTOVwqxin4G3HgL09U/2WmeIfBUp6Fhw9V7Rpd1j55RmycyWZ1k/mV7k7zgZXXT85fzLTdnjIAkI2Lnth9c8AZhjW5+Oi0zu1HU=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR12MB9734.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(7416014)(376014)(1800799024)(23010399003)(18002099003)(22082099003)(261026140227099003)(11063799006)(5023799004)(56012099006)(10067099003)(261026121527099003)(261022105027099003)(261021121427099003)(261021123027099003)(261022075727099003)(261009223027099003)(4143699003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?bDhsS05kOEpiamxWcU1NUi94ZHhTZDJXMTVxSlJPc1kyUmVRTTNRb1Frd0pH?=
- =?utf-8?B?UmZaV0M3c2ZPQXBOM1ExNERIMGtIRWJuMllaSjdUVElFcTQ5cGNCUktCQmhK?=
- =?utf-8?B?Q2p2V0tzZ3V5WDVLYWxjbnJJdUxjSEl0SFYvUjl4WU1lOU5IQmtkd3RPOXBo?=
- =?utf-8?B?eWFVOEJJZGhEaEUvMXM4Ri8vdUl6c3N6U296VXQ4TVlzellSZnlVbzBGNk41?=
- =?utf-8?B?VjJnZldoekFnZGRPMDcvK25ucVNPandxclpWLzM1VzFmMm9wb3l6VzhZTTht?=
- =?utf-8?B?ZWdjNXo0a0JvcC8vQktuUHRvZSsxTTdKdUFxOHBVT3pzd0hXcHI4V3M3ajF3?=
- =?utf-8?B?aENhN2d6VTRMcC9BdTZnd3FtSktHN3E2VGZQd3JJZXovUG9YWmF3QjcvNEtR?=
- =?utf-8?B?THA1Z3VwdkVxaXRya1p4MlFvYnZiNG51aG1lakQ4emgwdE5pdjZrMlI3bEM1?=
- =?utf-8?B?SFpHN1BxK3BTWFFIVUpYdUFzQW8xL3ZKME5NOWQ3MzQvK1FNeVF5NjltTVBQ?=
- =?utf-8?B?Skl5VVlYVDZBbzVrbVVqKzFqOVBET3huTjBwbmNMY2RRVWNTRHNodG9HZ1FF?=
- =?utf-8?B?T1pIZ1dreGY1QTZVMWt6MEF4K0NlRVVTQkl0bHVSRUp1ajEycURoWEx3V0s2?=
- =?utf-8?B?eURoTmVHdWVKZmx4RnU2Y0JJcDVYcHlrV3cxdTM3NG41b3JIU0JxOGhvQmsy?=
- =?utf-8?B?b1VKMXBKVVpsNVlQL0NiREp5aUxYVmVqZmFaaEpSWkJlZUh0SFhmeEpMamkw?=
- =?utf-8?B?bWRFQXVhUmsvU3IyYkZJcE11MkxxWUIvY25RLzd4ZkNlcWErSGo3cDRkT2pM?=
- =?utf-8?B?V3FTNVBJOWVNUll4ekpIQlFPZlFmM3YxVnNWS0tsenpybkN2NlRSWTJUYTlU?=
- =?utf-8?B?Tk5BMW1mN0NOcW1pSlZmMFovS3Z2YS9YUW1NWmlyaU1kRjAxanpVbWgwekdX?=
- =?utf-8?B?T2xmNDd6SloycG1wZGlNN3V0akNwVGVvM0hyUWNRNE5mREtpVzJMQzZqLzhS?=
- =?utf-8?B?MnBoNkpOcjlOWWgrOHpkd3hkSmRQbWh5OStOTjZ5Tnd6dGdnVGdzQ3g0cFBm?=
- =?utf-8?B?RVBRaFZlakZaRExteCt6a05MT2piOVRnM1FzcWwrOXpOQUhCVVh5RGVBSVlK?=
- =?utf-8?B?aVd2UkJzdzZzQk5kWHBWdjNNd2YxOFNMQWZyaUFuUi9CYXFkK0x1cm5oc29q?=
- =?utf-8?B?SmtheGFWZUJzNkN0d2ZRTDlWcEM0RkpuSlBmQzlMMzRHSmZkMUxLQkxTM1RB?=
- =?utf-8?B?LzJQR0lFcVB3dStqTlJlWFJBbVR2LzdsdHFWQWZQTTF1VDRVL0ErSlJSK0hN?=
- =?utf-8?B?UTlNREx2Z0YyL2FCODB6QVdCcDl6SUc5ZDI3SjRqMXYzSjl2dzhReEhtUm1l?=
- =?utf-8?B?MXhvcHh2SVl5Vnh2WTNvb2QwL0ZjNVM3M0V0cmFYWkN6eFBPTHdubUZ4MmNT?=
- =?utf-8?B?U2o3T1RoVCtPTHZjWFVvUHN2Z2hSSjZRZzhGM3lYQkNXb1J4Y1JONkZCa3JB?=
- =?utf-8?B?SjdmeDF5QXpYbDRydWt3TWxZVnRmUWEwdFh5Z1kvV2lKeUpqelFHa0RXQTNS?=
- =?utf-8?B?RXZPcE5FeTZKZVY1c1hYL1BtdXZaaklZSzU3dXdQQThYb1ZVQzlYcTg3VmpQ?=
- =?utf-8?B?NjltMU9TR0lBZVRtckhUbE9SaU1FclluV1lZTDk0am5OditRaXNuR3BtVWV4?=
- =?utf-8?B?eFJUbFd5bWwyOEFkMXpubFBXaE16YzhTUVpGQWtvVlNqL0xkS3V6WFJINmJ0?=
- =?utf-8?B?Mlpra1pHK1NEdEZpOVF5a3Q3RmNkOS9mVVRsMm16RE9MSXpPUzJDWDJ3M2FO?=
- =?utf-8?B?dFV4cE9Mb1IxbEg1b1pPclZWRzlVNGFCbFJUbW9aaURJK2E2bDlFV1dpa1Fj?=
- =?utf-8?B?T2xEQjFNWXJ5K29zWEwvRldJcDFNUFFzeWVMQnRWL0Z2dTIzRHhrWktSQ3RM?=
- =?utf-8?B?Z0Z6Um5BZmxuaDdHS3FWK2p5UDA5aWcrTnNjYjJGdCs3aWpaSy8wK2t2cExB?=
- =?utf-8?B?QnFuc0pGeHhsWGMzUjQyT2RaejZzMWR2c0g2OFV5Zm0vQWlBWlcydEtCdTFK?=
- =?utf-8?B?RytLWnQ5UDRXWmhEVFdhQmJQcGJCa2Y4bG9RMlVhMkp4bHBMZWZMRlBEVlds?=
- =?utf-8?B?emc1TS9uWWs5ak1DY0w0eitBRmhNaUNkdExFWUpsY214bUlIbGp5WUtiTDhQ?=
- =?utf-8?B?VWpKaDh4Tm5aMkxnTmJONFpQWDVPT3Rhc1pXSzBWSU45c3RMbjlueHJ0QTFq?=
- =?utf-8?B?WTIyNVZmeHc2T1UxUjE4VlRaWS9RYkZqRUZpelRmd2o3eFJUejMwUk8rcE02?=
- =?utf-8?Q?oySMCGOAYFRK8nUR3t?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 97945fa6-e6e5-4cc3-7241-08df34bcd478
-X-MS-Exchange-CrossTenant-AuthSource: DM4PR12MB9734.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Oct 2026 06:29:33.5179
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 8CugL0xMBGRGkzq2dMx1j3u5VOer/xA/7eDVuAx+2cy/aTAmIb07iKe28cuZGLkTiPVwgl79LWIKLRL1xsPe4Q==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB5952
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net v13] net/smc: fix lgr/lnk lifetime vs diag reader race
+To: netdev-bot+sashiko@kernel.org
+References: <20261023150317.1163397-1-mjambigi@linux.ibm.com>
+ <179311414480.3134.15723255171112798704@kernel.org>
+Content-Language: en-US
+Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
+        kuba@kernel.org, pabeni@redhat.com, alibuda@linux.alibaba.com,
+        dust.li@linux.alibaba.com, sidraya@linux.ibm.com,
+        hidayath@linux.ibm.com, pasic@linux.ibm.com, horms@kernel.org,
+        tonylu@linux.alibaba.com, guwen@linux.alibaba.com,
+        stable@vger.kernel.org, netdev@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
+From: Mahanta Jambigi <mjambigi@linux.ibm.com>
+In-Reply-To: <179311414480.3134.15723255171112798704@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-Reinject: loops=2 maxloops=12
+X-Authority-Analysis: v=2.4 cv=ZYOIpcVA c=1 sm=1 tr=0 ts=6ae198bd cx=c_pps
+ a=GFwsV6G8L6GxiO2Y/PsHdQ==:117 a=GFwsV6G8L6GxiO2Y/PsHdQ==:17
+ a=IkcTkHD0fZMA:10 a=660iZSQnnn4A:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=RnoormkPH1_aCDwRdu11:22 a=U7nrCbtTmkRpXpFmAIza:22 a=VwQbUJbxAAAA:8
+ a=Qo0v_rsg_MSqEvw2p5oA:9 a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDI4MDAyNCBTYWx0ZWRfX2laPY5JtBD8q
+ ODucbhtPKhrKxfAO9Y4L94n4NYx1oucQKcXcS9qkNG2ku0sahFWvrKdE6g9+/uPHs5jFGGkjIP9
+ G8ooIGgjOHHfBI9SgJk2SrpPfegVSjiFUql+xZMe0xWOcADGmwaO1UbtSIcCBYvsYVEHvenR19e
+ H7ygmdCIcUCzVvAp7StaEa3Grdifc9ek3khuITCWzLFUV5m07Hh9Ybeid9lXwcPydeoOsSY7XlS
+ zC/DINkW6bUr8kINkjm5lHzPvp42+2ggiD3B0hSzH/aheeXynkACVIeYQ+wNROfet/YesikgEda
+ KxUdycJsg4qXpIDnt8Z/e2HnUXuzG8E4Ph9jLJlY8h4a9ZRme3X3GtxuGB+KNHxRJldVKNEezNA
+ EdptSFyeLRvJ/4l/h675AtOu4XCE+9cUSawMfYfJrCIyMHF3/fRQ2Pd+27XGlgmmtNSw+5ZUl1N
+ kYtumCfqBfr3H7Oq61w==
+X-Proofpoint-GUID: RRc89_Eu-uAZul5hWn6hMIKzKeSvLwU4
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMDI4MDAyNCBTYWx0ZWRfXxl65/ksGd4Wf
+ 1E4B9h50iMI8Mmuy2hBQ51n8vGbSYFvZSXDiScgMmXcYw/UyyUhY7HAauWsHtkGW1uUAtXXDclB
+ n/zkVktyQBdTAFCqNyRvP8GynPiGUGc=
+X-Proofpoint-ORIG-GUID: uXnhtyT3ZIC84JI04H8SdokQbKW5NO91
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
+ definitions=2026-10-28_02,2026-10-21_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ impostorscore=0 priorityscore=1501 suspectscore=0 phishscore=0 clxscore=1015
+ bulkscore=0 malwarescore=0 lowpriorityscore=0 spamscore=0 adultscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2610190000 definitions=main-2610280024
 
 
-On 18/10/2026 22:41, netdev-bot+sashiko@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found 1 potential
+
+On 27/10/26 8:45 pm, netdev-bot+sashiko@kernel.org wrote:
+> Thank you for your contribution! Sashiko AI review found 2 potential
 > issue(s) to consider.
->
-> Critical: 0 · High: 0 · Medium: 1 · Low: 0
->
+> 
+> Critical: 0 · High: 1 · Medium: 1 · Low: 0
+> 
 > If you believe none of the issues are legitimate, please reply to each
 > issue of Medium severity or higher and explain why the AI is wrong.
 > If any of them are legitimate and you plan to respin, please let patchwork
 > know by including "pw-bot: cr" as a separate line at the end of your reply
 > (one such reply per series is enough).
->
-> - [Medium] After this patch, the PCI core puts the mlx5 function into
->    D3hot/D3cold in pci_pm_suspend_noirq() once mlx5_suspend() returns.
->
+> 
+> - [High] Use-after-free read of the link group in __smc_diag_dump()
+>   (net/smc/smc_diag.c, lines 93-94) for hashed SMC_CLOSED sockets that…
+> - [Medium] The new state-based guard in __smc_diag_dump() (smc_diag.c:93
+>   and 107-109) can be bypassed by a stale-registration socket that…
+> 
 > --
->
-> net/mlx5: Use generic power management
->
-> This patch moves mlx5_core from the legacy pci_driver suspend and resume
-> hooks to dev_pm_ops. It converts mlx5_suspend() and mlx5_resume() to take
-> a struct device and registers them with DEFINE_SIMPLE_DEV_PM_OPS() and
-> pm_sleep_ptr().
->
->> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
->> index 5f28d906c35b6..d8dba3328bb6a 100644
->> --- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
->> +++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+> 
+> net/smc: fix lgr/lnk lifetime vs diag reader race
+> 
+> This patch tries to close several windows where the SMC sock_diag dump
+> can dereference a freed or partially freed conn/lgr/lnk on a socket that
+> is still hashed. It adds an SMC_INIT/SMC_CLOSED/fallback guard in
+> __smc_diag_dump(), pairs it with acquire/release on sk_state, and unhashes
+> sockets before smc_conn_free() and smcd_buf_detach() in the teardown
+> paths. It also uses the cached link->ibname for the LGRINFO attribute.
+> 
 > [ ... ]
->
->> @@ -2281,8 +2285,7 @@ static struct pci_driver mlx5_core_driver = {
->>   	.id_table       = mlx5_core_pci_table,
->>   	.probe          = probe_one,
->>   	.remove         = remove_one,
->> -	.suspend        = mlx5_suspend,
->> -	.resume         = mlx5_resume,
->> +	.driver.pm      = pm_sleep_ptr(&mlx5_pm_ops),
+> 
+>> diff --git a/net/smc/smc_diag.c b/net/smc/smc_diag.c
+>> index bf0beaa23bdb6..84c45aabc196c 100644
+>> --- a/net/smc/smc_diag.c
+>> +++ b/net/smc/smc_diag.c
+>> @@ -87,10 +87,11 @@ static int __smc_diag_dump(struct sock *sk, struct sk_buff *skb,
+>>  
+>>  	r = nlmsg_data(nlh);
+>>  	smc_diag_msg_common_fill(r, sk);
+>> -	r->diag_state = sk->sk_state;
+>> +	r->diag_state = smp_load_acquire(&sk->sk_state);
+>>  	if (smc->use_fallback)
+>>  		r->diag_mode = SMC_DIAG_MODE_FALLBACK_TCP;
+>> -	else if (smc_conn_lgr_valid(&smc->conn) && smc->conn.lgr->is_smcd)
+>> +	else if (r->diag_state != SMC_INIT &&
+>> +		 smc_conn_lgr_valid(&smc->conn) && smc->conn.lgr->is_smcd)
+> 
+> [Severity: High]
+> Can this still dereference a freed link group for a hashed socket in
+> SMC_CLOSED?
+> 
+> The diag_mode check here only excludes SMC_INIT. The new SMC_INIT /
+> SMC_CLOSED / use_fallback guard comes later, after
+> smc->conn.lgr->is_smcd has already been loaded.
+> 
+> The v13 changelog describes how a stale alert_token_local can survive.
+> Once smc_lgr_terminate_sched() has emptied lgr->list, smc_conn_free()
+> skips the unregister but still drops the references:
+> 
+> net/smc/smc_core.c:smc_conn_free() {
+>     ...
+> 	if (!list_empty(&lgr->list)) {
+> 		smc_buf_unuse(conn, lgr); /* allow buffer reuse */
+> 		smc_lgr_unregister_conn(conn);
+> 	}
+>     ...
+> lgr_put:
+> 	if (!lgr->is_smcd)
+> 		smcr_link_put(conn->lnk); /* link_hold in smc_conn_create() */
+> 	smc_lgr_put(lgr); /* lgr_hold in smc_conn_create() */
+> }
+> 
+> On the server side this looks reachable as:
+> 
+> smc_listen_work()
+>   smc_conn_create()          <- joins existing SMC-R lgr L
+>                              <- smc_lgr_terminate_sched(L) empties L->list
+>   smc_clc_wait_msg()         <- peer resets, rc < 0 (-ECONNRESET/-EPROTO)
+>   smc_listen_decline()
+>     smc_conn_abort()
+>       smc_conn_free()        <- unregister skipped, token stays set
+>     smc_listen_out_err()     <- SMC_CLOSED, use_fallback false, hashed
+> 
+> Since rc < 0 there is no fallback. The socket stays hashed in the accept
+> queue or until smc_close_non_accepted() takes the sock lock. Later,
+> terminate_work runs:
+> 
+> __smc_lgr_terminate()
+>   smc_conn_kill()            <- clears token under conns_lock
+>     smc_close_active_abort() <- SMC_CLOSED case just breaks, no unhash
+>   smc_lgr_cleanup()
+>   smc_lgr_free()
+>     smc_lgr_put()
+>       __smc_lgr_free()       <- kfree(lgr)
+> 
+> Nothing in that sequence synchronizes with the hash read_lock that the
+> diag reader holds. A reader could see the non-zero token in
+> smc_conn_lgr_valid() and then load smc->conn.lgr->is_smcd after the
+> kfree. That would read freed memory.
+> 
+> The "Fourth" paragraph of the commit message says this case must not
+> happen: observing SMC_CLOSED and dereferencing an lgr whose reference was
+> already dropped. The smp_store_release() added in smc_listen_out_err()
+> only helps when the token was actually cleared, and here it was not.
+> 
+> The client close() path (SMC_INIT -> SMC_CLOSED in smc_close_active())
+> doesn't seem to be exploitable this way. The reader's read_lock blocks
+> the unhash in __smc_release() while the sock lock is held. The server
+> path above has no such protection.
+> 
+> Could the SMC_INIT / SMC_CLOSED / use_fallback check move ahead of the
+> diag_mode computation? Adding r->diag_state != SMC_CLOSED to this
+> condition would also work.
+
+Valid finding, fixed in v14.
+
+The v13 diag_mode check only excluded SMC_INIT, so a hashed SMC_CLOSED
+socket still loaded smc->conn.lgr->is_smcd. The scenario is reachable.
+If smc_lgr_terminate_sched() empties lgr->list after smc_conn_create(),
+then smc_conn_free() skips the unregister and leaves alert_token_local
+set. A negative rc from smc_clc_wait_msg() then reaches
+smc_listen_out_err() with no fallback. The socket stays hashed in
+SMC_CLOSED, and terminate_work can free the lgr.
+
+You are also right that smp_store_release() doesn't help here, since the
+token was never cleared. v14 excludes SMC_CLOSED before conn->lgr is
+read in __smc_diag_dump(), and the commit message now says what the
+release store does and doesn't order.
+
+The stale token itself is not new. It comes from smc_conn_free()
+skipping the unregister when lgr->list is empty (2a0674fffb6b).
+
+> 
+>>  		r->diag_mode = SMC_DIAG_MODE_SMCD;
+>>  	else
+>>  		r->diag_mode = SMC_DIAG_MODE_SMCR;
+>> @@ -103,6 +104,10 @@ static int __smc_diag_dump(struct sock *sk, struct sk_buff *skb,
+>>  	if (nla_put(skb, SMC_DIAG_FALLBACK, sizeof(fallback), &fallback) < 0)
+>>  		goto errout;
+>>  
+>> +	if (r->diag_state == SMC_INIT || r->diag_state == SMC_CLOSED ||
+>> +	    smc->use_fallback)
+>> +		goto out;
+>> +
+> 
 > [Severity: Medium]
-> With dev_pm_ops in use, the PCI core now calls pci_prepare_to_sleep() from
-> pci_pm_suspend_noirq() after mlx5_suspend() returns. That puts the function
-> into D3hot or D3cold. The legacy path did not do this.
->
-> Can the PTP overflow worker still touch the device after that point? The
-> suspend path is:
->
-> mlx5_suspend()->mlx5_unload_one(dev, true)->mlx5_unload()->mlx5_clock_unload()
->
-> mlx5_clock_unload() unregisters the PPS notifier and cancels out_work:
->
-> 	mlx5_eq_notifier_unregister(mdev, &mdev->clock_state->pps_nb);
-> 	cancel_work_sync(&mdev->clock_state->out_work);
->
-> It does not stop the PTP aux worker. That worker is started in
-> mlx5_init_clock_dev():
->
-> 	if (clock->ptp)
-> 		ptp_schedule_worker(clock->ptp, 0);
->
-> It only stops when ptp_clock_unregister() runs from
-> mlx5_destroy_clock_dev() on the cleanup_once path, and suspend never takes
-> that path. The worker runs on a kthread worker from kthread_run_worker(),
-> which is not freezable.
->
-> mlx5_timestamp_overflow() re-arms itself every overflow_period. Its only
-> guard is:
->
-> 	if (mdev->state == MLX5_DEVICE_STATE_INTERNAL_ERROR)
-> 		goto out;
->
-> mlx5_unload_one_devl_locked() leaves dev->state at MLX5_DEVICE_STATE_UP, so
-> the worker goes on to timecounter_read()->read_internal_timer()->
-> mlx5_read_time(), which reads BAR0:
->
-> 	timer_h = ioread32be(real_time ? &dev->iseg->real_time_h :
-> 			     &dev->iseg->internal_timer_h);
->
-> In s2idle, timekeeping comes back when s2idle_loop exits. A delayed work
-> that expired during sleep then fires right away. That can happen before
-> dpm_resume_noirq() returns mlx5 to D0. It can also happen in the window
-> between mlx5's suspend_noirq and sleep entry.
->
-> Would those reads then reach a function in D3hot, complete as Unsupported
-> Request and return all-ones? They may also log AER errors.
->
-> If so, timecounter_read() would take the all-ones value (masked by
-> cc->mask) as a real counter value. It would move tc->nsec and cycle_last
-> forward, and mlx5_update_clock_info_page() would publish the bad values to
-> the clock_info page that RDMA userspace maps.
->
-> Nothing on the resume path (mlx5_load()->mlx5_clock_load()) appears to
-> re-initialize the timecounter.
->
-> Should the overflow worker be stopped in the unload path when suspending
-> (for example with ptp_cancel_worker_sync()) and rescheduled on load?
+> Can a stale-registration socket get past this guard if it leaves
+> SMC_INIT through passive close instead of fallback?
+> 
+> Here is a scenario on an SMC-R client:
+> 
+> smc_connect_rdma()
+>   smc_conn_create()             <- registers conn in existing lgr L
+>                                 <- smc_lgr_terminate_sched(L) empties
+>                                    L->list
+>   smc_clc_send_confirm() fails  <- rc < 0
+>   smc_conn_abort()
+>     smc_conn_free()             <- unregister skipped, lgr/lnk refs
+>                                    dropped
+> smc_connect_decline_fallback()  <- rc < 0, returns without fallback
+> 
+> A positive decline code followed by a failing smc_clc_send_decline()
+> ends up in the same place.
+> 
+> The socket stays hashed in SMC_INIT with use_fallback false. The conn is
+> still in L->conns_all with its alert_token_local set, so
+> smc_cdc_rx_handler() -> smc_lgr_find_conn() still finds it. The peer has
+> the token from the confirm, or can guess it from the sequential counter.
+> 
+> A CDC with close or abort flags then queues close_work, which moves the
+> socket out of SMC_INIT:
+> 
+> smc_close_passive_work():
+> 	case SMC_INIT:
+> 		sk->sk_state = SMC_APPCLOSEWAIT1;
+> 
+> smc_close_passive_abort_received():
+> 	case SMC_INIT:
+> 	case SMC_ACTIVE:
+> 	case SMC_APPCLOSEWAIT1:
+> 		sk->sk_state = SMC_PROCESSABORT;
+> 
+> At that point the state is neither SMC_INIT nor SMC_CLOSED, use_fallback
+> is false, and smc_conn_lgr_valid() is true because of the stale token.
+> The reader then dereferences:
+> 
+> - smc->conn.lgr->is_smcd
+> - conn->sndbuf_desc->len and conn->rmb_desc->len (still on L's lists,
+>   since smc_buf_unuse() was skipped)
+> - lgr->list and lgr->role
+> - the conn->lnk fields
+> 
+> Meanwhile __smc_lgr_terminate() -> smc_conn_kill() clears the token and
+> calls smc_close_active_abort():
+> 
+> - The ACTIVE/APPCLOSEWAIT branch never unhashes.
+> - The PROCESSABORT branch now unhashes, but smc_conn_free() returns early
+>   because conn->freed is already set.
+> 
+> smc_lgr_free() -> __smc_lgr_free() then frees the buffers and kfree()s L.
+> 
+> What makes that free wait for a diag reader that has already passed the
+> token check? The v13 changelog names this stale-registration case, but it
+> seems to handle only the variant where the socket falls back.
+Its a pre-existing issue & I'm not going to address this in this patch.
 
+It is *not* a regression. The stale token comes from the same old
+smc_conn_free() behaviour (2a0674fffb6b), and before this patch the
+reader was exposed in SMC_INIT with no further action needed. The
+SMC_INIT guard makes this path harder to hit.
 
-This is already being addressed here
-https://lore.kernel.org/netdev/20261021105600.3481485-1-tariqt@nvidia.com/
+It also needs a misbehaving peer. The socket only leaves SMC_INIT if the
+peer sends, or guesses, a CDC with a close or abort flag for the stale
+token. A well-behaved peer never does that for a connection it saw fail.
+On top of that, a diag reader holding the hash read_lock would have to
+stall through smc_conn_kill(), smc_lgr_cleanup() and smc_lgr_free()
+after passing the token check. The odds of hitting that are very low. A
+peer that can forge CDCs on an established SMC-R link can already abort
+connections on that lgr, so it has far simpler options than this race.
 
+The proper fix is to clear the token in smc_conn_free() when lgr->list
+is empty. That changes lgr lifetime handling, which is where v11 and v12
+got stuck, so it belongs in a separate patch. I'm keeping this one
+limited to the diag reader.
 
-We are preparing v2 of this fix. Could you please hold off on the
-conversion until the fix is merged?
-
-Thanks,
-
-Carolina
-
-
->
->>   	.shutdown	= shutdown,
->>   	.err_handler	= &mlx5_err_handler,
->>   	.sriov_configure   = mlx5_core_sriov_configure,
+pw-bot: cr
