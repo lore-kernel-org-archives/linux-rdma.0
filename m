@@ -1,55 +1,61 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793227152;
-	b=AJUH3WFKmMpHRwyguBq9STSQp15mT3P3Nqe6o+V4SSfTYTi+DO4mtjBWdHtycAb+SwyS
-	 zX3LEw/vsuV69fzzu9428+vLy3CXTkb/7rrLh2MiX/901H3U+DznA8oDBFACmmaJQ80Nm
-	 3WmSxiNgd8h3yB4ArxwhBuUP1JE6Ar6DKUIBv/QB7QCOUrDy2f4niEXj4GjTr1dz+Ner6
-	 x5U+AXRkszEs3LNwW1hi98bwlGG5lnnwnZC5sx36ddkmVHiARc/Gm0wM8tvlqEh3xOxYq
-	 ZdwkobDn7lHRFBjGioUWfnOFrLRam1UjM5FazlOIcEoVbH6gonIaadceabIa6k9kGtQ==
+	t=1793227185;
+	b=qZcmhISQyi6TdzAqMupV1AEYhWftqAtYUDKBUt+bG5AG26faClGau7qxSoZkrJ1ToMCe
+	 NLABihxfP2VhcasfogEtx8bd8hUFAxw1TTxLvk9agJHXPwUztng3jFM/Ug5XBm2psdsVI
+	 QTHAp7TOApruQW7QixtW9uitRUAZTig9IXORAnkDUdP0KJb/Ykwi7RvekAmDJ46KBIdHA
+	 Ld8CMQXf7PrAFTd5x2Uo+rQ0vErAwpxAw1ijowHG6NVzKfMdBVkwEcSaj8nQwvC5V5naM
+	 tEGaV1efxK7Id2NbGiZVpye9RvYEsWdo6nl47H2nBLGZz8/M/MVAgGE8wyEKnT93cNg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793227152;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793227185;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
 	 In-Reply-To:References:MIME-Version:Content-Type:
 	 Content-Transfer-Encoding;
-	bh=sptKTufmKvL8HpZwPKOH1Q+7N6rHyLXbpotzs9340aU=;
-	b=s502433pDZp1YxcAI+oo0DZVEHWNAQ6HC4vGAgXCSt91DDvxBaJADrwcMwZbCqUklav+
-	 oVxvaCmOAVwPSOyzhWUNxIXqy4wPLx92a+kvX6ga+Rji/hLiRKcrCBcdsiOXzOuPVV01D
-	 y8QYqFXjUABadqOBVxFqjiAyBukEznT0zPBhXgqYqqFdVYHsyR+uPSlXuJPv0X1IcMVhZ
-	 SMrU9MF5MZB6xG7HwKEQmt/1P8extD7P8zpd70iOLX3zKw9xAM/ctgvK0ZEaJH6eSbYhW
-	 Hul5k/QuRwkRE6VAEmVdHI/T8ccPTNe2JZsHPNzXfJlHjYIGmyl4iM7UnynxbWNCBwA==
+	bh=cBlWh/wjjyeI08eIEMAddy3oyXh1KBJoF5Yfmm3DCKo=;
+	b=vn46nZizSFABmaPJYC1fTxu71C6crvoUvIooJi+we0zjDhgPTmjPdA5rKjXGvhehhB2D
+	 fR6RQZYvZ6qvi8in0ws/n6MzbDKkX0MDG4WVo97OGZdvqQaBElyJ4CrDCK4hc1c/Gf3wr
+	 gwF6L7cynh7nnagTjjlNf81jD+uVdYaSZVt/G3NZRz6ePcCxwZyEoBpSUSvRnmBBCvlkY
+	 B3s2hGsW9RrDYVPWnL2C3n8cVVPSvoIckLhfKIXAqmEO3QhkQGDhOSMW29Mh8k4oAkwBb
+	 1X6UtKXSpJuk5HyhqxMTYf9PlO0aqcf4cMINdogiD0oUYLCl0zfJDWPRhaLrAepAH3w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=g8Ie2HLZ;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YzB2pDwE;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9509606A31A;
-	Wed, 28 Oct 2026 22:39:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D401B606A332;
+	Wed, 28 Oct 2026 22:39:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=g8Ie2HLZ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 349B11F01825;
-	Wed, 28 Oct 2026 22:39:11 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YzB2pDwE
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F4E91F031E2;
+	Wed, 28 Oct 2026 22:39:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793227151;
-	bh=sptKTufmKvL8HpZwPKOH1Q+7N6rHyLXbpotzs9340aU=;
+	s=k20260515; t=1793227184;
+	bh=cBlWh/wjjyeI08eIEMAddy3oyXh1KBJoF5Yfmm3DCKo=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=g8Ie2HLZNHyiGj1lLMH2CKScbvl8vNv0wkF0tmWo/NnRkkBc4AkiK08mYkFe9cpiT
-	 JceGWn2X4v8/ZvkIyUMzYNQkGKO9+cKjLd4f4wWCzAVeF0S6pHLu+87mr/sp+N6vZm
-	 LgwKeNV3lOvuQUgwsiOoceA6YTMxftv2BrGACGznS0NDRykCjqaIbyOcxIQp1vDlau
-	 x1A1W0YpO9CaXu92mhyPW7w6kYCW030O+BXI1r2gLtg7yss3PLhieVdDlAagiMo5n8
-	 oC5eT05w6r0G2fL30ddYe2w3n2v5fJQUuQW2bWe5N/doZWt2I1QXyjKQcj5HNhcyE/
-	 LXPuVPpNrRG5g==
-Date: Wed, 28 Oct 2026 15:39:10 -0700
+	b=YzB2pDwEMBOL/lwIzwU837qtSLmCMriyYITQRMwZMFgVCUVEZ2OLS6sJsrR2GteeB
+	 gXOpsonkwThnK8Ac7mEwOcXS8eSHpYLYw2XUAaAAXnBl1wOMe/Qhaz5Dj7yLiRakgN
+	 WAk5kye94ou+Tr1pPegjHmF+65j3HpVdf0ndYx4D9JQwaDx/5aZkoo8WBIhKrryhIm
+	 f7+5q1j+2guvYV7wyoVGId4QnpWiJLTvVo6GiaF6DeYCgz49Adlq/LmnZyw3tlMKj4
+	 0DVGxe2lHeHY8pcdnC18MKCXnVaL25E+Tvlujic7KE0GGs81qhWPSSzAhEzN4PE5kA
+	 7ubuu0DZmHh7w==
+Date: Wed, 28 Oct 2026 15:39:43 -0700
 From: Jakub Kicinski <kuba@kernel.org>
-To: Oleg Nesterov <oleg@redhat.com>
-Cc: Allison Henderson <achender@kernel.org>, Joel Granados
- <joel.granados@kernel.org>, pabeni@redhat.com, edumazet@google.com,
- horms@kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH 0/5] net/rds: move sysctl-only code under CONFIG_SYSCTL
-Message-ID: <20261028153910.6308cd06@kernel.org>
-In-Reply-To: <atzRTslzb6CAKPKX@redhat.com>
-References: <atzRTslzb6CAKPKX@redhat.com>
+To: Tariq Toukan <tariqt@nvidia.com>
+Cc: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
+ <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
+ <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>, Alexei Lazar
+ <alazar@nvidia.com>, Aya Levin <ayal@nvidia.com>, "Gal Pressman"
+ <gal@nvidia.com>, Leon Romanovsky <leon@kernel.org>, open list
+ <linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>, Mark Bloch
+ <mbloch@nvidia.com>, Moshe Shemesh <moshe@nvidia.com>, Saeed Mahameed
+ <saeedm@nvidia.com>, Shahar Shitrit <shshitrit@nvidia.com>
+Subject: Re: [PATCH net] net/mlx5e: Fix false WARN_ON_ONCE in flow steering
+ cleanup during RX init failure
+Message-ID: <20261028153943.2b1428bb@kernel.org>
+In-Reply-To: <20261026072253.4118892-1-tariqt@nvidia.com>
+References: <20261026072253.4118892-1-tariqt@nvidia.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -62,16 +68,9 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Sat, 24 Oct 2026 17:39:58 +0200 Oleg Nesterov wrote:
->  net/rds/ib.h        |   1 -
->  net/rds/ib_sysctl.c |  33 +++++---
->  net/rds/rds.h       |   5 --
->  net/rds/sysctl.c    |  26 ++++--
->  net/rds/tcp.c       | 230 ++++++++++++++++++++++++++++------------------------
->  net/rds/tcp.h       |   2 +
+On Mon, 26 Oct 2026 09:22:53 +0200 Tariq Toukan wrote:
+> Subject: [PATCH net] net/mlx5e: Fix false WARN_ON_ONCE in flow steering cleanup during RX init failure
 
-This presumably is net-next material?
-Please wait until the merge window is over, rebase on net-next/main and
-repost
+reportedly does not apply
 -- 
-pw-bot: defer
+pw-bot: cr
