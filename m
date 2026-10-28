@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793168236;
-	b=Fd6L/GjWbBI2w0uPBIwSg1le+UDUyL/iZYpV3tLQg9rhTS4LomAA7r9lhwSNkTiisIZ9
-	 9t49AE+qkm/M3dsaNYmSGnMYjLsq2OzQi/O0glqT4wMr4CJBd+IfFnpJV+NJLWbro1wCR
-	 c38pEt41BPiavOy+oDw1O3AkAf54gv7SzBERwghToEtd12L64f7gJD2FdomnajjSH4fak
-	 JEQZis3+arh8Yr3q6wktPB1+k8KA4i+f9NRqSnP6QmuWLK2op6srJFiCR/wFXig3FIC7E
-	 AI7lOCXRz8GSHSjiIsVQ9Lmir4fNd9grQ7xMSl38lLFQ2WgiGyt7E33cHMvFckvk1yQ==
+	t=1793168247;
+	b=JI4Tzo5bkJkbg0cT/PNezY9GM40kt4oR1ZEL/q3blDZ1VE/V0SJX7MTOGvn7+xuSDqPQ
+	 CcPAL/zl+RAZTDiYn+DIFQ3TzoIyr0txJLeCMPDpJV3uOLS1AKk6UX3S0xn43S9NnFaTc
+	 au/04jY0ot28GjBGS/wtgB53/1/9TU8RkG3jo8HkrDHtSXaZzB8NlVyifr5CjrA7qUY8E
+	 HIrV74OKE4ZXIFqFs0ClLO2zRIhx0NDNOj4J51p4Htfq2ZC3MsKI5BbU8Ay4CW2DzHV6N
+	 g+LkmB+hau5k+NB2QTgQhwCU+fAFYiIUdo2DKhJH5WMTuL//Klg2YujyaXd/NyDmMCw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793168236;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793168247;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=0SvobhI+e9GbvRyh0c879VdQNNeRb6Hi0gfSQIqqntM=;
-	b=nzCeylO/DwzdWYuZrAW000qU/Az40HQYZmJq9ta681FPa5xDSwN9HsPuXPZyD0bgPmg+
-	 uDaBGcBz1pgAdh6GghD2GAKT0LyBz6mE9rzVEcRM+Uw0xPdZxDFwfwmNyFmPBIajTyD7s
-	 5u0HBffO7+SpJ59dXR4jkxtLQk1QZOm9N+5wC5iD9UtS8wxmwRD0Dw86eWJPGoEyfAcUr
-	 0h4uTuZ3Fg79cgWrvNesQngpT74+JKvJrepNvc7WnbVXQn3mR8zElPMJ4JH9QTLkc1/MA
-	 xzqRKLv8BVKFvQCwm9Nw1gJw5WdKkJYr9MWl/zfOgm5cD2qKJECD5g+eJAm9Dqx60sA==
+	bh=58L4LHl5fuO+CE/8QMgK4uKZDPThmzyu0mgtG2KTAyI=;
+	b=c52rVGaqgrpGhzFngFxqaIsC0tQU7gOHIjpSiyTGKwVOaGs2HAqRLaDliTNZQiszEpGw
+	 kr8jOcb+2JeLW+zwkDgIURuSkbG5uqU1heQuq5h4Efrs/zLILHW0ZnyJ6YQ85GXO13o7M
+	 nIOytLUkcW7ayl5IhSA+1p+NLTHSeGBaJwjK55yOrIbbh70i0HRfdWbw/eksNcJwPikFu
+	 7ka6CF5CVuNeS05oUnVquVj7c1UPZBbBGlq4K69E5KM4lWm3Jmkj43iZ/hUDg3f7wfz0R
+	 KoCfC59AZ+TUj3AyI8u937Vgq93xRoIfv7rHxT/Epg4igrsXk08iTU7pxCthuYeunAw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dmmzJY8X;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XhAPlLjG;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14B9E606A31D
-	for <linux-rdma@vger.kernel.org>; Wed, 28 Oct 2026 06:17:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB3AC606A31A
+	for <linux-rdma@vger.kernel.org>; Wed, 28 Oct 2026 06:17:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dmmzJY8X
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 814FA1F01825;
-	Wed, 28 Oct 2026 06:17:15 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XhAPlLjG
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30F9B1F01825;
+	Wed, 28 Oct 2026 06:17:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793168235;
-	bh=0SvobhI+e9GbvRyh0c879VdQNNeRb6Hi0gfSQIqqntM=;
+	s=k20260515; t=1793168246;
+	bh=58L4LHl5fuO+CE/8QMgK4uKZDPThmzyu0mgtG2KTAyI=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=dmmzJY8XjVKvatKy7/hj8IJqkVeWXSO2sdc6wRbR9THsqp+Bey3hAjZWLo0v11Kgt
-	 0y8OhEjSU4/W2j6HokVQceZEZIK+6puFefZSHfkmjlGDKyVyckMyliLPGqC0UJDJj6
-	 NDhLl4M/0Xdohi4YJWIlVEQCyLuzj58diPqLTUDlXD1kwu/yhPPyuSrbnEYiaxnOE9
-	 PhQaMk6/5cyW7HicDXqUeqFMXwI0Xk4bj7S+cL/YSkJalJLa/Ak0HiVTGSaKqtiBhB
-	 6UbnCyDZD46TrbgIuRGB3ujfYQFdDBkCKv4lBhCgjZtGqXqHEn+RcT5g4WWc7blXIK
-	 syms9FiurEEww==
-Message-ID: <sashiko-outbox-187551@kernel.org>
+	b=XhAPlLjGs9ZCVgUmP3R5WieG8v4LfkVzvCV5tSLuualm9NS6dkZtWoCcSPKYlZjy/
+	 LXeBlsyafAAF5LX+hrYaF1zLi77MHO23+8pdK7N8s8oIuuHHNrmaLcFr6GuOZM/f5n
+	 TnVoOgahiyp0pz0i80cwokE3tED7uN1mG+sy5wwQD+3LHoZZZdhVQ89pKxL4ecnoIf
+	 ++SXwNinYb9tID7Ffk5/l+l6+uzkAfAphJjRultrBI3kP30+n8fBwZ077JZiHoWFMF
+	 zXaZSY/+zBGoSZPpRf5WeWBpkVtZ17EpQv73lEFK5C4zsGb8n3ChJQKdBsE3Grgl04
+	 82R05WPJmFgEQ==
+Message-ID: <sashiko-outbox-187552@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH for-rc 4/7] RDMA/bnxt_re: Drop RCFW completions for
- cookies with no outstanding command
+Subject: Re: [PATCH for-rc 6/7] RDMA/bnxt_re: Remove shared page mmap entry
+ on alloc_ucontext failure
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Selvin Xavier" <selvin.xavier@broadcom.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261028113404.33289-5-selvin.xavier@broadcom.com>
+In-Reply-To: <20261028113404.33289-7-selvin.xavier@broadcom.com>
 References: <20261028113404.33289-1-selvin.xavier@broadcom.com>
- <20261028113404.33289-5-selvin.xavier@broadcom.com>
+ <20261028113404.33289-7-selvin.xavier@broadcom.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 28 Oct 2026 06:17:15 +0000
+Date: Wed, 28 Oct 2026 06:17:25 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,20 +61,16 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> From: Saravanan Vajravel <saravanan.vajravel@broadcom.com>
+> The uverbs core does not call dealloc_ucontext() when alloc_ucontext()
+> fails. If bnxt_re_alloc_ucontext() fails after inserting the shared page
+> mmap entry, the entry is leaked. Remove it in the failure path.
 >=20
-> A duplicate CREQ completion for an idle cookie slot is processed as a
-> command response. It can decrement timeout_send a second time and, for
-> CREATE_AH, send a spurious DESTROY_AH. Log and drop such completions.
->=20
-> Fixes: 691eb7c6110f ("RDMA/bnxt_re: handle command completions after driv=
-er detect a timedout")
-> Signed-off-by: Saravanan Vajravel <saravanan.vajravel@broadcom.com>
+> Fixes: 24ce94782c48 ("RDMA/bnxt_re: Use the common mmap helper functions")
 > Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
 
 Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261028113404.3328=
-9-1-selvin.xavier@broadcom.com?part=3D4
+9-1-selvin.xavier@broadcom.com?part=3D6
 
