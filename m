@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793175070;
-	b=jBp/V5AXPd5g+Y/I4xbBNdU0KsF+4/3FNjeZWsV7e84eyjMMI+7YL732b7eQ9K4gGHJ3
-	 WzAaCbaWX5alYXgvl3YrybuYyAX8OcFtYONKwuvXIj/ZHsRJtR6CGOrlJsldrNniOjADo
-	 FQxA1mbc/DE/fOQ8dIi0/hqX6AZlUreyP3VUQ8n3ovg9T3iKxOazYmy1ZlXN5eLF8oMTV
-	 ee+nrM0Ngq9a5CQqPpWKLcbKZXlmVO/HrZlI/3nLNHMBGFcvsRjWC2NncOWUf7obRDBsU
-	 2NX0yBnA0ZGnJrp/3UYTjH5TRDpuoTTTCjhDh7h2kZX81FhsMZQxd1SO2xw1w2jILxA==
+	t=1793175529;
+	b=s4Nv472FQuHNSULz1wcUuxGYlevvyOfRunWJdWQKE2aX5scf6c9JSPZz0CVx6FfCl0ST
+	 3C02yHAOjm2M5nArUtgF46BuL5kbfPncdXOqHdibMeR0UeEOvVnfc4Q2lk+LQL7WnYXAs
+	 TzWwifOgifkkrZBUswP6T83Z1Vo7AH429EbkuqPv1H0KeT83gdeeu/9zdQ6Xs8J1Er+76
+	 TgFNc0TTo4cBcBRAafBtCisckJQR9RGMW6jfyAxgrC9rjRvBCSkjpS4XNkT0yE4hWZlaR
+	 /lEOugvWk5klGX96L6ATyMRGCW7xuqsAh9FkM6EeZ/RpWXkutOK29uPZ/8uqM/yuUdg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793175070;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793175529;
 	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:Message-ID:Date:
-	 MIME-Version:User-Agent:Subject:To:Cc:References:Content-Language:
-	 From:In-Reply-To:Content-Type:Content-Transfer-Encoding:X-Spam-Status:
+	 MIME-Version:User-Agent:Subject:To:References:Content-Language:From:
+	 In-Reply-To:Content-Type:Content-Transfer-Encoding:X-Spam-Status:
 	 X-Spam-Checker-Version;
-	bh=JP4KfsVX3G3pDEhHGD62pQlYeAuCHGaVp+P1DEP+rJc=;
-	b=TqROREKaBkM0FnpgDppMUJpFpr8o1huf0Id2OL+QUKxUazmkNLBlPFbHWLoAEy+qsKA/
-	 wqsyIu3ChourY925xwjWpTyAkH9ZkVbNNxs8Q2apYUP9LIuk63lXnbyotP4qj1lCsSTlH
-	 jeND+HJbB8mmPgAX7/oFLGcdmXgQLkw9zNEthnQJghHnykrABWrapvF1YuU7LdM8RRPTp
-	 HTNTI4Z5aar5QVbg3zkCVL5iIX0ZY6GeIno4eVbrw0yInT21X0p3KBlyGUOm5jO0INAgH
-	 24vFtNS7p7+AjVGvz0CEldXQeu0xHal3dWJolxyAen5xi7KvVRvzYQoemtzd16FbgkA==
+	bh=XlpO6EQu+C5X1emUUUam6jKnE32+edCfS5s9qfhUjic=;
+	b=P46fKe62RagHKHXUD0k8EY88rv1+Hqx1SsXrDwWrMn13LmtrOOb3A0POsr/T7g3Xrtth
+	 kS1X6pc7a2LpOxM0l7jvsYa/URTSQpe/vwJgaHBkvO80WOSV69FeuVFUYs5TB5iDrR9Gw
+	 tQNlDU3bT6POblbdGDqPufix083SoGic2zP9048L5iP79i0hli8RpX6ip3tvTuc9WKYif
+	 HtUSnUbTkpW6laHCvkGIhiYR67hREHgbhzHcegxkvf5qChnFovzBRi128Ne5iMWbyIcYB
+	 EaJcumynDatjf47x58+OHIcdNmizAgYJ1cz+TffF1g3kTJbzifceTGqFNBIhbxNcdSg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linux.microsoft.com;
 	spf=pass smtp.mailfrom=linux.microsoft.com;
-	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b="mOF/KkVp";
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=q2AJUIJA;
 	arc=none smtp.remote-ip=13.77.154.182
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id A3277606A31D;
-	Wed, 28 Oct 2026 08:11:09 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A3277606A31D
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id CA758606A329;
+	Wed, 28 Oct 2026 08:18:48 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CA758606A329
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=mOF/KkVp
+	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=q2AJUIJA
 Received: from [10.26.7.43] (unknown [4.213.232.22])
-	by linux.microsoft.com (Postfix) with ESMTPSA id A9D7620B7166;
-	Wed, 28 Oct 2026 01:10:52 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com A9D7620B7166
+	by linux.microsoft.com (Postfix) with ESMTPSA id C512E20B7166;
+	Wed, 28 Oct 2026 01:18:35 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com C512E20B7166
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1793175057;
-	bh=JP4KfsVX3G3pDEhHGD62pQlYeAuCHGaVp+P1DEP+rJc=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=mOF/KkVpNeai9SicOkRnmsfo8w60U4/clLuC9CDezx+kHETKUfknBUt+S2K3FT+xZ
-	 9/snIy9HlxCtpo/lzfxIE6q7+NOh44tGmCMNe88xZkjC3L2qaUQ64/PAI8Ux9bCkBs
-	 wXIrR5Nl1u2O9hJk3N0hg7Wq/yL4uD2TLS4470hA=
-Message-ID: <abeb55bf-20d6-4b62-b2a0-baa3649657eb@linux.microsoft.com>
-Date: Wed, 28 Oct 2026 13:41:01 +0530
+	s=default; t=1793175516;
+	bh=XlpO6EQu+C5X1emUUUam6jKnE32+edCfS5s9qfhUjic=;
+	h=Date:Subject:To:References:From:In-Reply-To:From;
+	b=q2AJUIJAz1gMNBivOfb0SCvHPmW+yi8LWWWAewhCHfYRmOFNnLTI3ke7ve2YR0tkH
+	 xgS7pzrJVeNnQGsLOo8cNl9ehDUMlEJLCrULZeFJmlbV5/IuHDVzGksbkd3R9D/C6G
+	 kbM+qNUoT1IE+T9bpzSi2dGvD6U+1Jhe+rrseqSk=
+Message-ID: <10979583-c3db-4ebe-bdec-f1848b27c96b@linux.microsoft.com>
+Date: Wed, 28 Oct 2026 13:48:44 +0530
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -54,241 +54,263 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net v3] net: mana: Add support to process throttled EQEs
-To: netdev-bot+sashiko@kernel.org
-Cc: haiyangz@microsoft.com, wei.liu@kernel.org, decui@microsoft.com,
- andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
- kuba@kernel.org, pabeni@redhat.com, kotaranov@microsoft.com,
- horms@kernel.org, ernis@linux.microsoft.com, gargaditya@linux.microsoft.com,
- mawasthi@linux.microsoft.com, leitao@debian.org,
- linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
- stable@vger.kernel.org, weh@linux.microsoft.com
-References: <20261022145428.323576-1-sahilchandna@linux.microsoft.com>
- <179302835318.3134.6374899091861716214@kernel.org>
+Subject: Re: [PATCH net] net: mana: Avoid waiting on dead HWC after device
+ reset
+To: sashiko-reviews@lists.linux.dev, linux-hyperv@vger.kernel.org,
+ linux-rdma@vger.kernel.org
+References: <20261025072838.1991785-1-sahilchandna@linux.microsoft.com>
+ <sashiko-outbox-184659@kernel.org>
 Content-Language: en-US
 From: Sahil Chandna <sahilchandna@linux.microsoft.com>
-In-Reply-To: <179302835318.3134.6374899091861716214@kernel.org>
+In-Reply-To: <sashiko-outbox-184659@kernel.org>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 
-On 26-10-2026 20:55, netdev-bot+sashiko@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found 3 potential
-> issue(s) to consider.
-> 
-> Critical: 0 · High: 1 · Medium: 1 · Low: 1
-> 
-> If you believe none of the issues are legitimate, please reply to each
-> issue of Medium severity or higher and explain why the AI is wrong.
-> If any of them are legitimate and you plan to respin, please let patchwork
-> know by including "pw-bot: cr" as a separate line at the end of your reply
-> (one such reply per series is enough).
-> 
-> - [High] Incomplete fix: a throttle EQE never services RDMA (mana_ib)
->   CQs, so the CQ-stall bug the patch claims to fix is still reachable.
-> - [Medium] mana_gd_destroy_cq() now calls synchronize_net() for every CQ
->   that was attached to a parent EQ, which is every mana_en TX and RX CQ.
-> - [Low] Claimed race: mana_create_txq() and mana_create_rxq() write
->   gc->cq_table[] (mana_en.c:2855, 3181) before netif_napi_add_*() (2860,…
-> 
+On 26-10-2026 12:59, sashiko-bot@kernel.org wrote:
+> Thank you for your contribution! Sashiko AI review found 2 potential issue(s) to consider:
+> - [High] net: mana: non-waiting CQ poll in mana_dealloc_queues() triggers false FLR
+> - [Medium] net: mana: mana_hwc_send_request() blocks on hwc->sema before checking hwc_dead
 > --
 > 
-> net: mana: Add support to process throttled EQEs
+> commit 7823c203253d16c1fb640cce922ae30200b9f486
+> Author: Sahil Chandna <sahilchandna@linux.microsoft.com>
 > 
-> This patch handles GDMA_EQE_THROTTLE (type 4) events. Each EQ records
-> up to two child CQs, and their callbacks are invoked when a throttle EQE
-> arrives. It also advertises a new driver capability bit, adds an
-> eq_throttle_events ethtool counter, and adds RCU grace period waits to
-> the CQ and HWC teardown paths.
+> net: mana: Avoid waiting on dead HWC after device reset
 > 
->> diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
->> index 8e9bfc1d6a2ae..d74ed00bb7834 100644
->> --- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
->> +++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
->> @@ -904,6 +904,27 @@ ssize_t mana_gd_read_ring(struct gdma_queue *q, char __user *buf,
->>  	return copied;
->>  }
->>  
->> +static void mana_gd_schedule_eq_cqs(struct gdma_queue *eq)
->> +{
->> +	struct gdma_context *gc = eq->gdma_dev->gdma_context;
->> +	struct gdma_queue *cq;
->> +	u8 i;
->> +
->> +	for (i = 0; i < GDMA_EQ_MAX_CHILD_CQ; i++) {
->> +		cq = rcu_dereference(eq->eq.child_cq[i]);
->> +
->> +		if (!cq)
->> +			continue;
->> +
->> +		if (cq->id >= READ_ONCE(gc->max_num_cqs) ||
->> +		    !gc->cq_table || gc->cq_table[cq->id] != cq)
->> +			continue;
->> +
->> +		if (cq->cq.callback)
->> +			cq->cq.callback(cq->cq.context, cq);
+> This commit replaces the sleep-based TX queue drain in mana_dealloc_queues()
+> with synchronous CQE polling and marks the hardware channel dead via hwc_dead
+> after a device reset so subsequent HWC commands fail fast with -ETIMEDOUT.
 > 
-> [Severity: Low]
-> This may not be reachable today, but is cq_table membership enough to
-> show that the CQ is ready for its callback?
-> 
-> mana_create_txq() and mana_create_rxq() publish the CQ in cq_table
-> before they add NAPI. For example, in mana_create_rxq():
-> 
->     gc->cq_table[cq->gdma_id] = cq->gdma_cq;
-> 
->     netif_napi_add_weight_locked(ndev, &cq->napi, mana_poll, 1);
-> 
-> If a GDMA_EQE_THROTTLE arrived on the parent EQ in that window, this
-> loop would call mana_schedule_napi()->napi_schedule_irqoff() on a
-> napi_struct that is not initialized yet.
-> 
-> In mana_alloc_queues() the EQs are freshly created. During the RX
-> window, the only other CQ on EQ i is TX CQ i. That CQ carries no
-> traffic while port_is_up is still false, so with the throttle semantics
-> described in the commit message this looks unreachable. It does depend
-> on that ordering, and on the hardware never sending a throttle EQE
-> without pending completions.
-> 
-> Would it be more robust to publish the cq_table entry only after
-> netif_napi_add_*() has run?
-> 
-This is not reachable path for throttle eqe to fire at startup before
-adding NAPI. I prefer to keep this as is.>> +	}
->> +}
+>> diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
+>> index 3bca4b683134b..c9337f49fbe15 100644
+>> --- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
+>> +++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
 > 
 > [ ... ]
 > 
->> @@ -1220,25 +1246,49 @@ static void mana_gd_create_cq(const struct gdma_queue_spec *spec,
->>  			      struct gdma_queue *queue)
->>  {
->>  	u32 log2_num_entries = ilog2(spec->queue_size / GDMA_CQE_SIZE);
->> +	struct gdma_queue *parent;
->> +	u8 i;
+>> @@ -862,6 +867,7 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
+>>  	u32 dest_vrcq;
+>>  	u32 dest_vrq;
+>>  	u32 command;
+>> +	u32 timeout = 0;
+>>  	u16 msg_id;
+>>  	int err;
 >>  
->>  	queue->head |= INITIALIZED_OWNER_BIT(log2_num_entries);
->> -	queue->cq.parent = spec->cq.parent_eq;
->> +	parent = spec->cq.parent_eq;
->> +	queue->cq.parent = parent;
->>  	queue->cq.context = spec->cq.context;
->>  	queue->cq.callback = spec->cq.callback;
->> +
->> +	if (!parent)
->> +		return;
->> +
->> +	/* For throttled EQE store the child CQ */
->> +	for (i = 0; i < GDMA_EQ_MAX_CHILD_CQ; i++)
->> +		if (!rcu_access_pointer(parent->eq.child_cq[i])) {
->> +			rcu_assign_pointer(parent->eq.child_cq[i], queue);
->> +			return;
->> +		}
->>  }
-> 
-> [Severity: High]
-> Can a throttle EQE leave the mana_ib CQs unserviced?
-> 
-> child_cq[] is only filled here, and only when spec->cq.parent_eq is
-> set. In practice that covers the mana_en TX/RX CQs and the HWC CQ.
-> 
-> The RDMA CQs never get here with a parent:
-> 
-> - mana_ib_create_kernel_queue() in drivers/infiniband/hw/mana/main.c
->   builds its spec as below, so parent_eq is NULL:
-> 
->     struct gdma_queue_spec spec = {};
-> 
-> - User CQs from mana_ib_create_queue() never go through
->   mana_gd_create_cq().
-> 
-> - mana_ib_install_cq_cb() only does:
-> 
->     gc->cq_table[cq->queue.id] = gdma_cq;
-> 
-> The hardware still binds these CQs to GDMA EQs. In
-> mana_ib_gd_create_cq():
-> 
->     req.eq_id = mdev->eqs[cq->comp_vector]->id;
-> 
-> and in mana_ib_create_qp_rss() and mana_ib_create_qp_raw():
-> 
->     cq_spec.attached_eq = eq->eq->id;
-> 
-> where those EQs are created by mana_ib_cfg_vport() when RDMA owns the
-> vport.
-> 
-> These EQs are serviced by mana_gd_intr()->mana_gd_process_eqe(). On a
-> GDMA_EQE_THROTTLE, mana_gd_schedule_eq_cqs() walks an all-NULL
-> child_cq[], and mana_ib_cq_handler() never runs.
-> 
-> Wouldn't that leave RDMA consumers waiting on comp_handler with
-> completions pending? That is the same queue stall the commit message
-> describes.
-> 
-> GDMA_DRV_CAP_FLAG_1_THROTTLED_EVENT_QUEUE is added to
-> GDMA_DRV_CAP_FLAGS1. mana_gd_verify_vf_version() sends that once for
-> the whole device, which mana_en and mana_ib share. If firmware only
-> emits type 4 EQEs after this bit is set, does this add a new stall for
-> RDMA CQs? If firmware always emits them, is the fix incomplete for
-> those EQs?
-> 
-The RDMA CQs are going to be handled separately in different patch
-series from Wei Hu. For the cap bits, the throttle EQE fire irrespective
-of whether they are present or not, this change adds support to handle
-them.> Separately, once both GDMA_EQ_MAX_CHILD_CQ slots are taken, the loop
-> above returns without recording the CQ and without any warning. Many
-> RDMA CQs can share one comp_vector EQ, and that seems to be the case
-> most likely to fill an EQ and trigger throttling.
-> 
-> Would this need a per-EQ list of CQs, or a walk over every CQ whose
-> parent is this EQ, rather than a fixed 2-entry array?
-> 
+>> @@ -897,6 +903,17 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
+>>  	dest_vrq = hwc->dest_vrq_id;
+>>  	dest_vrcq = hwc->dest_vrcq_id;
 >>  
->>  static void mana_gd_destroy_cq(struct gdma_context *gc,
->>  			       struct gdma_queue *queue)
->>  {
-> 
-> [ ... ]
-> 
->> -	gc->cq_table[id] = NULL;
->> +	/* Wait for irq reader holding the cq */
->> +	if (attached)
->> +		synchronize_net();
->>  }
+>> +	/* If the HWC is unavailable (e.g. hwc_timeout was set to 0 or
+>> +	 * hwc_dead set after device reset), do not post the WQE: the
+>> +	 * hardware cannot respond, so fail fast instead of waiting out
+>> +	 * the full timeout.
+>> +	 */
+>> +	timeout = READ_ONCE(hwc->hwc_timeout);
+>> +	if (timeout == 0 || READ_ONCE(hwc->hwc_dead)) {
+>> +		err = -ETIMEDOUT;
+>> +		goto out;
+>> +	}
 > 
 > [Severity: Medium]
-> Does this add one RCU grace period per CQ to every port teardown?
+> Can mana_hwc_send_request() still block for the full hwc_timeout on
+> hwc->sema before reaching this hwc_dead check?
 > 
-> Every mana_en TX and RX CQ is attached to a parent EQ, and they are
-> destroyed one at a time:
+> At the start of mana_hwc_send_request(), mana_hwc_get_msg_index() is called:
 > 
-> mana_dealloc_queues()
->   mana_destroy_txq()        /* loops over apc->num_queues */
->     mana_deinit_cq()
->       mana_gd_destroy_queue()
->         mana_gd_destroy_cq()
->           synchronize_net()
+>     mana_hwc_send_request()
+>       -> mana_hwc_get_msg_index()
+>            -> down(&hwc->sema);
 > 
-> The same happens for each RX CQ through
-> mana_destroy_rxqs()->mana_destroy_rxq().
+> Because hwc->sema is initialized to 1 (HW_CHANNEL_VF_BOOTSTRAP_QUEUE_DEPTH),
+> only one HWC command can be in flight at a time.
 > 
-> These paths run under RTNL: mana_close(), and mana_detach() from
-> ethtool -L/-G, MTU changes, XDP setup, and queue reset. Under RTNL,
-> synchronize_net() does:
+> While the device is active, periodic work such as
+> mana_gf_stats_work_handler() (running every 2 seconds without holding
+> rtnl_lock) or auxiliary RDMA (mana_ib) callers can enter
+> mana_hwc_send_request(), acquire hwc->sema, and sleep in
+> wait_for_completion_timeout(&ctx->comp_event, ...) for the full 60s
+> hwc_timeout when the hardware stops responding.
 > 
->     if (from_cleanup_net() || rtnl_is_locked())
->         synchronize_rcu_expedited();
+> When mana_dealloc_queues() resets the device and sets hwc->hwc_dead = true,
+> it does not complete any in-flight ctx->comp_event, so the subsequent
+> mana_disable_vport_rx() -> mana_hwc_send_request() call in
+> mana_dealloc_queues() will still block in down(&hwc->sema) while holding
+> rtnl_lock until the concurrent caller's timeout expires.
 > 
-> With MANA_MAX_NUM_QUEUES at 64, one teardown can run up to 128
-> expedited grace periods back to back while RTNL is held.
+> Should hwc_timeout == 0 || hwc_dead also be checked before acquiring
+> hwc->sema (or should in-flight waiters be completed when marking HWC dead)?
 > 
-> The HWC path also waits twice: once here for its CQ, and once in the
-> new synchronize_rcu() in mana_hwc_destroy_channel().
+Ack, this is valid, I will fix this in v2.>> diff --git
+a/drivers/net/ethernet/microsoft/mana/mana_en.c
+b/drivers/net/ethernet/microsoft/mana/mana_en.c
+>> index 6b7c027e497ed..00885d21a9af0 100644
+>> --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
+>> +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
+>> @@ -3753,16 +3753,19 @@ int mana_attach(struct net_device *ndev)
+>>  static int mana_dealloc_queues(struct net_device *ndev)
+>>  {
+>>  	struct mana_port_context *apc = netdev_priv(ndev);
+>> -	unsigned long timeout = jiffies + 120 * HZ;
+>>  	struct gdma_dev *gd = apc->ac->gdma_dev;
+>> +	struct hw_channel_context *hwc;
+>> +	bool trigger_flr = false;
+>> +	int flr_pending, i, err;
+>>  	struct mana_txq *txq;
+>>  	struct sk_buff *skb;
+>> -	int i, err;
+>> -	u32 tsleep;
+>> +	u32 flr_txq_id = 0;
+>>  
+>>  	if (apc->port_is_up)
+>>  		return -EINVAL;
+>>  
+>> +	hwc = gd->gdma_context->hwc.driver_data;
+>> +
+>>  	if (apc->rxqs)
+>>  		mana_chn_setxdp(apc, NULL);
+>>  
+>> @@ -3774,42 +3777,92 @@ static int mana_dealloc_queues(struct net_device *ndev)
+>>  	 * a txq because it may not timely see apc->port_is_up being cleared
+>>  	 * to false, but it doesn't matter since mana_start_xmit() drops any
+>>  	 * new packets due to apc->port_is_up being false.
+>> -	 *
+>> -	 * Drain all the in-flight TX packets.
+>> -	 * A timeout of 120 seconds for all the queues is used.
+>> -	 * This will break the while loop when h/w is not responding.
+>> -	 * This value of 120 has been decided here considering max
+>> -	 * number of queues.
+>> +	 * Drain the in-flight TX completions for each queue. TX is already
+>> +	 * stopped, so pending_sends can no longer grow. For each queue,
+>> +	 * disable NAPI so it cannot run at the same time as this drain,
+>> +	 * then process all completions still in the CQ. If some are still
+>> +	 * missing after that, the hardware is not responding: reset device
+>> +	 * and stop waiting on the now-unavailable HWC.
+>>  	 */
+>>  
+>>  	if (apc->tx_qp) {
+>>  		for (i = 0; i < apc->num_queues; i++) {
+>> +			struct mana_cq *tx_cq;
+>> +			struct napi_struct *napi;
+>> +			int pending;
+>> +
+>> +			if (!apc->tx_qp[i])
+>> +				continue;
+>> +
+>> +			tx_cq = &apc->tx_qp[i]->tx_cq;
+>>  			txq = &apc->tx_qp[i]->txq;
+>> -			tsleep = 1000;
+>> -			while (atomic_read(&txq->pending_sends) > 0 &&
+>> -			       time_before(jiffies, timeout)) {
+>> -				usleep_range(tsleep, tsleep + 1000);
+>> -				tsleep <<= 1;
+>> +			napi = &tx_cq->napi;
+>> +
+>> +			if (txq->napi_initialized) {
+>> +				/* Stop the NAPI poll so it cannot run
+>> +				 * concurrently with the synchronous drain.
+>> +				 */
+>> +				napi_synchronize(napi);
+>> +				napi_disable_locked(napi);
+>> +				cancel_work_sync(&tx_cq->dim.work);
+>> +
+>> +				/* Reap all TX completions currently in the CQ.
+>> +				 * A zero budget frees skbs via the non-NAPI
+>> +				 * path, which is required outside softirq.
+>> +				 */
+>> +				tx_cq->budget = 0;
+>> +				do {
+>> +					tx_cq->work_done = 0;
+>> +					mana_poll_tx_cq(tx_cq);
+>> +				} while (tx_cq->work_done);
+>>  			}
+>> -			if (atomic_read(&txq->pending_sends)) {
+>> -				err = mana_gd_dev_reset(gd->gdma_context);
+>> -				if (err) {
+>> -					netdev_err(ndev, "device reset failed %d with %d pkts pending in txq %u\n",
+>> -						   err,
+>> -					    atomic_read(&txq->pending_sends),
+>> -					    txq->gdma_txq_id);
+>> -				}
+>> -				break;
+>> +
+>> +			pending = atomic_read(&txq->pending_sends);
+>> +			if (!trigger_flr && pending > 0) {
+>> +				trigger_flr = true;
+>> +				flr_txq_id = txq->gdma_txq_id;
+>> +				flr_pending = pending;
+>>  			}
+>>  		}
+>>  
+>> +		if (trigger_flr && !(hwc && hwc->hwc_dead)) {
+>> +			/* Completions never arrived: the device is
+>> +			 * unresponsive. Issue device reset and
+>> +			 * mark the HWC dead so subsequent HWC commands
+>> +			 * fail fast instead of each waiting the full
+>> +			 * hwc_timeout.
+>> +			 */
+>> +			err = mana_gd_dev_reset(gd->gdma_context);
+>> +			if (err)
+>> +				netdev_err(ndev, "device reset failed %d with %d pkts pending in txq %u\n",
+>> +					   err,
+>> +					   flr_pending,
+>> +					   flr_txq_id);
+>> +			else if (hwc)
+>> +				WRITE_ONCE(hwc->hwc_dead, true);
+>> +		}
 > 
-> Could the child_cq[] and cq_table entries be cleared for all CQs first,
-> with a single grace period before the queues are freed?
+> [Severity: High]
+> Won't this non-waiting CQ poll trigger a premature Function Level Reset and
+> permanently mark the HWC dead whenever TX packets are still in flight in the
+> hardware during a normal detach or per-port queue reset?
 > 
-> [ ... ]
+> In mana_detach(), setting apc->port_is_up = false and calling
+> netif_tx_disable(ndev) prevents new packets from being queued in software,
+> but packets posted to txq->gdma_sq right before netif_tx_disable() are still
+> asynchronously in flight in the NIC hardware (DMA read, shaping, wire
+> transmission, and CQE DMA write-back).
 > 
-I will fix this in v4.
+> mana_poll_tx_cq() is non-blocking:
+> 
+>     mana_poll_tx_cq()
+>       comp_read = mana_gd_poll_cq(cq->gdma_cq, completions, ...);
+>       if (comp_read < 1)
+>               return;
+> 
+> As soon as mana_gd_poll_cq() reaches a CQE slot that the hardware has not
+> yet written back to host memory, it returns 0, mana_poll_tx_cq() returns
+> early with tx_cq->work_done == 0, and the do-while loop exits immediately
+> without waiting for the in-flight SQ entries to complete.
+> 
+> If any packet is still in flight on the NIC when the loop exits,
+> atomic_read(&txq->pending_sends) > 0 sets trigger_flr = true, which calls
+> mana_gd_dev_reset() and sets hwc->hwc_dead = true on healthy hardware.
+> 
+> Because hwc->hwc_dead is never cleared without destroying and recreating the
+> HWC channel, any operation that detaches and reattaches queues under traffic
+> (such as mana_close() followed by mana_open(), mana_change_mtu(),
+> mana_set_channels(), mana_set_ringparam(), mana_set_priv_flags(), or
+> mana_xdp_set()) will cause subsequent mana_attach() or mana_open() calls and
+> any other vPorts or RDMA instances on the function to fail permanently with
+> -ETIMEDOUT.
+> 
+> Similarly, single-port TX timeout recovery in
+> mana_per_port_queue_reset_work_handler() runs when a TX queue is stalled
+> (so pending_sends > 0 holds by definition):
+> 
+>     mana_per_port_queue_reset_work_handler()
+>       -> mana_detach(ndev, false)
+>            -> mana_dealloc_queues(ndev)
+>       -> mana_attach(ndev)
+> 
+> Because mana_dealloc_queues() now resets the entire PCIe function and sets
+> hwc->hwc_dead = true, the recovery call to mana_attach(ndev) immediately
+> fails with -ETIMEDOUT instead of recovering the port.
+> 
+> Furthermore, if mana_gd_dev_reset() fails or is skipped because hwc_dead was
+> already set, the cleanup loop immediately below unmaps and frees the
+> in-flight TX SKBs via mana_unmap_skb() and dev_kfree_skb_any() without
+> having waited for DMA completion or reset the device.
+> 
+Ack, this would need a bounded wait to verify queue is really stuck
+rather than depend only on pending_sends, I will fix this in v2.
 
-pw-bot: cr
