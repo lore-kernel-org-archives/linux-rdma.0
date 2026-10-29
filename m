@@ -1,71 +1,57 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.224.69
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793280690;
-	b=0O64Ui4217geBqY6p/3pCG7QAYzHKxmNM/YczoeKtlly7v9q0TLmJtKWqXSU1NKbj36h
-	 DOfRUXKzCjt4YDQyWG9C4/w9zDWl8QdC8bhTNqLgLITK4qLJG1rBF1qRdPVtwPQYzTipe
-	 Veu8yW+ptJpIGai1d8t1pWj9+1BUSwFKCSJtJmLh3n/ncX8Abrc5PCP1u9jz0QiZ7MesL
-	 j0tFDzIbRcEHFhHFYmV1F+9Ggvm8su54yVAhAcSTmVUPsPwpyObhi4a/0H2QyjQyiC9F1
-	 x5hQEPob/0wT0itclCvQCAqQpZ30HDXG4JPo47qnKv9xMePlnHe2LvkgASG/zuJ/S1Q==
+	t=1793281225;
+	b=P/RcWCnI3LLelDw/tSr0HS7y+z4KH+62fcc+eIq5x4LBLMlcm/EorZfLd+QRLxZ3AWv7
+	 aTlseTE5u6XrxWQKBCTEVh+zIFWwdu6ttoAnlq1gEvolhF8AELGjbwfIbwngrtSgEJCMR
+	 VHVL/pb0/vJdUHSO4f1+oZaI70IMVAmrhrJnvzLy+B4X6dtW/NOTeE19dK/T2gFCgeIky
+	 OZHHy0gXuqzslS4ggzxMrjYdGZtkFWf7idOotm+bmesODKVIrBwtNRdmfPNwFDzO5OW71
+	 nLqrNYqOJVRIcHMte0ZbD2Vx8oZMzwCzeKWetVvqebaveCvMcgtx+botPsRIUtWs0DA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793280690;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Received:Date:Mime-Version:X-Mailer:Message-ID:
-	 Subject:From:To:Cc:Content-Type;
-	bh=NHMxQIKiYL3Vq8m2u6aV+SomYp0bJW7RrrWV+cHooos=;
-	b=RyYdwPpS2Iccbr9th2T5BwuOfjqD4qJvi2dFojX9/8BDpn48T/K0/6756QHX/qv2yuqu
-	 /gj9+1bGaNuCdrQzb0VgDgCFttpjflq1ttFaw5MDfg4MFAEKWwrxXc2TxJ+M5rX+FjBYU
-	 c7ytxcJs9trYT4ZCcgPVVT2YUGvR5UrUu1tnUQHnBhtUe7KJ4ltU+PYJOutJsP//wLsdI
-	 UOXN25JrrmuU7gNSphJRpq4eyYChsN7RVeMxytelCjdu5nNETcGQt7aOYFHzs5hJpZXxV
-	 cpZfEbDOqYQ6QPRjvnG8HYXNsvPklytNIJ0jKoqEUU91qmmJ6gGfaDkxFOUBN4KCJXQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793281225;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=07JjotIloxTzjzNMlQHCq+ClgGZqNT7xFNot9yY4/RM=;
+	b=0VjLb6k0gY/rZE7TaUoJh/cyhz4R/sxVqxYBaAyDO+eWzkv5KsuNFg6jfOPdBall1F8e
+	 mkuuIit4XZ45aZ2/z6DaI6IS7UIhQ4cz4HubQLktL2GS8nCXG+DP97kXWgLEpcw2ror6x
+	 33e/Fym3SV+/zHpVvZGOD71Ua/hhY4f+RKt4CG7dak8iOPE0GpPWgjVm/eO6+RXi4S/qZ
+	 WTT5+iPjlYm/LWah4k+zCXM1pyWSapua3IndQRnm03rCfiAaEW8sg4Kq5/xuLibxWsxF7
+	 v3uGRVKBctA/ClCqwucTtG2sJX7gtwD25+P7/3bsPbK623at3l4rg5lnqRAPnIPlSdQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=google.com;
-	spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com;
-	dkim=pass header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=PocFez0t;
-	arc=none smtp.remote-ip=74.125.224.69
-Received: from mail-yx1-f69.google.com (mail-yx1-f69.google.com [74.125.224.69])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AufeTjOh;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06020606A31A
-	for <linux-rdma@vger.kernel.org>; Thu, 29 Oct 2026 13:31:29 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 06020606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E39C3606A31A;
+	Thu, 29 Oct 2026 13:40:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=PocFez0t
-Received: by mail-yx1-f69.google.com with SMTP id 956f58d0204a3-6756044f260so1264350d50.0
-        for <linux-rdma@vger.kernel.org>; Thu, 29 Oct 2026 06:31:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20260707; t=1793280689; x=1793885489; darn=vger.kernel.org;
-        h=content-type:cc:to:from:subject:message-id:mime-version:date:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=NHMxQIKiYL3Vq8m2u6aV+SomYp0bJW7RrrWV+cHooos=;
-        b=PocFez0tZYGXz09FW6IDr5c7k2LOACzMx1IpLRbXOlguWiYNzkdFfQBw5SFi4fnVH/
-         mFyKB/cDZ233bSqBOe5H3aUEOGkepzCWQv983YwX3wIfWf5p9HHcpgiI8TaNpTv9GUuv
-         8EOoGfqA9eyop+/5VIsuYSMYG/whFJV6cycnPQfza2OW4zk1eJrktxYo4ZONGz//iZ45
-         CQddQdeDI1mS+WDXNpD27XnwvP1tDmwYmRFnxyK+hZDw1x9pPnpd9/7VbfTFx19sDZAf
-         NvZE35hEvOrlhtn/N6THs8wSQzHY4lG0hqL+p4wuUPloP2tiadumnhNb1OMx3TJrTBGc
-         /8Sg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793280689; x=1793885489;
-        h=content-type:cc:to:from:subject:message-id:mime-version:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=NHMxQIKiYL3Vq8m2u6aV+SomYp0bJW7RrrWV+cHooos=;
-        b=y4OZGBBHADLF0WhRWNhQfNfhmYpafeTjBu8HR3Npa5M8pI6i6YmqlFRR3EH3zOKQMh
-         RhsLQsgEUXs81pwS0oH7yo8O8IRroH3AQNd4vdOsDTF8JTUASapVzI9VQoA6LK2ujgGd
-         VCc6nB/vncpmp94k2DxhNJ1pxmAKFbO5/uoO4xHwQ4rcKcfzEYWtUB5CNpQ0596VH4ZN
-         obksBbA0t2f9PsrgDIBGKrEtBUOTH6izjFuSdEdko1XhSbwg9qK2XnLdwmk8GMHQvCaH
-         vAA7gLwuptPJ8Nc3En0iJujp+jG/NqC37qaiPmDfTfC3BX0xFbyRAxjnhBV7oJPjQTrq
-         G4Lg==
-X-Gm-Message-State: AFq9FYLu4TKFtWS4cLVr1T7ekB4N0MyAy9SaKiUyjb1syQ8mk+79haDW
-	KkgYYMhCaIisIeQS6Ky84AADAJjWwVOFf+tL/bmeDXIlSho2rnq2ZG2SA4rbspX9luVi65L280j
-	opI6WywFcvg==
-X-Received: from yxsj1.prod.google.com ([2002:a53:eac1:0:b0:677:b337:6db0])
- (user=jmoroni job=prod-delivery.src-stubby-dispatcher) by 2002:a05:690e:1918:b0:679:ad2f:3fbf
- with SMTP id 956f58d0204a3-67a8d0047a5mr1967992d50.8.1793280688738; Thu, 29
- Oct 2026 06:31:28 -0700 (PDT)
-Date: Thu, 29 Oct 2026 13:31:21 +0000
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AufeTjOh
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B71FB1F01241;
+	Thu, 29 Oct 2026 13:40:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793281224;
+	bh=07JjotIloxTzjzNMlQHCq+ClgGZqNT7xFNot9yY4/RM=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=AufeTjOhIaoLfT1l6sed/fAoOX1VpUkEehP54UEAyicqiA4X/gNWKab5tLckSMayw
+	 RIlE3Ip5eeC0wBxEEEeBdmSFjEiURRnKIxQMYmm41Y+uEUSnHQ1t/W+edwpxcvF11n
+	 4rVTihUZqJFbHRG3tBHUnMqPHoDSxwjt9cfcsrvcTOG423Nd9M81yyr06RffHoJ2r1
+	 x4QWsS2pH2SbFbYMmr7zVB8SEl7qCQuMtSHHwF4bV3iXCXjROqYih2Gx7p8YN9UBd3
+	 C1EyHhK2UozSGGz8yR5K9BWBSW2pwLS2HOPU68pFEt5Iw/aHNETy/IgF2uwn6GrCmx
+	 5EYdzKi0nOk7w==
+Date: Thu, 29 Oct 2026 13:40:19 +0000
+From: Simon Horman <horms@kernel.org>
+To: Xuanqiang Luo <xuanqiang.luo@linux.dev>
+Cc: netdev@vger.kernel.org, saeedm@nvidia.com, leon@kernel.org,
+	tariqt@nvidia.com, mbloch@nvidia.com, borisp@nvidia.com,
+	witu@nvidia.com, andrew+netdev@lunn.ch, davem@davemloft.net,
+	edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com,
+	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Xuanqiang Luo <luoxuanqiang@kylinos.cn>
+Subject: Re: [PATCH net v1] net/mlx5e: kTLS, Fix missing error unwind when
+ enabling RX offload
+Message-ID: <20261029134019.GG257209@horms.kernel.org>
+References: <20261026095346.1212609-1-xuanqiang.luo@linux.dev>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -74,52 +60,101 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-Mime-Version: 1.0
-X-Mailer: git-send-email 2.56.0.313.g2479322e68-goog
-Message-ID: <20261029133121.1204636-1-jmoroni@google.com>
-Subject: [PATCH rdma-next 2/3] RDMA/irdma: Do not allow rereg_mr to revive
- defunct MRs
-From: Jacob Moroni <jmoroni@google.com>
-To: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, leon@kernel.org
-Cc: linux-rdma@vger.kernel.org, Jacob Moroni <jmoroni@google.com>
-Content-Type: text/plain; charset="UTF-8"
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261026095346.1212609-1-xuanqiang.luo@linux.dev>
 
-An MR can become "defunct" if a previous rereg_mr happened
-to fail in between deregistering the old MR in HW and
-reregistering it (e.g., due to ib_umem_get_va() failing
-in the IB_MR_REREG_TRANS case).
+On Mon, Oct 26, 2026 at 06:53:46PM +0900, Xuanqiang Luo wrote:
+> From: Xuanqiang Luo <luoxuanqiang@kylinos.cn>
+> 
+> Since commit abed42f9cd80 ("net/mlx5e: Conditionally create async
+> ICOSQ"), the async ICOSQ is only created when an XDP program is attached
+> or priv->ktls_rx_was_enabled is set. When TLS RX offload is enabled for
+> the first time, mlx5e_ktls_set_feature_rx() sets the flag and reopens
+> the channels so that they get the queue, but it ignores the return value
+> of mlx5e_safe_reopen_channels().
+> 
+> If the reopen fails, mlx5e_safe_switch_params() keeps the old channels,
+> which have no async ICOSQ, while NETIF_F_HW_TLS_RX is still reported as
+> enabled. The next offloaded RX connection then dereferences the NULL
+> c->async_icosq in post_rx_param_wqes(). Enabling the feature again does
+> not help, as the flag is already set and the reopen is skipped.
+> 
+> Propagate the error, clear the flag and destroy the accel TCP flow
+> tables again, so that the feature stays disabled and the next attempt
+> retries the reopen.
+> 
+> Fixes: abed42f9cd80 ("net/mlx5e: Conditionally create async ICOSQ")
+> Signed-off-by: Xuanqiang Luo <luoxuanqiang@kylinos.cn>
+> ---
+> Found by code inspection while backporting commit abed42f9cd80 to a
+> downstream kernel. I do not have a crypto-enabled ConnectX NIC, so the
+> failure has not been reproduced and the fix is only compile-tested.
+> 
+> The crash itself is the one described in the changelog of abed42f9cd80
+> ("async ICOSQ allocation is not triggered, causing a NULL pointer
+> crash"). This patch only covers the case where the reopen that should
+> create the queue fails. ktls.c is also the only caller that ignores the
+> return value of mlx5e_safe_reopen_channels(); the callers in health.c
+> and reporter_tx.c check it.
+> 
+>  drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls.c | 6 +++++-
+>  1 file changed, 5 insertions(+), 1 deletion(-)
 
-In this case, the MR is left in a state where the umem may
-have already been released.
+I agree that a minimal approach to addressing this problem is appropriate
+for net.
 
-If rereg_mr then runs again, but without IB_MR_REREG_TRANS,
-it will end up reregistering the MR with stale translation
-info.
+Reviewed-by: Simon Horman <horms@kernel.org>
 
-Fix this by rejecting any attempt to reregister an MR that
-has previously failed during rereg_mr after the point where
-the MR has been deregistered in HW.
+However, I do think the logic of this function is becoming somewhat
+convoluted and would benefit from:
 
-Fixes: 5ac388db27c4 ("RDMA/irdma: Add support to re-register a memory region")
-Signed-off-by: Jacob Moroni <jmoroni@google.com>
----
- drivers/infiniband/hw/irdma/verbs.c | 3 +++
- 1 file changed, 3 insertions(+)
+1. Handling error paths in conditionals while leaving
+   the main thread of execution unconditional.
 
-diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-index c91c55917de9..fd1b1454f026 100644
---- a/drivers/infiniband/hw/irdma/verbs.c
-+++ b/drivers/infiniband/hw/irdma/verbs.c
-@@ -3873,6 +3873,9 @@ static struct ib_mr *irdma_rereg_user_mr(struct ib_mr *ib_mr, int flags,
- 	if (ret)
- 		return ERR_PTR(ret);
- 
-+	if (!iwmr->is_hwreg)
-+		return ERR_PTR(-EINVAL);
+2. Use goto for unwind.
+
+This is approach is complicated by the function needing to
+handle the enable condition. But at any rate, maybe a follow-up patch do do
+something like this would be worthwhile?
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls.c
+index 3cc1213c2f68..0f5dcd1b822e 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls.c
+@@ -137,19 +137,22 @@ int mlx5e_ktls_set_feature_rx(struct net_device *netdev, bool enable)
+ 	mutex_lock(&priv->state_lock);
+ 	if (enable) {
+ 		err = mlx5e_accel_fs_tcp_create(priv->fs);
+-		if (!err && !priv->ktls_rx_was_enabled) {
+-			priv->ktls_rx_was_enabled = true;
+-			err = mlx5e_safe_reopen_channels(priv);
+-			if (err) {
+-				priv->ktls_rx_was_enabled = false;
+-				mlx5e_accel_fs_tcp_destroy(priv->fs);
+-			}
++		if (err || priv->ktls_rx_was_enabled)
++			goto out_unlock;
 +
- 	ret = irdma_hwdereg_mr(ib_mr);
- 	if (ret)
- 		return ERR_PTR(ret);
--- 
-2.56.0.313.g2479322e68-goog
++		priv->ktls_rx_was_enabled = true;
++		err = mlx5e_safe_reopen_channels(priv);
++		if (err) {
++			priv->ktls_rx_was_enabled = false;
++			enable = false;
+ 		}
+-	} else {
+-		mlx5e_accel_fs_tcp_destroy(priv->fs);
+ 	}
+-	mutex_unlock(&priv->state_lock);
+ 
++	if (!enable)
++		mlx5e_accel_fs_tcp_destroy(priv->fs);
++
++out_unlock:
++	mutex_unlock(&priv->state_lock);
+ 	return err;
+ }
+ 
 
+...
