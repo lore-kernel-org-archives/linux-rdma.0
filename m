@@ -1,57 +1,71 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.200
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793281225;
-	b=P/RcWCnI3LLelDw/tSr0HS7y+z4KH+62fcc+eIq5x4LBLMlcm/EorZfLd+QRLxZ3AWv7
-	 aTlseTE5u6XrxWQKBCTEVh+zIFWwdu6ttoAnlq1gEvolhF8AELGjbwfIbwngrtSgEJCMR
-	 VHVL/pb0/vJdUHSO4f1+oZaI70IMVAmrhrJnvzLy+B4X6dtW/NOTeE19dK/T2gFCgeIky
-	 OZHHy0gXuqzslS4ggzxMrjYdGZtkFWf7idOotm+bmesODKVIrBwtNRdmfPNwFDzO5OW71
-	 nLqrNYqOJVRIcHMte0ZbD2Vx8oZMzwCzeKWetVvqebaveCvMcgtx+botPsRIUtWs0DA==
+	t=1793281989;
+	b=S9OrqxxNth8UsOV5UKqHJlFCbo0twhkDQzfqKHu2AAnrx7Vyvq2Ri54ujNlwp7A+hbpB
+	 jd3p7Cuii6YCENSf74O4tUxvL/l3auJm9w0FxRvZXXruQjRULTOELZMuRzyAd2hj8fuNb
+	 w9kB0vF4mY9jKQH280XekfujRDGIXVhjYADL9e13OLdRfNhf0Ipr76b2Tcto2T9xDzyMs
+	 2UwYfwh3wrEdB8jaErI6Epw5UlIisVhUJdPxjH7M34/umjtKkvok4jVgKjX6c5o9YZTAK
+	 BmtldS4kHeTQL0J+ujsBcl8HGiSSppcDXY/Sv19Aaol058EiwkoBAl1RPO11I5Nf1Xw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793281225;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=07JjotIloxTzjzNMlQHCq+ClgGZqNT7xFNot9yY4/RM=;
-	b=0VjLb6k0gY/rZE7TaUoJh/cyhz4R/sxVqxYBaAyDO+eWzkv5KsuNFg6jfOPdBall1F8e
-	 mkuuIit4XZ45aZ2/z6DaI6IS7UIhQ4cz4HubQLktL2GS8nCXG+DP97kXWgLEpcw2ror6x
-	 33e/Fym3SV+/zHpVvZGOD71Ua/hhY4f+RKt4CG7dak8iOPE0GpPWgjVm/eO6+RXi4S/qZ
-	 WTT5+iPjlYm/LWah4k+zCXM1pyWSapua3IndQRnm03rCfiAaEW8sg4Kq5/xuLibxWsxF7
-	 v3uGRVKBctA/ClCqwucTtG2sJX7gtwD25+P7/3bsPbK623at3l4rg5lnqRAPnIPlSdQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793281989;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Gm-Message-State:X-Received:Date:Mime-Version:X-Mailer:Message-ID:
+	 Subject:From:To:Cc:Content-Type;
+	bh=RQT8Qk6/je1+s4Vl0c1s8qy8QFr9UsymjIcKMC4COqk=;
+	b=YM4eQFHJs02HYVoo6GF73D0UqFGS/R5IPOaUq3rgbM7GV296zA40z/IIvuGaIQ/9tTWb
+	 ucAIcDJ66aMDfCbx8zOw9MBfj24BvZdxjruuhS8HrSf6EsMycrgWEqEBNp6CnicCjQoQU
+	 DjTK8CoTZXCxa82flRj0NfIC1ouLZ3GDjElmtfPlXvLbVecMUqj/ffwqZHXWGrcTC6r4S
+	 WaOjDxXcStEFo+2DdVWq9BaACcnYN3mw3FwLt2mcqRr66WoBnh+mfJZp59VZDXBjt038Z
+	 IVdKpPo3OT8zgeQ5aLF6BULw2HguBprU+sjSefcaITqbrPkZkIl65zs8js5MjLNVmlw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AufeTjOh;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=google.com;
+	spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com;
+	dkim=pass header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=p8Hdd0sa;
+	arc=none smtp.remote-ip=209.85.160.200
+Received: from mail-qt1-f200.google.com (mail-qt1-f200.google.com [209.85.160.200])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E39C3606A31A;
-	Thu, 29 Oct 2026 13:40:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D634460A262E
+	for <linux-rdma@vger.kernel.org>; Thu, 29 Oct 2026 13:53:08 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D634460A262E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AufeTjOh
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B71FB1F01241;
-	Thu, 29 Oct 2026 13:40:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793281224;
-	bh=07JjotIloxTzjzNMlQHCq+ClgGZqNT7xFNot9yY4/RM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=AufeTjOhIaoLfT1l6sed/fAoOX1VpUkEehP54UEAyicqiA4X/gNWKab5tLckSMayw
-	 RIlE3Ip5eeC0wBxEEEeBdmSFjEiURRnKIxQMYmm41Y+uEUSnHQ1t/W+edwpxcvF11n
-	 4rVTihUZqJFbHRG3tBHUnMqPHoDSxwjt9cfcsrvcTOG423Nd9M81yyr06RffHoJ2r1
-	 x4QWsS2pH2SbFbYMmr7zVB8SEl7qCQuMtSHHwF4bV3iXCXjROqYih2Gx7p8YN9UBd3
-	 C1EyHhK2UozSGGz8yR5K9BWBSW2pwLS2HOPU68pFEt5Iw/aHNETy/IgF2uwn6GrCmx
-	 5EYdzKi0nOk7w==
-Date: Thu, 29 Oct 2026 13:40:19 +0000
-From: Simon Horman <horms@kernel.org>
-To: Xuanqiang Luo <xuanqiang.luo@linux.dev>
-Cc: netdev@vger.kernel.org, saeedm@nvidia.com, leon@kernel.org,
-	tariqt@nvidia.com, mbloch@nvidia.com, borisp@nvidia.com,
-	witu@nvidia.com, andrew+netdev@lunn.ch, davem@davemloft.net,
-	edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com,
-	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Xuanqiang Luo <luoxuanqiang@kylinos.cn>
-Subject: Re: [PATCH net v1] net/mlx5e: kTLS, Fix missing error unwind when
- enabling RX offload
-Message-ID: <20261029134019.GG257209@horms.kernel.org>
-References: <20261026095346.1212609-1-xuanqiang.luo@linux.dev>
+	dkim=pass (2048-bit key, unprotected) header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=p8Hdd0sa
+Received: by mail-qt1-f200.google.com with SMTP id d75a77b69052e-5358515b4easo49244981cf.0
+        for <linux-rdma@vger.kernel.org>; Thu, 29 Oct 2026 06:53:08 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20260707; t=1793281988; x=1793886788; darn=vger.kernel.org;
+        h=content-type:cc:to:from:subject:message-id:mime-version:date:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=RQT8Qk6/je1+s4Vl0c1s8qy8QFr9UsymjIcKMC4COqk=;
+        b=p8Hdd0saL5M7OVWriu9VSjyE50jFws5f05QyCrazHIZ/kxsKhMJ90e42PKCadBK9SW
+         0CRXzkg4Cwt14e+mysbGnTXHXjt+I0veTHvW9UxeiH3Cs0Vk+Vz0yW3BMFt2tPxK4N78
+         zNBByBGRevoJfsHRQK0tFwcIfsKDhLTPnK2ExlDCzd0yUOhzNHCB/xwJqxENbOT622/u
+         ps6DmV/+Z47aA5XupRTqrYOYj4QchHhVKdNV6Oo3s8sPZ/Jj/uPfyxLxhtFpJWBNq0T8
+         MdK0f/JWRAwk7/43EV6J+32vMurptBZAik7jAPUcZyk0Cjd+Ef6YjitzIDaE5Jr0oraD
+         PqCg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793281988; x=1793886788;
+        h=content-type:cc:to:from:subject:message-id:mime-version:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=RQT8Qk6/je1+s4Vl0c1s8qy8QFr9UsymjIcKMC4COqk=;
+        b=p1gr280rtlMc/8LM6lqcJVuRr1jjjaelb8AQD+VAlGPKzpbIditHI8ssDHZyeeFM0G
+         4uJ4NqCIgHuftq8yBJP1uTAFzMoPKCaaEK3/vJZ2jOwdtf608mmTmXix2eOoxOd1LTHL
+         WbkKZKGkz6s/UkVdEuzKrcrsReXnW2yFYIFcA85eAa1+//E0xJzlpXFCh7onyqBZISLa
+         78QydQuUxOtjIki7Vp9nLzM3YjjL9gFIKoZWAbYIdK8CW8AwQ1LOGbzgRgvGB5T0UNlu
+         QQoYRwoAIGwLzObkopl/xeA5KFXIsNeU3MpJEDrcUweawLedMbZkyk0xkW9hdRNYkWZL
+         Op9A==
+X-Gm-Message-State: AFq9FYK3bGYNhebk+kSnAaJ7jXj8HF+aa5jVk4DXBuIT6nFZxVBTqWbC
+	IdIET0qgFUhKot18CuRPW2hpYVtWNLcQCcbMTLHvapVp5MJUy/SHgcc6p609LqcARZ33EeRAD7Q
+	QxYAVdjOkxg==
+X-Received: from qvnw16.prod.google.com ([2002:a0c:f710:0:b0:91b:e0cd:408])
+ (user=jmoroni job=prod-delivery.src-stubby-dispatcher) by 2002:ac8:598c:0:b0:536:9980:9a66
+ with SMTP id d75a77b69052e-53fcc5cb41dmr87354381cf.41.1793281987504; Thu, 29
+ Oct 2026 06:53:07 -0700 (PDT)
+Date: Thu, 29 Oct 2026 13:53:06 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,101 +74,168 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261026095346.1212609-1-xuanqiang.luo@linux.dev>
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.56.0.313.g2479322e68-goog
+Message-ID: <20261029135306.1372393-1-jmoroni@google.com>
+Subject: [PATCH rdma-next 3/3] RDMA/irdma: Do not change mr->pd in driver
+ during rereg_mr
+From: Jacob Moroni <jmoroni@google.com>
+To: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, leon@kernel.org
+Cc: linux-rdma@vger.kernel.org, Jacob Moroni <jmoroni@google.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On Mon, Oct 26, 2026 at 06:53:46PM +0900, Xuanqiang Luo wrote:
-> From: Xuanqiang Luo <luoxuanqiang@kylinos.cn>
-> 
-> Since commit abed42f9cd80 ("net/mlx5e: Conditionally create async
-> ICOSQ"), the async ICOSQ is only created when an XDP program is attached
-> or priv->ktls_rx_was_enabled is set. When TLS RX offload is enabled for
-> the first time, mlx5e_ktls_set_feature_rx() sets the flag and reopens
-> the channels so that they get the queue, but it ignores the return value
-> of mlx5e_safe_reopen_channels().
-> 
-> If the reopen fails, mlx5e_safe_switch_params() keeps the old channels,
-> which have no async ICOSQ, while NETIF_F_HW_TLS_RX is still reported as
-> enabled. The next offloaded RX connection then dereferences the NULL
-> c->async_icosq in post_rx_param_wqes(). Enabling the feature again does
-> not help, as the flag is already set and the reopen is skipped.
-> 
-> Propagate the error, clear the flag and destroy the accel TCP flow
-> tables again, so that the feature stays disabled and the next attempt
-> retries the reopen.
-> 
-> Fixes: abed42f9cd80 ("net/mlx5e: Conditionally create async ICOSQ")
-> Signed-off-by: Xuanqiang Luo <luoxuanqiang@kylinos.cn>
-> ---
-> Found by code inspection while backporting commit abed42f9cd80 to a
-> downstream kernel. I do not have a crypto-enabled ConnectX NIC, so the
-> failure has not been reproduced and the fix is only compile-tested.
-> 
-> The crash itself is the one described in the changelog of abed42f9cd80
-> ("async ICOSQ allocation is not triggered, causing a NULL pointer
-> crash"). This patch only covers the case where the reopen that should
-> create the queue fails. ktls.c is also the only caller that ignores the
-> return value of mlx5e_safe_reopen_channels(); the callers in health.c
-> and reporter_tx.c check it.
-> 
->  drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls.c | 6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
+Previously, IB_MR_REREG_PD would cause the driver to set
+iwmr->ibmr.pd to the new PD before reregistering with HW because
+irdma_hwreg_mr() retrieves the PD from there.
 
-I agree that a minimal approach to addressing this problem is appropriate
-for net.
+ib_uverbs_rereg_mr() only moves the PD usecnt from the old PD to
+the new one and updates mr->pd itself after the driver's
+rereg_user_mr() call succeeds.
 
-Reviewed-by: Simon Horman <horms@kernel.org>
+So, if the rereg_user_mr() call fails, the MR is left pointing at
+a PD that does not account for it while the old PD keeps the reference,
+which means the old PD can never be deallocated, while the new PD can
+be deallocated even though the MR still points at it.
 
-However, I do think the logic of this function is becoming somewhat
-convoluted and would benefit from:
+Fix this by removing the PD update from the driver and just letting
+the core handle it. This required plumbing the PD as an argument
+through a few functions. This works because the core passes the
+PD unconditionally and provides the current PD if IB_MR_REREG_PD is
+not set.
 
-1. Handling error paths in conditionals while leaving
-   the main thread of execution unconditional.
+Fixes: 5ac388db27c4 ("RDMA/irdma: Add support to re-register a memory region")
+Signed-off-by: Jacob Moroni <jmoroni@google.com>
+---
+ drivers/infiniband/hw/irdma/verbs.c | 34 ++++++++++++-----------------
+ 1 file changed, 14 insertions(+), 20 deletions(-)
 
-2. Use goto for unwind.
-
-This is approach is complicated by the function needing to
-handle the enable condition. But at any rate, maybe a follow-up patch do do
-something like this would be worthwhile?
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls.c
-index 3cc1213c2f68..0f5dcd1b822e 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls.c
-@@ -137,19 +137,22 @@ int mlx5e_ktls_set_feature_rx(struct net_device *netdev, bool enable)
- 	mutex_lock(&priv->state_lock);
- 	if (enable) {
- 		err = mlx5e_accel_fs_tcp_create(priv->fs);
--		if (!err && !priv->ktls_rx_was_enabled) {
--			priv->ktls_rx_was_enabled = true;
--			err = mlx5e_safe_reopen_channels(priv);
--			if (err) {
--				priv->ktls_rx_was_enabled = false;
--				mlx5e_accel_fs_tcp_destroy(priv->fs);
--			}
-+		if (err || priv->ktls_rx_was_enabled)
-+			goto out_unlock;
-+
-+		priv->ktls_rx_was_enabled = true;
-+		err = mlx5e_safe_reopen_channels(priv);
-+		if (err) {
-+			priv->ktls_rx_was_enabled = false;
-+			enable = false;
- 		}
--	} else {
--		mlx5e_accel_fs_tcp_destroy(priv->fs);
- 	}
--	mutex_unlock(&priv->state_lock);
- 
-+	if (!enable)
-+		mlx5e_accel_fs_tcp_destroy(priv->fs);
-+
-+out_unlock:
-+	mutex_unlock(&priv->state_lock);
- 	return err;
+diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
+index fd1b1454f026..b4343181159d 100644
+--- a/drivers/infiniband/hw/irdma/verbs.c
++++ b/drivers/infiniband/hw/irdma/verbs.c
+@@ -3308,14 +3308,14 @@ static int irdma_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg,
+  * irdma_hwreg_mr - send cqp command for memory registration
+  * @iwdev: irdma device
+  * @iwmr: irdma mr pointer
++ * @pd: protection domain to register the MR with
+  * @access: access for MR
+  */
+ static int irdma_hwreg_mr(struct irdma_device *iwdev, struct irdma_mr *iwmr,
+-			  u16 access)
++			  struct ib_pd *pd, u16 access)
+ {
+ 	struct irdma_pbl *iwpbl = &iwmr->iwpbl;
+ 	struct irdma_reg_ns_stag_info *stag_info;
+-	struct ib_pd *pd = iwmr->ibmr.pd;
+ 	struct irdma_pd *iwpd = to_iwpd(pd);
+ 	struct irdma_pble_alloc *palloc = &iwpbl->pble_alloc;
+ 	struct irdma_cqp_request *cqp_request;
+@@ -3369,8 +3369,8 @@ static int irdma_hwreg_mr(struct irdma_device *iwdev, struct irdma_mr *iwmr,
+ 	return ret;
  }
  
+-static int irdma_reg_user_mr_type_mem(struct irdma_mr *iwmr, int access,
+-				      bool create_stag)
++static int irdma_reg_user_mr_type_mem(struct irdma_mr *iwmr, struct ib_pd *pd,
++				      int access, bool create_stag)
+ {
+ 	struct irdma_device *iwdev = to_iwdev(iwmr->ibmr.device);
+ 	struct irdma_pbl *iwpbl = &iwmr->iwpbl;
+@@ -3415,7 +3415,7 @@ static int irdma_reg_user_mr_type_mem(struct irdma_mr *iwmr, int access,
+ 		iwmr->ibmr.lkey = stag;
+ 	}
+ 
+-	err = irdma_hwreg_mr(iwdev, iwmr, access);
++	err = irdma_hwreg_mr(iwdev, iwmr, pd, access);
+ 	if (err)
+ 		goto err_hwreg;
+ 
+@@ -3646,7 +3646,7 @@ static struct ib_mr *irdma_reg_user_mr(struct ib_pd *pd, u64 start, u64 len,
+ 			goto error;
+ 		break;
+ 	case IRDMA_MEMREG_TYPE_MEM:
+-		err = irdma_reg_user_mr_type_mem(iwmr, access, true);
++		err = irdma_reg_user_mr_type_mem(iwmr, pd, access, true);
+ 		if (err)
+ 			goto error;
+ 
+@@ -3726,7 +3726,7 @@ static struct ib_mr *irdma_reg_user_mr_dmabuf(struct ib_pd *pd, u64 start,
+ 		goto err_release;
+ 	}
+ 
+-	err = irdma_reg_user_mr_type_mem(iwmr, access, true);
++	err = irdma_reg_user_mr_type_mem(iwmr, pd, access, true);
+ 	if (err)
+ 		goto err_iwmr;
+ 
+@@ -3794,6 +3794,7 @@ static int irdma_hwdereg_mr(struct ib_mr *ib_mr)
+ /*
+  * irdma_rereg_mr_trans - Re-register a user MR for a change translation.
+  * @iwmr: ptr of iwmr
++ * @pd: protection domain to register the MR with
+  * @start: virtual start address
+  * @len: length of mr
+  * @virt: virtual address
+@@ -3801,11 +3802,10 @@ static int irdma_hwdereg_mr(struct ib_mr *ib_mr)
+  * Re-register a user memory region when a change translation is requested.
+  * Re-register a new region while reusing the stag from the original registration.
+  */
+-static int irdma_rereg_mr_trans(struct irdma_mr *iwmr, u64 start, u64 len,
+-				u64 virt)
++static int irdma_rereg_mr_trans(struct irdma_mr *iwmr, struct ib_pd *pd,
++				u64 start, u64 len, u64 virt)
+ {
+ 	struct irdma_pbl *iwpbl = &iwmr->iwpbl;
+-	struct ib_pd *pd = iwmr->ibmr.pd;
+ 	struct ib_umem *region;
+ 	int err;
+ 
+@@ -3815,11 +3815,10 @@ static int irdma_rereg_mr_trans(struct irdma_mr *iwmr, u64 start, u64 len,
+ 
+ 	iwmr->region = region;
+ 	iwmr->ibmr.iova = virt;
+-	iwmr->ibmr.pd = pd;
+ 	iwmr->len = region->length;
+ 	iwpbl->user_base = virt;
+ 
+-	err = irdma_reg_user_mr_type_mem(iwmr, iwmr->access, false);
++	err = irdma_reg_user_mr_type_mem(iwmr, pd, iwmr->access, false);
+ 	if (err)
+ 		goto err;
+ 
+@@ -3883,11 +3882,6 @@ static struct ib_mr *irdma_rereg_user_mr(struct ib_mr *ib_mr, int flags,
+ 	if (flags & IB_MR_REREG_ACCESS)
+ 		iwmr->access = new_access;
+ 
+-	if (flags & IB_MR_REREG_PD) {
+-		iwmr->ibmr.pd = new_pd;
+-		iwmr->ibmr.device = new_pd->device;
+-	}
+-
+ 	if (flags & IB_MR_REREG_TRANS) {
+ 		if (iwpbl->pbl_allocated) {
+ 			irdma_free_pble(iwdev->rf->pble_rsrc,
+@@ -3900,9 +3894,9 @@ static struct ib_mr *irdma_rereg_user_mr(struct ib_mr *ib_mr, int flags,
+ 			iwmr->region = NULL;
+ 		}
+ 
+-		ret = irdma_rereg_mr_trans(iwmr, start, len, virt);
++		ret = irdma_rereg_mr_trans(iwmr, new_pd, start, len, virt);
+ 	} else {
+-		ret = irdma_hwreg_mr(iwdev, iwmr, iwmr->access);
++		ret = irdma_hwreg_mr(iwdev, iwmr, new_pd, iwmr->access);
+ 	}
+ 
+ 	return ret ? ERR_PTR(ret) : NULL;
+@@ -3951,7 +3945,7 @@ struct ib_mr *irdma_reg_phys_mr(struct ib_pd *pd, u64 addr, u64 size, int access
+ 	iwmr->pgaddrmem[0] = addr;
+ 	iwmr->len = size;
+ 	iwmr->page_size = SZ_4K;
+-	ret = irdma_hwreg_mr(iwdev, iwmr, access);
++	ret = irdma_hwreg_mr(iwdev, iwmr, pd, access);
+ 	if (ret) {
+ 		irdma_free_stag(iwdev, stag);
+ 		goto err;
+-- 
+2.56.0.313.g2479322e68-goog
 
-...
