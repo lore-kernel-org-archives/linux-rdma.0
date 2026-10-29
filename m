@@ -1,59 +1,96 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.172
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793299384;
-	b=3pglNvzX6KmE4+AyCNeKSotghjVmtGEc/U7KRp62CLXdShhanP8vwG+n7aY4RAjqQnlW
-	 c8+e9rHkVGmSZvqm+Ck1lHxzNRdr3yxhRhBCJk9z2i/GttKF9rKF2C+A44G82GCB09RRK
-	 OpmTUgsD+QE9gW1NpfUBCqiPlLJOMJ4aPRZoyrCpbStRXPsstmSyCBmpeQuUTRKZlBOe5
-	 LSsCG8ZUEjFMcReDoHzTmn9UrqxLfkzyiFrCcFQjLA8KliGykF8gDDXXCWn/opRCo8SaE
-	 5DtbnPFrmDOpVhPSoNAD/xT3mt2XCiCsi0lbe2h/kpo+BQcS/hMxSh8pvfhtWr/Xz3Q==
+	t=1793300688;
+	b=zS2CnDK29FIPxr0s6l6j+mSDwz8KR5ZqNBYCCJ3ATdKhbLFwcMnsvI0ckhZDO3aGhs9R
+	 EdxXGd34E/Kzn6gfQYpg2XNGA2wQQh5CNgsjgepkeqMXd2PVcQNNsYtvUe/aAKxHfEJ1Z
+	 IylKn2O9LrgMr0+VUXScJGwcFSlPZ3RJJuW9JqK4A0nGI8rr9fbg/ehDyY+R4PP57frJT
+	 MqPwU/MSCmSgUd4r09/Ya1WOXMnG5vy5XVsEYK9Ls9upMLvVNDpNyaz4vXAiV0PMYQwD/
+	 L5cU6D7VWR1RPd2ce/yZol/nTWtkptGBTn9zlkq9Zi305w00G053vivtZX8jjTKoGrg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793299384;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=9SZRpBJnx0NfLgwlPQOrXbrxGTXyIyuec6PCXc20J9c=;
-	b=QhDNpM3HRVyXDULgT0o83ltJAXaOZos10M1btsRSxyTiSS5ofhYl9cfs1Gc4yYgQj6Cq
-	 buIiStwjPEa1Ff8wHHbwLvMLkdK18gxDE61cx0KloO8J7NWRlorgA9ZqnXTSNO0gez5Wk
-	 fgIq+Ir7jWlWMv+IY4emJB0jkp/J81gPZfAC6sLNfa4PA8QvO8nQkrF0fIOfZhf93y5wo
-	 uJ3wBe07LJA8ksHW5tUgaElhdqcDeUex/4u2dht/5CtmoMmNM/C5yKFjvUhXd/AgZDdAN
-	 t42kE5UUDHwFhP28SqVXjGkqSAj9duH9v1dbHyK9Y7f2pjjuV382fdHpJz5f5uucyEQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793300688;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:Received:Date:From:To:
+	 Cc:Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To;
+	bh=XdoAl12lw/fEQqYaealcRh6QQpZb1wPL9tsyUs8XxOA=;
+	b=ikjgD7rVVqWjZ4NhQJ8rH8DOJacnYELo6f+ax2Dnudq/e07Sdy64z7ZfpTuNMWQ/SOY7
+	 WT5vIHyi1JlAqCDX5YdmI5uu6mHJIzVSwwFIgquQCpdq1uPrNsZBu7aoUG0xzDVrZtfEt
+	 9lUe5XfTAqzJN5Fo/kSXqTuVCd/NR5NFSpSPu1wSjTmohhkVbUMB7RItGk8TrZqTeKNEz
+	 Z5UGnyaMWiWRApSSQu3VA1jP9L/rE0l7It4x+zrsCfnLUFgojzK5bSDAOYn5RI4a4/rwA
+	 O+avXU/1OSohcZ+NImAR/0tjACLDCCADaLdEui0s2zkzclbsQFLZ/V1cmY/evUIitDA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dM6tp2St;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=none header.from=ziepe.ca;
+	spf=pass smtp.mailfrom=ziepe.ca;
+	dkim=pass header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=JuVgGKU4;
+	arc=none smtp.remote-ip=209.85.160.172
+Received: from mail-qt1-f172.google.com (mail-qt1-f172.google.com [209.85.160.172])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA308606A332;
-	Thu, 29 Oct 2026 18:43:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEB94606A31D
+	for <linux-rdma@vger.kernel.org>; Thu, 29 Oct 2026 19:04:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AEB94606A31D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dM6tp2St
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 154EA1F031E6;
-	Thu, 29 Oct 2026 18:43:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793299383;
-	bh=9SZRpBJnx0NfLgwlPQOrXbrxGTXyIyuec6PCXc20J9c=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=dM6tp2StWrsxBXQEnX9zLE0DhGQioCijaOY+DldVA1jwxuR+KBsaPXDyJLlrO5Asd
-	 ID0KAV0GFZFOtoA7gPW1vaoWOjjublPdSETIB/tdUyiN4gK4gzqXhQRGxawzaQlTn9
-	 MJFXIwhlZdCGJN+pzKLYHw2OvljwwNsjWA3QNEo/Kw7bjKC+Ms9lxT86gXnorOWcmO
-	 EJCmomBeCZhYzxGYWS4AtKeao+uoFpWnhQTsOeiYZEauBrMfNiX7LumYyg/Q3Nf5Hg
-	 74c2LNUaEx+ttxwZ2QIY/PoDiFNQQ3snpTWBwrjlw+gHF37e9EeLjGqODk5VTikhiH
-	 jgICeUZSd0cQA==
-Message-ID: <sashiko-outbox-189825@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net v8 4/4] net/smc: bound the link failover cursor
- advance to the send buffer
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Bryam Vargas" <hexlabsecurity@proton.me>
-Cc: linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, "Heiko Carstens" <hca@linux.ibm.com>, "Vasily
- Gorbik" <gor@linux.ibm.com>, "Alexander Gordeev" <agordeev@linux.ibm.com>, "Christian
- Borntraeger" <borntraeger@linux.ibm.com>
-In-Reply-To: <20261029-b4-disp-33001ace-v8-4-f9bb96e17827@proton.me>
-References: <20261029-b4-disp-33001ace-v8-0-f9bb96e17827@proton.me>
- <20261029-b4-disp-33001ace-v8-4-f9bb96e17827@proton.me>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Thu, 29 Oct 2026 18:43:02 +0000
+	dkim=pass (2048-bit key, unprotected) header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=JuVgGKU4
+Received: by mail-qt1-f172.google.com with SMTP id d75a77b69052e-537548b811aso21553001cf.3
+        for <linux-rdma@vger.kernel.org>; Thu, 29 Oct 2026 12:04:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1793300686; x=1793905486; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=XdoAl12lw/fEQqYaealcRh6QQpZb1wPL9tsyUs8XxOA=;
+        b=JuVgGKU4qzuw3o2r45SDb17dWVTn3dpcj5kPT5ZJyL6z65sPT1+Csf5ybM6DnbO6Cl
+         rCHv4iuylZjRSsFwJpr+DWHg74RQldYGkgypTB9KdKLS80d40uLCjKJm1ERtWDEvkJrr
+         LGyJaNBUFamgVl6ugJ/yU1Rt3pEM1o/4+YSqH5oQXhDA1gzYNZ1H/INzbJ+OLHm1tJbc
+         arFz640hRHvJh4/v2f+vhe/R0XjyFFaxH4eqQnAC6aGp5hPdefx4V1IlJ9p6bYSDM4zx
+         xEcsXkdnhfAHRMkBf64gYbzTYqttpA01uoaqaOegQAHurgYibhr10Y60YPEKdEPJhrLD
+         ArDA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793300686; x=1793905486;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=XdoAl12lw/fEQqYaealcRh6QQpZb1wPL9tsyUs8XxOA=;
+        b=kHmmAwVZoTaEocZXexr77hxhhcWS7jM7qqGksQpMlN1Va1oWe0tcvz/HgvmNOG1Act
+         SxBwPYr+oILPU/ydQgaNEODdAGEmJQLGx1Q8IN37i5icQixWmZrIuef3iF58LkjNTTRi
+         rv+oM4rvtgt+uD0avw1zCV4mrYhyczQWUfcyEryo15jreRfI92hesfErgYBqvvM7es3z
+         Wd9Qb8c0+3gkl0X5erNIfJBLZYoLCBr7gYEzyI+ZLKF+A04Kest1/tJO/VXq8oVetuUH
+         ktQSGwQuZMOWPNw8puA3WDfaOhErL4TbscO9wdcvp2A+mIE5hCn4ZYgWUYCl+aMqOsUs
+         epSw==
+X-Gm-Message-State: AFq9FYJeKwjebQVvf7Qv8mWh1QpTKS+acf0VOL8NWGt+QupgPBII9LTu
+	sC63nH8a6Rmo+MbkyqWOxNqq7OZJqjuBnzc9cg0ZlQfQRcBlc022AzS3bYHv79lmqH0=
+X-Gm-Gg: AYBFou034cXjUvFv2GD/WL+fIAHXibsGKUF6eW4qmJEeBPKNGv9Y1XBJ+QIr0gHe6r2
+	24WVnNEotu3iheLwkS0IrP8cRLNAUrYeXIuC5FxQ3+6daxR+TMOqjkg2oRTw+52vHOwU85Cxy21
+	oQqD3p4bkRKqhsaetkTTxyfTLvHNl2VFH9+yermc1Sn4Yv/YAMoQZzr1fmeWi7rRpqcLQgMHn8q
+	oSivjfAOZfWTZtpX+Gg/mkUQN+dC+dKFoA0MEKfa+M7ZbjhRrLqDXH4/0SeO4GYxZo9/jlRuyLU
+	qLP94QfVkCm56CJxFd/XMn35fnAxL0ifQRU/ftxA1dYqiJeLRipbq8Eo975dqdTR4XVzmTnuo+J
+	uXw+f8aspZKdEhKmsdMe/l0TCGlrd2JUHYh5YVb/13QMdvKO90HQVVEVAXhTB008J9zJO9vrECv
+	sBLHBOOV6K6hdr4nxKZWHnk3a+ANidB/kLi6h45yyJ2y9yLoFal/f2yv/nm7wcw+aplsJZfmOV2
+	qMoT/OIhoQrO+Aj9G3Ofk4DjoPrA3NifjjCnOMTnymIo4/keph5LOPTfm8bSZWhnyXAANiKKG+P
+	Gih6BG88wYmGISRIujoYstU+CXizhqcyulSGKZAADI9wceCV4FARwe2K57qJVPqeNwCQvyIjV46
+	QG/jC3INTkcQ=
+X-Received: by 2002:a05:622a:4017:b0:531:190c:85d6 with SMTP id d75a77b69052e-53fcb20df7cmr104066131cf.16.1793300686497;
+        Thu, 29 Oct 2026 12:04:46 -0700 (PDT)
+Received: from ziepe.ca (hlfxns010zw-159-2-239-150.pppoe-dynamic.high-speed.ns.bellaliant.net. [159.2.239.150])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91ca3131971sm3641926d6.30.2026.10.29.12.04.45
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 29 Oct 2026 12:04:45 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.97)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1xMVQb-0000000GIKH-0xOL;
+	Thu, 29 Oct 2026 16:04:45 -0300
+Date: Thu, 29 Oct 2026 16:04:45 -0300
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Dezhen Lu <dezhen.lu@student.uni-tuebingen.de>
+Cc: linux-rdma@vger.kernel.org
+Subject: Re: mlx5: dma-buf MR on GH200 GPU memory wraps every 2^k bytes when
+ the base is 2^k-aligned (k >= 32)
+Message-ID: <20261029190445.GS1685504@ziepe.ca>
+References: <20261028103430.Horde.FEW-mpmPqkkJwfVq8q5rABm@webmail.uni-tuebingen.de>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -62,32 +99,20 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261028103430.Horde.FEW-mpmPqkkJwfVq8q5rABm@webmail.uni-tuebingen.de>
 
-> From: Bryam Vargas <hexlabsecurity@proton.me>
->=20
-> On SMC-R link failover, smc_switch_cursor() rewinds the send and
-> producer cursors to their values at the last completed CDC send, then
-> advances them by the distance the peer's consumer cursor is ahead. That
-> cursor comes from the wire, so a forged one adds an arbitrary amount to
-> sndbuf_space and to the cursors. smc_curs_add() wraps them only once, so
-> the next RDMA write takes its source past the send buffer.
->=20
-> A conforming peer keeps its cursor count inside its RMB and cannot
-> consume past the data in the send buffer. Advance only for such a count,
-> and no further than tx_curs_prep. The pre-failover tx_curs_sent cannot
-> be the bound: an earlier failover may have rewound it below the peer's
-> cursor. The destination side is not bounded here: smc_write_space()
-> still sizes the window from the peer's cursor, so a forged one can take
-> the next write past the peer's own RMB, where its HCA refuses it and
-> the link goes down.
->=20
-> Fixes: c6f02ebeea3a ("net/smc: switch connections to alternate link")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Bryam Vargas <hexlabsecurity@proton.me>
+On Wed, Oct 28, 2026 at 10:34:30AM +0100, Dezhen Lu wrote:
+> Hi,
+> 
+> On Grace Hopper (GH200) with a ConnectX HCA, a memory region registered
+> through ibv_reg_dmabuf_mr() on GPU memory behaves as if its mapping wraps
+> every 2^k bytes when the region's base address is aligned to exactly 2^k,
+> with k >= 32. RDMA operations complete successfully with the full byte
+> count and no error, but they target the wrong location:
 
-Sashiko has reviewed this patch and found no issues.
+This was fixed a while ago, upgrade your software.
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261029-b4-disp-33=
-001ace-v8-0-f9bb96e17827@proton.me?part=3D4
-
+Jason
