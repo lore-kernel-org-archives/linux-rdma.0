@@ -1,71 +1,71 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.219.72
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.224.69
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793280471;
-	b=NTWlp966YDr+UCu3zk01AdYlELMjEdriIxC/0xi+wmdSeOhNfn7aIdx7ptZ5k/7o/Tiu
-	 w+VWIssys62gbl+1EVbEmYfoAqqoEeZ4vMdGIhZb+v4JsbC1wnxb/5X2boS52FfbAUxbV
-	 f3EGNOG1b+H7VtXM8wVxk6RWHlmYSx8qZSyQqKjsByK8+Kcmtj3lBbchJj7mt6ZWvLp3B
-	 LbHbRZn+cl6YLV2tdpockpi/k3z6iHp5J0JK2wBR98+g73wd26XZeJObUWipAWFFVZ8PH
-	 7g7EyBjRSZf6fcVwWSTuYrP40q+4Yqbws4x5xEGId0BawdigVNkZtPvvAhAbDslk3aA==
+	t=1793280690;
+	b=0O64Ui4217geBqY6p/3pCG7QAYzHKxmNM/YczoeKtlly7v9q0TLmJtKWqXSU1NKbj36h
+	 DOfRUXKzCjt4YDQyWG9C4/w9zDWl8QdC8bhTNqLgLITK4qLJG1rBF1qRdPVtwPQYzTipe
+	 Veu8yW+ptJpIGai1d8t1pWj9+1BUSwFKCSJtJmLh3n/ncX8Abrc5PCP1u9jz0QiZ7MesL
+	 j0tFDzIbRcEHFhHFYmV1F+9Ggvm8su54yVAhAcSTmVUPsPwpyObhi4a/0H2QyjQyiC9F1
+	 x5hQEPob/0wT0itclCvQCAqQpZ30HDXG4JPo47qnKv9xMePlnHe2LvkgASG/zuJ/S1Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793280471;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793280690;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Gm-Message-State:X-Received:Date:Mime-Version:X-Mailer:Message-ID:
 	 Subject:From:To:Cc:Content-Type;
-	bh=3CzqAH4xSsnmGsmzTYz5f2Dn8UH9l1H/VmV5jrqfT88=;
-	b=28ajkym4JfFDaMnpjAXHVjbXrlfvRy4pxvDbCelBpxIgs8Q9sngpc7EHNtF70j9yQ1xo
-	 KgYJsBkT329DT5dHMQLj0INUatzLNstZ0XB8J7dgw598HZ16cBRyP7Dk6i8aPpW5AOoXI
-	 HrvhMMcJUUQxEG26qRzdNl4s3BW0CbnOu74FlGx6dnrnPDgMOa0o+VtpCjF90OCo/ywQL
-	 +4BCiwszd2V7yC1NhBkoGdRLELSGvxPJ6j9l0P0D/w/BVnEYrYGM+ScpNPQWh9kIYMBD0
-	 RfKYuWFsT7/H32yO1VVTHNUVr5u0NalfMeO+d7Vof4ABQaOWCjZFiUChFPXqryBvEuA==
+	bh=NHMxQIKiYL3Vq8m2u6aV+SomYp0bJW7RrrWV+cHooos=;
+	b=RyYdwPpS2Iccbr9th2T5BwuOfjqD4qJvi2dFojX9/8BDpn48T/K0/6756QHX/qv2yuqu
+	 /gj9+1bGaNuCdrQzb0VgDgCFttpjflq1ttFaw5MDfg4MFAEKWwrxXc2TxJ+M5rX+FjBYU
+	 c7ytxcJs9trYT4ZCcgPVVT2YUGvR5UrUu1tnUQHnBhtUe7KJ4ltU+PYJOutJsP//wLsdI
+	 UOXN25JrrmuU7gNSphJRpq4eyYChsN7RVeMxytelCjdu5nNETcGQt7aOYFHzs5hJpZXxV
+	 cpZfEbDOqYQ6QPRjvnG8HYXNsvPklytNIJ0jKoqEUU91qmmJ6gGfaDkxFOUBN4KCJXQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=google.com;
 	spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com;
-	dkim=pass header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=KE2fdXN3;
-	arc=none smtp.remote-ip=209.85.219.72
-Received: from mail-qv1-f72.google.com (mail-qv1-f72.google.com [209.85.219.72])
+	dkim=pass header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=PocFez0t;
+	arc=none smtp.remote-ip=74.125.224.69
+Received: from mail-yx1-f69.google.com (mail-yx1-f69.google.com [74.125.224.69])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CC63606A31A
-	for <linux-rdma@vger.kernel.org>; Thu, 29 Oct 2026 13:27:50 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8CC63606A31A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06020606A31A
+	for <linux-rdma@vger.kernel.org>; Thu, 29 Oct 2026 13:31:29 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 06020606A31A
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=KE2fdXN3
-Received: by mail-qv1-f72.google.com with SMTP id 6a1803df08f44-91c7a0f8250so45380246d6.2
-        for <linux-rdma@vger.kernel.org>; Thu, 29 Oct 2026 06:27:50 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=PocFez0t
+Received: by mail-yx1-f69.google.com with SMTP id 956f58d0204a3-6756044f260so1264350d50.0
+        for <linux-rdma@vger.kernel.org>; Thu, 29 Oct 2026 06:31:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20260707; t=1793280469; x=1793885269; darn=vger.kernel.org;
+        d=google.com; s=20260707; t=1793280689; x=1793885489; darn=vger.kernel.org;
         h=content-type:cc:to:from:subject:message-id:mime-version:date:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=3CzqAH4xSsnmGsmzTYz5f2Dn8UH9l1H/VmV5jrqfT88=;
-        b=KE2fdXN3vRYtCSIasNPUPCcYcSzYdDcxcShCJJhGvCkoYTeLvUJecPCvxHyQKQOKIX
-         TWjNVPtUZ+EQ6+F0NMbzRmpRSZrmxLG6LdkQ8qzygGGpUeBPUd9gqxdhC1XkAFIZRD/y
-         TdB2ZHrv1iojpzKDimFEFZGOaS6i4FrqkcupcCvE8Q0gjqmhTrg9KpFDec+D32lv1ISu
-         bjXYeuvSissOgfCMN7nZk00TsNJQe5idSmSGtLzvy8NS1N9VuwCWHoill6j7OjpN4M1k
-         sZ8WAsMUxPxjxV+PUZc24yk5m3oB0GOnYMsLReWzHesj8IVMOpXh2QbGwu8G1F702SfW
-         XpLQ==
+        bh=NHMxQIKiYL3Vq8m2u6aV+SomYp0bJW7RrrWV+cHooos=;
+        b=PocFez0tZYGXz09FW6IDr5c7k2LOACzMx1IpLRbXOlguWiYNzkdFfQBw5SFi4fnVH/
+         mFyKB/cDZ233bSqBOe5H3aUEOGkepzCWQv983YwX3wIfWf5p9HHcpgiI8TaNpTv9GUuv
+         8EOoGfqA9eyop+/5VIsuYSMYG/whFJV6cycnPQfza2OW4zk1eJrktxYo4ZONGz//iZ45
+         CQddQdeDI1mS+WDXNpD27XnwvP1tDmwYmRFnxyK+hZDw1x9pPnpd9/7VbfTFx19sDZAf
+         NvZE35hEvOrlhtn/N6THs8wSQzHY4lG0hqL+p4wuUPloP2tiadumnhNb1OMx3TJrTBGc
+         /8Sg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793280469; x=1793885269;
+        d=1e100.net; s=20260707; t=1793280689; x=1793885489;
         h=content-type:cc:to:from:subject:message-id:mime-version:date
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=3CzqAH4xSsnmGsmzTYz5f2Dn8UH9l1H/VmV5jrqfT88=;
-        b=UWtpzGHnJ1L8aoGauX5oDA53Zudsp2B9KgvsGkAl+MbU6yPn9LYtq1Y1N2zVqs64ld
-         kEzjSA0AXdjoquRPsAIAJZMCOwJF2O+pKqURJgJLVYhgZHFxdQpIkmB7/VtH0/Ji482g
-         Ruu3B3hXIamNXXaQMkkODafbYsNKlRSj1nhj70RWbOeUL+amIvDpr8g4ijkmTkmKGr8K
-         oppQb/n+7EQSN4hIAoG10W2dWLv0Evg9yOsw0bB3wVjgO0x8DOUZxBMHWcsE7OwN5OlX
-         gjHgINCrAQEauY4PO1THBtatO02FULp3erinq0UiiJLy4JAdO0vO2UqUxnU7MTC2lJGz
-         E0CQ==
-X-Gm-Message-State: AFq9FYJQm/YgRkxAsLRfYxDiQKyaEj8BOrKNQE+Q6fCEX+TNHYAKe0kM
-	tjM1dLAawGPjwTuM6K2DqASfBPBHwU+oidBahJD4WgSfp8Qdkukg0b+0ix2Yjv5NfAkdTrNDous
-	Z0gzwTR4U0w==
-X-Received: from qknvr8.prod.google.com ([2002:a05:620a:55a8:b0:93a:221b:f869])
- (user=jmoroni job=prod-delivery.src-stubby-dispatcher) by 2002:a05:620a:8393:b0:93a:11a4:223c
- with SMTP id af79cd13be357-944089385damr723777885a.9.1793280469130; Thu, 29
- Oct 2026 06:27:49 -0700 (PDT)
-Date: Thu, 29 Oct 2026 13:27:40 +0000
+        bh=NHMxQIKiYL3Vq8m2u6aV+SomYp0bJW7RrrWV+cHooos=;
+        b=y4OZGBBHADLF0WhRWNhQfNfhmYpafeTjBu8HR3Npa5M8pI6i6YmqlFRR3EH3zOKQMh
+         RhsLQsgEUXs81pwS0oH7yo8O8IRroH3AQNd4vdOsDTF8JTUASapVzI9VQoA6LK2ujgGd
+         VCc6nB/vncpmp94k2DxhNJ1pxmAKFbO5/uoO4xHwQ4rcKcfzEYWtUB5CNpQ0596VH4ZN
+         obksBbA0t2f9PsrgDIBGKrEtBUOTH6izjFuSdEdko1XhSbwg9qK2XnLdwmk8GMHQvCaH
+         vAA7gLwuptPJ8Nc3En0iJujp+jG/NqC37qaiPmDfTfC3BX0xFbyRAxjnhBV7oJPjQTrq
+         G4Lg==
+X-Gm-Message-State: AFq9FYLu4TKFtWS4cLVr1T7ekB4N0MyAy9SaKiUyjb1syQ8mk+79haDW
+	KkgYYMhCaIisIeQS6Ky84AADAJjWwVOFf+tL/bmeDXIlSho2rnq2ZG2SA4rbspX9luVi65L280j
+	opI6WywFcvg==
+X-Received: from yxsj1.prod.google.com ([2002:a53:eac1:0:b0:677:b337:6db0])
+ (user=jmoroni job=prod-delivery.src-stubby-dispatcher) by 2002:a05:690e:1918:b0:679:ad2f:3fbf
+ with SMTP id 956f58d0204a3-67a8d0047a5mr1967992d50.8.1793280688738; Thu, 29
+ Oct 2026 06:31:28 -0700 (PDT)
+Date: Thu, 29 Oct 2026 13:31:21 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -76,54 +76,50 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 Mime-Version: 1.0
 X-Mailer: git-send-email 2.56.0.313.g2479322e68-goog
-Message-ID: <20261029132740.1169950-1-jmoroni@google.com>
-Subject: [PATCH rdma-next 1/3] RDMA/mlx4: Fix stale umem and MTT state after
- rereg_mr failures
+Message-ID: <20261029133121.1204636-1-jmoroni@google.com>
+Subject: [PATCH rdma-next 2/3] RDMA/irdma: Do not allow rereg_mr to revive
+ defunct MRs
 From: Jacob Moroni <jmoroni@google.com>
-To: yishaih@nvidia.com, jgg@ziepe.ca, leon@kernel.org
+To: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, leon@kernel.org
 Cc: linux-rdma@vger.kernel.org, Jacob Moroni <jmoroni@google.com>
 Content-Type: text/plain; charset="UTF-8"
 
-During rereg_mr, the umem is released in various failure cases
-but mmr->umem was left pointing to a freed umem, so it could end
-up getting double-freed when the MR is finally deregistered, or
-cause a UAF in ib_umem_check_rereg() if another rereg_mr attempt
-is made.
+An MR can become "defunct" if a previous rereg_mr happened
+to fail in between deregistering the old MR in HW and
+reregistering it (e.g., due to ib_umem_get_va() failing
+in the IB_MR_REREG_TRANS case).
 
-Fix this by setting mmr->umem to NULL after ib_umem_release().
+In this case, the MR is left in a state where the umem may
+have already been released.
 
-Additionally, when mlx4_mr_rereg_mem_write() fails, mtt.order is
-left set but with an invalid offset, so during dereg,
-mlx4_mtt_cleanup() ends up freeing an MTT range that was never
-allocated. Fix this by resetting mtt.order to -1 in that path.
+If rereg_mr then runs again, but without IB_MR_REREG_TRANS,
+it will end up reregistering the MR with stale translation
+info.
 
-Fixes: 9376932d0c26 ("IB/mlx4_ib: Add support for user MR re-registration")
+Fix this by rejecting any attempt to reregister an MR that
+has previously failed during rereg_mr after the point where
+the MR has been deregistered in HW.
+
+Fixes: 5ac388db27c4 ("RDMA/irdma: Add support to re-register a memory region")
 Signed-off-by: Jacob Moroni <jmoroni@google.com>
 ---
- drivers/infiniband/hw/mlx4/mr.c | 3 +++
+ drivers/infiniband/hw/irdma/verbs.c | 3 +++
  1 file changed, 3 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx4/mr.c b/drivers/infiniband/hw/mlx4/mr.c
-index a6b4abce1bfe..e7f524c28f1e 100644
---- a/drivers/infiniband/hw/mlx4/mr.c
-+++ b/drivers/infiniband/hw/mlx4/mr.c
-@@ -268,6 +268,8 @@ struct ib_mr *mlx4_ib_rereg_user_mr(struct ib_mr *mr, int flags, u64 start,
- 					      *pmpt_entry);
- 		if (err) {
- 			ib_umem_release(mmr->umem);
-+			mmr->mmr.mtt.order = -1;
-+			mmr->umem = NULL;
- 			goto release_mpt_entry;
- 		}
- 		mmr->mmr.iova       = virt_addr;
-@@ -277,6 +279,7 @@ struct ib_mr *mlx4_ib_rereg_user_mr(struct ib_mr *mr, int flags, u64 start,
- 		if (err) {
- 			mlx4_mr_rereg_mem_cleanup(dev->dev, &mmr->mmr);
- 			ib_umem_release(mmr->umem);
-+			mmr->umem = NULL;
- 			goto release_mpt_entry;
- 		}
- 	}
+diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
+index c91c55917de9..fd1b1454f026 100644
+--- a/drivers/infiniband/hw/irdma/verbs.c
++++ b/drivers/infiniband/hw/irdma/verbs.c
+@@ -3873,6 +3873,9 @@ static struct ib_mr *irdma_rereg_user_mr(struct ib_mr *ib_mr, int flags,
+ 	if (ret)
+ 		return ERR_PTR(ret);
+ 
++	if (!iwmr->is_hwreg)
++		return ERR_PTR(-EINVAL);
++
+ 	ret = irdma_hwdereg_mr(ib_mr);
+ 	if (ret)
+ 		return ERR_PTR(ret);
 -- 
 2.56.0.313.g2479322e68-goog
 
