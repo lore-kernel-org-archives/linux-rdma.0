@@ -1,56 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793284290;
-	b=yDAPNTVTpXB5km1NpI7/0hoNEmnX4xXWfzPCH2+asPs64qktKADKyIi/nZIvKegUcc+w
-	 4PHRYJ0zzIx8XD2f1zyvjz0GYU75kAWY8Ixxi8TTsCrtosNs7OkoKTHvZXfx3P8AXQEB/
-	 9FKLRuR3SjWKYpyOPl2k38tUVHXAutwYpIjZ5OCqwrgV8jwnu84z/ESwPBa6FJ0YY7wOq
-	 H9DM0YH6x0Rk8Tm3hLowIsKgIJ39heEcl59PP2yEISLcmT/pnb0Uq5FaE4U2SRsYvQ4nx
-	 61zlQHZmb4FsXQONCJPcwhcT4Tfvz1W9jU0wh29tlmeXy6Rv+70tBi0dSYofAT2up6Q==
+	t=1793284676;
+	b=T2kE1L+Z+GQ1qp7JNAxXIgrVPJd/keWTNCc9+3k/jv8VqfwpJkZfvEsPNdJmZDFW0Lpw
+	 4AWpBWHF8uNBYl4O9ZlKyEiCDisiipO87rvPTl6Ftn58Yco3xrJfKAlENWTBelsGgK6UG
+	 0eJkuysOgvwDbO/J6It4jdmFTtoAGOdYMIfbFBxxZH1a5/BZdXxtAX1eks1XyDZy82d0N
+	 wxsAjX0olhlc/+eMzK7OMavqascFxmj868cE+1kArZowIDwXUldOKcch7IrwrU9+atS/w
+	 h6rxQTxTrfi7xai7QadGAIvTpDOvaldQweUaRK494HpHxrGXfgym7u6o1Iy0znP8xmA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793284290;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793284676;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=BkfgqXNMvs4ki25aMkJ0SH437FJOAHaUWhTybA5wAMs=;
-	b=Xk0ebNakvQqDb8HtZd5LoUi2GtBmJJf6Z2jEO8dtMdcMC1PJ8Ay9h7evHp0lNe/D1M26
-	 /JTdZYxNie9Ckjh1o604fIVqYX7InK6AtCzBrryhCvJnGz2gGS1qXv/m2zJ+98iWmbM+n
-	 XmHs3jyoWQv1YAa43SXfomXW/Nu6Q4U+vcj/0HDidYyMlqiK3H+JXQTdWlmSMEn6fDWkr
-	 x+t+ZmvXIzLW4RfkWaURdQ8gX7YhrzIuPJJUuPUSaF3+1i4DcZRRag6a9om1lHt56IwWB
-	 Jh0icRUroX9bW5ViOzlDnpAsNIHF08scbNWM8CFrqa97rDXFL1tZO353pRqJb+7PChg==
+	bh=7PezzHlP+DINnD4v7IGqRaEaeQpoK7FHDxISxw2KPtM=;
+	b=GKwgpyDJT48y/c9zICvqaTkeJex0hH7eKagopmAu1ihNXSitnHoRy+6/DDf7fHZ4LEUe
+	 Pj6xaTF7z+HDX66bJzzSHZd8o1V4cqDHhpVnDSZOQCoZm/Q2IU8+J4bF/+7cYmBTs6qUm
+	 ghof9K7xhb16tnRscchWlxuufxDUfI/7GocUuiDYn/kQw9zggoa1wBcMT0jX4FGULOHR/
+	 s339KWTQIO0sm3ICvlZ1bAkv673FvzR17yi12VCpIG3I8pdZSVQcy3XlMFr8MjJCEVz1+
+	 60z83NnRaXgcu96mANmRb8+xFgljBuyI6Q5gBDvciIkTegwnwTb6hJmIasXntuy+vGg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=F6uIFXF4;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cETqZlzb;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11155606A322
-	for <linux-rdma@vger.kernel.org>; Thu, 29 Oct 2026 14:31:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E07E606A31C
+	for <linux-rdma@vger.kernel.org>; Thu, 29 Oct 2026 14:37:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=F6uIFXF4
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 766EB1F031E0;
-	Thu, 29 Oct 2026 14:31:29 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cETqZlzb
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83E8C1F01825;
+	Thu, 29 Oct 2026 14:37:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793284289;
-	bh=BkfgqXNMvs4ki25aMkJ0SH437FJOAHaUWhTybA5wAMs=;
+	s=k20260515; t=1793284675;
+	bh=7PezzHlP+DINnD4v7IGqRaEaeQpoK7FHDxISxw2KPtM=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=F6uIFXF4SE5ihixOF9WMWNO/mVcH+fW3bt1Gex2ATBTFz1p4hSxOT6h0bh0jagaZS
-	 4F/RKIY6IZ9GjLdwmb1I+DJsTnFgjUCuv/DfJIHDSJx4W8J92B6cR8viiwpcbDy92M
-	 MyCFM+rorYOH0EF+khxXP2f0tse5N8rvY0WmXenBQZAFi20UjNvjwTTGcYc8OuVPub
-	 ninJBY7mUCkgEAUUYK8nMON9lpkw6VYVTL/8c55UvTNFwb8pD+9K/84tYRBD3mtoVF
-	 LMjD2cuRxAar6Q7/rA/sJEL+lvmAQQEvmJ/s3yLrPgKYgHg9CVFrWXZk/W9527/On3
-	 BaSWyK25+BQPQ==
-Message-ID: <sashiko-outbox-189522@kernel.org>
+	b=cETqZlzbMg0DJEk7Ius5voswMnf3UINpqBf1NqYkw8LRvJgxpUHJpyO/BSqlnlSs0
+	 YS8acOsCYeHHFcp+PA1Z2vN3eQzfyLVSoFS5+o7f5vhu6pvvMDrjIVmJSCDd6aPR51
+	 2Rmz4Va2tmSY/ZrDALUgi6zzyvI0fQEwOv9NkVxyiy/z/yZc+z3Y+xEen+AuVEjfG+
+	 SDYhnBGsUedSAzDAb121zur/YukQwpyYrnmw5IfeY50+/++YRNE+WECPWi8ZfX5ep+
+	 IufRXWAn5r9k1nKV5RP2zPbD6UAd0kJYP1GxdetI4pAPahc83JJkx1khFTwkw2tfkl
+	 xAMzKGwfmjXrg==
+Message-ID: <sashiko-outbox-189536@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH RESEND rdma-next 1/2] RDMA/irdma: Do not allow rereg_mr
- to revive defunct MRs
+Subject: Re: [PATCH RESEND rdma-next 2/2] RDMA/irdma: Do not change mr->pd
+ in driver during rereg_mr
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Jacob Moroni" <jmoroni@google.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261029141849.1575012-1-jmoroni@google.com>
+In-Reply-To: <20261029141849.1575012-2-jmoroni@google.com>
 References: <20261029141849.1575012-1-jmoroni@google.com>
+ <20261029141849.1575012-2-jmoroni@google.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 29 Oct 2026 14:31:29 +0000
+Date: Thu, 29 Oct 2026 14:37:55 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,21 +61,24 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> An MR can become "defunct" if a previous rereg_mr happened
-> to fail in between deregistering the old MR in HW and
-> reregistering it (e.g., due to ib_umem_get_va() failing
-> in the IB_MR_REREG_TRANS case).
+> Previously, IB_MR_REREG_PD would cause the driver to set
+> iwmr->ibmr.pd to the new PD before reregistering with HW because
+> irdma_hwreg_mr() retrieves the PD from there.
 >=20
-> In this case, the MR is left in a state where the umem may
-> have already been released.
+> ib_uverbs_rereg_mr() only moves the PD usecnt from the old PD to
+> the new one and updates mr->pd itself after the driver's
+> rereg_user_mr() call succeeds.
 >=20
-> If rereg_mr then runs again, but without IB_MR_REREG_TRANS,
-> it will end up reregistering the MR with stale translation
-> info.
+> So, if the rereg_user_mr() call fails, the MR is left pointing at
+> a PD that does not account for it while the old PD keeps the reference,
+> which means the old PD can never be deallocated, while the new PD can
+> be deallocated even though the MR still points at it.
 >=20
-> Fix this by rejecting any attempt to reregister an MR that
-> has previously failed during rereg_mr after the point where
-> the MR has been deregistered in HW.
+> Fix this by removing the PD update from the driver and just letting
+> the core handle it. This required plumbing the PD as an argument
+> through a few functions. This works because the core passes the
+> PD unconditionally and provides the current PD if IB_MR_REREG_PD is
+> not set.
 >=20
 > Fixes: 5ac388db27c4 ("RDMA/irdma: Add support to re-register a memory reg=
 ion")
@@ -84,5 +88,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261029141849.1575=
-012-1-jmoroni@google.com?part=3D1
+012-1-jmoroni@google.com?part=3D2
 
