@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793385056;
-	b=1D7Wle+YrigjkpeDpHZUB/mC7u8/R35dlbL2Mzo6c74oNjbtDIv2eXJCKBv7xUqvkNdL
-	 t9D5IfJQnquFo3tpb2B5p7XnwP9B+GnFF6sta4KDmwpXXnNYmVms/dPG7iK3AvSzb9gU/
-	 ccvTOL6VDzDn+nyYvqcoj4HsLZTU+QJvW6rhxhvPZr6isT5SoNmQJRlHJ3l6q1mH0UHQK
-	 91ySROYbG4VlUD5ej3W8zHJHPE0H04hcYZqTcq4D/smJPRdPGbBc5K77XcUgtPBWTmFfQ
-	 ayklj7MVZbnah+BtGozSW8if3taFBHsDrISPsOzmbfGwVrHG1VTeObMJkKNWSDGEB/w==
+	t=1793385228;
+	b=oyxblznaiwV+LsLjAgbkOzDo8oRd07FD+VSiQ4YOiNn+P6s3F7cUPDX7ha7sq5RuxbU+
+	 tiWIU5YyH5aA0uj41iO1e0AqV8d1x+GlOGNoe1F3vQOKDNGYqjBkU7EWSDwdBLP2uaQe3
+	 rSfXypMUuAbweN3wxWTnswBa2KrA04Si7aKUwTwiHiYeQdaStZ8bAQ8+XR2M8kVQAYFSs
+	 zSV//2+GSe6SAZlE2TSQF9kWmm2d+sfVq9RVeIC+drnU41DmtYM5F92BEspa+fWMK5SP2
+	 7tZ+h3D4N+8SoylYErgdlGxKySNQ52vEiU0MjkSNXIvItUsF3T3kiAqaVR3koN5sXqw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793385056;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793385228;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=/YMq1FIkTCYBYfI7rhUazrw/uMPUfjMy+1NA4amUZ1A=;
-	b=Sr5dt8VE2EoEr25veWNOvo2OY249KZt5qB3k2E6adh8agDq0KiEOMLrD5Or0TZbV5o/4
-	 e0nbsl+1HgsbCAha+ZJ68Xo48XyzIBG+21HgGLr/eMwzbVdUZvwybusYm/TkCEBmSdCrW
-	 MLv8sg95oDebpiJ5lD4KGZhGo1SnVE78V+Soq0qtR2jl0oWEeKbr7QFx8kO0imPS/78KF
-	 kHfEBQn9MUASAFsb06Gsx9M3T4EuN1nhU2UiyEU68poJ7CxXmcX4hcbGyb5M6HIGhYkcw
-	 obAQl4c6gJk4WPeqVoU457hkJSYCDXWtHJ6Nqh+P4e2HemuFzdNc7uUSQjvlbsrSeMQ==
+	bh=n+s5FGGcYwr65sgVMPtFGYslhUkE59pesnMOY/vd0Ec=;
+	b=m58Yot+GRrY/fN9gb2Jeb5zEl54mCKYVUFoz2q/rWH2gwNJfYfyKY15+UpVk6D5pQaxG
+	 vwqpGO+nRJcgsWNQQBhRX8iMatGbr368h2C+Kx5QpMFlQaMpMxP1uyOdVw1+935uvFAb6
+	 WinelTnWO4ldgamDEh4oCFv+JpS3swS+DrLR3hlP4S9mMm5oFPmPf04zr+cV+Fp39E2V1
+	 s3lCFoGJgScxCsPnPU0lFVCuZB3O2ynNreSf2rO9B4LRIQJ7rujPZ2Az6dlK8V/v8mUzG
+	 q5pBB7eKPGGNlWKRC4VdHjtOV8NN32nbsVzxcXhYGv13mAey2xGy/Z1lvSjS2vzYwow==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mHlTaoN1;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Rqm7EYMq;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8378E606A31F
-	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 18:30:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9607F606A31A
+	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 18:33:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mHlTaoN1
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E56811F00A1C;
-	Fri, 30 Oct 2026 18:30:55 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Rqm7EYMq
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0ABE81F000C1;
+	Fri, 30 Oct 2026 18:33:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793385056;
-	bh=/YMq1FIkTCYBYfI7rhUazrw/uMPUfjMy+1NA4amUZ1A=;
+	s=k20260515; t=1793385228;
+	bh=n+s5FGGcYwr65sgVMPtFGYslhUkE59pesnMOY/vd0Ec=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=mHlTaoN1g7V+B48J+IDJy0ah3dzzDMWqytv7UxhYWrZeqVovpBck7ZOrrCulunae9
-	 ZuQ1RS2kVqSwBQWbWbSIhsNYbbcYMq7HA0Ji0W4ysNCmElqkV7eBl2VJLjNuGb29G+
-	 wT+sqYf70z5nFav+svDoQJTgopTGKjnv3S2JPv+wEhdGt30DiUnHUr/pgHt6KeAGIC
-	 Ud3y4psPeyOIi5kfjaYJba9PZjfZj9CF6Y0UwQEDWCVY9Xf7kho9yYOvLf5lHcRZs9
-	 C29YDvcg7IGsvSMNY1UFvqMI7+GjJEUhaVXFHRgP4EZvvPW42joTuplfHdH511dK0Z
-	 lb0h8jU6OWXyw==
-Message-ID: <sashiko-outbox-191410@kernel.org>
+	b=Rqm7EYMqYWBsBnU1PVI+5HL9VyD/em61cVfv/bJBUJmXaEbg9rShxyGpVTL+Yg9AT
+	 KGViwAP/VKX/t7IPXSo+RDSe0E5MjGpt7a8q8Scb9rSDsvy6D7Z/k39xGCiF5V2MCk
+	 dN7FHoHRXGGgaDcKZL5Sp5j2tRRIbwm/ZjqzwGQxKkV7FCJD1TZEnGRKtmIF4J528w
+	 k7jc3UQNNzvbf3pbcbidaYMBiyb/5ApjvsmA0bTrU0Q0ei7EtMn4vN3rulzcpz7QSm
+	 aVJE3qxvLDlJjrHxhUzZRICcw8aVQc3jEnqg4n3DUo7ZvS7sgAEj7lwU8xZ/9I9/5X
+	 EhK31jlJzojbA==
+Message-ID: <sashiko-outbox-191412@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v4 4/6] RDMA/irdma: Split CQ setup to umode
- and kmode
+Subject: Re: [PATCH rdma-next v4 5/6] RDMA/irdma: Support UMEM attribute for
+ CQ creation
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "David Hu" <dhu@x6u.co>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261030181512.2056056-5-dhu@x6u.co>
+Cc: intel-wired-lan@lists.osuosl.org, linux-rdma@vger.kernel.org
+In-Reply-To: <20261030181512.2056056-6-dhu@x6u.co>
 References: <20261030181512.2056056-1-dhu@x6u.co>
- <20261030181512.2056056-5-dhu@x6u.co>
+ <20261030181512.2056056-6-dhu@x6u.co>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 30 Oct 2026 18:30:55 +0000
+Date: Fri, 30 Oct 2026 18:33:47 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,20 +61,90 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> From: David Hu <xuehaohu@google.com>
->=20
-> Add user mode cq callback `irdma_create_user_cq()` to separate out user
-> mode creation logic from kernel mode cq.
->=20
-> Original common setup logic is broken into shared helper routines, so
-> duplicate code can be avoided. Core creation logic is preserved to be
-> identical to original routine, however.
->=20
-> Signed-off-by: David Hu <xuehaohu@google.com>
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+s) to consider:
+- [Medium] RDMA/irdma: wrong DMA direction in irdma_setup_umode_cq() via ib=
+_umem_get_cq_buf()
+--
 
-Sashiko has reviewed this patch and found no issues.
+commit 8981c5869a8245f4b87a31412a16b517815f3a39
+Author: David Hu <xuehaohu@google.com>
+
+RDMA/irdma: Support UMEM attribute for CQ creation
+
+This commit adds support for one-step user-mode CQ buffer creation using
+UVERBS_ATTR_CREATE_CQ_BUF_UMEM and IRDMA_IB_ATTR_CREATE_CQ_SHADOW_BUF_UMEM,
+sets up hardware PBLEs directly from the pinned UMEMs, and adds UMEM and PB=
+LE
+cleanup in irdma_cq_free_rsrc() and irdma_resize_cq().
+
+> diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/=
+irdma/verbs.c
+> index 9f4905fdb791a..41e56ab8aa6df 100644
+> --- a/drivers/infiniband/hw/irdma/verbs.c
+> +++ b/drivers/infiniband/hw/irdma/verbs.c
+
+[ ... ]
+
+> @@ -2767,26 +2793,87 @@ static int irdma_setup_umode_cq(struct irdma_devi=
+ce *iwdev,
+>  	if (err_code)
+>  		return err_code;
+> =20
+> -	spin_lock_irqsave(&ucontext->cq_reg_mem_list_lock, flags);
+> -	iwcq->iwpbl =3D irdma_get_pbl((unsigned long)req.user_cq_buf,
+> -				    &ucontext->cq_reg_mem_list);
+> -	spin_unlock_irqrestore(&ucontext->cq_reg_mem_list_lock, flags);
+> -	if (!iwcq->iwpbl)
+> -		return -EPROTO;
+> +	cqe_64byte_ena =3D dev->hw_attrs.uk_attrs.feature_flags & IRDMA_FEATURE=
+_64_BYTE_CQE ?
+> +			 true : false;
+> +	cqe_size =3D cqe_64byte_ena ? 64 : 32;
+> +
+> +	if (uverbs_attr_is_valid(attrs, UVERBS_ATTR_CREATE_CQ_BUF_UMEM)) {
+> +		struct ib_umem *umem;
+> +		struct irdma_mem_reg_req cq_req =3D {};
+> +		u8 shadow_pgcnt =3D (rf->sc_dev.hw_attrs.uk_attrs.feature_flags &
+> +				   IRDMA_FEATURE_CQ_RESIZE) ? 0 : IRDMA_SHADOW_PGCNT;
+> +		u32 min_size;
+> +
+> +		cq_req.cq_pages =3D DIV_ROUND_UP(ukinfo->cq_size * cqe_size,
+> +					       IRDMA_HW_PAGE_SIZE);
+> +		min_size =3D (cq_req.cq_pages + shadow_pgcnt) << IRDMA_HW_PAGE_SHIFT;
+> +
+> +		umem =3D ib_umem_get_cq_buf(&iwdev->ibdev, attrs, min_size,
+> +					  IB_ACCESS_LOCAL_WRITE);
+
+[Severity: Medium]
+When IRDMA_FEATURE_CQ_RESIZE is not set in
+rf->sc_dev.hw_attrs.uk_attrs.feature_flags, the UMEM passed via
+UVERBS_ATTR_CREATE_CQ_BUF_UMEM backs both the CQ ring and the trailing shad=
+ow
+area page (shadow_pgcnt is IRDMA_SHADOW_PGCNT, and irdma_setup_umode_cq()
+later sets info->shadow_area_pa =3D cqmr->shadow from that same UMEM).
+
+However, ib_umem_get_cq_buf() in drivers/infiniband/core/umem.c hardcodes
+DMA_FROM_DEVICE instead of deriving DMA_BIDIRECTIONAL from
+IB_ACCESS_LOCAL_WRITE:
+
+drivers/infiniband/core/umem.c:ib_umem_get_cq_buf() {
+	return ib_umem_get_from_attrs(device, attrs,
+				      UVERBS_ATTR_CREATE_CQ_BUF_UMEM,
+				      uverbs_create_cq_get_buffer_desc,
+				      size, access, DMA_FROM_DEVICE);
+}
+
+Since the CPU writes the CQ head index to the shadow area and hardware reads
+shadow_area_pa via DMA, mapping this UMEM with DMA_FROM_DEVICE omits IOMMU
+read permissions (and skips CPU-to-device bounce buffer syncs).
+
+Should irdma_setup_umode_cq() use ib_umem_get_attr() with
+UVERBS_ATTR_CREATE_CQ_BUF_UMEM when IRDMA_FEATURE_CQ_RESIZE is not set (or
+unconditionally, as noted in the commit message) so the buffer is mapped wi=
+th
+DMA_BIDIRECTIONAL?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261030181512.2056=
-056-1-dhu@x6u.co?part=3D4
-
+056-1-dhu@x6u.co?part=3D5
