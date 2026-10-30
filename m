@@ -1,55 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793336046;
-	b=yUmzoTx1VIbQ+LN4e2lvYaZC3kAmS80FqduFmAzElCUOQjE3uz/44bc6KIOHE8xc3dmi
-	 Zt8xdU4OHqtlFlt3Jhp3PxC0HrYMvfmGvEEf3OeLN1OXLXhICvCqMFzzHkRrhrnTpfHic
-	 JsOk+RoOAoWynyJ3Jp89sK47p6FwwDUe8Of9jKHfwhkXWHKcYoEdYy1wNQsg27Sl6XycC
-	 labLTqQq4v9eSgCgR/FHP7PS7tTL0BgqW1mMAQg+oRMZv/AGPqPnSHBGsv/lKWYVejtYX
-	 wGxEPYnR8Y0DPjV3M4F6sAjrskuXOvUBF/QMirjz2saBD12BCGPAUOm8hw7w6hZWSyg==
+	t=1793336047;
+	b=OLZ2Fp5oWIiXJaJvrnpEbJ2KVyKvdpZehQAsi+ulMJaDgWsKZsrgmS6r6TdW9fcHDGoN
+	 A55OJnuFFvmPyQ5YFdRappI2PdMtA1zvRkZIy3xPKTF1aVyBrmhcKRh2r2YkzseS+jPbz
+	 aZejL7nfajZJ7Rvk4bv7S52YesZN5XmvzswB4A44bSIRm/Ie28RHhcxXYuV70pNprDv5F
+	 j0A23RS25pxuJsXfBDCiho59lQI/WESFXQK3Dvxy/29scv2FBtpqKiAS3c5vWW5gtgWCX
+	 ZkmquebQyEBzR9wrTmnD1HHINkttaIcyzim7llBWAGJ4u+hU4NairjKk3HgLnj9ipnw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793336046;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793336047;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=lMJW8cai72jO0PLtgQZThN8PGr82BqFszCODZ+WLfWo=;
-	b=a7A/u/ljegQ4ZtoDMz6xvJoK1UyhHz2a0RiQXHgRk842zd7QS8QyvnNwhJlI7ojiPlTx
-	 rNFwnze4XgpkHXEAlkWbmTdvnP2v2SIGzOqT02Pcbpv0xw/v2dq3bTd6sYjnzSfbpafFx
-	 w5GnWkbmNLRtZfKqYsRqxewARvFRj4gOH/vaZvvd1H1dqhtDRPY2BOYcysSR6ruYCm5Tu
-	 oD8PNkgcUVfIMi4VpohoDlpHwKX0lxkVsGyRVq7aesKyksKbZ0nTWc0Tj83jcpVSqFlVO
-	 dwEAPvmYiWHiFp4XE70vF+/CdhYueZX8knLVHixLjttneKMKcv0PbFyg5/1ZQJHEwNQ==
+	bh=mFlnYRXt6kkYCz7qLsrR0bZ97Ul4eAtWvFF8Ha2RNnM=;
+	b=tb7dBz9jgHCoQo3PdRCr2h8YfZvSHDJ5A93/CDuUYnv5mDqTTrrfQmW3Y4QZX7FZti2b
+	 VWjC0sBWb4DKU5Y3mX7t2u1MFFBluuDcB5cpRtZUtbQ2mGdSD3UE/I1rjBPfW0GxZNroI
+	 soF5IcnVNoaq/n1wBSXz4zAhZwSeatlE9hvK4RNSvXvGP3zcLEOVKEN6pwL/Lyb9vnArM
+	 8FH/ZXp1hK0SjD0s4/iOh+6C7MadynMKGeQGLYNtTUwRnAwW73JQPMtESOvjc9bbE2aBj
+	 suIJQLT6ndiNobX8Ub+/pSZecVvch1RLMvvkyMLyGTZk8e7zpZE/MJMkcEEBRhmTmmA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kICIbNhh;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XW00FVnK;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12CE4606A31D
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2999606A325
 	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 04:54:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kICIbNhh
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC9751F00A02;
-	Fri, 30 Oct 2026 04:54:05 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XW00FVnK
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DBF81F000C1;
+	Fri, 30 Oct 2026 04:54:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793336045;
-	bh=lMJW8cai72jO0PLtgQZThN8PGr82BqFszCODZ+WLfWo=;
+	s=k20260515; t=1793336046;
+	bh=mFlnYRXt6kkYCz7qLsrR0bZ97Ul4eAtWvFF8Ha2RNnM=;
 	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
-	b=kICIbNhhsHGkkLNYvpCJGqaWx1t/MGt6swh3s1PSGjFBCNERBPMeROf9tuwcWxtM3
-	 L+Qb2tbHRzgdmT1U5Vipe2uQfpuTTMfiAPK1GHswku0hbti0DZXB+y3zQ8626sEB3q
-	 iJFlc6yKvxj8pX/0NVZm52rqO/jzc7YcP/kZNhjDROeEQ7pmpI2weBVEK2dOStYBU7
-	 VycOrNMwTWLGCnm/rKBdnfautCIK9W2YcNF+NpfnmYxC+FwoRpVolHbSTTuSy6Mvce
-	 YkuJvOdpjf8K2cN9AGetvw6F+KOAzAyccK8u8eXFrh4n5J1rKYGg2r4ptJYpOxOD1C
-	 pYjH8tJ+/WpFQ==
-Message-ID: <sashiko-outbox-190401@kernel.org>
+	b=XW00FVnKmO1yj/aznMw3gJLEtGfaOiQxNdlwyaAHP7vW8fX8dSjpzACFeDkR8ICef
+	 dZq0OCKiAwd471ceSdjMqTU0VejXqUECLVetN772mYgzWee7W6ufAJwm6LTjmdF1Jd
+	 +XsQWH3z7ftDvBd2rmTPyq34R5C4phqlkKr//mfTYrv1bh9x+E25G2Pk3DNzKO6pCT
+	 3hqt39qFZfNVEwC1tAsN2fAArzRoNguotUmtVCZnl/eMKOl916R2LuVg9Ha3cBmb4V
+	 sNdW/Oao5pGHq5kOEEC1G9+eFw1yvqh7HYtOnbi4THKiZTXXHk++xI50irIvHRiq6m
+	 WpGopReSr+4ZA==
+Message-ID: <sashiko-outbox-190402@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v12 net-next 7/9] octeontx2-af: npc: Support for custom
- KPU profile from filesystem
+Subject: Re: [PATCH v12 net-next 8/9] octeontx2: cn20k: Respect NPC MCAM
+ X2/X4 profile in flows and DFT alloc
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Ratheesh Kannoth" <rkannoth@marvell.com>, intel-wired-lan@lists.osuosl.org, linux-rdma@vger.kernel.org
-In-Reply-To: <20260508034912.4082520-8-rkannoth@marvell.com>
-References: <20260508034912.4082520-8-rkannoth@marvell.com>
+In-Reply-To: <20260508034912.4082520-9-rkannoth@marvell.com>
+References: <20260508034912.4082520-9-rkannoth@marvell.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 30 Oct 2026 04:54:05 +0000
+Date: Fri, 30 Oct 2026 04:54:06 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,238 +59,109 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-Thank you for your contribution! Sashiko AI review found 5 potential issue(=
+Thank you for your contribution! Sashiko AI review found 2 potential issue(=
 s) to consider:
-- [High] Global Data Corruption and Data Race via shared static array
-- [High] Integer underflow and missing bounds checks in legacy firmware par=
-sers
-- [High] Fragile firmware ABI heavily coupled to internal kernel structure =
-size
-- [High] Filesystem profile loading truncates KPU programming, breaking def=
-ault parsing rules
-- [Medium] Missing endianness conversion for u16 fields
+- [High] The primary default rule allocation still hardcodes X2 keys and un=
+masked reference indices, completely ignoring the X4 hardware profile for P=
+Fs and successful VF attempts.
+- [Medium] Caching device-specific hardware profile information in a global=
+ static variable causes a data race across concurrent device instances.
 --
 
-commit c9233fb2ae7b0ce301cfbbff2b1cd306d7c325ba
+commit 0a14e92cf2754f6d4cb9d8447914740b55c1a43e
 Author: Ratheesh Kannoth <rkannoth@marvell.com>
 
-octeontx2-af: npc: Support for custom KPU profile from filesystem
+octeontx2: cn20k: Respect NPC MCAM X2/X4 profile in flows and DFT alloc
 
-This commit provides a mechanism to load a custom KPU (Key Parse Unit)
-profile directly from the filesystem at module load time.
+This commit updates the default CN20K NPC rule allocation and flow-install=
+=20
+path to respect the active MCAM keyword width, dynamically selecting X2 or =
+X4=20
+and masking reference indices accordingly. It caches the profile informatio=
+n=20
+on the PF.
 
-> diff --git a/drivers/net/ethernet/marvell/octeontx2/af/npc.h b/drivers/ne=
-t/ethernet/marvell/octeontx2/af/npc.h
-> index cefc5d70f3e49..c8c0cb68535c7 100644
-> --- a/drivers/net/ethernet/marvell/octeontx2/af/npc.h
-> +++ b/drivers/net/ethernet/marvell/octeontx2/af/npc.h
-> @@ -265,6 +265,19 @@ struct npc_kpu_profile_cam {
->  	u16 dp2_mask;
->  } __packed;
-> =20
-> +struct npc_kpu_profile_cam2 {
-> +	u8 state;
-> +	u8 state_mask;
-> +	u16 dp0;
-> +	u16 dp0_mask;
-> +	u16 dp1;
-> +	u16 dp1_mask;
-> +	u16 dp2;
-> +	u16 dp2_mask;
+> diff --git a/drivers/net/ethernet/marvell/octeontx2/af/cn20k/npc.c b/driv=
+ers/net/ethernet/marvell/octeontx2/af/cn20k/npc.c
+> index 67dfbe5ca903f..15b3f29d60ee9 100644
+> --- a/drivers/net/ethernet/marvell/octeontx2/af/cn20k/npc.c
+> +++ b/drivers/net/ethernet/marvell/octeontx2/af/cn20k/npc.c
+> @@ -4467,11 +4467,18 @@ int npc_cn20k_dft_rules_alloc(struct rvu *rvu, u1=
+6 pcifunc)
+>  	 * as NPC_DFT_RULE_PRIO - 1 (higher hw priority)
+>  	 */
+>  	req.contig =3D false;
+> -	req.kw_type =3D NPC_MCAM_KEY_X2;
+>  	req.count =3D cnt;
+>  	req.hdr.pcifunc =3D pcifunc;
+>  	req.ref_prio =3D NPC_MCAM_LOWER_PRIO;
+> -	req.ref_entry =3D eidx + 1;
+> +
+> +	if (npc_priv.kw =3D=3D NPC_MCAM_KEY_X4) {
+> +		req.kw_type =3D NPC_MCAM_KEY_X4;
+> +		req.ref_entry =3D eidx & (npc_priv.bank_depth - 1);
+> +	} else {
+> +		req.kw_type =3D NPC_MCAM_KEY_X2;
+> +		req.ref_entry =3D eidx;
+> +	}
+> +
 
-Since the firmware image is little-endian, should these fields be defined as
-__le16?
+Does the initial allocation attempt unconditionally hardcode X2 keys?
 
-When they are accessed as host-order integers without le16_to_cpu() convers=
-ion,
-will this lead to incorrect packet parsing rules and silent data corruption=
- on
-big-endian architectures?
+Looking at the code just above this fallback path in
+npc_cn20k_dft_rules_alloc(), the primary allocation hardcodes the key type:
+
+    req.contig =3D false;
+    req.ref_prio =3D NPC_MCAM_HIGHER_PRIO;
+    req.ref_entry =3D eidx;
+    req.kw_type =3D NPC_MCAM_KEY_X2;
+    ...
+    ret =3D rvu_mbox_handler_npc_mcam_alloc_entry(rvu, &req, &rsp);
+
+If this first attempt succeeds, VFs might incorrectly get assigned X2 rules
+on X4 silicon. Since PFs bypass the fallback path entirely if this fails,
+will PF default rule allocation fail completely on X4 profiles?
 
 [ ... ]
 
-> diff --git a/drivers/net/ethernet/marvell/octeontx2/af/rvu_npc.c b/driver=
-s/net/ethernet/marvell/octeontx2/af/rvu_npc.c
-> index 5fa9e1c7ae9fa..a0f97e683145f 100644
-> --- a/drivers/net/ethernet/marvell/octeontx2/af/rvu_npc.c
-> +++ b/drivers/net/ethernet/marvell/octeontx2/af/rvu_npc.c
-[ ... ]
-> @@ -1788,26 +1872,168 @@ static void npc_prepare_default_kpu(struct rvu *=
-rvu,
->  	npc_cn20k_update_action_entries_n_flags(rvu, profile);
+> diff --git a/drivers/net/ethernet/marvell/octeontx2/nic/otx2_flows.c b/dr=
+ivers/net/ethernet/marvell/octeontx2/nic/otx2_flows.c
+> index 38cc539d724d8..5dd0591fed999 100644
+> --- a/drivers/net/ethernet/marvell/octeontx2/nic/otx2_flows.c
+> +++ b/drivers/net/ethernet/marvell/octeontx2/nic/otx2_flows.c
+> @@ -37,14 +37,13 @@ static void otx2_clear_ntuple_flow_info(struct otx2_n=
+ic *pfvf, struct otx2_flow_
+>  	flow_cfg->max_flows =3D 0;
 >  }
 > =20
-> -static int npc_apply_custom_kpu(struct rvu *rvu,
-> -				struct npc_kpu_profile_adapter *profile)
-> +static int npc_alloc_kpu_cam2_n_action2(struct rvu *rvu, int kpu_num,
-> +					int num_entries)
-> +{
-> +	struct npc_kpu_profile_adapter *adapter =3D &rvu->kpu;
-> +	struct npc_kpu_profile *kpu;
-> +
-> +	kpu =3D &adapter->kpu[kpu_num];
-> +
-> +	kpu->cam2 =3D devm_kcalloc(rvu->dev, num_entries,
-> +				 sizeof(*kpu->cam2), GFP_KERNEL);
-> +	if (!kpu->cam2)
-> +		return -ENOMEM;
-> +
-> +	kpu->action2 =3D devm_kcalloc(rvu->dev, num_entries,
-> +				    sizeof(*kpu->action2), GFP_KERNEL);
-
-Will this cause data corruption and a use-after-free across devices?
-
-In npc_prepare_default_kpu(), the device's profile->kpu pointer is initiali=
-zed
-to point to the statically defined npc_kpu_profiles global array.
-
-Here, we are assigning device-scoped devm_kcalloc memory directly into this
-globally shared array. If multiple RVU devices probe concurrently, they mig=
-ht
-data-race on this shared state. Additionally, upon device unbind, devres wi=
-ll
-free the memory, leaving dangling pointers in the global array.
-
-[ ... ]
-> +static int npc_apply_custom_kpu_from_fw(struct rvu *rvu,
-> +					struct npc_kpu_profile_adapter *profile)
+> -static int otx2_mcam_pfl_info_get(struct otx2_nic *pfvf, bool *is_x2,
+> -				  u16 *x4_slots)
+> +static int otx2_mcam_pfl_info_get(struct otx2_nic *pfvf, u16 *x4_slots, =
+u8 *kw_type)
 >  {
->  	size_t hdr_sz =3D sizeof(struct npc_kpu_profile_fwdata), offset =3D 0;
-> +	const struct npc_kpu_profile_fwdata *fw;
->  	struct npc_kpu_profile_action *action;
-> -	struct npc_kpu_profile_fwdata *fw;
->  	struct npc_kpu_profile_cam *cam;
->  	struct npc_kpu_fwdata *fw_kpu;
-> -	int entries;
-> -	u16 kpu, entry;
-> +	int entries, entry, kpu;
-> =20
-> -	if (is_cn20k(rvu->pdev))
-> -		return npc_cn20k_apply_custom_kpu(rvu, profile);
-> +	fw =3D rvu->kpu_fwdata;
-> +
-> +	for (kpu =3D 0; kpu < fw->kpus; kpu++) {
-> +		if (rvu->kpu_fwdata_sz < hdr_sz + offset) {
-> +			dev_warn(rvu->dev,
-> +				 "Profile size mismatch on KPU%i parsing\n",
-> +				 kpu + 1);
-> +			return -EINVAL;
-> +		}
-> +
-> +		fw_kpu =3D (struct npc_kpu_fwdata *)(fw->data + offset);
-> +		if (fw_kpu->entries > KPU_MAX_CST_ENT)
-> +			dev_warn(rvu->dev,
-> +				 "Too many custom entries on KPU%d: %d > %d\n",
-> +				 kpu, fw_kpu->entries, KPU_MAX_CST_ENT);
-> +		entries =3D min_t(int, fw_kpu->entries, KPU_MAX_CST_ENT);
-> +		cam =3D (struct npc_kpu_profile_cam *)fw_kpu->data;
-> +		offset +=3D sizeof(*fw_kpu) + fw_kpu->entries * sizeof(*cam);
+>  	struct npc_get_pfl_info_rsp *rsp;
+>  	struct msg_req *req;
+>  	static struct {
+>  		bool is_set;
+> -		bool is_x2;
+> +		u8 kw_type;
+>  		u16 x4_slots;
+>  	} pfl_info;
 
-Is there a missing bounds check here for negative values?
+Does caching this profile information in a static structure cause a data
+race across concurrent device instances?
 
-Since fw_kpu->entries is read as a signed int, a malicious firmware blob
-providing a negative value (e.g., -1) could cause the offset calculation to
-underflow the unsigned size_t offset.
+The accesses to this shared cache are protected by mutex_lock(&pfvf->mbox.l=
+ock).
+Since this is a per-device instance lock, multiple network devices could
+concurrently acquire their own independent locks and read or write the shar=
+ed
+pfl_info structure.
 
-This would wrap the offset backwards, allowing the boundary check
-(rvu->kpu_fwdata_sz < hdr_sz + offset) to incorrectly pass in the next
-iteration, resulting in an out-of-bounds access.
-
-[ ... ]
-> +static int npc_apply_custom_kpu_from_fs(struct rvu *rvu,
-> +					struct npc_kpu_profile_adapter *profile)
-> +{
-> +	size_t hdr_sz =3D sizeof(struct npc_kpu_profile_fwdata), offset =3D 0;
-> +	const struct npc_kpu_profile_fwdata *fw;
-> +	struct npc_kpu_profile_action *action;
-> +	struct npc_kpu_profile_cam2 *cam2;
-> +	struct npc_kpu_fwdata *fw_kpu;
-> +	int entries, ret, entry, kpu;
-> =20
->  	fw =3D rvu->kpu_fwdata;
-> =20
-> +	/* Binary blob contains ikpu actions entries at start of data[0] */
-> +	profile->ikpu2 =3D devm_kcalloc(rvu->dev, 1,
-> +				      sizeof(ikpu_action_entries),
-> +				      GFP_KERNEL);
-> +	if (!profile->ikpu2)
-> +		return -ENOMEM;
-> +
-> +	action =3D (struct npc_kpu_profile_action *)(fw->data + offset);
-> +
-> +	if (rvu->kpu_fwdata_sz < hdr_sz + sizeof(ikpu_action_entries))
-> +		return -EINVAL;
-> +
-> +	/* The firmware layout does dependent on the internal size of
-> +	 * ikpu_action_entries.
-> +	 */
-> +	memcpy((void *)profile->ikpu2, action, sizeof(ikpu_action_entries));
-> +	offset +=3D sizeof(ikpu_action_entries);
-
-Will this create a fragile firmware ABI coupled to the internal kernel
-structure size?
-
-Because ikpu_action_entries is a kernel-internal static array, its size
-depends on the number of port kinds (NPC_MAX_PKIND) defined in the specific
-kernel version compiling it.
-
-If future kernel versions add elements to this array, the parser will expec=
-t a
-larger initial block than the firmware file actually provides. This would
-misalign all subsequent read offsets, causing the driver to interpret garba=
-ge
-memory.
-
-[ ... ]
-> +static int npc_load_kpu_profile_from_fs(struct rvu *rvu)
-> +{
-> +	struct npc_kpu_profile_adapter *profile =3D &rvu->kpu;
-> +	const char *kpu_profile =3D rvu->kpu_pfl_name;
-> +	const struct firmware *fw =3D NULL;
-> +	int ret, fw_kpus =3D 0;
-> +	char path[512] =3D "kpu/";
-> +
-> +	if (strlen(kpu_profile) > sizeof(path) - strlen("kpu/") - 1) {
-> +		dev_err(rvu->dev, "kpu profile name is too big\n");
-> +		return -ENOSPC;
-> +	}
-> +
-> +	strcat(path, kpu_profile);
-> +
-> +	if (request_firmware_direct(&fw, path, rvu->dev))
-> +		return -ENOENT;
-> +
-> +	dev_info(rvu->dev, "Loading KPU profile from filesystem: %s\n",
-> +		 path);
-> +
-> +	rvu->kpu_fwdata =3D fw->data;
-> +	rvu->kpu_fwdata_sz =3D fw->size;
-> +
-> +	ret =3D npc_apply_custom_kpu(rvu, profile, true, &fw_kpus);
-> +	release_firmware(fw);
-> +	rvu->kpu_fwdata =3D NULL;
-> +
-> +	if (ret) {
-> +		rvu->kpu_fwdata_sz =3D 0;
-> +		dev_err(rvu->dev,
-> +			"Loading KPU profile from filesystem failed\n");
-> +		return ret;
-> +	}
-> +
-> +	rvu->kpu.kpus =3D fw_kpus;
-> +	profile->kpus =3D fw_kpus;
-
-Does this truncate the hardware programming loop in npc_parser_profile_init=
-()?
-
-By explicitly updating profile->kpus to fw_kpus, the hardware programming l=
-oop
-will only configure up to fw_kpus. Since all KPUs are disabled at the begin=
-ning
-of npc_parser_profile_init(), the remaining hardware KPUs will be left
-completely disabled, breaking network parsing for traffic reliant on default
-KPU logic.
+Could this lack of synchronization lead to torn reads, such as reading x4_s=
+lots
+as 0 if the compiler reorders the write to is_set before x4_slots?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260508034912.4082=
-520-1-rkannoth@marvell.com?part=3D7
+520-1-rkannoth@marvell.com?part=3D8
