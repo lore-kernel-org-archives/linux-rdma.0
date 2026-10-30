@@ -1,55 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793334372;
-	b=ZARtpmHKcV6hsuewcdRYmmEM6SxVZYMWos+jT3WZlR9slY4irC03lePJdIk2UnYd6OMK
-	 ytDKqG7zjSLhNNc0WocGn4FEmd2544Dye/2ZbxL08Jp8HmjVl7mzs2JdKLgPEN+vS20Zm
-	 42S6lOZuF7yR41b+AIdmkcUULqj0KcBhKxI8reJKc/G3HEBjSpKjznPSYnFK8ZlYD16Bu
-	 d8tNRCYScHpY+gk7UvVVaJpFCPsg2RpQiF01asUxWDvG8mHsAAQ0GtH/Nce6fkNq+lgxA
-	 Vnl5BT5Knc1QV0/q+lNUfNzNeAaaO8XhdSMLzAz4fCC9XqljiQHhUZlIIWqgUUba+zA==
+	t=1793336019;
+	b=RGJB1RZRXPBCL87EKTxmQi5EuBE0eVAFM9Bz2nl1OTSVb5fO0i3AB2D6m3DIzT9H1m2P
+	 P7LFb15TRVrqU1f//Dn3Sun2gc3kZ0bNbnWiFkrf0ofYOt9JzkY+Tmgkdd4z2AbpreNW4
+	 usQPGaEcIejVfKcuLRX86XGO0Z3kocoPvWtL8JP0Moi9DGumcvzj+jsAC4E7bjUMb8jvW
+	 it0yvXn428WIbvF5FTCTW9Lw88E/6XbaJbQRYN2Uda/kJb/stw8V0B5PA0uJvc60wjbi3
+	 +DYy1YwpnlfMAy0H9qODg44fXWV6fP5XoYOjvwIpWUno7Yeur8nVyu3VpCrRlQRP0RQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793334372;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793336019;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=8/rXq5DOo4F5pmYrmzsHI5w9UUWTePWvORsI7Xyqpwc=;
-	b=swrE+n8UYm+TIY4Nu3VxAQLRupddgk80ZUWYvGbNE3TN14QFzuwsZ0+ATWAPJUOYP2we
-	 7KcGdVbSI2V2iGuijblXc17bNOM7Wum9LRtKfAMpirwJ7ixSKXW2+CUTLQaDMM4MrMGSr
-	 xbMZ0vbPMUt1PsZqfoiC6Qq6lCmRI46hnM+Qit8vZfbTZQNoQ+E39855tvqCa5+lueVMk
-	 ZwEzHlnHLl3jIWa13RLVRaR05XS2f9hVvHmoxT5V3tjTup3m/+AbF1zLxRpVXnPTUR/EE
-	 J3DDQdYkuvK8986x3junDLNDm+DsCN8QG3GcRc2qVFG6hvbS38IrorzlM0p1smXwb9Q==
+	bh=5jWQ2iaj/hqKd2FQlYt0/KJTn0BIlL67InGkY6ECAoM=;
+	b=OncElhmNWQcip5VUe7/e9Bs7Bw6Wte1qUCZ3Hnd6ONXKJxGlPtq5DpPK5+2mDRg80Ipn
+	 qrQoVGHMpdFK7esLXgAURm9WQkZfiLLMpTm8ZEAeB/Btfv9w6DnL9yo3T6aXlF7Rs6SDv
+	 i5Ghf3nh6bHQODh8Rry4BXZ/LOoFveT0hVfWKrfsmWnGuIYA0emV1JnGKqwlrueUuCtNF
+	 3Ch5SYidbWRldtH8twcriodF8m3CtNRdQ8+OvjgHP18Pw/rRHKsR6DnC33Y8r2FPy0b6W
+	 EQhwIW3K2nEyL9cF9LMTaY2J56D1SUwMhddkpL3cK3Ce7vjeW9STf9j/eneDt8S/Jzw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=E0n7OO0C;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dBveSKnI;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74F1E606A31F
-	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 04:26:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43D0F606A31C
+	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 04:53:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=E0n7OO0C
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E28721F000C1;
-	Fri, 30 Oct 2026 04:26:11 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dBveSKnI
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1EAD1F000C1;
+	Fri, 30 Oct 2026 04:53:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793334372;
-	bh=8/rXq5DOo4F5pmYrmzsHI5w9UUWTePWvORsI7Xyqpwc=;
+	s=k20260515; t=1793336018;
+	bh=5jWQ2iaj/hqKd2FQlYt0/KJTn0BIlL67InGkY6ECAoM=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=E0n7OO0CEncC5JiMKsLyFT1XQiSATA1zwtaA++xS5tizXIK5zL5Qlftdx1hYLb66A
-	 yfg76CfmRFrGQ9V6O43dehKdMIwLysKiIBpC+i7iXPVtuI5BJScjCU55SbAsl3pKPW
-	 KOY1f1I65N+1ox4fZIGIzUKNkh4IWRdUtEPZ17V/NIh4Wr/FLJ4L/ncJpp3NH9wYRj
-	 OAuMtbYs5AkNvcz4G1l3RX36QR3TXVikjWuwyIWQUvpC+A6LMq2YMxTaLAbsRyZUyj
-	 DG3tEtH61Rfw03r9H7opqb3ez1pqErAb8hQnbg8O7BkPWeVWBw7T58bSF/CesHJqwZ
-	 rWEO9gp7IklLA==
-Message-ID: <sashiko-outbox-190295@kernel.org>
+	b=dBveSKnI1+N7KhJymAr0/dMyCP2igi6AzeIEMc0CkYS3IfldFJamVML7Wn2RxDG1U
+	 1aAwvuhCGnqUsH7uy7AyjAyihuPC4dznx7BrSbYlZ0U6d8Xn1zQ59fOmgLDZzmHTrS
+	 1uzq+UlytnxVRYxlmVpLC/8DGw5sSNNqx+Q0apiDgsmn0X6UnUBCha+B4MzofqAIix
+	 gzQ1c7q6Pw6EBvJKwgJauShtqtcCOfBpdTVnHqf2oaP0Oo4xQAMFmrUH5LK0HKCzaZ
+	 I4n0u4xB127r6Nr5VbCLA29RU41fL0/0VA5eajPM4Uta6zQT56XLw0ZapOc/7LrSBN
+	 zOCaAwIesbpXA==
+Message-ID: <sashiko-outbox-190329@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH] net/rds: Do not unpin a page after a failed atomic pin
+Subject: Re: [PATCH net-next V2 2/3] net/mlx5: E-Switch, introduce generic
+ work queue dispatch helper
 Reply-To: sashiko-reviews@lists.linux.dev
-To: "Kyle Zeng" <kylebot@openai.com>
+To: "Tariq Toukan" <tariqt@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261030042110.73571-1-kylebot@openai.com>
-References: <20261030042110.73571-1-kylebot@openai.com>
+In-Reply-To: <20260428051018.219093-3-tariqt@nvidia.com>
+References: <20260428051018.219093-3-tariqt@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 30 Oct 2026 04:26:11 +0000
+Date: Fri, 30 Oct 2026 04:53:38 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,26 +60,33 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> rds_cmsg_atomic() assumes that a non-NULL output from rds_pin_pages()
-> represents a pin that it owns. However, pin_user_pages_fast() can roll
-> back a fast-GUP pin after racing fork() and then fail in the slow path,
-> for example after a concurrent mprotect(PROT_NONE). The output slot can
-> still contain the already-unpinned page.
+> From: Mark Bloch <mbloch@nvidia.com>
 >=20
-> The common error path calls unpin_user_page() on that stale pointer.
-> This can consume another subsystem's pin and allow the page to be
-> freed while it is still in use.
+> Each E-Switch work item requires the same boilerplate: acquire the
+> devlink lock, check whether the work is stale, dispatch to the
+> appropriate handler, and release the lock. Factor this out.
 >=20
-> Clear page when rds_pin_pages() does not return one. The error path
-> continues to release the page on errors after a successful pin, and
-> successful requests retain their existing ownership and behavior. All
-> four RDS atomic ancillary operations share this path.
+> Add a func callback to mlx5_host_work so the generic handler
+> esw_wq_handler() can dispatch to the right function without
+> duplicating locking logic. Introduce mlx5_esw_add_work() as the
+> single enqueue point: it stamps the work item with the current
+> generation counter and queues it onto the E-Switch work queue.
 >=20
-> Signed-off-by: Kyle Zeng <kylebot@openai.com>
+> Refactor esw_vfs_changed_event_handler() to match the new contract:
+> it no longer receives work_gen or out as parameters. It queries
+> mlx5_esw_query_functions() itself and owns the kvfree() of the
+> result. The devlink lock is acquired and released by esw_wq_handler()
+> before dispatching, so the handler runs with the lock already held.
+>=20
+> Update mlx5_esw_funcs_changed_handler() to use mlx5_esw_add_work().
+>=20
+> Signed-off-by: Mark Bloch <mbloch@nvidia.com>
+> Reviewed-by: Cosmin Ratiu <cratiu@nvidia.com>
+> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 
 Sashiko has reviewed this patch and found no issues.
 
 --=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261030042110.7357=
-1-1-kylebot@openai.com?part=3D1
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260428051018.2190=
+93-1-tariqt@nvidia.com?part=3D2
 
