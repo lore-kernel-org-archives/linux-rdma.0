@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793336025;
-	b=OET8RzhSAEyPAYyTPFj9W7/LEv3gYk2tpuJBJEkXUvjcCa+2boUEi0nQ2JWPoDy1tK8I
-	 Ixgd4betGDFREG6vkVpWXQnWLYNQuOkB4rupFnMvSTS6QiCp7pNwXvhqpC3QIAK73uJgr
-	 CmrVpxrZpYQmOuL4j+xAampM6/Mz4NdlhMplhzKeziZGNoxQtt2ozcV19860e/rIpVzfB
-	 1Ay9g/sMnGtUS/5Nf7be9TMNFAaPIlPf1yIwBrcROJZejmw+z/WXtCQsIQL6h3yiopUrI
-	 cohAfnMqnLBexk9cODXuaI6VhdfmtPKkA2fPkmzXmCPk7dssr3ZPft+fAnNQ1QnUyMQ==
+	t=1793336031;
+	b=r3N8tpgVO+tPFjMon15D/9Ai3lmyKS54r1Hy12YPXVkf9deOHQm0Wb6CXFKsa3YGKcvn
+	 Gq78iw+OZ8oEk0S9kAWnlAgnlqE8uFy7BN/SmdiXSdUn8d7LinjlnXzTSEP48HgbuDqY8
+	 z7Y5ulscEPSJ8r7jcmbO12fiKkUXhl+XylCzJ85EzL0DMenUKhf9Pt4mcAYg8pOLRlNUz
+	 LB9nsqwh8wNvhHJklso5BsgMe46B16/uGxQTGi/iRtw50G/QpjPZHChaaEw8HH6XcI7HR
+	 Kd1IfaX+MF+Lar4/EQqxE49v387zANXcMcNY+N6Yg1E8riqqwABh1dtIUQclxSleDcQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793336025;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793336031;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=0qH+kvDvBlZcdeEiKE1EnKDlqUqZI6HQ/LlPwjTLqmg=;
-	b=nFMwEe/wZ+9ajHzjJZ0VGdBsinRg70Sq0C5LY5s/TfZ3aZrUpfAXl+5A0fGucuPvMLAt
-	 E4bI7fxWuRnl0v8VSvX9K6yeyQBB+U9uIzyEfHwJYCF6Twv7XErPul1H3TsAslZKJL+3i
-	 sI2vDFxbr4ujaXJ04dzAMW9kZrsXB0h3917/i3I2J5kjJEBp7LpB0Ae+BJlfIusUKAG4o
-	 R4USOmz2oPat+CDx9Qgz+Vx4+xkpPXxDX3Nnwkg9AM1v7KUxA5XNLBFZU5+6yUA0+ScdT
-	 OeasKBdjKlBdF1nHi1Cjd0SCw52CxPpoZCZNU66VFteKCPUW6UdGudwd/ZUul5K5tOA==
+	bh=RR25kOBgikhPx0A4KuDwlGQJCuvC9m4a/w4mHc8smAU=;
+	b=I9XFnw4GMo3UF5hxE58FAv39m7unsQiFXjn8/FE5dys/XY6zvxOj078othfJsuL8Dxe3
+	 NcyabKC8UT/mGeZzyQtFLsAw858NNVDYcMweWX7cGCWTQ6pUys7mhm2+8Nury3+9QZd9r
+	 VwhW2S4pGl9Si8KdkuCt90eKIrJ72dbGLSnjxhov4AbsjMnPm/2hI54zC3ZVga+j1VlEf
+	 jXysYWpKf1smTvoM2oi53npiJ1L5pxFrBnTs5fNzbg5WBp6w9/r9YONJ2yBjZiXL0Vp1J
+	 7qhWdo1DUvc5nEH/jbPytZK4qd/+fbWmAgHW7ug7BUjBr4jpb6oAdziNcvld4Co9VWw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=VMKU7dRa;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="n/j29Tys";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34677606A31E
-	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 04:53:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41407606A320
+	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 04:53:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=VMKU7dRa
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E05741F000C1;
-	Fri, 30 Oct 2026 04:53:44 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=n/j29Tys
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D79071F000C1;
+	Fri, 30 Oct 2026 04:53:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793336025;
-	bh=0qH+kvDvBlZcdeEiKE1EnKDlqUqZI6HQ/LlPwjTLqmg=;
+	s=k20260515; t=1793336031;
+	bh=RR25kOBgikhPx0A4KuDwlGQJCuvC9m4a/w4mHc8smAU=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=VMKU7dRaUomQn3vHiIQPyM8tLDNE/ENWIV3P56xrDLx6BOk9a9aqp64uRqT+c1j7F
-	 slJIylVvFjDhq7NjIbaBRtbxNQ55SeWU0i6yOS7AtEOcrZBhFyBMkVxAz224Sst4xw
-	 7c0P/952DASH4vVa77TsJ7UBzvPPcxRkUKdvNH3icbY5GObAIE+Fwt9RVs7f9n6sDS
-	 Wyoi7Zh+rSE4FAuVhQ3W5Q11D/kiYOb0vwY4JSXKE5P30HhvZKBumc6vlmI4kuxDVv
-	 a/N6+tynS/v2hpOVnR+QJcoEAzGFCJRykSoV2aNEPYR7c0TOoTY8NXeGmG2mePlJuC
-	 iYf10AXDligtg==
-Message-ID: <sashiko-outbox-190343@kernel.org>
+	b=n/j29Tysq7T3MJE63qNHQTDt1rHb+3QjPFUL+829K5IMm2OVoSiRB8g13hdszpYrx
+	 VU5+26iqTNP/zlJrr/fKCTJ5zc/MPZJsJ44TVE78pOGhml6te0Hg37MrWiMuxqiee3
+	 SH3VHtlWpmjPoyIdGxlCivvteYM6NAOr6zjQi/+yZdwB8oEv3StXKMBjPEjc12vj0q
+	 1xY/z+5IqtQp/f6HilCYpI1Sw48TWodpZfpgVGFgNIcr8ivUa3ehduXanCje3gg25z
+	 lOgV/cKi85i4i1ccHOQsU7gQQaWULK/MdmupEa4VpCG13zqgd0Kxiu/4+zy0LY3PkJ
+	 r5qs/Zu9Di7MA==
+Message-ID: <sashiko-outbox-17858@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net V4 4/4] net/mlx5e: SD, Fix race condition in
- secondary device probe/remove
+Subject: Re: [PATCH net-next 1/5] net/mlx5e: remove channel count limit for
+ XOR8 RSS hash
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Tariq Toukan" <tariqt@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260428060111.221086-5-tariqt@nvidia.com>
-References: <20260428060111.221086-5-tariqt@nvidia.com>
+In-Reply-To: <20260511172719.330490-2-tariqt@nvidia.com>
+References: <20260511172719.330490-2-tariqt@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 30 Oct 2026 04:53:44 +0000
+Date: Fri, 30 Oct 2026 04:53:50 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,71 +60,26 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-Thank you for your contribution! Sashiko AI review found 2 potential issue(=
-s) to consider:
-- [High] Lockless TOCTOU race in `mlx5_sd_get_adev()` leads to Use-After-Fr=
-ee and NULL pointer dereference when the primary device is concurrently rem=
-oved.
-- [Medium] Acquiring `device_lock` on a sibling auxiliary device triggers l=
-ockdep recursive locking warnings.
---
+> From: Yael Chemla <ychemla@nvidia.com>
+>=20
+> mlx5e_ethtool_set_channels() and mlx5e_rxfh_hfunc_check() rejected
+> channel counts that would produce an indirection table larger than 256
+> entries when the XOR8 hash function was active. This check was
+> introduced in commit 49e6c9387051 ("net/mlx5e: RSS, Block XOR hash
+> with over 128 channels").
+>=20
+> XOR8 yields an 8-bit hash, so in practice only up to 256 entries in the
+> indirection table can be reached due to limited entropy. However, this
+> does not provide a strong justification for prohibiting larger
+> indirection tables. Remove the limitation.
+>=20
+> Signed-off-by: Yael Chemla <ychemla@nvidia.com>
+> Reviewed-by: Nimrod Oren <noren@nvidia.com>
+> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 
-commit 9c77a050b30dc8aa500a42a2128a1abf3209674c
-Author: Shay Drory <shayd@nvidia.com>
-
-net/mlx5e: SD, Fix race condition in secondary device probe/remove
-
-This commit updates secondary devices to acquire the device lock of the
-primary auxiliary device during probe, suspend, resume, and remove
-operations. It introduces mlx5_sd_get_adev() and mlx5_sd_put_adev() to
-manage this lock ordering and add a second devcom readiness check.
-
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/sd.c b/drivers/n=
-et/ethernet/mellanox/mlx5/core/lib/sd.c
-> index 7a1787f15320..a43ae482a679 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/lib/sd.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/sd.c
-
-[ ... ]
-
-> @@ -563,5 +567,18 @@ struct auxiliary_device *mlx5_sd_get_adev(struct mlx=
-5_core_dev *dev,
->  	if (dev =3D=3D primary)
->  		return adev;
-> =20
-> +	device_lock(&primary->priv.adev[idx]->adev.dev);
-
-If mlx5_devcom_comp_is_ready() returned true just before this, but the
-secondary thread is preempted before reaching device_lock(), could a
-concurrent removal of the primary device cause primary->priv.adev[idx]
-to become NULL or freed?
-
-It looks like the removal path (such as mlx5_unregister_device) frees the
-mlx5_adev memory and explicitly sets primary->priv.adev[idx] to NULL. If
-the secondary thread then resumes, it might dereference a NULL or freed
-pointer when attempting to acquire the lock.
-
-Since the second readiness check happens after the device_lock() call, does
-this leave a window where memory corruption or a panic can still occur?
-
-Additionally, since the driver core already holds device_lock(&adev->dev)
-for the secondary device during callbacks like probe() and remove(), will
-acquiring the primary device's lock here trigger a lockdep warning for
-possible recursive locking?
-
-Both the primary and secondary auxiliary devices use the same generic lock
-class assigned in device_initialize(). While the fixed secondary to primary
-ordering avoids an actual deadlock, lockdep might not distinguish between
-the two mutexes without explicit lockdep subclassing.
-
-> +	/* In case primary finish removing its adev */
-> +	if (!mlx5_devcom_comp_is_ready(sd->devcom)) {
-> +		device_unlock(&primary->priv.adev[idx]->adev.dev);
-> +		return NULL;
-> +	}
->  	return &primary->priv.adev[idx]->adev;
->  }
+Sashiko has reviewed this patch and found no issues.
 
 --=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260428060111.2210=
-86-1-tariqt@nvidia.com?part=3D4
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260511172719.3304=
+90-1-tariqt@nvidia.com?part=3D1
+
