@@ -1,54 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793336044;
-	b=ReCVIgMddJZl/3BPLAqvG0qI0vH0xGDtrTI/HATZDK0UQV+cy2UCaZEFBLGM0YyFubRp
-	 eBlXkl+Yr6rVFpy4hmZYMI8w4vwyPMxc1CtCVkamFNhWKIxxS9khQg5J+5E05N9iFsbNy
-	 562Cs1f4dPBS6ByM0nVkhx+b4N3D5JENIGC+98Z97m+3cDWcuG21dFk0nAIW/MjK5Erb3
-	 goPhkQcS51ytraT3oF95pMh9v2Wfu4Fo4qU2bsUygiyE2m5LNvJPSqwjTvgF8IatkfnPG
-	 KkRCepaKwLu03Zpva/fT5BM2toU83aKIS2geFXsFUWBd1nv3PWEswflnyN/LJ4+u2Fw==
+	t=1793336039;
+	b=a3LgTLbZb3GeIRjBEAeNMUqnCy26VF/DFvwmHlb+PC/lmDAe/8oQqbxpwhHwFBhZ/Okn
+	 NSB/xSX1HZrkZbTvmB+xM5YKKFe1kCzh0KQoydcnyrGRHYJz4Adpc/3AAO5Ph/zR02O1r
+	 fzbzkZB+WWWhdc1puFbdr+arfMxfGJPZABRTV9v7yobq+5uTumX4bYs91gyc5qVPfgdFn
+	 k1Ac/ZcEYoYZq42EJ3LkIt3SjS3bMrN0L0EbQpe4uXUJqp3u5rV3Hguubp/dMVOmz6eB5
+	 je9S0A7oEpWUlUMTCPQZm65drpn95PS0fh2KXqOuBlmv7Tu6DPaMVwxZPB/izechBng==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793336044;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
+	a=rsa-sha256; c=relaxed/relaxed; t=1793336039;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=WLaXgBqMAl1NCOkm1Xwp8LmMoiL7y/P6nmAOWGsOBFk=;
-	b=gnSkLYQctaF/Tad8Yk49ql8V++6P5razR2pbePZqlv1tV7Cl/5P8GHN3EP3o0W/xkkXv
-	 9NE8/m2vlYLfnfFB9g6Sj9T49QWXlAfnTwj4kv0WZsMvmri4n9vxagCsZ+HyOp6OKUcX+
-	 PElyPPn24G5OFq9Ti5zLgq2oVND9Xa+sLW5v0Wn6UcOZ72Z16JxGCYWOfZ3qRo42Yxgcy
-	 wgjfObAylaPLZdIGns0pMdV6QwBRC8d/rI0CKPjiF5TxgDEPQywSeNSHWIGaRD3p0oY7g
-	 c0YK+fjsLIy65c6xidKvb2QxqXPHd47gbfk9GeZBoGfRdaHwrItaXyJlYM6UfN/8+DA==
+	bh=VIUfn/NrF8EDgjqOAEyF2z5otVH2OlaeAPEo4Ck2bfc=;
+	b=U4VOPdv18GbCJyZ63pNCckazxVgGMLSwLkm7CNxRxRVErgh6gCj1SO7wvgDOtbIc8pue
+	 SYm9qgtWiEyTMCI6M3KHtbklftcM08BtZXM2R7YLSUcIrFLLtAdoj0OMfA4+Bqyj+3WDg
+	 tDGL1QmlDOBSv/SrYSIfgMSAWYhYMvUchLEGATMvMKFAyr6HPvpYQUNwOdu7a5S5t1vOP
+	 cxCueIFTOANQU9iu/ud6/sDnX6lL1rFr3WnJdcEPhPmPXQlRBw6CSN7su23OzfATjUWIl
+	 epAnMunnb97TWcL7FhcD4NOR5S8Ev7x2JZEAO+9RggBYyehQcv6jvTVNU0cEy36j3vQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XSywrNBJ;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=duw1onrG;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12C37606A32C
-	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 04:54:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3282606A31F;
+	Fri, 30 Oct 2026 04:53:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XSywrNBJ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF0E11F000C1;
-	Fri, 30 Oct 2026 04:54:03 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=duw1onrG
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 523011F00A1C;
+	Fri, 30 Oct 2026 04:53:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793336043;
-	bh=WLaXgBqMAl1NCOkm1Xwp8LmMoiL7y/P6nmAOWGsOBFk=;
-	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
-	b=XSywrNBJkKqkVvEQ5gcDsGMHbyRn1bxfqsk48WVXNIccOBQoAxPBcbSvvMhPFJni5
-	 KxkJ+gyaCgfzD21g65bneJ+PeUtNxSG1meZ8Jw9pM2nGon0zppsW/PbL9+hlqfLo7z
-	 Z9ZQAcxk7AXgZbGGvf3l3yRdQ6TngPOpUQu+Sxyu22866tCj+FFo/OOCZ4F/jTY4ph
-	 6G3HGKi6PCl11u88KOQRQn33WSWnlMPWfMU7pa3qagd23/G2nseOB7kssPe1tQAmvQ
-	 igRiiu5rtUoj4Uhbnk3h+Ou1HC4BMnwe/uvelXXI8uSyKEoMAYcrw5dyiox6IMOsPQ
-	 SHU+0CiJUy4kQ==
-Message-ID: <sashiko-outbox-190398@kernel.org>
+	s=k20260515; t=1793336039;
+	bh=VIUfn/NrF8EDgjqOAEyF2z5otVH2OlaeAPEo4Ck2bfc=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=duw1onrGDMp9RRzaoisMTr9vPasYm35dKzRBLGV07UDD2jQQ1QRtK9Zu1M/mvkzmh
+	 9m1ZkYPa/Uv8dJD35+RoFnOgdP3k8g8dj+J7J7E0RPy8clUQpmuZen56XSD4WimER9
+	 qaN+zbBunhiWe+9q1WhGMnfyRA3XmWa5xH2XD6+qqJHTy61+ykPUy4Y8GTckMam3RG
+	 RTwmpKGUjb/AOnz6Yy3UopQzlRtvSnsKyKvR/OXp7QzKRxze8Q7oL7yTjbVJHQUKJu
+	 3aYJy8eZt8kiROX8+th7HCMoM+JPZnxyg2ZdTkzgiLEMXASOSW43PuC0wG7aiCzKkA
+	 xRUa3B1Lg+GyA==
+Message-ID: <sashiko-outbox-190388@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v12 net-next 3/9] devlink: pass param values by pointer
+Subject: Re: [PATCH net-next v3 8/8] selftests: drv-net: add netkit devmem
+ tests
 Reply-To: sashiko-reviews@lists.linux.dev
-To: "Ratheesh Kannoth" <rkannoth@marvell.com>, linux-rdma@vger.kernel.org
-In-Reply-To: <20260508034912.4082520-4-rkannoth@marvell.com>
-References: <20260508034912.4082520-4-rkannoth@marvell.com>
+To: "Bobby Eshleman" <bobbyeshleman@gmail.com>
+Cc: linux-rdma@vger.kernel.org, bpf@vger.kernel.org
+In-Reply-To: <20260507-tcp-dm-netkit-v3-8-52821445867c@meta.com>
+References: <20260507-tcp-dm-netkit-v3-8-52821445867c@meta.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 30 Oct 2026 04:54:03 +0000
+Date: Fri, 30 Oct 2026 04:53:58 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -58,22 +60,76 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> union devlink_param_value grows substantially once U64 array
-> parameters are added to devlink (from 32 bytes to over 264 bytes).
-> devlink_nl_param_value_fill_one() and devlink_nl_param_value_put()
-> copy the union by value in several places. Passing two instances as
-> value arguments alone consumes over 528 bytes of stack; combined with
-> deeper call chains the parameter stack can approach 800 bytes and trip
-> CONFIG_FRAME_WARN more easily.
->=20
-> Switch internal helpers and exported driver APIs to pass pointers to
-> union devlink_param_value rather than passing the union by value.
->=20
-> Signed-off-by: Ratheesh Kannoth <rkannoth@marvell.com>
+Thank you for your contribution! Sashiko AI review found 2 potential issue(=
+s) to consider:
+- [High] If configure_nic(cfg) fails halfway, the script exits without exec=
+uting cleanup_nic(cfg), permanently leaving the physical NIC in a disrupted=
+ state.
+- [High] The script performs highly disruptive physical NIC configuration c=
+hanges unconditionally, bypassing the framework's DISRUPTIVE=3DFalse skip m=
+echanism.
+--
 
-Sashiko has reviewed this patch and found no issues.
+commit 605c5904b1c331eeb3043ea246464b1479d4bb3f
+Author: Bobby Eshleman <bobbyeshleman@meta.com>
+
+selftests: drv-net: add netkit devmem tests
+
+This commit adds nk_devmem.py with four tests for TCP devmem through a netk=
+it
+device. The script configures the NIC once before running the test cases and
+cleans it up in a finally block to avoid toggling settings around every tes=
+t.
+
+> diff --git a/tools/testing/selftests/drivers/net/hw/nk_devmem.py b/tools/=
+testing/selftests/drivers/net/hw/nk_devmem.py
+> new file mode 100755
+> index 0000000000000..0e36a0fa96888
+> --- /dev/null
+> +++ b/tools/testing/selftests/drivers/net/hw/nk_devmem.py
+
+[ ... ]
+
+> +def main() -> None:
+> +    """Configure the NIC once, then run the netkit devmem test cases."""
+> +    with NetDrvContEnv(__file__, rxqueues=3D2, primary_rx_redirect=3DTru=
+e) as cfg:
+> +        setup_test(cfg,
+> +                   os.path.join(os.path.dirname(os.path.abspath(__file__=
+)),
+> +                                "ncdevmem"))
+> +
+> +        require_devmem(cfg)
+> +        configure_nic(cfg)
+
+Because configure_nic(cfg) is called here in main() outside of ksft_run(),
+does this bypass the DISRUPTIVE=3DFalse skip mechanism?
+
+Since the test functions themselves are marked with @ksft_disruptive, runni=
+ng
+with DISRUPTIVE=3DFalse will skip the tests, but it appears the disruptive =
+NIC
+configuration will still unconditionally execute.
+
+> +        try:
+
+If configure_nic(cfg) fails halfway through, will this permanently leave the
+physical NIC in a disrupted state?
+
+If an exception is raised before the try block is entered (for example, if
+the driver doesn't support queue leases during configuration),
+cleanup_nic(cfg) would be entirely bypassed.
+
+Could configure_nic() be moved inside the try block to ensure cleanup
+always runs?
+
+> +            ksft_run([check_nk_rx, check_nk_tx, check_nk_tx_chunks,
+> +                      check_nk_rx_hds], args=3D(cfg,))
+> +        finally:
+> +            cleanup_nic(cfg)
+> +
+> +    ksft_exit()
 
 --=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260508034912.4082=
-520-1-rkannoth@marvell.com?part=3D3
-
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260507-tcp-dm-net=
+kit-v3-0-52821445867c@meta.com?part=3D8
