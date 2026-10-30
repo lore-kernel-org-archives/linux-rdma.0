@@ -1,57 +1,96 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.44
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793367257;
-	b=MHhuYxeHUQ6QlzO1IAiUglrcxAdAMKnl9HTx90L7DsnoBs5caGfDzbCaWer1YW+r811D
-	 1FV8ZoGPd4FsFkyGxnKcQUGPkYBH7ckC6+gnyMtML/YY/f+gc5QqgbhQ0f0yGQabLJJH5
-	 Bly1NWYG/6o0tzT97ohRi88gt5UPQP0Pn+5Ez16ehX4v2LQoZci2Q70L7neByhjraOjWV
-	 cDIFMbnDHt7T36fUEVpVQ7n+DPJ79stOEnEpeZOBH7RtDpp5molHhHSONYtZTYu80AUQu
-	 vx8J4L99KPoKRdlRsgB4zffJhUxUJFCTGJLTqhd+PfsMDcsWhUqbzhqHDOLnYIbSmIA==
+	t=1793373361;
+	b=g56V4KJMUazGm5ACrniuT+koaS8K4340kdFcn6BJXm+7BNsbJLYFloJRiAf8e+KDoDKl
+	 dlxYIbSJUlhGitR+EB6yKQ/pZhc6FKZMU/XydjVaYhDWPhlr75hSNj4puYPhBKxHGKQfv
+	 aL6lk1Jgs5tWSJ8AnDFEJQ/TDMMXMVBykspjb0yVDo/6/zA53GGXJ23bMQnV27zWOIO83
+	 I1lCHZIQQ8T9YKi7XeiPddgH2feJeEoFiRiNvdWDRZZWRM8yBCXIMMHwc9zH2tprYbLul
+	 Jy/45enDJ4doNYJ+lxN68s9V8ke3JjNNH8sFRYNv9vZ8bITql1ghMOXWXl1OGYUlXyw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793367257;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=lPEJy8PiLlOofpWGDf2SL7kz6PqadmcFQxUol8ZR75A=;
-	b=RschAScB67DxlHEc25MRuzT7CG9UTARXMHgwWy3fY+VJLBmIUuNqpchVpdYXuueWcMsn
-	 Br6sohEthRA4v5PJFYxeFNrkiN9th+wN8VyRrrz2eOCaXQ03kwQAKQ4bybRtJJog7s2zm
-	 TGDfK+cTDCjvLIJJg4hDQLBIQVvHskocYbYjzuGy+GEWYy0CfOQWPPAvzAjnxqrPDCVt7
-	 3TnHLRd7ner5ijfZSO68qdbukTlH3R2oDKwCJ1VBCgLPC8zyhIQeDuReadklJQ8CqHzhI
-	 9UF0C4MtbNrKTD28F4+o9XB6a4UrPC+UNhk7ac9lqmQOx1QQeuuj/skkR7evoR0X7bg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793373361;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:X-Google-Original-From:To:Cc:Subject:Date:Message-ID:X-Mailer:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=L2/e4wODw173tyqkrdAOHBh5VI6/G81+0Qf78PMO8VY=;
+	b=Tbij+3xq+837mw8CjcxXaDFmiKGQyQqLehJnlgKjg35iB9WB+ttbCcx3s8NtHFHvy6Pa
+	 oIM3pZxEJX0jwuc2NJyjF+V4UctoZ8CzYp07tBwXubukXGmx7VSlqRBuoFmusodtaMPb7
+	 aUj+NB63zh3pvcURHepkR2ieDw+t/z/YTL6CtCmhJL3iOGyzXLup3FBcUDFKbVj2Wa6qg
+	 wLl7FATuMqCoc5vmS3mUlt6F1AqqOaefvbLNa68voRFyjtMupUXB9+GSZHOjpIGsrL581
+	 fdaQE7D07sjSUhYs/kzrpzlWxfydf/4FKv5NKyfsqsftpSSZsgl7/rUyrtT6YXqoGag==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=SK6esX+o;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=ayGxPgig;
+	arc=none smtp.remote-ip=209.85.128.44
+Received: from mail-wm1-f44.google.com (mail-wm1-f44.google.com [209.85.128.44])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79BA5606A31C
-	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 13:34:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FCE9606A31D
+	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 15:16:01 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7FCE9606A31D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=SK6esX+o
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0A721F000C1;
-	Fri, 30 Oct 2026 13:34:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793367257;
-	bh=lPEJy8PiLlOofpWGDf2SL7kz6PqadmcFQxUol8ZR75A=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=SK6esX+oeuvGEDGM7Vb0UFv/VeF+TdSmi8IREymbR5QcsaWexl1SVr0vdNzhbm1SX
-	 sX8SgXwVvUNVTGOk7pOO6IeoKAUueFrg91+f0huwXU5zVni5jirVVwL9G9U8L1kqYo
-	 r8Tqkt6S6QaI2sQMLGp8YQZZ1ZY9+JhXNljfF8T1grwWiwWrclWglMny7KM8ImEyap
-	 mOf2pbqKkzR3Ls+n3pJPZQk0TMtumfGpVQkJIgyGt1k4J2WN0PGyCbUCej29OX6efC
-	 Z9+9383m/tJusgJAZOqvIZNkIIbDV/IhyygkayL/Hy9ZsdMyz6PGPiDpos4B7E48UM
-	 1NRBIdYD1xrSQ==
-Message-ID: <sashiko-outbox-191063@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v6 09/10] RDMA/mana_ib: Handle error CQEs for
- RC QPs
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Konstantin Taranov" <kotaranov@linux.microsoft.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261030130038.4040789-10-kotaranov@linux.microsoft.com>
-References: <20261030130038.4040789-1-kotaranov@linux.microsoft.com>
- <20261030130038.4040789-10-kotaranov@linux.microsoft.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Fri, 30 Oct 2026 13:34:16 +0000
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=ayGxPgig
+Received: by mail-wm1-f44.google.com with SMTP id 5b1f17b1804b1-4a208d93758so8667135e9.3
+        for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 08:16:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1793373360; x=1793978160; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=L2/e4wODw173tyqkrdAOHBh5VI6/G81+0Qf78PMO8VY=;
+        b=ayGxPgigL5J/cpcMGBIcHx/evVBem8vl5U+JZErgRMB4V+ZS5qpxtPsOv42n62rOr3
+         n8MYb24p/cZ19oHFJ0n2N+gxtlGu0PZBoWf5KnDdns4dwRwj4q0KNZNaRy3HW99AdARj
+         rdSI59D60oOzFOrpFnpAC3qeqnymed6B2gqHoUL5sHluvdiTeHzrKqz+Q9H5/yHSu2XD
+         S0fA/Ycukg4IVIpJbkZLJxG91/EY+IwyKLmx/j9LZ72IFuT+pOmJEC3ZtDLeRoPOTuU0
+         4gvrmOskGU5ZvtIPbAmtyEqeJ16ZaZQfxpGvx+PTiOElV6KNvWEiqW8NslHgrA1y5HD9
+         XO6g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793373360; x=1793978160;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=L2/e4wODw173tyqkrdAOHBh5VI6/G81+0Qf78PMO8VY=;
+        b=zgsGpXpVbyNpFf9PB4UEZTSBLICDgaoveZIXZPhJS9UFhJuzoWokj6CmutJ18gNvsp
+         7dsWc85V07bSjuZ1czI01Oci3biiRI3YGTSIYOLZkK/26o0TQScEHNsikR3axMNUfkHi
+         nyOlV3wcS/PKFQceKOtPG7GlMZIBb5QsTNyJOEwp151RdX6bfcX4uAcWfHtvCLWkcPav
+         S4Ia5l/Plm8Dw8tQ4Iig8Pex56Npcbs7blCa5M+KMSvIYGLA+CJ4hCaeXP8U/lgslytO
+         BaKuKGJNimidZfVh51URkF3aMrN6tMkekUPbCbJWulE3kJd5lPRMyfMuieeueZzPvltI
+         kVew==
+X-Forwarded-Encrypted: i=1; AKwUvBx7+nMBIv2izbzqyAMiz228R36QPMxEIrkf/q9+ojlwwg6zOs8NvUC1i731hhx7jupGeEW5aL1uHUFQ@vger.kernel.org
+X-Gm-Message-State: AFq9FYLnrRvJxMWXZIDEMXIvdcvugcKgEFaZR13UJzWzyN/pse44rKWs
+	U5Zvs6wOKZ07NYDYTR/qULtkN7Fgi1wINyCUiL2aFa0hST6/bnWqig8=
+X-Gm-Gg: AYBFou29HgEBBLmj9HqlpT9R3FRkshXGJ1ygzxb4Xq9ukXynBPcLWJGSjuccweToBkl
+	Iz4jgYbeH7ZZpRNWjr+86adIdElgfuCe0oVpKkPArrqymhly0q+0cDHeFHDTpGXxIlt4GHQMjrm
+	VnsEf04e/5ZcPCQu54VZYSq6yQjJ3YQXzpQYUzXIAdt6FC5lr4XRYKSoYu7v+yGlziQ9OZOTsmM
+	ftkc98EaYKbo9WmNBfb5UbhI5QqzR5EdnkRPij9BkVV+uR9WjI3KYNQVq7rk6WkYT7wdwuXoZdy
+	P/1CSFlAGMrAEjZx/CeNok/WEVNmVDLCayieUneQft3m920mtCjzL6QeRzE1K+ztKFoF07EVjTj
+	cVXjkaf5YbFg0wNKasWDmrXhD/30QkVBdE5Nob735m2NeRTSN6KPs1FfAIrc0uXNRL5XVTfOYTD
+	/tYrG1EtMUi34Z2jJfcTkH+WCKt+vmJNt6ycxDj6QFYGEtiWUGGOpItYeWl33hkKcJ/yFxxQd4e
+	bHBXUvaqo6vYPqzqPK29qoM6VDgli4sbRleOP+XzO8dQ3IEaeqRV0U6UjufHqsRrzZnuTY0qMkU
+	r1IzFjxvoiQ=
+X-Received: by 2002:a05:600c:5397:b0:4a4:4d57:8462 with SMTP id 5b1f17b1804b1-4ac18b7e65bmr58193635e9.24.1793373359758;
+        Fri, 30 Oct 2026 08:15:59 -0700 (PDT)
+Received: from debian.. ([2001:41d0:303:db6b::])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48e71bae0f4sm3268511f8f.58.2026.10.30.08.15.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 30 Oct 2026 08:15:59 -0700 (PDT)
+From: Tristan Madani <tristmd@gmail.com>
+X-Google-Original-From: Tristan Madani <tristan@talencesecurity.com>
+To: Zhu Yanjun <zyjzyj2000@gmail.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>
+Cc: Zhu Yanjun <yanjun.zhu@linux.dev>,
+	Bob Pearson <rpearsonhpe@gmail.com>,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Tristan Madani <tristan@talencesecurity.com>
+Subject: [PATCH v7 0/2] RDMA/rxe: fix TOCTOU races in send WQE processing
+Date: Fri, 30 Oct 2026 15:15:55 +0000
+Message-ID: <20261030151558.1458444-1-tristan@talencesecurity.com>
+X-Mailer: git-send-email 2.47.3
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,148 +99,75 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
-- [High] RDMA/mana_ib: handle_error_cqe() leaves active GSI QPs on CQ error=
- lists
---
+The SoftRoCE driver maps its send work queue into userspace for direct
+posting. The kernel reads WQE fields directly from this shared mapping,
+which allows a concurrent userspace thread to modify fields between
+kernel reads -- classic TOCTOU.
 
-commit 1bb70d4df95cbf22f7fdb1b2cc6c47bc5b5ed6d5
-Author: Konstantin Taranov <kotaranov@microsoft.com>
+This series copies each send WQE to a kernel-private buffer before
+processing, in both the requester (patch 1) and completer (patch 2)
+paths.
 
-RDMA/mana_ib: Handle error CQEs for RC QPs
+v7 addresses all findings from the v6 sashiko AI review and Zhu Yanjun
+review:
 
-This commit adds handling for hardware error CQEs on RC QPs, deferring the
-transition to the ERR state via a workqueue so that other work queues can be
-flushed. It also cleans pending CQEs upon QP reset and tracks deferred error
-state to avoid transitioning reset and reused QPs to ERR.
+  - FORTIFY_SOURCE: memcpy destination is now the enclosing struct
+    (send_wqe/comp_wqe) rather than the inner wqe member, so
+    __member_size() sees the full buffer including the trailing SGE
+    array.
 
-> diff --git a/drivers/infiniband/hw/mana/cq.c b/drivers/infiniband/hw/mana=
-/cq.c
-> index 74597c07f1cba..a707664f5ab8b 100644
-> --- a/drivers/infiniband/hw/mana/cq.c
-> +++ b/drivers/infiniband/hw/mana/cq.c
+  - Copy size: uses max(max_sge * sizeof(ib_sge), max_inline) to
+    match the actual queue element data area, ensuring all SGE entries
+    are captured even when max_sge * sizeof(ib_sge) exceeds max_inline.
 
-[ ... ]
+  - IB_WR_REG_MR: opcode bound raised from IB_WR_ATOMIC_WRITE to
+    IB_WR_REG_MR so kernel ULP fast registration is not rejected.
+    Invalid opcodes get mask=0 in the requester (normal error path)
+    or COMPST_ERROR in the completer.
 
-> @@ -516,6 +594,79 @@ static bool handle_psn_cqe(struct mana_ib_qp *qp, u3=
-2 psn,
->  	return consumed;
->  }
-> =20
+  - num_sge: the requester no longer silently clamps num_sge, letting
+    the existing rxe_requester() validation detect and error the QP.
+    The completer validates num_sge and cur_sge bounds, returning
+    COMPST_ERROR on violation to prevent OOB SGE walks.
 
-[ ... ]
+  - DMA progress writeback: both paths now write back dma.resid,
+    dma.cur_sge, and dma.sge_offset so retries resume from the correct
+    offset (fixing IB_WR_FLUSH and partial READ retry regressions).
 
-> +static bool handle_error_cqe(struct mana_ib_cq *cq, struct mana_ib_qp *q=
-p,
-> +			     struct gdma_comp *cqe, struct mana_cq_poll *poll)
-> +{
-> +	bool mmq =3D cqe->is_sq && (cqe->wq_num & MANA_QID_SUBTYPE_MASK) =3D=3D=
- MANA_QID_SUBTYPE_MMQ;
-> +	struct mana_rdma_cqe *rdma_cqe =3D (struct mana_rdma_cqe *)cqe->cqe_dat=
-a;
-> +	bool send =3D mana_cqe_is_send(qp, cqe);
-> +	u32 vendor_err =3D rdma_cqe->error.vendor_error;
-> +	struct shadow_wqe_header *shadow_wqe;
-> +	struct shadow_queue *shadow_q;
-> +
-> +	if (send && qp->ibqp.qp_type =3D=3D IB_QPT_RC) {
-> +		/* The error PSN/FSN belongs to the failing WQE, not a success. */
-> +		if (!mana_advance_send(qp, mmq, rdma_cqe->error.psn - 1, poll))
-> +			return false;
-> +		if (poll->produced =3D=3D poll->budget)
-> +			return false;
-> +	}
-> +
-> +	if (!send)
-> +		shadow_q =3D &qp->shadow_rq;
-> +	else if (mmq)
-> +		shadow_q =3D &qp->shadow_mmq;
-> +	else
-> +		shadow_q =3D &qp->shadow_sq;
-> +
-> +	shadow_wqe =3D shadow_queue_get_next_to_consume(shadow_q);
-> +	if (shadow_wqe) {
-> +		if (send) {
-> +			if (!mana_complete_send_dependencies(qp, mmq, shadow_wqe, poll))
-> +				return false;
-> +
-> +			mana_complete_send(qp, mmq, poll, vendor_err);
-> +		} else {
-> +			mana_fill_wc(qp, poll, shadow_wqe, IB_WC_RECV, vendor_err);
-> +			shadow_queue_advance_consumer(shadow_q);
-> +		}
-> +	}
-> +
-> +	/* Hardware has stopped DMA for the queues flushed below. */
-> +	if (send) {
-> +		if (list_empty(&qp->send_err_node))
-> +			list_add_tail(&qp->send_err_node, &cq->send_err_qp_list);
-> +	} else {
-> +		if (list_empty(&qp->recv_err_node))
-> +			list_add_tail(&qp->recv_err_node, &cq->recv_err_qp_list);
-> +	}
-> +	if (qp->ibqp.qp_type !=3D IB_QPT_GSI)
-> +		mana_ib_schedule_qp_error(qp);
+  - State TOCTOU in completer: the smp_load_acquire()d state is
+    restored after memcpy to prevent a concurrent write from overwriting
+    it.
 
-[Severity: High]
-As reported by Sashiko on v5 [1], in handle_error_cqe(), mana_ib_schedule_q=
-p_error()
-is skipped when qp->ibqp.qp_type =3D=3D IB_QPT_GSI, but qp->send_err_node or
-qp->recv_err_node is still unconditionally added to cq->send_err_qp_list or
-cq->recv_err_qp_list.
+  - Posted WQE: get_wqe() sets *wqe_p = NULL for posted state,
+    preventing the timeout_retry path from operating on an uncopied
+    shared WQE.
 
-QPs are only removed from those error lists in mana_remove_qp_from_cqs() on=
- a
-transition to IB_QPS_RESET in mana_ib_modify_qp_state(), or during QP
-destruction:
+  - Retry: comp_wqe_valid is invalidated when a retry is initiated,
+    ensuring retried responses get a fresh copy with updated PSNs.
 
-drivers/infiniband/hw/mana/qp.c:mana_ib_modify_qp_state() {
-	if (attr_mask & IB_QP_STATE) {
-		switch (attr->qp_state) {
-		case IB_QPS_RESET:
-			mana_remove_qp_from_cqs(qp, true);
-			...
-			break;
-		default:
-			break;
-		}
-}
+Tristan Madani (2):
+  RDMA/rxe: copy send WQE to kernel buffer before processing
+  RDMA/rxe: copy send WQE to kernel buffer in completer path
 
-However, the MAD layer never transitions a GSI QP to IB_QPS_RESET. On a GSI
-send error, ib_mad_send_done() -> ib_mad_send_error() transitions the QP fr=
-om
-IB_QPS_SQE back to IB_QPS_RTS and reposts the WRs via ib_post_send() ->
-mana_ib_post_send_ud():
+ drivers/infiniband/sw/rxe/rxe_comp.c  | 72 ++++++++++++++++++++++++++++++++++-
+ drivers/infiniband/sw/rxe/rxe_qp.c    |  2 ++
+ drivers/infiniband/sw/rxe/rxe_req.c   | 64 +++++++++++++++++++++++++++++---
+ drivers/infiniband/sw/rxe/rxe_verbs.h | 12 ++++++
+ 4 files changed, 143 insertions(+), 7 deletions(-)
 
-drivers/infiniband/hw/mana/wr.c:mana_ib_post_send_ud() {
-	...
-	if (ring_sq) {
-		mana_gd_wq_ring_doorbell(mdev_to_gc(mdev), queue);
-		mana_ib_notify_flush(qp->ibqp.send_cq, &qp->send_err_node);
-	}
-}
+Tristan Madani (2):
+  RDMA/rxe: copy send WQE to kernel buffer before processing
+  RDMA/rxe: copy send WQE to kernel buffer in completer path
 
-Because qp->send_err_node remains on cq->send_err_qp_list while the GSI QP =
-is
-active in IB_QPS_RTS, won't mana_flush_completions() immediately software-f=
-lush
-all in-flight and newly posted GSI WRs with IB_WC_WR_FLUSH_ERR, causing
-ib_mad_send_done() to DMA-unmap buffers while hardware still owns them and
-permanently breaking GSI traffic on the port? Similarly, if a receive error
-occurs while the GSI RQ remains active in RTS, adding qp->recv_err_node wou=
-ld
-flush all pre-posted GSI receive WRs.
+ drivers/infiniband/sw/rxe/rxe_comp.c  | 72 ++++++++++++++++++++++++++-
+ drivers/infiniband/sw/rxe/rxe_qp.c    |  2 +
+ drivers/infiniband/sw/rxe/rxe_req.c   | 64 ++++++++++++++++++++++--
+ drivers/infiniband/sw/rxe/rxe_verbs.h | 12 +++++
+ 4 files changed, 143 insertions(+), 7 deletions(-)
 
-Should adding the QP to cq->send_err_qp_list and cq->recv_err_qp_list also =
-be
-skipped for IB_QPT_GSI (or cleaned up when transitioning back to IB_QPS_RTS=
-)?
+-- 
+2.47.3
 
-[1] https://lore.kernel.org/r/20261017064413.995985-10-kotaranov@linux.micr=
-osoft.com
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261030130038.4040=
-789-1-kotaranov@linux.microsoft.com?part=3D9
