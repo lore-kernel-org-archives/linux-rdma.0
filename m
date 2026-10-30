@@ -1,53 +1,53 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1793336019;
-	b=RGJB1RZRXPBCL87EKTxmQi5EuBE0eVAFM9Bz2nl1OTSVb5fO0i3AB2D6m3DIzT9H1m2P
-	 P7LFb15TRVrqU1f//Dn3Sun2gc3kZ0bNbnWiFkrf0ofYOt9JzkY+Tmgkdd4z2AbpreNW4
-	 usQPGaEcIejVfKcuLRX86XGO0Z3kocoPvWtL8JP0Moi9DGumcvzj+jsAC4E7bjUMb8jvW
-	 it0yvXn428WIbvF5FTCTW9Lw88E/6XbaJbQRYN2Uda/kJb/stw8V0B5PA0uJvc60wjbi3
-	 +DYy1YwpnlfMAy0H9qODg44fXWV6fP5XoYOjvwIpWUno7Yeur8nVyu3VpCrRlQRP0RQ==
+	b=zcJ9bOknnsQwkSdZACDvUQBoy/frRAH0IHxNz6PO05W78kwWt/AlmB1sWBYV+jdFsec6
+	 mIfCLbCQLNcYX9RvZ58k7yt+erEYVwOrQfQ2XmBBZa0GYXiF4OiHliSRq5v0bDEe/BSIe
+	 XlaGqxVa39H0eOevvCYP5dAGqG5e3fFOYNZFZUmNAQ9fkJt6WmM59eqqFOj/P3GeXAps4
+	 diPNfR/jNRpRfA1DWhkZG8U5uHkaszj8gJ+l9m/TQbPfhI9Jxn1kbNT7r9mifHIzl3j9p
+	 JJtyDd4dvc0Yq0HW0AlF5av+0poLqvw7SKyv+IXvkc30PKCx34suAcc9Nuw0Nb3fP+A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1793336019;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=5jWQ2iaj/hqKd2FQlYt0/KJTn0BIlL67InGkY6ECAoM=;
-	b=OncElhmNWQcip5VUe7/e9Bs7Bw6Wte1qUCZ3Hnd6ONXKJxGlPtq5DpPK5+2mDRg80Ipn
-	 qrQoVGHMpdFK7esLXgAURm9WQkZfiLLMpTm8ZEAeB/Btfv9w6DnL9yo3T6aXlF7Rs6SDv
-	 i5Ghf3nh6bHQODh8Rry4BXZ/LOoFveT0hVfWKrfsmWnGuIYA0emV1JnGKqwlrueUuCtNF
-	 3Ch5SYidbWRldtH8twcriodF8m3CtNRdQ8+OvjgHP18Pw/rRHKsR6DnC33Y8r2FPy0b6W
-	 EQhwIW3K2nEyL9cF9LMTaY2J56D1SUwMhddkpL3cK3Ce7vjeW9STf9j/eneDt8S/Jzw==
+	bh=hxbJ2k1m0YP6keF7KADzVMO/oKQ7COjMQFGpsKhTBUE=;
+	b=xJZqLYQOmM/7Nf0bb7sGP3EV4CzcJTLM9KQ2Ztks4AZxyDiCSJ4ZMhc8uyMTknxplUN7
+	 7yCZWYzgdDFyGx5DGZ9/qAPjDNG8lQXESEMs5dsFX2tLu+ZtC+18XBAWohUJBmeTIpykz
+	 Ko2zYIHARPct2KKdIsbjJ6Ql5orp604KVVVFwoJB+4WMRw+8yv5Mb3vt4X6oXybEpZI4M
+	 lkhmIQ3T+gWnK60XnUpG3eMTvEpovSsEyGY7BJv2Iok2IGjS6DBhsGT+ucOZJLaamoWZr
+	 Hf0p4YZYpXYiKeqL5dgUJHC1sj6Y/oUvC7yEaX0PtEs/c0cXSYRrCwNA/rlbC8SXhpg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dBveSKnI;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dATabKW9;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43D0F606A31C
-	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 04:53:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EC89606A329
+	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 04:53:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dBveSKnI
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1EAD1F000C1;
-	Fri, 30 Oct 2026 04:53:38 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dATabKW9
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 506161F0093A;
+	Fri, 30 Oct 2026 04:53:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793336018;
-	bh=5jWQ2iaj/hqKd2FQlYt0/KJTn0BIlL67InGkY6ECAoM=;
+	s=k20260515; t=1793336019;
+	bh=hxbJ2k1m0YP6keF7KADzVMO/oKQ7COjMQFGpsKhTBUE=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=dBveSKnI1+N7KhJymAr0/dMyCP2igi6AzeIEMc0CkYS3IfldFJamVML7Wn2RxDG1U
-	 1aAwvuhCGnqUsH7uy7AyjAyihuPC4dznx7BrSbYlZ0U6d8Xn1zQ59fOmgLDZzmHTrS
-	 1uzq+UlytnxVRYxlmVpLC/8DGw5sSNNqx+Q0apiDgsmn0X6UnUBCha+B4MzofqAIix
-	 gzQ1c7q6Pw6EBvJKwgJauShtqtcCOfBpdTVnHqf2oaP0Oo4xQAMFmrUH5LK0HKCzaZ
-	 I4n0u4xB127r6Nr5VbCLA29RU41fL0/0VA5eajPM4Uta6zQT56XLw0ZapOc/7LrSBN
-	 zOCaAwIesbpXA==
-Message-ID: <sashiko-outbox-190329@kernel.org>
+	b=dATabKW90GwTwHkJ+oRjrPxYu+THGFli92sWdAhan3Uiy1jkLjboCyvc8MfWM5XcD
+	 wswQdUNxhIN3SFdueZ/pRSo/RpsJnpZ7k2tclXt04Rc0Za+P3fZD1AC8W14aKX2iQR
+	 qInxuuAaFwSNBEx3PnVXXC3BLtn6RgvmUun4x8iQY+hwXHuR1yJYjR+gaRo2otUQJf
+	 s8o3tIf5yLTwXiOxfw+2cGhmnmjxtigA+u4rM2qG/I+BN29yr9xzxfXYS+CHF3yZEk
+	 JZZIBJc/v5nEYBPaXBBTFcYnoeIR8JglOLeL16ACwr+pk4ePk3s03J/56gwb2UJ8k/
+	 sPL/zb658qsVg==
+Message-ID: <sashiko-outbox-190330@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next V2 2/3] net/mlx5: E-Switch, introduce generic
- work queue dispatch helper
+Subject: Re: [PATCH net-next V2 3/3] net/mlx5: E-Switch, fix deadlock
+ between devlink lock and esw->wq
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Tariq Toukan" <tariqt@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260428051018.219093-3-tariqt@nvidia.com>
-References: <20260428051018.219093-3-tariqt@nvidia.com>
+In-Reply-To: <20260428051018.219093-4-tariqt@nvidia.com>
+References: <20260428051018.219093-4-tariqt@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Date: Fri, 30 Oct 2026 04:53:38 +0000
@@ -60,33 +60,100 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> From: Mark Bloch <mbloch@nvidia.com>
->=20
-> Each E-Switch work item requires the same boilerplate: acquire the
-> devlink lock, check whether the work is stale, dispatch to the
-> appropriate handler, and release the lock. Factor this out.
->=20
-> Add a func callback to mlx5_host_work so the generic handler
-> esw_wq_handler() can dispatch to the right function without
-> duplicating locking logic. Introduce mlx5_esw_add_work() as the
-> single enqueue point: it stamps the work item with the current
-> generation counter and queues it onto the E-Switch work queue.
->=20
-> Refactor esw_vfs_changed_event_handler() to match the new contract:
-> it no longer receives work_gen or out as parameters. It queries
-> mlx5_esw_query_functions() itself and owns the kvfree() of the
-> result. The devlink lock is acquired and released by esw_wq_handler()
-> before dispatching, so the handler runs with the lock already held.
->=20
-> Update mlx5_esw_funcs_changed_handler() to use mlx5_esw_add_work().
->=20
-> Signed-off-by: Mark Bloch <mbloch@nvidia.com>
-> Reviewed-by: Cosmin Ratiu <cratiu@nvidia.com>
-> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+Thank you for your contribution! Sashiko AI review found 2 potential issue(=
+s) to consider:
+- [High] Open-coded trylock retry loop used to bypass a lock ordering deadl=
+ock, violating networking subsystem guidelines.
+- [High] Unsynchronized atomic notifier unregistration creates a race condi=
+tion that defeats the stale work filter, risking execution of old work on t=
+orn-down state.
+--
 
-Sashiko has reviewed this patch and found no issues.
+commit 1ce8a06ae391b110c8a8badeed88f41bec66031f
+Author: Mark Bloch <mbloch@nvidia.com>
+
+net/mlx5: E-Switch, fix deadlock between devlink lock and esw->wq
+
+This commit aims to fix a deadlock during E-Switch cleanup by checking a
+generation counter before taking the devlink lock in the workqueue handler,
+and invalidating the workqueue around mode changes and teardown.
+
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/=
+net/ethernet/mellanox/mlx5/core/eswitch.c
+> index 1986d4d0e886..8ec52498be3f 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+
+[ ... ]
+
+> @@ -1785,6 +1793,7 @@ void mlx5_eswitch_disable_locked(struct mlx5_eswitc=
+h *esw)
+> =20
+>  	mlx5_eq_notifier_unregister(esw->dev, &esw->nb);
+>  	mlx5_eswitch_event_handler_unregister(esw);
+> +	mlx5_eswitch_invalidate_wq(esw);
+
+Since mlx5_eq_notifier_unregister() uses atomic_notifier_chain_unregister(),
+which does not wait for in-flight callbacks to complete on other CPUs, is
+there a race condition here?
+
+If a concurrent hardware event callback is already executing when
+mlx5_eswitch_invalidate_wq() increments the generation counter, could the
+callback read the new generation value and assign it to the new work item?
+
+If that happens, the stale work might bypass the filter in esw_wq_handler()
+and execute against torn-down state.
+
+[ ... ]
+
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b=
+/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> index 23af5a12dc07..9e2ae217c224 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+
+[ ... ]
+
+> @@ -3694,21 +3694,38 @@ static void esw_wq_handler(struct work_struct *wo=
+rk)
+>  	struct mlx5_host_work *host_work;
+>  	struct mlx5_eswitch *esw;
+>  	struct devlink *devlink;
+> +	int work_gen;
+> =20
+>  	host_work =3D container_of(work, struct mlx5_host_work, work);
+>  	esw =3D host_work->esw;
+> +	work_gen =3D host_work->work_gen;
+>  	devlink =3D priv_to_devlink(esw->dev);
+> =20
+> -	devl_lock(devlink);
+> +	/* Do not block on devlink lock until stale work is filtered out.
+> +	 * Teardown can invalidate the generation and then wait for this
+> +	 * workqueue while holding devlink lock.
+> +	 */
+> +	for (;;) {
+> +		if (work_gen !=3D atomic_read(&esw->generation))
+> +			goto free;
+> +
+> +		if (devl_trylock(devlink))
+> +			break;
+> +
+> +		wait_event_timeout(esw->work_queue_wait,
+> +				   work_gen !=3D atomic_read(&esw->generation),
+> +				   msecs_to_jiffies(60));
+> +	}
+
+Does this open-coded trylock retry loop mask a lock ordering issue?
+
+The commit message mentions this is used to avoid an AB-BA deadlock when
+mlx5_eswitch_cleanup() calls destroy_workqueue() while holding the devlink
+lock. Using a trylock loop with a sleep fallback to bypass lock ordering
+issues reimplements blocking without lockdep's deadlock detection, which
+might indicate the teardown sequence itself needs adjustment.
+
+> =20
+>  	/* Stale work from one or more mode changes ago. Bail out. */
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260428051018.2190=
-93-1-tariqt@nvidia.com?part=3D2
-
+93-1-tariqt@nvidia.com?part=3D3
