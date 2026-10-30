@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793336031;
-	b=r3N8tpgVO+tPFjMon15D/9Ai3lmyKS54r1Hy12YPXVkf9deOHQm0Wb6CXFKsa3YGKcvn
-	 Gq78iw+OZ8oEk0S9kAWnlAgnlqE8uFy7BN/SmdiXSdUn8d7LinjlnXzTSEP48HgbuDqY8
-	 z7Y5ulscEPSJ8r7jcmbO12fiKkUXhl+XylCzJ85EzL0DMenUKhf9Pt4mcAYg8pOLRlNUz
-	 LB9nsqwh8wNvhHJklso5BsgMe46B16/uGxQTGi/iRtw50G/QpjPZHChaaEw8HH6XcI7HR
-	 Kd1IfaX+MF+Lar4/EQqxE49v387zANXcMcNY+N6Yg1E8riqqwABh1dtIUQclxSleDcQ==
+	t=1793336032;
+	b=n5sT4YrFRgWAbLajvoah+UUDsMoH3roVozS+gdykdVNhj4Jp3zkSD2c5mdVV8H9SyomA
+	 5Msj+8hGzCDv+9Bhb1+9MaE/SfCyq9GU0Lw6zqV/Sm/ikLN2GbpM6/2DLQ6S4tBI5HTOM
+	 HhmtMm/3N938fHPzBp3HeAFZr/xOuxmDeq0EDIOwMhuRso6gd/Vh5MDzmrhOHijA/q/Hg
+	 8ZYs1udB+yu2VpmXp1OzJhxgfMI9pQXFM9RdgL9vToSyqSY6fY3m9webffyUANdNt1Y3c
+	 K/y8E1ktpg8HqI/fpIeEVPnB+Aoy7mjBU3H+wtfHtwofqKSceKo+ik6TtW3sZA3yveQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793336031;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793336032;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=RR25kOBgikhPx0A4KuDwlGQJCuvC9m4a/w4mHc8smAU=;
-	b=I9XFnw4GMo3UF5hxE58FAv39m7unsQiFXjn8/FE5dys/XY6zvxOj078othfJsuL8Dxe3
-	 NcyabKC8UT/mGeZzyQtFLsAw858NNVDYcMweWX7cGCWTQ6pUys7mhm2+8Nury3+9QZd9r
-	 VwhW2S4pGl9Si8KdkuCt90eKIrJ72dbGLSnjxhov4AbsjMnPm/2hI54zC3ZVga+j1VlEf
-	 jXysYWpKf1smTvoM2oi53npiJ1L5pxFrBnTs5fNzbg5WBp6w9/r9YONJ2yBjZiXL0Vp1J
-	 7qhWdo1DUvc5nEH/jbPytZK4qd/+fbWmAgHW7ug7BUjBr4jpb6oAdziNcvld4Co9VWw==
+	bh=WeaASdl3ZuZa9gGV1VC80Qt/7SoUUnXKClYZmm8Wjbc=;
+	b=Qd3YJXUX9mt4paJ838XeuBIc4pFndVvJ2kJtSqs+sUQUMVeY7FFdU4qhVj2Uz3omeRtT
+	 ROc+lxjFwq1zcbdtl91rFIYe0shF1AUpgDLq9+HA5JvpkFAUo6lBEpbeS7nrtsqAWLuFr
+	 2SjVA8pe2iaKYq69PeGod9LyUO/nQ9Rb7cnwAZVcCVOz5VFaysnjoF+WcbtZAZg9fpAIG
+	 pZF+T+EzcHCkGCp9H4z7aSCPVldvYwubl8yJ+E5AOwGSQzjaA8SfDtJ0w6bLE8m6VHuuu
+	 G9bCxXX0ZsP5bxP8Ug/9cpjDhhDum81/eLSSVGGw/J30XWzaWeutOChhJPa3keZY7xA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="n/j29Tys";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Pm7QdImC;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41407606A320
-	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 04:53:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10473606A324
+	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 04:53:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=n/j29Tys
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D79071F000C1;
-	Fri, 30 Oct 2026 04:53:50 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Pm7QdImC
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B50781F000C1;
+	Fri, 30 Oct 2026 04:53:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1793336031;
-	bh=RR25kOBgikhPx0A4KuDwlGQJCuvC9m4a/w4mHc8smAU=;
+	bh=WeaASdl3ZuZa9gGV1VC80Qt/7SoUUnXKClYZmm8Wjbc=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=n/j29Tysq7T3MJE63qNHQTDt1rHb+3QjPFUL+829K5IMm2OVoSiRB8g13hdszpYrx
-	 VU5+26iqTNP/zlJrr/fKCTJ5zc/MPZJsJ44TVE78pOGhml6te0Hg37MrWiMuxqiee3
-	 SH3VHtlWpmjPoyIdGxlCivvteYM6NAOr6zjQi/+yZdwB8oEv3StXKMBjPEjc12vj0q
-	 1xY/z+5IqtQp/f6HilCYpI1Sw48TWodpZfpgVGFgNIcr8ivUa3ehduXanCje3gg25z
-	 lOgV/cKi85i4i1ccHOQsU7gQQaWULK/MdmupEa4VpCG13zqgd0Kxiu/4+zy0LY3PkJ
-	 r5qs/Zu9Di7MA==
-Message-ID: <sashiko-outbox-17858@kernel.org>
+	b=Pm7QdImCjCWehcTvgdSubvue1dl2iroTMP6wJIvOuRm5FGMhLHX+PrsInp0pLz2vf
+	 FABYRdQ+8YSa4TP00JEb50xrwEgezC8c0SyxIgQF+oibg1u8CGRJIduLb03WCOKxbm
+	 4+fMK6CDZaVBxAFTrCJPseJYec2m3LQLytCtjQ7/TSZYYk9AUF71hSbaglR+l/VHlb
+	 qUAEhDieXmOdIZuSnGqmD/aRxN47XrVZaLxgpkeSPYknLdOlcPbBcnCt7tRDG4iqzu
+	 0L+Zpqv3WwHIq53O+5WSf7WVyp6JEF3JCyi400CTbspZhvA+egxd7G4FoctZFb2Xb9
+	 M/SuNbYs5xhTQ==
+Message-ID: <sashiko-outbox-18387@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next 1/5] net/mlx5e: remove channel count limit for
- XOR8 RSS hash
+Subject: Re: [PATCH net-next 3/5] net/mlx5e: resize non-default RSS
+ indirection tables on channel change
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Tariq Toukan" <tariqt@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260511172719.330490-2-tariqt@nvidia.com>
-References: <20260511172719.330490-2-tariqt@nvidia.com>
+In-Reply-To: <20260511172719.330490-4-tariqt@nvidia.com>
+References: <20260511172719.330490-4-tariqt@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 30 Oct 2026 04:53:50 +0000
+Date: Fri, 30 Oct 2026 04:53:51 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -62,16 +62,29 @@ Precedence: list
 
 > From: Yael Chemla <ychemla@nvidia.com>
 >=20
-> mlx5e_ethtool_set_channels() and mlx5e_rxfh_hfunc_check() rejected
-> channel counts that would produce an indirection table larger than 256
-> entries when the XOR8 hash function was active. This check was
-> introduced in commit 49e6c9387051 ("net/mlx5e: RSS, Block XOR hash
-> with over 128 channels").
+> When the channel count changes and the RQT size changes with it, a
+> problem arise for non-default RSS contexts. The driver-side indirection
+> table grows actual_table_size without filling the new entries; stale
+> entries from a prior larger configuration may be re-exposed, causing
+> mlx5e_calc_indir_rqns() to WARN on an out-of-range index.
 >=20
-> XOR8 yields an 8-bit hash, so in practice only up to 256 entries in the
-> indirection table can be reached due to limited entropy. However, this
-> does not provide a strong justification for prohibiting larger
-> indirection tables. Remove the limitation.
+> Replace mlx5e_rss_params_indir_modify_actual_size() with
+> mlx5e_rss_ctx_resize(), which fills new entries by replicating
+> the existing pattern, matching what ethtool_rxfh_ctxs_resize() does
+> for the same case. And restrict the loop to non-default contexts.
+>=20
+> Call ethtool_rxfh_ctxs_can_resize() before acquiring state_lock to
+> validate that all non-default contexts can be resized, and
+> ethtool_rxfh_ctxs_resize() after releasing it to fold or unfold their
+> indirection tables. Both functions acquire rss_lock internally and
+> cannot be called under state_lock. RTNL, held by all set_channels
+> callers, serialises context creation and deletion making the pre-lock
+> check safe.
+>=20
+> Guard both ethtool calls on mlx5e_rx_res_rss_cnt() > 1: skip the
+> validation and resize when no non-default contexts exist. This
+> naturally covers representors and IPoIB, which share
+> mlx5e_ethtool_set_channels() but cannot have non-default RSS contexts.
 >=20
 > Signed-off-by: Yael Chemla <ychemla@nvidia.com>
 > Reviewed-by: Nimrod Oren <noren@nvidia.com>
@@ -81,5 +94,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260511172719.3304=
-90-1-tariqt@nvidia.com?part=3D1
+90-1-tariqt@nvidia.com?part=3D3
 
