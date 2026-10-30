@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793384595;
-	b=Vn3GCMSgEDFa6hIVlIhiWAi2A6lVduWqwCMjhal6lXyA9i4Tike5T7rBkByR8AJPIWnF
-	 hlcDS0A6QE6hlkJahjfpCf4WMUB2Nh5iZL3bWJa7jwBDvJc7SVyJM2JMbjdWwf9EPvcl7
-	 fjGBHOUGacZVjaxJT8V5Gb3M9CQeFbMUtrOexaizd5BcEm6PNMYKwX53Hwe+xRbKmYZmH
-	 rscCfY2lcK2kuqBRd2oinXtGWcuNQwb9/7/LLVE6I0Ig60avSAuDqD40So0Ei7fA/ccdt
-	 zQwA9olvUJDSK61ukELNYVRAQpnEd5sYojq2bH/EwPdFIAEOQ61KzdkwKCrwS3LXV7A==
+	t=1793384630;
+	b=ndNzM9GBDP11ToiWe+j2GuXtJFoeSBu4G+t2ARccxY/ko2iYDDhtVIYP4Ev725RpMv6I
+	 bs7eMOso/uPVcjk+dMp2VSC0jDomamAYfhAs79sAx3vZnWoTeqIfL2btc/YNV/JIwMwu/
+	 xf3/9+lPqu6OP9HP53/e8V/LbgN5ywlhUAjxulukSQM2p7TcuCgdNGN16K8bdozuYu9mL
+	 hq1rRC/8wpzwS/T3wS7bZuIW88mSL0/zkvRHysS7d+dCGfcfXaTrpLUlwdph/X57IH5Rj
+	 Fa8lzzPdFJSoieX0xhUXjXUXTm7a1E/44ufznoR/BG0WkYDsjjdE2nMXplvHM1BKeJg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793384595;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793384630;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=vb0exaD6tHKUzyoHBaH5agAG80od0wjE0mnDJZ0u4Kw=;
-	b=Jv/432sh+2cIK+VlSUyRsMHYMo1tYBkV1KlTG+Em0caRXo23do8tTlG5gOBUAR3+wYC1
-	 +ASCT/jmvB4NWE3EtHtrBjmLDQBn/Lhl0goKrS2l2Vp0RFgKeFVGAb+4PdbiTwl3P4wZe
-	 iFR/hIu60jWcky6HGWPCjVE0qSlPSU8ZM61Ga7wIzIM3G/674jEO/eIMGfL24G6jzzkG6
-	 naVfwRYC2BZO7asMY9/+v83pvo7IPVQwgFVeXJGwQak5i7geYh8516mGm/UxI91TJERjw
-	 dhBGG+0u1+Z+alEPz/+y7C5bHMZe+dpdh1rn/f9XeEUyP7C7+RDzLcxnLUU7G66nTiA==
+	bh=2uKzhBxzcFDdotXtvivq4Th9ZfuMq4F3f4y5ZDUzrgY=;
+	b=DFiA4lZFTlFF5sdjRaOWUdtqaCb4rdFdAjeZ1QkgF/fpqm/vEKescpQ3stdz6xCyncAI
+	 rhKlRA64k0x5BHi3sCN90zvXgPG9TfARml+GeJdFeWUQHjFASc/HQKyvrGJ7Y8I5VolDR
+	 onsSo/kY9uWUU6HZzuU+Mt31EYRoxSHO6Z3svk2tg66+TJ1FWDM/wMJPD8VI5lsvJvo0a
+	 vyTlfvBbdnO+9t+U/0aE66qC/Wamywm1lzCL3wPJv5CIEKXCV6FwmNYaVSed31PUAmmYv
+	 GgqUUZEkpzmKfkY4qgGDu19oS178BBZsNtW9dnpwT65enP5nhdFyCEAljtSivF253Lw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=SfR8Ctro;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RZW+jOc2;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D856C606A31A
-	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 18:23:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A72D606A31A
+	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 18:23:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=SfR8Ctro
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F7571F00A02;
-	Fri, 30 Oct 2026 18:23:14 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RZW+jOc2
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23A251F000C1;
+	Fri, 30 Oct 2026 18:23:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793384594;
-	bh=vb0exaD6tHKUzyoHBaH5agAG80od0wjE0mnDJZ0u4Kw=;
+	s=k20260515; t=1793384630;
+	bh=2uKzhBxzcFDdotXtvivq4Th9ZfuMq4F3f4y5ZDUzrgY=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=SfR8CtroMeu4PbP3Nmb9agbodXh5WEoqn1aKgp6d7yia8FbIWwbRuswljQo/2RthF
-	 0GjxFvSVaeeenZifG8+SWgfjR/3DJ7QALuEdsA4WimKfg9hIMZra0BYivGXcu2Eu77
-	 Kt9GhC0NFtjOcvBLkPkF9rp81Mbl60Fs+1ljpQIJBSVBcOK6KwLhAcizz8Z4QFoau4
-	 zvcY1xYF1tDsiNjC9BnKMplp3BMjCTAWmmNxDR+qoib1E3ZMxu7pIwpWSFkbZSM2Td
-	 9nMPNAKa+ti43yfEyuk9XzdixwHGyjd4+D4vu6Ce7KIkP/uKZfX1N6MhJ/OJTZd53X
-	 xhj/MmArwELvg==
-Message-ID: <sashiko-outbox-191404@kernel.org>
+	b=RZW+jOc2GwCSjQ04/6l7jyknfmwm4aD/Us84Us3JnAcwDd4q0ysTIWDHeB9zUEpHd
+	 GXxW0iWLINqLnG+TRnGtE4dpIU5iZSkfs9CgDZMbaJezEffSLDkZs73bW92ktho8E8
+	 VgOvDBkZaweYqrec1CznLcEYndztLUkwkY+H2HGeY8k3ylASP23sJpIbPAaB8jCXWz
+	 qK514J/R9lQxWOOeaHpqKcJMprk07MBniUzfT8kHZtySFu//ycKvJhXCmvhZDjrp9l
+	 Dps+SeNx1N+EY99QBHOIodIT+RPPfPteoa0sd0YSXTWs9tmk3rbv1v+OpwOU+Ia2Ue
+	 eEJJHplJDG/cA==
+Message-ID: <sashiko-outbox-191405@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v4 2/6] RDMA/irdma: Register irdma UVERBS
- ioctl namespace
+Subject: Re: [PATCH rdma-next v4 1/6] RDMA/irdma: Plumb uverbs_attr_bundle
+ for QP, SRQ
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "David Hu" <dhu@x6u.co>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261030181512.2056056-3-dhu@x6u.co>
+In-Reply-To: <20261030181512.2056056-2-dhu@x6u.co>
 References: <20261030181512.2056056-1-dhu@x6u.co>
- <20261030181512.2056056-3-dhu@x6u.co>
+ <20261030181512.2056056-2-dhu@x6u.co>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 30 Oct 2026 18:23:13 +0000
+Date: Fri, 30 Oct 2026 18:23:49 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -63,16 +63,18 @@ Precedence: list
 
 > From: David Hu <xuehaohu@google.com>
 >=20
-> An irdma UVERBS module is now created. An irdma specific shadow buf is
-> defined for CQ, while QP and SRQ reuses core's uapi definitions. This
-> works since core builds shared core ioctl parsing tree first, before addi=
-ng
-> driver specific `uapi_definition`.
+> In preparation to support modern UVERBS ioctl attributes (such
+> as UVERBS_ATTR_UMEM for CoCo DMA bounce buffers), we pass down
+> `uverbs_attr_bundle` for inner QP, SRQ routines. Since standard
+> uAPIs provide `ib_udata`, we derive it via the helper macro,
+> `rdma_udata_to_uverbs_attr_bundle`. `irdma_create_cq()` supports
+> `uverbs_attr_bundle` already, therefore, this patch fills the gap for QP
+> and SRQ.
 >=20
-> Destroy paths are automatically handled by core dispatchers, as objects
-> are now registered in the parsing tree and no additional driver specifics
-> are needed in destroy ioctls. Resize, Query, and Modify continue to go
-> through write() cmds.
+> QP, SRQ uAPI will now have `ib_udata`, and CQ uAPI has `uverbs_attr_bundl=
+e`
+> as a top level input. However, we think it is a future project to unify
+> them.
 >=20
 > Signed-off-by: David Hu <xuehaohu@google.com>
 
@@ -80,5 +82,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261030181512.2056=
-056-1-dhu@x6u.co?part=3D2
+056-1-dhu@x6u.co?part=3D1
 
