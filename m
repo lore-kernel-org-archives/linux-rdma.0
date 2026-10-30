@@ -1,55 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793336067;
-	b=Jy0d923bVV1GcaCYLsPivpLvIDJdhVZuvk6RyrGiwquw1jqbQ6U+wxFZ5oHopovTNPxK
-	 I0FaG4enVvfCU0Y+ObO1VaYKi5PezVGq5g6MmH4+yDxEXgP9SgYB0teuVIpT4Kjvx9hRs
-	 1FiSBEUDL4rAlKuaw02QJr2PDcCrw+hpryH1rKMz5YVRPEkjgvepaGgE158vCEprqNIA3
-	 JfRq051N2aTTUEtdWH41wHJDm4YdK6ZE1gVpD6ILMEn1mEeTMYkEpqH8qVugnnKr/PumS
-	 DAtxVNc6i92c3wV4pIyDFt4fZa+Al5yLoSwty9Sagv8FBHe/GbZHEArzagHuGesOFeQ==
+	t=1793336068;
+	b=fdRu0Vl7EVCYoJddI+oi1QxhF78reohwPhWLNntIIXJlHI8U1QGugvSX27q71tdXrDQs
+	 vz2nxqhqPaix/CjHqsFNNMBDlC1UnNIA4PSuhY8vgTgTxL7dskw/MCkaS+3xKAiudcagu
+	 KocN+G6Mi2HYcI7WlWQN5fgwEZKZANkzxbCfUL5wdZg3778fppgByuquFrujgeB8pq0sL
+	 ofY+XJYx5aNoQt/KBLNvJySrpnH+hbxEtEBs3298SCzUFv805RLzJHUx/7MQvuu89bBuH
+	 uDoC23fpkEQt6B1l6Q10LQky5l2OFRnuXuuzyu8+/AzfKCSDhSCnhVr18w9eUOC4uTA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793336067;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793336068;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=be8jusb60FcQNE/FBCMKG6kttiRMUGUijABVdReZfLo=;
-	b=ZOFyRSFT2cMkW9z5Rn+lYzw1rmXBJbjoBOG1wITcvE/GKLtUUaCIChvhIzMniRwdPKBa
-	 LrBqIDGXCE+YtILc3MJXjgboOjPrtIDwFWvTZVGpB4zpL3eB+CVy+Bv+5cPC36Cik09dn
-	 RMa1DtVI3VERBSKmRNJaiKweE9abX6xp8TPLO+dcZU/4454N+pznEHWhw/AOg2JRoc+io
-	 8UPGETos9XqdyKBI6mEwXYSl8sKisMJuUafrIFPUizl6weFu7+JnnZDIf++IH2oFNqaMA
-	 ww0nFvkVrvjcS0wpESZyrgPQumMg8L2Mg7hrD8y867kA08+NXtk+malgl2Si1RVKMgA==
+	bh=LNPlNIl2Ho1cGl4oQ2qoTtIS/LlujmbIwJBJnRbyi5I=;
+	b=mZPYkWRiUQ80DJ/P3W+KMtlX2KIqcRMuHQDht/U+FrOB4hQB3PAzPDaZz8XTIWF4z8zk
+	 sV98uMKC4nHvPWkJlN6D0RZ+jm0Fgb+zyIhxCet3TNEfKrMz1Tjnq7KmVZ9gi7KSH8moE
+	 NEFfms51F/8SNnXmSMXGcro6EuCzThaMsjtwLHoeEWIlGVglEVqqHdkDVIcfPBmuM7eAG
+	 5FbudxuD9rQbspys+bCPayyue68tdxttUDyvMvx1Q8ymy1yEQNM7ISXoTbxapQCA8HgDv
+	 9Y4yc4q54KH4BUXYvIFRQdOYQVVLnM3/arREl+nv98gyzR4ylGHo1zBu6VKdhwlO6uw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hlUEJdxA;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fITpQ1vn;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9023606A324
-	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 04:54:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D72E4606A327
+	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 04:54:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hlUEJdxA
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABC341F00A15;
-	Fri, 30 Oct 2026 04:54:26 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fITpQ1vn
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D2C81F00A02;
+	Fri, 30 Oct 2026 04:54:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793336066;
-	bh=be8jusb60FcQNE/FBCMKG6kttiRMUGUijABVdReZfLo=;
+	s=k20260515; t=1793336067;
+	bh=LNPlNIl2Ho1cGl4oQ2qoTtIS/LlujmbIwJBJnRbyi5I=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=hlUEJdxAJvfQW0h9BlUvgK9hKRVdkoLG1sPWFdNxv0dxZyuSDX/1kL1nLZdfYPk2F
-	 99i/kqQSdCbxeKP+SG0OW8KE4hzotQw1r6eWyDB8duUlzuaa7n5JluBqfnPQIFlyMi
-	 1DzPINIHmyUUaVIgixzPrF170xf48Eu95LaoY7I8NHqvPdd7e9dV34ckaCC47N/Fm1
-	 AY8LtG0Niq3JMU4d5e5vSxvayJC186HI6LTZUZ4suX8O+76wakD+zX4WrRHg1mmcNU
-	 mcOjnT//suN7tz1ZzFZ/5igEIl98WXIvsHzcsXl8x0JxrH5GAHXz6nkOzDhwGKyGPL
-	 QjsBUsIhoyLDA==
-Message-ID: <sashiko-outbox-190465@kernel.org>
+	b=fITpQ1vnq+ddxxzeXvM61v/DnzX2ly+OoGJK5SdKoCY81G9Q5Db0ff//B7+v2+gEJ
+	 PwOjQwvD/W/g9upRKx2hDYjpmyNCCblmcTtbhYyufah8NY+Nm1LLKmDuwKFStfoWff
+	 +FaTZD/kKJsZIi5DGesKgcvqLLGIZaO/5HKD/dmm+UK41FX4gDmypRFhu0cKL1VxMx
+	 qWEuwkUTlOeDlI0tp6lYleVIYHGE+mszqbqPykvUXGfcKAc1L1nt6Go697TYTkJszJ
+	 xnYYhWgs/J9sQGttTgSa18AqffDePAftovpxf8w0HOeZfYJ00ZkTrPhUUtbIZR87c6
+	 VuBkEO+youaPQ==
+Message-ID: <sashiko-outbox-190466@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [for-next v4 3/5] RDMA/ionic: map PHC state into user space
+Subject: Re: [for-next v4 4/5] RDMA/ionic: add completion timestamp to CQE
+ format
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Abhijit Gangurde" <abhijit.gangurde@amd.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260610154216.712374-4-abhijit.gangurde@amd.com>
-References: <20260610154216.712374-4-abhijit.gangurde@amd.com>
+In-Reply-To: <20260610154216.712374-5-abhijit.gangurde@amd.com>
+References: <20260610154216.712374-5-abhijit.gangurde@amd.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 30 Oct 2026 04:54:26 +0000
+Date: Fri, 30 Oct 2026 04:54:27 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,52 +60,17 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
-- [Critical] Unconstrained ib_copy_to_udata causes out-of-bounds write in u=
-serspace memory and ABI breakage.
---
+> Update the CQE structure to include hardware timestamp.
+> When firmware supports RDMA completion timestamps,
+> the hardware populates the timestamp field.
+>=20
+> Co-developed-by: Allen Hubbe <allen.hubbe@amd.com>
+> Signed-off-by: Allen Hubbe <allen.hubbe@amd.com>
+> Signed-off-by: Abhijit Gangurde <abhijit.gangurde@amd.com>
 
-commit 92d10c24093a8b27cdd06722f8f50e627c7ca437
-Author: Abhijit Gangurde <abhijit.gangurde@amd.com>
-
-RDMA/ionic: map PHC state into user space
-
-This commit enables user space applications to access the PHC state page
-when firmware RDMA completion timestamping is supported. It maps the PHC
-state into user space to allow timestamp conversion without kernel
-transitions.
-
-> diff --git a/include/uapi/rdma/ionic-abi.h b/include/uapi/rdma/ionic-abi.h
-> index 7b589d3e9728e..2c70ac149c4ff 100644
-> --- a/include/uapi/rdma/ionic-abi.h
-> +++ b/include/uapi/rdma/ionic-abi.h
-> @@ -48,6 +48,7 @@ struct ionic_ctx_resp {
->  	__u8 expdb_qtypes;
-> =20
->  	__u8 rsvd2[3];
-> +	__aligned_u64 phc_offset;
->  };
-
-[Severity: Critical]
-Does adding phc_offset to ionic_ctx_resp break userspace ABI backward
-compatibility and cause an out-of-bounds write in userspace memory?
-
-Looking at ionic_alloc_ucontext() in ionic_controlpath.c, the driver copies
-the response to userspace using the new, larger struct size:
-
-    rc =3D ib_copy_to_udata(udata, &resp, sizeof(resp));
-
-Since this commit increases the size of struct ionic_ctx_resp from 32 bytes
-to 40 bytes, and the copy uses sizeof(resp) without restricting the length
-to udata->outlen, won't older userspace binaries passing an outlen of 32
-receive 40 bytes?
-
-This appears to directly pass the larger length to copy_to_user() via
-ib_copy_to_udata(), potentially overflowing the userspace application's
-stack or heap buffer. Should the copy length be bounded by udata->outlen
-to safely support older userspace clients?
+Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260610154216.7123=
-74-1-abhijit.gangurde@amd.com?part=3D3
+74-1-abhijit.gangurde@amd.com?part=3D4
+
