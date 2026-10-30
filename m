@@ -1,53 +1,53 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1793336038;
-	b=g7IYZtjyy0XUtoAartrIeo9jB+Npl5ROik5Dfoi+DYEv1sZeEPaSRPrfuPZLlh9GCMxD
-	 J/fqm75hqfyumciBLn+rdgk2bmBecIBc3CmecDVvypWTSSfx80ssjri13MdoLnDQEIKO+
-	 vp/JgFLbnxiPWZ8o/qJY2L9jK3yIKsy+FAZwpECZieMbkEyyhZqKiy4m+Kiw6tSzAnWVh
-	 bd4wvlQmf7/wugVax4JKNBLXdU512fzz2FabiMqtJLHSUmX45e4iHflnf6AmWxeKrBC59
-	 9CWcWFJQl1sG9zve/ROFTIx9+LHLqKuYyIl4RJ6QfSsBgHMXGs9reoQRu+PjhDNW11Q==
+	b=cBSNMdgsllGqRtiwCbMF8PUSZ4llImMNLAaxyoURMhtewzee3+KMbKmAtj/bNZcZOg9j
+	 hgc5EETQLdCPh8rNbJ1LMEMlDvQVE6EnBNOUyfIuhfD+8fBkDEUkYS0q6hZmVaAfYNDZc
+	 4d8nkmk8j1VmY7ZFahS9o66f4C/4E+607oQod66HddiSpIhNfJyG9MVBzEVwHB3dfurv2
+	 J/MA4B0UMJwJpcG1t/Sk5Lj3Sb7M+CsKEQmE+3vSAgoM9ERlgF7DzG0WWv8o54xiLaBRW
+	 8EEVMxWHOo3XXJzhFXndl0OWb4H77v6FUfNl8pVDYuaAvJS9X+w3wE3Zrh17KDx2qzw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1793336038;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=FtuHOInK3WYLeUSV4jZVTcQgw8H7zRhJxAyhsovLJTk=;
-	b=t4s26f5vgYUhLXb5WoEL8c8lnCGR5R2InujXhL49d3PL8YQ0ocVsC4N7Zv9Soxe7Vyed
-	 kbnWhGXk5Nj2wN4jmwIj7nivp9FRh2UeTNmVHHxFmM9MqecnF6r1T/2vptM6s+khFuQ14
-	 I/YUbXQYWAu378LWGlhzkL3Bfq9G2OIYcp/SX9WS1lKQrnJA2vF2MDsA/sArz7jM+YmTR
-	 V8dSsDIoBrNdOfAScHeb9hol2H96NWHsIQf/MBngqenhZLamNKuLOEraC/wAnuZYq9mEo
-	 +i+68VYY7ML9pM4tI6eTHMZWOywU/U9mUFr7eoMrAhLrvnsvCjr/hUZYudf+2dvmriw==
+	bh=ap5fjsTKF93xb0//tjYl/5pW49Oonq/BsiirDZkY3pg=;
+	b=gaI9jyYZSS8N0mrI/2ofUZ67pAIALknoyQKicKiZ3oRAOdn6F19W44NmyRI4n1uSHG9J
+	 Xnu7A9dDryWpRd4WexdASl678A4DYFJHsT/KG4dQ2sHQWR6acKspyCtYbJaRvQBs/mP+c
+	 8MCpU+tTbjBZW4XEVgHxS/ap8DOBKbAknGhJY+PZe438Q3Nbsy4pEGIj2bQzlJE/r8oMl
+	 FhgHaXKOBmgNs4Y59RrQOUsWbFNKZnfvlHytD2/qg+ZqTUJ1DhOT4PHM8a5H0qbaWaKoM
+	 yNhpwuLG/At4/5okgH4FwVddW+InbGbkSYWsHDdpHqABO8uzS+TMbJIb32WbeL6pLgA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ORle0YaV;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=apGK59Kg;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9CFC606A320
-	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 04:53:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2DEA606A320
+	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 04:53:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ORle0YaV
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6109C1F00A15;
-	Fri, 30 Oct 2026 04:53:57 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=apGK59Kg
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 153511F000C1;
+	Fri, 30 Oct 2026 04:53:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793336037;
-	bh=FtuHOInK3WYLeUSV4jZVTcQgw8H7zRhJxAyhsovLJTk=;
+	s=k20260515; t=1793336038;
+	bh=ap5fjsTKF93xb0//tjYl/5pW49Oonq/BsiirDZkY3pg=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=ORle0YaVnDG9fktvJ1F2DrMfzeLcfBihA79YM8hOPTZWWagWffLh/jomAJ0zwbXvY
-	 vL83eH17txj2aCJh+IlnTuKPmckOhlb84jYQ5Ms0xEB9zPVr03fVO/kLxdgWQJPb02
-	 rwY9T6ikmXdl8wrYn/w2i9crNxlYjOBDj+NwJohF6iWz5TY2UiR1PgJBfHG0115GfB
-	 F908xATPk8bFFC9aVS8874qYeLZ+HFjC0Hk/FGnrn2dQb0P55gm6qnbWxjgHYQSWCz
-	 VyH3wikVGz8Gr6J8I9q48H/s8z05I0YczOhrwQ4ZVzgXafsfv+P9dd0GdJ+MO5Gc0g
-	 VM11VlN0twT8Q==
-Message-ID: <sashiko-outbox-190385@kernel.org>
+	b=apGK59Kgmu6Ofyh39Y+uGm8suxrnNoXdbdd+BBFdM3kFLiMedz+TTwl6JI4bD8sT0
+	 khBSXspraQqiGGek2lfjcgJF6iW61DQsFy+pZy6zfjf/ttLGViFSncncGWlOOMa3x/
+	 thCS65Djp2J2Py7gyUsK2+r7CbTxM3A7DorptejOVGPAkrRG7bxD795oJpU+3ISoVM
+	 V5UgHLlH01w3yMiR76AXdmtPxdPM0mLSEuWvknC5gtFTB4nte+qA2F2zI9jiB8C9Hf
+	 xhA4u53t+GlSnkrc0AZdHjaEmGSL4oxim1pHL0TOQ4lT/g0kUR6VE5/KSSkWmtCoef
+	 rafq3YajlSU4w==
+Message-ID: <sashiko-outbox-190386@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next v3 4/8] selftests: drv-net: ncdevmem: add -n
- flag to skip NIC configuration
+Subject: Re: [PATCH net-next v3 5/8] selftests: drv-net: make attr
+ _nk_guest_ifname public
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Bobby Eshleman" <bobbyeshleman@gmail.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20260507-tcp-dm-netkit-v3-4-52821445867c@meta.com>
-References: <20260507-tcp-dm-netkit-v3-4-52821445867c@meta.com>
+In-Reply-To: <20260507-tcp-dm-netkit-v3-5-52821445867c@meta.com>
+References: <20260507-tcp-dm-netkit-v3-5-52821445867c@meta.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Date: Fri, 30 Oct 2026 04:53:57 +0000
@@ -62,15 +62,9 @@ Precedence: list
 
 > From: Bobby Eshleman <bobbyeshleman@meta.com>
 >=20
-> Add a -n (skip_config) flag that causes ncdevmem to skip NIC
-> configuration when operating as an RX server. When -n is passed,
-> ncdevmem skips configuring header split, RSS, and flow steering, as well
-> as their teardown on exit.
->=20
-> This allows ksft tests to pre-configure the NIC in the host namespace
-> before launching ncdevmem in the guest namespace. This is needed for
-> netkit devmem tests where the test harness namespace has direct access
-> to the NIC and the ncdevmem namespace does not.
+> Subsequent patches will use the _nk_guest_ifname as a public attr for
+> setting up devmem. Rename to nk_guest_ifname to avoid angering the
+> linter about the '_' prefix being used for a non-private attr.
 >=20
 > Signed-off-by: Bobby Eshleman <bobbyeshleman@meta.com>
 
@@ -78,5 +72,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260507-tcp-dm-net=
-kit-v3-0-52821445867c@meta.com?part=3D4
+kit-v3-0-52821445867c@meta.com?part=3D5
 
