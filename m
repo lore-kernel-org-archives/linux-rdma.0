@@ -1,94 +1,57 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.43
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793385253;
-	b=lDB7xUXrhj1tLkAviH3xLHxXwzWJWjam/3U0z0C+tF4zf86Wwehs7qyVfDnXxM6BgxLs
-	 /bmLFpkWIYxNSmlWCYj4o/PAwG90yaCelBeY0DM/7KYR2m4cLfJ9EuI5e6BtPVEb/jY1G
-	 Lw3oRwHmu6GYOrJTPiqmfvjBf7RU5exlchLF45Ocnpww0jnzU6bRY39okydQyz4Rh8wfp
-	 ttcJXT96Z6UnDiPutPV47PiECggF25IER2yGpQQIqpwwwFDRoozawNiXubRnf1icLDBVD
-	 38QkG3FIx4kp5T8xL/HZm99lSjUJy6d002lP+xhEgeO4SvvviWvBi8MTnwLqgmaVyDQ==
+	t=1793385259;
+	b=SSUiC6GjfSOSKVx0qNYeLO6Q1efZOSNh7ydMnnrDCYdGhaE7hYVHqhKVKnKeRZ3WY4R1
+	 F5C4exGO6EYTP48Tz6ym2/3qYz4V3ZqkhE2ftMyPxlpvKy2cJjvb/J3U7l6vzHX5qI4pl
+	 G5NDuILdBDSqYz0nBfOAaqG0/Z2paAQywFQvInOVbquCJQRF/Pk9UCur+Z6OQUM+cIf2p
+	 ekaU/WSuPDKJU7nQK4UsNnN3e9K4xT8imr2l0aquNPbhG4Gdz7vBeNHUPxmkxPOveyNfy
+	 Rc5V0LjJV9Le+hytngstf0Ztcr4uIWRosb8A2OchYWeWSmJa8dK+XIkOIQLkGtm/vMA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793385253;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:
-	 X-Google-Original-From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 MIME-Version:Content-Transfer-Encoding;
-	bh=or/hcrtFhExIO4tP3jPbR5S7A2yzzhQGok/N2Gaa1/s=;
-	b=jdH1vEwMKTI6irmPmTt5//C1+ifGlztCf4oGXHdPYSci80G4TCrPmTVvVF0vNw5B+v7q
-	 UrL+m7gDlLM/tWx8gUtTE69paLcUc/YeLhypslILlacRMmEAzWIQyxwuw2MsNyqNtxvjV
-	 ifg6Uanr8ZOOE2+VrDCj4z7L8qOu8WUdHwF5ZvLB6/eO3bcolsHDIRTv1DgTt3AJSa9wG
-	 PUhtoitqsC/2Cn6HXSNvsNbA8V1qOqbBPk/oO7BPhOiYgdKRDXXSupVecDk+ksZoPqQBC
-	 mEiTQzoWuvFKshTuLLFx9z0StiSv6dvTwHLzAnsbYswXU08Ckf64w+zhZ4bqbqCQM7A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793385259;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=mZPmwsYSB1ZVPFcI57o02zSqU46o1+QOy/iizr/+8hM=;
+	b=kSubRApYC0+psvEUwGH+1TGg/oaC294Jr2EvUrnJ0S58hfwr7iMSinSiGZMH6wQoQg9C
+	 ZkeES7dsTY4hQTTNQSKJMf+6k+qQWSYZ10pIwfIj3wczq/8uLXIoIhKjH38Ww4quR5vWL
+	 H+sL2+WxJo+zRY/hNzNxWI/RK87okFdLyzLal9LDEiv7vadXXAaszk8snaj4o3WpML1IB
+	 9C1tCkwNRrt3buIz/zQR1jvbYEmKaSMNtmtICxjuqAJVwAT/rYzc8dZ8TvaNN+epPiggW
+	 YFOlov5+8gKowSs8Im/KCE33I/Xdi/sNg1qXeqBcT4JfasvMUyLPKV04+vffIDPxJdQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b="Iks3YX2/";
-	arc=none smtp.remote-ip=209.85.128.43
-Received: from mail-wm1-f43.google.com (mail-wm1-f43.google.com [209.85.128.43])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nkeXwMCh;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CA2C606A31E
-	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 18:34:12 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6CA2C606A31E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53432606A31C
+	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 18:34:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Iks3YX2/
-Received: by mail-wm1-f43.google.com with SMTP id 5b1f17b1804b1-4a4d7ae1ae9so10321945e9.1
-        for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 11:34:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793385251; x=1793990051; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=or/hcrtFhExIO4tP3jPbR5S7A2yzzhQGok/N2Gaa1/s=;
-        b=Iks3YX2/0EiBYpxyRq9L/+JpAh+bHfsk9Ggk4ukRqOCtNBgh/yBwrfZGim1/R3oe9q
-         3yyd+xRPlNqupipQRP14UnptNdOpAD9FrTyheW7gQYXffUddQoov7wpu4d1+LBpI8owP
-         XR+ZElHljH/+LZbhB/adYGkKbDqxYsksqBZOEVY0Tpx/KR8H27PvTfVR4xUwRNrq4LW+
-         UEpDuSMUJ1gykpC85h9FBkqWPrgq/Moz9MuDxXLr5YOTC1dQ29BsZlN9TEJ50j+Whspz
-         uuoawIk2OIL/sveoQdA0VreCFJXKatLvpWo9Uuf3pPVZ6lWTYz7jyTgKwz8OZ2O2NgNS
-         3wOw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793385251; x=1793990051;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=or/hcrtFhExIO4tP3jPbR5S7A2yzzhQGok/N2Gaa1/s=;
-        b=vyjBEUJBBr4MIjcoCgd+I6VOUvgIVTxr/Q5Zl+UOcqsByst2Ymkug7IP9VYO7nkwTj
-         Hq7rA7t5ZNB1ju0pJqksGDoHCrevgdTWS81mnYJ2tSFxA7Q0Z3wuj13BYUPpXyUUHhbE
-         LVLyfg5B9C1ZvkXUR7bzZxQqQ9fY1Kowz5Se5EDIQ0T2Qo5r2nuhjMvZC0xhTLJROgcQ
-         P1cNhfyH996dvaf6YLUF+0vSZEWoOZtmtyoELAXqlKys9m4GNx8GB0Bwz8lig3cSF5NW
-         MVump1SFK2f57lletzmbIL7Z1pu8CsqZfU2PqB70noXFATO5aX3xOrVYWhDYmEtjjQTM
-         TE+w==
-X-Gm-Message-State: AFq9FYKLWP3BQd4DGHzMn6p+Hot1LQz6RF6hhQjEi3PEtsN6AOEr4vNG
-	2n2wkzx3438oyFuixO8RnVBuVjbNLjG0+0TDOPl6gRjChlB7/dJMIEI=
-X-Gm-Gg: AYBFou3Uv00zUfZQzbUi3/L1Bok4lTDdr+5wyCBbAKIIHCjOggRRxMp+tBu7u1dExgW
-	oLe70A8nnx5EWJkfjU8VWhJqzUTRJd+6XbFxc2ZWL0BCAqC1owM35Czwji9SiuQ+eSfhq1oXLbS
-	DiOTUaCmhgI/KkP6UKx1V5slJUjB+QSjq3p3g1OiMOsSULvxqiMGcij+DcuMRHQ5bQ5DaqdYOYz
-	mfBFOWeC/Ka29HpqxN1/tyBxRtLxBSWBmg30dpHFxbK/yMhsXfVcdramfZSo29HjPOBqL1/QuKc
-	KBFTe2O3/hlJuUpSounJ3RKunHJkMdL4scSFKGCxqSO3zYPJDoyCKvG0e4QdUdZpr0AJeQS+BNM
-	ddoxWbIg1ok8UTuQ2HDdddeceDLKSpapfdgmy3PlgUT3NcMrzB5uw2OIrdBeFaVK8eM3Ncfro0x
-	BeaGeqhfuUzvBVlQSFfQPvQsoeiDMLNA0IgyY/4H/dVFq9ff0+Yr2gaYcd6y7+A3Vhm/ZpJ+PaT
-	92urX5t7xJl03XO7Y19BtxAA8Cz6W/nFYyLnTjWnrhwuX4aKqQG/iZEprAyyOaLziglW4oz2l3h
-	KczVe9zwhV+3
-X-Received: by 2002:a05:600c:1c0f:b0:4a1:ac66:6059 with SMTP id 5b1f17b1804b1-4ac19233381mr69475205e9.26.1793385250702;
-        Fri, 30 Oct 2026 11:34:10 -0700 (PDT)
-Received: from debian.. ([2001:41d0:303:db6b::])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4ab61d8b9f4sm114204175e9.12.2026.10.30.11.34.09
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 30 Oct 2026 11:34:10 -0700 (PDT)
-From: Tristan Madani <tristmd@gmail.com>
-X-Google-Original-From: Tristan Madani <tristan@talencesecurity.com>
-To: Zhu Yanjun <zyjzyj2000@gmail.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>
-Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org,
-	Tristan Madani <tristan@talencesecurity.com>
-Subject: [PATCH v9 0/2] RDMA/rxe: copy send WQE to kernel buffer (TOCTOU hardening)
-Date: Fri, 30 Oct 2026 18:34:07 +0000
-Message-ID: <20261030183409.195671-1-tristan@talencesecurity.com>
-X-Mailer: git-send-email 2.47.3
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nkeXwMCh
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC2E51F0093A;
+	Fri, 30 Oct 2026 18:34:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793385258;
+	bh=mZPmwsYSB1ZVPFcI57o02zSqU46o1+QOy/iizr/+8hM=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=nkeXwMCh94FdgAUPq2mdW6EDCqYZ0TVlpxjDQdhOZnEKI3MVA0BdR2S6cPjMehg3q
+	 oBoEySYPEg8cVWo5yMdNvwBzA/hEP93/4iy3bL+bX+nS/kjckzhVDwwgg4Oc8qfvmy
+	 UJzxDhm13GSLST38CswKKLOnrOQGWYygtjHJce8fopIKOFwWpXmsZcpIXuiPU4lQhg
+	 T6hczihisFCplYsKiupwh9BtzmtkJRr/dhWswIMEryXoqOBYVsLtlXWREsW/NBS6ZS
+	 TeOHfXj4fdN1/VOCJgQ6QrEIEoLevdB5nt+/raKR+nOq4locS7HrslTsrNa89hzmW9
+	 7ERT4PwJBDABw==
+Message-ID: <sashiko-outbox-191413@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH rdma-next v4 6/6] RDMA/irdma: Support UMEM attribute for
+ SRQ creation
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "David Hu" <dhu@x6u.co>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261030181512.2056056-7-dhu@x6u.co>
+References: <20261030181512.2056056-1-dhu@x6u.co>
+ <20261030181512.2056056-7-dhu@x6u.co>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Fri, 30 Oct 2026 18:34:18 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -97,38 +60,26 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-The SoftRoCE (rxe) send queue is mmap-ed into userspace, allowing
-the requester and completer to process work queue entries (WQEs)
-whose fields can change between kernel reads.
+> From: David Hu <xuehaohu@google.com>
+>=20
+> Support the standard 1-step queue buffer creation for SRQ by
+> `UVERBS_ATTR_CREATE_SRQ_BUF_UMEM` via `ib_umem_get_attr()`.
+>=20
+> Set up hardware pble directly from the pinned SRQ umem via
+> `irdma_setup_q_pbl_from_umem()`.
+>=20
+> Proper umem and pble cleanup, and error unwind are added into existing
+> `irdma_srq_free_rsrc()` upon SRQ destruction.
+>=20
+> We maintain backward compatibility for the legacy 2-step registration if
+> the UMEM attribute is not provided.
+>=20
+> Signed-off-by: David Hu <xuehaohu@google.com>
 
-This series copies each WQE to a kernel-private buffer before
-processing: patch 1 for the requester, patch 2 for the completer.
-Both paths validate opcode bounds and SGE indices after copying,
-preserve DMA progress across multi-packet operations, and write
-back updated fields to the shared queue via WRITE_ONCE / smp_store_release.
+Sashiko has reviewed this patch and found no issues.
 
-Changes since v8:
-  - Patch 1: fix atomic write resid check -- use WR_ATOMIC_WRITE_MASK
-    (WR-level) instead of RXE_ATOMIC_WRITE_MASK (packet-level), and
-    clamp dma.resid instead of setting mask to 0 (sashiko finding).
-  - Patch 1: invalidate completer WQE cache on retry so the
-    completer re-reads after retransmission.
-  - Patch 2: write back DMA progress after each intermediate response
-    packet so a forced cache re-read picks up current progress.
-
-Tristan Madani (2):
-  RDMA/rxe: copy send WQE to kernel buffer before processing
-  RDMA/rxe: copy send WQE to kernel buffer in completer path
-
- drivers/infiniband/sw/rxe/rxe_comp.c  | 76 ++++++++++++++++++++++++++-
- drivers/infiniband/sw/rxe/rxe_qp.c    |  2 +
- drivers/infiniband/sw/rxe/rxe_req.c   | 72 +++++++++++++++++++++++--
- drivers/infiniband/sw/rxe/rxe_verbs.h | 12 +++++
- 4 files changed, 155 insertions(+), 7 deletions(-)
-
--- 
-2.47.3
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261030181512.2056=
+056-1-dhu@x6u.co?part=3D6
 
