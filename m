@@ -1,71 +1,56 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.222.200
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793381790;
-	b=DVftO/BvEVEKq/PimEN0goiX6t4whwoHBiHLUtSHIHRjoqmx6L5Nrh15hOr+/yrAS8W9
-	 d1WjZjdRu5o/mMaabOLNc/vHiRue6nDzdR13Han8YKlU0UogkDZrOnXPaEBo5azD0iXTB
-	 2ldJpEDRt2eqjrZ6L0A06F/TsCWhenqVNfhEQF/FtKoyRBU7smDsh/jncEEPXFhoMu72Z
-	 tJxLrqof8ed2lZlvcOyEr5Y0mFn51OOqRb8ZU/OowY9HnKxksWlumQzzbpSYz90Tc81Ca
-	 hyhSAZggBm6zEVZkEdoUYV5G5sjcys80fkP3lu8evxfhRSwtfHEhkGXzoOON1WEH80w==
+	t=1793381877;
+	b=m5Psh6VuhXXsD7oNfmHNvAW6EhTHYyUhlSsh+hIvO+9bhCEv4VtLnr4M1q+dJ0UrOvcv
+	 9cn+9rEgyQBJs0qy42Lf7MLW6n+fmUaZshxdcOFV4xUauOLn1R5kavnJrt/43b9Lkm9TH
+	 nglGVPR+LrWFbOl3Ul/lA9brTnCcff03LTGYIqiATUCqfr0DKweO+99LqPc3DnOa2JK9w
+	 8WCt0FTS+ek8AJKOdQGAT/kzBIu0OqE96DP8ku43QVAHRb8G/CU4LMYnyJL//P8u0Xm15
+	 gPBEomukG5fst+gkWoV36GhNzliLJFF3rf+/oTtoOjO7rawpEI7OUFyH/Crq5wuz1Yg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793381790;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Received:Date:Mime-Version:X-Mailer:Message-ID:
-	 Subject:From:To:Cc:Content-Type;
-	bh=945dpUI8tB2gJpRVSolSGYelQFbEaHJ3XJYtxTvsE3E=;
-	b=3C2wS6nGYHCYQzt5CMuZbdR9EKGc1HlpbiZRRkHLogYZ2aNhuN6QBJdiGnN4ezCae0j6
-	 MxHpfV580DQRs69o5BCSnvVR3xeQI2fYilFylhYS59zo6ROGVS96XdyiFDbh+aIgCIbtD
-	 VJbI6WeKzMOdLg+xsVIQdvLydQYgZqL7X5tLanY9ksC/WMwkqGVqZaIj3DEVrb6GQQyhU
-	 XrXpFctmhWT6MARcEC7oGo5hCZ9ncqC0gFuc8GppPzJHdK9qvtK4mWgoAXYHiTUEbYNAE
-	 8uKmKPavsNy6rgOftG/z9e73WBfTrhYwiqvNn3iYSLWzp/lSzLVRVVs6nJN2UNoWpYA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793381877;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=cPgFaWwM/UVLX43eA3mvzXoVD74DFfgu7MVjzVzAuVc=;
+	b=V4qyK52gFQfDIdpVTgoyENyexFnpJ+guADnkZa7/5+gYFOsNhLTwYOSDLrK8/0/feYxN
+	 Dv5sthSyk7Cb2Eyl42K7ykBbveSSZE4EkPdwZLzm6uQOcptAP81JmCmvEZ3DhvWlm36g5
+	 j/0Bc6nXNSEMJ+Qbo/73embcefOjlp1bVfHqb75eBcO9ZcTjT/BEglzdd5H7nMOPpsxrD
+	 Okcxxp2n+Ym+jfY4WD+qBnPvP/IkPUcUcWD7AXnVxq+PeXGVNQMIQicvb/tRNeOHosZ6W
+	 UvXgJsLgNpEZ3L75p49FqSxqKl6WOzw3vrXzQRm4ewCDYCqVeYq9OgdTrsbvi0FMdQA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=google.com;
-	spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com;
-	dkim=pass header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=C7MnBKwA;
-	arc=none smtp.remote-ip=209.85.222.200
-Received: from mail-qk1-f200.google.com (mail-qk1-f200.google.com [209.85.222.200])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WHtHObKI;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFBA5606A31A
-	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 17:36:29 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AFBA5606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E676A606A32C
+	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 17:37:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=C7MnBKwA
-Received: by mail-qk1-f200.google.com with SMTP id af79cd13be357-93cb71b1443so189889485a.2
-        for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 10:36:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20260707; t=1793381788; x=1793986588; darn=vger.kernel.org;
-        h=content-type:cc:to:from:subject:message-id:mime-version:date:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=945dpUI8tB2gJpRVSolSGYelQFbEaHJ3XJYtxTvsE3E=;
-        b=C7MnBKwAUPTYYlkAOmorJ4HwoWd1VoQ53EoN7Nh9Q4Vp9naIL6MiIGS1HEwS6w5oDN
-         v39kJ7pDAs7SllQpwafI1S8lysxr5PoclNXr2FZY/3q7VlQPV3kHJqadTWlbItOIjRIY
-         c05yihJm5qjjZeMmLmDFe6wF9v47Dtz4pl5XRcLmqZyODViL3nzwxvxi52PUey10DAd+
-         Bz0leMYH9OGf+VqRWP3HL/t0YTpn3rKaxOcZtVGM0EzG0FL++1DX8ZPbGGgMMDUI2kFD
-         6291cQxubb5lXUjv+RrlY2GmBZJgYcYNJ5Kajd0qa77wgQbQii5OzuIK62dkmWChXfQk
-         PB1g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793381788; x=1793986588;
-        h=content-type:cc:to:from:subject:message-id:mime-version:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=945dpUI8tB2gJpRVSolSGYelQFbEaHJ3XJYtxTvsE3E=;
-        b=Z90sNpMx39qbbTpQ4mAb8w39l4pWfjSGAotUfTBSk0RGNrhpyEpVoxyKCQ7wjOinRz
-         n/TcjIn6m2oI3SfCwSOKjec5gYnAdbiu8pFc+GX+ibeZgPjcafI3cCY6rMep5mn7akKE
-         4uD+rwSeQALHWzViKu52eTzlT3mS7ljivMuNVt7c8ymfKoyTP+Ob/dY9gnEx1y2K3740
-         3MlfelpYOtuUXoaGFCINQ6Rv3jYQjPVe+j+P+q7Ss4QAH59wN8Nnb5dd5E8Gs9VyRJC4
-         DH76HKSCofQQmBCx9bwToyje/xkTJ2AujnF4bcF3K2MSJDeItyNRhnFL1SUc75D2U8uD
-         dxFA==
-X-Gm-Message-State: AFq9FYL6/cvW6faJ/INxYi/9SY54tI9A/Sg/GCksbrsy4q04rTqziMRl
-	cVlK0og9gXnf3paOyhF9Z+owkAn2HmVr5vPlcDYYtkfAiUcQXfnPbbzJvW6DU+1fUmUvnL37Tgn
-	yRnYaRIgMtg==
-X-Received: from qkau1.prod.google.com ([2002:a05:620a:a1c1:b0:93e:d0fb:f14a])
- (user=jmoroni job=prod-delivery.src-stubby-dispatcher) by 2002:a05:620a:2b43:b0:93d:92a9:1a5e
- with SMTP id af79cd13be357-94421799683mr520623985a.37.1793381788178; Fri, 30
- Oct 2026 10:36:28 -0700 (PDT)
-Date: Fri, 30 Oct 2026 17:35:56 +0000
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WHtHObKI
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DD601F000C1;
+	Fri, 30 Oct 2026 17:37:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793381876;
+	bh=cPgFaWwM/UVLX43eA3mvzXoVD74DFfgu7MVjzVzAuVc=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=WHtHObKIA2by1DGrFFN1ZUYtCexuDr2iPcZcJSm4MzSrkS9jhMidDV7S64ZMvAqTe
+	 84d/dXME9/VncS2svCaKu/PICJrYeEQQupd0jVlJFQiIUB4p//Z92OeWbE/cJFiXsx
+	 YXzRtdEg55ir5Utl9cdJUDCjX9jNOQVdmPKuDhRtfVlazAq4zkGS+1wpP7VNxywBQL
+	 s95OI3eJCp+OUvTIAkt7NM6RNxDbIy/r5DMvXS3cusAMZBhgnTUJtB3QdjMaYIftFJ
+	 OldMJSDwaW+f1FCaBazFQHunr2/62ZF9AdjDXr8Oo6muAsCtOiu+11zZi0JE4RaYsn
+	 32uRS6aa8EYxw==
+Message-ID: <sashiko-outbox-191349@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH rdma-next] RDMA/irdma: Free cq with a safer cq num
+ reference
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "David Hu" <dhu@x6u.co>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261030173254.2000665-1-dhu@x6u.co>
+References: <20261030173254.2000665-1-dhu@x6u.co>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Fri, 30 Oct 2026 17:37:55 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -74,37 +59,26 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-Mime-Version: 1.0
-X-Mailer: git-send-email 2.56.0.317.g454f8302e1-goog
-Message-ID: <20261030173556.1873811-1-jmoroni@google.com>
-Subject: [PATCH rdma-next] MAINTAINERS: Add Jacob Moroni as irdma co-maintainer
-From: Jacob Moroni <jmoroni@google.com>
-To: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, leon@kernel.org
-Cc: linux-rdma@vger.kernel.org, jay.bhat@intel.com, john.s.lacombe@intel.com, 
-	Jacob Moroni <jmoroni@google.com>
-Content-Type: text/plain; charset="UTF-8"
 
-Tatyana Nikolova is currently the only listed maintainer of the irdma
-driver. Add myself as a co-maintainer to help with patch review and
-ongoing maintenance.
+> From: David Hu <xuehaohu@google.com>
+>=20
+> Within a iwcq, `cq_num` is allocated first, and only
+> copied to an inner uk structure, `cq_uk.cq_id` at a
+> later stage. Freeing cq by `cq_uk.cq_id` before the
+> later stage leads to a cq id leak.
+>=20
+> Free `iwcq->cq_num` instead, which is allocated
+> right after initial rsrc allocation.
+>=20
+> Fixes: b48c24c2d710 ("RDMA/irdma: Implement device supported verb APIs")
+> Reported-by: sashiko-bot <sashiko-bot@kernel.org>
+> Closes: https://sashiko.dev/#/patchset/20261016202909.1289496-1-dhu@x6u.c=
+o?part=3D4
+> Signed-off-by: David Hu <xuehaohu@google.com>
 
-Signed-off-by: Jacob Moroni <jmoroni@google.com>
----
- MAINTAINERS | 1 +
- 1 file changed, 1 insertion(+)
+Sashiko has reviewed this patch and found no issues.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 2a6e6ec629e0..52952b1c8319 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -13118,6 +13118,7 @@ F:	include/linux/net/intel/
- 
- INTEL ETHERNET PROTOCOL DRIVER FOR RDMA
- M:	Tatyana Nikolova <tatyana.e.nikolova@intel.com>
-+M:	Jacob Moroni <jmoroni@google.com>
- L:	linux-rdma@vger.kernel.org
- S:	Supported
- F:	drivers/infiniband/hw/irdma/
--- 
-2.56.0.317.g454f8302e1-goog
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261030173254.2000=
+665-1-dhu@x6u.co?part=3D1
 
