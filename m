@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793366329;
-	b=kgF5lzbQlog1xTe/f/bKmb4lYZuHezQrBHC+r4+ZFp3XhpU2+kFImBvhIh1L778y2R8C
-	 mht28HctljOE6lYCaodH/MfNS75trbmgrONjOT/WPSWOiYqXDfrb3ex1DgjqcZgOywtnP
-	 3LuaScgCri/9p6AevzY953EgasEHyCGCpDTOJR5KqfkWSDS6GjdIJ7zxpxT2ft26iIV03
-	 QOKtaH8nletWy56/YxO5Iob4E6SFSykRTWb8e3pyCTqL3XpRA5FmHYC6pz6Hr2g5diuF0
-	 Lw7/fYK8ZAym0vHS2mqM/U620OAye60vceujEQhWI6A5l/X0hfweChqxdRrVxAEEVIQ==
+	t=1793366445;
+	b=tzRloGbk8WTbUWINuNmcqKQBZYupp4dEtOG2LihXXxKbESM15011pkCAcSklbcnfTheQ
+	 4QykDXCxmJlZdyqy9HVQZLBlKzQeMO5negr9szAjbOpMK4C3IIU5Kn4yHnebf9yaY6Dpf
+	 zOaa+NYkkBR5JPqhelsvb5UlMa9RjhgnpOQIgvPdb/r7q9MUYs3ylfNHZ/+woUsjnCyod
+	 ymdiwPYK6LlVppK3FyLtvD4194PDKA5CPrU2kc4YdvNGcMLDD+mFfTdWk7EM8GASAZZK9
+	 d69K+nGdDHqeU+H1z+qdEE0KwS9UTnusZfJzQC7nMIAeFGJAeedBWhwReKFNSTZ9V/A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793366329;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793366445;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=0WqhlxUi38YjcP6C7fcffDVG+Qn7R03OaNXElEgkPx4=;
-	b=hPmW2tM8PjF2b6JWn81G3QdfzF4nA2OerPsLQqgvHq8O0zjRdA7nszNKp0M33ufStnd4
-	 JSWlHCOqamiwrjRSRw+iQywf7fEixpwt8Z04cyHWLPda9xabNEIxXrf06bNV338wVQ7Li
-	 LmBAFXpBXZugEGCwyMOTs5glK/OjKkyR/W416MyGvxIgYNecbeLbr9Jv/vBMif2Yifg7Z
-	 zVJa/Xvf2p30JyESpK19kzekz++Ap9a8k39HQYeSTMdsh6Q6JykLoFJr+W1ip/7I9dfwL
-	 ocbJ4Iy2HGKuzm1uhutfiwnujB9/buFHRdJ8vr7u0KfgPOsJhKp8mXNmCjJzHgNk4Zg==
+	bh=i3ti6dA/UYYQPJuEARTVq0tb+GLuT02YgzLxqBcSESg=;
+	b=jXFnL9gGfyHjlaiR9QH/7BxIb7MB/0QfkBO5xkkM44fQ7pjsqsoWgI+AgZsboFSsUbOB
+	 vnG206HCZmxHWohe+onIUV6pMd+e9FlZ0xyxgFQdVs7YMDHbwZTHCtiRwoOsxuycuRbRc
+	 xMXy0NQ35n8RgFlWNUEwqeAW9bImNcB1WSnZ19rFuqbpYtZXTh6owrcnjlpmJ7VELdYhX
+	 3Xb8uz8gj4mkhCxXRJKbOLmm7/L128OARij0HdjZohFHlF2qPb4qAYVSKLsR4rSucb8ud
+	 dWt8rfwfdnXlcDF4SBmQYSaZ+zQUUP5SkXNYyOBcSnzL8RcMsDORsK4iOdD6JNF/UIA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lBK9XCk4;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DxyTPUtl;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28C9A606A31D
-	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 13:18:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68159606A31A
+	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 13:20:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lBK9XCk4
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83AB01F000C1;
-	Fri, 30 Oct 2026 13:18:48 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DxyTPUtl
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D8C01F000C1;
+	Fri, 30 Oct 2026 13:20:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793366328;
-	bh=0WqhlxUi38YjcP6C7fcffDVG+Qn7R03OaNXElEgkPx4=;
+	s=k20260515; t=1793366445;
+	bh=i3ti6dA/UYYQPJuEARTVq0tb+GLuT02YgzLxqBcSESg=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=lBK9XCk4nj4LiOe5eN/Tsht0Q+d/zat2INkQsuAMu19RwB4aH4qolV2cGrM6HDQWW
-	 oOFEnGILx0Y41dQvHBHEaB3G+eHgCiIJflBVAZ10ZtBtPdlI99EZaZozI5Pee8FutL
-	 bH1FByGzqDQdAIxjzkOgL1rcyOsnWLif2ml+AOkFdNjMzQVt6z8kAyxkmqLWklvImz
-	 h1qwSAj3hRZ3nksLMlPnb7y/cOIjKBrEpVzQk/m52t6+hkUoY30vggUl6HpQDaQiJs
-	 6JX0FClWtt0nxDxrpaCDE1ff/zCfuHStjJxB55n4E2LoU9EwT2qhel8upU3wcOT7c8
-	 CRS+wOev24d8A==
-Message-ID: <sashiko-outbox-191057@kernel.org>
+	b=DxyTPUtl62HSCvagNO3VhBgaIU7TMApEyifpfg4j7nwo6k49NP9rNkF+mk8XBuDZ3
+	 ykJ0MIGJNs9FbuP5AgL0M/EP1wNbRPFVxWItATcSoMShgN17Fpf0o8DIcwyudaaGiG
+	 dep34N7XhoRHVbsvESDMKL5heCJzFmKwRZJ8bZEfTnnmSIVNaTNDhbt5+Ar50CFjUJ
+	 iMwa8DoEv8QXjYOGLCtPlqWH6IPE0l3GHO3SZchNA+wYCAAmwFFwhbUF4LpElm59PL
+	 a3VO6v6GocCjRkAjdhkZ14ndIn4628JUEpSA/dZy7zJk9g0vSwoIrmh/E1lgsxoBlW
+	 RjPZ2mhiidsGA==
+Message-ID: <sashiko-outbox-191058@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v6 02/10] RDMA/mana: Create and destroy kernel
- RC QPs
+Subject: Re: [PATCH rdma-next v6 07/10] RDMA/mana_ib: Poll RC completions
+ using PSN and FSN progress
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Konstantin Taranov" <kotaranov@linux.microsoft.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261030130038.4040789-3-kotaranov@linux.microsoft.com>
+In-Reply-To: <20261030130038.4040789-8-kotaranov@linux.microsoft.com>
 References: <20261030130038.4040789-1-kotaranov@linux.microsoft.com>
- <20261030130038.4040789-3-kotaranov@linux.microsoft.com>
+ <20261030130038.4040789-8-kotaranov@linux.microsoft.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 30 Oct 2026 13:18:48 +0000
+Date: Fri, 30 Oct 2026 13:20:44 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -63,8 +63,13 @@ Precedence: list
 
 > From: Konstantin Taranov <kotaranov@microsoft.com>
 >=20
-> Implement kernel RC QP creation and destruction. This feature requires
-> extended-WQE and power-of-two-SQ support from the HW.
+> Decode RC receive completions, armed-PSN notifications, and MMQ
+> completions. Retire requester and MMQ shadow entries using their
+> sequence numbers, honor cross-queue fence dependencies, and suppress
+> successful WCs for unsignaled work requests.
+>=20
+> On an ARMED completion, rearm the next signal PSN to generate the next
+> send CQE.
 >=20
 > Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
 
@@ -72,5 +77,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261030130038.4040=
-789-1-kotaranov@linux.microsoft.com?part=3D2
+789-1-kotaranov@linux.microsoft.com?part=3D7
 
