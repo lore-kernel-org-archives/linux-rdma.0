@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793374514;
-	b=l9BgSbijpzy8xJd1o3kuEuPvq+EgkKJk57KKSjsvjXlN6o/L/chYDFahABnoxHOl5y2R
-	 2sW+rVYuCHk7BxzvVvKlmwMDCCLyFaG1OsYk4GZuRllFn7k1hcs9lmmEED5/poYRpFUC3
-	 0nv/2XHxLj+odiogCQwBkFplvowiLFVgG403fu6LRGNbp71KEstJkWky5N9VpxyaPhWbF
-	 o3s51D1IKE6DNLucGFWimuOvZUZ13pgssqZD+u9wmlxeDszWSGqhZROsULuvHCz5KlJKf
-	 Kr2Mogk5+Xqgo/IjwlozG4hZMelfrfsCyE0mBBDVlx6OHSl/awB990JRhZGbvh3S1AA==
+	t=1793374783;
+	b=snPO85XmUyKPVXct10acNuKxRGuuY+CP4avPWatX8znTI5aLgAl2nJi5XDzKaMmsH1tU
+	 EQL4QqViiL7H91j1ka/LRl4HUQ3bjyw+F7stXmESnYCLH6waEcvTU0BuJ5JDoDn2XJV2R
+	 zHzhUrw0vNmI7rvOAG4dl+XK4RcI+1ZhGu9l5Qaew+4jm43ciV9GZxoJsTgv3A9llPU2z
+	 CRYcWGRYiU3RHPkQT7zu57Vf/xCySPAVUdMNYMkAqBhjhvK5azU4213BrsSrBftIrnCfP
+	 sQFI4E+JTAC/eQxGLqNMUPFoAKzXooiqnC9UEgQQAAniCa9SktrGGlgDr8fWtXxMCBg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793374514;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793374783;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=NK5SI/0OA/hU6EqJT2rvdDGabiuGrRnF9pN8CqJM9wM=;
-	b=ekZtCGzW+UPqDvGpXFn6QPYZbIaonXomANgROVQAHxzj0KFWF125fgvdCzzvTJ6VFHub
-	 aWjpjq9R6i5HrXq+6S+qXEdYYjUp/gW+t7cqOduuQl4469A5g5WryjeHYw/OGG9pFBFw+
-	 0rUp0JmMPMOlrXFaAhgdykV8V1dwj+x2kOSJjUjDfpUPYS/n1mRRpQ239otLl7+7dtmvt
-	 qwHN+b9y2zSNIJcKhfLu7m3V4pEzmDHCF+Yvje9fWCiz1ga3gKIfJwu+UYPZX2sGwcJWd
-	 aec0iD6XLvMrbIWPzMXJ1ZIWVhk92vZ8I00KoEP0JvR2guvpomC8Y698ddmm6LUECug==
+	bh=QTk7xFMaFdFmBponqg2u5oMEMQNlZMSskvCMyr9PvX0=;
+	b=suuYW8wVt33BlOPmWdFFk/5SECW11FvSRerFoQw6XoQu8F4Yspd1Olbiiu3icc+b0A8n
+	 jMxzfzKDrpcTEUaP37cXo/uf6tenH0OoGAkuqwJOKmYgOpHijlK+prrPELVXs1LFnAT5D
+	 M832sWzAkFlcSM4zN59PqjONHMa3+WdVqdtaeqr588J64NDoSXm+YeFqx0x2Exr8gXCaf
+	 VU/dv/3mFyMXPJ5haNJwSiU2n235XxC3+Tgdz+PiEXYgzehe+JnWA3rQxug44Hhll3iba
+	 PIKb7J49MFQkJo3UiubsF5lGh0O4/M6Gv2RJBbtlLCyAZ9f6TXUuGl79QQ1Ii8Mp/Lw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TDTcC2UM;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="bKhro/IU";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08509606A31F
-	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 15:35:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDE9C606A31A
+	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 15:39:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TDTcC2UM
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 681F51F000C1;
-	Fri, 30 Oct 2026 15:35:13 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bKhro/IU
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 736F51F000C1;
+	Fri, 30 Oct 2026 15:39:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793374513;
-	bh=NK5SI/0OA/hU6EqJT2rvdDGabiuGrRnF9pN8CqJM9wM=;
+	s=k20260515; t=1793374782;
+	bh=QTk7xFMaFdFmBponqg2u5oMEMQNlZMSskvCMyr9PvX0=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=TDTcC2UMHVNd9gMYx+4g3TTjxWToGJSJIldX1kOcdh3x6zjr9dgZX6pDpgkAVKp8S
-	 t0fEhlzx7k0VJOyJxBcHTPdI/qwi8YllG3+G1eDuhC8BZLMnTqZWVhyNs+fBiLj9Kv
-	 422QmOuZM8on8EuBoMr6ZmIMnMboN49fBCFzDCqRm3P75xM2m+NYCVeH28uFxvwlfR
-	 tTpmuQLY4CzB+lobJRWI5rY1roRbg46e6pK1GAhXy7eL+p+03PwFVHSGFmDfMlqLkM
-	 39S9KnGSW8w08Roifw3jhN/mb02vOLUjJwrIRz33otSk5o0nXeFKA1csSsTEyW2m0d
-	 UoB/ZoFTqXJ5g==
-Message-ID: <sashiko-outbox-191178@kernel.org>
+	b=bKhro/IUt5kCCNFTlVRA1VZKZkAgt0ATjGesQRqzDzjINF27bP2KJ54ITvAs4hY/V
+	 2CQXbN5Gn7vuYlAxxqCWf3uqGVaAsi27/XPGhWLInRBXRtMH9HTZGrUzk3UC3oZeyu
+	 BE20UEOH8AqmmUTMedgvHlk2py01EcANLYnm7gWKljBW3pZEYFqVK2VTh/lRx06DiD
+	 +yvaqRg1Vf3k3DDZrWMSLkr5LqoWDFf6q8Gtb//Wlu9Eo27w5gNHxwomL/AC9kYioF
+	 FI7vXD0t16Gi7v+cmymxBhie0ilHxQJoRglwWSXDdy/fbkEj5o7rDL8I4uBjg5Kn4P
+	 rS+Mz4YZ+5DUQ==
+Message-ID: <sashiko-outbox-191181@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v7 1/2] RDMA/rxe: copy send WQE to kernel buffer before
- processing
+Subject: Re: [PATCH v7 2/2] RDMA/rxe: copy send WQE to kernel buffer in
+ completer path
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Tristan Madani" <tristmd@gmail.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261030151558.1458444-2-tristan@talencesecurity.com>
+In-Reply-To: <20261030151558.1458444-3-tristan@talencesecurity.com>
 References: <20261030151558.1458444-1-tristan@talencesecurity.com>
- <20261030151558.1458444-2-tristan@talencesecurity.com>
+ <20261030151558.1458444-3-tristan@talencesecurity.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 30 Oct 2026 15:35:12 +0000
+Date: Fri, 30 Oct 2026 15:39:42 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,102 +61,168 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+Thank you for your contribution! Sashiko AI review found 2 potential issue(=
 s) to consider:
-- [Critical] RDMA/rxe: out-of-bounds read from qp->req.send_wqe in finish_p=
-acket()
+- [High] RDMA/rxe: missing rxe_comp_writeback_wqe() before retry loses READ=
+ progress
+- [High] RDMA/rxe: missing comp_wqe_valid invalidation in COMPST_RNR_RETRY
 --
 
-commit 7ddcf04d6a32c8caa9ab909cc0cf868ac66e4fb8
+commit 7163a14999e322c25c58445d22fa6ea5241151a2
 Author: Tristan Madani <tristmd@gmail.com>
 
-RDMA/rxe: copy send WQE to kernel buffer before processing
+RDMA/rxe: copy send WQE to kernel buffer in completer path
 
-This commit copies send WQEs from the userspace-mapped send queue into a
-kernel-private buffer in req_next_wqe() before processing, writing updated
-status, state, and DMA progress fields back to the shared queue.
+This commit copies the send WQE from userspace-mapped shared memory into a
+completer-private kernel buffer in get_wqe() to prevent TOCTOU races, while
+caching the copy across multi-packet responses and writing back modified WQE
+fields on completion.
 
-> diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/=
-rxe/rxe_req.c
-> index 4f353abd76f55..11c9c3259220b 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_req.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_req.c
-[ ... ]
-> @@ -193,7 +213,28 @@ static struct rxe_send_wqe *req_next_wqe(struct rxe_=
-qp *qp)
->  	}
->  	spin_unlock_irqrestore(&qp->state_lock, flags);
+> diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw=
+/rxe/rxe_comp.c
+> index 1390e861bd1d7..cd4085a1bf2f8 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_comp.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_comp.c
+> @@ -137,22 +137,87 @@ void rxe_comp_queue_pkt(struct rxe_qp *qp, struct s=
+k_buff *skb)
+>  	rxe_sched_task(&qp->send_task);
+>  }
 > =20
-> -	wqe->mask =3D wr_opcode_mask(wqe->wr.opcode, qp);
-> +	/* Reuse the existing kernel-private copy if still valid */
-> +	if (qp->req.send_wqe_valid && qp->req.shared_wqe =3D=3D wqe)
-> +		return &qp->req.send_wqe.wqe;
+> +/* Write back completer WQE fields to shared memory */
+> +static void rxe_comp_writeback_wqe(struct rxe_qp *qp)
+> +{
+> +	struct rxe_send_wqe *shared =3D qp->comp.shared_wqe;
+> +	struct rxe_send_wqe *local =3D &qp->comp.comp_wqe.wqe;
 > +
-> +	/* Copy WQE from userspace-mapped shared queue to kernel-private
-> +	 * buffer. Copy size matches the queue element data area.
-> +	 */
-> +	memcpy(&qp->req.send_wqe, wqe, sizeof(*wqe) +
-> +	       max_t(int, qp->sq.max_sge * sizeof(struct ib_sge),
-> +		    qp->sq.max_inline));
-> +	qp->req.shared_wqe =3D wqe;
-> +	qp->req.send_wqe_valid =3D true;
+> +	if (!qp->comp.comp_wqe_valid || !shared)
+> +		return;
 > +
-> +	wqe =3D &qp->req.send_wqe.wqe;
+> +	WRITE_ONCE(shared->status, local->status);
+> +	WRITE_ONCE(shared->has_rd_atomic, local->has_rd_atomic);
+> +	WRITE_ONCE(shared->dma.resid, local->dma.resid);
+> +	WRITE_ONCE(shared->dma.cur_sge, local->dma.cur_sge);
+> +	WRITE_ONCE(shared->dma.sge_offset, local->dma.sge_offset);
+> +}
 
-[Severity: Critical]
-As reported by Sashiko on v6 [1], can redirecting wqe to qp->req.send_wqe.w=
-qe
-cause an out-of-bounds read from qp->req.send_wqe in finish_packet() for an
-IB_WR_ATOMIC_WRITE work request?
+[ ... ]
 
-In rxe_verbs.h, qp->req.send_wqe reserves RXE_MAX_SGE entries (512 bytes)
-after wqe:
+> @@ -454,6 +519,8 @@ static void do_complete(struct rxe_qp *qp, struct rxe=
+_send_wqe *wqe)
+>  	if (post)
+>  		make_send_cqe(qp, wqe, &cqe);
+> =20
+> +	rxe_comp_writeback_wqe(qp);
+> +	qp->comp.comp_wqe_valid =3D false;
+>  	queue_advance_consumer(qp->sq.queue, QUEUE_TYPE_FROM_CLIENT);
+> =20
+>  	if (post)
+> @@ -788,6 +855,7 @@ int rxe_completer(struct rxe_qp *qp)
+>  							RXE_CNT_COMP_RETRY);
+>  					qp->req.need_retry =3D 1;
+>  					qp->comp.started_retry =3D 1;
+> +					qp->comp.comp_wqe_valid =3D false;
+>  					qp->req.again =3D 1;
+>  				}
+>  				goto done;
 
-	struct {
-		struct rxe_send_wqe	wqe;
-		struct ib_sge		sge[RXE_MAX_SGE];
-	} send_wqe;
+[Severity: High]
+As reported by Sashiko on v6 [1], does invalidating qp->comp.comp_wqe_valid
+in COMPST_ERROR_RETRY without calling rxe_comp_writeback_wqe(qp) first lose
+DMA progress for partially completed multi-packet RDMA read operations?
 
-When a user QP posts a WQE in the mmap'd send queue with wqe->wr.opcode set=
- to
-IB_WR_ATOMIC_WRITE, wqe->dma.num_sge =3D 0, wqe->dma.cur_sge =3D 0, and
-wqe->dma.resid =3D 4096, the num_sge and cur_sge check in rxe_requester() p=
-asses
-when qp->sq.max_sge >=3D 1.
+During a multi-packet RDMA read, rxe_requester() sends a request packet with
+payload =3D=3D 0 and leaves shared_wqe->dma.resid equal to wqe->dma.length =
+in
+qp->sq.queue. As non-final read response packets arrive in rxe_completer(),
+do_read() calls copy_data(), advancing wqe->dma.resid, wqe->dma.cur_sge, and
+wqe->dma.sge_offset in the local qp->comp.comp_wqe.wqe copy, and returns
+COMPST_UPDATE_COMP:
 
-rxe_requester() then computes payload from wqe->dma.resid and only caps it =
-at
-mtu (up to 4096 bytes):
-
-	mtu =3D get_mtu(qp);
-	payload =3D (mask & (RXE_WRITE_OR_SEND_MASK | RXE_ATOMIC_WRITE_MASK)) ?
-			wqe->dma.resid : 0;
-	if (payload > mtu) {
-		...
-		payload =3D mtu;
+drivers/infiniband/sw/rxe/rxe_comp.c:do_read() {
+	ret =3D copy_data(qp->pd, IB_ACCESS_LOCAL_WRITE,
+			&wqe->dma, payload_addr(pkt),
+			payload_size(pkt), RXE_TO_MR_OBJ);
+	if (ret) {
+		wqe->status =3D IB_WC_LOC_PROT_ERR;
+		return COMPST_ERROR;
 	}
 
-When rxe_requester() calls finish_packet(), the RXE_ATOMIC_WRITE_MASK branch
-copies payload bytes directly from wqe->dma.atomic_wr without checking that
-payload is sizeof(u64) (8 bytes) or fits within the copied buffer:
+	if (wqe->dma.resid =3D=3D 0 && (pkt->mask & RXE_END_MASK))
+		return COMPST_COMP_ACK;
 
-	if (pkt->mask & RXE_ATOMIC_WRITE_MASK) {
-		memcpy(payload_addr(pkt), wqe->dma.atomic_wr, payload);
-		wqe->dma.resid -=3D payload;
+	return COMPST_UPDATE_COMP;
+}
+
+Because rxe_comp_writeback_wqe() is only called in do_complete() when the W=
+QE
+finishes and is popped from the send queue, clearing qp->comp.comp_wqe_valid
+in COMPST_ERROR_RETRY discards the updated local DMA state before req_retry=
+()
+runs on the shared WQE:
+
+drivers/infiniband/sw/rxe/rxe_req.c:req_retry() {
+			if (mask & WR_READ_MASK) {
+				npsn =3D (wqe->dma.length - wqe->dma.resid) /
+					qp->mtu;
+				wqe->iova +=3D npsn * qp->mtu;
+			}
+}
+
+With shared_wqe->dma.resid still equal to wqe->dma.length, npsn evaluates to
+0 and the retried read restarts from offset 0 with cur_sge =3D=3D 0 and
+sge_offset =3D=3D 0 instead of resuming from the partial offset. Should
+rxe_comp_writeback_wqe(qp) be called before clearing comp_wqe_valid on retry
+(or after copy_data() in do_read())?
+
+[Severity: High]
+As reported by Sashiko on v6 [2], what happens in rxe_completer() when an R=
+NR
+NAK triggers COMPST_RNR_RETRY right below this hunk?
+
+drivers/infiniband/sw/rxe/rxe_comp.c:rxe_completer() {
+		case COMPST_RNR_RETRY:
+			/* we come here if we received an RNR NAK */
+			if (qp->comp.rnr_retry > 0) {
+				if (qp->comp.rnr_retry !=3D 7)
+					qp->comp.rnr_retry--;
+
+				/* don't start a retry flow until the
+				 * rnr timer has fired
+				 */
+				qp->req.wait_for_rnr_timer =3D 1;
+				rxe_dbg_qp(qp, "set rnr nak timer\n");
+				// TODO who protects from destroy_qp??
+				mod_timer(&qp->rnr_nak_timer,
+					  jiffies + rnrnak_jiffies(aeth_syn(pkt)
+						& ~AETH_TYPE_MASK));
+				goto exit;
+			}
+}
+
+Unlike COMPST_ERROR_RETRY, COMPST_RNR_RETRY does not clear
+qp->comp.comp_wqe_valid, and when rnr_nak_timer expires and rxe_requester()
+calls req_retry(), only qp->req.send_wqe_valid is cleared. Once
+rxe_requester() retransmits the WQE and sets shared_wqe->state back to
+wqe_state_pending with updated first_psn and last_psn values, won't get_wqe=
+()
+see:
+
+	if (qp->comp.comp_wqe_valid && qp->comp.shared_wqe =3D=3D wqe &&
+	    qp->comp.comp_wqe.wqe.state =3D=3D state) {
+		wqe =3D &qp->comp.comp_wqe.wqe;
+		*wqe_p =3D wqe;
+		goto check_state;
 	}
 
-If payload exceeds the copied tail size, memcpy() reads uninitialized bytes
-from qp->req.send_wqe.sge, and if payload exceeds 512 bytes, it reads past =
-the
-end of qp->req.send_wqe into the rest of struct rxe_qp and adjacent slab
-memory before transmitting the packet. Should finish_packet() or
-rxe_requester() validate that payload =3D=3D 8 for RXE_ATOMIC_WRITE_MASK an=
-d fits
-within the copied WQE data area?
+and reuse the stale pre-retry qp->comp.comp_wqe copy, causing check_ack() to
+compare the retried response against stale first_psn and last_psn values and
+fail with COMPST_ERROR?
 
-[1] https://lore.kernel.org/r/20261026001405.1698455-2-tristan@talencesecur=
+[1] https://lore.kernel.org/r/20261026001405.1698455-3-tristan@talencesecur=
+ity.com
+[2] https://lore.kernel.org/r/20261026001405.1698455-3-tristan@talencesecur=
 ity.com
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261030151558.1458=
-444-1-tristan@talencesecurity.com?part=3D1
+444-1-tristan@talencesecurity.com?part=3D2
