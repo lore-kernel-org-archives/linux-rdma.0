@@ -1,44 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1793365252;
-	b=AVxStFMoqT6EUN9vrT4YZVZzIEMmTxC/czugu3O55JZCS9kzbXJnrF3Uj+qS620NXsXq
-	 lFbvdQtjtUS/g6tXKtsTDtnpu/d7Vn4pnPbqxd6PnsVx39R95iQoWUqhBcA/2nCyPoYO7
-	 YbLZsFY6LAV5SLDFISf/g6EdNFkfldp9RbTyo9Vn9RL7hNa9rRMT2eM7595PsjWUNkV27
-	 JA93m+XZfS8xQ5D7HqBdr0LgR5oG+diS9ywea6/ju+wpeFrw4gzcBMDbvt0q6ckA9hRSR
-	 LltGoEIHhfW37x+tIl3rObDt1Q2pyrurwAOQfqz16NBaEU233V74352FoQoSaqdBoWw==
+	b=VrDsGo03dCxuEXGyun3KwlFGPPgH0E4psFNikB4AeBH2Ck0jSW9C/e6Khod1MRWWfh8y
+	 C7IJWvxIBGlMRoPqq6C2fr5AD7MXdkiMGT6lCyRPEq3QNasgg7qtb8oS1fsoIMWqUGHAo
+	 YQu+2m/Hej+ChI8HrEIbUJhmvctMsWtzmaWTxJdWBM+eyAue4MG+UkIMFwaaUd4Fu2Y9b
+	 qOtUMnxCYVXP5vHvQoqDFQ8spRhdukKHQAD58xicWK6tQuFE/QA8CKq6pVmqQ5RNSRHhf
+	 sdjo96/85mmnCXovdz2eTr6tQ348PhVFk9I29bzcDh9zReW7gHb7Jv5q9KgnHjtKKeg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1793365252;
 	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
-	bh=FdQI/LAyKYbv+9FCjDCDMznPudCLTAfsdLXbDWfNWWI=;
-	b=mGNm/X5LWgfB2mw2MQsdwkjmjT4h4kmDiql088CYrGJWl+v9vuv75Yyjid4du3tslC9F
-	 3geDN0QCXNA3wY7Yg9MUFG572U4N2nU4sqCtiC3yh3QU3+S2FotqebdHU4mwRu2138TLW
-	 u0MB7YEJZ6x/S6bpN/RiVE0qsKbf1fSnFtNIyBOtHi7wRvjs//+MOhiT1WcUOZpWAUQck
-	 OYPch6ao0Oh8DAqhnPwMHBxl2wQ1BhtXZmeHxNTo8uv9q/OPeMDSMjp26rEFfHRoZlv9M
-	 HJTPRUOtbblqI4eUvZ2Vu84Y+iebluM3ByIAtn7EcIDc9A+YTyej6Hn2gLDEsUuuE+g==
+	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=bEuYIRZvDtvBEBZICTqM+tPT23TNfC5S5qTvcTBWToc=;
+	b=GuEaxxzNO33i2hPdiKNYj6OzOckf3XLBs0p43OO5vVnX5x88Z/3AC1AWsOzOzqIOWALd
+	 sLD5db1aK3GUXALrD/GjP9TQo4Y4G6OfjgvSCzpvO2m05ohmBwZb4NrezO9y6uuM0HRZe
+	 z7q+qtJzglh2xrxCM17N3EPud+8A4QMLNph/Y1aiMIRpbOfqOYGS1ivxIhz08TPssj2+z
+	 331Sa6ZipCGIG1DIqn4VQbs5biS7UZNszJLw51frxJg32itnVaHXT4ifda6vDygGoB5JA
+	 +jH3QXPwXHaqenjQa6DCPyUJbkLY/1BFOXxvN5FZPK+uVDcPakwSiMiD7zybL7BRmyQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linux.microsoft.com;
 	spf=pass smtp.mailfrom=linux.microsoft.com;
-	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=BtXh44zZ;
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=WxWS6XmL;
 	arc=none smtp.remote-ip=13.77.154.182
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id DA506606A321;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id DA56F606A322;
 	Fri, 30 Oct 2026 13:00:51 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DA506606A321
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DA56F606A322
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=BtXh44zZ
+	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=WxWS6XmL
 Received: by linux.microsoft.com (Postfix, from userid 1186)
-	id 657D120B7166; Fri, 30 Oct 2026 06:00:38 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 657D120B7166
+	id 7257720B7167; Fri, 30 Oct 2026 06:00:38 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 7257720B7167
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
 	s=default; t=1793365238;
-	bh=FdQI/LAyKYbv+9FCjDCDMznPudCLTAfsdLXbDWfNWWI=;
-	h=From:To:Cc:Subject:Date:From;
-	b=BtXh44zZdO0mkuPy/0323D/VJ8j03p2F55DmNE5JlD7ct3+5NDuExWxMO9X+IcpfP
-	 JzV+J0T4l2Qj/vLmBPqoRg3XHAlE+iuk/J1ok1T5kBYjD1x7Vk1JiNDLBz5CFc/xzz
-	 sKYNpsF6pn3DyWxboMKFX8y5YbrQRcyCdw/VIpPY=
+	bh=bEuYIRZvDtvBEBZICTqM+tPT23TNfC5S5qTvcTBWToc=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=WxWS6XmLQRcpRTEcsDXk6Fp1FuS3llogTpipWkSosPjMhUxlZkzEj34jh08SUGblF
+	 5/T76X5Xg9UN32jkHVHvnoj8XBTAEW6pnqjgCf15m6UJ7PreUJKXYzu+3w7v+NaREt
+	 boJaGKs+9iGVkQsXjbMxSYQ0yUmeePvSvKKe9Au0=
 From: Konstantin Taranov <kotaranov@linux.microsoft.com>
 To: kotaranov@microsoft.com,
 	snsanghvi@microsoft.com,
@@ -47,10 +48,12 @@ To: kotaranov@microsoft.com,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next v6 00/10] RDMA/mana_ib: Add kernel RC and fast registration support
-Date: Fri, 30 Oct 2026 06:00:28 -0700
-Message-ID: <20261030130038.4040789-1-kotaranov@linux.microsoft.com>
+Subject: [PATCH rdma-next v6 01/10] RDMA/mana_ib: Allocate and map fast-registration MRs
+Date: Fri, 30 Oct 2026 06:00:29 -0700
+Message-ID: <20261030130038.4040789-2-kotaranov@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.7
+In-Reply-To: <20261030130038.4040789-1-kotaranov@linux.microsoft.com>
+References: <20261030130038.4040789-1-kotaranov@linux.microsoft.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -64,75 +67,333 @@ Content-Transfer-Encoding: 8bit
 
 From: Konstantin Taranov <kotaranov@microsoft.com>
 
-Add kernel RC QPs and fast-registration MRs to the MANA RDMA driver
-for kernel consumers such as NVMe/RDMA and NFS/RDMA.
+Implement alloc_mr and map_mr_sg for memory-registration MRs.
 
-Implement QP creation and state management, work request posting,
-completion processing, error handling, and queue draining. Kernel RC
-QPs require extended-WQE and power-of-two-SQ hardware support.
-
-Tested with krping, NVMe/RDMA, and NFS/RDMA, including RC send and
-receive error recovery with krping and NVMe/RDMA.
-
-v6:
-- Patch 08: Notify software flushes after posting to error-listed QPs.
-  Add reporting pending software flush for IB_CQ_REPORT_MISSED_EVENTS.
-- Patch 09: Check fenced WQEs on error cqes to prevent flushing completed WQEs.
-  Add mana_ib_cq_clean on QP reset to discard stale CQEs. QID 0 is an invalid
-  value for RNIC and safe dor discarding. Add error_pending flag to prevent
-  a deffered ERR request to error reset QPs.
-
+Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
+---
 v5:
-- Patch 01: Reject max_num_sg above MANA_MAX_FMR_PAGES.
-- Patch 02: Validate kernel QP queue sizes and SGE limits to prevent
-  overflows. Ensure that queue size cannnot be 0.
-- Patch 06: Preserve fence flags on unsignaled WQEs. Check message
-  length and read sges before posting a wqe.
-- Patch 08: Remove the unused QP state field.
-
+- Reject max_num_sg above MANA_MAX_FMR_PAGES
 v4:
-- Patch 01: Use an explicit 64-byte FMR MST alignment
-- Patch 02: Validate that the RNIC firmware reports at least two send
-  SGEs and subtract the reserved SGE only for RNIC-based mana_ib.
-- Patch 07: Add missing wqe_size to shadow wqe for SEND/Write, and
-  return a missed-event hint for cached CQEs when CQ is armed
+- Use an explicit 64-byte FMR MST alignment
 
-v3:
-- Patch 07: Mask arm_psn to 24 bits before ringing the doorbell.
-- Patch 08: Exclude userspace QPs from kernel software-state handling
-  and CQ error-list insertion, and unlink UC QPs during destruction.
+ drivers/infiniband/hw/mana/device.c  |  2 +
+ drivers/infiniband/hw/mana/main.c    |  3 +-
+ drivers/infiniband/hw/mana/mana_ib.h | 48 +++++++++++++++
+ drivers/infiniband/hw/mana/mr.c      | 87 +++++++++++++++++++++++++++-
+ include/net/mana/gdma.h              | 15 +++++
+ 5 files changed, 153 insertions(+), 2 deletions(-)
 
-v2:
-- Patch 03: Validate fixed-WQE capacity for the header, OOB and SGEs.
-- Patch 04: Preserve UC QP modification support.
-- Patch 08: Skip software CQ notifications for direct-polling CQs.
-- Patch 09: Flush that ERR work during QP teardown.
-- Patch 10: Limit drain callbacks to RC QPs and avoid completion
-  callbacks for direct-polling CQs.
-
-Konstantin Taranov (10):
-  RDMA/mana_ib: Allocate and map fast-registration MRs
-  RDMA/mana: Create and destroy kernel RC QPs
-  net/mana: Extend GDMA encoding for new RDMA WQEs
-  RDMA/mana_ib: Maintain kernel RC QP state
-  RDMA/mana_ib: Post receive WRs on kernel RC QPs
-  RDMA/mana_ib: Post send and memory-management WRs on RC QPs
-  RDMA/mana_ib: Poll RC completions using PSN and FSN progress
-  RDMA/mana_ib: Flush and notify CQs when kernel QPs enter ERR
-  RDMA/mana_ib: Handle error CQEs for RC QPs
-  RDMA/mana_ib: Drain kernel receive and send queues
-
- drivers/infiniband/hw/mana/cq.c                 | 354 +++++++++++++++++--
- drivers/infiniband/hw/mana/device.c             |   4 +
- drivers/infiniband/hw/mana/main.c               |  15 +-
- drivers/infiniband/hw/mana/mana_ib.h            | 137 +++++++-
- drivers/infiniband/hw/mana/mr.c                 |  87 ++++-
- drivers/infiniband/hw/mana/qp.c                 | 427 +++++++++++++++++++++--
- drivers/infiniband/hw/mana/shadow_queue.h       |  22 ++
- drivers/infiniband/hw/mana/wr.c                 | 433 +++++++++++++++++++++++-
- drivers/net/ethernet/microsoft/mana/gdma_main.c |  55 ++-
- include/net/mana/gdma.h                         |  38 ++-
- 10 files changed, 1506 insertions(+), 66 deletions(-)
-
+diff --git a/drivers/infiniband/hw/mana/device.c b/drivers/infiniband/hw/mana/device.c
+index 62c7803ca6c6..cdaada7f6e8a 100644
+--- a/drivers/infiniband/hw/mana/device.c
++++ b/drivers/infiniband/hw/mana/device.c
+@@ -19,6 +19,7 @@ static const struct ib_device_ops mana_ib_dev_ops = {
+ 
+ 	.add_gid = mana_ib_gd_add_gid,
+ 	.alloc_mw = mana_ib_alloc_mw,
++	.alloc_mr = mana_ib_alloc_mr,
+ 	.alloc_pd = mana_ib_alloc_pd,
+ 	.alloc_ucontext = mana_ib_alloc_ucontext,
+ 	.create_ah = mana_ib_create_ah,
+@@ -40,6 +41,7 @@ static const struct ib_device_ops mana_ib_dev_ops = {
+ 	.get_dma_mr = mana_ib_get_dma_mr,
+ 	.get_link_layer = mana_ib_get_link_layer,
+ 	.get_port_immutable = mana_ib_get_port_immutable,
++	.map_mr_sg = mana_ib_map_mr_sg,
+ 	.mmap = mana_ib_mmap,
+ 	.modify_qp = mana_ib_modify_qp,
+ 	.modify_wq = mana_ib_modify_wq,
+diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
+index 672bd3f650dd..ceb4ec58023a 100644
+--- a/drivers/infiniband/hw/mana/main.c
++++ b/drivers/infiniband/hw/mana/main.c
+@@ -133,7 +133,7 @@ int mana_ib_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
+ 			     sizeof(resp));
+ 
+ 	if (!udata)
+-		flags |= GDMA_PD_FLAG_ALLOW_GPA_MR;
++		flags |= GDMA_PD_FLAG_ALLOW_GPA_MR | GDMA_PD_FLAG_ALLOW_FMR_MR;
+ 
+ 	req.flags = flags;
+ 	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
+@@ -647,6 +647,7 @@ int mana_ib_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
+ 	props->max_ah = INT_MAX;
+ 	props->max_pkeys = 1;
+ 	props->local_ca_ack_delay = MANA_CA_ACK_DELAY;
++	props->max_fast_reg_page_list_len = MANA_MAX_FMR_PAGES;
+ 	if (!mana_ib_is_rnic(dev))
+ 		props->raw_packet_caps = IB_RAW_PACKET_CAP_IP_CSUM;
+ 
+diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
+index 74edb6e707a1..5ca6e2acf974 100644
+--- a/drivers/infiniband/hw/mana/mana_ib.h
++++ b/drivers/infiniband/hw/mana/mana_ib.h
+@@ -39,6 +39,8 @@
+  */
+ #define MANA_IB_MAX_MR		0xFFFFFFu
+ 
++#define MANA_MAX_FMR_PAGES	504
++
+ /*
+  * The CA timeout is approx. 260ms (4us * 2^(DELAY))
+  */
+@@ -51,6 +53,8 @@
+ 
+ #define MANA_GSI_QPN		(1)
+ 
++#define MANA_PTE_VALID_MASK	0x1ULL
++
+ struct mana_ib_adapter_caps {
+ 	u32 max_sq_id;
+ 	u32 max_rq_id;
+@@ -150,10 +154,46 @@ struct mana_ib_mw {
+ 	mana_handle_t mw_handle;
+ };
+ 
++#define MANA_FMR_MST_ALIGNMENT 64
++
++struct mana_fmr_mst_entry {
++	u32 reserved1;
++	u32 reserved2		: 8;
++	u32 page_size		: 5;
++	u32 reserved3		: 3;
++	u32 access_right	: 8;
++	u32 addr_type		: 2;
++	u32 reserved4		: 6;
++	u32 reserved5[2];
++	u64 start_va;
++	u64 length;
++	u32 reserved6[8];
++}; /* HW DATA */
++
++static inline u32 mana_ib_fmr_header_offset(u32 num_ptes)
++{
++	/* The header follows the PTEs with the required MST alignment. */
++	return ALIGN(sizeof(u64) * num_ptes, MANA_FMR_MST_ALIGNMENT);
++}
++
++static inline u32 mana_ib_fmr_buf_sz(u32 num_ptes)
++{
++	return mana_ib_fmr_header_offset(num_ptes) + sizeof(struct mana_fmr_mst_entry);
++}
++
++struct mana_ib_fmr {
++	u64 *ptes;
++	dma_addr_t dma_handle;
++	size_t size;
++	u32 max_ptes;
++	u32 pte_count;
++};
++
+ struct mana_ib_mr {
+ 	struct ib_mr ibmr;
+ 	struct ib_umem *umem;
+ 	mana_handle_t mr_handle;
++	struct mana_ib_fmr fmr;
+ };
+ 
+ struct mana_ib_dm {
+@@ -840,8 +880,16 @@ int mana_ib_create_rwq_ind_table(struct ib_rwq_ind_table *ib_rwq_ind_table,
+ 
+ int mana_ib_destroy_rwq_ind_table(struct ib_rwq_ind_table *ib_rwq_ind_tbl);
+ 
++enum gdma_mr_access_flags
++mana_ib_verbs_to_gdma_access_flags(int access_flags);
++
+ struct ib_mr *mana_ib_get_dma_mr(struct ib_pd *ibpd, int access_flags);
+ 
++struct ib_mr *mana_ib_alloc_mr(struct ib_pd *ibpd, enum ib_mr_type mr_type,
++			       u32 max_num_sg);
++int mana_ib_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
++		      unsigned int *sg_offset);
++
+ struct ib_mr *mana_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 				  u64 iova, int access_flags,
+ 				  struct ib_dmah *dmah,
+diff --git a/drivers/infiniband/hw/mana/mr.c b/drivers/infiniband/hw/mana/mr.c
+index 1233685b4b89..2be252778e17 100644
+--- a/drivers/infiniband/hw/mana/mr.c
++++ b/drivers/infiniband/hw/mana/mr.c
+@@ -10,7 +10,7 @@
+ 
+ #define VALID_DMA_MR_FLAGS (IB_ACCESS_LOCAL_WRITE)
+ 
+-static enum gdma_mr_access_flags
++enum gdma_mr_access_flags
+ mana_ib_verbs_to_gdma_access_flags(int access_flags)
+ {
+ 	enum gdma_mr_access_flags flags = GDMA_ACCESS_FLAG_LOCAL_READ;
+@@ -55,6 +55,11 @@ static int mana_ib_gd_create_mr(struct mana_ib_dev *dev, struct mana_ib_mr *mr,
+ 		req.gva.virtual_address = mr_params->gva.virtual_address;
+ 		req.gva.access_flags = mr_params->gva.access_flags;
+ 		break;
++	case GDMA_MR_TYPE_FMR:
++		/* page_size is deprecated field and must be 0. */
++		req.fmr.page_size = 0;
++		req.fmr.rsvd_pte_count = mr_params->fmr.rsvd_pte_count;
++		break;
+ 	case GDMA_MR_TYPE_ZBVA:
+ 		req.zbva.dma_region_handle = mr_params->zbva.dma_region_handle;
+ 		req.zbva.access_flags = mr_params->zbva.access_flags;
+@@ -294,6 +299,80 @@ err_free:
+ 	return ERR_PTR(err);
+ }
+ 
++struct ib_mr *mana_ib_alloc_mr(struct ib_pd *ibpd, enum ib_mr_type mr_type,
++			       u32 max_num_sg)
++{
++	struct mana_ib_pd *pd = container_of(ibpd, struct mana_ib_pd, ibpd);
++	struct gdma_create_mr_params mr_params = {};
++	struct gdma_context *gc;
++	struct mana_ib_dev *dev;
++	struct mana_ib_mr *mr;
++	int err;
++
++	dev = container_of(ibpd->device, struct mana_ib_dev, ib_dev);
++	gc = mdev_to_gc(dev);
++
++	if (mr_type != IB_MR_TYPE_MEM_REG)
++		return ERR_PTR(-EOPNOTSUPP);
++
++	if (max_num_sg > MANA_MAX_FMR_PAGES)
++		return ERR_PTR(-EINVAL);
++
++	mr = kzalloc_obj(*mr);
++	if (!mr)
++		return ERR_PTR(-ENOMEM);
++
++	mr->fmr.max_ptes = max_num_sg;
++	mr->fmr.size = mana_ib_fmr_buf_sz(max_num_sg);
++	mr->fmr.ptes = dma_alloc_coherent(gc->dev, mr->fmr.size, &mr->fmr.dma_handle,
++					  GFP_KERNEL);
++	if (!mr->fmr.ptes) {
++		err = -ENOMEM;
++		goto err_free;
++	}
++
++	mr_params.pd_handle = pd->pd_handle;
++	mr_params.mr_type = GDMA_MR_TYPE_FMR;
++	mr_params.fmr.rsvd_pte_count = max_num_sg;
++
++	err = mana_ib_gd_create_mr(dev, mr, &mr_params);
++	if (err)
++		goto err_dma;
++
++	return &mr->ibmr;
++
++err_dma:
++	dma_free_coherent(gc->dev, mr->fmr.size, mr->fmr.ptes,
++			  mr->fmr.dma_handle);
++
++err_free:
++	kfree(mr);
++	return ERR_PTR(err);
++}
++
++static int mana_ib_set_page(struct ib_mr *ibmr, u64 addr)
++{
++	struct mana_ib_mr *mr = container_of(ibmr, struct mana_ib_mr, ibmr);
++
++	if (mr->fmr.pte_count >= mr->fmr.max_ptes)
++		return -ENOMEM;
++
++	mr->fmr.ptes[mr->fmr.pte_count] = addr | MANA_PTE_VALID_MASK;
++	mr->fmr.pte_count++;
++
++	return 0;
++}
++
++int mana_ib_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
++		      unsigned int *sg_offset)
++{
++	struct mana_ib_mr *mr = container_of(ibmr, struct mana_ib_mr, ibmr);
++
++	mr->fmr.pte_count = 0;
++
++	return ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, mana_ib_set_page);
++}
++
+ static int mana_ib_gd_create_mw(struct mana_ib_dev *dev, struct mana_ib_pd *pd, struct ib_mw *ibmw)
+ {
+ 	struct mana_ib_mw *mw = container_of(ibmw, struct mana_ib_mw, ibmw);
+@@ -352,6 +431,7 @@ int mana_ib_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
+ {
+ 	struct mana_ib_mr *mr = container_of(ibmr, struct mana_ib_mr, ibmr);
+ 	struct ib_device *ibdev = ibmr->device;
++	struct gdma_context *gc;
+ 	struct mana_ib_dev *dev;
+ 	int err;
+ 
+@@ -360,11 +440,16 @@ int mana_ib_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
+ 		return err;
+ 
+ 	dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
++	gc = mdev_to_gc(dev);
+ 
+ 	err = mana_ib_gd_destroy_mr(dev, mr->mr_handle);
+ 	if (err)
+ 		return err;
+ 
++	if (mr->fmr.ptes)
++		dma_free_coherent(gc->dev, mr->fmr.size, mr->fmr.ptes,
++				  mr->fmr.dma_handle);
++
+ 	if (mr->umem)
+ 		ib_umem_release(mr->umem);
+ 
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index 2a28fcaa637d..332f394b82e1 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -865,6 +865,8 @@ enum gdma_mr_access_flags {
+ 	GDMA_ACCESS_FLAG_REMOTE_WRITE = BIT_ULL(3),
+ 	GDMA_ACCESS_FLAG_REMOTE_ATOMIC = BIT_ULL(4),
+ 	GDMA_ACCESS_FLAG_BIND_MW = BIT_ULL(5),
++	GDMA_ACCESS_FLAG_INVALIDATE = BIT_ULL(6),
++	GDMA_ACCESS_FLAG_FMR = BIT_ULL(7),
+ };
+ 
+ /* GDMA_CREATE_DMA_REGION */
+@@ -917,6 +919,7 @@ struct gdma_destroy_dma_region_req {
+ 
+ enum gdma_pd_flags {
+ 	GDMA_PD_FLAG_ALLOW_GPA_MR = BIT(0),
++	GDMA_PD_FLAG_ALLOW_FMR_MR = BIT(1),
+ 	GDMA_PD_FLAG_SHORT_PDN = BIT(2),
+ };
+ 
+@@ -953,6 +956,11 @@ enum gdma_mr_type {
+ 	 * address that is set up in the MST
+ 	 */
+ 	GDMA_MR_TYPE_GVA = 2,
++	/* Fast Memory - MRs are initially put in the free state,
++	 * and the specified number of PTEs are reserved for future fast
++	 * memory registrations
++	 */
++	GDMA_MR_TYPE_FMR = 3,
+ 	/* Guest zero-based address MRs */
+ 	GDMA_MR_TYPE_ZBVA = 4,
+ 	/* Device address MRs */
+@@ -982,6 +990,9 @@ struct gdma_create_mr_params {
+ 			u64 length;
+ 			enum gdma_mr_access_flags access_flags;
+ 		} da;
++		struct {
++			u32 rsvd_pte_count;
++		} fmr;
+ 	};
+ };
+ 
+@@ -1006,6 +1017,10 @@ struct gdma_create_mr_request {
+ 			u64 offset;
+ 			enum gdma_mr_access_flags access_flags;
+ 		} __packed da;
++		struct {
++			u32 page_size;
++			u32 rsvd_pte_count;
++		} __packed fmr;
+ 	} __packed;
+ 	u32 reserved_2;
+ 	union {
 -- 
 2.43.0
